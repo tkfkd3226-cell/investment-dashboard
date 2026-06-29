@@ -5,7 +5,1272 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>투자 성과 대시보드</title>
 <style>
-:root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#6b7280;--line:#d7dce5;--blue:#1f5eff;--green:#16a34a;--red:#dc2626;--navy:#0f172a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,-apple-system,sans-serif;line-height:1.45}.switcher{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:10px 14px;background:linear-gradient(135deg,#111827,#1f2937 55%,#0f172a);border-bottom:1px solid rgba(255,255,255,.12);box-shadow:0 8px 24px rgba(0,0,0,.22)}.date-link{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:7px 12px;border:1px solid rgba(255,255,255,.28);border-radius:999px;color:#dbeafe;background:rgba(255,255,255,.08);font-size:13px;font-weight:900;text-decoration:none;white-space:nowrap;cursor:pointer}.date-link.active{background:#fff;color:#111827;border-color:#fff}
+:root{
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --ink:#172033;
+  --muted:#6b7280;
+  --line:#d7dce5;
+  --blue:#1f5eff;
+  --green:#16a34a;
+  --red:#dc2626;
+  --amber:#d97706;
+  --navy:#0f172a;
+  --soft-blue:#eaf2ff;
+  --soft-green:#eaf7ee;
+  --soft-red:#fff1f1;
+  --soft-amber:#fff7e6;
+  --soft-purple:#f4efff;
+  --soft-gray:#eef1f5;
+  --black:#111827;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,-apple-system,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.45;
+}
+
+.wrap{
+  max-width:1680px;
+  margin:0 auto;
+  padding:24px;
+}
+
+.hero{
+  background:linear-gradient(135deg,#111827 0%,#1f2937 50%,#0f172a 100%);
+  color:#fff;
+  border-radius:22px;
+  padding:28px 30px;
+  box-shadow:0 16px 40px rgba(15,23,42,.22);
+  position:relative;
+  overflow:hidden;
+}
+
+.hero:after{
+  content:"";
+  position:absolute;
+  right:-110px;
+  top:-80px;
+  width:330px;
+  height:330px;
+  border-radius:999px;
+  background:rgba(59,130,246,.25);
+}
+
+.hero h1{
+  margin:0 0 8px;
+  font-size:30px;
+  letter-spacing:-.04em;
+}
+
+.hero p{
+  margin:0;
+  color:#d1d5db;
+  font-size:15px;
+}
+
+.grid{
+  display:grid;
+  gap:16px;
+}
+
+.cards{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  margin-top:18px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.card.dark{
+  background:#111827;
+  color:white;
+  border-color:#111827;
+}
+
+.label{
+  font-size:13px;
+  color:var(--muted);
+  font-weight:700;
+  margin-bottom:7px;
+}
+
+.dark .label{
+  color:#cbd5e1;
+}
+
+.value{
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+
+.sub{
+  font-size:13px;
+  color:var(--muted);
+  margin-top:5px;
+}
+
+.dark .sub{
+  color:#cbd5e1;
+}
+
+.positive{
+  color:var(--green) !important;
+}
+
+.negative{
+  color:var(--red) !important;
+}
+
+.blue{
+  color:var(--blue) !important;
+}
+
+section{
+  margin-top:22px;
+}
+
+.section-title{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 0 12px;
+}
+
+.section-title h2{
+  margin:0;
+  font-size:22px;
+  letter-spacing:-.04em;
+}
+
+.section-title p{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+}
+
+table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  font-size:13px;
+  background:white;
+  border:1px solid var(--line);
+  border-radius:16px;
+  overflow:hidden;
+}
+
+th, td{
+  padding:9px 10px;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  vertical-align:middle;
+}
+
+th:last-child, td:last-child{
+  border-right:0;
+}
+
+tr:last-child td{
+  border-bottom:0;
+}
+
+thead th{
+  background:#f1f5f9;
+  color:#111827;
+  font-weight:900;
+  text-align:center;
+  white-space:nowrap;
+}
+
+td.num{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+
+.small{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.ticker-samsung{
+  background:#fff3d0;
+}
+
+.ticker-sk{
+  background:#ffe3e3;
+}
+
+.ticker-hyundai{
+  background:#e3f2ff;
+}
+
+.ticker-kodex{
+  background:#e9f7e9;
+}
+
+.ticker-mini{
+  background:#f0f2f5;
+}
+
+.summary-row td{
+  background:#f8fafc;
+  font-weight:900;
+}
+
+.hold-row td{
+  font-weight:800;
+}
+
+.note{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.note strong{
+  color:#111827;
+}
+
+.three{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+
+.pillbar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:14px;
+}
+
+.pill{
+  padding:7px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.2);
+  font-size:13px;
+  color:#f3f4f6;
+}
+
+.mobile-scroll{
+  overflow:auto;
+  border-radius:16px;
+}
+
+.mobile-scroll table{
+  min-width:980px;
+}
+
+.kpi-mini{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:10px;
+}
+
+.mini-card{
+  background:#f8fafc;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+}
+
+.mini-card .m-label{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:800;
+}
+
+.mini-card .m-value{
+  font-size:19px;
+  font-weight:900;
+  margin-top:2px;
+}
+
+.formula{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  background:#0f172a;
+  color:#e5e7eb;
+  border-radius:12px;
+  padding:12px;
+  overflow:auto;
+  font-size:12px;
+}
+
+.pension-band{
+  background:linear-gradient(135deg,#ecfdf5 0%,#eff6ff 52%,#fff7ed 100%);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:18px;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.bar-box{
+  height:12px;
+  background:#eef2f7;
+  border-radius:999px;
+  overflow:hidden;
+  border:1px solid #dbe2ec;
+}
+
+.bar-fill{
+  height:100%;
+  border-radius:999px;
+}
+
+.bar-green{
+  background:#22c55e;
+}
+
+.bar-blue{
+  background:#3b82f6;
+}
+
+.bar-amber{
+  background:#f59e0b;
+}
+
+.bar-gray{
+  background:#94a3b8;
+}
+
+.chart-hover-line{
+  pointer-events:none;
+}
+
+.svg-hitbox{
+  fill:transparent;
+  cursor:crosshair;
+}
+
+.dash-tooltip{
+  position:fixed;
+  z-index:9999;
+  min-width:210px;
+  max-width:320px;
+  background:rgba(15,23,42,.96);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:12px;
+  padding:10px 12px;
+  box-shadow:0 16px 36px rgba(0,0,0,.28);
+  font-size:12px;
+  line-height:1.5;
+  pointer-events:none;
+  opacity:0;
+  transform:translate(-50%,-110%);
+  transition:opacity .08s ease;
+}
+
+.dash-tooltip.visible{
+  opacity:1;
+}
+
+.dash-tooltip .tt-date{
+  font-weight:900;
+  font-size:13px;
+  margin-bottom:6px;
+  color:#fff;
+}
+
+.dash-tooltip .tt-row{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  white-space:nowrap;
+}
+
+.dash-tooltip .tt-name{
+  color:#cbd5e1;
+}
+
+.dash-tooltip .tt-val{
+  font-weight:800;
+  color:#fff;
+}
+
+.dash-tooltip .tt-pos{
+  color:#86efac;
+}
+
+.dash-tooltip .tt-neg{
+  color:#fca5a5;
+}
+
+.chart-grid{
+  grid-template-columns:1fr;
+  gap:18px;
+}
+
+.chart-card{
+  position:relative;
+  overflow:hidden;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.chart-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.chart-head h3{
+  margin:0;
+  font-size:18px;
+  letter-spacing:-.03em;
+}
+
+.chart-head p{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.chart-wrap{
+  width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+svg.chart{
+  width:100%;
+  min-width:960px;
+  height:330px;
+  display:block;
+  background:#fff;
+  border-radius:12px;
+}
+
+.chart-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  margin-top:10px;
+  font-size:12px;
+  color:#555;
+}
+
+.legend-item{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+
+.swatch{
+  width:12px;
+  height:12px;
+  border-radius:3px;
+  display:inline-block;
+}
+
+.chart-note{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  width:100%;
+  min-width:0;
+  margin-top:12px;
+}
+
+.chart-note .mini-card{
+  background:#f8fafc;
+}
+
+@media (max-width:900px){
+  .chart-note{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+@media (max-width:1100px){
+  .cards, .three, .two{
+    grid-template-columns:1fr;
+  }
+
+  .value{
+    font-size:24px;
+  }
+
+  .wrap{
+    padding:14px;
+  }
+}
+
+@media print{
+  body{
+    background:white;
+  }
+
+  .card, .note, .hero, table{
+    box-shadow:none;
+  }
+
+  .wrap{
+    max-width:none;
+    padding:8px;
+  }
+}
+
+.two{
+  grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);
+  width:100%;
+}
+
+.two > *, .pension-detail-grid > *, .chart-card, .chart-wrap{
+  min-width:0;
+}
+
+.pension-detail-grid{
+  width:100%;
+  align-items:stretch;
+}
+
+.pension-detail-grid .note{
+  width:100%;
+  height:100%;
+}
+
+.pension-detail-grid .mobile-scroll{
+  width:100%;
+  min-width:0;
+}
+
+.pension-change-note{
+  overflow:hidden;
+}
+
+.change-kpis{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:10px;
+}
+
+.change-table-wrap{
+  width:100%;
+  overflow-x:auto;
+  border-radius:12px;
+  margin-top:12px;
+  -webkit-overflow-scrolling:touch;
+}
+
+.change-table{
+  min-width:0 !important;
+  table-layout:fixed;
+  font-size:12px !important;
+  margin:0 !important;
+  border-radius:12px !important;
+}
+
+.change-table th:nth-child(1){
+  width:25%;
+}
+
+.change-table th:nth-child(2), .change-table th:nth-child(3){
+  width:28%;
+}
+
+.change-table th:nth-child(4){
+  width:19%;
+}
+
+.change-price{
+  display:block;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.change-eval{
+  display:block;
+  margin-top:2px;
+  color:var(--muted);
+  font-size:11px;
+  white-space:nowrap;
+}
+
+.change-mobile-list{
+  display:none;
+}
+
+.change-product-card{
+  background:#f8fafc;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:13px;
+}
+
+.change-product-title{
+  font-size:14px;
+  font-weight:900;
+  margin-bottom:9px;
+  color:#111827;
+}
+
+.change-product-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  padding:5px 0;
+  border-top:1px dashed #dbe2ec;
+  font-size:12px;
+}
+
+.change-product-row:first-of-type{
+  border-top:0;
+}
+
+.change-product-label{
+  color:var(--muted);
+  font-weight:700;
+}
+
+.change-product-value{
+  text-align:right;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+}
+
+@media (max-width:1100px){
+  .pension-detail-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width:700px){
+  .change-kpis{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .desktop-change-table{
+    display:none;
+  }
+
+  .change-mobile-list{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+    margin-top:12px;
+  }
+
+  .chart-note{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .chart-note .mini-card{
+    min-width:0;
+  }
+
+  .chart-note .m-value{
+    overflow-wrap:anywhere;
+  }
+
+  svg.chart{
+    min-width:760px;
+  }
+}
+
+@media (max-width:420px){
+  .change-kpis{
+    grid-template-columns:1fr;
+  }
+
+  .chart-note{
+    grid-template-columns:1fr;
+  }
+
+  .mini-card .m-value{
+    font-size:18px;
+  }
+}
+
+.result-summary-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr)) !important;
+  align-items:stretch;
+}
+
+.result-summary-grid > .note{
+  min-width:0;
+  width:100%;
+}
+
+.result-summary-grid .kpi-mini, .result-summary-grid .mini-card{
+  min-width:0;
+}
+
+.result-summary-grid .m-value{
+  word-break:keep-all;
+  overflow-wrap:normal;
+  font-variant-numeric:tabular-nums;
+}
+
+@media (max-width:520px){
+  .result-summary-grid{
+    grid-template-columns:1fr !important;
+  }
+
+  .result-summary-grid .kpi-mini{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .result-summary-grid .m-value{
+    font-size:clamp(16px,4.5vw,19px);
+  }
+}
+
+@media (min-width:1101px) and (max-width:1250px){
+  .pension-detail-grid{
+    grid-template-columns:1fr !important;
+  }
+
+  .pension-products-note .mobile-scroll table{
+    min-width:0 !important;
+    width:100% !important;
+  }
+}
+
+.scroll-hint{
+  display:none;
+}
+
+.mobile-scroll.is-scrollable, .chart-wrap.is-scrollable{
+  box-shadow:inset -20px 0 18px -22px rgba(15,23,42,.8);
+}
+
+@media (max-width:900px){
+  .scroll-hint{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:6px;
+    margin:0 2px 7px;
+    color:#475569;
+    font-size:12px;
+    font-weight:800;
+  }
+
+  .scroll-hint::before{
+    content:"↔";
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:24px;
+    height:24px;
+    border-radius:999px;
+    background:#e2e8f0;
+    color:#0f172a;
+    font-size:14px;
+  }
+
+  .mobile-scroll.is-scrollable, .chart-wrap.is-scrollable{
+    border-right:3px solid #94a3b8;
+  }
+}
+
+.symbol-summary-grid .mini-card{
+  padding:14px;
+}
+
+.symbol-summary-grid .m-value{
+  margin-top:4px;
+  margin-bottom:10px;
+  white-space:nowrap;
+}
+
+.symbol-metrics{
+  display:grid;
+  gap:6px;
+  padding-top:9px;
+  border-top:1px solid var(--line);
+}
+
+.symbol-metric{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-width:0;
+}
+
+.symbol-metric-label{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+}
+
+.symbol-metric-value{
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+
+.symbol-summary-note{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:11px;
+}
+
+@media (max-width:520px){
+  .symbol-metric{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:1px;
+  }
+}
+
+.change-table tbody td:nth-child(4){
+  text-align:right !important;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+
+@media (max-width:900px){
+  .combined-performance-table, .account-summary-table{
+    width:max-content !important;
+    min-width:max-content !important;
+    table-layout:auto !important;
+    font-size:12px !important;
+  }
+
+  .combined-performance-table th, .combined-performance-table td, .account-summary-table th, .account-summary-table td{
+    padding:7px 8px !important;
+    white-space:nowrap;
+  }
+
+  .combined-performance-table th:first-child, .combined-performance-table td:first-child{
+    min-width:112px;
+  }
+
+  .account-summary-table th:last-child, .account-summary-table td:last-child{
+    min-width:165px;
+    max-width:210px;
+    white-space:normal;
+    line-height:1.4;
+  }
+}
+
+@media (max-width:900px){
+  .pension-products-table{
+    width:max-content !important;
+    min-width:max-content !important;
+    table-layout:auto !important;
+    font-size:11px !important;
+  }
+
+  .pension-products-table th, .pension-products-table td{
+    padding:6px 7px !important;
+    white-space:nowrap !important;
+  }
+
+  .pension-products-table th:nth-child(2), .pension-products-table td:nth-child(2){
+    min-width:42px !important;
+  }
+
+  .pension-products-table th:nth-child(3), .pension-products-table td:nth-child(3){
+    min-width:68px !important;
+  }
+
+  .pension-products-table th:nth-child(4), .pension-products-table td:nth-child(4), .pension-products-table th:nth-child(5), .pension-products-table td:nth-child(5), .pension-products-table th:nth-child(6), .pension-products-table td:nth-child(6){
+    min-width:88px !important;
+  }
+
+  .pension-products-table th:nth-child(7), .pension-products-table td:nth-child(7){
+    min-width:62px !important;
+  }
+
+  .pension-products-table th:nth-child(8), .pension-products-table td:nth-child(8){
+    min-width:78px !important;
+  }
+
+  .pension-products-table .bar-box{
+    width:64px !important;
+    min-width:64px !important;
+  }
+}
+
+@media (max-width:900px){
+  .pension-products-table th:first-child, .pension-products-table td:first-child, .combined-performance-table th:first-child, .combined-performance-table td:first-child, .account-summary-table th:first-child, .account-summary-table td:first-child, .hold-position-table th:first-child, .hold-position-table td:first-child{
+    position:sticky;
+    left:0;
+    z-index:3;
+    box-shadow:8px 0 10px -10px rgba(15,23,42,.35);
+    background-clip:padding-box;
+  }
+
+  .pension-products-table thead th:first-child, .combined-performance-table thead th:first-child, .account-summary-table thead th:first-child, .hold-position-table thead th:first-child{
+    background:#f1f5f9 !important;
+    z-index:5;
+  }
+
+  .pension-products-table tbody td:first-child{
+    background:#fff !important;
+    z-index:2;
+  }
+
+  .pension-products-table tbody tr.summary-row td:first-child{
+    background:#f8fafc !important;
+    z-index:4;
+  }
+
+  .combined-performance-table tbody td:first-child, .account-summary-table tbody td:first-child{
+    background:#fff !important;
+    z-index:2;
+  }
+
+  .combined-performance-table tbody tr.summary-row td:first-child, .account-summary-table tbody tr.summary-row td:first-child{
+    background:#f8fafc !important;
+    z-index:4;
+  }
+
+  .hold-position-table tbody td:first-child{
+    background:#fff !important;
+    z-index:2;
+  }
+
+  .hold-position-table tbody tr.ticker-samsung td:first-child{
+    background:#fff3d0 !important;
+  }
+
+  .hold-position-table tbody tr.ticker-sk td:first-child{
+    background:#ffe3e3 !important;
+  }
+
+  .hold-position-table tbody tr.ticker-hyundai td:first-child{
+    background:#e3f2ff !important;
+  }
+
+  .hold-position-table tbody tr.ticker-kodex td:first-child{
+    background:#e9f7e9 !important;
+  }
+
+  .hold-position-table tbody tr.ticker-mini td:first-child{
+    background:#f0f2f5 !important;
+  }
+
+  .hold-position-table tbody tr.summary-row td:first-child{
+    background:#f8fafc !important;
+    z-index:4;
+  }
+}
+
+@media (max-width:900px){
+  .pension-products-table, .combined-performance-table, .account-summary-table, .hold-position-table{
+    overflow:visible !important;
+  }
+}
+
+@media (min-width:1251px){
+  .pension-detail-grid{
+    grid-template-columns:minmax(0,1.56fr) minmax(480px,.72fr);
+  }
+
+  .pension-products-note .mobile-scroll{
+    overflow:visible;
+  }
+
+  .pension-products-note .mobile-scroll table{
+    min-width:0;
+    width:100%;
+    table-layout:fixed;
+    font-size:12px;
+  }
+
+  .pension-products-note th, .pension-products-note td{
+    padding:8px 7px;
+  }
+
+  .pension-products-note th:nth-child(1){
+    width:20%;
+  }
+
+  .pension-products-note th:nth-child(2){
+    width:7%;
+  }
+
+  .pension-products-note th:nth-child(3){
+    width:10%;
+  }
+
+  .pension-products-note th:nth-child(4){
+    width:14%;
+  }
+
+  .pension-products-note th:nth-child(5){
+    width:14%;
+  }
+
+  .pension-products-note th:nth-child(6){
+    width:14%;
+  }
+
+  .pension-products-note th:nth-child(7){
+    width:13%;
+  }
+
+  .pension-products-note th:nth-child(8){
+    width:8%;
+  }
+
+  .pension-products-note th:first-child, .pension-products-note td:first-child{
+    white-space:nowrap;
+  }
+
+  .change-table{
+    table-layout:fixed;
+    font-size:11px;
+  }
+
+  .change-table th:nth-child(1), .change-table td:nth-child(1){
+    width:28%;
+    white-space:nowrap;
+    font-size:10.8px;
+    letter-spacing:-.03em;
+  }
+
+  .change-table th:nth-child(2), .change-table td:nth-child(2), .change-table th:nth-child(3), .change-table td:nth-child(3), .change-table th:nth-child(4), .change-table td:nth-child(4){
+    width:24%;
+  }
+}
+
+.chart-note.six{
+  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+}
+
+.chart-note.six .day-value{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  line-height:1.3;
+}
+
+.chart-note.six .m-detail{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+  line-height:1.35;
+}
+
+@media (max-width:1100px){
+  .chart-note.six{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  }
+}
+
+@media (max-width:700px){
+  .chart-note.six{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
+@media (max-width:1100px){
+  .wrap{
+    padding:7px !important;
+  }
+
+  .hero{
+    padding:14px 15px !important;
+  }
+
+  .card, .note, .chart-card, .pension-band{
+    padding:9px !important;
+  }
+}
+
+@media (max-width:900px){
+  .chart-note.six .m-value{
+    font-size:15px !important;
+    line-height:1.22 !important;
+    letter-spacing:-.025em;
+  }
+
+  .chart-note.six .day-value{
+    gap:1px !important;
+  }
+
+  .chart-note.six .m-detail{
+    font-size:9.5px !important;
+    line-height:1.25 !important;
+  }
+
+  .hold-position-table{
+    table-layout:auto !important;
+  }
+
+  .hold-position-table th:first-child, .hold-position-table td:first-child, .account-summary-table th:first-child, .account-summary-table td:first-child, .pension-products-table th:first-child, .pension-products-table td:first-child{
+    width:1% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    padding-left:6px !important;
+    padding-right:6px !important;
+    white-space:nowrap !important;
+  }
+}
+
+@media (max-width:420px){
+  .chart-note.six .m-value{
+    font-size:14px !important;
+  }
+
+  .chart-note.six .m-detail{
+    font-size:9px !important;
+  }
+}
+
+.chart-note.symbol-summary-grid{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  width:100% !important;
+}
+
+@media (max-width:900px){
+  .chart-note.symbol-summary-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:8px !important;
+  }
+
+  .chart-note.symbol-summary-grid > .mini-card{
+    min-width:0 !important;
+    width:auto !important;
+    padding:10px !important;
+  }
+
+  .chart-note.symbol-summary-grid .m-label{
+    font-size:11px !important;
+  }
+
+  .chart-note.symbol-summary-grid .m-value{
+    font-size:15px !important;
+    line-height:1.2 !important;
+    white-space:nowrap !important;
+  }
+
+  .chart-note.symbol-summary-grid .symbol-metric{
+    gap:4px !important;
+  }
+
+  .chart-note.symbol-summary-grid .symbol-metric-label{
+    font-size:9.5px !important;
+  }
+
+  .chart-note.symbol-summary-grid .symbol-metric-value{
+    font-size:11px !important;
+  }
+}
+
+
+
+
+  @media(max-width:900px){
+    .chart-note.symbol-summary-grid{
+      display:grid!important;
+      grid-template-columns:repeat(2,minmax(0,1fr))!important;
+      grid-auto-flow:row!important;
+      gap:8px!important;
+      width:100%!important;
+    }
+    .chart-note.symbol-summary-grid > .mini-card{
+      display:block!important;
+      width:auto!important;
+      min-width:0!important;
+      max-width:none!important;
+      margin:0!important;
+      padding:9px!important;
+      box-sizing:border-box!important;
+    }
+    .chart-note.symbol-summary-grid .m-label{
+      font-size:10.5px!important;
+    }
+    .chart-note.symbol-summary-grid .m-value{
+      font-size:14px!important;
+      line-height:1.18!important;
+      white-space:nowrap!important;
+      letter-spacing:-.035em!important;
+    }
+    .chart-note.symbol-summary-grid .symbol-metric{
+      display:flex!important;
+      flex-direction:column!important;
+      align-items:flex-start!important;
+      gap:1px!important;
+    }
+    .chart-note.symbol-summary-grid .symbol-metric-label{
+      font-size:9px!important;
+    }
+    .chart-note.symbol-summary-grid .symbol-metric-value{
+      font-size:10.5px!important;
+      white-space:nowrap!important;
+    }
+  }
+
+/* 계좌+연금 성과표: 첫 번째 컬럼은 글자 길이에 맞게 최소 폭으로 조정 */
+.combined-performance-table th:first-child,
+.combined-performance-table td:first-child{
+  width:1% !important;
+  min-width:0 !important;
+  max-width:none !important;
+  white-space:nowrap !important;
+  padding-left:8px !important;
+  padding-right:8px !important;
+}
+
+
+
+/* 자동화 버전 추가: 모바일 기준일 선택 메뉴 */
+.switcher{
+  position:sticky;
+  top:0;
+  z-index:30;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:10px 14px;
+  background:linear-gradient(135deg,#111827 0%,#1f2937 55%,#0f172a 100%);
+  border-bottom:1px solid rgba(255,255,255,.12);
+  box-shadow:0 8px 24px rgba(0,0,0,.22);
+}
+.date-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:38px;
+  padding:7px 12px;
+  border:1px solid rgba(255,255,255,.28);
+  border-radius:999px;
+  color:#dbeafe;
+  background:rgba(255,255,255,.08);
+  font-size:13px;
+  font-weight:800;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.date-link.active{background:#fff;color:#111827;border-color:#fff}
 .mobile-date-select{display:none;width:100%;max-width:520px;position:relative}
 .mobile-date-button{width:100%;min-height:42px;border:1px solid rgba(255,255,255,.28);border-radius:14px;background:rgba(255,255,255,.1);color:#fff;font-weight:900;font-size:14px;padding:9px 40px 9px 12px;text-align:left;cursor:pointer}
 .mobile-date-button:after{content:"▾";position:absolute;right:14px;top:10px;color:#dbeafe;font-size:14px}
@@ -13,12 +1278,13 @@
 .mobile-date-options.open{display:block}
 .mobile-date-option{display:block;width:100%;border:0;background:#fff;color:#111827;text-align:left;padding:12px 14px;font-weight:800;font-size:14px;border-bottom:1px solid var(--line);cursor:pointer}
 .mobile-date-option:last-child{border-bottom:0}
-.mobile-date-option.active{background:#111827;color:#fff}.wrap{max-width:1680px;margin:0 auto;padding:24px}.hero{background:linear-gradient(135deg,#111827 0%,#1f2937 50%,#0f172a 100%);color:#fff;border-radius:22px;padding:28px 30px;box-shadow:0 16px 40px rgba(15,23,42,.22)}.hero h1{margin:0 0 8px;font-size:30px;letter-spacing:-.04em}.hero p{margin:0;color:#d1d5db;font-size:15px}.pillbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.pill{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);font-size:13px;color:#f3f4f6}.grid{display:grid;gap:16px}.cards{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:18px}.card,.note,.chart-card,.pension-band{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 22px rgba(15,23,42,.06)}.card.dark{background:#111827;color:white;border-color:#111827}.label,.m-label{font-size:13px;color:var(--muted);font-weight:800;margin-bottom:7px}.dark .label{color:#cbd5e1}.value{font-size:28px;font-weight:900;letter-spacing:-.04em}.sub{font-size:13px;color:var(--muted);margin-top:5px}.dark .sub{color:#cbd5e1}.positive{color:var(--green)!important}.negative{color:var(--red)!important}.blue{color:var(--blue)!important}section{margin-top:22px}.section-title{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 0 12px}.section-title h2{margin:0;font-size:22px;letter-spacing:-.04em}.section-title p{margin:0;color:var(--muted);font-size:13px}.mobile-scroll{overflow:auto;border-radius:16px}.mobile-scroll table{min-width:980px}table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;background:white;border:1px solid var(--line);border-radius:16px;overflow:hidden}th,td{padding:9px 10px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:middle}th:last-child,td:last-child{border-right:0}tr:last-child td{border-bottom:0}thead th{background:#f1f5f9;color:#111827;font-weight:900;text-align:center;white-space:nowrap}td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.small{font-size:12px;color:var(--muted)}.summary-row td{background:#f8fafc;font-weight:900}.hold-row td{font-weight:800}.ticker-samsung{background:#fff3d0}.ticker-sk{background:#ffe3e3}.ticker-hyundai{background:#e3f2ff}.ticker-kodex{background:#e9f7e9}.ticker-mini{background:#f0f2f5}.pension-band{background:linear-gradient(135deg,#ecfdf5 0%,#eff6ff 52%,#fff7ed 100%)}.two{grid-template-columns:minmax(0,1.56fr) minmax(480px,.72fr)}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.kpi-mini,.change-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}.mini-card{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}.mini-card .m-label{font-size:12px;margin:0}.mini-card .m-value{font-size:19px;font-weight:900;margin-top:2px}.formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#0f172a;color:#e5e7eb;border-radius:12px;padding:12px;overflow:auto;font-size:12px;white-space:pre-wrap}.bar-box{height:12px;background:#eef2f7;border-radius:999px;overflow:hidden;border:1px solid #dbe2ec}.bar-fill{height:100%;border-radius:999px}.bar-blue{background:#3b82f6}.bar-green{background:#22c55e}.bar-amber{background:#f59e0b}.bar-gray{background:#94a3b8}.chart-grid{grid-template-columns:1fr;gap:18px}.chart-head h3{margin:0;font-size:18px;letter-spacing:-.03em}.chart-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.chart-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}svg.chart{width:100%;min-width:960px;height:330px;display:block;background:#fff;border-radius:12px}.chart-legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px;font-size:12px;color:#555}.legend-item{display:inline-flex;align-items:center;gap:5px}.swatch{width:12px;height:12px;border-radius:3px;display:inline-block}.chart-note{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:100%;min-width:0;margin-top:12px}.chart-note.six{grid-template-columns:repeat(6,minmax(0,1fr))!important}.chart-note.symbol-summary-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;width:100%!important}.symbol-metrics{display:grid;gap:6px;padding-top:9px;border-top:1px solid var(--line)}.symbol-metric{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}.symbol-metric-label{color:var(--muted);font-size:11px;font-weight:800}.symbol-metric-value{font-size:12px;font-weight:900;white-space:nowrap}.symbol-summary-note{margin-top:8px;color:var(--muted);font-size:11px}.result-summary-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr))!important;align-items:stretch}.dash-tooltip{position:fixed;z-index:9999;min-width:210px;max-width:320px;background:rgba(15,23,42,.96);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:10px 12px;box-shadow:0 16px 36px rgba(0,0,0,.28);font-size:12px;line-height:1.5;pointer-events:none;opacity:0;transform:translate(-50%,-110%);transition:opacity .08s ease}.dash-tooltip.visible{opacity:1}.tt-date{font-weight:900;font-size:13px;margin-bottom:6px}.tt-row{display:flex;justify-content:space-between;gap:16px;white-space:nowrap}.tt-name{color:#cbd5e1}.tt-val{font-weight:800}.tt-pos{color:#86efac}.tt-neg{color:#fca5a5}@media(max-width:1100px){.cards,.three,.two{grid-template-columns:1fr}.wrap{padding:7px!important}.hero{padding:14px 15px!important}.card,.note,.chart-card,.pension-band{padding:9px!important}.value{font-size:24px}}@media(max-width:900px){.chart-note.six{grid-template-columns:repeat(2,minmax(0,1fr))!important}.chart-note.symbol-summary-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-flow:row!important;gap:8px!important;width:100%!important}.chart-note.symbol-summary-grid>.mini-card{display:block!important;width:auto!important;min-width:0!important;max-width:none!important;margin:0!important;padding:9px!important;box-sizing:border-box!important}.chart-note.symbol-summary-grid .m-label{font-size:10.5px!important}.chart-note.symbol-summary-grid .m-value{font-size:14px!important;line-height:1.18!important;white-space:nowrap!important;letter-spacing:-.035em!important}.chart-note.symbol-summary-grid .symbol-metric{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:1px!important}.combined-performance-table,.account-summary-table,.pension-products-table{width:max-content!important;min-width:max-content!important;table-layout:auto!important;font-size:12px!important}.combined-performance-table th,.combined-performance-table td,.account-summary-table th,.account-summary-table td,.pension-products-table th,.pension-products-table td{padding:7px 8px!important;white-space:nowrap}.pension-products-table th:first-child,.pension-products-table td:first-child,.combined-performance-table th:first-child,.combined-performance-table td:first-child,.account-summary-table th:first-child,.account-summary-table td:first-child,.hold-position-table th:first-child,.hold-position-table td:first-child{position:sticky;left:0;z-index:3;box-shadow:8px 0 10px -10px rgba(15,23,42,.35);background-clip:padding-box;width:1%!important;min-width:0!important;max-width:none!important;padding-left:6px!important;padding-right:6px!important;white-space:nowrap!important}thead th:first-child{background:#f1f5f9!important;z-index:5}tbody td:first-child{background:#fff!important}.ticker-samsung td:first-child{background:#fff3d0!important}.ticker-sk td:first-child{background:#ffe3e3!important}.ticker-hyundai td:first-child{background:#e3f2ff!important}.ticker-kodex td:first-child{background:#e9f7e9!important}.ticker-mini td:first-child{background:#f0f2f5!important}.summary-row td:first-child{background:#f8fafc!important}}
+.mobile-date-option.active{background:#111827;color:#fff}
 @media(max-width:760px){
   .switcher{justify-content:stretch;flex-wrap:nowrap;padding:9px 10px}
   .switcher .date-link{display:none}
   .mobile-date-select{display:block}
 }
+
 </style>
 </head>
 <body>
@@ -32,7 +1298,7 @@ let PORTFOLIO,PRICES,SNAPSHOTS,ACTIVE_DATE;const fmt=n=>Math.round(Number(n)||0)
     const time=snap.updatedAtKST?snap.updatedAtKST.slice(11,16):'';
     return `${Number(m)}월 ${Number(day)}일 장중 ${time} 기준`;
   }
-  return `${Number(m)}월 ${Number(day)}일 KRX 종가 기준`;
+  return `${Number(m)}월 ${Number(day)}일 종가 기준`;
 },
 basisText=d=>{
   const snap=PRICES?.[d]||{};
@@ -41,7 +1307,7 @@ basisText=d=>{
     const time=snap.updatedAtKST?snap.updatedAtKST.slice(11,16):'';
     return `장중 ${time} 기준`;
   }
-  return 'KRX 종가 기준';
+  return '종가 기준';
 }
 function previousDate(date){return Object.keys(PRICES).filter(d=>d<date).sort(byDate).at(-1)||null}function getPrice(s,section,ticker){return s?.[section]?.[ticker]??null}
 function calc(date){const p=PORTFOLIO,c=p.constants,s=PRICES[date],pk=previousDate(date),prev=pk?PRICES[pk]:null;const holdings=p.securities.map(h=>{const price=getPrice(s,'securities',h.ticker),prevPrice=prev?getPrice(prev,'securities',h.ticker):null,evalAmount=(price||0)*h.qty,profit=evalAmount-h.cost,feeAdjustedProfit=profit-(h.feeBuffer||0),prevProfit=prevPrice==null?null:prevPrice*h.qty-h.cost;return {...h,price,prevPrice,evalAmount,profit,feeAdjustedProfit,returnRate:h.cost?profit/h.cost*100:0,dayChange:prevPrice==null?null:(price-prevPrice)*h.qty,prevProfit}});const rawHoldingProfit=holdings.reduce((a,h)=>a+h.profit,0),account1Profit=rawHoldingProfit+c.account1ProfitAdjustment,account1Result=c.account1Principal+account1Profit,totalProfit=account1Profit+c.account2Profit+c.tossProfit,totalResult=c.externalPrincipal+totalProfit,returnRate=totalProfit/c.externalPrincipal*100,actualHolding=totalResult-c.livingSpent;const pensionRows=p.pension.map(pos=>{const price=getPrice(s,'pension',pos.ticker),prevPrice=prev?getPrice(prev,'pension',pos.ticker):null,evalAmount=(price||0)*pos.qty,profit=evalAmount-pos.cost,prevEval=prevPrice==null?null:prevPrice*pos.qty;return {...pos,price,prevPrice,evalAmount,profit,returnRate:pos.cost?profit/pos.cost*100:0,dayChange:prevEval==null?null:evalAmount-prevEval,prevEval}});const pensionCash=Number(s?.pension?.cash||0),prevPensionCash=Number(prev?.pension?.cash||0),pensionEval=pensionRows.reduce((a,r)=>a+r.evalAmount,0)+pensionCash,pensionPrevEval=prev?pensionRows.reduce((a,r)=>a+(r.prevEval||0),0)+prevPensionCash:null,pensionProfit=pensionEval-c.pensionContributionPrincipal,pensionReturn=pensionProfit/c.pensionContributionPrincipal*100,combinedPrincipal=c.externalPrincipal+c.pensionContributionPrincipal,combinedResult=totalResult+pensionEval,combinedProfit=totalProfit+pensionProfit,combinedReturn=combinedProfit/combinedPrincipal*100,etfEval=holdings.filter(h=>h.type==='ETF').reduce((a,h)=>a+h.evalAmount,0),stockEval=holdings.filter(h=>h.type==='개별주식').reduce((a,h)=>a+h.evalAmount,0),allocTotal=etfEval+stockEval+c.securitiesCash;return {date,s,prevKey:pk,prev,holdings,rawHoldingProfit,account1Profit,account1Result,totalProfit,totalResult,returnRate,actualHolding,pensionRows,pensionCash,prevPensionCash,pensionEval,pensionPrevEval,pensionProfit,pensionReturn,combinedPrincipal,combinedResult,combinedProfit,combinedReturn,etfEval,stockEval,allocTotal}}
@@ -77,16 +1343,132 @@ function renderTabs(){
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero"><h1>${PORTFOLIO.meta.title}</h1><p>현재 보유분은 가격으로 자동 계산하고, 과거 차트는 실제 장부 스냅샷을 기준으로 표시.</p><div class="pillbar"><span class="pill">전체 외부투입원금 ${won(c.externalPrincipal)}</span><span class="pill">총 합산 누적손익 ${won(x.totalProfit)}</span><span class="pill">투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">전체 투자 결과물 ${won(x.totalResult)}</span><span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span></div></header><div class="grid cards">${metricCard('전체 투자 결과물',won(x.totalResult),'외부투입원금 + 총 합산 누적손익',true)}${metricCard('전체 외부투입원금',won(c.externalPrincipal),`금 판매액 ${fmt(c.goldPrincipal)} + 근로소득 순투입 ${fmt(c.laborNetPrincipal)}`)}${metricCard('총 합산 누적손익',won(x.totalProfit),'계좌1 + 계좌2 + 토스증권',false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 전체 외부투입원금',false,'blue')}</div>${renderPension(x)}${renderCharts(x)}${renderAccounts(x)}${renderResultSummary(x)}${renderHoldings(x)}${renderSourceTables()}</div>`;drawAllCharts()}
-function renderPension(x){const c=PORTFOLIO.constants,day=x.pensionPrevEval==null?null:x.pensionEval-x.pensionPrevEval,rate=x.pensionPrevEval?day/x.pensionPrevEval*100:0;return `<section><div class="section-title"><h2>퇴직연금 현황</h2><p>${shortDate(x.date)} ${basisText(x.date)}</p></div><div class="pension-band"><div class="grid cards" style="margin-top:0">${metricCard('퇴직연금 평가금액',won(x.pensionEval),`${shortDate(x.date)} ${basisText(x.date)}`,true)}${metricCard('퇴직연금 납입원금',won(c.pensionContributionPrincipal),'최초 납입 시점부터 누적 기준')}${metricCard('퇴직연금 운용수익',won(x.pensionProfit),'평가금액 - 납입원금',false,'positive')}${metricCard('퇴직연금 누적수익률',pct(x.pensionReturn),`${shortDate(x.date)} ${basisText(x.date)} 평가금액 ÷ 누적 납입원금 기준`,false,'blue')}</div><div class="grid two" style="margin-top:16px"><div class="note"><div class="section-title"><h2>${shortDate(x.date)} 기준 상품별 현황</h2></div><div class="mobile-scroll"><table class="pension-products-table"><thead><tr><th>상품</th><th>수량</th><th>평균단가</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th>수익률</th><th>비중</th></tr></thead><tbody>${x.pensionRows.map(r=>pensionRow(r,x.pensionEval)).join('')}${pensionCashRow(x.pensionCash,x.pensionEval)}<tr class="summary-row"><td>합계</td><td></td><td></td><td class="num">${fmt(x.pensionRows.reduce((a,r)=>a+r.cost,0)+x.pensionCash)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(x.pensionProfit)}">${fmt(x.pensionProfit)}</td><td class="num ${cls(x.pensionReturn)}">${pct(x.pensionReturn)}</td><td></td></tr></tbody></table></div><p class="small" style="margin-top:10px">※ 매수원금 합계는 현재 보유상품 재투자 기준</p></div><div class="note"><div class="section-title"><h2>전일 대비 변동</h2></div><div class="change-kpis"><div class="mini-card"><div class="m-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가금액</div><div class="m-value">${x.pensionPrevEval==null?'-':won(x.pensionPrevEval)}</div></div><div class="mini-card"><div class="m-label">${shortDate(x.date)} 평가금액</div><div class="m-value">${won(x.pensionEval)}</div></div><div class="mini-card"><div class="m-label">하루 변동분</div><div class="m-value ${cls(day)}">${day==null?'-':signed(day,'원')}</div></div><div class="mini-card"><div class="m-label">하루 변동률</div><div class="m-value ${cls(rate)}">${x.pensionPrevEval==null?'-':(rate>0?'+':'')+pct(rate)}</div></div></div><div class="mobile-scroll" style="margin-top:12px"><table><thead><tr><th>상품</th><th>${x.prevKey?shortDate(x.prevKey):'-'} 종가</th><th>${shortDate(x.date)} 종가</th><th>일변동</th></tr></thead><tbody>${x.pensionRows.map(r=>`<tr><td>${r.name}</td><td class="num">${r.prevPrice==null?'-':fmt(r.prevPrice)}<br><span class="small">${r.prevEval==null?'-':won(r.prevEval)}</span></td><td class="num">${fmt(r.price)}<br><span class="small">${won(r.evalAmount)}</span></td><td class="num ${cls(r.dayChange)}">${r.dayChange==null?'-':signed(r.dayChange)}</td></tr>`).join('')}<tr><td>현금성자산</td><td class="num">${won(x.prevPensionCash)}</td><td class="num">${won(x.pensionCash)}</td><td class="num ${cls(x.pensionCash-x.prevPensionCash)}">${signed(x.pensionCash-x.prevPensionCash)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${x.pensionPrevEval==null?'-':fmt(x.pensionPrevEval)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(day)}">${day==null?'-':signed(day)}</td></tr></tbody></table></div></div></div>${renderCombined(x)}</div></section>`}
-function pensionRow(r,total){const w=total?r.evalAmount/total*100:0;return `<tr><td><strong>${r.name}</strong></td><td class="num">${fmt(r.qty)}</td><td class="num">${fmt(r.cost/r.qty)}</td><td class="num">${fmt(r.cost)}</td><td class="num">${fmt(r.evalAmount)}</td><td class="num ${cls(r.profit)}">${fmt(r.profit)}</td><td class="num ${cls(r.returnRate)}">${pct(r.returnRate)}</td><td><div class="bar-box"><div class="bar-fill ${r.barClass}" style="width:${Math.max(0,Math.min(100,w)).toFixed(1)}%"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}function pensionCashRow(cash,total){const w=total?cash/total*100:0;return `<tr><td><strong>현금성자산</strong></td><td class="num">1</td><td class="num">${fmt(cash)}</td><td class="num">${fmt(cash)}</td><td class="num">${fmt(cash)}</td><td class="num">0</td><td class="num">0.00%</td><td><div class="bar-box"><div class="bar-fill bar-gray" style="width:${w.toFixed(1)}%"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}
+function renderPension(x){
+  const c=PORTFOLIO.constants,
+        day=x.pensionPrevEval==null?null:x.pensionEval-x.pensionPrevEval,
+        rate=x.pensionPrevEval?day/x.pensionPrevEval*100:0,
+        pensionCashCost=Number(c.pensionCashCost||39408),
+        pensionHeldCost=x.pensionRows.reduce((a,r)=>a+r.cost,0)+pensionCashCost,
+        pensionHeldProfit=x.pensionEval-pensionHeldCost,
+        pensionHeldReturn=pensionHeldCost?pensionHeldProfit/pensionHeldCost*100:0;
+  return `<section><div class="section-title"><h2>퇴직연금 현황</h2><p>${shortDate(x.date)} ${basisText(x.date)}</p></div><div class="pension-band"><div class="grid cards" style="margin-top:0">${metricCard('퇴직연금 평가금액',won(x.pensionEval),`${shortDate(x.date)} 추정 평가금액`,true)}${metricCard('퇴직연금 납입원금',won(c.pensionContributionPrincipal),'최초 납입 시점부터 누적 기준')}${metricCard('퇴직연금 운용수익',won(x.pensionProfit),'평가금액 - 납입원금',false,'positive')}${metricCard('퇴직연금 누적수익률',pct(x.pensionReturn),`${shortDate(x.date)} 추정 평가금액 ÷ 누적 납입원금 기준`,false,'blue')}</div><div class="grid two pension-detail-grid" style="margin-top:16px"><div class="note pension-products-note"><div class="section-title"><h2>${shortDate(x.date)} 기준 상품별 현황</h2></div><div class="mobile-scroll"><table class="pension-products-table"><thead><tr><th>상품</th><th>수량</th><th>평균단가</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th>수익률</th><th>비중</th></tr></thead><tbody>${x.pensionRows.map(r=>pensionRow(r,x.pensionEval)).join('')}${pensionCashRow(x.pensionCash,x.pensionEval,pensionCashCost)}<tr class="summary-row"><td>합계</td><td></td><td></td><td class="num">${fmt(pensionHeldCost)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(pensionHeldProfit)}">${fmt(pensionHeldProfit)}</td><td class="num ${cls(pensionHeldReturn)}">${pct(pensionHeldReturn)}</td><td></td></tr></tbody></table></div><p class="small" style="margin-top:10px">※ 매수원금 합계는 현재 보유상품 재투자 기준</p></div><div class="note pension-change-note"><div class="section-title"><h2>전일 대비 변동</h2></div><div class="change-kpis"><div class="mini-card"><div class="m-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가금액</div><div class="m-value">${x.pensionPrevEval==null?'-':won(x.pensionPrevEval)}</div></div><div class="mini-card"><div class="m-label">${shortDate(x.date)} 평가금액</div><div class="m-value">${won(x.pensionEval)}</div></div><div class="mini-card"><div class="m-label">하루 변동분</div><div class="m-value ${cls(day)}">${day==null?'-':signed(day,'원')}</div></div><div class="mini-card"><div class="m-label">하루 변동률</div><div class="m-value ${cls(rate)}">${x.pensionPrevEval==null?'-':(rate>0?'+':'')+pct(rate)}</div></div></div><div class="change-table-wrap desktop-change-table"><table class="change-table"><thead><tr><th>상품</th><th>${x.prevKey?shortDate(x.prevKey):'-'} 종가</th><th>${shortDate(x.date)} 종가</th><th>일변동</th></tr></thead><tbody>${x.pensionRows.map(r=>`<tr><td>${r.name}</td><td class="num"><span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span></td><td class="num"><span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span></td><td class="num ${cls(r.dayChange)}">${r.dayChange==null?'-':signed(r.dayChange)}</td></tr>`).join('')}<tr><td>현금성자산</td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.prevPensionCash)}</span></td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.pensionCash)}</span></td><td class="num ${cls(x.pensionCash-x.prevPensionCash)}">${signed(x.pensionCash-x.prevPensionCash)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${x.pensionPrevEval==null?'-':fmt(x.pensionPrevEval)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(day)}">${day==null?'-':signed(day)}</td></tr></tbody></table></div><div class="change-mobile-list">${x.pensionRows.map(r=>`<div class="change-product-card"><div class="change-product-title">${r.name}</div><div class="change-product-row"><span class="change-product-label">${x.prevKey?shortDate(x.prevKey):'-'} 종가</span><span class="change-product-value">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span></div><div class="change-product-row"><span class="change-product-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가액</span><span class="change-product-value">${r.prevEval==null?'-':won(r.prevEval)}</span></div><div class="change-product-row"><span class="change-product-label">${shortDate(x.date)} 종가</span><span class="change-product-value">${fmt(r.price)}</span></div><div class="change-product-row"><span class="change-product-label">${shortDate(x.date)} 평가액</span><span class="change-product-value">${won(r.evalAmount)}</span></div><div class="change-product-row"><span class="change-product-label">일변동</span><span class="change-product-value ${cls(r.dayChange)}">${r.dayChange==null?'-':signed(r.dayChange)}</span></div></div>`).join('')}<div class="change-product-card"><div class="change-product-title">현금성자산</div><div class="change-product-row"><span class="change-product-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가액</span><span class="change-product-value">${won(x.prevPensionCash)}</span></div><div class="change-product-row"><span class="change-product-label">${shortDate(x.date)} 평가액</span><span class="change-product-value">${won(x.pensionCash)}</span></div><div class="change-product-row"><span class="change-product-label">일변동</span><span class="change-product-value ${cls(x.pensionCash-x.prevPensionCash)}">${signed(x.pensionCash-x.prevPensionCash)}</span></div></div></div></div></div>${renderCombined(x)}</div></section>`;
+}
+function pensionRow(r,total){const w=total?r.evalAmount/total*100:0;return `<tr><td><strong>${r.name}</strong></td><td class="num">${fmt(r.qty)}</td><td class="num">${fmt(r.cost/r.qty)}</td><td class="num">${fmt(r.cost)}</td><td class="num">${fmt(r.evalAmount)}</td><td class="num ${cls(r.profit)}">${fmt(r.profit)}</td><td class="num ${cls(r.returnRate)}">${pct(r.returnRate)}</td><td><div class="bar-box"><div class="bar-fill ${r.barClass}" style="width:${Math.max(0,Math.min(100,w)).toFixed(1)}%"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}
+function pensionCashRow(cash,total,cost=39408){const w=total?cash/total*100:0,profit=cash-cost,ret=cost?profit/cost*100:0;return `<tr><td><strong>현금성자산</strong></td><td class="num">1</td><td class="num">${fmt(cost)}</td><td class="num">${fmt(cost)}</td><td class="num">${fmt(cash)}</td><td class="num ${cls(profit)}">${fmt(profit)}</td><td class="num ${cls(ret)}">${pct(ret)}</td><td><div class="bar-box"><div class="bar-fill bar-gray" style="width:${w.toFixed(1)}%"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}
 function renderCombined(x){const c=PORTFOLIO.constants;return `<div class="note" style="margin-top:16px"><div class="section-title"><h2>계좌+연금 성과</h2><p>단타 제외</p></div><div class="mobile-scroll"><table class="combined-performance-table"><thead><tr><th>구분</th><th>투입원금</th><th>투자 결과물</th><th>누적손익</th><th>투자대비 이익률</th></tr></thead><tbody><tr><td><strong>증권계좌</strong></td><td class="num">${fmt(c.externalPrincipal)}</td><td class="num">${fmt(x.totalResult)}</td><td class="num ${cls(x.totalProfit)}">${fmt(x.totalProfit)}</td><td class="num ${cls(x.returnRate)}">${pct(x.returnRate)}</td></tr><tr><td><strong>퇴직연금</strong></td><td class="num">${fmt(c.pensionContributionPrincipal)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(x.pensionProfit)}">${fmt(x.pensionProfit)}</td><td class="num ${cls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr class="summary-row"><td>합산</td><td class="num">${fmt(x.combinedPrincipal)}</td><td class="num">${fmt(x.combinedResult)}</td><td class="num ${cls(x.combinedProfit)}">${fmt(x.combinedProfit)}</td><td class="num ${cls(x.combinedReturn)}">${pct(x.combinedReturn)}</td></tr></tbody></table></div><div class="formula" style="margin-top:12px">투입원금 ${won(x.combinedPrincipal)} = 증권계좌 ${won(c.externalPrincipal)} + 퇴직연금 ${won(c.pensionContributionPrincipal)}\n전체 투자 결과물 ${won(x.combinedResult)} = 증권계좌 ${won(x.totalResult)} + 퇴직연금 ${won(x.pensionEval)}\n총 합산 누적손익 ${won(x.combinedProfit)} = 증권계좌 ${won(x.totalProfit)} + 퇴직연금 ${won(x.pensionProfit)}\n투자대비 이익률 ${pct(x.combinedReturn)} = ${fmt(x.combinedProfit)} ÷ ${fmt(x.combinedPrincipal)}</div></div>`}
-function renderCharts(x){const cum=cumHistory(x.date),last=cum.at(-1),best=cum.reduce((a,b)=>b['합계 : 누적손익']>a['합계 : 누적손익']?b:a,cum[0]),bestDay=cum.reduce((a,b)=>b['합계 : 전일대비손익']>a['합계 : 전일대비손익']?b:a,cum[0]),worstDay=cum.reduce((a,b)=>b['합계 : 전일대비손익']<a['합계 : 전일대비손익']?b:a,cum[0]),symbols=x.holdings.filter(h=>h.chart),symbolTotal=symbols.reduce((a,h)=>a+h.profit,0);return `<section><div class="section-title"><h2>투자 기간 분석</h2></div><div class="grid chart-grid"><div class="chart-card"><div class="chart-head"><h3>누적손익 및 누적수익률</h3><p>과거는 실제 장부 스냅샷, 신규일자는 자동 계산 스냅샷으로 누적.</p></div><div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(last['합계 : 누적손익'])}">${won(last['합계 : 누적손익'])}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(last['합계 : 누적수익률'])}">${pct(last['합계 : 누적수익률'])}</div></div><div class="mini-card"><div class="m-label">최고 누적손익</div><div class="m-value">${won(best['합계 : 누적손익'])}</div></div><div class="mini-card"><div class="m-label">최고의 하루</div><div class="m-value positive">${bestDay.날짜}<br>${signed(bestDay['합계 : 전일대비손익'],'원')}</div></div><div class="mini-card"><div class="m-label">최악의 하루</div><div class="m-value negative">${worstDay.날짜}<br>${signed(worstDay['합계 : 전일대비손익'],'원')}</div></div></div></div><div class="chart-card"><div class="chart-head"><h3>종목별 누적 손익</h3><p>종목별 누적 손익의 변화와 기여도를 비교.</p></div><div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-note symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>symbolCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">※ 기여도는 차트에 표시된 4개 종목 누적손익 합계 기준.</div></div><div class="chart-card"><div class="chart-head"><h3>평가액 비중</h3><p>ETF·개별주식·현금의 일자별 평가액 비중 변화.</p></div><div class="chart-wrap"><svg class="chart" id="chartAlloc"></svg></div><div class="chart-note"><div class="mini-card"><div class="m-label">ETF</div><div class="m-value">${won(x.etfEval)} <span class="small">(${(x.etfEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식</div><div class="m-value">${won(x.stockEval)} <span class="small">(${(x.stockEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금</div><div class="m-value">${won(PORTFOLIO.constants.securitiesCash)}</div></div><div class="mini-card"><div class="m-label">투자자산+현금</div><div class="m-value">${won(x.allocTotal)}</div></div></div></div></div></section>`}
+function calcMdd(cum){
+  if(!cum.length)return null;
+  let peak=cum[0], maxDrop=0, from=cum[0].날짜, to=cum[0].날짜;
+  for(const r of cum){
+    if(r['합계 : 누적손익']>peak['합계 : 누적손익']) peak=r;
+    const drop=r['합계 : 누적손익']-peak['합계 : 누적손익'];
+    if(drop<maxDrop){maxDrop=drop;from=peak.날짜;to=r.날짜;}
+  }
+  return {drop:maxDrop,from,to};
+}
+function renderCharts(x){
+  const cum=cumHistory(x.date),last=cum.at(-1),best=cum.reduce((a,b)=>b['합계 : 누적손익']>a['합계 : 누적손익']?b:a,cum[0]),
+        bestDay=cum.reduce((a,b)=>b['합계 : 전일대비손익']>a['합계 : 전일대비손익']?b:a,cum[0]),
+        worstDay=cum.reduce((a,b)=>b['합계 : 전일대비손익']<a['합계 : 전일대비손익']?b:a,cum[0]),
+        mdd=calcMdd(cum),symbols=x.holdings.filter(h=>h.chart),symbolTotal=symbols.reduce((a,h)=>a+h.profit,0);
+  return `<section><div class="section-title"><h2>투자 기간 분석</h2></div><div class="grid chart-grid">
+  <div class="chart-card"><div class="chart-head"><div><h3>누적손익 및 누적수익률</h3><p>막대는 누적손익과 전일대비손익, 선은 누적수익률을 나타냄.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>누적손익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" style="background:#5abdf2"></span>누적수익률</span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(last['합계 : 누적손익'])}">${won(last['합계 : 누적손익'])}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(last['합계 : 누적수익률'])}">${pct(last['합계 : 누적수익률'])}</div></div><div class="mini-card"><div class="m-label">최고 누적손익</div><div class="m-value">${won(best['합계 : 누적손익'])}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card"><div class="m-label">최고의 하루</div><div class="m-value positive day-value"><span>${bestDay.날짜}</span><span>${signed(bestDay['합계 : 전일대비손익'],'원')}</span></div></div><div class="mini-card"><div class="m-label">최악의 하루</div><div class="m-value negative day-value"><span>${worstDay.날짜}</span><span>${signed(worstDay['합계 : 전일대비손익'],'원')}</span></div></div></div></div>
+  <div class="chart-card"><div class="chart-head"><div><h3>종목별 누적 손익</h3><p>종목별 누적 손익의 변화와 기여도를 비교.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff8a65"></span>SK하이닉스</span><span class="legend-item"><span class="swatch" style="background:#8bc34a"></span>삼성전자</span><span class="legend-item"><span class="swatch" style="background:#26c6da"></span>현대차</span><span class="legend-item"><span class="swatch" style="background:#42a5f5"></span>KODEX200</span></div><div class="chart-note symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>symbolCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">※ 기여도는 차트에 표시된 4개 종목 누적손익 합계 기준이며, 변동률은 전일 누적손익 절댓값 대비.</div></div>
+  <div class="chart-card"><div class="chart-head"><div><h3>평가액 비중</h3><p>ETF·개별주식·현금의 일자별 평가액 비중 변화.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartAlloc"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff6b6b"></span>ETF</span><span class="legend-item"><span class="swatch" style="background:#ffc857"></span>개별주식</span><span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금</span></div><div class="chart-note"><div class="mini-card"><div class="m-label">ETF</div><div class="m-value">${won(x.etfEval)} <span class="small">(${(x.etfEval/x.actualHolding*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식</div><div class="m-value">${won(x.stockEval)} <span class="small">(${(x.stockEval/x.actualHolding*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금</div><div class="m-value">${won(PORTFOLIO.constants.securitiesCash)} <span class="small">(${(PORTFOLIO.constants.securitiesCash/x.actualHolding*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">투자자산+현금</div><div class="m-value">${won(x.actualHolding)}</div></div></div></div>
+  </div></section>`;
+}
 function symbolCard(h,total){const contrib=total?h.profit/total*100:0,cr=h.prevProfit?h.dayChange/Math.abs(h.prevProfit)*100:0;return `<div class="mini-card symbol-card"><div class="m-label">${h.name==='KODEX 200'?'KODEX200':h.name}</div><div class="m-value ${cls(h.profit)}">${won(h.profit)}</div><div class="symbol-metrics"><div class="symbol-metric"><span class="symbol-metric-label">기여도</span><span class="symbol-metric-value ${cls(contrib)}">${pct(contrib)}</span></div><div class="symbol-metric"><span class="symbol-metric-label">전일대비 변동액</span><span class="symbol-metric-value ${cls(h.dayChange)}">${h.dayChange==null?'-':signed(h.dayChange,'원')}</span></div><div class="symbol-metric"><span class="symbol-metric-label">변동률</span><span class="symbol-metric-value ${cls(cr)}">${h.prevProfit?((cr>0?'+':'')+pct(cr)):'-'}</span></div></div></div>`}
 function renderAccounts(x){const c=PORTFOLIO.constants,a2=c.account2Principal+c.account2Profit;return `<section><div class="section-title"><h2>계좌별 성과 요약</h2></div><div class="mobile-scroll"><table class="account-summary-table"><thead><tr><th>구분</th><th>투입원금</th><th>누적손익</th><th>결과값/현금화액</th><th>수익률</th><th>메모</th></tr></thead><tbody><tr><td><strong>삼성증권 계좌1</strong></td><td class="num">${fmt(c.account1Principal)}</td><td class="num ${cls(x.account1Profit)}">${fmt(x.account1Profit)}</td><td class="num">${fmt(x.account1Result)}</td><td class="num ${cls(x.account1Profit)}">${pct(x.account1Profit/c.account1Principal*100)}</td><td>보유종목 가격 기준 자동 계산</td></tr><tr><td><strong>삼성증권 계좌2</strong></td><td class="num">${fmt(c.account2Principal)}</td><td class="num positive">${fmt(c.account2Profit)}</td><td class="num">${fmt(a2)}</td><td class="num positive">${pct(c.account2Profit/c.account2Principal*100)}</td><td>VIP한가투 매도 완료. 일부 계좌1 재투입.</td></tr><tr><td><strong>토스증권</strong></td><td class="num">0</td><td class="num positive">${fmt(c.tossProfit)}</td><td class="num">${fmt(c.tossRealizedAmount)}</td><td class="num">-</td><td>마이너스통장 원금 투입 후 전액 상환. 수익만 잔존.</td></tr><tr class="summary-row"><td>전체 기준</td><td class="num">${fmt(c.externalPrincipal)}</td><td class="num ${cls(x.totalProfit)}">${fmt(x.totalProfit)}</td><td class="num">${fmt(x.totalResult)}</td><td class="num ${cls(x.returnRate)}">${pct(x.returnRate)}</td><td>재투입 중복 제거 후 결과값</td></tr></tbody></table></div></section>`}
-function renderResultSummary(x){const c=PORTFOLIO.constants,a2=c.account2RealizedAmount-c.account2ReinvestedToAccount1,toss=c.tossRealizedAmount-c.tossReinvestedToAccount1;return `<section class="grid result-summary-grid"><div class="note"><div class="section-title"><h2>중복 제거 계산</h2></div><p>계좌2와 토스증권의 현금화액 중 일부는 이미 계좌1에 재투입되어 계좌1 결과값 안에 포함되어 있음.</p><div class="formula">계좌1 투자성과 결과값 ${fmt(x.account1Result)}\n+ 계좌2 잔여 현금화액 (${fmt(c.account2RealizedAmount)} - ${fmt(c.account2ReinvestedToAccount1)}) = ${fmt(a2)}\n+ 토스 잔여 현금화액 (${fmt(c.tossRealizedAmount)} - ${fmt(c.tossReinvestedToAccount1)}) = ${fmt(toss)}\n= 전체 투자 결과물 ${fmt(x.totalResult)}</div></div><div class="note"><div class="section-title"><h2>장부상 결과물 vs 실제 보유액</h2></div><p><strong>${x.date} ${basisText(x.date)}</strong>, 장부상 전체 투자 결과물은 ${won(x.totalResult)}이고 현재 증권계좌 및 현금 보유액은 <strong>${won(x.actualHolding)}</strong>.</p><div class="kpi-mini"><div class="mini-card"><div class="m-label">장부상 전체 투자 결과물</div><div class="m-value">${won(x.totalResult)}</div></div><div class="mini-card"><div class="m-label">현재 증권계좌 및 현금 보유액</div><div class="m-value">${won(x.actualHolding)}</div></div><div class="mini-card"><div class="m-label">차액</div><div class="m-value negative">${won(c.livingSpent)}</div></div><div class="mini-card"><div class="m-label">해석</div><div class="m-value" style="font-size:15px">생활성 지출</div></div></div></div></section>`}
+function renderResultSummary(x){const c=PORTFOLIO.constants,a2=c.account2RealizedAmount-c.account2ReinvestedToAccount1,toss=c.tossRealizedAmount-c.tossReinvestedToAccount1;return `<section class="grid result-summary-grid"><div class="note"><div class="section-title"><h2>중복 제거 계산</h2></div><p>계좌2와 토스증권의 현금화액 중 일부는 이미 계좌1에 재투입되어 계좌1 결과값 안에 포함되어 있음. 따라서 단순합산하면 중복 계산됨.</p><div class="formula">계좌1 투자성과 결과값 ${fmt(x.account1Result)}\n+ 계좌2 잔여 현금화액 (${fmt(c.account2RealizedAmount)} - ${fmt(c.account2ReinvestedToAccount1)}) = ${fmt(a2)}\n+ 토스 잔여 현금화액 (${fmt(c.tossRealizedAmount)} - ${fmt(c.tossReinvestedToAccount1)}) = ${fmt(toss)}\n= 전체 투자 결과물 ${fmt(x.totalResult)}</div><div class="kpi-mini"><div class="mini-card"><div class="m-label">VIP 매도대금 재투입</div><div class="m-value">${won(c.account2ReinvestedToAccount1)}</div></div><div class="mini-card"><div class="m-label">레버 수익 재투입</div><div class="m-value">${won(c.tossReinvestedToAccount1)}</div></div></div></div><div class="note"><div class="section-title"><h2>장부상 결과물 vs 실제 보유액</h2></div><p><strong>${x.date} ${basisText(x.date)}</strong>, 장부상 전체 투자 결과물은 ${won(x.totalResult)}이고 현재 증권계좌 및 현금 보유액은 <strong>${won(x.actualHolding)}</strong>.</p><div class="kpi-mini"><div class="mini-card"><div class="m-label">장부상 전체 투자 결과물</div><div class="m-value">${won(x.totalResult)}</div></div><div class="mini-card"><div class="m-label">현재 증권계좌 및 현금 보유액</div><div class="m-value">${won(x.actualHolding)}</div></div><div class="mini-card"><div class="m-label">차액</div><div class="m-value negative">${won(c.livingSpent)}</div></div><div class="mini-card"><div class="m-label">해석</div><div class="m-value" style="font-size:15px">생활성 지출</div></div></div></div></section>`}
 function renderHoldings(x){return `<section><div class="section-title"><h2>증권계좌 보유분</h2><p>${x.date} ${basisText(x.date)}</p></div><div class="mobile-scroll"><table class="hold-position-table"><thead><tr><th>종목명</th><th>수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>수수료반영 손익</th><th>손익률</th></tr></thead><tbody>${x.holdings.map(h=>`<tr class="hold-row ${h.cssClass}"><td>${h.name}</td><td class="num">${fmt(h.qty)}</td><td class="num">${fmt(h.cost/h.qty)}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${cls(h.profit)}">${fmt(h.profit)}</td><td class="num ${cls(h.feeAdjustedProfit)}">${fmt(h.feeAdjustedProfit)}</td><td class="num ${cls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}</tbody></table></div></section>`}
-function renderSourceTables(){const c=PORTFOLIO.constants;return `<section class="grid three"><div class="card"><div class="label">계좌1 원천별 투입</div><table style="font-size:12px;margin-top:8px;border-radius:12px"><tbody><tr><td>전체 외부투입원금</td><td class="num">${fmt(c.externalPrincipal)}</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr><tr><td>계좌1 손익 보정값</td><td class="num ${cls(c.account1ProfitAdjustment)}">${fmt(c.account1ProfitAdjustment)}</td></tr><tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div><div class="card"><div class="label">전체 외부투입원금</div><div class="value">${won(c.externalPrincipal)}</div><div class="sub">외부에서 실제 들어온 돈만 계산</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 투입 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 순투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${fmt(c.externalPrincipal)}</td></tr></tbody></table></div><div class="card"><div class="label">자동 업데이트 기준</div><div class="value" style="font-size:20px">장중/종가 자동 업데이트</div><div class="sub">현재 보유분 기준 가격 갱신 후 스냅샷 저장</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>증권계좌 현금</td><td class="num">${fmt(c.securitiesCash)}</td></tr><tr><td>생활성 지출 차액</td><td class="num">${fmt(c.livingSpent)}</td></tr><tr><td>퇴직연금 납입원금</td><td class="num">${fmt(c.pensionContributionPrincipal)}</td></tr></tbody></table></div></section>`}
-function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}function el(n,a={}){const e=document.createElementNS('http://www.w3.org/2000/svg',n);for(const[k,v]of Object.entries(a))e.setAttribute(k,v);return e}function drawAxes(svg,cfg,ticks){const{w,h,l,r,t,b}=cfg;svg.appendChild(el('rect',{x:0,y:0,width:w,height:h,fill:'#fff'}));for(const tick of ticks){const y=cfg.y(tick);svg.appendChild(el('line',{x1:l,y1:y,x2:w-r,y2:y,stroke:'#e5e7eb'}));const tx=el('text',{x:l-10,y:y+4,'text-anchor':'end','font-size':11,fill:'#6b7280'});tx.textContent=fmt(tick);svg.appendChild(tx)}svg.appendChild(el('line',{x1:l,y1:t,x2:l,y2:h-b,stroke:'#cbd5e1'}));svg.appendChild(el('line',{x1:l,y1:h-b,x2:w-r,y2:h-b,stroke:'#cbd5e1'}))}function labelDates(svg,cfg,data){const{w,h,l,r,b}=cfg,plotW=w-l-r;data.forEach((d,i)=>{const x=l+(data.length===1?0:i*plotW/(data.length-1));const txt=el('text',{x:x,y:h-b+32,transform:`rotate(-65 ${x} ${h-b+32})`,'text-anchor':'end','font-size':10,fill:'#6b7280'});txt.textContent=d['날짜'];svg.appendChild(txt)})}function polyline(svg,pts,color){svg.appendChild(el('polyline',{points:pts.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'}))}function circles(svg,pts,color){pts.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:3,fill:'#fff',stroke:color,'stroke-width':2})));}function drawCumChart(){const data=cumHistory(ACTIVE_DATE),svg=document.getElementById('chartCum');if(!svg)return;clear(svg);const w=1120,h=330,l=70,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);const vals=data.flatMap(d=>[d['합계 : 누적손익'],d['합계 : 전일대비손익']]),minY=Math.min(-4000000,...vals),maxY=Math.max(12000000,...vals),cfg={w,h,l,r,t,b,y:v=>t+(maxY-v)/(maxY-minY)*(h-t-b)};drawAxes(svg,cfg,[-4000000,-2000000,0,2000000,4000000,6000000,8000000,10000000,12000000]);const plotW=w-l-r,n=data.length,bw=plotW/Math.max(n,1)*.25;data.forEach((d,i)=>{const x=l+(n===1?0:i*plotW/(n-1)),zero=cfg.y(0),cp=cfg.y(d['합계 : 누적손익']);svg.appendChild(el('rect',{x:x-bw-1,y:Math.min(cp,zero),width:bw,height:Math.abs(zero-cp),fill:'#ffb84d',opacity:.8}));const day=cfg.y(d['합계 : 전일대비손익']);svg.appendChild(el('rect',{x:x+2,y:Math.min(day,zero),width:bw,height:Math.abs(zero-day),fill:d['합계 : 전일대비손익']>=0?'#a7d7a8':'#c7e6c8',opacity:.9}))});labelDates(svg,cfg,data)}function drawLineChart(){const data=symbolHistory(ACTIVE_DATE),svg=document.getElementById('chartSymbol');if(!svg)return;clear(svg);const series=['SK하이닉스','삼성전자','현대차','KODEX200'],colors={'SK하이닉스':'#ff8a65','삼성전자':'#8bc34a','현대차':'#26c6da','KODEX200':'#42a5f5'},values=data.flatMap(d=>series.map(s=>d[s]||0)),minY=Math.min(-1000000,...values),maxY=Math.max(7000000,...values),w=1120,h=330,l=70,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);const cfg={w,h,l,r,t,b,y:v=>t+(maxY-v)/(maxY-minY)*(h-t-b)};drawAxes(svg,cfg,[-1000000,0,1000000,2000000,3000000,4000000,5000000,6000000,7000000]);const plotW=w-l-r,n=data.length;series.forEach(s=>{const pts=data.map((d,i)=>[l+(n===1?0:i*plotW/(n-1)),cfg.y(d[s]||0)]);polyline(svg,pts,colors[s]);circles(svg,pts,colors[s])});labelDates(svg,cfg,data)}function drawStacked(){const data=allocHistory(ACTIVE_DATE),svg=document.getElementById('chartAlloc');if(!svg)return;clear(svg);const values=data.map(d=>d.ETF+d.개별주식+d.현금),maxY=Math.max(30000000,...values)*1.05,w=1120,h=330,l=70,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);const cfg={w,h,l,r,t,b,y:v=>t+(maxY-v)/maxY*(h-t-b)};drawAxes(svg,cfg,[0,5000000,10000000,15000000,20000000,25000000,30000000]);const plotW=w-l-r,n=data.length,bw=plotW/Math.max(n,1)*.7;data.forEach((d,i)=>{const x=l+(n===1?0:i*plotW/(n-1))-bw/2;let base=0;[['ETF','#ff6b6b'],['개별주식','#ffc857'],['현금','#8fd18f']].forEach(([key,color])=>{const yTop=cfg.y(base+d[key]),yBase=cfg.y(base);svg.appendChild(el('rect',{x,y:yTop,width:bw,height:yBase-yTop,fill:color,opacity:.75,stroke:'#fff'}));base+=d[key]})});labelDates(svg,cfg,data)}function drawAllCharts(){drawCumChart();drawLineChart();drawStacked()}
+function renderSourceTables(){const c=PORTFOLIO.constants,vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal;return `<section class="grid three"><div class="card"><div class="label">계좌1 원천별 투입</div><table style="font-size:12px;margin-top:8px;border-radius:12px"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num negative">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr><tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div><div class="card"><div class="label">전체 외부투입원금</div><div class="value">${won(c.externalPrincipal)}</div><div class="sub">외부에서 실제 들어온 돈만 계산</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 투입 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 순투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${fmt(c.externalPrincipal)}</td></tr></tbody></table></div><div class="card"><div class="label">계좌1 투자원금 검산</div><div class="value">${won(c.account1Principal)}</div><div class="sub">전체 외부투입 + 수익 재투입</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>전체 외부투입원금</td><td class="num">${fmt(c.externalPrincipal)}</td></tr><tr><td>레버 수익 재투입분</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입분</td><td class="num">${fmt(vipProfitReinvest)}</td></tr><tr class="summary-row"><td>검산값</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div></section>`}
+function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
+function el(name, attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',name);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e}
+function tooltip(){return document.getElementById('dashTooltip')}
+function showTooltip(evt, html){
+  const tt=tooltip(); if(!tt) return;
+  tt.innerHTML=html; tt.classList.add('visible');
+  const pad=14; tt.style.left=evt.clientX+'px'; tt.style.top=(evt.clientY-12)+'px';
+  requestAnimationFrame(()=>{
+    const r=tt.getBoundingClientRect();
+    if(r.right>window.innerWidth-pad)tt.style.left=(window.innerWidth-pad-r.width/2)+'px';
+    if(r.left<pad)tt.style.left=(pad+r.width/2)+'px';
+    if(r.top<pad){tt.style.transform='translate(-50%,18px)';tt.style.top=evt.clientY+'px'}else{tt.style.transform='translate(-50%,-110%)'}
+  });
+}
+function hideTooltip(){const tt=tooltip(); if(tt)tt.classList.remove('visible')}
+function row(name,val,clsName=''){return `<div class="tt-row"><span class="tt-name">${name}</span><span class="tt-val ${clsName}">${val}</span></div>`}
+function clsBy(n){return n<0?'tt-neg':(n>0?'tt-pos':'')}
+function drawAxes(svg,cfg,yTicks,y2Ticks=null){
+  const{w,h,l,r,t,b}=cfg;
+  svg.appendChild(el('rect',{x:0,y:0,width:w,height:h,fill:'#fff'}));
+  for(const tick of yTicks){const y=cfg.y(tick);svg.appendChild(el('line',{x1:l,y1:y,x2:w-r,y2:y,stroke:'#e5e7eb','stroke-width':1}));const tx=el('text',{x:l-10,y:y+4,'text-anchor':'end','font-size':11,fill:'#6b7280'});tx.textContent=fmt(tick);svg.appendChild(tx)}
+  svg.appendChild(el('line',{x1:l,y1:t,x2:l,y2:h-b,stroke:'#cbd5e1'}));
+  svg.appendChild(el('line',{x1:l,y1:h-b,x2:w-r,y2:h-b,stroke:'#cbd5e1'}));
+  if(y2Ticks){for(const tick of y2Ticks){const y=cfg.y2(tick);const tx=el('text',{x:w-r+10,y:y+4,'text-anchor':'start','font-size':11,fill:'#6b7280'});tx.textContent=tick.toFixed(0)+'%';svg.appendChild(tx)}svg.appendChild(el('line',{x1:w-r,y1:t,x2:w-r,y2:h-b,stroke:'#cbd5e1'}))}
+}
+function labelDates(svg,cfg,data,every=3){
+  const{w,h,l,r,b}=cfg,plotW=w-l-r;
+  data.forEach((d,i)=>{if(i%every===0||i===data.length-1){const x=l+(data.length===1?0:i*plotW/(data.length-1));const txt=el('text',{x:x,y:h-b+32,transform:`rotate(-65 ${x} ${h-b+32})`,'text-anchor':'end','font-size':10,fill:'#6b7280'});txt.textContent=d['날짜'];svg.appendChild(txt)}})
+}
+function polyline(svg,points,color,width=2.5){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':width,'stroke-linejoin':'round','stroke-linecap':'round'}))}
+function circles(svg,points,color){points.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:3,fill:'#fff',stroke:color,'stroke-width':2})))}
+function nearestIndex(evt,svg,cfg,data){
+  const pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;
+  const loc=pt.matrixTransform(svg.getScreenCTM().inverse());
+  const plotW=cfg.w-cfg.l-cfg.r;
+  let idx=Math.round((loc.x-cfg.l)/plotW*(data.length-1));
+  return Math.max(0,Math.min(data.length-1,idx));
+}
+function addHover(svg,cfg,data,renderHtml){
+  const line=el('line',{x1:cfg.l,y1:cfg.t,x2:cfg.l,y2:cfg.h-cfg.b,stroke:'#334155','stroke-width':1.2,'stroke-dasharray':'4 4',opacity:0,class:'chart-hover-line'});
+  svg.appendChild(line);
+  const hit=el('rect',{x:cfg.l,y:cfg.t,width:cfg.w-cfg.l-cfg.r,height:cfg.h-cfg.t-cfg.b,class:'svg-hitbox'});
+  svg.appendChild(hit);
+  hit.addEventListener('mousemove',evt=>{const idx=nearestIndex(evt,svg,cfg,data);const x=cfg.l+(data.length===1?0:idx*(cfg.w-cfg.l-cfg.r)/(data.length-1));line.setAttribute('x1',x);line.setAttribute('x2',x);line.setAttribute('opacity',1);showTooltip(evt,renderHtml(data[idx],idx))});
+  hit.addEventListener('mouseleave',()=>{line.setAttribute('opacity',0);hideTooltip()});
+}
+function drawCumChart(){
+  const data=cumHistory(ACTIVE_DATE),svg=document.getElementById('chartCum');if(!svg)return;clear(svg);
+  const w=1120,h=330,l=70,r=70,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  const vals=data.flatMap(d=>[d['합계 : 누적손익'],d['합계 : 전일대비손익']]);
+  const rates=data.map(d=>d['합계 : 누적수익률']);
+  const minY=Math.min(-4000000,...vals),maxY=Math.max(12000000,...vals),minR=Math.min(-20,...rates),maxR=Math.max(80,...rates);
+  const cfg={w,h,l,r,t,b,y:v=>t+(maxY-v)/(maxY-minY)*(h-t-b),y2:v=>t+(maxR-v)/(maxR-minR)*(h-t-b)};
+  drawAxes(svg,cfg,[-4000000,-2000000,0,2000000,4000000,6000000,8000000,10000000,12000000],[-20,0,20,40,60,80]);
+  const plotW=w-l-r,n=data.length,gap=plotW/Math.max(n,1),bw=gap*.28;
+  data.forEach((d,i)=>{const x=l+(n===1?0:i*plotW/(n-1)),zero=cfg.y(0),cp=cfg.y(d['합계 : 누적손익']);svg.appendChild(el('rect',{x:x-bw-1,y:Math.min(cp,zero),width:bw,height:Math.abs(zero-cp),fill:'#ffb84d',opacity:.8}));const day=cfg.y(d['합계 : 전일대비손익']);svg.appendChild(el('rect',{x:x+2,y:Math.min(day,zero),width:bw,height:Math.abs(zero-day),fill:d['합계 : 전일대비손익']>=0?'#a7d7a8':'#c7e6c8',stroke:d['합계 : 전일대비손익']<0?'#86b58a':'none',opacity:.9}))});
+  const pts=data.map((d,i)=>[l+(n===1?0:i*plotW/(n-1)),cfg.y2(d['합계 : 누적수익률'])]);
+  polyline(svg,pts,'#5abdf2',2.5);circles(svg,pts,'#5abdf2');labelDates(svg,cfg,data,3);
+  addHover(svg,cfg,data,d=>`<div class="tt-date">${d['날짜']}</div>`+row('누적손익',signed(d['합계 : 누적손익'],'원'),clsBy(d['합계 : 누적손익']))+row('누적수익률',pct(d['합계 : 누적수익률']),clsBy(d['합계 : 누적수익률']))+row('전일대비손익',signed(d['합계 : 전일대비손익'],'원'),clsBy(d['합계 : 전일대비손익'])));
+}
+function drawLineChart(){
+  const data=symbolHistory(ACTIVE_DATE),svg=document.getElementById('chartSymbol');if(!svg)return;clear(svg);
+  const series=['SK하이닉스','삼성전자','현대차','KODEX200'],colors={'SK하이닉스':'#ff8a65','삼성전자':'#8bc34a','현대차':'#26c6da','KODEX200':'#42a5f5'},values=data.flatMap(d=>series.map(s=>d[s]||0));
+  const minY=Math.min(-1000000,...values),maxY=Math.max(7000000,...values),w=1120,h=330,l=70,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  const cfg={w,h,l,r,t,b,y:v=>t+(maxY-v)/(maxY-minY)*(h-t-b)};drawAxes(svg,cfg,[-1000000,0,1000000,2000000,3000000,4000000,5000000,6000000,7000000]);
+  const plotW=w-l-r,n=data.length;series.forEach(s=>{const pts=data.map((d,i)=>[l+(n===1?0:i*plotW/(n-1)),cfg.y(d[s]||0)]);polyline(svg,pts,colors[s]);circles(svg,pts,colors[s])});labelDates(svg,cfg,data,3);
+  addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>html+=row(s,signed(d[s]||0,'원'),clsBy(d[s]||0)));const total=series.reduce((a,s)=>a+(d[s]||0),0);return html+'<div style="height:6px"></div>'+row('4종목 합계',signed(total,'원'),clsBy(total))});
+}
+function drawStacked(){
+  const data=allocHistory(ACTIVE_DATE),svg=document.getElementById('chartAlloc');if(!svg)return;clear(svg);
+  const values=data.map(d=>d.ETF+d.개별주식+d.현금),maxY=Math.max(30000000,...values)*1.05,w=1120,h=330,l=70,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  const cfg={w,h,l,r,t,b,y:v=>t+(maxY-v)/(maxY)*(h-t-b)};drawAxes(svg,cfg,[0,5000000,10000000,15000000,20000000,25000000,30000000]);
+  const plotW=w-l-r,n=data.length,gap=plotW/Math.max(n,1),bw=gap*.72;
+  data.forEach((d,i)=>{const x=l+(n===1?0:i*plotW/(n-1))-bw/2;let base=0;[['ETF','#ff6b6b'],['개별주식','#ffc857'],['현금','#8fd18f']].forEach(([key,color])=>{const yTop=cfg.y(base+d[key]),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:color,opacity:.75,stroke:'#fff','stroke-width':.4}));base+=d[key]})});
+  labelDates(svg,cfg,data,3);
+  addHover(svg,cfg,data,d=>{const total=d.ETF+d.개별주식+d.현금;return `<div class="tt-date">${d['날짜']}</div>`+row('ETF',fmt(d.ETF)+`원 (${(d.ETF/total*100).toFixed(1)}%)`)+row('개별주식',fmt(d.개별주식)+`원 (${(d.개별주식/total*100).toFixed(1)}%)`)+row('현금',fmt(d.현금)+`원 (${(d.현금/total*100).toFixed(1)}%)`)+'<div style="height:6px"></div>'+row('합계',fmt(total)+'원')});
+}
+function refreshScrollHints(){
+  document.querySelectorAll('.mobile-scroll, .chart-wrap').forEach(wrap=>{
+    const prev=wrap.previousElementSibling;
+    if(prev&&prev.classList.contains('scroll-hint'))prev.remove();
+    const scrollable=wrap.scrollWidth>wrap.clientWidth+4;
+    wrap.classList.toggle('is-scrollable',scrollable);
+    if(scrollable){const hint=document.createElement('div');hint.className='scroll-hint';hint.textContent='좌우로 밀어 더 보기';wrap.parentNode.insertBefore(hint,wrap)}
+  });
+}
+function drawAllCharts(){drawCumChart();drawLineChart();drawStacked();refreshScrollHints();setTimeout(refreshScrollHints,120)}
 async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json())]);const displayDates=Object.keys(PRICES).filter(d=>PRICES[d].display!==false).sort(byDate),hash=location.hash.replace('#','');ACTIVE_DATE=displayDates.includes(hash)?hash:displayDates.at(-1);render();document.getElementById('tabs').addEventListener('click',e=>{
   const menuButton=e.target.closest('#mobileDateButton');
   if(menuButton){
