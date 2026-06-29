@@ -1,0 +1,54 @@
+name: Update KRX closing prices
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "YYYY-MM-DD. 비워두면 한국시간 오늘"
+        required: false
+        type: string
+  schedule:
+    # KST 18:00 = UTC 09:00, Monday-Friday
+    - cron: "0 9 * * 1-5"
+
+permissions:
+  contents: write
+
+jobs:
+  update-prices:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Update prices
+        run: |
+          if [ -n "${{ github.event.inputs.date }}" ]; then
+            python scripts/update_prices.py --date "${{ github.event.inputs.date }}"
+          else
+            python scripts/update_prices.py
+          fi
+
+      - name: Commit updated prices
+        run: |
+          if git diff --quiet data/prices.json; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/prices.json
+          git commit -m "Update KRX closing prices"
+          git push
