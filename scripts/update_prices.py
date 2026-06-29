@@ -15,6 +15,23 @@ KST = timezone(timedelta(hours=9))
 def today_kst() -> str:
     return datetime.now(KST).strftime('%Y-%m-%d')
 
+def market_status_kst() -> str:
+    """
+    GitHub Actions 실행 시각 기준으로 장중/종가 상태를 구분합니다.
+    - 09:00~15:30: intraday
+    - 그 외: close
+    """
+    now = datetime.now(KST)
+    current_minutes = now.hour * 60 + now.minute
+
+    market_open = 9 * 60
+    market_close = 15 * 60 + 30
+
+    if market_open <= current_minutes <= market_close:
+        return "intraday"
+
+    return "close"
+
 def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding='utf-8'))
 
@@ -87,14 +104,17 @@ def main() -> int:
         display = False
     if args.force_display:
         display = True
+    status = market_status_kst()
+
     prices[target_date] = {
-        'display': display,
-        'source': 'pykrx-github-actions',
-        'requestedDate': target_date,
-        'actualMarketDate': actual_date,
-        'updatedAtKST': datetime.now(KST).isoformat(timespec='seconds'),
-        'securities': securities,
-        'pension': pension,
+        "display": display,
+        "source": "pykrx-github-actions",
+        "marketStatus": status,
+        "requestedDate": target_date,
+        "actualMarketDate": actual_date,
+        "updatedAtKST": datetime.now(KST).isoformat(timespec="seconds"),
+        "securities": securities,
+        "pension": pension,
     }
     if warnings:
         prices[target_date]['warnings'] = warnings
