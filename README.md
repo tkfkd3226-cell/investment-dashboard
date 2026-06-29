@@ -1,33 +1,48 @@
-# 투자 성과 대시보드 자동 업데이트형
+# 투자 성과 대시보드 자동 업데이트형 - 스냅샷 구조
 
-수량과 현금이 변하지 않는다는 전제에서 KRX 종가만 매일 업데이트해 투자 성과 대시보드를 자동 생성합니다.
+과거 성과는 현재 보유수량으로 재계산하지 않고, 기존 v9 HTML의 실제 장부 로우데이터를 `performance_snapshots.json`으로 분리해 표시합니다.
 
-## 구조
+## 핵심 구조
 
 ```text
 index.html
-data/portfolio.json   # 고정값: 수량, 매수원금, 확정손익, 현금, 퇴직연금 납입원금
-data/prices.json      # 날짜별 KRX 종가 스냅샷
+data/portfolio.json
+data/prices.json
+data/performance_snapshots.json
 scripts/update_prices.py
 .github/workflows/update-prices.yml
+requirements.txt
+README.md
 ```
 
 ## 작동 방식
 
-1. GitHub Actions가 평일 한국시간 18:00에 실행됩니다.
-2. `scripts/update_prices.py`가 보유 종목 종가를 조회합니다.
-3. `data/prices.json`에 오늘 날짜 스냅샷을 추가합니다.
-4. 변경사항을 자동 커밋/푸시합니다.
-5. Netlify가 GitHub 변경사항을 감지해 자동 배포합니다.
-6. 사이트 상단에 새 날짜 탭이 자동으로 생깁니다.
+1. 과거 차트는 `data/performance_snapshots.json`의 실제 장부 스냅샷을 기준으로 표시합니다.
+2. 현재 보유분/퇴직연금 표와 카드 값은 `portfolio.json + prices.json`으로 계산합니다.
+3. GitHub Actions가 장중/종가 가격을 갱신하면 `prices.json`을 업데이트합니다.
+4. 같은 실행에서 현재 보유분 기준 성과 스냅샷을 계산해 `performance_snapshots.json`에도 저장합니다.
+5. Netlify가 새 커밋을 감지해 자동 배포합니다.
 
-## 수동 실행
+## 장중/종가 표시
 
-GitHub 저장소에서 `Actions → Update KRX closing prices → Run workflow`로 실행합니다.
-날짜를 넣으면 해당 날짜 기준으로 조회합니다.
+- `marketStatus: intraday` → `장중 HH:MM 기준`
+- `marketStatus: close` → `KRX 종가 기준`
 
-## 주의
+## 모바일
 
-- 퇴직연금 현금성자산은 KRX 종가가 아니므로 직전 값을 승계합니다.
-- 종목 조회가 실패하면 직전 스냅샷의 가격을 임시로 사용하고 `warnings`에 기록합니다.
-- 수량이 바뀌거나 매수/매도가 발생하면 `data/portfolio.json`을 수정해야 합니다.
+모바일에서는 상단 날짜 탭 대신 기준일 선택 메뉴로 표시됩니다.
+
+## 업로드 주의
+
+ZIP을 풀고 **내용물 전체를 저장소 루트에 덮어쓰기** 하세요.
+
+정상 구조:
+
+```text
+.github/
+data/
+scripts/
+index.html
+requirements.txt
+README.md
+```

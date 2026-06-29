@@ -1,2 +1,3 @@
-pykrx
+pykrx==1.0.51
 pandas
+requests

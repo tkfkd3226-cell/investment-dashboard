@@ -1,0 +1,1278 @@
+{
+  "2026-03-23": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": -89800,
+    "cumulativeReturn": -1.15,
+    "dailyProfit": 0,
+    "symbols": {
+      "SK하이닉스": -9000,
+      "삼성전자": -13000,
+      "현대차": -15000,
+      "KODEX200": -52800
+    },
+    "allocation": {
+      "ETF": 4861500,
+      "개별주식": 2834500,
+      "현금": 0
+    }
+  },
+  "2026-03-24": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 243200,
+    "cumulativeReturn": 2.21,
+    "dailyProfit": 333000,
+    "symbols": {
+      "SK하이닉스": 44000,
+      "삼성전자": 4000,
+      "현대차": -1000,
+      "KODEX200": 196200
+    },
+    "allocation": {
+      "ETF": 8350500,
+      "개별주식": 2918500,
+      "현금": 0
+    }
+  },
+  "2026-03-25": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 367200,
+    "cumulativeReturn": 3.33,
+    "dailyProfit": 124000,
+    "symbols": {
+      "SK하이닉스": 53000,
+      "삼성전자": 500,
+      "현대차": 17000,
+      "KODEX200": 296700
+    },
+    "allocation": {
+      "ETF": 8451000,
+      "개별주식": 2942000,
+      "현금": 0
+    }
+  },
+  "2026-03-26": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": -56000,
+    "cumulativeReturn": -0.48,
+    "dailyProfit": -423200,
+    "symbols": {
+      "SK하이닉스": -9000,
+      "삼성전자": -47700,
+      "현대차": -5000,
+      "KODEX200": 5700
+    },
+    "allocation": {
+      "ETF": 8160000,
+      "개별주식": 3353800,
+      "현금": 0
+    }
+  },
+  "2026-03-27": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": -87975,
+    "cumulativeReturn": -0.73,
+    "dailyProfit": -31975,
+    "symbols": {
+      "SK하이닉스": -20000,
+      "삼성전자": -41500,
+      "현대차": 5000,
+      "KODEX200": -31800
+    },
+    "allocation": {
+      "ETF": 8191940,
+      "개별주식": 3709000,
+      "현금": 11085
+    }
+  },
+  "2026-03-30": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": -479530,
+    "cumulativeReturn": -4.0,
+    "dailyProfit": -391555,
+    "symbols": {
+      "SK하이닉스": -69000,
+      "삼성전자": -75500,
+      "현대차": -46000,
+      "KODEX200": -286300
+    },
+    "allocation": {
+      "ETF": 7934385,
+      "개별주식": 3575000,
+      "현금": 11085
+    }
+  },
+  "2026-03-31": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": -1012410,
+    "cumulativeReturn": -8.44,
+    "dailyProfit": -532880,
+    "symbols": {
+      "SK하이닉스": -135000,
+      "삼성전자": -166500,
+      "현대차": -94000,
+      "KODEX200": -611300
+    },
+    "allocation": {
+      "ETF": 7606505,
+      "개별주식": 3370000,
+      "현금": 11085
+    }
+  },
+  "2026-04-01": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 62720,
+    "cumulativeReturn": 0.52,
+    "dailyProfit": 1075130,
+    "symbols": {
+      "SK하이닉스": -49000,
+      "삼성전자": 57500,
+      "현대차": -9000,
+      "KODEX200": 62700
+    },
+    "allocation": {
+      "ETF": 8286635,
+      "개별주식": 3765000,
+      "현금": 11085
+    }
+  },
+  "2026-04-02": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": -558925,
+    "cumulativeReturn": -4.66,
+    "dailyProfit": -621645,
+    "symbols": {
+      "SK하이닉스": -112000,
+      "삼성전자": -54500,
+      "현대차": -54000,
+      "KODEX200": -335300
+    },
+    "allocation": {
+      "ETF": 7884990,
+      "개별주식": 3545000,
+      "현금": 11085
+    }
+  },
+  "2026-04-03": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": -147920,
+    "cumulativeReturn": -2.12,
+    "dailyProfit": 411005,
+    "symbols": {
+      "SK하이닉스": -66000,
+      "삼성전자": 11750,
+      "현대차": -43000,
+      "KODEX200": -48400
+    },
+    "allocation": {
+      "ETF": 4095595,
+      "개별주식": 2749000,
+      "현금": 4967085
+    }
+  },
+  "2026-04-06": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": -67730,
+    "cumulativeReturn": -1.02,
+    "dailyProfit": 80190,
+    "symbols": {
+      "SK하이닉스": -56000,
+      "삼성전자": 27750,
+      "현대차": -47000,
+      "KODEX200": 10350
+    },
+    "allocation": {
+      "ETF": 4153785,
+      "개별주식": 2403300,
+      "현금": 5351385
+    }
+  },
+  "2026-04-07": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 31625,
+    "cumulativeReturn": 0.48,
+    "dailyProfit": 99355,
+    "symbols": {
+      "SK하이닉스": -26000,
+      "삼성전자": 37950,
+      "현대차": -39000,
+      "KODEX200": 61350
+    },
+    "allocation": {
+      "ETF": 4204940,
+      "개별주식": 2451500,
+      "현금": 5351385
+    }
+  },
+  "2026-04-08": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 577460,
+    "cumulativeReturn": 8.72,
+    "dailyProfit": 545835,
+    "symbols": {
+      "SK하이닉스": 91000,
+      "삼성전자": 79950,
+      "현대차": 31000,
+      "KODEX200": 372850
+    },
+    "allocation": {
+      "ETF": 4521775,
+      "개별주식": 2680500,
+      "현금": 5351385
+    }
+  },
+  "2026-04-09": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 396995,
+    "cumulativeReturn": 5.99,
+    "dailyProfit": -180465,
+    "symbols": {
+      "SK하이닉스": 56000,
+      "삼성전자": 60450,
+      "현대차": -6000,
+      "KODEX200": 285350
+    },
+    "allocation": {
+      "ETF": 4432810,
+      "개별주식": 2589000,
+      "현금": 5351385
+    }
+  },
+  "2026-04-10": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 502820,
+    "cumulativeReturn": 7.59,
+    "dailyProfit": 105825,
+    "symbols": {
+      "SK하이닉스": 85000,
+      "삼성전자": 66450,
+      "현대차": -6000,
+      "KODEX200": 355600
+    },
+    "allocation": {
+      "ETF": 4503635,
+      "개별주식": 2624000,
+      "현금": 5351385
+    }
+  },
+  "2026-04-13": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 439675,
+    "cumulativeReturn": 6.64,
+    "dailyProfit": -63145,
+    "symbols": {
+      "SK하이닉스": 98000,
+      "삼성전자": 51450,
+      "현대차": -28000,
+      "KODEX200": 316850
+    },
+    "allocation": {
+      "ETF": 4464490,
+      "개별주식": 2600000,
+      "현금": 5351385
+    }
+  },
+  "2026-04-14": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 674955,
+    "cumulativeReturn": 10.19,
+    "dailyProfit": 235280,
+    "symbols": {
+      "SK하이닉스": 161000,
+      "삼성전자": 67950,
+      "현대차": -2000,
+      "KODEX200": 444350
+    },
+    "allocation": {
+      "ETF": 4594270,
+      "개별주식": 2705500,
+      "현금": 5351385
+    }
+  },
+  "2026-04-15": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 868195,
+    "cumulativeReturn": 13.11,
+    "dailyProfit": 193240,
+    "symbols": {
+      "SK하이닉스": 194000,
+      "삼성전자": 81450,
+      "현대차": 31000,
+      "KODEX200": 556100
+    },
+    "allocation": {
+      "ETF": 4708010,
+      "개별주식": 2785000,
+      "현금": 5351385
+    }
+  },
+  "2026-04-16": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 1062200,
+    "cumulativeReturn": 16.03,
+    "dailyProfit": 194005,
+    "symbols": {
+      "SK하이닉스": 213000,
+      "삼성전자": 100950,
+      "현대차": 83000,
+      "KODEX200": 658350
+    },
+    "allocation": {
+      "ETF": 4811515,
+      "개별주식": 2875500,
+      "현금": 5351385
+    }
+  },
+  "2026-04-17": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 1005490,
+    "cumulativeReturn": 15.11,
+    "dailyProfit": -56710,
+    "symbols": {
+      "SK하이닉스": 186000,
+      "삼성전자": 96450,
+      "현대차": 91000,
+      "KODEX200": 625350
+    },
+    "allocation": {
+      "ETF": 4778705,
+      "개별주식": 2879640,
+      "현금": 5323345
+    }
+  },
+  "2026-04-20": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 1038445,
+    "cumulativeReturn": 15.61,
+    "dailyProfit": 32955,
+    "symbols": {
+      "SK하이닉스": 224000,
+      "삼성전자": 91950,
+      "현대차": 69000,
+      "KODEX200": 647850
+    },
+    "allocation": {
+      "ETF": 4801720,
+      "개별주식": 2889580,
+      "현금": 5323345
+    }
+  },
+  "2026-04-21": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 1271375,
+    "cumulativeReturn": 19.11,
+    "dailyProfit": 232930,
+    "symbols": {
+      "SK하이닉스": 282000,
+      "삼성전자": 105450,
+      "현대차": 107000,
+      "KODEX200": 768850
+    },
+    "allocation": {
+      "ETF": 4923830,
+      "개별주식": 3000400,
+      "현금": 5323345
+    }
+  },
+  "2026-04-22": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 1290340,
+    "cumulativeReturn": 10.81,
+    "dailyProfit": 18965,
+    "symbols": {
+      "SK하이닉스": 281000,
+      "삼성전자": 92950,
+      "현대차": 97000,
+      "KODEX200": 809920
+    },
+    "allocation": {
+      "ETF": 9808425,
+      "개별주식": 3420700,
+      "현금": 61215
+    }
+  },
+  "2026-04-23": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 1414395,
+    "cumulativeReturn": 11.79,
+    "dailyProfit": 124055,
+    "symbols": {
+      "SK하이닉스": 283000,
+      "삼성전자": 127950,
+      "현대차": 79000,
+      "KODEX200": 915420
+    },
+    "allocation": {
+      "ETF": 9913740,
+      "개별주식": 3493760,
+      "현금": 6895
+    }
+  },
+  "2026-04-24": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 1310345,
+    "cumulativeReturn": 10.93,
+    "dailyProfit": -104050,
+    "symbols": {
+      "SK하이닉스": 280000,
+      "삼성전자": 102950,
+      "현대차": 41000,
+      "KODEX200": 879920
+    },
+    "allocation": {
+      "ETF": 9879410,
+      "개별주식": 3424040,
+      "현금": 6895
+    }
+  },
+  "2026-04-27": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 1654915,
+    "cumulativeReturn": 13.8,
+    "dailyProfit": 344570,
+    "symbols": {
+      "SK하이닉스": 350000,
+      "삼성전자": 127950,
+      "현대차": 63000,
+      "KODEX200": 1103920
+    },
+    "allocation": {
+      "ETF": 10106740,
+      "개별주식": 3541280,
+      "현금": 6895
+    }
+  },
+  "2026-04-28": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 1763665,
+    "cumulativeReturn": 14.71,
+    "dailyProfit": 108750,
+    "symbols": {
+      "SK하이닉스": 358000,
+      "삼성전자": 115450,
+      "현대차": 125000,
+      "KODEX200": 1149920
+    },
+    "allocation": {
+      "ETF": 10152710,
+      "개별주식": 3604060,
+      "현금": 6895
+    }
+  },
+  "2026-04-29": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 1812855,
+    "cumulativeReturn": 15.12,
+    "dailyProfit": 49190,
+    "symbols": {
+      "SK하이닉스": 351000,
+      "삼성전자": 135450,
+      "현대차": 127000,
+      "KODEX200": 1184420
+    },
+    "allocation": {
+      "ETF": 10186900,
+      "개별주식": 3619060,
+      "현금": 6895
+    }
+  },
+  "2026-04-30": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 1608985,
+    "cumulativeReturn": 13.42,
+    "dailyProfit": -203870,
+    "symbols": {
+      "SK하이닉스": 344000,
+      "삼성전자": 107950,
+      "현대차": 77000,
+      "KODEX200": 1070420
+    },
+    "allocation": {
+      "ETF": 10072150,
+      "개별주식": 3529940,
+      "현금": 6895
+    }
+  },
+  "2026-05-04": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 2392570,
+    "cumulativeReturn": 19.95,
+    "dailyProfit": 783585,
+    "symbols": {
+      "SK하이닉스": 505000,
+      "삼성전자": 167950,
+      "현대차": 93000,
+      "KODEX200": 1609420
+    },
+    "allocation": {
+      "ETF": 10613395,
+      "개별주식": 3772280,
+      "현금": 6895
+    }
+  },
+  "2026-05-06": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 3536535,
+    "cumulativeReturn": 29.49,
+    "dailyProfit": 1143965,
+    "symbols": {
+      "SK하이닉스": 659000,
+      "삼성전자": 335450,
+      "현대차": 115000,
+      "KODEX200": 2406920
+    },
+    "allocation": {
+      "ETF": 11413860,
+      "개별주식": 4115780,
+      "현금": 6895
+    }
+  },
+  "2026-05-07": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 3893760,
+    "cumulativeReturn": 32.47,
+    "dailyProfit": 357225,
+    "symbols": {
+      "SK하이닉스": 712000,
+      "삼성전자": 362950,
+      "현대차": 159000,
+      "KODEX200": 2641920
+    },
+    "allocation": {
+      "ETF": 11648805,
+      "개별주식": 4238060,
+      "현금": 6895
+    }
+  },
+  "2026-05-08": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 4011205,
+    "cumulativeReturn": 33.45,
+    "dailyProfit": 117445,
+    "symbols": {
+      "SK하이닉스": 744000,
+      "삼성전자": 347950,
+      "현대차": 241000,
+      "KODEX200": 2660920
+    },
+    "allocation": {
+      "ETF": 11670550,
+      "개별주식": 4333760,
+      "현금": 6895
+    }
+  },
+  "2026-05-11": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 4961295,
+    "cumulativeReturn": 41.37,
+    "dailyProfit": 950090,
+    "symbols": {
+      "SK하이닉스": 938000,
+      "삼성전자": 432950,
+      "현대차": 307000,
+      "KODEX200": 3260420
+    },
+    "allocation": {
+      "ETF": 12274440,
+      "개별주식": 4679960,
+      "현금": 6895
+    }
+  },
+  "2026-05-12": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 4605345,
+    "cumulativeReturn": 38.4,
+    "dailyProfit": -355950,
+    "symbols": {
+      "SK하이닉스": 893000,
+      "삼성전자": 400450,
+      "현대차": 307000,
+      "KODEX200": 2989920
+    },
+    "allocation": {
+      "ETF": 12002050,
+      "개별주식": 4596400,
+      "현금": 6895
+    }
+  },
+  "2026-05-13": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 5256205,
+    "cumulativeReturn": 43.83,
+    "dailyProfit": 650860,
+    "symbols": {
+      "SK하이닉스": 1034000,
+      "삼성전자": 425450,
+      "현대차": 435000,
+      "KODEX200": 3345420
+    },
+    "allocation": {
+      "ETF": 12361130,
+      "개별주식": 4888180,
+      "현금": 6895
+    }
+  },
+  "2026-05-14": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 5544180,
+    "cumulativeReturn": 46.23,
+    "dailyProfit": 287975,
+    "symbols": {
+      "SK하이닉스": 1028000,
+      "삼성전자": 485450,
+      "현대차": 439000,
+      "KODEX200": 3565420
+    },
+    "allocation": {
+      "ETF": 12581565,
+      "개별주식": 4955720,
+      "현금": 6895
+    }
+  },
+  "2026-05-15": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 4461310,
+    "cumulativeReturn": 37.2,
+    "dailyProfit": -1082870,
+    "symbols": {
+      "SK하이닉스": 877000,
+      "삼성전자": 357950,
+      "현대차": 415000,
+      "KODEX200": 2799920
+    },
+    "allocation": {
+      "ETF": 11811995,
+      "개별주식": 4642420,
+      "현금": 6895
+    }
+  },
+  "2026-05-18": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 4524975,
+    "cumulativeReturn": 37.73,
+    "dailyProfit": 63665,
+    "symbols": {
+      "SK하이닉스": 898000,
+      "삼성전자": 410450,
+      "현대차": 341000,
+      "KODEX200": 2863920
+    },
+    "allocation": {
+      "ETF": 11874600,
+      "개별주식": 4643480,
+      "현금": 6895
+    }
+  },
+  "2026-05-19": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 3925760,
+    "cumulativeReturn": 32.73,
+    "dailyProfit": -599215,
+    "symbols": {
+      "SK하이닉스": 803000,
+      "삼성전자": 382950,
+      "현대차": 223000,
+      "KODEX200": 2511420
+    },
+    "allocation": {
+      "ETF": 11517085,
+      "개별주식": 4401780,
+      "현금": 6895
+    }
+  },
+  "2026-05-20": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 3739325,
+    "cumulativeReturn": 22.77,
+    "dailyProfit": -186435,
+    "symbols": {
+      "SK하이닉스": 776000,
+      "삼성전자": 365450,
+      "현대차": 183000,
+      "KODEX200": 2413920
+    },
+    "allocation": {
+      "ETF": 11419350,
+      "개별주식": 8740980,
+      "현금": 8995
+    }
+  },
+  "2026-05-21": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 5654895,
+    "cumulativeReturn": 34.44,
+    "dailyProfit": 1915570,
+    "symbols": {
+      "SK하이닉스": 1166000,
+      "삼성전자": 600450,
+      "현대차": 479000,
+      "KODEX200": 3385920
+    },
+    "allocation": {
+      "ETF": 12400720,
+      "개별주식": 9675180,
+      "현금": 8995
+    }
+  },
+  "2026-05-22": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 5576020,
+    "cumulativeReturn": 34.24,
+    "dailyProfit": -78875,
+    "symbols": {
+      "SK하이닉스": 1168000,
+      "삼성전자": 530450,
+      "현대차": 435000,
+      "KODEX200": 3414920
+    },
+    "allocation": {
+      "ETF": 12431765,
+      "개별주식": 9427000,
+      "현금": 152655
+    }
+  },
+  "2026-05-26": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 6344645,
+    "cumulativeReturn": 38.97,
+    "dailyProfit": 768625,
+    "symbols": {
+      "SK하이닉스": 1390000,
+      "삼성전자": 595450,
+      "현대차": 571000,
+      "KODEX200": 3755420
+    },
+    "allocation": {
+      "ETF": 12777390,
+      "개별주식": 9850000,
+      "현금": 17255
+    }
+  },
+  "2026-05-27": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 7159940,
+    "cumulativeReturn": 43.97,
+    "dailyProfit": 815295,
+    "symbols": {
+      "SK하이닉스": 1772000,
+      "삼성전자": 675450,
+      "현대차": 539000,
+      "KODEX200": 4139920
+    },
+    "allocation": {
+      "ETF": 13162685,
+      "개별주식": 10280000,
+      "현금": 17255
+    }
+  },
+  "2026-05-28": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 7100865,
+    "cumulativeReturn": 43.61,
+    "dailyProfit": -59075,
+    "symbols": {
+      "SK하이닉스": 1864000,
+      "삼성전자": 600450,
+      "현대차": 523000,
+      "KODEX200": 4078920
+    },
+    "allocation": {
+      "ETF": 13102610,
+      "개별주식": 10281000,
+      "현금": 17255
+    }
+  },
+  "2026-05-29": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 8037215,
+    "cumulativeReturn": 49.36,
+    "dailyProfit": 936350,
+    "symbols": {
+      "SK하이닉스": 1952000,
+      "삼성전자": 775450,
+      "현대차": 707000,
+      "KODEX200": 4561420
+    },
+    "allocation": {
+      "ETF": 13591960,
+      "개별주식": 10728000,
+      "현금": 17255
+    }
+  },
+  "2026-06-01": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 9188815,
+    "cumulativeReturn": 56.43,
+    "dailyProfit": 1151600,
+    "symbols": {
+      "SK하이닉스": 2012000,
+      "삼성전자": 1095450,
+      "현대차": 815000,
+      "KODEX200": 5219420
+    },
+    "allocation": {
+      "ETF": 14255560,
+      "개별주식": 11216000,
+      "현금": 17255
+    }
+  },
+  "2026-06-02": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 9228165,
+    "cumulativeReturn": 56.67,
+    "dailyProfit": 39350,
+    "symbols": {
+      "SK하이닉스": 2006000,
+      "삼성전자": 1210450,
+      "현대차": 731000,
+      "KODEX200": 5237420
+    },
+    "allocation": {
+      "ETF": 14269910,
+      "개별주식": 11241000,
+      "현금": 17255
+    }
+  },
+  "2026-06-04": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 8609975,
+    "cumulativeReturn": 52.88,
+    "dailyProfit": -618190,
+    "symbols": {
+      "SK하이닉스": 1882000,
+      "삼성전자": 1120450,
+      "현대차": 615000,
+      "KODEX200": 4952920
+    },
+    "allocation": {
+      "ETF": 13981720,
+      "개별주식": 10911000,
+      "현금": 17255
+    }
+  },
+  "2026-06-05": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 7154030,
+    "cumulativeReturn": 43.94,
+    "dailyProfit": -1455945,
+    "symbols": {
+      "SK하이닉스": 1426000,
+      "삼성전자": 895450,
+      "현대차": 615000,
+      "KODEX200": 4182920
+    },
+    "allocation": {
+      "ETF": 13206775,
+      "개별주식": 10230000,
+      "현금": 17255
+    }
+  },
+  "2026-06-08": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 5101380,
+    "cumulativeReturn": 31.33,
+    "dailyProfit": -2052650,
+    "symbols": {
+      "SK하이닉스": 1108000,
+      "삼성전자": 560450,
+      "현대차": 371000,
+      "KODEX200": 3035920
+    },
+    "allocation": {
+      "ETF": 12051125,
+      "개별주식": 9333000,
+      "현금": 47215
+    }
+  },
+  "2026-06-09": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 7039130,
+    "cumulativeReturn": 43.23,
+    "dailyProfit": 1937750,
+    "symbols": {
+      "SK하이닉스": 1716000,
+      "삼성전자": 825450,
+      "현대차": 371000,
+      "KODEX200": 4092920
+    },
+    "allocation": {
+      "ETF": 13115875,
+      "개별주식": 10206000,
+      "현금": 17255
+    }
+  },
+  "2026-06-10": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 5722955,
+    "cumulativeReturn": 35.15,
+    "dailyProfit": -1316175,
+    "symbols": {
+      "SK하이닉스": 1382000,
+      "삼성전자": 630450,
+      "현대차": 223000,
+      "KODEX200": 3459420
+    },
+    "allocation": {
+      "ETF": 12476700,
+      "개별주식": 9529000,
+      "현금": 17255
+    }
+  },
+  "2026-06-11": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 5781205,
+    "cumulativeReturn": 35.51,
+    "dailyProfit": 58250,
+    "symbols": {
+      "SK하이닉스": 1488000,
+      "삼성전자": 595450,
+      "현대차": 203000,
+      "KODEX200": 3464920
+    },
+    "allocation": {
+      "ETF": 12483950,
+      "개별주식": 9580000,
+      "현금": 17255
+    }
+  },
+  "2026-06-12": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 6699030,
+    "cumulativeReturn": 41.14,
+    "dailyProfit": 917825,
+    "symbols": {
+      "SK하이닉스": 1586000,
+      "삼성전자": 830450,
+      "현대차": 243000,
+      "KODEX200": 4006920
+    },
+    "allocation": {
+      "ETF": 13028775,
+      "개별주식": 9953000,
+      "현금": 17255
+    }
+  },
+  "2026-06-15": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 7987030,
+    "cumulativeReturn": 49.05,
+    "dailyProfit": 1288000,
+    "symbols": {
+      "SK하이닉스": 1862000,
+      "삼성전자": 975450,
+      "현대차": 403000,
+      "KODEX200": 4708920
+    },
+    "allocation": {
+      "ETF": 13735775,
+      "개별주식": 10534000,
+      "현금": 17255
+    }
+  },
+  "2026-06-16": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 8533695,
+    "cumulativeReturn": 52.41,
+    "dailyProfit": 546665,
+    "symbols": {
+      "SK하이닉스": 2050000,
+      "삼성전자": 1035450,
+      "현대차": 375000,
+      "KODEX200": 5034920
+    },
+    "allocation": {
+      "ETF": 14062440,
+      "개별주식": 10754000,
+      "현금": 17255
+    }
+  },
+  "2026-06-17": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 9010735,
+    "cumulativeReturn": 55.34,
+    "dailyProfit": 477040,
+    "symbols": {
+      "SK하이닉스": 2328000,
+      "삼성전자": 1070450,
+      "현대차": 287000,
+      "KODEX200": 5285420
+    },
+    "allocation": {
+      "ETF": 14314480,
+      "개별주식": 10979000,
+      "현금": 17255
+    }
+  },
+  "2026-06-18": {
+    "display": true,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 9922445,
+    "cumulativeReturn": 60.94,
+    "dailyProfit": 911710,
+    "symbols": {
+      "SK하이닉스": 2656000,
+      "삼성전자": 1230450,
+      "현대차": 219000,
+      "KODEX200": 5774420
+    },
+    "allocation": {
+      "ETF": 14806190,
+      "개별주식": 11399000,
+      "현금": 17255
+    }
+  },
+  "2026-06-19": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 10039160,
+    "cumulativeReturn": 61.66,
+    "dailyProfit": 116715,
+    "symbols": {
+      "SK하이닉스": 2814000,
+      "삼성전자": 1145450,
+      "현대차": 267000,
+      "KODEX200": 5770920
+    },
+    "allocation": {
+      "ETF": 14801905,
+      "개별주식": 11520000,
+      "현금": 17255
+    }
+  },
+  "2026-06-22": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 10362710,
+    "cumulativeReturn": 63.64,
+    "dailyProfit": 323550,
+    "symbols": {
+      "SK하이닉스": 3124000,
+      "삼성전자": 1140450,
+      "현대차": 139000,
+      "KODEX200": 5915420
+    },
+    "allocation": {
+      "ETF": 14948455,
+      "개별주식": 11697000,
+      "현금": 17255
+    }
+  },
+  "2026-06-23": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 7354770,
+    "cumulativeReturn": 45.17,
+    "dailyProfit": -3007940,
+    "symbols": {
+      "SK하이닉스": 2396000,
+      "삼성전자": 705450,
+      "현대차": -141000,
+      "KODEX200": 4361920
+    },
+    "allocation": {
+      "ETF": 13383515,
+      "개별주식": 10254000,
+      "현금": 17255
+    }
+  },
+  "2026-06-24": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 8236085,
+    "cumulativeReturn": 50.58,
+    "dailyProfit": 881315,
+    "symbols": {
+      "SK하이닉스": 2446000,
+      "삼성전자": 1010450,
+      "현대차": -149000,
+      "KODEX200": 4894420
+    },
+    "allocation": {
+      "ETF": 13917830,
+      "개별주식": 10601000,
+      "현금": 17255
+    }
+  },
+  "2026-06-25": {
+    "display": false,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 9838040,
+    "cumulativeReturn": 60.42,
+    "dailyProfit": 1601955,
+    "symbols": {
+      "SK하이닉스": 3120000,
+      "삼성전자": 1190450,
+      "현대차": -173000,
+      "KODEX200": 5662920
+    },
+    "allocation": {
+      "ETF": 14689785,
+      "개별주식": 11431000,
+      "현금": 17255
+    }
+  },
+  "2026-06-26": {
+    "display": true,
+    "source": "legacy-v9-snapshot",
+    "marketStatus": "close",
+    "rawHoldingProfit": 8218560,
+    "cumulativeReturn": 50.47,
+    "dailyProfit": -1619480,
+    "symbols": {
+      "SK하이닉스": 2632000,
+      "삼성전자": 1000450,
+      "현대차": -263000,
+      "KODEX200": 4817920
+    },
+    "allocation": {
+      "ETF": 13838305,
+      "개별주식": 10663000,
+      "현금": 17255
+    }
+  },
+  "2026-06-29": {
+    "display": true,
+    "source": "calculated-current-portfolio",
+    "marketStatus": "intraday",
+    "requestedDate": "2026-06-29",
+    "actualMarketDate": "2026-06-29",
+    "updatedAtKST": "2026-06-29T13:00:39+09:00",
+    "rawHoldingProfit": 7715490,
+    "cumulativeReturn": 47.382700412716105,
+    "dailyProfit": -503070,
+    "symbols": {
+      "SK하이닉스": 2478000,
+      "삼성전자": 835450,
+      "현대차": -217000,
+      "KODEX200": 4587920
+    },
+    "allocation": {
+      "ETF": 13608235,
+      "개별주식": 10390000,
+      "현금": 17255
+    }
+  }
+}
