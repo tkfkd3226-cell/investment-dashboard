@@ -8,13 +8,14 @@ on:
         required: false
         type: string
   schedule:
-  # 장중 업데이트: KST 10:00~15:00, Monday-Friday
-  # UTC 기준 01:00~06:00
-  - cron: "0 1-6 * * 1-5"
+    # 장중 업데이트: KST 12:00
+    - cron: "0 3 * * 1-5"
 
-  # 장마감 후 최종 업데이트: KST 18:30
-  # UTC 기준 09:30
-  - cron: "30 9 * * 1-5"
+    # 장마감 직전 체크: KST 15:20
+    - cron: "20 6 * * 1-5"
+
+    # 장마감 후 최종 업데이트: KST 18:30
+    - cron: "30 9 * * 1-5"
 
 permissions:
   contents: write
@@ -37,23 +38,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Update prices
+      - name: Update prices and snapshots
+        env:
+          INPUT_DATE: ${{ github.event.inputs.date }}
         run: |
-          if [ -n "${{ github.event.inputs.date }}" ]; then
-            python scripts/update_prices.py --date "${{ github.event.inputs.date }}"
+          if [ -n "$INPUT_DATE" ]; then
+            python scripts/update_prices.py --date "$INPUT_DATE"
           else
             python scripts/update_prices.py
           fi
 
-      - name: Commit updated prices
+      - name: Commit updated data
         run: |
-          if git diff --quiet data/prices.json; then
+          if git diff --quiet data/prices.json data/performance_snapshots.json; then
             echo "No changes to commit."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/prices.json
-          git commit -m "Update KRX closing prices"
+          git add data/prices.json data/performance_snapshots.json
+          git commit -m "Update KRX prices and performance snapshots"
           git push
