@@ -6,5 +6,12 @@
     "annualAdjustmentMonth": 2,
     "note": "매월 기본 618,060원. 매년 2월 금액 변경 가능."
   },
-  "contributions": []
+  "contributions": [
+    {
+      "date": "2026-06-30",
+      "source": "company",
+      "amount": 618060,
+      "memo": "2026년 7월 기업적립금"
+    }
+  ]
 }
