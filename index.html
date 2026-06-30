@@ -1240,7 +1240,7 @@ svg.chart{
 
 
 
-/* 자동화 버전 추가: 모바일 기준일 선택 메뉴 */
+/* 자동화 버전 추가: 월/일 기준일 선택 메뉴 */
 .switcher{
   position:sticky;
   top:0;
@@ -1249,40 +1249,45 @@ svg.chart{
   align-items:center;
   justify-content:center;
   flex-wrap:wrap;
-  gap:8px;
+  gap:10px;
   padding:10px 14px;
   background:linear-gradient(135deg,#111827 0%,#1f2937 55%,#0f172a 100%);
   border-bottom:1px solid rgba(255,255,255,.12);
   box-shadow:0 8px 24px rgba(0,0,0,.22);
 }
-.date-link{
-  display:inline-flex;
+.date-picker{
+  display:flex;
   align-items:center;
-  justify-content:center;
-  min-height:38px;
-  padding:7px 12px;
-  border:1px solid rgba(255,255,255,.28);
-  border-radius:999px;
+  gap:8px;
+  width:min(680px,100%);
+}
+.date-picker-label{
   color:#dbeafe;
-  background:rgba(255,255,255,.08);
   font-size:13px;
-  font-weight:800;
-  text-decoration:none;
+  font-weight:900;
   white-space:nowrap;
 }
-.date-link.active{background:#fff;color:#111827;border-color:#fff}
-.mobile-date-select{display:none;width:100%;max-width:520px;position:relative}
-.mobile-date-button{width:100%;min-height:42px;border:1px solid rgba(255,255,255,.28);border-radius:14px;background:rgba(255,255,255,.1);color:#fff;font-weight:900;font-size:14px;padding:9px 40px 9px 12px;text-align:left;cursor:pointer}
-.mobile-date-button:after{content:"▾";position:absolute;right:14px;top:10px;color:#dbeafe;font-size:14px}
-.mobile-date-options{display:none;position:absolute;left:0;right:0;top:48px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 36px rgba(15,23,42,.24);overflow:hidden;z-index:50}
-.mobile-date-options.open{display:block}
-.mobile-date-option{display:block;width:100%;border:0;background:#fff;color:#111827;text-align:left;padding:12px 14px;font-weight:800;font-size:14px;border-bottom:1px solid var(--line);cursor:pointer}
-.mobile-date-option:last-child{border-bottom:0}
-.mobile-date-option.active{background:#111827;color:#fff}
+.date-select{
+  min-height:40px;
+  border:1px solid rgba(255,255,255,.28);
+  border-radius:14px;
+  background:rgba(255,255,255,.1);
+  color:#fff;
+  font-weight:900;
+  font-size:14px;
+  padding:8px 38px 8px 12px;
+  outline:none;
+  cursor:pointer;
+}
+.date-select option{color:#111827;background:#fff}
+.month-select{min-width:145px}
+.day-select{min-width:190px;flex:1}
+.date-picker-caption{color:#cbd5e1;font-size:12px;font-weight:800;white-space:nowrap}
 @media(max-width:760px){
   .switcher{justify-content:stretch;flex-wrap:nowrap;padding:9px 10px}
-  .switcher .date-link{display:none}
-  .mobile-date-select{display:block}
+  .date-picker{display:grid;grid-template-columns:1fr 1.25fr;gap:8px;width:100%}
+  .date-picker-label,.date-picker-caption{display:none}
+  .date-select{width:100%;min-width:0;font-size:13px;padding-left:10px;padding-right:28px}
 }
 
 </style>
@@ -1290,7 +1295,7 @@ svg.chart{
 <body>
 <nav id="tabs" class="switcher" aria-label="대시보드 기준일 선택"></nav><div id="app"></div><div class="dash-tooltip" id="dashTooltip"></div>
 <script>
-let PORTFOLIO,PRICES,SNAPSHOTS,ACTIVE_DATE;const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원',pct=n=>(Number(n)||0).toFixed(2)+'%',signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s,cls=n=>n<0?'negative':(n>0?'positive':''),byDate=(a,b)=>a.localeCompare(b),shortDate=d=>{const [y,m,day]=d.split('-');return `${Number(m)}/${Number(day)}`},koreanDateLabel=d=>{
+let PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,ACTIVE_DATE;const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원',pct=n=>(Number(n)||0).toFixed(2)+'%',signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s,cls=n=>n<0?'negative':(n>0?'positive':''),byDate=(a,b)=>a.localeCompare(b),shortDate=d=>{const [y,m,day]=d.split('-');return `${Number(m)}/${Number(day)}`},koreanDateLabel=d=>{
   const [y,m,day]=d.split('-');
   const snap=PRICES?.[d]||{};
   const status=snap.marketStatus||'close';
@@ -1299,8 +1304,22 @@ let PORTFOLIO,PRICES,SNAPSHOTS,ACTIVE_DATE;const fmt=n=>Math.round(Number(n)||0)
     return `${Number(m)}월 ${Number(day)}일 장중 ${time} 기준`;
   }
   return `${Number(m)}월 ${Number(day)}일 종가 기준`;
-},
-basisText=d=>{
+};
+const allAvailableDates=()=>Array.from(new Set([...(Object.keys(ACCOUNT1_DAILY||{})),...(Object.keys(PRICES||{}).filter(d=>PRICES[d].display!==false))])).sort(byDate);
+const monthLabel=m=>{const [y,mo]=m.split('-');return `${y}년 ${Number(mo)}월`};
+const includeAccount2=d=>d>='2026-05-22';
+const includeToss=d=>d>='2026-03-23';
+const isLedgerCheckDate=d=>d>='2026-06-18';
+const hasPensionData=d=>{const pp=PRICES?.[d]?.pension||{};return !!(pp['278530']&&pp['395160']&&pp['448330'])};
+const dayOptionLabel=d=>{const [y,m,day]=d.split('-');const w='일월화수목금토'[new Date(d+'T00:00:00').getDay()];return `${Number(m)}/${Number(day)} ${w}`};
+const sectionScopeText=x=>{
+  const parts=['계좌1'];
+  if(x.tossIncluded)parts.push('토스');
+  if(x.account2Included)parts.push('계좌2');
+  if(x.hasPension)parts.push('퇴직연금');
+  return parts.join(' + ');
+};
+const basisText=d=>{
   const snap=PRICES?.[d]||{};
   const status=snap.marketStatus||'close';
   if(status==='intraday'){
@@ -1309,14 +1328,48 @@ basisText=d=>{
   }
   return '종가 기준';
 }
-function previousDate(date){return Object.keys(PRICES).filter(d=>d<date).sort(byDate).at(-1)||null}function getPrice(s,section,ticker){return s?.[section]?.[ticker]??null}
-function calc(date){const p=PORTFOLIO,c=p.constants,s=PRICES[date],pk=previousDate(date),prev=pk?PRICES[pk]:null;const holdings=p.securities.map(h=>{const price=getPrice(s,'securities',h.ticker),prevPrice=prev?getPrice(prev,'securities',h.ticker):null,evalAmount=(price||0)*h.qty,profit=evalAmount-h.cost,feeAdjustedProfit=profit-(h.feeBuffer||0),prevProfit=prevPrice==null?null:prevPrice*h.qty-h.cost;return {...h,price,prevPrice,evalAmount,profit,feeAdjustedProfit,returnRate:h.cost?profit/h.cost*100:0,dayChange:prevPrice==null?null:(price-prevPrice)*h.qty,prevProfit}});const rawHoldingProfit=holdings.reduce((a,h)=>a+h.profit,0),account1Profit=rawHoldingProfit+c.account1ProfitAdjustment,account1Result=c.account1Principal+account1Profit,totalProfit=account1Profit+c.account2Profit+c.tossProfit,totalResult=c.externalPrincipal+totalProfit,returnRate=totalProfit/c.externalPrincipal*100,actualHolding=totalResult-c.livingSpent;const pensionRows=p.pension.map(pos=>{const price=getPrice(s,'pension',pos.ticker),prevPrice=prev?getPrice(prev,'pension',pos.ticker):null,evalAmount=(price||0)*pos.qty,profit=evalAmount-pos.cost,prevEval=prevPrice==null?null:prevPrice*pos.qty;return {...pos,price,prevPrice,evalAmount,profit,returnRate:pos.cost?profit/pos.cost*100:0,dayChange:prevEval==null?null:evalAmount-prevEval,prevEval}});const pensionCash=Number(s?.pension?.cash||0),prevPensionCash=Number(prev?.pension?.cash||0),pensionEval=pensionRows.reduce((a,r)=>a+r.evalAmount,0)+pensionCash,pensionPrevEval=prev?pensionRows.reduce((a,r)=>a+(r.prevEval||0),0)+prevPensionCash:null,pensionProfit=pensionEval-c.pensionContributionPrincipal,pensionReturn=pensionProfit/c.pensionContributionPrincipal*100,combinedPrincipal=c.externalPrincipal+c.pensionContributionPrincipal,combinedResult=totalResult+pensionEval,combinedProfit=totalProfit+pensionProfit,combinedReturn=combinedProfit/combinedPrincipal*100,etfEval=holdings.filter(h=>h.type==='ETF').reduce((a,h)=>a+h.evalAmount,0),stockEval=holdings.filter(h=>h.type==='개별주식').reduce((a,h)=>a+h.evalAmount,0),allocTotal=etfEval+stockEval+c.securitiesCash;return {date,s,prevKey:pk,prev,holdings,rawHoldingProfit,account1Profit,account1Result,totalProfit,totalResult,returnRate,actualHolding,pensionRows,pensionCash,prevPensionCash,pensionEval,pensionPrevEval,pensionProfit,pensionReturn,combinedPrincipal,combinedResult,combinedProfit,combinedReturn,etfEval,stockEval,allocTotal}}
-function snapshotDates(d){return Object.keys(SNAPSHOTS||{}).filter(x=>x<=d).sort(byDate)}
-function cumHistory(d){
-  return snapshotDates(d).map(x=>{
-    const s=SNAPSHOTS[x]||{};
-    return {'날짜':x,'합계 : 누적손익':Number(s.rawHoldingProfit||0),'합계 : 누적수익률':Number(s.cumulativeReturn||0),'합계 : 전일대비손익':Number(s.dailyProfit||0)};
-  });
+function previousDate(date){return allAvailableDates().filter(d=>d<date).sort(byDate).at(-1)||null}function getPrice(s,section,ticker){return s?.[section]?.[ticker]??null}
+function calc(date){
+  const p=PORTFOLIO,c=p.constants,s=PRICES[date]||{},pk=previousDate(date),prev=pk?PRICES[pk]:null,daily=ACCOUNT1_DAILY?.[date]||null;
+  const account2Included=includeAccount2(date),tossIncluded=includeToss(date),hasPension=hasPensionData(date);
+  let holdings,rawHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,etfEval,stockEval,allocTotal,securitiesCash;
+  if(daily){
+    const prevDaily=pk?ACCOUNT1_DAILY?.[pk]:null;
+    holdings=daily.holdings.map(h=>{
+      const prevH=prevDaily?.holdings?.find(v=>v.name===h.name),prevProfit=prevH?prevH.profit:null,dayChange=prevH==null?null:h.profit-prevH.profit;
+      return {...h,feeAdjustedProfit:h.profit,prevPrice:prevH?.price??null,prevProfit,dayChange};
+    });
+    securitiesCash=daily.cash;
+    rawHoldingProfit=daily.totalProfit;
+    account1Principal=isLedgerCheckDate(date)?c.account1Principal:daily.totalCost;
+    account1Profit=isLedgerCheckDate(date)?daily.totalProfit+c.account1ProfitAdjustment:daily.totalProfit;
+    account1Result=account1Principal+account1Profit;
+    account1Return=account1Principal?account1Profit/account1Principal*100:0;
+    etfEval=holdings.filter(h=>h.type==='ETF').reduce((a,h)=>a+h.evalAmount,0);
+    stockEval=holdings.filter(h=>h.type==='개별주식').reduce((a,h)=>a+h.evalAmount,0);
+    allocTotal=daily.totalEval;
+  }else{
+    holdings=p.securities.map(h=>{const price=getPrice(s,'securities',h.ticker),prevPrice=prev?getPrice(prev,'securities',h.ticker):null,evalAmount=(price||0)*h.qty,profit=evalAmount-h.cost,feeAdjustedProfit=profit-(h.feeBuffer||0),prevProfit=prevPrice==null?null:prevPrice*h.qty-h.cost;return {...h,price,prevPrice,evalAmount,profit,feeAdjustedProfit,returnRate:h.cost?profit/h.cost*100:0,dayChange:prevPrice==null?null:(price-prevPrice)*h.qty,prevProfit}});
+    securitiesCash=c.securitiesCash;
+    rawHoldingProfit=holdings.reduce((a,h)=>a+h.profit,0);
+    account1Principal=c.account1Principal;
+    account1Profit=rawHoldingProfit+c.account1ProfitAdjustment;
+    account1Result=account1Principal+account1Profit;
+    account1Return=account1Principal?account1Profit/account1Principal*100:0;
+    etfEval=holdings.filter(h=>h.type==='ETF').reduce((a,h)=>a+h.evalAmount,0);
+    stockEval=holdings.filter(h=>h.type==='개별주식').reduce((a,h)=>a+h.evalAmount,0);
+    allocTotal=etfEval+stockEval+securitiesCash;
+  }
+  const account2Profit=account2Included?c.account2Profit:0,account2Principal=account2Included?c.account2Principal:0,account2RealizedAmount=account2Included?c.account2RealizedAmount:0,account2Remainder=account2Included?c.account2RealizedAmount-c.account2ReinvestedToAccount1:0;
+  const tossProfit=tossIncluded?c.tossProfit:0,tossRealizedAmount=tossIncluded?c.tossRealizedAmount:0,tossRemainder=tossIncluded?c.tossRealizedAmount-c.tossReinvestedToAccount1:0;
+  const totalProfit=account1Profit+account2Profit+tossProfit,totalResult=account1Result+account2Remainder+tossRemainder;
+  const totalPrincipal=account2Included?c.externalPrincipal:account1Principal;
+  const returnRate=totalPrincipal?totalProfit/totalPrincipal*100:0;
+  const actualHolding=isLedgerCheckDate(date)?totalResult-c.livingSpent:null;
+  const pensionRows=hasPension?p.pension.map(pos=>{const price=getPrice(s,'pension',pos.ticker),prevPrice=prev?getPrice(prev,'pension',pos.ticker):null,evalAmount=(price||0)*pos.qty,profit=evalAmount-pos.cost,prevEval=prevPrice==null?null:prevPrice*pos.qty;return {...pos,price,prevPrice,evalAmount,profit,returnRate:pos.cost?profit/pos.cost*100:0,dayChange:prevEval==null?null:evalAmount-prevEval,prevEval}}):[];
+  const pensionCash=hasPension?Number(s?.pension?.cash||0):0,prevPensionCash=Number(prev?.pension?.cash||0),pensionEval=hasPension?pensionRows.reduce((a,r)=>a+r.evalAmount,0)+pensionCash:0,pensionPrevEval=hasPension&&prev?pensionRows.reduce((a,r)=>a+(r.prevEval||0),0)+prevPensionCash:null,pensionProfit=hasPension?pensionEval-c.pensionContributionPrincipal:0,pensionReturn=hasPension?pensionProfit/c.pensionContributionPrincipal*100:0;
+  const combinedPrincipal=hasPension?totalPrincipal+c.pensionContributionPrincipal:totalPrincipal,combinedResult=hasPension?totalResult+pensionEval:totalResult,combinedProfit=hasPension?totalProfit+pensionProfit:totalProfit,combinedReturn=combinedPrincipal?combinedProfit/combinedPrincipal*100:0;
+  return {date,s,prevKey:pk,prev,daily,hasDaily:!!daily,account2Included,tossIncluded,hasPension,holdings,securitiesCash,rawHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,account2Profit,account2Principal,account2RealizedAmount,account2Remainder,tossProfit,tossRealizedAmount,tossRemainder,totalPrincipal,totalProfit,totalResult,returnRate,actualHolding,pensionRows,pensionCash,prevPensionCash,pensionEval,pensionPrevEval,pensionProfit,pensionReturn,combinedPrincipal,combinedResult,combinedProfit,combinedReturn,etfEval,stockEval,allocTotal}
 }
 function symbolHistory(d){
   return snapshotDates(d).map(x=>{
@@ -1331,18 +1384,11 @@ function allocHistory(d){
   });
 }
 function renderTabs(){
-  const dates=Object.keys(PRICES).filter(d=>PRICES[d].display!==false).sort(byDate);
-  const desktop=dates.map(d=>`<a class="date-link ${d===ACTIVE_DATE?'active':''}" href="#${d}" data-date="${d}">${koreanDateLabel(d)}</a>`).join('');
-  const mobile=`<div class="mobile-date-select">
-    <button type="button" class="mobile-date-button" id="mobileDateButton">기준일: ${koreanDateLabel(ACTIVE_DATE)}</button>
-    <div class="mobile-date-options" id="mobileDateOptions">
-      ${dates.map(d=>`<button type="button" class="mobile-date-option ${d===ACTIVE_DATE?'active':''}" data-date="${d}">${koreanDateLabel(d)}</button>`).join('')}
-    </div>
-  </div>`;
-  document.getElementById('tabs').innerHTML=mobile+desktop;
+  const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
+  document.getElementById('tabs').innerHTML=`<div class="date-picker"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div>`;
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
-function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero"><h1>${PORTFOLIO.meta.title}</h1><p>현재 보유분은 가격으로 자동 계산하고, 과거 차트는 실제 장부 스냅샷을 기준으로 표시.</p><div class="pillbar"><span class="pill">전체 외부투입원금 ${won(c.externalPrincipal)}</span><span class="pill">총 합산 누적손익 ${won(x.totalProfit)}</span><span class="pill">투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">전체 투자 결과물 ${won(x.totalResult)}</span><span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span></div></header><div class="grid cards">${metricCard('전체 투자 결과물',won(x.totalResult),'외부투입원금 + 총 합산 누적손익',true)}${metricCard('전체 외부투입원금',won(c.externalPrincipal),`금 판매액 ${fmt(c.goldPrincipal)} + 근로소득 순투입 ${fmt(c.laborNetPrincipal)}`)}${metricCard('총 합산 누적손익',won(x.totalProfit),'계좌1 + 계좌2 + 토스증권',false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 전체 외부투입원금',false,'blue')}</div>${renderPension(x)}${renderCharts(x)}${renderAccounts(x)}${renderResultSummary(x)}${renderHoldings(x)}${renderSourceTables()}</div>`;drawAllCharts()}
+function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();const scope=sectionScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:`<span class="pill">퇴직연금 데이터 없는 기준일</span>`;document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero"><h1>${PORTFOLIO.meta.title}</h1><p>${x.date} 기준. 선택일에 존재하는 원시데이터 범위만 반영하여 표시.</p><div class="pillbar"><span class="pill">포함 범위 ${scope}</span><span class="pill">기준 투입원금 ${won(x.totalPrincipal)}</span><span class="pill">총 합산 누적손익 ${won(x.totalProfit)}</span><span class="pill">투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">전체 투자 결과물 ${won(x.totalResult)}</span>${pensionPill}</div></header><div class="grid cards">${metricCard('전체 투자 결과물',won(x.totalResult),`${scope} 기준`,true)}${metricCard('기준 투입원금',won(x.totalPrincipal),x.account2Included?'현재 장부상 외부투입원금 기준':'선택일 계좌1 투자원금 기준')}${metricCard('총 합산 누적손익',won(x.totalProfit),`${scope} 누적손익`,false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 기준 투입원금',false,'blue')}</div>${renderPension(x)}${renderCharts(x)}${renderAccounts(x)}${renderResultSummary(x)}${renderHoldings(x)}${isLedgerCheckDate(x.date)?renderSourceTables():''}</div>`;drawAllCharts()}
 function renderPension(x){
   const c=PORTFOLIO.constants,
         day=x.pensionPrevEval==null?null:x.pensionEval-x.pensionPrevEval,
@@ -1355,7 +1401,7 @@ function renderPension(x){
 }
 function pensionRow(r,total){const w=total?r.evalAmount/total*100:0;return `<tr><td><strong>${r.name}</strong></td><td class="num">${fmt(r.qty)}</td><td class="num">${fmt(r.cost/r.qty)}</td><td class="num">${fmt(r.cost)}</td><td class="num">${fmt(r.evalAmount)}</td><td class="num ${cls(r.profit)}">${fmt(r.profit)}</td><td class="num ${cls(r.returnRate)}">${pct(r.returnRate)}</td><td><div class="bar-box"><div class="bar-fill ${r.barClass}" style="width:${Math.max(0,Math.min(100,w)).toFixed(1)}%"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}
 function pensionCashRow(cash,total,cost=39408){const w=total?cash/total*100:0,profit=cash-cost,ret=cost?profit/cost*100:0;return `<tr><td><strong>현금성자산</strong></td><td class="num">1</td><td class="num">${fmt(cost)}</td><td class="num">${fmt(cost)}</td><td class="num">${fmt(cash)}</td><td class="num ${cls(profit)}">${fmt(profit)}</td><td class="num ${cls(ret)}">${pct(ret)}</td><td><div class="bar-box"><div class="bar-fill bar-gray" style="width:${w.toFixed(1)}%"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}
-function renderCombined(x){const c=PORTFOLIO.constants;return `<div class="note" style="margin-top:16px"><div class="section-title"><h2>계좌+연금 성과</h2><p>단타 제외</p></div><div class="mobile-scroll"><table class="combined-performance-table"><thead><tr><th>구분</th><th>투입원금</th><th>투자 결과물</th><th>누적손익</th><th>투자대비 이익률</th></tr></thead><tbody><tr><td><strong>증권계좌</strong></td><td class="num">${fmt(c.externalPrincipal)}</td><td class="num">${fmt(x.totalResult)}</td><td class="num ${cls(x.totalProfit)}">${fmt(x.totalProfit)}</td><td class="num ${cls(x.returnRate)}">${pct(x.returnRate)}</td></tr><tr><td><strong>퇴직연금</strong></td><td class="num">${fmt(c.pensionContributionPrincipal)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(x.pensionProfit)}">${fmt(x.pensionProfit)}</td><td class="num ${cls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr class="summary-row"><td>합산</td><td class="num">${fmt(x.combinedPrincipal)}</td><td class="num">${fmt(x.combinedResult)}</td><td class="num ${cls(x.combinedProfit)}">${fmt(x.combinedProfit)}</td><td class="num ${cls(x.combinedReturn)}">${pct(x.combinedReturn)}</td></tr></tbody></table></div><div class="formula" style="margin-top:12px">투입원금 ${won(x.combinedPrincipal)} = 증권계좌 ${won(c.externalPrincipal)} + 퇴직연금 ${won(c.pensionContributionPrincipal)}\n전체 투자 결과물 ${won(x.combinedResult)} = 증권계좌 ${won(x.totalResult)} + 퇴직연금 ${won(x.pensionEval)}\n총 합산 누적손익 ${won(x.combinedProfit)} = 증권계좌 ${won(x.totalProfit)} + 퇴직연금 ${won(x.pensionProfit)}\n투자대비 이익률 ${pct(x.combinedReturn)} = ${fmt(x.combinedProfit)} ÷ ${fmt(x.combinedPrincipal)}</div></div>`}
+function renderCombined(x){const c=PORTFOLIO.constants;return `<div class="note" style="margin-top:16px"><div class="section-title"><h2>계좌+연금 성과</h2><p>단타 제외</p></div><div class="mobile-scroll"><table class="combined-performance-table"><thead><tr><th>구분</th><th>투입원금</th><th>투자 결과물</th><th>누적손익</th><th>투자대비 이익률</th></tr></thead><tbody><tr><td><strong>증권계좌</strong></td><td class="num">${fmt(x.totalPrincipal)}</td><td class="num">${fmt(x.totalResult)}</td><td class="num ${cls(x.totalProfit)}">${fmt(x.totalProfit)}</td><td class="num ${cls(x.returnRate)}">${pct(x.returnRate)}</td></tr><tr><td><strong>퇴직연금</strong></td><td class="num">${fmt(c.pensionContributionPrincipal)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(x.pensionProfit)}">${fmt(x.pensionProfit)}</td><td class="num ${cls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr class="summary-row"><td>합산</td><td class="num">${fmt(x.combinedPrincipal)}</td><td class="num">${fmt(x.combinedResult)}</td><td class="num ${cls(x.combinedProfit)}">${fmt(x.combinedProfit)}</td><td class="num ${cls(x.combinedReturn)}">${pct(x.combinedReturn)}</td></tr></tbody></table></div><div class="formula" style="margin-top:12px">투입원금 ${won(x.combinedPrincipal)} = 증권계좌 ${won(x.totalPrincipal)} + 퇴직연금 ${won(c.pensionContributionPrincipal)}\n전체 투자 결과물 ${won(x.combinedResult)} = 증권계좌 ${won(x.totalResult)} + 퇴직연금 ${won(x.pensionEval)}\n총 합산 누적손익 ${won(x.combinedProfit)} = 증권계좌 ${won(x.totalProfit)} + 퇴직연금 ${won(x.pensionProfit)}\n투자대비 이익률 ${pct(x.combinedReturn)} = ${fmt(x.combinedProfit)} ÷ ${fmt(x.combinedPrincipal)}</div></div>`}
 function calcMdd(cum){
   if(!cum.length)return null;
   let peak=cum[0], maxDrop=0, from=cum[0].날짜, to=cum[0].날짜;
@@ -1379,23 +1425,15 @@ function renderCharts(x){
   return `<section><div class="section-title"><h2>투자 기간 분석</h2></div><div class="grid chart-grid">
   <div class="chart-card"><div class="chart-head"><div><h3>누적손익 및 누적수익률</h3><p>막대는 누적손익과 전일대비손익, 선은 누적수익률을 나타냄.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>누적손익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" style="background:#5abdf2"></span>누적수익률</span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card"><div class="m-label">최고 누적손익</div><div class="m-value">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card"><div class="m-label">최고의 하루</div><div class="m-value positive day-value"><span>${bestDay.날짜}</span><span>${signed(bestDay['합계 : 전일대비손익'],'원')}</span></div></div><div class="mini-card"><div class="m-label">최악의 하루</div><div class="m-value negative day-value"><span>${worstDay.날짜}</span><span>${signed(worstDay['합계 : 전일대비손익'],'원')}</span></div></div></div></div>
   <div class="chart-card"><div class="chart-head"><div><h3>종목별 누적 손익</h3><p>종목별 누적 손익의 변화와 기여도를 비교.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff8a65"></span>SK하이닉스</span><span class="legend-item"><span class="swatch" style="background:#8bc34a"></span>삼성전자</span><span class="legend-item"><span class="swatch" style="background:#26c6da"></span>현대차</span><span class="legend-item"><span class="swatch" style="background:#42a5f5"></span>KODEX200</span></div><div class="chart-note symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>symbolCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">※ 기여도는 차트에 표시된 4개 종목 누적손익 합계 기준이며, 변동률은 전일 누적손익 절댓값 대비.</div></div>
-  <div class="chart-card"><div class="chart-head"><div><h3>평가액 비중</h3><p>ETF·개별주식·현금의 일자별 평가액 비중 변화.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartAlloc"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff6b6b"></span>ETF</span><span class="legend-item"><span class="swatch" style="background:#ffc857"></span>개별주식</span><span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금</span></div><div class="chart-note"><div class="mini-card"><div class="m-label">ETF</div><div class="m-value">${won(x.etfEval)} <span class="small">(${(x.etfEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식</div><div class="m-value">${won(x.stockEval)} <span class="small">(${(x.stockEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금</div><div class="m-value">${won(PORTFOLIO.constants.securitiesCash)} <span class="small">(${(PORTFOLIO.constants.securitiesCash/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div></div></div></div>
+  <div class="chart-card"><div class="chart-head"><div><h3>평가액 비중</h3><p>ETF·개별주식·현금의 일자별 평가액 비중 변화.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartAlloc"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff6b6b"></span>ETF</span><span class="legend-item"><span class="swatch" style="background:#ffc857"></span>개별주식</span><span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금</span></div><div class="chart-note"><div class="mini-card"><div class="m-label">ETF</div><div class="m-value">${won(x.etfEval)} <span class="small">(${(x.etfEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식</div><div class="m-value">${won(x.stockEval)} <span class="small">(${(x.stockEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${(x.securitiesCash/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div></div></div></div>
   </div></section>`;
 }
 function symbolCard(h,total){const contrib=total?h.profit/total*100:0,cr=h.prevProfit?h.dayChange/Math.abs(h.prevProfit)*100:0;return `<div class="mini-card symbol-card"><div class="m-label">${h.name==='KODEX 200'?'KODEX200':h.name}</div><div class="m-value ${cls(h.profit)}">${won(h.profit)}</div><div class="symbol-metrics"><div class="symbol-metric"><span class="symbol-metric-label">기여도</span><span class="symbol-metric-value ${cls(contrib)}">${pct(contrib)}</span></div><div class="symbol-metric"><span class="symbol-metric-label">전일대비 변동액</span><span class="symbol-metric-value ${cls(h.dayChange)}">${h.dayChange==null?'-':signed(h.dayChange,'원')}</span></div><div class="symbol-metric"><span class="symbol-metric-label">변동률</span><span class="symbol-metric-value ${cls(cr)}">${h.prevProfit?((cr>0?'+':'')+pct(cr)):'-'}</span></div></div></div>`}
-function renderAccounts(x){const c=PORTFOLIO.constants,a2=c.account2Principal+c.account2Profit;return `<section><div class="section-title"><h2>계좌별 성과 요약</h2><p>2023-12 이후 누적</p></div><div class="mobile-scroll"><table class="account-summary-table"><thead><tr><th>구분</th><th>투입원금</th><th>누적손익</th><th>결과값/현금화액</th><th>수익률</th><th>메모</th></tr></thead><tbody><tr><td><strong>삼성증권 계좌1</strong></td><td class="num">${fmt(c.account1Principal)}</td><td class="num ${cls(x.account1Profit)}">${fmt(x.account1Profit)}</td><td class="num">${fmt(x.account1Result)}</td><td class="num ${cls(x.account1Profit)}">${pct(x.account1Profit/c.account1Principal*100)}</td><td>보유종목 가격 기준 자동 계산. 삼성증권 계좌1: 2025-10-16 최초 시작.</td></tr><tr><td><strong>삼성증권 계좌2</strong></td><td class="num">${fmt(c.account2Principal)}</td><td class="num positive">${fmt(c.account2Profit)}</td><td class="num">${fmt(a2)}</td><td class="num positive">${pct(c.account2Profit/c.account2Principal*100)}</td><td>VIP한가투 매도 완료. 일부 계좌1 재투입. 삼성증권 계좌2: 2023-12-20 최초 시작.</td></tr><tr><td><strong>토스증권</strong></td><td class="num">0</td><td class="num positive">${fmt(c.tossProfit)}</td><td class="num">${fmt(c.tossRealizedAmount)}</td><td class="num">-</td><td>마이너스통장 원금 투입 후 전액 상환. 수익만 잔존. 토스증권: 2026-03-09 매수 후 익일 매도.</td></tr><tr class="summary-row"><td>전체 기준</td><td class="num">${fmt(c.externalPrincipal)}</td><td class="num ${cls(x.totalProfit)}">${fmt(x.totalProfit)}</td><td class="num">${fmt(x.totalResult)}</td><td class="num ${cls(x.returnRate)}">${pct(x.returnRate)}</td><td>재투입 중복 제거 후 결과값</td></tr></tbody></table></div></section>`}
-function renderResultSummary(x){const c=PORTFOLIO.constants,a2=c.account2RealizedAmount-c.account2ReinvestedToAccount1,toss=c.tossRealizedAmount-c.tossReinvestedToAccount1,outsideCash=x.actualHolding-x.allocTotal;return `<section class="grid result-summary-grid"><div class="note"><div class="section-title"><h2>중복 제거 계산</h2></div><p>계좌2와 토스증권의 현금화액 중 일부는 이미 계좌1에 재투입되어 계좌1 결과값 안에 포함되어 있음. 따라서 단순합산하면 중복 계산됨.</p><div class="formula">계좌1 투자성과 결과값 ${fmt(x.account1Result)}
+function renderAccounts(x){const c=PORTFOLIO.constants,a2=c.account2Principal+c.account2Profit;const account2Row=x.account2Included?`<tr><td><strong>삼성증권 계좌2</strong></td><td class="num">${fmt(c.account2Principal)}</td><td class="num positive">${fmt(c.account2Profit)}</td><td class="num">${fmt(a2)}</td><td class="num positive">${pct(c.account2Profit/c.account2Principal*100)}</td><td>2026-05-22 전량 매도 완료. 일부 계좌1 재투입. 삼성증권 계좌2: 2023-12-20 최초 시작.</td></tr>`:`<tr class="muted-row"><td><strong>삼성증권 계좌2</strong></td><td class="num">-</td><td class="num">-</td><td class="num">-</td><td class="num">-</td><td>선택일 기준 전량 매도 전이므로 전체 성과에서 제외. 삼성증권 계좌2: 2023-12-20 최초 시작.</td></tr>`;return `<section><div class="section-title"><h2>계좌별 성과 요약</h2><p>2023-12 이후 누적</p></div><div class="mobile-scroll"><table class="account-summary-table"><thead><tr><th>구분</th><th>투입원금</th><th>누적손익</th><th>결과값/현금화액</th><th>수익률</th><th>메모</th></tr></thead><tbody><tr><td><strong>삼성증권 계좌1</strong></td><td class="num">${fmt(x.account1Principal)}</td><td class="num ${cls(x.account1Profit)}">${fmt(x.account1Profit)}</td><td class="num">${fmt(x.account1Result)}</td><td class="num ${cls(x.account1Profit)}">${pct(x.account1Return)}</td><td>${x.hasDaily?'선택일 원시데이터 기준.':'보유종목 가격 기준 자동 계산.'} 삼성증권 계좌1: 2025-10-16 최초 시작.</td></tr>${account2Row}<tr><td><strong>토스증권</strong></td><td class="num">0</td><td class="num positive">${fmt(x.tossProfit)}</td><td class="num">${fmt(x.tossRealizedAmount)}</td><td class="num">-</td><td>3/23 이전 실현 완료로 선택 구간 전체 성과에 포함. 토스증권: 2026-03-09 매수 후 익일 매도.</td></tr><tr class="summary-row"><td>전체 기준</td><td class="num">${fmt(x.totalPrincipal)}</td><td class="num ${cls(x.totalProfit)}">${fmt(x.totalProfit)}</td><td class="num">${fmt(x.totalResult)}</td><td class="num ${cls(x.returnRate)}">${pct(x.returnRate)}</td><td>${sectionScopeText(x)} 기준</td></tr></tbody></table></div></section>`}
+function renderResultSummary(x){if(!isLedgerCheckDate(x.date))return ``;const c=PORTFOLIO.constants,a2=x.account2Remainder,toss=x.tossRemainder,outsideCash=x.actualHolding-x.allocTotal;return `<section class="grid result-summary-grid"><div class="note"><div class="section-title"><h2>중복 제거 계산</h2></div><p>계좌2와 토스증권의 현금화액 중 일부는 이미 계좌1에 재투입되어 계좌1 결과값 안에 포함되어 있음. 따라서 단순합산하면 중복 계산됨.</p><div class="formula">계좌1 투자성과 결과값 ${fmt(x.account1Result)}
 + 계좌2 잔여 현금화액 (${fmt(c.account2RealizedAmount)} - ${fmt(c.account2ReinvestedToAccount1)}) = ${fmt(a2)}
 + 토스 잔여 현금화액 (${fmt(c.tossRealizedAmount)} - ${fmt(c.tossReinvestedToAccount1)}) = ${fmt(toss)}
 = 전체 투자 결과물 ${fmt(x.totalResult)}</div><div class="kpi-mini"><div class="mini-card"><div class="m-label">VIP 매도대금 재투입</div><div class="m-value">${won(c.account2ReinvestedToAccount1)}</div></div><div class="mini-card"><div class="m-label">레버 수익 재투입</div><div class="m-value">${won(c.tossReinvestedToAccount1)}</div></div></div></div><div class="note"><div class="section-title"><h2>장부상 결과물 vs 실제 보유액</h2></div><p>계좌 밖 현금은 6/18 확인값 ${won(outsideCash)} 유지. 해당 현금은 투자 실현수익 잔액으로 반영하고, 차액은 수익실현분 카드대금 사용액으로 정리.</p><div class="kpi-mini"><div class="mini-card"><div class="m-label">장부상 전체 투자 결과물(A)</div><div class="m-value">${won(x.totalResult)}</div></div><div class="mini-card"><div class="m-label">현재 증권계좌 및 현금 보유액(B)</div><div class="m-value">${won(x.actualHolding)}</div></div><div class="mini-card"><div class="m-label">차액(A-B)</div><div class="m-value negative">${won(c.livingSpent)}</div></div><div class="mini-card"><div class="m-label">차액 발생 사유</div><div class="m-value" style="font-size:15px">수익실현분 카드대금 사용</div></div></div></div></section>`}
-function renderHoldings(x){
-  const holdCost=x.holdings.reduce((a,h)=>a+h.cost,0),
-        holdEval=x.holdings.reduce((a,h)=>a+h.evalAmount,0),
-        holdProfit=holdEval-holdCost,
-        holdFeeAdjusted=x.holdings.reduce((a,h)=>a+h.feeAdjustedProfit,0),
-        holdReturn=holdCost?holdProfit/holdCost*100:0;
-  return `<section><div class="section-title"><h2>증권계좌 보유분</h2><p>${x.date} ${basisText(x.date)}</p></div><div class="mobile-scroll"><table class="hold-position-table"><thead><tr><th>종목명</th><th>수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>수수료반영 손익</th><th>손익률</th></tr></thead><tbody>${x.holdings.map(h=>`<tr class="hold-row ${h.cssClass}"><td>${h.name}</td><td class="num">${fmt(h.qty)}</td><td class="num">${fmt(h.cost/h.qty)}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${cls(h.profit)}">${fmt(h.profit)}</td><td class="num ${cls(h.feeAdjustedProfit)}">${fmt(h.feeAdjustedProfit)}</td><td class="num ${cls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>합계</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(holdReturn)}">${pct(holdReturn)}</td></tr></tbody></table></div></section>`
-}
 function renderSourceTables(){const c=PORTFOLIO.constants,vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal;return `<section class="grid three"><div class="card"><div class="label">계좌1 원천별 투입</div><table style="font-size:12px;margin-top:8px;border-radius:12px"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num negative">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr><tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div><div class="card"><div class="label">전체 외부투입원금</div><div class="value">${won(c.externalPrincipal)}</div><div class="sub">외부에서 실제 들어온 돈만 계산</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 투입 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 순투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${fmt(c.externalPrincipal)}</td></tr></tbody></table></div><div class="card"><div class="label">계좌1 투자원금 검산</div><div class="value">${won(c.account1Principal)}</div><div class="sub">전체 외부투입 + 수익 재투입</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>전체 외부투입원금</td><td class="num">${fmt(c.externalPrincipal)}</td></tr><tr><td>레버 수익 재투입분</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입분</td><td class="num">${fmt(vipProfitReinvest)}</td></tr><tr class="summary-row"><td>검산값</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div></section>`}
 function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
 function el(name, attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',name);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e}
@@ -1488,19 +1526,17 @@ function refreshScrollHints(){
   });
 }
 function drawAllCharts(){drawCumChart();drawLineChart();drawStacked();refreshScrollHints();setTimeout(refreshScrollHints,120)}
-async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json())]);const displayDates=Object.keys(PRICES).filter(d=>PRICES[d].display!==false).sort(byDate),hash=location.hash.replace('#','');ACTIVE_DATE=displayDates.includes(hash)?hash:displayDates.at(-1);render();document.getElementById('tabs').addEventListener('click',e=>{
-  const menuButton=e.target.closest('#mobileDateButton');
-  if(menuButton){
-    e.preventDefault();
-    const opts=document.getElementById('mobileDateOptions');
-    if(opts) opts.classList.toggle('open');
-    return;
+async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({}))]);const dates=allAvailableDates(),hash=location.hash.replace('#','');ACTIVE_DATE=dates.includes(hash)?hash:dates.at(-1);render();document.getElementById('tabs').addEventListener('change',e=>{
+  if(e.target.id==='monthSelect'){
+    const month=e.target.value,dates=allAvailableDates().filter(d=>d.startsWith(month));
+    ACTIVE_DATE=dates.at(-1);
+    history.replaceState(null,'','#'+ACTIVE_DATE);
+    render();
   }
-  const picked=e.target.closest('.date-link,.mobile-date-option');
-  if(!picked)return;
-  e.preventDefault();
-  ACTIVE_DATE=picked.dataset.date;
-  history.replaceState(null,'','#'+ACTIVE_DATE);
-  render();
+  if(e.target.id==='dateSelect'){
+    ACTIVE_DATE=e.target.value;
+    history.replaceState(null,'','#'+ACTIVE_DATE);
+    render();
+  }
 });document.addEventListener('pointerdown',e=>{if(!e.target.closest('.svg-hitbox')&&!e.target.closest('#dashTooltip'))clearChartHover()})}boot().catch(err=>{document.getElementById('app').innerHTML=`<div class="wrap"><div class="note"><h2>데이터 로딩 오류</h2><pre>${String(err)}</pre></div></div>`})
 </script></body></html>
