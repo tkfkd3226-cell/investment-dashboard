@@ -36,7 +36,7 @@ exports.handler = async (event) => {
   }
 
   if (ADMIN_PIN && payload.pin !== ADMIN_PIN) {
-    return jsonResponse(401, { error: '저장 PIN이 맞지 않아.' });
+    return jsonResponse(401, { error: 'PIN이 맞지 않아.' });
   }
 
   const action = payload.action || 'upsert';
