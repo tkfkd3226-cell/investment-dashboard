@@ -1448,6 +1448,39 @@ svg.chart{
     grid-template-columns:1fr;
   }
 }
+
+.contrib-status{
+  display:none;
+  margin-top:10px;
+  border-radius:12px;
+  padding:10px 12px;
+  font-size:12px;
+  font-weight:800;
+  line-height:1.45;
+}
+.contrib-status.show{
+  display:block;
+}
+.contrib-status.ok{
+  background:#dcfce7;
+  color:#166534;
+  border:1px solid #86efac;
+}
+.contrib-status.err{
+  background:#fee2e2;
+  color:#991b1b;
+  border:1px solid #fecaca;
+}
+.dark .contrib-status.ok{
+  background:rgba(22,101,52,.22);
+  color:#bbf7d0;
+  border-color:rgba(134,239,172,.28);
+}
+.dark .contrib-status.err{
+  background:rgba(153,27,27,.22);
+  color:#fecaca;
+  border-color:rgba(254,202,202,.25);
+}
 </style>
 </head>
 <body>
@@ -1652,11 +1685,14 @@ function renderPension(x){
     <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${contribDefaultDate}"></div>
     <div class="contrib-field"><label for="pensionContribAmount">금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="618,060"></div>
     <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="${contribDefaultMemo}"></div>
+    <div class="contrib-field full"><label for="pensionContribPin">저장 PIN</label><input id="pensionContribPin" type="password" autocomplete="off" placeholder="Netlify ADMIN_PIN 설정 시 입력"></div>
   </div>
   <div class="contrib-actions">
-    <button type="button" class="contrib-btn" onclick="generatePensionContributionJson()">추가 JSON 만들기</button>
+    <button type="button" class="contrib-btn" onclick="savePensionContribution()">저장</button>
+    <button type="button" class="contrib-btn secondary" onclick="generatePensionContributionJson()">추가 JSON 만들기</button>
     <button type="button" class="contrib-btn secondary" onclick="copyPensionContributionJson()">복사</button>
   </div>
+  <div id="pensionContribStatus" class="contrib-status"></div>
   <pre id="pensionContribOutput" class="contrib-output"></pre>
 </div></div><div class="note pension-change-note" style="${x.s?.display===false?'display:none':''}"><div class="section-title"><h2>전일 대비 변동</h2></div><div class="change-kpis"><div class="mini-card"><div class="m-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가금액</div><div class="m-value">${x.pensionPrevEval==null?'-':won(x.pensionPrevEval)}</div></div><div class="mini-card"><div class="m-label">${shortDate(x.date)} 평가금액</div><div class="m-value">${won(x.pensionEval)}</div></div><div class="mini-card"><div class="m-label">하루 변동분</div><div class="m-value ${cls(day)}">${day==null?'-':signed(day,'원')}</div></div><div class="mini-card"><div class="m-label">하루 변동률</div><div class="m-value ${cls(rate)}">${x.pensionPrevEval==null?'-':(rate>0?'+':'')+pct(rate)}</div></div></div><div class="change-table-wrap desktop-change-table"><table class="change-table"><thead><tr><th>상품</th><th>${x.prevKey?shortDate(x.prevKey):'-'} 종가</th><th>${shortDate(x.date)} 종가</th><th>일변동</th></tr></thead><tbody>${x.pensionRows.map(r=>`<tr><td>${r.name}</td><td class="num"><span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span></td><td class="num"><span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span></td><td class="num ${cls(r.dayChange)}">${r.dayChange==null?'-':signed(r.dayChange)}</td></tr>`).join('')}<tr><td>현금성자산</td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.prevPensionCash)}</span></td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.pensionCash)}</span></td><td class="num ${cls(x.pensionCash-x.prevPensionCash)}">${signed(x.pensionCash-x.prevPensionCash)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${x.pensionPrevEval==null?'-':fmt(x.pensionPrevEval)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(day)}">${day==null?'-':signed(day)}</td></tr></tbody></table></div><div class="change-mobile-list">${x.pensionRows.map(r=>`<div class="change-product-card"><div class="change-product-title">${r.name}</div><div class="change-product-row"><span class="change-product-label">${x.prevKey?shortDate(x.prevKey):'-'} 종가</span><span class="change-product-value">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span></div><div class="change-product-row"><span class="change-product-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가액</span><span class="change-product-value">${r.prevEval==null?'-':won(r.prevEval)}</span></div><div class="change-product-row"><span class="change-product-label">${shortDate(x.date)} 종가</span><span class="change-product-value">${fmt(r.price)}</span></div><div class="change-product-row"><span class="change-product-label">${shortDate(x.date)} 평가액</span><span class="change-product-value">${won(r.evalAmount)}</span></div><div class="change-product-row"><span class="change-product-label">일변동</span><span class="change-product-value ${cls(r.dayChange)}">${r.dayChange==null?'-':signed(r.dayChange)}</span></div></div>`).join('')}<div class="change-product-card"><div class="change-product-title">현금성자산</div><div class="change-product-row"><span class="change-product-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가액</span><span class="change-product-value">${won(x.prevPensionCash)}</span></div><div class="change-product-row"><span class="change-product-label">${shortDate(x.date)} 평가액</span><span class="change-product-value">${won(x.pensionCash)}</span></div><div class="change-product-row"><span class="change-product-label">일변동</span><span class="change-product-value ${cls(x.pensionCash-x.prevPensionCash)}">${signed(x.pensionCash-x.prevPensionCash)}</span></div></div></div></div></div></div></section>`;
 }
@@ -1793,42 +1829,77 @@ function refreshScrollHints(){
 }
 function drawAllCharts(){drawCumChart();drawLineChart();drawStacked();refreshScrollHints();setTimeout(refreshScrollHints,120)}
 
+
 function cleanNumberInput(v){
   return Number(String(v||'').replace(/[^\d.-]/g,''));
 }
-function generatePensionContributionJson(){
+function buildPensionContributionItem(){
   const dateEl=document.getElementById('pensionContribDate');
   const amountEl=document.getElementById('pensionContribAmount');
   const memoEl=document.getElementById('pensionContribMemo');
-  const out=document.getElementById('pensionContribOutput');
-  if(!dateEl||!amountEl||!memoEl||!out) return;
+  if(!dateEl||!amountEl||!memoEl) throw new Error('입력칸을 찾지 못했어.');
   const date=dateEl.value;
   const amount=cleanNumberInput(amountEl.value);
   const memo=memoEl.value.trim()||defaultPensionContributionMemo(date);
-  if(!date){
-    out.textContent='일자를 입력해줘.';
+  if(!date) throw new Error('일자를 입력해줘.');
+  if(!amount || amount<=0) throw new Error('금액을 입력해줘.');
+  return {date,source:'company',amount,memo};
+}
+function showPensionContributionStatus(message,type='ok'){
+  const status=document.getElementById('pensionContribStatus');
+  if(!status) return;
+  status.textContent=message;
+  status.className=`contrib-status show ${type}`;
+}
+function generatePensionContributionJson(){
+  const out=document.getElementById('pensionContribOutput');
+  if(!out) return;
+  try{
+    const item=buildPensionContributionItem();
+    out.textContent=JSON.stringify(item,null,2);
     out.classList.add('show');
-    return;
-  }
-  if(!amount || amount<=0){
-    out.textContent='금액을 입력해줘.';
+    showPensionContributionStatus('JSON 생성 완료. 수동 반영이 필요하면 복사해서 contributions 안에 추가하면 돼.','ok');
+  }catch(e){
+    out.textContent=e.message||String(e);
     out.classList.add('show');
-    return;
+    showPensionContributionStatus(e.message||String(e),'err');
   }
-  const item={date,source:'company',amount,memo};
-  out.textContent=JSON.stringify(item,null,2);
-  out.classList.add('show');
 }
 async function copyPensionContributionJson(){
   const out=document.getElementById('pensionContribOutput');
   if(!out) return;
-  if(!out.textContent.trim()) generatePensionContributionJson();
+  if(!out.textContent.trim() || out.textContent.includes('복사 완료')) generatePensionContributionJson();
   if(!out.textContent.trim()) return;
+  const text=out.textContent.replace(/\n\n복사 완료$/,'');
   try{
-    await navigator.clipboard.writeText(out.textContent);
-    out.textContent=out.textContent + '\n\n복사 완료';
+    await navigator.clipboard.writeText(text);
+    out.textContent=text + '\n\n복사 완료';
+    showPensionContributionStatus('복사 완료.','ok');
   }catch(e){
-    out.textContent=out.textContent + '\n\n복사는 브라우저 권한 때문에 실패. 위 내용을 직접 선택해서 복사.';
+    showPensionContributionStatus('복사는 브라우저 권한 때문에 실패. 위 내용을 직접 선택해서 복사해줘.','err');
+  }
+}
+async function savePensionContribution(){
+  const out=document.getElementById('pensionContribOutput');
+  const pinEl=document.getElementById('pensionContribPin');
+  try{
+    const item=buildPensionContributionItem();
+    if(out){
+      out.textContent=JSON.stringify(item,null,2);
+      out.classList.add('show');
+    }
+    showPensionContributionStatus('저장 중... GitHub 파일을 업데이트하고 있어.','ok');
+    const res=await fetch('/.netlify/functions/save-pension-contribution',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({pin:pinEl?.value||'',item})
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error||`저장 실패 (${res.status})`);
+    const action=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
+    showPensionContributionStatus(`${action} 완료. Netlify 재배포가 끝나면 화면에 반영돼. commit: ${data.commitSha||'-'}`,'ok');
+  }catch(e){
+    showPensionContributionStatus(e.message||String(e),'err');
   }
 }
 
