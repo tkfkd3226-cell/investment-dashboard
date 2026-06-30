@@ -1431,7 +1431,7 @@ function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();c
 function renderResultSummary(x){
   const c=PORTFOLIO.constants;
   const outsideCash=c.outsideCash ?? 2035097;
-  const actualHoldingAndCash=x.account1Eval + x.securitiesCash + outsideCash;
+  const actualHoldingAndCash=x.allocTotal + outsideCash;
   const ledgerGap=x.totalResult - actualHoldingAndCash;
   if(!isLedgerCheckDate(x.date)) return '';
 
@@ -1443,11 +1443,12 @@ function renderHoldings(x){
         holdEval=x.holdings.reduce((a,h)=>a+h.evalAmount,0),
         holdProfit=holdEval-holdCost,
         holdFeeAdjusted=x.holdings.reduce((a,h)=>a+(Number(h.feeAdjustedProfit ?? h.profit) || 0),0),
-        holdReturn=holdCost?holdProfit/holdCost*100:0;
+        holdReturn=holdCost?holdProfit/holdCost*100:0,
+        cash=Number(x.securitiesCash||0),
+        totalEvalWithCash=holdEval+cash;
 
-  return `<section><div class="section-title"><h2>증권계좌 보유분</h2><p>${x.date} ${basisText(x.date)}</p></div><div class="mobile-scroll"><table class="hold-position-table"><thead><tr><th>종목명</th><th>수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>수수료반영 손익</th><th>손익률</th></tr></thead><tbody>${x.holdings.map(h=>`<tr class="hold-row ${h.cssClass||''}"><td>${h.name}</td><td class="num">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${cls(h.profit)}">${fmt(h.profit)}</td><td class="num ${cls(h.feeAdjustedProfit ?? h.profit)}">${fmt(h.feeAdjustedProfit ?? h.profit)}</td><td class="num ${cls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>합계</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(holdReturn)}">${pct(holdReturn)}</td></tr></tbody></table></div><p class="table-note"><strong>참고:</strong> 이 표의 합계 원금은 선택일 현재 보유종목 원가 기준입니다. 상단/계좌별 성과의 투자원금은 실현손익·원금회수·재투입을 반영한 장부상 기준이라 서로 다를 수 있습니다.</p></section>`;
+  return `<section><div class="section-title"><h2>증권계좌 보유분</h2><p>${x.date} ${basisText(x.date)}</p></div><div class="mobile-scroll"><table class="hold-position-table"><thead><tr><th>종목명</th><th>수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>수수료반영 손익</th><th>손익률</th></tr></thead><tbody>${x.holdings.map(h=>`<tr class="hold-row ${h.cssClass||''}"><td>${h.name}</td><td class="num">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${cls(h.profit)}">${fmt(h.profit)}</td><td class="num ${cls(h.feeAdjustedProfit ?? h.profit)}">${fmt(h.feeAdjustedProfit ?? h.profit)}</td><td class="num ${cls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>보유종목 합계</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(holdReturn)}">${pct(holdReturn)}</td></tr><tr><td>증권계좌 현금</td><td class="num">-</td><td class="num">-</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">-</td><td class="num">-</td><td class="num">-</td></tr><tr class="summary-row"><td>총계(보유분+현금)</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(totalEvalWithCash)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(holdReturn)}">${pct(holdReturn)}</td></tr></tbody></table></div><p class="table-note"><strong>참고:</strong> 이 표의 보유종목 합계 원금은 선택일 현재 보유종목 원가 기준입니다. 현금은 평가금액에는 포함하지만 평가손익 계산에는 포함하지 않습니다. 상단/계좌별 성과의 투자원금은 실현손익·원금회수·재투입을 반영한 장부상 기준이라 서로 다를 수 있습니다.</p></section>`;
 }
-
 function renderPension(x){
   const c=PORTFOLIO.constants,
         day=x.pensionPrevEval==null?null:x.pensionEval-x.pensionPrevEval,
