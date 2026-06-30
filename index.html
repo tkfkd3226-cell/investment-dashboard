@@ -1423,6 +1423,17 @@ function renderTabs(){
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();const scope=sectionScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:`<span class="pill">퇴직연금 데이터 없는 기준일</span>`;document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero"><h1>${PORTFOLIO.meta.title}</h1><p>${x.date} 기준. 선택일에 존재하는 원시데이터 범위만 반영하여 표시.</p><div class="pillbar"><span class="pill">포함 범위 ${scope}</span><span class="pill">기준 투입원금 ${won(x.totalPrincipal)}</span><span class="pill">총 합산 누적손익 ${won(x.totalProfit)}</span><span class="pill">투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">전체 투자 결과물 ${won(x.totalResult)}</span>${pensionPill}</div></header><div class="grid cards">${metricCard('전체 투자 결과물',won(x.totalResult),`${scope} 기준`,true)}${metricCard('기준 투입원금',won(x.totalPrincipal),x.account2Included?'현재 장부상 외부투입원금 기준':'선택일 계좌1 투자원금 기준')}${metricCard('총 합산 누적손익',won(x.totalProfit),`${scope} 누적손익`,false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 기준 투입원금',false,'blue')}</div>${renderPension(x)}${renderCharts(x)}${renderAccounts(x)}${renderResultSummary(x)}${renderHoldings(x)}${isLedgerCheckDate(x.date)?renderSourceTables():''}</div>`;drawAllCharts()}
+
+function renderHoldings(x){
+  const holdCost=x.holdings.reduce((a,h)=>a+h.cost,0),
+        holdEval=x.holdings.reduce((a,h)=>a+h.evalAmount,0),
+        holdProfit=holdEval-holdCost,
+        holdFeeAdjusted=x.holdings.reduce((a,h)=>a+(Number(h.feeAdjustedProfit ?? h.profit) || 0),0),
+        holdReturn=holdCost?holdProfit/holdCost*100:0;
+
+  return `<section><div class="section-title"><h2>증권계좌 보유분</h2><p>${x.date} ${basisText(x.date)}</p></div><div class="mobile-scroll"><table class="hold-position-table"><thead><tr><th>종목명</th><th>수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>수수료반영 손익</th><th>손익률</th></tr></thead><tbody>${x.holdings.map(h=>`<tr class="hold-row ${h.cssClass||''}"><td>${h.name}</td><td class="num">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${cls(h.profit)}">${fmt(h.profit)}</td><td class="num ${cls(h.feeAdjustedProfit ?? h.profit)}">${fmt(h.feeAdjustedProfit ?? h.profit)}</td><td class="num ${cls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>합계</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(holdReturn)}">${pct(holdReturn)}</td></tr></tbody></table></div></section>`;
+}
+
 function renderPension(x){
   const c=PORTFOLIO.constants,
         day=x.pensionPrevEval==null?null:x.pensionEval-x.pensionPrevEval,
