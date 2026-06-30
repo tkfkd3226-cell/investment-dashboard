@@ -1293,6 +1293,29 @@ svg.chart{
 
 .table-note{margin:10px 2px 0;color:var(--muted);font-size:12px;line-height:1.55}
 .table-note strong{color:var(--text)}
+
+.title-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:5px 10px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:white;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.dark .title-badge{
+  background:#0f172a;
+  color:#cbd5e1;
+  border-color:rgba(148,163,184,.24);
+}
+@media(max-width:720px){
+  .section-title{align-items:flex-start}
+  .title-badge{font-size:11px;padding:4px 8px}
+}
 </style>
 </head>
 <body>
@@ -1435,7 +1458,7 @@ function renderResultSummary(x){
   const ledgerGap=x.totalResult - actualHoldingAndCash;
   if(!isLedgerCheckDate(x.date)) return '';
 
-  return `<section><div class="section-title"><h2>장부상 결과물 VS 실제 보유액</h2><p>${x.date} 기준 검산</p></div><div class="grid cards">${metricCard('장부상 전체 투자 결과물(A)',won(x.totalResult),'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),'증권계좌 평가총액 + 계좌 밖 현금',false,'blue')}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,ledgerGap>=0?'positive':'negative')}${metricCard('수익실현분 카드대금 사용',won(c.livingSpent ?? ledgerGap),'6/18 기준 확정 정리값',false)}</div><p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금은 6/18 확인값 ${won(outsideCash)} 유지. 해당 현금은 투자 실현수익 잔액으로 반영하고, 차액은 수익실현분 카드대금 사용액으로 정리.</p></section>`;
+  return `<section><div class="section-title"><h2>장부상 결과물 VS 실제 보유액</h2><p>${x.date} 기준 검산</p></div><div class="grid cards">${metricCard('장부상 전체 투자 결과물(A)',won(x.totalResult),'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),'증권계좌 평가총액 + 계좌 밖 현금',false,'blue')}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,ledgerGap>=0?'positive':'negative')}${metricCard('수익실현분 카드대금 사용',won(c.livingSpent ?? ledgerGap),'6/18 기준 확정 정리값',false)}</div><p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금은 6/18 확인값 ${won(outsideCash)} 유지. 해당 현금은 투자 실현수익 잔액 반영, 차액은 수익실현분 카드대금 사용액으로 정리.</p></section>`;
 }
 
 function renderHoldings(x){
@@ -1443,11 +1466,13 @@ function renderHoldings(x){
         holdEval=x.holdings.reduce((a,h)=>a+h.evalAmount,0),
         holdProfit=holdEval-holdCost,
         holdFeeAdjusted=x.holdings.reduce((a,h)=>a+(Number(h.feeAdjustedProfit ?? h.profit) || 0),0),
-        holdReturn=holdCost?holdProfit/holdCost*100:0,
         cash=Number(x.securitiesCash||0),
-        totalEvalWithCash=holdEval+cash;
+        totalCostWithCash=holdCost+cash,
+        totalEvalWithCash=holdEval+cash,
+        holdReturn=holdCost?holdProfit/holdCost*100:0,
+        totalReturnWithCash=totalCostWithCash?holdProfit/totalCostWithCash*100:0;
 
-  return `<section><div class="section-title"><h2>증권계좌 보유분</h2><p>${x.date} ${basisText(x.date)}</p></div><div class="mobile-scroll"><table class="hold-position-table"><thead><tr><th>종목명</th><th>수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>수수료반영 손익</th><th>손익률</th></tr></thead><tbody>${x.holdings.map(h=>`<tr class="hold-row ${h.cssClass||''}"><td>${h.name}</td><td class="num">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${cls(h.profit)}">${fmt(h.profit)}</td><td class="num ${cls(h.feeAdjustedProfit ?? h.profit)}">${fmt(h.feeAdjustedProfit ?? h.profit)}</td><td class="num ${cls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>보유종목 합계</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(holdReturn)}">${pct(holdReturn)}</td></tr><tr><td>증권계좌 현금</td><td class="num">-</td><td class="num">-</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">-</td><td class="num">-</td><td class="num">-</td></tr><tr class="summary-row"><td>총계(보유분+현금)</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(totalEvalWithCash)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(holdReturn)}">${pct(holdReturn)}</td></tr></tbody></table></div><p class="table-note"><strong>참고:</strong> 이 표의 보유종목 합계 원금은 선택일 현재 보유종목 원가 기준입니다. 현금은 평가금액에는 포함하지만 평가손익 계산에는 포함하지 않습니다. 상단/계좌별 성과의 투자원금은 실현손익·원금회수·재투입을 반영한 장부상 기준이라 서로 다를 수 있습니다.</p></section>`;
+  return `<section><div class="section-title"><h2>증권계좌 보유분</h2><p>${x.date} ${basisText(x.date)}</p></div><div class="mobile-scroll"><table class="hold-position-table"><thead><tr><th>종목명</th><th>수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>수수료반영 손익</th><th>손익률</th></tr></thead><tbody>${x.holdings.map(h=>`<tr class="hold-row ${h.cssClass||''}"><td>${h.name}</td><td class="num">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${cls(h.profit)}">${fmt(h.profit)}</td><td class="num ${cls(h.feeAdjustedProfit ?? h.profit)}">${fmt(h.feeAdjustedProfit ?? h.profit)}</td><td class="num ${cls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>보유종목 합계</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(holdReturn)}">${pct(holdReturn)}</td></tr><tr><td>증권계좌 현금</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">0</td><td class="num">0</td><td class="num">0.00%</td></tr><tr class="summary-row"><td>총계(보유분+현금)</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(totalCostWithCash)}</td><td class="num">-</td><td class="num">${fmt(totalEvalWithCash)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(totalReturnWithCash)}">${pct(totalReturnWithCash)}</td></tr></tbody></table></div><p class="table-note"><strong>참고:</strong> 보유종목 합계 원금은 선택일 현재 보유종목 원가 기준. 증권계좌 현금은 투자원금과 평가금액에 함께 포함, 평가손익은 0원 처리. 상단/계좌별 성과 투자원금은 실현손익·원금회수·재투입 반영 장부상 기준.</p></section>`;
 }
 function renderPension(x){
   const c=PORTFOLIO.constants,
@@ -1482,7 +1507,7 @@ function renderCharts(x){
         returnDelta=prevCum?lastReturn-prevCum['합계 : 누적수익률']:0,
         bestGap=best['합계 : 누적손익']-lastProfit,
         bestDetail=bestGap===0?'금일 갱신':'금일 대비 '+signed(bestGap,'원');
-  return `<section><div class="section-title"><h2>투자 기간 분석</h2></div><p class="table-note"><strong>기준:</strong> 이 차트의 누적손익·일별손익은 계좌1 보유분 중심입니다. 상단 총 합산 누적손익은 계좌1에 토스증권 실현분, 5/22 이후 계좌2 실현분, 데이터가 있는 날의 퇴직연금을 합산한 값이라 서로 다를 수 있습니다.</p><div class="grid chart-grid">
+  return `<section><div class="section-title"><h2>투자 기간 분석</h2></div><p class="table-note"><strong>기준:</strong> 누적손익·일별손익 차트는 계좌1 보유분 중심. 상단 총 합산 누적손익은 계좌1 + 토스증권 실현분 + 5/22 이후 계좌2 실현분 + 데이터 있는 날의 퇴직연금 합산 기준.</p><div class="grid chart-grid">
   <div class="chart-card"><div class="chart-head"><div><h3>누적손익 및 누적수익률</h3><p>막대는 누적손익과 전일대비손익, 선은 누적수익률을 나타냄.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>누적손익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" style="background:#5abdf2"></span>누적수익률</span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card"><div class="m-label">최고 누적손익</div><div class="m-value">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card"><div class="m-label">최고의 하루</div><div class="m-value positive day-value"><span>${bestDay.날짜}</span><span>${signed(bestDay['합계 : 전일대비손익'],'원')}</span></div></div><div class="mini-card"><div class="m-label">최악의 하루</div><div class="m-value negative day-value"><span>${worstDay.날짜}</span><span>${signed(worstDay['합계 : 전일대비손익'],'원')}</span></div></div></div></div>
   <div class="chart-card"><div class="chart-head"><div><h3>종목별 누적 손익</h3><p>종목별 누적 손익의 변화와 기여도를 비교.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff8a65"></span>SK하이닉스</span><span class="legend-item"><span class="swatch" style="background:#8bc34a"></span>삼성전자</span><span class="legend-item"><span class="swatch" style="background:#26c6da"></span>현대차</span><span class="legend-item"><span class="swatch" style="background:#42a5f5"></span>KODEX200</span></div><div class="chart-note symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>symbolCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">※ 기여도는 차트에 표시된 4개 종목 누적손익 합계 기준이며, 변동률은 전일 누적손익 절댓값 대비.</div></div>
   <div class="chart-card"><div class="chart-head"><div><h3>평가액 비중</h3><p>ETF·개별주식·현금의 일자별 평가액 비중 변화.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartAlloc"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff6b6b"></span>ETF</span><span class="legend-item"><span class="swatch" style="background:#ffc857"></span>개별주식</span><span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금</span></div><div class="chart-note"><div class="mini-card"><div class="m-label">ETF</div><div class="m-value">${won(x.etfEval)} <span class="small">(${(x.etfEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식</div><div class="m-value">${won(x.stockEval)} <span class="small">(${(x.stockEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${(x.securitiesCash/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div></div></div></div>
@@ -1496,7 +1521,7 @@ function renderAccounts(x){
     ...(x.account2Included?[['삼성증권 계좌2',c.account2Principal,c.account2Profit,c.account2Profit/c.account2Principal*100,'2023-12-20 최초 시작. 2026-05-22 전량 매도 후 실현분 반영.']]:[]),
     ['토스증권',0,c.tossProfit,0,'2026-03-09 매수 후 익일 매도. 3/23 이전 확정 실현수익이라 전 구간 포함.']
   ];
-  const hiddenNote=x.account2Included?'':'<p class="table-note"><strong>참고:</strong> 삼성증권 계좌2는 2026-05-22 전량 매도 후 실현분을 전체 성과에 반영합니다. 선택일이 2026-05-21 이전이면 당시 전체 성과 기준에서 제외되어 이 표에서도 숨겼습니다.</p>';
+  const hiddenNote=x.account2Included?'':'<p class="table-note"><strong>참고:</strong> 삼성증권 계좌2는 2026-05-22 전량 매도 후 실현분 반영. 선택일이 2026-05-21 이전이면 당시 전체 성과 기준에서 제외되어 이 표에서도 숨김.</p>';
   return `<section><div class="section-title"><h2>계좌별 성과 요약</h2><span class="title-badge">2023-12 이후 누적</span></div><div class="mobile-scroll"><table><thead><tr><th>구분</th><th>투자원금</th><th>누적손익</th><th>수익률</th><th>메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${cls(r[2])}">${fmt(r[2])}</td><td class="num ${cls(r[3])}">${r[1]?pct(r[3]):'-'}</td><td>${r[4]}</td></tr>`).join('')}</tbody></table></div>${hiddenNote}</section>`;
 }
 function renderSourceTables(){const c=PORTFOLIO.constants,vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal;return `<section class="grid three"><div class="card"><div class="label">계좌1 원천별 투입</div><table style="font-size:12px;margin-top:8px;border-radius:12px"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num negative">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr><tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div><div class="card"><div class="label">전체 외부투입원금</div><div class="value">${won(c.externalPrincipal)}</div><div class="sub">외부에서 실제 들어온 돈만 계산</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 투입 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 순투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${fmt(c.externalPrincipal)}</td></tr></tbody></table></div><div class="card"><div class="label">계좌1 투자원금 검산</div><div class="value">${won(c.account1Principal)}</div><div class="sub">전체 외부투입 + 수익 재투입</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>전체 외부투입원금</td><td class="num">${fmt(c.externalPrincipal)}</td></tr><tr><td>레버 수익 재투입분</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입분</td><td class="num">${fmt(vipProfitReinvest)}</td></tr><tr class="summary-row"><td>검산값</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div></section>`}
