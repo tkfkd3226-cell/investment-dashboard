@@ -241,3 +241,17 @@ GitHub Personal Access Token에 만료일을 설정한 경우, 만료 후에는 
 - 매월 기본 기업적립금은 618,060원입니다.
 - 매년 2월 금액이 변경될 수 있습니다.
 - 자동 저장 실패 시 모달에서 JSON을 생성해 수동으로 `pension_contributions.json`에 추가할 수 있습니다.
+
+
+## 최종 QA 메모
+
+최종 CSS 정리 후 아래 보호 항목은 유지해야 합니다.
+
+- iPhone 13 기준 상단 날짜 선택 영역
+- 계좌별 성과 요약 첫 컬럼 sticky
+- 퇴직연금 상품별 현황 첫 컬럼 sticky
+- 증권계좌 보유분 첫 컬럼 sticky
+- `bar-green`, `bar-blue`, `bar-amber`, `bar-gray`
+- `ticker-samsung`, `ticker-sk`, `ticker-hyundai`, `ticker-kodex`, `ticker-mini`
+
+위 항목은 모바일 표시와 표 스크롤에 직접 영향을 주므로, CSS 정리 시 삭제하거나 통합하지 않는 것을 권장합니다.
