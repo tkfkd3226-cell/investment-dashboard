@@ -2126,6 +2126,51 @@ svg.chart{
     background:#1f2937;
   }
 }
+
+/* 계좌별 성과 요약 모바일 표 최종 보정: 메모 값 = 구분 값 CSS */
+@media(max-width:900px){
+  .accounts-table{
+    width:max-content !important;
+    min-width:max-content !important;
+    table-layout:auto !important;
+    font-size:12px !important;
+  }
+  .accounts-table th,
+  .accounts-table td{
+    font-size:12px !important;
+    font-weight:800 !important;
+    line-height:1.45 !important;
+    letter-spacing:-.02em !important;
+    padding:7px 8px !important;
+    vertical-align:top !important;
+  }
+  .accounts-table td:first-child,
+  .accounts-table td.accounts-memo,
+  .accounts-table td:nth-child(5){
+    font-size:12px !important;
+    font-weight:800 !important;
+    color:var(--text) !important;
+    line-height:1.45 !important;
+    letter-spacing:-.02em !important;
+    white-space:normal !important;
+  }
+  .accounts-table td:first-child{
+    min-width:112px !important;
+    max-width:132px !important;
+  }
+  .accounts-table td.accounts-memo,
+  .accounts-table td:nth-child(5){
+    min-width:165px !important;
+    max-width:210px !important;
+  }
+}
+
+/* 증권계좌 내부 블록 변환 안정화 */
+.securities-band > section{
+  margin-top:18px;
+  width:100%;
+  box-sizing:border-box;
+}
 </style>
 </head>
 <body>
@@ -2323,7 +2368,13 @@ function renderMobileNavMenu(){
 function sectionToSecuritiesBlock(html, extraClass=''){
   if(!html) return '';
   return html
-    .replace(/^<section(\s+class="([^"]*)")?>/, (_, __, cls)=>`<div class="securities-subsection ${extraClass} ${cls||''}">`)
+    .replace(/^<section([^>]*)>/, (_, attrs='')=>{
+      const idMatch=attrs.match(/\sid="([^"]*)"/);
+      const classMatch=attrs.match(/\sclass="([^"]*)"/);
+      const idAttr=idMatch?` id="${idMatch[1]}"`:'';
+      const classes=['securities-subsection',extraClass,classMatch?classMatch[1]:''].filter(Boolean).join(' ');
+      return `<div${idAttr} class="${classes}">`;
+    })
     .replace(/<\/section>\s*$/, '</div>');
 }
 function renderSecuritiesSummaryCards(x){
