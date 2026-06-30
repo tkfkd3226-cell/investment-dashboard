@@ -1427,6 +1427,17 @@ function renderTabs(){
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();const scope=sectionScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:'';document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero"><h1>${PORTFOLIO.meta.title}</h1><p>${x.date} 기준. 선택일에 존재하는 원시데이터 범위만 반영하여 표시.</p><div class="pillbar"><span class="pill">포함 범위 ${scope}</span><span class="pill">기준 투입원금 ${won(x.totalPrincipal)}</span><span class="pill">총 합산 누적손익 ${won(x.totalProfit)}</span><span class="pill">투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">전체 투자 결과물 ${won(x.totalResult)}</span>${pensionPill}</div></header><div class="grid cards">${metricCard('전체 투자 결과물',won(x.totalResult),`${scope} 기준`,true)}${metricCard('기준 투입원금',won(x.totalPrincipal),x.account2Included?'계좌2 실현분 포함 후 현재 장부상 외부투입원금 기준':'선택일 계좌1 투자원금 기준')}${metricCard('총 합산 누적손익',won(x.totalProfit),`${scope} 누적손익`,false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 기준 투입원금',false,'blue')}</div>${x.hasPension?renderPension(x):''}${renderCharts(x)}${renderAccounts(x)}${renderResultSummary(x)}${renderHoldings(x)}${isLedgerCheckDate(x.date)?renderSourceTables():''}</div>`;drawAllCharts()}
 
+
+function renderResultSummary(x){
+  const c=PORTFOLIO.constants;
+  const outsideCash=c.outsideCash ?? 2035097;
+  const actualHoldingAndCash=x.account1Eval + x.securitiesCash + outsideCash;
+  const ledgerGap=x.totalResult - actualHoldingAndCash;
+  if(!isLedgerCheckDate(x.date)) return '';
+
+  return `<section><div class="section-title"><h2>장부상 결과물 VS 실제 보유액</h2><p>${x.date} 기준 검산</p></div><div class="grid cards">${metricCard('장부상 전체 투자 결과물(A)',won(x.totalResult),'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),'증권계좌 평가총액 + 계좌 밖 현금',false,'blue')}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,ledgerGap>=0?'positive':'negative')}${metricCard('수익실현분 카드대금 사용',won(c.livingSpent ?? ledgerGap),'6/18 기준 확정 정리값',false)}</div><p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금은 6/18 확인값 ${won(outsideCash)} 유지. 해당 현금은 투자 실현수익 잔액으로 반영하고, 차액은 수익실현분 카드대금 사용액으로 정리.</p></section>`;
+}
+
 function renderHoldings(x){
   const holdCost=x.holdings.reduce((a,h)=>a+h.cost,0),
         holdEval=x.holdings.reduce((a,h)=>a+h.evalAmount,0),
