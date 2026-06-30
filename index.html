@@ -1970,6 +1970,85 @@ svg.chart{
   line-height:inherit !important;
   letter-spacing:inherit !important;
 }
+
+/* 기준일 선택 폭 추가 보정: 모바일에서 년/월을 확실히 더 넓게 */
+@media(max-width:760px){
+  .date-picker{
+    grid-template-columns:minmax(150px,1.6fr) minmax(86px,.7fr) 40px !important;
+    gap:7px !important;
+  }
+  .month-select{
+    min-width:0 !important;
+    width:100% !important;
+  }
+  .day-select{
+    min-width:0 !important;
+    width:100% !important;
+    flex:initial !important;
+  }
+  .date-select{
+    font-size:13px !important;
+    padding-left:8px !important;
+    padding-right:22px !important;
+  }
+}
+
+/* 계좌별 성과 요약: 모바일에서 메모 값을 구분 값과 같은 표 셀 스타일로 통일 */
+@media(max-width:720px){
+  .accounts-table td:first-child,
+  .accounts-table td.accounts-memo{
+    font-size:12px !important;
+    font-weight:800 !important;
+    color:var(--text) !important;
+    line-height:1.45 !important;
+    letter-spacing:-.02em !important;
+    vertical-align:top !important;
+  }
+  .accounts-table td.accounts-memo{
+    min-width:180px;
+    white-space:normal;
+  }
+}
+
+/* 증권계좌 현황: 퇴직연금 현황처럼 큰 영역으로 묶기 */
+.securities-band{
+  padding:18px;
+  border:1px solid var(--line);
+  border-radius:24px;
+  background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);
+  box-shadow:var(--shadow);
+}
+.dark .securities-band{
+  background:linear-gradient(180deg,#111827 0%,#0f172a 100%);
+  border-color:rgba(148,163,184,.24);
+}
+.securities-subsection{
+  margin-top:18px;
+}
+.securities-subsection:first-child{
+  margin-top:0;
+}
+.securities-subsection > .section-title{
+  margin-top:0;
+}
+.securities-subsection .inner-title h2{
+  font-size:17px;
+}
+.securities-subsection.grid.three{
+  display:grid;
+}
+.securities-subsection.source-block{
+  margin-top:18px;
+}
+@media(max-width:720px){
+  .securities-band{
+    padding:14px;
+    border-radius:20px;
+  }
+  .securities-subsection{
+    margin-top:16px;
+  }
+}
 </style>
 </head>
 <body>
@@ -2132,6 +2211,21 @@ function renderTabs(){
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
 
+function sectionToSecuritiesBlock(html, extraClass=''){
+  if(!html) return '';
+  return html
+    .replace(/^<section(\s+class="([^"]*)")?>/, (_, __, cls)=>`<div class="securities-subsection ${extraClass} ${cls||''}">`)
+    .replace(/<\/section>\s*$/, '</div>');
+}
+function renderSecuritiesSummaryCards(x){
+  const securitiesScope=securitiesScopeText(x);
+  return `<div class="securities-subsection securities-summary-block"><div class="section-title inner-title"><h2>증권계좌 요약</h2><p>${x.date} 기준</p></div><div class="grid cards">${metricCard('증권계좌 투자 결과물',won(x.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(x.totalPrincipal),x.account2Included?'계좌2 실현분 포함 후 현재 장부상 외부투입원금 기준':'선택일 계좌1 투자원금 기준')}${metricCard('총 합산 누적손익',won(x.totalProfit),`${securitiesScope} 누적손익`,false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 기준 투입원금',false,'blue')}</div></div>`;
+}
+function renderSecuritiesSection(x){
+  return `<section><div class="section-title"><h2>증권계좌 현황</h2><p>${x.date} 기준</p></div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${sectionToSecuritiesBlock(renderCharts(x),'charts-block')}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(),'source-block'):''}</div></section>`;
+}
+
+
 function renderPensionContributionList(){
   const items=pensionContributionItems()
     .slice()
@@ -2195,7 +2289,7 @@ function renderPensionContributionModal(x){
 </details></div></div>`;
 }
 
-function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:'';const securitiesSection=`<section><div class="section-title"><h2>증권계좌 현황</h2><p>${x.date} 기준</p></div><div class="grid cards">${metricCard('증권계좌 투자 결과물',won(x.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(x.totalPrincipal),x.account2Included?'계좌2 실현분 포함 후 현재 장부상 외부투입원금 기준':'선택일 계좌1 투자원금 기준')}${metricCard('총 합산 누적손익',won(x.totalProfit),`${securitiesScope} 누적손익`,false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 기준 투입원금',false,'blue')}</div></section>`;document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero"><h1>${PORTFOLIO.meta.title}</h1><p>${x.date} 기준. 선택일에 존재하는 원시데이터 범위만 반영하여 표시.</p><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 기준 투입원금 ${won(x.totalPrincipal)}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span><span class="pill">증권계좌 투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">증권계좌 투자 결과물 ${won(x.totalResult)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${securitiesSection}${renderAccounts(x)}${renderResultSummary(x)}${renderCharts(x)}${renderHoldings(x)}${isLedgerCheckDate(x.date)?renderSourceTables():''}</div>`;drawAllCharts()}
+function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:'';document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero"><h1>${PORTFOLIO.meta.title}</h1><p>${x.date} 기준. 선택일에 존재하는 원시데이터 범위만 반영하여 표시.</p><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 기준 투입원금 ${won(x.totalPrincipal)}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span><span class="pill">증권계좌 투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">증권계좌 투자 결과물 ${won(x.totalResult)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;drawAllCharts()}
 
 
 function renderResultSummary(x){
