@@ -1891,6 +1891,43 @@ svg.chart{
     line-height:1.45;
   }
 }
+
+.date-picker{width:min(860px,100%)}
+.month-select{min-width:172px}
+.day-select{min-width:150px;flex:0 1 190px}
+.date-tool-btn{width:auto;min-width:0;height:40px;flex:0 0 auto;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.14);color:white;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.18);white-space:nowrap}
+.date-tool-btn:hover{background:rgba(255,255,255,.24)}
+.date-tool-icon{display:none}
+@media(max-width:760px){
+  .date-picker{grid-template-columns:minmax(118px,1.08fr) minmax(130px,1.12fr) 40px!important}
+  .month-select,.day-select{min-width:0}
+  .day-select{flex:initial}
+  .date-tool-btn{width:40px;height:40px;padding:0;flex:0 0 40px}
+  .date-tool-text{display:none}
+  .date-tool-icon{display:inline;font-size:18px}
+}
+.modal-card-box{margin-top:12px}
+.modal-card-box:first-of-type{margin-top:0}
+.contrib-pin-box{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+.dark .contrib-pin-box{background:#0f172a;border-color:rgba(148,163,184,.24)}
+.contrib-pin-box h3,.contrib-list h3,.pension-contrib-tool h3{margin:0 0 4px;font-size:14px;letter-spacing:-.03em}
+.contrib-pin-box .small,.contrib-list .small,.pension-contrib-tool .small{margin:0 0 10px}
+.nowrap{white-space:nowrap}
+.contrib-modal-head{position:relative;display:block!important;padding-right:52px}
+.contrib-modal-head>div{min-width:0}
+.contrib-modal-head p{max-width:none;word-break:keep-all;overflow-wrap:normal}
+.contrib-modal-close{position:absolute;top:0;right:0}
+.contrib-modal .contrib-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.contrib-modal .contrib-form-grid.one{grid-template-columns:1fr!important}
+.contrib-modal .contrib-field{width:100%;min-width:0;overflow:hidden}
+.contrib-modal .contrib-field input{display:block;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box}
+.contrib-modal input[type="date"]{-webkit-appearance:none;appearance:none}
+@media(max-width:720px){
+  .contrib-modal .contrib-form-grid{display:grid;grid-template-columns:1fr!important}
+  .contrib-modal-card{width:min(100%,calc(100vw - 36px));box-sizing:border-box}
+  .contrib-modal-head{padding-right:44px}
+  .contrib-modal-head p{font-size:12px;line-height:1.45}
+}
 </style>
 </head>
 <body>
@@ -2048,7 +2085,7 @@ function allocHistory(d){
 }
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
-  document.getElementById('tabs').innerHTML=`<div class="date-picker"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span><button type="button" class="date-tool-btn" title="퇴직연금 기업적립금 추가" aria-label="퇴직연금 기업적립금 추가" onclick="openPensionContributionModal()">⚙</button></div>`;
+  document.getElementById('tabs').innerHTML=`<div class="date-picker"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span><button type="button" class="date-tool-btn" title="퇴직연금 기업적립금 추가" aria-label="퇴직연금 기업적립금 추가" onclick="openPensionContributionModal()"><span class="date-tool-text">퇴직연금 기업적립금 추가</span><span class="date-tool-icon">⚙</span></button></div>`;
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
@@ -2071,40 +2108,33 @@ function renderPensionContributionModal(x){
   const contribDefaultDate=defaultPensionContributionDate(x.date);
   const contribDefaultMemo=defaultPensionContributionMemo(contribDefaultDate);
   return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle">퇴직연금 기업적립금 추가</h2><p>저장하면 GitHub 데이터 <span class="nowrap">자동 업데이트</span></p></div><button type="button" class="contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div>
-<div class="pension-contrib-tool">
-  <div class="contrib-zone">
-    <h3>적립금 입력</h3>
-    <p class="small">자동 저장이 안 될 때는 JSON 생성/복사로 수동 반영 가능</p>
-    <div class="contrib-form-grid">
-      <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${contribDefaultDate}"></div>
-      <div class="contrib-field"><label for="pensionContribAmount">금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="618,060"></div>
-      <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="${contribDefaultMemo}"></div>
-    </div>
+<div class="pension-contrib-tool modal-card-box">
+  <h3>기업적립금 등록</h3>
+  <p class="small">자동 저장이 안 될 때는 JSON 생성/복사로 수동 반영 가능</p>
+  <div class="contrib-form-grid">
+    <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${contribDefaultDate}"></div>
+    <div class="contrib-field"><label for="pensionContribAmount">금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="618,060"></div>
+    <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="${contribDefaultMemo}"></div>
   </div>
-  <div class="contrib-zone pin-zone">
-    <h3>PIN</h3>
-    <p class="small">저장과 삭제 모두 PIN 입력 필요</p>
-    <div class="contrib-form-grid one">
-      <div class="contrib-field full"><label for="pensionContribPin">PIN</label><input id="pensionContribPin" type="password" autocomplete="off" placeholder="Netlify ADMIN_PIN"></div>
-    </div>
-  </div>
-  <div class="contrib-zone">
-    <h3>저장 영역</h3>
-    <div class="contrib-actions">
-      <button type="button" class="contrib-btn" onclick="savePensionContribution()">저장</button>
-      <button type="button" class="contrib-btn secondary" onclick="generatePensionContributionJson()">추가 JSON 만들기</button>
-      <button type="button" class="contrib-btn secondary" onclick="copyPensionContributionJson()">복사</button>
-    </div>
+  <div class="contrib-actions">
+    <button type="button" class="contrib-btn" onclick="savePensionContribution()">저장</button>
+    <button type="button" class="contrib-btn secondary" onclick="generatePensionContributionJson()">추가 JSON 만들기</button>
+    <button type="button" class="contrib-btn secondary" onclick="copyPensionContributionJson()">복사</button>
   </div>
   <div id="pensionContribStatus" class="contrib-status"></div>
   <pre id="pensionContribOutput" class="contrib-output"></pre>
 </div>
-<div class="contrib-list">
-  <h3>삭제 영역</h3>
-  <p class="small">테스트로 넣은 항목을 되돌릴 때 선택 후 삭제. 삭제 전 위 PIN 입력 필요.</p>
+<div class="contrib-list modal-card-box">
+  <h3>삭제</h3>
+  <p class="small">잘못 넣은 항목을 되돌릴 때 선택 후 삭제. 삭제 전 PIN 입력 필요.</p>
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList()}</div>
-  <div class="contrib-actions">
-    <button type="button" class="contrib-btn danger" onclick="deleteSelectedPensionContribution()">선택 항목 삭제</button>
+  <div class="contrib-actions"><button type="button" class="contrib-btn danger" onclick="deleteSelectedPensionContribution()">선택 항목 삭제</button></div>
+</div>
+<div class="contrib-pin-box modal-card-box">
+  <h3>PIN</h3>
+  <p class="small">저장과 삭제 모두 PIN 입력 필요</p>
+  <div class="contrib-form-grid one">
+    <div class="contrib-field full"><label for="pensionContribPin">PIN</label><input id="pensionContribPin" type="password" autocomplete="off" placeholder="Netlify ADMIN_PIN"></div>
   </div>
 </div>
 <details class="token-guide">
@@ -2114,19 +2144,16 @@ function renderPensionContributionModal(x){
     <p>토큰이 만료되면 대시보드 조회는 되지만, 기업적립금 저장만 실패해.</p>
     <ol>
       <li>GitHub → <code>Settings</code> → <code>Developer settings</code> → <code>Personal access tokens</code> → <code>Fine-grained tokens</code>에서 새 토큰 생성</li>
-      <li>대시보드 repo만 선택</li>
-      <li>권한은 <code>Contents: Read and write</code>, <code>Metadata: Read-only</code></li>
-      <li>생성된 새 토큰을 복사</li>
-      <li>Netlify → 해당 사이트 → <code>Site configuration</code> → <code>Environment variables</code></li>
-      <li><code>GITHUB_TOKEN</code> 값을 새 토큰으로 교체</li>
-      <li>Netlify에서 재배포 후 이 모달에서 저장 테스트</li>
+      <li>대시보드 repo만 선택</li><li>권한은 <code>Contents: Read and write</code>, <code>Metadata: Read-only</code></li>
+      <li>생성된 새 토큰을 복사</li><li>Netlify → 해당 사이트 → <code>Site configuration</code> → <code>Environment variables</code></li>
+      <li><code>GITHUB_TOKEN</code> 값을 새 토큰으로 교체</li><li>Netlify에서 재배포 후 이 모달에서 저장 테스트</li>
     </ol>
     <p><strong>교체 시점:</strong> 2026-09-28까지 미리 교체. 늦어도 저장 버튼에서 GitHub 인증 실패/저장 실패가 뜨면 즉시 교체.</p>
   </div>
 </details></div></div>`;
 }
 
-function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:'';const securitiesSection=`<section><div class="section-title"><h2>증권계좌 현황</h2><p>${x.date} 기준</p></div><div class="grid cards">${metricCard('증권계좌 투자 결과물',won(x.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(x.totalPrincipal),x.account2Included?'계좌2 실현분 포함 후 현재 장부상 외부투입원금 기준':'선택일 계좌1 투자원금 기준')}${metricCard('총 합산 누적손익',won(x.totalProfit),`${securitiesScope} 누적손익`,false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 기준 투입원금',false,'blue')}</div></section>`;document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero"><h1>${PORTFOLIO.meta.title}</h1><p>${x.date} 기준. 선택일에 존재하는 원시데이터 범위만 반영하여 표시.</p><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 기준 투입원금 ${won(x.totalPrincipal)}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span><span class="pill">증권계좌 투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">증권계좌 투자 결과물 ${won(x.totalResult)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${securitiesSection}${renderCharts(x)}${renderAccounts(x)}${renderResultSummary(x)}${renderHoldings(x)}${isLedgerCheckDate(x.date)?renderSourceTables():''}</div>`;drawAllCharts()}
+function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:'';const securitiesSection=`<section><div class="section-title"><h2>증권계좌 현황</h2><p>${x.date} 기준</p></div><div class="grid cards">${metricCard('증권계좌 투자 결과물',won(x.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(x.totalPrincipal),x.account2Included?'계좌2 실현분 포함 후 현재 장부상 외부투입원금 기준':'선택일 계좌1 투자원금 기준')}${metricCard('총 합산 누적손익',won(x.totalProfit),`${securitiesScope} 누적손익`,false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 기준 투입원금',false,'blue')}</div></section>`;document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero"><h1>${PORTFOLIO.meta.title}</h1><p>${x.date} 기준. 선택일에 존재하는 원시데이터 범위만 반영하여 표시.</p><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 기준 투입원금 ${won(x.totalPrincipal)}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span><span class="pill">증권계좌 투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">증권계좌 투자 결과물 ${won(x.totalResult)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${securitiesSection}${renderAccounts(x)}${renderResultSummary(x)}${renderCharts(x)}${renderHoldings(x)}${isLedgerCheckDate(x.date)?renderSourceTables():''}</div>`;drawAllCharts()}
 
 
 function renderResultSummary(x){
