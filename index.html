@@ -1481,6 +1481,187 @@ svg.chart{
   color:#fecaca;
   border-color:rgba(254,202,202,.25);
 }
+
+.hero{
+  position:relative;
+}
+.hero-tools{
+  position:absolute;
+  top:16px;
+  right:16px;
+  display:flex;
+  gap:8px;
+  z-index:5;
+}
+.hero-tool-btn{
+  width:38px;
+  height:38px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.26);
+  background:rgba(255,255,255,.14);
+  color:white;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:19px;
+  cursor:pointer;
+  box-shadow:0 10px 28px rgba(15,23,42,.16);
+  backdrop-filter:blur(8px);
+}
+.hero-tool-btn:hover{
+  background:rgba(255,255,255,.24);
+}
+.contrib-modal{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(15,23,42,.62);
+  backdrop-filter:blur(3px);
+}
+.contrib-modal.show{
+  display:flex;
+}
+.contrib-modal-card{
+  width:min(760px,100%);
+  max-height:min(88vh,760px);
+  overflow:auto;
+  border-radius:22px;
+  background:var(--card);
+  border:1px solid var(--line);
+  box-shadow:0 24px 90px rgba(15,23,42,.28);
+  padding:18px;
+}
+.dark .contrib-modal-card{
+  background:#111827;
+  border-color:rgba(148,163,184,.24);
+}
+.contrib-modal-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:12px;
+}
+.contrib-modal-head h2{
+  margin:0;
+  font-size:20px;
+  letter-spacing:-.04em;
+}
+.contrib-modal-head p{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+}
+.contrib-modal-close{
+  border:0;
+  width:34px;
+  height:34px;
+  border-radius:999px;
+  cursor:pointer;
+  background:#e2e8f0;
+  color:#0f172a;
+  font-size:20px;
+  line-height:1;
+  font-weight:900;
+}
+.dark .contrib-modal-close{
+  background:#334155;
+  color:#f8fafc;
+}
+.contrib-modal .pension-contrib-tool{
+  margin-top:0;
+}
+@media(max-width:720px){
+  .hero-tools{
+    top:12px;
+    right:12px;
+  }
+  .hero-tool-btn{
+    width:34px;
+    height:34px;
+    font-size:17px;
+  }
+  .contrib-modal-card{
+    border-radius:18px;
+    padding:14px;
+  }
+}
+
+.token-guide{
+  margin-top:12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  background:#fff;
+}
+.dark .token-guide{
+  background:#0f172a;
+  border-color:rgba(148,163,184,.24);
+}
+.token-guide summary{
+  cursor:pointer;
+  font-size:13px;
+  font-weight:900;
+  color:var(--text);
+  list-style:none;
+}
+.token-guide summary::-webkit-details-marker{
+  display:none;
+}
+.token-guide summary::before{
+  content:'▸';
+  display:inline-block;
+  margin-right:6px;
+  transition:transform .15s ease;
+}
+.token-guide[open] summary::before{
+  transform:rotate(90deg);
+}
+.token-guide-body{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.55;
+  font-weight:750;
+}
+.token-guide-body ol{
+  margin:8px 0 0 18px;
+  padding:0;
+}
+.token-guide-body li{
+  margin:5px 0;
+}
+.token-guide-body code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  background:#e2e8f0;
+  color:#0f172a;
+  border-radius:6px;
+  padding:1px 5px;
+  font-weight:900;
+}
+.dark .token-guide-body code{
+  background:#1f2937;
+  color:#f8fafc;
+}
+.token-guide-alert{
+  margin-top:8px;
+  padding:8px 10px;
+  border-radius:10px;
+  background:#fff7ed;
+  color:#9a3412;
+  border:1px solid #fed7aa;
+  font-weight:900;
+}
+.dark .token-guide-alert{
+  background:rgba(154,52,18,.20);
+  color:#fed7aa;
+  border-color:rgba(254,215,170,.25);
+}
 </style>
 </head>
 <body>
@@ -1641,7 +1822,46 @@ function renderTabs(){
   document.getElementById('tabs').innerHTML=`<div class="date-picker"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div>`;
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
-function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:'';const securitiesSection=`<section><div class="section-title"><h2>증권계좌 현황</h2><p>${x.date} 기준</p></div><div class="grid cards">${metricCard('증권계좌 투자 결과물',won(x.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(x.totalPrincipal),x.account2Included?'계좌2 실현분 포함 후 현재 장부상 외부투입원금 기준':'선택일 계좌1 투자원금 기준')}${metricCard('총 합산 누적손익',won(x.totalProfit),`${securitiesScope} 누적손익`,false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 기준 투입원금',false,'blue')}</div></section>`;document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero"><h1>${PORTFOLIO.meta.title}</h1><p>${x.date} 기준. 선택일에 존재하는 원시데이터 범위만 반영하여 표시.</p><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 기준 투입원금 ${won(x.totalPrincipal)}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span><span class="pill">증권계좌 투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">증권계좌 투자 결과물 ${won(x.totalResult)}</span>${pensionPill}</div></header>${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${securitiesSection}${renderCharts(x)}${renderAccounts(x)}${renderResultSummary(x)}${renderHoldings(x)}${isLedgerCheckDate(x.date)?renderSourceTables():''}</div>`;drawAllCharts()}
+
+function renderPensionContributionModal(x){
+  const contribDefaultDate=defaultPensionContributionDate(x.date);
+  const contribDefaultMemo=defaultPensionContributionMemo(contribDefaultDate);
+  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle">퇴직연금 기업적립금 추가</h2><p>저장하면 GitHub의 pension_contributions.json을 자동 업데이트</p></div><button type="button" class="contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div><div class="pension-contrib-tool">
+  <p class="small">자동 저장이 안 될 때는 아래 JSON을 <strong>pension_contributions.json</strong> 파일의 <strong>contributions: [ ]</strong> 안에 수동 추가</p>
+  <div class="contrib-form-grid">
+    <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${contribDefaultDate}"></div>
+    <div class="contrib-field"><label for="pensionContribAmount">금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="618,060"></div>
+    <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="${contribDefaultMemo}"></div>
+    <div class="contrib-field full"><label for="pensionContribPin">저장 PIN</label><input id="pensionContribPin" type="password" autocomplete="off" placeholder="Netlify ADMIN_PIN"></div>
+  </div>
+  <div class="contrib-actions">
+    <button type="button" class="contrib-btn" onclick="savePensionContribution()">저장</button>
+    <button type="button" class="contrib-btn secondary" onclick="generatePensionContributionJson()">추가 JSON 만들기</button>
+    <button type="button" class="contrib-btn secondary" onclick="copyPensionContributionJson()">복사</button>
+  </div>
+  <div id="pensionContribStatus" class="contrib-status"></div>
+  <pre id="pensionContribOutput" class="contrib-output"></pre>
+</div>
+<details class="token-guide">
+  <summary>GitHub 토큰 만료/교체 방법</summary>
+  <div class="token-guide-body">
+    <div class="token-guide-alert">현재 토큰을 90일 만료로 만들었다면, 만든 날 기준 약 90일 뒤 저장 버튼이 실패할 수 있음.</div>
+    <p>토큰이 만료되면 대시보드 조회는 되지만, 기업적립금 저장만 실패해.</p>
+    <ol>
+      <li>GitHub → <code>Settings</code> → <code>Developer settings</code> → <code>Personal access tokens</code> → <code>Fine-grained tokens</code>에서 새 토큰 생성</li>
+      <li>대시보드 repo만 선택</li>
+      <li>권한은 <code>Contents: Read and write</code>, <code>Metadata: Read-only</code></li>
+      <li>생성된 새 토큰을 복사</li>
+      <li>Netlify → 해당 사이트 → <code>Site configuration</code> → <code>Environment variables</code></li>
+      <li><code>GITHUB_TOKEN</code> 값을 새 토큰으로 교체</li>
+      <li>Netlify에서 재배포 후 이 모달에서 저장 테스트</li>
+    </ol>
+    <p><strong>교체 시점:</strong> 토큰 만료 전 미리 교체하거나, 저장 버튼에서 GitHub 인증 실패/저장 실패가 뜰 때 교체.</p>
+  </div>
+</details></div></div>`;
+}
+
+function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:'';const securitiesSection=`<section><div class="section-title"><h2>증권계좌 현황</h2><p>${x.date} 기준</p></div><div class="grid cards">${metricCard('증권계좌 투자 결과물',won(x.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(x.totalPrincipal),x.account2Included?'계좌2 실현분 포함 후 현재 장부상 외부투입원금 기준':'선택일 계좌1 투자원금 기준')}${metricCard('총 합산 누적손익',won(x.totalProfit),`${securitiesScope} 누적손익`,false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 기준 투입원금',false,'blue')}</div></section>`;document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero"><div class="hero-tools"><button type="button" class="hero-tool-btn" title="퇴직연금 기업적립금 추가" aria-label="퇴직연금 기업적립금 추가" onclick="openPensionContributionModal()">⚙</button></div><h1>${PORTFOLIO.meta.title}</h1><p>${x.date} 기준. 선택일에 존재하는 원시데이터 범위만 반영하여 표시.</p><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 기준 투입원금 ${won(x.totalPrincipal)}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span><span class="pill">증권계좌 투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">증권계좌 투자 결과물 ${won(x.totalResult)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${securitiesSection}${renderCharts(x)}${renderAccounts(x)}${renderResultSummary(x)}${renderHoldings(x)}${isLedgerCheckDate(x.date)?renderSourceTables():''}</div>`;drawAllCharts()}
 
 
 function renderResultSummary(x){
@@ -1674,26 +1894,8 @@ function renderPension(x){
         pensionCashCost=Number(c.pensionCashCost||39408)+Number(x.extraPensionContrib||0),
         pensionHeldCost=x.pensionRows.reduce((a,r)=>a+r.cost,0)+pensionCashCost,
         pensionHeldProfit=x.pensionEval-pensionHeldCost,
-        pensionHeldReturn=pensionHeldCost?pensionHeldProfit/pensionHeldCost*100:0,
-        contribDefaultDate=defaultPensionContributionDate(x.date),
-        contribDefaultMemo=defaultPensionContributionMemo(contribDefaultDate);
+        pensionHeldReturn=pensionHeldCost?pensionHeldProfit/pensionHeldCost*100:0;
   return `<section><div class="section-title"><h2>퇴직연금 현황</h2><p>${x.date} 기준</p></div><div class="pension-band"><div class="grid cards" style="margin-top:0">${metricCard('퇴직연금 평가금액',won(x.pensionEval),`${shortDate(x.date)} 추정 평가금액`,true)}${metricCard('퇴직연금 납입원금',won(x.pensionPrincipal),pensionContributionSubText(x))}${metricCard('퇴직연금 운용수익',won(x.pensionProfit),'평가금액 - 납입원금',false,'positive')}${metricCard('퇴직연금 누적수익률',pct(x.pensionReturn),'퇴직연금 운용수익 ÷ 퇴직연금 납입원금',false,'blue')}</div><div class="grid two pension-detail-grid" style="margin-top:16px"><div class="note pension-products-note"><div class="section-title"><h2>${shortDate(x.date)} 기준 상품별 현황</h2></div><div class="mobile-scroll"><table class="pension-products-table"><thead><tr><th>상품</th><th>수량</th><th>평균단가</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th>수익률</th><th>비중</th></tr></thead><tbody>${x.pensionRows.map(r=>pensionRow(r,x.pensionEval)).join('')}${pensionCashRow(x.pensionCash,x.pensionEval,pensionCashCost)}<tr class="summary-row"><td>합계</td><td></td><td></td><td class="num">${fmt(pensionHeldCost)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(pensionHeldProfit)}">${fmt(pensionHeldProfit)}</td><td class="num ${cls(pensionHeldReturn)}">${pct(pensionHeldReturn)}</td><td></td></tr></tbody></table></div><p class="small" style="margin-top:10px">※ 매수원금 합계는 현재 보유상품 재투자 기준</p>
-<div class="pension-contrib-tool">
-  <h3>퇴직연금 기업적립금 추가</h3>
-  <p class="small">아래 JSON을 <strong>pension_contributions.json</strong> 파일의 <strong>contributions: [ ]</strong> 안에 추가</p>
-  <div class="contrib-form-grid">
-    <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${contribDefaultDate}"></div>
-    <div class="contrib-field"><label for="pensionContribAmount">금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="618,060"></div>
-    <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="${contribDefaultMemo}"></div>
-    <div class="contrib-field full"><label for="pensionContribPin">저장 PIN</label><input id="pensionContribPin" type="password" autocomplete="off" placeholder="Netlify ADMIN_PIN 설정 시 입력"></div>
-  </div>
-  <div class="contrib-actions">
-    <button type="button" class="contrib-btn" onclick="savePensionContribution()">저장</button>
-    <button type="button" class="contrib-btn secondary" onclick="generatePensionContributionJson()">추가 JSON 만들기</button>
-    <button type="button" class="contrib-btn secondary" onclick="copyPensionContributionJson()">복사</button>
-  </div>
-  <div id="pensionContribStatus" class="contrib-status"></div>
-  <pre id="pensionContribOutput" class="contrib-output"></pre>
 </div></div><div class="note pension-change-note" style="${x.s?.display===false?'display:none':''}"><div class="section-title"><h2>전일 대비 변동</h2></div><div class="change-kpis"><div class="mini-card"><div class="m-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가금액</div><div class="m-value">${x.pensionPrevEval==null?'-':won(x.pensionPrevEval)}</div></div><div class="mini-card"><div class="m-label">${shortDate(x.date)} 평가금액</div><div class="m-value">${won(x.pensionEval)}</div></div><div class="mini-card"><div class="m-label">하루 변동분</div><div class="m-value ${cls(day)}">${day==null?'-':signed(day,'원')}</div></div><div class="mini-card"><div class="m-label">하루 변동률</div><div class="m-value ${cls(rate)}">${x.pensionPrevEval==null?'-':(rate>0?'+':'')+pct(rate)}</div></div></div><div class="change-table-wrap desktop-change-table"><table class="change-table"><thead><tr><th>상품</th><th>${x.prevKey?shortDate(x.prevKey):'-'} 종가</th><th>${shortDate(x.date)} 종가</th><th>일변동</th></tr></thead><tbody>${x.pensionRows.map(r=>`<tr><td>${r.name}</td><td class="num"><span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span></td><td class="num"><span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span></td><td class="num ${cls(r.dayChange)}">${r.dayChange==null?'-':signed(r.dayChange)}</td></tr>`).join('')}<tr><td>현금성자산</td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.prevPensionCash)}</span></td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.pensionCash)}</span></td><td class="num ${cls(x.pensionCash-x.prevPensionCash)}">${signed(x.pensionCash-x.prevPensionCash)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${x.pensionPrevEval==null?'-':fmt(x.pensionPrevEval)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(day)}">${day==null?'-':signed(day)}</td></tr></tbody></table></div><div class="change-mobile-list">${x.pensionRows.map(r=>`<div class="change-product-card"><div class="change-product-title">${r.name}</div><div class="change-product-row"><span class="change-product-label">${x.prevKey?shortDate(x.prevKey):'-'} 종가</span><span class="change-product-value">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span></div><div class="change-product-row"><span class="change-product-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가액</span><span class="change-product-value">${r.prevEval==null?'-':won(r.prevEval)}</span></div><div class="change-product-row"><span class="change-product-label">${shortDate(x.date)} 종가</span><span class="change-product-value">${fmt(r.price)}</span></div><div class="change-product-row"><span class="change-product-label">${shortDate(x.date)} 평가액</span><span class="change-product-value">${won(r.evalAmount)}</span></div><div class="change-product-row"><span class="change-product-label">일변동</span><span class="change-product-value ${cls(r.dayChange)}">${r.dayChange==null?'-':signed(r.dayChange)}</span></div></div>`).join('')}<div class="change-product-card"><div class="change-product-title">현금성자산</div><div class="change-product-row"><span class="change-product-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가액</span><span class="change-product-value">${won(x.prevPensionCash)}</span></div><div class="change-product-row"><span class="change-product-label">${shortDate(x.date)} 평가액</span><span class="change-product-value">${won(x.pensionCash)}</span></div><div class="change-product-row"><span class="change-product-label">일변동</span><span class="change-product-value ${cls(x.pensionCash-x.prevPensionCash)}">${signed(x.pensionCash-x.prevPensionCash)}</span></div></div></div></div></div></div></section>`;
 }
 function pensionRow(r,total){const w=total?r.evalAmount/total*100:0;return `<tr><td><strong>${r.name}</strong></td><td class="num">${fmt(r.qty)}</td><td class="num">${fmt(r.cost/r.qty)}</td><td class="num">${fmt(r.cost)}</td><td class="num">${fmt(r.evalAmount)}</td><td class="num ${cls(r.profit)}">${fmt(r.profit)}</td><td class="num ${cls(r.returnRate)}">${pct(r.returnRate)}</td><td><div class="bar-box"><div class="bar-fill ${r.barClass}" style="width:${Math.max(0,Math.min(100,w)).toFixed(1)}%"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}
@@ -1829,6 +2031,24 @@ function refreshScrollHints(){
 }
 function drawAllCharts(){drawCumChart();drawLineChart();drawStacked();refreshScrollHints();setTimeout(refreshScrollHints,120)}
 
+
+
+function openPensionContributionModal(){
+  const modal=document.getElementById('pensionContribModal');
+  if(!modal) return;
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden','false');
+  setTimeout(()=>document.getElementById('pensionContribDate')?.focus(),0);
+}
+function closePensionContributionModal(){
+  const modal=document.getElementById('pensionContribModal');
+  if(!modal) return;
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden','true');
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closePensionContributionModal();
+});
 
 function cleanNumberInput(v){
   return Number(String(v||'').replace(/[^\d.-]/g,''));
