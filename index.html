@@ -1371,16 +1371,50 @@ function calc(date){
   const combinedPrincipal=hasPension?totalPrincipal+c.pensionContributionPrincipal:totalPrincipal,combinedResult=hasPension?totalResult+pensionEval:totalResult,combinedProfit=hasPension?totalProfit+pensionProfit:totalProfit,combinedReturn=combinedPrincipal?combinedProfit/combinedPrincipal*100:0;
   return {date,s,prevKey:pk,prev,daily,hasDaily:!!daily,account2Included,tossIncluded,hasPension,holdings,securitiesCash,rawHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,account2Profit,account2Principal,account2RealizedAmount,account2Remainder,tossProfit,tossRealizedAmount,tossRemainder,totalPrincipal,totalProfit,totalResult,returnRate,actualHolding,pensionRows,pensionCash,prevPensionCash,pensionEval,pensionPrevEval,pensionProfit,pensionReturn,combinedPrincipal,combinedResult,combinedProfit,combinedReturn,etfEval,stockEval,allocTotal}
 }
+function snapshotDates(d){
+  return allAvailableDates().filter(x=>x<=d);
+}
+function cumHistory(d){
+  return snapshotDates(d).map(x=>{
+    const v=calc(x);
+    const principal=v.account1Principal||1;
+    const profit=v.rawHoldingProfit;
+    return {
+      '날짜':x,
+      '합계 : 누적손익':profit,
+      '합계 : 누적수익률':principal?profit/principal*100:0,
+      '합계 : 전일대비손익':0
+    };
+  }).map((row,i,arr)=>{
+    row['합계 : 전일대비손익']=i===0?row['합계 : 누적손익']:row['합계 : 누적손익']-arr[i-1]['합계 : 누적손익'];
+    return row;
+  });
+}
 function symbolHistory(d){
   return snapshotDates(d).map(x=>{
-    const s=SNAPSHOTS[x]||{}, sy=s.symbols||{};
-    return {'날짜':x,'SK하이닉스':Number(sy['SK하이닉스']||0),'삼성전자':Number(sy['삼성전자']||0),'현대차':Number(sy['현대차']||0),'KODEX200':Number(sy['KODEX200']||0)};
+    const v=calc(x);
+    const get=name=>{
+      const h=v.holdings.find(h=>h.name===name);
+      return h?Number(h.profit||0):0;
+    };
+    return {
+      '날짜':x,
+      'SK하이닉스':get('SK하이닉스'),
+      '삼성전자':get('삼성전자'),
+      '현대차':get('현대차'),
+      'KODEX200':get('KODEX 200')
+    };
   });
 }
 function allocHistory(d){
   return snapshotDates(d).map(x=>{
-    const s=SNAPSHOTS[x]||{}, a=s.allocation||{};
-    return {'날짜':x,ETF:Number(a.ETF||0),개별주식:Number(a['개별주식']||0),현금:Number(a['현금']||0)};
+    const v=calc(x);
+    return {
+      '날짜':x,
+      ETF:Number(v.etfEval||0),
+      개별주식:Number(v.stockEval||0),
+      현금:Number(v.securitiesCash||0)
+    };
   });
 }
 function renderTabs(){
