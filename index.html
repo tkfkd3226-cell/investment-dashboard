@@ -2031,6 +2031,51 @@ svg.chart{
     vertical-align:top !important;
   }
 }
+
+/* QA 최종 보정: 계좌별 성과 요약 모바일 첫 컬럼 고정 */
+@media(max-width:900px){
+  .accounts-scroll{
+    position:relative;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+  }
+  .accounts-scroll .accounts-table{
+    width:max-content !important;
+    min-width:max-content !important;
+    table-layout:auto !important;
+    border-collapse:separate !important;
+    border-spacing:0 !important;
+  }
+  .accounts-scroll .accounts-table th.accounts-name-head,
+  .accounts-scroll .accounts-table td.accounts-name,
+  .accounts-scroll .accounts-table th:first-child,
+  .accounts-scroll .accounts-table td:first-child{
+    position:-webkit-sticky !important;
+    position:sticky !important;
+    left:0 !important;
+    z-index:30 !important;
+    width:1% !important;
+    min-width:max-content !important;
+    max-width:none !important;
+    white-space:nowrap !important;
+    background:#fff !important;
+    box-shadow:8px 0 10px -10px rgba(15,23,42,.38) !important;
+    background-clip:padding-box !important;
+  }
+  .accounts-scroll .accounts-table th.accounts-name-head,
+  .accounts-scroll .accounts-table thead th:first-child{
+    background:#f1f5f9 !important;
+    z-index:40 !important;
+  }
+  .accounts-scroll .accounts-table td.accounts-name{
+    font-size:12px !important;
+    font-weight:800 !important;
+    color:var(--text) !important;
+    line-height:1.45 !important;
+    letter-spacing:-.02em !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -2384,7 +2429,7 @@ function renderAccounts(x){
     ['토스증권',0,c.tossProfit,0,'2026-03-09 매수 후 익일 매도. 3/23 이전 확정 실현수익이라 전 구간 포함.']
   ];
   const hiddenNote=x.account2Included?'':'<p class="table-note"><strong>참고:</strong> 삼성증권 계좌2는 2026-05-22 전량 매도 후 실현분 반영. 선택일이 2026-05-21 이전이면 당시 전체 성과 기준에서 제외되어 이 표에서도 숨김.</p>';
-  return `<section><div class="section-title"><h2>계좌별 성과 요약</h2><span class="title-badge">2023-12 이후 누적</span></div><div class="mobile-scroll"><table class="accounts-table"><thead><tr><th>구분</th><th>투자원금</th><th>누적손익</th><th>수익률</th><th>메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${cls(r[2])}">${fmt(r[2])}</td><td class="num ${cls(r[3])}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${r[4]}</td></tr>`).join('')}</tbody></table></div>${hiddenNote}</section>`;
+  return `<section><div class="section-title"><h2>계좌별 성과 요약</h2><span class="title-badge">2023-12 이후 누적</span></div><div class="mobile-scroll accounts-scroll"><table class="accounts-table"><thead><tr><th class="accounts-name-head">구분</th><th>투자원금</th><th>누적손익</th><th>수익률</th><th>메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="accounts-name">${r[0]}</td><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${cls(r[2])}">${fmt(r[2])}</td><td class="num ${cls(r[3])}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${r[4]}</td></tr>`).join('')}</tbody></table></div>${hiddenNote}</section>`;
 }
 function renderSourceTables(){const c=PORTFOLIO.constants,vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal;return `<section class="grid three"><div class="card"><div class="label">계좌1 원천별 투입</div><table style="font-size:12px;margin-top:8px;border-radius:12px"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num negative">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr><tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div><div class="card"><div class="label">전체 외부투입원금</div><div class="value">${won(c.externalPrincipal)}</div><div class="sub">외부에서 실제 들어온 돈만 계산</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 투입 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 순투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${fmt(c.externalPrincipal)}</td></tr></tbody></table></div><div class="card"><div class="label">계좌1 투자원금 검산</div><div class="value">${won(c.account1Principal)}</div><div class="sub">전체 외부투입 + 수익 재투입</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>전체 외부투입원금</td><td class="num">${fmt(c.externalPrincipal)}</td></tr><tr><td>레버 수익 재투입분</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입분</td><td class="num">${fmt(vipProfitReinvest)}</td></tr><tr class="summary-row"><td>검산값</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div></section>`}
 function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
