@@ -4,8 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>투자 성과 대시보드</title>
-<style>
-:root{
+<style>:root{
   --bg:#f5f7fb;
   --card:#ffffff;
   --ink:#172033;
@@ -278,13 +277,6 @@ td.num{
   min-width:980px;
 }
 
-.kpi-mini{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
-  margin-top:10px;
-}
-
 .mini-card{
   background:#f8fafc;
   border:1px solid var(--line);
@@ -302,16 +294,6 @@ td.num{
   font-size:19px;
   font-weight:900;
   margin-top:2px;
-}
-
-.formula{
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-  background:#0f172a;
-  color:#e5e7eb;
-  border-radius:12px;
-  padding:12px;
-  overflow:auto;
-  font-size:12px;
 }
 
 .pension-band{
@@ -333,18 +315,6 @@ td.num{
 .bar-fill{
   height:100%;
   border-radius:999px;
-}
-
-.bar-green{
-  background:#22c55e;
-}
-
-.bar-blue{
-  background:#3b82f6;
-}
-
-.bar-amber{
-  background:#f59e0b;
 }
 
 .bar-gray{
@@ -708,11 +678,6 @@ svg.chart{
   }
 }
 
-.result-summary-grid{
-  grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr)) !important;
-  align-items:stretch;
-}
-
 .result-summary-grid > .note{
   min-width:0;
   width:100%;
@@ -729,15 +694,9 @@ svg.chart{
 }
 
 @media (max-width:520px){
-  .result-summary-grid{
-    grid-template-columns:1fr !important;
-  }
-
-  .result-summary-grid .kpi-mini{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
-
-  .result-summary-grid .m-value{
+  
+.result-summary-grid 
+.result-summary-grid .m-value{
     font-size:clamp(16px,4.5vw,19px);
   }
 }
@@ -1061,13 +1020,7 @@ svg.chart{
   grid-template-columns:repeat(6,minmax(0,1fr)) !important;
 }
 
-.chart-note.six .day-value{
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-  line-height:1.3;
-}
-
+.chart-note.six 
 .chart-note.six .m-detail{
   margin-top:5px;
   color:var(--muted);
@@ -1109,11 +1062,8 @@ svg.chart{
     letter-spacing:-.025em;
   }
 
-  .chart-note.six .day-value{
-    gap:1px !important;
-  }
-
-  .chart-note.six .m-detail{
+  .chart-note.six 
+.chart-note.six .m-detail{
     font-size:9.5px !important;
     line-height:1.25 !important;
   }
@@ -1184,8 +1134,6 @@ svg.chart{
 }
 
 
-
-
   @media(max-width:900px){
     .chart-note.symbol-summary-grid{
       display:grid!important;
@@ -1239,8 +1187,7 @@ svg.chart{
 }
 
 
-
-/* 자동화 버전 추가: 월/일 기준일 선택 메뉴 */
+/* 기준일 선택 메뉴 */
 .switcher{
   position:sticky;
   top:0;
@@ -1259,7 +1206,7 @@ svg.chart{
   display:flex;
   align-items:center;
   gap:8px;
-  width:min(680px,100%);
+  width:min(760px,100%);
 }
 .date-picker-label{
   color:#dbeafe;
@@ -1279,15 +1226,91 @@ svg.chart{
   outline:none;
   cursor:pointer;
 }
-.date-select option{color:#111827;background:#fff}
-.month-select{min-width:145px}
-.day-select{min-width:190px;flex:1}
-.date-picker-caption{color:#cbd5e1;font-size:12px;font-weight:800;white-space:nowrap}
+.date-select option{
+  color:#111827;
+  background:#fff;
+}
+.month-select{
+  min-width:190px;
+  flex:0 0 190px;
+}
+.day-select{
+  min-width:150px;
+  flex:0 0 165px;
+}
+.date-picker-caption{
+  color:#cbd5e1;
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.date-tool-btn{
+  width:auto;
+  min-width:0;
+  height:40px;
+  flex:0 0 auto;
+  padding:0 14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.14);
+  color:white;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  font-size:13px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 8px 22px rgba(0,0,0,.18);
+  white-space:nowrap;
+}
+.date-tool-btn:hover{
+  background:rgba(255,255,255,.24);
+}
+.date-tool-icon{
+  display:none;
+}
 @media(max-width:760px){
-  .switcher{justify-content:stretch;flex-wrap:nowrap;padding:9px 10px}
-  .date-picker{display:grid;grid-template-columns:1fr 1.25fr;gap:8px;width:100%}
-  .date-picker-label,.date-picker-caption{display:none}
-  .date-select{width:100%;min-width:0;font-size:13px;padding-left:10px;padding-right:28px}
+  .switcher{
+    justify-content:stretch;
+    flex-wrap:nowrap;
+    padding:9px 10px;
+  }
+  .date-picker{
+    display:grid;
+    grid-template-columns:minmax(150px,1.6fr) minmax(86px,.7fr) 40px;
+    gap:7px;
+    width:100%;
+  }
+  .date-picker-label,
+  .date-picker-caption{
+    display:none;
+  }
+  .month-select,
+  .day-select{
+    min-width:0;
+    width:100%;
+    flex:initial;
+  }
+  .date-select{
+    width:100%;
+    font-size:13px;
+    padding-left:8px;
+    padding-right:22px;
+  }
+  .date-tool-btn{
+    width:40px;
+    height:40px;
+    padding:0;
+    flex:0 0 40px;
+  }
+  .date-tool-text{
+    display:none;
+  }
+  .date-tool-icon{
+    display:inline;
+    font-size:18px;
+  }
 }
 
 
@@ -1482,35 +1505,6 @@ svg.chart{
   border-color:rgba(254,202,202,.25);
 }
 
-.hero{
-  position:relative;
-}
-.hero-tools{
-  position:absolute;
-  top:16px;
-  right:16px;
-  display:flex;
-  gap:8px;
-  z-index:5;
-}
-.hero-tool-btn{
-  width:38px;
-  height:38px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.26);
-  background:rgba(255,255,255,.14);
-  color:white;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  font-size:19px;
-  cursor:pointer;
-  box-shadow:0 10px 28px rgba(15,23,42,.16);
-  backdrop-filter:blur(8px);
-}
-.hero-tool-btn:hover{
-  background:rgba(255,255,255,.24);
-}
 .contrib-modal{
   position:fixed;
   inset:0;
@@ -1540,11 +1534,13 @@ svg.chart{
   border-color:rgba(148,163,184,.24);
 }
 .contrib-modal-head{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:14px;
+  position:relative;
+  display:block;
+  padding-right:52px;
   margin-bottom:12px;
+}
+.contrib-modal-head > div{
+  min-width:0;
 }
 .contrib-modal-head h2{
   margin:0;
@@ -1556,8 +1552,14 @@ svg.chart{
   color:var(--muted);
   font-size:12px;
   font-weight:800;
+  max-width:none;
+  word-break:keep-all;
+  overflow-wrap:normal;
 }
 .contrib-modal-close{
+  position:absolute;
+  top:0;
+  right:0;
   border:0;
   width:34px;
   height:34px;
@@ -1576,19 +1578,76 @@ svg.chart{
 .contrib-modal .pension-contrib-tool{
   margin-top:0;
 }
+.modal-card-box{
+  margin-top:12px;
+}
+.modal-card-box:first-of-type{
+  margin-top:0;
+}
+.contrib-pin-box{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  background:#fff;
+}
+.dark .contrib-pin-box{
+  background:#0f172a;
+  border-color:rgba(148,163,184,.24);
+}
+.contrib-pin-box h3,
+.contrib-list h3,
+.pension-contrib-tool h3{
+  margin:0 0 4px;
+  font-size:14px;
+  letter-spacing:-.03em;
+}
+.contrib-pin-box .small,
+.contrib-list .small,
+.pension-contrib-tool .small{
+  margin:0 0 10px;
+}
+.nowrap{
+  white-space:nowrap;
+}
+.contrib-modal .contrib-form-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.contrib-modal .contrib-form-grid.one{
+  grid-template-columns:1fr;
+}
+.contrib-modal .contrib-field{
+  width:100%;
+  min-width:0;
+  overflow:hidden;
+}
+.contrib-modal .contrib-field input{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+.contrib-modal input[type="date"]{
+  -webkit-appearance:none;
+  appearance:none;
+}
 @media(max-width:720px){
-  .hero-tools{
-    top:12px;
-    right:12px;
-  }
-  .hero-tool-btn{
-    width:34px;
-    height:34px;
-    font-size:17px;
-  }
   .contrib-modal-card{
+    width:min(100%, calc(100vw - 36px));
+    box-sizing:border-box;
     border-radius:18px;
     padding:14px;
+  }
+  .contrib-modal-head{
+    padding-right:44px;
+  }
+  .contrib-modal-head p{
+    font-size:12px;
+    line-height:1.45;
+  }
+  .contrib-modal .contrib-form-grid{
+    display:grid;
+    grid-template-columns:1fr;
   }
 }
 
@@ -1730,15 +1789,6 @@ svg.chart{
   background:#dc2626;
   color:white;
 }
-.section-panel{
-  padding:0;
-}
-@media(min-width:721px){
-  .contrib-modal .contrib-form-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
-}
-
 .wrap > section{
   width:100%;
   box-sizing:border-box;
@@ -1746,251 +1796,6 @@ svg.chart{
 .grid.cards{
   width:100%;
   box-sizing:border-box;
-}
-
-/* 모달 레이아웃 보정 */
-.contrib-modal-head{
-  position:relative;
-  display:block;
-  padding-right:52px;
-}
-.contrib-modal-head > div{
-  min-width:0;
-}
-.contrib-modal-head p{
-  max-width:none;
-  word-break:keep-all;
-  overflow-wrap:normal;
-}
-.contrib-modal-close{
-  position:absolute;
-  top:0;
-  right:0;
-}
-.contrib-modal .contrib-form-grid{
-  grid-template-columns:repeat(2,minmax(0,1fr));
-}
-.contrib-modal .contrib-field,
-.contrib-modal .contrib-field input{
-  min-width:0;
-}
-@media(max-width:720px){
-  .contrib-modal .contrib-form-grid{
-    grid-template-columns:1fr !important;
-  }
-  .contrib-modal-head{
-    padding-right:44px;
-  }
-  .contrib-modal-head p{
-    font-size:12px;
-    line-height:1.45;
-  }
-}
-
-/* 기준일 선택 영역 우측 톱니버튼 */
-.date-tool-btn{
-  width:40px;
-  height:40px;
-  flex:0 0 40px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.28);
-  background:rgba(255,255,255,.14);
-  color:white;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  font-size:18px;
-  cursor:pointer;
-  box-shadow:0 8px 22px rgba(0,0,0,.18);
-}
-.date-tool-btn:hover{
-  background:rgba(255,255,255,.24);
-}
-@media(max-width:760px){
-  .date-picker{
-    grid-template-columns:1fr 1.25fr 40px !important;
-  }
-}
-
-/* 모달 입력영역 최종 보정 */
-.nowrap{
-  white-space:nowrap;
-}
-.contrib-modal-head{
-  position:relative;
-  display:block !important;
-  padding-right:52px;
-}
-.contrib-modal-head > div{
-  min-width:0;
-}
-.contrib-modal-head p{
-  max-width:none;
-  word-break:keep-all;
-  overflow-wrap:normal;
-}
-.contrib-modal-close{
-  position:absolute;
-  top:0;
-  right:0;
-}
-.contrib-zone{
-  margin-top:12px;
-  padding-top:12px;
-  border-top:1px solid var(--line);
-}
-.contrib-zone:first-child{
-  margin-top:0;
-  padding-top:0;
-  border-top:0;
-}
-.dark .contrib-zone{
-  border-color:rgba(148,163,184,.24);
-}
-.contrib-zone h3{
-  margin:0 0 4px;
-  font-size:14px;
-  letter-spacing:-.03em;
-}
-.contrib-modal .contrib-form-grid{
-  grid-template-columns:repeat(2,minmax(0,1fr));
-}
-.contrib-modal .contrib-form-grid.one{
-  grid-template-columns:1fr !important;
-}
-.contrib-modal .contrib-field{
-  width:100%;
-  min-width:0;
-  overflow:hidden;
-}
-.contrib-modal .contrib-field input{
-  display:block;
-  width:100% !important;
-  max-width:100% !important;
-  min-width:0 !important;
-  box-sizing:border-box;
-}
-.contrib-modal input[type="date"]{
-  -webkit-appearance:none;
-  appearance:none;
-}
-@media(max-width:720px){
-  .contrib-modal .contrib-form-grid{
-    display:grid;
-    grid-template-columns:1fr !important;
-  }
-  .contrib-modal-card{
-    width:min(100%, calc(100vw - 36px));
-    box-sizing:border-box;
-  }
-  .contrib-modal-head{
-    padding-right:44px;
-  }
-  .contrib-modal-head p{
-    font-size:12px;
-    line-height:1.45;
-  }
-}
-
-.date-picker{width:min(860px,100%)}
-.month-select{min-width:172px}
-.day-select{min-width:150px;flex:0 1 190px}
-.date-tool-btn{width:auto;min-width:0;height:40px;flex:0 0 auto;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.14);color:white;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.18);white-space:nowrap}
-.date-tool-btn:hover{background:rgba(255,255,255,.24)}
-.date-tool-icon{display:none}
-@media(max-width:760px){
-  .date-picker{grid-template-columns:minmax(118px,1.08fr) minmax(130px,1.12fr) 40px!important}
-  .month-select,.day-select{min-width:0}
-  .day-select{flex:initial}
-  .date-tool-btn{width:40px;height:40px;padding:0;flex:0 0 40px}
-  .date-tool-text{display:none}
-  .date-tool-icon{display:inline;font-size:18px}
-}
-.modal-card-box{margin-top:12px}
-.modal-card-box:first-of-type{margin-top:0}
-.contrib-pin-box{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
-.dark .contrib-pin-box{background:#0f172a;border-color:rgba(148,163,184,.24)}
-.contrib-pin-box h3,.contrib-list h3,.pension-contrib-tool h3{margin:0 0 4px;font-size:14px;letter-spacing:-.03em}
-.contrib-pin-box .small,.contrib-list .small,.pension-contrib-tool .small{margin:0 0 10px}
-.nowrap{white-space:nowrap}
-.contrib-modal-head{position:relative;display:block!important;padding-right:52px}
-.contrib-modal-head>div{min-width:0}
-.contrib-modal-head p{max-width:none;word-break:keep-all;overflow-wrap:normal}
-.contrib-modal-close{position:absolute;top:0;right:0}
-.contrib-modal .contrib-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-.contrib-modal .contrib-form-grid.one{grid-template-columns:1fr!important}
-.contrib-modal .contrib-field{width:100%;min-width:0;overflow:hidden}
-.contrib-modal .contrib-field input{display:block;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box}
-.contrib-modal input[type="date"]{-webkit-appearance:none;appearance:none}
-@media(max-width:720px){
-  .contrib-modal .contrib-form-grid{display:grid;grid-template-columns:1fr!important}
-  .contrib-modal-card{width:min(100%,calc(100vw - 36px));box-sizing:border-box}
-  .contrib-modal-head{padding-right:44px}
-  .contrib-modal-head p{font-size:12px;line-height:1.45}
-}
-
-/* 기준일 선택 폭 최종 보정: 년/월 넓게, 월/일/요일 짧게 */
-.date-picker{
-  width:min(760px,100%) !important;
-}
-.month-select{
-  min-width:190px !important;
-  flex:0 0 190px !important;
-}
-.day-select{
-  min-width:150px !important;
-  flex:0 0 165px !important;
-}
-@media(max-width:760px){
-  .date-picker{
-    grid-template-columns:minmax(142px,1.35fr) minmax(112px,.9fr) 40px !important;
-    gap:7px !important;
-  }
-  .month-select{
-    min-width:0 !important;
-    width:100% !important;
-  }
-  .day-select{
-    min-width:0 !important;
-    width:100% !important;
-    flex:initial !important;
-  }
-  .date-select{
-    font-size:13px !important;
-    padding-left:9px !important;
-    padding-right:24px !important;
-  }
-}
-
-/* 계좌별 성과 요약 메모 셀: 구분 셀과 같은 기본 표 스타일 */
-.accounts-table td.accounts-memo{
-  font-size:inherit !important;
-  font-weight:inherit !important;
-  color:inherit !important;
-  line-height:inherit !important;
-  letter-spacing:inherit !important;
-}
-
-/* 기준일 선택 폭 추가 보정: 모바일에서 년/월을 확실히 더 넓게 */
-@media(max-width:760px){
-  .date-picker{
-    grid-template-columns:minmax(150px,1.6fr) minmax(86px,.7fr) 40px !important;
-    gap:7px !important;
-  }
-  .month-select{
-    min-width:0 !important;
-    width:100% !important;
-  }
-  .day-select{
-    min-width:0 !important;
-    width:100% !important;
-    flex:initial !important;
-  }
-  .date-select{
-    font-size:13px !important;
-    padding-left:8px !important;
-    padding-right:22px !important;
-  }
 }
 
 /* 계좌별 성과 요약: 모바일에서 메모 값을 구분 값과 같은 표 셀 스타일로 통일 */
