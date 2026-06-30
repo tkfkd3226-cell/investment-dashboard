@@ -1976,6 +1976,61 @@ svg.chart{
   width:100%;
   box-sizing:border-box;
 }
+
+/* QA 복구: 퇴직연금 비중 막대 색상 */
+.bar-green{
+  background:var(--green);
+}
+.bar-blue{
+  background:var(--blue);
+}
+.bar-amber{
+  background:var(--amber);
+}
+
+/* QA 보정: 계좌별 성과 요약도 첫 번째 컬럼 고정 */
+@media(max-width:900px){
+  .accounts-table{
+    width:max-content !important;
+    min-width:max-content !important;
+    table-layout:auto !important;
+    font-size:12px !important;
+  }
+  .accounts-table th,
+  .accounts-table td{
+    padding:7px 8px !important;
+    white-space:nowrap;
+  }
+  .accounts-table th:first-child,
+  .accounts-table td:first-child{
+    position:sticky;
+    left:0;
+    z-index:3;
+    width:1% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    white-space:nowrap !important;
+    background:#fff !important;
+    box-shadow:8px 0 10px -10px rgba(15,23,42,.35);
+    background-clip:padding-box;
+  }
+  .accounts-table thead th:first-child{
+    background:#f1f5f9 !important;
+    z-index:5;
+  }
+  .accounts-table td.accounts-memo,
+  .accounts-table td:nth-child(5){
+    min-width:165px !important;
+    max-width:210px !important;
+    white-space:normal !important;
+    font-size:12px !important;
+    font-weight:800 !important;
+    color:var(--text) !important;
+    line-height:1.45 !important;
+    letter-spacing:-.02em !important;
+    vertical-align:top !important;
+  }
+}
 </style>
 </head>
 <body>
