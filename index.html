@@ -1662,6 +1662,91 @@ svg.chart{
   color:#fed7aa;
   border-color:rgba(254,215,170,.25);
 }
+
+/* 기업적립금 모달: 필드 폭, 삭제 목록, 섹션 여백 보정 */
+.contrib-form-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.contrib-field,
+.contrib-field input{
+  min-width:0;
+}
+.contrib-list{
+  margin-top:12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  background:#fff;
+}
+.dark .contrib-list{
+  background:#0f172a;
+  border-color:rgba(148,163,184,.24);
+}
+.contrib-list h3{
+  margin:0 0 5px;
+  font-size:14px;
+  letter-spacing:-.03em;
+}
+.contrib-existing-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:10px;
+}
+.contrib-existing-item{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  border:1px solid var(--line);
+  background:#f8fafc;
+  border-radius:12px;
+  padding:9px 10px;
+  cursor:pointer;
+}
+.dark .contrib-existing-item{
+  background:#111827;
+  border-color:rgba(148,163,184,.24);
+}
+.contrib-existing-item input{
+  margin-top:3px;
+}
+.contrib-existing-main{
+  flex:1;
+  min-width:0;
+}
+.contrib-existing-title{
+  font-size:13px;
+  font-weight:900;
+  color:var(--text);
+}
+.contrib-existing-memo{
+  margin-top:2px;
+  font-size:12px;
+  font-weight:750;
+  color:var(--muted);
+  word-break:break-word;
+}
+.contrib-btn.danger{
+  background:#dc2626;
+  color:white;
+}
+.section-panel{
+  padding:0;
+}
+@media(min-width:721px){
+  .contrib-modal .contrib-form-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+.wrap > section{
+  width:100%;
+  box-sizing:border-box;
+}
+.grid.cards{
+  width:100%;
+  box-sizing:border-box;
+}
 </style>
 </head>
 <body>
@@ -1823,6 +1908,21 @@ function renderTabs(){
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
+
+function renderPensionContributionList(){
+  const items=pensionContributionItems()
+    .slice()
+    .filter(v=>v&&v.date)
+    .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  if(!items.length) return `<p class="small">등록된 추가 기업적립금이 없습니다.</p>`;
+  return items.map((v,i)=>{
+    const source=v.source||'company';
+    const amount=Number(v.amount)||0;
+    const memo=v.memo||'';
+    return `<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.date}|${source}"><span class="contrib-existing-main"><span class="contrib-existing-title">${v.date} / ${won(amount)} / ${source}</span><span class="contrib-existing-memo">${memo}</span></span></label>`;
+  }).join('');
+}
+
 function renderPensionContributionModal(x){
   const contribDefaultDate=defaultPensionContributionDate(x.date);
   const contribDefaultMemo=defaultPensionContributionMemo(contribDefaultDate);
@@ -1842,10 +1942,18 @@ function renderPensionContributionModal(x){
   <div id="pensionContribStatus" class="contrib-status"></div>
   <pre id="pensionContribOutput" class="contrib-output"></pre>
 </div>
+<div class="contrib-list">
+  <h3>등록된 기업적립금 내역</h3>
+  <p class="small">테스트로 넣은 항목을 되돌릴 때 선택 후 삭제. 같은 날짜/source 항목을 제거합니다.</p>
+  <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList()}</div>
+  <div class="contrib-actions">
+    <button type="button" class="contrib-btn danger" onclick="deleteSelectedPensionContribution()">선택 항목 삭제</button>
+  </div>
+</div>
 <details class="token-guide">
   <summary>GitHub 토큰 만료/교체 방법</summary>
   <div class="token-guide-body">
-    <div class="token-guide-alert">현재 토큰을 90일 만료로 만들었다면, 만든 날 기준 약 90일 뒤 저장 버튼이 실패할 수 있음.</div>
+    <div class="token-guide-alert">현재 GitHub 토큰은 2026-07-01에 90일 만료로 생성했으므로, 2026-09-28까지 새 토큰으로 교체 권장. 미교체 시 2026-09-29 전후부터 저장 버튼이 실패할 수 있음.</div>
     <p>토큰이 만료되면 대시보드 조회는 되지만, 기업적립금 저장만 실패해.</p>
     <ol>
       <li>GitHub → <code>Settings</code> → <code>Developer settings</code> → <code>Personal access tokens</code> → <code>Fine-grained tokens</code>에서 새 토큰 생성</li>
@@ -1856,7 +1964,7 @@ function renderPensionContributionModal(x){
       <li><code>GITHUB_TOKEN</code> 값을 새 토큰으로 교체</li>
       <li>Netlify에서 재배포 후 이 모달에서 저장 테스트</li>
     </ol>
-    <p><strong>교체 시점:</strong> 토큰 만료 전 미리 교체하거나, 저장 버튼에서 GitHub 인증 실패/저장 실패가 뜰 때 교체.</p>
+    <p><strong>교체 시점:</strong> 2026-09-28까지 미리 교체. 늦어도 저장 버튼에서 GitHub 인증 실패/저장 실패가 뜨면 즉시 교체.</p>
   </div>
 </details></div></div>`;
 }
@@ -2112,12 +2220,39 @@ async function savePensionContribution(){
     const res=await fetch('/.netlify/functions/save-pension-contribution',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({pin:pinEl?.value||'',item})
+      body:JSON.stringify({pin:pinEl?.value||'',action:'upsert',item})
     });
     const data=await res.json().catch(()=>({}));
     if(!res.ok) throw new Error(data.error||`저장 실패 (${res.status})`);
     const action=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
     showPensionContributionStatus(`${action} 완료. Netlify 재배포가 끝나면 화면에 반영돼. commit: ${data.commitSha||'-'}`,'ok');
+  }catch(e){
+    showPensionContributionStatus(e.message||String(e),'err');
+  }
+}
+
+
+async function deleteSelectedPensionContribution(){
+  const selected=document.querySelector('input[name="pensionContribDeleteTarget"]:checked');
+  const pinEl=document.getElementById('pensionContribPin');
+  if(!selected){
+    showPensionContributionStatus('삭제할 항목을 선택해줘.','err');
+    return;
+  }
+  const [date,source]=selected.value.split('|');
+  const item=pensionContributionItems().find(v=>v.date===date&&(v.source||'company')===source);
+  const amount=item?won(Number(item.amount)||0):'선택 항목';
+  if(!confirm(`${date} / ${amount} 항목을 삭제할까요?\n삭제하면 GitHub에 커밋되고 Netlify 재배포 후 반영됩니다.`)) return;
+  try{
+    showPensionContributionStatus('삭제 중... GitHub 파일을 업데이트하고 있어.','ok');
+    const res=await fetch('/.netlify/functions/save-pension-contribution',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({pin:pinEl?.value||'',action:'delete',date,source})
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error||`삭제 실패 (${res.status})`);
+    showPensionContributionStatus(`선택 항목 삭제 완료. Netlify 재배포가 끝나면 화면에 반영돼. commit: ${data.commitSha||'-'}`,'ok');
   }catch(e){
     showPensionContributionStatus(e.message||String(e),'err');
   }

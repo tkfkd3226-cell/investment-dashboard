@@ -39,25 +39,7 @@ exports.handler = async (event) => {
     return jsonResponse(401, { error: '저장 PIN이 맞지 않아.' });
   }
 
-  const item = payload.item || {};
-  const date = String(item.date || '').trim();
-  const amount = Number(item.amount);
-  const memo = String(item.memo || '').trim();
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return jsonResponse(400, { error: 'date는 YYYY-MM-DD 형식이어야 해.' });
-  }
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return jsonResponse(400, { error: 'amount는 0보다 큰 숫자여야 해.' });
-  }
-
-  const normalizedItem = {
-    date,
-    source: item.source || 'company',
-    amount,
-    memo: memo || `${date.slice(0, 4)}년 ${Number(date.slice(5, 7))}월 기업적립금`
-  };
-
+  const action = payload.action || 'upsert';
   const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
 
   let current;
@@ -87,16 +69,61 @@ exports.handler = async (event) => {
 
   if (!Array.isArray(doc.contributions)) doc.contributions = [];
 
-  const index = doc.contributions.findIndex(
-    (v) => v && v.date === normalizedItem.date && (v.source || 'company') === normalizedItem.source
-  );
+  let resultAction;
+  let commitMessageDate;
 
-  let action = 'created';
-  if (index >= 0) {
-    doc.contributions[index] = { ...doc.contributions[index], ...normalizedItem };
-    action = 'updated';
+  if (action === 'delete') {
+    const date = String(payload.date || '').trim();
+    const source = String(payload.source || 'company').trim() || 'company';
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return jsonResponse(400, { error: '삭제할 date는 YYYY-MM-DD 형식이어야 해.' });
+    }
+
+    const beforeLength = doc.contributions.length;
+    doc.contributions = doc.contributions.filter(
+      (v) => !(v && v.date === date && (v.source || 'company') === source)
+    );
+
+    if (doc.contributions.length === beforeLength) {
+      return jsonResponse(404, { error: '삭제할 항목을 찾지 못했어.' });
+    }
+
+    resultAction = 'deleted';
+    commitMessageDate = date;
   } else {
-    doc.contributions.push(normalizedItem);
+    const item = payload.item || {};
+    const date = String(item.date || '').trim();
+    const amount = Number(item.amount);
+    const memo = String(item.memo || '').trim();
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return jsonResponse(400, { error: 'date는 YYYY-MM-DD 형식이어야 해.' });
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return jsonResponse(400, { error: 'amount는 0보다 큰 숫자여야 해. 삭제는 등록 내역에서 선택 항목 삭제를 사용해줘.' });
+    }
+
+    const normalizedItem = {
+      date,
+      source: item.source || 'company',
+      amount,
+      memo: memo || `${date.slice(0, 4)}년 ${Number(date.slice(5, 7))}월 기업적립금`
+    };
+
+    const index = doc.contributions.findIndex(
+      (v) => v && v.date === normalizedItem.date && (v.source || 'company') === normalizedItem.source
+    );
+
+    if (index >= 0) {
+      doc.contributions[index] = { ...doc.contributions[index], ...normalizedItem };
+      resultAction = 'updated';
+    } else {
+      doc.contributions.push(normalizedItem);
+      resultAction = 'created';
+    }
+
+    commitMessageDate = normalizedItem.date;
   }
 
   doc.contributions.sort((a, b) => String(a.date).localeCompare(String(b.date)));
@@ -114,7 +141,7 @@ exports.handler = async (event) => {
         'User-Agent': 'investment-dashboard-netlify-function'
       },
       body: JSON.stringify({
-        message: `Update pension contribution ${normalizedItem.date}`,
+        message: `${resultAction === 'deleted' ? 'Delete' : 'Update'} pension contribution ${commitMessageDate}`,
         content: encodeBase64(content),
         sha: current.sha,
         branch: GITHUB_BRANCH
@@ -130,8 +157,7 @@ exports.handler = async (event) => {
 
   return jsonResponse(200, {
     ok: true,
-    action,
-    item: normalizedItem,
+    action: resultAction,
     path,
     commitSha: putData?.commit?.sha || null
   });
