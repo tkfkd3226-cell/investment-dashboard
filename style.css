@@ -2136,3 +2136,67 @@ svg.chart{
     grid-template-columns:1fr !important;
   }
 }
+
+
+/* 최종 QA 보정: 증권계좌 KPI 상단 여백 */
+.securities-summary-block .cards{
+  margin-top:0 !important;
+}
+
+/* 최종 QA 보정: 모달 오픈 시 모바일 메뉴 버튼 숨김 */
+.contrib-modal-open .mobile-nav-menu-wrap{
+  display:none !important;
+}
+
+/* 최종 QA 보정: 평가총액 현금 포함 문구 축소 */
+.cash-include-detail{
+  font-size:9.5px !important;
+  font-weight:600 !important;
+  line-height:1.25 !important;
+  color:var(--muted) !important;
+}
+
+/* 최종 QA 보정: 보유분 종목 배경색을 차트 색상 계열로 통일 */
+.ticker-samsung{
+  background:rgba(139,195,74,.50) !important;
+}
+.ticker-sk{
+  background:rgba(255,138,101,.50) !important;
+}
+.ticker-hyundai{
+  background:rgba(38,198,218,.50) !important;
+}
+.ticker-kodex{
+  background:rgba(66,165,245,.50) !important;
+}
+.hold-position-table tbody tr.ticker-samsung td:first-child{
+  background:rgba(139,195,74,.50) !important;
+}
+.hold-position-table tbody tr.ticker-sk td:first-child{
+  background:rgba(255,138,101,.50) !important;
+}
+.hold-position-table tbody tr.ticker-hyundai td:first-child{
+  background:rgba(38,198,218,.50) !important;
+}
+.hold-position-table tbody tr.ticker-kodex td:first-child{
+  background:rgba(66,165,245,.50) !important;
+}
+
+@media(max-width:760px){
+  .pension-no-prev-note{
+    min-height:66px !important;
+    padding:10px 8px !important;
+  }
+  .cash-include-detail{
+    font-size:8.5px !important;
+    font-weight:600 !important;
+  }
+  .chart-note.pension-symbol-summary-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@media(max-width:520px){
+  .chart-note.pension-symbol-summary-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
