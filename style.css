@@ -2111,3 +2111,28 @@ svg.chart{
     padding:22px 8px;
   }
 }
+
+
+.chart-title-sub{
+  display:inline;
+  margin-left:4px;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:-.02em;
+}
+
+.chart-note.pension-symbol-summary-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+
+@media(max-width:900px){
+  .chart-note.pension-symbol-summary-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@media(max-width:520px){
+  .chart-note.pension-symbol-summary-grid{
+    grid-template-columns:1fr !important;
+  }
+}
