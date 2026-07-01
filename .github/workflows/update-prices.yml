@@ -8,8 +8,8 @@ on:
         required: false
         type: string
   schedule:
-    # 종가 반영: KST 17:00
-    - cron: "0 8 * * 1-5"
+    # 종가 반영: KST 17:07
+    - cron: "7 8 * * 1-5"
 
 permissions:
   contents: write
@@ -34,7 +34,7 @@ jobs:
 
       - name: Update prices and snapshots
         env:
-          INPUT_DATE: ${{ github.event.inputs.date }}
+          INPUT_DATE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.date || '' }}
         run: |
           if [ -n "$INPUT_DATE" ]; then
             python scripts/update_prices.py --date "$INPUT_DATE"
