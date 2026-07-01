@@ -9,7 +9,7 @@ on:
         type: string
   schedule:
     # 종가 반영: KST 17:07
-    - cron: "7 8 * * 1-5"
+    - cron: "45 8 * * 1-5"
 
 permissions:
   contents: write
