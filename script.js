@@ -844,9 +844,9 @@ async function deleteSelectedPensionContribution(){
   const [date,source]=selected.value.split('|');
   const item=pensionContributionItems().find(v=>v.date===date&&(v.source||'company')===source);
   const amount=item?won(Number(item.amount)||0):'선택 항목';
-  if(!confirm(`${date} / ${amount} 항목을 삭제할까요?\n삭제하면 GitHub에 커밋되고 Netlify 재배포 후 반영됩니다.`)) return;
+  if(!confirm(`${date} / ${amount} 항목을 삭제할까요?\n삭제는 현재 Netlify 방식으로 처리됩니다. GitHub에 커밋되고 배포 후 반영됩니다.`)) return;
   try{
-    showPensionContributionStatus('삭제 중... GitHub 파일을 업데이트하고 있어.','ok');
+    showPensionContributionStatus('Netlify 방식으로 삭제 중... GitHub 파일을 업데이트하고 있어.','ok');
     const res=await fetch('/.netlify/functions/save-pension-contribution',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
