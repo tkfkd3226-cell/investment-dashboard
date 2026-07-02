@@ -743,30 +743,96 @@ async function copyPensionContributionJson(){
     showPensionContributionStatus('복사는 브라우저 권한 때문에 실패. 위 내용을 직접 선택해서 복사해줘.','err');
   }
 }
+
+async function savePensionContributionViaGithubPages(item){
+  const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
+
+  if(!config.url || config.url.includes('여기에_')){
+    throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
+  }
+
+  if(!config.secret || config.secret.includes('여기에_')){
+    throw new Error('GitHub Pages 저장 보안키가 설정되지 않았습니다.');
+  }
+
+  const res=await fetch(config.url,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({
+      secret:config.secret,
+      date:item.date,
+      amount:item.amount,
+      memo:item.memo||''
+    })
+  });
+
+  const data=await res.json().catch(()=>({}));
+
+  if(!data.ok){
+    throw new Error(data.error||'GitHub Pages 방식 저장 실패');
+  }
+
+  return data;
+}
+
+async function savePensionContributionViaNetlify(item){
+  const pinEl=document.getElementById('pensionContribPin');
+  const config=PENSION_CONTRIBUTION_SAVE_CONFIG.netlify;
+
+  const res=await fetch(config.url,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      pin:pinEl?.value||'',
+      action:'upsert',
+      item
+    })
+  });
+
+  const data=await res.json().catch(()=>({}));
+
+  if(!res.ok){
+    throw new Error(data.error||`Netlify 방식 저장 실패 (${res.status})`);
+  }
+
+  return data;
+}
+
+async function savePensionContributionByMode(item){
+  if(pensionContributionSaveMode==='githubPages'){
+    return savePensionContributionViaGithubPages(item);
+  }
+
+  return savePensionContributionViaNetlify(item);
+}
+
 async function savePensionContribution(){
   const out=document.getElementById('pensionContribOutput');
-  const pinEl=document.getElementById('pensionContribPin');
+
   try{
     const item=buildPensionContributionItem();
+
     if(out){
       out.textContent=JSON.stringify(item,null,2);
       out.classList.add('show');
     }
-    showPensionContributionStatus('저장 중... GitHub 파일을 업데이트하고 있어.','ok');
-    const res=await fetch('/.netlify/functions/save-pension-contribution',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({pin:pinEl?.value||'',action:'upsert',item})
-    });
-    const data=await res.json().catch(()=>({}));
-    if(!res.ok) throw new Error(data.error||`저장 실패 (${res.status})`);
-    const action=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
-    showPensionContributionStatus(`${action} 완료. Netlify 재배포가 끝나면 화면에 반영돼. commit: ${data.commitSha||'-'}`,'ok');
+
+    const modeLabel=pensionContributionModeLabel();
+    showPensionContributionStatus(`${modeLabel} 방식으로 저장 중... GitHub 파일을 업데이트하고 있어.`,'ok');
+
+    const data=await savePensionContributionByMode(item);
+
+    if(pensionContributionSaveMode==='githubPages'){
+      showPensionContributionStatus('신규 항목 추가 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있어.','ok');
+    }else{
+      const action=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
+      showPensionContributionStatus(`${action} 완료. Netlify 재배포가 끝나면 화면에 반영돼. commit: ${data.commitSha||'-'}`,'ok');
+    }
+
   }catch(e){
     showPensionContributionStatus(e.message||String(e),'err');
   }
 }
-
 
 async function deleteSelectedPensionContribution(){
   const selected=document.querySelector('input[name="pensionContribDeleteTarget"]:checked');
