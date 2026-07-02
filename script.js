@@ -8,6 +8,7 @@ let PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,ACTIVE_DATE;
   }
   return `${Number(m)}월 ${Number(day)}일 종가 기준`;
 };
+let pensionContributionSaveMode = 'githubPages';
 const PENSION_CONTRIBUTION_SAVE_CONFIG = {
   githubPages: {
     label: 'GitHub Pages',
