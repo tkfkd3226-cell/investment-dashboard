@@ -1,17 +1,15 @@
-{
-  "meta": {
-    "description": "퇴직연금 기업적립금 추가 기록. 2026-06-30까지의 기 반영분은 portfolio.json의 pensionContributionPrincipal에 포함된 것으로 보고, 2026-07 이후 신규 적립분만 기록.",
-    "basePrincipalIncludesThrough": "2026-06-30",
-    "monthlyDefaultAmount": 618060,
-    "annualAdjustmentMonth": 2,
-    "note": "매월 기본 618,060원. 매년 2월 금액 변경 가능."
+[
+  {
+    "date": "2026-07-01",
+    "source": "company",
+    "amount": 618060,
+    "memo": "2026년 7월 기업적립금"
   },
-  "contributions": [
-    {
-      "date": "2026-07-01",
-      "source": "company",
-      "amount": 618060,
-      "memo": "2026년 7월 기업적립금"
-    }
-  ]
-}
+  {
+    "date": "2026-08-24",
+    "amount": 6180601,
+    "memo": "2026년 8월 기업적립금",
+    "source": "google-apps-script",
+    "createdAtKST": "2026-07-03T03:29:02+09:00"
+  }
+]
