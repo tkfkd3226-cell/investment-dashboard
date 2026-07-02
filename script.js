@@ -8,6 +8,17 @@ let PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,ACTIVE_DATE;
   }
   return `${Number(m)}월 ${Number(day)}일 종가 기준`;
 };
+const PENSION_CONTRIBUTION_SAVE_CONFIG = {
+  githubPages: {
+    label: 'GitHub Pages',
+    url: 'https://script.google.com/macros/s/AKfycbwxPSFL8VMQLOuncl5ul_leqdnbfjhJve09ZReyaJvjWj8C-5UINeGhtwBxyklRj9AE/exec',
+    secret: '820421'
+  },
+  netlify: {
+    label: 'Netlify',
+    url: '/.netlify/functions/save-pension-contribution'
+  }
+};
 const allAvailableDates=()=>Array.from(new Set([...(Object.keys(ACCOUNT1_DAILY||{})),...(Object.keys(PRICES||{}).filter(d=>PRICES[d].display!==false))])).sort(byDate);
 const monthLabel=m=>{const [y,mo]=m.split('-');return `${y}년 ${Number(mo)}월`};
 const includeAccount2=d=>d>='2026-05-22';
