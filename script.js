@@ -297,9 +297,9 @@ function renderPensionContributionModal(x){
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList()}</div>
   <div class="contrib-actions"><button type="button" class="contrib-btn danger" onclick="deleteSelectedPensionContribution()">선택 항목 삭제</button></div>
 </div>
-<div class="contrib-pin-box modal-card-box">
+<div class="contrib-pin-box modal-card-box" id="contribPinBox">
   <h3>PIN</h3>
-  <p class="small">저장과 삭제 모두 PIN 입력 필요</p>
+  <p class="small" id="contribPinDesc">GitHub Pages 방식 저장에는 필요 없습니다. 삭제 또는 Netlify 방식 사용 시 입력하세요.</p>
   <div class="contrib-form-grid one">
     <div class="contrib-field full"><label for="pensionContribPin">PIN</label><input id="pensionContribPin" type="password" autocomplete="off" placeholder="Netlify ADMIN_PIN"></div>
   </div>
