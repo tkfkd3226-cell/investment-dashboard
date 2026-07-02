@@ -675,6 +675,7 @@ function openPensionContributionModal(){
   document.body.classList.add('contrib-modal-open');
   modal.classList.add('show');
   modal.setAttribute('aria-hidden','false');
+  setPensionContributionSaveMode(pensionContributionSaveMode);
   setTimeout(()=>document.getElementById('pensionContribDate')?.focus(),0);
 }
 function closePensionContributionModal(){
