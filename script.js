@@ -222,6 +222,35 @@ function renderSecuritiesSection(x){
   return `<section id="securities-section"><div class="section-title"><h2>증권계좌 현황</h2><p>${x.date} 기준</p></div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderCharts(x),'charts-block')}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(),'source-block'):''}</div></section>`;
 }
 
+function pensionContributionModeLabel(){
+  return pensionContributionSaveMode==='githubPages'?'GitHub Pages':'Netlify';
+}
+
+function pensionContributionModeHelp(mode=pensionContributionSaveMode){
+  if(mode==='githubPages'){
+    return 'GitHub Pages 방식: Google Apps Script를 통해 GitHub에 기업적립금을 저장합니다. PIN은 필요 없습니다.';
+  }
+  return 'Netlify 방식: 기존 Netlify Function으로 기업적립금을 저장합니다. 저장/삭제 시 PIN이 필요합니다.';
+}
+
+function setPensionContributionSaveMode(mode){
+  pensionContributionSaveMode = mode==='netlify' ? 'netlify' : 'githubPages';
+
+  document.querySelectorAll('.contrib-save-tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.saveMode===pensionContributionSaveMode);
+  });
+
+  const help=document.getElementById('contribSaveHelp');
+  if(help) help.textContent=pensionContributionModeHelp();
+
+  const pinBox=document.getElementById('contribPinBox');
+  if(pinBox) pinBox.classList.toggle('netlify-mode', pensionContributionSaveMode==='netlify');
+
+  const pinDesc=document.getElementById('contribPinDesc');
+  if(pinDesc) pinDesc.textContent=pensionContributionSaveMode==='netlify'
+    ? 'Netlify 방식 저장과 삭제에 필요합니다.'
+    : 'GitHub Pages 방식 저장에는 필요 없습니다. 삭제 또는 Netlify 방식 사용 시 입력하세요.';
+}
 
 function renderPensionContributionList(){
   const items=pensionContributionItems()
