@@ -272,6 +272,11 @@ function renderPensionContributionModal(x){
   return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle">퇴직연금 기업적립금 추가</h2><p>저장하면 GitHub 데이터 <span class="nowrap">자동 업데이트</span></p></div><button type="button" class="contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div>
 <div class="pension-contrib-tool modal-card-box">
   <h3>기업적립금 등록</h3>
+  <div class="contrib-save-tabs" role="tablist" aria-label="저장 방식 선택">
+    <button type="button" class="contrib-save-tab active" data-save-mode="githubPages" onclick="setPensionContributionSaveMode('githubPages')">GitHub Pages</button>
+    <button type="button" class="contrib-save-tab" data-save-mode="netlify" onclick="setPensionContributionSaveMode('netlify')">Netlify</button>
+  </div>
+  <div class="contrib-save-help" id="contribSaveHelp">${pensionContributionModeHelp('githubPages')}</div>
   <p class="small">자동 저장이 안 될 때는 JSON 생성/복사로 수동 반영 가능</p>
   <div class="contrib-form-grid">
     <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${contribDefaultDate}"></div>
