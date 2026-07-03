@@ -75,6 +75,16 @@ exports.handler = async (event) => {
     doc = { contributions: [] };
   }
 
+  const wasArrayFile = Array.isArray(doc);
+
+  if (wasArrayFile) {
+    doc = { contributions: doc };
+  }
+
+  if (!doc || typeof doc !== 'object') {
+    doc = { contributions: [] };
+  }
+
   if (!Array.isArray(doc.contributions)) {
     doc.contributions = [];
   }
@@ -84,7 +94,6 @@ exports.handler = async (event) => {
 
   if (action === 'delete') {
     const date = String(payload.date || '').trim();
-    const source = String(payload.source || 'company').trim() || 'company';
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return jsonResponse(400, { error: '삭제할 date는 YYYY-MM-DD 형식이어야 해.' });
@@ -92,7 +101,7 @@ exports.handler = async (event) => {
 
     const beforeLength = doc.contributions.length;
     doc.contributions = doc.contributions.filter(
-      (v) => !(v && v.date === date && (v.source || 'company') === source)
+      (v) => !(v && v.date === date)
     );
 
     if (doc.contributions.length === beforeLength) {
@@ -116,13 +125,14 @@ exports.handler = async (event) => {
 
     const normalizedItem = {
       date,
-      source: item.source || 'company',
       amount,
-      memo: memo || `${date.slice(0, 4)}년 ${Number(date.slice(5, 7))}월 기업적립금`
+      memo: memo || `${date.slice(0, 4)}년 ${Number(date.slice(5, 7))}월 기업적립금`,
+      updatedBy: item.updatedBy || 'netlify',
+      updatedAtKST: new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().replace('Z', '+09:00')
     };
 
     const index = doc.contributions.findIndex(
-      (v) => v && v.date === normalizedItem.date && (v.source || 'company') === normalizedItem.source
+      (v) => v && v.date === normalizedItem.date
     );
 
     if (index >= 0) {
