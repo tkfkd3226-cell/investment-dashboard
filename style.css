@@ -150,6 +150,35 @@ section{
   letter-spacing:-.04em;
 }
 
+.section-title h2,
+.chart-head h3{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.section-title-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;
+  height:30px;
+  border-radius:12px;
+  background:linear-gradient(135deg,rgba(20,184,166,.16),rgba(59,130,246,.12));
+  border:1px solid rgba(148,163,184,.24);
+  box-shadow:0 6px 16px rgba(15,23,42,.08);
+  font-size:17px;
+  line-height:1;
+  flex:0 0 auto;
+}
+
+.section-title-icon.chart-icon{
+  width:26px;
+  height:26px;
+  border-radius:10px;
+  font-size:15px;
+}
+
 .section-title p{
   margin:0;
   color:var(--muted);
@@ -1913,15 +1942,6 @@ svg.chart{
   margin-bottom:12px;
   padding:0 2px;
 }
-.capital-source-section .source-title h2{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-.capital-source-section .source-title h2::before{
-  content:'🧾';
-  font-size:20px;
-}
 .source-panel{
   padding:16px;
   border:1px solid rgba(148,163,184,.28);
@@ -2668,4 +2688,25 @@ svg.chart{
   .krx-action-modal{align-items:flex-end;padding:12px}
   .krx-action-card{border-radius:22px;padding:22px}
   .app-toast{bottom:16px;border-radius:16px;text-align:center}
+}
+
+.dark .section-title-icon{
+  background:linear-gradient(135deg,rgba(45,212,191,.18),rgba(96,165,250,.14));
+  border-color:rgba(148,163,184,.22);
+  box-shadow:none;
+}
+
+@media(max-width:640px){
+  .section-title-icon{
+    width:28px;
+    height:28px;
+    border-radius:11px;
+    font-size:16px;
+  }
+  .section-title-icon.chart-icon{
+    width:24px;
+    height:24px;
+    border-radius:9px;
+    font-size:14px;
+  }
 }
