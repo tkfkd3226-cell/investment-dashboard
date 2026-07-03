@@ -436,7 +436,7 @@ function renderPensionContributionModal(x){
   const contribDefaultMemo=defaultPensionContributionMemo(contribDefaultDate);
   const cashDefaultDate=x.date||contribDefaultDate;
   const cashDefaultValue=x.pensionCash?fmt(x.pensionCash):'';
-  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle">퇴직연금 금액 조정</h2><p>기업적립금은 원금/현금성자산을 늘리고, 현금성자산 평가금액은 앱 기준 평가금액으로 보정합니다.</p></div><button type="button" class="contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div>
+  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle"><span class="section-title-icon">💰</span>퇴직연금 금액 조정</h2><p>기업적립금은 원금/현금성자산을 늘리고, 현금성자산 평가금액은 앱 기준 평가금액으로 보정합니다.</p></div><button type="button" class="contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div>
 <div class="pension-contrib-tool modal-card-box">
   <h3>등록</h3>
   <div class="contrib-save-tabs" role="tablist" aria-label="저장 방식 선택">
@@ -469,7 +469,7 @@ function renderPensionContributionModal(x){
   <h3>PIN</h3>
   <p class="small" id="contribPinDesc">GitHub Pages / Netlify 저장과 삭제 모두 PIN 입력 필요</p>
   <div class="contrib-form-grid one">
-    <div class="contrib-field full"><label for="pensionContribPin">PIN</label><input id="pensionContribPin" type="password" autocomplete="off" placeholder="저장/삭제 PIN"></div>
+    <div class="contrib-field full"><input id="pensionContribPin" type="password" autocomplete="off" placeholder="저장/삭제 PIN"></div>
   </div>
 </div>
 <details class="token-guide">
