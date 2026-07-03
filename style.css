@@ -2349,3 +2349,37 @@ svg.chart{
 .contrib-target-option:hover{
   background:rgba(255,255,255,.72);
 }
+
+/* QA 보정: 모바일 작업 메뉴가 상단바/콘텐츠 뒤로 깔리거나 잘리는 문제 수정 */
+@media(max-width:760px){
+  .switcher{
+    overflow:visible !important;
+    z-index:5000 !important;
+  }
+  .date-picker,
+  .date-action-menu-wrap{
+    overflow:visible !important;
+  }
+  .date-action-menu-wrap{
+    position:relative !important;
+    z-index:5100 !important;
+  }
+  .date-action-menu{
+    position:fixed !important;
+    top:58px !important;
+    right:8px !important;
+    width:min(268px, calc(100vw - 16px)) !important;
+    z-index:9999 !important;
+    box-shadow:0 24px 70px rgba(15,23,42,.36) !important;
+  }
+  .dark .date-action-menu{
+    background:rgba(17,24,39,.98) !important;
+    border-color:rgba(148,163,184,.26) !important;
+  }
+  .dark .date-action-menu button{
+    color:#f8fafc !important;
+  }
+  .dark .date-action-menu button:hover{
+    background:#1f2937 !important;
+  }
+}
