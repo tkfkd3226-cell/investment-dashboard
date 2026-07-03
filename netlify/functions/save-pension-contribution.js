@@ -1,5 +1,3 @@
-const path = process.env.PENSION_DATA_PATH || 'data/pension_contributions.json';
-
 const jsonResponse = (statusCode, body) => ({
   statusCode,
   headers: { 'Content-Type': 'application/json; charset=utf-8' },
@@ -8,6 +6,59 @@ const jsonResponse = (statusCode, body) => ({
 
 const decodeBase64 = (content) => Buffer.from(content, 'base64').toString('utf8');
 const encodeBase64 = (content) => Buffer.from(content, 'utf8').toString('base64');
+
+const isValidDate = (date) => /^\d{4}-\d{2}-\d{2}$/.test(String(date || ''));
+
+const getTarget = (payload) => {
+  const target = String(payload.target || payload.item?.target || 'contribution').trim();
+  return target === 'cashSnapshot' ? 'cashSnapshot' : 'contribution';
+};
+
+const getDataPath = (target) => {
+  if (target === 'cashSnapshot') {
+    return process.env.PENSION_CASH_SNAPSHOT_PATH || 'data/pension_cash_snapshots.json';
+  }
+  return process.env.PENSION_DATA_PATH || 'data/pension_contributions.json';
+};
+
+const normalizeArrayData = (doc, keyName) => {
+  if (Array.isArray(doc)) return doc;
+  if (doc && typeof doc === 'object' && Array.isArray(doc[keyName])) return doc[keyName];
+  return [];
+};
+
+const nowKST = () => new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().replace('Z', '+09:00');
+
+const defaultContributionMemo = (date) => `${date.slice(0, 4)}년 ${Number(date.slice(5, 7))}월 기업적립금`;
+
+const dedupeByDate = (items, target) => {
+  const map = new Map();
+
+  for (const item of items || []) {
+    if (!item || !isValidDate(item.date)) continue;
+    const date = String(item.date).trim();
+
+    if (target === 'cashSnapshot') {
+      map.set(date, {
+        date,
+        valuation: Math.round(Number(item.valuation) || 0),
+        memo: String(item.memo || '').trim(),
+        updatedBy: item.updatedBy || 'unknown',
+        updatedAtKST: item.updatedAtKST || ''
+      });
+    } else {
+      map.set(date, {
+        date,
+        amount: Math.round(Number(item.amount) || 0),
+        memo: String(item.memo || '').trim(),
+        updatedBy: item.updatedBy || item.source || 'unknown',
+        updatedAtKST: item.updatedAtKST || item.createdAtKST || ''
+      });
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+};
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -35,14 +86,17 @@ exports.handler = async (event) => {
     return jsonResponse(400, { error: '요청 JSON을 읽지 못했어.' });
   }
 
-  if (ADMIN_PIN && payload.pin !== ADMIN_PIN) {
+  if (ADMIN_PIN && String(payload.pin || '').trim() !== String(ADMIN_PIN).trim()) {
     return jsonResponse(401, { error: 'PIN이 맞지 않아.' });
   }
 
-  const action = payload.action || 'upsert';
-  const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
+  const target = getTarget(payload);
+  const dataPath = getDataPath(target);
+  const targetLabel = target === 'cashSnapshot' ? 'pension cash snapshot' : 'pension contribution';
+  const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${dataPath}`;
 
   let current;
+  let items;
   try {
     const getRes = await fetch(`${apiUrl}?ref=${encodeURIComponent(GITHUB_BRANCH)}`, {
       headers: {
@@ -51,60 +105,42 @@ exports.handler = async (event) => {
         'User-Agent': 'investment-dashboard-netlify-function'
       }
     });
-    const getData = await getRes.json();
-    if (!getRes.ok) {
+
+    const getData = await getRes.json().catch(() => ({}));
+
+    if (getRes.status === 404 && target === 'cashSnapshot') {
+      current = null;
+      items = [];
+    } else if (!getRes.ok) {
       return jsonResponse(getRes.status, { error: getData.message || 'GitHub 파일을 읽지 못했어.' });
+    } else {
+      current = getData;
+      const doc = JSON.parse(decodeBase64(current.content || ''));
+      items = target === 'cashSnapshot'
+        ? normalizeArrayData(doc, 'snapshots')
+        : normalizeArrayData(doc, 'contributions');
     }
-    current = getData;
   } catch (error) {
     return jsonResponse(500, { error: `GitHub 파일 읽기 실패: ${error.message}` });
   }
 
-  let doc;
-  try {
-    doc = JSON.parse(decodeBase64(current.content || ''));
-  } catch (error) {
-    return jsonResponse(500, { error: 'pension_contributions.json 파싱 실패.' });
-  }
+  items = dedupeByDate(items, target);
 
-  if (Array.isArray(doc)) {
-    doc = { contributions: doc };
-  }
-
-  if (!doc || typeof doc !== 'object') {
-    doc = { contributions: [] };
-  }
-
-  const wasArrayFile = Array.isArray(doc);
-
-  if (wasArrayFile) {
-    doc = { contributions: doc };
-  }
-
-  if (!doc || typeof doc !== 'object') {
-    doc = { contributions: [] };
-  }
-
-  if (!Array.isArray(doc.contributions)) {
-    doc.contributions = [];
-  }
-
+  const action = payload.action || 'upsert';
   let resultAction;
   let commitMessageDate;
 
   if (action === 'delete') {
     const date = String(payload.date || '').trim();
 
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    if (!isValidDate(date)) {
       return jsonResponse(400, { error: '삭제할 date는 YYYY-MM-DD 형식이어야 해.' });
     }
 
-    const beforeLength = doc.contributions.length;
-    doc.contributions = doc.contributions.filter(
-      (v) => !(v && v.date === date)
-    );
+    const beforeLength = items.length;
+    items = items.filter((v) => !(v && v.date === date));
 
-    if (doc.contributions.length === beforeLength) {
+    if (items.length === beforeLength) {
       return jsonResponse(404, { error: '삭제할 항목을 찾지 못했어.' });
     }
 
@@ -112,46 +148,74 @@ exports.handler = async (event) => {
     commitMessageDate = date;
   } else {
     const item = payload.item || {};
-    const date = String(item.date || '').trim();
-    const amount = Number(item.amount);
-    const memo = String(item.memo || '').trim();
+    const date = String(item.date || payload.date || '').trim();
+    const memo = String(item.memo || payload.memo || '').trim();
 
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    if (!isValidDate(date)) {
       return jsonResponse(400, { error: 'date는 YYYY-MM-DD 형식이어야 해.' });
     }
-    if (!Number.isFinite(amount) || amount <= 0) {
-      return jsonResponse(400, { error: 'amount는 0보다 큰 숫자여야 해. 삭제는 등록 내역에서 선택 항목 삭제를 사용해줘.' });
+
+    let normalizedItem;
+
+    if (target === 'cashSnapshot') {
+      const valuation = Number(String(item.valuation ?? payload.valuation ?? item.amount ?? payload.amount ?? '').replace(/,/g, ''));
+
+      if (!Number.isFinite(valuation) || valuation <= 0) {
+        return jsonResponse(400, { error: 'valuation은 0보다 큰 숫자여야 해.' });
+      }
+
+      normalizedItem = {
+        date,
+        valuation: Math.round(valuation),
+        memo: memo || '현금성자산 평가금액 앱 확인',
+        updatedBy: item.updatedBy || payload.updatedBy || 'netlify',
+        updatedAtKST: nowKST()
+      };
+    } else {
+      const amount = Number(String(item.amount ?? payload.amount ?? '').replace(/,/g, ''));
+
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return jsonResponse(400, { error: 'amount는 0보다 큰 숫자여야 해. 삭제는 등록 내역에서 선택 항목 삭제를 사용해줘.' });
+      }
+
+      normalizedItem = {
+        date,
+        amount: Math.round(amount),
+        memo: memo || defaultContributionMemo(date),
+        updatedBy: item.updatedBy || payload.updatedBy || 'netlify',
+        updatedAtKST: nowKST()
+      };
     }
 
-    const normalizedItem = {
-      date,
-      amount,
-      memo: memo || `${date.slice(0, 4)}년 ${Number(date.slice(5, 7))}월 기업적립금`,
-      updatedBy: item.updatedBy || 'netlify',
-      updatedAtKST: new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().replace('Z', '+09:00')
-    };
-
-    const index = doc.contributions.findIndex(
-      (v) => v && v.date === normalizedItem.date
-    );
+    const index = items.findIndex((v) => v && v.date === normalizedItem.date);
 
     if (index >= 0) {
-      doc.contributions[index] = { ...doc.contributions[index], ...normalizedItem };
+      items[index] = normalizedItem;
       resultAction = 'updated';
     } else {
-      doc.contributions.push(normalizedItem);
+      items.push(normalizedItem);
       resultAction = 'created';
     }
 
     commitMessageDate = normalizedItem.date;
   }
 
-  doc.contributions.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  items.sort((a, b) => String(a.date).localeCompare(String(b.date)));
 
-  const content = `${JSON.stringify(doc.contributions, null, 2)}\n`;
+  const content = `${JSON.stringify(items, null, 2)}\n`;
 
   let putData;
   try {
+    const body = {
+      message: `${resultAction === 'deleted' ? 'Delete' : resultAction === 'updated' ? 'Update' : 'Add'} ${targetLabel} ${commitMessageDate}`,
+      content: encodeBase64(content),
+      branch: GITHUB_BRANCH
+    };
+
+    if (current && current.sha) {
+      body.sha = current.sha;
+    }
+
     const putRes = await fetch(apiUrl, {
       method: 'PUT',
       headers: {
@@ -160,16 +224,13 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json',
         'User-Agent': 'investment-dashboard-netlify-function'
       },
-      body: JSON.stringify({
-        message: `${resultAction === 'deleted' ? 'Delete' : 'Update'} pension contribution ${commitMessageDate}`,
-        content: encodeBase64(content),
-        sha: current.sha,
-        branch: GITHUB_BRANCH
-      })
+      body: JSON.stringify(body)
     });
-    putData = await putRes.json();
+
+    putData = await putRes.json().catch(() => ({}));
+
     if (!putRes.ok) {
-      return jsonResponse(putRes.status, { error: putData.message || 'GitHub 파일 저장 실패.' });
+      return jsonResponse(putRes.status, { error: putData.message || 'GitHub 파일 저장 실패' });
     }
   } catch (error) {
     return jsonResponse(500, { error: `GitHub 파일 저장 실패: ${error.message}` });
@@ -177,8 +238,9 @@ exports.handler = async (event) => {
 
   return jsonResponse(200, {
     ok: true,
+    target,
     action: resultAction,
-    path,
+    path: dataPath,
     commitSha: putData?.commit?.sha || null
   });
 };
