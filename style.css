@@ -4221,3 +4221,193 @@ svg.chart{
     padding:5px 8px !important;
   }
 }
+
+
+/* Subtle visual effects polish */
+.card,
+.note,
+.chart-card,
+.pension-insight-card,
+.pension-viz-card,
+.pension-risk-card,
+.mini-card{
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease,
+    background-color .18s ease;
+}
+
+@media(hover:hover) and (pointer:fine){
+  .card:hover,
+  .note:hover,
+  .chart-card:hover,
+  .pension-insight-card:hover,
+  .pension-viz-card:hover,
+  .pension-risk-card:hover,
+  .mini-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 14px 34px rgba(15,23,42,.12);
+    border-color:rgba(59,130,246,.28);
+  }
+
+  .dark .card:hover,
+  .dark .note:hover,
+  .dark .chart-card:hover,
+  .dark .pension-insight-card:hover,
+  .dark .pension-viz-card:hover,
+  .dark .pension-risk-card:hover,
+  .dark .mini-card:hover{
+    box-shadow:0 16px 38px rgba(0,0,0,.34);
+    border-color:rgba(96,165,250,.34);
+  }
+}
+
+.date-tool-btn,
+.pill,
+button,
+.btn,
+.contrib-save-btn,
+.contrib-delete-btn,
+.contrib-close,
+.krx-action-primary,
+.krx-action-cancel,
+.pension-action-pin-primary,
+.pension-action-pin-cancel{
+  transition:
+    transform .16s ease,
+    background-color .16s ease,
+    box-shadow .16s ease,
+    border-color .16s ease,
+    opacity .16s ease;
+}
+
+@media(hover:hover) and (pointer:fine){
+  .date-tool-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 10px 24px rgba(0,0,0,.22);
+  }
+
+  .pill:hover{
+    transform:translateY(-1px);
+    background:rgba(255,255,255,.18);
+  }
+
+  button:hover,
+  .btn:hover,
+  .contrib-save-btn:hover,
+  .contrib-delete-btn:hover,
+  .krx-action-primary:hover,
+  .pension-action-pin-primary:hover{
+    transform:translateY(-1px);
+  }
+}
+
+.date-tool-btn:active,
+button:active,
+.btn:active,
+.contrib-save-btn:active,
+.contrib-delete-btn:active,
+.krx-action-primary:active,
+.krx-action-cancel:active,
+.pension-action-pin-primary:active,
+.pension-action-pin-cancel:active{
+  transform:translateY(1px) scale(.98);
+}
+
+.contrib-modal.show .contrib-modal-card,
+.krx-action-modal.show .krx-action-card,
+.pension-action-pin-modal.show .pension-action-pin-card{
+  animation:modalPop .18s ease-out both;
+}
+
+@keyframes modalPop{
+  from{
+    opacity:0;
+    transform:translateY(8px) scale(.98);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+
+.chart-card{
+  position:relative;
+  overflow:hidden;
+}
+
+.chart-card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  width:100%;
+  height:3px;
+  background:linear-gradient(90deg,#60a5fa,#a78bfa,#34d399);
+  opacity:.68;
+  pointer-events:none;
+}
+
+.value,
+.m-value{
+  letter-spacing:-.035em;
+  text-rendering:optimizeLegibility;
+}
+
+.card.dark .value,
+.dark .m-value{
+  text-shadow:0 1px 12px rgba(255,255,255,.08);
+}
+
+@media(max-width:760px){
+  .card,
+  .note,
+  .chart-card,
+  .pension-insight-card,
+  .pension-viz-card,
+  .pension-risk-card,
+  .mini-card{
+    transition:box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
+  }
+
+  .date-tool-btn:active,
+  button:active,
+  .btn:active{
+    transform:scale(.985);
+  }
+
+  .chart-card::before{
+    height:2px;
+    opacity:.55;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .card,
+  .note,
+  .chart-card,
+  .pension-insight-card,
+  .pension-viz-card,
+  .pension-risk-card,
+  .mini-card,
+  .date-tool-btn,
+  .pill,
+  button,
+  .btn,
+  .contrib-save-btn,
+  .contrib-delete-btn,
+  .contrib-close,
+  .krx-action-primary,
+  .krx-action-cancel,
+  .pension-action-pin-primary,
+  .pension-action-pin-cancel{
+    transition:none !important;
+  }
+
+  .contrib-modal.show .contrib-modal-card,
+  .krx-action-modal.show .krx-action-card,
+  .pension-action-pin-modal.show .pension-action-pin-card{
+    animation:none !important;
+  }
+}
