@@ -25,16 +25,15 @@ const includeAccount2=d=>d>='2026-05-22';
 const includeToss=d=>d>='2026-03-23';
 const isLedgerCheckDate=d=>d>='2026-06-18';
 const rawPensionContributionItems=()=>Array.isArray(PENSION_CONTRIBUTIONS)?PENSION_CONTRIBUTIONS:(PENSION_CONTRIBUTIONS?.contributions||[]);
-const pensionContributionItems=()=>Array.from(
-  rawPensionContributionItems()
-    .filter(v=>v&&v.date)
-    .reduce((map,v)=>{
-      const date=String(v.date);
-      map.set(date,{...v,date,amount:Number(v.amount)||0});
-      return map;
-    },new Map())
-    .values()
-).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+const pensionContributionItems=()=>rawPensionContributionItems()
+  .filter(v=>v&&v.date)
+  .map((v,i)=>({
+    ...v,
+    id:v.id||`legacy-contrib-${String(v.date)}-${i}`,
+    date:String(v.date),
+    amount:Number(v.amount)||0
+  }))
+  .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.id||'').localeCompare(String(b.id||'')));
 const pensionContributionSum=d=>pensionContributionItems().filter(v=>v.date&&v.date<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
 const pensionContributionSumAfter=(fromDate,toDate)=>pensionContributionItems().filter(v=>v.date&&v.date>fromDate&&v.date<=toDate).reduce((a,v)=>a+(Number(v.amount)||0),0);
 const latestPensionContribution=d=>pensionContributionItems()
@@ -330,16 +329,21 @@ function renderPensionContributionList(){
   const contribItems=pensionContributionItems()
     .slice()
     .filter(v=>v&&v.date)
-    .sort((a,b)=>String(b.date).localeCompare(String(a.date)))
-    .map(v=>({target:'contribution',date:v.date,amount:Number(v.amount)||0,memo:v.memo||'',label:'기업적립금'}));
+    .sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.id||'').localeCompare(String(a.id||'')))
+    .map(v=>({target:'contribution',key:v.id,date:v.date,amount:Number(v.amount)||0,memo:v.memo||'',label:'기업적립금'}));
+
   const cashItems=pensionCashSnapshotItems()
     .slice()
     .filter(v=>v&&v.date)
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)))
-    .map(v=>({target:'cashSnapshot',date:v.date,amount:Number(v.valuation)||0,memo:v.memo||'',label:'현금성 평가금액'}));
-  const items=[...contribItems,...cashItems].sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(a.label).localeCompare(String(b.label)));
+    .map(v=>({target:'cashSnapshot',key:v.date,date:v.date,amount:Number(v.valuation)||0,memo:v.memo||'',label:'현금성 평가금액'}));
+
+  const items=[...contribItems,...cashItems]
+    .sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(a.label).localeCompare(String(b.label))||String(b.key||'').localeCompare(String(a.key||'')));
+
   if(!items.length) return `<p class="small">등록된 기업적립금/현금성자산 평가금액이 없습니다.</p>`;
-  return items.map(v=>`<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.target}|${v.date}"><span class="contrib-existing-main"><span class="contrib-existing-title">${v.date} / ${v.label} / ${won(v.amount)}</span><span class="contrib-existing-memo">${v.memo}</span></span></label>`).join('');
+
+  return items.map(v=>`<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.target}|${v.key}"><span class="contrib-existing-main"><span class="contrib-existing-title">${v.date} / ${v.label} / ${won(v.amount)}</span><span class="contrib-existing-memo">${v.memo}</span></span></label>`).join('');
 }
 
 function renderPensionContributionModal(x){
@@ -945,13 +949,14 @@ async function savePensionContribution(){
   }
 }
 
-async function deletePensionContributionViaGithubPages(target,date){
+async function deletePensionContributionViaGithubPages(target,key){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
 
   if(!config.url || config.url.includes('여기에_')){
     throw new Error('GitHub Pages 삭제 URL이 설정되지 않았습니다.');
   }
 
+  const isCash=target==='cashSnapshot';
 
   const res=await fetch(config.url,{
     method:'POST',
@@ -960,7 +965,8 @@ async function deletePensionContributionViaGithubPages(target,date){
       pin:document.getElementById('pensionContribPin')?.value||'',
       target:target||'contribution',
       action:'delete',
-      date
+      id:isCash?'':key,
+      date:isCash?key:''
     })
   });
 
@@ -973,8 +979,9 @@ async function deletePensionContributionViaGithubPages(target,date){
   return data;
 }
 
-async function deletePensionContributionViaNetlify(target,date){
+async function deletePensionContributionViaNetlify(target,key){
   const pinEl=document.getElementById('pensionContribPin');
+  const isCash=target==='cashSnapshot';
 
   const res=await fetch('/.netlify/functions/save-pension-contribution',{
     method:'POST',
@@ -983,7 +990,8 @@ async function deletePensionContributionViaNetlify(target,date){
       pin:pinEl?.value||'',
       target:target||'contribution',
       action:'delete',
-      date
+      id:isCash?'':key,
+      date:isCash?key:''
     })
   });
 
@@ -1004,9 +1012,10 @@ async function deleteSelectedPensionContribution(){
     return;
   }
 
-  const [target,date]=String(selected.value||'').split('|');
+  const [target,key]=String(selected.value||'').split('|');
   const isCash=target==='cashSnapshot';
-  const item=isCash?pensionCashSnapshotItems().find(v=>v.date===date):pensionContributionItems().find(v=>v.date===date);
+  const item=isCash?pensionCashSnapshotItems().find(v=>v.date===key):pensionContributionItems().find(v=>v.id===key);
+  const date=item?.date||key;
   const amount=item?won(Number(isCash?item.valuation:item.amount)||0):'선택 항목';
   const targetText=pensionContributionTargetLabel(isCash?'cashSnapshot':'contribution');
   const modeLabel=pensionContributionModeLabel();
@@ -1018,8 +1027,8 @@ ${modeLabel} 방식으로 GitHub 파일에서 삭제됩니다.`)) return;
     showPensionContributionStatus(`${modeLabel} 방식으로 삭제 중... GitHub 파일을 업데이트하고 있습니다.`,'ok');
 
     const data=pensionContributionSaveMode==='githubPages'
-      ? await deletePensionContributionViaGithubPages(target,date)
-      : await deletePensionContributionViaNetlify(target,date);
+    ? await deletePensionContributionViaGithubPages(target,key)
+    : await deletePensionContributionViaNetlify(target,key);
 
     if(pensionContributionSaveMode==='githubPages'){
       showPensionContributionStatus('선택 항목 삭제 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');

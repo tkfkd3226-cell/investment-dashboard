@@ -27,18 +27,21 @@ const normalizeArrayData = (doc, keyName) => {
   return [];
 };
 
+const crypto = require('crypto');
+
 const nowKST = () => new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().replace('Z', '+09:00');
+const newContributionId = (date) => `contrib-${date}-${crypto.randomUUID()}`;
 
 const defaultContributionMemo = (date) => `${date.slice(0, 4)}년 ${Number(date.slice(5, 7))}월 기업적립금`;
 
-const dedupeByDate = (items, target) => {
-  const map = new Map();
+const normalizeItemsForTarget = (items, target) => {
+  if (target === 'cashSnapshot') {
+    const map = new Map();
 
-  for (const item of items || []) {
-    if (!item || !isValidDate(item.date)) continue;
-    const date = String(item.date).trim();
+    for (const item of items || []) {
+      if (!item || !isValidDate(item.date)) continue;
+      const date = String(item.date).trim();
 
-    if (target === 'cashSnapshot') {
       map.set(date, {
         date,
         valuation: Math.round(Number(item.valuation) || 0),
@@ -46,18 +49,25 @@ const dedupeByDate = (items, target) => {
         updatedBy: item.updatedBy || 'unknown',
         updatedAtKST: item.updatedAtKST || ''
       });
-    } else {
-      map.set(date, {
+    }
+
+    return Array.from(map.values()).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  }
+
+  return (items || [])
+    .filter((item) => item && isValidDate(item.date))
+    .map((item, index) => {
+      const date = String(item.date).trim();
+      return {
+        id: item.id || `legacy-contrib-${date}-${index}`,
         date,
         amount: Math.round(Number(item.amount) || 0),
         memo: String(item.memo || '').trim(),
         updatedBy: item.updatedBy || item.source || 'unknown',
         updatedAtKST: item.updatedAtKST || item.createdAtKST || ''
-      });
-    }
-  }
-
-  return Array.from(map.values()).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+      };
+    })
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)) || String(a.id).localeCompare(String(b.id)));
 };
 
 exports.handler = async (event) => {
@@ -124,29 +134,42 @@ exports.handler = async (event) => {
     return jsonResponse(500, { error: `GitHub 파일 읽기 실패: ${error.message}` });
   }
 
-  items = dedupeByDate(items, target);
+  items = normalizeItemsForTarget(items, target);
 
   const action = payload.action || 'upsert';
   let resultAction;
   let commitMessageDate;
 
   if (action === 'delete') {
+  const beforeLength = items.length;
+
+  if (target === 'cashSnapshot') {
     const date = String(payload.date || '').trim();
 
     if (!isValidDate(date)) {
       return jsonResponse(400, { error: '삭제할 date는 YYYY-MM-DD 형식이어야 해.' });
     }
 
-    const beforeLength = items.length;
     items = items.filter((v) => !(v && v.date === date));
-
-    if (items.length === beforeLength) {
-      return jsonResponse(404, { error: '삭제할 항목을 찾지 못했어.' });
-    }
-
-    resultAction = 'deleted';
     commitMessageDate = date;
   } else {
+    const id = String(payload.id || '').trim();
+
+    if (!id) {
+      return jsonResponse(400, { error: '삭제할 기업적립금 id가 필요해.' });
+    }
+
+    const targetItem = items.find((v) => v && v.id === id);
+    items = items.filter((v) => !(v && v.id === id));
+    commitMessageDate = targetItem?.date || id;
+  }
+
+  if (items.length === beforeLength) {
+    return jsonResponse(404, { error: '삭제할 항목을 찾지 못했어.' });
+  }
+
+  resultAction = 'deleted';
+} else {
     const item = payload.item || {};
     const date = String(item.date || payload.date || '').trim();
     const memo = String(item.memo || payload.memo || '').trim();
@@ -178,7 +201,10 @@ exports.handler = async (event) => {
         return jsonResponse(400, { error: 'amount는 0보다 큰 숫자여야 해. 삭제는 등록 내역에서 선택 항목 삭제를 사용해줘.' });
       }
 
+      const id = String(item.id || payload.id || '').trim();
+
       normalizedItem = {
+        id: id || newContributionId(date),
         date,
         amount: Math.round(amount),
         memo: memo || defaultContributionMemo(date),
@@ -187,20 +213,32 @@ exports.handler = async (event) => {
       };
     }
 
-    const index = items.findIndex((v) => v && v.date === normalizedItem.date);
+    if (target === 'cashSnapshot') {
+      const index = items.findIndex((v) => v && v.date === normalizedItem.date);
 
-    if (index >= 0) {
-      items[index] = normalizedItem;
-      resultAction = 'updated';
+      if (index >= 0) {
+        items[index] = normalizedItem;
+        resultAction = 'updated';
+      } else {
+        items.push(normalizedItem);
+        resultAction = 'created';
+      }
     } else {
-      items.push(normalizedItem);
-      resultAction = 'created';
+      const index = normalizedItem.id ? items.findIndex((v) => v && v.id === normalizedItem.id) : -1;
+
+      if (index >= 0) {
+        items[index] = normalizedItem;
+        resultAction = 'updated';
+      } else {
+        items.push(normalizedItem);
+        resultAction = 'created';
+      }
     }
 
     commitMessageDate = normalizedItem.date;
   }
 
-  items.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  items.sort((a, b) => String(a.date).localeCompare(String(b.date)) || String(a.id || '').localeCompare(String(b.id || '')));
 
   const content = `${JSON.stringify(items, null, 2)}\n`;
 
