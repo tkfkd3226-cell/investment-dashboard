@@ -229,7 +229,7 @@ function pensionContributionModeLabel(){
 
 function pensionContributionModeHelp(mode=pensionContributionSaveMode){
   if(mode==='githubPages'){
-    return 'GitHub Pages 방식: Google Apps Script를 통해 GitHub에 기업적립금을 저장합니다. PIN은 필요 없습니다.';
+    return 'GitHub Pages 방식: Google Apps Script를 통해 GitHub에 기업적립금을 저장합니다. 저장/삭제 시 PIN이 필요합니다.';
   }
   return 'Netlify 방식: 기존 Netlify Function으로 기업적립금을 저장합니다. 저장/삭제 시 PIN이 필요합니다.';
 }
@@ -300,7 +300,7 @@ function renderPensionContributionModal(x){
 </div>
 <div class="contrib-pin-box modal-card-box" id="contribPinBox">
   <h3>PIN</h3>
-  <p class="small" id="contribPinDesc">GitHub Pages 방식 저장에는 필요 없습니다. 삭제 또는 Netlify 방식 사용 시 입력하세요.</p>
+  <p class="small" id="contribPinDesc">GitHub Pages / Netlify 저장과 삭제 모두 PIN 입력 필요</p>
   <div class="contrib-form-grid one">
     <div class="contrib-field full"><label for="pensionContribPin">PIN</label><input id="pensionContribPin" type="password" autocomplete="off" placeholder="Netlify ADMIN_PIN"></div>
   </div>
@@ -760,7 +760,8 @@ async function savePensionContributionViaGithubPages(item){
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({
-      secret:config.secret,
+      pin:document.getElementById('pensionContribPin')?.value||'',
+      action:'upsert',
       date:item.date,
       amount:item.amount,
       memo:item.memo||''
@@ -850,7 +851,7 @@ async function deletePensionContributionViaGithubPages(date, source){
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({
-      secret:config.secret,
+      pin:document.getElementById('pensionContribPin')?.value||'',
       action:'delete',
       date,
       source
