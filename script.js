@@ -449,16 +449,25 @@ function renderPension(x){
 function pensionRow(r,total){const w=total?r.evalAmount/total*100:0;return `<tr><td><strong>${r.name}</strong></td><td class="num">${fmt(r.qty)}</td><td class="num">${fmt(r.cost/r.qty)}</td><td class="num">${fmt(r.cost)}</td><td class="num">${fmt(r.evalAmount)}</td><td class="num ${cls(r.profit)}">${fmt(r.profit)}</td><td class="num ${cls(r.returnRate)}">${pct(r.returnRate)}</td><td><div class="bar-box"><div class="bar-fill ${r.barClass}" style="width:${Math.max(0,Math.min(100,w)).toFixed(1)}%"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}
 function pensionCashRow(cash,total,cost=39408){const w=total?cash/total*100:0,profit=cash-cost,ret=cost?profit/cost*100:0;return `<tr><td><strong>현금성자산</strong></td><td class="num">1</td><td class="num">${fmt(cost)}</td><td class="num">${fmt(cost)}</td><td class="num">${fmt(cash)}</td><td class="num ${cls(profit)}">${fmt(profit)}</td><td class="num ${cls(ret)}">${pct(ret)}</td><td><div class="bar-box"><div class="bar-fill bar-gray" style="width:${w.toFixed(1)}%"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}
 
-function pensionVizColor(i){const colors=['#2563eb','#0ea5e9','#8b5cf6','#f59e0b','#10b981','#94a3b8'];return colors[i%colors.length];}
+function pensionBarColorFromClass(barClass=''){
+  const map={
+    'bar-blue':'#2563eb',
+    'bar-green':'#16a34a',
+    'bar-amber':'#d97706',
+    'bar-gray':'#94a3b8',
+    'bar-purple':'#8b5cf6'
+  };
+  return map[String(barClass||'').trim()]||'#2563eb';
+}
 function isSafePensionAsset(name=''){return /(채권|현금|예금|MMF|RP|CMA|단기채)/.test(String(name));}
 function getPensionDayContributionItems(x){
   if(x.pensionPrevEval==null)return [];
   const cashDelta=Number(x.pensionCash||0)-Number(x.prevPensionCash||0);
-  const items=[...x.pensionRows.map(r=>({name:r.name,value:Number(r.dayChange)||0})),{name:'현금성자산',value:cashDelta}]
+  const items=[...x.pensionRows.map(r=>({name:r.name,value:Number(r.dayChange)||0,color:pensionBarColorFromClass(r.barClass)})),{name:'현금성자산',value:cashDelta,color:pensionBarColorFromClass('bar-gray')}]
     .filter(v=>v.value>0)
     .sort((a,b)=>b.value-a.value);
   const total=items.reduce((a,v)=>a+v.value,0);
-  return items.map((v,i)=>({...v,share:total?v.value/total*100:0,color:pensionVizColor(i)}));
+  return items.map(v=>({...v,share:total?v.value/total*100:0}));
 }
 function getPensionRiskGauge(x){
   const riskEval=x.pensionRows.filter(r=>!isSafePensionAsset(r.name)).reduce((a,r)=>a+Number(r.evalAmount||0),0);
