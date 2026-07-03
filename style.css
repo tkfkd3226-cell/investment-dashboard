@@ -3560,3 +3560,38 @@ svg.chart{
     font-size:19px !important;
   }
 }
+
+
+/* Targeted chart title size reduction only */
+#pension-chart-cum .chart-head h3,
+#pension-chart-symbol .chart-head h3,
+#pension-chart-alloc .chart-head h3,
+#chart-cum .chart-head h3,
+#chart-symbol .chart-head h3,
+#chart-alloc .chart-head h3{
+  font-size:16px !important;
+  line-height:1.25 !important;
+}
+
+#pension-chart-cum .chart-title-sub,
+#pension-chart-symbol .chart-title-sub{
+  font-size:12px !important;
+  font-weight:700 !important;
+}
+
+@media(max-width:760px){
+  #pension-chart-cum .chart-head h3,
+  #pension-chart-symbol .chart-head h3,
+  #pension-chart-alloc .chart-head h3,
+  #chart-cum .chart-head h3,
+  #chart-symbol .chart-head h3,
+  #chart-alloc .chart-head h3{
+    font-size:15px !important;
+    line-height:1.22 !important;
+  }
+
+  #pension-chart-cum .chart-title-sub,
+  #pension-chart-symbol .chart-title-sub{
+    font-size:11px !important;
+  }
+}
