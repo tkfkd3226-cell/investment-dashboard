@@ -391,7 +391,7 @@ function renderPensionContributionModal(x){
     <ol>
       <li>GitHub에서 새 Fine-grained token 생성</li>
       <li>대시보드 repo만 선택</li>
-      <li>권한은 <code>Contents: Read and write</code>, <code>Actions: Read and write</code>, <code>Metadata: Read-only</code></li>
+      <li>권한은 test <code>Contents: Read and write</code>, <code>Actions: Read and write</code>, <code>Metadata: Read-only</code></li>
       <li>Google Apps Script → 프로젝트 설정 → Script Properties</li>
       <li><code>GITHUB_TOKEN</code> 값을 새 토큰으로 교체</li>
       <li>Apps Script 웹 앱을 새 버전으로 배포</li>
