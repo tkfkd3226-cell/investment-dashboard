@@ -1,4 +1,4 @@
-let PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,ACTIVE_DATE;const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원',pct=n=>(Number(n)||0).toFixed(2)+'%',signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s,cls=n=>n<0?'negative':(n>0?'positive':''),byDate=(a,b)=>a.localeCompare(b),shortDate=d=>{const [y,m,day]=d.split('-');return `${Number(m)}/${Number(day)}`},koreanDateLabel=d=>{
+let PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS,ACTIVE_DATE;const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원',pct=n=>(Number(n)||0).toFixed(2)+'%',signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s,cls=n=>n<0?'negative':(n>0?'positive':''),byDate=(a,b)=>a.localeCompare(b),shortDate=d=>{const [y,m,day]=d.split('-');return `${Number(m)}/${Number(day)}`},koreanDateLabel=d=>{
   const [y,m,day]=d.split('-');
   const snap=PRICES?.[d]||{};
   const status=snap.marketStatus||'close';
@@ -36,9 +36,31 @@ const pensionContributionItems=()=>Array.from(
     .values()
 ).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
 const pensionContributionSum=d=>pensionContributionItems().filter(v=>v.date&&v.date<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
+const pensionContributionSumAfter=(fromDate,toDate)=>pensionContributionItems().filter(v=>v.date&&v.date>fromDate&&v.date<=toDate).reduce((a,v)=>a+(Number(v.amount)||0),0);
 const latestPensionContribution=d=>pensionContributionItems()
   .filter(v=>v.date&&v.date<=d&&Number(v.amount))
+  .sort((a,b)=>String(a.date).localeCompare(String(b.date)))
   .at(-1)||null;
+const rawPensionCashSnapshotItems=()=>Array.isArray(PENSION_CASH_SNAPSHOTS)?PENSION_CASH_SNAPSHOTS:(PENSION_CASH_SNAPSHOTS?.snapshots||[]);
+const pensionCashSnapshotItems=()=>Array.from(
+  rawPensionCashSnapshotItems()
+    .filter(v=>v&&v.date)
+    .reduce((map,v)=>{
+      const date=String(v.date);
+      map.set(date,{...v,date,valuation:Number(v.valuation)||0});
+      return map;
+    },new Map())
+    .values()
+).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+const latestPensionCashSnapshot=d=>pensionCashSnapshotItems()
+  .filter(v=>v.date&&v.date<=d&&Number(v.valuation))
+  .sort((a,b)=>String(a.date).localeCompare(String(b.date)))
+  .at(-1)||null;
+const pensionCashValuation=(d,baseCash=0)=>{
+  const snap=latestPensionCashSnapshot(d);
+  if(!snap) return Number(baseCash||0)+pensionContributionSum(d);
+  return Number(snap.valuation||0)+pensionContributionSumAfter(snap.date,d);
+};
 const pensionContributionSubText=x=>{
   const latest=latestPensionContribution(x.date);
   return latest?`${latest.date} 기업적립금 ${won(Number(latest.amount)||0)} 반영 기준`:'6/30까지 기 반영분 기준';
@@ -118,7 +140,7 @@ function calc(date){
   const returnRate=totalPrincipal?totalProfit/totalPrincipal*100:0;
   const actualHolding=isLedgerCheckDate(date)?totalResult-c.livingSpent:null;
   const pensionRows=hasPension?p.pension.map(pos=>{const price=getPrice(s,'pension',pos.ticker),prevPrice=prev?getPrice(prev,'pension',pos.ticker):null,evalAmount=(price||0)*pos.qty,profit=evalAmount-pos.cost,prevEval=prevPrice==null?null:prevPrice*pos.qty;return {...pos,price,prevPrice,evalAmount,profit,returnRate:pos.cost?profit/pos.cost*100:0,dayChange:prevEval==null?null:evalAmount-prevEval,prevEval}}):[];
-  const basePensionCash=hasPension?Number(s?.pension?.cash||0):0,basePrevPensionCash=Number(prev?.pension?.cash||0),pensionCash=hasPension?basePensionCash+extraPensionContrib:0,prevPensionCash=basePrevPensionCash+prevExtraPensionContrib,pensionEval=hasPension?pensionRows.reduce((a,r)=>a+r.evalAmount,0)+pensionCash:0,pensionPrevEval=hasPension&&prev?pensionRows.reduce((a,r)=>a+(r.prevEval||0),0)+prevPensionCash:null,pensionProfit=hasPension?pensionEval-pensionPrincipal:0,pensionReturn=hasPension&&pensionPrincipal?pensionProfit/pensionPrincipal*100:0;
+  const basePensionCash=hasPension?Number(s?.pension?.cash||0):0,basePrevPensionCash=Number(prev?.pension?.cash||0),pensionCash=hasPension?pensionCashValuation(date,basePensionCash):0,prevPensionCash=prev?pensionCashValuation(pk,basePrevPensionCash):0,pensionEval=hasPension?pensionRows.reduce((a,r)=>a+r.evalAmount,0)+pensionCash:0,pensionPrevEval=hasPension&&prev?pensionRows.reduce((a,r)=>a+(r.prevEval||0),0)+prevPensionCash:null,pensionProfit=hasPension?pensionEval-pensionPrincipal:0,pensionReturn=hasPension&&pensionPrincipal?pensionProfit/pensionPrincipal*100:0;
   const combinedPrincipal=hasPension?totalPrincipal+pensionPrincipal:totalPrincipal,combinedResult=hasPension?totalResult+pensionEval:totalResult,combinedProfit=hasPension?totalProfit+pensionProfit:totalProfit,combinedReturn=combinedPrincipal?combinedProfit/combinedPrincipal*100:0;
   return {date,s,prevKey:pk,prev,daily,hasDaily:!!daily,account2Included,tossIncluded,hasPension,holdings,securitiesCash,rawHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,account2Profit,account2Principal,account2RealizedAmount,account2Remainder,tossProfit,tossRealizedAmount,tossRemainder,totalPrincipal,totalProfit,totalResult,returnRate,actualHolding,pensionRows,pensionCash,prevPensionCash,pensionEval,pensionPrevEval,pensionProfit,pensionReturn,extraPensionContrib,prevExtraPensionContrib,basePensionCash,basePrevPensionCash,pensionPrincipal,combinedPrincipal,combinedResult,combinedProfit,combinedReturn,etfEval,stockEval,allocTotal}
 }
@@ -170,7 +192,7 @@ function allocHistory(d){
 }
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
-  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div><div class="date-picker-action"><button type="button" class="date-tool-btn" title="퇴직연금 기업적립금 추가" aria-label="퇴직연금 기업적립금 추가" onclick="openPensionContributionModal()"><span class="date-tool-text">퇴직연금 기업적립금 추가</span><span class="date-tool-icon">⚙</span></button></div></div>`;
+  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div><div class="date-picker-action"><button type="button" class="date-tool-btn" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()"><span class="date-tool-text">퇴직연금 금액 조정</span><span class="date-tool-icon">⚙</span></button></div></div>`;
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
@@ -237,9 +259,9 @@ function pensionContributionModeLabel(){
 
 function pensionContributionModeHelp(mode=pensionContributionSaveMode){
   if(mode==='githubPages'){
-    return 'GitHub Pages 방식: Google Apps Script를 통해 GitHub에 기업적립금을 저장합니다. 저장/삭제 시 PIN이 필요합니다.';
+    return 'GitHub Pages 방식: Google Apps Script를 통해 기업적립금 또는 현금성자산 평가금액을 GitHub에 저장합니다. 저장/삭제 시 PIN이 필요합니다.';
   }
-  return 'Netlify 방식: 기존 Netlify Function으로 기업적립금을 저장합니다. 저장/삭제 시 PIN이 필요합니다.';
+  return 'Netlify 방식: 기존 Netlify Function으로 기업적립금 또는 현금성자산 평가금액을 저장합니다. 저장/삭제 시 PIN이 필요합니다.';
 }
 
 function setPensionContributionSaveMode(mode){
@@ -260,38 +282,44 @@ function setPensionContributionSaveMode(mode){
 }
 
 function renderPensionContributionList(){
-  const items=pensionContributionItems()
+  const contribItems=pensionContributionItems()
     .slice()
     .filter(v=>v&&v.date)
-    .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-  if(!items.length) return `<p class="small">등록된 추가 기업적립금이 없습니다.</p>`;
-  return items.map((v,i)=>{
-    const amount=Number(v.amount)||0;
-    const memo=v.memo||'';
-    return `<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.date}"><span class="contrib-existing-main"><span class="contrib-existing-title">${v.date} / ${won(amount)}</span><span class="contrib-existing-memo">${memo}</span></span></label>`;
-  }).join('');
+    .sort((a,b)=>String(b.date).localeCompare(String(a.date)))
+    .map(v=>({target:'contribution',date:v.date,amount:Number(v.amount)||0,memo:v.memo||'',label:'기업적립금'}));
+  const cashItems=pensionCashSnapshotItems()
+    .slice()
+    .filter(v=>v&&v.date)
+    .sort((a,b)=>String(b.date).localeCompare(String(a.date)))
+    .map(v=>({target:'cashSnapshot',date:v.date,amount:Number(v.valuation)||0,memo:v.memo||'',label:'현금성 평가금액'}));
+  const items=[...contribItems,...cashItems].sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(a.label).localeCompare(String(b.label)));
+  if(!items.length) return `<p class="small">등록된 기업적립금/현금성자산 평가금액이 없습니다.</p>`;
+  return items.map(v=>`<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.target}|${v.date}"><span class="contrib-existing-main"><span class="contrib-existing-title">${v.date} / ${v.label} / ${won(v.amount)}</span><span class="contrib-existing-memo">${v.memo}</span></span></label>`).join('');
 }
 
 function renderPensionContributionModal(x){
   const contribDefaultDate=defaultPensionContributionDate(x.date);
   const contribDefaultMemo=defaultPensionContributionMemo(contribDefaultDate);
-  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle">퇴직연금 기업적립금 추가</h2><p>저장하면 GitHub의 data/pension_contributions.json을 업데이트합니다.</p></div><button type="button" class="contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div>
+  const cashDefaultDate=x.date||contribDefaultDate;
+  const cashDefaultValue=x.pensionCash?fmt(x.pensionCash):'';
+  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle">퇴직연금 금액 조정</h2><p>기업적립금은 원금/현금성자산을 늘리고, 현금성자산 평가금액은 앱 기준 평가금액으로 보정합니다.</p></div><button type="button" class="contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div>
 <div class="pension-contrib-tool modal-card-box">
-  <h3>기업적립금 등록</h3>
+  <h3>등록</h3>
   <div class="contrib-save-tabs" role="tablist" aria-label="저장 방식 선택">
     <button type="button" class="contrib-save-tab active" data-save-mode="githubPages" onclick="setPensionContributionSaveMode('githubPages')">GitHub Pages</button>
     <button type="button" class="contrib-save-tab" data-save-mode="netlify" onclick="setPensionContributionSaveMode('netlify')">Netlify</button>
   </div>
   <div class="contrib-save-help" id="contribSaveHelp">${pensionContributionModeHelp('githubPages')}</div>
-  <p class="small">자동 저장이 안 될 때는 JSON 생성/복사로 수동 반영 가능</p>
+  <p class="small">기업적립금은 납입원금과 현금성자산 매수원금을 늘립니다. 현금성자산 평가금액은 앱 화면의 평가금액을 특정일 기준으로 저장합니다.</p>
   <div class="contrib-form-grid">
-    <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${contribDefaultDate}"></div>
-    <div class="contrib-field"><label for="pensionContribAmount">금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="618,060"></div>
-    <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="${contribDefaultMemo}"></div>
+    <div class="contrib-field full"><label for="pensionContribTarget">등록 유형</label><select id="pensionContribTarget" onchange="syncPensionContributionTargetUi()"><option value="contribution">기업적립금</option><option value="cashSnapshot">현금성자산 평가금액</option></select></div>
+    <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${contribDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></div>
+    <div class="contrib-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="618,060" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}"></div>
+    <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="${contribDefaultMemo}" data-contrib-default-memo="${contribDefaultMemo}" data-cash-default-memo="현금성자산 평가금액 앱 확인"></div>
   </div>
   <div class="contrib-actions">
     <button type="button" class="contrib-btn" onclick="savePensionContribution()">저장</button>
-    <button type="button" class="contrib-btn secondary" onclick="generatePensionContributionJson()">추가 JSON 만들기</button>
+    <button type="button" class="contrib-btn secondary" onclick="generatePensionContributionJson()">JSON 만들기</button>
     <button type="button" class="contrib-btn secondary" onclick="copyPensionContributionJson()">복사</button>
   </div>
   <div id="pensionContribStatus" class="contrib-status"></div>
@@ -299,7 +327,7 @@ function renderPensionContributionModal(x){
 </div>
 <div class="contrib-list modal-card-box">
   <h3>삭제</h3>
-  <p class="small">잘못 넣은 항목을 되돌릴 때 선택 후 삭제. GitHub Pages / Netlify 모두 PIN 입력 후 삭제 가능합니다.</p>
+  <p class="small">잘못 넣은 기업적립금 또는 현금성자산 평가금액을 선택 후 삭제합니다.</p>
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList()}</div>
   <div class="contrib-actions"><button type="button" class="contrib-btn danger" onclick="deleteSelectedPensionContribution()">선택 항목 삭제</button></div>
 </div>
@@ -313,10 +341,10 @@ function renderPensionContributionModal(x){
 <details class="token-guide">
   <summary>GitHub 토큰 만료/교체 방법</summary>
   <div class="token-guide-body">
-    <div class="token-guide-alert">토큰이 만료되면 대시보드 조회는 되지만, 기업적립금 저장/삭제만 실패할 수 있습니다.</div>
+    <div class="token-guide-alert">토큰이 만료되면 대시보드 조회는 되지만, 기업적립금/현금성자산 저장과 삭제만 실패할 수 있습니다.</div>
     <p><strong>GitHub Pages 방식</strong>은 Google Apps Script의 Script Properties에 저장된 <code>GITHUB_TOKEN</code>을 사용합니다.</p>
     <ol>
-      <li>GitHub → <code>Settings</code> → <code>Developer settings</code> → <code>Personal access tokens</code> → <code>Fine-grained tokens</code>에서 새 토큰 생성</li>
+      <li>GitHub에서 새 Fine-grained token 생성</li>
       <li>대시보드 repo만 선택</li>
       <li>권한은 <code>Contents: Read and write</code>, <code>Metadata: Read-only</code></li>
       <li>Google Apps Script → 프로젝트 설정 → Script Properties</li>
@@ -706,17 +734,37 @@ document.addEventListener('keydown',e=>{
 function cleanNumberInput(v){
   return Number(String(v||'').replace(/[^\d.-]/g,''));
 }
+
+function pensionContributionTarget(){
+  return document.getElementById('pensionContribTarget')?.value==='cashSnapshot'?'cashSnapshot':'contribution';
+}
+function pensionContributionTargetLabel(target=pensionContributionTarget()){
+  return target==='cashSnapshot'?'현금성자산 평가금액':'기업적립금';
+}
+function syncPensionContributionTargetUi(){
+  const target=pensionContributionTarget();
+  const dateEl=document.getElementById('pensionContribDate');
+  const amountEl=document.getElementById('pensionContribAmount');
+  const memoEl=document.getElementById('pensionContribMemo');
+  const amountLabel=document.getElementById('pensionContribAmountLabel');
+  if(amountLabel) amountLabel.textContent=target==='cashSnapshot'?'평가금액':'금액';
+  if(dateEl) dateEl.value=target==='cashSnapshot'?(dateEl.dataset.cashDefaultDate||dateEl.value):(dateEl.dataset.contribDefaultDate||dateEl.value);
+  if(amountEl) amountEl.value=target==='cashSnapshot'?(amountEl.dataset.cashDefaultValue||''):(amountEl.dataset.contribDefaultValue||'618,060');
+  if(memoEl) memoEl.value=target==='cashSnapshot'?(memoEl.dataset.cashDefaultMemo||'현금성자산 평가금액 앱 확인'):(memoEl.dataset.contribDefaultMemo||defaultPensionContributionMemo(dateEl?.value||''));
+}
 function buildPensionContributionItem(){
+  const target=pensionContributionTarget();
   const dateEl=document.getElementById('pensionContribDate');
   const amountEl=document.getElementById('pensionContribAmount');
   const memoEl=document.getElementById('pensionContribMemo');
   if(!dateEl||!amountEl||!memoEl) throw new Error('입력칸을 찾지 못했습니다.');
   const date=dateEl.value;
   const amount=cleanNumberInput(amountEl.value);
-  const memo=memoEl.value.trim()||defaultPensionContributionMemo(date);
+  const memo=memoEl.value.trim()||(target==='cashSnapshot'?'현금성자산 평가금액 앱 확인':defaultPensionContributionMemo(date));
   if(!date) throw new Error('일자를 입력해주세요.');
-  if(!amount || amount<=0) throw new Error('금액을 입력해주세요.');
-  return {date,amount,memo};
+  if(!amount || amount<=0) throw new Error(target==='cashSnapshot'?'평가금액을 입력해주세요.':'금액을 입력해주세요.');
+  if(target==='cashSnapshot') return {target,date,valuation:amount,memo};
+  return {target,date,amount,memo};
 }
 function showPensionContributionStatus(message,type='ok'){
   const status=document.getElementById('pensionContribStatus');
@@ -765,9 +813,11 @@ async function savePensionContributionViaGithubPages(item){
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({
       pin:document.getElementById('pensionContribPin')?.value||'',
+      target:item.target||'contribution',
       action:'upsert',
       date:item.date,
       amount:item.amount,
+      valuation:item.valuation,
       memo:item.memo||'',
       updatedBy:'github-pages'
     })
@@ -830,11 +880,11 @@ async function savePensionContribution(){
     const data=await savePensionContributionByMode(item);
 
     const actionText=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
-
+    const targetText=pensionContributionTargetLabel(item.target);
     if(pensionContributionSaveMode==='githubPages'){
-      showPensionContributionStatus(`${actionText} 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.`,'ok');
+      showPensionContributionStatus(`${targetText} ${actionText} 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.`,'ok');
     }else{
-      showPensionContributionStatus(`${actionText} 완료. Netlify 재배포가 끝나면 화면에 반영됩니다. commit: ${data.commitSha||'-'}`,'ok');
+      showPensionContributionStatus(`${targetText} ${actionText} 완료. Netlify 재배포가 끝나면 화면에 반영됩니다. commit: ${data.commitSha||'-'}`,'ok');
     }
 
   }catch(e){
@@ -842,7 +892,7 @@ async function savePensionContribution(){
   }
 }
 
-async function deletePensionContributionViaGithubPages(date){
+async function deletePensionContributionViaGithubPages(target,date){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
 
   if(!config.url || config.url.includes('여기에_')){
@@ -855,6 +905,7 @@ async function deletePensionContributionViaGithubPages(date){
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({
       pin:document.getElementById('pensionContribPin')?.value||'',
+      target:target||'contribution',
       action:'delete',
       date
     })
@@ -869,7 +920,7 @@ async function deletePensionContributionViaGithubPages(date){
   return data;
 }
 
-async function deletePensionContributionViaNetlify(date){
+async function deletePensionContributionViaNetlify(target,date){
   const pinEl=document.getElementById('pensionContribPin');
 
   const res=await fetch('/.netlify/functions/save-pension-contribution',{
@@ -877,6 +928,7 @@ async function deletePensionContributionViaNetlify(date){
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
       pin:pinEl?.value||'',
+      target:target||'contribution',
       action:'delete',
       date
     })
@@ -899,19 +951,22 @@ async function deleteSelectedPensionContribution(){
     return;
   }
 
-  const date=selected.value;
-  const item=pensionContributionItems().find(v=>v.date===date);
-  const amount=item?won(Number(item.amount)||0):'선택 항목';
+  const [target,date]=String(selected.value||'').split('|');
+  const isCash=target==='cashSnapshot';
+  const item=isCash?pensionCashSnapshotItems().find(v=>v.date===date):pensionContributionItems().find(v=>v.date===date);
+  const amount=item?won(Number(isCash?item.valuation:item.amount)||0):'선택 항목';
+  const targetText=pensionContributionTargetLabel(isCash?'cashSnapshot':'contribution');
   const modeLabel=pensionContributionModeLabel();
 
-  if(!confirm(`${date} / ${amount} 항목을 삭제할까요?\n${modeLabel} 방식으로 GitHub 파일에서 삭제됩니다.`)) return;
+  if(!confirm(`${date} / ${targetText} / ${amount} 항목을 삭제할까요?
+${modeLabel} 방식으로 GitHub 파일에서 삭제됩니다.`)) return;
 
   try{
     showPensionContributionStatus(`${modeLabel} 방식으로 삭제 중... GitHub 파일을 업데이트하고 있습니다.`,'ok');
 
     const data=pensionContributionSaveMode==='githubPages'
-      ? await deletePensionContributionViaGithubPages(date)
-      : await deletePensionContributionViaNetlify(date);
+      ? await deletePensionContributionViaGithubPages(target,date)
+      : await deletePensionContributionViaNetlify(target,date);
 
     if(pensionContributionSaveMode==='githubPages'){
       showPensionContributionStatus('선택 항목 삭제 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');
@@ -930,7 +985,7 @@ document.addEventListener('click',e=>{
   if(!wrap) closeMobileNavMenu();
 });
 
-async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]}))]);const dates=allAvailableDates(),hash=location.hash.replace('#','');ACTIVE_DATE=dates.includes(hash)?hash:dates.at(-1);render();document.getElementById('tabs').addEventListener('change',e=>{
+async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]}))]);const dates=allAvailableDates(),hash=location.hash.replace('#','');ACTIVE_DATE=dates.includes(hash)?hash:dates.at(-1);render();document.getElementById('tabs').addEventListener('change',e=>{
   if(e.target.id==='monthSelect'){
     const month=e.target.value,dates=allAvailableDates().filter(d=>d.startsWith(month));
     ACTIVE_DATE=dates.at(-1);
