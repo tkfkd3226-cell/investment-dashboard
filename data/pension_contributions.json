@@ -1,10 +1,18 @@
 [
   {
+    "id": "contrib-2026-07-01-001",
     "date": "2026-07-01",
     "amount": 618060,
     "memo": "2026년 7월 기업적립금",
     "updatedBy": "google-apps-script",
-    "updatedAtKST": "2026-07-03T15:44:40+09:00",
-    "id": "contrib-2026-07-01-001"
+    "updatedAtKST": "2026-07-03T15:44:40+09:00"
+  },
+  {
+    "id": "contrib-2026-07-01-1690ce7c-1c44-42e1-a0fa-5f3bf4305648",
+    "date": "2026-07-01",
+    "amount": 1000000,
+    "memo": "2026년 7월 기업적립금",
+    "updatedBy": "google-apps-script",
+    "updatedAtKST": "2026-07-03T23:07:49+09:00"
   }
 ]
