@@ -3336,74 +3336,134 @@ svg.chart{
 }
 
 
-/* 2026-07 UI polish overrides */
-/* 1) Lighter top date bar and hero */
-.wrap{padding-top:22px;}
-.date-picker-bar{
-  background:linear-gradient(135deg,#203556 0%, #304b7a 55%, #3a5f97 100%) !important;
-  border-bottom:1px solid rgba(255,255,255,.18);
-  box-shadow:0 10px 28px rgba(25,42,71,.18) !important;
-}
-.date-picker-label,.date-picker-caption{color:#eff6ff !important;}
-.date-select{
-  background:rgba(255,255,255,.16) !important;
-  border-color:rgba(255,255,255,.32) !important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
-}
-.date-tool-btn{
-  background:rgba(255,255,255,.16) !important;
-  border-color:rgba(255,255,255,.30) !important;
-  box-shadow:0 10px 24px rgba(25,42,71,.14) !important;
-}
-.date-tool-btn:hover{background:rgba(255,255,255,.24) !important;}
-.hero{
-  background:linear-gradient(135deg,#eef6ff 0%, #dbeafe 44%, #e0f2fe 100%) !important;
-  color:#0f172a !important;
-  box-shadow:0 14px 36px rgba(59,130,246,.10) !important;
-}
-.hero:after{
-  right:-85px !important;
-  top:-60px !important;
-  width:270px !important;
-  height:270px !important;
-  background:linear-gradient(135deg,rgba(59,130,246,.14),rgba(147,197,253,.34)) !important;
-}
-.hero h1{color:#0f172a !important;}
-.hero p{color:#334155 !important;}
-.hero .pill{
-  background:rgba(255,255,255,.66) !important;
-  border-color:rgba(148,163,184,.34) !important;
-  color:#1e293b !important;
-  box-shadow:0 6px 16px rgba(148,163,184,.12);
+
+
+/* 2026-07 careful UI fix - final overrides */
+
+/* A. Top bar and hero: medium blue, lighter than original but not washed out */
+.wrap{
+  padding-top:22px;
 }
 
-/* 2) Desktop charts fill the card width */
-.chart-wrap{
-  width:100%;
+.date-picker-bar{
+  background:
+    radial-gradient(circle at 96% 10%, rgba(96,165,250,.22), transparent 28%),
+    linear-gradient(135deg,#1f2f4f 0%, #284d7d 52%, #316aa4 100%) !important;
+  border-bottom:1px solid rgba(255,255,255,.16) !important;
+  box-shadow:0 12px 30px rgba(15,23,42,.18) !important;
 }
-svg.chart{
-  min-width:0 !important;
+
+.date-picker-label,
+.date-picker-caption{
+  color:#eaf2ff !important;
+}
+
+.date-select{
+  background:rgba(255,255,255,.14) !important;
+  border-color:rgba(255,255,255,.30) !important;
+  color:#fff !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10);
+}
+
+.date-tool-btn{
+  background:rgba(255,255,255,.14) !important;
+  border-color:rgba(255,255,255,.30) !important;
+  color:#fff !important;
+  box-shadow:0 10px 24px rgba(15,23,42,.18) !important;
+}
+
+.date-tool-btn:hover{
+  background:rgba(255,255,255,.22) !important;
+}
+
+.hero{
+  background:
+    radial-gradient(circle at 94% 8%, rgba(255,255,255,.22), transparent 26%),
+    linear-gradient(135deg,#1e3a8a 0%, #2563eb 54%, #0ea5e9 100%) !important;
+  color:#fff !important;
+  box-shadow:0 18px 42px rgba(37,99,235,.20) !important;
+}
+
+.hero:after{
+  right:-82px !important;
+  top:-72px !important;
+  width:300px !important;
+  height:300px !important;
+  background:rgba(255,255,255,.15) !important;
+}
+
+.hero h1{
+  color:#fff !important;
+}
+
+.hero p{
+  color:#e0f2fe !important;
+}
+
+.hero .pill{
+  background:rgba(15,23,42,.16) !important;
+  border-color:rgba(255,255,255,.28) !important;
+  color:#f8fafc !important;
+}
+
+/* B. Desktop charts: force SVG to fill the card width; keep mobile horizontal scroll */
+.chart-card{
   width:100% !important;
 }
-@media (min-width:1101px){
-  .chart-wrap{overflow:hidden !important;}
-  svg.chart{height:350px;}
-}
-@media (max-width:1100px){
-  .chart-wrap{overflow-x:auto !important;}
-  svg.chart{min-width:960px !important;}
+
+.chart-wrap{
+  width:100% !important;
+  max-width:100% !important;
 }
 
-/* 3) Combined performance first column width on desktop only */
-@media (min-width:761px){
-  .combined-performance-table th:first-child,
-  .combined-performance-table td:first-child{
-    width:110px;
-    min-width:110px;
+svg.chart{
+  display:block !important;
+  width:100% !important;
+  max-width:none !important;
+}
+
+@media (min-width:1101px){
+  .chart-wrap{
+    overflow-x:hidden !important;
+  }
+
+  svg.chart{
+    min-width:100% !important;
+    height:360px !important;
+  }
+
+  .chart-card{
+    padding-left:18px !important;
+    padding-right:18px !important;
   }
 }
 
-/* 4) Mobile quick menu simpler head */
+@media (max-width:1100px){
+  .chart-wrap{
+    overflow-x:auto !important;
+  }
+
+  svg.chart{
+    min-width:960px !important;
+  }
+}
+
+/* C. Desktop only: widen first column of 연금+계좌 성과 */
+@media (min-width:901px){
+  .combined-performance-table{
+    table-layout:fixed !important;
+  }
+
+  .combined-performance-table th:first-child,
+  .combined-performance-table td:first-child{
+    width:150px !important;
+    min-width:150px !important;
+    max-width:150px !important;
+    white-space:nowrap !important;
+  }
+}
+
+/* D. Mobile quick menu: remove QUICK MENU header look; keep only dark gray X */
 @media(max-width:760px){
   .mobile-nav-head{
     justify-content:flex-end !important;
@@ -3412,12 +3472,18 @@ svg.chart{
     background:transparent !important;
     border-radius:0 !important;
     color:inherit !important;
+    box-shadow:none !important;
   }
-  .mobile-nav-head span{display:none !important;}
+
+  .mobile-nav-head span{
+    display:none !important;
+  }
+
   .mobile-nav-head button{
     width:auto !important;
     height:auto !important;
     padding:0 !important;
+    border:0 !important;
     background:transparent !important;
     color:#334155 !important;
     font-size:28px !important;
@@ -3425,13 +3491,50 @@ svg.chart{
     box-shadow:none !important;
     border-radius:0 !important;
   }
-  .dark .mobile-nav-head button{color:#cbd5e1 !important;}
+
+  .dark .mobile-nav-head button{
+    color:#cbd5e1 !important;
+  }
 }
 
-/* 5) Pension contribution modal should be above mobile nav/menu */
-.contrib-modal{z-index:12000 !important;}
-.contrib-modal-card{position:relative; z-index:12001;}
+/* E. Action icons restored */
+.date-tool-action-icon{
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  margin-right:6px;
+  line-height:1;
+}
 
-/* 6) KRX/pension action icons spacing */
-.date-tool-action-icon{display:inline-flex;align-items:center;justify-content:center;line-height:1;}
+.date-action-menu button{
+  display:flex !important;
+  align-items:center;
+  gap:8px;
+}
 
+.date-action-menu button span{
+  flex:0 0 auto;
+}
+
+/* F. Ensure pension contribution modal is always above mobile menu and page UI */
+.contrib-modal{
+  z-index:12000 !important;
+}
+
+.contrib-modal.show{
+  display:flex !important;
+}
+
+.contrib-modal-card{
+  position:relative;
+  z-index:12001 !important;
+}
+
+/* G. KRX modal visibility priority */
+.krx-action-modal{
+  z-index:13000 !important;
+}
+
+.app-toast{
+  z-index:13001 !important;
+}
