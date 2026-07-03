@@ -4,8 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>투자 성과 대시보드</title>
-<link rel="stylesheet" href="style.css">
+<script>
+  document.write('<link rel="stylesheet" href="style.css?v=' + Date.now() + '">');
+</script>
 </head>
 <body>
 <nav id="tabs" class="switcher" aria-label="대시보드 기준일 선택"></nav><div id="app"></div><div class="dash-tooltip" id="dashTooltip"></div>
-<script src="script.js"></script></body></html><!-- 업데이트 -->
+<script>
+  document.write('<script src="script.js?v=' + Date.now() + '"><\/script>');
+</script>
+</body>
+</html>
