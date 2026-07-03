@@ -4,12 +4,5 @@
     "source": "company",
     "amount": 618060,
     "memo": "2026년 7월 기업적립금"
-  },
-  {
-    "date": "2026-08-24",
-    "amount": 6180601,
-    "memo": "2026년 8월 기업적립금",
-    "source": "google-apps-script",
-    "createdAtKST": "2026-07-03T03:29:02+09:00"
   }
 ]
