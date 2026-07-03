@@ -3,7 +3,14 @@
     "date": "2026-07-01",
     "amount": 618060,
     "memo": "2026년 7월 기업적립금",
-    "source": "google-apps-script",
-    "createdAtKST": "2026-07-03T15:44:40+09:00"
+    "updatedBy": "google-apps-script",
+    "updatedAtKST": "2026-07-03T15:44:40+09:00"
+  },
+  {
+    "date": "2026-07-03",
+    "amount": 91,
+    "memo": "2026-07-03 이자",
+    "updatedBy": "google-apps-script",
+    "updatedAtKST": "2026-07-03T19:18:26+09:00"
   }
 ]
