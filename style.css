@@ -3334,3 +3334,104 @@ svg.chart{
   .krx-action-card{border-radius:22px;padding:22px}
   .app-toast{bottom:16px;border-radius:16px;text-align:center}
 }
+
+
+/* 2026-07 UI polish overrides */
+/* 1) Lighter top date bar and hero */
+.wrap{padding-top:22px;}
+.date-picker-bar{
+  background:linear-gradient(135deg,#203556 0%, #304b7a 55%, #3a5f97 100%) !important;
+  border-bottom:1px solid rgba(255,255,255,.18);
+  box-shadow:0 10px 28px rgba(25,42,71,.18) !important;
+}
+.date-picker-label,.date-picker-caption{color:#eff6ff !important;}
+.date-select{
+  background:rgba(255,255,255,.16) !important;
+  border-color:rgba(255,255,255,.32) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+}
+.date-tool-btn{
+  background:rgba(255,255,255,.16) !important;
+  border-color:rgba(255,255,255,.30) !important;
+  box-shadow:0 10px 24px rgba(25,42,71,.14) !important;
+}
+.date-tool-btn:hover{background:rgba(255,255,255,.24) !important;}
+.hero{
+  background:linear-gradient(135deg,#eef6ff 0%, #dbeafe 44%, #e0f2fe 100%) !important;
+  color:#0f172a !important;
+  box-shadow:0 14px 36px rgba(59,130,246,.10) !important;
+}
+.hero:after{
+  right:-85px !important;
+  top:-60px !important;
+  width:270px !important;
+  height:270px !important;
+  background:linear-gradient(135deg,rgba(59,130,246,.14),rgba(147,197,253,.34)) !important;
+}
+.hero h1{color:#0f172a !important;}
+.hero p{color:#334155 !important;}
+.hero .pill{
+  background:rgba(255,255,255,.66) !important;
+  border-color:rgba(148,163,184,.34) !important;
+  color:#1e293b !important;
+  box-shadow:0 6px 16px rgba(148,163,184,.12);
+}
+
+/* 2) Desktop charts fill the card width */
+.chart-wrap{
+  width:100%;
+}
+svg.chart{
+  min-width:0 !important;
+  width:100% !important;
+}
+@media (min-width:1101px){
+  .chart-wrap{overflow:hidden !important;}
+  svg.chart{height:350px;}
+}
+@media (max-width:1100px){
+  .chart-wrap{overflow-x:auto !important;}
+  svg.chart{min-width:960px !important;}
+}
+
+/* 3) Combined performance first column width on desktop only */
+@media (min-width:761px){
+  .combined-performance-table th:first-child,
+  .combined-performance-table td:first-child{
+    width:110px;
+    min-width:110px;
+  }
+}
+
+/* 4) Mobile quick menu simpler head */
+@media(max-width:760px){
+  .mobile-nav-head{
+    justify-content:flex-end !important;
+    padding:0 4px 6px !important;
+    margin-bottom:4px !important;
+    background:transparent !important;
+    border-radius:0 !important;
+    color:inherit !important;
+  }
+  .mobile-nav-head span{display:none !important;}
+  .mobile-nav-head button{
+    width:auto !important;
+    height:auto !important;
+    padding:0 !important;
+    background:transparent !important;
+    color:#334155 !important;
+    font-size:28px !important;
+    line-height:1 !important;
+    box-shadow:none !important;
+    border-radius:0 !important;
+  }
+  .dark .mobile-nav-head button{color:#cbd5e1 !important;}
+}
+
+/* 5) Pension contribution modal should be above mobile nav/menu */
+.contrib-modal{z-index:12000 !important;}
+.contrib-modal-card{position:relative; z-index:12001;}
+
+/* 6) KRX/pension action icons spacing */
+.date-tool-action-icon{display:inline-flex;align-items:center;justify-content:center;line-height:1;}
+
