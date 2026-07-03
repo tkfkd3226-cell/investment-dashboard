@@ -3086,3 +3086,27 @@ svg.chart{
   }
 }
 
+
+
+/* Final fix: keep mobile holdings sticky first-column colors aligned with chart colors, but opaque */
+@media (max-width:900px){
+  .hold-position-table tbody tr.ticker-samsung td:first-child{
+    background:#e8f3db !important; /* chart-green tint, opaque */
+  }
+
+  .hold-position-table tbody tr.ticker-sk td:first-child{
+    background:#ffe8df !important; /* chart-orange tint, opaque */
+  }
+
+  .hold-position-table tbody tr.ticker-hyundai td:first-child{
+    background:#d9f4f8 !important; /* chart-cyan tint, opaque */
+  }
+
+  .hold-position-table tbody tr.ticker-kodex td:first-child{
+    background:#e0f0fd !important; /* chart-blue tint, opaque */
+  }
+
+  .hold-position-table tbody tr.ticker-mini td:first-child{
+    background:#f0f2f5 !important;
+  }
+}
