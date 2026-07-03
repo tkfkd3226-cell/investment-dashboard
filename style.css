@@ -2836,3 +2836,65 @@ svg.chart{
 .pension-viz-tooltip strong{
   color:#fff !important;
 }
+
+/* Mobile/touch tooltip support for pension bars */
+.has-tooltip.tooltip-open .pension-viz-tooltip{
+  display:block !important;
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+@media (max-width:900px){
+  .pension-viz-tooltip,
+  .pension-viz-tooltip.wide{
+    display:block !important;
+    white-space:normal;
+    max-width:min(260px, calc(100vw - 48px));
+    z-index:80;
+  }
+
+  .pension-stack-bar.compact.simple{
+    overflow:visible;
+  }
+}
+
+/* Mobile sticky first column opaque fix for securities holdings */
+@media (max-width:900px){
+  .hold-position-table th:first-child,
+  .hold-position-table td:first-child{
+    position:sticky !important;
+    left:0 !important;
+    z-index:7 !important;
+    background-clip:border-box !important;
+    box-shadow:10px 0 12px -12px rgba(15,23,42,.55) !important;
+  }
+
+  .hold-position-table thead th:first-child{
+    z-index:8 !important;
+    background:#f1f5f9 !important;
+  }
+
+  .hold-position-table tbody tr.ticker-samsung td:first-child{
+    background:#fff3d0 !important;
+  }
+
+  .hold-position-table tbody tr.ticker-sk td:first-child{
+    background:#ffe3e3 !important;
+  }
+
+  .hold-position-table tbody tr.ticker-hyundai td:first-child{
+    background:#e3f2ff !important;
+  }
+
+  .hold-position-table tbody tr.ticker-kodex td:first-child{
+    background:#e9f7e9 !important;
+  }
+
+  .hold-position-table tbody tr.ticker-mini td:first-child{
+    background:#f0f2f5 !important;
+  }
+
+  .hold-position-table tbody tr.summary-row td:first-child{
+    background:#f8fafc !important;
+  }
+}

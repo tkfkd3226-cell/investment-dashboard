@@ -406,7 +406,7 @@ function renderPensionContributionModal(x){
 </details></div></div>`;
 }
 
-function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:'';document.getElementById('app').innerHTML=`<div class="wrap">${renderMobileNavMenu()}<header class="hero" id="top-section"><h1>${PORTFOLIO.meta.title}</h1><p>${x.date} 기준. 선택일에 존재하는 원시데이터 범위만 반영하여 표시.</p><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 기준 투입원금 ${won(x.totalPrincipal)}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span><span class="pill">증권계좌 투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">증권계좌 투자 결과물 ${won(x.totalResult)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;drawAllCharts()}
+function render(){const x=calc(ACTIVE_DATE),c=PORTFOLIO.constants;renderTabs();const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:'';document.getElementById('app').innerHTML=`<div class="wrap">${renderMobileNavMenu()}<header class="hero" id="top-section"><h1>${PORTFOLIO.meta.title}</h1><p>${x.date} 기준. 선택일에 존재하는 원시데이터 범위만 반영하여 표시.</p><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 기준 투입원금 ${won(x.totalPrincipal)}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span><span class="pill">증권계좌 투자대비 이익률 ${pct(x.returnRate)}</span><span class="pill">증권계좌 투자 결과물 ${won(x.totalResult)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;drawAllCharts();setupPensionVizTooltips()}
 
 
 function renderResultSummary(x){
@@ -1089,6 +1089,35 @@ document.addEventListener('click',e=>{
   const wrap=e.target.closest?.('.mobile-nav-menu-wrap');
   if(!wrap) closeMobileNavMenu();
 });
+
+
+function setupPensionVizTooltips(){
+  if(window.__pensionVizTooltipTouchBound)return;
+  window.__pensionVizTooltipTouchBound=true;
+
+  const isTouchLike=()=>window.matchMedia('(hover: none)').matches||window.innerWidth<=900;
+  const closeTooltips=except=>document.querySelectorAll('.pension-insight-zone .has-tooltip.tooltip-open').forEach(el=>{if(el!==except)el.classList.remove('tooltip-open')});
+
+  document.addEventListener('click',e=>{
+    const target=e.target.closest('.pension-insight-zone .has-tooltip');
+
+    if(!target){
+      closeTooltips(null);
+      return;
+    }
+
+    if(!isTouchLike())return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const shouldOpen=!target.classList.contains('tooltip-open');
+    closeTooltips(target);
+    target.classList.toggle('tooltip-open',shouldOpen);
+  });
+
+  document.addEventListener('scroll',()=>closeTooltips(null),true);
+}
 
 async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]}))]);const dates=allAvailableDates(),hash=location.hash.replace('#','');ACTIVE_DATE=dates.includes(hash)?hash:dates.at(-1);render();document.getElementById('tabs').addEventListener('change',e=>{
   if(e.target.id==='monthSelect'){
