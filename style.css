@@ -3854,3 +3854,133 @@ svg.chart{
   border-bottom:1px solid rgba(255,255,255,.16) !important;
   box-shadow:0 12px 30px rgba(15,23,42,.18) !important;
 }
+
+
+/* Top bar related market links */
+.market-link-area{
+  grid-column:1;
+  justify-self:start;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+
+.market-link-btn{
+  text-decoration:none;
+}
+
+.market-link-menu-wrap{
+  display:none;
+  position:relative;
+}
+
+.market-link-menu{
+  display:none;
+  position:absolute;
+  top:48px;
+  left:0;
+  width:230px;
+  padding:8px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 18px 50px rgba(15,23,42,.28);
+  backdrop-filter:blur(12px);
+  z-index:2300;
+}
+
+.market-link-menu.show{
+  display:block;
+}
+
+.market-link-menu a{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  box-sizing:border-box;
+  text-decoration:none;
+  color:#111827;
+  text-align:left;
+  padding:10px 11px;
+  border-radius:12px;
+  font-size:13px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.market-link-menu a:hover{
+  background:#eef2ff;
+}
+
+.market-link-menu-icon{
+  display:inline;
+  font-size:18px;
+}
+
+.dark .market-link-menu{
+  background:rgba(15,23,42,.96);
+  border-color:rgba(148,163,184,.24);
+}
+
+.dark .market-link-menu a{
+  color:#e5e7eb;
+}
+
+.dark .market-link-menu a:hover{
+  background:#1e293b;
+}
+
+@media(max-width:760px){
+  .date-picker{
+    grid-template-columns:40px minmax(104px,1fr) minmax(76px,.82fr) 40px;
+    gap:6px;
+  }
+
+  .market-link-area,
+  .date-picker-center,
+  .date-picker-action{
+    display:contents;
+  }
+
+  .market-link-btn-desktop{
+    display:none !important;
+  }
+
+  .market-link-menu-wrap{
+    display:block;
+    justify-self:start;
+  }
+
+  .market-link-menu-btn{
+    width:40px;
+    height:40px;
+    padding:0;
+    flex:0 0 40px;
+  }
+
+  .month-select{
+    min-width:0;
+    flex:initial;
+  }
+
+  .day-select{
+    min-width:0;
+    flex:initial;
+  }
+
+  .date-select{
+    font-size:12px;
+    padding-left:7px;
+    padding-right:20px;
+  }
+
+  .date-action-menu{
+    right:0;
+  }
+
+  .market-link-menu{
+    left:0;
+  }
+}

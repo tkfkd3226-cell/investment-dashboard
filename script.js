@@ -191,7 +191,7 @@ function allocHistory(d){
 }
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
-  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div><div class="date-picker-action"><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()"><span class="date-tool-action-icon">💰</span>퇴직연금 금액 조정</button><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="작업 메뉴" aria-label="작업 메뉴" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">⚙</span></button><div id="dateActionMenu" class="date-action-menu" aria-label="작업 메뉴"><button type="button" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" onclick="openPensionContributionModal();closeDateActionMenu()"><span>💰</span>퇴직연금 금액 조정</button></div></div></div></div>`;
+  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="market-link-area"><a class="date-tool-btn market-link-btn market-link-btn-desktop" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물"><span class="date-tool-action-icon">🌙</span>코스피200 야간선물</a><a class="date-tool-btn market-link-btn market-link-btn-desktop" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물"><span class="date-tool-action-icon">🚀</span>나스닥100 선물</a><div class="market-link-menu-wrap"><button type="button" class="date-tool-btn market-link-menu-btn" title="관련 링크" aria-label="관련 링크" onclick="toggleMarketLinkMenu(event)"><span class="market-link-menu-icon">🔗</span></button><div id="marketLinkMenu" class="market-link-menu" aria-label="관련 링크"><a href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" onclick="closeMarketLinkMenu()"><span>🌙</span>코스피200 야간선물</a><a href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" onclick="closeMarketLinkMenu()"><span>🚀</span>나스닥100 선물</a></div></div></div><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div><div class="date-picker-action"><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()"><span class="date-tool-action-icon">💰</span>퇴직연금 금액 조정</button><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="작업 메뉴" aria-label="작업 메뉴" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">⚙</span></button><div id="dateActionMenu" class="date-action-menu" aria-label="작업 메뉴"><button type="button" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" onclick="openPensionContributionModal();closeDateActionMenu()"><span>💰</span>퇴직연금 금액 조정</button></div></div></div></div>`;
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
@@ -202,9 +202,21 @@ function closeDateActionMenu(){
 }
 function toggleDateActionMenu(event){
   if(event) event.stopPropagation();
+  closeMarketLinkMenu();
   const menu=document.getElementById('dateActionMenu');
   if(menu) menu.classList.toggle('show');
 }
+function closeMarketLinkMenu(){
+  const menu=document.getElementById('marketLinkMenu');
+  if(menu) menu.classList.remove('show');
+}
+function toggleMarketLinkMenu(event){
+  if(event) event.stopPropagation();
+  closeDateActionMenu();
+  const menu=document.getElementById('marketLinkMenu');
+  if(menu) menu.classList.toggle('show');
+}
+document.addEventListener('click',()=>{closeDateActionMenu();closeMarketLinkMenu()});
 async function dispatchKrxPriceUpdate(pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   if(!config.url || config.url.includes('여기에_')){
