@@ -67,7 +67,17 @@ exports.handler = async (event) => {
     return jsonResponse(500, { error: 'pension_contributions.json 파싱 실패.' });
   }
 
-  if (!Array.isArray(doc.contributions)) doc.contributions = [];
+  if (Array.isArray(doc)) {
+    doc = { contributions: doc };
+  }
+
+  if (!doc || typeof doc !== 'object') {
+    doc = { contributions: [] };
+  }
+
+  if (!Array.isArray(doc.contributions)) {
+    doc.contributions = [];
+  }
 
   let resultAction;
   let commitMessageDate;
@@ -128,7 +138,7 @@ exports.handler = async (event) => {
 
   doc.contributions.sort((a, b) => String(a.date).localeCompare(String(b.date)));
 
-  const content = `${JSON.stringify(doc, null, 2)}\n`;
+  const content = `${JSON.stringify(doc.contributions, null, 2)}\n`;
 
   let putData;
   try {
