@@ -257,10 +257,9 @@ function renderPensionContributionList(){
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   if(!items.length) return `<p class="small">등록된 추가 기업적립금이 없습니다.</p>`;
   return items.map((v,i)=>{
-    const source=v.source||'company';
     const amount=Number(v.amount)||0;
     const memo=v.memo||'';
-    return `<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.date}|${source}"><span class="contrib-existing-main"><span class="contrib-existing-title">${v.date} / ${won(amount)} / ${source}</span><span class="contrib-existing-memo">${memo}</span></span></label>`;
+    return `<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.date}"><span class="contrib-existing-main"><span class="contrib-existing-title">${v.date} / ${won(amount)}</span><span class="contrib-existing-memo">${memo}</span></span></label>`;
   }).join('');
 }
 
@@ -705,7 +704,7 @@ function buildPensionContributionItem(){
   const memo=memoEl.value.trim()||defaultPensionContributionMemo(date);
   if(!date) throw new Error('일자를 입력해주세요.');
   if(!amount || amount<=0) throw new Error('금액을 입력해주세요.');
-  return {date,source:'company',amount,memo};
+  return {date,amount,memo};
 }
 function showPensionContributionStatus(message,type='ok'){
   const status=document.getElementById('pensionContribStatus');
@@ -757,7 +756,8 @@ async function savePensionContributionViaGithubPages(item){
       action:'upsert',
       date:item.date,
       amount:item.amount,
-      memo:item.memo||''
+      memo:item.memo||'',
+      updatedBy:'github-pages'
     })
   });
 
@@ -780,7 +780,7 @@ async function savePensionContributionViaNetlify(item){
     body:JSON.stringify({
       pin:pinEl?.value||'',
       action:'upsert',
-      item
+      item:{...item,updatedBy:'netlify'}
     })
   });
 
@@ -829,7 +829,7 @@ async function savePensionContribution(){
   }
 }
 
-async function deletePensionContributionViaGithubPages(date, source){
+async function deletePensionContributionViaGithubPages(date){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
 
   if(!config.url || config.url.includes('여기에_')){
@@ -846,8 +846,7 @@ async function deletePensionContributionViaGithubPages(date, source){
     body:JSON.stringify({
       pin:document.getElementById('pensionContribPin')?.value||'',
       action:'delete',
-      date,
-      source
+      date
     })
   });
 
@@ -860,7 +859,7 @@ async function deletePensionContributionViaGithubPages(date, source){
   return data;
 }
 
-async function deletePensionContributionViaNetlify(date, source){
+async function deletePensionContributionViaNetlify(date){
   const pinEl=document.getElementById('pensionContribPin');
 
   const res=await fetch('/.netlify/functions/save-pension-contribution',{
@@ -869,8 +868,7 @@ async function deletePensionContributionViaNetlify(date, source){
     body:JSON.stringify({
       pin:pinEl?.value||'',
       action:'delete',
-      date,
-      source
+      date
     })
   });
 
@@ -891,8 +889,8 @@ async function deleteSelectedPensionContribution(){
     return;
   }
 
-  const [date,source]=selected.value.split('|');
-  const item=pensionContributionItems().find(v=>v.date===date&&(v.source||'company')===source);
+  const date=selected.value;
+  const item=pensionContributionItems().find(v=>v.date===date);
   const amount=item?won(Number(item.amount)||0):'선택 항목';
   const modeLabel=pensionContributionModeLabel();
 
@@ -902,8 +900,8 @@ async function deleteSelectedPensionContribution(){
     showPensionContributionStatus(`${modeLabel} 방식으로 삭제 중... GitHub 파일을 업데이트하고 있습니다.`,'ok');
 
     const data=pensionContributionSaveMode==='githubPages'
-      ? await deletePensionContributionViaGithubPages(date, source)
-      : await deletePensionContributionViaNetlify(date, source);
+      ? await deletePensionContributionViaGithubPages(date)
+      : await deletePensionContributionViaNetlify(date);
 
     if(pensionContributionSaveMode==='githubPages'){
       showPensionContributionStatus('선택 항목 삭제 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');
