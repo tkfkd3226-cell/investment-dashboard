@@ -1,4 +1,4 @@
-# 투자 대시보드 최종본1
+# 투자 대시보드 최종본
 
 최종 기준 파일명: `investment-dashboard-main_final_menu_fix.zip`
 
