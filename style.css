@@ -2898,3 +2898,191 @@ svg.chart{
     background:#f8fafc !important;
   }
 }
+
+/* Restored page section title icons */
+.section-title h2{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+
+.section-title-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;
+  height:30px;
+  border-radius:12px;
+  background:linear-gradient(135deg,rgba(20,184,166,.16),rgba(59,130,246,.12));
+  border:1px solid rgba(148,163,184,.24);
+  box-shadow:0 6px 16px rgba(15,23,42,.08);
+  font-size:17px;
+  line-height:1;
+  flex:0 0 auto;
+}
+
+.section-title-icon.chart-icon{
+  width:26px;
+  height:26px;
+  border-radius:10px;
+  font-size:15px;
+}
+
+.chart-card h3{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* Restored pretty mobile nav menu */
+.mobile-nav-menu-wrap{
+  display:none;
+}
+@media(max-width:760px){
+  .mobile-nav-menu-wrap{
+    display:block;
+    position:fixed;
+    top:58px;
+    right:12px;
+    z-index:2200;
+  }
+  .mobile-nav-toggle{
+    width:42px;
+    height:42px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.36);
+    background:rgba(15,23,42,.90);
+    color:#fff;
+    font-size:20px;
+    font-weight:900;
+    box-shadow:0 12px 34px rgba(15,23,42,.32);
+    backdrop-filter:blur(10px);
+    cursor:pointer;
+  }
+  .mobile-nav-menu{
+    display:none;
+    position:fixed;
+    top:108px;
+    right:12px;
+    width:min(330px, calc(100vw - 24px));
+    max-height:calc(100vh - 130px);
+    overflow:auto;
+    border:1px solid rgba(203,213,225,.82);
+    border-radius:24px;
+    padding:12px;
+    background:rgba(255,255,255,.96);
+    box-shadow:0 26px 80px rgba(15,23,42,.30);
+    backdrop-filter:blur(16px);
+  }
+  .dark .mobile-nav-menu{
+    background:rgba(17,24,39,.96);
+    border-color:rgba(148,163,184,.24);
+  }
+  .mobile-nav-menu.show{
+    display:block;
+    animation:mobileMenuPop .16s ease-out;
+  }
+  @keyframes mobileMenuPop{
+    from{opacity:0;transform:translateY(-8px) scale(.98)}
+    to{opacity:1;transform:translateY(0) scale(1)}
+  }
+  .mobile-nav-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px 12px;
+    border-radius:18px;
+    background:linear-gradient(135deg,#0f172a,#1d4ed8);
+    color:#fff;
+    margin-bottom:10px;
+  }
+  .mobile-nav-head span{
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:.08em;
+  }
+  .mobile-nav-head button{
+    border:0;
+    width:26px;
+    height:26px;
+    border-radius:999px;
+    background:rgba(255,255,255,.18);
+    color:#fff;
+    font-size:18px;
+    font-weight:900;
+    line-height:1;
+    cursor:pointer;
+  }
+  .mobile-nav-group{
+    margin-top:10px;
+  }
+  .mobile-nav-group p{
+    margin:10px 8px 6px;
+    font-size:11px;
+    font-weight:900;
+    color:var(--muted);
+    letter-spacing:.06em;
+  }
+  .mobile-nav-item{
+    width:100%;
+    display:flex !important;
+    align-items:center;
+    gap:10px;
+    border:0;
+    background:transparent;
+    color:var(--text);
+    text-align:left;
+    padding:9px 10px;
+    border-radius:15px;
+    cursor:pointer;
+  }
+  .mobile-nav-item.sub{
+    padding-left:12px;
+  }
+  .mobile-nav-item:hover{
+    background:#eef2ff;
+  }
+  .dark .mobile-nav-item:hover{
+    background:#1f2937;
+  }
+  .mobile-nav-item .nav-icon{
+    flex:0 0 auto;
+    width:34px;
+    height:34px;
+    display:grid;
+    place-items:center;
+    border-radius:13px;
+    background:#f1f5f9;
+    font-size:17px;
+  }
+  .dark .mobile-nav-item .nav-icon{
+    background:rgba(148,163,184,.14);
+  }
+  .mobile-nav-item strong{
+    display:block;
+    font-size:13px;
+    font-weight:950;
+    line-height:1.2;
+  }
+  .mobile-nav-item em{
+    display:block;
+    margin-top:3px;
+    font-style:normal;
+    font-size:11.5px;
+    font-weight:800;
+    color:var(--muted);
+    line-height:1.2;
+  }
+  .mobile-nav-menu::-webkit-scrollbar{
+    width:8px;
+  }
+  .mobile-nav-menu::-webkit-scrollbar-thumb{
+    background:#cbd5e1;
+    border-radius:999px;
+  }
+  .dark .mobile-nav-menu::-webkit-scrollbar-thumb{
+    background:#475569;
+  }
+}
+
