@@ -7,9 +7,6 @@ on:
         description: "YYYY-MM-DD. 비워두면 한국시간 오늘"
         required: false
         type: string
-  schedule:
-    # 종가 반영: KST 17:45
-    - cron: "45 8 * * 1-5"
 
 permissions:
   contents: write
