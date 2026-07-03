@@ -259,9 +259,9 @@ function pensionContributionModeLabel(){
 
 function pensionContributionModeHelp(mode=pensionContributionSaveMode){
   if(mode==='githubPages'){
-    return 'GitHub Pages 방식: Google Apps Script를 통해 기업적립금 또는 현금성자산 평가금액을 GitHub에 저장합니다. 저장/삭제 시 PIN이 필요합니다.';
+    return 'GitHub Pages: Apps Script로 기업적립금/현금성 평가금액을 GitHub에 저장합니다. 저장·삭제 시 PIN 필요.';
   }
-  return 'Netlify 방식: 기존 Netlify Function으로 기업적립금 또는 현금성자산 평가금액을 저장합니다. 저장/삭제 시 PIN이 필요합니다.';
+  return 'Netlify: Netlify Function으로 동일 데이터를 저장합니다. 저장·삭제 시 PIN 필요.';
 }
 
 function setPensionContributionSaveMode(mode){
