@@ -3345,6 +3345,7 @@ svg.chart{
   padding-top:22px;
 }
 
+.switcher,
 .date-picker-bar{
   background:
     radial-gradient(circle at 96% 10%, rgba(96,165,250,.22), transparent 28%),
