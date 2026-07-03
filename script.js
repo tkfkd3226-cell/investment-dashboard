@@ -248,9 +248,7 @@ function setPensionContributionSaveMode(mode){
   if(pinBox) pinBox.classList.toggle('netlify-mode', pensionContributionSaveMode==='netlify');
 
   const pinDesc=document.getElementById('contribPinDesc');
-  if(pinDesc) pinDesc.textContent=pensionContributionSaveMode==='netlify'
-    ? 'Netlify 방식 저장과 삭제에 필요합니다.'
-    : 'GitHub Pages 방식 저장에는 필요 없습니다. 삭제 또는 Netlify 방식 사용 시 입력하세요.';
+  if(pinDesc) pinDesc.textContent='GitHub Pages / Netlify 저장과 삭제 모두 PIN 입력 필요';
 }
 
 function renderPensionContributionList(){
@@ -294,7 +292,7 @@ function renderPensionContributionModal(x){
 </div>
 <div class="contrib-list modal-card-box">
   <h3>삭제</h3>
-  <p class="small">잘못 넣은 항목을 되돌릴 때 선택 후 삭제. GitHub Pages 방식은 PIN 없이 삭제 가능, Netlify 방식은 PIN 필요.</p>
+  <p class="small">잘못 넣은 항목을 되돌릴 때 선택 후 삭제. GitHub Pages / Netlify 모두 PIN 입력 후 삭제 가능합니다.</p>
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList()}</div>
   <div class="contrib-actions"><button type="button" class="contrib-btn danger" onclick="deleteSelectedPensionContribution()">선택 항목 삭제</button></div>
 </div>
