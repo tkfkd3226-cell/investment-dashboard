@@ -3088,25 +3088,74 @@ svg.chart{
 
 
 
-/* Final fix: keep mobile holdings sticky first-column colors aligned with chart colors, but opaque */
+/* Source section panel restore */
+.capital-source-section .source-title{
+  margin-bottom:12px;
+  padding:0 2px;
+}
+
+.source-panel{
+  padding:16px;
+  border:1px solid rgba(148,163,184,.28);
+  border-radius:24px;
+  background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(248,250,252,.78));
+  box-shadow:0 18px 46px rgba(15,23,42,.08);
+}
+
+.dark .source-panel{
+  background:linear-gradient(135deg,rgba(17,24,39,.88),rgba(15,23,42,.78));
+  border-color:rgba(148,163,184,.22);
+  box-shadow:0 18px 46px rgba(0,0,0,.24);
+}
+
+.source-grid{
+  margin-top:0 !important;
+}
+
+.source-card{
+  box-shadow:none;
+  border-color:rgba(148,163,184,.24);
+}
+
+.source-card.highlight{
+  background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+  border-color:rgba(37,99,235,.22);
+}
+
+.dark .source-card.highlight{
+  background:linear-gradient(180deg,#111827 0%,#0f172a 100%);
+  border-color:rgba(96,165,250,.24);
+}
+
+/* Keep mobile holdings sticky first-column colors aligned with chart colors, but opaque */
 @media (max-width:900px){
   .hold-position-table tbody tr.ticker-samsung td:first-child{
-    background:#e8f3db !important; /* chart-green tint, opaque */
+    background:#e8f3db !important;
   }
 
   .hold-position-table tbody tr.ticker-sk td:first-child{
-    background:#ffe8df !important; /* chart-orange tint, opaque */
+    background:#ffe8df !important;
   }
 
   .hold-position-table tbody tr.ticker-hyundai td:first-child{
-    background:#d9f4f8 !important; /* chart-cyan tint, opaque */
+    background:#d9f4f8 !important;
   }
 
   .hold-position-table tbody tr.ticker-kodex td:first-child{
-    background:#e0f0fd !important; /* chart-blue tint, opaque */
+    background:#e0f0fd !important;
   }
 
   .hold-position-table tbody tr.ticker-mini td:first-child{
     background:#f0f2f5 !important;
+  }
+}
+
+@media(max-width:720px){
+  .source-panel{
+    padding:12px;
+    border-radius:20px;
+  }
+  .source-grid{
+    gap:12px;
   }
 }
