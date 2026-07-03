@@ -192,10 +192,55 @@ function allocHistory(d){
 }
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
-  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div><div class="date-picker-action"><button type="button" class="date-tool-btn" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()"><span class="date-tool-text">퇴직연금 금액 조정</span><span class="date-tool-icon">⚙</span></button></div></div>`;
+  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div><div class="date-picker-action"><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()">KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()">퇴직연금 금액 조정</button><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="작업 메뉴" aria-label="작업 메뉴" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">⚙</span></button><div id="dateActionMenu" class="date-action-menu" aria-label="작업 메뉴"><button type="button" onclick="triggerKrxPriceUpdate()">KRX 현재가 반영</button><button type="button" onclick="openPensionContributionModal();closeDateActionMenu()">퇴직연금 금액 조정</button></div></div></div></div>`;
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
+
+function closeDateActionMenu(){
+  const menu=document.getElementById('dateActionMenu');
+  if(menu) menu.classList.remove('show');
+}
+function toggleDateActionMenu(event){
+  if(event) event.stopPropagation();
+  const menu=document.getElementById('dateActionMenu');
+  if(menu) menu.classList.toggle('show');
+}
+async function dispatchKrxPriceUpdate(pin){
+  const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
+  if(!config.url || config.url.includes('여기에_')){
+    throw new Error('Apps Script URL이 설정되지 않았습니다.');
+  }
+  const res=await fetch(config.url,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({
+      pin:String(pin||'').trim(),
+      action:'updateKrxPrices'
+    })
+  });
+  const data=await res.json().catch(()=>({}));
+  if(!data.ok){
+    throw new Error(data.error||'KRX 현재가 반영 요청 실패');
+  }
+  return data;
+}
+async function triggerKrxPriceUpdate(){
+  closeDateActionMenu();
+  const pin=prompt('KRX 현재가 반영 PIN을 입력하세요.');
+  if(pin===null) return;
+  if(!String(pin).trim()){
+    alert('PIN을 입력해야 합니다.');
+    return;
+  }
+  if(!confirm('KRX 현재가 반영 액션을 실행할까요? GitHub Pages 반영까지 몇 분 걸릴 수 있습니다.')) return;
+  try{
+    await dispatchKrxPriceUpdate(pin);
+    alert('KRX 현재가 반영 요청 완료. GitHub Actions 실행 후 Pages 반영까지 잠시 기다려주세요.');
+  }catch(e){
+    alert('KRX 현재가 반영 실패: '+(e.message||String(e)));
+  }
+}
 
 function closeMobileNavMenu(){
   const menu=document.getElementById('mobileNavMenu');
@@ -312,7 +357,7 @@ function renderPensionContributionModal(x){
   <div class="contrib-save-help" id="contribSaveHelp">${pensionContributionModeHelp('githubPages')}</div>
   <p class="small">기업적립금은 납입원금과 현금성자산 매수원금을 늘립니다. 현금성자산 평가금액은 앱 화면의 평가금액을 특정일 기준으로 저장합니다.</p>
   <div class="contrib-form-grid">
-    <div class="contrib-field full"><label for="pensionContribTarget">등록 유형</label><select id="pensionContribTarget" onchange="syncPensionContributionTargetUi()"><option value="contribution">기업적립금</option><option value="cashSnapshot">현금성자산 평가금액</option></select></div>
+    <div class="contrib-field full contrib-target-field"><span class="contrib-field-label">등록 유형</span><input type="hidden" id="pensionContribTarget" value="contribution"><div class="contrib-target-tabs" role="tablist" aria-label="등록 유형 선택"><button type="button" class="contrib-target-option active" data-target="contribution" onclick="setPensionContributionTarget('contribution')">기업적립금</button><button type="button" class="contrib-target-option" data-target="cashSnapshot" onclick="setPensionContributionTarget('cashSnapshot')">현금성자산 평가금액</button></div></div>
     <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${contribDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></div>
     <div class="contrib-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="618,060" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}"></div>
     <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="${contribDefaultMemo}" data-contrib-default-memo="${contribDefaultMemo}" data-cash-default-memo="현금성자산 평가금액 앱 확인"></div>
@@ -741,8 +786,16 @@ function pensionContributionTarget(){
 function pensionContributionTargetLabel(target=pensionContributionTarget()){
   return target==='cashSnapshot'?'현금성자산 평가금액':'기업적립금';
 }
+function setPensionContributionTarget(target){
+  const el=document.getElementById('pensionContribTarget');
+  if(el) el.value=target==='cashSnapshot'?'cashSnapshot':'contribution';
+  syncPensionContributionTargetUi();
+}
 function syncPensionContributionTargetUi(){
   const target=pensionContributionTarget();
+  document.querySelectorAll('.contrib-target-option').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.target===target);
+  });
   const dateEl=document.getElementById('pensionContribDate');
   const amountEl=document.getElementById('pensionContribAmount');
   const memoEl=document.getElementById('pensionContribMemo');
@@ -779,7 +832,7 @@ function generatePensionContributionJson(){
     const item=buildPensionContributionItem();
     out.textContent=JSON.stringify(item,null,2);
     out.classList.add('show');
-    showPensionContributionStatus('JSON 생성 완료. 수동 반영이 필요하면 복사해서 contributions 안에 추가해주세요.','ok');
+    showPensionContributionStatus('JSON 생성 완료. 수동 반영이 필요하면 대상 data 파일에 반영해주세요.','ok');
   }catch(e){
     out.textContent=e.message||String(e);
     out.classList.add('show');
@@ -981,6 +1034,8 @@ ${modeLabel} 방식으로 GitHub 파일에서 삭제됩니다.`)) return;
 
 
 document.addEventListener('click',e=>{
+  const actionWrap=e.target.closest?.('.date-action-menu-wrap');
+  if(!actionWrap) closeDateActionMenu();
   const wrap=e.target.closest?.('.mobile-nav-menu-wrap');
   if(!wrap) closeMobileNavMenu();
 });
