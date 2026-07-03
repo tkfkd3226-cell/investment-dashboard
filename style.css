@@ -3798,3 +3798,49 @@ svg.chart{
     padding:22px;
   }
 }
+
+
+/* Pension contribution delete list spacing/layout */
+.contrib-existing-main{
+  display:block;
+}
+
+.contrib-existing-title{
+  display:inline-block !important;
+  margin-right:10px;
+  vertical-align:baseline;
+}
+
+.contrib-existing-memo{
+  display:inline-block !important;
+  margin-top:0 !important;
+  margin-left:2px;
+  vertical-align:baseline;
+}
+
+@media(max-width:720px){
+  .contrib-existing-main{
+    display:block;
+    width:100%;
+  }
+
+  .contrib-existing-title,
+  .contrib-existing-memo{
+    display:block !important;
+    margin-left:0 !important;
+    margin-right:0 !important;
+  }
+
+  .contrib-existing-date,
+  .contrib-existing-info{
+    display:block;
+  }
+
+  .contrib-existing-sep{
+    display:none;
+  }
+
+  .contrib-existing-memo{
+    margin-top:4px !important;
+  }
+}
