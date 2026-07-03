@@ -4138,3 +4138,86 @@ svg.chart{
     padding-right:18px !important;
   }
 }
+
+
+/* Mobile hero + scroll hint polish */
+@media(max-width:760px){
+  .hero{
+    padding:20px 16px !important;
+    border-radius:20px !important;
+    margin-top:8px !important;
+  }
+
+  .hero:after{
+    right:-86px !important;
+    top:-78px !important;
+    width:250px !important;
+    height:250px !important;
+  }
+
+  .hero h1{
+    font-size:25px !important;
+    line-height:1.16 !important;
+    margin-bottom:8px !important;
+  }
+
+  .hero p{
+    font-size:13px !important;
+    line-height:1.5 !important;
+  }
+
+  .pillbar{
+    gap:7px !important;
+    margin-top:12px !important;
+  }
+
+  .pill{
+    padding:6px 9px !important;
+    font-size:12px !important;
+    line-height:1.35 !important;
+  }
+}
+
+@media(max-width:900px){
+  .scroll-hint{
+    gap:4px !important;
+    margin:0 3px 5px !important;
+    color:#64748b !important;
+    font-size:11px !important;
+    font-weight:750 !important;
+    opacity:.78;
+  }
+
+  .scroll-hint::before{
+    width:20px !important;
+    height:20px !important;
+    font-size:12px !important;
+    background:#e5e7eb !important;
+    color:#334155 !important;
+  }
+
+  .mobile-scroll.is-scrollable,
+  .chart-wrap.is-scrollable{
+    border-right:2px solid rgba(148,163,184,.75) !important;
+    box-shadow:inset -16px 0 14px -20px rgba(15,23,42,.55) !important;
+  }
+}
+
+@media(max-width:380px){
+  .hero{
+    padding:18px 15px !important;
+  }
+
+  .hero h1{
+    font-size:24px !important;
+  }
+
+  .hero p{
+    font-size:12.5px !important;
+  }
+
+  .pill{
+    font-size:11.5px !important;
+    padding:5px 8px !important;
+  }
+}
