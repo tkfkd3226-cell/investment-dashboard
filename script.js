@@ -267,7 +267,7 @@ function renderPensionContributionList(){
 function renderPensionContributionModal(x){
   const contribDefaultDate=defaultPensionContributionDate(x.date);
   const contribDefaultMemo=defaultPensionContributionMemo(contribDefaultDate);
-  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle">퇴직연금 기업적립금 추가</h2><p>저장하면 GitHub 데이터 <span class="nowrap">자동 업데이트</span></p></div><button type="button" class="contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div>
+  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle">퇴직연금 기업적립금 추가</h2><p>저장하면 GitHub의 data/pension_contributions.json을 업데이트합니다.</p></div><button type="button" class="contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div>
 <div class="pension-contrib-tool modal-card-box">
   <h3>기업적립금 등록</h3>
   <div class="contrib-save-tabs" role="tablist" aria-label="저장 방식 선택">
