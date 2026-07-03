@@ -2703,3 +2703,132 @@ svg.chart{
     background:#1f2937 !important;
   }
 }
+
+
+/* Compact pension visual widgets */
+.pension-insight-zone{
+  gap:12px;
+  margin-top:12px;
+}
+
+.pension-insight-card{
+  padding:13px 14px;
+}
+
+.pension-insight-head{
+  margin-bottom:8px;
+}
+
+.pension-insight-head h3{
+  font-size:16px;
+}
+
+.pension-insight-eyebrow{
+  font-size:10px;
+}
+
+.pension-stack-compact-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+}
+
+.pension-stack-total{
+  font-size:22px;
+}
+
+.pension-stack-bar.compact{
+  height:20px;
+  margin-top:2px;
+}
+
+.pension-stack-inline-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px 10px;
+  margin-top:8px;
+  color:#475569;
+  font-size:11px;
+  font-weight:800;
+}
+
+.pension-stack-inline-legend span{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  min-width:0;
+}
+
+.pension-stack-inline-legend i{
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  flex:0 0 auto;
+}
+
+.pension-stack-legend{
+  display:none;
+}
+
+.pension-risk-compact-row{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.pension-risk-compact-row div{
+  padding:9px 10px;
+  border-radius:12px;
+  background:#f8fafc;
+  border:1px solid #e5eaf2;
+  min-width:0;
+}
+
+.pension-risk-compact-row span{
+  display:block;
+  color:#64748b;
+  font-size:11px;
+  font-weight:800;
+  margin-bottom:2px;
+}
+
+.pension-risk-compact-row strong{
+  display:block;
+  color:#0f172a;
+  font-size:16px;
+  font-weight:900;
+  letter-spacing:-.03em;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-variant-numeric:tabular-nums;
+}
+
+.pension-risk-gauge.compact{
+  height:16px;
+  margin-top:8px;
+}
+
+.pension-risk-note{
+  margin-top:6px;
+}
+
+@media (max-width:700px){
+  .pension-stack-compact-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .pension-risk-compact-row{
+    grid-template-columns:1fr;
+  }
+
+  .pension-risk-compact-row strong{
+    font-size:17px;
+    overflow:visible;
+    text-overflow:clip;
+  }
+}
