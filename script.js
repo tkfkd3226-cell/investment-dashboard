@@ -191,7 +191,7 @@ function allocHistory(d){
 }
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
-  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div><div class="date-picker-action"><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()"><span class="date-tool-action-icon">💰</span>퇴직연금 금액 조정</button><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="작업 메뉴" aria-label="작업 메뉴" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">⚙</span></button><div id="dateActionMenu" class="date-action-menu" aria-label="작업 메뉴"><button type="button" onclick="triggerKrxPriceUpdate()"><span>📈</span>KRX 현재가 반영</button><button type="button" onclick="openPensionContributionModal();closeDateActionMenu()"><span>💰</span>퇴직연금 금액 조정</button></div></div></div></div>`;
+  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div><div class="date-picker-action"><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()">KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()">퇴직연금 금액 조정</button><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="작업 메뉴" aria-label="작업 메뉴" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">⚙</span></button><div id="dateActionMenu" class="date-action-menu" aria-label="작업 메뉴"><button type="button" onclick="triggerKrxPriceUpdate()">KRX 현재가 반영</button><button type="button" onclick="openPensionContributionModal();closeDateActionMenu()">퇴직연금 금액 조정</button></div></div></div></div>`;
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
@@ -224,85 +224,21 @@ async function dispatchKrxPriceUpdate(pin){
   }
   return data;
 }
-function ensureAppToast(){
-  let toast=document.getElementById('appToast');
-  if(!toast){
-    toast=document.createElement('div');
-    toast.id='appToast';
-    toast.className='app-toast';
-    document.body.appendChild(toast);
-  }
-  return toast;
-}
-function showAppToast(message,type='ok',delay=3500){
-  const toast=ensureAppToast();
-  toast.className=`app-toast show ${type==='err'?'err':'ok'}`;
-  toast.textContent=message;
-  clearTimeout(showAppToast._timer);
-  showAppToast._timer=setTimeout(()=>toast.classList.remove('show'),delay);
-}
-function ensureKrxActionModal(){
-  let modal=document.getElementById('krxActionModal');
-  if(modal) return modal;
-  modal=document.createElement('div');
-  modal.id='krxActionModal';
-  modal.className='krx-action-modal';
-  modal.innerHTML=`<div class="krx-action-card" role="dialog" aria-modal="true" aria-labelledby="krxActionTitle">
-    <button type="button" class="krx-action-close" onclick="closeKrxActionModal()" aria-label="닫기">×</button>
-    <div class="krx-action-icon">📈</div>
-    <h3 id="krxActionTitle">KRX 현재가 반영</h3>
-    <p>GitHub Actions를 실행해서 현재가 데이터를 갱신합니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
-    <label class="krx-action-label" for="krxActionPin">저장/실행 PIN</label>
-    <input id="krxActionPin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 입력">
-    <div id="krxActionStatus" class="krx-action-status"></div>
-    <div class="krx-action-buttons">
-      <button type="button" class="ghost" onclick="closeKrxActionModal()">취소</button>
-      <button type="button" class="primary" onclick="submitKrxActionModal()">실행</button>
-    </div>
-  </div>`;
-  document.body.appendChild(modal);
-  modal.addEventListener('click',e=>{if(e.target===modal)closeKrxActionModal()});
-  return modal;
-}
-function openKrxActionModal(){
-  const modal=ensureKrxActionModal();
-  const status=modal.querySelector('#krxActionStatus');
-  const input=modal.querySelector('#krxActionPin');
-  if(status){status.textContent='';status.className='krx-action-status'}
-  modal.classList.add('show');
-  setTimeout(()=>input?.focus(),30);
-}
-function closeKrxActionModal(){
-  const modal=document.getElementById('krxActionModal');
-  if(modal) modal.classList.remove('show');
-}
-async function submitKrxActionModal(){
-  const modal=ensureKrxActionModal();
-  const input=modal.querySelector('#krxActionPin');
-  const status=modal.querySelector('#krxActionStatus');
-  const submitBtn=modal.querySelector('.krx-action-buttons .primary');
-  const pin=String(input?.value||'').trim();
-  if(!pin){
-    if(status){status.textContent='PIN을 입력해 주세요.';status.className='krx-action-status err'}
-    input?.focus();
-    return;
-  }
-  try{
-    if(submitBtn) submitBtn.disabled=true;
-    if(status){status.textContent='GitHub Actions 실행 요청 중...';status.className='krx-action-status ok'}
-    await dispatchKrxPriceUpdate(pin);
-    if(status){status.textContent='실행 요청 완료. Actions와 Pages 반영을 잠시 기다려 주세요.';status.className='krx-action-status ok'}
-    showAppToast('KRX 현재가 반영 요청 완료', 'ok');
-    setTimeout(closeKrxActionModal,900);
-  }catch(e){
-    if(status){status.textContent='실패: '+(e.message||String(e));status.className='krx-action-status err'}
-  }finally{
-    if(submitBtn) submitBtn.disabled=false;
-  }
-}
 async function triggerKrxPriceUpdate(){
   closeDateActionMenu();
-  openKrxActionModal();
+  const pin=prompt('KRX 현재가 반영 PIN을 입력하세요.');
+  if(pin===null) return;
+  if(!String(pin).trim()){
+    alert('PIN을 입력해야 합니다.');
+    return;
+  }
+  if(!confirm('KRX 현재가 반영 액션을 실행할까요? GitHub Pages 반영까지 몇 분 걸릴 수 있습니다.')) return;
+  try{
+    await dispatchKrxPriceUpdate(pin);
+    alert('KRX 현재가 반영 요청 완료. GitHub Actions 실행 후 Pages 반영까지 잠시 기다려주세요.');
+  }catch(e){
+    alert('KRX 현재가 반영 실패: '+(e.message||String(e)));
+  }
 }
 
 function closeMobileNavMenu(){
@@ -319,44 +255,23 @@ function jumpToSection(id){
   if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function renderMobileNavMenu(){
-  const groups=[
-    {
-      label:'전체',
-      items:[
-        {id:'summary-section',icon:'🏠',title:'연금+계좌 성과',desc:'퇴직연금과 증권계좌 합산'}
-      ]
-    },
-    {
-      label:'퇴직연금',
-      items:[
-        {id:'pension-section',icon:'💼',title:'퇴직연금 현황',desc:'평가금액·원금·수익률'},
-        {id:'pension-products',icon:'📦',title:'연금상품별 현황',desc:'상품별 평가·비중'},
-        {id:'pension-change',icon:'📈',title:'전일 대비 변동',desc:'하루 평가액 변화'},
-        {id:'pension-chart-cum',icon:'📊',title:'운용수익 및 누적수익률',desc:'전체 운용 기준'},
-        {id:'pension-chart-symbol',icon:'🧩',title:'연금상품별 운용수익',desc:'보유상품 재투자 기준'},
-        {id:'pension-chart-alloc',icon:'🥧',title:'평가액 비중',desc:'연금상품·현금성자산'}
-      ]
-    },
-    {
-      label:'증권계좌',
-      items:[
-        {id:'securities-section',icon:'🏦',title:'증권계좌 현황',desc:'계좌 성과와 보유분'},
-        {id:'accounts-summary',icon:'📋',title:'계좌별 성과 요약',desc:'2023-12 이후 누적'},
-        {id:'chart-cum',icon:'📊',title:'누적손익 및 누적수익률',desc:'전일대비손익 포함'},
-        {id:'chart-symbol',icon:'🧩',title:'종목별 누적손익',desc:'핵심종목 기여도'},
-        {id:'chart-alloc',icon:'🥧',title:'평가액 비중',desc:'ETF·개별주식·현금'},
-        {id:'securities-holdings',icon:'📁',title:'증권계좌 보유분',desc:'수량·평단·평가손익'},
-        {id:'ledger-check',icon:'🔍',title:'장부상 결과물 VS 실제 보유액',desc:'실제 잔고 검산'},
-        ...(isLedgerCheckDate(ACTIVE_DATE)?[{id:'capital-source-check',icon:'🧾',title:'투자원금 원천 및 검산',desc:'외부투입·재투입 계산'}]:[])
-      ]
-    }
-  ];
-  const groupHtml=groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>`<button type="button" class="mobile-nav-item ${idx?'sub':''}" onclick="jumpToSection('${item.id}')"><span class="nav-icon">${item.icon}</span><span><strong>${item.title}</strong><em>${item.desc}</em></span></button>`).join('')}</div>`).join('');
   return `<div class="mobile-nav-menu-wrap">
     <button type="button" class="mobile-nav-toggle" onclick="toggleMobileNavMenu()" aria-label="목차 열기">☰</button>
-    <div id="mobileNavMenu" class="mobile-nav-menu" aria-label="모바일 빠른 이동 메뉴">
-      <div class="mobile-nav-head"><span>QUICK MENU</span><button type="button" onclick="closeMobileNavMenu()" aria-label="메뉴 닫기">×</button></div>
-      ${groupHtml}
+    <div id="mobileNavMenu" class="mobile-nav-menu">
+      <button type="button" onclick="jumpToSection('summary-section')">투자 요약</button>
+      <button type="button" onclick="jumpToSection('pension-section')">퇴직연금 현황</button>
+      <button type="button" class="sub" onclick="jumpToSection('pension-products')">연금상품별 현황</button>
+      <button type="button" class="sub" onclick="jumpToSection('pension-change')">전일 대비 변동</button>
+      <button type="button" class="sub" onclick="jumpToSection('pension-chart-cum')">운용수익 및 누적수익률</button>
+      <button type="button" class="sub" onclick="jumpToSection('pension-chart-symbol')">연금상품별 운용수익</button>
+      <button type="button" class="sub" onclick="jumpToSection('pension-chart-alloc')">평가액 비중</button>
+      <button type="button" onclick="jumpToSection('securities-section')">증권계좌 현황</button>
+      <button type="button" class="sub" onclick="jumpToSection('accounts-summary')">계좌별 성과 요약</button>
+      <button type="button" class="sub" onclick="jumpToSection('chart-cum')">누적손익 및 누적수익률</button>
+      <button type="button" class="sub" onclick="jumpToSection('chart-symbol')">종목별 누적손익</button>
+      <button type="button" class="sub" onclick="jumpToSection('chart-alloc')">평가액 비중</button>
+      <button type="button" class="sub" onclick="jumpToSection('securities-holdings')">증권계좌 보유분</button>
+      <button type="button" class="sub" onclick="jumpToSection('ledger-check')">장부상 결과물 VS 실제 보유액</button>
     </div>
   </div>`;
 }
@@ -379,7 +294,7 @@ function renderSecuritiesSummaryCards(x){
   return `<div class="securities-subsection securities-summary-block"><div class="grid cards">${metricCard('증권계좌 투자 결과물',won(x.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(x.totalPrincipal),x.account2Included?'계좌2 실현분 포함 후 현재 장부상 외부투입원금 기준':'선택일 계좌1 투자원금 기준')}${metricCard('총 합산 누적손익',won(x.totalProfit),`${securitiesScope} 누적손익`,false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 기준 투입원금',false,'blue')}</div></div>`;
 }
 function renderSecuritiesSection(x){
-  return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon">🏦</span>증권계좌 현황</h2><p>${x.date} 기준</p></div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderCharts(x),'charts-block')}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(),'source-block'):''}</div></section>`;
+  return `<section id="securities-section"><div class="section-title"><h2>증권계좌 현황</h2><p>${x.date} 기준</p></div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderCharts(x),'charts-block')}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(),'source-block'):''}</div></section>`;
 }
 
 function pensionContributionModeLabel(){
@@ -501,7 +416,7 @@ function renderResultSummary(x){
   const ledgerGap=x.totalResult - actualHoldingAndCash;
   if(!isLedgerCheckDate(x.date)) return '';
 
-  return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon">🔍</span>장부상 결과물 VS 실제 보유액</h2><p>${x.date} 기준 검산</p></div><div class="grid cards">${metricCard('장부상 증권계좌 투자 결과물(A)',won(x.totalResult),'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),'증권계좌 평가총액 + 계좌 밖 현금',false,'blue')}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,ledgerGap>=0?'positive':'negative')}${metricCard('차액 발생 이유','수익실현분 카드대금 사용','6/18 기준 확정 정리값',false)}</div><p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금은 6/18 확인값 ${won(outsideCash)} 유지. 해당 현금은 투자 실현수익 잔액 반영, 차액은 수익실현분 카드대금 사용액으로 정리.</p></section>`;
+  return `<section id="ledger-check"><div class="section-title"><h2>장부상 결과물 VS 실제 보유액</h2><p>${x.date} 기준 검산</p></div><div class="grid cards">${metricCard('장부상 증권계좌 투자 결과물(A)',won(x.totalResult),'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),'증권계좌 평가총액 + 계좌 밖 현금',false,'blue')}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,ledgerGap>=0?'positive':'negative')}${metricCard('차액 발생 이유','수익실현분 카드대금 사용','6/18 기준 확정 정리값',false)}</div><p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금은 6/18 확인값 ${won(outsideCash)} 유지. 해당 현금은 투자 실현수익 잔액 반영, 차액은 수익실현분 카드대금 사용액으로 정리.</p></section>`;
 }
 
 function renderHoldings(x){
@@ -515,7 +430,7 @@ function renderHoldings(x){
         holdReturn=holdCost?holdProfit/holdCost*100:0,
         totalReturnWithCash=totalCostWithCash?holdProfit/totalCostWithCash*100:0;
 
-  return `<section id="securities-holdings"><div class="section-title"><h2><span class="section-title-icon">📁</span>증권계좌 보유분</h2><p>${x.date} 기준</p></div><div class="mobile-scroll"><table class="hold-position-table"><thead><tr><th>종목명</th><th>수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>수수료반영 손익</th><th>손익률</th></tr></thead><tbody>${x.holdings.map(h=>`<tr class="hold-row ${h.cssClass||''}"><td>${h.name}</td><td class="num">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${cls(h.profit)}">${fmt(h.profit)}</td><td class="num ${cls(h.feeAdjustedProfit ?? h.profit)}">${fmt(h.feeAdjustedProfit ?? h.profit)}</td><td class="num ${cls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>보유종목 합계</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(holdReturn)}">${pct(holdReturn)}</td></tr><tr><td>증권계좌 현금</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">0</td><td class="num">0</td><td class="num">0.00%</td></tr><tr class="summary-row"><td>총계(보유분+현금)</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(totalCostWithCash)}</td><td class="num">-</td><td class="num">${fmt(totalEvalWithCash)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(totalReturnWithCash)}">${pct(totalReturnWithCash)}</td></tr></tbody></table></div></section>`;
+  return `<section id="securities-holdings"><div class="section-title"><h2>증권계좌 보유분</h2><p>${x.date} 기준</p></div><div class="mobile-scroll"><table class="hold-position-table"><thead><tr><th>종목명</th><th>수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>수수료반영 손익</th><th>손익률</th></tr></thead><tbody>${x.holdings.map(h=>`<tr class="hold-row ${h.cssClass||''}"><td>${h.name}</td><td class="num">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${cls(h.profit)}">${fmt(h.profit)}</td><td class="num ${cls(h.feeAdjustedProfit ?? h.profit)}">${fmt(h.feeAdjustedProfit ?? h.profit)}</td><td class="num ${cls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>보유종목 합계</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(holdReturn)}">${pct(holdReturn)}</td></tr><tr><td>증권계좌 현금</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">0</td><td class="num">0</td><td class="num">0.00%</td></tr><tr class="summary-row"><td>총계(보유분+현금)</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(totalCostWithCash)}</td><td class="num">-</td><td class="num">${fmt(totalEvalWithCash)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdFeeAdjusted)}">${fmt(holdFeeAdjusted)}</td><td class="num ${cls(totalReturnWithCash)}">${pct(totalReturnWithCash)}</td></tr></tbody></table></div></section>`;
 }
 function renderPension(x){
   const c=PORTFOLIO.constants,
@@ -528,12 +443,44 @@ function renderPension(x){
         hasPrevPension=x.pensionPrevEval!=null,
         noPrevBlock=`<div class="pension-no-prev-note">전일 데이터가 없습니다.</div>`,
         changeContent=hasPrevPension?`<div class="change-kpis"><div class="mini-card"><div class="m-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가금액</div><div class="m-value">${won(x.pensionPrevEval)}</div></div><div class="mini-card"><div class="m-label">${shortDate(x.date)} 평가금액</div><div class="m-value">${won(x.pensionEval)}</div></div><div class="mini-card"><div class="m-label">하루 변동분</div><div class="m-value ${cls(day)}">${signed(day,'원')}</div></div><div class="mini-card"><div class="m-label">하루 변동률</div><div class="m-value ${cls(rate)}">${(rate>0?'+':'')+pct(rate)}</div></div></div><div class="change-table-wrap desktop-change-table"><table class="change-table"><thead><tr><th>상품</th><th>${x.prevKey?shortDate(x.prevKey):'-'} 종가</th><th>${shortDate(x.date)} 종가</th><th>일변동</th></tr></thead><tbody>${x.pensionRows.map(r=>`<tr><td>${r.name}</td><td class="num"><span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span></td><td class="num"><span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span></td><td class="num ${cls(r.dayChange)}">${r.dayChange==null?'-':signed(r.dayChange)}</td></tr>`).join('')}<tr><td>현금성자산</td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.prevPensionCash)}</span></td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.pensionCash)}</span></td><td class="num ${cls(x.pensionCash-x.prevPensionCash)}">${signed(x.pensionCash-x.prevPensionCash)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${fmt(x.pensionPrevEval)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(day)}">${signed(day)}</td></tr></tbody></table></div><div class="change-mobile-list">${x.pensionRows.map(r=>`<div class="change-product-card"><div class="change-product-title">${r.name}</div><div class="change-product-row"><span class="change-product-label">${x.prevKey?shortDate(x.prevKey):'-'} 종가</span><span class="change-product-value">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span></div><div class="change-product-row"><span class="change-product-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가액</span><span class="change-product-value">${r.prevEval==null?'-':won(r.prevEval)}</span></div><div class="change-product-row"><span class="change-product-label">${shortDate(x.date)} 종가</span><span class="change-product-value">${fmt(r.price)}</span></div><div class="change-product-row"><span class="change-product-label">${shortDate(x.date)} 평가액</span><span class="change-product-value">${won(r.evalAmount)}</span></div><div class="change-product-row"><span class="change-product-label">일변동</span><span class="change-product-value ${cls(r.dayChange)}">${r.dayChange==null?'-':signed(r.dayChange)}</span></div></div>`).join('')}<div class="change-product-card"><div class="change-product-title">현금성자산</div><div class="change-product-row"><span class="change-product-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가액</span><span class="change-product-value">${won(x.prevPensionCash)}</span></div><div class="change-product-row"><span class="change-product-label">${shortDate(x.date)} 평가액</span><span class="change-product-value">${won(x.pensionCash)}</span></div><div class="change-product-row"><span class="change-product-label">일변동</span><span class="change-product-value ${cls(x.pensionCash-x.prevPensionCash)}">${signed(x.pensionCash-x.prevPensionCash)}</span></div></div></div>`:noPrevBlock;
-  return `<section id="pension-section"><div class="section-title"><h2><span class="section-title-icon">💼</span>퇴직연금 현황</h2><p>${x.date} 기준</p></div><div class="pension-band"><div class="grid cards" style="margin-top:0">${metricCard('퇴직연금 평가금액',won(x.pensionEval),`${shortDate(x.date)} 추정 평가금액`,true)}${metricCard('퇴직연금 납입원금',won(x.pensionPrincipal),pensionContributionSubText(x))}${metricCard('퇴직연금 운용수익',won(x.pensionProfit),'평가금액 - 납입원금',false,'positive')}${metricCard('퇴직연금 누적수익률',pct(x.pensionReturn),'퇴직연금 운용수익 ÷ 퇴직연금 납입원금',false,'blue')}</div><div class="grid two pension-detail-grid" style="margin-top:16px"><div class="note pension-products-note" id="pension-products"><div class="section-title"><h2><span class="section-title-icon">📦</span>연금상품별 현황</h2></div><div class="mobile-scroll"><table class="pension-products-table"><thead><tr><th>상품</th><th>수량</th><th>평균단가</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th>수익률</th><th>비중</th></tr></thead><tbody>${x.pensionRows.map(r=>pensionRow(r,x.pensionEval)).join('')}${pensionCashRow(x.pensionCash,x.pensionEval,pensionCashCost)}<tr class="summary-row"><td>합계</td><td></td><td></td><td class="num">${fmt(pensionHeldCost)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(pensionHeldProfit)}">${fmt(pensionHeldProfit)}</td><td class="num ${cls(pensionHeldReturn)}">${pct(pensionHeldReturn)}</td><td></td></tr></tbody></table></div><p class="small" style="margin-top:10px">※ 매수원금 합계는 현재 보유상품 재투자 기준</p>
-</div><div class="note pension-change-note" id="pension-change"><div class="section-title"><h2><span class="section-title-icon">📈</span>전일 대비 변동</h2></div>${changeContent}</div></div>${renderPensionCharts(x)}</div></section>`;
+  return `<section id="pension-section"><div class="section-title"><h2>퇴직연금 현황</h2><p>${x.date} 기준</p></div><div class="pension-band"><div class="grid cards" style="margin-top:0">${metricCard('퇴직연금 평가금액',won(x.pensionEval),`${shortDate(x.date)} 추정 평가금액`,true)}${metricCard('퇴직연금 납입원금',won(x.pensionPrincipal),pensionContributionSubText(x))}${metricCard('퇴직연금 운용수익',won(x.pensionProfit),'평가금액 - 납입원금',false,'positive')}${metricCard('퇴직연금 누적수익률',pct(x.pensionReturn),'퇴직연금 운용수익 ÷ 퇴직연금 납입원금',false,'blue')}</div><div class="grid two pension-detail-grid" style="margin-top:16px"><div class="note pension-products-note" id="pension-products"><div class="section-title"><h2>연금상품별 현황</h2></div><div class="mobile-scroll"><table class="pension-products-table"><thead><tr><th>상품</th><th>수량</th><th>평균단가</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th>수익률</th><th>비중</th></tr></thead><tbody>${x.pensionRows.map(r=>pensionRow(r,x.pensionEval)).join('')}${pensionCashRow(x.pensionCash,x.pensionEval,pensionCashCost)}<tr class="summary-row"><td>합계</td><td></td><td></td><td class="num">${fmt(pensionHeldCost)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(pensionHeldProfit)}">${fmt(pensionHeldProfit)}</td><td class="num ${cls(pensionHeldReturn)}">${pct(pensionHeldReturn)}</td><td></td></tr></tbody></table></div><p class="small" style="margin-top:10px">※ 매수원금 합계는 현재 보유상품 재투자 기준</p>${renderPensionProductInsights(x)}
+</div><div class="note pension-change-note" id="pension-change"><div class="section-title"><h2>전일 대비 변동</h2></div>${changeContent}</div></div>${renderPensionCharts(x)}</div></section>`;
 }
 function pensionRow(r,total){const w=total?r.evalAmount/total*100:0;return `<tr><td><strong>${r.name}</strong></td><td class="num">${fmt(r.qty)}</td><td class="num">${fmt(r.cost/r.qty)}</td><td class="num">${fmt(r.cost)}</td><td class="num">${fmt(r.evalAmount)}</td><td class="num ${cls(r.profit)}">${fmt(r.profit)}</td><td class="num ${cls(r.returnRate)}">${pct(r.returnRate)}</td><td><div class="bar-box"><div class="bar-fill ${r.barClass}" style="width:${Math.max(0,Math.min(100,w)).toFixed(1)}%"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}
 function pensionCashRow(cash,total,cost=39408){const w=total?cash/total*100:0,profit=cash-cost,ret=cost?profit/cost*100:0;return `<tr><td><strong>현금성자산</strong></td><td class="num">1</td><td class="num">${fmt(cost)}</td><td class="num">${fmt(cost)}</td><td class="num">${fmt(cash)}</td><td class="num ${cls(profit)}">${fmt(profit)}</td><td class="num ${cls(ret)}">${pct(ret)}</td><td><div class="bar-box"><div class="bar-fill bar-gray" style="width:${w.toFixed(1)}%"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}
-function renderCombined(x){const c=PORTFOLIO.constants;return `<section id="summary-section"><div class="section-title"><h2><span class="section-title-icon">🏠</span>연금+계좌 성과</h2><p>단타 제외</p></div><div class="mobile-scroll"><table class="combined-performance-table"><thead><tr><th>구분</th><th>투입원금</th><th>투자 결과물</th><th>누적손익</th><th>투자대비 이익률</th></tr></thead><tbody><tr><td><strong>퇴직연금</strong></td><td class="num">${fmt(x.pensionPrincipal)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(x.pensionProfit)}">${fmt(x.pensionProfit)}</td><td class="num ${cls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr><td><strong>증권계좌</strong></td><td class="num">${fmt(x.totalPrincipal)}</td><td class="num">${fmt(x.totalResult)}</td><td class="num ${cls(x.totalProfit)}">${fmt(x.totalProfit)}</td><td class="num ${cls(x.returnRate)}">${pct(x.returnRate)}</td></tr><tr class="summary-row"><td>합산</td><td class="num">${fmt(x.combinedPrincipal)}</td><td class="num">${fmt(x.combinedResult)}</td><td class="num ${cls(x.combinedProfit)}">${fmt(x.combinedProfit)}</td><td class="num ${cls(x.combinedReturn)}">${pct(x.combinedReturn)}</td></tr></tbody></table></div></section>`}
+
+function pensionVizColor(i){const colors=['#2563eb','#0ea5e9','#8b5cf6','#f59e0b','#10b981','#94a3b8'];return colors[i%colors.length];}
+function isSafePensionAsset(name=''){return /(채권|현금|예금|MMF|RP|CMA|단기채)/.test(String(name));}
+function getPensionDayContributionItems(x){
+  if(x.pensionPrevEval==null)return [];
+  const cashDelta=Number(x.pensionCash||0)-Number(x.prevPensionCash||0);
+  const items=[...x.pensionRows.map(r=>({name:r.name,value:Number(r.dayChange)||0})),{name:'현금성자산',value:cashDelta}]
+    .filter(v=>v.value>0)
+    .sort((a,b)=>b.value-a.value);
+  const total=items.reduce((a,v)=>a+v.value,0);
+  return items.map((v,i)=>({...v,share:total?v.value/total*100:0,color:pensionVizColor(i)}));
+}
+function getPensionRiskGauge(x){
+  const riskEval=x.pensionRows.filter(r=>!isSafePensionAsset(r.name)).reduce((a,r)=>a+Number(r.evalAmount||0),0);
+  const safeEval=Math.max(0,Number(x.pensionEval||0)-riskEval);
+  const ratio=Number(x.pensionEval||0)?riskEval/Number(x.pensionEval)*100:0;
+  const threshold=70;
+  return {riskEval,safeEval,ratio,threshold,gap:ratio-threshold,allowedEval:Number(x.pensionEval||0)*(threshold/100)};
+}
+function renderPensionProductInsights(x){
+  const items=getPensionDayContributionItems(x);
+  const risingTotal=items.reduce((a,v)=>a+v.value,0);
+  const risk=getPensionRiskGauge(x);
+  const gaugeWidth=Math.max(0,Math.min(100,risk.ratio));
+  const riskTone=risk.ratio>risk.threshold?'danger':'safe';
+  const topHtml=x.pensionPrevEval==null
+    ? `<div class="pension-empty-state">전일 데이터가 없어 오늘 상승분 기여도를 표시하지 않습니다.</div>`
+    : items.length
+      ? `<div class="pension-stack-top"><div><div class="pension-stack-kicker">${x.prevKey?`${shortDate(x.prevKey)} → ${shortDate(x.date)}`:'오늘'} 상승 기여 합계</div><div class="pension-stack-total positive">${signed(risingTotal,'원')}</div></div><div class="pension-stack-chip">${items.length}개 자산</div></div><div class="pension-stack-bar">${items.map(item=>`<div class="pension-stack-segment" style="width:${Math.max(item.share,2).toFixed(2)}%;background:${item.color}"><span>${item.share>=12?item.name.replace('KODEX ',''):''}</span></div>`).join('')}</div><div class="pension-stack-legend">${items.map(item=>`<div class="pension-stack-legend-item"><span class="pension-stack-dot" style="background:${item.color}"></span><span class="pension-stack-name">${item.name}</span><span class="pension-stack-share">${item.share.toFixed(1)}%</span><strong class="pension-stack-value positive">${signed(item.value)}</strong></div>`).join('')}</div>`
+      : `<div class="pension-empty-state">상승한 자산이 없어 기여도를 표시하지 않습니다.</div>`;
+  return `<div class="pension-insight-zone"><div class="pension-insight-card"><div class="pension-insight-head"><div><div class="pension-insight-eyebrow">TODAY CONTRIBUTION</div><h3>오늘 상승분 기여도</h3></div><span class="pension-insight-badge blue">STACK BAR</span></div>${topHtml}</div><div class="pension-insight-card"><div class="pension-insight-head"><div><div class="pension-insight-eyebrow">RISK ASSET RULE</div><h3>위험자산 70% 룰</h3></div><span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}">현재 ${risk.ratio.toFixed(1)}%</span></div><div class="pension-risk-line"><span>현재 위험자산 평가액</span><strong>${won(risk.riskEval)}</strong></div><div class="pension-risk-gauge"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}" style="width:${gaugeWidth.toFixed(1)}%"></div><div class="pension-risk-threshold" style="left:${risk.threshold}%"><span>${risk.threshold}%</span></div></div><div class="pension-risk-scale"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div><div class="pension-risk-summary-grid"><div class="pension-risk-mini"><span class="label">안전자산 평가액</span><strong>${won(risk.safeEval)}</strong></div><div class="pension-risk-mini"><span class="label">기준 대비</span><strong class="${risk.gap>0?'negative':'positive'}">${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p</strong></div></div><p class="small pension-risk-note">※ 위험자산은 채권형·현금성 자산 제외 기준으로 계산</p></div></div>`;
+}
+function renderCombined(x){const c=PORTFOLIO.constants;return `<section id="summary-section"><div class="section-title"><h2>연금+계좌 성과</h2><p>단타 제외</p></div><div class="mobile-scroll"><table class="combined-performance-table"><thead><tr><th>구분</th><th>투입원금</th><th>투자 결과물</th><th>누적손익</th><th>투자대비 이익률</th></tr></thead><tbody><tr><td><strong>퇴직연금</strong></td><td class="num">${fmt(x.pensionPrincipal)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(x.pensionProfit)}">${fmt(x.pensionProfit)}</td><td class="num ${cls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr><td><strong>증권계좌</strong></td><td class="num">${fmt(x.totalPrincipal)}</td><td class="num">${fmt(x.totalResult)}</td><td class="num ${cls(x.totalProfit)}">${fmt(x.totalProfit)}</td><td class="num ${cls(x.returnRate)}">${pct(x.returnRate)}</td></tr><tr class="summary-row"><td>합산</td><td class="num">${fmt(x.combinedPrincipal)}</td><td class="num">${fmt(x.combinedResult)}</td><td class="num ${cls(x.combinedProfit)}">${fmt(x.combinedProfit)}</td><td class="num ${cls(x.combinedReturn)}">${pct(x.combinedReturn)}</td></tr></tbody></table></div></section>`}
 function calcMdd(cum){
   if(!cum.length)return null;
   let peak=cum[0], maxDrop=0, from=cum[0].날짜, to=cum[0].날짜;
@@ -554,10 +501,10 @@ function renderCharts(x){
         returnDelta=prevCum?lastReturn-prevCum['합계 : 누적수익률']:0,
         bestGap=best['합계 : 누적손익']-lastProfit,
         bestDetail=bestGap===0?'금일 갱신':'금일 대비 '+signed(bestGap,'원');
-  return `<section id="investment-analysis"><div class="section-title"><h2><span class="section-title-icon">🗓️</span>투자 기간 분석</h2><p>삼성증권 계좌1 기준</p></div><div class="grid chart-grid">
-  <div class="chart-card" id="chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>누적손익 및 누적수익률</h3><p>막대는 누적손익과 전일대비손익, 선은 누적수익률을 나타냄.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>누적손익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" style="background:#5abdf2"></span>누적수익률</span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card"><div class="m-label">최고 누적손익(${best.날짜})</div><div class="m-value">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card"><div class="m-label">최고의 하루(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card"><div class="m-label">최악의 하루(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
-  <div class="chart-card" id="chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🧩</span>종목별 누적손익</h3><p>핵심종목별 누적손익의 변화와 기여도를 비교.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff8a65"></span>SK하이닉스</span><span class="legend-item"><span class="swatch" style="background:#8bc34a"></span>삼성전자</span><span class="legend-item"><span class="swatch" style="background:#26c6da"></span>현대차</span><span class="legend-item"><span class="swatch" style="background:#42a5f5"></span>KODEX 200</span></div><div class="chart-note symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>symbolCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">※ 기여도는 차트에 표시된 종목들의 누적손익 합계 기준이며, 전일대비 변동률은 전일대비 변동액 ÷ 전일의 평가금액</div></div>
-  <div class="chart-card" id="chart-alloc"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🥧</span>평가액 비중</h3><p>ETF·개별주식·현금의 일자별 평가액 비중 변화.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartAlloc"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff6b6b"></span>ETF</span><span class="legend-item"><span class="swatch" style="background:#ffc857"></span>개별주식</span><span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금</span></div><div class="chart-note"><div class="mini-card"><div class="m-label">ETF</div><div class="m-value">${won(x.etfEval)} <span class="small">(${(x.etfEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식</div><div class="m-value">${won(x.stockEval)} <span class="small">(${(x.stockEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${(x.securitiesCash/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div></div></div></div>
+  return `<section id="investment-analysis"><div class="section-title"><h2>투자 기간 분석</h2><p>삼성증권 계좌1 기준</p></div><div class="grid chart-grid">
+  <div class="chart-card" id="chart-cum"><div class="chart-head"><div><h3>누적손익 및 누적수익률</h3><p>막대는 누적손익과 전일대비손익, 선은 누적수익률을 나타냄.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>누적손익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" style="background:#5abdf2"></span>누적수익률</span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card"><div class="m-label">최고 누적손익(${best.날짜})</div><div class="m-value">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card"><div class="m-label">최고의 하루(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card"><div class="m-label">최악의 하루(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
+  <div class="chart-card" id="chart-symbol"><div class="chart-head"><div><h3>종목별 누적손익</h3><p>핵심종목별 누적손익의 변화와 기여도를 비교.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff8a65"></span>SK하이닉스</span><span class="legend-item"><span class="swatch" style="background:#8bc34a"></span>삼성전자</span><span class="legend-item"><span class="swatch" style="background:#26c6da"></span>현대차</span><span class="legend-item"><span class="swatch" style="background:#42a5f5"></span>KODEX 200</span></div><div class="chart-note symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>symbolCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">※ 기여도는 차트에 표시된 종목들의 누적손익 합계 기준이며, 전일대비 변동률은 전일대비 변동액 ÷ 전일의 평가금액</div></div>
+  <div class="chart-card" id="chart-alloc"><div class="chart-head"><div><h3>평가액 비중</h3><p>ETF·개별주식·현금의 일자별 평가액 비중 변화.</p></div></div><div class="chart-wrap"><svg class="chart" id="chartAlloc"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff6b6b"></span>ETF</span><span class="legend-item"><span class="swatch" style="background:#ffc857"></span>개별주식</span><span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금</span></div><div class="chart-note"><div class="mini-card"><div class="m-label">ETF</div><div class="m-value">${won(x.etfEval)} <span class="small">(${(x.etfEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식</div><div class="m-value">${won(x.stockEval)} <span class="small">(${(x.stockEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${(x.securitiesCash/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div></div></div></div>
   </div></section>`;
 }
 function symbolCard(h,total){const contrib=total?h.profit/total*100:0,cr=h.prevEval?h.dayChange/h.prevEval*100:null;return `<div class="mini-card symbol-card"><div class="m-label">${h.name==='KODEX 200'?'KODEX 200':h.name}</div><div class="m-value ${cls(h.profit)}">${won(h.profit)}</div><div class="symbol-metrics"><div class="symbol-metric"><span class="symbol-metric-label">기여도</span><span class="symbol-metric-value ${cls(contrib)}">${pct(contrib)}</span></div><div class="symbol-metric"><span class="symbol-metric-label">전일대비 변동액</span><span class="symbol-metric-value ${cls(h.dayChange)}">${h.dayChange==null?'-':signed(h.dayChange,'원')}</span></div><div class="symbol-metric"><span class="symbol-metric-label">전일대비 변동률</span><span class="symbol-metric-value ${cr==null?'':cls(cr)}">${cr==null?'-':((cr>0?'+':'')+pct(cr))}</span></div></div></div>`}
@@ -615,10 +562,10 @@ function renderPensionCharts(x){
         bestDetail=bestGap===0?'금일 갱신':'금일 대비 '+signed(bestGap,'원');
   const productEvalTotal=x.pensionRows.reduce((a,r)=>a+r.evalAmount,0);
   const allocCards=x.pensionRows.map(r=>`<div class="mini-card"><div class="m-label">${r.name}</div><div class="m-value">${won(r.evalAmount)} <span class="small">(${(r.evalAmount/productEvalTotal*100).toFixed(1)}%)</span></div></div>`).join('');
-  return `<section id="pension-investment-analysis" class="pension-chart-block"><div class="section-title"><h2><span class="section-title-icon">🗓️</span>투자 기간 분석</h2><p>퇴직연금 기준</p></div><div class="grid chart-grid">
-  <div class="chart-card" id="pension-chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>운용수익 및 누적수익률 <span class="chart-title-sub">(전체 운용 기준)</span></h3><p>막대는 운용수익과 전일대비손익, 선은 누적수익률을 나타냄.</p></div></div><div class="chart-wrap"><svg class="chart" id="pensionChartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>운용수익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" style="background:#5abdf2"></span>누적수익률</span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 운용수익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card"><div class="m-label">최고 운용수익(${best.날짜})</div><div class="m-value">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card"><div class="m-label">최고의 하루(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card"><div class="m-label">최악의 하루(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
-  <div class="chart-card" id="pension-chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🧩</span>연금상품별 운용수익 <span class="chart-title-sub">(보유상품 재투자 기준)</span></h3><p>연금상품별 운용수익의 변화와 기여도를 비교.</p></div></div><div class="chart-wrap"><svg class="chart" id="pensionChartSymbol"></svg></div><div class="chart-legend">${x.pensionRows.map(r=>`<span class="legend-item"><span class="swatch" style="background:${pensionSeriesColor(r.name)}"></span>${r.name}</span>`).join('')}</div><div class="chart-note symbol-summary-grid pension-symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>pensionProductCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">※ 기여도는 차트에 표시된 상품들의 운용수익 합계 기준이며, 전일대비 변동률은 전일대비 변동액 ÷ 전일의 평가금액</div></div>
-  <div class="chart-card" id="pension-chart-alloc"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🥧</span>평가액 비중</h3><p>각 연금상품 및 현금성자산의 일자별 평가액 비중 변화.</p></div></div><div class="chart-wrap"><svg class="chart" id="pensionChartAlloc"></svg></div><div class="chart-legend">${x.pensionRows.map(r=>`<span class="legend-item"><span class="swatch" style="background:${pensionSeriesColor(r.name)}"></span>${r.name}</span>`).join('')}<span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금성자산</span></div><div class="chart-note">${allocCards}<div class="mini-card"><div class="m-label">현재 평가총액</div><div class="m-value">${won(x.pensionEval)}</div><div class="m-detail cash-include-detail">(현금 ${won(x.pensionCash)} 포함)</div></div></div></div>
+  return `<section id="pension-investment-analysis" class="pension-chart-block"><div class="section-title"><h2>투자 기간 분석</h2><p>퇴직연금 기준</p></div><div class="grid chart-grid">
+  <div class="chart-card" id="pension-chart-cum"><div class="chart-head"><div><h3>운용수익 및 누적수익률 <span class="chart-title-sub">(전체 운용 기준)</span></h3><p>막대는 운용수익과 전일대비손익, 선은 누적수익률을 나타냄.</p></div></div><div class="chart-wrap"><svg class="chart" id="pensionChartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>운용수익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" style="background:#5abdf2"></span>누적수익률</span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 운용수익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card"><div class="m-label">최고 운용수익(${best.날짜})</div><div class="m-value">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card"><div class="m-label">최고의 하루(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card"><div class="m-label">최악의 하루(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
+  <div class="chart-card" id="pension-chart-symbol"><div class="chart-head"><div><h3>연금상품별 운용수익 <span class="chart-title-sub">(보유상품 재투자 기준)</span></h3><p>연금상품별 운용수익의 변화와 기여도를 비교.</p></div></div><div class="chart-wrap"><svg class="chart" id="pensionChartSymbol"></svg></div><div class="chart-legend">${x.pensionRows.map(r=>`<span class="legend-item"><span class="swatch" style="background:${pensionSeriesColor(r.name)}"></span>${r.name}</span>`).join('')}</div><div class="chart-note symbol-summary-grid pension-symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>pensionProductCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">※ 기여도는 차트에 표시된 상품들의 운용수익 합계 기준이며, 전일대비 변동률은 전일대비 변동액 ÷ 전일의 평가금액</div></div>
+  <div class="chart-card" id="pension-chart-alloc"><div class="chart-head"><div><h3>평가액 비중</h3><p>각 연금상품 및 현금성자산의 일자별 평가액 비중 변화.</p></div></div><div class="chart-wrap"><svg class="chart" id="pensionChartAlloc"></svg></div><div class="chart-legend">${x.pensionRows.map(r=>`<span class="legend-item"><span class="swatch" style="background:${pensionSeriesColor(r.name)}"></span>${r.name}</span>`).join('')}<span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금성자산</span></div><div class="chart-note">${allocCards}<div class="mini-card"><div class="m-label">현재 평가총액</div><div class="m-value">${won(x.pensionEval)}</div><div class="m-detail cash-include-detail">(현금 ${won(x.pensionCash)} 포함)</div></div></div></div>
   </div></section>`;
 }
 
@@ -630,9 +577,9 @@ function renderAccounts(x){
     ['토스증권',0,c.tossProfit,0,'2026-03-09 매수 후 익일 매도. 3/23 이전 확정 실현수익이라 전 구간 포함.']
   ];
   const hiddenNote=x.account2Included?'':'<p class="table-note"><strong>참고:</strong> 삼성증권 계좌2는 2026-05-22 전량 매도 후 실현분 반영. 선택일이 2026-05-21 이전이면 당시 전체 성과 기준에서 제외되어 이 표에서도 숨김.</p>';
-  return `<section id="accounts-summary"><div class="section-title"><h2><span class="section-title-icon">📋</span>계좌별 성과 요약</h2><span class="title-badge">2023-12 이후 누적</span></div><div class="mobile-scroll accounts-scroll"><table class="accounts-table"><thead><tr><th class="accounts-name-head">구분</th><th>투자원금</th><th>누적손익</th><th>수익률</th><th>메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="accounts-name">${r[0]}</td><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${cls(r[2])}">${fmt(r[2])}</td><td class="num ${cls(r[3])}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${r[4]}</td></tr>`).join('')}</tbody></table></div>${hiddenNote}</section>`;
+  return `<section id="accounts-summary"><div class="section-title"><h2>계좌별 성과 요약</h2><span class="title-badge">2023-12 이후 누적</span></div><div class="mobile-scroll accounts-scroll"><table class="accounts-table"><thead><tr><th class="accounts-name-head">구분</th><th>투자원금</th><th>누적손익</th><th>수익률</th><th>메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="accounts-name">${r[0]}</td><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${cls(r[2])}">${fmt(r[2])}</td><td class="num ${cls(r[3])}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${r[4]}</td></tr>`).join('')}</tbody></table></div>${hiddenNote}</section>`;
 }
-function renderSourceTables(){const c=PORTFOLIO.constants,vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal;return `<section id="capital-source-check" class="capital-source-section"><div class="section-title source-title"><h2><span class="section-title-icon">🧾</span>투자원금 원천 및 검산</h2><p>계좌1 투자원금이 어떤 돈으로 구성됐는지 분리 계산</p></div><div class="source-panel"><div class="grid three source-grid"><div class="card source-card"><div class="label">계좌1 원천별 투입</div><table style="font-size:12px;margin-top:8px;border-radius:12px"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num negative">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr><tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div><div class="card source-card highlight"><div class="label">전체 외부투입원금</div><div class="value">${won(c.externalPrincipal)}</div><div class="sub">외부에서 실제 들어온 돈만 계산</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 투입 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 순투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${fmt(c.externalPrincipal)}</td></tr></tbody></table></div><div class="card source-card"><div class="label">계좌1 투자원금 검산</div><div class="value">${won(c.account1Principal)}</div><div class="sub">전체 외부투입 + 수익 재투입</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>전체 외부투입원금</td><td class="num">${fmt(c.externalPrincipal)}</td></tr><tr><td>레버 수익 재투입분</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입분</td><td class="num">${fmt(vipProfitReinvest)}</td></tr><tr class="summary-row"><td>검산값</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div></div></div></section>`}
+function renderSourceTables(){const c=PORTFOLIO.constants,vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal;return `<section class="grid three"><div class="card"><div class="label">계좌1 원천별 투입</div><table style="font-size:12px;margin-top:8px;border-radius:12px"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num negative">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr><tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div><div class="card"><div class="label">전체 외부투입원금</div><div class="value">${won(c.externalPrincipal)}</div><div class="sub">외부에서 실제 들어온 돈만 계산</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 투입 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 순투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${fmt(c.externalPrincipal)}</td></tr></tbody></table></div><div class="card"><div class="label">계좌1 투자원금 검산</div><div class="value">${won(c.account1Principal)}</div><div class="sub">전체 외부투입 + 수익 재투입</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>전체 외부투입원금</td><td class="num">${fmt(c.externalPrincipal)}</td></tr><tr><td>레버 수익 재투입분</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입분</td><td class="num">${fmt(vipProfitReinvest)}</td></tr><tr class="summary-row"><td>검산값</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div></section>`}
 function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
 function el(name, attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',name);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e}
 function tooltip(){return document.getElementById('dashTooltip')}
