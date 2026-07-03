@@ -697,9 +697,17 @@ function drawAxes(svg,cfg,yTicks,y2Ticks=null){
   svg.appendChild(el('line',{x1:l,y1:h-b,x2:w-r,y2:h-b,stroke:'#cbd5e1'}));
   if(y2Ticks){for(const tick of y2Ticks){const y=cfg.y2(tick);const tx=el('text',{x:w-r+10,y:y+4,'text-anchor':'start','font-size':11,fill:'#6b7280'});tx.textContent=tick.toFixed(0)+'%';svg.appendChild(tx)}svg.appendChild(el('line',{x1:w-r,y1:t,x2:w-r,y2:h-b,stroke:'#cbd5e1'}))}
 }
+
+function chartX(cfg,dataLength,index){
+  const plotW=cfg.w-cfg.l-cfg.r;
+  const edge=Number(cfg.edgePad||0);
+  if(dataLength<=1) return cfg.l+plotW/2;
+  return cfg.l+edge+index*(plotW-edge*2)/(dataLength-1);
+}
+
 function labelDates(svg,cfg,data,every=3){
-  const{w,h,l,r,b}=cfg,plotW=w-l-r;
-  data.forEach((d,i)=>{if(i%every===0||i===data.length-1){const x=l+(data.length===1?0:i*plotW/(data.length-1));const txt=el('text',{x:x,y:h-b+32,transform:`rotate(-65 ${x} ${h-b+32})`,'text-anchor':'end','font-size':10,fill:'#6b7280'});txt.textContent=d['날짜'];svg.appendChild(txt)}})
+  const{h,b}=cfg;
+  data.forEach((d,i)=>{if(i%every===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:h-b+32,transform:`rotate(-65 ${x} ${h-b+32})`,'text-anchor':'end','font-size':10,fill:'#6b7280'});txt.textContent=d['날짜'];svg.appendChild(txt)}})
 }
 function polyline(svg,points,color,width=2.5){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':width,'stroke-linejoin':'round','stroke-linecap':'round'}))}
 function circles(svg,points,color){points.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:3,fill:'#fff',stroke:color,'stroke-width':2})))}
@@ -707,7 +715,9 @@ function nearestIndex(evt,svg,cfg,data){
   const pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;
   const loc=pt.matrixTransform(svg.getScreenCTM().inverse());
   const plotW=cfg.w-cfg.l-cfg.r;
-  let idx=Math.round((loc.x-cfg.l)/plotW*(data.length-1));
+  const edge=Number(cfg.edgePad||0);
+  const usable=Math.max(1,plotW-edge*2);
+  let idx=Math.round((loc.x-cfg.l-edge)/usable*(data.length-1));
   return Math.max(0,Math.min(data.length-1,idx));
 }
 function addHover(svg,cfg,data,renderHtml){
@@ -715,7 +725,7 @@ function addHover(svg,cfg,data,renderHtml){
   svg.appendChild(line);
   const hit=el('rect',{x:cfg.l,y:cfg.t,width:cfg.w-cfg.l-cfg.r,height:cfg.h-cfg.t-cfg.b,class:'svg-hitbox'});
   svg.appendChild(hit);
-  const show=evt=>{const idx=nearestIndex(evt,svg,cfg,data);const x=cfg.l+(data.length===1?0:idx*(cfg.w-cfg.l-cfg.r)/(data.length-1));line.setAttribute('x1',x);line.setAttribute('x2',x);line.setAttribute('opacity',1);showTooltip(evt,renderHtml(data[idx],idx))};
+  const show=evt=>{const idx=nearestIndex(evt,svg,cfg,data);const x=chartX(cfg,data.length,idx);line.setAttribute('x1',x);line.setAttribute('x2',x);line.setAttribute('opacity',1);showTooltip(evt,renderHtml(data[idx],idx))};
   hit.addEventListener('mousemove',show);
   hit.addEventListener('pointerdown',show);
   hit.addEventListener('mouseleave',()=>{line.setAttribute('opacity',0);hideTooltip()});
@@ -796,18 +806,19 @@ function drawPensionCumChart(){
   const tickInfo=alignedDualTickInfo(Math.min(...profits,...daily),Math.max(...profits,...daily),5000000,Math.min(...returns),Math.max(...returns),20);
   const yInfo=tickInfo.left,rInfo=tickInfo.right;
   const w=1120,h=330,l=82,rgt=66,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-  const cfg={w,h,l,r:rgt,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),y2:v=>t+(rInfo.max-v)/(rInfo.max-rInfo.min)*(h-t-b)};
-  drawAxes(svg,cfg,yInfo.ticks,rInfo.ticks);
   const plotW=w-l-rgt,n=data.length,barW=Math.max(8,plotW/Math.max(1,n)/3);
+  const edgePad=Math.max(24,barW*2.1);
+  const cfg={w,h,l,r:rgt,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),y2:v=>t+(rInfo.max-v)/(rInfo.max-rInfo.min)*(h-t-b)};
+  drawAxes(svg,cfg,yInfo.ticks,rInfo.ticks);
   data.forEach((d,i)=>{
-    const x=l+(n===1?plotW/2:i*plotW/(n-1)),p=d['합계 : 누적손익'],dy=d['합계 : 전일대비손익'];
+    const x=chartX(cfg,n,i),p=d['합계 : 누적손익'],dy=d['합계 : 전일대비손익'];
     const y0=cfg.y(0);
     [[p,'#ffb84d',-barW*.6],[dy,'#a7d7a8',barW*.6]].forEach(([v,color,off])=>{
       const y=cfg.y(v),hh=Math.abs(y0-y);
       svg.appendChild(el('rect',{x:x+off-barW/2,y:Math.min(y,y0),width:barW,height:hh,rx:3,fill:color,opacity:.9}));
     });
   });
-  const pts=data.map((d,i)=>[l+(n===1?plotW/2:i*plotW/(n-1)),cfg.y2(d['합계 : 누적수익률'])]);
+  const pts=data.map((d,i)=>[chartX(cfg,n,i),cfg.y2(d['합계 : 누적수익률'])]);
   polyline(svg,pts,'#5abdf2',2.8);circles(svg,pts,'#5abdf2');labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>`<div class="tt-date">${d['날짜']}</div>${row('운용수익',signed(d['합계 : 누적손익'],'원'),clsBy(d['합계 : 누적손익']))}${row('전일대비손익',signed(d['합계 : 전일대비손익'],'원'),clsBy(d['합계 : 전일대비손익']))}${row('누적수익률',(d['합계 : 누적수익률']>0?'+':'')+pct(d['합계 : 누적수익률']),clsBy(d['합계 : 누적수익률']))}`);
 }
@@ -825,9 +836,10 @@ function drawPensionStacked(){
   const data=pensionAllocHistory(ACTIVE_DATE),svg=document.getElementById('pensionChartAlloc');if(!svg||!data.length)return;clear(svg);
   const series=[...(PORTFOLIO.pension||[]).map(r=>r.name),'현금성자산'],colors=Object.fromEntries(series.map(s=>[s,s==='현금성자산'?'#8fd18f':pensionSeriesColor(s)])),totals=data.map(d=>series.reduce((a,s)=>a+(d[s]||0),0));
   const yInfo=fixedTickInfo(0,Math.max(1,...totals),10000000,true),w=1120,h=330,l=82,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-  const cfg={w,h,l,r,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b)};drawAxes(svg,cfg,yInfo.ticks);
   const plotW=w-l-r,n=data.length,barW=Math.max(10,plotW/Math.max(1,n)*.55);
-  data.forEach((d,i)=>{let acc=0;const x=l+(n===1?plotW/2:i*plotW/(n-1))-barW/2;series.forEach(s=>{const v=d[s]||0,y1=cfg.y(acc+v),y0=cfg.y(acc);svg.appendChild(el('rect',{x,y:y1,width:barW,height:Math.max(0,y0-y1),fill:colors[s],rx:2}));acc+=v})});
+  const edgePad=Math.max(24,barW*.62);
+  const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b)};drawAxes(svg,cfg,yInfo.ticks);
+  data.forEach((d,i)=>{let acc=0;const x=chartX(cfg,n,i)-barW/2;series.forEach(s=>{const v=d[s]||0,y1=cfg.y(acc+v),y0=cfg.y(acc);svg.appendChild(el('rect',{x,y:y1,width:barW,height:Math.max(0,y0-y1),fill:colors[s],rx:2}));acc+=v})});
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;let total=series.reduce((a,s)=>a+(d[s]||0),0);series.forEach(s=>html+=row(s,won(d[s]||0),''));return html+'<div style="height:6px"></div>'+row('평가총액',won(total),'')});
 }
@@ -839,11 +851,12 @@ function drawCumChart(){
   const rates=data.map(d=>d['합계 : 누적수익률']);
   const tickInfo=alignedDualTickInfo(Math.min(-4000000,...vals),Math.max(12000000,...vals),2000000,Math.min(-20,...rates),Math.max(80,...rates),20);
   const yInfo=tickInfo.left,rInfo=tickInfo.right;
-  const cfg={w,h,l,r,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),y2:v=>t+(rInfo.max-v)/(rInfo.max-rInfo.min)*(h-t-b)};
-  drawAxes(svg,cfg,yInfo.ticks,rInfo.ticks);
   const plotW=w-l-r,n=data.length,gap=plotW/Math.max(n,1),bw=gap*.28;
-  data.forEach((d,i)=>{const x=l+(n===1?0:i*plotW/(n-1)),zero=cfg.y(0),cp=cfg.y(d['합계 : 누적손익']);svg.appendChild(el('rect',{x:x-bw-1,y:Math.min(cp,zero),width:bw,height:Math.abs(zero-cp),fill:'#ffb84d',opacity:.8}));const day=cfg.y(d['합계 : 전일대비손익']);svg.appendChild(el('rect',{x:x+2,y:Math.min(day,zero),width:bw,height:Math.abs(zero-day),fill:d['합계 : 전일대비손익']>=0?'#a7d7a8':'#c7e6c8',stroke:d['합계 : 전일대비손익']<0?'#86b58a':'none',opacity:.9}))});
-  const pts=data.map((d,i)=>[l+(n===1?0:i*plotW/(n-1)),cfg.y2(d['합계 : 누적수익률'])]);
+  const edgePad=Math.max(24,bw*2.1);
+  const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),y2:v=>t+(rInfo.max-v)/(rInfo.max-rInfo.min)*(h-t-b)};
+  drawAxes(svg,cfg,yInfo.ticks,rInfo.ticks);
+  data.forEach((d,i)=>{const x=chartX(cfg,n,i),zero=cfg.y(0),cp=cfg.y(d['합계 : 누적손익']);svg.appendChild(el('rect',{x:x-bw-1,y:Math.min(cp,zero),width:bw,height:Math.abs(zero-cp),fill:'#ffb84d',opacity:.8}));const day=cfg.y(d['합계 : 전일대비손익']);svg.appendChild(el('rect',{x:x+2,y:Math.min(day,zero),width:bw,height:Math.abs(zero-day),fill:d['합계 : 전일대비손익']>=0?'#a7d7a8':'#c7e6c8',stroke:d['합계 : 전일대비손익']<0?'#86b58a':'none',opacity:.9}))});
+  const pts=data.map((d,i)=>[chartX(cfg,n,i),cfg.y2(d['합계 : 누적수익률'])]);
   polyline(svg,pts,'#5abdf2',2.5);circles(svg,pts,'#5abdf2');labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>`<div class="tt-date">${d['날짜']}</div>`+row('누적손익',signed(d['합계 : 누적손익'],'원'),clsBy(d['합계 : 누적손익']))+row('누적수익률',pct(d['합계 : 누적수익률']),clsBy(d['합계 : 누적수익률']))+row('전일대비손익',signed(d['합계 : 전일대비손익'],'원'),clsBy(d['합계 : 전일대비손익'])));
 }
@@ -859,9 +872,10 @@ function drawLineChart(){
 function drawStacked(){
   const data=allocHistory(ACTIVE_DATE),svg=document.getElementById('chartAlloc');if(!svg)return;clear(svg);
   const values=data.map(d=>d.ETF+d.개별주식+d.현금),maxY=Math.max(30000000,...values)*1.05,w=1120,h=330,l=70,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-  const cfg={w,h,l,r,t,b,y:v=>t+(maxY-v)/(maxY)*(h-t-b)};drawAxes(svg,cfg,[0,5000000,10000000,15000000,20000000,25000000,30000000]);
   const plotW=w-l-r,n=data.length,gap=plotW/Math.max(n,1),bw=gap*.72;
-  data.forEach((d,i)=>{const x=l+(n===1?0:i*plotW/(n-1))-bw/2;let base=0;[['ETF','#ff6b6b'],['개별주식','#ffc857'],['현금','#8fd18f']].forEach(([key,color])=>{const yTop=cfg.y(base+d[key]),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:color,opacity:.75,stroke:'#fff','stroke-width':.4}));base+=d[key]})});
+  const edgePad=Math.max(24,bw*.62);
+  const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(maxY-v)/(maxY)*(h-t-b)};drawAxes(svg,cfg,[0,5000000,10000000,15000000,20000000,25000000,30000000]);
+  data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;[['ETF','#ff6b6b'],['개별주식','#ffc857'],['현금','#8fd18f']].forEach(([key,color])=>{const yTop=cfg.y(base+d[key]),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:color,opacity:.75,stroke:'#fff','stroke-width':.4}));base+=d[key]})});
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{const total=d.ETF+d.개별주식+d.현금;return `<div class="tt-date">${d['날짜']}</div>`+row('ETF',fmt(d.ETF)+`원 (${(d.ETF/total*100).toFixed(1)}%)`)+row('개별주식',fmt(d.개별주식)+`원 (${(d.개별주식/total*100).toFixed(1)}%)`)+row('현금',fmt(d.현금)+`원 (${(d.현금/total*100).toFixed(1)}%)`)+'<div style="height:6px"></div>'+row('합계',fmt(total)+'원')});
 }
