@@ -3595,3 +3595,206 @@ svg.chart{
     font-size:11px !important;
   }
 }
+
+
+/* Pension contribution date input alignment + PIN action modal */
+.contrib-modal input[type="date"],
+.contrib-modal #pensionContribDate{
+  -webkit-appearance:none;
+  appearance:none;
+  font-family:inherit !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+  line-height:normal !important;
+  text-align:left !important;
+  color:var(--text) !important;
+  padding:9px 10px !important;
+  height:38px;
+}
+
+.contrib-modal input[type="date"]::-webkit-date-and-time-value,
+.contrib-modal #pensionContribDate::-webkit-date-and-time-value{
+  text-align:left !important;
+  font-family:inherit !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+  line-height:normal !important;
+  color:var(--text) !important;
+}
+
+.contrib-modal input[type="date"]::-webkit-calendar-picker-indicator{
+  margin-left:auto;
+}
+
+.pension-action-pin-modal{
+  position:fixed;
+  inset:0;
+  z-index:14000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(15,23,42,.52);
+  backdrop-filter:blur(6px);
+}
+
+.pension-action-pin-card{
+  position:relative;
+  width:min(420px,100%);
+  padding:24px;
+  border-radius:24px;
+  background:#fff;
+  color:#0f172a;
+  border:1px solid rgba(148,163,184,.35);
+  box-shadow:0 24px 70px rgba(15,23,42,.30);
+}
+
+.pension-action-pin-close{
+  position:absolute;
+  right:14px;
+  top:12px;
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:999px;
+  background:#f1f5f9;
+  color:#334155;
+  font-size:22px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.pension-action-pin-icon{
+  width:48px;
+  height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:16px;
+  background:linear-gradient(135deg,#e0f2fe,#dcfce7);
+  font-size:23px;
+  margin-bottom:12px;
+}
+
+.pension-action-pin-card h3{
+  margin:0 0 6px;
+  font-size:20px;
+  font-weight:900;
+  letter-spacing:-.03em;
+}
+
+.pension-action-pin-card p{
+  margin:0 0 18px;
+  color:#64748b;
+  font-size:13px;
+  line-height:1.55;
+}
+
+.pension-action-pin-card label{
+  display:block;
+  margin-bottom:7px;
+  color:#334155;
+  font-size:12px;
+  font-weight:900;
+}
+
+.pension-action-pin-card input{
+  width:100%;
+  height:44px;
+  border:1px solid #cbd5e1;
+  border-radius:14px;
+  padding:0 13px;
+  font-family:inherit;
+  font-size:15px;
+  font-weight:800;
+  outline:none;
+  box-sizing:border-box;
+}
+
+.pension-action-pin-card input:focus{
+  border-color:#2563eb;
+  box-shadow:0 0 0 3px rgba(37,99,235,.12);
+}
+
+.pension-action-pin-status{
+  min-height:20px;
+  margin-top:10px;
+  font-size:12px;
+  font-weight:800;
+  color:#dc2626;
+}
+
+.pension-action-pin-buttons{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:18px;
+}
+
+.pension-action-pin-buttons button{
+  height:40px;
+  border-radius:12px;
+  border:1px solid #cbd5e1;
+  padding:0 16px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.pension-action-pin-buttons .ghost{
+  background:#fff;
+  color:#334155;
+}
+
+.pension-action-pin-buttons .primary{
+  background:#0f172a;
+  color:#fff;
+  border-color:#0f172a;
+}
+
+.pension-action-pin-buttons .primary.danger{
+  background:#dc2626;
+  border-color:#dc2626;
+}
+
+.dark .pension-action-pin-card{
+  background:#111827;
+  color:#e5e7eb;
+  border-color:rgba(148,163,184,.24);
+}
+
+.dark .pension-action-pin-card p{
+  color:#94a3b8;
+}
+
+.dark .pension-action-pin-card label{
+  color:#cbd5e1;
+}
+
+.dark .pension-action-pin-close{
+  background:#1f2937;
+  color:#cbd5e1;
+}
+
+.dark .pension-action-pin-card input{
+  background:#0f172a;
+  border-color:#334155;
+  color:#e5e7eb;
+}
+
+.dark .pension-action-pin-buttons .ghost{
+  background:#111827;
+  color:#e5e7eb;
+  border-color:#334155;
+}
+
+@media(max-width:640px){
+  .pension-action-pin-modal{
+    align-items:flex-end;
+    padding:12px;
+  }
+
+  .pension-action-pin-card{
+    border-radius:22px;
+    padding:22px;
+  }
+}

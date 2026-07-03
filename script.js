@@ -465,13 +465,6 @@ function renderPensionContributionModal(x){
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList()}</div>
   <div class="contrib-actions"><button type="button" class="contrib-btn danger" onclick="deleteSelectedPensionContribution()">선택 항목 삭제</button></div>
 </div>
-<div class="contrib-pin-box modal-card-box" id="contribPinBox">
-  <h3>PIN</h3>
-  <p class="small" id="contribPinDesc">GitHub Pages / Netlify 저장과 삭제 모두 PIN 입력 필요</p>
-  <div class="contrib-form-grid one">
-    <div class="contrib-field full"><input id="pensionContribPin" type="password" autocomplete="off" placeholder="저장/삭제 PIN"></div>
-  </div>
-</div>
 <details class="token-guide">
   <summary>GitHub 토큰 만료/교체 방법</summary>
   <div class="token-guide-body">
@@ -959,6 +952,63 @@ function showPensionContributionStatus(message,type='ok'){
   status.textContent=message;
   status.className=`contrib-status show ${type}`;
 }
+
+function requestPensionActionPin({title='PIN 입력',description='저장/삭제를 계속하려면 PIN을 입력하세요.',confirmText='확인',danger=false}={}){
+  return new Promise(resolve=>{
+    const old=document.getElementById('pensionActionPinModal');
+    if(old) old.remove();
+
+    const modal=document.createElement('div');
+    modal.id='pensionActionPinModal';
+    modal.className='pension-action-pin-modal';
+    modal.innerHTML=`<div class="pension-action-pin-card" role="dialog" aria-modal="true" aria-labelledby="pensionActionPinTitle">
+      <button type="button" class="pension-action-pin-close" aria-label="닫기">×</button>
+      <div class="pension-action-pin-icon">🔐</div>
+      <h3 id="pensionActionPinTitle">${title}</h3>
+      <p>${description}</p>
+      <label for="pensionActionPinInput">PIN</label>
+      <input id="pensionActionPinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 입력">
+      <div id="pensionActionPinStatus" class="pension-action-pin-status"></div>
+      <div class="pension-action-pin-buttons">
+        <button type="button" class="ghost">취소</button>
+        <button type="button" class="primary ${danger?'danger':''}">${confirmText}</button>
+      </div>
+    </div>`;
+
+    const finish=value=>{
+      modal.remove();
+      resolve(value);
+    };
+    const input=modal.querySelector('#pensionActionPinInput');
+    const status=modal.querySelector('#pensionActionPinStatus');
+    const primary=modal.querySelector('.primary');
+    const cancel=modal.querySelector('.ghost');
+    const close=modal.querySelector('.pension-action-pin-close');
+
+    const submit=()=>{
+      const pin=String(input?.value||'').trim();
+      if(!pin){
+        if(status) status.textContent='PIN을 입력해 주세요.';
+        input?.focus();
+        return;
+      }
+      finish(pin);
+    };
+
+    primary?.addEventListener('click',submit);
+    cancel?.addEventListener('click',()=>finish(null));
+    close?.addEventListener('click',()=>finish(null));
+    modal.addEventListener('click',e=>{if(e.target===modal)finish(null)});
+    input?.addEventListener('keydown',e=>{
+      if(e.key==='Enter') submit();
+      if(e.key==='Escape') finish(null);
+    });
+
+    document.body.appendChild(modal);
+    requestAnimationFrame(()=>input?.focus());
+  });
+}
+
 function generatePensionContributionJson(){
   const out=document.getElementById('pensionContribOutput');
   if(!out) return;
@@ -988,7 +1038,7 @@ async function copyPensionContributionJson(){
   }
 }
 
-async function savePensionContributionViaGithubPages(item){
+async function savePensionContributionViaGithubPages(item,pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
 
   if(!config.url || config.url.includes('여기에_')){
@@ -999,7 +1049,7 @@ async function savePensionContributionViaGithubPages(item){
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({
-      pin:document.getElementById('pensionContribPin')?.value||'',
+      pin:String(pin||'').trim(),
       target:item.target||'contribution',
       action:'upsert',
       date:item.date,
@@ -1019,15 +1069,14 @@ async function savePensionContributionViaGithubPages(item){
   return data;
 }
 
-async function savePensionContributionViaNetlify(item){
-  const pinEl=document.getElementById('pensionContribPin');
+async function savePensionContributionViaNetlify(item,pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.netlify;
 
   const res=await fetch(config.url,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      pin:pinEl?.value||'',
+      pin:String(pin||'').trim(),
       action:'upsert',
       item:{...item,updatedBy:'netlify'}
     })
@@ -1042,12 +1091,12 @@ async function savePensionContributionViaNetlify(item){
   return data;
 }
 
-async function savePensionContributionByMode(item){
+async function savePensionContributionByMode(item,pin){
   if(pensionContributionSaveMode==='githubPages'){
-    return savePensionContributionViaGithubPages(item);
+    return savePensionContributionViaGithubPages(item,pin);
   }
 
-  return savePensionContributionViaNetlify(item);
+  return savePensionContributionViaNetlify(item,pin);
 }
 
 async function savePensionContribution(){
@@ -1062,12 +1111,22 @@ async function savePensionContribution(){
     }
 
     const modeLabel=pensionContributionModeLabel();
+    const targetText=pensionContributionTargetLabel(item.target);
+    const pin=await requestPensionActionPin({
+      title:`${targetText} 저장`,
+      description:`${modeLabel} 방식으로 GitHub 파일에 저장합니다. 계속하려면 PIN을 입력하세요.`,
+      confirmText:'저장 실행'
+    });
+    if(!pin){
+      showPensionContributionStatus('저장이 취소되었습니다.','err');
+      return;
+    }
+
     showPensionContributionStatus(`${modeLabel} 방식으로 저장 중... GitHub 파일을 업데이트하고 있습니다.`,'ok');
 
-    const data=await savePensionContributionByMode(item);
+    const data=await savePensionContributionByMode(item,pin);
 
     const actionText=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
-    const targetText=pensionContributionTargetLabel(item.target);
     if(pensionContributionSaveMode==='githubPages'){
       showPensionContributionStatus(`${targetText} ${actionText} 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.`,'ok');
     }else{
@@ -1079,7 +1138,7 @@ async function savePensionContribution(){
   }
 }
 
-async function deletePensionContributionViaGithubPages(target,key){
+async function deletePensionContributionViaGithubPages(target,key,pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
 
   if(!config.url || config.url.includes('여기에_')){
@@ -1092,7 +1151,7 @@ async function deletePensionContributionViaGithubPages(target,key){
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({
-      pin:document.getElementById('pensionContribPin')?.value||'',
+      pin:String(pin||'').trim(),
       target:target||'contribution',
       action:'delete',
       id:isCash?'':key,
@@ -1109,15 +1168,14 @@ async function deletePensionContributionViaGithubPages(target,key){
   return data;
 }
 
-async function deletePensionContributionViaNetlify(target,key){
-  const pinEl=document.getElementById('pensionContribPin');
+async function deletePensionContributionViaNetlify(target,key,pin){
   const isCash=target==='cashSnapshot';
 
   const res=await fetch('/.netlify/functions/save-pension-contribution',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      pin:pinEl?.value||'',
+      pin:String(pin||'').trim(),
       target:target||'contribution',
       action:'delete',
       id:isCash?'':key,
@@ -1150,15 +1208,23 @@ async function deleteSelectedPensionContribution(){
   const targetText=pensionContributionTargetLabel(isCash?'cashSnapshot':'contribution');
   const modeLabel=pensionContributionModeLabel();
 
-  if(!confirm(`${date} / ${targetText} / ${amount} 항목을 삭제할까요?
-${modeLabel} 방식으로 GitHub 파일에서 삭제됩니다.`)) return;
+  const pin=await requestPensionActionPin({
+    title:`${targetText} 삭제`,
+    description:`${date} / ${targetText} / ${amount} 항목을 ${modeLabel} 방식으로 삭제합니다. 계속하려면 PIN을 입력하세요.`,
+    confirmText:'삭제 실행',
+    danger:true
+  });
+  if(!pin){
+    showPensionContributionStatus('삭제가 취소되었습니다.','err');
+    return;
+  }
 
   try{
     showPensionContributionStatus(`${modeLabel} 방식으로 삭제 중... GitHub 파일을 업데이트하고 있습니다.`,'ok');
 
     const data=pensionContributionSaveMode==='githubPages'
-    ? await deletePensionContributionViaGithubPages(target,key)
-    : await deletePensionContributionViaNetlify(target,key);
+    ? await deletePensionContributionViaGithubPages(target,key,pin)
+    : await deletePensionContributionViaNetlify(target,key,pin);
 
     if(pensionContributionSaveMode==='githubPages'){
       showPensionContributionStatus('선택 항목 삭제 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');
