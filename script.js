@@ -24,11 +24,20 @@ const monthLabel=m=>{const [y,mo]=m.split('-');return `${y}년 ${Number(mo)}월`
 const includeAccount2=d=>d>='2026-05-22';
 const includeToss=d=>d>='2026-03-23';
 const isLedgerCheckDate=d=>d>='2026-06-18';
-const pensionContributionItems=()=>Array.isArray(PENSION_CONTRIBUTIONS)?PENSION_CONTRIBUTIONS:(PENSION_CONTRIBUTIONS?.contributions||[]);
+const rawPensionContributionItems=()=>Array.isArray(PENSION_CONTRIBUTIONS)?PENSION_CONTRIBUTIONS:(PENSION_CONTRIBUTIONS?.contributions||[]);
+const pensionContributionItems=()=>Array.from(
+  rawPensionContributionItems()
+    .filter(v=>v&&v.date)
+    .reduce((map,v)=>{
+      const date=String(v.date);
+      map.set(date,{...v,date,amount:Number(v.amount)||0});
+      return map;
+    },new Map())
+    .values()
+).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
 const pensionContributionSum=d=>pensionContributionItems().filter(v=>v.date&&v.date<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
 const latestPensionContribution=d=>pensionContributionItems()
   .filter(v=>v.date&&v.date<=d&&Number(v.amount))
-  .sort((a,b)=>String(a.date).localeCompare(String(b.date)))
   .at(-1)||null;
 const pensionContributionSubText=x=>{
   const latest=latestPensionContribution(x.date);
@@ -298,21 +307,24 @@ function renderPensionContributionModal(x){
   <h3>PIN</h3>
   <p class="small" id="contribPinDesc">GitHub Pages / Netlify 저장과 삭제 모두 PIN 입력 필요</p>
   <div class="contrib-form-grid one">
-    <div class="contrib-field full"><label for="pensionContribPin">PIN</label><input id="pensionContribPin" type="password" autocomplete="off" placeholder="Netlify ADMIN_PIN"></div>
+    <div class="contrib-field full"><label for="pensionContribPin">PIN</label><input id="pensionContribPin" type="password" autocomplete="off" placeholder="저장/삭제 PIN"></div>
   </div>
 </div>
 <details class="token-guide">
   <summary>GitHub 토큰 만료/교체 방법</summary>
   <div class="token-guide-body">
-    <div class="token-guide-alert">현재 GitHub 토큰은 2026-07-01에 90일 만료로 생성했으므로, 2026-09-28까지 새 토큰으로 교체 권장. 미교체 시 2026-09-29 전후부터 저장 버튼이 실패할 수 있음.</div>
-    <p>토큰이 만료되면 대시보드 조회는 되지만, 기업적립금 저장만 실패해.</p>
+    <div class="token-guide-alert">토큰이 만료되면 대시보드 조회는 되지만, 기업적립금 저장/삭제만 실패할 수 있습니다.</div>
+    <p><strong>GitHub Pages 방식</strong>은 Google Apps Script의 Script Properties에 저장된 <code>GITHUB_TOKEN</code>을 사용합니다.</p>
     <ol>
       <li>GitHub → <code>Settings</code> → <code>Developer settings</code> → <code>Personal access tokens</code> → <code>Fine-grained tokens</code>에서 새 토큰 생성</li>
-      <li>대시보드 repo만 선택</li><li>권한은 <code>Contents: Read and write</code>, <code>Metadata: Read-only</code></li>
-      <li>생성된 새 토큰을 복사</li><li>Netlify → 해당 사이트 → <code>Site configuration</code> → <code>Environment variables</code></li>
-      <li><code>GITHUB_TOKEN</code> 값을 새 토큰으로 교체</li><li>Netlify에서 재배포 후 이 모달에서 저장 테스트</li>
+      <li>대시보드 repo만 선택</li>
+      <li>권한은 <code>Contents: Read and write</code>, <code>Metadata: Read-only</code></li>
+      <li>Google Apps Script → 프로젝트 설정 → Script Properties</li>
+      <li><code>GITHUB_TOKEN</code> 값을 새 토큰으로 교체</li>
+      <li>Apps Script 웹 앱을 새 버전으로 배포</li>
+      <li>GitHub Pages 화면에서 저장 테스트</li>
     </ol>
-    <p><strong>교체 시점:</strong> 2026-09-28까지 미리 교체. 늦어도 저장 버튼에서 GitHub 인증 실패/저장 실패가 뜨면 즉시 교체.</p>
+    <p><strong>Netlify 방식</strong>을 사용할 경우에만 Netlify Environment variables의 <code>GITHUB_TOKEN</code>을 교체합니다.</p>
   </div>
 </details></div></div>`;
 }
@@ -817,11 +829,12 @@ async function savePensionContribution(){
 
     const data=await savePensionContributionByMode(item);
 
+    const actionText=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
+
     if(pensionContributionSaveMode==='githubPages'){
-      showPensionContributionStatus('신규 항목 추가 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');
+      showPensionContributionStatus(`${actionText} 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.`,'ok');
     }else{
-      const action=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
-      showPensionContributionStatus(`${action} 완료. Netlify 재배포가 끝나면 화면에 반영됩니다. commit: ${data.commitSha||'-'}`,'ok');
+      showPensionContributionStatus(`${actionText} 완료. Netlify 재배포가 끝나면 화면에 반영됩니다. commit: ${data.commitSha||'-'}`,'ok');
     }
 
   }catch(e){
@@ -836,9 +849,6 @@ async function deletePensionContributionViaGithubPages(date){
     throw new Error('GitHub Pages 삭제 URL이 설정되지 않았습니다.');
   }
 
-  if(!config.secret || config.secret.includes('여기에_')){
-    throw new Error('GitHub Pages 삭제 보안키가 설정되지 않았습니다.');
-  }
 
   const res=await fetch(config.url,{
     method:'POST',
