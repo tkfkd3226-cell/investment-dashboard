@@ -13,7 +13,6 @@ const PENSION_CONTRIBUTION_SAVE_CONFIG = {
   githubPages: {
     label: 'GitHub Pages',
     url: 'https://script.google.com/macros/s/AKfycbwxPSFL8VMQLOuncl5ul_leqdnbfjhJve09ZReyaJvjWj8C-5UINeGhtwBxyklRj9AE/exec',
-    secret: '820421'
   },
   netlify: {
     label: 'Netlify',
@@ -748,10 +747,6 @@ async function savePensionContributionViaGithubPages(item){
 
   if(!config.url || config.url.includes('여기에_')){
     throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
-  }
-
-  if(!config.secret || config.secret.includes('여기에_')){
-    throw new Error('GitHub Pages 저장 보안키가 설정되지 않았습니다.');
   }
 
   const res=await fetch(config.url,{
