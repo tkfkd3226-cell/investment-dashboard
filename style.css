@@ -2831,3 +2831,8 @@ svg.chart{
 .pension-stack-bar.compact.simple .pension-viz-tooltip{
   bottom:calc(100% + 12px);
 }
+
+/* Fix tooltip title color inside note cards */
+.pension-viz-tooltip strong{
+  color:#fff !important;
+}
