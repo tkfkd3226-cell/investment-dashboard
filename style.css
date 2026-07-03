@@ -1187,6 +1187,7 @@ svg.chart{
   justify-self:end;
   display:flex;
   align-items:center;
+  gap:8px;
 }
 .date-picker-label{
   color:#dbeafe;
@@ -1250,6 +1251,42 @@ svg.chart{
 .date-tool-icon{
   display:none;
 }
+.date-action-menu-wrap{
+  display:none;
+  position:relative;
+}
+.date-action-menu{
+  display:none;
+  position:absolute;
+  top:48px;
+  right:0;
+  width:220px;
+  padding:8px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 18px 50px rgba(15,23,42,.28);
+  backdrop-filter:blur(12px);
+  z-index:2300;
+}
+.date-action-menu.show{
+  display:block;
+}
+.date-action-menu button{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:#111827;
+  text-align:left;
+  padding:10px 11px;
+  border-radius:12px;
+  font-size:13px;
+  font-weight:900;
+  cursor:pointer;
+}
+.date-action-menu button:hover{
+  background:#eef2ff;
+}
 @media(max-width:760px){
   .switcher{
     justify-content:stretch;
@@ -1282,14 +1319,18 @@ svg.chart{
     padding-left:8px;
     padding-right:22px;
   }
-  .date-tool-btn{
+  .date-tool-btn-desktop{
+    display:none;
+  }
+  .date-action-menu-wrap{
+    display:block;
+    justify-self:end;
+  }
+  .date-tool-menu-btn{
     width:40px;
     height:40px;
     padding:0;
     flex:0 0 40px;
-  }
-  .date-tool-text{
-    display:none;
   }
   .date-tool-icon{
     display:inline;
@@ -1735,6 +1776,25 @@ svg.chart{
   flex-direction:column;
   gap:8px;
   margin-top:10px;
+  max-height:230px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding-right:4px;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(148,163,184,.85) transparent;
+}
+.contrib-existing-list::-webkit-scrollbar{
+  width:6px;
+}
+.contrib-existing-list::-webkit-scrollbar-track{
+  background:transparent;
+}
+.contrib-existing-list::-webkit-scrollbar-thumb{
+  background:rgba(148,163,184,.75);
+  border-radius:999px;
+}
+.dark .contrib-existing-list{
+  scrollbar-color:rgba(100,116,139,.9) transparent;
 }
 .contrib-existing-item{
   display:flex;
@@ -1769,6 +1829,24 @@ svg.chart{
   color:var(--muted);
   word-break:break-word;
 }
+
+@media(max-width:720px){
+  .contrib-existing-list{
+    max-height:32vh;
+  }
+  .contrib-existing-item{
+    padding:8px 9px;
+  }
+  .contrib-existing-title{
+    font-size:12px;
+    line-height:1.35;
+  }
+  .contrib-existing-memo{
+    font-size:11px;
+    line-height:1.35;
+  }
+}
+
 .contrib-btn.danger{
   background:#dc2626;
   color:white;
@@ -2236,4 +2314,38 @@ svg.chart{
   color:#334155;
   font-size:12px;
   line-height:1.45;
+}
+
+.contrib-field-label{
+  font-size:12px;
+  font-weight:900;
+  color:var(--muted);
+}
+.contrib-target-tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  padding:4px;
+  border-radius:14px;
+  background:rgba(15,23,42,.06);
+  border:1px solid rgba(148,163,184,.22);
+}
+.contrib-target-option{
+  border:0;
+  border-radius:11px;
+  padding:10px 10px;
+  background:transparent;
+  color:#64748b;
+  font-size:13px;
+  font-weight:900;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.contrib-target-option.active{
+  background:#fff;
+  color:#0f172a;
+  box-shadow:0 4px 12px rgba(15,23,42,.12);
+}
+.contrib-target-option:hover{
+  background:rgba(255,255,255,.72);
 }
