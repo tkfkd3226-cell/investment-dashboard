@@ -2806,3 +2806,28 @@ svg.chart{
     padding:12px;
   }
 }
+
+/* Fix: allow contribution stack custom tooltip to escape the bar */
+.pension-stack-bar.compact.simple{
+  overflow:visible;
+  position:relative;
+  border-radius:999px;
+}
+
+.pension-stack-bar.compact.simple .pension-stack-segment{
+  height:100%;
+}
+
+.pension-stack-bar.compact.simple .pension-stack-segment:first-child{
+  border-top-left-radius:999px;
+  border-bottom-left-radius:999px;
+}
+
+.pension-stack-bar.compact.simple .pension-stack-segment:last-child{
+  border-top-right-radius:999px;
+  border-bottom-right-radius:999px;
+}
+
+.pension-stack-bar.compact.simple .pension-viz-tooltip{
+  bottom:calc(100% + 12px);
+}
