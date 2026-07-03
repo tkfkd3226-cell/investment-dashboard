@@ -255,33 +255,33 @@ function jumpToSection(id){
   if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function renderMobileNavMenu(){
-  const navItem=(id,icon,title,desc='',level='')=>`<button type="button" class="mobile-nav-item ${level}" onclick="jumpToSection('${id}')"><span class="mobile-nav-icon" aria-hidden="true">${icon}</span><span class="mobile-nav-copy"><strong>${title}</strong>${desc?`<small>${desc}</small>`:''}</span></button>`;
+  const sourceItem=isLedgerCheckDate(ACTIVE_DATE)
+    ? `<button type="button" class="mobile-nav-item sub" onclick="jumpToSection('capital-source-check')"><span class="nav-icon">🧾</span><span><strong>투자원금 원천/검산</strong><em>외부투입·재투입 계산</em></span></button>`
+    : '';
   return `<div class="mobile-nav-menu-wrap">
-    <button type="button" class="mobile-nav-toggle" onclick="toggleMobileNavMenu()" aria-label="빠른 이동 메뉴 열기"><span aria-hidden="true">☰</span></button>
-    <div id="mobileNavMenu" class="mobile-nav-menu" aria-label="빠른 이동 메뉴">
-      <div class="mobile-nav-head"><div><span class="mobile-nav-eyebrow">QUICK MENU</span><strong>빠른 이동</strong></div><button type="button" class="mobile-nav-close" onclick="closeMobileNavMenu()" aria-label="빠른 이동 메뉴 닫기">×</button></div>
-      <div class="mobile-nav-section">
-        <div class="mobile-nav-group">전체</div>
-        ${navItem('summary-section','🏠','투자 요약','연금+계좌 전체 성과')}
+    <button type="button" class="mobile-nav-toggle" onclick="toggleMobileNavMenu()" aria-label="목차 열기">☰</button>
+    <div id="mobileNavMenu" class="mobile-nav-menu" aria-label="모바일 빠른 이동 메뉴">
+      <div class="mobile-nav-head"><span>QUICK MENU</span><button type="button" onclick="closeMobileNavMenu()" aria-label="메뉴 닫기">×</button></div>
+      <div class="mobile-nav-group"><p>전체</p>
+        <button type="button" class="mobile-nav-item" onclick="jumpToSection('summary-section')"><span class="nav-icon">🏠</span><span><strong>투자 요약</strong><em>연금+계좌 전체 성과</em></span></button>
       </div>
-      <div class="mobile-nav-section">
-        <div class="mobile-nav-group">퇴직연금</div>
-        ${navItem('pension-section','💼','퇴직연금 현황','평가금액·원금·수익률')}
-        ${navItem('pension-products','📦','연금상품별 현황','상품별 평가·비중','sub')}
-        ${navItem('pension-change','📈','전일 대비 변동','하루 평가금액 변화','sub')}
-        ${navItem('pension-chart-cum','📊','운용수익 및 누적수익률','퇴직연금 흐름','sub')}
-        ${navItem('pension-chart-symbol','🧩','연금상품별 운용수익','상품별 기여도','sub')}
-        ${navItem('pension-chart-alloc','🥧','평가액 비중','퇴직연금 자산 비중','sub')}
+      <div class="mobile-nav-group"><p>퇴직연금</p>
+        <button type="button" class="mobile-nav-item" onclick="jumpToSection('pension-section')"><span class="nav-icon">💼</span><span><strong>퇴직연금 현황</strong><em>평가금액·원금·수익률</em></span></button>
+        <button type="button" class="mobile-nav-item sub" onclick="jumpToSection('pension-products')"><span class="nav-icon">📦</span><span><strong>연금상품별 현황</strong><em>상품별 평가·비중</em></span></button>
+        <button type="button" class="mobile-nav-item sub" onclick="jumpToSection('pension-change')"><span class="nav-icon">📈</span><span><strong>전일 대비 변동</strong><em>하루 평가액 변화</em></span></button>
+        <button type="button" class="mobile-nav-item sub" onclick="jumpToSection('pension-chart-cum')"><span class="nav-icon">📊</span><span><strong>운용수익 추이</strong><em>누적수익률 포함</em></span></button>
+        <button type="button" class="mobile-nav-item sub" onclick="jumpToSection('pension-chart-symbol')"><span class="nav-icon">🧩</span><span><strong>상품별 운용수익</strong><em>기여도 비교</em></span></button>
+        <button type="button" class="mobile-nav-item sub" onclick="jumpToSection('pension-chart-alloc')"><span class="nav-icon">🥧</span><span><strong>평가액 비중</strong><em>상품·현금성 비중</em></span></button>
       </div>
-      <div class="mobile-nav-section">
-        <div class="mobile-nav-group">증권계좌</div>
-        ${navItem('securities-section','🏦','증권계좌 현황','개인계좌 성과')}
-        ${navItem('accounts-summary','📋','계좌별 성과 요약','계좌별 원금·손익','sub')}
-        ${navItem('chart-cum','📉','누적손익 및 누적수익률','증권계좌 흐름','sub')}
-        ${navItem('chart-symbol','🎯','종목별 누적손익','종목별 기여도','sub')}
-        ${navItem('chart-alloc','⚖️','평가액 비중','ETF·주식·현금','sub')}
-        ${navItem('securities-holdings','💎','증권계좌 보유분','현재 보유 종목','sub')}
-        ${navItem('ledger-check','🧾','장부상 결과물 VS 실제 보유액','정합성 점검','sub')}
+      <div class="mobile-nav-group"><p>증권계좌</p>
+        <button type="button" class="mobile-nav-item" onclick="jumpToSection('securities-section')"><span class="nav-icon">🏦</span><span><strong>증권계좌 현황</strong><em>계좌 성과와 보유분</em></span></button>
+        <button type="button" class="mobile-nav-item sub" onclick="jumpToSection('accounts-summary')"><span class="nav-icon">📋</span><span><strong>계좌별 성과 요약</strong><em>계좌별 원금·손익</em></span></button>
+        <button type="button" class="mobile-nav-item sub" onclick="jumpToSection('chart-cum')"><span class="nav-icon">📉</span><span><strong>누적손익 추이</strong><em>수익률 변화</em></span></button>
+        <button type="button" class="mobile-nav-item sub" onclick="jumpToSection('chart-symbol')"><span class="nav-icon">🏷️</span><span><strong>종목별 누적손익</strong><em>종목 기여도</em></span></button>
+        <button type="button" class="mobile-nav-item sub" onclick="jumpToSection('chart-alloc')"><span class="nav-icon">🥧</span><span><strong>평가액 비중</strong><em>보유 종목 배분</em></span></button>
+        <button type="button" class="mobile-nav-item sub" onclick="jumpToSection('securities-holdings')"><span class="nav-icon">💹</span><span><strong>증권계좌 보유분</strong><em>수량·평단·평가손익</em></span></button>
+        <button type="button" class="mobile-nav-item sub" onclick="jumpToSection('ledger-check')"><span class="nav-icon">🔍</span><span><strong>장부 VS 실제 보유액</strong><em>실제 잔고 검산</em></span></button>
+        ${sourceItem}
       </div>
     </div>
   </div>`;
@@ -558,7 +558,7 @@ function renderAccounts(x){
   const hiddenNote=x.account2Included?'':'<p class="table-note"><strong>참고:</strong> 삼성증권 계좌2는 2026-05-22 전량 매도 후 실현분 반영. 선택일이 2026-05-21 이전이면 당시 전체 성과 기준에서 제외되어 이 표에서도 숨김.</p>';
   return `<section id="accounts-summary"><div class="section-title"><h2>계좌별 성과 요약</h2><span class="title-badge">2023-12 이후 누적</span></div><div class="mobile-scroll accounts-scroll"><table class="accounts-table"><thead><tr><th class="accounts-name-head">구분</th><th>투자원금</th><th>누적손익</th><th>수익률</th><th>메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="accounts-name">${r[0]}</td><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${cls(r[2])}">${fmt(r[2])}</td><td class="num ${cls(r[3])}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${r[4]}</td></tr>`).join('')}</tbody></table></div>${hiddenNote}</section>`;
 }
-function renderSourceTables(){const c=PORTFOLIO.constants,vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal;return `<section class="grid three"><div class="card"><div class="label">계좌1 원천별 투입</div><table style="font-size:12px;margin-top:8px;border-radius:12px"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num negative">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr><tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div><div class="card"><div class="label">전체 외부투입원금</div><div class="value">${won(c.externalPrincipal)}</div><div class="sub">외부에서 실제 들어온 돈만 계산</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 투입 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 순투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${fmt(c.externalPrincipal)}</td></tr></tbody></table></div><div class="card"><div class="label">계좌1 투자원금 검산</div><div class="value">${won(c.account1Principal)}</div><div class="sub">전체 외부투입 + 수익 재투입</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>전체 외부투입원금</td><td class="num">${fmt(c.externalPrincipal)}</td></tr><tr><td>레버 수익 재투입분</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입분</td><td class="num">${fmt(vipProfitReinvest)}</td></tr><tr class="summary-row"><td>검산값</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div></section>`}
+function renderSourceTables(){const c=PORTFOLIO.constants,vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal;return `<section id="capital-source-check" class="capital-source-section"><div class="section-title source-title"><h2>투자원금 원천 및 검산</h2><p>계좌1 투자원금이 어떤 돈으로 구성됐는지 분리 계산</p></div><div class="source-panel"><div class="grid three source-grid"><div class="card source-card"><div class="label">계좌1 원천별 투입</div><table style="font-size:12px;margin-top:8px;border-radius:12px"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num negative">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr><tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div><div class="card source-card highlight"><div class="label">전체 외부투입원금</div><div class="value">${won(c.externalPrincipal)}</div><div class="sub">외부에서 실제 들어온 돈만 계산</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 투입 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 순투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${fmt(c.externalPrincipal)}</td></tr></tbody></table></div><div class="card source-card"><div class="label">계좌1 투자원금 검산</div><div class="value">${won(c.account1Principal)}</div><div class="sub">전체 외부투입 + 수익 재투입</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>전체 외부투입원금</td><td class="num">${fmt(c.externalPrincipal)}</td></tr><tr><td>레버 수익 재투입분</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입분</td><td class="num">${fmt(vipProfitReinvest)}</td></tr><tr class="summary-row"><td>검산값</td><td class="num">${fmt(c.account1Principal)}</td></tr></tbody></table></div></div></div></section>`}
 function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
 function el(name, attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',name);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e}
 function tooltip(){return document.getElementById('dashTooltip')}

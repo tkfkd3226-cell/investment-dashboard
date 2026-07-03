@@ -1904,7 +1904,50 @@ svg.chart{
   display:grid;
 }
 .securities-subsection.source-block{
-  margin-top:18px;
+  margin-top:22px;
+}
+.capital-source-section{
+  display:block !important;
+}
+.capital-source-section .source-title{
+  margin-bottom:12px;
+  padding:0 2px;
+}
+.capital-source-section .source-title h2{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.capital-source-section .source-title h2::before{
+  content:'🧾';
+  font-size:20px;
+}
+.source-panel{
+  padding:16px;
+  border:1px solid rgba(148,163,184,.28);
+  border-radius:24px;
+  background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(248,250,252,.78));
+  box-shadow:0 18px 46px rgba(15,23,42,.08);
+}
+.dark .source-panel{
+  background:linear-gradient(135deg,rgba(17,24,39,.88),rgba(15,23,42,.78));
+  border-color:rgba(148,163,184,.22);
+  box-shadow:0 18px 46px rgba(0,0,0,.24);
+}
+.source-grid{
+  margin-top:0 !important;
+}
+.source-card{
+  box-shadow:none;
+  border-color:rgba(148,163,184,.24);
+}
+.source-card.highlight{
+  background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+  border-color:rgba(37,99,235,.22);
+}
+.dark .source-card.highlight{
+  background:linear-gradient(180deg,#111827 0%,#0f172a 100%);
+  border-color:rgba(96,165,250,.24);
 }
 @media(max-width:720px){
   .securities-subsection{
@@ -1989,201 +2032,159 @@ svg.chart{
   .mobile-nav-menu-wrap{
     display:block;
     position:fixed;
-    top:56px;
+    top:58px;
     right:12px;
     z-index:2200;
   }
   .mobile-nav-toggle{
-    width:46px;
-    height:46px;
-    display:grid;
-    place-items:center;
+    width:42px;
+    height:42px;
     border-radius:999px;
-    border:1px solid rgba(255,255,255,.42);
-    background:linear-gradient(135deg, rgba(15,23,42,.96), rgba(51,65,85,.92));
+    border:1px solid rgba(255,255,255,.36);
+    background:rgba(15,23,42,.90);
     color:#fff;
-    font-size:21px;
+    font-size:20px;
     font-weight:900;
-    line-height:1;
-    box-shadow:0 16px 38px rgba(15,23,42,.34), inset 0 1px 0 rgba(255,255,255,.18);
-    backdrop-filter:blur(12px);
+    box-shadow:0 12px 34px rgba(15,23,42,.32);
+    backdrop-filter:blur(10px);
     cursor:pointer;
-  }
-  .mobile-nav-toggle:active{
-    transform:scale(.96);
   }
   .mobile-nav-menu{
     display:none;
-    position:absolute;
-    top:54px;
-    right:0;
-    width:min(318px, calc(100vw - 24px));
-    max-height:min(76vh, 640px);
+    position:fixed;
+    top:108px;
+    right:12px;
+    width:min(330px, calc(100vw - 24px));
+    max-height:calc(100vh - 130px);
     overflow:auto;
-    border:1px solid rgba(226,232,240,.92);
+    border:1px solid rgba(203,213,225,.82);
     border-radius:24px;
     padding:12px;
-    background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
-    box-shadow:0 24px 80px rgba(15,23,42,.32);
+    background:rgba(255,255,255,.96);
+    box-shadow:0 26px 80px rgba(15,23,42,.30);
     backdrop-filter:blur(16px);
+  }
+  .dark .mobile-nav-menu{
+    background:rgba(17,24,39,.96);
+    border-color:rgba(148,163,184,.24);
   }
   .mobile-nav-menu.show{
     display:block;
     animation:mobileMenuPop .16s ease-out;
   }
   @keyframes mobileMenuPop{
-    from{opacity:0; transform:translateY(-6px) scale(.98)}
-    to{opacity:1; transform:translateY(0) scale(1)}
+    from{opacity:0;transform:translateY(-8px) scale(.98)}
+    to{opacity:1;transform:translateY(0) scale(1)}
   }
   .mobile-nav-head{
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:10px;
-    padding:10px 10px 12px;
-    margin-bottom:8px;
+    padding:12px 12px;
     border-radius:18px;
-    background:linear-gradient(135deg, #0f172a, #334155);
+    background:linear-gradient(135deg,#0f172a,#1d4ed8);
     color:#fff;
+    margin-bottom:10px;
   }
-  .mobile-nav-head strong{
-    display:block;
-    margin-top:3px;
-    font-size:15px;
-    letter-spacing:-.02em;
-  }
-  .mobile-nav-eyebrow{
-    display:block;
-    color:rgba(255,255,255,.62);
-    font-size:10px;
-    font-weight:900;
-    letter-spacing:.12em;
-  }
-  .mobile-nav-close{
-    width:32px;
-    height:32px;
-    border:0;
-    border-radius:999px;
-    background:rgba(255,255,255,.14);
-    color:#fff;
-    font-size:20px;
-    font-weight:900;
-    cursor:pointer;
-  }
-  .mobile-nav-section{
-    padding:4px 0 8px;
-  }
-  .mobile-nav-section+.mobile-nav-section{
-    border-top:1px solid rgba(226,232,240,.86);
-    padding-top:10px;
-  }
-  .mobile-nav-group{
-    padding:4px 8px 7px;
-    color:#64748b;
-    font-size:11px;
+  .mobile-nav-head span{
+    font-size:12px;
     font-weight:900;
     letter-spacing:.08em;
   }
+  .mobile-nav-head button{
+    border:0;
+    width:26px;
+    height:26px;
+    border-radius:999px;
+    background:rgba(255,255,255,.18);
+    color:#fff;
+    font-size:18px;
+    font-weight:900;
+    line-height:1;
+    cursor:pointer;
+  }
+  .mobile-nav-group{
+    margin-top:10px;
+  }
+  .mobile-nav-group p{
+    margin:10px 8px 6px;
+    font-size:11px;
+    font-weight:900;
+    color:var(--muted);
+    letter-spacing:.06em;
+  }
   .mobile-nav-item{
     width:100%;
-    display:flex;
+    display:flex !important;
     align-items:center;
     gap:10px;
     border:0;
     background:transparent;
     color:var(--text);
     text-align:left;
-    padding:9px 9px;
-    border-radius:16px;
+    padding:9px 10px;
+    border-radius:15px;
     cursor:pointer;
-    transition:background .15s ease, transform .15s ease;
   }
   .mobile-nav-item.sub{
-    padding-left:18px;
+    padding-left:12px;
   }
-  .mobile-nav-icon{
-    flex:0 0 34px;
+  .mobile-nav-item:hover{
+    background:#eef2ff;
+  }
+  .dark .mobile-nav-item:hover{
+    background:#1f2937;
+  }
+  .mobile-nav-item .nav-icon{
+    flex:0 0 auto;
     width:34px;
     height:34px;
     display:grid;
     place-items:center;
     border-radius:13px;
-    background:#eef2ff;
-    color:#1e3a8a;
-    font-size:17px;
-    box-shadow:inset 0 0 0 1px rgba(99,102,241,.10);
-  }
-  .mobile-nav-item.sub .mobile-nav-icon{
-    flex-basis:30px;
-    width:30px;
-    height:30px;
-    border-radius:11px;
     background:#f1f5f9;
-    color:#475569;
-    font-size:15px;
+    font-size:17px;
   }
-  .mobile-nav-copy{
-    min-width:0;
-    display:block;
+  .dark .mobile-nav-item .nav-icon{
+    background:rgba(148,163,184,.14);
   }
-  .mobile-nav-copy strong{
+  .mobile-nav-item strong{
     display:block;
-    color:var(--text);
-    font-size:13.5px;
+    font-size:13px;
     font-weight:950;
-    letter-spacing:-.03em;
     line-height:1.2;
   }
-  .mobile-nav-copy small{
+  .mobile-nav-item em{
     display:block;
     margin-top:3px;
+    font-style:normal;
+    font-size:11.5px;
+    font-weight:800;
     color:var(--muted);
-    font-size:11.3px;
-    font-weight:750;
     line-height:1.2;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
   }
-  .mobile-nav-item:hover,
-  .mobile-nav-item:focus-visible{
-    background:#eef2ff;
-    transform:translateX(-1px);
-    outline:none;
+  .mobile-nav-menu::-webkit-scrollbar{
+    width:8px;
   }
-  .mobile-nav-item:hover .mobile-nav-icon,
-  .mobile-nav-item:focus-visible .mobile-nav-icon{
-    background:#dbeafe;
+  .mobile-nav-menu::-webkit-scrollbar-thumb{
+    background:#cbd5e1;
+    border-radius:999px;
   }
-  .dark .mobile-nav-menu{
-    background:linear-gradient(180deg, rgba(17,24,39,.98), rgba(15,23,42,.96));
-    border-color:rgba(148,163,184,.24);
-    box-shadow:0 24px 80px rgba(0,0,0,.45);
-  }
-  .dark .mobile-nav-head{
-    background:linear-gradient(135deg, #020617, #1e293b);
-  }
-  .dark .mobile-nav-section+.mobile-nav-section{
-    border-top-color:rgba(148,163,184,.18);
-  }
-  .dark .mobile-nav-group{
-    color:#94a3b8;
-  }
-  .dark .mobile-nav-icon{
-    background:rgba(30,41,59,.95);
-    color:#bfdbfe;
-    box-shadow:inset 0 0 0 1px rgba(148,163,184,.18);
-  }
-  .dark .mobile-nav-item.sub .mobile-nav-icon{
-    background:rgba(15,23,42,.92);
-    color:#cbd5e1;
-  }
-  .dark .mobile-nav-item:hover,
-  .dark .mobile-nav-item:focus-visible{
-    background:rgba(30,41,59,.86);
+  .dark .mobile-nav-menu::-webkit-scrollbar-thumb{
+    background:#475569;
   }
 }
 
+@media(max-width:720px){
+  .source-panel{
+    padding:12px;
+    border-radius:20px;
+  }
+  .source-grid{
+    gap:12px;
+  }
+}
 
 
 /* 증권계좌 내부 블록 변환 안정화 */
