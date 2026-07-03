@@ -255,23 +255,34 @@ function jumpToSection(id){
   if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function renderMobileNavMenu(){
+  const navItem=(id,icon,title,desc='',level='')=>`<button type="button" class="mobile-nav-item ${level}" onclick="jumpToSection('${id}')"><span class="mobile-nav-icon" aria-hidden="true">${icon}</span><span class="mobile-nav-copy"><strong>${title}</strong>${desc?`<small>${desc}</small>`:''}</span></button>`;
   return `<div class="mobile-nav-menu-wrap">
-    <button type="button" class="mobile-nav-toggle" onclick="toggleMobileNavMenu()" aria-label="목차 열기">☰</button>
-    <div id="mobileNavMenu" class="mobile-nav-menu">
-      <button type="button" onclick="jumpToSection('summary-section')">투자 요약</button>
-      <button type="button" onclick="jumpToSection('pension-section')">퇴직연금 현황</button>
-      <button type="button" class="sub" onclick="jumpToSection('pension-products')">연금상품별 현황</button>
-      <button type="button" class="sub" onclick="jumpToSection('pension-change')">전일 대비 변동</button>
-      <button type="button" class="sub" onclick="jumpToSection('pension-chart-cum')">운용수익 및 누적수익률</button>
-      <button type="button" class="sub" onclick="jumpToSection('pension-chart-symbol')">연금상품별 운용수익</button>
-      <button type="button" class="sub" onclick="jumpToSection('pension-chart-alloc')">평가액 비중</button>
-      <button type="button" onclick="jumpToSection('securities-section')">증권계좌 현황</button>
-      <button type="button" class="sub" onclick="jumpToSection('accounts-summary')">계좌별 성과 요약</button>
-      <button type="button" class="sub" onclick="jumpToSection('chart-cum')">누적손익 및 누적수익률</button>
-      <button type="button" class="sub" onclick="jumpToSection('chart-symbol')">종목별 누적손익</button>
-      <button type="button" class="sub" onclick="jumpToSection('chart-alloc')">평가액 비중</button>
-      <button type="button" class="sub" onclick="jumpToSection('securities-holdings')">증권계좌 보유분</button>
-      <button type="button" class="sub" onclick="jumpToSection('ledger-check')">장부상 결과물 VS 실제 보유액</button>
+    <button type="button" class="mobile-nav-toggle" onclick="toggleMobileNavMenu()" aria-label="빠른 이동 메뉴 열기"><span aria-hidden="true">☰</span></button>
+    <div id="mobileNavMenu" class="mobile-nav-menu" aria-label="빠른 이동 메뉴">
+      <div class="mobile-nav-head"><div><span class="mobile-nav-eyebrow">QUICK MENU</span><strong>빠른 이동</strong></div><button type="button" class="mobile-nav-close" onclick="closeMobileNavMenu()" aria-label="빠른 이동 메뉴 닫기">×</button></div>
+      <div class="mobile-nav-section">
+        <div class="mobile-nav-group">전체</div>
+        ${navItem('summary-section','🏠','투자 요약','연금+계좌 전체 성과')}
+      </div>
+      <div class="mobile-nav-section">
+        <div class="mobile-nav-group">퇴직연금</div>
+        ${navItem('pension-section','💼','퇴직연금 현황','평가금액·원금·수익률')}
+        ${navItem('pension-products','📦','연금상품별 현황','상품별 평가·비중','sub')}
+        ${navItem('pension-change','📈','전일 대비 변동','하루 평가금액 변화','sub')}
+        ${navItem('pension-chart-cum','📊','운용수익 및 누적수익률','퇴직연금 흐름','sub')}
+        ${navItem('pension-chart-symbol','🧩','연금상품별 운용수익','상품별 기여도','sub')}
+        ${navItem('pension-chart-alloc','🥧','평가액 비중','퇴직연금 자산 비중','sub')}
+      </div>
+      <div class="mobile-nav-section">
+        <div class="mobile-nav-group">증권계좌</div>
+        ${navItem('securities-section','🏦','증권계좌 현황','개인계좌 성과')}
+        ${navItem('accounts-summary','📋','계좌별 성과 요약','계좌별 원금·손익','sub')}
+        ${navItem('chart-cum','📉','누적손익 및 누적수익률','증권계좌 흐름','sub')}
+        ${navItem('chart-symbol','🎯','종목별 누적손익','종목별 기여도','sub')}
+        ${navItem('chart-alloc','⚖️','평가액 비중','ETF·주식·현금','sub')}
+        ${navItem('securities-holdings','💎','증권계좌 보유분','현재 보유 종목','sub')}
+        ${navItem('ledger-check','🧾','장부상 결과물 VS 실제 보유액','정합성 점검','sub')}
+      </div>
     </div>
   </div>`;
 }
