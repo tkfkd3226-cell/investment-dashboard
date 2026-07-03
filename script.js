@@ -191,7 +191,7 @@ function allocHistory(d){
 }
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
-  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div><div class="date-picker-action"><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()">KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()">퇴직연금 금액 조정</button><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="작업 메뉴" aria-label="작업 메뉴" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">⚙</span></button><div id="dateActionMenu" class="date-action-menu" aria-label="작업 메뉴"><button type="button" onclick="triggerKrxPriceUpdate()">KRX 현재가 반영</button><button type="button" onclick="openPensionContributionModal();closeDateActionMenu()">퇴직연금 금액 조정</button></div></div></div></div>`;
+  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div><div class="date-picker-action"><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()"><span class="date-tool-action-icon">💰</span>퇴직연금 금액 조정</button><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="작업 메뉴" aria-label="작업 메뉴" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">⚙</span></button><div id="dateActionMenu" class="date-action-menu" aria-label="작업 메뉴"><button type="button" onclick="triggerKrxPriceUpdate()"><span>📈</span>KRX 현재가 반영</button><button type="button" onclick="openPensionContributionModal();closeDateActionMenu()"><span>💰</span>퇴직연금 금액 조정</button></div></div></div></div>`;
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
@@ -224,21 +224,85 @@ async function dispatchKrxPriceUpdate(pin){
   }
   return data;
 }
-async function triggerKrxPriceUpdate(){
-  closeDateActionMenu();
-  const pin=prompt('KRX 현재가 반영 PIN을 입력하세요.');
-  if(pin===null) return;
-  if(!String(pin).trim()){
-    alert('PIN을 입력해야 합니다.');
+function ensureAppToast(){
+  let toast=document.getElementById('appToast');
+  if(!toast){
+    toast=document.createElement('div');
+    toast.id='appToast';
+    toast.className='app-toast';
+    document.body.appendChild(toast);
+  }
+  return toast;
+}
+function showAppToast(message,type='ok',delay=3500){
+  const toast=ensureAppToast();
+  toast.className=`app-toast show ${type==='err'?'err':'ok'}`;
+  toast.textContent=message;
+  clearTimeout(showAppToast._timer);
+  showAppToast._timer=setTimeout(()=>toast.classList.remove('show'),delay);
+}
+function ensureKrxActionModal(){
+  let modal=document.getElementById('krxActionModal');
+  if(modal) return modal;
+  modal=document.createElement('div');
+  modal.id='krxActionModal';
+  modal.className='krx-action-modal';
+  modal.innerHTML=`<div class="krx-action-card" role="dialog" aria-modal="true" aria-labelledby="krxActionTitle">
+    <button type="button" class="krx-action-close" onclick="closeKrxActionModal()" aria-label="닫기">×</button>
+    <div class="krx-action-icon">📈</div>
+    <h3 id="krxActionTitle">KRX 현재가 반영</h3>
+    <p>GitHub Actions를 실행해서 현재가 데이터를 갱신합니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
+    <label class="krx-action-label" for="krxActionPin">저장/실행 PIN</label>
+    <input id="krxActionPin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 입력">
+    <div id="krxActionStatus" class="krx-action-status"></div>
+    <div class="krx-action-buttons">
+      <button type="button" class="ghost" onclick="closeKrxActionModal()">취소</button>
+      <button type="button" class="primary" onclick="submitKrxActionModal()">실행</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)closeKrxActionModal()});
+  return modal;
+}
+function openKrxActionModal(){
+  const modal=ensureKrxActionModal();
+  const status=modal.querySelector('#krxActionStatus');
+  const input=modal.querySelector('#krxActionPin');
+  if(status){status.textContent='';status.className='krx-action-status'}
+  modal.classList.add('show');
+  setTimeout(()=>input?.focus(),30);
+}
+function closeKrxActionModal(){
+  const modal=document.getElementById('krxActionModal');
+  if(modal) modal.classList.remove('show');
+}
+async function submitKrxActionModal(){
+  const modal=ensureKrxActionModal();
+  const input=modal.querySelector('#krxActionPin');
+  const status=modal.querySelector('#krxActionStatus');
+  const submitBtn=modal.querySelector('.krx-action-buttons .primary');
+  const pin=String(input?.value||'').trim();
+  if(!pin){
+    if(status){status.textContent='PIN을 입력해 주세요.';status.className='krx-action-status err'}
+    input?.focus();
     return;
   }
-  if(!confirm('KRX 현재가 반영 액션을 실행할까요? GitHub Pages 반영까지 몇 분 걸릴 수 있습니다.')) return;
   try{
+    if(submitBtn) submitBtn.disabled=true;
+    if(status){status.textContent='GitHub Actions 실행 요청 중...';status.className='krx-action-status ok'}
     await dispatchKrxPriceUpdate(pin);
-    alert('KRX 현재가 반영 요청 완료. GitHub Actions 실행 후 Pages 반영까지 잠시 기다려주세요.');
+    if(status){status.textContent='실행 요청 완료. Actions와 Pages 반영을 잠시 기다려 주세요.';status.className='krx-action-status ok'}
+    showAppToast('KRX 현재가 반영 요청 완료', 'ok');
+    setTimeout(closeKrxActionModal,900);
   }catch(e){
-    alert('KRX 현재가 반영 실패: '+(e.message||String(e)));
+    if(status){status.textContent='실패: '+(e.message||String(e));status.className='krx-action-status err'}
+  }finally{
+    if(submitBtn) submitBtn.disabled=false;
   }
+}
+async function triggerKrxPriceUpdate(){
+  closeDateActionMenu();
+  openKrxActionModal();
 }
 
 function closeMobileNavMenu(){
@@ -282,7 +346,7 @@ function renderMobileNavMenu(){
         {id:'chart-symbol',icon:'🧩',title:'종목별 누적손익',desc:'핵심종목 기여도'},
         {id:'chart-alloc',icon:'🥧',title:'평가액 비중',desc:'ETF·개별주식·현금'},
         {id:'securities-holdings',icon:'📁',title:'증권계좌 보유분',desc:'수량·평단·평가손익'},
-        {id:'ledger-check',icon:'🔍',title:'장부상 결과물 VS 실제 보유액',desc:'실제 잔고 검산'},
+        {id:'ledger-check',icon:'🔍',title:'장부 결과 VS 실제 보유액',desc:'실제 잔고 검산'},
         ...(isLedgerCheckDate(ACTIVE_DATE)?[{id:'capital-source-check',icon:'🧾',title:'투자원금 원천 및 검산',desc:'외부투입·재투입 계산'}]:[])
       ]
     }
@@ -437,7 +501,7 @@ function renderResultSummary(x){
   const ledgerGap=x.totalResult - actualHoldingAndCash;
   if(!isLedgerCheckDate(x.date)) return '';
 
-  return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon">🔍</span>장부상 결과물 VS 실제 보유액</h2><p>${x.date} 기준</p></div><div class="grid cards">${metricCard('장부상 증권계좌 투자 결과물(A)',won(x.totalResult),'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),'증권계좌 평가총액 + 계좌 밖 현금',false,'blue')}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,ledgerGap>=0?'positive':'negative')}${metricCard('차액 발생 이유','수익실현분 카드대금 사용','6/18 기준 확정 정리값',false)}</div><p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금은 6/18 확인값 ${won(outsideCash)} 유지. 해당 현금은 투자 실현수익 잔액 반영, 차액은 수익실현분 카드대금 사용액으로 정리.</p></section>`;
+  return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon">🔍</span>장부 결과 VS 실제 보유액</h2><p>${x.date} 기준</p></div><div class="grid cards">${metricCard('장부상 증권계좌 투자 결과물(A)',won(x.totalResult),'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),'증권계좌 평가총액 + 계좌 밖 현금',false,'blue')}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,ledgerGap>=0?'positive':'negative')}${metricCard('차액 발생 이유','수익실현분 카드대금 사용','6/18 기준 확정 정리값',false)}</div><p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금은 6/18 확인값 ${won(outsideCash)} 유지. 해당 현금은 투자 실현수익 잔액 반영, 차액은 수익실현분 카드대금 사용액으로 정리.</p></section>`;
 }
 
 function renderHoldings(x){
