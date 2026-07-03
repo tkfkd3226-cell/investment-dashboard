@@ -294,7 +294,7 @@ function renderPensionContributionModal(x){
 </div>
 <div class="contrib-list modal-card-box">
   <h3>삭제</h3>
-  <p class="small">잘못 넣은 항목을 되돌릴 때 선택 후 삭제. 삭제 전 PIN 입력 필요.</p>
+  <p class="small">잘못 넣은 항목을 되돌릴 때 선택 후 삭제. GitHub Pages 방식은 PIN 없이 삭제 가능, Netlify 방식은 PIN 필요.</p>
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList()}</div>
   <div class="contrib-actions"><button type="button" class="contrib-btn danger" onclick="deleteSelectedPensionContribution()">선택 항목 삭제</button></div>
 </div>
@@ -702,12 +702,12 @@ function buildPensionContributionItem(){
   const dateEl=document.getElementById('pensionContribDate');
   const amountEl=document.getElementById('pensionContribAmount');
   const memoEl=document.getElementById('pensionContribMemo');
-  if(!dateEl||!amountEl||!memoEl) throw new Error('입력칸을 찾지 못했어.');
+  if(!dateEl||!amountEl||!memoEl) throw new Error('입력칸을 찾지 못했습니다.');
   const date=dateEl.value;
   const amount=cleanNumberInput(amountEl.value);
   const memo=memoEl.value.trim()||defaultPensionContributionMemo(date);
-  if(!date) throw new Error('일자를 입력해줘.');
-  if(!amount || amount<=0) throw new Error('금액을 입력해줘.');
+  if(!date) throw new Error('일자를 입력해주세요.');
+  if(!amount || amount<=0) throw new Error('금액을 입력해주세요.');
   return {date,source:'company',amount,memo};
 }
 function showPensionContributionStatus(message,type='ok'){
@@ -723,7 +723,7 @@ function generatePensionContributionJson(){
     const item=buildPensionContributionItem();
     out.textContent=JSON.stringify(item,null,2);
     out.classList.add('show');
-    showPensionContributionStatus('JSON 생성 완료. 수동 반영이 필요하면 복사해서 contributions 안에 추가하면 돼.','ok');
+    showPensionContributionStatus('JSON 생성 완료. 수동 반영이 필요하면 복사해서 contributions 안에 추가해주세요.','ok');
   }catch(e){
     out.textContent=e.message||String(e);
     out.classList.add('show');
@@ -741,7 +741,7 @@ async function copyPensionContributionJson(){
     out.textContent=text + '\n\n복사 완료';
     showPensionContributionStatus('복사 완료.','ok');
   }catch(e){
-    showPensionContributionStatus('복사는 브라우저 권한 때문에 실패. 위 내용을 직접 선택해서 복사해줘.','err');
+    showPensionContributionStatus('복사는 브라우저 권한 때문에 실패. 위 내용을 직접 선택해서 복사해주세요.','err');
   }
 }
 
@@ -819,15 +819,15 @@ async function savePensionContribution(){
     }
 
     const modeLabel=pensionContributionModeLabel();
-    showPensionContributionStatus(`${modeLabel} 방식으로 저장 중... GitHub 파일을 업데이트하고 있어.`,'ok');
+    showPensionContributionStatus(`${modeLabel} 방식으로 저장 중... GitHub 파일을 업데이트하고 있습니다.`,'ok');
 
     const data=await savePensionContributionByMode(item);
 
     if(pensionContributionSaveMode==='githubPages'){
-      showPensionContributionStatus('신규 항목 추가 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있어.','ok');
+      showPensionContributionStatus('신규 항목 추가 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');
     }else{
       const action=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
-      showPensionContributionStatus(`${action} 완료. Netlify 재배포가 끝나면 화면에 반영돼. commit: ${data.commitSha||'-'}`,'ok');
+      showPensionContributionStatus(`${action} 완료. Netlify 재배포가 끝나면 화면에 반영됩니다. commit: ${data.commitSha||'-'}`,'ok');
     }
 
   }catch(e){
@@ -835,27 +835,88 @@ async function savePensionContribution(){
   }
 }
 
+async function deletePensionContributionViaGithubPages(date, source){
+  const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
+
+  if(!config.url || config.url.includes('여기에_')){
+    throw new Error('GitHub Pages 삭제 URL이 설정되지 않았습니다.');
+  }
+
+  if(!config.secret || config.secret.includes('여기에_')){
+    throw new Error('GitHub Pages 삭제 보안키가 설정되지 않았습니다.');
+  }
+
+  const res=await fetch(config.url,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({
+      secret:config.secret,
+      action:'delete',
+      date,
+      source
+    })
+  });
+
+  const data=await res.json().catch(()=>({}));
+
+  if(!data.ok){
+    throw new Error(data.error||'GitHub Pages 방식 삭제 실패');
+  }
+
+  return data;
+}
+
+async function deletePensionContributionViaNetlify(date, source){
+  const pinEl=document.getElementById('pensionContribPin');
+
+  const res=await fetch('/.netlify/functions/save-pension-contribution',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      pin:pinEl?.value||'',
+      action:'delete',
+      date,
+      source
+    })
+  });
+
+  const data=await res.json().catch(()=>({}));
+
+  if(!res.ok){
+    throw new Error(data.error||`Netlify 방식 삭제 실패 (${res.status})`);
+  }
+
+  return data;
+}
+
 async function deleteSelectedPensionContribution(){
   const selected=document.querySelector('input[name="pensionContribDeleteTarget"]:checked');
-  const pinEl=document.getElementById('pensionContribPin');
+
   if(!selected){
-    showPensionContributionStatus('삭제할 항목을 선택해줘.','err');
+    showPensionContributionStatus('삭제할 항목을 선택해주세요.','err');
     return;
   }
+
   const [date,source]=selected.value.split('|');
   const item=pensionContributionItems().find(v=>v.date===date&&(v.source||'company')===source);
   const amount=item?won(Number(item.amount)||0):'선택 항목';
-  if(!confirm(`${date} / ${amount} 항목을 삭제할까요?\n삭제는 현재 Netlify 방식으로 처리됩니다. GitHub에 커밋되고 배포 후 반영됩니다.`)) return;
+  const modeLabel=pensionContributionModeLabel();
+
+  if(!confirm(`${date} / ${amount} 항목을 삭제할까요?\n${modeLabel} 방식으로 GitHub 파일에서 삭제됩니다.`)) return;
+
   try{
-    showPensionContributionStatus('Netlify 방식으로 삭제 중... GitHub 파일을 업데이트하고 있어.','ok');
-    const res=await fetch('/.netlify/functions/save-pension-contribution',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({pin:pinEl?.value||'',action:'delete',date,source})
-    });
-    const data=await res.json().catch(()=>({}));
-    if(!res.ok) throw new Error(data.error||`삭제 실패 (${res.status})`);
-    showPensionContributionStatus(`선택 항목 삭제 완료. Netlify 재배포가 끝나면 화면에 반영돼. commit: ${data.commitSha||'-'}`,'ok');
+    showPensionContributionStatus(`${modeLabel} 방식으로 삭제 중... GitHub 파일을 업데이트하고 있습니다.`,'ok');
+
+    const data=pensionContributionSaveMode==='githubPages'
+      ? await deletePensionContributionViaGithubPages(date, source)
+      : await deletePensionContributionViaNetlify(date, source);
+
+    if(pensionContributionSaveMode==='githubPages'){
+      showPensionContributionStatus('선택 항목 삭제 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');
+    }else{
+      showPensionContributionStatus(`선택 항목 삭제 완료. Netlify 재배포가 끝나면 화면에 반영됩니다. commit: ${data.commitSha||'-'}`,'ok');
+    }
+
   }catch(e){
     showPensionContributionStatus(e.message||String(e),'err');
   }
