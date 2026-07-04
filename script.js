@@ -440,7 +440,7 @@ function renderPensionContributionList(){
 
   if(!items.length) return `<p class="small">등록된 기업적립금/현금성자산 평가금액이 없습니다.</p>`;
 
-  return items.map(v=>`<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.target}|${v.key}"><span class="contrib-existing-main"><span class="contrib-existing-title"><span class="contrib-existing-date">${v.date}</span><span class="contrib-existing-sep"> / </span><span class="contrib-existing-info">${v.label} / ${won(v.amount)}</span></span><span class="contrib-existing-memo">${v.memo}</span></span></label>`).join('');
+  return items.map(v=>`<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.target}|${v.key}"><span class="contrib-existing-main"><span class="contrib-existing-title"><span class="contrib-existing-date">${v.date}</span><span class="contrib-existing-sep"> / </span><span class="contrib-existing-info">${v.label} / ${won(v.amount)}</span></span><span class="contrib-existing-memo">${escapeHtml(v.memo)}</span></span></label>`).join('');
 }
 
 function renderPensionContributionModal(x){
