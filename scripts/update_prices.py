@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -48,19 +49,48 @@ def previous_snapshot(prices: dict[str, Any], before: str | None = None):
     return keys[-1], prices[keys[-1]]
 
 
-def fetch_close(ticker: str, target_date: str, lookback_days: int = 7):
+def fetch_close(ticker: str, target_date: str, lookback_days: int = 7, retries: int = 2, retry_delay: float = 1.5):
     start = datetime.strptime(target_date, "%Y-%m-%d") - timedelta(days=lookback_days)
     end = datetime.strptime(target_date, "%Y-%m-%d")
-    try:
-        df = stock.get_market_ohlcv_by_date(start.strftime("%Y%m%d"), end.strftime("%Y%m%d"), ticker)
-        if df is None or df.empty:
-            return None, None, "empty-dataframe"
-        last_idx = df.index[-1]
-        actual_date = last_idx.strftime("%Y-%m-%d") if hasattr(last_idx, "strftime") else str(last_idx)[:10]
-        close = int(df.iloc[-1]["종가"])
-        return actual_date, close, None
-    except Exception as exc:
-        return None, None, repr(exc)
+    last_error = None
+
+    for attempt in range(retries + 1):
+        try:
+            df = stock.get_market_ohlcv_by_date(start.strftime("%Y%m%d"), end.strftime("%Y%m%d"), ticker)
+            if df is None or df.empty:
+                last_error = "empty-dataframe"
+            else:
+                last_idx = df.index[-1]
+                actual_date = last_idx.strftime("%Y-%m-%d") if hasattr(last_idx, "strftime") else str(last_idx)[:10]
+                close = int(df.iloc[-1]["종가"])
+                return actual_date, close, None
+        except Exception as exc:
+            last_error = repr(exc)
+
+        if attempt < retries:
+            time.sleep(retry_delay)
+
+    return None, None, last_error
+
+
+def symbol_key(name: str) -> str:
+    return "KODEX200" if name == "KODEX 200" else name
+
+
+def is_symbol_chart_target(item: dict[str, Any]) -> bool:
+    return item.get("chart") is not False
+
+
+def init_security_symbols(portfolio: dict[str, Any]) -> dict[str, int]:
+    symbols: dict[str, int] = {}
+    for item in portfolio.get("securities", []):
+        if not is_symbol_chart_target(item):
+            continue
+        name = item.get("name")
+        if not name:
+            continue
+        symbols.setdefault(symbol_key(str(name)), 0)
+    return symbols
 
 
 def calculate_performance_snapshot(target_date: str, portfolio: dict[str, Any], prices: dict[str, Any], snapshots: dict[str, Any]) -> dict[str, Any]:
@@ -69,7 +99,7 @@ def calculate_performance_snapshot(target_date: str, portfolio: dict[str, Any], 
     securities_prices = price_snapshot.get("securities", {})
 
     raw_holding_profit = 0
-    symbols = {"SK하이닉스": 0, "삼성전자": 0, "현대차": 0, "KODEX200": 0}
+    symbols = init_security_symbols(portfolio)
     allocation = {"ETF": 0, "개별주식": 0, "현금": int(constants.get("securitiesCash", 0))}
 
     for item in portfolio["securities"]:
@@ -86,9 +116,9 @@ def calculate_performance_snapshot(target_date: str, portfolio: dict[str, Any], 
         else:
             allocation["개별주식"] += eval_amount
 
-        name = item["name"]
-        key = "KODEX200" if name == "KODEX 200" else name
-        if key in symbols:
+        if is_symbol_chart_target(item):
+            name = item["name"]
+            key = symbol_key(str(name))
             symbols[key] = profit
 
     prev_keys = [k for k in sorted(snapshots.keys()) if k < target_date]
