@@ -360,9 +360,28 @@ function openKrxActionModal(){
   modal.classList.add('show');
   setTimeout(()=>input?.focus(),30);
 }
+
+function forceMobileViewportReflow(){
+  const y=window.scrollY||document.documentElement.scrollTop||0;
+  if(document.activeElement&&typeof document.activeElement.blur==='function'){
+    document.activeElement.blur();
+  }
+  setTimeout(()=>{
+    window.scrollTo({top:y,left:0,behavior:'auto'});
+    window.scrollBy(0,1);
+    window.scrollBy(0,-1);
+    document.body.style.transform='translateZ(0)';
+    requestAnimationFrame(()=>{
+      document.body.style.transform='';
+      window.dispatchEvent(new Event('resize'));
+    });
+  },120);
+}
+
 function closeKrxActionModal(){
   const modal=document.getElementById('krxActionModal');
   if(modal) modal.classList.remove('show');
+  forceMobileViewportReflow();
 }
 async function submitKrxActionModal(){
   const modal=ensureKrxActionModal();
@@ -961,6 +980,7 @@ function closePensionContributionModal(){
   document.body.classList.remove('contrib-modal-open');
   const trigger=document.querySelector('.date-tool-btn');
   if(trigger) trigger.focus({preventScroll:true});
+  forceMobileViewportReflow();
 }
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape') closePensionContributionModal();
