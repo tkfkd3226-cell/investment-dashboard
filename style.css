@@ -4484,3 +4484,161 @@ button:active,
     flex-basis:40px !important;
   }
 }
+
+
+/* GitHub-style compact mobile menu override */
+@media(max-width:760px){
+  .date-action-menu.mobile-combined-menu{
+    top:54px !important;
+    right:8px !important;
+    width:min(330px, calc(100vw - 16px)) !important;
+    max-height:calc(100vh - 72px) !important;
+    padding:8px !important;
+    border-radius:12px !important;
+    border:1px solid #d0d7de !important;
+    background:#ffffff !important;
+    box-shadow:0 16px 40px rgba(27,31,36,.18) !important;
+    backdrop-filter:none !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu{
+    background:#0d1117 !important;
+    border-color:#30363d !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-head{
+    display:flex !important;
+    justify-content:flex-end !important;
+    align-items:center !important;
+    padding:0 2px 4px !important;
+    margin:0 !important;
+    background:transparent !important;
+    border-radius:0 !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-head button{
+    width:30px !important;
+    height:30px !important;
+    border:0 !important;
+    border-radius:6px !important;
+    background:transparent !important;
+    color:#57606a !important;
+    font-size:22px !important;
+    line-height:1 !important;
+    cursor:pointer !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-head button:hover{
+    background:#f6f8fa !important;
+    color:#24292f !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head button{
+    color:#8b949e !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head button:hover{
+    background:#161b22 !important;
+    color:#c9d1d9 !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-group{
+    margin:6px 0 0 !important;
+    padding:6px 0 0 !important;
+    border-top:1px solid #d8dee4 !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{
+    margin-top:0 !important;
+    padding-top:0 !important;
+    border-top:0 !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group{
+    border-top-color:#30363d !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-group p{
+    margin:4px 8px 4px !important;
+    color:#6e7781 !important;
+    font-size:11px !important;
+    font-weight:600 !important;
+    letter-spacing:0 !important;
+    line-height:16px !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group p{
+    color:#8b949e !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-item,
+  .date-action-menu.mobile-combined-menu a.mobile-nav-item,
+  .date-action-menu.mobile-combined-menu button.mobile-nav-item{
+    width:100% !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:8px !important;
+    min-height:36px !important;
+    padding:7px 8px !important;
+    border:0 !important;
+    border-radius:6px !important;
+    background:transparent !important;
+    color:#24292f !important;
+    text-align:left !important;
+    text-decoration:none !important;
+    font-size:14px !important;
+    font-weight:400 !important;
+    line-height:20px !important;
+    cursor:pointer !important;
+    box-shadow:none !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{
+    padding-left:8px !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-item:hover,
+  .date-action-menu.mobile-combined-menu a.mobile-nav-item:hover,
+  .date-action-menu.mobile-combined-menu button.mobile-nav-item:hover{
+    background:#f6f8fa !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-item,
+  .dark .date-action-menu.mobile-combined-menu a.mobile-nav-item,
+  .dark .date-action-menu.mobile-combined-menu button.mobile-nav-item{
+    color:#c9d1d9 !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-item:hover,
+  .dark .date-action-menu.mobile-combined-menu a.mobile-nav-item:hover,
+  .dark .date-action-menu.mobile-combined-menu button.mobile-nav-item:hover{
+    background:#161b22 !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{
+    flex:0 0 18px !important;
+    width:18px !important;
+    height:18px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    margin:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    color:#57606a !important;
+    font-size:0 !important;
+    box-shadow:none !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{
+    width:18px !important;
+    height:18px !important;
+    display:block !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{
+    color:#8b949e !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-item strong{
+    display:block !important;
+    font-size:14px !important;
+    font-weight:500 !important;
+    line-height:20px !important;
+    color:inherit !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-item em{
+    display:none !important;
+  }
+  .date-action-menu.mobile-combined-menu::-webkit-scrollbar{
+    width:8px !important;
+  }
+  .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{
+    background:#d0d7de !important;
+    border-radius:999px !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{
+    background:#30363d !important;
+  }
+}

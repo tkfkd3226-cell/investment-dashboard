@@ -189,55 +189,76 @@ function allocHistory(d){
     };
   });
 }
+function navIconSvg(name){
+  const attrs='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+  const icons={
+    link:`<svg ${attrs}><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"></path><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"></path></svg>`,
+    activity:`<svg ${attrs}><path d="M22 12h-4l-3 8-6-16-3 8H2"></path></svg>`,
+    refresh:`<svg ${attrs}><path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><path d="M18 2v4h4"></path><path d="M6 22v-4H2"></path></svg>`,
+    wallet:`<svg ${attrs}><path d="M20 7H5a3 3 0 0 0 0 6h15v6H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h15v3Z"></path><path d="M16 13h.01"></path></svg>`,
+    home:`<svg ${attrs}><path d="m3 10 9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path></svg>`,
+    briefcase:`<svg ${attrs}><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M3 12h18"></path></svg>`,
+    package:`<svg ${attrs}><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"></path><path d="M12 12 4.5 7.8"></path><path d="M12 12l7.5-4.2"></path><path d="M12 12v9"></path></svg>`,
+    trending:`<svg ${attrs}><path d="m3 17 6-6 4 4 8-8"></path><path d="M14 7h7v7"></path></svg>`,
+    chart:`<svg ${attrs}><path d="M3 3v18h18"></path><path d="M7 15v2"></path><path d="M12 11v6"></path><path d="M17 7v10"></path></svg>`,
+    pie:`<svg ${attrs}><path d="M21 12a9 9 0 1 1-9-9v9h9Z"></path><path d="M12 3a9 9 0 0 1 9 9"></path></svg>`,
+    bank:`<svg ${attrs}><path d="m3 9 9-6 9 6"></path><path d="M4 10h16"></path><path d="M6 10v8"></path><path d="M10 10v8"></path><path d="M14 10v8"></path><path d="M18 10v8"></path><path d="M3 18h18"></path><path d="M2 21h20"></path></svg>`,
+    list:`<svg ${attrs}><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3 6h.01"></path><path d="M3 12h.01"></path><path d="M3 18h.01"></path></svg>`,
+    folder:`<svg ${attrs}><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>`,
+    search:`<svg ${attrs}><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>`,
+    receipt:`<svg ${attrs}><path d="M6 3h12v18l-2-1-2 1-2-1-2 1-2-1-2 1V3Z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h4"></path></svg>`
+  };
+  return icons[name]||icons.list;
+}
 function renderUnifiedMobileMenuContent(){
   const groups=[
     {
       label:'링크',
       items:[
-        {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:'🌙',title:'코스피200 야간선물',desc:'야간선물 확인'},
-        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:'🚀',title:'나스닥100 선물',desc:'미국 선물 확인'}
+        {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:'activity',title:'코스피200 야간선물'},
+        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:'link',title:'나스닥100 선물'}
       ]
     },
     {
       label:'관리',
       items:[
-        {type:'action',action:'triggerKrxPriceUpdate();closeDateActionMenu();closeMobileNavMenu();',icon:'📈',title:'KRX 현재가 반영',desc:'GitHub Actions 실행'},
-        {type:'action',action:'openPensionContributionModal();closeDateActionMenu();closeMobileNavMenu();',icon:'💰',title:'퇴직연금 금액 조정',desc:'회사납입금·현금성자산 보정'}
+        {type:'action',action:'triggerKrxPriceUpdate();closeDateActionMenu();closeMobileNavMenu();',icon:'refresh',title:'KRX 현재가 반영'},
+        {type:'action',action:'openPensionContributionModal();closeDateActionMenu();closeMobileNavMenu();',icon:'wallet',title:'퇴직연금 금액 조정'}
       ]
     },
     {
       label:'전체',
       items:[
-        {type:'section',id:'summary-section',icon:'🏠',title:'연금+계좌 성과',desc:'퇴직연금과 증권계좌 합산'}
+        {type:'section',id:'summary-section',icon:'home',title:'연금+계좌 성과'}
       ]
     },
     {
       label:'퇴직연금',
       items:[
-        {type:'section',id:'pension-section',icon:'💼',title:'퇴직연금 현황',desc:'평가금액·원금·수익률'},
-        {type:'section',id:'pension-products',icon:'📦',title:'연금상품별 현황',desc:'상품별 평가·비중'},
-        {type:'section',id:'pension-change',icon:'📈',title:'전일 대비 변동',desc:'하루 평가액 변화'},
-        {type:'section',id:'pension-chart-cum',icon:'📊',title:'운용수익 및 누적수익률',desc:'전체 운용 기준'},
-        {type:'section',id:'pension-chart-symbol',icon:'🧩',title:'연금상품별 운용수익',desc:'보유상품 재투자 기준'},
-        {type:'section',id:'pension-chart-alloc',icon:'🥧',title:'평가액 비중',desc:'연금상품·현금성자산'}
+        {type:'section',id:'pension-section',icon:'briefcase',title:'퇴직연금 현황'},
+        {type:'section',id:'pension-products',icon:'package',title:'연금상품별 현황'},
+        {type:'section',id:'pension-change',icon:'trending',title:'전일 대비 변동'},
+        {type:'section',id:'pension-chart-cum',icon:'chart',title:'운용수익 및 누적수익률'},
+        {type:'section',id:'pension-chart-symbol',icon:'chart',title:'연금상품별 운용수익'},
+        {type:'section',id:'pension-chart-alloc',icon:'pie',title:'평가액 비중'}
       ]
     },
     {
       label:'증권계좌',
       items:[
-        {type:'section',id:'securities-section',icon:'🏦',title:'증권계좌 현황',desc:'계좌 성과와 보유분'},
-        {type:'section',id:'accounts-summary',icon:'📋',title:'계좌별 성과 요약',desc:'2023-12 이후 누적'},
-        {type:'section',id:'chart-cum',icon:'📊',title:'누적손익 및 누적수익률',desc:'전일대비손익 포함'},
-        {type:'section',id:'chart-symbol',icon:'🧩',title:'종목별 누적손익',desc:'핵심종목 기여도'},
-        {type:'section',id:'chart-alloc',icon:'🥧',title:'평가액 비중',desc:'ETF·개별주식·현금'},
-        {type:'section',id:'securities-holdings',icon:'📁',title:'증권계좌 보유분',desc:'수량·평단·평가손익'},
-        {type:'section',id:'ledger-check',icon:'🔍',title:'장부결과 VS 실제보유',desc:'실제 잔고 검산'},
-        ...(isLedgerCheckDate(ACTIVE_DATE)?[{type:'section',id:'capital-source-check',icon:'🧾',title:'투자원금 원천 및 검산',desc:'외부투입·재투입 계산'}]:[])
+        {type:'section',id:'securities-section',icon:'bank',title:'증권계좌 현황'},
+        {type:'section',id:'accounts-summary',icon:'list',title:'계좌별 성과 요약'},
+        {type:'section',id:'chart-cum',icon:'chart',title:'누적손익 및 누적수익률'},
+        {type:'section',id:'chart-symbol',icon:'chart',title:'종목별 누적손익'},
+        {type:'section',id:'chart-alloc',icon:'pie',title:'평가액 비중'},
+        {type:'section',id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
+        {type:'section',id:'ledger-check',icon:'search',title:'장부결과 VS 실제보유'},
+        ...(isLedgerCheckDate(ACTIVE_DATE)?[{type:'section',id:'capital-source-check',icon:'receipt',title:'투자원금 원천 및 검산'}]:[])
       ]
     }
   ];
   return groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>{
-    const inner=`<span class="nav-icon">${item.icon}</span><span><strong>${item.title}</strong><em>${item.desc}</em></span>`;
+    const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
     const cls=`mobile-nav-item ${idx?'sub':''}`;
     if(item.type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" onclick="closeDateActionMenu();closeMobileNavMenu()">${inner}</a>`;
     if(item.type==='action') return `<button type="button" class="${cls}" onclick="${item.action}">${inner}</button>`;
