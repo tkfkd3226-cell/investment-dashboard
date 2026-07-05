@@ -247,11 +247,11 @@ function renderUnifiedMobileMenuContent(){
       label:'증권계좌',
       items:[
         {type:'section',id:'securities-section',icon:'bank',title:'증권계좌 현황'},
+        {type:'section',id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
         {type:'section',id:'accounts-summary',icon:'list',title:'계좌별 성과 요약'},
         {type:'section',id:'chart-cum',icon:'chart',title:'누적손익 및 누적수익률'},
         {type:'section',id:'chart-symbol',icon:'chart',title:'종목별 누적손익'},
         {type:'section',id:'chart-alloc',icon:'pie',title:'평가액 비중'},
-        {type:'section',id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
         {type:'section',id:'ledger-check',icon:'search',title:'장부결과 VS 실제보유'},
         ...(isLedgerCheckDate(ACTIVE_DATE)?[{type:'section',id:'capital-source-check',icon:'receipt',title:'투자원금 원천 및 검산'}]:[])
       ]
@@ -428,7 +428,7 @@ function renderSecuritiesSummaryCards(x){
   return `<div class="securities-subsection securities-summary-block"><div class="grid cards">${metricCard('증권계좌 투자 결과물',won(x.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(x.totalPrincipal),x.account2Included?'계좌2 실현분 포함 후 장부상 외부투입원금 기준':'선택일 계좌1 투자원금 기준')}${metricCard('총 합산 누적손익',won(x.totalProfit),`${securitiesScope} 누적손익`,false,'positive')}${metricCard('투자대비 이익률',pct(x.returnRate),'총 합산 누적손익 ÷ 기준 투입원금',false,'blue')}</div></div>`;
 }
 function renderSecuritiesSection(x){
-  return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon">🏦</span>증권계좌 현황</h2></div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderCharts(x),'charts-block')}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(),'source-block'):''}</div></section>`;
+  return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon">🏦</span>증권계좌 현황</h2></div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderCharts(x),'charts-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(),'source-block'):''}</div></section>`;
 }
 
 function pensionContributionModeLabel(){
