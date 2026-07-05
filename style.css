@@ -4411,3 +4411,76 @@ button:active,
     animation:none !important;
   }
 }
+
+/* 4차 모바일 메뉴 통합: 링크 + 관리 + 기존 목차를 상단 ☰ 메뉴로 합침 */
+@media(max-width:760px){
+  .date-picker{
+    grid-template-columns:minmax(132px,1fr) minmax(88px,.72fr) 42px !important;
+    column-gap:6px !important;
+  }
+  .market-link-area{
+    display:none !important;
+  }
+  .date-picker-center,
+  .date-picker-action{
+    display:contents !important;
+  }
+  .date-action-menu-wrap{
+    display:block !important;
+    justify-self:end !important;
+  }
+  .date-tool-menu-btn{
+    width:42px !important;
+    min-width:42px !important;
+    height:40px !important;
+    padding:0 !important;
+    flex:0 0 42px !important;
+  }
+  .date-tool-icon{
+    display:inline !important;
+    font-size:20px !important;
+  }
+  .date-action-menu.mobile-combined-menu{
+    position:fixed !important;
+    top:58px !important;
+    right:10px !important;
+    left:auto !important;
+    width:min(340px, calc(100vw - 20px)) !important;
+    max-height:calc(100vh - 82px) !important;
+    overflow:auto !important;
+    padding:12px !important;
+    border-radius:24px !important;
+    z-index:2600 !important;
+  }
+  .date-action-menu.mobile-combined-menu a.mobile-nav-item{
+    text-decoration:none !important;
+    color:var(--text) !important;
+  }
+  .date-action-menu.mobile-combined-menu button.mobile-nav-item{
+    color:var(--text) !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-head{
+    justify-content:flex-end !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-item span{
+    margin-right:0 !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{
+    margin-right:0 !important;
+  }
+  .mobile-nav-menu-wrap{
+    display:none !important;
+  }
+}
+
+@media(max-width:380px){
+  .date-picker{
+    grid-template-columns:minmax(118px,1fr) minmax(78px,.68fr) 40px !important;
+    column-gap:4px !important;
+  }
+  .date-tool-menu-btn{
+    width:40px !important;
+    min-width:40px !important;
+    flex-basis:40px !important;
+  }
+}

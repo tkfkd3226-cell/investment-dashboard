@@ -189,9 +189,64 @@ function allocHistory(d){
     };
   });
 }
+function renderUnifiedMobileMenuContent(){
+  const groups=[
+    {
+      label:'링크',
+      items:[
+        {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:'🌙',title:'코스피200 야간선물',desc:'야간선물 확인'},
+        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:'🚀',title:'나스닥100 선물',desc:'미국 선물 확인'}
+      ]
+    },
+    {
+      label:'관리',
+      items:[
+        {type:'action',action:'triggerKrxPriceUpdate();closeDateActionMenu();closeMobileNavMenu();',icon:'📈',title:'KRX 현재가 반영',desc:'GitHub Actions 실행'},
+        {type:'action',action:'openPensionContributionModal();closeDateActionMenu();closeMobileNavMenu();',icon:'💰',title:'퇴직연금 금액 조정',desc:'회사납입금·현금성자산 보정'}
+      ]
+    },
+    {
+      label:'전체',
+      items:[
+        {type:'section',id:'summary-section',icon:'🏠',title:'연금+계좌 성과',desc:'퇴직연금과 증권계좌 합산'}
+      ]
+    },
+    {
+      label:'퇴직연금',
+      items:[
+        {type:'section',id:'pension-section',icon:'💼',title:'퇴직연금 현황',desc:'평가금액·원금·수익률'},
+        {type:'section',id:'pension-products',icon:'📦',title:'연금상품별 현황',desc:'상품별 평가·비중'},
+        {type:'section',id:'pension-change',icon:'📈',title:'전일 대비 변동',desc:'하루 평가액 변화'},
+        {type:'section',id:'pension-chart-cum',icon:'📊',title:'운용수익 및 누적수익률',desc:'전체 운용 기준'},
+        {type:'section',id:'pension-chart-symbol',icon:'🧩',title:'연금상품별 운용수익',desc:'보유상품 재투자 기준'},
+        {type:'section',id:'pension-chart-alloc',icon:'🥧',title:'평가액 비중',desc:'연금상품·현금성자산'}
+      ]
+    },
+    {
+      label:'증권계좌',
+      items:[
+        {type:'section',id:'securities-section',icon:'🏦',title:'증권계좌 현황',desc:'계좌 성과와 보유분'},
+        {type:'section',id:'accounts-summary',icon:'📋',title:'계좌별 성과 요약',desc:'2023-12 이후 누적'},
+        {type:'section',id:'chart-cum',icon:'📊',title:'누적손익 및 누적수익률',desc:'전일대비손익 포함'},
+        {type:'section',id:'chart-symbol',icon:'🧩',title:'종목별 누적손익',desc:'핵심종목 기여도'},
+        {type:'section',id:'chart-alloc',icon:'🥧',title:'평가액 비중',desc:'ETF·개별주식·현금'},
+        {type:'section',id:'securities-holdings',icon:'📁',title:'증권계좌 보유분',desc:'수량·평단·평가손익'},
+        {type:'section',id:'ledger-check',icon:'🔍',title:'장부결과 VS 실제보유',desc:'실제 잔고 검산'},
+        ...(isLedgerCheckDate(ACTIVE_DATE)?[{type:'section',id:'capital-source-check',icon:'🧾',title:'투자원금 원천 및 검산',desc:'외부투입·재투입 계산'}]:[])
+      ]
+    }
+  ];
+  return groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>{
+    const inner=`<span class="nav-icon">${item.icon}</span><span><strong>${item.title}</strong><em>${item.desc}</em></span>`;
+    const cls=`mobile-nav-item ${idx?'sub':''}`;
+    if(item.type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" onclick="closeDateActionMenu();closeMobileNavMenu()">${inner}</a>`;
+    if(item.type==='action') return `<button type="button" class="${cls}" onclick="${item.action}">${inner}</button>`;
+    return `<button type="button" class="${cls}" onclick="jumpToSection('${item.id}');closeDateActionMenu()">${inner}</button>`;
+  }).join('')}</div>`).join('');
+}
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
-  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="market-link-area"><a class="date-tool-btn market-link-btn market-link-btn-desktop" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물"><span class="date-tool-action-icon">🌙</span>코스피200 야간선물</a><a class="date-tool-btn market-link-btn market-link-btn-desktop" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물"><span class="date-tool-action-icon">🚀</span>나스닥100 선물</a><div class="market-link-menu-wrap"><button type="button" class="date-tool-btn market-link-menu-btn" title="관련 링크" aria-label="관련 링크" onclick="toggleMarketLinkMenu(event)"><span class="market-link-menu-icon">🔗</span></button><div id="marketLinkMenu" class="market-link-menu" aria-label="관련 링크"><a href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" onclick="closeMarketLinkMenu()"><span>🌙</span>코스피200 야간선물</a><a href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" onclick="closeMarketLinkMenu()"><span>🚀</span>나스닥100 선물</a></div></div></div><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div><div class="date-picker-action"><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()"><span class="date-tool-action-icon">💰</span>퇴직연금 금액 조정</button><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="작업 메뉴" aria-label="작업 메뉴" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">⚙</span></button><div id="dateActionMenu" class="date-action-menu" aria-label="작업 메뉴"><button type="button" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" onclick="openPensionContributionModal();closeDateActionMenu()"><span>💰</span>퇴직연금 금액 조정</button></div></div></div></div>`;
+  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="market-link-area"><a class="date-tool-btn market-link-btn market-link-btn-desktop" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물"><span class="date-tool-action-icon">🌙</span>코스피200 야간선물</a><a class="date-tool-btn market-link-btn market-link-btn-desktop" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물"><span class="date-tool-action-icon">🚀</span>나스닥100 선물</a></div><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select><span class="date-picker-caption">${dates.length}개 거래일</span></div><div class="date-picker-action"><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()"><span class="date-tool-action-icon">💰</span>퇴직연금 금액 조정</button><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="메뉴" aria-label="메뉴" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">☰</span></button><div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="모바일 통합 메뉴"><div class="mobile-nav-head"><button type="button" onclick="closeDateActionMenu()" aria-label="메뉴 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div></div></div></div>`;
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
@@ -331,46 +386,7 @@ function jumpToSection(id){
   if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function renderMobileNavMenu(){
-  const groups=[
-    {
-      label:'전체',
-      items:[
-        {id:'summary-section',icon:'🏠',title:'연금+계좌 성과',desc:'퇴직연금과 증권계좌 합산'}
-      ]
-    },
-    {
-      label:'퇴직연금',
-      items:[
-        {id:'pension-section',icon:'💼',title:'퇴직연금 현황',desc:'평가금액·원금·수익률'},
-        {id:'pension-products',icon:'📦',title:'연금상품별 현황',desc:'상품별 평가·비중'},
-        {id:'pension-change',icon:'📈',title:'전일 대비 변동',desc:'하루 평가액 변화'},
-        {id:'pension-chart-cum',icon:'📊',title:'운용수익 및 누적수익률',desc:'전체 운용 기준'},
-        {id:'pension-chart-symbol',icon:'🧩',title:'연금상품별 운용수익',desc:'보유상품 재투자 기준'},
-        {id:'pension-chart-alloc',icon:'🥧',title:'평가액 비중',desc:'연금상품·현금성자산'}
-      ]
-    },
-    {
-      label:'증권계좌',
-      items:[
-        {id:'securities-section',icon:'🏦',title:'증권계좌 현황',desc:'계좌 성과와 보유분'},
-        {id:'accounts-summary',icon:'📋',title:'계좌별 성과 요약',desc:'2023-12 이후 누적'},
-        {id:'chart-cum',icon:'📊',title:'누적손익 및 누적수익률',desc:'전일대비손익 포함'},
-        {id:'chart-symbol',icon:'🧩',title:'종목별 누적손익',desc:'핵심종목 기여도'},
-        {id:'chart-alloc',icon:'🥧',title:'평가액 비중',desc:'ETF·개별주식·현금'},
-        {id:'securities-holdings',icon:'📁',title:'증권계좌 보유분',desc:'수량·평단·평가손익'},
-        {id:'ledger-check',icon:'🔍',title:'장부결과 VS 실제보유',desc:'실제 잔고 검산'},
-        ...(isLedgerCheckDate(ACTIVE_DATE)?[{id:'capital-source-check',icon:'🧾',title:'투자원금 원천 및 검산',desc:'외부투입·재투입 계산'}]:[])
-      ]
-    }
-  ];
-  const groupHtml=groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>`<button type="button" class="mobile-nav-item ${idx?'sub':''}" onclick="jumpToSection('${item.id}')"><span class="nav-icon">${item.icon}</span><span><strong>${item.title}</strong><em>${item.desc}</em></span></button>`).join('')}</div>`).join('');
-  return `<div class="mobile-nav-menu-wrap">
-    <button type="button" class="mobile-nav-toggle" onclick="toggleMobileNavMenu()" aria-label="목차 열기">☰</button>
-    <div id="mobileNavMenu" class="mobile-nav-menu" aria-label="모바일 빠른 이동 메뉴">
-      <div class="mobile-nav-head"><button type="button" onclick="closeMobileNavMenu()" aria-label="메뉴 닫기">×</button></div>
-      ${groupHtml}
-    </div>
-  </div>`;
+  return '';
 }
 
 
