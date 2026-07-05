@@ -4642,3 +4642,20 @@ button:active,
     background:#30363d !important;
   }
 }
+
+/* iOS Safari input zoom fix: prevent automatic zoom when focusing fields */
+@media(max-width:760px){
+  input,
+  select,
+  textarea{
+    font-size:16px !important;
+  }
+
+  .date-select,
+  .contrib-field input,
+  .contrib-modal input,
+  .krx-action-card input,
+  .pension-action-pin-card input{
+    font-size:16px !important;
+  }
+}
