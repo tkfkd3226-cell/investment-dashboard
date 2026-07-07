@@ -32,6 +32,14 @@ def market_status_kst() -> str:
     return "close"
 
 
+def is_valid_date_text(value: str) -> bool:
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+
+
 def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -71,6 +79,91 @@ def fetch_close(ticker: str, target_date: str, lookback_days: int = 7, retries: 
             time.sleep(retry_delay)
 
     return None, None, last_error
+
+
+def date_range(start_date: str, end_date: str) -> list[str]:
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    end = datetime.strptime(end_date, "%Y-%m-%d")
+    dates: list[str] = []
+
+    current = start
+    while current <= end:
+        dates.append(current.strftime("%Y-%m-%d"))
+        current += timedelta(days=1)
+
+    return dates
+
+
+def latest_price_date(prices: dict[str, Any]) -> str | None:
+    keys = sorted(
+        k
+        for k, v in prices.items()
+        if is_valid_date_text(k)
+        and isinstance(v, dict)
+        and v.get("display", True) is not False
+    )
+    return keys[-1] if keys else None
+
+
+def first_security_ticker(portfolio: dict[str, Any]) -> str | None:
+    for item in portfolio.get("securities", []):
+        ticker = item.get("ticker")
+        if ticker:
+            return str(ticker)
+    return None
+
+
+def resolve_latest_market_date(portfolio: dict[str, Any], target_date: str) -> str | None:
+    ticker = first_security_ticker(portfolio)
+
+    if not ticker:
+        return None
+
+    actual, close, err = fetch_close(ticker, target_date)
+
+    if actual and close is not None:
+        return actual
+
+    print(f"WARN latest market date lookup failed for {ticker} {target_date}: {err}")
+    return None
+
+
+def is_actual_trading_date(portfolio: dict[str, Any], target_date: str) -> bool:
+    ticker = first_security_ticker(portfolio)
+
+    if not ticker:
+        return False
+
+    actual, close, err = fetch_close(ticker, target_date)
+
+    return actual == target_date and close is not None
+
+
+def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], explicit_date: str | None) -> list[str]:
+    if explicit_date:
+        return [explicit_date]
+
+    latest_saved = latest_price_date(prices)
+    latest_market = resolve_latest_market_date(portfolio, today_kst())
+
+    if not latest_market:
+        return []
+
+    if not latest_saved:
+        return [latest_market]
+
+    start = (datetime.strptime(latest_saved, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
+
+    if start > latest_market:
+        return []
+
+    candidates = date_range(start, latest_market)
+
+    return [
+        date
+        for date in candidates
+        if date not in prices and is_actual_trading_date(portfolio, date)
+    ]
 
 
 def symbol_key(name: str) -> str:
@@ -143,29 +236,28 @@ def calculate_performance_snapshot(target_date: str, portfolio: dict[str, Any], 
     }
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--date", default=today_kst(), help="YYYY-MM-DD. 기본값은 한국시간 오늘.")
-    parser.add_argument("--force-display", action="store_true")
-    parser.add_argument("--no-display", action="store_true")
-    args = parser.parse_args()
-
-    target_date = args.date
-    portfolio = load_json(PORTFOLIO_PATH)
-    prices = load_json(PRICES_PATH)
-    snapshots = load_json(SNAPSHOTS_PATH) if SNAPSHOTS_PATH.exists() else {}
-
+def update_one_date(
+    target_date: str,
+    portfolio: dict[str, Any],
+    prices: dict[str, Any],
+    snapshots: dict[str, Any],
+    force_display: bool = False,
+    no_display: bool = False,
+) -> list[str]:
     prev_key, prev = previous_snapshot(prices, before=target_date)
     securities, pension, warnings, actual_dates = {}, {}, [], set()
 
     for item in portfolio["securities"]:
         ticker = item["ticker"]
         actual, close, err = fetch_close(ticker, target_date)
+
         if close is None:
             fallback = prev.get("securities", {}).get(ticker) if prev else None
+
             if fallback is None:
                 warnings.append(f"SEC {ticker}: 조회 실패 및 직전값 없음: {err}")
                 continue
+
             securities[ticker] = int(fallback)
             warnings.append(f"SEC {ticker}: 조회 실패, 직전 스냅샷 {prev_key} 값 {fallback} 사용: {err}")
         else:
@@ -175,11 +267,14 @@ def main() -> int:
     for item in portfolio["pension"]:
         ticker = item["ticker"]
         actual, close, err = fetch_close(ticker, target_date)
+
         if close is None:
             fallback = prev.get("pension", {}).get(ticker) if prev else None
+
             if fallback is None:
                 warnings.append(f"PEN {ticker}: 조회 실패 및 직전값 없음: {err}")
                 continue
+
             pension[ticker] = int(fallback)
             warnings.append(f"PEN {ticker}: 조회 실패, 직전 스냅샷 {prev_key} 값 {fallback} 사용: {err}")
         else:
@@ -190,9 +285,11 @@ def main() -> int:
     actual_date = sorted(actual_dates)[-1] if actual_dates else target_date
 
     display = True
-    if args.no_display:
+
+    if no_display:
         display = False
-    if args.force_display:
+
+    if force_display:
         display = True
 
     status = market_status_kst()
@@ -214,15 +311,62 @@ def main() -> int:
 
     snapshots[target_date] = calculate_performance_snapshot(target_date, portfolio, prices, snapshots)
 
-    save_json(PRICES_PATH, dict(sorted(prices.items())))
-    save_json(SNAPSHOTS_PATH, dict(sorted(snapshots.items())))
-
     if warnings:
-        print("WARNINGS:")
+        print(f"WARNINGS for {target_date}:")
         for warning in warnings:
             print("-", warning)
 
     print(f"updated prices and performance snapshots for {target_date} actualMarketDate={actual_date} marketStatus={status}")
+
+    return warnings
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--date", default="", help="YYYY-MM-DD. 지정하면 해당 날짜만 갱신하고, 비워두면 누락 거래일을 자동 보충.")
+    parser.add_argument("--force-display", action="store_true")
+    parser.add_argument("--no-display", action="store_true")
+    args = parser.parse_args()
+
+    explicit_date = str(args.date or "").strip()
+
+    if explicit_date and not is_valid_date_text(explicit_date):
+        raise ValueError("--date는 YYYY-MM-DD 형식이어야 합니다.")
+
+    portfolio = load_json(PORTFOLIO_PATH)
+    prices = load_json(PRICES_PATH)
+    snapshots = load_json(SNAPSHOTS_PATH) if SNAPSHOTS_PATH.exists() else {}
+
+    target_dates = resolve_target_dates(portfolio, prices, explicit_date or None)
+
+    if not target_dates:
+        print("No missing trading dates to update.")
+        return 0
+
+    print("target dates: " + ", ".join(target_dates))
+
+    all_warnings: list[str] = []
+
+    for target_date in target_dates:
+        warnings = update_one_date(
+            target_date,
+            portfolio,
+            prices,
+            snapshots,
+            force_display=args.force_display,
+            no_display=args.no_display,
+        )
+        all_warnings.extend(warnings)
+
+    save_json(PRICES_PATH, dict(sorted(prices.items())))
+    save_json(SNAPSHOTS_PATH, dict(sorted(snapshots.items())))
+
+    if all_warnings:
+        print("WARNINGS:")
+        for warning in all_warnings:
+            print("-", warning)
+
+    print("updated target dates: " + ", ".join(target_dates))
     return 0
 
 
