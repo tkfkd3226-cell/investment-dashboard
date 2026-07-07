@@ -344,7 +344,7 @@ function ensureKrxActionModal(){
     <button type="button" class="krx-action-close" onclick="closeKrxActionModal()" aria-label="닫기">×</button>
     <div class="krx-action-icon">📈</div>
     <h3 id="krxActionTitle">KRX 현재가 반영</h3>
-    <p>GitHub Actions를 실행해서 현재가 데이터를 갱신합니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
+    <p>마지막 저장일 이후 누락된 거래일의 KRX 현재가를 GitHub Actions로 자동 반영합니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
     <label class="krx-action-label" for="krxActionPin">저장/실행 PIN</label>
     <input id="krxActionPin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 입력">
     <div id="krxActionStatus" class="krx-action-status"></div>
@@ -401,10 +401,10 @@ async function submitKrxActionModal(){
   }
   try{
     if(submitBtn) submitBtn.disabled=true;
-    if(status){status.textContent='GitHub Actions 실행 요청 중...';status.className='krx-action-status ok'}
+    if(status){status.textContent='KRX 현재가 자동 반영 요청 중...';status.className='krx-action-status ok'}
     await dispatchKrxPriceUpdate(pin);
-    if(status){status.textContent='실행 요청 완료. Actions와 Pages 반영을 잠시 기다려 주세요.';status.className='krx-action-status ok'}
-    showAppToast('KRX 현재가 반영 요청 완료', 'ok');
+    if(status){status.textContent='실행 요청 완료. 누락 거래일이 있으면 GitHub Actions에서 자동으로 채워집니다.';status.className='krx-action-status ok'}
+    showAppToast('KRX 현재가 자동 반영 요청 완료', 'ok');
     setTimeout(closeKrxActionModal,900);
   }catch(e){
     if(status){status.textContent='실패: '+(e.message||String(e));status.className='krx-action-status err'}
