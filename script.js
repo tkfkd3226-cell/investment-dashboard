@@ -295,8 +295,7 @@ function toggleMarketLinkMenu(event){
 document.addEventListener('click',()=>{closeDateActionMenu();closeMarketLinkMenu()});
 async function dispatchKrxPriceUpdate(pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
-  const targetDate = ACTIVE_DATE || '';
-
+  
   if(!config.url || config.url.includes('여기에_')){
     throw new Error('Apps Script URL이 설정되지 않았습니다.');
   }
