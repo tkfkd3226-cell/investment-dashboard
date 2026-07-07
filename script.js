@@ -518,6 +518,7 @@ function renderPensionContributionModal(x){
   </div>
   <div class="contrib-save-help" id="contribSaveHelp">${pensionContributionModeHelp('githubPages')}</div>
   <p class="small">기업적립금은 납입원금과 현금성자산 매수원금을 늘립니다. 현금성자산 평가금액은 앱 화면의 평가금액을 특정일 기준으로 저장합니다.</p>
+  <p class="small">※ 현금성자산 평가금액은 같은 일자로 다시 저장하면 기존 금액이 새 금액으로 수정됩니다.</p>
   <div class="contrib-form-grid">
     <div class="contrib-field full contrib-target-field"><span class="contrib-field-label">등록 유형</span><input type="hidden" id="pensionContribTarget" value="contribution"><div class="contrib-target-tabs" role="tablist" aria-label="등록 유형 선택"><button type="button" class="contrib-target-option active" data-target="contribution" onclick="setPensionContributionTarget('contribution')">기업적립금</button><button type="button" class="contrib-target-option" data-target="cashSnapshot" onclick="setPensionContributionTarget('cashSnapshot')">현금성자산 평가금액</button></div></div>
     <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${contribDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></div>
