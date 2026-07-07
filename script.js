@@ -295,21 +295,28 @@ function toggleMarketLinkMenu(event){
 document.addEventListener('click',()=>{closeDateActionMenu();closeMarketLinkMenu()});
 async function dispatchKrxPriceUpdate(pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
+  const targetDate = ACTIVE_DATE || '';
+
   if(!config.url || config.url.includes('여기에_')){
     throw new Error('Apps Script URL이 설정되지 않았습니다.');
   }
+
   const res=await fetch(config.url,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({
       pin:String(pin||'').trim(),
-      action:'updateKrxPrices'
+      action:'updateKrxPrices',
+      date:targetDate
     })
   });
+
   const data=await res.json().catch(()=>({}));
+
   if(!data.ok){
     throw new Error(data.error||'KRX 현재가 반영 요청 실패');
   }
+
   return data;
 }
 function ensureAppToast(){
