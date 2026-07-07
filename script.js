@@ -407,8 +407,7 @@ async function submitKrxActionModal(){
     if(data.action === 'workflow_skipped'){
       const msg = data.message || '업데이트할 KRX 현재가 데이터가 없습니다.';
       if(status){status.textContent=msg;status.className='krx-action-status ok'}
-      showAppToast(msg, 'ok');
-      setTimeout(closeKrxActionModal,1200);
+      showAppToast(msg, 'ok', 6500);
       return;
     }
 
