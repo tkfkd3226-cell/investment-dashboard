@@ -307,7 +307,7 @@ async function dispatchKrxPriceUpdate(pin){
     body:JSON.stringify({
       pin:String(pin||'').trim(),
       action:'updateKrxPrices',
-      date:targetDate
+      date:ACTIVE_DATE || ''
     })
   });
 
