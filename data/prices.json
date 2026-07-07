@@ -381,11 +381,11 @@
       "cash": 39717
     }
   },
-  "2026-07-08": {
+  "2026-07-07": {
     "display": true,
     "source": "pykrx-github-actions",
     "marketStatus": "close",
-    "requestedDate": "2026-07-08",
+    "requestedDate": "2026-07-07",
     "actualMarketDate": "2026-07-07",
     "updatedAtKST": "2026-07-08T00:32:23+09:00",
     "securities": {
