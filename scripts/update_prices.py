@@ -152,18 +152,28 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
     if not latest_saved:
         return [latest_market]
 
+    # 가장 최근 저장일이 아직 종가로 확정되지 않은 상태(intraday)라면,
+    # 이미 prices에 존재하더라도 다시 갱신 대상에 포함시켜서
+    # 장중 재요청 시 최신가로 갱신하거나, 마감 후 요청 시 종가로 확정되게 한다.
+    refresh_dates = []
+    latest_snapshot = prices.get(latest_saved) or {}
+    if latest_snapshot.get("marketStatus") == "intraday":
+        refresh_dates.append(latest_saved)
+
     start = (datetime.strptime(latest_saved, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
 
     if start > latest_market:
-        return []
+        return refresh_dates
 
     candidates = date_range(start, latest_market)
 
-    return [
+    missing_dates = [
         date
         for date in candidates
         if date not in prices and is_actual_trading_date(portfolio, date)
     ]
+
+    return refresh_dates + missing_dates
 
 
 def symbol_key(name: str) -> str:
