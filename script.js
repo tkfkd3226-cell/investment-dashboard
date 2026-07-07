@@ -402,7 +402,16 @@ async function submitKrxActionModal(){
   try{
     if(submitBtn) submitBtn.disabled=true;
     if(status){status.textContent='KRX 현재가 자동 반영 요청 중...';status.className='krx-action-status ok'}
-    await dispatchKrxPriceUpdate(pin);
+    const data = await dispatchKrxPriceUpdate(pin);
+
+    if(data.action === 'workflow_skipped'){
+      const msg = data.message || '업데이트할 KRX 현재가 데이터가 없습니다.';
+      if(status){status.textContent=msg;status.className='krx-action-status ok'}
+      showAppToast(msg, 'ok');
+      setTimeout(closeKrxActionModal,1200);
+      return;
+    }
+
     if(status){status.textContent='실행 요청 완료. 누락 거래일이 있으면 GitHub Actions에서 자동으로 채워집니다.';status.className='krx-action-status ok'}
     showAppToast('KRX 현재가 자동 반영 요청 완료', 'ok');
     setTimeout(closeKrxActionModal,900);
