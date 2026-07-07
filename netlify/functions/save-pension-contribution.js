@@ -29,6 +29,59 @@ const normalizeArrayData = (doc, keyName) => {
 
 const crypto = require('crypto');
 
+const pinFailStore = new Map();
+
+const getClientKey = (event) => {
+  const headers = event.headers || {};
+  const forwarded = headers['x-forwarded-for'] || headers['X-Forwarded-For'] || '';
+  const ip = String(forwarded).split(',')[0].trim();
+  return ip || headers['client-ip'] || headers['x-real-ip'] || 'unknown';
+};
+
+const assertAdminPin = (event, payload, adminPin) => {
+  if (!adminPin) return;
+
+  const key = `pin:${getClientKey(event)}`;
+  const now = Date.now();
+  const state = pinFailStore.get(key) || { count: 0, lockedUntil: 0 };
+
+  if (state.lockedUntil && now < state.lockedUntil) {
+    const remainSec = Math.ceil((state.lockedUntil - now) / 1000);
+    const error = new Error(`PIN 입력 실패가 많습니다. ${remainSec}초 후 다시 시도하세요.`);
+    error.statusCode = 429;
+    throw error;
+  }
+
+  const inputPin = String(payload.pin || '').trim();
+
+  if (inputPin !== String(adminPin).trim()) {
+    const nextCount = Number(state.count || 0) + 1;
+
+    if (nextCount >= 5) {
+      pinFailStore.set(key, {
+        count: 0,
+        lockedUntil: now + 10 * 60 * 1000
+      });
+
+      const error = new Error('PIN 입력 실패가 많습니다. 10분 후 다시 시도하세요.');
+      error.statusCode = 429;
+      throw error;
+    }
+
+    pinFailStore.set(key, {
+      count: nextCount,
+      lockedUntil: 0
+    });
+
+    const error = new Error(`PIN이 올바르지 않습니다. 실패 ${nextCount}/5회`);
+    error.statusCode = 401;
+    throw error;
+  }
+
+  pinFailStore.delete(key);
+};
+
+
 const nowKST = () => new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().replace('Z', '+09:00');
 const newContributionId = (date) => `contrib-${date}-${crypto.randomUUID()}`;
 
@@ -96,8 +149,12 @@ exports.handler = async (event) => {
     return jsonResponse(400, { error: '요청 JSON을 읽지 못했어.' });
   }
 
-  if (ADMIN_PIN && String(payload.pin || '').trim() !== String(ADMIN_PIN).trim()) {
-    return jsonResponse(401, { error: 'PIN이 맞지 않아.' });
+  try {
+    assertAdminPin(event, payload, ADMIN_PIN);
+  } catch (error) {
+    return jsonResponse(error.statusCode || 401, {
+      error: error.message || 'PIN 검증 실패'
+    });
   }
 
   const target = getTarget(payload);
@@ -268,6 +325,12 @@ exports.handler = async (event) => {
     putData = await putRes.json().catch(() => ({}));
 
     if (!putRes.ok) {
+      if (putRes.status === 409) {
+        return jsonResponse(409, {
+          error: '다른 저장이 먼저 반영되었습니다. 새로고침 후 다시 시도하세요.'
+        });
+      }
+
       return jsonResponse(putRes.status, { error: putData.message || 'GitHub 파일 저장 실패' });
     }
   } catch (error) {
