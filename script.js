@@ -413,7 +413,7 @@ async function submitKrxActionModal(){
 
     if(status){status.textContent='실행 요청 완료. 누락 거래일이 있으면 GitHub Actions에서 자동으로 채워집니다.';status.className='krx-action-status ok'}
     showAppToast('KRX 현재가 자동 반영 요청 완료', 'ok');
-    setTimeout(closeKrxActionModal,900);
+    setTimeout(closeKrxActionModal,2000);
   }catch(e){
     if(status){status.textContent='실패: '+(e.message||String(e));status.className='krx-action-status err'}
   }finally{
