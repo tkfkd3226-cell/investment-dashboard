@@ -157,7 +157,13 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
     # 장중 재요청 시 최신가로 갱신하거나, 마감 후 요청 시 종가로 확정되게 한다.
     refresh_dates = []
     latest_snapshot = prices.get(latest_saved) or {}
+    current_market_status = market_status_kst()
+
     if latest_snapshot.get("marketStatus") == "intraday":
+        refresh_dates.append(latest_saved)
+    elif latest_saved == latest_market and latest_saved == today_kst() and current_market_status == "close":
+        # 같은 날 장마감 후 자동 실행 시, 오전/장중에 만들어진 스냅샷이
+        # 이미 close로 표시되어 있어도 한 번 더 갱신할 수 있게 한다.
         refresh_dates.append(latest_saved)
 
     start = (datetime.strptime(latest_saved, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")

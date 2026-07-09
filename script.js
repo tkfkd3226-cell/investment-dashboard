@@ -293,20 +293,30 @@ function toggleMarketLinkMenu(event){
   if(menu) menu.classList.toggle('show');
 }
 document.addEventListener('click',()=>{closeDateActionMenu();closeMarketLinkMenu()});
-async function dispatchKrxPriceUpdate(pin){
+async function dispatchKrxPriceUpdate(pin, mode='selected'){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
+  const selectedDate=ACTIVE_DATE || '';
+  const updateMode=mode==='auto'?'auto':'selected';
   
   if(!config.url || config.url.includes('여기에_')){
     throw new Error('Apps Script URL이 설정되지 않았습니다.');
   }
 
+  const body={
+    pin:String(pin||'').trim(),
+    action:'updateKrxPrices'
+  };
+
+  // selected: 현재 화면의 기준일을 강제로 재갱신
+  // auto: 날짜를 보내지 않고, update_prices.py의 누락 거래일 자동 보충 로직 사용
+  if(updateMode==='selected'){
+    body.date=selectedDate;
+  }
+
   const res=await fetch(config.url,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({
-      pin:String(pin||'').trim(),
-      action:'updateKrxPrices'      
-    })
+    body:JSON.stringify(body)
   });
 
   const data=await res.json().catch(()=>({}));
@@ -344,13 +354,14 @@ function ensureKrxActionModal(){
     <button type="button" class="krx-action-close" onclick="closeKrxActionModal()" aria-label="닫기">×</button>
     <div class="krx-action-icon">📈</div>
     <h3 id="krxActionTitle">KRX 현재가 반영</h3>
-    <p>마지막 저장일 이후 누락된 거래일의 KRX 현재가를 GitHub Actions로 자동 반영합니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
+    <p>선택한 기준일만 다시 갱신하거나, 날짜를 비워 누락 거래일을 자동 보충할 수 있습니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
     <label class="krx-action-label" for="krxActionPin">저장/실행 PIN</label>
     <input id="krxActionPin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 입력">
     <div id="krxActionStatus" class="krx-action-status"></div>
     <div class="krx-action-buttons">
       <button type="button" class="ghost" onclick="closeKrxActionModal()">취소</button>
-      <button type="button" class="primary" onclick="submitKrxActionModal()">실행</button>
+      <button type="button" class="ghost" onclick="submitKrxActionModal('auto')">최신/누락 자동 반영</button>
+      <button type="button" class="primary" onclick="submitKrxActionModal('selected')">선택일 재갱신</button>
     </div>
   </div>`;
   document.body.appendChild(modal);
@@ -388,21 +399,28 @@ function closeKrxActionModal(){
   if(modal) modal.classList.remove('show');
   forceMobileViewportReflow();
 }
-async function submitKrxActionModal(){
+async function submitKrxActionModal(mode='selected'){
   const modal=ensureKrxActionModal();
   const input=modal.querySelector('#krxActionPin');
   const status=modal.querySelector('#krxActionStatus');
-  const submitBtn=modal.querySelector('.krx-action-buttons .primary');
+  const buttons=modal.querySelectorAll('.krx-action-buttons button');
   const pin=String(input?.value||'').trim();
+  const updateMode=mode==='auto'?'auto':'selected';
+  const selectedDate=ACTIVE_DATE || '';
   if(!pin){
     if(status){status.textContent='PIN을 입력해 주세요.';status.className='krx-action-status err'}
     input?.focus();
     return;
   }
   try{
-    if(submitBtn) submitBtn.disabled=true;
-    if(status){status.textContent='KRX 현재가 자동 반영 요청 중...';status.className='krx-action-status ok'}
-    const data = await dispatchKrxPriceUpdate(pin);
+    buttons.forEach(btn=>btn.disabled=true);
+    if(status){
+      status.textContent=updateMode==='selected'
+        ? `${selectedDate} KRX 현재가 재갱신 요청 중...`
+        : '최신/누락 KRX 현재가 자동 반영 요청 중...';
+      status.className='krx-action-status ok';
+    }
+    const data = await dispatchKrxPriceUpdate(pin, updateMode);
 
     if(data.action === 'workflow_skipped'){
       const msg = data.message || '업데이트할 KRX 현재가 데이터가 없습니다.';
@@ -411,13 +429,16 @@ async function submitKrxActionModal(){
       return;
     }
 
-    if(status){status.textContent='실행 요청 완료. 누락 거래일이 있으면 GitHub Actions에서 자동으로 채워집니다.';status.className='krx-action-status ok'}
-    showAppToast('KRX 현재가 자동 반영 요청 완료', 'ok');
+    const successMsg=updateMode==='selected'
+      ? `${selectedDate} KRX 현재가 재갱신 요청 완료. GitHub Actions 완료 후 새로고침해 주세요.`
+      : '최신/누락 KRX 현재가 자동 반영 요청 완료. GitHub Actions 완료 후 새로고침해 주세요.';
+    if(status){status.textContent=successMsg;status.className='krx-action-status ok'}
+    showAppToast(updateMode==='selected'?'선택일 KRX 재갱신 요청 완료':'KRX 자동 반영 요청 완료', 'ok');
     setTimeout(closeKrxActionModal,2000);
   }catch(e){
     if(status){status.textContent='실패: '+(e.message||String(e));status.className='krx-action-status err'}
   }finally{
-    if(submitBtn) submitBtn.disabled=false;
+    buttons.forEach(btn=>btn.disabled=false);
   }
 }
 async function triggerKrxPriceUpdate(){
