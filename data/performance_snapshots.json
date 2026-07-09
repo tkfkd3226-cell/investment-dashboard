@@ -1428,5 +1428,27 @@
       "개별주식": 8777000,
       "현금": 17255
     }
+  },
+  "2026-07-09": {
+    "display": true,
+    "source": "calculated-current-portfolio",
+    "marketStatus": "intraday",
+    "requestedDate": "2026-07-09",
+    "actualMarketDate": "2026-07-09",
+    "updatedAtKST": "2026-07-09T09:02:14+09:00",
+    "rawHoldingProfit": 5105255,
+    "cumulativeReturn": 31.352612497135112,
+    "dailyProfit": 841980,
+    "symbols": {
+      "삼성전자": 500450,
+      "SK하이닉스": 1756000,
+      "현대차": -361000,
+      "KODEX200": 3193420
+    },
+    "allocation": {
+      "ETF": 12199000,
+      "개별주식": 9189000,
+      "현금": 17255
+    }
   }
 }
