@@ -61,5 +61,12 @@
     "memo": "현금성자산 평가금액 앱 확인",
     "updatedBy": "google-apps-script",
     "updatedAtKST": "2026-07-14T23:46:45+09:00"
+  },
+  {
+    "date": "2026-07-20",
+    "valuation": 684796,
+    "memo": "평가액+배당",
+    "updatedBy": "google-apps-script",
+    "updatedAtKST": "2026-07-20T20:40:47+09:00"
   }
 ]
