@@ -4695,3 +4695,16 @@ button:active,
     line-height:1.25 !important;
   }
 }
+
+/* 장부결과 VS 실제보유: 마지막 카드의 값 영역 높이를 숫자 카드와 동일하게 정렬 */
+#ledger-check .card:last-child .value{
+  min-height:35px;
+  display:flex;
+  align-items:center;
+}
+
+@media(max-width:1100px){
+  #ledger-check .card:last-child .value{
+    min-height:30px;
+  }
+}
