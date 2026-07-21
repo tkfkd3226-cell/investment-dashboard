@@ -4659,3 +4659,39 @@ button:active,
     font-size:16px !important;
   }
 }
+
+/* 장부결과 VS 실제보유: 카드 높이 및 긴 사유 문구 균형 조정 */
+#ledger-check .cards{
+  gap:14px;
+}
+
+#ledger-check .card{
+  padding:14px 16px;
+}
+
+#ledger-check .card .label{
+  margin-bottom:5px;
+}
+
+#ledger-check .card .sub{
+  margin-top:3px;
+  line-height:1.35;
+}
+
+#ledger-check .card:last-child .value{
+  font-size:20px;
+  line-height:1.25;
+  letter-spacing:-.03em;
+  word-break:keep-all;
+}
+
+@media(max-width:1100px){
+  #ledger-check .card{
+    padding:9px !important;
+  }
+
+  #ledger-check .card:last-child .value{
+    font-size:18px !important;
+    line-height:1.25 !important;
+  }
+}
