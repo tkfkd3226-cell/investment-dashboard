@@ -96,5 +96,12 @@
     "memo": "현금성자산 평가금액 앱 확인",
     "updatedBy": "google-apps-script",
     "updatedAtKST": "2026-07-24T01:45:18+09:00"
+  },
+  {
+    "date": "2026-07-24",
+    "valuation": 685081,
+    "memo": "현금성자산 평가금액 앱 확인",
+    "updatedBy": "google-apps-script",
+    "updatedAtKST": "2026-07-27T06:28:55+09:00"
   }
 ]
