@@ -113,7 +113,6 @@
     .mobile-data-card{border:1px solid var(--line);border-radius:13px;background:#fff;padding:7px 13px;min-width:0}
     .mobile-section-title{font-size:12px;font-weight:900;color:var(--ink);padding:10px 0 5px}
     .mobile-section-title:first-child{padding-top:3px}
-    .mobile-section-divider{height:1px;background:var(--line);margin:5px 0}
     .mobile-data-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--soft)}
     .mobile-data-row:last-child{border-bottom:0}
     .mobile-data-label{flex:1;min-width:0;font-size:11px;color:var(--muted);font-weight:800;line-height:1.35}
@@ -121,8 +120,8 @@
     .data-grid{display:grid;grid-template-columns:repeat(7,minmax(125px,1fr));min-width:875px;border:1px solid var(--line);border-radius:13px;overflow:hidden}
     .cell{padding:10px 11px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0}
     .cell:nth-child(7n){border-right:0}
-    .data-grid .head{background:#f2f5f9;color:#5d6779;font-size:11px;font-weight:800}
-    .data-grid .val{font-weight:800;text-align:right;font-size:13px}
+    .data-grid .head{background:#f2f5f9;color:#5d6779;font-size:11px;font-weight:800;text-align:center;vertical-align:middle}
+    .data-grid .val{font-weight:800;text-align:center;font-size:13px;vertical-align:middle}
     .data-grid .lastrow{border-bottom:0}
     .loan-grid{grid-template-columns:repeat(6,minmax(145px,1fr));min-width:870px}
     .loan-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
@@ -143,8 +142,13 @@
       .kpis{grid-template-columns:repeat(2,1fr)}
     }
     @media(max-width:720px){
-      .wrap{padding:14px}.hero{display:block}.actions{margin-top:12px}
-      .hero h1{font-size:24px}.input-grid{grid-template-columns:1fr}.input-group:last-child{grid-column:auto}
+      .wrap{padding:12px}.hero{display:block}.actions{margin-top:12px}
+      .input-panel{padding:12px}
+      .input-grid,.input-group,.fields,.field,.share-stepper,.pct-stepper,.with-unit{min-width:0}
+      .input-grid{width:100%}
+      .input-group{width:100%;max-width:100%}
+      .control{width:100%;min-width:0}
+      .hero h1{font-size:24px}.input-grid{grid-template-columns:minmax(0,1fr)}.input-group:last-child{grid-column:auto}
       .kpis{grid-template-columns:1fr}
       .range-panel{grid-template-columns:1fr}
       .mobile-only{display:inline}
@@ -158,7 +162,8 @@
       .existing-group .share-step-btn,.additional-group .share-step-btn,.calculation-group .pct-step-btn{font-size:16px}
       .calculation-group .seg button{font-size:15px}
       .calculation-group .unit{font-size:15px}
-      .calculation-group .fields{grid-template-columns:1fr}
+      .calculation-group{padding:9px}
+      .calculation-group .fields{grid-template-columns:minmax(0,1fr)}
       .calculation-group .field.full{grid-column:auto}
       .summary-card .svalue{font-size:18px}
       .mobile-data-value{font-size:13px}
@@ -168,10 +173,9 @@
       .tab{min-width:0;width:100%;padding:8px 4px;font-size:11px;line-height:1.25;white-space:normal;word-break:keep-all}
       .desktop-details{display:none}
       .desktop-data{display:none}
-      .mobile-data{display:block}
-      .strategy-body{padding:14px}
+      .mobile-data{display:grid;gap:8px}
       .strategy-title p{font-size:10px;white-space:nowrap;letter-spacing:-.025em}
-      .existing-group,.additional-group{padding:11px}
+      .existing-group,.additional-group{padding:9px}
       .existing-group .fields,.additional-group .fields{gap:8px}
       .existing-group .field,.additional-group .field{gap:4px}
       .existing-group .control,.additional-group .control{height:40px;padding-left:7px;padding-right:7px}
@@ -211,7 +215,7 @@
           <div class="field"><label>추가매수 당일 종가</label><input id="currentPrice" class="control money-input" inputmode="numeric" value="79,020"></div>
           <div class="field"><label>기존 보유분 현재평가액</label><input id="existingCurrentValue" class="control" readonly></div>
           <div class="field"><label>기존 보유분 손익</label><input id="existingCurrentPL" class="control" readonly></div>
-          <div class="field"><label>기존 차입금 잔액</label><input id="oldOverdraft" class="control money-input" inputmode="numeric" value="3,700,000"></div>
+          <div class="field"><label>기존 회수 대상 금액</label><input id="oldOverdraft" class="control money-input" inputmode="numeric" value="3,700,000"></div>
           <div class="field"><label>매매수수료 반영 손익분기</label><input id="brokerBreakEven" class="control" readonly></div>
           <input id="brokerFeePct" type="hidden" value="0.0036396">
         </div>
@@ -271,7 +275,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="s3">① 전체 보유분 매도</button>
     <button class="tab" data-tab="s2">② 추가매수 수량 매도</button>
-    <button class="tab" data-tab="s1">③ 추가매수 차입금만 상환</button>
+    <button class="tab" data-tab="s1">③ 추가매수금액만 회수</button>
   </div>
 
   <main>
@@ -369,7 +373,7 @@
       ['existingShares','기존 보유수량',i.existingShares,n=>Number.isInteger(n)&&n>=0,'0 이상의 정수여야 합니다.'],
       ['existingCost','기존 보유분 투자금액',i.existingCost,n=>Number.isInteger(n)&&n>=0,'0원 이상의 정수 금액이어야 합니다.'],
       ['currentPrice','추가매수 당일 종가',i.currentPrice,n=>Number.isInteger(n)&&n>0,'0원보다 큰 정수 금액이어야 합니다.'],
-      ['oldOverdraft','기존 차입금 잔액',i.oldOverdraft,n=>Number.isInteger(n)&&n>=0,'0원 이상의 정수 금액이어야 합니다.'],
+      ['oldOverdraft','기존 회수 대상 금액',i.oldOverdraft,n=>Number.isInteger(n)&&n>=0,'0원 이상의 정수 금액이어야 합니다.'],
       ['brokerFeePct','증권사 편도 수수료율',i.brokerFeePct,n=>Number.isFinite(n)&&n>=0&&n<100,'0% 이상 100% 미만이어야 합니다.'],
       ['addPrice','추가매수단가',i.addPrice,n=>Number.isInteger(n)&&n>0,'0원보다 큰 정수 금액이어야 합니다.'],
       ['addShares','추가매수주식수',i.addShares,n=>Number.isInteger(n)&&n>=0,'0 이상의 정수여야 합니다.']
@@ -389,7 +393,7 @@
       ['existingShares','기존 보유수량',i.existingShares],
       ['existingCost','기존 보유분 투자금액',i.existingCost],
       ['currentPrice','추가매수 당일 종가',i.currentPrice],
-      ['oldOverdraft','기존 차입금 잔액',i.oldOverdraft],
+      ['oldOverdraft','기존 회수 대상 금액',i.oldOverdraft],
       ['addPrice','추가매수단가',i.addPrice],
       ['addShares','추가매수주식수',i.addShares]
     ];
@@ -528,8 +532,8 @@
   function mobileRows(headers, values){
     return headers.map((h,idx)=>`<div class="mobile-data-row"><div class="mobile-data-label">${h}</div><div class="mobile-data-value ${values[idx].cls||''}">${values[idx].text}</div></div>`).join('');
   }
-  function mobileCombinedCard(sections){
-    return `<div class="mobile-data"><div class="mobile-data-card">${sections.map((section,idx)=>`${idx?'<div class="mobile-section-divider"></div>':''}<div class="mobile-section-title">${section.title}</div>${mobileRows(section.headers,section.values)}`).join('')}</div></div>`;
+  function mobileSeparateCards(sections){
+    return `<div class="mobile-data">${sections.map(section=>`<div class="mobile-data-card"><div class="mobile-section-title">${section.title}</div>${mobileRows(section.headers,section.values)}</div>`).join('')}</div>`;
   }
   function strategyHTML(typeNo, displayNo, title, badge, badgeCls, desc, d, c){
     const saleHeaders=['매도단가','매도수량','총 매도금액','매도수수료','실수령액','수수료 반영 확정손익','매도 후 보유수량'];
@@ -537,8 +541,8 @@
       {text:won(c.targetPrice)},{text:shares(d.saleQty)},{text:won(d.saleAmount)},{text:won(d.sellFee)},
       {text:won(d.netSaleAmount)},{text:won(d.realizedPL),cls:signClass(d.realizedPL)},{text:shares(d.remainShares)}
     ];
-    const loanHeaders=['추가매수 차입금 상환액','차입금 상환 후 잔여현금','추가매수 차입금 잔액','기존 차입금 상환액','기존 차입금 잔액','전체 차입금 상환 후 잔여현금'];
-    const mobileLoanHeaders=['추가매수 차입금 상환액','차입금 상환 후 잔여현금','추가매수 차입금 잔액','기존 차입금 상환액','기존 차입금 잔액','차입금 상환 후 잔여 현금'];
+    const loanHeaders=['추가매수금액 회수액','투입금액 회수 후 잔여현금','추가매수금액 미회수액','기존 금액 회수액','기존 회수 대상 금액','전체 투입금액 회수 후 잔여현금'];
+    const mobileLoanHeaders=['추가매수금액 회수액','투입금액 회수 후 잔여현금','추가매수금액 미회수액','기존 금액 회수액','기존 회수 대상 금액','투입금액 회수 후 잔여현금'];
     const loanVals=[
       {text:won(d.newLoanRepay)},{text:won(d.afterNewLoanCash)},{text:won(d.newLoanBalance),cls:d.newLoanBalance?'negative':''},
       {text:won(d.oldOverdraftRepay)},{text:won(d.oldOverdraftBalance),cls:d.oldOverdraftBalance?'negative':''},{text:won(d.cashAfterDebt),cls:d.cashAfterDebt?'positive':''}
@@ -554,20 +558,20 @@
           {text:d.remainShares>0?won(c.finalAvg):'해당 없음',cls:d.remainShares>0?'':'muted'},{text:shares(d.remainShares)},{text:won(d.remainCost)},{text:won(c.targetPrice)},
           {text:won(d.remainValue)},{text:won(d.remainPL),cls:signClass(d.remainPL)},{text:won(d.combinedPL),cls:signClass(d.combinedPL)}
         ];
-    const mobileDetails=mobileCombinedCard([
+    const mobileDetails=mobileSeparateCards([
       {title:'매도 결과',headers:saleHeaders,values:saleVals},
-      {title:'차입금 상환 결과',headers:mobileLoanHeaders,values:loanVals},
+      {title:'투입금액 회수 결과',headers:mobileLoanHeaders,values:loanVals},
       {title:remainTitle,headers:remainHeaders,values:remainVals}
     ]);
     const fullSaleLoanShortfall=c.s3.newLoanBalance;
     const showLoanWarning=(typeNo===1 || typeNo===3) && fullSaleLoanShortfall>0;
     const warning=showLoanWarning
-      ? `<div class="warning-note">전량을 매도해도 추가매수 차입금이 전액 상환되지 않습니다. 미상환 잔액은 ${won(fullSaleLoanShortfall)}입니다.</div>`
+      ? `<div class="warning-note">전량을 매도해도 추가매수금액이 전액 회수되지 않습니다. 미회수 금액은 ${won(fullSaleLoanShortfall)}입니다.</div>`
       : '';
     const noteText=typeNo===1
       ? (fullSaleLoanShortfall>0
-          ? '현재 목표가격에서는 추가매수 차입금 상환을 위해 전량을 매도하도록 계산합니다.'
-          : '매도수수료를 뺀 실수령액이 추가매수 차입금과 같거나 넘도록 매도수량을 올림 처리합니다. 추가매수 차입금은 전액 상환되며, 남는 금액이 있을 때만 기존 차입금 상환에 사용됩니다.')
+          ? '현재 목표가격에서는 추가매수금액 회수를 위해 전량을 매도하도록 계산합니다.'
+          : '매도수수료를 뺀 실수령액이 추가매수금액과 같거나 넘도록 매도수량을 올림 처리합니다. 추가매수금액을 우선 회수하고, 남는 금액은 기존 회수 대상 금액에 반영합니다.')
       : typeNo===2
         ? `추가매수 수량 ${shares(c.i.addShares)}를 그대로 매도합니다. 기존 보유분 ${shares(c.i.existingShares)}는 조정된 최종평단 기준으로 남아 이후 가격 변동에 계속 노출됩니다.`
         : '전체 보유분 매도 후 보유수량은 0주가 되며, 합산 손익은 추가매수 당일 매수수수료와 다음 거래일 매도수수료를 모두 반영합니다.';
@@ -580,13 +584,13 @@
         <div class="summary-row">
           ${metric('매도 실수령액',won(d.netSaleAmount))}
           ${metric('수수료 반영 합산 손익',won(d.combinedPL),signClass(d.combinedPL))}
-          ${metric(responsiveText('전체 차입금 상환 후 잔여현금','차입금 상환 후 잔여 현금'),won(d.cashAfterDebt),d.cashAfterDebt?'positive':'')}
+          ${metric(responsiveText('전체 투입금액 회수 후 잔여현금','투입금액 회수 후 잔여현금'),won(d.cashAfterDebt),d.cashAfterDebt?'positive':'')}
           ${metric(responsiveText('추가매수 전 대비 총손익 개선액','총손익 개선액'),won(d.improvement),signClass(d.improvement))}
         </div>
         <div class="desktop-details">
           <div class="section-title">매도 결과</div>
           ${desktopGrid(saleHeaders,saleVals)}
-          <div class="section-title">차입금 상환 결과</div>
+          <div class="section-title">투입금액 회수 결과</div>
           ${desktopGrid(loanHeaders,loanVals,'loan-grid')}
           <div class="section-title">${remainTitle}</div>
           ${desktopGrid(remainHeaders,remainVals,isFullSale?'final-grid':'')}
@@ -639,9 +643,9 @@
     el('targetStatus',diff>=0?'손익분기 이상':'손익분기 미달',diff>=0?'positive':'negative');
     el('targetStatusSub',`${won(c.targetPrice)} · 손익분기 대비 ${diff>=0?'+':''}${nf0.format(diff)}원`);
 
-    $('s1').innerHTML=strategyHTML(1,'③','추가매수 차입금만 상환','비추천','bad','추가매수 차입금 상환에 필요한 최소 수량만 매도합니다.',c.s1,c);
+    $('s1').innerHTML=strategyHTML(1,'③','추가매수금액만 회수','비추천','bad','추가매수금액 회수에 필요한 최소 수량만 매도합니다.',c.s1,c);
     $('s2').innerHTML=strategyHTML(2,'②','추가매수 수량 매도','조건부 추천','conditional','추가매수 수량만 매도하고 기존 보유분은 유지합니다.',c.s2,c);
-    $('s3').innerHTML=strategyHTML(3,'①','전체 보유분 매도','추천','good','전체 보유분을 매도해 차입금 상환을 우선합니다.',c.s3,c);
+    $('s3').innerHTML=strategyHTML(3,'①','전체 보유분 매도','추천','good','전체 보유분을 매도해 투입금액 회수를 우선합니다.',c.s3,c);
     localStorage.setItem('investmentLossRecoveryCalc',JSON.stringify({...c.i,mode}));
   }
 
