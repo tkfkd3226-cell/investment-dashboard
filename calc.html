@@ -286,7 +286,7 @@
   const setLinkedPct = (id, n) => {
     const node=$(id);
     node.dataset.exactValue=String(n);
-    node.value=formatPctInput(n,3);
+    node.value=formatPctInput(n,2);
   };
   const adjustPct = (id, delta) => {
     const node=$(id);
@@ -594,8 +594,8 @@
     $('brokerFeePct').value=Number(v.brokerFeePct ?? defaults.brokerFeePct).toFixed(7).replace(/0+$/,'').replace(/\.$/,'');
     delete $('overnightPct').dataset.exactValue;
     delete $('risePct').dataset.exactValue;
-    $('overnightPct').value=formatPctInput(v.overnightPct ?? defaults.overnightPct,3);
-    $('risePct').value=formatPctInput(v.risePct ?? defaults.risePct,3);
+    $('overnightPct').value=formatPctInput(v.overnightPct ?? defaults.overnightPct,2);
+    $('risePct').value=formatPctInput(v.risePct ?? defaults.risePct,2);
     setMode(v.mode || defaults.mode);
   }
 
@@ -613,7 +613,13 @@
   }));
   $('modeCurrent').addEventListener('click',()=>setMode('current'));
   $('modeRise').addEventListener('click',()=>setMode('rise'));
-  $('resetBtn').addEventListener('click',()=>{localStorage.removeItem('investmentLossRecoveryCalc');localStorage.removeItem('leverageExitCalc');applyValues(defaults)});
+  $('resetBtn').addEventListener('click',()=>{
+    localStorage.removeItem('investmentLossRecoveryCalc');
+    localStorage.removeItem('leverageExitCalc');
+    document.querySelectorAll('.tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab==='s3'));
+    document.querySelectorAll('.strategy').forEach(section=>section.classList.toggle('active',section.id==='s3'));
+    applyValues(defaults);
+  });
   document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
     document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b===btn));
     document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id===btn.dataset.tab));
