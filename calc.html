@@ -171,6 +171,20 @@
       .mobile-data{display:block}
       .strategy-body{padding:14px}
       .strategy-title p{font-size:10px;white-space:nowrap;letter-spacing:-.025em}
+      .existing-group,.additional-group{padding:11px}
+      .existing-group .fields,.additional-group .fields{gap:8px}
+      .existing-group .field,.additional-group .field{gap:4px}
+      .existing-group .control,.additional-group .control{height:40px;padding-left:7px;padding-right:7px}
+      .share-stepper{grid-template-columns:25px minmax(0,1fr) 25px;gap:3px}
+      .share-step-btn{height:38px;border-radius:8px;font-size:14px}
+      .strategy-body{padding:10px}
+      .summary-row{gap:6px;margin-bottom:10px}
+      .summary-card{padding:10px 8px;border-radius:12px;min-width:0}
+      .summary-card .sname{font-size:10px;line-height:1.25}
+      .summary-card .svalue{font-size:17px;line-height:1.2;letter-spacing:-.045em;white-space:nowrap}
+      .mobile-data-card{padding:5px 9px}
+      .mobile-data-row{gap:6px;padding:8px 0}
+      .mobile-data-value{max-width:58%;white-space:nowrap;word-break:normal;letter-spacing:-.035em}
     }
   </style>
 </head>
@@ -523,8 +537,8 @@
       {text:won(c.targetPrice)},{text:shares(d.saleQty)},{text:won(d.saleAmount)},{text:won(d.sellFee)},
       {text:won(d.netSaleAmount)},{text:won(d.realizedPL),cls:signClass(d.realizedPL)},{text:shares(d.remainShares)}
     ];
-    const loanHeaders=['추가매수 차입금 상환액','추가매수 차입금 상환 후 잔여현금','추가매수 차입금 잔액','기존 차입금 상환액','기존 차입금 잔액','전체 차입금 상환 후 잔여현금'];
-    const mobileLoanHeaders=['추가매수 차입금 상환액','추가매수 차입금 상환 후 잔여현금','추가매수 차입금 잔액','기존 차입금 상환액','기존 차입금 잔액','차입금 상환 후 잔여 현금'];
+    const loanHeaders=['추가매수 차입금 상환액','차입금 상환 후 잔여현금','추가매수 차입금 잔액','기존 차입금 상환액','기존 차입금 잔액','전체 차입금 상환 후 잔여현금'];
+    const mobileLoanHeaders=['추가매수 차입금 상환액','차입금 상환 후 잔여현금','추가매수 차입금 잔액','기존 차입금 상환액','기존 차입금 잔액','차입금 상환 후 잔여 현금'];
     const loanVals=[
       {text:won(d.newLoanRepay)},{text:won(d.afterNewLoanCash)},{text:won(d.newLoanBalance),cls:d.newLoanBalance?'negative':''},
       {text:won(d.oldOverdraftRepay)},{text:won(d.oldOverdraftBalance),cls:d.oldOverdraftBalance?'negative':''},{text:won(d.cashAfterDebt),cls:d.cashAfterDebt?'positive':''}
@@ -614,13 +628,13 @@
 
     if(c.i.addShares>0){
       el('holdRange',pct(c.holdPct,2),signClass(c.holdPct));
-      el('holdPrice',`${won(c.addEffectZero)} · 5원 호가 ${won(c.addEffectZeroOrder)} · 추가매수단가·편도수수료 자동 반영`);
+      el('holdPrice',`${won(c.addEffectZero)} · 5원 호가 ${won(c.addEffectZeroOrder)}`);
     }else{
       el('holdRange','해당 없음','muted');
       el('holdPrice','추가매수주식수가 0주이므로 추가매수 효과 기준을 계산하지 않습니다.','muted');
     }
     el('breakRange',pct(c.breakPct,2),signClass(c.breakPct));
-    el('breakPrice',`${won(c.brokerBreakEven)} · 5원 호가 ${won(ceil5(c.brokerBreakEven))} · 매수·매도 수수료 자동 반영`);
+    el('breakPrice',`${won(c.brokerBreakEven)} · 5원 호가 ${won(ceil5(c.brokerBreakEven))}`);
     const diff=c.targetPrice-c.brokerBreakEven;
     el('targetStatus',diff>=0?'손익분기 이상':'손익분기 미달',diff>=0?'positive':'negative');
     el('targetStatusSub',`${won(c.targetPrice)} · 손익분기 대비 ${diff>=0?'+':''}${nf0.format(diff)}원`);
