@@ -54,6 +54,11 @@
     .pct-step-btn:disabled{cursor:not-allowed;color:#b5bdca;background:#f1f4f8}
     .pct-stepper input[type=number]::-webkit-inner-spin-button,.pct-stepper input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
     .pct-stepper input[type=number]{appearance:textfield;-moz-appearance:textfield}
+    .share-stepper{display:block}
+    .share-stepper .control{width:100%}
+    .share-step-btn{display:none}
+    .desktop-only{display:inline}
+    .mobile-only{display:none}
     .seg{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
     .seg button{height:40px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);cursor:pointer;font-weight:800}
     .seg button.active{background:var(--navy);border-color:var(--navy);color:#fff}
@@ -68,8 +73,8 @@
     .completed-item .cname{font-size:11px;color:var(--muted);font-weight:800}
     .completed-item .cvalue{font-size:17px;font-weight:900;margin-top:3px;letter-spacing:-.02em}
 
-    .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
-    .kpi{padding:15px 16px}
+    .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px;padding:16px 18px}
+    .kpi{padding:15px 16px;border:1px solid var(--line);border-radius:14px;background:#fff}
     .kpi .name{font-size:12px;color:var(--muted);font-weight:700}
     .kpi .value{margin-top:5px;font-size:21px;font-weight:900;letter-spacing:-.03em}
     .kpi .sub{font-size:11px;color:var(--muted);margin-top:3px}
@@ -78,7 +83,7 @@
     .range-box{border-radius:14px;padding:14px 16px;border:1px solid var(--line)}
     .range-box strong{display:block;font-size:13px;margin-bottom:5px}
     .range-box .big{font-size:21px;font-weight:900}
-    .range-box .muted{font-size:10px;line-height:1.4;margin-top:3px}
+    .range-box .muted{font-size:11px;line-height:1.4;margin-top:3px}
     .range-box.blue{background:#f3f7ff;border-color:#cddbf3}
     .range-box.red{background:#fff5f5;border-color:#f3cdcf}
     .range-box.green{background:#f2fbf6;border-color:#c9ead8}
@@ -140,8 +145,23 @@
     @media(max-width:720px){
       .wrap{padding:14px}.hero{display:block}.actions{margin-top:12px}
       .hero h1{font-size:24px}.input-grid{grid-template-columns:1fr}.input-group:last-child{grid-column:auto}
-      .kpis{grid-template-columns:repeat(2,1fr)}
+      .kpis{grid-template-columns:1fr}
       .range-panel{grid-template-columns:1fr}
+      .mobile-only{display:inline}
+      .desktop-only{display:none}
+      .share-stepper{display:grid;grid-template-columns:30px minmax(0,1fr) 30px;gap:5px;align-items:center}
+      .share-step-btn{display:block;height:42px;border:1px solid #cfd7e4;border-radius:9px;background:#fff;color:var(--navy);font-size:16px;font-weight:900;cursor:pointer;line-height:1;padding:0}
+      .share-step-btn:active{background:#f3f6fb}
+      .existing-group .group-title small,.additional-group .group-title small,.calculation-group .group-title small{font-size:12px}
+      .existing-group .field label,.additional-group .field label,.calculation-group .field label{font-size:11px}
+      .existing-group .control,.additional-group .control,.calculation-group .control{font-size:15px}
+      .existing-group .share-step-btn,.additional-group .share-step-btn,.calculation-group .pct-step-btn{font-size:16px}
+      .calculation-group .seg button{font-size:15px}
+      .calculation-group .unit{font-size:15px}
+      .calculation-group .fields{grid-template-columns:1fr}
+      .calculation-group .field.full{grid-column:auto}
+      .summary-card .svalue{font-size:18px}
+      .mobile-data-value{font-size:13px}
       .summary-row{grid-template-columns:repeat(2,1fr)}
       .strategy-head{display:block}.badge{display:inline-block;margin-top:10px}
       .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;overflow:visible;padding:0}
@@ -168,11 +188,11 @@
 
   <section class="panel input-panel">
     <div class="input-grid">
-      <div class="input-group">
+      <div class="input-group existing-group">
         <div class="group-title">기존 보유분 <small>기본 투자 정보</small></div>
         <div class="fields">
           <div class="field"><label>기존 보유분 원래 평단</label><input id="existingOriginalAvg" class="control" readonly></div>
-          <div class="field"><label>기존 보유수량</label><input id="existingShares" class="control" type="number" min="0" step="1" inputmode="numeric" value="38"></div>
+          <div class="field"><label>기존 보유수량</label><div class="share-stepper"><button class="share-step-btn" type="button" data-target="existingShares" data-delta="-1" aria-label="기존 보유수량 1주 감소">−</button><input id="existingShares" class="control" type="number" min="0" step="1" inputmode="numeric" value="38"><button class="share-step-btn" type="button" data-target="existingShares" data-delta="1" aria-label="기존 보유수량 1주 증가">+</button></div></div>
           <div class="field"><label>기존 보유분 투자금액</label><input id="existingCost" class="control money-input" inputmode="numeric" value="7,005,530"></div>
           <div class="field"><label>추가매수 당일 종가</label><input id="currentPrice" class="control money-input" inputmode="numeric" value="79,020"></div>
           <div class="field"><label>기존 보유분 현재평가액</label><input id="existingCurrentValue" class="control" readonly></div>
@@ -183,13 +203,13 @@
         </div>
       </div>
 
-      <div class="input-group">
-        <div class="group-title">추가매수 내역 <small>실제 체결 기준 · 3개 전략 공통</small></div>
+      <div class="input-group additional-group">
+        <div class="group-title">추가매수 내역 <small><span class="desktop-only">실제 체결 기준 · 3개 전략 공통</span><span class="mobile-only">실제 체결 기준</span></small></div>
         <div class="fields">
           <div class="field"><label>추가매수단가</label><input id="addPrice" class="control money-input" inputmode="numeric" value="74,350"></div>
-          <div class="field"><label>추가매수주식수</label><input id="addShares" class="control" type="number" min="0" step="1" inputmode="numeric" value="604"></div>
-          <div class="field"><label>추가매수 차입금</label><input id="actualLoan" class="control" readonly></div>
-          <div class="field"><label>추가매수가 대비 현재 변동률</label><input id="currentBuyGain" class="control" readonly></div>
+          <div class="field"><label>추가매수주식수</label><div class="share-stepper"><button class="share-step-btn" type="button" data-target="addShares" data-delta="-1" aria-label="추가매수주식수 1주 감소">−</button><input id="addShares" class="control" type="number" min="0" step="1" inputmode="numeric" value="604"><button class="share-step-btn" type="button" data-target="addShares" data-delta="1" aria-label="추가매수주식수 1주 증가">+</button></div></div>
+          <div class="field"><label>추가매수금액</label><input id="actualLoan" class="control" readonly></div>
+          <div class="field"><label>추가매수가 대비 변동률</label><input id="currentBuyGain" class="control" readonly></div>
           <div class="field"><label>최종 평단</label><input id="kFinalAvg" class="control" readonly></div>
           <div class="field"><label>최종 보유수량</label><input id="kFinalShares" class="control" readonly></div>
           <div class="field"><label>최종 투자금액</label><input id="kFinalCost" class="control" readonly></div>
@@ -197,7 +217,7 @@
         </div>
       </div>
 
-      <div class="input-group">
+      <div class="input-group calculation-group">
         <div class="group-title">계산 기준 <small>둘 중 하나만 입력</small></div>
         <div class="seg">
           <button id="modeCurrent" class="active" type="button">당일 종가 기준</button>
@@ -221,11 +241,11 @@
 
   <div id="validationMessage" class="validation-panel" role="alert" aria-live="polite"></div>
 
-  <section class="kpis">
-    <div class="panel kpi"><div class="name">기존 보유분 원래 평단</div><div class="value" id="kExistingAvg"></div><div class="sub">기존 보유분 투자금액 ÷ 기존 보유수량</div></div>
-    <div class="panel kpi"><div class="name">기존 보유분 손익</div><div class="value" id="kExistingPL"></div><div class="sub">추가매수 당일 종가 기준 · 추가매수 전</div></div>
-    <div class="panel kpi"><div class="name">매매수수료 반영 손익분기</div><div class="value" id="kBrokerBreakEven"></div><div class="sub">매수·매도 수수료 반영</div></div>
-    <div class="panel kpi"><div class="name">목표 매도단가</div><div class="value" id="kTarget"></div><div class="sub" id="kTargetSub"></div></div>
+  <section class="panel kpis">
+    <div class="kpi"><div class="name">기존 보유분 원래 평단</div><div class="value" id="kExistingAvg"></div><div class="sub">기존 보유분 투자금액 ÷ 기존 보유수량</div></div>
+    <div class="kpi"><div class="name">기존 보유분 손익</div><div class="value" id="kExistingPL"></div><div class="sub">추가매수 당일 종가 기준 · 추가매수 전</div></div>
+    <div class="kpi"><div class="name">매매수수료 반영 손익분기</div><div class="value" id="kBrokerBreakEven"></div><div class="sub">매수·매도 수수료 반영</div></div>
+    <div class="kpi"><div class="name">목표 매도단가</div><div class="value" id="kTarget"></div><div class="sub" id="kTargetSub"></div></div>
   </section>
 
   <section class="panel range-panel">
@@ -246,7 +266,7 @@
     <section id="s1" class="strategy"></section>
   </main>
 
-  <div class="footer">손익분기와 전략별 손익은 매수·매도 수수료를 반영합니다. 실제 체결가에 따라 결과가 달라질 수 있습니다.</div>
+  <div class="footer">손익분기와 전략별 손익은 매수·매도 수수료를 반영합니다.<br class="mobile-only"> 실제 체결가에 따라 결과가 달라질 수 있습니다.</div>
 </div>
 
 <script>
@@ -287,6 +307,13 @@
     const node=$(id);
     node.dataset.exactValue=String(n);
     node.value=formatPctInput(n,2);
+  };
+  const adjustShares = (id, delta) => {
+    const node=$(id);
+    const current=parseNum(node.value);
+    if(!Number.isFinite(current)) return;
+    node.value=String(Math.max(0,Math.trunc(current)+delta));
+    recalc();
   };
   const adjustPct = (id, delta) => {
     const node=$(id);
@@ -342,6 +369,34 @@
       if(!test(value)){
         errors.push(`${label}: ${guide}`);
         markInvalid(id);
+      }
+    }
+    const safeIntegerFields=[
+      ['existingShares','기존 보유수량',i.existingShares],
+      ['existingCost','기존 보유분 투자금액',i.existingCost],
+      ['currentPrice','추가매수 당일 종가',i.currentPrice],
+      ['oldOverdraft','기존 차입금 잔액',i.oldOverdraft],
+      ['addPrice','추가매수단가',i.addPrice],
+      ['addShares','추가매수주식수',i.addShares]
+    ];
+    for(const [id,label,value] of safeIntegerFields){
+      if(Number.isFinite(value)&&Number.isInteger(value)&&!Number.isSafeInteger(value)){
+        errors.push(`${label}: 입력값이 너무 큽니다. ${nf0.format(Number.MAX_SAFE_INTEGER)} 이하로 입력해 주세요.`);
+        markInvalid(id);
+      }
+    }
+    if(safeIntegerFields.every(([, ,value])=>Number.isSafeInteger(value))){
+      const totalShares=i.existingShares+i.addShares;
+      const additionalAmount=i.addPrice*i.addShares;
+      const finalCost=i.existingCost+additionalAmount;
+      const currentValue=i.currentPrice*totalShares;
+      const selectedPct=mode==='current'?i.overnightPct:i.risePct;
+      const targetBase=mode==='current'?i.currentPrice:i.addPrice;
+      const rawTarget=targetBase*(1+selectedPct/100);
+      const derivedValues=[totalShares,additionalAmount,finalCost,currentValue,rawTarget];
+      if(derivedValues.some(value=>!Number.isFinite(value)||Math.abs(value)>Number.MAX_SAFE_INTEGER)){
+        errors.push('입력값 조합이 너무 커 정확한 계산을 보장할 수 없습니다. 금액 또는 수량을 줄여 주세요.');
+        ['existingShares','existingCost','currentPrice','addPrice','addShares',mode==='current'?'overnightPct':'risePct'].forEach(markInvalid);
       }
     }
     if(Number.isFinite(i.existingShares)&&Number.isFinite(i.existingCost)){
@@ -451,6 +506,7 @@
     return {i,existingAvg,existingValue,existingPL,actualLoan,finalShares,finalCost,finalAvg,feeRate,buyFee,allInCost,brokerBreakEven,sellFeeAtBreakEven,currentTotalValue,currentTotalPL,currentBuyGain,targetPrice,existingBaselineAtTarget,addEffectZeroRaw,addEffectZero,addEffectZeroOrder,holdPct,breakPct,s1:strategy(1),s2:strategy(2),s3:strategy(3)};
   }
 
+  function responsiveText(desktopText,mobileText){ return `<span class="desktop-only">${desktopText}</span><span class="mobile-only">${mobileText}</span>`; }
   function metric(name, value, cls=''){ return `<div class="summary-card"><div class="sname">${name}</div><div class="svalue ${cls}">${value}</div></div>`; }
   function desktopGrid(headers, values, extra=''){
     return `<div class="table-scroll desktop-data"><div class="data-grid ${extra}">${headers.map(h=>`<div class="cell head">${h}</div>`).join('')}${values.map(v=>`<div class="cell val lastrow ${v.cls||''}">${v.text}</div>`).join('')}</div></div>`;
@@ -468,6 +524,7 @@
       {text:won(d.netSaleAmount)},{text:won(d.realizedPL),cls:signClass(d.realizedPL)},{text:shares(d.remainShares)}
     ];
     const loanHeaders=['추가매수 차입금 상환액','추가매수 차입금 상환 후 잔여현금','추가매수 차입금 잔액','기존 차입금 상환액','기존 차입금 잔액','전체 차입금 상환 후 잔여현금'];
+    const mobileLoanHeaders=['추가매수 차입금 상환액','추가매수 차입금 상환 후 잔여현금','추가매수 차입금 잔액','기존 차입금 상환액','기존 차입금 잔액','차입금 상환 후 잔여 현금'];
     const loanVals=[
       {text:won(d.newLoanRepay)},{text:won(d.afterNewLoanCash)},{text:won(d.newLoanBalance),cls:d.newLoanBalance?'negative':''},
       {text:won(d.oldOverdraftRepay)},{text:won(d.oldOverdraftBalance),cls:d.oldOverdraftBalance?'negative':''},{text:won(d.cashAfterDebt),cls:d.cashAfterDebt?'positive':''}
@@ -485,7 +542,7 @@
         ];
     const mobileDetails=mobileCombinedCard([
       {title:'매도 결과',headers:saleHeaders,values:saleVals},
-      {title:'차입금 상환 결과',headers:loanHeaders,values:loanVals},
+      {title:'차입금 상환 결과',headers:mobileLoanHeaders,values:loanVals},
       {title:remainTitle,headers:remainHeaders,values:remainVals}
     ]);
     const fullSaleLoanShortfall=c.s3.newLoanBalance;
@@ -509,8 +566,8 @@
         <div class="summary-row">
           ${metric('매도 실수령액',won(d.netSaleAmount))}
           ${metric('수수료 반영 합산 손익',won(d.combinedPL),signClass(d.combinedPL))}
-          ${metric('전체 차입금 상환 후 잔여현금',won(d.cashAfterDebt),d.cashAfterDebt?'positive':'')}
-          ${metric('추가매수 전 대비 총손익 개선액',won(d.improvement),signClass(d.improvement))}
+          ${metric(responsiveText('전체 차입금 상환 후 잔여현금','차입금 상환 후 잔여 현금'),won(d.cashAfterDebt),d.cashAfterDebt?'positive':'')}
+          ${metric(responsiveText('추가매수 전 대비 총손익 개선액','총손익 개선액'),won(d.improvement),signClass(d.improvement))}
         </div>
         <div class="desktop-details">
           <div class="section-title">매도 결과</div>
@@ -605,6 +662,7 @@
     recalc();
   }));
   document.querySelectorAll('.pct-step-btn').forEach(btn=>btn.addEventListener('click',()=>adjustPct(btn.dataset.target,parseNum(btn.dataset.delta))));
+  document.querySelectorAll('.share-step-btn').forEach(btn=>btn.addEventListener('click',()=>adjustShares(btn.dataset.target,parseNum(btn.dataset.delta))));
   ['overnightPct','risePct'].forEach(id=>$(id).addEventListener('keydown',event=>{
     if(event.key==='ArrowUp' || event.key==='ArrowDown'){
       event.preventDefault();
