@@ -366,7 +366,7 @@
   const parseNum=v=>{const s=String(v??'').replace(/,/g,'').trim();if(s==='')return NaN;const n=Number(s);return Number.isFinite(n)?n:NaN;};
   const ceil5=n=>Math.ceil((n-1e-9)/5)*5;
   const signClass=n=>n>0?'positive':n<0?'negative':'zero';
-  const setClass=(node,cls)=>{node.classList.remove('positive','negative','zero');node.classList.add(cls);};
+  const setClass=(node,cls)=>{node.classList.remove('positive','negative','zero');if(cls)node.classList.add(cls);};
   const setText=(id,text,cls)=>{const n=$(id);n.textContent=text;if(cls)setClass(n,cls);};
   const formatPctInput=n=>Number(n).toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
   const readPct=id=>{const n=$(id);return n.dataset.exactValue!==undefined?parseNum(n.dataset.exactValue):parseNum(n.value);};
