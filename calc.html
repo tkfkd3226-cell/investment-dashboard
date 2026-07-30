@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ko">
 <head>
@@ -31,6 +32,11 @@
     .actions{display:flex;gap:8px;flex-wrap:wrap}
     .btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 13px;cursor:pointer;color:var(--ink)}
     .btn:hover{border-color:#aeb9ca;background:#fafbfd}
+    .preset-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .preset-label{font-size:12px;color:var(--muted);font-weight:800;margin-right:2px}
+    .preset-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 14px;cursor:pointer;color:var(--muted);font-weight:900}
+    .preset-btn:hover{border-color:#9fb0c8;background:#f7f9fc;color:var(--ink)}
+    .preset-btn.active{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 5px 14px rgba(29,53,87,.16)}
 
     .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
     .input-panel{padding:18px;margin-bottom:16px}
@@ -143,6 +149,9 @@
     }
     @media(max-width:720px){
       .wrap{padding:12px}.hero{display:block}.actions{margin-top:12px}
+      .preset-bar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+      .preset-label{grid-column:1/-1;margin:0 0 1px}
+      .preset-btn{min-width:0;width:100%;padding:9px 5px;font-size:12px}
       .input-panel{padding:12px}
       .input-grid,.input-group,.fields,.field,.share-stepper,.pct-stepper,.with-unit{min-width:0}
       .input-grid{width:100%}
@@ -202,6 +211,12 @@
     <div class="actions">
       <button class="btn" id="resetBtn">기본값 복원</button>
     </div>
+  </div>
+
+  <div class="preset-bar" aria-label="매수 사례 선택">
+    <span class="preset-label">매수 사례</span>
+    <button class="preset-btn active" type="button" data-preset="buy-2026-07-29">2026-07-29 매수</button>
+    <button class="preset-btn" type="button" data-preset="buy-2026-07-30">2026-07-30 매수</button>
   </div>
 
   <section class="panel input-panel">
@@ -289,19 +304,36 @@
 
 <script>
 (() => {
-  const defaults = {
-    existingShares: 38,
-    existingCost: 7005530,
-    currentPrice: 79020,
-    oldOverdraft: 3700000,
-    brokerFeePct: 0.0036396,
-    addPrice: 74350,
-    addShares: 604,
-    overnightPct: 2.34,
-    risePct: 8.769,
-    mode: 'current'
+  const presets = {
+    'buy-2026-07-29': {
+      existingShares: 38,
+      existingCost: 7005530,
+      currentPrice: 79020,
+      oldOverdraft: 3700000,
+      brokerFeePct: 0.0036396,
+      addPrice: 74350,
+      addShares: 604,
+      overnightPct: 2.34,
+      risePct: 8.769,
+      mode: 'current'
+    },
+    'buy-2026-07-30': {
+      existingShares: 0,
+      existingCost: 0,
+      currentPrice: 75595,
+      oldOverdraft: 4040000,
+      brokerFeePct: 0.0036396,
+      addPrice: 82680,
+      addShares: 576,
+      autoFullRecoveryPct: true,
+      mode: 'current'
+    }
   };
+  const defaultPresetId = 'buy-2026-07-29';
+  const defaults = presets[defaultPresetId];
   let mode = 'current';
+  let activePresetId = defaultPresetId;
+  let applyingPreset = false;
   const $ = id => document.getElementById(id);
   const nf0 = new Intl.NumberFormat('ko-KR', {maximumFractionDigits:0});
   const won = n => `${nf0.format(Math.round(n || 0))}원`;
@@ -345,11 +377,39 @@
   };
   const el = (id, val, cls) => { const node=$(id); node.textContent=val; if(cls){node.classList.remove('positive','negative','zero');node.classList.add(cls);} };
 
+  function setPresetActive(presetId){
+    document.querySelectorAll('.preset-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.preset===presetId));
+  }
+
+  function markCustomState(){
+    if(applyingPreset) return;
+    activePresetId='';
+    setPresetActive('');
+  }
+
+  function getFullSaleRecoveryPresetPct(values){
+    const finalShares=(values.existingShares||0)+(values.addShares||0);
+    const actualLoan=(values.addPrice||0)*(values.addShares||0);
+    const feeRate=Math.min(Math.max((values.brokerFeePct||0)/100,0),0.999999);
+    if(finalShares<=0 || values.currentPrice<=0 || (1-feeRate)<=0) return 0;
+    const minimumTargetPrice=ceil5((actualLoan+(values.oldOverdraft||0))/(finalShares*(1-feeRate)));
+    return (minimumTargetPrice/values.currentPrice-1)*100;
+  }
+
+  function resolvePreset(presetId){
+    const preset={...presets[presetId]};
+    if(preset.autoFullRecoveryPct){
+      preset.overnightPct=getFullSaleRecoveryPresetPct(preset);
+      preset.risePct=(ceil5(preset.currentPrice*(1+preset.overnightPct/100))/preset.addPrice-1)*100;
+    }
+    return preset;
+  }
+
   function formatMoneyInputs(){
     document.querySelectorAll('.money-input').forEach(input => {
       input.addEventListener('focus', () => { const n=parseNum(input.value); if(Number.isFinite(n)) input.value=String(n); });
       input.addEventListener('blur', () => { const n=parseNum(input.value); if(Number.isInteger(n)) input.value=nf0.format(n); recalc(); });
-      input.addEventListener('input', recalc);
+      input.addEventListener('input', () => { markCustomState(); recalc(); });
     });
   }
 
@@ -646,7 +706,7 @@
     $('s1').innerHTML=strategyHTML(1,'③','추가매수금액만 회수','비추천','bad','추가매수금액 회수에 필요한 최소 수량만 매도합니다.',c.s1,c);
     $('s2').innerHTML=strategyHTML(2,'②','추가매수 수량 매도','조건부 추천','conditional','추가매수 수량만 매도하고 기존 보유분은 유지합니다.',c.s2,c);
     $('s3').innerHTML=strategyHTML(3,'①','전체 보유분 매도','추천','good','전체 보유분을 매도해 투입금액 회수를 우선합니다.',c.s3,c);
-    localStorage.setItem('investmentLossRecoveryCalc',JSON.stringify({...c.i,mode}));
+    localStorage.setItem('investmentLossRecoveryCalc',JSON.stringify({...c.i,mode,presetId:activePresetId}));
   }
 
   function setMode(next){
@@ -674,27 +734,38 @@
     setMode(v.mode || defaults.mode);
   }
 
+  function applyPreset(presetId){
+    if(!presets[presetId]) return;
+    applyingPreset=true;
+    activePresetId=presetId;
+    setPresetActive(presetId);
+    applyValues(resolvePreset(presetId));
+    applyingPreset=false;
+  }
+
   formatMoneyInputs();
   document.querySelectorAll('input[type=number]').forEach(input=>input.addEventListener('input',()=>{
     if(input.id==='overnightPct' || input.id==='risePct') delete input.dataset.exactValue;
+    markCustomState();
     recalc();
   }));
-  document.querySelectorAll('.pct-step-btn').forEach(btn=>btn.addEventListener('click',()=>adjustPct(btn.dataset.target,parseNum(btn.dataset.delta))));
-  document.querySelectorAll('.share-step-btn').forEach(btn=>btn.addEventListener('click',()=>adjustShares(btn.dataset.target,parseNum(btn.dataset.delta))));
+  document.querySelectorAll('.pct-step-btn').forEach(btn=>btn.addEventListener('click',()=>{markCustomState();adjustPct(btn.dataset.target,parseNum(btn.dataset.delta));}));
+  document.querySelectorAll('.share-step-btn').forEach(btn=>btn.addEventListener('click',()=>{markCustomState();adjustShares(btn.dataset.target,parseNum(btn.dataset.delta));}));
+  document.querySelectorAll('.preset-btn').forEach(btn=>btn.addEventListener('click',()=>applyPreset(btn.dataset.preset)));
   ['overnightPct','risePct'].forEach(id=>$(id).addEventListener('keydown',event=>{
     if(event.key==='ArrowUp' || event.key==='ArrowDown'){
       event.preventDefault();
       adjustPct(id,event.key==='ArrowUp'?0.1:-0.1);
     }
   }));
-  $('modeCurrent').addEventListener('click',()=>setMode('current'));
-  $('modeRise').addEventListener('click',()=>setMode('rise'));
+  $('modeCurrent').addEventListener('click',()=>{markCustomState();setMode('current');});
+  $('modeRise').addEventListener('click',()=>{markCustomState();setMode('rise');});
   $('resetBtn').addEventListener('click',()=>{
     localStorage.removeItem('investmentLossRecoveryCalc');
     localStorage.removeItem('leverageExitCalc');
     document.querySelectorAll('.tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab==='s3'));
     document.querySelectorAll('.strategy').forEach(section=>section.classList.toggle('active',section.id==='s3'));
-    applyValues(defaults);
+    applyPreset(defaultPresetId);
   });
   document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
     document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b===btn));
@@ -704,7 +775,16 @@
   if(saved && !localStorage.getItem('investmentLossRecoveryCalc')){
     localStorage.setItem('investmentLossRecoveryCalc', saved);
   }
-  applyValues(saved?{...defaults,...JSON.parse(saved)}:defaults);
+  if(saved){
+    const savedValues={...defaults,...JSON.parse(saved)};
+    applyingPreset=true;
+    activePresetId=savedValues.presetId && presets[savedValues.presetId] ? savedValues.presetId : '';
+    setPresetActive(activePresetId);
+    applyValues(savedValues);
+    applyingPreset=false;
+  }else{
+    applyPreset(defaultPresetId);
+  }
 })();
 </script>
 </body>
