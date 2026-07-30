@@ -214,6 +214,7 @@
     .prior-detail-item .name{font-size:11px;color:var(--muted);font-weight:800}
     .prior-detail-item .value{font-size:15px;font-weight:900;margin-top:3px;word-break:break-all}
     .case-note{font-size:11px;color:var(--muted);margin-top:8px}
+    #currentPriceSlot,#currentPriceAnchor{display:none!important}
     .strategy-card.no-badge .badge{display:none}
     .tabs.settled-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
     .simple-grid{grid-template-columns:repeat(4,minmax(145px,1fr));min-width:580px}
@@ -589,7 +590,7 @@
     }
   }
 
-  function recalc(){const i=getInputs(),errors=validate(i);showValidation(errors);if(errors.length)return;const c=compute();render(c);storage.set('investmentLossRecoveryCalcV5',JSON.stringify({...i,caseType,mode,presetId:activePresetId}));}
+  function recalc(){const i=getInputs(),errors=validate(i);showValidation(errors);if(errors.length)return;const c=compute();render(c);storage.set('investmentLossRecoveryCalcV6',JSON.stringify({...i,caseType,mode,presetId:activePresetId}));}
 
   function setMode(next,doRecalc=true){mode=next==='rise'?'rise':'current';$('modeCurrent').classList.toggle('active',mode==='current');$('modeRise').classList.toggle('active',mode==='rise');$('overnightPct').readOnly=mode!=='current';$('risePct').readOnly=mode!=='rise';document.querySelectorAll('.pct-step-btn').forEach(b=>b.disabled=$(b.dataset.target).readOnly);$('formulaText').textContent=caseType==='settled'?(mode==='current'?'기준 종가 × (1 + 목표 변동률 %) → 5원 단위 올림':'매수단가 × (1 + 목표 변동률 %) → 5원 단위 올림'):(mode==='current'?'추가매수 당일 종가 × (1 + 다음 거래일 변동률 %) → 5원 단위 올림':'추가매수단가 × (1 + 추가매수가 대비 변동률 %) → 5원 단위 올림');if(doRecalc)recalc();}
 
@@ -610,9 +611,9 @@
   document.querySelectorAll('.pct-step-btn').forEach(b=>b.addEventListener('click',()=>{const inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;delete inp.dataset.exactValue;inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);markCustom();recalc();}));
   document.querySelectorAll('.preset-btn').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));
   $('modeCurrent').addEventListener('click',()=>{markCustom();setMode('current');});$('modeRise').addEventListener('click',()=>{markCustom();setMode('rise');});
-  $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV5');applyPreset(defaultPresetId);});
+  $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV6');applyPreset(defaultPresetId);});
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('hidden'))return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id===b.dataset.tab));}));
-  const saved=storage.get('investmentLossRecoveryCalcV5');
+  const saved=storage.get('investmentLossRecoveryCalcV6');
   if(saved){try{const v=JSON.parse(saved);applying=true;activePresetId=v.presetId&&presets[v.presetId]?v.presetId:'';setPresetActive(activePresetId);applyValues(v);applying=false;}catch(e){applyPreset(defaultPresetId);}}else applyPreset(defaultPresetId);
 })();
 
