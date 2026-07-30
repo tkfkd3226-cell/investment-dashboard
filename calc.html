@@ -220,7 +220,10 @@
     .simple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
     .simple-grid .cell:nth-child(4n){border-right:0}
     @media(max-width:720px){
-      .prior-detail-grid{grid-template-columns:1fr}
+      .prior-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:0 10px 10px}
+      .prior-detail-item{padding:9px 9px}
+      .prior-detail-item .name{font-size:10px}
+      .prior-detail-item .value{font-size:13px}
       .settled-loss-card .value{font-size:21px}
       .tabs.settled-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
@@ -289,10 +292,10 @@
         <div class="group-title"><span id="currentGroupTitle">추가매수 내역</span><small id="currentGroupSub"><span class="desktop-only">실제 체결 기준 · 3개 전략 공통</span><span class="mobile-only">실제 체결 기준</span></small></div>
         <div class="fields" id="currentFields">
           <span id="currentPriceSlot"></span>
-          <div class="field"><label id="addPriceLabel">추가매수단가</label><input id="addPrice" class="control money-input" inputmode="numeric" value="74,350"></div>
-          <div class="field"><label id="addSharesLabel">추가매수주식수</label><div class="share-stepper"><button class="share-step-btn" type="button" data-target="addShares" data-delta="-1">−</button><input id="addShares" class="control" type="number" min="0" step="1" inputmode="numeric" value="604"><button class="share-step-btn" type="button" data-target="addShares" data-delta="1">+</button></div></div>
-          <div class="field"><label id="actualLoanLabel">추가매수금액</label><input id="actualLoan" class="control" readonly></div>
-          <div class="field"><label id="currentBuyGainLabel">추가매수가 대비 변동률</label><input id="currentBuyGain" class="control" readonly></div>
+          <div class="field" id="addPriceField"><label id="addPriceLabel">추가매수단가</label><input id="addPrice" class="control money-input" inputmode="numeric" value="74,350"></div>
+          <div class="field" id="addSharesField"><label id="addSharesLabel">추가매수주식수</label><div class="share-stepper"><button class="share-step-btn" type="button" data-target="addShares" data-delta="-1">−</button><input id="addShares" class="control" type="number" min="0" step="1" inputmode="numeric" value="604"><button class="share-step-btn" type="button" data-target="addShares" data-delta="1">+</button></div></div>
+          <div class="field" id="actualLoanField"><label id="actualLoanLabel">추가매수금액</label><input id="actualLoan" class="control" readonly></div>
+          <div class="field" id="currentBuyGainField"><label id="currentBuyGainLabel">추가매수가 대비 변동률</label><input id="currentBuyGain" class="control" readonly></div>
           <div class="field" id="out1Field"><label id="out1Label">최종 평단</label><input id="out1" class="control" readonly></div>
           <div class="field" id="out2Field"><label id="out2Label">최종 보유수량</label><input id="out2" class="control" readonly></div>
           <div class="field" id="out3Field"><label id="out3Label">최종 투자금액</label><input id="out3" class="control" readonly></div>
@@ -386,6 +389,14 @@
     if(settled){$('currentPriceSlot').after(field);}else{$('currentPriceAnchor').after(field);}
   }
 
+  function reorderCurrentFields(settled){
+    const container=$('currentFields');
+    const order = settled
+      ? ['currentPriceField','currentBuyGainField','addPriceField','addSharesField','actualLoanField','out1Field','out2Field','out3Field']
+      : ['addPriceField','addSharesField','actualLoanField','currentBuyGainField','out1Field','out2Field','out3Field'];
+    order.forEach(id=>{ const el=$(id); if(el) container.appendChild(el); });
+  }
+
   function updateCaseUI(){
     const settled=caseType==='settled';
     moveCurrentPrice(settled);
@@ -426,6 +437,7 @@
       $('tabS3').textContent='① 전체 보유분 매도'; $('tabS2').textContent='② 추가매수 수량 매도'; $('tabS1').textContent='③ 추가매수금액만 회수';
       $('tabS2').classList.remove('hidden'); $('s2').classList.remove('hidden');
     }
+    reorderCurrentFields(settled);
     setMode(mode,false);
   }
 
