@@ -258,6 +258,8 @@
           <div class="field" id="oldRecoveryField"><label>기존 회수 대상 금액</label><input id="oldOverdraft" class="control money-input" inputmode="numeric" value="3,700,000"></div>
           <div class="field" id="breakEvenInputField"><label id="breakEvenInputLabel">통합 회복 손익분기</label><input id="brokerBreakEven" class="control" readonly></div>
           <input id="priorSettlementValue" type="hidden" value="0">
+          <input id="priorSettlementFee" type="hidden" value="0">
+          <input id="priorSellPrice" type="hidden" value="0">
           <input id="brokerFeePct" type="hidden" value="0.0036396">
         </div>
 
@@ -271,13 +273,15 @@
             <div class="prior-detail-grid">
               <div class="prior-detail-item"><div class="name">정리수량</div><div class="value" id="detailPriorShares"></div></div>
               <div class="prior-detail-item"><div class="name">취득원가</div><div class="value" id="detailPriorCost"></div></div>
-              <div class="prior-detail-item"><div class="name">실회수액</div><div class="value" id="detailPriorProceeds"></div></div>
-              <div class="prior-detail-item"><div class="name">원래 평단</div><div class="value" id="detailPriorAvg"></div></div>
+              <div class="prior-detail-item"><div class="name">매도금액</div><div class="value" id="detailPriorProceeds"></div></div>
+              <div class="prior-detail-item"><div class="name">정리시 평단</div><div class="value" id="detailPriorAvg"></div></div>
+              <div class="prior-detail-item"><div class="name">거래비용</div><div class="value" id="detailPriorFee"></div></div>
+              <div class="prior-detail-item"><div class="name">정리시 단가</div><div class="value" id="detailPriorSellPrice"></div></div>
               <div class="prior-detail-item"><div class="name">확정손익</div><div class="value" id="detailPriorPL"></div></div>
               <div class="prior-detail-item"><div class="name">정리일</div><div class="value">2026-07-30</div></div>
             </div>
           </details>
-          <div class="case-note">기존 정리손실은 상세 거래내역의 취득원가와 실회수액 차이로 자동 계산합니다.</div>
+          <div class="case-note">기존 확정손실은 상세 거래내역의 매수금액, 매도금액, 거래비용을 반영해 자동 계산합니다.</div>
         </div>
       </div>
 
@@ -338,12 +342,12 @@
 (() => {
   const presets = {
     'buy-2026-07-29': {
-      caseType:'holding', existingShares:38, existingCost:7005530, priorSettlementValue:0,
+      caseType:'holding', existingShares:38, existingCost:7005530, priorSettlementValue:0, priorSettlementFee:0, priorSellPrice:0,
       currentPrice:79020, oldRecovery:3700000, addPrice:74350, addShares:604,
       brokerFeePct:0.0036396, overnightPct:2.34, risePct:8.769, mode:'current'
     },
     'buy-2026-07-30': {
-      caseType:'settled', existingShares:642, existingCost:51912928, priorSettlementValue:47876292,
+      caseType:'settled', existingShares:642, existingCost:51912930, priorSettlementValue:47880490, priorSettlementFee:4196, priorSellPrice:74580,
       currentPrice:75595, oldRecovery:0, addPrice:82680, addShares:576,
       brokerFeePct:0.0036396, autoRecoveryTarget:true, mode:'current'
     }
@@ -366,7 +370,7 @@
   const storage={get:k=>{try{return localStorage.getItem(k);}catch(e){return null;}},set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}},remove:k=>{try{localStorage.removeItem(k);}catch(e){}}};
 
   function feeRate(v){return Math.min(Math.max((v||0)/100,0),0.999999);}
-  function priorPLFrom(v){return (v.priorSettlementValue||0)-(v.existingCost||0);}
+  function priorPLFrom(v){return (v.priorSettlementValue||0)-(v.priorSettlementFee||0)-(v.existingCost||0);}
   function integratedRecoveryOrder(v){
     const r=feeRate(v.brokerFeePct), qty=v.addShares||0, principal=(v.addPrice||0)*qty;
     const loss=Math.max(-priorPLFrom(v),0);
@@ -426,11 +430,11 @@
   }
 
   function getInputs(){
-    const priorCost=parseNum($('existingCost').value), priorProceeds=parseNum($('priorSettlementValue').value);
-    const priorPL=caseType==='settled'?priorProceeds-priorCost:0;
+    const priorCost=parseNum($('existingCost').value), priorProceeds=parseNum($('priorSettlementValue').value), priorFee=parseNum($('priorSettlementFee').value), priorSellPrice=parseNum($('priorSellPrice').value);
+    const priorPL=caseType==='settled'?priorProceeds-priorFee-priorCost:0;
     return {
       caseType, existingShares:parseNum($('existingShares').value), existingCost:priorCost,
-      priorSettlementValue:priorProceeds, currentPrice:parseNum($('currentPrice').value),
+      priorSettlementValue:priorProceeds, priorSettlementFee:priorFee, priorSellPrice:priorSellPrice, currentPrice:parseNum($('currentPrice').value),
       oldRecovery:caseType==='settled'?Math.max(-priorPL,0):parseNum($('oldOverdraft').value),
       brokerFeePct:parseNum($('brokerFeePct').value), addPrice:parseNum($('addPrice').value), addShares:parseNum($('addShares').value),
       overnightPct:readPct('overnightPct'), risePct:readPct('risePct')
@@ -447,7 +451,7 @@
     for(const [id,label,v,test] of checks){if(!test(v)){errors.push(`${label} 값을 확인해 주세요.`);const n=$(id);if(n)n.classList.add('invalid');}}
     const totalShares=(caseType==='settled'?0:i.existingShares)+i.addShares;
     if(totalShares<=0)errors.push('최종 보유수량은 1주 이상이어야 합니다.');
-    if(caseType==='settled'&&(i.existingCost<0||i.priorSettlementValue<0))errors.push('이전 거래 상세 금액을 확인해 주세요.');
+    if(caseType==='settled'&&(i.existingCost<0||i.priorSettlementValue<0||i.priorSettlementFee<0||i.priorSellPrice<0))errors.push('이전 거래 상세 금액을 확인해 주세요.');
     return [...new Set(errors)];
   }
 
@@ -457,7 +461,7 @@
     const i=getInputs(), settled=caseType==='settled', r=feeRate(i.brokerFeePct);
     const priorAvg=i.existingShares?i.existingCost/i.existingShares:0;
     const priorValue=settled?i.priorSettlementValue:i.currentPrice*i.existingShares;
-    const priorPL=priorValue-i.existingCost;
+    const priorPL=settled?i.priorSettlementValue-i.priorSettlementFee-i.existingCost:priorValue-i.existingCost;
     const recoveryAmount=settled?Math.max(-priorPL,0):i.oldRecovery;
     const addedPrincipal=i.addPrice*i.addShares;
     const finalShares=(settled?0:i.existingShares)+i.addShares;
@@ -545,7 +549,7 @@
       $('out2').value=`${c.currentPositionPL>=0?'+':''}${nf0.format(Math.round(c.currentPositionPL))}`;setClass($('out2'),signClass(c.currentPositionPL));
       $('out3').value=`${c.integratedCurrentPL>=0?'+':''}${nf0.format(Math.round(c.integratedCurrentPL))}`;setClass($('out3'),signClass(c.integratedCurrentPL));
       setText('settledLossSummary',won(c.priorPL),signClass(c.priorPL));
-      $('detailPriorShares').textContent=shareText(c.i.existingShares);$('detailPriorCost').textContent=won(c.i.existingCost);$('detailPriorProceeds').textContent=won(c.i.priorSettlementValue);$('detailPriorAvg').textContent=won(c.priorAvg);setText('detailPriorPL',won(c.priorPL),signClass(c.priorPL));
+      $('detailPriorShares').textContent=shareText(c.i.existingShares);$('detailPriorCost').textContent=won(c.i.existingCost);$('detailPriorProceeds').textContent=won(c.i.priorSettlementValue);$('detailPriorAvg').textContent=won(c.priorAvg);$('detailPriorFee').textContent=won(c.i.priorSettlementFee);$('detailPriorSellPrice').textContent=won(c.i.priorSellPrice);setText('detailPriorPL',won(c.priorPL),signClass(c.priorPL));
       $('currentGroupSub').textContent=`현재 ${shareText(c.finalShares)} 기준`;
       setText('kpi1Name','현재 포지션 손익분기');setText('kpi1Value',won(c.positionBEOrder));setText('kpi1Sub',`현재 ${shareText(c.finalShares)} 자체의 매수·매도 수수료 반영`);
       setText('kpi2Name','기존 확정손실');setText('kpi2Value',won(c.priorPL),signClass(c.priorPL));setText('kpi2Sub','기존 상세 거래내역에서 자동 계산');
@@ -573,13 +577,13 @@
     }
   }
 
-  function recalc(){const i=getInputs(),errors=validate(i);showValidation(errors);if(errors.length)return;const c=compute();render(c);storage.set('investmentLossRecoveryCalcV4',JSON.stringify({...i,caseType,mode,presetId:activePresetId}));}
+  function recalc(){const i=getInputs(),errors=validate(i);showValidation(errors);if(errors.length)return;const c=compute();render(c);storage.set('investmentLossRecoveryCalcV5',JSON.stringify({...i,caseType,mode,presetId:activePresetId}));}
 
   function setMode(next,doRecalc=true){mode=next==='rise'?'rise':'current';$('modeCurrent').classList.toggle('active',mode==='current');$('modeRise').classList.toggle('active',mode==='rise');$('overnightPct').readOnly=mode!=='current';$('risePct').readOnly=mode!=='rise';document.querySelectorAll('.pct-step-btn').forEach(b=>b.disabled=$(b.dataset.target).readOnly);$('formulaText').textContent=caseType==='settled'?(mode==='current'?'기준 종가 × (1 + 목표 변동률 %) → 5원 단위 올림':'매수단가 × (1 + 목표 변동률 %) → 5원 단위 올림'):(mode==='current'?'추가매수 당일 종가 × (1 + 다음 거래일 변동률 %) → 5원 단위 올림':'추가매수단가 × (1 + 추가매수가 대비 변동률 %) → 5원 단위 올림');if(doRecalc)recalc();}
 
   function applyValues(v){
     caseType=v.caseType||'holding';mode=v.mode||'current';
-    $('existingShares').value=String(v.existingShares??0);$('existingCost').value=nf0.format(v.existingCost??0);$('priorSettlementValue').value=String(v.priorSettlementValue??0);$('currentPrice').value=nf0.format(v.currentPrice??0);$('oldOverdraft').value=nf0.format(v.oldRecovery??0);$('addPrice').value=nf0.format(v.addPrice??0);$('addShares').value=String(v.addShares??0);$('brokerFeePct').value=String(v.brokerFeePct??0.0036396);
+    $('existingShares').value=String(v.existingShares??0);$('existingCost').value=nf0.format(v.existingCost??0);$('priorSettlementValue').value=String(v.priorSettlementValue??0);$('priorSettlementFee').value=String(v.priorSettlementFee??0);$('priorSellPrice').value=String(v.priorSellPrice??0);$('currentPrice').value=nf0.format(v.currentPrice??0);$('oldOverdraft').value=nf0.format(v.oldRecovery??0);$('addPrice').value=nf0.format(v.addPrice??0);$('addShares').value=String(v.addShares??0);$('brokerFeePct').value=String(v.brokerFeePct??0.0036396);
     let overnight=v.overnightPct??0,rise=v.risePct??0;
     if(v.autoRecoveryTarget){const target=integratedRecoveryOrder(v);overnight=(target/v.currentPrice-1)*100;rise=(target/v.addPrice-1)*100;}
     setPct('overnightPct',overnight);setPct('risePct',rise);
@@ -594,9 +598,9 @@
   document.querySelectorAll('.pct-step-btn').forEach(b=>b.addEventListener('click',()=>{const inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;delete inp.dataset.exactValue;inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);markCustom();recalc();}));
   document.querySelectorAll('.preset-btn').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));
   $('modeCurrent').addEventListener('click',()=>{markCustom();setMode('current');});$('modeRise').addEventListener('click',()=>{markCustom();setMode('rise');});
-  $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV4');applyPreset(defaultPresetId);});
+  $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV5');applyPreset(defaultPresetId);});
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('hidden'))return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id===b.dataset.tab));}));
-  const saved=storage.get('investmentLossRecoveryCalcV4');
+  const saved=storage.get('investmentLossRecoveryCalcV5');
   if(saved){try{const v=JSON.parse(saved);applying=true;activePresetId=v.presetId&&presets[v.presetId]?v.presetId:'';setPresetActive(activePresetId);applyValues(v);applying=false;}catch(e){applyPreset(defaultPresetId);}}else applyPreset(defaultPresetId);
 })();
 
