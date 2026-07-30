@@ -394,7 +394,7 @@
     const container=$('currentFields');
     const order = settled
       ? ['currentPriceField','currentBuyGainField','addPriceField','addSharesField','actualLoanField','out1Field','out2Field','out3Field']
-      : ['addPriceField','addSharesField','actualLoanField','currentBuyGainField','out1Field','out2Field','out3Field'];
+      : ['addPriceField','currentBuyGainField','addSharesField','actualLoanField','out1Field','out2Field','out3Field','out4Field'];
     order.forEach(id=>{ const el=$(id); if(el) container.appendChild(el); });
   }
 
