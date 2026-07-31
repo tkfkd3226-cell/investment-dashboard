@@ -674,10 +674,9 @@
       setText('kpi2Name','기존 보유분 손익');setText('kpi2Value',won(c.priorPL),signClass(c.priorPL));setText('kpi2Sub','추가매수 당일 종가 기준 · 추가매수 전');
       setText('kpi3Name','통합 회복 손익분기');setText('kpi3Value',won(c.integratedBE));setText('kpi3Sub','매수·매도 수수료와 기존 회수 대상 금액 반영');
       setText('kpi4Name','목표 매도단가');setText('kpi4Value',won(c.targetPrice),signClass(c.targetPrice-c.integratedBE));setText('kpi4Sub',`통합 손익분기 대비 ${c.targetPrice>=c.integratedBE?'+':''}${nf0.format(c.targetPrice-c.integratedBE)}원`);
-      const addZeroOrder=c.addZeroRaw?ceil5(c.addZeroRaw):0;
-      setText('range1Title','추가매수 효과 0원 기준');setText('range1Value',c.addZeroRaw?pct((c.addZeroRaw/c.i.currentPrice-1)*100,2):'해당 없음',c.addZeroRaw?signClass(c.addZeroRaw-c.i.currentPrice):'zero');setText('range1Sub',c.addZeroRaw?`${won(Math.ceil(c.addZeroRaw))} · 5원 호가 ${won(addZeroOrder)}`:'추가매수수량이 0주입니다.');
-      setText('range2Title','통합 회복 손익분기 구간');setText('range2Value',pct((c.integratedBE/c.i.currentPrice-1)*100,2),signClass(c.integratedBE-c.i.currentPrice));setText('range2Sub',`${won(c.integratedBE)} · 5원 호가 ${won(c.integratedBEOrder)}`);
-      setText('range3Title','목표가격 상태');setText('range3Value',c.targetPrice>=c.integratedBE?'손익분기 이상':'손익분기 미달',c.targetPrice>=c.integratedBE?'positive':'negative');setText('range3Sub',`${won(c.targetPrice)} · 손익분기 대비 ${c.targetPrice>=c.integratedBE?'+':''}${nf0.format(c.targetPrice-c.integratedBE)}원`);
+      setText('range1Title','현재 포지션 손익분기 구간');setText('range1Value',pct((c.positionBE/c.i.currentPrice-1)*100,2),signClass(c.positionBE-c.i.currentPrice));setText('range1Sub',`${won(c.positionBE)} · 5원 호가 ${won(c.positionBEOrder)} · 현재 보유분 자체 본전`);
+      setText('range2Title','통합 회복 손익분기 구간');setText('range2Value',pct((c.integratedBE/c.i.currentPrice-1)*100,2),signClass(c.integratedBE-c.i.currentPrice));setText('range2Sub',`${won(c.integratedBE)} · 5원 호가 ${won(c.integratedBEOrder)} · 기존 회수 대상 금액 포함`);
+      setText('range3Title','목표가격 상태');setText('range3Value',c.targetPrice>=c.integratedBE?'통합 손익분기 이상':'통합 손익분기 미달',c.targetPrice>=c.integratedBE?'positive':'negative');setText('range3Sub',`${won(c.targetPrice)} · 통합 손익분기 대비 ${c.targetPrice>=c.integratedBE?'+':''}${nf0.format(c.targetPrice-c.integratedBE)}원`);
       $('s1').innerHTML=holdingStrategyHTML(1,'③','추가매수금액만 회수','비추천','bad','추가매수금액 회수에 필요한 최소 수량만 매도합니다.',c.sPrincipal,c);
       $('s2').innerHTML=holdingStrategyHTML(2,'②','추가매수 수량 매도','조건부 추천','conditional','추가매수 수량만 매도하고 기존 보유분은 유지합니다.',c.sAdd,c);
       $('s3').innerHTML=holdingStrategyHTML(3,'①','전체 보유분 매도','추천','good','전체 보유분을 매도해 투입금액 회수를 우선합니다.',c.sFull,c);
