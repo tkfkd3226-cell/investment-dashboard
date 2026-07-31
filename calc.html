@@ -76,10 +76,13 @@
     .desktop-only{display:inline}
     .mobile-only{display:none}
     .seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:12px}
-    .seg button{height:40px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);cursor:pointer;font-weight:800;font-size:14px}
+    .seg button{height:42px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);cursor:pointer;font-weight:800;font-size:14px}
     .seg button.active{background:var(--navy);border-color:var(--navy);color:#fff}
     .calculation-group .group-title{margin-bottom:0}
     .calculation-group .seg{margin-top:18px}
+    @media(min-width:1101px){
+      .calculation-group .seg{margin-top:35px}
+    }
     .formula{font-size:11px;color:var(--muted);background:#f0f3f8;border-radius:8px;padding:7px 9px;margin-top:8px}
     .validation-panel{display:none;margin:0 0 16px;padding:13px 16px;border:1px solid #efb8bc;border-radius:14px;background:#fff5f5;color:#9c252d;font-size:13px;font-weight:700}
     .validation-panel.show{display:block}
@@ -187,7 +190,7 @@
       .existing-group .control,.additional-group .control,.calculation-group .control{font-size:15px}
       .existing-group .share-step-btn,.additional-group .share-step-btn,.calculation-group .pct-step-btn{font-size:16px}
       .calculation-group .seg{margin-top:8px}
-      .calculation-group .seg button{font-size:11px;padding:0 3px;letter-spacing:-.025em}
+      .calculation-group .seg button{height:40px;font-size:11px;padding:0 3px;letter-spacing:-.025em}
       .calculation-group .unit{font-size:15px}
       .calculation-group{padding:9px}
       .calculation-group .fields{grid-template-columns:minmax(0,1fr)}
@@ -286,7 +289,10 @@
     .prior-buy-section{border-right:1px dashed #cfd7e4}
     .prior-result-section{display:grid;grid-template-columns:minmax(0,1fr);padding:12px 10px 0;border-top:1px dashed #cfd7e4}
     .prior-entry-grid .field{min-width:0}
-    .prior-entry-grid .control[type=date]{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;text-align:left;padding-left:11px;padding-right:9px}
+    .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;height:42px;border:1px solid #cfd7e4;border-radius:10px;background:#fff;overflow:hidden;box-sizing:border-box}
+    .date-control-shell:focus-within{border-color:#6d8fc1;box-shadow:0 0 0 3px rgba(73,115,174,.12)}
+    .date-control-shell .date-control{position:absolute;inset:0;display:block;width:100%!important;min-width:0!important;max-width:100%!important;height:100%;border:0!important;border-radius:0;background:transparent!important;box-shadow:none!important;outline:none;text-align:left;padding:0 11px;box-sizing:border-box;-webkit-min-logical-width:0}
+    .date-control-shell:has(.date-control.invalid){border-color:#d9363e;background:#fff7f7;box-shadow:0 0 0 3px rgba(217,54,62,.10)}
     .prior-entry-grid .field.auto-field .control{background:#f1f4f8;color:#576176}
     .case-note{font-size:11px;color:var(--muted);margin-top:8px}
     #currentPriceSlot,#currentPriceAnchor{display:none!important}
@@ -305,7 +311,8 @@
       .prior-result-section{padding:10px 6px 0}
       .prior-entry-grid .field{gap:4px;min-width:0}
       .prior-entry-grid .control{height:40px;min-width:0;max-width:100%;padding-left:7px;padding-right:7px;font-size:14px}
-      .prior-entry-grid input[type=date]{width:100%;min-width:0;max-width:100%;-webkit-min-logical-width:0}
+      .date-control-shell{height:40px;min-width:0;max-width:100%}
+      .date-control-shell .date-control{height:100%;width:100%!important;min-width:0!important;max-width:100%!important;padding-left:7px;padding-right:7px;font-size:14px}
       .settled-loss-card .value{font-size:21px}
       .tabs.settled-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
       .existing-group.holding-layout #holdingPriorFields{gap:0}
@@ -362,7 +369,7 @@
         <div class="settled-summary" id="settledPriorSummary">
           <div class="prior-entry-grid">
             <div class="prior-date-section">
-              <div class="field"><label for="priorSellDateInput">매도일</label><input id="priorSellDateInput" class="control" type="date" value="2026-07-30"></div>
+              <div class="field"><label for="priorSellDateInput">매도일</label><div class="date-control-shell"><input id="priorSellDateInput" class="control date-control" type="date" value="2026-07-30"></div></div>
             </div>
             <div class="prior-trade-section prior-buy-section">
               <div class="field auto-field"><label for="priorAvgDisplay">매수단가</label><input id="priorAvgDisplay" class="control" readonly></div>
