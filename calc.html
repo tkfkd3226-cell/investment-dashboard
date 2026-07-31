@@ -84,6 +84,8 @@
       .calculation-group .seg{margin-top:35px}
     }
     .formula{font-size:11px;color:var(--muted);background:#f0f3f8;border-radius:8px;padding:7px 9px;margin-top:8px}
+    .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);font-size:11px;font-weight:800}
+    .actual-sale-price strong{color:var(--navy);font-size:13px;font-weight:900;white-space:nowrap}
     .validation-panel{display:none;margin:0 0 16px;padding:13px 16px;border:1px solid #efb8bc;border-radius:14px;background:#fff5f5;color:#9c252d;font-size:13px;font-weight:700}
     .validation-panel.show{display:block}
     .validation-panel ul{margin:7px 0 0;padding-left:20px;font-weight:600}
@@ -422,6 +424,7 @@
           <div class="field full"><label>목표 매도단가</label><input id="targetPrice" class="control money-input" inputmode="numeric" readonly></div>
         </div>
         <div class="formula" id="formulaText"></div>
+        <div class="actual-sale-price" aria-label="실제 매도 단가"><span>실제 매도 단가</span><strong id="actualSellPriceValue">91,065원</strong></div>
       </div>
     </div>
   </section>
@@ -493,7 +496,7 @@
   }
 
   function setPresetActive(id){document.querySelectorAll('.preset-btn').forEach(b=>b.classList.toggle('active',b.dataset.preset===id));}
-  function markCustom(){if(applying)return;activePresetId='';setPresetActive('');}
+  function markCustom(){if(applying)return;}
 
   function moveCurrentPrice(settled){
     const field=$('currentPriceField');
@@ -551,6 +554,7 @@
 
   function updateCaseUI(){
     const settled=caseType==='settled';
+    $('actualSellPriceValue').textContent=settled?'91,065원':'74,580원';
     moveCurrentPrice(settled);
     $('holdingPriorFields').classList.toggle('hidden',settled);
     $('settledPriorSummary').style.display=settled?'block':'none';
@@ -799,7 +803,7 @@
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.help-tooltip.is-open').forEach(w=>{w.classList.remove('is-open');const b=w.querySelector('.help-icon');if(b){b.setAttribute('aria-expanded','false');b.blur();}});}});
   const saved=storage.get('investmentLossRecoveryCalcV12');
-  if(saved){try{const v=JSON.parse(saved);applying=true;activePresetId=v.presetId&&presets[v.presetId]?v.presetId:'';setPresetActive(activePresetId);applyValues(v);applying=false;}catch(e){applyPreset(defaultPresetId);}}else applyPreset(defaultPresetId);
+  if(saved){try{const v=JSON.parse(saved);applying=true;activePresetId=v.presetId&&presets[v.presetId]?v.presetId:(v.caseType==='holding'?'buy-2026-07-29':'buy-2026-07-30');setPresetActive(activePresetId);applyValues(v);applying=false;}catch(e){applyPreset(defaultPresetId);}}else applyPreset(defaultPresetId);
 })();
 
 </script>
