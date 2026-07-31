@@ -84,7 +84,10 @@
       .calculation-group .seg{margin-top:35px}
     }
     .formula{font-size:11px;color:var(--muted);background:#f0f3f8;border-radius:8px;padding:7px 9px;margin-top:8px}
-    .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);font-size:11px;font-weight:800}
+    .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:8px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;text-align:left;appearance:none;-webkit-appearance:none}
+    .actual-sale-price:hover{border-color:#9fb0c8;background:#f7f9fc}
+    .actual-sale-price:focus-visible{outline:none;border-color:#6d8fc1;box-shadow:0 0 0 3px rgba(73,115,174,.12)}
+    .actual-sale-price:active{transform:translateY(1px)}
     .actual-sale-price strong{color:var(--navy);font-size:13px;font-weight:900;white-space:nowrap}
     .validation-panel{display:none;margin:0 0 16px;padding:13px 16px;border:1px solid #efb8bc;border-radius:14px;background:#fff5f5;color:#9c252d;font-size:13px;font-weight:700}
     .validation-panel.show{display:block}
@@ -424,7 +427,7 @@
           <div class="field full"><label>목표 매도단가</label><input id="targetPrice" class="control money-input" inputmode="numeric" readonly></div>
         </div>
         <div class="formula" id="formulaText"></div>
-        <div class="actual-sale-price" aria-label="실제 매도 단가"><span>실제 매도 단가</span><strong id="actualSellPriceValue">91,065원</strong></div>
+        <button class="actual-sale-price" id="applyActualSellPrice" type="button" aria-label="실제 매도 단가를 목표 매도단가에 반영"><span>실제 매도 단가</span><strong id="actualSellPriceValue">91,065원</strong></button>
       </div>
     </div>
   </section>
@@ -554,7 +557,9 @@
 
   function updateCaseUI(){
     const settled=caseType==='settled';
-    $('actualSellPriceValue').textContent=settled?'91,065원':'74,580원';
+    const actualSellPrice=settled?91065:74580;
+    $('actualSellPriceValue').textContent=won(actualSellPrice);
+    $('applyActualSellPrice').setAttribute('aria-label',`실제 매도 단가 ${won(actualSellPrice)}를 목표 매도단가에 반영`);
     moveCurrentPrice(settled);
     $('holdingPriorFields').classList.toggle('hidden',settled);
     $('settledPriorSummary').style.display=settled?'block':'none';
@@ -793,6 +798,12 @@
   document.querySelectorAll('.pct-step-btn').forEach(b=>b.addEventListener('click',()=>{const inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;delete inp.dataset.exactValue;inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);markCustom();recalc();}));
   document.querySelectorAll('.preset-btn').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));
   $('modeCurrent').addEventListener('click',()=>{markCustom();setMode('current');});$('modeRise').addEventListener('click',()=>{markCustom();setMode('rise');});$('modeTarget').addEventListener('click',()=>{markCustom();setMode('target');});
+  $('applyActualSellPrice').addEventListener('click',()=>{
+    const actualSellPrice=caseType==='settled'?91065:74580;
+    setMode('target',false);
+    $('targetPrice').value=nf0.format(actualSellPrice);
+    recalc();
+  });
   $('priorSellDateInput').addEventListener('input',()=>{markCustom();recalc();});
   $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV12');applyPreset(defaultPresetId);});
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('hidden'))return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id===b.dataset.tab));}));
