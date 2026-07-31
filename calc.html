@@ -47,6 +47,13 @@
     .field{display:flex;flex-direction:column;gap:6px}
     .field.full{grid-column:1/-1}
     label{font-size:12px;color:var(--muted);font-weight:700}
+    .label-with-help{display:flex;align-items:center;gap:5px;width:max-content;max-width:100%;position:relative}
+    .help-tooltip{position:relative;display:inline-flex;align-items:center;flex:0 0 auto}
+    .help-icon{width:17px;height:17px;border:1px solid #9eb0c9;border-radius:50%;background:#f3f7fc;color:#315a8f;font-size:11px;font-weight:900;line-height:15px;text-align:center;padding:0;cursor:help;font-family:inherit}
+    .help-icon:hover,.help-icon:focus-visible{background:#e7f0fb;border-color:#6f8fb8;outline:none}
+    .custom-tooltip{position:absolute;z-index:200;right:-8px;bottom:calc(100% + 9px);width:min(290px,calc(100vw - 34px));padding:10px 11px;border-radius:9px;background:#17243a;color:#fff;font-size:11px;font-weight:600;line-height:1.5;letter-spacing:-.01em;box-shadow:0 8px 22px rgba(20,35,60,.22);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;pointer-events:none;text-align:left}
+    .custom-tooltip::after{content:'';position:absolute;right:11px;top:100%;border:6px solid transparent;border-top-color:#17243a}
+    .help-tooltip:hover .custom-tooltip,.help-tooltip:focus-within .custom-tooltip,.help-tooltip.is-open .custom-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
     .control{height:42px;border:1px solid #cfd7e4;border-radius:10px;background:#fff;padding:0 11px;outline:none;text-align:right;font-weight:700;color:var(--ink)}
     .control:focus{border-color:#6d8fc1;box-shadow:0 0 0 3px rgba(73,115,174,.12)}
     .control[readonly]{background:#f1f4f8;color:#576176}
@@ -323,7 +330,7 @@
           <div class="field" id="currentPriceField"><label id="currentPriceLabel">추가매수 당일 종가</label><input id="currentPrice" class="control money-input" inputmode="numeric" value="79,020"></div>
           <div class="field" id="existingValueField"><label id="existingValueLabel">기존 보유분 평가금액</label><input id="existingCurrentValue" class="control" readonly></div>
           <div class="field" id="existingPLField"><label id="existingPLLabel">기존 보유분 손익</label><input id="existingCurrentPL" class="control" readonly></div>
-          <div class="field" id="oldRecoveryField"><label id="oldRecoveryLabel">기존 회수 대상 금액</label><input id="oldOverdraft" class="control money-input" inputmode="numeric" value="3,700,000"></div>
+          <div class="field" id="oldRecoveryField"><label class="label-with-help"><span id="oldRecoveryLabel">기존 회수 대상 금액</span><span class="help-tooltip" id="oldRecoveryHelpWrap"><button type="button" class="help-icon" id="oldRecoveryHelp" aria-label="기존 회수 대상 금액 설명" aria-describedby="oldRecoveryTooltip" aria-expanded="false">i</button><span class="custom-tooltip" id="oldRecoveryTooltip" role="tooltip">기존 보유분에 사용된 마이너스통장 원금 등, 매도대금으로 우선 회수·상환하려는 금액입니다. 손실·평단·매매수수료 반영 손익분기 계산에는 포함하지 않고 전략별 회수 결과에만 반영합니다.</span></span></label><input id="oldOverdraft" class="control money-input" inputmode="numeric" value="3,700,000"></div>
           <div class="existing-subsection existing-purchase-section" id="existingPurchaseSection"></div>
           <div class="existing-subsection existing-evaluation-section" id="existingEvaluationSection"></div>
           <div class="field" id="breakEvenInputField"><label id="breakEvenInputLabel">통합 회복 손익분기</label><input id="brokerBreakEven" class="control" readonly></div>
@@ -740,6 +747,12 @@
   $('modeCurrent').addEventListener('click',()=>{markCustom();setMode('current');});$('modeRise').addEventListener('click',()=>{markCustom();setMode('rise');});
   $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV10');applyPreset(defaultPresetId);});
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('hidden'))return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id===b.dataset.tab));}));
+  const recoveryHelpWrap=$('oldRecoveryHelpWrap'),recoveryHelp=$('oldRecoveryHelp');
+  if(recoveryHelpWrap&&recoveryHelp){
+    recoveryHelp.addEventListener('click',e=>{e.stopPropagation();const open=recoveryHelpWrap.classList.toggle('is-open');recoveryHelp.setAttribute('aria-expanded',String(open));});
+    document.addEventListener('click',e=>{if(!recoveryHelpWrap.contains(e.target)){recoveryHelpWrap.classList.remove('is-open');recoveryHelp.setAttribute('aria-expanded','false');}});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){recoveryHelpWrap.classList.remove('is-open');recoveryHelp.setAttribute('aria-expanded','false');recoveryHelp.blur();}});
+  }
   const saved=storage.get('investmentLossRecoveryCalcV10');
   if(saved){try{const v=JSON.parse(saved);applying=true;activePresetId=v.presetId&&presets[v.presetId]?v.presetId:'';setPresetActive(activePresetId);applyValues(v);applying=false;}catch(e){applyPreset(defaultPresetId);}}else applyPreset(defaultPresetId);
 })();
