@@ -216,6 +216,29 @@
     .current-subsection:nth-of-type(n+3){border-top:1px dashed #cfd7e4;padding-top:12px}
     .additional-group.settled-layout .current-subsection{display:none}
 
+    /* 2026-07-30 현재 보유분: 보유원가·종가평가·손익결과 3개 영역 */
+    .settled-subsection{display:none}
+    .additional-group.settled-layout #currentFields{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:0;
+      align-items:start;
+    }
+    .additional-group.settled-layout .settled-subsection{
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+      gap:10px;
+      min-width:0;
+      padding:0 10px 12px;
+    }
+    .additional-group.settled-layout .settled-cost-section{border-right:1px dashed #cfd7e4}
+    .additional-group.settled-layout .settled-result-section{
+      grid-column:1 / -1;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      border-top:1px dashed #cfd7e4;
+      padding-top:12px;
+    }
+    .additional-group.holding-layout .settled-subsection{display:none}
+
     .hidden{display:none!important}
     .settled-summary{display:none}
     .settled-loss-card{border:1px solid #efc3c6;background:#fff5f5;border-radius:13px;padding:14px 15px;margin-bottom:10px}
@@ -247,6 +270,9 @@
       .additional-group.holding-layout #currentFields{gap:0}
       .current-subsection{gap:8px;padding:0 6px 10px}
       .current-subsection:nth-of-type(n+3){padding-top:10px}
+      .additional-group.settled-layout #currentFields{gap:0}
+      .additional-group.settled-layout .settled-subsection{gap:8px;padding:0 6px 10px}
+      .additional-group.settled-layout .settled-result-section{padding-top:10px}
     }
 </style>
 </head>
@@ -317,6 +343,9 @@
           <div class="current-subsection" id="postPurchaseSection"></div>
           <div class="current-subsection" id="closeEvaluationSection"></div>
           <div class="current-subsection" id="recoveryResultSection"></div>
+          <div class="settled-subsection settled-cost-section" id="settledCostSection"></div>
+          <div class="settled-subsection settled-evaluation-section" id="settledEvaluationSection"></div>
+          <div class="settled-subsection settled-result-section" id="settledResultSection"></div>
           <div class="field" id="addPriceField"><label id="addPriceLabel">추가매수단가</label><input id="addPrice" class="control money-input" inputmode="numeric" value="74,350"></div>
           <div class="field" id="addSharesField"><label id="addSharesLabel">추가매수수량</label><div class="share-stepper"><button class="share-step-btn" type="button" data-target="addShares" data-delta="-1">−</button><input id="addShares" class="control" type="number" min="0" step="1" inputmode="numeric" value="604"><button class="share-step-btn" type="button" data-target="addShares" data-delta="1">+</button></div></div>
           <div class="field" id="actualLoanField"><label id="actualLoanLabel">추가매수금액</label><input id="actualLoan" class="control" readonly></div>
@@ -423,7 +452,16 @@
     currentGroup.classList.toggle('settled-layout',settled);
 
     if(settled){
-      ['addPriceField','addSharesField','currentPriceField','currentBuyGainField','actualLoanField','out1Field','out2Field','out3Field','out4Field','out5Field','out6Field','breakEvenInputField']
+      const settledSections={
+        settledCostSection:['addPriceField','addSharesField','actualLoanField'],
+        settledEvaluationSection:['currentPriceField','out1Field','currentBuyGainField'],
+        settledResultSection:['out2Field','out3Field']
+      };
+      Object.entries(settledSections).forEach(([sectionId,ids])=>{
+        const section=$(sectionId);
+        ids.forEach(id=>{const el=$(id);if(el)section.appendChild(el);});
+      });
+      ['out4Field','out5Field','out6Field','breakEvenInputField']
         .forEach(id=>{const el=$(id);if(el)container.appendChild(el);});
       return;
     }
@@ -459,7 +497,7 @@
       $('currentGroupSub').textContent='현재 보유 기준';
       $('currentPriceLabel').textContent='기준 종가';
       $('addPriceLabel').textContent='매수단가'; $('addSharesLabel').textContent='보유수량';
-      $('actualLoanLabel').textContent='투자금액'; $('currentBuyGainLabel').textContent='매수가 대비 변동률';
+      $('actualLoanLabel').textContent='투자금액'; $('currentBuyGainLabel').textContent='손익률';
       $('out1Label').textContent='평가금액'; $('out2Label').textContent='현재 포지션 손익'; $('out3Label').textContent='기존 손실 포함 통합손익';
       $('out4Field').classList.add('hidden'); $('out5Field').classList.add('hidden'); $('out6Field').classList.add('hidden'); $('breakEvenInputField').classList.add('hidden');
       $('modeCurrent').textContent='기준 종가 기준'; $('modeRise').textContent='매수가 기준';
@@ -603,7 +641,8 @@
     $('existingCurrentValue').value=nf0.format(Math.round(c.priorValue));
     $('existingCurrentPL').value=`${c.priorPL>=0?'+':''}${nf0.format(Math.round(c.priorPL))}`;setClass($('existingCurrentPL'),signClass(c.priorPL));
     $('actualLoan').value=nf0.format(Math.round(c.addedPrincipal));
-    $('currentBuyGain').value=pct((c.i.currentPrice/c.i.addPrice-1)*100,2);
+    const displayedRate=c.settled?c.currentPositionPLRate:((c.i.currentPrice/c.i.addPrice-1)*100);
+    $('currentBuyGain').value=pct(displayedRate,2);setClass($('currentBuyGain'),signClass(displayedRate));
     $('brokerBreakEven').value=nf0.format(c.integratedBE);
     $('targetPrice').value=nf0.format(c.targetPrice);
 
@@ -646,7 +685,7 @@
     }
   }
 
-  function recalc(){const i=getInputs(),errors=validate(i);showValidation(errors);if(errors.length)return;const c=compute();render(c);storage.set('investmentLossRecoveryCalcV8',JSON.stringify({...i,caseType,mode,presetId:activePresetId}));}
+  function recalc(){const i=getInputs(),errors=validate(i);showValidation(errors);if(errors.length)return;const c=compute();render(c);storage.set('investmentLossRecoveryCalcV9',JSON.stringify({...i,caseType,mode,presetId:activePresetId}));}
 
   function setMode(next,doRecalc=true){mode=next==='rise'?'rise':'current';$('modeCurrent').classList.toggle('active',mode==='current');$('modeRise').classList.toggle('active',mode==='rise');$('overnightPct').readOnly=mode!=='current';$('risePct').readOnly=mode!=='rise';document.querySelectorAll('.pct-step-btn').forEach(b=>b.disabled=$(b.dataset.target).readOnly);$('formulaText').textContent=caseType==='settled'?(mode==='current'?'기준 종가 × (1 + 목표 변동률 %) → 5원 단위 올림':'매수단가 × (1 + 목표 변동률 %) → 5원 단위 올림'):(mode==='current'?'추가매수 당일 종가 × (1 + 다음 거래일 변동률 %) → 5원 단위 올림':'추가매수단가 × (1 + 추가매수가 대비 변동률 %) → 5원 단위 올림');if(doRecalc)recalc();}
 
@@ -667,9 +706,9 @@
   document.querySelectorAll('.pct-step-btn').forEach(b=>b.addEventListener('click',()=>{const inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;delete inp.dataset.exactValue;inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);markCustom();recalc();}));
   document.querySelectorAll('.preset-btn').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));
   $('modeCurrent').addEventListener('click',()=>{markCustom();setMode('current');});$('modeRise').addEventListener('click',()=>{markCustom();setMode('rise');});
-  $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV8');applyPreset(defaultPresetId);});
+  $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV9');applyPreset(defaultPresetId);});
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('hidden'))return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id===b.dataset.tab));}));
-  const saved=storage.get('investmentLossRecoveryCalcV8');
+  const saved=storage.get('investmentLossRecoveryCalcV9');
   if(saved){try{const v=JSON.parse(saved);applying=true;activePresetId=v.presetId&&presets[v.presetId]?v.presetId:'';setPresetActive(activePresetId);applyValues(v);applying=false;}catch(e){applyPreset(defaultPresetId);}}else applyPreset(defaultPresetId);
 })();
 
