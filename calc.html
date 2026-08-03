@@ -283,6 +283,9 @@
       border-top:1px dashed #cfd7e4;
       padding-top:12px;
     }
+    .additional-group.settled-layout.no-prior-current .settled-result-section{
+      grid-template-columns:minmax(0,1fr);
+    }
     .additional-group.holding-layout .settled-subsection{display:none}
 
     .hidden{display:none!important}
@@ -291,11 +294,13 @@
     .settled-loss-card .name{font-size:12px;color:var(--muted);font-weight:800}
     .settled-loss-card .value{font-size:23px;font-weight:900;margin-top:4px;color:var(--negative)}
     .prior-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;align-items:start}
-    .prior-date-section,.prior-result-section{grid-column:1/-1;min-width:0}
-    .prior-date-section{padding:0 10px 12px;border-bottom:1px dashed #cfd7e4}
+    .prior-date-section{grid-column:1/-1;min-width:0;display:flex;justify-content:flex-end;padding:0 10px 12px;border-bottom:1px dashed #cfd7e4}
+    .compact-date-field{width:min(240px,100%);gap:4px}
+    .compact-date-field label{text-align:left}
+    .compact-date-shell{height:38px}
+    .compact-date-shell .date-control{padding:0 10px;font-size:14px}
     .prior-trade-section{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;min-width:0;padding:12px 10px}
     .prior-buy-section{border-right:1px dashed #cfd7e4}
-    .prior-result-section{display:grid;grid-template-columns:minmax(0,1fr);padding:12px 10px 0;border-top:1px dashed #cfd7e4}
     .prior-entry-grid .field{min-width:0}
     .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;height:42px;border:1px solid #cfd7e4;border-radius:10px;background:#fff;overflow:hidden;box-sizing:border-box}
     .date-control-shell:focus-within{border-color:#6d8fc1;box-shadow:0 0 0 3px rgba(73,115,174,.12)}
@@ -318,8 +323,10 @@
     @media(max-width:720px){
       .prior-entry-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
       .prior-date-section{padding:0 6px 10px}
+      .compact-date-field{width:min(190px,100%)}
+      .compact-date-shell{height:34px}
+      .compact-date-shell .date-control{padding-left:7px;padding-right:7px;font-size:13px}
       .prior-trade-section{gap:8px;padding:10px 6px}
-      .prior-result-section{padding:10px 6px 0}
       .prior-entry-grid .field{gap:4px;min-width:0}
       .prior-entry-grid .control{height:40px;min-width:0;max-width:100%;padding-left:7px;padding-right:7px;font-size:14px}
       .date-control-shell{height:40px;min-width:0;max-width:100%}
@@ -379,7 +386,7 @@
         <div class="settled-summary" id="settledPriorSummary">
           <div class="prior-entry-grid">
             <div class="prior-date-section">
-              <div class="field"><label for="priorSellDateInput">매도일</label><div class="date-control-shell"><input id="priorSellDateInput" class="control date-control" type="date" value="2026-07-30"></div></div>
+              <div class="field compact-date-field"><label for="priorSellDateInput">매도일</label><div class="date-control-shell compact-date-shell"><input id="priorSellDateInput" class="control date-control" type="date" value="2026-07-30"></div></div>
             </div>
             <div class="prior-trade-section prior-buy-section">
               <div class="field auto-field"><label for="priorAvgDisplay">매수단가</label><input id="priorAvgDisplay" class="control" readonly></div>
@@ -388,9 +395,7 @@
             </div>
             <div class="prior-trade-section prior-sell-section">
               <div class="field auto-field"><label for="priorSellPriceDisplay">매도단가</label><input id="priorSellPriceDisplay" class="control" readonly></div>
-              <div class="field"><label for="priorSettlementValueInput">매도금액(비용 차감 전)</label><input id="priorSettlementValueInput" class="control money-input" inputmode="numeric" value="47,880,490"></div>
-            </div>
-            <div class="prior-result-section">
+              <div class="field"><label for="priorSettlementValueInput">매도금액</label><input id="priorSettlementValueInput" class="control money-input" inputmode="numeric" value="47,880,490"></div>
               <div class="field auto-field"><label for="priorPLDisplay">이전 거래 확정손익</label><input id="priorPLDisplay" class="control" readonly></div>
             </div>
           </div>
@@ -568,6 +573,7 @@
     $('applyActualSellPrice').setAttribute('aria-label',`실제 매도 단가 ${won(actualSellPrice)}를 목표 매도단가에 반영`);
     $('applyActualSellPrice').classList.toggle('hidden',noPrior);
     $('inputGrid').classList.toggle('no-prior-layout',noPrior);
+    $('currentGroup').classList.toggle('no-prior-current',noPrior);
     $('priorGroup').classList.toggle('hidden',noPrior);
     moveCurrentPrice(settled);
     $('holdingPriorFields').classList.toggle('hidden',settled);
@@ -581,7 +587,10 @@
       $('currentPriceLabel').textContent='매수일 종가';
       $('addPriceLabel').textContent='매수단가'; $('addSharesLabel').textContent='보유수량';
       $('actualLoanLabel').textContent='투자금액'; $('currentBuyGainLabel').textContent='손익률';
-      $('out1Label').textContent='평가금액'; $('out2Label').textContent='현재 보유분 손익'; $('out3Label').textContent=noPrior?'현재 보유분 손익':'이전 손익 포함 통합손익';
+      $('out1Label').textContent='평가금액';
+      $('out2Label').textContent='현재 보유분 손익';
+      $('out3Label').textContent='이전 손익 포함 통합손익';
+      $('out3Field').classList.toggle('hidden',noPrior);
       $('out4Field').classList.add('hidden'); $('out5Field').classList.add('hidden'); $('out6Field').classList.add('hidden'); $('breakEvenInputField').classList.add('hidden');
       $('modeCurrent').textContent='매수일 종가'; $('modeRise').textContent='매수가'; $('modeTarget').textContent='목표단가';
       $('overnightLabel').textContent='매수일 종가 대비 목표 변동률'; $('riseLabel').textContent='매수가 대비 목표 변동률';
@@ -593,6 +602,8 @@
     }else{
       $('priorGroup').classList.remove('hidden');
       $('inputGrid').classList.remove('no-prior-layout');
+      $('currentGroup').classList.remove('no-prior-current');
+      $('out3Field').classList.remove('hidden');
       $('holdingPriorFields').classList.remove('hidden');
       $('settledPriorSummary').style.display='none';
       $('priorGroupTitle').textContent='기존 보유분'; $('priorGroupSub').textContent='기본 투자 정보';
@@ -811,7 +822,7 @@
     }
   }
 
-  function recalc(){const i=getInputs(),errors=validate(i);showValidation(errors);if(errors.length)return;const c=compute();render(c);storage.set('investmentLossRecoveryCalcV14',JSON.stringify({...c.i,targetPrice:c.targetPrice,caseType,noPrior:noPriorMode,mode,presetId:activePresetId}));}
+  function recalc(){const i=getInputs(),errors=validate(i);showValidation(errors);if(errors.length)return;const c=compute();render(c);storage.set('investmentLossRecoveryCalcV15',JSON.stringify({...c.i,targetPrice:c.targetPrice,caseType,noPrior:noPriorMode,mode,presetId:activePresetId}));}
 
   function setMode(next,doRecalc=true){mode=['current','rise','target'].includes(next)?next:'current';$('modeCurrent').classList.toggle('active',mode==='current');$('modeRise').classList.toggle('active',mode==='rise');$('modeTarget').classList.toggle('active',mode==='target');$('overnightPct').readOnly=mode!=='current';$('risePct').readOnly=mode!=='rise';$('targetPrice').readOnly=mode!=='target';document.querySelectorAll('.pct-step-btn').forEach(b=>b.disabled=$(b.dataset.target).readOnly);const targetFormula='목표 매도단가 직접 입력 → 5원 단위 올림 · 두 변동률 자동 계산';$('formulaText').textContent=mode==='target'?targetFormula:(caseType==='settled'?(mode==='current'?'매수일 종가 × (1 + 목표 변동률 %) → 5원 단위 올림':'매수단가 × (1 + 목표 변동률 %) → 5원 단위 올림'):(mode==='current'?'추가매수 당일 종가 × (1 + 다음 거래일 변동률 %) → 5원 단위 올림':'추가매수단가 × (1 + 추가매수가 대비 변동률 %) → 5원 단위 올림'));if(doRecalc)recalc();}
 
@@ -842,7 +853,7 @@
     recalc();
   });
   $('priorSellDateInput').addEventListener('input',()=>{markCustom();recalc();});
-  $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV14');storage.remove('investmentLossRecoveryCalcV12');applyPreset(defaultPresetId);});
+  $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV15');storage.remove('investmentLossRecoveryCalcV12');applyPreset(defaultPresetId);});
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('hidden'))return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id===b.dataset.tab));}));
   document.addEventListener('click',e=>{
     const btn=e.target.closest('.help-icon');
@@ -850,7 +861,7 @@
     if(btn){e.stopPropagation();const wrap=btn.closest('.help-tooltip');const open=wrap.classList.toggle('is-open');btn.setAttribute('aria-expanded',String(open));}
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.help-tooltip.is-open').forEach(w=>{w.classList.remove('is-open');const b=w.querySelector('.help-icon');if(b){b.setAttribute('aria-expanded','false');b.blur();}});}});
-  const saved=storage.get('investmentLossRecoveryCalcV14')||storage.get('investmentLossRecoveryCalcV12');
+  const saved=storage.get('investmentLossRecoveryCalcV15')||storage.get('investmentLossRecoveryCalcV12');
   if(saved){try{const v=JSON.parse(saved);applying=true;activePresetId=v.presetId&&presets[v.presetId]?v.presetId:(v.noPrior?'current-only':(v.caseType==='holding'?'buy-2026-07-29':'buy-2026-07-30'));setPresetActive(activePresetId);applyValues(v);applying=false;}catch(e){applyPreset(defaultPresetId);}}else applyPreset(defaultPresetId);
 })();
 
