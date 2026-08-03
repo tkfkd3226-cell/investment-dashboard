@@ -294,17 +294,17 @@
     .settled-loss-card .name{font-size:12px;color:var(--muted);font-weight:800}
     .settled-loss-card .value{font-size:23px;font-weight:900;margin-top:4px;color:var(--negative)}
     .prior-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;align-items:start}
-    .prior-date-section{grid-column:1/-1;min-width:0;display:flex;justify-content:flex-end;padding:0 10px 12px;border-bottom:1px dashed #cfd7e4}
-    .compact-date-field{width:min(240px,100%);gap:4px}
-    .compact-date-field label{text-align:left}
-    .compact-date-shell{height:38px}
-    .compact-date-shell .date-control{padding:0 10px;font-size:14px}
+    .prior-date-section{grid-column:1/-1;min-width:0;padding:0 10px 12px;border-bottom:1px dashed #cfd7e4}
     .prior-trade-section{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;min-width:0;padding:12px 10px}
     .prior-buy-section{border-right:1px dashed #cfd7e4}
     .prior-entry-grid .field{min-width:0}
     .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;height:42px;border:1px solid #cfd7e4;border-radius:10px;background:#fff;overflow:hidden;box-sizing:border-box}
     .date-control-shell:focus-within{border-color:#6d8fc1;box-shadow:0 0 0 3px rgba(73,115,174,.12)}
     .date-control-shell .date-control{position:absolute;inset:0;display:block;width:100%!important;min-width:0!important;max-width:100%!important;height:100%;border:0!important;border-radius:0;background:transparent!important;box-shadow:none!important;outline:none;text-align:left;padding:0 11px;box-sizing:border-box;-webkit-min-logical-width:0}
+    .date-control-shell .date-control::-webkit-date-and-time-value{height:100%;min-height:100%;margin:0;padding:0;display:flex;align-items:center;justify-content:center;text-align:center}
+    .date-control-shell .date-control::-webkit-datetime-edit{height:100%;padding:0;display:flex;align-items:center;justify-content:center}
+    .date-control-shell .date-control::-webkit-datetime-edit-fields-wrapper{display:flex;align-items:center;justify-content:center;height:100%;padding:0}
+    .date-control-shell .date-control::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
     .date-control-shell:has(.date-control.invalid){border-color:#d9363e;background:#fff7f7;box-shadow:0 0 0 3px rgba(217,54,62,.10)}
     .prior-entry-grid .field.auto-field .control{background:#f1f4f8;color:#576176}
     .case-note{font-size:11px;color:var(--muted);margin-top:8px}
@@ -323,9 +323,6 @@
     @media(max-width:720px){
       .prior-entry-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
       .prior-date-section{padding:0 6px 10px}
-      .compact-date-field{width:min(190px,100%)}
-      .compact-date-shell{height:34px}
-      .compact-date-shell .date-control{padding-left:7px;padding-right:7px;font-size:13px}
       .prior-trade-section{gap:8px;padding:10px 6px}
       .prior-entry-grid .field{gap:4px;min-width:0}
       .prior-entry-grid .control{height:40px;min-width:0;max-width:100%;padding-left:7px;padding-right:7px;font-size:14px}
@@ -386,7 +383,7 @@
         <div class="settled-summary" id="settledPriorSummary">
           <div class="prior-entry-grid">
             <div class="prior-date-section">
-              <div class="field compact-date-field"><label for="priorSellDateInput">매도일</label><div class="date-control-shell compact-date-shell"><input id="priorSellDateInput" class="control date-control" type="date" value="2026-07-30"></div></div>
+              <div class="field"><label for="priorSellDateInput">매도일</label><div class="date-control-shell"><input id="priorSellDateInput" class="control date-control" type="date" value="2026-07-30"></div></div>
             </div>
             <div class="prior-trade-section prior-buy-section">
               <div class="field auto-field"><label for="priorAvgDisplay">매수단가</label><input id="priorAvgDisplay" class="control" readonly></div>
