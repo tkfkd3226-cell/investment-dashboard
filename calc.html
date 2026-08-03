@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>투자 손실 회복 계산기</title>
+<title>투자 계산기</title>
 <style>
     :root{
       --bg:#f4f6fa;
@@ -347,7 +347,7 @@
 <div class="wrap">
   <div class="hero">
     <div>
-      <h1>투자 손실 회복 계산기</h1>
+      <h1>투자 계산기</h1>
       <p id="heroDescription">추가매수 당일 종가 또는 추가매수가 대비 변동률을 기준으로 목표 매도단가와 3가지 손실 회복 방식을 자동 계산합니다.</p>
     </div>
     <div class="actions"><button class="btn" id="resetBtn" type="button" aria-label="기본값 복원"><span class="reset-text">기본값 복원</span><svg class="reset-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
@@ -467,19 +467,19 @@
   const presets = {
     'buy-2026-07-29': {
       caseType:'holding', noPrior:false, existingShares:38, existingCost:7005530, priorSettlementValue:0, priorSellPrice:0,
-      currentPrice:79020, oldRecovery:3700000, addPrice:74350, addShares:604, overnightPct:2.34, risePct:8.769, mode:'current'
+      currentPrice:79020, oldRecovery:3700000, addPrice:74350, addShares:604, autoBreakEvenTarget:true, mode:'current'
     },
     'buy-2026-07-30': {
       caseType:'settled', noPrior:false, priorSellDate:'2026-07-30', existingShares:642, existingCost:51912930, priorSettlementValue:47880490, priorSellPrice:74580,
-      currentPrice:75595, oldRecovery:0, addPrice:82680, addShares:576, autoRecoveryTarget:true, mode:'current'
+      currentPrice:75595, oldRecovery:0, addPrice:82680, addShares:576, autoBreakEvenTarget:true, mode:'current'
     },
     'current-only': {
       caseType:'settled', noPrior:true, priorSellDate:'', existingShares:0, existingCost:0, priorSettlementValue:0, priorSellPrice:0,
-      currentPrice:75595, oldRecovery:0, addPrice:82680, addShares:576, autoRecoveryTarget:true, mode:'current'
+      currentPrice:80000, oldRecovery:0, addPrice:80000, addShares:100, autoBreakEvenTarget:true, mode:'current'
     }
   };
   const defaultPresetId='buy-2026-07-30';
-  let caseType='holding', noPriorMode=false, mode='current', activePresetId=defaultPresetId, applying=false;
+  let caseType='holding', noPriorMode=false, mode='current', activePresetId=defaultPresetId, applying=false, autoBreakEvenTarget=false;
   const $=id=>document.getElementById(id);
   const nf0=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
   const won=n=>`${nf0.format(Math.round(Number.isFinite(n)?n:0))}원`;
@@ -507,6 +507,7 @@
 
   function setPresetActive(id){document.querySelectorAll('.preset-btn').forEach(b=>b.classList.toggle('active',b.dataset.preset===id));}
   function markCustom(){if(applying)return;}
+  function disableAutoBreakEven(){if(!applying&&autoBreakEvenTarget){autoBreakEvenTarget=false;setMode(mode,false);}}
 
   function moveCurrentPrice(settled){
     const field=$('currentPriceField');
@@ -689,7 +690,13 @@
     const integratedBERaw=finalShares?integratedBasis/finalShares:0;
     const integratedBE=Math.ceil(integratedBERaw), integratedBEOrder=ceil5(integratedBERaw);
     let targetPrice;
-    if(mode==='current'){
+    if(mode==='current'&&autoBreakEvenTarget){
+      targetPrice=settled&&!noPriorMode?integratedBEOrder:positionBEOrder;
+      i.overnightPct=i.currentPrice?(targetPrice/i.currentPrice-1)*100:0;
+      i.risePct=i.addPrice?(targetPrice/i.addPrice-1)*100:0;
+      setPct('overnightPct',i.overnightPct);
+      setPct('risePct',i.risePct);
+    }else if(mode==='current'){
       targetPrice=ceil5(i.currentPrice*(1+i.overnightPct/100));
       i.risePct=i.addPrice?(targetPrice/i.addPrice-1)*100:0;setPct('risePct',i.risePct);
     }else if(mode==='rise'){
@@ -819,16 +826,27 @@
     }
   }
 
-  function recalc(){const i=getInputs(),errors=validate(i);showValidation(errors);if(errors.length)return;const c=compute();render(c);storage.set('investmentLossRecoveryCalcV15',JSON.stringify({...c.i,targetPrice:c.targetPrice,caseType,noPrior:noPriorMode,mode,presetId:activePresetId}));}
+  function recalc(){const i=getInputs(),errors=validate(i);showValidation(errors);if(errors.length)return;const c=compute();render(c);storage.set('investmentLossRecoveryCalcV16',JSON.stringify({...c.i,targetPrice:c.targetPrice,caseType,noPrior:noPriorMode,mode,presetId:activePresetId,autoBreakEvenTarget}));}
 
-  function setMode(next,doRecalc=true){mode=['current','rise','target'].includes(next)?next:'current';$('modeCurrent').classList.toggle('active',mode==='current');$('modeRise').classList.toggle('active',mode==='rise');$('modeTarget').classList.toggle('active',mode==='target');$('overnightPct').readOnly=mode!=='current';$('risePct').readOnly=mode!=='rise';$('targetPrice').readOnly=mode!=='target';document.querySelectorAll('.pct-step-btn').forEach(b=>b.disabled=$(b.dataset.target).readOnly);const targetFormula='목표 매도단가 직접 입력 → 5원 단위 올림 · 두 변동률 자동 계산';$('formulaText').textContent=mode==='target'?targetFormula:(caseType==='settled'?(mode==='current'?'매수일 종가 × (1 + 목표 변동률 %) → 5원 단위 올림':'매수단가 × (1 + 목표 변동률 %) → 5원 단위 올림'):(mode==='current'?'추가매수 당일 종가 × (1 + 다음 거래일 변동률 %) → 5원 단위 올림':'추가매수단가 × (1 + 추가매수가 대비 변동률 %) → 5원 단위 올림'));if(doRecalc)recalc();}
+  function setMode(next,doRecalc=true){mode=['current','rise','target'].includes(next)?next:'current';$('modeCurrent').classList.toggle('active',mode==='current');$('modeRise').classList.toggle('active',mode==='rise');$('modeTarget').classList.toggle('active',mode==='target');$('overnightPct').readOnly=mode!=='current';$('risePct').readOnly=mode!=='rise';$('targetPrice').readOnly=mode!=='target';document.querySelectorAll('.pct-step-btn').forEach(b=>b.disabled=$(b.dataset.target).readOnly);const targetFormula='목표 매도단가 직접 입력 → 5원 단위 올림 · 두 변동률 자동 계산';let formula;if(mode==='current'&&autoBreakEvenTarget){formula=caseType==='holding'?'손익분기 가격 기준으로 다음 거래일 변동률 자동 설정':(noPriorMode?'현재 보유분 손익분기 가격 기준으로 목표 변동률 자동 설정':'이전 손익 반영 통합 회복가격 기준으로 목표 변동률 자동 설정');}else{formula=mode==='target'?targetFormula:(caseType==='settled'?(mode==='current'?'매수일 종가 × (1 + 목표 변동률 %) → 5원 단위 올림':'매수단가 × (1 + 목표 변동률 %) → 5원 단위 올림'):(mode==='current'?'추가매수 당일 종가 × (1 + 다음 거래일 변동률 %) → 5원 단위 올림':'추가매수단가 × (1 + 추가매수가 대비 변동률 %) → 5원 단위 올림'));}$('formulaText').textContent=formula;if(doRecalc)recalc();}
 
   function applyValues(v){
-    caseType=v.caseType||'holding';noPriorMode=!!v.noPrior;mode=['current','rise','target'].includes(v.mode)?v.mode:'current';
+    caseType=v.caseType||'holding';noPriorMode=!!v.noPrior;mode=['current','rise','target'].includes(v.mode)?v.mode:'current';autoBreakEvenTarget=!!v.autoBreakEvenTarget;
     $('existingShares').value=String(v.existingShares??0);$('existingCost').value=nf0.format(v.existingCost??0);$('priorSettlementValue').value=String(v.priorSettlementValue??0);$('priorSellPrice').value=String(v.priorSellPrice??0);$('currentPrice').value=nf0.format(v.currentPrice??0);$('oldOverdraft').value=nf0.format(v.oldRecovery??0);$('addPrice').value=nf0.format(v.addPrice??0);$('addShares').value=String(v.addShares??0);
     $('priorSellDateInput').value=v.priorSellDate||'';$('priorSoldSharesInput').value=String(v.existingShares??0);$('priorCostInput').value=nf0.format(v.existingCost??0);$('priorSettlementValueInput').value=nf0.format(v.priorSettlementValue??0);
     let overnight=v.overnightPct??0,rise=v.risePct??0,target=v.targetPrice??0;
-    if(v.autoRecoveryTarget){target=integratedRecoveryOrder(v);overnight=v.currentPrice?(target/v.currentPrice-1)*100:0;rise=v.addPrice?(target/v.addPrice-1)*100:0;}
+    if(autoBreakEvenTarget){
+      if(caseType==='holding'){
+        const shares=(v.existingShares||0)+(v.addShares||0),cost=(v.existingCost||0)+(v.addPrice||0)*(v.addShares||0);
+        target=shares?ceil5(cost/shares):0;
+      }else if(noPriorMode){
+        target=(v.addShares||0)>0?ceil5(v.addPrice||0):0;
+      }else{
+        target=integratedRecoveryOrder(v);
+      }
+      overnight=v.currentPrice?(target/v.currentPrice-1)*100:0;
+      rise=v.addPrice?(target/v.addPrice-1)*100:0;
+    }
     if(!target){target=mode==='rise'?ceil5((v.addPrice||0)*(1+rise/100)):ceil5((v.currentPrice||0)*(1+overnight/100));}
     setPct('overnightPct',overnight);setPct('risePct',rise);$('targetPrice').value=nf0.format(target);
     updateCaseUI();setMode(mode,false);recalc();
@@ -836,21 +854,22 @@
 
   function applyPreset(id){if(!presets[id])return;applying=true;activePresetId=id;setPresetActive(id);applyValues({...presets[id]});document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab==='s3'));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id==='s3'));applying=false;}
 
-  document.querySelectorAll('.money-input').forEach(inp=>{inp.addEventListener('focus',()=>{const n=parseNum(inp.value);if(Number.isFinite(n))inp.value=String(n);});inp.addEventListener('blur',()=>{const n=parseNum(inp.value);if(Number.isInteger(n))inp.value=nf0.format(n);recalc();});inp.addEventListener('input',()=>{markCustom();recalc();});});
-  document.querySelectorAll('input[type=number]').forEach(inp=>inp.addEventListener('input',()=>{if(inp.id==='overnightPct'||inp.id==='risePct')delete inp.dataset.exactValue;markCustom();recalc();}));
+  document.querySelectorAll('.money-input').forEach(inp=>{inp.addEventListener('focus',()=>{const n=parseNum(inp.value);if(Number.isFinite(n))inp.value=String(n);});inp.addEventListener('blur',()=>{const n=parseNum(inp.value);if(Number.isInteger(n))inp.value=nf0.format(n);recalc();});inp.addEventListener('input',()=>{if(inp.id==='targetPrice')disableAutoBreakEven();markCustom();recalc();});});
+  document.querySelectorAll('input[type=number]').forEach(inp=>inp.addEventListener('input',()=>{if(inp.id==='overnightPct'||inp.id==='risePct'){delete inp.dataset.exactValue;disableAutoBreakEven();}markCustom();recalc();}));
   document.querySelectorAll('.share-step-btn').forEach(b=>b.addEventListener('click',()=>{const inp=$(b.dataset.target),cur=parseNum(inp.value);if(!Number.isFinite(cur))return;inp.value=String(Math.max(0,Math.trunc(cur)+parseNum(b.dataset.delta)));markCustom();recalc();}));
-  document.querySelectorAll('.pct-step-btn').forEach(b=>b.addEventListener('click',()=>{const inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;delete inp.dataset.exactValue;inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);markCustom();recalc();}));
+  document.querySelectorAll('.pct-step-btn').forEach(b=>b.addEventListener('click',()=>{const inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;delete inp.dataset.exactValue;disableAutoBreakEven();inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);markCustom();recalc();}));
   document.querySelectorAll('.preset-btn').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));
-  $('modeCurrent').addEventListener('click',()=>{markCustom();setMode('current');});$('modeRise').addEventListener('click',()=>{markCustom();setMode('rise');});$('modeTarget').addEventListener('click',()=>{markCustom();setMode('target');});
+  $('modeCurrent').addEventListener('click',()=>{disableAutoBreakEven();markCustom();setMode('current');});$('modeRise').addEventListener('click',()=>{disableAutoBreakEven();markCustom();setMode('rise');});$('modeTarget').addEventListener('click',()=>{disableAutoBreakEven();markCustom();setMode('target');});
   $('applyActualSellPrice').addEventListener('click',()=>{
     if(noPriorMode)return;
     const actualSellPrice=caseType==='settled'?91065:74580;
+    disableAutoBreakEven();
     setMode('target',false);
     $('targetPrice').value=nf0.format(actualSellPrice);
     recalc();
   });
   $('priorSellDateInput').addEventListener('input',()=>{markCustom();recalc();});
-  $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV15');storage.remove('investmentLossRecoveryCalcV12');applyPreset(defaultPresetId);});
+  $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV16');storage.remove('investmentLossRecoveryCalcV15');storage.remove('investmentLossRecoveryCalcV12');applyPreset(defaultPresetId);});
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('hidden'))return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id===b.dataset.tab));}));
   document.addEventListener('click',e=>{
     const btn=e.target.closest('.help-icon');
@@ -858,7 +877,7 @@
     if(btn){e.stopPropagation();const wrap=btn.closest('.help-tooltip');const open=wrap.classList.toggle('is-open');btn.setAttribute('aria-expanded',String(open));}
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.help-tooltip.is-open').forEach(w=>{w.classList.remove('is-open');const b=w.querySelector('.help-icon');if(b){b.setAttribute('aria-expanded','false');b.blur();}});}});
-  const saved=storage.get('investmentLossRecoveryCalcV15')||storage.get('investmentLossRecoveryCalcV12');
+  const saved=storage.get('investmentLossRecoveryCalcV16');
   if(saved){try{const v=JSON.parse(saved);applying=true;activePresetId=v.presetId&&presets[v.presetId]?v.presetId:(v.noPrior?'current-only':(v.caseType==='holding'?'buy-2026-07-29':'buy-2026-07-30'));setPresetActive(activePresetId);applyValues(v);applying=false;}catch(e){applyPreset(defaultPresetId);}}else applyPreset(defaultPresetId);
 })();
 
