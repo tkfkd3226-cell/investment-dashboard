@@ -8,6 +8,14 @@
     "updatedAtKST": "2026-07-03T15:44:40+09:00"
   },
   {
+    "id": "contrib-2026-07-01-7d22970c-821c-4a89-88fb-202be9336241",
+    "date": "2026-07-01",
+    "amount": 618060,
+    "memo": "2026년 6월 기업적립금",
+    "updatedBy": "google-apps-script",
+    "updatedAtKST": "2026-08-05T02:12:04+09:00"
+  },
+  {
     "id": "contrib-2026-07-31-29fa5f29-83d2-4b79-a756-32de1003a3c2",
     "date": "2026-07-31",
     "amount": 618060,
