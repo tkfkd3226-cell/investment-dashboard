@@ -154,17 +154,81 @@ def fetch_index_history_from_naver(start_date: str, end_date: str):
     return values
 
 
+def fetch_index_history_from_yahoo(start_date: str, end_date: str):
+    """Fallback using Yahoo Finance chart data for the KOSPI composite index (^KS11)."""
+    start_dt = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=KST)
+    # Yahoo period2 is exclusive, so include the full end date plus one extra day.
+    end_dt = (datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1)).replace(tzinfo=KST)
+
+    response = requests.get(
+        "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11",
+        params={
+            "period1": int(start_dt.timestamp()),
+            "period2": int(end_dt.timestamp()),
+            "interval": "1d",
+            "events": "history",
+            "includeAdjustedClose": "true",
+        },
+        headers={
+            "User-Agent": "Mozilla/5.0 (compatible; investment-dashboard/1.0)",
+            "Accept": "application/json,text/plain,*/*",
+        },
+        timeout=20,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    chart = payload.get("chart") or {}
+    if chart.get("error"):
+        raise ValueError(f"Yahoo chart error: {chart['error']}")
+
+    results = chart.get("result") or []
+    if not results:
+        raise ValueError("Yahoo KOSPI chart returned no result")
+
+    result = results[0]
+    timestamps = result.get("timestamp") or []
+    indicators = result.get("indicators") or {}
+    quotes = indicators.get("quote") or []
+    closes = quotes[0].get("close") if quotes else []
+    closes = closes or []
+
+    values: dict[str, float] = {}
+    for timestamp, close in zip(timestamps, closes):
+        if timestamp is None or close is None:
+            continue
+        date = datetime.fromtimestamp(int(timestamp), KST).strftime("%Y-%m-%d")
+        if start_date <= date <= end_date:
+            values[date] = round(float(close), 2)
+
+    if not values:
+        raise ValueError("Yahoo KOSPI chart returned no values in requested range")
+    return values
+
+
 def fetch_index_history(start_date: str, end_date: str, ticker: str = KOSPI_INDEX_TICKER):
+    errors: list[str] = []
+
     values, pykrx_error = fetch_index_history_from_pykrx(start_date, end_date, ticker)
     if values:
+        print(f"KOSPI source=pykrx rows={len(values)}")
         return values, None
+    errors.append(f"pykrx={pykrx_error}")
 
     try:
         values = fetch_index_history_from_naver(start_date, end_date)
-        print(f"WARN pykrx KOSPI lookup failed; Naver chart fallback used: {pykrx_error}")
+        print(f"KOSPI source=naver-fchart rows={len(values)}; pykrx failed: {pykrx_error}")
         return values, None
     except Exception as naver_exc:
-        return {}, f"pykrx={pykrx_error}; naver={naver_exc!r}"
+        errors.append(f"naver={naver_exc!r}")
+
+    try:
+        values = fetch_index_history_from_yahoo(start_date, end_date)
+        print(f"KOSPI source=yahoo-ks11 rows={len(values)}; earlier sources failed")
+        return values, None
+    except Exception as yahoo_exc:
+        errors.append(f"yahoo={yahoo_exc!r}")
+
+    return {}, "; ".join(errors)
 
 
 def backfill_kospi_index(prices: dict[str, Any], snapshots: dict[str, Any], through_date: str) -> list[str]:
@@ -177,8 +241,8 @@ def backfill_kospi_index(prices: dict[str, Any], snapshots: dict[str, Any], thro
 
     history, error = fetch_index_history(stored_dates[0], through_date)
     if not history:
-        print(f"WARN KOSPI index backfill failed: {error}")
-        return []
+        # Do not silently report a successful workflow when the chart data was not written.
+        raise RuntimeError(f"KOSPI index backfill failed: {error}")
 
     changed: list[str] = []
     for date, close in history.items():
