@@ -376,9 +376,13 @@ async function dispatchKrxPriceUpdate(pin, mode='selected'){
   };
 
   // selected: 현재 화면의 기준일을 강제로 재갱신
-  // auto: 날짜를 보내지 않고, update_prices.py의 누락 거래일 자동 보충 로직 사용
+  // auto: KOSPI 과거 지수 보충을 즉시 실행할 수 있도록 임시로 선택일도 함께 전달한다.
+  // 종가 반영 완료 여부를 검사해 워크플로를 건너뛰는 서버측 조건을 우회하기 위한 임시 처리다.
   if(updateMode==='selected'){
     body.date=selectedDate;
+  }else{
+    body.date=selectedDate;
+    body.force=true;
   }
 
   const res=await fetch(config.url,{
@@ -1189,7 +1193,7 @@ function requestPensionActionPin({title='PIN 입력',description='저장/삭제�
       <h3 id="pensionActionPinTitle">${title}</h3>
       <p>${description}</p>
       <label for="pensionActionPinInput">PIN</label>
-      <input id="pensionActionPinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="PIN 4자리 입력">
+      <input id="pensionActionPinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력">
       <div class="pension-action-pin-guide">PIN이 일치하면 자동으로 ${danger?'삭제':'저장'} 실행됩니다.</div>
       <div id="pensionActionPinStatus" class="pension-action-pin-status" aria-live="polite"></div>
       <div class="pension-action-pin-buttons"><button type="button" class="ghost">취소</button></div>
@@ -1208,8 +1212,8 @@ function requestPensionActionPin({title='PIN 입력',description='저장/삭제�
       resolve(value);
     };
     const submit=async()=>{
-      const pin=String(input?.value||'').replace(/\D/g,'').slice(0,4);
-      if(pin.length!==4||busy)return;
+      const pin=String(input?.value||'').replace(/\D/g,'').slice(0,6);
+      if(pin.length!==6||busy)return;
       busy=true;
       input.disabled=true;
       if(status){status.textContent='PIN 확인 및 처리 중...';status.className='pension-action-pin-status checking'}
@@ -1225,11 +1229,11 @@ function requestPensionActionPin({title='PIN 입력',description='저장/삭제�
       }
     };
     const onInput=()=>{
-      const cleaned=String(input.value||'').replace(/\D/g,'').slice(0,4);
+      const cleaned=String(input.value||'').replace(/\D/g,'').slice(0,6);
       if(input.value!==cleaned)input.value=cleaned;
       if(status&&status.classList.contains('err')){status.textContent='';status.className='pension-action-pin-status'}
       clearTimeout(submitTimer);
-      if(cleaned.length===4)submitTimer=setTimeout(submit,180);
+      if(cleaned.length===6)submitTimer=setTimeout(submit,180);
     };
 
     input?.addEventListener('input',onInput);
@@ -1265,7 +1269,7 @@ async function savePensionContribution(){
     showPensionContributionStatus('PIN 입력 대기 중...','ok');
     const data=await requestPensionActionPin({
       title:`${targetText} 저장`,
-      description:`${targetText}을 GitHub 파일에 저장합니다. PIN 4자리를 입력하세요.`,
+      description:`${targetText}을 GitHub 파일에 저장합니다. PIN 6자리를 입력하세요.`,
       execute:pin=>savePensionContributionViaGithubPages(item,pin)
     });
     if(!data){showPensionContributionStatus('저장이 취소되었습니다.','err');return}
@@ -1300,7 +1304,7 @@ async function deleteSelectedPensionContribution(){
   showPensionContributionStatus('PIN 입력 대기 중...','ok');
   const data=await requestPensionActionPin({
     title:`${targetText} 삭제`,
-    description:`${date} / ${targetText} / ${amount} 항목을 삭제합니다. PIN 4자리를 입력하세요.`,
+    description:`${date} / ${targetText} / ${amount} 항목을 삭제합니다. PIN 6자리를 입력하세요.`,
     danger:true,
     execute:pin=>deletePensionContributionViaGithubPages(target,key,pin)
   });
