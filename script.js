@@ -1221,7 +1221,10 @@ function closePensionContributionModal(){
   forceMobileViewportReflow();
 }
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape') closePensionContributionModal();
+  if(e.key!=='Escape') return;
+  closeCompactActionMenu();
+  closeDateActionMenu();
+  closePensionContributionModal();
 });
 
 function cleanNumberInput(v){

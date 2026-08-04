@@ -544,12 +544,6 @@ svg.chart{
   margin-bottom:12px;
 }
 
-.pension-insight-eyebrow{
-  font-size:11px;
-  font-weight:900;
-  letter-spacing:.08em;
-  color:#64748b;
-}
 
 .pension-insight-head h3{
   margin:3px 0 0;
@@ -599,36 +593,9 @@ svg.chart{
   font-weight:700;
 }
 
-.pension-stack-top{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:10px;
-}
 
-.pension-stack-kicker{
-  font-size:12px;
-  color:#64748b;
-  font-weight:800;
-}
 
-.pension-stack-total{
-  margin-top:2px;
-  font-size:24px;
-  font-weight:900;
-  letter-spacing:-.04em;
-}
 
-.pension-stack-chip{
-  padding:6px 10px;
-  border-radius:999px;
-  background:#f1f5f9;
-  color:#475569;
-  font-size:11px;
-  font-weight:900;
-  border:1px solid #dbe2ec;
-}
 
 .pension-stack-bar{
   display:flex;
@@ -664,68 +631,13 @@ svg.chart{
   text-overflow:ellipsis;
 }
 
-.pension-stack-legend{
-  display:grid;
-  gap:8px;
-  margin-top:12px;
-}
 
-.pension-stack-legend-item{
-  display:grid;
-  grid-template-columns:auto minmax(0,1fr) auto auto;
-  align-items:center;
-  gap:8px;
-  padding:8px 10px;
-  border-radius:12px;
-  background:#f8fafc;
-  border:1px solid #e5eaf2;
-}
 
-.pension-stack-dot{
-  width:10px;
-  height:10px;
-  border-radius:999px;
-}
 
-.pension-stack-name{
-  min-width:0;
-  font-size:13px;
-  font-weight:800;
-  color:#0f172a;
-}
 
-.pension-stack-share{
-  font-size:12px;
-  font-weight:900;
-  color:#64748b;
-}
 
-.pension-stack-value{
-  font-size:13px;
-  font-weight:900;
-  font-variant-numeric:tabular-nums;
-  white-space:nowrap;
-}
 
-.pension-risk-line{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  padding:10px 12px;
-  border-radius:12px;
-  background:#f8fafc;
-  border:1px solid #e5eaf2;
-  font-size:13px;
-  color:#475569;
-}
 
-.pension-risk-line strong{
-  font-size:18px;
-  color:#0f172a;
-  font-weight:900;
-  letter-spacing:-.03em;
-}
 
 .pension-risk-gauge{
   position:relative;
@@ -782,38 +694,10 @@ svg.chart{
   color:#64748b;
 }
 
-.pension-risk-summary-grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
-  margin-top:12px;
-}
 
-.pension-risk-mini{
-  padding:12px;
-  border-radius:12px;
-  background:#f8fafc;
-  border:1px solid #e5eaf2;
-}
 
-.pension-risk-mini .label{
-  display:block;
-  margin-bottom:4px;
-  font-size:12px;
-  color:#64748b;
-  font-weight:800;
-}
 
-.pension-risk-mini strong{
-  font-size:18px;
-  font-weight:900;
-  letter-spacing:-.03em;
-  font-variant-numeric:tabular-nums;
-}
 
-.pension-risk-note{
-  margin:10px 2px 0;
-}
 
 .change-kpis{
   display:grid;
@@ -914,11 +798,7 @@ svg.chart{
 }
 
 @media (max-width:700px){
-  .pension-stack-top{
-    align-items:flex-start;
-    flex-direction:column;
-  }
-
+  
   .pension-stack-bar{
     height:18px;
   }
@@ -927,19 +807,9 @@ svg.chart{
     font-size:10px;
   }
 
-  .pension-stack-legend-item{
-    grid-template-columns:auto minmax(0,1fr) auto;
-  }
-
-  .pension-stack-value{
-    grid-column:2 / 4;
-    justify-self:end;
-  }
-
-  .pension-risk-summary-grid{
-    grid-template-columns:1fr;
-  }
-
+  
+  
+  
   .change-kpis{
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
@@ -1503,12 +1373,6 @@ svg.chart{
   min-width:150px;
   flex:0 0 165px;
 }
-.date-picker-caption{
-  color:#cbd5e1;
-  font-size:12px;
-  font-weight:800;
-  white-space:nowrap;
-}
 .date-tool-btn{
   width:auto;
   min-width:0;
@@ -1587,8 +1451,7 @@ svg.chart{
   .date-picker-action{
     display:contents;
   }
-  .date-picker-label,
-  .date-picker-caption{
+  .date-picker-label{
     display:none;
   }
   .month-select,
@@ -1626,31 +1489,9 @@ svg.chart{
 .table-note{margin:10px 2px 0;color:var(--muted);font-size:12px;line-height:1.55}
 .table-note strong{color:var(--text)}
 
-.title-badge{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:5px 10px;
-  border:1px solid var(--line);
-  border-radius:999px;
-  background:white;
-  color:var(--muted);
-  font-size:12px;
-  font-weight:800;
-  white-space:nowrap;
-}
-.dark .title-badge{
-  background:#0f172a;
-  color:#cbd5e1;
-  border-color:rgba(148,163,184,.24);
-}
-@media(max-width:720px){
-    .title-badge{font-size:11px;padding:4px 8px}
-}
 
-.section-title p,
-.title-badge,
-.section-title p.title-badge{
+
+.section-title p{
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -1664,18 +1505,14 @@ svg.chart{
   white-space:nowrap;
   margin:0;
 }
-.dark .section-title p,
-.dark .title-badge,
-.dark .section-title p.title-badge{
+.dark .section-title p{
   background:#0f172a;
   color:#cbd5e1;
   border-color:rgba(148,163,184,.24);
 }
 @media(max-width:720px){
   .section-title{align-items:flex-start}
-  .section-title p,
-  .title-badge,
-  .section-title p.title-badge{
+  .section-title p{
     font-size:11px;
     padding:4px 8px;
   }
@@ -1892,24 +1729,12 @@ svg.chart{
 .modal-card-box:first-of-type{
   margin-top:0;
 }
-.contrib-pin-box{
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:12px;
-  background:#fff;
-}
-.dark .contrib-pin-box{
-  background:#0f172a;
-  border-color:rgba(148,163,184,.24);
-}
-.contrib-pin-box h3,
 .contrib-list h3,
 .pension-contrib-tool h3{
   margin:0 0 4px;
   font-size:14px;
   letter-spacing:-.03em;
 }
-.contrib-pin-box .small,
 .contrib-list .small,
 .pension-contrib-tool .small{
   margin:0 0 10px;
@@ -2180,9 +2005,6 @@ svg.chart{
 .securities-subsection > .section-title{
   margin-top:0;
 }
-.securities-subsection .inner-title h2{
-  font-size:17px;
-}
 .securities-subsection.grid.three{
   display:grid;
 }
@@ -2265,8 +2087,7 @@ svg.chart{
 [id]{
   scroll-margin-top:76px;
 }
-@media(max-width:760px){
-}
+
 
 
 /* 증권계좌 내부 블록 변환 안정화 */
@@ -2478,32 +2299,8 @@ svg.chart{
   }
 }
 
-.contrib-save-tabs{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:6px;
-  margin:10px 0 8px;
-  padding:4px;
-  border-radius:14px;
-  background:rgba(15,23,42,.06);
-}
 
-.contrib-save-tab{
-  border:0;
-  border-radius:11px;
-  padding:9px 10px;
-  font-size:13px;
-  font-weight:800;
-  color:#64748b;
-  background:transparent;
-  cursor:pointer;
-}
 
-.contrib-save-tab.active{
-  color:#0f172a;
-  background:#fff;
-  box-shadow:0 4px 12px rgba(15,23,42,.12);
-}
 
 .contrib-save-help{
   margin:0 0 10px;
@@ -3155,16 +2952,8 @@ svg.chart{
   padding-top:22px;
 }
 
-.date-picker-bar{
-  background:
-    radial-gradient(circle at 96% 10%, rgba(96,165,250,.22), transparent 28%),
-    linear-gradient(135deg,#1f2f4f 0%, #284d7d 52%, #316aa4 100%) !important;
-  border-bottom:1px solid rgba(255,255,255,.16) !important;
-  box-shadow:0 12px 30px rgba(15,23,42,.18) !important;
-}
 
-.date-picker-label,
-.date-picker-caption{
+.date-picker-label{
   color:#eaf2ff !important;
 }
 
@@ -3922,8 +3711,6 @@ svg.chart{
 .note,
 .chart-card,
 .pension-insight-card,
-.pension-viz-card,
-.pension-risk-card,
 .mini-card{
   transition:
     transform .18s ease,
@@ -3937,8 +3724,6 @@ svg.chart{
   .note:hover,
   .chart-card:hover,
   .pension-insight-card:hover,
-  .pension-viz-card:hover,
-  .pension-risk-card:hover,
   .mini-card:hover{
     transform:translateY(-2px);
     box-shadow:0 14px 34px rgba(15,23,42,.12);
@@ -3949,8 +3734,6 @@ svg.chart{
   .dark .note:hover,
   .dark .chart-card:hover,
   .dark .pension-insight-card:hover,
-  .dark .pension-viz-card:hover,
-  .dark .pension-risk-card:hover,
   .dark .mini-card:hover{
     box-shadow:0 16px 38px rgba(0,0,0,.34);
     border-color:rgba(96,165,250,.34);
@@ -3960,14 +3743,7 @@ svg.chart{
 .date-tool-btn,
 .pill,
 button,
-.btn,
-.contrib-save-btn,
-.contrib-delete-btn,
-.contrib-close,
-.krx-action-primary,
-.krx-action-cancel,
-.pension-action-pin-primary,
-.pension-action-pin-cancel{
+.btn{
   transition:
     transform .16s ease,
     background-color .16s ease,
@@ -3988,24 +3764,14 @@ button,
   }
 
   button:hover,
-  .btn:hover,
-  .contrib-save-btn:hover,
-  .contrib-delete-btn:hover,
-  .krx-action-primary:hover,
-  .pension-action-pin-primary:hover{
+  .btn:hover{
     transform:translateY(-1px);
   }
 }
 
 .date-tool-btn:active,
 button:active,
-.btn:active,
-.contrib-save-btn:active,
-.contrib-delete-btn:active,
-.krx-action-primary:active,
-.krx-action-cancel:active,
-.pension-action-pin-primary:active,
-.pension-action-pin-cancel:active{
+.btn:active{
   transform:translateY(1px) scale(.98);
 }
 
@@ -4059,8 +3825,6 @@ button:active,
   .note,
   .chart-card,
   .pension-insight-card,
-  .pension-viz-card,
-  .pension-risk-card,
   .mini-card{
     transition:box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
   }
@@ -4082,20 +3846,11 @@ button:active,
   .note,
   .chart-card,
   .pension-insight-card,
-  .pension-viz-card,
-  .pension-risk-card,
   .mini-card,
   .date-tool-btn,
   .pill,
   button,
-  .btn,
-  .contrib-save-btn,
-  .contrib-delete-btn,
-  .contrib-close,
-  .krx-action-primary,
-  .krx-action-cancel,
-  .pension-action-pin-primary,
-  .pension-action-pin-cancel{
+  .btn{
     transition:none !important;
   }
 
@@ -5565,8 +5320,8 @@ button:active,
   }
 }
 
-/* Keep hidden/touch pension stack tooltips inside the viewport on narrow screens. */
-@media (max-width:900px){
+/* Keep hidden/touch pension stack tooltips inside the viewport through compact web/tablet widths. */
+@media (max-width:1100px){
   .pension-stack-bar.compact.simple .pension-stack-segment:first-child .pension-viz-tooltip{
     left:0;
     transform:translateY(6px);
