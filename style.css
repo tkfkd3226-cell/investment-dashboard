@@ -5847,3 +5847,67 @@ button:active,
     margin-left:0 !important;
   }
 }
+
+/* Chart entrance animation: reveal plotted data from left to right once the chart viewport is fully visible. */
+.chart-card.chart-entrance-ready .chart-anim-bar,
+.chart-card.chart-entrance-ready .chart-anim-point,
+.chart-card.chart-entrance-ready .chart-anim-line{
+  pointer-events:none;
+}
+
+.chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-bar{
+  opacity:0;
+  transform:translateX(-7px) scaleY(.35);
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+.chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-point{
+  opacity:0;
+  transform:scale(.2);
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+.chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-line{
+  stroke-dasharray:var(--chart-path-length);
+  stroke-dashoffset:var(--chart-path-length);
+}
+
+.chart-card.chart-entrance-active .chart-anim-bar{
+  animation:chartBarSweep .34s cubic-bezier(.22,.72,.2,1) var(--chart-delay,0ms) both;
+}
+
+.chart-card.chart-entrance-active .chart-anim-point{
+  animation:chartPointPop .25s cubic-bezier(.2,.8,.2,1) var(--chart-delay,0ms) both;
+}
+
+.chart-card.chart-entrance-active .chart-anim-line{
+  animation:chartLineDraw 1.05s cubic-bezier(.2,.7,.2,1) var(--chart-delay,0ms) both;
+}
+
+@keyframes chartBarSweep{
+  from{opacity:0;transform:translateX(-7px) scaleY(.35)}
+  to{opacity:1;transform:translateX(0) scaleY(1)}
+}
+
+@keyframes chartPointPop{
+  from{opacity:0;transform:scale(.2)}
+  to{opacity:1;transform:scale(1)}
+}
+
+@keyframes chartLineDraw{
+  from{stroke-dashoffset:var(--chart-path-length)}
+  to{stroke-dashoffset:0}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .chart-card .chart-anim-bar,
+  .chart-card .chart-anim-point,
+  .chart-card .chart-anim-line{
+    animation:none !important;
+    opacity:1 !important;
+    transform:none !important;
+    stroke-dashoffset:0 !important;
+  }
+}

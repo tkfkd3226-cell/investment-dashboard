@@ -9,6 +9,7 @@ let PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH
   return `${Number(m)}월 ${Number(day)}일 종가 기준`;
 };
 const CHART_COMPARE_MODES={securities:'return',pension:'return'};
+let chartEntranceObserver=null;
 const SECURITY_SYMBOL_COLORS=Object.freeze({
   'SK하이닉스':'#ff8a65',
   '삼성전자':'#8bc34a',
@@ -410,6 +411,93 @@ function scrollChartToEnd(button){
   wrap.scrollTo({left:Math.max(0,wrap.scrollWidth-wrap.clientWidth),behavior:'smooth'});
 }
 
+function chartEntranceReducedMotion(){
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true;
+}
+function chartEntranceDataElements(svg){
+  const viewWidth=svg.viewBox?.baseVal?.width||Number(svg.getAttribute('width'))||1120;
+  return [...svg.querySelectorAll('rect, polyline, circle')].filter(node=>{
+    if(node.classList.contains('svg-hitbox'))return false;
+    if(node.tagName.toLowerCase()!=='rect')return true;
+    const x=Number(node.getAttribute('x')||0),y=Number(node.getAttribute('y')||0);
+    const width=Number(node.getAttribute('width')||0),height=Number(node.getAttribute('height')||0);
+    const viewHeight=svg.viewBox?.baseVal?.height||Number(svg.getAttribute('height'))||330;
+    return !(x===0&&y===0&&width>=viewWidth*.98&&height>=viewHeight*.98);
+  });
+}
+function chartEntranceXRatio(node,svg){
+  const viewWidth=svg.viewBox?.baseVal?.width||1120;
+  let x=0;
+  if(node.tagName.toLowerCase()==='rect'){
+    x=Number(node.getAttribute('x')||0)+Number(node.getAttribute('width')||0)/2;
+  }else if(node.tagName.toLowerCase()==='circle'){
+    x=Number(node.getAttribute('cx')||0);
+  }else{
+    const points=node.points;
+    x=points?.numberOfItems?points.getItem(0).x:0;
+  }
+  return Math.max(0,Math.min(1,x/Math.max(1,viewWidth)));
+}
+function prepareChartEntranceForSvg(svg){
+  if(!svg)return;
+  const card=svg.closest('.chart-card');
+  if(!card)return;
+  if(chartEntranceReducedMotion()||card.dataset.chartEntrancePlayed==='true'){
+    card.classList.remove('chart-entrance-ready');
+    card.classList.add('chart-entrance-active');
+    return;
+  }
+  let lineIndex=0;
+  chartEntranceDataElements(svg).forEach(node=>{
+    const tag=node.tagName.toLowerCase();
+    if(tag==='polyline'){
+      const length=Math.max(1,Math.ceil(node.getTotalLength?.()||1));
+      node.classList.add('chart-anim-line');
+      node.style.setProperty('--chart-path-length',String(length));
+      node.style.setProperty('--chart-delay',`${80+lineIndex*55}ms`);
+      lineIndex+=1;
+      return;
+    }
+    const delay=Math.round(chartEntranceXRatio(node,svg)*680);
+    node.classList.add(tag==='circle'?'chart-anim-point':'chart-anim-bar');
+    node.style.setProperty('--chart-delay',`${delay}ms`);
+  });
+  card.classList.remove('chart-entrance-active');
+  card.classList.add('chart-entrance-ready');
+}
+function activateChartEntrance(wrap){
+  const card=wrap?.closest('.chart-card');
+  if(!card||card.dataset.chartEntrancePlayed==='true')return;
+  card.dataset.chartEntrancePlayed='true';
+  requestAnimationFrame(()=>card.classList.add('chart-entrance-active'));
+  chartEntranceObserver?.unobserve(wrap);
+}
+function chartWrapFullyVisible(wrap){
+  const rect=wrap.getBoundingClientRect();
+  return rect.top>=-1&&rect.bottom<=window.innerHeight+1;
+}
+function setupChartEntranceAnimations(){
+  chartEntranceObserver?.disconnect();
+  chartEntranceObserver=null;
+  const wraps=[...document.querySelectorAll('.chart-card .chart-wrap')];
+  if(!wraps.length)return;
+  if(chartEntranceReducedMotion()||!('IntersectionObserver' in window)){
+    wraps.forEach(activateChartEntrance);
+    return;
+  }
+  chartEntranceObserver=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting&&entry.intersectionRatio>=.97&&chartWrapFullyVisible(entry.target)){
+        activateChartEntrance(entry.target);
+      }
+    });
+  },{threshold:[0,.5,.9,.97,1]});
+  wraps.forEach(wrap=>chartEntranceObserver.observe(wrap));
+  requestAnimationFrame(()=>wraps.forEach(wrap=>{
+    if(chartWrapFullyVisible(wrap))activateChartEntrance(wrap);
+  }));
+}
+
 function chartCompareLabel(scope){
   return CHART_COMPARE_MODES[scope]==='kospi'?'코스피 지수':'누적수익률';
 }
@@ -437,7 +525,13 @@ function setChartCompareMode(scope,mode){
   if(legend)legend.textContent=chartCompareLabel(scope);
   const swatch=document.getElementById(`${scope}CompareSwatch`);
   if(swatch)swatch.style.background=CHART_COMPARE_MODES[scope]==='kospi'?'#7c3aed':'#5abdf2';
-  if(scope==='pension')drawPensionCumChart();else drawCumChart();
+  if(scope==='pension'){
+    drawPensionCumChart();
+    prepareChartEntranceForSvg(document.getElementById('pensionChartCum'));
+  }else{
+    drawCumChart();
+    prepareChartEntranceForSvg(document.getElementById('chartCum'));
+  }
 }
 
 function scrollToDashboardTop(){
@@ -1194,7 +1288,18 @@ function refreshScrollHints(){
     }
   });
 }
-function drawAllCharts(){drawCumChart();drawLineChart();drawStacked();drawPensionCumChart();drawPensionSymbolChart();drawPensionStacked();refreshScrollHints();setTimeout(refreshScrollHints,120)}
+function drawAllCharts(){
+  drawCumChart();
+  drawLineChart();
+  drawStacked();
+  drawPensionCumChart();
+  drawPensionSymbolChart();
+  drawPensionStacked();
+  document.querySelectorAll('svg.chart').forEach(prepareChartEntranceForSvg);
+  setupChartEntranceAnimations();
+  refreshScrollHints();
+  setTimeout(refreshScrollHints,120);
+}
 
 
 
