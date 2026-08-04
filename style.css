@@ -6062,3 +6062,33 @@ button:active,
     display:none !important;
   }
 }
+
+/* 2026-08-05 desktop/tablet top bar alignment correction
+   - Date controls stay at the left edge.
+   - Action buttons stay at the right edge.
+   - The single-row compact/overflow behavior is preserved.
+   - Mobile rules at 760px and below remain unchanged. */
+@media (min-width:761px){
+  .switcher{
+    justify-content:center !important;
+  }
+  .date-picker{
+    display:grid !important;
+    grid-template-columns:auto minmax(0,1fr) auto !important;
+    grid-template-rows:auto !important;
+    align-items:center !important;
+    justify-content:normal !important;
+    flex-wrap:nowrap !important;
+  }
+  .date-picker-center{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    justify-self:start !important;
+  }
+  .date-picker-action{
+    grid-column:3 !important;
+    grid-row:1 !important;
+    justify-self:end !important;
+    margin-left:0 !important;
+  }
+}
