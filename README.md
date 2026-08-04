@@ -2,8 +2,6 @@
 
 삼성증권 증권계좌와 퇴직연금 계좌의 날짜별 성과를 확인하는 정적 웹 대시보드입니다. 정적 화면은 **GitHub Pages**, 데이터 저장과 GitHub Actions 실행 요청은 **Google Apps Script 웹 앱**을 사용합니다.
 
-Netlify 저장 방식은 더 이상 사용하지 않습니다. 저장소에 `netlify/functions/`가 남아 있다면 삭제해도 됩니다.
-
 ---
 
 ## 주요 기능
