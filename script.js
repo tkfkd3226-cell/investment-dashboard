@@ -321,7 +321,7 @@ function ensureDesktopEdgeToc(){
     toc.setAttribute('aria-label','화면 목차');
     document.body.appendChild(toc);
   }
-  toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기"><span class="desktop-edge-toc-trigger-icon">☷</span><span>목차</span></button><nav class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title">목차</div>${renderDesktopTocContent()}</nav>`;
+  toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기"><span>목차</span></button><nav class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title">목차</div>${renderDesktopTocContent()}</nav>`;
 }
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
