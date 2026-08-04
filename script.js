@@ -13,7 +13,7 @@ const SECURITY_SYMBOL_COLORS=Object.freeze({
   'SK하이닉스':'#ff8a65',
   '삼성전자':'#8bc34a',
   '현대차':'#26c6da',
-  'KODEX 200':'#42a5f5'
+  'KODEX 200':'#800020'
 });
 const securitySymbolSwatch=name=>SECURITY_SYMBOL_COLORS[name]?`<span class="holding-symbol-swatch" style="--holding-symbol-color:${SECURITY_SYMBOL_COLORS[name]}" aria-hidden="true">■</span>`:'';
 const PENSION_CONTRIBUTION_SAVE_CONFIG = {
@@ -355,10 +355,18 @@ function mobileInfoCard(title,items=[],extraClass=''){
   return `<article class="mobile-data-card ${extraClass}"><div class="mobile-data-card-title">${title}</div><div class="mobile-data-card-list">${items.map(item=>{const [label,value,valueClass='',rowClass='']=item;return `<div class="mobile-data-card-row ${rowClass}"><span class="mobile-data-card-label">${label}</span><span class="mobile-data-card-value ${valueClass}">${value}</span></div>`}).join('')}</div></article>`;
 }
 function chartScrollButton(){
-  return `<div class="chart-scroll-row"><button type="button" class="chart-scroll-end" aria-label="차트를 오른쪽 끝으로 이동" title="오른쪽 끝으로 이동" onclick="scrollChartToEnd(this)">→</button></div>`;
+  return `<div class="chart-scroll-row"><button type="button" class="chart-scroll-start" aria-label="차트를 왼쪽 끝으로 이동" title="왼쪽 끝으로 이동" onclick="scrollChartToStart(this)">←</button><button type="button" class="chart-scroll-end" aria-label="차트를 오른쪽 끝으로 이동" title="오른쪽 끝으로 이동" onclick="scrollChartToEnd(this)">→</button></div>`;
+}
+function chartScrollToWrap(button){
+  return button?.closest('.chart-card')?.querySelector('.chart-wrap')||null;
+}
+function scrollChartToStart(button){
+  const wrap=chartScrollToWrap(button);
+  if(!wrap)return;
+  wrap.scrollTo({left:0,behavior:'smooth'});
 }
 function scrollChartToEnd(button){
-  const wrap=button?.closest('.chart-card')?.querySelector('.chart-wrap');
+  const wrap=chartScrollToWrap(button);
   if(!wrap)return;
   wrap.scrollTo({left:Math.max(0,wrap.scrollWidth-wrap.clientWidth),behavior:'smooth'});
 }

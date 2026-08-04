@@ -4782,6 +4782,7 @@ button:active,
 /* mobile card/table switch */
 .mobile-card-view,
 .mobile-view-toggle,
+.chart-scroll-start,
 .chart-scroll-end{display:none}
 
 @media(max-width:760px){
@@ -4920,6 +4921,7 @@ button:active,
 
   .change-product-card{background:#fff !important}
 
+  .chart-scroll-start,
   .chart-scroll-end{
     display:inline-flex;
     align-items:center;
@@ -5239,9 +5241,11 @@ button:active,
     display:flex;
     align-items:center;
     justify-content:flex-end;
+    gap:5px;
     min-height:25px;
     margin:2px 1px 5px;
   }
+  .chart-scroll-start,
   .chart-scroll-end{
     display:inline-flex !important;
     width:25px !important;
