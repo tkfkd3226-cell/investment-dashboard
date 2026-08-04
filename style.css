@@ -5818,3 +5818,30 @@ button:active,
   font-size:10px;
   vertical-align:1px;
 }
+
+/* 2026-08-04 securities holdings typography
+   - Security names remain bold.
+   - Detail values use regular weight.
+   - Holding subtotal and grand total remain bold. */
+#securities-holdings .hold-position-table tbody tr.hold-row > td:not(:first-child){
+  font-weight:400 !important;
+}
+
+#securities-holdings .hold-position-table tbody tr.hold-row > td:first-child,
+#securities-holdings .hold-position-table tbody tr.hold-row > td:first-child .holding-name-text{
+  font-weight:800 !important;
+}
+
+#securities-holdings .hold-position-table tbody tr.summary-row > td{
+  font-weight:900 !important;
+}
+
+@media(max-width:760px){
+  #securities-holdings .mobile-data-card:not(.summary-card) .mobile-data-card-value{
+    font-weight:400 !important;
+  }
+
+  #securities-holdings .mobile-data-card.summary-card .mobile-data-card-value{
+    font-weight:900 !important;
+  }
+}
