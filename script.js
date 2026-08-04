@@ -729,7 +729,7 @@ function renderHoldings(x){
         totalEvalWithCash=holdEval+cash,
         holdReturn=holdCost?holdProfit/holdCost*100:0,
         totalReturnWithCash=totalCostWithCash?holdProfit/totalCostWithCash*100:0;
-  const cards=x.holdings.map(h=>mobileInfoCard(h.name,[
+  const cards=x.holdings.map(h=>mobileInfoCard(`<span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}`,[
     ['수량',fmt(h.qty)],
     ['평단',won(h.avgPrice ?? (h.qty?h.cost/h.qty:0))],
     ['투자원금',won(h.cost)],

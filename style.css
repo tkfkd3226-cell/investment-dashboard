@@ -5781,3 +5781,42 @@ button:active,
     display:none !important;
   }
 }
+
+
+/* 2026-08-04 holdings final neutral-background correction
+   Keep all named security rows/cards white and show chart-color swatches only. */
+#securities-holdings .mobile-data-card.ticker-samsung,
+#securities-holdings .mobile-data-card.ticker-sk,
+#securities-holdings .mobile-data-card.ticker-hyundai,
+#securities-holdings .mobile-data-card.ticker-kodex,
+#securities-holdings .mobile-data-card.ticker-samsung .mobile-data-card-title,
+#securities-holdings .mobile-data-card.ticker-sk .mobile-data-card-title,
+#securities-holdings .mobile-data-card.ticker-hyundai .mobile-data-card-title,
+#securities-holdings .mobile-data-card.ticker-kodex .mobile-data-card-title{
+  background:#fff !important;
+  background-color:#fff !important;
+  background-image:none !important;
+}
+
+#securities-holdings .hold-position-table tbody tr.ticker-samsung,
+#securities-holdings .hold-position-table tbody tr.ticker-sk,
+#securities-holdings .hold-position-table tbody tr.ticker-hyundai,
+#securities-holdings .hold-position-table tbody tr.ticker-kodex,
+#securities-holdings .hold-position-table tbody tr.ticker-samsung > td,
+#securities-holdings .hold-position-table tbody tr.ticker-sk > td,
+#securities-holdings .hold-position-table tbody tr.ticker-hyundai > td,
+#securities-holdings .hold-position-table tbody tr.ticker-kodex > td,
+#securities-holdings .hold-position-table tbody tr.ticker-samsung > td:first-child,
+#securities-holdings .hold-position-table tbody tr.ticker-sk > td:first-child,
+#securities-holdings .hold-position-table tbody tr.ticker-hyundai > td:first-child,
+#securities-holdings .hold-position-table tbody tr.ticker-kodex > td:first-child{
+  background:#fff !important;
+  background-color:#fff !important;
+  background-image:none !important;
+}
+
+#securities-holdings .mobile-data-card-title .holding-symbol-swatch{
+  margin-left:6px;
+  font-size:10px;
+  vertical-align:1px;
+}
