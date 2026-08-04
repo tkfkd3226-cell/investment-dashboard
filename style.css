@@ -5834,3 +5834,231 @@ button:active,
     left:auto !important;
   }
 }
+
+
+/* 2026-08-05 adaptive single-row top action bar
+   - Wide web: full labels.
+   - Narrow web / iPad Pro: abbreviated labels, still one row.
+   - iPad Mini range: keep KRX + calculator visible and move market/pension tools into More.
+   - Phone menu (<=760px) remains unchanged. */
+.topbar-label-short,
+.compact-action-menu-wrap{
+  display:none;
+}
+.compact-action-menu-wrap{
+  position:relative;
+  flex:0 0 auto;
+}
+.compact-more-btn{
+  gap:5px !important;
+}
+.compact-more-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:18px;
+  font-size:13px;
+  line-height:1;
+  letter-spacing:1px;
+}
+.compact-action-menu{
+  display:none;
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  width:232px;
+  padding:8px;
+  border:1px solid rgba(148,163,184,.34);
+  border-radius:14px;
+  background:rgba(255,255,255,.98);
+  box-shadow:0 18px 44px rgba(15,23,42,.24);
+  backdrop-filter:blur(12px);
+  z-index:2400;
+}
+.compact-action-menu.show{
+  display:block;
+}
+.compact-action-menu-title{
+  padding:4px 9px 6px;
+  color:#64748b;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+.compact-action-menu a,
+.compact-action-menu button{
+  width:100%;
+  min-height:38px;
+  padding:7px 9px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:#172033;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  text-align:left;
+  text-decoration:none;
+  font:inherit;
+  font-size:12px;
+  cursor:pointer;
+}
+.compact-action-menu a:hover,
+.compact-action-menu button:hover{
+  background:#f1f5f9;
+}
+.compact-action-menu a > span,
+.compact-action-menu button > span{
+  width:20px;
+  flex:0 0 20px;
+  text-align:center;
+}
+.compact-action-menu strong{
+  font-weight:850;
+  white-space:nowrap;
+}
+.dark .compact-action-menu{
+  background:rgba(15,23,42,.98);
+  border-color:rgba(148,163,184,.28);
+}
+.dark .compact-action-menu-title{
+  color:#94a3b8;
+}
+.dark .compact-action-menu a,
+.dark .compact-action-menu button{
+  color:#e2e8f0;
+}
+.dark .compact-action-menu a:hover,
+.dark .compact-action-menu button:hover{
+  background:#1e293b;
+}
+
+@media (min-width:761px){
+  .switcher{
+    flex-wrap:nowrap !important;
+  }
+  .date-picker{
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    grid-template-columns:none !important;
+    grid-template-rows:none !important;
+    min-width:0 !important;
+  }
+  .date-picker-center,
+  .date-picker-action{
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    grid-column:auto !important;
+    grid-row:auto !important;
+    justify-self:auto !important;
+  }
+  .date-picker-center{
+    flex:0 0 auto !important;
+  }
+  .date-picker-action{
+    flex:0 1 auto !important;
+    min-width:0 !important;
+  }
+  .date-tool-btn-desktop{
+    flex-shrink:0 !important;
+  }
+}
+
+@media (min-width:761px) and (max-width:1100px){
+  .topbar-label-full{
+    display:none !important;
+  }
+  .topbar-label-short{
+    display:inline !important;
+  }
+  .switcher{
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+  .date-picker{
+    gap:5px !important;
+  }
+  .date-picker-center,
+  .date-picker-action{
+    gap:5px !important;
+  }
+  .date-picker-label{
+    font-size:10.5px !important;
+  }
+  .month-select{
+    min-width:136px !important;
+    flex-basis:136px !important;
+  }
+  .day-select{
+    min-width:104px !important;
+    flex-basis:104px !important;
+  }
+  .date-tool-btn{
+    padding-left:8px !important;
+    padding-right:8px !important;
+    gap:2px !important;
+    font-size:10.5px !important;
+  }
+  .date-tool-action-icon{
+    margin-right:2px !important;
+    font-size:11px !important;
+  }
+}
+
+@media (min-width:761px) and (max-width:900px){
+  .topbar-market-action,
+  .topbar-pension-action{
+    display:none !important;
+  }
+  .compact-action-menu-wrap{
+    display:block !important;
+  }
+  .date-picker{
+    justify-content:space-between !important;
+  }
+  .date-picker-center{
+    gap:4px !important;
+  }
+  .date-picker-action{
+    margin-left:auto !important;
+    gap:4px !important;
+  }
+  .date-picker-label{
+    font-size:10px !important;
+  }
+  .month-select{
+    min-width:128px !important;
+    flex-basis:128px !important;
+  }
+  .day-select{
+    min-width:96px !important;
+    flex-basis:96px !important;
+  }
+  .date-tool-btn{
+    height:32px !important;
+    padding-left:7px !important;
+    padding-right:7px !important;
+    font-size:10px !important;
+  }
+}
+
+@media (min-width:901px) and (max-width:1100px){
+  .compact-action-menu-wrap{
+    display:none !important;
+  }
+}
+
+@media (min-width:1101px){
+  .topbar-label-full{
+    display:inline !important;
+  }
+  .topbar-label-short{
+    display:none !important;
+  }
+}
+
+@media (max-width:760px){
+  .compact-action-menu-wrap{
+    display:none !important;
+  }
+}

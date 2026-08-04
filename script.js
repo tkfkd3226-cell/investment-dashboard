@@ -325,7 +325,46 @@ function ensureDesktopEdgeToc(){
 }
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
-  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select></div><div class="date-picker-action"><a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물"><span class="date-tool-action-icon">🌙</span>코스피200 야간선물</a><a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물"><span class="date-tool-action-icon">🚀</span>나스닥100 선물</a><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()"><span class="date-tool-action-icon">💰</span>퇴직연금 금액 조정</button><a class="date-tool-btn date-tool-btn-desktop" href="calc.html" target="_blank" rel="noopener noreferrer" title="투자 계산기" aria-label="투자 계산기" style="text-decoration:none"><span class="date-tool-action-icon">🧮</span>투자 계산기</a><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button><div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><span>목차</span><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div></div></div></div>`;
+  document.getElementById('tabs').innerHTML=`
+    <div class="date-picker">
+      <div class="date-picker-center">
+        <span class="date-picker-label">기준일</span>
+        <select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select>
+        <select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
+      </div>
+      <div class="date-picker-action">
+        <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물">
+          <span class="date-tool-action-icon">🌙</span><span class="topbar-label-full">코스피200 야간선물</span><span class="topbar-label-short">코스피 야선</span>
+        </a>
+        <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물">
+          <span class="date-tool-action-icon">🚀</span><span class="topbar-label-full">나스닥100 선물</span><span class="topbar-label-short">나스닥 선물</span>
+        </a>
+        <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-krx-action" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()">
+          <span class="date-tool-action-icon">📈</span><span class="topbar-label-full">KRX 현재가 반영</span><span class="topbar-label-short">KRX 반영</span>
+        </button>
+        <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-pension-action" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()">
+          <span class="date-tool-action-icon">💰</span><span class="topbar-label-full">퇴직연금 금액 조정</span><span class="topbar-label-short">연금 조정</span>
+        </button>
+        <a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="calc.html" target="_blank" rel="noopener noreferrer" title="투자 계산기" aria-label="투자 계산기" style="text-decoration:none">
+          <span class="date-tool-action-icon">🧮</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
+        </a>
+        <div class="compact-action-menu-wrap">
+          <button type="button" id="compactActionMenuButton" class="date-tool-btn compact-more-btn" title="더보기" aria-label="추가 기능 열기" aria-haspopup="true" aria-expanded="false" onclick="toggleCompactActionMenu(event)">
+            <span class="compact-more-icon" aria-hidden="true">•••</span><span>더보기</span>
+          </button>
+          <div id="compactActionMenu" class="compact-action-menu" aria-label="추가 기능">
+            <div class="compact-action-menu-title">시장지표</div>
+            <a href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer"><span>🌙</span><strong>코스피200 야간선물</strong></a>
+            <a href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer"><span>🚀</span><strong>나스닥100 선물</strong></a>
+            <button type="button" class="compact-menu-pension" onclick="openPensionContributionModal();closeCompactActionMenu()"><span>💰</span><strong>퇴직연금 금액 조정</strong></button>
+          </div>
+        </div>
+        <div class="date-action-menu-wrap">
+          <button type="button" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
+          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><span>목차</span><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div>
+        </div>
+      </div>
+    </div>`;
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
@@ -430,10 +469,30 @@ function closeDateActionMenu(){
 }
 function toggleDateActionMenu(event){
   if(event) event.stopPropagation();
+  closeCompactActionMenu();
   const menu=document.getElementById('dateActionMenu');
   if(menu) menu.classList.toggle('show');
 }
-document.addEventListener('click',()=>{closeDateActionMenu()});
+function closeCompactActionMenu(){
+  const menu=document.getElementById('compactActionMenu');
+  const button=document.getElementById('compactActionMenuButton');
+  if(menu) menu.classList.remove('show');
+  if(button) button.setAttribute('aria-expanded','false');
+}
+function toggleCompactActionMenu(event){
+  if(event) event.stopPropagation();
+  const menu=document.getElementById('compactActionMenu');
+  const button=document.getElementById('compactActionMenuButton');
+  if(!menu||!button) return;
+  const shouldOpen=!menu.classList.contains('show');
+  closeDateActionMenu();
+  menu.classList.toggle('show',shouldOpen);
+  button.setAttribute('aria-expanded',String(shouldOpen));
+}
+document.addEventListener('click',()=>{
+  closeDateActionMenu();
+  closeCompactActionMenu();
+});
 async function dispatchKrxPriceUpdate(pin, mode='selected'){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   const selectedDate=ACTIVE_DATE || '';
