@@ -81,7 +81,7 @@
     .calculation-group .group-title{margin-bottom:0}
     .calculation-group .seg{margin-top:18px}
     @media(min-width:1101px){
-      .calculation-group .seg{margin-top:35px}
+      .calculation-group .seg{margin-top:35px;margin-bottom:10px}
     }
     .formula{font-size:11px;color:var(--muted);background:#f0f3f8;border-radius:8px;padding:7px 9px;margin-top:8px}
     .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:8px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;text-align:left;appearance:none;-webkit-appearance:none}
@@ -347,7 +347,7 @@
     .current-purchase-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(73,115,174,.14)}
     .current-purchase-btn:active{transform:translateY(1px)}
     @media(min-width:721px){
-      .input-grid.no-prior-layout .calculation-group{margin-top:46px}
+      .input-grid.no-prior-layout .calculation-group{margin-top:47px}
     }
     @media(max-width:720px){
       .prior-entry-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
@@ -397,12 +397,15 @@
       .unit{right:10px;bottom:8px;font-size:13px}
       .seg{gap:5px;margin-bottom:7px}
       .seg button{height:36px;border-radius:8px;font-size:12px}
-      .calculation-group .seg{margin-top:25px}
+      .calculation-group .seg{margin-top:27px;margin-bottom:6px}
+      .calculation-group .fields{row-gap:6px}
+      .input-grid.holding-case .calculation-group .seg{margin-bottom:10px}
+      .input-grid.holding-case .calculation-group .fields{row-gap:10px}
       .formula{font-size:10px;padding:6px 8px;margin-top:5px}
       .actual-sale-price{margin-top:5px;padding:7px 9px;font-size:10px}
       .actual-sale-price strong{font-size:12px}
       .current-column{gap:6px}
-      .input-grid.no-prior-layout .calculation-group{margin-top:32px}
+      .input-grid.no-prior-layout .calculation-group{margin-top:37px}
       .current-purchase-btn{padding:6px 11px;font-size:12px;border-radius:9px}
       .additional-group.settled-layout .settled-subsection{gap:6px;padding:0 7px 7px}
       .additional-group.settled-layout .settled-result-section{padding-top:7px}
@@ -674,6 +677,7 @@
     $('applyActualSellPrice').setAttribute('aria-label',`실제 매도 단가 ${won(actualSellPrice)}를 목표 매도단가에 반영`);
     $('applyActualSellPrice').classList.toggle('hidden',noPrior);
     $('inputGrid').classList.toggle('no-prior-layout',noPrior);
+    $('inputGrid').classList.toggle('holding-case',!settled);
     $('currentGroup').classList.toggle('no-prior-current',noPrior);
     $('priorGroup').classList.toggle('hidden',noPrior);
     moveCurrentPrice(settled);
