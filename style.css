@@ -1193,10 +1193,6 @@ svg.chart{
   }
 
 
-
-
-
-
   .hold-position-table tbody tr.summary-row td:first-child{
     background:#f8fafc !important;
     z-index:4;
@@ -2270,62 +2266,6 @@ svg.chart{
   scroll-margin-top:76px;
 }
 @media(max-width:760px){
-    .mobile-nav-toggle{
-    width:42px;
-    height:42px;
-    border-radius:999px;
-    border:1px solid rgba(255,255,255,.36);
-    background:rgba(15,23,42,.88);
-    color:#fff;
-    font-size:20px;
-    font-weight:900;
-    box-shadow:0 12px 34px rgba(15,23,42,.32);
-    backdrop-filter:blur(10px);
-    cursor:pointer;
-  }
-  .mobile-nav-menu{
-    display:none;
-    position:absolute;
-    top:48px;
-    right:0;
-    width:min(280px, calc(100vw - 24px));
-    max-height:70vh;
-    overflow:auto;
-    border:1px solid var(--line);
-    border-radius:18px;
-    padding:8px;
-    background:rgba(255,255,255,.96);
-    box-shadow:0 24px 70px rgba(15,23,42,.28);
-    backdrop-filter:blur(12px);
-  }
-    .mobile-nav-menu.show{
-    display:block;
-  }
-  .mobile-nav-menu button{
-    width:100%;
-    display:block;
-    border:0;
-    background:transparent;
-    color:var(--text);
-    text-align:left;
-    padding:9px 10px;
-    border-radius:12px;
-    font-size:13px;
-    font-weight:900;
-    cursor:pointer;
-  }
-  .mobile-nav-menu button.sub{
-    padding-left:24px;
-    color:var(--muted);
-    font-size:12.5px;
-    font-weight:800;
-  }
-  .mobile-nav-menu button:hover{
-    background:#eef2ff;
-  }
-  .dark .mobile-nav-menu button:hover{
-    background:#1f2937;
-  }
 }
 
 
@@ -2484,9 +2424,6 @@ svg.chart{
 }
 
 /* 최종 QA 보정: 모달 오픈 시 모바일 메뉴 버튼 숨김 */
-.contrib-modal-open .mobile-nav-menu-wrap{
-  display:none !important;
-}
 
 /* 최종 QA 보정: 평가총액 현금 포함 문구 축소 */
 .cash-include-detail{
@@ -2874,57 +2811,7 @@ svg.chart{
 }
 
 /* Restored pretty mobile nav menu */
-.mobile-nav-menu-wrap{
-  display:none;
-}
 @media(max-width:760px){
-  .mobile-nav-menu-wrap{
-    display:block;
-    position:fixed;
-    top:58px;
-    right:12px;
-    z-index:2200;
-  }
-  .mobile-nav-toggle{
-    width:42px;
-    height:42px;
-    border-radius:999px;
-    border:1px solid rgba(255,255,255,.36);
-    background:rgba(15,23,42,.90);
-    color:#fff;
-    font-size:20px;
-    font-weight:900;
-    box-shadow:0 12px 34px rgba(15,23,42,.32);
-    backdrop-filter:blur(10px);
-    cursor:pointer;
-  }
-  .mobile-nav-menu{
-    display:none;
-    position:fixed;
-    top:108px;
-    right:12px;
-    width:min(330px, calc(100vw - 24px));
-    max-height:calc(100vh - 130px);
-    overflow:auto;
-    border:1px solid rgba(203,213,225,.82);
-    border-radius:24px;
-    padding:12px;
-    background:rgba(255,255,255,.96);
-    box-shadow:0 26px 80px rgba(15,23,42,.30);
-    backdrop-filter:blur(16px);
-  }
-  .dark .mobile-nav-menu{
-    background:rgba(17,24,39,.96);
-    border-color:rgba(148,163,184,.24);
-  }
-  .mobile-nav-menu.show{
-    display:block;
-    animation:mobileMenuPop .16s ease-out;
-  }
-  @keyframes mobileMenuPop{
-    from{opacity:0;transform:translateY(-8px) scale(.98)}
-    to{opacity:1;transform:translateY(0) scale(1)}
-  }
   .mobile-nav-head{
     display:flex;
     align-items:center;
@@ -3013,18 +2900,7 @@ svg.chart{
     color:var(--muted);
     line-height:1.2;
   }
-  .mobile-nav-menu::-webkit-scrollbar{
-    width:8px;
-  }
-  .mobile-nav-menu::-webkit-scrollbar-thumb{
-    background:#cbd5e1;
-    border-radius:999px;
-  }
-  .dark .mobile-nav-menu::-webkit-scrollbar-thumb{
-    background:#475569;
-  }
 }
-
 
 
 /* Source section panel restore */
@@ -3270,8 +3146,6 @@ svg.chart{
   .krx-action-card{border-radius:22px;padding:22px}
   .app-toast{bottom:16px;border-radius:16px;text-align:center}
 }
-
-
 
 
 /* 2026-07 careful UI fix - final overrides */
@@ -3793,80 +3667,11 @@ svg.chart{
 
 
 /* Top bar related market links */
-.market-link-area{
-  grid-column:1;
-  justify-self:start;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  min-width:0;
-}
 
 .market-link-btn{
   text-decoration:none;
 }
 
-.market-link-menu-wrap{
-  display:none;
-  position:relative;
-}
-
-.market-link-menu{
-  display:none;
-  position:absolute;
-  top:48px;
-  left:0;
-  width:230px;
-  padding:8px;
-  border:1px solid var(--line);
-  border-radius:16px;
-  background:rgba(255,255,255,.96);
-  box-shadow:0 18px 50px rgba(15,23,42,.28);
-  backdrop-filter:blur(12px);
-  z-index:2300;
-}
-
-.market-link-menu.show{
-  display:block;
-}
-
-.market-link-menu a{
-  width:100%;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  box-sizing:border-box;
-  text-decoration:none;
-  color:#111827;
-  text-align:left;
-  padding:10px 11px;
-  border-radius:12px;
-  font-size:13px;
-  font-weight:900;
-  cursor:pointer;
-}
-
-.market-link-menu a:hover{
-  background:#eef2ff;
-}
-
-.market-link-menu-icon{
-  display:inline;
-  font-size:18px;
-}
-
-.dark .market-link-menu{
-  background:rgba(15,23,42,.96);
-  border-color:rgba(148,163,184,.24);
-}
-
-.dark .market-link-menu a{
-  color:#e5e7eb;
-}
-
-.dark .market-link-menu a:hover{
-  background:#1e293b;
-}
 
 @media(max-width:760px){
   .date-picker{
@@ -3874,8 +3679,8 @@ svg.chart{
     gap:6px;
   }
 
-  .market-link-area,
   .date-picker-center,
+
   .date-picker-action{
     display:contents;
   }
@@ -3884,17 +3689,6 @@ svg.chart{
     display:none !important;
   }
 
-  .market-link-menu-wrap{
-    display:block;
-    justify-self:start;
-  }
-
-  .market-link-menu-btn{
-    width:40px;
-    height:40px;
-    padding:0;
-    flex:0 0 40px;
-  }
 
   .month-select{
     min-width:0;
@@ -3916,9 +3710,6 @@ svg.chart{
     right:0;
   }
 
-  .market-link-menu{
-    left:0;
-  }
 }
 
 
@@ -3931,16 +3722,6 @@ svg.chart{
     align-items:center !important;
   }
 
-  .market-link-menu-btn{
-    width:34px !important;
-    height:40px !important;
-    padding:0 !important;
-    flex:0 0 34px !important;
-  }
-
-  .market-link-menu-icon{
-    font-size:17px !important;
-  }
 
   .month-select{
     min-width:124px !important;
@@ -3977,9 +3758,6 @@ svg.chart{
     column-gap:3px !important;
   }
 
-  .market-link-menu-btn{
-    width:32px !important;
-  }
 
   .date-tool-menu-btn{
     width:38px !important;
@@ -4003,20 +3781,6 @@ svg.chart{
     align-items:center !important;
   }
 
-  .market-link-menu-wrap{
-    width:40px !important;
-    min-width:40px !important;
-    justify-self:start !important;
-  }
-
-  .market-link-menu-btn{
-    width:40px !important;
-    min-width:40px !important;
-    height:40px !important;
-    padding:0 !important;
-    box-sizing:border-box !important;
-    flex:0 0 40px !important;
-  }
 
   .month-select{
     min-width:112px !important;
@@ -4055,12 +3819,6 @@ svg.chart{
     column-gap:4px !important;
   }
 
-  .market-link-menu-wrap,
-  .market-link-menu-btn{
-    width:38px !important;
-    min-width:38px !important;
-    flex-basis:38px !important;
-  }
 
   .date-tool-menu-btn{
     width:38px !important;
@@ -4354,17 +4112,6 @@ button:active,
     grid-template-columns:minmax(132px,1fr) minmax(88px,.72fr) 42px !important;
     column-gap:6px !important;
   }
-  .market-link-area{
-    display:none !important;
-  }
-  .date-picker-center,
-  .date-picker-action{
-    display:contents !important;
-  }
-  .date-action-menu-wrap{
-    display:block !important;
-    justify-self:end !important;
-  }
   .date-tool-menu-btn{
     width:42px !important;
     min-width:42px !important;
@@ -4403,9 +4150,6 @@ button:active,
   }
   .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{
     margin-right:0 !important;
-  }
-  .mobile-nav-menu-wrap{
-    display:none !important;
   }
 }
 

@@ -233,8 +233,8 @@ function renderUnifiedMobileMenuContent(){
     {
       label:'관리',
       items:[
-        {type:'action',action:'triggerKrxPriceUpdate();closeDateActionMenu();closeMobileNavMenu();',icon:'refresh',title:'KRX 현재가 반영'},
-        {type:'action',action:'openPensionContributionModal();closeDateActionMenu();closeMobileNavMenu();',icon:'wallet',title:'퇴직연금 금액 조정'},
+        {type:'action',action:'triggerKrxPriceUpdate();closeDateActionMenu();',icon:'refresh',title:'KRX 현재가 반영'},
+        {type:'action',action:'openPensionContributionModal();closeDateActionMenu();',icon:'wallet',title:'퇴직연금 금액 조정'},
         {type:'link',url:'calc.html',icon:'calculator',title:'투자 계산기'}
       ]
     },
@@ -272,7 +272,7 @@ function renderUnifiedMobileMenuContent(){
   return groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>{
     const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
     const cls=`mobile-nav-item ${idx?'sub':''}`;
-    if(item.type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" onclick="closeDateActionMenu();closeMobileNavMenu()">${inner}</a>`;
+    if(item.type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" onclick="closeDateActionMenu()">${inner}</a>`;
     if(item.type==='action') return `<button type="button" class="${cls}" onclick="${item.action}">${inner}</button>`;
     return `<button type="button" class="${cls}" onclick="jumpToSection('${item.id}');closeDateActionMenu()">${inner}</button>`;
   }).join('')}</div>`).join('');
@@ -430,21 +430,10 @@ function closeDateActionMenu(){
 }
 function toggleDateActionMenu(event){
   if(event) event.stopPropagation();
-  closeMarketLinkMenu();
   const menu=document.getElementById('dateActionMenu');
   if(menu) menu.classList.toggle('show');
 }
-function closeMarketLinkMenu(){
-  const menu=document.getElementById('marketLinkMenu');
-  if(menu) menu.classList.remove('show');
-}
-function toggleMarketLinkMenu(event){
-  if(event) event.stopPropagation();
-  closeDateActionMenu();
-  const menu=document.getElementById('marketLinkMenu');
-  if(menu) menu.classList.toggle('show');
-}
-document.addEventListener('click',()=>{closeDateActionMenu();closeMarketLinkMenu()});
+document.addEventListener('click',()=>{closeDateActionMenu()});
 async function dispatchKrxPriceUpdate(pin, mode='selected'){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   const selectedDate=ACTIVE_DATE || '';
@@ -599,21 +588,9 @@ async function triggerKrxPriceUpdate(){
   openKrxActionModal();
 }
 
-function closeMobileNavMenu(){
-  const menu=document.getElementById('mobileNavMenu');
-  if(menu) menu.classList.remove('show');
-}
-function toggleMobileNavMenu(){
-  const menu=document.getElementById('mobileNavMenu');
-  if(menu) menu.classList.toggle('show');
-}
 function jumpToSection(id){
   const el=document.getElementById(id);
-  closeMobileNavMenu();
   if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
-}
-function renderMobileNavMenu(){
-  return '';
 }
 
 
@@ -711,7 +688,7 @@ function render(){
   const x=calc(ACTIVE_DATE);
   renderTabs();
   const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:'';
-  document.getElementById('app').innerHTML=`<div class="wrap">${renderMobileNavMenu()}<header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
+  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
   drawAllCharts();
   setupPensionVizTooltips();
   ensureMobileTopButton();
@@ -1375,8 +1352,6 @@ async function deleteSelectedPensionContribution(){
 document.addEventListener('click',e=>{
   const actionWrap=e.target.closest?.('.date-action-menu-wrap');
   if(!actionWrap) closeDateActionMenu();
-  const wrap=e.target.closest?.('.mobile-nav-menu-wrap');
-  if(!wrap) closeMobileNavMenu();
 });
 
 
