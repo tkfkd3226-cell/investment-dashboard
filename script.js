@@ -272,7 +272,7 @@ function renderUnifiedMobileMenuContent(){
 }
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
-  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select></div><div class="date-picker-action"><a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물"><span class="date-tool-action-icon">🌙</span>코스피200 야간선물</a><a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물"><span class="date-tool-action-icon">🚀</span>나스닥100 선물</a><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()"><span class="date-tool-action-icon">💰</span>퇴직연금 금액 조정</button><a class="date-tool-btn date-tool-btn-desktop" href="calc.html" target="_blank" rel="noopener noreferrer" title="투자 손실 회복 계산기" aria-label="투자 손실 회복 계산기" style="text-decoration:none"><span class="date-tool-action-icon">🧮</span>투자 손실 회복 계산기</a><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="메뉴" aria-label="메뉴" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">☰</span></button><div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="모바일 통합 메뉴"><div class="mobile-nav-head"><button type="button" onclick="closeDateActionMenu()" aria-label="메뉴 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div></div></div></div>`;
+  document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select></div><div class="date-picker-action"><a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물"><span class="date-tool-action-icon">🌙</span>코스피200 야간선물</a><a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물"><span class="date-tool-action-icon">🚀</span>나스닥100 선물</a><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()"><span class="date-tool-action-icon">💰</span>퇴직연금 금액 조정</button><a class="date-tool-btn date-tool-btn-desktop" href="calc.html" target="_blank" rel="noopener noreferrer" title="투자 손실 회복 계산기" aria-label="투자 손실 회복 계산기" style="text-decoration:none"><span class="date-tool-action-icon">🧮</span>투자 손실 회복 계산기</a><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button><div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><span>목차</span><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div></div></div></div>`;
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
@@ -340,6 +340,29 @@ function setChartCompareMode(scope,mode){
   if(scope==='pension')drawPensionCumChart();else drawCumChart();
 }
 
+function scrollToDashboardTop(){
+  window.scrollTo({top:0,left:0,behavior:'smooth'});
+}
+function ensureMobileTopButton(){
+  let button=document.getElementById('mobileTopButton');
+  if(!button){
+    button=document.createElement('button');
+    button.id='mobileTopButton';
+    button.type='button';
+    button.className='mobile-top-button';
+    button.textContent='TOP';
+    button.setAttribute('aria-label','화면 맨 위로 이동');
+    button.addEventListener('click',scrollToDashboardTop);
+    document.body.appendChild(button);
+  }
+  const update=()=>button.classList.toggle('show',(window.scrollY||document.documentElement.scrollTop||0)>220);
+  if(!window.__mobileTopScrollBound){
+    window.__mobileTopScrollBound=true;
+    window.addEventListener('scroll',update,{passive:true});
+  }
+  update();
+}
+
 function closeDateActionMenu(){
   const menu=document.getElementById('dateActionMenu');
   if(menu) menu.classList.remove('show');
@@ -376,13 +399,10 @@ async function dispatchKrxPriceUpdate(pin, mode='selected'){
   };
 
   // selected: 현재 화면의 기준일을 강제로 재갱신
-  // auto: KOSPI 과거 지수 보충을 즉시 실행할 수 있도록 임시로 선택일도 함께 전달한다.
-  // 종가 반영 완료 여부를 검사해 워크플로를 건너뛰는 서버측 조건을 우회하기 위한 임시 처리다.
+  // auto: 날짜를 보내지 않아 서버가 최신/누락 여부와 종가 반영 상태를 판단한다.
+  // 이미 종가가 반영된 경우 서버측 조건에 따라 워크플로 실행을 건너뛴다.
   if(updateMode==='selected'){
     body.date=selectedDate;
-  }else{
-    body.date=selectedDate;
-    body.force=true;
   }
 
   const res=await fetch(config.url,{
@@ -433,7 +453,7 @@ function ensureKrxActionModal(){
     <div class="krx-action-buttons">
       <button type="button" class="ghost" onclick="closeKrxActionModal()">취소</button>
       <button type="button" class="ghost" onclick="submitKrxActionModal('auto')">최신/누락 반영</button>
-      <button type="button" class="primary" onclick="submitKrxActionModal('selected')">선택일<br>재갱신</button>
+      <button type="button" class="primary" onclick="submitKrxActionModal('selected')"><span class="krx-selected-line">선택일</span><span class="krx-selected-space"> </span><span class="krx-selected-line">재갱신</span></button>
     </div>
   </div>`;
   document.body.appendChild(modal);
@@ -633,6 +653,7 @@ function render(){
   document.getElementById('app').innerHTML=`<div class="wrap">${renderMobileNavMenu()}<header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
   drawAllCharts();
   setupPensionVizTooltips();
+  ensureMobileTopButton();
 }
 function renderResultSummary(x){
   const c=PORTFOLIO.constants;
@@ -1269,7 +1290,7 @@ async function savePensionContribution(){
     showPensionContributionStatus('PIN 입력 대기 중...','ok');
     const data=await requestPensionActionPin({
       title:`${targetText} 저장`,
-      description:`${targetText}을 GitHub 파일에 저장합니다. PIN 6자리를 입력하세요.`,
+      description:item.target==='cashSnapshot'?'현금성자산 평가금액을 GitHub 파일에 저장합니다.':`${targetText}을 GitHub 파일에 저장합니다. PIN 6자리를 입력하세요.`,
       execute:pin=>savePensionContributionViaGithubPages(item,pin)
     });
     if(!data){showPensionContributionStatus('저장이 취소되었습니다.','err');return}

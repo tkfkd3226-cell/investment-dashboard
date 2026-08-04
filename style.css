@@ -5295,3 +5295,242 @@ button:active,
   #pension-chart-cum .chart-note.six .m-detail,
   #chart-cum .chart-note.six .m-detail{font-size:7.9px !important}
 }
+
+/* 2026-08-04 navigation + KRX modal final adjustments */
+.date-tool-menu-label{
+  display:inline;
+  white-space:nowrap;
+}
+.krx-selected-line,
+.krx-selected-space{
+  display:inline;
+}
+.mobile-top-button{
+  display:none;
+}
+
+@media(min-width:761px){
+  /* Desktop table-of-contents button on the actual content right edge. */
+  .date-action-menu-wrap{
+    display:block !important;
+    position:relative !important;
+    z-index:5200 !important;
+  }
+  .date-tool-menu-btn{
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    height:32px !important;
+    padding:0 10px !important;
+    flex:0 0 auto !important;
+  }
+  .date-tool-menu-btn .date-tool-icon{
+    display:inline !important;
+    margin:0 !important;
+    font-size:14px !important;
+    line-height:1 !important;
+  }
+  .date-tool-menu-btn .date-tool-menu-label{
+    display:inline !important;
+    margin:0 !important;
+  }
+  .date-action-menu.mobile-combined-menu{
+    position:absolute !important;
+    top:39px !important;
+    right:0 !important;
+    left:auto !important;
+    width:300px !important;
+    max-height:calc(100vh - 68px) !important;
+    overflow:auto !important;
+    padding:8px !important;
+    border:1px solid #d0d7de !important;
+    border-radius:12px !important;
+    background:#fff !important;
+    box-shadow:0 16px 40px rgba(27,31,36,.2) !important;
+    backdrop-filter:none !important;
+    z-index:9999 !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu{
+    background:#0d1117 !important;
+    border-color:#30363d !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-head{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    padding:2px 4px 6px !important;
+    margin:0 !important;
+    color:#24292f !important;
+    font-size:13px !important;
+    font-weight:800 !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head{color:#c9d1d9 !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head span{
+    margin:0 !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-head button{
+    width:28px !important;
+    height:28px !important;
+    padding:0 !important;
+    border:0 !important;
+    border-radius:6px !important;
+    background:transparent !important;
+    color:#57606a !important;
+    text-align:center !important;
+    font-size:21px !important;
+    line-height:1 !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-head button:hover{background:#f6f8fa !important;color:#24292f !important}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head button{color:#8b949e !important}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head button:hover{background:#161b22 !important;color:#c9d1d9 !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group{
+    margin:6px 0 0 !important;
+    padding:6px 0 0 !important;
+    border-top:1px solid #d8dee4 !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{
+    margin-top:0 !important;
+    padding-top:0 !important;
+    border-top:0 !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group{border-top-color:#30363d !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group p{
+    margin:4px 8px !important;
+    color:#6e7781 !important;
+    font-size:11px !important;
+    font-weight:700 !important;
+    line-height:16px !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group p{color:#8b949e !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item,
+  .date-action-menu.mobile-combined-menu a.mobile-nav-item,
+  .date-action-menu.mobile-combined-menu button.mobile-nav-item{
+    width:100% !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:8px !important;
+    min-height:34px !important;
+    padding:6px 8px !important;
+    border:0 !important;
+    border-radius:6px !important;
+    background:transparent !important;
+    color:#24292f !important;
+    text-align:left !important;
+    text-decoration:none !important;
+    font-size:13px !important;
+    font-weight:400 !important;
+    line-height:19px !important;
+    cursor:pointer !important;
+    box-shadow:none !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-item:hover,
+  .date-action-menu.mobile-combined-menu a.mobile-nav-item:hover,
+  .date-action-menu.mobile-combined-menu button.mobile-nav-item:hover{background:#f6f8fa !important}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-item,
+  .dark .date-action-menu.mobile-combined-menu a.mobile-nav-item,
+  .dark .date-action-menu.mobile-combined-menu button.mobile-nav-item{color:#c9d1d9 !important}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-item:hover,
+  .dark .date-action-menu.mobile-combined-menu a.mobile-nav-item:hover,
+  .dark .date-action-menu.mobile-combined-menu button.mobile-nav-item:hover{background:#161b22 !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item span{margin:0 !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{
+    flex:0 0 17px !important;
+    width:17px !important;
+    height:17px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    color:#57606a !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{width:17px !important;height:17px !important}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{color:#8b949e !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item strong{
+    color:inherit !important;
+    font-size:13px !important;
+    font-weight:600 !important;
+    line-height:19px !important;
+  }
+
+  /* Keep the selected-date refresh label on one line on desktop. */
+  .krx-action-buttons{
+    grid-template-columns:auto minmax(112px,1fr) minmax(116px,.86fr) !important;
+  }
+  .krx-action-buttons .primary{
+    white-space:nowrap !important;
+  }
+}
+
+@media(max-width:760px){
+  .date-tool-menu-label{display:none !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head{
+    justify-content:space-between !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-head span{
+    display:block !important;
+    margin:0 0 0 5px !important;
+    color:#57606a !important;
+    font-size:11px !important;
+    font-weight:800 !important;
+    line-height:25px !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head span{color:#8b949e !important}
+  .krx-selected-line{display:block !important}
+  .krx-selected-space{display:none !important}
+
+  .mobile-top-button{
+    position:fixed;
+    right:14px;
+    bottom:max(16px,calc(env(safe-area-inset-bottom) + 10px));
+    z-index:2400;
+    width:43px;
+    height:43px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    border:1px solid #d0d7de;
+    border-radius:50%;
+    background:rgba(255,255,255,.96);
+    color:#334155;
+    font-family:inherit;
+    font-size:10px;
+    font-weight:950;
+    letter-spacing:-.02em;
+    box-shadow:0 9px 24px rgba(15,23,42,.18);
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(8px);
+    transition:opacity .18s ease,transform .18s ease,visibility .18s ease;
+    cursor:pointer;
+  }
+  .mobile-top-button.show{
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0);
+  }
+  .mobile-top-button:active{transform:scale(.96)}
+  .dark .mobile-top-button{
+    border-color:#374151;
+    background:rgba(17,24,39,.96);
+    color:#e5e7eb;
+  }
+}
+
+/* Narrow desktop: keep left date controls and right action group separate without overlap. */
+@media(min-width:761px) and (max-width:1180px){
+  .date-picker{
+    grid-template-columns:1fr auto !important;
+    grid-template-rows:auto auto !important;
+    row-gap:6px !important;
+  }
+  .date-picker-center{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    justify-self:start !important;
+  }
+  .date-picker-action{
+    grid-column:1 / -1 !important;
+    grid-row:2 !important;
+    justify-self:end !important;
+  }
+}
