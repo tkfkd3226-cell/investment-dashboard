@@ -5712,12 +5712,14 @@ button:active,
 
 /* iPad Pro: remove only the small, unnecessary table/chart overflow. */
 @media (min-width:901px) and (max-width:1100px){
+  #summary-section .mobile-scroll,
   #pension-products .mobile-scroll,
   #securities-holdings .mobile-scroll,
   #accounts-summary .accounts-scroll{
     overflow-x:hidden !important;
   }
 
+  .combined-performance-table,
   .pension-products-table,
   .hold-position-table,
   .accounts-scroll .accounts-table{
@@ -5790,9 +5792,11 @@ button:active,
     grid-template-columns:repeat(4,minmax(0,1fr)) !important;
   }
 
+  #pension-investment-analysis .chart-wrap,
   #investment-analysis .chart-wrap{
     overflow-x:hidden !important;
   }
+  #pension-investment-analysis .chart-wrap svg.chart,
   #investment-analysis .chart-wrap svg.chart{
     width:100% !important;
     min-width:100% !important;
