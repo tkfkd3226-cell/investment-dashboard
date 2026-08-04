@@ -94,13 +94,6 @@ const defaultPensionContributionMemo=d=>{
 };
 const hasPensionData=d=>{const pp=PRICES?.[d]?.pension||{};return !!(pp['278530']&&pp['395160']&&pp['448330'])};
 const dayOptionLabel=d=>{const [y,m,day]=d.split('-');const w='일월화수목금토'[new Date(d+'T00:00:00').getDay()];return `${Number(m)}/${Number(day)} ${w}`};
-const sectionScopeText=x=>{
-  const parts=['계좌1'];
-  if(x.tossIncluded)parts.push('토스');
-  if(x.account2Included)parts.push('계좌2');
-  if(x.hasPension)parts.push('퇴직연금');
-  return parts.join(' + ');
-};
 const securitiesScopeText=x=>{
   const parts=['계좌1'];
   if(x.account2Included)parts.push('계좌2');
@@ -456,7 +449,7 @@ async function dispatchKrxPriceUpdate(pin, mode='selected'){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   const selectedDate=ACTIVE_DATE || '';
   const updateMode=mode==='auto'?'auto':'selected';
-  
+
   if(!config.url || config.url.includes('여기에_')){
     throw new Error('Apps Script URL이 설정되지 않았습니다.');
   }
@@ -1018,15 +1011,6 @@ function addHover(svg,cfg,data,renderHtml){
   svg.addEventListener('pointerdown',evt=>{if(evt.target!==hit)clearChartHover()});
 }
 
-function safeScale(min,max,pad=0){
-  if(!Number.isFinite(min)||!Number.isFinite(max)) return {min:0,max:1};
-  if(min===max){
-    const base=Math.max(1,Math.abs(max))*0.1;
-    return {min:min-base,max:max+base};
-  }
-  const span=max-min;
-  return {min:min-span*pad,max:max+span*pad};
-}
 function niceStep(rawStep){
   if(!Number.isFinite(rawStep)||rawStep<=0) return 1;
   const exp=Math.floor(Math.log10(rawStep));
@@ -1061,23 +1045,6 @@ function fixedTickInfo(min,max,step,forceZero=false){
     ticks.push(Math.round(v));
   }
   return {min:niceMin,max:niceMax,ticks};
-}
-function alignedDualTickInfo(leftMin,leftMax,leftStep,rightMin,rightMax,rightStep){
-  const lb=Math.ceil(Math.max(0,-leftMin)/leftStep);
-  const la=Math.ceil(Math.max(0,leftMax)/leftStep);
-  const rb=Math.ceil(Math.max(0,-rightMin)/rightStep);
-  const ra=Math.ceil(Math.max(0,rightMax)/rightStep);
-  const below=Math.max(lb,rb,1);
-  const above=Math.max(la,ra,1);
-  const leftTicks=[],rightTicks=[];
-  for(let i=-below;i<=above;i++){
-    leftTicks.push(Math.round(i*leftStep));
-    rightTicks.push(Math.round(i*rightStep));
-  }
-  return {
-    left:{min:leftTicks[0],max:leftTicks[leftTicks.length-1],ticks:leftTicks},
-    right:{min:rightTicks[0],max:rightTicks[rightTicks.length-1],ticks:rightTicks}
-  };
 }
 
 function pensionSeriesColor(name){

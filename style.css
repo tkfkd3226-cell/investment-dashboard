@@ -987,10 +987,6 @@ svg.chart{
 }
 
 
-@media (max-width:520px){
-  
-}
-
 @media (min-width:1101px) and (max-width:1250px){
   .pension-detail-grid{
     grid-template-columns:1fr !important;
@@ -1196,25 +1192,10 @@ svg.chart{
     z-index:2;
   }
 
-  .hold-position-table tbody tr.ticker-samsung td:first-child{
-    background:#fff3d0 !important;
-  }
 
-  .hold-position-table tbody tr.ticker-sk td:first-child{
-    background:#ffe3e3 !important;
-  }
 
-  .hold-position-table tbody tr.ticker-hyundai td:first-child{
-    background:#e3f2ff !important;
-  }
 
-  .hold-position-table tbody tr.ticker-kodex td:first-child{
-    background:#e9f7e9 !important;
-  }
 
-  .hold-position-table tbody tr.ticker-mini td:first-child{
-    background:#f0f2f5 !important;
-  }
 
   .hold-position-table tbody tr.summary-row td:first-child{
     background:#f8fafc !important;
@@ -1305,14 +1286,6 @@ svg.chart{
   grid-template-columns:repeat(6,minmax(0,1fr)) !important;
 }
 
-.chart-note.six 
-.chart-note.six .m-detail{
-  margin-top:5px;
-  color:var(--muted);
-  font-size:11px;
-  font-weight:800;
-  line-height:1.35;
-}
 
 @media (max-width:1100px){
   .chart-note.six{
@@ -1347,11 +1320,6 @@ svg.chart{
     letter-spacing:-.025em;
   }
 
-  .chart-note.six 
-.chart-note.six .m-detail{
-    font-size:9.5px !important;
-    line-height:1.25 !important;
-  }
 
   .hold-position-table{
     table-layout:auto !important;
@@ -1681,8 +1649,7 @@ svg.chart{
   border-color:rgba(148,163,184,.24);
 }
 @media(max-width:720px){
-  .section-title{align-items:flex-start}
-  .title-badge{font-size:11px;padding:4px 8px}
+    .title-badge{font-size:11px;padding:4px 8px}
 }
 
 .section-title p,
@@ -2302,18 +2269,8 @@ svg.chart{
 [id]{
   scroll-margin-top:76px;
 }
-.mobile-nav-menu-wrap{
-  display:none;
-}
 @media(max-width:760px){
-  .mobile-nav-menu-wrap{
-    display:block;
-    position:fixed;
-    top:58px;
-    right:12px;
-    z-index:2200;
-  }
-  .mobile-nav-toggle{
+    .mobile-nav-toggle{
     width:42px;
     height:42px;
     border-radius:999px;
@@ -2341,11 +2298,7 @@ svg.chart{
     box-shadow:0 24px 70px rgba(15,23,42,.28);
     backdrop-filter:blur(12px);
   }
-  .dark .mobile-nav-menu{
-    background:rgba(17,24,39,.96);
-    border-color:rgba(148,163,184,.24);
-  }
-  .mobile-nav-menu.show{
+    .mobile-nav-menu.show{
     display:block;
   }
   .mobile-nav-menu button{
@@ -2436,18 +2389,7 @@ svg.chart{
     gap:6px !important;
     align-items:center !important;
   }
-  .date-picker-center,
-  .date-picker-action{
-    display:contents !important;
-  }
-  .month-select,
-  .day-select{
-    min-width:0 !important;
-    width:100% !important;
-    max-width:100% !important;
-    flex:initial !important;
-  }
-  .date-select{
+      .date-select{
     min-width:0 !important;
     width:100% !important;
     max-width:100% !important;
@@ -2890,9 +2832,6 @@ svg.chart{
     background:#e9f7e9 !important;
   }
 
-  .hold-position-table tbody tr.ticker-mini td:first-child{
-    background:#f0f2f5 !important;
-  }
 
   .hold-position-table tbody tr.summary-row td:first-child{
     background:#f8fafc !important;
@@ -3176,9 +3115,6 @@ svg.chart{
   gap:8px;
 }
 
-.date-action-menu button span{
-  flex:0 0 auto;
-}
 
 /* KRX 현재가 반영: 브라우저 기본 alert/prompt 대신 커스텀 모달 */
 .krx-action-modal{
@@ -5852,5 +5788,65 @@ button:active,
   .combined-performance-table td{
     padding:6px 8px !important;
     line-height:1.22 !important;
+  }
+}
+
+/* Tablet chart navigation: show controls only when the chart actually overflows. */
+@media (min-width:761px) and (max-width:1100px){
+  .chart-card.has-horizontal-scroll .chart-scroll-row{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:5px;
+    min-height:27px;
+    margin:2px 1px 5px;
+  }
+  .chart-card.has-horizontal-scroll .chart-scroll-start,
+  .chart-card.has-horizontal-scroll .chart-scroll-end{
+    display:inline-flex !important;
+    align-items:center;
+    justify-content:center;
+    width:27px !important;
+    height:27px !important;
+    flex:0 0 27px !important;
+    padding:0 !important;
+    border:1px solid #cbd5e1;
+    border-radius:8px !important;
+    background:#fff;
+    color:#334155;
+    font-size:16px !important;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:none !important;
+  }
+}
+
+/* Keep hidden/touch pension stack tooltips inside the viewport on narrow screens. */
+@media (max-width:900px){
+  .pension-stack-bar.compact.simple .pension-stack-segment:first-child .pension-viz-tooltip{
+    left:0;
+    transform:translateY(6px);
+  }
+  .pension-stack-bar.compact.simple .pension-stack-segment:last-child .pension-viz-tooltip{
+    left:auto;
+    right:0;
+    transform:translateY(6px);
+  }
+  .pension-stack-bar.compact.simple .pension-stack-segment:first-child:hover .pension-viz-tooltip,
+  .pension-stack-bar.compact.simple .pension-stack-segment:first-child:focus-within .pension-viz-tooltip,
+  .pension-stack-bar.compact.simple .pension-stack-segment:first-child.tooltip-open .pension-viz-tooltip,
+  .pension-stack-bar.compact.simple .pension-stack-segment:last-child:hover .pension-viz-tooltip,
+  .pension-stack-bar.compact.simple .pension-stack-segment:last-child:focus-within .pension-viz-tooltip,
+  .pension-stack-bar.compact.simple .pension-stack-segment:last-child.tooltip-open .pension-viz-tooltip{
+    transform:translateY(0);
+  }
+  .pension-stack-bar.compact.simple .pension-stack-segment:first-child .pension-viz-tooltip::after{
+    left:7px;
+    transform:none;
+  }
+  .pension-stack-bar.compact.simple .pension-stack-segment:last-child .pension-viz-tooltip::after{
+    left:auto;
+    right:7px;
+    transform:none;
   }
 }
