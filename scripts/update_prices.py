@@ -5,10 +5,12 @@ from __future__ import annotations
 import argparse
 import json
 import time
+import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+import requests
 from pykrx import stock
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +18,7 @@ PORTFOLIO_PATH = ROOT / "data" / "portfolio.json"
 PRICES_PATH = ROOT / "data" / "prices.json"
 SNAPSHOTS_PATH = ROOT / "data" / "performance_snapshots.json"
 KST = timezone(timedelta(hours=9))
+KOSPI_INDEX_TICKER = "1001"
 
 
 def today_kst() -> str:
@@ -79,6 +82,121 @@ def fetch_close(ticker: str, target_date: str, lookback_days: int = 7, retries: 
             time.sleep(retry_delay)
 
     return None, None, last_error
+
+
+def fetch_index_history_from_pykrx(
+    start_date: str,
+    end_date: str,
+    ticker: str = KOSPI_INDEX_TICKER,
+    retries: int = 2,
+    retry_delay: float = 1.5,
+):
+    last_error = None
+    for attempt in range(retries + 1):
+        try:
+            getter = getattr(stock, "get_index_ohlcv", None) or getattr(stock, "get_index_ohlcv_by_date", None)
+            if getter is None:
+                raise AttributeError("pykrx index OHLCV function is unavailable")
+            df = getter(start_date.replace("-", ""), end_date.replace("-", ""), ticker)
+            if df is None or df.empty:
+                last_error = "empty-dataframe"
+            else:
+                values: dict[str, float] = {}
+                for index, row in df.iterrows():
+                    date = index.strftime("%Y-%m-%d") if hasattr(index, "strftime") else str(index)[:10]
+                    close = row.get("종가")
+                    if close is not None:
+                        values[date] = round(float(close), 2)
+                if values:
+                    return values, None
+                last_error = "empty-close-values"
+        except Exception as exc:
+            last_error = repr(exc)
+        if attempt < retries:
+            time.sleep(retry_delay)
+    return {}, last_error
+
+
+def fetch_index_history_from_naver(start_date: str, end_date: str):
+    """Fallback for environments where KRX index endpoints require a login session."""
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    today = datetime.now(KST).replace(tzinfo=None)
+    calendar_days = max(1, (today - start).days)
+    count = min(5000, max(180, int(calendar_days * 1.7) + 45))
+    url = "https://fchart.stock.naver.com/sise.nhn"
+    response = requests.get(
+        url,
+        params={
+            "symbol": "KOSPI",
+            "timeframe": "day",
+            "count": count,
+            "requestType": 0,
+        },
+        headers={"User-Agent": "Mozilla/5.0 (compatible; investment-dashboard/1.0)"},
+        timeout=20,
+    )
+    response.raise_for_status()
+
+    root = ET.fromstring(response.content)
+    values: dict[str, float] = {}
+    for item in root.findall(".//item"):
+        parts = str(item.attrib.get("data", "")).split("|")
+        if len(parts) < 5:
+            continue
+        raw_date, raw_close = parts[0], parts[4]
+        if len(raw_date) != 8:
+            continue
+        date = f"{raw_date[:4]}-{raw_date[4:6]}-{raw_date[6:8]}"
+        if start_date <= date <= end_date:
+            values[date] = round(float(raw_close), 2)
+    if not values:
+        raise ValueError("Naver KOSPI chart returned no values in requested range")
+    return values
+
+
+def fetch_index_history(start_date: str, end_date: str, ticker: str = KOSPI_INDEX_TICKER):
+    values, pykrx_error = fetch_index_history_from_pykrx(start_date, end_date, ticker)
+    if values:
+        return values, None
+
+    try:
+        values = fetch_index_history_from_naver(start_date, end_date)
+        print(f"WARN pykrx KOSPI lookup failed; Naver chart fallback used: {pykrx_error}")
+        return values, None
+    except Exception as naver_exc:
+        return {}, f"pykrx={pykrx_error}; naver={naver_exc!r}"
+
+
+def backfill_kospi_index(prices: dict[str, Any], snapshots: dict[str, Any], through_date: str) -> list[str]:
+    stored_dates = sorted({
+        date for date in [*prices.keys(), *snapshots.keys()]
+        if is_valid_date_text(date) and date <= through_date
+    })
+    if not stored_dates:
+        return []
+
+    history, error = fetch_index_history(stored_dates[0], through_date)
+    if not history:
+        print(f"WARN KOSPI index backfill failed: {error}")
+        return []
+
+    changed: list[str] = []
+    for date, close in history.items():
+        touched = False
+        if date in snapshots and float(snapshots[date].get("kospi", 0) or 0) != close:
+            snapshots[date]["kospi"] = close
+            touched = True
+        if date in prices:
+            indices = prices[date].setdefault("indices", {})
+            if float(indices.get("KOSPI", 0) or 0) != close:
+                indices["KOSPI"] = close
+                touched = True
+        if touched:
+            changed.append(date)
+
+    if changed:
+        print(f"updated KOSPI index for {len(changed)} stored dates ({changed[0]} ~ {changed[-1]})")
+    return changed
 
 
 def date_range(start_date: str, end_date: str) -> list[str]:
@@ -355,11 +473,10 @@ def main() -> int:
 
     target_dates = resolve_target_dates(portfolio, prices, explicit_date or None)
 
-    if not target_dates:
-        print("No missing trading dates to update.")
-        return 0
-
-    print("target dates: " + ", ".join(target_dates))
+    if target_dates:
+        print("target dates: " + ", ".join(target_dates))
+    else:
+        print("No missing trading dates to update. KOSPI index backfill will still be checked.")
 
     all_warnings: list[str] = []
 
@@ -374,6 +491,13 @@ def main() -> int:
         )
         all_warnings.extend(warnings)
 
+    kospi_through = explicit_date or today_kst()
+    kospi_changed = backfill_kospi_index(prices, snapshots, kospi_through)
+
+    if not target_dates and not kospi_changed:
+        print("No price, snapshot, or KOSPI index changes to save.")
+        return 0
+
     save_json(PRICES_PATH, dict(sorted(prices.items())))
     save_json(SNAPSHOTS_PATH, dict(sorted(snapshots.items())))
 
@@ -382,7 +506,10 @@ def main() -> int:
         for warning in all_warnings:
             print("-", warning)
 
-    print("updated target dates: " + ", ".join(target_dates))
+    if target_dates:
+        print("updated target dates: " + ", ".join(target_dates))
+    if kospi_changed:
+        print(f"updated KOSPI dates: {len(kospi_changed)}")
     return 0
 
 
