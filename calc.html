@@ -320,6 +320,18 @@
     .triple-grid{grid-template-columns:repeat(3,minmax(165px,1fr));min-width:495px}
     .triple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
     .triple-grid .cell:nth-child(3n){border-right:0}
+
+    /* 이전 거래 없음 전용: 2026-08-04 매수값 빠른 입력 */
+    .current-column{display:flex;flex-direction:column;gap:10px;min-width:0}
+    .current-purchase-preset{display:none;align-items:center;justify-content:flex-start;min-width:0}
+    .input-grid.no-prior-layout .current-purchase-preset{display:flex}
+    .current-purchase-btn{border:1px solid var(--navy);background:#fff;color:var(--navy);border-radius:12px;padding:8px 14px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(29,53,87,.08)}
+    .current-purchase-btn:hover{background:#f3f6fb;border-color:var(--navy2)}
+    .current-purchase-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(73,115,174,.14)}
+    .current-purchase-btn:active{transform:translateY(1px)}
+    @media(min-width:721px){
+      .input-grid.no-prior-layout .calculation-group{margin-top:46px}
+    }
     @media(max-width:720px){
       .prior-entry-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
       .prior-date-section{padding:0 6px 10px}
@@ -400,6 +412,11 @@
         </div>
       </div>
 
+      <div class="current-column" id="currentColumn">
+        <div class="current-purchase-preset" id="currentPurchasePreset">
+          <button class="current-purchase-btn" id="applyBuy20260804" type="button">2026-08-04 매수</button>
+        </div>
+
       <div class="input-group additional-group" id="currentGroup">
         <div class="group-title"><span id="currentGroupTitle">추가매수 내역</span><small id="currentGroupSub"><span class="desktop-only">실제 체결 기준 · 3개 전략 공통</span><span class="mobile-only">실제 체결 기준</span></small></div>
         <div class="fields" id="currentFields">
@@ -422,6 +439,7 @@
           <div class="field" id="out5Field"><label id="out5Label">최종 투자금액</label><input id="out5" class="control" readonly></div>
           <div class="field" id="out6Field"><label id="out6Label">추가매수 반영 총손익률</label><input id="out6" class="control" readonly></div>
         </div>
+      </div>
       </div>
 
       <div class="input-group calculation-group">
@@ -860,6 +878,18 @@
   document.querySelectorAll('.pct-step-btn').forEach(b=>b.addEventListener('click',()=>{const inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;delete inp.dataset.exactValue;disableAutoBreakEven();inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);markCustom();recalc();}));
   document.querySelectorAll('.preset-btn').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));
   $('modeCurrent').addEventListener('click',()=>{disableAutoBreakEven();markCustom();setMode('current');});$('modeRise').addEventListener('click',()=>{disableAutoBreakEven();markCustom();setMode('rise');});$('modeTarget').addEventListener('click',()=>{disableAutoBreakEven();markCustom();setMode('target');});
+  $('applyBuy20260804').addEventListener('click',()=>{
+    if(!noPriorMode)return;
+    activePresetId='current-only';
+    setPresetActive(activePresetId);
+    autoBreakEvenTarget=true;
+    mode='current';
+    $('addPrice').value=nf0.format(94417);
+    $('currentPrice').value=nf0.format(95335);
+    $('addShares').value='532';
+    setMode('current',false);
+    recalc();
+  });
   $('applyActualSellPrice').addEventListener('click',()=>{
     if(noPriorMode)return;
     const actualSellPrice=caseType==='settled'?91065:74580;
