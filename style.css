@@ -5029,3 +5029,137 @@ button:active,
     line-height:17px !important;
   }
 }
+
+
+/* 2026-08-04 follow-up: top controls align to actual content edges */
+@media(min-width:761px){
+  .switcher{
+    justify-content:center !important;
+    padding:6px 24px !important;
+  }
+  .date-picker{
+    width:min(1632px,100%) !important;
+    display:grid !important;
+    grid-template-columns:auto minmax(12px,1fr) auto !important;
+    align-items:center !important;
+    gap:8px !important;
+    flex-wrap:nowrap !important;
+  }
+  .date-picker-center{
+    grid-column:1 !important;
+    justify-self:start !important;
+    justify-content:flex-start !important;
+    flex-wrap:nowrap !important;
+  }
+  .date-picker-action{
+    grid-column:3 !important;
+    justify-self:end !important;
+    justify-content:flex-end !important;
+    flex-wrap:nowrap !important;
+    margin-left:0 !important;
+  }
+}
+
+/* cumulative chart line selector: return rate / KOSPI */
+.chart-head-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:7px;
+  flex:0 0 auto;
+}
+.chart-compare-toggle{
+  display:inline-flex;
+  align-items:center;
+  padding:2px;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  background:#f8fafc;
+}
+.chart-compare-toggle button{
+  min-width:52px;
+  height:27px;
+  padding:0 8px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:#64748b;
+  font-family:inherit;
+  font-size:10.5px;
+  font-weight:900;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.chart-compare-toggle button.active{
+  background:#0f172a;
+  color:#fff;
+  box-shadow:0 2px 7px rgba(15,23,42,.2);
+}
+.dark .chart-compare-toggle{background:#111827;border-color:#334155}
+.dark .chart-compare-toggle button{color:#94a3b8}
+.dark .chart-compare-toggle button.active{background:#e2e8f0;color:#0f172a}
+
+/* KRX action buttons: stable Korean word wrapping on iPhone */
+.krx-action-buttons{
+  display:grid !important;
+  grid-template-columns:auto minmax(112px,1fr) minmax(82px,.78fr) !important;
+  align-items:stretch !important;
+}
+.krx-action-buttons button{
+  width:100% !important;
+  min-width:0 !important;
+  padding:0 10px !important;
+  white-space:normal !important;
+  word-break:keep-all !important;
+  overflow-wrap:normal !important;
+  line-height:1.25 !important;
+}
+
+/* PIN: automatic execution, status remains inside PIN modal */
+.pension-action-pin-guide{
+  margin-top:9px;
+  color:#64748b;
+  font-size:11.5px;
+  font-weight:800;
+  line-height:1.45;
+}
+.pension-action-pin-status.checking{color:#0369a1}
+.pension-action-pin-status.err{color:#dc2626}
+.pension-action-pin-buttons{margin-top:12px}
+.pension-action-pin-buttons .ghost{min-width:72px}
+.pension-action-pin-card input:disabled{opacity:.68;cursor:wait}
+
+@media(max-width:760px){
+  .chart-head-actions{gap:5px}
+  .chart-compare-toggle button{
+    min-width:45px;
+    height:25px;
+    padding:0 6px;
+    font-size:10px;
+  }
+  .krx-action-modal{padding:12px !important}
+  .krx-action-card{padding:22px 18px !important}
+  .krx-action-buttons{
+    grid-template-columns:52px minmax(108px,1fr) minmax(78px,.72fr) !important;
+    gap:6px !important;
+  }
+  .krx-action-buttons button{
+    min-height:42px !important;
+    height:auto !important;
+    padding:5px 7px !important;
+    font-size:12px !important;
+  }
+}
+
+@media(max-width:430px){
+  .chart-head{
+    align-items:flex-start;
+  }
+  .chart-head-actions{
+    margin-left:auto;
+  }
+  .chart-compare-toggle button{
+    min-width:42px;
+    font-size:9.5px;
+  }
+}

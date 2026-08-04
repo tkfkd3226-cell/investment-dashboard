@@ -8,16 +8,18 @@ let PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH
   }
   return `${Number(m)}월 ${Number(day)}일 종가 기준`;
 };
-let pensionContributionSaveMode = 'githubPages';
+const CHART_COMPARE_MODES={securities:'return',pension:'return'};
 const PENSION_CONTRIBUTION_SAVE_CONFIG = {
   githubPages: {
     label: 'GitHub Pages',
     url: 'https://script.google.com/macros/s/AKfycbwxPSFL8VMQLOuncl5ul_leqdnbfjhJve09ZReyaJvjWj8C-5UINeGhtwBxyklRj9AE/exec',
-  },
-  netlify: {
-    label: 'Netlify',
-    url: '/.netlify/functions/save-pension-contribution'
   }
+};
+const formatKospi=n=>Number(n).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const kospiIndexForDate=date=>{
+  const value=SNAPSHOTS?.[date]?.kospi ?? PRICES?.[date]?.indices?.KOSPI;
+  const number=Number(value);
+  return Number.isFinite(number)&&number>0?number:null;
 };
 const allAvailableDates=()=>Array.from(new Set([...(Object.keys(ACCOUNT1_DAILY||{})),...(Object.keys(PRICES||{}).filter(d=>PRICES[d].display!==false))])).sort(byDate);
 const monthLabel=m=>{const [y,mo]=m.split('-');return `${y}년 ${Number(mo)}월`};
@@ -155,6 +157,7 @@ function cumHistory(d){
       '날짜':x,
       '합계 : 누적손익':profit,
       '합계 : 누적수익률':principal?profit/principal*100:0,
+      '코스피 지수':kospiIndexForDate(x),
       '합계 : 전일대비손익':0
     };
   }).map((row,i,arr)=>{
@@ -307,6 +310,36 @@ function scrollChartToEnd(button){
   wrap.scrollTo({left:Math.max(0,wrap.scrollWidth-wrap.clientWidth),behavior:'smooth'});
 }
 
+function chartCompareLabel(scope){
+  return CHART_COMPARE_MODES[scope]==='kospi'?'코스피 지수':'누적수익률';
+}
+function chartCompareDescription(scope){
+  const profitLabel=scope==='pension'?'운용수익':'누적손익';
+  return CHART_COMPARE_MODES[scope]==='kospi'
+    ? `막대는 ${profitLabel}과 전일대비손익, 선은 코스피 지수를 나타냄.`
+    : `막대는 ${profitLabel}과 전일대비손익, 선은 누적수익률을 나타냄.`;
+}
+function chartCompareToggle(scope){
+  const mode=CHART_COMPARE_MODES[scope]||'return';
+  return `<div class="chart-compare-toggle" role="group" aria-label="선 그래프 표시 기준"><button type="button" class="${mode==='return'?'active':''}" data-chart-compare-scope="${scope}" data-chart-compare-mode="return" aria-pressed="${mode==='return'}" onclick="setChartCompareMode('${scope}','return')">수익률</button><button type="button" class="${mode==='kospi'?'active':''}" data-chart-compare-scope="${scope}" data-chart-compare-mode="kospi" aria-pressed="${mode==='kospi'}" onclick="setChartCompareMode('${scope}','kospi')">코스피</button></div>`;
+}
+function setChartCompareMode(scope,mode){
+  if(!['securities','pension'].includes(scope))return;
+  CHART_COMPARE_MODES[scope]=mode==='kospi'?'kospi':'return';
+  document.querySelectorAll(`[data-chart-compare-scope="${scope}"]`).forEach(btn=>{
+    const active=btn.dataset.chartCompareMode===CHART_COMPARE_MODES[scope];
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-pressed',String(active));
+  });
+  const desc=document.getElementById(`${scope}CompareDescription`);
+  if(desc)desc.textContent=chartCompareDescription(scope);
+  const legend=document.getElementById(`${scope}CompareLegend`);
+  if(legend)legend.textContent=chartCompareLabel(scope);
+  const swatch=document.getElementById(`${scope}CompareSwatch`);
+  if(swatch)swatch.style.background=CHART_COMPARE_MODES[scope]==='kospi'?'#7c3aed':'#5abdf2';
+  if(scope==='pension')drawPensionCumChart();else drawCumChart();
+}
+
 function closeDateActionMenu(){
   const menu=document.getElementById('dateActionMenu');
   if(menu) menu.classList.remove('show');
@@ -395,8 +428,8 @@ function ensureKrxActionModal(){
     <div id="krxActionStatus" class="krx-action-status"></div>
     <div class="krx-action-buttons">
       <button type="button" class="ghost" onclick="closeKrxActionModal()">취소</button>
-      <button type="button" class="ghost" onclick="submitKrxActionModal('auto')">최신/누락 자동 반영</button>
-      <button type="button" class="primary" onclick="submitKrxActionModal('selected')">선택일 재갱신</button>
+      <button type="button" class="ghost" onclick="submitKrxActionModal('auto')">최신/누락 반영</button>
+      <button type="button" class="primary" onclick="submitKrxActionModal('selected')">선택일<br>재갱신</button>
     </div>
   </div>`;
   document.body.appendChild(modal);
@@ -452,7 +485,7 @@ async function submitKrxActionModal(mode='selected'){
     if(status){
       status.textContent=updateMode==='selected'
         ? `${selectedDate} KRX 현재가 재갱신 요청 중...`
-        : '최신/누락 KRX 현재가 자동 반영 요청 중...';
+        : '최신/누락 KRX 현재가 반영 요청 중...';
       status.className='krx-action-status ok';
     }
     const data = await dispatchKrxPriceUpdate(pin, updateMode);
@@ -466,7 +499,7 @@ async function submitKrxActionModal(mode='selected'){
 
     const successMsg=updateMode==='selected'
       ? `${selectedDate} KRX 현재가 재갱신 요청 완료. GitHub Actions 완료 후 새로고침해 주세요.`
-      : '최신/누락 KRX 현재가 자동 반영 요청 완료. GitHub Actions 완료 후 새로고침해 주세요.';
+      : '최신/누락 KRX 현재가 반영 요청 완료. GitHub Actions 완료 후 새로고침해 주세요.';
     if(status){status.textContent=successMsg;status.className='krx-action-status ok'}
     showAppToast(updateMode==='selected'?'선택일 KRX 재갱신 요청 완료':'KRX 자동 반영 요청 완료', 'ok');
     setTimeout(closeKrxActionModal,2000);
@@ -519,34 +552,6 @@ function renderSecuritiesSection(x){
   return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon">🏦</span>증권계좌 현황</h2></div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderCharts(x),'charts-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(),'source-block'):''}</div></section>`;
 }
 
-function pensionContributionModeLabel(){
-  return pensionContributionSaveMode==='githubPages'?'GitHub Pages':'Netlify';
-}
-
-function pensionContributionModeHelp(mode=pensionContributionSaveMode){
-  if(mode==='githubPages'){
-    return 'GitHub Pages: Apps Script로 기업적립금/현금성 평가금액을 GitHub에 저장합니다. 저장·삭제 시 PIN 필요.';
-  }
-  return 'Netlify: Netlify Function으로 동일 데이터를 저장합니다. 저장·삭제 시 PIN 필요.';
-}
-
-function setPensionContributionSaveMode(mode){
-  pensionContributionSaveMode = mode==='netlify' ? 'netlify' : 'githubPages';
-
-  document.querySelectorAll('.contrib-save-tab').forEach(btn=>{
-    btn.classList.toggle('active', btn.dataset.saveMode===pensionContributionSaveMode);
-  });
-
-  const help=document.getElementById('contribSaveHelp');
-  if(help) help.textContent=pensionContributionModeHelp();
-
-  const pinBox=document.getElementById('contribPinBox');
-  if(pinBox) pinBox.classList.toggle('netlify-mode', pensionContributionSaveMode==='netlify');
-
-  const pinDesc=document.getElementById('contribPinDesc');
-  if(pinDesc) pinDesc.textContent='GitHub Pages / Netlify 저장과 삭제 모두 PIN 입력 필요';
-}
-
 function renderPensionContributionList(){
   const contribItems=pensionContributionItems()
     .slice()
@@ -576,23 +581,17 @@ function renderPensionContributionModal(x){
   return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle"><span class="section-title-icon">💰</span>퇴직연금 금액 조정</h2><p>기업적립금은 원금/현금성자산을 늘리고, 현금성자산 평가금액은 앱 기준 평가금액으로 보정합니다.</p></div><button type="button" class="contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div>
 <div class="pension-contrib-tool modal-card-box">
   <h3>등록</h3>
-  <div class="contrib-save-tabs" role="tablist" aria-label="저장 방식 선택">
-    <button type="button" class="contrib-save-tab active" data-save-mode="githubPages" onclick="setPensionContributionSaveMode('githubPages')">GitHub Pages</button>
-    <button type="button" class="contrib-save-tab" data-save-mode="netlify" onclick="setPensionContributionSaveMode('netlify')">Netlify</button>
-  </div>
-  <div class="contrib-save-help" id="contribSaveHelp">${pensionContributionModeHelp('githubPages')}</div>
+  <div class="contrib-save-help">GitHub Pages 데이터에 직접 저장합니다. 저장·삭제 시 PIN이 필요합니다.</div>
   <p class="small">기업적립금은 납입원금과 현금성자산 매수원금을 늘립니다. 현금성자산 평가금액은 앱 화면의 평가금액을 특정일 기준으로 저장합니다.</p>
   <p class="small">현금성자산 평가금액은 같은 일자로 다시 저장하면 기존 금액이 새 금액으로 수정됩니다.</p>
   <div class="contrib-form-grid">
-    <div class="contrib-field full contrib-target-field"><span class="contrib-field-label">등록 유형</span><input type="hidden" id="pensionContribTarget" value="contribution"><div class="contrib-target-tabs" role="tablist" aria-label="등록 유형 선택"><button type="button" class="contrib-target-option active" data-target="contribution" onclick="setPensionContributionTarget('contribution')">기업적립금</button><button type="button" class="contrib-target-option" data-target="cashSnapshot" onclick="setPensionContributionTarget('cashSnapshot')">현금성자산 평가금액</button></div></div>
-    <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${contribDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></div>
-    <div class="contrib-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="618,060" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}"></div>
-    <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="${contribDefaultMemo}" data-contrib-default-memo="${contribDefaultMemo}" data-cash-default-memo="현금성자산 평가금액 앱 확인"></div>
+    <div class="contrib-field full contrib-target-field"><span class="contrib-field-label">등록 유형</span><input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="등록 유형 선택"><button type="button" class="contrib-target-option active" data-target="cashSnapshot" onclick="setPensionContributionTarget('cashSnapshot')">현금성자산 평가금액</button><button type="button" class="contrib-target-option" data-target="contribution" onclick="setPensionContributionTarget('contribution')">기업적립금</button></div></div>
+    <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${cashDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></div>
+    <div class="contrib-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">평가금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="${cashDefaultValue}" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}"></div>
+    <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="현금성자산 평가금액 앱 확인" data-contrib-default-memo="${contribDefaultMemo}" data-cash-default-memo="현금성자산 평가금액 앱 확인"></div>
   </div>
   <div class="contrib-actions">
     <button type="button" class="contrib-btn" onclick="savePensionContribution()">저장</button>
-    <button type="button" class="contrib-btn secondary" onclick="generatePensionContributionJson()">JSON 만들기</button>
-    <button type="button" class="contrib-btn secondary" onclick="copyPensionContributionJson()">복사</button>
   </div>
   <div id="pensionContribStatus" class="contrib-status"></div>
   <pre id="pensionContribOutput" class="contrib-output"></pre>
@@ -607,7 +606,7 @@ function renderPensionContributionModal(x){
   <summary>GitHub 토큰 만료/교체 방법</summary>
   <div class="token-guide-body">
     <div class="token-guide-alert">토큰이 만료되면 대시보드 조회는 되지만, 기업적립금/현금성자산 저장과 삭제만 실패할 수 있습니다.</div>
-    <p><strong>GitHub Pages 방식</strong>은 Google Apps Script의 Script Properties에 저장된 <code>GITHUB_TOKEN</code>을 사용합니다.</p>
+    <p>Google Apps Script의 Script Properties에 저장된 <code>GITHUB_TOKEN</code>을 사용합니다.</p>
     <ol>
       <li>GitHub에서 새 Fine-grained token 생성</li>
       <li>대시보드 repo만 선택</li>
@@ -617,11 +616,9 @@ function renderPensionContributionModal(x){
       <li>Apps Script 웹 앱을 새 버전으로 배포</li>
       <li>GitHub Pages 화면에서 저장 테스트</li>
     </ol>
-    <p><strong>Netlify 방식</strong>을 사용할 경우에만 Netlify Environment variables의 <code>GITHUB_TOKEN</code>을 교체합니다.</p>
   </div>
 </details></div></div>`;
 }
-
 function render(){
   const x=calc(ACTIVE_DATE);
   renderTabs();
@@ -775,7 +772,7 @@ function renderCharts(x){
         bestGap=best['합계 : 누적손익']-lastProfit,
         bestDetail=bestGap===0?'금일 갱신':'금일 대비 '+signed(bestGap,'원');
   return `<section id="investment-analysis"><div class="section-title"><h2><span class="section-title-icon">🗓️</span>투자 기간 분석</h2><p>삼성증권 계좌1 기준</p></div><div class="grid chart-grid">
-  <div class="chart-card" id="chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>누적손익 및 누적수익률</h3><p>막대는 누적손익과 전일대비손익, 선은 누적수익률을 나타냄.</p></div>${chartScrollButton()}</div><div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>누적손익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" style="background:#5abdf2"></span>누적수익률</span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
+  <div class="chart-card" id="chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>누적손익 및 누적수익률</h3><p id="securitiesCompareDescription">${chartCompareDescription('securities')}</p></div><div class="chart-head-actions">${chartCompareToggle('securities')}${chartScrollButton()}</div></div><div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>누적손익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" id="securitiesCompareSwatch" style="background:${CHART_COMPARE_MODES.securities==='kospi'?'#7c3aed':'#5abdf2'}"></span><span id="securitiesCompareLegend">${chartCompareLabel('securities')}</span></span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
   <div class="chart-card" id="chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🧩</span>종목별 누적손익</h3><p>핵심종목별 누적손익의 변화와 기여도를 비교.</p></div>${chartScrollButton()}</div><div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff8a65"></span>SK하이닉스</span><span class="legend-item"><span class="swatch" style="background:#8bc34a"></span>삼성전자</span><span class="legend-item"><span class="swatch" style="background:#26c6da"></span>현대차</span><span class="legend-item"><span class="swatch" style="background:#42a5f5"></span>KODEX 200</span></div><div class="chart-note symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>symbolCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">기여도 - 누적손익 합계 기준, 전일대비 변동률 - 전일대비 변동액 ÷ 전일의 평가금액</div></div>
   <div class="chart-card" id="chart-alloc"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🥧</span>평가액 비중</h3><p>ETF·개별주식·현금의 일자별 평가액 비중 변화.</p></div>${chartScrollButton()}</div><div class="chart-wrap"><svg class="chart" id="chartAlloc"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff6b6b"></span>ETF</span><span class="legend-item"><span class="swatch" style="background:#ffc857"></span>개별주식</span><span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금</span></div><div class="chart-note"><div class="mini-card"><div class="m-label">ETF</div><div class="m-value">${won(x.etfEval)} <span class="small">(${(x.etfEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식</div><div class="m-value">${won(x.stockEval)} <span class="small">(${(x.stockEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${(x.securitiesCash/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div></div></div></div>
   </div></section>`;
@@ -795,6 +792,7 @@ function pensionCumHistory(d){
       '날짜':x,
       '합계 : 누적손익':v.pensionProfit,
       '합계 : 누적수익률':v.pensionReturn,
+      '코스피 지수':kospiIndexForDate(x),
       '합계 : 전일대비손익':0
     };
   }).map((row,i,arr)=>{
@@ -836,7 +834,7 @@ function renderPensionCharts(x){
   const productEvalTotal=x.pensionRows.reduce((a,r)=>a+r.evalAmount,0);
   const allocCards=x.pensionRows.map(r=>`<div class="mini-card"><div class="m-label">${r.name}</div><div class="m-value">${won(r.evalAmount)} <span class="small">(${(r.evalAmount/productEvalTotal*100).toFixed(1)}%)</span></div></div>`).join('');
   return `<section id="pension-investment-analysis" class="pension-chart-block"><div class="section-title"><h2><span class="section-title-icon">🗓️</span>투자 기간 분석</h2><p>퇴직연금 기준</p></div><div class="grid chart-grid">
-  <div class="chart-card" id="pension-chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>운용수익 및 누적수익률 <span class="chart-title-sub">(전체 운용 기준)</span></h3><p>막대는 운용수익과 전일대비손익, 선은 누적수익률.</p></div>${chartScrollButton()}</div><div class="chart-wrap"><svg class="chart" id="pensionChartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>운용수익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" style="background:#5abdf2"></span>누적수익률</span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 운용수익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
+  <div class="chart-card" id="pension-chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>운용수익 및 누적수익률 <span class="chart-title-sub">(전체 운용 기준)</span></h3><p id="pensionCompareDescription">${chartCompareDescription('pension')}</p></div><div class="chart-head-actions">${chartCompareToggle('pension')}${chartScrollButton()}</div></div><div class="chart-wrap"><svg class="chart" id="pensionChartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>운용수익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" id="pensionCompareSwatch" style="background:${CHART_COMPARE_MODES.pension==='kospi'?'#7c3aed':'#5abdf2'}"></span><span id="pensionCompareLegend">${chartCompareLabel('pension')}</span></span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 운용수익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
   <div class="chart-card" id="pension-chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🧩</span>연금상품별 운용수익 <span class="chart-title-sub">(보유상품 재투자 기준)</span></h3><p>연금상품별 운용수익의 변화와 기여도를 비교.</p></div>${chartScrollButton()}</div><div class="chart-wrap"><svg class="chart" id="pensionChartSymbol"></svg></div><div class="chart-legend">${x.pensionRows.map(r=>`<span class="legend-item"><span class="swatch" style="background:${pensionSeriesColor(r.name)}"></span>${r.name}</span>`).join('')}</div><div class="chart-note symbol-summary-grid pension-symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>pensionProductCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">기여도 - 운용수익 합계 기준, 전일대비 변동률 - 전일대비 변동액 ÷ 전일의 평가금액</div></div>
   <div class="chart-card" id="pension-chart-alloc"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🥧</span>평가액 비중</h3><p>각 연금상품 및 현금성자산의 일자별 평가액 비중 변화.</p></div>${chartScrollButton()}</div><div class="chart-wrap"><svg class="chart" id="pensionChartAlloc"></svg></div><div class="chart-legend">${x.pensionRows.map(r=>`<span class="legend-item"><span class="swatch" style="background:${pensionSeriesColor(r.name)}"></span>${r.name}</span>`).join('')}<span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금성자산</span></div><div class="chart-note">${allocCards}<div class="mini-card"><div class="m-label">현재 평가총액</div><div class="m-value">${won(x.pensionEval)}</div><div class="m-detail cash-include-detail">(현금 ${won(x.pensionCash)} 포함)</div></div></div></div>
   </div></section>`;
@@ -884,7 +882,7 @@ function drawAxes(svg,cfg,yTicks,y2Ticks=null){
   for(const tick of yTicks){const y=cfg.y(tick);svg.appendChild(el('line',{x1:l,y1:y,x2:w-r,y2:y,stroke:'#e5e7eb','stroke-width':1}));const tx=el('text',{x:l-10,y:y+4,'text-anchor':'end','font-size':11,fill:'#6b7280'});tx.textContent=fmt(tick);svg.appendChild(tx)}
   svg.appendChild(el('line',{x1:l,y1:t,x2:l,y2:h-b,stroke:'#cbd5e1'}));
   svg.appendChild(el('line',{x1:l,y1:h-b,x2:w-r,y2:h-b,stroke:'#cbd5e1'}));
-  if(y2Ticks){for(const tick of y2Ticks){const y=cfg.y2(tick);const tx=el('text',{x:w-r+10,y:y+4,'text-anchor':'start','font-size':11,fill:'#6b7280'});tx.textContent=tick.toFixed(0)+'%';svg.appendChild(tx)}svg.appendChild(el('line',{x1:w-r,y1:t,x2:w-r,y2:h-b,stroke:'#cbd5e1'}))}
+  if(y2Ticks){for(const tick of y2Ticks){const y=cfg.y2(tick);const tx=el('text',{x:w-r+10,y:y+4,'text-anchor':'start','font-size':11,fill:'#6b7280'});tx.textContent=cfg.y2Formatter?cfg.y2Formatter(tick):tick.toFixed(0)+'%';svg.appendChild(tx)}svg.appendChild(el('line',{x1:w-r,y1:t,x2:w-r,y2:h-b,stroke:'#cbd5e1'}))}
 }
 
 function chartX(cfg,dataLength,index){
@@ -991,13 +989,17 @@ function pensionSeriesColor(name){
 }
 function drawPensionCumChart(){
   const data=pensionCumHistory(ACTIVE_DATE),svg=document.getElementById('pensionChartCum');if(!svg||!data.length)return;clear(svg);
-  const profits=data.map(d=>d['합계 : 누적손익']),daily=data.map(d=>d['합계 : 전일대비손익']),returns=data.map(d=>d['합계 : 누적수익률']);
-  const tickInfo=alignedDualTickInfo(Math.min(...profits,...daily),Math.max(...profits,...daily),5000000,Math.min(...returns),Math.max(...returns),20);
-  const yInfo=tickInfo.left,rInfo=tickInfo.right;
-  const w=1120,h=330,l=82,rgt=66,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  const mode=CHART_COMPARE_MODES.pension||'return';
+  const profits=data.map(d=>d['합계 : 누적손익']),daily=data.map(d=>d['합계 : 전일대비손익']);
+  const lineValues=data.map(d=>mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률']).filter(v=>Number.isFinite(v));
+  const yInfo=fixedTickInfo(Math.min(...profits,...daily),Math.max(...profits,...daily),5000000,true);
+  const rInfo=mode==='kospi'
+    ? (lineValues.length?niceTickInfo(Math.min(...lineValues),Math.max(...lineValues),6,false):{min:0,max:1,ticks:[0,1]})
+    : fixedTickInfo(Math.min(0,...lineValues),Math.max(20,...lineValues),20,true);
+  const w=1120,h=330,l=82,rgt=72,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   const plotW=w-l-rgt,n=data.length,barW=Math.max(8,plotW/Math.max(1,n)/3);
   const edgePad=Math.max(24,barW*2.1);
-  const cfg={w,h,l,r:rgt,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),y2:v=>t+(rInfo.max-v)/(rInfo.max-rInfo.min)*(h-t-b)};
+  const cfg={w,h,l,r:rgt,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),y2:v=>t+(rInfo.max-v)/(rInfo.max-rInfo.min)*(h-t-b),y2Formatter:mode==='kospi'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:0})):(v=>v.toFixed(0)+'%')};
   drawAxes(svg,cfg,yInfo.ticks,rInfo.ticks);
   data.forEach((d,i)=>{
     const x=chartX(cfg,n,i),p=d['합계 : 누적손익'],dy=d['합계 : 전일대비손익'];
@@ -1007,11 +1009,16 @@ function drawPensionCumChart(){
       svg.appendChild(el('rect',{x:x+off-barW/2,y:Math.min(y,y0),width:barW,height:hh,rx:3,fill:color,opacity:.9}));
     });
   });
-  const pts=data.map((d,i)=>[chartX(cfg,n,i),cfg.y2(d['합계 : 누적수익률'])]);
-  polyline(svg,pts,'#5abdf2',2.8);circles(svg,pts,'#5abdf2');labelDates(svg,cfg,data,3);
-  addHover(svg,cfg,data,d=>`<div class="tt-date">${d['날짜']}</div>${row('운용수익',signed(d['합계 : 누적손익'],'원'),clsBy(d['합계 : 누적손익']))}${row('전일대비손익',signed(d['합계 : 전일대비손익'],'원'),clsBy(d['합계 : 전일대비손익']))}${row('누적수익률',(d['합계 : 누적수익률']>0?'+':'')+pct(d['합계 : 누적수익률']),clsBy(d['합계 : 누적수익률']))}`);
+  const lineColor=mode==='kospi'?'#7c3aed':'#5abdf2';
+  const pts=data.map((d,i)=>({value:mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률'],point:[chartX(cfg,n,i),0]})).filter(v=>Number.isFinite(v.value)).map(v=>[v.point[0],cfg.y2(v.value)]);
+  if(pts.length){polyline(svg,pts,lineColor,2.8);circles(svg,pts,lineColor)}
+  labelDates(svg,cfg,data,3);
+  addHover(svg,cfg,data,d=>{
+    const lineValue=mode==='kospi'?(Number.isFinite(d['코스피 지수'])?formatKospi(d['코스피 지수']):'-'):((d['합계 : 누적수익률']>0?'+':'')+pct(d['합계 : 누적수익률']));
+    const lineClass=mode==='kospi'?'':clsBy(d['합계 : 누적수익률']);
+    return `<div class="tt-date">${d['날짜']}</div>${row('운용수익',signed(d['합계 : 누적손익'],'원'),clsBy(d['합계 : 누적손익']))}${row('전일대비손익',signed(d['합계 : 전일대비손익'],'원'),clsBy(d['합계 : 전일대비손익']))}${row(mode==='kospi'?'코스피 지수':'누적수익률',lineValue,lineClass)}`;
+  });
 }
-
 function drawPensionSymbolChart(){
   const data=pensionSymbolHistory(ACTIVE_DATE),svg=document.getElementById('pensionChartSymbol');if(!svg||!data.length)return;clear(svg);
   const series=(PORTFOLIO.pension||[]).map(r=>r.name),values=data.flatMap(d=>series.map(s=>d[s]||0));
@@ -1034,22 +1041,29 @@ function drawPensionStacked(){
 }
 
 function drawCumChart(){
-  const data=cumHistory(ACTIVE_DATE),svg=document.getElementById('chartCum');if(!svg)return;clear(svg);
-  const w=1120,h=330,l=70,r=70,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  const data=cumHistory(ACTIVE_DATE),svg=document.getElementById('chartCum');if(!svg||!data.length)return;clear(svg);
+  const mode=CHART_COMPARE_MODES.securities||'return';
+  const w=1120,h=330,l=70,r=76,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   const vals=data.flatMap(d=>[d['합계 : 누적손익'],d['합계 : 전일대비손익']]);
-  const rates=data.map(d=>d['합계 : 누적수익률']);
-  const tickInfo=alignedDualTickInfo(Math.min(-4000000,...vals),Math.max(12000000,...vals),2000000,Math.min(-20,...rates),Math.max(80,...rates),20);
-  const yInfo=tickInfo.left,rInfo=tickInfo.right;
+  const lineValues=data.map(d=>mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률']).filter(v=>Number.isFinite(v));
+  const yInfo=fixedTickInfo(Math.min(-4000000,...vals),Math.max(12000000,...vals),2000000,true);
+  const rInfo=mode==='kospi'
+    ? (lineValues.length?niceTickInfo(Math.min(...lineValues),Math.max(...lineValues),6,false):{min:0,max:1,ticks:[0,1]})
+    : fixedTickInfo(Math.min(-20,...lineValues),Math.max(80,...lineValues),20,true);
   const plotW=w-l-r,n=data.length,gap=plotW/Math.max(n,1),bw=gap*.28;
   const edgePad=Math.max(24,bw*2.1);
-  const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),y2:v=>t+(rInfo.max-v)/(rInfo.max-rInfo.min)*(h-t-b)};
+  const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),y2:v=>t+(rInfo.max-v)/(rInfo.max-rInfo.min)*(h-t-b),y2Formatter:mode==='kospi'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:0})):(v=>v.toFixed(0)+'%')};
   drawAxes(svg,cfg,yInfo.ticks,rInfo.ticks);
   data.forEach((d,i)=>{const x=chartX(cfg,n,i),zero=cfg.y(0),cp=cfg.y(d['합계 : 누적손익']);svg.appendChild(el('rect',{x:x-bw-1,y:Math.min(cp,zero),width:bw,height:Math.abs(zero-cp),fill:'#ffb84d',opacity:.8}));const day=cfg.y(d['합계 : 전일대비손익']);svg.appendChild(el('rect',{x:x+2,y:Math.min(day,zero),width:bw,height:Math.abs(zero-day),fill:d['합계 : 전일대비손익']>=0?'#a7d7a8':'#c7e6c8',stroke:d['합계 : 전일대비손익']<0?'#86b58a':'none',opacity:.9}))});
-  const pts=data.map((d,i)=>[chartX(cfg,n,i),cfg.y2(d['합계 : 누적수익률'])]);
-  polyline(svg,pts,'#5abdf2',2.5);circles(svg,pts,'#5abdf2');labelDates(svg,cfg,data,3);
-  addHover(svg,cfg,data,d=>`<div class="tt-date">${d['날짜']}</div>`+row('누적손익',signed(d['합계 : 누적손익'],'원'),clsBy(d['합계 : 누적손익']))+row('누적수익률',pct(d['합계 : 누적수익률']),clsBy(d['합계 : 누적수익률']))+row('전일대비손익',signed(d['합계 : 전일대비손익'],'원'),clsBy(d['합계 : 전일대비손익'])));
+  const lineColor=mode==='kospi'?'#7c3aed':'#5abdf2';
+  const pts=data.map((d,i)=>({value:mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률'],x:chartX(cfg,n,i)})).filter(v=>Number.isFinite(v.value)).map(v=>[v.x,cfg.y2(v.value)]);
+  if(pts.length){polyline(svg,pts,lineColor,2.5);circles(svg,pts,lineColor)}
+  labelDates(svg,cfg,data,3);
+  addHover(svg,cfg,data,d=>{
+    const lineValue=mode==='kospi'?(Number.isFinite(d['코스피 지수'])?formatKospi(d['코스피 지수']):'-'):pct(d['합계 : 누적수익률']);
+    return `<div class="tt-date">${d['날짜']}</div>`+row('누적손익',signed(d['합계 : 누적손익'],'원'),clsBy(d['합계 : 누적손익']))+row(mode==='kospi'?'코스피 지수':'누적수익률',lineValue,mode==='kospi'?'':clsBy(d['합계 : 누적수익률']))+row('전일대비손익',signed(d['합계 : 전일대비손익'],'원'),clsBy(d['합계 : 전일대비손익']));
+  });
 }
-
 function drawLineChart(){
   const data=symbolHistory(ACTIVE_DATE),svg=document.getElementById('chartSymbol');if(!svg)return;clear(svg);
   const series=['SK하이닉스','삼성전자','현대차','KODEX 200'],colors={'SK하이닉스':'#ff8a65','삼성전자':'#8bc34a','현대차':'#26c6da','KODEX 200':'#42a5f5'},values=data.flatMap(d=>series.map(s=>d[s]||0));
@@ -1087,7 +1101,7 @@ function openPensionContributionModal(){
   document.body.classList.add('contrib-modal-open');
   modal.classList.add('show');
   modal.setAttribute('aria-hidden','false');
-  setPensionContributionSaveMode(pensionContributionSaveMode);
+  setPensionContributionTarget('cashSnapshot');
   setTimeout(()=>document.getElementById('pensionContribDate')?.focus(),0);
 }
 function closePensionContributionModal(){
@@ -1157,7 +1171,7 @@ function showPensionContributionStatus(message,type='ok'){
   status.className=`contrib-status show ${type}`;
 }
 
-function requestPensionActionPin({title='PIN 입력',description='저장/삭제를 계속하려면 PIN을 입력하세요.',confirmText='확인',danger=false}={}){
+function requestPensionActionPin({title='PIN 입력',description='저장/삭제를 계속하려면 PIN을 입력하세요.',danger=false,execute}={}){
   return new Promise(resolve=>{
     const old=document.getElementById('pensionActionPinModal');
     if(old) old.remove();
@@ -1167,278 +1181,127 @@ function requestPensionActionPin({title='PIN 입력',description='저장/삭제�
     modal.className='pension-action-pin-modal';
     modal.innerHTML=`<div class="pension-action-pin-card" role="dialog" aria-modal="true" aria-labelledby="pensionActionPinTitle">
       <button type="button" class="pension-action-pin-close" aria-label="닫기">×</button>
-      <div class="pension-action-pin-icon">🔐</div>
+      <div class="pension-action-pin-icon">${danger?'🗑️':'🔐'}</div>
       <h3 id="pensionActionPinTitle">${title}</h3>
       <p>${description}</p>
       <label for="pensionActionPinInput">PIN</label>
-      <input id="pensionActionPinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 입력">
-      <div id="pensionActionPinStatus" class="pension-action-pin-status"></div>
-      <div class="pension-action-pin-buttons">
-        <button type="button" class="ghost">취소</button>
-        <button type="button" class="primary ${danger?'danger':''}">${confirmText}</button>
-      </div>
+      <input id="pensionActionPinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="PIN 4자리 입력">
+      <div class="pension-action-pin-guide">PIN이 일치하면 자동으로 ${danger?'삭제':'저장'} 실행됩니다.</div>
+      <div id="pensionActionPinStatus" class="pension-action-pin-status" aria-live="polite"></div>
+      <div class="pension-action-pin-buttons"><button type="button" class="ghost">취소</button></div>
     </div>`;
 
-    const finish=value=>{
-      modal.remove();
-      resolve(value);
-    };
+    let busy=false;
+    let submitTimer=null;
     const input=modal.querySelector('#pensionActionPinInput');
     const status=modal.querySelector('#pensionActionPinStatus');
-    const primary=modal.querySelector('.primary');
     const cancel=modal.querySelector('.ghost');
     const close=modal.querySelector('.pension-action-pin-close');
 
-    const submit=()=>{
-      const pin=String(input?.value||'').trim();
-      if(!pin){
-        if(status) status.textContent='PIN을 입력해 주세요.';
-        input?.focus();
-        return;
+    const finish=value=>{
+      clearTimeout(submitTimer);
+      modal.remove();
+      resolve(value);
+    };
+    const submit=async()=>{
+      const pin=String(input?.value||'').replace(/\D/g,'').slice(0,4);
+      if(pin.length!==4||busy)return;
+      busy=true;
+      input.disabled=true;
+      if(status){status.textContent='PIN 확인 및 처리 중...';status.className='pension-action-pin-status checking'}
+      try{
+        const result=typeof execute==='function'?await execute(pin):pin;
+        finish(result);
+      }catch(e){
+        if(status){status.textContent=e.message||String(e);status.className='pension-action-pin-status err'}
+        input.disabled=false;
+        input.value='';
+        busy=false;
+        requestAnimationFrame(()=>input.focus());
       }
-      finish(pin);
+    };
+    const onInput=()=>{
+      const cleaned=String(input.value||'').replace(/\D/g,'').slice(0,4);
+      if(input.value!==cleaned)input.value=cleaned;
+      if(status&&status.classList.contains('err')){status.textContent='';status.className='pension-action-pin-status'}
+      clearTimeout(submitTimer);
+      if(cleaned.length===4)submitTimer=setTimeout(submit,180);
     };
 
-    primary?.addEventListener('click',submit);
+    input?.addEventListener('input',onInput);
+    input?.addEventListener('keydown',e=>{if(e.key==='Enter')submit();if(e.key==='Escape')finish(null)});
     cancel?.addEventListener('click',()=>finish(null));
     close?.addEventListener('click',()=>finish(null));
     modal.addEventListener('click',e=>{if(e.target===modal)finish(null)});
-    input?.addEventListener('keydown',e=>{
-      if(e.key==='Enter') submit();
-      if(e.key==='Escape') finish(null);
-    });
 
     document.body.appendChild(modal);
     requestAnimationFrame(()=>input?.focus());
   });
 }
 
-function generatePensionContributionJson(){
-  const out=document.getElementById('pensionContribOutput');
-  if(!out) return;
-  try{
-    const item=buildPensionContributionItem();
-    out.textContent=JSON.stringify(item,null,2);
-    out.classList.add('show');
-    showPensionContributionStatus('JSON 생성 완료. 수동 반영이 필요하면 대상 data 파일에 반영해주세요.','ok');
-  }catch(e){
-    out.textContent=e.message||String(e);
-    out.classList.add('show');
-    showPensionContributionStatus(e.message||String(e),'err');
-  }
-}
-async function copyPensionContributionJson(){
-  const out=document.getElementById('pensionContribOutput');
-  if(!out) return;
-  if(!out.textContent.trim() || out.textContent.includes('복사 완료')) generatePensionContributionJson();
-  if(!out.textContent.trim()) return;
-  const text=out.textContent.replace(/\n\n복사 완료$/,'');
-  try{
-    await navigator.clipboard.writeText(text);
-    out.textContent=text + '\n\n복사 완료';
-    showPensionContributionStatus('복사 완료.','ok');
-  }catch(e){
-    showPensionContributionStatus('복사는 브라우저 권한 때문에 실패. 위 내용을 직접 선택해서 복사해주세요.','err');
-  }
-}
-
 async function savePensionContributionViaGithubPages(item,pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
-
-  if(!config.url || config.url.includes('여기에_')){
-    throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
-  }
-
+  if(!config.url || config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
   const res=await fetch(config.url,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({
-      pin:String(pin||'').trim(),
-      target:item.target||'contribution',
-      action:'upsert',
-      date:item.date,
-      amount:item.amount,
-      valuation:item.valuation,
-      memo:item.memo||'',
-      updatedBy:'github-pages'
-    })
+    body:JSON.stringify({pin:String(pin||'').trim(),target:item.target||'contribution',action:'upsert',date:item.date,amount:item.amount,valuation:item.valuation,memo:item.memo||'',updatedBy:'github-pages'})
   });
-
   const data=await res.json().catch(()=>({}));
-
-  if(!data.ok){
-    throw new Error(data.error||'GitHub Pages 방식 저장 실패');
-  }
-
+  if(!data.ok)throw new Error(data.error||'GitHub Pages 방식 저장 실패');
   return data;
-}
-
-async function savePensionContributionViaNetlify(item,pin){
-  const config=PENSION_CONTRIBUTION_SAVE_CONFIG.netlify;
-
-  const res=await fetch(config.url,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      pin:String(pin||'').trim(),
-      action:'upsert',
-      item:{...item,updatedBy:'netlify'}
-    })
-  });
-
-  const data=await res.json().catch(()=>({}));
-
-  if(!res.ok){
-    throw new Error(data.error||`Netlify 방식 저장 실패 (${res.status})`);
-  }
-
-  return data;
-}
-
-async function savePensionContributionByMode(item,pin){
-  if(pensionContributionSaveMode==='githubPages'){
-    return savePensionContributionViaGithubPages(item,pin);
-  }
-
-  return savePensionContributionViaNetlify(item,pin);
 }
 
 async function savePensionContribution(){
   const out=document.getElementById('pensionContribOutput');
-
   try{
     const item=buildPensionContributionItem();
-
-    if(out){
-      out.textContent=JSON.stringify(item,null,2);
-      out.classList.add('show');
-    }
-
-    const modeLabel=pensionContributionModeLabel();
+    if(out){out.textContent=JSON.stringify(item,null,2);out.classList.add('show')}
     const targetText=pensionContributionTargetLabel(item.target);
-    const pin=await requestPensionActionPin({
+    showPensionContributionStatus('PIN 입력 대기 중...','ok');
+    const data=await requestPensionActionPin({
       title:`${targetText} 저장`,
-      description:`${modeLabel} 방식으로 GitHub 파일에 저장합니다. 계속하려면 PIN을 입력하세요.`,
-      confirmText:'저장 실행'
+      description:`${targetText}을 GitHub 파일에 저장합니다. PIN 4자리를 입력하세요.`,
+      execute:pin=>savePensionContributionViaGithubPages(item,pin)
     });
-    if(!pin){
-      showPensionContributionStatus('저장이 취소되었습니다.','err');
-      return;
-    }
-
-    showPensionContributionStatus(`${modeLabel} 방식으로 저장 중... GitHub 파일을 업데이트하고 있습니다.`,'ok');
-
-    const data=await savePensionContributionByMode(item,pin);
-
+    if(!data){showPensionContributionStatus('저장이 취소되었습니다.','err');return}
     const actionText=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
-    if(pensionContributionSaveMode==='githubPages'){
-      showPensionContributionStatus(`${targetText} ${actionText} 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.`,'ok');
-    }else{
-      showPensionContributionStatus(`${targetText} ${actionText} 완료. Netlify 재배포가 끝나면 화면에 반영됩니다. commit: ${data.commitSha||'-'}`,'ok');
-    }
-
-  }catch(e){
-    showPensionContributionStatus(e.message||String(e),'err');
-  }
+    showPensionContributionStatus(`${targetText} ${actionText} 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.`,'ok');
+  }catch(e){showPensionContributionStatus(e.message||String(e),'err')}
 }
 
 async function deletePensionContributionViaGithubPages(target,key,pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
-
-  if(!config.url || config.url.includes('여기에_')){
-    throw new Error('GitHub Pages 삭제 URL이 설정되지 않았습니다.');
-  }
-
+  if(!config.url || config.url.includes('여기에_'))throw new Error('GitHub Pages 삭제 URL이 설정되지 않았습니다.');
   const isCash=target==='cashSnapshot';
-
   const res=await fetch(config.url,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({
-      pin:String(pin||'').trim(),
-      target:target||'contribution',
-      action:'delete',
-      id:isCash?'':key,
-      date:isCash?key:''
-    })
+    body:JSON.stringify({pin:String(pin||'').trim(),target:target||'contribution',action:'delete',id:isCash?'':key,date:isCash?key:''})
   });
-
   const data=await res.json().catch(()=>({}));
-
-  if(!data.ok){
-    throw new Error(data.error||'GitHub Pages 방식 삭제 실패');
-  }
-
-  return data;
-}
-
-async function deletePensionContributionViaNetlify(target,key,pin){
-  const isCash=target==='cashSnapshot';
-
-  const res=await fetch('/.netlify/functions/save-pension-contribution',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      pin:String(pin||'').trim(),
-      target:target||'contribution',
-      action:'delete',
-      id:isCash?'':key,
-      date:isCash?key:''
-    })
-  });
-
-  const data=await res.json().catch(()=>({}));
-
-  if(!res.ok){
-    throw new Error(data.error||`Netlify 방식 삭제 실패 (${res.status})`);
-  }
-
+  if(!data.ok)throw new Error(data.error||'GitHub Pages 방식 삭제 실패');
   return data;
 }
 
 async function deleteSelectedPensionContribution(){
   const selected=document.querySelector('input[name="pensionContribDeleteTarget"]:checked');
-
-  if(!selected){
-    showPensionContributionStatus('삭제할 항목을 선택해주세요.','err');
-    return;
-  }
-
+  if(!selected){showPensionContributionStatus('삭제할 항목을 선택해주세요.','err');return}
   const [target,key]=String(selected.value||'').split('|');
   const isCash=target==='cashSnapshot';
   const item=isCash?pensionCashSnapshotItems().find(v=>v.date===key):pensionContributionItems().find(v=>v.id===key);
   const date=item?.date||key;
   const amount=item?won(Number(isCash?item.valuation:item.amount)||0):'선택 항목';
   const targetText=pensionContributionTargetLabel(isCash?'cashSnapshot':'contribution');
-  const modeLabel=pensionContributionModeLabel();
-
-  const pin=await requestPensionActionPin({
+  showPensionContributionStatus('PIN 입력 대기 중...','ok');
+  const data=await requestPensionActionPin({
     title:`${targetText} 삭제`,
-    description:`${date} / ${targetText} / ${amount} 항목을 ${modeLabel} 방식으로 삭제합니다. 계속하려면 PIN을 입력하세요.`,
-    confirmText:'삭제 실행',
-    danger:true
+    description:`${date} / ${targetText} / ${amount} 항목을 삭제합니다. PIN 4자리를 입력하세요.`,
+    danger:true,
+    execute:pin=>deletePensionContributionViaGithubPages(target,key,pin)
   });
-  if(!pin){
-    showPensionContributionStatus('삭제가 취소되었습니다.','err');
-    return;
-  }
-
-  try{
-    showPensionContributionStatus(`${modeLabel} 방식으로 삭제 중... GitHub 파일을 업데이트하고 있습니다.`,'ok');
-
-    const data=pensionContributionSaveMode==='githubPages'
-    ? await deletePensionContributionViaGithubPages(target,key,pin)
-    : await deletePensionContributionViaNetlify(target,key,pin);
-
-    if(pensionContributionSaveMode==='githubPages'){
-      showPensionContributionStatus('선택 항목 삭제 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');
-    }else{
-      showPensionContributionStatus(`선택 항목 삭제 완료. Netlify 재배포가 끝나면 화면에 반영됩니다. commit: ${data.commitSha||'-'}`,'ok');
-    }
-
-  }catch(e){
-    showPensionContributionStatus(e.message||String(e),'err');
-  }
+  if(!data){showPensionContributionStatus('삭제가 취소되었습니다.','err');return}
+  showPensionContributionStatus('선택 항목 삭제 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');
 }
 
 
