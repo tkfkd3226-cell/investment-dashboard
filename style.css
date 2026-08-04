@@ -5534,3 +5534,56 @@ button:active,
     justify-self:end !important;
   }
 }
+
+
+/* Securities holdings: neutral rows/cards with chart-color symbol markers */
+.mobile-data-card.ticker-samsung,
+.mobile-data-card.ticker-sk,
+.mobile-data-card.ticker-hyundai,
+.mobile-data-card.ticker-kodex{
+  background:#fff !important;
+}
+
+.hold-position-table tbody tr.ticker-samsung,
+.hold-position-table tbody tr.ticker-sk,
+.hold-position-table tbody tr.ticker-hyundai,
+.hold-position-table tbody tr.ticker-kodex,
+.hold-position-table tbody tr.ticker-samsung td,
+.hold-position-table tbody tr.ticker-sk td,
+.hold-position-table tbody tr.ticker-hyundai td,
+.hold-position-table tbody tr.ticker-kodex td{
+  background:#fff !important;
+}
+
+.holding-name-text{
+  display:inline;
+}
+
+.holding-symbol-swatch{
+  display:inline-block;
+  margin-left:5px;
+  color:var(--holding-symbol-color);
+  font-size:10px;
+  line-height:1;
+  vertical-align:1px;
+}
+
+/* Compact securities holdings table rows without changing typography */
+.hold-position-table th,
+.hold-position-table td{
+  padding:6px 8px !important;
+  line-height:1.22 !important;
+}
+
+@media(max-width:900px){
+  .hold-position-table th,
+  .hold-position-table td{
+    padding:5px 7px !important;
+  }
+
+  .hold-position-table th:first-child,
+  .hold-position-table td:first-child{
+    padding-left:6px !important;
+    padding-right:6px !important;
+  }
+}
