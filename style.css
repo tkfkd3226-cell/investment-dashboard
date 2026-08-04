@@ -5163,3 +5163,135 @@ button:active,
     font-size:9.5px;
   }
 }
+
+/* 2026-08-04 compact analysis cards, chart navigation and hero refinement */
+.scroll-hint{display:none !important}
+.chart-scroll-row{display:none}
+
+/* Dashboard hero: keep the visual weight, but use less vertical space. */
+.hero{
+  padding:20px 24px !important;
+  border-radius:19px !important;
+}
+.hero h1{
+  font-size:27px !important;
+  line-height:1.16 !important;
+}
+.hero-basis{font-size:13.5px !important}
+.hero .pillbar{
+  margin-top:10px !important;
+  gap:6px !important;
+}
+.hero .pill{
+  padding:5px 9px !important;
+  font-size:12px !important;
+  line-height:1.3 !important;
+}
+.hero:after{
+  width:270px !important;
+  height:270px !important;
+  right:-76px !important;
+  top:-70px !important;
+}
+
+/* Desktop cumulative-card footnotes: label-sized and regular weight. */
+@media(min-width:761px){
+  #pension-chart-cum .chart-note.six .m-detail,
+  #chart-cum .chart-note.six .m-detail{
+    margin-top:4px !important;
+    font-size:12px !important;
+    font-weight:400 !important;
+    line-height:1.3 !important;
+  }
+}
+
+@media(max-width:760px){
+  .hero{
+    margin-top:6px !important;
+    padding:15px 14px !important;
+    border-radius:17px !important;
+  }
+  .hero h1{
+    font-size:21px !important;
+    line-height:1.15 !important;
+    margin-bottom:0 !important;
+  }
+  .hero-title-row{gap:4px 6px !important}
+  .hero-basis{font-size:11.5px !important}
+  .hero .pillbar{
+    margin-top:8px !important;
+    gap:5px !important;
+  }
+  .hero .pill{
+    padding:4px 7px !important;
+    font-size:10.5px !important;
+    line-height:1.25 !important;
+  }
+  .hero:after{
+    width:210px !important;
+    height:210px !important;
+    right:-72px !important;
+    top:-72px !important;
+  }
+
+  /* Arrow occupies the former scroll-hint row, immediately above each chart. */
+  .chart-scroll-row{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    min-height:25px;
+    margin:2px 1px 5px;
+  }
+  .chart-scroll-end{
+    display:inline-flex !important;
+    width:25px !important;
+    height:25px !important;
+    flex:0 0 25px !important;
+    border-radius:8px !important;
+    font-size:15px !important;
+    box-shadow:none !important;
+  }
+}
+
+@media(max-width:520px){
+  /* Keep labels and the drawdown date range on one line on iPhone-size screens. */
+  #pension-chart-cum .chart-note.six,
+  #chart-cum .chart-note.six{
+    gap:6px !important;
+  }
+  #pension-chart-cum .chart-note.six .mini-card,
+  #chart-cum .chart-note.six .mini-card{
+    min-width:0 !important;
+    padding:8px 6px !important;
+  }
+  #pension-chart-cum .chart-note.six .m-label,
+  #chart-cum .chart-note.six .m-label{
+    font-size:9.8px !important;
+    line-height:1.2 !important;
+    letter-spacing:-.045em !important;
+    white-space:nowrap !important;
+  }
+  #pension-chart-cum .chart-note.six .m-value,
+  #chart-cum .chart-note.six .m-value{
+    font-size:13.5px !important;
+    line-height:1.2 !important;
+    letter-spacing:-.04em !important;
+    white-space:nowrap !important;
+  }
+  #pension-chart-cum .chart-note.six .m-detail,
+  #chart-cum .chart-note.six .m-detail{
+    margin-top:4px !important;
+    font-size:8.4px !important;
+    font-weight:500 !important;
+    line-height:1.2 !important;
+    letter-spacing:-.04em !important;
+    white-space:nowrap !important;
+  }
+}
+
+@media(max-width:360px){
+  #pension-chart-cum .chart-note.six .m-label,
+  #chart-cum .chart-note.six .m-label{font-size:9.2px !important}
+  #pension-chart-cum .chart-note.six .m-detail,
+  #chart-cum .chart-note.six .m-detail{font-size:7.9px !important}
+}
