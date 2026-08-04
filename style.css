@@ -5845,3 +5845,12 @@ button:active,
     font-weight:900 !important;
   }
 }
+
+/* Desktop: match 연금+계좌 성과 table row height to 증권계좌 보유분 */
+@media (min-width:901px){
+  .combined-performance-table th,
+  .combined-performance-table td{
+    padding:6px 8px !important;
+    line-height:1.22 !important;
+  }
+}
