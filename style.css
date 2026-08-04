@@ -5594,3 +5594,239 @@ button:active,
     transform:none;
   }
 }
+
+/* 2026-08-05 iPad Mini / iPad Pro layout refinement
+   - Keep phone (<=760px) and desktop (>=1101px) layouts unchanged.
+   - Do not alter the desktop edge TOC behavior. */
+
+/* Tablet common: use available width for summary cards. */
+@media (min-width:761px) and (max-width:1100px){
+  #pension-section > .pension-band > .grid.cards,
+  #securities-section .securities-summary-block > .grid.cards,
+  #ledger-check > .grid.cards{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
+/* iPad Mini: tables that comfortably fit should fill the card width. */
+@media (min-width:761px) and (max-width:900px){
+  #summary-section .mobile-scroll,
+  #pension-products .mobile-scroll,
+  #accounts-summary .accounts-scroll{
+    overflow-x:hidden !important;
+  }
+
+  .combined-performance-table,
+  .pension-products-table,
+  .accounts-scroll .accounts-table{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    table-layout:fixed !important;
+  }
+
+  .combined-performance-table th,
+  .combined-performance-table td{
+    padding:7px 6px !important;
+    font-size:11.5px !important;
+  }
+  .combined-performance-table th:first-child,
+  .combined-performance-table td:first-child{
+    width:16% !important;
+    min-width:0 !important;
+  }
+  .combined-performance-table th:not(:first-child),
+  .combined-performance-table td:not(:first-child){
+    width:21% !important;
+  }
+
+  .pension-products-table{
+    font-size:10.5px !important;
+  }
+  .pension-products-table th,
+  .pension-products-table td{
+    min-width:0 !important;
+    padding:6px 5px !important;
+    font-size:10.5px !important;
+    letter-spacing:-.025em !important;
+  }
+  .pension-products-table th:nth-child(1){width:20% !important}
+  .pension-products-table th:nth-child(2){width:7% !important}
+  .pension-products-table th:nth-child(3){width:11% !important}
+  .pension-products-table th:nth-child(4),
+  .pension-products-table th:nth-child(5),
+  .pension-products-table th:nth-child(6){width:14% !important}
+  .pension-products-table th:nth-child(7){width:9% !important}
+  .pension-products-table th:nth-child(8){width:11% !important}
+  .pension-products-table .bar-box{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  .accounts-scroll .accounts-table th,
+  .accounts-scroll .accounts-table td{
+    min-width:0 !important;
+    padding:7px 6px !important;
+    font-size:11.5px !important;
+  }
+  .accounts-scroll .accounts-table th:nth-child(1),
+  .accounts-scroll .accounts-table td:nth-child(1){width:14% !important}
+  .accounts-scroll .accounts-table th:nth-child(2),
+  .accounts-scroll .accounts-table td:nth-child(2){width:16% !important}
+  .accounts-scroll .accounts-table th:nth-child(3),
+  .accounts-scroll .accounts-table td:nth-child(3){width:16% !important}
+  .accounts-scroll .accounts-table th:nth-child(4),
+  .accounts-scroll .accounts-table td:nth-child(4){width:12% !important}
+  .accounts-scroll .accounts-table th:nth-child(5),
+  .accounts-scroll .accounts-table td:nth-child(5){
+    width:42% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    white-space:normal !important;
+  }
+
+  /* The Mini has enough width for these chart summaries. */
+  #pension-chart-symbol .chart-note.pension-symbol-summary-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  }
+  #chart-symbol .chart-note.symbol-summary-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+    gap:7px !important;
+  }
+  #chart-symbol .chart-note.symbol-summary-grid > .mini-card{
+    padding:8px !important;
+  }
+  #chart-symbol .chart-note.symbol-summary-grid .m-label{
+    font-size:10px !important;
+  }
+  #chart-symbol .chart-note.symbol-summary-grid .m-value{
+    font-size:13px !important;
+  }
+  #chart-symbol .chart-note.symbol-summary-grid .symbol-metric-label{
+    font-size:8.5px !important;
+  }
+  #chart-symbol .chart-note.symbol-summary-grid .symbol-metric-value{
+    font-size:10px !important;
+  }
+}
+
+/* iPad Pro: remove only the small, unnecessary table/chart overflow. */
+@media (min-width:901px) and (max-width:1100px){
+  #pension-products .mobile-scroll,
+  #securities-holdings .mobile-scroll,
+  #accounts-summary .accounts-scroll{
+    overflow-x:hidden !important;
+  }
+
+  .pension-products-table,
+  .hold-position-table,
+  .accounts-scroll .accounts-table{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    table-layout:fixed !important;
+  }
+
+  .pension-products-table th,
+  .pension-products-table td{
+    min-width:0 !important;
+    padding:7px 5px !important;
+    font-size:11.5px !important;
+    letter-spacing:-.02em !important;
+  }
+  .pension-products-table th:nth-child(1){width:20% !important}
+  .pension-products-table th:nth-child(2){width:7% !important}
+  .pension-products-table th:nth-child(3){width:11% !important}
+  .pension-products-table th:nth-child(4),
+  .pension-products-table th:nth-child(5),
+  .pension-products-table th:nth-child(6){width:14% !important}
+  .pension-products-table th:nth-child(7){width:9% !important}
+  .pension-products-table th:nth-child(8){width:11% !important}
+  .pension-products-table .bar-box{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  .hold-position-table th,
+  .hold-position-table td{
+    min-width:0 !important;
+    padding:7px 5px !important;
+    font-size:11.5px !important;
+    letter-spacing:-.025em !important;
+  }
+  .hold-position-table th:nth-child(1){width:17% !important}
+  .hold-position-table th:nth-child(2){width:6% !important}
+  .hold-position-table th:nth-child(3){width:9% !important}
+  .hold-position-table th:nth-child(4){width:12% !important}
+  .hold-position-table th:nth-child(5){width:9% !important}
+  .hold-position-table th:nth-child(6){width:12% !important}
+  .hold-position-table th:nth-child(7){width:12% !important}
+  .hold-position-table th:nth-child(8){width:14% !important}
+  .hold-position-table th:nth-child(9){width:9% !important}
+
+  .accounts-scroll .accounts-table th,
+  .accounts-scroll .accounts-table td{
+    min-width:0 !important;
+    padding:7px 6px !important;
+    font-size:12px !important;
+  }
+  .accounts-scroll .accounts-table th:nth-child(1),
+  .accounts-scroll .accounts-table td:nth-child(1){width:14% !important}
+  .accounts-scroll .accounts-table th:nth-child(2),
+  .accounts-scroll .accounts-table td:nth-child(2){width:16% !important}
+  .accounts-scroll .accounts-table th:nth-child(3),
+  .accounts-scroll .accounts-table td:nth-child(3){width:16% !important}
+  .accounts-scroll .accounts-table th:nth-child(4),
+  .accounts-scroll .accounts-table td:nth-child(4){width:12% !important}
+  .accounts-scroll .accounts-table th:nth-child(5),
+  .accounts-scroll .accounts-table td:nth-child(5){
+    width:42% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    white-space:normal !important;
+  }
+
+  #pension-change .change-kpis{
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  }
+
+  #investment-analysis .chart-wrap{
+    overflow-x:hidden !important;
+  }
+  #investment-analysis .chart-wrap svg.chart{
+    width:100% !important;
+    min-width:100% !important;
+  }
+
+  #capital-source-check .source-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  }
+  #capital-source-check .source-card{
+    min-width:0 !important;
+  }
+}
+
+/* Remove the old sticky-column shadow from table mode, while preserving sticky behavior on phones. */
+@media (max-width:900px){
+  .combined-performance-table th:first-child,
+  .combined-performance-table td:first-child,
+  .pension-products-table th:first-child,
+  .pension-products-table td:first-child,
+  .accounts-scroll .accounts-table th:first-child,
+  .accounts-scroll .accounts-table td:first-child{
+    box-shadow:none !important;
+  }
+}
+
+/* Full-width tablet tables no longer need a sticky first column. */
+@media (min-width:761px) and (max-width:900px){
+  .combined-performance-table th:first-child,
+  .combined-performance-table td:first-child,
+  .pension-products-table th:first-child,
+  .pension-products-table td:first-child,
+  .accounts-scroll .accounts-table th:first-child,
+  .accounts-scroll .accounts-table td:first-child{
+    position:static !important;
+    left:auto !important;
+  }
+}
