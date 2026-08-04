@@ -2080,6 +2080,7 @@ svg.chart{
     max-width:210px !important;
     white-space:normal !important;
     color:var(--text) !important;
+    font-weight:400 !important;
   }
 }
 
@@ -4350,6 +4351,7 @@ button:active,
     display:block;
     margin-top:4px;
     text-align:left;
+    font-weight:400;
     line-height:1.45;
   }
   .pension-products-basis-note{margin-top:9px !important}
@@ -4679,6 +4681,10 @@ button:active,
     gap:5px;
     min-height:25px;
     margin:2px 1px 5px;
+  }
+  .chart-scroll-row.has-compare-toggle .chart-head-actions{
+    margin-left:0 !important;
+    margin-right:auto;
   }
   .chart-scroll-start,
   .chart-scroll-end{

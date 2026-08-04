@@ -410,6 +410,33 @@ function scrollChartToEnd(button){
   if(!wrap)return;
   wrap.scrollTo({left:Math.max(0,wrap.scrollWidth-wrap.clientWidth),behavior:'smooth'});
 }
+function syncResponsiveChartControls(){
+  const mobile=window.matchMedia('(max-width:760px)').matches;
+  ['pension-chart-cum','chart-cum'].forEach(id=>{
+    const card=document.getElementById(id);
+    const head=card?.querySelector('.chart-head');
+    const actions=card?.querySelector('.chart-head-actions');
+    const row=card?.querySelector('.chart-scroll-row');
+    if(!head||!actions||!row)return;
+    if(mobile){
+      if(actions.parentElement!==row)row.prepend(actions);
+      row.classList.add('has-compare-toggle');
+    }else{
+      if(actions.parentElement!==head)head.appendChild(actions);
+      row.classList.remove('has-compare-toggle');
+    }
+  });
+}
+function setupResponsiveChartControls(){
+  syncResponsiveChartControls();
+  if(window.__responsiveChartControlsBound)return;
+  window.__responsiveChartControlsBound=true;
+  let frame=0;
+  window.addEventListener('resize',()=>{
+    cancelAnimationFrame(frame);
+    frame=requestAnimationFrame(syncResponsiveChartControls);
+  },{passive:true});
+}
 
 function chartEntranceReducedMotion(){
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true;
@@ -770,7 +797,8 @@ function renderSecuritiesSection(x){
   return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon">🏦</span>증권계좌 현황</h2></div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderCharts(x),'charts-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(),'source-block'):''}</div></section>`;
 }
 
-function renderPensionContributionList(){
+function renderPensionContributionList(target='cashSnapshot'){
+  const selectedTarget=target==='contribution'?'contribution':'cashSnapshot';
   const contribItems=pensionContributionItems()
     .slice()
     .filter(v=>v&&v.date)
@@ -781,12 +809,15 @@ function renderPensionContributionList(){
     .slice()
     .filter(v=>v&&v.date)
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)))
-    .map(v=>({target:'cashSnapshot',key:v.date,date:v.date,amount:Number(v.valuation)||0,memo:v.memo||'',label:'현금성 평가금액'}));
+    .map(v=>({target:'cashSnapshot',key:v.date,date:v.date,amount:Number(v.valuation)||0,memo:v.memo||'',label:'현금성자산 평가금액'}));
 
-  const items=[...contribItems,...cashItems]
-    .sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(a.label).localeCompare(String(b.label))||String(b.key||'').localeCompare(String(a.key||'')));
+  const items=(selectedTarget==='contribution'?contribItems:cashItems)
+    .sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.key||'').localeCompare(String(a.key||'')));
 
-  if(!items.length) return `<p class="small">등록된 기업적립금/현금성자산 평가금액이 없습니다.</p>`;
+  if(!items.length){
+    const label=selectedTarget==='contribution'?'기업적립금':'현금성자산 평가금액';
+    return `<p class="small">등록된 ${label}이 없습니다.</p>`;
+  }
 
   return items.map(v=>`<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.target}|${v.key}"><span class="contrib-existing-main"><span class="contrib-existing-title"><span class="contrib-existing-date">${v.date}</span><span class="contrib-existing-sep"> / </span><span class="contrib-existing-info">${v.label} / ${won(v.amount)}</span></span><span class="contrib-existing-memo">${escapeHtml(v.memo)}</span></span></label>`).join('');
 }
@@ -816,9 +847,10 @@ function renderPensionContributionModal(x){
 </div>
 <div class="contrib-list modal-card-box">
   <h3>삭제</h3>
-  <p class="small">잘못 넣은 기업적립금 또는 현금성자산 평가금액을 선택 후 삭제합니다.</p>
-  <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList()}</div>
+  <p id="pensionContribDeleteHelp" class="small">잘못 넣은 현금성자산 평가금액을 선택 후 삭제합니다.</p>
+  <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList('cashSnapshot')}</div>
   <div class="contrib-actions"><button type="button" class="contrib-btn danger" onclick="deleteSelectedPensionContribution()">선택 항목 삭제</button></div>
+  <div id="pensionContribDeleteStatus" class="contrib-status"></div>
 </div>
 <details class="token-guide">
   <summary>GitHub 토큰 만료/교체 방법</summary>
@@ -1295,6 +1327,7 @@ function drawAllCharts(){
   drawPensionCumChart();
   drawPensionSymbolChart();
   drawPensionStacked();
+  setupResponsiveChartControls();
   document.querySelectorAll('svg.chart').forEach(prepareChartEntranceForSvg);
   setupChartEntranceAnimations();
   refreshScrollHints();
@@ -1356,10 +1389,19 @@ function syncPensionContributionTargetUi(){
   const amountEl=document.getElementById('pensionContribAmount');
   const memoEl=document.getElementById('pensionContribMemo');
   const amountLabel=document.getElementById('pensionContribAmountLabel');
+  const existingList=document.getElementById('pensionContribExistingList');
+  const deleteHelp=document.getElementById('pensionContribDeleteHelp');
+  const deleteStatus=document.getElementById('pensionContribDeleteStatus');
   if(amountLabel) amountLabel.textContent=target==='cashSnapshot'?'평가금액':'금액';
   if(dateEl) dateEl.value=target==='cashSnapshot'?(dateEl.dataset.cashDefaultDate||dateEl.value):(dateEl.dataset.contribDefaultDate||dateEl.value);
   if(amountEl) amountEl.value=target==='cashSnapshot'?(amountEl.dataset.cashDefaultValue||''):(amountEl.dataset.contribDefaultValue||'618,060');
   if(memoEl) memoEl.value=target==='cashSnapshot'?(memoEl.dataset.cashDefaultMemo||'현금성자산 평가금액 앱 확인'):(memoEl.dataset.contribDefaultMemo||defaultPensionContributionMemo(dateEl?.value||''));
+  if(existingList) existingList.innerHTML=renderPensionContributionList(target);
+  if(deleteHelp) deleteHelp.textContent=target==='cashSnapshot'?'잘못 넣은 현금성자산 평가금액을 선택 후 삭제합니다.':'잘못 넣은 기업적립금을 선택 후 삭제합니다.';
+  if(deleteStatus){
+    deleteStatus.textContent='';
+    deleteStatus.className='contrib-status';
+  }
 }
 function buildPensionContributionItem(){
   const target=pensionContributionTarget();
@@ -1375,11 +1417,17 @@ function buildPensionContributionItem(){
   if(target==='cashSnapshot') return {target,date,valuation:amount,memo};
   return {target,date,amount,memo};
 }
-function showPensionContributionStatus(message,type='ok'){
-  const status=document.getElementById('pensionContribStatus');
+function setPensionContributionStatus(elementId,message,type='ok'){
+  const status=document.getElementById(elementId);
   if(!status) return;
   status.textContent=message;
   status.className=`contrib-status show ${type}`;
+}
+function showPensionContributionStatus(message,type='ok'){
+  setPensionContributionStatus('pensionContribStatus',message,type);
+}
+function showPensionContributionDeleteStatus(message,type='ok'){
+  setPensionContributionStatus('pensionContribDeleteStatus',message,type);
 }
 
 function requestPensionActionPin({title='PIN 입력',description='저장/삭제를 계속하려면 PIN을 입력하세요.',danger=false,execute}={}){
@@ -1497,22 +1545,22 @@ async function deletePensionContributionViaGithubPages(target,key,pin){
 
 async function deleteSelectedPensionContribution(){
   const selected=document.querySelector('input[name="pensionContribDeleteTarget"]:checked');
-  if(!selected){showPensionContributionStatus('삭제할 항목을 선택해주세요.','err');return}
+  if(!selected){showPensionContributionDeleteStatus('삭제할 항목을 선택해주세요.','err');return}
   const [target,key]=String(selected.value||'').split('|');
   const isCash=target==='cashSnapshot';
   const item=isCash?pensionCashSnapshotItems().find(v=>v.date===key):pensionContributionItems().find(v=>v.id===key);
   const date=item?.date||key;
   const amount=item?won(Number(isCash?item.valuation:item.amount)||0):'선택 항목';
   const targetText=pensionContributionTargetLabel(isCash?'cashSnapshot':'contribution');
-  showPensionContributionStatus('PIN 입력 대기 중...','ok');
+  showPensionContributionDeleteStatus('PIN 입력 대기 중...','ok');
   const data=await requestPensionActionPin({
     title:`${targetText} 삭제`,
     description:`${date} / ${targetText} / ${amount} 항목을 삭제합니다. PIN 6자리를 입력하세요.`,
     danger:true,
     execute:pin=>deletePensionContributionViaGithubPages(target,key,pin)
   });
-  if(!data){showPensionContributionStatus('삭제가 취소되었습니다.','err');return}
-  showPensionContributionStatus('선택 항목 삭제 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');
+  if(!data){showPensionContributionDeleteStatus('삭제가 취소되었습니다.','err');return}
+  showPensionContributionDeleteStatus('선택 항목 삭제 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');
 }
 
 
