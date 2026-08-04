@@ -277,6 +277,52 @@ function renderUnifiedMobileMenuContent(){
     return `<button type="button" class="${cls}" onclick="jumpToSection('${item.id}');closeDateActionMenu()">${inner}</button>`;
   }).join('')}</div>`).join('');
 }
+function renderDesktopTocContent(){
+  const groups=[
+    {
+      label:'전체',
+      items:[
+        {id:'summary-section',icon:'home',title:'연금+계좌 성과'}
+      ]
+    },
+    {
+      label:'퇴직연금',
+      items:[
+        {id:'pension-section',icon:'briefcase',title:'퇴직연금 현황'},
+        {id:'pension-products',icon:'package',title:'연금상품별 현황'},
+        {id:'pension-change',icon:'trending',title:'전일 대비 변동'},
+        {id:'pension-chart-cum',icon:'chart',title:'운용수익 및 누적수익률'},
+        {id:'pension-chart-symbol',icon:'chart',title:'연금상품별 운용수익'},
+        {id:'pension-chart-alloc',icon:'pie',title:'평가액 비중'}
+      ]
+    },
+    {
+      label:'증권계좌',
+      items:[
+        {id:'securities-section',icon:'bank',title:'증권계좌 현황'},
+        {id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
+        {id:'accounts-summary',icon:'list',title:'계좌별 성과 요약'},
+        {id:'chart-cum',icon:'chart',title:'누적손익 및 누적수익률'},
+        {id:'chart-symbol',icon:'chart',title:'종목별 누적손익'},
+        {id:'chart-alloc',icon:'pie',title:'평가액 비중'},
+        {id:'ledger-check',icon:'search',title:'장부결과 VS 실제보유'},
+        ...(isLedgerCheckDate(ACTIVE_DATE)?[{id:'capital-source-check',icon:'receipt',title:'투자원금 원천 및 검산'}]:[])
+      ]
+    }
+  ];
+  return groups.map(group=>`<div class="desktop-edge-toc-group"><p>${group.label}</p>${group.items.map(item=>`<button type="button" class="desktop-edge-toc-item" data-toc-target="${item.id}" onclick="jumpToSection('${item.id}')"><span class="desktop-edge-toc-icon">${navIconSvg(item.icon)}</span><span>${item.title}</span></button>`).join('')}</div>`).join('');
+}
+function ensureDesktopEdgeToc(){
+  let toc=document.getElementById('desktopEdgeToc');
+  if(!toc){
+    toc=document.createElement('aside');
+    toc.id='desktopEdgeToc';
+    toc.className='desktop-edge-toc';
+    toc.setAttribute('aria-label','화면 목차');
+    document.body.appendChild(toc);
+  }
+  toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기"><span class="desktop-edge-toc-trigger-icon">☷</span><span>목차</span></button><nav class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title">목차</div>${renderDesktopTocContent()}</nav>`;
+}
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
   document.getElementById('tabs').innerHTML=`<div class="date-picker"><div class="date-picker-center"><span class="date-picker-label">기준일</span><select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select></div><div class="date-picker-action"><a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물"><span class="date-tool-action-icon">🌙</span>코스피200 야간선물</a><a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물"><span class="date-tool-action-icon">🚀</span>나스닥100 선물</a><button type="button" class="date-tool-btn date-tool-btn-desktop" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()"><span class="date-tool-action-icon">📈</span>KRX 현재가 반영</button><button type="button" class="date-tool-btn date-tool-btn-desktop" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()"><span class="date-tool-action-icon">💰</span>퇴직연금 금액 조정</button><a class="date-tool-btn date-tool-btn-desktop" href="calc.html" target="_blank" rel="noopener noreferrer" title="투자 손실 회복 계산기" aria-label="투자 손실 회복 계산기" style="text-decoration:none"><span class="date-tool-action-icon">🧮</span>투자 손실 회복 계산기</a><div class="date-action-menu-wrap"><button type="button" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button><div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><span>목차</span><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div></div></div></div>`;
@@ -661,6 +707,7 @@ function render(){
   drawAllCharts();
   setupPensionVizTooltips();
   ensureMobileTopButton();
+  ensureDesktopEdgeToc();
 }
 function renderResultSummary(x){
   const c=PORTFOLIO.constants;
