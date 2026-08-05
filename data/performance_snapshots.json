@@ -1897,10 +1897,10 @@
   "2026-08-04": {
     "display": true,
     "source": "calculated-current-portfolio",
-    "marketStatus": "close",
+    "marketStatus": "intraday",
     "requestedDate": "2026-08-04",
     "actualMarketDate": "2026-08-04",
-    "updatedAtKST": "2026-08-04T20:52:29+09:00",
+    "updatedAtKST": "2026-08-05T09:57:39+09:00",
     "rawHoldingProfit": 948840,
     "cumulativeReturn": 5.827057187502226,
     "dailyProfit": 147690,
@@ -1914,8 +1914,7 @@
       "ETF": 10107585,
       "개별주식": 7124000,
       "현금": 17255
-    },
-    "kospi": 6358.95
+    }
   },
   "2026-08-05": {
     "display": true,

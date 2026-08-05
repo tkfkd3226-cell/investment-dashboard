@@ -947,10 +947,10 @@
   "2026-08-04": {
     "display": true,
     "source": "pykrx-github-actions",
-    "marketStatus": "close",
+    "marketStatus": "intraday",
     "requestedDate": "2026-08-04",
     "actualMarketDate": "2026-08-04",
-    "updatedAtKST": "2026-08-04T20:52:29+09:00",
+    "updatedAtKST": "2026-08-05T09:57:39+09:00",
     "securities": {
       "005930": 240000,
       "000660": 1577000,
@@ -965,9 +965,6 @@
       "395160": 36300,
       "448330": 16900,
       "cash": 39717
-    },
-    "indices": {
-      "KOSPI": 6358.95
     }
   },
   "2026-08-05": {
