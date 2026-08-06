@@ -338,12 +338,13 @@
     .triple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
     .triple-grid .cell:nth-child(3n){border-right:0}
 
-    /* 이전 거래 없음 전용: 2026-08-04 매수값 빠른 입력 */
+    /* 이전 거래 없음 전용: 매수값 빠른 입력 */
     .current-column{display:flex;flex-direction:column;gap:10px;min-width:0}
-    .current-purchase-preset{display:none;align-items:center;justify-content:flex-start;min-width:0}
+    .current-purchase-preset{display:none;align-items:center;justify-content:flex-start;gap:8px;min-width:0}
     .input-grid.no-prior-layout .current-purchase-preset{display:flex}
     .current-purchase-btn{border:1px solid var(--navy);background:#fff;color:var(--navy);border-radius:12px;padding:8px 14px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(29,53,87,.08)}
     .current-purchase-btn:hover{background:#f3f6fb;border-color:var(--navy2)}
+    .current-purchase-btn.active{background:var(--navy);color:#fff}
     .current-purchase-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(73,115,174,.14)}
     .current-purchase-btn:active{transform:translateY(1px)}
     @media(min-width:721px){
@@ -503,7 +504,8 @@
 
       <div class="current-column" id="currentColumn">
         <div class="current-purchase-preset" id="currentPurchasePreset">
-          <button class="current-purchase-btn" id="applyBuy20260804" type="button">2026-08-04 매수</button>
+          <button class="current-purchase-btn" id="applyBuy20260804" type="button" data-current-purchase-preset="buy-2026-08-04" aria-pressed="false">2026-08-04 매수</button>
+          <button class="current-purchase-btn" id="applyBuy20260806" type="button" data-current-purchase-preset="buy-2026-08-06" aria-pressed="false">2026-08-06 매수</button>
         </div>
 
       <div class="input-group additional-group" id="currentGroup">
@@ -540,7 +542,7 @@
           <div class="field full"><label>목표 매도단가</label><input id="targetPrice" class="control money-input" inputmode="numeric" readonly></div>
         </div>
         <div class="formula" id="formulaText"></div>
-        <button class="actual-sale-price" id="applyActualSellPrice" type="button" aria-label="실제 매도 단가를 목표 매도단가에 반영"><span>실제 매도 단가</span><strong id="actualSellPriceValue">91,065원</strong></button>
+        <button class="actual-sale-price" id="applyActualSellPrice" type="button" aria-label="실제 매도 단가를 목표 매도단가에 반영"><span>실제 매도 단가</span><strong id="actualSellPriceValue">91,065</strong></button>
       </div>
     </div>
   </section>
@@ -585,8 +587,12 @@
       currentPrice:80000, oldRecovery:0, addPrice:80000, addShares:100, autoBreakEvenTarget:true, mode:'current'
     }
   };
+  const currentPurchasePresets = {
+    'buy-2026-08-04': {addPrice:94417, currentPrice:95335, addShares:532, actualSellPrice:104035},
+    'buy-2026-08-06': {addPrice:91767, currentPrice:92200, addShares:100, actualSellPrice:91770}
+  };
   const defaultPresetId='current-only';
-  let caseType='settled', noPriorMode=true, mode='current', activePresetId=defaultPresetId, applying=false, autoBreakEvenTarget=false;
+  let caseType='settled', noPriorMode=true, mode='current', activePresetId=defaultPresetId, currentPurchasePresetId=null, applying=false, autoBreakEvenTarget=false;
   const $=id=>document.getElementById(id);
   const nf0=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
   const won=n=>`${nf0.format(Math.round(Number.isFinite(n)?n:0))}원`;
@@ -613,6 +619,20 @@
   }
 
   function setPresetActive(id){document.querySelectorAll('.preset-btn').forEach(b=>b.classList.toggle('active',b.dataset.preset===id));}
+  function setCurrentPurchasePresetActive(id){document.querySelectorAll('.current-purchase-btn').forEach(b=>{const active=b.dataset.currentPurchasePreset===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});}
+  function getActualSellPrice(){
+    if(noPriorMode)return currentPurchasePresets[currentPurchasePresetId]?.actualSellPrice??null;
+    return caseType==='settled'?91065:74580;
+  }
+  function updateActualSellPriceUI(){
+    const actualSellPrice=getActualSellPrice();
+    const visible=Number.isFinite(actualSellPrice);
+    $('applyActualSellPrice').classList.toggle('hidden',!visible);
+    if(!visible)return;
+    const display=nf0.format(actualSellPrice);
+    $('actualSellPriceValue').textContent=display;
+    $('applyActualSellPrice').setAttribute('aria-label',`실제 매도 단가 ${display}를 목표 매도단가에 반영`);
+  }
   function markCustom(){if(applying)return;}
   function disableAutoBreakEven(){if(!applying&&autoBreakEvenTarget){autoBreakEvenTarget=false;setMode(mode,false);}}
 
@@ -673,10 +693,7 @@
   function updateCaseUI(){
     const settled=caseType==='settled';
     const noPrior=settled&&noPriorMode;
-    const actualSellPrice=settled?91065:74580;
-    $('actualSellPriceValue').textContent=won(actualSellPrice);
-    $('applyActualSellPrice').setAttribute('aria-label',`실제 매도 단가 ${won(actualSellPrice)}를 목표 매도단가에 반영`);
-    $('applyActualSellPrice').classList.toggle('hidden',noPrior);
+    updateActualSellPriceUI();
     $('inputGrid').classList.toggle('no-prior-layout',noPrior);
     $('inputGrid').classList.toggle('holding-case',!settled);
     $('currentGroup').classList.toggle('no-prior-current',noPrior);
@@ -934,12 +951,12 @@
     }
   }
 
-  function recalc(){const i=getInputs(),errors=validate(i);showValidation(errors);if(errors.length)return;const c=compute();render(c);storage.set('investmentLossRecoveryCalcV17',JSON.stringify({...c.i,targetPrice:c.targetPrice,caseType,noPrior:noPriorMode,mode,presetId:activePresetId,autoBreakEvenTarget}));}
+  function recalc(){const i=getInputs(),errors=validate(i);showValidation(errors);if(errors.length)return;const c=compute();render(c);storage.set('investmentLossRecoveryCalcV17',JSON.stringify({...c.i,targetPrice:c.targetPrice,caseType,noPrior:noPriorMode,mode,presetId:activePresetId,currentPurchasePresetId,autoBreakEvenTarget}));}
 
   function setMode(next,doRecalc=true){mode=['current','rise','target'].includes(next)?next:'current';$('modeCurrent').classList.toggle('active',mode==='current');$('modeRise').classList.toggle('active',mode==='rise');$('modeTarget').classList.toggle('active',mode==='target');$('overnightPct').readOnly=mode!=='current';$('risePct').readOnly=mode!=='rise';$('targetPrice').readOnly=mode!=='target';document.querySelectorAll('.pct-step-btn').forEach(b=>b.disabled=$(b.dataset.target).readOnly);const targetFormula='목표 매도단가 직접 입력 → 5원 단위 올림 · 두 변동률 자동 계산';let formula;if(mode==='current'&&autoBreakEvenTarget){formula=caseType==='holding'?'손익분기 가격 기준으로 다음 거래일 변동률 자동 설정':(noPriorMode?'현재 보유분 손익분기 가격 기준으로 목표 변동률 자동 설정':'이전 손익 반영 통합 회복가격 기준으로 목표 변동률 자동 설정');}else{formula=mode==='target'?targetFormula:(caseType==='settled'?(mode==='current'?'매수일 종가 × (1 + 목표 변동률 %) → 5원 단위 올림':'매수단가 × (1 + 목표 변동률 %) → 5원 단위 올림'):(mode==='current'?'추가매수 당일 종가 × (1 + 다음 거래일 변동률 %) → 5원 단위 올림':'추가매수단가 × (1 + 추가매수가 대비 변동률 %) → 5원 단위 올림'));}$('formulaText').textContent=formula;if(doRecalc)recalc();}
 
   function applyValues(v){
-    caseType=v.caseType||'holding';noPriorMode=!!v.noPrior;mode=['current','rise','target'].includes(v.mode)?v.mode:'current';autoBreakEvenTarget=!!v.autoBreakEvenTarget;
+    caseType=v.caseType||'holding';noPriorMode=!!v.noPrior;mode=['current','rise','target'].includes(v.mode)?v.mode:'current';autoBreakEvenTarget=!!v.autoBreakEvenTarget;currentPurchasePresetId=noPriorMode&&currentPurchasePresets[v.currentPurchasePresetId]?v.currentPurchasePresetId:null;setCurrentPurchasePresetActive(currentPurchasePresetId);
     $('existingShares').value=String(v.existingShares??0);$('existingCost').value=nf0.format(v.existingCost??0);$('priorSettlementValue').value=String(v.priorSettlementValue??0);$('priorSellPrice').value=String(v.priorSellPrice??0);$('currentPrice').value=nf0.format(v.currentPrice??0);$('oldOverdraft').value=nf0.format(v.oldRecovery??0);$('addPrice').value=nf0.format(v.addPrice??0);$('addShares').value=String(v.addShares??0);
     $('priorSellDateInput').value=v.priorSellDate||'';$('priorSoldSharesInput').value=String(v.existingShares??0);$('priorCostInput').value=nf0.format(v.existingCost??0);$('priorSettlementValueInput').value=nf0.format(v.priorSettlementValue??0);
     let overnight=v.overnightPct??0,rise=v.risePct??0,target=v.targetPrice??0;
@@ -968,21 +985,26 @@
   document.querySelectorAll('.pct-step-btn').forEach(b=>b.addEventListener('click',()=>{const inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;delete inp.dataset.exactValue;disableAutoBreakEven();inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);markCustom();recalc();}));
   document.querySelectorAll('.preset-btn').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));
   $('modeCurrent').addEventListener('click',()=>{disableAutoBreakEven();markCustom();setMode('current');});$('modeRise').addEventListener('click',()=>{disableAutoBreakEven();markCustom();setMode('rise');});$('modeTarget').addEventListener('click',()=>{disableAutoBreakEven();markCustom();setMode('target');});
-  $('applyBuy20260804').addEventListener('click',()=>{
+  document.querySelectorAll('.current-purchase-btn').forEach(b=>b.addEventListener('click',()=>{
     if(!noPriorMode)return;
+    const preset=currentPurchasePresets[b.dataset.currentPurchasePreset];
+    if(!preset)return;
+    currentPurchasePresetId=b.dataset.currentPurchasePreset;
+    setCurrentPurchasePresetActive(currentPurchasePresetId);
     activePresetId='current-only';
     setPresetActive(activePresetId);
     autoBreakEvenTarget=true;
     mode='current';
-    $('addPrice').value=nf0.format(94417);
-    $('currentPrice').value=nf0.format(95335);
-    $('addShares').value='532';
+    $('addPrice').value=nf0.format(preset.addPrice);
+    $('currentPrice').value=nf0.format(preset.currentPrice);
+    $('addShares').value=String(preset.addShares);
+    updateActualSellPriceUI();
     setMode('current',false);
     recalc();
-  });
+  }));
   $('applyActualSellPrice').addEventListener('click',()=>{
-    if(noPriorMode)return;
-    const actualSellPrice=caseType==='settled'?91065:74580;
+    const actualSellPrice=getActualSellPrice();
+    if(!Number.isFinite(actualSellPrice))return;
     disableAutoBreakEven();
     setMode('target',false);
     $('targetPrice').value=nf0.format(actualSellPrice);
