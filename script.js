@@ -1209,6 +1209,21 @@ function fixedTickInfo(min,max,step,forceZero=false){
   return {min:niceMin,max:niceMax,ticks};
 }
 
+function alignZeroTickRanges(firstInfo,firstStep,secondInfo,secondStep){
+  const intervalCounts=(info,step)=>({
+    below:Math.max(0,Math.round(-Math.min(0,info.min)/step)),
+    above:Math.max(0,Math.round(Math.max(0,info.max)/step))
+  });
+  const first=intervalCounts(firstInfo,firstStep),second=intervalCounts(secondInfo,secondStep);
+  const below=Math.max(first.below,second.below),above=Math.max(first.above,second.above);
+  const build=step=>{
+    const ticks=[];
+    for(let i=-below,count=0;i<=above&&count<60;i++,count++) ticks.push(i*step);
+    return {min:-below*step,max:above*step,ticks};
+  };
+  return [build(firstStep),build(secondStep)];
+}
+
 function pensionSeriesColor(name){
   const rows=PORTFOLIO?.pension||[];
   const idx=Math.max(0,rows.findIndex(r=>r.name===name));
@@ -1220,10 +1235,11 @@ function drawPensionCumChart(){
   const mode=CHART_COMPARE_MODES.pension||'return';
   const profits=data.map(d=>d['합계 : 누적손익']),daily=data.map(d=>d['합계 : 전일대비손익']);
   const lineValues=data.map(d=>mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률']).filter(v=>Number.isFinite(v));
-  const yInfo=fixedTickInfo(Math.min(...profits,...daily),Math.max(...profits,...daily),5000000,true);
-  const rInfo=mode==='kospi'
+  let yInfo=fixedTickInfo(Math.min(...profits,...daily),Math.max(...profits,...daily),5000000,true);
+  let rInfo=mode==='kospi'
     ? (lineValues.length?niceTickInfo(Math.min(...lineValues),Math.max(...lineValues),6,false):{min:0,max:1,ticks:[0,1]})
     : fixedTickInfo(Math.min(0,...lineValues),Math.max(20,...lineValues),20,true);
+  if(mode!=='kospi') [yInfo,rInfo]=alignZeroTickRanges(yInfo,5000000,rInfo,20);
   const w=1120,h=330,l=82,rgt=72,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   const plotW=w-l-rgt,n=data.length,barW=Math.max(8,plotW/Math.max(1,n)/3);
   const edgePad=Math.max(24,barW*2.1);
@@ -1274,10 +1290,11 @@ function drawCumChart(){
   const w=1120,h=330,l=70,r=76,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   const vals=data.flatMap(d=>[d['합계 : 누적손익'],d['합계 : 전일대비손익']]);
   const lineValues=data.map(d=>mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률']).filter(v=>Number.isFinite(v));
-  const yInfo=fixedTickInfo(Math.min(-4000000,...vals),Math.max(12000000,...vals),2000000,true);
-  const rInfo=mode==='kospi'
+  let yInfo=fixedTickInfo(Math.min(-4000000,...vals),Math.max(12000000,...vals),2000000,true);
+  let rInfo=mode==='kospi'
     ? (lineValues.length?niceTickInfo(Math.min(...lineValues),Math.max(...lineValues),6,false):{min:0,max:1,ticks:[0,1]})
     : fixedTickInfo(Math.min(-20,...lineValues),Math.max(80,...lineValues),20,true);
+  if(mode!=='kospi') [yInfo,rInfo]=alignZeroTickRanges(yInfo,2000000,rInfo,20);
   const plotW=w-l-r,n=data.length,gap=plotW/Math.max(n,1),bw=gap*.28;
   const edgePad=Math.max(24,bw*2.1);
   const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),y2:v=>t+(rInfo.max-v)/(rInfo.max-rInfo.min)*(h-t-b),y2Formatter:mode==='kospi'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:0})):(v=>v.toFixed(0)+'%')};
