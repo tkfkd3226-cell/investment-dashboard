@@ -1238,8 +1238,8 @@ function drawPensionCumChart(){
   let yInfo=fixedTickInfo(Math.min(...profits,...daily),Math.max(...profits,...daily),5000000,true);
   let rInfo=mode==='kospi'
     ? (lineValues.length?niceTickInfo(Math.min(...lineValues),Math.max(...lineValues),6,false):{min:0,max:1,ticks:[0,1]})
-    : fixedTickInfo(Math.min(0,...lineValues),Math.max(20,...lineValues),20,true);
-  if(mode!=='kospi') [yInfo,rInfo]=alignZeroTickRanges(yInfo,5000000,rInfo,20);
+    : fixedTickInfo(Math.min(0,...lineValues),Math.max(25,...lineValues),25,true);
+  if(mode!=='kospi') [yInfo,rInfo]=alignZeroTickRanges(yInfo,5000000,rInfo,25);
   const w=1120,h=330,l=82,rgt=72,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   const plotW=w-l-rgt,n=data.length,barW=Math.max(8,plotW/Math.max(1,n)/3);
   const edgePad=Math.max(24,barW*2.1);
@@ -1293,7 +1293,7 @@ function drawCumChart(){
   let yInfo=fixedTickInfo(Math.min(-4000000,...vals),Math.max(12000000,...vals),2000000,true);
   let rInfo=mode==='kospi'
     ? (lineValues.length?niceTickInfo(Math.min(...lineValues),Math.max(...lineValues),6,false):{min:0,max:1,ticks:[0,1]})
-    : {min:-25,max:75,ticks:[-25,0,25,50,75]};
+    : {min:-40,max:120,ticks:[-40,-20,0,20,40,60,80,100,120]};
   if(mode!=='kospi'){
     const yStep=2000000;
     const below=Math.max(1,Math.round(-Math.min(0,yInfo.min)/yStep),Math.ceil(Math.max(0,yInfo.max)/yStep/3));
