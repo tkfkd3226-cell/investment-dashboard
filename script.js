@@ -1293,8 +1293,14 @@ function drawCumChart(){
   let yInfo=fixedTickInfo(Math.min(-4000000,...vals),Math.max(12000000,...vals),2000000,true);
   let rInfo=mode==='kospi'
     ? (lineValues.length?niceTickInfo(Math.min(...lineValues),Math.max(...lineValues),6,false):{min:0,max:1,ticks:[0,1]})
-    : fixedTickInfo(Math.min(-20,...lineValues),Math.max(80,...lineValues),20,true);
-  if(mode!=='kospi') [yInfo,rInfo]=alignZeroTickRanges(yInfo,2000000,rInfo,20);
+    : {min:-25,max:75,ticks:[-25,0,25,50,75]};
+  if(mode!=='kospi'){
+    const yStep=2000000;
+    const below=Math.max(1,Math.round(-Math.min(0,yInfo.min)/yStep),Math.ceil(Math.max(0,yInfo.max)/yStep/3));
+    const above=below*3,ticks=[];
+    for(let i=-below;i<=above;i++) ticks.push(i*yStep);
+    yInfo={min:-below*yStep,max:above*yStep,ticks};
+  }
   const plotW=w-l-r,n=data.length,gap=plotW/Math.max(n,1),bw=gap*.28;
   const edgePad=Math.max(24,bw*2.1);
   const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),y2:v=>t+(rInfo.max-v)/(rInfo.max-rInfo.min)*(h-t-b),y2Formatter:mode==='kospi'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:0})):(v=>v.toFixed(0)+'%')};
