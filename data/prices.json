@@ -1028,7 +1028,7 @@
     "marketStatus": "close",
     "requestedDate": "2026-08-07",
     "actualMarketDate": "2026-08-07",
-    "updatedAtKST": "2026-08-07T15:40:12+09:00",
+    "updatedAtKST": "2026-08-07T22:29:42+09:00",
     "securities": {
       "005930": 231000,
       "000660": 1422000,
@@ -1045,7 +1045,7 @@
       "cash": 39717
     },
     "indices": {
-      "KOSPI": 6259.14
+      "KOSPI": 6258.77
     }
   }
 }

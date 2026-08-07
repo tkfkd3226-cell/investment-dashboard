@@ -1969,7 +1969,7 @@
     "marketStatus": "close",
     "requestedDate": "2026-08-07",
     "actualMarketDate": "2026-08-07",
-    "updatedAtKST": "2026-08-07T15:40:12+09:00",
+    "updatedAtKST": "2026-08-07T22:29:42+09:00",
     "rawHoldingProfit": 335275,
     "cumulativeReturn": 2.0590053102101606,
     "dailyProfit": -240985,
@@ -1984,6 +1984,6 @@
       "개별주식": 6736000,
       "현금": 17255
     },
-    "kospi": 6259.14
+    "kospi": 6258.77
   }
 }
