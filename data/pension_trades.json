@@ -1,3 +1,24 @@
 {
-  "trades": []
+  "trades": [
+    {
+      "id": "trade-2026-08-07-278530-20f42b05-6984-48b0-9dac-04266d216c18",
+      "date": "2026-08-07",
+      "applyDate": "2026-08-07",
+      "tradeDate": "2026-08-07",
+      "ticker": "278530",
+      "name": "KODEX 200TR",
+      "type": "buy",
+      "qty": 77,
+      "price": 16760.77922077922,
+      "amount": 1290580,
+      "funding": "pension_cash",
+      "cashBeforeDate": "2026-08-07",
+      "cashBefore": 1303970,
+      "cashAfter": 13390,
+      "memo": "2026-08-07 KODEX 200TR 77좌 매수 체결 · 앱 반영일 2026-08-07",
+      "updatedBy": "google-apps-script",
+      "updatedAtKST": "2026-08-07T18:31:24+09:00",
+      "appliedAtKST": "2026-08-07T18:31:24+09:00"
+    }
+  ]
 }
