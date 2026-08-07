@@ -185,10 +185,40 @@ const linkedPensionCashSnapshotForContribution=contribution=>pensionCashSnapshot
 const latestPensionTradeDate=d=>pensionTradeItems().filter(v=>v.date<=d).map(v=>v.date).sort(byDate).at(-1)||null;
 const pensionCashCostBasis=d=>{
   const c=PORTFOLIO?.constants||{};
-  const tradeDate=latestPensionTradeDate(d);
-  if(!tradeDate) return Number(c.pensionCashCost||0)+pensionContributionSum(d);
-  const cashAtTradeDate=pensionCashValuation(tradeDate,pensionBaseCashForDate(tradeDate));
-  return Math.max(0,cashAtTradeDate+pensionContributionSumAfter(tradeDate,d));
+  const trades=pensionTradeItems().filter(v=>v.date<=d);
+  const latestTrade=trades.at(-1)||null;
+  if(!latestTrade) return Math.max(0,(Number(c.pensionCashCost)||0)+pensionContributionSum(d));
+
+  const tradeDate=String(latestTrade.date||'');
+  const tradeAt=String(latestTrade.appliedAtKST||latestTrade.updatedAtKST||'');
+  const anchor=pensionCashSnapshotItems().filter(snapshot=>{
+    if(snapshot.date<tradeDate) return true;
+    if(snapshot.date>tradeDate) return false;
+    if(Array.isArray(snapshot.afterTradeIds)) return !snapshot.afterTradeIds.map(String).includes(String(latestTrade.id));
+    const snapshotAt=String(snapshot.updatedAtKST||'');
+    return !!(snapshotAt&&tradeAt&&snapshotAt<tradeAt);
+  }).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.updatedAtKST||'').localeCompare(String(b.updatedAtKST||''))).at(-1)||null;
+
+  let cashCost=anchor?Number(anchor.valuation||0):Number(c.pensionCashCost||0);
+  pensionContributionItems().filter(contribution=>{
+    if(contribution.date>d) return false;
+    if(!anchor) return true;
+    if(contribution.date<anchor.date) return false;
+    if(contribution.date>anchor.date) return true;
+    return !pensionCashSnapshotReflectsContribution(anchor,contribution);
+  }).forEach(contribution=>{cashCost+=Number(contribution.amount)||0});
+
+  trades.filter(trade=>{
+    if(!anchor) return true;
+    if(trade.date<anchor.date) return false;
+    if(trade.date>anchor.date) return true;
+    return !pensionCashSnapshotReflectsTrade(anchor,trade);
+  }).forEach(trade=>{
+    const amount=Number(trade.amount)||0;
+    cashCost+=trade.type==='sell'?amount:-amount;
+  });
+
+  return Math.max(0,cashCost);
 };
 const pensionContributionSubText=x=>{
   const latest=latestPensionContribution(x.date);
@@ -1895,7 +1925,13 @@ async function savePensionContribution(){
     if(!data){showPensionContributionStatus('저장이 취소되었습니다.','err');return}
     if(data.item){
       upsertPensionItemLocally(item.target,data.item);
-      if(item.target==='etfTrade') updatePensionEtfTradePreview();
+      if(item.target==='etfTrade'){
+        const qtyEl=document.getElementById('pensionEtfTradeQty');
+        const amountEl=document.getElementById('pensionEtfTradeAmount');
+        if(qtyEl) qtyEl.value='';
+        if(amountEl) amountEl.value='';
+        updatePensionEtfTradePreview();
+      }
       syncPensionContributionDeleteCard(item.target);
     }
     const actionText=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
