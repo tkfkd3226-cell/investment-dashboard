@@ -636,7 +636,7 @@ function scrollChartToEnd(button){
 }
 function syncResponsiveChartControls(){
   const mobile=window.matchMedia('(max-width:760px)').matches;
-  ['pension-chart-cum','chart-cum'].forEach(id=>{
+  ['pension-chart-cum','chart-cum','pension-chart-symbol','chart-symbol'].forEach(id=>{
     const card=document.getElementById(id);
     const head=card?.querySelector('.chart-head');
     const actions=card?.querySelector('.chart-head-actions');
