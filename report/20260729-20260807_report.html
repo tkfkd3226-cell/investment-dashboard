@@ -177,6 +177,125 @@ details p,details li{font-size:12px;color:var(--muted)}
   .chart-legend{font-size:9px}
 }
 
+
+/* 2026-08-07 상단 카드 · 모바일 밀도 · 데스크톱 메뉴 보정 */
+.tabs{
+  gap:6px;
+  padding:14px 2px 8px;
+}
+.tab{
+  border-radius:10px;
+  padding:8px 11px;
+  font-size:13px;
+  font-weight:750;
+  letter-spacing:-.015em;
+  box-shadow:0 1px 2px rgba(31,48,76,.035);
+}
+.tab.active{
+  font-weight:800;
+}
+
+/* 태블릿 포함: 상단 영역 전체 높이 축소 */
+@media (max-width:900px){
+  .hero{
+    padding:18px 18px 16px;
+    border-radius:20px;
+  }
+  .eyebrow{
+    font-size:10px;
+    line-height:1.2;
+  }
+  .hero p{
+    font-size:12px;
+    line-height:1.35;
+  }
+  .hero-summary{
+    margin-top:14px;
+    gap:7px;
+  }
+  .hero-chip{
+    padding:10px 11px;
+    border-radius:13px;
+  }
+  .hero-chip span{
+    font-size:10px;
+    line-height:1.25;
+  }
+  .hero-chip strong{
+    margin-top:2px;
+    font-size:18px;
+    line-height:1.2;
+  }
+}
+
+/* 390px 이상: 손익 2개를 한 줄, 현금 카드는 다음 줄 전체 폭 */
+@media (min-width:390px) and (max-width:900px){
+  .hero-summary{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .hero-chip:nth-child(3){
+    grid-column:1 / -1;
+  }
+}
+
+/* 모바일: 상단 카드가 차지하는 세로 공간을 추가 축소 */
+@media (max-width:560px){
+  .wrap{
+    padding:10px;
+  }
+  .hero{
+    padding:14px 14px 13px;
+    border-radius:18px;
+  }
+  .eyebrow{
+    font-size:8.5px;
+    letter-spacing:.06em;
+  }
+  .hero p{
+    margin-top:1px;
+    font-size:10px;
+  }
+  .hero-summary{
+    margin-top:10px;
+    gap:6px;
+  }
+  .hero-chip{
+    padding:8px 9px;
+    border-radius:11px;
+  }
+  .hero-chip span{
+    font-size:9px;
+  }
+  .hero-chip strong{
+    margin-top:1px;
+    font-size:16px;
+    letter-spacing:-.035em;
+  }
+  .mobile-nav{
+    padding:7px 0 6px;
+  }
+}
+
+/* 420px 미만: 제목 크기를 낮춰 390px 전후에서 과도한 2줄화를 방지 */
+@media (max-width:419px){
+  h1{
+    margin:5px 0 5px;
+    font-size:20px;
+    line-height:1.18;
+    letter-spacing:-.055em;
+  }
+}
+
+/* 아주 좁은 화면은 추가 축소 */
+@media (max-width:359px){
+  h1{
+    font-size:18px;
+  }
+  .hero-chip strong{
+    font-size:15px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -191,7 +310,7 @@ details p,details li{font-size:12px;color:var(--muted)}
     </div>
     <div class="hero-summary">
       <div class="hero-chip"><span>누적 실현 순손익</span><strong>7,166,673원</strong></div>
-      <div class="hero-chip"><span>추정 단타 순이익</span><strong>1,061,618원</strong></div>
+      <div class="hero-chip"><span>추정 단타 순손익</span><strong>1,061,618원</strong></div>
       <div class="hero-chip"><span>차입원금 상환 후 내 현금</span><strong>10,472,203원</strong></div>
     </div>
   </header>
