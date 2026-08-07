@@ -45,84 +45,6 @@ const kospiIndexForDate=date=>{
   return Number.isFinite(number)&&number>0?number:null;
 };
 const allAvailableDates=()=>Array.from(new Set([...(Object.keys(ACCOUNT1_DAILY||{})),...(Object.keys(PRICES||{}).filter(d=>PRICES[d].display!==false))])).sort(byDate);
-const MARKET_QUOTE_REFRESH_MS=10000;
-let MARKET_QUOTE_FETCHING=false;
-let MARKET_QUOTE_TIMER=null;
-let MARKET_QUOTES_STATE={
-  updatedAtKST:'',
-  quotes:{
-    k200:{ok:false,value:null,changeRate:null},
-    nasdaq100:{ok:false,value:null,changeRate:null},
-    usdkrw:{ok:false,value:null,changeRate:null}
-  }
-};
-const marketQuoteNumber=(key,value)=>{
-  const n=Number(value);
-  if(!Number.isFinite(n)) return '--';
-  return n.toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2});
-};
-const marketQuoteRate=value=>{
-  const n=Number(value);
-  return Number.isFinite(n)?`${n>0?'+':''}${n.toFixed(2)}%`:'--';
-};
-const marketQuoteFields=key=>`<span class="market-live-value" data-market-value="${key}">--</span><span class="market-live-rate" data-market-rate="${key}">--</span>`;
-const marketQuoteMenuFields=key=>`<span class="mobile-market-quote"><span data-market-value="${key}">--</span><span data-market-rate="${key}">--</span></span>`;
-function renderMarketQuoteState(){
-  const state=MARKET_QUOTES_STATE||{},quotes=state.quotes||{};
-  ['k200','nasdaq100','usdkrw'].forEach(key=>{
-    const q=quotes[key]||{};
-    const valueText=q.ok?marketQuoteNumber(key,q.value):'--';
-    const rateText=q.ok?marketQuoteRate(q.changeRate):'--';
-    document.querySelectorAll(`[data-market-value="${key}"]`).forEach(el=>{el.textContent=valueText});
-    document.querySelectorAll(`[data-market-rate="${key}"]`).forEach(el=>{
-      el.textContent=rateText;
-      el.classList.remove('positive','negative');
-      if(q.ok&&Number.isFinite(Number(q.changeRate))){
-        const c=cls(Number(q.changeRate));
-        if(c) el.classList.add(c);
-      }
-    });
-  });
-  const stamp=state.updatedAtKST?`${state.updatedAtKST} 갱신`:'--';
-  document.querySelectorAll('[data-market-updated-at]').forEach(el=>{el.textContent=stamp});
-}
-async function fetchMarketQuotes(){
-  if(MARKET_QUOTE_FETCHING||document.visibilityState==='hidden') return;
-  MARKET_QUOTE_FETCHING=true;
-  try{
-    const base=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages.url;
-    const res=await fetch(`${base}?action=marketQuotes&ts=${Date.now()}`,{cache:'no-store'});
-    if(!res.ok) throw new Error(`시장정보 HTTP ${res.status}`);
-    const data=await res.json();
-    if(!data?.ok||!data?.quotes) throw new Error(data?.error||'시장정보 응답 오류');
-    MARKET_QUOTES_STATE={
-      updatedAtKST:String(data.updatedAtKST||''),
-      quotes:{
-        k200:data.quotes.k200||{ok:false},
-        nasdaq100:data.quotes.nasdaq100||{ok:false},
-        usdkrw:data.quotes.usdkrw||{ok:false}
-      }
-    };
-  }catch(_){
-    MARKET_QUOTES_STATE={
-      updatedAtKST:'',
-      quotes:{
-        k200:{ok:false,value:null,changeRate:null},
-        nasdaq100:{ok:false,value:null,changeRate:null},
-        usdkrw:{ok:false,value:null,changeRate:null}
-      }
-    };
-  }finally{
-    MARKET_QUOTE_FETCHING=false;
-    renderMarketQuoteState();
-  }
-}
-function startMarketQuotePolling(){
-  if(MARKET_QUOTE_TIMER) return;
-  fetchMarketQuotes();
-  MARKET_QUOTE_TIMER=setInterval(()=>{if(document.visibilityState==='visible')fetchMarketQuotes()},MARKET_QUOTE_REFRESH_MS);
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')fetchMarketQuotes()});
-}
 const monthLabel=m=>{const [y,mo]=m.split('-');return `${y}년 ${Number(mo)}월`};
 const includeAccount2=d=>d>='2026-05-22';
 const includeToss=d=>d>='2026-03-23';
@@ -518,11 +440,10 @@ function navIconSvg(name){
 function renderUnifiedMobileMenuContent(){
   const groups=[
     {
-      label:'시장정보 <span class="mobile-market-updated" data-market-updated-at>--</span>',
+      label:'링크',
       items:[
-        {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:'activity',title:'코스피200 야간선물',marketKey:'k200'},
-        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:'link',title:'나스닥100 선물',marketKey:'nasdaq100'},
-        {type:'market',icon:'trending',title:'USD/KRW',marketKey:'usdkrw'}
+        {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:'activity',title:'코스피200 야간선물'},
+        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:'link',title:'나스닥100 선물'}
       ]
     },
     {
@@ -565,11 +486,10 @@ function renderUnifiedMobileMenuContent(){
     }
   ];
   return groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>{
-    const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span class="mobile-nav-item-title"><strong>${item.title}</strong></span>${item.marketKey?marketQuoteMenuFields(item.marketKey):''}`;
-    const cls=`mobile-nav-item ${idx?'sub':''}${item.marketKey?' mobile-market-item':''}`;
+    const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
+    const cls=`mobile-nav-item ${idx?'sub':''}`;
     if(item.type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" onclick="closeDateActionMenu()">${inner}</a>`;
     if(item.type==='action') return `<button type="button" class="${cls}" onclick="${item.action}">${inner}</button>`;
-    if(item.type==='market') return `<div class="${cls}" role="status">${inner}</div>`;
     return `<button type="button" class="${cls}" onclick="jumpToSection('${item.id}');closeDateActionMenu()">${inner}</button>`;
   }).join('')}</div>`).join('');
 }
@@ -629,16 +549,12 @@ function renderTabs(){
         <select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
       </div>
       <div class="date-picker-action">
-        <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action market-live-top" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물 · KIS REST 10초 조회">
-          <span class="date-tool-action-icon">🌙</span><span class="market-live-label">K200 야간</span>${marketQuoteFields('k200')}
+        <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물">
+          <span class="date-tool-action-icon">🌙</span><span class="topbar-label-full">코스피200 야간선물</span><span class="topbar-label-short">코스피 야선</span>
         </a>
-        <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action market-live-top" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물 · KIS REST 10초 조회">
-          <span class="date-tool-action-icon">🚀</span><span class="market-live-label">NASDAQ100</span>${marketQuoteFields('nasdaq100')}
+        <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물">
+          <span class="date-tool-action-icon">🚀</span><span class="topbar-label-full">나스닥100 선물</span><span class="topbar-label-short">나스닥 선물</span>
         </a>
-        <span class="date-tool-btn date-tool-btn-desktop topbar-market-action market-live-top market-live-static" title="USD/KRW · KIS REST 10초 조회">
-          <span class="date-tool-action-icon">💱</span><span class="market-live-label">USD/KRW</span>${marketQuoteFields('usdkrw')}
-        </span>
-        <span class="market-updated-inline" data-market-updated-at>--</span>
         <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-krx-action" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()">
           <span class="date-tool-action-icon">📈</span><span class="topbar-label-full">KRX 현재가 반영</span><span class="topbar-label-short">KRX 반영</span>
         </button>
@@ -653,10 +569,9 @@ function renderTabs(){
             <span class="compact-more-icon" aria-hidden="true">•••</span><span>더보기</span>
           </button>
           <div id="compactActionMenu" class="compact-action-menu" aria-label="추가 기능">
-            <div class="compact-action-menu-title">시장지표 <small data-market-updated-at>--</small></div>
-            <a class="compact-market-item" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer"><span>🌙</span><strong>K200 야간</strong>${marketQuoteMenuFields('k200')}</a>
-            <a class="compact-market-item" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer"><span>🚀</span><strong>NASDAQ100</strong>${marketQuoteMenuFields('nasdaq100')}</a>
-            <div class="compact-market-item" role="status"><span>💱</span><strong>USD/KRW</strong>${marketQuoteMenuFields('usdkrw')}</div>
+            <div class="compact-action-menu-title">시장지표</div>
+            <a href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer"><span>🌙</span><strong>코스피200 야간선물</strong></a>
+            <a href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer"><span>🚀</span><strong>나스닥100 선물</strong></a>
             <button type="button" class="compact-menu-pension" onclick="openPensionContributionModal();closeCompactActionMenu()"><span>💰</span><strong>퇴직연금 금액 조정</strong></button>
           </div>
         </div>
@@ -1228,7 +1143,6 @@ function renderPensionContributionModal(x){
 function render(){
   const x=calc(ACTIVE_DATE);
   renderTabs();
-  renderMarketQuoteState();
   const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 운용수익 ${won(x.pensionProfit)}</span>`:'';
   document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
   drawAllCharts();
@@ -2610,7 +2524,7 @@ function setupPensionVizTooltips(){
   document.addEventListener('scroll',()=>closeTooltips(null),true);
 }
 
-async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS,PENSION_TRADES]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]})),fetch('data/pension_trades.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({trades:[]}))]);const dates=allAvailableDates();ACTIVE_DATE=dates.at(-1);history.replaceState(null,'','#'+ACTIVE_DATE);render();startMarketQuotePolling();document.getElementById('tabs').addEventListener('change',e=>{
+async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS,PENSION_TRADES]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]})),fetch('data/pension_trades.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({trades:[]}))]);const dates=allAvailableDates();ACTIVE_DATE=dates.at(-1);history.replaceState(null,'','#'+ACTIVE_DATE);render();document.getElementById('tabs').addEventListener('change',e=>{
   if(e.target.id==='monthSelect'){
     const month=e.target.value,dates=allAvailableDates().filter(d=>d.startsWith(month));
     ACTIVE_DATE=dates.at(-1);
