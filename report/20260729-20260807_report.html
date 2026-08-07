@@ -279,7 +279,7 @@ details p,details li{font-size:12px;color:var(--muted)}
 }
 
 /* 아주 좁은 화면은 추가 축소 */
-@media (max-width:359px){
+@media (max-width:319px){
   h1{
     font-size:18px;
   }
@@ -319,7 +319,7 @@ details p,details li{font-size:12px;color:var(--muted)}
 }
 
 /* 정말 작은 화면에서만 1열 */
-@media screen and (max-width:359px){
+@media screen and (max-width:319px){
   .hero-summary{
     grid-template-columns:minmax(0,1fr) !important;
   }
@@ -341,6 +341,127 @@ details p,details li{font-size:12px;color:var(--muted)}
 }
 .equity-card .sub{
   color:#dbe7f7 !important;
+}
+
+
+/* iPhone Safari 최종 강제 규칙:
+   320px 이상 모바일/태블릿 = 반드시 위 2개 + 아래 1개 */
+@media screen and (min-width:320px) and (max-width:900px){
+  html body .hero .hero-summary{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-auto-flow:row !important;
+    gap:6px !important;
+    width:100% !important;
+    min-width:0 !important;
+  }
+  html body .hero .hero-summary > .hero-chip{
+    display:block !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    grid-column:auto !important;
+    box-sizing:border-box !important;
+  }
+  html body .hero .hero-summary > .hero-chip:nth-child(1){
+    grid-column:1 !important;
+  }
+  html body .hero .hero-summary > .hero-chip:nth-child(2){
+    grid-column:2 !important;
+  }
+  html body .hero .hero-summary > .hero-chip:nth-child(3){
+    grid-column:1 / -1 !important;
+  }
+}
+
+/* 319px 이하에서만 1열 */
+@media screen and (max-width:319px){
+  html body .hero .hero-summary{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  html body .hero .hero-summary > .hero-chip:nth-child(1),
+  html body .hero .hero-summary > .hero-chip:nth-child(2),
+  html body .hero .hero-summary > .hero-chip:nth-child(3){
+    grid-column:auto !important;
+  }
+}
+
+
+/* 핵심 요약 KPI — 334px 전후 모바일 밀도 최적화 */
+@media screen and (max-width:560px){
+  #summary .kpis{
+    gap:4px !important;
+    margin-top:7px !important;
+    margin-left:-4px !important;
+    margin-right:-4px !important;
+  }
+
+  #summary .kpi{
+    min-width:0 !important;
+    padding:7px 6px !important;
+    border-radius:10px !important;
+  }
+
+  #summary .kpi .label{
+    margin-bottom:2px !important;
+    font-size:9px !important;
+    line-height:1.15 !important;
+    letter-spacing:-.035em !important;
+  }
+
+  /* 모든 KPI 금액 표시를 한 단계 축소 */
+  #summary .kpi .value{
+    margin-top:2px !important;
+    font-size:14.5px !important;
+    line-height:1.08 !important;
+    letter-spacing:-.055em !important;
+    white-space:nowrap !important;
+    word-break:keep-all !important;
+  }
+
+  #summary .kpi .sub{
+    margin-top:2px !important;
+    font-size:8.2px !important;
+    line-height:1.18 !important;
+    letter-spacing:-.04em !important;
+  }
+
+  /* 누적 실현 순손익 보조문구는 반드시 한 줄 */
+  #summary .kpi:nth-child(1) .sub{
+    white-space:nowrap !important;
+    font-size:7.8px !important;
+    letter-spacing:-.06em !important;
+  }
+}
+
+/* 350px 이하에서는 금액을 조금 더 줄여 '원' 줄바꿈 방지 */
+@media screen and (max-width:350px){
+  #summary .kpis{
+    gap:3px !important;
+    margin-left:-5px !important;
+    margin-right:-5px !important;
+  }
+
+  #summary .kpi{
+    padding:6px 5px !important;
+  }
+
+  #summary .kpi .label{
+    font-size:8.5px !important;
+  }
+
+  #summary .kpi .value{
+    font-size:13.5px !important;
+    letter-spacing:-.06em !important;
+  }
+
+  #summary .kpi .sub{
+    font-size:7.7px !important;
+  }
+
+  #summary .kpi:nth-child(1) .sub{
+    font-size:7.35px !important;
+  }
 }
 
 </style>
@@ -391,7 +512,7 @@ details p,details li{font-size:12px;color:var(--muted)}
       <div class="card kpi"><div class="label">총 손익금액</div><div class="value pos">7,273,100원</div><div class="sub">거래비용 차감 전</div></div>
       <div class="card kpi"><div class="label">총 거래비용</div><div class="value">106,427원</div><div class="sub">6개 매도일 합계</div></div>
       
-      <div class="card kpi"><div class="label">본 포지션 추정 순손익</div><div class="value pos">6,105,055원</div><div class="sub">혼합일 비용은 거래대금 비율 배분</div></div>
+      <div class="card kpi"><div class="label">본 포지션 추정 순손익</div><div class="value pos">6,105,055원</div><div class="sub">혼합일 비용 거래대금 비율</div></div>
       <div class="card kpi"><div class="label">단타 추정 순손익</div><div class="value pos">1,061,618원</div><div class="sub">총 순손익의 14.8%</div></div>
       
       <div class="card kpi equity-card"><div class="label">최종 순수 자기자금</div><div class="value">10,472,203원</div><div class="sub">차입원금 전액 상환 가정</div></div>
