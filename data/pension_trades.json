@@ -1,24 +1,3 @@
 {
-  "trades": [
-    {
-      "id": "trade-2026-08-07-448330-b20c1591-86e6-4ff6-aaa8-442fa162d072",
-      "date": "2026-08-07",
-      "applyDate": "2026-08-07",
-      "tradeDate": "2026-08-07",
-      "ticker": "448330",
-      "name": "KODEX 삼전채권혼합",
-      "type": "buy",
-      "qty": 77,
-      "price": 16760.77922077922,
-      "amount": 1290580,
-      "funding": "pension_cash",
-      "cashBeforeDate": "2026-08-07",
-      "cashBefore": 1303970,
-      "cashAfter": 13390,
-      "memo": "2026-08-07 KODEX 삼전채권혼합 77좌 매수 체결 · 앱 반영일 2026-08-07",
-      "updatedBy": "google-apps-script",
-      "updatedAtKST": "2026-08-07T19:10:00+09:00",
-      "appliedAtKST": "2026-08-07T19:10:00+09:00"
-    }
-  ]
+  "trades": []
 }
