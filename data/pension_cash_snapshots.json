@@ -169,11 +169,13 @@
   },
   {
     "date": "2026-08-07",
-    "valuation": 1304248,
+    "valuation": 30000,
     "memo": "현금성자산 평가금액 앱 확인",
-    "updatedBy": "google-apps-script",
-    "updatedAtKST": "2026-08-07T20:54:12+09:00",
-    "afterTradeIds": [],
+    "updatedBy": "google-apps-script-batch",
+    "updatedAtKST": "2026-08-07T22:19:35+09:00",
+    "afterTradeIds": [
+      "trade-2026-08-07-278530-dc1548ff-4197-44d6-86ee-df74be1b0dd6"
+    ],
     "afterContributionIds": [
       "contrib-2026-07-01-7d22970c-821c-4a89-88fb-202be9336241",
       "contrib-2026-07-31-29fa5f29-83d2-4b79-a756-32de1003a3c2"
