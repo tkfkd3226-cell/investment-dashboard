@@ -6338,3 +6338,21 @@ button:active,
     transform:none !important;
   }
 }
+
+/* iPhone/mobile pension modal header: compact reset/close actions so the title stays on one line. */
+@media(max-width:460px){
+  .contrib-modal-head{
+    padding-right:68px;
+  }
+  .contrib-modal-head-actions{
+    gap:4px;
+  }
+  .contrib-modal-icon-btn{
+    width:30px;
+    height:30px;
+    font-size:18px;
+  }
+  .contrib-modal-icon-btn.pension-form-reset{
+    font-size:17px;
+  }
+}
