@@ -22,10 +22,10 @@ button{font:inherit}
 .eyebrow{font-size:12px;font-weight:900;letter-spacing:.08em;color:#bfd0eb}
 h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.045em}
 .hero p{margin:0;color:#d6e0ef;font-size:14px}
-.hero-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:24px;position:relative;z-index:1}
-.hero-chip{padding:14px 15px;border:1px solid rgba(255,255,255,.17);border-radius:16px;background:rgba(255,255,255,.08)}
-.hero-chip span{display:block;font-size:11px;color:#bed0e8;font-weight:800}
-.hero-chip strong{display:block;margin-top:4px;font-size:21px;letter-spacing:-.03em}
+.hero-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px;position:relative;z-index:1}
+.hero-chip{padding:9px 11px;border:1px solid rgba(255,255,255,.17);border-radius:13px;background:rgba(255,255,255,.08)}
+.hero-chip span{display:block;font-size:9.5px;line-height:1.2;color:#bed0e8;font-weight:800}
+.hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1.18;letter-spacing:-.035em}
 .tabs{display:flex;gap:8px;overflow:auto;padding:18px 2px 10px;position:sticky;top:0;z-index:20;background:linear-gradient(var(--bg) 75%,transparent)}
 .tab{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:12px;padding:10px 14px;font-weight:850;cursor:pointer;white-space:nowrap}
 .tab.active{background:var(--navy);border-color:var(--navy);color:#fff}
@@ -211,21 +211,21 @@ details p,details li{font-size:12px;color:var(--muted)}
     line-height:1.35;
   }
   .hero-summary{
-    margin-top:14px;
-    gap:7px;
+    margin-top:10px;
+    gap:6px;
   }
   .hero-chip{
-    padding:10px 11px;
-    border-radius:13px;
+    padding:8px 9px;
+    border-radius:11px;
   }
   .hero-chip span{
-    font-size:10px;
-    line-height:1.25;
+    font-size:9px;
+    line-height:1.2;
   }
   .hero-chip strong{
-    margin-top:2px;
-    font-size:18px;
-    line-height:1.2;
+    margin-top:1px;
+    font-size:16px;
+    line-height:1.16;
   }
 }
 
@@ -289,37 +289,58 @@ details p,details li{font-size:12px;color:var(--muted)}
 }
 
 
-.hero-chip:nth-child(3){
-    grid-column:auto;
-  }
-}
-
-
-/* 상단 HERO 카드 최종 반응형 규칙 — 다른 선언으로 덮어쓰지 말 것 */
+/* 상단 HERO 카드 최종 반응형 규칙 */
 .hero-summary{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:8px;
 }
-.hero-chip:nth-child(3){
-  grid-column:auto;
+.hero-summary > .hero-chip{
+  min-width:0;
+  width:auto !important;
 }
-
-@media (max-width:900px){
-  .hero-summary{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
-  .hero-chip:nth-child(3){
-    grid-column:1 / -1;
-  }
+.hero-summary > .hero-chip:nth-child(3){
+  grid-column:auto !important;
 }
 
-@media (max-width:359px){
+/* 태블릿/모바일: 위 2개 + 아래 1개 */
+@media screen and (max-width:900px){
   .hero-summary{
-    grid-template-columns:1fr;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
   }
-  .hero-chip:nth-child(3){
-    grid-column:auto;
+  .hero-summary > .hero-chip:nth-child(1),
+  .hero-summary > .hero-chip:nth-child(2){
+    grid-column:auto !important;
   }
+  .hero-summary > .hero-chip:nth-child(3){
+    grid-column:1 / -1 !important;
+  }
+}
+
+/* 정말 작은 화면에서만 1열 */
+@media screen and (max-width:359px){
+  .hero-summary{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  .hero-summary > .hero-chip:nth-child(3){
+    grid-column:auto !important;
+  }
+}
+
+/* 최종 순수 자기자금 카드: 진한 배경 + 흰색 글씨 */
+.equity-card{
+  background:linear-gradient(135deg,#1d3557 0%,#284b7c 100%);
+  border-color:#1d3557;
+  color:#fff;
+  box-shadow:0 10px 24px rgba(29,53,87,.18);
+}
+.equity-card .label,
+.equity-card .value{
+  color:#fff !important;
+}
+.equity-card .sub{
+  color:#dbe7f7 !important;
 }
 
 </style>
@@ -373,7 +394,7 @@ details p,details li{font-size:12px;color:var(--muted)}
       <div class="card kpi"><div class="label">본 포지션 추정 순손익</div><div class="value pos">6,105,055원</div><div class="sub">혼합일 비용은 거래대금 비율 배분</div></div>
       <div class="card kpi"><div class="label">단타 추정 순손익</div><div class="value pos">1,061,618원</div><div class="sub">총 순손익의 14.8%</div></div>
       
-      <div class="card kpi"><div class="label">최종 순수 자기자금</div><div class="value equity">10,472,203원</div><div class="sub">차입원금 전액 상환 가정</div></div>
+      <div class="card kpi equity-card"><div class="label">최종 순수 자기자금</div><div class="value">10,472,203원</div><div class="sub">차입원금 전액 상환 가정</div></div>
     </div>
 
     <div class="grid-2">
