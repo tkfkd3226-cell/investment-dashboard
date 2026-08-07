@@ -1050,9 +1050,9 @@ function renderPensionContributionModal(x){
   const cashDefaultDate=x.date||contribDefaultDate;
   const cashDefaultValue=Number.isFinite(Number(x.pensionCash))?fmt(x.pensionCash):'';
   const applyDate=kstTodayText();
-  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle"><span class="section-title-icon">💰</span>퇴직연금 금액 조정</h2></div><button type="button" class="contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div>
+  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle"><span class="section-title-icon">💰</span>퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="contrib-modal-icon-btn pension-form-reset" onclick="resetPensionContributionForm()" title="입력값 초기화" aria-label="입력값 초기화">↻</button><button type="button" class="contrib-modal-icon-btn contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div></div>
 <div class="pension-contrib-tool modal-card-box">
-  <div class="pension-contrib-section-head"><h3>등록</h3><div class="pension-work-controls"><div class="pension-work-mode" role="tablist" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" data-mode="single" onclick="setPensionBatchMode(false)">개별 처리</button><button type="button" class="pension-work-mode-btn" data-mode="batch" onclick="setPensionBatchMode(true)">작업 모음 <span id="pensionBatchModeCount" class="pension-batch-count" hidden>0</span></button></div><button type="button" class="pension-form-reset" onclick="resetPensionContributionForm()" title="입력값 초기화" aria-label="입력값 초기화">초기화</button></div></div>
+  <div class="pension-contrib-section-head"><h3>등록</h3><div class="pension-work-controls"><div class="pension-work-mode" role="tablist" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" data-mode="single" onclick="setPensionBatchMode(false)">개별 처리</button><button type="button" class="pension-work-mode-btn" data-mode="batch" onclick="setPensionBatchMode(true)">작업 모음 <span id="pensionBatchModeCount" class="pension-batch-count" hidden>0</span></button></div></div></div>
   <div class="contrib-field full contrib-target-field"><span class="contrib-field-label">등록 유형</span><input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="등록 유형 선택"><button type="button" class="contrib-target-option active" data-target="cashSnapshot" onclick="setPensionContributionTarget('cashSnapshot')">현금성자산 평가금액</button><button type="button" class="contrib-target-option" data-target="contribution" onclick="setPensionContributionTarget('contribution')">기업적립금</button><button type="button" class="contrib-target-option" data-target="etfTrade" onclick="setPensionContributionTarget('etfTrade')">추가 매수</button></div></div>
   <p id="pensionEtfTradeHelp" class="small" hidden>추가 매수는 퇴직연금 앱 보유현황에 실제 반영된 날 저장하세요. 체결일·상품·수량·체결금액만 입력하면 나머지는 자동 계산합니다.</p>
   <div id="pensionContribStandardFields" class="contrib-form-grid">
@@ -1910,6 +1910,10 @@ function resetPensionContributionForm(){
   PENSION_BATCH_LAST_ADD_FINGERPRINT='';
   PENSION_BATCH_LAST_ADD_AT=0;
   updatePensionEtfTradePreview();
+  const queuedCount=PENSION_BATCH_QUEUE.length;
+  showPensionContributionStatus(queuedCount
+    ? `입력값과 삭제 선택을 초기화했습니다. 작업 모음 ${queuedCount}건은 유지됩니다.`
+    : '입력값과 삭제 선택을 초기화했습니다.','ok');
   document.activeElement?.blur?.();
 }
 
