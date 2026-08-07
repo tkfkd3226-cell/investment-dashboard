@@ -387,80 +387,131 @@ details p,details li{font-size:12px;color:var(--muted)}
 }
 
 
-/* 핵심 요약 KPI — 334px 전후 모바일 밀도 최적화 */
+
+/* 핵심 요약 KPI — 모바일 가독성/밀도 균형 */
 @media screen and (max-width:560px){
   #summary .kpis{
-    gap:4px !important;
-    margin-top:7px !important;
-    margin-left:-4px !important;
-    margin-right:-4px !important;
+    gap:6px !important;
+    margin-top:9px !important;
+    margin-left:-2px !important;
+    margin-right:-2px !important;
   }
-
   #summary .kpi{
     min-width:0 !important;
-    padding:7px 6px !important;
-    border-radius:10px !important;
+    padding:10px 9px !important;
+    border-radius:12px !important;
   }
-
   #summary .kpi .label{
-    margin-bottom:2px !important;
-    font-size:9px !important;
-    line-height:1.15 !important;
-    letter-spacing:-.035em !important;
+    margin-bottom:3px !important;
+    font-size:10px !important;
+    line-height:1.18 !important;
+    letter-spacing:-.025em !important;
   }
-
-  /* 모든 KPI 금액 표시를 한 단계 축소 */
   #summary .kpi .value{
     margin-top:2px !important;
-    font-size:14.5px !important;
-    line-height:1.08 !important;
-    letter-spacing:-.055em !important;
+    font-size:17px !important;
+    line-height:1.1 !important;
+    letter-spacing:-.045em !important;
     white-space:nowrap !important;
     word-break:keep-all !important;
   }
-
   #summary .kpi .sub{
-    margin-top:2px !important;
-    font-size:8.2px !important;
-    line-height:1.18 !important;
-    letter-spacing:-.04em !important;
+    margin-top:4px !important;
+    font-size:9px !important;
+    line-height:1.22 !important;
+    letter-spacing:-.025em !important;
   }
-
-  /* 누적 실현 순손익 보조문구는 반드시 한 줄 */
   #summary .kpi:nth-child(1) .sub{
     white-space:nowrap !important;
-    font-size:7.8px !important;
-    letter-spacing:-.06em !important;
+    font-size:8.7px !important;
+    letter-spacing:-.04em !important;
+  }
+}
+@media screen and (max-width:350px){
+  #summary .kpis{
+    gap:5px !important;
+    margin-left:-3px !important;
+    margin-right:-3px !important;
+  }
+  #summary .kpi{
+    padding:9px 7px !important;
+  }
+  #summary .kpi .label{
+    font-size:9.5px !important;
+  }
+  #summary .kpi .value{
+    font-size:16px !important;
+  }
+  #summary .kpi .sub{
+    font-size:8.5px !important;
+  }
+  #summary .kpi:nth-child(1) .sub{
+    font-size:8.25px !important;
   }
 }
 
-/* 350px 이하에서는 금액을 조금 더 줄여 '원' 줄바꿈 방지 */
-@media screen and (max-width:350px){
-  #summary .kpis{
-    gap:3px !important;
-    margin-left:-5px !important;
-    margin-right:-5px !important;
-  }
 
-  #summary .kpi{
-    padding:6px 5px !important;
+/* 모바일 차트 헤더: 제목은 전체 폭, 범례는 차트 바로 위 */
+@media screen and (max-width:760px){
+  .pnl-chart-card .section-title.chart-title{
+    display:block !important;
+    margin-bottom:8px !important;
   }
-
-  #summary .kpi .label{
-    font-size:8.5px !important;
+  .pnl-chart-card .section-title.chart-title > div:first-child{
+    width:100% !important;
   }
-
-  #summary .kpi .value{
-    font-size:13.5px !important;
-    letter-spacing:-.06em !important;
+  .pnl-chart-card .section-title.chart-title h2{
+    white-space:nowrap !important;
   }
-
-  #summary .kpi .sub{
-    font-size:7.7px !important;
+  .pnl-chart-card .chart-legend{
+    width:100% !important;
+    margin-top:9px !important;
+    display:flex !important;
+    justify-content:flex-end !important;
+    gap:12px !important;
   }
+}
 
-  #summary .kpi:nth-child(1) .sub{
-    font-size:7.35px !important;
+
+/* 본 포지션·단타 전체 결과: 모바일은 4개 카드 요약 */
+.split-total-mobile{
+  display:none;
+}
+@media screen and (max-width:700px){
+  .split-total{
+    gap:12px !important;
+  }
+  .split-total-stats{
+    display:none !important;
+  }
+  .split-total-mobile{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+  .split-total-mobile-card{
+    min-width:0;
+    padding:11px 10px;
+    border:1px solid #dce5f1;
+    border-radius:13px;
+    background:#fff;
+  }
+  .split-total-mobile-card span{
+    display:block;
+    color:var(--muted);
+    font-size:10px;
+    font-weight:800;
+    line-height:1.2;
+  }
+  .split-total-mobile-card strong{
+    display:block;
+    margin-top:4px;
+    color:var(--ink);
+    font-size:15px;
+    line-height:1.15;
+    letter-spacing:-.035em;
+    white-space:nowrap;
   }
 }
 
@@ -633,7 +684,7 @@ details p,details li{font-size:12px;color:var(--muted)}
           <h2>본 포지션</h2>
           <p>하루 이상 보유한 주요 포지션의 매수·실제 매도 결과</p>
         </div>
-        <span class="badge estimate">혼합일 비용 추정</span>
+        
       </div>
 
       <div class="split-summary-grid">
@@ -693,7 +744,7 @@ details p,details li{font-size:12px;color:var(--muted)}
           <h2>단타</h2>
           <p>당일 반복매매 물량만 날짜별로 분리한 결과</p>
         </div>
-        <span class="badge estimate">혼합일 비용 추정</span>
+        
       </div>
 
       <div class="split-summary-grid">
@@ -740,6 +791,12 @@ details p,details li{font-size:12px;color:var(--muted)}
         <span>손익금액 <b class="pos">+7,273,100원</b></span>
         <span>거래비용 <b>106,427원</b></span>
         <span>순손익 <b class="pos">+7,166,673원</b></span>
+      </div>
+      <div class="split-total-mobile" aria-label="전체 결과 모바일 요약">
+        <div class="split-total-mobile-card"><span>매도수량</span><strong>13,012주</strong></div>
+        <div class="split-total-mobile-card"><span>손익금액</span><strong class="pos">+7,273,100원</strong></div>
+        <div class="split-total-mobile-card"><span>거래비용</span><strong>106,427원</strong></div>
+        <div class="split-total-mobile-card"><span>순손익</span><strong class="pos">+7,166,673원</strong></div>
       </div>
     </div>
 </section>
