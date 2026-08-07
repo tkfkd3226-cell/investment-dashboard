@@ -36,6 +36,7 @@ let PENSION_BATCH_SEQUENCE=0;
 let PENSION_BATCH_LAST_ADD_FINGERPRINT='';
 let PENSION_BATCH_LAST_ADD_AT=0;
 let PENSION_BATCH_APPLYING=false;
+let PENSION_BATCH_REQUEST_ID='';
 const formatKospi=n=>Number(n).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const kospiIndexForDate=date=>{
   const value=SNAPSHOTS?.[date]?.kospi ?? PRICES?.[date]?.indices?.KOSPI;
@@ -1051,7 +1052,7 @@ function renderPensionContributionModal(x){
   const applyDate=kstTodayText();
   return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle"><span class="section-title-icon">💰</span>퇴직연금 금액 조정</h2></div><button type="button" class="contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div>
 <div class="pension-contrib-tool modal-card-box">
-  <div class="pension-contrib-section-head"><h3>등록</h3><div class="pension-work-mode" role="tablist" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" data-mode="single" onclick="setPensionBatchMode(false)">개별 처리</button><button type="button" class="pension-work-mode-btn" data-mode="batch" onclick="setPensionBatchMode(true)">작업 모음 <span id="pensionBatchModeCount" class="pension-batch-count" hidden>0</span></button></div></div>
+  <div class="pension-contrib-section-head"><h3>등록</h3><div class="pension-work-controls"><div class="pension-work-mode" role="tablist" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" data-mode="single" onclick="setPensionBatchMode(false)">개별 처리</button><button type="button" class="pension-work-mode-btn" data-mode="batch" onclick="setPensionBatchMode(true)">작업 모음 <span id="pensionBatchModeCount" class="pension-batch-count" hidden>0</span></button></div><button type="button" class="pension-form-reset" onclick="resetPensionContributionForm()" title="입력값 초기화" aria-label="입력값 초기화">초기화</button></div></div>
   <div class="contrib-field full contrib-target-field"><span class="contrib-field-label">등록 유형</span><input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="등록 유형 선택"><button type="button" class="contrib-target-option active" data-target="cashSnapshot" onclick="setPensionContributionTarget('cashSnapshot')">현금성자산 평가금액</button><button type="button" class="contrib-target-option" data-target="contribution" onclick="setPensionContributionTarget('contribution')">기업적립금</button><button type="button" class="contrib-target-option" data-target="etfTrade" onclick="setPensionContributionTarget('etfTrade')">추가 매수</button></div></div>
   <p id="pensionEtfTradeHelp" class="small" hidden>추가 매수는 퇴직연금 앱 보유현황에 실제 반영된 날 저장하세요. 체결일·상품·수량·체결금액만 입력하면 나머지는 자동 계산합니다.</p>
   <div id="pensionContribStandardFields" class="contrib-form-grid">
@@ -1881,6 +1882,36 @@ function showPensionContributionStatus(message,type='ok'){
 function showPensionContributionDeleteStatus(message,type='ok'){
   setPensionContributionStatus('pensionContribDeleteStatus',message,type);
 }
+function clearPensionContributionStatus(elementId){
+  const status=document.getElementById(elementId);
+  if(!status)return;
+  status.textContent='';
+  status.className='contrib-status';
+}
+function resetPensionContributionForm(){
+  const dateEl=document.getElementById('pensionContribDate');
+  const tradeDateEl=document.getElementById('pensionEtfTradeDate');
+  const tickerEl=document.getElementById('pensionEtfTradeTicker');
+  const qtyEl=document.getElementById('pensionEtfTradeQty');
+  const tradeAmountEl=document.getElementById('pensionEtfTradeAmount');
+  const defaultCashDate=dateEl?.dataset.cashDefaultDate||kstTodayText();
+
+  setPensionContributionTarget('cashSnapshot');
+  if(tradeDateEl)tradeDateEl.value=defaultCashDate;
+  if(tickerEl&&tickerEl.options.length)tickerEl.selectedIndex=0;
+  if(qtyEl)qtyEl.value='';
+  if(tradeAmountEl)tradeAmountEl.value='';
+  document.querySelectorAll('input[name="pensionContribDeleteTarget"]').forEach(input=>{input.checked=false});
+  const output=document.getElementById('pensionContribOutput');
+  if(output){output.textContent='';output.classList.remove('show')}
+  clearPensionContributionStatus('pensionContribStatus');
+  clearPensionContributionStatus('pensionContribDeleteStatus');
+  clearPensionContributionStatus('pensionBatchStatus');
+  PENSION_BATCH_LAST_ADD_FINGERPRINT='';
+  PENSION_BATCH_LAST_ADD_AT=0;
+  updatePensionEtfTradePreview();
+  document.activeElement?.blur?.();
+}
 
 function requestPensionActionPin({title='PIN 입력',description='저장/삭제를 계속하려면 PIN을 입력하세요.',danger=false,execute}={}){
   return new Promise(resolve=>{
@@ -2173,6 +2204,15 @@ function pensionBatchOperationFingerprint(operation){
   if(op.target==='etfTrade')return `upsert|etfTrade|${String(item.tradeDate||'')}|${String(item.ticker||'')}|${String(item.qty??'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
   return `${String(op.action||'')}|${String(op.target||'')}|${JSON.stringify(item)}`;
 }
+function resetPensionBatchRequestId(){
+  PENSION_BATCH_REQUEST_ID='';
+}
+function getPensionBatchRequestId(){
+  if(PENSION_BATCH_REQUEST_ID)return PENSION_BATCH_REQUEST_ID;
+  const uuid=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
+  PENSION_BATCH_REQUEST_ID=`pension-batch-${uuid}`;
+  return PENSION_BATCH_REQUEST_ID;
+}
 function addPensionBatchOperation(operation){
   const now=Date.now();
   const fingerprint=pensionBatchOperationFingerprint(operation);
@@ -2182,6 +2222,8 @@ function addPensionBatchOperation(operation){
   PENSION_BATCH_QUEUE.push(op);
   PENSION_BATCH_LAST_ADD_FINGERPRINT=fingerprint;
   PENSION_BATCH_LAST_ADD_AT=now;
+  resetPensionBatchRequestId();
+  clearPensionContributionStatus('pensionBatchStatus');
   renderPensionBatchQueue();
   return op;
 }
@@ -2189,6 +2231,7 @@ function removePensionBatchOperation(qid){
   PENSION_BATCH_QUEUE=PENSION_BATCH_QUEUE.filter(v=>v.qid!==qid);
   PENSION_BATCH_LAST_ADD_FINGERPRINT='';
   PENSION_BATCH_LAST_ADD_AT=0;
+  resetPensionBatchRequestId();
   renderPensionBatchQueue();
   updatePensionEtfTradePreview();
 }
@@ -2198,6 +2241,7 @@ function movePensionBatchOperation(qid,direction){
   if(index<0||next<0||next>=PENSION_BATCH_QUEUE.length)return;
   const [item]=PENSION_BATCH_QUEUE.splice(index,1);
   PENSION_BATCH_QUEUE.splice(next,0,item);
+  resetPensionBatchRequestId();
   renderPensionBatchQueue();
   updatePensionEtfTradePreview();
 }
@@ -2205,6 +2249,7 @@ function clearPensionBatchQueue(){
   PENSION_BATCH_QUEUE=[];
   PENSION_BATCH_LAST_ADD_FINGERPRINT='';
   PENSION_BATCH_LAST_ADD_AT=0;
+  resetPensionBatchRequestId();
   renderPensionBatchQueue();
   updatePensionEtfTradePreview();
   showPensionBatchStatus('작업 모음을 비웠습니다.','ok');
@@ -2212,10 +2257,10 @@ function clearPensionBatchQueue(){
 function showPensionBatchStatus(message,type='ok'){
   setPensionContributionStatus('pensionBatchStatus',message,type);
 }
-async function savePensionBatchViaGithubPages(operations,pin){
+async function savePensionBatchViaGithubPages(operations,pin,batchRequestId){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   if(!config.url||config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
-  const payload={pin:String(pin||'').trim(),action:'batchPension',operations:operations.map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null}))};
+  const payload={pin:String(pin||'').trim(),action:'batchPension',batchRequestId:String(batchRequestId||'').trim(),operations:operations.map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null}))};
   const res=await fetch(config.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
   const data=await res.json().catch(()=>({}));
   if(!data.ok)throw new Error(data.error||'작업 모음 일괄 적용에 실패했습니다.');
@@ -2233,6 +2278,7 @@ async function applyPensionBatchQueue(){
   let simulated;
   try{simulated=pensionBatchSimulate(PENSION_BATCH_QUEUE)}catch(e){showPensionBatchStatus(e.message||String(e),'err');return}
   const count=PENSION_BATCH_QUEUE.length;
+  const batchRequestId=getPensionBatchRequestId();
   PENSION_BATCH_APPLYING=true;
   renderPensionBatchQueue();
   try{
@@ -2240,18 +2286,22 @@ async function applyPensionBatchQueue(){
     const data=await requestPensionActionPin({
       title:'작업 모음 일괄 적용',
       description:`저장·삭제 ${count}건을 검증한 뒤 GitHub 한 커밋으로 반영합니다. 하나라도 실패하면 아무것도 저장하지 않습니다.`,
-      execute:pin=>savePensionBatchViaGithubPages(simulated.orderedOperations,pin)
+      execute:pin=>savePensionBatchViaGithubPages(simulated.orderedOperations,pin,batchRequestId)
     });
     if(!data){showPensionBatchStatus('일괄 적용이 취소되었습니다.','err');return}
-    applyPensionBatchStateLocally(data.state);
+    const duplicateWithoutState=!!data.duplicate&&!data.state;
+    if(!duplicateWithoutState)applyPensionBatchStateLocally(data.state);
     PENSION_BATCH_QUEUE=[];
     PENSION_BATCH_LAST_ADD_FINGERPRINT='';
     PENSION_BATCH_LAST_ADD_AT=0;
+    resetPensionBatchRequestId();
     PENSION_BATCH_MODE=true;
     render();
     openPensionContributionModal();
     setPensionBatchMode(true);
-    showPensionBatchStatus(`${count}건 일괄 적용 완료. GitHub에는 한 커밋으로 반영했습니다. Pages 배포까지 잠시 걸릴 수 있습니다.`,'ok');
+    showPensionBatchStatus(duplicateWithoutState
+      ?'동일한 작업 모음은 이미 서버에서 반영 완료되었습니다. 중복 커밋은 만들지 않았습니다. Pages 반영 후 새로고침하면 최신 값이 표시됩니다.'
+      :`${count}건 일괄 적용 완료. GitHub에는 한 커밋으로 반영했습니다. Pages 배포까지 잠시 걸릴 수 있습니다.`,'ok');
   }finally{
     PENSION_BATCH_APPLYING=false;
     renderPensionBatchQueue();
@@ -2275,6 +2325,14 @@ async function savePensionContributionViaGithubPages(item,pin){
 async function savePensionContribution(){
   const out=document.getElementById('pensionContribOutput');
   try{
+    if(PENSION_BATCH_MODE&&pensionContributionTarget()==='etfTrade'){
+      const qtyRaw=String(document.getElementById('pensionEtfTradeQty')?.value||'').trim();
+      const amountRaw=String(document.getElementById('pensionEtfTradeAmount')?.value||'').trim();
+      const last=PENSION_BATCH_QUEUE.at(-1);
+      if(!qtyRaw&&!amountRaw&&last?.action==='upsert'&&last?.target==='etfTrade'&&Date.now()-PENSION_BATCH_LAST_ADD_AT<800){
+        throw new Error('동일한 작업이 방금 추가되었습니다. 중복 클릭은 반영하지 않았습니다.');
+      }
+    }
     const item=buildPensionContributionItem();
     if(out){out.textContent=JSON.stringify(item,null,2);out.classList.add('show')}
     const targetText=pensionContributionTargetLabel(item.target);

@@ -6283,6 +6283,27 @@ button:active,
   margin-bottom:4px;
 }
 .pension-contrib-section-head > h3{margin:0}
+.pension-work-controls{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+  min-width:0;
+}
+.pension-form-reset{
+  flex:0 0 auto;
+  border:1px solid var(--line);
+  border-radius:7px;
+  padding:4px 7px;
+  background:transparent;
+  color:var(--muted);
+  font-size:10.5px;
+  font-weight:850;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.pension-form-reset:hover{color:var(--text);background:rgba(15,23,42,.04)}
+.dark .pension-form-reset:hover{background:rgba(148,163,184,.08)}
 .pension-contrib-section-head .pension-work-mode{
   width:auto;
   min-width:184px;
@@ -6295,7 +6316,9 @@ button:active,
 }
 @media(max-width:460px){
   .pension-contrib-section-head{gap:6px}
-  .pension-contrib-section-head .pension-work-mode{min-width:0;width:194px}
-  .pension-contrib-section-head .pension-work-mode-btn{padding:4px 5px;font-size:10.5px}
+  .pension-work-controls{gap:4px}
+  .pension-contrib-section-head .pension-work-mode{min-width:0;width:172px}
+  .pension-contrib-section-head .pension-work-mode-btn{padding:4px 4px;font-size:10px}
+  .pension-form-reset{padding:4px 6px;font-size:10px}
 }
 .pension-contrib-section-head .pension-work-mode-btn{padding:3px 6px}
