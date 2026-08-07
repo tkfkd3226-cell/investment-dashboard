@@ -38,6 +38,7 @@
     .preset-btn .preset-date{font-size:10px;font-weight:700;opacity:.72}
     .preset-btn:hover{border-color:#9fb0c8;background:#f7f9fc;color:var(--ink)}
     .preset-btn.active{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 5px 14px rgba(29,53,87,.16)}
+    .preset-report-link{text-decoration:none;margin-left:auto}
 
     .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
     .input-panel{padding:18px;margin-bottom:16px}
@@ -169,8 +170,9 @@
       #resetBtn{width:36px;height:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:10px}
       #resetBtn .reset-text{display:none}
       #resetBtn .reset-icon{display:block}
-      .preset-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+      .preset-bar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
       .preset-btn{min-width:0;width:100%;padding:8px 3px}
+      .preset-report-link{margin-left:0}
       .preset-btn .preset-main{font-size:10px;letter-spacing:-.04em}
       .preset-btn .preset-date{font-size:9px}
       .input-panel{padding:12px}
@@ -459,9 +461,10 @@
   </div>
 
   <div class="preset-bar" aria-label="매수 사례 선택">
-    <button class="preset-btn" type="button" data-preset="buy-2026-07-29"><span class="preset-main">보유 중 추가매수</span><span class="preset-date">예시 2026-07-29</span></button>
-    <button class="preset-btn" type="button" data-preset="buy-2026-07-30"><span class="preset-main">이전 거래 후 재매수</span><span class="preset-date">예시 2026-07-30</span></button>
-    <button class="preset-btn active" type="button" data-preset="current-only"><span class="preset-main">이전 거래 없음</span><span class="preset-date">범용 계산</span></button>
+    <button class="preset-btn" type="button" data-preset="buy-2026-07-29"><span class="preset-main">보유 중 추가매수</span></button>
+    <button class="preset-btn" type="button" data-preset="buy-2026-07-30"><span class="preset-main">이전 거래 후 재매수</span></button>
+    <button class="preset-btn active" type="button" data-preset="current-only"><span class="preset-main">이전 거래 없음</span></button>
+    <a class="preset-btn preset-report-link" href="report/20260729-20260807_report.html" target="_blank" rel="noopener"><span class="preset-main">거래 리포트</span></a>
   </div>
 
   <section class="panel input-panel">
@@ -985,7 +988,7 @@
   document.querySelectorAll('input[type=number]').forEach(inp=>inp.addEventListener('input',()=>{if(inp.id==='overnightPct'||inp.id==='risePct'){delete inp.dataset.exactValue;disableAutoBreakEven();}markCustom();recalc();}));
   document.querySelectorAll('.share-step-btn').forEach(b=>b.addEventListener('click',()=>{const inp=$(b.dataset.target),cur=parseNum(inp.value);if(!Number.isFinite(cur))return;inp.value=String(Math.max(0,Math.trunc(cur)+parseNum(b.dataset.delta)));markCustom();recalc();}));
   document.querySelectorAll('.pct-step-btn').forEach(b=>b.addEventListener('click',()=>{const inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;delete inp.dataset.exactValue;disableAutoBreakEven();inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);markCustom();recalc();}));
-  document.querySelectorAll('.preset-btn').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));
+  document.querySelectorAll('.preset-btn[data-preset]').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));
   $('modeCurrent').addEventListener('click',()=>{disableAutoBreakEven();markCustom();setMode('current');});$('modeRise').addEventListener('click',()=>{disableAutoBreakEven();markCustom();setMode('rise');});$('modeTarget').addEventListener('click',()=>{disableAutoBreakEven();markCustom();setMode('target');});
   document.querySelectorAll('.current-purchase-btn').forEach(b=>b.addEventListener('click',()=>{
     if(!noPriorMode)return;

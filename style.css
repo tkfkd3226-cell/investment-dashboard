@@ -277,6 +277,13 @@ td.num{
   border-radius:14px;
   padding:12px;
 }
+.chart-date-jump{
+  cursor:pointer;
+}
+.chart-date-jump:focus-visible{
+  outline:2px solid #3b82f6;
+  outline-offset:2px;
+}
 
 .mini-card .m-label{
   font-size:12px;
@@ -1575,15 +1582,16 @@ svg.chart{
 }
 .contrib-actions{
   display:flex;
-  gap:8px;
+  gap:6px;
   flex-wrap:wrap;
-  margin-top:10px;
+  margin-top:8px;
 }
 .contrib-btn{
-  border:0;
-  border-radius:999px;
-  padding:9px 12px;
+  border:1px solid transparent;
+  border-radius:8px;
+  padding:7px 11px;
   font-size:12px;
+  line-height:1.2;
   font-weight:900;
   cursor:pointer;
   background:#2563eb;
@@ -1958,7 +1966,7 @@ body.contrib-modal-open{
 
 @media(max-width:720px){
   .contrib-existing-list{
-    max-height:32vh;
+    max-height:min(18vh,160px);
   }
   .contrib-existing-item{
     padding:8px 9px;
@@ -2336,19 +2344,22 @@ body.contrib-modal-open{
   font-weight:900;
   color:var(--muted);
 }
+.contrib-target-field{
+  margin-bottom:8px;
+}
 .contrib-target-tabs{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:6px;
-  padding:4px;
-  border-radius:14px;
+  padding:3px;
+  border-radius:12px;
   background:rgba(15,23,42,.06);
   border:1px solid rgba(148,163,184,.22);
 }
 .contrib-target-option{
   border:0;
-  border-radius:11px;
-  padding:10px 10px;
+  border-radius:9px;
+  padding:7px 9px;
   background:transparent;
   color:#64748b;
   font-size:13px;
@@ -2496,7 +2507,7 @@ body.contrib-modal-open{
 
 @media(max-width:720px){
   .contrib-target-option{
-    padding:9px 5px;
+    padding:7px 4px;
     font-size:11px;
   }
 
