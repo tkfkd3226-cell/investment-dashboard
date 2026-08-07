@@ -6356,3 +6356,26 @@ button:active,
     font-size:17px;
   }
 }
+
+/* Mobile-only chart tooltip viewport containment. Desktop tooltip behavior stays unchanged. */
+@media(max-width:760px){
+  .dash-tooltip[data-tooltip-kind="symbol"]{
+    max-width:min(320px, calc(100vw - 28px));
+    box-sizing:border-box;
+    transform:none;
+  }
+  .dash-tooltip[data-tooltip-kind="symbol"] .tt-row{
+    white-space:normal;
+    flex-wrap:wrap;
+    column-gap:12px;
+  }
+  .dash-tooltip[data-tooltip-kind="symbol"] .tt-name{
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  .dash-tooltip[data-tooltip-kind="symbol"] .tt-val{
+    margin-left:auto;
+    white-space:nowrap;
+  }
+}
+
