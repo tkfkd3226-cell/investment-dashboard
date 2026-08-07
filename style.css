@@ -1670,9 +1670,13 @@ svg.chart{
 .contrib-modal.show{
   display:flex;
 }
+body.contrib-modal-open{
+  overflow:hidden;
+}
 .contrib-modal-card{
   width:min(760px,100%);
-  max-height:min(88vh,760px);
+  max-height:min(calc(100vh - 36px),820px);
+  max-height:min(calc(100dvh - 36px),820px);
   overflow:auto;
   border-radius:22px;
   background:var(--card);
@@ -1944,6 +1948,12 @@ svg.chart{
   font-weight:750;
   color:var(--muted);
   word-break:break-word;
+}
+
+@media(min-width:721px){
+  .contrib-modal .contrib-existing-list{
+    max-height:96px;
+  }
 }
 
 @media(max-width:720px){

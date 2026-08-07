@@ -183,39 +183,73 @@ const linkedPensionCashSnapshotForContribution=contribution=>pensionCashSnapshot
   .sort((a,b)=>String(a.date).localeCompare(String(b.date)))
   .at(0)||null;
 const latestPensionTradeDate=d=>pensionTradeItems().filter(v=>v.date<=d).map(v=>v.date).sort(byDate).at(-1)||null;
+const pensionCashLedgerEventTime=event=>String(event?.item?.appliedAtKST||event?.item?.updatedAtKST||event?.item?.createdAtKST||'');
+const pensionCashLedgerEventOrder=(a,b)=>{
+  const dateCmp=String(a?.item?.date||'').localeCompare(String(b?.item?.date||''));
+  if(dateCmp) return dateCmp;
+
+  if(a.kind==='snapshot'&&b.kind==='trade'&&Array.isArray(a.item.afterTradeIds)){
+    return a.item.afterTradeIds.map(String).includes(String(b.item.id))?1:-1;
+  }
+  if(a.kind==='trade'&&b.kind==='snapshot'&&Array.isArray(b.item.afterTradeIds)){
+    return b.item.afterTradeIds.map(String).includes(String(a.item.id))?-1:1;
+  }
+  if(a.kind==='snapshot'&&b.kind==='contribution'&&Array.isArray(a.item.afterContributionIds)){
+    return a.item.afterContributionIds.map(String).includes(String(b.item.id))?1:-1;
+  }
+  if(a.kind==='contribution'&&b.kind==='snapshot'&&Array.isArray(b.item.afterContributionIds)){
+    return b.item.afterContributionIds.map(String).includes(String(a.item.id))?-1:1;
+  }
+
+  const timeA=pensionCashLedgerEventTime(a),timeB=pensionCashLedgerEventTime(b);
+  if(timeA&&timeB&&timeA!==timeB) return timeA.localeCompare(timeB);
+
+  // Legacy same-day records had no ordering metadata. Preserve the old assumption
+  // that contributions/trades were already reflected by a same-day app snapshot.
+  const fallbackOrder={contribution:0,trade:1,snapshot:2};
+  const kindCmp=(fallbackOrder[a.kind]??9)-(fallbackOrder[b.kind]??9);
+  if(kindCmp) return kindCmp;
+  return String(a?.item?.id||'').localeCompare(String(b?.item?.id||''));
+};
 const pensionCashCostBasis=d=>{
   const c=PORTFOLIO?.constants||{};
-  const trades=pensionTradeItems().filter(v=>v.date<=d);
-  const latestTrade=trades.at(-1)||null;
-  if(!latestTrade) return Math.max(0,(Number(c.pensionCashCost)||0)+pensionContributionSum(d));
+  let cashCost=Math.max(0,Number(c.pensionCashCost)||0);
+  let cashValuation=Math.max(0,Number(pensionBaseCashForDate(d))||cashCost);
 
-  const tradeDate=String(latestTrade.date||'');
-  const tradeAt=String(latestTrade.appliedAtKST||latestTrade.updatedAtKST||'');
-  const anchor=pensionCashSnapshotItems().filter(snapshot=>{
-    if(snapshot.date<tradeDate) return true;
-    if(snapshot.date>tradeDate) return false;
-    if(Array.isArray(snapshot.afterTradeIds)) return !snapshot.afterTradeIds.map(String).includes(String(latestTrade.id));
-    const snapshotAt=String(snapshot.updatedAtKST||'');
-    return !!(snapshotAt&&tradeAt&&snapshotAt<tradeAt);
-  }).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.updatedAtKST||'').localeCompare(String(b.updatedAtKST||''))).at(-1)||null;
+  const events=[
+    ...pensionContributionItems().filter(v=>v.date<=d).map(item=>({kind:'contribution',item})),
+    ...pensionTradeItems().filter(v=>v.date<=d).map(item=>({kind:'trade',item})),
+    ...pensionCashSnapshotItems().filter(v=>v.date<=d).map(item=>({kind:'snapshot',item}))
+  ].sort(pensionCashLedgerEventOrder);
 
-  let cashCost=anchor?Number(anchor.valuation||0):Number(c.pensionCashCost||0);
-  pensionContributionItems().filter(contribution=>{
-    if(contribution.date>d) return false;
-    if(!anchor) return true;
-    if(contribution.date<anchor.date) return false;
-    if(contribution.date>anchor.date) return true;
-    return !pensionCashSnapshotReflectsContribution(anchor,contribution);
-  }).forEach(contribution=>{cashCost+=Number(contribution.amount)||0});
+  events.forEach(event=>{
+    const item=event.item;
+    if(event.kind==='snapshot'){
+      cashValuation=Math.max(0,Number(item.valuation)||0);
+      return;
+    }
+    if(event.kind==='contribution'){
+      const amount=Math.max(0,Number(item.amount)||0);
+      cashValuation+=amount;
+      cashCost+=amount;
+      return;
+    }
 
-  trades.filter(trade=>{
-    if(!anchor) return true;
-    if(trade.date<anchor.date) return false;
-    if(trade.date>anchor.date) return true;
-    return !pensionCashSnapshotReflectsTrade(anchor,trade);
-  }).forEach(trade=>{
-    const amount=Number(trade.amount)||0;
-    cashCost+=trade.type==='sell'?amount:-amount;
+    const amount=Math.max(0,Number(item.amount)||0);
+    if(item.type==='sell'){
+      cashValuation+=amount;
+      cashCost+=amount;
+      return;
+    }
+
+    // A cash snapshot can include interest/distributions that are valuation gains,
+    // not new principal. Consume those gains first when cash is moved into an ETF;
+    // only the remainder reduces the cash principal. This keeps untouched gains
+    // from being converted into cash cost basis by a later partial purchase.
+    const positiveGain=Math.max(0,cashValuation-cashCost);
+    const principalSpent=Math.min(cashCost,Math.max(0,amount-positiveGain));
+    cashCost=Math.max(0,cashCost-principalSpent);
+    cashValuation=Math.max(0,cashValuation-amount);
   });
 
   return Math.max(0,cashCost);
@@ -1052,7 +1086,7 @@ function renderPensionContributionModal(x){
 function render(){
   const x=calc(ACTIVE_DATE);
   renderTabs();
-  const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 포함 결과물 ${won(x.combinedResult)}</span>`:'';
+  const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 운용수익 ${won(x.pensionProfit)}</span>`:'';
   document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
   drawAllCharts();
   setupPensionVizTooltips();
