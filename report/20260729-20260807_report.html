@@ -7,8 +7,9 @@
 <style>
 :root {
   --bg:#f3f6fb; --card:#fff; --ink:#172033; --muted:#6b768c; --line:#dce3ef;
-  --navy:#1d3557; --navy2:#284b7c; --red:#ef3341; --blue:#3182f6;
-  --green:#16835d; --amber:#a56a00; --shadow:0 14px 38px rgba(31,48,76,.09);
+  --navy:#1d3557; --navy2:#284b7c; --positive:#EF3341; --negative:#3182F6;
+  --equity:#1f5eff; --green:#16a34a; --red:#EF3341; --blue:#3182F6;
+  --amber:#a56a00; --shadow:0 14px 38px rgba(31,48,76,.09);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -31,12 +32,12 @@ h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.045em}
 .panel{display:none}
 .panel.active{display:block}
 .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .kpi{padding:18px}
 .kpi .label{font-size:12px;color:var(--muted);font-weight:800}
 .kpi .value{font-size:25px;font-weight:950;letter-spacing:-.045em;margin-top:5px}
 .kpi .sub{font-size:11px;color:var(--muted);margin-top:3px}
-.pos{color:var(--red)!important} .neg{color:var(--blue)!important} .zero{color:var(--ink)!important}
+.pos{color:var(--positive)!important} .neg{color:var(--negative)!important} .zero{color:var(--ink)!important} .equity{color:var(--equity)!important}
 .grid-2{display:grid;grid-template-columns:1.08fr .92fr;gap:14px;margin-top:14px;align-items:stretch}
 .section-card{padding:20px}
 .section-title{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}
@@ -144,7 +145,7 @@ details p,details li{font-size:12px;color:var(--muted)}
 .chart-legend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:10px;font-weight:800}
 .chart-legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .chart-legend i{display:inline-block;position:relative;flex:none}
-.legend-bar{width:9px;height:9px;border-radius:3px;background:linear-gradient(180deg,#ef3341,#f77a84)}
+.legend-bar{width:9px;height:9px;border-radius:3px;background:linear-gradient(180deg,#EF3341,#f77a84)}
 .legend-line{width:18px;height:2px;border-radius:999px;background:var(--navy)}
 .legend-line:after{content:"";position:absolute;width:6px;height:6px;border:2px solid var(--navy);background:#fff;border-radius:50%;left:5px;top:-4px}
 .composition-card{display:flex;flex-direction:column}
@@ -228,12 +229,7 @@ details p,details li{font-size:12px;color:var(--muted)}
   }
 }
 
-/* 390px 이상: 손익 2개를 한 줄, 현금 카드는 다음 줄 전체 폭 */
-@media (min-width:390px) and (max-width:900px){
-  .hero-summary{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
-  .hero-chip:nth-child(3){
+.hero-chip:nth-child(3){
     grid-column:1 / -1;
   }
 }
@@ -296,6 +292,27 @@ details p,details li{font-size:12px;color:var(--muted)}
   }
 }
 
+
+/* 모바일·태블릿 상단 카드: 기본 2열, 마지막 카드는 전체 폭 */
+@media (max-width:900px){
+  .hero-summary{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .hero-chip:nth-child(3){
+    grid-column:1 / -1;
+  }
+}
+
+/* 아주 좁은 화면만 1열 */
+@media (max-width:359px){
+  .hero-summary{
+    grid-template-columns:1fr;
+  }
+  .hero-chip:nth-child(3){
+    grid-column:auto;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -343,11 +360,11 @@ details p,details li{font-size:12px;color:var(--muted)}
       <div class="card kpi"><div class="label">누적 실현 순손익</div><div class="value pos">7,166,673원</div><div class="sub">거래비용 차감 후 증권사 합계</div></div>
       <div class="card kpi"><div class="label">총 손익금액</div><div class="value pos">7,273,100원</div><div class="sub">거래비용 차감 전</div></div>
       <div class="card kpi"><div class="label">총 거래비용</div><div class="value">106,427원</div><div class="sub">6개 매도일 합계</div></div>
-      <div class="card kpi"><div class="label">총 매도수량</div><div class="value">13,012주</div><div class="sub">기간 중 매도 체결수량</div></div>
+      
       <div class="card kpi"><div class="label">본 포지션 추정 순손익</div><div class="value pos">6,105,055원</div><div class="sub">혼합일 비용은 거래대금 비율 배분</div></div>
       <div class="card kpi"><div class="label">단타 추정 순손익</div><div class="value pos">1,061,618원</div><div class="sub">총 순손익의 14.8%</div></div>
-      <div class="card kpi"><div class="label">단타 매도수량</div><div class="value">11,162주</div><div class="sub">전체 매도수량의 85.8%</div></div>
-      <div class="card kpi"><div class="label">최종 순수 자기자금</div><div class="value pos">10,472,203원</div><div class="sub">차입원금 전액 상환 가정</div></div>
+      
+      <div class="card kpi"><div class="label">최종 순수 자기자금</div><div class="value equity">10,472,203원</div><div class="sub">차입원금 전액 상환 가정</div></div>
     </div>
 
     <div class="grid-2">
@@ -828,11 +845,11 @@ function drawChart(){
     const topY=Math.min(yy,zeroY),h=Math.max(2,Math.abs(zeroY-yy));
     const grad=ctx.createLinearGradient(0,topY,0,topY+h);
     if(v>=0){
-      grad.addColorStop(0,'#ef3341');
+      grad.addColorStop(0,'#EF3341');
       grad.addColorStop(1,'rgba(239,51,65,.55)');
     }else{
       grad.addColorStop(0,'rgba(49,130,246,.55)');
-      grad.addColorStop(1,'#3182f6');
+      grad.addColorStop(1,'#3182F6');
     }
     ctx.fillStyle=grad;
     roundedRect(ctx,cx-barW/2,topY,barW,h,6);
