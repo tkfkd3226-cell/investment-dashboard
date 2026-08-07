@@ -6323,3 +6323,18 @@ button:active,
   .pension-contrib-section-head .pension-work-mode-btn{padding:4px 4px;font-size:10px}
 }
 .pension-contrib-section-head .pension-work-mode-btn{padding:3px 6px}
+
+/* Desktop pension modal: keep mouse interactions immediate without changing mobile/touch behavior. */
+@media (min-width:761px) and (hover:hover) and (pointer:fine){
+  .contrib-modal button,
+  .contrib-modal .btn{
+    transition:none !important;
+  }
+
+  .contrib-modal button:hover,
+  .contrib-modal button:active,
+  .contrib-modal .btn:hover,
+  .contrib-modal .btn:active{
+    transform:none !important;
+  }
+}
