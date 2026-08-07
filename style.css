@@ -1593,6 +1593,10 @@ svg.chart{
   background:#e2e8f0;
   color:#0f172a;
 }
+.contrib-btn:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
 .dark .contrib-btn.secondary{
   background:#334155;
   color:#f8fafc;
@@ -2402,11 +2406,31 @@ svg.chart{
   border-color:rgba(245,158,11,.55);
 }
 
+.pension-etf-trade-preview.blocked{
+  border-color:#ef4444;
+  background:#fef2f2;
+}
+
+.dark .pension-etf-trade-preview.blocked{
+  background:rgba(127,29,29,.18);
+  border-color:rgba(239,68,68,.65);
+}
+
 .pension-etf-trade-preview-title{
   margin-bottom:8px;
   font-size:12px;
   font-weight:900;
   color:var(--text);
+}
+
+.pension-etf-trade-blocked-title,
+.pension-etf-trade-shortage{
+  color:#dc2626!important;
+}
+
+.dark .pension-etf-trade-blocked-title,
+.dark .pension-etf-trade-shortage{
+  color:#f87171!important;
 }
 
 .pension-etf-trade-preview-grid{
@@ -2449,6 +2473,15 @@ svg.chart{
 
 .dark .pension-etf-trade-preview-alert{
   color:#fbbf24;
+}
+
+.pension-etf-trade-preview.blocked .pension-etf-trade-preview-alert{
+  border-top-color:rgba(239,68,68,.35);
+  color:#b91c1c;
+}
+
+.dark .pension-etf-trade-preview.blocked .pension-etf-trade-preview-alert{
+  color:#fca5a5;
 }
 
 @media(max-width:720px){
