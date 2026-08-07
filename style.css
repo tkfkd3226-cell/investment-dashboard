@@ -1555,7 +1555,8 @@ svg.chart{
   font-weight:900;
   color:var(--muted);
 }
-.contrib-field input{
+.contrib-field input,
+.contrib-field select{
   width:100%;
   box-sizing:border-box;
   border:1px solid var(--line);
@@ -1566,7 +1567,8 @@ svg.chart{
   background:white;
   color:var(--text);
 }
-.dark .contrib-field input{
+.dark .contrib-field input,
+.dark .contrib-field select{
   background:#111827;
   border-color:rgba(148,163,184,.24);
   color:#f8fafc;
@@ -1753,7 +1755,8 @@ svg.chart{
   min-width:0;
   overflow:hidden;
 }
-.contrib-modal .contrib-field input{
+.contrib-modal .contrib-field input,
+.contrib-modal .contrib-field select{
   display:block;
   width:100%;
   max-width:100%;
@@ -1860,7 +1863,8 @@ svg.chart{
   grid-template-columns:repeat(2,minmax(0,1fr));
 }
 .contrib-field,
-.contrib-field input{
+.contrib-field input,
+.contrib-field select{
   min-width:0;
 }
 .contrib-list{
@@ -2320,7 +2324,7 @@ svg.chart{
 }
 .contrib-target-tabs{
   display:grid;
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:repeat(3,minmax(0,1fr));
   gap:6px;
   padding:4px;
   border-radius:14px;
@@ -2336,7 +2340,8 @@ svg.chart{
   font-size:13px;
   font-weight:900;
   cursor:pointer;
-  white-space:nowrap;
+  white-space:normal;
+  line-height:1.25;
 }
 .contrib-target-option.active{
   background:#fff;
@@ -2345,6 +2350,130 @@ svg.chart{
 }
 .contrib-target-option:hover{
   background:rgba(255,255,255,.72);
+}
+
+
+/* 퇴직연금 ETF 매수 반영 */
+#pensionContribStandardFields[hidden],
+.pension-etf-trade-fields[hidden]{
+  display:none !important;
+}
+
+.pension-etf-trade-fields{
+  margin-top:10px;
+}
+
+.pension-etf-trade-apply-note{
+  margin-top:10px;
+  padding:9px 10px;
+  border:1px solid rgba(59,130,246,.18);
+  border-radius:12px;
+  background:rgba(59,130,246,.06);
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  line-height:1.45;
+}
+
+.pension-etf-trade-apply-note strong{
+  color:var(--text);
+}
+
+.pension-etf-trade-preview{
+  margin-top:10px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#f8fafc;
+}
+
+.dark .pension-etf-trade-preview{
+  background:#111827;
+  border-color:rgba(148,163,184,.24);
+}
+
+.pension-etf-trade-preview.warning{
+  border-color:#f59e0b;
+  background:#fffbeb;
+}
+
+.dark .pension-etf-trade-preview.warning{
+  background:rgba(146,64,14,.18);
+  border-color:rgba(245,158,11,.55);
+}
+
+.pension-etf-trade-preview-title{
+  margin-bottom:8px;
+  font-size:12px;
+  font-weight:900;
+  color:var(--text);
+}
+
+.pension-etf-trade-preview-grid{
+  display:grid;
+  grid-template-columns:minmax(110px,.8fr) minmax(0,1.2fr);
+  gap:7px 12px;
+  align-items:baseline;
+  font-size:12px;
+}
+
+.pension-etf-trade-preview-grid span{
+  color:var(--muted);
+  font-weight:800;
+}
+
+.pension-etf-trade-preview-grid strong{
+  min-width:0;
+  color:var(--text);
+  font-weight:900;
+  text-align:right;
+  word-break:keep-all;
+}
+
+.pension-etf-trade-preview-grid em{
+  color:var(--muted);
+  font-style:normal;
+  font-size:11px;
+  font-weight:800;
+}
+
+.pension-etf-trade-preview-alert{
+  margin-top:9px;
+  padding-top:9px;
+  border-top:1px solid rgba(245,158,11,.35);
+  color:#b45309;
+  font-size:11px;
+  font-weight:900;
+  line-height:1.45;
+}
+
+.dark .pension-etf-trade-preview-alert{
+  color:#fbbf24;
+}
+
+@media(max-width:720px){
+  .contrib-target-option{
+    padding:9px 5px;
+    font-size:11px;
+  }
+
+  .pension-etf-trade-fields .contrib-form-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .pension-etf-trade-fields .contrib-field.full{
+    grid-column:1/-1;
+  }
+
+  .pension-etf-trade-preview-grid{
+    grid-template-columns:1fr;
+    gap:3px;
+  }
+
+  .pension-etf-trade-preview-grid strong{
+    margin-bottom:5px;
+    text-align:left;
+  }
 }
 
 /* QA 보정: 모바일 작업 메뉴가 상단바/콘텐츠 뒤로 깔리거나 잘리는 문제 수정 */
