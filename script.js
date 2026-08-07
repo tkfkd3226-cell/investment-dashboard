@@ -33,6 +33,9 @@ const PENSION_CONTRIBUTION_SAVE_CONFIG = {
 let PENSION_BATCH_MODE=false;
 let PENSION_BATCH_QUEUE=[];
 let PENSION_BATCH_SEQUENCE=0;
+let PENSION_BATCH_LAST_ADD_FINGERPRINT='';
+let PENSION_BATCH_LAST_ADD_AT=0;
+let PENSION_BATCH_APPLYING=false;
 const formatKospi=n=>Number(n).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const kospiIndexForDate=date=>{
   const value=SNAPSHOTS?.[date]?.kospi ?? PRICES?.[date]?.indices?.KOSPI;
@@ -2003,11 +2006,19 @@ function pensionBatchPositionState(pos,d,state){
   });
   return {qty,cost,realizedProfit};
 }
+function pensionBatchLinkedSnapshotsForTrade(state,trade){
+  if(!trade)return [];
+  return (state.cashSnapshots||[]).filter(v=>v.date>=String(trade?.date||'')&&pensionCashSnapshotReflectsTrade(v,trade)).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+}
 function pensionBatchLinkedSnapshotForTrade(state,trade){
-  return (state.cashSnapshots||[]).filter(v=>v.date>=String(trade?.date||'')&&pensionCashSnapshotReflectsTrade(v,trade)).sort((a,b)=>String(a.date).localeCompare(String(b.date))).at(0)||null;
+  return pensionBatchLinkedSnapshotsForTrade(state,trade)[0]||null;
+}
+function pensionBatchLinkedSnapshotsForContribution(state,contribution){
+  if(!contribution)return [];
+  return (state.cashSnapshots||[]).filter(v=>v.date>=String(contribution?.date||'')&&pensionCashSnapshotReflectsContribution(v,contribution)).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
 }
 function pensionBatchLinkedSnapshotForContribution(state,contribution){
-  return (state.cashSnapshots||[]).filter(v=>v.date>=String(contribution?.date||'')&&pensionCashSnapshotReflectsContribution(v,contribution)).sort((a,b)=>String(a.date).localeCompare(String(b.date))).at(0)||null;
+  return pensionBatchLinkedSnapshotsForContribution(state,contribution)[0]||null;
 }
 function pensionBatchDeleteDependencyOrder(operations,baseState=pensionBatchBaseState()){
   const ordered=[...operations];
@@ -2025,10 +2036,11 @@ function pensionBatchDeleteDependencyOrder(operations,baseState=pensionBatchBase
     const source=op.target==='etfTrade'?baseState.trades:baseState.contributions;
     const item=source.find(v=>String(v.id)===String(op.key));
     if(!item)return;
-    const linked=op.target==='etfTrade'?pensionBatchLinkedSnapshotForTrade(baseState,item):pensionBatchLinkedSnapshotForContribution(baseState,item);
-    if(!linked)return;
-    const cashDelete=cashDeleteForDate(linked.date);
-    if(cashDelete)moveBefore(cashDelete,op);
+    const linkedSnapshots=op.target==='etfTrade'?pensionBatchLinkedSnapshotsForTrade(baseState,item):pensionBatchLinkedSnapshotsForContribution(baseState,item);
+    linkedSnapshots.forEach(linked=>{
+      const cashDelete=cashDeleteForDate(linked.date);
+      if(cashDelete)moveBefore(cashDelete,op);
+    });
   });
   return {operations:ordered,reordered};
 }
@@ -2134,7 +2146,10 @@ function renderPensionBatchQueue(){
     else if(reordered){note.hidden=false;note.className='pension-batch-order-note';note.textContent='연결된 현금성자산 삭제가 필요한 작업은 안전한 순서로 자동 조정해 일괄 처리합니다.'}
     else{note.hidden=true;note.textContent='';note.className='pension-batch-order-note'}
   }
-  if(apply){apply.disabled=PENSION_BATCH_QUEUE.length===0||!!error;apply.textContent=PENSION_BATCH_QUEUE.length?`${PENSION_BATCH_QUEUE.length}건 일괄 적용`:'일괄 적용'}
+  if(apply){
+    apply.disabled=PENSION_BATCH_QUEUE.length===0||!!error||PENSION_BATCH_APPLYING;
+    apply.textContent=PENSION_BATCH_APPLYING?'처리 중...':(PENSION_BATCH_QUEUE.length?`${PENSION_BATCH_QUEUE.length}건 일괄 적용`:'일괄 적용');
+  }
 }
 function syncPensionBatchModeUi(){
   document.querySelectorAll('.pension-work-mode-btn').forEach(btn=>btn.classList.toggle('active',(btn.dataset.mode==='batch')===PENSION_BATCH_MODE));
@@ -2149,15 +2164,31 @@ function setPensionBatchMode(enabled){
   syncPensionBatchModeUi();
   updatePensionEtfTradePreview();
 }
+function pensionBatchOperationFingerprint(operation){
+  const op=operation||{};
+  if(op.action==='delete')return `delete|${String(op.target||'')}|${String(op.key||'')}`;
+  const item=op.item||{};
+  if(op.target==='cashSnapshot')return `upsert|cashSnapshot|${String(item.date||'')}|${String(item.valuation??'')}|${String(item.memo||'')}`;
+  if(op.target==='contribution')return `upsert|contribution|${String(item.date||'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
+  if(op.target==='etfTrade')return `upsert|etfTrade|${String(item.tradeDate||'')}|${String(item.ticker||'')}|${String(item.qty??'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
+  return `${String(op.action||'')}|${String(op.target||'')}|${JSON.stringify(item)}`;
+}
 function addPensionBatchOperation(operation){
-  const op={...operation,qid:`batch-${Date.now()}-${++PENSION_BATCH_SEQUENCE}`,tempId:`batch-temp-${Date.now()}-${PENSION_BATCH_SEQUENCE}`};
+  const now=Date.now();
+  const fingerprint=pensionBatchOperationFingerprint(operation);
+  if(fingerprint&&fingerprint===PENSION_BATCH_LAST_ADD_FINGERPRINT&&now-PENSION_BATCH_LAST_ADD_AT<800)throw new Error('동일한 작업이 방금 추가되었습니다. 중복 클릭은 반영하지 않았습니다.');
+  const op={...operation,qid:`batch-${now}-${++PENSION_BATCH_SEQUENCE}`,tempId:`batch-temp-${now}-${PENSION_BATCH_SEQUENCE}`};
   if(op.action==='delete'&&PENSION_BATCH_QUEUE.some(v=>v.action==='delete'&&v.target===op.target&&String(v.key)===String(op.key)))throw new Error('이미 작업 모음에 추가된 삭제 항목입니다.');
   PENSION_BATCH_QUEUE.push(op);
+  PENSION_BATCH_LAST_ADD_FINGERPRINT=fingerprint;
+  PENSION_BATCH_LAST_ADD_AT=now;
   renderPensionBatchQueue();
   return op;
 }
 function removePensionBatchOperation(qid){
   PENSION_BATCH_QUEUE=PENSION_BATCH_QUEUE.filter(v=>v.qid!==qid);
+  PENSION_BATCH_LAST_ADD_FINGERPRINT='';
+  PENSION_BATCH_LAST_ADD_AT=0;
   renderPensionBatchQueue();
   updatePensionEtfTradePreview();
 }
@@ -2172,6 +2203,8 @@ function movePensionBatchOperation(qid,direction){
 }
 function clearPensionBatchQueue(){
   PENSION_BATCH_QUEUE=[];
+  PENSION_BATCH_LAST_ADD_FINGERPRINT='';
+  PENSION_BATCH_LAST_ADD_AT=0;
   renderPensionBatchQueue();
   updatePensionEtfTradePreview();
   showPensionBatchStatus('작업 모음을 비웠습니다.','ok');
@@ -2195,24 +2228,34 @@ function applyPensionBatchStateLocally(state){
   PENSION_TRADES=Array.isArray(PENSION_TRADES)?(state.trades||[]):{...(PENSION_TRADES||{}),trades:state.trades||[]};
 }
 async function applyPensionBatchQueue(){
+  if(PENSION_BATCH_APPLYING)return;
   if(!PENSION_BATCH_QUEUE.length){showPensionBatchStatus('적용할 작업이 없습니다.','err');return}
   let simulated;
   try{simulated=pensionBatchSimulate(PENSION_BATCH_QUEUE)}catch(e){showPensionBatchStatus(e.message||String(e),'err');return}
   const count=PENSION_BATCH_QUEUE.length;
-  showPensionBatchStatus('PIN 입력 대기 중...','ok');
-  const data=await requestPensionActionPin({
-    title:'작업 모음 일괄 적용',
-    description:`저장·삭제 ${count}건을 검증한 뒤 GitHub 한 커밋으로 반영합니다. 하나라도 실패하면 아무것도 저장하지 않습니다.`,
-    execute:pin=>savePensionBatchViaGithubPages(simulated.orderedOperations,pin)
-  });
-  if(!data){showPensionBatchStatus('일괄 적용이 취소되었습니다.','err');return}
-  applyPensionBatchStateLocally(data.state);
-  PENSION_BATCH_QUEUE=[];
-  PENSION_BATCH_MODE=true;
-  render();
-  openPensionContributionModal();
-  setPensionBatchMode(true);
-  showPensionBatchStatus(`${count}건 일괄 적용 완료. GitHub에는 한 커밋으로 반영했습니다. Pages 배포까지 잠시 걸릴 수 있습니다.`,'ok');
+  PENSION_BATCH_APPLYING=true;
+  renderPensionBatchQueue();
+  try{
+    showPensionBatchStatus('PIN 입력 대기 중...','ok');
+    const data=await requestPensionActionPin({
+      title:'작업 모음 일괄 적용',
+      description:`저장·삭제 ${count}건을 검증한 뒤 GitHub 한 커밋으로 반영합니다. 하나라도 실패하면 아무것도 저장하지 않습니다.`,
+      execute:pin=>savePensionBatchViaGithubPages(simulated.orderedOperations,pin)
+    });
+    if(!data){showPensionBatchStatus('일괄 적용이 취소되었습니다.','err');return}
+    applyPensionBatchStateLocally(data.state);
+    PENSION_BATCH_QUEUE=[];
+    PENSION_BATCH_LAST_ADD_FINGERPRINT='';
+    PENSION_BATCH_LAST_ADD_AT=0;
+    PENSION_BATCH_MODE=true;
+    render();
+    openPensionContributionModal();
+    setPensionBatchMode(true);
+    showPensionBatchStatus(`${count}건 일괄 적용 완료. GitHub에는 한 커밋으로 반영했습니다. Pages 배포까지 잠시 걸릴 수 있습니다.`,'ok');
+  }finally{
+    PENSION_BATCH_APPLYING=false;
+    renderPensionBatchQueue();
+  }
 }
 
 async function savePensionContributionViaGithubPages(item,pin){
