@@ -6384,3 +6384,97 @@ button:active,
   }
 }
 
+
+/* Derived performance + compact market quotes (2026-08-08) */
+.derived-return-info{
+  display:inline-block;
+  margin-top:2px;
+  font-size:10.5px;
+  font-weight:800;
+  line-height:1.35;
+}
+.derived-return-sep{color:var(--muted)}
+.market-quote-inline{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  margin-left:3px;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.market-quote-inline [data-market-value]{font-weight:800}
+.market-updated-topbar{
+  align-self:center;
+  flex:0 0 auto;
+  margin-left:-1px;
+  color:var(--muted);
+  font-size:8.5px;
+  white-space:nowrap;
+}
+.topbar-fx-action{cursor:default}
+.compact-action-menu-title small{
+  float:right;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:0;
+}
+.compact-action-menu .compact-market-row{
+  display:flex;
+  align-items:center;
+}
+.compact-action-menu .compact-market-static{
+  width:100%;
+  min-height:38px;
+  padding:7px 9px;
+  border-radius:9px;
+  color:#172033;
+  font-size:12px;
+  gap:8px;
+}
+.compact-action-menu .compact-market-static>span:first-child{
+  width:20px;
+  flex:0 0 20px;
+  text-align:center;
+}
+.compact-action-menu .compact-market-row strong{margin-right:auto}
+.market-menu-quote{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+  margin-left:auto;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+  font-size:11px;
+  font-weight:800;
+}
+.dark .compact-action-menu .compact-market-static{color:#e2e8f0}
+.mobile-market-updated{
+  float:right;
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:0;
+}
+.mobile-market-item .mobile-nav-label{
+  min-width:0;
+  flex:1 1 auto;
+  overflow:hidden;
+}
+.mobile-market-item .mobile-nav-label strong{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.mobile-market-item .market-menu-quote{
+  flex:0 0 auto;
+  font-size:11px;
+}
+@media (min-width:761px) and (max-width:1100px){
+  .market-updated-topbar{display:none}
+  .market-quote-inline{gap:2px;margin-left:1px;font-size:9.5px}
+}
+@media (max-width:760px){
+  .derived-return-info{font-size:9.5px}
+  .mobile-market-item{white-space:nowrap}
+}

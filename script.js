@@ -44,6 +44,84 @@ const kospiIndexForDate=date=>{
   const number=Number(value);
   return Number.isFinite(number)&&number>0?number:null;
 };
+const signedPctPoint=n=>`${Number(n)>0?'+':''}${(Number(n)||0).toFixed(2)}%p`;
+const kospiPeriodReturn=(fromDate,toDate)=>{
+  const start=kospiIndexForDate(fromDate),end=kospiIndexForDate(toDate);
+  return start&&end?(end/start-1)*100:null;
+};
+const kospiExcessForHistory=(history,currentReturn)=>{
+  const rows=(history||[]).filter(r=>Number.isFinite(Number(r?.['코스피 지수'])));
+  if(!rows.length)return {from:null,to:null,kospiReturn:null,value:null};
+  const first=rows[0],last=rows.at(-1),kospiReturn=kospiPeriodReturn(first['날짜'],last['날짜']);
+  return {from:first['날짜'],to:last['날짜'],kospiReturn,value:kospiReturn==null?null:Number(currentReturn||0)-kospiReturn};
+};
+
+const MARKET_QUOTE_REFRESH_MS=10000;
+let MARKET_QUOTE_TIMER=null;
+let MARKET_QUOTE_FETCHING=false;
+let MARKET_QUOTE_STATE={updatedAtKST:'',k200:null,nasdaq100:null,usdkrw:null};
+const marketQuoteValue=(key,quote)=>{
+  const n=Number(quote?.value);
+  if(!Number.isFinite(n))return '--';
+  const digits=key==='usdkrw'?2:2;
+  return n.toLocaleString('ko-KR',{minimumFractionDigits:digits,maximumFractionDigits:digits});
+};
+const marketQuoteRate=quote=>{
+  const n=Number(quote?.changeRate);
+  return Number.isFinite(n)?`${n>0?'+':''}${n.toFixed(2)}%`:'--';
+};
+const marketQuoteClass=quote=>{
+  const n=Number(quote?.changeRate);
+  return Number.isFinite(n)?cls(n):'';
+};
+function marketQuoteInlineHtml(key){
+  const quote=MARKET_QUOTE_STATE[key];
+  return `<span class="market-quote-inline"><span data-market-value="${key}">${marketQuoteValue(key,quote)}</span><span class="${marketQuoteClass(quote)}" data-market-rate="${key}">${marketQuoteRate(quote)}</span></span>`;
+}
+function marketQuoteMenuHtml(key){
+  const quote=MARKET_QUOTE_STATE[key];
+  return `<span class="market-menu-quote"><span data-market-value="${key}">${marketQuoteValue(key,quote)}</span><span class="${marketQuoteClass(quote)}" data-market-rate="${key}">${marketQuoteRate(quote)}</span></span>`;
+}
+function renderMarketQuoteState(){
+  ['k200','nasdaq100','usdkrw'].forEach(key=>{
+    const quote=MARKET_QUOTE_STATE[key];
+    document.querySelectorAll(`[data-market-value="${key}"]`).forEach(el=>el.textContent=marketQuoteValue(key,quote));
+    document.querySelectorAll(`[data-market-rate="${key}"]`).forEach(el=>{
+      el.textContent=marketQuoteRate(quote);
+      el.classList.remove('positive','negative');
+      const c=marketQuoteClass(quote);if(c)el.classList.add(c);
+    });
+  });
+  document.querySelectorAll('[data-market-updated]').forEach(el=>el.textContent=MARKET_QUOTE_STATE.updatedAtKST?`${MARKET_QUOTE_STATE.updatedAtKST} 갱신`:'');
+}
+async function fetchMarketQuotes(){
+  if(MARKET_QUOTE_FETCHING||document.visibilityState==='hidden')return;
+  MARKET_QUOTE_FETCHING=true;
+  try{
+    const url=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages.url+`?action=marketQuotes&ts=${Date.now()}`;
+    const res=await fetch(url,{cache:'no-store'});
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    if(!data?.ok||!data?.quotes)throw new Error(data?.error||'market quote unavailable');
+    MARKET_QUOTE_STATE={
+      updatedAtKST:String(data.updatedAtKST||''),
+      k200:data.quotes.k200?.ok?data.quotes.k200:null,
+      nasdaq100:data.quotes.nasdaq100?.ok?data.quotes.nasdaq100:null,
+      usdkrw:data.quotes.usdkrw?.ok?data.quotes.usdkrw:null
+    };
+  }catch(_){
+    MARKET_QUOTE_STATE={updatedAtKST:'',k200:null,nasdaq100:null,usdkrw:null};
+  }finally{
+    MARKET_QUOTE_FETCHING=false;
+    renderMarketQuoteState();
+  }
+}
+function startMarketQuotePolling(){
+  if(MARKET_QUOTE_TIMER)return;
+  fetchMarketQuotes();
+  MARKET_QUOTE_TIMER=setInterval(()=>{if(document.visibilityState!=='hidden')fetchMarketQuotes()},MARKET_QUOTE_REFRESH_MS);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')fetchMarketQuotes()});
+}
 const allAvailableDates=()=>Array.from(new Set([...(Object.keys(ACCOUNT1_DAILY||{})),...(Object.keys(PRICES||{}).filter(d=>PRICES[d].display!==false))])).sort(byDate);
 const monthLabel=m=>{const [y,mo]=m.split('-');return `${y}년 ${Number(mo)}월`};
 const includeAccount2=d=>d>='2026-05-22';
@@ -440,10 +518,11 @@ function navIconSvg(name){
 function renderUnifiedMobileMenuContent(){
   const groups=[
     {
-      label:'링크',
+      label:`시장정보 <span class="mobile-market-updated" data-market-updated>${MARKET_QUOTE_STATE.updatedAtKST?MARKET_QUOTE_STATE.updatedAtKST+' 갱신':''}</span>`,
       items:[
-        {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:'activity',title:'코스피200 야간선물'},
-        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:'link',title:'나스닥100 선물'}
+        {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:'activity',title:'코스피200 야간선물',marketKey:'k200'},
+        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:'link',title:'나스닥100 선물',marketKey:'nasdaq100'},
+        {type:'market',icon:'trending',title:'USD/KRW',marketKey:'usdkrw'}
       ]
     },
     {
@@ -486,9 +565,10 @@ function renderUnifiedMobileMenuContent(){
     }
   ];
   return groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>{
-    const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
-    const cls=`mobile-nav-item ${idx?'sub':''}`;
+    const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span class="mobile-nav-label"><strong>${item.title}</strong></span>${item.marketKey?marketQuoteMenuHtml(item.marketKey):''}`;
+    const cls=`mobile-nav-item ${idx?'sub':''} ${item.marketKey?'mobile-market-item':''}`;
     if(item.type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" onclick="closeDateActionMenu()">${inner}</a>`;
+    if(item.type==='market') return `<div class="${cls}">${inner}</div>`;
     if(item.type==='action') return `<button type="button" class="${cls}" onclick="${item.action}">${inner}</button>`;
     return `<button type="button" class="${cls}" onclick="jumpToSection('${item.id}');closeDateActionMenu()">${inner}</button>`;
   }).join('')}</div>`).join('');
@@ -550,11 +630,13 @@ function renderTabs(){
       </div>
       <div class="date-picker-action">
         <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물">
-          <span class="date-tool-action-icon">🌙</span><span class="topbar-label-full">코스피200 야간선물</span><span class="topbar-label-short">코스피 야선</span>
+          <span class="date-tool-action-icon">🌙</span><span class="topbar-label-full">K200 야간</span><span class="topbar-label-short">K200</span>${marketQuoteInlineHtml('k200')}
         </a>
         <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물">
-          <span class="date-tool-action-icon">🚀</span><span class="topbar-label-full">나스닥100 선물</span><span class="topbar-label-short">나스닥 선물</span>
+          <span class="date-tool-action-icon">🚀</span><span class="topbar-label-full">NASDAQ100</span><span class="topbar-label-short">NQ</span>${marketQuoteInlineHtml('nasdaq100')}
         </a>
+        <span class="date-tool-btn date-tool-btn-desktop topbar-market-action topbar-fx-action" title="USD/KRW"><span class="date-tool-action-icon">💱</span><span class="topbar-label-full">USD/KRW</span><span class="topbar-label-short">USD</span>${marketQuoteInlineHtml('usdkrw')}</span>
+        <span class="market-updated-topbar" data-market-updated>${MARKET_QUOTE_STATE.updatedAtKST?MARKET_QUOTE_STATE.updatedAtKST+' 갱신':''}</span>
         <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-krx-action" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" onclick="triggerKrxPriceUpdate()">
           <span class="date-tool-action-icon">📈</span><span class="topbar-label-full">KRX 현재가 반영</span><span class="topbar-label-short">KRX 반영</span>
         </button>
@@ -569,9 +651,10 @@ function renderTabs(){
             <span class="compact-more-icon" aria-hidden="true">•••</span><span>더보기</span>
           </button>
           <div id="compactActionMenu" class="compact-action-menu" aria-label="추가 기능">
-            <div class="compact-action-menu-title">시장지표</div>
-            <a href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer"><span>🌙</span><strong>코스피200 야간선물</strong></a>
-            <a href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer"><span>🚀</span><strong>나스닥100 선물</strong></a>
+            <div class="compact-action-menu-title">시장지표 <small data-market-updated>${MARKET_QUOTE_STATE.updatedAtKST?MARKET_QUOTE_STATE.updatedAtKST+' 갱신':''}</small></div>
+            <a class="compact-market-row" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer"><span>🌙</span><strong>K200 야간</strong>${marketQuoteMenuHtml('k200')}</a>
+            <a class="compact-market-row" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer"><span>🚀</span><strong>NASDAQ100</strong>${marketQuoteMenuHtml('nasdaq100')}</a>
+            <div class="compact-market-row compact-market-static"><span>💱</span><strong>USD/KRW</strong>${marketQuoteMenuHtml('usdkrw')}</div>
             <button type="button" class="compact-menu-pension" onclick="openPensionContributionModal();closeCompactActionMenu()"><span>💰</span><strong>퇴직연금 금액 조정</strong></button>
           </div>
         </div>
@@ -1143,6 +1226,7 @@ function renderPensionContributionModal(x){
 function render(){
   const x=calc(ACTIVE_DATE);
   renderTabs();
+  renderMarketQuoteState();
   const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 운용수익 ${won(x.pensionProfit)}</span>`:'';
   document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
   drawAllCharts();
@@ -1295,8 +1379,9 @@ function renderCharts(x){
         returnDelta=prevCum?lastReturn-prevCum['합계 : 누적수익률']:0,
         bestGap=best['합계 : 누적손익']-lastProfit,
         bestDetail=bestGap===0?'금일 갱신':'금일 대비 '+signed(bestGap,'원');
+  const kospiExcess=kospiExcessForHistory(cum,lastReturn),kospiExcessText=kospiExcess.value==null?'KOSPI 대비 -':`KOSPI 대비 ${signedPctPoint(kospiExcess.value)}`;
   return `<section id="investment-analysis"><div class="section-title"><h2><span class="section-title-icon">🗓️</span>투자 기간 분석</h2><p>삼성증권 계좌1 기준</p></div><div class="grid chart-grid">
-  <div class="chart-card" id="chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>누적손익 및 누적수익률</h3><p id="securitiesCompareDescription">${chartCompareDescription('securities')}</p></div><div class="chart-head-actions">${chartCompareToggle('securities')}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>누적손익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" id="securitiesCompareSwatch" style="background:${CHART_COMPARE_MODES.securities==='kospi'?'#7c3aed':'#5abdf2'}"></span><span id="securitiesCompareLegend">${chartCompareLabel('securities')}</span></span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${best.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${best.날짜}','chart-cum')}" title="${best.날짜} 기준으로 이동"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${bestDay.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${bestDay.날짜}','chart-cum')}" title="${bestDay.날짜} 기준으로 이동"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${worstDay.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${worstDay.날짜}','chart-cum')}" title="${worstDay.날짜} 기준으로 이동"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
+  <div class="chart-card" id="chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>누적손익 및 누적수익률</h3><p id="securitiesCompareDescription">${chartCompareDescription('securities')}</p></div><div class="chart-head-actions">${chartCompareToggle('securities')}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>누적손익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" id="securitiesCompareSwatch" style="background:${CHART_COMPARE_MODES.securities==='kospi'?'#7c3aed':'#5abdf2'}"></span><span id="securitiesCompareLegend">${chartCompareLabel('securities')}</span></span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div><div class="m-detail derived-return-info ${kospiExcess.value==null?'':cls(kospiExcess.value)}" title="KOSPI 비교기간 ${kospiExcess.from||'-'} ~ ${kospiExcess.to||x.date}">${kospiExcessText}</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${best.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${best.날짜}','chart-cum')}" title="${best.날짜} 기준으로 이동"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${bestDay.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${bestDay.날짜}','chart-cum')}" title="${bestDay.날짜} 기준으로 이동"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${worstDay.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${worstDay.날짜}','chart-cum')}" title="${worstDay.날짜} 기준으로 이동"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
   <div class="chart-card" id="chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🧩</span>종목별 누적손익</h3><p>핵심종목별 누적손익의 변화와 기여도를 비교.</p></div><div class="chart-head-actions">${symbolChartToggle('securities')}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-legend">${SECURITY_DISPLAY_ORDER.map(name=>`<span class="legend-item"><span class="swatch" style="background:${SECURITY_SYMBOL_COLORS[name]}"></span>${name}</span>`).join('')}</div><div class="chart-note symbol-summary-grid">${sortSecurityItems(symbols).map(h=>symbolCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">기여도 - 누적손익 합계 기준, 손익률 - 누적손익 ÷ 매입원금, 전일대비 변동률 - 전일대비 변동액 ÷ 전일의 평가금액</div></div>
   <div class="chart-card" id="chart-alloc"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🥧</span>평가액 비중</h3><p>ETF·개별주식·현금의 일자별 평가액 비중 변화.</p></div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartAlloc"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff6b6b"></span>ETF</span><span class="legend-item"><span class="swatch" style="background:#ffc857"></span>개별주식</span><span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금</span></div><div class="chart-note"><div class="mini-card"><div class="m-label">ETF${chartSeriesSwatch('#ff6b6b')}</div><div class="m-value">${won(x.etfEval)} <span class="small">(${(x.etfEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식${chartSeriesSwatch('#ffc857')}</div><div class="m-value">${won(x.stockEval)} <span class="small">(${(x.stockEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금${chartSeriesSwatch('#8fd18f')}</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${(x.securitiesCash/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div></div></div></div>
   </div></section>`;
@@ -1305,6 +1390,22 @@ function symbolCard(h,total){const contrib=total?h.profit/total*100:0,rr=h.cost?
 
 function pensionSnapshotDates(d){
   return allAvailableDates().filter(x=>x<=d&&hasPensionData(x));
+}
+function pensionTwrRate(d){
+  const dates=pensionSnapshotDates(d);
+  if(dates.length<2)return null;
+  let factor=1,periods=0;
+  for(let i=1;i<dates.length;i++){
+    const prevDate=dates[i-1],currDate=dates[i],prevEval=Number(calc(prevDate).pensionEval)||0;
+    if(prevEval<=0)continue;
+    const currEval=Number(calc(currDate).pensionEval)||0;
+    const externalFlow=pensionContributionSumAfter(prevDate,currDate);
+    const periodReturn=(currEval-externalFlow)/prevEval-1;
+    if(!Number.isFinite(periodReturn))continue;
+    factor*=1+periodReturn;
+    periods++;
+  }
+  return periods?(factor-1)*100:null;
 }
 function pensionCalcOn(date){
   return calc(date);
@@ -1359,10 +1460,13 @@ function renderPensionCharts(x){
         returnDelta=prevCum?lastReturn-prevCum['합계 : 누적수익률']:0,
         bestGap=best['합계 : 누적손익']-lastProfit,
         bestDetail=bestGap===0?'금일 갱신':'금일 대비 '+signed(bestGap,'원');
+  const kospiExcess=kospiExcessForHistory(cum,lastReturn),twr=pensionTwrRate(x.date),
+        kospiExcessText=kospiExcess.value==null?'KOSPI 대비 -':`KOSPI 대비 ${signedPctPoint(kospiExcess.value)}`,
+        twrText=twr==null?'운용수익률(TWR) -':`운용수익률(TWR) ${twr>0?'+':''}${pct(twr)}`;
   const productEvalTotal=x.pensionRows.reduce((a,r)=>a+r.evalAmount,0);
   const allocCards=x.pensionRows.map(r=>`<div class="mini-card"><div class="m-label">${r.name}${pensionProductSwatch(r.name)}</div><div class="m-value">${won(r.evalAmount)} <span class="small">(${(r.evalAmount/productEvalTotal*100).toFixed(1)}%)</span></div></div>`).join('');
   return `<section id="pension-investment-analysis" class="pension-chart-block"><div class="section-title"><h2><span class="section-title-icon">🗓️</span>투자 기간 분석</h2><p>퇴직연금 기준</p></div><div class="grid chart-grid">
-  <div class="chart-card" id="pension-chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>운용수익 및 누적수익률 <span class="chart-title-sub">(전체 운용 기준)</span></h3><p id="pensionCompareDescription">${chartCompareDescription('pension')}</p></div><div class="chart-head-actions">${chartCompareToggle('pension')}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="pensionChartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>운용수익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" id="pensionCompareSwatch" style="background:${CHART_COMPARE_MODES.pension==='kospi'?'#7c3aed':'#5abdf2'}"></span><span id="pensionCompareLegend">${chartCompareLabel('pension')}</span></span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 운용수익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${best.날짜}','pension-chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${best.날짜}','pension-chart-cum')}" title="${best.날짜} 기준으로 이동"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${bestDay.날짜}','pension-chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${bestDay.날짜}','pension-chart-cum')}" title="${bestDay.날짜} 기준으로 이동"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${worstDay.날짜}','pension-chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${worstDay.날짜}','pension-chart-cum')}" title="${worstDay.날짜} 기준으로 이동"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
+  <div class="chart-card" id="pension-chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>운용수익 및 누적수익률 <span class="chart-title-sub">(전체 운용 기준)</span></h3><p id="pensionCompareDescription">${chartCompareDescription('pension')}</p></div><div class="chart-head-actions">${chartCompareToggle('pension')}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="pensionChartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>운용수익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" id="pensionCompareSwatch" style="background:${CHART_COMPARE_MODES.pension==='kospi'?'#7c3aed':'#5abdf2'}"></span><span id="pensionCompareLegend">${chartCompareLabel('pension')}</span></span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 운용수익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div><div class="m-detail derived-return-info" title="KOSPI 비교기간 ${kospiExcess.from||'-'} ~ ${kospiExcess.to||x.date}; TWR은 ${pensionSnapshotDates(x.date).at(0)||'-'} 이후 일별 평가액과 기업적립금 현금흐름 기준"><span class="${kospiExcess.value==null?'':cls(kospiExcess.value)}">${kospiExcessText}</span><span class="derived-return-sep"> · </span><span class="${twr==null?'':cls(twr)}">${twrText}</span></div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${best.날짜}','pension-chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${best.날짜}','pension-chart-cum')}" title="${best.날짜} 기준으로 이동"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${bestDay.날짜}','pension-chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${bestDay.날짜}','pension-chart-cum')}" title="${bestDay.날짜} 기준으로 이동"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${worstDay.날짜}','pension-chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${worstDay.날짜}','pension-chart-cum')}" title="${worstDay.날짜} 기준으로 이동"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
   <div class="chart-card" id="pension-chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🧩</span>연금상품별 운용수익 <span class="chart-title-sub">(보유상품 재투자 기준)</span></h3><p>연금상품별 운용수익의 변화와 기여도를 비교.</p></div><div class="chart-head-actions">${symbolChartToggle('pension')}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="pensionChartSymbol"></svg></div><div class="chart-legend">${x.pensionRows.map(r=>`<span class="legend-item"><span class="swatch" style="background:${pensionSeriesColor(r.name)}"></span>${r.name}</span>`).join('')}</div><div class="chart-note symbol-summary-grid pension-symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>pensionProductCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">기여도 - 운용수익 합계 기준, 수익률 - 운용수익 ÷ 매입원금, 전일대비 변동률 - 전일대비 변동액 ÷ 전일의 평가금액</div></div>
   <div class="chart-card" id="pension-chart-alloc"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🥧</span>평가액 비중</h3><p>각 연금상품 및 현금성자산의 일자별 평가액 비중 변화.</p></div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="pensionChartAlloc"></svg></div><div class="chart-legend">${x.pensionRows.map(r=>`<span class="legend-item"><span class="swatch" style="background:${pensionSeriesColor(r.name)}"></span>${r.name}</span>`).join('')}<span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금성자산</span></div><div class="chart-note">${allocCards}<div class="mini-card"><div class="m-label">현재 평가총액</div><div class="m-value">${won(x.pensionEval)}</div><div class="m-detail cash-include-detail">(현금성자산 ${won(x.pensionCash)} 포함)</div></div></div></div>
   </div></section>`;
@@ -2524,7 +2628,7 @@ function setupPensionVizTooltips(){
   document.addEventListener('scroll',()=>closeTooltips(null),true);
 }
 
-async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS,PENSION_TRADES]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]})),fetch('data/pension_trades.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({trades:[]}))]);const dates=allAvailableDates();ACTIVE_DATE=dates.at(-1);history.replaceState(null,'','#'+ACTIVE_DATE);render();document.getElementById('tabs').addEventListener('change',e=>{
+async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS,PENSION_TRADES]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]})),fetch('data/pension_trades.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({trades:[]}))]);const dates=allAvailableDates();ACTIVE_DATE=dates.at(-1);history.replaceState(null,'','#'+ACTIVE_DATE);render();startMarketQuotePolling();document.getElementById('tabs').addEventListener('change',e=>{
   if(e.target.id==='monthSelect'){
     const month=e.target.value,dates=allAvailableDates().filter(d=>d.startsWith(month));
     ACTIVE_DATE=dates.at(-1);
