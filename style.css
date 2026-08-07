@@ -6373,13 +6373,14 @@ button:active,
     white-space:normal;
     flex-wrap:wrap;
     column-gap:12px;
+    row-gap:2px;
   }
   .dash-tooltip[data-tooltip-kind="symbol"] .tt-name{
     min-width:0;
     overflow-wrap:anywhere;
   }
   .dash-tooltip[data-tooltip-kind="symbol"] .tt-val{
-    margin-left:auto;
+    margin-left:0;
     white-space:nowrap;
   }
 }
