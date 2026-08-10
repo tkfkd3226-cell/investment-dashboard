@@ -6,10 +6,10 @@
     "currency": "KRW"
   },
   "constants": {
-    "externalPrincipal": 17723704,
+    "externalPrincipal": 20723704,
     "goldPrincipal": 7000000,
     "laborNetPrincipal": 7023704,
-    "account1Principal": 19983348,
+    "account1Principal": 22983348,
     "account1ProfitAdjustment": -466322,
     "account2Principal": 4121865,
     "account2Profit": 1489352,
@@ -18,7 +18,7 @@
     "tossProfit": 6351989,
     "tossRealizedAmount": 6351989,
     "tossReinvestedToAccount1": 2009374,
-    "securitiesCash": 9705,
+    "securitiesCash": 3790,
     "livingSpent": 3063626,
     "pensionContributionPrincipal": 24139249,
     "pensionCashCost": 39717
@@ -78,8 +78,8 @@
       "name": "KODEX AI반도체",
       "ticker": "395160",
       "type": "ETF",
-      "qty": 106,
-      "cost": 3733650,
+      "qty": 193,
+      "cost": 6739565,
       "feeBuffer": 0,
       "chart": true,
       "cssClass": "ticker-mini",
@@ -136,6 +136,33 @@
       "price": 35310,
       "amount": 3707550,
       "memo": "KODEX AI반도체 중기투자 추가매수"
+    },
+    {
+      "id": "sec-contrib-20260810-02",
+      "date": "2026-08-10",
+      "type": "contribution",
+      "amount": 3000000,
+      "memo": "중기투자 추가 투입 2차"
+    },
+    {
+      "id": "sec-buy-20260810-395160-02",
+      "date": "2026-08-10",
+      "type": "buy",
+      "ticker": "395160",
+      "qty": 86,
+      "price": 34550,
+      "amount": 2971300,
+      "memo": "KODEX AI반도체 중기투자 추가매수 2차"
+    },
+    {
+      "id": "sec-buy-20260810-395160-03",
+      "date": "2026-08-10",
+      "type": "buy",
+      "ticker": "395160",
+      "qty": 1,
+      "price": 34615,
+      "amount": 34615,
+      "memo": "KODEX AI반도체 중기투자 추가매수 3차"
     }
   ]
 }
