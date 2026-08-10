@@ -1278,6 +1278,11 @@ function renderResultSummary(x){
   return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon">🔍</span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid cards">${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),INCLUDE_SEPARATE_PROFIT?'기존 장부 + 별도수익 반영(재투입 중복 제외)':'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),'증권계좌 평가총액 + 계좌 밖 현금')}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,cls(ledgerGap))}${metricCard('차액 발생 이유',reasonValue,reasonDetail,false)}</div>${note}</section>`;
 }
 
+function holdingRowCssClass(h){
+  const cssClass=String(h?.cssClass||'');
+  return cssClass==='ticker-mini'&&Number(h?.qty)!==1?'':cssClass;
+}
+
 function renderHoldings(x){
   const holdCost=x.holdings.reduce((a,h)=>a+h.cost,0),
         holdEval=x.holdings.reduce((a,h)=>a+h.evalAmount,0),
@@ -1297,7 +1302,7 @@ function renderHoldings(x){
     ['평가금액',won(h.evalAmount)],
     ['평가손익',won(h.profit),cls(h.profit)],
     ['손익률',pct(h.returnRate),cls(h.returnRate)]
-  ],h.cssClass||'')).join('')+
+  ],holdingRowCssClass(h))).join('')+
   mobileInfoCard('보유종목 합계',[
     ['투자원금',won(holdCost)],['평가금액',won(holdEval)],['평가손익',won(holdProfit),cls(holdProfit)],['손익률',pct(holdReturn),cls(holdReturn)]
   ],'summary-card')+
@@ -1307,7 +1312,7 @@ function renderHoldings(x){
   mobileInfoCard('총계(보유분+현금)',[
     ['투자원금',won(totalCostWithCash)],['평가금액',won(totalEvalWithCash)],['평가손익',won(holdProfit),cls(holdProfit)],['손익률',pct(totalReturnWithCash),cls(totalReturnWithCash)]
   ],'summary-card');
-  return `<section id="securities-holdings" ${mobileViewAttrs('holdings')}><div class="section-title"><h2><span class="section-title-icon">📁</span>증권계좌 보유분</h2>${mobileViewToggle('holdings')}</div><div class="mobile-scroll table-view"><table class="hold-position-table"><thead><tr><th>종목명</th><th>수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>손익률</th></tr></thead><tbody>${orderedHoldings.map(h=>`<tr class="hold-row ${h.cssClass||''}"><td><span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}</td><td class="num">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${cls(h.profit)}">${fmt(h.profit)}</td><td class="num ${cls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>보유종목 합계</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdReturn)}">${pct(holdReturn)}</td></tr><tr><td>증권계좌 현금</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">0</td><td class="num">0.00%</td></tr><tr class="summary-row"><td>총계(보유분+현금)</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(totalCostWithCash)}</td><td class="num">-</td><td class="num">${fmt(totalEvalWithCash)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(totalReturnWithCash)}">${pct(totalReturnWithCash)}</td></tr></tbody></table></div><div class="mobile-card-view">${cards}</div></section>`;
+  return `<section id="securities-holdings" ${mobileViewAttrs('holdings')}><div class="section-title"><h2><span class="section-title-icon">📁</span>증권계좌 보유분</h2>${mobileViewToggle('holdings')}</div><div class="mobile-scroll table-view"><table class="hold-position-table"><thead><tr><th>종목명</th><th>수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>손익률</th></tr></thead><tbody>${orderedHoldings.map(h=>`<tr class="hold-row ${holdingRowCssClass(h)}"><td><span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}</td><td class="num">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${cls(h.profit)}">${fmt(h.profit)}</td><td class="num ${cls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>보유종목 합계</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(holdReturn)}">${pct(holdReturn)}</td></tr><tr><td>증권계좌 현금</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">0</td><td class="num">0.00%</td></tr><tr class="summary-row"><td>총계(보유분+현금)</td><td class="num">-</td><td class="num">-</td><td class="num">${fmt(totalCostWithCash)}</td><td class="num">-</td><td class="num">${fmt(totalEvalWithCash)}</td><td class="num ${cls(holdProfit)}">${fmt(holdProfit)}</td><td class="num ${cls(totalReturnWithCash)}">${pct(totalReturnWithCash)}</td></tr></tbody></table></div><div class="mobile-card-view">${cards}</div></section>`;
 }
 function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHeldProfit,pensionHeldReturn){
   const orderedPensionRows=sortPensionItems(x.pensionRows),
