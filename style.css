@@ -1224,6 +1224,12 @@ svg.chart{
   width:100% !important;
 }
 
+@media (min-width:1101px){
+  .chart-note.symbol-summary-grid.five{
+    grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  }
+}
+
 @media (max-width:900px){
   .chart-note.symbol-summary-grid{
     grid-template-columns:repeat(2,minmax(0,1fr)) !important;
