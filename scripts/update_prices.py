@@ -368,14 +368,74 @@ def symbol_key(name: str) -> str:
     return "KODEX200" if name == "KODEX 200" else name
 
 
-def is_symbol_chart_target(item: dict[str, Any]) -> bool:
-    return item.get("chart") is not False
+def security_events(portfolio: dict[str, Any]) -> list[dict[str, Any]]:
+    events = portfolio.get("securitiesEvents", [])
+    return events if isinstance(events, list) else []
 
 
-def init_security_symbols(portfolio: dict[str, Any]) -> dict[str, int]:
+def security_position_state(item: dict[str, Any], target_date: str, portfolio: dict[str, Any]) -> tuple[float, int]:
+    qty = float(item.get("qty", 0) or 0)
+    cost = int(item.get("cost", 0) or 0)
+    ticker = str(item.get("ticker", ""))
+
+    later = sorted(
+        (event for event in security_events(portfolio)
+         if str(event.get("ticker", "")) == ticker and str(event.get("date", "")) > target_date),
+        key=lambda event: str(event.get("date", "")),
+        reverse=True,
+    )
+    for event in later:
+        event_qty = max(0.0, float(event.get("qty", 0) or 0))
+        amount = max(0, int(event.get("amount", 0) or 0))
+        event_type = str(event.get("type", ""))
+        if event_type == "buy":
+            qty -= event_qty
+            cost -= amount
+        elif event_type == "sell":
+            qty += event_qty
+            cost += max(0, int(event.get("costBasis", 0) or 0))
+
+    return max(0.0, qty), max(0, cost)
+
+
+def securities_cash_for_date(target_date: str, portfolio: dict[str, Any]) -> int:
+    cash = int(portfolio.get("constants", {}).get("securitiesCash", 0) or 0)
+    for event in security_events(portfolio):
+        if str(event.get("date", "")) <= target_date:
+            continue
+        amount = max(0, int(event.get("amount", 0) or 0))
+        event_type = str(event.get("type", ""))
+        if event_type in {"contribution", "sell"}:
+            cash -= amount
+        elif event_type in {"withdrawal", "buy"}:
+            cash += amount
+    return cash
+
+
+def account1_principal_for_date(target_date: str, portfolio: dict[str, Any]) -> int:
+    principal = int(portfolio.get("constants", {}).get("account1Principal", 0) or 0)
+    for event in security_events(portfolio):
+        if str(event.get("date", "")) <= target_date:
+            continue
+        amount = max(0, int(event.get("amount", 0) or 0))
+        if event.get("type") == "contribution":
+            principal -= amount
+        elif event.get("type") == "withdrawal":
+            principal += amount
+    return principal
+
+
+def is_symbol_chart_target(item: dict[str, Any], target_date: str) -> bool:
+    if item.get("chart") is False:
+        return False
+    chart_from = str(item.get("chartFrom", "") or "")
+    return not chart_from or target_date >= chart_from
+
+
+def init_security_symbols(portfolio: dict[str, Any], target_date: str) -> dict[str, int]:
     symbols: dict[str, int] = {}
     for item in portfolio.get("securities", []):
-        if not is_symbol_chart_target(item):
+        if not is_symbol_chart_target(item, target_date):
             continue
         name = item.get("name")
         if not name:
@@ -390,14 +450,13 @@ def calculate_performance_snapshot(target_date: str, portfolio: dict[str, Any], 
     securities_prices = price_snapshot.get("securities", {})
 
     raw_holding_profit = 0
-    symbols = init_security_symbols(portfolio)
-    allocation = {"ETF": 0, "개별주식": 0, "현금": int(constants.get("securitiesCash", 0))}
+    symbols = init_security_symbols(portfolio, target_date)
+    allocation = {"ETF": 0, "개별주식": 0, "현금": securities_cash_for_date(target_date, portfolio)}
 
     for item in portfolio["securities"]:
         ticker = item["ticker"]
         price = int(securities_prices.get(ticker, 0))
-        qty = float(item["qty"])
-        cost = int(item["cost"])
+        qty, cost = security_position_state(item, target_date, portfolio)
         eval_amount = int(round(price * qty))
         profit = eval_amount - cost
         raw_holding_profit += profit
@@ -407,7 +466,7 @@ def calculate_performance_snapshot(target_date: str, portfolio: dict[str, Any], 
         else:
             allocation["개별주식"] += eval_amount
 
-        if is_symbol_chart_target(item):
+        if is_symbol_chart_target(item, target_date):
             name = item["name"]
             key = symbol_key(str(name))
             symbols[key] = profit
@@ -416,7 +475,7 @@ def calculate_performance_snapshot(target_date: str, portfolio: dict[str, Any], 
     prev_raw = int(snapshots[prev_keys[-1]].get("rawHoldingProfit", 0)) if prev_keys else 0
     daily_profit = raw_holding_profit - prev_raw
 
-    account1_principal = int(constants.get("account1Principal", 0))
+    account1_principal = account1_principal_for_date(target_date, portfolio)
     cumulative_return = raw_holding_profit / account1_principal * 100 if account1_principal else 0
 
     return {
