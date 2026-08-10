@@ -6451,9 +6451,6 @@ button:active,
   letter-spacing:-.02em;
   white-space:nowrap;
 }
-.separate-profit-rate-note{
-  margin-top:8px !important;
-}
 .source-reclass-note{
   display:flex;
   flex-direction:column;
