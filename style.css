@@ -6391,14 +6391,14 @@ button:active,
   }
 }
 
-/* 6~8월 별도수익 보기 모드 */
+/* 별도수익 ON/OFF 보기 모드 */
 .separate-profit-control-row{
   display:flex;
   align-items:center;
   justify-content:flex-end;
   gap:7px;
   min-width:0;
-  margin:-2px 0 10px;
+  margin:0;
   white-space:nowrap;
 }
 .separate-profit-toggle{
@@ -6474,6 +6474,23 @@ button:active,
   color:#64748b;
 }
 @media(max-width:900px){
+  .section-title,
+  .chart-head{
+    flex-wrap:wrap;
+  }
+  .section-title > .separate-profit-control-row{
+    flex:0 0 100%;
+    order:3;
+  }
+  .chart-head-actions{
+    width:100%;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+  .chart-head-actions > .separate-profit-control-row{
+    flex:0 0 100%;
+    order:3;
+  }
   .separate-profit-control-row{
     width:100%;
     justify-content:flex-end;
@@ -6482,6 +6499,9 @@ button:active,
     overflow-y:hidden;
     scrollbar-width:none;
     -webkit-overflow-scrolling:touch;
+  }
+  .chart-head-actions > .separate-profit-control-row{
+    margin:0;
   }
   .separate-profit-control-row::-webkit-scrollbar{display:none}
   .separate-profit-toggle{
@@ -6497,20 +6517,5 @@ button:active,
   .separate-profit-control-note{display:none}
   .separate-profit-toggle{
     max-width:100%;
-  }
-}
-
-/* 6~8월 별도수익: 최상단 요약도 동일한 전역 ON/OFF 상태 공유 */
-.hero .hero-separate-profit-control{
-  position:relative;
-  z-index:1;
-  margin:8px 0 0;
-}
-.hero .hero-separate-profit-control .separate-profit-control-note{
-  color:#dbe4f0;
-}
-@media(max-width:760px){
-  .hero .hero-separate-profit-control{
-    margin:7px 0 0;
   }
 }
