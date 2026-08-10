@@ -125,7 +125,8 @@
       "date": "2026-08-10",
       "type": "contribution",
       "amount": 3700000,
-      "memo": "중기투자 추가 투입"
+      "memo": "성과 제외 자금 전입",
+      "fundingClass": "performanceExcludedTransfer"
     },
     {
       "id": "sec-buy-20260810-395160",
@@ -142,7 +143,8 @@
       "date": "2026-08-10",
       "type": "contribution",
       "amount": 3000000,
-      "memo": "중기투자 추가 투입 2차"
+      "memo": "성과 제외 자금 전입 2차",
+      "fundingClass": "performanceExcludedTransfer"
     },
     {
       "id": "sec-buy-20260810-395160-02",
