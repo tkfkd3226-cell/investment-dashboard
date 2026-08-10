@@ -379,26 +379,38 @@ const separateProfitReinvestedForDate=d=>Math.min(SEPARATE_PROFIT_REINVESTED,sec
 const separateProfitView=x=>{
   const separateProfit=INCLUDE_SEPARATE_PROFIT?separateProfitCumulativeForDate(x.date):0;
   const reclassifiedReinvestment=INCLUDE_SEPARATE_PROFIT?separateProfitReinvestedForDate(x.date):0;
+  const account1Principal=x.account1Principal-reclassifiedReinvestment;
+  const account1Profit=x.account1Profit+separateProfit;
+  const account1Result=x.account1Result+separateProfit-reclassifiedReinvestment;
+  const totalPrincipal=x.totalPrincipal-reclassifiedReinvestment;
+  const totalProfit=x.totalProfit+separateProfit;
+  const totalResult=x.totalResult+separateProfit-reclassifiedReinvestment;
+  const combinedPrincipal=x.combinedPrincipal-reclassifiedReinvestment;
+  const combinedProfit=x.combinedProfit+separateProfit;
+  const combinedResult=x.combinedResult+separateProfit-reclassifiedReinvestment;
   return {
     separateProfit,
     reclassifiedReinvestment,
     unreflectedSeparateProfit:separateProfit-reclassifiedReinvestment,
-    account1Principal:x.account1Principal-reclassifiedReinvestment,
-    account1Profit:x.account1Profit+separateProfit,
-    account1Result:x.account1Result+separateProfit-reclassifiedReinvestment,
-    totalPrincipal:x.totalPrincipal-reclassifiedReinvestment,
-    totalProfit:x.totalProfit+separateProfit,
-    totalResult:x.totalResult+separateProfit-reclassifiedReinvestment,
-    combinedPrincipal:x.combinedPrincipal-reclassifiedReinvestment,
-    combinedProfit:x.combinedProfit+separateProfit,
-    combinedResult:x.combinedResult+separateProfit-reclassifiedReinvestment
+    account1Principal,
+    account1Profit,
+    account1Result,
+    account1Return:account1Principal?account1Profit/account1Principal*100:0,
+    totalPrincipal,
+    totalProfit,
+    totalResult,
+    totalReturn:totalPrincipal?totalProfit/totalPrincipal*100:0,
+    combinedPrincipal,
+    combinedProfit,
+    combinedResult,
+    combinedReturn:combinedPrincipal?combinedProfit/combinedPrincipal*100:0
   };
 };
 const separateProfitToggle=()=>`<button type="button" class="separate-profit-toggle ${INCLUDE_SEPARATE_PROFIT?'active':''}" aria-pressed="${INCLUDE_SEPARATE_PROFIT}" onclick="toggleSeparateProfitMode()"><span>6~8월 별도수익</span><strong>${INCLUDE_SEPARATE_PROFIT?'ON':'OFF'}</strong></button>`;
-const separateProfitControl=x=>{
+const separateProfitControl=(x,extraClass='')=>{
   const profit=separateProfitCumulativeForDate(x.date);
-  const note=INCLUDE_SEPARATE_PROFIT?`<span class="separate-profit-control-note">선택일 ${signed(profit,'원')} · 수익률 제외</span>`:'';
-  return `<div class="separate-profit-control-row">${note}${separateProfitToggle()}</div>`;
+  const note=INCLUDE_SEPARATE_PROFIT?`<span class="separate-profit-control-note">선택일 ${signed(profit,'원')} · 통합수익률 반영</span>`:'';
+  return `<div class="separate-profit-control-row${extraClass?' '+extraClass:''}">${note}${separateProfitToggle()}</div>`;
 };
 function toggleSeparateProfitMode(){
   const scrollY=window.scrollY;
@@ -465,17 +477,20 @@ function snapshotDates(d){
 function cumHistory(d){
   return snapshotDates(d).map(x=>{
     const v=calc(x);
-    const principal=v.account1Principal||1;
     const baseProfit=v.rawHoldingProfit;
     const separateProfit=INCLUDE_SEPARATE_PROFIT?separateProfitCumulativeForDate(x):0;
+    const reclassifiedReinvestment=INCLUDE_SEPARATE_PROFIT?separateProfitReinvestedForDate(x):0;
+    const principal=Math.max(0,v.account1Principal-reclassifiedReinvestment)||1;
+    const totalProfit=baseProfit+separateProfit;
     return {
       '날짜':x,
-      '합계 : 누적손익':baseProfit+separateProfit,
-      '합계 : 누적수익률':principal?baseProfit/principal*100:0,
+      '합계 : 누적손익':totalProfit,
+      '합계 : 누적수익률':principal?totalProfit/principal*100:0,
       '코스피 지수':kospiIndexForDate(x),
       '합계 : 전일대비손익':0,
       '_기존포트누적손익':baseProfit,
-      '_별도수익누적':separateProfit
+      '_별도수익누적':separateProfit,
+      '_성과기준투입원금':principal
     };
   }).map((row,i,arr)=>{
     row['합계 : 전일대비손익']=i===0?row['합계 : 누적손익']:row['합계 : 누적손익']-arr[i-1]['합계 : 누적손익'];
@@ -849,7 +864,7 @@ function chartCompareDescription(scope){
   if(scope==='securities'&&INCLUDE_SEPARATE_PROFIT){
     return CHART_COMPARE_MODES[scope]==='kospi'
       ? '막대는 6~8월 별도수익 포함 손익, 선은 코스피 지수.'
-      : '막대는 6~8월 별도수익 포함 손익, 선은 기존 포트 누적수익률.';
+      : '막대와 선 모두 6~8월 별도수익을 포함한 통합 성과 기준.';
   }
   return CHART_COMPARE_MODES[scope]==='kospi'
     ? `막대는 ${profitLabel}과 전일대비손익, 선은 코스피 지수를 나타냄.`
@@ -1136,9 +1151,8 @@ function sectionToSecuritiesBlock(html, extraClass=''){
 function renderSecuritiesSummaryCards(x){
   const securitiesScope=securitiesScopeText(x),v=separateProfitView(x);
   const principalNote=INCLUDE_SEPARATE_PROFIT&&v.reclassifiedReinvestment?`별도수익 재투입 ${won(v.reclassifiedReinvestment)} 원금 제외`:x.account2Included?'계좌2 실현분·성과 제외 자금 전입 포함 기준':'선택일 계좌1 투자원금 기준';
-  const returnLabel=INCLUDE_SEPARATE_PROFIT?'기존 포트 이익률':'투자대비 이익률';
-  const returnNote=INCLUDE_SEPARATE_PROFIT?'6~8월 별도수익은 수익률 산정 제외':'총 합산 누적손익 ÷ 기준 투입원금';
-  return `<div class="securities-subsection securities-summary-block">${separateProfitControl(x)}<div class="grid cards">${metricCard('증권계좌 투자 결과물',won(v.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(v.totalPrincipal),principalNote)}${metricCard('총 합산 누적손익',won(v.totalProfit),`${securitiesScope} 누적손익`,false,cls(v.totalProfit))}${metricCard(returnLabel,pct(x.returnRate),returnNote,false,cls(x.returnRate))}</div></div>`;
+  const returnNote=INCLUDE_SEPARATE_PROFIT?'별도수익 포함 누적손익 ÷ 성과기준 투입원금':'총 합산 누적손익 ÷ 기준 투입원금';
+  return `<div class="securities-subsection securities-summary-block">${separateProfitControl(x)}<div class="grid cards">${metricCard('증권계좌 투자 결과물',won(v.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(v.totalPrincipal),principalNote)}${metricCard('총 합산 누적손익',won(v.totalProfit),`${securitiesScope} 누적손익`,false,cls(v.totalProfit))}${metricCard('투자대비 이익률',pct(v.totalReturn),returnNote,false,cls(v.totalReturn))}</div></div>`;
 }
 function renderSecuritiesSection(x){
   return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon">🏦</span>증권계좌 현황</h2></div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderCharts(x),'charts-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(x),'source-block'):''}</div></section>`;
@@ -1241,10 +1255,10 @@ function renderPensionContributionModal(x){
 }
 
 function render(){
-  const x=calc(ACTIVE_DATE);
+  const x=calc(ACTIVE_DATE),v=separateProfitView(x);
   renderTabs();
   const securitiesScope=securitiesScopeText(x),pensionPill=x.hasPension?`<span class="pill">퇴직연금 운용수익 ${won(x.pensionProfit)}</span>`:'';
-  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 누적손익 ${won(x.totalProfit)}</span>${pensionPill}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
+  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar"><span class="pill">증권계좌 범위 ${securitiesScope}</span><span class="pill">증권계좌 누적손익 ${won(v.totalProfit)}</span>${pensionPill}</div>${separateProfitControl(x,'hero-separate-profit-control')}</header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
   drawAllCharts();
   setupPensionVizTooltips();
   ensureMobileTopButton();
@@ -1371,16 +1385,16 @@ function renderPensionProductInsights(x){
   return `<div class="pension-insight-zone"><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>오늘 상승분 기여도</h3></div>${topHtml}</div><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>위험자산 70% 룰</h3><span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}">현재 ${risk.ratio.toFixed(1)}%</span></div><div class="pension-risk-gauge compact has-tooltip"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}" style="width:${gaugeWidth.toFixed(1)}%"></div><div class="pension-risk-threshold" style="left:${risk.threshold}%"><span>${risk.threshold}%</span></div><div class="pension-viz-tooltip wide"><strong>위험자산 70% 룰</strong><div>${riskTooltip}</div></div></div><div class="pension-risk-scale"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div></div></div>`;
 }
 function renderCombined(x){
-  const v=separateProfitView(x),returnLabel=INCLUDE_SEPARATE_PROFIT?'기존 포트 이익률':'투자대비 이익률';
+  const v=separateProfitView(x),returnLabel='투자대비 이익률';
   const cards=mobileInfoCard('퇴직연금',[
     ['투입원금',won(x.pensionPrincipal)],['투자 결과물',won(x.pensionEval)],['누적손익',won(x.pensionProfit),cls(x.pensionProfit)],['투자대비 이익률',pct(x.pensionReturn),cls(x.pensionReturn)]
   ])+mobileInfoCard('증권계좌',[
-    ['투입원금',won(v.totalPrincipal)],['투자 결과물',won(v.totalResult)],['누적손익',won(v.totalProfit),cls(v.totalProfit)],[returnLabel,pct(x.returnRate),cls(x.returnRate)]
+    ['투입원금',won(v.totalPrincipal)],['투자 결과물',won(v.totalResult)],['누적손익',won(v.totalProfit),cls(v.totalProfit)],[returnLabel,pct(v.totalReturn),cls(v.totalReturn)]
   ])+mobileInfoCard('합산',[
-    ['투입원금',won(v.combinedPrincipal)],['투자 결과물',won(v.combinedResult)],['누적손익',won(v.combinedProfit),cls(v.combinedProfit)],[returnLabel,pct(x.combinedReturn),cls(x.combinedReturn)]
+    ['투입원금',won(v.combinedPrincipal)],['투자 결과물',won(v.combinedResult)],['누적손익',won(v.combinedProfit),cls(v.combinedProfit)],[returnLabel,pct(v.combinedReturn),cls(v.combinedReturn)]
   ],'summary-card');
-  const rateNote=INCLUDE_SEPARATE_PROFIT?'<p class="table-note separate-profit-rate-note">※ 증권계좌·합산 이익률은 6~8월 별도수익을 제외한 기존 포트 기준입니다.</p>':'';
-  return `<section id="summary-section" ${mobileViewAttrs('combined')}><div class="section-title"><h2><span class="section-title-icon">🏠</span>연금+계좌 성과</h2>${mobileViewToggle('combined')}</div>${separateProfitControl(x)}<div class="mobile-scroll table-view"><table class="combined-performance-table"><thead><tr><th>구분</th><th>투입원금</th><th>투자 결과물</th><th>누적손익</th><th>${returnLabel}</th></tr></thead><tbody><tr><td><strong>퇴직연금</strong></td><td class="num">${fmt(x.pensionPrincipal)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(x.pensionProfit)}">${fmt(x.pensionProfit)}</td><td class="num ${cls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr><td><strong>증권계좌</strong></td><td class="num">${fmt(v.totalPrincipal)}</td><td class="num">${fmt(v.totalResult)}</td><td class="num ${cls(v.totalProfit)}">${fmt(v.totalProfit)}</td><td class="num ${cls(x.returnRate)}">${pct(x.returnRate)}</td></tr><tr class="summary-row"><td>합산</td><td class="num">${fmt(v.combinedPrincipal)}</td><td class="num">${fmt(v.combinedResult)}</td><td class="num ${cls(v.combinedProfit)}">${fmt(v.combinedProfit)}</td><td class="num ${cls(x.combinedReturn)}">${pct(x.combinedReturn)}</td></tr></tbody></table></div><div class="mobile-card-view">${cards}</div>${rateNote}</section>`;
+  const rateNote=INCLUDE_SEPARATE_PROFIT?'<p class="table-note separate-profit-rate-note">※ ON 수익률은 6~8월 별도수익 포함 누적손익 ÷ 성과기준 투입원금입니다.</p>':'';
+  return `<section id="summary-section" ${mobileViewAttrs('combined')}><div class="section-title"><h2><span class="section-title-icon">🏠</span>연금+계좌 성과</h2>${mobileViewToggle('combined')}</div>${separateProfitControl(x)}<div class="mobile-scroll table-view"><table class="combined-performance-table"><thead><tr><th>구분</th><th>투입원금</th><th>투자 결과물</th><th>누적손익</th><th>${returnLabel}</th></tr></thead><tbody><tr><td><strong>퇴직연금</strong></td><td class="num">${fmt(x.pensionPrincipal)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${cls(x.pensionProfit)}">${fmt(x.pensionProfit)}</td><td class="num ${cls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr><td><strong>증권계좌</strong></td><td class="num">${fmt(v.totalPrincipal)}</td><td class="num">${fmt(v.totalResult)}</td><td class="num ${cls(v.totalProfit)}">${fmt(v.totalProfit)}</td><td class="num ${cls(v.totalReturn)}">${pct(v.totalReturn)}</td></tr><tr class="summary-row"><td>합산</td><td class="num">${fmt(v.combinedPrincipal)}</td><td class="num">${fmt(v.combinedResult)}</td><td class="num ${cls(v.combinedProfit)}">${fmt(v.combinedProfit)}</td><td class="num ${cls(v.combinedReturn)}">${pct(v.combinedReturn)}</td></tr></tbody></table></div><div class="mobile-card-view">${cards}</div>${rateNote}</section>`;
 }
 function calcMdd(cum){
   if(!cum.length)return null;
@@ -1403,7 +1417,7 @@ function renderCharts(x){
         bestGap=best['합계 : 누적손익']-lastProfit,
         bestDetail=bestGap===0?'금일 갱신':'금일 대비 '+signed(bestGap,'원');
   return `<section id="investment-analysis"><div class="section-title"><h2><span class="section-title-icon">🗓️</span>투자 기간 분석</h2><p>삼성증권 계좌1 기준</p></div><div class="grid chart-grid">
-  <div class="chart-card" id="chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>누적손익 및 누적수익률</h3><p id="securitiesCompareDescription">${chartCompareDescription('securities')}</p></div><div class="chart-head-actions">${chartCompareToggle('securities')}</div></div>${separateProfitControl(x)}${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>누적손익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" id="securitiesCompareSwatch" style="background:${CHART_COMPARE_MODES.securities==='kospi'?'#7c3aed':'#5abdf2'}"></span><span id="securitiesCompareLegend">${chartCompareLabel('securities')}</span></span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">${INCLUDE_SEPARATE_PROFIT?'기존 포트 누적수익률':'최종 누적수익률'}</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${best.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${best.날짜}','chart-cum')}" title="${best.날짜} 기준으로 이동"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${bestDay.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${bestDay.날짜}','chart-cum')}" title="${bestDay.날짜} 기준으로 이동"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${worstDay.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${worstDay.날짜}','chart-cum')}" title="${worstDay.날짜} 기준으로 이동"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
+  <div class="chart-card" id="chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>누적손익 및 누적수익률</h3><p id="securitiesCompareDescription">${chartCompareDescription('securities')}</p></div><div class="chart-head-actions">${chartCompareToggle('securities')}</div></div>${separateProfitControl(x)}${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ffb84d"></span>누적손익</span><span class="legend-item"><span class="swatch" style="background:#a7d7a8"></span>전일대비손익</span><span class="legend-item"><span class="swatch" id="securitiesCompareSwatch" style="background:${CHART_COMPARE_MODES.securities==='kospi'?'#7c3aed':'#5abdf2'}"></span><span id="securitiesCompareLegend">${chartCompareLabel('securities')}</span></span></div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${best.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${best.날짜}','chart-cum')}" title="${best.날짜} 기준으로 이동"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${bestDay.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${bestDay.날짜}','chart-cum')}" title="${bestDay.날짜} 기준으로 이동"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${worstDay.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${worstDay.날짜}','chart-cum')}" title="${worstDay.날짜} 기준으로 이동"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
   <div class="chart-card" id="chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🧩</span>종목별 누적손익</h3><p>핵심종목별 누적손익의 변화와 기여도를 비교.</p></div><div class="chart-head-actions">${symbolChartToggle('securities')}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-legend">${orderedSymbols.map(h=>`<span class="legend-item"><span class="swatch" style="background:${SECURITY_SYMBOL_COLORS[h.name]}"></span>${h.name}</span>`).join('')}</div><div class="chart-note symbol-summary-grid${orderedSymbols.length>=5?' five':''}">${orderedSymbols.map(h=>symbolCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">${hasSymbolBuyFlow?'기여도 - 누적손익 합계 기준, 손익률 - 누적손익 ÷ 매입원금, 전일대비 변동률 - 전일대비 변동액 ÷ (전일 평가액 + 당일 매수금액)':'기여도 - 누적손익 합계 기준, 손익률 - 누적손익 ÷ 매입원금, 전일대비 변동률 - 전일대비 변동액 ÷ 전일의 평가금액'}</div></div>
   <div class="chart-card" id="chart-alloc"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🥧</span>평가액 비중</h3><p>ETF·개별주식·현금의 일자별 평가액 비중 변화.</p></div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartAlloc"></svg></div><div class="chart-legend"><span class="legend-item"><span class="swatch" style="background:#ff6b6b"></span>ETF</span><span class="legend-item"><span class="swatch" style="background:#ffc857"></span>개별주식</span><span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금</span></div><div class="chart-note"><div class="mini-card"><div class="m-label">ETF${chartSeriesSwatch('#ff6b6b')}</div><div class="m-value">${won(x.etfEval)} <span class="small">(${(x.etfEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식${chartSeriesSwatch('#ffc857')}</div><div class="m-value">${won(x.stockEval)} <span class="small">(${(x.stockEval/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금${chartSeriesSwatch('#8fd18f')}</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${(x.securitiesCash/x.allocTotal*100).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div></div></div></div>
   </div></section>`;
@@ -1478,12 +1492,12 @@ function renderPensionCharts(x){
 function renderAccounts(x){
   const c=PORTFOLIO.constants,v=separateProfitView(x);
   const rows=[
-    ['삼성증권 계좌1',v.account1Principal,v.account1Profit,x.account1Return,'2025-10-16 최초 시작.'],
+    ['삼성증권 계좌1',v.account1Principal,v.account1Profit,v.account1Return,'2025-10-16 최초 시작.'],
     ...(x.account2Included?[['삼성증권 계좌2',c.account2Principal,c.account2Profit,c.account2Profit/c.account2Principal*100,'2023-12-20 최초 시작. 2026-05-22 전량 매도 후 실현분 반영.']]:[]),
     ['토스증권',0,c.tossProfit,0,'2026-03-09 매수 후 익일 매도. 3/23 이전 확정 실현수익이라 전 구간 포함.']
   ];
   const hiddenNote=x.account2Included?'':'<p class="table-note"><strong>참고:</strong> 삼성증권 계좌2는 2026-05-22 전량 매도 후 실현분 반영. 선택일이 2026-05-21 이전이면 당시 전체 성과 기준에서 제외되어 이 표에서도 숨김.</p>';
-  const rateNote=INCLUDE_SEPARATE_PROFIT?'<p class="table-note separate-profit-rate-note">※ 삼성증권 계좌1 수익률은 6~8월 별도수익을 제외한 기존 포트 기준입니다.</p>':'';
+  const rateNote=INCLUDE_SEPARATE_PROFIT?'<p class="table-note separate-profit-rate-note">※ 삼성증권 계좌1 수익률은 별도수익 포함 누적손익 ÷ 성과기준 투자원금입니다.</p>':'';
   const cards=rows.map(r=>mobileInfoCard(r[0],[
     ['투자원금',r[1]?won(r[1]):'-'],['누적손익',won(r[2]),cls(r[2])],['수익률',r[1]?pct(r[3]):'-',r[1]?cls(r[3]):''],['메모',r[4],'','stacked']
   ])).join('');
@@ -1706,6 +1720,7 @@ function drawCumChart(){
       html+=row('전체 누적손익',signed(d['합계 : 누적손익'],'원'),clsBy(d['합계 : 누적손익']));
       html+=row('기존 포트 손익',signed(d['_기존포트누적손익'],'원'),clsBy(d['_기존포트누적손익']));
       html+=row('6~8월 별도수익',signed(d['_별도수익누적'],'원'),clsBy(d['_별도수익누적']));
+      html+=row('성과기준 투입원금',won(d['_성과기준투입원금']));
     }else{
       html+=row('누적손익',signed(d['합계 : 누적손익'],'원'),clsBy(d['합계 : 누적손익']));
     }

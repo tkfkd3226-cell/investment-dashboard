@@ -6499,3 +6499,18 @@ button:active,
     max-width:100%;
   }
 }
+
+/* 6~8월 별도수익: 최상단 요약도 동일한 전역 ON/OFF 상태 공유 */
+.hero .hero-separate-profit-control{
+  position:relative;
+  z-index:1;
+  margin:8px 0 0;
+}
+.hero .hero-separate-profit-control .separate-profit-control-note{
+  color:#dbe4f0;
+}
+@media(max-width:760px){
+  .hero .hero-separate-profit-control{
+    margin:7px 0 0;
+  }
+}
