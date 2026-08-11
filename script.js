@@ -747,7 +747,7 @@ function jumpToChartDate(date,chartId){
   });
 }
 function chartScrollButton(){
-  return `<div class="chart-scroll-row"><button type="button" class="chart-scroll-start" aria-label="차트를 왼쪽 끝으로 이동" title="왼쪽 끝으로 이동" onclick="scrollChartToStart(this)">←</button><button type="button" class="chart-scroll-end" aria-label="차트를 오른쪽 끝으로 이동" title="오른쪽 끝으로 이동" onclick="scrollChartToEnd(this)">→</button></div>`;
+  return `<div class="chart-scroll-row"><button type="button" class="chart-scroll-start" aria-label="차트를 왼쪽 끝으로 이동" title="왼쪽 끝으로 이동" onclick="scrollChartToStart(this)">←</button><button type="button" class="chart-scroll-end" aria-label="차트를 오른쪽 끝으로 이동" title="오른쪽 끝으로 이동" onclick="scrollChartToEnd(this)">→</button><button type="button" class="chart-expand-button" aria-label="차트를 가로 전체화면으로 확대" title="가로 전체화면" onclick="openExpandedChart(this)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"></path><path d="M9 9 3 3M15 9l6-6M15 15l6 6M9 15l-6 6"></path></svg></button></div>`;
 }
 function chartScrollToWrap(button){
   return button?.closest('.chart-card')?.querySelector('.chart-wrap')||null;
@@ -761,6 +761,75 @@ function scrollChartToEnd(button){
   const wrap=chartScrollToWrap(button);
   if(!wrap)return;
   wrap.scrollTo({left:Math.max(0,wrap.scrollWidth-wrap.clientWidth),behavior:'smooth'});
+}
+let EXPANDED_CHART_STATE=null;
+function expandedChartLandscapeViewport(){
+  return window.matchMedia?.('(orientation: landscape)').matches===true;
+}
+function syncExpandedChartViewport(){
+  const overlay=document.querySelector('.chart-expanded-overlay');
+  if(!overlay)return;
+  overlay.style.setProperty('--chart-expanded-vw',`${window.innerWidth}px`);
+  overlay.style.setProperty('--chart-expanded-vh',`${window.innerHeight}px`);
+  overlay.classList.toggle('device-landscape',expandedChartLandscapeViewport());
+}
+function openExpandedChart(button){
+  const card=button?.closest('.chart-card');
+  const wrap=card?.querySelector('.chart-wrap');
+  const svg=wrap?.querySelector('svg.chart');
+  if(!card||!wrap||!svg)return;
+  closeExpandedChart();
+  const placeholder=document.createComment('expanded-chart-placeholder');
+  svg.parentNode.insertBefore(placeholder,svg);
+  const title=card.querySelector('.chart-head h3')?.textContent?.trim()||'차트';
+  const legend=card.querySelector('.chart-legend')?.cloneNode(true);
+  const overlay=document.createElement('div');
+  overlay.className='chart-expanded-overlay';
+  overlay.setAttribute('role','dialog');
+  overlay.setAttribute('aria-modal','true');
+  overlay.setAttribute('aria-label',`${title} 확대 보기`);
+  overlay.innerHTML=`<button type="button" class="chart-expanded-close" aria-label="확대 차트 닫기" title="닫기">×</button><div class="chart-expanded-stage"><div class="chart-expanded-title"></div><div class="chart-expanded-chart-host"></div><div class="chart-expanded-legend-host"></div></div>`;
+  overlay.querySelector('.chart-expanded-title').textContent=title;
+  overlay.querySelector('.chart-expanded-chart-host').appendChild(svg);
+  if(legend)overlay.querySelector('.chart-expanded-legend-host').appendChild(legend);
+  document.body.appendChild(overlay);
+  document.body.classList.add('chart-expanded-open');
+  EXPANDED_CHART_STATE={overlay,svg,placeholder,wrap,scrollLeft:wrap.scrollLeft};
+  syncExpandedChartViewport();
+  overlay.querySelector('.chart-expanded-close')?.addEventListener('click',closeExpandedChart,{once:true});
+  overlay.addEventListener('click',e=>{if(e.target===overlay)closeExpandedChart()});
+  requestAnimationFrame(()=>overlay.classList.add('show'));
+  overlay.querySelector('.chart-expanded-close')?.focus({preventScroll:true});
+}
+function closeExpandedChart(){
+  const state=EXPANDED_CHART_STATE;
+  if(!state)return;
+  EXPANDED_CHART_STATE=null;
+  const {overlay,svg,placeholder,wrap,scrollLeft}=state;
+  if(placeholder?.parentNode)placeholder.parentNode.insertBefore(svg,placeholder);
+  placeholder?.remove();
+  overlay?.remove();
+  document.body.classList.remove('chart-expanded-open');
+  if(wrap){
+    wrap.scrollLeft=scrollLeft||0;
+    requestAnimationFrame(()=>{
+      if(typeof prepareChartEntranceForSvg==='function')prepareChartEntranceForSvg(svg);
+      if(typeof activateChartEntrance==='function')activateChartEntrance(wrap);
+    });
+  }
+}
+function setupExpandedChartViewport(){
+  if(window.__expandedChartViewportBound)return;
+  window.__expandedChartViewportBound=true;
+  let frame=0;
+  const sync=()=>{
+    if(!EXPANDED_CHART_STATE)return;
+    cancelAnimationFrame(frame);
+    frame=requestAnimationFrame(syncExpandedChartViewport);
+  };
+  window.addEventListener('resize',sync,{passive:true});
+  window.addEventListener('orientationchange',sync,{passive:true});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&EXPANDED_CHART_STATE)closeExpandedChart()});
 }
 function syncResponsiveChartControls(){
   const mobile=window.matchMedia('(max-width:760px)').matches;
@@ -781,6 +850,7 @@ function syncResponsiveChartControls(){
 }
 function setupResponsiveChartControls(){
   syncResponsiveChartControls();
+  setupExpandedChartViewport();
   if(window.__responsiveChartControlsBound)return;
   window.__responsiveChartControlsBound=true;
   let frame=0;

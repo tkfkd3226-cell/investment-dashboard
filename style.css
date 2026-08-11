@@ -6641,3 +6641,149 @@ button:active,
     padding:6px 6px !important;
   }
 }
+
+/* Mobile portrait chart expand: show the full 1120px chart in a landscape-style overlay. */
+.chart-expand-button{display:none}
+.chart-expanded-overlay{display:none}
+body.chart-expanded-open{overflow:hidden !important;touch-action:none}
+
+@media (max-width:760px) and (orientation:portrait){
+  .chart-expand-button{
+    display:inline-flex !important;
+    align-items:center;
+    justify-content:center;
+    width:25px !important;
+    height:25px !important;
+    flex:0 0 25px !important;
+    padding:0 !important;
+    border:1px solid #cbd5e1;
+    border-radius:8px !important;
+    background:#fff;
+    color:#334155;
+    box-shadow:none !important;
+    cursor:pointer;
+  }
+  .chart-expand-button svg{
+    width:13px;
+    height:13px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.9;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    pointer-events:none;
+  }
+  .dark .chart-expand-button{
+    background:#111827;
+    border-color:#334155;
+    color:#e2e8f0;
+  }
+}
+
+.chart-expanded-overlay{
+  position:fixed;
+  inset:0;
+  z-index:12000;
+  overflow:hidden;
+  background:#fff;
+  opacity:0;
+  transition:opacity .14s ease;
+  overscroll-behavior:none;
+}
+.chart-expanded-overlay.show{opacity:1}
+.dark .chart-expanded-overlay{background:#0b1020}
+.chart-expanded-close{
+  position:fixed;
+  top:max(10px,env(safe-area-inset-top));
+  right:max(10px,env(safe-area-inset-right));
+  z-index:12003;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:36px;
+  height:36px;
+  padding:0;
+  border:1px solid rgba(15,23,42,.14);
+  border-radius:11px;
+  background:rgba(255,255,255,.94);
+  color:#111827;
+  font-family:inherit;
+  font-size:25px;
+  font-weight:500;
+  line-height:1;
+  box-shadow:0 5px 18px rgba(15,23,42,.16);
+  cursor:pointer;
+}
+.dark .chart-expanded-close{
+  border-color:rgba(255,255,255,.16);
+  background:rgba(17,24,39,.96);
+  color:#f8fafc;
+  box-shadow:0 5px 18px rgba(0,0,0,.34);
+}
+.chart-expanded-stage{
+  position:absolute;
+  left:0;
+  top:0;
+  width:var(--chart-expanded-vh,100dvh);
+  height:var(--chart-expanded-vw,100dvw);
+  box-sizing:border-box;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  gap:5px;
+  padding:10px 52px 8px 12px;
+  transform-origin:top left;
+  transform:rotate(90deg) translateY(-100%);
+  background:#fff;
+}
+.dark .chart-expanded-stage{background:#0b1020}
+.chart-expanded-title{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--text);
+  font-size:15px;
+  font-weight:900;
+  line-height:1.25;
+  letter-spacing:-.03em;
+}
+.chart-expanded-chart-host{
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  display:flex;
+  align-items:stretch;
+}
+.chart-expanded-chart-host svg.chart{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  height:100% !important;
+  min-height:0 !important;
+  border-radius:10px !important;
+  flex:1 1 auto;
+}
+.chart-expanded-legend-host{
+  min-height:20px;
+  overflow:hidden;
+}
+.chart-expanded-legend-host:empty{display:none}
+.chart-expanded-legend-host .chart-legend{
+  margin-top:0 !important;
+  gap:5px 10px !important;
+  font-size:10px !important;
+  line-height:1.2 !important;
+}
+.chart-expanded-legend-host .swatch{
+  width:9px !important;
+  height:9px !important;
+}
+
+/* If the user physically rotates while expanded, stop simulating rotation and fill real landscape. */
+.chart-expanded-overlay.device-landscape .chart-expanded-stage{
+  width:100% !important;
+  height:100% !important;
+  transform:none !important;
+  padding:10px 52px 8px 12px;
+}
+.chart-expanded-chart-host .svg-hitbox{pointer-events:none !important}
