@@ -2924,6 +2924,10 @@ body.contrib-modal-open{
   padding:7px 8px;
 }
 
+.source-card-bottom-value{
+  margin-top:12px;
+}
+
 .source-card.highlight{
   background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
   border-color:rgba(37,99,235,.22);
