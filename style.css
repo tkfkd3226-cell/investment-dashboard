@@ -4968,7 +4968,47 @@ button:active,
   display:inline;
 }
 .mobile-top-button{
-  display:none;
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  z-index:2400;
+  width:56px;
+  height:56px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border:0;
+  border-radius:15px;
+  background:#111827;
+  color:#fff;
+  font-family:inherit;
+  font-size:11px;
+  font-weight:900;
+  line-height:1;
+  letter-spacing:-.02em;
+  white-space:nowrap;
+  box-shadow:0 10px 24px rgba(15,23,42,.28),0 3px 8px rgba(15,23,42,.16);
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(8px);
+  transition:opacity .18s ease,transform .18s ease,visibility .18s ease,box-shadow .18s ease;
+  cursor:pointer;
+}
+.mobile-top-button.show{
+  opacity:1;
+  visibility:visible;
+  transform:translateY(0);
+}
+.mobile-top-button:hover{
+  background:#0b1220;
+  box-shadow:0 13px 28px rgba(15,23,42,.32),0 4px 10px rgba(15,23,42,.18);
+}
+.mobile-top-button:active{transform:scale(.96)}
+.dark .mobile-top-button{
+  border:0;
+  background:#111827;
+  color:#fff;
 }
 
 @media(min-width:761px){
@@ -5139,43 +5179,6 @@ button:active,
   .krx-selected-line{display:block !important}
   .krx-selected-space{display:none !important}
 
-  .mobile-top-button{
-    position:fixed;
-    right:14px;
-    bottom:max(16px,calc(env(safe-area-inset-bottom) + 10px));
-    z-index:2400;
-    width:43px;
-    height:43px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    padding:0;
-    border:1px solid #d0d7de;
-    border-radius:50%;
-    background:rgba(255,255,255,.96);
-    color:#334155;
-    font-family:inherit;
-    font-size:10px;
-    font-weight:950;
-    letter-spacing:-.02em;
-    box-shadow:0 9px 24px rgba(15,23,42,.18);
-    opacity:0;
-    visibility:hidden;
-    transform:translateY(8px);
-    transition:opacity .18s ease,transform .18s ease,visibility .18s ease;
-    cursor:pointer;
-  }
-  .mobile-top-button.show{
-    opacity:1;
-    visibility:visible;
-    transform:translateY(0);
-  }
-  .mobile-top-button:active{transform:scale(.96)}
-  .dark .mobile-top-button{
-    border-color:#374151;
-    background:rgba(17,24,39,.96);
-    color:#e5e7eb;
-  }
 }
 
 /* Narrow desktop: keep left date controls and right action group separate without overlap. */
@@ -6553,5 +6556,61 @@ button:active,
 @media(min-width:721px){
   .contrib-modal #pensionContribStandardFields.cash-mode{
     grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+
+
+/* 2026-08-11 responsive table fill + compact table labels */
+@media(max-width:760px){
+  #summary-section .combined-performance-table,
+  #pension-products .pension-products-table,
+  #accounts-summary .accounts-table{
+    width:max-content !important;
+    min-width:100% !important;
+    max-width:none !important;
+    table-layout:auto !important;
+  }
+
+  .mobile-top-button{
+    right:12px;
+    bottom:max(14px,calc(env(safe-area-inset-bottom) + 9px));
+    width:48px;
+    height:48px;
+    border-radius:13px;
+    font-size:10px;
+    box-shadow:0 8px 20px rgba(15,23,42,.28),0 2px 7px rgba(15,23,42,.16);
+  }
+}
+
+@media(max-width:900px){
+  #securities-holdings .hold-position-table{
+    width:max-content !important;
+    min-width:100% !important;
+    max-width:none !important;
+    table-layout:auto !important;
+  }
+
+  #securities-holdings .hold-position-table th,
+  #securities-holdings .hold-position-table td{
+    font-size:11.5px !important;
+    letter-spacing:-.025em !important;
+  }
+}
+
+@media(max-width:520px){
+  #pension-products .pension-products-table .mobile-table-kodex-prefix,
+  #securities-holdings .hold-position-table .mobile-table-kodex-prefix{
+    display:none;
+  }
+}
+
+.combined-mobile-return{display:none}
+@media(max-width:400px){
+  #summary-section .combined-performance-table th:nth-child(5),
+  #summary-section .combined-performance-table td:nth-child(5){
+    display:none !important;
+  }
+  #summary-section .combined-performance-table .combined-mobile-return{
+    display:inline;
   }
 }
