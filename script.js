@@ -101,6 +101,7 @@ const pensionCashSnapshotItems=()=>Array.from(
         ...v,
         date,
         valuation:Number(v.valuation)||0,
+        costBasis:v.costBasis==null?null:(Number.isFinite(Number(v.costBasis))?Math.max(0,Number(v.costBasis)):null),
         afterTradeIds:Array.isArray(v.afterTradeIds)?v.afterTradeIds.map(String):null,
         afterContributionIds:Array.isArray(v.afterContributionIds)?v.afterContributionIds.map(String):null
       });
@@ -260,6 +261,7 @@ const pensionCashCostBasis=d=>{
     const item=event.item;
     if(event.kind==='snapshot'){
       cashValuation=Math.max(0,Number(item.valuation)||0);
+      if(item.costBasis!=null&&Number.isFinite(Number(item.costBasis))) cashCost=Math.max(0,Number(item.costBasis));
       return;
     }
     if(event.kind==='contribution'){
@@ -1170,7 +1172,7 @@ function renderPensionContributionList(target='cashSnapshot'){
     .slice()
     .filter(v=>v&&v.date)
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)))
-    .map(v=>({target:'cashSnapshot',key:v.date,date:v.date,amount:Number(v.valuation)||0,memo:v.memo||'',label:'현금성자산 평가금액'}));
+    .map(v=>({target:'cashSnapshot',key:v.date,date:v.date,amount:Number(v.valuation)||0,costBasis:v.costBasis==null?null:Number(v.costBasis),memo:v.memo||'',label:'현금성자산 평가금액'}));
 
   const tradeItems=pensionTradeItems()
     .slice()
@@ -1189,7 +1191,10 @@ function renderPensionContributionList(target='cashSnapshot'){
 
   if(!items.length) return '';
 
-  return items.map(v=>`<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.target}|${v.key}"><span class="contrib-existing-main"><span class="contrib-existing-title"><span class="contrib-existing-date">${v.date}</span><span class="contrib-existing-sep"> / </span><span class="contrib-existing-info">${v.label} / ${won(v.amount)}</span></span><span class="contrib-existing-memo">${escapeHtml(v.memo)}</span></span></label>`).join('');
+  return items.map(v=>{
+    const costText=v.target==='cashSnapshot'&&v.costBasis!=null&&Number.isFinite(Number(v.costBasis))?` / 매수원금 ${won(v.costBasis)}`:'';
+    return `<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.target}|${v.key}"><span class="contrib-existing-main"><span class="contrib-existing-title"><span class="contrib-existing-date">${v.date}</span><span class="contrib-existing-sep"> / </span><span class="contrib-existing-info">${v.label} / ${won(v.amount)}${costText}</span></span><span class="contrib-existing-memo">${escapeHtml(v.memo)}</span></span></label>`;
+  }).join('');
 }
 
 function renderPensionContributionModal(x){
@@ -1197,6 +1202,7 @@ function renderPensionContributionModal(x){
   const contribDefaultMemo=defaultPensionContributionMemo(contribDefaultDate);
   const cashDefaultDate=x.date||contribDefaultDate;
   const cashDefaultValue=Number.isFinite(Number(x.pensionCash))?fmt(x.pensionCash):'';
+  const cashDefaultCostBasis=Number.isFinite(Number(x.pensionCashCost))?fmt(x.pensionCashCost):'';
   const applyDate=kstTodayText();
   return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle"><span class="section-title-icon">💰</span>퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="contrib-modal-icon-btn pension-form-reset" onclick="resetPensionContributionForm()" title="입력값 초기화" aria-label="입력값 초기화">↻</button><button type="button" class="contrib-modal-icon-btn contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div></div>
 <div class="pension-contrib-tool modal-card-box">
@@ -1206,6 +1212,7 @@ function renderPensionContributionModal(x){
   <div id="pensionContribStandardFields" class="contrib-form-grid">
     <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${cashDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></div>
     <div class="contrib-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">평가금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="${cashDefaultValue}" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}"></div>
+    <div id="pensionCashCostField" class="contrib-field"><label for="pensionCashCostBasis">매수원금</label><input id="pensionCashCostBasis" type="text" inputmode="numeric" value="${cashDefaultCostBasis}" data-cash-default-value="${cashDefaultCostBasis}"><span class="contrib-field-help">연금 앱의 현금성자산 매수원금 기준</span></div>
     <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="현금성자산 평가금액 앱 확인" data-contrib-default-memo="${contribDefaultMemo}" data-cash-default-memo="현금성자산 평가금액 앱 확인"></div>
   </div>
   <div id="pensionEtfTradeFields" class="pension-etf-trade-fields" hidden>
@@ -1900,6 +1907,8 @@ function syncPensionContributionTargetUi(){
   const amountEl=document.getElementById('pensionContribAmount');
   const memoEl=document.getElementById('pensionContribMemo');
   const amountLabel=document.getElementById('pensionContribAmountLabel');
+  const cashCostField=document.getElementById('pensionCashCostField');
+  const cashCostEl=document.getElementById('pensionCashCostBasis');
   const existingList=document.getElementById('pensionContribExistingList');
   const deleteHelp=document.getElementById('pensionContribDeleteHelp');
   const deleteStatus=document.getElementById('pensionContribDeleteStatus');
@@ -1908,10 +1917,13 @@ function syncPensionContributionTargetUi(){
   if(target!=='etfTrade'){
     setPensionContributionSaveDisabled(false);
     if(amountLabel) amountLabel.textContent=target==='cashSnapshot'?'평가금액':'금액';
+    if(cashCostField) cashCostField.hidden=target!=='cashSnapshot';
     if(dateEl) dateEl.value=target==='cashSnapshot'?(dateEl.dataset.cashDefaultDate||dateEl.value):(dateEl.dataset.contribDefaultDate||dateEl.value);
     if(amountEl) amountEl.value=target==='cashSnapshot'?(amountEl.dataset.cashDefaultValue||''):(amountEl.dataset.contribDefaultValue||'618,060');
+    if(cashCostEl&&target==='cashSnapshot') cashCostEl.value=cashCostEl.dataset.cashDefaultValue||cashCostEl.value||'';
     if(memoEl) memoEl.value=target==='cashSnapshot'?(memoEl.dataset.cashDefaultMemo||'현금성자산 평가금액 앱 확인'):(memoEl.dataset.contribDefaultMemo||defaultPensionContributionMemo(dateEl?.value||''));
   }else{
+    if(cashCostField) cashCostField.hidden=true;
     const applyDateEl=document.getElementById('pensionEtfTradeApplyDate');
     if(applyDateEl) applyDateEl.textContent=kstTodayText();
     updatePensionEtfTradePreview();
@@ -2044,6 +2056,7 @@ function buildPensionContributionItem(){
   const dateEl=document.getElementById('pensionContribDate');
   const amountEl=document.getElementById('pensionContribAmount');
   const memoEl=document.getElementById('pensionContribMemo');
+  const cashCostEl=document.getElementById('pensionCashCostBasis');
   if(!dateEl||!amountEl||!memoEl) throw new Error('입력칸을 찾지 못했습니다.');
   const date=dateEl.value;
   const rawAmount=String(amountEl.value||'').trim();
@@ -2052,7 +2065,10 @@ function buildPensionContributionItem(){
   if(!date) throw new Error('일자를 입력해주세요.');
   if(target==='cashSnapshot'){
     if(rawAmount===''||!Number.isFinite(amount)||amount<0) throw new Error('평가금액을 입력해주세요.');
-    return {target,date,valuation:amount,memo};
+    const rawCostBasis=String(cashCostEl?.value||'').trim();
+    const costBasis=cleanNumberInput(rawCostBasis);
+    if(rawCostBasis===''||!Number.isFinite(costBasis)||costBasis<0) throw new Error('매수원금을 입력해주세요.');
+    return {target,date,valuation:amount,costBasis:Math.round(costBasis),memo};
   }
   if(rawAmount===''||!Number.isFinite(amount)||amount<=0) throw new Error('금액을 입력해주세요.');
   return {target,date,amount,memo};
@@ -2078,12 +2094,14 @@ function clearPensionContributionStatus(elementId){
 function resetPensionContributionForm(){
   const dateEl=document.getElementById('pensionContribDate');
   const tradeDateEl=document.getElementById('pensionEtfTradeDate');
+  const cashCostEl=document.getElementById('pensionCashCostBasis');
   const tickerEl=document.getElementById('pensionEtfTradeTicker');
   const qtyEl=document.getElementById('pensionEtfTradeQty');
   const tradeAmountEl=document.getElementById('pensionEtfTradeAmount');
   const defaultCashDate=dateEl?.dataset.cashDefaultDate||kstTodayText();
 
   setPensionContributionTarget('cashSnapshot');
+  if(cashCostEl)cashCostEl.value=cashCostEl.dataset.cashDefaultValue||'';
   if(tradeDateEl)tradeDateEl.value=defaultCashDate;
   if(tickerEl&&tickerEl.options.length)tickerEl.selectedIndex=0;
   if(qtyEl)qtyEl.value='';
@@ -2292,11 +2310,12 @@ function pensionBatchSimulate(operations=PENSION_BATCH_QUEUE){
 
     const item={...(op.item||{})};
     if(op.target==='cashSnapshot'){
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(String(item.date||''))||!Number.isFinite(Number(item.valuation))||Number(item.valuation)<0)throw new Error(`${index+1}번 현금성자산 저장값을 확인해주세요.`);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(String(item.date||''))||!Number.isFinite(Number(item.valuation))||Number(item.valuation)<0||!Number.isFinite(Number(item.costBasis))||Number(item.costBasis)<0)throw new Error(`${index+1}번 현금성자산 저장값을 확인해주세요.`);
       const saved={
         ...item,
         date:String(item.date),
         valuation:Math.round(Number(item.valuation)),
+        costBasis:Math.round(Number(item.costBasis)),
         afterTradeIds:state.trades.filter(v=>v.date<=item.date).map(v=>String(v.id)).filter(Boolean),
         afterContributionIds:state.contributions.filter(v=>v.date<=item.date).map(v=>String(v.id)).filter(Boolean),
         updatedAtKST:`batch-${String(index).padStart(4,'0')}`
@@ -2340,7 +2359,7 @@ function pensionBatchOperationDescription(op){
     return `삭제 · 추가 매수 · ${item.tradeDate||item.date||''} · ${item.name||item.ticker||''} ${fmt(item.qty||0)}좌 / ${won(item.amount||0)}`;
   }
   const item=op.item||{};
-  if(op.target==='cashSnapshot')return `저장 · 현금성자산 평가금액 · ${item.date} · ${won(item.valuation)}`;
+  if(op.target==='cashSnapshot')return `저장 · 현금성자산 평가금액 · ${item.date} · 평가 ${won(item.valuation)} · 매수원금 ${won(item.costBasis)}`;
   if(op.target==='contribution')return `저장 · 기업적립금 · ${item.date} · +${won(item.amount)}`;
   return `저장 · 추가 매수 · 체결 ${item.tradeDate} · ${item.name||item.ticker} ${fmt(item.qty)}좌 / ${won(item.amount)}`;
 }
@@ -2543,7 +2562,7 @@ async function savePensionContribution(){
     const data=await requestPensionActionPin({
       title:`${targetText} 저장`,
       description:item.target==='cashSnapshot'
-        ?'현금성자산 평가금액을 GitHub 파일에 저장합니다.'
+        ?`현금성자산 평가금액 ${won(item.valuation)}과 매수원금 ${won(item.costBasis)}을 GitHub 파일에 함께 저장합니다.`
         :(item.target==='etfTrade'
           ?`${item.tradeDate} 체결된 ${item.name} ${fmt(item.qty)}좌 매수를 오늘(${item.applyDate}) 앱 반영 기준으로 적용합니다.`
           :`${targetText}을 GitHub 파일에 저장합니다. PIN 6자리를 입력하세요.`),
