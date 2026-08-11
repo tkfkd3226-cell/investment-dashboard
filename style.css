@@ -6730,9 +6730,43 @@ button:active,
   }
 }
 
-/* Mobile portrait chart expand: show the full 1120px chart in a landscape-style overlay. */
-.chart-expand-button{display:none}
+/* Chart expand controls: mobile uses the chart navigation row; desktop uses the title row. */
+.chart-expand-button,
+.chart-web-expand-button{display:none}
 body.chart-expanded-open{overflow:hidden !important;touch-action:none}
+
+@media (min-width:1101px){
+  .chart-web-expand-button{
+    display:inline-flex !important;
+    align-items:center;
+    justify-content:center;
+    width:29px;
+    height:29px;
+    flex:0 0 29px;
+    padding:0;
+    border:1px solid #cbd5e1;
+    border-radius:9px;
+    background:#fff;
+    color:#334155;
+    box-shadow:none;
+    cursor:pointer;
+  }
+  .chart-web-expand-button svg{
+    width:14px;
+    height:14px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.9;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    pointer-events:none;
+  }
+  .dark .chart-web-expand-button{
+    background:#111827;
+    border-color:#334155;
+    color:#e2e8f0;
+  }
+}
 
 @media (max-width:760px) and (orientation:portrait){
   .chart-expand-button{
@@ -6874,6 +6908,7 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   justify-content:flex-end !important;
   gap:5px !important;
 }
+.chart-expanded-controls-host .chart-web-expand-button{display:none !important}
 .chart-expanded-controls-host .chart-compare-toggle{
   margin:0 !important;
 }
@@ -6921,6 +6956,37 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   height:100% !important;
   transform:none !important;
   padding:10px 52px 8px 12px;
+}
+@media (min-width:1101px){
+  .chart-expanded-overlay.desktop-expanded .chart-expanded-stage{
+    width:100% !important;
+    height:100% !important;
+    transform:none !important;
+    gap:10px;
+    padding:20px 68px 16px 24px;
+  }
+  .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-expanded-title-heading{
+    font-size:18px;
+    gap:9px;
+  }
+  .chart-expanded-overlay.desktop-expanded .chart-expanded-title .section-title-icon.chart-icon{
+    width:30px;
+    height:30px;
+    font-size:17px;
+  }
+  .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-title-sub{
+    font-size:12px !important;
+  }
+  .chart-expanded-overlay.desktop-expanded .chart-expanded-controls-host .chart-compare-toggle button{
+    min-width:52px !important;
+    height:29px !important;
+    padding:0 8px !important;
+    font-size:10.5px !important;
+  }
+  .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend{
+    gap:7px 14px !important;
+    font-size:11px !important;
+  }
 }
 .chart-expanded-chart-host .svg-hitbox{
   pointer-events:all !important;
