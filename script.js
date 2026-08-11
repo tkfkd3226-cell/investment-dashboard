@@ -449,6 +449,14 @@ function toggleSeparateProfitMode(){
   render();
   requestAnimationFrame(()=>window.scrollTo({top:scrollY,left:0,behavior:'auto'}));
 }
+function toggleSeparateProfitModeFromExpanded(cardId){
+  closeExpandedChart();
+  toggleSeparateProfitMode();
+  requestAnimationFrame(()=>{
+    const expandButton=document.getElementById(cardId)?.querySelector('.chart-web-expand-button');
+    if(expandButton)openExpandedChart(expandButton);
+  });
+}
 function calc(date){
   const p=PORTFOLIO,c=p.constants,s=PRICES[date]||{},pk=previousDate(date),prev=pk?PRICES[pk]:null,daily=ACCOUNT1_DAILY?.[date]||null,extraPensionContrib=pensionContributionSum(date),prevExtraPensionContrib=pk?pensionContributionSum(pk):0,pensionPrincipal=(Number(c.pensionContributionPrincipal)||0)+extraPensionContrib;
   const account2Included=includeAccount2(date),tossIncluded=includeToss(date),hasPension=hasPensionData(date);
@@ -544,21 +552,22 @@ function symbolHistory(d){
 }
 function allocHistory(d){
   return snapshotDates(d).map(x=>{
-    const v=calc(x);
+    const v=calc(x),typeTotals=securityAllocTypeTotals(v);
     return {
       '날짜':x,
-      ETF:Number(v.etfEval||0),
-      개별주식:Number(v.stockEval||0),
-      현금:Number(v.securitiesCash||0)
+      ETF:typeTotals.etf,
+      개별주식:typeTotals.stock,
+      현금:Number(v.securitiesCash||0),
+      _total:Number(v.allocTotal||0)
     };
   });
 }
 function securitySymbolAllocHistory(d,series){
   return snapshotDates(d).map(x=>{
-    const v=calc(x),row={'날짜':x};
+    const v=calc(x),row={'날짜':x,'_total':Number(v.allocTotal||0)};
     series.forEach(name=>{
       const h=v.holdings.find(item=>item.name===name);
-      row[name]=Number(h?.evalAmount||0);
+      row[name]=Number(h?.qty)===1?0:Number(h?.evalAmount||0);
     });
     row['현금']=Number(v.securitiesCash||0);
     return row;
@@ -868,6 +877,17 @@ function openExpandedChart(button){
   const titleHeading=card.querySelector('.chart-head h3');
   const title=titleHeading?.textContent?.trim()||'차트';
   const controls=card.querySelector('.chart-head-actions');
+  let expandedSeparateProfitControl=null;
+  if(button?.classList.contains('chart-web-expand-button')&&card.id==='chart-cum'&&controls){
+    const sourceSeparateControl=card.querySelector('.chart-head > .separate-profit-control-row');
+    if(sourceSeparateControl){
+      expandedSeparateProfitControl=sourceSeparateControl.cloneNode(true);
+      expandedSeparateProfitControl.classList.add('expanded-separate-profit-control');
+      const expandedToggle=expandedSeparateProfitControl.querySelector('.separate-profit-toggle');
+      if(expandedToggle)expandedToggle.setAttribute('onclick',`toggleSeparateProfitModeFromExpanded('${card.id}')`);
+      controls.prepend(expandedSeparateProfitControl);
+    }
+  }
   const controlsPlaceholder=controls?document.createComment('expanded-chart-controls-placeholder'):null;
   if(controls)controls.parentNode.insertBefore(controlsPlaceholder,controls);
   const legend=card.querySelector('.chart-legend');
@@ -893,7 +913,7 @@ function openExpandedChart(button){
   if(legend)overlay.querySelector('.chart-expanded-legend-host').appendChild(legend);
   document.body.appendChild(overlay);
   document.body.classList.add('chart-expanded-open');
-  EXPANDED_CHART_STATE={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,legend,legendPlaceholder};
+  EXPANDED_CHART_STATE={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl};
   syncExpandedChartViewport();
   overlay.querySelector('.chart-expanded-close')?.addEventListener('click',closeExpandedChart,{once:true});
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeExpandedChart()});
@@ -905,9 +925,10 @@ function closeExpandedChart(){
   if(!state)return;
   clearChartHover();
   EXPANDED_CHART_STATE=null;
-  const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,legend,legendPlaceholder}=state;
+  const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl}=state;
   if(placeholder?.parentNode)placeholder.parentNode.insertBefore(svg,placeholder);
   placeholder?.remove();
+  expandedSeparateProfitControl?.remove();
   if(controls&&controlsPlaceholder?.parentNode)controlsPlaceholder.parentNode.insertBefore(controls,controlsPlaceholder);
   controlsPlaceholder?.remove();
   if(legend&&legendPlaceholder?.parentNode)legendPlaceholder.parentNode.insertBefore(legend,legendPlaceholder);
@@ -1125,8 +1146,21 @@ function securityAllocToggle(){
   const mode=SECURITY_ALLOC_MODE==='symbol'?'symbol':'type';
   return `<div class="chart-compare-toggle" role="group" aria-label="증권계좌 평가액 비중 표시 기준"><button type="button" class="${mode==='type'?'active':''}" data-security-alloc-mode="type" aria-pressed="${mode==='type'}" onclick="setSecurityAllocMode('type')">유형별</button><button type="button" class="${mode==='symbol'?'active':''}" data-security-alloc-mode="symbol" aria-pressed="${mode==='symbol'}" onclick="setSecurityAllocMode('symbol')">종목별</button></div>`;
 }
+function securityAllocVisibleHoldings(x){
+  return (x?.holdings||[]).filter(h=>Number(h?.qty)!==1);
+}
+function securityAllocOneShareEval(x){
+  return (x?.holdings||[]).filter(h=>Number(h?.qty)===1).reduce((sum,h)=>sum+Number(h?.evalAmount||0),0);
+}
+function securityAllocTypeTotals(x){
+  const holdings=securityAllocVisibleHoldings(x);
+  return {
+    etf:holdings.filter(h=>h.type==='ETF').reduce((sum,h)=>sum+Number(h.evalAmount||0),0),
+    stock:holdings.filter(h=>h.type==='개별주식').reduce((sum,h)=>sum+Number(h.evalAmount||0),0)
+  };
+}
 function securityAllocItems(x){
-  return sortSecurityAllocationItems(x?.holdings||[]);
+  return sortSecurityAllocationItems(securityAllocVisibleHoldings(x));
 }
 function securityAllocLegendHtml(x){
   if(SECURITY_ALLOC_MODE!=='symbol')return `<span class="legend-item"><span class="swatch" style="background:#ff6b6b"></span>ETF</span><span class="legend-item"><span class="swatch" style="background:#ffc857"></span>개별주식</span><span class="legend-item"><span class="swatch" style="background:#8fd18f"></span>현금</span>`;
@@ -1134,9 +1168,14 @@ function securityAllocLegendHtml(x){
 }
 function securityAllocCardsHtml(x){
   const total=Number(x?.allocTotal)||0,ratio=value=>total?Number(value||0)/total*100:0;
-  if(SECURITY_ALLOC_MODE!=='symbol')return `<div class="mini-card"><div class="m-label">ETF${chartSeriesSwatch('#ff6b6b')}</div><div class="m-value">${won(x.etfEval)} <span class="small">(${ratio(x.etfEval).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식${chartSeriesSwatch('#ffc857')}</div><div class="m-value">${won(x.stockEval)} <span class="small">(${ratio(x.stockEval).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금${chartSeriesSwatch('#8fd18f')}</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${ratio(x.securitiesCash).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div></div>`;
+  const oneShareEval=securityAllocOneShareEval(x),oneShareDetail=oneShareEval?`<div class="m-detail cash-include-detail">(1주 보유 종목 ${won(oneShareEval)} 포함)</div>`:'';
+  const totalCard=`<div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div>${oneShareDetail}</div>`;
+  if(SECURITY_ALLOC_MODE!=='symbol'){
+    const typeTotals=securityAllocTypeTotals(x);
+    return `<div class="mini-card"><div class="m-label">ETF${chartSeriesSwatch('#ff6b6b')}</div><div class="m-value">${won(typeTotals.etf)} <span class="small">(${ratio(typeTotals.etf).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식${chartSeriesSwatch('#ffc857')}</div><div class="m-value">${won(typeTotals.stock)} <span class="small">(${ratio(typeTotals.stock).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금${chartSeriesSwatch('#8fd18f')}</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${ratio(x.securitiesCash).toFixed(1)}%)</span></div></div>${totalCard}`;
+  }
   const itemCards=securityAllocItems(x).map(h=>`<div class="mini-card"><div class="m-label">${h.name}${chartSeriesSwatch(securityAllocationColor(h.name))}</div><div class="m-value">${won(h.evalAmount)} <span class="small">(${ratio(h.evalAmount).toFixed(1)}%)</span></div></div>`).join('');
-  return itemCards+`<div class="mini-card"><div class="m-label">현금${chartSeriesSwatch('#8fd18f')}</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${ratio(x.securitiesCash).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div></div>`;
+  return itemCards+`<div class="mini-card"><div class="m-label">현금${chartSeriesSwatch('#8fd18f')}</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${ratio(x.securitiesCash).toFixed(1)}%)</span></div></div>${totalCard}`;
 }
 function setSecurityAllocMode(mode){
   SECURITY_ALLOC_MODE=mode==='symbol'?'symbol':'type';
@@ -1775,9 +1814,9 @@ function renderAccounts(x){
   const rows=[
     ['삼성증권1',v.account1Principal,v.account1Profit,v.account1Return,'2025-10-16 최초 시작.'],
     ...(x.account2Included?[['삼성증권2',c.account2Principal,c.account2Profit,c.account2Profit/c.account2Principal*100,'2023-12-20 최초 시작. 2026-05-22 전량 매도 후 실현분 반영.']]:[]),
-    ['토스증권',0,c.tossProfit,0,'2026-03-09 매수 후 익일 매도. 3/23 이전 확정 실현수익이라 전 구간 포함.']
+    ['토스증권',0,c.tossProfit,0,'2026-03-09 매수 후 익일 매도.']
   ];
-  const totalMemo='계좌 간 자금 이동 반영 · 투자원금은 단순합산하지 않음';
+  const totalMemo='계좌 간 자금 이동 반영';
   const hiddenNote=x.account2Included?'':'<p class="table-note"><strong>참고:</strong> 삼성증권2는 2026-05-22 전량 매도 후 실현분 반영. 선택일이 2026-05-21 이전이면 당시 전체 성과 기준에서 제외되어 이 표에서도 숨김.</p>';
   const cards=rows.map(r=>mobileInfoCard(r[0],[
     ['투자원금',r[1]?won(r[1]):'-'],['누적손익',won(r[2]),cls(r[2])],['수익률',r[1]?pct(r[3]):'-',r[1]?cls(r[3]):''],['메모',r[4],'','stacked']
@@ -2067,7 +2106,7 @@ function drawStacked(){
   const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(maxY-v)/(maxY)*(h-t-b)};drawAxes(svg,cfg,[0,5000000,10000000,15000000,20000000,25000000,30000000]);
   data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;series.forEach(key=>{const value=Number(d[key]||0),yTop=cfg.y(base+value),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:colors[key],opacity:.75,stroke:'#fff','stroke-width':.4}));base+=value})});
   labelDates(svg,cfg,data,3);
-  addHover(svg,cfg,data,d=>{const total=series.reduce((a,key)=>a+Number(d[key]||0),0);let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(key=>{const value=Number(d[key]||0),share=total?value/total*100:0;html+=row(key,fmt(value)+`원 (${share.toFixed(1)}%)`)});return html+'<div style="height:6px"></div>'+row('합계',fmt(total)+'원')});
+  addHover(svg,cfg,data,d=>{const displayedTotal=series.reduce((a,key)=>a+Number(d[key]||0),0),total=Number(d._total)||displayedTotal;let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(key=>{const value=Number(d[key]||0),share=total?value/total*100:0;html+=row(key,fmt(value)+`원 (${share.toFixed(1)}%)`)});return html+'<div style="height:6px"></div>'+row('합계',fmt(total)+'원')});
 }
 function refreshScrollHints(){
   document.querySelectorAll('.scroll-hint').forEach(el=>el.remove());
