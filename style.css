@@ -467,6 +467,12 @@ svg.chart{
   background:#f8fafc;
 }
 
+@media (min-width:1101px){
+  #securityAllocCards.security-alloc-card-grid{
+    grid-template-columns:repeat(var(--security-alloc-card-count,4),minmax(0,1fr));
+  }
+}
+
 @media (max-width:900px){
   .chart-note{
     grid-template-columns:1fr 1fr;
