@@ -759,6 +759,7 @@ svg.chart{
 
 .change-mobile-list{
   display:none;
+  margin-top:12px;
 }
 
 .change-product-card{
@@ -841,18 +842,6 @@ svg.chart{
 }
 
 
-@media (max-width:520px){
-  .desktop-change-table{
-    display:none;
-  }
-
-  .change-mobile-list{
-    display:grid;
-    grid-template-columns:1fr;
-    gap:10px;
-    margin-top:12px;
-  }
-}
 
 @media (max-width:420px){
   .change-kpis{
@@ -2915,24 +2904,10 @@ body.contrib-modal-open{
 }
 
 
-/* Source section panel restore */
+/* Capital-source cards: no outer panel, keep only the three data cards. */
 .capital-source-section .source-title{
   margin-bottom:12px;
   padding:0 2px;
-}
-
-.source-panel{
-  padding:16px;
-  border:1px solid rgba(148,163,184,.28);
-  border-radius:24px;
-  background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(248,250,252,.78));
-  box-shadow:0 18px 46px rgba(15,23,42,.08);
-}
-
-.dark .source-panel{
-  background:linear-gradient(135deg,rgba(17,24,39,.88),rgba(15,23,42,.78));
-  border-color:rgba(148,163,184,.22);
-  box-shadow:0 18px 46px rgba(0,0,0,.24);
 }
 
 .source-grid{
@@ -2942,6 +2917,11 @@ body.contrib-modal-open{
 .source-card{
   box-shadow:none;
   border-color:rgba(148,163,184,.24);
+}
+
+.source-card table th,
+.source-card table td{
+  padding:7px 8px;
 }
 
 .source-card.highlight{
@@ -2978,10 +2958,6 @@ body.contrib-modal-open{
 }
 
 @media(max-width:720px){
-  .source-panel{
-    padding:12px;
-    border-radius:20px;
-  }
   .source-grid{
     gap:12px;
   }
@@ -4883,10 +4859,24 @@ button:active,
     margin-top:8px !important;
     gap:5px !important;
   }
+  .hero .hero-metric-pills{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+  }
+  .hero .hero-metric-pills.has-pension{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .hero .hero-return-pill{
+    display:none !important;
+  }
   .hero .pill{
-    padding:4px 7px !important;
+    min-width:0;
+    padding:4px 6px !important;
     font-size:10.5px !important;
     line-height:1.25 !important;
+    text-align:center;
+    white-space:nowrap;
+    letter-spacing:-.02em;
   }
   .hero:after{
     width:210px !important;
@@ -6569,7 +6559,8 @@ button:active,
 @media(max-width:760px){
   #summary-section .combined-performance-table,
   #pension-products .pension-products-table,
-  #accounts-summary .accounts-table{
+  #accounts-summary .accounts-table,
+  #pension-change .change-table{
     width:max-content !important;
     min-width:100% !important;
     max-width:none !important;
@@ -6644,5 +6635,9 @@ button:active,
   }
   #capital-source-check .source-card{
     min-width:0 !important;
+  }
+  #capital-source-check .source-card table th,
+  #capital-source-check .source-card table td{
+    padding:6px 6px !important;
   }
 }
