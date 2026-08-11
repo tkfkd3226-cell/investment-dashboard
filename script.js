@@ -451,12 +451,30 @@ function toggleSeparateProfitMode(){
   requestAnimationFrame(()=>window.scrollTo({top:scrollY,left:0,behavior:'auto'}));
 }
 function toggleSeparateProfitModeFromExpanded(cardId){
-  closeExpandedChart();
-  toggleSeparateProfitMode();
-  requestAnimationFrame(()=>{
-    const expandButton=document.getElementById(cardId)?.querySelector('.chart-web-expand-button');
-    if(expandButton)openExpandedChart(expandButton);
+  if(!EXPANDED_CHART_STATE||cardId!=='chart-cum')return;
+  INCLUDE_SEPARATE_PROFIT=!INCLUDE_SEPARATE_PROFIT;
+  document.querySelectorAll('.separate-profit-toggle').forEach(toggle=>{
+    toggle.classList.toggle('active',INCLUDE_SEPARATE_PROFIT);
+    toggle.setAttribute('aria-pressed',String(INCLUDE_SEPARATE_PROFIT));
+    const state=toggle.querySelector('strong');
+    if(state)state.textContent=INCLUDE_SEPARATE_PROFIT?'ON':'OFF';
   });
+  const expandedControl=EXPANDED_CHART_STATE.expandedSeparateProfitControl;
+  const note=expandedControl?.querySelector('.separate-profit-control-note');
+  if(INCLUDE_SEPARATE_PROFIT){
+    const profit=separateProfitCumulativeForDate(ACTIVE_DATE);
+    if(note)note.textContent=`선택일 ${signed(profit,'원')}`;
+    else if(expandedControl){
+      const span=document.createElement('span');
+      span.className='separate-profit-control-note';
+      span.textContent=`선택일 ${signed(profit,'원')}`;
+      expandedControl.prepend(span);
+    }
+  }else{
+    note?.remove();
+  }
+  drawCumChart();
+  EXPANDED_CHART_STATE.needsRenderAfterClose=true;
 }
 function calc(date){
   const p=PORTFOLIO,c=p.constants,s=PRICES[date]||{},pk=previousDate(date),prev=pk?PRICES[pk]:null,daily=ACCOUNT1_DAILY?.[date]||null,extraPensionContrib=pensionContributionSum(date),prevExtraPensionContrib=pk?pensionContributionSum(pk):0,pensionPrincipal=(Number(c.pensionContributionPrincipal)||0)+extraPensionContrib;
@@ -926,7 +944,7 @@ function closeExpandedChart(){
   if(!state)return;
   clearChartHover();
   EXPANDED_CHART_STATE=null;
-  const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl}=state;
+  const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,needsRenderAfterClose}=state;
   if(placeholder?.parentNode)placeholder.parentNode.insertBefore(svg,placeholder);
   placeholder?.remove();
   expandedSeparateProfitControl?.remove();
@@ -936,6 +954,12 @@ function closeExpandedChart(){
   legendPlaceholder?.remove();
   overlay?.remove();
   document.body.classList.remove('chart-expanded-open');
+  if(needsRenderAfterClose){
+    const scrollY=window.scrollY;
+    render();
+    requestAnimationFrame(()=>window.scrollTo({top:scrollY,left:0,behavior:'auto'}));
+    return;
+  }
   if(wrap){
     requestAnimationFrame(()=>{
       requestAnimationFrame(()=>{
@@ -1169,14 +1193,14 @@ function securityAllocLegendHtml(x){
 }
 function securityAllocCardsHtml(x){
   const total=Number(x?.allocTotal)||0,ratio=value=>total?Number(value||0)/total*100:0;
-  const oneShareEval=securityAllocOneShareEval(x),oneShareDetail=oneShareEval?`<div class="m-detail cash-include-detail">(1주 보유 종목 ${won(oneShareEval)} 포함)</div>`:'';
-  const totalCard=`<div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div>${oneShareDetail}</div>`;
+  const oneShareAndCashEval=securityAllocOneShareEval(x)+Number(x?.securitiesCash||0),includeDetail=oneShareAndCashEval?`<div class="m-detail cash-include-detail">(1주 및 현금 ${won(oneShareAndCashEval)} 포함)</div>`:'';
+  const totalCard=`<div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div>${includeDetail}</div>`;
   if(SECURITY_ALLOC_MODE!=='symbol'){
     const typeTotals=securityAllocTypeTotals(x);
-    return `<div class="mini-card"><div class="m-label">ETF${chartSeriesSwatch('#ff6b6b')}</div><div class="m-value">${won(typeTotals.etf)} <span class="small">(${ratio(typeTotals.etf).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식${chartSeriesSwatch('#ffc857')}</div><div class="m-value">${won(typeTotals.stock)} <span class="small">(${ratio(typeTotals.stock).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">현금${chartSeriesSwatch(CASH_ASSET_COLOR)}</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${ratio(x.securitiesCash).toFixed(1)}%)</span></div></div>${totalCard}`;
+    return `<div class="mini-card"><div class="m-label">ETF${chartSeriesSwatch('#ff6b6b')}</div><div class="m-value">${won(typeTotals.etf)} <span class="small">(${ratio(typeTotals.etf).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식${chartSeriesSwatch('#ffc857')}</div><div class="m-value">${won(typeTotals.stock)} <span class="small">(${ratio(typeTotals.stock).toFixed(1)}%)</span></div></div>${totalCard}`;
   }
   const itemCards=securityAllocItems(x).map(h=>`<div class="mini-card"><div class="m-label">${h.name}${chartSeriesSwatch(securityAllocationColor(h.name))}</div><div class="m-value">${won(h.evalAmount)} <span class="small">(${ratio(h.evalAmount).toFixed(1)}%)</span></div></div>`).join('');
-  return itemCards+`<div class="mini-card"><div class="m-label">현금${chartSeriesSwatch(CASH_ASSET_COLOR)}</div><div class="m-value">${won(x.securitiesCash)} <span class="small">(${ratio(x.securitiesCash).toFixed(1)}%)</span></div></div>${totalCard}`;
+  return itemCards+totalCard;
 }
 function setSecurityAllocMode(mode){
   SECURITY_ALLOC_MODE=mode==='symbol'?'symbol':'type';
@@ -2009,7 +2033,7 @@ function drawPensionSymbolChart(){
   const data=pensionSymbolHistory(ACTIVE_DATE),svg=document.getElementById('pensionChartSymbol');if(!svg||!data.length)return;clear(svg);
   const mode=SYMBOL_CHART_MODES.pension||'profit';
   const series=(PORTFOLIO.pension||[]).map(r=>r.name),valueOf=(d,s)=>mode==='rate'?Number(d._rates?.[s]||0):Number(d[s]||0),values=data.flatMap(d=>series.map(s=>valueOf(d,s)));
-  const yInfo=mode==='rate'?niceTickInfo(Math.min(0,...values),Math.max(0,...values),6,true):fixedTickInfo(Math.min(...values),Math.max(...values),2000000,true),w=1120,h=330,l=82,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  const yInfo=mode==='rate'?fixedTickInfo(Math.min(0,...values),Math.max(0,...values),20,true):fixedTickInfo(Math.min(...values),Math.max(...values),2000000,true),w=1120,h=330,l=82,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   const cfg={w,h,l,r,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),yFormatter:mode==='rate'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%'):null};drawAxes(svg,cfg,yInfo.ticks);
   const plotW=w-l-r,n=data.length;series.forEach(name=>{const pts=data.map((d,i)=>[l+(n===1?0:i*plotW/(n-1)),cfg.y(valueOf(d,name))]);polyline(svg,pts,pensionSeriesColor(name));circles(svg,pts,pensionSeriesColor(name))});labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const rate=Number(d._rates?.[s]||0),value=mode==='rate'?`${rate>0?'+':''}${pct(rate)}`:`${signed(d[s]||0,'원')} (${rate>0?'+':''}${pct(rate)})`;html+=row(s,value,clsBy(mode==='rate'?rate:(d[s]||0)))});if(mode==='rate')return html;const total=series.reduce((a,s)=>a+(d[s]||0),0);return html+'<div style="height:6px"></div>'+row('상품 합계',signed(total,'원'),clsBy(total))},'symbol');
@@ -2075,7 +2099,7 @@ function drawLineChart(){
   const current=calc(ACTIVE_DATE),activeNames=new Set(securityChartNamesForDate(ACTIVE_DATE)),series=sortSecurityChartItems(current.holdings.filter(h=>activeNames.has(h.name))).map(h=>h.name),colors=SECURITY_SYMBOL_COLORS,valueOf=(d,s)=>{const value=mode==='rate'?d._rates?.[s]:d[s];return value==null?null:Number(value);},values=data.flatMap(d=>series.map(s=>valueOf(d,s))).filter(Number.isFinite);
   const w=1120,h=330,l=70,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   if(mode==='rate'){
-    const yInfo=niceTickInfo(Math.min(0,...values),Math.max(0,...values),6,true),cfg={w,h,l,r,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),yFormatter:v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%'};drawAxes(svg,cfg,yInfo.ticks);
+    const yInfo=fixedTickInfo(Math.min(0,...values),Math.max(0,...values),20,true),cfg={w,h,l,r,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),yFormatter:v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%'};drawAxes(svg,cfg,yInfo.ticks);
     const plotW=w-l-r,n=data.length;series.forEach(s=>{const pts=data.map((d,i)=>{const value=valueOf(d,s);return Number.isFinite(value)?[l+(n===1?0:i*plotW/(n-1)),cfg.y(value)]:null}).filter(Boolean);if(pts.length){polyline(svg,pts,colors[s]);circles(svg,pts,colors[s])}});labelDates(svg,cfg,data,3);
     addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const rate=valueOf(d,s);if(!Number.isFinite(rate))return;html+=row(s,`${rate>0?'+':''}${pct(rate)}`,clsBy(rate))});return html},'symbol');
     return;
