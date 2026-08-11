@@ -1172,7 +1172,7 @@ function renderPensionContributionList(target='cashSnapshot'){
     .slice()
     .filter(v=>v&&v.date)
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)))
-    .map(v=>({target:'cashSnapshot',key:v.date,date:v.date,amount:Number(v.valuation)||0,costBasis:v.costBasis==null?null:Number(v.costBasis),memo:v.memo||'',label:'현금성자산 평가금액'}));
+    .map(v=>({target:'cashSnapshot',key:v.date,date:v.date,amount:Number(v.valuation)||0,costBasis:v.costBasis==null?null:Number(v.costBasis),memo:v.memo||'',label:'현금성자산'}));
 
   const tradeItems=pensionTradeItems()
     .slice()
@@ -1207,13 +1207,13 @@ function renderPensionContributionModal(x){
   return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" onclick="if(event.target===this)closePensionContributionModal()"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle"><span class="section-title-icon">💰</span>퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="contrib-modal-icon-btn pension-form-reset" onclick="resetPensionContributionForm()" title="입력값 초기화" aria-label="입력값 초기화">↻</button><button type="button" class="contrib-modal-icon-btn contrib-modal-close" onclick="closePensionContributionModal()" aria-label="닫기">×</button></div></div>
 <div class="pension-contrib-tool modal-card-box">
   <div class="pension-contrib-section-head"><h3>등록</h3><div class="pension-work-controls"><div class="pension-work-mode" role="tablist" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" data-mode="single" onclick="setPensionBatchMode(false)">개별 처리</button><button type="button" class="pension-work-mode-btn" data-mode="batch" onclick="setPensionBatchMode(true)">작업 모음 <span id="pensionBatchModeCount" class="pension-batch-count" hidden>0</span></button></div></div></div>
-  <div class="contrib-field full contrib-target-field"><span class="contrib-field-label">등록 유형</span><input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="등록 유형 선택"><button type="button" class="contrib-target-option active" data-target="cashSnapshot" onclick="setPensionContributionTarget('cashSnapshot')">현금성자산 평가금액</button><button type="button" class="contrib-target-option" data-target="contribution" onclick="setPensionContributionTarget('contribution')">기업적립금</button><button type="button" class="contrib-target-option" data-target="etfTrade" onclick="setPensionContributionTarget('etfTrade')">추가 매수</button></div></div>
+  <div class="contrib-field full contrib-target-field"><span class="contrib-field-label">등록 유형</span><input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="등록 유형 선택"><button type="button" class="contrib-target-option active" data-target="cashSnapshot" onclick="setPensionContributionTarget('cashSnapshot')">현금성자산</button><button type="button" class="contrib-target-option" data-target="contribution" onclick="setPensionContributionTarget('contribution')">기업적립금</button><button type="button" class="contrib-target-option" data-target="etfTrade" onclick="setPensionContributionTarget('etfTrade')">추가 매수</button></div></div>
   <p id="pensionEtfTradeHelp" class="small" hidden>추가 매수는 퇴직연금 앱 보유현황에 실제 반영된 날 저장하세요. 신청일·상품·수량·체결금액만 입력하면 나머지는 자동 계산합니다.</p>
   <div id="pensionContribStandardFields" class="contrib-form-grid cash-mode">
     <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${cashDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></div>
     <div class="contrib-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">평가금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="${cashDefaultValue}" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}"></div>
     <div id="pensionCashCostField" class="contrib-field"><label for="pensionCashCostBasis">매수원금</label><input id="pensionCashCostBasis" type="text" inputmode="numeric" value="${cashDefaultCostBasis}" data-cash-default-value="${cashDefaultCostBasis}"></div>
-    <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="현금성자산 평가금액 앱 확인" data-contrib-default-memo="${contribDefaultMemo}" data-cash-default-memo="현금성자산 평가금액 앱 확인"></div>
+    <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="현금성자산 앱 확인" data-contrib-default-memo="${contribDefaultMemo}" data-cash-default-memo="현금성자산 앱 확인"></div>
   </div>
   <div id="pensionEtfTradeFields" class="pension-etf-trade-fields" hidden>
     <div class="contrib-form-grid">
@@ -1233,7 +1233,7 @@ function renderPensionContributionModal(x){
 </div>
 <div id="pensionContribDeleteCard" class="contrib-list modal-card-box"${pensionCashSnapshotItems().length?'':' hidden'}>
   <h3>삭제</h3>
-  <p id="pensionContribDeleteHelp" class="small">잘못 넣은 현금성자산 평가금액을 선택 후 삭제합니다.</p>
+  <p id="pensionContribDeleteHelp" class="small">잘못 넣은 현금성자산 기록을 선택 후 삭제합니다.</p>
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList('cashSnapshot')}</div>
   <div class="contrib-actions"><button type="button" id="pensionContribDeleteButton" class="contrib-btn danger" onclick="deleteSelectedPensionContribution()">선택 항목 삭제</button></div>
   <div id="pensionContribDeleteStatus" class="contrib-status"></div>
@@ -1830,7 +1830,7 @@ function pensionContributionTarget(){
 }
 function pensionContributionTargetLabel(target=pensionContributionTarget()){
   if(target==='etfTrade') return '추가 매수';
-  return target==='cashSnapshot'?'현금성자산 평가금액':'기업적립금';
+  return target==='cashSnapshot'?'현금성자산':'기업적립금';
 }
 function setPensionContributionSaveDisabled(disabled){
   const btn=document.getElementById('pensionContribSaveButton');
@@ -1924,7 +1924,7 @@ function syncPensionContributionTargetUi(){
     if(dateEl) dateEl.value=target==='cashSnapshot'?(dateEl.dataset.cashDefaultDate||dateEl.value):(dateEl.dataset.contribDefaultDate||dateEl.value);
     if(amountEl) amountEl.value=target==='cashSnapshot'?(amountEl.dataset.cashDefaultValue||''):(amountEl.dataset.contribDefaultValue||'618,060');
     if(cashCostEl&&target==='cashSnapshot') cashCostEl.value=cashCostEl.dataset.cashDefaultValue||cashCostEl.value||'';
-    if(memoEl) memoEl.value=target==='cashSnapshot'?(memoEl.dataset.cashDefaultMemo||'현금성자산 평가금액 앱 확인'):(memoEl.dataset.contribDefaultMemo||defaultPensionContributionMemo(dateEl?.value||''));
+    if(memoEl) memoEl.value=target==='cashSnapshot'?(memoEl.dataset.cashDefaultMemo||'현금성자산 앱 확인'):(memoEl.dataset.contribDefaultMemo||defaultPensionContributionMemo(dateEl?.value||''));
   }else{
     if(cashCostField) cashCostField.hidden=true;
     const applyDateEl=document.getElementById('pensionEtfTradeApplyDate');
@@ -1935,7 +1935,7 @@ function syncPensionContributionTargetUi(){
   syncPensionContributionDeleteCard(target);
   if(deleteHelp){
     deleteHelp.textContent=target==='cashSnapshot'
-      ?'잘못 넣은 현금성자산 평가금액을 선택 후 삭제합니다.'
+      ?'잘못 넣은 현금성자산 기록을 선택 후 삭제합니다.'
       :(target==='contribution'
         ?'잘못 넣은 기업적립금을 선택 후 삭제합니다.'
         :'잘못 등록한 추가 매수 거래를 선택 후 삭제합니다.');
@@ -2064,7 +2064,7 @@ function buildPensionContributionItem(){
   const date=dateEl.value;
   const rawAmount=String(amountEl.value||'').trim();
   const amount=cleanNumberInput(rawAmount);
-  const memo=memoEl.value.trim()||(target==='cashSnapshot'?'현금성자산 평가금액 앱 확인':defaultPensionContributionMemo(date));
+  const memo=memoEl.value.trim()||(target==='cashSnapshot'?'현금성자산 앱 확인':defaultPensionContributionMemo(date));
   if(!date) throw new Error('일자를 입력해주세요.');
   if(target==='cashSnapshot'){
     if(rawAmount===''||!Number.isFinite(amount)||amount<0) throw new Error('평가금액을 입력해주세요.');
@@ -2302,14 +2302,14 @@ function pensionBatchSimulate(operations=PENSION_BATCH_QUEUE){
       if(op.target==='cashSnapshot'){
         const before=state.cashSnapshots.length;
         state.cashSnapshots=state.cashSnapshots.filter(v=>String(v.date)!==String(op.key));
-        if(state.cashSnapshots.length===before)throw new Error(`${op.key} 현금성자산 평가금액 삭제 대상을 찾지 못했습니다.`);
+        if(state.cashSnapshots.length===before)throw new Error(`${op.key} 현금성자산 삭제 대상을 찾지 못했습니다.`);
         return;
       }
       const list=op.target==='etfTrade'?state.trades:state.contributions;
       const item=list.find(v=>String(v.id)===String(op.key));
       if(!item)throw new Error(`${index+1}번 삭제 대상을 찾지 못했습니다.`);
       const linked=op.target==='etfTrade'?pensionBatchLinkedSnapshotForTrade(state,item):pensionBatchLinkedSnapshotForContribution(state,item);
-      if(linked)throw new Error(`${linked.date} 현금성자산 평가금액이 이 ${op.target==='etfTrade'?'추가 매수를':'기업적립금을'} 반영하고 있습니다. 해당 날짜 현금성자산 삭제 작업을 작업 모음에 먼저 추가해주세요.`);
+      if(linked)throw new Error(`${linked.date} 현금성자산 기록이 이 ${op.target==='etfTrade'?'추가 매수를':'기업적립금을'} 반영하고 있습니다. 해당 날짜 현금성자산 삭제 작업을 작업 모음에 먼저 추가해주세요.`);
       if(op.target==='etfTrade')state.trades=state.trades.filter(v=>String(v.id)!==String(op.key));
       else state.contributions=state.contributions.filter(v=>String(v.id)!==String(op.key));
       return;
@@ -2361,12 +2361,12 @@ function pensionBatchCurrentState(){
 function pensionBatchOperationDescription(op){
   if(op.action==='delete'){
     const item=op.sourceItem||{};
-    if(op.target==='cashSnapshot')return `삭제 · 현금성자산 평가금액 · ${op.key}${item.valuation!=null?` · ${won(item.valuation)}`:''}`;
+    if(op.target==='cashSnapshot')return `삭제 · 현금성자산 · ${op.key}${item.valuation!=null?` · ${won(item.valuation)}`:''}`;
     if(op.target==='contribution')return `삭제 · 기업적립금 · ${item.date||''} · ${won(item.amount||0)}`;
     return `삭제 · 추가 매수 · ${item.tradeDate||item.date||''} · ${item.name||item.ticker||''} ${fmt(item.qty||0)}좌 / ${won(item.amount||0)}`;
   }
   const item=op.item||{};
-  if(op.target==='cashSnapshot')return `저장 · 현금성자산 평가금액 · ${item.date} · 평가 ${won(item.valuation)} · 매수원금 ${won(item.costBasis)}`;
+  if(op.target==='cashSnapshot')return `저장 · 현금성자산 · ${item.date} · 평가 ${won(item.valuation)} · 매수원금 ${won(item.costBasis)}`;
   if(op.target==='contribution')return `저장 · 기업적립금 · ${item.date} · +${won(item.amount)}`;
   return `저장 · 추가 매수 · 신청 ${item.tradeDate} · ${item.name||item.ticker} ${fmt(item.qty)}좌 / ${won(item.amount)}`;
 }
@@ -2416,7 +2416,7 @@ function pensionBatchOperationFingerprint(operation){
   const op=operation||{};
   if(op.action==='delete')return `delete|${String(op.target||'')}|${String(op.key||'')}`;
   const item=op.item||{};
-  if(op.target==='cashSnapshot')return `upsert|cashSnapshot|${String(item.date||'')}|${String(item.valuation??'')}|${String(item.memo||'')}`;
+  if(op.target==='cashSnapshot')return `upsert|cashSnapshot|${String(item.date||'')}|${String(item.valuation??'')}|${String(item.costBasis??'')}|${String(item.memo||'')}`;
   if(op.target==='contribution')return `upsert|contribution|${String(item.date||'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
   if(op.target==='etfTrade')return `upsert|etfTrade|${String(item.tradeDate||'')}|${String(item.ticker||'')}|${String(item.qty??'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
   return `${String(op.action||'')}|${String(op.target||'')}|${JSON.stringify(item)}`;
@@ -2572,7 +2572,7 @@ async function savePensionContribution(){
     const data=await requestPensionActionPin({
       title:`${targetText} 저장`,
       description:item.target==='cashSnapshot'
-        ?`현금성자산 평가금액 ${won(item.valuation)}과 매수원금 ${won(item.costBasis)}을 GitHub 파일에 함께 저장합니다.`
+        ?`현금성자산의 평가금액 ${won(item.valuation)}과 매수원금 ${won(item.costBasis)}을 GitHub 파일에 함께 저장합니다.`
         :(item.target==='etfTrade'
           ?`${item.tradeDate} 신청한 ${item.name} ${fmt(item.qty)}좌 매수를 오늘(${item.applyDate}) 앱 반영 기준으로 적용합니다.`
           :`${targetText}을 GitHub 파일에 저장합니다. PIN 6자리를 입력하세요.`),
@@ -2622,7 +2622,7 @@ async function deleteSelectedPensionContribution(){
   const date=item?.date||key;
   const amount=item?won(Number(isCash?item.valuation:item.amount)||0):'선택 항목';
   const targetText=pensionContributionTargetLabel(target);
-  const tradeDetail=isTrade&&item?` / 체결 ${item.tradeDate||item.date} / ${item.name||item.ticker} ${fmt(item.qty)}좌`:'';
+  const tradeDetail=isTrade&&item?` / 신청 ${item.tradeDate||item.date} / ${item.name||item.ticker} ${fmt(item.qty)}좌`:'';
   if(PENSION_BATCH_MODE){
     try{
       addPensionBatchOperation({action:'delete',target,key,sourceItem:item?{...item}:null});
@@ -2634,14 +2634,14 @@ async function deleteSelectedPensionContribution(){
   if(isTrade&&item){
     const linkedSnapshot=linkedPensionCashSnapshotForTrade(item);
     if(linkedSnapshot){
-      showPensionContributionDeleteStatus(`${linkedSnapshot.date} 현금성자산 평가금액이 이 추가 매수를 반영한 값으로 연결되어 있습니다. 먼저 등록 유형을 '현금성자산 평가금액'으로 바꿔 해당 날짜 항목을 삭제한 뒤 추가 매수를 삭제해주세요.`,'err');
+      showPensionContributionDeleteStatus(`${linkedSnapshot.date} 현금성자산 기록이 이 추가 매수를 반영하고 있습니다. 먼저 등록 유형을 '현금성자산'으로 바꿔 해당 날짜 항목을 삭제한 뒤 추가 매수를 삭제해주세요.`,'err');
       return;
     }
   }
   if(target==='contribution'&&item){
     const linkedSnapshot=linkedPensionCashSnapshotForContribution(item);
     if(linkedSnapshot){
-      showPensionContributionDeleteStatus(`${linkedSnapshot.date} 현금성자산 평가금액이 이 기업적립금을 반영한 값으로 연결되어 있습니다. 먼저 등록 유형을 '현금성자산 평가금액'으로 바꿔 해당 날짜 항목을 삭제한 뒤 기업적립금을 삭제해주세요.`,'err');
+      showPensionContributionDeleteStatus(`${linkedSnapshot.date} 현금성자산 기록이 이 기업적립금을 반영하고 있습니다. 먼저 등록 유형을 '현금성자산'으로 바꿔 해당 날짜 항목을 삭제한 뒤 기업적립금을 삭제해주세요.`,'err');
       return;
     }
   }
