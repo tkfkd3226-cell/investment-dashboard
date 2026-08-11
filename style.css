@@ -6684,6 +6684,11 @@ button:active,
     justify-content:center;
   }
 
+  /* Mobile table/card views: phone landscape uses two cards per row. */
+  [data-mobile-view="card"] .mobile-card-view{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+
   /* Chart summary cards: use the wider landscape canvas. */
   #pension-chart-symbol .chart-note.pension-symbol-summary-grid,
   #chart-symbol .chart-note.symbol-summary-grid{
