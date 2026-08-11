@@ -666,6 +666,24 @@ function ensureDesktopEdgeToc(){
   }
   toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기"><span>목차</span></button><nav class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title">목차</div>${renderDesktopTocContent()}</nav>`;
 }
+const MOBILE_DATE_PIN_STORAGE_KEY='investmentDashboard.mobileDatePinned';
+function mobileDatePinned(){
+  try{return localStorage.getItem(MOBILE_DATE_PIN_STORAGE_KEY)==='1'}catch(_){return false}
+}
+function syncMobileDatePinState(){
+  const tabs=document.getElementById('tabs');
+  const toggle=document.getElementById('mobileDatePinToggle');
+  const pinned=mobileDatePinned();
+  if(tabs)tabs.classList.toggle('mobile-date-pinned',pinned);
+  if(toggle){
+    toggle.checked=pinned;
+    toggle.setAttribute('aria-checked',String(pinned));
+  }
+}
+function setMobileDatePinned(pinned){
+  try{localStorage.setItem(MOBILE_DATE_PIN_STORAGE_KEY,pinned?'1':'0')}catch(_){}
+  syncMobileDatePinState();
+}
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
   document.getElementById('tabs').innerHTML=`
@@ -704,10 +722,11 @@ function renderTabs(){
         </div>
         <div class="date-action-menu-wrap">
           <button type="button" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
-          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><span>목차</span><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div>
+          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><span>목차</span><div class="mobile-nav-head-actions"><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} onchange="setMobileDatePinned(this.checked)"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div></div>${renderUnifiedMobileMenuContent()}</div>
         </div>
       </div>
     </div>`;
+  syncMobileDatePinState();
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
@@ -779,10 +798,12 @@ function openExpandedChart(button){
   const svg=wrap?.querySelector('svg.chart');
   if(!card||!wrap||!svg)return;
   closeExpandedChart();
+  clearChartHover();
   const originalScrollLeft=wrap.scrollLeft;
   const placeholder=document.createComment('expanded-chart-placeholder');
   svg.parentNode.insertBefore(placeholder,svg);
-  const title=card.querySelector('.chart-head h3')?.textContent?.trim()||'차트';
+  const titleHeading=card.querySelector('.chart-head h3');
+  const title=titleHeading?.textContent?.trim()||'차트';
   const controls=card.querySelector('.chart-head-actions');
   const controlsPlaceholder=controls?document.createComment('expanded-chart-controls-placeholder'):null;
   if(controls)controls.parentNode.insertBefore(controlsPlaceholder,controls);
@@ -795,7 +816,15 @@ function openExpandedChart(button){
   overlay.setAttribute('aria-modal','true');
   overlay.setAttribute('aria-label',`${title} 확대 보기`);
   overlay.innerHTML=`<button type="button" class="chart-expanded-close" aria-label="확대 차트 닫기" title="닫기">×</button><div class="chart-expanded-stage"><div class="chart-expanded-head"><div class="chart-expanded-title"></div><div class="chart-expanded-controls-host"></div></div><div class="chart-expanded-chart-host"></div><div class="chart-expanded-legend-host"></div></div>`;
-  overlay.querySelector('.chart-expanded-title').textContent=title;
+  const expandedTitle=overlay.querySelector('.chart-expanded-title');
+  if(titleHeading&&expandedTitle){
+    const clonedTitle=titleHeading.cloneNode(true);
+    clonedTitle.removeAttribute('id');
+    clonedTitle.classList.add('chart-expanded-title-heading');
+    expandedTitle.appendChild(clonedTitle);
+  }else if(expandedTitle){
+    expandedTitle.textContent=title;
+  }
   if(controls)overlay.querySelector('.chart-expanded-controls-host').appendChild(controls);
   overlay.querySelector('.chart-expanded-chart-host').appendChild(svg);
   if(legend)overlay.querySelector('.chart-expanded-legend-host').appendChild(legend);
@@ -811,6 +840,7 @@ function openExpandedChart(button){
 function closeExpandedChart(){
   const state=EXPANDED_CHART_STATE;
   if(!state)return;
+  clearChartHover();
   EXPANDED_CHART_STATE=null;
   const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,legend,legendPlaceholder}=state;
   if(placeholder?.parentNode)placeholder.parentNode.insertBefore(svg,placeholder);
@@ -1056,6 +1086,7 @@ function closeDateActionMenu(){
   const tabs=document.getElementById('tabs');
   if(menu) menu.classList.remove('show');
   if(tabs) tabs.classList.remove('mobile-menu-open');
+  syncMobileDatePinState();
 }
 function toggleDateActionMenu(event){
   if(event) event.stopPropagation();
@@ -1696,6 +1727,12 @@ function addHover(svg,cfg,data,renderHtml,tooltipKind=''){
   const show=evt=>{const idx=nearestIndex(evt,svg,cfg,data);const x=chartX(cfg,data.length,idx);line.setAttribute('x1',x);line.setAttribute('x2',x);line.setAttribute('opacity',1);showTooltip(evt,renderHtml(data[idx],idx),tooltipKind)};
   hit.addEventListener('mousemove',show);
   hit.addEventListener('pointerdown',show);
+  hit.addEventListener('pointermove',evt=>{
+    if(EXPANDED_CHART_STATE?.svg!==svg)return;
+    if(evt.pointerType!=='touch'&&evt.pointerType!=='pen')return;
+    if(evt.cancelable)evt.preventDefault();
+    show(evt);
+  });
   hit.addEventListener('mouseleave',()=>{line.setAttribute('opacity',0);hideTooltip()});
   svg.addEventListener('pointerdown',evt=>{if(evt.target!==hit)clearChartHover()});
 }

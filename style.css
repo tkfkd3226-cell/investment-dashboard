@@ -2841,6 +2841,65 @@ body.contrib-modal-open{
     line-height:1;
     cursor:pointer;
   }
+  .mobile-nav-head-actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .mobile-date-pin-control{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    min-width:0;
+    color:#fff;
+    cursor:pointer;
+    user-select:none;
+  }
+  .mobile-date-pin-control > span:first-child{
+    font-size:10.5px;
+    font-weight:800;
+    letter-spacing:-.02em;
+    white-space:nowrap;
+  }
+  .mobile-date-pin-control input{
+    position:absolute;
+    width:1px;
+    height:1px;
+    opacity:0;
+    pointer-events:none;
+  }
+  .mobile-date-pin-track{
+    position:relative;
+    width:31px;
+    height:18px;
+    flex:0 0 31px;
+    border-radius:999px;
+    background:rgba(255,255,255,.24);
+    border:1px solid rgba(255,255,255,.20);
+    transition:background .16s ease,border-color .16s ease;
+  }
+  .mobile-date-pin-track > span{
+    position:absolute;
+    top:2px;
+    left:2px;
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 1px 4px rgba(0,0,0,.24);
+    transition:transform .16s ease;
+  }
+  .mobile-date-pin-control input:checked + .mobile-date-pin-track{
+    background:#3182F6;
+    border-color:#60a5fa;
+  }
+  .mobile-date-pin-control input:checked + .mobile-date-pin-track > span{
+    transform:translateX(13px);
+  }
+  .mobile-date-pin-control input:focus-visible + .mobile-date-pin-track{
+    outline:2px solid #fff;
+    outline-offset:2px;
+  }
   .mobile-nav-group{
     margin-top:10px;
   }
@@ -6756,6 +6815,15 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   min-width:0;
   flex:1 1 auto;
   overflow:hidden;
+  color:var(--text);
+}
+.chart-expanded-title .chart-expanded-title-heading{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  margin:0;
+  gap:8px;
+  overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
   color:var(--text);
@@ -6763,6 +6831,17 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   font-weight:900;
   line-height:1.25;
   letter-spacing:-.03em;
+}
+.chart-expanded-title .section-title-icon.chart-icon{
+  width:26px;
+  height:26px;
+  border-radius:10px;
+  font-size:15px;
+}
+.chart-expanded-title .chart-title-sub{
+  font-size:11px !important;
+  font-weight:700 !important;
+  flex:0 1 auto;
 }
 .chart-expanded-controls-host{
   flex:0 0 auto;
@@ -6824,7 +6903,14 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   transform:none !important;
   padding:10px 52px 8px 12px;
 }
-.chart-expanded-chart-host .svg-hitbox{pointer-events:none !important}
+.chart-expanded-chart-host .svg-hitbox{
+  pointer-events:all !important;
+  cursor:crosshair;
+  touch-action:none;
+}
+body.chart-expanded-open .dash-tooltip{
+  z-index:12002 !important;
+}
 
 /* 2026-08-11: align mobile change table product column with pension products table */
 @media(max-width:760px){
@@ -6925,7 +7011,8 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   }
 
   /* Open state: restore the original mobile top-bar layout for the two date selects + hamburger. */
-  .switcher.mobile-menu-open{
+  .switcher.mobile-menu-open,
+  .switcher.mobile-date-pinned{
     min-height:40px !important;
     height:auto !important;
     padding:5px 7px !important;
@@ -6935,7 +7022,8 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
     border-bottom:1px solid rgba(255,255,255,.11) !important;
     box-shadow:0 12px 30px rgba(0,0,0,.30) !important;
   }
-  .switcher.mobile-menu-open .date-picker{
+  .switcher.mobile-menu-open .date-picker,
+  .switcher.mobile-date-pinned .date-picker{
     display:grid !important;
     width:100% !important;
     height:auto !important;
@@ -6946,18 +7034,23 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
     overflow:visible !important;
   }
   .switcher.mobile-menu-open .date-picker-center,
-  .switcher.mobile-menu-open .date-picker-action{
+  .switcher.mobile-menu-open .date-picker-action,
+  .switcher.mobile-date-pinned .date-picker-center,
+  .switcher.mobile-date-pinned .date-picker-action{
     display:contents !important;
   }
   .switcher.mobile-menu-open .month-select,
-  .switcher.mobile-menu-open .day-select{
+  .switcher.mobile-menu-open .day-select,
+  .switcher.mobile-date-pinned .month-select,
+  .switcher.mobile-date-pinned .day-select{
     display:block !important;
     min-width:0 !important;
     width:100% !important;
     max-width:100% !important;
     flex:initial !important;
   }
-  .switcher.mobile-menu-open .date-action-menu-wrap{
+  .switcher.mobile-menu-open .date-action-menu-wrap,
+  .switcher.mobile-date-pinned .date-action-menu-wrap{
     position:relative !important;
     top:auto !important;
     right:auto !important;
@@ -6965,8 +7058,12 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
     margin:0 !important;
     justify-self:end !important;
   }
-  .switcher.mobile-menu-open .date-action-menu{
+  .switcher.mobile-menu-open .date-action-menu,
+  .switcher.mobile-date-pinned .date-action-menu{
     top:42px !important;
     right:0 !important;
   }
 }
+
+/* Mobile date pin control is intentionally hidden on desktop/tablet menu. */
+@media(min-width:761px){.mobile-date-pin-control{display:none !important}}
