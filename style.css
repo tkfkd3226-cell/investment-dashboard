@@ -6545,3 +6545,10 @@ button:active,
     box-sizing:border-box;
   }
 }
+
+/* 2026-08-11: pension cash snapshot desktop 3-column row */
+@media(min-width:721px){
+  .contrib-modal #pensionContribStandardFields.cash-mode{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
