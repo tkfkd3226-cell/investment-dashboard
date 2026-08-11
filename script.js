@@ -1466,12 +1466,16 @@ function renderResultSummary(x){
   const c=PORTFOLIO.constants,v=separateProfitView(x);
   const outsideCash=c.outsideCash ?? 2035097;
   const separateUnreflected=v.unreflectedSeparateProfit;
-  const actualHoldingAndCash=x.allocTotal + outsideCash + (INCLUDE_SEPARATE_PROFIT ? separateUnreflected : 0);
+  const outsideCashBasis=outsideCash+(INCLUDE_SEPARATE_PROFIT?separateUnreflected:0);
+  const actualHoldingAndCash=x.allocTotal+outsideCashBasis;
   const ledgerGap=v.totalResult-actualHoldingAndCash;
   if(!isLedgerCheckDate(x.date)) return '';
   const reasonValue='수익실현분 카드대금 사용';
-  const reasonDetail='6/18 기준 확정 정리값';
-  const note=`<p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금은 6/18 확인값 ${won(outsideCash)} 유지. 해당 현금은 투자 실현수익 잔액 반영, 차액은 수익실현분 카드대금 사용액으로 정리.</p>`;
+  const useAug10CashBasis=INCLUDE_SEPARATE_PROFIT&&x.date>='2026-08-10';
+  const reasonDetail=useAug10CashBasis?'8/10 기준 확정 정리값':'6/18 기준 확정 정리값';
+  const note=INCLUDE_SEPARATE_PROFIT
+    ?`<p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금은 ${useAug10CashBasis?'8/10 확인값':'선택일 기준'} ${won(outsideCashBasis)} 반영. 6/18 확인값 ${won(outsideCash)}에 6~8월 별도손익 중 현 보유자산 미반영분 ${won(separateUnreflected)}을 합산한 값이며, 해당 현금은 투자 실현수익 잔액 반영, 차액은 수익실현분 카드대금 사용액으로 정리.</p>`
+    :`<p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금은 6/18 확인값 ${won(outsideCash)} 유지. 해당 현금은 투자 실현수익 잔액 반영, 차액은 수익실현분 카드대금 사용액으로 정리.</p>`;
   return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon">🔍</span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid cards">${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),'증권계좌 평가총액 + 계좌 밖 현금')}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,cls(ledgerGap))}${metricCard('차액 발생 이유',reasonValue,reasonDetail,false)}</div>${note}</section>`;
 }
 
@@ -1701,11 +1705,15 @@ function renderAccounts(x){
     ...(x.account2Included?[['삼성증권2',c.account2Principal,c.account2Profit,c.account2Profit/c.account2Principal*100,'2023-12-20 최초 시작. 2026-05-22 전량 매도 후 실현분 반영.']]:[]),
     ['토스증권',0,c.tossProfit,0,'2026-03-09 매수 후 익일 매도. 3/23 이전 확정 실현수익이라 전 구간 포함.']
   ];
+  const totalMemo='계좌 간 자금 이동 반영 · 투자원금은 단순합산하지 않음';
   const hiddenNote=x.account2Included?'':'<p class="table-note"><strong>참고:</strong> 삼성증권2는 2026-05-22 전량 매도 후 실현분 반영. 선택일이 2026-05-21 이전이면 당시 전체 성과 기준에서 제외되어 이 표에서도 숨김.</p>';
   const cards=rows.map(r=>mobileInfoCard(r[0],[
     ['투자원금',r[1]?won(r[1]):'-'],['누적손익',won(r[2]),cls(r[2])],['수익률',r[1]?pct(r[3]):'-',r[1]?cls(r[3]):''],['메모',r[4],'','stacked']
-  ])).join('');
-  return `<section id="accounts-summary" ${mobileViewAttrs('accounts')}><div class="section-title"><h2><span class="section-title-icon">📋</span>계좌별 성과 요약</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('accounts')}</div></div><div class="mobile-scroll accounts-scroll table-view"><table class="accounts-table"><thead><tr><th class="accounts-name-head">구분</th><th>투자원금</th><th>누적손익</th><th>수익률</th><th>메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="accounts-name">${r[0]}</td><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${cls(r[2])}">${fmt(r[2])}</td><td class="num ${cls(r[3])}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${r[4]}</td></tr>`).join('')}</tbody></table></div><div class="mobile-card-view">${cards}</div>${hiddenNote}</section>`;
+  ])).join('')+mobileInfoCard('합계',[
+    ['투자원금',won(v.totalPrincipal)],['누적손익',won(v.totalProfit),cls(v.totalProfit)],['수익률',pct(v.totalReturn),cls(v.totalReturn)],['메모',totalMemo,'','stacked']
+  ],'summary-card');
+  const totalRow=`<tr class="summary-row"><td class="accounts-name">합계</td><td class="num">${fmt(v.totalPrincipal)}</td><td class="num ${cls(v.totalProfit)}">${fmt(v.totalProfit)}</td><td class="num ${cls(v.totalReturn)}">${pct(v.totalReturn)}</td><td class="accounts-memo">${totalMemo}</td></tr>`;
+  return `<section id="accounts-summary" ${mobileViewAttrs('accounts')}><div class="section-title"><h2><span class="section-title-icon">📋</span>계좌별 성과 요약</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('accounts')}</div></div><div class="mobile-scroll accounts-scroll table-view"><table class="accounts-table"><thead><tr><th class="accounts-name-head">구분</th><th>투자원금</th><th>누적손익</th><th>수익률</th><th>메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="accounts-name">${r[0]}</td><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${cls(r[2])}">${fmt(r[2])}</td><td class="num ${cls(r[3])}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${r[4]}</td></tr>`).join('')}${totalRow}</tbody></table></div><div class="mobile-card-view">${cards}</div>${hiddenNote}</section>`;
 }
 function renderSourceTables(x){
   const c=PORTFOLIO.constants,vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal,extraContribution=securityExternalContributionSum(x.date),excludedTransfer=securityExcludedTransferSum(x.date),baseAccount1Principal=account1PrincipalForDate(x.date),externalPrincipal=sourceExternalPrincipalForDate(x.date),reclassified=INCLUDE_SEPARATE_PROFIT?separateProfitReinvestedForDate(x.date):0,account1Principal=baseAccount1Principal-reclassified,extraRow=extraContribution?`<tr><td>추가 외부투입</td><td class="num">${fmt(extraContribution)}</td></tr>`:'',excludedRow=!INCLUDE_SEPARATE_PROFIT&&excludedTransfer?`<tr><td>기타 자금 투입</td><td class="num">${fmt(excludedTransfer)}</td></tr>`:'',reclassNote=INCLUDE_SEPARATE_PROFIT&&reclassified?`<div class="source-reclass-note"><strong>6~8월 별도수익 재투입 ${won(reclassified)}</strong><span>AI반도체 재투입분 · 투자원금 산정 제외</span></div>`:'';
