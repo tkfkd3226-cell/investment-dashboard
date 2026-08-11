@@ -6615,6 +6615,16 @@ button:active,
 /* 2026-08-11 iPhone-class landscape layout refinement
    Keep phone portrait, tablet and desktop layouts unchanged. */
 @media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  /* Phone landscape: use the wider hero area for all four summary metrics. */
+  .hero .hero-metric-pills.has-pension{
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  }
+  .hero .hero-return-pill{
+    display:inline-flex !important;
+    align-items:center;
+    justify-content:center;
+  }
+
   /* Chart summary cards: use the wider landscape canvas. */
   #pension-chart-symbol .chart-note.pension-symbol-summary-grid,
   #chart-symbol .chart-note.symbol-summary-grid{

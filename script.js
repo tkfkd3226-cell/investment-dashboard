@@ -779,6 +779,7 @@ function openExpandedChart(button){
   const svg=wrap?.querySelector('svg.chart');
   if(!card||!wrap||!svg)return;
   closeExpandedChart();
+  const originalScrollLeft=wrap.scrollLeft;
   const placeholder=document.createComment('expanded-chart-placeholder');
   svg.parentNode.insertBefore(placeholder,svg);
   const title=card.querySelector('.chart-head h3')?.textContent?.trim()||'차트';
@@ -794,7 +795,7 @@ function openExpandedChart(button){
   if(legend)overlay.querySelector('.chart-expanded-legend-host').appendChild(legend);
   document.body.appendChild(overlay);
   document.body.classList.add('chart-expanded-open');
-  EXPANDED_CHART_STATE={overlay,svg,placeholder,wrap,scrollLeft:wrap.scrollLeft};
+  EXPANDED_CHART_STATE={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft};
   syncExpandedChartViewport();
   overlay.querySelector('.chart-expanded-close')?.addEventListener('click',closeExpandedChart,{once:true});
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeExpandedChart()});
@@ -811,10 +812,12 @@ function closeExpandedChart(){
   overlay?.remove();
   document.body.classList.remove('chart-expanded-open');
   if(wrap){
-    wrap.scrollLeft=scrollLeft||0;
     requestAnimationFrame(()=>{
-      if(typeof prepareChartEntranceForSvg==='function')prepareChartEntranceForSvg(svg);
-      if(typeof activateChartEntrance==='function')activateChartEntrance(wrap);
+      requestAnimationFrame(()=>{
+        wrap.scrollLeft=scrollLeft||0;
+        if(typeof prepareChartEntranceForSvg==='function')prepareChartEntranceForSvg(svg);
+        if(typeof activateChartEntrance==='function')activateChartEntrance(wrap);
+      });
     });
   }
 }
