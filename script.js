@@ -670,6 +670,7 @@ const MOBILE_DATE_PIN_STORAGE_KEY='investmentDashboard.mobileDatePinned';
 function mobileDatePinned(){
   try{return localStorage.getItem(MOBILE_DATE_PIN_STORAGE_KEY)==='1'}catch(_){return false}
 }
+let MOBILE_TOPBAR_SCROLL_SYNC_TIMER=0;
 function syncMobileTopbarFixedState(){
   const tabs=document.getElementById('tabs');
   const mobile=window.matchMedia?.('(max-width:760px)').matches===true;
@@ -685,6 +686,21 @@ function syncMobileTopbarFixedState(){
     const height=Math.ceil(current.getBoundingClientRect().height||0);
     document.documentElement.style.setProperty('--mobile-fixed-topbar-height',`${height}px`);
   });
+}
+function scheduleMobileTopbarViewportSync(){
+  if(window.matchMedia?.('(max-width:760px)').matches!==true)return;
+  clearTimeout(MOBILE_TOPBAR_SCROLL_SYNC_TIMER);
+  MOBILE_TOPBAR_SCROLL_SYNC_TIMER=setTimeout(()=>{
+    syncMobileTopbarFixedState();
+    // Force Safari to refresh the fixed top-bar hit-test/compositing layer after
+    // the browser chrome / visual viewport settles at the end of a scroll.
+    const tabs=document.getElementById('tabs');
+    if(tabs){
+      void tabs.getBoundingClientRect().top;
+      tabs.classList.add('mobile-topbar-hit-refresh');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>tabs.classList.remove('mobile-topbar-hit-refresh')));
+    }
+  },90);
 }
 function syncMobileDatePinState(){
   const tabs=document.getElementById('tabs');
@@ -2922,7 +2938,7 @@ function setupPensionVizTooltips(){
   document.addEventListener('scroll',()=>closeTooltips(null),true);
 }
 
-async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS,PENSION_TRADES]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]})),fetch('data/pension_trades.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({trades:[]}))]);const dates=allAvailableDates();ACTIVE_DATE=dates.at(-1);history.replaceState(null,'','#'+ACTIVE_DATE);render();setupDateActionMenuButton();window.addEventListener('resize',syncMobileTopbarFixedState,{passive:true});window.visualViewport?.addEventListener('resize',syncMobileTopbarFixedState,{passive:true});document.getElementById('tabs').addEventListener('change',e=>{
+async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS,PENSION_TRADES]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]})),fetch('data/pension_trades.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({trades:[]}))]);const dates=allAvailableDates();ACTIVE_DATE=dates.at(-1);history.replaceState(null,'','#'+ACTIVE_DATE);render();setupDateActionMenuButton();window.addEventListener('resize',syncMobileTopbarFixedState,{passive:true});window.visualViewport?.addEventListener('resize',syncMobileTopbarFixedState,{passive:true});window.addEventListener('scroll',scheduleMobileTopbarViewportSync,{passive:true});window.visualViewport?.addEventListener('scroll',scheduleMobileTopbarViewportSync,{passive:true});document.getElementById('tabs').addEventListener('change',e=>{
   if(e.target.id==='monthSelect'){
     const month=e.target.value,dates=allAvailableDates().filter(d=>d.startsWith(month));
     const keepMobileMenuOpen=window.matchMedia('(max-width:760px)').matches && document.getElementById('tabs')?.classList.contains('mobile-menu-open');
