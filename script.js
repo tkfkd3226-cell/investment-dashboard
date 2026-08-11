@@ -783,19 +783,25 @@ function openExpandedChart(button){
   const placeholder=document.createComment('expanded-chart-placeholder');
   svg.parentNode.insertBefore(placeholder,svg);
   const title=card.querySelector('.chart-head h3')?.textContent?.trim()||'차트';
-  const legend=card.querySelector('.chart-legend')?.cloneNode(true);
+  const controls=card.querySelector('.chart-head-actions');
+  const controlsPlaceholder=controls?document.createComment('expanded-chart-controls-placeholder'):null;
+  if(controls)controls.parentNode.insertBefore(controlsPlaceholder,controls);
+  const legend=card.querySelector('.chart-legend');
+  const legendPlaceholder=legend?document.createComment('expanded-chart-legend-placeholder'):null;
+  if(legend)legend.parentNode.insertBefore(legendPlaceholder,legend);
   const overlay=document.createElement('div');
   overlay.className='chart-expanded-overlay';
   overlay.setAttribute('role','dialog');
   overlay.setAttribute('aria-modal','true');
   overlay.setAttribute('aria-label',`${title} 확대 보기`);
-  overlay.innerHTML=`<button type="button" class="chart-expanded-close" aria-label="확대 차트 닫기" title="닫기">×</button><div class="chart-expanded-stage"><div class="chart-expanded-title"></div><div class="chart-expanded-chart-host"></div><div class="chart-expanded-legend-host"></div></div>`;
+  overlay.innerHTML=`<button type="button" class="chart-expanded-close" aria-label="확대 차트 닫기" title="닫기">×</button><div class="chart-expanded-stage"><div class="chart-expanded-head"><div class="chart-expanded-title"></div><div class="chart-expanded-controls-host"></div></div><div class="chart-expanded-chart-host"></div><div class="chart-expanded-legend-host"></div></div>`;
   overlay.querySelector('.chart-expanded-title').textContent=title;
+  if(controls)overlay.querySelector('.chart-expanded-controls-host').appendChild(controls);
   overlay.querySelector('.chart-expanded-chart-host').appendChild(svg);
   if(legend)overlay.querySelector('.chart-expanded-legend-host').appendChild(legend);
   document.body.appendChild(overlay);
   document.body.classList.add('chart-expanded-open');
-  EXPANDED_CHART_STATE={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft};
+  EXPANDED_CHART_STATE={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,legend,legendPlaceholder};
   syncExpandedChartViewport();
   overlay.querySelector('.chart-expanded-close')?.addEventListener('click',closeExpandedChart,{once:true});
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeExpandedChart()});
@@ -806,9 +812,13 @@ function closeExpandedChart(){
   const state=EXPANDED_CHART_STATE;
   if(!state)return;
   EXPANDED_CHART_STATE=null;
-  const {overlay,svg,placeholder,wrap,scrollLeft}=state;
+  const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,legend,legendPlaceholder}=state;
   if(placeholder?.parentNode)placeholder.parentNode.insertBefore(svg,placeholder);
   placeholder?.remove();
+  if(controls&&controlsPlaceholder?.parentNode)controlsPlaceholder.parentNode.insertBefore(controls,controlsPlaceholder);
+  controlsPlaceholder?.remove();
+  if(legend&&legendPlaceholder?.parentNode)legendPlaceholder.parentNode.insertBefore(legend,legendPlaceholder);
+  legendPlaceholder?.remove();
   overlay?.remove();
   document.body.classList.remove('chart-expanded-open');
   if(wrap){
@@ -1621,7 +1631,7 @@ function renderAccounts(x){
 }
 function renderSourceTables(x){
   const c=PORTFOLIO.constants,vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal,extraContribution=securityExternalContributionSum(x.date),excludedTransfer=securityExcludedTransferSum(x.date),baseAccount1Principal=account1PrincipalForDate(x.date),externalPrincipal=sourceExternalPrincipalForDate(x.date),reclassified=INCLUDE_SEPARATE_PROFIT?separateProfitReinvestedForDate(x.date):0,account1Principal=baseAccount1Principal-reclassified,extraRow=extraContribution?`<tr><td>추가 외부투입</td><td class="num">${fmt(extraContribution)}</td></tr>`:'',excludedRow=!INCLUDE_SEPARATE_PROFIT&&excludedTransfer?`<tr><td>기타 자금 투입</td><td class="num">${fmt(excludedTransfer)}</td></tr>`:'',reclassNote=INCLUDE_SEPARATE_PROFIT&&reclassified?`<div class="source-reclass-note"><strong>6~8월 별도수익 재투입 ${won(reclassified)}</strong><span>AI반도체 재투입분 · 투자원금 산정 제외</span></div>`:'';
-  return `<section id="capital-source-check" class="capital-source-section"><div class="section-title source-title"><h2><span class="section-title-icon">🧾</span>투자원금 원천 및 검산</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid three source-grid"><div class="card source-card"><div class="label">계좌1 원천별 투입</div><table style="font-size:12px;margin-top:8px;border-radius:12px"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num negative">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr>${excludedRow}${extraRow}<tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(account1Principal)}</td></tr></tbody></table>${reclassNote}<div class="value source-card-bottom-value">${won(account1Principal)}</div></div><div class="card source-card highlight"><div class="label">전체 투입원금</div><div class="value">${won(externalPrincipal)}</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr>${extraRow}<tr class="summary-row"><td>합계</td><td class="num">${fmt(externalPrincipal)}</td></tr></tbody></table></div><div class="card source-card"><div class="label">계좌1 투자원금 검산</div><div class="value">${won(account1Principal)}</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>전체 투입원금</td><td class="num">${fmt(externalPrincipal)}</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입</td><td class="num">${fmt(vipProfitReinvest)}</td></tr>${excludedRow}<tr class="summary-row"><td>검산값</td><td class="num">${fmt(account1Principal)}</td></tr></tbody></table>${reclassNote}</div></div></section>`;
+  return `<section id="capital-source-check" class="capital-source-section"><div class="section-title source-title"><h2><span class="section-title-icon">🧾</span>투자원금 원천 및 검산</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid three source-grid"><div class="card source-card"><div class="label">계좌1 원천별 투입</div><div class="value">${won(account1Principal)}</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num negative">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr>${excludedRow}${extraRow}<tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(account1Principal)}</td></tr></tbody></table>${reclassNote}</div><div class="card source-card highlight"><div class="label">전체 투입원금</div><div class="value">${won(externalPrincipal)}</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr>${extraRow}<tr class="summary-row"><td>합계</td><td class="num">${fmt(externalPrincipal)}</td></tr></tbody></table></div><div class="card source-card"><div class="label">계좌1 투자원금 검산</div><div class="value">${won(account1Principal)}</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>전체 투입원금</td><td class="num">${fmt(externalPrincipal)}</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입</td><td class="num">${fmt(vipProfitReinvest)}</td></tr>${excludedRow}<tr class="summary-row"><td>검산값</td><td class="num">${fmt(account1Principal)}</td></tr></tbody></table>${reclassNote}</div></div></section>`;
 }
 
 function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
@@ -2838,17 +2848,19 @@ async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIB
     history.replaceState(null,'','#'+ACTIVE_DATE);
     render();
     if(keepMobileMenuOpen){
-      requestAnimationFrame(()=>{
-        document.getElementById('tabs')?.classList.add('mobile-menu-open');
-        document.getElementById('dateActionMenu')?.classList.add('show');
-      });
+      document.getElementById('tabs')?.classList.add('mobile-menu-open');
+      document.getElementById('dateActionMenu')?.classList.add('show');
     }
   }
   if(e.target.id==='dateSelect'){
+    const keepMobileMenuOpen=window.matchMedia('(max-width:760px)').matches && document.getElementById('tabs')?.classList.contains('mobile-menu-open');
     ACTIVE_DATE=e.target.value;
     history.replaceState(null,'','#'+ACTIVE_DATE);
     render();
-    closeDateActionMenu();
+    if(keepMobileMenuOpen){
+      document.getElementById('tabs')?.classList.add('mobile-menu-open');
+      document.getElementById('dateActionMenu')?.classList.add('show');
+    }
   }
 });document.addEventListener('pointerdown',e=>{if(!e.target.closest('.svg-hitbox')&&!e.target.closest('#dashTooltip'))clearChartHover()})}boot().catch(err=>{document.getElementById('app').innerHTML=`<div class="wrap"><div class="note"><h2><span class="section-title-icon">⚠️</span>데이터 로딩 오류</h2><pre>${String(err)}</pre></div></div>`})
 

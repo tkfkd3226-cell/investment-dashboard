@@ -2924,10 +2924,6 @@ body.contrib-modal-open{
   padding:7px 8px;
 }
 
-.source-card-bottom-value{
-  margin-top:12px;
-}
-
 .source-card.highlight{
   background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
   border-color:rgba(37,99,235,.22);
@@ -6749,8 +6745,16 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   background:#fff;
 }
 .dark .chart-expanded-stage{background:#0b1020}
+.chart-expanded-head{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
 .chart-expanded-title{
   min-width:0;
+  flex:1 1 auto;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -6759,6 +6763,27 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   font-weight:900;
   line-height:1.25;
   letter-spacing:-.03em;
+}
+.chart-expanded-controls-host{
+  flex:0 0 auto;
+  min-width:0;
+}
+.chart-expanded-controls-host:empty{display:none}
+.chart-expanded-controls-host .chart-head-actions{
+  display:flex !important;
+  margin:0 !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:5px !important;
+}
+.chart-expanded-controls-host .chart-compare-toggle{
+  margin:0 !important;
+}
+.chart-expanded-controls-host .chart-compare-toggle button{
+  min-width:46px !important;
+  height:25px !important;
+  padding:0 6px !important;
+  font-size:10px !important;
 }
 .chart-expanded-chart-host{
   min-width:0;
