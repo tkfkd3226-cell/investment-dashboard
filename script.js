@@ -295,12 +295,30 @@ const pensionContributionSubText=x=>{
   return latest?`${latest.date} 기업적립금 ${won(Number(latest.amount)||0)} 반영 기준`:'6/30까지 기 반영분 기준';
 };
 const defaultPensionContributionDate=d=>{
-  const base='2026-07-01';
-  if(!d || d<base) return base;
-  const [y,m]=d.split('-').map(Number);
+  const contributionMonths=pensionContributionItems().map(item=>{
+    const memo=String(item?.memo||'');
+    const memoMatch=/(\d{4})년\s*(\d{1,2})월\s*기업적립금/.exec(memo);
+    if(memoMatch){
+      const year=Number(memoMatch[1]);
+      const month=Number(memoMatch[2]);
+      if(year>0&&month>=1&&month<=12) return `${year}-${String(month).padStart(2,'0')}`;
+    }
+    const date=String(item?.date||'');
+    return /^\d{4}-\d{2}-\d{2}$/.test(date)?date.slice(0,7):'';
+  }).filter(Boolean).sort();
+  const latestMonth=contributionMonths.at(-1);
+  if(!latestMonth){
+    const base='2026-07';
+    const fallback=/^\d{4}-\d{2}-\d{2}$/.test(String(d||''))?String(d).slice(0,7):base;
+    const [fallbackYear,fallbackMonth]=fallback.split('-').map(Number);
+    const lastDay=new Date(Date.UTC(fallbackYear,fallbackMonth,0)).getUTCDate();
+    return `${fallbackYear}-${String(fallbackMonth).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+  }
+  const [y,m]=latestMonth.split('-').map(Number);
   const nextMonth=m===12?1:m+1;
   const nextYear=m===12?y+1:y;
-  return `${nextYear}-${String(nextMonth).padStart(2,'0')}-01`;
+  const lastDay=new Date(Date.UTC(nextYear,nextMonth,0)).getUTCDate();
+  return `${nextYear}-${String(nextMonth).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
 };
 const defaultPensionContributionMemo=d=>{
   const [y,m]=d.split('-');
@@ -1211,8 +1229,8 @@ function renderPensionContributionModal(x){
   <p id="pensionEtfTradeHelp" class="small" hidden>추가 매수는 퇴직연금 앱 보유현황에 실제 반영된 날 저장하세요. 신청일·상품·수량·체결금액만 입력하면 나머지는 자동 계산합니다.</p>
   <div id="pensionContribStandardFields" class="contrib-form-grid cash-mode">
     <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${cashDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></div>
-    <div class="contrib-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">평가금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="${cashDefaultValue}" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}"></div>
-    <div id="pensionCashCostField" class="contrib-field"><label for="pensionCashCostBasis">매수원금</label><input id="pensionCashCostBasis" type="text" inputmode="numeric" value="${cashDefaultCostBasis}" data-cash-default-value="${cashDefaultCostBasis}"></div>
+    <div class="contrib-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">평가금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="${cashDefaultValue}" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}" oninput="formatPensionMoneyInput(this)"></div>
+    <div id="pensionCashCostField" class="contrib-field"><label for="pensionCashCostBasis">매수원금</label><input id="pensionCashCostBasis" type="text" inputmode="numeric" value="${cashDefaultCostBasis}" data-cash-default-value="${cashDefaultCostBasis}" oninput="formatPensionMoneyInput(this)"></div>
     <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="현금성자산 앱 확인" data-contrib-default-memo="${contribDefaultMemo}" data-cash-default-memo="현금성자산 앱 확인"></div>
   </div>
   <div id="pensionEtfTradeFields" class="pension-etf-trade-fields" hidden>
@@ -1220,7 +1238,7 @@ function renderPensionContributionModal(x){
       <div class="contrib-field full"><label for="pensionEtfTradeDate">신청일</label><input id="pensionEtfTradeDate" type="date" value="${cashDefaultDate}" onchange="updatePensionEtfTradePreview()"></div>
       <div class="contrib-field full"><label for="pensionEtfTradeTicker">ETF 상품</label><select id="pensionEtfTradeTicker" onchange="updatePensionEtfTradePreview()">${pensionTradeProductOptions()}</select></div>
       <div class="contrib-field"><label for="pensionEtfTradeQty">체결수량</label><input id="pensionEtfTradeQty" type="text" inputmode="numeric" placeholder="예: 77" oninput="updatePensionEtfTradePreview()"></div>
-      <div class="contrib-field"><label for="pensionEtfTradeAmount">체결금액</label><input id="pensionEtfTradeAmount" type="text" inputmode="numeric" placeholder="예: 1,290,580" oninput="updatePensionEtfTradePreview()"></div>
+      <div class="contrib-field"><label for="pensionEtfTradeAmount">체결금액</label><input id="pensionEtfTradeAmount" type="text" inputmode="numeric" placeholder="예: 1,290,580" oninput="formatPensionMoneyInput(this);updatePensionEtfTradePreview()"></div>
     </div>
     <div class="pension-etf-trade-apply-note">앱 반영일 <strong id="pensionEtfTradeApplyDate">${applyDate}</strong> · 저장한 날 기준으로 보유수량/원가/현금에 적용</div>
     <div id="pensionEtfTradePreview" class="pension-etf-trade-preview"><span class="small">상품·수량·체결금액을 입력하면 적용 후 예상값을 보여줍니다.</span></div>
@@ -1822,6 +1840,36 @@ document.addEventListener('keydown',e=>{
 
 function cleanNumberInput(v){
   return Number(String(v||'').replace(/[^\d.-]/g,''));
+}
+function formatPensionMoneyInput(input){
+  if(!input) return;
+  const raw=String(input.value||'');
+  const cursor=Number.isFinite(input.selectionStart)?input.selectionStart:raw.length;
+  const digitsBeforeCursor=raw.slice(0,cursor).replace(/\D/g,'').length;
+  let digits=raw.replace(/\D/g,'');
+  if(!digits){
+    input.value='';
+    return;
+  }
+  digits=digits.replace(/^0+(?=\d)/,'');
+  const formatted=digits.replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  input.value=formatted;
+  if(typeof input.setSelectionRange==='function'){
+    let nextCursor=formatted.length;
+    if(digitsBeforeCursor===0){
+      nextCursor=0;
+    }else{
+      let seen=0;
+      for(let i=0;i<formatted.length;i++){
+        if(/\d/.test(formatted[i])) seen+=1;
+        if(seen>=digitsBeforeCursor){
+          nextCursor=i+1;
+          break;
+        }
+      }
+    }
+    try{input.setSelectionRange(nextCursor,nextCursor)}catch(_){}
+  }
 }
 
 function pensionContributionTarget(){
