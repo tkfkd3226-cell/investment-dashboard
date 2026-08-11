@@ -792,6 +792,13 @@ function setupResponsiveChartControls(){
 function chartEntranceReducedMotion(){
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true;
 }
+function chartEntrancePhoneLandscape(){
+  return window.matchMedia?.('(orientation: landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse)').matches===true;
+}
+function activatePendingChartEntrancesForPhoneLandscape(){
+  if(!chartEntrancePhoneLandscape())return;
+  document.querySelectorAll('.chart-card .chart-wrap').forEach(activateChartEntrance);
+}
 function chartEntranceDataElements(svg){
   const viewWidth=svg.viewBox?.baseVal?.width||Number(svg.getAttribute('width'))||1120;
   return [...svg.querySelectorAll('rect, polyline, circle')].filter(node=>{
@@ -859,7 +866,17 @@ function setupChartEntranceAnimations(){
   chartEntranceObserver=null;
   const wraps=[...document.querySelectorAll('.chart-card .chart-wrap')];
   if(!wraps.length)return;
-  if(chartEntranceReducedMotion()||!('IntersectionObserver' in window)){
+  if(!window.__chartEntrancePhoneLandscapeBound){
+    window.__chartEntrancePhoneLandscapeBound=true;
+    let landscapeFrame=0;
+    const syncLandscapeEntrance=()=>{
+      cancelAnimationFrame(landscapeFrame);
+      landscapeFrame=requestAnimationFrame(activatePendingChartEntrancesForPhoneLandscape);
+    };
+    window.addEventListener('resize',syncLandscapeEntrance,{passive:true});
+    window.addEventListener('orientationchange',syncLandscapeEntrance,{passive:true});
+  }
+  if(chartEntranceReducedMotion()||chartEntrancePhoneLandscape()||!('IntersectionObserver' in window)){
     wraps.forEach(activateChartEntrance);
     return;
   }
