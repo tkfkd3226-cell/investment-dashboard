@@ -7210,3 +7210,17 @@ body.chart-expanded-open .dash-tooltip{
     -webkit-transform:translate3d(0,0,.001px) !important;
   }
 }
+
+/* Requested table-column alignment */
+.pension-products-table th:nth-child(2),
+.pension-products-table td:nth-child(2),
+.pension-products-table th:nth-child(7),
+.pension-products-table td:nth-child(7),
+.hold-position-table th:nth-child(2),
+.hold-position-table td:nth-child(2),
+.hold-position-table th:nth-child(8),
+.hold-position-table td:nth-child(8),
+.accounts-scroll .accounts-table th:nth-child(4),
+.accounts-scroll .accounts-table td:nth-child(4){
+  text-align:center !important;
+}
