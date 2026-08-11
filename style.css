@@ -6842,3 +6842,99 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   }
 }
 
+
+/* 2026-08-11 mobile top bar simplification + darker top surface */
+.switcher{
+  background:
+    radial-gradient(circle at 96% 8%, rgba(59,130,246,.13), transparent 28%),
+    linear-gradient(135deg,#080c14 0%, #111827 48%, #18304a 100%) !important;
+  border-bottom-color:rgba(255,255,255,.11) !important;
+  box-shadow:0 12px 30px rgba(0,0,0,.30) !important;
+}
+
+@media(max-width:760px){
+  .switcher{
+    min-height:38px !important;
+    padding:4px 7px !important;
+  }
+  .date-picker{
+    display:flex !important;
+    width:100% !important;
+    align-items:center !important;
+    justify-content:flex-end !important;
+    gap:0 !important;
+  }
+  .date-picker-center{
+    display:none !important;
+  }
+  .date-picker-action{
+    display:flex !important;
+    width:auto !important;
+    margin-left:auto !important;
+    align-items:center !important;
+    justify-content:flex-end !important;
+  }
+  .date-picker-action > :not(.date-action-menu-wrap){
+    display:none !important;
+  }
+  .date-action-menu-wrap{
+    display:block !important;
+    margin-left:auto !important;
+    justify-self:auto !important;
+  }
+
+  .date-action-menu.mobile-combined-menu .mobile-menu-date-section{
+    margin:0 0 6px !important;
+    padding:6px 6px 8px !important;
+    border-bottom:1px solid #d8dee4 !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-menu-date-section{
+    border-bottom-color:#30363d !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-menu-date-title{
+    margin:0 2px 6px !important;
+    color:#6e7781 !important;
+    font-size:11px !important;
+    font-weight:600 !important;
+    line-height:16px !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-menu-date-title{
+    color:#8b949e !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-menu-date-controls{
+    display:grid !important;
+    grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr) !important;
+    gap:6px !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-menu-date-select{
+    display:block !important;
+    width:100% !important;
+    min-width:0 !important;
+    height:34px !important;
+    min-height:34px !important;
+    box-sizing:border-box !important;
+    padding:4px 25px 4px 8px !important;
+    border:1px solid #d0d7de !important;
+    border-radius:7px !important;
+    background:#f6f8fa !important;
+    color:#24292f !important;
+    font-family:inherit !important;
+    font-size:12px !important;
+    font-weight:700 !important;
+    line-height:normal !important;
+    outline:none !important;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-menu-date-select{
+    border-color:#30363d !important;
+    background:#161b22 !important;
+    color:#c9d1d9 !important;
+  }
+  .date-action-menu.mobile-combined-menu .mobile-menu-date-select option{
+    background:#fff;
+    color:#24292f;
+  }
+  .dark .date-action-menu.mobile-combined-menu .mobile-menu-date-select option{
+    background:#0d1117;
+    color:#c9d1d9;
+  }
+}

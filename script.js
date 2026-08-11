@@ -620,6 +620,19 @@ function renderUnifiedMobileMenuContent(){
     return `<button type="button" class="${cls}" onclick="jumpToSection('${item.id}');closeDateActionMenu()">${inner}</button>`;
   }).join('')}</div>`).join('');
 }
+function renderMobileDateMenuControls(){
+  const dates=allAvailableDates();
+  const months=[...new Set(dates.map(d=>d.slice(0,7)))];
+  const activeMonth=ACTIVE_DATE.slice(0,7);
+  const monthDates=dates.filter(d=>d.startsWith(activeMonth));
+  return `<div class="mobile-menu-date-section" onclick="event.stopPropagation()">
+    <div class="mobile-menu-date-title">기준일</div>
+    <div class="mobile-menu-date-controls">
+      <select class="mobile-menu-date-select mobile-menu-month-select" id="mobileMonthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select>
+      <select class="mobile-menu-date-select mobile-menu-day-select" id="mobileDateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
+    </div>
+  </div>`;
+}
 function renderDesktopTocContent(){
   const groups=[
     {
@@ -704,7 +717,7 @@ function renderTabs(){
         </div>
         <div class="date-action-menu-wrap">
           <button type="button" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" onclick="toggleDateActionMenu(event)"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
-          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><span>목차</span><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div>
+          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><span>목차</span><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div>${renderMobileDateMenuControls()}${renderUnifiedMobileMenuContent()}</div>
         </div>
       </div>
     </div>`;
@@ -2825,13 +2838,17 @@ function setupPensionVizTooltips(){
 }
 
 async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS,PENSION_TRADES]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]})),fetch('data/pension_trades.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({trades:[]}))]);const dates=allAvailableDates();ACTIVE_DATE=dates.at(-1);history.replaceState(null,'','#'+ACTIVE_DATE);render();document.getElementById('tabs').addEventListener('change',e=>{
-  if(e.target.id==='monthSelect'){
+  if(e.target.id==='monthSelect'||e.target.id==='mobileMonthSelect'){
     const month=e.target.value,dates=allAvailableDates().filter(d=>d.startsWith(month));
+    const keepMobileMenuOpen=e.target.id==='mobileMonthSelect';
     ACTIVE_DATE=dates.at(-1);
     history.replaceState(null,'','#'+ACTIVE_DATE);
     render();
+    if(keepMobileMenuOpen){
+      requestAnimationFrame(()=>document.getElementById('dateActionMenu')?.classList.add('show'));
+    }
   }
-  if(e.target.id==='dateSelect'){
+  if(e.target.id==='dateSelect'||e.target.id==='mobileDateSelect'){
     ACTIVE_DATE=e.target.value;
     history.replaceState(null,'','#'+ACTIVE_DATE);
     render();
