@@ -2130,6 +2130,12 @@ body.contrib-modal-open{
   }
 }
 
+@media(max-width:550px){
+  .accounts-scroll .accounts-table .accounts-memo-sentence{
+    display:block;
+  }
+}
+
 /* 모바일 빠른 이동 메뉴 */
 [id]{
   scroll-margin-top:76px;
@@ -6685,9 +6691,17 @@ button:active,
   }
 
   /* Mobile table/card views: phone landscape uses two cards per row. */
+  [data-mobile-view="card"] > .table-view,
+  [data-mobile-view="card"] .table-view{display:none !important}
+  [data-mobile-view="card"] > .mobile-card-view,
   [data-mobile-view="card"] .mobile-card-view{
+    display:grid !important;
     grid-template-columns:repeat(2,minmax(0,1fr)) !important;
   }
+  [data-mobile-view="table"] > .table-view,
+  [data-mobile-view="table"] .table-view{display:block !important}
+  [data-mobile-view="table"] > .mobile-card-view,
+  [data-mobile-view="table"] .mobile-card-view{display:none !important}
 
   /* Chart summary cards: use the wider landscape canvas. */
   #pension-chart-symbol .chart-note.pension-symbol-summary-grid,
