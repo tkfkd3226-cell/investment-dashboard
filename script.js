@@ -26,6 +26,7 @@ const SEPARATE_PROFIT_TRADES=Object.freeze([
 ]);
 const SEPARATE_PROFIT_REINVESTED=6700000;
 let INCLUDE_SEPARATE_PROFIT=false;
+let SKIP_CHART_ENTRANCE_ONCE=false;
 let chartEntranceObserver=null;
 const SECURITY_SYMBOL_COLORS=Object.freeze({
   'SK하이닉스':'#ff8a65',
@@ -447,6 +448,7 @@ const separateProfitControl=(x,extraClass='')=>{
 function toggleSeparateProfitMode(){
   const scrollY=window.scrollY;
   INCLUDE_SEPARATE_PROFIT=!INCLUDE_SEPARATE_PROFIT;
+  SKIP_CHART_ENTRANCE_ONCE=true;
   render();
   requestAnimationFrame(()=>window.scrollTo({top:scrollY,left:0,behavior:'auto'}));
 }
@@ -2057,11 +2059,24 @@ function drawPensionStacked(){
   addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;let total=series.reduce((a,s)=>a+(d[s]||0),0);series.forEach(s=>html+=row(s,won(d[s]||0),''));return html+'<div style="height:6px"></div>'+row('평가총액',won(total),'')});
 }
 
+function securitiesCumMoneyAxisValues(d){
+  const rows=snapshotDates(d).map(x=>{
+    const baseProfit=calc(x).rawHoldingProfit;
+    const separateProfit=separateProfitCumulativeForDate(x);
+    return {off:baseProfit,on:baseProfit+separateProfit};
+  });
+  return rows.flatMap((row,i)=>{
+    const prev=i>0?rows[i-1]:null;
+    const offDaily=prev?row.off-prev.off:row.off;
+    const onDaily=prev?row.on-prev.on:row.on;
+    return [row.off,row.on,offDaily,onDaily];
+  });
+}
 function drawCumChart(){
   const data=cumHistory(ACTIVE_DATE),svg=document.getElementById('chartCum');if(!svg||!data.length)return;clear(svg);
   const mode=CHART_COMPARE_MODES.securities||'return';
   const w=1120,h=330,l=70,r=76,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-  const vals=data.flatMap(d=>[d['합계 : 누적손익'],d['합계 : 전일대비손익']]);
+  const vals=securitiesCumMoneyAxisValues(ACTIVE_DATE);
   const lineValues=data.map(d=>mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률']).filter(v=>Number.isFinite(v));
   let yInfo=fixedTickInfo(Math.min(-4000000,...vals),Math.max(12000000,...vals),2000000,true);
   let rInfo=mode==='kospi'
@@ -2148,7 +2163,19 @@ function drawAllCharts(){
   drawPensionSymbolChart();
   drawPensionStacked();
   setupResponsiveChartControls();
-  document.querySelectorAll('svg.chart').forEach(prepareChartEntranceForSvg);
+  const skipEntrance=SKIP_CHART_ENTRANCE_ONCE;
+  SKIP_CHART_ENTRANCE_ONCE=false;
+  document.querySelectorAll('svg.chart').forEach(svg=>{
+    if(skipEntrance){
+      const card=svg.closest('.chart-card');
+      if(card){
+        card.dataset.chartEntrancePlayed='true';
+        card.classList.remove('chart-entrance-ready');
+        card.classList.add('chart-entrance-active');
+      }
+    }
+    prepareChartEntranceForSvg(svg);
+  });
   setupChartEntranceAnimations();
   refreshScrollHints();
   setTimeout(refreshScrollHints,120);
