@@ -28,6 +28,8 @@ body{
   background:var(--bg);
   color:var(--ink);
   line-height:1.45;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
 }
 
 .wrap{
