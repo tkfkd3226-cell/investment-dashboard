@@ -2519,6 +2519,9 @@ async function applyPensionBatchQueue(){
     showPensionBatchStatus(duplicateWithoutState
       ?'동일한 작업 모음은 이미 서버에서 반영 완료되었습니다. 중복 커밋은 만들지 않았습니다. Pages 반영 후 새로고침하면 최신 값이 표시됩니다.'
       :`${count}건 일괄 적용 완료. GitHub에는 한 커밋으로 반영했습니다. Pages 배포까지 잠시 걸릴 수 있습니다.`,'ok');
+    showPensionMobileToast(duplicateWithoutState
+      ?`작업 모음 ${count}건 이미 반영 완료`
+      :`작업 모음 ${count}건 적용 완료`,'ok');
   }finally{
     PENSION_BATCH_APPLYING=false;
     renderPensionBatchQueue();
@@ -2563,7 +2566,6 @@ async function savePensionContribution(){
         updatePensionEtfTradePreview();
       }
       showPensionContributionStatus(`${targetText} 저장 작업을 작업 모음에 추가했습니다.`,'ok');
-      if(item.target==='etfTrade')showPensionMobileToast('추가 매수 저장 작업을 작업 모음에 추가했습니다.','ok');
       return;
     }
     showPensionContributionStatus('PIN 입력 대기 중...','ok');
@@ -2590,7 +2592,7 @@ async function savePensionContribution(){
     }
     const actionText=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
     showPensionContributionStatus(`${targetText} ${actionText} 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.`,'ok');
-    if(item.target==='etfTrade')showPensionMobileToast('추가 매수 저장 완료','ok');
+    showPensionMobileToast(`${targetText} 저장 완료`,'ok');
   }catch(e){showPensionContributionStatus(e.message||String(e),'err')}
 }
 
@@ -2655,6 +2657,7 @@ async function deleteSelectedPensionContribution(){
   syncPensionContributionDeleteCard(target);
   if(target==='etfTrade') updatePensionEtfTradePreview();
   showPensionContributionDeleteStatus('선택 항목 삭제 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');
+  showPensionMobileToast(`${targetText} 삭제 완료`,'ok');
 }
 
 
