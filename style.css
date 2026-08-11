@@ -6789,26 +6789,40 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
 
 /* 2026-08-11: align mobile change table product column with pension products table */
 @media(max-width:760px){
+  #pension-change .change-table-wrap{
+    position:relative !important;
+    overflow-x:auto !important;
+    -webkit-overflow-scrolling:touch;
+    isolation:isolate;
+  }
+
+  #pension-change .change-table{
+    overflow:visible !important;
+    border-collapse:separate !important;
+    border-spacing:0 !important;
+  }
+
   #pension-change .change-table th:first-child,
   #pension-change .change-table td:first-child{
     width:1% !important;
     min-width:0 !important;
     white-space:nowrap !important;
-    position:sticky;
-    left:0;
-    z-index:3;
-    background:#fff;
-    background-clip:padding-box;
+    position:-webkit-sticky !important;
+    position:sticky !important;
+    left:0 !important;
+    z-index:3 !important;
+    background:#fff !important;
+    background-clip:padding-box !important;
   }
 
   #pension-change .change-table thead th:first-child{
     background:#f1f5f9 !important;
-    z-index:5;
+    z-index:5 !important;
   }
 
   #pension-change .change-table tbody tr.summary-row td:first-child{
     background:#f8fafc !important;
-    z-index:4;
+    z-index:4 !important;
   }
 }
 
