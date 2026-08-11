@@ -1935,6 +1935,7 @@ function alignZeroTickRanges(firstInfo,firstStep,secondInfo,secondStep){
 }
 
 function pensionSeriesColor(name){
+  if(name==='KODEX AI반도체')return SECURITY_SYMBOL_COLORS['KODEX AI반도체'];
   const rows=PORTFOLIO?.pension||[];
   const idx=Math.max(0,rows.findIndex(r=>r.name===name));
   const palette=['#42a5f5','#8bc34a','#ffb84d','#8fd18f','#ab47bc','#26c6da'];
