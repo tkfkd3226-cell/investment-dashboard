@@ -6598,8 +6598,7 @@ button:active,
 }
 
 @media(max-width:520px){
-  #pension-products .pension-products-table .mobile-table-kodex-prefix,
-  #securities-holdings .hold-position-table .mobile-table-kodex-prefix{
+  #pension-products .pension-products-table .mobile-table-kodex-prefix{
     display:none;
   }
 }
@@ -6612,5 +6611,6 @@ button:active,
   }
   #summary-section .combined-performance-table .combined-mobile-return{
     display:inline;
+    font-size:11px !important;
   }
 }
