@@ -27,6 +27,7 @@ const SEPARATE_PROFIT_TRADES=Object.freeze([
 const SEPARATE_PROFIT_REINVESTED=6700000;
 let INCLUDE_SEPARATE_PROFIT=false;
 let SKIP_CHART_ENTRANCE_ONCE=false;
+let SKIP_SECURITIES_CUM_CARD_TRANSITION_ONCE=false;
 let chartEntranceObserver=null;
 const SECURITY_SYMBOL_COLORS=Object.freeze({
   'SK하이닉스':'#ff8a65',
@@ -449,6 +450,7 @@ function toggleSeparateProfitMode(){
   const scrollY=window.scrollY;
   INCLUDE_SEPARATE_PROFIT=!INCLUDE_SEPARATE_PROFIT;
   SKIP_CHART_ENTRANCE_ONCE=true;
+  SKIP_SECURITIES_CUM_CARD_TRANSITION_ONCE=true;
   render();
   requestAnimationFrame(()=>window.scrollTo({top:scrollY,left:0,behavior:'auto'}));
 }
@@ -1588,11 +1590,24 @@ function renderPensionContributionModal(x){
 </details></div></div>`;
 }
 
+function suppressSecuritiesCumCardTransitionOnce(){
+  if(!SKIP_SECURITIES_CUM_CARD_TRANSITION_ONCE)return;
+  SKIP_SECURITIES_CUM_CARD_TRANSITION_ONCE=false;
+  const card=document.getElementById('chart-cum');
+  if(!card)return;
+  const nodes=[card,...card.querySelectorAll('.mini-card')];
+  nodes.forEach(node=>node.style.setProperty('transition','none','important'));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    nodes.forEach(node=>node.style.removeProperty('transition'));
+  }));
+}
+
 function render(){
   const x=calc(ACTIVE_DATE),v=separateProfitView(x);
   renderTabs();
   const pensionPills=x.hasPension?`<span class="pill hero-profit-pill">퇴직연금 운용수익 ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
   document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}"><span class="pill hero-profit-pill">증권계좌 누적손익 ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적손익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
+  suppressSecuritiesCumCardTransitionOnce();
   drawAllCharts();
   setupPensionVizTooltips();
   ensureMobileTopButton();
