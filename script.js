@@ -1474,9 +1474,9 @@ function renderResultSummary(x){
   const useAug10CashBasis=INCLUDE_SEPARATE_PROFIT&&x.date>='2026-08-10';
   const reasonDetail=useAug10CashBasis?'8/10 기준 확정 정리값':'6/18 기준 확정 정리값';
   const note=INCLUDE_SEPARATE_PROFIT
-    ?`<p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금 ${won(outsideCashBasis)} = 6/18 확인값 ${won(outsideCash)} + 6~8월 별도손익 중 현 보유자산 미반영분 ${won(separateUnreflected)}</p>`
-    :`<p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금 ${won(outsideCash)} = 6/18 확인값 ${won(outsideCash)}</p>`;
-  return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon">🔍</span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid cards">${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),'증권계좌 평가총액 + 계좌 밖 현금')}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,cls(ledgerGap))}${metricCard('차액 발생 이유',reasonValue,reasonDetail,false)}</div>${note}</section>`;
+    ?`<p class="table-note"><strong>실현수익 반영 현금 보유액:</strong> 계좌 밖 현금 ${won(outsideCashBasis)} = 6/18 확인값 ${won(outsideCash)} + 6~8월 별도손익 중 현 보유자산 미반영분 ${won(separateUnreflected)}</p>`
+    :`<p class="table-note"><strong>실현수익 반영 현금 보유액:</strong> 계좌 밖 현금 ${won(outsideCash)} = 6/18 확인값 ${won(outsideCash)}</p>`;
+  return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon">🔍</span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid cards">${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),`증권계좌 평가총액 + 실현수익 반영 현금 보유액(${won(outsideCashBasis)})`)}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,cls(ledgerGap))}${metricCard('차액 발생 이유',reasonValue,reasonDetail,false)}</div>${note}</section>`;
 }
 
 function holdingRowCssClass(h){
