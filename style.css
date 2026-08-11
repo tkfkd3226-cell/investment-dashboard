@@ -6644,7 +6644,6 @@ button:active,
 
 /* Mobile portrait chart expand: show the full 1120px chart in a landscape-style overlay. */
 .chart-expand-button{display:none}
-.chart-expanded-overlay{display:none}
 body.chart-expanded-open{overflow:hidden !important;touch-action:none}
 
 @media (max-width:760px) and (orientation:portrait){
