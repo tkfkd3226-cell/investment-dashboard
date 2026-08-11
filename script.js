@@ -443,6 +443,8 @@ const separateProfitView=x=>{
   };
 };
 const separateProfitToggle=()=>`<button type="button" class="separate-profit-toggle ${INCLUDE_SEPARATE_PROFIT?'active':''}" aria-pressed="${INCLUDE_SEPARATE_PROFIT}" onclick="toggleSeparateProfitMode()"><span>별도수익</span><strong>${INCLUDE_SEPARATE_PROFIT?'ON':'OFF'}</strong></button>`;
+const personalViewUnlockIcon=()=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.25 2.75 20h18.5L12 3.25Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 8.25v5.25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16.75" r="1.05" fill="currentColor"/></svg>`;
+const personalViewUnlockButton=(extraClass='')=>PERSONAL_VIEW_UNLOCKED?'':`<button type="button" class="personal-view-unlock${extraClass?' '+extraClass:''}" onclick="unlockPersonalView()" aria-label="확장">${personalViewUnlockIcon()}</button>`;
 const separateProfitControl=(x,extraClass='')=>{
   if(!PERSONAL_VIEW_UNLOCKED)return '';
   const profit=separateProfitCumulativeForDate(x.date);
@@ -732,7 +734,7 @@ function ensureDesktopEdgeToc(){
     toc.setAttribute('aria-label','화면 목차');
     document.body.appendChild(toc);
   }
-  toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기"><span>목차</span></button><nav class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title">목차</div>${renderDesktopTocContent()}</nav>`;
+  toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기"><span>목차</span></button><nav class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title">${personalViewUnlockButton('desktop-personal-view-unlock')}<span>목차</span></div>${renderDesktopTocContent()}</nav>`;
 }
 const MOBILE_DATE_PIN_STORAGE_KEY='investmentDashboard.mobileDatePinned';
 function mobileDatePinned(){
@@ -823,7 +825,7 @@ function renderTabs(){
         </div>
         <div class="date-action-menu-wrap">
           <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
-          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><span>목차</span><div class="mobile-nav-head-actions"><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} onchange="setMobileDatePinned(this.checked)"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div></div>${renderUnifiedMobileMenuContent()}</div>
+          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title">${personalViewUnlockButton('mobile-personal-view-unlock')}<span>목차</span></div><div class="mobile-nav-head-actions"><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} onchange="setMobileDatePinned(this.checked)"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div></div>${renderUnifiedMobileMenuContent()}</div>
         </div>
       </div>
     </div>`;
@@ -1620,7 +1622,7 @@ function render(){
   const x=calc(ACTIVE_DATE),v=separateProfitView(x);
   renderTabs();
   const pensionPills=x.hasPension?`<span class="pill hero-profit-pill">퇴직연금 운용수익 ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
-  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section">${PERSONAL_VIEW_UNLOCKED?'':`<button type="button" class="personal-view-unlock" onclick="unlockPersonalView()" aria-label="확장"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.25 2.75 20h18.5L12 3.25Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 8.25v5.25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16.75" r="1.05" fill="currentColor"/></svg></button>`}<div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}"><span class="pill hero-profit-pill">증권계좌 누적손익 ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적손익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
+  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}"><span class="pill hero-profit-pill">증권계좌 누적손익 ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적손익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
   suppressSecuritiesCumCardTransitionOnce();
   drawAllCharts();
   setupPensionVizTooltips();
