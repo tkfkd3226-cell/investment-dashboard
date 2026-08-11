@@ -2806,12 +2806,6 @@ async function deleteSelectedPensionContribution(){
 }
 
 
-document.addEventListener('click',e=>{
-  const actionWrap=e.target.closest?.('.date-action-menu-wrap');
-  if(!actionWrap) closeDateActionMenu();
-});
-
-
 function setupPensionVizTooltips(){
   if(window.__pensionVizTooltipTouchBound)return;
   window.__pensionVizTooltipTouchBound=true;
