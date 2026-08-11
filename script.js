@@ -1465,15 +1465,14 @@ function render(){
 function renderResultSummary(x){
   const c=PORTFOLIO.constants,v=separateProfitView(x);
   const outsideCash=c.outsideCash ?? 2035097;
-  const actualHoldingAndCash=x.allocTotal + outsideCash;
-  const baseLedgerGap=x.totalResult-actualHoldingAndCash;
+  const separateUnreflected=v.unreflectedSeparateProfit;
+  const actualHoldingAndCash=x.allocTotal + outsideCash + (INCLUDE_SEPARATE_PROFIT ? separateUnreflected : 0);
   const ledgerGap=v.totalResult-actualHoldingAndCash;
   if(!isLedgerCheckDate(x.date)) return '';
-  const separateUnreflected=v.unreflectedSeparateProfit;
-  const reasonValue=INCLUDE_SEPARATE_PROFIT&&separateUnreflected?'카드대금 사용 + 별도손익 미반영':'수익실현분 카드대금 사용';
-  const reasonDetail=INCLUDE_SEPARATE_PROFIT&&separateUnreflected?`${won(baseLedgerGap)} ${separateUnreflected>=0?'+':'-'} ${won(Math.abs(separateUnreflected))}`:'6/18 기준 확정 정리값';
-  const note=INCLUDE_SEPARATE_PROFIT?`<p class="table-note"><strong>차액 발생 사유:</strong> 기존 장부 차액 ${won(baseLedgerGap)}에 6~8월 별도손익 중 현 보유자산 미반영분 ${won(separateUnreflected)}을 합산한 값. AI반도체에 재투입된 ${won(v.reclassifiedReinvestment)}은 중복계상하지 않음.</p>`:`<p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금은 6/18 확인값 ${won(outsideCash)} 유지. 해당 현금은 투자 실현수익 잔액 반영, 차액은 수익실현분 카드대금 사용액으로 정리.</p>`;
-  return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon">🔍</span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid cards">${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),INCLUDE_SEPARATE_PROFIT?'기존 장부 + 별도수익 반영(재투입 중복 제외)':'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),'증권계좌 평가총액 + 계좌 밖 현금')}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,cls(ledgerGap))}${metricCard('차액 발생 이유',reasonValue,reasonDetail,false)}</div>${note}</section>`;
+  const reasonValue='수익실현분 카드대금 사용';
+  const reasonDetail='6/18 기준 확정 정리값';
+  const note=`<p class="table-note"><strong>차액 발생 사유:</strong> 계좌 밖 현금은 6/18 확인값 ${won(outsideCash)} 유지. 해당 현금은 투자 실현수익 잔액 반영, 차액은 수익실현분 카드대금 사용액으로 정리.</p>`;
+  return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon">🔍</span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid cards">${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),'계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준',true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),'증권계좌 평가총액 + 계좌 밖 현금')}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,cls(ledgerGap))}${metricCard('차액 발생 이유',reasonValue,reasonDetail,false)}</div>${note}</section>`;
 }
 
 function holdingRowCssClass(h){
