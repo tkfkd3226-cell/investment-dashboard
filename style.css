@@ -7137,3 +7137,35 @@ body.chart-expanded-open .dash-tooltip{
 .accounts-scroll .accounts-table td:nth-child(4){
   text-align:center !important;
 }
+
+/* Private-view unlock: intentionally minimal and flow-independent. */
+.personal-view-unlock{
+  position:absolute;
+  top:9px;
+  right:10px;
+  z-index:3;
+  width:26px;
+  height:26px;
+  padding:0;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:rgba(255,255,255,.42);
+  font:800 13px/26px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing:-.08em;
+  text-align:center;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.personal-view-unlock svg{
+  display:block;
+  width:16px;
+  height:16px;
+  margin:auto;
+}
+.personal-view-unlock:hover,
+.personal-view-unlock:focus-visible{
+  color:rgba(255,255,255,.82);
+  background:rgba(255,255,255,.08);
+  outline:none;
+}

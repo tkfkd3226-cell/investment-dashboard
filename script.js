@@ -11,6 +11,8 @@ let PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH
 const CHART_COMPARE_MODES={securities:'return',pension:'return'};
 const SYMBOL_CHART_MODES={securities:'profit',pension:'profit'};
 let SECURITY_ALLOC_MODE='type';
+let PERSONAL_VIEW_UNLOCKED=false;
+const PERSONAL_VIEW_PASSWORD='820421';
 const SEPARATE_PROFIT_TRADES=Object.freeze([
   {date:'2026-06-09',profit:15975},
   {date:'2026-06-16',profit:5004},
@@ -442,10 +444,22 @@ const separateProfitView=x=>{
 };
 const separateProfitToggle=()=>`<button type="button" class="separate-profit-toggle ${INCLUDE_SEPARATE_PROFIT?'active':''}" aria-pressed="${INCLUDE_SEPARATE_PROFIT}" onclick="toggleSeparateProfitMode()"><span>별도수익</span><strong>${INCLUDE_SEPARATE_PROFIT?'ON':'OFF'}</strong></button>`;
 const separateProfitControl=(x,extraClass='')=>{
+  if(!PERSONAL_VIEW_UNLOCKED)return '';
   const profit=separateProfitCumulativeForDate(x.date);
   const note=INCLUDE_SEPARATE_PROFIT?`<span class="separate-profit-control-note">선택일 ${signed(profit,'원')}</span>`:'';
   return `<div class="separate-profit-control-row${extraClass?' '+extraClass:''}">${note}${separateProfitToggle()}</div>`;
 };
+function unlockPersonalView(){
+  if(PERSONAL_VIEW_UNLOCKED)return;
+  const code=window.prompt('6자리 비밀번호');
+  if(code===null)return;
+  if(String(code).trim()!==PERSONAL_VIEW_PASSWORD){
+    window.alert('비밀번호가 올바르지 않습니다.');
+    return;
+  }
+  PERSONAL_VIEW_UNLOCKED=true;
+  render();
+}
 function toggleSeparateProfitMode(){
   const scrollY=window.scrollY;
   INCLUDE_SEPARATE_PROFIT=!INCLUDE_SEPARATE_PROFIT;
@@ -632,7 +646,7 @@ function renderUnifiedMobileMenuContent(){
       items:[
         {type:'action',action:'triggerKrxPriceUpdate();closeDateActionMenu();',icon:'refresh',title:'KRX 현재가 반영'},
         {type:'action',action:'openPensionContributionModal();closeDateActionMenu();',icon:'wallet',title:'퇴직연금 금액 조정'},
-        {type:'link',url:'calc.html',icon:'calculator',title:'투자 계산기'}
+        ...(PERSONAL_VIEW_UNLOCKED?[{type:'link',url:'calc.html',icon:'calculator',title:'투자 계산기'}]:[])
       ]
     },
     {
@@ -793,9 +807,9 @@ function renderTabs(){
         <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-pension-action" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" onclick="openPensionContributionModal()">
           <span class="date-tool-action-icon">💰</span><span class="topbar-label-full">퇴직연금 금액 조정</span><span class="topbar-label-short">연금 조정</span>
         </button>
-        <a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="calc.html" target="_blank" rel="noopener noreferrer" title="투자 계산기" aria-label="투자 계산기" style="text-decoration:none">
+        ${PERSONAL_VIEW_UNLOCKED?`<a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="calc.html" target="_blank" rel="noopener noreferrer" title="투자 계산기" aria-label="투자 계산기" style="text-decoration:none">
           <span class="date-tool-action-icon">🧮</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
-        </a>
+        </a>`:''}
         <div class="compact-action-menu-wrap">
           <button type="button" id="compactActionMenuButton" class="date-tool-btn compact-more-btn" title="더보기" aria-label="추가 기능 열기" aria-haspopup="true" aria-expanded="false" onclick="toggleCompactActionMenu(event)">
             <span class="compact-more-icon" aria-hidden="true">•••</span><span>더보기</span>
@@ -1606,7 +1620,7 @@ function render(){
   const x=calc(ACTIVE_DATE),v=separateProfitView(x);
   renderTabs();
   const pensionPills=x.hasPension?`<span class="pill hero-profit-pill">퇴직연금 운용수익 ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
-  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}"><span class="pill hero-profit-pill">증권계좌 누적손익 ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적손익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
+  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section">${PERSONAL_VIEW_UNLOCKED?'':`<button type="button" class="personal-view-unlock" onclick="unlockPersonalView()" aria-label="확장"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.25 2.75 20h18.5L12 3.25Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 8.25v5.25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16.75" r="1.05" fill="currentColor"/></svg></button>`}<div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis">(${koreanDateLabel(x.date)})</span></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}"><span class="pill hero-profit-pill">증권계좌 누적손익 ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적손익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
   suppressSecuritiesCumCardTransitionOnce();
   drawAllCharts();
   setupPensionVizTooltips();
