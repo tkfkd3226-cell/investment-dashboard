@@ -694,10 +694,10 @@ function renderTabs(){
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
 const MOBILE_VIEW_MODES={
-  combined:'card',
-  pensionProducts:'card',
-  holdings:'card',
-  accounts:'card'
+  combined:'table',
+  pensionProducts:'table',
+  holdings:'table',
+  accounts:'table'
 };
 function mobileViewAttrs(key){
   const mode=MOBILE_VIEW_MODES[key]||'card';
