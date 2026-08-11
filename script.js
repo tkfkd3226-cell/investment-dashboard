@@ -1197,7 +1197,7 @@ function securityAllocCardCount(x){
 function securityAllocCardsHtml(x){
   const ratioBase=securityAllocVisibleHoldings(x).reduce((sum,h)=>sum+Number(h?.evalAmount||0),0),ratio=value=>ratioBase?Number(value||0)/ratioBase*100:0;
   const oneShareAndCashEval=securityAllocOneShareEval(x)+Number(x?.securitiesCash||0),includeDetail=oneShareAndCashEval?`<div class="m-detail cash-include-detail">(1주 종목 및 현금 ${won(oneShareAndCashEval)} 포함)</div>`:'';
-  const totalCard=`<div class="mini-card"><div class="m-label">현재 증권계좌 평가총액</div><div class="m-value">${won(x.allocTotal)}</div>${includeDetail}</div>`;
+  const totalCard=`<div class="mini-card"><div class="m-label">현재 평가총액</div><div class="m-value">${won(x.allocTotal)}</div>${includeDetail}</div>`;
   if(SECURITY_ALLOC_MODE!=='symbol'){
     const typeTotals=securityAllocTypeTotals(x);
     return `<div class="mini-card"><div class="m-label">ETF${chartSeriesSwatch('#ff6b6b')}</div><div class="m-value">${won(typeTotals.etf)} <span class="small">(${ratio(typeTotals.etf).toFixed(1)}%)</span></div></div><div class="mini-card"><div class="m-label">개별주식${chartSeriesSwatch('#ffc857')}</div><div class="m-value">${won(typeTotals.stock)} <span class="small">(${ratio(typeTotals.stock).toFixed(1)}%)</span></div></div>${totalCard}`;
