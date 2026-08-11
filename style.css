@@ -6847,7 +6847,7 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
 }
 
 
-/* 2026-08-11 mobile top bar simplification + darker top surface */
+/* 2026-08-11 mobile top bar: hamburger-only when closed; restore original date controls when opened */
 .switcher{
   background:
     radial-gradient(circle at 96% 8%, rgba(59,130,246,.13), transparent 28%),
@@ -6857,88 +6857,91 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
 }
 
 @media(max-width:760px){
+  /* Closed state: remove the full-width top bar and leave only a floating hamburger button. */
   .switcher{
-    min-height:38px !important;
-    padding:4px 7px !important;
+    min-height:0 !important;
+    height:0 !important;
+    padding:0 !important;
+    background:transparent !important;
+    border-bottom:0 !important;
+    box-shadow:none !important;
+    overflow:visible !important;
   }
   .date-picker{
-    display:flex !important;
-    width:100% !important;
-    align-items:center !important;
-    justify-content:flex-end !important;
-    gap:0 !important;
+    display:block !important;
+    width:auto !important;
+    height:0 !important;
+    min-height:0 !important;
+    overflow:visible !important;
   }
   .date-picker-center{
     display:none !important;
   }
   .date-picker-action{
-    display:flex !important;
-    width:auto !important;
-    margin-left:auto !important;
-    align-items:center !important;
-    justify-content:flex-end !important;
+    display:block !important;
+    width:0 !important;
+    height:0 !important;
+    margin:0 !important;
   }
   .date-picker-action > :not(.date-action-menu-wrap){
     display:none !important;
   }
   .date-action-menu-wrap{
     display:block !important;
-    margin-left:auto !important;
-    justify-self:auto !important;
+    position:fixed !important;
+    top:max(6px, env(safe-area-inset-top)) !important;
+    right:7px !important;
+    z-index:2400 !important;
+    margin:0 !important;
+  }
+  .date-action-menu{
+    top:36px !important;
+    right:0 !important;
   }
 
-  .date-action-menu.mobile-combined-menu .mobile-menu-date-section{
-    margin:0 0 6px !important;
-    padding:6px 6px 8px !important;
-    border-bottom:1px solid #d8dee4 !important;
+  /* Open state: restore the original mobile top-bar layout for the two date selects + hamburger. */
+  .switcher.mobile-menu-open{
+    min-height:40px !important;
+    height:auto !important;
+    padding:5px 7px !important;
+    background:
+      radial-gradient(circle at 96% 8%, rgba(59,130,246,.13), transparent 28%),
+      linear-gradient(135deg,#080c14 0%, #111827 48%, #18304a 100%) !important;
+    border-bottom:1px solid rgba(255,255,255,.11) !important;
+    box-shadow:0 12px 30px rgba(0,0,0,.30) !important;
   }
-  .dark .date-action-menu.mobile-combined-menu .mobile-menu-date-section{
-    border-bottom-color:#30363d !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-menu-date-title{
-    margin:0 2px 6px !important;
-    color:#6e7781 !important;
-    font-size:11px !important;
-    font-weight:600 !important;
-    line-height:16px !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-menu-date-title{
-    color:#8b949e !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-menu-date-controls{
+  .switcher.mobile-menu-open .date-picker{
     display:grid !important;
-    grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr) !important;
-    gap:6px !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-menu-date-select{
-    display:block !important;
     width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    grid-template-columns:minmax(132px,1.2fr) minmax(88px,.72fr) 30px !important;
+    align-items:center !important;
+    gap:4px !important;
+    overflow:visible !important;
+  }
+  .switcher.mobile-menu-open .date-picker-center,
+  .switcher.mobile-menu-open .date-picker-action{
+    display:contents !important;
+  }
+  .switcher.mobile-menu-open .month-select,
+  .switcher.mobile-menu-open .day-select{
+    display:block !important;
     min-width:0 !important;
-    height:34px !important;
-    min-height:34px !important;
-    box-sizing:border-box !important;
-    padding:4px 25px 4px 8px !important;
-    border:1px solid #d0d7de !important;
-    border-radius:7px !important;
-    background:#f6f8fa !important;
-    color:#24292f !important;
-    font-family:inherit !important;
-    font-size:12px !important;
-    font-weight:700 !important;
-    line-height:normal !important;
-    outline:none !important;
+    width:100% !important;
+    max-width:100% !important;
+    flex:initial !important;
   }
-  .dark .date-action-menu.mobile-combined-menu .mobile-menu-date-select{
-    border-color:#30363d !important;
-    background:#161b22 !important;
-    color:#c9d1d9 !important;
+  .switcher.mobile-menu-open .date-action-menu-wrap{
+    position:relative !important;
+    top:auto !important;
+    right:auto !important;
+    z-index:auto !important;
+    margin:0 !important;
+    justify-self:end !important;
   }
-  .date-action-menu.mobile-combined-menu .mobile-menu-date-select option{
-    background:#fff;
-    color:#24292f;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-menu-date-select option{
-    background:#0d1117;
-    color:#c9d1d9;
+  .switcher.mobile-menu-open .date-action-menu{
+    top:42px !important;
+    right:0 !important;
   }
 }
