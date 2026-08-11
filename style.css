@@ -122,17 +122,8 @@ body{
   color:#cbd5e1;
 }
 
-.positive{
-  color:var(--green) !important;
-}
 
-.negative{
-  color:var(--red) !important;
-}
 
-.blue{
-  color:var(--blue) !important;
-}
 
 section{
   margin-top:22px;
@@ -152,11 +143,6 @@ section{
   letter-spacing:-.04em;
 }
 
-.section-title p{
-  margin:0;
-  color:var(--muted);
-  font-size:13px;
-}
 
 table{
   width:100%;
@@ -203,21 +189,9 @@ td.num{
   color:var(--muted);
 }
 
-.ticker-samsung{
-  background:#fff3d0;
-}
 
-.ticker-sk{
-  background:#ffe3e3;
-}
 
-.ticker-hyundai{
-  background:#e3f2ff;
-}
 
-.ticker-kodex{
-  background:#e9f7e9;
-}
 
 .ticker-mini{
   background:#f0f2f5;
@@ -372,13 +346,7 @@ td.num{
   color:#fff;
 }
 
-.dash-tooltip .tt-pos{
-  color:#86efac;
-}
 
-.dash-tooltip .tt-neg{
-  color:#fca5a5;
-}
 
 /* 차트 공통 구조 */
 .chart-grid{
@@ -488,10 +456,7 @@ svg.chart{
     font-size:24px;
   }
 
-  .wrap{
-    padding:14px;
   }
-}
 
 @media print{
   body{
@@ -1242,28 +1207,14 @@ svg.chart{
     padding:10px !important;
   }
 
-  .chart-note.symbol-summary-grid .m-label{
-    font-size:11px !important;
-  }
-
-  .chart-note.symbol-summary-grid .m-value{
-    font-size:15px !important;
-    line-height:1.2 !important;
-    white-space:nowrap !important;
-  }
-
+  
+  
   .chart-note.symbol-summary-grid .symbol-metric{
     gap:4px !important;
   }
 
-  .chart-note.symbol-summary-grid .symbol-metric-label{
-    font-size:9.5px !important;
+  
   }
-
-  .chart-note.symbol-summary-grid .symbol-metric-value{
-    font-size:11px !important;
-  }
-}
 
 
   @media(max-width:900px){
@@ -1603,17 +1554,9 @@ svg.chart{
   background:#2563eb;
   color:white;
 }
-.contrib-btn.secondary{
-  background:#e2e8f0;
-  color:#0f172a;
-}
 .contrib-btn:disabled{
   opacity:.45;
   cursor:not-allowed;
-}
-.dark .contrib-btn.secondary{
-  background:#334155;
-  color:#f8fafc;
 }
 .contrib-output{
   display:none;
@@ -1778,9 +1721,6 @@ body.contrib-modal-open{
 .contrib-list .small,
 .pension-contrib-tool .small{
   margin:0 0 10px;
-}
-.nowrap{
-  white-space:nowrap;
 }
 .contrib-modal .contrib-form-grid{
   grid-template-columns:repeat(2,minmax(0,1fr));
@@ -2361,15 +2301,6 @@ body.contrib-modal-open{
 
 
 
-.contrib-save-help{
-  margin:0 0 10px;
-  padding:9px 10px;
-  border-radius:12px;
-  background:rgba(59,130,246,.08);
-  color:#334155;
-  font-size:12px;
-  line-height:1.45;
-}
 
 .contrib-field-label{
   font-size:12px;
@@ -2766,22 +2697,10 @@ body.contrib-modal-open{
     background:#f1f5f9 !important;
   }
 
-  .hold-position-table tbody tr.ticker-samsung td:first-child{
-    background:#fff3d0 !important;
-  }
-
-  .hold-position-table tbody tr.ticker-sk td:first-child{
-    background:#ffe3e3 !important;
-  }
-
-  .hold-position-table tbody tr.ticker-hyundai td:first-child{
-    background:#e3f2ff !important;
-  }
-
-  .hold-position-table tbody tr.ticker-kodex td:first-child{
-    background:#e9f7e9 !important;
-  }
-
+  
+  
+  
+  
 
   .hold-position-table tbody tr.summary-row td:first-child{
     background:#f8fafc !important;
@@ -3900,12 +3819,7 @@ svg.chart{
     height:250px !important;
   }
 
-  .hero h1{
-    font-size:25px !important;
-    line-height:1.16 !important;
-    margin-bottom:8px !important;
-  }
-
+  
   .hero p{
     font-size:13px !important;
     line-height:1.5 !important;
@@ -4493,8 +4407,7 @@ button:active,
 @media(max-width:760px){
   [id]{scroll-margin-top:52px}
   .hero-title-row{gap:5px 7px}
-  .hero-basis{font-size:15px}
-
+  
   .switcher{
     padding:5px 7px !important;
     min-height:40px !important;
@@ -4656,13 +4569,7 @@ button:active,
   .change-kpis .m-value{font-size:13px !important;line-height:1.2 !important;letter-spacing:-.04em;white-space:nowrap}
 
   /* 421~520px에서도 390px과 동일한 분석 카드 폰트 */
-  #pension-chart-cum .chart-note.six .m-label,
-  #chart-cum .chart-note.six .m-label{font-size:11px !important;line-height:1.25 !important}
-  #pension-chart-cum .chart-note.six .m-value,
-  #chart-cum .chart-note.six .m-value{font-size:14px !important;line-height:1.22 !important}
-  #pension-chart-cum .chart-note.six .m-detail,
-  #chart-cum .chart-note.six .m-detail{font-size:9px !important;line-height:1.25 !important}
-
+      
   /* 평가액 비중 하단 4개 카드는 2×2 */
   #pension-chart-alloc .chart-note,
   #chart-alloc .chart-note{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:7px !important}
