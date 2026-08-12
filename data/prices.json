@@ -1102,11 +1102,11 @@
   },
   "2026-08-12": {
     "display": true,
-    "source": "pykrx-github-actions",
+    "source": "pykrx-github-actions+nxt-valuation",
     "marketStatus": "close",
     "requestedDate": "2026-08-12",
     "actualMarketDate": "2026-08-12",
-    "updatedAtKST": "2026-08-12T17:28:56+09:00",
+    "updatedAtKST": "2026-08-12T20:10:00+09:00",
     "securities": {
       "005930": 255500,
       "000660": 1504000,
@@ -1114,7 +1114,8 @@
       "069500": 103250,
       "0163Y0": 9145,
       "395160": 37155,
-      "445290": 31820
+      "445290": 31820,
+      "009150": 1348000
     },
     "pension": {
       "278530": 37395,

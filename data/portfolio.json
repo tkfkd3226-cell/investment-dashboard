@@ -6,7 +6,7 @@
     "currency": "KRW"
   },
   "constants": {
-    "externalPrincipal": 21767083,
+    "externalPrincipal": 20723704,
     "goldPrincipal": 7000000,
     "laborNetPrincipal": 7023704,
     "account1Principal": 24328348,
@@ -104,7 +104,7 @@
       "feeBuffer": 41,
       "chart": true,
       "cssClass": "ticker-mini",
-      "chartFrom": "2026-08-13"
+      "chartFrom": "2026-08-12"
     }
   ],
   "pension": [
@@ -178,19 +178,11 @@
       "memo": "KODEX AI반도체 중기투자 추가매수 3차"
     },
     {
-      "id": "sec-contrib-20260812-separate-profit",
-      "date": "2026-08-12",
-      "type": "contribution",
-      "amount": 1043379,
-      "memo": "별도수익 재투입",
-      "fundingClass": "performanceExcludedTransfer"
-    },
-    {
       "id": "sec-contrib-20260812-outside-cash",
       "date": "2026-08-12",
       "type": "contribution",
-      "amount": 301621,
-      "memo": "6/18 확인 현금 내부이동",
+      "amount": 1345000,
+      "memo": "6/18 확인 현금 내부이동 (삼성전기 매수 전액)",
       "fundingClass": "internalCashTransfer"
     },
     {
@@ -201,7 +193,9 @@
       "qty": 1,
       "price": 1345000,
       "amount": 1345000,
-      "memo": "삼성전기 NXT 신규매수"
+      "memo": "삼성전기 NXT 신규매수",
+      "valuationPrice": 1348000,
+      "valuationSource": "NXT 종가"
     }
   ]
 }
