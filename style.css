@@ -1301,6 +1301,9 @@ svg.chart{
   .chart-note.symbol-summary-grid.five{
     grid-template-columns:repeat(5,minmax(0,1fr)) !important;
   }
+  .chart-note.symbol-summary-grid.six-symbols{
+    grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+  }
 }
 
 @media (max-width:900px){

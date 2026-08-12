@@ -46,7 +46,8 @@ const SECURITY_SYMBOL_COLORS=Object.freeze({
   '삼성전자':'#8bc34a',
   '현대차':'#26c6da',
   'KODEX 200':'#4f46e5',
-  'KODEX AI반도체':'#ec4899'
+  'KODEX AI반도체':'#ec4899',
+  '삼성전기':'#8D6E63'
 });
 const CASH_ASSET_COLOR='#94a3b8';
 const SECURITY_DISPLAY_ORDER=Object.freeze(['KODEX 200','SK하이닉스','삼성전자','현대차']);
@@ -694,8 +695,8 @@ function renderUnifiedMobileMenuContent(){
       label:'증권계좌',
       items:[
         {type:'section',id:'securities-section',icon:'bank',title:'증권계좌 현황'},
-        {type:'section',id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
         {type:'section',id:'accounts-summary',icon:'list',title:'계좌별 성과 요약'},
+        {type:'section',id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
         {type:'section',id:'chart-cum',icon:'chart',title:'누적손익 및 누적수익률'},
         {type:'section',id:'chart-symbol',icon:'chart',title:'종목별 누적손익'},
         {type:'section',id:'chart-alloc',icon:'pie',title:'평가액 비중'},
@@ -735,8 +736,8 @@ function renderDesktopTocContent(){
       label:'증권계좌',
       items:[
         {id:'securities-section',icon:'bank',title:'증권계좌 현황'},
-        {id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
         {id:'accounts-summary',icon:'list',title:'계좌별 성과 요약'},
+        {id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
         {id:'chart-cum',icon:'chart',title:'누적손익 및 누적수익률'},
         {id:'chart-symbol',icon:'chart',title:'종목별 누적손익'},
         {id:'chart-alloc',icon:'pie',title:'평가액 비중'},
@@ -1402,7 +1403,7 @@ function securityAllocLegendHtml(x){
   return chartLegendHtml('securitiesAlloc');
 }
 function securityAllocCardCount(x){
-  return SECURITY_ALLOC_MODE==='symbol'?Math.min(6,securityAllocItems(x).length+1):3;
+  return SECURITY_ALLOC_MODE==='symbol'?Math.min(7,securityAllocItems(x).length+1):3;
 }
 function securityAllocCardsHtml(x){
   const ratioBase=securityAllocVisibleHoldings(x).reduce((sum,h)=>sum+Number(h?.evalAmount||0),0),ratio=value=>ratioBase?Number(value||0)/ratioBase*100:0;
@@ -1693,7 +1694,7 @@ function renderSecuritiesSummaryCards(x){
   return `<div class="securities-subsection securities-summary-block"><div class="grid cards">${metricCard('증권계좌 투자 결과물',won(v.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(v.totalPrincipal),principalNote)}${metricCard('총 합산 누적손익',won(v.totalProfit),`${securitiesScope} 누적손익`,false,cls(v.totalProfit))}${metricCard('투자대비 이익률',pct(v.totalReturn),returnNote,false,cls(v.totalReturn))}</div></div>`;
 }
 function renderSecuritiesSection(x){
-  return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon">🏦</span>증권계좌 현황</h2>${separateProfitControl(x,'section-inline')}</div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderCharts(x),'charts-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(x),'source-block'):''}</div></section>`;
+  return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon">🏦</span>증권계좌 현황</h2>${separateProfitControl(x,'section-inline')}</div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderCharts(x),'charts-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(x),'source-block'):''}</div></section>`;
 }
 
 function renderPensionContributionList(target='cashSnapshot'){
@@ -1843,6 +1844,7 @@ function renderResultSummary(x){
 
 function holdingRowCssClass(h){
   const cssClass=String(h?.cssClass||'');
+  if(String(h?.ticker||'')==='009150')return '';
   return cssClass==='ticker-mini'&&Number(h?.qty)!==1?'':cssClass;
 }
 
@@ -1856,7 +1858,7 @@ function renderHoldings(x){
         totalEvalWithCash=holdEval+cash,
         holdReturn=holdCost?holdProfit/holdCost*100:0,
         totalReturnWithCash=totalCostWithCash?holdProfit/totalCostWithCash*100:0;
-  const orderedHoldings=sortSecurityItems(x.holdings);
+  const orderedHoldings=sortSecurityItems(x.holdings.filter(h=>(Number(h?.qty)||0)>0));
   const cards=orderedHoldings.map(h=>mobileInfoCard(`<span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}`,[
     ['수량',fmt(h.qty)],
     ['평단',won(h.avgPrice ?? (h.qty?h.cost/h.qty:0))],
@@ -1979,7 +1981,7 @@ function renderCharts(x){
         bestDetail=bestGap===0?'금일 갱신':'금일 대비 '+signed(bestGap,'원');
   return `<section id="investment-analysis"><div class="section-title"><h2><span class="section-title-icon">🗓️</span>투자 기간 분석</h2><p>삼성증권1 기준</p></div><div class="grid chart-grid">
   <div class="chart-card" id="chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>누적손익 및 누적수익률</h3></div>${separateProfitControl(x,'chart-inline')}<div class="chart-head-actions">${chartCompareToggle('securities')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend" id="securitiesCumLegend">${chartLegendHtml('securitiesCum')}</div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 누적손익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${best.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${best.날짜}','chart-cum')}" title="${best.날짜} 기준으로 이동"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${bestDay.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${bestDay.날짜}','chart-cum')}" title="${bestDay.날짜} 기준으로 이동"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${worstDay.날짜}','chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${worstDay.날짜}','chart-cum')}" title="${worstDay.날짜} 기준으로 이동"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
-  <div class="chart-card" id="chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🧩</span>종목별 누적손익</h3></div><div class="chart-head-actions">${symbolChartToggle('securities')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-legend" id="securitiesSymbolLegend">${chartLegendHtml('securitiesSymbol')}</div><div class="chart-note symbol-summary-grid${orderedSymbols.length>=5?' five':''}">${orderedSymbols.map(h=>symbolCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">${hasSymbolBuyFlow?'기여도 - 누적손익 합계 기준, 손익률 - 누적손익 ÷ 매입원금, 전일대비 변동률 - 전일대비 변동액 ÷ (전일 평가액 + 당일 매수금액)':'기여도 - 누적손익 합계 기준, 손익률 - 누적손익 ÷ 매입원금, 전일대비 변동률 - 전일대비 변동액 ÷ 전일의 평가금액'}</div></div>
+  <div class="chart-card" id="chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🧩</span>종목별 누적손익</h3></div><div class="chart-head-actions">${symbolChartToggle('securities')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-legend" id="securitiesSymbolLegend">${chartLegendHtml('securitiesSymbol')}</div><div class="chart-note symbol-summary-grid${orderedSymbols.length>=6?' six-symbols':orderedSymbols.length>=5?' five':''}">${orderedSymbols.map(h=>symbolCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">${hasSymbolBuyFlow?'기여도 - 누적손익 합계 기준, 손익률 - 누적손익 ÷ 매입원금, 전일대비 변동률 - 전일대비 변동액 ÷ (전일 평가액 + 당일 매수금액)':'기여도 - 누적손익 합계 기준, 손익률 - 누적손익 ÷ 매입원금, 전일대비 변동률 - 전일대비 변동액 ÷ 전일의 평가금액'}</div></div>
   <div class="chart-card" id="chart-alloc"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🥧</span>평가액 비중</h3></div><div class="chart-head-actions">${securityAllocToggle()}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartAlloc"></svg></div><div class="chart-legend" id="securityAllocLegend">${securityAllocLegendHtml(x)}</div><div class="chart-note security-alloc-card-grid" id="securityAllocCards" style="--security-alloc-card-count:${securityAllocCardCount(x)}">${securityAllocCardsHtml(x)}</div></div>
   </div></section>`;
 }
