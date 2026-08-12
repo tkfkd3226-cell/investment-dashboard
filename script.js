@@ -907,6 +907,36 @@ function chartWebExpandButton(){
 function chartScrollButton(){
   return `<div class="chart-scroll-row"><button type="button" class="chart-scroll-start" aria-label="차트를 왼쪽 끝으로 이동" title="왼쪽 끝으로 이동" onclick="scrollChartToStart(this)">←</button><button type="button" class="chart-scroll-end" aria-label="차트를 오른쪽 끝으로 이동" title="오른쪽 끝으로 이동" onclick="scrollChartToEnd(this)">→</button><button type="button" class="chart-expand-button" aria-label="차트를 가로 전체화면으로 확대" title="가로 전체화면" onclick="openExpandedChart(this)">${chartExpandIcon()}</button></div>`;
 }
+function chartTitleInfoButton(text){
+  const safe=String(text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return `<button type="button" class="chart-title-info" aria-label="${safe} 설명" aria-expanded="false" onclick="toggleChartTitleInfo(event,this)"><span aria-hidden="true">i</span><span class="chart-title-info-tooltip" role="tooltip">${safe}</span></button>`;
+}
+function closeChartTitleInfo(except=null){
+  document.querySelectorAll('.chart-title-info.open').forEach(button=>{
+    if(button===except)return;
+    button.classList.remove('open');
+    button.setAttribute('aria-expanded','false');
+  });
+}
+function toggleChartTitleInfo(event,button){
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  if(!button)return;
+  const open=!button.classList.contains('open');
+  closeChartTitleInfo(button);
+  button.classList.toggle('open',open);
+  button.setAttribute('aria-expanded',String(open));
+}
+function compactPhoneChartUi(){
+  const portraitOrNarrow=window.matchMedia?.('(max-width:760px)').matches===true;
+  const phoneLandscape=window.matchMedia?.('(orientation: landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse)').matches===true;
+  return portraitOrNarrow||phoneLandscape;
+}
+function chartDisplayLabel(scope,label){
+  const compact=compactPhoneChartUi();
+  const symbolScope=scope==='pensionSymbol'||scope==='pensionAlloc'||scope==='securitiesSymbol'||(scope==='securitiesAlloc'&&SECURITY_ALLOC_MODE==='symbol');
+  return compact&&symbolScope?String(label||'').replace(/^KODEX\s+/i,''):String(label||'');
+}
 function chartScrollToWrap(button){
   return button?.closest('.chart-card')?.querySelector('.chart-wrap')||null;
 }
@@ -1068,30 +1098,38 @@ function refreshMobileChartSeriesControls(scope){
   if(card&&row)syncMobileChartSeriesControls(scope,card,row);
 }
 function syncResponsiveChartControls(){
-  const mobile=window.matchMedia('(max-width:760px)').matches;
+  const mobile=compactPhoneChartUi();
   RESPONSIVE_CHART_SCOPES.forEach(({id,scope})=>{
     const card=document.getElementById(id);
     const head=card?.querySelector('.chart-head');
     const actions=card?.querySelector('.chart-head-actions');
     const row=card?.querySelector('.chart-scroll-row');
+    const mobileExpand=row?.querySelector('.chart-expand-button')||head?.querySelector('.chart-expand-button');
     if(!card||!row)return;
+    card.classList.toggle('phone-chart-ui',mobile);
     if(head&&actions){
       if(mobile){
         if(actions.parentElement!==row)row.prepend(actions);
+        if(mobileExpand&&mobileExpand.parentElement!==head)head.appendChild(mobileExpand);
         row.classList.add('has-compare-toggle');
       }else{
         if(actions.parentElement!==head)head.appendChild(actions);
+        if(mobileExpand&&mobileExpand.parentElement!==row)row.appendChild(mobileExpand);
         row.classList.remove('has-compare-toggle');
       }
     }
+    const legendId=chartLegendId(scope),legend=legendId?document.getElementById(legendId):null;
+    if(legend)legend.innerHTML=chartLegendHtml(scope);
     syncMobileChartSeriesControls(scope,card,row);
   });
+  if(!mobile)closeChartTitleInfo();
 }
 function setupResponsiveChartControls(){
   syncResponsiveChartControls();
   setupExpandedChartViewport();
   if(window.__responsiveChartControlsBound)return;
   window.__responsiveChartControlsBound=true;
+  document.addEventListener('click',event=>{if(!event.target.closest('.chart-title-info'))closeChartTitleInfo()});
   let frame=0;
   window.addEventListener('resize',()=>{
     cancelAnimationFrame(frame);
@@ -1287,7 +1325,7 @@ function chartLegendHtml(scope){
   const allButton=`<button type="button" class="legend-item chart-series-all${selection.all?' active':''}" aria-pressed="${selection.all}" onclick="toggleChartSeries('${scope}','__all__')">전체</button>`;
   const itemButtons=items.map(item=>{
     const active=selection.selected.has(item.key);
-    return `<button type="button" class="legend-item chart-series-toggle${active?' active':' inactive'}" aria-pressed="${active}" onclick="toggleChartSeries('${scope}',decodeURIComponent('${encodeURIComponent(item.key)}'))"><span class="swatch" style="background:${item.color}"></span>${item.label}</button>`;
+    return `<button type="button" class="legend-item chart-series-toggle${active?' active':' inactive'}" aria-pressed="${active}" onclick="toggleChartSeries('${scope}',decodeURIComponent('${encodeURIComponent(item.key)}'))"><span class="swatch" style="background:${item.color}"></span>${chartDisplayLabel(scope,item.label)}</button>`;
   }).join('');
   const autoButton=selection.all?'':`<button type="button" class="chart-y-auto-toggle${autoY?' active':''}" role="switch" aria-checked="${autoY}" onclick="setChartAutoY('${scope}',${autoY?'false':'true'})"><span>Y축 자동 재계산</span><span class="chart-y-auto-state">${autoY?'ON':'OFF'}</span></button>`;
   return `<span class="chart-legend-control chart-legend-control-left">${allButton}</span><span class="chart-legend-series">${itemButtons}</span><span class="chart-legend-control chart-legend-control-right">${autoButton}</span>`;
@@ -2054,8 +2092,8 @@ function renderPensionCharts(x){
   const orderedAllocRows=sortPensionItems(x.pensionRows);
   const allocCards=orderedAllocRows.map(r=>`<div class="mini-card"><div class="m-label">${r.name}${pensionProductSwatch(r.name)}</div><div class="m-value">${won(r.evalAmount)} <span class="small">(${(r.evalAmount/productEvalTotal*100).toFixed(1)}%)</span></div></div>`).join('');
   return `<section id="pension-investment-analysis" class="pension-chart-block"><div class="section-title"><h2><span class="section-title-icon">🗓️</span>투자 기간 분석</h2><p>퇴직연금 기준</p></div><div class="grid chart-grid">
-  <div class="chart-card" id="pension-chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>운용수익 및 누적수익률 <span class="chart-title-sub">(전체 운용 기준)</span></h3></div><div class="chart-head-actions">${chartCompareToggle('pension')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="pensionChartCum"></svg></div><div class="chart-legend" id="pensionCumLegend">${chartLegendHtml('pensionCum')}</div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 운용수익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${best.날짜}','pension-chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${best.날짜}','pension-chart-cum')}" title="${best.날짜} 기준으로 이동"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${bestDay.날짜}','pension-chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${bestDay.날짜}','pension-chart-cum')}" title="${bestDay.날짜} 기준으로 이동"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${worstDay.날짜}','pension-chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${worstDay.날짜}','pension-chart-cum')}" title="${worstDay.날짜} 기준으로 이동"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
-  <div class="chart-card" id="pension-chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🧩</span>연금상품별 운용수익 <span class="chart-title-sub">(보유상품 재투자 기준)</span></h3></div><div class="chart-head-actions">${symbolChartToggle('pension')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="pensionChartSymbol"></svg></div><div class="chart-legend" id="pensionSymbolLegend">${chartLegendHtml('pensionSymbol')}</div><div class="chart-note symbol-summary-grid pension-symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>pensionProductCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">기여도 - 운용수익 합계 기준, 수익률 - 운용수익 ÷ 매입원금, 전일대비 변동률 - 전일대비 변동액 ÷ 전일의 평가금액</div></div>
+  <div class="chart-card" id="pension-chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">📊</span>운용수익 및 누적수익률 <span class="chart-title-sub">(전체 운용 기준)</span>${chartTitleInfoButton('전체 운용 기준')}</h3></div><div class="chart-head-actions">${chartCompareToggle('pension')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="pensionChartCum"></svg></div><div class="chart-legend" id="pensionCumLegend">${chartLegendHtml('pensionCum')}</div><div class="chart-note six"><div class="mini-card"><div class="m-label">최종 운용수익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">최종 누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${cls(returnDelta)}">전일 대비 ${returnDelta>0?'+':''}${returnDelta.toFixed(2)}%p</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${best.날짜}','pension-chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${best.날짜}','pension-chart-cum')}" title="${best.날짜} 기준으로 이동"><div class="m-label">최대 수익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${bestDay.날짜}','pension-chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${bestDay.날짜}','pension-chart-cum')}" title="${bestDay.날짜} 기준으로 이동"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" onclick="jumpToChartDate('${worstDay.날짜}','pension-chart-cum')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToChartDate('${worstDay.날짜}','pension-chart-cum')}" title="${worstDay.날짜} 기준으로 이동"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
+  <div class="chart-card" id="pension-chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🧩</span>연금상품별 운용수익 <span class="chart-title-sub">(보유상품 재투자 기준)</span>${chartTitleInfoButton('보유상품 재투자 기준')}</h3></div><div class="chart-head-actions">${symbolChartToggle('pension')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="pensionChartSymbol"></svg></div><div class="chart-legend" id="pensionSymbolLegend">${chartLegendHtml('pensionSymbol')}</div><div class="chart-note symbol-summary-grid pension-symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>pensionProductCard(h,symbolTotal)).join('')}</div><div class="symbol-summary-note">기여도 - 운용수익 합계 기준, 수익률 - 운용수익 ÷ 매입원금, 전일대비 변동률 - 전일대비 변동액 ÷ 전일의 평가금액</div></div>
   <div class="chart-card" id="pension-chart-alloc"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon">🥧</span>평가액 비중</h3></div><div class="chart-head-actions">${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="pensionChartAlloc"></svg></div><div class="chart-legend" id="pensionAllocLegend">${chartLegendHtml('pensionAlloc')}</div><div class="chart-note">${allocCards}<div class="mini-card"><div class="m-label">현재 평가총액</div><div class="m-value">${won(x.pensionEval)}</div><div class="m-detail cash-include-detail">(현금성자산 ${won(x.pensionCash)} 포함)</div></div></div></div>
   </div></section>`;
 }
@@ -2371,7 +2409,7 @@ function drawPensionSymbolChart(){
   const yInfo=mode==='rate'?fixedTickInfo(Math.min(0,...values),Math.max(0,...values),20,true):fixedTickInfo(Math.min(0,...values),Math.max(0,...values),2000000,true),w=1120,h=330,l=82,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   const cfg={w,h,l,r,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),yFormatter:mode==='rate'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%'):null};drawAxes(svg,cfg,yInfo.ticks);
   const plotW=w-l-r,n=data.length;series.forEach(name=>{const pts=data.map((d,i)=>[l+(n===1?0:i*plotW/(n-1)),cfg.y(valueOf(d,name))]);polyline(svg,pts,pensionSeriesColor(name));circles(svg,pts,pensionSeriesColor(name))});labelDates(svg,cfg,data,3);
-  addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const rate=Number(d._rates?.[s]||0),value=mode==='rate'?`${rate>0?'+':''}${pct(rate)}`:`${signed(d[s]||0,'원')} (${rate>0?'+':''}${pct(rate)})`;html+=row(s,value,clsBy(mode==='rate'?rate:(d[s]||0)))});if(mode==='rate')return html;const total=series.reduce((a,s)=>a+(d[s]||0),0);return html+'<div style="height:6px"></div>'+row(selection.all?'상품 합계':`${series.length}상품 합계`,signed(total,'원'),clsBy(total))},'symbol');
+  addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const rate=Number(d._rates?.[s]||0),value=mode==='rate'?`${rate>0?'+':''}${pct(rate)}`:`${signed(d[s]||0,'원')} (${rate>0?'+':''}${pct(rate)})`;html+=row(chartDisplayLabel('pensionSymbol',s),value,clsBy(mode==='rate'?rate:(d[s]||0)))});if(mode==='rate')return html;const total=series.reduce((a,s)=>a+(d[s]||0),0);return html+'<div style="height:6px"></div>'+row(selection.all?'상품 합계':`${series.length}상품 합계`,signed(total,'원'),clsBy(total))},'symbol');
 }
 function drawPensionStacked(){
   const data=pensionAllocHistory(ACTIVE_DATE),svg=document.getElementById('pensionChartAlloc');if(!svg||!data.length)return;clear(svg);
@@ -2384,7 +2422,7 @@ function drawPensionStacked(){
   const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b)};drawAxes(svg,cfg,yInfo.ticks);
   data.forEach((d,i)=>{let acc=0;const x=chartX(cfg,n,i)-barW/2;series.forEach(s=>{const v=Number(d[s]||0),y1=cfg.y(acc+v),y0=cfg.y(acc);svg.appendChild(el('rect',{x,y:y1,width:barW,height:Math.max(0,y0-y1),fill:colors[s],rx:2}));acc+=v})});
   labelDates(svg,cfg,data,3);
-  addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;const total=series.reduce((a,s)=>a+Number(d[s]||0),0);series.forEach(s=>html+=row(s,won(d[s]||0),''));return html+'<div style="height:6px"></div>'+row('평가총액',won(total),'')});
+  addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;const total=series.reduce((a,s)=>a+Number(d[s]||0),0);series.forEach(s=>html+=row(chartDisplayLabel('pensionAlloc',s),won(d[s]||0),''));return html+'<div style="height:6px"></div>'+row('평가총액',won(total),'')});
 }
 
 function securitiesCumMoneyAxisValues(d){
@@ -2460,7 +2498,7 @@ function drawLineChart(){
   if(mode==='rate'){
     const yInfo=fixedTickInfo(Math.min(0,...values),Math.max(0,...values),20,true),cfg={w,h,l,r,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),yFormatter:v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%'};drawAxes(svg,cfg,yInfo.ticks);
     const plotW=w-l-r,n=data.length;series.forEach(s=>{const pts=data.map((d,i)=>{const value=valueOf(d,s);return Number.isFinite(value)?[l+(n===1?0:i*plotW/(n-1)),cfg.y(value)]:null}).filter(Boolean);if(pts.length){polyline(svg,pts,colors[s]||securityAllocationColor(s));circles(svg,pts,colors[s]||securityAllocationColor(s))}});labelDates(svg,cfg,data,3);
-    addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const rate=valueOf(d,s);if(!Number.isFinite(rate))return;html+=row(s,`${rate>0?'+':''}${pct(rate)}`,clsBy(rate))});return html},'symbol');
+    addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const rate=valueOf(d,s);if(!Number.isFinite(rate))return;html+=row(chartDisplayLabel('securitiesSymbol',s),`${rate>0?'+':''}${pct(rate)}`,clsBy(rate))});return html},'symbol');
     return;
   }
   let minY,maxY,ticks;
@@ -2471,7 +2509,7 @@ function drawLineChart(){
   }
   const cfg={w,h,l,r,t,b,y:v=>t+(maxY-v)/(maxY-minY)*(h-t-b)};drawAxes(svg,cfg,ticks);
   const plotW=w-l-r,n=data.length;series.forEach(s=>{const pts=data.map((d,i)=>{const value=valueOf(d,s);return Number.isFinite(value)?[l+(n===1?0:i*plotW/(n-1)),cfg.y(value)]:null}).filter(Boolean);if(pts.length){polyline(svg,pts,colors[s]||securityAllocationColor(s));circles(svg,pts,colors[s]||securityAllocationColor(s))}});labelDates(svg,cfg,data,3);
-  addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const value=valueOf(d,s),rate=d._rates?.[s];if(!Number.isFinite(value))return;html+=row(s,`${signed(value,'원')} (${Number(rate)>0?'+':''}${pct(rate)})`,clsBy(value))});const total=series.reduce((a,s)=>{const value=valueOf(d,s);return a+(Number.isFinite(value)?value:0)},0);return html+'<div style="height:6px"></div>'+row(`${series.length}종목 합계`,signed(total,'원'),clsBy(total))},'symbol');
+  addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const value=valueOf(d,s),rate=d._rates?.[s];if(!Number.isFinite(value))return;html+=row(chartDisplayLabel('securitiesSymbol',s),`${signed(value,'원')} (${Number(rate)>0?'+':''}${pct(rate)})`,clsBy(value))});const total=series.reduce((a,s)=>{const value=valueOf(d,s);return a+(Number.isFinite(value)?value:0)},0);return html+'<div style="height:6px"></div>'+row(`${series.length}종목 합계`,signed(total,'원'),clsBy(total))},'symbol');
 }
 function drawStacked(){
   const svg=document.getElementById('chartAlloc');if(!svg)return;clear(svg);
@@ -2493,7 +2531,7 @@ function drawStacked(){
   const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(maxY-v)/(maxY-minY)*(h-t-b)};drawAxes(svg,cfg,ticks);
   data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;series.forEach(key=>{const value=Number(d[key]||0),yTop=cfg.y(base+value),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:colors[key],opacity:.75,stroke:'#fff','stroke-width':.4}));base+=value})});
   labelDates(svg,cfg,data,3);
-  addHover(svg,cfg,data,d=>{const displayedTotal=series.reduce((a,key)=>a+Number(d[key]||0),0),total=selection.all?(Number(d._total)||displayedTotal):displayedTotal;let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(key=>{const value=Number(d[key]||0),share=total?value/total*100:0;html+=row(key,fmt(value)+`원 (${share.toFixed(1)}%)`)});return html+'<div style="height:6px"></div>'+row('합계',fmt(total)+'원')});
+  addHover(svg,cfg,data,d=>{const displayedTotal=series.reduce((a,key)=>a+Number(d[key]||0),0),total=selection.all?(Number(d._total)||displayedTotal):displayedTotal;let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(key=>{const value=Number(d[key]||0),share=total?value/total*100:0;html+=row(chartDisplayLabel('securitiesAlloc',key),fmt(value)+`원 (${share.toFixed(1)}%)`)});return html+'<div style="height:6px"></div>'+row('합계',fmt(total)+'원')});
 }
 function refreshScrollHints(){
   document.querySelectorAll('.scroll-hint').forEach(el=>el.remove());

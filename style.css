@@ -7449,3 +7449,208 @@ body.chart-expanded-open .dash-tooltip{
     background:#161b22 !important;
   }
 }
+
+/* 2026-08-12 mobile chart header/control refinement */
+.chart-title-info{
+  display:none;
+}
+
+.phone-chart-ui .chart-head{
+  align-items:center !important;
+  gap:7px !important;
+}
+.phone-chart-ui .chart-head > div:first-child{
+  flex:1 1 auto;
+  min-width:0;
+}
+.phone-chart-ui .chart-head h3{
+  display:flex !important;
+  align-items:center !important;
+  flex-wrap:nowrap !important;
+  gap:4px !important;
+  min-width:0;
+  white-space:nowrap;
+}
+.phone-chart-ui .chart-title-sub{
+  display:none !important;
+}
+.phone-chart-ui .chart-title-info{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:18px;
+  height:18px;
+  flex:0 0 18px;
+  margin-left:1px;
+  padding:0;
+  border:1.5px solid #94a3b8;
+  border-radius:50%;
+  background:#fff;
+  color:#64748b;
+  font-family:inherit;
+  font-size:12px;
+  font-weight:900;
+  line-height:1;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  z-index:12;
+}
+.phone-chart-ui .chart-title-info > span[aria-hidden="true"]{
+  transform:translateY(-.2px);
+}
+.phone-chart-ui .chart-title-info-tooltip{
+  position:absolute;
+  left:50%;
+  top:calc(100% + 7px);
+  width:max-content;
+  max-width:min(210px,calc(100vw - 44px));
+  padding:7px 9px;
+  border:1px solid #d7dee8;
+  border-radius:9px;
+  background:#0f172a;
+  color:#fff;
+  box-shadow:0 8px 22px rgba(15,23,42,.2);
+  font-size:10.5px;
+  font-weight:700;
+  line-height:1.35;
+  letter-spacing:-.02em;
+  white-space:nowrap;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translate(-50%,-3px);
+  transition:opacity .12s ease,transform .12s ease,visibility .12s ease;
+  z-index:30;
+}
+.phone-chart-ui .chart-title-info.open .chart-title-info-tooltip{
+  opacity:1;
+  visibility:visible;
+  transform:translate(-50%,0);
+}
+.dark .phone-chart-ui .chart-title-info{
+  border-color:#64748b;
+  background:#111827;
+  color:#cbd5e1;
+}
+.dark .phone-chart-ui .chart-title-info-tooltip{
+  border-color:#334155;
+  background:#f8fafc;
+  color:#0f172a;
+}
+
+/* On phones, the expand control belongs to the title row; compare/series controls stay below. */
+.phone-chart-ui .chart-head > .chart-expand-button{
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  width:25px !important;
+  height:25px !important;
+  flex:0 0 25px !important;
+  margin-left:auto;
+  padding:0 !important;
+  border:1px solid #cbd5e1;
+  border-radius:8px !important;
+  background:#fff;
+  color:#334155;
+  box-shadow:none !important;
+  cursor:pointer;
+}
+.phone-chart-ui .chart-head > .chart-expand-button svg{
+  width:13px;
+  height:13px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  pointer-events:none;
+}
+.dark .phone-chart-ui .chart-head > .chart-expand-button{
+  background:#111827;
+  border-color:#334155;
+  color:#e2e8f0;
+}
+.phone-chart-ui .chart-scroll-row{
+  display:flex !important;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+  min-height:25px;
+  margin:2px 1px 5px;
+}
+.phone-chart-ui .chart-scroll-row.has-compare-toggle .chart-head-actions{
+  margin-left:0 !important;
+  margin-right:auto !important;
+}
+.phone-chart-ui .chart-scroll-start,
+.phone-chart-ui .chart-scroll-end{
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  width:25px !important;
+  height:25px !important;
+  flex:0 0 25px !important;
+  padding:0 !important;
+  border-radius:8px !important;
+  font-size:15px !important;
+  box-shadow:none !important;
+}
+
+/* Use the same compact legend/control arrangement in portrait and iPhone landscape. */
+.phone-chart-ui > .chart-legend{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:26px;
+}
+.phone-chart-ui > .chart-legend > .chart-legend-control{
+  display:none !important;
+}
+.phone-chart-ui > .chart-legend > .chart-legend-series{
+  width:100%;
+  justify-content:center;
+  gap:6px 9px;
+}
+.phone-chart-ui .chart-mobile-series-controls{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  flex:0 0 auto;
+  min-width:0;
+}
+.phone-chart-ui .chart-mobile-series-controls button{
+  font-family:inherit;
+  cursor:pointer;
+}
+.phone-chart-ui .chart-mobile-series-all{
+  min-width:38px;
+  min-height:25px;
+  padding:2px 7px !important;
+  font-size:10.5px !important;
+  line-height:1 !important;
+  white-space:nowrap;
+}
+.phone-chart-ui .chart-mobile-y-slot{
+  display:inline-flex;
+  align-items:center;
+  width:70px;
+  flex:0 0 70px;
+}
+.phone-chart-ui .chart-mobile-y-auto{
+  width:70px;
+  min-height:25px;
+  justify-content:center;
+  gap:4px;
+  padding:2px 5px;
+  font-size:10.5px;
+}
+.phone-chart-ui .chart-mobile-y-auto .chart-y-auto-state{
+  min-width:25px;
+  padding:1px 4px;
+  font-size:9.5px;
+}
+.phone-chart-ui .chart-mobile-y-auto-placeholder{
+  visibility:hidden;
+  pointer-events:none;
+}
