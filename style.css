@@ -7572,8 +7572,8 @@ body.chart-expanded-open .dash-tooltip{
   color:#e2e8f0;
 }
 .phone-chart-ui .chart-scroll-row{
-  --phone-chart-control-inset:6px;
-  --phone-chart-leading-switch-width:106px;
+  --phone-chart-control-inset:0px;
+  --phone-chart-leading-switch-width:96px;
   display:grid !important;
   grid-template-columns:minmax(0,1fr) 25px 25px;
   align-items:center !important;
@@ -7603,13 +7603,14 @@ body.chart-expanded-open .dash-tooltip{
   display:flex;
   width:100%;
   min-width:0;
+  padding:1px;
   box-sizing:border-box;
 }
 .phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-head-actions .chart-compare-toggle > button{
   flex:1 1 0;
   min-width:0 !important;
-  padding-left:4px !important;
-  padding-right:4px !important;
+  padding-left:2px !important;
+  padding-right:2px !important;
 }
 .phone-chart-ui .chart-scroll-start,
 .phone-chart-ui .chart-scroll-end{
