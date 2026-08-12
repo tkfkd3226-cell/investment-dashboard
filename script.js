@@ -36,7 +36,7 @@ const SEPARATE_PROFIT_TRADES=Object.freeze([
   {date:'2026-08-07',profit:163334},
   {date:'2026-08-12',profit:68059}
 ]);
-const SEPARATE_PROFIT_REINVESTED=7743379;
+const SEPARATE_PROFIT_REINVESTED=6700000;
 let INCLUDE_SEPARATE_PROFIT=false;
 let SKIP_CHART_ENTRANCE_ONCE=false;
 let SKIP_SECURITIES_CUM_CARD_TRANSITION_ONCE=false;
@@ -382,6 +382,7 @@ const basisText=d=>{
 function previousDate(date){return allAvailableDates().filter(d=>d<date).sort(byDate).at(-1)||null}function getPrice(s,section,ticker){return s?.[section]?.[ticker]??null}
 const securityEventItems=()=>Array.isArray(PORTFOLIO?.securitiesEvents)?PORTFOLIO.securitiesEvents:[];
 const securityChartItemsForDate=d=>(PORTFOLIO?.securities||[]).filter(item=>item.chart!==false&&(!item.chartFrom||d>=item.chartFrom));
+const securityValuationOverride=(ticker,d)=>{const e=securityEventItems().find(v=>String(v?.ticker||'')===String(ticker||'')&&String(v?.date||'')===String(d||'')&&Number(v?.valuationPrice)>0);return e?Number(e.valuationPrice):null};
 const securityChartNamesForDate=d=>securityChartItemsForDate(d).map(item=>item.name);
 const securityEventsBetween=(fromDate,toDate,ticker=null)=>securityEventItems().filter(v=>{
   const date=String(v?.date||'');
@@ -534,7 +535,7 @@ function calc(date){
     allocTotal=daily.totalEval;
   }else{
     holdings=p.securities.map(h=>{
-      const state=securityPositionState(h,date),prevState=pk?securityPositionState(h,pk):null,marketPrice=getPrice(s,'securities',h.ticker),prevPrice=prev?getPrice(prev,'securities',h.ticker):null,tradeFlow=pk?securityTradeFlow(pk,date,h.ticker):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0};
+      const state=securityPositionState(h,date),prevState=pk?securityPositionState(h,pk):null,marketPrice=securityValuationOverride(h.ticker,date)??getPrice(s,'securities',h.ticker),prevPrice=pk?(securityValuationOverride(h.ticker,pk)??getPrice(prev,'securities',h.ticker)):null,tradeFlow=pk?securityTradeFlow(pk,date,h.ticker):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0};
       const postClosePending=!!(h.chartFrom&&date<h.chartFrom&&securityEventItems().some(v=>v.type==='buy'&&String(v?.ticker||'')===String(h.ticker||'')&&String(v?.date||'')===date));
       const price=postClosePending&&state.qty?state.cost/state.qty:marketPrice,evalAmount=postClosePending?state.cost:(price||0)*state.qty,profit=postClosePending?0:evalAmount-state.cost,feeAdjustedProfit=postClosePending?0:profit-(h.feeBuffer||0),prevEval=prevPrice==null||!prevState?null:prevPrice*prevState.qty,prevProfit=prevPrice==null||!prevState?null:prevEval-prevState.cost,dayChange=postClosePending?null:(prevEval==null?null:evalAmount-prevEval-tradeFlow.buyAmount+tradeFlow.sellAmount);
       return {...h,qty:state.qty,cost:state.cost,avgPrice:state.qty?state.cost/state.qty:0,price,prevPrice,evalAmount,profit,feeAdjustedProfit,returnRate:state.cost?profit/state.cost*100:0,prevEval,dayChange,prevProfit,tradeFlow,postClosePending};
@@ -625,7 +626,7 @@ function securitySymbolAllocHistory(d,series){
     const v=calc(x),row={'날짜':x,'_total':Number(v.allocTotal||0)};
     series.forEach(name=>{
       const h=v.holdings.find(item=>item.name===name);
-      row[name]=Number(h?.qty)===1?0:Number(h?.evalAmount||0);
+      row[name]=h&&securityAllocHoldingVisible(h,x)?Number(h?.evalAmount||0):0;
     });
     row['현금']=Number(v.securitiesCash||0);
     return row;
@@ -1374,11 +1375,16 @@ function securityAllocToggle(){
   const mode=SECURITY_ALLOC_MODE==='symbol'?'symbol':'type';
   return `<div class="chart-compare-toggle" role="group" aria-label="증권계좌 평가액 비중 표시 기준"><button type="button" class="${mode==='type'?'active':''}" data-security-alloc-mode="type" aria-pressed="${mode==='type'}" onclick="setSecurityAllocMode('type')">유형별</button><button type="button" class="${mode==='symbol'?'active':''}" data-security-alloc-mode="symbol" aria-pressed="${mode==='symbol'}" onclick="setSecurityAllocMode('symbol')">종목별</button></div>`;
 }
+function securityAllocHoldingVisible(h,date){
+  const oneShare=Number(h?.qty)===1;
+  const explicitChart=oneShare&&h?.chart===true&&(!h?.chartFrom||String(date||'')>=String(h.chartFrom));
+  return !oneShare||explicitChart;
+}
 function securityAllocVisibleHoldings(x){
-  return (x?.holdings||[]).filter(h=>Number(h?.qty)!==1);
+  return (x?.holdings||[]).filter(h=>securityAllocHoldingVisible(h,x?.date));
 }
 function securityAllocOneShareEval(x){
-  return (x?.holdings||[]).filter(h=>Number(h?.qty)===1).reduce((sum,h)=>sum+Number(h?.evalAmount||0),0);
+  return (x?.holdings||[]).filter(h=>Number(h?.qty)===1&&!securityAllocHoldingVisible(h,x?.date)).reduce((sum,h)=>sum+Number(h?.evalAmount||0),0);
 }
 function securityAllocTypeTotals(x){
   const holdings=securityAllocVisibleHoldings(x);
