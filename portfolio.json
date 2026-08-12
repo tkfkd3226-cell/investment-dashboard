@@ -1,0 +1,207 @@
+{
+  "meta": {
+    "title": "투자 성과 대시보드",
+    "description": "현재 보유분은 가격으로 자동 계산하고, 과거 성과 차트는 실제 장부 스냅샷을 기준으로 표시하는 투자 성과 대시보드입니다.",
+    "baseDate": "2026-06-26",
+    "currency": "KRW"
+  },
+  "constants": {
+    "externalPrincipal": 21767083,
+    "goldPrincipal": 7000000,
+    "laborNetPrincipal": 7023704,
+    "account1Principal": 24328348,
+    "account1ProfitAdjustment": -466322,
+    "account2Principal": 4121865,
+    "account2Profit": 1489352,
+    "account2RealizedAmount": 5611217,
+    "account2ReinvestedToAccount1": 4372135,
+    "tossProfit": 6351989,
+    "tossRealizedAmount": 6351989,
+    "tossReinvestedToAccount1": 2009374,
+    "securitiesCash": 58790,
+    "livingSpent": 3063626,
+    "pensionContributionPrincipal": 24139249,
+    "pensionCashCost": 39717
+  },
+  "securities": [
+    {
+      "name": "삼성전자",
+      "ticker": "005930",
+      "type": "개별주식",
+      "qty": 10,
+      "cost": 2394550,
+      "feeBuffer": 74,
+      "chart": true,
+      "cssClass": "ticker-samsung"
+    },
+    {
+      "name": "SK하이닉스",
+      "ticker": "000660",
+      "type": "개별주식",
+      "qty": 2,
+      "cost": 2714000,
+      "feeBuffer": 88,
+      "chart": true,
+      "cssClass": "ticker-sk"
+    },
+    {
+      "name": "현대차",
+      "ticker": "005380",
+      "type": "개별주식",
+      "qty": 4,
+      "cost": 2185000,
+      "feeBuffer": 67,
+      "chart": true,
+      "cssClass": "ticker-hyundai"
+    },
+    {
+      "name": "KODEX 200",
+      "ticker": "069500",
+      "type": "ETF",
+      "qty": 100,
+      "cost": 8920080,
+      "feeBuffer": 373,
+      "chart": true,
+      "cssClass": "ticker-kodex"
+    },
+    {
+      "name": "KoAct 코스닥액티브",
+      "ticker": "0163Y0",
+      "type": "ETF",
+      "qty": 1,
+      "cost": 12395,
+      "feeBuffer": 0,
+      "chart": false,
+      "cssClass": "ticker-mini"
+    },
+    {
+      "name": "KODEX AI반도체",
+      "ticker": "395160",
+      "type": "ETF",
+      "qty": 193,
+      "cost": 6739565,
+      "feeBuffer": 0,
+      "chart": true,
+      "cssClass": "ticker-mini",
+      "chartFrom": "2026-08-10"
+    },
+    {
+      "name": "KODEX 로봇액티브",
+      "ticker": "445290",
+      "type": "ETF",
+      "qty": 1,
+      "cost": 30620,
+      "feeBuffer": 1,
+      "chart": false,
+      "cssClass": "ticker-mini"
+    },
+    {
+      "name": "삼성전기",
+      "ticker": "009150",
+      "type": "개별주식",
+      "qty": 1,
+      "cost": 1345000,
+      "feeBuffer": 41,
+      "chart": true,
+      "cssClass": "ticker-mini",
+      "chartFrom": "2026-08-13"
+    }
+  ],
+  "pension": [
+    {
+      "name": "KODEX 200TR",
+      "ticker": "278530",
+      "qty": 662,
+      "cost": 18359075,
+      "barClass": "bar-blue"
+    },
+    {
+      "name": "KODEX AI반도체",
+      "ticker": "395160",
+      "qty": 193,
+      "cost": 4733460,
+      "barClass": "bar-green"
+    },
+    {
+      "name": "KODEX 삼전채권혼합",
+      "ticker": "448330",
+      "qty": 687,
+      "cost": 11273430,
+      "barClass": "bar-amber"
+    }
+  ],
+  "securitiesEvents": [
+    {
+      "id": "sec-contrib-20260810-01",
+      "date": "2026-08-10",
+      "type": "contribution",
+      "amount": 3700000,
+      "memo": "성과 제외 자금 전입",
+      "fundingClass": "performanceExcludedTransfer"
+    },
+    {
+      "id": "sec-buy-20260810-395160",
+      "date": "2026-08-10",
+      "type": "buy",
+      "ticker": "395160",
+      "qty": 105,
+      "price": 35310,
+      "amount": 3707550,
+      "memo": "KODEX AI반도체 중기투자 추가매수"
+    },
+    {
+      "id": "sec-contrib-20260810-02",
+      "date": "2026-08-10",
+      "type": "contribution",
+      "amount": 3000000,
+      "memo": "성과 제외 자금 전입 2차",
+      "fundingClass": "performanceExcludedTransfer"
+    },
+    {
+      "id": "sec-buy-20260810-395160-02",
+      "date": "2026-08-10",
+      "type": "buy",
+      "ticker": "395160",
+      "qty": 86,
+      "price": 34550,
+      "amount": 2971300,
+      "memo": "KODEX AI반도체 중기투자 추가매수 2차"
+    },
+    {
+      "id": "sec-buy-20260810-395160-03",
+      "date": "2026-08-10",
+      "type": "buy",
+      "ticker": "395160",
+      "qty": 1,
+      "price": 34615,
+      "amount": 34615,
+      "memo": "KODEX AI반도체 중기투자 추가매수 3차"
+    },
+    {
+      "id": "sec-contrib-20260812-separate-profit",
+      "date": "2026-08-12",
+      "type": "contribution",
+      "amount": 1043379,
+      "memo": "별도수익 재투입",
+      "fundingClass": "performanceExcludedTransfer"
+    },
+    {
+      "id": "sec-contrib-20260812-outside-cash",
+      "date": "2026-08-12",
+      "type": "contribution",
+      "amount": 301621,
+      "memo": "6/18 확인 현금 내부이동",
+      "fundingClass": "internalCashTransfer"
+    },
+    {
+      "id": "sec-buy-20260812-009150",
+      "date": "2026-08-12",
+      "type": "buy",
+      "ticker": "009150",
+      "qty": 1,
+      "price": 1345000,
+      "amount": 1345000,
+      "memo": "삼성전기 NXT 신규매수"
+    }
+  ]
+}

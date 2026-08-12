@@ -33,9 +33,10 @@ const SEPARATE_PROFIT_TRADES=Object.freeze([
   {date:'2026-08-04',profit:206313},
   {date:'2026-08-05',profit:4826661},
   {date:'2026-08-06',profit:202219},
-  {date:'2026-08-07',profit:163334}
+  {date:'2026-08-07',profit:163334},
+  {date:'2026-08-12',profit:68059}
 ]);
-const SEPARATE_PROFIT_REINVESTED=6700000;
+const SEPARATE_PROFIT_REINVESTED=7743379;
 let INCLUDE_SEPARATE_PROFIT=false;
 let SKIP_CHART_ENTRANCE_ONCE=false;
 let SKIP_SECURITIES_CUM_CARD_TRANSITION_ONCE=false;
@@ -403,6 +404,9 @@ const securityPositionState=(pos,d)=>{
   return {qty:Math.max(0,qty),cost:Math.max(0,cost)};
 };
 const securitiesCashForDate=d=>{
+  const latestPriceDate=Object.keys(PRICES||{}).filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&PRICES?.[v]?.display!==false).sort(byDate).at(-1)||'';
+  const savedCash=SNAPSHOTS?.[d]?.allocation?.['현금'];
+  if(latestPriceDate&&d<latestPriceDate&&Number.isFinite(Number(savedCash))) return Number(savedCash);
   let cash=Number(PORTFOLIO?.constants?.securitiesCash)||0;
   securityEventItems().filter(v=>String(v?.date||'')>d).forEach(v=>{
     const amount=Math.max(0,Number(v.amount)||0);
@@ -412,13 +416,17 @@ const securitiesCashForDate=d=>{
   return cash;
 };
 const isPerformanceExcludedSecurityFunding=v=>v?.type==='contribution'&&v?.fundingClass==='performanceExcludedTransfer';
+const isInternalCashTransferSecurityFunding=v=>v?.type==='contribution'&&v?.fundingClass==='internalCashTransfer';
 const securityContributionAfter=d=>securityEventItems().filter(v=>v.type==='contribution'&&String(v?.date||'')>d).reduce((a,v)=>a+(Number(v.amount)||0),0);
+const securityExternalPrincipalContributionAfter=d=>securityEventItems().filter(v=>v.type==='contribution'&&!isInternalCashTransferSecurityFunding(v)&&String(v?.date||'')>d).reduce((a,v)=>a+(Number(v.amount)||0),0);
 const securityWithdrawalAfter=d=>securityEventItems().filter(v=>v.type==='withdrawal'&&String(v?.date||'')>d).reduce((a,v)=>a+(Number(v.amount)||0),0);
-const securityExternalContributionSum=d=>securityEventItems().filter(v=>v.type==='contribution'&&!isPerformanceExcludedSecurityFunding(v)&&String(v?.date||'')<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
+const securityExternalContributionSum=d=>securityEventItems().filter(v=>v.type==='contribution'&&!isPerformanceExcludedSecurityFunding(v)&&!isInternalCashTransferSecurityFunding(v)&&String(v?.date||'')<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
 const securityExcludedTransferSum=d=>securityEventItems().filter(v=>isPerformanceExcludedSecurityFunding(v)&&String(v?.date||'')<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
+const securityInternalCashTransferSum=d=>securityEventItems().filter(v=>isInternalCashTransferSecurityFunding(v)&&String(v?.date||'')<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
 const account1PrincipalForDate=d=>(Number(PORTFOLIO?.constants?.account1Principal)||0)-securityContributionAfter(d)+securityWithdrawalAfter(d);
-const externalPrincipalForDate=d=>(Number(PORTFOLIO?.constants?.externalPrincipal)||0)-securityContributionAfter(d)+securityWithdrawalAfter(d);
+const externalPrincipalForDate=d=>(Number(PORTFOLIO?.constants?.externalPrincipal)||0)-securityExternalPrincipalContributionAfter(d)+securityWithdrawalAfter(d);
 const sourceExternalPrincipalForDate=d=>externalPrincipalForDate(d)-securityExcludedTransferSum(d);
+const outsideCashForDate=d=>(Number(PORTFOLIO?.constants?.outsideCash??2035097)||0)-securityInternalCashTransferSum(d);
 const separateProfitCumulativeForDate=d=>SEPARATE_PROFIT_TRADES.filter(v=>v.date<=d).reduce((a,v)=>a+v.profit,0);
 const separateProfitReinvestedForDate=d=>Math.min(SEPARATE_PROFIT_REINVESTED,securityExcludedTransferSum(d),Math.max(0,separateProfitCumulativeForDate(d)));
 const separateProfitView=x=>{
@@ -526,8 +534,10 @@ function calc(date){
     allocTotal=daily.totalEval;
   }else{
     holdings=p.securities.map(h=>{
-      const state=securityPositionState(h,date),prevState=pk?securityPositionState(h,pk):null,price=getPrice(s,'securities',h.ticker),prevPrice=prev?getPrice(prev,'securities',h.ticker):null,evalAmount=(price||0)*state.qty,profit=evalAmount-state.cost,feeAdjustedProfit=profit-(h.feeBuffer||0),prevEval=prevPrice==null||!prevState?null:prevPrice*prevState.qty,prevProfit=prevPrice==null||!prevState?null:prevEval-prevState.cost,tradeFlow=pk?securityTradeFlow(pk,date,h.ticker):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0},dayChange=prevEval==null?null:evalAmount-prevEval-tradeFlow.buyAmount+tradeFlow.sellAmount;
-      return {...h,qty:state.qty,cost:state.cost,avgPrice:state.qty?state.cost/state.qty:0,price,prevPrice,evalAmount,profit,feeAdjustedProfit,returnRate:state.cost?profit/state.cost*100:0,prevEval,dayChange,prevProfit,tradeFlow};
+      const state=securityPositionState(h,date),prevState=pk?securityPositionState(h,pk):null,marketPrice=getPrice(s,'securities',h.ticker),prevPrice=prev?getPrice(prev,'securities',h.ticker):null,tradeFlow=pk?securityTradeFlow(pk,date,h.ticker):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0};
+      const postClosePending=!!(h.chartFrom&&date<h.chartFrom&&securityEventItems().some(v=>v.type==='buy'&&String(v?.ticker||'')===String(h.ticker||'')&&String(v?.date||'')===date));
+      const price=postClosePending&&state.qty?state.cost/state.qty:marketPrice,evalAmount=postClosePending?state.cost:(price||0)*state.qty,profit=postClosePending?0:evalAmount-state.cost,feeAdjustedProfit=postClosePending?0:profit-(h.feeBuffer||0),prevEval=prevPrice==null||!prevState?null:prevPrice*prevState.qty,prevProfit=prevPrice==null||!prevState?null:prevEval-prevState.cost,dayChange=postClosePending?null:(prevEval==null?null:evalAmount-prevEval-tradeFlow.buyAmount+tradeFlow.sellAmount);
+      return {...h,qty:state.qty,cost:state.cost,avgPrice:state.qty?state.cost/state.qty:0,price,prevPrice,evalAmount,profit,feeAdjustedProfit,returnRate:state.cost?profit/state.cost*100:0,prevEval,dayChange,prevProfit,tradeFlow,postClosePending};
     });
     securitiesCash=securitiesCashForDate(date);
     rawHoldingProfit=holdings.reduce((a,h)=>a+h.profit,0);
@@ -1804,7 +1814,7 @@ function render(){
 }
 function renderResultSummary(x){
   const c=PORTFOLIO.constants,v=separateProfitView(x);
-  const outsideCash=c.outsideCash ?? 2035097;
+  const outsideCashBase=c.outsideCash ?? 2035097,outsideCash=outsideCashForDate(x.date),outsideCashUsed=securityInternalCashTransferSum(x.date);
   const separateUnreflected=v.unreflectedSeparateProfit;
   const outsideCashBasis=outsideCash+(INCLUDE_SEPARATE_PROFIT?separateUnreflected:0);
   const actualHoldingAndCash=x.allocTotal+outsideCashBasis;
@@ -1814,9 +1824,10 @@ function renderResultSummary(x){
   const reasonDetail='현재 보유액에서 제외된 사용분';
   const footnoteMark='<span style="color:#EF3341;font-weight:800">(1)</span>';
   const footnoteSup='<sup style="color:#EF3341;font-size:.72em;font-weight:800;margin-left:2px;line-height:0">(1)</sup>';
+  const outsideCashFlowText=outsideCashUsed?`6/18 확인값 ${won(outsideCashBase)} - 투자 사용 ${won(outsideCashUsed)}`:`6/18 확인값 ${won(outsideCashBase)}`;
   const note=INCLUDE_SEPARATE_PROFIT
-    ?`<p class="table-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCashBasis)} = 6/18 확인값 ${won(outsideCash)} + 6~8월 별도손익 중 현 보유자산 미반영분 ${won(separateUnreflected)}</p>`
-    :`<p class="table-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCash)} = 6/18 확인값 ${won(outsideCash)}</p>`;
+    ?`<p class="table-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCashBasis)} = ${outsideCashFlowText} + 6~8월 별도손익 중 현 보유자산 미반영분 ${won(separateUnreflected)}</p>`
+    :`<p class="table-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCash)} = ${outsideCashFlowText}</p>`;
   const ledgerSourceSub='계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준<br>출처: 연금+계좌 성과 &gt; 증권계좌 투자 결과물';
   const actualHoldingSub=`증권계좌 평가총액(${won(x.allocTotal)}) +<br>실현수익 반영 현금 보유액(${won(outsideCashBasis)})${footnoteSup}`;
   return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon">🔍</span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid cards">${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),ledgerSourceSub,true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),actualHoldingSub)}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,cls(ledgerGap))}${metricCard('차액 발생 이유',reasonValue,reasonDetail,false)}</div>${note}</section>`;
@@ -2054,8 +2065,8 @@ function renderAccounts(x){
   return `<section id="accounts-summary" ${mobileViewAttrs('accounts')}><div class="section-title"><h2><span class="section-title-icon">📋</span>계좌별 성과 요약</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('accounts')}</div></div><div class="mobile-scroll accounts-scroll table-view"><table class="accounts-table"><thead><tr><th class="accounts-name-head">구분</th><th>투자원금</th><th>누적손익</th><th>수익률</th><th>메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="accounts-name">${r[0]}</td><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${cls(r[2])}">${fmt(r[2])}</td><td class="num ${cls(r[3])}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${accountMemoTableHtml(r[4])}</td></tr>`).join('')}${totalRow}</tbody></table></div><div class="mobile-card-view">${cards}</div>${hiddenNote}</section>`;
 }
 function renderSourceTables(x){
-  const c=PORTFOLIO.constants,vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal,extraContribution=securityExternalContributionSum(x.date),excludedTransfer=securityExcludedTransferSum(x.date),baseAccount1Principal=account1PrincipalForDate(x.date),externalPrincipal=sourceExternalPrincipalForDate(x.date),reclassified=INCLUDE_SEPARATE_PROFIT?separateProfitReinvestedForDate(x.date):0,account1Principal=baseAccount1Principal-reclassified,extraRow=extraContribution?`<tr><td>추가 외부투입</td><td class="num">${fmt(extraContribution)}</td></tr>`:'',excludedRow=!INCLUDE_SEPARATE_PROFIT&&excludedTransfer?`<tr><td>기타 자금 투입</td><td class="num">${fmt(excludedTransfer)}</td></tr>`:'',reclassNote=INCLUDE_SEPARATE_PROFIT&&reclassified?`<div class="source-reclass-note"><strong>6~8월 별도수익 재투입 ${won(reclassified)}</strong><span>AI반도체 재투입분 · 투자원금 산정 제외</span></div>`:'';
-  return `<section id="capital-source-check" class="capital-source-section"><div class="section-title source-title"><h2><span class="section-title-icon">🧾</span>투자원금 원천 및 검산</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid three source-grid"><div class="card source-card"><div class="label">계좌1 원천별 투입</div><div class="value">${won(account1Principal)}</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num negative">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr>${excludedRow}${extraRow}<tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(account1Principal)}</td></tr></tbody></table>${reclassNote}</div><div class="card source-card highlight"><div class="label">전체 투입원금</div><div class="value">${won(externalPrincipal)}</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr>${extraRow}<tr class="summary-row"><td>합계</td><td class="num">${fmt(externalPrincipal)}</td></tr></tbody></table></div><div class="card source-card"><div class="label">계좌1 투자원금 검산</div><div class="value">${won(account1Principal)}</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>전체 투입원금</td><td class="num">${fmt(externalPrincipal)}</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입</td><td class="num">${fmt(vipProfitReinvest)}</td></tr>${excludedRow}<tr class="summary-row"><td>검산값</td><td class="num">${fmt(account1Principal)}</td></tr></tbody></table>${reclassNote}</div></div></section>`;
+  const c=PORTFOLIO.constants,vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal,extraContribution=securityExternalContributionSum(x.date),excludedTransfer=securityExcludedTransferSum(x.date),internalCashTransfer=securityInternalCashTransferSum(x.date),baseAccount1Principal=account1PrincipalForDate(x.date),externalPrincipal=sourceExternalPrincipalForDate(x.date),reclassified=INCLUDE_SEPARATE_PROFIT?separateProfitReinvestedForDate(x.date):0,account1Principal=baseAccount1Principal-reclassified,extraRow=extraContribution?`<tr><td>추가 외부투입</td><td class="num">${fmt(extraContribution)}</td></tr>`:'',excludedRow=!INCLUDE_SEPARATE_PROFIT&&excludedTransfer?`<tr><td>기타 자금 투입</td><td class="num">${fmt(excludedTransfer)}</td></tr>`:'',internalCashRow=internalCashTransfer?`<tr><td>기존 현금 내부이동</td><td class="num">${fmt(internalCashTransfer)}</td></tr>`:'',reclassNote=INCLUDE_SEPARATE_PROFIT&&reclassified?`<div class="source-reclass-note"><strong>6~8월 별도수익 재투입 ${won(reclassified)}</strong><span>별도수익 재투입분 · 투자원금 산정 제외</span></div>`:'';
+  return `<section id="capital-source-check" class="capital-source-section"><div class="section-title source-title"><h2><span class="section-title-icon">🧾</span>투자원금 원천 및 검산</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid three source-grid"><div class="card source-card"><div class="label">계좌1 원천별 투입</div><div class="value">${won(account1Principal)}</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num negative">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr>${excludedRow}${internalCashRow}${extraRow}<tr class="summary-row"><td>계좌1 투자원금</td><td class="num">${fmt(account1Principal)}</td></tr></tbody></table>${reclassNote}</div><div class="card source-card highlight"><div class="label">전체 투입원금</div><div class="value">${won(externalPrincipal)}</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>금 판매액 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr>${extraRow}<tr class="summary-row"><td>합계</td><td class="num">${fmt(externalPrincipal)}</td></tr></tbody></table></div><div class="card source-card"><div class="label">계좌1 투자원금 검산</div><div class="value">${won(account1Principal)}</div><table style="font-size:12px;margin-top:12px;border-radius:12px"><tbody><tr><td>전체 투입원금</td><td class="num">${fmt(externalPrincipal)}</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입</td><td class="num">${fmt(vipProfitReinvest)}</td></tr>${excludedRow}${internalCashRow}<tr class="summary-row"><td>검산값</td><td class="num">${fmt(account1Principal)}</td></tr></tbody></table>${reclassNote}</div></div></section>`;
 }
 
 function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
