@@ -6,10 +6,10 @@
     "currency": "KRW"
   },
   "constants": {
-    "externalPrincipal": 20723704,
+    "externalPrincipal": 21767083,
     "goldPrincipal": 7000000,
     "laborNetPrincipal": 7023704,
-    "account1Principal": 22983348,
+    "account1Principal": 24328348,
     "account1ProfitAdjustment": -466322,
     "account2Principal": 4121865,
     "account2Profit": 1489352,
@@ -18,7 +18,7 @@
     "tossProfit": 6351989,
     "tossRealizedAmount": 6351989,
     "tossReinvestedToAccount1": 2009374,
-    "securitiesCash": 3790,
+    "securitiesCash": 58790,
     "livingSpent": 3063626,
     "pensionContributionPrincipal": 24139249,
     "pensionCashCost": 39717
@@ -94,6 +94,17 @@
       "feeBuffer": 1,
       "chart": false,
       "cssClass": "ticker-mini"
+    },
+    {
+      "name": "삼성전기",
+      "ticker": "009150",
+      "type": "개별주식",
+      "qty": 1,
+      "cost": 1345000,
+      "feeBuffer": 41,
+      "chart": true,
+      "cssClass": "ticker-mini",
+      "chartFrom": "2026-08-13"
     }
   ],
   "pension": [
@@ -165,6 +176,32 @@
       "price": 34615,
       "amount": 34615,
       "memo": "KODEX AI반도체 중기투자 추가매수 3차"
+    },
+    {
+      "id": "sec-contrib-20260812-separate-profit",
+      "date": "2026-08-12",
+      "type": "contribution",
+      "amount": 1043379,
+      "memo": "별도수익 재투입",
+      "fundingClass": "performanceExcludedTransfer"
+    },
+    {
+      "id": "sec-contrib-20260812-outside-cash",
+      "date": "2026-08-12",
+      "type": "contribution",
+      "amount": 301621,
+      "memo": "6/18 확인 현금 내부이동",
+      "fundingClass": "internalCashTransfer"
+    },
+    {
+      "id": "sec-buy-20260812-009150",
+      "date": "2026-08-12",
+      "type": "buy",
+      "ticker": "009150",
+      "qty": 1,
+      "price": 1345000,
+      "amount": 1345000,
+      "memo": "삼성전기 NXT 신규매수"
     }
   ]
 }
