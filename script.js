@@ -1108,14 +1108,16 @@ function syncResponsiveChartControls(){
     if(!card||!row)return;
     card.classList.toggle('phone-chart-ui',mobile);
     if(head&&actions){
+      const hasLeadingSwitch=!!actions.querySelector('.chart-compare-toggle');
       if(mobile){
         if(actions.parentElement!==row)row.prepend(actions);
         if(mobileExpand&&mobileExpand.parentElement!==head)head.appendChild(mobileExpand);
         row.classList.add('has-compare-toggle');
+        row.classList.toggle('has-leading-switch',hasLeadingSwitch);
       }else{
         if(actions.parentElement!==head)head.appendChild(actions);
         if(mobileExpand&&mobileExpand.parentElement!==row)row.appendChild(mobileExpand);
-        row.classList.remove('has-compare-toggle');
+        row.classList.remove('has-compare-toggle','has-leading-switch');
       }
     }
     const legendId=chartLegendId(scope),legend=legendId?document.getElementById(legendId):null;

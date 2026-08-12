@@ -7573,17 +7573,43 @@ body.chart-expanded-open .dash-tooltip{
 }
 .phone-chart-ui .chart-scroll-row{
   --phone-chart-control-inset:6px;
-  display:flex !important;
-  align-items:center;
-  justify-content:flex-end;
-  gap:5px;
+  --phone-chart-leading-switch-width:106px;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 25px 25px;
+  align-items:center !important;
+  justify-content:stretch !important;
+  column-gap:5px !important;
   min-height:25px;
   margin:2px 1px 5px;
-  padding-left:var(--phone-chart-control-inset);
+  padding-left:var(--phone-chart-control-inset) !important;
+  padding-right:0 !important;
+  box-sizing:border-box;
 }
-.phone-chart-ui .chart-scroll-row.has-compare-toggle .chart-head-actions{
-  margin-left:0 !important;
-  margin-right:auto !important;
+.phone-chart-ui .chart-scroll-row.has-leading-switch{
+  grid-template-columns:var(--phone-chart-leading-switch-width) minmax(0,1fr) 25px 25px;
+}
+.phone-chart-ui .chart-scroll-row:not(.has-leading-switch) > .chart-head-actions{
+  display:none !important;
+}
+.phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-head-actions{
+  grid-column:1;
+  justify-self:start;
+  align-self:center;
+  width:var(--phone-chart-leading-switch-width);
+  min-width:0;
+  margin:0 !important;
+}
+.phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-head-actions .chart-compare-toggle{
+  display:flex;
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+.phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-head-actions .chart-compare-toggle > button{
+  flex:1 1 0;
+  min-width:0 !important;
+  padding-left:4px !important;
+  padding-right:4px !important;
 }
 .phone-chart-ui .chart-scroll-start,
 .phone-chart-ui .chart-scroll-end{
@@ -7597,7 +7623,12 @@ body.chart-expanded-open .dash-tooltip{
   border-radius:8px !important;
   font-size:15px !important;
   box-shadow:none !important;
+  justify-self:end;
 }
+.phone-chart-ui .chart-scroll-start{grid-column:2}
+.phone-chart-ui .chart-scroll-end{grid-column:3}
+.phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-scroll-start{grid-column:3}
+.phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-scroll-end{grid-column:4}
 
 /* Use the same compact legend/control arrangement in portrait and iPhone landscape. */
 .phone-chart-ui > .chart-legend{
@@ -7620,6 +7651,13 @@ body.chart-expanded-open .dash-tooltip{
   gap:4px;
   flex:0 0 auto;
   min-width:0;
+  grid-column:1;
+  justify-self:start;
+  align-self:center;
+  margin:0;
+}
+.phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-mobile-series-controls{
+  grid-column:2;
 }
 .phone-chart-ui .chart-mobile-series-controls button{
   font-family:inherit;
