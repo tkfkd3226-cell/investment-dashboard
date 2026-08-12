@@ -374,6 +374,16 @@ def security_events(portfolio: dict[str, Any]) -> list[dict[str, Any]]:
     return events if isinstance(events, list) else []
 
 
+def security_valuation_override(portfolio: dict[str, Any], ticker: str, target_date: str) -> int | None:
+    for event in security_events(portfolio):
+        if str(event.get("ticker", "")) != str(ticker) or str(event.get("date", "")) != target_date:
+            continue
+        value = int(event.get("valuationPrice", 0) or 0)
+        if value > 0:
+            return value
+    return None
+
+
 def security_position_state(item: dict[str, Any], target_date: str, portfolio: dict[str, Any]) -> tuple[float, int]:
     qty = float(item.get("qty", 0) or 0)
     cost = int(item.get("cost", 0) or 0)
@@ -528,8 +538,16 @@ def update_one_date(
     prev_key, prev = previous_snapshot(prices, before=target_date)
     securities, pension, warnings, actual_dates = {}, {}, [], set()
 
+    manual_valuation_used = False
     for item in portfolio["securities"]:
         ticker = item["ticker"]
+        valuation_override = security_valuation_override(portfolio, ticker, target_date)
+        if valuation_override is not None:
+            securities[ticker] = int(valuation_override)
+            actual_dates.add(target_date)
+            manual_valuation_used = True
+            continue
+
         actual, close, err = fetch_close(ticker, target_date)
 
         if close is None:
@@ -578,7 +596,7 @@ def update_one_date(
 
     prices[target_date] = {
         "display": display,
-        "source": "pykrx-github-actions",
+        "source": "pykrx-github-actions+nxt-valuation" if manual_valuation_used else "pykrx-github-actions",
         "marketStatus": status,
         "requestedDate": target_date,
         "actualMarketDate": actual_date,
