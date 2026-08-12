@@ -1012,21 +1012,58 @@ function setupExpandedChartViewport(){
   window.addEventListener('orientationchange',sync,{passive:true});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&EXPANDED_CHART_STATE)closeExpandedChart()});
 }
+const RESPONSIVE_CHART_SCOPES=[
+  {id:'pension-chart-cum',scope:'pensionCum'},
+  {id:'chart-cum',scope:'securitiesCum'},
+  {id:'pension-chart-symbol',scope:'pensionSymbol'},
+  {id:'chart-symbol',scope:'securitiesSymbol'},
+  {id:'chart-alloc',scope:'securitiesAlloc'},
+  {id:'pension-chart-alloc',scope:'pensionAlloc'}
+];
+function mobileChartSeriesControlsHtml(scope){
+  const selection=chartSelection(scope),autoY=selection.state.autoY===true;
+  const allButton=`<button type="button" class="legend-item chart-series-all chart-mobile-series-all${selection.all?' active':''}" aria-pressed="${selection.all}" onclick="toggleChartSeries('${scope}','__all__')">전체</button>`;
+  const autoButton=selection.all
+    ? `<button type="button" class="chart-y-auto-toggle chart-mobile-y-auto chart-mobile-y-auto-placeholder" tabindex="-1" aria-hidden="true"><span>Y축</span><span class="chart-y-auto-state">OFF</span></button>`
+    : `<button type="button" class="chart-y-auto-toggle chart-mobile-y-auto${autoY?' active':''}" role="switch" aria-checked="${autoY}" onclick="setChartAutoY('${scope}',${autoY?'false':'true'})"><span>Y축</span><span class="chart-y-auto-state">${autoY?'ON':'OFF'}</span></button>`;
+  return `${allButton}<span class="chart-mobile-y-slot">${autoButton}</span>`;
+}
+function syncMobileChartSeriesControls(scope,card,row){
+  if(!card||!row)return;
+  let host=row.querySelector(`.chart-mobile-series-controls[data-chart-scope="${scope}"]`);
+  if(!host){
+    host=document.createElement('span');
+    host.className='chart-mobile-series-controls';
+    host.dataset.chartScope=scope;
+    const nav=row.querySelector('.chart-scroll-start');
+    row.insertBefore(host,nav||null);
+  }
+  host.innerHTML=mobileChartSeriesControlsHtml(scope);
+}
+function refreshMobileChartSeriesControls(scope){
+  const item=RESPONSIVE_CHART_SCOPES.find(entry=>entry.scope===scope);
+  if(!item)return;
+  const card=document.getElementById(item.id),row=card?.querySelector('.chart-scroll-row');
+  if(card&&row)syncMobileChartSeriesControls(scope,card,row);
+}
 function syncResponsiveChartControls(){
   const mobile=window.matchMedia('(max-width:760px)').matches;
-  ['pension-chart-cum','chart-cum','pension-chart-symbol','chart-symbol','chart-alloc'].forEach(id=>{
+  RESPONSIVE_CHART_SCOPES.forEach(({id,scope})=>{
     const card=document.getElementById(id);
     const head=card?.querySelector('.chart-head');
     const actions=card?.querySelector('.chart-head-actions');
     const row=card?.querySelector('.chart-scroll-row');
-    if(!head||!actions||!row)return;
-    if(mobile){
-      if(actions.parentElement!==row)row.prepend(actions);
-      row.classList.add('has-compare-toggle');
-    }else{
-      if(actions.parentElement!==head)head.appendChild(actions);
-      row.classList.remove('has-compare-toggle');
+    if(!card||!row)return;
+    if(head&&actions){
+      if(mobile){
+        if(actions.parentElement!==row)row.prepend(actions);
+        row.classList.add('has-compare-toggle');
+      }else{
+        if(actions.parentElement!==head)head.appendChild(actions);
+        row.classList.remove('has-compare-toggle');
+      }
     }
+    syncMobileChartSeriesControls(scope,card,row);
   });
 }
 function setupResponsiveChartControls(){
@@ -1237,6 +1274,7 @@ function chartLegendHtml(scope){
 function refreshChartLegend(scope){
   const id=chartLegendId(scope),legend=id?document.getElementById(id):null;
   if(legend)legend.innerHTML=chartLegendHtml(scope);
+  refreshMobileChartSeriesControls(scope);
 }
 function redrawChartScope(scope){
   const drawers={
@@ -1370,6 +1408,7 @@ function setSecurityAllocMode(mode){
   const legend=document.getElementById('securityAllocLegend');
   const cards=document.getElementById('securityAllocCards');
   if(x&&legend)legend.innerHTML=securityAllocLegendHtml(x);
+  refreshMobileChartSeriesControls('securitiesAlloc');
   if(x&&cards){
     cards.style.setProperty('--security-alloc-card-count',String(securityAllocCardCount(x)));
     cards.innerHTML=securityAllocCardsHtml(x);

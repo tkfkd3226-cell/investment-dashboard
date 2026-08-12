@@ -519,6 +519,10 @@ svg.chart{
   color:#1d4ed8;
 }
 
+.chart-mobile-series-controls{
+  display:none;
+}
+
 .swatch{
   width:12px;
   height:12px;
@@ -6786,6 +6790,64 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
 }
 
 @media (max-width:760px) and (orientation:portrait){
+  /* Mobile: keep the data legend centered and move chart controls to the existing navigation row. */
+  .chart-card > .chart-legend{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:26px;
+  }
+  .chart-card > .chart-legend > .chart-legend-control{
+    display:none !important;
+  }
+  .chart-card > .chart-legend > .chart-legend-series{
+    width:100%;
+    justify-content:center;
+    gap:6px 9px;
+  }
+  .chart-mobile-series-controls{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    flex:0 0 auto;
+    min-width:0;
+  }
+  .chart-mobile-series-controls button{
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .chart-mobile-series-all{
+    min-width:38px;
+    min-height:25px;
+    padding:2px 7px !important;
+    font-size:10.5px !important;
+    line-height:1 !important;
+    white-space:nowrap;
+  }
+  .chart-mobile-y-slot{
+    display:inline-flex;
+    align-items:center;
+    width:70px;
+    flex:0 0 70px;
+  }
+  .chart-mobile-y-auto{
+    width:70px;
+    min-height:25px;
+    justify-content:center;
+    gap:4px;
+    padding:2px 5px;
+    font-size:10.5px;
+  }
+  .chart-mobile-y-auto .chart-y-auto-state{
+    min-width:25px;
+    padding:1px 4px;
+    font-size:9.5px;
+  }
+  .chart-mobile-y-auto-placeholder{
+    visibility:hidden;
+    pointer-events:none;
+  }
+
   .chart-expand-button{
     display:inline-flex !important;
     align-items:center;
@@ -6815,6 +6877,32 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
     background:#111827;
     border-color:#334155;
     color:#e2e8f0;
+  }
+}
+
+@media (max-width:360px) and (orientation:portrait){
+  .chart-mobile-series-controls{
+    gap:3px;
+  }
+  .chart-mobile-series-all{
+    min-width:34px;
+    padding:2px 5px !important;
+    font-size:10px !important;
+  }
+  .chart-mobile-y-slot{
+    width:58px;
+    flex-basis:58px;
+  }
+  .chart-mobile-y-auto{
+    width:58px;
+    gap:2px;
+    padding:2px 3px;
+    font-size:10px;
+  }
+  .chart-mobile-y-auto .chart-y-auto-state{
+    min-width:23px;
+    padding:1px 3px;
+    font-size:9px;
   }
 }
 
