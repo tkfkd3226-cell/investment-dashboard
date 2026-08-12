@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import time
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
@@ -398,7 +399,18 @@ def security_position_state(item: dict[str, Any], target_date: str, portfolio: d
     return max(0.0, qty), max(0, cost)
 
 
-def securities_cash_for_date(target_date: str, portfolio: dict[str, Any]) -> int:
+def securities_cash_for_date(target_date: str, portfolio: dict[str, Any], snapshots: dict[str, Any] | None = None) -> int:
+    if isinstance(snapshots, dict):
+        saved_dates = sorted(
+            date for date, item in snapshots.items()
+            if isinstance(date, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", date) and isinstance(item, dict)
+        )
+        if saved_dates and target_date < saved_dates[-1]:
+            allocation = snapshots.get(target_date, {}).get("allocation", {})
+            saved_cash = allocation.get("현금") if isinstance(allocation, dict) else None
+            if saved_cash is not None:
+                return int(saved_cash)
+
     cash = int(portfolio.get("constants", {}).get("securitiesCash", 0) or 0)
     for event in security_events(portfolio):
         if str(event.get("date", "")) <= target_date:
@@ -451,14 +463,26 @@ def calculate_performance_snapshot(target_date: str, portfolio: dict[str, Any], 
 
     raw_holding_profit = 0
     symbols = init_security_symbols(portfolio, target_date)
-    allocation = {"ETF": 0, "개별주식": 0, "현금": securities_cash_for_date(target_date, portfolio)}
+    allocation = {"ETF": 0, "개별주식": 0, "현금": securities_cash_for_date(target_date, portfolio, snapshots)}
 
     for item in portfolio["securities"]:
         ticker = item["ticker"]
-        price = int(securities_prices.get(ticker, 0))
+        market_price = int(securities_prices.get(ticker, 0))
         qty, cost = security_position_state(item, target_date, portfolio)
-        eval_amount = int(round(price * qty))
-        profit = eval_amount - cost
+        chart_from = str(item.get("chartFrom", "") or "")
+        post_close_pending = bool(
+            chart_from
+            and target_date < chart_from
+            and any(
+                str(event.get("type", "")) == "buy"
+                and str(event.get("ticker", "")) == str(ticker)
+                and str(event.get("date", "")) == target_date
+                for event in security_events(portfolio)
+            )
+        )
+        price = int(round(cost / qty)) if post_close_pending and qty else market_price
+        eval_amount = cost if post_close_pending else int(round(price * qty))
+        profit = 0 if post_close_pending else eval_amount - cost
         raw_holding_profit += profit
 
         if item.get("type") == "ETF":
