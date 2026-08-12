@@ -12,13 +12,13 @@ const CHART_COMPARE_MODES={securities:'return',pension:'return'};
 const SYMBOL_CHART_MODES={securities:'profit',pension:'profit'};
 let SECURITY_ALLOC_MODE='type';
 const CHART_SERIES_STATE={
-  securitiesCum:{selected:null,autoY:true},
-  pensionCum:{selected:null,autoY:true},
-  securitiesSymbol:{selected:null,autoY:true},
-  pensionSymbol:{selected:null,autoY:true},
-  'securitiesAlloc:type':{selected:null,autoY:true},
-  'securitiesAlloc:symbol':{selected:null,autoY:true},
-  pensionAlloc:{selected:null,autoY:true}
+  securitiesCum:{selected:null,autoY:false},
+  pensionCum:{selected:null,autoY:false},
+  securitiesSymbol:{selected:null,autoY:false},
+  pensionSymbol:{selected:null,autoY:false},
+  'securitiesAlloc:type':{selected:null,autoY:false},
+  'securitiesAlloc:symbol':{selected:null,autoY:false},
+  pensionAlloc:{selected:null,autoY:false}
 };
 let PERSONAL_VIEW_UNLOCKED=false;
 const PERSONAL_VIEW_PASSWORD='820421';
@@ -1150,7 +1150,7 @@ function chartStateKey(scope){
 }
 function chartState(scope){
   const key=chartStateKey(scope);
-  if(!CHART_SERIES_STATE[key])CHART_SERIES_STATE[key]={selected:null,autoY:true};
+  if(!CHART_SERIES_STATE[key])CHART_SERIES_STATE[key]={selected:null,autoY:false};
   return CHART_SERIES_STATE[key];
 }
 function chartLegendId(scope){
@@ -1219,22 +1219,20 @@ function chartSelection(scope){
   state.selected=new Set(selected);
   return {available,selected,all:false,state};
 }
-function chartSeriesSelected(scope,key){
-  return chartSelection(scope).selected.has(key);
-}
 function chartAutoYEnabled(scope){
   const selection=chartSelection(scope);
-  return !selection.all&&selection.state.autoY!==false;
+  return !selection.all&&selection.state.autoY===true;
 }
 function chartLegendHtml(scope){
   const items=chartLegendItems(scope),selection=chartSelection(scope);
+  const autoY=selection.state.autoY===true;
   const allButton=`<button type="button" class="legend-item chart-series-all${selection.all?' active':''}" aria-pressed="${selection.all}" onclick="toggleChartSeries('${scope}','__all__')">전체</button>`;
   const itemButtons=items.map(item=>{
     const active=selection.selected.has(item.key);
     return `<button type="button" class="legend-item chart-series-toggle${active?' active':' inactive'}" aria-pressed="${active}" onclick="toggleChartSeries('${scope}',decodeURIComponent('${encodeURIComponent(item.key)}'))"><span class="swatch" style="background:${item.color}"></span>${item.label}</button>`;
   }).join('');
-  const autoButton=selection.all?'':`<button type="button" class="chart-y-auto-toggle${selection.state.autoY!==false?' active':''}" role="switch" aria-checked="${selection.state.autoY!==false}" onclick="setChartAutoY('${scope}',${selection.state.autoY===false?'true':'false'})"><span>Y축 자동 재계산</span><span class="chart-y-auto-state">${selection.state.autoY!==false?'ON':'OFF'}</span></button>`;
-  return allButton+itemButtons+autoButton;
+  const autoButton=selection.all?'':`<button type="button" class="chart-y-auto-toggle${autoY?' active':''}" role="switch" aria-checked="${autoY}" onclick="setChartAutoY('${scope}',${autoY?'false':'true'})"><span>Y축 자동 재계산</span><span class="chart-y-auto-state">${autoY?'ON':'OFF'}</span></button>`;
+  return `<span class="chart-legend-control chart-legend-control-left">${allButton}</span><span class="chart-legend-series">${itemButtons}</span><span class="chart-legend-control chart-legend-control-right">${autoButton}</span>`;
 }
 function refreshChartLegend(scope){
   const id=chartLegendId(scope),legend=id?document.getElementById(id):null;
@@ -2288,7 +2286,7 @@ function drawPensionSymbolChart(){
   const yInfo=mode==='rate'?fixedTickInfo(Math.min(0,...values),Math.max(0,...values),20,true):fixedTickInfo(Math.min(0,...values),Math.max(0,...values),2000000,true),w=1120,h=330,l=82,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   const cfg={w,h,l,r,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),yFormatter:mode==='rate'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%'):null};drawAxes(svg,cfg,yInfo.ticks);
   const plotW=w-l-r,n=data.length;series.forEach(name=>{const pts=data.map((d,i)=>[l+(n===1?0:i*plotW/(n-1)),cfg.y(valueOf(d,name))]);polyline(svg,pts,pensionSeriesColor(name));circles(svg,pts,pensionSeriesColor(name))});labelDates(svg,cfg,data,3);
-  addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const rate=Number(d._rates?.[s]||0),value=mode==='rate'?`${rate>0?'+':''}${pct(rate)}`:`${signed(d[s]||0,'원')} (${rate>0?'+':''}${pct(rate)})`;html+=row(s,value,clsBy(mode==='rate'?rate:(d[s]||0)))});if(mode==='rate')return html;const total=series.reduce((a,s)=>a+(d[s]||0),0);return html+'<div style="height:6px"></div>'+row(`${series.length}상품 합계`,signed(total,'원'),clsBy(total))},'symbol');
+  addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const rate=Number(d._rates?.[s]||0),value=mode==='rate'?`${rate>0?'+':''}${pct(rate)}`:`${signed(d[s]||0,'원')} (${rate>0?'+':''}${pct(rate)})`;html+=row(s,value,clsBy(mode==='rate'?rate:(d[s]||0)))});if(mode==='rate')return html;const total=series.reduce((a,s)=>a+(d[s]||0),0);return html+'<div style="height:6px"></div>'+row(selection.all?'상품 합계':`${series.length}상품 합계`,signed(total,'원'),clsBy(total))},'symbol');
 }
 function drawPensionStacked(){
   const data=pensionAllocHistory(ACTIVE_DATE),svg=document.getElementById('pensionChartAlloc');if(!svg||!data.length)return;clear(svg);
