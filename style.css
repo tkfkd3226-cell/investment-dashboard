@@ -7573,7 +7573,7 @@ body.chart-expanded-open .dash-tooltip{
 }
 .phone-chart-ui .chart-scroll-row{
   --phone-chart-control-inset:0px;
-  --phone-chart-leading-switch-width:96px;
+  --phone-chart-leading-switch-width:94px;
   display:grid !important;
   grid-template-columns:minmax(0,1fr) 25px 25px;
   align-items:center !important;
@@ -7649,9 +7649,10 @@ body.chart-expanded-open .dash-tooltip{
 .phone-chart-ui .chart-mobile-series-controls{
   display:inline-flex;
   align-items:center;
-  gap:4px;
+  gap:3px;
   flex:0 0 auto;
   min-width:0;
+  max-width:100%;
   grid-column:1;
   justify-self:start;
   align-self:center;
@@ -7665,9 +7666,9 @@ body.chart-expanded-open .dash-tooltip{
   cursor:pointer;
 }
 .phone-chart-ui .chart-mobile-series-all{
-  min-width:38px;
+  min-width:36px;
   min-height:25px;
-  padding:2px 7px !important;
+  padding:2px 6px !important;
   font-size:10.5px !important;
   line-height:1 !important;
   white-space:nowrap;
@@ -7675,20 +7676,20 @@ body.chart-expanded-open .dash-tooltip{
 .phone-chart-ui .chart-mobile-y-slot{
   display:inline-flex;
   align-items:center;
-  width:70px;
-  flex:0 0 70px;
+  width:64px;
+  flex:0 0 64px;
 }
 .phone-chart-ui .chart-mobile-y-auto{
-  width:70px;
+  width:64px;
   min-height:25px;
   justify-content:center;
-  gap:4px;
-  padding:2px 5px;
+  gap:3px;
+  padding:2px 4px;
   font-size:10.5px;
 }
 .phone-chart-ui .chart-mobile-y-auto .chart-y-auto-state{
-  min-width:25px;
-  padding:1px 4px;
+  min-width:23px;
+  padding:1px 3px;
   font-size:9.5px;
 }
 .phone-chart-ui .chart-mobile-y-auto-placeholder{
