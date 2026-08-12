@@ -517,6 +517,7 @@ function toggleSeparateProfitModeFromExpanded(cardId){
 function calc(date){
   const p=PORTFOLIO,c=p.constants,s=PRICES[date]||{},pk=previousDate(date),prev=pk?PRICES[pk]:null,daily=ACCOUNT1_DAILY?.[date]||null,extraPensionContrib=pensionContributionSum(date),prevExtraPensionContrib=pk?pensionContributionSum(pk):0,pensionPrincipal=(Number(c.pensionContributionPrincipal)||0)+extraPensionContrib;
   const account2Included=includeAccount2(date),tossIncluded=includeToss(date),hasPension=hasPensionData(date);
+  const ledgerAccount1ActualGap=(Number(c.account2RealizedAmount)||0)-(Number(c.account2ReinvestedToAccount1)||0)+(Number(c.tossRealizedAmount)||0)-(Number(c.tossReinvestedToAccount1)||0)-(Number(c.outsideCash??2035097)||0)-(Number(c.livingSpent)||0);
   let holdings,rawHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,etfEval,stockEval,allocTotal,securitiesCash;
   if(daily){
     const prevDaily=pk?ACCOUNT1_DAILY?.[pk]:null;
@@ -527,8 +528,8 @@ function calc(date){
     securitiesCash=daily.cash;
     rawHoldingProfit=daily.totalProfit;
     account1Principal=isLedgerCheckDate(date)?account1PrincipalForDate(date):daily.totalCost;
-    account1Profit=isLedgerCheckDate(date)?daily.totalProfit+c.account1ProfitAdjustment:daily.totalProfit;
-    account1Result=account1Principal+account1Profit;
+    account1Result=isLedgerCheckDate(date)?Number(daily.totalEval||0)-ledgerAccount1ActualGap:daily.totalCost+daily.totalProfit;
+    account1Profit=account1Result-account1Principal;
     account1Return=account1Principal?account1Profit/account1Principal*100:0;
     etfEval=holdings.filter(h=>h.type==='ETF').reduce((a,h)=>a+h.evalAmount,0);
     stockEval=holdings.filter(h=>h.type==='개별주식').reduce((a,h)=>a+h.evalAmount,0);
@@ -543,16 +544,17 @@ function calc(date){
     securitiesCash=securitiesCashForDate(date);
     rawHoldingProfit=holdings.reduce((a,h)=>a+h.profit,0);
     account1Principal=account1PrincipalForDate(date);
-    account1Profit=rawHoldingProfit+c.account1ProfitAdjustment;
-    account1Result=account1Principal+account1Profit;
-    account1Return=account1Principal?account1Profit/account1Principal*100:0;
     etfEval=holdings.filter(h=>h.type==='ETF').reduce((a,h)=>a+h.evalAmount,0);
     stockEval=holdings.filter(h=>h.type==='개별주식').reduce((a,h)=>a+h.evalAmount,0);
     allocTotal=etfEval+stockEval+securitiesCash;
+    account1Result=isLedgerCheckDate(date)?allocTotal-ledgerAccount1ActualGap:account1Principal+rawHoldingProfit+c.account1ProfitAdjustment;
+    account1Profit=account1Result-account1Principal;
+    account1Return=account1Principal?account1Profit/account1Principal*100:0;
   }
   const account2Profit=account2Included?c.account2Profit:0,account2Principal=account2Included?c.account2Principal:0,account2RealizedAmount=account2Included?c.account2RealizedAmount:0,account2Remainder=account2Included?c.account2RealizedAmount-c.account2ReinvestedToAccount1:0;
   const tossProfit=tossIncluded?c.tossProfit:0,tossRealizedAmount=tossIncluded?c.tossRealizedAmount:0,tossRemainder=tossIncluded?c.tossRealizedAmount-c.tossReinvestedToAccount1:0;
-  const totalProfit=account1Profit+account2Profit+tossProfit,totalResult=account1Result+account2Remainder+tossRemainder;
+  const internalCashTransfer=isLedgerCheckDate(date)?securityInternalCashTransferSum(date):0;
+  const totalProfit=account1Profit+account2Profit+tossProfit,totalResult=account1Result+account2Remainder+tossRemainder-internalCashTransfer;
   const totalPrincipal=account2Included?externalPrincipalForDate(date):account1Principal;
   const returnRate=totalPrincipal?totalProfit/totalPrincipal*100:0;
   const actualHolding=isLedgerCheckDate(date)?totalResult-c.livingSpent:null;
