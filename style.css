@@ -7572,12 +7572,14 @@ body.chart-expanded-open .dash-tooltip{
   color:#e2e8f0;
 }
 .phone-chart-ui .chart-scroll-row{
+  --phone-chart-control-inset:6px;
   display:flex !important;
   align-items:center;
   justify-content:flex-end;
   gap:5px;
   min-height:25px;
   margin:2px 1px 5px;
+  padding-left:var(--phone-chart-control-inset);
 }
 .phone-chart-ui .chart-scroll-row.has-compare-toggle .chart-head-actions{
   margin-left:0 !important;
