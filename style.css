@@ -415,6 +415,85 @@ svg.chart{
   gap:5px;
 }
 
+.chart-legend button.legend-item,
+.chart-y-auto-toggle{
+  appearance:none;
+  -webkit-appearance:none;
+  border:0;
+  font:inherit;
+  color:inherit;
+  cursor:pointer;
+}
+
+.chart-legend button.legend-item{
+  background:transparent;
+  padding:4px 3px;
+  border-radius:7px;
+  transition:opacity .15s ease,background-color .15s ease,color .15s ease;
+}
+
+.chart-series-toggle.inactive{
+  opacity:.38;
+}
+
+.chart-series-toggle:focus-visible,
+.chart-series-all:focus-visible,
+.chart-y-auto-toggle:focus-visible{
+  outline:2px solid #93c5fd;
+  outline-offset:2px;
+}
+
+.chart-series-all{
+  padding:3px 8px !important;
+  border:1px solid #d7dde5 !important;
+  border-radius:999px !important;
+  background:#fff !important;
+  color:#64748b !important;
+  font-weight:700 !important;
+}
+
+.chart-series-all.active{
+  border-color:#cbd5e1 !important;
+  background:#f1f5f9 !important;
+  color:#334155 !important;
+}
+
+.chart-y-auto-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:26px;
+  padding:3px 7px;
+  border:1px solid #d7dde5;
+  border-radius:999px;
+  background:#fff;
+  color:#64748b;
+  font-size:11px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.chart-y-auto-toggle.active{
+  background:#f8fafc;
+  color:#334155;
+}
+
+.chart-y-auto-state{
+  min-width:28px;
+  padding:1px 5px;
+  border-radius:999px;
+  background:#e2e8f0;
+  color:#64748b;
+  font-size:10px;
+  line-height:1.5;
+  text-align:center;
+}
+
+.chart-y-auto-toggle.active .chart-y-auto-state{
+  background:#dbeafe;
+  color:#1d4ed8;
+}
+
 .swatch{
   width:12px;
   height:12px;
