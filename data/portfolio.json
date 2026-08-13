@@ -112,22 +112,19 @@
       "name": "KODEX 200TR",
       "ticker": "278530",
       "qty": 662,
-      "cost": 18359075,
-      "barClass": "bar-blue"
+      "cost": 18359075
     },
     {
       "name": "KODEX AI반도체",
       "ticker": "395160",
       "qty": 193,
-      "cost": 4733460,
-      "barClass": "bar-green"
+      "cost": 4733460
     },
     {
       "name": "KODEX 삼전채권혼합",
       "ticker": "448330",
       "qty": 687,
-      "cost": 11273430,
-      "barClass": "bar-amber"
+      "cost": 11273430
     }
   ],
   "securitiesEvents": [
