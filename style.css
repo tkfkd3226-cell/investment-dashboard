@@ -2669,7 +2669,7 @@ body.contrib-modal-open{
 /* Keep the intentional 1-share table marker neutral on the sticky first column. */
 @media (max-width:900px){
   .hold-position-table tbody tr.ticker-mini td:first-child{
-    background:#f0f2f5 !important;
+    background:var(--soft-gray) !important;
   }
 }
 
@@ -3372,8 +3372,6 @@ button:active,
   .dark .date-action-menu.mobile-combined-menu .mobile-nav-group p{color:#8b949e !important}
   .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:6px !important;min-height:30px !important;padding:5px 6px !important;border-radius:5px !important;text-decoration:none !important;font-size:12px !important;font-weight:400 !important;line-height:17px !important;box-shadow:none !important}
   .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{padding-left:6px !important}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item.theme-icon-only{width:30px !important;min-height:30px !important;padding:5px !important;justify-content:center !important}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item.theme-icon-only .nav-icon{font-size:14px !important}
   .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{flex:0 0 16px !important;width:16px !important;height:16px !important;margin:0 !important;border:0 !important;border-radius:0 !important;background:transparent !important;font-size:0 !important;box-shadow:none !important}
   .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{display:block !important;width:16px !important;height:16px !important}
   .date-action-menu.mobile-combined-menu .mobile-nav-item strong{display:block !important;color:inherit !important;font-size:12px !important;font-weight:500 !important;line-height:17px !important}
@@ -4948,6 +4946,7 @@ body.chart-expanded-open .dash-tooltip{
 .date-tool-action-icon{margin-right:3px;font-size:12px}
 .topbar-theme-action{width:32px;padding:0}
 .topbar-theme-action .date-tool-action-icon{margin-right:0;font-size:14px}
+.mobile-theme-btn{display:none}
 .date-tool-icon{display:inline;font-size:14px;line-height:1}
 .date-tool-menu-label{display:inline}
 .date-action-menu-wrap{
@@ -5034,7 +5033,7 @@ body.chart-expanded-open .dash-tooltip{
     height:0 !important;
     margin:0 !important;
   }
-  .date-picker-action > :not(.date-action-menu-wrap){display:none !important}
+  .date-picker-action > :not(.date-action-menu-wrap):not(.mobile-theme-btn){display:none !important}
   .date-tool-btn-desktop{display:none !important}
   .compact-action-menu-wrap{display:none !important}
   .month-select,
@@ -5060,7 +5059,7 @@ body.chart-expanded-open .dash-tooltip{
     margin:0 !important;
     pointer-events:auto !important;
   }
-  .date-tool-menu-btn{
+  .mobile-topbar-icon-btn{
     position:relative;
     z-index:2;
     width:30px !important;
@@ -5074,6 +5073,14 @@ body.chart-expanded-open .dash-tooltip{
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
   }
+  .mobile-theme-btn{
+    display:inline-flex !important;
+    position:fixed !important;
+    top:max(6px, env(safe-area-inset-top)) !important;
+    right:41px !important;
+    z-index:2400 !important;
+  }
+  .mobile-theme-btn .date-tool-action-icon{margin-right:0 !important;font-size:14px !important}
   .date-tool-icon{font-size:15px !important}
   .date-tool-menu-label{display:none !important}
 
@@ -5096,7 +5103,7 @@ body.chart-expanded-open .dash-tooltip{
     width:100% !important;
     height:auto !important;
     min-height:0 !important;
-    grid-template-columns:minmax(132px,1.2fr) minmax(88px,.72fr) 30px !important;
+    grid-template-columns:minmax(118px,1.2fr) minmax(82px,.72fr) 30px 30px !important;
     align-items:center !important;
     gap:4px !important;
     overflow:visible !important;
@@ -5115,6 +5122,8 @@ body.chart-expanded-open .dash-tooltip{
     max-width:100% !important;
     flex:initial !important;
   }
+  .switcher.mobile-menu-open .mobile-theme-btn,
+  .switcher.mobile-date-pinned .mobile-theme-btn,
   .switcher.mobile-menu-open .date-action-menu-wrap,
   .switcher.mobile-date-pinned .date-action-menu-wrap{
     position:relative !important;
@@ -5135,7 +5144,8 @@ body.chart-expanded-open .dash-tooltip{
 
 /* Extra-small phone: preserve the existing compact hamburger/select typography. */
 @media(max-width:374px){
-  .date-tool-menu-btn{
+  .mobile-theme-btn{right:40px !important}
+  .mobile-topbar-icon-btn{
     width:29px !important;
     min-width:29px !important;
     max-width:29px !important;

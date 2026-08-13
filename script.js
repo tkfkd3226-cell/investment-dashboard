@@ -719,12 +719,6 @@ function renderUnifiedMobileMenuContent(){
       ]
     },
     {
-      label:'화면',
-      items:[
-        {type:'action',action:'toggleTheme();closeDateActionMenu();',title:currentTheme()==='dark'?'밝은 모드':'다크 모드',themeToggle:true}
-      ]
-    },
-    {
       label:'전체',
       items:[
         {type:'section',id:'summary-section',icon:'home',title:'연금+계좌 성과'}
@@ -756,15 +750,10 @@ function renderUnifiedMobileMenuContent(){
     }
   ];
   return groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>{
-    const inner=item.themeToggle
-      ?`<span class="nav-icon" data-theme-toggle-icon>${currentTheme()==='dark'?'☀️':'🌙'}</span>`
-      :`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
-    const cls=`mobile-nav-item ${item.themeToggle?'theme-icon-only ':''}${idx?'sub':''}`;
+    const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
+    const cls=`mobile-nav-item ${idx?'sub':''}`;
     if(item.type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" onclick="closeDateActionMenu()">${inner}</a>`;
-    if(item.type==='action'){
-      const themeAttrs=item.themeToggle?` data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${item.title}로 전환" aria-label="${item.title}로 전환"`:'';
-      return `<button type="button" class="${cls}"${themeAttrs} onclick="${item.action}">${inner}</button>`;
-    }
+    if(item.type==='action') return `<button type="button" class="${cls}" onclick="${item.action}">${inner}</button>`;
     return `<button type="button" class="${cls}" onclick="jumpToSection('${item.id}');closeDateActionMenu()">${inner}</button>`;
   }).join('')}</div>`).join('');
 }
@@ -903,8 +892,11 @@ function renderTabs(){
             <button type="button" class="compact-menu-pension" onclick="openPensionContributionModal();closeCompactActionMenu()"><span>💰</span><strong>퇴직연금 금액 조정</strong></button>
           </div>
         </div>
+        <button type="button" class="date-tool-btn mobile-topbar-icon-btn mobile-theme-btn" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" onclick="toggleTheme()">
+          <span class="date-tool-action-icon" data-theme-toggle-icon>${currentTheme()==='dark'?'☀️':'🌙'}</span>
+        </button>
         <div class="date-action-menu-wrap">
-          <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
+          <button type="button" id="dateActionMenuButton" class="date-tool-btn mobile-topbar-icon-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
           <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><div class="mobile-nav-head-actions"><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} onchange="setMobileDatePinned(this.checked)"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div></div>${renderUnifiedMobileMenuContent()}</div>
         </div>
       </div>
