@@ -548,6 +548,26 @@ svg.chart{
   #securityAllocCards.security-alloc-card-grid{
     grid-template-columns:repeat(var(--security-alloc-card-count,4),minmax(0,1fr));
   }
+  #securityAllocCards.security-alloc-card-grid > .alloc-total-card{
+    display:grid;
+    grid-template-columns:max-content max-content;
+    column-gap:6px;
+    align-items:baseline;
+    justify-content:start;
+  }
+  #securityAllocCards.security-alloc-card-grid > .alloc-total-card > .m-label{
+    grid-column:1 / -1;
+  }
+  #securityAllocCards.security-alloc-card-grid > .alloc-total-card > .m-value{
+    grid-column:1;
+  }
+  #securityAllocCards.security-alloc-card-grid > .alloc-total-card > .cash-include-detail{
+    grid-column:2;
+    margin-top:2px;
+  }
+  #securityAllocCards.security-alloc-card-grid > .alloc-total-card-wide{
+    grid-column:span 2;
+  }
 }
 
 @media (max-width:900px){
