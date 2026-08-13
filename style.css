@@ -4645,8 +4645,9 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   flex:1 1 auto;
 }
 .chart-expanded-legend-host{
+  position:relative;
   min-height:20px;
-  overflow:hidden;
+  overflow:visible;
 }
 .chart-expanded-legend-host:empty{display:none}
 .chart-expanded-legend-host .chart-legend{
@@ -5300,7 +5301,14 @@ body.chart-expanded-open .dash-tooltip{
   display:none !important;
 }
 .chart-expanded-legend-host > .chart-options-row{
-  margin:0 0 4px;
+  position:absolute;
+  left:50%;
+  bottom:calc(100% + 4px);
+  z-index:2;
+  width:max-content;
+  max-width:100%;
+  margin:0;
+  transform:translateX(-50%);
 }
 
 /* Dashboard data tables: shared structure, typography, alignment and overflow. */
