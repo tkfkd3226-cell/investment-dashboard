@@ -3997,7 +3997,6 @@ svg.chart{
 /* Subtle visual effects polish */
 .card,
 .note,
-.chart-card,
 .pension-insight-card,
 .mini-card{
   transition:
@@ -4010,7 +4009,6 @@ svg.chart{
 @media(hover:hover) and (pointer:fine){
   .card:hover,
   .note:hover,
-  .chart-card:hover,
   .pension-insight-card:hover,
   .mini-card:hover{
     transform:translateY(-2px);
@@ -4020,7 +4018,6 @@ svg.chart{
 
   .dark .card:hover,
   .dark .note:hover,
-  .dark .chart-card:hover,
   .dark .pension-insight-card:hover,
   .dark .mini-card:hover{
     box-shadow:0 16px 38px rgba(0,0,0,.34);
@@ -4111,7 +4108,6 @@ button:active,
 @media(max-width:760px){
   .card,
   .note,
-  .chart-card,
   .pension-insight-card,
   .mini-card{
     transition:box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
@@ -7564,6 +7560,20 @@ body.chart-expanded-open .dash-tooltip{
 /* Phone allocation summary: the total card owns the full grid row. */
 .phone-chart-ui #securityAllocCards > .alloc-total-card{
   grid-column:1 / -1;
+  display:grid;
+  grid-template-columns:max-content minmax(0,1fr);
+  column-gap:6px;
+  align-items:baseline;
+}
+.phone-chart-ui #securityAllocCards > .alloc-total-card > .m-label{
+  grid-column:1 / -1;
+}
+.phone-chart-ui #securityAllocCards > .alloc-total-card > .m-value{
+  grid-column:1;
+}
+.phone-chart-ui #securityAllocCards > .alloc-total-card > .cash-include-detail{
+  grid-column:2;
+  margin-top:2px;
 }
 
 
