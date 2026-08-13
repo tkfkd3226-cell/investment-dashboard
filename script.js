@@ -45,7 +45,6 @@ const CHART_SERIES_STATE={
 };
 let PERSONAL_VIEW_UNLOCKED=false;
 let HERO_BASIS_TAP_COUNT=0,HERO_BASIS_LAST_TAP=0;
-const PERSONAL_VIEW_PASSWORD='820421';
 const SEPARATE_PROFIT_TRADES=Object.freeze([
   {date:'2026-06-09',profit:15975},
   {date:'2026-06-16',profit:5004},
@@ -507,8 +506,6 @@ const separateProfitView=x=>{
   };
 };
 const separateProfitToggle=()=>`<button type="button" class="section-control-chip section-action-chip separate-profit-toggle ${INCLUDE_SEPARATE_PROFIT?'active':''}" aria-pressed="${INCLUDE_SEPARATE_PROFIT}" onclick="toggleSeparateProfitMode()"><span>별도수익</span><strong>${INCLUDE_SEPARATE_PROFIT?'ON':'OFF'}</strong></button>`;
-const personalViewUnlockIcon=()=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.25 2.75 20h18.5L12 3.25Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 8.25v5.25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16.75" r="1.05" fill="currentColor"/></svg>`;
-const personalViewUnlockButton=(extraClass='')=>PERSONAL_VIEW_UNLOCKED?'':`<button type="button" class="personal-view-unlock${extraClass?' '+extraClass:''}" onclick="unlockPersonalView()" aria-label="확장">${personalViewUnlockIcon()}</button>`;
 const separateProfitControl=(x,extraClass='')=>{
   if(!PERSONAL_VIEW_UNLOCKED)return '';
   const profit=separateProfitCumulativeForDate(x.date);
@@ -519,16 +516,6 @@ function enterPersonalView(){
   if(PERSONAL_VIEW_UNLOCKED)return;
   PERSONAL_VIEW_UNLOCKED=true;
   render();
-}
-function unlockPersonalView(){
-  if(PERSONAL_VIEW_UNLOCKED)return;
-  const code=window.prompt('6자리 비밀번호');
-  if(code===null)return;
-  if(String(code).trim()!==PERSONAL_VIEW_PASSWORD){
-    window.alert('비밀번호가 올바르지 않습니다.');
-    return;
-  }
-  enterPersonalView();
 }
 function handleHeroBasisTap(){
   if(PERSONAL_VIEW_UNLOCKED)return;
@@ -824,7 +811,7 @@ function ensureDesktopEdgeToc(){
     toc.setAttribute('aria-label','화면 목차');
     document.body.appendChild(toc);
   }
-  toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기"><span>목차</span></button><nav class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title">${personalViewUnlockButton('desktop-personal-view-unlock')}<span>목차</span></div>${renderDesktopTocContent()}</nav>`;
+  toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기"><span>목차</span></button><nav class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title"><span>목차</span></div>${renderDesktopTocContent()}</nav>`;
 }
 const MOBILE_DATE_PIN_STORAGE_KEY='investmentDashboard.mobileDatePinned';
 function mobileDatePinned(){
@@ -918,7 +905,7 @@ function renderTabs(){
         </div>
         <div class="date-action-menu-wrap">
           <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
-          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title">${personalViewUnlockButton('mobile-personal-view-unlock')}<span>목차</span></div><div class="mobile-nav-head-actions"><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} onchange="setMobileDatePinned(this.checked)"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div></div>${renderUnifiedMobileMenuContent()}</div>
+          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><div class="mobile-nav-head-actions"><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} onchange="setMobileDatePinned(this.checked)"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div></div>${renderUnifiedMobileMenuContent()}</div>
         </div>
       </div>
     </div>`;
