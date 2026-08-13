@@ -989,7 +989,7 @@ function openExpandedChart(button){
   }
   const controlsPlaceholder=controls?document.createComment('expanded-chart-controls-placeholder'):null;
   if(controls)controls.parentNode.insertBefore(controlsPlaceholder,controls);
-  const optionsRow=card.querySelector(':scope > .chart-mobile-options-row');
+  const optionsRow=card.querySelector(':scope > .chart-options-row');
   const optionsPlaceholder=optionsRow?document.createComment('expanded-chart-options-placeholder'):null;
   if(optionsRow)optionsRow.parentNode.insertBefore(optionsPlaceholder,optionsRow);
   const legend=card.querySelector('.chart-legend');
@@ -1078,21 +1078,13 @@ const RESPONSIVE_CHART_SCOPES=[
   {id:'chart-alloc',scope:'securitiesAlloc'},
   {id:'pension-chart-alloc',scope:'pensionAlloc'}
 ];
-function syncMobileChartOptions(scope,card,legend,mobile=compactPhoneChartUi()){
+function syncChartOptions(scope,card,legend){
   if(!card||!legend)return;
-  let options=document.querySelector(`.chart-mobile-options-row[data-chart-scope="${scope}"]`);
-  if(!mobile){
-    if(options){
-      if(EXPANDED_CHART_STATE?.optionsRow===options)EXPANDED_CHART_STATE.optionsRow=null;
-      options.remove();
-    }
-    return;
-  }
+  let options=document.querySelector(`.chart-options-row[data-chart-scope="${scope}"]`);
   if(!options){
     options=document.createElement('div');
-    options.className='chart-mobile-options-row';
+    options.className='chart-options-row';
     options.dataset.chartScope=scope;
-    legend.parentNode?.insertBefore(options,legend);
   }
   const left=legend.querySelector(':scope > .chart-legend-control-left');
   const right=legend.querySelector(':scope > .chart-legend-control-right');
@@ -1101,6 +1093,12 @@ function syncMobileChartOptions(scope,card,legend,mobile=compactPhoneChartUi()){
     if(left)options.appendChild(left);
     if(right)options.appendChild(right);
   }
+  const expandedHost=legend.closest('.chart-expanded-legend-host');
+  if(expandedHost){
+    if(options.parentElement!==expandedHost||options.nextElementSibling!==legend)expandedHost.insertBefore(options,legend);
+  }else if(options.previousElementSibling!==legend){
+    legend.after(options);
+  }
   const allButton=options.querySelector('.chart-series-all');
   const hasYAuto=!!options.querySelector('.chart-y-auto-toggle');
   const allSelected=allButton?.classList.contains('active')===true;
@@ -1108,12 +1106,12 @@ function syncMobileChartOptions(scope,card,legend,mobile=compactPhoneChartUi()){
   options.style.display=((allButton&&!allSelected)||hasYAuto)?'':'none';
   options.classList.toggle('has-y-auto',hasYAuto);
 }
-function refreshMobileChartOptions(scope){
+function refreshChartOptions(scope){
   const item=RESPONSIVE_CHART_SCOPES.find(entry=>entry.scope===scope);
   if(!item)return;
   const card=document.getElementById(item.id);
   const legendId=chartLegendId(scope),legend=legendId?document.getElementById(legendId):null;
-  if(card&&legend)syncMobileChartOptions(scope,card,legend);
+  if(card&&legend)syncChartOptions(scope,card,legend);
 }
 function syncResponsiveChartControls(){
   const mobile=compactPhoneChartUi();
@@ -1140,7 +1138,7 @@ function syncResponsiveChartControls(){
     const legendId=chartLegendId(scope),legend=legendId?document.getElementById(legendId):null;
     if(legend){
       legend.innerHTML=chartLegendHtml(scope);
-      syncMobileChartOptions(scope,card,legend,mobile);
+      syncChartOptions(scope,card,legend);
     }
   });
   if(!mobile)closeChartTitleInfo();
@@ -1354,7 +1352,7 @@ function chartLegendHtml(scope){
 function refreshChartLegend(scope){
   const id=chartLegendId(scope),legend=id?document.getElementById(id):null;
   if(legend)legend.innerHTML=chartLegendHtml(scope);
-  refreshMobileChartOptions(scope);
+  refreshChartOptions(scope);
 }
 function redrawChartScope(scope){
   const drawers={
@@ -1493,7 +1491,7 @@ function setSecurityAllocMode(mode){
   const legend=document.getElementById('securityAllocLegend');
   const cards=document.getElementById('securityAllocCards');
   if(x&&legend)legend.innerHTML=securityAllocLegendHtml(x);
-  refreshMobileChartOptions('securitiesAlloc');
+  refreshChartOptions('securitiesAlloc');
   if(x&&cards){
     cards.style.setProperty('--security-alloc-card-count',String(securityAllocCardCount(x)));
     cards.innerHTML=securityAllocCardsHtml(x);

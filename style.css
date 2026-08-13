@@ -16,6 +16,11 @@
   --soft-purple:#f4efff;
   --soft-gray:#eef1f5;
   --black:#111827;
+  --dashboard-control-height:29px;
+}
+
+@media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  :root{--dashboard-control-height:25px;}
 }
 
 *{
@@ -400,10 +405,9 @@ svg.chart{
 }
 
 .chart-legend{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  display:flex;
   align-items:center;
-  column-gap:10px;
+  justify-content:center;
   min-height:26px;
   margin-top:10px;
   font-size:12px;
@@ -4794,14 +4798,16 @@ button:active,
 .chart-compare-toggle{
   display:inline-flex;
   align-items:center;
-  padding:2px;
+  height:var(--dashboard-control-height);
+  padding:1px;
   border:1px solid #cbd5e1;
   border-radius:10px;
   background:#f8fafc;
+  box-sizing:border-box;
 }
 .chart-compare-toggle button{
   min-width:52px;
-  height:27px;
+  height:100%;
   padding:0 8px;
   border:0;
   border-radius:8px;
@@ -4856,7 +4862,6 @@ button:active,
   .chart-head-actions{gap:5px}
   .chart-compare-toggle button{
     min-width:45px;
-    height:25px;
     padding:0 6px;
     font-size:10px;
   }
@@ -6498,8 +6503,10 @@ button:active,
   align-items:center;
   gap:7px;
   flex:0 0 auto;
-  min-height:28px;
-  padding:5px 8px 5px 10px;
+  height:var(--dashboard-control-height);
+  min-height:var(--dashboard-control-height);
+  padding:2px 8px 2px 10px;
+  box-sizing:border-box;
   border:1px solid #d7dee8;
   border-radius:999px;
   background:#fff;
@@ -6601,8 +6608,9 @@ button:active,
     display:none;
   }
   .separate-profit-toggle{
-    min-height:27px;
-    padding:3px;
+    height:var(--dashboard-control-height);
+    min-height:var(--dashboard-control-height);
+    padding:1px 3px;
     gap:0;
     font-size:10px;
   }
@@ -6757,9 +6765,9 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
     display:inline-flex !important;
     align-items:center;
     justify-content:center;
-    width:29px;
-    height:29px;
-    flex:0 0 29px;
+    width:var(--dashboard-control-height);
+    height:var(--dashboard-control-height);
+    flex:0 0 var(--dashboard-control-height);
     padding:0;
     border:1px solid #cbd5e1;
     border-radius:9px;
@@ -6805,9 +6813,9 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
     display:inline-flex !important;
     align-items:center;
     justify-content:center;
-    width:25px !important;
-    height:25px !important;
-    flex:0 0 25px !important;
+    width:var(--dashboard-control-height) !important;
+    height:var(--dashboard-control-height) !important;
+    flex:0 0 var(--dashboard-control-height) !important;
     padding:0 !important;
     border:1px solid #cbd5e1;
     border-radius:8px !important;
@@ -6947,7 +6955,6 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
 }
 .chart-expanded-controls-host .chart-compare-toggle button{
   min-width:46px !important;
-  height:25px !important;
   padding:0 6px !important;
   font-size:10px !important;
 }
@@ -7020,13 +7027,12 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-controls-host .chart-compare-toggle button{
     min-width:52px !important;
-    height:29px !important;
     padding:0 8px !important;
     font-size:10.5px !important;
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend{
     column-gap:14px !important;
-    font-size:12px !important;
+    font-size:14px !important;
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend-series{
     gap:7px 14px !important;
@@ -7474,9 +7480,9 @@ body.chart-expanded-open .dash-tooltip{
   display:inline-flex !important;
   align-items:center;
   justify-content:center;
-  width:25px !important;
-  height:25px !important;
-  flex:0 0 25px !important;
+  width:var(--dashboard-control-height) !important;
+  height:var(--dashboard-control-height) !important;
+  flex:0 0 var(--dashboard-control-height) !important;
   margin-left:auto;
   padding:0 !important;
   border:1px solid #cbd5e1;
@@ -7501,7 +7507,7 @@ body.chart-expanded-open .dash-tooltip{
   border-color:#334155;
   color:#e2e8f0;
 }
-/* Mobile chart controls use one shared flow: switch/arrows → chart → options → legend. */
+/* Mobile chart controls use one shared flow: switch/arrows → chart → legend → options. */
 .phone-chart-ui .chart-scroll-row{
   display:flex !important;
   align-items:center !important;
@@ -7555,54 +7561,45 @@ body.chart-expanded-open .dash-tooltip{
   gap:6px 9px;
 }
 
-.chart-mobile-options-row{
-  display:none;
-}
-.phone-chart-ui > .chart-mobile-options-row,
-.chart-expanded-legend-host > .chart-mobile-options-row{
+.chart-options-row{
   display:flex;
   align-items:center;
   justify-content:center;
   flex-wrap:nowrap;
   gap:6px;
   min-height:27px;
-  margin:6px 1px 2px;
+  margin:2px 1px 2px;
   padding:0;
   box-sizing:border-box;
 }
-.phone-chart-ui > .chart-mobile-options-row .chart-legend-control,
-.chart-expanded-legend-host > .chart-mobile-options-row .chart-legend-control{
+.chart-options-row .chart-legend-control{
   display:flex !important;
   align-items:center;
   justify-content:flex-start;
   flex:0 0 auto;
   min-width:0;
 }
-.phone-chart-ui > .chart-mobile-options-row .chart-legend-control:empty,
-.chart-expanded-legend-host > .chart-mobile-options-row .chart-legend-control:empty{
+.chart-options-row .chart-legend-control:empty{
   display:none !important;
 }
-.phone-chart-ui > .chart-mobile-options-row .chart-series-all,
-.chart-expanded-legend-host > .chart-mobile-options-row .chart-series-all{
+.chart-options-row .chart-series-all{
   min-height:26px;
   padding:3px 9px !important;
   font-size:11px;
   line-height:1;
   white-space:nowrap;
 }
-.phone-chart-ui > .chart-mobile-options-row .chart-y-auto-toggle,
-.chart-expanded-legend-host > .chart-mobile-options-row .chart-y-auto-toggle{
+.chart-options-row .chart-y-auto-toggle{
   min-height:26px;
   gap:5px;
   padding:3px 7px;
   font-size:10.5px;
 }
-.phone-chart-ui > .chart-mobile-options-row .chart-y-auto-state,
-.chart-expanded-legend-host > .chart-mobile-options-row .chart-y-auto-state{
+.chart-options-row .chart-y-auto-state{
   min-width:26px;
   padding:1px 4px;
   font-size:9.5px;
 }
-.chart-expanded-legend-host > .chart-mobile-options-row{
+.chart-expanded-legend-host > .chart-options-row{
   margin:0 0 4px;
 }
