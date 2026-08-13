@@ -2153,7 +2153,7 @@ function renderSourceTables(x){
     reclassified=INCLUDE_SEPARATE_PROFIT?separateProfitReinvestedForDate(x.date):0,
     performancePrincipal=holdingCostPrincipal-reclassified,
     extraRow=extraContribution?`<tr><td>추가 외부투입</td><td class="num">${fmt(extraContribution)}</td></tr>`:'',
-    excludedRow=!INCLUDE_SEPARATE_PROFIT&&excludedTransfer?`<tr><td>6~8월 별도수익 재투입</td><td class="num">${fmt(excludedTransfer)}</td></tr>`:'',
+    excludedRow=!INCLUDE_SEPARATE_PROFIT&&excludedTransfer?`<tr><td>기타 보유 자금 투입</td><td class="num">${fmt(excludedTransfer)}</td></tr>`:'',
     internalCashRow=internalCashTransfer?`<tr><td>기존 현금 내부이동</td><td class="num">${fmt(internalCashTransfer)}</td></tr>`:'',
     reconciliationRow=`<tr><td>원천·보유 정합차액</td><td class="num ${cls(sourceHoldingGap)}">${signed(sourceHoldingGap)}</td></tr>`,
     reclassNote=INCLUDE_SEPARATE_PROFIT&&reclassified?`<div class="source-reclass-note"><strong>6~8월 별도수익 재투입 ${won(reclassified)}</strong><span>기존 투자수익 재투자분 · 신규 외부투입금 아님</span><span>전체 투입원금 제외 · 별도수익 ON 시 성과기준 원금 제외</span></div>`:'',
