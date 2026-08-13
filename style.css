@@ -1326,77 +1326,43 @@ svg.chart{
   width:100% !important;
 }
 
-@media (min-width:1101px){
-  .chart-note.symbol-summary-grid.five{
-    grid-template-columns:repeat(5,minmax(0,1fr)) !important;
-  }
-  .chart-note.symbol-summary-grid.six-symbols{
-    grid-template-columns:repeat(6,minmax(0,1fr)) !important;
-  }
-}
-
-@media (max-width:900px){
+@media(max-width:900px){
   .chart-note.symbol-summary-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-auto-flow:row !important;
     gap:8px !important;
   }
-
   .chart-note.symbol-summary-grid > .mini-card{
-    min-width:0 !important;
+    display:block !important;
     width:auto !important;
-    padding:10px !important;
+    min-width:0 !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:9px !important;
+    box-sizing:border-box !important;
   }
-
-  
-  
+  .chart-note.symbol-summary-grid .m-label{
+    font-size:10.5px !important;
+  }
+  .chart-note.symbol-summary-grid .m-value{
+    font-size:14px !important;
+    line-height:1.18 !important;
+    white-space:nowrap !important;
+    letter-spacing:-.035em !important;
+  }
   .chart-note.symbol-summary-grid .symbol-metric{
-    gap:4px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    gap:1px !important;
   }
-
-  
+  .chart-note.symbol-summary-grid .symbol-metric-label{
+    font-size:9px !important;
   }
-
-
-  @media(max-width:900px){
-    .chart-note.symbol-summary-grid{
-      display:grid!important;
-      grid-template-columns:repeat(2,minmax(0,1fr))!important;
-      grid-auto-flow:row!important;
-      gap:8px!important;
-      width:100%!important;
-    }
-    .chart-note.symbol-summary-grid > .mini-card{
-      display:block!important;
-      width:auto!important;
-      min-width:0!important;
-      max-width:none!important;
-      margin:0!important;
-      padding:9px!important;
-      box-sizing:border-box!important;
-    }
-    .chart-note.symbol-summary-grid .m-label{
-      font-size:10.5px!important;
-    }
-    .chart-note.symbol-summary-grid .m-value{
-      font-size:14px!important;
-      line-height:1.18!important;
-      white-space:nowrap!important;
-      letter-spacing:-.035em!important;
-    }
-    .chart-note.symbol-summary-grid .symbol-metric{
-      display:flex!important;
-      flex-direction:column!important;
-      align-items:flex-start!important;
-      gap:1px!important;
-    }
-    .chart-note.symbol-summary-grid .symbol-metric-label{
-      font-size:9px!important;
-    }
-    .chart-note.symbol-summary-grid .symbol-metric-value{
-      font-size:10.5px!important;
-      white-space:nowrap!important;
-    }
+  .chart-note.symbol-summary-grid .symbol-metric-value{
+    font-size:10.5px !important;
+    white-space:nowrap !important;
   }
+}
 
 /* 계좌+연금 성과표: 첫 번째 컬럼은 글자 길이에 맞게 최소 폭으로 조정 */
 .combined-performance-table th:first-child,
@@ -2362,21 +2328,6 @@ body.contrib-modal-open{
   letter-spacing:-.02em;
 }
 
-.chart-note.pension-symbol-summary-grid{
-  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
-}
-
-@media(max-width:900px){
-  .chart-note.pension-symbol-summary-grid{
-    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
-  }
-}
-@media(max-width:520px){
-  .chart-note.pension-symbol-summary-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-  }
-}
-
 
 /* 최종 QA 보정: 증권계좌 KPI 상단 여백 */
 .securities-summary-block .cards{
@@ -2464,12 +2415,7 @@ body.contrib-modal-open{
     font-size:8.5px !important;
     font-weight:600 !important;
   }
-  .chart-note.pension-symbol-summary-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-  }
-}
-@media(max-width:520px){
-  .chart-note.pension-symbol-summary-grid{
+  .chart-note.symbol-summary-grid{
     grid-template-columns:repeat(2,minmax(0,1fr)) !important;
   }
 }
@@ -5808,12 +5754,8 @@ button:active,
     white-space:normal !important;
   }
 
-  /* The Mini has enough width for these chart summaries. */
-  #pension-chart-symbol .chart-note.pension-symbol-summary-grid{
-    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
-  }
+  /* iPad Mini: keep the shared four-column grid and only tighten securities card density. */
   #chart-symbol .chart-note.symbol-summary-grid{
-    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
     gap:7px !important;
   }
   #chart-symbol .chart-note.symbol-summary-grid > .mini-card{
@@ -6788,12 +6730,10 @@ button:active,
   [data-mobile-view="table"] > .mobile-card-view,
   [data-mobile-view="table"] .mobile-card-view{display:none !important}
 
-  /* Chart summary cards: use the wider landscape canvas. */
-  #pension-chart-symbol .chart-note.pension-symbol-summary-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-  }
+  /* Chart summary cards: keep both summary grids at two columns on phone landscape. */
+  #pension-chart-symbol .chart-note.pension-symbol-summary-grid,
   #chart-symbol .chart-note.symbol-summary-grid{
-    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
   }
 
   /* Main four-card KPI groups: 2 + 2 instead of one card per row. */
