@@ -1255,20 +1255,83 @@ svg.chart{
   }
 }
 
+/* Cumulative summary cards shared by pension/securities:
+   desktop 6 columns, tablet 3, phone portrait 2, phone landscape 3. */
 .chart-note.six{
+  --six-label-size:12px;
+  --six-value-size:19px;
+  --six-detail-size:12px;
+  --six-grid-gap:10px;
+  --six-card-pad-y:12px;
+  --six-card-pad-x:12px;
+  --six-detail-weight:400;
   grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+  gap:var(--six-grid-gap) !important;
+}
+.chart-note.six .mini-card{
+  min-width:0 !important;
+  padding:var(--six-card-pad-y) var(--six-card-pad-x) !important;
+}
+.chart-note.six .m-label{
+  font-size:var(--six-label-size) !important;
+  line-height:1.2 !important;
+  letter-spacing:-.02em;
+  white-space:nowrap !important;
+}
+.chart-note.six .m-value{
+  font-size:var(--six-value-size) !important;
+  line-height:1.2 !important;
+  letter-spacing:-.025em;
+  white-space:nowrap !important;
+  overflow-wrap:normal !important;
+  word-break:normal !important;
+}
+.chart-note.six .m-detail{
+  margin-top:4px !important;
+  font-size:var(--six-detail-size) !important;
+  font-weight:var(--six-detail-weight) !important;
+  line-height:1.25 !important;
+  letter-spacing:-.02em;
+  white-space:nowrap !important;
+  overflow-wrap:normal !important;
+  word-break:normal !important;
 }
 
-
-@media (max-width:1100px){
+@media (min-width:761px) and (max-width:1100px){
   .chart-note.six{
+    --six-label-size:11px;
+    --six-value-size:17px;
+    --six-detail-size:10.5px;
+    --six-grid-gap:8px;
+    --six-card-pad-y:10px;
+    --six-card-pad-x:10px;
     grid-template-columns:repeat(3,minmax(0,1fr)) !important;
   }
 }
 
-@media (max-width:700px){
+@media (max-width:760px){
   .chart-note.six{
+    --six-label-size:9.8px;
+    --six-value-size:13.5px;
+    --six-detail-size:8.4px;
+    --six-grid-gap:6px;
+    --six-card-pad-y:8px;
+    --six-card-pad-x:6px;
+    --six-detail-weight:500;
     grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
+@media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  .chart-note.six{
+    --six-label-size:9.8px;
+    --six-value-size:13.5px;
+    --six-detail-size:8.4px;
+    --six-grid-gap:6px;
+    --six-card-pad-y:8px;
+    --six-card-pad-x:6px;
+    --six-detail-weight:500;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
   }
 }
 
@@ -1287,13 +1350,6 @@ svg.chart{
 }
 
 @media (max-width:900px){
-  .chart-note.six .m-value{
-    font-size:15px !important;
-    line-height:1.22 !important;
-    letter-spacing:-.025em;
-  }
-
-
   .hold-position-table{
     table-layout:auto !important;
   }
@@ -1305,16 +1361,6 @@ svg.chart{
     padding-left:6px !important;
     padding-right:6px !important;
     white-space:nowrap !important;
-  }
-}
-
-@media (max-width:420px){
-  .chart-note.six .m-value{
-    font-size:14px !important;
-  }
-
-  .chart-note.six .m-detail{
-    font-size:9px !important;
   }
 }
 
@@ -4932,17 +4978,6 @@ button:active,
   top:-70px !important;
 }
 
-/* Desktop cumulative-card footnotes: label-sized and regular weight. */
-@media(min-width:761px){
-  #pension-chart-cum .chart-note.six .m-detail,
-  #chart-cum .chart-note.six .m-detail{
-    margin-top:4px !important;
-    font-size:12px !important;
-    font-weight:400 !important;
-    line-height:1.3 !important;
-  }
-}
-
 @media(max-width:760px){
   .hero{
     margin-top:6px !important;
@@ -5005,49 +5040,6 @@ button:active,
     font-size:15px !important;
     box-shadow:none !important;
   }
-}
-
-@media(max-width:520px){
-  /* Keep labels and the drawdown date range on one line on iPhone-size screens. */
-  #pension-chart-cum .chart-note.six,
-  #chart-cum .chart-note.six{
-    gap:6px !important;
-  }
-  #pension-chart-cum .chart-note.six .mini-card,
-  #chart-cum .chart-note.six .mini-card{
-    min-width:0 !important;
-    padding:8px 6px !important;
-  }
-  #pension-chart-cum .chart-note.six .m-label,
-  #chart-cum .chart-note.six .m-label{
-    font-size:9.8px !important;
-    line-height:1.2 !important;
-    letter-spacing:-.045em !important;
-    white-space:nowrap !important;
-  }
-  #pension-chart-cum .chart-note.six .m-value,
-  #chart-cum .chart-note.six .m-value{
-    font-size:13.5px !important;
-    line-height:1.2 !important;
-    letter-spacing:-.04em !important;
-    white-space:nowrap !important;
-  }
-  #pension-chart-cum .chart-note.six .m-detail,
-  #chart-cum .chart-note.six .m-detail{
-    margin-top:4px !important;
-    font-size:8.4px !important;
-    font-weight:500 !important;
-    line-height:1.2 !important;
-    letter-spacing:-.04em !important;
-    white-space:nowrap !important;
-  }
-}
-
-@media(max-width:360px){
-  #pension-chart-cum .chart-note.six .m-label,
-  #chart-cum .chart-note.six .m-label{font-size:9.2px !important}
-  #pension-chart-cum .chart-note.six .m-detail,
-  #chart-cum .chart-note.six .m-detail{font-size:7.9px !important}
 }
 
 /* 2026-08-04 navigation + KRX modal final adjustments */
