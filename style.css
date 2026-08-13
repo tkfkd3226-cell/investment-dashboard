@@ -31,6 +31,7 @@
   --dashboard-expand-icon-size:14px;
   --dashboard-legend-font-size:12px;
   --dashboard-control-group-gap:7px;
+  --modal-action-gap:14px;
   --section-title-font-size:20px;
   --section-chip-height:28px;
   --tooltip-bg:rgba(15,23,42,.96);
@@ -2615,7 +2616,7 @@ body.contrib-modal-open{
   grid-template-columns:auto minmax(112px,1fr) minmax(116px,.86fr);
   align-items:stretch;
   gap:8px;
-  margin-top:12px;
+  margin-top:var(--modal-action-gap);
 }
 .krx-action-buttons button{
   width:100%;
@@ -2845,7 +2846,7 @@ body.contrib-modal-open{
   display:flex;
   justify-content:flex-end;
   gap:8px;
-  margin-top:18px;
+  margin-top:var(--modal-action-gap);
 }
 
 .pension-action-pin-buttons button{
