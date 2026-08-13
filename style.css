@@ -544,6 +544,10 @@ svg.chart{
   background:#f8fafc;
 }
 
+#securityAllocCards.security-alloc-card-grid > .alloc-total-card-wide{
+  grid-column:span 2;
+}
+
 @media (min-width:1101px){
   #securityAllocCards.security-alloc-card-grid{
     grid-template-columns:repeat(var(--security-alloc-card-count,4),minmax(0,1fr));
@@ -564,9 +568,6 @@ svg.chart{
   #securityAllocCards.security-alloc-card-grid > .alloc-total-card > .cash-include-detail{
     grid-column:2;
     margin-top:2px;
-  }
-  #securityAllocCards.security-alloc-card-grid > .alloc-total-card-wide{
-    grid-column:span 2;
   }
 }
 
