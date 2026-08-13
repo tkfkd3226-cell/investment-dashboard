@@ -6720,12 +6720,6 @@ button:active,
   [data-mobile-view="table"] > .mobile-card-view,
   [data-mobile-view="table"] .mobile-card-view{display:none !important}
 
-  /* Chart summary cards: keep both summary grids at two columns on phone landscape. */
-  #pension-chart-symbol .chart-note.pension-symbol-summary-grid,
-  #chart-symbol .chart-note.symbol-summary-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-  }
-
   /* Main four-card KPI groups: 2 + 2 instead of one card per row. */
   #pension-section > .pension-band > .grid.cards,
   #securities-section .securities-summary-block > .grid.cards,
