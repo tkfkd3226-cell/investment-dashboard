@@ -280,12 +280,16 @@ td.num{
   font-weight:800;
 }
 
-.note{
-  background:#fff;
+/* Large dashboard surfaces: KPI/metric and mini cards intentionally excluded. */
+:is(.note,.chart-card,.pension-band,.securities-band){
   border:1px solid var(--line);
-  border-radius:18px;
   padding:18px;
   box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.note{
+  background:#fff;
+  border-radius:18px;
 }
 
 .note strong{
@@ -365,7 +369,6 @@ td.num{
 }
 
 @media(max-width:760px){
-  .hero{margin-top:6px}
   .hero .hero-metric-pills{
     display:grid;
     grid-template-columns:1fr;
@@ -550,10 +553,7 @@ td.num{
   position:relative;
   overflow:hidden;
   background:#fff;
-  border:1px solid var(--line);
   border-radius:18px;
-  padding:18px;
-  box-shadow:0 8px 22px rgba(15,23,42,.06);
 }
 
 .chart-head{
@@ -641,7 +641,7 @@ svg.chart{
   cursor:pointer;
 }
 
-:is(.chart-series-all,.chart-y-auto-toggle,.separate-profit-toggle){
+:is(.chart-series-all,.chart-y-auto-toggle,.separate-profit-toggle,.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -665,9 +665,7 @@ svg.chart{
   opacity:.38;
 }
 
-.chart-series-toggle:focus-visible,
-.chart-series-all:focus-visible,
-.chart-y-auto-toggle:focus-visible{
+:is(.chart-series-toggle,.chart-series-all,.chart-y-auto-toggle,.chart-compare-toggle button,.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button):focus-visible{
   outline:2px solid #93c5fd;
   outline-offset:2px;
 }
@@ -1312,9 +1310,13 @@ svg.chart{
   }
 
 
-  .card, .note, .chart-card, .pension-band{
+  :is(.note,.chart-card,.pension-band,.securities-band){
     padding:9px !important;
   }
+}
+
+@media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  .wrap{padding-top:0 !important}
 }
 
 /* Summary/source metric cards: shared typography; summary grids use the common viewport system. */
@@ -1493,38 +1495,8 @@ svg.chart{
 
 
 
-.date-action-menu{
-  display:none;
-  position:absolute;
-  top:48px;
-  right:0;
-  width:220px;
-  padding:8px;
-  border:1px solid var(--line);
-  border-radius:16px;
-  background:rgba(255,255,255,.96);
-  box-shadow:0 18px 50px rgba(15,23,42,.28);
-  backdrop-filter:blur(12px);
-  z-index:2300;
-}
-.date-action-menu.show{
-  display:block;
-}
-.date-action-menu button{
-  width:100%;
-  border:0;
-  background:transparent;
-  color:#111827;
-  text-align:left;
-  padding:10px 11px;
-  border-radius:12px;
-  font-size:13px;
-  font-weight:900;
-  cursor:pointer;
-}
-.date-action-menu button:hover{
-  background:#eef2ff;
-}
+.date-action-menu{display:none}
+.date-action-menu.show{display:block}
 
 
 
@@ -2060,13 +2032,7 @@ body.contrib-modal-open{
 }
 
 
-/* 퇴직연금/증권계좌 큰 카드 공통 */
-.pension-band,
-.securities-band{
-  border:1px solid var(--line);
-  padding:18px;
-  box-shadow:0 8px 22px rgba(15,23,42,.06);
-}
+/* Large band variants: surface structure comes from the shared large-card rule. */
 .pension-band{
   border-radius:22px;
   background:linear-gradient(135deg,#ecfdf5 0%,#eff6ff 52%,#fff7ed 100%);
@@ -2081,10 +2047,7 @@ body.contrib-modal-open{
 }
 @media(max-width:720px){
   .pension-band,
-  .securities-band{
-    padding:14px;
-    border-radius:20px;
-  }
+  .securities-band{border-radius:20px}
 }
 
 .securities-subsection{
@@ -2505,53 +2468,29 @@ body.contrib-modal-open{
   }
 }
 
-/* QA 보정: 모바일 작업 메뉴가 상단바/콘텐츠 뒤로 깔리거나 잘리는 문제 수정 */
-@media(max-width:760px){
-  
-  
-  
-  .date-action-menu{
-    position:fixed !important;
-    top:58px !important;
-    right:8px !important;
-    width:min(268px, calc(100vw - 16px)) !important;
-    z-index:9999 !important;
-    box-shadow:0 24px 70px rgba(15,23,42,.36) !important;
-  }
-  .dark .date-action-menu{
-    background:rgba(17,24,39,.98) !important;
-    border-color:rgba(148,163,184,.26) !important;
-  }
-  .dark .date-action-menu button{
-    color:#f8fafc !important;
-  }
-  .dark .date-action-menu button:hover{
-    background:#1f2937 !important;
-  }
-}
-
-
 /* Restored page section title icons */
 .section-title-icon{
+  --section-icon-size:30px;
+  --section-icon-radius:12px;
+  --section-icon-font-size:17px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  width:30px;
-  height:30px;
-  border-radius:12px;
-  background:linear-gradient(135deg,rgba(20,184,166,.16),rgba(59,130,246,.12));
+  width:var(--section-icon-size);
+  height:var(--section-icon-size);
+  flex:0 0 var(--section-icon-size);
   border:1px solid rgba(148,163,184,.24);
+  border-radius:var(--section-icon-radius);
+  background:linear-gradient(135deg,rgba(20,184,166,.16),rgba(59,130,246,.12));
   box-shadow:0 6px 16px rgba(15,23,42,.08);
-  font-size:17px;
+  font-size:var(--section-icon-font-size);
   line-height:1;
-  flex:0 0 auto;
 }
 
 .section-title-icon.chart-icon{
-  width:26px;
-  height:26px;
-  border-radius:10px;
-  font-size:15px;
+  --section-icon-size:26px;
+  --section-icon-radius:10px;
+  --section-icon-font-size:15px;
 }
 
 .chart-card h3{
@@ -2560,157 +2499,19 @@ body.contrib-modal-open{
   gap:8px;
 }
 
-/* Restored pretty mobile nav menu */
+/* Mobile date-pin switch; navigation item/surface styles are shared below. */
 @media(max-width:760px){
-  .mobile-nav-head{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    padding:12px 12px;
-    border-radius:18px;
-    background:linear-gradient(135deg,#0f172a,#1d4ed8);
-    color:#fff;
-    margin-bottom:10px;
-  }
-  .mobile-nav-head span{
-    font-size:12px;
-    font-weight:900;
-    letter-spacing:.08em;
-  }
-  .mobile-nav-head button{
-    border:0;
-    width:26px;
-    height:26px;
-    border-radius:999px;
-    background:rgba(255,255,255,.18);
-    color:#fff;
-    font-size:18px;
-    font-weight:900;
-    line-height:1;
-    cursor:pointer;
-  }
-  .mobile-nav-head-actions{
-    display:flex;
-    align-items:center;
-    gap:8px;
-  }
-  .mobile-date-pin-control{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    min-width:0;
-    color:#fff;
-    cursor:pointer;
-    user-select:none;
-  }
-  .mobile-date-pin-control > span:first-child{
-    font-size:10.5px;
-    font-weight:800;
-    letter-spacing:-.02em;
-    white-space:nowrap;
-  }
-  .mobile-date-pin-control input{
-    position:absolute;
-    width:1px;
-    height:1px;
-    opacity:0;
-    pointer-events:none;
-  }
-  .mobile-date-pin-track{
-    position:relative;
-    width:31px;
-    height:18px;
-    flex:0 0 31px;
-    border-radius:999px;
-    background:rgba(255,255,255,.24);
-    border:1px solid rgba(255,255,255,.20);
-    transition:background .16s ease,border-color .16s ease;
-  }
-  .mobile-date-pin-track > span{
-    position:absolute;
-    top:2px;
-    left:2px;
-    width:12px;
-    height:12px;
-    border-radius:50%;
-    background:#fff;
-    box-shadow:0 1px 4px rgba(0,0,0,.24);
-    transition:transform .16s ease;
-  }
-  .mobile-date-pin-control input:checked + .mobile-date-pin-track{
-    background:#3182F6;
-    border-color:#60a5fa;
-  }
-  .mobile-date-pin-control input:checked + .mobile-date-pin-track > span{
-    transform:translateX(13px);
-  }
-  .mobile-date-pin-control input:focus-visible + .mobile-date-pin-track{
-    outline:2px solid #fff;
-    outline-offset:2px;
-  }
-  .mobile-nav-group{
-    margin-top:10px;
-  }
-  .mobile-nav-group p{
-    margin:10px 8px 6px;
-    font-size:11px;
-    font-weight:900;
-    color:var(--muted);
-    letter-spacing:.06em;
-  }
-  .mobile-nav-item{
-    width:100%;
-    display:flex !important;
-    align-items:center;
-    gap:10px;
-    border:0;
-    background:transparent;
-    color:var(--text);
-    text-align:left;
-    padding:9px 10px;
-    border-radius:15px;
-    cursor:pointer;
-  }
-  .mobile-nav-item.sub{
-    padding-left:12px;
-  }
-  .mobile-nav-item:hover{
-    background:#eef2ff;
-  }
-  .dark .mobile-nav-item:hover{
-    background:#1f2937;
-  }
-  .mobile-nav-item .nav-icon{
-    flex:0 0 auto;
-    width:34px;
-    height:34px;
-    display:grid;
-    place-items:center;
-    border-radius:13px;
-    background:#f1f5f9;
-    font-size:17px;
-  }
-  .dark .mobile-nav-item .nav-icon{
-    background:rgba(148,163,184,.14);
-  }
-  .mobile-nav-item strong{
-    display:block;
-    font-size:13px;
-    font-weight:950;
-    line-height:1.2;
-  }
-  .mobile-nav-item em{
-    display:block;
-    margin-top:3px;
-    font-style:normal;
-    font-size:11.5px;
-    font-weight:800;
-    color:var(--muted);
-    line-height:1.2;
-  }
+  .mobile-nav-head-actions{display:flex;align-items:center;gap:8px}
+  .mobile-date-pin-control{display:inline-flex;align-items:center;gap:6px;min-width:0;color:#57606a;cursor:pointer;user-select:none}
+  .dark .mobile-date-pin-control{color:#8b949e}
+  .mobile-date-pin-control > span:first-child{font-size:11px;font-weight:800;letter-spacing:-.02em;line-height:25px;white-space:nowrap}
+  .mobile-date-pin-control input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  .mobile-date-pin-track{position:relative;width:31px;height:18px;flex:0 0 31px;border:1px solid rgba(255,255,255,.20);border-radius:999px;background:rgba(255,255,255,.24);transition:background .16s ease,border-color .16s ease}
+  .mobile-date-pin-track > span{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.24);transition:transform .16s ease}
+  .mobile-date-pin-control input:checked + .mobile-date-pin-track{background:#3182F6;border-color:#60a5fa}
+  .mobile-date-pin-control input:checked + .mobile-date-pin-track > span{transform:translateX(13px)}
+  .mobile-date-pin-control input:focus-visible + .mobile-date-pin-track{outline:2px solid #fff;outline-offset:2px}
 }
-
 
 /* Capital-source cards: no outer panel, keep only the three data cards. */
 .capital-source-section .source-title{
@@ -2753,14 +2554,6 @@ body.contrib-modal-open{
 }
 
 
-/* Date action menu icon restore */
-
-
-.date-action-menu button{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
 
 
 /* KRX 현재가 반영: 브라우저 기본 alert/prompt 대신 커스텀 모달 */
@@ -2893,7 +2686,6 @@ body.contrib-modal-open{
 }
 .app-toast.err{background:#991b1b}
 
-.date-action-menu button span{margin-right:7px}
 .dark .krx-action-card{
   background:#111827;
   border-color:rgba(148,163,184,.22);
@@ -2980,53 +2772,6 @@ svg.chart{
 /* C. Desktop only: widen first column of 연금+계좌 성과 */
 
 
-/* D. Mobile quick menu: remove QUICK MENU header look; keep only dark gray X */
-@media(max-width:760px){
-  .mobile-nav-head{
-    justify-content:flex-end !important;
-    padding:0 4px 6px !important;
-    margin-bottom:4px !important;
-    background:transparent !important;
-    border-radius:0 !important;
-    color:inherit !important;
-    box-shadow:none !important;
-  }
-
-  .mobile-nav-head span{
-    display:none !important;
-  }
-
-  .mobile-nav-head button{
-    width:auto !important;
-    height:auto !important;
-    padding:0 !important;
-    border:0 !important;
-    background:transparent !important;
-    color:#334155 !important;
-    font-size:28px !important;
-    line-height:1 !important;
-    box-shadow:none !important;
-    border-radius:0 !important;
-  }
-
-  .dark .mobile-nav-head button{
-    color:#cbd5e1 !important;
-  }
-}
-
-/* E. Action icons restored */
-
-
-.date-action-menu button{
-  display:flex !important;
-  align-items:center;
-  gap:8px;
-}
-
-.date-action-menu button span{
-  flex:0 0 auto;
-}
-
 /* F. Ensure pension contribution modal is always above mobile menu and page UI */
 .contrib-modal{
   z-index:12000 !important;
@@ -3051,15 +2796,11 @@ svg.chart{
 }
 
 
-/* Pension modal title icon tweak */
+/* Pension modal title uses the shared section-icon geometry. */
 .contrib-modal-head h2{
   display:flex !important;
   align-items:center !important;
   gap:9px !important;
-}
-
-.contrib-modal-head h2 .section-title-icon{
-  flex:0 0 auto;
 }
 
 /* Targeted chart title size reduction only */
@@ -3357,25 +3098,6 @@ svg.chart{
 }
 
 
-@media(max-width:760px){
-  
-
-  
-
-  
-
-
-  
-
-  
-
-  
-
-  .date-action-menu{
-    right:0;
-  }
-
-}
 
 
 
@@ -3484,11 +3206,6 @@ button:active,
   }
 }
 
-.chart-card{
-  position:relative;
-  overflow:hidden;
-}
-
 .chart-card::before{
   content:"";
   position:absolute;
@@ -3552,199 +3269,44 @@ button:active,
   }
 }
 
-/* 4차 모바일 메뉴 통합: 링크 + 관리 + 기존 목차를 상단 ☰ 메뉴로 합침 */
+/* Mobile hamburger menu: one canonical surface/item system. */
 @media(max-width:760px){
-  
-  
-  
   .date-action-menu.mobile-combined-menu{
     position:fixed !important;
-    top:58px !important;
-    right:10px !important;
+    top:43px !important;
+    right:6px !important;
     left:auto !important;
-    width:min(340px, calc(100vw - 20px)) !important;
-    max-height:calc(100vh - 82px) !important;
-    overflow:auto !important;
-    padding:12px !important;
-    border-radius:24px !important;
     z-index:2600 !important;
-  }
-  .date-action-menu.mobile-combined-menu a.mobile-nav-item{
-    text-decoration:none !important;
-    color:var(--text) !important;
-  }
-  .date-action-menu.mobile-combined-menu button.mobile-nav-item{
-    color:var(--text) !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head{
-    justify-content:flex-end !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item span{
-    margin-right:0 !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{
-    margin-right:0 !important;
-  }
-}
-
-
-
-
-/* GitHub-style compact mobile menu override */
-@media(max-width:760px){
-  .date-action-menu.mobile-combined-menu{
-    top:54px !important;
-    right:8px !important;
-    width:min(330px, calc(100vw - 16px)) !important;
-    max-height:calc(100vh - 72px) !important;
-    padding:8px !important;
-    border-radius:12px !important;
-    border:1px solid #d0d7de !important;
-    background:#ffffff !important;
+    width:min(258px,calc(100vw - 12px)) !important;
+    max-height:calc(100vh - 54px) !important;
+    overflow:auto !important;
+    padding:6px !important;
+    border-radius:10px !important;
     box-shadow:0 16px 40px rgba(27,31,36,.18) !important;
     backdrop-filter:none !important;
   }
-  .dark .date-action-menu.mobile-combined-menu{
-    background:#0d1117 !important;
-    border-color:#30363d !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head{
-    display:flex !important;
-    justify-content:flex-end !important;
-    align-items:center !important;
-    padding:0 2px 4px !important;
-    margin:0 !important;
-    background:transparent !important;
-    border-radius:0 !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head button{
-    width:30px !important;
-    height:30px !important;
-    border:0 !important;
-    border-radius:6px !important;
-    background:transparent !important;
-    color:#57606a !important;
-    font-size:22px !important;
-    line-height:1 !important;
-    cursor:pointer !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head button:hover{
-    background:#f6f8fa !important;
-    color:#24292f !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head button{
-    color:#8b949e !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head button:hover{
-    background:#161b22 !important;
-    color:#c9d1d9 !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-group{
-    margin:6px 0 0 !important;
-    padding:6px 0 0 !important;
-    border-top:1px solid #d8dee4 !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{
-    margin-top:0 !important;
-    padding-top:0 !important;
-    border-top:0 !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group{
-    border-top-color:#30363d !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-group p{
-    margin:4px 8px 4px !important;
-    color:#6e7781 !important;
-    font-size:11px !important;
-    font-weight:600 !important;
-    letter-spacing:0 !important;
-    line-height:16px !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group p{
-    color:#8b949e !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item,
-  .date-action-menu.mobile-combined-menu a.mobile-nav-item,
-  .date-action-menu.mobile-combined-menu button.mobile-nav-item{
-    width:100% !important;
-    display:flex !important;
-    align-items:center !important;
-    gap:8px !important;
-    min-height:36px !important;
-    padding:7px 8px !important;
-    border:0 !important;
-    border-radius:6px !important;
-    background:transparent !important;
-    color:#24292f !important;
-    text-align:left !important;
-    text-decoration:none !important;
-    font-size:14px !important;
-    font-weight:400 !important;
-    line-height:20px !important;
-    cursor:pointer !important;
-    box-shadow:none !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{
-    padding-left:8px !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item:hover,
-  .date-action-menu.mobile-combined-menu a.mobile-nav-item:hover,
-  .date-action-menu.mobile-combined-menu button.mobile-nav-item:hover{
-    background:#f6f8fa !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-item,
-  .dark .date-action-menu.mobile-combined-menu a.mobile-nav-item,
-  .dark .date-action-menu.mobile-combined-menu button.mobile-nav-item{
-    color:#c9d1d9 !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-item:hover,
-  .dark .date-action-menu.mobile-combined-menu a.mobile-nav-item:hover,
-  .dark .date-action-menu.mobile-combined-menu button.mobile-nav-item:hover{
-    background:#161b22 !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{
-    flex:0 0 18px !important;
-    width:18px !important;
-    height:18px !important;
-    display:inline-flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    margin:0 !important;
-    border:0 !important;
-    border-radius:0 !important;
-    background:transparent !important;
-    color:#57606a !important;
-    font-size:0 !important;
-    box-shadow:none !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{
-    width:18px !important;
-    height:18px !important;
-    display:block !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{
-    color:#8b949e !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item strong{
-    display:block !important;
-    font-size:14px !important;
-    font-weight:500 !important;
-    line-height:20px !important;
-    color:inherit !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item em{
-    display:none !important;
-  }
-  .date-action-menu.mobile-combined-menu::-webkit-scrollbar{
-    width:8px !important;
-  }
-  .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{
-    background:#d0d7de !important;
-    border-radius:999px !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{
-    background:#30363d !important;
-  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex !important;align-items:center !important;justify-content:space-between !important;gap:8px !important;margin:0 !important;padding:0 1px 2px !important;background:transparent !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex !important;align-items:center !important;gap:2px !important;min-width:0 !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px !important;color:#57606a !important;font-size:11px !important;font-weight:800 !important;line-height:25px !important}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{color:#8b949e !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head > .mobile-nav-head-actions > button{width:25px !important;height:25px !important;padding:0 !important;border:0 !important;border-radius:5px !important;background:transparent !important;color:#57606a !important;font-size:18px !important;line-height:1 !important;cursor:pointer !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head > .mobile-nav-head-actions > button:hover{background:#f6f8fa !important;color:#24292f !important}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head > .mobile-nav-head-actions > button{color:#8b949e !important}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head > .mobile-nav-head-actions > button:hover{background:#161b22 !important;color:#c9d1d9 !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:4px 0 0 !important;padding:4px 0 0 !important;border-top:1px solid #d8dee4 !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{margin-top:0 !important;padding-top:0 !important;border-top:0 !important}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group{border-top-color:#30363d !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:2px 6px !important;color:#6e7781 !important;font-size:9.5px !important;font-weight:600 !important;letter-spacing:0 !important;line-height:14px !important}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group p{color:#8b949e !important}
+  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:6px !important;min-height:30px !important;padding:5px 6px !important;border-radius:5px !important;text-decoration:none !important;font-size:12px !important;font-weight:400 !important;line-height:17px !important;box-shadow:none !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{padding-left:6px !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{flex:0 0 16px !important;width:16px !important;height:16px !important;margin:0 !important;border:0 !important;border-radius:0 !important;background:transparent !important;font-size:0 !important;box-shadow:none !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{display:block !important;width:16px !important;height:16px !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item strong{display:block !important;color:inherit !important;font-size:12px !important;font-weight:500 !important;line-height:17px !important}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item em{display:none !important}
+  .date-action-menu.mobile-combined-menu::-webkit-scrollbar{width:8px !important}
+  .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{border-radius:999px !important;background:#d0d7de !important}
+  .dark .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{background:#30363d !important}
 }
 
 /* iOS Safari input zoom fix: prevent automatic zoom when focusing fields */
@@ -3804,28 +3366,10 @@ button:active,
 
 /* mobile card/table switch */
 .mobile-card-view,
-.mobile-view-toggle,
-.chart-scroll-start,
-.chart-scroll-end{display:none}
+.mobile-view-toggle{display:none}
 
 @media(max-width:760px){
   [id]{scroll-margin-top:52px}
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  .date-action-menu{
-    top:42px !important;
-    right:6px !important;
-    width:min(252px,calc(100vw - 12px)) !important;
-  }
 
   
   
@@ -3843,24 +3387,6 @@ button:active,
   
   
 
-  .chart-scroll-start,
-  .chart-scroll-end{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    flex:0 0 29px;
-    width:29px;
-    height:29px;
-    padding:0;
-    border:1px solid #cbd5e1;
-    border-radius:9px;
-    background:#fff;
-    color:#334155;
-    font-size:17px;
-    font-weight:900;
-    cursor:pointer;
-    box-shadow:0 4px 12px rgba(15,23,42,.06);
-  }
   .chart-head > div{min-width:0}
 }
 
@@ -3871,63 +3397,6 @@ button:active,
   #chart-alloc .chart-note{gap:7px !important}
 }
 
-
-
-/* compact unified mobile menu */
-@media(max-width:760px){
-  .date-action-menu.mobile-combined-menu{
-    top:43px !important;
-    right:6px !important;
-    width:min(258px,calc(100vw - 12px)) !important;
-    max-height:calc(100vh - 54px) !important;
-    padding:6px !important;
-    border-radius:10px !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head{
-    padding:0 1px 2px !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head button{
-    width:25px !important;
-    height:25px !important;
-    border-radius:5px !important;
-    font-size:18px !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-group{
-    margin:4px 0 0 !important;
-    padding:4px 0 0 !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-group p{
-    margin:2px 6px 2px !important;
-    font-size:9.5px !important;
-    line-height:14px !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item,
-  .date-action-menu.mobile-combined-menu a.mobile-nav-item,
-  .date-action-menu.mobile-combined-menu button.mobile-nav-item{
-    min-height:30px !important;
-    gap:6px !important;
-    padding:5px 6px !important;
-    border-radius:5px !important;
-    font-size:12px !important;
-    line-height:17px !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{
-    padding-left:6px !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{
-    flex-basis:16px !important;
-    width:16px !important;
-    height:16px !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{
-    width:16px !important;
-    height:16px !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item strong{
-    font-size:12px !important;
-    line-height:17px !important;
-  }
-}
 
 
 /* 2026-08-04 follow-up: top controls align to actual content edges */
@@ -4029,31 +3498,7 @@ button:active,
   }
 }
 
-/* 2026-08-04 compact analysis cards, chart navigation and hero refinement */
-
-.chart-scroll-row{display:none}
-
-@media(max-width:760px){
-  /* Arrow occupies the former scroll-hint row, immediately above each chart. */
-  .chart-scroll-row{
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    gap:5px;
-    min-height:25px;
-    margin:2px 1px 5px;
-  }
-  .chart-scroll-start,
-  .chart-scroll-end{
-    display:inline-flex !important;
-    width:25px !important;
-    height:25px !important;
-    flex:0 0 25px !important;
-    border-radius:8px !important;
-    font-size:15px !important;
-    box-shadow:none !important;
-  }
-}
+/* Chart navigation layout is owned by tablet overflow and phone-chart-ui rules below. */
 
 /* 2026-08-04 navigation + KRX modal final adjustments */
 
@@ -4106,159 +3551,15 @@ button:active,
 }
 
 @media(min-width:761px){
-  /* Desktop table-of-contents button on the actual content right edge. */
-  
-  
-  
-  
-  .date-action-menu.mobile-combined-menu{
-    position:absolute !important;
-    top:39px !important;
-    right:0 !important;
-    left:auto !important;
-    width:300px !important;
-    max-height:calc(100vh - 68px) !important;
-    overflow:auto !important;
-    padding:8px !important;
-    border:1px solid #d0d7de !important;
-    border-radius:12px !important;
-    background:#fff !important;
-    box-shadow:0 16px 40px rgba(27,31,36,.2) !important;
-    backdrop-filter:none !important;
-    z-index:9999 !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu{
-    background:#0d1117 !important;
-    border-color:#30363d !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head{
-    display:flex !important;
-    align-items:center !important;
-    justify-content:space-between !important;
-    padding:2px 4px 6px !important;
-    margin:0 !important;
-    color:#24292f !important;
-    font-size:13px !important;
-    font-weight:800 !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head{color:#c9d1d9 !important}
-  .date-action-menu.mobile-combined-menu .mobile-nav-head span{
-    margin:0 !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head button{
-    width:28px !important;
-    height:28px !important;
-    padding:0 !important;
-    border:0 !important;
-    border-radius:6px !important;
-    background:transparent !important;
-    color:#57606a !important;
-    text-align:center !important;
-    font-size:21px !important;
-    line-height:1 !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head button:hover{background:#f6f8fa !important;color:#24292f !important}
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head button{color:#8b949e !important}
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head button:hover{background:#161b22 !important;color:#c9d1d9 !important}
-  .date-action-menu.mobile-combined-menu .mobile-nav-group{
-    margin:6px 0 0 !important;
-    padding:6px 0 0 !important;
-    border-top:1px solid #d8dee4 !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{
-    margin-top:0 !important;
-    padding-top:0 !important;
-    border-top:0 !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group{border-top-color:#30363d !important}
-  .date-action-menu.mobile-combined-menu .mobile-nav-group p{
-    margin:4px 8px !important;
-    color:#6e7781 !important;
-    font-size:11px !important;
-    font-weight:700 !important;
-    line-height:16px !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group p{color:#8b949e !important}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item,
-  .date-action-menu.mobile-combined-menu a.mobile-nav-item,
-  .date-action-menu.mobile-combined-menu button.mobile-nav-item{
-    width:100% !important;
-    display:flex !important;
-    align-items:center !important;
-    gap:8px !important;
-    min-height:34px !important;
-    padding:6px 8px !important;
-    border:0 !important;
-    border-radius:6px !important;
-    background:transparent !important;
-    color:#24292f !important;
-    text-align:left !important;
-    text-decoration:none !important;
-    font-size:13px !important;
-    font-weight:400 !important;
-    line-height:19px !important;
-    cursor:pointer !important;
-    box-shadow:none !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item:hover,
-  .date-action-menu.mobile-combined-menu a.mobile-nav-item:hover,
-  .date-action-menu.mobile-combined-menu button.mobile-nav-item:hover{background:#f6f8fa !important}
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-item,
-  .dark .date-action-menu.mobile-combined-menu a.mobile-nav-item,
-  .dark .date-action-menu.mobile-combined-menu button.mobile-nav-item{color:#c9d1d9 !important}
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-item:hover,
-  .dark .date-action-menu.mobile-combined-menu a.mobile-nav-item:hover,
-  .dark .date-action-menu.mobile-combined-menu button.mobile-nav-item:hover{background:#161b22 !important}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item span{margin:0 !important}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{
-    flex:0 0 17px !important;
-    width:17px !important;
-    height:17px !important;
-    display:inline-flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    color:#57606a !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{width:17px !important;height:17px !important}
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{color:#8b949e !important}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item strong{
-    color:inherit !important;
-    font-size:13px !important;
-    font-weight:600 !important;
-    line-height:19px !important;
-  }
-
   /* Keep the selected-date refresh label on one line on desktop. */
-  .krx-action-buttons{
-    grid-template-columns:auto minmax(112px,1fr) minmax(116px,.86fr) !important;
-  }
-  .krx-action-buttons .primary{
-    white-space:nowrap !important;
-  }
+  .krx-action-buttons{grid-template-columns:auto minmax(112px,1fr) minmax(116px,.86fr) !important}
+  .krx-action-buttons .primary{white-space:nowrap !important}
 }
 
 @media(max-width:760px){
-  
-  .date-action-menu.mobile-combined-menu .mobile-nav-head{
-    justify-content:space-between !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head span{
-    display:block !important;
-    margin:0 0 0 5px !important;
-    color:#57606a !important;
-    font-size:11px !important;
-    font-weight:800 !important;
-    line-height:25px !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head span{color:#8b949e !important}
   .krx-selected-line{display:block !important}
   .krx-selected-space{display:none !important}
-
 }
-
-
-
-
 
 /* Securities holdings: neutral table rows with chart-color symbol markers */
 .hold-position-table tbody tr.ticker-samsung,
@@ -4289,6 +3590,40 @@ button:active,
 
 
 
+
+/* TOC/menu shared primitives: panel, item interaction and SVG icon geometry. */
+:is(.desktop-edge-toc-panel,.date-action-menu.mobile-combined-menu){
+  border:1px solid #d0d7de;
+  background:#fff;
+}
+.dark :is(.desktop-edge-toc-panel,.date-action-menu.mobile-combined-menu){
+  border-color:#30363d;
+  background:#0d1117;
+}
+:is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item){
+  width:100%;
+  display:flex;
+  align-items:center;
+  border:0;
+  background:transparent;
+  color:#24292f;
+  text-align:left;
+  font-family:inherit;
+  cursor:pointer;
+}
+:is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item):hover,
+.desktop-edge-toc-item:focus-visible{background:#f6f8fa;outline:none}
+.dark :is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item){color:#c9d1d9}
+.dark :is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item):hover,
+.dark .desktop-edge-toc-item:focus-visible{background:#161b22}
+:is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon){
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:#64748b;
+}
+:is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon) svg{display:block}
+.dark :is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon){color:#8b949e}
 
 /* 2026-08-04 desktop edge TOC correction
    - Desktop: right-edge hover/focus table of contents only
@@ -4345,9 +3680,7 @@ button:active,
     max-height:min(76vh,680px);
     overflow:auto;
     padding:10px;
-    border:1px solid #d0d7de;
     border-radius:12px;
-    background:#fff;
     box-shadow:0 18px 46px rgba(15,23,42,.20);
     opacity:0;
     visibility:hidden;
@@ -4395,41 +3728,20 @@ button:active,
     line-height:1.5;
   }
   .desktop-edge-toc-item{
-    width:100%;
     min-height:32px;
-    display:flex;
-    align-items:center;
     gap:8px;
     padding:6px 7px;
-    border:0;
     border-radius:7px;
-    background:transparent;
-    color:#24292f;
-    text-align:left;
-    font-family:inherit;
     font-size:12px;
     font-weight:600;
     line-height:1.35;
-    cursor:pointer;
-  }
-  .desktop-edge-toc-item:hover,
-  .desktop-edge-toc-item:focus-visible{
-    outline:none;
-    background:#f3f4f6;
   }
   .desktop-edge-toc-icon{
     flex:0 0 16px;
     width:16px;
     height:16px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    color:#64748b;
   }
-  .desktop-edge-toc-icon svg{
-    width:16px;
-    height:16px;
-  }
+  .desktop-edge-toc-icon svg{width:16px;height:16px}
 
   .dark .desktop-edge-toc-trigger{
     border-color:#30363d;
@@ -4443,11 +3755,7 @@ button:active,
     background:#161b22;
     color:#f0f6fc;
   }
-  .dark .desktop-edge-toc-panel{
-    border-color:#30363d;
-    background:#0d1117;
-    box-shadow:0 18px 46px rgba(0,0,0,.38);
-  }
+  .dark .desktop-edge-toc-panel{box-shadow:0 18px 46px rgba(0,0,0,.38)}
   .dark .desktop-edge-toc-title{
     border-bottom-color:#30363d;
     color:#f0f6fc;
@@ -4456,16 +3764,6 @@ button:active,
     border-top-color:#21262d;
   }
   .dark .desktop-edge-toc-group p{
-    color:#8b949e;
-  }
-  .dark .desktop-edge-toc-item{
-    color:#c9d1d9;
-  }
-  .dark .desktop-edge-toc-item:hover,
-  .dark .desktop-edge-toc-item:focus-visible{
-    background:#161b22;
-  }
-  .dark .desktop-edge-toc-icon{
     color:#8b949e;
   }
 }
@@ -4527,21 +3825,11 @@ button:active,
   }
   .chart-card.has-horizontal-scroll .chart-scroll-start,
   .chart-card.has-horizontal-scroll .chart-scroll-end{
+    --chart-square-size:27px;
     display:inline-flex !important;
-    align-items:center;
-    justify-content:center;
-    width:27px !important;
-    height:27px !important;
-    flex:0 0 27px !important;
-    padding:0 !important;
-    border:1px solid #cbd5e1;
     border-radius:8px !important;
-    background:#fff;
-    color:#334155;
     font-size:16px !important;
     font-weight:900;
-    cursor:pointer;
-    box-shadow:none !important;
   }
 }
 
@@ -5266,21 +4554,19 @@ button:active,
   
 }
 
-/* Chart expand controls: one shared control style; placement/display changes by device. */
-:is(.chart-expand-button,.chart-web-expand-button){
+/* Chart square controls: arrows and expand buttons share one visual primitive. */
+:is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
+  --chart-square-size:var(--dashboard-control-height);
   display:none;
-  align-items:center;
-  justify-content:center;
-  width:var(--dashboard-control-height);
-  height:var(--dashboard-control-height);
-  flex:0 0 var(--dashboard-control-height);
+  width:var(--chart-square-size);
+  height:var(--chart-square-size);
+  flex:0 0 var(--chart-square-size);
   padding:0;
   border:1px solid #cbd5e1;
   border-radius:var(--dashboard-control-radius);
   background:#fff;
   color:#334155;
   box-shadow:none;
-  cursor:pointer;
 }
 :is(.chart-expand-button,.chart-web-expand-button) svg{
   width:var(--dashboard-expand-icon-size);
@@ -5292,7 +4578,7 @@ button:active,
   stroke-linejoin:round;
   pointer-events:none;
 }
-.dark :is(.chart-expand-button,.chart-web-expand-button){
+.dark :is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
   background:#111827;
   border-color:#334155;
   color:#e2e8f0;
@@ -5388,12 +4674,6 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   line-height:1.25;
   letter-spacing:-.03em;
 }
-.chart-expanded-title .section-title-icon.chart-icon{
-  width:26px;
-  height:26px;
-  border-radius:10px;
-  font-size:15px;
-}
 .chart-expanded-title .chart-title-sub{
   font-size:11px !important;
   font-weight:700 !important;
@@ -5412,9 +4692,6 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   gap:var(--dashboard-control-group-gap) !important;
 }
 .chart-expanded-controls-host .chart-web-expand-button{display:none !important}
-.chart-expanded-controls-host .chart-compare-toggle{
-  margin:0 !important;
-}
 .chart-expanded-chart-host{
   min-width:0;
   min-height:0;
@@ -5470,9 +4747,8 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
     gap:9px;
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-title .section-title-icon.chart-icon{
-    width:30px;
-    height:30px;
-    font-size:17px;
+    --section-icon-size:30px;
+    --section-icon-font-size:17px;
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-title-sub{
     font-size:12px !important;
@@ -5519,23 +4795,6 @@ body.chart-expanded-open .dash-tooltip{
   
   
   
-  
-  .date-action-menu{
-    top:36px !important;
-    right:0 !important;
-  }
-
-  /* Open state: restore the original mobile top-bar layout for the two date selects + hamburger. */
-  
-  
-  
-  
-  
-  .switcher.mobile-menu-open .date-action-menu,
-  .switcher.mobile-date-pinned .date-action-menu{
-    top:42px !important;
-    right:0 !important;
-  }
   
   body.mobile-topbar-fixed-visible #app{
     padding-top:var(--mobile-fixed-topbar-height,50px);
@@ -5936,42 +5195,6 @@ body.chart-expanded-open .dash-tooltip{
   color:#c9d1d9;
   background:#161b22;
 }
-@media(max-width:760px){
-  .date-action-menu.mobile-combined-menu .mobile-nav-head-title{
-    display:flex !important;
-    align-items:center !important;
-    gap:2px !important;
-    min-width:0 !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{
-    margin-left:1px !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head .personal-view-unlock.mobile-personal-view-unlock{
-    display:inline-flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    width:24px !important;
-    height:24px !important;
-    padding:0 !important;
-    border-radius:6px !important;
-    color:#6e7781 !important;
-    background:transparent !important;
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head .personal-view-unlock.mobile-personal-view-unlock:hover,
-  .date-action-menu.mobile-combined-menu .mobile-nav-head .personal-view-unlock.mobile-personal-view-unlock:focus-visible{
-    color:#24292f !important;
-    background:#f6f8fa !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head .personal-view-unlock.mobile-personal-view-unlock{
-    color:#8b949e !important;
-  }
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head .personal-view-unlock.mobile-personal-view-unlock:hover,
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head .personal-view-unlock.mobile-personal-view-unlock:focus-visible{
-    color:#c9d1d9 !important;
-    background:#161b22 !important;
-  }
-}
-
 /* 2026-08-12 mobile chart header/control refinement */
 .chart-title-info{
   display:none;
@@ -6081,15 +5304,8 @@ body.chart-expanded-open .dash-tooltip{
 .phone-chart-ui .chart-scroll-start,
 .phone-chart-ui .chart-scroll-end{
   display:inline-flex !important;
-  align-items:center;
-  justify-content:center;
-  width:var(--dashboard-control-height) !important;
-  height:var(--dashboard-control-height) !important;
-  flex:0 0 var(--dashboard-control-height) !important;
-  padding:0 !important;
-  border-radius:var(--dashboard-control-radius) !important;
   font-size:15px !important;
-  box-shadow:none !important;
+  font-weight:900;
 }
 .phone-chart-ui .chart-scroll-start{
   margin-left:auto;
