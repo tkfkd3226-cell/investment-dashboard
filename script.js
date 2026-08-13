@@ -1101,7 +1101,12 @@ function syncMobileChartOptions(scope,card,legend,mobile=compactPhoneChartUi()){
     if(left)options.appendChild(left);
     if(right)options.appendChild(right);
   }
-  options.classList.toggle('has-y-auto',!!options.querySelector('.chart-y-auto-toggle'));
+  const allButton=options.querySelector('.chart-series-all');
+  const hasYAuto=!!options.querySelector('.chart-y-auto-toggle');
+  const allSelected=allButton?.classList.contains('active')===true;
+  if(allButton)allButton.hidden=allSelected;
+  options.hidden=(!allButton||allSelected)&&!hasYAuto;
+  options.classList.toggle('has-y-auto',hasYAuto);
 }
 function refreshMobileChartOptions(scope){
   const item=RESPONSIVE_CHART_SCOPES.find(entry=>entry.scope===scope);
