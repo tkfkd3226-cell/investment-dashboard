@@ -42,7 +42,7 @@ h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.045em}
 .kpi .label{font-size:12px;color:var(--muted);font-weight:800}
 .kpi .value{font-size:25px;font-weight:950;letter-spacing:-.045em;margin-top:5px}
 .kpi .sub{font-size:11px;color:var(--muted);margin-top:3px}
-.pos{color:var(--positive)!important} .neg{color:var(--negative)!important}
+.pos{color:var(--positive)} .neg{color:var(--negative)}
 .grid-2{display:grid;grid-template-columns:1.08fr .92fr;gap:14px;margin-top:14px;align-items:stretch}
 .section-card{padding:20px}
 .section-title{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}
@@ -157,7 +157,8 @@ details p,details li{font-size:12px;color:var(--muted)}
 .split-total>div:first-child span{display:block;font-size:15px;font-weight:950;color:var(--navy)}
 .split-total>div:first-child small{display:block;color:var(--muted);font-size:10px;margin-top:1px}
 .split-total-stats{display:flex;align-items:center;justify-content:flex-end;gap:18px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
-.split-total-stats b{font-size:13px;color:var(--ink)}
+.split-total-stats b{font-size:13px}
+.split-total-stats b:not(.pos):not(.neg){color:var(--ink)}
 @media(max-width:700px){
   .split-group{padding:14px 12px}
   .split-group-head{align-items:center}
@@ -247,71 +248,71 @@ details p,details li{font-size:12px;color:var(--muted)}
 }
 .equity-card .label,
 .equity-card .value{
-  color:#fff !important;
+  color:#fff;
 }
 .equity-card .sub{
-  color:#dbe7f7 !important;
+  color:#dbe7f7;
 }
 
 /* 핵심 요약 KPI — 모바일 가독성/밀도 균형 */
 @media screen and (max-width:560px){
   #summary .kpis{
-    gap:6px !important;
-    margin-top:9px !important;
-    margin-left:-2px !important;
-    margin-right:-2px !important;
+    gap:6px;
+    margin-top:9px;
+    margin-left:-2px;
+    margin-right:-2px;
   }
   #summary .kpi{
-    min-width:0 !important;
-    padding:10px 9px !important;
-    border-radius:12px !important;
+    min-width:0;
+    padding:10px 9px;
+    border-radius:12px;
   }
   #summary .kpi .label{
-    margin-bottom:3px !important;
-    font-size:10px !important;
-    line-height:1.18 !important;
-    letter-spacing:-.025em !important;
+    margin-bottom:3px;
+    font-size:10px;
+    line-height:1.18;
+    letter-spacing:-.025em;
   }
   #summary .kpi .value{
-    margin-top:2px !important;
-    font-size:17px !important;
-    line-height:1.1 !important;
-    letter-spacing:-.045em !important;
-    white-space:nowrap !important;
-    word-break:keep-all !important;
+    margin-top:2px;
+    font-size:17px;
+    line-height:1.1;
+    letter-spacing:-.045em;
+    white-space:nowrap;
+    word-break:keep-all;
   }
   #summary .kpi .sub{
-    margin-top:4px !important;
-    font-size:9px !important;
-    line-height:1.22 !important;
-    letter-spacing:-.025em !important;
+    margin-top:4px;
+    font-size:9px;
+    line-height:1.22;
+    letter-spacing:-.025em;
   }
   #summary .kpi:nth-child(1) .sub{
-    white-space:nowrap !important;
-    font-size:8.7px !important;
-    letter-spacing:-.04em !important;
+    white-space:nowrap;
+    font-size:8.7px;
+    letter-spacing:-.04em;
   }
 }
 @media screen and (max-width:350px){
   #summary .kpis{
-    gap:5px !important;
-    margin-left:-3px !important;
-    margin-right:-3px !important;
+    gap:5px;
+    margin-left:-3px;
+    margin-right:-3px;
   }
   #summary .kpi{
-    padding:9px 7px !important;
+    padding:9px 7px;
   }
   #summary .kpi .label{
-    font-size:9.5px !important;
+    font-size:9.5px;
   }
   #summary .kpi .value{
-    font-size:16px !important;
+    font-size:16px;
   }
   #summary .kpi .sub{
-    font-size:8.5px !important;
+    font-size:8.5px;
   }
   #summary .kpi:nth-child(1) .sub{
-    font-size:8.25px !important;
+    font-size:8.25px;
   }
 }
 
@@ -319,21 +320,21 @@ details p,details li{font-size:12px;color:var(--muted)}
 /* 모바일 차트 헤더: 제목은 전체 폭, 범례는 차트 바로 위 */
 @media screen and (max-width:760px){
   .pnl-chart-card .section-title.chart-title{
-    display:block !important;
-    margin-bottom:8px !important;
+    display:block;
+    margin-bottom:8px;
   }
   .pnl-chart-card .section-title.chart-title > div:first-child{
-    width:100% !important;
+    width:100%;
   }
   .pnl-chart-card .section-title.chart-title h2{
-    white-space:nowrap !important;
+    white-space:nowrap;
   }
   .pnl-chart-card .chart-legend{
-    width:100% !important;
-    margin-top:9px !important;
-    display:flex !important;
-    justify-content:flex-end !important;
-    gap:12px !important;
+    width:100%;
+    margin-top:9px;
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
   }
 }
 
@@ -344,10 +345,10 @@ details p,details li{font-size:12px;color:var(--muted)}
 }
 @media screen and (max-width:700px){
   .split-total{
-    gap:12px !important;
+    gap:12px;
   }
   .split-total-stats{
-    display:none !important;
+    display:none;
   }
   .split-total-mobile{
     width:100%;
