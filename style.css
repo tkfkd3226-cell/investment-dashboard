@@ -2360,6 +2360,84 @@ body.contrib-modal-open{
   color:var(--muted) !important;
 }
 
+/* 평가액 비중 카드 공통 밀도: 웹 > 태블릿 > 모바일 */
+#pension-chart-alloc,
+#chart-alloc{
+  --alloc-label-size:12px;
+  --alloc-value-size:19px;
+  --alloc-small-size:12px;
+  --alloc-detail-size:9.5px;
+  --alloc-card-gap:10px;
+  --alloc-card-pad:12px;
+}
+#pension-chart-alloc .chart-note,
+#chart-alloc .chart-note{
+  gap:var(--alloc-card-gap) !important;
+}
+#pension-chart-alloc .chart-note .mini-card,
+#chart-alloc .chart-note .mini-card{
+  min-width:0;
+  padding:var(--alloc-card-pad) !important;
+}
+#pension-chart-alloc .chart-note .m-label,
+#chart-alloc .chart-note .m-label{
+  font-size:var(--alloc-label-size) !important;
+  line-height:1.2 !important;
+  white-space:nowrap;
+}
+#pension-chart-alloc .chart-note .m-value,
+#chart-alloc .chart-note .m-value{
+  font-size:var(--alloc-value-size) !important;
+  line-height:1.2 !important;
+  letter-spacing:-.035em;
+  white-space:nowrap !important;
+  overflow-wrap:normal !important;
+  word-break:normal !important;
+}
+#pension-chart-alloc .chart-note .small,
+#chart-alloc .chart-note .small{
+  font-size:var(--alloc-small-size) !important;
+  white-space:nowrap !important;
+}
+#pension-chart-alloc .cash-include-detail,
+#chart-alloc .cash-include-detail{
+  font-size:var(--alloc-detail-size) !important;
+}
+
+@media (min-width:761px) and (max-width:1100px){
+  #pension-chart-alloc,
+  #chart-alloc{
+    --alloc-label-size:10.5px;
+    --alloc-value-size:14px;
+    --alloc-small-size:9.5px;
+    --alloc-detail-size:8.8px;
+    --alloc-card-gap:8px;
+    --alloc-card-pad:10px;
+  }
+}
+
+@media (max-width:760px){
+  #pension-chart-alloc,
+  #chart-alloc{
+    --alloc-label-size:9.5px;
+    --alloc-value-size:11.5px;
+    --alloc-small-size:8.5px;
+    --alloc-detail-size:8.5px;
+    --alloc-card-gap:7px;
+    --alloc-card-pad:9px;
+  }
+}
+
+#pension-chart-alloc.phone-chart-ui,
+#chart-alloc.phone-chart-ui{
+  --alloc-label-size:9.5px;
+  --alloc-value-size:11.5px;
+  --alloc-small-size:8.5px;
+  --alloc-detail-size:8.5px;
+  --alloc-card-gap:7px;
+  --alloc-card-pad:9px;
+}
+
 /* 평가액 비중 카드: 연금/증권 공통 총액 표시 + 화면군별 그리드 */
 #pension-chart-alloc .pension-alloc-total-card,
 #chart-alloc:not(.phone-chart-ui) #securityAllocCards > .alloc-total-card{
@@ -2471,10 +2549,6 @@ body.contrib-modal-open{
   .pension-no-prev-note{
     min-height:66px !important;
     padding:10px 8px !important;
-  }
-  .cash-include-detail{
-    font-size:8.5px !important;
-    font-weight:600 !important;
   }
 }
 
@@ -4749,20 +4823,6 @@ button:active,
   .change-kpis .mini-card{min-width:0;padding:9px !important;background:#fff !important}
   .change-kpis .m-label{font-size:10px !important;line-height:1.25 !important}
   .change-kpis .m-value{font-size:13px !important;line-height:1.2 !important;letter-spacing:-.04em;white-space:nowrap}
-
-  /* 421~520px에서도 390px과 동일한 분석 카드 폰트 */
-      
-  /* 평가액 비중 모바일 카드 밀도 */
-  #pension-chart-alloc .chart-note,
-  #chart-alloc .chart-note{gap:7px !important}
-  #pension-chart-alloc .chart-note .mini-card,
-  #chart-alloc .chart-note .mini-card{min-width:0;padding:9px !important}
-  #pension-chart-alloc .chart-note .m-label,
-  #chart-alloc .chart-note .m-label{font-size:9.5px !important;line-height:1.2 !important}
-  #pension-chart-alloc .chart-note .m-value,
-  #chart-alloc .chart-note .m-value{font-size:11.5px !important;line-height:1.2 !important;letter-spacing:-.045em;white-space:nowrap !important}
-  #pension-chart-alloc .chart-note .small,
-  #chart-alloc .chart-note .small{font-size:8.5px !important;white-space:nowrap !important}
 }
 
 @media(max-width:374px){
