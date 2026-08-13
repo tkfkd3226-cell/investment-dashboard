@@ -8,6 +8,29 @@ let PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH
   }
   return `${Number(m)}월 ${Number(day)}일 종가 기준`;
 };
+const THEME_STORAGE_KEY='investmentDashboard.theme';
+let ACTIVE_ASSET_TAB='securities';
+const currentTheme=()=>document.documentElement.classList.contains('dark')?'dark':'light';
+function syncThemeControls(){
+  const dark=currentTheme()==='dark';
+  document.querySelectorAll('[data-theme-toggle-icon]').forEach(el=>el.textContent=dark?'☀️':'🌙');
+  document.querySelectorAll('[data-theme-toggle-label]').forEach(el=>el.textContent=dark?'밝은 모드':'다크 모드');
+  document.querySelectorAll('[data-theme-toggle-short]').forEach(el=>el.textContent=dark?'밝게':'어둡게');
+  document.querySelectorAll('[data-theme-toggle]').forEach(el=>{
+    el.setAttribute('aria-pressed',String(dark));
+    el.setAttribute('title',dark?'밝은 모드로 전환':'다크 모드로 전환');
+    el.setAttribute('aria-label',dark?'밝은 모드로 전환':'다크 모드로 전환');
+  });
+}
+function setTheme(theme,{redraw=true}={}){
+  const dark=theme==='dark';
+  document.documentElement.classList.toggle('dark',dark);
+  try{localStorage.setItem(THEME_STORAGE_KEY,dark?'dark':'light')}catch(_){}
+  syncThemeControls();
+  if(redraw&&PORTFOLIO)drawAllCharts();
+}
+function toggleTheme(){setTheme(currentTheme()==='dark'?'light':'dark')}
+
 const CHART_COMPARE_MODES={securities:'return',pension:'return'};
 const SYMBOL_CHART_MODES={securities:'profit',pension:'profit'};
 let SECURITY_ALLOC_MODE='type';
@@ -689,7 +712,8 @@ function navIconSvg(name){
     list:`<svg ${attrs}><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3 6h.01"></path><path d="M3 12h.01"></path><path d="M3 18h.01"></path></svg>`,
     folder:`<svg ${attrs}><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>`,
     search:`<svg ${attrs}><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>`,
-    receipt:`<svg ${attrs}><path d="M6 3h12v18l-2-1-2 1-2-1-2 1-2-1-2 1V3Z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h4"></path></svg>`
+    receipt:`<svg ${attrs}><path d="M6 3h12v18l-2-1-2 1-2-1-2 1-2-1-2 1V3Z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h4"></path></svg>`,
+    theme:`<svg ${attrs}><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.7 6.7 0 0 0 21 12.8Z"></path></svg>`
   };
   return icons[name]||icons.list;
 }
@@ -711,20 +735,15 @@ function renderUnifiedMobileMenuContent(){
       ]
     },
     {
-      label:'전체',
+      label:'화면',
       items:[
-        {type:'section',id:'summary-section',icon:'home',title:'연금+계좌 성과'}
+        {type:'action',action:'toggleTheme();closeDateActionMenu();',icon:'theme',title:currentTheme()==='dark'?'밝은 모드':'다크 모드',themeToggle:true}
       ]
     },
     {
-      label:'퇴직연금',
+      label:'전체',
       items:[
-        {type:'section',id:'pension-section',icon:'briefcase',title:'퇴직연금 현황'},
-        {type:'section',id:'pension-products',icon:'package',title:'연금상품별 현황'},
-        {type:'section',id:'pension-change',icon:'trending',title:'전일 대비 변동'},
-        {type:'section',id:'pension-chart-cum',icon:'chart',title:'운용수익 및 누적수익률'},
-        {type:'section',id:'pension-chart-symbol',icon:'chart',title:'연금상품별 운용수익'},
-        {type:'section',id:'pension-chart-alloc',icon:'pie',title:'평가액 비중'}
+        {type:'section',id:'summary-section',icon:'home',title:'연금+계좌 성과'}
       ]
     },
     {
@@ -739,10 +758,22 @@ function renderUnifiedMobileMenuContent(){
         {type:'section',id:'ledger-check',icon:'search',title:'장부결과 VS 실제보유'},
         ...(isLedgerCheckDate(ACTIVE_DATE)?[{type:'section',id:'capital-source-check',icon:'receipt',title:'투자원금 원천 및 검산'}]:[])
       ]
+    },
+    {
+      label:'퇴직연금',
+      items:[
+        {type:'section',id:'pension-section',icon:'briefcase',title:'퇴직연금 현황'},
+        {type:'section',id:'pension-products',icon:'package',title:'연금상품별 현황'},
+        {type:'section',id:'pension-change',icon:'trending',title:'전일 대비 변동'},
+        {type:'section',id:'pension-chart-cum',icon:'chart',title:'운용수익 및 누적수익률'},
+        {type:'section',id:'pension-chart-symbol',icon:'chart',title:'연금상품별 운용수익'},
+        {type:'section',id:'pension-chart-alloc',icon:'pie',title:'평가액 비중'}
+      ]
     }
   ];
   return groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>{
-    const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
+    const titleAttrs=item.themeToggle?' data-theme-toggle-label':'';
+    const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong${titleAttrs}>${item.title}</strong></span>`;
     const cls=`mobile-nav-item ${idx?'sub':''}`;
     if(item.type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" onclick="closeDateActionMenu()">${inner}</a>`;
     if(item.type==='action') return `<button type="button" class="${cls}" onclick="${item.action}">${inner}</button>`;
@@ -758,17 +789,6 @@ function renderDesktopTocContent(){
       ]
     },
     {
-      label:'퇴직연금',
-      items:[
-        {id:'pension-section',icon:'briefcase',title:'퇴직연금 현황'},
-        {id:'pension-products',icon:'package',title:'연금상품별 현황'},
-        {id:'pension-change',icon:'trending',title:'전일 대비 변동'},
-        {id:'pension-chart-cum',icon:'chart',title:'운용수익 및 누적수익률'},
-        {id:'pension-chart-symbol',icon:'chart',title:'연금상품별 운용수익'},
-        {id:'pension-chart-alloc',icon:'pie',title:'평가액 비중'}
-      ]
-    },
-    {
       label:'증권계좌',
       items:[
         {id:'securities-section',icon:'bank',title:'증권계좌 현황'},
@@ -779,6 +799,17 @@ function renderDesktopTocContent(){
         {id:'chart-alloc',icon:'pie',title:'평가액 비중'},
         {id:'ledger-check',icon:'search',title:'장부결과 VS 실제보유'},
         ...(isLedgerCheckDate(ACTIVE_DATE)?[{id:'capital-source-check',icon:'receipt',title:'투자원금 원천 및 검산'}]:[])
+      ]
+    },
+    {
+      label:'퇴직연금',
+      items:[
+        {id:'pension-section',icon:'briefcase',title:'퇴직연금 현황'},
+        {id:'pension-products',icon:'package',title:'연금상품별 현황'},
+        {id:'pension-change',icon:'trending',title:'전일 대비 변동'},
+        {id:'pension-chart-cum',icon:'chart',title:'운용수익 및 누적수익률'},
+        {id:'pension-chart-symbol',icon:'chart',title:'연금상품별 운용수익'},
+        {id:'pension-chart-alloc',icon:'pie',title:'평가액 비중'}
       ]
     }
   ];
@@ -871,6 +902,9 @@ function renderTabs(){
         ${PERSONAL_VIEW_UNLOCKED?`<a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="calc.html" target="_blank" rel="noopener noreferrer" title="투자 계산기" aria-label="투자 계산기" style="text-decoration:none">
           <span class="date-tool-action-icon">🧮</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
         </a>`:''}
+        <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" onclick="toggleTheme()">
+          <span class="date-tool-action-icon" data-theme-toggle-icon>${currentTheme()==='dark'?'☀️':'🌙'}</span><span class="topbar-label-full" data-theme-toggle-label>${currentTheme()==='dark'?'밝은 모드':'다크 모드'}</span><span class="topbar-label-short" data-theme-toggle-short>${currentTheme()==='dark'?'밝게':'어둡게'}</span>
+        </button>
         <div class="compact-action-menu-wrap">
           <button type="button" id="compactActionMenuButton" class="date-tool-btn compact-more-btn" title="더보기" aria-label="추가 기능 열기" aria-haspopup="true" aria-expanded="false" onclick="toggleCompactActionMenu(event)">
             <span class="compact-more-icon" aria-hidden="true">•••</span><span>더보기</span>
@@ -1762,11 +1796,46 @@ async function triggerKrxPriceUpdate(){
   openKrxActionModal();
 }
 
-function jumpToSection(id){
+function syncAssetTabs(){
+  document.querySelectorAll('[data-asset-tab]').forEach(button=>{
+    const active=button.dataset.assetTab===ACTIVE_ASSET_TAB;
+    button.classList.toggle('active',active);
+    button.setAttribute('aria-selected',String(active));
+    button.tabIndex=active?0:-1;
+  });
+  document.querySelectorAll('[data-asset-panel]').forEach(panel=>{
+    const active=panel.dataset.assetPanel===ACTIVE_ASSET_TAB;
+    panel.hidden=!active;
+    panel.setAttribute('aria-hidden',String(!active));
+  });
+}
+function setAssetTab(tab,{scroll=false}={}){
+  if(!['securities','pension'].includes(tab))return;
+  ACTIVE_ASSET_TAB=tab;
+  syncAssetTabs();
+  requestAnimationFrame(()=>{
+    syncResponsiveChartControls();
+    refreshScrollHints();
+    if(scroll)document.getElementById('asset-workspace')?.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+function assetTabForTarget(id){
   const el=document.getElementById(id);
-  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  return el?.closest?.('[data-asset-panel]')?.dataset?.assetPanel||null;
+}
+function jumpToSection(id){
+  const targetTab=assetTabForTarget(id);
+  if(targetTab&&targetTab!==ACTIVE_ASSET_TAB)setAssetTab(targetTab);
+  requestAnimationFrame(()=>{
+    const el=document.getElementById(id);
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  });
 }
 
+function renderAssetWorkspace(x){
+  if(!x.hasPension)return renderSecuritiesSection(x);
+  return `<section id="asset-workspace" class="asset-workspace"><div class="asset-workspace-tabs" role="tablist" aria-label="자산 현황 선택"><button type="button" class="asset-workspace-tab" data-asset-tab="securities" role="tab" aria-controls="asset-panel-securities" onclick="setAssetTab('securities')"><span>증권계좌</span></button><button type="button" class="asset-workspace-tab" data-asset-tab="pension" role="tab" aria-controls="asset-panel-pension" onclick="setAssetTab('pension')"><span>퇴직연금</span></button></div><div id="asset-panel-securities" class="asset-workspace-panel asset-workspace-panel-securities" data-asset-panel="securities" role="tabpanel">${renderSecuritiesSection(x)}</div><div id="asset-panel-pension" class="asset-workspace-panel asset-workspace-panel-pension" data-asset-panel="pension" role="tabpanel">${renderPension(x)}</div></section>`;
+}
 
 function sectionToSecuritiesBlock(html, extraClass=''){
   if(!html) return '';
@@ -1910,7 +1979,9 @@ function render(){
   const x=calc(ACTIVE_DATE),v=separateProfitView(x);
   renderTabs();
   const pensionPills=x.hasPension?`<span class="pill hero-profit-pill">퇴직연금 운용수익 ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
-  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis" onclick="handleHeroBasisTap()">(${koreanDateLabel(x.date)})</span></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}"><span class="pill hero-profit-pill">증권계좌 누적손익 ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적손익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${x.hasPension?renderPension(x):''}${renderSecuritiesSection(x)}</div>`;
+  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section"><div class="hero-title-row"><h1>${PORTFOLIO.meta.title}</h1><span class="hero-basis" onclick="handleHeroBasisTap()">(${koreanDateLabel(x.date)})</span></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}"><span class="pill hero-profit-pill">증권계좌 누적손익 ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적손익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
+  syncAssetTabs();
+  syncThemeControls();
   suppressSecuritiesCumCardTransitionOnce();
   drawAllCharts();
   setupPensionVizTooltips();
@@ -2206,6 +2277,10 @@ function renderSourceTables(x){
 
 function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
 function el(name, attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',name);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e}
+function cssThemeValue(name,fallback){
+  const value=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value||fallback;
+}
 function tooltip(){return document.getElementById('dashTooltip')}
 function showTooltip(evt, html, kind=''){
   const tt=tooltip(); if(!tt) return;
@@ -2247,11 +2322,12 @@ function row(name,val,clsName=''){return `<div class="tt-row"><span class="tt-na
 function clsBy(n){return n<0?'tt-neg':(n>0?'tt-pos':'')}
 function drawAxes(svg,cfg,yTicks,y2Ticks=null){
   const{w,h,l,r,t,b}=cfg;
-  svg.appendChild(el('rect',{x:0,y:0,width:w,height:h,fill:'#fff'}));
-  for(const tick of yTicks){const y=cfg.y(tick);svg.appendChild(el('line',{x1:l,y1:y,x2:w-r,y2:y,stroke:'#e5e7eb','stroke-width':1}));const tx=el('text',{x:l-10,y:y+4,'text-anchor':'end','font-size':11,fill:'#6b7280'});tx.textContent=cfg.yFormatter?cfg.yFormatter(tick):fmt(tick);svg.appendChild(tx)}
-  svg.appendChild(el('line',{x1:l,y1:t,x2:l,y2:h-b,stroke:'#cbd5e1'}));
-  svg.appendChild(el('line',{x1:l,y1:h-b,x2:w-r,y2:h-b,stroke:'#cbd5e1'}));
-  if(y2Ticks){for(const tick of y2Ticks){const y=cfg.y2(tick);const tx=el('text',{x:w-r+10,y:y+4,'text-anchor':'start','font-size':11,fill:'#6b7280'});tx.textContent=cfg.y2Formatter?cfg.y2Formatter(tick):tick.toFixed(0)+'%';svg.appendChild(tx)}svg.appendChild(el('line',{x1:w-r,y1:t,x2:w-r,y2:h-b,stroke:'#cbd5e1'}))}
+  const surface=cssThemeValue('--chart-surface','#fff'),grid=cssThemeValue('--chart-grid','#e5e7eb'),axis=cssThemeValue('--chart-axis','#cbd5e1'),text=cssThemeValue('--chart-text','#6b7280');
+  svg.appendChild(el('rect',{x:0,y:0,width:w,height:h,fill:surface}));
+  for(const tick of yTicks){const y=cfg.y(tick);svg.appendChild(el('line',{x1:l,y1:y,x2:w-r,y2:y,stroke:grid,'stroke-width':1}));const tx=el('text',{x:l-10,y:y+4,'text-anchor':'end','font-size':11,fill:text});tx.textContent=cfg.yFormatter?cfg.yFormatter(tick):fmt(tick);svg.appendChild(tx)}
+  svg.appendChild(el('line',{x1:l,y1:t,x2:l,y2:h-b,stroke:axis}));
+  svg.appendChild(el('line',{x1:l,y1:h-b,x2:w-r,y2:h-b,stroke:axis}));
+  if(y2Ticks){for(const tick of y2Ticks){const y=cfg.y2(tick);const tx=el('text',{x:w-r+10,y:y+4,'text-anchor':'start','font-size':11,fill:text});tx.textContent=cfg.y2Formatter?cfg.y2Formatter(tick):tick.toFixed(0)+'%';svg.appendChild(tx)}svg.appendChild(el('line',{x1:w-r,y1:t,x2:w-r,y2:h-b,stroke:axis}))}
 }
 
 function chartX(cfg,dataLength,index){
@@ -2264,10 +2340,10 @@ function chartX(cfg,dataLength,index){
 function labelDates(svg,cfg,data,every=3){
   const{h,b}=cfg;
   const labelY=h-b+16;
-  data.forEach((d,i)=>{if(i%every===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:labelY,transform:`rotate(-65 ${x} ${labelY})`,'text-anchor':'end','font-size':10,fill:'#6b7280'});txt.textContent=d['날짜'];svg.appendChild(txt)}})
+  data.forEach((d,i)=>{if(i%every===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:labelY,transform:`rotate(-65 ${x} ${labelY})`,'text-anchor':'end','font-size':10,fill:cssThemeValue('--chart-text','#6b7280')});txt.textContent=d['날짜'];svg.appendChild(txt)}})
 }
 function polyline(svg,points,color,width=2.5){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':width,'stroke-linejoin':'round','stroke-linecap':'round'}))}
-function circles(svg,points,color){points.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:3,fill:'#fff',stroke:color,'stroke-width':2})))}
+function circles(svg,points,color){const fill=cssThemeValue('--chart-surface','#fff');points.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:3,fill,stroke:color,'stroke-width':2})))}
 function nearestIndex(evt,svg,cfg,data){
   const pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;
   const loc=pt.matrixTransform(svg.getScreenCTM().inverse());
@@ -2278,7 +2354,7 @@ function nearestIndex(evt,svg,cfg,data){
   return Math.max(0,Math.min(data.length-1,idx));
 }
 function addHover(svg,cfg,data,renderHtml,tooltipKind=''){
-  const line=el('line',{x1:cfg.l,y1:cfg.t,x2:cfg.l,y2:cfg.h-cfg.b,stroke:'#334155','stroke-width':1.2,'stroke-dasharray':'4 4',opacity:0,class:'chart-hover-line'});
+  const line=el('line',{x1:cfg.l,y1:cfg.t,x2:cfg.l,y2:cfg.h-cfg.b,stroke:cssThemeValue('--chart-hover','#334155'),'stroke-width':1.2,'stroke-dasharray':'4 4',opacity:0,class:'chart-hover-line'});
   svg.appendChild(line);
   const hit=el('rect',{x:cfg.l,y:cfg.t,width:cfg.w-cfg.l-cfg.r,height:cfg.h-cfg.t-cfg.b,class:'svg-hitbox'});
   svg.appendChild(hit);
@@ -2590,7 +2666,7 @@ function drawStacked(){
   const plotW=w-l-r,n=data.length,gap=plotW/Math.max(n,1),bw=gap*.72;
   const edgePad=Math.max(24,bw*.62);
   const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(maxY-v)/(maxY-minY)*(h-t-b)};drawAxes(svg,cfg,ticks);
-  data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;series.forEach(key=>{const value=Number(d[key]||0),yTop=cfg.y(base+value),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:colors[key],opacity:.75,stroke:'#fff','stroke-width':.4}));base+=value})});
+  data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;series.forEach(key=>{const value=Number(d[key]||0),yTop=cfg.y(base+value),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:colors[key],opacity:.75,stroke:cssThemeValue('--chart-stack-stroke','#fff'),'stroke-width':.4}));base+=value})});
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{const displayedTotal=series.reduce((a,key)=>a+Number(d[key]||0),0),total=selection.all?(Number(d._total)||displayedTotal):displayedTotal;let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(key=>{const value=Number(d[key]||0),share=total?value/total*100:0;html+=row(chartDisplayLabel('securitiesAlloc',key),fmt(value)+`원 (${share.toFixed(1)}%)`)});return html+'<div style="height:6px"></div>'+row('합계',fmt(total)+'원')});
 }

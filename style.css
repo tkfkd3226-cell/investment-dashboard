@@ -2,6 +2,7 @@
   --bg:#f5f7fb;
   --card:#ffffff;
   --ink:#172033;
+  --text:var(--ink);
   --muted:#6b7280;
   --line:#d7dce5;
   --blue:#1f5eff;
@@ -39,6 +40,48 @@
   --tooltip-shadow:0 16px 36px rgba(0,0,0,.28);
   --tooltip-font-size:12px;
   --tooltip-line-height:1.4;
+  --table-head-bg:#f1f5f9;
+  --summary-row-bg:#f8fafc;
+  --subtle-card:#f8fafc;
+  --chart-surface:#ffffff;
+  --chart-grid:#e5e7eb;
+  --chart-axis:#cbd5e1;
+  --chart-text:#6b7280;
+  --chart-hover:#334155;
+  --chart-stack-stroke:#ffffff;
+  --securities-band-bg:linear-gradient(135deg,rgba(49,130,246,.065) 0%,rgba(255,255,255,.98) 48%,rgba(99,102,241,.045) 100%);
+  --pension-band-bg:linear-gradient(135deg,rgba(16,185,129,.065) 0%,rgba(255,255,255,.98) 48%,rgba(20,184,166,.045) 100%);
+  --insight-bg:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+}
+
+html.dark{
+  color-scheme:dark;
+  --bg:#0b1020;
+  --card:#121826;
+  --ink:#e5e7eb;
+  --muted:#94a3b8;
+  --line:#2b3548;
+  --soft-blue:#172554;
+  --soft-green:#052e2b;
+  --soft-red:#3f171d;
+  --soft-amber:#422006;
+  --soft-purple:#2e1f47;
+  --soft-gray:#1e293b;
+  --value-positive:#FF5964;
+  --value-negative:#60A5FA;
+  --value-difference:#FBBF24;
+  --table-head-bg:#1a2233;
+  --summary-row-bg:#182132;
+  --subtle-card:#161f30;
+  --chart-surface:#121826;
+  --chart-grid:#273248;
+  --chart-axis:#475569;
+  --chart-text:#94a3b8;
+  --chart-hover:#94a3b8;
+  --chart-stack-stroke:#121826;
+  --securities-band-bg:linear-gradient(135deg,rgba(49,130,246,.12) 0%,rgba(18,24,38,.98) 48%,rgba(99,102,241,.085) 100%);
+  --pension-band-bg:linear-gradient(135deg,rgba(16,185,129,.12) 0%,rgba(18,24,38,.98) 48%,rgba(20,184,166,.085) 100%);
+  --insight-bg:linear-gradient(180deg,#151d2c 0%,#121826 100%);
 }
 
 @media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
@@ -225,7 +268,7 @@ table{
   border-collapse:separate;
   border-spacing:0;
   font-size:13px;
-  background:white;
+  background:var(--card);
   border:1px solid var(--line);
   border-radius:16px;
   overflow:hidden;
@@ -247,8 +290,8 @@ tr:last-child td{
 }
 
 thead th{
-  background:#f1f5f9;
-  color:#111827;
+  background:var(--table-head-bg);
+  color:var(--ink);
   font-weight:900;
   text-align:center;
   white-space:nowrap;
@@ -274,7 +317,7 @@ td.num{
 }
 
 .summary-row td{
-  background:#f8fafc;
+  background:var(--summary-row-bg);
   font-weight:900;
 }
 
@@ -290,12 +333,12 @@ td.num{
 }
 
 .note{
-  background:#fff;
+  background:var(--card);
   border-radius:18px;
 }
 
 .note strong{
-  color:#111827;
+  color:var(--ink);
 }
 
 .three{
@@ -407,7 +450,7 @@ td.num{
   --mini-value-size:19px;
   --mini-detail-size:12px;
   --mini-detail-weight:400;
-  background:#f8fafc;
+  background:var(--subtle-card);
   border:1px solid var(--line);
   border-radius:14px;
   padding:var(--mini-card-pad-y) var(--mini-card-pad-x);
@@ -554,7 +597,7 @@ td.num{
 .chart-card{
   position:relative;
   overflow:hidden;
-  background:#fff;
+  background:var(--card);
   border-radius:18px;
 }
 
@@ -589,7 +632,7 @@ svg.chart{
   min-width:960px;
   height:330px;
   display:block;
-  background:#fff;
+  background:var(--chart-surface);
   border-radius:12px;
 }
 
@@ -600,7 +643,7 @@ svg.chart{
   min-height:var(--dashboard-control-height);
   margin-top:10px;
   font-size:var(--dashboard-legend-font-size);
-  color:#555;
+  color:var(--muted);
 }
 
 .chart-legend-control{
@@ -674,32 +717,32 @@ svg.chart{
 
 .chart-series-all{
   padding:0 var(--dashboard-control-pad-x) !important;
-  border:1px solid #d7dde5 !important;
+  border:1px solid var(--line) !important;
   border-radius:999px !important;
-  background:#fff !important;
-  color:#64748b !important;
+  background:var(--card) !important;
+  color:var(--muted) !important;
   font-weight:700 !important;
 }
 
 .chart-series-all.active{
-  border-color:#cbd5e1 !important;
-  background:#f1f5f9 !important;
-  color:#334155 !important;
+  border-color:var(--line) !important;
+  background:var(--subtle-card) !important;
+  color:var(--ink) !important;
 }
 
 .chart-y-auto-toggle{
   gap:5px;
   padding:0 var(--dashboard-control-pad-x);
-  border:1px solid #d7dde5;
+  border:1px solid var(--line);
   border-radius:999px;
-  background:#fff;
-  color:#64748b;
+  background:var(--card);
+  color:var(--muted);
   font-weight:700;
 }
 
 .chart-y-auto-toggle.active{
-  background:#f8fafc;
-  color:#334155;
+  background:var(--subtle-card);
+  color:var(--ink);
 }
 
 .chart-y-auto-state{
@@ -736,7 +779,7 @@ svg.chart{
 }
 
 .chart-note .mini-card{
-  background:#f8fafc;
+  background:var(--subtle-card);
 }
 
 @media (max-width:900px){
@@ -810,7 +853,7 @@ svg.chart{
   border:1px solid var(--line);
   border-radius:16px;
   padding:12px 14px;
-  background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+  background:var(--insight-bg);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
 }
 
@@ -826,7 +869,7 @@ svg.chart{
   margin:0;
   font-size:17px;
   letter-spacing:-.03em;
-  color:#0f172a;
+  color:var(--ink);
 }
 
 .pension-insight-badge{
@@ -857,9 +900,9 @@ svg.chart{
 .pension-empty-state{
   padding:14px;
   border-radius:14px;
-  background:#f8fafc;
-  border:1px dashed #cbd5e1;
-  color:#64748b;
+  background:var(--subtle-card);
+  border:1px dashed var(--line);
+  color:var(--muted);
   font-size:13px;
   font-weight:700;
 }
@@ -1008,11 +1051,11 @@ svg.chart{
   transform:translateX(-50%);
   font-size:11px;
   font-weight:900;
-  color:#0f172a;
-  background:#fff;
+  color:var(--ink);
+  background:var(--card);
   padding:1px 5px;
   border-radius:999px;
-  border:1px solid #dbe2ec;
+  border:1px solid var(--line);
 }
 
 .pension-risk-gauge .pension-viz-tooltip{
@@ -1531,7 +1574,7 @@ svg.chart{
   padding:5px 10px;
   border:1px solid var(--line);
   border-radius:999px;
-  background:#fff;
+  background:var(--card);
   color:var(--muted);
   font-size:12px;
   font-weight:800;
@@ -1541,11 +1584,6 @@ svg.chart{
   font-size:var(--dashboard-control-font-size);
   font-weight:900;
   cursor:pointer;
-}
-.dark .section-basis-chip{
-  background:#0f172a;
-  color:#cbd5e1;
-  border-color:rgba(148,163,184,.24);
 }
 @media(max-width:760px){
   .section-title{align-items:flex-start}
@@ -1757,7 +1795,7 @@ body.contrib-modal-open{
   flex:0 0 auto;
   padding:0;
   background:#e2e8f0;
-  color:#0f172a;
+  color:var(--ink);
   font-size:20px;
   font-weight:900;
 }
@@ -1909,7 +1947,7 @@ body.contrib-modal-open{
 .token-guide-body code{
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
   background:#e2e8f0;
-  color:#0f172a;
+  color:var(--ink);
   border-radius:6px;
   padding:1px 5px;
   font-weight:900;
@@ -2054,20 +2092,72 @@ body.contrib-modal-open{
 /* Large band variants: surface structure comes from the shared large-card rule. */
 .pension-band{
   border-radius:22px;
-  background:linear-gradient(135deg,#ecfdf5 0%,#eff6ff 52%,#fff7ed 100%);
+  background:var(--pension-band-bg);
 }
 .securities-band{
   border-radius:24px;
-  background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);
-}
-.dark .securities-band{
-  background:linear-gradient(180deg,#111827 0%,#0f172a 100%);
-  border-color:rgba(148,163,184,.24);
+  background:var(--securities-band-bg);
 }
 @media(max-width:720px){
   .pension-band,
   .securities-band{border-radius:20px}
 }
+
+/* Asset workspace tabs: securities first, pension second; panels keep their existing section IDs for TOC jumps. */
+.asset-workspace{margin-top:22px}
+.asset-workspace-tabs{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px;
+  width:min(430px,100%);
+  margin:0 0 12px;
+  padding:4px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--subtle-card);
+}
+.asset-workspace-tab{
+  min-height:36px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:var(--muted);
+  font-family:inherit;
+  font-size:13px;
+  font-weight:900;
+  cursor:pointer;
+}
+.asset-workspace-tab[data-asset-tab="securities"].active{background:rgba(49,130,246,.12);color:#2563eb}
+.asset-workspace-tab[data-asset-tab="pension"].active{background:rgba(16,185,129,.13);color:#059669}
+.dark .asset-workspace-tab[data-asset-tab="securities"].active{background:rgba(96,165,250,.16);color:#93c5fd}
+.dark .asset-workspace-tab[data-asset-tab="pension"].active{background:rgba(52,211,153,.15);color:#6ee7b7}
+.asset-workspace-tab:focus-visible{outline:2px solid #93c5fd;outline-offset:2px}
+.asset-workspace-panel[hidden]{display:none}
+.asset-workspace-panel > section{margin-top:0}
+@media(max-width:760px){
+  .asset-workspace-tabs{width:100%;margin-bottom:10px}
+  .asset-workspace-tab{min-height:34px;font-size:12px}
+}
+
+/* Dark theme: shared dashboard surfaces. Feature-specific dark rules below remain only for unique states. */
+.dark :is(.note,.chart-card,.card:not(.dark),.mini-card,.mobile-data-card){background-color:var(--card);border-color:var(--line);color:var(--ink)}
+.dark :is(table,.dashboard-data-table){background:var(--card);color:var(--ink);border-color:var(--line)}
+.dark :is(th,td){border-color:var(--line)}
+.dark thead th{background:var(--table-head-bg);color:var(--ink)}
+.dark .summary-row td{background:var(--summary-row-bg)}
+.dark :is(.chart-series-all,.chart-y-auto-toggle){background:var(--card) !important;border-color:var(--line) !important;color:var(--muted) !important}
+.dark :is(.chart-series-all.active,.chart-y-auto-toggle.active){background:var(--subtle-card) !important;color:var(--ink) !important}
+.dark .chart-y-auto-state{background:#273449;color:#94a3b8}
+.dark .chart-y-auto-toggle.active .chart-y-auto-state{background:#1e3a5f;color:#93c5fd}
+.dark .chart-legend{color:var(--muted)}
+.dark :is(.mobile-data-card-label,.accounts-memo,.section-explainer,.table-note){color:var(--muted)}
+.dark :is(.mobile-data-card-title,.mobile-data-card-value){color:var(--ink)}
+.dark .pension-insight-card{border-color:var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+.dark .pension-empty-state{background:var(--subtle-card);border-color:var(--line);color:var(--muted)}
+.dark .pension-stack-bar{background:#243149;border-color:#334155}
+.dark .separate-profit-toggle:not(.active){background:var(--card);border-color:var(--line);color:var(--muted)}
+.dark .source-reclass-note{background:#30181d;border-color:#7f3340}
+.dark .source-reclass-note span{color:#94a3b8}
 
 .securities-subsection{
   margin-top:18px;
@@ -2333,7 +2423,7 @@ body.contrib-modal-open{
 }
 .contrib-target-option.active{
   background:#fff;
-  color:#0f172a;
+  color:var(--ink);
   box-shadow:0 4px 12px rgba(15,23,42,.12);
 }
 .contrib-target-option:hover{
@@ -2556,7 +2646,7 @@ body.contrib-modal-open{
 
 
 .source-card.highlight{
-  background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+  background:var(--insight-bg);
   border-color:rgba(37,99,235,.22);
 }
 
@@ -2597,7 +2687,7 @@ body.contrib-modal-open{
   background:#fff;
   border:1px solid rgba(148,163,184,.35);
   box-shadow:0 24px 70px rgba(15,23,42,.28);
-  color:#0f172a;
+  color:var(--ink);
 }
 .krx-action-close{
   position:absolute;
@@ -2851,7 +2941,7 @@ svg.chart{
   padding:24px;
   border-radius:24px;
   background:#fff;
-  color:#0f172a;
+  color:var(--ink);
   border:1px solid rgba(148,163,184,.35);
   box-shadow:0 24px 70px rgba(15,23,42,.30);
 }
@@ -3515,7 +3605,7 @@ button:active,
 .hold-position-table tbody tr.ticker-sk td,
 .hold-position-table tbody tr.ticker-hyundai td,
 .hold-position-table tbody tr.ticker-kodex td{
-  background:#fff !important;
+  background:var(--card) !important;
 }
 
 .holding-name-text{
@@ -3538,8 +3628,8 @@ button:active,
 
 /* TOC/menu shared primitives: panel, item interaction and SVG icon geometry. */
 :is(.desktop-edge-toc-panel,.date-action-menu.mobile-combined-menu){
-  border:1px solid #d0d7de;
-  background:#fff;
+  border:1px solid var(--line);
+  background:var(--card);
 }
 .dark :is(.desktop-edge-toc-panel,.date-action-menu.mobile-combined-menu){
   border-color:#30363d;
@@ -3733,8 +3823,8 @@ button:active,
 #securities-holdings .hold-position-table tbody tr.ticker-sk > td:first-child,
 #securities-holdings .hold-position-table tbody tr.ticker-hyundai > td:first-child,
 #securities-holdings .hold-position-table tbody tr.ticker-kodex > td:first-child{
-  background:#fff !important;
-  background-color:#fff !important;
+  background:var(--card) !important;
+  background-color:var(--card) !important;
   background-image:none !important;
 }
 
@@ -4306,10 +4396,10 @@ button:active,
   gap:7px;
   flex:0 0 auto;
   padding:2px 8px 2px 10px;
-  border:1px solid #d7dee8;
+  border:1px solid var(--line);
   border-radius:999px;
-  background:#fff;
-  color:#475569;
+  background:var(--card);
+  color:var(--muted);
   letter-spacing:-.025em;
 }
 .separate-profit-toggle strong{
@@ -4810,8 +4900,8 @@ body.chart-expanded-open .dash-tooltip{
   cursor:pointer;
 }
 .date-select option{
-  color:#111827;
-  background:#fff;
+  color:var(--ink);
+  background:var(--card);
 }
 .month-select{min-width:148px;flex:0 0 148px}
 .day-select{min-width:116px;flex:0 0 116px}
@@ -5168,8 +5258,8 @@ body.chart-expanded-open .dash-tooltip{
   padding:0;
   border:1.5px solid #94a3b8;
   border-radius:50%;
-  background:#fff;
-  color:#64748b;
+  background:var(--card);
+  color:var(--muted);
   font-family:inherit;
   font-size:12px;
   font-weight:900;
@@ -5390,10 +5480,10 @@ body.chart-expanded-open .dash-tooltip{
     display:inline-flex;
     flex:0 0 auto;
     padding:0 9px;
-    border:1px solid #cbd5e1;
+    border:1px solid var(--line);
     border-radius:9px;
-    background:#fff;
-    color:#475569;
+    background:var(--card);
+    color:var(--muted);
   }
   [data-mobile-view="card"] > .table-view,
   [data-mobile-view="card"] .table-view{display:none !important}
@@ -5408,14 +5498,14 @@ body.chart-expanded-open .dash-tooltip{
   .mobile-data-card{
     min-width:0;
     padding:13px 14px;
-    border:1px solid #d7dce5;
+    border:1px solid var(--line);
     border-radius:15px;
-    background:#fff;
+    background:var(--card);
     box-shadow:0 5px 14px rgba(15,23,42,.045);
   }
   .mobile-data-card-title{
     margin:0 0 6px;
-    color:#172033;
+    color:var(--ink);
     font-size:14px;
     font-weight:900;
     line-height:1.25;
@@ -5427,7 +5517,7 @@ body.chart-expanded-open .dash-tooltip{
     justify-content:space-between;
     gap:12px;
     padding:5px 0;
-    border-top:1px dashed #e2e8f0;
+    border-top:1px dashed var(--line);
   }
   /* No separator immediately below the main card label. */
   .mobile-data-card-row:first-child{border-top:0}
@@ -5460,10 +5550,10 @@ body.chart-expanded-open .dash-tooltip{
 
   .table-view > .dashboard-data-table:not(.source-data-table) th:first-child,
   .table-view > .dashboard-data-table:not(.source-data-table) td:first-child{
-    position:-webkit-sticky;position:sticky;left:0;z-index:3;background:#fff;background-clip:padding-box;
+    position:-webkit-sticky;position:sticky;left:0;z-index:3;background:var(--card);background-clip:padding-box;
   }
-  .table-view > .dashboard-data-table:not(.source-data-table) thead th:first-child{z-index:5;background:#f1f5f9}
-  .table-view > .dashboard-data-table:not(.source-data-table) tbody tr.summary-row td:first-child{z-index:4;background:#f8fafc}
+  .table-view > .dashboard-data-table:not(.source-data-table) thead th:first-child{z-index:5;background:var(--table-head-bg)}
+  .table-view > .dashboard-data-table:not(.source-data-table) tbody tr.summary-row td:first-child{z-index:4;background:var(--summary-row-bg)}
 }
 
 @media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){

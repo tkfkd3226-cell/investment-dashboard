@@ -19,6 +19,13 @@
 <title>투자 성과 대시보드</title>
 <link rel="icon" href="favicon.png" type="image/png">
 <script>
+  (function(){
+    try{
+      if(localStorage.getItem('investmentDashboard.theme')==='dark') document.documentElement.classList.add('dark');
+    }catch(_){ }
+  })();
+</script>
+<script>
   document.write('<link rel="stylesheet" href="style.css?v=' + Date.now() + '">');
 </script>
 </head>
