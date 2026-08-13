@@ -1100,49 +1100,7 @@ svg.chart{
   white-space:nowrap;
 }
 
-.change-mobile-list{
-  display:none;
-  margin-top:12px;
-}
-
-.change-product-card{
-  background:#f8fafc;
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:13px;
-}
-
-.change-product-title{
-  font-size:14px;
-  font-weight:900;
-  margin-bottom:9px;
-  color:#111827;
-}
-
-.change-product-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
-  padding:5px 0;
-  border-top:1px dashed #dbe2ec;
-  font-size:12px;
-}
-
-.change-product-row:first-of-type{
-  border-top:0;
-}
-
-.change-product-label{
-  color:var(--muted);
-  font-weight:700;
-}
-
-.change-product-value{
-  text-align:right;
-  font-weight:800;
-  font-variant-numeric:tabular-nums;
-}
+.change-mobile-list{margin-top:12px}
 
 @media (max-width:1100px){
   .pension-detail-grid{
@@ -3909,8 +3867,6 @@ button:active,
   
   .pension-products-basis-note{margin-top:9px !important}
 
-  .change-product-card{background:#fff !important}
-
   .chart-scroll-start,
   .chart-scroll-end{
     display:inline-flex;
@@ -4328,14 +4284,7 @@ button:active,
 
 
 
-/* Securities holdings: neutral rows/cards with chart-color symbol markers */
-.mobile-data-card.ticker-samsung,
-.mobile-data-card.ticker-sk,
-.mobile-data-card.ticker-hyundai,
-.mobile-data-card.ticker-kodex{
-  background:#fff !important;
-}
-
+/* Securities holdings: neutral table rows with chart-color symbol markers */
 .hold-position-table tbody tr.ticker-samsung,
 .hold-position-table tbody tr.ticker-sk,
 .hold-position-table tbody tr.ticker-hyundai,
@@ -4552,21 +4501,7 @@ button:active,
 }
 
 
-/* 2026-08-04 holdings final neutral-background correction
-   Keep all named security rows/cards white and show chart-color swatches only. */
-#securities-holdings .mobile-data-card.ticker-samsung,
-#securities-holdings .mobile-data-card.ticker-sk,
-#securities-holdings .mobile-data-card.ticker-hyundai,
-#securities-holdings .mobile-data-card.ticker-kodex,
-#securities-holdings .mobile-data-card.ticker-samsung .mobile-data-card-title,
-#securities-holdings .mobile-data-card.ticker-sk .mobile-data-card-title,
-#securities-holdings .mobile-data-card.ticker-hyundai .mobile-data-card-title,
-#securities-holdings .mobile-data-card.ticker-kodex .mobile-data-card-title{
-  background:#fff !important;
-  background-color:#fff !important;
-  background-image:none !important;
-}
-
+/* 2026-08-04 holdings final neutral-background correction: table rows only. */
 #securities-holdings .hold-position-table tbody tr.ticker-samsung,
 #securities-holdings .hold-position-table tbody tr.ticker-sk,
 #securities-holdings .hold-position-table tbody tr.ticker-hyundai,
@@ -4605,16 +4540,6 @@ button:active,
 
 #securities-holdings .hold-position-table tbody tr.summary-row > td{
   font-weight:900 !important;
-}
-
-@media(max-width:760px){
-  #securities-holdings .mobile-data-card:not(.summary-card) .mobile-data-card-value{
-    font-weight:400 !important;
-  }
-
-  #securities-holdings .mobile-data-card.summary-card .mobile-data-card-value{
-    font-weight:900 !important;
-  }
 }
 
 
@@ -6358,21 +6283,59 @@ body.chart-expanded-open .dash-tooltip{
   [data-mobile-view="table"] > .mobile-card-view,
   [data-mobile-view="table"] .mobile-card-view{display:none !important}
   .mobile-card-view{grid-template-columns:1fr;gap:9px;width:100%}
+  /* Shared card-view UI for every mobile table/card switch. */
   .mobile-data-card{
-    min-width:0;padding:13px 14px;border:1px solid #d7dce5;border-radius:15px;
-    background:#fff;box-shadow:0 5px 14px rgba(15,23,42,.045);
+    min-width:0;
+    padding:13px 14px;
+    border:1px solid #d7dce5;
+    border-radius:15px;
+    background:#fff;
+    box-shadow:0 5px 14px rgba(15,23,42,.045);
   }
-  .mobile-data-card.summary-card{border-color:#b9c4d4;box-shadow:0 6px 16px rgba(15,23,42,.07)}
-  .mobile-data-card-title{margin-bottom:6px;color:#172033;font-size:14px;font-weight:950;letter-spacing:-.03em}
+  .mobile-data-card-title{
+    margin:0 0 6px;
+    color:#172033;
+    font-size:14px;
+    font-weight:900;
+    line-height:1.25;
+    letter-spacing:-.03em;
+  }
   .mobile-data-card-row{
-    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
-    padding:5px 0;border-top:1px dashed #e2e8f0;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    padding:5px 0;
+    border-top:1px dashed #e2e8f0;
   }
+  /* No separator immediately below the main card label. */
   .mobile-data-card-row:first-child{border-top:0}
-  .mobile-data-card-label{color:var(--muted);font-size:11px;font-weight:800}
-  .mobile-data-card-value{min-width:0;text-align:right;font-size:11.5px;font-weight:800;font-variant-numeric:tabular-nums}
+  .mobile-data-card-label{
+    color:var(--muted);
+    font-size:11px;
+    font-weight:800;
+    line-height:1.35;
+  }
+  .mobile-data-card-value{
+    min-width:0;
+    text-align:right;
+    font-size:11.5px;
+    font-weight:400;
+    line-height:1.35;
+    font-variant-numeric:tabular-nums;
+  }
+  /* Only explicit 합계/총계 cards may emphasize their numeric values. */
+  .mobile-data-card.mobile-total-card .mobile-data-card-value{font-weight:800}
   .mobile-data-card-row.stacked{display:block}
   .mobile-data-card-row.stacked .mobile-data-card-value{margin-top:3px;text-align:left}
+  .mobile-data-card-row.note-only .mobile-data-card-label{display:none}
+  .mobile-data-card-row.note-only .mobile-data-card-value{
+    display:block;
+    width:100%;
+    margin-top:0;
+    text-align:left;
+    font-weight:400;
+  }
 
   .table-view > .dashboard-data-table:not(.source-data-table) th:first-child,
   .table-view > .dashboard-data-table:not(.source-data-table) td:first-child{
