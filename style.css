@@ -1262,6 +1262,130 @@ svg.chart{
   }
 }
 
+/* Summary/source metric cards: shared typography; summary grids use the common viewport system. */
+.metric-card{
+  --metric-label-size:13px;
+  --metric-value-size:28px;
+  --metric-sub-size:13px;
+  --metric-label-gap:7px;
+  --metric-sub-gap:5px;
+}
+
+.metric-card .label{
+  margin-bottom:var(--metric-label-gap);
+  font-size:var(--metric-label-size);
+  line-height:1.25;
+}
+
+.metric-card .value{
+  font-size:var(--metric-value-size);
+  line-height:1.18;
+}
+
+.metric-card .sub{
+  margin-top:var(--metric-sub-gap);
+  font-size:var(--metric-sub-size);
+  line-height:1.35;
+}
+
+.metric-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+
+.metric-grid > .metric-card{
+  padding:18px !important;
+}
+
+.metric-grid > .metric-card .value{
+  min-height:35px;
+  display:flex;
+  align-items:center;
+}
+
+.metric-card .ledger-reason-value{
+  font-size:20px;
+  line-height:1.25;
+  letter-spacing:-.03em;
+  word-break:keep-all;
+}
+
+@media (min-width:761px) and (max-width:1100px){
+  .metric-card{
+    --metric-label-size:12px;
+    --metric-value-size:24px;
+    --metric-sub-size:12px;
+    --metric-label-gap:6px;
+    --metric-sub-gap:4px;
+  }
+
+  .metric-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .metric-grid > .metric-card{
+    padding:14px !important;
+  }
+
+  .metric-grid > .metric-card .value{
+    min-height:30px;
+  }
+
+  .metric-card .ledger-reason-value{
+    font-size:18px;
+  }
+}
+
+@media (max-width:760px){
+  .metric-card{
+    --metric-label-size:11px;
+    --metric-value-size:22px;
+    --metric-sub-size:11px;
+    --metric-label-gap:5px;
+    --metric-sub-gap:3px;
+  }
+
+  .metric-grid{
+    grid-template-columns:1fr !important;
+  }
+
+  .metric-grid > .metric-card{
+    padding:10px !important;
+  }
+
+  .metric-grid > .metric-card .value{
+    min-height:28px;
+  }
+
+  .metric-card .ledger-reason-value{
+    font-size:17px;
+  }
+}
+
+@media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  .metric-card{
+    --metric-label-size:11px;
+    --metric-value-size:22px;
+    --metric-sub-size:11px;
+    --metric-label-gap:5px;
+    --metric-sub-gap:3px;
+  }
+
+  .metric-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .metric-grid > .metric-card{
+    padding:10px !important;
+  }
+
+  .metric-grid > .metric-card .value{
+    min-height:28px;
+  }
+
+  .metric-card .ledger-reason-value{
+    font-size:17px;
+  }
+}
 
 
 .chart-note.symbol-summary-grid{
@@ -3797,53 +3921,9 @@ button:active,
   }
 }
 
-/* 장부결과 VS 실제보유: 카드 높이 및 긴 사유 문구 균형 조정 */
+/* 장부결과 VS 실제보유: 카드 간격만 별도 유지. 타이포/값 슬롯은 metric-card 공통 규칙 사용. */
 #ledger-check .cards{
   gap:14px;
-}
-
-#ledger-check .card{
-  padding:14px 16px;
-}
-
-#ledger-check .card .label{
-  margin-bottom:5px;
-}
-
-#ledger-check .card .sub{
-  margin-top:3px;
-  line-height:1.35;
-}
-
-#ledger-check .card:last-child .value{
-  font-size:20px;
-  line-height:1.25;
-  letter-spacing:-.03em;
-  word-break:keep-all;
-}
-
-@media(max-width:1100px){
-  #ledger-check .card{
-    padding:9px !important;
-  }
-
-  #ledger-check .card:last-child .value{
-    font-size:18px !important;
-    line-height:1.25 !important;
-  }
-}
-
-/* 장부결과 VS 실제보유: 마지막 카드의 값 영역 높이를 숫자 카드와 동일하게 정렬 */
-#ledger-check .card:last-child .value{
-  min-height:35px;
-  display:flex;
-  align-items:center;
-}
-
-@media(max-width:1100px){
-  #ledger-check .card:last-child .value{
-    min-height:30px;
-  }
 }
 
 
@@ -4699,15 +4779,6 @@ button:active,
    - Keep phone (<=760px) and desktop (>=1101px) layouts unchanged.
    - Do not alter the desktop edge TOC behavior. */
 
-/* Tablet common: use available width for summary cards. */
-@media (min-width:761px) and (max-width:1100px){
-  #pension-section > .pension-band > .grid.cards,
-  #securities-section .securities-summary-block > .grid.cards,
-  #ledger-check > .grid.cards{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-  }
-}
-
 /* iPad Mini: keep the compact securities symbol-card density. */
 @media (min-width:761px) and (max-width:900px){
   
@@ -5418,13 +5489,6 @@ button:active,
   
   
   
-
-  /* Main four-card KPI groups: 2 + 2 instead of one card per row. */
-  #pension-section > .pension-band > .grid.cards,
-  #securities-section .securities-summary-block > .grid.cards,
-  #ledger-check > .grid.cards{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-  }
 
   /* Capital source/reconciliation: all three cards in one row. */
   #capital-source-check .source-grid{
