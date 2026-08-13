@@ -1104,8 +1104,8 @@ function syncMobileChartOptions(scope,card,legend,mobile=compactPhoneChartUi()){
   const allButton=options.querySelector('.chart-series-all');
   const hasYAuto=!!options.querySelector('.chart-y-auto-toggle');
   const allSelected=allButton?.classList.contains('active')===true;
-  if(allButton)allButton.hidden=allSelected;
-  options.hidden=(!allButton||allSelected)&&!hasYAuto;
+  if(allButton)allButton.style.display=allSelected?'none':'';
+  options.style.display=((allButton&&!allSelected)||hasYAuto)?'':'none';
   options.classList.toggle('has-y-auto',hasYAuto);
 }
 function refreshMobileChartOptions(scope){
