@@ -569,7 +569,7 @@ svg.chart{
   white-space:nowrap;
 }
 
-@media (min-width:1101px){
+@media (min-width:901px){
   #securityAllocCards.security-alloc-card-grid{
     grid-template-columns:repeat(var(--security-alloc-card-count,4),minmax(0,1fr));
   }
@@ -578,6 +578,9 @@ svg.chart{
 @media (max-width:900px){
   .chart-note{
     grid-template-columns:1fr 1fr;
+  }
+  #chart-alloc:not(.phone-chart-ui) #securityAllocCards.security-alloc-card-grid > .alloc-total-card:not(.alloc-total-card-wide){
+    grid-column:1 / -1;
   }
 }
 
