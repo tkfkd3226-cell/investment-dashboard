@@ -263,14 +263,9 @@ td.num{
   color:#f3f4f6;
 }
 
-.mobile-scroll{
-  overflow:auto;
-  border-radius:16px;
-}
 
-.mobile-scroll table{
-  min-width:980px;
-}
+
+
 
 .mini-card{
   background:#f8fafc;
@@ -817,33 +812,15 @@ svg.chart{
   margin-top:10px;
 }
 
-.change-table-wrap{
-  width:100%;
-  overflow-x:auto;
-  border-radius:12px;
-  margin-top:12px;
-  -webkit-overflow-scrolling:touch;
-}
 
-.change-table{
-  min-width:0 !important;
-  table-layout:fixed;
-  font-size:12px !important;
-  margin:0 !important;
-  border-radius:12px !important;
-}
 
-.change-table th:nth-child(1){
-  width:25%;
-}
 
-.change-table th:nth-child(2), .change-table th:nth-child(3){
-  width:28%;
-}
 
-.change-table th:nth-child(4){
-  width:19%;
-}
+
+
+
+
+
 
 .change-price{
   display:block;
@@ -960,49 +937,18 @@ svg.chart{
 }
 
 
-@media (min-width:1101px) and (max-width:1250px){
-  .pension-detail-grid{
-    grid-template-columns:1fr !important;
-  }
 
-  .pension-products-note .mobile-scroll table{
-    min-width:0 !important;
-    width:100% !important;
-  }
-}
 
-.scroll-hint{
-  display:none;
-}
+
 
 .mobile-scroll.is-scrollable, .chart-wrap.is-scrollable{
   box-shadow:inset -20px 0 18px -22px rgba(15,23,42,.8);
 }
 
 @media (max-width:900px){
-  .scroll-hint{
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    gap:6px;
-    margin:0 2px 7px;
-    color:#475569;
-    font-size:12px;
-    font-weight:800;
-  }
+  
 
-  .scroll-hint::before{
-    content:"↔";
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    width:24px;
-    height:24px;
-    border-radius:999px;
-    background:#e2e8f0;
-    color:#0f172a;
-    font-size:14px;
-  }
+  
 
   .mobile-scroll.is-scrollable, .chart-wrap.is-scrollable{
     border-right:3px solid #94a3b8;
@@ -1065,188 +1011,48 @@ svg.chart{
   font-variant-numeric:tabular-nums;
 }
 
-@media (max-width:900px){
-  .combined-performance-table{
-    width:max-content !important;
-    min-width:max-content !important;
-    table-layout:auto !important;
-    font-size:12px !important;
-  }
-
-  .combined-performance-table th,
-  .combined-performance-table td{
-    padding:7px 8px !important;
-    white-space:nowrap;
-  }
-
-  .combined-performance-table th:first-child,
-  .combined-performance-table td:first-child{
-    min-width:112px;
-  }
-}
-
-@media (max-width:900px){
-  .pension-products-table{
-    width:max-content !important;
-    min-width:max-content !important;
-    table-layout:auto !important;
-    font-size:11px !important;
-  }
-
-  .pension-products-table th, .pension-products-table td{
-    padding:6px 7px !important;
-    white-space:nowrap !important;
-  }
-
-  .pension-products-table th:nth-child(2), .pension-products-table td:nth-child(2){
-    min-width:42px !important;
-  }
-
-  .pension-products-table th:nth-child(3), .pension-products-table td:nth-child(3){
-    min-width:68px !important;
-  }
-
-  .pension-products-table th:nth-child(4), .pension-products-table td:nth-child(4), .pension-products-table th:nth-child(5), .pension-products-table td:nth-child(5), .pension-products-table th:nth-child(6), .pension-products-table td:nth-child(6){
-    min-width:88px !important;
-  }
-
-  .pension-products-table th:nth-child(7), .pension-products-table td:nth-child(7){
-    min-width:62px !important;
-  }
-
-  .pension-products-table th:nth-child(8), .pension-products-table td:nth-child(8){
-    min-width:78px !important;
-  }
-
-  .pension-products-table .bar-box{
-    width:64px !important;
-    min-width:64px !important;
-  }
-}
-
-@media (max-width:900px){
-  .pension-products-table th:first-child, .pension-products-table td:first-child, .combined-performance-table th:first-child, .combined-performance-table td:first-child, .hold-position-table th:first-child, .hold-position-table td:first-child{
-    position:sticky;
-    left:0;
-    z-index:3;
-    box-shadow:8px 0 10px -10px rgba(15,23,42,.35);
-    background-clip:padding-box;
-  }
-
-  .pension-products-table thead th:first-child, .combined-performance-table thead th:first-child, .hold-position-table thead th:first-child{
-    background:#f1f5f9 !important;
-    z-index:5;
-  }
-
-  .pension-products-table tbody td:first-child{
-    background:#fff !important;
-    z-index:2;
-  }
-
-  .pension-products-table tbody tr.summary-row td:first-child{
-    background:#f8fafc !important;
-    z-index:4;
-  }
-
-  .combined-performance-table tbody td:first-child{
-    background:#fff !important;
-    z-index:2;
-  }
-
-  .combined-performance-table tbody tr.summary-row td:first-child{
-    background:#f8fafc !important;
-    z-index:4;
-  }
-
-  .hold-position-table tbody td:first-child{
-    background:#fff !important;
-    z-index:2;
-  }
 
 
-  .hold-position-table tbody tr.summary-row td:first-child{
-    background:#f8fafc !important;
-    z-index:4;
-  }
-}
 
-@media (max-width:900px){
-  .pension-products-table, .combined-performance-table, .hold-position-table, .accounts-table{
-    overflow:visible !important;
-  }
-}
+
+
+
+
 
 @media (min-width:1251px){
   .pension-detail-grid{
     grid-template-columns:minmax(0,1.56fr) minmax(480px,.72fr);
   }
 
-  .pension-products-note .mobile-scroll{
-    overflow:visible;
-  }
+  
 
-  .pension-products-note .mobile-scroll table{
-    min-width:0;
-    width:100%;
-    table-layout:fixed;
-    font-size:12px;
-  }
+  
 
-  .pension-products-note th, .pension-products-note td{
-    padding:8px 7px;
-  }
+  
 
-  .pension-products-note th:nth-child(1){
-    width:20%;
-  }
+  
 
-  .pension-products-note th:nth-child(2){
-    width:7%;
-  }
+  
 
-  .pension-products-note th:nth-child(3){
-    width:10%;
-  }
+  
 
-  .pension-products-note th:nth-child(4){
-    width:14%;
-  }
+  
 
-  .pension-products-note th:nth-child(5){
-    width:14%;
-  }
+  
 
-  .pension-products-note th:nth-child(6){
-    width:14%;
-  }
+  
 
-  .pension-products-note th:nth-child(7){
-    width:13%;
-  }
+  
 
-  .pension-products-note th:nth-child(8){
-    width:8%;
-  }
+  
 
-  .pension-products-note th:first-child, .pension-products-note td:first-child{
-    white-space:nowrap;
-  }
+  
 
-  .change-table{
-    table-layout:fixed;
-    font-size:11px;
-  }
+  
 
-  .change-table th:nth-child(1), .change-table td:nth-child(1){
-    width:28%;
-    white-space:nowrap;
-    font-size:10.8px;
-    letter-spacing:-.03em;
-  }
+  
 
-  .change-table th:nth-child(2), .change-table td:nth-child(2), .change-table th:nth-child(3), .change-table td:nth-child(3), .change-table th:nth-child(4), .change-table td:nth-child(4){
-    width:24%;
-  }
+  
 }
 
 /* Cumulative summary cards shared by pension/securities:
@@ -1343,20 +1149,7 @@ svg.chart{
   }
 }
 
-@media (max-width:900px){
-  .hold-position-table{
-    table-layout:auto !important;
-  }
 
-  .hold-position-table th:first-child, .hold-position-table td:first-child, .pension-products-table th:first-child, .pension-products-table td:first-child{
-    width:1% !important;
-    min-width:0 !important;
-    max-width:none !important;
-    padding-left:6px !important;
-    padding-right:6px !important;
-    white-space:nowrap !important;
-  }
-}
 
 .chart-note.symbol-summary-grid{
   --symbol-metric-label-size:11px;
@@ -1408,16 +1201,8 @@ svg.chart{
   }
 }
 
-/* 계좌+연금 성과표: 첫 번째 컬럼은 글자 길이에 맞게 최소 폭으로 조정 */
-.combined-performance-table th:first-child,
-.combined-performance-table td:first-child{
-  width:1% !important;
-  min-width:0 !important;
-  max-width:none !important;
-  white-space:nowrap !important;
-  padding-left:8px !important;
-  padding-right:8px !important;
-}
+
+
 
 
 
@@ -1810,7 +1595,7 @@ body.contrib-modal-open{
   display:none;
 }
 .token-guide summary::before{
-  content:'▸';
+  content:"▸";
   display:inline-block;
   margin-right:6px;
   transition:transform .15s ease;
@@ -2029,71 +1814,8 @@ body.contrib-modal-open{
 }
 
 
-/* 계좌별 성과 요약 모바일 표 */
-@media(max-width:900px){
-  .accounts-scroll{
-    position:relative !important;
-    overflow-x:auto !important;
-    overflow-y:visible !important;
-    -webkit-overflow-scrolling:touch;
-    isolation:isolate;
-  }
-  .accounts-scroll .accounts-table{
-    width:max-content !important;
-    min-width:max-content !important;
-    table-layout:auto !important;
-    border-collapse:separate !important;
-    border-spacing:0 !important;
-    overflow:visible !important;
-    font-size:12px !important;
-  }
-  .accounts-scroll .accounts-table th,
-  .accounts-scroll .accounts-table td{
-    padding:7px 8px !important;
-    font-size:12px !important;
-    font-weight:800 !important;
-    line-height:1.45 !important;
-    letter-spacing:-.02em !important;
-    vertical-align:top !important;
-    white-space:nowrap !important;
-  }
-  .accounts-scroll .accounts-table th.accounts-name-head,
-  .accounts-scroll .accounts-table td.accounts-name,
-  .accounts-scroll .accounts-table th:first-child,
-  .accounts-scroll .accounts-table td:first-child{
-    position:-webkit-sticky !important;
-    position:sticky !important;
-    left:0 !important;
-    z-index:60 !important;
-    width:auto !important;
-    min-width:fit-content !important;
-    max-width:none !important;
-    white-space:nowrap !important;
-    color:var(--text) !important;
-    box-shadow:8px 0 10px -10px rgba(15,23,42,.38) !important;
-    background-clip:padding-box !important;
-  }
-  .accounts-scroll .accounts-table th.accounts-name-head,
-  .accounts-scroll .accounts-table thead th:first-child{
-    background:#f1f5f9 !important;
-    z-index:80 !important;
-  }
-  .accounts-scroll .accounts-table td.accounts-name,
-  .accounts-scroll .accounts-table tbody td:first-child{
-    background:#fff !important;
-  }
-  .accounts-scroll .accounts-table tbody tr.summary-row td:first-child{
-    background:#f8fafc !important;
-  }
-  .accounts-scroll .accounts-table td.accounts-memo,
-  .accounts-scroll .accounts-table td:nth-child(5){
-    min-width:165px !important;
-    max-width:210px !important;
-    white-space:normal !important;
-    color:var(--text) !important;
-    font-weight:400 !important;
-  }
-}
+
+
 
 @media(max-width:550px){
   .accounts-scroll .accounts-table .accounts-memo-sentence{
@@ -2593,7 +2315,7 @@ body.contrib-modal-open{
 }
 
 .pension-viz-tooltip::after{
-  content:'';
+  content:"";
   position:absolute;
   left:50%;
   top:100%;
@@ -2683,31 +2405,8 @@ body.contrib-modal-open{
   }
 }
 
-/* Mobile sticky first column opaque fix for securities holdings */
-@media (max-width:900px){
-  .hold-position-table th:first-child,
-  .hold-position-table td:first-child{
-    position:sticky !important;
-    left:0 !important;
-    z-index:7 !important;
-    background-clip:border-box !important;
-    box-shadow:10px 0 12px -12px rgba(15,23,42,.55) !important;
-  }
 
-  .hold-position-table thead th:first-child{
-    z-index:8 !important;
-    background:#f1f5f9 !important;
-  }
 
-  
-  
-  
-  
-
-  .hold-position-table tbody tr.summary-row td:first-child{
-    background:#f8fafc !important;
-  }
-}
 
 /* Restored page section title icons */
 .section-title h2{
@@ -2911,10 +2610,7 @@ body.contrib-modal-open{
   border-color:rgba(148,163,184,.24);
 }
 
-.source-card table th,
-.source-card table td{
-  padding:7px 8px;
-}
+
 
 .source-card.highlight{
   background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
@@ -3211,19 +2907,7 @@ svg.chart{
 }
 
 /* C. Desktop only: widen first column of 연금+계좌 성과 */
-@media (min-width:901px){
-  .combined-performance-table{
-    table-layout:fixed !important;
-  }
 
-  .combined-performance-table th:first-child,
-  .combined-performance-table td:first-child{
-    width:150px !important;
-    min-width:150px !important;
-    max-width:150px !important;
-    white-space:nowrap !important;
-  }
-}
 
 /* D. Mobile quick menu: remove QUICK MENU header look; keep only dark gray X */
 @media(max-width:760px){
@@ -3680,22 +3364,9 @@ svg.chart{
 }
 
 @media(max-width:900px){
-  .scroll-hint{
-    gap:4px !important;
-    margin:0 3px 5px !important;
-    color:#64748b !important;
-    font-size:11px !important;
-    font-weight:750 !important;
-    opacity:.78;
-  }
+  
 
-  .scroll-hint::before{
-    width:20px !important;
-    height:20px !important;
-    font-size:12px !important;
-    background:#e5e7eb !important;
-    color:#334155 !important;
-  }
+  
 
   .mobile-scroll.is-scrollable,
   .chart-wrap.is-scrollable{
@@ -4205,88 +3876,21 @@ button:active,
     width:min(252px,calc(100vw - 12px)) !important;
   }
 
-  .mobile-view-toggle{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    flex:0 0 auto;
-    min-height:28px;
-    padding:0 9px;
-    border:1px solid #cbd5e1;
-    border-radius:9px;
-    background:#fff;
-    color:#475569;
-    font-size:10.5px;
-    font-weight:900;
-    white-space:nowrap;
-    cursor:pointer;
-  }
-  [data-mobile-view="card"] > .table-view,
-  [data-mobile-view="card"] .table-view{display:none !important}
-  [data-mobile-view="card"] > .mobile-card-view,
-  [data-mobile-view="card"] .mobile-card-view{display:grid !important}
-  [data-mobile-view="table"] > .table-view,
-  [data-mobile-view="table"] .table-view{display:block !important}
-  [data-mobile-view="table"] > .mobile-card-view,
-  [data-mobile-view="table"] .mobile-card-view{display:none !important}
-  .mobile-card-view{
-    grid-template-columns:1fr;
-    gap:9px;
-    width:100%;
-  }
-  .mobile-data-card{
-    min-width:0;
-    padding:13px 14px;
-    border:1px solid #d7dce5;
-    border-radius:15px;
-    background:#fff;
-    box-shadow:0 5px 14px rgba(15,23,42,.045);
-  }
-  .mobile-data-card.summary-card{
-    border-color:#b9c4d4;
-    box-shadow:0 6px 16px rgba(15,23,42,.07);
-  }
-  .mobile-data-card-title{
-    margin-bottom:6px;
-    color:#172033;
-    font-size:14px;
-    font-weight:950;
-    letter-spacing:-.03em;
-  }
-  .mobile-data-card-row{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:12px;
-    padding:7px 0;
-    border-top:1px dashed #d7dce5;
-  }
-  .mobile-data-card-row:first-child{border-top:0}
-  .mobile-data-card-label{
-    min-width:0;
-    color:#6b7280;
-    font-size:11.5px;
-    font-weight:800;
-  }
-  .mobile-data-card-value{
-    min-width:0;
-    color:#172033;
-    font-size:12.5px;
-    font-weight:900;
-    text-align:right;
-    font-variant-numeric:tabular-nums;
-    overflow-wrap:anywhere;
-  }
-  .mobile-data-card-row.stacked{
-    display:block;
-  }
-  .mobile-data-card-row.stacked .mobile-data-card-value{
-    display:block;
-    margin-top:4px;
-    text-align:left;
-    font-weight:400;
-    line-height:1.45;
-  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   .pension-products-basis-note{margin-top:9px !important}
 
   .change-product-card{background:#fff !important}
@@ -4493,7 +4097,7 @@ button:active,
 }
 
 /* 2026-08-04 compact analysis cards, chart navigation and hero refinement */
-.scroll-hint{display:none !important}
+
 .chart-scroll-row{display:none}
 
 /* Dashboard hero: keep the visual weight, but use less vertical space. */
@@ -4823,25 +4427,10 @@ button:active,
   vertical-align:1px;
 }
 
-/* Compact securities holdings table rows without changing typography */
-.hold-position-table th,
-.hold-position-table td{
-  padding:6px 8px !important;
-  line-height:1.22 !important;
-}
 
-@media(max-width:900px){
-  .hold-position-table th,
-  .hold-position-table td{
-    padding:5px 7px !important;
-  }
 
-  .hold-position-table th:first-child,
-  .hold-position-table td:first-child{
-    padding-left:6px !important;
-    padding-right:6px !important;
-  }
-}
+
+
 
 /* 2026-08-04 desktop edge TOC correction
    - Desktop: right-edge hover/focus table of contents only
@@ -5095,14 +4684,8 @@ button:active,
   }
 }
 
-/* Desktop: match 연금+계좌 성과 table row height to 증권계좌 보유분 */
-@media (min-width:901px){
-  .combined-performance-table th,
-  .combined-performance-table td{
-    padding:6px 8px !important;
-    line-height:1.22 !important;
-  }
-}
+
+
 
 /* Tablet chart navigation: show controls only when the chart actually overflows. */
 @media (min-width:761px) and (max-width:1100px){
@@ -5177,82 +4760,32 @@ button:active,
   }
 }
 
-/* iPad Mini: tables that comfortably fit should fill the card width. */
+/* iPad Mini: keep the compact securities symbol-card density. */
 @media (min-width:761px) and (max-width:900px){
-  #summary-section .mobile-scroll,
-  #pension-products .mobile-scroll,
-  #accounts-summary .accounts-scroll{
-    overflow-x:hidden !important;
-  }
+  
 
-  .combined-performance-table,
-  .pension-products-table,
-  .accounts-scroll .accounts-table{
-    width:100% !important;
-    min-width:0 !important;
-    max-width:100% !important;
-    table-layout:fixed !important;
-  }
+  
 
-  .combined-performance-table th,
-  .combined-performance-table td{
-    padding:7px 6px !important;
-    font-size:11.5px !important;
-  }
-  .combined-performance-table th:first-child,
-  .combined-performance-table td:first-child{
-    width:16% !important;
-    min-width:0 !important;
-  }
-  .combined-performance-table th:not(:first-child),
-  .combined-performance-table td:not(:first-child){
-    width:21% !important;
-  }
+  
+  
+  
 
-  .pension-products-table{
-    font-size:10.5px !important;
-  }
-  .pension-products-table th,
-  .pension-products-table td{
-    min-width:0 !important;
-    padding:6px 5px !important;
-    font-size:10.5px !important;
-    letter-spacing:-.025em !important;
-  }
-  .pension-products-table th:nth-child(1){width:20% !important}
-  .pension-products-table th:nth-child(2){width:7% !important}
-  .pension-products-table th:nth-child(3){width:11% !important}
-  .pension-products-table th:nth-child(4),
-  .pension-products-table th:nth-child(5),
-  .pension-products-table th:nth-child(6){width:14% !important}
-  .pension-products-table th:nth-child(7){width:9% !important}
-  .pension-products-table th:nth-child(8){width:11% !important}
-  .pension-products-table .bar-box{
-    width:100% !important;
-    min-width:0 !important;
-  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
-  .accounts-scroll .accounts-table th,
-  .accounts-scroll .accounts-table td{
-    min-width:0 !important;
-    padding:7px 6px !important;
-    font-size:11.5px !important;
-  }
-  .accounts-scroll .accounts-table th:nth-child(1),
-  .accounts-scroll .accounts-table td:nth-child(1){width:14% !important}
-  .accounts-scroll .accounts-table th:nth-child(2),
-  .accounts-scroll .accounts-table td:nth-child(2){width:16% !important}
-  .accounts-scroll .accounts-table th:nth-child(3),
-  .accounts-scroll .accounts-table td:nth-child(3){width:16% !important}
-  .accounts-scroll .accounts-table th:nth-child(4),
-  .accounts-scroll .accounts-table td:nth-child(4){width:12% !important}
-  .accounts-scroll .accounts-table th:nth-child(5),
-  .accounts-scroll .accounts-table td:nth-child(5){
-    width:42% !important;
-    min-width:0 !important;
-    max-width:none !important;
-    white-space:normal !important;
-  }
+  
+  
+  
+  
+  
+  
 
   /* iPad Mini: keep the shared four-column grid and only tighten securities card density. */
   #chart-symbol .chart-note.symbol-summary-grid{
@@ -5269,83 +4802,38 @@ button:active,
   }
 }
 
-/* iPad Pro: remove only the small, unnecessary table/chart overflow. */
+/* iPad Pro: chart and source-card layout refinement. */
 @media (min-width:901px) and (max-width:1100px){
-  #summary-section .mobile-scroll,
-  #pension-products .mobile-scroll,
-  #securities-holdings .mobile-scroll,
-  #accounts-summary .accounts-scroll{
-    overflow-x:hidden !important;
-  }
+  
 
-  .combined-performance-table,
-  .pension-products-table,
-  .hold-position-table,
-  .accounts-scroll .accounts-table{
-    width:100% !important;
-    min-width:0 !important;
-    max-width:100% !important;
-    table-layout:fixed !important;
-  }
+  
 
-  .pension-products-table th,
-  .pension-products-table td{
-    min-width:0 !important;
-    padding:7px 5px !important;
-    font-size:11.5px !important;
-    letter-spacing:-.02em !important;
-  }
-  .pension-products-table th:nth-child(1){width:20% !important}
-  .pension-products-table th:nth-child(2){width:7% !important}
-  .pension-products-table th:nth-child(3){width:11% !important}
-  .pension-products-table th:nth-child(4),
-  .pension-products-table th:nth-child(5),
-  .pension-products-table th:nth-child(6){width:14% !important}
-  .pension-products-table th:nth-child(7){width:9% !important}
-  .pension-products-table th:nth-child(8){width:11% !important}
-  .pension-products-table .bar-box{
-    width:100% !important;
-    min-width:0 !important;
-  }
+  
+  
+  
+  
+  
+  
+  
+  
 
-  .hold-position-table th,
-  .hold-position-table td{
-    min-width:0 !important;
-    padding:7px 5px !important;
-    font-size:11.5px !important;
-    letter-spacing:-.025em !important;
-  }
-  .hold-position-table th:nth-child(1){width:17% !important}
-  .hold-position-table th:nth-child(2){width:6% !important}
-  .hold-position-table th:nth-child(3){width:9% !important}
-  .hold-position-table th:nth-child(4){width:12% !important}
-  .hold-position-table th:nth-child(5){width:9% !important}
-  .hold-position-table th:nth-child(6){width:12% !important}
-  .hold-position-table th:nth-child(7){width:12% !important}
-  .hold-position-table th:nth-child(8){width:14% !important}
-  .hold-position-table th:nth-child(9){width:9% !important}
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
-  .accounts-scroll .accounts-table th,
-  .accounts-scroll .accounts-table td{
-    min-width:0 !important;
-    padding:7px 6px !important;
-    font-size:12px !important;
-  }
-  .accounts-scroll .accounts-table th:nth-child(1),
-  .accounts-scroll .accounts-table td:nth-child(1){width:14% !important}
-  .accounts-scroll .accounts-table th:nth-child(2),
-  .accounts-scroll .accounts-table td:nth-child(2){width:16% !important}
-  .accounts-scroll .accounts-table th:nth-child(3),
-  .accounts-scroll .accounts-table td:nth-child(3){width:16% !important}
-  .accounts-scroll .accounts-table th:nth-child(4),
-  .accounts-scroll .accounts-table td:nth-child(4){width:12% !important}
-  .accounts-scroll .accounts-table th:nth-child(5),
-  .accounts-scroll .accounts-table td:nth-child(5){
-    width:42% !important;
-    min-width:0 !important;
-    max-width:none !important;
-    white-space:normal !important;
-  }
+  
+  
+  
+  
+  
+  
 
   #pension-change .change-kpis{
     grid-template-columns:repeat(4,minmax(0,1fr)) !important;
@@ -5369,30 +4857,11 @@ button:active,
   }
 }
 
-/* Remove the old sticky-column shadow from table mode, while preserving sticky behavior on phones. */
-@media (max-width:900px){
-  .combined-performance-table th:first-child,
-  .combined-performance-table td:first-child,
-  .pension-products-table th:first-child,
-  .pension-products-table td:first-child,
-  .accounts-scroll .accounts-table th:first-child,
-  .accounts-scroll .accounts-table td:first-child{
-    box-shadow:none !important;
-  }
-}
 
-/* Full-width tablet tables no longer need a sticky first column. */
-@media (min-width:761px) and (max-width:900px){
-  .combined-performance-table th:first-child,
-  .combined-performance-table td:first-child,
-  .pension-products-table th:first-child,
-  .pension-products-table td:first-child,
-  .accounts-scroll .accounts-table th:first-child,
-  .accounts-scroll .accounts-table td:first-child{
-    position:static !important;
-    left:auto !important;
-  }
-}
+
+
+
+
 
 
 
@@ -5964,17 +5433,9 @@ button:active,
 }
 
 
-/* 2026-08-11 responsive table fill + compact table labels */
+/* 2026-08-11 mobile top-button placement */
 @media(max-width:760px){
-  #summary-section .combined-performance-table,
-  #pension-products .pension-products-table,
-  #accounts-summary .accounts-table,
-  #pension-change .change-table{
-    width:max-content !important;
-    min-width:100% !important;
-    max-width:none !important;
-    table-layout:auto !important;
-  }
+  
 
   .mobile-top-button{
     right:12px;
@@ -5987,20 +5448,7 @@ button:active,
   }
 }
 
-@media(max-width:900px){
-  #securities-holdings .hold-position-table{
-    width:max-content !important;
-    min-width:100% !important;
-    max-width:none !important;
-    table-layout:auto !important;
-  }
 
-  #securities-holdings .hold-position-table th,
-  #securities-holdings .hold-position-table td{
-    font-size:11.5px !important;
-    letter-spacing:-.025em !important;
-  }
-}
 
 @media(max-width:520px){
   #pension-products .pension-products-table .mobile-table-kodex-prefix{
@@ -6034,18 +5482,11 @@ button:active,
     justify-content:center;
   }
 
-  /* Mobile table/card views: phone landscape uses two cards per row. */
-  [data-mobile-view="card"] > .table-view,
-  [data-mobile-view="card"] .table-view{display:none !important}
-  [data-mobile-view="card"] > .mobile-card-view,
-  [data-mobile-view="card"] .mobile-card-view{
-    display:grid !important;
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-  }
-  [data-mobile-view="table"] > .table-view,
-  [data-mobile-view="table"] .table-view{display:block !important}
-  [data-mobile-view="table"] > .mobile-card-view,
-  [data-mobile-view="table"] .mobile-card-view{display:none !important}
+
+  
+  
+  
+  
 
   /* Main four-card KPI groups: 2 + 2 instead of one card per row. */
   #pension-section > .pension-band > .grid.cards,
@@ -6062,10 +5503,7 @@ button:active,
   #capital-source-check .source-card{
     min-width:0 !important;
   }
-  #capital-source-check .source-card table th,
-  #capital-source-check .source-card table td{
-    padding:6px 6px !important;
-  }
+  
 }
 
 /* Chart expand controls: one shared control style; placement/display changes by device. */
@@ -6301,44 +5739,8 @@ body.chart-expanded-open .dash-tooltip{
   overscroll-behavior:contain;
 }
 
-/* 2026-08-11: align mobile change table product column with pension products table */
-@media(max-width:760px){
-  #pension-change .change-table-wrap{
-    position:relative !important;
-    overflow-x:auto !important;
-    -webkit-overflow-scrolling:touch;
-    isolation:isolate;
-  }
 
-  #pension-change .change-table{
-    overflow:visible !important;
-    border-collapse:separate !important;
-    border-spacing:0 !important;
-  }
 
-  #pension-change .change-table th:first-child,
-  #pension-change .change-table td:first-child{
-    width:1% !important;
-    min-width:0 !important;
-    white-space:nowrap !important;
-    position:-webkit-sticky !important;
-    position:sticky !important;
-    left:0 !important;
-    z-index:3 !important;
-    background:#fff !important;
-    background-clip:padding-box !important;
-  }
-
-  #pension-change .change-table thead th:first-child{
-    background:#f1f5f9 !important;
-    z-index:5 !important;
-  }
-
-  #pension-change .change-table tbody tr.summary-row td:first-child{
-    background:#f8fafc !important;
-    z-index:4 !important;
-  }
-}
 
 @media(max-width:520px){
   #pension-change .change-table .mobile-table-kodex-prefix{
@@ -6696,19 +6098,8 @@ body.chart-expanded-open .dash-tooltip{
 
 
 
-/* Requested table-column alignment */
-.pension-products-table th:nth-child(2),
-.pension-products-table td:nth-child(2),
-.pension-products-table th:nth-child(7),
-.pension-products-table td:nth-child(7),
-.hold-position-table th:nth-child(2),
-.hold-position-table td:nth-child(2),
-.hold-position-table th:nth-child(8),
-.hold-position-table td:nth-child(8),
-.accounts-scroll .accounts-table th:nth-child(4),
-.accounts-scroll .accounts-table td:nth-child(4){
-  text-align:center !important;
-}
+
+
 
 /* Private-view unlock: intentionally minimal and flow-independent. */
 .personal-view-unlock{
@@ -7012,3 +6403,119 @@ body.chart-expanded-open .dash-tooltip{
 .chart-expanded-legend-host > .chart-options-row{
   margin:0 0 4px;
 }
+
+/* Dashboard data tables: shared structure, typography, alignment and overflow. */
+.mobile-scroll{
+  width:100%;
+  max-width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  border-radius:16px;
+  -webkit-overflow-scrolling:touch;
+}
+.dashboard-data-table{
+  --data-table-font-size:13px;
+  --data-table-cell-y:7px;
+  --data-table-cell-x:8px;
+  --data-table-line-height:1.28;
+  --data-table-bar-width:72px;
+  width:max-content;
+  min-width:100%;
+  max-width:none;
+  margin:0;
+  table-layout:auto;
+  overflow:visible;
+  font-size:var(--data-table-font-size);
+}
+.dashboard-data-table th,
+.dashboard-data-table td{
+  padding:var(--data-table-cell-y) var(--data-table-cell-x);
+  font-size:inherit;
+  line-height:var(--data-table-line-height);
+  vertical-align:middle;
+  white-space:nowrap;
+}
+.dashboard-data-table .table-cell-center{text-align:center !important}
+.table-positive{color:#EF3341 !important}
+.table-negative{color:#3182F6 !important}
+
+/* Intentional table exceptions: memo wrapping and pension allocation bar width. */
+.dashboard-data-table .accounts-memo{
+  min-width:180px;
+  max-width:260px;
+  white-space:normal;
+  color:var(--text);
+  font-weight:400;
+  vertical-align:top;
+}
+.pension-products-table .bar-box{
+  width:var(--data-table-bar-width);
+  min-width:var(--data-table-bar-width);
+}
+.source-table-scroll{margin-top:12px;border-radius:12px}
+.source-data-table{border-radius:12px}
+.change-table-wrap{margin-top:12px;border-radius:12px}
+
+/* Tablet table density. */
+@media (min-width:761px) and (max-width:1100px){
+  .dashboard-data-table{
+    --data-table-font-size:12px;
+    --data-table-cell-y:6px;
+    --data-table-cell-x:7px;
+    --data-table-line-height:1.25;
+    --data-table-bar-width:64px;
+  }
+}
+
+/* Shared phone UI: portrait phones and real iPhone-class landscape. */
+@media (max-width:760px),
+       (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  .dashboard-data-table{
+    --data-table-font-size:11px;
+    --data-table-cell-y:5px;
+    --data-table-cell-x:6px;
+    --data-table-line-height:1.22;
+    --data-table-bar-width:56px;
+  }
+  .mobile-view-toggle{
+    display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+    min-height:28px;padding:0 9px;border:1px solid #cbd5e1;border-radius:9px;
+    background:#fff;color:#475569;font-size:10.5px;font-weight:900;white-space:nowrap;cursor:pointer;
+  }
+  [data-mobile-view="card"] > .table-view,
+  [data-mobile-view="card"] .table-view{display:none !important}
+  [data-mobile-view="card"] > .mobile-card-view,
+  [data-mobile-view="card"] .mobile-card-view{display:grid !important}
+  [data-mobile-view="table"] > .table-view,
+  [data-mobile-view="table"] .table-view{display:block !important}
+  [data-mobile-view="table"] > .mobile-card-view,
+  [data-mobile-view="table"] .mobile-card-view{display:none !important}
+  .mobile-card-view{grid-template-columns:1fr;gap:9px;width:100%}
+  .mobile-data-card{
+    min-width:0;padding:13px 14px;border:1px solid #d7dce5;border-radius:15px;
+    background:#fff;box-shadow:0 5px 14px rgba(15,23,42,.045);
+  }
+  .mobile-data-card.summary-card{border-color:#b9c4d4;box-shadow:0 6px 16px rgba(15,23,42,.07)}
+  .mobile-data-card-title{margin-bottom:6px;color:#172033;font-size:14px;font-weight:950;letter-spacing:-.03em}
+  .mobile-data-card-row{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+    padding:5px 0;border-top:1px dashed #e2e8f0;
+  }
+  .mobile-data-card-row:first-child{border-top:0}
+  .mobile-data-card-label{color:var(--muted);font-size:11px;font-weight:800}
+  .mobile-data-card-value{min-width:0;text-align:right;font-size:11.5px;font-weight:800;font-variant-numeric:tabular-nums}
+  .mobile-data-card-row.stacked{display:block}
+  .mobile-data-card-row.stacked .mobile-data-card-value{margin-top:3px;text-align:left}
+
+  .table-view > .dashboard-data-table:not(.source-data-table) th:first-child,
+  .table-view > .dashboard-data-table:not(.source-data-table) td:first-child{
+    position:-webkit-sticky;position:sticky;left:0;z-index:3;background:#fff;background-clip:padding-box;
+  }
+  .table-view > .dashboard-data-table:not(.source-data-table) thead th:first-child{z-index:5;background:#f1f5f9}
+  .table-view > .dashboard-data-table:not(.source-data-table) tbody tr.summary-row td:first-child{z-index:4;background:#f8fafc}
+}
+
+@media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  .mobile-card-view{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
