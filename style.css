@@ -6415,9 +6415,9 @@ body.chart-expanded-open .dash-tooltip{
   -webkit-overflow-scrolling:touch;
 }
 .dashboard-data-table{
-  --data-table-font-size:13px;
+  --data-table-font-size:12.5px;
   --data-table-cell-y:7px;
-  --data-table-cell-x:8px;
+  --data-table-cell-x:7px;
   --data-table-line-height:1.28;
   --data-table-bar-width:72px;
   width:max-content;
