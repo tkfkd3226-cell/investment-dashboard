@@ -6973,11 +6973,13 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
 }
 .chart-expanded-legend-host:empty{display:none}
 .chart-expanded-legend-host .chart-legend{
+  display:flex !important;
+  align-items:center;
+  justify-content:center !important;
   margin-top:0 !important;
   column-gap:10px !important;
   font-size:10px !important;
   line-height:1.2 !important;
-  justify-content:center !important;
 }
 .chart-expanded-legend-host .chart-legend-series{
   width:100%;
