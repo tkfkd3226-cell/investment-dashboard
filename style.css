@@ -2368,12 +2368,12 @@ body.contrib-modal-open{
 
 @media(max-width:900px){
   .chart-note.pension-symbol-summary-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
   }
 }
 @media(max-width:520px){
   .chart-note.pension-symbol-summary-grid{
-    grid-template-columns:1fr !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
   }
 }
 
@@ -5774,7 +5774,7 @@ button:active,
 
   /* The Mini has enough width for these chart summaries. */
   #pension-chart-symbol .chart-note.pension-symbol-summary-grid{
-    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
   }
   #chart-symbol .chart-note.symbol-summary-grid{
     grid-template-columns:repeat(4,minmax(0,1fr)) !important;
@@ -6753,7 +6753,9 @@ button:active,
   [data-mobile-view="table"] .mobile-card-view{display:none !important}
 
   /* Chart summary cards: use the wider landscape canvas. */
-  #pension-chart-symbol .chart-note.pension-symbol-summary-grid,
+  #pension-chart-symbol .chart-note.pension-symbol-summary-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
   #chart-symbol .chart-note.symbol-summary-grid{
     grid-template-columns:repeat(3,minmax(0,1fr)) !important;
   }
