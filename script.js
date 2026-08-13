@@ -989,6 +989,9 @@ function openExpandedChart(button){
   }
   const controlsPlaceholder=controls?document.createComment('expanded-chart-controls-placeholder'):null;
   if(controls)controls.parentNode.insertBefore(controlsPlaceholder,controls);
+  const optionsRow=card.querySelector(':scope > .chart-mobile-options-row');
+  const optionsPlaceholder=optionsRow?document.createComment('expanded-chart-options-placeholder'):null;
+  if(optionsRow)optionsRow.parentNode.insertBefore(optionsPlaceholder,optionsRow);
   const legend=card.querySelector('.chart-legend');
   const legendPlaceholder=legend?document.createComment('expanded-chart-legend-placeholder'):null;
   if(legend)legend.parentNode.insertBefore(legendPlaceholder,legend);
@@ -1009,10 +1012,12 @@ function openExpandedChart(button){
   }
   if(controls)overlay.querySelector('.chart-expanded-controls-host').appendChild(controls);
   overlay.querySelector('.chart-expanded-chart-host').appendChild(svg);
-  if(legend)overlay.querySelector('.chart-expanded-legend-host').appendChild(legend);
+  const expandedLegendHost=overlay.querySelector('.chart-expanded-legend-host');
+  if(optionsRow)expandedLegendHost.appendChild(optionsRow);
+  if(legend)expandedLegendHost.appendChild(legend);
   document.body.appendChild(overlay);
   document.body.classList.add('chart-expanded-open');
-  EXPANDED_CHART_STATE={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl};
+  EXPANDED_CHART_STATE={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl};
   syncExpandedChartViewport();
   overlay.querySelector('.chart-expanded-close')?.addEventListener('click',closeExpandedChart,{once:true});
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeExpandedChart()});
@@ -1024,12 +1029,14 @@ function closeExpandedChart(){
   if(!state)return;
   clearChartHover();
   EXPANDED_CHART_STATE=null;
-  const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,needsRenderAfterClose}=state;
+  const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,needsRenderAfterClose}=state;
   if(placeholder?.parentNode)placeholder.parentNode.insertBefore(svg,placeholder);
   placeholder?.remove();
   expandedSeparateProfitControl?.remove();
   if(controls&&controlsPlaceholder?.parentNode)controlsPlaceholder.parentNode.insertBefore(controls,controlsPlaceholder);
   controlsPlaceholder?.remove();
+  if(optionsRow&&optionsPlaceholder?.parentNode)optionsPlaceholder.parentNode.insertBefore(optionsRow,optionsPlaceholder);
+  optionsPlaceholder?.remove();
   if(legend&&legendPlaceholder?.parentNode)legendPlaceholder.parentNode.insertBefore(legend,legendPlaceholder);
   legendPlaceholder?.remove();
   overlay?.remove();
@@ -1071,31 +1078,37 @@ const RESPONSIVE_CHART_SCOPES=[
   {id:'chart-alloc',scope:'securitiesAlloc'},
   {id:'pension-chart-alloc',scope:'pensionAlloc'}
 ];
-function mobileChartSeriesControlsHtml(scope){
-  const selection=chartSelection(scope),autoY=selection.state.autoY===true;
-  const allButton=`<button type="button" class="legend-item chart-series-all chart-mobile-series-all${selection.all?' active':''}" aria-pressed="${selection.all}" onclick="toggleChartSeries('${scope}','__all__')">전체</button>`;
-  const autoButton=selection.all
-    ? `<button type="button" class="chart-y-auto-toggle chart-mobile-y-auto chart-mobile-y-auto-placeholder" tabindex="-1" aria-hidden="true"><span>Y축</span><span class="chart-y-auto-state">OFF</span></button>`
-    : `<button type="button" class="chart-y-auto-toggle chart-mobile-y-auto${autoY?' active':''}" role="switch" aria-checked="${autoY}" onclick="setChartAutoY('${scope}',${autoY?'false':'true'})"><span>Y축</span><span class="chart-y-auto-state">${autoY?'ON':'OFF'}</span></button>`;
-  return `${allButton}<span class="chart-mobile-y-slot">${autoButton}</span>`;
-}
-function syncMobileChartSeriesControls(scope,card,row){
-  if(!card||!row)return;
-  let host=row.querySelector(`.chart-mobile-series-controls[data-chart-scope="${scope}"]`);
-  if(!host){
-    host=document.createElement('span');
-    host.className='chart-mobile-series-controls';
-    host.dataset.chartScope=scope;
-    const nav=row.querySelector('.chart-scroll-start');
-    row.insertBefore(host,nav||null);
+function syncMobileChartOptions(scope,card,legend,mobile=compactPhoneChartUi()){
+  if(!card||!legend)return;
+  let options=document.querySelector(`.chart-mobile-options-row[data-chart-scope="${scope}"]`);
+  if(!mobile){
+    if(options){
+      if(EXPANDED_CHART_STATE?.optionsRow===options)EXPANDED_CHART_STATE.optionsRow=null;
+      options.remove();
+    }
+    return;
   }
-  host.innerHTML=mobileChartSeriesControlsHtml(scope);
+  if(!options){
+    options=document.createElement('div');
+    options.className='chart-mobile-options-row';
+    options.dataset.chartScope=scope;
+    legend.parentNode?.insertBefore(options,legend);
+  }
+  const left=legend.querySelector(':scope > .chart-legend-control-left');
+  const right=legend.querySelector(':scope > .chart-legend-control-right');
+  if(left||right){
+    options.replaceChildren();
+    if(left)options.appendChild(left);
+    if(right)options.appendChild(right);
+  }
+  options.classList.toggle('has-y-auto',!!options.querySelector('.chart-y-auto-toggle'));
 }
-function refreshMobileChartSeriesControls(scope){
+function refreshMobileChartOptions(scope){
   const item=RESPONSIVE_CHART_SCOPES.find(entry=>entry.scope===scope);
   if(!item)return;
-  const card=document.getElementById(item.id),row=card?.querySelector('.chart-scroll-row');
-  if(card&&row)syncMobileChartSeriesControls(scope,card,row);
+  const card=document.getElementById(item.id);
+  const legendId=chartLegendId(scope),legend=legendId?document.getElementById(legendId):null;
+  if(card&&legend)syncMobileChartOptions(scope,card,legend);
 }
 function syncResponsiveChartControls(){
   const mobile=compactPhoneChartUi();
@@ -1109,20 +1122,21 @@ function syncResponsiveChartControls(){
     card.classList.toggle('phone-chart-ui',mobile);
     if(head&&actions){
       const hasLeadingSwitch=!!actions.querySelector('.chart-compare-toggle');
+      actions.classList.toggle('mobile-no-leading-switch',mobile&&!hasLeadingSwitch);
       if(mobile){
-        if(actions.parentElement!==row)row.prepend(actions);
+        if(actions.parentElement!==row)row.insertBefore(actions,row.querySelector('.chart-scroll-start')||null);
         if(mobileExpand&&mobileExpand.parentElement!==head)head.appendChild(mobileExpand);
-        row.classList.add('has-compare-toggle');
-        row.classList.toggle('has-leading-switch',hasLeadingSwitch);
       }else{
         if(actions.parentElement!==head)head.appendChild(actions);
         if(mobileExpand&&mobileExpand.parentElement!==row)row.appendChild(mobileExpand);
-        row.classList.remove('has-compare-toggle','has-leading-switch');
+        actions.classList.remove('mobile-no-leading-switch');
       }
     }
     const legendId=chartLegendId(scope),legend=legendId?document.getElementById(legendId):null;
-    if(legend)legend.innerHTML=chartLegendHtml(scope);
-    syncMobileChartSeriesControls(scope,card,row);
+    if(legend){
+      legend.innerHTML=chartLegendHtml(scope);
+      syncMobileChartOptions(scope,card,legend,mobile);
+    }
   });
   if(!mobile)closeChartTitleInfo();
 }
@@ -1335,7 +1349,7 @@ function chartLegendHtml(scope){
 function refreshChartLegend(scope){
   const id=chartLegendId(scope),legend=id?document.getElementById(id):null;
   if(legend)legend.innerHTML=chartLegendHtml(scope);
-  refreshMobileChartSeriesControls(scope);
+  refreshMobileChartOptions(scope);
 }
 function redrawChartScope(scope){
   const drawers={
@@ -1474,7 +1488,7 @@ function setSecurityAllocMode(mode){
   const legend=document.getElementById('securityAllocLegend');
   const cards=document.getElementById('securityAllocCards');
   if(x&&legend)legend.innerHTML=securityAllocLegendHtml(x);
-  refreshMobileChartSeriesControls('securitiesAlloc');
+  refreshMobileChartOptions('securitiesAlloc');
   if(x&&cards){
     cards.style.setProperty('--security-alloc-card-count',String(securityAllocCardCount(x)));
     cards.innerHTML=securityAllocCardsHtml(x);

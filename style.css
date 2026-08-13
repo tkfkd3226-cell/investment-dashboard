@@ -519,9 +519,6 @@ svg.chart{
   color:#1d4ed8;
 }
 
-.chart-mobile-series-controls{
-  display:none;
-}
 
 .swatch{
   width:12px;
@@ -4983,10 +4980,6 @@ button:active,
     min-height:25px;
     margin:2px 1px 5px;
   }
-  .chart-scroll-row.has-compare-toggle .chart-head-actions{
-    margin-left:0 !important;
-    margin-right:auto;
-  }
   .chart-scroll-start,
   .chart-scroll-end{
     display:inline-flex !important;
@@ -6808,49 +6801,6 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
     justify-content:center;
     gap:6px 9px;
   }
-  .chart-mobile-series-controls{
-    display:inline-flex;
-    align-items:center;
-    gap:4px;
-    flex:0 0 auto;
-    min-width:0;
-  }
-  .chart-mobile-series-controls button{
-    font-family:inherit;
-    cursor:pointer;
-  }
-  .chart-mobile-series-all{
-    min-width:38px;
-    min-height:25px;
-    padding:2px 7px !important;
-    font-size:10.5px !important;
-    line-height:1 !important;
-    white-space:nowrap;
-  }
-  .chart-mobile-y-slot{
-    display:inline-flex;
-    align-items:center;
-    width:70px;
-    flex:0 0 70px;
-  }
-  .chart-mobile-y-auto{
-    width:70px;
-    min-height:25px;
-    justify-content:center;
-    gap:4px;
-    padding:2px 5px;
-    font-size:10.5px;
-  }
-  .chart-mobile-y-auto .chart-y-auto-state{
-    min-width:25px;
-    padding:1px 4px;
-    font-size:9.5px;
-  }
-  .chart-mobile-y-auto-placeholder{
-    visibility:hidden;
-    pointer-events:none;
-  }
-
   .chart-expand-button{
     display:inline-flex !important;
     align-items:center;
@@ -6883,31 +6833,6 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   }
 }
 
-@media (max-width:360px) and (orientation:portrait){
-  .chart-mobile-series-controls{
-    gap:3px;
-  }
-  .chart-mobile-series-all{
-    min-width:34px;
-    padding:2px 5px !important;
-    font-size:10px !important;
-  }
-  .chart-mobile-y-slot{
-    width:58px;
-    flex-basis:58px;
-  }
-  .chart-mobile-y-auto{
-    width:58px;
-    gap:2px;
-    padding:2px 3px;
-    font-size:10px;
-  }
-  .chart-mobile-y-auto .chart-y-auto-state{
-    min-width:23px;
-    padding:1px 3px;
-    font-size:9px;
-  }
-}
 
 .chart-expanded-overlay{
   position:fixed;
@@ -7571,46 +7496,30 @@ body.chart-expanded-open .dash-tooltip{
   border-color:#334155;
   color:#e2e8f0;
 }
+/* Mobile chart controls use one shared flow: switch/arrows → chart → options → legend. */
 .phone-chart-ui .chart-scroll-row{
-  --phone-chart-control-inset:0px;
-  --phone-chart-leading-switch-width:94px;
-  display:grid !important;
-  grid-template-columns:minmax(0,1fr) 25px 25px;
+  display:flex !important;
   align-items:center !important;
-  justify-content:stretch !important;
-  column-gap:5px !important;
+  justify-content:flex-start !important;
+  gap:5px !important;
   min-height:25px;
   margin:2px 1px 5px;
-  padding-left:var(--phone-chart-control-inset) !important;
-  padding-right:0 !important;
+  padding:0 !important;
   box-sizing:border-box;
 }
-.phone-chart-ui .chart-scroll-row.has-leading-switch{
-  grid-template-columns:var(--phone-chart-leading-switch-width) minmax(0,1fr) 25px 25px;
-}
-.phone-chart-ui .chart-scroll-row:not(.has-leading-switch) > .chart-head-actions{
-  display:none !important;
-}
-.phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-head-actions{
-  grid-column:1;
-  justify-self:start;
-  align-self:center;
-  width:var(--phone-chart-leading-switch-width);
+.phone-chart-ui .chart-scroll-row > .chart-head-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex:0 0 auto;
   min-width:0;
   margin:0 !important;
 }
-.phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-head-actions .chart-compare-toggle{
-  display:flex;
-  width:100%;
-  min-width:0;
-  padding:1px;
-  box-sizing:border-box;
+.phone-chart-ui .chart-scroll-row > .chart-head-actions.mobile-no-leading-switch{
+  display:none !important;
 }
-.phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-head-actions .chart-compare-toggle > button{
-  flex:1 1 0;
-  min-width:0 !important;
-  padding-left:2px !important;
-  padding-right:2px !important;
+.phone-chart-ui .chart-scroll-row > .chart-head-actions .chart-web-expand-button{
+  display:none !important;
 }
 .phone-chart-ui .chart-scroll-start,
 .phone-chart-ui .chart-scroll-end{
@@ -7624,75 +7533,71 @@ body.chart-expanded-open .dash-tooltip{
   border-radius:8px !important;
   font-size:15px !important;
   box-shadow:none !important;
-  justify-self:end;
 }
-.phone-chart-ui .chart-scroll-start{grid-column:2}
-.phone-chart-ui .chart-scroll-end{grid-column:3}
-.phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-scroll-start{grid-column:3}
-.phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-scroll-end{grid-column:4}
+.phone-chart-ui .chart-scroll-start{
+  margin-left:auto;
+}
 
-/* Use the same compact legend/control arrangement in portrait and iPhone landscape. */
 .phone-chart-ui > .chart-legend{
   display:flex;
   align-items:center;
   justify-content:center;
   min-height:26px;
 }
-.phone-chart-ui > .chart-legend > .chart-legend-control{
-  display:none !important;
-}
 .phone-chart-ui > .chart-legend > .chart-legend-series{
   width:100%;
   justify-content:center;
   gap:6px 9px;
 }
-.phone-chart-ui .chart-mobile-series-controls{
-  display:inline-flex;
+
+.chart-mobile-options-row{
+  display:none;
+}
+.phone-chart-ui > .chart-mobile-options-row,
+.chart-expanded-legend-host > .chart-mobile-options-row{
+  display:flex;
   align-items:center;
-  gap:3px;
+  justify-content:flex-start;
+  flex-wrap:nowrap;
+  gap:6px;
+  min-height:27px;
+  margin:6px 1px 2px;
+  padding:0;
+  box-sizing:border-box;
+}
+.phone-chart-ui > .chart-mobile-options-row .chart-legend-control,
+.chart-expanded-legend-host > .chart-mobile-options-row .chart-legend-control{
+  display:flex !important;
+  align-items:center;
+  justify-content:flex-start;
   flex:0 0 auto;
   min-width:0;
-  max-width:100%;
-  grid-column:1;
-  justify-self:start;
-  align-self:center;
-  margin:0;
 }
-.phone-chart-ui .chart-scroll-row.has-leading-switch > .chart-mobile-series-controls{
-  grid-column:2;
+.phone-chart-ui > .chart-mobile-options-row .chart-legend-control:empty,
+.chart-expanded-legend-host > .chart-mobile-options-row .chart-legend-control:empty{
+  display:none !important;
 }
-.phone-chart-ui .chart-mobile-series-controls button{
-  font-family:inherit;
-  cursor:pointer;
-}
-.phone-chart-ui .chart-mobile-series-all{
-  min-width:36px;
-  min-height:25px;
-  padding:2px 6px !important;
-  font-size:10.5px !important;
-  line-height:1 !important;
+.phone-chart-ui > .chart-mobile-options-row .chart-series-all,
+.chart-expanded-legend-host > .chart-mobile-options-row .chart-series-all{
+  min-height:26px;
+  padding:3px 9px !important;
+  font-size:11px;
+  line-height:1;
   white-space:nowrap;
 }
-.phone-chart-ui .chart-mobile-y-slot{
-  display:inline-flex;
-  align-items:center;
-  width:64px;
-  flex:0 0 64px;
-}
-.phone-chart-ui .chart-mobile-y-auto{
-  width:64px;
-  min-height:25px;
-  justify-content:center;
-  gap:3px;
-  padding:2px 4px;
+.phone-chart-ui > .chart-mobile-options-row .chart-y-auto-toggle,
+.chart-expanded-legend-host > .chart-mobile-options-row .chart-y-auto-toggle{
+  min-height:26px;
+  gap:5px;
+  padding:3px 7px;
   font-size:10.5px;
 }
-.phone-chart-ui .chart-mobile-y-auto .chart-y-auto-state{
-  min-width:23px;
-  padding:1px 3px;
+.phone-chart-ui > .chart-mobile-options-row .chart-y-auto-state,
+.chart-expanded-legend-host > .chart-mobile-options-row .chart-y-auto-state{
+  min-width:26px;
+  padding:1px 4px;
   font-size:9.5px;
 }
-.phone-chart-ui .chart-mobile-y-auto-placeholder{
-  visibility:hidden;
-  pointer-events:none;
+.chart-expanded-legend-host > .chart-mobile-options-row{
+  margin:0 0 4px;
 }
