@@ -14,8 +14,6 @@ const currentTheme=()=>document.documentElement.classList.contains('dark')?'dark
 function syncThemeControls(){
   const dark=currentTheme()==='dark';
   document.querySelectorAll('[data-theme-toggle-icon]').forEach(el=>el.textContent=dark?'☀️':'🌙');
-  document.querySelectorAll('[data-theme-toggle-label]').forEach(el=>el.textContent=dark?'밝은 모드':'다크 모드');
-  document.querySelectorAll('[data-theme-toggle-short]').forEach(el=>el.textContent=dark?'밝게':'어둡게');
   document.querySelectorAll('[data-theme-toggle]').forEach(el=>{
     el.setAttribute('aria-pressed',String(dark));
     el.setAttribute('title',dark?'밝은 모드로 전환':'다크 모드로 전환');
@@ -700,7 +698,6 @@ function navIconSvg(name){
     folder:`<svg ${attrs}><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>`,
     search:`<svg ${attrs}><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>`,
     receipt:`<svg ${attrs}><path d="M6 3h12v18l-2-1-2 1-2-1-2 1-2-1-2 1V3Z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h4"></path></svg>`,
-    theme:`<svg ${attrs}><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.7 6.7 0 0 0 21 12.8Z"></path></svg>`
   };
   return icons[name]||icons.list;
 }
@@ -724,7 +721,7 @@ function renderUnifiedMobileMenuContent(){
     {
       label:'화면',
       items:[
-        {type:'action',action:'toggleTheme();closeDateActionMenu();',icon:'theme',title:currentTheme()==='dark'?'밝은 모드':'다크 모드',themeToggle:true}
+        {type:'action',action:'toggleTheme();closeDateActionMenu();',title:currentTheme()==='dark'?'밝은 모드':'다크 모드',themeToggle:true}
       ]
     },
     {
@@ -759,11 +756,15 @@ function renderUnifiedMobileMenuContent(){
     }
   ];
   return groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>{
-    const titleAttrs=item.themeToggle?' data-theme-toggle-label':'';
-    const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong${titleAttrs}>${item.title}</strong></span>`;
-    const cls=`mobile-nav-item ${idx?'sub':''}`;
+    const inner=item.themeToggle
+      ?`<span class="nav-icon" data-theme-toggle-icon>${currentTheme()==='dark'?'☀️':'🌙'}</span>`
+      :`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
+    const cls=`mobile-nav-item ${item.themeToggle?'theme-icon-only ':''}${idx?'sub':''}`;
     if(item.type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" onclick="closeDateActionMenu()">${inner}</a>`;
-    if(item.type==='action') return `<button type="button" class="${cls}" onclick="${item.action}">${inner}</button>`;
+    if(item.type==='action'){
+      const themeAttrs=item.themeToggle?` data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${item.title}로 전환" aria-label="${item.title}로 전환"`:'';
+      return `<button type="button" class="${cls}"${themeAttrs} onclick="${item.action}">${inner}</button>`;
+    }
     return `<button type="button" class="${cls}" onclick="jumpToSection('${item.id}');closeDateActionMenu()">${inner}</button>`;
   }).join('')}</div>`).join('');
 }
@@ -869,7 +870,6 @@ function renderTabs(){
   document.getElementById('tabs').innerHTML=`
     <div class="date-picker">
       <div class="date-picker-center">
-        <span class="date-picker-label">기준일</span>
         <select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select>
         <select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===ACTIVE_DATE?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
       </div>
@@ -889,8 +889,8 @@ function renderTabs(){
         ${PERSONAL_VIEW_UNLOCKED?`<a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="calc.html" target="_blank" rel="noopener noreferrer" title="투자 계산기" aria-label="투자 계산기" style="text-decoration:none">
           <span class="date-tool-action-icon">🧮</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
         </a>`:''}
-        <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" onclick="toggleTheme()">
-          <span class="date-tool-action-icon" data-theme-toggle-icon>${currentTheme()==='dark'?'☀️':'🌙'}</span><span class="topbar-label-full" data-theme-toggle-label>${currentTheme()==='dark'?'밝은 모드':'다크 모드'}</span><span class="topbar-label-short" data-theme-toggle-short>${currentTheme()==='dark'?'밝게':'어둡게'}</span>
+        <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" onclick="toggleTheme()">
+          <span class="date-tool-action-icon" data-theme-toggle-icon>${currentTheme()==='dark'?'☀️':'🌙'}</span>
         </button>
         <div class="compact-action-menu-wrap">
           <button type="button" id="compactActionMenuButton" class="date-tool-btn compact-more-btn" title="더보기" aria-label="추가 기능 열기" aria-haspopup="true" aria-expanded="false" onclick="toggleCompactActionMenu(event)">
