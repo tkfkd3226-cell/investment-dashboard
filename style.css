@@ -30,6 +30,15 @@
   --dashboard-expand-icon-size:14px;
   --dashboard-legend-font-size:12px;
   --dashboard-control-group-gap:7px;
+  --section-title-font-size:20px;
+  --section-chip-height:28px;
+  --tooltip-bg:rgba(15,23,42,.96);
+  --tooltip-color:#fff;
+  --tooltip-border:rgba(255,255,255,.16);
+  --tooltip-radius:12px;
+  --tooltip-shadow:0 16px 36px rgba(0,0,0,.28);
+  --tooltip-font-size:12px;
+  --tooltip-line-height:1.4;
 }
 
 @media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
@@ -44,6 +53,7 @@
     --dashboard-expand-icon-size:13px;
     --dashboard-legend-font-size:10.5px;
     --dashboard-control-group-gap:5px;
+    --section-title-font-size:19px;
   }
 }
 
@@ -199,8 +209,11 @@ section{
 }
 
 .section-title h2{
+  display:flex;
+  align-items:center;
+  gap:9px;
   margin:0;
-  font-size:22px;
+  font-size:var(--section-title-font-size);
   letter-spacing:-.04em;
 }
 
@@ -474,19 +487,24 @@ td.num{
   cursor:crosshair;
 }
 
+.dash-tooltip,
+.pension-viz-tooltip,
+.phone-chart-ui .chart-title-info-tooltip{
+  background:var(--tooltip-bg);
+  color:var(--tooltip-color);
+  border:1px solid var(--tooltip-border);
+  border-radius:var(--tooltip-radius);
+  box-shadow:var(--tooltip-shadow);
+  font-size:var(--tooltip-font-size);
+  line-height:var(--tooltip-line-height);
+}
+
 .dash-tooltip{
   position:fixed;
   z-index:9999;
   min-width:210px;
   max-width:320px;
-  background:rgba(15,23,42,.96);
-  color:#fff;
-  border:1px solid rgba(255,255,255,.16);
-  border-radius:12px;
   padding:10px 12px;
-  box-shadow:0 16px 36px rgba(0,0,0,.28);
-  font-size:12px;
-  line-height:1.5;
   pointer-events:none;
   opacity:0;
   transform:translate(-50%,-110%);
@@ -908,13 +926,7 @@ svg.chart{
   min-width:118px;
   max-width:220px;
   padding:8px 10px;
-  border-radius:12px;
-  background:rgba(15,23,42,.96);
-  color:#fff;
   text-align:center;
-  font-size:12px;
-  line-height:1.35;
-  box-shadow:0 10px 25px rgba(15,23,42,.28);
   z-index:30;
   white-space:nowrap;
 }
@@ -943,7 +955,7 @@ svg.chart{
   top:100%;
   transform:translateX(-50%);
   border:6px solid transparent;
-  border-top-color:rgba(15,23,42,.96);
+  border-top-color:var(--tooltip-bg);
 }
 
 .has-tooltip:hover .pension-viz-tooltip,
@@ -1208,11 +1220,6 @@ svg.chart{
   font-variant-numeric:tabular-nums;
 }
 
-.symbol-summary-note{
-  margin-top:8px;
-  color:var(--muted);
-  font-size:11px;
-}
 
 .change-table tbody td:nth-child(4){
   text-align:right !important;
@@ -1524,32 +1531,53 @@ svg.chart{
 .table-note{margin:10px 2px 0;color:var(--muted);font-size:12px;line-height:1.55}
 .table-note strong{color:var(--text)}
 
+.section-explainer{
+  margin:8px 2px 0;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+}
+.summary-note-key{font-weight:900;color:inherit}
+.cash-basis-note{color:var(--muted)}
+.cash-basis-note-mark{color:#EF3341;font-weight:800}
+.cash-basis-note-sup{font-size:.72em;margin-left:2px;line-height:0}
 
-
-.section-title p{
+/* Shared section-title chips: basis, separate-profit state, and table/card switch. */
+.section-control-chip{
   display:inline-flex;
   align-items:center;
   justify-content:center;
+  box-sizing:border-box;
+  min-height:var(--section-chip-height);
+  margin:0;
+  font-family:inherit;
+  white-space:nowrap;
+}
+.section-basis-chip{
   padding:5px 10px;
   border:1px solid var(--line);
   border-radius:999px;
-  background:white;
+  background:#fff;
   color:var(--muted);
   font-size:12px;
   font-weight:800;
-  white-space:nowrap;
-  margin:0;
 }
-.dark .section-title p{
+.section-action-chip{
+  height:var(--section-chip-height);
+  font-size:var(--dashboard-control-font-size);
+  font-weight:900;
+  cursor:pointer;
+}
+.dark .section-basis-chip{
   background:#0f172a;
   color:#cbd5e1;
   border-color:rgba(148,163,184,.24);
 }
-@media(max-width:720px){
+@media(max-width:760px){
   .section-title{align-items:flex-start}
-  .section-title p{
-    font-size:11px;
+  .section-basis-chip{
     padding:4px 8px;
+    font-size:11px;
   }
 }
 
@@ -2504,12 +2532,6 @@ body.contrib-modal-open{
 
 
 /* Restored page section title icons */
-.section-title h2{
-  display:flex;
-  align-items:center;
-  gap:9px;
-}
-
 .section-title-icon{
   display:inline-flex;
   align-items:center;
@@ -3029,11 +3051,7 @@ svg.chart{
 }
 
 
-/* Section title font + pension modal title icon tweak */
-.section-title h2{
-  font-size:20px !important;
-}
-
+/* Pension modal title icon tweak */
 .contrib-modal-head h2{
   display:flex !important;
   align-items:center !important;
@@ -3043,13 +3061,6 @@ svg.chart{
 .contrib-modal-head h2 .section-title-icon{
   flex:0 0 auto;
 }
-
-@media(max-width:760px){
-  .section-title h2{
-    font-size:19px !important;
-  }
-}
-
 
 /* Targeted chart title size reduction only */
 #pension-chart-cum .chart-head h3,
@@ -3831,7 +3842,6 @@ button:active,
   
   
   
-  .pension-products-basis-note{margin-top:9px !important}
 
   .chart-scroll-start,
   .chart-scroll-end{
@@ -4266,10 +4276,10 @@ button:active,
   display:inline;
 }
 
-.holding-symbol-swatch{
+.asset-color-swatch{
   display:inline-block;
   margin-left:5px;
-  color:var(--holding-symbol-color);
+  color:var(--asset-swatch-color);
   font-size:10px;
   line-height:1;
   vertical-align:1px;
@@ -4284,8 +4294,8 @@ button:active,
    - Desktop: right-edge hover/focus table of contents only
    - Mobile: keep the existing hamburger menu with links and management actions */
 @media(min-width:761px){
-  /* Remove the incorrectly added top-bar hamburger TOC on desktop. */
-  
+  /* Desktop/tablet use the right-edge TOC; hide the duplicate top-bar TOC. */
+  .date-action-menu-wrap{display:none !important}
 
   .desktop-edge-toc{
     position:fixed;
@@ -4483,12 +4493,6 @@ button:active,
   background:#fff !important;
   background-color:#fff !important;
   background-image:none !important;
-}
-
-#securities-holdings .mobile-data-card-title .holding-symbol-swatch{
-  margin-left:6px;
-  font-size:10px;
-  vertical-align:1px;
 }
 
 /* 2026-08-04 securities holdings typography
@@ -5082,8 +5086,6 @@ button:active,
   border-radius:999px;
   background:#fff;
   color:#475569;
-  font-family:inherit;
-  font-weight:900;
   letter-spacing:-.025em;
 }
 .separate-profit-toggle strong{
@@ -6026,14 +6028,7 @@ body.chart-expanded-open .dash-tooltip{
   width:max-content;
   max-width:min(210px,calc(100vw - 44px));
   padding:7px 9px;
-  border:1px solid #d7dee8;
-  border-radius:9px;
-  background:#0f172a;
-  color:#fff;
-  box-shadow:0 8px 22px rgba(15,23,42,.2);
-  font-size:10.5px;
   font-weight:700;
-  line-height:1.35;
   letter-spacing:-.02em;
   white-space:nowrap;
   opacity:0;
@@ -6053,12 +6048,6 @@ body.chart-expanded-open .dash-tooltip{
   background:#111827;
   color:#cbd5e1;
 }
-.dark .phone-chart-ui .chart-title-info-tooltip{
-  border-color:#334155;
-  background:#f8fafc;
-  color:#0f172a;
-}
-
 /* On phones, the shared expand control belongs to the title row; compare/series controls stay below. */
 .phone-chart-ui .chart-head > .chart-expand-button{
   display:inline-flex !important;
@@ -6197,6 +6186,9 @@ body.chart-expanded-open .dash-tooltip{
 /* Positive/negative table values use the shared semantic rules above. */
 
 /* Intentional table exceptions: memo wrapping and pension allocation bar width. */
+
+/* Account labels: table and mobile card titles use the same emphasized hierarchy. */
+.accounts-table tbody tr:not(.summary-row) .accounts-name{font-weight:800}
 .dashboard-data-table .accounts-memo{
   min-width:180px;
   max-width:260px;
@@ -6235,9 +6227,13 @@ body.chart-expanded-open .dash-tooltip{
     --data-table-bar-width:56px;
   }
   .mobile-view-toggle{
-    display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
-    min-height:28px;padding:0 9px;border:1px solid #cbd5e1;border-radius:9px;
-    background:#fff;color:#475569;font-size:10.5px;font-weight:900;white-space:nowrap;cursor:pointer;
+    display:inline-flex;
+    flex:0 0 auto;
+    padding:0 9px;
+    border:1px solid #cbd5e1;
+    border-radius:9px;
+    background:#fff;
+    color:#475569;
   }
   [data-mobile-view="card"] > .table-view,
   [data-mobile-view="card"] .table-view{display:none !important}
