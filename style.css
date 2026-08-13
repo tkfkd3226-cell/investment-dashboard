@@ -17,10 +17,30 @@
   --soft-gray:#eef1f5;
   --black:#111827;
   --dashboard-control-height:29px;
+  --dashboard-control-font-size:10.5px;
+  --dashboard-control-state-font-size:10px;
+  --dashboard-control-state-min-width:28px;
+  --dashboard-control-pad-x:8px;
+  --dashboard-switch-min-width:52px;
+  --dashboard-control-radius:9px;
+  --dashboard-expand-icon-size:14px;
+  --dashboard-legend-font-size:12px;
+  --dashboard-control-group-gap:7px;
 }
 
 @media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  :root{--dashboard-control-height:25px;}
+  :root{
+    --dashboard-control-height:25px;
+    --dashboard-control-font-size:9.5px;
+    --dashboard-control-state-font-size:9.5px;
+    --dashboard-control-state-min-width:34px;
+    --dashboard-control-pad-x:6px;
+    --dashboard-switch-min-width:42px;
+    --dashboard-control-radius:8px;
+    --dashboard-expand-icon-size:13px;
+    --dashboard-legend-font-size:10.5px;
+    --dashboard-control-group-gap:5px;
+  }
 }
 
 *{
@@ -408,9 +428,9 @@ svg.chart{
   display:flex;
   align-items:center;
   justify-content:center;
-  min-height:26px;
+  min-height:var(--dashboard-control-height);
   margin-top:10px;
-  font-size:12px;
+  font-size:var(--dashboard-legend-font-size);
   color:#555;
 }
 
@@ -454,6 +474,19 @@ svg.chart{
   cursor:pointer;
 }
 
+:is(.chart-series-all,.chart-y-auto-toggle,.separate-profit-toggle){
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  height:var(--dashboard-control-height);
+  min-height:var(--dashboard-control-height);
+  font-size:var(--dashboard-control-font-size);
+  line-height:1;
+  white-space:nowrap;
+  cursor:pointer;
+}
+
 .chart-legend button.legend-item{
   background:transparent;
   padding:4px 3px;
@@ -473,7 +506,7 @@ svg.chart{
 }
 
 .chart-series-all{
-  padding:3px 8px !important;
+  padding:0 var(--dashboard-control-pad-x) !important;
   border:1px solid #d7dde5 !important;
   border-radius:999px !important;
   background:#fff !important;
@@ -488,18 +521,13 @@ svg.chart{
 }
 
 .chart-y-auto-toggle{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  min-height:26px;
-  padding:3px 7px;
+  gap:5px;
+  padding:0 var(--dashboard-control-pad-x);
   border:1px solid #d7dde5;
   border-radius:999px;
   background:#fff;
   color:#64748b;
-  font-size:11px;
   font-weight:700;
-  white-space:nowrap;
 }
 
 .chart-y-auto-toggle.active{
@@ -508,12 +536,12 @@ svg.chart{
 }
 
 .chart-y-auto-state{
-  min-width:28px;
+  min-width:var(--dashboard-control-state-min-width);
   padding:1px 5px;
   border-radius:999px;
   background:#e2e8f0;
   color:#64748b;
-  font-size:10px;
+  font-size:var(--dashboard-control-state-font-size);
   line-height:1.5;
   text-align:center;
 }
@@ -2360,84 +2388,6 @@ body.contrib-modal-open{
   color:var(--muted) !important;
 }
 
-/* 평가액 비중 카드 공통 밀도: 웹 > 태블릿 > 모바일 */
-#pension-chart-alloc,
-#chart-alloc{
-  --alloc-label-size:12px;
-  --alloc-value-size:19px;
-  --alloc-small-size:12px;
-  --alloc-detail-size:9.5px;
-  --alloc-card-gap:10px;
-  --alloc-card-pad:12px;
-}
-#pension-chart-alloc .chart-note,
-#chart-alloc .chart-note{
-  gap:var(--alloc-card-gap) !important;
-}
-#pension-chart-alloc .chart-note .mini-card,
-#chart-alloc .chart-note .mini-card{
-  min-width:0;
-  padding:var(--alloc-card-pad) !important;
-}
-#pension-chart-alloc .chart-note .m-label,
-#chart-alloc .chart-note .m-label{
-  font-size:var(--alloc-label-size) !important;
-  line-height:1.2 !important;
-  white-space:nowrap;
-}
-#pension-chart-alloc .chart-note .m-value,
-#chart-alloc .chart-note .m-value{
-  font-size:var(--alloc-value-size) !important;
-  line-height:1.2 !important;
-  letter-spacing:-.035em;
-  white-space:nowrap !important;
-  overflow-wrap:normal !important;
-  word-break:normal !important;
-}
-#pension-chart-alloc .chart-note .small,
-#chart-alloc .chart-note .small{
-  font-size:var(--alloc-small-size) !important;
-  white-space:nowrap !important;
-}
-#pension-chart-alloc .cash-include-detail,
-#chart-alloc .cash-include-detail{
-  font-size:var(--alloc-detail-size) !important;
-}
-
-@media (min-width:761px) and (max-width:1100px){
-  #pension-chart-alloc,
-  #chart-alloc{
-    --alloc-label-size:10.5px;
-    --alloc-value-size:14px;
-    --alloc-small-size:9.5px;
-    --alloc-detail-size:8.8px;
-    --alloc-card-gap:8px;
-    --alloc-card-pad:10px;
-  }
-}
-
-@media (max-width:760px){
-  #pension-chart-alloc,
-  #chart-alloc{
-    --alloc-label-size:9.5px;
-    --alloc-value-size:11.5px;
-    --alloc-small-size:8.5px;
-    --alloc-detail-size:8.5px;
-    --alloc-card-gap:7px;
-    --alloc-card-pad:9px;
-  }
-}
-
-#pension-chart-alloc.phone-chart-ui,
-#chart-alloc.phone-chart-ui{
-  --alloc-label-size:9.5px;
-  --alloc-value-size:11.5px;
-  --alloc-small-size:8.5px;
-  --alloc-detail-size:8.5px;
-  --alloc-card-gap:7px;
-  --alloc-card-pad:9px;
-}
-
 /* 평가액 비중 카드: 연금/증권 공통 총액 표시 + 화면군별 그리드 */
 #pension-chart-alloc .pension-alloc-total-card,
 #chart-alloc:not(.phone-chart-ui) #securityAllocCards > .alloc-total-card{
@@ -2549,6 +2499,10 @@ body.contrib-modal-open{
   .pension-no-prev-note{
     min-height:66px !important;
     padding:10px 8px !important;
+  }
+  .cash-include-detail{
+    font-size:8.5px !important;
+    font-weight:600 !important;
   }
 }
 
@@ -4823,6 +4777,20 @@ button:active,
   .change-kpis .mini-card{min-width:0;padding:9px !important;background:#fff !important}
   .change-kpis .m-label{font-size:10px !important;line-height:1.25 !important}
   .change-kpis .m-value{font-size:13px !important;line-height:1.2 !important;letter-spacing:-.04em;white-space:nowrap}
+
+  /* 421~520px에서도 390px과 동일한 분석 카드 폰트 */
+      
+  /* 평가액 비중 모바일 카드 밀도 */
+  #pension-chart-alloc .chart-note,
+  #chart-alloc .chart-note{gap:7px !important}
+  #pension-chart-alloc .chart-note .mini-card,
+  #chart-alloc .chart-note .mini-card{min-width:0;padding:9px !important}
+  #pension-chart-alloc .chart-note .m-label,
+  #chart-alloc .chart-note .m-label{font-size:9.5px !important;line-height:1.2 !important}
+  #pension-chart-alloc .chart-note .m-value,
+  #chart-alloc .chart-note .m-value{font-size:11.5px !important;line-height:1.2 !important;letter-spacing:-.045em;white-space:nowrap !important}
+  #pension-chart-alloc .chart-note .small,
+  #chart-alloc .chart-note .small{font-size:8.5px !important;white-space:nowrap !important}
 }
 
 @media(max-width:374px){
@@ -4922,7 +4890,7 @@ button:active,
   display:flex;
   align-items:center;
   justify-content:flex-end;
-  gap:7px;
+  gap:var(--dashboard-control-group-gap);
   flex:0 0 auto;
 }
 .chart-compare-toggle{
@@ -4931,21 +4899,22 @@ button:active,
   height:var(--dashboard-control-height);
   padding:1px;
   border:1px solid #cbd5e1;
-  border-radius:10px;
+  border-radius:calc(var(--dashboard-control-radius) + 1px);
   background:#f8fafc;
   box-sizing:border-box;
 }
 .chart-compare-toggle button{
-  min-width:52px;
+  min-width:var(--dashboard-switch-min-width);
   height:100%;
-  padding:0 8px;
+  padding:0 var(--dashboard-control-pad-x);
   border:0;
-  border-radius:8px;
+  border-radius:var(--dashboard-control-radius);
   background:transparent;
   color:#64748b;
   font-family:inherit;
-  font-size:10.5px;
+  font-size:var(--dashboard-control-font-size);
   font-weight:900;
+  line-height:1;
   white-space:nowrap;
   cursor:pointer;
 }
@@ -4989,12 +4958,6 @@ button:active,
 .pension-action-pin-card input:disabled{opacity:.68;cursor:wait}
 
 @media(max-width:760px){
-  .chart-head-actions{gap:5px}
-  .chart-compare-toggle button{
-    min-width:45px;
-    padding:0 6px;
-    font-size:10px;
-  }
   .krx-action-modal{padding:12px !important}
   .krx-action-card{padding:22px 18px !important}
   .krx-action-buttons{
@@ -5015,10 +4978,6 @@ button:active,
   }
   .chart-head-actions{
     margin-left:auto;
-  }
-  .chart-compare-toggle button{
-    min-width:42px;
-    font-size:9.5px;
   }
 }
 
@@ -6565,37 +6524,28 @@ button:active,
   white-space:nowrap;
 }
 .separate-profit-toggle{
-  display:inline-flex;
-  align-items:center;
   gap:7px;
   flex:0 0 auto;
-  height:var(--dashboard-control-height);
-  min-height:var(--dashboard-control-height);
   padding:2px 8px 2px 10px;
-  box-sizing:border-box;
   border:1px solid #d7dee8;
   border-radius:999px;
   background:#fff;
   color:#475569;
-  font:inherit;
-  font-size:11px;
+  font-family:inherit;
   font-weight:900;
-  line-height:1;
   letter-spacing:-.025em;
-  white-space:nowrap;
-  cursor:pointer;
 }
 .separate-profit-toggle strong{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  min-width:31px;
+  min-width:var(--dashboard-control-state-min-width);
   height:18px;
   padding:0 5px;
   border-radius:999px;
   background:#e2e8f0;
   color:#64748b;
-  font-size:10px;
+  font-size:var(--dashboard-control-state-font-size);
   letter-spacing:0;
 }
 .separate-profit-toggle.active{
@@ -6652,7 +6602,7 @@ button:active,
   margin-left:auto;
 }
 
-@media(max-width:760px){
+@media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   .section-title-actions{
     gap:5px;
   }
@@ -6674,17 +6624,14 @@ button:active,
     display:none;
   }
   .separate-profit-toggle{
-    height:var(--dashboard-control-height);
-    min-height:var(--dashboard-control-height);
     padding:1px 3px;
     gap:0;
-    font-size:10px;
   }
   .separate-profit-toggle span{
     display:none;
   }
   .separate-profit-toggle strong{
-    min-width:34px;
+    min-width:var(--dashboard-control-state-min-width);
     height:21px;
     padding:0 6px;
   }
@@ -6815,90 +6762,41 @@ button:active,
   }
 }
 
-/* Chart expand controls: mobile uses the chart navigation row; desktop uses the title row. */
-.chart-expand-button,
-.chart-web-expand-button{display:none}
+/* Chart expand controls: one shared control style; placement/display changes by device. */
+:is(.chart-expand-button,.chart-web-expand-button){
+  display:none;
+  align-items:center;
+  justify-content:center;
+  width:var(--dashboard-control-height);
+  height:var(--dashboard-control-height);
+  flex:0 0 var(--dashboard-control-height);
+  padding:0;
+  border:1px solid #cbd5e1;
+  border-radius:var(--dashboard-control-radius);
+  background:#fff;
+  color:#334155;
+  box-shadow:none;
+  cursor:pointer;
+}
+:is(.chart-expand-button,.chart-web-expand-button) svg{
+  width:var(--dashboard-expand-icon-size);
+  height:var(--dashboard-expand-icon-size);
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  pointer-events:none;
+}
+.dark :is(.chart-expand-button,.chart-web-expand-button){
+  background:#111827;
+  border-color:#334155;
+  color:#e2e8f0;
+}
 body.chart-expanded-open{overflow:hidden !important;touch-action:none}
 
-@media (min-width:1101px){
-  .chart-web-expand-button{
-    display:inline-flex !important;
-    align-items:center;
-    justify-content:center;
-    width:var(--dashboard-control-height);
-    height:var(--dashboard-control-height);
-    flex:0 0 var(--dashboard-control-height);
-    padding:0;
-    border:1px solid #cbd5e1;
-    border-radius:9px;
-    background:#fff;
-    color:#334155;
-    box-shadow:none;
-    cursor:pointer;
-  }
-  .chart-web-expand-button svg{
-    width:14px;
-    height:14px;
-    fill:none;
-    stroke:currentColor;
-    stroke-width:1.9;
-    stroke-linecap:round;
-    stroke-linejoin:round;
-    pointer-events:none;
-  }
-  .dark .chart-web-expand-button{
-    background:#111827;
-    border-color:#334155;
-    color:#e2e8f0;
-  }
-}
-
-@media (max-width:760px) and (orientation:portrait){
-  /* Mobile: keep the data legend centered and move chart controls to the existing navigation row. */
-  .chart-card > .chart-legend{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:26px;
-  }
-  .chart-card > .chart-legend > .chart-legend-control{
-    display:none !important;
-  }
-  .chart-card > .chart-legend > .chart-legend-series{
-    width:100%;
-    justify-content:center;
-    gap:6px 9px;
-  }
-  .chart-expand-button{
-    display:inline-flex !important;
-    align-items:center;
-    justify-content:center;
-    width:var(--dashboard-control-height) !important;
-    height:var(--dashboard-control-height) !important;
-    flex:0 0 var(--dashboard-control-height) !important;
-    padding:0 !important;
-    border:1px solid #cbd5e1;
-    border-radius:8px !important;
-    background:#fff;
-    color:#334155;
-    box-shadow:none !important;
-    cursor:pointer;
-  }
-  .chart-expand-button svg{
-    width:13px;
-    height:13px;
-    fill:none;
-    stroke:currentColor;
-    stroke-width:1.9;
-    stroke-linecap:round;
-    stroke-linejoin:round;
-    pointer-events:none;
-  }
-  .dark .chart-expand-button{
-    background:#111827;
-    border-color:#334155;
-    color:#e2e8f0;
-  }
+@media (min-width:761px){
+  .chart-web-expand-button{display:inline-flex !important;}
 }
 
 
@@ -7007,16 +6905,11 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   margin:0 !important;
   align-items:center !important;
   justify-content:flex-end !important;
-  gap:5px !important;
+  gap:var(--dashboard-control-group-gap) !important;
 }
 .chart-expanded-controls-host .chart-web-expand-button{display:none !important}
 .chart-expanded-controls-host .chart-compare-toggle{
   margin:0 !important;
-}
-.chart-expanded-controls-host .chart-compare-toggle button{
-  min-width:46px !important;
-  padding:0 6px !important;
-  font-size:10px !important;
 }
 .chart-expanded-chart-host{
   min-width:0;
@@ -7045,17 +6938,12 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   justify-content:center !important;
   margin-top:0 !important;
   column-gap:10px !important;
-  font-size:10px !important;
   line-height:1.2 !important;
 }
 .chart-expanded-legend-host .chart-legend-series{
   width:100%;
   justify-content:center !important;
   gap:5px 10px !important;
-}
-.chart-expanded-legend-host .swatch{
-  width:9px !important;
-  height:9px !important;
 }
 
 /* If the user physically rotates while expanded, stop simulating rotation and fill real landscape. */
@@ -7085,14 +6973,8 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-title-sub{
     font-size:12px !important;
   }
-  .chart-expanded-overlay.desktop-expanded .chart-expanded-controls-host .chart-compare-toggle button{
-    min-width:52px !important;
-    padding:0 8px !important;
-    font-size:10.5px !important;
-  }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend{
     column-gap:14px !important;
-    font-size:14px !important;
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend-series{
     gap:7px 14px !important;
@@ -7535,37 +7417,10 @@ body.chart-expanded-open .dash-tooltip{
   color:#0f172a;
 }
 
-/* On phones, the expand control belongs to the title row; compare/series controls stay below. */
+/* On phones, the shared expand control belongs to the title row; compare/series controls stay below. */
 .phone-chart-ui .chart-head > .chart-expand-button{
   display:inline-flex !important;
-  align-items:center;
-  justify-content:center;
-  width:var(--dashboard-control-height) !important;
-  height:var(--dashboard-control-height) !important;
-  flex:0 0 var(--dashboard-control-height) !important;
   margin-left:auto;
-  padding:0 !important;
-  border:1px solid #cbd5e1;
-  border-radius:8px !important;
-  background:#fff;
-  color:#334155;
-  box-shadow:none !important;
-  cursor:pointer;
-}
-.phone-chart-ui .chart-head > .chart-expand-button svg{
-  width:13px;
-  height:13px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.9;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  pointer-events:none;
-}
-.dark .phone-chart-ui .chart-head > .chart-expand-button{
-  background:#111827;
-  border-color:#334155;
-  color:#e2e8f0;
 }
 /* Mobile chart controls use one shared flow: switch/arrows → chart → legend → options. */
 .phone-chart-ui .chart-scroll-row{
@@ -7573,7 +7428,7 @@ body.chart-expanded-open .dash-tooltip{
   align-items:center !important;
   justify-content:flex-start !important;
   gap:5px !important;
-  min-height:25px;
+  min-height:var(--dashboard-control-height);
   margin:2px 1px 5px;
   padding:0 !important;
   box-sizing:border-box;
@@ -7597,11 +7452,11 @@ body.chart-expanded-open .dash-tooltip{
   display:inline-flex !important;
   align-items:center;
   justify-content:center;
-  width:25px !important;
-  height:25px !important;
-  flex:0 0 25px !important;
+  width:var(--dashboard-control-height) !important;
+  height:var(--dashboard-control-height) !important;
+  flex:0 0 var(--dashboard-control-height) !important;
   padding:0 !important;
-  border-radius:8px !important;
+  border-radius:var(--dashboard-control-radius) !important;
   font-size:15px !important;
   box-shadow:none !important;
 }
@@ -7613,7 +7468,6 @@ body.chart-expanded-open .dash-tooltip{
   display:flex;
   align-items:center;
   justify-content:center;
-  min-height:26px;
 }
 .phone-chart-ui > .chart-legend > .chart-legend-series{
   width:100%;
@@ -7646,8 +7500,8 @@ body.chart-expanded-open .dash-tooltip{
   align-items:center;
   justify-content:center;
   flex-wrap:nowrap;
-  gap:6px;
-  min-height:27px;
+  gap:var(--dashboard-control-group-gap);
+  min-height:var(--dashboard-control-height);
   margin:2px 1px 2px;
   padding:0;
   box-sizing:border-box;
@@ -7661,24 +7515,6 @@ body.chart-expanded-open .dash-tooltip{
 }
 .chart-options-row .chart-legend-control:empty{
   display:none !important;
-}
-.chart-options-row .chart-series-all{
-  min-height:26px;
-  padding:3px 9px !important;
-  font-size:11px;
-  line-height:1;
-  white-space:nowrap;
-}
-.chart-options-row .chart-y-auto-toggle{
-  min-height:26px;
-  gap:5px;
-  padding:3px 7px;
-  font-size:10.5px;
-}
-.chart-options-row .chart-y-auto-state{
-  min-width:26px;
-  padding:1px 4px;
-  font-size:9.5px;
 }
 .chart-expanded-legend-host > .chart-options-row{
   margin:0 0 4px;

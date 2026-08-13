@@ -980,7 +980,7 @@ function openExpandedChart(button){
   const title=titleHeading?.textContent?.trim()||'차트';
   const controls=card.querySelector('.chart-head-actions');
   let expandedSeparateProfitControl=null;
-  if(button?.classList.contains('chart-web-expand-button')&&card.id==='chart-cum'&&controls){
+  if(card.id==='chart-cum'&&controls){
     const sourceSeparateControl=card.querySelector('.chart-head > .separate-profit-control-row');
     if(sourceSeparateControl){
       expandedSeparateProfitControl=sourceSeparateControl.cloneNode(true);
