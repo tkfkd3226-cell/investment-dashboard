@@ -548,26 +548,30 @@ svg.chart{
   grid-column:span 2;
 }
 
+/* 평가총액 금액+포함문구: 웹·태블릿 공통 한 줄 구조 (phone UI 제외) */
+#chart-alloc:not(.phone-chart-ui) #securityAllocCards.security-alloc-card-grid > .alloc-total-card{
+  display:grid;
+  grid-template-columns:max-content minmax(0,max-content);
+  column-gap:clamp(3px,.45vw,6px);
+  align-items:baseline;
+  justify-content:start;
+}
+#chart-alloc:not(.phone-chart-ui) #securityAllocCards.security-alloc-card-grid > .alloc-total-card > .m-label{
+  grid-column:1 / -1;
+}
+#chart-alloc:not(.phone-chart-ui) #securityAllocCards.security-alloc-card-grid > .alloc-total-card > .m-value{
+  grid-column:1;
+  white-space:nowrap;
+}
+#chart-alloc:not(.phone-chart-ui) #securityAllocCards.security-alloc-card-grid > .alloc-total-card > .cash-include-detail{
+  grid-column:2;
+  margin-top:2px;
+  white-space:nowrap;
+}
+
 @media (min-width:1101px){
   #securityAllocCards.security-alloc-card-grid{
     grid-template-columns:repeat(var(--security-alloc-card-count,4),minmax(0,1fr));
-  }
-  #securityAllocCards.security-alloc-card-grid > .alloc-total-card{
-    display:grid;
-    grid-template-columns:max-content max-content;
-    column-gap:6px;
-    align-items:baseline;
-    justify-content:start;
-  }
-  #securityAllocCards.security-alloc-card-grid > .alloc-total-card > .m-label{
-    grid-column:1 / -1;
-  }
-  #securityAllocCards.security-alloc-card-grid > .alloc-total-card > .m-value{
-    grid-column:1;
-  }
-  #securityAllocCards.security-alloc-card-grid > .alloc-total-card > .cash-include-detail{
-    grid-column:2;
-    margin-top:2px;
   }
 }
 
