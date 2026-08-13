@@ -49,8 +49,9 @@
     .help-tooltip{position:relative;display:inline-flex;align-items:center;flex:0 0 auto}
     .help-icon{width:17px;height:17px;border:1px solid #9eb0c9;border-radius:50%;background:#f3f7fc;color:#315a8f;font-size:11px;font-weight:900;line-height:15px;text-align:center;padding:0;cursor:help;font-family:inherit}
     .help-icon:hover,.help-icon:focus-visible{background:#e7f0fb;border-color:#6f8fb8;outline:none}
-    .custom-tooltip{position:absolute;z-index:200;right:-8px;bottom:calc(100% + 9px);width:min(290px,calc(100vw - 34px));padding:10px 11px;border-radius:9px;background:#17243a;color:#fff;font-size:11px;font-weight:600;line-height:1.5;letter-spacing:-.01em;box-shadow:0 8px 22px rgba(20,35,60,.22);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;pointer-events:none;text-align:left}
-    .custom-tooltip::after{content:'';position:absolute;right:11px;top:100%;border:6px solid transparent;border-top-color:#17243a}
+    .custom-tooltip{position:fixed;z-index:1000;left:var(--tooltip-left,-9999px);top:var(--tooltip-top,-9999px);width:min(290px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow-y:auto;padding:10px 11px;border-radius:9px;background:#17243a;color:#fff;font-size:11px;font-weight:600;line-height:1.5;letter-spacing:-.01em;box-shadow:0 8px 22px rgba(20,35,60,.22);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;pointer-events:none;text-align:left}
+    .custom-tooltip::after{content:'';position:absolute;left:var(--tooltip-arrow-x,50%);top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#17243a}
+    .custom-tooltip.tooltip-below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:#17243a}
     .help-tooltip:hover .custom-tooltip,.help-tooltip:focus-within .custom-tooltip,.help-tooltip.is-open .custom-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
     .control{height:42px;border:1px solid #cfd7e4;border-radius:10px;background:#fff;padding:0 11px;outline:none;text-align:right;font-weight:700;color:var(--ink)}
     .control:focus{border-color:#6d8fc1;box-shadow:0 0 0 3px rgba(73,115,174,.12)}
@@ -190,8 +191,7 @@
         text-overflow:ellipsis;
       }
       .kpi .name.has-help{overflow:visible;text-overflow:clip}
-      .kpi .name.has-help .custom-tooltip{left:-8px;right:auto;width:min(250px,calc(100vw - 48px))}
-      .kpi .name.has-help .custom-tooltip::after{left:11px;right:auto}
+      .custom-tooltip{width:min(250px,calc(100vw - 24px))}
       .kpi .value{
         font-size:17px;
         white-space:nowrap;
@@ -1015,10 +1015,36 @@
   $('priorSellDateInput').addEventListener('input',()=>{markCustom();recalc();});
   $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV17');storage.remove('investmentLossRecoveryCalcV16');storage.remove('investmentLossRecoveryCalcV15');storage.remove('investmentLossRecoveryCalcV12');applyPreset(defaultPresetId);});
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('hidden'))return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id===b.dataset.tab));}));
+  const positionHelpTooltip=wrap=>{
+    if(!wrap)return;
+    const btn=wrap.querySelector('.help-icon'),tip=wrap.querySelector('.custom-tooltip');
+    if(!btn||!tip)return;
+    const margin=12,gap=9,vw=document.documentElement.clientWidth,vh=document.documentElement.clientHeight;
+    tip.style.setProperty('--tooltip-left','0px');
+    tip.style.setProperty('--tooltip-top','0px');
+    tip.classList.remove('tooltip-below');
+    const br=btn.getBoundingClientRect(),tr=tip.getBoundingClientRect();
+    let left=br.left+br.width/2-tr.width/2;
+    left=Math.max(margin,Math.min(left,vw-margin-tr.width));
+    const above=br.top-gap-tr.height,below=br.bottom+gap;
+    const useBelow=above<margin&&below+tr.height<=vh-margin;
+    let top=useBelow?below:above;
+    top=Math.max(margin,Math.min(top,vh-margin-tr.height));
+    const arrowX=Math.max(12,Math.min(br.left+br.width/2-left,tr.width-12));
+    tip.style.setProperty('--tooltip-left',`${Math.round(left)}px`);
+    tip.style.setProperty('--tooltip-top',`${Math.round(top)}px`);
+    tip.style.setProperty('--tooltip-arrow-x',`${Math.round(arrowX)}px`);
+    tip.classList.toggle('tooltip-below',useBelow);
+  };
+  const repositionVisibleTooltips=()=>document.querySelectorAll('.help-tooltip.is-open,.help-tooltip:hover,.help-tooltip:focus-within').forEach(positionHelpTooltip);
+  document.addEventListener('pointerover',e=>{const wrap=e.target.closest('.help-tooltip');if(wrap)positionHelpTooltip(wrap);});
+  document.addEventListener('focusin',e=>{const wrap=e.target.closest('.help-tooltip');if(wrap)positionHelpTooltip(wrap);});
+  window.addEventListener('resize',repositionVisibleTooltips,{passive:true});
+  document.addEventListener('scroll',repositionVisibleTooltips,{passive:true,capture:true});
   document.addEventListener('click',e=>{
     const btn=e.target.closest('.help-icon');
     document.querySelectorAll('.help-tooltip.is-open').forEach(w=>{if(!btn||w!==btn.closest('.help-tooltip')){w.classList.remove('is-open');const b=w.querySelector('.help-icon');if(b)b.setAttribute('aria-expanded','false');}});
-    if(btn){e.stopPropagation();const wrap=btn.closest('.help-tooltip');const open=wrap.classList.toggle('is-open');btn.setAttribute('aria-expanded',String(open));}
+    if(btn){e.stopPropagation();const wrap=btn.closest('.help-tooltip');positionHelpTooltip(wrap);const open=wrap.classList.toggle('is-open');btn.setAttribute('aria-expanded',String(open));}
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.help-tooltip.is-open').forEach(w=>{w.classList.remove('is-open');const b=w.querySelector('.help-icon');if(b){b.setAttribute('aria-expanded','false');b.blur();}});}});
   const saved=storage.get('investmentLossRecoveryCalcV17');
