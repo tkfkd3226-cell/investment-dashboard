@@ -7561,6 +7561,12 @@ body.chart-expanded-open .dash-tooltip{
   gap:6px 9px;
 }
 
+/* Phone allocation summary: the total card owns the full grid row. */
+.phone-chart-ui #securityAllocCards > .alloc-total-card{
+  grid-column:1 / -1;
+}
+
+
 .chart-options-row{
   display:flex;
   align-items:center;
