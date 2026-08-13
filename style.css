@@ -2393,6 +2393,42 @@ body.contrib-modal-open{
   color:var(--muted) !important;
 }
 
+/* 연금 평가액 비중 현재 평가총액: 금액 옆 현금 포함 문구를 화면군별로 하나만 표시 */
+#pension-chart-alloc .pension-alloc-total-card{
+  display:grid;
+  grid-template-columns:max-content minmax(0,max-content);
+  column-gap:clamp(3px,.45vw,6px);
+  align-items:baseline;
+  justify-content:start;
+}
+#pension-chart-alloc .pension-alloc-total-card > .m-label{
+  grid-column:1 / -1;
+}
+#pension-chart-alloc .pension-alloc-total-card > .m-value{
+  grid-column:1;
+  white-space:nowrap;
+}
+#pension-chart-alloc .pension-alloc-total-card > .pension-cash-detail{
+  grid-column:2;
+  margin-top:2px;
+  white-space:nowrap;
+}
+#pension-chart-alloc .pension-cash-detail-full{
+  display:block;
+}
+#pension-chart-alloc .pension-cash-detail-compact{
+  display:none;
+}
+
+@media(max-width:1100px){
+  #pension-chart-alloc .pension-cash-detail-full{
+    display:none;
+  }
+  #pension-chart-alloc .pension-cash-detail-compact{
+    display:block;
+  }
+}
+
 /* 최종 QA 보정: 보유분 종목 배경색을 차트 색상 계열로 통일 */
 .ticker-samsung{
   background:rgba(139,195,74,.20) !important;
