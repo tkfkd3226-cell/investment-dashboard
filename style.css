@@ -1556,25 +1556,13 @@ svg.chart{
 .pension-contrib-tool{
   margin-top:14px;
   padding:14px;
-  border:1px solid var(--line);
-  border-radius:14px;
   background:#f8fafc;
 }
 .dark .pension-contrib-tool{
   background:#0f172a;
-  border-color:rgba(148,163,184,.24);
-}
-.pension-contrib-tool h3{
-  margin:0 0 4px;
-  font-size:15px;
-  letter-spacing:-.03em;
-}
-.pension-contrib-tool .small{
-  margin:0 0 10px;
 }
 .contrib-form-grid{
   display:grid;
-  grid-template-columns:1fr 1fr;
   gap:10px;
 }
 .contrib-field{
@@ -1645,12 +1633,6 @@ svg.chart{
 .contrib-output.show{
   display:block;
 }
-@media(max-width:720px){
-  .contrib-form-grid{
-    grid-template-columns:1fr;
-  }
-}
-
 .contrib-status{
   display:none;
   margin-top:10px;
@@ -1684,24 +1666,30 @@ svg.chart{
   border-color:rgba(254,202,202,.25);
 }
 
-.contrib-modal{
+.contrib-modal,
+.krx-action-modal{
   position:fixed;
   inset:0;
-  z-index:1000;
   display:none;
-  align-items:center;
   justify-content:center;
+}
+.contrib-modal{
+  z-index:12000;
+  align-items:center;
   padding:18px;
   background:rgba(15,23,42,.62);
   backdrop-filter:blur(3px);
 }
-.contrib-modal.show{
+.contrib-modal.show,
+.krx-action-modal.show{
   display:flex;
 }
 body.contrib-modal-open{
   overflow:hidden;
 }
 .contrib-modal-card{
+  position:relative;
+  z-index:12001;
   width:min(760px,100%);
   max-height:min(calc(100vh - 36px),820px);
   max-height:min(calc(100dvh - 36px),820px);
@@ -1726,6 +1714,9 @@ body.contrib-modal-open{
   min-width:0;
 }
 .contrib-modal-head h2{
+  display:flex;
+  align-items:center;
+  gap:9px;
   margin:0;
   font-size:20px;
   letter-spacing:-.04em;
@@ -1747,23 +1738,26 @@ body.contrib-modal-open{
   align-items:center;
   gap:6px;
 }
-.contrib-modal-icon-btn{
-  position:static;
-  flex:0 0 auto;
-  border:0;
+.contrib-modal-icon-btn,
+.krx-action-close{
   width:34px;
   height:34px;
-  padding:0;
+  border:0;
   border-radius:999px;
   cursor:pointer;
-  background:#e2e8f0;
-  color:#0f172a;
-  font-size:20px;
   line-height:1;
-  font-weight:900;
   display:inline-flex;
   align-items:center;
   justify-content:center;
+}
+.contrib-modal-icon-btn{
+  position:static;
+  flex:0 0 auto;
+  padding:0;
+  background:#e2e8f0;
+  color:#0f172a;
+  font-size:20px;
+  font-weight:900;
 }
 .contrib-modal-icon-btn:hover{background:#cbd5e1}
 .contrib-modal-icon-btn.pension-form-reset{
@@ -1779,6 +1773,11 @@ body.contrib-modal-open{
 }
 .modal-card-box{
   margin-top:12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+}
+.dark .modal-card-box{
+  border-color:rgba(148,163,184,.24);
 }
 .modal-card-box:first-of-type{
   margin-top:0;
@@ -1816,9 +1815,30 @@ body.contrib-modal-open{
   font-weight:800;
   line-height:normal;
 }
-.contrib-modal input[type="date"]{
+.contrib-modal input[type="date"],
+.contrib-modal #pensionContribDate{
   -webkit-appearance:none;
   appearance:none;
+  font-family:inherit !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+  line-height:normal !important;
+  text-align:left !important;
+  color:var(--text) !important;
+  padding:9px 10px !important;
+  height:38px;
+}
+.contrib-modal input[type="date"]::-webkit-date-and-time-value,
+.contrib-modal #pensionContribDate::-webkit-date-and-time-value{
+  text-align:left !important;
+  font-family:inherit !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+  line-height:normal !important;
+  color:var(--text) !important;
+}
+.contrib-modal input[type="date"]::-webkit-calendar-picker-indicator{
+  margin-left:auto;
 }
 @media(max-width:720px){
   .contrib-modal-card{
@@ -1922,14 +1942,11 @@ body.contrib-modal-open{
 }
 .contrib-list{
   margin-top:12px;
-  border:1px solid var(--line);
-  border-radius:14px;
   padding:12px;
   background:#fff;
 }
 .dark .contrib-list{
   background:#0f172a;
-  border-color:rgba(148,163,184,.24);
 }
 .contrib-list h3{
   margin:0 0 5px;
@@ -2285,24 +2302,30 @@ body.contrib-modal-open{
 .contrib-target-field{
   margin-bottom:8px;
 }
-.contrib-target-tabs{
+.contrib-target-tabs,
+.pension-work-mode{
   display:grid;
+  padding:3px;
+}
+.contrib-target-tabs{
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:6px;
-  padding:3px;
   border-radius:12px;
   background:rgba(15,23,42,.06);
   border:1px solid rgba(148,163,184,.22);
 }
-.contrib-target-option{
+.contrib-target-option,
+.pension-work-mode-btn{
   border:0;
-  border-radius:9px;
-  padding:7px 9px;
   background:transparent;
-  color:#64748b;
-  font-size:13px;
   font-weight:900;
   cursor:pointer;
+}
+.contrib-target-option{
+  border-radius:9px;
+  padding:7px 9px;
+  color:#64748b;
+  font-size:13px;
   white-space:normal;
   line-height:1.25;
 }
@@ -2558,17 +2581,12 @@ body.contrib-modal-open{
 
 /* KRX 현재가 반영: 브라우저 기본 alert/prompt 대신 커스텀 모달 */
 .krx-action-modal{
-  position:fixed;
-  inset:0;
-  display:none;
+  z-index:13000;
   align-items:center;
-  justify-content:center;
-  z-index:9999;
   padding:20px;
   background:rgba(15,23,42,.45);
   backdrop-filter:blur(6px);
 }
-.krx-action-modal.show{display:flex}
 .krx-action-card{
   position:relative;
   width:min(420px,100%);
@@ -2583,15 +2601,10 @@ body.contrib-modal-open{
   position:absolute;
   right:14px;
   top:12px;
-  width:34px;
-  height:34px;
-  border:0;
-  border-radius:999px;
+  padding:0;
   background:#f1f5f9;
   color:#334155;
   font-size:22px;
-  line-height:1;
-  cursor:pointer;
 }
 .krx-action-icon{
   width:48px;
@@ -2646,28 +2659,38 @@ body.contrib-modal-open{
 .krx-action-status.ok{color:#0369a1}
 .krx-action-status.err{color:#dc2626}
 .krx-action-buttons{
-  display:flex;
+  display:grid;
+  grid-template-columns:auto minmax(112px,1fr) minmax(116px,.86fr);
+  align-items:stretch;
   gap:8px;
-  justify-content:flex-end;
   margin-top:18px;
 }
 .krx-action-buttons button{
+  width:100%;
+  min-width:0;
   height:40px;
   border-radius:12px;
   border:1px solid #cbd5e1;
-  padding:0 16px;
+  padding:0 10px;
   font-weight:900;
+  line-height:1.25;
+  white-space:normal;
+  word-break:keep-all;
+  overflow-wrap:normal;
   cursor:pointer;
 }
 .krx-action-buttons .ghost{background:#fff;color:#334155}
 .krx-action-buttons .primary{background:#0f172a;color:#fff;border-color:#0f172a}
 .krx-action-buttons .primary:disabled{opacity:.55;cursor:wait}
+@media(min-width:761px){
+  .krx-action-buttons .primary{white-space:nowrap}
+}
 .app-toast{
   position:fixed;
   left:50%;
   bottom:22px;
   transform:translate(-50%,16px);
-  z-index:10000;
+  z-index:13001;
   max-width:min(420px,calc(100vw - 32px));
   padding:12px 16px;
   border-radius:999px;
@@ -2705,8 +2728,8 @@ body.contrib-modal-open{
   color:#e5e7eb;
 }
 @media(max-width:640px){
-  .krx-action-modal{align-items:flex-end;padding:12px}
-  .krx-action-card{border-radius:22px;padding:22px}
+  .krx-action-modal{align-items:flex-end}
+  .krx-action-card{border-radius:22px}
   .app-toast{bottom:16px;border-radius:16px;text-align:center}
 }
 
@@ -2772,37 +2795,6 @@ svg.chart{
 /* C. Desktop only: widen first column of 연금+계좌 성과 */
 
 
-/* F. Ensure pension contribution modal is always above mobile menu and page UI */
-.contrib-modal{
-  z-index:12000 !important;
-}
-
-.contrib-modal.show{
-  display:flex !important;
-}
-
-.contrib-modal-card{
-  position:relative;
-  z-index:12001 !important;
-}
-
-/* G. KRX modal visibility priority */
-.krx-action-modal{
-  z-index:13000 !important;
-}
-
-.app-toast{
-  z-index:13001 !important;
-}
-
-
-/* Pension modal title uses the shared section-icon geometry. */
-.contrib-modal-head h2{
-  display:flex !important;
-  align-items:center !important;
-  gap:9px !important;
-}
-
 /* Targeted chart title size reduction only */
 #pension-chart-cum .chart-head h3,
 #pension-chart-symbol .chart-head h3,
@@ -2838,35 +2830,7 @@ svg.chart{
 }
 
 
-/* Pension contribution date input alignment + PIN action modal */
-.contrib-modal input[type="date"],
-.contrib-modal #pensionContribDate{
-  -webkit-appearance:none;
-  appearance:none;
-  font-family:inherit !important;
-  font-size:13px !important;
-  font-weight:800 !important;
-  line-height:normal !important;
-  text-align:left !important;
-  color:var(--text) !important;
-  padding:9px 10px !important;
-  height:38px;
-}
-
-.contrib-modal input[type="date"]::-webkit-date-and-time-value,
-.contrib-modal #pensionContribDate::-webkit-date-and-time-value{
-  text-align:left !important;
-  font-family:inherit !important;
-  font-size:13px !important;
-  font-weight:800 !important;
-  line-height:normal !important;
-  color:var(--text) !important;
-}
-
-.contrib-modal input[type="date"]::-webkit-calendar-picker-indicator{
-  margin-left:auto;
-}
-
+/* PIN action modal */
 .pension-action-pin-modal{
   position:fixed;
   inset:0;
@@ -3444,22 +3408,6 @@ button:active,
 .dark .chart-compare-toggle button{color:#94a3b8}
 .dark .chart-compare-toggle button.active{background:#e2e8f0;color:#0f172a}
 
-/* KRX action buttons: stable Korean word wrapping on iPhone */
-.krx-action-buttons{
-  display:grid !important;
-  grid-template-columns:auto minmax(112px,1fr) minmax(82px,.78fr) !important;
-  align-items:stretch !important;
-}
-.krx-action-buttons button{
-  width:100% !important;
-  min-width:0 !important;
-  padding:0 10px !important;
-  white-space:normal !important;
-  word-break:keep-all !important;
-  overflow-wrap:normal !important;
-  line-height:1.25 !important;
-}
-
 /* PIN: automatic execution, status remains inside PIN modal */
 .pension-action-pin-guide{
   margin-top:9px;
@@ -3475,17 +3423,18 @@ button:active,
 .pension-action-pin-card input:disabled{opacity:.68;cursor:wait}
 
 @media(max-width:760px){
-  .krx-action-modal{padding:12px !important}
-  .krx-action-card{padding:22px 18px !important}
+  .krx-action-modal{padding:12px}
+  .krx-action-card{padding:22px 18px}
   .krx-action-buttons{
-    grid-template-columns:52px minmax(108px,1fr) minmax(78px,.72fr) !important;
-    gap:6px !important;
+    grid-template-columns:52px minmax(108px,1fr) minmax(78px,.72fr);
+    gap:6px;
   }
   .krx-action-buttons button{
-    min-height:42px !important;
-    height:auto !important;
-    padding:5px 7px !important;
-    font-size:12px !important;
+    min-height:42px;
+    height:auto;
+    padding:5px 7px;
+    font-size:12px;
+    white-space:normal;
   }
 }
 
@@ -3548,12 +3497,6 @@ button:active,
   border:0;
   background:#111827;
   color:#fff;
-}
-
-@media(min-width:761px){
-  /* Keep the selected-date refresh label on one line on desktop. */
-  .krx-action-buttons{grid-template-columns:auto minmax(112px,1fr) minmax(116px,.86fr) !important}
-  .krx-action-buttons .primary{white-space:nowrap !important}
 }
 
 @media(max-width:760px){
@@ -4090,24 +4033,18 @@ button:active,
 
 /* 퇴직연금 작업 모음 */
 .pension-work-mode{
-  display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:5px;
-  padding:3px;
   margin:0 0 10px;
   border:1px solid var(--line);
   border-radius:10px;
   background:rgba(15,23,42,.045);
 }
 .pension-work-mode-btn{
-  border:0;
   border-radius:7px;
   padding:6px 9px;
-  background:transparent;
   color:var(--muted);
   font-size:12px;
-  font-weight:900;
-  cursor:pointer;
 }
 .pension-work-mode-btn.active{
   background:var(--card);
@@ -4130,8 +4067,6 @@ button:active,
 }
 .pension-batch-panel{
   padding:12px;
-  border:1px solid var(--line);
-  border-radius:14px;
   background:var(--card);
 }
 .pension-batch-head{
@@ -4284,16 +4219,15 @@ button:active,
   padding:2px;
 }
 .pension-contrib-section-head .pension-work-mode-btn{
-  padding:4px 7px;
+  padding:3px 6px;
   font-size:11px;
 }
 @media(max-width:460px){
   .pension-contrib-section-head{gap:6px}
   .pension-work-controls{gap:4px}
   .pension-contrib-section-head .pension-work-mode{min-width:0;width:172px}
-  .pension-contrib-section-head .pension-work-mode-btn{padding:4px 4px;font-size:10px}
+  .pension-contrib-section-head .pension-work-mode-btn{font-size:10px}
 }
-.pension-contrib-section-head .pension-work-mode-btn{padding:3px 6px}
 
 /* Desktop pension modal: keep mouse interactions immediate without changing mobile/touch behavior. */
 @media (min-width:761px) and (hover:hover) and (pointer:fine){
