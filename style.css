@@ -321,7 +321,7 @@ td.num{
   pointer-events:none;
   opacity:0;
   transform:translate(-50%,-110%);
-  transition:opacity .08s ease;
+  transition:opacity .055s ease;
 }
 
 .dash-tooltip.visible{
@@ -458,7 +458,7 @@ svg.chart{
   background:transparent;
   padding:4px 3px;
   border-radius:7px;
-  transition:opacity .15s ease,background-color .15s ease,color .15s ease;
+  transition:opacity .10s ease,background-color .10s ease,color .10s ease;
 }
 
 .chart-series-toggle.inactive{
@@ -1934,7 +1934,7 @@ body.contrib-modal-open{
   content:'▸';
   display:inline-block;
   margin-right:6px;
-  transition:transform .15s ease;
+  transition:transform .10s ease;
 }
 .token-guide[open] summary::before{
   transform:rotate(90deg);
@@ -2393,6 +2393,34 @@ body.contrib-modal-open{
   color:var(--muted) !important;
 }
 
+#pension-chart-alloc .pension-total-value-row{
+  display:flex;
+  align-items:baseline;
+  gap:3px;
+  min-width:0;
+  white-space:nowrap;
+}
+#pension-chart-alloc .pension-total-value-row > .m-value{
+  flex:0 0 auto;
+}
+#pension-chart-alloc .pension-cash-detail{
+  flex:0 0 auto;
+  margin-top:2px;
+  white-space:nowrap;
+}
+#pension-chart-alloc .pension-cash-detail-compact{
+  display:none;
+}
+
+@media(max-width:1100px){
+  #pension-chart-alloc .pension-cash-detail-full{
+    display:none;
+  }
+  #pension-chart-alloc .pension-cash-detail-compact{
+    display:block;
+  }
+}
+
 /* 최종 QA 보정: 보유분 종목 배경색을 차트 색상 계열로 통일 */
 .ticker-samsung{
   background:rgba(139,195,74,.20) !important;
@@ -2703,7 +2731,7 @@ body.contrib-modal-open{
   transform:translateX(-50%) translateY(6px);
   opacity:0;
   pointer-events:none;
-  transition:opacity .16s ease, transform .16s ease;
+  transition:opacity .11s ease, transform .11s ease;
   min-width:118px;
   max-width:220px;
   padding:8px 10px;
@@ -2947,7 +2975,7 @@ body.contrib-modal-open{
     border-radius:999px;
     background:rgba(255,255,255,.24);
     border:1px solid rgba(255,255,255,.20);
-    transition:background .16s ease,border-color .16s ease;
+    transition:background .11s ease,border-color .11s ease;
   }
   .mobile-date-pin-track > span{
     position:absolute;
@@ -2958,7 +2986,7 @@ body.contrib-modal-open{
     border-radius:50%;
     background:#fff;
     box-shadow:0 1px 4px rgba(0,0,0,.24);
-    transition:transform .16s ease;
+    transition:transform .11s ease;
   }
   .mobile-date-pin-control input:checked + .mobile-date-pin-track{
     background:#3182F6;
@@ -3232,7 +3260,7 @@ body.contrib-modal-open{
   box-shadow:0 18px 45px rgba(15,23,42,.28);
   opacity:0;
   pointer-events:none;
-  transition:.18s ease;
+  transition:.12s ease;
 }
 .app-toast.show{
   opacity:1;
@@ -4028,10 +4056,10 @@ svg.chart{
 .pension-insight-card,
 .mini-card{
   transition:
-    transform .18s ease,
-    box-shadow .18s ease,
-    border-color .18s ease,
-    background-color .18s ease;
+    transform .12s ease,
+    box-shadow .12s ease,
+    border-color .12s ease,
+    background-color .12s ease;
 }
 
 @media(hover:hover) and (pointer:fine){
@@ -4058,11 +4086,11 @@ svg.chart{
 button,
 .btn{
   transition:
-    transform .16s ease,
-    background-color .16s ease,
-    box-shadow .16s ease,
-    border-color .16s ease,
-    opacity .16s ease;
+    transform .11s ease,
+    background-color .11s ease,
+    box-shadow .11s ease,
+    border-color .11s ease,
+    opacity .11s ease;
 }
 
 @media(hover:hover) and (pointer:fine){
@@ -4091,7 +4119,7 @@ button:active,
 .contrib-modal.show .contrib-modal-card,
 .krx-action-modal.show .krx-action-card,
 .pension-action-pin-modal.show .pension-action-pin-card{
-  animation:modalPop .18s ease-out both;
+  animation:modalPop .12s ease-out both;
 }
 
 @keyframes modalPop{
@@ -4138,7 +4166,7 @@ button:active,
   .note,
   .pension-insight-card,
   .mini-card{
-    transition:box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
+    transition:box-shadow .12s ease, border-color .12s ease, background-color .12s ease;
   }
 
   .date-tool-btn:active,
@@ -5098,7 +5126,7 @@ button:active,
   opacity:0;
   visibility:hidden;
   transform:translateY(8px);
-  transition:opacity .18s ease,transform .18s ease,visibility .18s ease,box-shadow .18s ease;
+  transition:opacity .12s ease,transform .12s ease,visibility .12s ease,box-shadow .12s ease;
   cursor:pointer;
 }
 .mobile-top-button.show{
@@ -5424,7 +5452,7 @@ button:active,
     visibility:hidden;
     pointer-events:none;
     transform:translate(12px,-50%);
-    transition:opacity .16s ease,transform .16s ease,visibility .16s ease;
+    transition:opacity .11s ease,transform .11s ease,visibility .11s ease;
   }
   .desktop-edge-toc:hover .desktop-edge-toc-panel,
   .desktop-edge-toc:focus-within .desktop-edge-toc-panel{
@@ -6207,15 +6235,15 @@ button:active,
 }
 
 .chart-card.chart-entrance-active .chart-anim-bar{
-  animation:chartBarSweep .34s cubic-bezier(.22,.72,.2,1) var(--chart-delay,0ms) both;
+  animation:chartBarSweep .23s cubic-bezier(.22,.72,.2,1) var(--chart-delay,0ms) both;
 }
 
 .chart-card.chart-entrance-active .chart-anim-point{
-  animation:chartPointPop .25s cubic-bezier(.2,.8,.2,1) var(--chart-delay,0ms) both;
+  animation:chartPointPop .17s cubic-bezier(.2,.8,.2,1) var(--chart-delay,0ms) both;
 }
 
 .chart-card.chart-entrance-active .chart-anim-line{
-  animation:chartLineDraw 1.05s cubic-bezier(.2,.7,.2,1) var(--chart-delay,0ms) both;
+  animation:chartLineDraw .70s cubic-bezier(.2,.7,.2,1) var(--chart-delay,0ms) both;
 }
 
 @keyframes chartBarSweep{
@@ -6873,7 +6901,7 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   overflow:hidden;
   background:#fff;
   opacity:0;
-  transition:opacity .14s ease;
+  transition:opacity .095s ease;
   overscroll-behavior:none;
 }
 .chart-expanded-overlay.show{opacity:1}
@@ -7480,7 +7508,7 @@ body.chart-expanded-open .dash-tooltip{
   visibility:hidden;
   pointer-events:none;
   transform:translate(-50%,-3px);
-  transition:opacity .12s ease,transform .12s ease,visibility .12s ease;
+  transition:opacity .08s ease,transform .08s ease,visibility .08s ease;
   z-index:30;
 }
 .phone-chart-ui .chart-title-info.open .chart-title-info-tooltip{
