@@ -1343,7 +1343,7 @@ function chartAutoYEnabled(scope){
 function chartLegendHtml(scope){
   const items=chartLegendItems(scope),selection=chartSelection(scope);
   const autoY=selection.state.autoY===true;
-  const allButton=`<button type="button" class="legend-item chart-series-all${selection.all?' active':''}" aria-pressed="${selection.all}" onclick="toggleChartSeries('${scope}','__all__')">전체</button>`;
+  const allButton=selection.all?'':`<button type="button" class="legend-item chart-series-all" aria-pressed="false" onclick="toggleChartSeries('${scope}','__all__')">전체</button>`;
   const itemButtons=items.map(item=>{
     const active=selection.selected.has(item.key);
     return `<button type="button" class="legend-item chart-series-toggle${active?' active':' inactive'}" aria-pressed="${active}" onclick="toggleChartSeries('${scope}',decodeURIComponent('${encodeURIComponent(item.key)}'))"><span class="swatch" style="background:${item.color}"></span>${chartDisplayLabel(scope,item.label)}</button>`;
