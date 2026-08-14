@@ -2809,21 +2809,36 @@ button:active,
   transform:translateY(1px) scale(.98);
 }
 
-.contrib-modal.show .contrib-modal-card,
-.krx-action-modal.show .action-modal-card,
-.pension-action-pin-modal.show .action-modal-card{
-  animation:modalPop .18s ease-out both;
+/* Modal Motion Policy · 모달 내부 모션 금지 */
+.contrib-modal.show,
+.contrib-modal.show *,
+.contrib-modal.show *::before,
+.contrib-modal.show *::after,
+.krx-action-modal.show,
+.krx-action-modal.show *,
+.krx-action-modal.show *::before,
+.krx-action-modal.show *::after,
+.pension-action-pin-modal,
+.pension-action-pin-modal *,
+.pension-action-pin-modal *::before,
+.pension-action-pin-modal *::after{
+  animation:none;
+  transition:none;
 }
 
-@keyframes modalPop{
-  from{
-    opacity:0;
-    transform:translateY(8px) scale(.98);
-  }
-  to{
-    opacity:1;
-    transform:translateY(0) scale(1);
-  }
+.contrib-modal.show button:hover,
+.contrib-modal.show button:active,
+.contrib-modal.show .btn:hover,
+.contrib-modal.show .btn:active,
+.krx-action-modal.show button:hover,
+.krx-action-modal.show button:active,
+.krx-action-modal.show .btn:hover,
+.krx-action-modal.show .btn:active,
+.pension-action-pin-modal button:hover,
+.pension-action-pin-modal button:active,
+.pension-action-pin-modal .btn:hover,
+.pension-action-pin-modal .btn:active{
+  transform:none;
 }
 
 .chart-card::before{
@@ -2883,11 +2898,6 @@ button:active,
     transition:none !important;
   }
 
-  .contrib-modal.show .contrib-modal-card,
-  .krx-action-modal.show .action-modal-card,
-  .pension-action-pin-modal.show .action-modal-card{
-    animation:none !important;
-  }
 }
 
 /* iOS Safari input zoom fix: keep 16px only on PIN inputs that use it in the final mobile UI. */
@@ -3560,21 +3570,6 @@ button:active,
 .pension-contrib-section-head .pension-work-mode-btn{
   padding:3px 6px;
   font-size:clamp(10px,2.5vw,11px);
-}
-
-/* Pension Modal Fine Pointer · 퇴직연금 모달: 761px 이상 fine pointer interaction */
-@media (min-width:761px) and (hover:hover) and (pointer:fine){
-  .contrib-modal button,
-  .contrib-modal .btn{
-    transition:none;
-  }
-
-  .contrib-modal button:hover,
-  .contrib-modal button:active,
-  .contrib-modal .btn:hover,
-  .contrib-modal .btn:active{
-    transform:none;
-  }
 }
 
 /* Symbol Tooltip Mobile · 종목 tooltip: 모바일 viewport 이탈 방지 */
