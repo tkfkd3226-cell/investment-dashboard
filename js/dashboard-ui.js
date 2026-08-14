@@ -393,7 +393,6 @@ function ensureKrxActionModal(){
   modal.className='krx-action-modal';
   modal.innerHTML=`<div class="krx-action-card" role="dialog" aria-modal="true" aria-labelledby="krxActionTitle">
     <button type="button" class="krx-action-close" data-dashboard-action="close-krx-modal" aria-label="닫기">×</button>
-    <div class="krx-action-icon">📈</div>
     <h3 id="krxActionTitle">KRX 현재가 반영</h3>
     <p>선택한 기준일만 다시 갱신하거나, 날짜를 비워 누락 거래일을 자동 보충할 수 있습니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
     <label class="krx-action-label" for="krxActionPin">저장/실행 PIN</label>

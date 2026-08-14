@@ -2549,17 +2549,6 @@ body.contrib-modal-open{
   color:#334155;
   font-size:22px;
 }
-.krx-action-icon{
-  width:48px;
-  height:48px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:min(16px,var(--corner-inner-cap));
-  background:linear-gradient(135deg,#e0f2fe,#dcfce7);
-  font-size:24px;
-  margin-bottom:12px;
-}
 :is(.krx-action-card,.pension-action-pin-card) h3{
   margin:0 0 6px;
   font-size:20px;
@@ -2765,17 +2754,6 @@ body.contrib-modal-open{
   cursor:pointer;
 }
 
-.pension-action-pin-icon{
-  width:48px;
-  height:48px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:min(16px,var(--corner-inner-cap));
-  background:linear-gradient(135deg,#e0f2fe,#dcfce7);
-  font-size:23px;
-  margin-bottom:12px;
-}
 
 .pension-action-pin-card label{
   display:block;
@@ -4315,6 +4293,13 @@ body.chart-expanded-open .dash-tooltip{
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.date-picker-center,.date-picker-action){display:contents}
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) .month-select{grid-column:1}
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) .day-select{grid-column:2}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-theme-action,.topbar-corner-action,.date-tool-menu-btn){
+    background:#03060b;
+    border-color:rgba(255,255,255,.30);
+    color:#fff;
+    box-shadow:0 5px 14px rgba(0,0,0,.14);
+  }
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-theme-action,.topbar-corner-action,.date-tool-menu-btn):hover{background:#050914}
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-theme-action,.topbar-corner-action){
     position:relative;
     top:auto;
