@@ -1,1 +1,13 @@
-
+/* calc.html · 거래 리포트 공통 기반 */
+:root{
+  --ink:#172033;
+  --navy:#1d3557;
+  --positive:#EF3341;
+  --negative:#3182F6;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  color:var(--ink);
+  font-family:Inter,"Pretendard Variable",Pretendard,"Noto Sans KR",system-ui,-apple-system,Segoe UI,sans-serif;
+}
