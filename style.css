@@ -3145,28 +3145,11 @@ button:active,
   .dark .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{background:#30363d}
 }
 
-/* iOS Safari input zoom fix: prevent automatic zoom when focusing fields */
+/* iOS Safari input zoom fix: keep 16px only on PIN inputs that use it in the final mobile UI. */
 @media(max-width:760px){
-  input,
-  select,
-  textarea{
-    font-size:16px !important;
-  }
-
-  .date-select,
-  .contrib-field input,
-  .contrib-modal input,
   .krx-action-card input,
   .pension-action-pin-card input{
-    font-size:16px !important;
-  }
-
-  .contrib-modal .contrib-field input:not([type="date"]),
-  .contrib-modal .contrib-field select{
-    font-family:inherit !important;
-    font-size:13px !important;
-    font-weight:800 !important;
-    line-height:normal !important;
+    font-size:16px;
   }
 }
 
