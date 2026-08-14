@@ -3374,8 +3374,7 @@ button:active,
    - Desktop: right-edge hover/focus table of contents only
    - Mobile: keep the existing hamburger menu with links and management actions */
 @media(min-width:761px){
-  /* Desktop/tablet use the right-edge TOC; hide the duplicate top-bar TOC. */
-  .date-action-menu-wrap{display:none !important}
+  /* Desktop/tablet use the right-edge TOC. */
 
   .desktop-edge-toc{
     position:fixed;
@@ -4412,14 +4411,6 @@ body.chart-expanded-open .dash-tooltip{
   }
 }
 
-@media(max-width:760px){
-  /* Closed state: remove the full-width top bar and leave only a floating hamburger button. */
-
-  body.mobile-topbar-fixed-visible #app{
-    padding-top:var(--mobile-fixed-topbar-height,50px);
-  }
-}
-
 /* Top date/control bar: consolidated responsive layout.
    Desktop > tablet > phone state rules live here; popup menu panels remain independent. */
 .switcher{
@@ -4525,7 +4516,7 @@ body.chart-expanded-open .dash-tooltip{
 .date-tool-icon{display:inline;font-size:14px;line-height:1}
 .date-tool-menu-label{display:inline}
 .date-action-menu-wrap{
-  display:block;
+  display:none;
   position:relative;
   flex:0 0 auto;
   z-index:5200;
@@ -4549,8 +4540,8 @@ body.chart-expanded-open .dash-tooltip{
 
 /* Tablet: shorter labels and smaller controls, while keeping a single row. */
 @media (min-width:761px) and (max-width:1100px){
-  .topbar-label-full{display:none !important}
-  .topbar-label-short{display:inline !important}
+  .topbar-label-full{display:none}
+  .topbar-label-short{display:inline}
   .switcher{padding-left:8px;padding-right:8px}
   .date-picker{gap:5px}
   .date-picker-center,
@@ -4564,8 +4555,8 @@ body.chart-expanded-open .dash-tooltip{
 /* Compact tablet / iPad Mini: market and pension actions move into More. */
 @media (min-width:761px) and (max-width:900px){
   .topbar-market-action,
-  .topbar-pension-action{display:none !important}
-  .compact-action-menu-wrap{display:block !important}
+  .topbar-pension-action{display:none}
+  .compact-action-menu-wrap{display:block}
   .date-picker-center,
   .date-picker-action{gap:4px}
   .month-select{min-width:128px;flex-basis:128px}
@@ -4575,64 +4566,67 @@ body.chart-expanded-open .dash-tooltip{
 
 /* Phone: closed = floating hamburger; open/pinned = month + day + hamburger. */
 @media(max-width:760px){
+  body.mobile-topbar-fixed-visible #app{
+    padding-top:var(--mobile-fixed-topbar-height,50px);
+  }
   .switcher{
-    position:fixed !important;
-    top:0 !important;
-    left:0 !important;
-    right:0 !important;
-    z-index:8000 !important;
-    min-height:0 !important;
-    height:0 !important;
-    padding:0 !important;
-    background:transparent !important;
-    border-bottom:0 !important;
-    box-shadow:none !important;
-    overflow:visible !important;
-    pointer-events:none !important;
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    z-index:8000;
+    min-height:0;
+    height:0;
+    padding:0;
+    background:transparent;
+    border-bottom:0;
+    box-shadow:none;
+    overflow:visible;
+    pointer-events:none;
     -webkit-backface-visibility:hidden;
     backface-visibility:hidden;
     transform:translate3d(0,0,0);
     -webkit-transform:translate3d(0,0,0);
   }
   .date-picker{
-    display:block !important;
-    width:auto !important;
-    height:0 !important;
-    min-height:0 !important;
-    overflow:visible !important;
+    display:block;
+    width:auto;
+    height:0;
+    min-height:0;
+    overflow:visible;
   }
-  .date-picker-center{display:none !important}
+  .date-picker-center{display:none}
   .date-picker-action{
-    display:block !important;
-    width:0 !important;
-    height:0 !important;
-    margin:0 !important;
+    display:block;
+    width:0;
+    height:0;
+    margin:0;
   }
-  .date-picker-action > :not(.date-action-menu-wrap):not(.mobile-theme-btn){display:none !important}
-  .date-tool-btn-desktop{display:none !important}
-  .compact-action-menu-wrap{display:none !important}
+  .date-picker-action > :not(.date-action-menu-wrap):not(.mobile-theme-btn){display:none}
+  .date-tool-btn-desktop{display:none}
+  .compact-action-menu-wrap{display:none}
   .month-select,
   .day-select{
-    min-width:0 !important;
-    width:100% !important;
-    max-width:100% !important;
-    flex:initial !important;
+    min-width:0;
+    width:100%;
+    max-width:100%;
+    flex:initial;
   }
   .date-select{
-    min-height:30px !important;
-    height:30px !important;
-    border-radius:9px !important;
-    padding:3px 17px 3px 7px !important;
-    font-size:11.5px !important;
+    min-height:30px;
+    height:30px;
+    border-radius:9px;
+    padding:3px 17px 3px 7px;
+    font-size:11.5px;
   }
   .date-action-menu-wrap{
-    display:block !important;
-    position:fixed !important;
-    top:max(6px, env(safe-area-inset-top)) !important;
-    right:7px !important;
-    z-index:2400 !important;
-    margin:0 !important;
-    pointer-events:auto !important;
+    display:block;
+    position:fixed;
+    top:max(6px, env(safe-area-inset-top));
+    right:7px;
+    z-index:2400;
+    margin:0;
+    pointer-events:auto;
   }
   .mobile-topbar-icon-btn{
     position:relative;
@@ -4659,66 +4653,54 @@ body.chart-expanded-open .dash-tooltip{
   .date-tool-icon{font-size:15px}
   .date-tool-menu-label{display:none}
 
-  .switcher.mobile-menu-open,
-  .switcher.mobile-date-pinned{
-    z-index:2450 !important;
-    min-height:40px !important;
-    height:auto !important;
-    padding:5px 7px !important;
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned){
+    z-index:2450;
+    min-height:40px;
+    height:auto;
+    padding:5px 7px;
     background:
       radial-gradient(circle at 96% 8%, rgba(59,130,246,.13), transparent 28%),
-      linear-gradient(135deg,#080c14 0%, #111827 48%, #18304a 100%) !important;
-    border-bottom:1px solid rgba(255,255,255,.11) !important;
-    box-shadow:0 12px 30px rgba(0,0,0,.30) !important;
-    pointer-events:auto !important;
+      linear-gradient(135deg,#080c14 0%, #111827 48%, #18304a 100%);
+    border-bottom:1px solid rgba(255,255,255,.11);
+    box-shadow:0 12px 30px rgba(0,0,0,.30);
+    pointer-events:auto;
   }
-  .switcher.mobile-menu-open .date-picker,
-  .switcher.mobile-date-pinned .date-picker{
-    display:grid !important;
-    width:100% !important;
-    height:auto !important;
-    min-height:0 !important;
-    grid-template-columns:minmax(118px,1.2fr) minmax(82px,.72fr) 30px 30px !important;
-    align-items:center !important;
-    gap:4px !important;
-    overflow:visible !important;
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .date-picker{
+    display:grid;
+    width:100%;
+    height:auto;
+    min-height:0;
+    grid-template-columns:minmax(118px,1.2fr) minmax(82px,.72fr) 30px 30px;
+    align-items:center;
+    gap:4px;
+    overflow:visible;
   }
-  .switcher.mobile-menu-open .date-picker-center,
-  .switcher.mobile-menu-open .date-picker-action,
-  .switcher.mobile-date-pinned .date-picker-center,
-  .switcher.mobile-date-pinned .date-picker-action{display:contents !important}
-  .switcher.mobile-menu-open .month-select,
-  .switcher.mobile-menu-open .day-select,
-  .switcher.mobile-date-pinned .month-select,
-  .switcher.mobile-date-pinned .day-select{
-    display:block !important;
-    min-width:0 !important;
-    width:100% !important;
-    max-width:100% !important;
-    flex:initial !important;
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.date-picker-center,.date-picker-action){display:contents}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.month-select,.day-select){
+    display:block;
+    min-width:0;
+    width:100%;
+    max-width:100%;
+    flex:initial;
   }
-  .switcher.mobile-menu-open .mobile-theme-btn,
-  .switcher.mobile-date-pinned .mobile-theme-btn,
-  .switcher.mobile-menu-open .date-action-menu-wrap,
-  .switcher.mobile-date-pinned .date-action-menu-wrap{
-    position:relative !important;
-    top:auto !important;
-    right:auto !important;
-    z-index:auto !important;
-    margin:0 !important;
-    justify-self:end !important;
-    pointer-events:auto !important;
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.mobile-theme-btn,.date-action-menu-wrap){
+    position:relative;
+    top:auto;
+    right:auto;
+    z-index:auto;
+    margin:0;
+    justify-self:end;
+    pointer-events:auto;
   }
-  .switcher.mobile-menu-open .date-select,
-  .switcher.mobile-date-pinned .date-select{pointer-events:auto !important}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .date-select{pointer-events:auto}
   .switcher.mobile-topbar-hit-refresh{
-    transform:translate3d(0,0,.001px) !important;
-    -webkit-transform:translate3d(0,0,.001px) !important;
+    transform:translate3d(0,0,.001px);
+    -webkit-transform:translate3d(0,0,.001px);
   }
 }
 
 /* Mobile date pin control is intentionally hidden on desktop/tablet menu. */
-@media(min-width:761px){.mobile-date-pin-control{display:none !important}}
+@media(min-width:761px){.mobile-date-pin-control{display:none}}
 
 /* 2026-08-12 mobile chart header/control refinement */
 .chart-title-info{
