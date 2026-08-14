@@ -2023,7 +2023,7 @@ body.contrib-modal-open{
   scroll-margin-top:76px;
 }
 
-/* 퇴직연금 비중 막대 색상은 script.js의 pensionSeriesColor()를 단일 원천으로 사용. */
+/* 퇴직연금 비중 막대 색상은 dashboard-core.js의 pensionSeriesColor()를 단일 원천으로 사용. */
 
 .pension-no-prev-note{
   display:flex;
