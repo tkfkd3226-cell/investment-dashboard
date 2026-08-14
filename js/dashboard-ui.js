@@ -70,6 +70,9 @@ function navIconSvg(name){
     package:`<svg ${attrs}><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"></path><path d="M12 12 4.5 7.8"></path><path d="M12 12l7.5-4.2"></path><path d="M12 12v9"></path></svg>`,
     trending:`<svg ${attrs}><path d="m3 17 6-6 4 4 8-8"></path><path d="M14 7h7v7"></path></svg>`,
     chart:`<svg ${attrs}><path d="M3 3v18h18"></path><path d="M7 15v2"></path><path d="M12 11v6"></path><path d="M17 7v10"></path></svg>`,
+    period:`<svg ${attrs}><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 10h18"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"></path></svg>`,
+    lineChart:`<svg ${attrs}><path d="M3 3v18h18"></path><path d="m7 16 4-5 3 3 5-7"></path></svg>`,
+    barChart:`<svg ${attrs}><path d="M4 20V11h4v9M10 20V5h4v15M16 20v-7h4v7"></path></svg>`,
     pie:`<svg ${attrs}><path d="M21 12a9 9 0 1 1-9-9v9h9Z"></path><path d="M12 3a9 9 0 0 1 9 9"></path></svg>`,
     bank:`<svg ${attrs}><path d="m3 9 9-6 9 6"></path><path d="M4 10h16"></path><path d="M6 10v8"></path><path d="M10 10v8"></path><path d="M14 10v8"></path><path d="M18 10v8"></path><path d="M3 18h18"></path><path d="M2 21h20"></path></svg>`,
     list:`<svg ${attrs}><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3 6h.01"></path><path d="M3 12h.01"></path><path d="M3 18h.01"></path></svg>`,
@@ -120,8 +123,8 @@ function renderUnifiedMobileMenuContent(){
         {type:'section',id:'securities-section',icon:'bank',title:'증권계좌 현황'},
         {type:'section',id:'accounts-summary',icon:'list',title:'계좌별 성과 요약'},
         {type:'section',id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
-        {type:'section',id:'chart-cum',icon:'chart',title:'누적손익 및 누적수익률'},
-        {type:'section',id:'chart-symbol',icon:'chart',title:'종목별 누적손익'},
+        {type:'section',id:'chart-cum',icon:'lineChart',title:'누적손익 및 누적수익률'},
+        {type:'section',id:'chart-symbol',icon:'barChart',title:'종목별 누적손익'},
         {type:'section',id:'chart-alloc',icon:'pie',title:'평가액 비중'},
         {type:'section',id:'ledger-check',icon:'search',title:'장부결과 VS 실제보유'},
         ...(isLedgerCheckDate(dataState.activeDate)?[{type:'section',id:'capital-source-check',icon:'receipt',title:'투자원금 원천 및 검산'}]:[])
@@ -133,8 +136,8 @@ function renderUnifiedMobileMenuContent(){
         {type:'section',id:'pension-section',icon:'briefcase',title:'퇴직연금 현황'},
         {type:'section',id:'pension-products',icon:'package',title:'연금상품별 현황'},
         {type:'section',id:'pension-change',icon:'trending',title:'전일 대비 변동'},
-        {type:'section',id:'pension-chart-cum',icon:'chart',title:'운용수익 및 누적수익률'},
-        {type:'section',id:'pension-chart-symbol',icon:'chart',title:'연금상품별 운용수익'},
+        {type:'section',id:'pension-chart-cum',icon:'lineChart',title:'운용수익 및 누적수익률'},
+        {type:'section',id:'pension-chart-symbol',icon:'barChart',title:'연금상품별 운용수익'},
         {type:'section',id:'pension-chart-alloc',icon:'pie',title:'평가액 비중'}
       ]
     }
@@ -161,8 +164,8 @@ function renderDesktopTocContent(){
         {id:'securities-section',icon:'bank',title:'증권계좌 현황'},
         {id:'accounts-summary',icon:'list',title:'계좌별 성과 요약'},
         {id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
-        {id:'chart-cum',icon:'chart',title:'누적손익 및 누적수익률'},
-        {id:'chart-symbol',icon:'chart',title:'종목별 누적손익'},
+        {id:'chart-cum',icon:'lineChart',title:'누적손익 및 누적수익률'},
+        {id:'chart-symbol',icon:'barChart',title:'종목별 누적손익'},
         {id:'chart-alloc',icon:'pie',title:'평가액 비중'},
         {id:'ledger-check',icon:'search',title:'장부결과 VS 실제보유'},
         ...(isLedgerCheckDate(dataState.activeDate)?[{id:'capital-source-check',icon:'receipt',title:'투자원금 원천 및 검산'}]:[])
@@ -174,8 +177,8 @@ function renderDesktopTocContent(){
         {id:'pension-section',icon:'briefcase',title:'퇴직연금 현황'},
         {id:'pension-products',icon:'package',title:'연금상품별 현황'},
         {id:'pension-change',icon:'trending',title:'전일 대비 변동'},
-        {id:'pension-chart-cum',icon:'chart',title:'운용수익 및 누적수익률'},
-        {id:'pension-chart-symbol',icon:'chart',title:'연금상품별 운용수익'},
+        {id:'pension-chart-cum',icon:'lineChart',title:'운용수익 및 누적수익률'},
+        {id:'pension-chart-symbol',icon:'barChart',title:'연금상품별 운용수익'},
         {id:'pension-chart-alloc',icon:'pie',title:'평가액 비중'}
       ]
     }
