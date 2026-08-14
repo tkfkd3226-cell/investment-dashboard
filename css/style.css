@@ -1630,6 +1630,7 @@ button.legend-item.chart-series-all.active{
   justify-content:center;
 }
 .contrib-modal{
+  --contrib-control-font-size:13px;
   z-index:12000;
   align-items:center;
   padding:18px;
@@ -1757,9 +1758,10 @@ body.contrib-modal-open{
   width:100%;
   max-width:100%;
   min-width:0;
+  height:38px;
   box-sizing:border-box;
   font-family:inherit;
-  font-size:13px;
+  font-size:var(--contrib-control-font-size);
   font-weight:800;
   line-height:normal;
 }
@@ -1772,18 +1774,17 @@ body.contrib-modal-open{
   -webkit-appearance:none;
   appearance:none;
   font-family:inherit !important;
-  font-size:13px !important;
+  font-size:var(--contrib-control-font-size) !important;
   font-weight:800 !important;
   line-height:normal !important;
   text-align:left !important;
   color:var(--text) !important;
   padding:9px 10px !important;
-  height:38px;
 }
 .contrib-modal input[type="date"]::-webkit-date-and-time-value{
   text-align:left !important;
   font-family:inherit !important;
-  font-size:13px !important;
+  font-size:var(--contrib-control-font-size) !important;
   font-weight:800 !important;
   line-height:normal !important;
   color:var(--text) !important;
@@ -1793,6 +1794,7 @@ body.contrib-modal-open{
 }
 /* 퇴직연금 금액조정 모달: 모바일은 1열 form과 좁은 카드 폭을 사용한다. */
 @media(max-width:760px){
+  .contrib-modal{--contrib-control-font-size:16px}
   .contrib-modal-card{
     width:min(100%, calc(100vw - 36px));
     box-sizing:border-box;
