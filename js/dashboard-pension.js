@@ -116,7 +116,7 @@ function renderPensionContributionModal(x){
 </div>
 <div id="pensionContribDeleteCard" class="contrib-list modal-card-box"${pensionCashSnapshotItems().length?'':' hidden'}>
   <h3>삭제</h3>
-  <p id="pensionContribDeleteHelp" class="small">잘못 넣은 현금성자산 기록을 선택 후 삭제합니다.</p>
+  <p id="pensionContribDeleteHelp" class="small">잘못 등록한 현금성자산 기록 선택 후 삭제</p>
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList('cashSnapshot')}</div>
   <div class="contrib-actions"><button type="button" id="pensionContribDeleteButton" class="contrib-btn danger" data-pension-action="delete-selected">선택 항목 삭제</button></div>
   <div id="pensionContribDeleteStatus" class="contrib-status"></div>
@@ -391,10 +391,10 @@ function syncPensionContributionTargetUi(){
   syncPensionContributionDeleteCard(target);
   if(deleteHelp){
     deleteHelp.textContent=target==='cashSnapshot'
-      ?'잘못 넣은 현금성자산 기록을 선택 후 삭제합니다.'
+      ?'잘못 등록한 현금성자산 기록 선택 후 삭제'
       :(target==='contribution'
-        ?'잘못 넣은 기업적립금을 선택 후 삭제합니다.'
-        :'잘못 등록한 추가 매수 거래를 선택 후 삭제합니다.');
+        ?'잘못 등록한 기업적릭금 선택 후 삭제'
+        :'잘못 등록한 추가 매수 거래 선택 후 삭제');
   }
   if(deleteStatus){
     deleteStatus.textContent='';
