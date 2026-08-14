@@ -1,5 +1,8 @@
 
 (() => {
+  // =========================================================
+  // Constants / Presets · 상수 / 프리셋
+  // =========================================================
   const presets = {
     'buy-2026-07-29': {
       caseType:'holding', noPrior:false, existingShares:38, existingCost:7005530, priorSettlementValue:0, priorSellPrice:0,
@@ -20,6 +23,9 @@
   };
   const defaultPresetId='current-only';
 
+  // =========================================================
+  // State / Common Helpers · 상태 / 공통 함수
+  // =========================================================
   // Calculation State · 계산 상태
   let caseType='settled', noPriorMode=true, mode='current', autoBreakEvenTarget=false;
 
@@ -44,6 +50,9 @@
   const setPct=(id,n,digits=2)=>{const el=$(id);el.dataset.exactValue=String(n);el.value=Number(n).toFixed(digits).replace(/0+$/,'').replace(/\.$/,'');};
   const storage={get:k=>{try{return localStorage.getItem(k);}catch(e){return null;}},set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}},remove:k=>{try{localStorage.removeItem(k);}catch(e){}}};
 
+  // =========================================================
+  // Case UI Configuration · 거래유형 UI 설정
+  // =========================================================
   const CASE_UI_COPY={
     settled:{
       text:{
@@ -78,6 +87,9 @@
   function setTextMap(values){Object.entries(values).forEach(([id,text])=>{$(id).textContent=text;});}
   function getCaseContext(){const settled=caseType==='settled';return {settled,noPrior:settled&&noPriorMode};}
 
+  // =========================================================
+  // Calculation Helpers · 계산 보조 함수
+  // =========================================================
   function priorPLFrom(v){return (v.priorSettlementValue||0)-(v.existingCost||0);}
   function integratedRecoveryOrder(v){
     const qty=v.addShares||0, principal=(v.addPrice||0)*qty;
@@ -86,6 +98,9 @@
     return ceil5(Math.max(principal-priorPL,0)/qty);
   }
 
+  // =========================================================
+  // Case / Preset UI · 거래유형 / 프리셋 UI
+  // =========================================================
   function setPresetActive(id){document.querySelectorAll('.preset-btn').forEach(b=>b.classList.toggle('active',b.dataset.preset===id));}
   function setCurrentPurchasePresetActive(id){document.querySelectorAll('.current-purchase-btn').forEach(b=>{const active=b.dataset.currentPurchasePreset===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});}
   function getActualSellPrice(){
@@ -101,7 +116,6 @@
     $('actualSellPriceValue').textContent=display;
     $('applyActualSellPrice').setAttribute('aria-label',`실제 매도 단가 ${display}를 목표 매도단가에 반영`);
   }
-  function markCustom(){if(applying)return;}
   function disableAutoBreakEven(){if(!applying&&autoBreakEvenTarget){autoBreakEvenTarget=false;setMode(mode,false);}}
 
   function moveCurrentPrice(settled){
@@ -207,6 +221,9 @@
     setMode(mode,false);
   }
 
+  // =========================================================
+  // Input / Validation · 입력 / 검증
+  // =========================================================
   function getInputs(){
     const {settled}=getCaseContext();
     const existingShares=settled?parseNum($('priorSoldSharesInput').value):parseNum($('existingShares').value);
@@ -261,6 +278,9 @@
     b.innerHTML=`입력값을 확인해 주세요.<ul>${validation.errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
   }
 
+  // =========================================================
+  // Calculation · 계산
+  // =========================================================
   function compute(i,options){
     const settled=options.caseType==='settled';
     const noPrior=!!options.noPrior;
@@ -327,6 +347,9 @@
     return {i:input,inputUpdates,settled,noPrior,priorAvg,priorValue,priorPL,recoveryAmount,integratedBasis,addedPrincipal,finalShares,finalCost,finalAvg,r:0,buyFee:0,allInCost:finalCost,currentValue,currentPositionPL,currentPositionPLRate,integratedCurrentPL,positionBE,positionBEOrder,integratedBE,integratedBEOrder,targetPrice,targetPositionNet,targetIntegratedPL,addZeroRaw,sFull:strategy('full'),sAdd:strategy('addOnly'),sPrincipal:strategy('principal')};
   }
 
+  // =========================================================
+  // Rendering · 화면 출력
+  // =========================================================
   function renderCalculationInputs(c){
     if(c.inputUpdates.overnightPct!==undefined)setPct('overnightPct',c.inputUpdates.overnightPct);
     if(c.inputUpdates.risePct!==undefined)setPct('risePct',c.inputUpdates.risePct);
@@ -430,6 +453,9 @@
     }
   }
 
+  // =========================================================
+  // Calculation Flow / Modes · 계산 흐름 / 모드
+  // =========================================================
   function getCalculationOptions(){return {caseType,noPrior:noPriorMode,mode,autoBreakEvenTarget};}
 
   function recalc(){
@@ -468,6 +494,9 @@
     if(doRecalc)recalc();
   }
 
+  // =========================================================
+  // Presets / State Apply · 프리셋 / 상태 적용
+  // =========================================================
   function applyValues(v){
     caseType=v.caseType||'holding';noPriorMode=!!v.noPrior;mode=['current','rise','target'].includes(v.mode)?v.mode:'current';autoBreakEvenTarget=!!v.autoBreakEvenTarget;currentPurchasePresetId=noPriorMode&&currentPurchasePresets[v.currentPurchasePresetId]?v.currentPurchasePresetId:null;setCurrentPurchasePresetActive(currentPurchasePresetId);
     $('existingShares').value=String(v.existingShares??0);$('existingCost').value=nf0.format(v.existingCost??0);$('priorSettlementValue').value=String(v.priorSettlementValue??0);$('priorSellPrice').value=String(v.priorSellPrice??0);$('currentPrice').value=nf0.format(v.currentPrice??0);$('oldOverdraft').value=nf0.format(v.oldRecovery??0);$('addPrice').value=nf0.format(v.addPrice??0);$('addShares').value=String(v.addShares??0);
@@ -492,14 +521,16 @@
 
   function applyPreset(id){if(!presets[id])return;applying=true;activePresetId=id;setPresetActive(id);applyValues({...presets[id]});document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab==='s3'));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id==='s3'));applying=false;}
 
-  function markCustomAndRecalc(){markCustom();recalc();}
+  // =========================================================
+  // Events · 이벤트
+  // =========================================================
   function handleMoneyFocus(e){const inp=e.currentTarget,n=parseNum(inp.value);if(Number.isFinite(n))inp.value=String(n);}
   function handleMoneyBlur(e){const inp=e.currentTarget,n=parseNum(inp.value);if(Number.isInteger(n))inp.value=nf0.format(n);recalc();}
-  function handleMoneyInput(e){if(e.currentTarget.id==='targetPrice')disableAutoBreakEven();markCustomAndRecalc();}
-  function handleNumberInput(e){const inp=e.currentTarget;if(inp.id==='overnightPct'||inp.id==='risePct'){delete inp.dataset.exactValue;disableAutoBreakEven();}markCustomAndRecalc();}
-  function handleShareStep(e){const b=e.currentTarget,inp=$(b.dataset.target),cur=parseNum(inp.value);if(!Number.isFinite(cur))return;inp.value=String(Math.max(0,Math.trunc(cur)+parseNum(b.dataset.delta)));markCustomAndRecalc();}
-  function handlePctStep(e){const b=e.currentTarget,inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;delete inp.dataset.exactValue;disableAutoBreakEven();inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);markCustomAndRecalc();}
-  function handleModeChange(next){disableAutoBreakEven();markCustom();setMode(next);}
+  function handleMoneyInput(e){if(e.currentTarget.id==='targetPrice')disableAutoBreakEven();recalc();}
+  function handleNumberInput(e){const inp=e.currentTarget;if(inp.id==='overnightPct'||inp.id==='risePct'){delete inp.dataset.exactValue;disableAutoBreakEven();}recalc();}
+  function handleShareStep(e){const b=e.currentTarget,inp=$(b.dataset.target),cur=parseNum(inp.value);if(!Number.isFinite(cur))return;inp.value=String(Math.max(0,Math.trunc(cur)+parseNum(b.dataset.delta)));recalc();}
+  function handlePctStep(e){const b=e.currentTarget,inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;delete inp.dataset.exactValue;disableAutoBreakEven();inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);recalc();}
+  function handleModeChange(next){disableAutoBreakEven();setMode(next);}
 
   document.querySelectorAll('.money-input').forEach(inp=>{inp.addEventListener('focus',handleMoneyFocus);inp.addEventListener('blur',handleMoneyBlur);inp.addEventListener('input',handleMoneyInput);});
   document.querySelectorAll('input[type=number]').forEach(inp=>inp.addEventListener('input',handleNumberInput));
@@ -532,9 +563,12 @@
     $('targetPrice').value=nf0.format(actualSellPrice);
     recalc();
   });
-  $('priorSellDateInput').addEventListener('input',markCustomAndRecalc);
+  $('priorSellDateInput').addEventListener('input',recalc);
   $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV17');storage.remove('investmentLossRecoveryCalcV16');storage.remove('investmentLossRecoveryCalcV15');storage.remove('investmentLossRecoveryCalcV12');applyPreset(defaultPresetId);});
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('hidden'))return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id===b.dataset.tab));}));
+  // =========================================================
+  // Tooltip / UI · 툴팁 / UI
+  // =========================================================
   const positionHelpTooltip=wrap=>{
     if(!wrap)return;
     const btn=wrap.querySelector('.help-icon'),tip=wrap.querySelector('.custom-tooltip');
@@ -580,6 +614,9 @@
     });
   }
 
+  // =========================================================
+  // Initialization · 초기화
+  // =========================================================
   initHelpTooltips();
   const saved=storage.get('investmentLossRecoveryCalcV17');
   if(saved){try{const v=JSON.parse(saved);applying=true;activePresetId=v.presetId&&presets[v.presetId]?v.presetId:(v.noPrior?'current-only':(v.caseType==='holding'?'buy-2026-07-29':'buy-2026-07-30'));setPresetActive(activePresetId);applyValues(v);applying=false;}catch(e){applyPreset(defaultPresetId);}}else applyPreset(defaultPresetId);
