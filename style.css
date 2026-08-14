@@ -4719,23 +4719,6 @@ body.chart-expanded-open .dash-tooltip{
   }
 }
 
-/* Extra-small phone: preserve the existing compact hamburger/select typography. */
-@media(max-width:374px){
-  .mobile-theme-btn{right:40px !important}
-  .mobile-topbar-icon-btn{
-    width:29px !important;
-    min-width:29px !important;
-    max-width:29px !important;
-    height:29px !important;
-    flex-basis:29px !important;
-  }
-  .date-select{
-    font-size:11px !important;
-    padding-left:6px !important;
-    padding-right:15px !important;
-  }
-}
-
 /* Mobile date pin control is intentionally hidden on desktop/tablet menu. */
 @media(min-width:761px){.mobile-date-pin-control{display:none !important}}
 
