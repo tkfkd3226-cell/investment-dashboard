@@ -4169,6 +4169,7 @@ body.chart-expanded-open .dash-tooltip{
 .date-tool-action-icon{margin-right:3px;font-size:12px}
 .topbar-theme-action{width:32px;padding:0}
 .topbar-theme-action .date-tool-action-icon{margin-right:0;font-size:14px}
+.theme-toggle-svg{display:none}
 .date-action-menu-wrap,
 .topbar-label-short{display:none}
 
@@ -4236,6 +4237,9 @@ body.chart-expanded-open .dash-tooltip{
     right:41px;
     z-index:2400;
   }
+  .topbar-theme-action .theme-toggle-emoji{display:none}
+  .topbar-theme-action .theme-toggle-svg{display:block;width:18px;height:18px;color:#fff}
+  .topbar-theme-action .theme-toggle-svg svg{display:block;width:100%;height:100%}
   .date-action-menu-wrap{
     display:block;
     position:fixed;
