@@ -4273,6 +4273,11 @@ body.chart-expanded-open .dash-tooltip{
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
   }
+  html:not(.dark) :is(.topbar-theme-action,.topbar-corner-action,.date-tool-menu-btn){
+    background:rgba(255,255,255,.70);
+    border-color:rgba(0,0,0,.70);
+    color:#374151;
+  }
   .topbar-theme-action,
   .topbar-corner-action{
     position:fixed;
