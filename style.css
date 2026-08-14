@@ -3108,18 +3108,16 @@ button:active,
 /* Mobile hamburger menu: one canonical surface/item system. */
 @media(max-width:760px){
   .date-action-menu.mobile-combined-menu{
-    position:fixed !important;
-    top:43px !important;
-    right:6px !important;
-    left:auto !important;
-    z-index:2600 !important;
-    width:min(258px,calc(100vw - 12px)) !important;
-    max-height:calc(100vh - 54px) !important;
-    overflow:auto !important;
-    padding:6px !important;
-    border-radius:10px !important;
-    box-shadow:0 16px 40px rgba(27,31,36,.18) !important;
-    backdrop-filter:none !important;
+    position:fixed;
+    top:43px;
+    right:6px;
+    z-index:2600;
+    width:min(258px,calc(100vw - 12px));
+    max-height:calc(100vh - 54px);
+    overflow:auto;
+    padding:6px;
+    border-radius:10px;
+    box-shadow:0 16px 40px rgba(27,31,36,.18);
   }
   .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0;padding:0 1px 2px;background:transparent}
   .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:2px;min-width:0}
