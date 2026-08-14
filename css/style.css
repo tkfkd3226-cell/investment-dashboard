@@ -51,7 +51,7 @@
   --dashboard-legend-font-size:12px;
   --dashboard-control-group-gap:7px;
   --modal-action-gap:14px;
-  --section-title-font-size:20px;
+  --section-title-font-size:18px;
   --section-chip-height:28px;
   --tooltip-bg:rgba(15,23,42,.96);
   --tooltip-color:#fff;
@@ -129,7 +129,7 @@ html.dark{
     --dashboard-expand-icon-size:13px;
     --dashboard-legend-font-size:10.5px;
     --dashboard-control-group-gap:5px;
-    --section-title-font-size:19px;
+    --section-title-font-size:17px;
   }
 }
 
@@ -295,7 +295,7 @@ section{
 .section-title h2{
   display:flex;
   align-items:center;
-  gap:9px;
+  gap:7px;
   margin:0;
   font-size:var(--section-title-font-size);
   letter-spacing:-.04em;
@@ -2449,12 +2449,24 @@ body.contrib-modal-open{
   font-size:var(--section-icon-font-size);
   line-height:1;
 }
-
 .section-title-icon.chart-icon{
   --section-icon-size:26px;
   --section-icon-radius:10px;
   --section-icon-font-size:15px;
 }
+/* Shared SVG Labels · 메인 라벨: 목차 SVG를 배경 없이 동일 크기로 재사용 */
+.section-title-icon[data-section-title-icon]{
+  width:18px;
+  height:18px;
+  flex:0 0 18px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  color:currentColor;
+  font-size:0;
+}
+.section-title-icon[data-section-title-icon] svg{display:block;width:18px;height:18px}
 
 .chart-card h3{
   display:flex;
@@ -4071,10 +4083,6 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
     font-size:18px;
     gap:9px;
   }
-  .chart-expanded-overlay.desktop-expanded .chart-expanded-title .section-title-icon.chart-icon{
-    --section-icon-size:30px;
-    --section-icon-font-size:17px;
-  }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-title-sub{
     font-size:12px;
   }
@@ -4113,9 +4121,7 @@ body.chart-expanded-open .dash-tooltip{
   width:100%;
   box-sizing:border-box;
   padding:6px 12px;
-  background:
-    radial-gradient(circle at 96% 8%, rgba(59,130,246,.13), transparent 28%),
-    linear-gradient(135deg,#080c14 0%, #111827 48%, #18304a 100%);
+  background:#080c14;
   border-bottom:1px solid rgba(255,255,255,.11);
   box-shadow:0 12px 30px rgba(0,0,0,.30);
 }
@@ -4165,7 +4171,7 @@ body.chart-expanded-open .dash-tooltip{
   padding:0 10px;
   border:1px solid rgba(255,255,255,.30);
   border-radius:min(11px,var(--corner-control-cap));
-  background:rgba(255,255,255,.14);
+  background:#03060b;
   color:#fff;
   display:inline-flex;
   align-items:center;
@@ -4177,14 +4183,22 @@ body.chart-expanded-open .dash-tooltip{
   cursor:pointer;
   box-shadow:0 5px 14px rgba(0,0,0,.14);
 }
-.date-tool-btn:hover{background:rgba(255,255,255,.22)}
-.date-tool-action-icon{margin-right:3px;font-size:12px}
+.date-tool-btn:hover{background:#050914}
+.date-tool-action-icon{
+  width:16px;
+  height:16px;
+  flex:0 0 16px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-right:3px;
+  font-size:0;
+}
+.date-tool-action-icon svg{display:block;width:16px;height:16px}
 .topbar-theme-action,
 .topbar-corner-action{width:32px;padding:0}
-:is(.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{margin-right:0;font-size:14px}
-.theme-toggle-svg{display:none}
-.corner-theme-toggle-svg{display:block;width:18px;height:18px;color:currentColor}
-.corner-theme-toggle-svg svg{display:block;width:100%;height:100%}
+:is(.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{width:18px;height:18px;flex-basis:18px;margin-right:0}
+:is(.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon svg{width:18px;height:18px}
 .date-action-menu-wrap,
 .topbar-label-short{display:none}
 
@@ -4195,7 +4209,7 @@ body.chart-expanded-open .dash-tooltip{
   .switcher{padding-left:8px;padding-right:8px}
   .date-picker-action{gap:5px}
   .date-tool-btn{padding-left:7px;padding-right:7px;gap:2px;font-size:10px}
-  .date-tool-action-icon{margin-right:2px;font-size:11px}
+  .date-tool-action-icon{margin-right:2px}
 }
 
 /* Topbar Mobile · 상단바 모바일: 날짜 접힘/고정 상태 + 동일폭 select + 우측 고정 action */
@@ -4255,9 +4269,6 @@ body.chart-expanded-open .dash-tooltip{
   }
   .topbar-theme-action{right:75px}
   .topbar-corner-action{right:41px}
-  .topbar-theme-action .theme-toggle-emoji{display:none}
-  .topbar-theme-action .theme-toggle-svg{display:block;width:18px;height:18px;color:#fff}
-  .topbar-theme-action .theme-toggle-svg svg{display:block;width:100%;height:100%}
   .date-action-menu-wrap{
     display:block;
     position:fixed;
@@ -4272,9 +4283,7 @@ body.chart-expanded-open .dash-tooltip{
   .switcher:is(.mobile-menu-open,.mobile-date-pinned){
     height:40px;
     padding:5px 7px;
-    background:
-      radial-gradient(circle at 96% 8%, rgba(59,130,246,.13), transparent 28%),
-      linear-gradient(135deg,#080c14 0%, #111827 48%, #18304a 100%);
+    background:#080c14;
     border-bottom:1px solid rgba(255,255,255,.11);
     box-shadow:0 12px 30px rgba(0,0,0,.30);
     pointer-events:auto;

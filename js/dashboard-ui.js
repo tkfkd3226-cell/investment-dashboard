@@ -5,11 +5,7 @@ const CORNER_THEME_STORAGE_KEY='investmentDashboard.cornerTheme';
 const currentTheme=()=>document.documentElement.classList.contains('dark')?'dark':'light';
 const currentCornerTheme=()=>document.documentElement.classList.contains('rounded-corners')?'rounded':'soft-square';
 function themeToggleIconMarkup(dark){
-  const svgAttrs='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
-  const svg=dark
-    ?`<svg ${svgAttrs}><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>`
-    :`<svg ${svgAttrs}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-  return `<span class="theme-toggle-emoji" aria-hidden="true">${dark?'☀️':'🌙'}</span><span class="theme-toggle-svg" aria-hidden="true">${svg}</span>`;
+  return navIconSvg(dark?'sun':'moon');
 }
 function syncThemeControls(){
   const dark=currentTheme()==='dark';
@@ -30,8 +26,7 @@ function setTheme(theme,{redraw=true}={}){
 function toggleTheme(){setTheme(currentTheme()==='dark'?'light':'dark')}
 
 function cornerThemeToggleIconMarkup(rounded){
-  const targetRadius=rounded?'1.5':'5';
-  return `<span class="corner-theme-toggle-svg" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="${targetRadius}"></rect></svg></span>`;
+  return navIconSvg(rounded?'cornerSoft':'cornerRounded');
 }
 function syncCornerThemeControls(){
   const rounded=currentCornerTheme()==='rounded';
@@ -61,6 +56,10 @@ const separateProfitControl=(x,extraClass='')=>{
 function navIconSvg(name){
   const attrs='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
   const icons={
+    sun:`<svg ${attrs}><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>`,
+    moon:`<svg ${attrs}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
+    cornerSoft:`<svg ${attrs}><rect x="4" y="4" width="16" height="16" rx="1.5"></rect></svg>`,
+    cornerRounded:`<svg ${attrs}><rect x="4" y="4" width="16" height="16" rx="5"></rect></svg>`,
     link:`<svg ${attrs}><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"></path><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"></path></svg>`,
     activity:`<svg ${attrs}><path d="M22 12h-4l-3 8-6-16-3 8H2"></path></svg>`,
     refresh:`<svg ${attrs}><path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><path d="M18 2v4h4"></path><path d="M6 22v-4H2"></path></svg>`,
@@ -80,21 +79,33 @@ function navIconSvg(name){
   };
   return icons[name]||icons.list;
 }
+const TOPBAR_ACTION_ICONS=Object.freeze({
+  kospiNight:'activity',
+  nasdaqFutures:'link',
+  krxUpdate:'refresh',
+  pensionAdjust:'wallet',
+  calculator:'calculator'
+});
+function hydrateSectionTitleIcons(root=document){
+  root?.querySelectorAll?.('[data-section-title-icon]').forEach(el=>{
+    el.innerHTML=navIconSvg(el.dataset.sectionTitleIcon||'list');
+  });
+}
 function renderUnifiedMobileMenuContent(){
   const groups=[
     {
       label:'링크',
       items:[
-        {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:'activity',title:'코스피200 야간선물'},
-        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:'link',title:'나스닥100 선물'}
+        {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:TOPBAR_ACTION_ICONS.kospiNight,title:'코스피200 야간선물'},
+        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:TOPBAR_ACTION_ICONS.nasdaqFutures,title:'나스닥100 선물'}
       ]
     },
     {
       label:'관리',
       items:[
-        {type:'action',action:'krx-update',icon:'refresh',title:'KRX 현재가 반영'},
-        {type:'action',action:'open-pension-modal',icon:'wallet',title:'퇴직연금 금액 조정'},
-        ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:'calculator',title:'투자 계산기'}]:[])
+        {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
+        {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'},
+        ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[])
       ]
     },
     {
@@ -213,19 +224,19 @@ function renderTabs(){
       </div>
       <div class="date-picker-action">
         <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물">
-          <span class="date-tool-action-icon">🌙</span><span class="topbar-label-full">코스피200 야간선물</span><span class="topbar-label-short">코스피 야선</span>
+          <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.kospiNight)}</span><span class="topbar-label-full">코스피200 야간선물</span><span class="topbar-label-short">코스피 야선</span>
         </a>
         <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물">
-          <span class="date-tool-action-icon">🚀</span><span class="topbar-label-full">나스닥100 선물</span><span class="topbar-label-short">나스닥 선물</span>
+          <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.nasdaqFutures)}</span><span class="topbar-label-full">나스닥100 선물</span><span class="topbar-label-short">나스닥 선물</span>
         </a>
         <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-krx-action" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" data-dashboard-action="krx-update">
-          <span class="date-tool-action-icon">📈</span><span class="topbar-label-full">KRX 현재가 반영</span><span class="topbar-label-short">KRX 반영</span>
+          <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.krxUpdate)}</span><span class="topbar-label-full">KRX 현재가 반영</span><span class="topbar-label-short">KRX 반영</span>
         </button>
         <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-pension-action" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" data-dashboard-action="open-pension-modal">
-          <span class="date-tool-action-icon">💰</span><span class="topbar-label-full">퇴직연금 금액 조정</span><span class="topbar-label-short">연금 조정</span>
+          <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.pensionAdjust)}</span><span class="topbar-label-full">퇴직연금 금액 조정</span><span class="topbar-label-short">연금 조정</span>
         </button>
         ${uiState.personalViewUnlocked?`<a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" title="투자 계산기" aria-label="투자 계산기" style="text-decoration:none">
-          <span class="date-tool-action-icon">🧮</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
+          <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
         </a>`:''}
         <button type="button" class="date-tool-btn topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" data-dashboard-action="toggle-theme">
           <span class="date-tool-action-icon" data-theme-toggle-icon>${themeToggleIconMarkup(currentTheme()==='dark')}</span>
@@ -531,7 +542,7 @@ function renderSecuritiesSummaryCards(x){
   return `<div class="securities-subsection securities-summary-block"><div class="grid cards metric-grid">${metricCard('증권계좌 투자 결과물',won(v.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(v.totalPrincipal),principalNote)}${metricCard('총 합산 누적손익',won(v.totalProfit),`${securitiesScope} 누적손익`,false,cls(v.totalProfit))}${metricCard('투자대비 이익률',pct(v.totalReturn),returnNote,false,cls(v.totalReturn))}</div></div>`;
 }
 function renderSecuritiesSection(x){
-  return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon">🏦</span>증권계좌 현황</h2>${separateProfitControl(x,'section-inline')}</div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderCharts(x,separateProfitControl(x,'chart-inline')),'charts-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(x),'source-block'):''}</div></section>`;
+  return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="bank" aria-hidden="true"></span>증권계좌 현황</h2>${separateProfitControl(x,'section-inline')}</div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderCharts(x,separateProfitControl(x,'chart-inline')),'charts-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(x),'source-block'):''}</div></section>`;
 }
 
 
@@ -565,7 +576,7 @@ function renderResultSummary(x){
     :`<p class="section-explainer table-note cash-basis-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCash)} = ${outsideCashFlowText}</p>`;
   const ledgerSourceSub='계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준<br>출처: 연금+계좌 성과 &gt; 증권계좌 투자 결과물';
   const actualHoldingSub=`증권계좌 평가총액(${won(x.allocTotal)}) +<br>실현수익 반영 현금 보유액(${won(outsideCashBasis)})${footnoteSup}`;
-  return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon">🔍</span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid cards metric-grid">${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),ledgerSourceSub,true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),actualHoldingSub)}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,ledgerGap!==0?'ledger-gap-value':'')}${metricCard('차액 발생 이유',reasonValue,reasonDetail,false,'ledger-reason-value')}</div>${note}</section>`;
+  return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="search" aria-hidden="true"></span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid cards metric-grid">${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),ledgerSourceSub,true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),actualHoldingSub)}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,ledgerGap!==0?'ledger-gap-value':'')}${metricCard('차액 발생 이유',reasonValue,reasonDetail,false,'ledger-reason-value')}</div>${note}</section>`;
 }
 
 function holdingRowCssClass(h){
@@ -603,7 +614,7 @@ function renderHoldings(x){
   mobileInfoCard('총계(보유분+현금)',[
     ['투자원금',won(totalCostWithCash)],['평가금액',won(totalEvalWithCash)],['평가손익',won(holdProfit),cls(holdProfit)],['손익률',pct(totalReturnWithCash),cls(totalReturnWithCash)]
   ],'summary-card mobile-total-card');
-  return `<section id="securities-holdings" ${mobileViewAttrs('holdings')}><div class="section-title"><h2><span class="section-title-icon">📁</span>증권계좌 보유분</h2>${mobileViewToggle('holdings')}</div><div class="mobile-scroll table-view"><table class="dashboard-data-table hold-position-table"><thead><tr><th>종목명</th><th class="table-cell-center">수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th class="table-cell-center">손익률</th></tr></thead><tbody>${orderedHoldings.map(h=>`<tr class="hold-row ${holdingRowCssClass(h)}"><td><span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}</td><td class="num table-cell-center">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${tableCls(h.profit)}">${fmt(h.profit)}</td><td class="num table-cell-center ${tableCls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>보유종목 합계</td><td class="num table-cell-center">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${tableCls(holdProfit)}">${fmt(holdProfit)}</td><td class="num table-cell-center ${tableCls(holdReturn)}">${pct(holdReturn)}</td></tr><tr><td>증권계좌 현금</td><td class="num table-cell-center">-</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">0</td><td class="num table-cell-center">0.00%</td></tr><tr class="summary-row"><td>총계(보유분+현금)</td><td class="num table-cell-center">-</td><td class="num">-</td><td class="num">${fmt(totalCostWithCash)}</td><td class="num">-</td><td class="num">${fmt(totalEvalWithCash)}</td><td class="num ${tableCls(holdProfit)}">${fmt(holdProfit)}</td><td class="num table-cell-center ${tableCls(totalReturnWithCash)}">${pct(totalReturnWithCash)}</td></tr></tbody></table></div><div class="mobile-card-view">${cards}</div></section>`;
+  return `<section id="securities-holdings" ${mobileViewAttrs('holdings')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="folder" aria-hidden="true"></span>증권계좌 보유분</h2>${mobileViewToggle('holdings')}</div><div class="mobile-scroll table-view"><table class="dashboard-data-table hold-position-table"><thead><tr><th>종목명</th><th class="table-cell-center">수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th class="table-cell-center">손익률</th></tr></thead><tbody>${orderedHoldings.map(h=>`<tr class="hold-row ${holdingRowCssClass(h)}"><td><span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}</td><td class="num table-cell-center">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${tableCls(h.profit)}">${fmt(h.profit)}</td><td class="num table-cell-center ${tableCls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>보유종목 합계</td><td class="num table-cell-center">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${tableCls(holdProfit)}">${fmt(holdProfit)}</td><td class="num table-cell-center ${tableCls(holdReturn)}">${pct(holdReturn)}</td></tr><tr><td>증권계좌 현금</td><td class="num table-cell-center">-</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">0</td><td class="num table-cell-center">0.00%</td></tr><tr class="summary-row"><td>총계(보유분+현금)</td><td class="num table-cell-center">-</td><td class="num">-</td><td class="num">${fmt(totalCostWithCash)}</td><td class="num">-</td><td class="num">${fmt(totalEvalWithCash)}</td><td class="num ${tableCls(holdProfit)}">${fmt(holdProfit)}</td><td class="num table-cell-center ${tableCls(totalReturnWithCash)}">${pct(totalReturnWithCash)}</td></tr></tbody></table></div><div class="mobile-card-view">${cards}</div></section>`;
 }
 
 function renderCombined(x){
@@ -615,7 +626,7 @@ function renderCombined(x){
   ])+mobileInfoCard('합산',[
     ['투입원금',won(v.combinedPrincipal)],['투자 결과물',won(v.combinedResult)],['누적손익',won(v.combinedProfit),cls(v.combinedProfit)],[returnLabel,pct(v.combinedReturn),cls(v.combinedReturn)]
   ],'summary-card mobile-total-card');
-  return `<section id="summary-section" ${mobileViewAttrs('combined')}><div class="section-title"><h2><span class="section-title-icon">🏠</span>연금+계좌 성과</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('combined')}</div></div><div class="mobile-scroll table-view"><table class="dashboard-data-table combined-performance-table"><thead><tr><th>구분</th><th>투입원금</th><th>투자 결과물</th><th>누적손익</th><th class="table-cell-center">${returnLabel}</th></tr></thead><tbody><tr><td><strong>퇴직연금</strong></td><td class="num">${fmt(x.pensionPrincipal)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${tableCls(x.pensionProfit)}">${fmt(x.pensionProfit)}<span class="combined-mobile-return ${tableCls(x.pensionReturn)}"> (${mobileReturnPct(x.pensionReturn)})</span></td><td class="num table-cell-center ${tableCls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr><td><strong>증권계좌</strong></td><td class="num">${fmt(v.totalPrincipal)}</td><td class="num">${fmt(v.totalResult)}</td><td class="num ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}<span class="combined-mobile-return ${tableCls(v.totalReturn)}"> (${mobileReturnPct(v.totalReturn)})</span></td><td class="num table-cell-center ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td></tr><tr class="summary-row"><td>합산</td><td class="num">${fmt(v.combinedPrincipal)}</td><td class="num">${fmt(v.combinedResult)}</td><td class="num ${tableCls(v.combinedProfit)}">${fmt(v.combinedProfit)}<span class="combined-mobile-return ${tableCls(v.combinedReturn)}"> (${mobileReturnPct(v.combinedReturn)})</span></td><td class="num table-cell-center ${tableCls(v.combinedReturn)}">${pct(v.combinedReturn)}</td></tr></tbody></table></div><div class="mobile-card-view">${cards}</div></section>`;
+  return `<section id="summary-section" ${mobileViewAttrs('combined')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="home" aria-hidden="true"></span>연금+계좌 성과</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('combined')}</div></div><div class="mobile-scroll table-view"><table class="dashboard-data-table combined-performance-table"><thead><tr><th>구분</th><th>투입원금</th><th>투자 결과물</th><th>누적손익</th><th class="table-cell-center">${returnLabel}</th></tr></thead><tbody><tr><td><strong>퇴직연금</strong></td><td class="num">${fmt(x.pensionPrincipal)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${tableCls(x.pensionProfit)}">${fmt(x.pensionProfit)}<span class="combined-mobile-return ${tableCls(x.pensionReturn)}"> (${mobileReturnPct(x.pensionReturn)})</span></td><td class="num table-cell-center ${tableCls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr><td><strong>증권계좌</strong></td><td class="num">${fmt(v.totalPrincipal)}</td><td class="num">${fmt(v.totalResult)}</td><td class="num ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}<span class="combined-mobile-return ${tableCls(v.totalReturn)}"> (${mobileReturnPct(v.totalReturn)})</span></td><td class="num table-cell-center ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td></tr><tr class="summary-row"><td>합산</td><td class="num">${fmt(v.combinedPrincipal)}</td><td class="num">${fmt(v.combinedResult)}</td><td class="num ${tableCls(v.combinedProfit)}">${fmt(v.combinedProfit)}<span class="combined-mobile-return ${tableCls(v.combinedReturn)}"> (${mobileReturnPct(v.combinedReturn)})</span></td><td class="num table-cell-center ${tableCls(v.combinedReturn)}">${pct(v.combinedReturn)}</td></tr></tbody></table></div><div class="mobile-card-view">${cards}</div></section>`;
 }
 
 function accountMemoTableHtml(text){
@@ -637,7 +648,7 @@ function renderAccounts(x){
     ['투자원금',won(v.totalPrincipal)],['누적손익',won(v.totalProfit),cls(v.totalProfit)],['수익률',pct(v.totalReturn),cls(v.totalReturn)],['',totalMemo,'','stacked note-only']
   ],'summary-card mobile-total-card');
   const totalRow=`<tr class="summary-row"><td class="accounts-name">합계</td><td class="num">${fmt(v.totalPrincipal)}</td><td class="num ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}</td><td class="num table-cell-center ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td><td class="accounts-memo">${totalMemo}</td></tr>`;
-  return `<section id="accounts-summary" ${mobileViewAttrs('accounts')}><div class="section-title"><h2><span class="section-title-icon">📋</span>계좌별 성과 요약</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('accounts')}</div></div><div class="mobile-scroll accounts-scroll table-view"><table class="dashboard-data-table accounts-table"><thead><tr><th class="accounts-name-head">구분</th><th>투자원금</th><th>누적손익</th><th class="table-cell-center">수익률</th><th>메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="accounts-name">${r[0]}</td><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${tableCls(r[2])}">${fmt(r[2])}</td><td class="num table-cell-center ${r[1]?tableCls(r[3]):''}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${accountMemoTableHtml(r[4])}</td></tr>`).join('')}${totalRow}</tbody></table></div><div class="mobile-card-view">${cards}</div>${hiddenNote}</section>`;
+  return `<section id="accounts-summary" ${mobileViewAttrs('accounts')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="list" aria-hidden="true"></span>계좌별 성과 요약</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('accounts')}</div></div><div class="mobile-scroll accounts-scroll table-view"><table class="dashboard-data-table accounts-table"><thead><tr><th class="accounts-name-head">구분</th><th>투자원금</th><th>누적손익</th><th class="table-cell-center">수익률</th><th>메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="accounts-name">${r[0]}</td><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${tableCls(r[2])}">${fmt(r[2])}</td><td class="num table-cell-center ${r[1]?tableCls(r[3]):''}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${accountMemoTableHtml(r[4])}</td></tr>`).join('')}${totalRow}</tbody></table></div><div class="mobile-card-view">${cards}</div>${hiddenNote}</section>`;
 }
 function renderSourceTables(x){
   const c=dataState.portfolio.constants,
@@ -658,6 +669,6 @@ function renderSourceTables(x){
     reclassNote=uiState.includeSeparateProfit&&reclassified?`<div class="source-reclass-note"><strong>6~8월 별도수익 재투입 ${won(reclassified)}</strong><span>기존 투자수익 재투자분 · 신규 외부투입금 아님</span><span>전체 투입원금 제외 · 별도수익 ON 시 성과기준 원금 제외</span></div>`:'',
     principalLabel=uiState.includeSeparateProfit&&reclassified?'계좌1 성과기준 투자원금':'계좌1 투자원금 검산',
     principalSummaryLabel='합계';
-  return `<section id="capital-source-check" class="capital-source-section"><div class="section-title source-title"><h2><span class="section-title-icon">🧾</span>투자원금 원천 및 검산</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid three source-grid"><div class="card source-card metric-card"><div class="label">계좌1 원천별 추적</div><div class="value">${won(performancePrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr>${excludedRow}${internalCashRow}${extraRow}${reconciliationRow}<tr class="summary-row"><td>합계</td><td class="num">${fmt(performancePrincipal)}</td></tr></tbody></table></div></div><div class="card source-card metric-card highlight"><div class="label">전체 투입원금</div><div class="value">${won(externalPrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><tbody><tr><td>금 판매액 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr>${extraRow}<tr class="summary-row"><td>합계</td><td class="num">${fmt(externalPrincipal)}</td></tr></tbody></table></div>${reclassNote}</div><div class="card source-card metric-card"><div class="label">${principalLabel}</div><div class="value">${won(performancePrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><tbody><tr><td>전체 투입원금</td><td class="num">${fmt(externalPrincipal)}</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입</td><td class="num">${fmt(vipProfitReinvest)}</td></tr>${excludedRow}${internalCashRow}${reconciliationRow}<tr class="summary-row"><td>${principalSummaryLabel}</td><td class="num">${fmt(performancePrincipal)}</td></tr></tbody></table></div></div></div></section>`;
+  return `<section id="capital-source-check" class="capital-source-section"><div class="section-title source-title"><h2><span class="section-title-icon" data-section-title-icon="receipt" aria-hidden="true"></span>투자원금 원천 및 검산</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid three source-grid"><div class="card source-card metric-card"><div class="label">계좌1 원천별 추적</div><div class="value">${won(performancePrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr>${excludedRow}${internalCashRow}${extraRow}${reconciliationRow}<tr class="summary-row"><td>합계</td><td class="num">${fmt(performancePrincipal)}</td></tr></tbody></table></div></div><div class="card source-card metric-card highlight"><div class="label">전체 투입원금</div><div class="value">${won(externalPrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><tbody><tr><td>금 판매액 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr>${extraRow}<tr class="summary-row"><td>합계</td><td class="num">${fmt(externalPrincipal)}</td></tr></tbody></table></div>${reclassNote}</div><div class="card source-card metric-card"><div class="label">${principalLabel}</div><div class="value">${won(performancePrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><tbody><tr><td>전체 투입원금</td><td class="num">${fmt(externalPrincipal)}</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입</td><td class="num">${fmt(vipProfitReinvest)}</td></tr>${excludedRow}${internalCashRow}${reconciliationRow}<tr class="summary-row"><td>${principalSummaryLabel}</td><td class="num">${fmt(performancePrincipal)}</td></tr></tbody></table></div></div></div></section>`;
 }
 
