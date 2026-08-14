@@ -2466,20 +2466,6 @@ body.contrib-modal-open{
   gap:8px;
 }
 
-/* Mobile date-pin switch; navigation item/surface styles are shared below. */
-@media(max-width:760px){
-  .mobile-nav-head-actions{display:flex;align-items:center;gap:8px}
-  .mobile-date-pin-control{display:inline-flex;align-items:center;gap:6px;min-width:0;color:#57606a;cursor:pointer;user-select:none}
-  .dark .mobile-date-pin-control{color:#8b949e}
-  .mobile-date-pin-control > span:first-child{font-size:11px;font-weight:800;letter-spacing:-.02em;line-height:25px;white-space:nowrap}
-  .mobile-date-pin-control input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-  .mobile-date-pin-track{position:relative;width:31px;height:18px;flex:0 0 31px;border:1px solid rgba(255,255,255,.20);border-radius:999px;background:rgba(255,255,255,.24);transition:background .16s ease,border-color .16s ease}
-  .mobile-date-pin-track > span{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.24);transition:transform .16s ease}
-  .mobile-date-pin-control input:checked + .mobile-date-pin-track{background:#3182F6;border-color:#60a5fa}
-  .mobile-date-pin-control input:checked + .mobile-date-pin-track > span{transform:translateX(13px)}
-  .mobile-date-pin-control input:focus-visible + .mobile-date-pin-track{outline:2px solid #fff;outline-offset:2px}
-}
-
 /* Capital-source cards: no outer panel, keep only the three data cards. */
 .capital-source-section .source-title{
   margin-bottom:12px;
@@ -3105,44 +3091,6 @@ button:active,
   }
 }
 
-/* Mobile hamburger menu: one canonical surface/item system. */
-@media(max-width:760px){
-  .date-action-menu.mobile-combined-menu{
-    position:fixed;
-    top:43px;
-    right:6px;
-    z-index:2600;
-    width:min(258px,calc(100vw - 12px));
-    max-height:calc(100vh - 54px);
-    overflow:auto;
-    padding:6px;
-    border-radius:10px;
-    box-shadow:0 16px 40px rgba(27,31,36,.18);
-  }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0;padding:0 1px 2px;background:transparent}
-  .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:2px;min-width:0}
-  .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px;color:#57606a;font-size:11px;font-weight:800;line-height:25px}
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{color:#8b949e}
-  .date-action-menu.mobile-combined-menu .mobile-nav-head > .mobile-nav-head-actions > button{width:25px;height:25px;padding:0;border:0;border-radius:5px;background:transparent;color:#57606a;font-size:18px;line-height:1;cursor:pointer}
-  .date-action-menu.mobile-combined-menu .mobile-nav-head > .mobile-nav-head-actions > button:hover{background:#f6f8fa;color:#24292f}
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head > .mobile-nav-head-actions > button{color:#8b949e}
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head > .mobile-nav-head-actions > button:hover{background:#161b22;color:#c9d1d9}
-  .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:4px 0 0;padding:4px 0 0;border-top:1px solid #d8dee4}
-  .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{margin-top:0;padding-top:0;border-top:0}
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group{border-top-color:#30363d}
-  .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:2px 6px;color:#6e7781;font-size:9.5px;font-weight:600;letter-spacing:0;line-height:14px}
-  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group p{color:#8b949e}
-  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:6px;min-height:30px;padding:5px 6px;border-radius:5px;text-decoration:none;font-size:12px;font-weight:400;line-height:17px;box-shadow:none}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{padding-left:6px}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{flex:0 0 16px;width:16px;height:16px;margin:0;border:0;border-radius:0;background:transparent;font-size:0;box-shadow:none}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{display:block;width:16px;height:16px}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item strong{display:block;color:inherit;font-size:12px;font-weight:500;line-height:17px}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item em{display:none}
-  .date-action-menu.mobile-combined-menu::-webkit-scrollbar{width:8px}
-  .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{border-radius:999px;background:#d0d7de}
-  .dark .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{background:#30363d}
-}
-
 /* iOS Safari input zoom fix: keep 16px only on PIN inputs that use it in the final mobile UI. */
 @media(max-width:760px){
   .krx-action-card input,
@@ -3603,78 +3551,6 @@ button:active,
   #capital-source-check .source-card{
     min-width:0 !important;
   }
-}
-
-.compact-action-menu{
-  display:none;
-  position:absolute;
-  top:calc(100% + 8px);
-  right:0;
-  width:232px;
-  padding:8px;
-  border:1px solid rgba(148,163,184,.34);
-  border-radius:14px;
-  background:rgba(255,255,255,.98);
-  box-shadow:0 18px 44px rgba(15,23,42,.24);
-  backdrop-filter:blur(12px);
-  z-index:2400;
-}
-.compact-action-menu.show{
-  display:block;
-}
-.compact-action-menu-title{
-  padding:4px 9px 6px;
-  color:#64748b;
-  font-size:10px;
-  font-weight:900;
-  letter-spacing:.04em;
-}
-.compact-action-menu a,
-.compact-action-menu button{
-  width:100%;
-  min-height:38px;
-  padding:7px 9px;
-  border:0;
-  border-radius:9px;
-  background:transparent;
-  color:#172033;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  text-align:left;
-  text-decoration:none;
-  font:inherit;
-  font-size:12px;
-  cursor:pointer;
-}
-.compact-action-menu a:hover,
-.compact-action-menu button:hover{
-  background:#f1f5f9;
-}
-.compact-action-menu a > span,
-.compact-action-menu button > span{
-  width:20px;
-  flex:0 0 20px;
-  text-align:center;
-}
-.compact-action-menu strong{
-  font-weight:850;
-  white-space:nowrap;
-}
-.dark .compact-action-menu{
-  background:rgba(15,23,42,.98);
-  border-color:rgba(148,163,184,.28);
-}
-.dark .compact-action-menu-title{
-  color:#94a3b8;
-}
-.dark .compact-action-menu a,
-.dark .compact-action-menu button{
-  color:#e2e8f0;
-}
-.dark .compact-action-menu a:hover,
-.dark .compact-action-menu button:hover{
-  background:#1e293b;
 }
 
 /* Chart entrance animation: reveal plotted data from left to right once the chart viewport is fully visible. */
@@ -4407,8 +4283,7 @@ body.chart-expanded-open .dash-tooltip{
   }
 }
 
-/* Top date/control bar: consolidated responsive layout.
-   Desktop > tablet > phone state rules live here; popup menu panels remain independent. */
+/* Top date/control bar: desktop base + tablet + mobile only. */
 .switcher{
   position:sticky;
   top:0;
@@ -4416,7 +4291,6 @@ body.chart-expanded-open .dash-tooltip{
   display:flex;
   align-items:center;
   justify-content:center;
-  flex-wrap:nowrap;
   width:100%;
   box-sizing:border-box;
   padding:6px 12px;
@@ -4429,7 +4303,6 @@ body.chart-expanded-open .dash-tooltip{
 .date-picker{
   display:grid;
   grid-template-columns:auto minmax(0,1fr) auto;
-  grid-template-rows:auto;
   align-items:center;
   gap:6px;
   width:min(1632px,100%);
@@ -4443,18 +4316,8 @@ body.chart-expanded-open .dash-tooltip{
   gap:6px;
   min-width:0;
 }
-.date-picker-center{
-  grid-column:1;
-  grid-row:1;
-  justify-self:start;
-  justify-content:flex-start;
-}
-.date-picker-action{
-  grid-column:3;
-  grid-row:1;
-  justify-self:end;
-  justify-content:flex-end;
-}
+.date-picker-center{grid-column:1;justify-self:start}
+.date-picker-action{grid-column:3;justify-self:end}
 .date-select{
   min-height:32px;
   height:32px;
@@ -4471,10 +4334,7 @@ body.chart-expanded-open .dash-tooltip{
   outline:none;
   cursor:pointer;
 }
-.date-select option{
-  color:var(--ink);
-  background:var(--card);
-}
+.date-select option{color:var(--ink);background:var(--card)}
 .month-select{min-width:148px;flex:0 0 148px}
 .day-select{min-width:116px;flex:0 0 116px}
 .date-tool-btn{
@@ -4499,103 +4359,51 @@ body.chart-expanded-open .dash-tooltip{
   box-shadow:0 5px 14px rgba(0,0,0,.14);
 }
 .date-tool-btn:hover{background:rgba(255,255,255,.22)}
-@media (hover:hover) and (pointer:fine){
-  .date-tool-btn:hover{
-    transform:translateY(-1px);
-    box-shadow:0 10px 24px rgba(0,0,0,.22);
-  }
-}
 .date-tool-action-icon{margin-right:3px;font-size:12px}
 .topbar-theme-action{width:32px;padding:0}
 .topbar-theme-action .date-tool-action-icon{margin-right:0;font-size:14px}
-.mobile-theme-btn{display:none}
-.date-tool-icon{display:inline;font-size:14px;line-height:1}
-.date-tool-menu-label{display:inline}
-.date-action-menu-wrap{
-  display:none;
-  position:relative;
-  flex:0 0 auto;
-  z-index:5200;
-}
-.topbar-label-short,
-.compact-action-menu-wrap{display:none}
-.compact-action-menu-wrap{
-  position:relative;
-  flex:0 0 auto;
-}
-.compact-more-btn{gap:5px}
-.compact-more-icon{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:18px;
-  font-size:13px;
-  line-height:1;
-  letter-spacing:1px;
-}
+.date-action-menu-wrap,
+.topbar-label-short{display:none}
 
-/* Tablet: shorter labels and smaller controls, while keeping a single row. */
+/* Tablet: same left selectors as desktop; only right-side labels/buttons are compact. */
 @media (min-width:761px) and (max-width:1100px){
   .topbar-label-full{display:none}
   .topbar-label-short{display:inline}
   .switcher{padding-left:8px;padding-right:8px}
-  .date-picker{gap:5px}
-  .date-picker-center,
   .date-picker-action{gap:5px}
-  .month-select{min-width:136px;flex-basis:136px}
-  .day-select{min-width:104px;flex-basis:104px}
-  .date-tool-btn{padding-left:8px;padding-right:8px;gap:2px;font-size:10.5px}
+  .date-tool-btn{padding-left:7px;padding-right:7px;gap:2px;font-size:10px}
   .date-tool-action-icon{margin-right:2px;font-size:11px}
 }
 
-
-/* Phone: closed = floating hamburger; open/pinned = month + day + hamburger. */
+/* Mobile: two equal selectors + fixed theme/menu buttons. */
 @media(max-width:760px){
-  body.mobile-topbar-fixed-visible #app{
-    padding-top:var(--mobile-fixed-topbar-height,50px);
-  }
+  #app{padding-top:40px}
   .switcher{
     position:fixed;
     top:0;
     left:0;
     right:0;
-    z-index:8000;
-    min-height:0;
-    height:0;
-    padding:0;
-    background:transparent;
-    border-bottom:0;
-    box-shadow:none;
-    overflow:visible;
-    pointer-events:none;
-    -webkit-backface-visibility:hidden;
-    backface-visibility:hidden;
-    transform:translate3d(0,0,0);
-    -webkit-transform:translate3d(0,0,0);
+    z-index:2450;
+    height:40px;
+    padding:5px 7px;
   }
   .date-picker{
-    display:block;
-    width:auto;
-    height:0;
-    min-height:0;
-    overflow:visible;
+    width:100%;
+    grid-template-columns:auto auto minmax(0,1fr) 30px 30px;
+    gap:4px;
   }
-  .date-picker-center{display:none}
-  .date-picker-action{
-    display:block;
-    width:0;
-    height:0;
-    margin:0;
-  }
-  .date-picker-action > :not(.date-action-menu-wrap):not(.mobile-theme-btn){display:none}
+  .date-picker-center,
+  .date-picker-action{display:contents}
   .date-tool-btn-desktop{display:none}
   .month-select,
   .day-select{
     min-width:0;
-    width:100%;
+    width:min(148px,calc((100vw - 90px)/2));
     max-width:100%;
-    flex:initial;
+    flex:none;
   }
+  .month-select{grid-column:1}
+  .day-select{grid-column:2}
   .date-select{
     min-height:30px;
     height:30px;
@@ -4603,18 +4411,8 @@ body.chart-expanded-open .dash-tooltip{
     padding:3px 17px 3px 7px;
     font-size:11.5px;
   }
-  .date-action-menu-wrap{
-    display:block;
-    position:fixed;
-    top:max(6px, env(safe-area-inset-top));
-    right:7px;
-    z-index:2400;
-    margin:0;
-    pointer-events:auto;
-  }
-  .mobile-topbar-icon-btn{
-    position:relative;
-    z-index:2;
+  .topbar-theme-action,
+  .date-tool-menu-btn{
     width:30px;
     min-width:30px;
     max-width:30px;
@@ -4622,65 +4420,56 @@ body.chart-expanded-open .dash-tooltip{
     padding:0;
     flex:0 0 30px;
     border-radius:9px;
-    pointer-events:auto;
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
   }
-  .mobile-theme-btn{
-    display:inline-flex;
-    position:fixed;
-    top:max(6px, env(safe-area-inset-top));
-    right:41px;
-    z-index:2400;
+  .topbar-theme-action{
+    grid-column:4;
+    justify-self:end;
   }
-  .mobile-theme-btn .date-tool-action-icon{margin-right:0;font-size:14px}
-  .date-tool-icon{font-size:15px}
+  .date-action-menu-wrap{
+    display:block;
+    grid-column:5;
+    justify-self:end;
+  }
+  .date-tool-icon{font-size:15px;line-height:1}
   .date-tool-menu-label{display:none}
 
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned){
-    z-index:2450;
-    min-height:40px;
-    height:auto;
-    padding:5px 7px;
-    background:
-      radial-gradient(circle at 96% 8%, rgba(59,130,246,.13), transparent 28%),
-      linear-gradient(135deg,#080c14 0%, #111827 48%, #18304a 100%);
-    border-bottom:1px solid rgba(255,255,255,.11);
-    box-shadow:0 12px 30px rgba(0,0,0,.30);
-    pointer-events:auto;
+  /* Hamburger panel belongs to the same mobile topbar breakpoint. */
+  .date-action-menu.mobile-combined-menu{
+    position:fixed;
+    top:43px;
+    right:6px;
+    z-index:2600;
+    width:min(258px,calc(100vw - 12px));
+    max-height:calc(100vh - 54px);
+    overflow:auto;
+    padding:6px;
+    border-radius:10px;
+    box-shadow:0 16px 40px rgba(27,31,36,.18);
   }
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .date-picker{
-    display:grid;
-    width:100%;
-    height:auto;
-    min-height:0;
-    grid-template-columns:minmax(118px,1.2fr) minmax(82px,.72fr) 30px 30px;
-    align-items:center;
-    gap:4px;
-    overflow:visible;
-  }
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.date-picker-center,.date-picker-action){display:contents}
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.month-select,.day-select){
-    display:block;
-    min-width:0;
-    width:100%;
-    max-width:100%;
-    flex:initial;
-  }
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.mobile-theme-btn,.date-action-menu-wrap){
-    position:relative;
-    top:auto;
-    right:auto;
-    z-index:auto;
-    margin:0;
-    justify-self:end;
-    pointer-events:auto;
-  }
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .date-select{pointer-events:auto}
-  .switcher.mobile-topbar-hit-refresh{
-    transform:translate3d(0,0,.001px);
-    -webkit-transform:translate3d(0,0,.001px);
-  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0;padding:0 1px 2px;background:transparent}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:2px;min-width:0}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px;color:#57606a;font-size:11px;font-weight:800;line-height:25px}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{color:#8b949e}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:5px;background:transparent;color:#57606a;font-size:18px;line-height:1;cursor:pointer}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:#f6f8fa;color:#24292f}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head > button{color:#8b949e}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:#161b22;color:#c9d1d9}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:4px 0 0;padding:4px 0 0;border-top:1px solid #d8dee4}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{margin-top:0;padding-top:0;border-top:0}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group{border-top-color:#30363d}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:2px 6px;color:#6e7781;font-size:9.5px;font-weight:600;letter-spacing:0;line-height:14px}
+  .dark .date-action-menu.mobile-combined-menu .mobile-nav-group p{color:#8b949e}
+  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:6px;min-height:30px;padding:5px 6px;border-radius:5px;text-decoration:none;font-size:12px;font-weight:400;line-height:17px;box-shadow:none}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{padding-left:6px}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{flex:0 0 16px;width:16px;height:16px;margin:0;border:0;border-radius:0;background:transparent;font-size:0;box-shadow:none}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{display:block;width:16px;height:16px}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item strong{display:block;color:inherit;font-size:12px;font-weight:500;line-height:17px}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item em{display:none}
+  .date-action-menu.mobile-combined-menu::-webkit-scrollbar{width:8px}
+  .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{border-radius:999px;background:#d0d7de}
+  .dark .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{background:#30363d}
 }
 
 

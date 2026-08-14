@@ -803,57 +803,6 @@ function ensureDesktopEdgeToc(){
   }
   toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기"><span>목차</span></button><nav class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title"><span>목차</span></div>${renderDesktopTocContent()}</nav>`;
 }
-const MOBILE_DATE_PIN_STORAGE_KEY='investmentDashboard.mobileDatePinned';
-function mobileDatePinned(){
-  try{return localStorage.getItem(MOBILE_DATE_PIN_STORAGE_KEY)==='1'}catch(_){return false}
-}
-let MOBILE_TOPBAR_SCROLL_SYNC_TIMER=0;
-function syncMobileTopbarFixedState(){
-  const tabs=document.getElementById('tabs');
-  const mobile=window.matchMedia?.('(max-width:760px)').matches===true;
-  const visible=!!(mobile&&tabs&&(tabs.classList.contains('mobile-menu-open')||tabs.classList.contains('mobile-date-pinned')));
-  document.body.classList.toggle('mobile-topbar-fixed-visible',visible);
-  if(!visible){
-    document.documentElement.style.setProperty('--mobile-fixed-topbar-height','0px');
-    return;
-  }
-  requestAnimationFrame(()=>{
-    const current=document.getElementById('tabs');
-    if(!current||!document.body.classList.contains('mobile-topbar-fixed-visible'))return;
-    const height=Math.ceil(current.getBoundingClientRect().height||0);
-    document.documentElement.style.setProperty('--mobile-fixed-topbar-height',`${height}px`);
-  });
-}
-function scheduleMobileTopbarViewportSync(){
-  if(window.matchMedia?.('(max-width:760px)').matches!==true)return;
-  clearTimeout(MOBILE_TOPBAR_SCROLL_SYNC_TIMER);
-  MOBILE_TOPBAR_SCROLL_SYNC_TIMER=setTimeout(()=>{
-    syncMobileTopbarFixedState();
-    // Force Safari to refresh the fixed top-bar hit-test/compositing layer after
-    // the browser chrome / visual viewport settles at the end of a scroll.
-    const tabs=document.getElementById('tabs');
-    if(tabs){
-      void tabs.getBoundingClientRect().top;
-      tabs.classList.add('mobile-topbar-hit-refresh');
-      requestAnimationFrame(()=>requestAnimationFrame(()=>tabs.classList.remove('mobile-topbar-hit-refresh')));
-    }
-  },90);
-}
-function syncMobileDatePinState(){
-  const tabs=document.getElementById('tabs');
-  const toggle=document.getElementById('mobileDatePinToggle');
-  const pinned=mobileDatePinned();
-  if(tabs)tabs.classList.toggle('mobile-date-pinned',pinned);
-  if(toggle){
-    toggle.checked=pinned;
-    toggle.setAttribute('aria-checked',String(pinned));
-  }
-  syncMobileTopbarFixedState();
-}
-function setMobileDatePinned(pinned){
-  try{localStorage.setItem(MOBILE_DATE_PIN_STORAGE_KEY,pinned?'1':'0')}catch(_){}
-  syncMobileDatePinState();
-}
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
   document.getElementById('tabs').innerHTML=`
@@ -878,30 +827,15 @@ function renderTabs(){
         ${PERSONAL_VIEW_UNLOCKED?`<a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="calc.html" target="_blank" rel="noopener noreferrer" title="투자 계산기" aria-label="투자 계산기" style="text-decoration:none">
           <span class="date-tool-action-icon">🧮</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
         </a>`:''}
-        <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" onclick="toggleTheme()">
-          <span class="date-tool-action-icon" data-theme-toggle-icon>${currentTheme()==='dark'?'☀️':'🌙'}</span>
-        </button>
-        <div class="compact-action-menu-wrap">
-          <button type="button" id="compactActionMenuButton" class="date-tool-btn compact-more-btn" title="더보기" aria-label="추가 기능 열기" aria-haspopup="true" aria-expanded="false" onclick="toggleCompactActionMenu(event)">
-            <span class="compact-more-icon" aria-hidden="true">•••</span><span>더보기</span>
-          </button>
-          <div id="compactActionMenu" class="compact-action-menu" aria-label="추가 기능">
-            <div class="compact-action-menu-title">시장지표</div>
-            <a href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer"><span>🌙</span><strong>코스피200 야간선물</strong></a>
-            <a href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer"><span>🚀</span><strong>나스닥100 선물</strong></a>
-            <button type="button" class="compact-menu-pension" onclick="openPensionContributionModal();closeCompactActionMenu()"><span>💰</span><strong>퇴직연금 금액 조정</strong></button>
-          </div>
-        </div>
-        <button type="button" class="date-tool-btn mobile-topbar-icon-btn mobile-theme-btn" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" onclick="toggleTheme()">
+        <button type="button" class="date-tool-btn topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" onclick="toggleTheme()">
           <span class="date-tool-action-icon" data-theme-toggle-icon>${currentTheme()==='dark'?'☀️':'🌙'}</span>
         </button>
         <div class="date-action-menu-wrap">
-          <button type="button" id="dateActionMenuButton" class="date-tool-btn mobile-topbar-icon-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
-          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><div class="mobile-nav-head-actions"><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} onchange="setMobileDatePinned(this.checked)"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div></div>${renderUnifiedMobileMenuContent()}</div>
+          <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
+          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div>
         </div>
       </div>
     </div>`;
-  syncMobileDatePinState();
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card metric-card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
@@ -1571,25 +1505,18 @@ function ensureMobileTopButton(){
 
 function closeDateActionMenu(){
   const menu=document.getElementById('dateActionMenu');
-  const tabs=document.getElementById('tabs');
   const button=document.getElementById('dateActionMenuButton');
   if(menu) menu.classList.remove('show');
-  if(tabs) tabs.classList.remove('mobile-menu-open');
   if(button) button.setAttribute('aria-expanded','false');
-  syncMobileDatePinState();
 }
 function toggleDateActionMenu(event){
   if(event){event.preventDefault();event.stopPropagation();}
-  closeCompactActionMenu();
   const menu=document.getElementById('dateActionMenu');
-  const tabs=document.getElementById('tabs');
   const button=document.getElementById('dateActionMenuButton');
   if(!menu) return;
   const shouldOpen=!menu.classList.contains('show');
   menu.classList.toggle('show',shouldOpen);
-  if(tabs) tabs.classList.toggle('mobile-menu-open',shouldOpen);
   if(button) button.setAttribute('aria-expanded',String(shouldOpen));
-  syncMobileTopbarFixedState();
 }
 function setupDateActionMenuButton(){
   const tabs=document.getElementById('tabs');
@@ -1601,25 +1528,8 @@ function setupDateActionMenuButton(){
     toggleDateActionMenu(event);
   });
 }
-function closeCompactActionMenu(){
-  const menu=document.getElementById('compactActionMenu');
-  const button=document.getElementById('compactActionMenuButton');
-  if(menu) menu.classList.remove('show');
-  if(button) button.setAttribute('aria-expanded','false');
-}
-function toggleCompactActionMenu(event){
-  if(event) event.stopPropagation();
-  const menu=document.getElementById('compactActionMenu');
-  const button=document.getElementById('compactActionMenuButton');
-  if(!menu||!button) return;
-  const shouldOpen=!menu.classList.contains('show');
-  closeDateActionMenu();
-  menu.classList.toggle('show',shouldOpen);
-  button.setAttribute('aria-expanded',String(shouldOpen));
-}
 document.addEventListener('click',e=>{
   if(!e.target.closest('#tabs')) closeDateActionMenu();
-  closeCompactActionMenu();
 });
 async function dispatchKrxPriceUpdate(pin, mode='selected'){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
@@ -2712,7 +2622,6 @@ function closePensionContributionModal(){
 }
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape') return;
-  closeCompactActionMenu();
   closeDateActionMenu();
   closePensionContributionModal();
 });
@@ -3616,30 +3525,26 @@ function setupPensionVizTooltips(){
   document.addEventListener('scroll',()=>closeTooltips(null),true);
 }
 
-async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS,PENSION_TRADES]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]})),fetch('data/pension_trades.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({trades:[]}))]);const dates=allAvailableDates();ACTIVE_DATE=dates.at(-1);history.replaceState(null,'','#'+ACTIVE_DATE);render();setupDateActionMenuButton();window.addEventListener('resize',syncMobileTopbarFixedState,{passive:true});window.visualViewport?.addEventListener('resize',syncMobileTopbarFixedState,{passive:true});window.addEventListener('scroll',scheduleMobileTopbarViewportSync,{passive:true});window.visualViewport?.addEventListener('scroll',scheduleMobileTopbarViewportSync,{passive:true});document.getElementById('tabs').addEventListener('change',e=>{
+async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS,PENSION_TRADES]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]})),fetch('data/pension_trades.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({trades:[]}))]);const dates=allAvailableDates();ACTIVE_DATE=dates.at(-1);history.replaceState(null,'','#'+ACTIVE_DATE);render();setupDateActionMenuButton();document.getElementById('tabs').addEventListener('change',e=>{
   if(e.target.id==='monthSelect'){
     const month=e.target.value,dates=allAvailableDates().filter(d=>d.startsWith(month));
-    const keepMobileMenuOpen=window.matchMedia('(max-width:760px)').matches && document.getElementById('tabs')?.classList.contains('mobile-menu-open');
+    const keepMobileMenuOpen=window.matchMedia('(max-width:760px)').matches && document.getElementById('dateActionMenu')?.classList.contains('show');
     ACTIVE_DATE=dates.at(-1);
     history.replaceState(null,'','#'+ACTIVE_DATE);
     render();
     if(keepMobileMenuOpen){
-      document.getElementById('tabs')?.classList.add('mobile-menu-open');
       document.getElementById('dateActionMenu')?.classList.add('show');
       document.getElementById('dateActionMenuButton')?.setAttribute('aria-expanded','true');
-      syncMobileTopbarFixedState();
     }
   }
   if(e.target.id==='dateSelect'){
-    const keepMobileMenuOpen=window.matchMedia('(max-width:760px)').matches && document.getElementById('tabs')?.classList.contains('mobile-menu-open');
+    const keepMobileMenuOpen=window.matchMedia('(max-width:760px)').matches && document.getElementById('dateActionMenu')?.classList.contains('show');
     ACTIVE_DATE=e.target.value;
     history.replaceState(null,'','#'+ACTIVE_DATE);
     render();
     if(keepMobileMenuOpen){
-      document.getElementById('tabs')?.classList.add('mobile-menu-open');
       document.getElementById('dateActionMenu')?.classList.add('show');
       document.getElementById('dateActionMenuButton')?.setAttribute('aria-expanded','true');
-      syncMobileTopbarFixedState();
     }
   }
 });document.addEventListener('pointerdown',e=>{if(!e.target.closest('.svg-hitbox')&&!e.target.closest('#dashTooltip'))clearChartHover()})}boot().catch(err=>{document.getElementById('app').innerHTML=`<div class="wrap"><div class="note"><h2><span class="section-title-icon">⚠️</span>데이터 로딩 오류</h2><pre>${String(err)}</pre></div></div>`})
