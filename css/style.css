@@ -4735,6 +4735,21 @@ body.chart-expanded-open .dash-tooltip{
     aspect-ratio:1120 / 330;
   }
 
+  /* Print Charts · 인쇄 차트: viewport 진입 전/진입 중 animation 상태를 최종 표시 상태로 고정 */
+  .chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-bar,
+  .chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-point{
+    opacity:1;
+    transform:none;
+  }
+  .chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-line{
+    stroke-dashoffset:0;
+  }
+  .chart-card.chart-entrance-active .chart-anim-bar,
+  .chart-card.chart-entrance-active .chart-anim-point,
+  .chart-card.chart-entrance-active .chart-anim-line{
+    animation:none;
+  }
+
   /* 화면용 우측 목차는 인쇄 내용에 포함하지 않는다. */
   .desktop-edge-toc{
     display:none;
