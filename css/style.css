@@ -4143,7 +4143,7 @@ body.chart-expanded-open .dash-tooltip{
   .topbar-theme-action,
   .topbar-corner-action{
     position:fixed;
-    top:max(4px,env(safe-area-inset-top));
+    top:max(5px,env(safe-area-inset-top));
     z-index:2400;
   }
   .topbar-theme-action{right:75px}
@@ -4151,7 +4151,7 @@ body.chart-expanded-open .dash-tooltip{
   .date-action-menu-wrap{
     display:block;
     position:fixed;
-    top:max(4px,env(safe-area-inset-top));
+    top:max(5px,env(safe-area-inset-top));
     right:7px;
     z-index:2400;
     pointer-events:auto;
