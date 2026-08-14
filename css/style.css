@@ -2548,7 +2548,7 @@ body.contrib-modal-open{
   margin-bottom:7px;
   color:#334155;
   font-size:12px;
-  font-weight:800;
+  font-weight:400;
 }
 .action-modal-input{
   width:100%;
@@ -2558,7 +2558,7 @@ body.contrib-modal-open{
   padding:0 13px;
   font-family:inherit;
   font-size:15px;
-  font-weight:800;
+  font-weight:400;
   outline:none;
   box-sizing:border-box;
 }
