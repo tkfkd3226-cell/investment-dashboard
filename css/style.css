@@ -1,3 +1,29 @@
+/* =========================================================
+   CSS Structure Map · CSS 구조 목차
+   01. Variables / Base · 변수 / 기본 스타일
+   02. Global Layout / Shell · 전체 레이아웃 / 기본 구조
+   03. Topbar / Navigation · 상단바 / 내비게이션
+   04. Common Cards / Components · 공통 카드 / 컴포넌트
+   05. Tables / Forms · 테이블 / 입력 폼
+   06. Securities / Asset Workspace · 증권계좌 / 자산 작업영역
+   07. Pension · 퇴직연금
+   08. Charts · 차트
+   09. Modal / Tooltip / Overlay · 모달 / 툴팁 / 오버레이
+   10. Browser / Accessibility / Print · 브라우저 / 접근성 / 인쇄
+
+   Responsive · 반응형
+   - Desktop / 웹: 기본 CSS, 웹 전용 보정만 min-width:1101px
+   - Tablet / 태블릿: 761~1100px
+   - Mobile / 모바일: <=760px
+   - 기능상 필요한 iPhone landscape / hover-pointer / reduced-motion / print 예외만 유지
+
+   Cascade Safety · cascade 안전 원칙
+   - 기능별 role anchor를 검색용으로 사용한다.
+   - source order 의존성이 있는 후속 rule은 억지로 이동하지 않고 해당 role의 continuation으로 유지한다.
+   - selector / declaration / media condition / keyframes 값은 이 구조 정리에서 변경하지 않는다.
+   ========================================================= */
+
+/* [01. Variables / Base · 변수 / 기본 스타일] Global Tokens · 전역 토큰 */
 :root{
   --bg:#f5f7fb;
   --card:#ffffff;
@@ -112,6 +138,7 @@ body{
   text-size-adjust:100%;
 }
 
+/* [02. Global Layout / Shell · 전체 레이아웃 / 기본 구조] Page Shell · 페이지 shell */
 .wrap{
   max-width:1680px;
   margin:0 auto;
@@ -195,6 +222,7 @@ body{
   margin-top:18px;
 }
 
+/* [04. Common Cards / Components · 공통 카드 / 컴포넌트] Cards / Typography · 카드 / 타이포 */
 .card{
   background:var(--card);
   border:1px solid var(--line);
@@ -257,6 +285,7 @@ section{
   letter-spacing:-.04em;
 }
 
+/* [05. Tables / Forms · 테이블 / 입력 폼] Base Tables · 기본 테이블 */
 table{
   width:100%;
   border-collapse:separate;
@@ -311,7 +340,7 @@ td.num{
   font-weight:900;
 }
 
-/* Large dashboard surfaces: KPI/metric and mini cards intentionally excluded. */
+/* Large Surfaces · 대형 공통 surface: KPI/metric/mini-card를 제외한 note/chart/band 영역 */
 :is(.note,.chart-card,.pension-band,.securities-band){
   border:1px solid var(--line);
   padding:18px;
@@ -348,7 +377,7 @@ td.num{
   line-height:var(--hero-pill-line);
 }
 
-/* 상단 핵심요약(hero): 태블릿에서는 카드 여백·제목·요약 pill을 한 단계 축소한다. */
+/* Hero Tablet · 핵심요약 태블릿: 카드 여백·제목·요약 pill을 한 단계 축소 */
 @media (min-width:761px) and (max-width:1100px){
   .hero{
     --hero-pad-y:18px;
@@ -371,7 +400,7 @@ td.num{
   }
 }
 
-/* 상단 핵심요약(hero): 모바일과 실제 스마트폰 가로모드는 같은 폰용 타이포/여백을 사용한다. */
+/* Hero Phone UI · 핵심요약 폰 UI: 세로 모바일과 실제 스마트폰 가로모드에 동일한 타이포/여백 적용 */
 @media (max-width:760px),
        (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   .hero{
@@ -493,6 +522,7 @@ td.num{
   }
 }
 
+/* [08. Charts · 차트] Chart Primitives / Tooltip · 차트 기본 요소 / tooltip */
 .bar-box{
   height:12px;
   background:#eef2f7;
@@ -570,7 +600,7 @@ td.num{
   color:#fff;
 }
 
-/* 차트 공통 구조 */
+/* Chart Core · 차트 공통 구조 */
 .chart-grid{
   grid-template-columns:1fr;
   gap:18px;
@@ -766,7 +796,7 @@ button.legend-item.chart-series-all.active{
   background:var(--subtle-card);
 }
 
-/* 공통 대형 카드 그리드: 태블릿·모바일에서는 세로 1열로 내려 가독성을 우선한다. */
+/* Large Grid Responsive · 대형 카드 그리드 반응형: 1100px 이하에서 세로 1열 */
 @media (max-width:1100px){
   .cards, .three, .two{
     grid-template-columns:1fr;
@@ -787,6 +817,7 @@ button.legend-item.chart-series-all.active{
   min-width:0;
 }
 
+/* [07. Pension · 퇴직연금] Overview / Insight · 현황 / 인사이트 */
 .pension-detail-grid{
   width:100%;
   grid-template-columns:minmax(0,1.56fr) minmax(min(42%,480px),.72fr);
@@ -1036,7 +1067,7 @@ button.legend-item.chart-series-all.active{
   color:#64748b;
 }
 
-/* 퇴직연금 인사이트: 모바일에서 카드/스택바를 압축하되 정보 구조는 유지한다. */
+/* Pension Insight Mobile · 퇴직연금 인사이트 모바일: 카드/스택바 압축, 정보 구조 유지 */
 @media (max-width:760px){
   .pension-insight-card{
     padding:12px;
@@ -1051,7 +1082,7 @@ button.legend-item.chart-series-all.active{
   }
 }
 
-/* 퇴직연금 시각화 tooltip: 태블릿·모바일에서는 viewport 밖으로 나가지 않도록 좌우 정렬을 고정한다. */
+/* Pension Tooltip Responsive · 퇴직연금 tooltip: 1100px 이하에서 viewport 이탈 방지 */
 @media (max-width:1100px){
   .pension-viz-tooltip,
   .pension-viz-tooltip.wide{
@@ -1115,7 +1146,7 @@ button.legend-item.chart-series-all.active{
 
 .change-mobile-list{margin-top:12px}
 
-/* 퇴직연금 상세: 웹은 2열, 1100px 이하는 1열로 전환한다. */
+/* Pension Detail Responsive · 퇴직연금 상세: 웹 2열, 1100px 이하 1열 */
 @media (max-width:1100px){
   .pension-detail-grid{
     grid-template-columns:1fr;
@@ -1181,8 +1212,7 @@ button.legend-item.chart-series-all.active{
   font-variant-numeric:tabular-nums;
 }
 
-/* Cumulative summary cards shared by pension/securities:
-   layout only — card surface and typography come from the common mini-card system. */
+/* Cumulative Summary Cards · 연금/증권 누적 요약카드: layout만 담당하고 surface/타이포는 mini-card 공통 규칙 사용 */
 .chart-note.six{
   grid-template-columns:repeat(6,minmax(0,1fr));
   gap:10px;
@@ -1195,7 +1225,7 @@ button.legend-item.chart-series-all.active{
   word-break:normal;
 }
 
-/* 6개 요약카드: 웹 6열 → 태블릿 3열 → 모바일 2열. 실제 폰 가로는 3열로 공간을 활용한다. */
+/* Six Summary Cards · 6개 요약카드: 웹 6열 → 태블릿 3열 → 모바일 2열, 실제 폰 가로 3열 */
 @media (min-width:761px) and (max-width:1100px){
   .chart-note.six{
     gap:8px;
@@ -1217,7 +1247,7 @@ button.legend-item.chart-series-all.active{
   }
 }
 
-/* 페이지 공통 여백: 태블릿·모바일은 외곽 여백과 큰 카드 padding을 줄이고 스크롤 가능 힌트를 강화한다. */
+/* Page Shell Responsive · 페이지 공통 반응형: 1100px 이하에서 외곽 여백/대형 카드 padding 축소 */
 @media (max-width:1100px){
   .wrap{
     padding:7px;
@@ -1234,12 +1264,14 @@ button.legend-item.chart-series-all.active{
   }
 }
 
-/* 폰 UI에서는 topbar 바로 아래부터 콘텐츠가 시작되도록 상단 여백을 제거한다. */
+/* Phone Shell · 폰 UI: Topbar 바로 아래에서 콘텐츠가 시작되도록 상단 여백 제거 */
 @media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   .wrap{padding-top:0}
 }
 
-/* Summary/source metric cards: shared typography; summary grids use the common viewport system. */
+/* Metric Cards · 핵심지표 카드: 공통 타이포와 대표 viewport grid 사용 */
+
+/* [04. Common Cards / Components · 공통 카드 / 컴포넌트] Common Metrics · 공통 핵심지표 */
 .metric-card{
   --metric-label-size:13px;
   --metric-value-size:28px;
@@ -1286,7 +1318,7 @@ button.legend-item.chart-series-all.active{
   word-break:keep-all;
 }
 
-/* 핵심 metric 카드: 태블릿/모바일에서 타이포와 여백만 단계적으로 축소하고 구조는 공통화한다. */
+/* Metric Cards Responsive · 핵심지표 카드 반응형: 태블릿/모바일에서 타이포·여백 단계 축소 */
 @media (min-width:761px) and (max-width:1100px){
   .metric-card{
     --metric-label-size:12px;
@@ -1393,6 +1425,7 @@ button.legend-item.chart-series-all.active{
   }
 }
 
+/* [03. Topbar / Navigation · 상단바 / 내비게이션] Date Action Menu · 날짜 action menu */
 .date-action-menu{display:none}
 .date-action-menu.show{display:block}
 
@@ -1410,7 +1443,7 @@ button.legend-item.chart-series-all.active{
 .cash-basis-note-mark{color:#EF3341;font-weight:800}
 .cash-basis-note-sup{font-size:.72em;margin-left:2px;line-height:0}
 
-/* Shared section-title chips: basis, separate-profit state, and table/card switch. */
+/* Section Controls · 섹션 제목 control: 기준, 별도수익 상태, 표/카드 전환 chip */
 .section-control-chip{
   display:inline-flex;
   align-items:center;
@@ -1436,7 +1469,7 @@ button.legend-item.chart-series-all.active{
   font-weight:900;
   cursor:pointer;
 }
-/* 섹션 제목: 모바일에서는 제목/기준 chip 크기를 줄여 한 줄 배치를 최대한 유지한다. */
+/* Section Controls Mobile · 섹션 제목 모바일: 제목/chip 크기를 줄여 한 줄 배치 우선 */
 @media(max-width:760px){
   .section-title{align-items:flex-start}
   .section-basis-chip{
@@ -1445,6 +1478,7 @@ button.legend-item.chart-series-all.active{
   }
 }
 
+/* [07. Pension · 퇴직연금] Contribution / Adjustment · 납입 / 금액조정 */
 .pension-contrib-tool{
   margin-top:14px;
   padding:14px;
@@ -1816,7 +1850,7 @@ body.contrib-modal-open{
   border-color:rgba(254,215,170,.25);
 }
 
-/* 기업적립금 모달: 필드 폭, 삭제 목록, 섹션 여백 보정 */
+/* Pension Contribution Modal · 퇴직연금 납입/삭제 모달: 필드·목록·섹션 레이아웃 */
 .contrib-field,
 .contrib-field input,
 .contrib-field select{
@@ -1901,7 +1935,7 @@ body.contrib-modal-open{
   word-break:break-word;
 }
 
-/* 퇴직연금 삭제목록: 태블릿·웹은 고정 높이 목록, 모바일은 내용 높이에 맞춘다. */
+/* Pension Delete List · 퇴직연금 삭제목록: 태블릿·웹 고정 높이, 모바일 내용 높이 */
 @media(min-width:761px){
   .contrib-modal .contrib-existing-list{
     max-height:96px;
@@ -1943,7 +1977,7 @@ body.contrib-modal-open{
   box-sizing:border-box;
 }
 
-/* Large band variants: surface structure comes from the shared large-card rule. */
+/* Asset Bands · 자산 band: surface는 공통 large-card 규칙 재사용 */
 .pension-band{
   border-radius:22px;
   background:var(--pension-band-bg);
@@ -1952,13 +1986,14 @@ body.contrib-modal-open{
   border-radius:24px;
   background:var(--securities-band-bg);
 }
-/* 자산 영역 band: 모바일에서는 큰 외곽 카드의 여백/라운드를 줄인다. */
+/* Asset Bands Mobile · 자산 band 모바일: 외곽 여백/라운드 축소 */
 @media(max-width:760px){
   .pension-band,
   .securities-band{border-radius:20px}
 }
 
-/* Asset workspace tabs: securities first, pension second; panels keep their existing section IDs for TOC jumps. */
+/* [06. Securities / Asset Workspace · 증권계좌 / 자산 작업영역] Asset Workspace · 자산 작업영역 */
+/* Asset Workspace Tabs · 자산 작업영역 탭: 증권 → 퇴직연금 순서, 기존 section ID 유지 */
 .asset-workspace{margin-top:22px}
 .asset-workspace-tabs{
   display:grid;
@@ -1994,7 +2029,7 @@ body.contrib-modal-open{
   .asset-workspace-tab{min-height:34px;font-size:12px}
 }
 
-/* Dark theme: only states that differ from the shared theme variables. */
+/* Dark Theme States · 다크 테마 상태: 공통 변수만으로 해결되지 않는 차이만 선언 */
 .dark :is(.note,.chart-card,.card:not(.dark),.mini-card,.mobile-data-card){background-color:var(--card);border-color:var(--line);color:var(--ink)}
 .dark .chart-y-auto-state{background:#273449;color:#94a3b8}
 .dark .chart-y-auto-toggle.active .chart-y-auto-state{background:#1e3a5f;color:#93c5fd}
@@ -2018,7 +2053,7 @@ body.contrib-modal-open{
   }
 }
 
-/* 모바일 빠른 이동 메뉴 */
+/* Quick Navigation Anchor · 빠른 이동 anchor */
 [id]{
   scroll-margin-top:76px;
 }
@@ -2051,14 +2086,12 @@ body.contrib-modal-open{
   letter-spacing:-.02em;
 }
 
-/* 최종 QA 보정: 증권계좌 KPI 상단 여백 */
+/* Securities Summary Spacing · 증권계좌 KPI 상단 간격 */
 .securities-summary-block .cards{
   margin-top:0;
 }
 
-/* 최종 QA 보정: 모달 오픈 시 모바일 메뉴 버튼 숨김 */
-
-/* Allocation value metadata: ratio is 1px larger than include-detail; neither is bold. */
+/* Allocation Metadata · 평가액 비중 메타: 비율은 상세값보다 1px 크게, 둘 다 일반 굵기 */
 .mini-card .alloc-ratio-meta,
 .mini-card .alloc-cash-meta{
   color:var(--muted);
@@ -2080,7 +2113,7 @@ body.contrib-modal-open{
   .mini-card .alloc-cash-meta{font-size:8.5px}
 }
 
-/* 평가액 비중 카드: 연금/증권 공통 총액 표시 + 화면군별 그리드 */
+/* Allocation Summary · 평가액 비중 카드: 연금/증권 공통 총액 + 화면군별 grid */
 #pension-chart-alloc .pension-alloc-total-card,
 #chart-alloc:not(.phone-chart-ui) #securityAllocCards > .alloc-total-card{
   display:grid;
@@ -2108,7 +2141,7 @@ body.contrib-modal-open{
 #pension-chart-alloc .pension-cash-detail-full{display:block}
 #pension-chart-alloc .pension-cash-detail-compact{display:none}
 
-/* 퇴직연금 평가액 비중: 웹/태블릿 4열, 모바일 2열. */
+/* Pension Allocation Responsive · 퇴직연금 평가액 비중: 웹/태블릿 4열, 모바일 2열 */
 @media (min-width:761px) and (max-width:1100px){
   #pension-chart-alloc .chart-note{
     grid-template-columns:repeat(4,minmax(0,1fr));
@@ -2124,7 +2157,7 @@ body.contrib-modal-open{
   grid-template-columns:repeat(2,minmax(0,1fr));
 }
 
-/* Securities allocation: type 3 / 2+1 / 2+1, symbol 4+(2+1) / 4+(2+1) / 2+(1). */
+/* Securities Allocation · 증권 평가액 비중: 유형/종목별 카드 배치 정책 */
 #securityAllocCards.security-alloc-card-grid{
   grid-template-columns:repeat(var(--security-alloc-card-count,4),minmax(0,1fr));
 }
@@ -2132,7 +2165,7 @@ body.contrib-modal-open{
   grid-column:span 2;
 }
 
-/* 증권 평가액 비중: 태블릿은 4열, 모바일은 2열이며 총액 카드는 모바일에서 한 행 전체를 사용한다. */
+/* Securities Allocation Responsive · 증권 평가액 비중: 태블릿 4열, 모바일 2열 + 총액 full row */
 @media (min-width:761px) and (max-width:1100px){
   #securityAllocCards.security-alloc-card-grid{
     grid-template-columns:repeat(2,minmax(0,1fr));
@@ -2226,7 +2259,7 @@ body.contrib-modal-open{
   background:#3f4f65;
 }
 
-/* 퇴직연금 ETF 매수 반영 */
+/* Pension ETF Trade · 퇴직연금 ETF 거래 입력/미리보기 */
 /* 상태 utility: 기본 grid/display 선언보다 hidden 상태가 반드시 우선해야 하므로 important 강제 우선순위를 유지한다. */
 #pensionContribStandardFields[hidden],
 .pension-etf-trade-fields[hidden]{
@@ -2379,7 +2412,7 @@ body.contrib-modal-open{
   }
 }
 
-/* Restored page section title icons */
+/* Section Title Icons · 섹션 제목 아이콘 */
 .section-title-icon{
   --section-icon-size:30px;
   --section-icon-radius:12px;
@@ -2410,7 +2443,7 @@ body.contrib-modal-open{
   gap:8px;
 }
 
-/* Capital-source cards: no outer panel, keep only the three data cards. */
+/* Capital Source Cards · 투자원금 원천/검산: 외곽 panel 없이 3개 데이터 카드만 사용 */
 .capital-source-section .source-title{
   margin-bottom:12px;
   padding:0 2px;
@@ -2435,14 +2468,15 @@ body.contrib-modal-open{
   border-color:rgba(96,165,250,.24);
 }
 
-/* 투자원금 원천/검산: 모바일은 1열, 태블릿은 별도 규칙에서 3열을 유지한다. */
+/* Capital Source Responsive · 투자원금 원천/검산: 모바일 1열, 태블릿 3열 */
 @media(max-width:760px){
   .source-grid{
     gap:12px;
   }
 }
 
-/* KRX 현재가 반영: 브라우저 기본 alert/prompt 대신 커스텀 모달 */
+/* [09. Modal / Tooltip / Overlay · 모달 / 툴팁 / 오버레이] KRX Action Modal · KRX 작업 모달 */
+/* KRX Price Modal · KRX 현재가 반영 커스텀 모달 */
 .krx-action-modal{
   z-index:13000;
   align-items:center;
@@ -2596,7 +2630,7 @@ body.contrib-modal-open{
   border-color:var(--blue);
   color:#fff;
 }
-/* 차트 웹 전용: 1101px 이상에서는 가로 스크롤 없이 카드/SVG를 100% 폭으로 채운다. */
+/* Chart Desktop · 차트 웹: 1101px 이상에서 가로 스크롤 없이 카드/SVG 100% */
 @media (min-width:1101px){
   .wrap{
     padding-top:22px;
@@ -2612,7 +2646,7 @@ body.contrib-modal-open{
   }
 }
 
-/* Targeted chart title size reduction only */
+/* Chart Title Scale · 차트 제목 크기 */
 #pension-chart-cum .chart-head h3,
 #pension-chart-symbol .chart-head h3,
 #pension-chart-alloc .chart-head h3,
@@ -2646,7 +2680,7 @@ body.contrib-modal-open{
   }
 }
 
-/* PIN action modal */
+/* Pension Action PIN Modal · 퇴직연금 작업 PIN 모달 */
 .pension-action-pin-modal{
   position:fixed;
   inset:0;
@@ -2759,7 +2793,7 @@ body.contrib-modal-open{
   border-color:rgba(148,163,184,.24);
 }
 
-/* KRX/PIN 모달: 모바일은 하단 sheet 형태. 같은 모바일 범위의 삭제목록 날짜 표기도 여기서 함께 정리한다. */
+/* Action Modals Mobile · KRX/PIN 모바일: bottom-sheet + 삭제목록 날짜 compact 표시 */
 @media(max-width:760px){
   .krx-action-modal,
   .pension-action-pin-modal{
@@ -2802,7 +2836,7 @@ body.contrib-modal-open{
   text-decoration:none;
 }
 
-/* Subtle visual effects polish */
+/* Interaction Effects · 공통 인터랙션 효과 */
 .card,
 .note,
 .pension-insight-card,
@@ -2826,7 +2860,7 @@ button,
     opacity .16s ease;
 }
 
-/* 마우스/트랙패드 전용 hover: 터치 기기에는 hover 효과를 강제하지 않는다. */
+/* Fine Pointer Hover · 마우스/트랙패드 전용 hover: 터치 기기 제외 */
 @media(hover:hover) and (pointer:fine){
   .card:hover,
   .note:hover,
@@ -2951,13 +2985,12 @@ button:active,
   }
 }
 
-/* 장부결과 VS 실제보유: 카드 간격만 별도 유지. 타이포/값 슬롯은 metric-card 공통 규칙 사용. */
+/* Ledger Check Cards · 장부결과 VS 실제보유: gap만 전용, 타이포/값은 metric-card 재사용 */
 #ledger-check .cards{
   gap:14px;
 }
 
-/* 2026-08-04 dashboard UI revision */
-/* 증권계좌 관행: 수익/양수는 빨강, 손실/음수는 파랑 */
+/* Semantic Value Colors · 의미 색상: 수익/양수 빨강, 손실/음수 파랑 */
 /*
   의미 색상 utility
   - 수익/손실/차이 색은 카드·표·tooltip의 일반 text color보다 항상 우선해야 한다.
@@ -2971,7 +3004,7 @@ button:active,
 .dash-tooltip .tt-pos{color:#ff8f98 !important}
 .dash-tooltip .tt-neg{color:#79b4ff !important}
 
-/* mobile card/table switch */
+/* Mobile View Switch · 모바일 표/카드 보기 전환 */
 .mobile-card-view,
 .mobile-view-toggle{display:none}
 
@@ -2981,9 +3014,7 @@ button:active,
   .chart-head > div{min-width:0}
 }
 
-/* 2026-08-04 follow-up: top controls align to actual content edges */
-
-/* cumulative chart line selector: return rate / KOSPI */
+/* Chart Compare Control · 누적차트 비교: 수익률 / KOSPI */
 .chart-head-actions{
   display:flex;
   align-items:center;
@@ -3025,7 +3056,7 @@ button:active,
 .dark .chart-compare-toggle button{color:#94a3b8}
 .dark .chart-compare-toggle button.active{background:#e2e8f0;color:#0f172a}
 
-/* PIN: automatic execution, status remains inside PIN modal */
+/* Pension PIN Status · 퇴직연금 PIN 자동 실행/상태 표시 */
 .pension-action-pin-guide{
   margin-top:9px;
   color:#64748b;
@@ -3052,9 +3083,7 @@ button:active,
   }
 }
 
-/* Chart navigation layout is owned by tablet overflow and phone-chart-ui rules below. */
-
-/* 2026-08-04 navigation + KRX modal final adjustments */
+/* Chart Navigation Ownership · 차트 이동 배치는 태블릿 overflow/phone-chart-ui 규칙에서 관리 */
 
 .krx-selected-line,
 .krx-selected-space{
@@ -3109,7 +3138,7 @@ button:active,
   .krx-selected-space{display:none}
 }
 
-/* Securities holdings: chart-color symbol markers; row neutralization is scoped below. */
+/* Securities Holding Markers · 증권 보유종목: 차트 색상 marker */
 .holding-name-text{
   display:inline;
 }
@@ -3123,7 +3152,7 @@ button:active,
   vertical-align:1px;
 }
 
-/* TOC/menu shared primitives: panel, item interaction and SVG icon geometry. */
+/* Navigation Primitives · 목차/메뉴 공통 panel·item·SVG icon */
 :is(.desktop-edge-toc-panel,.date-action-menu.mobile-combined-menu){
   border:1px solid var(--line);
   background:var(--card);
@@ -3157,11 +3186,11 @@ button:active,
 :is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon) svg{display:block}
 .dark :is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon){color:#8b949e}
 
-/* 2026-08-04 desktop edge TOC correction
-   - Desktop/tablet: right-edge hover/focus table of contents only
-   - Mobile: keep the existing hamburger menu with links and management actions */
+/* Edge TOC · 우측 목차: 태블릿/웹 hover·focus 목차, 모바일은 hamburger menu 사용 */
+
+/* [03. Topbar / Navigation · 상단바 / 내비게이션] Edge TOC · 우측 목차 */
 .desktop-edge-toc{display:none}
-/* 우측 목차: 태블릿·웹(>=761)에서만 사용하고 모바일은 햄버거 목차를 사용한다. */
+/* Edge TOC Responsive · 우측 목차: 761px 이상에서만 표시 */
 @media(min-width:761px){
   /* 태블릿·웹은 우측 edge TOC를 사용한다. */
 
@@ -3301,8 +3330,7 @@ button:active,
   }
 }
 
-
-/* Securities holdings: neutral ticker rows and explicit name/value hierarchy. */
+/* Securities Holdings · 증권 보유종목: 중립 배경 + 종목명/수치 굵기 계층 */
 #securities-holdings .hold-position-table tbody tr:is(.ticker-samsung,.ticker-sk,.ticker-hyundai,.ticker-kodex) > td{
   background:var(--card);
 }
@@ -3315,7 +3343,7 @@ button:active,
   font-weight:800;
 }
 
-/* 태블릿 통합 레이아웃(761~1100): 차트 controls, 종목요약 4열, KPI 4열, 투자기간 차트 100%, 원천/검산 3열을 한 정책으로 유지한다. */
+/* Tablet Integration · 태블릿 통합: 차트 control, 종목요약/KPI, 투자기간 차트, 원천/검산 */
 @media (min-width:761px) and (max-width:1100px){
   .chart-card.has-horizontal-scroll .chart-scroll-row{
     display:flex;
@@ -3360,7 +3388,9 @@ button:active,
   }
 }
 
-/* Chart entrance animation: reveal plotted data from left to right once the chart viewport is fully visible. */
+/* Chart Entrance Animation · 차트 진입 animation: viewport 진입 후 좌→우 reveal */
+
+/* [08. Charts · 차트] Entrance Animation · 진입 animation */
 .chart-card.chart-entrance-ready .chart-anim-bar,
 .chart-card.chart-entrance-ready .chart-anim-point,
 .chart-card.chart-entrance-ready .chart-anim-line{
@@ -3413,7 +3443,7 @@ button:active,
   to{stroke-dashoffset:0}
 }
 
-/* 차트 접근성: 모션 감소 설정에서는 SVG animation과 시작 상태(opacity/transform/dashoffset)를 강제로 해제한다. */
+/* Reduced Motion Charts · 차트 모션 최소화: SVG animation/시작 상태 강제 해제 */
 @media(prefers-reduced-motion:reduce){
   .chart-card .chart-anim-bar,
   .chart-card .chart-anim-point,
@@ -3425,7 +3455,8 @@ button:active,
   }
 }
 
-/* 퇴직연금 작업 모음 */
+/* [07. Pension · 퇴직연금] Batch Operations · 작업 모음 */
+/* Pension Batch · 퇴직연금 작업 모음 */
 .pension-work-mode{
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:5px;
@@ -3590,7 +3621,7 @@ button:active,
   .pension-batch-head{align-items:center}
 }
 
-/* 작업 모음 선택기는 등록 제목과 같은 줄에 두어 기본 모달 높이를 늘리지 않는다. */
+/* Pension Batch Header · 작업 모음 선택기를 제목 행에 배치해 모달 높이 유지 */
 .pension-contrib-section-head{
   display:flex;
   align-items:center;
@@ -3617,7 +3648,7 @@ button:active,
   font-size:clamp(10px,2.5vw,11px);
 }
 
-/* 퇴직연금 모달 마우스 환경: 태블릿·웹의 fine pointer에서만 hover/active transition을 즉시 처리한다. */
+/* Pension Modal Fine Pointer · 퇴직연금 모달: 761px 이상 fine pointer interaction */
 @media (min-width:761px) and (hover:hover) and (pointer:fine){
   .contrib-modal button,
   .contrib-modal .btn{
@@ -3632,7 +3663,7 @@ button:active,
   }
 }
 
-/* 종목 tooltip: 모바일에서 viewport 폭 안에 들어오도록 최대폭/줄바꿈을 제한한다. */
+/* Symbol Tooltip Mobile · 종목 tooltip: 모바일 viewport 이탈 방지 */
 @media(max-width:760px){
   .dash-tooltip[data-tooltip-kind="symbol"]{
     max-width:min(320px, calc(100vw - 28px));
@@ -3660,7 +3691,7 @@ button:active,
   }
 }
 
-/* 별도수익 ON/OFF 보기 모드 */
+/* Separate Profit Mode · 별도수익 ON/OFF 보기 모드 */
 .separate-profit-control-row{
   display:flex;
   align-items:center;
@@ -3730,7 +3761,7 @@ button:active,
 .source-reclass-note span{
   color:#64748b;
 }
-/* Keep the shared control on the title line; mobile shows only the ON/OFF state. */
+/* Separate Profit Placement · 공통 control은 제목 행 유지, 모바일은 ON/OFF state 중심 */
 .section-title-actions{
   display:flex;
   align-items:center;
@@ -3747,7 +3778,7 @@ button:active,
   margin-left:auto;
 }
 
-/* 별도수익 ON/OFF: 모바일과 실제 폰 가로에서는 라벨을 줄이고 state 중심의 compact control로 표시한다. */
+/* Separate Profit Phone UI · 별도수익 폰 UI: compact label + state 중심 표시 */
 @media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   .section-title-actions{
     gap:5px;
@@ -3788,14 +3819,14 @@ button:active,
   display:none !important;
 }
 
-/* 2026-08-11: pension cash snapshot desktop 3-column row */
+/* Pension Cash Desktop · 퇴직연금 현금 snapshot: 761px 이상 3열 */
 @media(min-width:761px){
   .contrib-modal #pensionContribStandardFields.cash-mode{
     grid-template-columns:repeat(3,minmax(0,1fr));
   }
 }
 
-/* 2026-08-11 mobile top-button placement */
+/* Mobile Top Button · 모바일 맨위로 버튼 위치 */
 @media(max-width:760px){
 
   .mobile-top-button{
@@ -3825,7 +3856,7 @@ button:active,
 /* 실제 스마트폰 가로모드 예외: 폭이 760px을 넘어도 낮은 높이+터치 입력이면 태블릿이 아니라 폰 UI로 처리한다. */
 @media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
 
-  /* Capital source/reconciliation: all three cards in one row. */
+  /* Capital Source Landscape · 투자원금 원천/검산: 실제 폰 가로에서 3카드 1행 */
   #capital-source-check .source-grid{
     grid-template-columns:repeat(3,minmax(0,1fr));
     gap:8px;
@@ -3836,7 +3867,9 @@ button:active,
 
 }
 
-/* 차트 이동/확대 버튼: 화살표와 확대 버튼은 하나의 정사각형 control primitive를 공유한다. */
+/* Chart Navigation Controls · 차트 이동/확대: 공통 정사각형 control primitive */
+
+/* [08. Charts · 차트] Navigation / Expanded Chart · 이동 / 확대 차트 */
 :is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
   --chart-square-size:var(--dashboard-control-height);
   display:none;
@@ -4000,7 +4033,7 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   gap:5px 10px;
 }
 
-/* 확대 차트: 기기를 실제 가로로 회전하면 CSS 90도 회전을 중단하고 실제 landscape viewport를 채운다. */
+/* Expanded Chart Landscape · 확대 차트: 실제 가로모드에서는 landscape viewport 직접 사용 */
 .chart-expanded-overlay.device-landscape .chart-expanded-stage{
   width:100%;
   height:100%;
@@ -4048,7 +4081,9 @@ body.chart-expanded-open .dash-tooltip{
   overscroll-behavior:contain;
 }
 
-/* Topbar 반응형: 웹 기본 / 태블릿 761~1100 / 모바일 <=760의 3단계만 사용한다. */
+/* Topbar Responsive · 상단바: 웹 기본 / 태블릿 761~1100 / 모바일 <=760 */
+
+/* [03. Topbar / Navigation · 상단바 / 내비게이션] Topbar Layout · 상단바 레이아웃 */
 .switcher{
   position:sticky;
   top:0;
@@ -4130,7 +4165,7 @@ body.chart-expanded-open .dash-tooltip{
 .date-action-menu-wrap,
 .topbar-label-short{display:none}
 
-/* Topbar 태블릿: 좌측 월/일 select는 웹과 동일, 우측 메뉴 label/button만 compact하게 줄인다. */
+/* Topbar Tablet · 상단바 태블릿: 날짜 select는 웹과 동일, 우측 action만 compact */
 @media (min-width:761px) and (max-width:1100px){
   .topbar-label-full{display:none}
   .topbar-label-short{display:inline}
@@ -4140,7 +4175,7 @@ body.chart-expanded-open .dash-tooltip{
   .date-tool-action-icon{margin-right:2px;font-size:11px}
 }
 
-/* Topbar 모바일: 기본은 날짜 select를 접고, 메뉴 열림/날짜고정 ON일 때 동일 폭의 두 select를 표시한다. 테마/햄버거는 우측 고정 크기다. */
+/* Topbar Mobile · 상단바 모바일: 날짜 접힘/고정 상태 + 동일폭 select + 우측 고정 action */
 @media(max-width:760px){
   body.mobile-topbar-fixed-visible #app{padding-top:40px}
   .switcher{
@@ -4242,7 +4277,7 @@ body.chart-expanded-open .dash-tooltip{
     justify-self:end;
   }
 
-  /* Date pin lives in the mobile hamburger header. */
+  /* Date Pin · 날짜 고정 toggle: 모바일 hamburger header 내부 */
   .mobile-date-pin-control{display:inline-flex;align-items:center;gap:6px;margin-left:auto;color:#57606a;cursor:pointer;user-select:none}
   .dark .mobile-date-pin-control{color:#8b949e}
   .mobile-date-pin-control > span:first-child{font-size:11px;font-weight:800;letter-spacing:-.02em;line-height:25px;white-space:nowrap}
@@ -4253,7 +4288,7 @@ body.chart-expanded-open .dash-tooltip{
   .mobile-date-pin-control input:checked + .mobile-date-pin-track > span{transform:translateX(13px)}
   .mobile-date-pin-control input:focus-visible + .mobile-date-pin-track{outline:2px solid #fff;outline-offset:2px}
 
-  /* Hamburger panel belongs to the same mobile topbar breakpoint. */
+  /* Hamburger Panel · 햄버거 panel: Topbar 모바일 breakpoint와 동일 범위 */
   .date-action-menu.mobile-combined-menu{
     position:fixed;
     top:43px;
@@ -4290,8 +4325,9 @@ body.chart-expanded-open .dash-tooltip{
   .dark .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{background:#30363d}
 }
 
+/* Phone Chart Header · 모바일 차트 헤더: 한 줄 제목 + 정보 tooltip + 확대 버튼 */
 
-/* 모바일 차트 헤더/control: 제목은 한 줄, 정보 tooltip과 확대 버튼은 제목 행에 배치한다. */
+/* [08. Charts · 차트] Phone Chart UI · 모바일 차트 UI */
 .chart-title-info{
   display:none;
 }
@@ -4367,12 +4403,12 @@ body.chart-expanded-open .dash-tooltip{
   background:#111827;
   color:#cbd5e1;
 }
-/* 폰에서는 확대 버튼만 제목 행에 두고 비교/시리즈 control은 아래 control row에 유지한다. */
+/* Phone Chart Controls · 폰 차트: 제목 행에는 확대 버튼만, 비교/시리즈는 control row */
 .phone-chart-ui .chart-head > .chart-expand-button{
   display:inline-flex;
   margin-left:auto;
 }
-/* 모바일 차트 control 흐름: switch/화살표 → 차트 → 범례 → 옵션 순서를 공통으로 사용한다. */
+/* Phone Chart Flow · 모바일 차트 흐름: switch/화살표 → 차트 → 범례 → 옵션 */
 .chart-card.phone-chart-ui .chart-scroll-row{
   display:flex;
   align-items:center;
@@ -4418,7 +4454,7 @@ body.chart-expanded-open .dash-tooltip{
   gap:6px 9px;
 }
 
-/* Phone allocation summary: the total card owns the full grid row. */
+/* Phone Allocation Summary · 폰 평가액 비중: 총액 카드가 grid 전체 행 사용 */
 .phone-chart-ui #securityAllocCards > .alloc-total-card{
   grid-column:1 / -1;
   display:grid;
@@ -4469,7 +4505,9 @@ body.chart-expanded-open .dash-tooltip{
   transform:translateX(-50%);
 }
 
-/* 데이터 표 공통: 웹/태블릿은 table 중심, 모바일/실제 폰 가로는 table↔card 전환을 같은 구조로 사용한다. */
+/* Data Tables · 데이터 표: 웹/태블릿 table, 폰 UI table↔card 전환 */
+
+/* [05. Tables / Forms · 테이블 / 입력 폼] Data Table / Mobile Card · 데이터 표 / 모바일 카드 */
 .mobile-scroll{
   width:100%;
   max-width:100%;
@@ -4501,11 +4539,11 @@ body.chart-expanded-open .dash-tooltip{
   white-space:nowrap;
 }
 .dashboard-data-table .table-cell-center{text-align:center}
-/* Positive/negative table values use the shared semantic rules above. */
+/* Table Value States · 표 수익/손실 색상은 공통 semantic utility 재사용 */
 
-/* Intentional table exceptions: memo wrapping and pension allocation bar width. */
+/* Table Exceptions · 표 예외: memo 줄바꿈 + 연금 allocation bar 폭 */
 
-/* Account labels: table and mobile card titles use the same emphasized hierarchy. */
+/* Account Labels · 계좌명: table/mobile card 동일 강조 계층 */
 .accounts-table tbody tr:not(.summary-row) .accounts-name{font-weight:800}
 .dashboard-data-table .accounts-memo{
   min-width:180px;
@@ -4523,7 +4561,7 @@ body.chart-expanded-open .dash-tooltip{
 .source-data-table{border-radius:12px}
 .change-table-wrap{margin-top:12px;border-radius:12px}
 
-/* 데이터 표 태블릿: 열 구조는 유지하고 font/padding만 한 단계 압축한다. */
+/* Data Tables Tablet · 데이터 표 태블릿: 열 구조 유지 + font/padding 축소 */
 @media (min-width:761px) and (max-width:1100px){
   .dashboard-data-table{
     --data-table-font-size:12px;
@@ -4534,7 +4572,7 @@ body.chart-expanded-open .dash-tooltip{
   }
 }
 
-/* 데이터 표 폰 UI: 세로 모바일과 실제 iPhone급 가로모드에 동일한 compact/card 정책을 적용한다. */
+/* Data Tables Phone UI · 데이터 표 폰 UI: 세로 모바일/실제 폰 가로 동일 compact-card 정책 */
 @media (max-width:760px),
        (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   .dashboard-data-table{
@@ -4558,13 +4596,13 @@ body.chart-expanded-open .dash-tooltip{
     background:var(--card);
     color:var(--muted);
   }
-  /* 상태 전환 utility: base/component display보다 현재 보기 모드가 항상 우선해야 하므로 4개의 display important를 유지한다. */
+  /* View State Utility · 보기 상태 utility: 현재 table/card mode가 base display보다 우선하므로 display important 유지 */
   [data-mobile-view="card"] .table-view{display:none !important}
   [data-mobile-view="card"] .mobile-card-view{display:grid !important}
   [data-mobile-view="table"] .table-view{display:block !important}
   [data-mobile-view="table"] .mobile-card-view{display:none !important}
   .mobile-card-view{grid-template-columns:1fr;gap:9px;width:100%}
-  /* Shared card-view UI for every mobile table/card switch. */
+  /* Mobile Data Cards · 모바일 데이터 카드: 모든 table/card 전환 공통 */
   .mobile-data-card{
     min-width:0;
     padding:13px 14px;
@@ -4589,7 +4627,7 @@ body.chart-expanded-open .dash-tooltip{
     padding:5px 0;
     border-top:1px dashed var(--line);
   }
-  /* No separator immediately below the main card label. */
+  /* Mobile Card First Row · 모바일 카드 첫 행은 상단 separator 생략 */
   .mobile-data-card-row:first-child{border-top:0}
   .mobile-data-card-label{
     color:var(--muted);
@@ -4605,7 +4643,7 @@ body.chart-expanded-open .dash-tooltip{
     line-height:1.35;
     font-variant-numeric:tabular-nums;
   }
-  /* Only explicit 합계/총계 cards may emphasize their numeric values. */
+  /* Mobile Total Cards · 모바일 합계/총계 카드만 수치 강조 */
   .mobile-data-card.mobile-total-card .mobile-data-card-value{font-weight:800}
   .mobile-data-card-row.stacked{display:block}
   .mobile-data-card-row.stacked .mobile-data-card-value{margin-top:3px;text-align:left}
@@ -4639,6 +4677,8 @@ body.chart-expanded-open .dash-tooltip{
   - 6개 자산 차트는 960px 최소폭/가로 스크롤을 해제하고 인쇄 가능 폭에 맞춰 SVG 전체를 축소한다.
   - 화면 우측 목차와 차트 스크롤/확대 버튼은 인쇄물에서 제외한다.
 */
+
+/* [10. Browser / Accessibility / Print · 브라우저 / 접근성 / 인쇄] Print Layout · 인쇄 레이아웃 */
 @media print{
   html,
   body{
