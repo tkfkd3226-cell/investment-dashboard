@@ -299,10 +299,6 @@ td.num{
   font-weight:900;
 }
 
-.hold-row td{
-  font-weight:800;
-}
-
 /* Large dashboard surfaces: KPI/metric and mini cards intentionally excluded. */
 :is(.note,.chart-card,.pension-band,.securities-band){
   border:1px solid var(--line);
@@ -1870,15 +1866,23 @@ body.contrib-modal-open{
   margin-top:3px;
 }
 .contrib-existing-main{
+  display:block;
   flex:1;
   min-width:0;
 }
 .contrib-existing-title{
+  display:inline-block;
+  margin-right:10px;
+  vertical-align:baseline;
   font-size:13px;
   font-weight:900;
   color:var(--text);
 }
 .contrib-existing-memo{
+  display:inline-block;
+  margin-top:0;
+  margin-left:2px;
+  vertical-align:baseline;
   font-size:12px;
   font-weight:750;
   color:var(--muted);
@@ -1898,11 +1902,19 @@ body.contrib-modal-open{
   .contrib-existing-item{
     padding:8px 9px;
   }
+  .contrib-existing-main{
+    width:100%;
+  }
   .contrib-existing-title{
+    display:block;
+    margin-left:0;
+    margin-right:0;
     font-size:12px;
     line-height:1.35;
   }
   .contrib-existing-memo{
+    display:block;
+    margin:4px 0 0;
     font-size:11px;
     line-height:1.35;
   }
@@ -1912,10 +1924,7 @@ body.contrib-modal-open{
   background:#dc2626;
   color:white;
 }
-.wrap > section{
-  width:100%;
-  box-sizing:border-box;
-}
+.wrap > section,
 .grid.cards{
   width:100%;
   box-sizing:border-box;
@@ -1971,25 +1980,12 @@ body.contrib-modal-open{
   .asset-workspace-tab{min-height:34px;font-size:12px}
 }
 
-/* Dark theme: shared dashboard surfaces. Feature-specific dark rules below remain only for unique states. */
+/* Dark theme: only states that differ from the shared theme variables. */
 .dark :is(.note,.chart-card,.card:not(.dark),.mini-card,.mobile-data-card){background-color:var(--card);border-color:var(--line);color:var(--ink)}
-.dark :is(table,.dashboard-data-table){background:var(--card);color:var(--ink);border-color:var(--line)}
-.dark :is(th,td){border-color:var(--line)}
-.dark thead th{background:var(--table-head-bg);color:var(--ink)}
-.dark .summary-row td{background:var(--summary-row-bg)}
-.dark button.legend-item.chart-series-all{background:var(--card);border-color:var(--line);color:var(--muted)}
-.dark button.legend-item.chart-series-all.active{background:var(--subtle-card);color:var(--ink)}
-.dark .chart-y-auto-toggle{background:var(--card);border-color:var(--line);color:var(--muted)}
-.dark .chart-y-auto-toggle.active{background:var(--subtle-card);color:var(--ink)}
 .dark .chart-y-auto-state{background:#273449;color:#94a3b8}
 .dark .chart-y-auto-toggle.active .chart-y-auto-state{background:#1e3a5f;color:#93c5fd}
-.dark .chart-legend{color:var(--muted)}
-.dark :is(.mobile-data-card-label,.accounts-memo,.section-explainer,.table-note){color:var(--muted)}
-.dark :is(.mobile-data-card-title,.mobile-data-card-value){color:var(--ink)}
-.dark .pension-insight-card{border-color:var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
-.dark .pension-empty-state{background:var(--subtle-card);border-color:var(--line);color:var(--muted)}
+.dark .pension-insight-card{box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
 .dark .pension-stack-bar{background:#243149;border-color:#334155}
-.dark .separate-profit-toggle:not(.active){background:var(--card);border-color:var(--line);color:var(--muted)}
 .dark .source-reclass-note{background:#30181d;border-color:#7f3340}
 .dark .source-reclass-note span{color:#94a3b8}
 
@@ -2002,12 +1998,6 @@ body.contrib-modal-open{
 .securities-subsection > .section-title{
   margin-top:0;
 }
-.securities-subsection.grid.three{
-  display:grid;
-}
-.securities-subsection.source-block{
-  margin-top:18px;
-}
 @media(max-width:760px){
   .securities-subsection{
     margin-top:16px;
@@ -2017,13 +2007,6 @@ body.contrib-modal-open{
 /* 모바일 빠른 이동 메뉴 */
 [id]{
   scroll-margin-top:76px;
-}
-
-/* 증권계좌 내부 블록 변환 안정화 */
-.securities-band > section{
-  margin-top:18px;
-  width:100%;
-  box-sizing:border-box;
 }
 
 /* 퇴직연금 비중 막대 색상은 script.js의 pensionSeriesColor()를 단일 원천으로 사용. */
@@ -2480,13 +2463,13 @@ body.contrib-modal-open{
   font-size:24px;
   margin-bottom:12px;
 }
-.krx-action-card h3{
+:is(.krx-action-card,.pension-action-pin-card) h3{
   margin:0 0 6px;
   font-size:20px;
   font-weight:900;
   letter-spacing:-.03em;
 }
-.krx-action-card p{
+:is(.krx-action-card,.pension-action-pin-card) p{
   margin:0 0 18px;
   color:#64748b;
   font-size:13px;
@@ -2509,7 +2492,7 @@ body.contrib-modal-open{
   outline:none;
   box-sizing:border-box;
 }
-.krx-action-card input:focus{
+:is(.krx-action-card,.pension-action-pin-card) input:focus{
   border-color:#2563eb;
   box-shadow:0 0 0 3px rgba(37,99,235,.12);
 }
@@ -2543,7 +2526,7 @@ body.contrib-modal-open{
   cursor:pointer;
 }
 .krx-action-buttons .ghost{background:#fff;color:#334155}
-.krx-action-buttons .primary{background:#0f172a;color:#fff;border-color:#0f172a}
+:is(.krx-action-buttons,.pension-action-pin-buttons) .primary{background:#0f172a;color:#fff;border-color:#0f172a}
 .krx-action-buttons .primary:disabled{opacity:.55;cursor:wait}
 @media(min-width:761px){
   .krx-action-buttons .primary{white-space:nowrap}
@@ -2577,15 +2560,16 @@ body.contrib-modal-open{
   border-color:rgba(148,163,184,.22);
   color:#e5e7eb;
 }
-.dark .krx-action-card p{color:#94a3b8}
-.dark .krx-action-close{background:#1f2937;color:#cbd5e1}
-.dark .krx-action-label{color:#cbd5e1}
-.dark .krx-action-card input{
+.dark :is(.krx-action-card,.pension-action-pin-card) p{color:#94a3b8}
+.dark :is(.krx-action-close,.pension-action-pin-close){background:#1f2937;color:#cbd5e1}
+.dark .krx-action-label,
+.dark .pension-action-pin-card label{color:#cbd5e1}
+.dark :is(.krx-action-card,.pension-action-pin-card) input{
   background:#0f172a;
   border-color:#334155;
   color:#e5e7eb;
 }
-.dark .krx-action-buttons .ghost{
+.dark :is(.krx-action-buttons,.pension-action-pin-buttons) .ghost{
   background:#111827;
   border-color:#334155;
   color:#e5e7eb;
@@ -2610,8 +2594,6 @@ body.contrib-modal-open{
     height:360px;
   }
 }
-
-/* Desktop only: widen first column of 연금+계좌 성과 */
 
 /* Targeted chart title size reduction only */
 #pension-chart-cum .chart-head h3,
@@ -2698,20 +2680,6 @@ body.contrib-modal-open{
   margin-bottom:12px;
 }
 
-.pension-action-pin-card h3{
-  margin:0 0 6px;
-  font-size:20px;
-  font-weight:900;
-  letter-spacing:-.03em;
-}
-
-.pension-action-pin-card p{
-  margin:0 0 18px;
-  color:#64748b;
-  font-size:13px;
-  line-height:1.55;
-}
-
 .pension-action-pin-card label{
   display:block;
   margin-bottom:7px;
@@ -2731,11 +2699,6 @@ body.contrib-modal-open{
   font-weight:800;
   outline:none;
   box-sizing:border-box;
-}
-
-.pension-action-pin-card input:focus{
-  border-color:#2563eb;
-  box-shadow:0 0 0 3px rgba(37,99,235,.12);
 }
 
 .pension-action-pin-status{
@@ -2768,12 +2731,6 @@ body.contrib-modal-open{
   color:#334155;
 }
 
-.pension-action-pin-buttons .primary{
-  background:#0f172a;
-  color:#fff;
-  border-color:#0f172a;
-}
-
 .pension-action-pin-buttons .primary.danger{
   background:#dc2626;
   border-color:#dc2626;
@@ -2783,31 +2740,6 @@ body.contrib-modal-open{
   background:#111827;
   color:#e5e7eb;
   border-color:rgba(148,163,184,.24);
-}
-
-.dark .pension-action-pin-card p{
-  color:#94a3b8;
-}
-
-.dark .pension-action-pin-card label{
-  color:#cbd5e1;
-}
-
-.dark .pension-action-pin-close{
-  background:#1f2937;
-  color:#cbd5e1;
-}
-
-.dark .pension-action-pin-card input{
-  background:#0f172a;
-  border-color:#334155;
-  color:#e5e7eb;
-}
-
-.dark .pension-action-pin-buttons .ghost{
-  background:#111827;
-  color:#e5e7eb;
-  border-color:#334155;
 }
 
 @media(max-width:760px){
@@ -2831,42 +2763,15 @@ body.contrib-modal-open{
 
   .app-toast{
     bottom:16px;
+    width:calc(100vw - 16px);
+    max-width:520px;
+    box-sizing:border-box;
     border-radius:16px;
     text-align:center;
   }
 }
 
-/* Pension contribution delete list spacing/layout */
-.contrib-existing-main{
-  display:block;
-}
-
-.contrib-existing-title{
-  display:inline-block;
-  margin-right:10px;
-  vertical-align:baseline;
-}
-
-.contrib-existing-memo{
-  display:inline-block;
-  margin-top:0;
-  margin-left:2px;
-  vertical-align:baseline;
-}
-
 @media(max-width:760px){
-  .contrib-existing-main{
-    display:block;
-    width:100%;
-  }
-
-  .contrib-existing-title,
-  .contrib-existing-memo{
-    display:block;
-    margin-left:0;
-    margin-right:0;
-  }
-
   .contrib-existing-date,
   .contrib-existing-info{
     display:block;
@@ -2874,10 +2779,6 @@ body.contrib-modal-open{
 
   .contrib-existing-sep{
     display:none;
-  }
-
-  .contrib-existing-memo{
-    margin-top:4px;
   }
 }
 
@@ -3114,7 +3015,6 @@ button:active,
   line-height:1.45;
 }
 .pension-action-pin-status.checking{color:#0369a1}
-.pension-action-pin-status.err{color:#dc2626}
 .pension-action-pin-card input:disabled{opacity:.68;cursor:wait}
 
 @media(max-width:760px){
@@ -3382,37 +3282,17 @@ button:active,
 }
 
 
-/* 2026-08-04 holdings final neutral-background correction: table rows only. */
-#securities-holdings .hold-position-table tbody tr.ticker-samsung,
-#securities-holdings .hold-position-table tbody tr.ticker-sk,
-#securities-holdings .hold-position-table tbody tr.ticker-hyundai,
-#securities-holdings .hold-position-table tbody tr.ticker-kodex,
-#securities-holdings .hold-position-table tbody tr.ticker-samsung > td,
-#securities-holdings .hold-position-table tbody tr.ticker-sk > td,
-#securities-holdings .hold-position-table tbody tr.ticker-hyundai > td,
-#securities-holdings .hold-position-table tbody tr.ticker-kodex > td,
-#securities-holdings .hold-position-table tbody tr.ticker-samsung > td:first-child,
-#securities-holdings .hold-position-table tbody tr.ticker-sk > td:first-child,
-#securities-holdings .hold-position-table tbody tr.ticker-hyundai > td:first-child,
-#securities-holdings .hold-position-table tbody tr.ticker-kodex > td:first-child{
+/* Securities holdings: neutral ticker rows and explicit name/value hierarchy. */
+#securities-holdings .hold-position-table tbody tr:is(.ticker-samsung,.ticker-sk,.ticker-hyundai,.ticker-kodex) > td{
   background:var(--card);
 }
 
-/* 2026-08-04 securities holdings typography
-   - Security names remain bold.
-   - Detail values use regular weight.
-   - Holding subtotal and grand total remain bold. */
 #securities-holdings .hold-position-table tbody tr.hold-row > td:not(:first-child){
   font-weight:400;
 }
 
-#securities-holdings .hold-position-table tbody tr.hold-row > td:first-child,
-#securities-holdings .hold-position-table tbody tr.hold-row > td:first-child .holding-name-text{
+#securities-holdings .hold-position-table tbody tr.hold-row > td:first-child{
   font-weight:800;
-}
-
-#securities-holdings .hold-position-table tbody tr.summary-row > td{
-  font-weight:900;
 }
 
 /* Tablet layout: one shared 761–1100px system for chart controls, summaries and source cards. */
@@ -3881,17 +3761,9 @@ button:active,
   }
 }
 
-/* 2026-08-11: pension cash cost-basis input + wider mobile action toast */
+/* Pension cash cost-basis field visibility. */
 #pensionCashCostField[hidden]{
   display:none !important;
-}
-
-@media(max-width:760px){
-  .app-toast{
-    width:calc(100vw - 16px);
-    max-width:520px;
-    box-sizing:border-box;
-  }
 }
 
 /* 2026-08-11: pension cash snapshot desktop 3-column row */
