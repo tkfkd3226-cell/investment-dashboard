@@ -87,19 +87,19 @@ function renderPensionContributionModal(x){
   const cashDefaultValue=Number.isFinite(Number(x.pensionCash))?fmt(x.pensionCash):'';
   const cashDefaultCostBasis=Number.isFinite(Number(x.pensionCashCost))?fmt(x.pensionCashCost):'';
   const applyDate=kstTodayText();
-  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" data-pension-backdrop-close="true"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle">퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="contrib-modal-icon-btn pension-form-reset" data-pension-action="reset-form" title="입력값 초기화" aria-label="입력값 초기화">↻</button><button type="button" class="contrib-modal-icon-btn contrib-modal-close" data-pension-action="close-modal" aria-label="닫기">×</button></div></div>
+  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" data-pension-backdrop-close="true"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle" class="modal-main-title">퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="modal-icon-btn contrib-modal-icon-btn pension-form-reset" data-pension-action="reset-form" title="입력값 초기화" aria-label="입력값 초기화">↻</button><button type="button" class="modal-icon-btn contrib-modal-icon-btn contrib-modal-close" data-pension-action="close-modal" aria-label="닫기">×</button></div></div>
 <div class="pension-contrib-tool modal-card-box">
   <div class="pension-contrib-section-head"><h3>등록</h3><div class="pension-work-controls"><div class="pension-work-mode" role="tablist" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" data-mode="single" data-pension-action="set-batch-mode" data-pension-enabled="false">개별 처리</button><button type="button" class="pension-work-mode-btn" data-mode="batch" data-pension-action="set-batch-mode" data-pension-enabled="true">작업 모음 <span id="pensionBatchModeCount" class="pension-batch-count" hidden>0</span></button></div></div></div>
   <div class="contrib-field full contrib-target-field"><span class="contrib-field-label">등록 유형</span><input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="등록 유형 선택"><button type="button" class="contrib-target-option active" data-target="cashSnapshot" data-pension-action="set-target">현금성자산</button><button type="button" class="contrib-target-option" data-target="contribution" data-pension-action="set-target">기업적립금</button><button type="button" class="contrib-target-option" data-target="etfTrade" data-pension-action="set-target">추가 매수</button></div></div>
   <p id="pensionEtfTradeHelp" class="small" hidden>추가 매수는 퇴직연금 앱 보유현황에 실제 반영된 날 저장하세요. 신청일·상품·수량·체결금액만 입력하면 나머지는 자동 계산합니다.</p>
-  <div id="pensionContribStandardFields" class="contrib-form-grid cash-mode">
+  <div id="pensionContribStandardFields" class="pension-adjust-form cash-mode">
     <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${cashDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></div>
     <div class="contrib-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">평가금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="${cashDefaultValue}" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}" data-pension-input="money"></div>
     <div id="pensionCashCostField" class="contrib-field"><label for="pensionCashCostBasis">매수원금</label><input id="pensionCashCostBasis" type="text" inputmode="numeric" value="${cashDefaultCostBasis}" data-cash-default-value="${cashDefaultCostBasis}" data-pension-input="money"></div>
     <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="현금성자산 앱 확인" data-contrib-default-memo="${contribDefaultMemo}" data-cash-default-memo="현금성자산 앱 확인"></div>
   </div>
   <div id="pensionEtfTradeFields" class="pension-etf-trade-fields" hidden>
-    <div class="contrib-form-grid">
+    <div class="pension-adjust-form trade-mode">
       <div class="contrib-field full"><label for="pensionEtfTradeDate">신청일</label><input id="pensionEtfTradeDate" type="date" value="${cashDefaultDate}" data-pension-change="trade-preview"></div>
       <div class="contrib-field full"><label for="pensionEtfTradeTicker">ETF 상품</label><select id="pensionEtfTradeTicker" data-pension-change="trade-preview">${pensionTradeProductOptions()}</select></div>
       <div class="contrib-field"><label for="pensionEtfTradeQty">체결수량</label><input id="pensionEtfTradeQty" type="text" inputmode="numeric" placeholder="예: 77" data-pension-input="trade-preview"></div>
@@ -592,16 +592,16 @@ function requestPensionActionPin({title='PIN 입력',description='저장/삭제�
 
     const modal=document.createElement('div');
     modal.id='pensionActionPinModal';
-    modal.className='pension-action-pin-modal';
-    modal.innerHTML=`<div class="pension-action-pin-card" role="dialog" aria-modal="true" aria-labelledby="pensionActionPinTitle">
-      <button type="button" class="pension-action-pin-close" aria-label="닫기">×</button>
-      <h3 id="pensionActionPinTitle">${title}</h3>
-      <p>${description}</p>
-      <label for="pensionActionPinInput">PIN</label>
-      <input id="pensionActionPinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력">
+    modal.className='action-modal pension-action-pin-modal';
+    modal.innerHTML=`<div class="action-modal-card pension-action-pin-card" role="dialog" aria-modal="true" aria-labelledby="pensionActionPinTitle">
+      <button type="button" class="modal-icon-btn pension-action-pin-close" aria-label="닫기">×</button>
+      <h3 id="pensionActionPinTitle" class="modal-main-title">${title}</h3>
+      <p class="action-modal-description">${description}</p>
+      <label class="action-modal-label" for="pensionActionPinInput">PIN</label>
+      <input id="pensionActionPinInput" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력">
       <div class="pension-action-pin-guide">PIN이 일치하면 자동으로 ${danger?'삭제':'저장'} 실행됩니다.</div>
-      <div id="pensionActionPinStatus" class="pension-action-pin-status" aria-live="polite"></div>
-      <div class="pension-action-pin-buttons"><button type="button" class="ghost">취소</button></div>
+      <div id="pensionActionPinStatus" class="action-modal-status pension-action-pin-status" aria-live="polite"></div>
+      <div class="action-modal-buttons pension-action-pin-buttons"><button type="button" class="action-modal-btn ghost">취소</button></div>
     </div>`;
 
     let busy=false;
@@ -621,12 +621,12 @@ function requestPensionActionPin({title='PIN 입력',description='저장/삭제�
       if(pin.length!==6||busy)return;
       busy=true;
       input.disabled=true;
-      if(status){status.textContent='PIN 확인 및 처리 중...';status.className='pension-action-pin-status checking'}
+      if(status){status.textContent='PIN 확인 및 처리 중...';status.className='action-modal-status pension-action-pin-status checking'}
       try{
         const result=typeof execute==='function'?await execute(pin):pin;
         finish(result);
       }catch(e){
-        if(status){status.textContent=e.message||String(e);status.className='pension-action-pin-status err'}
+        if(status){status.textContent=e.message||String(e);status.className='action-modal-status pension-action-pin-status err'}
         input.disabled=false;
         input.value='';
         busy=false;
@@ -636,7 +636,7 @@ function requestPensionActionPin({title='PIN 입력',description='저장/삭제�
     const onInput=()=>{
       const cleaned=String(input.value||'').replace(/\D/g,'').slice(0,6);
       if(input.value!==cleaned)input.value=cleaned;
-      if(status&&status.classList.contains('err')){status.textContent='';status.className='pension-action-pin-status'}
+      if(status&&status.classList.contains('err')){status.textContent='';status.className='action-modal-status pension-action-pin-status'}
       clearTimeout(submitTimer);
       if(cleaned.length===6)submitTimer=setTimeout(submit,180);
     };

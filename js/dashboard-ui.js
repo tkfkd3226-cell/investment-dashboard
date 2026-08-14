@@ -390,18 +390,18 @@ function ensureKrxActionModal(){
   if(modal) return modal;
   modal=document.createElement('div');
   modal.id='krxActionModal';
-  modal.className='krx-action-modal';
-  modal.innerHTML=`<div class="krx-action-card" role="dialog" aria-modal="true" aria-labelledby="krxActionTitle">
-    <button type="button" class="krx-action-close" data-dashboard-action="close-krx-modal" aria-label="닫기">×</button>
-    <h3 id="krxActionTitle">KRX 현재가 반영</h3>
-    <p>선택한 기준일만 다시 갱신하거나, 날짜를 비워 누락 거래일을 자동 보충할 수 있습니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
-    <label class="krx-action-label" for="krxActionPin">저장/실행 PIN</label>
-    <input id="krxActionPin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 입력">
-    <div id="krxActionStatus" class="krx-action-status"></div>
-    <div class="krx-action-buttons">
-      <button type="button" class="ghost" data-dashboard-action="close-krx-modal">취소</button>
-      <button type="button" class="ghost" data-dashboard-action="submit-krx-modal" data-krx-mode="auto">최신/누락 반영</button>
-      <button type="button" class="primary" data-dashboard-action="submit-krx-modal" data-krx-mode="selected"><span class="krx-selected-line">선택일</span><span class="krx-selected-space"> </span><span class="krx-selected-line">재갱신</span></button>
+  modal.className='action-modal krx-action-modal';
+  modal.innerHTML=`<div class="action-modal-card krx-action-card" role="dialog" aria-modal="true" aria-labelledby="krxActionTitle">
+    <button type="button" class="modal-icon-btn krx-action-close" data-dashboard-action="close-krx-modal" aria-label="닫기">×</button>
+    <h3 id="krxActionTitle" class="modal-main-title">KRX 현재가 반영</h3>
+    <p class="action-modal-description">선택한 기준일만 다시 갱신하거나, 날짜를 비워 누락 거래일을 자동 보충할 수 있습니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
+    <label class="action-modal-label krx-action-label" for="krxActionPin">저장/실행 PIN</label>
+    <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 입력">
+    <div id="krxActionStatus" class="action-modal-status krx-action-status"></div>
+    <div class="action-modal-buttons krx-action-buttons">
+      <button type="button" class="action-modal-btn ghost" data-dashboard-action="close-krx-modal">취소</button>
+      <button type="button" class="action-modal-btn ghost" data-dashboard-action="submit-krx-modal" data-krx-mode="auto">최신/누락 반영</button>
+      <button type="button" class="action-modal-btn primary" data-dashboard-action="submit-krx-modal" data-krx-mode="selected"><span class="krx-selected-line">선택일</span><span class="krx-selected-space"> </span><span class="krx-selected-line">재갱신</span></button>
     </div>
   </div>`;
   document.body.appendChild(modal);
@@ -412,7 +412,7 @@ function openKrxActionModal(){
   const modal=ensureKrxActionModal();
   const status=modal.querySelector('#krxActionStatus');
   const input=modal.querySelector('#krxActionPin');
-  if(status){status.textContent='';status.className='krx-action-status'}
+  if(status){status.textContent='';status.className='action-modal-status krx-action-status'}
   modal.classList.add('show');
   setTimeout(()=>input?.focus(),30);
 }
@@ -448,7 +448,7 @@ async function submitKrxActionModal(mode='selected'){
   const updateMode=mode==='auto'?'auto':'selected';
   const selectedDate=dataState.activeDate || '';
   if(!pin){
-    if(status){status.textContent='PIN을 입력해 주세요.';status.className='krx-action-status err'}
+    if(status){status.textContent='PIN을 입력해 주세요.';status.className='action-modal-status krx-action-status err'}
     input?.focus();
     return;
   }
@@ -458,13 +458,13 @@ async function submitKrxActionModal(mode='selected'){
       status.textContent=updateMode==='selected'
         ? `${selectedDate} KRX 현재가 재갱신 요청 중...`
         : '최신/누락 KRX 현재가 반영 요청 중...';
-      status.className='krx-action-status ok';
+      status.className='action-modal-status krx-action-status ok';
     }
     const data = await dispatchKrxPriceUpdate(pin, updateMode);
 
     if(data.action === 'workflow_skipped'){
       const msg = data.message || '업데이트할 KRX 현재가 데이터가 없습니다.';
-      if(status){status.textContent=msg;status.className='krx-action-status ok'}
+      if(status){status.textContent=msg;status.className='action-modal-status krx-action-status ok'}
       showAppToast(msg, 'ok', 6500);
       return;
     }
@@ -472,11 +472,11 @@ async function submitKrxActionModal(mode='selected'){
     const successMsg=updateMode==='selected'
       ? `${selectedDate} KRX 현재가 재갱신 요청 완료. GitHub Actions 완료 후 새로고침해 주세요.`
       : '최신/누락 KRX 현재가 반영 요청 완료. GitHub Actions 완료 후 새로고침해 주세요.';
-    if(status){status.textContent=successMsg;status.className='krx-action-status ok'}
+    if(status){status.textContent=successMsg;status.className='action-modal-status krx-action-status ok'}
     showAppToast(updateMode==='selected'?'선택일 KRX 재갱신 요청 완료':'KRX 자동 반영 요청 완료', 'ok');
     setTimeout(closeKrxActionModal,2000);
   }catch(e){
-    if(status){status.textContent='실패: '+(e.message||String(e));status.className='krx-action-status err'}
+    if(status){status.textContent='실패: '+(e.message||String(e));status.className='action-modal-status krx-action-status err'}
   }finally{
     buttons.forEach(btn=>btn.disabled=false);
   }
