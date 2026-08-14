@@ -2113,25 +2113,25 @@ body.contrib-modal-open{
 /* 최종 QA 보정: 모달 오픈 시 모바일 메뉴 버튼 숨김 */
 
 /* Allocation value metadata: ratio is 1px larger than include-detail; neither is bold. */
-.alloc-ratio-meta,
-.alloc-cash-meta{
-  color:var(--muted) !important;
-  font-weight:400 !important;
-  line-height:1.25 !important;
+.mini-card .alloc-ratio-meta,
+.mini-card .alloc-cash-meta{
+  color:var(--muted);
+  font-weight:400;
+  line-height:1.25;
   letter-spacing:-.02em;
   white-space:nowrap;
 }
-.alloc-ratio-meta{font-size:11px !important}
-.alloc-cash-meta{font-size:10px !important}
+.mini-card .alloc-ratio-meta{font-size:11px}
+.mini-card .alloc-cash-meta{font-size:10px}
 
 @media (min-width:761px) and (max-width:1100px){
-  .alloc-ratio-meta{font-size:10.5px !important}
-  .alloc-cash-meta{font-size:9.5px !important}
+  .mini-card .alloc-ratio-meta{font-size:10.5px}
+  .mini-card .alloc-cash-meta{font-size:9.5px}
 }
 
 @media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  .alloc-ratio-meta{font-size:9.5px !important}
-  .alloc-cash-meta{font-size:8.5px !important}
+  .mini-card .alloc-ratio-meta{font-size:9.5px}
+  .mini-card .alloc-cash-meta{font-size:8.5px}
 }
 
 /* 평가액 비중 카드: 연금/증권 공통 총액 표시 + 화면군별 그리드 */
