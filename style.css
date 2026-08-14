@@ -778,22 +778,6 @@ button.legend-item.chart-series-all.active{
 
   }
 
-/* 인쇄 전용: 화면용 배경/그림자를 제거하고 인쇄 여백을 최소화한다. */
-@media print{
-  body{
-    background:white;
-  }
-
-  .card, .note, .hero, table{
-    box-shadow:none;
-  }
-
-  .wrap{
-    max-width:none;
-    padding:8px;
-  }
-}
-
 .two{
   grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);
   width:100%;
@@ -4646,3 +4630,74 @@ body.chart-expanded-open .dash-tooltip{
 @media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   .mobile-card-view{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/*
+  인쇄 전용 최종 override
+  - 화면용 Web/Tablet/Mobile 규칙보다 뒤에서 적용되어 A4 인쇄 구조를 일관되게 만든다.
+  - 자산 탭은 숨기고 증권계좌 → 퇴직연금 순서로 두 panel을 모두 펼친다.
+  - 브라우저가 카드/밴드 배경색을 생략하지 않도록 print-color-adjust를 요청한다.
+  - 6개 자산 차트는 960px 최소폭/가로 스크롤을 해제하고 인쇄 가능 폭에 맞춰 SVG 전체를 축소한다.
+  - 화면 우측 목차와 차트 스크롤/확대 버튼은 인쇄물에서 제외한다.
+*/
+@media print{
+  html,
+  body{
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+
+  body{
+    background:white;
+  }
+
+  .card,
+  .note,
+  .hero,
+  table{
+    box-shadow:none;
+  }
+
+  .wrap{
+    max-width:none;
+    padding:8px;
+  }
+
+  /* 인쇄에서는 자산 선택 탭 없이 증권계좌 다음에 퇴직연금을 연속 출력한다. */
+  .asset-workspace-tabs{
+    display:none;
+  }
+  .asset-workspace-panel[hidden]{
+    display:block !important;
+  }
+  .asset-workspace-panel-pension{
+    margin-top:22px;
+  }
+
+  /* A4 폭에서는 차트 내부 스크롤 대신 1120:330 SVG 전체를 용지 폭에 맞춰 축소한다. */
+  .chart-scroll-row,
+  .chart-expand-button,
+  .chart-web-expand-button{
+    display:none;
+  }
+  .chart-wrap,
+  .chart-wrap.is-scrollable{
+    width:100%;
+    max-width:100%;
+    overflow:visible;
+    border:0;
+    box-shadow:none;
+  }
+  svg.chart{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    height:auto;
+    aspect-ratio:1120 / 330;
+  }
+
+  /* 화면용 우측 목차는 인쇄 내용에 포함하지 않는다. */
+  .desktop-edge-toc{
+    display:none;
+  }
+}
+
