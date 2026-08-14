@@ -1,7 +1,9 @@
 // 메인 대시보드 일반 UI · topbar · navigation · rendering component
 
 const THEME_STORAGE_KEY='investmentDashboard.theme';
+const CORNER_THEME_STORAGE_KEY='investmentDashboard.cornerTheme';
 const currentTheme=()=>document.documentElement.classList.contains('dark')?'dark':'light';
+const currentCornerTheme=()=>document.documentElement.classList.contains('rounded-corners')?'rounded':'soft-square';
 function themeToggleIconMarkup(dark){
   const svgAttrs='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
   const svg=dark
@@ -26,6 +28,27 @@ function setTheme(theme,{redraw=true}={}){
   if(redraw&&dataState.portfolio)drawAllCharts();
 }
 function toggleTheme(){setTheme(currentTheme()==='dark'?'light':'dark')}
+
+function cornerThemeToggleIconMarkup(rounded){
+  const targetRadius=rounded?'1.5':'5';
+  return `<span class="corner-theme-toggle-svg" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="${targetRadius}"></rect></svg></span>`;
+}
+function syncCornerThemeControls(){
+  const rounded=currentCornerTheme()==='rounded';
+  document.querySelectorAll('[data-corner-theme-toggle-icon]').forEach(el=>el.innerHTML=cornerThemeToggleIconMarkup(rounded));
+  document.querySelectorAll('[data-corner-theme-toggle]').forEach(el=>{
+    el.setAttribute('aria-pressed',String(!rounded));
+    el.setAttribute('title',rounded?'각진 모서리로 전환':'둥근 모서리로 전환');
+    el.setAttribute('aria-label',rounded?'각진 모서리로 전환':'둥근 모서리로 전환');
+  });
+}
+function setCornerTheme(theme){
+  const rounded=theme==='rounded';
+  document.documentElement.classList.toggle('rounded-corners',rounded);
+  try{localStorage.setItem(CORNER_THEME_STORAGE_KEY,rounded?'rounded':'soft-square')}catch(_){}
+  syncCornerThemeControls();
+}
+function toggleCornerTheme(){setCornerTheme(currentCornerTheme()==='rounded'?'soft-square':'rounded')}
 
 
 const separateProfitToggle=()=>`<button type="button" class="section-control-chip section-action-chip separate-profit-toggle ${uiState.includeSeparateProfit?'active':''}" aria-pressed="${uiState.includeSeparateProfit}" data-dashboard-action="toggle-separate-profit"><span>별도수익</span><strong>${uiState.includeSeparateProfit?'ON':'OFF'}</strong></button>`;
@@ -206,6 +229,9 @@ function renderTabs(){
         </a>`:''}
         <button type="button" class="date-tool-btn topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" data-dashboard-action="toggle-theme">
           <span class="date-tool-action-icon" data-theme-toggle-icon>${themeToggleIconMarkup(currentTheme()==='dark')}</span>
+        </button>
+        <button type="button" class="date-tool-btn topbar-corner-action" data-corner-theme-toggle aria-pressed="${currentCornerTheme()==='soft-square'}" title="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" aria-label="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" data-dashboard-action="toggle-corner-theme">
+          <span class="date-tool-action-icon" data-corner-theme-toggle-icon>${cornerThemeToggleIconMarkup(currentCornerTheme()==='rounded')}</span>
         </button>
         <div class="date-action-menu-wrap">
           <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false" data-dashboard-action="toggle-date-menu"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>

@@ -95,6 +95,7 @@ function handleDashboardAction(event,control){
     return;
   }
   if(action==='toggle-theme') return toggleTheme();
+  if(action==='toggle-corner-theme') return toggleCornerTheme();
   if(action==='jump-section'){
     jumpToSection(control.dataset.sectionTarget||'');
     if(control.dataset.closeDateMenu==='true')closeDateActionMenu();
@@ -155,6 +156,7 @@ function render(){
   document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section"><div class="hero-title-row"><h1>${dataState.portfolio.meta.title}</h1><span class="hero-basis" data-dashboard-action="hero-basis-tap">(${koreanDateLabel(x.date)})</span></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}"><span class="pill hero-profit-pill">증권계좌 누적손익 ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적손익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
   syncAssetTabs();
   syncThemeControls();
+  syncCornerThemeControls();
   suppressSecuritiesCumCardTransitionOnce();
   drawAllCharts();
   setupPensionVizTooltips();
