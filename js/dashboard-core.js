@@ -180,15 +180,6 @@ const securitiesScopeText=x=>{
   if(x.tossIncluded)parts.push('토스');
   return parts.join(' + ');
 };
-const basisText=d=>{
-  const snap=dataState.prices?.[d]||{};
-  const status=snap.marketStatus||'close';
-  if(status==='intraday'){
-    const time=snap.updatedAtKST?snap.updatedAtKST.slice(11,16):'';
-    return `장중 ${time} 기준`;
-  }
-  return '종가 기준';
-}
 const kstTodayText=()=>{
   const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
   const get=type=>parts.find(v=>v.type===type)?.value||'';
@@ -240,7 +231,6 @@ const latestPensionCashSnapshot=d=>pensionCashSnapshotItems()
   .filter(v=>v.date&&v.date<=d&&Number.isFinite(Number(v.valuation)))
   .sort((a,b)=>String(a.date).localeCompare(String(b.date)))
   .at(-1)||null;
-const exactPensionCashSnapshot=d=>pensionCashSnapshotItems().find(v=>v.date===d)||null;
 const pensionCashValuation=(d,baseCash=0)=>{
   const snapshot=latestPensionCashSnapshot(d);
   if(snapshot){
@@ -344,7 +334,6 @@ const linkedPensionCashSnapshotForContribution=contribution=>pensionCashSnapshot
   .filter(snapshot=>snapshot.date>=String(contribution?.date||'')&&pensionCashSnapshotReflectsContribution(snapshot,contribution))
   .sort((a,b)=>String(a.date).localeCompare(String(b.date)))
   .at(0)||null;
-const latestPensionTradeDate=d=>pensionTradeItems().filter(v=>v.date<=d).map(v=>v.date).sort(byDate).at(-1)||null;
 const pensionCashLedgerEventTime=event=>String(event?.item?.appliedAtKST||event?.item?.updatedAtKST||event?.item?.createdAtKST||'');
 const pensionCashLedgerEventOrder=(a,b)=>{
   const dateCmp=String(a?.item?.date||'').localeCompare(String(b?.item?.date||''));

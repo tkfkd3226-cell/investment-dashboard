@@ -43,6 +43,7 @@ const fmtDecimal=(n,digits=3)=>Number(n||0).toLocaleString('ko-KR',{minimumFract
 const pensionTradeProductOptions=()=>((dataState.portfolio?.pension)||[]).map(v=>`<option value="${escapeHtml(String(v.ticker))}">${escapeHtml(v.name)}</option>`).join('');
 
 
+// Modal Rendering · 금액조정 모달 렌더링
 function renderPensionContributionList(target='cashSnapshot'){
   const selectedTarget=['contribution','cashSnapshot','etfTrade'].includes(target)?target:'cashSnapshot';
   const contribItems=pensionContributionItems()
@@ -177,7 +178,7 @@ function renderPension(x){
         currentPensionDateLabel=shortDate(x.date),
         noPrevBlock=`<div class="pension-no-prev-note">전일 데이터가 없습니다.</div>`,
         changeContent=hasPrevPension?`<div class="change-kpis"><div class="mini-card"><div class="m-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가금액</div><div class="m-value">${won(x.pensionPrevEval)}</div></div><div class="mini-card"><div class="m-label">${shortDate(x.date)} 평가금액</div><div class="m-value">${won(x.pensionEval)}</div></div><div class="mini-card"><div class="m-label">하루 변동분</div><div class="m-value ${cls(day)}">${signed(day,'원')}</div></div><div class="mini-card"><div class="m-label">하루 변동률</div><div class="m-value ${cls(rate)}">${(rate>0?'+':'')+pct(rate)}</div></div></div><div class="change-table-wrap mobile-scroll table-view"><table class="dashboard-data-table change-table"><thead><tr><th>상품</th><th>${x.prevKey?shortDate(x.prevKey):'-'} 종가</th><th>${shortDate(x.date)} 종가</th><th>일변동</th></tr></thead><tbody>${orderedPensionRows.map(r=>`<tr><td><strong>${mobileTableProductName(r.name)}</strong>${pensionProductSwatch(r.name)}</td><td class="num"><span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span></td><td class="num"><span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span></td><td class="num ${tableCls(r.dayChange)}">${r.dayChange==null?'-':signed(r.dayChange)}</td></tr>`).join('')}<tr><td>현금성자산</td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.prevPensionCash)}</span></td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.pensionCash)}</span></td><td class="num ${tableCls(x.pensionCashDayChange)}">${signed(x.pensionCashDayChange)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${fmt(x.pensionPrevEval)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${tableCls(day)}">${signed(day)}</td></tr></tbody></table></div><div class="change-mobile-list mobile-card-view">${orderedPensionRows.map(r=>mobileInfoCard(r.name,[[prevPensionDateLabel+' 종가',r.prevPrice==null?'-':fmt(r.prevPrice)],[prevPensionDateLabel+' 평가액',r.prevEval==null?'-':won(r.prevEval)],[currentPensionDateLabel+' 종가',fmt(r.price)],[currentPensionDateLabel+' 평가액',won(r.evalAmount)],['일변동',r.dayChange==null?'-':signed(r.dayChange),cls(r.dayChange)]])).join('')}${mobileInfoCard('현금성자산',[[prevPensionDateLabel+' 평가액',won(x.prevPensionCash)],[currentPensionDateLabel+' 평가액',won(x.pensionCash)],['일변동',signed(x.pensionCashDayChange),cls(x.pensionCashDayChange)]])}</div>`:noPrevBlock;
-  return `<section id="pension-section"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="briefcase" aria-hidden="true"></span>퇴직연금 현황</h2></div><div class="pension-band"><div class="grid cards metric-grid" style="margin-top:0">${metricCard('퇴직연금 평가금액',won(x.pensionEval),pensionEvaluationBasisText(x.date),true)}${metricCard('퇴직연금 납입원금',won(x.pensionPrincipal),pensionContributionSubText(x))}${metricCard('퇴직연금 운용수익',won(x.pensionProfit),'평가금액 - 납입원금',false,cls(x.pensionProfit))}${metricCard('퇴직연금 누적수익률',pct(x.pensionReturn),'퇴직연금 운용수익 ÷ 퇴직연금 납입원금',false,cls(x.pensionReturn))}</div><div class="grid two pension-detail-grid" style="margin-top:16px">${renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHeldProfit,pensionHeldReturn)}<div class="note pension-change-note" id="pension-change" ${mobileViewAttrs('pensionChange')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="trending" aria-hidden="true"></span>전일 대비 변동</h2>${hasPrevPension?mobileViewToggle('pensionChange'):''}</div>${changeContent}</div></div>${renderPensionCharts(x)}</div></section>`;
+  return `<section id="pension-section"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="briefcase" aria-hidden="true"></span>퇴직연금 현황</h2></div><div class="pension-band"><div class="grid cards metric-grid pension-metric-grid">${metricCard('퇴직연금 평가금액',won(x.pensionEval),pensionEvaluationBasisText(x.date),true)}${metricCard('퇴직연금 납입원금',won(x.pensionPrincipal),pensionContributionSubText(x))}${metricCard('퇴직연금 운용수익',won(x.pensionProfit),'평가금액 - 납입원금',false,cls(x.pensionProfit))}${metricCard('퇴직연금 누적수익률',pct(x.pensionReturn),'퇴직연금 운용수익 ÷ 퇴직연금 납입원금',false,cls(x.pensionReturn))}</div><div class="grid two pension-detail-grid">${renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHeldProfit,pensionHeldReturn)}<div class="note pension-change-note" id="pension-change" ${mobileViewAttrs('pensionChange')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="trending" aria-hidden="true"></span>전일 대비 변동</h2>${hasPrevPension?mobileViewToggle('pensionChange'):''}</div>${changeContent}</div></div>${renderPensionCharts(x)}</div></section>`;
 }
 function mobileTableProductName(name=''){
   const text=String(name||'');
@@ -217,6 +218,7 @@ function renderPensionProductInsights(x){
   return `<div class="pension-insight-zone"><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>오늘 상승분 기여도</h3></div>${topHtml}</div><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>위험자산 70% 룰</h3><span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}">현재 ${risk.ratio.toFixed(1)}%</span></div><div class="pension-risk-gauge compact has-tooltip"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}" style="width:${gaugeWidth.toFixed(1)}%"></div><div class="pension-risk-threshold" style="left:${risk.threshold}%"><span>${risk.threshold}%</span></div><div class="pension-viz-tooltip wide"><strong>위험자산 70% 룰</strong><div>${riskTooltip}</div></div></div><div class="pension-risk-scale"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div></div></div>`;
 }
 
+// Modal Lifecycle / Form State · 모달 생명주기 / 입력 상태
 function openPensionContributionModal(){
   const modal=document.getElementById('pensionContribModal');
   if(!modal) return;
@@ -595,6 +597,7 @@ function resetPensionContributionForm(){
   document.activeElement?.blur?.();
 }
 
+// PIN Dialog · PIN 확인
 function requestPensionActionPin({title='PIN 입력',description='작업 내용을 확인한 뒤 PIN 6자리를 입력하세요.',danger=false,actionLabel='',execute}={}){
   return new Promise(resolve=>{
     const old=document.getElementById('pensionActionPinModal');
@@ -663,6 +666,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
 }
 
 
+// Batch Queue / Simulation · 작업 모음 / 시뮬레이션
 function pensionBatchBaseState(){
   return {
     cashSnapshots:pensionCashSnapshotItems().map(v=>({...v,afterTradeIds:Array.isArray(v.afterTradeIds)?[...v.afterTradeIds]:v.afterTradeIds,afterContributionIds:Array.isArray(v.afterContributionIds)?[...v.afterContributionIds]:v.afterContributionIds})),
@@ -994,6 +998,7 @@ async function applyPensionBatchQueue(){
   }
 }
 
+// Persistence / Save/Delete · 저장 / 삭제
 async function savePensionContributionViaGithubPages(item,pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   if(!config.url || config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
@@ -1119,6 +1124,7 @@ async function deleteSelectedPensionContribution(){
 }
 
 
+// Event Delegation / Tooltip · 이벤트 위임 / 툴팁
 function handlePensionAction(control){
   const action=control.dataset.pensionAction;
   if(action==='reset-form')return resetPensionContributionForm();

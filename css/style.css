@@ -616,6 +616,8 @@ td.num{
   color:#fff;
 }
 
+.dash-tooltip .tt-spacer{height:6px}
+
 .dash-tooltip .tt-row{
   display:flex;
   justify-content:space-between;
@@ -852,6 +854,7 @@ button.legend-item.chart-series-all.active{
 /* [07. Pension · 퇴직연금] Overview / Insight · 현황 / 인사이트 */
 .pension-detail-grid{
   width:100%;
+  margin-top:16px;
   grid-template-columns:minmax(0,1.56fr) minmax(min(42%,480px),.72fr);
   align-items:stretch;
 }
@@ -1332,6 +1335,7 @@ button.legend-item.chart-series-all.active{
 .metric-grid{
   grid-template-columns:repeat(4,minmax(0,1fr));
 }
+.pension-metric-grid{margin-top:0}
 
 .metric-grid > .metric-card{
   padding:18px;
@@ -1535,7 +1539,8 @@ button.legend-item.chart-series-all.active{
 .contrib-modal .pension-adjust-form.cash-mode > .contrib-field:first-child{
   grid-column:1/-1;
 }
-.contrib-field label{
+.contrib-field label,
+.contrib-field-label{
   font-size:12px;
   font-weight:900;
   color:var(--muted);
@@ -1633,8 +1638,6 @@ button.legend-item.chart-series-all.active{
   inset:0;
   display:none;
   justify-content:center;
-}
-.contrib-modal{
   --contrib-control-font-size:13px;
   z-index:12000;
   align-items:center;
@@ -2225,11 +2228,6 @@ body.contrib-modal-open{
   }
 }
 
-.contrib-field-label{
-  font-size:12px;
-  font-weight:900;
-  color:var(--muted);
-}
 .contrib-target-field{
   margin-bottom:8px;
 }
@@ -2760,6 +2758,9 @@ body.contrib-modal-open{
     border-color .18s ease,
     background-color .18s ease;
 }
+
+.chart-card.transition-suppressed-once,
+.mini-card.transition-suppressed-once{transition:none}
 
 .date-tool-btn,
 .pill,
@@ -4033,6 +4034,7 @@ body.chart-expanded-open .dash-tooltip{
   outline:none;
   cursor:pointer;
 }
+.date-select:focus-visible{outline:2px solid #93c5fd;outline-offset:2px}
 .date-select option{color:var(--ink);background:var(--card)}
 .month-select{min-width:148px;flex:0 0 148px}
 .day-select{min-width:116px;flex:0 0 116px}
@@ -4053,6 +4055,7 @@ body.chart-expanded-open .dash-tooltip{
   cursor:pointer;
 }
 .date-tool-btn:hover{background:#050914}
+.topbar-calc-action{text-decoration:none}
 .date-tool-action-icon{
   width:16px;
   height:16px;
