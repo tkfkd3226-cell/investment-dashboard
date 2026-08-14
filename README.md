@@ -32,15 +32,22 @@ README.md
 requirements.txt
 
 css/
-  style.css
+  style.css                    # 메인 대시보드 CSS 단일 파일
 
 js/
-  script.js
+  dashboard-core.js            # 데이터 / 상태 / 계산 / 공통 helper
+  dashboard-charts.js          # 차트 UI / SVG / 범례 / 확대 / 반응형 차트
+  dashboard-ui.js              # 일반 UI / Topbar / Navigation / 렌더링 컴포넌트
+  dashboard-pension.js         # 퇴직연금 렌더링 / 금액조정 / 저장·삭제 / batch / PIN
+  dashboard-app.js             # action / render orchestration / event binding / boot
 
 add/
-  calc.html
+  calc.html                    # 투자 계산기 HTML
   css/
-    common.css
+    common.css                 # calc/report 공통 CSS
+    calc.css                   # 계산기 전용 CSS
+  js/
+    calc.js                    # 계산기 전용 JavaScript
   report/
     20260608-20260812_report.html
 
@@ -60,7 +67,61 @@ scripts/
   update-prices.yml
 ```
 
-`add/css/common.css`는 현재 `add/calc.html`과 `add/report/`의 거래 리포트만 공유하는 최소 공통 기반입니다.
+- 메인 대시보드 CSS는 `css/style.css` **단일 파일 구조를 유지**합니다.
+- 메인 JavaScript는 역할별 5개 파일로 분리되어 있으며 `index.html`에서 `core → charts → ui → pension → app` 순서로 로드합니다.
+- `add/css/common.css`는 `add/calc.html`과 `add/report/`가 공유하는 최소 공통 기반입니다.
+- `add/css/calc.css`와 `add/js/calc.js`는 계산기 전용 파일이며 메인 대시보드 CSS/JS와 섞지 않습니다.
+
+---
+
+## 프론트엔드 코드 구조
+
+### 메인 대시보드 JavaScript
+
+메인 대시보드 JavaScript는 큰 책임 단위로만 분리합니다.
+
+| 파일 | 책임 |
+|---|---|
+| `js/dashboard-core.js` | 데이터, `dataState` / `uiState` / `chartState` / `pensionState`, 계산, 날짜·포맷·색상 등 공통 helper |
+| `js/dashboard-charts.js` | 차트 SVG, 범례, 스크롤, 확대, 차트 tooltip, 반응형 차트 UI |
+| `js/dashboard-ui.js` | 테마, Topbar, Navigation, 일반 DOM 렌더링, 표/카드/모달 UI |
+| `js/dashboard-pension.js` | 퇴직연금 렌더링, 기업적립금·현금성자산·추가매수, 저장·삭제, batch, PIN |
+| `js/dashboard-app.js` | `data-dashboard-action` 처리, 이벤트 연결, 전체 `render()`, 초기화와 `boot()` |
+
+운영 원칙:
+
+- `dashboard-core.js`는 **DOM을 직접 조작하지 않는 데이터·상태·계산 계층**을 기본으로 유지합니다.
+- 동적으로 생성되는 버튼/컨트롤은 inline `onclick`/`onchange` 대신 `data-dashboard-action`과 중앙 event delegation 구조를 사용합니다.
+- 파일 간 의존성 때문에 위 로드 순서를 임의로 바꾸지 않습니다.
+- 기능 수정 때문에 ES module, framework, build system 등 새로운 실행 구조를 부수적으로 도입하지 않습니다.
+- 한 기능이 여러 파일에 걸칠 때도 현재 책임 경계를 우선하고, 필요한 파일만 최소 수정합니다.
+
+### 투자 계산기
+
+계산기는 메인 대시보드와 독립된 부가 기능으로 유지합니다.
+
+```text
+add/calc.html
+  ├─ css/common.css
+  ├─ css/calc.css
+  └─ js/calc.js
+```
+
+계산 흐름은 다음 책임을 유지합니다.
+
+```text
+Input · 입력
+→ Validation · 검증
+→ Calculation · 계산
+→ Result · 결과
+→ Rendering · 화면 출력
+```
+
+- `compute()`는 입력과 옵션을 받아 결과를 반환하는 계산 책임을 유지하고 DOM을 직접 조작하지 않습니다.
+- `validate()`는 검증 결과를 반환하고 invalid class·오류 문구 표시는 별도 rendering 책임으로 유지합니다.
+- 계산기 전용 CSS/JS를 다시 `calc.html`의 대규모 inline `<style>`/`<script>`로 합치지 않습니다.
+- 현재 규모에서는 `add/js/calc.js` 한 파일을 유지하며 작은 helper 단위로 과도하게 분할하지 않습니다.
+- 좁은 모바일에서 KPI 하단 설명은 필요한 만큼 줄바꿈되도록 유지하며 `text-overflow:ellipsis`로 다시 잘리지 않게 합니다.
 
 ---
 
@@ -693,9 +754,48 @@ Folder: /root
 
 ---
 
+## 프론트엔드 / JavaScript 유지보수 원칙
+
+메인 JavaScript는 **역할별 5파일 구조가 현재 기준선**입니다. 기능을 추가할 때 과거의 단일 `script.js` 구조로 되돌리거나, 반대로 작은 helper마다 파일을 새로 만드는 식으로 과도하게 분할하지 않습니다.
+
+### 파일 책임
+
+1. **`dashboard-core.js`**
+   - 데이터 로딩 결과, 공통 state, 계산, 날짜/포맷/색상 helper를 담당합니다.
+   - 가능한 한 DOM 접근을 추가하지 않습니다.
+   - 화면 조작이 필요한 기능은 UI/Charts/Pension/App 계층에 둡니다.
+
+2. **`dashboard-charts.js`**
+   - 차트 생성·SVG·범례·확대·스크롤·tooltip·차트 responsive 처리를 담당합니다.
+   - 차트에서만 필요한 DOM/style runtime 값은 이 파일에서 처리할 수 있습니다.
+
+3. **`dashboard-ui.js`**
+   - 테마, Topbar, Navigation, 일반 카드/표/모달 등 공통 화면 UI를 담당합니다.
+   - 계산·데이터 로직을 UI 함수 안에 새로 복제하지 않습니다.
+
+4. **`dashboard-pension.js`**
+   - 퇴직연금 화면과 저장/삭제/batch/PIN 흐름을 담당합니다.
+   - 메인 전체 `render()`가 필요할 때는 현재 hook 구조를 유지하고 무분별한 전역 의존성을 추가하지 않습니다.
+
+5. **`dashboard-app.js`**
+   - 사용자 action과 기능 함수를 연결하고, 전체 render·초기화·boot를 orchestration합니다.
+   - 동적 control은 기존 `data-dashboard-action` dispatcher를 우선 재사용합니다.
+
+### 수정 원칙
+
+- 새 UI action을 만들 때 inline `onclick`, `onchange`, `oninput`, `onkeydown`을 다시 추가하지 않습니다.
+- 새로운 전역 변수를 독립적으로 늘리기 전에 `dataState`, `uiState`, `chartState`, `pensionState` 중 어느 책임인지 먼저 판단합니다.
+- 동일한 날짜 변경, render, modal, chart option, formatter, 색상 로직을 각 파일에 복제하지 않습니다.
+- 계산 함수가 DOM까지 직접 조작하거나 render 함수가 저장/API 요청까지 처리하는 식으로 책임을 다시 섞지 않습니다.
+- 단순 기능 수정 때문에 5개 파일의 load 순서나 실행 방식을 변경하지 않습니다.
+- `add/js/calc.js`는 메인 JS와 별도 영역입니다. 계산기 로직을 메인 `js/`로 옮겨 공통화하지 않습니다.
+- JS 수정 후에는 변경 파일 문법, 함수 참조, event binding, 예상 밖 diff를 우선 확인하고 전체 프로젝트 QA는 변경 범위가 넓을 때만 수행합니다.
+
+---
+
 ## 프론트엔드 / CSS 유지보수 원칙
 
-이 프로젝트의 CSS는 여러 차례의 UI 개선 후 **공통 컴포넌트·디자인 토큰 중심으로 리팩토링된 상태**입니다. 이후 종목·상품·카드·모달·차트 기능을 추가할 때는 화면만 맞추는 것보다 **기존 공통 CSS를 재사용하고 CSS 찌꺼기를 만들지 않는 것**을 우선합니다.
+이 프로젝트의 메인 CSS는 여러 차례의 UI 개선 후 **공통 컴포넌트·디자인 토큰·고정된 반응형 체계 중심으로 리팩토링된 `css/style.css` 단일 파일 구조**입니다. 이후 종목·상품·카드·모달·차트 기능을 추가할 때는 화면만 맞추는 것보다 **기존 공통 CSS를 재사용하고 CSS 찌꺼기를 만들지 않는 것**을 우선합니다. 역할별 CSS 파일이나 별도 `responsive.css`로 다시 분리하지 않으며, 각 기능의 기본/태블릿/모바일 규칙은 가능한 한 같은 기능 영역 가까이에서 관리합니다.
 
 ### 기본 원칙
 
@@ -703,6 +803,8 @@ Folder: /root
    - 기존 최종 rule과 해당 breakpoint를 먼저 찾습니다.
    - 새 동작이 기존 공통 규칙으로 표현 가능하면 원래 선언을 직접 수정합니다.
    - 기존 선언이 완전히 대체되면 사문화된 rule·주석·`!important`도 함께 제거합니다.
+   - 기능별 기본/웹/태블릿/모바일 규칙을 가능한 한 같은 영역에서 관리하며, 반응형 규칙만 파일 하단에 다시 모으지 않습니다.
+   - 큰 섹션과 의미 있는 하위 주석은 `Charts · 차트`처럼 **영어 + 한글 병기**를 사용해 탐색성을 유지합니다.
 
 2. **공통 컴포넌트를 우선 재사용합니다.**
    - 메인 섹션 제목·좌측 아이콘·우측 기준/보기 칩
@@ -748,11 +850,14 @@ Folder: /root
 
 추가 breakpoint는 **실제 기능상 이유가 있을 때만** 사용합니다.
 
-- `900px`: iPad Mini/compact tablet 및 모바일 가로처럼 실제 레이아웃 차이가 필요한 구간
-- `374px`: 아주 좁은 스마트폰에서 상단 날짜·아이콘 control의 최소 폭/폰트를 보존하는 예외
-- iPhone Safari 날짜 input, input zoom, 실제 desktop-site 요청 등 브라우저 동작 대응 규칙은 단순 CSS 찌꺼기로 보지 않습니다.
+현재 메인 CSS에서 유지하는 대표 예외는 다음과 같습니다.
 
-새 UI를 추가할 때 임의로 `520px`, `430px` 같은 breakpoint를 먼저 만들지 말고, **기존 1101/761/760 체계로 해결 가능한지 먼저 확인**합니다.
+- 실제 스마트폰 가로모드: `(orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse)` 조건으로 폭이 760px을 넘어도 폰 UI를 유지합니다.
+- `max-width:400px`: `연금+계좌 성과` 표에서 가로폭 확보를 위해 열을 축약하는 기능적 예외 한 곳에 사용합니다.
+- `hover`/`pointer`, `prefers-reduced-motion`, `print` 조건은 화면 폭 breakpoint가 아니라 입력장치·접근성·인쇄를 위한 기능성 media로 취급합니다.
+- Safari/WebKit native control 등 브라우저 고유 동작 대응 규칙은 실제 필요성이 확인되는 경우 유지합니다.
+
+새 UI를 추가할 때 임의로 `900px`, `720px`, `520px`, `430px`, `390px`, `374px` 같은 단순 폭 breakpoint를 먼저 만들지 말고, **기존 1101/761/760 체계로 해결 가능한지 먼저 확인**합니다.
 
 ### 신규 종목·상품 추가/변경 시 CSS 원칙
 
@@ -760,7 +865,7 @@ Folder: /root
 
 1. 우선 `data/portfolio.json`, 가격/스냅샷, 거래 이벤트 등 **데이터와 계산 로직**을 수정합니다.
 2. 종목명·상품명 우측 `■`의 **모양·크기·정렬은 `.asset-color-swatch` 공통 CSS**를 그대로 사용합니다.
-3. 종목/상품 색상은 CSS class가 아니라 `js/script.js`의 공통 색상 원천을 사용합니다.
+3. 종목/상품 색상은 CSS class가 아니라 `js/dashboard-core.js`의 공통 색상 원천을 사용합니다.
    - 증권 종목: `SECURITY_SYMBOL_COLORS`
    - 퇴직연금 상품: `PENSION_PRODUCT_COLORS`
    - 유형: `ASSET_TYPE_COLORS`
