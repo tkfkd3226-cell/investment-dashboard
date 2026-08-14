@@ -803,6 +803,27 @@ function ensureDesktopEdgeToc(){
   }
   toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기"><span>목차</span></button><nav class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title"><span>목차</span></div>${renderDesktopTocContent()}</nav>`;
 }
+const MOBILE_DATE_PIN_STORAGE_KEY='investmentDashboard.mobileDatePinned';
+function mobileDatePinned(){
+  try{return localStorage.getItem(MOBILE_DATE_PIN_STORAGE_KEY)==='1'}catch(_){return false}
+}
+function syncMobileTopbarState(){
+  const tabs=document.getElementById('tabs');
+  const toggle=document.getElementById('mobileDatePinToggle');
+  const mobile=window.matchMedia?.('(max-width:760px)').matches===true;
+  const pinned=mobileDatePinned();
+  if(tabs)tabs.classList.toggle('mobile-date-pinned',mobile&&pinned);
+  if(toggle){
+    toggle.checked=pinned;
+    toggle.setAttribute('aria-checked',String(pinned));
+  }
+  const visible=!!(mobile&&tabs&&(tabs.classList.contains('mobile-menu-open')||pinned));
+  document.body.classList.toggle('mobile-topbar-fixed-visible',visible);
+}
+function setMobileDatePinned(pinned){
+  try{localStorage.setItem(MOBILE_DATE_PIN_STORAGE_KEY,pinned?'1':'0')}catch(_){}
+  syncMobileTopbarState();
+}
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=ACTIVE_DATE.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
   document.getElementById('tabs').innerHTML=`
@@ -832,10 +853,11 @@ function renderTabs(){
         </button>
         <div class="date-action-menu-wrap">
           <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
-          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div>
+          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} onchange="setMobileDatePinned(this.checked)"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" onclick="closeDateActionMenu()" aria-label="목차 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div>
         </div>
       </div>
     </div>`;
+  syncMobileTopbarState();
 }
 function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card metric-card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
 
@@ -1505,18 +1527,24 @@ function ensureMobileTopButton(){
 
 function closeDateActionMenu(){
   const menu=document.getElementById('dateActionMenu');
+  const tabs=document.getElementById('tabs');
   const button=document.getElementById('dateActionMenuButton');
   if(menu) menu.classList.remove('show');
+  if(tabs) tabs.classList.remove('mobile-menu-open');
   if(button) button.setAttribute('aria-expanded','false');
+  syncMobileTopbarState();
 }
 function toggleDateActionMenu(event){
   if(event){event.preventDefault();event.stopPropagation();}
   const menu=document.getElementById('dateActionMenu');
+  const tabs=document.getElementById('tabs');
   const button=document.getElementById('dateActionMenuButton');
   if(!menu) return;
   const shouldOpen=!menu.classList.contains('show');
   menu.classList.toggle('show',shouldOpen);
+  if(tabs) tabs.classList.toggle('mobile-menu-open',shouldOpen);
   if(button) button.setAttribute('aria-expanded',String(shouldOpen));
+  syncMobileTopbarState();
 }
 function setupDateActionMenuButton(){
   const tabs=document.getElementById('tabs');
@@ -3525,7 +3553,7 @@ function setupPensionVizTooltips(){
   document.addEventListener('scroll',()=>closeTooltips(null),true);
 }
 
-async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS,PENSION_TRADES]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]})),fetch('data/pension_trades.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({trades:[]}))]);const dates=allAvailableDates();ACTIVE_DATE=dates.at(-1);history.replaceState(null,'','#'+ACTIVE_DATE);render();setupDateActionMenuButton();document.getElementById('tabs').addEventListener('change',e=>{
+async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIBUTIONS,PENSION_CASH_SNAPSHOTS,PENSION_TRADES]=await Promise.all([fetch('data/portfolio.json?ts='+Date.now()).then(r=>r.json()),fetch('data/prices.json?ts='+Date.now()).then(r=>r.json()),fetch('data/performance_snapshots.json?ts='+Date.now()).then(r=>r.json()),fetch('data/account1_daily_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({})),fetch('data/pension_contributions.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({contributions:[]})),fetch('data/pension_cash_snapshots.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({snapshots:[]})),fetch('data/pension_trades.json?ts='+Date.now()).then(r=>r.json()).catch(()=>({trades:[]}))]);const dates=allAvailableDates();ACTIVE_DATE=dates.at(-1);history.replaceState(null,'','#'+ACTIVE_DATE);render();setupDateActionMenuButton();window.addEventListener('resize',syncMobileTopbarState,{passive:true});document.getElementById('tabs').addEventListener('change',e=>{
   if(e.target.id==='monthSelect'){
     const month=e.target.value,dates=allAvailableDates().filter(d=>d.startsWith(month));
     const keepMobileMenuOpen=window.matchMedia('(max-width:760px)').matches && document.getElementById('dateActionMenu')?.classList.contains('show');
@@ -3533,8 +3561,10 @@ async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIB
     history.replaceState(null,'','#'+ACTIVE_DATE);
     render();
     if(keepMobileMenuOpen){
+      document.getElementById('tabs')?.classList.add('mobile-menu-open');
       document.getElementById('dateActionMenu')?.classList.add('show');
       document.getElementById('dateActionMenuButton')?.setAttribute('aria-expanded','true');
+      syncMobileTopbarState();
     }
   }
   if(e.target.id==='dateSelect'){
@@ -3543,8 +3573,10 @@ async function boot(){[PORTFOLIO,PRICES,SNAPSHOTS,ACCOUNT1_DAILY,PENSION_CONTRIB
     history.replaceState(null,'','#'+ACTIVE_DATE);
     render();
     if(keepMobileMenuOpen){
+      document.getElementById('tabs')?.classList.add('mobile-menu-open');
       document.getElementById('dateActionMenu')?.classList.add('show');
       document.getElementById('dateActionMenuButton')?.setAttribute('aria-expanded','true');
+      syncMobileTopbarState();
     }
   }
 });document.addEventListener('pointerdown',e=>{if(!e.target.closest('.svg-hitbox')&&!e.target.closest('#dashTooltip'))clearChartHover()})}boot().catch(err=>{document.getElementById('app').innerHTML=`<div class="wrap"><div class="note"><h2><span class="section-title-icon">⚠️</span>데이터 로딩 오류</h2><pre>${String(err)}</pre></div></div>`})

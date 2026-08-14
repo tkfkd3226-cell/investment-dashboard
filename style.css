@@ -4375,25 +4375,26 @@ body.chart-expanded-open .dash-tooltip{
   .date-tool-action-icon{margin-right:2px;font-size:11px}
 }
 
-/* Mobile: two equal selectors + fixed theme/menu buttons. */
+/* Mobile: collapsed by default; open/pinned shows two equal selectors + fixed-size actions. */
 @media(max-width:760px){
-  #app{padding-top:40px}
+  body.mobile-topbar-fixed-visible #app{padding-top:40px}
   .switcher{
     position:fixed;
     top:0;
     left:0;
     right:0;
     z-index:2450;
-    height:40px;
-    padding:5px 7px;
+    height:0;
+    padding:0;
+    background:transparent;
+    border-bottom:0;
+    box-shadow:none;
+    overflow:visible;
+    pointer-events:none;
   }
-  .date-picker{
-    width:100%;
-    grid-template-columns:auto auto minmax(0,1fr) 30px 30px;
-    gap:4px;
-  }
-  .date-picker-center,
-  .date-picker-action{display:contents}
+  .date-picker{display:block;width:auto;height:0;overflow:visible}
+  .date-picker-center{display:none}
+  .date-picker-action{display:block;width:0;height:0}
   .date-tool-btn-desktop{display:none}
   .month-select,
   .day-select{
@@ -4402,8 +4403,6 @@ body.chart-expanded-open .dash-tooltip{
     max-width:100%;
     flex:none;
   }
-  .month-select{grid-column:1}
-  .day-select{grid-column:2}
   .date-select{
     min-height:30px;
     height:30px;
@@ -4420,20 +4419,74 @@ body.chart-expanded-open .dash-tooltip{
     padding:0;
     flex:0 0 30px;
     border-radius:9px;
+    pointer-events:auto;
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
   }
   .topbar-theme-action{
-    grid-column:4;
-    justify-self:end;
+    position:fixed;
+    top:max(6px,env(safe-area-inset-top));
+    right:41px;
+    z-index:2400;
   }
   .date-action-menu-wrap{
     display:block;
-    grid-column:5;
-    justify-self:end;
+    position:fixed;
+    top:max(6px,env(safe-area-inset-top));
+    right:7px;
+    z-index:2400;
+    pointer-events:auto;
   }
   .date-tool-icon{font-size:15px;line-height:1}
   .date-tool-menu-label{display:none}
+
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned){
+    height:40px;
+    padding:5px 7px;
+    background:
+      radial-gradient(circle at 96% 8%, rgba(59,130,246,.13), transparent 28%),
+      linear-gradient(135deg,#080c14 0%, #111827 48%, #18304a 100%);
+    border-bottom:1px solid rgba(255,255,255,.11);
+    box-shadow:0 12px 30px rgba(0,0,0,.30);
+    pointer-events:auto;
+  }
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .date-picker{
+    display:grid;
+    width:100%;
+    height:auto;
+    grid-template-columns:auto auto minmax(0,1fr) 30px 30px;
+    gap:4px;
+  }
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.date-picker-center,.date-picker-action){display:contents}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .month-select{grid-column:1}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .day-select{grid-column:2}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-theme-action{
+    position:relative;
+    top:auto;
+    right:auto;
+    z-index:auto;
+    grid-column:4;
+    justify-self:end;
+  }
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .date-action-menu-wrap{
+    position:relative;
+    top:auto;
+    right:auto;
+    z-index:auto;
+    grid-column:5;
+    justify-self:end;
+  }
+
+  /* Date pin lives in the mobile hamburger header. */
+  .mobile-date-pin-control{display:inline-flex;align-items:center;gap:6px;margin-left:auto;color:#57606a;cursor:pointer;user-select:none}
+  .dark .mobile-date-pin-control{color:#8b949e}
+  .mobile-date-pin-control > span:first-child{font-size:11px;font-weight:800;letter-spacing:-.02em;line-height:25px;white-space:nowrap}
+  .mobile-date-pin-control input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  .mobile-date-pin-track{position:relative;width:31px;height:18px;flex:0 0 31px;border:1px solid rgba(255,255,255,.20);border-radius:999px;background:rgba(255,255,255,.24);transition:background .16s ease,border-color .16s ease}
+  .mobile-date-pin-track > span{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.24);transition:transform .16s ease}
+  .mobile-date-pin-control input:checked + .mobile-date-pin-track{background:#3182F6;border-color:#60a5fa}
+  .mobile-date-pin-control input:checked + .mobile-date-pin-track > span{transform:translateX(13px)}
+  .mobile-date-pin-control input:focus-visible + .mobile-date-pin-track{outline:2px solid #fff;outline-offset:2px}
 
   /* Hamburger panel belongs to the same mobile topbar breakpoint. */
   .date-action-menu.mobile-combined-menu{
