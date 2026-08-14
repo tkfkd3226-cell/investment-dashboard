@@ -1132,18 +1132,12 @@ button.legend-item.chart-series-all.active{
 }
 
 @media (max-width:760px){
+  .change-kpis{
+    gap:clamp(7px,1.35vw,10px);
+  }
+
   .chart-note .m-value{
     overflow-wrap:anywhere;
-  }
-}
-
-@media (max-width:420px){
-  .change-kpis{
-    grid-template-columns:1fr;
-  }
-
-  .chart-note{
-    grid-template-columns:1fr;
   }
 }
 
@@ -2146,6 +2140,7 @@ body.contrib-modal-open{
 @media (max-width:760px){
   #pension-chart-alloc .chart-note{
     grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:clamp(7px,1.35vw,10px);
   }
 }
 #pension-chart-alloc.phone-chart-ui .chart-note{
@@ -2175,6 +2170,7 @@ body.contrib-modal-open{
 @media (max-width:760px){
   #securityAllocCards.security-alloc-card-grid{
     grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:clamp(7px,1.35vw,10px);
   }
   #securityAllocCards > .alloc-total-card{
     grid-column:1 / -1;
@@ -3108,13 +3104,6 @@ button:active,
   .chart-head > div{min-width:0}
 }
 
-@media(max-width:520px){
-  /* Existing layout only: card surface/typography comes from the common mini-card system. */
-  .change-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-  #pension-chart-alloc .chart-note,
-  #chart-alloc .chart-note{gap:7px}
-}
-
 /* 2026-08-04 follow-up: top controls align to actual content edges */
 
 /* cumulative chart line selector: return rate / KOSPI */
@@ -3969,12 +3958,6 @@ button:active,
   }
 }
 
-@media(max-width:520px){
-  #pension-products .pension-products-table .mobile-table-kodex-prefix{
-    display:none;
-  }
-}
-
 .combined-mobile-return{display:none}
 @media(max-width:400px){
   #summary-section .combined-performance-table th:nth-child(5),
@@ -4212,12 +4195,6 @@ body.chart-expanded-open .dash-tooltip{
   max-height:calc(100dvh - 20px);
   overflow:auto;
   overscroll-behavior:contain;
-}
-
-@media(max-width:520px){
-  #pension-change .change-table .mobile-table-kodex-prefix{
-    display:none;
-  }
 }
 
 /* Top date/control bar: desktop base + tablet + mobile only. */
@@ -4715,6 +4692,10 @@ body.chart-expanded-open .dash-tooltip{
     --data-table-cell-x:6px;
     --data-table-line-height:1.22;
     --data-table-bar-width:56px;
+  }
+  #pension-products .pension-products-table .mobile-table-kodex-prefix,
+  #pension-change .change-table .mobile-table-kodex-prefix{
+    display:none;
   }
   .dashboard-data-table .accounts-memo{width:clamp(180px,34vw,260px)}
   .mobile-view-toggle{
