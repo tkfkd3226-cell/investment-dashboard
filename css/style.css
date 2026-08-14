@@ -1529,6 +1529,9 @@ button.legend-item.chart-series-all.active{
 .contrib-field.full{
   grid-column:1/-1;
 }
+.contrib-modal #pensionContribStandardFields.cash-mode > .contrib-field:first-child{
+  grid-column:1/-1;
+}
 .contrib-field label{
   font-size:12px;
   font-weight:900;
@@ -1807,6 +1810,9 @@ body.contrib-modal-open{
   }
   .contrib-modal .contrib-form-grid{
     grid-template-columns:1fr;
+  }
+  .contrib-modal #pensionContribStandardFields.cash-mode{
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
 
@@ -3863,13 +3869,6 @@ button:active,
 /* 상태 utility: 현금성자산이 아닌 유형에서는 cost-basis field를 base grid 규칙보다 확실히 숨긴다. */
 #pensionCashCostField[hidden]{
   display:none !important;
-}
-
-/* Pension Cash Desktop · 퇴직연금 현금 snapshot: 761px 이상 3열 */
-@media(min-width:761px){
-  .contrib-modal #pensionContribStandardFields.cash-mode{
-    grid-template-columns:repeat(3,minmax(0,1fr));
-  }
 }
 
 /* Mobile Top Button · 모바일 맨위로 버튼 위치 */
