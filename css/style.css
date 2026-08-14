@@ -237,6 +237,13 @@ body{
   border-color:#111827;
 }
 
+/* Highlight KPI in Dark Mode · 다크모드 강조 KPI */
+html.dark .card.dark{
+  background:linear-gradient(135deg,#2a374d 0%,#202b3d 100%);
+  border-color:#52627a;
+  box-shadow:0 10px 26px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);
+}
+
 .label{
   font-size:13px;
   color:var(--muted);
