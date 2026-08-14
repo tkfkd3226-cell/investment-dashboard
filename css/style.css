@@ -392,6 +392,7 @@ td.num{
   font-size:var(--hero-pill-size);
   line-height:var(--hero-pill-line);
 }
+.hero-label-mobile{display:none}
 
 /* Hero Tablet · 핵심요약 태블릿: 카드 여백·제목·요약 pill을 한 단계 축소 */
 @media (min-width:761px) and (max-width:1100px){
@@ -455,6 +456,8 @@ td.num{
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
   .hero .hero-return-pill{display:none}
+  .hero .hero-label-default{display:none}
+  .hero .hero-label-mobile{display:inline}
 }
 
 @media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
