@@ -1493,7 +1493,7 @@ button.legend-item.chart-series-all.active{
   background:var(--card);
   color:var(--muted);
   font-size:12px;
-  font-weight:800;
+  font-weight:400;
 }
 .section-action-chip{
   height:var(--section-chip-height);

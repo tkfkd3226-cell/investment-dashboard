@@ -396,7 +396,7 @@ function ensureKrxActionModal(){
     <h3 id="krxActionTitle" class="modal-main-title">KRX 현재가 반영</h3>
     <p class="action-modal-description">선택한 기준일만 다시 갱신하거나, 날짜를 비워 누락 거래일을 자동 보충할 수 있습니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
     <label class="action-modal-label krx-action-label" for="krxActionPin">저장/실행 PIN</label>
-    <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 입력">
+    <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 6자리 입력">
     <div id="krxActionStatus" class="action-modal-status krx-action-status"></div>
     <div class="action-modal-buttons krx-action-buttons">
       <button type="button" class="action-modal-btn ghost" data-dashboard-action="close-krx-modal">취소</button>
