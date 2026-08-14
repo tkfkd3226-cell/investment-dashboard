@@ -19,7 +19,7 @@
 - 누적수익률/KOSPI, 운용수익/수익률, 누적손익/손익률 등 차트 모드 전환
 - 증권계좌 평가액 비중 `유형별 / 종목별` 전환
 - 주요 6개 차트의 모바일 가로 확대 및 웹 전체화면 확대
-- 별도 투자 계산기(`calc.html`)와 거래 리포트(`report/`)
+- 별도 투자 계산기(`add/calc.html`)와 거래 리포트(`add/report/`)
 
 ---
 
@@ -27,18 +27,22 @@
 
 ```text
 index.html
-style.css
-script.js
-calc.html
 favicon.png
 README.md
 requirements.txt
 
-assets/
-  common.css
+css/
+  style.css
 
-report/
-  20260608-20260812_report.html
+js/
+  script.js
+
+add/
+  calc.html
+  css/
+    common.css
+  report/
+    20260608-20260812_report.html
 
 data/
   portfolio.json
@@ -56,7 +60,7 @@ scripts/
   update-prices.yml
 ```
 
-`assets/common.css`는 현재 `calc.html`과 거래 리포트만 공유하는 최소 공통 기반입니다.
+`add/css/common.css`는 현재 `add/calc.html`과 `add/report/`의 거래 리포트만 공유하는 최소 공통 기반입니다.
 
 ---
 
@@ -756,7 +760,7 @@ Folder: /root
 
 1. 우선 `data/portfolio.json`, 가격/스냅샷, 거래 이벤트 등 **데이터와 계산 로직**을 수정합니다.
 2. 종목명·상품명 우측 `■`의 **모양·크기·정렬은 `.asset-color-swatch` 공통 CSS**를 그대로 사용합니다.
-3. 종목/상품 색상은 CSS class가 아니라 `script.js`의 공통 색상 원천을 사용합니다.
+3. 종목/상품 색상은 CSS class가 아니라 `js/script.js`의 공통 색상 원천을 사용합니다.
    - 증권 종목: `SECURITY_SYMBOL_COLORS`
    - 퇴직연금 상품: `PENSION_PRODUCT_COLORS`
    - 유형: `ASSET_TYPE_COLORS`
@@ -814,8 +818,8 @@ Folder: /root
 3. CSS 문법과 중괄호 검사
 4. 수정 대상 selector의 불필요한 중복/사문화 rule 검사
 5. `diff`로 의도한 파일과 선언만 바뀌었는지 확인
-6. `style.css` 수정 전/후 **전체 줄 수·증감 줄 수** 보고
-7. `style.css` 수정 전/후 **파일 크기(bytes)·증감 크기** 보고
+6. `css/style.css` 수정 전/후 **전체 줄 수·증감 줄 수** 보고
+7. `css/style.css` 수정 전/후 **파일 크기(bytes)·증감 크기** 보고
 8. 변경 파일별 diff 추가/삭제 줄 수와 예상 밖 변경 여부 보고
 
 다만 `display`, `position`, `grid`, `flex`, `width/height`, fixed/sticky/overlay, breakpoint, DOM class 또는 JS 렌더링을 바꾼 경우에는 해당 대표 viewport에서 필요한 렌더 확인을 추가합니다.
