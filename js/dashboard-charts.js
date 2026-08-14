@@ -761,7 +761,7 @@ function labelDates(svg,cfg,data,every=3){
   const labelY=h-b+16;
   data.forEach((d,i)=>{if(i%every===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:labelY,transform:`rotate(-65 ${x} ${labelY})`,'text-anchor':'end','font-size':10,fill:cssThemeValue('--chart-text','#6b7280')});txt.textContent=d['날짜'];svg.appendChild(txt)}})
 }
-function polyline(svg,points,color,width=2.5){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':width,'stroke-linejoin':'round','stroke-linecap':'round'}))}
+function polyline(svg,points,color){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':1,'stroke-linejoin':'round','stroke-linecap':'round'}))}
 function circles(svg,points,color){const fill=cssThemeValue('--chart-surface','#fff');points.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:3,fill,stroke:color,'stroke-width':2})))}
 function nearestIndex(evt,svg,cfg,data){
   const pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;
@@ -936,7 +936,7 @@ function drawPensionCumChart(){
   if(selected.has('compare')){
     const lineColor=mode==='kospi'?'#7c3aed':'#5abdf2';
     const pts=data.map((d,i)=>({value:mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률'],point:[chartX(cfg,n,i),0]})).filter(v=>Number.isFinite(v.value)).map(v=>[v.point[0],cfg.y2(v.value)]);
-    if(pts.length){polyline(svg,pts,lineColor,2.8);circles(svg,pts,lineColor)}
+    if(pts.length){polyline(svg,pts,lineColor);circles(svg,pts,lineColor)}
   }
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{
@@ -1018,7 +1018,7 @@ function drawCumChart(){
   if(selected.has('compare')){
     const lineColor=mode==='kospi'?'#7c3aed':'#5abdf2';
     const pts=data.map((d,i)=>({value:mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률'],x:chartX(cfg,n,i)})).filter(v=>Number.isFinite(v.value)).map(v=>[v.x,cfg.y2(v.value)]);
-    if(pts.length){polyline(svg,pts,lineColor,2.5);circles(svg,pts,lineColor)}
+    if(pts.length){polyline(svg,pts,lineColor);circles(svg,pts,lineColor)}
   }
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{
