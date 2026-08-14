@@ -762,7 +762,7 @@ function labelDates(svg,cfg,data,every=3){
   data.forEach((d,i)=>{if(i%every===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:labelY,transform:`rotate(-65 ${x} ${labelY})`,'text-anchor':'end','font-size':10,fill:cssThemeValue('--chart-text','#6b7280')});txt.textContent=d['날짜'];svg.appendChild(txt)}})
 }
 function polyline(svg,points,color){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':1,'stroke-linejoin':'round','stroke-linecap':'round'}))}
-function circles(svg,points,color){points.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:3.75,fill:color})))}
+function circles(svg,points,color){points.forEach(p=>{svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:3.75,fill:color}));svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:2.25,fill:'none',stroke:'#fff','stroke-width':1}))})}
 function nearestIndex(evt,svg,cfg,data){
   const pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;
   const loc=pt.matrixTransform(svg.getScreenCTM().inverse());
