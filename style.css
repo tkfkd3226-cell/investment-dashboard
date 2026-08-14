@@ -690,7 +690,7 @@ svg.chart{
   outline-offset:2px;
 }
 
-.chart-legend button.chart-series-all{
+button.legend-item.chart-series-all{
   padding:0 var(--dashboard-control-pad-x);
   border:1px solid var(--line);
   border-radius:999px;
@@ -699,7 +699,7 @@ svg.chart{
   font-weight:700;
 }
 
-.chart-legend button.chart-series-all.active{
+button.legend-item.chart-series-all.active{
   border-color:var(--line);
   background:var(--subtle-card);
   color:var(--ink);
@@ -2022,8 +2022,8 @@ body.contrib-modal-open{
 .dark :is(th,td){border-color:var(--line)}
 .dark thead th{background:var(--table-head-bg);color:var(--ink)}
 .dark .summary-row td{background:var(--summary-row-bg)}
-.dark .chart-legend button.chart-series-all{background:var(--card);border-color:var(--line);color:var(--muted)}
-.dark .chart-legend button.chart-series-all.active{background:var(--subtle-card);color:var(--ink)}
+.dark button.legend-item.chart-series-all{background:var(--card);border-color:var(--line);color:var(--muted)}
+.dark button.legend-item.chart-series-all.active{background:var(--subtle-card);color:var(--ink)}
 .dark .chart-y-auto-toggle{background:var(--card);border-color:var(--line);color:var(--muted)}
 .dark .chart-y-auto-toggle.active{background:var(--subtle-card);color:var(--ink)}
 .dark .chart-y-auto-state{background:#273449;color:#94a3b8}
