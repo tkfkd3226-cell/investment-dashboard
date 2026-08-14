@@ -288,6 +288,16 @@ function pensionContributionTargetLabel(target=pensionContributionTarget()){
   if(target==='etfTrade') return '추가 매수';
   return target==='cashSnapshot'?'현금성자산':'기업적립금';
 }
+function pensionSavePinDescription(item){
+  if(item.target==='cashSnapshot') return `${item.date} 현금성자산 평가금액 ${won(item.valuation)}, 매수원금 ${won(item.costBasis)}을 저장합니다.`;
+  if(item.target==='etfTrade') return `신청일 ${item.tradeDate} · ${item.name} ${fmt(item.qty)}좌 · 체결금액 ${won(item.amount)}을 ${item.applyDate} 앱 반영 기준으로 저장합니다.`;
+  return `${item.date} 기업적립금 ${won(item.amount)}을 저장합니다.`;
+}
+function pensionDeletePinDescription(target,item,key){
+  if(target==='cashSnapshot') return `${item?.date||key} 현금성자산 기록(평가금액 ${won(Number(item?.valuation)||0)})을 삭제합니다.`;
+  if(target==='etfTrade') return `신청일 ${item?.tradeDate||item?.date||key} · ${item?.name||item?.ticker||''} ${fmt(item?.qty||0)}좌 · 체결금액 ${won(Number(item?.amount)||0)} 추가 매수 기록을 삭제합니다.`;
+  return `${item?.date||key} 기업적립금 ${won(Number(item?.amount)||0)} 기록을 삭제합니다.`;
+}
 function setPensionContributionSaveDisabled(disabled){
   const btn=document.getElementById('pensionContribSaveButton');
   if(!btn) return;
@@ -393,7 +403,7 @@ function syncPensionContributionTargetUi(){
     deleteHelp.textContent=target==='cashSnapshot'
       ?'잘못 등록한 현금성자산 기록 선택 후 삭제'
       :(target==='contribution'
-        ?'잘못 등록한 기업적릭금 선택 후 삭제'
+        ?'잘못 등록한 기업적립금 선택 후 삭제'
         :'잘못 등록한 추가 매수 거래 선택 후 삭제');
   }
   if(deleteStatus){
@@ -585,7 +595,7 @@ function resetPensionContributionForm(){
   document.activeElement?.blur?.();
 }
 
-function requestPensionActionPin({title='PIN 입력',description='저장/삭제를 계속하려면 PIN을 입력하세요.',danger=false,execute}={}){
+function requestPensionActionPin({title='PIN 입력',description='작업 내용을 확인한 뒤 PIN 6자리를 입력하세요.',danger=false,actionLabel='',execute}={}){
   return new Promise(resolve=>{
     const old=document.getElementById('pensionActionPinModal');
     if(old) old.remove();
@@ -599,7 +609,7 @@ function requestPensionActionPin({title='PIN 입력',description='저장/삭제�
       <p class="action-modal-description">${description}</p>
       <label class="action-modal-label" for="pensionActionPinInput">PIN</label>
       <input id="pensionActionPinInput" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력">
-      <div class="pension-action-pin-guide">PIN이 일치하면 자동으로 ${danger?'삭제':'저장'} 실행됩니다.</div>
+      <div class="pension-action-pin-guide">PIN 확인 후 ${actionLabel||(danger?'삭제':'저장')}합니다.</div>
       <div id="pensionActionPinStatus" class="action-modal-status pension-action-pin-status" aria-live="polite"></div>
       <div class="action-modal-buttons pension-action-pin-buttons"><button type="button" class="action-modal-btn ghost">취소</button></div>
     </div>`;
@@ -621,7 +631,7 @@ function requestPensionActionPin({title='PIN 입력',description='저장/삭제�
       if(pin.length!==6||busy)return;
       busy=true;
       input.disabled=true;
-      if(status){status.textContent='PIN 확인 및 처리 중...';status.className='action-modal-status pension-action-pin-status checking'}
+      if(status){status.textContent='처리 중...';status.className='action-modal-status pension-action-pin-status checking'}
       try{
         const result=typeof execute==='function'?await execute(pin):pin;
         finish(result);
@@ -954,13 +964,14 @@ async function applyPensionBatchQueue(){
   pensionState.batchApplying=true;
   renderPensionBatchQueue();
   try{
-    showPensionBatchStatus('PIN 입력 대기 중...','ok');
+    clearPensionContributionStatus('pensionBatchStatus');
     const data=await requestPensionActionPin({
       title:'작업 모음 일괄 적용',
-      description:`저장·삭제 ${count}건을 검증한 뒤 GitHub 한 커밋으로 반영합니다. 하나라도 실패하면 아무것도 저장하지 않습니다.`,
+      description:`저장·삭제 ${count}건을 한 번에 적용합니다. 하나라도 실패하면 전체 작업을 반영하지 않습니다.`,
+      actionLabel:'일괄 적용',
       execute:pin=>savePensionBatchViaGithubPages(simulated.orderedOperations,pin,batchRequestId)
     });
-    if(!data){showPensionBatchStatus('일괄 적용이 취소되었습니다.','err');return}
+    if(!data){showPensionBatchStatus('일괄 적용 취소','err');return}
     const duplicateWithoutState=!!data.duplicate&&!data.state;
     if(!duplicateWithoutState)applyPensionBatchStateLocally(data.state);
     pensionState.batchQueue=[];
@@ -972,8 +983,8 @@ async function applyPensionBatchQueue(){
     openPensionContributionModal();
     setPensionBatchMode(true);
     showPensionBatchStatus(duplicateWithoutState
-      ?'동일한 작업 모음은 이미 서버에서 반영 완료되었습니다. 중복 커밋은 만들지 않았습니다. Pages 반영 후 새로고침하면 최신 값이 표시됩니다.'
-      :`${count}건 일괄 적용 완료. GitHub에는 한 커밋으로 반영했습니다. Pages 배포까지 잠시 걸릴 수 있습니다.`,'ok');
+      ?'동일한 작업 모음은 이미 반영되어 있습니다. 중복 적용하지 않았습니다. 최신 값은 새로고침 후 확인해주세요.'
+      :`작업 모음 ${count}건 적용 완료`,'ok');
     showPensionMobileToast(duplicateWithoutState
       ?`작업 모음 ${count}건 이미 반영 완료`
       :`작업 모음 ${count}건 적용 완료`,'ok');
@@ -1020,20 +1031,16 @@ async function savePensionContribution(){
         if(amountEl)amountEl.value='';
         updatePensionEtfTradePreview();
       }
-      showPensionContributionStatus(`${targetText} 저장 작업을 작업 모음에 추가했습니다.`,'ok');
+      showPensionContributionStatus(`${targetText} 저장 작업 추가 완료`,'ok');
       return;
     }
-    showPensionContributionStatus('PIN 입력 대기 중...','ok');
+    clearPensionContributionStatus('pensionContribStatus');
     const data=await requestPensionActionPin({
       title:`${targetText} 저장`,
-      description:item.target==='cashSnapshot'
-        ?`현금성자산의 평가금액 ${won(item.valuation)}과 매수원금 ${won(item.costBasis)}을 GitHub 파일에 함께 저장합니다.`
-        :(item.target==='etfTrade'
-          ?`${item.tradeDate} 신청한 ${item.name} ${fmt(item.qty)}좌 매수를 오늘(${item.applyDate}) 앱 반영 기준으로 적용합니다.`
-          :`${targetText}을 GitHub 파일에 저장합니다. PIN 6자리를 입력하세요.`),
+      description:pensionSavePinDescription(item),
       execute:pin=>savePensionContributionViaGithubPages(item,pin)
     });
-    if(!data){showPensionContributionStatus('저장이 취소되었습니다.','err');return}
+    if(!data){showPensionContributionStatus('저장 취소','err');return}
     if(data.item){
       upsertPensionItemLocally(item.target,data.item);
       if(item.target==='etfTrade'){
@@ -1045,8 +1052,7 @@ async function savePensionContribution(){
       }
       syncPensionContributionDeleteCard(item.target);
     }
-    const actionText=data.action==='updated'?'기존 항목 수정':'신규 항목 추가';
-    showPensionContributionStatus(`${targetText} ${actionText} 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.`,'ok');
+    showPensionContributionStatus(`${targetText} 저장 완료`,'ok');
     showPensionMobileToast(`${targetText} 저장 완료`,'ok');
   }catch(e){showPensionContributionStatus(e.message||String(e),'err')}
 }
@@ -1074,15 +1080,12 @@ async function deleteSelectedPensionContribution(){
   const item=isCash
     ?pensionCashSnapshotItems().find(v=>v.date===key)
     :(isTrade?pensionTradeItems().find(v=>v.id===key):pensionContributionItems().find(v=>v.id===key));
-  const date=item?.date||key;
-  const amount=item?won(Number(isCash?item.valuation:item.amount)||0):'선택 항목';
   const targetText=pensionContributionTargetLabel(target);
-  const tradeDetail=isTrade&&item?` / 신청 ${item.tradeDate||item.date} / ${item.name||item.ticker} ${fmt(item.qty)}좌`:'';
   if(pensionState.batchMode){
     try{
       addPensionBatchOperation({action:'delete',target,key,sourceItem:item?{...item}:null});
       selected.checked=false;
-      showPensionContributionDeleteStatus(`${targetText} 삭제 작업을 작업 모음에 추가했습니다.`,'ok');
+      showPensionContributionDeleteStatus(`${targetText} 삭제 작업 추가 완료`,'ok');
     }catch(e){showPensionContributionDeleteStatus(e.message||String(e),'err')}
     return;
   }
@@ -1100,18 +1103,18 @@ async function deleteSelectedPensionContribution(){
       return;
     }
   }
-  showPensionContributionDeleteStatus('PIN 입력 대기 중...','ok');
+  clearPensionContributionStatus('pensionContribDeleteStatus');
   const data=await requestPensionActionPin({
     title:`${targetText} 삭제`,
-    description:`${date} / ${targetText} / ${amount}${tradeDetail} 항목을 삭제합니다. PIN 6자리를 입력하세요.`,
+    description:pensionDeletePinDescription(target,item,key),
     danger:true,
     execute:pin=>deletePensionContributionViaGithubPages(target,key,pin)
   });
-  if(!data){showPensionContributionDeleteStatus('삭제가 취소되었습니다.','err');return}
+  if(!data){showPensionContributionDeleteStatus('삭제 취소','err');return}
   removePensionItemLocally(target,key);
   syncPensionContributionDeleteCard(target);
   if(target==='etfTrade') updatePensionEtfTradePreview();
-  showPensionContributionDeleteStatus('선택 항목 삭제 완료. GitHub Pages 반영까지 1~3분 정도 걸릴 수 있습니다.','ok');
+  showPensionContributionDeleteStatus(`${targetText} 삭제 완료`,'ok');
   showPensionMobileToast(`${targetText} 삭제 완료`,'ok');
 }
 
