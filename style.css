@@ -6,17 +6,7 @@
   --muted:#6b7280;
   --line:#d7dce5;
   --blue:#1f5eff;
-  --green:#16a34a;
-  --red:#dc2626;
-  --amber:#d97706;
-  --navy:#0f172a;
-  --soft-blue:#eaf2ff;
-  --soft-green:#eaf7ee;
-  --soft-red:#fff1f1;
-  --soft-amber:#fff7e6;
-  --soft-purple:#f4efff;
   --soft-gray:#eef1f5;
-  --black:#111827;
   /* Semantic value colors: shared by desktop tables and mobile card views. */
   --value-positive:#EF3341;
   --value-negative:#3182F6;
@@ -62,11 +52,6 @@ html.dark{
   --ink:#e5e7eb;
   --muted:#94a3b8;
   --line:#2b3548;
-  --soft-blue:#172554;
-  --soft-green:#052e2b;
-  --soft-red:#3f171d;
-  --soft-amber:#422006;
-  --soft-purple:#2e1f47;
   --soft-gray:#1e293b;
   --value-positive:#FF5964;
   --value-negative:#60A5FA;
@@ -705,19 +690,19 @@ svg.chart{
   outline-offset:2px;
 }
 
-.chart-series-all{
-  padding:0 var(--dashboard-control-pad-x) !important;
-  border:1px solid var(--line) !important;
-  border-radius:999px !important;
-  background:var(--card) !important;
-  color:var(--muted) !important;
-  font-weight:700 !important;
+.chart-legend button.chart-series-all{
+  padding:0 var(--dashboard-control-pad-x);
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--card);
+  color:var(--muted);
+  font-weight:700;
 }
 
-.chart-series-all.active{
-  border-color:var(--line) !important;
-  background:var(--subtle-card) !important;
-  color:var(--ink) !important;
+.chart-legend button.chart-series-all.active{
+  border-color:var(--line);
+  background:var(--subtle-card);
+  color:var(--ink);
 }
 
 .chart-y-auto-toggle{
@@ -1227,7 +1212,7 @@ svg.chart{
 }
 
 .change-table tbody td:nth-child(4){
-  text-align:right !important;
+  text-align:right;
   white-space:nowrap;
   font-variant-numeric:tabular-nums;
 }
@@ -1242,35 +1227,35 @@ svg.chart{
 /* Cumulative summary cards shared by pension/securities:
    layout only — card surface and typography come from the common mini-card system. */
 .chart-note.six{
-  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
-  gap:10px !important;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:10px;
 }
 .chart-note.six .m-label,
 .chart-note.six .m-value,
 .chart-note.six .m-detail{
-  white-space:nowrap !important;
-  overflow-wrap:normal !important;
-  word-break:normal !important;
+  white-space:nowrap;
+  overflow-wrap:normal;
+  word-break:normal;
 }
 
 @media (min-width:761px) and (max-width:1100px){
   .chart-note.six{
-    gap:8px !important;
-    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:8px;
+    grid-template-columns:repeat(3,minmax(0,1fr));
   }
 }
 
 @media (max-width:760px){
   .chart-note.six{
-    gap:6px !important;
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:6px;
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
 
 @media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   .chart-note.six{
-    gap:6px !important;
-    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:6px;
+    grid-template-columns:repeat(3,minmax(0,1fr));
   }
 }
 
@@ -1319,7 +1304,7 @@ svg.chart{
 }
 
 .metric-grid > .metric-card{
-  padding:18px !important;
+  padding:18px;
 }
 
 .metric-grid > .metric-card .value{
@@ -1345,11 +1330,11 @@ svg.chart{
   }
 
   .metric-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
 
   .metric-grid > .metric-card{
-    padding:14px !important;
+    padding:14px;
   }
 
   .metric-grid > .metric-card .value{
@@ -1371,11 +1356,11 @@ svg.chart{
   }
 
   .metric-grid{
-    grid-template-columns:1fr !important;
+    grid-template-columns:1fr;
   }
 
   .metric-grid > .metric-card{
-    padding:10px !important;
+    padding:10px;
   }
 
   .metric-grid > .metric-card .value{
@@ -1397,11 +1382,11 @@ svg.chart{
   }
 
   .metric-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
 
   .metric-grid > .metric-card{
-    padding:10px !important;
+    padding:10px;
   }
 
   .metric-grid > .metric-card .value{
@@ -1417,9 +1402,9 @@ svg.chart{
   --symbol-metric-label-size:11px;
   --symbol-metric-value-size:12px;
   --symbol-metric-gap:10px;
-  display:grid !important;
-  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
-  width:100% !important;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  width:100%;
 }
 
 @media (min-width:761px) and (max-width:1100px){
@@ -1440,8 +1425,8 @@ svg.chart{
 
 @media(max-width:900px){
   .chart-note.symbol-summary-grid{
-    grid-auto-flow:row !important;
-    gap:8px !important;
+    grid-auto-flow:row;
+    gap:8px;
   }
 }
 
@@ -2037,8 +2022,10 @@ body.contrib-modal-open{
 .dark :is(th,td){border-color:var(--line)}
 .dark thead th{background:var(--table-head-bg);color:var(--ink)}
 .dark .summary-row td{background:var(--summary-row-bg)}
-.dark :is(.chart-series-all,.chart-y-auto-toggle){background:var(--card) !important;border-color:var(--line) !important;color:var(--muted) !important}
-.dark :is(.chart-series-all.active,.chart-y-auto-toggle.active){background:var(--subtle-card) !important;color:var(--ink) !important}
+.dark .chart-legend button.chart-series-all{background:var(--card);border-color:var(--line);color:var(--muted)}
+.dark .chart-legend button.chart-series-all.active{background:var(--subtle-card);color:var(--ink)}
+.dark .chart-y-auto-toggle{background:var(--card);border-color:var(--line);color:var(--muted)}
+.dark .chart-y-auto-toggle.active{background:var(--subtle-card);color:var(--ink)}
 .dark .chart-y-auto-state{background:#273449;color:#94a3b8}
 .dark .chart-y-auto-toggle.active .chart-y-auto-state{background:#1e3a5f;color:#93c5fd}
 .dark .chart-legend{color:var(--muted)}
@@ -2237,7 +2224,7 @@ body.contrib-modal-open{
 
 @media(max-width:760px) and (orientation:portrait){
   .chart-note.symbol-summary-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
 
@@ -2500,7 +2487,7 @@ body.contrib-modal-open{
 }
 
 .source-grid{
-  margin-top:0 !important;
+  margin-top:0;
 }
 
 .source-card{
@@ -2715,14 +2702,14 @@ body.contrib-modal-open{
 #chart-cum .chart-head h3,
 #chart-symbol .chart-head h3,
 #chart-alloc .chart-head h3{
-  font-size:16px !important;
-  line-height:1.25 !important;
+  font-size:16px;
+  line-height:1.25;
 }
 
 #pension-chart-cum .chart-title-sub,
 #pension-chart-symbol .chart-title-sub{
-  font-size:12px !important;
-  font-weight:700 !important;
+  font-size:12px;
+  font-weight:700;
 }
 
 @media(max-width:760px){
@@ -2732,13 +2719,13 @@ body.contrib-modal-open{
   #chart-cum .chart-head h3,
   #chart-symbol .chart-head h3,
   #chart-alloc .chart-head h3{
-    font-size:15px !important;
-    line-height:1.22 !important;
+    font-size:15px;
+    line-height:1.22;
   }
 
   #pension-chart-cum .chart-title-sub,
   #pension-chart-symbol .chart-title-sub{
-    font-size:11px !important;
+    font-size:11px;
   }
 }
 
@@ -2923,14 +2910,14 @@ body.contrib-modal-open{
 }
 
 .contrib-existing-title{
-  display:inline-block !important;
+  display:inline-block;
   margin-right:10px;
   vertical-align:baseline;
 }
 
 .contrib-existing-memo{
-  display:inline-block !important;
-  margin-top:0 !important;
+  display:inline-block;
+  margin-top:0;
   margin-left:2px;
   vertical-align:baseline;
 }
@@ -2943,9 +2930,9 @@ body.contrib-modal-open{
 
   .contrib-existing-title,
   .contrib-existing-memo{
-    display:block !important;
-    margin-left:0 !important;
-    margin-right:0 !important;
+    display:block;
+    margin-left:0;
+    margin-right:0;
   }
 
   .contrib-existing-date,
@@ -2958,7 +2945,7 @@ body.contrib-modal-open{
   }
 
   .contrib-existing-memo{
-    margin-top:4px !important;
+    margin-top:4px;
   }
 }
 
@@ -3211,9 +3198,9 @@ button:active,
 
 @media(max-width:520px){
   /* Existing layout only: card surface/typography comes from the common mini-card system. */
-  .change-kpis{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:7px !important}
+  .change-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
   #pension-chart-alloc .chart-note,
-  #chart-alloc .chart-note{gap:7px !important}
+  #chart-alloc .chart-note{gap:7px}
 }
 
 /* 2026-08-04 follow-up: top controls align to actual content edges */
@@ -3350,8 +3337,8 @@ button:active,
 }
 
 @media(max-width:760px){
-  .krx-selected-line{display:block !important}
-  .krx-selected-space{display:none !important}
+  .krx-selected-line{display:block}
+  .krx-selected-space{display:none}
 }
 
 /* Securities holdings: chart-color symbol markers; row neutralization is scoped below. */
@@ -4987,7 +4974,7 @@ body.chart-expanded-open .dash-tooltip{
   vertical-align:middle;
   white-space:nowrap;
 }
-.dashboard-data-table .table-cell-center{text-align:center !important}
+.dashboard-data-table .table-cell-center{text-align:center}
 /* Positive/negative table values use the shared semantic rules above. */
 
 /* Intentional table exceptions: memo wrapping and pension allocation bar width. */
