@@ -2,9 +2,16 @@
 
 const THEME_STORAGE_KEY='investmentDashboard.theme';
 const currentTheme=()=>document.documentElement.classList.contains('dark')?'dark':'light';
+function themeToggleIconMarkup(dark){
+  const svgAttrs='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+  const svg=dark
+    ?`<svg ${svgAttrs}><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>`
+    :`<svg ${svgAttrs}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+  return `<span class="theme-toggle-emoji" aria-hidden="true">${dark?'☀️':'🌙'}</span><span class="theme-toggle-svg" aria-hidden="true">${svg}</span>`;
+}
 function syncThemeControls(){
   const dark=currentTheme()==='dark';
-  document.querySelectorAll('[data-theme-toggle-icon]').forEach(el=>el.textContent=dark?'☀️':'🌙');
+  document.querySelectorAll('[data-theme-toggle-icon]').forEach(el=>el.innerHTML=themeToggleIconMarkup(dark));
   document.querySelectorAll('[data-theme-toggle]').forEach(el=>{
     el.setAttribute('aria-pressed',String(dark));
     el.setAttribute('title',dark?'밝은 모드로 전환':'다크 모드로 전환');
@@ -198,7 +205,7 @@ function renderTabs(){
           <span class="date-tool-action-icon">🧮</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
         </a>`:''}
         <button type="button" class="date-tool-btn topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" data-dashboard-action="toggle-theme">
-          <span class="date-tool-action-icon" data-theme-toggle-icon>${currentTheme()==='dark'?'☀️':'🌙'}</span>
+          <span class="date-tool-action-icon" data-theme-toggle-icon>${themeToggleIconMarkup(currentTheme()==='dark')}</span>
         </button>
         <div class="date-action-menu-wrap">
           <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false" data-dashboard-action="toggle-date-menu"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
