@@ -493,8 +493,8 @@ function sectionToSecuritiesBlock(html, extraClass=''){
 }
 function renderSecuritiesSummaryCards(x){
   const securitiesScope=securitiesScopeText(x),v=separateProfitView(x);
-  const principalNote=uiState.includeSeparateProfit&&v.reclassifiedReinvestment?`별도수익 재투입 ${won(v.reclassifiedReinvestment)} 원금 제외`:x.account2Included?'계좌2 실현분·성과 제외 자금 전입 포함 기준':'선택일 계좌1 투자원금 기준';
-  const returnNote=uiState.includeSeparateProfit?'별도수익 포함 누적손익 ÷ 성과기준 투입원금':'총 합산 누적손익 ÷ 기준 투입원금';
+  const principalNote=uiState.includeSeparateProfit&&v.reclassifiedReinvestment?`별도수익 재투입 ${won(v.reclassifiedReinvestment)} 원금 제외`:x.account2Included?'계좌2 실현분·보유 자금 투입 포함 기준':'선택일 계좌1 투자원금 기준';
+  const returnNote='총 합산 누적손익 ÷ 기준 투입원금';
   return `<div class="securities-subsection securities-summary-block"><div class="grid cards metric-grid">${metricCard('증권계좌 투자 결과물',won(v.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(v.totalPrincipal),principalNote)}${metricCard('총 합산 누적손익',won(v.totalProfit),`${securitiesScope} 누적손익`,false,cls(v.totalProfit))}${metricCard('투자대비 이익률',pct(v.totalReturn),returnNote,false,cls(v.totalReturn))}</div></div>`;
 }
 function renderSecuritiesSection(x){
