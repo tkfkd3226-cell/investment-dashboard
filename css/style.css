@@ -52,6 +52,8 @@
   --dashboard-control-group-gap:7px;
   --modal-action-gap:14px;
   --section-title-font-size:18px;
+  --section-title-icon-size:18px;
+  --section-title-gap:7px;
   --section-chip-height:28px;
   --tooltip-bg:rgba(15,23,42,.96);
   --tooltip-color:#fff;
@@ -129,7 +131,9 @@ html.dark{
     --dashboard-expand-icon-size:13px;
     --dashboard-legend-font-size:10.5px;
     --dashboard-control-group-gap:5px;
-    --section-title-font-size:17px;
+    --section-title-font-size:15px;
+    --section-title-icon-size:15px;
+    --section-title-gap:5px;
   }
 }
 
@@ -295,7 +299,7 @@ section{
 .section-title h2{
   display:flex;
   align-items:center;
-  gap:7px;
+  gap:var(--section-title-gap);
   margin:0;
   font-size:var(--section-title-font-size);
   letter-spacing:-.04em;
@@ -2456,9 +2460,9 @@ body.contrib-modal-open{
 }
 /* Shared SVG Labels · 메인 라벨: 목차 SVG를 배경 없이 동일 크기로 재사용 */
 .section-title-icon[data-section-title-icon]{
-  width:18px;
-  height:18px;
-  flex:0 0 18px;
+  width:var(--section-title-icon-size);
+  height:var(--section-title-icon-size);
+  flex:0 0 var(--section-title-icon-size);
   border:0;
   border-radius:0;
   background:transparent;
@@ -2466,7 +2470,7 @@ body.contrib-modal-open{
   color:currentColor;
   font-size:0;
 }
-.section-title-icon[data-section-title-icon] svg{display:block;width:18px;height:18px}
+.section-title-icon[data-section-title-icon] svg{display:block;width:var(--section-title-icon-size);height:var(--section-title-icon-size)}
 
 .chart-card h3{
   display:flex;
@@ -4178,7 +4182,7 @@ body.chart-expanded-open .dash-tooltip{
   justify-content:center;
   gap:4px;
   font-size:11.5px;
-  font-weight:900;
+  font-weight:400;
   white-space:nowrap;
   cursor:pointer;
   box-shadow:0 5px 14px rgba(0,0,0,.14);
