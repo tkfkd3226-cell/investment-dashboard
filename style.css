@@ -4242,10 +4242,10 @@ button:active,
   border-color:#334155;
   color:#e2e8f0;
 }
-body.chart-expanded-open{overflow:hidden !important;touch-action:none}
+body.chart-expanded-open{overflow:hidden;touch-action:none}
 
 @media (min-width:761px){
-  .chart-web-expand-button{display:inline-flex !important;}
+  .chart-web-expand-button{display:inline-flex;}
 }
 
 .chart-expanded-overlay{
@@ -4333,8 +4333,7 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   letter-spacing:-.03em;
 }
 .chart-expanded-title .chart-title-sub{
-  font-size:11px !important;
-  font-weight:700 !important;
+  font-size:11px;
   flex:0 1 auto;
 }
 .chart-expanded-controls-host{
@@ -4343,13 +4342,9 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
 }
 .chart-expanded-controls-host:empty{display:none}
 .chart-expanded-controls-host .chart-head-actions{
-  display:flex !important;
-  margin:0 !important;
-  align-items:center !important;
-  justify-content:flex-end !important;
-  gap:var(--dashboard-control-group-gap) !important;
+  margin:0;
 }
-.chart-expanded-controls-host .chart-web-expand-button{display:none !important}
+.chart-expanded-controls-host .chart-web-expand-button{display:none}
 .chart-expanded-chart-host{
   min-width:0;
   min-height:0;
@@ -4358,12 +4353,12 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
   align-items:stretch;
 }
 .chart-expanded-chart-host svg.chart{
-  width:100% !important;
-  min-width:0 !important;
-  max-width:100% !important;
-  height:100% !important;
-  min-height:0 !important;
-  border-radius:10px !important;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  height:100%;
+  min-height:0;
+  border-radius:10px;
   flex:1 1 auto;
 }
 .chart-expanded-legend-host{
@@ -4373,31 +4368,27 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
 }
 .chart-expanded-legend-host:empty{display:none}
 .chart-expanded-legend-host .chart-legend{
-  display:flex !important;
-  align-items:center;
-  justify-content:center !important;
-  margin-top:0 !important;
-  column-gap:10px !important;
-  line-height:1.2 !important;
+  margin-top:0;
+  column-gap:10px;
+  line-height:1.2;
 }
 .chart-expanded-legend-host .chart-legend-series{
   width:100%;
-  justify-content:center !important;
-  gap:5px 10px !important;
+  gap:5px 10px;
 }
 
 /* If the user physically rotates while expanded, stop simulating rotation and fill real landscape. */
 .chart-expanded-overlay.device-landscape .chart-expanded-stage{
-  width:100% !important;
-  height:100% !important;
-  transform:none !important;
+  width:100%;
+  height:100%;
+  transform:none;
   padding:10px 52px 8px 12px;
 }
 @media (min-width:1101px){
   .chart-expanded-overlay.desktop-expanded .chart-expanded-stage{
-    width:100% !important;
-    height:100% !important;
-    transform:none !important;
+    width:100%;
+    height:100%;
+    transform:none;
     gap:10px;
     padding:20px 68px 16px 24px;
   }
@@ -4410,27 +4401,27 @@ body.chart-expanded-open{overflow:hidden !important;touch-action:none}
     --section-icon-font-size:17px;
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-title-sub{
-    font-size:12px !important;
+    font-size:12px;
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend{
-    column-gap:14px !important;
+    column-gap:14px;
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend-series{
-    gap:7px 14px !important;
+    gap:7px 14px;
   }
 }
 .chart-expanded-chart-host .svg-hitbox{
-  pointer-events:all !important;
+  pointer-events:all;
   cursor:crosshair;
   touch-action:none;
 }
 body.chart-expanded-open .dash-tooltip{
-  z-index:12002 !important;
-  transform:none !important;
-  box-sizing:border-box !important;
-  max-width:min(320px,calc(100vw - 20px)) !important;
-  max-height:calc(100dvh - 20px) !important;
-  overflow:auto !important;
+  z-index:12002;
+  transform:none;
+  box-sizing:border-box;
+  max-width:min(320px,calc(100vw - 20px));
+  max-height:calc(100dvh - 20px);
+  overflow:auto;
   overscroll-behavior:contain;
 }
 
