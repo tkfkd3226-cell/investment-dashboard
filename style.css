@@ -3371,8 +3371,9 @@ button:active,
 .dark :is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon){color:#8b949e}
 
 /* 2026-08-04 desktop edge TOC correction
-   - Desktop: right-edge hover/focus table of contents only
+   - Desktop/tablet: right-edge hover/focus table of contents only
    - Mobile: keep the existing hamburger menu with links and management actions */
+.desktop-edge-toc{display:none}
 @media(min-width:761px){
   /* Desktop/tablet use the right-edge TOC. */
 
@@ -3512,11 +3513,6 @@ button:active,
   }
 }
 
-@media(max-width:760px){
-  .desktop-edge-toc{
-    display:none !important;
-  }
-}
 
 /* 2026-08-04 holdings final neutral-background correction: table rows only. */
 #securities-holdings .hold-position-table tbody tr.ticker-samsung,
@@ -4552,17 +4548,6 @@ body.chart-expanded-open .dash-tooltip{
   .date-tool-action-icon{margin-right:2px;font-size:11px}
 }
 
-/* Compact tablet / iPad Mini: market and pension actions move into More. */
-@media (min-width:761px) and (max-width:900px){
-  .topbar-market-action,
-  .topbar-pension-action{display:none}
-  .compact-action-menu-wrap{display:block}
-  .date-picker-center,
-  .date-picker-action{gap:4px}
-  .month-select{min-width:128px;flex-basis:128px}
-  .day-select{min-width:96px;flex-basis:96px}
-  .date-tool-btn{padding-left:7px;padding-right:7px;font-size:10px}
-}
 
 /* Phone: closed = floating hamburger; open/pinned = month + day + hamburger. */
 @media(max-width:760px){
@@ -4604,7 +4589,6 @@ body.chart-expanded-open .dash-tooltip{
   }
   .date-picker-action > :not(.date-action-menu-wrap):not(.mobile-theme-btn){display:none}
   .date-tool-btn-desktop{display:none}
-  .compact-action-menu-wrap{display:none}
   .month-select,
   .day-select{
     min-width:0;
@@ -4699,8 +4683,6 @@ body.chart-expanded-open .dash-tooltip{
   }
 }
 
-/* Mobile date pin control is intentionally hidden on desktop/tablet menu. */
-@media(min-width:761px){.mobile-date-pin-control{display:none}}
 
 /* 2026-08-12 mobile chart header/control refinement */
 .chart-title-info{
