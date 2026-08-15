@@ -2066,7 +2066,13 @@ body.contrib-modal-open{
 .dark .chart-y-auto-state{background:#273449;color:#94a3b8}
 .dark .chart-y-auto-toggle.active .chart-y-auto-state{background:#1e3a5f;color:#93c5fd}
 .dark .pension-insight-card{box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
-.dark .pension-stack-bar{background:#243149;border-color:#334155}
+.dark .pension-stack-bar,
+.dark .pension-risk-gauge,
+.dark .pension-products-table .bar-box{background:#243149;border-color:#334155}
+.dark .pension-risk-threshold{border-left-color:#94a3b8}
+.dark .pension-risk-scale{color:var(--muted)}
+.dark .separate-profit-toggle.active{background:#30181d;border-color:#7f3340;color:#fda4af}
+.dark .separate-profit-toggle.active strong{background:var(--value-positive);color:#fff}
 .dark .source-reclass-note{background:#30181d;border-color:#7f3340}
 .dark .source-reclass-note span{color:#94a3b8}
 
