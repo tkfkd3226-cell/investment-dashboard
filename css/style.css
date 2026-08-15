@@ -930,6 +930,8 @@ button.legend-item.chart-series-all.active{
   color:#c2410c;
   border-color:#fed7aa;
 }
+.dark .pension-insight-badge.safe{background:rgba(22,101,52,.28);color:#bbf7d0;border-color:rgba(134,239,172,.28)}
+.dark .pension-insight-badge.danger{background:rgba(194,65,12,.24);color:#fed7aa;border-color:rgba(253,186,116,.28)}
 
 .pension-empty-state{
   padding:14px;
@@ -2801,15 +2803,15 @@ button,
     background:rgba(255,255,255,.18);
   }
 
-  button:hover,
-  .btn:hover{
+  button:not(:disabled):hover,
+  .btn:not(:disabled):hover{
     transform:translateY(-1px);
   }
 }
 
-.date-tool-btn:active,
-button:active,
-.btn:active{
+.date-tool-btn:not(:disabled):active,
+button:not(:disabled):active,
+.btn:not(:disabled):active{
   transform:translateY(1px) scale(.98);
 }
 
@@ -2876,9 +2878,9 @@ button:active,
     transition:box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
   }
 
-  .date-tool-btn:active,
-  button:active,
-  .btn:active{
+  .date-tool-btn:not(:disabled):active,
+  button:not(:disabled):active,
+  .btn:not(:disabled):active{
     transform:scale(.985);
   }
 
@@ -3533,6 +3535,8 @@ button:active,
   background:#fef2f2;
   color:#b91c1c;
 }
+.dark .pension-batch-order-note{background:rgba(37,99,235,.16);color:#bfdbfe}
+.dark .pension-batch-order-note.error{background:rgba(185,28,28,.18);color:#fecaca}
 .pension-batch-actions{
   display:flex;
   justify-content:flex-end;
@@ -4304,6 +4308,7 @@ body.chart-expanded-open .dash-tooltip{
   -webkit-tap-highlight-color:transparent;
   z-index:12;
 }
+.phone-chart-ui .chart-title-info::before{content:"";position:absolute;inset:-3px}
 .phone-chart-ui .chart-title-info > span[aria-hidden="true"]{
   transform:translateY(-.2px);
 }
