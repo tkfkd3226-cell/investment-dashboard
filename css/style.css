@@ -147,6 +147,7 @@ html.dark{
     --section-title-font-size:15px;
     --section-title-icon-size:15px;
     --section-title-gap:5px;
+    --section-chip-height:25px;
   }
 }
 
@@ -325,6 +326,7 @@ section{
   display:flex;
   align-items:center;
   gap:var(--section-title-gap);
+  line-height:1.2;
 }
 
 /* [05. Tables / Forms · 테이블 / 입력 폼] Base Tables · 기본 테이블 */
@@ -1512,7 +1514,10 @@ button.legend-item.chart-series-all.active{
 }
 /* Section Controls Mobile · 섹션 제목 모바일: 제목/chip 크기를 줄여 한 줄 배치 우선 */
 @media(max-width:760px){
-  .section-title{align-items:flex-start}
+  .section-title{align-items:flex-end}
+  .section-title > .section-control-chip,
+  .section-title > .section-title-actions,
+  .section-title > .separate-profit-control-row{position:relative;top:1px}
   .section-basis-chip{
     padding:4px 8px;
     font-size:11px;
