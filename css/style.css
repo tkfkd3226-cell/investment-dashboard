@@ -52,6 +52,9 @@
   --dashboard-control-group-gap:7px;
   --modal-action-gap:14px;
   --modal-focus-ring:rgba(43,61,89,.18);
+  --control-focus-outline:#93c5fd;
+  --control-focus-outline-width:2px;
+  --control-focus-outline-offset:2px;
   --section-title-font-size:18px;
   --section-title-icon-size:18px;
   --section-title-gap:7px;
@@ -159,6 +162,12 @@ body{
   line-height:1.45;
   -webkit-text-size-adjust:100%;
   text-size-adjust:100%;
+}
+
+/* Common Keyboard Focus · 버튼/링크/상단 날짜 선택 공통 키보드 포커스 */
+:is(button,[role="button"],a[href],.date-select):focus-visible{
+  outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
+  outline-offset:var(--control-focus-outline-offset);
 }
 
 /* [02. Global Layout / Shell · 전체 레이아웃 / 기본 구조] Page Shell · 페이지 shell */
@@ -508,11 +517,6 @@ td.num{
 .chart-date-jump{
   cursor:pointer;
 }
-.chart-date-jump:focus-visible{
-  outline:2px solid #3b82f6;
-  outline-offset:2px;
-}
-
 .mini-card .m-label{
   font-size:var(--mini-label-size);
   line-height:1.2;
@@ -761,11 +765,6 @@ svg.chart{
 
 .chart-series-toggle.inactive{
   opacity:.38;
-}
-
-:is(.chart-series-toggle,.chart-series-all,.chart-y-auto-toggle,.chart-compare-toggle button,.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button):focus-visible{
-  outline:2px solid #93c5fd;
-  outline-offset:2px;
 }
 
 button.legend-item.chart-series-all{
@@ -2053,7 +2052,6 @@ body.contrib-modal-open{
   cursor:pointer;
 }
 .asset-workspace-tab.active{background:var(--asset-tab-active-bg);color:var(--asset-tab-active-color)}
-.asset-workspace-tab:focus-visible{outline:2px solid #93c5fd;outline-offset:2px}
 .asset-workspace-panel[hidden]{display:none}
 .asset-workspace-panel > section{margin-top:0}
 @media(max-width:760px){
@@ -3103,7 +3101,7 @@ button:active,
   cursor:pointer;
 }
 :is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item):hover,
-.desktop-edge-toc-item:focus-visible{background:#f6f8fa;outline:none}
+.desktop-edge-toc-item:focus-visible{background:#f6f8fa}
 .dark :is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item){color:#c9d1d9}
 .dark :is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item):hover,
 .dark .desktop-edge-toc-item:focus-visible{background:#161b22}
@@ -4045,7 +4043,6 @@ body.chart-expanded-open .dash-tooltip{
   outline:none;
   cursor:pointer;
 }
-.date-select:focus-visible{outline:2px solid #93c5fd;outline-offset:2px}
 .date-select option{color:var(--ink);background:var(--card)}
 .month-select{min-width:148px;flex:0 0 148px}
 .day-select{min-width:116px;flex:0 0 116px}
@@ -4220,7 +4217,7 @@ body.chart-expanded-open .dash-tooltip{
   .mobile-date-pin-track > span{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.24);transition:transform .16s ease}
   .mobile-date-pin-control input:checked + .mobile-date-pin-track{background:#3182F6;border-color:#60a5fa}
   .mobile-date-pin-control input:checked + .mobile-date-pin-track > span{transform:translateX(13px)}
-  .mobile-date-pin-control input:focus-visible + .mobile-date-pin-track{outline:2px solid #fff;outline-offset:2px}
+  .mobile-date-pin-control input:focus-visible + .mobile-date-pin-track{outline:var(--control-focus-outline-width) solid var(--control-focus-outline);outline-offset:var(--control-focus-outline-offset)}
 
   /* Hamburger Panel · 햄버거 panel: Topbar 모바일 breakpoint와 동일 범위 */
   .date-action-menu.mobile-combined-menu{
