@@ -34,8 +34,8 @@
   --blue:#1f5eff;
   --soft-gray:#eef1f5;
   /* Semantic value colors: shared by desktop tables and mobile card views. */
-  --value-positive:#EF3341;
-  --value-negative:#3182F6;
+  --value-positive:#CC2D3A;
+  --value-negative:#2563EB;
   --value-difference:#B45309;
   --dashboard-control-height:29px;
   --dashboard-control-font-size:10.5px;
@@ -1827,7 +1827,7 @@ body.contrib-modal-open{
 .token-guide{
   margin-top:12px;
   border:1px solid var(--line);
-  border-radius:14px;
+  border-radius:min(14px,var(--corner-surface-cap));
   padding:12px;
   background:#fff;
 }
@@ -1836,6 +1836,8 @@ body.contrib-modal-open{
   border-color:rgba(148,163,184,.24);
 }
 .token-guide summary{
+  display:flex;
+  align-items:center;
   cursor:pointer;
   font-size:13px;
   font-weight:900;
@@ -1845,15 +1847,17 @@ body.contrib-modal-open{
 .token-guide summary::-webkit-details-marker{
   display:none;
 }
-.token-guide summary::before{
-  content:"▸";
-  display:inline-block;
-  margin-right:6px;
+.token-guide-chevron{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:14px;
+  height:14px;
+  margin-right:4px;
   transition:transform .15s ease;
 }
-.token-guide[open] summary::before{
-  transform:rotate(90deg);
-}
+.token-guide-chevron svg{display:block;width:14px;height:14px}
+.token-guide[open] .token-guide-chevron{transform:rotate(90deg)}
 .token-guide-body{
   margin-top:10px;
   color:var(--muted);
@@ -1872,7 +1876,7 @@ body.contrib-modal-open{
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
   background:#e2e8f0;
   color:var(--ink);
-  border-radius:6px;
+  border-radius:min(6px,var(--corner-inner-cap));
   padding:1px 5px;
   font-weight:900;
 }
@@ -1883,7 +1887,7 @@ body.contrib-modal-open{
 .token-guide-alert{
   margin-top:8px;
   padding:8px 10px;
-  border-radius:10px;
+  border-radius:min(10px,var(--corner-inner-cap));
   background:#fff7ed;
   color:#9a3412;
   border:1px solid #fed7aa;
@@ -2648,7 +2652,7 @@ body.contrib-modal-open{
   z-index:13001;
   max-width:min(420px,calc(100vw - 32px));
   padding:12px 16px;
-  border-radius:999px;
+  border-radius:min(16px,var(--corner-surface-cap));
   background:#0f172a;
   color:#fff;
   font-size:13px;
@@ -2816,6 +2820,13 @@ button,
   .pill:hover{
     transform:translateY(-1px);
     background:rgba(255,255,255,.18);
+  }
+
+  .table-view > .dashboard-data-table:not(.source-data-table) tbody tr:not(.summary-row):hover > td{
+    background:rgba(37,99,235,.045);
+  }
+  .dark .table-view > .dashboard-data-table:not(.source-data-table) tbody tr:not(.summary-row):hover > td{
+    background:rgba(96,165,250,.07);
   }
 
   button:not(:disabled):hover,
@@ -3049,12 +3060,19 @@ button:not(:disabled):active,
   line-height:1;
   letter-spacing:-.02em;
   white-space:nowrap;
+  gap:2px;
   box-shadow:0 10px 24px rgba(15,23,42,.28),0 3px 8px rgba(15,23,42,.16);
   opacity:0;
   visibility:hidden;
   transform:translateY(8px);
   transition:opacity .18s ease,transform .18s ease,visibility .18s ease,box-shadow .18s ease;
   cursor:pointer;
+}
+.mobile-top-button svg{
+  display:block;
+  width:13px;
+  height:13px;
+  flex:0 0 13px;
 }
 .mobile-top-button.show{
   opacity:1;
@@ -3282,11 +3300,7 @@ button:not(:disabled):active,
   .desktop-edge-toc-panel{right:38px}
 }
 
-/* Securities Holdings · 증권 보유종목: 중립 배경 + 종목명/수치 굵기 계층 */
-#securities-holdings .hold-position-table tbody tr:is(.ticker-samsung,.ticker-sk,.ticker-hyundai,.ticker-kodex) > td{
-  background:var(--card);
-}
-
+/* Securities Holdings · 증권 보유종목: 종목명/수치 굵기 계층 */
 #securities-holdings .hold-position-table tbody tr.hold-row > td:not(:first-child){
   font-weight:400;
 }
@@ -3820,7 +3834,7 @@ button:not(:disabled):active,
   color:#334155;
   box-shadow:none;
 }
-:is(.chart-expand-button,.chart-web-expand-button) svg{
+:is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button) svg{
   width:var(--dashboard-expand-icon-size);
   height:var(--dashboard-expand-icon-size);
   fill:none;
@@ -4270,7 +4284,7 @@ body.chart-expanded-open .dash-tooltip{
   .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:2px;min-width:0}
   .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px;color:#57606a;font-size:11px;font-weight:800;line-height:25px}
   .dark .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{color:#8b949e}
-  .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:5px;background:transparent;color:#57606a;font-size:18px;line-height:1;cursor:pointer}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:min(9px,var(--corner-control-cap));background:transparent;color:#57606a;font-size:18px;line-height:1;cursor:pointer}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:#f6f8fa;color:#24292f}
 .date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:16px;height:16px;margin:auto}
   .dark .date-action-menu.mobile-combined-menu .mobile-nav-head > button{color:#8b949e}
@@ -4280,7 +4294,7 @@ body.chart-expanded-open .dash-tooltip{
   .dark .date-action-menu.mobile-combined-menu .mobile-nav-group{border-top-color:#30363d}
   .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:2px 6px;color:#6e7781;font-size:9.5px;font-weight:600;letter-spacing:0;line-height:14px}
   .dark .date-action-menu.mobile-combined-menu .mobile-nav-group p{color:#8b949e}
-  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:6px;min-height:30px;padding:5px 6px;border-radius:5px;text-decoration:none;font-size:12px;font-weight:400;line-height:17px;box-shadow:none}
+  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:6px;min-height:30px;padding:5px 6px;border-radius:min(10px,var(--corner-control-cap));text-decoration:none;font-size:12px;font-weight:400;line-height:17px;box-shadow:none}
   .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{padding-left:6px}
   .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{flex:0 0 16px;width:16px;height:16px;margin:0;border:0;border-radius:0;background:transparent;font-size:0;box-shadow:none}
   .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{display:block;width:16px;height:16px}
@@ -4403,8 +4417,6 @@ body.chart-expanded-open .dash-tooltip{
 .chart-card.phone-chart-ui .chart-scroll-start,
 .chart-card.phone-chart-ui .chart-scroll-end{
   display:inline-flex;
-  font-size:15px;
-  font-weight:900;
 }
 .chart-card.phone-chart-ui .chart-scroll-start{
   margin-left:auto;
