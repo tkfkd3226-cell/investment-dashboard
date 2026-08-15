@@ -62,7 +62,7 @@
   --tooltip-bg:rgba(15,23,42,.96);
   --tooltip-color:#fff;
   --tooltip-border:rgba(255,255,255,.16);
-  --tooltip-radius:12px;
+  --tooltip-radius:min(12px,var(--corner-surface-cap));
   --tooltip-shadow:0 16px 36px rgba(0,0,0,.28);
   --tooltip-font-size:12px;
   --tooltip-line-height:1.4;
@@ -559,7 +559,7 @@ td.num{
     --mini-card-pad-x:6px;
     --mini-label-size:9.8px;
     --mini-value-size:13.5px;
-    --mini-detail-size:8.4px;
+    --mini-detail-size:9.3px;
     --mini-detail-weight:500;
   }
 }
@@ -3271,6 +3271,13 @@ button:not(:disabled):active,
   }
 }
 
+/* Edge TOC Tablet · 태블릿 우측 목차: 본문 침범을 줄이는 compact trigger */
+@media (min-width:761px) and (max-width:1100px){
+  .desktop-edge-toc{right:8px}
+  .desktop-edge-toc-trigger{width:30px;min-width:30px;height:60px;padding:6px 0;font-size:10px}
+  .desktop-edge-toc-panel{right:38px}
+}
+
 /* Securities Holdings · 증권 보유종목: 중립 배경 + 종목명/수치 굵기 계층 */
 #securities-holdings .hold-position-table tbody tr:is(.ticker-samsung,.ticker-sk,.ticker-hyundai,.ticker-kodex) > td{
   background:var(--card);
@@ -3521,6 +3528,7 @@ button:not(:disabled):active,
   font-weight:900;
   cursor:pointer;
 }
+.pension-batch-item-actions button svg{display:block;width:13px;height:13px;margin:auto}
 .pension-batch-item-actions button:disabled{opacity:.3;cursor:not-allowed}
 .pension-batch-item-actions .remove{color:#dc2626}
 .pension-batch-empty{
@@ -3761,6 +3769,10 @@ button:not(:disabled):active,
   }
 }
 
+/* Combined Performance Emphasis · Hero 직후 통합성과 표는 중복 강조를 줄여 상세 summary 계층으로 표시 */
+#summary-section .combined-performance-table thead th{background:var(--subtle-card);color:var(--muted);font-weight:700}
+#summary-section .combined-performance-table .summary-row td{font-weight:800}
+
 .combined-mobile-return{display:none}
 /* 초소형 화면 기능 예외: 400px 이하에서만 별도 수익률 열을 숨기고 누적손익 셀 안에 수익률을 합쳐 가로폭을 확보한다. */
 @media(max-width:400px){
@@ -3859,6 +3871,7 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   box-shadow:0 5px 18px rgba(15,23,42,.16);
   cursor:pointer;
 }
+.chart-expanded-close svg{display:block;width:19px;height:19px}
 .dark .chart-expanded-close{
   border-color:rgba(255,255,255,.16);
   background:rgba(17,24,39,.96);
@@ -4157,9 +4170,10 @@ body.chart-expanded-open .dash-tooltip{
     -webkit-tap-highlight-color:transparent;
   }
   html:not(.dark) :is(.topbar-theme-action,.topbar-corner-action,.date-tool-menu-btn){
-    background:rgba(255,255,255,.90);
-    border-color:rgba(0,0,0,.70);
+    background:rgba(255,255,255,.84);
+    border-color:rgba(15,23,42,.42);
     color:#374151;
+    box-shadow:0 4px 12px rgba(15,23,42,.10);
   }
   .topbar-theme-action,
   .topbar-corner-action{
@@ -4178,6 +4192,7 @@ body.chart-expanded-open .dash-tooltip{
     pointer-events:auto;
   }
   .date-tool-icon{font-size:15px;line-height:1}
+.date-tool-icon svg{display:block;width:17px;height:17px}
   .date-tool-menu-label{display:none}
 
   .switcher:is(.mobile-menu-open,.mobile-date-pinned){
@@ -4253,6 +4268,7 @@ body.chart-expanded-open .dash-tooltip{
   .dark .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{color:#8b949e}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:5px;background:transparent;color:#57606a;font-size:18px;line-height:1;cursor:pointer}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:#f6f8fa;color:#24292f}
+.date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:16px;height:16px;margin:auto}
   .dark .date-action-menu.mobile-combined-menu .mobile-nav-head > button{color:#8b949e}
   .dark .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:#161b22;color:#c9d1d9}
   .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:4px 0 0;padding:4px 0 0;border-top:1px solid #d8dee4}
