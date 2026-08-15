@@ -52,7 +52,7 @@
   --dashboard-control-group-gap:7px;
   --modal-action-gap:14px;
   --modal-focus-ring:rgba(43,61,89,.18);
-  --control-focus-outline:#2563eb;
+  --control-focus-outline:#93c5fd;
   --control-focus-outline-width:2px;
   --control-focus-outline-offset:2px;
   --section-title-font-size:18px;
@@ -117,7 +117,6 @@ html.dark{
   --asset-tab-active-bg:#36506f;
   --asset-tab-active-color:#ffffff;
   --modal-focus-ring:rgba(54,80,111,.28);
-  --control-focus-outline:#93c5fd;
   --insight-bg:linear-gradient(180deg,#151d2c 0%,#121826 100%);
 }
 
