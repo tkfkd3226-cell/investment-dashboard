@@ -51,6 +51,7 @@
   --dashboard-legend-font-size:12px;
   --dashboard-control-group-gap:7px;
   --modal-action-gap:14px;
+  --modal-focus-ring:rgba(43,61,89,.18);
   --section-title-font-size:18px;
   --section-title-icon-size:18px;
   --section-title-gap:7px;
@@ -112,6 +113,7 @@ html.dark{
   --hero-shadow:0 18px 42px rgba(0,0,0,.24);
   --asset-tab-active-bg:#36506f;
   --asset-tab-active-color:#ffffff;
+  --modal-focus-ring:rgba(54,80,111,.28);
   --insight-bg:linear-gradient(180deg,#151d2c 0%,#121826 100%);
 }
 
@@ -1577,7 +1579,7 @@ button.legend-item.chart-series-all.active{
   padding:7px 11px;
   font-size:12px;
   line-height:1.2;
-  font-weight:900;
+  font-weight:800;
   cursor:pointer;
   background:var(--asset-tab-active-bg);
   color:white;
@@ -1710,6 +1712,11 @@ body.contrib-modal-open{
   align-items:center;
   justify-content:center;
 }
+.modal-icon-btn svg{
+  width:18px;
+  height:18px;
+  display:block;
+}
 .modal-icon-btn:hover{background:#e2e8f0}
 .dark .modal-icon-btn{background:#1f2937;color:#cbd5e1}
 .dark .modal-icon-btn:hover{background:#334155}
@@ -1717,7 +1724,6 @@ body.contrib-modal-open{
   position:static;
   flex:0 0 auto;
 }
-.contrib-modal-icon-btn.pension-form-reset{font-size:19px}
 .contrib-modal .pension-contrib-tool{
   margin-top:0;
 }
@@ -2562,9 +2568,11 @@ body.contrib-modal-open{
   outline:none;
   box-sizing:border-box;
 }
-.action-modal-input:focus{
-  border-color:#2563eb;
-  box-shadow:0 0 0 3px rgba(37,99,235,.12);
+/* Modal Form Focus · 모달 입력 포커스 공통 UI */
+:is(.action-modal-input,.contrib-modal .contrib-field input,.contrib-modal .contrib-field select):focus{
+  outline:none;
+  border-color:var(--asset-tab-active-bg);
+  box-shadow:0 0 0 3px var(--modal-focus-ring);
 }
 .action-modal-status{
   min-height:20px;
@@ -2584,7 +2592,7 @@ body.contrib-modal-open{
   border-radius:min(12px,var(--corner-control-cap));
   border:1px solid #cbd5e1;
   padding:0 12px;
-  font-weight:900;
+  font-weight:800;
   line-height:1.25;
   cursor:pointer;
   box-sizing:border-box;
