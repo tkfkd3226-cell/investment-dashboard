@@ -326,7 +326,7 @@ section{
   display:flex;
   align-items:center;
   gap:var(--section-title-gap);
-  line-height:1.2;
+  line-height:1;
 }
 
 /* [05. Tables / Forms · 테이블 / 입력 폼] Base Tables · 기본 테이블 */
