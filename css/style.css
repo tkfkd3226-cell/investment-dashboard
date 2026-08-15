@@ -1299,6 +1299,10 @@ button.legend-item.chart-series-all.active{
     padding:9px;
   }
 
+  .section-title{
+    margin-bottom:9px;
+  }
+
   .mobile-scroll.is-scrollable,
   .chart-wrap.is-scrollable{
     border-right:2px solid rgba(148,163,184,.75);
