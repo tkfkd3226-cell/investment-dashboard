@@ -130,7 +130,7 @@ function renderPensionContributionModal(x){
   <div class="pension-batch-actions"><button type="button" id="pensionBatchApplyButton" class="contrib-btn" data-pension-action="apply-batch" disabled>일괄 적용</button></div>
 </div>
 <details class="token-guide">
-  <summary>GitHub 토큰 만료/교체 방법</summary>
+  <summary><span class="token-guide-chevron" aria-hidden="true">${navIconSvg('chevronRight')}</span>GitHub 토큰 만료/교체 방법</summary>
   <div class="token-guide-body">
     <div class="token-guide-alert">토큰이 만료되면 대시보드 조회는 되지만, 퇴직연금 금액 조정 저장·삭제만 실패할 수 있습니다.</div>
     <p>Google Apps Script의 Script Properties에 저장된 <code>GITHUB_TOKEN</code>을 사용합니다.</p>

@@ -68,6 +68,10 @@ function navIconSvg(name){
     reset:`<svg ${attrs}><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v6h6"></path></svg>`,
     chevronUp:`<svg ${attrs}><path d="m18 15-6-6-6 6"></path></svg>`,
     chevronDown:`<svg ${attrs}><path d="m6 9 6 6 6-6"></path></svg>`,
+    chevronRight:`<svg ${attrs}><path d="m9 18 6-6-6-6"></path></svg>`,
+    arrowLeft:`<svg ${attrs}><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>`,
+    arrowRight:`<svg ${attrs}><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>`,
+    arrowUp:`<svg ${attrs}><path d="M12 19V5"></path><path d="m5 12 7-7 7 7"></path></svg>`,
     trash:`<svg ${attrs}><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v6M14 11v6"></path></svg>`,
     wallet:`<svg ${attrs}><path d="M20 7H5a3 3 0 0 0 0 6h15v6H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h15v3Z"></path><path d="M16 13h.01"></path></svg>`,
     calculator:`<svg ${attrs}><rect x="5" y="2" width="14" height="20" rx="2"></rect><path d="M8 6h8"></path><path d="M8 10h.01"></path><path d="M12 10h.01"></path><path d="M16 10h.01"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>`,
@@ -293,7 +297,7 @@ function ensureMobileTopButton(){
     button.id='mobileTopButton';
     button.type='button';
     button.className='mobile-top-button';
-    button.textContent='↑ TOP';
+    button.innerHTML=`${navIconSvg('arrowUp')}<span>TOP</span>`;
     button.setAttribute('aria-label','화면 맨 위로 이동');
     button.addEventListener('click',scrollToDashboardTop);
     document.body.appendChild(button);

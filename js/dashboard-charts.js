@@ -8,7 +8,7 @@ function chartWebExpandButton(){
   return `<button type="button" class="chart-web-expand-button" aria-label="차트를 전체화면으로 확대" title="전체화면" data-dashboard-action="open-expanded-chart">${chartExpandIcon()}</button>`;
 }
 function chartScrollButton(){
-  return `<div class="chart-scroll-row"><button type="button" class="chart-scroll-start" aria-label="차트를 왼쪽 끝으로 이동" title="왼쪽 끝으로 이동" data-dashboard-action="scroll-chart-start">←</button><button type="button" class="chart-scroll-end" aria-label="차트를 오른쪽 끝으로 이동" title="오른쪽 끝으로 이동" data-dashboard-action="scroll-chart-end">→</button><button type="button" class="chart-expand-button" aria-label="차트를 가로 전체화면으로 확대" title="가로 전체화면" data-dashboard-action="open-expanded-chart">${chartExpandIcon()}</button></div>`;
+  return `<div class="chart-scroll-row"><button type="button" class="chart-scroll-start" aria-label="차트를 왼쪽 끝으로 이동" title="왼쪽 끝으로 이동" data-dashboard-action="scroll-chart-start">${navIconSvg('arrowLeft')}</button><button type="button" class="chart-scroll-end" aria-label="차트를 오른쪽 끝으로 이동" title="오른쪽 끝으로 이동" data-dashboard-action="scroll-chart-end">${navIconSvg('arrowRight')}</button><button type="button" class="chart-expand-button" aria-label="차트를 가로 전체화면으로 확대" title="가로 전체화면" data-dashboard-action="open-expanded-chart">${chartExpandIcon()}</button></div>`;
 }
 function chartTitleInfoButton(text){
   const safe=String(text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
