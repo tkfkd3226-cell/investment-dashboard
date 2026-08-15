@@ -108,7 +108,7 @@ function openExpandedChart(button){
   overlay.setAttribute('role','dialog');
   overlay.setAttribute('aria-modal','true');
   overlay.setAttribute('aria-label',`${title} 확대 보기`);
-  overlay.innerHTML=`<button type="button" class="chart-expanded-close" aria-label="확대 차트 닫기" title="닫기">×</button><div class="chart-expanded-stage"><div class="chart-expanded-head"><div class="chart-expanded-title"></div><div class="chart-expanded-controls-host"></div></div><div class="chart-expanded-chart-host"></div><div class="chart-expanded-legend-host"></div></div>`;
+  overlay.innerHTML=`<button type="button" class="chart-expanded-close" aria-label="확대 차트 닫기" title="닫기">${navIconSvg('close')}</button><div class="chart-expanded-stage"><div class="chart-expanded-head"><div class="chart-expanded-title"></div><div class="chart-expanded-controls-host"></div></div><div class="chart-expanded-chart-host"></div><div class="chart-expanded-legend-host"></div></div>`;
   const expandedTitle=overlay.querySelector('.chart-expanded-title');
   if(titleHeading&&expandedTitle){
     const clonedTitle=titleHeading.cloneNode(true);
@@ -768,7 +768,7 @@ function labelDates(svg,cfg,data,every=3){
   data.forEach((d,i)=>{if(i%interval===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:labelY,transform:`rotate(-65 ${x} ${labelY})`,'text-anchor':'end','font-size':10,fill:cssThemeValue('--chart-text','#6b7280')});txt.textContent=d['날짜'];svg.appendChild(txt)}})
 }
 function polyline(svg,points,color,width=2){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':width,'stroke-linejoin':'round','stroke-linecap':'round'}))}
-function circles(svg,points,color){const fill=cssThemeValue('--chart-surface','#fff');points.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:3,fill,stroke:color,'stroke-width':1.5})))}
+function circles(svg,points,color){const fill=cssThemeValue('--chart-surface','#fff');points.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:2.2,fill,stroke:color,'stroke-width':1.1})))}
 function nearestIndex(evt,svg,cfg,data){
   const pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;
   const loc=pt.matrixTransform(svg.getScreenCTM().inverse());

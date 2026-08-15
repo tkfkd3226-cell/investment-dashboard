@@ -63,6 +63,12 @@ function navIconSvg(name){
     link:`<svg ${attrs}><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"></path><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"></path></svg>`,
     activity:`<svg ${attrs}><path d="M22 12h-4l-3 8-6-16-3 8H2"></path></svg>`,
     refresh:`<svg ${attrs}><path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><path d="M18 2v4h4"></path><path d="M6 22v-4H2"></path></svg>`,
+    menu:`<svg ${attrs}><path d="M4 6h16M4 12h16M4 18h16"></path></svg>`,
+    close:`<svg ${attrs}><path d="M18 6 6 18M6 6l12 12"></path></svg>`,
+    reset:`<svg ${attrs}><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v6h6"></path></svg>`,
+    chevronUp:`<svg ${attrs}><path d="m18 15-6-6-6 6"></path></svg>`,
+    chevronDown:`<svg ${attrs}><path d="m6 9 6 6 6-6"></path></svg>`,
+    trash:`<svg ${attrs}><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v6M14 11v6"></path></svg>`,
     wallet:`<svg ${attrs}><path d="M20 7H5a3 3 0 0 0 0 6h15v6H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h15v3Z"></path><path d="M16 13h.01"></path></svg>`,
     calculator:`<svg ${attrs}><rect x="5" y="2" width="14" height="20" rx="2"></rect><path d="M8 6h8"></path><path d="M8 10h.01"></path><path d="M12 10h.01"></path><path d="M16 10h.01"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>`,
     home:`<svg ${attrs}><path d="m3 10 9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path></svg>`,
@@ -248,8 +254,8 @@ function renderTabs(){
           <span class="date-tool-action-icon" data-corner-theme-toggle-icon>${cornerThemeToggleIconMarkup(currentCornerTheme()==='rounded')}</span>
         </button>
         <div class="date-action-menu-wrap">
-          <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false" data-dashboard-action="toggle-date-menu"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
-          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" data-dashboard-action="close-date-menu" aria-label="목차 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div>
+          <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false" data-dashboard-action="toggle-date-menu"><span class="date-tool-icon">${navIconSvg('menu')}</span><span class="date-tool-menu-label">목차</span></button>
+          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderUnifiedMobileMenuContent()}</div>
         </div>
       </div>
     </div>`;
@@ -392,7 +398,7 @@ function ensureKrxActionModal(){
   modal.id='krxActionModal';
   modal.className='action-modal krx-action-modal';
   modal.innerHTML=`<div class="action-modal-card krx-action-card" role="dialog" aria-modal="true" aria-labelledby="krxActionTitle">
-    <button type="button" class="modal-icon-btn krx-action-close" data-dashboard-action="close-krx-modal" aria-label="닫기">×</button>
+    <button type="button" class="modal-icon-btn krx-action-close" data-dashboard-action="close-krx-modal" aria-label="닫기">${navIconSvg('close')}</button>
     <h3 id="krxActionTitle" class="modal-main-title">KRX 현재가 반영</h3>
     <p class="action-modal-description">선택한 기준일만 다시 갱신하거나, 날짜를 비워 누락 거래일을 자동 보충할 수 있습니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
     <label class="action-modal-label krx-action-label" for="krxActionPin">저장/실행 PIN</label>
