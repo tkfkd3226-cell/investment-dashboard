@@ -1061,7 +1061,7 @@ svg.chart{
 }
 svg.chart:focus-visible{
   outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
-  outline-offset:3px;
+  outline-offset:calc(0px - var(--control-focus-outline-width) - 1px);
 }
 
 .chart-legend{
