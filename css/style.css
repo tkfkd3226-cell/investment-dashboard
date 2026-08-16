@@ -518,6 +518,20 @@ body{
   outline-offset:var(--control-focus-outline-offset);
 }
 
+/* Accessibility Utility · 화면에는 숨기고 보조기기에는 유지 */
+.visually-hidden{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+  border:0;
+}
+
 /* [02. Global Layout / Shell · 전체 레이아웃 / 기본 구조] Page Shell · 페이지 shell */
 .wrap{
   max-width:1680px;
@@ -1045,6 +1059,10 @@ svg.chart{
   background:var(--chart-surface);
   border-radius:min(12px,var(--corner-surface-cap));
 }
+svg.chart:focus-visible{
+  outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
+  outline-offset:3px;
+}
 
 .chart-legend{
   display:flex;
@@ -1346,6 +1364,10 @@ button.legend-item.chart-series-all.active{
 
 .has-tooltip{
   position:relative;
+}
+.pension-insight-zone .has-tooltip:focus-visible{
+  outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
+  outline-offset:var(--control-focus-outline-offset);
 }
 
 .pension-viz-tooltip{
