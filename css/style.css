@@ -378,7 +378,7 @@ td.num{
 
 .summary-row td{
   background:var(--summary-row-bg);
-  font-weight:900;
+  font-weight:800;
 }
 
 /* Large Surfaces · 대형 공통 surface: KPI/metric/mini-card를 제외한 note/chart/band 영역 */
@@ -1333,8 +1333,10 @@ button.legend-item.chart-series-all.active{
 
 .metric-card .value{
   font-size:var(--metric-value-size);
+  font-weight:800;
   line-height:1.18;
 }
+.metric-card:is(.dark,.highlight) .value{font-weight:900}
 
 .metric-card .sub{
   margin-top:var(--metric-sub-gap);
@@ -2517,7 +2519,6 @@ body.contrib-modal-open{
 }
 .source-card:not(.highlight) .value{
   font-size:calc(var(--metric-value-size) - 2px);
-  font-weight:850;
 }
 
 .dark .source-card.highlight{
@@ -3837,7 +3838,6 @@ button:not(:disabled):active,
 
 /* Combined Performance Emphasis · Hero 직후 통합성과 표는 중복 강조를 줄여 상세 summary 계층으로 표시 */
 #summary-section .combined-performance-table thead th{background:var(--subtle-card);color:var(--muted);font-weight:700}
-#summary-section .combined-performance-table .summary-row td{font-weight:800}
 
 .combined-mobile-return{display:none}
 /* 초소형 화면 기능 예외: 400px 이하에서만 별도 수익률 열을 숨기고 누적손익 셀 안에 수익률을 합쳐 가로폭을 확보한다. */
@@ -4669,7 +4669,7 @@ body.chart-expanded-open .dash-tooltip{
     margin:0 0 6px;
     color:var(--ink);
     font-size:14px;
-    font-weight:900;
+    font-weight:800;
     line-height:1.25;
     letter-spacing:-.03em;
   }
@@ -4697,7 +4697,8 @@ body.chart-expanded-open .dash-tooltip{
     line-height:1.35;
     font-variant-numeric:tabular-nums;
   }
-  /* Mobile Total Cards · 모바일 합계/총계 카드만 수치 강조 */
+  /* Mobile Total Cards · 모바일 합계/총계 카드만 제목·수치 강조 */
+  .mobile-data-card.mobile-total-card .mobile-data-card-title{font-weight:900}
   .mobile-data-card.mobile-total-card .mobile-data-card-value{font-weight:800}
   .mobile-data-card-row.stacked{display:block}
   .mobile-data-card-row.stacked .mobile-data-card-value{margin-top:3px;text-align:left}
