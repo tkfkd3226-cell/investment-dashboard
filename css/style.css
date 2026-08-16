@@ -2950,7 +2950,7 @@ button:not(:disabled):active,
 #ledger-check .ledger-conclusion-card{
   display:grid;
   grid-column:1 / -1;
-  grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr);
+  grid-template-columns:repeat(2,minmax(0,1fr));
   align-items:center;
   gap:18px;
   background:var(--subtle-card);
@@ -2973,13 +2973,6 @@ button:not(:disabled):active,
   margin-top:3px;
   font-size:15px;
   line-height:1.3;
-}
-#ledger-check .ledger-conclusion-reason > small{
-  display:block;
-  margin-top:2px;
-  color:var(--muted);
-  font-size:11px;
-  line-height:1.35;
 }
 
 /* Semantic Value Colors · 의미 색상: 수익/양수 빨강, 손실/음수 파랑 */
@@ -4048,17 +4041,17 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
 @media (min-width:1101px){
   /* Ledger Check Desktop · 장부결과 웹: 결론 / A / B를 한 행에 배치 */
   #ledger-check .ledger-overview-grid{
-    grid-template-columns:minmax(0,1.18fr) repeat(2,minmax(0,1fr));
+    grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr));
   }
   #ledger-check .ledger-conclusion-card{
     grid-column:auto;
-    grid-template-columns:1fr;
-    gap:10px;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:18px;
   }
   #ledger-check .ledger-conclusion-reason{
-    padding:10px 0 0;
-    border-left:0;
-    border-top:1px solid var(--line);
+    padding:0 0 0 18px;
+    border-left:1px solid var(--line);
+    border-top:0;
   }
 
   .chart-expanded-overlay.desktop-expanded .chart-expanded-stage{
@@ -4082,6 +4075,22 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
     gap:7px 14px;
   }
 }
+
+/* iPhone Requested Desktop · 아이폰 데스크탑 웹사이트 요청: 장부결과는 Desktop 50/25/25 레이아웃 강제 */
+html.iphone-request-desktop #ledger-check .ledger-overview-grid{
+  grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr));
+}
+html.iphone-request-desktop #ledger-check .ledger-conclusion-card{
+  grid-column:auto;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+}
+html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{
+  padding:0 0 0 18px;
+  border-left:1px solid var(--line);
+  border-top:0;
+}
+
 .chart-expanded-chart-host .svg-hitbox{
   pointer-events:all;
   cursor:crosshair;
