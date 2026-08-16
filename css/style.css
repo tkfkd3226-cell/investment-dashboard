@@ -4727,6 +4727,20 @@ body.chart-expanded-open .dash-tooltip{
 
 @media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   .mobile-card-view{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+  #ledger-check .ledger-overview-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  #ledger-check .ledger-conclusion-card{
+    grid-column:1 / -1;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:18px;
+  }
+  #ledger-check .ledger-conclusion-reason{
+    padding:0 0 0 18px;
+    border-left:1px solid var(--line);
+    border-top:0;
+  }
 }
 
 /*
