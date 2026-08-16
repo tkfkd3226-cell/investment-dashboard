@@ -34,8 +34,8 @@
   --blue:#1f5eff;
   --soft-gray:#eef1f5;
   /* Semantic value colors: shared by desktop tables and mobile card views. */
-  --value-positive:#EF3341;
-  --value-negative:#3182F6;
+  --value-positive:#E6233A;
+  --value-negative:#2972E8;
   --value-difference:#B45309;
   --dashboard-control-height:29px;
   --dashboard-control-font-size:10.5px;
