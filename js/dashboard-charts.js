@@ -368,6 +368,23 @@ function setupChartEntranceAnimations(){
 }
 
 // Series State / Legend Controls · 시리즈 상태 / 범례 컨트롤
+const CHART_SERIES_THEME=Object.freeze({
+  profit:{token:'--chart-series-profit',fallback:'#ffb84d'},
+  daily:{token:'--chart-series-daily',fallback:'#a7d7a8'},
+  return:{token:'--chart-series-return',fallback:'#5abdf2'},
+  kospi:{token:'--chart-series-kospi',fallback:'#7c3aed'}
+});
+function chartSeriesColor(key){
+  const item=CHART_SERIES_THEME[key];
+  return item?cssThemeValue(item.token,item.fallback):'';
+}
+function chartSeriesLegendColor(key){
+  const item=CHART_SERIES_THEME[key];
+  return item?`var(${item.token},${item.fallback})`:'';
+}
+function chartCompareSeriesKey(mode){return mode==='kospi'?'kospi':'return'}
+function chartCompareSeriesColor(mode){return chartSeriesColor(chartCompareSeriesKey(mode))}
+function chartCompareLegendColor(mode){return chartSeriesLegendColor(chartCompareSeriesKey(mode))}
 function chartStateKey(scope){
   return scope==='securitiesAlloc'?`securitiesAlloc:${chartState.securityAllocMode==='symbol'?'symbol':'type'}`:scope;
 }
@@ -388,14 +405,14 @@ function chartLegendId(scope){
 }
 function chartLegendItems(scope){
   if(scope==='securitiesCum')return [
-    {key:'profit',label:'누적손익',color:'#ffb84d'},
-    {key:'daily',label:'전일대비손익',color:'#a7d7a8'},
-    {key:'compare',label:chartCompareLabel('securities'),color:chartState.compareModes.securities==='kospi'?'#7c3aed':'#5abdf2'}
+    {key:'profit',label:'누적손익',color:chartSeriesLegendColor('profit')},
+    {key:'daily',label:'전일대비손익',color:chartSeriesLegendColor('daily')},
+    {key:'compare',label:chartCompareLabel('securities'),color:chartCompareLegendColor(chartState.compareModes.securities)}
   ];
   if(scope==='pensionCum')return [
-    {key:'profit',label:'운용수익',color:'#ffb84d'},
-    {key:'daily',label:'전일대비손익',color:'#a7d7a8'},
-    {key:'compare',label:chartCompareLabel('pension'),color:chartState.compareModes.pension==='kospi'?'#7c3aed':'#5abdf2'}
+    {key:'profit',label:'운용수익',color:chartSeriesLegendColor('profit')},
+    {key:'daily',label:'전일대비손익',color:chartSeriesLegendColor('daily')},
+    {key:'compare',label:chartCompareLabel('pension'),color:chartCompareLegendColor(chartState.compareModes.pension)}
   ];
   if(scope==='securitiesSymbol'){
     const current=dataState.activeDate?calc(dataState.activeDate):null;
@@ -418,8 +435,8 @@ function chartLegendItems(scope){
       return [...(current?securityAllocItems(current):[]).map(h=>({key:h.name,label:h.name,color:securityAllocationColor(h.name)})),{key:'현금',label:'현금',color:CASH_ASSET_COLOR}];
     }
     return [
-      {key:'ETF',label:'ETF',color:'#ff6b6b'},
-      {key:'개별주식',label:'개별주식',color:'#ffc857'},
+      {key:'ETF',label:'ETF',color:assetTypeColor('ETF')},
+      {key:'개별주식',label:'개별주식',color:assetTypeColor('개별주식')},
       {key:'현금',label:'현금',color:CASH_ASSET_COLOR}
     ];
   }
@@ -452,7 +469,7 @@ function chartLegendHtml(scope){
   const allButton=selection.all?'':`<button type="button" class="legend-item chart-series-all" aria-pressed="false" data-dashboard-action="toggle-chart-series" data-chart-scope="${scope}" data-chart-series-key="__all__">전체</button>`;
   const itemButtons=items.map(item=>{
     const active=selection.selected.has(item.key);
-    return `<button type="button" class="legend-item chart-series-toggle${active?' active':' inactive'}" aria-pressed="${active}" data-dashboard-action="toggle-chart-series" data-chart-scope="${scope}" data-chart-series-key="${encodeURIComponent(item.key)}"><span class="swatch" style="background:${item.color}"></span>${chartDisplayLabel(scope,item.label)}</button>`;
+    return `<button type="button" class="legend-item chart-series-toggle${active?' active':' inactive'}" aria-pressed="${active}" data-dashboard-action="toggle-chart-series" data-chart-scope="${scope}" data-chart-series-key="${encodeURIComponent(item.key)}"><span class="swatch" aria-hidden="true" style="background:${item.color}"></span>${chartDisplayLabel(scope,item.label)}</button>`;
   }).join('');
   const autoButton=selection.all?'':`<button type="button" class="chart-y-auto-toggle${autoY?' active':''}" role="switch" aria-checked="${autoY}" data-dashboard-action="set-chart-auto-y" data-chart-scope="${scope}" data-chart-auto-y="${autoY?'false':'true'}"><span>Y축 자동 재계산</span><span class="chart-y-auto-state">${autoY?'ON':'OFF'}</span></button>`;
   return `<span class="chart-legend-control chart-legend-control-left">${allButton}</span><span class="chart-legend-series">${itemButtons}</span><span class="chart-legend-control chart-legend-control-right">${autoButton}</span>`;
@@ -705,44 +722,60 @@ function cssThemeValue(name,fallback){
   const value=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   return value||fallback;
 }
-function tooltip(){return document.getElementById('dashTooltip')}
+function tooltip(){
+  const tt=document.getElementById('dashTooltip');
+  if(tt&&!tt.hasAttribute('role')){
+    tt.setAttribute('role','tooltip');
+    tt.setAttribute('aria-hidden','true');
+  }
+  return tt;
+}
+function tooltipEscape(value){return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function tooltipDate(value){return `<div class="tt-date">${tooltipEscape(value)}</div>`}
+function tooltipDivider(){return '<div class="tt-divider" aria-hidden="true"></div>'}
+function tooltipViewport(){
+  const vv=window.visualViewport;
+  return {
+    width:Math.max(1,Math.min(window.innerWidth,vv?.width||window.innerWidth)),
+    height:Math.max(1,Math.min(window.innerHeight,vv?.height||window.innerHeight))
+  };
+}
 function showTooltip(evt, html, kind=''){
   const tt=tooltip(); if(!tt) return;
   tt.dataset.tooltipKind=kind;
-  tt.innerHTML=html; tt.classList.add('visible');
-  const expanded=!!chartState.expanded;
-  const pad=expanded?10:14;
+  tt.innerHTML=html;
+  tt.setAttribute('aria-hidden','false');
+  tt.style.visibility='hidden';
   tt.style.left=evt.clientX+'px';
-  tt.style.top=(evt.clientY-12)+'px';
+  tt.style.top=evt.clientY+'px';
+  tt.classList.add('visible');
+  const expanded=!!chartState.expanded,pad=expanded?10:14,gap=12;
   requestAnimationFrame(()=>{
-    const rect=tt.getBoundingClientRect();
-    if(expanded){
-      const vv=window.visualViewport;
-      const viewportW=Math.max(1,Math.min(window.innerWidth,vv?.width||window.innerWidth));
-      const viewportH=Math.max(1,Math.min(window.innerHeight,vv?.height||window.innerHeight));
-      const width=Math.min(rect.width,Math.max(1,viewportW-pad*2));
-      const height=Math.min(rect.height,Math.max(1,viewportH-pad*2));
-      let left=evt.clientX+12;
-      if(left+width>viewportW-pad)left=evt.clientX-width-12;
-      left=Math.max(pad,Math.min(left,viewportW-width-pad));
-      let top=evt.clientY-height-12;
-      if(top<pad)top=evt.clientY+18;
-      top=Math.max(pad,Math.min(top,viewportH-height-pad));
-      tt.style.left=left+'px';
-      tt.style.top=top+'px';
-      return;
-    }
-    let left=evt.clientX+12;
-    let top=evt.clientY-rect.height-12;
-    if(left+rect.width>window.innerWidth-pad)left=window.innerWidth-rect.width-pad;
-    if(left<pad)left=pad;
+    if(!tt.classList.contains('visible'))return;
+    const rect=tt.getBoundingClientRect(),viewport=tooltipViewport();
+    const width=Math.min(rect.width,Math.max(1,viewport.width-pad*2));
+    const height=Math.min(rect.height,Math.max(1,viewport.height-pad*2));
+    let left=evt.clientX+gap;
+    if(left+width>viewport.width-pad)left=evt.clientX-width-gap;
+    left=Math.max(pad,Math.min(left,Math.max(pad,viewport.width-width-pad)));
+    let top=evt.clientY-height-gap;
     if(top<pad)top=evt.clientY+18;
-    tt.style.left=left+'px'; tt.style.top=top+'px';
+    if(top+height>viewport.height-pad)top=Math.max(pad,viewport.height-height-pad);
+    tt.style.left=left+'px';
+    tt.style.top=top+'px';
+    tt.style.visibility='visible';
   });
 }
-function hideTooltip(){const tt=tooltip(); if(tt)tt.classList.remove('visible')}
+function hideTooltip(){
+  const tt=tooltip();
+  if(!tt)return;
+  tt.classList.remove('visible');
+  tt.setAttribute('aria-hidden','true');
+  tt.style.visibility='';
+}
 function clearChartHover(){hideTooltip();document.querySelectorAll('.chart-hover-line').forEach(line=>line.setAttribute('opacity',0))}
-function row(name,val,clsName=''){return `<div class="tt-row"><span class="tt-name">${name}</span><span class="tt-val ${clsName}">${val}</span></div>`}
+function row(name,val,clsName='',rowClass=''){return `<div class="tt-row${rowClass?' '+rowClass:''}"><span class="tt-name">${tooltipEscape(name)}</span><span class="tt-val ${clsName}">${tooltipEscape(val)}</span></div>`}
+function totalRow(name,val,clsName=''){return row(name,val,clsName,'tt-total')}
 function clsBy(n){return n<0?'tt-neg':(n>0?'tt-pos':'')}
 function drawAxes(svg,cfg,yTicks,y2Ticks=null){
   const{w,h,l,r,t,b}=cfg;
@@ -934,20 +967,20 @@ function drawPensionCumChart(){
     const x=chartX(cfg,n,i),y0=cfg.y(0);
     moneyKeys.forEach((key,index)=>{
       const v=key==='profit'?d['합계 : 누적손익']:d['합계 : 전일대비손익'];
-      const color=key==='profit'?'#ffb84d':'#a7d7a8';
+      const color=chartSeriesColor(key==='profit'?'profit':'daily');
       const off=moneyKeys.length===1?0:(index===0?-barW*.6:barW*.6);
       const y=cfg.y(v),hh=Math.abs(y0-y);
       svg.appendChild(el('rect',{x:x+off-barW/2,y:Math.min(y,y0),width:barW,height:hh,rx:3,fill:color,opacity:.9}));
     });
   });
   if(selected.has('compare')){
-    const lineColor=mode==='kospi'?'#7c3aed':'#5abdf2';
+    const lineColor=chartCompareSeriesColor(mode);
     const pts=data.map((d,i)=>({value:mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률'],point:[chartX(cfg,n,i),0]})).filter(v=>Number.isFinite(v.value)).map(v=>[v.point[0],cfg.y2(v.value)]);
     if(pts.length){polyline(svg,pts,lineColor,2);circles(svg,pts,lineColor)}
   }
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{
-    let html=`<div class="tt-date">${d['날짜']}</div>`;
+    let html=tooltipDate(d['날짜']);
     if(selected.has('profit'))html+=row('운용수익',signed(d['합계 : 누적손익'],'원'),clsBy(d['합계 : 누적손익']));
     if(selected.has('daily'))html+=row('전일대비손익',signed(d['합계 : 전일대비손익'],'원'),clsBy(d['합계 : 전일대비손익']));
     if(selected.has('compare')){
@@ -965,7 +998,7 @@ function drawPensionSymbolChart(){
   const yInfo=mode==='rate'?fixedTickInfo(Math.min(0,...values),Math.max(0,...values),20,true):fixedTickInfo(Math.min(0,...values),Math.max(0,...values),2000000,true),w=1120,h=330,l=82,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   const cfg={w,h,l,r,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),yFormatter:mode==='rate'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%'):null};drawAxes(svg,cfg,yInfo.ticks);
   const plotW=w-l-r,n=data.length;series.forEach(name=>{const pts=data.map((d,i)=>[l+(n===1?0:i*plotW/(n-1)),cfg.y(valueOf(d,name))]);polyline(svg,pts,pensionSeriesColor(name));circles(svg,pts,pensionSeriesColor(name))});labelDates(svg,cfg,data,3);
-  addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const rate=Number(d._rates?.[s]||0),value=mode==='rate'?`${rate>0?'+':''}${pct(rate)}`:`${signed(d[s]||0,'원')} (${rate>0?'+':''}${pct(rate)})`;html+=row(chartDisplayLabel('pensionSymbol',s),value,clsBy(mode==='rate'?rate:(d[s]||0)))});if(mode==='rate')return html;const total=series.reduce((a,s)=>a+(d[s]||0),0);return html+'<div class="tt-spacer"></div>'+row(selection.all?'상품 합계':`${series.length}상품 합계`,signed(total,'원'),clsBy(total))},'symbol');
+  addHover(svg,cfg,data,d=>{let html=tooltipDate(d['날짜']);series.forEach(s=>{const rate=Number(d._rates?.[s]||0),value=mode==='rate'?`${rate>0?'+':''}${pct(rate)}`:`${signed(d[s]||0,'원')} (${rate>0?'+':''}${pct(rate)})`;html+=row(chartDisplayLabel('pensionSymbol',s),value,clsBy(mode==='rate'?rate:(d[s]||0)))});if(mode==='rate')return html;const total=series.reduce((a,s)=>a+(d[s]||0),0);return html+tooltipDivider()+totalRow(selection.all?'상품 합계':`${series.length}상품 합계`,signed(total,'원'),clsBy(total))},'symbol');
 }
 function drawPensionStacked(){
   const data=pensionAllocHistory(dataState.activeDate),svg=document.getElementById('pensionChartAlloc');if(!svg||!data.length)return;clear(svg);
@@ -978,7 +1011,7 @@ function drawPensionStacked(){
   const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b)};drawAxes(svg,cfg,yInfo.ticks);
   data.forEach((d,i)=>{let acc=0;const x=chartX(cfg,n,i)-barW/2;series.forEach(s=>{const v=Number(d[s]||0),y1=cfg.y(acc+v),y0=cfg.y(acc);svg.appendChild(el('rect',{x,y:y1,width:barW,height:Math.max(0,y0-y1),fill:colors[s],rx:2}));acc+=v})});
   labelDates(svg,cfg,data,3);
-  addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;const total=series.reduce((a,s)=>a+Number(d[s]||0),0);series.forEach(s=>html+=row(chartDisplayLabel('pensionAlloc',s),won(d[s]||0),''));return html+'<div class="tt-spacer"></div>'+row('평가총액',won(total),'')});
+  addHover(svg,cfg,data,d=>{let html=tooltipDate(d['날짜']);const total=series.reduce((a,s)=>a+Number(d[s]||0),0);series.forEach(s=>html+=row(chartDisplayLabel('pensionAlloc',s),won(d[s]||0),''));return html+tooltipDivider()+totalRow('평가총액',won(total),'')});
 }
 
 function securitiesCumMoneyAxisValues(d){
@@ -1009,27 +1042,25 @@ function drawCumChart(){
     const x=chartX(cfg,n,i),zero=cfg.y(0);
     if(moneyKeys.length===2){
       const cp=cfg.y(d['합계 : 누적손익']);
-      svg.appendChild(el('rect',{x:x-bw-1,y:Math.min(cp,zero),width:bw,height:Math.abs(zero-cp),fill:'#ffb84d',opacity:.8}));
+      svg.appendChild(el('rect',{x:x-bw-1,y:Math.min(cp,zero),width:bw,height:Math.abs(zero-cp),fill:chartSeriesColor('profit'),opacity:.8}));
       const day=cfg.y(d['합계 : 전일대비손익']);
-      svg.appendChild(el('rect',{x:x+2,y:Math.min(day,zero),width:bw,height:Math.abs(zero-day),fill:d['합계 : 전일대비손익']>=0?'#a7d7a8':'#c7e6c8',stroke:d['합계 : 전일대비손익']<0?'#86b58a':'none',opacity:.9}));
+      svg.appendChild(el('rect',{x:x+2,y:Math.min(day,zero),width:bw,height:Math.abs(zero-day),fill:chartSeriesColor('daily'),opacity:.9}));
       return;
     }
     moneyKeys.forEach((key,index)=>{
       const value=key==='profit'?d['합계 : 누적손익']:d['합계 : 전일대비손익'];
-      const y=cfg.y(value),color=key==='profit'?'#ffb84d':(value>=0?'#a7d7a8':'#c7e6c8');
-      const attrs={x:x-bw/2,y:Math.min(y,zero),width:bw,height:Math.abs(zero-y),fill:color,opacity:key==='profit'?.8:.9};
-      if(key==='daily')attrs.stroke=value<0?'#86b58a':'none';
-      svg.appendChild(el('rect',attrs));
+      const y=cfg.y(value),color=chartSeriesColor(key==='profit'?'profit':'daily');
+      svg.appendChild(el('rect',{x:x-bw/2,y:Math.min(y,zero),width:bw,height:Math.abs(zero-y),fill:color,opacity:key==='profit'?.8:.9}));
     });
   });
   if(selected.has('compare')){
-    const lineColor=mode==='kospi'?'#7c3aed':'#5abdf2';
+    const lineColor=chartCompareSeriesColor(mode);
     const pts=data.map((d,i)=>({value:mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률'],x:chartX(cfg,n,i)})).filter(v=>Number.isFinite(v.value)).map(v=>[v.x,cfg.y2(v.value)]);
     if(pts.length){polyline(svg,pts,lineColor,2);circles(svg,pts,lineColor)}
   }
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{
-    let html=`<div class="tt-date">${d['날짜']}</div>`;
+    let html=tooltipDate(d['날짜']);
     if(selected.has('profit')){
       if(uiState.includeSeparateProfit){
         html+=row('전체 누적손익',signed(d['합계 : 누적손익'],'원'),clsBy(d['합계 : 누적손익']));
@@ -1054,7 +1085,7 @@ function drawLineChart(){
   if(mode==='rate'){
     const yInfo=fixedTickInfo(Math.min(0,...values),Math.max(0,...values),20,true),cfg={w,h,l,r,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),yFormatter:v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%'};drawAxes(svg,cfg,yInfo.ticks);
     const plotW=w-l-r,n=data.length;series.forEach(s=>{const pts=data.map((d,i)=>{const value=valueOf(d,s);return Number.isFinite(value)?[l+(n===1?0:i*plotW/(n-1)),cfg.y(value)]:null}).filter(Boolean);if(pts.length){polyline(svg,pts,colors[s]||securityAllocationColor(s));circles(svg,pts,colors[s]||securityAllocationColor(s))}});labelDates(svg,cfg,data,3);
-    addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const rate=valueOf(d,s);if(!Number.isFinite(rate))return;html+=row(chartDisplayLabel('securitiesSymbol',s),`${rate>0?'+':''}${pct(rate)}`,clsBy(rate))});return html},'symbol');
+    addHover(svg,cfg,data,d=>{let html=tooltipDate(d['날짜']);series.forEach(s=>{const rate=valueOf(d,s);if(!Number.isFinite(rate))return;html+=row(chartDisplayLabel('securitiesSymbol',s),`${rate>0?'+':''}${pct(rate)}`,clsBy(rate))});return html},'symbol');
     return;
   }
   let minY,maxY,ticks;
@@ -1065,7 +1096,7 @@ function drawLineChart(){
   }
   const cfg={w,h,l,r,t,b,y:v=>t+(maxY-v)/(maxY-minY)*(h-t-b)};drawAxes(svg,cfg,ticks);
   const plotW=w-l-r,n=data.length;series.forEach(s=>{const pts=data.map((d,i)=>{const value=valueOf(d,s);return Number.isFinite(value)?[l+(n===1?0:i*plotW/(n-1)),cfg.y(value)]:null}).filter(Boolean);if(pts.length){polyline(svg,pts,colors[s]||securityAllocationColor(s));circles(svg,pts,colors[s]||securityAllocationColor(s))}});labelDates(svg,cfg,data,3);
-  addHover(svg,cfg,data,d=>{let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(s=>{const value=valueOf(d,s),rate=d._rates?.[s];if(!Number.isFinite(value))return;html+=row(chartDisplayLabel('securitiesSymbol',s),`${signed(value,'원')} (${Number(rate)>0?'+':''}${pct(rate)})`,clsBy(value))});const total=series.reduce((a,s)=>{const value=valueOf(d,s);return a+(Number.isFinite(value)?value:0)},0);return html+'<div class="tt-spacer"></div>'+row(`${series.length}종목 합계`,signed(total,'원'),clsBy(total))},'symbol');
+  addHover(svg,cfg,data,d=>{let html=tooltipDate(d['날짜']);series.forEach(s=>{const value=valueOf(d,s),rate=d._rates?.[s];if(!Number.isFinite(value))return;html+=row(chartDisplayLabel('securitiesSymbol',s),`${signed(value,'원')} (${Number(rate)>0?'+':''}${pct(rate)})`,clsBy(value))});const total=series.reduce((a,s)=>{const value=valueOf(d,s);return a+(Number.isFinite(value)?value:0)},0);return html+tooltipDivider()+totalRow(`${series.length}종목 합계`,signed(total,'원'),clsBy(total))},'symbol');
 }
 function drawStacked(){
   const svg=document.getElementById('chartAlloc');if(!svg)return;clear(svg);
@@ -1087,7 +1118,7 @@ function drawStacked(){
   const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(maxY-v)/(maxY-minY)*(h-t-b)};drawAxes(svg,cfg,ticks);
   data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;series.forEach(key=>{const value=Number(d[key]||0),yTop=cfg.y(base+value),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:colors[key],opacity:.75,stroke:cssThemeValue('--chart-stack-stroke','#fff'),'stroke-width':.4}));base+=value})});
   labelDates(svg,cfg,data,3);
-  addHover(svg,cfg,data,d=>{const displayedTotal=series.reduce((a,key)=>a+Number(d[key]||0),0),total=selection.all?(Number(d._total)||displayedTotal):displayedTotal;let html=`<div class="tt-date">${d['날짜']}</div>`;series.forEach(key=>{const value=Number(d[key]||0),share=total?value/total*100:0;html+=row(chartDisplayLabel('securitiesAlloc',key),fmt(value)+`원 (${share.toFixed(1)}%)`)});return html+'<div class="tt-spacer"></div>'+row('합계',fmt(total)+'원')});
+  addHover(svg,cfg,data,d=>{const displayedTotal=series.reduce((a,key)=>a+Number(d[key]||0),0),total=selection.all?(Number(d._total)||displayedTotal):displayedTotal;let html=tooltipDate(d['날짜']);series.forEach(key=>{const value=Number(d[key]||0),share=total?value/total*100:0;html+=row(chartDisplayLabel('securitiesAlloc',key),fmt(value)+`원 (${share.toFixed(1)}%)`)});return html+tooltipDivider()+totalRow('합계',fmt(total)+'원')});
 }
 function refreshScrollHints(){
   document.querySelectorAll('.scroll-hint').forEach(el=>el.remove());
