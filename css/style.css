@@ -52,6 +52,10 @@
   --dashboard-control-group-gap:7px;
   --modal-action-gap:14px;
   --modal-focus-ring:rgba(43,61,89,.18);
+  /* Interactive controls use a distinct border family; structural surfaces keep --line. */
+  --control-border:#c7ced9;
+  --control-border-hover:#98a4b5;
+  --control-focus-border:#3b82f6;
   --control-focus-outline:#93c5fd;
   --control-focus-outline-width:2px;
   --control-focus-outline-offset:2px;
@@ -117,6 +121,9 @@ html.dark{
   --asset-tab-active-bg:#36506f;
   --asset-tab-active-color:#ffffff;
   --modal-focus-ring:rgba(54,80,111,.28);
+  --control-border:#334155;
+  --control-border-hover:#526178;
+  --control-focus-border:#60a5fa;
   --insight-bg:linear-gradient(180deg,#151d2c 0%,#121826 100%);
 }
 
@@ -769,7 +776,7 @@ svg.chart{
 
 button.legend-item.chart-series-all{
   padding:0 var(--dashboard-control-pad-x);
-  border:1px solid var(--line);
+  border:1px solid var(--control-border);
   border-radius:999px;
   background:var(--card);
   color:var(--muted);
@@ -777,7 +784,7 @@ button.legend-item.chart-series-all{
 }
 
 button.legend-item.chart-series-all.active{
-  border-color:var(--line);
+  border-color:var(--control-border);
   background:var(--subtle-card);
   color:var(--ink);
 }
@@ -785,7 +792,7 @@ button.legend-item.chart-series-all.active{
 .chart-y-auto-toggle{
   gap:5px;
   padding:0 var(--dashboard-control-pad-x);
-  border:1px solid var(--table-column-line);
+  border:1px solid var(--control-border);
   border-radius:999px;
   background:transparent;
   color:var(--muted);
@@ -1564,18 +1571,19 @@ button.legend-item.chart-series-all.active{
 .contrib-field select{
   width:100%;
   box-sizing:border-box;
-  border:1px solid var(--line);
+  border:1px solid var(--control-border);
   border-radius:min(10px,var(--corner-control-cap));
   padding:9px 10px;
   font-size:13px;
   font-weight:800;
   background:white;
   color:var(--text);
+  transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
 }
 .dark .contrib-field input,
 .dark .contrib-field select{
   background:#111827;
-  border-color:rgba(148,163,184,.24);
+  border-color:var(--control-border);
   color:#f8fafc;
 }
 .contrib-actions{
@@ -1585,7 +1593,7 @@ button.legend-item.chart-series-all.active{
   margin-top:8px;
 }
 .contrib-btn{
-  border:1px solid transparent;
+  border:1px solid var(--asset-tab-active-bg);
   border-radius:min(8px,var(--corner-control-cap));
   padding:7px 11px;
   font-size:12px;
@@ -2018,6 +2026,7 @@ body.contrib-modal-open{
 }
 
 .contrib-btn.danger{
+  border-color:#dc2626;
   background:#dc2626;
   color:white;
 }
@@ -2052,7 +2061,7 @@ body.contrib-modal-open{
   width:min(430px,100%);
   margin:0 0 12px;
   padding:4px;
-  border:1px solid var(--line);
+  border:1px solid var(--control-border);
   border-radius:min(14px,var(--corner-surface-cap));
   background:var(--subtle-card);
 }
@@ -2269,7 +2278,7 @@ body.contrib-modal-open{
   gap:6px;
   border-radius:min(12px,var(--corner-surface-cap));
   background:rgba(15,23,42,.06);
-  border:1px solid rgba(148,163,184,.22);
+  border:1px solid var(--control-border);
 }
 .contrib-target-option,
 .pension-work-mode-btn{
@@ -2582,7 +2591,7 @@ body.contrib-modal-open{
 .action-modal-input{
   width:100%;
   height:44px;
-  border:1px solid #cbd5e1;
+  border:1px solid var(--control-border);
   border-radius:min(14px,var(--corner-control-cap));
   padding:0 13px;
   font-family:inherit;
@@ -2590,11 +2599,12 @@ body.contrib-modal-open{
   font-weight:400;
   outline:none;
   box-sizing:border-box;
+  transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
 }
 /* Modal Form Focus · 모달 입력 포커스 공통 UI */
-:is(.action-modal-input,.contrib-modal .contrib-field input,.contrib-modal .contrib-field select):focus{
+:is(.action-modal-input,.contrib-field input,.contrib-field select):focus{
   outline:none;
-  border-color:var(--asset-tab-active-bg);
+  border-color:var(--control-focus-border);
   box-shadow:0 0 0 3px var(--modal-focus-ring);
 }
 .action-modal-status{
@@ -2613,14 +2623,14 @@ body.contrib-modal-open{
 .action-modal-btn{
   height:40px;
   border-radius:min(12px,var(--corner-control-cap));
-  border:1px solid #cbd5e1;
+  border:1px solid var(--control-border);
   padding:0 12px;
   font-weight:800;
   line-height:1.25;
   cursor:pointer;
   box-sizing:border-box;
 }
-.action-modal-btn.ghost{background:#fff;color:#334155}
+.action-modal-btn.ghost{background:var(--card);color:var(--text)}
 .action-modal-btn.primary{background:var(--asset-tab-active-bg);color:#fff;border-color:var(--asset-tab-active-bg)}
 .krx-action-buttons{
   display:grid;
@@ -2681,12 +2691,12 @@ body.contrib-modal-open{
 .dark .action-modal-label{color:#cbd5e1}
 .dark .action-modal-input{
   background:#0f172a;
-  border-color:#334155;
+  border-color:var(--control-border);
   color:#e5e7eb;
 }
 .dark .action-modal-btn.ghost{
   background:#111827;
-  border-color:#334155;
+  border-color:var(--control-border);
   color:#e5e7eb;
 }
 /* Chart Desktop · 차트 웹: 1101px 이상에서 가로 스크롤 없이 카드/SVG 100% */
@@ -2831,6 +2841,20 @@ button,
   }
   .dark .table-view > .dashboard-data-table:not(.source-data-table) tbody tr:not(.summary-row):hover > td{
     box-shadow:inset 0 1px 0 rgba(96,165,250,.20),inset 0 -1px 0 rgba(96,165,250,.20);
+  }
+
+  :is(
+    button.legend-item.chart-series-all,
+    .chart-y-auto-toggle,
+    .pension-batch-clear,
+    .pension-batch-item-actions button,
+    .chart-scroll-start,
+    .chart-scroll-end,
+    .chart-expand-button,
+    .chart-web-expand-button,
+    .mobile-view-toggle
+  ):not(:disabled):hover{
+    border-color:var(--control-border-hover);
   }
 
   button:not(:disabled):hover,
@@ -3028,7 +3052,7 @@ button:not(:disabled):active,
   align-items:center;
   height:var(--dashboard-control-height);
   padding:1px;
-  border:1px solid #cbd5e1;
+  border:1px solid var(--control-border);
   border-radius:min(calc(var(--dashboard-control-radius) + 1px),var(--corner-control-cap));
   background:#f8fafc;
   box-sizing:border-box;
@@ -3053,7 +3077,7 @@ button:not(:disabled):active,
   color:#fff;
   box-shadow:0 2px 7px rgba(15,23,42,.2);
 }
-.dark .chart-compare-toggle{background:#111827;border-color:#334155}
+.dark .chart-compare-toggle{background:#111827;border-color:var(--control-border)}
 .dark .chart-compare-toggle button{color:#94a3b8}
 .dark .chart-compare-toggle button.active{background:#e2e8f0;color:#0f172a}
 
@@ -3476,7 +3500,7 @@ button:not(:disabled):active,
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:5px;
   margin:0 0 10px;
-  border:1px solid var(--line);
+  border:1px solid var(--control-border);
   border-radius:min(10px,var(--corner-surface-cap));
   background:rgba(15,23,42,.045);
 }
@@ -3527,7 +3551,7 @@ button:not(:disabled):active,
 }
 .pension-batch-clear{
   flex:0 0 auto;
-  border:1px solid var(--line);
+  border:1px solid var(--control-border);
   border-radius:min(7px,var(--corner-control-cap));
   padding:5px 8px;
   background:transparent;
@@ -3587,7 +3611,7 @@ button:not(:disabled):active,
   width:25px;
   height:25px;
   padding:0;
-  border:1px solid var(--line);
+  border:1px solid var(--control-border);
   border-radius:min(6px,var(--corner-control-cap));
   background:var(--card);
   color:var(--text);
@@ -3708,7 +3732,7 @@ button:not(:disabled):active,
   gap:7px;
   flex:0 0 auto;
   padding:2px 8px 2px 10px;
-  border:1px solid var(--line);
+  border:1px solid var(--control-border);
   border-radius:999px;
   background:var(--card);
   color:var(--muted);
@@ -3876,7 +3900,7 @@ button:not(:disabled):active,
   height:var(--chart-square-size);
   flex:0 0 var(--chart-square-size);
   padding:0;
-  border:1px solid var(--table-column-line);
+  border:1px solid var(--control-border);
   border-radius:min(var(--dashboard-control-radius),var(--corner-control-cap));
   background:transparent;
   color:var(--muted);
@@ -3894,7 +3918,7 @@ button:not(:disabled):active,
 }
 .dark :is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
   background:transparent;
-  border-color:var(--table-column-line);
+  border-color:var(--control-border);
   color:var(--muted);
 }
 body.chart-expanded-open{overflow:hidden;touch-action:none}
@@ -4106,6 +4130,9 @@ body.chart-expanded-open .dash-tooltip{
 
 /* [03. Topbar / Navigation · 상단바 / 내비게이션] Topbar Layout · 상단바 레이아웃 */
 .switcher{
+  --topbar-control-border:rgba(255,255,255,.30);
+  --topbar-control-border-hover:rgba(255,255,255,.46);
+  --topbar-control-border-focus:#93c5fd;
   position:sticky;
   top:0;
   z-index:30;
@@ -4139,7 +4166,7 @@ body.chart-expanded-open .dash-tooltip{
 .date-picker-action{grid-column:3;justify-self:end}
 .date-select,
 .date-tool-btn{
-  border:1px solid rgba(255,255,255,.30);
+  border:1px solid var(--topbar-control-border);
   background:#03060b;
   color:#fff;
   font-weight:400;
@@ -4178,9 +4205,12 @@ body.chart-expanded-open .dash-tooltip{
   justify-content:center;
   gap:4px;
   font-size:11.5px;
+  line-height:1;
   white-space:nowrap;
   cursor:pointer;
 }
+:is(.date-select,.date-tool-btn):hover{border-color:var(--topbar-control-border-hover)}
+:is(.date-select,.date-tool-btn):focus-visible{border-color:var(--topbar-control-border-focus)}
 .date-tool-btn:hover{background:#050914}
 .topbar-calc-action{text-decoration:none}
 .date-tool-action-icon{
@@ -4193,7 +4223,7 @@ body.chart-expanded-open .dash-tooltip{
   margin-right:3px;
   font-size:0;
 }
-.date-tool-action-icon svg{display:block;width:16px;height:16px}
+.date-tool-action-icon svg{display:block;width:16px;height:16px;vertical-align:middle}
 .topbar-theme-action,
 .topbar-corner-action{width:32px;padding:0}
 :is(.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{width:18px;height:18px;flex-basis:18px;margin-right:0}
@@ -4306,7 +4336,7 @@ body.chart-expanded-open .dash-tooltip{
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) .day-select{grid-column:2}
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-theme-action,.topbar-corner-action,.date-tool-menu-btn){
     background:#03060b;
-    border-color:rgba(255,255,255,.30);
+    border-color:var(--topbar-control-border);
     color:#fff;
     box-shadow:0 5px 14px rgba(0,0,0,.14);
   }
@@ -4645,7 +4675,7 @@ body.chart-expanded-open .dash-tooltip{
     display:inline-flex;
     flex:0 0 auto;
     padding:0 9px;
-    border:1px solid var(--line);
+    border:1px solid var(--control-border);
     border-radius:min(9px,var(--corner-control-cap));
     background:var(--card);
     color:var(--muted);
