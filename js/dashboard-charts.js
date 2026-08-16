@@ -69,6 +69,7 @@ function syncExpandedChartViewport(){
   overlay.classList.toggle('device-landscape',desktopExpanded||expandedChartLandscapeViewport());
 }
 function openExpandedChart(button){
+  const opener=button||null;
   const card=button?.closest('.chart-card');
   const wrap=card?.querySelector('.chart-wrap');
   const svg=wrap?.querySelector('svg.chart');
@@ -130,7 +131,7 @@ function openExpandedChart(button){
   overlay.querySelector('.chart-expanded-close')?.addEventListener('click',closeExpandedChart,{once:true});
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeExpandedChart()});
   requestAnimationFrame(()=>overlay.classList.add('show'));
-  activateDashboardDialogFocus(overlay,{initialFocus:overlay.querySelector('.chart-expanded-close'),fallbackSelector:`#${card.id} [data-dashboard-action="open-expanded-chart"]`});
+  activateDashboardDialogFocus(overlay,{initialFocus:overlay.querySelector('.chart-expanded-close'),fallbackSelector:`#${card.id} [data-dashboard-action="open-expanded-chart"]`,returnFocus:opener});
 }
 function closeExpandedChart(){
   const state=chartState.expanded;
@@ -885,7 +886,7 @@ function addHover(svg,cfg,data,renderHtml,tooltipKind=''){
   svg.setAttribute('tabindex','0');
   svg.setAttribute('role','group');
   svg.setAttribute('aria-label',`${chartAccessibleTitle(svg)}. 좌우 방향키로 날짜별 값을 확인하고 Home과 End 키로 처음·마지막 날짜로 이동할 수 있습니다.`);
-  svg.setAttribute('aria-keyshortcuts','ArrowLeft ArrowRight Home End Escape');
+  svg.setAttribute('aria-keyshortcuts','ArrowLeft ArrowRight Home End Enter Space Escape');
   svg.onfocus=()=>{line.setAttribute('opacity',0);hideTooltip()};
   svg.onblur=()=>{line.setAttribute('opacity',0);hideTooltip()};
   svg.onkeydown=event=>{

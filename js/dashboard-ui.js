@@ -60,7 +60,12 @@ function dashboardVisibleFallback(selector){
   if(!selector)return null;
   return [...document.querySelectorAll(selector)].find(dashboardElementVisible)||null;
 }
-function activateDashboardDialogFocus(container,{initialFocus=null,fallbackSelector=''}={}){
+function dashboardReturnFocusVisible(el){
+  if(!dashboardElementVisible(el)||el===document.body||el===document.documentElement)return false;
+  const tag=String(el.tagName||'').toLowerCase();
+  return typeof el.focus==='function'&&(el.tabIndex>=0||['a','button','input','select','textarea','summary'].includes(tag));
+}
+function activateDashboardDialogFocus(container,{initialFocus=null,fallbackSelector='',returnFocus=null}={}){
   if(!container)return;
   let state=dashboardDialogFocusState.get(container);
   if(!state){
@@ -76,7 +81,8 @@ function activateDashboardDialogFocus(container,{initialFocus=null,fallbackSelec
     container.addEventListener('keydown',state.keydown);
     dashboardDialogFocusState.set(container,state);
   }
-  if(!container.contains(document.activeElement))state.returnFocus=document.activeElement;
+  if(returnFocus)state.returnFocus=returnFocus;
+  else if(!container.contains(document.activeElement)&&dashboardReturnFocusVisible(document.activeElement))state.returnFocus=document.activeElement;
   state.fallbackSelector=fallbackSelector||state.fallbackSelector||'';
   const resolveInitial=()=>typeof initialFocus==='string'?container.querySelector(initialFocus):initialFocus;
   requestAnimationFrame(()=>{
@@ -91,7 +97,7 @@ function releaseDashboardDialogFocus(container,{fallbackSelector=''}={}){
   const fallback=fallbackSelector||state?.fallbackSelector||'';
   if(state){state.returnFocus=null;state.fallbackSelector='';}
   requestAnimationFrame(()=>{
-    const target=dashboardElementVisible(stored)?stored:dashboardVisibleFallback(fallback);
+    const target=dashboardReturnFocusVisible(stored)?stored:dashboardVisibleFallback(fallback);
     target?.focus?.({preventScroll:true});
   });
 }
@@ -518,6 +524,12 @@ function ensureKrxActionModal(){
   </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click',e=>{if(e.target===modal)closeKrxActionModal()});
+  modal.addEventListener('keydown',e=>{
+    if(e.key!=='Escape')return;
+    e.preventDefault();
+    e.stopPropagation();
+    closeKrxActionModal();
+  });
   return modal;
 }
 function openKrxActionModal(){

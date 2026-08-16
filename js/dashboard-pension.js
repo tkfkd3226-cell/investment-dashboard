@@ -214,10 +214,10 @@ function renderPensionProductInsights(x){
   const topHtml=x.pensionPrevEval==null
     ? `<div class="pension-empty-state">전일 데이터가 없어 오늘 상승분 기여도를 표시하지 않습니다.</div>`
     : items.length
-      ? `<div class="pension-stack-bar compact simple">${items.map((item,index)=>{const tooltipId=`pensionContributionTooltip${index}`;return `<div class="pension-stack-segment has-tooltip" tabindex="0" aria-describedby="${tooltipId}" style="width:${Math.max(item.share,2).toFixed(2)}%;background:${item.color}"><span>${item.share>=8?item.name.replace('KODEX ',''):''}</span><div id="${tooltipId}" class="pension-viz-tooltip" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${item.share.toFixed(1)}%</div><div>${signed(item.value)}</div></div></div>`}).join('')}</div>`
+      ? `<div class="pension-stack-bar compact simple">${items.map((item,index)=>{const tooltipId=`pensionContributionTooltip${index}`;const ariaLabel=escapeHtml(`${item.name} 상승분 기여도 ${item.share.toFixed(1)}%, ${signed(item.value)}`);return `<div class="pension-stack-segment has-tooltip" tabindex="0" role="img" aria-label="${ariaLabel}" aria-describedby="${tooltipId}" style="width:${Math.max(item.share,2).toFixed(2)}%;background:${item.color}"><span>${item.share>=8?item.name.replace('KODEX ',''):''}</span><div id="${tooltipId}" class="pension-viz-tooltip" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${item.share.toFixed(1)}%</div><div>${signed(item.value)}</div></div></div>`}).join('')}</div>`
       : `<div class="pension-empty-state">상승한 자산이 없어 기여도를 표시하지 않습니다.</div>`;
   const riskTooltip=`위험자산 ${won(risk.riskEval)} / 안전자산 ${won(risk.safeEval)} / 기준 대비 ${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p`;
-  return `<div class="pension-insight-zone"><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>오늘 상승분 기여도</h3></div>${topHtml}</div><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>위험자산 70% 룰</h3><span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}">현재 ${risk.ratio.toFixed(1)}%</span></div><div class="pension-risk-gauge compact has-tooltip" tabindex="0" aria-describedby="pensionRiskTooltip"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}" style="width:${gaugeWidth.toFixed(1)}%"></div><div class="pension-risk-threshold" style="left:${risk.threshold}%"><span>${risk.threshold}%</span></div><div id="pensionRiskTooltip" class="pension-viz-tooltip wide" role="tooltip"><strong>위험자산 70% 룰</strong><div>${riskTooltip}</div></div></div><div class="pension-risk-scale"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div></div></div>`;
+  return `<div class="pension-insight-zone"><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>오늘 상승분 기여도</h3></div>${topHtml}</div><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>위험자산 70% 룰</h3><span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}">현재 ${risk.ratio.toFixed(1)}%</span></div><div class="pension-risk-gauge compact has-tooltip" tabindex="0" role="img" aria-label="위험자산 비중 ${risk.ratio.toFixed(1)}%, 기준 ${risk.threshold}%, 기준 대비 ${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p" aria-describedby="pensionRiskTooltip"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}" style="width:${gaugeWidth.toFixed(1)}%"></div><div class="pension-risk-threshold" style="left:${risk.threshold}%"><span>${risk.threshold}%</span></div><div id="pensionRiskTooltip" class="pension-viz-tooltip wide" role="tooltip"><strong>위험자산 70% 룰</strong><div>${riskTooltip}</div></div></div><div class="pension-risk-scale"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div></div></div>`;
 }
 
 // Modal Lifecycle / Form State · 모달 생명주기 / 입력 상태
@@ -241,7 +241,10 @@ function closePensionContributionModal(){
   forceMobileViewportReflow();
 }
 document.addEventListener('keydown',e=>{
-  if(e.key!=='Escape'||document.getElementById('pensionActionPinModal')) return;
+  if(e.key!=='Escape'||e.defaultPrevented||document.getElementById('pensionActionPinModal'))return;
+  const modal=document.getElementById('pensionContribModal');
+  if(!modal?.classList.contains('show'))return;
+  e.preventDefault();
   closeDateActionMenu();
   closePensionContributionModal();
 });
@@ -652,7 +655,13 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
     };
 
     input?.addEventListener('input',onInput);
-    input?.addEventListener('keydown',e=>{if(e.key==='Enter')submit();if(e.key==='Escape')finish(null)});
+    input?.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
+    modal.addEventListener('keydown',e=>{
+      if(e.key!=='Escape')return;
+      e.preventDefault();
+      e.stopPropagation();
+      finish(null);
+    });
     cancel?.addEventListener('click',()=>finish(null));
     close?.addEventListener('click',()=>finish(null));
     modal.addEventListener('click',e=>{if(e.target===modal)finish(null)});
