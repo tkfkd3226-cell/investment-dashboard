@@ -4645,6 +4645,7 @@ body.chart-expanded-open .dash-tooltip{
 /* Table Alignment Hierarchy · label 열은 좌측, 숫자 열은 우측, 명시적 center 열은 중앙 정렬 */
 .dashboard-data-table thead th:first-child{text-align:left}
 .dashboard-data-table thead th:not(:first-child){text-align:right}
+.dashboard-data-table thead th.table-cell-center{text-align:center}
 .dashboard-data-table .table-cell-center{text-align:center}
 :is(.accounts-table,.pension-products-table) thead th:last-child{text-align:left}
 .dashboard-data-table tbody .summary-row > td{border-top:1px solid var(--table-column-line)}
