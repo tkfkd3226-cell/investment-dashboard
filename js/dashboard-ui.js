@@ -588,8 +588,8 @@ function renderResultSummary(x){
   const ledgerSourceSub='계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준<br>출처: 연금+계좌 성과 &gt; 증권계좌 투자 결과물';
   const actualHoldingSub=`증권계좌 평가총액(${won(x.allocTotal)}) +<br>실현수익 반영 현금 보유액(${won(outsideCashBasis)})${footnoteSup}`;
   const gapClass=ledgerGap!==0?'ledger-gap-value':'';
-  const conclusion=`<div class="card metric-card ledger-conclusion-card"><div class="ledger-conclusion-main"><div class="label">차액(A-B)</div><div class="value ${gapClass}">${won(ledgerGap)}</div><div class="sub">장부상 결과물과 실제 보유액의 차이<div class="ledger-conclusion-inline-reason">차액 발생 이유: ${reasonValue}</div></div></div><div class="ledger-conclusion-reason"><span>차액 발생 이유</span><strong>${reasonValue}</strong></div></div>`;
-  const overview=`<div class="grid cards metric-grid ledger-overview-grid">${conclusion}${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),ledgerSourceSub,true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),actualHoldingSub)}</div>`;
+  const conclusion=`<div class="card metric-card ledger-conclusion-card dark"><div class="ledger-conclusion-main"><div class="label">차액(A-B)</div><div class="value ${gapClass}">${won(ledgerGap)}</div><div class="sub">장부상 결과물과 실제 보유액의 차이<div class="ledger-conclusion-inline-reason">차액 발생 이유: ${reasonValue}</div></div></div><div class="ledger-conclusion-reason"><span>차액 발생 이유</span><strong>${reasonValue}</strong></div></div>`;
+  const overview=`<div class="grid cards metric-grid ledger-overview-grid">${conclusion}${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),ledgerSourceSub)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),actualHoldingSub)}</div>`;
   return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="search" aria-hidden="true"></span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div>${overview}${note}</section>`;
 }
 
