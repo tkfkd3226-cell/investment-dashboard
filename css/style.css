@@ -3549,7 +3549,7 @@ button:not(:disabled):active,
 }
 
 /* Performance Data Hierarchy · 원금/평가액은 regular, 손익·수익률은 한 단계 강조 */
-:is(#summary-section,#accounts-summary,#securities-holdings) .dashboard-data-table tbody tr:not(.summary-row) td.num:is(.positive,.negative){
+:is(#summary-section,#accounts-summary,#securities-holdings) .dashboard-data-table tbody tr:not(.summary-row) td.num:is(.table-positive,.table-negative){
   font-weight:var(--data-table-result-weight);
 }
 
@@ -4769,6 +4769,7 @@ body.chart-expanded-open .dash-tooltip{
 .dashboard-data-table thead th{font-weight:var(--data-table-head-weight)}
 .dashboard-data-table tbody td.num{font-weight:var(--data-table-value-weight)}
 .dashboard-data-table tbody .summary-row > td{font-weight:var(--data-table-summary-weight)}
+.dashboard-data-table tbody .summary-row > td.accounts-memo{font-weight:var(--data-table-memo-weight)}
 /* Table Alignment Hierarchy · label 열은 좌측, 숫자 열은 우측, 명시적 center 열은 중앙 정렬 */
 .dashboard-data-table thead th:first-child{text-align:left}
 .dashboard-data-table thead th:not(:first-child){text-align:right}
