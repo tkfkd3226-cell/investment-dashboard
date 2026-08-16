@@ -2,7 +2,7 @@
 
 // Expanded / Responsive Controls · 확대 / 반응형 컨트롤
 function chartExpandIcon(){
-  return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"></path><path d="M9 9 3 3M15 9l6-6M15 15l6 6M9 15l-6 6"></path></svg>`;
+  return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"></path><path d="M9 9 3 3M15 9l6-6M15 15l6 6M9 15l-6 6"></path></svg>`;
 }
 function chartWebExpandButton(){
   return `<button type="button" class="chart-web-expand-button" aria-label="차트를 전체화면으로 확대" title="전체화면" data-dashboard-action="open-expanded-chart">${chartExpandIcon()}</button>`;
@@ -125,19 +125,19 @@ function openExpandedChart(button){
   if(legend)expandedLegendHost.appendChild(legend);
   document.body.appendChild(overlay);
   document.body.classList.add('chart-expanded-open');
-  chartState.expanded={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl};
+  chartState.expanded={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,cardId:card.id};
   syncExpandedChartViewport();
   overlay.querySelector('.chart-expanded-close')?.addEventListener('click',closeExpandedChart,{once:true});
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeExpandedChart()});
   requestAnimationFrame(()=>overlay.classList.add('show'));
-  overlay.querySelector('.chart-expanded-close')?.focus({preventScroll:true});
+  activateDashboardDialogFocus(overlay,{initialFocus:overlay.querySelector('.chart-expanded-close'),fallbackSelector:`#${card.id} [data-dashboard-action="open-expanded-chart"]`});
 }
 function closeExpandedChart(){
   const state=chartState.expanded;
   if(!state)return;
   clearChartHover();
   chartState.expanded=null;
-  const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,afterClose}=state;
+  const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,cardId,afterClose}=state;
   if(placeholder?.parentNode)placeholder.parentNode.insertBefore(svg,placeholder);
   placeholder?.remove();
   expandedSeparateProfitControl?.remove();
@@ -149,10 +149,13 @@ function closeExpandedChart(){
   legendPlaceholder?.remove();
   overlay?.remove();
   document.body.classList.remove('chart-expanded-open');
+  const restoreFocus=()=>releaseDashboardDialogFocus(overlay,{fallbackSelector:cardId?`#${cardId} [data-dashboard-action="open-expanded-chart"]`:'[data-dashboard-action="open-expanded-chart"]'});
   if(typeof afterClose==='function'){
     afterClose();
+    requestAnimationFrame(restoreFocus);
     return;
   }
+  restoreFocus();
   if(wrap){
     requestAnimationFrame(()=>{
       requestAnimationFrame(()=>{
@@ -730,6 +733,46 @@ function tooltip(){
   }
   return tt;
 }
+function chartA11yStatus(){
+  let status=document.getElementById('chartA11yStatus');
+  if(!status){
+    status=document.createElement('div');
+    status.id='chartA11yStatus';
+    status.className='visually-hidden';
+    status.setAttribute('role','status');
+    status.setAttribute('aria-live','polite');
+    status.setAttribute('aria-atomic','true');
+    document.body.appendChild(status);
+  }
+  return status;
+}
+function chartTooltipPlainText(html){
+  const temp=document.createElement('div');
+  temp.innerHTML=html;
+  const parts=[...temp.querySelectorAll('.tt-date,.tt-row')].map(el=>String(el.textContent||'').replace(/\s+/g,' ').trim()).filter(Boolean);
+  return (parts.length?parts:[String(temp.textContent||'')]).join(', ').replace(/\s+/g,' ').trim();
+}
+function chartAccessibleTitle(svg){
+  const heading=svg.closest('.chart-card')?.querySelector('.chart-head h3');
+  if(!heading)return '투자 차트';
+  const clone=heading.cloneNode(true);
+  clone.querySelectorAll('button,.chart-title-info-tooltip').forEach(el=>el.remove());
+  return String(clone.textContent||'투자 차트').replace(/\s+/g,' ').trim();
+}
+function chartKeyboardAnchor(svg,cfg,dataLength,index){
+  const point=svg.createSVGPoint();
+  point.x=chartX(cfg,dataLength,index);
+  point.y=cfg.t+(cfg.h-cfg.t-cfg.b)/2;
+  const matrix=svg.getScreenCTM();
+  if(!matrix)return {clientX:window.innerWidth/2,clientY:window.innerHeight/2};
+  const screenPoint=point.matrixTransform(matrix);
+  return {clientX:screenPoint.x,clientY:screenPoint.y};
+}
+function announceChartTooltip(html){
+  const status=chartA11yStatus();
+  status.textContent='';
+  requestAnimationFrame(()=>{status.textContent=chartTooltipPlainText(html)});
+}
 function tooltipEscape(value){return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function tooltipDate(value){return `<div class="tt-date">${tooltipEscape(value)}</div>`}
 function tooltipDivider(){return '<div class="tt-divider" aria-hidden="true"></div>'}
@@ -816,17 +859,54 @@ function addHover(svg,cfg,data,renderHtml,tooltipKind=''){
   svg.appendChild(line);
   const hit=el('rect',{x:cfg.l,y:cfg.t,width:cfg.w-cfg.l-cfg.r,height:cfg.h-cfg.t-cfg.b,class:'svg-hitbox'});
   svg.appendChild(hit);
-  const show=evt=>{const idx=nearestIndex(evt,svg,cfg,data);const x=chartX(cfg,data.length,idx);line.setAttribute('x1',x);line.setAttribute('x2',x);line.setAttribute('opacity',1);showTooltip(evt,renderHtml(data[idx],idx),tooltipKind)};
-  hit.addEventListener('mousemove',show);
-  hit.addEventListener('pointerdown',show);
+  const savedIndex=Number(svg.dataset.chartKeyboardIndex);
+  let activeIndex=Number.isInteger(savedIndex)&&savedIndex>=0&&savedIndex<data.length?savedIndex:Math.max(0,data.length-1);
+  const showIndex=(idx,evt,{announce=false}={})=>{
+    if(!data.length)return;
+    activeIndex=Math.max(0,Math.min(data.length-1,idx));
+    svg.dataset.chartKeyboardIndex=String(activeIndex);
+    const x=chartX(cfg,data.length,activeIndex),html=renderHtml(data[activeIndex],activeIndex);
+    line.setAttribute('x1',x);
+    line.setAttribute('x2',x);
+    line.setAttribute('opacity',1);
+    showTooltip(evt||chartKeyboardAnchor(svg,cfg,data.length,activeIndex),html,tooltipKind);
+    if(announce)announceChartTooltip(html);
+  };
+  const showPointer=evt=>showIndex(nearestIndex(evt,svg,cfg,data),evt);
+  hit.addEventListener('mousemove',showPointer);
+  hit.addEventListener('pointerdown',showPointer);
   hit.addEventListener('pointermove',evt=>{
     if(chartState.expanded?.svg!==svg)return;
     if(evt.pointerType!=='touch'&&evt.pointerType!=='pen')return;
     if(evt.cancelable)evt.preventDefault();
-    show(evt);
+    showPointer(evt);
   });
   hit.addEventListener('mouseleave',()=>{line.setAttribute('opacity',0);hideTooltip()});
-  svg.addEventListener('pointerdown',evt=>{if(evt.target!==hit)clearChartHover()});
+  svg.setAttribute('tabindex','0');
+  svg.setAttribute('role','group');
+  svg.setAttribute('aria-label',`${chartAccessibleTitle(svg)}. 좌우 방향키로 날짜별 값을 확인하고 Home과 End 키로 처음·마지막 날짜로 이동할 수 있습니다.`);
+  svg.setAttribute('aria-keyshortcuts','ArrowLeft ArrowRight Home End Escape');
+  svg.onfocus=()=>{line.setAttribute('opacity',0);hideTooltip()};
+  svg.onblur=()=>{line.setAttribute('opacity',0);hideTooltip()};
+  svg.onkeydown=event=>{
+    if(!data.length)return;
+    let next=activeIndex,handled=true;
+    if(event.key==='ArrowLeft')next=Math.max(0,activeIndex-1);
+    else if(event.key==='ArrowRight')next=Math.min(data.length-1,activeIndex+1);
+    else if(event.key==='Home')next=0;
+    else if(event.key==='End')next=data.length-1;
+    else if(event.key==='Enter'||event.key===' ')next=activeIndex;
+    else if(event.key==='Escape'){
+      event.preventDefault();
+      line.setAttribute('opacity',0);
+      hideTooltip();
+      return;
+    }else handled=false;
+    if(!handled)return;
+    event.preventDefault();
+    showIndex(next,null,{announce:true});
+  };
+  svg.onpointerdown=evt=>{if(evt.target!==hit)clearChartHover()};
 }
 
 function niceStep(rawStep){

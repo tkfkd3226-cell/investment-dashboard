@@ -114,7 +114,7 @@ function renderPensionContributionModal(x){
   <div class="contrib-actions">
     <button type="button" id="pensionContribSaveButton" class="contrib-btn" data-pension-action="save">저장</button>
   </div>
-  <div id="pensionContribStatus" class="contrib-status"></div>
+  <div id="pensionContribStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
   <pre id="pensionContribOutput" class="contrib-output"></pre>
 </div>
 <div id="pensionContribDeleteCard" class="contrib-list modal-card-box"${pensionCashSnapshotItems().length?'':' hidden'}>
@@ -122,13 +122,13 @@ function renderPensionContributionModal(x){
   <p id="pensionContribDeleteHelp" class="small">잘못 등록한 현금성자산 기록 선택 후 삭제</p>
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList('cashSnapshot')}</div>
   <div class="contrib-actions"><button type="button" id="pensionContribDeleteButton" class="contrib-btn danger" data-pension-action="delete-selected">선택 항목 삭제</button></div>
-  <div id="pensionContribDeleteStatus" class="contrib-status"></div>
+  <div id="pensionContribDeleteStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
 </div>
 <div id="pensionBatchPanel" class="pension-batch-panel modal-card-box" hidden>
   <div class="pension-batch-head"><div><h3>작업 모음 <span id="pensionBatchTitleCount">0건</span></h3><p>저장·삭제 작업을 모아 PIN 한 번으로 한 커밋에 반영합니다.</p></div><button type="button" id="pensionBatchClearButton" class="pension-batch-clear" data-pension-action="clear-batch">전체 비우기</button></div>
   <div id="pensionBatchQueueList" class="pension-batch-queue"><div class="pension-batch-empty">아직 추가된 작업이 없습니다.</div></div>
   <div id="pensionBatchOrderNote" class="pension-batch-order-note" hidden></div>
-  <div id="pensionBatchStatus" class="contrib-status"></div>
+  <div id="pensionBatchStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
   <div class="pension-batch-actions"><button type="button" id="pensionBatchApplyButton" class="contrib-btn" data-pension-action="apply-batch" disabled>일괄 적용</button></div>
 </div>
 <details class="token-guide">
@@ -214,10 +214,10 @@ function renderPensionProductInsights(x){
   const topHtml=x.pensionPrevEval==null
     ? `<div class="pension-empty-state">전일 데이터가 없어 오늘 상승분 기여도를 표시하지 않습니다.</div>`
     : items.length
-      ? `<div class="pension-stack-bar compact simple">${items.map(item=>`<div class="pension-stack-segment has-tooltip" style="width:${Math.max(item.share,2).toFixed(2)}%;background:${item.color}"><span>${item.share>=8?item.name.replace('KODEX ',''):''}</span><div class="pension-viz-tooltip"><strong>${item.name}</strong><div>${item.share.toFixed(1)}%</div><div>${signed(item.value)}</div></div></div>`).join('')}</div>`
+      ? `<div class="pension-stack-bar compact simple">${items.map((item,index)=>{const tooltipId=`pensionContributionTooltip${index}`;return `<div class="pension-stack-segment has-tooltip" tabindex="0" aria-describedby="${tooltipId}" style="width:${Math.max(item.share,2).toFixed(2)}%;background:${item.color}"><span>${item.share>=8?item.name.replace('KODEX ',''):''}</span><div id="${tooltipId}" class="pension-viz-tooltip" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${item.share.toFixed(1)}%</div><div>${signed(item.value)}</div></div></div>`}).join('')}</div>`
       : `<div class="pension-empty-state">상승한 자산이 없어 기여도를 표시하지 않습니다.</div>`;
   const riskTooltip=`위험자산 ${won(risk.riskEval)} / 안전자산 ${won(risk.safeEval)} / 기준 대비 ${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p`;
-  return `<div class="pension-insight-zone"><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>오늘 상승분 기여도</h3></div>${topHtml}</div><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>위험자산 70% 룰</h3><span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}">현재 ${risk.ratio.toFixed(1)}%</span></div><div class="pension-risk-gauge compact has-tooltip"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}" style="width:${gaugeWidth.toFixed(1)}%"></div><div class="pension-risk-threshold" style="left:${risk.threshold}%"><span>${risk.threshold}%</span></div><div class="pension-viz-tooltip wide"><strong>위험자산 70% 룰</strong><div>${riskTooltip}</div></div></div><div class="pension-risk-scale"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div></div></div>`;
+  return `<div class="pension-insight-zone"><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>오늘 상승분 기여도</h3></div>${topHtml}</div><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>위험자산 70% 룰</h3><span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}">현재 ${risk.ratio.toFixed(1)}%</span></div><div class="pension-risk-gauge compact has-tooltip" tabindex="0" aria-describedby="pensionRiskTooltip"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}" style="width:${gaugeWidth.toFixed(1)}%"></div><div class="pension-risk-threshold" style="left:${risk.threshold}%"><span>${risk.threshold}%</span></div><div id="pensionRiskTooltip" class="pension-viz-tooltip wide" role="tooltip"><strong>위험자산 70% 룰</strong><div>${riskTooltip}</div></div></div><div class="pension-risk-scale"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div></div></div>`;
 }
 
 // Modal Lifecycle / Form State · 모달 생명주기 / 입력 상태
@@ -229,23 +229,19 @@ function openPensionContributionModal(){
   modal.setAttribute('aria-hidden','false');
   setPensionContributionTarget('cashSnapshot');
   syncPensionBatchModeUi();
-  document.activeElement?.blur?.();
+  activateDashboardDialogFocus(modal,{initialFocus:modal.querySelector('.contrib-modal-close'),fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
 }
 function closePensionContributionModal(){
   const modal=document.getElementById('pensionContribModal');
   if(!modal) return;
-  if(modal.contains(document.activeElement)){
-    document.activeElement.blur();
-  }
   modal.classList.remove('show');
   modal.setAttribute('aria-hidden','true');
   document.body.classList.remove('contrib-modal-open');
-  const trigger=document.querySelector('.date-tool-btn');
-  if(trigger) trigger.focus({preventScroll:true});
+  releaseDashboardDialogFocus(modal,{fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
   forceMobileViewportReflow();
 }
 document.addEventListener('keydown',e=>{
-  if(e.key!=='Escape') return;
+  if(e.key!=='Escape'||document.getElementById('pensionActionPinModal')) return;
   closeDateActionMenu();
   closePensionContributionModal();
 });
@@ -609,11 +605,11 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
     modal.innerHTML=`<div class="action-modal-card pension-action-pin-card" role="dialog" aria-modal="true" aria-labelledby="pensionActionPinTitle">
       <button type="button" class="modal-icon-btn pension-action-pin-close" aria-label="닫기">${navIconSvg('close')}</button>
       <h3 id="pensionActionPinTitle" class="modal-main-title">${title}</h3>
-      <p class="action-modal-description">${description}</p>
+      <p id="pensionActionPinDescription" class="action-modal-description">${description}</p>
       <label class="action-modal-label" for="pensionActionPinInput">PIN</label>
-      <input id="pensionActionPinInput" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력">
-      <div class="pension-action-pin-guide">PIN 확인 후 ${actionLabel||(danger?'삭제':'저장')}합니다.</div>
-      <div id="pensionActionPinStatus" class="action-modal-status pension-action-pin-status" aria-live="polite"></div>
+      <input id="pensionActionPinInput" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="pensionActionPinDescription pensionActionPinGuide pensionActionPinStatus">
+      <div id="pensionActionPinGuide" class="pension-action-pin-guide">PIN 확인 후 ${actionLabel||(danger?'삭제':'저장')}합니다.</div>
+      <div id="pensionActionPinStatus" class="action-modal-status pension-action-pin-status" role="status" aria-live="polite" aria-atomic="true"></div>
       <div class="action-modal-buttons pension-action-pin-buttons"><button type="button" class="action-modal-btn ghost">취소</button></div>
     </div>`;
 
@@ -627,6 +623,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
     const finish=value=>{
       clearTimeout(submitTimer);
       modal.remove();
+      releaseDashboardDialogFocus(modal);
       resolve(value);
     };
     const submit=async()=>{
@@ -661,7 +658,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
     modal.addEventListener('click',e=>{if(e.target===modal)finish(null)});
 
     document.body.appendChild(modal);
-    requestAnimationFrame(()=>input?.focus());
+    activateDashboardDialogFocus(modal,{initialFocus:input});
   });
 }
 

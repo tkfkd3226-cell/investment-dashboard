@@ -45,6 +45,57 @@ function setCornerTheme(theme){
 }
 function toggleCornerTheme(){setCornerTheme(currentCornerTheme()==='rounded'?'soft-square':'rounded')}
 
+// Dialog Focus Management · 공통 모달 포커스 순환 / 복귀
+const dashboardDialogFocusState=new WeakMap();
+function dashboardElementVisible(el){
+  if(!el||!el.isConnected||el.disabled)return false;
+  const style=getComputedStyle(el);
+  return style.display!=='none'&&style.visibility!=='hidden'&&(el.offsetWidth>0||el.offsetHeight>0||el.getClientRects().length>0);
+}
+function dashboardDialogFocusables(container){
+  if(!container)return [];
+  return [...container.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(dashboardElementVisible);
+}
+function dashboardVisibleFallback(selector){
+  if(!selector)return null;
+  return [...document.querySelectorAll(selector)].find(dashboardElementVisible)||null;
+}
+function activateDashboardDialogFocus(container,{initialFocus=null,fallbackSelector=''}={}){
+  if(!container)return;
+  let state=dashboardDialogFocusState.get(container);
+  if(!state){
+    state={returnFocus:null,fallbackSelector:'',keydown:null};
+    state.keydown=event=>{
+      if(event.key!=='Tab')return;
+      const focusables=dashboardDialogFocusables(container);
+      if(!focusables.length){event.preventDefault();return;}
+      const first=focusables[0],last=focusables.at(-1),active=document.activeElement;
+      if(event.shiftKey&&(active===first||!container.contains(active))){event.preventDefault();last.focus();}
+      else if(!event.shiftKey&&(active===last||!container.contains(active))){event.preventDefault();first.focus();}
+    };
+    container.addEventListener('keydown',state.keydown);
+    dashboardDialogFocusState.set(container,state);
+  }
+  if(!container.contains(document.activeElement))state.returnFocus=document.activeElement;
+  state.fallbackSelector=fallbackSelector||state.fallbackSelector||'';
+  const resolveInitial=()=>typeof initialFocus==='string'?container.querySelector(initialFocus):initialFocus;
+  requestAnimationFrame(()=>{
+    const target=resolveInitial()||dashboardDialogFocusables(container)[0];
+    target?.focus?.({preventScroll:true});
+  });
+}
+function releaseDashboardDialogFocus(container,{fallbackSelector=''}={}){
+  if(!container)return;
+  const state=dashboardDialogFocusState.get(container);
+  const stored=state?.returnFocus||null;
+  const fallback=fallbackSelector||state?.fallbackSelector||'';
+  if(state){state.returnFocus=null;state.fallbackSelector='';}
+  requestAnimationFrame(()=>{
+    const target=dashboardElementVisible(stored)?stored:dashboardVisibleFallback(fallback);
+    target?.focus?.({preventScroll:true});
+  });
+}
+
 
 const separateProfitToggle=()=>`<button type="button" class="section-control-chip section-action-chip separate-profit-toggle ${uiState.includeSeparateProfit?'active':''}" aria-pressed="${uiState.includeSeparateProfit}" data-dashboard-action="toggle-separate-profit"><span>별도수익</span><strong>${uiState.includeSeparateProfit?'ON':'OFF'}</strong></button>`;
 const separateProfitControl=(x,extraClass='')=>{
@@ -54,7 +105,7 @@ const separateProfitControl=(x,extraClass='')=>{
   return `<div class="separate-profit-control-row${extraClass?' '+extraClass:''}">${note}${separateProfitToggle()}</div>`;
 };
 function navIconSvg(name){
-  const attrs='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+  const attrs='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"';
   const icons={
     sun:`<svg ${attrs}><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>`,
     moon:`<svg ${attrs}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
@@ -431,6 +482,9 @@ function ensureAppToast(){
     toast=document.createElement('div');
     toast.id='appToast';
     toast.className='app-toast';
+    toast.setAttribute('role','status');
+    toast.setAttribute('aria-live','polite');
+    toast.setAttribute('aria-atomic','true');
     document.body.appendChild(toast);
   }
   return toast;
@@ -448,13 +502,14 @@ function ensureKrxActionModal(){
   modal=document.createElement('div');
   modal.id='krxActionModal';
   modal.className='action-modal krx-action-modal';
+  modal.setAttribute('aria-hidden','true');
   modal.innerHTML=`<div class="action-modal-card krx-action-card" role="dialog" aria-modal="true" aria-labelledby="krxActionTitle">
     <button type="button" class="modal-icon-btn krx-action-close" data-dashboard-action="close-krx-modal" aria-label="닫기">${navIconSvg('close')}</button>
     <h3 id="krxActionTitle" class="modal-main-title">KRX 현재가 반영</h3>
-    <p class="action-modal-description">선택한 기준일만 다시 갱신하거나, 날짜를 비워 누락 거래일을 자동 보충할 수 있습니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
+    <p id="krxActionDescription" class="action-modal-description">선택한 기준일만 다시 갱신하거나, 날짜를 비워 누락 거래일을 자동 보충할 수 있습니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
     <label class="action-modal-label krx-action-label" for="krxActionPin">저장/실행 PIN</label>
-    <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 6자리 입력">
-    <div id="krxActionStatus" class="action-modal-status krx-action-status"></div>
+    <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 6자리 입력" aria-describedby="krxActionDescription krxActionStatus">
+    <div id="krxActionStatus" class="action-modal-status krx-action-status" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="action-modal-buttons krx-action-buttons">
       <button type="button" class="action-modal-btn ghost" data-dashboard-action="close-krx-modal">취소</button>
       <button type="button" class="action-modal-btn ghost" data-dashboard-action="submit-krx-modal" data-krx-mode="auto">최신/누락 반영</button>
@@ -471,7 +526,8 @@ function openKrxActionModal(){
   const input=modal.querySelector('#krxActionPin');
   if(status){status.textContent='';status.className='action-modal-status krx-action-status'}
   modal.classList.add('show');
-  setTimeout(()=>input?.focus(),30);
+  modal.setAttribute('aria-hidden','false');
+  activateDashboardDialogFocus(modal,{initialFocus:input,fallbackSelector:'[data-dashboard-action="krx-update"]'});
 }
 
 function forceMobileViewportReflow(){
@@ -493,7 +549,11 @@ function forceMobileViewportReflow(){
 
 function closeKrxActionModal(){
   const modal=document.getElementById('krxActionModal');
-  if(modal) modal.classList.remove('show');
+  if(modal){
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden','true');
+    releaseDashboardDialogFocus(modal,{fallbackSelector:'[data-dashboard-action="krx-update"]'});
+  }
   forceMobileViewportReflow();
 }
 async function submitKrxActionModal(mode='selected'){
