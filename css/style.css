@@ -705,7 +705,8 @@ svg.chart{
   align-items:center;
   justify-content:center;
   min-height:var(--dashboard-control-height);
-  margin-top:10px;
+  margin-top:9px;
+  padding:0 2px;
   font-size:var(--dashboard-legend-font-size);
   color:var(--muted);
 }
@@ -729,7 +730,8 @@ svg.chart{
   flex-wrap:wrap;
   align-items:center;
   justify-content:center;
-  gap:10px;
+  row-gap:6px;
+  column-gap:10px;
   min-width:0;
   max-width:100%;
 }
@@ -3047,6 +3049,21 @@ button:not(:disabled):active,
   gap:var(--dashboard-control-group-gap);
   flex:0 0 auto;
 }
+/* Chart Control Groups · data selector와 확대 같은 utility control 사이에 약한 구분선만 둔다. */
+.chart-head-actions .chart-compare-toggle + :is(.chart-expand-button,.chart-web-expand-button){
+  position:relative;
+  margin-left:4px;
+}
+.chart-head-actions .chart-compare-toggle + :is(.chart-expand-button,.chart-web-expand-button)::before{
+  content:"";
+  position:absolute;
+  left:calc(-1 * (var(--dashboard-control-group-gap) + 3px));
+  top:50%;
+  width:1px;
+  height:17px;
+  background:var(--line);
+  transform:translateY(-50%);
+}
 .chart-compare-toggle{
   display:inline-flex;
   align-items:center;
@@ -4561,9 +4578,14 @@ body.chart-expanded-open .dash-tooltip{
   justify-content:center;
   flex-wrap:nowrap;
   gap:var(--dashboard-control-group-gap);
+  width:max-content;
+  max-width:100%;
   min-height:var(--dashboard-control-height);
-  margin:2px 1px 2px;
-  padding:0;
+  margin:6px auto 2px;
+  padding:3px;
+  border:1px solid var(--line);
+  border-radius:min(calc(var(--dashboard-control-radius) + 1px),var(--corner-control-cap));
+  background:var(--subtle-card);
   box-sizing:border-box;
 }
 .chart-options-row .chart-legend-control{
@@ -4620,7 +4642,12 @@ body.chart-expanded-open .dash-tooltip{
   vertical-align:middle;
   white-space:nowrap;
 }
+/* Table Alignment Hierarchy · label 열은 좌측, 숫자 열은 우측, 명시적 center 열은 중앙 정렬 */
+.dashboard-data-table thead th:first-child{text-align:left}
+.dashboard-data-table thead th:not(:first-child){text-align:right}
 .dashboard-data-table .table-cell-center{text-align:center}
+:is(.accounts-table,.pension-products-table) thead th:last-child{text-align:left}
+.dashboard-data-table tbody .summary-row > td{border-top:1px solid var(--table-column-line)}
 /* Table Value States · 표 수익/손실 색상은 공통 semantic utility 재사용 */
 
 /* Table Exceptions · 표 예외: memo 줄바꿈 + 연금 allocation bar 폭 */
