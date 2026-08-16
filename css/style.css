@@ -2957,6 +2957,7 @@ button:not(:disabled):active,
   box-shadow:none;
 }
 #ledger-check .ledger-conclusion-card .value{min-height:0}
+#ledger-check .ledger-conclusion-inline-reason{display:none}
 #ledger-check .ledger-conclusion-reason{
   min-width:0;
   padding-left:18px;
@@ -3003,11 +3004,8 @@ button:not(:disabled):active,
     gap:10px;
     padding:12px;
   }
-  #ledger-check .ledger-conclusion-reason{
-    padding:10px 0 0;
-    border-left:0;
-    border-top:1px solid var(--line);
-  }
+  #ledger-check .ledger-conclusion-inline-reason{display:block}
+  #ledger-check .ledger-conclusion-reason{display:none}
 
   .chart-head > div{min-width:0}
 }
@@ -4039,20 +4037,17 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   padding:10px 52px 8px 12px;
 }
 @media (min-width:1101px){
-  /* Ledger Check Desktop · 장부결과 웹: 결론 / A / B를 한 행에 배치 */
+  /* Ledger Check Desktop · 장부결과 웹: 결론 / A / B를 동일 폭 3열로 배치 */
   #ledger-check .ledger-overview-grid{
-    grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr));
+    grid-template-columns:repeat(3,minmax(0,1fr));
   }
   #ledger-check .ledger-conclusion-card{
     grid-column:auto;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:18px;
+    grid-template-columns:1fr;
+    gap:10px;
   }
-  #ledger-check .ledger-conclusion-reason{
-    padding:0 0 0 18px;
-    border-left:1px solid var(--line);
-    border-top:0;
-  }
+  #ledger-check .ledger-conclusion-inline-reason{display:block}
+  #ledger-check .ledger-conclusion-reason{display:none}
 
   .chart-expanded-overlay.desktop-expanded .chart-expanded-stage{
     width:100%;
@@ -4076,20 +4071,17 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   }
 }
 
-/* iPhone Requested Desktop · 아이폰 데스크탑 웹사이트 요청: 장부결과는 Desktop 50/25/25 레이아웃 강제 */
+/* iPhone Requested Desktop · 아이폰 데스크탑 웹사이트 요청: 장부결과는 Desktop 동일 폭 3열 강제 */
 html.iphone-request-desktop #ledger-check .ledger-overview-grid{
-  grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr));
+  grid-template-columns:repeat(3,minmax(0,1fr));
 }
 html.iphone-request-desktop #ledger-check .ledger-conclusion-card{
   grid-column:auto;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:18px;
+  grid-template-columns:1fr;
+  gap:10px;
 }
-html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{
-  padding:0 0 0 18px;
-  border-left:1px solid var(--line);
-  border-top:0;
-}
+html.iphone-request-desktop #ledger-check .ledger-conclusion-inline-reason{display:block}
+html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none}
 
 .chart-expanded-chart-host .svg-hitbox{
   pointer-events:all;
@@ -4736,7 +4728,9 @@ body.chart-expanded-open .dash-tooltip{
     grid-template-columns:repeat(2,minmax(0,1fr));
     gap:18px;
   }
+  #ledger-check .ledger-conclusion-inline-reason{display:none}
   #ledger-check .ledger-conclusion-reason{
+    display:block;
     padding:0 0 0 18px;
     border-left:1px solid var(--line);
     border-top:0;
