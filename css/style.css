@@ -50,7 +50,9 @@
   --dashboard-expand-icon-size:14px;
   --dashboard-legend-font-size:12px;
   --dashboard-control-group-gap:7px;
-  --modal-action-gap:14px;
+  --modal-section-gap:12px;
+  --modal-status-gap:10px;
+  --modal-action-gap:12px;
   --modal-focus-ring:rgba(43,61,89,.18);
   /* Interactive controls use a distinct border family; structural surfaces keep --line. */
   --control-border:#c7ced9;
@@ -67,9 +69,15 @@
   --tooltip-color:#fff;
   --tooltip-border:rgba(255,255,255,.16);
   --tooltip-radius:min(12px,var(--corner-surface-cap));
-  --tooltip-shadow:0 16px 36px rgba(0,0,0,.28);
+  --shadow-low:0 6px 18px rgba(15,23,42,.055);
+  --shadow-medium:0 12px 30px rgba(15,23,42,.16);
+  --shadow-high:0 24px 70px rgba(15,23,42,.28);
+  --tooltip-shadow:var(--shadow-medium);
   --tooltip-font-size:12px;
   --tooltip-line-height:1.4;
+  --tooltip-pad-y:9px;
+  --tooltip-pad-x:11px;
+  --tooltip-row-gap:3px;
   --table-head-bg:#f1f5f9;
   --table-column-line:#e8ebf0;
   --summary-row-bg:#f8fafc;
@@ -121,6 +129,10 @@ html.dark{
   --asset-tab-active-bg:#36506f;
   --asset-tab-active-color:#ffffff;
   --modal-focus-ring:rgba(54,80,111,.28);
+  /* Preserve the established dark-mode elevation while Light mode uses the refined tiers above. */
+  --shadow-low:0 8px 22px rgba(15,23,42,.06);
+  --shadow-medium:0 16px 36px rgba(0,0,0,.28);
+  --shadow-high:0 24px 70px rgba(15,23,42,.28);
   --control-border:#334155;
   --control-border-hover:#526178;
   --control-focus-border:#60a5fa;
@@ -268,7 +280,7 @@ body{
   border:1px solid var(--line);
   border-radius:min(18px,var(--corner-surface-cap));
   padding:18px;
-  box-shadow:0 8px 22px rgba(15,23,42,.06);
+  box-shadow:var(--shadow-low);
 }
 
 .card.dark{
@@ -392,7 +404,7 @@ td.num{
 :is(.note,.chart-card,.pension-band,.securities-band){
   border:1px solid var(--line);
   padding:18px;
-  box-shadow:0 8px 22px rgba(15,23,42,.06);
+  box-shadow:var(--shadow-low);
 }
 
 .note{
@@ -613,7 +625,7 @@ td.num{
   z-index:9999;
   min-width:210px;
   max-width:min(320px,calc(100vw - 28px));
-  padding:10px 12px;
+  padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
   pointer-events:none;
   opacity:0;
   transform:translate(-50%,-110%);
@@ -639,6 +651,7 @@ td.num{
   gap:16px;
   white-space:nowrap;
 }
+.dash-tooltip .tt-row + .tt-row{margin-top:var(--tooltip-row-gap)}
 
 .dash-tooltip .tt-name{
   color:#cbd5e1;
@@ -1013,7 +1026,7 @@ button.legend-item.chart-series-all.active{
   transition:opacity .16s ease, transform .16s ease;
   min-width:118px;
   max-width:min(220px,calc(100vw - 28px));
-  padding:8px 10px;
+  padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
   text-align:center;
   z-index:30;
   white-space:nowrap;
@@ -1027,7 +1040,7 @@ button.legend-item.chart-series-all.active{
 
 .pension-viz-tooltip strong{
   display:block;
-  margin-bottom:2px;
+  margin-bottom:var(--tooltip-row-gap);
   color:#fff;
   font-size:12px;
   font-weight:900;
@@ -1686,7 +1699,7 @@ body.contrib-modal-open{
   border-radius:min(22px,var(--corner-surface-cap));
   background:var(--card);
   border:1px solid var(--line);
-  box-shadow:0 24px 70px rgba(15,23,42,.28);
+  box-shadow:var(--shadow-high);
   padding:18px;
 }
 .dark .contrib-modal-card{
@@ -1698,7 +1711,7 @@ body.contrib-modal-open{
   grid-template-columns:minmax(0,1fr) auto;
   align-items:start;
   gap:10px;
-  margin-bottom:12px;
+  margin-bottom:var(--modal-section-gap);
 }
 .contrib-modal-head > div{
   min-width:0;
@@ -1749,7 +1762,7 @@ body.contrib-modal-open{
   margin-top:0;
 }
 .modal-card-box{
-  margin-top:12px;
+  margin-top:var(--modal-section-gap);
   border:1px solid var(--line);
   border-radius:min(14px,var(--corner-surface-cap));
 }
@@ -2566,9 +2579,9 @@ body.contrib-modal-open{
   width:min(420px,100%);
   padding:24px;
   border-radius:min(24px,var(--corner-surface-cap));
-  background:#fff;
-  border:1px solid rgba(148,163,184,.35);
-  box-shadow:0 24px 70px rgba(15,23,42,.28);
+  background:var(--card);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-high);
   color:var(--ink);
 }
 .krx-action-close,
@@ -2578,7 +2591,7 @@ body.contrib-modal-open{
   top:12px;
 }
 .action-modal-description{
-  margin:6px 0 18px;
+  margin:6px 0 var(--modal-section-gap);
   color:#64748b;
   font-size:13px;
   line-height:1.55;
@@ -2611,7 +2624,7 @@ body.contrib-modal-open{
 }
 .action-modal-status{
   min-height:20px;
-  margin-top:10px;
+  margin-top:var(--modal-status-gap);
   font-size:12px;
   font-weight:800;
 }
@@ -3100,7 +3113,7 @@ button:not(:disabled):active,
 
 /* Pension PIN Status · 퇴직연금 PIN 자동 실행/상태 표시 */
 .pension-action-pin-guide{
-  margin-top:9px;
+  margin-top:8px;
   color:#64748b;
   font-size:11.5px;
   font-weight:800;
@@ -4483,7 +4496,7 @@ body.chart-expanded-open .dash-tooltip{
   top:calc(100% + 7px);
   width:max-content;
   max-width:min(210px,calc(100vw - 28px));
-  padding:7px 9px;
+  padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
   font-weight:700;
   letter-spacing:-.02em;
   white-space:nowrap;
