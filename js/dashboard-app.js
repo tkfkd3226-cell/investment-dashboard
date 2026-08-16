@@ -137,6 +137,8 @@ function setupDashboardEventDelegation(){
     handleDashboardDateChange(target);
   });
   document.addEventListener('keydown',event=>{
+    const assetTab=event.target.closest?.('[role="tab"][data-asset-tab]');
+    if(assetTab&&handleAssetTabKeydown(event,assetTab))return;
     if(event.key!=='Enter'&&event.key!==' ')return;
     const control=event.target.closest?.('[data-dashboard-action="jump-chart-date"]');
     if(!control)return;
@@ -146,7 +148,7 @@ function setupDashboardEventDelegation(){
 }
 function renderAssetWorkspace(x){
   if(!x.hasPension)return renderSecuritiesSection(x);
-  return `<section id="asset-workspace" class="asset-workspace"><div class="asset-workspace-tabs" role="tablist" aria-label="자산 현황 선택"><button type="button" class="asset-workspace-tab" data-asset-tab="securities" role="tab" aria-controls="asset-panel-securities" data-dashboard-action="set-asset-tab"><span>증권계좌</span></button><button type="button" class="asset-workspace-tab" data-asset-tab="pension" role="tab" aria-controls="asset-panel-pension" data-dashboard-action="set-asset-tab"><span>퇴직연금</span></button></div><div id="asset-panel-securities" class="asset-workspace-panel asset-workspace-panel-securities" data-asset-panel="securities" role="tabpanel">${renderSecuritiesSection(x)}</div><div id="asset-panel-pension" class="asset-workspace-panel asset-workspace-panel-pension" data-asset-panel="pension" role="tabpanel">${renderPension(x)}</div></section>`;
+  return `<section id="asset-workspace" class="asset-workspace"><div class="asset-workspace-tabs" role="tablist" aria-label="자산 현황 선택" aria-orientation="horizontal"><button type="button" id="asset-tab-securities" class="asset-workspace-tab" data-asset-tab="securities" role="tab" aria-controls="asset-panel-securities" data-dashboard-action="set-asset-tab"><span>증권계좌</span></button><button type="button" id="asset-tab-pension" class="asset-workspace-tab" data-asset-tab="pension" role="tab" aria-controls="asset-panel-pension" data-dashboard-action="set-asset-tab"><span>퇴직연금</span></button></div><div id="asset-panel-securities" class="asset-workspace-panel asset-workspace-panel-securities" data-asset-panel="securities" role="tabpanel" aria-labelledby="asset-tab-securities">${renderSecuritiesSection(x)}</div><div id="asset-panel-pension" class="asset-workspace-panel asset-workspace-panel-pension" data-asset-panel="pension" role="tabpanel" aria-labelledby="asset-tab-pension">${renderPension(x)}</div></section>`;
 }
 
 function render(){
@@ -163,6 +165,7 @@ function render(){
   setupPensionVizTooltips();
   ensureMobileTopButton();
   ensureDesktopEdgeToc();
+  setupSectionNavigationTracking();
 }
 function initializeDashboardState(){
   const dates=allAvailableDates();

@@ -204,7 +204,54 @@ function ensureDesktopEdgeToc(){
     toc.setAttribute('aria-label','화면 목차');
     document.body.appendChild(toc);
   }
-  toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기"><span>목차</span></button><nav class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title"><span>목차</span></div>${renderDesktopTocContent()}</nav>`;
+  toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기" aria-controls="desktopEdgeTocPanel"><span>목차</span></button><nav id="desktopEdgeTocPanel" class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title"><span>목차</span></div>${renderDesktopTocContent()}</nav>`;
+}
+function visibleSectionNavigationTargets(){
+  const ids=[...document.querySelectorAll('[data-dashboard-action="jump-section"][data-section-target]')]
+    .map(control=>control.dataset.sectionTarget)
+    .filter((id,index,all)=>id&&all.indexOf(id)===index);
+  return ids.map(id=>document.getElementById(id)).filter(el=>el&&el.getClientRects().length);
+}
+function setSectionNavigationCurrent(id){
+  document.querySelectorAll('[data-dashboard-action="jump-section"][data-section-target]').forEach(control=>{
+    const current=!!id&&control.dataset.sectionTarget===id;
+    control.classList.toggle('is-current',current);
+    if(current)control.setAttribute('aria-current','location');
+    else control.removeAttribute('aria-current');
+  });
+}
+function currentSectionNavigationId(){
+  const sections=visibleSectionNavigationTargets();
+  if(!sections.length)return '';
+  const threshold=window.matchMedia?.('(max-width:760px)').matches?64:96;
+  let passed=null,below=null;
+  sections.forEach(section=>{
+    const top=section.getBoundingClientRect().top;
+    if(top<=threshold){
+      if(!passed||top>passed.top)passed={id:section.id,top};
+    }else if(!below||top<below.top){
+      below={id:section.id,top};
+    }
+  });
+  return passed?.id||below?.id||sections[0].id;
+}
+function syncSectionNavigationState(forcedId=''){
+  setSectionNavigationCurrent(forcedId||currentSectionNavigationId());
+}
+function scheduleSectionNavigationSync(){
+  if(uiState.sectionNavigationFrame)return;
+  uiState.sectionNavigationFrame=requestAnimationFrame(()=>{
+    uiState.sectionNavigationFrame=0;
+    syncSectionNavigationState();
+  });
+}
+function setupSectionNavigationTracking(){
+  if(!uiState.sectionNavigationBound){
+    uiState.sectionNavigationBound=true;
+    window.addEventListener('scroll',scheduleSectionNavigationSync,{passive:true});
+    window.addEventListener('resize',scheduleSectionNavigationSync,{passive:true});
+  }
+  syncSectionNavigationState();
 }
 const MOBILE_DATE_PIN_STORAGE_KEY='investmentDashboard.mobileDatePinned';
 function mobileDatePinned(){
@@ -231,11 +278,11 @@ function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=dataState.activeDate.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
   document.getElementById('tabs').innerHTML=`
     <div class="date-picker">
-      <div class="date-picker-center">
+      <div class="date-picker-center" role="group" aria-label="기준일 선택">
         <select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select>
         <select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===dataState.activeDate?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
       </div>
-      <div class="date-picker-action">
+      <div class="date-picker-action" role="group" aria-label="대시보드 도구">
         <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.kospiNight)}</span><span class="topbar-label-full">코스피200 야간선물</span><span class="topbar-label-short">코스피 야선</span>
         </a>
@@ -258,7 +305,7 @@ function renderTabs(){
           <span class="date-tool-action-icon" data-corner-theme-toggle-icon>${cornerThemeToggleIconMarkup(currentCornerTheme()==='rounded')}</span>
         </button>
         <div class="date-action-menu-wrap">
-          <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false" data-dashboard-action="toggle-date-menu"><span class="date-tool-icon">${navIconSvg('menu')}</span><span class="date-tool-menu-label">목차</span></button>
+          <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-controls="dateActionMenu" aria-expanded="false" data-dashboard-action="toggle-date-menu"><span class="date-tool-icon">${navIconSvg('menu')}</span><span class="date-tool-menu-label">목차</span></button>
           <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderUnifiedMobileMenuContent()}</div>
         </div>
       </div>
@@ -516,8 +563,26 @@ function setAssetTab(tab,{scroll=false}={}){
   requestAnimationFrame(()=>{
     syncResponsiveChartControls();
     refreshScrollHints();
+    syncSectionNavigationState();
     if(scroll)document.getElementById('asset-workspace')?.scrollIntoView({behavior:'smooth',block:'start'});
   });
+}
+function handleAssetTabKeydown(event,currentTab){
+  if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return false;
+  const tablist=currentTab.closest('[role="tablist"]');
+  const tabs=[...tablist?.querySelectorAll('[role="tab"][data-asset-tab]')||[]];
+  const currentIndex=tabs.indexOf(currentTab);
+  if(currentIndex<0||!tabs.length)return false;
+  let nextIndex=currentIndex;
+  if(event.key==='Home')nextIndex=0;
+  else if(event.key==='End')nextIndex=tabs.length-1;
+  else if(event.key==='ArrowLeft')nextIndex=(currentIndex-1+tabs.length)%tabs.length;
+  else if(event.key==='ArrowRight')nextIndex=(currentIndex+1)%tabs.length;
+  event.preventDefault();
+  const next=tabs[nextIndex];
+  setAssetTab(next.dataset.assetTab||'securities');
+  next.focus();
+  return true;
 }
 function assetTabForTarget(id){
   const el=document.getElementById(id);
@@ -526,6 +591,7 @@ function assetTabForTarget(id){
 function jumpToSection(id){
   const targetTab=assetTabForTarget(id);
   if(targetTab&&targetTab!==uiState.activeAssetTab)setAssetTab(targetTab);
+  setSectionNavigationCurrent(id);
   requestAnimationFrame(()=>{
     const el=document.getElementById(id);
     if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
