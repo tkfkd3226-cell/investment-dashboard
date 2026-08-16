@@ -2281,8 +2281,7 @@ body.contrib-modal-open{
   }
 }
 
-.contrib-target-tabs,
-.pension-work-mode{
+.contrib-target-tabs{
   display:grid;
   padding:3px;
 }
@@ -2293,8 +2292,7 @@ body.contrib-modal-open{
   background:rgba(15,23,42,.06);
   border:1px solid var(--control-border);
 }
-.contrib-target-option,
-.pension-work-mode-btn{
+.contrib-target-option{
   border:0;
   background:transparent;
   font-weight:900;
@@ -3520,25 +3518,6 @@ button:not(:disabled):active,
 
 /* [07. Pension · 퇴직연금] Batch Operations · 작업 모음 */
 /* Pension Batch · 퇴직연금 작업 모음 */
-.pension-work-mode{
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:5px;
-  margin:0 0 10px;
-  border:1px solid var(--control-border);
-  border-radius:min(10px,var(--corner-surface-cap));
-  background:rgba(15,23,42,.045);
-}
-.pension-work-mode-btn{
-  border-radius:min(7px,var(--corner-control-cap));
-  padding:6px 9px;
-  color:var(--muted);
-  font-size:12px;
-}
-.pension-work-mode-btn.active{
-  background:var(--card);
-  color:var(--text);
-  box-shadow:0 2px 8px rgba(15,23,42,.1);
-}
 .pension-batch-count{
   display:inline-flex;
   align-items:center;
@@ -3685,17 +3664,15 @@ button:not(:disabled):active,
   padding:0 2px;
   margin-bottom:var(--modal-section-gap);
 }
-.pension-contrib-context-row{
-  display:grid;
-  grid-template-columns:72px minmax(0,1fr);
+.pension-contrib-context-head{
+  display:flex;
   align-items:center;
-  gap:10px;
+  justify-content:space-between;
+  gap:12px;
   min-width:0;
 }
 .pension-contrib-context .pension-work-mode{
-  width:min(220px,100%);
-  min-width:0;
-  margin:0;
+  flex:0 0 auto;
 }
 .pension-contrib-context .contrib-target-tabs{
   width:100%;
@@ -3709,8 +3686,6 @@ button:not(:disabled):active,
   .pension-batch-item-actions{grid-column:2;justify-content:flex-end}
   .pension-batch-head{align-items:center}
   .pension-contrib-context{gap:10px;padding:0}
-  .pension-contrib-context-row{grid-template-columns:1fr;gap:5px}
-  .pension-contrib-context .pension-work-mode{width:100%}
 }
 
 /* Symbol Tooltip Mobile · 종목 tooltip: 모바일 viewport 이탈 방지 */
