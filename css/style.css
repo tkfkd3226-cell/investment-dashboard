@@ -340,6 +340,7 @@ section{
   margin:0;
   font-size:var(--section-title-font-size);
   letter-spacing:-.04em;
+  line-height:1.15;
 }
 .section-title h2{
   display:flex;
@@ -2280,9 +2281,6 @@ body.contrib-modal-open{
   }
 }
 
-.contrib-target-field{
-  margin-bottom:8px;
-}
 .contrib-target-tabs,
 .pension-work-mode{
   display:grid;
@@ -3684,40 +3682,38 @@ button:not(:disabled):active,
 }
 .pension-batch-actions .contrib-btn{min-width:112px}
 
+/* Pension Adjustment Context · 등록/삭제에 공통 적용되는 처리 방식·조정 항목 */
+.pension-contrib-context{
+  display:grid;
+  gap:8px;
+  padding:0 2px;
+}
+.pension-contrib-context-row{
+  display:grid;
+  grid-template-columns:72px minmax(0,1fr);
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.pension-contrib-context .pension-work-mode{
+  width:min(220px,100%);
+  min-width:0;
+  margin:0;
+}
+.pension-contrib-context .contrib-target-tabs{
+  width:100%;
+  min-width:0;
+}
+
 @media(max-width:760px){
-  .pension-work-mode{margin-bottom:8px}
   .pension-batch-panel{padding:10px}
   .pension-batch-queue{max-height:150px}
   .pension-batch-item{grid-template-columns:22px minmax(0,1fr);align-items:start}
   .pension-batch-item-actions{grid-column:2;justify-content:flex-end}
   .pension-batch-head{align-items:center}
-}
-
-/* Pension Batch Header · 작업 모음 선택기를 제목 행에 배치해 모달 높이 유지 */
-.pension-contrib-section-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:clamp(6px,2vw,10px);
-  margin-bottom:4px;
-}
-.pension-contrib-section-head > h3{margin:0}
-.pension-work-controls{
-  display:flex;
-  flex:0 1 184px;
-  align-items:center;
-  justify-content:flex-end;
-  min-width:0;
-}
-.pension-contrib-section-head .pension-work-mode{
-  width:100%;
-  min-width:0;
-  margin:0;
-  padding:2px;
-}
-.pension-contrib-section-head .pension-work-mode-btn{
-  padding:3px 6px;
-  font-size:clamp(10px,2.5vw,11px);
+  .pension-contrib-context{gap:10px;padding:0}
+  .pension-contrib-context-row{grid-template-columns:1fr;gap:5px}
+  .pension-contrib-context .pension-work-mode{width:100%}
 }
 
 /* Symbol Tooltip Mobile · 종목 tooltip: 모바일 viewport 이탈 방지 */
