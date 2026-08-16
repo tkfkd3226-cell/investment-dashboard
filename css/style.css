@@ -184,6 +184,10 @@
   --nav-surface:#ffffff;
   --nav-surface-translucent:rgba(255,255,255,.97);
   --nav-surface-hover:#f6f8fa;
+  --nav-current-bg:#eaf2ff;
+  --nav-current-text:#0969da;
+  --nav-current-icon:#0969da;
+  --nav-current-indicator:#3182F6;
   --nav-text:#24292f;
   --nav-text-strong:#111827;
   --nav-muted:#6e7781;
@@ -409,6 +413,10 @@ html.dark{
   --nav-surface:#0d1117;
   --nav-surface-translucent:rgba(13,17,23,.97);
   --nav-surface-hover:#161b22;
+  --nav-current-bg:#17233a;
+  --nav-current-text:#79c0ff;
+  --nav-current-icon:#79c0ff;
+  --nav-current-indicator:#58a6ff;
   --nav-text:#c9d1d9;
   --nav-text-strong:#f0f6fc;
   --nav-muted:#8b949e;
@@ -2343,6 +2351,12 @@ body.contrib-modal-open{
   font-size:13px;
   font-weight:900;
   cursor:pointer;
+  transition:background .14s ease,color .14s ease,box-shadow .14s ease;
+}
+.asset-workspace-tab:not(.active):hover{background:var(--nav-surface-hover);color:var(--ink)}
+.asset-workspace-tab:focus-visible{
+  outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
+  outline-offset:var(--control-focus-outline-offset);
 }
 .asset-workspace-tab.active{background:var(--asset-tab-active-bg);color:var(--asset-tab-active-color)}
 .asset-workspace-panel[hidden]{display:none}
@@ -3401,7 +3415,14 @@ button:not(:disabled):active,
   cursor:pointer;
 }
 :is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item):hover,
-.desktop-edge-toc-item:focus-visible{background:var(--nav-surface-hover)}
+:is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item):focus-visible{background:var(--nav-surface-hover)}
+:is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item).is-current{
+  background:var(--nav-current-bg);
+  color:var(--nav-current-text);
+  box-shadow:inset 3px 0 0 var(--nav-current-indicator);
+}
+.desktop-edge-toc-item.is-current .desktop-edge-toc-icon,
+.date-action-menu.mobile-combined-menu .mobile-nav-item.is-current .nav-icon{color:var(--nav-current-icon)}
 :is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon){
   display:inline-flex;
   align-items:center;
@@ -4347,8 +4368,14 @@ body.chart-expanded-open .dash-tooltip{
   cursor:pointer;
 }
 :is(.date-select,.date-tool-btn):hover{border-color:var(--topbar-control-border-hover)}
-:is(.date-select,.date-tool-btn):focus-visible{border-color:var(--topbar-control-border-focus)}
-.date-tool-btn:hover{background:var(--topbar-control-hover-bg)}
+:is(.date-select,.date-tool-btn):focus-visible{
+  border-color:var(--topbar-control-border-focus);
+  outline:var(--control-focus-outline-width) solid var(--topbar-control-border-focus);
+  outline-offset:var(--control-focus-outline-offset);
+}
+.date-tool-btn:hover,
+.date-tool-btn:active{background:var(--topbar-control-hover-bg)}
+.date-tool-btn:active{border-color:var(--topbar-control-border-hover)}
 .topbar-calc-action{text-decoration:none}
 .date-tool-action-icon{
   width:16px;
