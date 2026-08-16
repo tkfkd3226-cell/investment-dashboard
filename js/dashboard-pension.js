@@ -90,8 +90,8 @@ function renderPensionContributionModal(x){
   const applyDate=kstTodayText();
   return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" data-pension-backdrop-close="true"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle" class="modal-main-title">퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="modal-icon-btn contrib-modal-icon-btn pension-form-reset" data-pension-action="reset-form" title="입력값 초기화" aria-label="입력값 초기화">${navIconSvg('reset')}</button><button type="button" class="modal-icon-btn contrib-modal-icon-btn contrib-modal-close" data-pension-action="close-modal" aria-label="닫기">${navIconSvg('close')}</button></div></div>
 <div class="pension-contrib-context" aria-label="퇴직연금 금액 조정 옵션">
-  <div class="pension-contrib-context-row"><span class="contrib-field-label">처리 방식</span><div class="pension-work-mode" role="tablist" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" data-mode="single" data-pension-action="set-batch-mode" data-pension-enabled="false">개별 처리</button><button type="button" class="pension-work-mode-btn" data-mode="batch" data-pension-action="set-batch-mode" data-pension-enabled="true">작업 모음 <span id="pensionBatchModeCount" class="pension-batch-count" hidden>0</span></button></div></div>
-  <div class="pension-contrib-context-row"><span class="contrib-field-label">조정 항목</span><input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="조정 항목 선택"><button type="button" class="contrib-target-option active" data-target="cashSnapshot" data-pension-action="set-target">현금성자산</button><button type="button" class="contrib-target-option" data-target="contribution" data-pension-action="set-target">기업적립금</button><button type="button" class="contrib-target-option" data-target="etfTrade" data-pension-action="set-target">추가 매수</button></div></div>
+  <div class="pension-contrib-context-head"><span class="contrib-field-label">조정 항목</span><div class="chart-compare-toggle pension-work-mode" role="group" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" aria-pressed="true" data-mode="single" data-pension-action="set-batch-mode" data-pension-enabled="false">개별 처리</button><button type="button" class="pension-work-mode-btn" aria-pressed="false" data-mode="batch" data-pension-action="set-batch-mode" data-pension-enabled="true">작업 모음 <span id="pensionBatchModeCount" class="pension-batch-count" hidden>0</span></button></div></div>
+  <input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="조정 항목 선택"><button type="button" class="contrib-target-option active" data-target="cashSnapshot" data-pension-action="set-target">현금성자산</button><button type="button" class="contrib-target-option" data-target="contribution" data-pension-action="set-target">기업적립금</button><button type="button" class="contrib-target-option" data-target="etfTrade" data-pension-action="set-target">추가 매수</button></div>
 </div>
 <div class="pension-contrib-tool modal-card-box">
   <h3>등록</h3>
@@ -869,7 +869,7 @@ function renderPensionBatchQueue(){
   }
 }
 function syncPensionBatchModeUi(){
-  document.querySelectorAll('.pension-work-mode-btn').forEach(btn=>btn.classList.toggle('active',(btn.dataset.mode==='batch')===pensionState.batchMode));
+  document.querySelectorAll('.pension-work-mode-btn').forEach(btn=>{const active=(btn.dataset.mode==='batch')===pensionState.batchMode;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))});
   const save=document.getElementById('pensionContribSaveButton');
   const del=document.getElementById('pensionContribDeleteButton');
   if(save)save.textContent=pensionState.batchMode?'작업 모음에 추가':'저장';
