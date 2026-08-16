@@ -3548,11 +3548,6 @@ button:not(:disabled):active,
   font-weight:var(--data-table-label-weight);
 }
 
-/* Performance Data Hierarchy · 원금/평가액은 regular, 손익·수익률은 한 단계 강조 */
-:is(#summary-section,#accounts-summary,#securities-holdings) .dashboard-data-table tbody tr:not(.summary-row) td.num:is(.table-positive,.table-negative){
-  font-weight:var(--data-table-result-weight);
-}
-
 /* Tablet Integration · 태블릿 통합: 차트 control, 종목요약/KPI, 투자기간 차트, 원천/검산 */
 @media (min-width:761px) and (max-width:1100px){
   .chart-card.has-horizontal-scroll .chart-scroll-row{
@@ -4747,7 +4742,6 @@ body.chart-expanded-open .dash-tooltip{
   --data-table-head-weight:var(--type-weight-strong);
   --data-table-label-weight:var(--type-weight-strong);
   --data-table-value-weight:var(--type-weight-regular);
-  --data-table-result-weight:var(--type-weight-bold);
   --data-table-summary-weight:var(--type-weight-strong);
   --data-table-memo-weight:var(--type-weight-regular);
   width:max-content;
@@ -4847,7 +4841,6 @@ body.chart-expanded-open .dash-tooltip{
     --mobile-data-title-weight:var(--type-weight-strong);
     --mobile-data-label-weight:var(--type-weight-bold);
     --mobile-data-value-weight:var(--type-weight-semibold);
-    --mobile-data-result-weight:var(--type-weight-bold);
     --mobile-data-total-title-weight:var(--type-weight-emphasis);
     --mobile-data-total-value-weight:var(--type-weight-strong);
     min-width:0;
@@ -4889,7 +4882,6 @@ body.chart-expanded-open .dash-tooltip{
     line-height:var(--type-line-body);
     font-variant-numeric:tabular-nums;
   }
-  .mobile-data-card-value:is(.positive,.negative){font-weight:var(--mobile-data-result-weight)}
   /* Mobile Total Cards · 모바일 합계/총계 카드만 제목·수치 강조 */
   .mobile-data-card.mobile-total-card .mobile-data-card-title{font-weight:var(--mobile-data-total-title-weight)}
   .mobile-data-card.mobile-total-card .mobile-data-card-value{font-weight:var(--mobile-data-total-value-weight)}
