@@ -1710,7 +1710,7 @@ body.contrib-modal-open{
 .contrib-modal-head{
   display:grid;
   grid-template-columns:minmax(0,1fr) auto;
-  align-items:start;
+  align-items:center;
   gap:10px;
   margin-bottom:var(--modal-section-gap);
 }
@@ -2333,10 +2333,6 @@ body.contrib-modal-open{
 #pensionContribStandardFields[hidden],
 .pension-etf-trade-fields[hidden]{
   display:none !important;
-}
-
-.pension-etf-trade-fields{
-  margin-top:10px;
 }
 
 .pension-etf-trade-apply-note{
@@ -3687,6 +3683,7 @@ button:not(:disabled):active,
   display:grid;
   gap:8px;
   padding:0 2px;
+  margin-bottom:var(--modal-section-gap);
 }
 .pension-contrib-context-row{
   display:grid;
