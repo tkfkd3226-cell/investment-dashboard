@@ -3017,7 +3017,7 @@ body.contrib-modal-open{
 .action-modal-btn.primary{background:var(--asset-tab-active-bg);color:var(--asset-tab-active-color);border-color:var(--asset-tab-active-bg)}
 .krx-action-buttons{
   display:grid;
-  grid-template-columns:max-content minmax(max-content,1fr) max-content;
+  grid-template-columns:minmax(52px,max-content) minmax(0,1fr) minmax(72px,max-content);
   align-items:stretch;
 }
 .krx-action-buttons .action-modal-btn{
