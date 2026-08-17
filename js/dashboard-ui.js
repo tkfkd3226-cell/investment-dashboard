@@ -409,7 +409,8 @@ const MOBILE_VIEW_META=Object.freeze({
   holdings:{label:'증권계좌 보유분',controls:'holdings-table-view holdings-card-view'},
   combined:{label:'연금+계좌 성과',controls:'combined-table-view combined-card-view'},
   accounts:{label:'계좌별 성과 요약',controls:'accounts-table-view accounts-card-view'},
-  pensionProducts:{label:'퇴직연금 상품별 현황',controls:'pension-products-table-view pension-products-card-view'}
+  pensionProducts:{label:'퇴직연금 상품별 현황',controls:'pension-products-table-view pension-products-card-view'},
+  pensionChange:{label:'전일 대비 변동',controls:'pension-change-table-view pension-change-card-view'}
 });
 function mobileViewToggle(key){
   const mode=uiState.mobileViewModes[key]||'card';
