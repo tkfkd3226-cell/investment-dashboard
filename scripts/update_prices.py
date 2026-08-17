@@ -366,17 +366,27 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
         # 이미 close로 표시되어 있어도 한 번 더 갱신할 수 있게 한다.
         refresh_dates.append(latest_saved)
 
-    start = (datetime.strptime(latest_saved, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
+    stored_dates = sorted(
+        date
+        for date, snapshot in prices.items()
+        if is_valid_date_text(date)
+        and isinstance(snapshot, dict)
+        and snapshot.get("display", True) is not False
+    )
+    first_saved = stored_dates[0] if stored_dates else latest_saved
 
-    if start > latest_market:
-        return refresh_dates
-
-    candidates = date_range(start, latest_market)
-
+    # 최신 저장일 이후뿐 아니라 저장 구간 내부의 누락도 함께 확인한다.
+    # 주말은 사전 제외하고, 공휴일/실제 거래일 여부만 KRX 데이터로 확인한다.
+    candidates = [
+        date
+        for date in date_range(first_saved, latest_market)
+        if date not in prices
+        and datetime.strptime(date, "%Y-%m-%d").weekday() < 5
+    ]
     missing_dates = [
         date
         for date in candidates
-        if date not in prices and is_actual_trading_date(portfolio, date)
+        if is_actual_trading_date(portfolio, date)
     ]
 
     return sorted(set(refresh_dates + missing_dates))
