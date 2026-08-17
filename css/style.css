@@ -4916,6 +4916,8 @@ body.chart-expanded-open .dash-tooltip{
 }
 .source-table-scroll{margin-top:12px;border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
 .source-data-table{border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
+.source-data-table tbody th[scope="row"]{font-weight:var(--data-table-value-weight);text-align:left}
+.source-data-table tbody .summary-row > th[scope="row"]{border-top:1px solid var(--table-column-line);font-weight:var(--data-table-summary-weight)}
 .change-table-wrap{margin-top:12px;border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
 
 /* Data Tables Tablet · 데이터 표 태블릿: 열 구조 유지 + font/padding 축소 */
