@@ -754,6 +754,9 @@ section{
   gap:var(--section-title-gap);
   line-height:1;
 }
+:is(#summary-section,#securities-section,#accounts-summary,#ledger-check,#capital-source-check) > .section-title{
+  min-height:var(--section-chip-height);
+}
 
 /* [05. Tables / Forms · 테이블 / 입력 폼] Base Tables · 기본 테이블 */
 table{
@@ -802,7 +805,7 @@ td.num{
 }
 
 
-.summary-row td{
+.summary-row > :is(th,td){
   background:var(--summary-row-bg);
   font-weight:var(--type-weight-strong);
 }
@@ -5087,7 +5090,7 @@ body.chart-expanded-open .dash-tooltip{
     position:-webkit-sticky;position:sticky;left:0;z-index:3;background:var(--card);background-clip:padding-box;
   }
   .table-view > .dashboard-data-table:not(.source-data-table) thead th:first-child{z-index:5;background:var(--table-head-bg)}
-  .table-view > .dashboard-data-table:not(.source-data-table) tbody tr.summary-row td:first-child{z-index:4;background:var(--summary-row-bg)}
+  .table-view > .dashboard-data-table:not(.source-data-table) tbody tr.summary-row > :first-child{z-index:4;background:var(--summary-row-bg)}
 }
 
 @media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
