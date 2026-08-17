@@ -3368,7 +3368,7 @@ button:not(:disabled):active,
 .table-positive{color:var(--value-positive) !important}
 .negative,
 .table-negative{color:var(--value-negative) !important}
-.ledger-gap-value{color:var(--value-difference) !important}
+.ledger-gap-value{color:#FBBF24 !important}
 .dash-tooltip .tt-pos{color:var(--tooltip-positive) !important}
 .dash-tooltip .tt-neg{color:var(--tooltip-negative) !important}
 
