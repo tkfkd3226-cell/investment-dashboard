@@ -72,6 +72,22 @@
   --radius-pill:999px;
   --surface-pad-lg:18px;
   --surface-pad-md:14px;
+  /* Spacing Scale · 반복 여백의 canonical scale */
+  --space-2xs:2px;
+  --space-xs:3px;
+  --space-sm:4px;
+  --space-md:5px;
+  --space-lg:6px;
+  --space-xl:7px;
+  --space-2xl:8px;
+  --space-3xl:9px;
+  --space-4xl:10px;
+  --space-5xl:12px;
+  --space-6xl:14px;
+  --space-7xl:16px;
+  --space-8xl:18px;
+  --space-9xl:22px;
+  --space-10xl:24px;
   --control-radius-md:10px;
   --control-radius-sm:9px;
   --control-disabled-opacity:.45;
@@ -94,6 +110,10 @@
   --modal-status-gap:10px;
   --modal-action-gap:12px;
   --modal-focus-ring:rgba(43,61,89,.18);
+  --focus-ring-shadow:0 0 0 3px var(--modal-focus-ring);
+  --interaction-row-shadow:inset 0 1px 0 var(--interaction-row-accent),inset 0 -1px 0 var(--interaction-row-accent);
+  --nav-current-shadow:inset 3px 0 0 var(--nav-current-indicator);
+  --table-summary-separator-shadow:inset 0 1px 0 var(--table-column-line);
   /* Interactive controls use a distinct border family; structural surfaces keep --line. */
   --control-border:#c7ced9;
   --control-border-hover:#98a4b5;
@@ -288,7 +308,7 @@
   --tooltip-negative:#79b4ff;
   --tooltip-border:rgba(255,255,255,.16);
   --tooltip-divider:rgba(255,255,255,.14);
-  --tooltip-radius:min(12px,var(--corner-surface-cap));
+  --tooltip-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
   --shadow-low:0 6px 18px rgba(15,23,42,.055);
   --shadow-medium:0 12px 30px rgba(15,23,42,.16);
   --shadow-high:0 24px 70px rgba(15,23,42,.28);
@@ -586,7 +606,7 @@ body{
 .wrap{
   max-width:1680px;
   margin:0 auto;
-  padding:24px;
+  padding:var(--space-10xl);
 }
 
 .hero{
@@ -658,12 +678,12 @@ body{
 
 .grid{
   display:grid;
-  gap:16px;
+  gap:var(--space-7xl);
 }
 
 .cards{
   grid-template-columns:repeat(4,minmax(0,1fr));
-  margin-top:18px;
+  margin-top:var(--space-8xl);
 }
 
 /* [04. Common Cards / Components · 공통 카드 / 컴포넌트] Cards / Typography · 카드 / 타이포 */
@@ -686,7 +706,7 @@ body{
   font-size:var(--type-size-md);
   color:var(--muted);
   font-weight:var(--type-weight-bold);
-  margin-bottom:7px;
+  margin-bottom:var(--space-xl);
 }
 
 .dark .label{
@@ -702,7 +722,7 @@ body{
 .sub{
   font-size:var(--type-size-md);
   color:var(--muted);
-  margin-top:5px;
+  margin-top:var(--space-md);
 }
 
 .dark .sub{
@@ -710,15 +730,15 @@ body{
 }
 
 section{
-  margin-top:22px;
+  margin-top:var(--space-9xl);
 }
 
 .section-title{
   display:flex;
   align-items:flex-end;
   justify-content:space-between;
-  gap:12px;
-  margin:0 0 12px;
+  gap:var(--space-5xl);
+  margin:0 0 var(--space-5xl);
 }
 
 .section-title h2,
@@ -749,7 +769,7 @@ table{
 }
 
 th, td{
-  padding:9px 10px;
+  padding:var(--space-3xl) var(--space-4xl);
   border-right:1px solid var(--table-column-line);
   border-bottom:1px solid var(--line);
   vertical-align:middle;
@@ -916,7 +936,7 @@ td.num{
   --mini-detail-weight:400;
   background:var(--subtle-card);
   border:1px solid var(--line);
-  border-radius:min(14px,var(--corner-surface-cap));
+  border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
   padding:var(--mini-card-pad-y) var(--mini-card-pad-x);
   min-width:0;
 }
@@ -936,11 +956,11 @@ td.num{
   line-height:var(--type-line-tight);
   letter-spacing:-.025em;
   font-weight:var(--type-weight-emphasis);
-  margin-top:2px;
+  margin-top:var(--space-2xs);
 }
 
 .mini-card .m-detail{
-  margin-top:4px;
+  margin-top:var(--space-sm);
   font-size:var(--mini-detail-size);
   font-weight:var(--mini-detail-weight);
   line-height:var(--type-line-compact);
@@ -1026,7 +1046,7 @@ td.num{
 }
 
 .dash-tooltip .tt-date{
-  margin-bottom:6px;
+  margin-bottom:var(--space-lg);
   color:var(--tooltip-color);
   font-size:var(--tooltip-title-font-size);
   font-weight:var(--tooltip-title-weight);
@@ -1034,14 +1054,14 @@ td.num{
 
 .dash-tooltip .tt-divider{
   height:0;
-  margin:6px 0;
+  margin:var(--space-lg) 0;
   border-top:1px solid var(--tooltip-divider);
 }
 
 .dash-tooltip .tt-row{
   display:flex;
   justify-content:space-between;
-  gap:16px;
+  gap:var(--space-7xl);
   white-space:nowrap;
 }
 .dash-tooltip .tt-row + .tt-row{margin-top:var(--tooltip-row-gap)}
@@ -1062,7 +1082,7 @@ td.num{
 /* Chart Core · 차트 공통 구조 */
 .chart-grid{
   grid-template-columns:1fr;
-  gap:18px;
+  gap:var(--space-8xl);
 }
 
 .chart-card{
@@ -1077,8 +1097,8 @@ td.num{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
-  gap:12px;
-  margin-bottom:10px;
+  gap:var(--space-5xl);
+  margin-bottom:var(--space-4xl);
 }
 
 .chart-head h3{
@@ -1088,7 +1108,7 @@ td.num{
 }
 
 .chart-head p{
-  margin:4px 0 0;
+  margin:var(--space-sm) 0 0;
   color:var(--muted);
   font-size:var(--type-size-sm);
 }
@@ -1107,7 +1127,7 @@ svg.chart{
   min-width:960px;
   height:330px;
   background:var(--chart-surface);
-  border-radius:min(12px,var(--corner-surface-cap));
+  border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
 }
 svg.chart:focus-visible{
   outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
@@ -1119,8 +1139,8 @@ svg.chart:focus-visible{
   align-items:center;
   justify-content:center;
   min-height:var(--dashboard-control-height);
-  margin-top:9px;
-  padding:0 2px;
+  margin-top:var(--space-3xl);
+  padding:0 var(--space-2xs);
   font-size:var(--dashboard-legend-font-size);
   color:var(--muted);
 }
@@ -1144,8 +1164,8 @@ svg.chart:focus-visible{
   flex-wrap:wrap;
   align-items:center;
   justify-content:center;
-  row-gap:6px;
-  column-gap:10px;
+  row-gap:var(--space-lg);
+  column-gap:var(--space-4xl);
   min-width:0;
   max-width:100%;
 }
@@ -1153,7 +1173,7 @@ svg.chart:focus-visible{
 .legend-item{
   display:inline-flex;
   align-items:center;
-  gap:5px;
+  gap:var(--space-md);
 }
 
 .chart-legend button.legend-item,
@@ -1181,7 +1201,7 @@ svg.chart:focus-visible{
 
 .chart-legend button.legend-item{
   background:transparent;
-  padding:4px 3px;
+  padding:var(--space-sm) var(--space-xs);
   border-radius:min(7px,var(--corner-control-cap));
   transition:opacity .15s ease,background-color .15s ease,color .15s ease;
 }
@@ -1206,7 +1226,7 @@ button.legend-item.chart-series-all.active{
 }
 
 .chart-y-auto-toggle{
-  gap:5px;
+  gap:var(--space-md);
   padding:0 var(--dashboard-control-pad-x);
   border:1px solid var(--control-border);
   border-radius:var(--radius-pill);
@@ -1222,7 +1242,7 @@ button.legend-item.chart-series-all.active{
 
 .chart-y-auto-state{
   min-width:var(--dashboard-control-state-min-width);
-  padding:1px 5px;
+  padding:1px var(--space-md);
   border-radius:var(--radius-pill);
   background:var(--state-chip-bg);
   color:var(--state-chip-text);
@@ -1246,10 +1266,10 @@ button.legend-item.chart-series-all.active{
 .chart-note{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:10px;
+  gap:var(--space-4xl);
   width:100%;
   min-width:0;
-  margin-top:12px;
+  margin-top:var(--space-5xl);
 }
 
 .chart-note .mini-card{
@@ -1280,7 +1300,7 @@ button.legend-item.chart-series-all.active{
 /* [07. Pension · 퇴직연금] Overview / Insight · 현황 / 인사이트 */
 .pension-detail-grid{
   width:100%;
-  margin-top:16px;
+  margin-top:var(--space-7xl);
   grid-template-columns:minmax(0,1.56fr) minmax(min(42%,480px),.72fr);
   align-items:stretch;
 }
@@ -1302,14 +1322,14 @@ button.legend-item.chart-series-all.active{
 .pension-insight-zone{
   display:grid;
   grid-template-columns:1fr;
-  gap:14px;
-  margin-top:14px;
+  gap:var(--space-6xl);
+  margin-top:var(--space-6xl);
 }
 
 .pension-insight-card{
   border:1px solid var(--line);
   border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
-  padding:12px var(--surface-pad-md);
+  padding:var(--space-5xl) var(--surface-pad-md);
   background:var(--insight-bg);
   box-shadow:var(--insight-inset-shadow);
 }
@@ -1318,8 +1338,8 @@ button.legend-item.chart-series-all.active{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:12px;
-  margin-bottom:8px;
+  gap:var(--space-5xl);
+  margin-bottom:var(--space-2xl);
 }
 
 .pension-insight-head h3{
@@ -1334,7 +1354,7 @@ button.legend-item.chart-series-all.active{
   align-items:center;
   justify-content:center;
   min-height:28px;
-  padding:6px 10px;
+  padding:var(--space-lg) var(--space-4xl);
   border-radius:var(--radius-pill);
   font-size:var(--type-size-xs);
   font-weight:var(--type-weight-emphasis);
@@ -1356,8 +1376,8 @@ button.legend-item.chart-series-all.active{
 /* Light/Dark badge colors resolve through the shared status tokens above. */
 
 .pension-empty-state{
-  padding:14px;
-  border-radius:min(14px,var(--corner-surface-cap));
+  padding:var(--space-6xl);
+  border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
   background:var(--subtle-card);
   border:1px dashed var(--line);
   color:var(--muted);
@@ -1370,7 +1390,7 @@ button.legend-item.chart-series-all.active{
   position:relative;
   width:100%;
   height:22px;
-  margin-top:2px;
+  margin-top:var(--space-2xs);
   overflow:visible;
   border-radius:var(--radius-pill);
   background:var(--meter-track-bg);
@@ -1402,7 +1422,7 @@ button.legend-item.chart-series-all.active{
 
 .pension-stack-segment span{
   display:block;
-  padding:0 6px;
+  padding:0 var(--space-lg);
   color:var(--asset-tab-active-color);
   font-size:var(--type-size-xs);
   font-weight:var(--type-weight-emphasis);
@@ -1477,7 +1497,7 @@ button.legend-item.chart-series-all.active{
 
 .pension-risk-gauge{
   position:relative;
-  margin-top:4px;
+  margin-top:var(--space-sm);
   height:16px;
   border-radius:var(--radius-pill);
   background:var(--meter-track-bg);
@@ -1515,7 +1535,7 @@ button.legend-item.chart-series-all.active{
   font-weight:var(--type-weight-emphasis);
   color:var(--ink);
   background:var(--card);
-  padding:1px 5px;
+  padding:1px var(--space-md);
   border-radius:var(--radius-pill);
   border:1px solid var(--line);
 }
@@ -1527,8 +1547,8 @@ button.legend-item.chart-series-all.active{
 .pension-risk-scale{
   display:flex;
   justify-content:space-between;
-  gap:10px;
-  margin-top:6px;
+  gap:var(--space-4xl);
+  margin-top:var(--space-lg);
   font-size:var(--type-size-xs);
   font-weight:var(--type-weight-strong);
   color:var(--text-secondary);
@@ -1537,7 +1557,7 @@ button.legend-item.chart-series-all.active{
 /* Pension Insight Mobile · 퇴직연금 인사이트 모바일: 카드/스택바 압축, 정보 구조 유지 */
 @media (max-width:760px){
   .pension-insight-card{
-    padding:12px;
+    padding:var(--space-5xl);
   }
 
   .pension-stack-bar{
@@ -1593,8 +1613,8 @@ button.legend-item.chart-series-all.active{
 .change-kpis{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
-  margin-top:10px;
+  gap:var(--space-4xl);
+  margin-top:var(--space-4xl);
 }
 
 .change-price{
@@ -1605,13 +1625,13 @@ button.legend-item.chart-series-all.active{
 
 .change-eval{
   display:block;
-  margin-top:2px;
+  margin-top:var(--space-2xs);
   color:var(--muted);
   font-size:var(--type-size-xs);
   white-space:nowrap;
 }
 
-.change-mobile-list{margin-top:12px}
+.change-mobile-list{margin-top:var(--space-5xl)}
 
 /* Pension Detail Responsive · 퇴직연금 상세: 웹 2열, 1100px 이하 1열 */
 @media (max-width:1100px){
@@ -1640,9 +1660,9 @@ button.legend-item.chart-series-all.active{
 
 .symbol-metrics{
   display:grid;
-  gap:6px;
-  margin-top:10px;
-  padding-top:9px;
+  gap:var(--space-lg);
+  margin-top:var(--space-4xl);
+  padding-top:var(--space-3xl);
   border-top:1px solid var(--line);
 }
 
@@ -1652,7 +1672,7 @@ button.legend-item.chart-series-all.active{
   align-items:baseline;
   justify-content:flex-start;
   row-gap:1px;
-  column-gap:var(--symbol-metric-gap,10px);
+  column-gap:var(--symbol-metric-gap,var(--space-4xl));
   min-width:0;
 }
 
@@ -1682,7 +1702,7 @@ button.legend-item.chart-series-all.active{
 /* Cumulative Summary Cards · 연금/증권 누적 요약카드: layout만 담당하고 surface/타이포는 mini-card 공통 규칙 사용 */
 .chart-note.six{
   grid-template-columns:repeat(6,minmax(0,1fr));
-  gap:10px;
+  gap:var(--space-4xl);
 }
 .chart-note.six .m-label,
 .chart-note.six .m-value,
@@ -1695,21 +1715,21 @@ button.legend-item.chart-series-all.active{
 /* Six Summary Cards · 6개 요약카드: 웹 6열 → 태블릿 3열 → 모바일 2열, 실제 폰 가로 3열 */
 @media (min-width:761px) and (max-width:1100px){
   .chart-note.six{
-    gap:8px;
+    gap:var(--space-2xl);
     grid-template-columns:repeat(3,minmax(0,1fr));
   }
 }
 
 @media (max-width:760px){
   .chart-note.six{
-    gap:6px;
+    gap:var(--space-lg);
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
 
 @media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   .chart-note.six{
-    gap:6px;
+    gap:var(--space-lg);
     grid-template-columns:repeat(3,minmax(0,1fr));
   }
 }
@@ -1717,15 +1737,15 @@ button.legend-item.chart-series-all.active{
 /* Page Shell Responsive · 페이지 공통 반응형: 1100px 이하에서 외곽 여백/대형 카드 padding 축소 */
 @media (max-width:1100px){
   .wrap{
-    padding:7px;
+    padding:var(--space-xl);
   }
 
   :is(.note,.chart-card,.pension-band,.securities-band){
-    padding:9px;
+    padding:var(--space-3xl);
   }
 
   .section-title{
-    margin-bottom:7px;
+    margin-bottom:var(--space-xl);
   }
 
   .mobile-scroll.is-scrollable,
@@ -1737,7 +1757,7 @@ button.legend-item.chart-series-all.active{
 
 /* Phone Shell · 폰 UI: 히어로 상단 여백을 좌우 page shell 여백과 동일하게 유지 */
 @media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  .wrap{padding-top:7px}
+  .wrap{padding-top:var(--space-xl)}
 }
 
 /* Metric Cards · 핵심지표 카드: 공통 타이포와 대표 viewport grid 사용 */
@@ -1783,7 +1803,7 @@ button.legend-item.chart-series-all.active{
 .pension-metric-grid{margin-top:0}
 
 .metric-grid > .metric-card{
-  padding:18px;
+  padding:var(--space-8xl);
 }
 
 .metric-grid > .metric-card .value{
@@ -1814,7 +1834,7 @@ button.legend-item.chart-series-all.active{
   }
 
   .metric-grid > .metric-card{
-    padding:14px;
+    padding:var(--space-6xl);
   }
 
   .metric-grid > .metric-card .value{
@@ -1840,7 +1860,7 @@ button.legend-item.chart-series-all.active{
   }
 
   .metric-grid > .metric-card{
-    padding:10px;
+    padding:var(--space-4xl);
   }
 
   .metric-grid > .metric-card .value{
@@ -1866,7 +1886,7 @@ button.legend-item.chart-series-all.active{
   }
 
   .metric-grid > .metric-card{
-    padding:10px;
+    padding:var(--space-4xl);
   }
 
   .metric-grid > .metric-card .value{
@@ -1892,7 +1912,7 @@ button.legend-item.chart-series-all.active{
     --symbol-metric-label-size:10px;
     --symbol-metric-value-size:11px;
     --symbol-metric-gap:7px;
-    gap:8px;
+    gap:var(--space-2xl);
   }
 }
 
@@ -1902,7 +1922,7 @@ button.legend-item.chart-series-all.active{
     --symbol-metric-value-size:10.5px;
     --symbol-metric-gap:5px;
     grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:8px;
+    gap:var(--space-2xl);
   }
 }
 
@@ -1910,11 +1930,11 @@ button.legend-item.chart-series-all.active{
 .date-action-menu{display:none}
 .date-action-menu.show{display:block}
 
-.table-note{margin:10px 2px 0;color:var(--muted);font-size:var(--type-size-sm);line-height:var(--type-line-note)}
+.table-note{margin:var(--space-4xl) var(--space-2xs) 0;color:var(--muted);font-size:var(--type-size-sm);line-height:var(--type-line-note)}
 .table-note strong{color:var(--text)}
 
 .section-explainer{
-  margin:8px 2px 0;
+  margin:var(--space-2xl) var(--space-2xs) 0;
   color:var(--muted);
   font-size:var(--type-size-xs);
   line-height:var(--type-line-loose);
@@ -1922,7 +1942,7 @@ button.legend-item.chart-series-all.active{
 .summary-note-key{font-weight:var(--type-weight-emphasis);color:inherit}
 .cash-basis-note{color:var(--muted)}
 .cash-basis-note-mark{color:var(--value-positive);font-weight:var(--type-weight-strong)}
-.cash-basis-note-sup{font-size:.72em;margin-left:2px;line-height:0}
+.cash-basis-note-sup{font-size:.72em;margin-left:var(--space-2xs);line-height:0}
 
 /* Section Controls · 섹션 제목 control: 기준, 별도수익 상태, 표/카드 전환 chip */
 .section-control-chip{
@@ -1936,7 +1956,7 @@ button.legend-item.chart-series-all.active{
   white-space:nowrap;
 }
 .section-basis-chip{
-  padding:5px 10px;
+  padding:var(--space-md) var(--space-4xl);
   border:1px solid var(--line);
   border-radius:var(--radius-pill);
   background:var(--card);
@@ -1957,26 +1977,26 @@ button.legend-item.chart-series-all.active{
   .section-title > .section-title-actions,
   .section-title > .separate-profit-control-row{position:relative;top:1px}
   .section-basis-chip{
-    padding:4px 8px;
+    padding:var(--space-sm) var(--space-2xl);
     font-size:var(--type-size-xs);
   }
 }
 
 /* [07. Pension · 퇴직연금] Contribution / Adjustment · 납입 / 금액조정 */
 .pension-contrib-tool{
-  margin-top:14px;
-  padding:14px;
+  margin-top:var(--space-6xl);
+  padding:var(--space-6xl);
   background:var(--form-section-bg);
 }
 .pension-adjust-form{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
+  gap:var(--space-4xl);
 }
 .contrib-field{
   display:flex;
   flex-direction:column;
-  gap:5px;
+  gap:var(--space-md);
 }
 .contrib-field.full{
   grid-column:1/-1;
@@ -1996,7 +2016,7 @@ button.legend-item.chart-series-all.active{
   box-sizing:border-box;
   border:1px solid var(--control-border);
   border-radius:min(var(--control-radius-md),var(--corner-control-cap));
-  padding:9px 10px;
+  padding:var(--space-3xl) var(--space-4xl);
   font-size:var(--type-size-md);
   font-weight:var(--type-weight-strong);
   background:var(--field-bg);
@@ -2006,14 +2026,14 @@ button.legend-item.chart-series-all.active{
 /* Field Light/Dark colors resolve through --field-bg / --field-text. */
 .contrib-actions{
   display:flex;
-  gap:6px;
+  gap:var(--space-lg);
   flex-wrap:wrap;
-  margin-top:8px;
+  margin-top:var(--space-2xl);
 }
 .contrib-btn{
   border:1px solid var(--asset-tab-active-bg);
   border-radius:min(8px,var(--corner-control-cap));
-  padding:7px 11px;
+  padding:var(--space-xl) 11px;
   font-size:var(--type-size-sm);
   line-height:var(--type-line-tight);
   font-weight:var(--type-weight-strong);
@@ -2027,7 +2047,7 @@ button.legend-item.chart-series-all.active{
 }
 .contrib-output{
   display:none;
-  margin-top:10px;
+  margin-top:var(--space-4xl);
   white-space:pre-wrap;
   word-break:break-word;
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -2036,16 +2056,16 @@ button.legend-item.chart-series-all.active{
   background:var(--output-bg);
   color:var(--output-text);
   border-radius:min(12px,var(--corner-inner-cap));
-  padding:12px;
+  padding:var(--space-5xl);
 }
 .contrib-output.show{
   display:block;
 }
 .contrib-status{
   display:none;
-  margin-top:10px;
+  margin-top:var(--space-4xl);
   border-radius:min(12px,var(--corner-inner-cap));
-  padding:10px 12px;
+  padding:var(--space-4xl) var(--space-5xl);
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-strong);
   line-height:var(--type-line-helper);
@@ -2073,7 +2093,7 @@ button.legend-item.chart-series-all.active{
   --contrib-control-font-size:var(--type-size-md);
   z-index:12000;
   align-items:center;
-  padding:18px;
+  padding:var(--space-8xl);
   background:var(--modal-overlay);
   backdrop-filter:blur(3px);
 }
@@ -2094,21 +2114,21 @@ body.contrib-modal-open{
   background:var(--modal-surface);
   border:1px solid var(--modal-border);
   box-shadow:var(--shadow-high);
-  padding:18px;
+  padding:var(--space-8xl);
 }
 /* Contribution modal surface resolves through --modal-surface / --modal-border. */
 .contrib-modal-head{
   display:grid;
   grid-template-columns:minmax(0,1fr) auto;
   align-items:center;
-  gap:10px;
+  gap:var(--space-4xl);
   margin-bottom:var(--modal-section-gap);
 }
 .contrib-modal-head > div{
   min-width:0;
 }
 .contrib-modal-head p{
-  margin:4px 0 0;
+  margin:var(--space-sm) 0 0;
   color:var(--muted);
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-strong);
@@ -2119,7 +2139,7 @@ body.contrib-modal-open{
 .contrib-modal-head-actions{
   display:flex;
   align-items:center;
-  gap:6px;
+  gap:var(--space-lg);
 }
 .modal-icon-btn{
   width:34px;
@@ -2161,13 +2181,13 @@ body.contrib-modal-open{
 }
 .contrib-list h3,
 .pension-contrib-tool h3{
-  margin:0 0 4px;
+  margin:0 0 var(--space-sm);
   font-size:var(--type-size-lg);
   letter-spacing:-.03em;
 }
 .contrib-list .small,
 .pension-contrib-tool .small{
-  margin:0 0 10px;
+  margin:0 0 var(--space-4xl);
 }
 .contrib-modal .contrib-field{
   width:100%;
@@ -2201,7 +2221,7 @@ body.contrib-modal-open{
   line-height:normal !important;
   text-align:left !important;
   color:var(--text) !important;
-  padding:9px 10px !important;
+  padding:var(--space-3xl) var(--space-4xl) !important;
 }
 .contrib-modal input[type="date"]::-webkit-date-and-time-value{
   text-align:left !important;
@@ -2220,8 +2240,8 @@ body.contrib-modal-open{
   .contrib-modal-card{
     width:min(100%, calc(100vw - 36px));
     box-sizing:border-box;
-    border-radius:min(18px,var(--corner-surface-cap));
-    padding:14px;
+    border-radius:min(var(--surface-radius-lg),var(--corner-surface-cap));
+    padding:var(--space-6xl);
   }
   .contrib-modal-head p{
     font-size:var(--type-size-sm);
@@ -2236,10 +2256,10 @@ body.contrib-modal-open{
 }
 
 .token-guide{
-  margin-top:12px;
+  margin-top:var(--space-5xl);
   border:1px solid var(--modal-border);
-  border-radius:min(14px,var(--corner-surface-cap));
-  padding:12px;
+  border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
+  padding:var(--space-5xl);
   background:var(--modal-panel-surface);
 }
 .token-guide summary{
@@ -2260,37 +2280,37 @@ body.contrib-modal-open{
   justify-content:center;
   width:14px;
   height:14px;
-  margin-right:4px;
+  margin-right:var(--space-sm);
   transition:transform .15s ease;
 }
 .token-guide-chevron svg{display:block;width:14px;height:14px}
 .token-guide[open] .token-guide-chevron{transform:rotate(90deg)}
 .token-guide-body{
-  margin-top:10px;
+  margin-top:var(--space-4xl);
   color:var(--muted);
   font-size:var(--type-size-sm);
   line-height:var(--type-line-note);
   font-weight:var(--type-weight-bold);
 }
 .token-guide-body ol{
-  margin:8px 0 0 18px;
+  margin:var(--space-2xl) 0 0 var(--space-8xl);
   padding:0;
 }
 .token-guide-body li{
-  margin:5px 0;
+  margin:var(--space-md) 0;
 }
 .token-guide-body code{
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
   background:var(--code-bg);
   color:var(--code-text);
   border-radius:min(6px,var(--corner-inner-cap));
-  padding:1px 5px;
+  padding:1px var(--space-md);
   font-weight:var(--type-weight-emphasis);
 }
 /* Code-chip Light/Dark colors resolve through --code-bg / --code-text. */
 .token-guide-alert{
-  margin-top:8px;
-  padding:8px 10px;
+  margin-top:var(--space-2xl);
+  padding:var(--space-2xl) var(--space-4xl);
   border-radius:min(10px,var(--corner-inner-cap));
   background:var(--status-caution-bg);
   color:var(--status-caution-text);
@@ -2306,24 +2326,24 @@ body.contrib-modal-open{
   min-width:0;
 }
 .contrib-list{
-  margin-top:12px;
-  padding:12px;
+  margin-top:var(--space-5xl);
+  padding:var(--space-5xl);
   background:var(--modal-panel-surface);
 }
 .contrib-list h3{
-  margin:0 0 5px;
+  margin:0 0 var(--space-md);
   font-size:var(--type-size-lg);
   letter-spacing:-.03em;
 }
 .contrib-existing-list{
   display:flex;
   flex-direction:column;
-  gap:8px;
-  margin-top:10px;
+  gap:var(--space-2xl);
+  margin-top:var(--space-4xl);
   max-height:230px;
   overflow-y:auto;
   overscroll-behavior:contain;
-  padding-right:4px;
+  padding-right:var(--space-sm);
   scrollbar-width:thin;
   scrollbar-color:var(--scrollbar-color) transparent;
 }
@@ -2341,16 +2361,16 @@ body.contrib-modal-open{
 .contrib-existing-item{
   display:flex;
   align-items:flex-start;
-  gap:8px;
+  gap:var(--space-2xl);
   border:1px solid var(--modal-border);
   background:var(--modal-item-surface);
-  border-radius:min(12px,var(--corner-surface-cap));
-  padding:9px 10px;
+  border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
+  padding:var(--space-3xl) var(--space-4xl);
   cursor:pointer;
 }
 /* Existing-item Light/Dark surface resolves through --modal-item-surface. */
 .contrib-existing-item input{
-  margin-top:3px;
+  margin-top:var(--space-xs);
 }
 .contrib-existing-main{
   display:block;
@@ -2359,7 +2379,7 @@ body.contrib-modal-open{
 }
 .contrib-existing-title{
   display:inline-block;
-  margin-right:10px;
+  margin-right:var(--space-4xl);
   vertical-align:baseline;
   font-size:var(--type-size-md);
   font-weight:var(--type-weight-emphasis);
@@ -2368,7 +2388,7 @@ body.contrib-modal-open{
 .contrib-existing-memo{
   display:inline-block;
   margin-top:0;
-  margin-left:2px;
+  margin-left:var(--space-2xs);
   vertical-align:baseline;
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-bold);
@@ -2388,7 +2408,7 @@ body.contrib-modal-open{
     max-height:min(18vh,160px);
   }
   .contrib-existing-item{
-    padding:8px 9px;
+    padding:var(--space-2xl) var(--space-3xl);
   }
   .contrib-existing-main{
     width:100%;
@@ -2402,7 +2422,7 @@ body.contrib-modal-open{
   }
   .contrib-existing-memo{
     display:block;
-    margin:4px 0 0;
+    margin:var(--space-sm) 0 0;
     font-size:var(--type-size-xs);
     line-height:var(--type-line-body);
   }
@@ -2436,16 +2456,16 @@ body.contrib-modal-open{
 
 /* [06. Securities / Asset Workspace · 증권계좌 / 자산 작업영역] Asset Workspace · 자산 작업영역 */
 /* Asset Workspace Tabs · 자산 작업영역 탭: 증권 → 퇴직연금 순서, 기존 section ID 유지 */
-.asset-workspace{margin-top:22px}
+.asset-workspace{margin-top:var(--space-9xl)}
 .asset-workspace-tabs{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:6px;
+  gap:var(--space-lg);
   width:min(430px,100%);
-  margin:0 0 12px;
-  padding:4px;
+  margin:0 0 var(--space-5xl);
+  padding:var(--space-sm);
   border:1px solid var(--control-border);
-  border-radius:min(14px,var(--corner-surface-cap));
+  border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
   background:var(--subtle-card);
 }
 .asset-workspace-tab{
@@ -2469,7 +2489,7 @@ body.contrib-modal-open{
 .asset-workspace-panel[hidden]{display:none}
 .asset-workspace-panel > section{margin-top:0}
 @media(max-width:760px){
-  .asset-workspace-tabs{width:100%;margin-bottom:10px}
+  .asset-workspace-tabs{width:100%;margin-bottom:var(--space-4xl)}
   .asset-workspace-tab{min-height:34px;font-size:var(--type-size-sm)}
 }
 
@@ -2483,7 +2503,7 @@ body.contrib-modal-open{
 /* Separate-profit Light/Dark colors resolve through dedicated semantic tokens. */
 
 .securities-subsection{
-  margin-top:18px;
+  margin-top:var(--space-8xl);
 }
 .securities-subsection:first-child{
   margin-top:0;
@@ -2493,7 +2513,7 @@ body.contrib-modal-open{
 }
 @media(max-width:760px){
   .securities-subsection{
-    margin-top:16px;
+    margin-top:var(--space-7xl);
   }
 }
 
@@ -2509,7 +2529,7 @@ body.contrib-modal-open{
   align-items:center;
   justify-content:center;
   min-height:168px;
-  padding:24px 10px;
+  padding:var(--space-10xl) var(--space-4xl);
   text-align:center;
   color:var(--muted);
   font-size:var(--type-size-md);
@@ -2518,12 +2538,12 @@ body.contrib-modal-open{
 }
 
 .pension-chart-block{
-  margin-top:16px;
+  margin-top:var(--space-7xl);
 }
 
 .chart-title-sub{
   display:inline;
-  margin-left:4px;
+  margin-left:var(--space-sm);
   color:var(--muted);
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-bold);
@@ -2578,7 +2598,7 @@ body.contrib-modal-open{
 #pension-chart-alloc .pension-alloc-total-card > .pension-cash-detail,
 #chart-alloc:not(.phone-chart-ui) #securityAllocCards > .alloc-total-card > .alloc-cash-meta{
   grid-column:2;
-  margin-top:2px;
+  margin-top:var(--space-2xs);
   white-space:nowrap;
 }
 
@@ -2644,21 +2664,21 @@ body.contrib-modal-open{
 @media(max-width:760px){
   .pension-no-prev-note{
     min-height:66px;
-    padding:10px 8px;
+    padding:var(--space-4xl) var(--space-2xl);
   }
 }
 
 .contrib-target-tabs{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:6px;
-  padding:3px;
+  gap:var(--space-lg);
+  padding:var(--space-xs);
   border:1px solid var(--control-border);
-  border-radius:min(12px,var(--corner-surface-cap));
+  border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
   background:var(--tab-group-bg);
 }
 .contrib-target-option{
-  padding:7px 9px;
+  padding:var(--space-xl) var(--space-3xl);
   border:0;
   border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
   background:transparent;
@@ -2687,10 +2707,10 @@ body.contrib-modal-open{
 }
 
 .pension-etf-trade-apply-note{
-  margin-top:10px;
-  padding:9px 10px;
+  margin-top:var(--space-4xl);
+  padding:var(--space-3xl) var(--space-4xl);
   border:1px solid var(--status-info-soft-border);
-  border-radius:min(12px,var(--corner-surface-cap));
+  border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
   background:var(--status-info-soft-bg);
   color:var(--muted);
   font-size:var(--type-size-sm);
@@ -2703,10 +2723,10 @@ body.contrib-modal-open{
 }
 
 .pension-etf-trade-preview{
-  margin-top:10px;
-  padding:12px;
+  margin-top:var(--space-4xl);
+  padding:var(--space-5xl);
   border:1px solid var(--modal-border);
-  border-radius:min(14px,var(--corner-surface-cap));
+  border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
   background:var(--modal-item-surface);
 }
 
@@ -2725,7 +2745,7 @@ body.contrib-modal-open{
 /* Blocked preview Light/Dark colors resolve through danger tokens. */
 
 .pension-etf-trade-preview-title{
-  margin-bottom:8px;
+  margin-bottom:var(--space-2xl);
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-emphasis);
   color:var(--text);
@@ -2741,7 +2761,7 @@ body.contrib-modal-open{
 .pension-etf-trade-preview-grid{
   display:grid;
   grid-template-columns:minmax(110px,.8fr) minmax(0,1.2fr);
-  gap:7px 12px;
+  gap:var(--space-xl) var(--space-5xl);
   align-items:baseline;
   font-size:var(--type-size-sm);
 }
@@ -2767,8 +2787,8 @@ body.contrib-modal-open{
 }
 
 .pension-etf-trade-preview-alert{
-  margin-top:9px;
-  padding-top:9px;
+  margin-top:var(--space-3xl);
+  padding-top:var(--space-3xl);
   border-top:1px solid var(--status-warning-divider);
   color:var(--status-warning-text);
   font-size:var(--type-size-xs);
@@ -2787,7 +2807,7 @@ body.contrib-modal-open{
 
 @media(max-width:760px){
   .contrib-target-option{
-    padding:7px 4px;
+    padding:var(--space-xl) var(--space-sm);
     font-size:var(--type-size-xs);
   }
 
@@ -2797,11 +2817,11 @@ body.contrib-modal-open{
 
   .pension-etf-trade-preview-grid{
     grid-template-columns:1fr;
-    gap:3px;
+    gap:var(--space-xs);
   }
 
   .pension-etf-trade-preview-grid strong{
-    margin-bottom:5px;
+    margin-bottom:var(--space-md);
     text-align:left;
   }
 }
@@ -2846,13 +2866,13 @@ body.contrib-modal-open{
 .chart-card h3{
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:var(--space-2xl);
 }
 
 /* Capital Source Cards · 투자원금 원천/검산: 외곽 panel 없이 3개 데이터 카드만 사용 */
 .capital-source-section .source-title{
-  margin-bottom:12px;
-  padding:0 2px;
+  margin-bottom:var(--space-5xl);
+  padding:0 var(--space-2xs);
 }
 
 .source-grid{
@@ -2877,7 +2897,7 @@ body.contrib-modal-open{
 /* Capital Source Responsive · 투자원금 원천/검산: 모바일 1열, 태블릿 3열 */
 @media(max-width:760px){
   .source-grid{
-    gap:12px;
+    gap:var(--space-5xl);
   }
 }
 
@@ -2901,7 +2921,7 @@ body.contrib-modal-open{
 .action-modal-card{
   position:relative;
   width:min(420px,100%);
-  padding:24px;
+  padding:var(--space-10xl);
   border-radius:min(24px,var(--corner-surface-cap));
   background:var(--modal-surface);
   border:1px solid var(--modal-border);
@@ -2915,14 +2935,14 @@ body.contrib-modal-open{
   top:12px;
 }
 .action-modal-description{
-  margin:6px 0 var(--modal-section-gap);
+  margin:var(--space-lg) 0 var(--modal-section-gap);
   color:var(--modal-description-color);
   font-size:var(--type-size-md);
   line-height:var(--type-line-note);
 }
 .action-modal-label{
   display:block;
-  margin-bottom:7px;
+  margin-bottom:var(--space-xl);
   color:var(--modal-label-color);
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-regular);
@@ -2946,7 +2966,7 @@ body.contrib-modal-open{
 :is(.action-modal-input,.contrib-field input,.contrib-field select):focus{
   outline:none;
   border-color:var(--control-focus-border);
-  box-shadow:0 0 0 3px var(--modal-focus-ring);
+  box-shadow:var(--focus-ring-shadow);
 }
 .action-modal-status{
   min-height:20px;
@@ -2958,14 +2978,14 @@ body.contrib-modal-open{
 .krx-action-status.err,
 .pension-action-pin-status{color:var(--status-danger-emphasis)}
 .action-modal-buttons{
-  gap:8px;
+  gap:var(--space-2xl);
   margin-top:var(--modal-action-gap);
 }
 .action-modal-btn{
   height:40px;
   border-radius:min(12px,var(--corner-control-cap));
   border:1px solid var(--control-border);
-  padding:0 12px;
+  padding:0 var(--space-5xl);
   font-weight:var(--type-weight-strong);
   line-height:var(--type-line-compact);
   cursor:pointer;
@@ -2981,7 +3001,7 @@ body.contrib-modal-open{
 .krx-action-buttons .action-modal-btn{
   width:100%;
   min-width:0;
-  padding:0 10px;
+  padding:0 var(--space-4xl);
   white-space:normal;
   word-break:keep-all;
   overflow-wrap:normal;
@@ -3006,8 +3026,8 @@ body.contrib-modal-open{
   transform:translate(-50%,16px);
   z-index:13001;
   max-width:min(420px,calc(100vw - 32px));
-  padding:12px 16px;
-  border-radius:min(16px,var(--corner-surface-cap));
+  padding:var(--space-5xl) var(--space-7xl);
+  border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
   background:var(--toast-bg);
   color:var(--toast-color);
   font-size:var(--type-size-md);
@@ -3027,7 +3047,7 @@ body.contrib-modal-open{
 /* Chart Desktop · 차트 웹: 1101px 이상에서 가로 스크롤 없이 카드/SVG 100% */
 @media (min-width:1101px){
   .wrap{
-    padding-top:22px;
+    padding-top:var(--space-9xl);
   }
 
   .chart-wrap{
@@ -3079,12 +3099,12 @@ body.contrib-modal-open{
 @media(max-width:760px){
   .action-modal{
     align-items:flex-end;
-    padding:12px;
+    padding:var(--space-5xl);
   }
 
   .action-modal-card{
     border-radius:min(22px,var(--corner-surface-cap));
-    padding:22px 18px;
+    padding:var(--space-9xl) var(--space-8xl);
   }
 
   .app-toast{
@@ -3154,7 +3174,7 @@ button,
   }
 
   .table-view > .dashboard-data-table:not(.source-data-table) tbody tr:not(.summary-row):hover > td{
-    box-shadow:inset 0 1px 0 var(--interaction-row-accent),inset 0 -1px 0 var(--interaction-row-accent);
+    box-shadow:var(--interaction-row-shadow);
   }
 
   :is(
@@ -3283,21 +3303,21 @@ button:not(:disabled):active,
 #ledger-check .ledger-overview-grid{
   grid-template-columns:repeat(2,minmax(0,1fr));
   align-items:stretch;
-  gap:10px;
-  margin-top:18px;
+  gap:var(--space-4xl);
+  margin-top:var(--space-8xl);
 }
 #ledger-check .ledger-conclusion-card{
   display:grid;
   grid-column:1 / -1;
   grid-template-columns:repeat(2,minmax(0,1fr));
   align-items:center;
-  gap:18px;
+  gap:var(--space-8xl);
 }
 #ledger-check .ledger-conclusion-card .value{min-height:0}
 #ledger-check .ledger-conclusion-inline-reason{display:none}
 #ledger-check .ledger-conclusion-reason{
   min-width:0;
-  padding-left:18px;
+  padding-left:var(--space-8xl);
   border-left:1px solid var(--line);
 }
 #ledger-check .ledger-conclusion-reason > span{
@@ -3308,7 +3328,7 @@ button:not(:disabled):active,
 }
 #ledger-check .ledger-conclusion-reason > strong{
   display:block;
-  margin-top:3px;
+  margin-top:var(--space-xs);
   font-size:var(--type-size-xl);
   line-height:1.3;
 }
@@ -3344,8 +3364,8 @@ button:not(:disabled):active,
   #ledger-check .ledger-conclusion-card{
     grid-column:auto;
     grid-template-columns:1fr;
-    gap:10px;
-    padding:12px;
+    gap:var(--space-4xl);
+    padding:var(--space-5xl);
   }
   #ledger-check .ledger-conclusion-inline-reason{display:block}
   #ledger-check .ledger-conclusion-reason{display:none}
@@ -3364,7 +3384,7 @@ button:not(:disabled):active,
 /* Chart Control Groups · data selector와 확대 같은 utility control 사이에 약한 구분선만 둔다. */
 .chart-head-actions .chart-compare-toggle + :is(.chart-expand-button,.chart-web-expand-button){
   position:relative;
-  margin-left:4px;
+  margin-left:var(--space-sm);
 }
 .chart-head-actions .chart-compare-toggle + :is(.chart-expand-button,.chart-web-expand-button)::before{
   content:"";
@@ -3409,7 +3429,7 @@ button:not(:disabled):active,
 
 /* Pension PIN Status · 퇴직연금 PIN 자동 실행/상태 표시 */
 .pension-action-pin-guide{
-  margin-top:8px;
+  margin-top:var(--space-2xl);
   color:var(--text-secondary);
   font-size:11.5px;
   font-weight:var(--type-weight-strong);
@@ -3421,12 +3441,12 @@ button:not(:disabled):active,
 @media(max-width:760px){
   .krx-action-buttons{
     grid-template-columns:52px minmax(108px,1fr) minmax(78px,.72fr);
-    gap:6px;
+    gap:var(--space-lg);
   }
   .krx-action-buttons .action-modal-btn{
     min-height:42px;
     height:auto;
-    padding:5px 7px;
+    padding:var(--space-md) var(--space-xl);
     font-size:var(--type-size-sm);
     white-space:normal;
   }
@@ -3459,7 +3479,7 @@ button:not(:disabled):active,
   line-height:1;
   letter-spacing:-.02em;
   white-space:nowrap;
-  gap:2px;
+  gap:var(--space-2xs);
   box-shadow:var(--mobile-top-shadow);
   opacity:0;
   visibility:hidden;
@@ -3498,7 +3518,7 @@ button:not(:disabled):active,
 
 .asset-color-swatch{
   display:inline-block;
-  margin-left:5px;
+  margin-left:var(--space-md);
   color:var(--asset-swatch-color);
   font-size:var(--type-size-2xs);
   line-height:1;
@@ -3526,7 +3546,7 @@ button:not(:disabled):active,
 :is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item).is-current{
   background:var(--nav-current-bg);
   color:var(--nav-current-text);
-  box-shadow:inset 3px 0 0 var(--nav-current-indicator);
+  box-shadow:var(--nav-current-shadow);
 }
 .desktop-edge-toc-item.is-current .desktop-edge-toc-icon,
 .date-action-menu.mobile-combined-menu .mobile-nav-item.is-current .nav-icon{color:var(--nav-current-icon)}
@@ -3568,7 +3588,7 @@ button:not(:disabled):active,
     align-items:center;
     justify-content:center;
     gap:0;
-    padding:7px 0;
+    padding:var(--space-xl) 0;
     border:1px solid var(--nav-border);
     border-radius:min(var(--control-radius-md),var(--corner-control-cap));
     background:var(--nav-surface-translucent);
@@ -3593,8 +3613,8 @@ button:not(:disabled):active,
     width:300px;
     max-height:min(76vh,680px);
     overflow:auto;
-    padding:10px;
-    border-radius:min(12px,var(--corner-surface-cap));
+    padding:var(--space-4xl);
+    border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
     box-shadow:var(--nav-shadow-panel);
     opacity:0;
     visibility:hidden;
@@ -3617,7 +3637,7 @@ button:not(:disabled):active,
   }
 
   .desktop-edge-toc-title{
-    padding:5px 8px 9px 2px;
+    padding:var(--space-md) var(--space-2xl) var(--space-3xl) var(--space-2xs);
     border-bottom:1px solid var(--nav-divider);
     color:var(--nav-text);
     font-size:var(--type-size-lg);
@@ -3625,17 +3645,17 @@ button:not(:disabled):active,
     line-height:var(--type-line-tight);
   }
   .desktop-edge-toc-group{
-    margin-top:7px;
-    padding-top:7px;
+    margin-top:var(--space-xl);
+    padding-top:var(--space-xl);
     border-top:1px solid var(--nav-subdivider);
   }
   .desktop-edge-toc-group:first-of-type{
-    margin-top:6px;
+    margin-top:var(--space-lg);
     padding-top:0;
     border-top:0;
   }
   .desktop-edge-toc-group p{
-    margin:0 7px 4px;
+    margin:0 var(--space-xl) var(--space-sm);
     color:var(--nav-muted);
     font-size:10.5px;
     font-weight:var(--type-weight-strong);
@@ -3643,8 +3663,8 @@ button:not(:disabled):active,
   }
   .desktop-edge-toc-item{
     min-height:32px;
-    gap:8px;
-    padding:6px 7px;
+    gap:var(--space-2xl);
+    padding:var(--space-lg) var(--space-xl);
     border-radius:min(7px,var(--corner-control-cap));
     font-size:var(--type-size-sm);
     font-weight:var(--type-weight-semibold);
@@ -3663,7 +3683,7 @@ button:not(:disabled):active,
 /* Edge TOC Tablet · 태블릿 우측 목차: 본문 침범을 줄이는 compact trigger */
 @media (min-width:761px) and (max-width:1100px){
   .desktop-edge-toc{right:8px}
-  .desktop-edge-toc-trigger{width:30px;min-width:30px;height:60px;padding:6px 0;font-size:var(--type-size-2xs)}
+  .desktop-edge-toc-trigger{width:30px;min-width:30px;height:60px;padding:var(--space-lg) 0;font-size:var(--type-size-2xs)}
   .desktop-edge-toc-panel{right:38px}
 }
 
@@ -3682,9 +3702,9 @@ button:not(:disabled):active,
     display:flex;
     align-items:center;
     justify-content:flex-end;
-    gap:5px;
+    gap:var(--space-md);
     min-height:27px;
-    margin:2px 1px 5px;
+    margin:var(--space-2xs) 1px var(--space-md);
   }
   .chart-card.has-horizontal-scroll .chart-scroll-start,
   .chart-card.has-horizontal-scroll .chart-scroll-end{
@@ -3696,7 +3716,7 @@ button:not(:disabled):active,
   }
 
   #chart-symbol .chart-note.symbol-summary-grid{
-    gap:7px;
+    gap:var(--space-xl);
   }
 
   #pension-change .change-kpis{
@@ -3796,8 +3816,8 @@ button:not(:disabled):active,
   justify-content:center;
   min-width:18px;
   height:18px;
-  margin-left:4px;
-  padding:0 5px;
+  margin-left:var(--space-sm);
+  padding:0 var(--space-md);
   border-radius:var(--radius-pill);
   background:var(--batch-count-bg);
   color:var(--batch-count-text);
@@ -3805,21 +3825,21 @@ button:not(:disabled):active,
   line-height:1;
 }
 .pension-batch-panel{
-  padding:12px;
+  padding:var(--space-5xl);
   background:var(--card);
 }
 .pension-batch-head{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
-  gap:12px;
+  gap:var(--space-5xl);
 }
 .pension-batch-head h3{
   margin:0;
   font-size:var(--type-size-lg);
 }
 .pension-batch-head p{
-  margin:3px 0 0;
+  margin:var(--space-xs) 0 0;
   color:var(--muted);
   font-size:var(--type-size-xs);
   font-weight:var(--type-weight-bold);
@@ -3828,7 +3848,7 @@ button:not(:disabled):active,
   flex:0 0 auto;
   border:1px solid var(--control-border);
   border-radius:min(7px,var(--corner-control-cap));
-  padding:5px 8px;
+  padding:var(--space-md) var(--space-2xl);
   background:transparent;
   color:var(--muted);
   font-size:var(--type-size-xs);
@@ -3839,9 +3859,9 @@ button:not(:disabled):active,
 .pension-batch-queue{
   display:flex;
   flex-direction:column;
-  gap:6px;
+  gap:var(--space-lg);
   max-height:180px;
-  margin-top:9px;
+  margin-top:var(--space-3xl);
   overflow-y:auto;
   overscroll-behavior:contain;
 }
@@ -3849,8 +3869,8 @@ button:not(:disabled):active,
   display:grid;
   grid-template-columns:24px minmax(0,1fr) auto;
   align-items:center;
-  gap:7px;
-  padding:7px 8px;
+  gap:var(--space-xl);
+  padding:var(--space-xl) var(--space-2xl);
   border:1px solid var(--modal-border);
   border-radius:min(9px,var(--corner-surface-cap));
   background:var(--modal-item-surface);
@@ -3879,7 +3899,7 @@ button:not(:disabled):active,
 }
 .pension-batch-item-actions{
   display:flex;
-  gap:3px;
+  gap:var(--space-xs);
 }
 .pension-batch-item-actions button{
   width:25px;
@@ -3897,7 +3917,7 @@ button:not(:disabled):active,
 .pension-batch-item-actions button:disabled{opacity:.3;cursor:not-allowed}
 .pension-batch-item-actions .remove{color:var(--status-danger-strong)}
 .pension-batch-empty{
-  padding:10px;
+  padding:var(--space-4xl);
   border:1px dashed var(--line);
   border-radius:min(9px,var(--corner-surface-cap));
   color:var(--muted);
@@ -3906,8 +3926,8 @@ button:not(:disabled):active,
   text-align:center;
 }
 .pension-batch-order-note{
-  margin-top:8px;
-  padding:7px 8px;
+  margin-top:var(--space-2xl);
+  padding:var(--space-xl) var(--space-2xl);
   border-radius:min(8px,var(--corner-surface-cap));
   background:var(--status-info-bg);
   color:var(--status-info-text);
@@ -3923,22 +3943,22 @@ button:not(:disabled):active,
 .pension-batch-actions{
   display:flex;
   justify-content:flex-end;
-  margin-top:8px;
+  margin-top:var(--space-2xl);
 }
 .pension-batch-actions .contrib-btn{min-width:112px}
 
 /* Pension Adjustment Context · 등록/삭제에 공통 적용되는 처리 방식·조정 항목 */
 .pension-contrib-context{
   display:grid;
-  gap:8px;
-  padding:0 2px;
+  gap:var(--space-2xl);
+  padding:0 var(--space-2xs);
   margin-bottom:var(--modal-section-gap);
 }
 .pension-contrib-context-head{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:12px;
+  gap:var(--space-5xl);
   min-width:0;
 }
 .pension-contrib-context .pension-work-mode{
@@ -3950,12 +3970,12 @@ button:not(:disabled):active,
 }
 
 @media(max-width:760px){
-  .pension-batch-panel{padding:10px}
+  .pension-batch-panel{padding:var(--space-4xl)}
   .pension-batch-queue{max-height:150px}
   .pension-batch-item{grid-template-columns:22px minmax(0,1fr);align-items:start}
   .pension-batch-item-actions{grid-column:2;justify-content:flex-end}
   .pension-batch-head{align-items:center}
-  .pension-contrib-context{gap:10px;padding:0}
+  .pension-contrib-context{gap:var(--space-4xl);padding:0}
 }
 
 /* Symbol Tooltip Mobile · 종목 tooltip: 모바일 viewport 이탈 방지 */
@@ -3973,8 +3993,8 @@ button:not(:disabled):active,
   .dash-tooltip[data-tooltip-kind="symbol"] .tt-row{
     white-space:normal;
     flex-wrap:wrap;
-    column-gap:12px;
-    row-gap:2px;
+    column-gap:var(--space-5xl);
+    row-gap:var(--space-2xs);
   }
   .dash-tooltip[data-tooltip-kind="symbol"] .tt-name{
     min-width:0;
@@ -3991,15 +4011,15 @@ button:not(:disabled):active,
   display:flex;
   align-items:center;
   justify-content:flex-end;
-  gap:7px;
+  gap:var(--space-xl);
   min-width:0;
   margin:0;
   white-space:nowrap;
 }
 .separate-profit-toggle{
-  gap:7px;
+  gap:var(--space-xl);
   flex:0 0 auto;
-  padding:2px 8px 2px 10px;
+  padding:var(--space-2xs) var(--space-2xl) var(--space-2xs) var(--space-4xl);
   border:1px solid var(--control-border);
   border-radius:var(--radius-pill);
   background:var(--card);
@@ -4012,7 +4032,7 @@ button:not(:disabled):active,
   justify-content:center;
   min-width:var(--dashboard-control-state-min-width);
   height:18px;
-  padding:0 5px;
+  padding:0 var(--space-md);
   border-radius:var(--radius-pill);
   background:var(--state-chip-bg);
   color:var(--state-chip-text);
@@ -4040,9 +4060,9 @@ button:not(:disabled):active,
 .source-reclass-note{
   display:flex;
   flex-direction:column;
-  gap:2px;
-  margin-top:9px;
-  padding:8px 9px;
+  gap:var(--space-2xs);
+  margin-top:var(--space-3xl);
+  padding:var(--space-2xl) var(--space-3xl);
   border:1px dashed var(--special-profit-note-border);
   border-radius:min(10px,var(--corner-surface-cap));
   background:var(--special-profit-note-bg);
@@ -4061,7 +4081,7 @@ button:not(:disabled):active,
   display:flex;
   align-items:center;
   justify-content:flex-end;
-  gap:7px;
+  gap:var(--space-xl);
   flex:0 0 auto;
   margin-left:auto;
 }
@@ -4076,7 +4096,7 @@ button:not(:disabled):active,
 /* Separate Profit Phone UI · 별도수익 폰 UI: compact label + state 중심 표시 */
 @media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   .section-title-actions{
-    gap:5px;
+    gap:var(--space-md);
   }
   .section-title > .separate-profit-control-row,
   .section-title-actions > .separate-profit-control-row,
@@ -4096,7 +4116,7 @@ button:not(:disabled):active,
     display:none;
   }
   .separate-profit-toggle{
-    padding:1px 3px;
+    padding:1px var(--space-xs);
     gap:0;
   }
   .separate-profit-toggle span{
@@ -4105,7 +4125,7 @@ button:not(:disabled):active,
   .separate-profit-toggle strong{
     min-width:var(--dashboard-control-state-min-width);
     height:21px;
-    padding:0 6px;
+    padding:0 var(--space-lg);
   }
 }
 
@@ -4150,7 +4170,7 @@ button:not(:disabled):active,
   /* Capital Source Landscape · 투자원금 원천/검산: 실제 폰 가로에서 3카드 1행 */
   #capital-source-check .source-grid{
     grid-template-columns:repeat(3,minmax(0,1fr));
-    gap:8px;
+    gap:var(--space-2xl);
   }
   #capital-source-check .source-card{
     min-width:0;
@@ -4238,8 +4258,8 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   box-sizing:border-box;
   display:grid;
   grid-template-rows:auto minmax(0,1fr) auto;
-  gap:5px;
-  padding:10px 52px 8px 12px;
+  gap:var(--space-md);
+  padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
   transform-origin:top left;
   transform:rotate(90deg) translateY(-100%);
   background:var(--chart-expanded-surface);
@@ -4249,7 +4269,7 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:10px;
+  gap:var(--space-4xl);
 }
 .chart-expanded-title{
   min-width:0;
@@ -4262,7 +4282,7 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   align-items:center;
   min-width:0;
   margin:0;
-  gap:8px;
+  gap:var(--space-2xl);
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -4309,12 +4329,12 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
 .chart-expanded-legend-host:empty{display:none}
 .chart-expanded-legend-host .chart-legend{
   margin-top:0;
-  column-gap:10px;
+  column-gap:var(--space-4xl);
   line-height:var(--type-line-tight);
 }
 .chart-expanded-legend-host .chart-legend-series{
   width:100%;
-  gap:5px 10px;
+  gap:var(--space-md) var(--space-4xl);
 }
 
 /* Expanded Chart Landscape · 확대 차트: 실제 가로모드에서는 landscape viewport 직접 사용 */
@@ -4322,7 +4342,7 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   width:100%;
   height:100%;
   transform:none;
-  padding:10px 52px 8px 12px;
+  padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
 }
 @media (min-width:1101px){
   /* Ledger Check Desktop · 장부결과 웹: 결론 / A / B를 동일 폭 3열로 배치 */
@@ -4332,7 +4352,7 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   #ledger-check .ledger-conclusion-card{
     grid-column:auto;
     grid-template-columns:1fr;
-    gap:10px;
+    gap:var(--space-4xl);
   }
   #ledger-check .ledger-conclusion-inline-reason{display:block}
   #ledger-check .ledger-conclusion-reason{display:none}
@@ -4341,21 +4361,21 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
     width:100%;
     height:100%;
     transform:none;
-    gap:10px;
-    padding:20px 68px 16px 24px;
+    gap:var(--space-4xl);
+    padding:20px 68px var(--space-7xl) var(--space-10xl);
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-expanded-title-heading{
     font-size:var(--type-size-4xl);
-    gap:9px;
+    gap:var(--space-3xl);
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-title-sub{
     font-size:var(--type-size-sm);
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend{
-    column-gap:14px;
+    column-gap:var(--space-6xl);
   }
   .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend-series{
-    gap:7px 14px;
+    gap:var(--space-xl) var(--space-6xl);
   }
 }
 
@@ -4366,7 +4386,7 @@ html.iphone-request-desktop #ledger-check .ledger-overview-grid{
 html.iphone-request-desktop #ledger-check .ledger-conclusion-card{
   grid-column:auto;
   grid-template-columns:1fr;
-  gap:10px;
+  gap:var(--space-4xl);
 }
 html.iphone-request-desktop #ledger-check .ledger-conclusion-inline-reason{display:block}
 html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none}
@@ -4398,7 +4418,7 @@ body.chart-expanded-open .dash-tooltip{
   justify-content:center;
   width:100%;
   box-sizing:border-box;
-  padding:6px 12px;
+  padding:var(--space-lg) var(--space-5xl);
   background:var(--topbar-bg);
   border-bottom:1px solid var(--topbar-divider);
   box-shadow:var(--topbar-shadow);
@@ -4407,7 +4427,7 @@ body.chart-expanded-open .dash-tooltip{
   display:grid;
   grid-template-columns:auto minmax(0,1fr) auto;
   align-items:center;
-  gap:6px;
+  gap:var(--space-lg);
   width:min(1632px,100%);
   min-width:0;
 }
@@ -4416,7 +4436,7 @@ body.chart-expanded-open .dash-tooltip{
   display:flex;
   align-items:center;
   flex-wrap:nowrap;
-  gap:6px;
+  gap:var(--space-lg);
   min-width:0;
 }
 .date-picker-center{grid-column:1;justify-self:start}
@@ -4435,7 +4455,7 @@ body.chart-expanded-open .dash-tooltip{
   min-width:0;
   box-sizing:border-box;
   border-radius:min(var(--control-radius-md),var(--corner-control-cap));
-  padding:4px 27px 4px 9px;
+  padding:var(--space-sm) 27px var(--space-sm) var(--space-3xl);
   font-size:11.5px;
   appearance:none;
   -webkit-appearance:none;
@@ -4455,12 +4475,12 @@ body.chart-expanded-open .dash-tooltip{
   height:32px;
   flex:0 0 auto;
   box-sizing:border-box;
-  padding:0 10px;
+  padding:0 var(--space-4xl);
   border-radius:min(11px,var(--corner-control-cap));
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  gap:4px;
+  gap:var(--space-sm);
   font-size:11.5px;
   line-height:1;
   white-space:nowrap;
@@ -4487,7 +4507,7 @@ body.chart-expanded-open .dash-tooltip{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  margin-right:3px;
+  margin-right:var(--space-xs);
   font-size:0;
 }
 .date-tool-action-icon svg{display:block;width:16px;height:16px;vertical-align:middle}
@@ -4502,10 +4522,10 @@ body.chart-expanded-open .dash-tooltip{
 @media (min-width:761px) and (max-width:1100px){
   .topbar-label-full{display:none}
   .topbar-label-short{display:inline}
-  .switcher{padding-left:8px;padding-right:8px}
-  .date-picker-action{gap:5px}
-  .date-tool-btn{padding-left:7px;padding-right:7px;gap:2px;font-size:var(--type-size-2xs)}
-  .date-tool-action-icon{margin-right:2px}
+  .switcher{padding-left:var(--space-2xl);padding-right:var(--space-2xl)}
+  .date-picker-action{gap:var(--space-md)}
+  .date-tool-btn{padding-left:var(--space-xl);padding-right:var(--space-xl);gap:var(--space-2xs);font-size:var(--type-size-2xs)}
+  .date-tool-action-icon{margin-right:var(--space-2xs)}
 }
 
 /* Topbar Mobile · 상단바 모바일: 날짜 접힘/고정 상태 + 동일폭 select + 우측 고정 action */
@@ -4540,7 +4560,7 @@ body.chart-expanded-open .dash-tooltip{
     min-height:30px;
     height:30px;
     border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
-    padding:3px 17px 3px 7px;
+    padding:var(--space-xs) 17px var(--space-xs) var(--space-xl);
     font-size:11.5px;
   }
   .topbar-theme-action,
@@ -4590,7 +4610,7 @@ body.chart-expanded-open .dash-tooltip{
 
   .switcher:is(.mobile-menu-open,.mobile-date-pinned){
     height:40px;
-    padding:5px 7px;
+    padding:var(--space-md) var(--space-xl);
     background:var(--topbar-bg);
     border-bottom:1px solid var(--topbar-divider);
     box-shadow:var(--topbar-shadow);
@@ -4601,7 +4621,7 @@ body.chart-expanded-open .dash-tooltip{
     width:100%;
     height:auto;
     grid-template-columns:auto auto minmax(0,1fr) 30px 30px 30px;
-    gap:4px;
+    gap:var(--space-sm);
   }
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.date-picker-center,.date-picker-action){display:contents}
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) .month-select{grid-column:1}
@@ -4636,7 +4656,7 @@ body.chart-expanded-open .dash-tooltip{
   }
 
   /* Date Pin · 날짜 고정 toggle: 모바일 hamburger header 내부 */
-  .mobile-date-pin-control{display:inline-flex;align-items:center;gap:6px;margin-left:auto;color:var(--nav-muted);cursor:pointer;user-select:none}
+  .mobile-date-pin-control{display:inline-flex;align-items:center;gap:var(--space-lg);margin-left:auto;color:var(--nav-muted);cursor:pointer;user-select:none}
   .mobile-date-pin-control > span:first-child{font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);letter-spacing:-.02em;line-height:25px;white-space:nowrap}
   .mobile-date-pin-control input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
   .mobile-date-pin-track{position:relative;width:31px;height:18px;flex:0 0 31px;border:1px solid var(--pin-track-border);border-radius:var(--radius-pill);background:var(--pin-track-bg);transition:background .16s ease,border-color .16s ease}
@@ -4654,21 +4674,21 @@ body.chart-expanded-open .dash-tooltip{
     width:min(258px,calc(100vw - 12px));
     max-height:calc(100vh - 54px);
     overflow:auto;
-    padding:6px;
+    padding:var(--space-lg);
     border-radius:min(10px,var(--corner-surface-cap));
     box-shadow:var(--nav-shadow-mobile);
   }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0;padding:0 1px 2px;background:transparent}
-  .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:2px;min-width:0}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2xl);margin:0;padding:0 1px var(--space-2xs);background:transparent}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:var(--space-2xs);min-width:0}
   .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px;color:var(--nav-muted);font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);line-height:25px}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);font-size:var(--type-size-4xl);line-height:1;cursor:pointer}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:var(--nav-surface-hover);color:var(--nav-text)}
 .date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:16px;height:16px;margin:auto}
-  .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:4px 0 0;padding:4px 0 0;border-top:1px solid var(--nav-divider)}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:var(--space-sm) 0 0;padding:var(--space-sm) 0 0;border-top:1px solid var(--nav-divider)}
   .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{margin-top:0;padding-top:0;border-top:0}
-  .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:2px 6px;color:var(--nav-muted);font-size:9.5px;font-weight:var(--type-weight-semibold);letter-spacing:0;line-height:14px}
-  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:6px;min-height:30px;padding:5px 6px;border-radius:min(var(--control-radius-md),var(--corner-control-cap));text-decoration:none;font-size:var(--type-size-sm);font-weight:var(--type-weight-regular);line-height:17px;box-shadow:none}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{padding-left:6px}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:var(--space-2xs) var(--space-lg);color:var(--nav-muted);font-size:9.5px;font-weight:var(--type-weight-semibold);letter-spacing:0;line-height:14px}
+  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:var(--space-lg);min-height:30px;padding:var(--space-md) var(--space-lg);border-radius:min(var(--control-radius-md),var(--corner-control-cap));text-decoration:none;font-size:var(--type-size-sm);font-weight:var(--type-weight-regular);line-height:17px;box-shadow:none}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{padding-left:var(--space-lg)}
   .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{flex:0 0 16px;width:16px;height:16px;margin:0;border:0;border-radius:0;background:transparent;font-size:0;box-shadow:none}
   .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{display:block;width:16px;height:16px}
   .date-action-menu.mobile-combined-menu .mobile-nav-item strong{display:block;color:inherit;font-size:var(--type-size-sm);font-weight:var(--type-weight-medium);line-height:17px}
@@ -4686,7 +4706,7 @@ body.chart-expanded-open .dash-tooltip{
 
 .phone-chart-ui .chart-head{
   align-items:center;
-  gap:7px;
+  gap:var(--space-xl);
 }
 .phone-chart-ui .chart-head > div:first-child{
   flex:1 1 auto;
@@ -4696,7 +4716,7 @@ body.chart-expanded-open .dash-tooltip{
   display:flex;
   align-items:center;
   flex-wrap:nowrap;
-  gap:4px;
+  gap:var(--space-sm);
   min-width:0;
   white-space:nowrap;
 }
@@ -4761,9 +4781,9 @@ body.chart-expanded-open .dash-tooltip{
   display:flex;
   align-items:center;
   justify-content:flex-start;
-  gap:5px;
+  gap:var(--space-md);
   min-height:var(--dashboard-control-height);
-  margin:2px 1px 5px;
+  margin:var(--space-2xs) 1px var(--space-md);
   padding:0;
   box-sizing:border-box;
 }
@@ -4797,7 +4817,7 @@ body.chart-expanded-open .dash-tooltip{
 .phone-chart-ui > .chart-legend > .chart-legend-series{
   width:100%;
   justify-content:center;
-  gap:6px 9px;
+  gap:var(--space-lg) var(--space-3xl);
 }
 
 /* Phone Allocation Summary · 폰 평가액 비중: 총액 카드가 grid 전체 행 사용 */
@@ -4805,7 +4825,7 @@ body.chart-expanded-open .dash-tooltip{
   grid-column:1 / -1;
   display:grid;
   grid-template-columns:max-content minmax(0,1fr);
-  column-gap:6px;
+  column-gap:var(--space-lg);
   align-items:baseline;
 }
 .phone-chart-ui #securityAllocCards > .alloc-total-card > .m-label{
@@ -4816,7 +4836,7 @@ body.chart-expanded-open .dash-tooltip{
 }
 .phone-chart-ui #securityAllocCards > .alloc-total-card > .alloc-cash-meta{
   grid-column:2;
-  margin-top:2px;
+  margin-top:var(--space-2xs);
 }
 
 .chart-options-row{
@@ -4828,8 +4848,8 @@ body.chart-expanded-open .dash-tooltip{
   width:max-content;
   max-width:100%;
   min-height:var(--dashboard-control-height);
-  margin:6px auto 2px;
-  padding:3px;
+  margin:var(--space-lg) auto var(--space-2xs);
+  padding:var(--space-xs);
   border:1px solid var(--line);
   border-radius:min(calc(var(--dashboard-control-radius) + 1px),var(--corner-control-cap));
   background:var(--subtle-card);
@@ -4864,7 +4884,7 @@ body.chart-expanded-open .dash-tooltip{
   max-width:100%;
   overflow-x:auto;
   overflow-y:hidden;
-  border-radius:min(16px,var(--corner-surface-cap));
+  border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
   -webkit-overflow-scrolling:touch;
 }
 .dashboard-data-table{
@@ -4929,10 +4949,10 @@ body.chart-expanded-open .dash-tooltip{
 .pension-products-table .bar-box[role="progressbar"]{
   outline:none;
 }
-.source-table-scroll{margin-top:12px;border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
+.source-table-scroll{margin-top:var(--space-5xl);border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
 .source-data-table{border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
-.dashboard-data-table tbody .summary-row > th[scope="row"]{border-top:0;box-shadow:inset 0 1px 0 var(--table-column-line);font-weight:var(--data-table-summary-weight)}
-.change-table-wrap{margin-top:12px;border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
+.dashboard-data-table tbody .summary-row > th[scope="row"]{border-top:0;box-shadow:var(--table-summary-separator-shadow);font-weight:var(--data-table-summary-weight)}
+.change-table-wrap{margin-top:var(--space-5xl);border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
 
 /* Data Tables Tablet · 데이터 표 태블릿: 열 구조 유지 + font/padding 축소 */
 @media (min-width:761px) and (max-width:1100px){
@@ -4963,7 +4983,7 @@ body.chart-expanded-open .dash-tooltip{
   .mobile-view-toggle{
     display:inline-flex;
     flex:0 0 auto;
-    padding:0 9px;
+    padding:0 var(--space-3xl);
     border:1px solid var(--control-border);
     border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
     background:var(--card);
@@ -4974,7 +4994,7 @@ body.chart-expanded-open .dash-tooltip{
   [data-mobile-view="card"] .mobile-card-view{display:grid !important}
   [data-mobile-view="table"] .table-view{display:block !important}
   [data-mobile-view="table"] .mobile-card-view{display:none !important}
-  .mobile-card-view{grid-template-columns:1fr;gap:9px;width:100%}
+  .mobile-card-view{grid-template-columns:1fr;gap:var(--space-3xl);width:100%}
   /* Mobile Data Cards · 모바일 데이터 카드: 모든 table/card 전환 공통 */
   .mobile-data-card{
     --mobile-data-title-weight:var(--type-weight-strong);
@@ -4983,14 +5003,14 @@ body.chart-expanded-open .dash-tooltip{
     --mobile-data-total-title-weight:var(--type-weight-emphasis);
     --mobile-data-total-value-weight:var(--type-weight-strong);
     min-width:0;
-    padding:13px 14px;
+    padding:13px var(--space-6xl);
     border:1px solid var(--line);
     border-radius:min(15px,var(--corner-surface-cap));
     background:var(--card);
     box-shadow:var(--shadow-mobile-card);
   }
   .mobile-data-card-title{
-    margin:0 0 6px;
+    margin:0 0 var(--space-lg);
     color:var(--ink);
     font-size:var(--type-size-lg);
     font-weight:var(--mobile-data-title-weight);
@@ -5001,8 +5021,8 @@ body.chart-expanded-open .dash-tooltip{
     display:flex;
     align-items:flex-start;
     justify-content:space-between;
-    gap:12px;
-    padding:5px 0;
+    gap:var(--space-5xl);
+    padding:var(--space-md) 0;
     border-top:1px dashed var(--line);
   }
   /* Mobile Card First Row · 모바일 카드 첫 행은 상단 separator 생략 */
@@ -5025,7 +5045,7 @@ body.chart-expanded-open .dash-tooltip{
   .mobile-data-card.mobile-total-card .mobile-data-card-title{font-weight:var(--mobile-data-total-title-weight)}
   .mobile-data-card.mobile-total-card .mobile-data-card-value{font-weight:var(--mobile-data-total-value-weight)}
   .mobile-data-card-row.stacked{display:block}
-  .mobile-data-card-row.stacked .mobile-data-card-value{margin-top:3px;text-align:left}
+  .mobile-data-card-row.stacked .mobile-data-card-value{margin-top:var(--space-xs);text-align:left}
   .mobile-data-card-row.note-only .mobile-data-card-label{display:none}
   .mobile-data-card-row.note-only .mobile-data-card-value{
     display:block;
@@ -5055,12 +5075,12 @@ body.chart-expanded-open .dash-tooltip{
   #ledger-check .ledger-conclusion-card{
     grid-column:1 / -1;
     grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:18px;
+    gap:var(--space-8xl);
   }
   #ledger-check .ledger-conclusion-inline-reason{display:none}
   #ledger-check .ledger-conclusion-reason{
     display:block;
-    padding:0 0 0 18px;
+    padding:0 0 0 var(--space-8xl);
     border-left:1px solid var(--line);
     border-top:0;
   }
@@ -5096,7 +5116,7 @@ body.chart-expanded-open .dash-tooltip{
 
   .wrap{
     max-width:none;
-    padding:8px;
+    padding:var(--space-2xl);
   }
 
   /* 인쇄에서는 자산 선택 탭 없이 증권계좌 다음에 퇴직연금을 연속 출력한다. */
@@ -5107,7 +5127,7 @@ body.chart-expanded-open .dash-tooltip{
     display:block !important;
   }
   .asset-workspace-panel-pension{
-    margin-top:22px;
+    margin-top:var(--space-9xl);
   }
 
   /* A4 폭에서는 차트 내부 스크롤 대신 1120:330 SVG 전체를 용지 폭에 맞춰 축소한다. */
