@@ -515,7 +515,7 @@ async function dispatchKrxPriceUpdate(pin, mode='selected'){
     body.date=selectedDate;
   }
 
-  const res=await fetch(config.url,{
+  const res=await fetchWithTimeout(config.url,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(body)
@@ -696,8 +696,7 @@ function setAssetTab(tab,{scroll=false}={}){
   uiState.activeAssetTab=tab;
   syncAssetTabs();
   requestAnimationFrame(()=>{
-    syncResponsiveChartControls();
-    refreshScrollHints();
+    drawAllCharts();
     syncSectionNavigationState();
     if(scroll)document.getElementById('asset-workspace')?.scrollIntoView({behavior:'smooth',block:'start'});
   });

@@ -1212,12 +1212,15 @@ function refreshScrollHints(){
   });
 }
 function drawAllCharts(){
-  drawCumChart();
-  drawLineChart();
-  drawStacked();
-  drawPensionCumChart();
-  drawPensionSymbolChart();
-  drawPensionStacked();
+  if(uiState.activeAssetTab==='pension'){
+    drawPensionCumChart();
+    drawPensionSymbolChart();
+    drawPensionStacked();
+  }else{
+    drawCumChart();
+    drawLineChart();
+    drawStacked();
+  }
   setupResponsiveChartControls();
   const skipEntrance=chartState.skipEntranceOnce;
   chartState.skipEntranceOnce=false;

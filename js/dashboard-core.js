@@ -23,7 +23,9 @@ const uiState={
     accounts:'table',
     pensionChange:'table'
   },
-  mobileTopScrollBound:false
+  mobileTopScrollBound:false,
+  sectionNavigationBound:false,
+  sectionNavigationFrame:0
 };
 const chartState={
   compareModes:{securities:'return',pension:'return'},
@@ -621,6 +623,20 @@ function securitySymbolAllocHistory(d,series){
     row['현금']=Number(v.securitiesCash||0);
     return row;
   });
+}
+
+const NETWORK_REQUEST_TIMEOUT_MS=20000;
+async function fetchWithTimeout(url,options={},timeoutMs=NETWORK_REQUEST_TIMEOUT_MS){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),timeoutMs);
+  try{
+    return await fetch(url,{...options,signal:controller.signal});
+  }catch(error){
+    if(error?.name==='AbortError')throw new Error('요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.');
+    throw error;
+  }finally{
+    clearTimeout(timer);
+  }
 }
 
 const loadJson=url=>fetch(url).then(response=>response.json());

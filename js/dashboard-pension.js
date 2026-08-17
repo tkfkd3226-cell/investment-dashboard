@@ -961,7 +961,7 @@ async function savePensionBatchViaGithubPages(operations,pin,batchRequestId){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   if(!config.url||config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
   const payload={pin:String(pin||'').trim(),action:'batchPension',batchRequestId:String(batchRequestId||'').trim(),operations:operations.map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null}))};
-  const res=await fetch(config.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+  const res=await fetchWithTimeout(config.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
   const data=await res.json().catch(()=>({}));
   if(!data.ok)throw new Error(data.error||'작업 모음 일괄 적용에 실패했습니다.');
   return data;
@@ -1016,7 +1016,7 @@ async function savePensionContributionViaGithubPages(item,pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   if(!config.url || config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
   const payload={...item,pin:String(pin||'').trim(),target:item.target||'contribution',action:'upsert',updatedBy:'github-pages'};
-  const res=await fetch(config.url,{
+  const res=await fetchWithTimeout(config.url,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(payload)
@@ -1079,7 +1079,7 @@ async function deletePensionContributionViaGithubPages(target,key,pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   if(!config.url || config.url.includes('여기에_'))throw new Error('GitHub Pages 삭제 URL이 설정되지 않았습니다.');
   const isCash=target==='cashSnapshot';
-  const res=await fetch(config.url,{
+  const res=await fetchWithTimeout(config.url,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({pin:String(pin||'').trim(),target:target||'contribution',action:'delete',id:isCash?'':key,date:isCash?key:''})
