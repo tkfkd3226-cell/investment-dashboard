@@ -3024,14 +3024,11 @@ body.contrib-modal-open{
   width:100%;
   min-width:0;
   padding:0 var(--space-4xl);
-  white-space:normal;
+  white-space:nowrap;
   word-break:keep-all;
   overflow-wrap:normal;
 }
 .krx-action-buttons .primary:disabled{opacity:.55;cursor:wait}
-@media(min-width:761px){
-  .krx-action-buttons .primary{white-space:nowrap}
-}
 .pension-action-pin-buttons{
   display:flex;
   justify-content:flex-end;
@@ -3450,19 +3447,12 @@ button:not(:disabled):active,
 }
 
 /* Pension PIN Status · 퇴직연금 PIN 자동 실행/상태 표시 */
-.pension-action-pin-guide{
-  margin-top:var(--space-2xl);
-  color:var(--text-secondary);
-  font-size:11.5px;
-  font-weight:var(--type-weight-strong);
-  line-height:var(--type-line-helper);
-}
 .pension-action-pin-status.checking{color:var(--status-info-strong)}
 .pension-action-pin-card .action-modal-input:disabled{opacity:.68;cursor:wait}
 
 @media(max-width:760px){
   .krx-action-buttons{
-    grid-template-columns:52px minmax(108px,1fr) minmax(78px,.72fr);
+    grid-template-columns:52px minmax(108px,1fr) minmax(104px,1fr);
     gap:var(--space-lg);
   }
   .krx-action-buttons .action-modal-btn{
@@ -3470,16 +3460,11 @@ button:not(:disabled):active,
     height:auto;
     padding:var(--space-md) var(--space-xl);
     font-size:var(--type-size-sm);
-    white-space:normal;
   }
 }
 
 /* Chart Navigation Ownership · 차트 이동 배치는 태블릿 overflow/phone-chart-ui 규칙에서 관리 */
 
-.krx-selected-line,
-.krx-selected-space{
-  display:inline;
-}
 .mobile-top-button{
   position:fixed;
   right:20px;
@@ -3528,10 +3513,6 @@ button:not(:disabled):active,
 .mobile-top-button:active{transform:scale(.96)}
 /* Mobile top button Light/Dark colors and elevation resolve through navigation tokens. */
 
-@media(max-width:760px){
-  .krx-selected-line{display:block}
-  .krx-selected-space{display:none}
-}
 
 /* Securities Holding Markers · 증권 보유종목: 차트 색상 marker */
 .holding-name-text{
