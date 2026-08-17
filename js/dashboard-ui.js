@@ -847,7 +847,7 @@ function renderAccounts(x){
   const c=dataState.portfolio.constants,v=separateProfitView(x);
   const rows=[
     ['삼성증권1',v.account1Principal,v.account1Profit,v.account1Return,'2025-10-16 최초 시작.'],
-    ...(x.account2Included?[['삼성증권2',c.account2Principal,c.account2Profit,c.account2Profit/c.account2Principal*100,'2023-12-20 최초 시작. 2026-05-22 전량 매도 후 실현분 반영.']]:[]),
+    ...(x.account2Included?[['삼성증권2',c.account2Principal,c.account2Profit,c.account2Profit/c.account2Principal*100,'2023-12-20 최초 시작. 2026-05-22 전량 매도.']]:[]),
     ['토스증권',0,c.tossProfit,0,'2026-03-09 매수 후 익일 매도.']
   ];
   const totalMemo='계좌 간 자금 이동 반영';
