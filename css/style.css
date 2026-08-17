@@ -776,7 +776,7 @@ th:last-child, td:last-child{
   border-right:0;
 }
 
-tr:last-child td{
+tbody tr:last-child > :is(th,td){
   border-bottom:0;
 }
 
