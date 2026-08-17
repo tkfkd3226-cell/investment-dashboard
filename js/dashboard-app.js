@@ -1,3 +1,73 @@
+import {
+  allAvailableDates,
+  calc,
+  chartState,
+  dataState,
+  escapeHtml,
+  koreanDateLabel,
+  loadInitialData,
+  navIconSvg,
+  pct,
+  separateProfitCumulativeForDate,
+  separateProfitView,
+  signed,
+  uiState,
+  won
+} from './dashboard-core.js';
+import {
+  clearChartHover,
+  drawAllCharts,
+  drawCumChart,
+  openExpandedChart,
+  scrollChartToEnd,
+  scrollChartToStart,
+  setChartAutoY,
+  setChartCompareMode,
+  setSecurityAllocMode,
+  setSymbolChartMode,
+  toggleChartSeries,
+  toggleChartTitleInfo
+} from './dashboard-charts.js';
+import {
+  closeDateActionMenu,
+  closeDesktopEdgeToc,
+  closeKrxActionModal,
+  ensureDesktopEdgeToc,
+  ensureMobileTopButton,
+  handleAssetTabKeydown,
+  hydrateSectionTitleIcons,
+  jumpToSection,
+  mobileDateMenuIsOpen,
+  renderCombined,
+  renderSecuritiesSection,
+  renderTabs,
+  restoreMobileDateMenuAfterRender,
+  setAssetTab,
+  setMobileDatePinned,
+  setupSectionNavigationTracking,
+  setupUiGlobalEvents,
+  submitKrxActionModal,
+  suppressSecuritiesCumCardTransitionOnce,
+  syncAssetTabs,
+  syncCornerThemeControls,
+  syncMobileTopbarState,
+  syncThemeControls,
+  toggleCornerTheme,
+  toggleDateActionMenu,
+  toggleDesktopEdgeToc,
+  toggleMobileDataView,
+  toggleTheme,
+  triggerKrxPriceUpdate
+} from './dashboard-ui.js';
+import {
+  openPensionContributionModal,
+  registerPensionHooks,
+  renderPension,
+  renderPensionContributionModal,
+  setupPensionEventDelegation,
+  setupPensionVizTooltips
+} from './dashboard-pension.js';
+
 // 메인 대시보드 app action · render · event binding · boot orchestration
 
 function enterPersonalView(){

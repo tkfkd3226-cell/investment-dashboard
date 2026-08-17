@@ -1,3 +1,44 @@
+import {
+  ASSET_TYPE_COLORS,
+  CASH_ASSET_COLOR,
+  SECURITY_SYMBOL_COLORS,
+  activateDashboardDialogFocus,
+  allocHistory,
+  allAvailableDates,
+  assetTypeColor,
+  calc,
+  chartSeriesSwatch,
+  chartState,
+  cls,
+  cumHistory,
+  dataState,
+  fmt,
+  formatKospi,
+  hasPensionData,
+  kospiIndexForDate,
+  navIconSvg,
+  pct,
+  pensionProductSwatch,
+  pensionSeriesColor,
+  releaseDashboardDialogFocus,
+  securityAllocOneShareEval,
+  securityAllocTypeTotals,
+  securityAllocVisibleHoldings,
+  securityAllocationColor,
+  securityChartNamesForDate,
+  securitySymbolAllocHistory,
+  securitySymbolSwatch,
+  separateProfitCumulativeForDate,
+  signed,
+  snapshotDates,
+  sortPensionItems,
+  sortSecurityAllocationItems,
+  sortSecurityChartItems,
+  symbolHistory,
+  uiState,
+  won
+} from './dashboard-core.js';
+
 // 메인 대시보드 차트 UI · SVG · legend · 확대 · responsive chart 처리
 
 // Expanded / Responsive Controls · 확대 / 반응형 컨트롤
@@ -1242,3 +1283,20 @@ function drawAllCharts(){
 
 
 
+
+export {
+  clearChartHover,
+  drawAllCharts,
+  drawCumChart,
+  openExpandedChart,
+  renderCharts,
+  renderPensionCharts,
+  scrollChartToEnd,
+  scrollChartToStart,
+  setChartAutoY,
+  setChartCompareMode,
+  setSecurityAllocMode,
+  setSymbolChartMode,
+  toggleChartSeries,
+  toggleChartTitleInfo
+};

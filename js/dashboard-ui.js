@@ -1,3 +1,43 @@
+import {
+  PENSION_CONTRIBUTION_SAVE_CONFIG,
+  account1PrincipalForDate,
+  account1SourceHoldingGapForDate,
+  account1SourcePrincipalForDate,
+  activateDashboardDialogFocus,
+  allAvailableDates,
+  chartState,
+  cls,
+  dataState,
+  dayOptionLabel,
+  escapeHtml,
+  fetchWithTimeout,
+  fmt,
+  isLedgerCheckDate,
+  monthLabel,
+  navIconSvg,
+  outsideCashForDate,
+  pct,
+  releaseDashboardDialogFocus,
+  securityExcludedTransferSum,
+  securityExternalContributionSum,
+  securityInternalCashTransferSum,
+  securitySymbolSwatch,
+  securitiesScopeText,
+  separateProfitCumulativeForDate,
+  separateProfitReinvestedForDate,
+  separateProfitView,
+  signed,
+  sortSecurityItems,
+  sourceExternalPrincipalForDate,
+  tableCls,
+  uiState,
+  won
+} from './dashboard-core.js';
+import {
+  drawAllCharts,
+  renderCharts
+} from './dashboard-charts.js';
+
 // 메인 대시보드 일반 UI · topbar · navigation · rendering component
 
 const THEME_STORAGE_KEY='investmentDashboard.theme';
@@ -794,3 +834,41 @@ function renderSourceTables(x){
   return `<section id="capital-source-check" class="capital-source-section"><div class="section-title source-title"><h2><span class="section-title-icon" data-section-title-icon="receipt" aria-hidden="true"></span>투자원금 원천 및 검산</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid three source-grid">${externalCard}${performanceCard}${trackedCard}</div></section>`;
 }
 
+
+export {
+  closeDateActionMenu,
+  closeDesktopEdgeToc,
+  closeKrxActionModal,
+  ensureDesktopEdgeToc,
+  ensureMobileTopButton,
+  forceMobileViewportReflow,
+  handleAssetTabKeydown,
+  hydrateSectionTitleIcons,
+  jumpToSection,
+  metricCard,
+  mobileDateMenuIsOpen,
+  mobileInfoCard,
+  mobileViewAttrs,
+  mobileViewToggle,
+  renderCombined,
+  renderSecuritiesSection,
+  renderTabs,
+  restoreMobileDateMenuAfterRender,
+  setAssetTab,
+  setMobileDatePinned,
+  setupSectionNavigationTracking,
+  setupUiGlobalEvents,
+  showAppToast,
+  submitKrxActionModal,
+  suppressSecuritiesCumCardTransitionOnce,
+  syncAssetTabs,
+  syncCornerThemeControls,
+  syncMobileTopbarState,
+  syncThemeControls,
+  toggleCornerTheme,
+  toggleDateActionMenu,
+  toggleDesktopEdgeToc,
+  toggleMobileDataView,
+  toggleTheme,
+  triggerKrxPriceUpdate
+};

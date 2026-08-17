@@ -1,3 +1,51 @@
+import {
+  CASH_ASSET_COLOR,
+  PENSION_CONTRIBUTION_SAVE_CONFIG,
+  activateDashboardDialogFocus,
+  cls,
+  dataState,
+  escapeHtml,
+  fetchWithTimeout,
+  fmt,
+  kstTodayText,
+  latestPensionContribution,
+  linkedPensionCashSnapshotForContribution,
+  linkedPensionCashSnapshotForTrade,
+  navIconSvg,
+  pct,
+  pensionBaseCashForDate,
+  pensionCashBeforeNewTrade,
+  pensionCashSnapshotItems,
+  pensionCashSnapshotReflectsContribution,
+  pensionCashSnapshotReflectsTrade,
+  pensionContributionItems,
+  pensionEvaluationBasisText,
+  pensionPositionState,
+  pensionProductSwatch,
+  pensionSeriesColor,
+  pensionState,
+  pensionTradeItems,
+  rawPensionCashSnapshotItems,
+  rawPensionContributionItems,
+  rawPensionTradeItems,
+  releaseDashboardDialogFocus,
+  shortDate,
+  signed,
+  sortPensionItems,
+  tableCls,
+  won
+} from './dashboard-core.js';
+import { renderPensionCharts } from './dashboard-charts.js';
+import {
+  closeDateActionMenu,
+  forceMobileViewportReflow,
+  metricCard,
+  mobileInfoCard,
+  mobileViewAttrs,
+  mobileViewToggle,
+  showAppToast
+} from './dashboard-ui.js';
+
 // 퇴직연금 rendering · 금액조정 · 저장/삭제 · batch · PIN
 
 const pensionHooks={renderDashboard:null};
@@ -1223,3 +1271,12 @@ function setupPensionVizTooltips(){
   document.addEventListener('scroll',()=>closeTooltips(null),true);
 }
 
+
+export {
+  openPensionContributionModal,
+  registerPensionHooks,
+  renderPension,
+  renderPensionContributionModal,
+  setupPensionEventDelegation,
+  setupPensionVizTooltips
+};
