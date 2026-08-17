@@ -13,7 +13,7 @@ function syncThemeControls(){
   document.querySelectorAll('[data-theme-toggle]').forEach(el=>{
     el.setAttribute('aria-pressed',String(dark));
     el.setAttribute('title',dark?'밝은 모드로 전환':'다크 모드로 전환');
-    el.setAttribute('aria-label',dark?'밝은 모드로 전환':'다크 모드로 전환');
+    el.setAttribute('aria-label','다크 모드');
   });
 }
 function setTheme(theme,{redraw=true}={}){
@@ -34,7 +34,7 @@ function syncCornerThemeControls(){
   document.querySelectorAll('[data-corner-theme-toggle]').forEach(el=>{
     el.setAttribute('aria-pressed',String(!rounded));
     el.setAttribute('title',rounded?'각진 모서리로 전환':'둥근 모서리로 전환');
-    el.setAttribute('aria-label',rounded?'각진 모서리로 전환':'둥근 모서리로 전환');
+    el.setAttribute('aria-label','각진 모서리');
   });
 }
 function setCornerTheme(theme){
@@ -336,8 +336,8 @@ function renderTabs(){
   document.getElementById('tabs').innerHTML=`
     <div class="date-picker">
       <div class="date-picker-center" role="group" aria-label="기준일 선택">
-        <select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select>
-        <select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===dataState.activeDate?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
+        <select class="date-select month-select" id="monthSelect" aria-label="월 선택" aria-controls="app">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select>
+        <select class="date-select day-select" id="dateSelect" aria-label="일 선택" aria-controls="app">${monthDates.map(d=>`<option value="${d}" ${d===dataState.activeDate?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
       </div>
       <div class="date-picker-action" role="group" aria-label="대시보드 도구">
         <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물">
@@ -355,10 +355,10 @@ function renderTabs(){
         ${uiState.personalViewUnlocked?`<a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" title="투자 계산기" aria-label="투자 계산기">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
         </a>`:''}
-        <button type="button" class="date-tool-btn topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" data-dashboard-action="toggle-theme">
+        <button type="button" class="date-tool-btn topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="다크 모드" data-dashboard-action="toggle-theme">
           <span class="date-tool-action-icon" data-theme-toggle-icon>${themeToggleIconMarkup(currentTheme()==='dark')}</span>
         </button>
-        <button type="button" class="date-tool-btn topbar-corner-action" data-corner-theme-toggle aria-pressed="${currentCornerTheme()==='soft-square'}" title="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" aria-label="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" data-dashboard-action="toggle-corner-theme">
+        <button type="button" class="date-tool-btn topbar-corner-action" data-corner-theme-toggle aria-pressed="${currentCornerTheme()==='soft-square'}" title="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" aria-label="각진 모서리" data-dashboard-action="toggle-corner-theme">
           <span class="date-tool-action-icon" data-corner-theme-toggle-icon>${cornerThemeToggleIconMarkup(currentCornerTheme()==='rounded')}</span>
         </button>
         <div class="date-action-menu-wrap">
