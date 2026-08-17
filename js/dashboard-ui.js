@@ -32,9 +32,10 @@ function syncCornerThemeControls(){
   const rounded=currentCornerTheme()==='rounded';
   document.querySelectorAll('[data-corner-theme-toggle-icon]').forEach(el=>el.innerHTML=cornerThemeToggleIconMarkup(rounded));
   document.querySelectorAll('[data-corner-theme-toggle]').forEach(el=>{
-    el.setAttribute('aria-pressed',String(!rounded));
-    el.setAttribute('title',rounded?'각진 모서리로 전환':'둥근 모서리로 전환');
-    el.setAttribute('aria-label','각진 모서리');
+    const nextLabel=rounded?'각진 모서리로 전환':'둥근 모서리로 전환';
+    el.removeAttribute('aria-pressed');
+    el.setAttribute('title',nextLabel);
+    el.setAttribute('aria-label',nextLabel);
   });
 }
 function setCornerTheme(theme){
@@ -389,7 +390,7 @@ function renderTabs(){
         <button type="button" class="date-tool-btn topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="다크 모드" data-dashboard-action="toggle-theme">
           <span class="date-tool-action-icon" data-theme-toggle-icon>${themeToggleIconMarkup(currentTheme()==='dark')}</span>
         </button>
-        <button type="button" class="date-tool-btn topbar-corner-action" data-corner-theme-toggle aria-pressed="${currentCornerTheme()==='soft-square'}" title="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" aria-label="각진 모서리" data-dashboard-action="toggle-corner-theme">
+        <button type="button" class="date-tool-btn topbar-corner-action" data-corner-theme-toggle title="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" aria-label="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" data-dashboard-action="toggle-corner-theme">
           <span class="date-tool-action-icon" data-corner-theme-toggle-icon>${cornerThemeToggleIconMarkup(currentCornerTheme()==='rounded')}</span>
         </button>
         <div class="date-action-menu-wrap">
