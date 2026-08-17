@@ -264,17 +264,12 @@
   --topbar-control-border:rgba(255,255,255,.30);
   --topbar-control-border-hover:rgba(255,255,255,.46);
   --topbar-control-border-focus:#93c5fd;
-  --topbar-toggle-active-bg:#172033;
-  --topbar-toggle-active-border:#7dd3fc;
   --topbar-shadow:0 12px 30px rgba(0,0,0,.30);
   --topbar-control-shadow:0 5px 14px rgba(0,0,0,.14);
   --topbar-floating-bg:rgba(255,255,255,.84);
   --topbar-floating-border:rgba(15,23,42,.42);
   --topbar-floating-text:#374151;
   --topbar-floating-shadow:0 4px 12px rgba(15,23,42,.10);
-  --topbar-floating-active-bg:#e0f2fe;
-  --topbar-floating-active-border:#0284c7;
-  --topbar-floating-active-text:#0f172a;
   --pin-track-bg:rgba(255,255,255,.24);
   --pin-track-border:rgba(255,255,255,.20);
   --pin-track-thumb:#ffffff;
@@ -4522,10 +4517,6 @@ body.chart-expanded-open .dash-tooltip{
 .date-tool-btn:hover,
 .date-tool-btn:active{background:var(--topbar-control-hover-bg)}
 .date-tool-btn:active{border-color:var(--topbar-control-border-hover)}
-:is(.topbar-theme-action,.topbar-corner-action)[aria-pressed="true"]{
-  background:var(--topbar-toggle-active-bg);
-  border-color:var(--topbar-toggle-active-border);
-}
 .topbar-calc-action{text-decoration:none}
 .date-tool-action-icon{
   width:16px;
@@ -4610,11 +4601,6 @@ body.chart-expanded-open .dash-tooltip{
     color:var(--topbar-floating-text);
     box-shadow:var(--topbar-floating-shadow);
   }
-  html:not(.dark) :is(.topbar-theme-action,.topbar-corner-action)[aria-pressed="true"]{
-    background:var(--topbar-floating-active-bg);
-    border-color:var(--topbar-floating-active-border);
-    color:var(--topbar-floating-active-text);
-  }
   .topbar-theme-action,
   .topbar-corner-action{
     position:fixed;
@@ -4660,10 +4646,6 @@ body.chart-expanded-open .dash-tooltip{
     box-shadow:var(--topbar-control-shadow);
   }
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-theme-action,.topbar-corner-action,.date-tool-menu-btn):hover{background:var(--topbar-control-hover-bg)}
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-theme-action,.topbar-corner-action)[aria-pressed="true"]{
-    background:var(--topbar-toggle-active-bg);
-    border-color:var(--topbar-toggle-active-border);
-  }
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-theme-action,.topbar-corner-action){
     position:relative;
     top:auto;
