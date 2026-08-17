@@ -3597,7 +3597,7 @@ button:not(:disabled):active,
     font-weight:var(--type-weight-strong);
     line-height:1;
     letter-spacing:-.02em;
-    cursor:default;
+    cursor:pointer;
   }
   .desktop-edge-toc-trigger span:last-child{
     writing-mode:vertical-rl;
@@ -3622,14 +3622,14 @@ button:not(:disabled):active,
     transition:opacity .16s ease,transform .16s ease,visibility .16s ease;
   }
   .desktop-edge-toc:hover .desktop-edge-toc-panel,
-  .desktop-edge-toc:focus-within .desktop-edge-toc-panel{
+  .desktop-edge-toc.is-open .desktop-edge-toc-panel{
     opacity:1;
     visibility:visible;
     pointer-events:auto;
     transform:translate(0,-50%);
   }
   .desktop-edge-toc:hover .desktop-edge-toc-trigger,
-  .desktop-edge-toc:focus-within .desktop-edge-toc-trigger{
+  .desktop-edge-toc.is-open .desktop-edge-toc-trigger{
     border-color:var(--nav-border-hover);
     background:var(--nav-surface-hover);
     color:var(--nav-text-strong);
