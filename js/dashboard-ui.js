@@ -581,6 +581,7 @@ function openKrxActionModal(){
   const status=modal.querySelector('#krxActionStatus');
   const input=modal.querySelector('#krxActionPin');
   if(status){status.textContent='';status.className='action-modal-status krx-action-status'}
+  input?.setAttribute('aria-invalid','false');
   modal.classList.add('show');
   modal.setAttribute('aria-hidden','false');
   activateDashboardDialogFocus(modal,{initialFocus:input,fallbackSelector:'[data-dashboard-action="krx-update"]'});
