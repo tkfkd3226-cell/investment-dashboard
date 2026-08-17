@@ -193,6 +193,7 @@ async function boot(){
 }
 
 boot().catch(err=>{
-  document.getElementById('app').innerHTML=`<div class="wrap"><div class="note"><h2><span class="section-title-icon">⚠️</span>데이터 로딩 오류</h2><pre>${String(err)}</pre></div></div>`;
+  const message=escapeHtml(String(err));
+  document.getElementById('app').innerHTML=`<div class="wrap"><div class="note dashboard-error-note" role="alert" aria-labelledby="dashboardLoadErrorTitle"><h2 id="dashboardLoadErrorTitle"><span class="section-title-icon" data-section-title-icon="alertTriangle" aria-hidden="true">${navIconSvg('alertTriangle')}</span>데이터 로딩 오류</h2><pre class="dashboard-error-message">${message}</pre></div></div>`;
 })
 
