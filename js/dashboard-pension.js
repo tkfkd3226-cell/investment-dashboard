@@ -91,10 +91,11 @@ function renderPensionContributionModal(x){
   return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" data-pension-backdrop-close="true"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle" class="modal-main-title">퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="modal-icon-btn contrib-modal-icon-btn pension-form-reset" data-pension-action="reset-form" title="입력값 초기화" aria-label="입력값 초기화">${navIconSvg('reset')}</button><button type="button" class="modal-icon-btn contrib-modal-icon-btn contrib-modal-close" data-pension-action="close-modal" aria-label="닫기">${navIconSvg('close')}</button></div></div>
 <div class="pension-contrib-context" aria-label="퇴직연금 금액 조정 옵션">
   <div class="pension-contrib-context-head"><span class="contrib-field-label">조정 항목</span><div class="chart-compare-toggle pension-work-mode" role="group" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" aria-pressed="true" data-mode="single" data-pension-action="set-batch-mode" data-pension-enabled="false">개별 처리</button><button type="button" class="pension-work-mode-btn" aria-pressed="false" data-mode="batch" data-pension-action="set-batch-mode" data-pension-enabled="true">작업 모음 <span id="pensionBatchModeCount" class="pension-batch-count" hidden>0</span></button></div></div>
-  <input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="조정 항목 선택"><button type="button" class="contrib-target-option active" data-target="cashSnapshot" data-pension-action="set-target">현금성자산</button><button type="button" class="contrib-target-option" data-target="contribution" data-pension-action="set-target">기업적립금</button><button type="button" class="contrib-target-option" data-target="etfTrade" data-pension-action="set-target">추가 매수</button></div>
+  <input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="조정 항목 선택" aria-orientation="horizontal"><button type="button" id="pension-target-tab-cash" class="contrib-target-option active" role="tab" aria-selected="true" aria-controls="pensionContribTargetPanel" tabindex="0" data-target="cashSnapshot" data-pension-action="set-target">현금성자산</button><button type="button" id="pension-target-tab-contribution" class="contrib-target-option" role="tab" aria-selected="false" aria-controls="pensionContribTargetPanel" tabindex="-1" data-target="contribution" data-pension-action="set-target">기업적립금</button><button type="button" id="pension-target-tab-trade" class="contrib-target-option" role="tab" aria-selected="false" aria-controls="pensionContribTargetPanel" tabindex="-1" data-target="etfTrade" data-pension-action="set-target">추가 매수</button></div>
 </div>
-<div class="pension-contrib-tool modal-card-box">
-  <h3>등록</h3>
+<div id="pensionContribTargetPanel" role="tabpanel" aria-labelledby="pension-target-tab-cash">
+<div class="pension-contrib-tool modal-card-box" role="group" aria-labelledby="pensionContribRegisterTitle">
+  <h3 id="pensionContribRegisterTitle">등록</h3>
   <div id="pensionContribStandardFields" class="pension-adjust-form cash-mode">
     <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${cashDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></div>
     <div class="contrib-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">평가금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="${cashDefaultValue}" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}" data-pension-input="money"></div>
@@ -117,15 +118,16 @@ function renderPensionContributionModal(x){
   <div id="pensionContribStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
   <pre id="pensionContribOutput" class="contrib-output"></pre>
 </div>
-<div id="pensionContribDeleteCard" class="contrib-list modal-card-box"${pensionCashSnapshotItems().length?'':' hidden'}>
-  <h3>삭제</h3>
+<div id="pensionContribDeleteCard" class="contrib-list modal-card-box" role="group" aria-labelledby="pensionContribDeleteTitle"${pensionCashSnapshotItems().length?'':' hidden'}>
+  <h3 id="pensionContribDeleteTitle">삭제</h3>
   <p id="pensionContribDeleteHelp" class="small">잘못 등록한 현금성자산 기록 선택 후 삭제</p>
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList('cashSnapshot')}</div>
   <div class="contrib-actions"><button type="button" id="pensionContribDeleteButton" class="contrib-btn danger" data-pension-action="delete-selected">선택 항목 삭제</button></div>
   <div id="pensionContribDeleteStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
 </div>
-<div id="pensionBatchPanel" class="pension-batch-panel modal-card-box" hidden>
-  <div class="pension-batch-head"><div><h3>작업 모음 <span id="pensionBatchTitleCount">0건</span></h3><p>저장·삭제 작업을 모아 PIN 한 번으로 한 커밋에 반영합니다.</p></div><button type="button" id="pensionBatchClearButton" class="pension-batch-clear" data-pension-action="clear-batch">전체 비우기</button></div>
+</div>
+<div id="pensionBatchPanel" class="pension-batch-panel modal-card-box" role="group" aria-labelledby="pensionBatchTitle" hidden>
+  <div class="pension-batch-head"><div><h3 id="pensionBatchTitle">작업 모음 <span id="pensionBatchTitleCount">0건</span></h3><p>저장·삭제 작업을 모아 PIN 한 번으로 한 커밋에 반영합니다.</p></div><button type="button" id="pensionBatchClearButton" class="pension-batch-clear" data-pension-action="clear-batch">전체 비우기</button></div>
   <div id="pensionBatchQueueList" class="pension-batch-queue"><div class="pension-batch-empty">아직 추가된 작업이 없습니다.</div></div>
   <div id="pensionBatchOrderNote" class="pension-batch-order-note" hidden></div>
   <div id="pensionBatchStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -362,9 +364,16 @@ function setPensionContributionTarget(target){
 }
 function syncPensionContributionTargetUi(){
   const target=pensionContributionTarget();
+  let activeTargetTab=null;
   document.querySelectorAll('.contrib-target-option').forEach(btn=>{
-    btn.classList.toggle('active', btn.dataset.target===target);
+    const active=btn.dataset.target===target;
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-selected',String(active));
+    btn.tabIndex=active?0:-1;
+    if(active)activeTargetTab=btn;
   });
+  const targetPanel=document.getElementById('pensionContribTargetPanel');
+  if(targetPanel&&activeTargetTab?.id)targetPanel.setAttribute('aria-labelledby',activeTargetTab.id);
   const standardFields=document.getElementById('pensionContribStandardFields');
   const tradeFields=document.getElementById('pensionEtfTradeFields');
   if(standardFields){
@@ -1131,6 +1140,23 @@ async function deleteSelectedPensionContribution(){
 
 
 // Event Delegation / Tooltip · 이벤트 위임 / 툴팁
+function handlePensionTargetTabKeydown(event,tab){
+  const tabs=[...tab.closest('[role="tablist"]')?.querySelectorAll('.contrib-target-option[role="tab"]')||[]];
+  if(!tabs.length)return false;
+  const current=Math.max(0,tabs.indexOf(tab));
+  let next=current;
+  if(event.key==='ArrowRight')next=(current+1)%tabs.length;
+  else if(event.key==='ArrowLeft')next=(current-1+tabs.length)%tabs.length;
+  else if(event.key==='Home')next=0;
+  else if(event.key==='End')next=tabs.length-1;
+  else return false;
+  event.preventDefault();
+  const target=tabs[next];
+  setPensionContributionTarget(target.dataset.target||'cashSnapshot');
+  target.focus();
+  return true;
+}
+
 function handlePensionAction(control){
   const action=control.dataset.pensionAction;
   if(action==='reset-form')return resetPensionContributionForm();
@@ -1148,6 +1174,10 @@ function setupPensionEventDelegation(){
   const root=document.documentElement;
   if(root.dataset.pensionEventsBound==='1')return;
   root.dataset.pensionEventsBound='1';
+  document.addEventListener('keydown',event=>{
+    const targetTab=event.target?.closest?.('.contrib-target-option[role="tab"]');
+    if(targetTab)handlePensionTargetTabKeydown(event,targetTab);
+  });
   document.addEventListener('click',event=>{
     if(event.target?.matches?.('[data-pension-backdrop-close="true"]')){
       closePensionContributionModal();
