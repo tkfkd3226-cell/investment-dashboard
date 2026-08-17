@@ -3017,7 +3017,7 @@ body.contrib-modal-open{
 .action-modal-btn.primary{background:var(--asset-tab-active-bg);color:var(--asset-tab-active-color);border-color:var(--asset-tab-active-bg)}
 .krx-action-buttons{
   display:grid;
-  grid-template-columns:auto minmax(112px,1fr) minmax(116px,.86fr);
+  grid-template-columns:max-content minmax(max-content,1fr) max-content;
   align-items:stretch;
 }
 .krx-action-buttons .action-modal-btn{
@@ -3452,7 +3452,6 @@ button:not(:disabled):active,
 
 @media(max-width:760px){
   .krx-action-buttons{
-    grid-template-columns:52px minmax(108px,1fr) minmax(104px,1fr);
     gap:var(--space-lg);
   }
   .krx-action-buttons .action-modal-btn{
