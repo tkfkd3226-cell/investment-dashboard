@@ -9,11 +9,12 @@ function themeToggleIconMarkup(dark){
 }
 function syncThemeControls(){
   const dark=currentTheme()==='dark';
+  const nextLabel=dark?'밝은 모드로 전환':'다크 모드로 전환';
   document.querySelectorAll('[data-theme-toggle-icon]').forEach(el=>el.innerHTML=themeToggleIconMarkup(dark));
   document.querySelectorAll('[data-theme-toggle]').forEach(el=>{
-    el.setAttribute('aria-pressed',String(dark));
-    el.setAttribute('title',dark?'밝은 모드로 전환':'다크 모드로 전환');
-    el.setAttribute('aria-label','다크 모드');
+    el.removeAttribute('aria-pressed');
+    el.setAttribute('title',nextLabel);
+    el.setAttribute('aria-label',nextLabel);
   });
 }
 function setTheme(theme,{redraw=true}={}){
@@ -387,7 +388,7 @@ function renderTabs(){
         ${uiState.personalViewUnlocked?`<a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" title="투자 계산기" aria-label="투자 계산기">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
         </a>`:''}
-        <button type="button" class="date-tool-btn topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="다크 모드" data-dashboard-action="toggle-theme">
+        <button type="button" class="date-tool-btn topbar-theme-action" data-theme-toggle title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" data-dashboard-action="toggle-theme">
           <span class="date-tool-action-icon" data-theme-toggle-icon>${themeToggleIconMarkup(currentTheme()==='dark')}</span>
         </button>
         <button type="button" class="date-tool-btn topbar-corner-action" data-corner-theme-toggle title="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" aria-label="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" data-dashboard-action="toggle-corner-theme">
