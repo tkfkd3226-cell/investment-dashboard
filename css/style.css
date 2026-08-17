@@ -4923,8 +4923,8 @@ body.chart-expanded-open .dash-tooltip{
 .accounts-table tbody tr:not(.summary-row) .accounts-name{font-weight:var(--data-table-label-weight)}
 .dashboard-data-table .accounts-memo{
   min-width:180px;
-  max-width:260px;
-  white-space:normal;
+  max-width:none;
+  white-space:nowrap;
   color:var(--muted);
   font-size:calc(var(--data-table-font-size) - .5px);
   font-weight:var(--data-table-memo-weight);
@@ -4968,7 +4968,6 @@ body.chart-expanded-open .dash-tooltip{
   #pension-change .change-table .mobile-table-kodex-prefix{
     display:none;
   }
-  .dashboard-data-table .accounts-memo{width:clamp(180px,34vw,260px)}
   .mobile-view-toggle{
     display:inline-flex;
     flex:0 0 auto;
