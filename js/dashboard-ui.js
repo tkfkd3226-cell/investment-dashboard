@@ -261,8 +261,24 @@ function ensureDesktopEdgeToc(){
     toc.setAttribute('aria-label','화면 목차');
     document.body.appendChild(toc);
   }
-  toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기" aria-controls="desktopEdgeTocPanel"><span>목차</span></button><nav id="desktopEdgeTocPanel" class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title"><span>목차</span></div>${renderDesktopTocContent()}</nav>`;
+  toc.innerHTML=`<button type="button" id="desktopEdgeTocTrigger" class="desktop-edge-toc-trigger" aria-label="목차" aria-controls="desktopEdgeTocPanel" aria-expanded="false" title="목차 열기" data-dashboard-action="toggle-desktop-toc"><span>목차</span></button><nav id="desktopEdgeTocPanel" class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title"><span>목차</span></div>${renderDesktopTocContent()}</nav>`;
 }
+function setDesktopEdgeTocOpen(open,{focusTrigger=false}={}){
+  const toc=document.getElementById('desktopEdgeToc');
+  const trigger=document.getElementById('desktopEdgeTocTrigger');
+  if(!toc||!trigger)return;
+  const next=!!open&&window.matchMedia?.('(min-width:761px)').matches!==false;
+  toc.classList.toggle('is-open',next);
+  trigger.setAttribute('aria-expanded',String(next));
+  trigger.setAttribute('title',next?'목차 닫기':'목차 열기');
+  if(focusTrigger)trigger.focus();
+}
+function toggleDesktopEdgeToc(){
+  const toc=document.getElementById('desktopEdgeToc');
+  setDesktopEdgeTocOpen(!toc?.classList.contains('is-open'));
+}
+function closeDesktopEdgeToc(options){setDesktopEdgeTocOpen(false,options)}
+
 function visibleSectionNavigationTargets(){
   const ids=[...document.querySelectorAll('[data-dashboard-action="jump-section"][data-section-target]')]
     .map(control=>control.dataset.sectionTarget)
@@ -306,7 +322,21 @@ function setupSectionNavigationTracking(){
   if(!uiState.sectionNavigationBound){
     uiState.sectionNavigationBound=true;
     window.addEventListener('scroll',scheduleSectionNavigationSync,{passive:true});
-    window.addEventListener('resize',scheduleSectionNavigationSync,{passive:true});
+    window.addEventListener('resize',()=>{
+      scheduleSectionNavigationSync();
+      if(window.matchMedia?.('(max-width:760px)').matches)closeDesktopEdgeToc();
+    },{passive:true});
+    document.addEventListener('click',event=>{
+      const toc=document.getElementById('desktopEdgeToc');
+      if(toc?.classList.contains('is-open')&&!event.target.closest('#desktopEdgeToc'))closeDesktopEdgeToc();
+    });
+    document.addEventListener('keydown',event=>{
+      if(event.key!=='Escape'||!event.target.closest?.('#desktopEdgeToc'))return;
+      const toc=document.getElementById('desktopEdgeToc');
+      if(!toc?.classList.contains('is-open'))return;
+      event.preventDefault();
+      closeDesktopEdgeToc({focusTrigger:true});
+    });
   }
   syncSectionNavigationState();
 }

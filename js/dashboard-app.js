@@ -88,6 +88,7 @@ function handleDashboardAction(event,control){
   if(action==='toggle-separate-profit-expanded') return toggleSeparateProfitModeFromExpanded(control.dataset.expandedChartId||'');
   if(action==='close-date-menu') return closeDateActionMenu();
   if(action==='toggle-date-menu') return toggleDateActionMenu(event);
+  if(action==='toggle-desktop-toc') return toggleDesktopEdgeToc();
   if(action==='krx-update') return triggerKrxPriceUpdate();
   if(action==='open-pension-modal'){
     openPensionContributionModal();
@@ -98,6 +99,7 @@ function handleDashboardAction(event,control){
   if(action==='toggle-corner-theme') return toggleCornerTheme();
   if(action==='jump-section'){
     jumpToSection(control.dataset.sectionTarget||'');
+    closeDesktopEdgeToc();
     if(control.dataset.closeDateMenu==='true')closeDateActionMenu();
     return;
   }
