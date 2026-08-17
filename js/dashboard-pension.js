@@ -606,7 +606,7 @@ function resetPensionContributionForm(){
 }
 
 // PIN Dialog · PIN 확인
-function requestPensionActionPin({title='PIN 입력',description='작업 내용을 확인한 뒤 PIN 6자리를 입력하세요.',danger=false,actionLabel='',execute}={}){
+function requestPensionActionPin({title='PIN 입력',description='작업 내용을 확인한 뒤 PIN 6자리를 입력하세요.',danger=false,execute}={}){
   return new Promise(resolve=>{
     const old=document.getElementById('pensionActionPinModal');
     if(old) old.remove();
@@ -619,8 +619,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
       <h3 id="pensionActionPinTitle" class="modal-main-title">${title}</h3>
       <p id="pensionActionPinDescription" class="action-modal-description">${description}</p>
       <label class="action-modal-label" for="pensionActionPinInput">PIN</label>
-      <input id="pensionActionPinInput" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="pensionActionPinDescription pensionActionPinGuide pensionActionPinStatus">
-      <div id="pensionActionPinGuide" class="pension-action-pin-guide">PIN 확인 후 ${actionLabel||(danger?'삭제':'저장')}합니다.</div>
+      <input id="pensionActionPinInput" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="pensionActionPinDescription pensionActionPinStatus">
       <div id="pensionActionPinStatus" class="action-modal-status pension-action-pin-status" role="status" aria-live="polite" aria-atomic="true"></div>
       <div class="action-modal-buttons pension-action-pin-buttons"><button type="button" class="action-modal-btn ghost">취소</button></div>
     </div>`;
@@ -987,7 +986,6 @@ async function applyPensionBatchQueue(){
     const data=await requestPensionActionPin({
       title:'작업 모음 일괄 적용',
       description:`저장·삭제 ${count}건을 한 번에 적용합니다. 하나라도 실패하면 전체 작업을 반영하지 않습니다.`,
-      actionLabel:'일괄 적용',
       execute:pin=>savePensionBatchViaGithubPages(simulated.orderedOperations,pin,batchRequestId)
     });
     if(!data){showPensionBatchStatus('일괄 적용 취소','err');return}

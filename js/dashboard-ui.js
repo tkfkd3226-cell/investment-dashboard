@@ -559,14 +559,14 @@ function ensureKrxActionModal(){
   modal.innerHTML=`<div class="action-modal-card krx-action-card" role="dialog" aria-modal="true" aria-labelledby="krxActionTitle">
     <button type="button" class="modal-icon-btn krx-action-close" data-dashboard-action="close-krx-modal" aria-label="닫기">${navIconSvg('close')}</button>
     <h3 id="krxActionTitle" class="modal-main-title">KRX 현재가 반영</h3>
-    <p id="krxActionDescription" class="action-modal-description">선택한 기준일만 다시 갱신하거나, 날짜를 비워 누락 거래일을 자동 보충할 수 있습니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
+    <p id="krxActionDescription" class="action-modal-description">최신/누락 반영은 최신 거래일·누락 거래일과 과거 장중 표시가 남은 날짜를 자동 보완합니다. 과거 날짜는 종가로 확정하며, 선택일 재갱신은 현재 선택한 날짜를 다시 반영합니다.</p>
     <label class="action-modal-label krx-action-label" for="krxActionPin">저장/실행 PIN</label>
     <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="krxActionDescription krxActionStatus" aria-invalid="false">
     <div id="krxActionStatus" class="action-modal-status krx-action-status" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="action-modal-buttons krx-action-buttons">
       <button type="button" class="action-modal-btn ghost" data-dashboard-action="close-krx-modal">취소</button>
       <button type="button" class="action-modal-btn ghost" data-dashboard-action="submit-krx-modal" data-krx-mode="auto">최신/누락 반영</button>
-      <button type="button" class="action-modal-btn primary" data-dashboard-action="submit-krx-modal" data-krx-mode="selected"><span class="krx-selected-line">선택일</span><span class="krx-selected-space"> </span><span class="krx-selected-line">재갱신</span></button>
+      <button type="button" class="action-modal-btn primary" data-dashboard-action="submit-krx-modal" data-krx-mode="selected">선택일 재갱신</button>
     </div>
   </div>`;
   document.body.appendChild(modal);
