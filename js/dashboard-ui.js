@@ -545,7 +545,7 @@ function ensureKrxActionModal(){
     <h3 id="krxActionTitle" class="modal-main-title">KRX 현재가 반영</h3>
     <p id="krxActionDescription" class="action-modal-description">선택한 기준일만 다시 갱신하거나, 날짜를 비워 누락 거래일을 자동 보충할 수 있습니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
     <label class="action-modal-label krx-action-label" for="krxActionPin">저장/실행 PIN</label>
-    <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 6자리 입력" aria-describedby="krxActionDescription krxActionStatus">
+    <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="krxActionDescription krxActionStatus" aria-invalid="false">
     <div id="krxActionStatus" class="action-modal-status krx-action-status" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="action-modal-buttons krx-action-buttons">
       <button type="button" class="action-modal-btn ghost" data-dashboard-action="close-krx-modal">취소</button>
@@ -560,6 +560,19 @@ function ensureKrxActionModal(){
     e.preventDefault();
     e.stopPropagation();
     closeKrxActionModal();
+  });
+  const pinInput=modal.querySelector('#krxActionPin');
+  pinInput?.addEventListener('input',()=>{
+    const cleaned=String(pinInput.value||'').replace(/\D/g,'').slice(0,6);
+    if(pinInput.value!==cleaned)pinInput.value=cleaned;
+    pinInput.setAttribute('aria-invalid','false');
+    const pinStatus=modal.querySelector('#krxActionStatus');
+    if(pinStatus?.classList.contains('err')){pinStatus.textContent='';pinStatus.className='action-modal-status krx-action-status'}
+  });
+  pinInput?.addEventListener('keydown',e=>{
+    if(e.key!=='Enter')return;
+    e.preventDefault();
+    submitKrxActionModal('selected');
   });
   return modal;
 }
@@ -604,14 +617,16 @@ async function submitKrxActionModal(mode='selected'){
   const input=modal.querySelector('#krxActionPin');
   const status=modal.querySelector('#krxActionStatus');
   const buttons=modal.querySelectorAll('.krx-action-buttons button');
-  const pin=String(input?.value||'').trim();
+  const pin=String(input?.value||'').replace(/\D/g,'').slice(0,6);
   const updateMode=mode==='auto'?'auto':'selected';
   const selectedDate=dataState.activeDate || '';
-  if(!pin){
-    if(status){status.textContent='PIN을 입력해 주세요.';status.className='action-modal-status krx-action-status err'}
+  if(pin.length!==6){
+    input?.setAttribute('aria-invalid','true');
+    if(status){status.textContent='PIN 6자리를 입력해 주세요.';status.className='action-modal-status krx-action-status err'}
     input?.focus();
     return;
   }
+  input?.setAttribute('aria-invalid','false');
   try{
     buttons.forEach(btn=>btn.disabled=true);
     if(status){
