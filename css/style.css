@@ -34,7 +34,7 @@
   /* Semantic value colors: shared by desktop tables and mobile card views. */
   --value-positive:#E6233A;
   --value-negative:#2972E8;
-  --value-difference:#B45309;
+  --highlight-card-difference:#FBBF24;
 
   /* Typography System · 제목 / 라벨 / 값 / 보조문구의 공통 굵기·행간 */
   --type-weight-regular:400;
@@ -371,7 +371,6 @@ html.dark{
   --line:#2b3548;
   --value-positive:#FF5964;
   --value-negative:#60A5FA;
-  --value-difference:#FBBF24;
   --table-head-bg:#1a2233;
   --table-column-line:#232c3d;
   --summary-row-bg:#182132;
@@ -1834,13 +1833,6 @@ button.legend-item.chart-series-all.active{
   align-items:center;
 }
 
-.metric-card .ledger-reason-value{
-  font-size:20px;
-  line-height:var(--type-line-compact);
-  letter-spacing:-.03em;
-  word-break:keep-all;
-}
-
 /* Metric Cards Responsive · 핵심지표 카드 반응형: 태블릿/모바일에서 타이포·여백 단계 축소 */
 @media (min-width:761px) and (max-width:1100px){
   .metric-card{
@@ -1863,9 +1855,6 @@ button.legend-item.chart-series-all.active{
     min-height:30px;
   }
 
-  .metric-card .ledger-reason-value{
-    font-size:var(--type-size-4xl);
-  }
 }
 
 @media (max-width:760px){
@@ -1889,9 +1878,6 @@ button.legend-item.chart-series-all.active{
     min-height:28px;
   }
 
-  .metric-card .ledger-reason-value{
-    font-size:var(--type-size-3xl);
-  }
 }
 
 @media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
@@ -1915,9 +1901,6 @@ button.legend-item.chart-series-all.active{
     min-height:28px;
   }
 
-  .metric-card .ledger-reason-value{
-    font-size:var(--type-size-3xl);
-  }
 }
 
 .chart-note.symbol-summary-grid{
@@ -3368,7 +3351,7 @@ button:not(:disabled):active,
 .table-positive{color:var(--value-positive) !important}
 .negative,
 .table-negative{color:var(--value-negative) !important}
-.ledger-gap-value{color:#FBBF24 !important}
+.ledger-gap-value{color:var(--highlight-card-difference) !important}
 .dash-tooltip .tt-pos{color:var(--tooltip-positive) !important}
 .dash-tooltip .tt-neg{color:var(--tooltip-negative) !important}
 
@@ -4906,7 +4889,7 @@ body.chart-expanded-open .dash-tooltip{
 .dashboard-data-table thead th{font-weight:var(--data-table-head-weight)}
 .dashboard-data-table tbody td.num{font-weight:var(--data-table-value-weight)}
 .dashboard-data-table tbody th[scope="row"]{font-weight:var(--data-table-value-weight);text-align:left}
-.dashboard-data-table tbody .summary-row > td{font-weight:var(--data-table-summary-weight)}
+.dashboard-data-table tbody .summary-row > td{font-weight:var(--data-table-summary-weight);border-top:1px solid var(--table-column-line)}
 .dashboard-data-table tbody .summary-row > td.accounts-memo{font-weight:var(--data-table-memo-weight)}
 /* Table Alignment Hierarchy · label 열은 좌측, 숫자 열은 우측, 명시적 center 열은 중앙 정렬 */
 .dashboard-data-table thead th:first-child{text-align:left}
@@ -4914,7 +4897,6 @@ body.chart-expanded-open .dash-tooltip{
 .dashboard-data-table thead th.table-cell-center{text-align:center}
 .dashboard-data-table .table-cell-center{text-align:center}
 :is(.accounts-table,.pension-products-table) thead th:last-child{text-align:left}
-.dashboard-data-table tbody .summary-row > td{border-top:1px solid var(--table-column-line)}
 /* Table Value States · 표 수익/손실 색상은 공통 semantic utility 재사용 */
 
 /* Table Exceptions · 표 예외: memo 줄바꿈 + 연금 allocation bar 폭 */
