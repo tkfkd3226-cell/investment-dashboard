@@ -437,9 +437,6 @@ function restoreMobileDateMenuAfterRender(){
   syncMobileTopbarState();
 }
 function setupUiGlobalEvents(){
-  const root=document.documentElement;
-  if(root.dataset.uiGlobalEventsBound==='1')return;
-  root.dataset.uiGlobalEventsBound='1';
   document.addEventListener('click',e=>{
     if(!e.target.closest('#tabs')) closeDateActionMenu();
   });

@@ -61,7 +61,6 @@ import {
 } from './dashboard-ui.js';
 import {
   openPensionContributionModal,
-  registerPensionHooks,
   renderPension,
   renderPensionContributionModal,
   setupPensionEventDelegation,
@@ -193,9 +192,6 @@ function handleDashboardAction(event,control){
   if(action==='jump-chart-date') return jumpToChartDate(control.dataset.chartDate||'',control.dataset.chartId||'');
 }
 function setupDashboardEventDelegation(){
-  const root=document.documentElement;
-  if(root.dataset.dashboardEventsBound==='1')return;
-  root.dataset.dashboardEventsBound='1';
   document.addEventListener('click',event=>{
     const control=event.target.closest?.('[data-dashboard-action]');
     if(control)handleDashboardAction(event,control);
@@ -246,10 +242,9 @@ function initializeDashboardState(){
 }
 
 function bindAppEvents(){
-  registerPensionHooks({renderDashboard:render});
   setupDashboardEventDelegation();
   setupUiGlobalEvents();
-  setupPensionEventDelegation();
+  setupPensionEventDelegation({renderDashboard:render});
   window.addEventListener('resize',syncMobileTopbarState,{passive:true});
   document.addEventListener('pointerdown',e=>{
     if(!e.target.closest('.svg-hitbox')&&!e.target.closest('#dashTooltip'))clearChartHover();

@@ -48,11 +48,6 @@ import {
 
 // 퇴직연금 rendering · 금액조정 · 저장/삭제 · batch · PIN
 
-const pensionHooks={renderDashboard:null};
-function registerPensionHooks({renderDashboard}={}){
-  pensionHooks.renderDashboard=typeof renderDashboard==='function'?renderDashboard:null;
-}
-
 const pensionContributionSubText=x=>{
   const latest=latestPensionContribution(x.date);
   return latest?`${latest.date} 기업적립금 ${won(Number(latest.amount)||0)} 반영 기준`:'6/30까지 기 반영분 기준';
@@ -1011,7 +1006,7 @@ function applyPensionBatchStateLocally(state){
   dataState.pensionContributions=Array.isArray(dataState.pensionContributions)?(state.contributions||[]):{...(dataState.pensionContributions||{}),contributions:state.contributions||[]};
   dataState.pensionTrades=Array.isArray(dataState.pensionTrades)?(state.trades||[]):{...(dataState.pensionTrades||{}),trades:state.trades||[]};
 }
-async function applyPensionBatchQueue(){
+async function applyPensionBatchQueue(renderDashboard){
   if(pensionState.batchApplying)return;
   if(!pensionState.batchQueue.length){showPensionBatchStatus('적용할 작업이 없습니다.','err');return}
   let simulated;
@@ -1035,7 +1030,7 @@ async function applyPensionBatchQueue(){
     pensionState.batchLastAddAt=0;
     resetPensionBatchRequestId();
     pensionState.batchMode=true;
-    pensionHooks.renderDashboard?.();
+    renderDashboard?.();
     openPensionContributionModal();
     setPensionBatchMode(true);
     showPensionBatchStatus(duplicateWithoutState
@@ -1194,7 +1189,7 @@ function handlePensionTargetTabKeydown(event,tab){
   return true;
 }
 
-function handlePensionAction(control){
+function handlePensionAction(control,renderDashboard){
   const action=control.dataset.pensionAction;
   if(action==='reset-form')return resetPensionContributionForm();
   if(action==='close-modal')return closePensionContributionModal();
@@ -1203,14 +1198,11 @@ function handlePensionAction(control){
   if(action==='save')return savePensionContribution();
   if(action==='delete-selected')return deleteSelectedPensionContribution();
   if(action==='clear-batch')return clearPensionBatchQueue();
-  if(action==='apply-batch')return applyPensionBatchQueue();
+  if(action==='apply-batch')return applyPensionBatchQueue(renderDashboard);
   if(action==='move-batch')return movePensionBatchOperation(control.dataset.pensionQid||'',Number(control.dataset.pensionDirection||0));
   if(action==='remove-batch')return removePensionBatchOperation(control.dataset.pensionQid||'');
 }
-function setupPensionEventDelegation(){
-  const root=document.documentElement;
-  if(root.dataset.pensionEventsBound==='1')return;
-  root.dataset.pensionEventsBound='1';
+function setupPensionEventDelegation({renderDashboard}={}){
   document.addEventListener('keydown',event=>{
     const targetTab=event.target?.closest?.('.contrib-target-option[role="tab"]');
     if(targetTab&&handlePensionTargetTabKeydown(event,targetTab))return;
@@ -1227,7 +1219,7 @@ function setupPensionEventDelegation(){
       return;
     }
     const control=event.target?.closest?.('[data-pension-action]');
-    if(control)handlePensionAction(control);
+    if(control)handlePensionAction(control,renderDashboard);
   });
   document.addEventListener('change',event=>{
     const control=event.target?.closest?.('[data-pension-change]');
@@ -1274,7 +1266,6 @@ function setupPensionVizTooltips(){
 
 export {
   openPensionContributionModal,
-  registerPensionHooks,
   renderPension,
   renderPensionContributionModal,
   setupPensionEventDelegation,
