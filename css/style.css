@@ -31,8 +31,6 @@
   --text:var(--ink);
   --muted:#6b7280;
   --line:#d7dce5;
-  --blue:#1f5eff;
-  --soft-gray:#eef1f5;
   /* Semantic value colors: shared by desktop tables and mobile card views. */
   --value-positive:#E6233A;
   --value-negative:#2972E8;
@@ -351,6 +349,7 @@
   --hero-glow:rgba(255,255,255,.10);
   --hero-decor-bg:rgba(255,255,255,.08);
   --hero-pill-bg:rgba(15,23,42,.16);
+  --hero-pill-hover-bg:rgba(255,255,255,.18);
   --hero-pill-border:rgba(255,255,255,.28);
   --hero-pill-color:#f8fafc;
   --hero-shadow:0 18px 42px rgba(15,23,42,.16);
@@ -374,7 +373,6 @@ html.dark{
   --ink:#e5e7eb;
   --muted:#94a3b8;
   --line:#2b3548;
-  --soft-gray:#1e293b;
   --value-positive:#FF5964;
   --value-negative:#60A5FA;
   --value-difference:#FBBF24;
@@ -3170,7 +3168,7 @@ button,
 
   .pill:hover{
     transform:translateY(-1px);
-    background:rgba(255,255,255,.18);
+    background:var(--hero-pill-hover-bg);
   }
 
   .table-view > .dashboard-data-table:not(.source-data-table) tbody tr:not(.summary-row):hover > td{
