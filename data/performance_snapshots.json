@@ -1897,10 +1897,10 @@
   "2026-08-04": {
     "display": true,
     "source": "calculated-current-portfolio",
-    "marketStatus": "intraday",
+    "marketStatus": "close",
     "requestedDate": "2026-08-04",
     "actualMarketDate": "2026-08-04",
-    "updatedAtKST": "2026-08-05T09:57:39+09:00",
+    "updatedAtKST": "2026-08-17T20:51:30+09:00",
     "rawHoldingProfit": 948840,
     "cumulativeReturn": 5.827057187502226,
     "dailyProfit": 147690,
