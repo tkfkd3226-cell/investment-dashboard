@@ -178,6 +178,7 @@ function initializeDashboardState(){
 function bindAppEvents(){
   registerPensionHooks({renderDashboard:render});
   setupDashboardEventDelegation();
+  setupUiGlobalEvents();
   setupPensionEventDelegation();
   window.addEventListener('resize',syncMobileTopbarState,{passive:true});
   document.addEventListener('pointerdown',e=>{

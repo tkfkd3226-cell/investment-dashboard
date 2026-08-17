@@ -242,15 +242,6 @@ function closePensionContributionModal(){
   releaseDashboardDialogFocus(modal,{fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
   forceMobileViewportReflow();
 }
-document.addEventListener('keydown',e=>{
-  if(e.key!=='Escape'||e.defaultPrevented||document.getElementById('pensionActionPinModal'))return;
-  const modal=document.getElementById('pensionContribModal');
-  if(!modal?.classList.contains('show'))return;
-  e.preventDefault();
-  closeDateActionMenu();
-  closePensionContributionModal();
-});
-
 function cleanNumberInput(v){
   return Number(String(v||'').replace(/[^\d.-]/g,''));
 }
@@ -1174,7 +1165,13 @@ function setupPensionEventDelegation(){
   root.dataset.pensionEventsBound='1';
   document.addEventListener('keydown',event=>{
     const targetTab=event.target?.closest?.('.contrib-target-option[role="tab"]');
-    if(targetTab)handlePensionTargetTabKeydown(event,targetTab);
+    if(targetTab&&handlePensionTargetTabKeydown(event,targetTab))return;
+    if(event.key!=='Escape'||event.defaultPrevented||document.getElementById('pensionActionPinModal'))return;
+    const modal=document.getElementById('pensionContribModal');
+    if(!modal?.classList.contains('show'))return;
+    event.preventDefault();
+    closeDateActionMenu();
+    closePensionContributionModal();
   });
   document.addEventListener('click',event=>{
     if(event.target?.matches?.('[data-pension-backdrop-close="true"]')){
