@@ -2972,6 +2972,12 @@ body.contrib-modal-open{
   border-color:var(--control-focus-border);
   box-shadow:var(--focus-ring-shadow);
 }
+.action-modal-input-help{
+  margin:var(--space-md) 0 0;
+  color:var(--modal-description-color);
+  font-size:var(--type-size-sm);
+  line-height:var(--type-line-note);
+}
 .action-modal-status{
   min-height:20px;
   margin-top:var(--modal-status-gap);
