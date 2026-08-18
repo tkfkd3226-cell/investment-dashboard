@@ -1834,8 +1834,8 @@ body.chart-expanded-open .dash-tooltip{
     position:fixed;
     z-index:9999;
     box-sizing:border-box;
-    width:min(230px,calc(100vw - 28px));
-    max-width:min(230px,calc(100vw - 28px));
+    width:max-content;
+    max-width:calc(100vw - 28px);
     padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
     border:1px solid var(--tooltip-border);
     border-radius:var(--tooltip-radius);
@@ -1846,6 +1846,7 @@ body.chart-expanded-open .dash-tooltip{
     letter-spacing:-.02em;
     line-height:1.45;
     white-space:normal;
+    overflow-wrap:anywhere;
     text-align:left;
     pointer-events:none;
   }
