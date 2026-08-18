@@ -570,7 +570,8 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
       <h3 id="pensionActionPinTitle" class="modal-main-title">${title}</h3>
       <p id="pensionActionPinDescription" class="action-modal-description">${description}</p>
       <label class="action-modal-label" for="pensionActionPinInput">PIN</label>
-      <input id="pensionActionPinInput" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="pensionActionPinDescription pensionActionPinStatus">
+      <input id="pensionActionPinInput" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="pensionActionPinDescription pensionActionPinAutoHelp pensionActionPinStatus">
+      <p id="pensionActionPinAutoHelp" class="action-modal-input-help">PIN이 확인되면 바로 적용됩니다.</p>
       <div id="pensionActionPinStatus" class="action-modal-status pension-action-pin-status" role="status" aria-live="polite" aria-atomic="true"></div>
       <div class="action-modal-buttons pension-action-pin-buttons"><button type="button" class="action-modal-btn ghost">취소</button></div>
     </div>`;
