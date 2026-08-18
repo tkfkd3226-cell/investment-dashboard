@@ -1048,7 +1048,8 @@ td.num{
 .dash-tooltip,
 .pension-viz-tooltip,
 .phone-chart-ui .chart-title-info-tooltip,
-#accounts-summary .chart-title-info-tooltip{
+#accounts-summary .chart-title-info-tooltip,
+.accounts-memo-floating-tooltip{
   background:var(--tooltip-bg);
   color:var(--tooltip-color);
   border:1px solid var(--tooltip-border);
@@ -1783,6 +1784,9 @@ body.chart-expanded-open .dash-tooltip{
   transform:translate(-50%,0);
 }
 
+/* Account Memo Floating Tooltip · 표 셀 stacking context 밖에서 표시하는 초소형 계좌 메모 tooltip */
+.accounts-memo-floating-tooltip{display:none}
+
 /* 초소형 화면 기능 예외: 400px 이하에서는 통합성과 수익률 열을 축약하고, 계좌별 성과 메모는 전용 열의 정보 tooltip으로 전환한다. */
 @media(max-width:400px){
   #summary-section .combined-performance-table th:nth-child(5),
@@ -1824,17 +1828,21 @@ body.chart-expanded-open .dash-tooltip{
     z-index:90;
   }
   #accounts-summary .accounts-memo .chart-title-info-tooltip{
-    right:0;
-    left:auto;
+    display:none;
+  }
+  .accounts-memo-floating-tooltip{
+    display:block;
+    position:fixed;
+    z-index:9999;
+    box-sizing:border-box;
     width:min(230px,calc(100vw - 28px));
     max-width:min(230px,calc(100vw - 28px));
+    padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
+    font-weight:var(--tooltip-info-weight);
+    letter-spacing:-.02em;
     white-space:normal;
     text-align:left;
-    transform:translate(0,-3px);
-    z-index:91;
-  }
-  #accounts-summary .accounts-memo .chart-title-info.open .chart-title-info-tooltip{
-    transform:translate(0,0);
+    pointer-events:none;
   }
 }
 /* Phone Chart Controls · 폰 차트: 제목 행에는 확대 버튼만, 비교/시리즈는 control row */
