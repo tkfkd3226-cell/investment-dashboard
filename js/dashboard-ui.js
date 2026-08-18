@@ -450,9 +450,18 @@ function restoreMobileDateMenuAfterRender(){
 }
 function setupUiGlobalEvents(){
   document.addEventListener('click',e=>{
-    if(!e.target.closest('#tabs')) closeDateActionMenu();
+    if(!e.target.closest('#tabs'))closeDateActionMenu();
+    if(!e.target.closest('#accounts-summary .accounts-memo .chart-title-info'))closeAccountMemoInfo();
   });
-  window.addEventListener('resize',syncMobileTopbarState,{passive:true});
+  document.addEventListener('change',closeAccountMemoInfo);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape')closeAccountMemoInfo();
+  });
+  window.addEventListener('scroll',closeAccountMemoInfo,{passive:true});
+  window.addEventListener('resize',()=>{
+    closeAccountMemoInfo();
+    syncMobileTopbarState();
+  },{passive:true});
 }
 async function dispatchKrxPriceUpdate(pin, mode='selected'){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
@@ -793,7 +802,60 @@ function accountMemoTableHtml(text){
 }
 function accountMemoInfoButton(text){
   const safe=escapeHtml(String(text||''));
-  return `<button type="button" class="chart-title-info" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-chart-title-info"><span aria-hidden="true">i</span><span class="chart-title-info-tooltip" role="tooltip">${safe}</span></button>`;
+  return `<button type="button" class="chart-title-info" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-account-memo-info"><span aria-hidden="true">i</span><span class="chart-title-info-tooltip" role="tooltip">${safe}</span></button>`;
+}
+function removeAccountMemoFloatingTooltip(){
+  document.querySelector('.accounts-memo-floating-tooltip')?.remove();
+}
+function closeAccountMemoInfo(except=null){
+  removeAccountMemoFloatingTooltip();
+  document.querySelectorAll('#accounts-summary .accounts-memo .chart-title-info.open').forEach(button=>{
+    if(button===except)return;
+    button.classList.remove('open');
+    button.setAttribute('aria-expanded','false');
+  });
+}
+function showAccountMemoFloatingTooltip(button){
+  if(!button?.closest('#accounts-summary .accounts-memo'))return;
+  if(window.matchMedia?.('(max-width:400px)').matches!==true)return;
+  const source=button.querySelector('.chart-title-info-tooltip');
+  if(!source)return;
+
+  removeAccountMemoFloatingTooltip();
+
+  const floating=document.createElement('span');
+  floating.className='accounts-memo-floating-tooltip';
+  floating.setAttribute('role','tooltip');
+  floating.textContent=source.textContent||'';
+  document.body.appendChild(floating);
+
+  const buttonRect=button.getBoundingClientRect();
+  const tooltipRect=floating.getBoundingClientRect();
+  const edge=14,gap=7;
+  const viewportWidth=document.documentElement.clientWidth||window.innerWidth;
+  const viewportHeight=window.innerHeight;
+
+  const maxLeft=Math.max(edge,viewportWidth-tooltipRect.width-edge);
+  const left=Math.max(edge,Math.min(buttonRect.right-tooltipRect.width,maxLeft));
+  const belowTop=buttonRect.bottom+gap;
+  const top=belowTop+tooltipRect.height<=viewportHeight-edge
+    ? belowTop
+    : Math.max(edge,buttonRect.top-tooltipRect.height-gap);
+
+  floating.style.left=`${Math.round(left)}px`;
+  floating.style.top=`${Math.round(top)}px`;
+}
+function toggleAccountMemoInfo(event,button){
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  if(!button)return;
+
+  const open=!button.classList.contains('open');
+  closeAccountMemoInfo(button);
+  button.classList.toggle('open',open);
+  button.setAttribute('aria-expanded',String(open));
+
+  if(open)showAccountMemoFloatingTooltip(button);
 }
 function renderAccounts(x){
   const c=dataState.portfolio.constants,v=separateProfitView(x);
@@ -852,6 +914,7 @@ function handleUiDashboardAction(event,control){
     if(control.dataset.closeDateMenu==='true')closeDateActionMenu();
   }
   else if(action==='toggle-mobile-view')toggleMobileDataView(control.dataset.mobileViewKey||'');
+  else if(action==='toggle-account-memo-info')toggleAccountMemoInfo(event,control);
   else if(action==='close-krx-modal')closeKrxActionModal();
   else if(action==='submit-krx-modal')submitKrxActionModal(control.dataset.krxMode||'selected');
   else if(action==='set-asset-tab')setAssetTab(control.dataset.assetTab||'securities');

@@ -142,33 +142,7 @@ function chartTitleInfoButton(text){
   const safe=escapeHtml(text);
   return `<button type="button" class="chart-title-info" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-chart-title-info"><span aria-hidden="true">i</span><span class="chart-title-info-tooltip" role="tooltip">${safe}</span></button>`;
 }
-function removeAccountMemoFloatingTooltip(){
-  document.querySelector('.accounts-memo-floating-tooltip')?.remove();
-}
-function showAccountMemoFloatingTooltip(button){
-  if(!button?.closest('#accounts-summary .accounts-memo'))return;
-  if(window.matchMedia?.('(max-width:400px)').matches!==true)return;
-  const source=button.querySelector('.chart-title-info-tooltip');
-  if(!source)return;
-  removeAccountMemoFloatingTooltip();
-  const floating=document.createElement('span');
-  floating.className='accounts-memo-floating-tooltip';
-  floating.setAttribute('role','tooltip');
-  floating.textContent=source.textContent||'';
-  document.body.appendChild(floating);
-  const buttonRect=button.getBoundingClientRect(),tooltipRect=floating.getBoundingClientRect();
-  const edge=14,gap=7,viewportWidth=document.documentElement.clientWidth||window.innerWidth,viewportHeight=window.innerHeight;
-  const minLeft=edge,maxLeft=Math.max(edge,viewportWidth-tooltipRect.width-edge);
-  const left=Math.max(minLeft,Math.min(buttonRect.right-tooltipRect.width,maxLeft));
-  const belowTop=buttonRect.bottom+gap;
-  const top=belowTop+tooltipRect.height<=viewportHeight-edge
-    ? belowTop
-    : Math.max(edge,buttonRect.top-tooltipRect.height-gap);
-  floating.style.left=`${Math.round(left)}px`;
-  floating.style.top=`${Math.round(top)}px`;
-}
 function closeChartTitleInfo(except=null){
-  removeAccountMemoFloatingTooltip();
   document.querySelectorAll('.chart-title-info.open').forEach(button=>{
     if(button===except)return;
     button.classList.remove('open');
@@ -183,7 +157,6 @@ function toggleChartTitleInfo(event,button){
   closeChartTitleInfo(button);
   button.classList.toggle('open',open);
   button.setAttribute('aria-expanded',String(open));
-  if(open)showAccountMemoFloatingTooltip(button);
 }
 function compactPhoneChartUi(){
   const portraitOrNarrow=window.matchMedia?.('(max-width:760px)').matches===true;
