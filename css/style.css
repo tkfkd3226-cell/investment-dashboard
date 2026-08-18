@@ -3274,6 +3274,7 @@ button:not(:disabled):active,
     transition:box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
   }
 
+  .date-action-menu.mobile-combined-menu .mobile-nav-item:active,
   .date-tool-btn:not(:disabled):active,
   button:not(:disabled):active,
   .btn:not(:disabled):active{
