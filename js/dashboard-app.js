@@ -53,20 +53,19 @@ import {
 
 // 메인 대시보드 app action · render · event binding · boot orchestration
 
-function enterPersonalView(){
-  if(uiState.personalViewUnlocked)return;
-  uiState.personalViewUnlocked=true;
+function togglePersonalView(){
+  uiState.personalViewUnlocked=!uiState.personalViewUnlocked;
+  if(!uiState.personalViewUnlocked)uiState.includeSeparateProfit=false;
   render();
 }
 function handleHeroBasisTap(){
-  if(uiState.personalViewUnlocked)return;
   const now=Date.now();
   uiState.heroBasisTapCount=now-uiState.heroBasisLastTap<=700?uiState.heroBasisTapCount+1:1;
   uiState.heroBasisLastTap=now;
   if(uiState.heroBasisTapCount<3)return;
   uiState.heroBasisTapCount=0;
   uiState.heroBasisLastTap=0;
-  enterPersonalView();
+  togglePersonalView();
 }
 function toggleSeparateProfitMode(){
   const scrollY=window.scrollY;

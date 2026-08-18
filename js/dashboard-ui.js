@@ -165,7 +165,7 @@ function renderUnifiedMobileMenuContent(){
   return groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>{
     const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
     const cls=`mobile-nav-item ${idx?'sub':''}`;
-    if(item.type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" data-dashboard-action="close-date-menu">${inner}</a>`;
+    if(item.type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" draggable="false" data-dashboard-action="close-date-menu">${inner}</a>`;
     if(item.type==='action') return `<button type="button" class="${cls}" data-dashboard-action="${item.action}">${inner}</button>`;
     return `<button type="button" class="${cls}" data-dashboard-action="jump-section" data-section-target="${item.id}" data-close-date-menu="true">${inner}</button>`;
   }).join('')}</div>`).join('');
@@ -323,10 +323,10 @@ function renderTabs(){
         <select class="date-select day-select" id="dateSelect" aria-label="일 선택" aria-controls="app">${monthDates.map(d=>`<option value="${d}" ${d===dataState.activeDate?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
       </div>
       <div class="date-picker-action" role="group" aria-label="대시보드 도구">
-        <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물">
+        <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" draggable="false" title="코스피200 야간선물">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.kospiNight)}</span><span class="topbar-label-full">코스피200 야간선물</span><span class="topbar-label-short">코스피 야선</span>
         </a>
-        <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" title="나스닥100 선물">
+        <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/nasdaq100-futures/" target="_blank" rel="noopener noreferrer" draggable="false" title="나스닥100 선물">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.nasdaqFutures)}</span><span class="topbar-label-full">나스닥100 선물</span><span class="topbar-label-short">나스닥 선물</span>
         </a>
         <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-krx-action" title="KRX 현재가 반영" aria-label="KRX 현재가 반영" data-dashboard-action="krx-update">
@@ -335,7 +335,7 @@ function renderTabs(){
         <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-pension-action" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" data-dashboard-action="open-pension-modal">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.pensionAdjust)}</span><span class="topbar-label-full">퇴직연금 금액 조정</span><span class="topbar-label-short">연금 조정</span>
         </button>
-        ${uiState.personalViewUnlocked?`<a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" title="투자 계산기" aria-label="투자 계산기">
+        ${uiState.personalViewUnlocked?`<a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" draggable="false" title="투자 계산기" aria-label="투자 계산기">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
         </a>`:''}
         <button type="button" class="date-tool-btn topbar-theme-action" data-theme-toggle title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" data-dashboard-action="toggle-theme">

@@ -3147,6 +3147,17 @@ body.contrib-modal-open{
 .mini-card.transition-suppressed-once{transition:none}
 
 .date-tool-btn,
+.date-action-menu.mobile-combined-menu .mobile-nav-item{
+  -webkit-user-select:none;
+  user-select:none;
+  touch-action:manipulation;
+}
+a.date-tool-btn,
+.date-action-menu.mobile-combined-menu a.mobile-nav-item{
+  -webkit-user-drag:none;
+}
+
+.date-tool-btn,
 .date-action-menu.mobile-combined-menu .mobile-nav-item,
 .pill,
 button,
