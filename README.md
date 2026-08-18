@@ -1,24 +1,96 @@
 # 투자 대시보드
 
-삼성증권 증권계좌와 퇴직연금 계좌의 **날짜별 투자 성과를 복원·분석하는 정적 웹 대시보드**입니다.
+삼성증권 증권계좌와 퇴직연금 계좌의 **날짜별 투자 성과를 복원·검산·분석하기 위한 정적 웹 대시보드**입니다.
 
-메인 화면은 GitHub Pages에서 제공하고, KRX 가격·성과 데이터 갱신은 GitHub Actions와 Python 스크립트로 처리합니다. 퇴직연금 데이터 저장과 KRX 갱신 요청 등 쓰기 작업은 Google Apps Script 웹 앱을 통해 연결합니다.
+메인 화면은 GitHub Pages에서 제공하며, KRX 가격과 성과 스냅샷은 GitHub Actions + Python으로 갱신합니다. 퇴직연금 금액 조정과 KRX 갱신 요청처럼 브라우저에서 직접 파일을 수정할 수 없는 쓰기 작업은 Google Apps Script 웹 앱을 통해 연결합니다.
+
+이 저장소는 단순 시세 조회 화면이 아니라 다음 세 가지를 함께 관리하는 것을 목표로 합니다.
+
+1. **현재 보유 현황** — 증권계좌와 퇴직연금의 자산·손익·비중
+2. **날짜별 복원** — 과거 특정 날짜의 계좌 상태와 성과 재구성
+3. **장부 검산** — 실제 보유액, 투자원금, 실현손익, 현금 흐름의 일관성 확인
 
 ---
 
-## 주요 기능
+## 핵심 기능
 
-- 날짜별 증권계좌·퇴직연금 투자 성과 복원
-- 증권계좌 / 퇴직연금 탭 기반 성과 조회
-- 투자원금, 누적손익, 수익률, 보유자산, 장부 검산
-- 별도수익 ON/OFF에 따른 성과 비교
-- KOSPI 대비 성과 및 주요 투자 차트
-- 차트 범례 선택, Y축 자동 재계산, 확대 보기
-- KRX 현재가 최신/누락 반영 및 선택일 재갱신
-- 퇴직연금 기업적립금·현금성자산·추가매수 관리
-- Light / Dark 테마와 Desktop / Tablet / Mobile 반응형 UI
-- 별도 투자 계산기 `add/calc.html`
-- 기간별 거래 리포트 `add/report/`
+### 증권계좌
+
+- 날짜별 증권계좌 성과 복원
+- 투자원금·평가금액·누적손익·수익률 조회
+- 계좌별 성과 요약과 보유 종목 현황
+- 장부결과 VS 실제보유 검산
+- 투자원금 원천 및 현금 흐름 확인
+- 별도수익 ON/OFF 비교
+- KOSPI 대비 초과성과 확인
+
+### 퇴직연금
+
+- 퇴직연금 계좌의 날짜별 성과 및 상품 현황
+- 상품별 손익·비중·인사이트
+- 위험자산 비중 관리
+- 기업적립금·현금성자산·ETF 추가매수 조정
+- PIN 기반 저장·삭제 흐름
+- 여러 변경사항을 모아 적용하는 batch 처리
+
+### 차트 / 분석
+
+- 누적손익 및 누적수익률
+- KOSPI 비교
+- 자산·종목 비중 변화
+- 증권계좌 / 퇴직연금 관련 기간 차트
+- 범례 다중선택 및 최소 1개 유지
+- 전체 선택
+- Y축 자동 재계산 ON/OFF
+- 차트 확대 보기
+- Desktop / Tablet / Mobile 반응형 tooltip 및 조작 UI
+
+### 데이터 갱신
+
+- KRX 현재가 **최신/누락 반영**
+- 선택된 날짜 **재갱신**
+- GitHub Actions 수동 실행을 통한 가격 및 성과 스냅샷 갱신
+- 과거 거래일 보완 및 과거 장중 데이터의 종가 확정
+
+### 부가 도구
+
+- 투자 계산기: `add/calc.html`
+- 기간별 거래/성과 리포트: `add/report/`
+- Light / Dark 테마
+- 모바일 날짜 고정 ON/OFF
+
+---
+
+## 전체 동작 구조
+
+```text
+Browser / GitHub Pages
+        │
+        ├─ index.html
+        ├─ css/style.css
+        └─ js/dashboard-app.js
+                 │
+                 ├─ data/*.json 읽기
+                 ├─ dashboard-core.js 계산
+                 ├─ dashboard-ui*.js 화면 렌더
+                 ├─ dashboard-charts.js 차트 렌더
+                 └─ dashboard-pension*.js 퇴직연금 View / Editor
+
+GitHub Actions
+        │
+        └─ scripts/update_prices.py
+                 │
+                 ├─ KRX / KOSPI 데이터 수집
+                 ├─ data/prices.json 갱신
+                 └─ data/performance_snapshots.json 갱신
+
+Google Apps Script Web App
+        │
+        ├─ KRX 갱신 요청
+        └─ 퇴직연금 데이터 저장·삭제 요청
+```
+
+프론트엔드는 별도 번들러나 프레임워크 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 동작합니다.
 
 ---
 
@@ -57,42 +129,89 @@ investment-dashboard-main/
 │  └─ report/
 ├─ .github/workflows/
 │  └─ update-prices.yml
+├─ requirements.txt
 ├─ start-local-server.bat
 └─ 메인대시보드 수정 시 반드시 확인할 사항 및 채팅창 인수인계.md
 ```
 
 ---
 
-## 프론트엔드 구조
+## JavaScript 아키텍처
 
 메인 JavaScript는 **7개 ES Module**로 구성되어 있으며 `dashboard-app.js`가 단일 entry point입니다.
 
-| 파일 | 역할 |
+| 파일 | 책임 |
 |---|---|
-| `dashboard-core.js` | 공통 데이터 상태, 데이터 로딩, 계산, formatter |
+| `dashboard-core.js` | 공통 데이터 state, JSON 로딩, 계산, formatter, 데이터 helper |
 | `dashboard-ui-common.js` | 여러 UI 모듈이 공유하는 저수준 DOM·접근성·마크업 helper |
-| `dashboard-charts.js` | 차트 state, 렌더링, 범례, tooltip, 확대, 반응형 및 차트 action routing |
-| `dashboard-ui.js` | Topbar, Navigation, 일반 UI, table/card/modal 렌더링 및 UI action routing |
-| `dashboard-pension.js` | 퇴직연금 조회 화면(View), 상품 현황·인사이트·시각화 tooltip |
-| `dashboard-pension-editor.js` | 퇴직연금 금액조정(Editor), PIN, batch, 저장·삭제 |
-| `dashboard-app.js` | 날짜·별도수익 등 cross-module 흐름, render orchestration, 초기화 및 boot |
+| `dashboard-charts.js` | 차트 state, SVG 렌더링, 범례, tooltip, 확대, 반응형, 차트 action routing |
+| `dashboard-ui.js` | Topbar, Navigation, 일반 카드·표·모달, KRX UI, UI action routing |
+| `dashboard-pension.js` | 퇴직연금 **View** — 현황, 상품 정보, 인사이트, 시각화 tooltip |
+| `dashboard-pension-editor.js` | 퇴직연금 **Editor** — 금액조정, PIN, batch, 저장·삭제 |
+| `dashboard-app.js` | 날짜·별도수익 등 cross-module 흐름, 전체 render orchestration, 초기화·boot |
 
-주요 dependency 방향은 다음과 같습니다.
+### Dependency 방향
 
 ```text
+core            → 없음
 ui-common       → core
 charts          → core + ui-common
 ui              → core + ui-common + charts
 pension         → core + ui-common + charts + ui
 pension-editor  → core + ui-common + ui
-app             → core + ui-common + charts + ui + pension + pension-editor
+app             → 모든 기능 모듈을 조율
 ```
 
-`chartState`와 퇴직연금 editor의 batch/runtime state는 각 책임 모듈 내부 private state로 유지합니다.
+현재 구조에서는 **순환 dependency를 만들지 않는 것**이 기본 원칙입니다.
 
-메인 CSS는 `css/style.css` **단일 파일 구조**를 유지합니다.
+### State ownership
 
-기본 반응형 구간:
+- 여러 모듈이 공유해야 하는 데이터 state만 `dashboard-core.js`에 둡니다.
+- chart runtime state는 `dashboard-charts.js`가 소유합니다.
+- 퇴직연금 Editor의 batch/runtime state는 `dashboard-pension-editor.js`가 소유합니다.
+- 특정 모듈 내부 DOM이나 state를 다른 모듈이 직접 조작하지 않고 필요한 경우 공개 API를 사용합니다.
+- `window` / `globalThis`에 기능 API를 매달아 dependency를 우회하지 않습니다.
+
+### JS 3차 구조 리팩토링
+
+현재 7모듈 구조는 다음 순서의 3차 JS 리팩토링과 누적 QA를 거쳐 확정되었습니다.
+
+```text
+1차  private state / network 정리
+      → QA PASS
+
+2차  Pension View / Editor 분리
+      → QA PASS
+
+3차  chart state ownership / encapsulation
+      → QA PASS
+
+4차  core 순수화 / ui-common / public API 정리
+      → QA PASS
+
+5차  module action routing / app orchestration 정리
+      → QA PASS
+
+최종 누적 QA
+      → renderResultSummary() 누락 1건 발견·복구
+      → 재 QA PASS
+```
+
+최종 구조 평가는 **10.0 / 10**으로 기록되어 있으며, 이후에는 점수를 위해 파일을 더 나누기보다 현재 책임 경계를 보존하는 유지보수를 우선합니다.
+
+---
+
+## CSS / Responsive 구조
+
+메인 대시보드 CSS는 다음 단일 파일을 사용합니다.
+
+```text
+css/style.css
+```
+
+역할별 CSS 파일을 추가로 나누지 않고, 각 기능 섹션 안에서 기본 규칙과 반응형 규칙을 함께 관리합니다.
+
+기본 viewport 기준:
 
 ```text
 Desktop : 1101px 이상
@@ -100,104 +219,36 @@ Tablet  : 761px ~ 1100px
 Mobile  : 760px 이하
 ```
 
----
+추가 breakpoint는 특정 기능에 실제로 필요한 경우에만 사용합니다.
 
-## 데이터와 자동화
+유지보수 시 기본 원칙:
 
-### 주요 데이터
-
-- `portfolio.json` — 보유자산, 원금 기준, 자금 이벤트 등
-- `prices.json` — 날짜별 종목·상품 가격 및 지수
-- `performance_snapshots.json` — 날짜별 성과 스냅샷
-- `account1_daily_snapshots.json` — 증권계좌 일별 복원 데이터
-- `pension_*.json` — 퇴직연금 적립금·현금·거래 데이터
-
-### KRX 데이터 갱신
-
-`.github/workflows/update-prices.yml`이 `scripts/update_prices.py`를 실행하여 KRX 가격과 성과 스냅샷을 갱신합니다.
-
-워크플로는 수동 실행을 지원하며, 날짜를 지정하지 않으면 한국시간 기준 오늘 데이터를 처리합니다.
+- canonical selector를 직접 수정
+- 후행 `final override` 누적 금지
+- 불필요한 `!important` 추가 금지
+- 임의의 신규 breakpoint 남발 금지
+- Light / Dark 양쪽 상태 확인
+- Desktop / Tablet / Mobile UI 일관성 유지
 
 ---
 
-## 로컬 실행
+## 데이터 파일
 
-JSON 데이터를 `fetch()`로 읽기 때문에 HTML 파일을 직접 열기보다 로컬 HTTP 서버로 실행합니다.
+| 파일 | 용도 |
+|---|---|
+| `portfolio.json` | 보유자산, 투자원금 기준, 자금 이벤트 및 기본 포트폴리오 정보 |
+| `prices.json` | 날짜별 종목·상품 가격 및 지수 데이터 |
+| `performance_snapshots.json` | 날짜별 성과 스냅샷 |
+| `account1_daily_snapshots.json` | 증권계좌 일별 복원 데이터 |
+| `pension_contributions.json` | 퇴직연금 적립 및 조정 데이터 |
+| `pension_cash_snapshots.json` | 퇴직연금 현금성자산 스냅샷 |
+| `pension_trades.json` | 퇴직연금 거래 이력 |
 
-Windows에서는 프로젝트 루트의:
+대시보드는 이 데이터들을 결합하여 선택 날짜의 계좌 상태를 계산하고 화면을 렌더링합니다.
 
-```text
-start-local-server.bat
-```
+### 운영 데이터 보호
 
-을 실행하면 됩니다.
-
-기본 주소:
-
-```text
-http://localhost:8000/
-```
-
-Python이 설치되어 있어야 합니다.
-
-직접 실행하려면:
-
-```bash
-python -m http.server 8000
-```
-
----
-
-## 배포
-
-메인 대시보드는 **GitHub Pages**의 branch 배포 방식을 기준으로 합니다.
-
-```text
-Branch : main
-Folder : /root
-```
-
-KRX 데이터 갱신은 GitHub Actions가 `prices.json`과 `performance_snapshots.json`을 업데이트하고 커밋하는 방식으로 운영합니다.
-
----
-
-## 유지보수 원칙
-
-현재 프로젝트는 다음 구조 리팩토링을 완료한 상태입니다.
-
-```text
-CSS 구조 최적화
-→ JavaScript 5파일 책임 분리
-→ UI/UX 공통화 및 반응형 정리
-→ JavaScript ES Module migration
-→ JavaScript 3차 구조 리팩토링(7모듈 책임 경계·private state·public API 정리)
-```
-
-앞으로의 기본 원칙은 **현재 정상 구조를 유지하면서 필요한 범위만 최소 수정하는 것**입니다.
-
-- 과거 단일 `script.js` 구조로 되돌리지 않음
-- ES Module의 명시적 `import / export` dependency 유지
-- `window` / `globalThis` 기반 우회 dependency를 만들지 않음
-- 메인 CSS는 `css/style.css` 단일 파일 유지
-- 불필요한 breakpoint, `!important`, 후행 override를 추가하지 않음
-- core / ui-common / charts / ui / pension view / pension editor / app의 현재 책임 경계를 유지
-- 운영 JSON을 소스 패치로 임의 덮어쓰지 않음
-
-세부 구조, QA 방식, 점수 이력, 회귀 불변조건 및 새 채팅 인수인계 기준은 다음 문서를 사용합니다.
-
-```text
-메인대시보드 수정 시 반드시 확인할 사항 및 채팅창 인수인계.md
-```
-
-이 문서는 최신 전체 ZIP과 함께 관리하며, 실제 구현 상태는 항상 최신 소스를 기준으로 확인합니다.
-
----
-
-## 운영 데이터 주의
-
-다음 `data/*.json`은 실제 운영 데이터입니다.
-
-특히:
+특히 아래 3개는 GitHub에 소스 패치를 반영할 때 주의해야 하는 실제 운영 데이터입니다.
 
 ```text
 data/prices.json
@@ -205,15 +256,277 @@ data/performance_snapshots.json
 data/pension_contributions.json
 ```
 
-은 코드 패치나 과거 ZIP을 GitHub에 반영할 때 덮어쓰기 전에 현재 운영본과 반드시 비교합니다.
+과거 ZIP이나 수정용 ZIP에 들어 있는 데이터를 현재 운영본 위에 무심코 덮어쓰지 않습니다.
+
+- `prices.json`, `performance_snapshots.json`은 KRX workflow로 재생성 가능한 영역이 있습니다.
+- `pension_contributions.json`은 사용자 입력 기반 운영 데이터이므로 특히 보존에 주의합니다.
+
+코드 수정 ZIP은 원칙적으로 **변경된 소스 파일만** 포함하고 운영 JSON은 요청이 없는 한 넣지 않습니다.
+
+---
+
+## KRX 가격 갱신
+
+GitHub Actions workflow:
+
+```text
+.github/workflows/update-prices.yml
+```
+
+실행 스크립트:
+
+```text
+scripts/update_prices.py
+```
+
+workflow 이름은 `Update KRX closing prices`이며 수동 실행(`workflow_dispatch`)을 지원합니다.
+
+날짜 입력:
+
+```text
+YYYY-MM-DD
+```
+
+날짜를 비워두면 **한국시간 기준 오늘**을 처리합니다.
+
+기본 흐름:
+
+```text
+GitHub Actions 실행
+→ Python 3.11 설정
+→ requirements.txt 설치
+→ scripts/update_prices.py 실행
+→ prices.json / performance_snapshots.json 변경 확인
+→ 변경이 있으면 자동 commit + push
+```
+
+과거 날짜를 나중에 보완하거나 재갱신하는 경우에는 실행 시각이 장중이어도 과거 데이터는 종가 데이터로 취급합니다.
+
+### 화면의 KRX 버튼 의미
+
+- **최신/누락 반영** — 오늘 데이터 갱신, 누락 거래일 보완, 과거 장중 데이터 종가 확정
+- **재갱신** — 이미 존재하는 선택 날짜를 다시 반영
+
+신규 날짜 생성은 먼저 `최신/누락 반영` 흐름을 사용합니다.
+
+---
+
+## 퇴직연금 편집 흐름
+
+퇴직연금은 조회와 편집 책임을 분리합니다.
+
+```text
+dashboard-pension.js
+→ 보여주는 View
+
+dashboard-pension-editor.js
+→ 변경하고 저장하는 Editor
+```
+
+Editor의 주요 흐름:
+
+```text
+금액조정 모달
+→ 입력 및 변경사항 구성
+→ 필요 시 batch queue / simulation
+→ PIN 확인
+→ Google Apps Script 요청
+→ 성공 시 로컬 데이터 반영 및 dashboard 재렌더
+```
+
+실제 저장·삭제 요청은 QA 목적으로 임의 실행하지 않습니다.
+
+---
+
+## 로컬 실행
+
+JSON 데이터를 `fetch()`로 읽기 때문에 `index.html`을 `file://`로 직접 열기보다 로컬 HTTP 서버를 사용합니다.
+
+Windows에서는 프로젝트 루트의:
+
+```text
+start-local-server.bat
+```
+
+을 실행합니다.
+
+기본 주소:
+
+```text
+http://localhost:8000/
+```
+
+배치 파일은 `python` 또는 `py` 명령을 찾아 Python 내장 HTTP 서버를 실행하고 브라우저를 엽니다.
+
+직접 실행하려면:
+
+```bash
+python -m http.server 8000
+```
+
+또는 Windows Python Launcher를 사용하는 경우:
+
+```bash
+py -m http.server 8000
+```
+
+서버 창을 닫으면 로컬 서버도 종료됩니다.
+
+---
+
+## GitHub Pages 배포
+
+메인 대시보드는 GitHub Pages의 branch 배포를 기준으로 합니다.
+
+```text
+Branch : main
+Folder : /root
+```
+
+소스 변경을 `main`에 반영하면 Pages 배포 상태에 따라 웹 화면에 반영됩니다.
+
+데이터 갱신 workflow는 `prices.json`과 `performance_snapshots.json`을 변경한 경우에만 자동 commit/push 합니다.
+
+---
+
+## 수정 · QA 운영 방식
+
+대규모 구조 작업은 한 번에 전부 수정하지 않고 차수별로 진행합니다.
+
+```text
+1차
+→ QA
+→ 2차
+→ QA
+→ 3차
+→ QA
+→ ...
+→ 최종 누적 QA
+```
+
+### 차수 요청
+
+사용자가 `1차`, `2차`, `3차`처럼 차수만 요청하면:
+
+- 해당 차수의 수정만 수행
+- 최소 syntax/import/diff 안전검사
+- QA는 수행하지 않음
+- 실제 변경 파일만 원래 프로젝트 경로대로 ZIP 전달
+
+### QA 요청
+
+사용자가 `QA`라고 요청하면:
+
+- 직전 차수의 변경 범위 중심으로 회귀 확인
+- syntax / import-export / dependency / state ownership / action-event 연결 점검
+- 관련 기능의 계산·렌더 결과가 변하지 않았는지 필요 범위에서 비교
+- FAIL이면 다음 차수로 넘어가지 않고 수정 후 다시 QA
+
+### 최종 누적 QA
+
+각 차수 QA가 모두 PASS했더라도 마지막에는 누적 최종본을 다시 검증합니다.
+
+이번 JS 3차 리팩토링에서는 차수별 QA 이후 최종 누적 QA에서 동일 모듈 내부의 `renderResultSummary()` 누락을 추가로 발견했습니다. 따라서 **차수별 QA PASS와 최종 누적 QA PASS는 별개의 단계**로 운영합니다.
+
+세부 QA 기준과 전체 인수인계 원칙은 다음 문서를 기준으로 합니다.
+
+```text
+메인대시보드 수정 시 반드시 확인할 사항 및 채팅창 인수인계.md
+```
+
+---
+
+## 수정 파일 전달 규칙
+
+코드 또는 문서를 수정해 전달할 때:
+
+1. 실제 변경된 파일만 포함합니다.
+2. 프로젝트 내부의 원래 경로를 유지합니다.
+3. 파일이 1개뿐이어도 ZIP으로 전달합니다.
+4. ZIP 생성 후 내부 파일 수·경로·압축 무결성을 확인합니다.
+5. 여러 차수 작업이 끝나면 필요 시 1차부터 최종 수정까지 합친 **누적 변경 ZIP**을 별도로 만듭니다.
+
+예:
+
+```text
+js/dashboard-ui.js만 수정
+
+ZIP 내부:
+js/
+└─ dashboard-ui.js
+```
+
+---
+
+## 유지보수 원칙
+
+현재 프로젝트는 다음 리팩토링을 완료한 상태입니다.
+
+```text
+CSS 구조 최적화
+→ JavaScript 책임 분리
+→ UI/UX 공통화 및 반응형 정리
+→ JavaScript ES Module migration
+→ JavaScript 3차 구조 리팩토링
+```
+
+앞으로는 **현재 정상 구조를 유지하면서 필요한 범위만 최소 수정**하는 것을 기본으로 합니다.
+
+- 과거 단일 `script.js` 구조로 되돌리지 않음
+- ES Module의 명시적 `import / export` dependency 유지
+- `window` / `globalThis` 기반 우회 dependency 금지
+- 메인 CSS는 `css/style.css` 단일 파일 유지
+- core / ui-common / charts / ui / pension View / pension Editor / app 책임 경계 유지
+- 특정 모듈 private state·DOM에 다른 모듈이 직접 접근하지 않음
+- 운영 JSON을 소스 패치로 임의 덮어쓰지 않음
+- 파일 줄 수나 점수만을 이유로 추가 분리·재작성하지 않음
+- 기능 정확성·계산 parity·회귀 방지를 구조 점수보다 우선
+
+현재 구조와 충돌하는 대규모 개편이 필요하다면 먼저 이유와 영향 범위를 확인한 뒤 진행합니다.
+
+---
+
+## 새 작업 시작 시 Source of Truth
+
+새 채팅이나 새로운 작업 세션에서는 다음 순서로 기준을 잡습니다.
+
+```text
+최신 전체 ZIP
+→ ZIP 내부 인수인계 MD 확인
+→ 같은 ZIP의 실제 소스 확인
+→ 문서와 코드의 현재 상태 대조
+→ 작업 시작
+```
+
+과거 대화에서 기억한 코드나 과거 ZIP을 최신본으로 추정하지 않습니다.
+
+가장 간단한 시작 요청은:
+
+```text
+첨부한 최신 ZIP 기준으로 시작해줘.
+```
+
+입니다.
 
 ---
 
 ## 저장소 정리
 
-Python cache는 저장소에 포함하지 않습니다.
+Python cache 등 실행 중 자동 생성되는 파일은 저장소에 포함하지 않습니다.
 
 ```gitignore
 __pycache__/
 *.pyc
 ```
+
+---
+
+## 상세 운영 문서
+
+세부 구조, 반복 회귀 이력, QA 범위, 차수별 작업 규칙, 점수 이력, 운영 JSON 보호 기준 및 새 채팅 인수인계 방식은 다음 문서를 기준으로 합니다.
+
+```text
+메인대시보드 수정 시 반드시 확인할 사항 및 채팅창 인수인계.md
+```
+
+README는 저장소의 전체 구조와 운영 개요를 설명하고, 위 MD는 **실제 수정 작업을 수행할 때 적용하는 상세 유지보수 규칙**을 담당합니다.
