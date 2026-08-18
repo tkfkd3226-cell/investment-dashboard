@@ -1,71 +1,55 @@
 import {
   allAvailableDates,
   calc,
-  chartState,
   dataState,
-  escapeHtml,
   koreanDateLabel,
   loadInitialData,
-  navIconSvg,
   pct,
-  separateProfitCumulativeForDate,
   separateProfitView,
-  signed,
   uiState,
   won
 } from './dashboard-core.js';
 import {
-  clearChartHover,
+  escapeHtml,
+  navIconSvg
+} from './dashboard-ui-common.js';
+import {
   drawAllCharts,
-  drawCumChart,
-  openExpandedChart,
-  scrollChartToEnd,
-  scrollChartToStart,
-  setChartAutoY,
-  setChartCompareMode,
-  setSecurityAllocMode,
-  setSymbolChartMode,
-  toggleChartSeries,
-  toggleChartTitleInfo
+  handleChartDashboardAction,
+  isExpandedChart,
+  refreshExpandedSeparateProfitChart,
+  requestSecuritiesCumCardTransitionSuppression,
+  setupChartGlobalEvents,
+  suppressChartEntranceOnce
 } from './dashboard-charts.js';
 import {
   closeDateActionMenu,
-  closeDesktopEdgeToc,
-  closeKrxActionModal,
   ensureDesktopEdgeToc,
   ensureMobileTopButton,
-  handleAssetTabKeydown,
+  handleUiDashboardAction,
+  handleUiDashboardChange,
+  handleUiDashboardKeydown,
   hydrateSectionTitleIcons,
-  jumpToSection,
   mobileDateMenuIsOpen,
   renderCombined,
   renderSecuritiesSection,
   renderTabs,
   restoreMobileDateMenuAfterRender,
-  setAssetTab,
-  setMobileDatePinned,
   setupSectionNavigationTracking,
   setupUiGlobalEvents,
-  submitKrxActionModal,
-  suppressSecuritiesCumCardTransitionOnce,
   syncAssetTabs,
   syncCornerThemeControls,
-  syncMobileTopbarState,
-  syncThemeControls,
-  toggleCornerTheme,
-  toggleDateActionMenu,
-  toggleDesktopEdgeToc,
-  toggleMobileDataView,
-  toggleTheme,
-  triggerKrxPriceUpdate
+  syncThemeControls
 } from './dashboard-ui.js';
 import {
-  openPensionContributionModal,
   renderPension,
-  renderPensionContributionModal,
-  setupPensionEventDelegation,
   setupPensionVizTooltips
 } from './dashboard-pension.js';
+import {
+  openPensionContributionModal,
+  renderPensionContributionModal,
+  setupPensionEventDelegation
+} from './dashboard-pension-editor.js';
 
 // 메인 대시보드 app action · render · event binding · boot orchestration
 
@@ -87,40 +71,19 @@ function handleHeroBasisTap(){
 function toggleSeparateProfitMode(){
   const scrollY=window.scrollY;
   uiState.includeSeparateProfit=!uiState.includeSeparateProfit;
-  chartState.skipEntranceOnce=true;
-  chartState.skipSecuritiesCumCardTransitionOnce=true;
+  suppressChartEntranceOnce();
+  requestSecuritiesCumCardTransitionSuppression();
   render();
   requestAnimationFrame(()=>window.scrollTo({top:scrollY,left:0,behavior:'auto'}));
 }
 function toggleSeparateProfitModeFromExpanded(cardId){
-  if(!chartState.expanded||cardId!=='chart-cum')return;
+  if(cardId!=='chart-cum'||!isExpandedChart(cardId))return;
   uiState.includeSeparateProfit=!uiState.includeSeparateProfit;
-  document.querySelectorAll('.separate-profit-toggle').forEach(toggle=>{
-    toggle.classList.toggle('active',uiState.includeSeparateProfit);
-    toggle.setAttribute('aria-pressed',String(uiState.includeSeparateProfit));
-    const state=toggle.querySelector('strong');
-    if(state)state.textContent=uiState.includeSeparateProfit?'ON':'OFF';
-  });
-  const expandedControl=chartState.expanded.expandedSeparateProfitControl;
-  const note=expandedControl?.querySelector('.separate-profit-control-note');
-  if(uiState.includeSeparateProfit){
-    const profit=separateProfitCumulativeForDate(dataState.activeDate);
-    if(note)note.textContent=`선택일 ${signed(profit,'원')}`;
-    else if(expandedControl){
-      const span=document.createElement('span');
-      span.className='separate-profit-control-note';
-      span.textContent=`선택일 ${signed(profit,'원')}`;
-      expandedControl.prepend(span);
-    }
-  }else{
-    note?.remove();
-  }
-  drawCumChart();
-  chartState.expanded.afterClose=()=>{
+  refreshExpandedSeparateProfitChart(()=>{
     const scrollY=window.scrollY;
     render();
     requestAnimationFrame(()=>window.scrollTo({top:scrollY,left:0,behavior:'auto'}));
-  };
+  });
 }
 
 function setActiveDashboardDate(date,{keepMobileMenuOpen=false}={}){
@@ -153,43 +116,17 @@ function handleDashboardDateChange(target){
 }
 function handleDashboardAction(event,control){
   const action=control.dataset.dashboardAction;
-  if(action==='toggle-separate-profit') return toggleSeparateProfitMode();
-  if(action==='toggle-separate-profit-expanded') return toggleSeparateProfitModeFromExpanded(control.dataset.expandedChartId||'');
-  if(action==='close-date-menu') return closeDateActionMenu();
-  if(action==='toggle-date-menu') return toggleDateActionMenu(event);
-  if(action==='toggle-desktop-toc') return toggleDesktopEdgeToc();
-  if(action==='krx-update') return triggerKrxPriceUpdate();
+  if(action==='toggle-separate-profit')return toggleSeparateProfitMode();
+  if(action==='toggle-separate-profit-expanded')return toggleSeparateProfitModeFromExpanded(control.dataset.expandedChartId||'');
   if(action==='open-pension-modal'){
     openPensionContributionModal();
     closeDateActionMenu();
     return;
   }
-  if(action==='toggle-theme') return toggleTheme();
-  if(action==='toggle-corner-theme') return toggleCornerTheme();
-  if(action==='jump-section'){
-    jumpToSection(control.dataset.sectionTarget||'');
-    closeDesktopEdgeToc();
-    if(control.dataset.closeDateMenu==='true')closeDateActionMenu();
-    return;
-  }
-  if(action==='toggle-mobile-view') return toggleMobileDataView(control.dataset.mobileViewKey||'');
-  if(action==='open-expanded-chart') return openExpandedChart(control);
-  if(action==='scroll-chart-start') return scrollChartToStart(control);
-  if(action==='scroll-chart-end') return scrollChartToEnd(control);
-  if(action==='toggle-chart-title-info') return toggleChartTitleInfo(event,control);
-  if(action==='toggle-chart-series'){
-    const key=control.dataset.chartSeriesKey||'';
-    return toggleChartSeries(control.dataset.chartScope||'',key==='__all__'?key:decodeURIComponent(key));
-  }
-  if(action==='set-chart-auto-y') return setChartAutoY(control.dataset.chartScope||'',control.dataset.chartAutoY==='true');
-  if(action==='set-chart-compare-mode') return setChartCompareMode(control.dataset.chartCompareScope||'',control.dataset.chartCompareMode||'return');
-  if(action==='set-symbol-chart-mode') return setSymbolChartMode(control.dataset.symbolChartScope||'',control.dataset.symbolChartMode||'profit');
-  if(action==='set-security-alloc-mode') return setSecurityAllocMode(control.dataset.securityAllocMode||'type');
-  if(action==='close-krx-modal') return closeKrxActionModal();
-  if(action==='submit-krx-modal') return submitKrxActionModal(control.dataset.krxMode||'selected');
-  if(action==='set-asset-tab') return setAssetTab(control.dataset.assetTab||'securities');
-  if(action==='hero-basis-tap') return handleHeroBasisTap();
-  if(action==='jump-chart-date') return jumpToChartDate(control.dataset.chartDate||'',control.dataset.chartId||'');
+  if(action==='hero-basis-tap')return handleHeroBasisTap();
+  if(action==='jump-chart-date')return jumpToChartDate(control.dataset.chartDate||'',control.dataset.chartId||'');
+  if(handleChartDashboardAction(event,control))return;
+  handleUiDashboardAction(event,control);
 }
 function setupDashboardEventDelegation(){
   document.addEventListener('click',event=>{
@@ -198,15 +135,11 @@ function setupDashboardEventDelegation(){
   });
   document.addEventListener('change',event=>{
     const target=event.target;
-    if(target?.dataset?.dashboardChange==='mobile-date-pin'){
-      setMobileDatePinned(target.checked);
-      return;
-    }
+    if(handleUiDashboardChange(target))return;
     handleDashboardDateChange(target);
   });
   document.addEventListener('keydown',event=>{
-    const assetTab=event.target.closest?.('[role="tab"][data-asset-tab]');
-    if(assetTab&&handleAssetTabKeydown(event,assetTab))return;
+    if(handleUiDashboardKeydown(event))return;
     if(event.key!=='Enter'&&event.key!==' ')return;
     const control=event.target.closest?.('[data-dashboard-action="jump-chart-date"]');
     if(!control)return;
@@ -228,7 +161,6 @@ function render(){
   syncAssetTabs();
   syncThemeControls();
   syncCornerThemeControls();
-  suppressSecuritiesCumCardTransitionOnce();
   drawAllCharts();
   setupPensionVizTooltips();
   ensureMobileTopButton();
@@ -244,11 +176,8 @@ function initializeDashboardState(){
 function bindAppEvents(){
   setupDashboardEventDelegation();
   setupUiGlobalEvents();
+  setupChartGlobalEvents();
   setupPensionEventDelegation({renderDashboard:render});
-  window.addEventListener('resize',syncMobileTopbarState,{passive:true});
-  document.addEventListener('pointerdown',e=>{
-    if(!e.target.closest('.svg-hitbox')&&!e.target.closest('#dashTooltip'))clearChartHover();
-  });
 }
 
 async function boot(){

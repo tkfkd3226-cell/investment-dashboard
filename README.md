@@ -31,9 +31,11 @@ investment-dashboard-main/
 │  └─ style.css
 ├─ js/
 │  ├─ dashboard-core.js
+│  ├─ dashboard-ui-common.js
 │  ├─ dashboard-charts.js
 │  ├─ dashboard-ui.js
 │  ├─ dashboard-pension.js
+│  ├─ dashboard-pension-editor.js
 │  └─ dashboard-app.js
 ├─ data/
 │  ├─ portfolio.json
@@ -63,24 +65,30 @@ investment-dashboard-main/
 
 ## 프론트엔드 구조
 
-메인 JavaScript는 **5개 ES Module**로 구성되어 있으며 `dashboard-app.js`가 단일 entry point입니다.
+메인 JavaScript는 **7개 ES Module**로 구성되어 있으며 `dashboard-app.js`가 단일 entry point입니다.
 
 | 파일 | 역할 |
 |---|---|
-| `dashboard-core.js` | 데이터, 상태, 계산, formatter, 공통 helper |
-| `dashboard-charts.js` | 차트 렌더링, 범례, tooltip, 확대 및 반응형 처리 |
-| `dashboard-ui.js` | Topbar, Navigation, 일반 UI, table/card/modal 렌더링 |
-| `dashboard-pension.js` | 퇴직연금 화면, 저장·삭제, batch, PIN 처리 |
-| `dashboard-app.js` | 이벤트 연결, render orchestration, 초기화 및 boot |
+| `dashboard-core.js` | 공통 데이터 상태, 데이터 로딩, 계산, formatter |
+| `dashboard-ui-common.js` | 여러 UI 모듈이 공유하는 저수준 DOM·접근성·마크업 helper |
+| `dashboard-charts.js` | 차트 state, 렌더링, 범례, tooltip, 확대, 반응형 및 차트 action routing |
+| `dashboard-ui.js` | Topbar, Navigation, 일반 UI, table/card/modal 렌더링 및 UI action routing |
+| `dashboard-pension.js` | 퇴직연금 조회 화면(View), 상품 현황·인사이트·시각화 tooltip |
+| `dashboard-pension-editor.js` | 퇴직연금 금액조정(Editor), PIN, batch, 저장·삭제 |
+| `dashboard-app.js` | 날짜·별도수익 등 cross-module 흐름, render orchestration, 초기화 및 boot |
 
-현재 module dependency는 다음 방향을 유지합니다.
+주요 dependency 방향은 다음과 같습니다.
 
 ```text
-charts  → core
-ui      → core + charts
-pension → core + charts + ui
-app     → core + charts + ui + pension
+ui-common       → core
+charts          → core + ui-common
+ui              → core + ui-common + charts
+pension         → core + ui-common + charts + ui
+pension-editor  → core + ui-common + ui
+app             → core + ui-common + charts + ui + pension + pension-editor
 ```
+
+`chartState`와 퇴직연금 editor의 batch/runtime state는 각 책임 모듈 내부 private state로 유지합니다.
 
 메인 CSS는 `css/style.css` **단일 파일 구조**를 유지합니다.
 
@@ -162,6 +170,7 @@ CSS 구조 최적화
 → JavaScript 5파일 책임 분리
 → UI/UX 공통화 및 반응형 정리
 → JavaScript ES Module migration
+→ JavaScript 3차 구조 리팩토링(7모듈 책임 경계·private state·public API 정리)
 ```
 
 앞으로의 기본 원칙은 **현재 정상 구조를 유지하면서 필요한 범위만 최소 수정하는 것**입니다.
@@ -171,7 +180,7 @@ CSS 구조 최적화
 - `window` / `globalThis` 기반 우회 dependency를 만들지 않음
 - 메인 CSS는 `css/style.css` 단일 파일 유지
 - 불필요한 breakpoint, `!important`, 후행 override를 추가하지 않음
-- 계산·데이터·UI·차트·퇴직연금의 현재 책임 경계를 유지
+- core / ui-common / charts / ui / pension view / pension editor / app의 현재 책임 경계를 유지
 - 운영 JSON을 소스 패치로 임의 덮어쓰지 않음
 
 세부 구조, QA 방식, 점수 이력, 회귀 불변조건 및 새 채팅 인수인계 기준은 다음 문서를 사용합니다.

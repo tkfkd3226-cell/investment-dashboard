@@ -2,13 +2,10 @@ import {
   ASSET_TYPE_COLORS,
   CASH_ASSET_COLOR,
   SECURITY_SYMBOL_COLORS,
-  activateDashboardDialogFocus,
   allocHistory,
   allAvailableDates,
   assetTypeColor,
   calc,
-  chartSeriesSwatch,
-  chartState,
   cls,
   cumHistory,
   dataState,
@@ -16,18 +13,14 @@ import {
   formatKospi,
   hasPensionData,
   kospiIndexForDate,
-  navIconSvg,
   pct,
-  pensionProductSwatch,
   pensionSeriesColor,
-  releaseDashboardDialogFocus,
   securityAllocOneShareEval,
   securityAllocTypeTotals,
   securityAllocVisibleHoldings,
   securityAllocationColor,
   securityChartNamesForDate,
   securitySymbolAllocHistory,
-  securitySymbolSwatch,
   separateProfitCumulativeForDate,
   signed,
   snapshotDates,
@@ -38,10 +31,104 @@ import {
   uiState,
   won
 } from './dashboard-core.js';
+import {
+  activateDashboardDialogFocus,
+  chartSeriesSwatch,
+  escapeHtml,
+  navIconSvg,
+  pensionProductSwatch,
+  releaseDashboardDialogFocus,
+  securitySymbolSwatch
+} from './dashboard-ui-common.js';
 
 // 메인 대시보드 차트 UI · SVG · legend · 확대 · responsive chart 처리
 
 // Expanded / Responsive Controls · 확대 / 반응형 컨트롤
+const chartRuntimeState={
+  entranceObserver:null,
+  expandedViewportBound:false,
+  responsiveControlsBound:false,
+  entrancePhoneLandscapeBound:false,
+  skipEntranceOnce:false,
+  securitiesCumTransitionSuppressionPending:false,
+  expanded:null
+};
+const chartState={
+  compareModes:{securities:'return',pension:'return'},
+  symbolModes:{securities:'profit',pension:'profit'},
+  securityAllocMode:'type',
+  series:{
+    securitiesCum:{selected:null,autoY:false},
+    pensionCum:{selected:null,autoY:false},
+    securitiesSymbol:{selected:null,autoY:false},
+    pensionSymbol:{selected:null,autoY:false},
+    'securitiesAlloc:type':{selected:null,autoY:false},
+    'securitiesAlloc:symbol':{selected:null,autoY:false},
+    pensionAlloc:{selected:null,autoY:false}
+  }
+};
+
+function suppressChartEntranceOnce(){
+  chartRuntimeState.skipEntranceOnce=true;
+}
+function requestSecuritiesCumCardTransitionSuppression(){
+  chartRuntimeState.securitiesCumTransitionSuppressionPending=true;
+}
+function applySecuritiesCumCardTransitionSuppression(){
+  if(!chartRuntimeState.securitiesCumTransitionSuppressionPending)return;
+  chartRuntimeState.securitiesCumTransitionSuppressionPending=false;
+  const card=document.getElementById('chart-cum');
+  if(!card)return;
+  const nodes=[card,...card.querySelectorAll('.mini-card')];
+  nodes.forEach(node=>node.classList.add('transition-suppressed-once'));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    nodes.forEach(node=>node.classList.remove('transition-suppressed-once'));
+  }));
+}
+function isExpandedChart(cardId=''){
+  const expanded=chartRuntimeState.expanded;
+  return !!expanded&&(!cardId||expanded.cardId===cardId);
+}
+function setExpandedChartAfterClose(cardId,callback){
+  const expanded=chartRuntimeState.expanded;
+  if(!expanded||expanded.cardId!==cardId)return false;
+  expanded.afterClose=typeof callback==='function'?callback:null;
+  return true;
+}
+function syncExpandedSeparateProfitControl(){
+  const enabled=uiState.includeSeparateProfit;
+  document.querySelectorAll('.separate-profit-toggle').forEach(toggle=>{
+    toggle.classList.toggle('active',enabled);
+    toggle.setAttribute('aria-pressed',String(enabled));
+    const state=toggle.querySelector('strong');
+    if(state)state.textContent=enabled?'ON':'OFF';
+  });
+  const expandedControl=document.querySelector('.expanded-separate-profit-control');
+  const note=expandedControl?.querySelector('.separate-profit-control-note');
+  if(!enabled){
+    note?.remove();
+    return;
+  }
+  const noteText=`선택일 ${signed(separateProfitCumulativeForDate(dataState.activeDate),'원')}`;
+  if(note){
+    note.textContent=noteText;
+    return;
+  }
+  if(expandedControl){
+    const span=document.createElement('span');
+    span.className='separate-profit-control-note';
+    span.textContent=noteText;
+    expandedControl.prepend(span);
+  }
+}
+function refreshExpandedSeparateProfitChart(afterClose){
+  if(!isExpandedChart('chart-cum'))return false;
+  syncExpandedSeparateProfitControl();
+  drawCumChart();
+  setExpandedChartAfterClose('chart-cum',afterClose);
+  return true;
+}
+
 function chartExpandIcon(){
   return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"></path><path d="M9 9 3 3M15 9l6-6M15 15l6 6M9 15l-6 6"></path></svg>`;
 }
@@ -52,7 +139,7 @@ function chartScrollButton(){
   return `<div class="chart-scroll-row"><button type="button" class="chart-scroll-start" aria-label="차트를 왼쪽 끝으로 이동" title="왼쪽 끝으로 이동" data-dashboard-action="scroll-chart-start">${navIconSvg('arrowLeft')}</button><button type="button" class="chart-scroll-end" aria-label="차트를 오른쪽 끝으로 이동" title="오른쪽 끝으로 이동" data-dashboard-action="scroll-chart-end">${navIconSvg('arrowRight')}</button><button type="button" class="chart-expand-button" aria-label="차트를 가로 전체화면으로 확대" title="가로 전체화면" data-dashboard-action="open-expanded-chart">${chartExpandIcon()}</button></div>`;
 }
 function chartTitleInfoButton(text){
-  const safe=String(text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const safe=escapeHtml(text);
   return `<button type="button" class="chart-title-info" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-chart-title-info"><span aria-hidden="true">i</span><span class="chart-title-info-tooltip" role="tooltip">${safe}</span></button>`;
 }
 function closeChartTitleInfo(except=null){
@@ -167,7 +254,7 @@ function openExpandedChart(button){
   if(legend)expandedLegendHost.appendChild(legend);
   document.body.appendChild(overlay);
   document.body.classList.add('chart-expanded-open');
-  chartState.expanded={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,cardId:card.id};
+  chartRuntimeState.expanded={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,cardId:card.id};
   syncExpandedChartViewport();
   overlay.querySelector('.chart-expanded-close')?.addEventListener('click',closeExpandedChart,{once:true});
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeExpandedChart()});
@@ -175,10 +262,10 @@ function openExpandedChart(button){
   activateDashboardDialogFocus(overlay,{initialFocus:overlay.querySelector('.chart-expanded-close'),fallbackSelector:`#${card.id} [data-dashboard-action="open-expanded-chart"]`,returnFocus:opener});
 }
 function closeExpandedChart(){
-  const state=chartState.expanded;
+  const state=chartRuntimeState.expanded;
   if(!state)return;
   clearChartHover();
-  chartState.expanded=null;
+  chartRuntimeState.expanded=null;
   const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,cardId,afterClose}=state;
   if(placeholder?.parentNode)placeholder.parentNode.insertBefore(svg,placeholder);
   placeholder?.remove();
@@ -209,17 +296,17 @@ function closeExpandedChart(){
   }
 }
 function setupExpandedChartViewport(){
-  if(chartState.expandedViewportBound)return;
-  chartState.expandedViewportBound=true;
+  if(chartRuntimeState.expandedViewportBound)return;
+  chartRuntimeState.expandedViewportBound=true;
   let frame=0;
   const sync=()=>{
-    if(!chartState.expanded)return;
+    if(!chartRuntimeState.expanded)return;
     cancelAnimationFrame(frame);
     frame=requestAnimationFrame(syncExpandedChartViewport);
   };
   window.addEventListener('resize',sync,{passive:true});
   window.addEventListener('orientationchange',sync,{passive:true});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&chartState.expanded)closeExpandedChart()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&chartRuntimeState.expanded)closeExpandedChart()});
 }
 const RESPONSIVE_CHART_SCOPES=[
   {id:'pension-chart-cum',scope:'pensionCum'},
@@ -298,8 +385,8 @@ function syncResponsiveChartControls(){
 function setupResponsiveChartControls(){
   syncResponsiveChartControls();
   setupExpandedChartViewport();
-  if(chartState.responsiveControlsBound)return;
-  chartState.responsiveControlsBound=true;
+  if(chartRuntimeState.responsiveControlsBound)return;
+  chartRuntimeState.responsiveControlsBound=true;
   document.addEventListener('click',event=>{if(!event.target.closest('.chart-title-info'))closeChartTitleInfo()});
   let frame=0;
   window.addEventListener('resize',()=>{
@@ -374,19 +461,19 @@ function activateChartEntrance(wrap){
   if(!card||card.dataset.chartEntrancePlayed==='true')return;
   card.dataset.chartEntrancePlayed='true';
   requestAnimationFrame(()=>card.classList.add('chart-entrance-active'));
-  chartState.entranceObserver?.unobserve(wrap);
+  chartRuntimeState.entranceObserver?.unobserve(wrap);
 }
 function chartWrapFullyVisible(wrap){
   const rect=wrap.getBoundingClientRect();
   return rect.top>=-1&&rect.bottom<=window.innerHeight+1;
 }
 function setupChartEntranceAnimations(){
-  chartState.entranceObserver?.disconnect();
-  chartState.entranceObserver=null;
+  chartRuntimeState.entranceObserver?.disconnect();
+  chartRuntimeState.entranceObserver=null;
   const wraps=[...document.querySelectorAll('.chart-card .chart-wrap')];
   if(!wraps.length)return;
-  if(!chartState.entrancePhoneLandscapeBound){
-    chartState.entrancePhoneLandscapeBound=true;
+  if(!chartRuntimeState.entrancePhoneLandscapeBound){
+    chartRuntimeState.entrancePhoneLandscapeBound=true;
     let landscapeFrame=0;
     const syncLandscapeEntrance=()=>{
       cancelAnimationFrame(landscapeFrame);
@@ -399,14 +486,14 @@ function setupChartEntranceAnimations(){
     wraps.forEach(activateChartEntrance);
     return;
   }
-  chartState.entranceObserver=new IntersectionObserver(entries=>{
+  chartRuntimeState.entranceObserver=new IntersectionObserver(entries=>{
     entries.forEach(entry=>{
       if(entry.isIntersecting&&entry.intersectionRatio>=.97&&chartWrapFullyVisible(entry.target)){
         activateChartEntrance(entry.target);
       }
     });
   },{threshold:[0,.5,.9,.97,1]});
-  wraps.forEach(wrap=>chartState.entranceObserver.observe(wrap));
+  wraps.forEach(wrap=>chartRuntimeState.entranceObserver.observe(wrap));
   requestAnimationFrame(()=>wraps.forEach(wrap=>{
     if(chartWrapFullyVisible(wrap))activateChartEntrance(wrap);
   }));
@@ -834,7 +921,7 @@ function showTooltip(evt, html, kind=''){
   tt.style.left=evt.clientX+'px';
   tt.style.top=evt.clientY+'px';
   tt.classList.add('visible');
-  const expanded=!!chartState.expanded,pad=expanded?10:14,gap=12;
+  const expanded=!!chartRuntimeState.expanded,pad=expanded?10:14,gap=12;
   requestAnimationFrame(()=>{
     if(!tt.classList.contains('visible'))return;
     const rect=tt.getBoundingClientRect(),viewport=tooltipViewport();
@@ -859,6 +946,28 @@ function hideTooltip(){
   tt.style.visibility='';
 }
 function clearChartHover(){hideTooltip();document.querySelectorAll('.chart-hover-line').forEach(line=>line.setAttribute('opacity',0))}
+function setupChartGlobalEvents(){
+  document.addEventListener('pointerdown',event=>{
+    if(!event.target.closest('.svg-hitbox')&&!event.target.closest('#dashTooltip'))clearChartHover();
+  });
+}
+function handleChartDashboardAction(event,control){
+  const action=control.dataset.dashboardAction;
+  if(action==='open-expanded-chart')openExpandedChart(control);
+  else if(action==='scroll-chart-start')scrollChartToStart(control);
+  else if(action==='scroll-chart-end')scrollChartToEnd(control);
+  else if(action==='toggle-chart-title-info')toggleChartTitleInfo(event,control);
+  else if(action==='toggle-chart-series'){
+    const key=control.dataset.chartSeriesKey||'';
+    toggleChartSeries(control.dataset.chartScope||'',key==='__all__'?key:decodeURIComponent(key));
+  }
+  else if(action==='set-chart-auto-y')setChartAutoY(control.dataset.chartScope||'',control.dataset.chartAutoY==='true');
+  else if(action==='set-chart-compare-mode')setChartCompareMode(control.dataset.chartCompareScope||'',control.dataset.chartCompareMode||'return');
+  else if(action==='set-symbol-chart-mode')setSymbolChartMode(control.dataset.symbolChartScope||'',control.dataset.symbolChartMode||'profit');
+  else if(action==='set-security-alloc-mode')setSecurityAllocMode(control.dataset.securityAllocMode||'type');
+  else return false;
+  return true;
+}
 function row(name,val,clsName='',rowClass=''){return `<div class="tt-row${rowClass?' '+rowClass:''}"><span class="tt-name">${tooltipEscape(name)}</span><span class="tt-val ${clsName}">${tooltipEscape(val)}</span></div>`}
 function totalRow(name,val,clsName=''){return row(name,val,clsName,'tt-total')}
 function clsBy(n){return n<0?'tt-neg':(n>0?'tt-pos':'')}
@@ -918,7 +1027,7 @@ function addHover(svg,cfg,data,renderHtml,tooltipKind=''){
   hit.addEventListener('mousemove',showPointer);
   hit.addEventListener('pointerdown',showPointer);
   hit.addEventListener('pointermove',evt=>{
-    if(chartState.expanded?.svg!==svg)return;
+    if(chartRuntimeState.expanded?.svg!==svg)return;
     if(evt.pointerType!=='touch'&&evt.pointerType!=='pen')return;
     if(evt.cancelable)evt.preventDefault();
     showPointer(evt);
@@ -1253,6 +1362,7 @@ function refreshScrollHints(){
   });
 }
 function drawAllCharts(){
+  applySecuritiesCumCardTransitionSuppression();
   if(uiState.activeAssetTab==='pension'){
     drawPensionCumChart();
     drawPensionSymbolChart();
@@ -1263,8 +1373,8 @@ function drawAllCharts(){
     drawStacked();
   }
   setupResponsiveChartControls();
-  const skipEntrance=chartState.skipEntranceOnce;
-  chartState.skipEntranceOnce=false;
+  const skipEntrance=chartRuntimeState.skipEntranceOnce;
+  chartRuntimeState.skipEntranceOnce=false;
   document.querySelectorAll('svg.chart').forEach(svg=>{
     if(skipEntrance){
       const card=svg.closest('.chart-card');
@@ -1285,18 +1395,13 @@ function drawAllCharts(){
 
 
 export {
-  clearChartHover,
   drawAllCharts,
-  drawCumChart,
-  openExpandedChart,
+  handleChartDashboardAction,
+  isExpandedChart,
+  refreshExpandedSeparateProfitChart,
   renderCharts,
   renderPensionCharts,
-  scrollChartToEnd,
-  scrollChartToStart,
-  setChartAutoY,
-  setChartCompareMode,
-  setSecurityAllocMode,
-  setSymbolChartMode,
-  toggleChartSeries,
-  toggleChartTitleInfo
+  requestSecuritiesCumCardTransitionSuppression,
+  setupChartGlobalEvents,
+  suppressChartEntranceOnce
 };

@@ -37,9 +37,11 @@
     const version=Date.now();
     const moduleFiles=[
       'dashboard-core.js',
+      'dashboard-ui-common.js',
       'dashboard-charts.js',
       'dashboard-ui.js',
-      'dashboard-pension.js'
+      'dashboard-pension.js',
+      'dashboard-pension-editor.js'
     ];
     const imports=Object.fromEntries(moduleFiles.map(file=>[
       './js/'+file,

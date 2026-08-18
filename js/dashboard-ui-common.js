@@ -1,0 +1,129 @@
+import {
+  dataState,
+  pensionSeriesColor,
+  securityAllocationColor,
+  securityChartNamesForDate
+} from './dashboard-core.js';
+
+// 여러 UI 모듈이 공유하는 저수준 DOM · 접근성 · 마크업 helper
+
+const dashboardDialogFocusState=new WeakMap();
+function dashboardElementVisible(el){
+  if(!el||!el.isConnected||el.disabled)return false;
+  const style=getComputedStyle(el);
+  return style.display!=='none'&&style.visibility!=='hidden'&&(el.offsetWidth>0||el.offsetHeight>0||el.getClientRects().length>0);
+}
+function dashboardDialogFocusables(container){
+  if(!container)return [];
+  return [...container.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(dashboardElementVisible);
+}
+function dashboardVisibleFallback(selector){
+  if(!selector)return null;
+  return [...document.querySelectorAll(selector)].find(dashboardElementVisible)||null;
+}
+function dashboardReturnFocusVisible(el){
+  if(!dashboardElementVisible(el)||el===document.body||el===document.documentElement)return false;
+  const tag=String(el.tagName||'').toLowerCase();
+  return typeof el.focus==='function'&&(el.tabIndex>=0||['a','button','input','select','textarea','summary'].includes(tag));
+}
+function activateDashboardDialogFocus(container,{initialFocus=null,fallbackSelector='',returnFocus=null}={}){
+  if(!container)return;
+  let state=dashboardDialogFocusState.get(container);
+  if(!state){
+    state={returnFocus:null,fallbackSelector:'',keydown:null};
+    state.keydown=event=>{
+      if(event.key!=='Tab')return;
+      const focusables=dashboardDialogFocusables(container);
+      if(!focusables.length){event.preventDefault();return;}
+      const first=focusables[0],last=focusables.at(-1),active=document.activeElement;
+      if(event.shiftKey&&(active===first||!container.contains(active))){event.preventDefault();last.focus();}
+      else if(!event.shiftKey&&(active===last||!container.contains(active))){event.preventDefault();first.focus();}
+    };
+    container.addEventListener('keydown',state.keydown);
+    dashboardDialogFocusState.set(container,state);
+  }
+  if(returnFocus)state.returnFocus=returnFocus;
+  else if(!container.contains(document.activeElement)&&dashboardReturnFocusVisible(document.activeElement))state.returnFocus=document.activeElement;
+  state.fallbackSelector=fallbackSelector||state.fallbackSelector||'';
+  const resolveInitial=()=>typeof initialFocus==='string'?container.querySelector(initialFocus):initialFocus;
+  requestAnimationFrame(()=>{
+    const target=resolveInitial()||dashboardDialogFocusables(container)[0];
+    target?.focus?.({preventScroll:true});
+  });
+}
+function releaseDashboardDialogFocus(container,{fallbackSelector=''}={}){
+  if(!container)return;
+  const state=dashboardDialogFocusState.get(container);
+  const stored=state?.returnFocus||null;
+  const fallback=fallbackSelector||state?.fallbackSelector||'';
+  if(state){state.returnFocus=null;state.fallbackSelector='';}
+  requestAnimationFrame(()=>{
+    const target=dashboardReturnFocusVisible(stored)?stored:dashboardVisibleFallback(fallback);
+    target?.focus?.({preventScroll:true});
+  });
+}
+
+const NAV_ICON_ATTRS='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"';
+const NAV_ICONS=Object.freeze({
+    sun:`<svg ${NAV_ICON_ATTRS}><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>`,
+    moon:`<svg ${NAV_ICON_ATTRS}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
+    cornerSoft:`<svg ${NAV_ICON_ATTRS}><rect x="4" y="4" width="16" height="16" rx="1.5"></rect></svg>`,
+    cornerRounded:`<svg ${NAV_ICON_ATTRS}><rect x="4" y="4" width="16" height="16" rx="5"></rect></svg>`,
+    link:`<svg ${NAV_ICON_ATTRS}><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"></path><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"></path></svg>`,
+    activity:`<svg ${NAV_ICON_ATTRS}><path d="M22 12h-4l-3 8-6-16-3 8H2"></path></svg>`,
+    refresh:`<svg ${NAV_ICON_ATTRS}><path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><path d="M18 2v4h4"></path><path d="M6 22v-4H2"></path></svg>`,
+    menu:`<svg ${NAV_ICON_ATTRS}><path d="M4 6h16M4 12h16M4 18h16"></path></svg>`,
+    close:`<svg ${NAV_ICON_ATTRS}><path d="M18 6 6 18M6 6l12 12"></path></svg>`,
+    reset:`<svg ${NAV_ICON_ATTRS}><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v6h6"></path></svg>`,
+    chevronUp:`<svg ${NAV_ICON_ATTRS}><path d="m18 15-6-6-6 6"></path></svg>`,
+    chevronDown:`<svg ${NAV_ICON_ATTRS}><path d="m6 9 6 6 6-6"></path></svg>`,
+    chevronRight:`<svg ${NAV_ICON_ATTRS}><path d="m9 18 6-6-6-6"></path></svg>`,
+    arrowLeft:`<svg ${NAV_ICON_ATTRS}><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>`,
+    arrowRight:`<svg ${NAV_ICON_ATTRS}><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>`,
+    arrowUp:`<svg ${NAV_ICON_ATTRS}><path d="M12 19V5"></path><path d="m5 12 7-7 7 7"></path></svg>`,
+    trash:`<svg ${NAV_ICON_ATTRS}><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v6M14 11v6"></path></svg>`,
+    wallet:`<svg ${NAV_ICON_ATTRS}><path d="M20 7H5a3 3 0 0 0 0 6h15v6H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h15v3Z"></path><path d="M16 13h.01"></path></svg>`,
+    calculator:`<svg ${NAV_ICON_ATTRS}><rect x="5" y="2" width="14" height="20" rx="2"></rect><path d="M8 6h8"></path><path d="M8 10h.01"></path><path d="M12 10h.01"></path><path d="M16 10h.01"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>`,
+    home:`<svg ${NAV_ICON_ATTRS}><path d="m3 10 9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path></svg>`,
+    briefcase:`<svg ${NAV_ICON_ATTRS}><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M3 12h18"></path></svg>`,
+    package:`<svg ${NAV_ICON_ATTRS}><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"></path><path d="M12 12 4.5 7.8"></path><path d="M12 12l7.5-4.2"></path><path d="M12 12v9"></path></svg>`,
+    trending:`<svg ${NAV_ICON_ATTRS}><path d="m3 17 6-6 4 4 8-8"></path><path d="M14 7h7v7"></path></svg>`,
+    chart:`<svg ${NAV_ICON_ATTRS}><path d="M3 3v18h18"></path><path d="M7 15v2"></path><path d="M12 11v6"></path><path d="M17 7v10"></path></svg>`,
+    period:`<svg ${NAV_ICON_ATTRS}><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 10h18"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"></path></svg>`,
+    lineChart:`<svg ${NAV_ICON_ATTRS}><path d="M3 3v18h18"></path><path d="m7 16 4-5 3 3 5-7"></path></svg>`,
+    barChart:`<svg ${NAV_ICON_ATTRS}><path d="M4 20V11h4v9M10 20V5h4v15M16 20v-7h4v7"></path></svg>`,
+    pie:`<svg ${NAV_ICON_ATTRS}><path d="M21 12a9 9 0 1 1-9-9v9h9Z"></path><path d="M12 3a9 9 0 0 1 9 9"></path></svg>`,
+    bank:`<svg ${NAV_ICON_ATTRS}><path d="m3 9 9-6 9 6"></path><path d="M4 10h16"></path><path d="M6 10v8"></path><path d="M10 10v8"></path><path d="M14 10v8"></path><path d="M18 10v8"></path><path d="M3 18h18"></path><path d="M2 21h20"></path></svg>`,
+    list:`<svg ${NAV_ICON_ATTRS}><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3 6h.01"></path><path d="M3 12h.01"></path><path d="M3 18h.01"></path></svg>`,
+    folder:`<svg ${NAV_ICON_ATTRS}><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>`,
+    search:`<svg ${NAV_ICON_ATTRS}><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>`,
+    receipt:`<svg ${NAV_ICON_ATTRS}><path d="M6 3h12v18l-2-1-2 1-2-1-2 1-2-1-2 1V3Z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h4"></path></svg>`,
+    alertTriangle:`<svg ${NAV_ICON_ATTRS}><path d="M10.3 3.7 2.4 17.4A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.6L13.7 3.7a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>`,
+});
+function navIconSvg(name){
+  return NAV_ICONS[name]||NAV_ICONS.list;
+}
+
+const assetColorSwatch=color=>color?`<span class="asset-color-swatch" style="--asset-swatch-color:${color}" aria-hidden="true">■</span>`:'';
+const securitySymbolSwatch=name=>(!dataState.activeDate||securityChartNamesForDate(dataState.activeDate).includes(name))?assetColorSwatch(securityAllocationColor(name)):'';
+const pensionProductSwatch=name=>assetColorSwatch(pensionSeriesColor(name));
+const chartSeriesSwatch=color=>assetColorSwatch(color);
+
+function escapeHtml(value){
+  return String(value ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#39;");
+}
+
+export {
+  activateDashboardDialogFocus,
+  chartSeriesSwatch,
+  escapeHtml,
+  navIconSvg,
+  pensionProductSwatch,
+  releaseDashboardDialogFocus,
+  securitySymbolSwatch
+};

@@ -3,25 +3,19 @@ import {
   account1PrincipalForDate,
   account1SourceHoldingGapForDate,
   account1SourcePrincipalForDate,
-  activateDashboardDialogFocus,
   allAvailableDates,
-  chartState,
   cls,
   dataState,
   dayOptionLabel,
-  escapeHtml,
   fetchWithTimeout,
   fmt,
   isLedgerCheckDate,
   monthLabel,
-  navIconSvg,
   outsideCashForDate,
   pct,
-  releaseDashboardDialogFocus,
   securityExcludedTransferSum,
   securityExternalContributionSum,
   securityInternalCashTransferSum,
-  securitySymbolSwatch,
   securitiesScopeText,
   separateProfitCumulativeForDate,
   separateProfitReinvestedForDate,
@@ -34,6 +28,13 @@ import {
   won
 } from './dashboard-core.js';
 import {
+  activateDashboardDialogFocus,
+  escapeHtml,
+  navIconSvg,
+  releaseDashboardDialogFocus,
+  securitySymbolSwatch
+} from './dashboard-ui-common.js';
+import {
   drawAllCharts,
   renderCharts
 } from './dashboard-charts.js';
@@ -43,6 +44,11 @@ import {
 const THEME_STORAGE_KEY='investmentDashboard.theme';
 const CORNER_THEME_STORAGE_KEY='investmentDashboard.cornerTheme';
 const currentTheme=()=>document.documentElement.classList.contains('dark')?'dark':'light';
+const uiRuntimeState={
+  mobileTopScrollBound:false,
+  sectionNavigationBound:false,
+  sectionNavigationFrame:0
+};
 const currentCornerTheme=()=>document.documentElement.classList.contains('rounded-corners')?'rounded':'soft-square';
 function themeToggleIconMarkup(dark){
   return navIconSvg(dark?'sun':'moon');
@@ -96,7 +102,6 @@ const separateProfitControl=(x,extraClass='')=>{
   const note=uiState.includeSeparateProfit?`<span class="separate-profit-control-note">선택일 ${signed(profit,'원')}</span>`:'';
   return `<div class="separate-profit-control-row${extraClass?' '+extraClass:''}">${note}${separateProfitToggle()}</div>`;
 };
-
 const TOPBAR_ACTION_ICONS=Object.freeze({
   kospiNight:'activity',
   nasdaqFutures:'link',
@@ -260,15 +265,15 @@ function syncSectionNavigationState(forcedId=''){
   setSectionNavigationCurrent(forcedId||currentSectionNavigationId());
 }
 function scheduleSectionNavigationSync(){
-  if(uiState.sectionNavigationFrame)return;
-  uiState.sectionNavigationFrame=requestAnimationFrame(()=>{
-    uiState.sectionNavigationFrame=0;
+  if(uiRuntimeState.sectionNavigationFrame)return;
+  uiRuntimeState.sectionNavigationFrame=requestAnimationFrame(()=>{
+    uiRuntimeState.sectionNavigationFrame=0;
     syncSectionNavigationState();
   });
 }
 function setupSectionNavigationTracking(){
-  if(!uiState.sectionNavigationBound){
-    uiState.sectionNavigationBound=true;
+  if(!uiRuntimeState.sectionNavigationBound){
+    uiRuntimeState.sectionNavigationBound=true;
     window.addEventListener('scroll',scheduleSectionNavigationSync,{passive:true});
     window.addEventListener('resize',()=>{
       scheduleSectionNavigationSync();
@@ -399,8 +404,8 @@ function ensureMobileTopButton(){
     document.body.appendChild(button);
   }
   const update=()=>button.classList.toggle('show',(window.scrollY||document.documentElement.scrollTop||0)>220);
-  if(!uiState.mobileTopScrollBound){
-    uiState.mobileTopScrollBound=true;
+  if(!uiRuntimeState.mobileTopScrollBound){
+    uiRuntimeState.mobileTopScrollBound=true;
     window.addEventListener('scroll',update,{passive:true});
   }
   update();
@@ -440,6 +445,7 @@ function setupUiGlobalEvents(){
   document.addEventListener('click',e=>{
     if(!e.target.closest('#tabs')) closeDateActionMenu();
   });
+  window.addEventListener('resize',syncMobileTopbarState,{passive:true});
 }
 async function dispatchKrxPriceUpdate(pin, mode='selected'){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
@@ -705,42 +711,6 @@ function renderSecuritiesSection(x){
 }
 
 
-function suppressSecuritiesCumCardTransitionOnce(){
-  if(!chartState.skipSecuritiesCumCardTransitionOnce)return;
-  chartState.skipSecuritiesCumCardTransitionOnce=false;
-  const card=document.getElementById('chart-cum');
-  if(!card)return;
-  const nodes=[card,...card.querySelectorAll('.mini-card')];
-  nodes.forEach(node=>node.classList.add('transition-suppressed-once'));
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    nodes.forEach(node=>node.classList.remove('transition-suppressed-once'));
-  }));
-}
-
-function renderResultSummary(x){
-  const c=dataState.portfolio.constants,v=separateProfitView(x);
-  const outsideCashBase=c.outsideCash ?? 2035097,outsideCash=outsideCashForDate(x.date),outsideCashUsed=securityInternalCashTransferSum(x.date);
-  const separateUnreflected=v.unreflectedSeparateProfit;
-  const outsideCashBasis=outsideCash+(uiState.includeSeparateProfit?separateUnreflected:0);
-  const actualHoldingAndCash=x.allocTotal+outsideCashBasis;
-  const ledgerGap=v.totalResult-actualHoldingAndCash;
-  if(!isLedgerCheckDate(x.date)) return '';
-  const reasonValue='수익실현분 카드대금 사용';
-  const footnoteMark='<span class="cash-basis-note-mark">(1)</span>';
-  const footnoteSup='<sup class="cash-basis-note-mark cash-basis-note-sup">(1)</sup>';
-  const outsideCashFlowText=outsideCashUsed?`6/18 확인값 ${won(outsideCashBase)} - 투자 사용 ${won(outsideCashUsed)}`:`6/18 확인값 ${won(outsideCashBase)}`;
-  const note=uiState.includeSeparateProfit
-    ?`<p class="section-explainer table-note cash-basis-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCashBasis)} = ${outsideCashFlowText} + 6~8월 별도손익 중 현 보유자산 미반영분 ${won(separateUnreflected)}</p>`
-    :`<p class="section-explainer table-note cash-basis-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCash)} = ${outsideCashFlowText}</p>`;
-  const ledgerSourceSub='계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준<br>출처: 연금+계좌 성과 &gt; 증권계좌 투자 결과물';
-  const actualHoldingSub=`증권계좌 평가총액(${won(x.allocTotal)}) +<br>실현수익 반영 현금 보유액(${won(outsideCashBasis)})${footnoteSup}`;
-  const gapClass=ledgerGap!==0?'ledger-gap-value':'';
-  const conclusion=`<article class="card metric-card ledger-conclusion-card dark" aria-label="장부결과 차액"><div class="ledger-conclusion-main"><div class="label">차액(A-B)</div><div class="value ${gapClass}">${won(ledgerGap)}</div><div class="sub">장부상 결과물과 실제 보유액의 차이<div class="ledger-conclusion-inline-reason">차액 발생 이유: ${reasonValue}</div></div></div><div class="ledger-conclusion-reason"><span>차액 발생 이유</span><strong>${reasonValue}</strong></div></article>`;
-  const overview=`<div class="grid cards metric-grid ledger-overview-grid">${conclusion}${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),ledgerSourceSub)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),actualHoldingSub)}</div>`;
-  return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="search" aria-hidden="true"></span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div>${overview}${note}</section>`;
-}
-
-
 function renderHoldings(x){
   const holdCost=x.holdings.reduce((a,h)=>a+h.cost,0),
         holdEval=x.holdings.reduce((a,h)=>a+h.evalAmount,0),
@@ -832,16 +802,45 @@ function renderSourceTables(x){
 }
 
 
+function handleUiDashboardAction(event,control){
+  const action=control.dataset.dashboardAction;
+  if(action==='close-date-menu')closeDateActionMenu();
+  else if(action==='toggle-date-menu')toggleDateActionMenu(event);
+  else if(action==='toggle-desktop-toc')toggleDesktopEdgeToc();
+  else if(action==='krx-update')triggerKrxPriceUpdate();
+  else if(action==='toggle-theme')toggleTheme();
+  else if(action==='toggle-corner-theme')toggleCornerTheme();
+  else if(action==='jump-section'){
+    jumpToSection(control.dataset.sectionTarget||'');
+    closeDesktopEdgeToc();
+    if(control.dataset.closeDateMenu==='true')closeDateActionMenu();
+  }
+  else if(action==='toggle-mobile-view')toggleMobileDataView(control.dataset.mobileViewKey||'');
+  else if(action==='close-krx-modal')closeKrxActionModal();
+  else if(action==='submit-krx-modal')submitKrxActionModal(control.dataset.krxMode||'selected');
+  else if(action==='set-asset-tab')setAssetTab(control.dataset.assetTab||'securities');
+  else return false;
+  return true;
+}
+function handleUiDashboardChange(control){
+  if(control?.dataset?.dashboardChange!=='mobile-date-pin')return false;
+  setMobileDatePinned(control.checked);
+  return true;
+}
+function handleUiDashboardKeydown(event){
+  const assetTab=event.target.closest?.('[role="tab"][data-asset-tab]');
+  return !!(assetTab&&handleAssetTabKeydown(event,assetTab));
+}
+
 export {
   closeDateActionMenu,
-  closeDesktopEdgeToc,
-  closeKrxActionModal,
   ensureDesktopEdgeToc,
   ensureMobileTopButton,
   forceMobileViewportReflow,
-  handleAssetTabKeydown,
+  handleUiDashboardAction,
+  handleUiDashboardChange,
+  handleUiDashboardKeydown,
   hydrateSectionTitleIcons,
-  jumpToSection,
   metricCard,
   mobileDateMenuIsOpen,
   mobileInfoCard,
@@ -851,21 +850,10 @@ export {
   renderSecuritiesSection,
   renderTabs,
   restoreMobileDateMenuAfterRender,
-  setAssetTab,
-  setMobileDatePinned,
   setupSectionNavigationTracking,
   setupUiGlobalEvents,
   showAppToast,
-  submitKrxActionModal,
-  suppressSecuritiesCumCardTransitionOnce,
   syncAssetTabs,
   syncCornerThemeControls,
-  syncMobileTopbarState,
-  syncThemeControls,
-  toggleCornerTheme,
-  toggleDateActionMenu,
-  toggleDesktopEdgeToc,
-  toggleMobileDataView,
-  toggleTheme,
-  triggerKrxPriceUpdate
+  syncThemeControls
 };
