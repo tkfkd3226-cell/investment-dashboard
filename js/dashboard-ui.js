@@ -461,8 +461,8 @@ async function dispatchKrxPriceUpdate(pin, mode='selected'){
     action:'updateKrxPrices'
   };
 
-  // selected: 현재 화면의 기준일을 강제로 재갱신
-  // auto: 날짜를 보내지 않아 서버가 최신/누락 여부와 종가 반영 상태를 판단한다.
+  // selected 모드: 재갱신 요청으로 현재 화면 기준일을 body.date에 명시한다.
+  // auto 모드: body.date를 보내지 않아 서버가 최신/누락 여부와 종가 반영 상태를 판단한다.
   // 이미 종가가 반영된 경우 서버측 조건에 따라 워크플로 실행을 건너뛴다.
   if(updateMode==='selected'){
     body.date=selectedDate;

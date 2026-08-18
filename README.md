@@ -63,34 +63,52 @@
 
 ## 전체 동작 구조
 
+메인 화면은 `index.html`에서 시작하고, `dashboard-app.js`가 **단일 ES Module entry point**로 6개 기능/공통 모듈을 조율합니다.
+
 ```text
-Browser / GitHub Pages
+GitHub Pages / Browser
         │
         ├─ index.html
         ├─ css/style.css
-        └─ js/dashboard-app.js
-                 │
-                 ├─ data/*.json 읽기
-                 ├─ dashboard-core.js 계산
-                 ├─ dashboard-ui*.js 화면 렌더
-                 ├─ dashboard-charts.js 차트 렌더
-                 └─ dashboard-pension*.js 퇴직연금 View / Editor
-
-GitHub Actions
         │
-        └─ scripts/update_prices.py
-                 │
-                 ├─ KRX / KOSPI 데이터 수집
-                 ├─ data/prices.json 갱신
-                 └─ data/performance_snapshots.json 갱신
-
-Google Apps Script Web App
-        │
-        ├─ KRX 갱신 요청
-        └─ 퇴직연금 데이터 저장·삭제 요청
+        └─ js/dashboard-app.js  ← entry / orchestration
+               │
+               ├─ dashboard-core.js
+               ├─ dashboard-ui-common.js
+               ├─ dashboard-charts.js
+               ├─ dashboard-ui.js
+               ├─ dashboard-pension.js
+               └─ dashboard-pension-editor.js
+               │
+               ├─────────────── 읽기 ───────────────┐
+               │                                    ▼
+               │                              data/*.json
+               │
+               └─────────────── 쓰기 요청 ──────────┐
+                                                    ▼
+                                         Google Apps Script
+                                             gas/Code.gs
+                                                    │
+                              ┌─────────────────────┴─────────────────────┐
+                              │                                           │
+                              ▼                                           ▼
+                    퇴직연금 데이터 저장·삭제                      KRX 현재가 반영 요청
+                              │                                           │
+                              ▼                                           ▼
+                       GitHub REST API                         GitHub Actions workflow_dispatch
+                              │                                           │
+                              ▼                                           ▼
+              pension_*.json 직접 commit                    .github/workflows/update-prices.yml
+                                                                          │
+                                                                          ▼
+                                                               scripts/update_prices.py
+                                                                          │
+                                                           ┌──────────────┴──────────────┐
+                                                           ▼                             ▼
+                                                   data/prices.json       data/performance_snapshots.json
 ```
 
-프론트엔드는 별도 번들러나 프레임워크 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 동작합니다.
+프론트엔드는 별도 번들러나 프레임워크 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 동작합니다. 조회 데이터는 GitHub Pages의 JSON을 읽고, 브라우저에서 직접 GitHub에 쓰지 않습니다. 퇴직연금 쓰기와 KRX 갱신 요청은 GAS Web App을 거치며, GAS는 **단일 `gas/Code.gs` 파일**로 관리합니다.
 
 ---
 
@@ -117,6 +135,8 @@ investment-dashboard-main/
 │  ├─ pension_contributions.json
 │  ├─ pension_cash_snapshots.json
 │  └─ pension_trades.json
+├─ gas/
+│  └─ Code.gs
 ├─ scripts/
 │  └─ update_prices.py
 ├─ add/
@@ -152,14 +172,42 @@ investment-dashboard-main/
 
 ### Dependency 방향
 
+아래 표기에서 **`A → B`는 A가 B를 import한다는 의미**입니다. 현재 실제 import 관계는 다음과 같습니다.
+
 ```text
-core            → 없음
-ui-common       → core
-charts          → core + ui-common
-ui              → core + ui-common + charts
-pension         → core + ui-common + charts + ui
-pension-editor  → core + ui-common + ui
-app             → 모든 기능 모듈을 조율
+dashboard-core.js
+└─ 다른 메인 JS 모듈을 import하지 않음
+
+dashboard-ui-common.js
+└─ dashboard-core.js
+
+dashboard-charts.js
+├─ dashboard-core.js
+└─ dashboard-ui-common.js
+
+dashboard-ui.js
+├─ dashboard-core.js
+├─ dashboard-ui-common.js
+└─ dashboard-charts.js
+
+dashboard-pension.js
+├─ dashboard-core.js
+├─ dashboard-ui-common.js
+├─ dashboard-charts.js
+└─ dashboard-ui.js
+
+dashboard-pension-editor.js
+├─ dashboard-core.js
+├─ dashboard-ui-common.js
+└─ dashboard-ui.js
+
+dashboard-app.js
+├─ dashboard-core.js
+├─ dashboard-ui-common.js
+├─ dashboard-charts.js
+├─ dashboard-ui.js
+├─ dashboard-pension.js
+└─ dashboard-pension-editor.js
 ```
 
 현재 구조에서는 **순환 dependency를 만들지 않는 것**이 기본 원칙입니다.
@@ -172,32 +220,6 @@ app             → 모든 기능 모듈을 조율
 - 특정 모듈 내부 DOM이나 state를 다른 모듈이 직접 조작하지 않고 필요한 경우 공개 API를 사용합니다.
 - `window` / `globalThis`에 기능 API를 매달아 dependency를 우회하지 않습니다.
 
-### JS 3차 구조 리팩토링
-
-현재 7모듈 구조는 다음 순서의 3차 JS 리팩토링과 누적 QA를 거쳐 확정되었습니다.
-
-```text
-1차  private state / network 정리
-      → QA PASS
-
-2차  Pension View / Editor 분리
-      → QA PASS
-
-3차  chart state ownership / encapsulation
-      → QA PASS
-
-4차  core 순수화 / ui-common / public API 정리
-      → QA PASS
-
-5차  module action routing / app orchestration 정리
-      → QA PASS
-
-최종 누적 QA
-      → renderResultSummary() 누락 1건 발견·복구
-      → 재 QA PASS
-```
-
-최종 구조 평가는 **10.0 / 10**으로 기록되어 있으며, 이후에는 점수를 위해 파일을 더 나누기보다 현재 책임 경계를 보존하는 유지보수를 우선합니다.
 
 ---
 
@@ -267,6 +289,33 @@ data/pension_contributions.json
 
 ## KRX 가격 갱신
 
+대시보드에서 KRX 가격 갱신은 **날짜 입력창을 직접 사용하는 방식이 아닙니다.** 화면의 두 버튼이 요청에 `date`를 포함할지 여부를 결정합니다.
+
+### 대시보드의 KRX 버튼
+
+- **최신/누락 반영**
+  - GAS 요청에 `date`를 보내지 않습니다.
+  - GAS가 현재 한국시간, `prices.json`의 최신 데이터, 장중/종가 상태를 확인합니다.
+  - 필요한 경우에만 `update-prices.yml`을 `workflow_dispatch`로 실행합니다.
+  - 오늘 데이터 갱신, 누락 거래일 보완, 저장된 장중 데이터의 종가 확정이 이 흐름에 포함됩니다.
+- **재갱신**
+  - 현재 대시보드에서 선택되어 있는 `activeDate`를 JS가 요청의 `date`로 자동 전달합니다.
+  - GAS는 **요청에 명시적 `date`가 포함된 재갱신 요청**으로 판단하여 해당 날짜의 workflow를 실행합니다.
+  - 사용자가 날짜를 별도의 입력칸에 다시 입력하는 기능은 없습니다.
+
+```text
+최신/누락 반영
+Browser → GAS (date 없음)
+        → 최신/누락/장중 상태 판단
+        → 필요한 경우 workflow_dispatch
+
+재갱신
+Browser → GAS (date = 현재 activeDate)
+        → 해당 날짜 workflow_dispatch
+```
+
+### GitHub Actions / Python 처리
+
 GitHub Actions workflow:
 
 ```text
@@ -279,20 +328,11 @@ GitHub Actions workflow:
 scripts/update_prices.py
 ```
 
-workflow 이름은 `Update KRX closing prices`이며 수동 실행(`workflow_dispatch`)을 지원합니다.
-
-날짜 입력:
+기본 처리 흐름:
 
 ```text
-YYYY-MM-DD
-```
-
-날짜를 비워두면 **한국시간 기준 오늘**을 처리합니다.
-
-기본 흐름:
-
-```text
-GitHub Actions 실행
+GAS 또는 GitHub Actions 수동 실행
+→ Update KRX closing prices
 → Python 3.11 설정
 → requirements.txt 설치
 → scripts/update_prices.py 실행
@@ -300,14 +340,9 @@ GitHub Actions 실행
 → 변경이 있으면 자동 commit + push
 ```
 
-과거 날짜를 나중에 보완하거나 재갱신하는 경우에는 실행 시각이 장중이어도 과거 데이터는 종가 데이터로 취급합니다.
+GitHub Actions 화면에서 workflow를 **직접 수동 실행하는 운영/개발 경로**에는 선택적인 `YYYY-MM-DD` input이 있습니다. 이 input은 대시보드 UI의 날짜 입력 기능이 아닙니다. 날짜를 명시하면 해당 날짜를 처리하고, 날짜를 명시하지 않으면 Python 스크립트가 최신/누락/재확정이 필요한 날짜를 자동으로 결정합니다.
 
-### 화면의 KRX 버튼 의미
-
-- **최신/누락 반영** — 오늘 데이터 갱신, 누락 거래일 보완, 과거 장중 데이터 종가 확정
-- **재갱신** — 이미 존재하는 선택 날짜를 다시 반영
-
-신규 날짜 생성은 먼저 `최신/누락 반영` 흐름을 사용합니다.
+과거 날짜를 명시적으로 재갱신하는 경우 실행 시각이 장중이어도 과거 데이터는 종가 데이터로 취급합니다.
 
 ---
 

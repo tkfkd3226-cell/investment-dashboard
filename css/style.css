@@ -110,7 +110,7 @@
   --modal-action-gap:12px;
   --modal-focus-ring:rgba(43,61,89,.18);
   --focus-ring-shadow:0 0 0 3px var(--modal-focus-ring);
-  --interaction-row-shadow:inset 0 1px 0 var(--interaction-row-accent),inset 0 -1px 0 var(--interaction-row-accent);
+  --interaction-row-bg:rgba(37,99,235,.055);
   --nav-current-shadow:inset 3px 0 0 var(--nav-current-indicator);
   --table-summary-separator-shadow:inset 0 1px 0 var(--table-column-line);
   /* Interactive controls use a distinct border family; structural surfaces keep --line. */
@@ -125,7 +125,6 @@
   --text-secondary:#64748b;
   --surface-border-muted:rgba(148,163,184,.24);
   --interaction-border-accent:rgba(59,130,246,.28);
-  --interaction-row-accent:rgba(37,99,235,.18);
 
   /* Status System · 성공 / 정보 / 주의 / 오류 상태 */
   --status-success-bg:#dcfce7;
@@ -406,7 +405,7 @@ html.dark{
   --text-secondary:#94a3b8;
   --surface-border-muted:rgba(148,163,184,.24);
   --interaction-border-accent:rgba(96,165,250,.34);
-  --interaction-row-accent:rgba(96,165,250,.20);
+  --interaction-row-bg:rgba(96,165,250,.085);
 
   --status-success-bg:rgba(22,101,52,.22);
   --status-success-text:#bbf7d0;
@@ -3148,6 +3147,7 @@ body.contrib-modal-open{
 .mini-card.transition-suppressed-once{transition:none}
 
 .date-tool-btn,
+.date-action-menu.mobile-combined-menu .mobile-nav-item,
 .pill,
 button,
 .btn{
@@ -3175,8 +3175,13 @@ button,
     background:var(--hero-pill-hover-bg);
   }
 
-  .table-view > .dashboard-data-table:not(.source-data-table) tbody tr:not(.summary-row):hover > td{
-    box-shadow:var(--interaction-row-shadow);
+  .table-view > .dashboard-data-table:not(.source-data-table) tbody tr:not(.summary-row):hover > :is(th,td){
+    background:var(--interaction-row-bg);
+  }
+
+  .date-tool-btn:hover,
+  .date-action-menu.mobile-combined-menu .mobile-nav-item:hover{
+    transform:translateY(-1px);
   }
 
   :is(
@@ -3199,6 +3204,7 @@ button,
   }
 }
 
+.date-action-menu.mobile-combined-menu .mobile-nav-item:active,
 .date-tool-btn:not(:disabled):active,
 button:not(:disabled):active,
 .btn:not(:disabled):active{
