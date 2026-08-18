@@ -791,6 +791,10 @@ function accountMemoTableHtml(text){
   const parts=String(text||'').match(/[^.]+\.(?:\s*|$)|[^.]+$/g)||[];
   return parts.map(part=>`<span class="accounts-memo-sentence">${part.trim()}</span>`).join(' ');
 }
+function accountMemoInfoButton(text){
+  const safe=escapeHtml(String(text||''));
+  return `<button type="button" class="chart-title-info" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-chart-title-info"><span aria-hidden="true">i</span><span class="chart-title-info-tooltip" role="tooltip">${safe}</span></button>`;
+}
 function renderAccounts(x){
   const c=dataState.portfolio.constants,v=separateProfitView(x);
   const rows=[
@@ -805,8 +809,8 @@ function renderAccounts(x){
   ])).join('')+mobileInfoCard('합계',[
     ['투자원금',won(v.totalPrincipal)],['누적손익',won(v.totalProfit),cls(v.totalProfit)],['수익률',pct(v.totalReturn),cls(v.totalReturn)],['',totalMemo,'','stacked note-only']
   ],'summary-card mobile-total-card');
-  const totalRow=`<tr class="summary-row"><th scope="row" class="accounts-name">합계</th><td class="num">${fmt(v.totalPrincipal)}</td><td class="num ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}</td><td class="num table-cell-center ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td><td class="accounts-memo">${totalMemo}</td></tr>`;
-  return `<section id="accounts-summary" ${mobileViewAttrs('accounts')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="list" aria-hidden="true"></span>계좌별 성과 요약</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('accounts')}</div></div><div id="accounts-table-view" class="mobile-scroll accounts-scroll table-view"><table class="dashboard-data-table accounts-table"><caption class="visually-hidden">계좌별 성과 요약</caption><thead><tr><th scope="col" class="accounts-name-head">구분</th><th scope="col">투자원금</th><th scope="col">누적손익</th><th scope="col" class="table-cell-center">수익률</th><th scope="col">메모</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row" class="accounts-name">${r[0]}</th><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${tableCls(r[2])}">${fmt(r[2])}</td><td class="num table-cell-center ${r[1]?tableCls(r[3]):''}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${accountMemoTableHtml(r[4])}</td></tr>`).join('')}${totalRow}</tbody></table></div><div id="accounts-card-view" class="mobile-card-view">${cards}</div>${hiddenNote}</section>`;
+  const totalRow=`<tr class="summary-row"><th scope="row" class="accounts-name">합계${accountMemoInfoButton(totalMemo)}</th><td class="num">${fmt(v.totalPrincipal)}</td><td class="num ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}</td><td class="num table-cell-center ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td><td class="accounts-memo">${totalMemo}</td></tr>`;
+  return `<section id="accounts-summary" ${mobileViewAttrs('accounts')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="list" aria-hidden="true"></span>계좌별 성과 요약</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('accounts')}</div></div><div id="accounts-table-view" class="mobile-scroll accounts-scroll table-view"><table class="dashboard-data-table accounts-table"><caption class="visually-hidden">계좌별 성과 요약</caption><thead><tr><th scope="col" class="accounts-name-head">구분</th><th scope="col">투자원금</th><th scope="col">누적손익</th><th scope="col" class="table-cell-center">수익률</th><th scope="col">메모</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row" class="accounts-name">${r[0]}${accountMemoInfoButton(r[4])}</th><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${tableCls(r[2])}">${fmt(r[2])}</td><td class="num table-cell-center ${r[1]?tableCls(r[3]):''}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${accountMemoTableHtml(r[4])}</td></tr>`).join('')}${totalRow}</tbody></table></div><div id="accounts-card-view" class="mobile-card-view">${cards}</div>${hiddenNote}</section>`;
 }
 function renderSourceTables(x){
   const c=dataState.portfolio.constants,
