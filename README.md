@@ -86,8 +86,8 @@ GitHub Pages / Browser
                │
                └─────────────── 쓰기 요청 ──────────┐
                                                     ▼
-                                         Google Apps Script
-                                             gas/Code.gs
+                                      Google Apps Script Web App
+                                  (GitHub 저장소와 별도 관리·별도 배포)
                                                     │
                               ┌─────────────────────┴─────────────────────┐
                               │                                           │
@@ -108,7 +108,7 @@ GitHub Pages / Browser
                                                    data/prices.json       data/performance_snapshots.json
 ```
 
-프론트엔드는 별도 번들러나 프레임워크 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 동작합니다. 조회 데이터는 GitHub Pages의 JSON을 읽고, 브라우저에서 직접 GitHub에 쓰지 않습니다. 퇴직연금 쓰기와 KRX 갱신 요청은 GAS Web App을 거치며, GAS는 **단일 `gas/Code.gs` 파일**로 관리합니다.
+프론트엔드는 별도 번들러나 프레임워크 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 동작합니다. 조회 데이터는 GitHub Pages의 JSON을 읽고, 브라우저에서 직접 GitHub에 쓰지 않습니다. 퇴직연금 쓰기와 KRX 갱신 요청은 **GitHub 저장소와 별도로 관리·배포되는 Google Apps Script Web App**을 거칩니다.
 
 ---
 
@@ -135,8 +135,6 @@ investment-dashboard-main/
 │  ├─ pension_contributions.json
 │  ├─ pension_cash_snapshots.json
 │  └─ pension_trades.json
-├─ gas/
-│  └─ Code.gs
 ├─ scripts/
 │  └─ update_prices.py
 ├─ add/
@@ -153,6 +151,41 @@ investment-dashboard-main/
 ├─ start-local-server.bat
 └─ 메인대시보드 수정 시 반드시 확인할 사항 및 채팅창 인수인계.md
 ```
+
+### Google Apps Script 관리 및 배포
+
+Google Apps Script(GAS)는 **GitHub 저장소에 포함하지 않고 Google Apps Script 프로젝트에서 별도로 관리**합니다.
+
+- GAS 소스의 source of truth는 Google Apps Script 프로젝트의 최신 단일 `Code.gs`입니다.
+- 따라서 최신 GitHub ZIP에 `gas/Code.gs` 또는 `gas/` 폴더가 없는 것은 정상입니다.
+- GAS 수정이 필요할 때는 GitHub ZIP의 파일을 추정하지 않고, **현재 Apps Script에서 운영 중인 최신 `Code.gs` 전체를 별도로 확보한 뒤 그 코드만 기준으로 수정**합니다.
+- `GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_BRANCH`, `GITHUB_TOKEN`, `ADMIN_PIN` 같은 운영 값은 Apps Script의 **Script Properties**에서 관리하며 GitHub 저장소에 넣지 않습니다.
+- 프런트엔드는 배포된 GAS Web App URL을 호출합니다. 현재 호출 URL은 메인 JS의 API 설정에서 관리합니다.
+
+배포 구조:
+
+```text
+Google Apps Script 프로젝트
+└─ 단일 Code.gs
+      │
+      ├─ Script Properties
+      │    ├─ GITHUB_OWNER
+      │    ├─ GITHUB_REPO
+      │    ├─ GITHUB_BRANCH
+      │    ├─ GITHUB_TOKEN
+      │    └─ ADMIN_PIN
+      │
+      ▼
+Web App 배포
+      │
+      ▼
+배포 URL (/exec)
+      │
+      ▼
+GitHub Pages의 dashboard JS가 HTTPS 요청
+```
+
+`Code.gs`를 수정한 경우에는 **운영 Web App 배포를 새 코드 버전으로 갱신해야 실제 `/exec` 호출에 반영**됩니다. 가능하면 기존 운영 배포를 갱신하여 URL을 유지하고, 새 Web App URL을 사용하는 경우에는 메인 JS의 API URL도 함께 변경해야 합니다.
 
 ---
 
