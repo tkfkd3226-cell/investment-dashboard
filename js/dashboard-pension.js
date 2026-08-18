@@ -1,9 +1,52 @@
-// 퇴직연금 rendering · 금액조정 · 저장/삭제 · batch · PIN
+import {
+  CASH_ASSET_COLOR,
+  PENSION_CONTRIBUTION_SAVE_CONFIG,
+  activateDashboardDialogFocus,
+  cls,
+  dataState,
+  escapeHtml,
+  fetchWithTimeout,
+  fmt,
+  kstTodayText,
+  latestPensionContribution,
+  linkedPensionCashSnapshotForContribution,
+  linkedPensionCashSnapshotForTrade,
+  navIconSvg,
+  pct,
+  pensionBaseCashForDate,
+  pensionCashBeforeNewTrade,
+  pensionCashSnapshotItems,
+  pensionCashSnapshotReflectsContribution,
+  pensionCashSnapshotReflectsTrade,
+  pensionContributionItems,
+  pensionEvaluationBasisText,
+  pensionPositionState,
+  pensionProductSwatch,
+  pensionSeriesColor,
+  pensionState,
+  pensionTradeItems,
+  rawPensionCashSnapshotItems,
+  rawPensionContributionItems,
+  rawPensionTradeItems,
+  releaseDashboardDialogFocus,
+  shortDate,
+  signed,
+  sortPensionItems,
+  tableCls,
+  won
+} from './dashboard-core.js';
+import { renderPensionCharts } from './dashboard-charts.js';
+import {
+  closeDateActionMenu,
+  forceMobileViewportReflow,
+  metricCard,
+  mobileInfoCard,
+  mobileViewAttrs,
+  mobileViewToggle,
+  showAppToast
+} from './dashboard-ui.js';
 
-const pensionHooks={renderDashboard:null};
-function registerPensionHooks({renderDashboard}={}){
-  pensionHooks.renderDashboard=typeof renderDashboard==='function'?renderDashboard:null;
-}
+// 퇴직연금 rendering · 금액조정 · 저장/삭제 · batch · PIN
 
 const pensionContributionSubText=x=>{
   const latest=latestPensionContribution(x.date);
@@ -88,11 +131,14 @@ function renderPensionContributionModal(x){
   const cashDefaultValue=Number.isFinite(Number(x.pensionCash))?fmt(x.pensionCash):'';
   const cashDefaultCostBasis=Number.isFinite(Number(x.pensionCashCost))?fmt(x.pensionCashCost):'';
   const applyDate=kstTodayText();
-  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" data-pension-backdrop-close="true"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle" class="modal-main-title">퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="modal-icon-btn contrib-modal-icon-btn pension-form-reset" data-pension-action="reset-form" title="입력값 초기화" aria-label="입력값 초기화">↻</button><button type="button" class="modal-icon-btn contrib-modal-icon-btn contrib-modal-close" data-pension-action="close-modal" aria-label="닫기">×</button></div></div>
-<div class="pension-contrib-tool modal-card-box">
-  <div class="pension-contrib-section-head"><h3>등록</h3><div class="pension-work-controls"><div class="pension-work-mode" role="tablist" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" data-mode="single" data-pension-action="set-batch-mode" data-pension-enabled="false">개별 처리</button><button type="button" class="pension-work-mode-btn" data-mode="batch" data-pension-action="set-batch-mode" data-pension-enabled="true">작업 모음 <span id="pensionBatchModeCount" class="pension-batch-count" hidden>0</span></button></div></div></div>
-  <div class="contrib-field full contrib-target-field"><span class="contrib-field-label">등록 유형</span><input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="등록 유형 선택"><button type="button" class="contrib-target-option active" data-target="cashSnapshot" data-pension-action="set-target">현금성자산</button><button type="button" class="contrib-target-option" data-target="contribution" data-pension-action="set-target">기업적립금</button><button type="button" class="contrib-target-option" data-target="etfTrade" data-pension-action="set-target">추가 매수</button></div></div>
-  <p id="pensionEtfTradeHelp" class="small" hidden>추가 매수는 퇴직연금 앱 보유현황에 실제 반영된 날 저장하세요. 신청일·상품·수량·체결금액만 입력하면 나머지는 자동 계산합니다.</p>
+  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" data-pension-backdrop-close="true"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle" class="modal-main-title">퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="modal-icon-btn contrib-modal-icon-btn pension-form-reset" data-pension-action="reset-form" title="입력값 초기화" aria-label="입력값 초기화">${navIconSvg('reset')}</button><button type="button" class="modal-icon-btn contrib-modal-icon-btn contrib-modal-close" data-pension-action="close-modal" aria-label="닫기">${navIconSvg('close')}</button></div></div>
+<div class="pension-contrib-context" aria-label="퇴직연금 금액 조정 옵션">
+  <div class="pension-contrib-context-head"><span class="contrib-field-label">조정 항목</span><div class="chart-compare-toggle pension-work-mode" role="group" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" aria-pressed="true" data-mode="single" data-pension-action="set-batch-mode" data-pension-enabled="false">개별 처리</button><button type="button" class="pension-work-mode-btn" aria-pressed="false" data-mode="batch" data-pension-action="set-batch-mode" data-pension-enabled="true">작업 모음 <span id="pensionBatchModeCount" class="pension-batch-count" hidden>0</span></button></div></div>
+  <input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="조정 항목 선택" aria-orientation="horizontal"><button type="button" id="pension-target-tab-cash" class="contrib-target-option active" role="tab" aria-selected="true" aria-controls="pensionContribTargetPanel" tabindex="0" data-target="cashSnapshot" data-pension-action="set-target">현금성자산</button><button type="button" id="pension-target-tab-contribution" class="contrib-target-option" role="tab" aria-selected="false" aria-controls="pensionContribTargetPanel" tabindex="-1" data-target="contribution" data-pension-action="set-target">기업적립금</button><button type="button" id="pension-target-tab-trade" class="contrib-target-option" role="tab" aria-selected="false" aria-controls="pensionContribTargetPanel" tabindex="-1" data-target="etfTrade" data-pension-action="set-target">추가 매수</button></div>
+</div>
+<div id="pensionContribTargetPanel" role="tabpanel" aria-labelledby="pension-target-tab-cash">
+<div class="pension-contrib-tool modal-card-box" role="group" aria-labelledby="pensionContribRegisterTitle">
+  <h3 id="pensionContribRegisterTitle">등록</h3>
   <div id="pensionContribStandardFields" class="pension-adjust-form cash-mode">
     <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${cashDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></div>
     <div class="contrib-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">평가금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="${cashDefaultValue}" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}" data-pension-input="money"></div>
@@ -103,8 +149,8 @@ function renderPensionContributionModal(x){
     <div class="pension-adjust-form trade-mode">
       <div class="contrib-field full"><label for="pensionEtfTradeDate">신청일</label><input id="pensionEtfTradeDate" type="date" value="${cashDefaultDate}" data-pension-change="trade-preview"></div>
       <div class="contrib-field full"><label for="pensionEtfTradeTicker">ETF 상품</label><select id="pensionEtfTradeTicker" data-pension-change="trade-preview">${pensionTradeProductOptions()}</select></div>
-      <div class="contrib-field"><label for="pensionEtfTradeQty">체결수량</label><input id="pensionEtfTradeQty" type="text" inputmode="numeric" placeholder="예: 77" data-pension-input="trade-preview"></div>
-      <div class="contrib-field"><label for="pensionEtfTradeAmount">체결금액</label><input id="pensionEtfTradeAmount" type="text" inputmode="numeric" placeholder="예: 1,290,580" data-pension-input="money-preview"></div>
+      <div class="contrib-field"><label for="pensionEtfTradeQty">체결수량</label><input id="pensionEtfTradeQty" type="text" inputmode="numeric" placeholder="77" data-pension-input="trade-preview"></div>
+      <div class="contrib-field"><label for="pensionEtfTradeAmount">체결금액</label><input id="pensionEtfTradeAmount" type="text" inputmode="numeric" placeholder="1,290,580" data-pension-input="money-preview"></div>
     </div>
     <div class="pension-etf-trade-apply-note">앱 반영일 <strong id="pensionEtfTradeApplyDate">${applyDate}</strong> · 저장한 날 기준으로 보유수량/원가/현금에 적용</div>
     <div id="pensionEtfTradePreview" class="pension-etf-trade-preview"><span class="small">상품·수량·체결금액을 입력하면 적용 후 예상값을 보여줍니다.</span></div>
@@ -112,25 +158,26 @@ function renderPensionContributionModal(x){
   <div class="contrib-actions">
     <button type="button" id="pensionContribSaveButton" class="contrib-btn" data-pension-action="save">저장</button>
   </div>
-  <div id="pensionContribStatus" class="contrib-status"></div>
+  <div id="pensionContribStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
   <pre id="pensionContribOutput" class="contrib-output"></pre>
 </div>
-<div id="pensionContribDeleteCard" class="contrib-list modal-card-box"${pensionCashSnapshotItems().length?'':' hidden'}>
-  <h3>삭제</h3>
+<div id="pensionContribDeleteCard" class="contrib-list modal-card-box" role="group" aria-labelledby="pensionContribDeleteTitle"${pensionCashSnapshotItems().length?'':' hidden'}>
+  <h3 id="pensionContribDeleteTitle">삭제</h3>
   <p id="pensionContribDeleteHelp" class="small">잘못 등록한 현금성자산 기록 선택 후 삭제</p>
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList('cashSnapshot')}</div>
   <div class="contrib-actions"><button type="button" id="pensionContribDeleteButton" class="contrib-btn danger" data-pension-action="delete-selected">선택 항목 삭제</button></div>
-  <div id="pensionContribDeleteStatus" class="contrib-status"></div>
+  <div id="pensionContribDeleteStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
 </div>
-<div id="pensionBatchPanel" class="pension-batch-panel modal-card-box" hidden>
-  <div class="pension-batch-head"><div><h3>작업 모음 <span id="pensionBatchTitleCount">0건</span></h3><p>저장·삭제 작업을 모아 PIN 한 번으로 한 커밋에 반영합니다.</p></div><button type="button" id="pensionBatchClearButton" class="pension-batch-clear" data-pension-action="clear-batch">전체 비우기</button></div>
+</div>
+<div id="pensionBatchPanel" class="pension-batch-panel modal-card-box" role="group" aria-labelledby="pensionBatchTitle" hidden>
+  <div class="pension-batch-head"><div><h3 id="pensionBatchTitle">작업 모음 <span id="pensionBatchTitleCount">0건</span></h3><p>저장·삭제 작업을 모아 PIN 한 번으로 한 커밋에 반영합니다.</p></div><button type="button" id="pensionBatchClearButton" class="pension-batch-clear" data-pension-action="clear-batch">전체 비우기</button></div>
   <div id="pensionBatchQueueList" class="pension-batch-queue"><div class="pension-batch-empty">아직 추가된 작업이 없습니다.</div></div>
   <div id="pensionBatchOrderNote" class="pension-batch-order-note" hidden></div>
-  <div id="pensionBatchStatus" class="contrib-status"></div>
+  <div id="pensionBatchStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
   <div class="pension-batch-actions"><button type="button" id="pensionBatchApplyButton" class="contrib-btn" data-pension-action="apply-batch" disabled>일괄 적용</button></div>
 </div>
 <details class="token-guide">
-  <summary>GitHub 토큰 만료/교체 방법</summary>
+  <summary><span class="token-guide-chevron" aria-hidden="true">${navIconSvg('chevronRight')}</span>GitHub 토큰 만료/교체 방법</summary>
   <div class="token-guide-body">
     <div class="token-guide-alert">토큰이 만료되면 대시보드 조회는 되지만, 퇴직연금 금액 조정 저장·삭제만 실패할 수 있습니다.</div>
     <p>Google Apps Script의 Script Properties에 저장된 <code>GITHUB_TOKEN</code>을 사용합니다.</p>
@@ -155,13 +202,13 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
     const weight=x.pensionEval?r.evalAmount/x.pensionEval*100:0;
     return mobileInfoCard(`<span class="holding-name-text">${r.name}</span>${pensionProductSwatch(r.name)}`,[
       ['수량',fmt(r.qty)],['평균단가',won(r.qty?r.cost/r.qty:0)],['매수원금',won(r.cost)],['평가금액',won(r.evalAmount)],['평가손익',won(r.profit),cls(r.profit)],['수익률',pct(r.returnRate),cls(r.returnRate)],['비중',pct(weight)]
-    ]);
+    ],'',r.name);
   }).join('')+mobileInfoCard('현금성자산',[
     ['수량',fmt(1)],['평균단가',won(pensionCashCost)],['매수원금',won(pensionCashCost)],['평가금액',won(x.pensionCash)],['평가손익',won(cashProfit),cls(cashProfit)],['수익률',pct(cashReturn),cls(cashReturn)],['비중',pct(cashWeight)]
   ])+mobileInfoCard('합계',[
     ['매수원금',won(pensionHeldCost)],['평가금액',won(x.pensionEval)],['평가손익',won(pensionHeldProfit),cls(pensionHeldProfit)],['수익률',pct(pensionHeldReturn),cls(pensionHeldReturn)]
   ],'summary-card mobile-total-card');
-  return `<div class="note pension-products-note" id="pension-products" ${mobileViewAttrs('pensionProducts')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="package" aria-hidden="true"></span>연금상품별 현황</h2>${mobileViewToggle('pensionProducts')}</div><div class="mobile-scroll table-view"><table class="dashboard-data-table pension-products-table"><thead><tr><th>상품</th><th class="table-cell-center">수량</th><th>평균단가</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th class="table-cell-center">수익률</th><th>비중</th></tr></thead><tbody>${orderedPensionRows.map(r=>pensionRow(r,x.pensionEval)).join('')}${pensionCashRow(x.pensionCash,x.pensionEval,pensionCashCost)}<tr class="summary-row"><td>합계</td><td></td><td></td><td class="num">${fmt(pensionHeldCost)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${tableCls(pensionHeldProfit)}">${fmt(pensionHeldProfit)}</td><td class="num table-cell-center ${tableCls(pensionHeldReturn)}">${pct(pensionHeldReturn)}</td><td></td></tr></tbody></table></div><div class="mobile-card-view">${cards}</div><p class="small section-explainer pension-products-basis-note">※ 매수원금 합계는 현재 보유상품 재투자 기준</p>${renderPensionProductInsights(x)}</div>`;
+  return `<div class="note pension-products-note" id="pension-products" ${mobileViewAttrs('pensionProducts')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="package" aria-hidden="true"></span>연금상품별 현황</h2>${mobileViewToggle('pensionProducts')}</div><div id="pension-products-table-view" class="mobile-scroll table-view"><table class="dashboard-data-table pension-products-table"><caption class="visually-hidden">퇴직연금 상품별 현황</caption><thead><tr><th scope="col">상품</th><th scope="col" class="table-cell-center">수량</th><th scope="col">평균단가</th><th scope="col">매수원금</th><th scope="col">평가금액</th><th scope="col">평가손익</th><th scope="col" class="table-cell-center">수익률</th><th scope="col">비중</th></tr></thead><tbody>${orderedPensionRows.map(r=>pensionRow(r,x.pensionEval)).join('')}${pensionCashRow(x.pensionCash,x.pensionEval,pensionCashCost)}<tr class="summary-row"><th scope="row">합계</th><td></td><td></td><td class="num">${fmt(pensionHeldCost)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${tableCls(pensionHeldProfit)}">${fmt(pensionHeldProfit)}</td><td class="num table-cell-center ${tableCls(pensionHeldReturn)}">${pct(pensionHeldReturn)}</td><td></td></tr></tbody></table></div><div id="pension-products-card-view" class="mobile-card-view">${cards}</div><p class="small section-explainer pension-products-basis-note">※ 매수원금 합계는 현재 보유상품 재투자 기준</p>${renderPensionProductInsights(x)}</div>`;
 }
 
 function renderPension(x){
@@ -177,15 +224,15 @@ function renderPension(x){
         prevPensionDateLabel=x.prevKey?shortDate(x.prevKey):'-',
         currentPensionDateLabel=shortDate(x.date),
         noPrevBlock=`<div class="pension-no-prev-note">전일 데이터가 없습니다.</div>`,
-        changeContent=hasPrevPension?`<div class="change-kpis"><div class="mini-card"><div class="m-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가금액</div><div class="m-value">${won(x.pensionPrevEval)}</div></div><div class="mini-card"><div class="m-label">${shortDate(x.date)} 평가금액</div><div class="m-value">${won(x.pensionEval)}</div></div><div class="mini-card"><div class="m-label">하루 변동분</div><div class="m-value ${cls(day)}">${signed(day,'원')}</div></div><div class="mini-card"><div class="m-label">하루 변동률</div><div class="m-value ${cls(rate)}">${(rate>0?'+':'')+pct(rate)}</div></div></div><div class="change-table-wrap mobile-scroll table-view"><table class="dashboard-data-table change-table"><thead><tr><th>상품</th><th>${x.prevKey?shortDate(x.prevKey):'-'} 종가</th><th>${shortDate(x.date)} 종가</th><th>일변동</th></tr></thead><tbody>${orderedPensionRows.map(r=>`<tr><td><strong>${mobileTableProductName(r.name)}</strong>${pensionProductSwatch(r.name)}</td><td class="num"><span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span></td><td class="num"><span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span></td><td class="num ${tableCls(r.dayChange)}">${r.dayChange==null?'-':signed(r.dayChange)}</td></tr>`).join('')}<tr><td>현금성자산</td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.prevPensionCash)}</span></td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.pensionCash)}</span></td><td class="num ${tableCls(x.pensionCashDayChange)}">${signed(x.pensionCashDayChange)}</td></tr><tr class="summary-row"><td>합계</td><td class="num">${fmt(x.pensionPrevEval)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${tableCls(day)}">${signed(day)}</td></tr></tbody></table></div><div class="change-mobile-list mobile-card-view">${orderedPensionRows.map(r=>mobileInfoCard(r.name,[[prevPensionDateLabel+' 종가',r.prevPrice==null?'-':fmt(r.prevPrice)],[prevPensionDateLabel+' 평가액',r.prevEval==null?'-':won(r.prevEval)],[currentPensionDateLabel+' 종가',fmt(r.price)],[currentPensionDateLabel+' 평가액',won(r.evalAmount)],['일변동',r.dayChange==null?'-':signed(r.dayChange),cls(r.dayChange)]])).join('')}${mobileInfoCard('현금성자산',[[prevPensionDateLabel+' 평가액',won(x.prevPensionCash)],[currentPensionDateLabel+' 평가액',won(x.pensionCash)],['일변동',signed(x.pensionCashDayChange),cls(x.pensionCashDayChange)]])}</div>`:noPrevBlock;
+        changeContent=hasPrevPension?`<div class="change-kpis"><div class="mini-card"><div class="m-label">${x.prevKey?shortDate(x.prevKey):'-'} 평가금액</div><div class="m-value">${won(x.pensionPrevEval)}</div></div><div class="mini-card"><div class="m-label">${shortDate(x.date)} 평가금액</div><div class="m-value">${won(x.pensionEval)}</div></div><div class="mini-card"><div class="m-label">하루 변동분</div><div class="m-value ${cls(day)}">${signed(day,'원')}</div></div><div class="mini-card"><div class="m-label">하루 변동률</div><div class="m-value ${cls(rate)}">${(rate>0?'+':'')+pct(rate)}</div></div></div><div id="pension-change-table-view" class="change-table-wrap mobile-scroll table-view"><table class="dashboard-data-table change-table"><caption class="visually-hidden">퇴직연금 전일 대비 상품별 변동</caption><thead><tr><th scope="col">상품</th><th scope="col">${x.prevKey?shortDate(x.prevKey):'-'} 종가</th><th scope="col">${shortDate(x.date)} 종가</th><th scope="col">일변동</th></tr></thead><tbody>${orderedPensionRows.map(r=>`<tr><th scope="row"><strong>${mobileTableProductName(r.name)}</strong>${pensionProductSwatch(r.name)}</th><td class="num"><span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span></td><td class="num"><span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span></td><td class="num ${tableCls(r.dayChange)}">${r.dayChange==null?'-':signed(r.dayChange)}</td></tr>`).join('')}<tr><th scope="row">현금성자산</th><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.prevPensionCash)}</span></td><td class="num"><span class="change-price">—</span><span class="change-eval">${won(x.pensionCash)}</span></td><td class="num ${tableCls(x.pensionCashDayChange)}">${signed(x.pensionCashDayChange)}</td></tr><tr class="summary-row"><th scope="row">합계</th><td class="num">${fmt(x.pensionPrevEval)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${tableCls(day)}">${signed(day)}</td></tr></tbody></table></div><div id="pension-change-card-view" class="change-mobile-list mobile-card-view">${orderedPensionRows.map(r=>mobileInfoCard(r.name,[[prevPensionDateLabel+' 종가',r.prevPrice==null?'-':fmt(r.prevPrice)],[prevPensionDateLabel+' 평가액',r.prevEval==null?'-':won(r.prevEval)],[currentPensionDateLabel+' 종가',fmt(r.price)],[currentPensionDateLabel+' 평가액',won(r.evalAmount)],['일변동',r.dayChange==null?'-':signed(r.dayChange),cls(r.dayChange)]])).join('')}${mobileInfoCard('현금성자산',[[prevPensionDateLabel+' 평가액',won(x.prevPensionCash)],[currentPensionDateLabel+' 평가액',won(x.pensionCash)],['일변동',signed(x.pensionCashDayChange),cls(x.pensionCashDayChange)]])}</div>`:noPrevBlock;
   return `<section id="pension-section"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="briefcase" aria-hidden="true"></span>퇴직연금 현황</h2></div><div class="pension-band"><div class="grid cards metric-grid pension-metric-grid">${metricCard('퇴직연금 평가금액',won(x.pensionEval),pensionEvaluationBasisText(x.date),true)}${metricCard('퇴직연금 납입원금',won(x.pensionPrincipal),pensionContributionSubText(x))}${metricCard('퇴직연금 운용수익',won(x.pensionProfit),'평가금액 - 납입원금',false,cls(x.pensionProfit))}${metricCard('퇴직연금 누적수익률',pct(x.pensionReturn),'퇴직연금 운용수익 ÷ 퇴직연금 납입원금',false,cls(x.pensionReturn))}</div><div class="grid two pension-detail-grid">${renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHeldProfit,pensionHeldReturn)}<div class="note pension-change-note" id="pension-change" ${mobileViewAttrs('pensionChange')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="trending" aria-hidden="true"></span>전일 대비 변동</h2>${hasPrevPension?mobileViewToggle('pensionChange'):''}</div>${changeContent}</div></div>${renderPensionCharts(x)}</div></section>`;
 }
 function mobileTableProductName(name=''){
   const text=String(name||'');
   return text.startsWith('KODEX ')?`<span class="mobile-table-kodex-prefix">KODEX </span>${text.slice(6)}`:text;
 }
-function pensionRow(r,total){const w=total?r.evalAmount/total*100:0;return `<tr><td><strong>${mobileTableProductName(r.name)}</strong>${pensionProductSwatch(r.name)}</td><td class="num table-cell-center">${fmt(r.qty)}</td><td class="num">${fmt(r.qty?r.cost/r.qty:0)}</td><td class="num">${fmt(r.cost)}</td><td class="num">${fmt(r.evalAmount)}</td><td class="num ${tableCls(r.profit)}">${fmt(r.profit)}</td><td class="num table-cell-center ${tableCls(r.returnRate)}">${pct(r.returnRate)}</td><td><div class="bar-box"><div class="bar-fill" style="width:${Math.max(0,Math.min(100,w)).toFixed(1)}%;background:${pensionSeriesColor(r.name)}"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}
-function pensionCashRow(cash,total,cost=39408){const w=total?cash/total*100:0,profit=cash-cost,ret=cost?profit/cost*100:0;return `<tr><td><strong>현금성자산</strong></td><td class="num table-cell-center">1</td><td class="num">${fmt(cost)}</td><td class="num">${fmt(cost)}</td><td class="num">${fmt(cash)}</td><td class="num ${tableCls(profit)}">${fmt(profit)}</td><td class="num table-cell-center ${tableCls(ret)}">${pct(ret)}</td><td><div class="bar-box"><div class="bar-fill bar-gray" style="width:${w.toFixed(1)}%"></div></div><div class="small">${w.toFixed(1)}%</div></td></tr>`}
+function pensionRow(r,total){const w=total?r.evalAmount/total*100:0,safeW=Math.max(0,Math.min(100,w)),weight=safeW.toFixed(1),name=String(r.name||'');return `<tr><th scope="row"><strong>${mobileTableProductName(r.name)}</strong>${pensionProductSwatch(r.name)}</th><td class="num table-cell-center">${fmt(r.qty)}</td><td class="num">${fmt(r.qty?r.cost/r.qty:0)}</td><td class="num">${fmt(r.cost)}</td><td class="num">${fmt(r.evalAmount)}</td><td class="num ${tableCls(r.profit)}">${fmt(r.profit)}</td><td class="num table-cell-center ${tableCls(r.returnRate)}">${pct(r.returnRate)}</td><td><div class="bar-box" role="progressbar" aria-label="${escapeHtml(name)} 비중" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${weight}" aria-valuetext="${weight}%"><div class="bar-fill" aria-hidden="true" style="width:${weight}%;background:${pensionSeriesColor(r.name)}"></div></div><div class="small">${weight}%</div></td></tr>`}
+function pensionCashRow(cash,total,cost=39408){const w=total?cash/total*100:0,safeW=Math.max(0,Math.min(100,w)),weight=safeW.toFixed(1),profit=cash-cost,ret=cost?profit/cost*100:0;return `<tr><th scope="row"><strong>현금성자산</strong></th><td class="num table-cell-center">1</td><td class="num">${fmt(cost)}</td><td class="num">${fmt(cost)}</td><td class="num">${fmt(cash)}</td><td class="num ${tableCls(profit)}">${fmt(profit)}</td><td class="num table-cell-center ${tableCls(ret)}">${pct(ret)}</td><td><div class="bar-box" role="progressbar" aria-label="현금성자산 비중" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${weight}" aria-valuetext="${weight}%"><div class="bar-fill bar-gray" aria-hidden="true" style="width:${weight}%"></div></div><div class="small">${weight}%</div></td></tr>`}
 
 function isSafePensionAsset(name=''){return /(채권|현금|예금|MMF|RP|CMA|단기채)/.test(String(name));}
 function getPensionDayContributionItems(x){
@@ -212,10 +259,10 @@ function renderPensionProductInsights(x){
   const topHtml=x.pensionPrevEval==null
     ? `<div class="pension-empty-state">전일 데이터가 없어 오늘 상승분 기여도를 표시하지 않습니다.</div>`
     : items.length
-      ? `<div class="pension-stack-bar compact simple">${items.map(item=>`<div class="pension-stack-segment has-tooltip" style="width:${Math.max(item.share,2).toFixed(2)}%;background:${item.color}"><span>${item.share>=8?item.name.replace('KODEX ',''):''}</span><div class="pension-viz-tooltip"><strong>${item.name}</strong><div>${item.share.toFixed(1)}%</div><div>${signed(item.value)}</div></div></div>`).join('')}</div>`
+      ? `<div class="pension-stack-bar compact simple" role="group" aria-label="오늘 상승분 기여도 구성">${items.map((item,index)=>{const tooltipId=`pensionContributionTooltip${index}`;const ariaLabel=escapeHtml(`${item.name} 상승분 기여도 ${item.share.toFixed(1)}%, ${signed(item.value)}`);return `<div class="pension-stack-segment has-tooltip" tabindex="0" role="img" aria-label="${ariaLabel}" aria-describedby="${tooltipId}" style="width:${Math.max(item.share,2).toFixed(2)}%;background:${item.color}"><span>${item.share>=8?item.name.replace('KODEX ',''):''}</span><div id="${tooltipId}" class="pension-viz-tooltip" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${item.share.toFixed(1)}%</div><div>${signed(item.value)}</div></div></div>`}).join('')}</div>`
       : `<div class="pension-empty-state">상승한 자산이 없어 기여도를 표시하지 않습니다.</div>`;
   const riskTooltip=`위험자산 ${won(risk.riskEval)} / 안전자산 ${won(risk.safeEval)} / 기준 대비 ${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p`;
-  return `<div class="pension-insight-zone"><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>오늘 상승분 기여도</h3></div>${topHtml}</div><div class="pension-insight-card compact-card"><div class="pension-insight-head simple"><h3>위험자산 70% 룰</h3><span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}">현재 ${risk.ratio.toFixed(1)}%</span></div><div class="pension-risk-gauge compact has-tooltip"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}" style="width:${gaugeWidth.toFixed(1)}%"></div><div class="pension-risk-threshold" style="left:${risk.threshold}%"><span>${risk.threshold}%</span></div><div class="pension-viz-tooltip wide"><strong>위험자산 70% 룰</strong><div>${riskTooltip}</div></div></div><div class="pension-risk-scale"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div></div></div>`;
+  return `<div class="pension-insight-zone" role="group" aria-label="퇴직연금 인사이트"><div class="pension-insight-card compact-card" role="group" aria-labelledby="pensionContributionInsightTitle"><div class="pension-insight-head simple"><h3 id="pensionContributionInsightTitle">오늘 상승분 기여도</h3></div>${topHtml}</div><div class="pension-insight-card compact-card" role="group" aria-labelledby="pensionRiskInsightTitle"><div class="pension-insight-head simple"><h3 id="pensionRiskInsightTitle">위험자산 70% 룰</h3><span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}" aria-hidden="true">현재 ${risk.ratio.toFixed(1)}%</span></div><div class="pension-risk-gauge compact has-tooltip" tabindex="0" role="img" aria-label="위험자산 비중 ${risk.ratio.toFixed(1)}%, 기준 ${risk.threshold}%, 기준 대비 ${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p" aria-describedby="pensionRiskTooltip"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}" style="width:${gaugeWidth.toFixed(1)}%"></div><div class="pension-risk-threshold" aria-hidden="true" style="left:${risk.threshold}%"><span>${risk.threshold}%</span></div><div id="pensionRiskTooltip" class="pension-viz-tooltip wide" role="tooltip"><strong>위험자산 70% 룰</strong><div>${riskTooltip}</div></div></div><div class="pension-risk-scale" aria-hidden="true"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div></div></div>`;
 }
 
 // Modal Lifecycle / Form State · 모달 생명주기 / 입력 상태
@@ -227,27 +274,17 @@ function openPensionContributionModal(){
   modal.setAttribute('aria-hidden','false');
   setPensionContributionTarget('cashSnapshot');
   syncPensionBatchModeUi();
-  document.activeElement?.blur?.();
+  activateDashboardDialogFocus(modal,{initialFocus:modal.querySelector('.contrib-modal-close'),fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
 }
 function closePensionContributionModal(){
   const modal=document.getElementById('pensionContribModal');
   if(!modal) return;
-  if(modal.contains(document.activeElement)){
-    document.activeElement.blur();
-  }
   modal.classList.remove('show');
   modal.setAttribute('aria-hidden','true');
   document.body.classList.remove('contrib-modal-open');
-  const trigger=document.querySelector('.date-tool-btn');
-  if(trigger) trigger.focus({preventScroll:true});
+  releaseDashboardDialogFocus(modal,{fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
   forceMobileViewportReflow();
 }
-document.addEventListener('keydown',e=>{
-  if(e.key!=='Escape') return;
-  closeDateActionMenu();
-  closePensionContributionModal();
-});
-
 function cleanNumberInput(v){
   return Number(String(v||'').replace(/[^\d.-]/g,''));
 }
@@ -361,18 +398,23 @@ function setPensionContributionTarget(target){
 }
 function syncPensionContributionTargetUi(){
   const target=pensionContributionTarget();
+  let activeTargetTab=null;
   document.querySelectorAll('.contrib-target-option').forEach(btn=>{
-    btn.classList.toggle('active', btn.dataset.target===target);
+    const active=btn.dataset.target===target;
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-selected',String(active));
+    btn.tabIndex=active?0:-1;
+    if(active)activeTargetTab=btn;
   });
+  const targetPanel=document.getElementById('pensionContribTargetPanel');
+  if(targetPanel&&activeTargetTab?.id)targetPanel.setAttribute('aria-labelledby',activeTargetTab.id);
   const standardFields=document.getElementById('pensionContribStandardFields');
   const tradeFields=document.getElementById('pensionEtfTradeFields');
-  const tradeHelp=document.getElementById('pensionEtfTradeHelp');
   if(standardFields){
     standardFields.hidden=target==='etfTrade';
     standardFields.classList.toggle('cash-mode',target==='cashSnapshot');
   }
   if(tradeFields) tradeFields.hidden=target!=='etfTrade';
-  if(tradeHelp) tradeHelp.hidden=target!=='etfTrade';
 
   const dateEl=document.getElementById('pensionContribDate');
   const amountEl=document.getElementById('pensionContribAmount');
@@ -598,7 +640,7 @@ function resetPensionContributionForm(){
 }
 
 // PIN Dialog · PIN 확인
-function requestPensionActionPin({title='PIN 입력',description='작업 내용을 확인한 뒤 PIN 6자리를 입력하세요.',danger=false,actionLabel='',execute}={}){
+function requestPensionActionPin({title='PIN 입력',description='작업 내용을 확인한 뒤 PIN 6자리를 입력하세요.',danger=false,execute}={}){
   return new Promise(resolve=>{
     const old=document.getElementById('pensionActionPinModal');
     if(old) old.remove();
@@ -607,13 +649,12 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
     modal.id='pensionActionPinModal';
     modal.className='action-modal pension-action-pin-modal';
     modal.innerHTML=`<div class="action-modal-card pension-action-pin-card" role="dialog" aria-modal="true" aria-labelledby="pensionActionPinTitle">
-      <button type="button" class="modal-icon-btn pension-action-pin-close" aria-label="닫기">×</button>
+      <button type="button" class="modal-icon-btn pension-action-pin-close" aria-label="닫기">${navIconSvg('close')}</button>
       <h3 id="pensionActionPinTitle" class="modal-main-title">${title}</h3>
-      <p class="action-modal-description">${description}</p>
+      <p id="pensionActionPinDescription" class="action-modal-description">${description}</p>
       <label class="action-modal-label" for="pensionActionPinInput">PIN</label>
-      <input id="pensionActionPinInput" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력">
-      <div class="pension-action-pin-guide">PIN 확인 후 ${actionLabel||(danger?'삭제':'저장')}합니다.</div>
-      <div id="pensionActionPinStatus" class="action-modal-status pension-action-pin-status" aria-live="polite"></div>
+      <input id="pensionActionPinInput" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="pensionActionPinDescription pensionActionPinStatus">
+      <div id="pensionActionPinStatus" class="action-modal-status pension-action-pin-status" role="status" aria-live="polite" aria-atomic="true"></div>
       <div class="action-modal-buttons pension-action-pin-buttons"><button type="button" class="action-modal-btn ghost">취소</button></div>
     </div>`;
 
@@ -627,6 +668,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
     const finish=value=>{
       clearTimeout(submitTimer);
       modal.remove();
+      releaseDashboardDialogFocus(modal);
       resolve(value);
     };
     const submit=async()=>{
@@ -655,13 +697,19 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
     };
 
     input?.addEventListener('input',onInput);
-    input?.addEventListener('keydown',e=>{if(e.key==='Enter')submit();if(e.key==='Escape')finish(null)});
+    input?.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
+    modal.addEventListener('keydown',e=>{
+      if(e.key!=='Escape')return;
+      e.preventDefault();
+      e.stopPropagation();
+      finish(null);
+    });
     cancel?.addEventListener('click',()=>finish(null));
     close?.addEventListener('click',()=>finish(null));
     modal.addEventListener('click',e=>{if(e.target===modal)finish(null)});
 
     document.body.appendChild(modal);
-    requestAnimationFrame(()=>input?.focus());
+    activateDashboardDialogFocus(modal,{initialFocus:input});
   });
 }
 
@@ -852,7 +900,7 @@ function renderPensionBatchQueue(){
   if(badge){badge.textContent=String(pensionState.batchQueue.length);badge.hidden=pensionState.batchQueue.length===0}
   if(clear)clear.disabled=pensionState.batchQueue.length===0;
   if(list){
-    list.innerHTML=pensionState.batchQueue.length?pensionState.batchQueue.map((op,index)=>`<div class="pension-batch-item"><div class="pension-batch-index">${index+1}</div><div class="pension-batch-item-text">${escapeHtml(pensionBatchOperationDescription(op))}</div><div class="pension-batch-item-actions"><button type="button" data-pension-action="move-batch" data-pension-qid="${op.qid}" data-pension-direction="-1" aria-label="위로" ${index===0?'disabled':''}>↑</button><button type="button" data-pension-action="move-batch" data-pension-qid="${op.qid}" data-pension-direction="1" aria-label="아래로" ${index===pensionState.batchQueue.length-1?'disabled':''}>↓</button><button type="button" class="remove" data-pension-action="remove-batch" data-pension-qid="${op.qid}" aria-label="작업 제거">×</button></div></div>`).join(''):'<div class="pension-batch-empty">아직 추가된 작업이 없습니다.</div>';
+    list.innerHTML=pensionState.batchQueue.length?pensionState.batchQueue.map((op,index)=>`<div class="pension-batch-item"><div class="pension-batch-index">${index+1}</div><div class="pension-batch-item-text">${escapeHtml(pensionBatchOperationDescription(op))}</div><div class="pension-batch-item-actions"><button type="button" data-pension-action="move-batch" data-pension-qid="${op.qid}" data-pension-direction="-1" aria-label="위로" ${index===0?'disabled':''}>${navIconSvg('chevronUp')}</button><button type="button" data-pension-action="move-batch" data-pension-qid="${op.qid}" data-pension-direction="1" aria-label="아래로" ${index===pensionState.batchQueue.length-1?'disabled':''}>${navIconSvg('chevronDown')}</button><button type="button" class="remove" data-pension-action="remove-batch" data-pension-qid="${op.qid}" aria-label="작업 제거">${navIconSvg('trash')}</button></div></div>`).join(''):'<div class="pension-batch-empty">아직 추가된 작업이 없습니다.</div>';
   }
   let error='';let reordered=false;
   if(pensionState.batchQueue.length){
@@ -869,7 +917,7 @@ function renderPensionBatchQueue(){
   }
 }
 function syncPensionBatchModeUi(){
-  document.querySelectorAll('.pension-work-mode-btn').forEach(btn=>btn.classList.toggle('active',(btn.dataset.mode==='batch')===pensionState.batchMode));
+  document.querySelectorAll('.pension-work-mode-btn').forEach(btn=>{const active=(btn.dataset.mode==='batch')===pensionState.batchMode;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))});
   const save=document.getElementById('pensionContribSaveButton');
   const del=document.getElementById('pensionContribDeleteButton');
   if(save)save.textContent=pensionState.batchMode?'작업 모음에 추가':'저장';
@@ -947,7 +995,7 @@ async function savePensionBatchViaGithubPages(operations,pin,batchRequestId){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   if(!config.url||config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
   const payload={pin:String(pin||'').trim(),action:'batchPension',batchRequestId:String(batchRequestId||'').trim(),operations:operations.map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null}))};
-  const res=await fetch(config.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+  const res=await fetchWithTimeout(config.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
   const data=await res.json().catch(()=>({}));
   if(!data.ok)throw new Error(data.error||'작업 모음 일괄 적용에 실패했습니다.');
   return data;
@@ -958,7 +1006,7 @@ function applyPensionBatchStateLocally(state){
   dataState.pensionContributions=Array.isArray(dataState.pensionContributions)?(state.contributions||[]):{...(dataState.pensionContributions||{}),contributions:state.contributions||[]};
   dataState.pensionTrades=Array.isArray(dataState.pensionTrades)?(state.trades||[]):{...(dataState.pensionTrades||{}),trades:state.trades||[]};
 }
-async function applyPensionBatchQueue(){
+async function applyPensionBatchQueue(renderDashboard){
   if(pensionState.batchApplying)return;
   if(!pensionState.batchQueue.length){showPensionBatchStatus('적용할 작업이 없습니다.','err');return}
   let simulated;
@@ -972,7 +1020,6 @@ async function applyPensionBatchQueue(){
     const data=await requestPensionActionPin({
       title:'작업 모음 일괄 적용',
       description:`저장·삭제 ${count}건을 한 번에 적용합니다. 하나라도 실패하면 전체 작업을 반영하지 않습니다.`,
-      actionLabel:'일괄 적용',
       execute:pin=>savePensionBatchViaGithubPages(simulated.orderedOperations,pin,batchRequestId)
     });
     if(!data){showPensionBatchStatus('일괄 적용 취소','err');return}
@@ -983,7 +1030,7 @@ async function applyPensionBatchQueue(){
     pensionState.batchLastAddAt=0;
     resetPensionBatchRequestId();
     pensionState.batchMode=true;
-    pensionHooks.renderDashboard?.();
+    renderDashboard?.();
     openPensionContributionModal();
     setPensionBatchMode(true);
     showPensionBatchStatus(duplicateWithoutState
@@ -1003,7 +1050,7 @@ async function savePensionContributionViaGithubPages(item,pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   if(!config.url || config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
   const payload={...item,pin:String(pin||'').trim(),target:item.target||'contribution',action:'upsert',updatedBy:'github-pages'};
-  const res=await fetch(config.url,{
+  const res=await fetchWithTimeout(config.url,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(payload)
@@ -1066,7 +1113,7 @@ async function deletePensionContributionViaGithubPages(target,key,pin){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   if(!config.url || config.url.includes('여기에_'))throw new Error('GitHub Pages 삭제 URL이 설정되지 않았습니다.');
   const isCash=target==='cashSnapshot';
-  const res=await fetch(config.url,{
+  const res=await fetchWithTimeout(config.url,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({pin:String(pin||'').trim(),target:target||'contribution',action:'delete',id:isCash?'':key,date:isCash?key:''})
@@ -1097,14 +1144,14 @@ async function deleteSelectedPensionContribution(){
   if(isTrade&&item){
     const linkedSnapshot=linkedPensionCashSnapshotForTrade(item);
     if(linkedSnapshot){
-      showPensionContributionDeleteStatus(`${linkedSnapshot.date} 현금성자산 기록이 이 추가 매수를 반영하고 있습니다. 먼저 등록 유형을 '현금성자산'으로 바꿔 해당 날짜 항목을 삭제한 뒤 추가 매수를 삭제해주세요.`,'err');
+      showPensionContributionDeleteStatus(`${linkedSnapshot.date} 현금성자산 기록이 이 추가 매수를 반영하고 있습니다. 먼저 조정 항목을 '현금성자산'으로 바꿔 해당 날짜 항목을 삭제한 뒤 추가 매수를 삭제해주세요.`,'err');
       return;
     }
   }
   if(target==='contribution'&&item){
     const linkedSnapshot=linkedPensionCashSnapshotForContribution(item);
     if(linkedSnapshot){
-      showPensionContributionDeleteStatus(`${linkedSnapshot.date} 현금성자산 기록이 이 기업적립금을 반영하고 있습니다. 먼저 등록 유형을 '현금성자산'으로 바꿔 해당 날짜 항목을 삭제한 뒤 기업적립금을 삭제해주세요.`,'err');
+      showPensionContributionDeleteStatus(`${linkedSnapshot.date} 현금성자산 기록이 이 기업적립금을 반영하고 있습니다. 먼저 조정 항목을 '현금성자산'으로 바꿔 해당 날짜 항목을 삭제한 뒤 기업적립금을 삭제해주세요.`,'err');
       return;
     }
   }
@@ -1125,7 +1172,24 @@ async function deleteSelectedPensionContribution(){
 
 
 // Event Delegation / Tooltip · 이벤트 위임 / 툴팁
-function handlePensionAction(control){
+function handlePensionTargetTabKeydown(event,tab){
+  const tabs=[...tab.closest('[role="tablist"]')?.querySelectorAll('.contrib-target-option[role="tab"]')||[]];
+  if(!tabs.length)return false;
+  const current=Math.max(0,tabs.indexOf(tab));
+  let next=current;
+  if(event.key==='ArrowRight')next=(current+1)%tabs.length;
+  else if(event.key==='ArrowLeft')next=(current-1+tabs.length)%tabs.length;
+  else if(event.key==='Home')next=0;
+  else if(event.key==='End')next=tabs.length-1;
+  else return false;
+  event.preventDefault();
+  const target=tabs[next];
+  setPensionContributionTarget(target.dataset.target||'cashSnapshot');
+  target.focus();
+  return true;
+}
+
+function handlePensionAction(control,renderDashboard){
   const action=control.dataset.pensionAction;
   if(action==='reset-form')return resetPensionContributionForm();
   if(action==='close-modal')return closePensionContributionModal();
@@ -1134,21 +1198,28 @@ function handlePensionAction(control){
   if(action==='save')return savePensionContribution();
   if(action==='delete-selected')return deleteSelectedPensionContribution();
   if(action==='clear-batch')return clearPensionBatchQueue();
-  if(action==='apply-batch')return applyPensionBatchQueue();
+  if(action==='apply-batch')return applyPensionBatchQueue(renderDashboard);
   if(action==='move-batch')return movePensionBatchOperation(control.dataset.pensionQid||'',Number(control.dataset.pensionDirection||0));
   if(action==='remove-batch')return removePensionBatchOperation(control.dataset.pensionQid||'');
 }
-function setupPensionEventDelegation(){
-  const root=document.documentElement;
-  if(root.dataset.pensionEventsBound==='1')return;
-  root.dataset.pensionEventsBound='1';
+function setupPensionEventDelegation({renderDashboard}={}){
+  document.addEventListener('keydown',event=>{
+    const targetTab=event.target?.closest?.('.contrib-target-option[role="tab"]');
+    if(targetTab&&handlePensionTargetTabKeydown(event,targetTab))return;
+    if(event.key!=='Escape'||event.defaultPrevented||document.getElementById('pensionActionPinModal'))return;
+    const modal=document.getElementById('pensionContribModal');
+    if(!modal?.classList.contains('show'))return;
+    event.preventDefault();
+    closeDateActionMenu();
+    closePensionContributionModal();
+  });
   document.addEventListener('click',event=>{
     if(event.target?.matches?.('[data-pension-backdrop-close="true"]')){
       closePensionContributionModal();
       return;
     }
     const control=event.target?.closest?.('[data-pension-action]');
-    if(control)handlePensionAction(control);
+    if(control)handlePensionAction(control,renderDashboard);
   });
   document.addEventListener('change',event=>{
     const control=event.target?.closest?.('[data-pension-change]');
@@ -1192,3 +1263,11 @@ function setupPensionVizTooltips(){
   document.addEventListener('scroll',()=>closeTooltips(null),true);
 }
 
+
+export {
+  openPensionContributionModal,
+  renderPension,
+  renderPensionContributionModal,
+  setupPensionEventDelegation,
+  setupPensionVizTooltips
+};

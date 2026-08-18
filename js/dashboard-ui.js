@@ -1,3 +1,43 @@
+import {
+  PENSION_CONTRIBUTION_SAVE_CONFIG,
+  account1PrincipalForDate,
+  account1SourceHoldingGapForDate,
+  account1SourcePrincipalForDate,
+  activateDashboardDialogFocus,
+  allAvailableDates,
+  chartState,
+  cls,
+  dataState,
+  dayOptionLabel,
+  escapeHtml,
+  fetchWithTimeout,
+  fmt,
+  isLedgerCheckDate,
+  monthLabel,
+  navIconSvg,
+  outsideCashForDate,
+  pct,
+  releaseDashboardDialogFocus,
+  securityExcludedTransferSum,
+  securityExternalContributionSum,
+  securityInternalCashTransferSum,
+  securitySymbolSwatch,
+  securitiesScopeText,
+  separateProfitCumulativeForDate,
+  separateProfitReinvestedForDate,
+  separateProfitView,
+  signed,
+  sortSecurityItems,
+  sourceExternalPrincipalForDate,
+  tableCls,
+  uiState,
+  won
+} from './dashboard-core.js';
+import {
+  drawAllCharts,
+  renderCharts
+} from './dashboard-charts.js';
+
 // 메인 대시보드 일반 UI · topbar · navigation · rendering component
 
 const THEME_STORAGE_KEY='investmentDashboard.theme';
@@ -9,11 +49,12 @@ function themeToggleIconMarkup(dark){
 }
 function syncThemeControls(){
   const dark=currentTheme()==='dark';
+  const nextLabel=dark?'밝은 모드로 전환':'다크 모드로 전환';
   document.querySelectorAll('[data-theme-toggle-icon]').forEach(el=>el.innerHTML=themeToggleIconMarkup(dark));
   document.querySelectorAll('[data-theme-toggle]').forEach(el=>{
-    el.setAttribute('aria-pressed',String(dark));
-    el.setAttribute('title',dark?'밝은 모드로 전환':'다크 모드로 전환');
-    el.setAttribute('aria-label',dark?'밝은 모드로 전환':'다크 모드로 전환');
+    el.removeAttribute('aria-pressed');
+    el.setAttribute('title',nextLabel);
+    el.setAttribute('aria-label',nextLabel);
   });
 }
 function setTheme(theme,{redraw=true}={}){
@@ -32,9 +73,10 @@ function syncCornerThemeControls(){
   const rounded=currentCornerTheme()==='rounded';
   document.querySelectorAll('[data-corner-theme-toggle-icon]').forEach(el=>el.innerHTML=cornerThemeToggleIconMarkup(rounded));
   document.querySelectorAll('[data-corner-theme-toggle]').forEach(el=>{
-    el.setAttribute('aria-pressed',String(!rounded));
-    el.setAttribute('title',rounded?'각진 모서리로 전환':'둥근 모서리로 전환');
-    el.setAttribute('aria-label',rounded?'각진 모서리로 전환':'둥근 모서리로 전환');
+    const nextLabel=rounded?'각진 모서리로 전환':'둥근 모서리로 전환';
+    el.removeAttribute('aria-pressed');
+    el.setAttribute('title',nextLabel);
+    el.setAttribute('aria-label',nextLabel);
   });
 }
 function setCornerTheme(theme){
@@ -46,6 +88,7 @@ function setCornerTheme(theme){
 function toggleCornerTheme(){setCornerTheme(currentCornerTheme()==='rounded'?'soft-square':'rounded')}
 
 
+
 const separateProfitToggle=()=>`<button type="button" class="section-control-chip section-action-chip separate-profit-toggle ${uiState.includeSeparateProfit?'active':''}" aria-pressed="${uiState.includeSeparateProfit}" data-dashboard-action="toggle-separate-profit"><span>별도수익</span><strong>${uiState.includeSeparateProfit?'ON':'OFF'}</strong></button>`;
 const separateProfitControl=(x,extraClass='')=>{
   if(!uiState.personalViewUnlocked)return '';
@@ -53,35 +96,7 @@ const separateProfitControl=(x,extraClass='')=>{
   const note=uiState.includeSeparateProfit?`<span class="separate-profit-control-note">선택일 ${signed(profit,'원')}</span>`:'';
   return `<div class="separate-profit-control-row${extraClass?' '+extraClass:''}">${note}${separateProfitToggle()}</div>`;
 };
-function navIconSvg(name){
-  const attrs='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
-  const icons={
-    sun:`<svg ${attrs}><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>`,
-    moon:`<svg ${attrs}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
-    cornerSoft:`<svg ${attrs}><rect x="4" y="4" width="16" height="16" rx="1.5"></rect></svg>`,
-    cornerRounded:`<svg ${attrs}><rect x="4" y="4" width="16" height="16" rx="5"></rect></svg>`,
-    link:`<svg ${attrs}><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"></path><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"></path></svg>`,
-    activity:`<svg ${attrs}><path d="M22 12h-4l-3 8-6-16-3 8H2"></path></svg>`,
-    refresh:`<svg ${attrs}><path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><path d="M18 2v4h4"></path><path d="M6 22v-4H2"></path></svg>`,
-    wallet:`<svg ${attrs}><path d="M20 7H5a3 3 0 0 0 0 6h15v6H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h15v3Z"></path><path d="M16 13h.01"></path></svg>`,
-    calculator:`<svg ${attrs}><rect x="5" y="2" width="14" height="20" rx="2"></rect><path d="M8 6h8"></path><path d="M8 10h.01"></path><path d="M12 10h.01"></path><path d="M16 10h.01"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>`,
-    home:`<svg ${attrs}><path d="m3 10 9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path></svg>`,
-    briefcase:`<svg ${attrs}><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M3 12h18"></path></svg>`,
-    package:`<svg ${attrs}><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"></path><path d="M12 12 4.5 7.8"></path><path d="M12 12l7.5-4.2"></path><path d="M12 12v9"></path></svg>`,
-    trending:`<svg ${attrs}><path d="m3 17 6-6 4 4 8-8"></path><path d="M14 7h7v7"></path></svg>`,
-    chart:`<svg ${attrs}><path d="M3 3v18h18"></path><path d="M7 15v2"></path><path d="M12 11v6"></path><path d="M17 7v10"></path></svg>`,
-    period:`<svg ${attrs}><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 10h18"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"></path></svg>`,
-    lineChart:`<svg ${attrs}><path d="M3 3v18h18"></path><path d="m7 16 4-5 3 3 5-7"></path></svg>`,
-    barChart:`<svg ${attrs}><path d="M4 20V11h4v9M10 20V5h4v15M16 20v-7h4v7"></path></svg>`,
-    pie:`<svg ${attrs}><path d="M21 12a9 9 0 1 1-9-9v9h9Z"></path><path d="M12 3a9 9 0 0 1 9 9"></path></svg>`,
-    bank:`<svg ${attrs}><path d="m3 9 9-6 9 6"></path><path d="M4 10h16"></path><path d="M6 10v8"></path><path d="M10 10v8"></path><path d="M14 10v8"></path><path d="M18 10v8"></path><path d="M3 18h18"></path><path d="M2 21h20"></path></svg>`,
-    list:`<svg ${attrs}><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3 6h.01"></path><path d="M3 12h.01"></path><path d="M3 18h.01"></path></svg>`,
-    folder:`<svg ${attrs}><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>`,
-    search:`<svg ${attrs}><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>`,
-    receipt:`<svg ${attrs}><path d="M6 3h12v18l-2-1-2 1-2-1-2 1-2-1-2 1V3Z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h4"></path></svg>`,
-  };
-  return icons[name]||icons.list;
-}
+
 const TOPBAR_ACTION_ICONS=Object.freeze({
   kospiNight:'activity',
   nasdaqFutures:'link',
@@ -194,7 +209,84 @@ function ensureDesktopEdgeToc(){
     toc.setAttribute('aria-label','화면 목차');
     document.body.appendChild(toc);
   }
-  toc.innerHTML=`<button type="button" class="desktop-edge-toc-trigger" aria-label="목차 열기"><span>목차</span></button><nav class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title"><span>목차</span></div>${renderDesktopTocContent()}</nav>`;
+  toc.innerHTML=`<button type="button" id="desktopEdgeTocTrigger" class="desktop-edge-toc-trigger" aria-label="목차" aria-controls="desktopEdgeTocPanel" aria-expanded="false" title="목차 열기" data-dashboard-action="toggle-desktop-toc"><span>목차</span></button><nav id="desktopEdgeTocPanel" class="desktop-edge-toc-panel" aria-label="페이지 내 목차"><div class="desktop-edge-toc-title"><span>목차</span></div>${renderDesktopTocContent()}</nav>`;
+}
+function setDesktopEdgeTocOpen(open,{focusTrigger=false}={}){
+  const toc=document.getElementById('desktopEdgeToc');
+  const trigger=document.getElementById('desktopEdgeTocTrigger');
+  if(!toc||!trigger)return;
+  const next=!!open&&window.matchMedia?.('(min-width:761px)').matches!==false;
+  toc.classList.toggle('is-open',next);
+  trigger.setAttribute('aria-expanded',String(next));
+  trigger.setAttribute('title',next?'목차 닫기':'목차 열기');
+  if(focusTrigger)trigger.focus();
+}
+function toggleDesktopEdgeToc(){
+  const toc=document.getElementById('desktopEdgeToc');
+  setDesktopEdgeTocOpen(!toc?.classList.contains('is-open'));
+}
+function closeDesktopEdgeToc(options){setDesktopEdgeTocOpen(false,options)}
+
+function visibleSectionNavigationTargets(){
+  const ids=[...document.querySelectorAll('[data-dashboard-action="jump-section"][data-section-target]')]
+    .map(control=>control.dataset.sectionTarget)
+    .filter((id,index,all)=>id&&all.indexOf(id)===index);
+  return ids.map(id=>document.getElementById(id)).filter(el=>el&&el.getClientRects().length);
+}
+function setSectionNavigationCurrent(id){
+  document.querySelectorAll('[data-dashboard-action="jump-section"][data-section-target]').forEach(control=>{
+    const current=!!id&&control.dataset.sectionTarget===id;
+    control.classList.toggle('is-current',current);
+    if(current)control.setAttribute('aria-current','location');
+    else control.removeAttribute('aria-current');
+  });
+}
+function currentSectionNavigationId(){
+  const sections=visibleSectionNavigationTargets();
+  if(!sections.length)return '';
+  const threshold=window.matchMedia?.('(max-width:760px)').matches?64:96;
+  let passed=null,below=null;
+  sections.forEach(section=>{
+    const top=section.getBoundingClientRect().top;
+    if(top<=threshold){
+      if(!passed||top>passed.top)passed={id:section.id,top};
+    }else if(!below||top<below.top){
+      below={id:section.id,top};
+    }
+  });
+  return passed?.id||below?.id||sections[0].id;
+}
+function syncSectionNavigationState(forcedId=''){
+  setSectionNavigationCurrent(forcedId||currentSectionNavigationId());
+}
+function scheduleSectionNavigationSync(){
+  if(uiState.sectionNavigationFrame)return;
+  uiState.sectionNavigationFrame=requestAnimationFrame(()=>{
+    uiState.sectionNavigationFrame=0;
+    syncSectionNavigationState();
+  });
+}
+function setupSectionNavigationTracking(){
+  if(!uiState.sectionNavigationBound){
+    uiState.sectionNavigationBound=true;
+    window.addEventListener('scroll',scheduleSectionNavigationSync,{passive:true});
+    window.addEventListener('resize',()=>{
+      scheduleSectionNavigationSync();
+      if(window.matchMedia?.('(max-width:760px)').matches)closeDesktopEdgeToc();
+    },{passive:true});
+    document.addEventListener('click',event=>{
+      const toc=document.getElementById('desktopEdgeToc');
+      if(toc?.classList.contains('is-open')&&!event.target.closest('#desktopEdgeToc'))closeDesktopEdgeToc();
+    });
+    document.addEventListener('keydown',event=>{
+      if(event.key!=='Escape'||!event.target.closest?.('#desktopEdgeToc'))return;
+      const toc=document.getElementById('desktopEdgeToc');
+      if(!toc?.classList.contains('is-open'))return;
+      event.preventDefault();
+      closeDesktopEdgeToc({focusTrigger:true});
+    });
+  }
+  syncSectionNavigationState();
 }
 const MOBILE_DATE_PIN_STORAGE_KEY='investmentDashboard.mobileDatePinned';
 function mobileDatePinned(){
@@ -221,11 +313,11 @@ function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=dataState.activeDate.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
   document.getElementById('tabs').innerHTML=`
     <div class="date-picker">
-      <div class="date-picker-center">
-        <select class="date-select month-select" id="monthSelect" aria-label="월 선택">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select>
-        <select class="date-select day-select" id="dateSelect" aria-label="일 선택">${monthDates.map(d=>`<option value="${d}" ${d===dataState.activeDate?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
+      <div class="date-picker-center" role="group" aria-label="기준일 선택">
+        <select class="date-select month-select" id="monthSelect" aria-label="월 선택" aria-controls="app">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select>
+        <select class="date-select day-select" id="dateSelect" aria-label="일 선택" aria-controls="app">${monthDates.map(d=>`<option value="${d}" ${d===dataState.activeDate?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
       </div>
-      <div class="date-picker-action">
+      <div class="date-picker-action" role="group" aria-label="대시보드 도구">
         <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" title="코스피200 야간선물">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.kospiNight)}</span><span class="topbar-label-full">코스피200 야간선물</span><span class="topbar-label-short">코스피 야선</span>
         </a>
@@ -241,40 +333,54 @@ function renderTabs(){
         ${uiState.personalViewUnlocked?`<a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" title="투자 계산기" aria-label="투자 계산기">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
         </a>`:''}
-        <button type="button" class="date-tool-btn topbar-theme-action" data-theme-toggle aria-pressed="${currentTheme()==='dark'}" title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" data-dashboard-action="toggle-theme">
+        <button type="button" class="date-tool-btn topbar-theme-action" data-theme-toggle title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" data-dashboard-action="toggle-theme">
           <span class="date-tool-action-icon" data-theme-toggle-icon>${themeToggleIconMarkup(currentTheme()==='dark')}</span>
         </button>
-        <button type="button" class="date-tool-btn topbar-corner-action" data-corner-theme-toggle aria-pressed="${currentCornerTheme()==='soft-square'}" title="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" aria-label="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" data-dashboard-action="toggle-corner-theme">
+        <button type="button" class="date-tool-btn topbar-corner-action" data-corner-theme-toggle title="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" aria-label="${currentCornerTheme()==='rounded'?'각진 모서리로 전환':'둥근 모서리로 전환'}" data-dashboard-action="toggle-corner-theme">
           <span class="date-tool-action-icon" data-corner-theme-toggle-icon>${cornerThemeToggleIconMarkup(currentCornerTheme()==='rounded')}</span>
         </button>
         <div class="date-action-menu-wrap">
-          <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-expanded="false" data-dashboard-action="toggle-date-menu"><span class="date-tool-icon">☰</span><span class="date-tool-menu-label">목차</span></button>
-          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" data-dashboard-action="close-date-menu" aria-label="목차 닫기">×</button></div>${renderUnifiedMobileMenuContent()}</div>
+          <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-controls="dateActionMenu" aria-expanded="false" data-dashboard-action="toggle-date-menu"><span class="date-tool-icon">${navIconSvg('menu')}</span><span class="date-tool-menu-label">목차</span></button>
+          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderUnifiedMobileMenuContent()}</div>
         </div>
       </div>
     </div>`;
   syncMobileTopbarState();
 }
-function metricCard(label,value,sub,dark=false,vcls=''){return `<div class="card metric-card ${dark?'dark':''}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></div>`}
+function metricCard(label,value,sub,dark=false,vcls=''){const accessibleLabel=escapeHtml(String(label||'').replace(/<[^>]*>/g,'').trim());return `<article class="card metric-card ${dark?'dark':''}" aria-label="${accessibleLabel}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></article>`}
 
 function mobileViewAttrs(key){
   const mode=uiState.mobileViewModes[key]||'card';
   return `data-mobile-view-key="${key}" data-mobile-view="${mode}"`;
 }
+const MOBILE_VIEW_META=Object.freeze({
+  holdings:{label:'증권계좌 보유분',controls:'holdings-table-view holdings-card-view'},
+  combined:{label:'연금+계좌 성과',controls:'combined-table-view combined-card-view'},
+  accounts:{label:'계좌별 성과 요약',controls:'accounts-table-view accounts-card-view'},
+  pensionProducts:{label:'퇴직연금 상품별 현황',controls:'pension-products-table-view pension-products-card-view'},
+  pensionChange:{label:'전일 대비 변동',controls:'pension-change-table-view pension-change-card-view'}
+});
 function mobileViewToggle(key){
   const mode=uiState.mobileViewModes[key]||'card';
-  const label=mode==='card'?'표 보기':'카드 보기';
-  return `<button type="button" class="section-control-chip section-action-chip mobile-view-toggle" data-mobile-view-button="${key}" data-dashboard-action="toggle-mobile-view" data-mobile-view-key="${key}">${label}</button>`;
+  const action=mode==='card'?'표 보기':'카드 보기';
+  const meta=MOBILE_VIEW_META[key]||{label:'데이터 보기',controls:''};
+  return `<button type="button" class="section-control-chip section-action-chip mobile-view-toggle" data-mobile-view-button="${key}" data-dashboard-action="toggle-mobile-view" data-mobile-view-key="${key}" aria-label="${meta.label} ${action}"${meta.controls?` aria-controls="${meta.controls}"`:''}>${action}</button>`;
 }
 function toggleMobileDataView(key){
   const current=uiState.mobileViewModes[key]||'card';
   const next=current==='card'?'table':'card';
   uiState.mobileViewModes[key]=next;
   document.querySelectorAll(`[data-mobile-view-key="${key}"]`).forEach(el=>el.dataset.mobileView=next);
-  document.querySelectorAll(`[data-mobile-view-button="${key}"]`).forEach(btn=>btn.textContent=next==='card'?'표 보기':'카드 보기');
+  const meta=MOBILE_VIEW_META[key]||{label:'데이터 보기'};
+  const action=next==='card'?'표 보기':'카드 보기';
+  document.querySelectorAll(`[data-mobile-view-button="${key}"]`).forEach(btn=>{
+    btn.textContent=action;
+    btn.setAttribute('aria-label',`${meta.label} ${action}`);
+  });
 }
-function mobileInfoCard(title,items=[],extraClass=''){
-  return `<article class="mobile-data-card ${extraClass}"><div class="mobile-data-card-title">${title}</div><div class="mobile-data-card-list">${items.map(item=>{const [label,value,valueClass='',rowClass='']=item;return `<div class="mobile-data-card-row ${rowClass}"><span class="mobile-data-card-label">${label}</span><span class="mobile-data-card-value ${valueClass}">${value}</span></div>`}).join('')}</div></article>`;
+function mobileInfoCard(title,items=[],extraClass='',accessibleLabel=''){
+  const accessibleTitle=escapeHtml(String(accessibleLabel||title||'').replace(/<[^>]*>/g,'').replace(/■/g,'').trim());
+  return `<article class="mobile-data-card ${extraClass}" aria-label="${accessibleTitle}"><div class="mobile-data-card-title">${title}</div><div class="mobile-data-card-list">${items.map(item=>{const [label,value,valueClass='',rowClass='']=item;return `<div class="mobile-data-card-row ${rowClass}"><span class="mobile-data-card-label">${label}</span><span class="mobile-data-card-value ${valueClass}">${value}</span></div>`}).join('')}</div></article>`;
 }
 
 function scrollToDashboardTop(){
@@ -287,7 +393,7 @@ function ensureMobileTopButton(){
     button.id='mobileTopButton';
     button.type='button';
     button.className='mobile-top-button';
-    button.textContent='↑ TOP';
+    button.innerHTML=`${navIconSvg('arrowUp')}<span>TOP</span>`;
     button.setAttribute('aria-label','화면 맨 위로 이동');
     button.addEventListener('click',scrollToDashboardTop);
     document.body.appendChild(button);
@@ -330,9 +436,11 @@ function restoreMobileDateMenuAfterRender(){
   document.getElementById('dateActionMenuButton')?.setAttribute('aria-expanded','true');
   syncMobileTopbarState();
 }
-document.addEventListener('click',e=>{
-  if(!e.target.closest('#tabs')) closeDateActionMenu();
-});
+function setupUiGlobalEvents(){
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('#tabs')) closeDateActionMenu();
+  });
+}
 async function dispatchKrxPriceUpdate(pin, mode='selected'){
   const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
   const selectedDate=dataState.activeDate || '';
@@ -354,7 +462,7 @@ async function dispatchKrxPriceUpdate(pin, mode='selected'){
     body.date=selectedDate;
   }
 
-  const res=await fetch(config.url,{
+  const res=await fetchWithTimeout(config.url,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(body)
@@ -374,6 +482,9 @@ function ensureAppToast(){
     toast=document.createElement('div');
     toast.id='appToast';
     toast.className='app-toast';
+    toast.setAttribute('role','status');
+    toast.setAttribute('aria-live','polite');
+    toast.setAttribute('aria-atomic','true');
     document.body.appendChild(toast);
   }
   return toast;
@@ -391,21 +502,41 @@ function ensureKrxActionModal(){
   modal=document.createElement('div');
   modal.id='krxActionModal';
   modal.className='action-modal krx-action-modal';
+  modal.setAttribute('aria-hidden','true');
   modal.innerHTML=`<div class="action-modal-card krx-action-card" role="dialog" aria-modal="true" aria-labelledby="krxActionTitle">
-    <button type="button" class="modal-icon-btn krx-action-close" data-dashboard-action="close-krx-modal" aria-label="닫기">×</button>
+    <button type="button" class="modal-icon-btn krx-action-close" data-dashboard-action="close-krx-modal" aria-label="닫기">${navIconSvg('close')}</button>
     <h3 id="krxActionTitle" class="modal-main-title">KRX 현재가 반영</h3>
-    <p class="action-modal-description">선택한 기준일만 다시 갱신하거나, 날짜를 비워 누락 거래일을 자동 보충할 수 있습니다. Pages 반영까지 몇 분 걸릴 수 있습니다.</p>
+    <p id="krxActionDescription" class="action-modal-description">최신/누락 반영은 오늘 데이터와 누락 거래일을 생성·보완하고, 재갱신은 선택된 날짜를 다시 반영합니다.</p>
     <label class="action-modal-label krx-action-label" for="krxActionPin">저장/실행 PIN</label>
-    <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN 6자리 입력">
-    <div id="krxActionStatus" class="action-modal-status krx-action-status"></div>
+    <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="krxActionDescription krxActionStatus" aria-invalid="false">
+    <div id="krxActionStatus" class="action-modal-status krx-action-status" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="action-modal-buttons krx-action-buttons">
       <button type="button" class="action-modal-btn ghost" data-dashboard-action="close-krx-modal">취소</button>
       <button type="button" class="action-modal-btn ghost" data-dashboard-action="submit-krx-modal" data-krx-mode="auto">최신/누락 반영</button>
-      <button type="button" class="action-modal-btn primary" data-dashboard-action="submit-krx-modal" data-krx-mode="selected"><span class="krx-selected-line">선택일</span><span class="krx-selected-space"> </span><span class="krx-selected-line">재갱신</span></button>
+      <button type="button" class="action-modal-btn primary" data-dashboard-action="submit-krx-modal" data-krx-mode="selected">재갱신</button>
     </div>
   </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click',e=>{if(e.target===modal)closeKrxActionModal()});
+  modal.addEventListener('keydown',e=>{
+    if(e.key!=='Escape')return;
+    e.preventDefault();
+    e.stopPropagation();
+    closeKrxActionModal();
+  });
+  const pinInput=modal.querySelector('#krxActionPin');
+  pinInput?.addEventListener('input',()=>{
+    const cleaned=String(pinInput.value||'').replace(/\D/g,'').slice(0,6);
+    if(pinInput.value!==cleaned)pinInput.value=cleaned;
+    pinInput.setAttribute('aria-invalid','false');
+    const pinStatus=modal.querySelector('#krxActionStatus');
+    if(pinStatus?.classList.contains('err')){pinStatus.textContent='';pinStatus.className='action-modal-status krx-action-status'}
+  });
+  pinInput?.addEventListener('keydown',e=>{
+    if(e.key!=='Enter')return;
+    e.preventDefault();
+    submitKrxActionModal('selected');
+  });
   return modal;
 }
 function openKrxActionModal(){
@@ -413,8 +544,10 @@ function openKrxActionModal(){
   const status=modal.querySelector('#krxActionStatus');
   const input=modal.querySelector('#krxActionPin');
   if(status){status.textContent='';status.className='action-modal-status krx-action-status'}
+  input?.setAttribute('aria-invalid','false');
   modal.classList.add('show');
-  setTimeout(()=>input?.focus(),30);
+  modal.setAttribute('aria-hidden','false');
+  activateDashboardDialogFocus(modal,{initialFocus:input,fallbackSelector:'[data-dashboard-action="krx-update"]'});
 }
 
 function forceMobileViewportReflow(){
@@ -436,7 +569,11 @@ function forceMobileViewportReflow(){
 
 function closeKrxActionModal(){
   const modal=document.getElementById('krxActionModal');
-  if(modal) modal.classList.remove('show');
+  if(modal){
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden','true');
+    releaseDashboardDialogFocus(modal,{fallbackSelector:'[data-dashboard-action="krx-update"]'});
+  }
   forceMobileViewportReflow();
 }
 async function submitKrxActionModal(mode='selected'){
@@ -444,14 +581,16 @@ async function submitKrxActionModal(mode='selected'){
   const input=modal.querySelector('#krxActionPin');
   const status=modal.querySelector('#krxActionStatus');
   const buttons=modal.querySelectorAll('.krx-action-buttons button');
-  const pin=String(input?.value||'').trim();
+  const pin=String(input?.value||'').replace(/\D/g,'').slice(0,6);
   const updateMode=mode==='auto'?'auto':'selected';
   const selectedDate=dataState.activeDate || '';
-  if(!pin){
-    if(status){status.textContent='PIN을 입력해 주세요.';status.className='action-modal-status krx-action-status err'}
+  if(pin.length!==6){
+    input?.setAttribute('aria-invalid','true');
+    if(status){status.textContent='PIN 6자리를 입력해 주세요.';status.className='action-modal-status krx-action-status err'}
     input?.focus();
     return;
   }
+  input?.setAttribute('aria-invalid','false');
   try{
     buttons.forEach(btn=>btn.disabled=true);
     if(status){
@@ -504,10 +643,27 @@ function setAssetTab(tab,{scroll=false}={}){
   uiState.activeAssetTab=tab;
   syncAssetTabs();
   requestAnimationFrame(()=>{
-    syncResponsiveChartControls();
-    refreshScrollHints();
+    drawAllCharts();
+    syncSectionNavigationState();
     if(scroll)document.getElementById('asset-workspace')?.scrollIntoView({behavior:'smooth',block:'start'});
   });
+}
+function handleAssetTabKeydown(event,currentTab){
+  if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return false;
+  const tablist=currentTab.closest('[role="tablist"]');
+  const tabs=[...tablist?.querySelectorAll('[role="tab"][data-asset-tab]')||[]];
+  const currentIndex=tabs.indexOf(currentTab);
+  if(currentIndex<0||!tabs.length)return false;
+  let nextIndex=currentIndex;
+  if(event.key==='Home')nextIndex=0;
+  else if(event.key==='End')nextIndex=tabs.length-1;
+  else if(event.key==='ArrowLeft')nextIndex=(currentIndex-1+tabs.length)%tabs.length;
+  else if(event.key==='ArrowRight')nextIndex=(currentIndex+1)%tabs.length;
+  event.preventDefault();
+  const next=tabs[nextIndex];
+  setAssetTab(next.dataset.assetTab||'securities');
+  next.focus();
+  return true;
 }
 function assetTabForTarget(id){
   const el=document.getElementById(id);
@@ -516,6 +672,7 @@ function assetTabForTarget(id){
 function jumpToSection(id){
   const targetTab=assetTabForTarget(id);
   if(targetTab&&targetTab!==uiState.activeAssetTab)setAssetTab(targetTab);
+  setSectionNavigationCurrent(id);
   requestAnimationFrame(()=>{
     const el=document.getElementById(id);
     if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
@@ -569,7 +726,6 @@ function renderResultSummary(x){
   const ledgerGap=v.totalResult-actualHoldingAndCash;
   if(!isLedgerCheckDate(x.date)) return '';
   const reasonValue='수익실현분 카드대금 사용';
-  const reasonDetail='현재 보유액에서 제외된 사용분';
   const footnoteMark='<span class="cash-basis-note-mark">(1)</span>';
   const footnoteSup='<sup class="cash-basis-note-mark cash-basis-note-sup">(1)</sup>';
   const outsideCashFlowText=outsideCashUsed?`6/18 확인값 ${won(outsideCashBase)} - 투자 사용 ${won(outsideCashUsed)}`:`6/18 확인값 ${won(outsideCashBase)}`;
@@ -578,14 +734,12 @@ function renderResultSummary(x){
     :`<p class="section-explainer table-note cash-basis-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCash)} = ${outsideCashFlowText}</p>`;
   const ledgerSourceSub='계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준<br>출처: 연금+계좌 성과 &gt; 증권계좌 투자 결과물';
   const actualHoldingSub=`증권계좌 평가총액(${won(x.allocTotal)}) +<br>실현수익 반영 현금 보유액(${won(outsideCashBasis)})${footnoteSup}`;
-  return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="search" aria-hidden="true"></span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid cards metric-grid">${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),ledgerSourceSub,true)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),actualHoldingSub)}${metricCard('차액(A-B)',won(ledgerGap),'장부상 결과물과 실제 보유액의 차이',false,ledgerGap!==0?'ledger-gap-value':'')}${metricCard('차액 발생 이유',reasonValue,reasonDetail,false,'ledger-reason-value')}</div>${note}</section>`;
+  const gapClass=ledgerGap!==0?'ledger-gap-value':'';
+  const conclusion=`<article class="card metric-card ledger-conclusion-card dark" aria-label="장부결과 차액"><div class="ledger-conclusion-main"><div class="label">차액(A-B)</div><div class="value ${gapClass}">${won(ledgerGap)}</div><div class="sub">장부상 결과물과 실제 보유액의 차이<div class="ledger-conclusion-inline-reason">차액 발생 이유: ${reasonValue}</div></div></div><div class="ledger-conclusion-reason"><span>차액 발생 이유</span><strong>${reasonValue}</strong></div></article>`;
+  const overview=`<div class="grid cards metric-grid ledger-overview-grid">${conclusion}${metricCard('장부상 증권계좌 투자 결과물(A)',won(v.totalResult),ledgerSourceSub)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),actualHoldingSub)}</div>`;
+  return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="search" aria-hidden="true"></span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div>${overview}${note}</section>`;
 }
 
-function holdingRowCssClass(h){
-  const cssClass=String(h?.cssClass||'');
-  if(String(h?.ticker||'')==='009150')return '';
-  return cssClass==='ticker-mini'&&Number(h?.qty)!==1?'':cssClass;
-}
 
 function renderHoldings(x){
   const holdCost=x.holdings.reduce((a,h)=>a+h.cost,0),
@@ -606,7 +760,7 @@ function renderHoldings(x){
     ['평가금액',won(h.evalAmount)],
     ['평가손익',won(h.profit),cls(h.profit)],
     ['손익률',pct(h.returnRate),cls(h.returnRate)]
-  ],holdingRowCssClass(h))).join('')+
+  ],'',h.name)).join('')+
   mobileInfoCard('보유종목 합계',[
     ['투자원금',won(holdCost)],['평가금액',won(holdEval)],['평가손익',won(holdProfit),cls(holdProfit)],['손익률',pct(holdReturn),cls(holdReturn)]
   ],'summary-card mobile-total-card')+
@@ -616,7 +770,7 @@ function renderHoldings(x){
   mobileInfoCard('총계(보유분+현금)',[
     ['투자원금',won(totalCostWithCash)],['평가금액',won(totalEvalWithCash)],['평가손익',won(holdProfit),cls(holdProfit)],['손익률',pct(totalReturnWithCash),cls(totalReturnWithCash)]
   ],'summary-card mobile-total-card');
-  return `<section id="securities-holdings" ${mobileViewAttrs('holdings')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="folder" aria-hidden="true"></span>증권계좌 보유분</h2>${mobileViewToggle('holdings')}</div><div class="mobile-scroll table-view"><table class="dashboard-data-table hold-position-table"><thead><tr><th>종목명</th><th class="table-cell-center">수량</th><th>평단</th><th>투자원금</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th class="table-cell-center">손익률</th></tr></thead><tbody>${orderedHoldings.map(h=>`<tr class="hold-row ${holdingRowCssClass(h)}"><td><span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}</td><td class="num table-cell-center">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${tableCls(h.profit)}">${fmt(h.profit)}</td><td class="num table-cell-center ${tableCls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><td>보유종목 합계</td><td class="num table-cell-center">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${tableCls(holdProfit)}">${fmt(holdProfit)}</td><td class="num table-cell-center ${tableCls(holdReturn)}">${pct(holdReturn)}</td></tr><tr><td>증권계좌 현금</td><td class="num table-cell-center">-</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">0</td><td class="num table-cell-center">0.00%</td></tr><tr class="summary-row"><td>총계(보유분+현금)</td><td class="num table-cell-center">-</td><td class="num">-</td><td class="num">${fmt(totalCostWithCash)}</td><td class="num">-</td><td class="num">${fmt(totalEvalWithCash)}</td><td class="num ${tableCls(holdProfit)}">${fmt(holdProfit)}</td><td class="num table-cell-center ${tableCls(totalReturnWithCash)}">${pct(totalReturnWithCash)}</td></tr></tbody></table></div><div class="mobile-card-view">${cards}</div></section>`;
+  return `<section id="securities-holdings" ${mobileViewAttrs('holdings')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="folder" aria-hidden="true"></span>증권계좌 보유분</h2>${mobileViewToggle('holdings')}</div><div id="holdings-table-view" class="mobile-scroll table-view"><table class="dashboard-data-table hold-position-table"><caption class="visually-hidden">증권계좌 보유분</caption><thead><tr><th scope="col">종목명</th><th scope="col" class="table-cell-center">수량</th><th scope="col">평단</th><th scope="col">투자원금</th><th scope="col">현재가</th><th scope="col">평가금액</th><th scope="col">평가손익</th><th scope="col" class="table-cell-center">손익률</th></tr></thead><tbody>${orderedHoldings.map(h=>`<tr class="hold-row"><th scope="row"><span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}</th><td class="num table-cell-center">${fmt(h.qty)}</td><td class="num">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num">${fmt(h.cost)}</td><td class="num">${fmt(h.price)}</td><td class="num">${fmt(h.evalAmount)}</td><td class="num ${tableCls(h.profit)}">${fmt(h.profit)}</td><td class="num table-cell-center ${tableCls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><th scope="row">보유종목 합계</th><td class="num table-cell-center">-</td><td class="num">-</td><td class="num">${fmt(holdCost)}</td><td class="num">-</td><td class="num">${fmt(holdEval)}</td><td class="num ${tableCls(holdProfit)}">${fmt(holdProfit)}</td><td class="num table-cell-center ${tableCls(holdReturn)}">${pct(holdReturn)}</td></tr><tr><th scope="row">증권계좌 현금</th><td class="num table-cell-center">-</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">-</td><td class="num">${fmt(cash)}</td><td class="num">0</td><td class="num table-cell-center">0.00%</td></tr><tr class="summary-row"><th scope="row">총계(보유분+현금)</th><td class="num table-cell-center">-</td><td class="num">-</td><td class="num">${fmt(totalCostWithCash)}</td><td class="num">-</td><td class="num">${fmt(totalEvalWithCash)}</td><td class="num ${tableCls(holdProfit)}">${fmt(holdProfit)}</td><td class="num table-cell-center ${tableCls(totalReturnWithCash)}">${pct(totalReturnWithCash)}</td></tr></tbody></table></div><div id="holdings-card-view" class="mobile-card-view">${cards}</div></section>`;
 }
 
 function renderCombined(x){
@@ -628,7 +782,7 @@ function renderCombined(x){
   ])+mobileInfoCard('합산',[
     ['투입원금',won(v.combinedPrincipal)],['투자 결과물',won(v.combinedResult)],['누적손익',won(v.combinedProfit),cls(v.combinedProfit)],[returnLabel,pct(v.combinedReturn),cls(v.combinedReturn)]
   ],'summary-card mobile-total-card');
-  return `<section id="summary-section" ${mobileViewAttrs('combined')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="home" aria-hidden="true"></span>연금+계좌 성과</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('combined')}</div></div><div class="mobile-scroll table-view"><table class="dashboard-data-table combined-performance-table"><thead><tr><th>구분</th><th>투입원금</th><th>투자 결과물</th><th>누적손익</th><th class="table-cell-center">${returnLabel}</th></tr></thead><tbody><tr><td><strong>퇴직연금</strong></td><td class="num">${fmt(x.pensionPrincipal)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${tableCls(x.pensionProfit)}">${fmt(x.pensionProfit)}<span class="combined-mobile-return ${tableCls(x.pensionReturn)}"> (${mobileReturnPct(x.pensionReturn)})</span></td><td class="num table-cell-center ${tableCls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr><td><strong>증권계좌</strong></td><td class="num">${fmt(v.totalPrincipal)}</td><td class="num">${fmt(v.totalResult)}</td><td class="num ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}<span class="combined-mobile-return ${tableCls(v.totalReturn)}"> (${mobileReturnPct(v.totalReturn)})</span></td><td class="num table-cell-center ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td></tr><tr class="summary-row"><td>합산</td><td class="num">${fmt(v.combinedPrincipal)}</td><td class="num">${fmt(v.combinedResult)}</td><td class="num ${tableCls(v.combinedProfit)}">${fmt(v.combinedProfit)}<span class="combined-mobile-return ${tableCls(v.combinedReturn)}"> (${mobileReturnPct(v.combinedReturn)})</span></td><td class="num table-cell-center ${tableCls(v.combinedReturn)}">${pct(v.combinedReturn)}</td></tr></tbody></table></div><div class="mobile-card-view">${cards}</div></section>`;
+  return `<section id="summary-section" ${mobileViewAttrs('combined')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="home" aria-hidden="true"></span>연금+계좌 성과</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('combined')}</div></div><div id="combined-table-view" class="mobile-scroll table-view"><table class="dashboard-data-table combined-performance-table"><caption class="visually-hidden">연금과 증권계좌 성과 비교</caption><thead><tr><th scope="col">구분</th><th scope="col">투입원금</th><th scope="col">투자 결과물</th><th scope="col">누적손익</th><th scope="col" class="table-cell-center">${returnLabel}</th></tr></thead><tbody><tr><th scope="row"><strong>퇴직연금</strong></th><td class="num">${fmt(x.pensionPrincipal)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num ${tableCls(x.pensionProfit)}">${fmt(x.pensionProfit)}<span class="combined-mobile-return ${tableCls(x.pensionReturn)}"> (${mobileReturnPct(x.pensionReturn)})</span></td><td class="num table-cell-center ${tableCls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr><th scope="row"><strong>증권계좌</strong></th><td class="num">${fmt(v.totalPrincipal)}</td><td class="num">${fmt(v.totalResult)}</td><td class="num ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}<span class="combined-mobile-return ${tableCls(v.totalReturn)}"> (${mobileReturnPct(v.totalReturn)})</span></td><td class="num table-cell-center ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td></tr><tr class="summary-row"><th scope="row">합산</th><td class="num">${fmt(v.combinedPrincipal)}</td><td class="num">${fmt(v.combinedResult)}</td><td class="num ${tableCls(v.combinedProfit)}">${fmt(v.combinedProfit)}<span class="combined-mobile-return ${tableCls(v.combinedReturn)}"> (${mobileReturnPct(v.combinedReturn)})</span></td><td class="num table-cell-center ${tableCls(v.combinedReturn)}">${pct(v.combinedReturn)}</td></tr></tbody></table></div><div id="combined-card-view" class="mobile-card-view">${cards}</div></section>`;
 }
 
 function accountMemoTableHtml(text){
@@ -639,7 +793,7 @@ function renderAccounts(x){
   const c=dataState.portfolio.constants,v=separateProfitView(x);
   const rows=[
     ['삼성증권1',v.account1Principal,v.account1Profit,v.account1Return,'2025-10-16 최초 시작.'],
-    ...(x.account2Included?[['삼성증권2',c.account2Principal,c.account2Profit,c.account2Profit/c.account2Principal*100,'2023-12-20 최초 시작. 2026-05-22 전량 매도 후 실현분 반영.']]:[]),
+    ...(x.account2Included?[['삼성증권2',c.account2Principal,c.account2Profit,c.account2Profit/c.account2Principal*100,'2023-12-20 최초 시작. 2026-05-22 전량 매도.']]:[]),
     ['토스증권',0,c.tossProfit,0,'2026-03-09 매수 후 익일 매도.']
   ];
   const totalMemo='계좌 간 자금 이동 반영';
@@ -649,8 +803,8 @@ function renderAccounts(x){
   ])).join('')+mobileInfoCard('합계',[
     ['투자원금',won(v.totalPrincipal)],['누적손익',won(v.totalProfit),cls(v.totalProfit)],['수익률',pct(v.totalReturn),cls(v.totalReturn)],['',totalMemo,'','stacked note-only']
   ],'summary-card mobile-total-card');
-  const totalRow=`<tr class="summary-row"><td class="accounts-name">합계</td><td class="num">${fmt(v.totalPrincipal)}</td><td class="num ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}</td><td class="num table-cell-center ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td><td class="accounts-memo">${totalMemo}</td></tr>`;
-  return `<section id="accounts-summary" ${mobileViewAttrs('accounts')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="list" aria-hidden="true"></span>계좌별 성과 요약</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('accounts')}</div></div><div class="mobile-scroll accounts-scroll table-view"><table class="dashboard-data-table accounts-table"><thead><tr><th class="accounts-name-head">구분</th><th>투자원금</th><th>누적손익</th><th class="table-cell-center">수익률</th><th>메모</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="accounts-name">${r[0]}</td><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${tableCls(r[2])}">${fmt(r[2])}</td><td class="num table-cell-center ${r[1]?tableCls(r[3]):''}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${accountMemoTableHtml(r[4])}</td></tr>`).join('')}${totalRow}</tbody></table></div><div class="mobile-card-view">${cards}</div>${hiddenNote}</section>`;
+  const totalRow=`<tr class="summary-row"><th scope="row" class="accounts-name">합계</th><td class="num">${fmt(v.totalPrincipal)}</td><td class="num ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}</td><td class="num table-cell-center ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td><td class="accounts-memo">${totalMemo}</td></tr>`;
+  return `<section id="accounts-summary" ${mobileViewAttrs('accounts')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="list" aria-hidden="true"></span>계좌별 성과 요약</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('accounts')}</div></div><div id="accounts-table-view" class="mobile-scroll accounts-scroll table-view"><table class="dashboard-data-table accounts-table"><caption class="visually-hidden">계좌별 성과 요약</caption><thead><tr><th scope="col" class="accounts-name-head">구분</th><th scope="col">투자원금</th><th scope="col">누적손익</th><th scope="col" class="table-cell-center">수익률</th><th scope="col">메모</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row" class="accounts-name">${r[0]}</th><td class="num">${r[1]?fmt(r[1]):'-'}</td><td class="num ${tableCls(r[2])}">${fmt(r[2])}</td><td class="num table-cell-center ${r[1]?tableCls(r[3]):''}">${r[1]?pct(r[3]):'-'}</td><td class="accounts-memo">${accountMemoTableHtml(r[4])}</td></tr>`).join('')}${totalRow}</tbody></table></div><div id="accounts-card-view" class="mobile-card-view">${cards}</div>${hiddenNote}</section>`;
 }
 function renderSourceTables(x){
   const c=dataState.portfolio.constants,
@@ -664,13 +818,54 @@ function renderSourceTables(x){
     externalPrincipal=sourceExternalPrincipalForDate(x.date),
     reclassified=uiState.includeSeparateProfit?separateProfitReinvestedForDate(x.date):0,
     performancePrincipal=holdingCostPrincipal-reclassified,
-    extraRow=extraContribution?`<tr><td>추가 외부투입</td><td class="num">${fmt(extraContribution)}</td></tr>`:'',
-    excludedRow=!uiState.includeSeparateProfit&&excludedTransfer?`<tr><td>보유 자금 투입</td><td class="num">${fmt(excludedTransfer)}</td></tr>`:'',
-    internalCashRow=internalCashTransfer?`<tr><td>실현수익 투입</td><td class="num">${fmt(internalCashTransfer)}</td></tr>`:'',
-    reconciliationRow=`<tr><td>원천·보유 차액</td><td class="num">${fmt(sourceHoldingGap)}</td></tr>`,
+    extraRow=extraContribution?`<tr><th scope="row">추가 외부투입</th><td class="num">${fmt(extraContribution)}</td></tr>`:'',
+    excludedRow=!uiState.includeSeparateProfit&&excludedTransfer?`<tr><th scope="row">보유 자금 투입</th><td class="num">${fmt(excludedTransfer)}</td></tr>`:'',
+    internalCashRow=internalCashTransfer?`<tr><th scope="row">실현수익 투입</th><td class="num">${fmt(internalCashTransfer)}</td></tr>`:'',
+    reconciliationRow=`<tr><th scope="row">원천·보유 차액</th><td class="num">${fmt(sourceHoldingGap)}</td></tr>`,
     reclassNote=uiState.includeSeparateProfit&&reclassified?`<div class="source-reclass-note"><strong>6~8월 별도수익 재투입 ${won(reclassified)}</strong><span>기존 투자수익 재투자분 · 신규 외부투입금 아님</span><span>전체 투입원금 제외 · 별도수익 ON 시 성과기준 원금 제외</span></div>`:'',
     principalLabel=uiState.includeSeparateProfit&&reclassified?'계좌1 성과기준 투자원금':'계좌1 투자원금 검산',
     principalSummaryLabel='합계';
-  return `<section id="capital-source-check" class="capital-source-section"><div class="section-title source-title"><h2><span class="section-title-icon" data-section-title-icon="receipt" aria-hidden="true"></span>투자원금 원천 및 검산</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid three source-grid"><div class="card source-card metric-card"><div class="label">계좌1 원천별 추적</div><div class="value">${won(performancePrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><tbody><tr><td>금 판매액 투입</td><td class="num">4,000,000</td></tr><tr><td>근로소득 투입</td><td class="num">7,036,104</td></tr><tr><td>임시자금 투입</td><td class="num">4,955,580</td></tr><tr><td>원금 회수</td><td class="num">-6,089,845</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 재투입</td><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr>${excludedRow}${internalCashRow}${extraRow}${reconciliationRow}<tr class="summary-row"><td>합계</td><td class="num">${fmt(performancePrincipal)}</td></tr></tbody></table></div></div><div class="card source-card metric-card highlight"><div class="label">전체 투입원금</div><div class="value">${won(externalPrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><tbody><tr><td>금 판매액 총액</td><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><td>근로소득 투입액</td><td class="num">${fmt(c.laborNetPrincipal)}</td></tr>${extraRow}<tr class="summary-row"><td>합계</td><td class="num">${fmt(externalPrincipal)}</td></tr></tbody></table></div>${reclassNote}</div><div class="card source-card metric-card"><div class="label">${principalLabel}</div><div class="value">${won(performancePrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><tbody><tr><td>전체 투입원금</td><td class="num">${fmt(externalPrincipal)}</td></tr><tr><td>레버수익 재투입</td><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><td>VIP 수익 재투입</td><td class="num">${fmt(vipProfitReinvest)}</td></tr>${excludedRow}${internalCashRow}${reconciliationRow}<tr class="summary-row"><td>${principalSummaryLabel}</td><td class="num">${fmt(performancePrincipal)}</td></tr></tbody></table></div></div></div></section>`;
+  const externalCard=`<div class="card source-card metric-card highlight"><div class="label">전체 투입원금</div><div class="value">${won(externalPrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><caption class="visually-hidden">전체 투입원금 구성</caption><tbody><tr><th scope="row">금 판매액 총액</th><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><th scope="row">근로소득 투입액</th><td class="num">${fmt(c.laborNetPrincipal)}</td></tr>${extraRow}<tr class="summary-row"><th scope="row">합계</th><td class="num">${fmt(externalPrincipal)}</td></tr></tbody></table></div>${reclassNote}</div>`;
+  const performanceCard=`<div class="card source-card metric-card"><div class="label">${principalLabel}</div><div class="value">${won(performancePrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><caption class="visually-hidden">계좌1 투자원금 검산</caption><tbody><tr><th scope="row">전체 투입원금</th><td class="num">${fmt(externalPrincipal)}</td></tr><tr><th scope="row">레버수익 재투입</th><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><th scope="row">VIP 수익 재투입</th><td class="num">${fmt(vipProfitReinvest)}</td></tr>${excludedRow}${internalCashRow}${reconciliationRow}<tr class="summary-row"><th scope="row">${principalSummaryLabel}</th><td class="num">${fmt(performancePrincipal)}</td></tr></tbody></table></div></div>`;
+  const trackedCard=`<div class="card source-card metric-card"><div class="label">계좌1 원천별 추적</div><div class="value">${won(performancePrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><caption class="visually-hidden">계좌1 원천별 추적</caption><tbody><tr><th scope="row">금 판매액 투입</th><td class="num">4,000,000</td></tr><tr><th scope="row">근로소득 투입</th><td class="num">7,036,104</td></tr><tr><th scope="row">임시자금 투입</th><td class="num">4,955,580</td></tr><tr><th scope="row">원금 회수</th><td class="num">-6,089,845</td></tr><tr><th scope="row">레버수익 재투입</th><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr><th scope="row">VIP 재투입</th><td class="num">${fmt(c.account2ReinvestedToAccount1)}</td></tr>${excludedRow}${internalCashRow}${extraRow}${reconciliationRow}<tr class="summary-row"><th scope="row">합계</th><td class="num">${fmt(performancePrincipal)}</td></tr></tbody></table></div></div>`;
+  return `<section id="capital-source-check" class="capital-source-section"><div class="section-title source-title"><h2><span class="section-title-icon" data-section-title-icon="receipt" aria-hidden="true"></span>투자원금 원천 및 검산</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid three source-grid">${externalCard}${performanceCard}${trackedCard}</div></section>`;
 }
 
+
+export {
+  closeDateActionMenu,
+  closeDesktopEdgeToc,
+  closeKrxActionModal,
+  ensureDesktopEdgeToc,
+  ensureMobileTopButton,
+  forceMobileViewportReflow,
+  handleAssetTabKeydown,
+  hydrateSectionTitleIcons,
+  jumpToSection,
+  metricCard,
+  mobileDateMenuIsOpen,
+  mobileInfoCard,
+  mobileViewAttrs,
+  mobileViewToggle,
+  renderCombined,
+  renderSecuritiesSection,
+  renderTabs,
+  restoreMobileDateMenuAfterRender,
+  setAssetTab,
+  setMobileDatePinned,
+  setupSectionNavigationTracking,
+  setupUiGlobalEvents,
+  showAppToast,
+  submitKrxActionModal,
+  suppressSecuritiesCumCardTransitionOnce,
+  syncAssetTabs,
+  syncCornerThemeControls,
+  syncMobileTopbarState,
+  syncThemeControls,
+  toggleCornerTheme,
+  toggleDateActionMenu,
+  toggleDesktopEdgeToc,
+  toggleMobileDataView,
+  toggleTheme,
+  triggerKrxPriceUpdate
+};

@@ -175,7 +175,7 @@ Input · 입력
 - 다크 테마 선택값은 `localStorage`의 `investmentDashboard.theme`에 저장합니다.
 - `index.html`에서 초기 테마를 CSS 로드 전에 적용해 불필요한 흰 화면 flash를 줄입니다.
 - 다크 테마는 `html.dark`에서 공통 색상 토큰을 바꾸는 방식이 기본입니다. 새 컴포넌트를 추가할 때 라이트/다크용 CSS를 각각 복제하지 않습니다.
-- 양수/음수/차액의 의미색은 `--value-positive`, `--value-negative`, `--value-difference`를 사용합니다.
+- 양수/음수 의미색은 `--value-positive`, `--value-negative`를 사용하고, 항상 어두운 강조카드의 차액색은 `--highlight-card-difference`를 사용합니다.
 - 1주 보유 종목의 회색 표 배경처럼 테마에 따라 달라져야 하는 색은 `--soft-gray` 등 기존 토큰을 사용하고 라이트 전용 색상을 breakpoint 안에 하드코딩하지 않습니다.
 
 ---
@@ -819,7 +819,7 @@ Folder: /root
 
 3. **색상·크기·상태는 기존 디자인 토큰을 먼저 확인합니다.**
    - 기본 surface/text/border: `--bg`, `--card`, `--ink`, `--muted`, `--line`
-   - 양수/음수/차액: `--value-positive`, `--value-negative`, `--value-difference`
+   - 양수/음수: `--value-positive`, `--value-negative` / 어두운 강조카드 차액: `--highlight-card-difference`
    - 테마 대응 회색: `--soft-gray`
    - 차트: `--chart-surface`, `--chart-grid`, `--chart-axis`, `--chart-text` 등
    - 차트 control: `--dashboard-control-*`

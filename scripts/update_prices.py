@@ -36,6 +36,14 @@ def market_status_kst() -> str:
     return "close"
 
 
+def market_status_for_date(target_date: str) -> str:
+    # 과거 거래일을 나중에 보충/재갱신할 때는 실행 시각이 장중이어도 종가 데이터다.
+    # 장중 표시는 한국시간 오늘 날짜를 실제로 갱신하는 경우에만 사용한다.
+    if target_date == today_kst():
+        return market_status_kst()
+    return "close"
+
+
 def is_valid_date_text(value: str) -> bool:
     try:
         datetime.strptime(value, "%Y-%m-%d")
@@ -338,31 +346,50 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
     # 가장 최근 저장일이 아직 종가로 확정되지 않은 상태(intraday)라면,
     # 이미 prices에 존재하더라도 다시 갱신 대상에 포함시켜서
     # 장중 재요청 시 최신가로 갱신하거나, 마감 후 요청 시 종가로 확정되게 한다.
-    refresh_dates = []
+    # 저장 시점이 장중이었던 과거 날짜가 남아 있으면 최신 저장일이 아니어도 다시 갱신한다.
+    # 예: 다음 거래일 장중에 누락된 전 거래일을 보충한 경우, 전 거래일은 종가로 확정해야 한다.
+    refresh_dates = [
+        date
+        for date, snapshot in prices.items()
+        if is_valid_date_text(date)
+        and isinstance(snapshot, dict)
+        and snapshot.get("display", True) is not False
+        and snapshot.get("marketStatus") == "intraday"
+    ]
     latest_snapshot = prices.get(latest_saved) or {}
     current_market_status = market_status_kst()
 
-    if latest_snapshot.get("marketStatus") == "intraday":
+    if latest_snapshot.get("marketStatus") == "intraday" and latest_saved not in refresh_dates:
         refresh_dates.append(latest_saved)
     elif latest_saved == latest_market and latest_saved == today_kst() and current_market_status == "close":
         # 같은 날 장마감 후 자동 실행 시, 오전/장중에 만들어진 스냅샷이
         # 이미 close로 표시되어 있어도 한 번 더 갱신할 수 있게 한다.
         refresh_dates.append(latest_saved)
 
-    start = (datetime.strptime(latest_saved, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
+    stored_dates = sorted(
+        date
+        for date, snapshot in prices.items()
+        if is_valid_date_text(date)
+        and isinstance(snapshot, dict)
+        and snapshot.get("display", True) is not False
+    )
+    first_saved = stored_dates[0] if stored_dates else latest_saved
 
-    if start > latest_market:
-        return refresh_dates
-
-    candidates = date_range(start, latest_market)
-
+    # 최신 저장일 이후뿐 아니라 저장 구간 내부의 누락도 함께 확인한다.
+    # 주말은 사전 제외하고, 공휴일/실제 거래일 여부만 KRX 데이터로 확인한다.
+    candidates = [
+        date
+        for date in date_range(first_saved, latest_market)
+        if date not in prices
+        and datetime.strptime(date, "%Y-%m-%d").weekday() < 5
+    ]
     missing_dates = [
         date
         for date in candidates
-        if date not in prices and is_actual_trading_date(portfolio, date)
+        if is_actual_trading_date(portfolio, date)
     ]
 
-    return refresh_dates + missing_dates
+    return sorted(set(refresh_dates + missing_dates))
 
 
 def symbol_key(name: str) -> str:
@@ -591,7 +618,7 @@ def update_one_date(
     if force_display:
         display = True
 
-    status = market_status_kst()
+    status = market_status_for_date(target_date)
     updated_at = datetime.now(KST).isoformat(timespec="seconds")
 
     prices[target_date] = {

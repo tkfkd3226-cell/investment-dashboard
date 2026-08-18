@@ -35,15 +35,18 @@
 <script>
   (function(){
     const version=Date.now();
-    [
+    const moduleFiles=[
       'dashboard-core.js',
       'dashboard-charts.js',
       'dashboard-ui.js',
-      'dashboard-pension.js',
-      'dashboard-app.js'
-    ].forEach(file=>{
-      document.write('<script src="js/' + file + '?v=' + version + '"><\/script>');
-    });
+      'dashboard-pension.js'
+    ];
+    const imports=Object.fromEntries(moduleFiles.map(file=>[
+      './js/'+file,
+      './js/'+file+'?v='+version
+    ]));
+    document.write('<script type="importmap">'+JSON.stringify({imports})+'<\/script>');
+    document.write('<script type="module" src="js/dashboard-app.js?v='+version+'"><\/script>');
   })();
 </script>
 </body>
