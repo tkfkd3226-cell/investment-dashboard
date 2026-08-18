@@ -524,7 +524,7 @@ html.dark{
   - 모바일: 760px 이하.
   - max-width:1100px은 태블릿+모바일 공통 동작, min-width:761px은 태블릿+웹 공통 동작에만 사용한다.
   - 실제 스마트폰 가로모드: 폭이 761px을 넘더라도 max-height:500px + hover:none + pointer:coarse 조건으로 폰 UI를 유지한다.
-  - max-width:400px은 연금+계좌 성과 표의 열 축약 정책 하나에만 사용하는 기능적 예외다.
+  - max-width:400px은 초소형 화면의 성과표 열 축약 정책에만 사용하는 기능적 예외다.
   - hover/pointer, prefers-reduced-motion, print는 화면 폭이 아니라 입력장치·접근성·인쇄를 위한 기능성 media다.
 */
 
@@ -1037,7 +1037,8 @@ td.num{
 
 .dash-tooltip,
 .pension-viz-tooltip,
-.phone-chart-ui .chart-title-info-tooltip{
+.phone-chart-ui .chart-title-info-tooltip,
+#accounts-summary .chart-title-info-tooltip{
   background:var(--tooltip-bg);
   color:var(--tooltip-color);
   border:1px solid var(--tooltip-border);
@@ -4161,18 +4162,6 @@ button:not(:disabled):active,
 #summary-section .combined-performance-table thead th{background:var(--subtle-card);color:var(--muted);font-weight:var(--type-weight-bold)}
 
 .combined-mobile-return{display:none}
-/* 초소형 화면 기능 예외: 400px 이하에서만 별도 수익률 열을 숨기고 누적손익 셀 안에 수익률을 합쳐 가로폭을 확보한다. */
-@media(max-width:400px){
-  #summary-section .combined-performance-table th:nth-child(5),
-  #summary-section .combined-performance-table td:nth-child(5){
-    display:none;
-  }
-  #summary-section .combined-performance-table .combined-mobile-return{
-    display:inline;
-    font-size:var(--type-size-xs);
-  }
-}
-
 /* 실제 스마트폰 가로모드 예외: 폭이 760px을 넘어도 낮은 높이+터치 입력이면 태블릿이 아니라 폰 UI로 처리한다. */
 @media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
 
@@ -4719,9 +4708,9 @@ body.chart-expanded-open .dash-tooltip{
 .phone-chart-ui .chart-title-sub{
   display:none;
 }
-.phone-chart-ui .chart-title-info{
+.phone-chart-ui .chart-title-info,
+#accounts-summary .accounts-name .chart-title-info{
   position:relative;
-  display:inline-flex;
   align-items:center;
   justify-content:center;
   width:18px;
@@ -4741,11 +4730,16 @@ body.chart-expanded-open .dash-tooltip{
   -webkit-tap-highlight-color:transparent;
   z-index:12;
 }
-.phone-chart-ui .chart-title-info::before{content:"";position:absolute;inset:-3px}
-.phone-chart-ui .chart-title-info > span[aria-hidden="true"]{
+.phone-chart-ui .chart-title-info{display:inline-flex}
+#accounts-summary .accounts-name .chart-title-info{display:none}
+.phone-chart-ui .chart-title-info::before,
+#accounts-summary .accounts-name .chart-title-info::before{content:"";position:absolute;inset:-3px}
+.phone-chart-ui .chart-title-info > span[aria-hidden="true"],
+#accounts-summary .accounts-name .chart-title-info > span[aria-hidden="true"]{
   transform:translateY(-.2px);
 }
-.phone-chart-ui .chart-title-info-tooltip{
+.phone-chart-ui .chart-title-info-tooltip,
+#accounts-summary .accounts-name .chart-title-info-tooltip{
   position:absolute;
   left:50%;
   top:calc(100% + 7px);
@@ -4762,10 +4756,44 @@ body.chart-expanded-open .dash-tooltip{
   transition:opacity .12s ease,transform .12s ease,visibility .12s ease;
   z-index:30;
 }
-.phone-chart-ui .chart-title-info.open .chart-title-info-tooltip{
+.phone-chart-ui .chart-title-info.open .chart-title-info-tooltip,
+#accounts-summary .accounts-name .chart-title-info.open .chart-title-info-tooltip{
   opacity:1;
   visibility:visible;
   transform:translate(-50%,0);
+}
+
+/* 초소형 화면 기능 예외: 400px 이하에서는 통합성과 수익률 열과 계좌별 성과 메모 열을 축약해 가로폭을 확보한다. */
+@media(max-width:400px){
+  #summary-section .combined-performance-table th:nth-child(5),
+  #summary-section .combined-performance-table td:nth-child(5),
+  #accounts-summary .accounts-table th:nth-child(5),
+  #accounts-summary .accounts-table td:nth-child(5){
+    display:none;
+  }
+  #summary-section .combined-performance-table .combined-mobile-return{
+    display:inline;
+    font-size:var(--type-size-xs);
+  }
+  #accounts-summary #accounts-table-view{
+    overflow:visible;
+  }
+  #accounts-summary .accounts-name .chart-title-info{
+    display:inline-flex;
+    margin-left:var(--space-sm);
+    vertical-align:middle;
+  }
+  #accounts-summary .accounts-name .chart-title-info-tooltip{
+    left:0;
+    width:min(230px,calc(100vw - 28px));
+    max-width:min(230px,calc(100vw - 28px));
+    white-space:normal;
+    text-align:left;
+    transform:translate(0,-3px);
+  }
+  #accounts-summary .accounts-name .chart-title-info.open .chart-title-info-tooltip{
+    transform:translate(0,0);
+  }
 }
 /* Phone Chart Controls · 폰 차트: 제목 행에는 확대 버튼만, 비교/시리즈는 control row */
 .phone-chart-ui .chart-head > .chart-expand-button{
