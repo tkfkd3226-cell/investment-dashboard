@@ -333,7 +333,9 @@ data/pension_contributions.json
   - 오늘 데이터 갱신, 누락 거래일 보완, 저장된 장중 데이터의 종가 확정이 이 흐름에 포함됩니다.
 - **재갱신**
   - 현재 대시보드에서 선택되어 있는 `activeDate`를 JS가 요청의 `date`로 자동 전달합니다.
-  - GAS는 **요청에 명시적 `date`가 포함된 재갱신 요청**으로 판단하여 해당 날짜의 workflow를 실행합니다.
+  - GAS는 해당 날짜의 `prices.json` 상태를 먼저 확인합니다.
+  - 해당 날짜가 이미 `marketStatus: "close"`이면 `이미 종가 기준 데이터가 반영되어 있습니다.`를 반환하고 workflow를 실행하지 않습니다.
+  - 해당 날짜가 장중(`intraday`)이거나 데이터가 없을 때만 해당 날짜의 workflow를 실행합니다.
   - 사용자가 날짜를 별도의 입력칸에 다시 입력하는 기능은 없습니다.
 
 ```text
@@ -344,7 +346,9 @@ Browser → GAS (date 없음)
 
 재갱신
 Browser → GAS (date = 현재 activeDate)
-        → 해당 날짜 workflow_dispatch
+        → 해당 날짜의 marketStatus 확인
+        → close면 workflow 생략 + 안내
+        → intraday/미존재면 해당 날짜 workflow_dispatch
 ```
 
 ### GitHub Actions / Python 처리
