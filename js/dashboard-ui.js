@@ -519,7 +519,7 @@ function ensureKrxActionModal(){
   modal.innerHTML=`<div class="action-modal-card krx-action-card" role="dialog" aria-modal="true" aria-labelledby="krxActionTitle">
     <button type="button" class="modal-icon-btn krx-action-close" data-dashboard-action="close-krx-modal" aria-label="닫기">${navIconSvg('close')}</button>
     <h3 id="krxActionTitle" class="modal-main-title">KRX 현재가 반영</h3>
-    <p id="krxActionDescription" class="action-modal-description">최신/누락 반영은 오늘 데이터와 누락 거래일을 생성·보완하고, 재갱신은 선택된 날짜를 다시 반영합니다.</p>
+    <p id="krxActionDescription" class="action-modal-description">최신/누락 반영은 오늘 데이터와 누락 거래일을 생성·보완하고, 재갱신은 선택된 날짜를 확인해 종가 기준이 아니면 다시 반영합니다.</p>
     <label class="action-modal-label krx-action-label" for="krxActionPin">저장/실행 PIN</label>
     <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="krxActionDescription krxActionEnterHelp krxActionStatus" aria-invalid="false">
     <p id="krxActionEnterHelp" class="action-modal-input-help">Enter 시 재갱신됩니다.</p>
@@ -623,13 +623,13 @@ async function submitKrxActionModal(mode='selected'){
     }
 
     const successMsg=updateMode==='selected'
-      ? `${selectedDate} KRX 현재가 재갱신 요청 완료. GitHub Actions 완료 후 새로고침해 주세요.`
-      : '최신/누락 KRX 현재가 반영 요청 완료. GitHub Actions 완료 후 새로고침해 주세요.';
+      ? `${selectedDate} KRX 현재가 재갱신 요청 완료.`
+      : '최신/누락 KRX 현재가 반영 요청 완료.';
     if(status){status.textContent=successMsg;status.className='action-modal-status krx-action-status ok'}
     showAppToast(updateMode==='selected'?'선택일 KRX 재갱신 요청 완료':'KRX 자동 반영 요청 완료', 'ok');
     setTimeout(closeKrxActionModal,2000);
   }catch(e){
-    if(status){status.textContent='실패: '+(e.message||String(e));status.className='action-modal-status krx-action-status err'}
+    if(status){status.textContent=e.message||String(e);status.className='action-modal-status krx-action-status err'}
   }finally{
     buttons.forEach(btn=>btn.disabled=false);
   }
