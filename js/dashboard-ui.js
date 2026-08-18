@@ -49,6 +49,13 @@ const uiRuntimeState={
   sectionNavigationBound:false,
   sectionNavigationFrame:0
 };
+const mobileViewModes={
+  combined:'table',
+  pensionProducts:'table',
+  holdings:'table',
+  accounts:'table',
+  pensionChange:'table'
+};
 const currentCornerTheme=()=>document.documentElement.classList.contains('rounded-corners')?'rounded':'soft-square';
 function themeToggleIconMarkup(dark){
   return navIconSvg(dark?'sun':'moon');
@@ -355,7 +362,7 @@ function renderTabs(){
 function metricCard(label,value,sub,dark=false,vcls=''){const accessibleLabel=escapeHtml(String(label||'').replace(/<[^>]*>/g,'').trim());return `<article class="card metric-card ${dark?'dark':''}" aria-label="${accessibleLabel}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></article>`}
 
 function mobileViewAttrs(key){
-  const mode=uiState.mobileViewModes[key]||'card';
+  const mode=mobileViewModes[key]||'card';
   return `data-mobile-view-key="${key}" data-mobile-view="${mode}"`;
 }
 const MOBILE_VIEW_META=Object.freeze({
@@ -366,15 +373,15 @@ const MOBILE_VIEW_META=Object.freeze({
   pensionChange:{label:'전일 대비 변동',controls:'pension-change-table-view pension-change-card-view'}
 });
 function mobileViewToggle(key){
-  const mode=uiState.mobileViewModes[key]||'card';
+  const mode=mobileViewModes[key]||'card';
   const action=mode==='card'?'표 보기':'카드 보기';
   const meta=MOBILE_VIEW_META[key]||{label:'데이터 보기',controls:''};
   return `<button type="button" class="section-control-chip section-action-chip mobile-view-toggle" data-mobile-view-button="${key}" data-dashboard-action="toggle-mobile-view" data-mobile-view-key="${key}" aria-label="${meta.label} ${action}"${meta.controls?` aria-controls="${meta.controls}"`:''}>${action}</button>`;
 }
 function toggleMobileDataView(key){
-  const current=uiState.mobileViewModes[key]||'card';
+  const current=mobileViewModes[key]||'card';
   const next=current==='card'?'table':'card';
-  uiState.mobileViewModes[key]=next;
+  mobileViewModes[key]=next;
   document.querySelectorAll(`[data-mobile-view-key="${key}"]`).forEach(el=>el.dataset.mobileView=next);
   const meta=MOBILE_VIEW_META[key]||{label:'데이터 보기'};
   const action=next==='card'?'표 보기':'카드 보기';
@@ -514,7 +521,8 @@ function ensureKrxActionModal(){
     <h3 id="krxActionTitle" class="modal-main-title">KRX 현재가 반영</h3>
     <p id="krxActionDescription" class="action-modal-description">최신/누락 반영은 오늘 데이터와 누락 거래일을 생성·보완하고, 재갱신은 선택된 날짜를 다시 반영합니다.</p>
     <label class="action-modal-label krx-action-label" for="krxActionPin">저장/실행 PIN</label>
-    <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="krxActionDescription krxActionStatus" aria-invalid="false">
+    <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="krxActionDescription krxActionEnterHelp krxActionStatus" aria-invalid="false">
+    <p id="krxActionEnterHelp" class="action-modal-input-help">Enter 시 재갱신됩니다.</p>
     <div id="krxActionStatus" class="action-modal-status krx-action-status" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="action-modal-buttons krx-action-buttons">
       <button type="button" class="action-modal-btn ghost" data-dashboard-action="close-krx-modal">취소</button>

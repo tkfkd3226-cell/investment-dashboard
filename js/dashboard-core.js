@@ -13,16 +13,7 @@ const dataState={
 const uiState={
   activeAssetTab:'securities',
   personalViewUnlocked:false,
-  heroBasisTapCount:0,
-  heroBasisLastTap:0,
-  includeSeparateProfit:false,
-  mobileViewModes:{
-    combined:'table',
-    pensionProducts:'table',
-    holdings:'table',
-    accounts:'table',
-    pensionChange:'table'
-  }
+  includeSeparateProfit:false
 };
 const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원',pct=n=>(Number(n)||0).toFixed(2)+'%',signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s,cls=n=>n<0?'negative':(n>0?'positive':''),tableCls=n=>n<0?'table-negative':(n>0?'table-positive':''),byDate=(a,b)=>a.localeCompare(b),shortDate=d=>{const [y,m,day]=d.split('-');return `${Number(m)}/${Number(day)}`},koreanDateLabel=d=>{
   const [y,m,day]=d.split('-');
