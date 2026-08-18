@@ -17,10 +17,20 @@
    - Mobile / 모바일: <=760px
    - 기능상 필요한 iPhone landscape / hover-pointer / reduced-motion / print 예외만 유지
 
+   Role / Continuation Map · 기능별 탐색 기준
+   - 03 Topbar / Navigation: Date Action → Navigation Primitives → Edge TOC → Topbar Layout을 한 block으로 관리
+   - 04 Common Cards / Components: Cards / Typography → Common Metrics → Section Controls
+   - 05 Tables / Forms: Base Tables → Data Table / Mobile Card
+   - 06 Securities / Asset Workspace: Asset Workspace → Allocation / Holdings 관련 continuation
+   - 07 Pension: Overview / Insight → Contribution / Adjustment → Batch Operations
+   - 08 Charts: Primitives → Core → Presentation → Motion → Navigation / Expanded → Phone UI
+   - 09 Modal / Tooltip / Overlay: Action Modal과 interaction / focus 정책
+   - 10 Browser / Accessibility / Print: print 및 browser-specific 최종 정책
+
    Cascade Safety · cascade 안전 원칙
-   - 기능별 role anchor를 검색용으로 사용한다.
-   - source order 의존성이 있는 후속 rule은 억지로 이동하지 않고 해당 role의 continuation으로 유지한다.
-   - selector / declaration / media condition / keyframes 값은 이 구조 정리에서 변경하지 않는다.
+   - 기능별 role anchor와 continuation 표기를 검색용으로 사용한다.
+   - source order 의존성이 있거나 cross-cutting인 후속 rule은 점수 목적의 재배치를 하지 않고 continuation으로 유지한다.
+   - selector / declaration / media condition / keyframes 값은 구조 정리에서 변경하지 않는다.
    ========================================================= */
 
 /* [01. Variables / Base · 변수 / 기본 스타일] Global Tokens · 전역 토큰 */
@@ -1297,6 +1307,641 @@ button.legend-item.chart-series-all.active{
   background:var(--subtle-card);
 }
 
+/* Chart Presentation / Controls · 차트 제목 / 비교 control */
+/* Chart Title Scale · 차트 제목 크기 */
+#pension-chart-cum .chart-head h3,
+#pension-chart-symbol .chart-head h3,
+#pension-chart-alloc .chart-head h3,
+#chart-cum .chart-head h3,
+#chart-symbol .chart-head h3,
+#chart-alloc .chart-head h3{
+  font-size:var(--type-size-2xl);
+  line-height:var(--type-line-compact);
+}
+
+#pension-chart-cum .chart-title-sub,
+#pension-chart-symbol .chart-title-sub{
+  font-size:var(--type-size-sm);
+  font-weight:var(--type-weight-bold);
+}
+
+@media(max-width:760px){
+  #pension-chart-cum .chart-head h3,
+  #pension-chart-symbol .chart-head h3,
+  #pension-chart-alloc .chart-head h3,
+  #chart-cum .chart-head h3,
+  #chart-symbol .chart-head h3,
+  #chart-alloc .chart-head h3{
+    font-size:var(--type-size-xl);
+    line-height:1.22;
+  }
+
+  #pension-chart-cum .chart-title-sub,
+  #pension-chart-symbol .chart-title-sub{
+    font-size:var(--type-size-xs);
+  }
+}
+
+/* Chart Compare Control · 누적차트 비교: 수익률 / KOSPI */
+.chart-head-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:var(--dashboard-control-group-gap);
+  flex:0 0 auto;
+}
+/* Chart Control Groups · data selector와 확대 같은 utility control 사이에 약한 구분선만 둔다. */
+.chart-head-actions .chart-compare-toggle + :is(.chart-expand-button,.chart-web-expand-button){
+  position:relative;
+  margin-left:var(--space-sm);
+}
+.chart-head-actions .chart-compare-toggle + :is(.chart-expand-button,.chart-web-expand-button)::before{
+  content:"";
+  position:absolute;
+  left:calc(-1 * (var(--dashboard-control-group-gap) + 3px));
+  top:50%;
+  width:1px;
+  height:17px;
+  background:var(--line);
+  transform:translateY(-50%);
+}
+.chart-compare-toggle{
+  display:inline-flex;
+  align-items:center;
+  height:var(--dashboard-control-height);
+  padding:1px;
+  border:1px solid var(--control-border);
+  border-radius:min(calc(var(--dashboard-control-radius) + 1px),var(--corner-control-cap));
+  background:var(--segmented-bg);
+  box-sizing:border-box;
+}
+.chart-compare-toggle button{
+  min-width:var(--dashboard-switch-min-width);
+  height:100%;
+  padding:0 var(--dashboard-control-pad-x);
+  border:0;
+  border-radius:min(var(--dashboard-control-radius),var(--corner-control-cap));
+  background:transparent;
+  color:var(--segmented-text);
+  font-family:inherit;
+  font-size:var(--dashboard-control-font-size);
+  font-weight:var(--type-weight-emphasis);
+  line-height:1;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.chart-compare-toggle button.active{
+  background:var(--segmented-active-bg);
+  color:var(--segmented-active-text);
+  box-shadow:var(--segmented-active-shadow);
+}
+
+/* Chart Tooltip Responsive · 차트 tooltip 반응형 */
+/* Symbol Tooltip Mobile · 종목 tooltip: 모바일 viewport 이탈 방지 */
+@media(max-width:760px){
+  .dash-tooltip[data-tooltip-kind="symbol"]{
+    max-width:min(320px, calc(100vw - 28px));
+    box-sizing:border-box;
+    transform:none;
+    font-size:var(--type-size-xs);
+    line-height:var(--type-line-relaxed);
+  }
+  .dash-tooltip[data-tooltip-kind="symbol"] .tt-date{
+    font-size:var(--type-size-sm);
+  }
+  .dash-tooltip[data-tooltip-kind="symbol"] .tt-row{
+    white-space:normal;
+    flex-wrap:wrap;
+    column-gap:var(--space-5xl);
+    row-gap:var(--space-2xs);
+  }
+  .dash-tooltip[data-tooltip-kind="symbol"] .tt-name{
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  .dash-tooltip[data-tooltip-kind="symbol"] .tt-val{
+    margin-left:0;
+    white-space:nowrap;
+  }
+}
+
+/* Chart Motion · 차트 진입 animation */
+/* Chart Entrance Animation · 차트 진입 animation: viewport 진입 후 좌→우 reveal */
+
+/* Chart Entrance Keyframes · 차트 진입 keyframes */
+.chart-card.chart-entrance-ready .chart-anim-bar,
+.chart-card.chart-entrance-ready .chart-anim-point,
+.chart-card.chart-entrance-ready .chart-anim-line{
+  pointer-events:none;
+}
+
+.chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-bar{
+  opacity:0;
+  transform:translateX(-7px) scaleY(.35);
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+.chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-point{
+  opacity:0;
+  transform:scale(.2);
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+.chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-line{
+  stroke-dasharray:var(--chart-path-length);
+  stroke-dashoffset:var(--chart-path-length);
+}
+
+.chart-card.chart-entrance-active .chart-anim-bar{
+  animation:chartBarSweep .34s cubic-bezier(.22,.72,.2,1) var(--chart-delay,0ms) both;
+}
+
+.chart-card.chart-entrance-active .chart-anim-point{
+  animation:chartPointPop .25s cubic-bezier(.2,.8,.2,1) var(--chart-delay,0ms) both;
+}
+
+.chart-card.chart-entrance-active .chart-anim-line{
+  animation:chartLineDraw 1.05s cubic-bezier(.2,.7,.2,1) var(--chart-delay,0ms) both;
+}
+
+@keyframes chartBarSweep{
+  from{opacity:0;transform:translateX(-7px) scaleY(.35)}
+  to{opacity:1;transform:translateX(0) scaleY(1)}
+}
+
+@keyframes chartPointPop{
+  from{opacity:0;transform:scale(.2)}
+  to{opacity:1;transform:scale(1)}
+}
+
+@keyframes chartLineDraw{
+  from{stroke-dashoffset:var(--chart-path-length)}
+  to{stroke-dashoffset:0}
+}
+
+/* Reduced Motion Charts · 차트 모션 최소화: SVG animation/시작 상태 강제 해제 */
+@media(prefers-reduced-motion:reduce){
+  .chart-card .chart-anim-bar,
+  .chart-card .chart-anim-point,
+  .chart-card .chart-anim-line{
+    animation:none !important;
+    opacity:1 !important;
+    transform:none !important;
+    stroke-dashoffset:0 !important;
+  }
+}
+
+
+/* Chart Navigation / Expanded / Phone · 차트 이동 / 확대 / 모바일 전용 UI */
+/* Chart Navigation Ownership · 차트 이동 배치는 태블릿 overflow/phone-chart-ui 규칙에서 관리 */
+
+/* Chart Navigation Controls · 차트 이동/확대: 공통 정사각형 control primitive */
+
+/* Chart Navigation / Expanded Chart · 이동 / 확대 차트 */
+:is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
+  --chart-square-size:var(--dashboard-control-height);
+  display:none;
+  width:var(--chart-square-size);
+  height:var(--chart-square-size);
+  flex:0 0 var(--chart-square-size);
+  padding:0;
+  border:1px solid var(--control-border);
+  border-radius:min(var(--dashboard-control-radius),var(--corner-control-cap));
+  background:transparent;
+  color:var(--muted);
+  box-shadow:none;
+}
+:is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button) svg{
+  width:var(--dashboard-expand-icon-size);
+  height:var(--dashboard-expand-icon-size);
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  pointer-events:none;
+}
+.dark :is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
+  background:transparent;
+  border-color:var(--control-border);
+  color:var(--muted);
+}
+body.chart-expanded-open{overflow:hidden;touch-action:none}
+
+@media (min-width:761px){
+  .chart-web-expand-button{display:inline-flex;}
+}
+
+.chart-expanded-overlay{
+  position:fixed;
+  inset:0;
+  z-index:12000;
+  overflow:hidden;
+  background:var(--chart-expanded-surface);
+  opacity:0;
+  transition:opacity .14s ease;
+  overscroll-behavior:none;
+}
+.chart-expanded-overlay.show{opacity:1}
+.chart-expanded-close{
+  position:fixed;
+  top:max(10px,env(safe-area-inset-top));
+  right:max(10px,env(safe-area-inset-right));
+  z-index:12003;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:36px;
+  height:36px;
+  padding:0;
+  border:1px solid var(--chart-expanded-close-border);
+  border-radius:min(11px,var(--corner-control-cap));
+  background:var(--chart-expanded-close-bg);
+  color:var(--chart-expanded-close-color);
+  font-family:inherit;
+  font-size:25px;
+  font-weight:var(--type-weight-medium);
+  line-height:1;
+  box-shadow:var(--chart-expanded-close-shadow);
+  cursor:pointer;
+}
+.chart-expanded-close svg{display:block;width:19px;height:19px}
+.chart-expanded-stage{
+  position:absolute;
+  left:0;
+  top:0;
+  width:var(--chart-expanded-vh,100dvh);
+  height:var(--chart-expanded-vw,100dvw);
+  box-sizing:border-box;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  gap:var(--space-md);
+  padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
+  transform-origin:top left;
+  transform:rotate(90deg) translateY(-100%);
+  background:var(--chart-expanded-surface);
+}
+.chart-expanded-head{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--space-4xl);
+}
+.chart-expanded-title{
+  min-width:0;
+  flex:1 1 auto;
+  overflow:hidden;
+  color:var(--text);
+}
+.chart-expanded-title .chart-expanded-title-heading{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  margin:0;
+  gap:var(--space-2xl);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--text);
+  font-size:var(--type-size-xl);
+  font-weight:var(--type-weight-emphasis);
+  line-height:var(--type-line-compact);
+  letter-spacing:-.03em;
+}
+.chart-expanded-title .chart-title-sub{
+  font-size:var(--type-size-xs);
+  flex:0 1 auto;
+}
+.chart-expanded-controls-host{
+  flex:0 0 auto;
+  min-width:0;
+}
+.chart-expanded-controls-host:empty{display:none}
+.chart-expanded-controls-host .chart-head-actions{
+  margin:0;
+}
+.chart-expanded-controls-host .chart-web-expand-button{display:none}
+.chart-expanded-chart-host{
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  display:flex;
+  align-items:stretch;
+}
+.chart-expanded-chart-host svg.chart{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  height:100%;
+  min-height:0;
+  border-radius:min(10px,var(--corner-surface-cap));
+  flex:1 1 auto;
+}
+.chart-expanded-legend-host{
+  position:relative;
+  min-height:20px;
+  overflow:visible;
+}
+.chart-expanded-legend-host:empty{display:none}
+.chart-expanded-legend-host .chart-legend{
+  margin-top:0;
+  column-gap:var(--space-4xl);
+  line-height:var(--type-line-tight);
+}
+.chart-expanded-legend-host .chart-legend-series{
+  width:100%;
+  gap:var(--space-md) var(--space-4xl);
+}
+
+/* Expanded Chart Landscape · 확대 차트: 실제 가로모드에서는 landscape viewport 직접 사용 */
+.chart-expanded-overlay.device-landscape .chart-expanded-stage{
+  width:100%;
+  height:100%;
+  transform:none;
+  padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
+}
+
+@media (min-width:1101px){
+  .chart-expanded-overlay.desktop-expanded .chart-expanded-stage{
+    width:100%;
+    height:100%;
+    transform:none;
+    gap:var(--space-4xl);
+    padding:20px 68px var(--space-7xl) var(--space-10xl);
+  }
+  .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-expanded-title-heading{
+    font-size:var(--type-size-4xl);
+    gap:var(--space-3xl);
+  }
+  .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-title-sub{
+    font-size:var(--type-size-sm);
+  }
+  .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend{
+    column-gap:var(--space-6xl);
+  }
+  .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend-series{
+    gap:var(--space-xl) var(--space-6xl);
+  }
+}
+
+.chart-expanded-chart-host .svg-hitbox{
+  pointer-events:all;
+  cursor:crosshair;
+  touch-action:none;
+}
+body.chart-expanded-open .dash-tooltip{
+  z-index:12002;
+  transform:none;
+  box-sizing:border-box;
+  max-width:min(320px,calc(100vw - 20px));
+  max-height:calc(100dvh - 20px);
+  overflow:auto;
+  overscroll-behavior:contain;
+}
+
+/* Phone Chart Header · 모바일 차트 헤더: 한 줄 제목 + 정보 tooltip + 확대 버튼 */
+
+/* Phone Chart UI · 모바일 차트 UI */
+.chart-title-info{
+  display:none;
+}
+
+.phone-chart-ui .chart-head{
+  align-items:center;
+  gap:var(--space-xl);
+}
+.phone-chart-ui .chart-head > div:first-child{
+  flex:1 1 auto;
+  min-width:0;
+}
+.phone-chart-ui .chart-head h3{
+  display:flex;
+  align-items:center;
+  flex-wrap:nowrap;
+  gap:var(--space-sm);
+  min-width:0;
+  white-space:nowrap;
+}
+.phone-chart-ui .chart-title-sub{
+  display:none;
+}
+.phone-chart-ui .chart-title-info,
+#accounts-summary .accounts-memo .chart-title-info{
+  position:relative;
+  align-items:center;
+  justify-content:center;
+  width:18px;
+  height:18px;
+  flex:0 0 18px;
+  margin-left:1px;
+  padding:0;
+  border:1.5px solid var(--chart-info-border);
+  border-radius:50%;
+  background:var(--chart-info-bg);
+  color:var(--chart-info-color);
+  font-family:inherit;
+  font-size:var(--type-size-sm);
+  font-weight:var(--type-weight-emphasis);
+  line-height:1;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  z-index:12;
+}
+.phone-chart-ui .chart-title-info{display:inline-flex}
+#accounts-summary .accounts-memo .chart-title-info{display:none}
+.phone-chart-ui .chart-title-info::before,
+#accounts-summary .accounts-memo .chart-title-info::before{content:"";position:absolute;inset:-3px}
+.phone-chart-ui .chart-title-info > span[aria-hidden="true"],
+#accounts-summary .accounts-memo .chart-title-info > span[aria-hidden="true"]{
+  transform:translateY(-.2px);
+}
+.phone-chart-ui .chart-title-info-tooltip,
+#accounts-summary .accounts-memo .chart-title-info-tooltip{
+  position:absolute;
+  left:50%;
+  top:calc(100% + 7px);
+  width:max-content;
+  max-width:min(210px,calc(100vw - 28px));
+  padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
+  font-weight:var(--tooltip-info-weight);
+  letter-spacing:-.02em;
+  white-space:nowrap;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translate(-50%,-3px);
+  transition:opacity .12s ease,transform .12s ease,visibility .12s ease;
+  z-index:30;
+}
+.phone-chart-ui .chart-title-info.open .chart-title-info-tooltip,
+#accounts-summary .accounts-memo .chart-title-info.open .chart-title-info-tooltip{
+  opacity:1;
+  visibility:visible;
+  transform:translate(-50%,0);
+}
+
+/* 초소형 화면 기능 예외: 400px 이하에서는 통합성과 수익률 열을 축약하고, 계좌별 성과 메모는 전용 열의 정보 tooltip으로 전환한다. */
+@media(max-width:400px){
+  #summary-section .combined-performance-table th:nth-child(5),
+  #summary-section .combined-performance-table td:nth-child(5){
+    display:none;
+  }
+  #summary-section .combined-performance-table .combined-mobile-return{
+    display:inline;
+    font-size:var(--type-size-xs);
+  }
+  #accounts-summary #accounts-table-view{
+    overflow:visible;
+  }
+  #accounts-summary .accounts-table{
+    width:100%;
+    min-width:100%;
+  }
+  #accounts-summary .accounts-table :is(th,td):nth-child(5){
+    width:34px;
+    min-width:34px;
+    max-width:34px;
+    padding-left:var(--space-xs);
+    padding-right:var(--space-xs);
+    text-align:center;
+  }
+  #accounts-summary .accounts-memo{
+    vertical-align:middle;
+  }
+  #accounts-summary .accounts-memo-text{
+    display:none;
+  }
+  #accounts-summary .accounts-memo .chart-title-info{
+    display:inline-flex;
+    margin:0;
+    vertical-align:middle;
+    z-index:80;
+  }
+  #accounts-summary .accounts-memo .chart-title-info.open{
+    z-index:90;
+  }
+  #accounts-summary .accounts-memo .chart-title-info-tooltip{
+    right:0;
+    left:auto;
+    width:min(230px,calc(100vw - 28px));
+    max-width:min(230px,calc(100vw - 28px));
+    white-space:normal;
+    text-align:left;
+    transform:translate(0,-3px);
+    z-index:91;
+  }
+  #accounts-summary .accounts-memo .chart-title-info.open .chart-title-info-tooltip{
+    transform:translate(0,0);
+  }
+}
+/* Phone Chart Controls · 폰 차트: 제목 행에는 확대 버튼만, 비교/시리즈는 control row */
+.phone-chart-ui .chart-head > .chart-expand-button{
+  display:inline-flex;
+  margin-left:auto;
+}
+/* Phone Chart Flow · 모바일 차트 흐름: switch/화살표 → 차트 → 범례 → 옵션 */
+.chart-card.phone-chart-ui .chart-scroll-row{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:var(--space-md);
+  min-height:var(--dashboard-control-height);
+  margin:var(--space-2xs) 1px var(--space-md);
+  padding:0;
+  box-sizing:border-box;
+}
+.chart-card.phone-chart-ui .chart-scroll-row > .chart-head-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex:0 0 auto;
+  min-width:0;
+  margin:0;
+}
+.chart-card.phone-chart-ui .chart-scroll-row > .chart-head-actions.mobile-no-leading-switch{
+  display:none;
+}
+.chart-card.phone-chart-ui .chart-scroll-row > .chart-head-actions .chart-web-expand-button{
+  display:none;
+}
+.chart-card.phone-chart-ui .chart-scroll-start,
+.chart-card.phone-chart-ui .chart-scroll-end{
+  display:inline-flex;
+}
+.chart-card.phone-chart-ui .chart-scroll-start{
+  margin-left:auto;
+}
+
+.phone-chart-ui > .chart-legend{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.phone-chart-ui > .chart-legend > .chart-legend-series{
+  width:100%;
+  justify-content:center;
+  gap:var(--space-lg) var(--space-3xl);
+}
+
+/* Phone Allocation Summary · 폰 평가액 비중: 총액 카드가 grid 전체 행 사용 */
+.phone-chart-ui #securityAllocCards > .alloc-total-card{
+  grid-column:1 / -1;
+  display:grid;
+  grid-template-columns:max-content minmax(0,1fr);
+  column-gap:var(--space-lg);
+  align-items:baseline;
+}
+.phone-chart-ui #securityAllocCards > .alloc-total-card > .m-label{
+  grid-column:1 / -1;
+}
+.phone-chart-ui #securityAllocCards > .alloc-total-card > .m-value{
+  grid-column:1;
+}
+.phone-chart-ui #securityAllocCards > .alloc-total-card > .alloc-cash-meta{
+  grid-column:2;
+  margin-top:var(--space-2xs);
+}
+
+.chart-options-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:nowrap;
+  gap:var(--dashboard-control-group-gap);
+  width:max-content;
+  max-width:100%;
+  min-height:var(--dashboard-control-height);
+  margin:var(--space-lg) auto var(--space-2xs);
+  padding:var(--space-xs);
+  border:1px solid var(--line);
+  border-radius:min(calc(var(--dashboard-control-radius) + 1px),var(--corner-control-cap));
+  background:var(--subtle-card);
+  box-sizing:border-box;
+}
+.chart-options-row .chart-legend-control{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex:0 0 auto;
+  min-width:0;
+}
+.chart-options-row .chart-legend-control:empty{
+  display:none;
+}
+.chart-expanded-legend-host > .chart-options-row{
+  position:absolute;
+  left:50%;
+  bottom:calc(100% + 4px);
+  z-index:2;
+  width:max-content;
+  max-width:100%;
+  margin:0;
+  transform:translateX(-50%);
+}
+
 /* Large Grid Responsive · 대형 카드 그리드 반응형: 1100px 이하에서 세로 1열 */
 @media (max-width:1100px){
   .cards, .three, .two{
@@ -1654,7 +2299,7 @@ button.legend-item.chart-series-all.active{
 
 .change-mobile-list{margin-top:var(--space-5xl)}
 
-/* Pension Detail Responsive · 퇴직연금 상세: 웹 2열, 1100px 이하 1열 */
+/* [07. Pension · continuation] Pension Detail Responsive · 퇴직연금 상세: 웹 2열, 1100px 이하 1열 */
 @media (max-width:1100px){
   .pension-detail-grid{
     grid-template-columns:1fr;
@@ -1781,7 +2426,7 @@ button.legend-item.chart-series-all.active{
   .wrap{padding-top:var(--space-xl)}
 }
 
-/* Metric Cards · 핵심지표 카드: 공통 타이포와 대표 viewport grid 사용 */
+/* [04. Common Cards / Components · continuation] Metric Cards · 핵심지표 카드: 공통 타이포와 대표 viewport grid 사용 */
 
 /* [04. Common Cards / Components · 공통 카드 / 컴포넌트] Common Metrics · 공통 핵심지표 */
 .metric-card{
@@ -1931,10 +2576,6 @@ button.legend-item.chart-series-all.active{
   }
 }
 
-/* [03. Topbar / Navigation · 상단바 / 내비게이션] Date Action Menu · 날짜 action menu */
-.date-action-menu{display:none}
-.date-action-menu.show{display:block}
-
 .table-note{margin:var(--space-4xl) var(--space-2xs) 0;color:var(--muted);font-size:var(--type-size-sm);line-height:var(--type-line-note)}
 .table-note strong{color:var(--text)}
 
@@ -1949,7 +2590,7 @@ button.legend-item.chart-series-all.active{
 .cash-basis-note-mark{color:var(--value-positive);font-weight:var(--type-weight-strong)}
 .cash-basis-note-sup{font-size:.72em;margin-left:var(--space-2xs);line-height:0}
 
-/* Section Controls · 섹션 제목 control: 기준, 별도수익 상태, 표/카드 전환 chip */
+/* [04. Common Cards / Components · continuation] Section Controls · 섹션 제목 control: 기준, 별도수익 상태, 표/카드 전환 chip */
 .section-control-chip{
   display:inline-flex;
   align-items:center;
@@ -2555,7 +3196,7 @@ body.contrib-modal-open{
   letter-spacing:-.02em;
 }
 
-/* Securities Summary Spacing · 증권계좌 KPI 상단 간격 */
+/* [06. Securities / Asset Workspace · continuation] Securities Summary Spacing · 증권계좌 KPI 상단 간격 */
 .securities-summary-block .cards{
   margin-top:0;
 }
@@ -2610,7 +3251,7 @@ body.contrib-modal-open{
 #pension-chart-alloc .pension-cash-detail-full{display:block}
 #pension-chart-alloc .pension-cash-detail-compact{display:none}
 
-/* Pension Allocation Responsive · 퇴직연금 평가액 비중: 웹/태블릿 4열, 모바일 2열 */
+/* [07. Pension · continuation] Pension Allocation Responsive · 퇴직연금 평가액 비중: 웹/태블릿 4열, 모바일 2열 */
 @media (min-width:761px) and (max-width:1100px){
   #pension-chart-alloc .chart-note{
     grid-template-columns:repeat(4,minmax(0,1fr));
@@ -2626,7 +3267,7 @@ body.contrib-modal-open{
   grid-template-columns:repeat(2,minmax(0,1fr));
 }
 
-/* Securities Allocation · 증권 평가액 비중: 유형/종목별 카드 배치 정책 */
+/* [06. Securities / Asset Workspace · continuation] Securities Allocation · 증권 평가액 비중: 유형/종목별 카드 배치 정책 */
 #securityAllocCards.security-alloc-card-grid{
   grid-template-columns:repeat(var(--security-alloc-card-count,4),minmax(0,1fr));
 }
@@ -3052,7 +3693,7 @@ body.contrib-modal-open{
 .app-toast.err{background:var(--toast-error-bg)}
 
 /* Action modal Light/Dark surface, text and input colors resolve through modal tokens. */
-/* Chart Desktop · 차트 웹: 1101px 이상에서 가로 스크롤 없이 카드/SVG 100% */
+/* [08. Charts · cross-cutting continuation] Chart Desktop · .wrap과 source-order를 공유하므로 이 위치 유지 */
 @media (min-width:1101px){
   .wrap{
     padding-top:var(--space-9xl);
@@ -3065,40 +3706,6 @@ body.contrib-modal-open{
   svg.chart{
     min-width:100%;
     height:360px;
-  }
-}
-
-/* Chart Title Scale · 차트 제목 크기 */
-#pension-chart-cum .chart-head h3,
-#pension-chart-symbol .chart-head h3,
-#pension-chart-alloc .chart-head h3,
-#chart-cum .chart-head h3,
-#chart-symbol .chart-head h3,
-#chart-alloc .chart-head h3{
-  font-size:var(--type-size-2xl);
-  line-height:var(--type-line-compact);
-}
-
-#pension-chart-cum .chart-title-sub,
-#pension-chart-symbol .chart-title-sub{
-  font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-bold);
-}
-
-@media(max-width:760px){
-  #pension-chart-cum .chart-head h3,
-  #pension-chart-symbol .chart-head h3,
-  #pension-chart-alloc .chart-head h3,
-  #chart-cum .chart-head h3,
-  #chart-symbol .chart-head h3,
-  #chart-alloc .chart-head h3{
-    font-size:var(--type-size-xl);
-    line-height:1.22;
-  }
-
-  #pension-chart-cum .chart-title-sub,
-  #pension-chart-symbol .chart-title-sub{
-    font-size:var(--type-size-xs);
   }
 }
 
@@ -3400,60 +4007,6 @@ button:not(:disabled):active,
   .chart-head > div{min-width:0}
 }
 
-/* Chart Compare Control · 누적차트 비교: 수익률 / KOSPI */
-.chart-head-actions{
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:var(--dashboard-control-group-gap);
-  flex:0 0 auto;
-}
-/* Chart Control Groups · data selector와 확대 같은 utility control 사이에 약한 구분선만 둔다. */
-.chart-head-actions .chart-compare-toggle + :is(.chart-expand-button,.chart-web-expand-button){
-  position:relative;
-  margin-left:var(--space-sm);
-}
-.chart-head-actions .chart-compare-toggle + :is(.chart-expand-button,.chart-web-expand-button)::before{
-  content:"";
-  position:absolute;
-  left:calc(-1 * (var(--dashboard-control-group-gap) + 3px));
-  top:50%;
-  width:1px;
-  height:17px;
-  background:var(--line);
-  transform:translateY(-50%);
-}
-.chart-compare-toggle{
-  display:inline-flex;
-  align-items:center;
-  height:var(--dashboard-control-height);
-  padding:1px;
-  border:1px solid var(--control-border);
-  border-radius:min(calc(var(--dashboard-control-radius) + 1px),var(--corner-control-cap));
-  background:var(--segmented-bg);
-  box-sizing:border-box;
-}
-.chart-compare-toggle button{
-  min-width:var(--dashboard-switch-min-width);
-  height:100%;
-  padding:0 var(--dashboard-control-pad-x);
-  border:0;
-  border-radius:min(var(--dashboard-control-radius),var(--corner-control-cap));
-  background:transparent;
-  color:var(--segmented-text);
-  font-family:inherit;
-  font-size:var(--dashboard-control-font-size);
-  font-weight:var(--type-weight-emphasis);
-  line-height:1;
-  white-space:nowrap;
-  cursor:pointer;
-}
-.chart-compare-toggle button.active{
-  background:var(--segmented-active-bg);
-  color:var(--segmented-active-text);
-  box-shadow:var(--segmented-active-shadow);
-}
-
 /* Pension PIN Status · 퇴직연금 PIN 자동 실행/상태 표시 */
 .pension-action-pin-status.checking{color:var(--status-info-strong)}
 .pension-action-pin-card .action-modal-input:disabled{opacity:.68;cursor:wait}
@@ -3469,8 +4022,6 @@ button:not(:disabled):active,
     font-size:var(--type-size-sm);
   }
 }
-
-/* Chart Navigation Ownership · 차트 이동 배치는 태블릿 overflow/phone-chart-ui 규칙에서 관리 */
 
 .mobile-top-button{
   position:fixed;
@@ -3535,169 +4086,7 @@ button:not(:disabled):active,
   vertical-align:1px;
 }
 
-/* Navigation Primitives · 목차/메뉴 공통 panel·item·SVG icon */
-:is(.desktop-edge-toc-panel,.date-action-menu.mobile-combined-menu){
-  border:1px solid var(--nav-border);
-  background:var(--nav-surface);
-}
-:is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item){
-  width:100%;
-  display:flex;
-  align-items:center;
-  border:0;
-  background:transparent;
-  color:var(--nav-text);
-  text-align:left;
-  font-family:inherit;
-  cursor:pointer;
-}
-:is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item):hover,
-:is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item):focus-visible{background:var(--nav-surface-hover)}
-:is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item).is-current{
-  background:var(--nav-current-bg);
-  color:var(--nav-current-text);
-  box-shadow:var(--nav-current-shadow);
-}
-.desktop-edge-toc-item.is-current .desktop-edge-toc-icon,
-.date-action-menu.mobile-combined-menu .mobile-nav-item.is-current .nav-icon{color:var(--nav-current-icon)}
-:is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon){
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  color:var(--nav-icon);
-}
-:is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon) svg{display:block}
-
-/* Edge TOC · 우측 목차: 태블릿/웹 hover·focus 목차, 모바일은 hamburger menu 사용 */
-
-/* [03. Topbar / Navigation · 상단바 / 내비게이션] Edge TOC · 우측 목차 */
-.desktop-edge-toc{display:none}
-/* Edge TOC Responsive · 우측 목차: 761px 이상에서만 표시 */
-@media(min-width:761px){
-  /* 태블릿·웹은 우측 edge TOC를 사용한다. */
-
-  .desktop-edge-toc{
-    position:fixed;
-    top:50%;
-    right:12px;
-    z-index:7200;
-    display:flex;
-    align-items:center;
-    transform:translateY(-50%);
-    font-family:inherit;
-  }
-
-  .desktop-edge-toc-trigger{
-    position:relative;
-    z-index:2;
-    width:36px;
-    min-width:36px;
-    height:72px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:0;
-    padding:var(--space-xl) 0;
-    border:1px solid var(--nav-border);
-    border-radius:min(var(--control-radius-md),var(--corner-control-cap));
-    background:var(--nav-surface-translucent);
-    color:var(--nav-icon);
-    box-shadow:var(--nav-shadow-trigger);
-    font-size:var(--type-size-xs);
-    font-weight:var(--type-weight-strong);
-    line-height:1;
-    letter-spacing:-.02em;
-    cursor:pointer;
-  }
-  .desktop-edge-toc-trigger span:last-child{
-    writing-mode:vertical-rl;
-    text-orientation:upright;
-    letter-spacing:1px;
-  }
-
-  .desktop-edge-toc-panel{
-    position:absolute;
-    top:50%;
-    right:44px;
-    width:300px;
-    max-height:min(76vh,680px);
-    overflow:auto;
-    padding:var(--space-4xl);
-    border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
-    box-shadow:var(--nav-shadow-panel);
-    opacity:0;
-    visibility:hidden;
-    pointer-events:none;
-    transform:translate(12px,-50%);
-    transition:opacity .16s ease,transform .16s ease,visibility .16s ease;
-  }
-  .desktop-edge-toc:hover .desktop-edge-toc-panel,
-  .desktop-edge-toc.is-open .desktop-edge-toc-panel{
-    opacity:1;
-    visibility:visible;
-    pointer-events:auto;
-    transform:translate(0,-50%);
-  }
-  .desktop-edge-toc:hover .desktop-edge-toc-trigger,
-  .desktop-edge-toc.is-open .desktop-edge-toc-trigger{
-    border-color:var(--nav-border-hover);
-    background:var(--nav-surface-hover);
-    color:var(--nav-text-strong);
-  }
-
-  .desktop-edge-toc-title{
-    padding:var(--space-md) var(--space-2xl) var(--space-3xl) var(--space-2xs);
-    border-bottom:1px solid var(--nav-divider);
-    color:var(--nav-text);
-    font-size:var(--type-size-lg);
-    font-weight:var(--type-weight-strong);
-    line-height:var(--type-line-tight);
-  }
-  .desktop-edge-toc-group{
-    margin-top:var(--space-xl);
-    padding-top:var(--space-xl);
-    border-top:1px solid var(--nav-subdivider);
-  }
-  .desktop-edge-toc-group:first-of-type{
-    margin-top:var(--space-lg);
-    padding-top:0;
-    border-top:0;
-  }
-  .desktop-edge-toc-group p{
-    margin:0 var(--space-xl) var(--space-sm);
-    color:var(--nav-muted);
-    font-size:10.5px;
-    font-weight:var(--type-weight-strong);
-    line-height:var(--type-line-loose);
-  }
-  .desktop-edge-toc-item{
-    min-height:32px;
-    gap:var(--space-2xl);
-    padding:var(--space-lg) var(--space-xl);
-    border-radius:min(7px,var(--corner-control-cap));
-    font-size:var(--type-size-sm);
-    font-weight:var(--type-weight-semibold);
-    line-height:var(--type-line-body);
-  }
-  .desktop-edge-toc-icon{
-    flex:0 0 16px;
-    width:16px;
-    height:16px;
-  }
-  .desktop-edge-toc-icon svg{width:16px;height:16px}
-
-  /* Edge TOC Light/Dark colors and elevation resolve through navigation tokens. */
-}
-
-/* Edge TOC Tablet · 태블릿 우측 목차: 본문 침범을 줄이는 compact trigger */
-@media (min-width:761px) and (max-width:1100px){
-  .desktop-edge-toc{right:8px}
-  .desktop-edge-toc-trigger{width:30px;min-width:30px;height:60px;padding:var(--space-lg) 0;font-size:var(--type-size-2xs)}
-  .desktop-edge-toc-panel{right:38px}
-}
-
-/* Securities Holdings · 증권 보유종목: 종목명/수치 굵기 계층 */
+/* [06. Securities / Asset Workspace · continuation] Securities Holdings · 증권 보유종목: 종목명/수치 굵기 계층 */
 #securities-holdings .hold-position-table tbody tr.hold-row > td:not(:first-child){
   font-weight:var(--type-weight-regular);
 }
@@ -3748,73 +4137,6 @@ button:not(:disabled):active,
   }
   #capital-source-check .source-card{
     min-width:0;
-  }
-}
-
-/* Chart Entrance Animation · 차트 진입 animation: viewport 진입 후 좌→우 reveal */
-
-/* [08. Charts · 차트] Entrance Animation · 진입 animation */
-.chart-card.chart-entrance-ready .chart-anim-bar,
-.chart-card.chart-entrance-ready .chart-anim-point,
-.chart-card.chart-entrance-ready .chart-anim-line{
-  pointer-events:none;
-}
-
-.chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-bar{
-  opacity:0;
-  transform:translateX(-7px) scaleY(.35);
-  transform-box:fill-box;
-  transform-origin:center;
-}
-
-.chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-point{
-  opacity:0;
-  transform:scale(.2);
-  transform-box:fill-box;
-  transform-origin:center;
-}
-
-.chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-line{
-  stroke-dasharray:var(--chart-path-length);
-  stroke-dashoffset:var(--chart-path-length);
-}
-
-.chart-card.chart-entrance-active .chart-anim-bar{
-  animation:chartBarSweep .34s cubic-bezier(.22,.72,.2,1) var(--chart-delay,0ms) both;
-}
-
-.chart-card.chart-entrance-active .chart-anim-point{
-  animation:chartPointPop .25s cubic-bezier(.2,.8,.2,1) var(--chart-delay,0ms) both;
-}
-
-.chart-card.chart-entrance-active .chart-anim-line{
-  animation:chartLineDraw 1.05s cubic-bezier(.2,.7,.2,1) var(--chart-delay,0ms) both;
-}
-
-@keyframes chartBarSweep{
-  from{opacity:0;transform:translateX(-7px) scaleY(.35)}
-  to{opacity:1;transform:translateX(0) scaleY(1)}
-}
-
-@keyframes chartPointPop{
-  from{opacity:0;transform:scale(.2)}
-  to{opacity:1;transform:scale(1)}
-}
-
-@keyframes chartLineDraw{
-  from{stroke-dashoffset:var(--chart-path-length)}
-  to{stroke-dashoffset:0}
-}
-
-/* Reduced Motion Charts · 차트 모션 최소화: SVG animation/시작 상태 강제 해제 */
-@media(prefers-reduced-motion:reduce){
-  .chart-card .chart-anim-bar,
-  .chart-card .chart-anim-point,
-  .chart-card .chart-anim-line{
-    animation:none !important;
-    opacity:1 !important;
-    transform:none !important;
-    stroke-dashoffset:0 !important;
   }
 }
 
@@ -3988,34 +4310,6 @@ button:not(:disabled):active,
   .pension-contrib-context{gap:var(--space-4xl);padding:0}
 }
 
-/* Symbol Tooltip Mobile · 종목 tooltip: 모바일 viewport 이탈 방지 */
-@media(max-width:760px){
-  .dash-tooltip[data-tooltip-kind="symbol"]{
-    max-width:min(320px, calc(100vw - 28px));
-    box-sizing:border-box;
-    transform:none;
-    font-size:var(--type-size-xs);
-    line-height:var(--type-line-relaxed);
-  }
-  .dash-tooltip[data-tooltip-kind="symbol"] .tt-date{
-    font-size:var(--type-size-sm);
-  }
-  .dash-tooltip[data-tooltip-kind="symbol"] .tt-row{
-    white-space:normal;
-    flex-wrap:wrap;
-    column-gap:var(--space-5xl);
-    row-gap:var(--space-2xs);
-  }
-  .dash-tooltip[data-tooltip-kind="symbol"] .tt-name{
-    min-width:0;
-    overflow-wrap:anywhere;
-  }
-  .dash-tooltip[data-tooltip-kind="symbol"] .tt-val{
-    margin-left:0;
-    white-space:nowrap;
-  }
-}
-
 /* Separate Profit Mode · 별도수익 ON/OFF 보기 모드 */
 .separate-profit-control-row{
   display:flex;
@@ -4176,172 +4470,6 @@ button:not(:disabled):active,
 
 }
 
-/* Chart Navigation Controls · 차트 이동/확대: 공통 정사각형 control primitive */
-
-/* [08. Charts · 차트] Navigation / Expanded Chart · 이동 / 확대 차트 */
-:is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
-  --chart-square-size:var(--dashboard-control-height);
-  display:none;
-  width:var(--chart-square-size);
-  height:var(--chart-square-size);
-  flex:0 0 var(--chart-square-size);
-  padding:0;
-  border:1px solid var(--control-border);
-  border-radius:min(var(--dashboard-control-radius),var(--corner-control-cap));
-  background:transparent;
-  color:var(--muted);
-  box-shadow:none;
-}
-:is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button) svg{
-  width:var(--dashboard-expand-icon-size);
-  height:var(--dashboard-expand-icon-size);
-  fill:none;
-  stroke:currentColor;
-  stroke-width:1.9;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  pointer-events:none;
-}
-.dark :is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
-  background:transparent;
-  border-color:var(--control-border);
-  color:var(--muted);
-}
-body.chart-expanded-open{overflow:hidden;touch-action:none}
-
-@media (min-width:761px){
-  .chart-web-expand-button{display:inline-flex;}
-}
-
-.chart-expanded-overlay{
-  position:fixed;
-  inset:0;
-  z-index:12000;
-  overflow:hidden;
-  background:var(--chart-expanded-surface);
-  opacity:0;
-  transition:opacity .14s ease;
-  overscroll-behavior:none;
-}
-.chart-expanded-overlay.show{opacity:1}
-.chart-expanded-close{
-  position:fixed;
-  top:max(10px,env(safe-area-inset-top));
-  right:max(10px,env(safe-area-inset-right));
-  z-index:12003;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:36px;
-  height:36px;
-  padding:0;
-  border:1px solid var(--chart-expanded-close-border);
-  border-radius:min(11px,var(--corner-control-cap));
-  background:var(--chart-expanded-close-bg);
-  color:var(--chart-expanded-close-color);
-  font-family:inherit;
-  font-size:25px;
-  font-weight:var(--type-weight-medium);
-  line-height:1;
-  box-shadow:var(--chart-expanded-close-shadow);
-  cursor:pointer;
-}
-.chart-expanded-close svg{display:block;width:19px;height:19px}
-.chart-expanded-stage{
-  position:absolute;
-  left:0;
-  top:0;
-  width:var(--chart-expanded-vh,100dvh);
-  height:var(--chart-expanded-vw,100dvw);
-  box-sizing:border-box;
-  display:grid;
-  grid-template-rows:auto minmax(0,1fr) auto;
-  gap:var(--space-md);
-  padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
-  transform-origin:top left;
-  transform:rotate(90deg) translateY(-100%);
-  background:var(--chart-expanded-surface);
-}
-.chart-expanded-head{
-  min-width:0;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:var(--space-4xl);
-}
-.chart-expanded-title{
-  min-width:0;
-  flex:1 1 auto;
-  overflow:hidden;
-  color:var(--text);
-}
-.chart-expanded-title .chart-expanded-title-heading{
-  display:flex;
-  align-items:center;
-  min-width:0;
-  margin:0;
-  gap:var(--space-2xl);
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-  color:var(--text);
-  font-size:var(--type-size-xl);
-  font-weight:var(--type-weight-emphasis);
-  line-height:var(--type-line-compact);
-  letter-spacing:-.03em;
-}
-.chart-expanded-title .chart-title-sub{
-  font-size:var(--type-size-xs);
-  flex:0 1 auto;
-}
-.chart-expanded-controls-host{
-  flex:0 0 auto;
-  min-width:0;
-}
-.chart-expanded-controls-host:empty{display:none}
-.chart-expanded-controls-host .chart-head-actions{
-  margin:0;
-}
-.chart-expanded-controls-host .chart-web-expand-button{display:none}
-.chart-expanded-chart-host{
-  min-width:0;
-  min-height:0;
-  overflow:hidden;
-  display:flex;
-  align-items:stretch;
-}
-.chart-expanded-chart-host svg.chart{
-  width:100%;
-  min-width:0;
-  max-width:100%;
-  height:100%;
-  min-height:0;
-  border-radius:min(10px,var(--corner-surface-cap));
-  flex:1 1 auto;
-}
-.chart-expanded-legend-host{
-  position:relative;
-  min-height:20px;
-  overflow:visible;
-}
-.chart-expanded-legend-host:empty{display:none}
-.chart-expanded-legend-host .chart-legend{
-  margin-top:0;
-  column-gap:var(--space-4xl);
-  line-height:var(--type-line-tight);
-}
-.chart-expanded-legend-host .chart-legend-series{
-  width:100%;
-  gap:var(--space-md) var(--space-4xl);
-}
-
-/* Expanded Chart Landscape · 확대 차트: 실제 가로모드에서는 landscape viewport 직접 사용 */
-.chart-expanded-overlay.device-landscape .chart-expanded-stage{
-  width:100%;
-  height:100%;
-  transform:none;
-  padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
-}
 @media (min-width:1101px){
   /* Ledger Check Desktop · 장부결과 웹: 결론 / A / B를 동일 폭 3열로 배치 */
   #ledger-check .ledger-overview-grid{
@@ -4354,27 +4482,6 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   }
   #ledger-check .ledger-conclusion-inline-reason{display:block}
   #ledger-check .ledger-conclusion-reason{display:none}
-
-  .chart-expanded-overlay.desktop-expanded .chart-expanded-stage{
-    width:100%;
-    height:100%;
-    transform:none;
-    gap:var(--space-4xl);
-    padding:20px 68px var(--space-7xl) var(--space-10xl);
-  }
-  .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-expanded-title-heading{
-    font-size:var(--type-size-4xl);
-    gap:var(--space-3xl);
-  }
-  .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-title-sub{
-    font-size:var(--type-size-sm);
-  }
-  .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend{
-    column-gap:var(--space-6xl);
-  }
-  .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend-series{
-    gap:var(--space-xl) var(--space-6xl);
-  }
 }
 
 /* iPhone Requested Desktop · 아이폰 데스크탑 웹사이트 요청: 장부결과는 Desktop 동일 폭 3열 강제 */
@@ -4389,19 +4496,175 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-card{
 html.iphone-request-desktop #ledger-check .ledger-conclusion-inline-reason{display:block}
 html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none}
 
-.chart-expanded-chart-host .svg-hitbox{
-  pointer-events:all;
-  cursor:crosshair;
-  touch-action:none;
+/* =========================================================
+   [03. Topbar / Navigation · 상단바 / 내비게이션]
+   Date Action / Navigation Primitives / Edge TOC / Topbar Layout
+   ========================================================= */
+
+/* [03. Topbar / Navigation · 상단바 / 내비게이션] Date Action Menu · 날짜 action menu */
+.date-action-menu{display:none}
+.date-action-menu.show{display:block}
+
+/* Navigation Primitives · 목차/메뉴 공통 panel·item·SVG icon */
+:is(.desktop-edge-toc-panel,.date-action-menu.mobile-combined-menu){
+  border:1px solid var(--nav-border);
+  background:var(--nav-surface);
 }
-body.chart-expanded-open .dash-tooltip{
-  z-index:12002;
-  transform:none;
-  box-sizing:border-box;
-  max-width:min(320px,calc(100vw - 20px));
-  max-height:calc(100dvh - 20px);
-  overflow:auto;
-  overscroll-behavior:contain;
+:is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item){
+  width:100%;
+  display:flex;
+  align-items:center;
+  border:0;
+  background:transparent;
+  color:var(--nav-text);
+  text-align:left;
+  font-family:inherit;
+  cursor:pointer;
+}
+:is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item):hover,
+:is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item):focus-visible{background:var(--nav-surface-hover)}
+:is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item).is-current{
+  background:var(--nav-current-bg);
+  color:var(--nav-current-text);
+  box-shadow:var(--nav-current-shadow);
+}
+.desktop-edge-toc-item.is-current .desktop-edge-toc-icon,
+.date-action-menu.mobile-combined-menu .mobile-nav-item.is-current .nav-icon{color:var(--nav-current-icon)}
+:is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon){
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--nav-icon);
+}
+:is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon) svg{display:block}
+
+/* Edge TOC · 우측 목차: 태블릿/웹 hover·focus 목차, 모바일은 hamburger menu 사용 */
+
+/* [03. Topbar / Navigation · 상단바 / 내비게이션] Edge TOC · 우측 목차 */
+.desktop-edge-toc{display:none}
+/* Edge TOC Responsive · 우측 목차: 761px 이상에서만 표시 */
+@media(min-width:761px){
+  /* 태블릿·웹은 우측 edge TOC를 사용한다. */
+
+  .desktop-edge-toc{
+    position:fixed;
+    top:50%;
+    right:12px;
+    z-index:7200;
+    display:flex;
+    align-items:center;
+    transform:translateY(-50%);
+    font-family:inherit;
+  }
+
+  .desktop-edge-toc-trigger{
+    position:relative;
+    z-index:2;
+    width:36px;
+    min-width:36px;
+    height:72px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:0;
+    padding:var(--space-xl) 0;
+    border:1px solid var(--nav-border);
+    border-radius:min(var(--control-radius-md),var(--corner-control-cap));
+    background:var(--nav-surface-translucent);
+    color:var(--nav-icon);
+    box-shadow:var(--nav-shadow-trigger);
+    font-size:var(--type-size-xs);
+    font-weight:var(--type-weight-strong);
+    line-height:1;
+    letter-spacing:-.02em;
+    cursor:pointer;
+  }
+  .desktop-edge-toc-trigger span:last-child{
+    writing-mode:vertical-rl;
+    text-orientation:upright;
+    letter-spacing:1px;
+  }
+
+  .desktop-edge-toc-panel{
+    position:absolute;
+    top:50%;
+    right:44px;
+    width:300px;
+    max-height:min(76vh,680px);
+    overflow:auto;
+    padding:var(--space-4xl);
+    border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
+    box-shadow:var(--nav-shadow-panel);
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transform:translate(12px,-50%);
+    transition:opacity .16s ease,transform .16s ease,visibility .16s ease;
+  }
+  .desktop-edge-toc:hover .desktop-edge-toc-panel,
+  .desktop-edge-toc.is-open .desktop-edge-toc-panel{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+    transform:translate(0,-50%);
+  }
+  .desktop-edge-toc:hover .desktop-edge-toc-trigger,
+  .desktop-edge-toc.is-open .desktop-edge-toc-trigger{
+    border-color:var(--nav-border-hover);
+    background:var(--nav-surface-hover);
+    color:var(--nav-text-strong);
+  }
+
+  .desktop-edge-toc-title{
+    padding:var(--space-md) var(--space-2xl) var(--space-3xl) var(--space-2xs);
+    border-bottom:1px solid var(--nav-divider);
+    color:var(--nav-text);
+    font-size:var(--type-size-lg);
+    font-weight:var(--type-weight-strong);
+    line-height:var(--type-line-tight);
+  }
+  .desktop-edge-toc-group{
+    margin-top:var(--space-xl);
+    padding-top:var(--space-xl);
+    border-top:1px solid var(--nav-subdivider);
+  }
+  .desktop-edge-toc-group:first-of-type{
+    margin-top:var(--space-lg);
+    padding-top:0;
+    border-top:0;
+  }
+  .desktop-edge-toc-group p{
+    margin:0 var(--space-xl) var(--space-sm);
+    color:var(--nav-muted);
+    font-size:10.5px;
+    font-weight:var(--type-weight-strong);
+    line-height:var(--type-line-loose);
+  }
+  .desktop-edge-toc-item{
+    min-height:32px;
+    gap:var(--space-2xl);
+    padding:var(--space-lg) var(--space-xl);
+    border-radius:min(7px,var(--corner-control-cap));
+    font-size:var(--type-size-sm);
+    font-weight:var(--type-weight-semibold);
+    line-height:var(--type-line-body);
+  }
+  .desktop-edge-toc-icon{
+    flex:0 0 16px;
+    width:16px;
+    height:16px;
+  }
+  .desktop-edge-toc-icon svg{width:16px;height:16px}
+
+  /* Edge TOC Light/Dark colors and elevation resolve through navigation tokens. */
+}
+
+/* Edge TOC Tablet · 태블릿 우측 목차: 본문 침범을 줄이는 compact trigger */
+@media (min-width:761px) and (max-width:1100px){
+  .desktop-edge-toc{right:8px}
+  .desktop-edge-toc-trigger{width:30px;min-width:30px;height:60px;padding:var(--space-lg) 0;font-size:var(--type-size-2xs)}
+  .desktop-edge-toc-panel{right:38px}
 }
 
 /* Topbar Responsive · 상단바: 웹 기본 / 태블릿 761~1100 / 모바일 <=760 */
@@ -4682,247 +4945,7 @@ body.chart-expanded-open .dash-tooltip{
   .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{border-radius:var(--radius-pill);background:var(--nav-scrollbar)}
 }
 
-/* Phone Chart Header · 모바일 차트 헤더: 한 줄 제목 + 정보 tooltip + 확대 버튼 */
-
-/* [08. Charts · 차트] Phone Chart UI · 모바일 차트 UI */
-.chart-title-info{
-  display:none;
-}
-
-.phone-chart-ui .chart-head{
-  align-items:center;
-  gap:var(--space-xl);
-}
-.phone-chart-ui .chart-head > div:first-child{
-  flex:1 1 auto;
-  min-width:0;
-}
-.phone-chart-ui .chart-head h3{
-  display:flex;
-  align-items:center;
-  flex-wrap:nowrap;
-  gap:var(--space-sm);
-  min-width:0;
-  white-space:nowrap;
-}
-.phone-chart-ui .chart-title-sub{
-  display:none;
-}
-.phone-chart-ui .chart-title-info,
-#accounts-summary .accounts-memo .chart-title-info{
-  position:relative;
-  align-items:center;
-  justify-content:center;
-  width:18px;
-  height:18px;
-  flex:0 0 18px;
-  margin-left:1px;
-  padding:0;
-  border:1.5px solid var(--chart-info-border);
-  border-radius:50%;
-  background:var(--chart-info-bg);
-  color:var(--chart-info-color);
-  font-family:inherit;
-  font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-emphasis);
-  line-height:1;
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-  z-index:12;
-}
-.phone-chart-ui .chart-title-info{display:inline-flex}
-#accounts-summary .accounts-memo .chart-title-info{display:none}
-.phone-chart-ui .chart-title-info::before,
-#accounts-summary .accounts-memo .chart-title-info::before{content:"";position:absolute;inset:-3px}
-.phone-chart-ui .chart-title-info > span[aria-hidden="true"],
-#accounts-summary .accounts-memo .chart-title-info > span[aria-hidden="true"]{
-  transform:translateY(-.2px);
-}
-.phone-chart-ui .chart-title-info-tooltip,
-#accounts-summary .accounts-memo .chart-title-info-tooltip{
-  position:absolute;
-  left:50%;
-  top:calc(100% + 7px);
-  width:max-content;
-  max-width:min(210px,calc(100vw - 28px));
-  padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
-  font-weight:var(--tooltip-info-weight);
-  letter-spacing:-.02em;
-  white-space:nowrap;
-  opacity:0;
-  visibility:hidden;
-  pointer-events:none;
-  transform:translate(-50%,-3px);
-  transition:opacity .12s ease,transform .12s ease,visibility .12s ease;
-  z-index:30;
-}
-.phone-chart-ui .chart-title-info.open .chart-title-info-tooltip,
-#accounts-summary .accounts-memo .chart-title-info.open .chart-title-info-tooltip{
-  opacity:1;
-  visibility:visible;
-  transform:translate(-50%,0);
-}
-
-/* 초소형 화면 기능 예외: 400px 이하에서는 통합성과 수익률 열을 축약하고, 계좌별 성과 메모는 전용 열의 정보 tooltip으로 전환한다. */
-@media(max-width:400px){
-  #summary-section .combined-performance-table th:nth-child(5),
-  #summary-section .combined-performance-table td:nth-child(5){
-    display:none;
-  }
-  #summary-section .combined-performance-table .combined-mobile-return{
-    display:inline;
-    font-size:var(--type-size-xs);
-  }
-  #accounts-summary #accounts-table-view{
-    overflow:visible;
-  }
-  #accounts-summary .accounts-table{
-    width:100%;
-    min-width:100%;
-  }
-  #accounts-summary .accounts-table :is(th,td):nth-child(5){
-    width:34px;
-    min-width:34px;
-    max-width:34px;
-    padding-left:var(--space-xs);
-    padding-right:var(--space-xs);
-    text-align:center;
-  }
-  #accounts-summary .accounts-memo{
-    vertical-align:middle;
-  }
-  #accounts-summary .accounts-memo-text{
-    display:none;
-  }
-  #accounts-summary .accounts-memo .chart-title-info{
-    display:inline-flex;
-    margin:0;
-    vertical-align:middle;
-    z-index:80;
-  }
-  #accounts-summary .accounts-memo .chart-title-info.open{
-    z-index:90;
-  }
-  #accounts-summary .accounts-memo .chart-title-info-tooltip{
-    right:0;
-    left:auto;
-    width:min(230px,calc(100vw - 28px));
-    max-width:min(230px,calc(100vw - 28px));
-    white-space:normal;
-    text-align:left;
-    transform:translate(0,-3px);
-    z-index:91;
-  }
-  #accounts-summary .accounts-memo .chart-title-info.open .chart-title-info-tooltip{
-    transform:translate(0,0);
-  }
-}
-/* Phone Chart Controls · 폰 차트: 제목 행에는 확대 버튼만, 비교/시리즈는 control row */
-.phone-chart-ui .chart-head > .chart-expand-button{
-  display:inline-flex;
-  margin-left:auto;
-}
-/* Phone Chart Flow · 모바일 차트 흐름: switch/화살표 → 차트 → 범례 → 옵션 */
-.chart-card.phone-chart-ui .chart-scroll-row{
-  display:flex;
-  align-items:center;
-  justify-content:flex-start;
-  gap:var(--space-md);
-  min-height:var(--dashboard-control-height);
-  margin:var(--space-2xs) 1px var(--space-md);
-  padding:0;
-  box-sizing:border-box;
-}
-.chart-card.phone-chart-ui .chart-scroll-row > .chart-head-actions{
-  display:flex;
-  align-items:center;
-  justify-content:flex-start;
-  flex:0 0 auto;
-  min-width:0;
-  margin:0;
-}
-.chart-card.phone-chart-ui .chart-scroll-row > .chart-head-actions.mobile-no-leading-switch{
-  display:none;
-}
-.chart-card.phone-chart-ui .chart-scroll-row > .chart-head-actions .chart-web-expand-button{
-  display:none;
-}
-.chart-card.phone-chart-ui .chart-scroll-start,
-.chart-card.phone-chart-ui .chart-scroll-end{
-  display:inline-flex;
-}
-.chart-card.phone-chart-ui .chart-scroll-start{
-  margin-left:auto;
-}
-
-.phone-chart-ui > .chart-legend{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.phone-chart-ui > .chart-legend > .chart-legend-series{
-  width:100%;
-  justify-content:center;
-  gap:var(--space-lg) var(--space-3xl);
-}
-
-/* Phone Allocation Summary · 폰 평가액 비중: 총액 카드가 grid 전체 행 사용 */
-.phone-chart-ui #securityAllocCards > .alloc-total-card{
-  grid-column:1 / -1;
-  display:grid;
-  grid-template-columns:max-content minmax(0,1fr);
-  column-gap:var(--space-lg);
-  align-items:baseline;
-}
-.phone-chart-ui #securityAllocCards > .alloc-total-card > .m-label{
-  grid-column:1 / -1;
-}
-.phone-chart-ui #securityAllocCards > .alloc-total-card > .m-value{
-  grid-column:1;
-}
-.phone-chart-ui #securityAllocCards > .alloc-total-card > .alloc-cash-meta{
-  grid-column:2;
-  margin-top:var(--space-2xs);
-}
-
-.chart-options-row{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-wrap:nowrap;
-  gap:var(--dashboard-control-group-gap);
-  width:max-content;
-  max-width:100%;
-  min-height:var(--dashboard-control-height);
-  margin:var(--space-lg) auto var(--space-2xs);
-  padding:var(--space-xs);
-  border:1px solid var(--line);
-  border-radius:min(calc(var(--dashboard-control-radius) + 1px),var(--corner-control-cap));
-  background:var(--subtle-card);
-  box-sizing:border-box;
-}
-.chart-options-row .chart-legend-control{
-  display:flex;
-  align-items:center;
-  justify-content:flex-start;
-  flex:0 0 auto;
-  min-width:0;
-}
-.chart-options-row .chart-legend-control:empty{
-  display:none;
-}
-.chart-expanded-legend-host > .chart-options-row{
-  position:absolute;
-  left:50%;
-  bottom:calc(100% + 4px);
-  z-index:2;
-  width:max-content;
-  max-width:100%;
-  margin:0;
-  transform:translateX(-50%);
-}
-
-/* Data Tables · 데이터 표: 웹/태블릿 table, 폰 UI table↔card 전환 */
+/* [05. Tables / Forms · continuation] Data Tables · 데이터 표: 웹/태블릿 table, 폰 UI table↔card 전환 */
 
 /* [05. Tables / Forms · 테이블 / 입력 폼] Data Table / Mobile Card · 데이터 표 / 모바일 카드 */
 .mobile-scroll{
@@ -5196,7 +5219,7 @@ body.chart-expanded-open .dash-tooltip{
     aspect-ratio:1120 / 330;
   }
 
-  /* Print Charts · 인쇄 차트: viewport 진입 전/진입 중 animation 상태를 최종 표시 상태로 고정 */
+  /* [08→10. Charts / Print · cross-cutting] Print Charts · 인쇄에서는 Browser / Accessibility / Print 정책이 최종 소유 */
   .chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-bar,
   .chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-point{
     opacity:1;
