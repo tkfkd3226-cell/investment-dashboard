@@ -4709,7 +4709,7 @@ body.chart-expanded-open .dash-tooltip{
   display:none;
 }
 .phone-chart-ui .chart-title-info,
-#accounts-summary .accounts-name .chart-title-info{
+#accounts-summary .accounts-memo .chart-title-info{
   position:relative;
   align-items:center;
   justify-content:center;
@@ -4731,15 +4731,15 @@ body.chart-expanded-open .dash-tooltip{
   z-index:12;
 }
 .phone-chart-ui .chart-title-info{display:inline-flex}
-#accounts-summary .accounts-name .chart-title-info{display:none}
+#accounts-summary .accounts-memo .chart-title-info{display:none}
 .phone-chart-ui .chart-title-info::before,
-#accounts-summary .accounts-name .chart-title-info::before{content:"";position:absolute;inset:-3px}
+#accounts-summary .accounts-memo .chart-title-info::before{content:"";position:absolute;inset:-3px}
 .phone-chart-ui .chart-title-info > span[aria-hidden="true"],
-#accounts-summary .accounts-name .chart-title-info > span[aria-hidden="true"]{
+#accounts-summary .accounts-memo .chart-title-info > span[aria-hidden="true"]{
   transform:translateY(-.2px);
 }
 .phone-chart-ui .chart-title-info-tooltip,
-#accounts-summary .accounts-name .chart-title-info-tooltip{
+#accounts-summary .accounts-memo .chart-title-info-tooltip{
   position:absolute;
   left:50%;
   top:calc(100% + 7px);
@@ -4757,18 +4757,16 @@ body.chart-expanded-open .dash-tooltip{
   z-index:30;
 }
 .phone-chart-ui .chart-title-info.open .chart-title-info-tooltip,
-#accounts-summary .accounts-name .chart-title-info.open .chart-title-info-tooltip{
+#accounts-summary .accounts-memo .chart-title-info.open .chart-title-info-tooltip{
   opacity:1;
   visibility:visible;
   transform:translate(-50%,0);
 }
 
-/* 초소형 화면 기능 예외: 400px 이하에서는 통합성과 수익률 열과 계좌별 성과 메모 열을 축약해 가로폭을 확보한다. */
+/* 초소형 화면 기능 예외: 400px 이하에서는 통합성과 수익률 열을 축약하고, 계좌별 성과 메모는 전용 열의 정보 tooltip으로 전환한다. */
 @media(max-width:400px){
   #summary-section .combined-performance-table th:nth-child(5),
-  #summary-section .combined-performance-table td:nth-child(5),
-  #accounts-summary .accounts-table th:nth-child(5),
-  #accounts-summary .accounts-table td:nth-child(5){
+  #summary-section .combined-performance-table td:nth-child(5){
     display:none;
   }
   #summary-section .combined-performance-table .combined-mobile-return{
@@ -4778,20 +4776,44 @@ body.chart-expanded-open .dash-tooltip{
   #accounts-summary #accounts-table-view{
     overflow:visible;
   }
-  #accounts-summary .accounts-name .chart-title-info{
-    display:inline-flex;
-    margin-left:var(--space-sm);
+  #accounts-summary .accounts-table{
+    width:100%;
+    min-width:100%;
+  }
+  #accounts-summary .accounts-table :is(th,td):nth-child(5){
+    width:34px;
+    min-width:34px;
+    max-width:34px;
+    padding-left:var(--space-xs);
+    padding-right:var(--space-xs);
+    text-align:center;
+  }
+  #accounts-summary .accounts-memo{
     vertical-align:middle;
   }
-  #accounts-summary .accounts-name .chart-title-info-tooltip{
-    left:0;
+  #accounts-summary .accounts-memo-text{
+    display:none;
+  }
+  #accounts-summary .accounts-memo .chart-title-info{
+    display:inline-flex;
+    margin:0;
+    vertical-align:middle;
+    z-index:80;
+  }
+  #accounts-summary .accounts-memo .chart-title-info.open{
+    z-index:90;
+  }
+  #accounts-summary .accounts-memo .chart-title-info-tooltip{
+    right:0;
+    left:auto;
     width:min(230px,calc(100vw - 28px));
     max-width:min(230px,calc(100vw - 28px));
     white-space:normal;
     text-align:left;
     transform:translate(0,-3px);
+    z-index:91;
   }
-  #accounts-summary .accounts-name .chart-title-info.open .chart-title-info-tooltip{
+  #accounts-summary .accounts-memo .chart-title-info.open .chart-title-info-tooltip{
     transform:translate(0,0);
   }
 }
