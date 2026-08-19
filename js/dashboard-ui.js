@@ -359,7 +359,7 @@ function renderTabs(){
     </div>`;
   syncMobileTopbarState();
 }
-function metricCard(label,value,sub,dark=false,vcls=''){const accessibleLabel=escapeHtml(String(label||'').replace(/<[^>]*>/g,'').trim());return `<article class="card metric-card ${dark?'dark':''}" aria-label="${accessibleLabel}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${sub}</div></article>`}
+function metricCard(label,value,sub,dark=false,vcls='',mobileSub=''){const accessibleLabel=escapeHtml(String(label||'').replace(/<[^>]*>/g,'').trim()),subContent=mobileSub?`<span class="metric-sub-default">${sub}</span><span class="metric-sub-mobile">${mobileSub}</span>`:sub;return `<article class="card metric-card ${dark?'dark':''}" aria-label="${accessibleLabel}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${subContent}</div></article>`}
 
 function mobileViewAttrs(key){
   const mode=mobileViewModes[key]||'card';
@@ -718,10 +718,11 @@ function sectionToSecuritiesBlock(html, extraClass=''){
     .replace(/<\/section>\s*$/, '</div>');
 }
 function renderSecuritiesSummaryCards(x){
-  const securitiesScope=securitiesScopeText(x),v=separateProfitView(x);
-  const principalNote=uiState.includeSeparateProfit&&v.reclassifiedReinvestment?`별도수익 재투입 ${won(v.reclassifiedReinvestment)} 원금 제외`:x.account2Included?'계좌2 실현분·보유 자금 투입 포함 기준':'선택일 계좌1 투자원금 기준';
-  const returnNote='총 합산 누적손익 ÷ 기준 투입원금';
-  return `<div class="securities-subsection securities-summary-block"><div class="grid cards metric-grid">${metricCard('증권계좌 투자 결과물',won(v.totalResult),`${securitiesScope} 기준`,true)}${metricCard('기준 투입원금',won(v.totalPrincipal),principalNote)}${metricCard('총 합산 누적손익',won(v.totalProfit),`${securitiesScope} 누적손익`,false,cls(v.totalProfit))}${metricCard('투자대비 이익률',pct(v.totalReturn),returnNote,false,cls(v.totalReturn))}</div></div>`;
+  const securitiesScope=securitiesScopeText(x),v=separateProfitView(x),separateProfitOn=uiState.includeSeparateProfit;
+  const principalNote=separateProfitOn?'전체 투입원금 | 별도 수익 재투입 670만 원 제외':'전체 투입원금 + 보유 자금 투입 670만 원';
+  const principalMobileNote=separateProfitOn?'전체 투입원금 | 670만 원 제외':'전체 투입원금 + 670만 원';
+  const returnNote='누적손익 ÷ 투입원금';
+  return `<div class="securities-subsection securities-summary-block"><div class="grid cards metric-grid">${metricCard('증권계좌 투자 결과물',won(v.totalResult),securitiesScope,true)}${metricCard('기준 투입원금',won(v.totalPrincipal),principalNote,false,'',principalMobileNote)}${metricCard('총 합산 누적손익',won(v.totalProfit),securitiesScope,false,cls(v.totalProfit))}${metricCard('투자대비 이익률',pct(v.totalReturn),returnNote,false,cls(v.totalReturn))}</div></div>`;
 }
 function renderSecuritiesSection(x){
   return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="bank" aria-hidden="true"></span>증권계좌 현황</h2>${separateProfitControl(x,'section-inline')}</div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderCharts(x,separateProfitControl(x,'chart-inline')),'charts-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(x),'source-block'):''}</div></section>`;

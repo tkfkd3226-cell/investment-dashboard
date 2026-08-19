@@ -2506,6 +2506,7 @@ body.chart-expanded-open .dash-tooltip{
   font-weight:var(--metric-sub-weight);
   line-height:var(--type-line-body);
 }
+.metric-sub-mobile{display:none}
 
 .metric-grid{
   grid-template-columns:repeat(4,minmax(0,1fr));
@@ -2590,6 +2591,40 @@ body.chart-expanded-open .dash-tooltip{
     min-height:28px;
   }
 
+}
+
+/* Securities / Pension KPI · 모바일 2×2 전용: 다른 metric-grid는 기존 모바일 구조 유지 */
+@media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  .securities-summary-block .metric-grid,
+  .pension-metric-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:var(--space-2xl);
+  }
+
+  .securities-summary-block .metric-card,
+  .pension-metric-grid > .metric-card{
+    --metric-label-size:11px;
+    --metric-value-size:18px;
+    --metric-sub-size:10px;
+    min-width:0;
+    padding:var(--space-4xl) var(--space-lg);
+  }
+
+  .securities-summary-block .metric-card :is(.label,.value,.sub),
+  .pension-metric-grid > .metric-card :is(.label,.value,.sub){
+    white-space:nowrap;
+  }
+
+  .securities-summary-block .metric-card .value,
+  .pension-metric-grid > .metric-card .value{
+    min-height:24px;
+  }
+
+  .securities-summary-block .metric-sub-default,
+  .pension-metric-grid .metric-sub-default{display:none}
+
+  .securities-summary-block .metric-sub-mobile,
+  .pension-metric-grid .metric-sub-mobile{display:inline}
 }
 
 .chart-note.symbol-summary-grid{
