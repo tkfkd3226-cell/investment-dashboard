@@ -837,7 +837,7 @@ Frontend에서 두 mode를 코드로 직접 확인한다.
 
 화면에 선택 날짜가 항상 존재한다는 사실과 request body에 `date`가 존재한다는 사실을 혼동하지 않는다.
 
-최신 운영 `Code.gs`가 함께 제공된 경우 서버 측도 확인한다.
+최신 운영 GAS 소스가 함께 제공된 경우 서버 측도 확인한다.
 
 - 명시 날짜 처리
 - 이미 종가 데이터인 경우 skip 여부
@@ -862,7 +862,7 @@ response state
 duplicate/idempotency 처리
 ```
 
-최신 `Code.gs`가 별도 제공된 경우에만 server contract까지 완전 대조한다.
+최신 운영 GAS 소스가 별도 제공된 경우에만 server contract까지 완전 대조한다.
 
 ### I. UI 평가 프로토콜
 
@@ -2162,7 +2162,6 @@ investment-dashboard-main/
 
 현재 `css/style.css`는 5,256줄이며, 이 수치는 **검증 시점 snapshot**일 뿐 고정값이 아니다.
 
-현재 GitHub 프로젝트 안에는 `gas/` 디렉터리가 없다. GAS는 별도 운영 백엔드다.
 
 
 ## 4.2 현재 디렉토리 구조를 기준선으로 사용
