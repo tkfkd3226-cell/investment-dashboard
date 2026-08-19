@@ -159,10 +159,6 @@ const pensionContributionItems=()=>rawPensionContributionItems()
   .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.id||'').localeCompare(String(b.id||'')));
 const pensionContributionSum=d=>pensionContributionItems().filter(v=>v.date&&v.date<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
 const pensionContributionSumAfter=(fromDate,toDate)=>pensionContributionItems().filter(v=>v.date&&v.date>fromDate&&v.date<=toDate).reduce((a,v)=>a+(Number(v.amount)||0),0);
-const latestPensionContribution=d=>pensionContributionItems()
-  .filter(v=>v.date&&v.date<=d&&Number(v.amount))
-  .sort((a,b)=>String(a.date).localeCompare(String(b.date)))
-  .at(-1)||null;
 const rawPensionCashSnapshotItems=()=>Array.isArray(dataState.pensionCashSnapshots)?dataState.pensionCashSnapshots:(dataState.pensionCashSnapshots?.snapshots||[]);
 const pensionCashSnapshotItems=()=>Array.from(
   rawPensionCashSnapshotItems()
@@ -657,7 +653,6 @@ export {
   koreanDateLabel,
   kospiIndexForDate,
   kstTodayText,
-  latestPensionContribution,
   linkedPensionCashSnapshotForContribution,
   linkedPensionCashSnapshotForTrade,
   loadInitialData,
