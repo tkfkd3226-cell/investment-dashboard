@@ -149,8 +149,7 @@ function renderUnifiedMobileMenuContent(){
     {
       label:'전체',
       items:[
-        {type:'section',id:'summary-section',icon:'home',title:'연금+계좌 성과'},
-        {type:'section',id:'market-ai-section',icon:'activity',title:'AI Market Signal'}
+        {type:'section',id:'summary-section',icon:'home',title:'연금+계좌 성과'}
       ]
     },
     {
@@ -191,8 +190,7 @@ function renderDesktopTocContent(){
     {
       label:'전체',
       items:[
-        {id:'summary-section',icon:'home',title:'연금+계좌 성과'},
-        {id:'market-ai-section',icon:'activity',title:'AI Market Signal'}
+        {id:'summary-section',icon:'home',title:'연금+계좌 성과'}
       ]
     },
     {
@@ -370,92 +368,6 @@ function renderTabs(){
   syncMobileTopbarState();
 }
 function metricCard(label,value,sub,dark=false,vcls='',mobileSub=''){const accessibleLabel=escapeHtml(String(label||'').replace(/<[^>]*>/g,'').trim()),subContent=mobileSub?`<span class="metric-sub-default">${sub}</span><span class="metric-sub-mobile">${mobileSub}</span>`:sub;return `<article class="card metric-card ${dark?'dark':''}" aria-label="${accessibleLabel}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${subContent}</div></article>`}
-
-function marketAiScoreClass(value){
-  if(value==null||value==='')return '';
-  const n=Number(value);
-  if(!Number.isFinite(n))return '';
-  if(n>=55)return 'positive';
-  if(n<=45)return 'negative';
-  return '';
-}
-function marketAiScoreText(value){
-  if(value==null||value==='')return '--';
-  const n=Number(value);
-  return Number.isFinite(n)?n.toFixed(1):'--';
-}
-function marketAiPercentText(value){
-  if(value==null||value==='')return '--';
-  const n=Number(value);
-  return Number.isFinite(n)?`${Math.round(n*100)}%`:'--';
-}
-function marketAiKstTime(iso){
-  if(!iso)return '';
-  const date=new Date(iso);
-  if(Number.isNaN(date.getTime()))return '';
-  return new Intl.DateTimeFormat('ko-KR',{
-    timeZone:'Asia/Seoul',
-    hour:'2-digit',
-    minute:'2-digit',
-    hour12:false
-  }).format(date);
-}
-function renderMarketAiSection(){
-  const cards=[
-    metricCard('KOSPI 신호','<span data-market-ai-score="kospi">--</span>','100점 기준'),
-    metricCard('반도체 신호','<span data-market-ai-score="semiconductors">--</span>','100점 기준'),
-    metricCard('갭상 신호','<span data-market-ai-score="gap">--</span>','100점 기준'),
-    metricCard('상승마감 신호','<span data-market-ai-score="up-close">--</span>','100점 기준')
-  ].join('');
-  return `<section id="market-ai-section" aria-labelledby="marketAiTitle"><div class="section-title"><h2 id="marketAiTitle"><span class="section-title-icon" data-section-title-icon="activity" aria-hidden="true"></span>AI Market Signal</h2><span class="section-control-chip section-basis-chip" data-market-ai-status role="status" aria-live="polite">연결 확인 중</span></div><div class="grid cards" aria-label="Market AI 시장 신호">${cards}</div><div class="sub" data-market-ai-meta>선택일과 무관한 현재 Market AI 신호를 확인하고 있습니다.</div></section>`;
-}
-function syncMarketAiSignalView(state={}){
-  const section=document.getElementById('market-ai-section');
-  if(!section)return;
-  const signal=state.signal||null;
-  const scoreValues={
-    kospi:signal?.kospi_score,
-    semiconductors:signal?.semiconductor_score,
-    gap:signal?.gap_up_probability,
-    'up-close':signal?.up_close_probability
-  };
-  Object.entries(scoreValues).forEach(([key,value])=>{
-    const el=section.querySelector(`[data-market-ai-score="${key}"]`);
-    if(!el)return;
-    el.textContent=marketAiScoreText(value);
-    el.classList.remove('positive','negative');
-    const valueClass=marketAiScoreClass(value);
-    if(valueClass)el.classList.add(valueClass);
-  });
-
-  const status=section.querySelector('[data-market-ai-status]');
-  const meta=section.querySelector('[data-market-ai-meta]');
-  if(!signal){
-    if(status){
-      status.textContent=state.status||'연결 확인 중';
-      status.removeAttribute('title');
-    }
-    if(meta)meta.textContent=state.message||'Market AI 신호를 확인하고 있습니다.';
-    return;
-  }
-
-  const updated=marketAiKstTime(signal.updated_at);
-  if(status){
-    status.textContent=state.status||'연결됨';
-    if(updated)status.setAttribute('title',`Market AI ${updated} 기준`);
-    else status.removeAttribute('title');
-  }
-  if(meta){
-    const parts=[
-      '현재 시장',
-      `신뢰도 ${marketAiPercentText(signal.confidence)}`,
-      `데이터 완성도 ${marketAiPercentText(signal.data_completeness)}`,
-      signal.calibrated===true?'확률 보정 완료':'비보정 룰 기반 신호'
-    ];
-    if(updated)parts.push(`${updated} KST`);
-    meta.textContent=parts.join(' · ');
-  }
-}
 
 function mobileViewAttrs(key){
   const mode=mobileViewModes[key]||'card';
@@ -816,8 +728,8 @@ function sectionToSecuritiesBlock(html, extraClass=''){
 }
 function renderSecuritiesSummaryCards(x,{hidden=false}={}){
   const securitiesScope=securitiesScopeText(x),v=separateProfitView(x),separateProfitOn=uiState.includeSeparateProfit;
-  const principalNote=separateProfitOn?'전체 투입원금 | 별도 수익 재투입 670만 원 제외':'전체 투입원금 + 보유 자금 투입 670만 원';
-  const principalMobileNote=separateProfitOn?'전체 투입원금 | 670만 원 제외':'전체 투입원금 + 670만 원';
+  const principalNote=separateProfitOn?'전체 투입원금 + 원천·보유 차액 | 별도 수익 재투입 670만 원 제외':'전체 투입원금 + 보유 자금 투입 670만 원 + 원천·보유 차액';
+  const principalMobileNote=separateProfitOn?'전체 투입원금 + 차액 | 670만 원 제외':'전체 투입원금 + 670만 원 + 차액';
   const returnNote='누적손익 ÷ 투입원금';
   return `<div id="securities-overall-summary"${hidden?' hidden':''}><div class="grid cards metric-grid">${metricCard('투자 결과물',won(v.totalResult),securitiesScope,true)}${metricCard('투입원금',won(v.totalPrincipal),principalNote,false,'',principalMobileNote)}${metricCard('누적손익',won(v.totalProfit),'투자 결과물 - 투입원금',false,cls(v.totalProfit))}${metricCard('누적수익률',pct(v.totalReturn),returnNote,false,cls(v.totalReturn))}</div></div>`;
 }
@@ -1053,7 +965,7 @@ function accountMemoTableHtml(text,{joinFirstTwo=false}={}){
   if(joinFirstTwo&&parts.length>1){
     parts.splice(0,2,`${parts[0].trim()} ${parts[1].trim()}`);
   }
-  const sourceLinkPattern=/([+-]?[\d,]+원은 계좌1 투자원금 검산의 레버수익 재투입·VIP 수익 재투입·실현수익 투입·원천·보유 차액)/;
+  const sourceLinkPattern=/([+-]?[\d,]+원은 계좌1 투자원금 검산의 레버수익 재투입·VIP 수익 재투입·실현수익 투입)/;
   return parts.map(part=>{
     const safe=escapeHtml(part.trim());
     return `<span class="accounts-memo-sentence">${safe.replace(sourceLinkPattern,'<span class="accounts-memo-source-link">$1</span>')}</span>`;
@@ -1117,7 +1029,7 @@ function toggleAccountMemoInfo(event,button){
   if(open)showAccountMemoFloatingTooltip(button);
 }
 function renderAccounts(x,{hidden=false}={}){
-  const c=dataState.portfolio.constants,v=separateProfitView(x),realizedProfitInput=securityInternalCashTransferSum(x.date),excludedTransfer=securityExcludedTransferSum(x.date),sourceHoldingGap=account1SourceHoldingGapForDate(x.date),vipProfitReinvest=(Number(c.account2ReinvestedToAccount1)||0)-(Number(c.account2Principal)||0),vipGoldInput=3000000,vipReinvestLessGold=(Number(c.account2ReinvestedToAccount1)||0)-vipGoldInput,mobileReturnPct=n=>(Number(n)||0).toFixed(1)+'%';
+  const c=dataState.portfolio.constants,sourceTracking=dataState.portfolio.securitiesSourceTracking||{},v=separateProfitView(x),realizedProfitInput=securityInternalCashTransferSum(x.date),excludedTransfer=securityExcludedTransferSum(x.date),vipProfitReinvest=(Number(c.account2ReinvestedToAccount1)||0)-(Number(c.account2Principal)||0),vipGoldInput=Number(sourceTracking.vipGoldInput)||0,vipReinvestLessGold=(Number(c.account2ReinvestedToAccount1)||0)-vipGoldInput,mobileReturnPct=n=>(Number(n)||0).toFixed(1)+'%';
   const separateProfitModeMemo=excludedTransfer
     ? (uiState.includeSeparateProfit
       ? ` 보유 자금 투입 ${won(excludedTransfer)}을 별도수익 재투입분으로 재분류하여 성과기준 원금에서 제외.`
@@ -1129,10 +1041,10 @@ function renderAccounts(x,{hidden=false}={}){
   };
   const account1PrincipalAdjustment=v.totalPrincipal-v.account1Principal;
   const account1ResultAdjustment=-realizedProfitInput;
-  const account1DerivedAdjustmentBasis=(Number(c.tossReinvestedToAccount1)||0)+vipProfitReinvest+(Number(realizedProfitInput)||0)+(Number(sourceHoldingGap)||0);
+  const account1DerivedAdjustmentBasis=(Number(c.tossReinvestedToAccount1)||0)+vipProfitReinvest+(Number(realizedProfitInput)||0);
   const account1PrincipalAdjustmentMemo=account1PrincipalAdjustment
     ? (Math.abs(account1PrincipalAdjustment+account1DerivedAdjustmentBasis)<0.5
-      ? ` 투입원금 조정 ${signed(account1PrincipalAdjustment)}원은 계좌1 투자원금 검산의 레버수익 재투입·VIP 수익 재투입·실현수익 투입·원천·보유 차액을 전체 투입원금 기준으로 조정한 값.`
+      ? ` 투입원금 조정 ${signed(account1PrincipalAdjustment)}원은 계좌1 투자원금 검산의 레버수익 재투입·VIP 수익 재투입·실현수익 투입을 전체 투입원금 기준으로 조정한 값.`
       : ` 투입원금 조정 ${signed(account1PrincipalAdjustment)}원은 전체 투입원금과 계좌1 투자원금 간 장부 차이를 반영한 조정값.`)
     : '';
   const rows=[
@@ -1191,6 +1103,7 @@ function renderAccounts(x,{hidden=false}={}){
 }
 function renderSourceTables(x){
   const c=dataState.portfolio.constants,
+    sourceTracking=dataState.portfolio.securitiesSourceTracking||{},
     vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal,
     extraContribution=securityExternalContributionSum(x.date),
     excludedTransfer=securityExcludedTransferSum(x.date),
@@ -1203,13 +1116,13 @@ function renderSourceTables(x){
     extraRow=extraContribution?`<tr class="source-base-row"><th scope="row">추가 외부투입</th><td class="num table-cell-right">${fmt(extraContribution)}</td></tr>`:'',
     excludedRow=!uiState.includeSeparateProfit&&excludedTransfer?`<tr class="source-base-row"><th scope="row">보유 자금 투입</th><td class="num table-cell-right">${fmt(excludedTransfer)}</td></tr>`:'',
     realizedProfitRow=realizedProfitInput?`<tr class="source-derived-row"><th scope="row">실현수익 투입</th><td class="num table-cell-right">${fmt(realizedProfitInput)}</td></tr>`:'',
-    reconciliationRow=`<tr class="source-derived-row"><th scope="row">원천·보유 차액</th><td class="num table-cell-right">${fmt(sourceHoldingGap)}</td></tr>`,
+    reconciliationRow=`<tr><th scope="row">원천·보유 차액</th><td class="num table-cell-right">${fmt(sourceHoldingGap)}</td></tr>`,
     reclassNote=uiState.includeSeparateProfit&&reclassified?`<div class="source-reclass-note"><strong>6~8월 별도수익 재투입 ${won(reclassified)}</strong><span>기존 투자수익 재투자분 · 신규 외부투입금 아님</span><span>전체 투입원금 제외 · 별도수익 ON 시 성과기준 원금 제외</span></div>`:'',
     principalLabel=uiState.includeSeparateProfit&&reclassified?'계좌1 성과기준 투자원금':'계좌1 투자원금 검산',
     principalSummaryLabel='합계';
   const externalCard=`<div class="card source-card metric-card highlight"><div class="label">전체 투입원금</div><div class="value">${won(externalPrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><caption class="visually-hidden">전체 투입원금 구성</caption><tbody><tr><th scope="row">금 판매액 총액</th><td class="num table-cell-right">${fmt(c.goldPrincipal)}</td></tr><tr><th scope="row">근로소득 투입액</th><td class="num table-cell-right">${fmt(c.laborNetPrincipal)}</td></tr>${extraRow}<tr class="summary-row"><th scope="row">합계</th><td class="num table-cell-right">${fmt(externalPrincipal)}</td></tr></tbody></table></div>${reclassNote}</div>`;
   const performanceCard=`<div class="card source-card metric-card"><div class="label">${principalLabel}</div><div class="value">${won(performancePrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><caption class="visually-hidden">계좌1 투자원금 검산</caption><tbody><tr class="source-base-row"><th scope="row">전체 투입원금</th><td class="num table-cell-right">${fmt(externalPrincipal)}</td></tr>${excludedRow}<tr class="source-derived-row"><th scope="row">레버수익 재투입</th><td class="num table-cell-right">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr class="source-derived-row"><th scope="row">VIP 수익 재투입</th><td class="num table-cell-right">${fmt(vipProfitReinvest)}</td></tr>${realizedProfitRow}${reconciliationRow}<tr class="summary-row"><th scope="row">${principalSummaryLabel}</th><td class="num table-cell-right">${fmt(performancePrincipal)}</td></tr></tbody></table></div></div>`;
-  const account1GoldSource=4000000,account2GoldSource=3000000,temporarySource=4967980,principalRecovery=-6089845,vipReinvestLessGold=(Number(c.account2ReinvestedToAccount1)||0)-account2GoldSource;
+  const account1GoldSource=Number(sourceTracking.account1GoldInput)||0,account2GoldSource=Number(sourceTracking.vipGoldInput)||0,temporarySource=Number(sourceTracking.temporaryFunding)||0,principalRecovery=Number(sourceTracking.principalRecovery)||0,vipReinvestLessGold=(Number(c.account2ReinvestedToAccount1)||0)-account2GoldSource;
   const trackedCard=`<div class="card source-card metric-card"><div class="label">계좌1 원천별 추적</div><div class="value">${won(performancePrincipal)}</div><div class="mobile-scroll source-table-scroll"><table class="dashboard-data-table source-data-table"><caption class="visually-hidden">계좌1 원천별 추적</caption><tbody><tr class="source-base-row"><th scope="row">금 판매액 투입</th><td class="num table-cell-right">${fmt(account1GoldSource)}</td></tr><tr class="source-base-row"><th scope="row">VIP 금 투입분</th><td class="num table-cell-right">${fmt(account2GoldSource)}</td></tr><tr class="source-base-row"><th scope="row">근로소득 투입액</th><td class="num table-cell-right">${fmt(c.laborNetPrincipal)}</td></tr>${extraRow}${excludedRow}<tr class="source-derived-row"><th scope="row">레버수익 재투입</th><td class="num table-cell-right">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr class="source-derived-row"><th scope="row">VIP 재투입-금</th><td class="num table-cell-right">${fmt(vipReinvestLessGold)}</td></tr><tr class="source-derived-row"><th scope="row">임시자금 투입</th><td class="num table-cell-right">${fmt(temporarySource)}</td></tr><tr class="source-derived-row"><th scope="row">원금 회수</th><td class="num table-cell-right">${fmt(principalRecovery)}</td></tr>${realizedProfitRow}${reconciliationRow}<tr class="summary-row"><th scope="row">합계</th><td class="num table-cell-right">${fmt(performancePrincipal)}</td></tr></tbody></table></div></div>`;
   return `<section id="capital-source-check" class="capital-source-section"><div class="section-title source-title"><h2><span class="section-title-icon" data-section-title-icon="receipt" aria-hidden="true"></span>투자원금 원천 및 검산</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid three source-grid">${externalCard}${performanceCard}${trackedCard}</div></section>`;
 }
@@ -1262,7 +1175,6 @@ export {
   mobileViewAttrs,
   mobileViewToggle,
   renderCombined,
-  renderMarketAiSection,
   renderSecuritiesSection,
   renderTabs,
   restoreMobileDateMenuAfterRender,
@@ -1271,6 +1183,5 @@ export {
   showAppToast,
   syncAssetTabs,
   syncCornerThemeControls,
-  syncMarketAiSignalView,
   syncThemeControls
 };

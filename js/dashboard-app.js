@@ -2,7 +2,6 @@ import {
   allAvailableDates,
   calc,
   dataState,
-  fetchWithTimeout,
   koreanDateLabel,
   loadInitialData,
   pct,
@@ -36,7 +35,6 @@ import {
   hydrateSectionTitleIcons,
   mobileDateMenuIsOpen,
   renderCombined,
-  renderMarketAiSection,
   renderSecuritiesSection,
   renderTabs,
   restoreMobileDateMenuAfterRender,
@@ -44,7 +42,6 @@ import {
   setupUiGlobalEvents,
   syncAssetTabs,
   syncCornerThemeControls,
-  syncMarketAiSignalView,
   syncThemeControls
 } from './dashboard-ui.js';
 import { renderPension } from './dashboard-pension.js';
@@ -57,71 +54,6 @@ import {
 // 메인 대시보드 app action · render · event binding · boot orchestration
 
 const heroBasisTapState={count:0,lastTap:0};
-
-const MARKET_AI_POLL_MS=60_000;
-const MARKET_AI_TIMEOUT_MS=2_500;
-const LOCAL_DASHBOARD_HOSTS=new Set(['localhost','127.0.0.1']);
-const marketAiRuntimeState={
-  signal:null,
-  status:'연결 확인 중',
-  message:'선택일과 무관한 현재 Market AI 신호를 확인하고 있습니다.'
-};
-let marketAiPollTimer=0;
-
-function marketAiApiBase(){
-  if(!LOCAL_DASHBOARD_HOSTS.has(location.hostname))return '';
-  return `${location.protocol}//${location.hostname}:8001`;
-}
-function setMarketAiRuntimeState(next){
-  Object.assign(marketAiRuntimeState,next);
-  syncMarketAiSignalView(marketAiRuntimeState);
-}
-async function refreshMarketAiSignal(){
-  const apiBase=marketAiApiBase();
-  if(!apiBase){
-    setMarketAiRuntimeState({
-      signal:null,
-      status:'로컬 전용',
-      message:'GitHub Pages에서는 아직 Market AI 서버를 연결하지 않습니다. 로컬 대시보드에서 확인하세요.'
-    });
-    return;
-  }
-
-  if(!marketAiRuntimeState.signal){
-    setMarketAiRuntimeState({status:'연결 확인 중',message:'Market AI 서버에 연결하고 있습니다.'});
-  }
-  try{
-    const response=await fetchWithTimeout(`${apiBase}/api/signal/latest?include_details=false`,{
-      method:'GET',
-      headers:{Accept:'application/json'},
-      cache:'no-store'
-    },MARKET_AI_TIMEOUT_MS);
-    if(response.status===404){
-      setMarketAiRuntimeState({
-        signal:null,
-        status:'신호 대기',
-        message:'Market AI가 첫 신호를 생성하면 자동으로 표시됩니다.'
-      });
-      return;
-    }
-    if(!response.ok)throw new Error(`Market AI HTTP ${response.status}`);
-    const signal=await response.json();
-    setMarketAiRuntimeState({signal,status:'연결됨',message:''});
-  }catch(_){
-    setMarketAiRuntimeState({
-      signal:null,
-      status:'서버 연결 안 됨',
-      message:'start-market-ai.bat 실행 후 자동으로 다시 연결합니다.'
-    });
-  }
-}
-function startMarketAiBridge(){
-  refreshMarketAiSignal();
-  if(marketAiPollTimer)return;
-  marketAiPollTimer=window.setInterval(()=>{
-    if(document.visibilityState==='visible')refreshMarketAiSignal();
-  },MARKET_AI_POLL_MS);
-}
 
 function togglePersonalView(){
   uiState.personalViewUnlocked=!uiState.personalViewUnlocked;
@@ -293,7 +225,7 @@ function render(){
   const x=calc(dataState.activeDate),v=separateProfitView(x);
   renderTabs();
   const pensionPills=x.hasPension?`<span class="pill hero-profit-pill"><span class="hero-label-default">퇴직연금 운용손익</span><span class="hero-label-mobile">퇴직연금 손익</span> ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
-  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${dataState.portfolio.meta.title}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${koreanDateLabel(x.date)})</time></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}" role="group" aria-label="핵심 성과 요약"><span class="pill hero-profit-pill"><span class="hero-label-default">증권계좌 누적손익</span><span class="hero-label-mobile">증권계좌 손익</span> ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적수익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderMarketAiSection()}${renderAssetWorkspace(x)}</div>`;
+  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${dataState.portfolio.meta.title}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${koreanDateLabel(x.date)})</time></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}" role="group" aria-label="핵심 성과 요약"><span class="pill hero-profit-pill"><span class="hero-label-default">증권계좌 누적손익</span><span class="hero-label-mobile">증권계좌 손익</span> ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적수익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
   hydrateSectionTitleIcons(document.getElementById('app'));
   syncAssetTabs();
   syncThemeControls();
@@ -303,7 +235,6 @@ function render(){
   ensureMobileTopButton();
   ensureDesktopEdgeToc();
   setupSectionNavigationTracking();
-  syncMarketAiSignalView(marketAiRuntimeState);
 }
 function initializeDashboardState(){
   const dates=allAvailableDates();
@@ -323,7 +254,6 @@ async function boot(){
   initializeDashboardState();
   bindAppEvents();
   render();
-  startMarketAiBridge();
 }
 
 boot().catch(err=>{

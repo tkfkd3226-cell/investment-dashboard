@@ -613,7 +613,7 @@ function calc(date){
   const tossProfit=tossIncluded?c.tossProfit:0,tossRealizedAmount=tossIncluded?c.tossRealizedAmount:0,tossRemainder=tossIncluded?c.tossRealizedAmount-c.tossReinvestedToAccount1:0;
   const internalCashTransfer=isLedgerCheckDate(date)?securityInternalCashTransferSum(date):0;
   const totalProfit=account1Profit+account2Profit+tossProfit,totalResult=account1Result+account2Remainder+tossRemainder-internalCashTransfer;
-  const totalPrincipal=account2Included?externalPrincipalForDate(date):account1Principal;
+  const totalPrincipal=account2Included?externalPrincipalForDate(date)+account1SourceHoldingGapForDate(date):account1Principal;
   const returnRate=totalPrincipal?totalProfit/totalPrincipal*100:0;
   const actualHolding=isLedgerCheckDate(date)?totalResult-c.livingSpent:null;
   const pensionRows=hasPension?p.pension.map(pos=>{

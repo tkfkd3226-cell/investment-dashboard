@@ -194,5 +194,11 @@
       "valuationPrice": 1348000,
       "valuationSource": "NXT 종가"
     }
-  ]
+  ],
+  "securitiesSourceTracking": {
+    "account1GoldInput": 4000000,
+    "vipGoldInput": 3000000,
+    "temporaryFunding": 4967980,
+    "principalRecovery": -6089845
+  }
 }

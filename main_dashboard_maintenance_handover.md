@@ -2605,6 +2605,17 @@ importmap
 - module 전환과 무관한 viewport/theme 초기화 inline script는 함부로 변경하지 않음
 - 다시 classic script 다중 load 구조로 돌아가지 않음
 
+### Market AI 독립 연결 예외
+
+Market AI 대시보드 연결은 메인 7개 ES Module graph에 결합하지 않고 `js/dashboard-market-ai.js`가 소유한다.
+
+- `dashboard-app.js`, `dashboard-ui.js`는 Market AI 표시/통신 때문에 수정하지 않는 것을 기본 원칙으로 한다.
+- `dashboard-market-ai.js`는 `index.html`에서 `dashboard-app.js` 다음의 독립 `type="module"` entry로 로드하며, 메인 7모듈 dependency graph에는 포함하지 않는다.
+- 이 adapter는 `localhost:8001`의 read-only Signal API만 조회하고 수집/AI 분석/Signal 재계산을 직접 실행하지 않는다.
+- 메인 dashboard render가 `#app` 내용을 재생성하므로 Market AI section과 목차 항목의 재부착은 adapter 내부에서만 처리한다.
+- 별도 Market AI CSS 파일이나 `!important`, 신규 breakpoint를 만들지 않고 기존 dashboard card/section/navigation class를 우선 재사용한다.
+- Market AI 기능 변경 시 먼저 이 독립 adapter 안에서 해결 가능한지 검토하고, 불가능한 경우에만 메인 module 수정 필요성을 별도로 판단한다.
+
 
 ## 4.15 현재 JS state / initialization ownership
 

@@ -2716,7 +2716,6 @@ body.chart-expanded-open .dash-tooltip{
   font-size:var(--type-size-xs);
   line-height:var(--type-line-loose);
 }
-.summary-note-key{font-weight:var(--type-weight-emphasis);color:inherit}
 .cash-basis-note{color:var(--muted)}
 .cash-basis-note-mark{color:var(--value-positive);font-weight:var(--type-weight-strong)}
 .cash-basis-note-sup{font-size:.72em;margin-left:var(--space-2xs);line-height:0}
