@@ -757,7 +757,7 @@ function renderCharts(x,separateProfitHtml=''){
   const cum=cumHistory(x.date),last=cum.at(-1),prevCum=cum.length>1?cum.at(-2):null,best=cum.reduce((a,b)=>b['합계 : 누적손익']>a['합계 : 누적손익']?b:a,cum[0]),
         bestDay=cum.reduce((a,b)=>b['합계 : 전일대비손익']>a['합계 : 전일대비손익']?b:a,cum[0]),
         worstDay=cum.reduce((a,b)=>b['합계 : 전일대비손익']<a['합계 : 전일대비손익']?b:a,cum[0]),
-        mdd=calcMdd(cum),chartNames=securityChartNamesForDate(x.date),symbolCards=x.holdings.filter(h=>chartNames.includes(h.name)||h.name==='KODEX 로봇액티브'||h.name==='KoAct 코스닥액티브'),orderedSymbols=sortSecurityChartItems(symbolCards),symbolTotal=symbolCards.reduce((a,h)=>a+h.profit,0),hasSymbolBuyFlow=orderedSymbols.some(h=>(Number(h?.tradeFlow?.buyAmount)||0)>0),
+        mdd=calcMdd(cum),chartNames=securityChartNamesForDate(x.date),symbolCards=x.holdings.filter(h=>chartNames.includes(h.name)||h.name==='KODEX 로봇액티브'||h.name==='KoAct 코스닥액티브'),orderedSymbols=sortSecurityChartItems(symbolCards),symbolTotal=symbolCards.reduce((a,h)=>a+h.profit,0),
         lastProfit=last['합계 : 누적손익'], lastReturn=last['합계 : 누적수익률'],
         profitDelta=prevCum?lastProfit-prevCum['합계 : 누적손익']:0,
         returnDelta=prevCum?lastReturn-prevCum['합계 : 누적수익률']:0,

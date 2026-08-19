@@ -339,7 +339,6 @@ function syncPensionContributionTargetUi(){
   const amountLabel=document.getElementById('pensionContribAmountLabel');
   const cashCostField=document.getElementById('pensionCashCostField');
   const cashCostEl=document.getElementById('pensionCashCostBasis');
-  const existingList=document.getElementById('pensionContribExistingList');
   const deleteHelp=document.getElementById('pensionContribDeleteHelp');
   const deleteStatus=document.getElementById('pensionContribDeleteStatus');
   const output=document.getElementById('pensionContribOutput');
