@@ -126,16 +126,16 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
     labelHtml:`<strong>${mobileTableProductName(r.name)}</strong>${pensionProductSwatch(r.name)}`,
     cells:[
       {className:'num table-cell-right',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span>`},
-      {className:'num table-cell-right',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span>`},
-      {className:`num table-cell-right ${tableCls(r.dayChange)}`,html:r.dayChange==null?'-':signed(r.dayChange)}
+      {className:'num table-cell-right asset-change-current-col',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span><span class="asset-change-mobile-delta ${tableCls(r.dayChange)}"><span class="visually-hidden">일변동 </span>${r.dayChange==null?'-':signed(r.dayChange)}</span>`},
+      {className:`num table-cell-right asset-change-delta-col ${tableCls(r.dayChange)}`,html:r.dayChange==null?'-':signed(r.dayChange)}
     ]
   }));
   rows.push({
     labelHtml:'현금성자산',
     cells:[
       {className:'num table-cell-right',html:`<span class="change-price">—</span><span class="change-eval">${won(x.prevPensionCash)}</span>`},
-      {className:'num table-cell-right',html:`<span class="change-price">—</span><span class="change-eval">${won(x.pensionCash)}</span>`},
-      {className:`num table-cell-right ${tableCls(x.pensionCashDayChange)}`,html:signed(x.pensionCashDayChange)}
+      {className:'num table-cell-right asset-change-current-col',html:`<span class="change-price">—</span><span class="change-eval">${won(x.pensionCash)}</span><span class="asset-change-mobile-delta ${tableCls(x.pensionCashDayChange)}"><span class="visually-hidden">일변동 </span>${signed(x.pensionCashDayChange)}</span>`},
+      {className:`num table-cell-right asset-change-delta-col ${tableCls(x.pensionCashDayChange)}`,html:signed(x.pensionCashDayChange)}
     ]
   });
   const summaryRows=[{
@@ -143,8 +143,8 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
     labelHtml:'합계',
     cells:[
       {className:'num table-cell-right',html:fmt(x.pensionPrevEval)},
-      {className:'num table-cell-right',html:fmt(x.pensionEval)},
-      {className:`num table-cell-right ${tableCls(day)}`,html:signed(day)}
+      {className:'num table-cell-right asset-change-current-col',html:`${fmt(x.pensionEval)}<span class="asset-change-mobile-delta ${tableCls(day)}"><span class="visually-hidden">일변동 </span>${signed(day)}</span>`},
+      {className:`num table-cell-right asset-change-delta-col ${tableCls(day)}`,html:signed(day)}
     ]
   }];
   const cards=orderedPensionRows.map(r=>({
@@ -177,8 +177,8 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
     columns:[
       {label:'상품'},
       {label:`${prevDateLabel} 종가`},
-      {label:`${currentDateLabel} 종가`},
-      {label:'일변동'}
+      {label:`${currentDateLabel} 종가`,className:'asset-change-current-col'},
+      {label:'일변동',className:'asset-change-delta-col'}
     ],
     rows,
     summaryRows,

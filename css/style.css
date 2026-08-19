@@ -1810,6 +1810,15 @@ body.chart-expanded-open .dash-tooltip{
     display:inline;
     font-size:var(--type-size-xs);
   }
+  .asset-change-table .asset-change-delta-col{display:none}
+  .asset-change-table .asset-change-mobile-delta{
+    display:block;
+    margin-top:var(--space-2xs);
+    font-size:inherit;
+    font-weight:var(--data-table-value-weight);
+    line-height:var(--data-table-line-height);
+    white-space:nowrap;
+  }
   #accounts-summary #accounts-table-view{
     overflow:visible;
   }
@@ -2376,6 +2385,7 @@ body.chart-expanded-open .dash-tooltip{
   font-size:var(--type-size-xs);
   white-space:nowrap;
 }
+.asset-change-mobile-delta{display:none}
 
 .change-mobile-list{margin-top:var(--space-5xl)}
 
@@ -5103,6 +5113,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 /* Table Exceptions · 표 예외: memo 줄바꿈 + Asset status allocation bar 폭 */
 
 /* Account Labels · 계좌명: table/mobile card 동일 강조 계층 */
+.accounts-table{width:100%}
 .accounts-table tbody tr:not(.summary-row) .accounts-name{font-weight:var(--data-table-label-weight)}
 .dashboard-data-table .accounts-memo{
   min-width:0;

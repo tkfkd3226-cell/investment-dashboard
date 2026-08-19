@@ -895,16 +895,16 @@ function renderSecuritiesChangeBlock(x){
     labelHtml:`<strong>${r.name}</strong>${securitySymbolSwatch(r.name)}`,
     cells:[
       {className:'num table-cell-right',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span>`},
-      {className:'num table-cell-right',html:`<span class="change-price">${r.price==null?'-':fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span>`},
-      {className:`num table-cell-right ${tableCls(r.dayChange)}`,html:r.dayChange==null?'-':signed(r.dayChange)}
+      {className:'num table-cell-right asset-change-current-col',html:`<span class="change-price">${r.price==null?'-':fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span><span class="asset-change-mobile-delta ${tableCls(r.dayChange)}"><span class="visually-hidden">일변동 </span>${r.dayChange==null?'-':signed(r.dayChange)}</span>`},
+      {className:`num table-cell-right asset-change-delta-col ${tableCls(r.dayChange)}`,html:r.dayChange==null?'-':signed(r.dayChange)}
     ]
   }));
   rows.push({
     labelHtml:'증권계좌 현금',
     cells:[
       {className:'num table-cell-right',html:`<span class="change-price">—</span><span class="change-eval">${hasPrev?won(change.cash.prevEval):'-'}</span>`},
-      {className:'num table-cell-right',html:`<span class="change-price">—</span><span class="change-eval">${won(change.cash.evalAmount)}</span>`},
-      {className:`num table-cell-right ${tableCls(change.cash.dayChange)}`,html:change.cash.dayChange==null?'-':signed(change.cash.dayChange)}
+      {className:'num table-cell-right asset-change-current-col',html:`<span class="change-price">—</span><span class="change-eval">${won(change.cash.evalAmount)}</span><span class="asset-change-mobile-delta ${tableCls(change.cash.dayChange)}"><span class="visually-hidden">일변동 </span>${change.cash.dayChange==null?'-':signed(change.cash.dayChange)}</span>`},
+      {className:`num table-cell-right asset-change-delta-col ${tableCls(change.cash.dayChange)}`,html:change.cash.dayChange==null?'-':signed(change.cash.dayChange)}
     ]
   });
   const summaryRows=[{
@@ -912,8 +912,8 @@ function renderSecuritiesChangeBlock(x){
     labelHtml:'합계',
     cells:[
       {className:'num table-cell-right',html:hasPrev?fmt(change.prevEvaluationTotal):'-'},
-      {className:'num table-cell-right',html:fmt(change.evaluationTotal)},
-      {className:`num table-cell-right ${tableCls(change.dayChange)}`,html:change.dayChange==null?'-':signed(change.dayChange)}
+      {className:'num table-cell-right asset-change-current-col',html:`${fmt(change.evaluationTotal)}<span class="asset-change-mobile-delta ${tableCls(change.dayChange)}"><span class="visually-hidden">일변동 </span>${change.dayChange==null?'-':signed(change.dayChange)}</span>`},
+      {className:`num table-cell-right asset-change-delta-col ${tableCls(change.dayChange)}`,html:change.dayChange==null?'-':signed(change.dayChange)}
     ]
   }];
   const cards=orderedRows.map(r=>({
@@ -947,8 +947,8 @@ function renderSecuritiesChangeBlock(x){
     columns:[
       {label:'종목'},
       {label:`${prevDateLabel} 종가`},
-      {label:`${currentDateLabel} 종가`},
-      {label:'일변동'}
+      {label:`${currentDateLabel} 종가`,className:'asset-change-current-col'},
+      {label:'일변동',className:'asset-change-delta-col'}
     ],
     rows,
     summaryRows,
