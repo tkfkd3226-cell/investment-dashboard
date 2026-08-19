@@ -379,6 +379,12 @@ const securityTradeFlow=(fromDate,toDate,ticker=null)=>securityEventsBetween(fro
   if(v.type==='sell'){a.sellQty+=qty;a.sellAmount+=amount;}
   return a;
 },{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0});
+const securityFundingFlow=(fromDate,toDate)=>securityEventsBetween(fromDate,toDate).reduce((a,v)=>{
+  const amount=Math.max(0,Number(v.amount)||0);
+  if(v.type==='contribution')a.contributionAmount+=amount;
+  if(v.type==='withdrawal')a.withdrawalAmount+=amount;
+  return a;
+},{contributionAmount:0,withdrawalAmount:0});
 const securityPositionState=(pos,d)=>{
   let qty=Number(pos?.qty)||0,cost=Number(pos?.cost)||0;
   securityEventItems().filter(v=>String(v?.ticker||'')===String(pos?.ticker||'')&&String(v?.date||'')>d).sort((a,b)=>String(b.date).localeCompare(String(a.date))).forEach(v=>{
@@ -421,6 +427,98 @@ const sourceExternalPrincipalForDate=d=>externalPrincipalForDate(d)-securityExcl
 const outsideCashForDate=d=>(Number(dataState.portfolio?.constants?.outsideCash??2035097)||0)-securityInternalCashTransferSum(d);
 const separateProfitCumulativeForDate=d=>SEPARATE_PROFIT_TRADES.filter(v=>v.date<=d).reduce((a,v)=>a+v.profit,0);
 const separateProfitReinvestedForDate=d=>Math.min(SEPARATE_PROFIT_REINVESTED,securityExcludedTransferSum(d),Math.max(0,separateProfitCumulativeForDate(d)));
+const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCash})=>{
+  const activeRows=holdings.filter(h=>(Number(h?.qty)||0)>0);
+  const holdingCost=activeRows.reduce((a,h)=>a+(Number(h?.cost)||0),0);
+  const holdingEval=activeRows.reduce((a,h)=>a+(Number(h?.evalAmount)||0),0);
+  const holdingProfit=holdingEval-holdingCost;
+  const cash=Number(securitiesCash)||0;
+  const evaluationTotal=holdingEval+cash;
+  const weightPct=value=>evaluationTotal?Number(value||0)/evaluationTotal*100:0;
+  const statusRows=activeRows.map(h=>({...h,weightPct:weightPct(h.evalAmount)}));
+  const totalCost=holdingCost+cash;
+  const summaryRows=[
+    {id:'holdings',label:'보유종목 합계',cost:holdingCost,evalAmount:holdingEval,profit:holdingProfit,returnRate:holdingCost?holdingProfit/holdingCost*100:0,weightPct:weightPct(holdingEval)},
+    {id:'cash',label:'증권계좌 현금',cost:cash,evalAmount:cash,profit:0,returnRate:0,weightPct:weightPct(cash)},
+    {id:'total',label:'총계(보유분+현금)',cost:totalCost,evalAmount:evaluationTotal,profit:holdingProfit,returnRate:totalCost?holdingProfit/totalCost*100:0,weightPct:evaluationTotal?100:0}
+  ];
+
+  const prevDaily=prevKey?dataState.account1Daily?.[prevKey]:null;
+  const hasPrev=!!prevKey&&(!!prevDaily||!!dataState.prices?.[prevKey]);
+  const prevCash=hasPrev?(prevDaily?Number(prevDaily.cash)||0:securitiesCashForDate(prevKey)):null;
+  const prevDailyHoldings=Array.isArray(prevDaily?.holdings)?prevDaily.holdings:[];
+  const changeRows=holdings
+    .filter(h=>{
+      const tradeFlow=h?.tradeFlow||{};
+      const qty=Number(h?.qty)||0;
+      const buyQty=Number(tradeFlow.buyQty)||0;
+      const sellQty=Number(tradeFlow.sellQty)||0;
+      const prevQty=qty-buyQty+sellQty;
+      return qty>0||prevQty>0||buyQty>0||sellQty>0;
+    })
+    .map(h=>{
+      const snapshot=prevDailyHoldings.find(v=>(h.ticker&&v?.ticker===h.ticker)||v?.name===h.name);
+      return {
+        name:h.name,
+        ticker:h.ticker,
+        type:h.type,
+        cssClass:h.cssClass,
+        prevPrice:snapshot?.price??h.prevPrice??null,
+        price:h.price??null,
+        prevEval:snapshot?.evalAmount??h.prevEval??null,
+        evalAmount:Number(h.evalAmount)||0,
+        dayChange:h.dayChange??null
+      };
+    });
+  const prevDailyTotal=Number(prevDaily?.totalEval);
+  const prevEvaluationTotal=hasPrev
+    ?(prevDaily&&Number.isFinite(prevDailyTotal)?prevDailyTotal:changeRows.reduce((a,r)=>a+(Number(r.prevEval)||0),0)+(Number(prevCash)||0))
+    :null;
+  let cashDayChange=null,tradeFlow={buyAmount:0,sellAmount:0,buyQty:0,sellQty:0},fundingFlow={contributionAmount:0,withdrawalAmount:0};
+  if(hasPrev){
+    if(daily){
+      // Historical daily snapshots do not carry a complete securities event ledger.
+      // Cash itself has no market-price return, so keep its performance contribution flow-neutral.
+      cashDayChange=0;
+    }else{
+      tradeFlow=securityTradeFlow(prevKey,date);
+      fundingFlow=securityFundingFlow(prevKey,date);
+      cashDayChange=cash-(Number(prevCash)||0)-fundingFlow.contributionAmount+fundingFlow.withdrawalAmount+tradeFlow.buyAmount-tradeFlow.sellAmount;
+    }
+  }
+  const dayChange=hasPrev?changeRows.reduce((a,r)=>a+(Number(r.dayChange)||0),0)+(Number(cashDayChange)||0):null;
+  const dayRate=hasPrev&&Number(prevEvaluationTotal)?Number(dayChange||0)/Number(prevEvaluationTotal)*100:null;
+  const positiveItems=[
+    ...changeRows.filter(r=>Number(r.dayChange)>0).map(r=>({id:String(r.ticker||r.name),name:r.name,ticker:r.ticker,type:r.type,value:Number(r.dayChange)})),
+    ...(Number(cashDayChange)>0?[{id:'cash',name:'증권계좌 현금',ticker:null,type:'cash',value:Number(cashDayChange)}]:[])
+  ];
+  const positiveTotal=positiveItems.reduce((a,item)=>a+item.value,0);
+  const contributionItems=positiveItems.map(item=>({...item,sharePct:positiveTotal?item.value/positiveTotal*100:0}));
+
+  return {
+    date,
+    prevDate:prevKey,
+    hasPrev,
+    noPrev:!hasPrev,
+    evaluationTotal,
+    holdingEval,
+    cash,
+    statusRows,
+    summaryRows,
+    change:{
+      prevEvaluationTotal,
+      evaluationTotal,
+      dayChange,
+      dayRate,
+      rows:changeRows,
+      cash:{prevEval:prevCash,evalAmount:cash,dayChange:cashDayChange},
+      tradeFlow,
+      fundingFlow
+    },
+    contribution:{positiveTotal,items:contributionItems}
+  };
+};
+
 const separateProfitView=x=>{
   const separateProfit=uiState.includeSeparateProfit?separateProfitCumulativeForDate(x.date):0;
   const reclassifiedReinvestment=uiState.includeSeparateProfit?separateProfitReinvestedForDate(x.date):0;
@@ -507,7 +605,8 @@ function calc(date){
   }):[];
   const basePensionCash=hasPension?Number(s?.pension?.cash||0):0,basePrevPensionCash=Number(prev?.pension?.cash||0),pensionCash=hasPension?pensionCashValuation(date,basePensionCash):0,prevPensionCash=prev?pensionCashValuation(pk,basePrevPensionCash):0,pensionTradeDayFlow=pk?pensionTradeFlow(pk,date):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0},pensionExternalFlow=pk?pensionContributionSumAfter(pk,date):0,pensionCashDayChange=prev?pensionCash-prevPensionCash-pensionExternalFlow+pensionTradeDayFlow.buyAmount-pensionTradeDayFlow.sellAmount:null,pensionCashCost=hasPension?pensionCashCostBasis(date):0,pensionEval=hasPension?pensionRows.reduce((a,r)=>a+r.evalAmount,0)+pensionCash:0,pensionPrevEval=hasPension&&prev?pensionRows.reduce((a,r)=>a+(r.prevEval||0),0)+prevPensionCash:null,pensionDayChange=hasPension&&prev?pensionRows.reduce((a,r)=>a+(Number(r.dayChange)||0),0)+(Number(pensionCashDayChange)||0):null,pensionDayRate=pensionPrevEval?pensionDayChange/pensionPrevEval*100:0,pensionProfit=hasPension?pensionEval-pensionPrincipal:0,pensionReturn=hasPension&&pensionPrincipal?pensionProfit/pensionPrincipal*100:0;
   const combinedPrincipal=hasPension?totalPrincipal+pensionPrincipal:totalPrincipal,combinedResult=hasPension?totalResult+pensionEval:totalResult,combinedProfit=hasPension?totalProfit+pensionProfit:totalProfit,combinedReturn=combinedPrincipal?combinedProfit/combinedPrincipal*100:0;
-  return {date,s,prevKey:pk,prev,daily,hasDaily:!!daily,account2Included,tossIncluded,hasPension,holdings,securitiesCash,rawHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,account2Profit,account2Principal,account2RealizedAmount,account2Remainder,tossProfit,tossRealizedAmount,tossRemainder,totalPrincipal,totalProfit,totalResult,returnRate,actualHolding,pensionRows,pensionCash,prevPensionCash,pensionCashCost,pensionCashDayChange,pensionTradeDayFlow,pensionExternalFlow,pensionEval,pensionPrevEval,pensionDayChange,pensionDayRate,pensionProfit,pensionReturn,extraPensionContrib,prevExtraPensionContrib,basePensionCash,basePrevPensionCash,pensionPrincipal,combinedPrincipal,combinedResult,combinedProfit,combinedReturn,etfEval,stockEval,allocTotal}
+  const securitiesAssetDetail=securitiesAssetDetailViewModel({date,prevKey:pk,daily,holdings,securitiesCash});
+  return {date,s,prevKey:pk,prev,daily,hasDaily:!!daily,account2Included,tossIncluded,hasPension,holdings,securitiesCash,securitiesAssetDetail,rawHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,account2Profit,account2Principal,account2RealizedAmount,account2Remainder,tossProfit,tossRealizedAmount,tossRemainder,totalPrincipal,totalProfit,totalResult,returnRate,actualHolding,pensionRows,pensionCash,prevPensionCash,pensionCashCost,pensionCashDayChange,pensionTradeDayFlow,pensionExternalFlow,pensionEval,pensionPrevEval,pensionDayChange,pensionDayRate,pensionProfit,pensionReturn,extraPensionContrib,prevExtraPensionContrib,basePensionCash,basePrevPensionCash,pensionPrincipal,combinedPrincipal,combinedResult,combinedProfit,combinedReturn,etfEval,stockEval,allocTotal}
 }
 function snapshotDates(d){
   return allAvailableDates().filter(x=>x<=d);

@@ -876,7 +876,7 @@ UI 평가는 코드 구조 점수와 분리해서 실제 화면 설계 관점으
 - action buttons / external links
 - 연금+계좌 성과
 - 증권계좌 현황
-- 계좌별 성과 요약
+- 증권/퇴직연금 성과 요약 (증권 전체/계좌별 전환 포함)
 - 보유분
 - 투자기간 차트
 - 장부결과 VS 실제보유
@@ -2340,8 +2340,18 @@ dashboard-pension.js
 - 공통 SVG navigation icon
 - HTML escape
 - 공통 swatch markup
+- 증권·퇴직연금이 함께 쓰는 Asset Detail 표현 renderer
+  - 현황 table/card shell
+  - 비중 bar
+  - 전일 대비 변동 KPI + table/card shell
+  - 오늘 상승분 기여도
+  - Asset 시각화 tooltip interaction
 
-화면별 rendering이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js`로 보내지 않는다.
+Asset Detail은 각 자산 모듈이 계산한 neutral View Model을 받아 **표현만** 담당한다. 증권의 거래·현금/dayChange 계산과 퇴직연금의 납입·상품·현금/dayChange 계산을 common layer로 합치지 않는다. `dashboard-core.js`는 계속 DOM-free를 유지하고, `dashboard-ui-common.js`가 기능 모듈을 역으로 import하지 않는다. 증권 `보유종목 현황`과 퇴직연금 `연금상품별 현황`, 양쪽의 `전일 대비 변동`, `오늘 상승분 기여도`는 같은 Asset UI renderer/CSS를 사용한다. 증권 `보유종목 현황`의 summary row 구성은 증권 View Model이 소유하며 `보유종목 합계 → 증권계좌 현금 → 총계(보유분+현금)`의 3단 구조를 고유 기준으로 계속 유지한다. 상승분 기여도는 각 자산 adapter가 계산한 양수 dayChange 항목만 common renderer에 전달하고, 현금 dayChange가 양수이면 동일한 asset item으로 취급한다. 증권/연금 tooltip ID는 각 asset prefix로 고유하게 만들고, tooltip interaction은 app에서 공통 `.asset-insight-zone`을 대상으로 한 번 초기화한다.
+
+증권과 퇴직연금의 상단 KPI는 공통 **`성과 요약` overview shell**을 사용한다. 기본 `전체` 상태에서 제목 시작 위치, KPI 시작 위치·높이·간격, KPI 하단 여백, 다음 Asset Detail 시작 위치가 양쪽 자산에서 같은 vertical rhythm을 가져야 한다. 증권만 `성과 요약` header action으로 `전체 / 계좌별` drill-down을 제공하며 기본값은 `전체`다. `계좌별`은 과거 독립 `계좌별 성과 요약` 섹션을 별도로 유지하지 않고 같은 overview 안에서 table/card view로 전환한다. 계좌1·계좌2·토스·합계, 투자원금·투자 결과물·누적손익·누적수익률·메모를 유지하고 합계의 투자 결과물은 상단 전체 KPI와 직접 검산되어야 한다. 계좌별 view가 높아지는 것은 자연스러운 content flow로 처리하고, 전체 복귀 시 고정 min-height나 placeholder 없이 기본 높이로 복원한다. 이 overview의 title/action은 기존 `.section-title`, segmented/button, mobile table/card control을 우선 재사용하며 별도 전용 디자인 시스템을 만들지 않는다.
+
+화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js`로 보내지 않는다.
 
 
 ## 4.7 `dashboard-charts.js` 책임
@@ -2385,7 +2395,7 @@ js/dashboard-charts.js
 - 평가/손익 표시
 - 오늘 상승분 기여도
 - 위험자산 70% 룰
-- 시각화 tooltip
+- Asset 인사이트 markup
 
 읽기 화면에 필요한 계산은 core helper를 사용하고, 저장/PIN/batch 로직을 넣지 않는다.
 
@@ -2844,7 +2854,9 @@ New
 
 현재 이미 존재하는 기능상 필요한 예외 breakpoint는 함부로 제거하지 않는다.
 
-현재 허용된 기능상 예외 breakpoint 중 `1280px 이하`는 퇴직연금 상세의 `연금상품별 현황`과 `전일 대비 변동`을 2열에서 각각 1열로 전환하기 위한 전용 기준이다. 작은 Desktop 폭에서 두 표가 나란히 배치되며 내부 가로 스크롤이 생기는 문제를 방지하기 위한 것이므로, 다른 영역의 일반 반응형 기준으로 확대 적용하지 않는다.
+현재 허용된 기능상 예외 breakpoint 중 `1280px 이하`는 **공통 Asset Detail 기능 breakpoint**다. 증권의 `보유종목 현황 + 전일 대비 변동`과 퇴직연금의 `연금상품별 현황 + 전일 대비 변동`이 Desktop에서 2열로 배치되다가 `1280px 이하`에서 1열로 전환하여 표 내부 가로 스크롤을 방지한다. 이 규칙은 `.asset-detail-grid`의 공통 기능 기준이며, 다른 일반 영역의 반응형 breakpoint로 확대 적용하지 않는다. 새 증권 전용 breakpoint도 만들지 않는다.
+
+공통 Asset Detail CSS는 기존 generic class/token을 우선 재사용하고, 실제로 양쪽 자산이 공유하는 의미에만 최소 `.asset-*` semantic class를 사용한다. 현황/전일변동/상승분기여도에서 공통화된 selector는 neutral `.asset-*`가 canonical이며, 같은 역할의 `.pension-*` legacy alias를 병렬로 유지하지 않는다. 위험자산 70% 룰·퇴직연금 조정/PIN/납입 등 연금 전용 UI는 계속 `.pension-*`를 사용한다.
 
 
 
@@ -4508,7 +4520,7 @@ JS 3차 리팩토링 최종 QA PASS 기준 참고용 규모:
 | 증권/퇴직연금 Tabs | 96 |
 | 증권계좌 KPI | 95 |
 | 계좌별 성과 | 94 |
-| 증권계좌 보유분 | 94 |
+| 보유종목 현황 | 94 |
 | 장부결과 / 검산 | 92 |
 | 퇴직연금 현황 | 96 |
 | 퇴직연금 상품별 현황 | 96 |
@@ -4583,7 +4595,7 @@ JS 3차 리팩토링 최종 QA PASS 기준 참고용 규모:
 | 증권/퇴직연금 Tabs | 96 |
 | 증권계좌 KPI | 95 |
 | 계좌별 성과 | 95 |
-| 증권계좌 보유분 | 95 |
+| 보유종목 현황 | 95 |
 | 장부결과 / 검산 | 99 |
 | 퇴직연금 현황 | 96 |
 | 퇴직연금 상품별 현황 | 96 |
@@ -4663,7 +4675,7 @@ Hero
 증권/퇴직연금 Tabs
 증권계좌 KPI
 계좌별 성과
-증권계좌 보유분
+보유종목 현황
 장부결과 / 검산
 퇴직연금 현황
 퇴직연금 상품별 현황

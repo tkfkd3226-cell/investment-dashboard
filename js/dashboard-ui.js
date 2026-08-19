@@ -1,4 +1,5 @@
 import {
+  CASH_ASSET_COLOR,
   PENSION_CONTRIBUTION_SAVE_CONFIG,
   account1PrincipalForDate,
   account1SourceHoldingGapForDate,
@@ -15,10 +16,12 @@ import {
   securityExcludedTransferSum,
   securityExternalContributionSum,
   securityInternalCashTransferSum,
+  securityAllocationColor,
   securitiesScopeText,
   separateProfitCumulativeForDate,
   separateProfitReinvestedForDate,
   separateProfitView,
+  shortDate,
   signed,
   sortSecurityItems,
   sourceExternalPrincipalForDate,
@@ -31,6 +34,10 @@ import {
   escapeHtml,
   navIconSvg,
   releaseDashboardDialogFocus,
+  renderAssetContributionCard,
+  renderAssetDayChangeBlock,
+  renderAssetStatusBlock,
+  renderAssetWeight,
   securitySymbolSwatch
 } from './dashboard-ui-common.js';
 import {
@@ -46,12 +53,14 @@ const currentTheme=()=>document.documentElement.classList.contains('dark')?'dark
 const uiRuntimeState={
   mobileTopScrollBound:false,
   sectionNavigationBound:false,
-  sectionNavigationFrame:0
+  sectionNavigationFrame:0,
+  securitiesPerformanceView:'overall'
 };
 const mobileViewModes={
   combined:'table',
   pensionProducts:'table',
   holdings:'table',
+  securitiesChange:'table',
   accounts:'table',
   pensionChange:'table'
 };
@@ -147,8 +156,8 @@ function renderUnifiedMobileMenuContent(){
       label:'증권계좌',
       items:[
         {type:'section',id:'securities-section',icon:'bank',title:'증권계좌 현황'},
-        {type:'section',id:'accounts-summary',icon:'list',title:'계좌별 성과 요약'},
-        {type:'section',id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
+        {type:'section',id:'securities-holdings',icon:'folder',title:'보유종목 현황'},
+        {type:'section',id:'securities-change',icon:'trending',title:'전일 대비 변동'},
         {type:'section',id:'chart-cum',icon:'lineChart',title:'누적손익 및 누적수익률'},
         {type:'section',id:'chart-symbol',icon:'barChart',title:'종목별 누적손익'},
         {type:'section',id:'chart-alloc',icon:'pie',title:'평가금액 비중'},
@@ -188,8 +197,8 @@ function renderDesktopTocContent(){
       label:'증권계좌',
       items:[
         {id:'securities-section',icon:'bank',title:'증권계좌 현황'},
-        {id:'accounts-summary',icon:'list',title:'계좌별 성과 요약'},
-        {id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
+        {id:'securities-holdings',icon:'folder',title:'보유종목 현황'},
+        {id:'securities-change',icon:'trending',title:'전일 대비 변동'},
         {id:'chart-cum',icon:'lineChart',title:'누적손익 및 누적수익률'},
         {id:'chart-symbol',icon:'barChart',title:'종목별 누적손익'},
         {id:'chart-alloc',icon:'pie',title:'평가금액 비중'},
@@ -365,7 +374,8 @@ function mobileViewAttrs(key){
   return `data-mobile-view-key="${key}" data-mobile-view="${mode}"`;
 }
 const MOBILE_VIEW_META=Object.freeze({
-  holdings:{label:'증권계좌 보유분',controls:'holdings-table-view holdings-card-view'},
+  holdings:{label:'보유종목 현황',controls:'securities-holdings-table-view securities-holdings-card-view'},
+  securitiesChange:{label:'전일 대비 변동',controls:'securities-change-table-view securities-change-card-view'},
   combined:{label:'연금+계좌 성과',controls:'combined-table-view combined-card-view'},
   accounts:{label:'계좌별 성과 요약',controls:'accounts-table-view accounts-card-view'},
   pensionProducts:{label:'퇴직연금 상품별 현황',controls:'pension-products-table-view pension-products-card-view'},
@@ -716,15 +726,37 @@ function sectionToSecuritiesBlock(html, extraClass=''){
     })
     .replace(/<\/section>\s*$/, '</div>');
 }
-function renderSecuritiesSummaryCards(x){
+function renderSecuritiesSummaryCards(x,{hidden=false}={}){
   const securitiesScope=securitiesScopeText(x),v=separateProfitView(x),separateProfitOn=uiState.includeSeparateProfit;
   const principalNote=separateProfitOn?'전체 투입원금 | 별도 수익 재투입 670만 원 제외':'전체 투입원금 + 보유 자금 투입 670만 원';
   const principalMobileNote=separateProfitOn?'전체 투입원금 | 670만 원 제외':'전체 투입원금 + 670만 원';
   const returnNote='누적손익 ÷ 투입원금';
-  return `<div class="securities-subsection securities-summary-block"><div class="grid cards metric-grid">${metricCard('투자 결과물',won(v.totalResult),securitiesScope,true)}${metricCard('투입원금',won(v.totalPrincipal),principalNote,false,'',principalMobileNote)}${metricCard('누적손익',won(v.totalProfit),'투자 결과물 - 투입원금',false,cls(v.totalProfit))}${metricCard('누적수익률',pct(v.totalReturn),returnNote,false,cls(v.totalReturn))}</div></div>`;
+  return `<div id="securities-overall-summary"${hidden?' hidden':''}><div class="grid cards metric-grid">${metricCard('투자 결과물',won(v.totalResult),securitiesScope,true)}${metricCard('투입원금',won(v.totalPrincipal),principalNote,false,'',principalMobileNote)}${metricCard('누적손익',won(v.totalProfit),'투자 결과물 - 투입원금',false,cls(v.totalProfit))}${metricCard('누적수익률',pct(v.totalReturn),returnNote,false,cls(v.totalReturn))}</div></div>`;
+}
+function securitiesPerformanceViewSwitch(){
+  const mode=uiRuntimeState.securitiesPerformanceView;
+  return `<div class="chart-compare-toggle" role="group" aria-label="증권 성과 요약 표시 기준"><button type="button" class="${mode==='overall'?'active':''}" data-securities-performance-view="overall" data-dashboard-action="set-securities-performance-view" aria-pressed="${mode==='overall'}" aria-controls="securities-overall-summary">전체</button><button type="button" class="${mode==='accounts'?'active':''}" data-securities-performance-view="accounts" data-dashboard-action="set-securities-performance-view" aria-pressed="${mode==='accounts'}" aria-controls="accounts-summary">계좌별</button></div>`;
+}
+function setSecuritiesPerformanceView(mode='overall'){
+  const next=mode==='accounts'?'accounts':'overall';
+  uiRuntimeState.securitiesPerformanceView=next;
+  document.querySelectorAll('[data-securities-performance-view]').forEach(button=>{
+    const active=button.dataset.securitiesPerformanceView===next;
+    button.classList.toggle('active',active);
+    button.setAttribute('aria-pressed',String(active));
+  });
+  document.getElementById('securities-overall-summary')?.toggleAttribute('hidden',next!=='overall');
+  document.getElementById('accounts-summary')?.toggleAttribute('hidden',next!=='accounts');
+  const accountsViewToggle=document.querySelector('[data-accounts-view-toggle-wrap]');
+  if(accountsViewToggle)accountsViewToggle.hidden=next!=='accounts';
+  if(next!=='accounts')closeAccountMemoInfo();
+}
+function renderSecuritiesPerformanceSummary(x){
+  const accountsMode=uiRuntimeState.securitiesPerformanceView==='accounts';
+  return `<div class="securities-subsection securities-summary-block asset-overview"><div class="section-title"><h3>성과 요약</h3><div class="section-title-actions">${securitiesPerformanceViewSwitch()}<span data-accounts-view-toggle-wrap${accountsMode?'':' hidden'}>${mobileViewToggle('accounts')}</span></div></div>${renderSecuritiesSummaryCards(x,{hidden:accountsMode})}${renderAccounts(x,{hidden:!accountsMode})}</div>`;
 }
 function renderSecuritiesSection(x){
-  return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="bank" aria-hidden="true"></span>증권계좌 현황</h2>${separateProfitControl(x,'section-inline')}</div><div class="securities-band">${renderSecuritiesSummaryCards(x)}${sectionToSecuritiesBlock(renderAccounts(x),'accounts-block')}${sectionToSecuritiesBlock(renderHoldings(x),'holdings-block')}${sectionToSecuritiesBlock(renderCharts(x,separateProfitControl(x,'chart-inline')),'charts-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(x),'source-block'):''}</div></section>`;
+  return `<section id="securities-section"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="bank" aria-hidden="true"></span>증권계좌 현황</h2>${separateProfitControl(x,'section-inline')}</div><div class="securities-band">${renderSecuritiesPerformanceSummary(x)}${renderSecuritiesAssetDetail(x)}${sectionToSecuritiesBlock(renderCharts(x,separateProfitControl(x,'chart-inline')),'charts-block')}${sectionToSecuritiesBlock(renderResultSummary(x),'ledger-block')}${isLedgerCheckDate(x.date)?sectionToSecuritiesBlock(renderSourceTables(x),'source-block'):''}</div></section>`;
 }
 
 
@@ -753,36 +785,182 @@ function renderResultSummary(x){
 
 
 function renderHoldings(x){
-  const holdCost=x.holdings.reduce((a,h)=>a+h.cost,0),
-        holdEval=x.holdings.reduce((a,h)=>a+h.evalAmount,0),
-        holdProfit=holdEval-holdCost,
-        cash=Number(x.securitiesCash||0),
-        totalCostWithCash=holdCost+cash,
-        totalEvalWithCash=holdEval+cash,
-        holdReturn=holdCost?holdProfit/holdCost*100:0,
-        totalReturnWithCash=totalCostWithCash?holdProfit/totalCostWithCash*100:0;
-  const orderedHoldings=sortSecurityItems(x.holdings.filter(h=>(Number(h?.qty)||0)>0));
-  const cards=orderedHoldings.map(h=>mobileInfoCard(`<span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}`,[
-    ['수량',fmt(h.qty)],
-    ['평균단가',won(h.avgPrice ?? (h.qty?h.cost/h.qty:0))],
-    ['투자원금',won(h.cost)],
-    ['현재가',won(h.price)],
-    ['평가금액',won(h.evalAmount)],
-    ['평가손익',won(h.profit),cls(h.profit)],
-    ['수익률',pct(h.returnRate),cls(h.returnRate)]
-  ],'',h.name)).join('')+
-  mobileInfoCard('보유종목 합계',[
-    ['투자원금',won(holdCost)],['평가금액',won(holdEval)],['평가손익',won(holdProfit),cls(holdProfit)],['수익률',pct(holdReturn),cls(holdReturn)]
-  ],'summary-card mobile-total-card')+
-  mobileInfoCard('증권계좌 현금',[
-    ['투자원금',won(cash)],['평가금액',won(cash)],['평가손익',won(0)],['수익률',pct(0)]
-  ])+
-  mobileInfoCard('총계(보유분+현금)',[
-    ['투자원금',won(totalCostWithCash)],['평가금액',won(totalEvalWithCash)],['평가손익',won(holdProfit),cls(holdProfit)],['수익률',pct(totalReturnWithCash),cls(totalReturnWithCash)]
-  ],'summary-card mobile-total-card');
-  return `<section id="securities-holdings" ${mobileViewAttrs('holdings')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="folder" aria-hidden="true"></span>증권계좌 보유분</h2>${mobileViewToggle('holdings')}</div><div id="holdings-table-view" class="mobile-scroll table-view"><table class="dashboard-data-table hold-position-table"><caption class="visually-hidden">증권계좌 보유분</caption><thead><tr><th scope="col">종목명</th><th scope="col" class="table-cell-center">수량</th><th scope="col">평균단가</th><th scope="col">투자원금</th><th scope="col">현재가</th><th scope="col">평가금액</th><th scope="col">평가손익</th><th scope="col" class="table-cell-center">수익률</th></tr></thead><tbody>${orderedHoldings.map(h=>`<tr class="hold-row"><th scope="row"><span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}</th><td class="num table-cell-center">${fmt(h.qty)}</td><td class="num table-cell-right">${fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))}</td><td class="num table-cell-right">${fmt(h.cost)}</td><td class="num table-cell-right">${fmt(h.price)}</td><td class="num table-cell-right">${fmt(h.evalAmount)}</td><td class="num table-cell-right ${tableCls(h.profit)}">${fmt(h.profit)}</td><td class="num table-cell-center ${tableCls(h.returnRate)}">${pct(h.returnRate)}</td></tr>`).join('')}<tr class="summary-row"><th scope="row">보유종목 합계</th><td class="num table-cell-center">-</td><td class="num table-cell-right">-</td><td class="num table-cell-right">${fmt(holdCost)}</td><td class="num table-cell-right">-</td><td class="num table-cell-right">${fmt(holdEval)}</td><td class="num table-cell-right ${tableCls(holdProfit)}">${fmt(holdProfit)}</td><td class="num table-cell-center ${tableCls(holdReturn)}">${pct(holdReturn)}</td></tr><tr><th scope="row">증권계좌 현금</th><td class="num table-cell-center">-</td><td class="num table-cell-right">-</td><td class="num table-cell-right">${fmt(cash)}</td><td class="num table-cell-right">-</td><td class="num table-cell-right">${fmt(cash)}</td><td class="num table-cell-right">0</td><td class="num table-cell-center">0.00%</td></tr><tr class="summary-row"><th scope="row">총계(보유분+현금)</th><td class="num table-cell-center">-</td><td class="num table-cell-right">-</td><td class="num table-cell-right">${fmt(totalCostWithCash)}</td><td class="num table-cell-right">-</td><td class="num table-cell-right">${fmt(totalEvalWithCash)}</td><td class="num table-cell-right ${tableCls(holdProfit)}">${fmt(holdProfit)}</td><td class="num table-cell-center ${tableCls(totalReturnWithCash)}">${pct(totalReturnWithCash)}</td></tr></tbody></table></div><div id="holdings-card-view" class="mobile-card-view">${cards}</div></section>`;
+  const detail=x.securitiesAssetDetail;
+  const orderedHoldings=sortSecurityItems(detail.statusRows);
+  const summaryById=Object.fromEntries(detail.summaryRows.map(row=>[row.id,row]));
+  const rows=orderedHoldings.map(h=>({
+    className:'hold-row',
+    labelHtml:`<span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}`,
+    cells:[
+      {className:'num table-cell-center',html:fmt(h.qty)},
+      {className:'num table-cell-right',html:fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))},
+      {className:'num table-cell-right',html:fmt(h.cost)},
+      {className:'num table-cell-right',html:fmt(h.evalAmount)},
+      {className:`num table-cell-right ${tableCls(h.profit)}`,html:fmt(h.profit)},
+      {className:`num table-cell-center ${tableCls(h.returnRate)}`,html:pct(h.returnRate)},
+      {className:'num table-cell-center',html:renderAssetWeight({label:h.name,weight:h.weightPct,color:securityAllocationColor(h.name)})}
+    ]
+  }));
+  const summaryRows=['holdings','cash','total'].map(id=>{
+    const row=summaryById[id];
+    return {
+      className:id==='cash'?'':'summary-row',
+      labelHtml:row.label,
+      cells:[
+        {className:'num table-cell-center',html:'-'},
+        {className:'num table-cell-right',html:'-'},
+        {className:'num table-cell-right',html:fmt(row.cost)},
+        {className:'num table-cell-right',html:fmt(row.evalAmount)},
+        {className:`num table-cell-right ${tableCls(row.profit)}`,html:fmt(row.profit)},
+        {className:`num table-cell-center ${tableCls(row.returnRate)}`,html:pct(row.returnRate)},
+        {className:'num table-cell-center',html:renderAssetWeight({label:row.label,weight:row.weightPct,fillClass:'bar-gray'})}
+      ]
+    };
+  });
+  const cards=orderedHoldings.map(h=>({
+    title:`<span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}`,
+    accessibleLabel:h.name,
+    items:[
+      ['수량',fmt(h.qty)],
+      ['평균단가',won(h.avgPrice ?? (h.qty?h.cost/h.qty:0))],
+      ['투자원금',won(h.cost)],
+      ['평가금액',won(h.evalAmount)],
+      ['평가손익',won(h.profit),cls(h.profit)],
+      ['수익률',pct(h.returnRate),cls(h.returnRate)],
+      ['비중',pct(h.weightPct)]
+    ]
+  }));
+  ['holdings','cash','total'].forEach(id=>{
+    const row=summaryById[id];
+    cards.push({
+      title:row.label,
+      extraClass:id==='cash'?'':'summary-card mobile-total-card',
+      items:[
+        ['투자원금',won(row.cost)],
+        ['평가금액',won(row.evalAmount)],
+        ['평가손익',won(row.profit),cls(row.profit)],
+        ['수익률',pct(row.returnRate),cls(row.returnRate)],
+        ['비중',pct(row.weightPct)]
+      ]
+    });
+  });
+  const contributionItems=detail.contribution.items.map(item=>({
+    ...item,
+    share:item.sharePct,
+    shortLabel:item.name.replace('KODEX ',''),
+    color:item.type==='cash'?CASH_ASSET_COLOR:securityAllocationColor(item.name),
+    valueText:signed(item.value)
+  }));
+  const contributionHtml=`<div class="asset-insight-zone" role="group" aria-label="증권계좌 인사이트">${renderAssetContributionCard({
+    idPrefix:'securitiesContribution',
+    hasPrev:detail.hasPrev,
+    items:contributionItems
+  })}</div>`;
+  return renderAssetStatusBlock({
+    sectionId:'securities-holdings',
+    idPrefix:'securities-holdings',
+    viewStateKey:'holdings',
+    title:'보유종목 현황',
+    icon:'folder',
+    sectionClass:'holdings-block note asset-status-note',
+    tableClass:'dashboard-data-table hold-position-table asset-status-table',
+    caption:'증권계좌 보유종목 현황',
+    columns:[
+      {label:'종목'},
+      {label:'수량',className:'table-cell-center'},
+      {label:'평균단가'},
+      {label:'투자원금'},
+      {label:'평가금액'},
+      {label:'평가손익'},
+      {label:'수익률',className:'table-cell-center'},
+      {label:'비중'}
+    ],
+    rows,
+    summaryRows,
+    cards,
+    afterHtml:contributionHtml,
+    mobileViewAttrs,
+    mobileViewToggle,
+    mobileInfoCard
+  });
 }
 
+
+function renderSecuritiesChangeBlock(x){
+  const detail=x.securitiesAssetDetail,change=detail.change,hasPrev=detail.hasPrev;
+  const prevDateLabel=detail.prevDate?shortDate(detail.prevDate):'전일';
+  const currentDateLabel=shortDate(detail.date);
+  const orderedRows=sortSecurityItems(change.rows);
+  const rows=orderedRows.map(r=>({
+    labelHtml:`<strong>${r.name}</strong>${securitySymbolSwatch(r.name)}`,
+    cells:[
+      {className:'num table-cell-right',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span>`},
+      {className:'num table-cell-right',html:`<span class="change-price">${r.price==null?'-':fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span>`},
+      {className:`num table-cell-right ${tableCls(r.dayChange)}`,html:r.dayChange==null?'-':signed(r.dayChange)}
+    ]
+  }));
+  rows.push({
+    labelHtml:'증권계좌 현금',
+    cells:[
+      {className:'num table-cell-right',html:`<span class="change-price">—</span><span class="change-eval">${hasPrev?won(change.cash.prevEval):'-'}</span>`},
+      {className:'num table-cell-right',html:`<span class="change-price">—</span><span class="change-eval">${won(change.cash.evalAmount)}</span>`},
+      {className:`num table-cell-right ${tableCls(change.cash.dayChange)}`,html:change.cash.dayChange==null?'-':signed(change.cash.dayChange)}
+    ]
+  });
+  const summaryRows=[{
+    className:'summary-row',
+    labelHtml:'합계',
+    cells:[
+      {className:'num table-cell-right',html:hasPrev?fmt(change.prevEvaluationTotal):'-'},
+      {className:'num table-cell-right',html:fmt(change.evaluationTotal)},
+      {className:`num table-cell-right ${tableCls(change.dayChange)}`,html:change.dayChange==null?'-':signed(change.dayChange)}
+    ]
+  }];
+  const cards=orderedRows.map(r=>({
+    title:r.name,
+    items:[
+      [prevDateLabel+' 종가',r.prevPrice==null?'-':fmt(r.prevPrice)],
+      [prevDateLabel+' 평가금액',r.prevEval==null?'-':won(r.prevEval)],
+      [currentDateLabel+' 종가',r.price==null?'-':fmt(r.price)],
+      [currentDateLabel+' 평가금액',won(r.evalAmount)],
+      ['일변동',r.dayChange==null?'-':signed(r.dayChange),cls(r.dayChange)]
+    ]
+  }));
+  cards.push({title:'증권계좌 현금',items:[
+    [prevDateLabel+' 평가금액',hasPrev?won(change.cash.prevEval):'-'],
+    [currentDateLabel+' 평가금액',won(change.cash.evalAmount)],
+    ['일변동',change.cash.dayChange==null?'-':signed(change.cash.dayChange),cls(change.cash.dayChange)]
+  ]});
+  return renderAssetDayChangeBlock({
+    sectionId:'securities-change',
+    idPrefix:'securities-change',
+    viewStateKey:'securitiesChange',
+    hasPrev,
+    renderWithoutPrev:true,
+    summaryItems:[
+      {label:`${prevDateLabel} 평가금액`,value:hasPrev?won(change.prevEvaluationTotal):'-'},
+      {label:`${currentDateLabel} 평가금액`,value:won(change.evaluationTotal)},
+      {label:'하루 변동분',value:change.dayChange==null?'-':signed(change.dayChange,'원'),valueClass:cls(change.dayChange)},
+      {label:'하루 변동률',value:change.dayRate==null?'-':(change.dayRate>0?'+':'')+pct(change.dayRate),valueClass:cls(change.dayRate)}
+    ],
+    caption:'증권계좌 전일 대비 종목별 변동',
+    columns:[
+      {label:'종목'},
+      {label:`${prevDateLabel} 종가`},
+      {label:`${currentDateLabel} 종가`},
+      {label:'일변동'}
+    ],
+    rows,
+    summaryRows,
+    cards,
+    mobileViewAttrs,
+    mobileViewToggle,
+    mobileInfoCard
+  });
+}
+function renderSecuritiesAssetDetail(x){
+  return `<div class="grid two asset-detail-grid">${renderHoldings(x)}${renderSecuritiesChangeBlock(x)}</div>`;
+}
 function renderCombined(x){
   const v=separateProfitView(x),returnLabel='누적수익률',mobileReturnPct=n=>(Number(n)||0).toFixed(1)+'%';
   const cards=mobileInfoCard('퇴직연금',[
@@ -856,22 +1034,22 @@ function toggleAccountMemoInfo(event,button){
 
   if(open)showAccountMemoFloatingTooltip(button);
 }
-function renderAccounts(x){
-  const c=dataState.portfolio.constants,v=separateProfitView(x);
+function renderAccounts(x,{hidden=false}={}){
+  const c=dataState.portfolio.constants,v=separateProfitView(x),internalCashTransfer=securityInternalCashTransferSum(x.date);
   const rows=[
-    ['삼성증권1',v.account1Principal,v.account1Profit,v.account1Return,'2025-10-16 최초 시작.'],
-    ...(x.account2Included?[['삼성증권2',c.account2Principal,c.account2Profit,c.account2Profit/c.account2Principal*100,'2023-12-20 최초 시작. 2026-05-22 전량 매도.']]:[]),
-    ['토스증권',0,c.tossProfit,0,'2026-03-09 매수 후 익일 매도.']
+    ['삼성증권1',v.account1Principal,v.account1Result-internalCashTransfer,v.account1Profit,v.account1Return,'2025-10-16 최초 시작.'],
+    ...(x.account2Included?[['삼성증권2',c.account2Principal,x.account2Remainder,c.account2Profit,c.account2Profit/c.account2Principal*100,'2023-12-20 최초 시작. 2026-05-22 전량 매도.']]:[]),
+    ['토스증권',0,x.tossRemainder,c.tossProfit,0,'2026-03-09 매수 후 익일 매도.']
   ];
   const totalMemo='계좌 간 자금 이동 반영';
   const hiddenNote=x.account2Included?'':'<p class="table-note"><strong>참고:</strong> 삼성증권2는 2026-05-22 전량 매도 후 실현분 반영. 선택일이 2026-05-21 이전이면 당시 전체 성과 기준에서 제외되어 이 표에서도 숨김.</p>';
   const cards=rows.map(r=>mobileInfoCard(r[0],[
-    ['투자원금',r[1]?won(r[1]):'-'],['누적손익',won(r[2]),cls(r[2])],['누적수익률',r[1]?pct(r[3]):'-',r[1]?cls(r[3]):''],['',r[4],'','stacked note-only']
+    ['투자원금',r[1]?won(r[1]):'-'],['투자 결과물',won(r[2])],['누적손익',won(r[3]),cls(r[3])],['누적수익률',r[1]?pct(r[4]):'-',r[1]?cls(r[4]):''],['',r[5],'','stacked note-only']
   ])).join('')+mobileInfoCard('합계',[
-    ['투자원금',won(v.totalPrincipal)],['누적손익',won(v.totalProfit),cls(v.totalProfit)],['누적수익률',pct(v.totalReturn),cls(v.totalReturn)],['',totalMemo,'','stacked note-only']
+    ['투자원금',won(v.totalPrincipal)],['투자 결과물',won(v.totalResult)],['누적손익',won(v.totalProfit),cls(v.totalProfit)],['누적수익률',pct(v.totalReturn),cls(v.totalReturn)],['',totalMemo,'','stacked note-only']
   ],'summary-card mobile-total-card');
-  const totalRow=`<tr class="summary-row"><th scope="row" class="accounts-name">합계</th><td class="num table-cell-right">${fmt(v.totalPrincipal)}</td><td class="num table-cell-right ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}</td><td class="num table-cell-center ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td><td class="table-cell-text accounts-memo"><span class="accounts-memo-text">${totalMemo}</span>${accountMemoInfoButton(totalMemo)}</td></tr>`;
-  return `<section id="accounts-summary" ${mobileViewAttrs('accounts')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="list" aria-hidden="true"></span>계좌별 성과 요약</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('accounts')}</div></div><div id="accounts-table-view" class="mobile-scroll accounts-scroll table-view"><table class="dashboard-data-table accounts-table"><caption class="visually-hidden">계좌별 성과 요약</caption><thead><tr><th scope="col" class="accounts-name-head">구분</th><th scope="col">투자원금</th><th scope="col">누적손익</th><th scope="col" class="table-cell-center">누적수익률</th><th scope="col" class="table-cell-text accounts-memo-head">메모</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row" class="accounts-name">${r[0]}</th><td class="num table-cell-right">${r[1]?fmt(r[1]):'-'}</td><td class="num table-cell-right ${tableCls(r[2])}">${fmt(r[2])}</td><td class="num table-cell-center ${r[1]?tableCls(r[3]):''}">${r[1]?pct(r[3]):'-'}</td><td class="table-cell-text accounts-memo"><span class="accounts-memo-text">${accountMemoTableHtml(r[4])}</span>${accountMemoInfoButton(r[4])}</td></tr>`).join('')}${totalRow}</tbody></table></div><div id="accounts-card-view" class="mobile-card-view">${cards}</div>${hiddenNote}</section>`;
+  const totalRow=`<tr class="summary-row"><th scope="row" class="accounts-name">합계</th><td class="num table-cell-right">${fmt(v.totalPrincipal)}</td><td class="num table-cell-right">${fmt(v.totalResult)}</td><td class="num table-cell-right ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}</td><td class="num table-cell-center ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td><td class="table-cell-text accounts-memo"><span class="accounts-memo-text">${totalMemo}</span>${accountMemoInfoButton(totalMemo)}</td></tr>`;
+  return `<div id="accounts-summary" ${mobileViewAttrs('accounts')}${hidden?' hidden':''}><div id="accounts-table-view" class="mobile-scroll accounts-scroll table-view"><table class="dashboard-data-table accounts-table"><caption class="visually-hidden">성과 요약 계좌별 보기</caption><thead><tr><th scope="col" class="accounts-name-head">구분</th><th scope="col">투자원금</th><th scope="col">투자 결과물</th><th scope="col">누적손익</th><th scope="col" class="table-cell-center">누적수익률</th><th scope="col" class="table-cell-text accounts-memo-head">메모</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row" class="accounts-name">${r[0]}</th><td class="num table-cell-right">${r[1]?fmt(r[1]):'-'}</td><td class="num table-cell-right">${fmt(r[2])}</td><td class="num table-cell-right ${tableCls(r[3])}">${fmt(r[3])}</td><td class="num table-cell-center ${r[1]?tableCls(r[4]):''}">${r[1]?pct(r[4]):'-'}</td><td class="table-cell-text accounts-memo"><span class="accounts-memo-text">${accountMemoTableHtml(r[5])}</span>${accountMemoInfoButton(r[5])}</td></tr>`).join('')}${totalRow}</tbody></table></div><div id="accounts-card-view" class="mobile-card-view">${cards}</div>${hiddenNote}</div>`;
 }
 function renderSourceTables(x){
   const c=dataState.portfolio.constants,
@@ -912,6 +1090,7 @@ function handleUiDashboardAction(event,control){
     if(control.dataset.closeDateMenu==='true')closeDateActionMenu();
   }
   else if(action==='toggle-mobile-view')toggleMobileDataView(control.dataset.mobileViewKey||'');
+  else if(action==='set-securities-performance-view')setSecuritiesPerformanceView(control.dataset.securitiesPerformanceView||'overall');
   else if(action==='toggle-account-memo-info')toggleAccountMemoInfo(event,control);
   else if(action==='close-krx-modal')closeKrxActionModal();
   else if(action==='submit-krx-modal')submitKrxActionModal(control.dataset.krxMode||'selected');

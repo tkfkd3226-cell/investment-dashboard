@@ -13,7 +13,8 @@ import {
   activateDashboardDialogFocus,
   escapeHtml,
   navIconSvg,
-  releaseDashboardDialogFocus
+  releaseDashboardDialogFocus,
+  setupAssetVizTooltips
 } from './dashboard-ui-common.js';
 import {
   drawAllCharts,
@@ -43,10 +44,7 @@ import {
   syncCornerThemeControls,
   syncThemeControls
 } from './dashboard-ui.js';
-import {
-  renderPension,
-  setupPensionVizTooltips
-} from './dashboard-pension.js';
+import { renderPension } from './dashboard-pension.js';
 import {
   openPensionContributionModal,
   renderPensionContributionModal,
@@ -233,7 +231,7 @@ function render(){
   syncThemeControls();
   syncCornerThemeControls();
   drawAllCharts();
-  setupPensionVizTooltips();
+  setupAssetVizTooltips('.asset-insight-zone');
   ensureMobileTopButton();
   ensureDesktopEdgeToc();
   setupSectionNavigationTracking();

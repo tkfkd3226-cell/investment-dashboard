@@ -743,7 +743,7 @@ section{
   margin:0 0 var(--space-5xl);
 }
 
-.section-title h2,
+.section-title :is(h2,h3),
 .modal-main-title{
   margin:0;
   font-size:var(--section-title-font-size);
@@ -751,7 +751,7 @@ section{
   letter-spacing:-.04em;
   line-height:1.15;
 }
-.section-title h2{
+.section-title :is(h2,h3){
   display:flex;
   align-items:center;
   gap:var(--section-title-gap);
@@ -1045,7 +1045,7 @@ td.num{
 }
 
 .dash-tooltip,
-.pension-viz-tooltip,
+.asset-viz-tooltip,
 .phone-chart-ui .chart-title-info-tooltip{
   background:var(--tooltip-bg);
   color:var(--tooltip-color);
@@ -1996,40 +1996,40 @@ body.chart-expanded-open .dash-tooltip{
   width:100%;
 }
 
-.two > *, .pension-detail-grid > *, .chart-card, .chart-wrap{
+.two > *, .asset-detail-grid > *, .chart-card, .chart-wrap{
   min-width:0;
 }
 
-/* [07. Pension · 퇴직연금] Overview / Insight · 현황 / 인사이트 */
-.pension-detail-grid{
+/* [07. Asset Detail · 자산 상세] Shared Status / Change / Insight · 공통 현황 / 변동 / 인사이트 */
+.asset-detail-grid{
   width:100%;
   margin-top:var(--space-7xl);
   grid-template-columns:minmax(0,1.56fr) minmax(min(42%,480px),.72fr);
   align-items:stretch;
 }
 
-.pension-detail-grid .note{
+.asset-detail-grid .note{
   width:100%;
   height:100%;
 }
 
-.pension-detail-grid .mobile-scroll{
+.asset-detail-grid .mobile-scroll{
   width:100%;
   min-width:0;
 }
 
-.pension-change-note{
+.asset-change-note{
   overflow:hidden;
 }
 
-.pension-insight-zone{
+.asset-insight-zone{
   display:grid;
   grid-template-columns:1fr;
   gap:var(--space-6xl);
   margin-top:var(--space-6xl);
 }
 
-.pension-insight-card{
+.asset-insight-card{
   border:1px solid var(--line);
   border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
   padding:var(--space-5xl) var(--surface-pad-md);
@@ -2037,7 +2037,7 @@ body.chart-expanded-open .dash-tooltip{
   box-shadow:var(--insight-inset-shadow);
 }
 
-.pension-insight-head{
+.asset-insight-head{
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -2045,7 +2045,7 @@ body.chart-expanded-open .dash-tooltip{
   margin-bottom:var(--space-2xl);
 }
 
-.pension-insight-head h3{
+.asset-insight-head h3{
   margin:0;
   font-size:var(--type-size-xl);
   font-weight:var(--type-weight-bold);
@@ -2079,7 +2079,7 @@ body.chart-expanded-open .dash-tooltip{
 }
 /* Light/Dark badge colors resolve through the shared status tokens above. */
 
-.pension-empty-state{
+.asset-empty-state{
   padding:var(--space-6xl);
   border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
   background:var(--subtle-card);
@@ -2089,21 +2089,21 @@ body.chart-expanded-open .dash-tooltip{
   font-weight:var(--type-weight-bold);
 }
 
-/* Pension contribution empty note · 기여도 없음 안내만 일반 굵기 + viewport별 축소 */
-.pension-contribution-empty-state{
+/* Asset contribution empty note · 기여도 없음 안내만 일반 굵기 + viewport별 축소 */
+.asset-contribution-empty-state{
   font-size:var(--type-size-md);
   font-weight:var(--type-weight-regular);
 }
 
 @media (min-width:761px) and (max-width:1100px){
-  .pension-contribution-empty-state{font-size:var(--type-size-sm)}
+  .asset-contribution-empty-state{font-size:var(--type-size-sm)}
 }
 
 @media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  .pension-contribution-empty-state{font-size:var(--type-size-xs)}
+  .asset-contribution-empty-state{font-size:var(--type-size-xs)}
 }
 
-.pension-stack-bar{
+.asset-stack-bar{
   display:flex;
   position:relative;
   width:100%;
@@ -2115,7 +2115,7 @@ body.chart-expanded-open .dash-tooltip{
   border:1px solid var(--meter-track-border);
 }
 
-.pension-stack-segment{
+.asset-stack-segment{
   display:flex;
   align-items:center;
   justify-content:center;
@@ -2124,21 +2124,21 @@ body.chart-expanded-open .dash-tooltip{
   height:100%;
 }
 
-.pension-stack-segment + .pension-stack-segment{
+.asset-stack-segment + .asset-stack-segment{
   box-shadow:var(--stack-divider-shadow);
 }
 
-.pension-stack-segment:first-child{
+.asset-stack-segment:first-child{
   border-top-left-radius:999px;
   border-bottom-left-radius:999px;
 }
 
-.pension-stack-segment:last-child{
+.asset-stack-segment:last-child{
   border-top-right-radius:999px;
   border-bottom-right-radius:999px;
 }
 
-.pension-stack-segment span{
+.asset-stack-segment span{
   display:block;
   padding:0 var(--space-lg);
   color:var(--asset-tab-active-color);
@@ -2153,12 +2153,12 @@ body.chart-expanded-open .dash-tooltip{
 .has-tooltip{
   position:relative;
 }
-.pension-insight-zone .has-tooltip:focus-visible{
+.asset-insight-zone .has-tooltip:focus-visible{
   outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
   outline-offset:var(--control-focus-outline-offset);
 }
 
-.pension-viz-tooltip{
+.asset-viz-tooltip{
   position:absolute;
   left:50%;
   bottom:calc(100% + 10px);
@@ -2174,13 +2174,13 @@ body.chart-expanded-open .dash-tooltip{
   white-space:nowrap;
 }
 
-.pension-viz-tooltip.wide{
+.asset-viz-tooltip.wide{
   min-width:220px;
   max-width:min(260px,calc(100vw - 28px));
   white-space:normal;
 }
 
-.pension-viz-tooltip strong{
+.asset-viz-tooltip strong{
   display:block;
   margin-bottom:var(--tooltip-row-gap);
   color:var(--tooltip-color);
@@ -2188,11 +2188,11 @@ body.chart-expanded-open .dash-tooltip{
   font-weight:var(--tooltip-title-weight);
 }
 
-.pension-stack-bar .pension-viz-tooltip{
+.asset-stack-bar .asset-viz-tooltip{
   bottom:calc(100% + 12px);
 }
 
-.pension-viz-tooltip::after{
+.asset-viz-tooltip::after{
   content:"";
   position:absolute;
   left:50%;
@@ -2202,13 +2202,13 @@ body.chart-expanded-open .dash-tooltip{
   border-top-color:var(--tooltip-bg);
 }
 
-.has-tooltip:hover .pension-viz-tooltip,
-.has-tooltip:focus-within .pension-viz-tooltip{
+.has-tooltip:hover .asset-viz-tooltip,
+.has-tooltip:focus-within .asset-viz-tooltip{
   opacity:1;
   transform:translateX(-50%) translateY(0);
 }
 
-.has-tooltip.tooltip-open .pension-viz-tooltip{
+.has-tooltip.tooltip-open .asset-viz-tooltip{
   opacity:1;
   transform:translateX(-50%) translateY(0);
 }
@@ -2258,7 +2258,7 @@ body.chart-expanded-open .dash-tooltip{
   border:1px solid var(--line);
 }
 
-.pension-risk-gauge .pension-viz-tooltip{
+.pension-risk-gauge .asset-viz-tooltip{
   bottom:calc(100% + 12px);
 }
 
@@ -2272,69 +2272,69 @@ body.chart-expanded-open .dash-tooltip{
   color:var(--text-secondary);
 }
 
-/* Pension Insight Label Responsive · viewport별 type token 단계 적용 */
+/* Asset Insight Label Responsive · viewport별 type token 단계 적용 */
 @media (min-width:761px) and (max-width:1100px){
-  .pension-insight-head h3{
+  .asset-insight-head h3{
     font-size:var(--type-size-lg);
   }
 }
 
 @media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  .pension-insight-head h3{
+  .asset-insight-head h3{
     font-size:var(--type-size-md);
   }
 }
 
-/* Pension Insight Mobile · 퇴직연금 인사이트 모바일: 카드/스택바 압축, 정보 구조 유지 */
+/* Asset Insight Mobile · 공통 자산 인사이트 모바일: 카드/스택바 압축, 정보 구조 유지 */
 @media (max-width:760px){
-  .pension-insight-card{
+  .asset-insight-card{
     padding:var(--space-5xl);
   }
 
-  .pension-stack-bar{
+  .asset-stack-bar{
     height:18px;
   }
 
-  .pension-stack-segment span{
+  .asset-stack-segment span{
     font-size:var(--type-size-2xs);
   }
 }
 
-/* Pension Tooltip Responsive · 퇴직연금 tooltip: 1100px 이하에서 viewport 이탈 방지 */
+/* Asset Tooltip Responsive · 공통 자산 tooltip: 1100px 이하에서 viewport 이탈 방지 */
 @media (max-width:1100px){
-  .pension-viz-tooltip,
-  .pension-viz-tooltip.wide{
+  .asset-viz-tooltip,
+  .asset-viz-tooltip.wide{
     white-space:normal;
     max-width:min(260px, calc(100vw - 28px));
     z-index:80;
   }
 
-  .pension-stack-segment:first-child .pension-viz-tooltip{
+  .asset-stack-segment:first-child .asset-viz-tooltip{
     left:0;
     transform:translateY(6px);
   }
 
-  .pension-stack-segment:last-child .pension-viz-tooltip{
+  .asset-stack-segment:last-child .asset-viz-tooltip{
     left:auto;
     right:0;
     transform:translateY(6px);
   }
 
-  .pension-stack-segment:first-child:hover .pension-viz-tooltip,
-  .pension-stack-segment:first-child:focus-within .pension-viz-tooltip,
-  .pension-stack-segment:first-child.tooltip-open .pension-viz-tooltip,
-  .pension-stack-segment:last-child:hover .pension-viz-tooltip,
-  .pension-stack-segment:last-child:focus-within .pension-viz-tooltip,
-  .pension-stack-segment:last-child.tooltip-open .pension-viz-tooltip{
+  .asset-stack-segment:first-child:hover .asset-viz-tooltip,
+  .asset-stack-segment:first-child:focus-within .asset-viz-tooltip,
+  .asset-stack-segment:first-child.tooltip-open .asset-viz-tooltip,
+  .asset-stack-segment:last-child:hover .asset-viz-tooltip,
+  .asset-stack-segment:last-child:focus-within .asset-viz-tooltip,
+  .asset-stack-segment:last-child.tooltip-open .asset-viz-tooltip{
     transform:translateY(0);
   }
 
-  .pension-stack-segment:first-child .pension-viz-tooltip::after{
+  .asset-stack-segment:first-child .asset-viz-tooltip::after{
     left:7px;
     transform:none;
   }
 
-  .pension-stack-segment:last-child .pension-viz-tooltip::after{
+  .asset-stack-segment:last-child .asset-viz-tooltip::after{
     left:auto;
     right:7px;
     transform:none;
@@ -2364,9 +2364,9 @@ body.chart-expanded-open .dash-tooltip{
 
 .change-mobile-list{margin-top:var(--space-5xl)}
 
-/* [07. Pension · continuation] Pension Detail Responsive · 퇴직연금 상세: 1280px 이하 1열로 전환해 표 가로 스크롤 방지 */
+/* [07. Asset Detail · continuation] Shared Detail Responsive · 공통 자산 상세: 1280px 이하 1열로 전환해 표 가로 스크롤 방지 */
 @media (max-width:1280px){
-  .pension-detail-grid{
+  .asset-detail-grid{
     grid-template-columns:1fr;
   }
 }
@@ -3251,6 +3251,9 @@ body.contrib-modal-open{
 .securities-subsection > .section-title{
   margin-top:0;
 }
+.asset-overview > .section-title{
+  min-height:var(--dashboard-control-height);
+}
 @media(max-width:760px){
   .securities-subsection{
     margin-top:var(--space-7xl);
@@ -3264,7 +3267,7 @@ body.contrib-modal-open{
 
 /* 퇴직연금 비중 막대 색상은 dashboard-core.js의 pensionSeriesColor()를 단일 원천으로 사용. */
 
-.pension-no-prev-note{
+.asset-no-prev-note{
   display:flex;
   align-items:center;
   justify-content:center;
@@ -3402,7 +3405,7 @@ body.contrib-modal-open{
 }
 
 @media(max-width:760px){
-  .pension-no-prev-note{
+  .asset-no-prev-note{
     min-height:66px;
     padding:var(--space-4xl) var(--space-2xl);
   }
@@ -3843,7 +3846,7 @@ body.contrib-modal-open{
 /* Interaction Effects · 공통 인터랙션 효과 */
 .card,
 .note,
-.pension-insight-card,
+.asset-insight-card,
 .mini-card{
   transition:
     transform .18s ease,
@@ -3883,7 +3886,7 @@ button,
 @media(hover:hover) and (pointer:fine){
   .card:hover,
   .note:hover,
-  .pension-insight-card:hover,
+  .asset-insight-card:hover,
   .mini-card:hover{
     transform:translateY(-2px);
     box-shadow:var(--shadow-hover-surface);
@@ -3989,7 +3992,7 @@ button:not(:disabled):active,
 @media(max-width:760px){
   .card,
   .note,
-  .pension-insight-card,
+  .asset-insight-card,
   .mini-card{
     transition:box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
   }
@@ -4012,7 +4015,7 @@ button:not(:disabled):active,
   .card,
   .note,
   .chart-card,
-  .pension-insight-card,
+  .asset-insight-card,
   .mini-card,
   .date-tool-btn,
   .pill,
@@ -4213,7 +4216,7 @@ button:not(:disabled):active,
     gap:var(--space-xl);
   }
 
-  #pension-change .change-kpis{
+  .asset-change-note .change-kpis{
     grid-template-columns:repeat(4,minmax(0,1fr));
   }
 
@@ -5091,7 +5094,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .dashboard-data-table .table-cell-center{text-align:center}
 /* Table Value States · 표 수익/손실 색상은 공통 semantic utility 재사용 */
 
-/* Table Exceptions · 표 예외: memo 줄바꿈 + 연금 allocation bar 폭 */
+/* Table Exceptions · 표 예외: memo 줄바꿈 + Asset status allocation bar 폭 */
 
 /* Account Labels · 계좌명: table/mobile card 동일 강조 계층 */
 .accounts-table tbody tr:not(.summary-row) .accounts-name{font-weight:var(--data-table-label-weight)}
@@ -5105,12 +5108,12 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   line-height:var(--type-line-body);
   vertical-align:top;
 }
-.pension-products-table .bar-box{
+.asset-status-table .bar-box{
   width:var(--data-table-bar-width);
   min-width:var(--data-table-bar-width);
   margin-inline:auto;
 }
-.pension-products-table .bar-box[role="progressbar"]{
+.asset-status-table .bar-box[role="progressbar"]{
   outline:none;
 }
 .source-table-scroll{margin-top:var(--space-5xl);border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
@@ -5139,8 +5142,8 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
     --data-table-line-height:1.22;
     --data-table-bar-width:56px;
   }
-  #pension-products .pension-products-table .mobile-table-kodex-prefix,
-  #pension-change .change-table .mobile-table-kodex-prefix{
+  .asset-status-table .mobile-table-kodex-prefix,
+  .asset-change-table .mobile-table-kodex-prefix{
     display:none;
   }
   .mobile-view-toggle{

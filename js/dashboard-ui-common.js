@@ -118,12 +118,145 @@ function escapeHtml(value){
     .replaceAll("'","&#39;");
 }
 
+
+// Asset Detail 공통 renderer: 자산별 계산은 adapter가 소유하고, 이 레이어는 표현만 담당한다.
+function renderAssetTableRows(rows=[]){
+  return rows.map(row=>`<tr${row.className?` class="${row.className}"`:''}><th scope="row"${row.labelClass?` class="${row.labelClass}"`:''}>${row.labelHtml??''}</th>${(row.cells||[]).map(cell=>`<td${cell.className?` class="${cell.className}"`:''}>${cell.html??''}</td>`).join('')}</tr>`).join('');
+}
+function renderAssetTableHead(columns=[]){
+  return columns.map(column=>`<th scope="col"${column.className?` class="${column.className}"`:''}>${column.label??''}</th>`).join('');
+}
+function renderAssetMobileCards(cards=[],mobileInfoCard){
+  if(typeof mobileInfoCard!=='function')return '';
+  return cards.map(card=>mobileInfoCard(card.title,card.items||[],card.extraClass||'',card.accessibleLabel||'')).join('');
+}
+function renderAssetStatusBlock({
+  sectionId,
+  idPrefix,
+  viewStateKey,
+  title,
+  icon='package',
+  sectionClass='note asset-status-note',
+  tableClass='dashboard-data-table asset-status-table',
+  caption='',
+  columns=[],
+  rows=[],
+  summaryRows=[],
+  cards=[],
+  afterHtml='',
+  mobileViewAttrs,
+  mobileViewToggle,
+  mobileInfoCard
+}={}){
+  const viewAttrs=typeof mobileViewAttrs==='function'?mobileViewAttrs(viewStateKey):'';
+  const toggle=typeof mobileViewToggle==='function'?mobileViewToggle(viewStateKey):'';
+  const tableRows=renderAssetTableRows([...rows,...summaryRows]);
+  const cardHtml=renderAssetMobileCards(cards,mobileInfoCard);
+  return `<div class="${sectionClass}" id="${sectionId}"${viewAttrs?` ${viewAttrs}`:''}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${title}</h2>${toggle}</div><div id="${idPrefix}-table-view" class="mobile-scroll table-view"><table class="${tableClass}"><caption class="visually-hidden">${caption}</caption><thead><tr>${renderAssetTableHead(columns)}</tr></thead><tbody>${tableRows}</tbody></table></div><div id="${idPrefix}-card-view" class="mobile-card-view">${cardHtml}</div>${afterHtml}</div>`;
+}
+function renderAssetDayChangeBlock({
+  sectionId,
+  idPrefix,
+  viewStateKey,
+  title='전일 대비 변동',
+  icon='trending',
+  sectionClass='note asset-change-note',
+  hasPrev=false,
+  renderWithoutPrev=false,
+  summaryItems=[],
+  tableWrapClass='change-table-wrap mobile-scroll table-view',
+  tableClass='dashboard-data-table change-table asset-change-table',
+  cardClass='change-mobile-list mobile-card-view',
+  caption='',
+  columns=[],
+  rows=[],
+  summaryRows=[],
+  cards=[],
+  noPrevHtml='',
+  mobileViewAttrs,
+  mobileViewToggle,
+  mobileInfoCard
+}={}){
+  const viewAttrs=typeof mobileViewAttrs==='function'?mobileViewAttrs(viewStateKey):'';
+  const showDetail=hasPrev||renderWithoutPrev;
+  const toggle=showDetail&&typeof mobileViewToggle==='function'?mobileViewToggle(viewStateKey):'';
+  const content=showDetail
+    ? `<div class="change-kpis">${summaryItems.map(item=>`<div class="mini-card"><div class="m-label">${item.label??''}</div><div class="m-value ${item.valueClass||''}">${item.value??''}</div></div>`).join('')}</div><div id="${idPrefix}-table-view" class="${tableWrapClass}"><table class="${tableClass}"><caption class="visually-hidden">${caption}</caption><thead><tr>${renderAssetTableHead(columns)}</tr></thead><tbody>${renderAssetTableRows([...rows,...summaryRows])}</tbody></table></div><div id="${idPrefix}-card-view" class="${cardClass}">${renderAssetMobileCards(cards,mobileInfoCard)}</div>`
+    : noPrevHtml;
+  return `<div class="${sectionClass}" id="${sectionId}"${viewAttrs?` ${viewAttrs}`:''}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${title}</h2>${toggle}</div>${content}</div>`;
+}
+function renderAssetWeight({label='',weight=0,color='',fillClass=''}={}){
+  const safeWeight=Math.max(0,Math.min(100,Number(weight)||0));
+  const weightText=safeWeight.toFixed(1);
+  const fillClasses=['bar-fill',fillClass].filter(Boolean).join(' ');
+  const fillStyle=`width:${weightText}%${color?`;background:${color}`:''}`;
+  return `<div class="bar-box" role="progressbar" aria-label="${escapeHtml(label)} 비중" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${weightText}" aria-valuetext="${weightText}%"><div class="${fillClasses}" aria-hidden="true" style="${fillStyle}"></div></div><div class="small">${weightText}%</div>`;
+}
+function renderAssetContributionCard({
+  idPrefix='assetContribution',
+  title='오늘 상승분 기여도',
+  hasPrev=false,
+  items=[],
+  cardClass='asset-insight-card compact-card',
+  headClass='asset-insight-head simple',
+  stackClass='asset-stack-bar compact simple',
+  segmentClass='asset-stack-segment has-tooltip',
+  tooltipClass='asset-viz-tooltip',
+  emptyClass='asset-empty-state',
+  emptyNoItemsClass='asset-empty-state asset-contribution-empty-state',
+  noPrevMessage='전일 데이터가 없어 오늘 상승분 기여도를 표시하지 않습니다.',
+  emptyMessage='상승한 자산이 없어 기여도를 표시하지 않습니다.'
+}={}){
+  const titleId=`${idPrefix}InsightTitle`;
+  const content=!hasPrev
+    ? `<div class="${emptyClass}">${noPrevMessage}</div>`
+    : items.length
+      ? `<div class="${stackClass}" role="group" aria-label="${escapeHtml(title)} 구성">${items.map((item,index)=>{const tooltipId=`${idPrefix}Tooltip${index}`;const share=Number(item.share)||0;const valueText=item.valueText??'';const ariaLabel=escapeHtml(`${item.name} 상승분 기여도 ${share.toFixed(1)}%, ${valueText}`);return `<div class="${segmentClass}" tabindex="0" role="img" aria-label="${ariaLabel}" aria-describedby="${tooltipId}" style="width:${Math.max(share,2).toFixed(2)}%;background:${item.color}"><span>${share>=8?(item.shortLabel??item.name):''}</span><div id="${tooltipId}" class="${tooltipClass}" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${share.toFixed(1)}%</div><div>${valueText}</div></div></div>`}).join('')}</div>`
+      : `<div class="${emptyNoItemsClass||emptyClass}">${emptyMessage}</div>`;
+  return `<div class="${cardClass}" role="group" aria-labelledby="${titleId}"><div class="${headClass}"><h3 id="${titleId}">${title}</h3></div>${content}</div>`;
+}
+
+const assetVizTooltipZoneSelectors=new Set();
+let assetVizTooltipTouchBound=false;
+function setupAssetVizTooltips(zoneSelector){
+  if(zoneSelector)assetVizTooltipZoneSelectors.add(zoneSelector);
+  if(assetVizTooltipTouchBound)return;
+  assetVizTooltipTouchBound=true;
+
+  const isTouchLike=()=>window.matchMedia('(hover: none)').matches||window.innerWidth<=900;
+  const targetSelector=()=>[...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip`).join(',');
+  const openSelector=()=>[...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip.tooltip-open`).join(',');
+  const closeTooltips=except=>{
+    const selector=openSelector();
+    if(!selector)return;
+    document.querySelectorAll(selector).forEach(el=>{if(el!==except)el.classList.remove('tooltip-open')});
+  };
+
+  document.addEventListener('click',event=>{
+    const selector=targetSelector();
+    const target=selector?event.target.closest(selector):null;
+    if(!target){closeTooltips(null);return;}
+    if(!isTouchLike())return;
+    event.preventDefault();
+    event.stopPropagation();
+    const shouldOpen=!target.classList.contains('tooltip-open');
+    closeTooltips(target);
+    target.classList.toggle('tooltip-open',shouldOpen);
+  });
+  document.addEventListener('scroll',()=>closeTooltips(null),true);
+}
+
 export {
   activateDashboardDialogFocus,
+  renderAssetContributionCard,
+  renderAssetDayChangeBlock,
+  renderAssetStatusBlock,
+  renderAssetWeight,
   chartSeriesSwatch,
   escapeHtml,
   navIconSvg,
   pensionProductSwatch,
   releaseDashboardDialogFocus,
-  securitySymbolSwatch
+  securitySymbolSwatch,
+  setupAssetVizTooltips
 };
