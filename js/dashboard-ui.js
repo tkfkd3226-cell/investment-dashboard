@@ -789,7 +789,7 @@ function renderHoldings(x){
   const orderedHoldings=sortSecurityItems(detail.statusRows);
   const summaryById=Object.fromEntries(detail.summaryRows.map(row=>[row.id,row]));
   const rows=orderedHoldings.map(h=>({
-    className:'hold-row',
+    className:'asset-item-row',
     labelHtml:`<span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}`,
     cells:[
       {className:'num table-cell-center',html:fmt(h.qty)},
@@ -863,22 +863,22 @@ function renderHoldings(x){
     title:'보유종목 현황',
     icon:'folder',
     sectionClass:'holdings-block note asset-status-note',
-    tableClass:'dashboard-data-table hold-position-table asset-status-table',
+    tableClass:'dashboard-data-table asset-status-table',
     caption:'증권계좌 보유종목 현황',
     columns:[
-      {label:'종목'},
-      {label:'수량',className:'table-cell-center'},
-      {label:'평균단가'},
-      {label:'투자원금'},
-      {label:'평가금액'},
-      {label:'평가손익'},
-      {label:'수익률',className:'table-cell-center'},
-      {label:'비중'}
+      {label:'종목',className:'asset-status-col-name'},
+      {label:'수량',className:'asset-status-col-qty table-cell-center'},
+      {label:'평균단가',className:'asset-status-col-average'},
+      {label:'투자원금',className:'asset-status-col-principal'},
+      {label:'평가금액',className:'asset-status-col-evaluation'},
+      {label:'평가손익',className:'asset-status-col-profit'},
+      {label:'수익률',className:'asset-status-col-return table-cell-center'},
+      {label:'비중',className:'asset-status-col-weight'}
     ],
     rows,
     summaryRows,
     cards,
-    afterHtml:contributionHtml,
+    afterHtml:`<p class="small section-explainer asset-status-basis-note">※ 투자원금 합계는 현재 보유상품 재투자 기준</p>${contributionHtml}`,
     mobileViewAttrs,
     mobileViewToggle,
     mobileInfoCard

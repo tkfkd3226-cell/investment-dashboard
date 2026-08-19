@@ -41,7 +41,8 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
         cashReturn=pensionCashCost?cashProfit/pensionCashCost*100:0,
         cashWeight=x.pensionEval?x.pensionCash/x.pensionEval*100:0;
   const rows=orderedPensionRows.map(r=>({
-    labelHtml:`<strong>${mobileTableProductName(r.name)}</strong>${pensionProductSwatch(r.name)}`,
+    className:'asset-item-row',
+    labelHtml:`${mobileTableProductName(r.name)}${pensionProductSwatch(r.name)}`,
     cells:[
       {className:'num table-cell-center',html:fmt(r.qty)},
       {className:'num table-cell-right',html:fmt(r.qty?r.cost/r.qty:0)},
@@ -53,10 +54,10 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
     ]
   }));
   rows.push({
-    labelHtml:'<strong>현금성자산</strong>',
+    labelHtml:'현금성자산',
     cells:[
-      {className:'num table-cell-center',html:fmt(1)},
-      {className:'num table-cell-right',html:fmt(pensionCashCost)},
+      {className:'num table-cell-center',html:'-'},
+      {className:'num table-cell-right',html:'-'},
       {className:'num table-cell-right',html:fmt(pensionCashCost)},
       {className:'num table-cell-right',html:fmt(x.pensionCash)},
       {className:`num table-cell-right ${tableCls(cashProfit)}`,html:fmt(cashProfit)},
@@ -68,13 +69,13 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
     className:'summary-row',
     labelHtml:'합계',
     cells:[
-      {className:'table-cell-center',html:''},
-      {html:''},
+      {className:'table-cell-center',html:'-'},
+      {className:'table-cell-right',html:'-'},
       {className:'num table-cell-right',html:fmt(pensionHeldCost)},
       {className:'num table-cell-right',html:fmt(x.pensionEval)},
       {className:`num table-cell-right ${tableCls(pensionHeldProfit)}`,html:fmt(pensionHeldProfit)},
       {className:`num table-cell-center ${tableCls(pensionHeldReturn)}`,html:pct(pensionHeldReturn)},
-      {html:''}
+      {className:'num table-cell-center',html:renderAssetWeight({label:'합계',weight:100,fillClass:'bar-gray'})}
     ]
   }];
   const cards=orderedPensionRows.map(r=>({
@@ -85,10 +86,10 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
     ]
   }));
   cards.push({title:'현금성자산',items:[
-    ['수량',fmt(1)],['평균단가',won(pensionCashCost)],['매수원금',won(pensionCashCost)],['평가금액',won(x.pensionCash)],['평가손익',won(cashProfit),cls(cashProfit)],['수익률',pct(cashReturn),cls(cashReturn)],['비중',pct(cashWeight)]
+    ['매수원금',won(pensionCashCost)],['평가금액',won(x.pensionCash)],['평가손익',won(cashProfit),cls(cashProfit)],['수익률',pct(cashReturn),cls(cashReturn)],['비중',pct(cashWeight)]
   ]});
   cards.push({title:'합계',extraClass:'summary-card mobile-total-card',items:[
-    ['매수원금',won(pensionHeldCost)],['평가금액',won(x.pensionEval)],['평가손익',won(pensionHeldProfit),cls(pensionHeldProfit)],['수익률',pct(pensionHeldReturn),cls(pensionHeldReturn)]
+    ['매수원금',won(pensionHeldCost)],['평가금액',won(x.pensionEval)],['평가손익',won(pensionHeldProfit),cls(pensionHeldProfit)],['수익률',pct(pensionHeldReturn),cls(pensionHeldReturn)],['비중',pct(100)]
   ]});
   return renderAssetStatusBlock({
     sectionId:'pension-products',
@@ -98,19 +99,19 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
     icon:'package',
     caption:'퇴직연금 상품별 현황',
     columns:[
-      {label:'상품'},
-      {label:'수량',className:'table-cell-center'},
-      {label:'평균단가'},
-      {label:'매수원금'},
-      {label:'평가금액'},
-      {label:'평가손익'},
-      {label:'수익률',className:'table-cell-center'},
-      {label:'비중'}
+      {label:'상품',className:'asset-status-col-name'},
+      {label:'수량',className:'asset-status-col-qty table-cell-center'},
+      {label:'평균단가',className:'asset-status-col-average'},
+      {label:'매수원금',className:'asset-status-col-principal'},
+      {label:'평가금액',className:'asset-status-col-evaluation'},
+      {label:'평가손익',className:'asset-status-col-profit'},
+      {label:'수익률',className:'asset-status-col-return table-cell-center'},
+      {label:'비중',className:'asset-status-col-weight'}
     ],
     rows,
     summaryRows,
     cards,
-    afterHtml:`<p class="small section-explainer pension-products-basis-note">※ 매수원금 합계는 현재 보유상품 재투자 기준</p>${renderPensionProductInsights(x)}`,
+    afterHtml:`<p class="small section-explainer asset-status-basis-note">※ 매수원금 합계는 현재 보유상품 재투자 기준</p>${renderPensionProductInsights(x)}`,
     mobileViewAttrs,
     mobileViewToggle,
     mobileInfoCard

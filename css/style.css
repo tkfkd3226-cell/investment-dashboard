@@ -4184,15 +4184,6 @@ button:not(:disabled):active,
   vertical-align:1px;
 }
 
-/* [06. Securities / Asset Workspace · continuation] Securities Holdings · 증권 보유종목: 종목명/수치 굵기 계층 */
-#securities-holdings .hold-position-table tbody tr.hold-row > td:not(:first-child){
-  font-weight:var(--type-weight-regular);
-}
-
-#securities-holdings .hold-position-table tbody tr.hold-row > :first-child{
-  font-weight:var(--data-table-label-weight);
-}
-
 /* Tablet Integration · 태블릿 통합: 차트 control, 종목요약/KPI, 투자기간 차트, 원천/검산 */
 @media (min-width:761px) and (max-width:1100px){
   .chart-card.has-horizontal-scroll .chart-scroll-row{
@@ -5107,6 +5098,22 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   font-weight:var(--data-table-memo-weight);
   line-height:var(--type-line-body);
   vertical-align:top;
+}
+.asset-status-table{
+  width:100%;
+  min-width:760px;
+  table-layout:fixed;
+}
+.asset-status-table .asset-status-col-name{width:24%}
+.asset-status-table .asset-status-col-qty{width:7%}
+.asset-status-table .asset-status-col-average{width:12%}
+.asset-status-table .asset-status-col-principal{width:12%}
+.asset-status-table .asset-status-col-evaluation{width:12%}
+.asset-status-table .asset-status-col-profit{width:12%}
+.asset-status-table .asset-status-col-return{width:9%}
+.asset-status-table .asset-status-col-weight{width:12%}
+.asset-status-table tbody .asset-item-row > th[scope="row"]{
+  font-weight:var(--data-table-label-weight);
 }
 .asset-status-table .bar-box{
   width:var(--data-table-bar-width);
