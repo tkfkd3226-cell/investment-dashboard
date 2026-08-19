@@ -2160,7 +2160,7 @@ investment-dashboard-main/
 | `dashboard-pension-editor.js` | 1,158 |
 | `dashboard-app.js` | 195 |
 
-현재 `css/style.css`는 5,256줄이며, 이 수치는 **검증 시점 snapshot**일 뿐 고정값이 아니다.
+현재 `css/style.css`는 5,273줄이며, 이 수치는 **검증 시점 snapshot**일 뿐 고정값이 아니다.
 
 
 
@@ -3672,11 +3672,21 @@ listener 중복 또는 chart 이중 생성은 FAIL이다.
 동작 owner
 → js/dashboard-ui.js
 
+정보 버튼
+→ .accounts-memo-info-button
+
+tooltip source
+→ .accounts-memo-tooltip-source
+
 action
 → toggle-account-memo-info
 
 floating layer
 → .accounts-memo-floating-tooltip
+
+chart 전용 class
+→ .chart-title-info / .chart-title-info-tooltip
+→ 계좌 메모에서 재사용하지 않음
 
 chart JS
 → 계좌 메모 floating tooltip 책임 없음
@@ -3684,6 +3694,8 @@ chart JS
 
 현재 동작 원칙:
 
+- 계좌 메모의 정보 버튼·tooltip source·floating layer는 모두 `accounts-memo-*` 전용 class를 사용하며 차트 class와 분리한다.
+- 정보 버튼의 시각 크기는 16×16px, `i` 글자는 10px/700, border는 1px로 유지하고 `::before` 확장 영역으로 약 24px 터치 범위를 확보한다.
 - floating tooltip은 `document.body`에 붙여 table stacking context 밖에서 표시한다.
 - `position: fixed`와 높은 z-index로 표 셀에 가려지지 않게 한다.
 - 짧은 문구는 `width: max-content`로 내용 길이만큼 표시한다.

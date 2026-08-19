@@ -451,7 +451,7 @@ function restoreMobileDateMenuAfterRender(){
 function setupUiGlobalEvents(){
   document.addEventListener('click',e=>{
     if(!e.target.closest('#tabs'))closeDateActionMenu();
-    if(!e.target.closest('#accounts-summary .accounts-memo .chart-title-info'))closeAccountMemoInfo();
+    if(!e.target.closest('#accounts-summary .accounts-memo-info-button'))closeAccountMemoInfo();
   });
   document.addEventListener('change',closeAccountMemoInfo);
   document.addEventListener('keydown',e=>{
@@ -802,14 +802,14 @@ function accountMemoTableHtml(text){
 }
 function accountMemoInfoButton(text){
   const safe=escapeHtml(String(text||''));
-  return `<button type="button" class="chart-title-info" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-account-memo-info"><span aria-hidden="true">i</span><span class="chart-title-info-tooltip" role="tooltip">${safe}</span></button>`;
+  return `<button type="button" class="accounts-memo-info-button" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-account-memo-info"><span aria-hidden="true">i</span><span class="accounts-memo-tooltip-source" role="tooltip">${safe}</span></button>`;
 }
 function removeAccountMemoFloatingTooltip(){
   document.querySelector('.accounts-memo-floating-tooltip')?.remove();
 }
 function closeAccountMemoInfo(except=null){
   removeAccountMemoFloatingTooltip();
-  document.querySelectorAll('#accounts-summary .accounts-memo .chart-title-info.open').forEach(button=>{
+  document.querySelectorAll('#accounts-summary .accounts-memo-info-button.open').forEach(button=>{
     if(button===except)return;
     button.classList.remove('open');
     button.setAttribute('aria-expanded','false');
@@ -818,7 +818,7 @@ function closeAccountMemoInfo(except=null){
 function showAccountMemoFloatingTooltip(button){
   if(!button?.closest('#accounts-summary .accounts-memo'))return;
   if(window.matchMedia?.('(max-width:400px)').matches!==true)return;
-  const source=button.querySelector('.chart-title-info-tooltip');
+  const source=button.querySelector('.accounts-memo-tooltip-source');
   if(!source)return;
 
   removeAccountMemoFloatingTooltip();

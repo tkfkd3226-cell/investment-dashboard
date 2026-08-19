@@ -1047,8 +1047,7 @@ td.num{
 
 .dash-tooltip,
 .pension-viz-tooltip,
-.phone-chart-ui .chart-title-info-tooltip,
-#accounts-summary .chart-title-info-tooltip{
+.phone-chart-ui .chart-title-info-tooltip{
   background:var(--tooltip-bg);
   color:var(--tooltip-color);
   border:1px solid var(--tooltip-border);
@@ -1728,8 +1727,7 @@ body.chart-expanded-open .dash-tooltip{
 .phone-chart-ui .chart-title-sub{
   display:none;
 }
-.phone-chart-ui .chart-title-info,
-#accounts-summary .accounts-memo .chart-title-info{
+.phone-chart-ui .chart-title-info{
   position:relative;
   align-items:center;
   justify-content:center;
@@ -1751,15 +1749,11 @@ body.chart-expanded-open .dash-tooltip{
   z-index:12;
 }
 .phone-chart-ui .chart-title-info{display:inline-flex}
-#accounts-summary .accounts-memo .chart-title-info{display:none}
-.phone-chart-ui .chart-title-info::before,
-#accounts-summary .accounts-memo .chart-title-info::before{content:"";position:absolute;inset:-3px}
-.phone-chart-ui .chart-title-info > span[aria-hidden="true"],
-#accounts-summary .accounts-memo .chart-title-info > span[aria-hidden="true"]{
+.phone-chart-ui .chart-title-info::before{content:"";position:absolute;inset:-3px}
+.phone-chart-ui .chart-title-info > span[aria-hidden="true"]{
   transform:translateY(-.2px);
 }
-.phone-chart-ui .chart-title-info-tooltip,
-#accounts-summary .accounts-memo .chart-title-info-tooltip{
+.phone-chart-ui .chart-title-info-tooltip{
   position:absolute;
   left:50%;
   top:calc(100% + 7px);
@@ -1776,14 +1770,15 @@ body.chart-expanded-open .dash-tooltip{
   transition:opacity .12s ease,transform .12s ease,visibility .12s ease;
   z-index:30;
 }
-.phone-chart-ui .chart-title-info.open .chart-title-info-tooltip,
-#accounts-summary .accounts-memo .chart-title-info.open .chart-title-info-tooltip{
+.phone-chart-ui .chart-title-info.open .chart-title-info-tooltip{
   opacity:1;
   visibility:visible;
   transform:translate(-50%,0);
 }
 
-/* Account Memo Floating Tooltip · 계좌 메모 전용 floating layer */
+/* Account Memo Info · 계좌별 성과 메모 전용 정보 UI */
+.accounts-memo-info-button,
+.accounts-memo-tooltip-source,
 .accounts-memo-floating-tooltip{display:none}
 
 /* 초소형 화면 기능 예외: 400px 이하에서는 통합성과 수익률 열을 축약하고, 계좌별 성과 메모는 전용 열의 정보 tooltip으로 전환한다. */
@@ -1817,17 +1812,39 @@ body.chart-expanded-open .dash-tooltip{
   #accounts-summary .accounts-memo-text{
     display:none;
   }
-  #accounts-summary .accounts-memo .chart-title-info{
+  #accounts-summary .accounts-memo-info-button{
     display:inline-flex;
+    position:relative;
+    align-items:center;
+    justify-content:center;
+    width:16px;
+    height:16px;
+    flex:0 0 16px;
     margin:0;
+    padding:0;
+    border:1px solid var(--chart-info-border);
+    border-radius:50%;
+    background:var(--chart-info-bg);
+    color:var(--chart-info-color);
+    font-family:inherit;
+    font-size:var(--type-size-2xs);
+    font-weight:var(--type-weight-bold);
+    line-height:1;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
     vertical-align:middle;
     z-index:80;
   }
-  #accounts-summary .accounts-memo .chart-title-info.open{
-    z-index:90;
+  #accounts-summary .accounts-memo-info-button::before{
+    content:"";
+    position:absolute;
+    inset:-4px;
   }
-  #accounts-summary .accounts-memo .chart-title-info-tooltip{
-    display:none;
+  #accounts-summary .accounts-memo-info-button > span[aria-hidden="true"]{
+    transform:translateY(-.2px);
+  }
+  #accounts-summary .accounts-memo-info-button.open{
+    z-index:90;
   }
   .accounts-memo-floating-tooltip{
     display:block;
