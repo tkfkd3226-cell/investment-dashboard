@@ -149,7 +149,8 @@ function renderUnifiedMobileMenuContent(){
     {
       label:'전체',
       items:[
-        {type:'section',id:'summary-section',icon:'home',title:'연금+계좌 성과'}
+        {type:'section',id:'summary-section',icon:'home',title:'연금+계좌 성과'},
+        {type:'section',id:'market-ai-section',icon:'activity',title:'AI Market Signal'}
       ]
     },
     {
@@ -190,7 +191,8 @@ function renderDesktopTocContent(){
     {
       label:'전체',
       items:[
-        {id:'summary-section',icon:'home',title:'연금+계좌 성과'}
+        {id:'summary-section',icon:'home',title:'연금+계좌 성과'},
+        {id:'market-ai-section',icon:'activity',title:'AI Market Signal'}
       ]
     },
     {
@@ -368,6 +370,92 @@ function renderTabs(){
   syncMobileTopbarState();
 }
 function metricCard(label,value,sub,dark=false,vcls='',mobileSub=''){const accessibleLabel=escapeHtml(String(label||'').replace(/<[^>]*>/g,'').trim()),subContent=mobileSub?`<span class="metric-sub-default">${sub}</span><span class="metric-sub-mobile">${mobileSub}</span>`:sub;return `<article class="card metric-card ${dark?'dark':''}" aria-label="${accessibleLabel}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${subContent}</div></article>`}
+
+function marketAiScoreClass(value){
+  if(value==null||value==='')return '';
+  const n=Number(value);
+  if(!Number.isFinite(n))return '';
+  if(n>=55)return 'positive';
+  if(n<=45)return 'negative';
+  return '';
+}
+function marketAiScoreText(value){
+  if(value==null||value==='')return '--';
+  const n=Number(value);
+  return Number.isFinite(n)?n.toFixed(1):'--';
+}
+function marketAiPercentText(value){
+  if(value==null||value==='')return '--';
+  const n=Number(value);
+  return Number.isFinite(n)?`${Math.round(n*100)}%`:'--';
+}
+function marketAiKstTime(iso){
+  if(!iso)return '';
+  const date=new Date(iso);
+  if(Number.isNaN(date.getTime()))return '';
+  return new Intl.DateTimeFormat('ko-KR',{
+    timeZone:'Asia/Seoul',
+    hour:'2-digit',
+    minute:'2-digit',
+    hour12:false
+  }).format(date);
+}
+function renderMarketAiSection(){
+  const cards=[
+    metricCard('KOSPI 신호','<span data-market-ai-score="kospi">--</span>','100점 기준'),
+    metricCard('반도체 신호','<span data-market-ai-score="semiconductors">--</span>','100점 기준'),
+    metricCard('갭상 신호','<span data-market-ai-score="gap">--</span>','100점 기준'),
+    metricCard('상승마감 신호','<span data-market-ai-score="up-close">--</span>','100점 기준')
+  ].join('');
+  return `<section id="market-ai-section" aria-labelledby="marketAiTitle"><div class="section-title"><h2 id="marketAiTitle"><span class="section-title-icon" data-section-title-icon="activity" aria-hidden="true"></span>AI Market Signal</h2><span class="section-control-chip section-basis-chip" data-market-ai-status role="status" aria-live="polite">연결 확인 중</span></div><div class="grid cards" aria-label="Market AI 시장 신호">${cards}</div><div class="sub" data-market-ai-meta>선택일과 무관한 현재 Market AI 신호를 확인하고 있습니다.</div></section>`;
+}
+function syncMarketAiSignalView(state={}){
+  const section=document.getElementById('market-ai-section');
+  if(!section)return;
+  const signal=state.signal||null;
+  const scoreValues={
+    kospi:signal?.kospi_score,
+    semiconductors:signal?.semiconductor_score,
+    gap:signal?.gap_up_probability,
+    'up-close':signal?.up_close_probability
+  };
+  Object.entries(scoreValues).forEach(([key,value])=>{
+    const el=section.querySelector(`[data-market-ai-score="${key}"]`);
+    if(!el)return;
+    el.textContent=marketAiScoreText(value);
+    el.classList.remove('positive','negative');
+    const valueClass=marketAiScoreClass(value);
+    if(valueClass)el.classList.add(valueClass);
+  });
+
+  const status=section.querySelector('[data-market-ai-status]');
+  const meta=section.querySelector('[data-market-ai-meta]');
+  if(!signal){
+    if(status){
+      status.textContent=state.status||'연결 확인 중';
+      status.removeAttribute('title');
+    }
+    if(meta)meta.textContent=state.message||'Market AI 신호를 확인하고 있습니다.';
+    return;
+  }
+
+  const updated=marketAiKstTime(signal.updated_at);
+  if(status){
+    status.textContent=state.status||'연결됨';
+    if(updated)status.setAttribute('title',`Market AI ${updated} 기준`);
+    else status.removeAttribute('title');
+  }
+  if(meta){
+    const parts=[
+      '현재 시장',
+      `신뢰도 ${marketAiPercentText(signal.confidence)}`,
+      `데이터 완성도 ${marketAiPercentText(signal.data_completeness)}`,
+      signal.calibrated===true?'확률 보정 완료':'비보정 룰 기반 신호'
+    ];
+    if(updated)parts.push(`${updated} KST`);
+    meta.textContent=parts.join(' · ');
+  }
+}
 
 function mobileViewAttrs(key){
   const mode=mobileViewModes[key]||'card';
@@ -1174,6 +1262,7 @@ export {
   mobileViewAttrs,
   mobileViewToggle,
   renderCombined,
+  renderMarketAiSection,
   renderSecuritiesSection,
   renderTabs,
   restoreMobileDateMenuAfterRender,
@@ -1182,5 +1271,6 @@ export {
   showAppToast,
   syncAssetTabs,
   syncCornerThemeControls,
+  syncMarketAiSignalView,
   syncThemeControls
 };
