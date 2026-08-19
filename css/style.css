@@ -331,6 +331,7 @@
   --summary-row-bg:#f8fafc;
   --subtle-card:#f8fafc;
   --chart-surface:#ffffff;
+  --chart-focus-outline:rgba(59,130,246,.28);
   --chart-grid:#e5e7eb;
   --chart-axis:#cbd5e1;
   --chart-text:#6b7280;
@@ -385,6 +386,7 @@ html.dark{
   --summary-row-bg:#182132;
   --subtle-card:#161f30;
   --chart-surface:#121826;
+  --chart-focus-outline:rgba(96,165,250,.34);
   --chart-grid:#273248;
   --chart-axis:#475569;
   --chart-text:#94a3b8;
@@ -1160,7 +1162,7 @@ svg.chart{
   border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
 }
 svg.chart:focus-visible{
-  outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
+  outline:var(--control-focus-outline-width) solid var(--chart-focus-outline);
   outline-offset:calc(0px - var(--control-focus-outline-width) - 1px);
 }
 
