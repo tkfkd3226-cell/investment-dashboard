@@ -3008,20 +3008,6 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 
 세 요소는 한 줄 유지한다. 모바일 전용 축약 설명이 필요한 경우 `metricCard()`의 mobile sub variant를 사용하고, 데스크톱/태블릿 설명을 CSS로 억지 축소하거나 ellipsis 처리하지 않는다.
 
-현재 모바일 전용 설명:
-
-```text
-증권계좌 기준 투입원금
-OFF: 전체 투입원금 + 670만 원
-ON : 전체 투입원금 | 670만 원 제외
-
-퇴직연금 평가금액: 선택일 축약일 + (해당 시) 추정 + 기준
-퇴직연금 납입원금: 최근 적립금 반영
-퇴직연금 누적수익률: 운용수익 ÷ 납입원금
-```
-
-증권계좌 투자 결과물/총 합산 누적손익의 설명은 `계좌1 + 계좌2 + 토스` 범위 문구만 사용하고, 투자대비 이익률의 `누적손익 ÷ 투입원금` 및 퇴직연금 운용수익의 `평가금액 - 납입원금`은 모바일에서도 축약하지 않는다.
-
 # 6. JavaScript 구현 세부 규칙
 
 
@@ -3607,20 +3593,12 @@ Light / Dark 모두 icon contrast가 유지돼야 한다.
 .table-cell-text   → 좌측 정렬
 .table-cell-right  → 우측 정렬
 .table-cell-center → 가운데 정렬
-
-문자 컬럼 제목 / 문자 값  → 좌측
-숫자 컬럼 제목           → 중앙
-일반 숫자 값              → .num + .table-cell-right
-수량 / 수익률 값          → .num + .table-cell-center
 ```
 
-- `.num`에 `text-align`을 넣지 않는다. 숫자 값의 정렬은 반드시 `table-cell-right` 또는 `table-cell-center`로 명시한다.
-- 수량은 사용자 지정 기준으로 제목과 값을 가운데 정렬한다. 증권계좌 보유분과 연금상품별 현황 모두 `table-cell-center` semantic class로 처리한다.
-- 비중처럼 숫자 시각화가 포함된 셀은 기본적으로 값 축을 우측 정렬하고 bar를 우측에 붙인다. 단, `연금상품별 현황`의 `비중` 컬럼은 사용자 지정 기준으로 값과 bar를 모두 가운데 정렬하며, `table-cell-center` semantic class와 `.pension-products-table .bar-box`의 `margin-inline:auto`로 처리한다.
-- 비첫열 문자 컬럼은 `table-cell-text` semantic class로 선언하고, 정렬/표시 제어에 컬럼 위치 기반 `nth-child`를 사용하지 않는다.
-- 통합성과 수익률 열은 `combined-return-col`, 계좌별 성과 메모 열은 `accounts-memo-head` / `accounts-memo`처럼 의미 기반 class로 제어한다. 현재 메인 table CSS의 컬럼 위치 기반 `nth-child` 의존은 0개를 유지한다.
-- 400px 이하 계좌 메모는 텍스트 대신 중앙 정보 버튼으로 전환되므로 해당 breakpoint의 메모 열 중앙 정렬은 semantic class 기준 기능 예외로 유지한다.
-- 400px 이하 `연금+계좌 성과` 표는 수익률 열을 축약해 누적손익 셀에 함께 표시하므로, `combined-profit-col` semantic class로 누적손익 값(모바일 수익률 포함)을 가운데 정렬한다. 401px 이상에서는 일반 숫자값 우측 정렬을 유지한다.
+- `.num`에 `text-align`을 넣지 않는다. 숫자 값의 정렬은 `table-cell-right` 또는 `table-cell-center`로 명시한다.
+- 문자형 셀과 정렬 예외는 semantic class로 제어하고, 컬럼 위치 기반 `nth-child`에 의존하지 않는다.
+- 일반 숫자 값은 우측 정렬을 기본으로 하되, UI상 가운데 정렬이 필요한 값은 `table-cell-center`를 명시한다.
+- 특정 표·컬럼의 현재 정렬 상태나 문구 변경 이력은 이 문서에 누적하지 않고 최신 실제 소스를 기준으로 확인한다.
 
 ### 장부결과 VS 실제보유
 
@@ -3675,16 +3653,6 @@ rgb(251, 191, 36)
 
 ### 퇴직연금
 
-퇴직연금 인사이트 제목(`오늘 상승분 기여도`, `위험자산 70% 룰`)은 현재:
-
-```text
-Desktop 15px
-Tablet  14px
-Mobile  13px
-```
-
-을 기준으로 유지한다.
-
 관련 수정 시:
 
 - 금액 조정 modal
@@ -3722,18 +3690,9 @@ QA에서 실제 GAS write는 하지 않는다.
 
 를 확인한다.
 
-현재 일반 차트 tooltip은 owner SVG를 추적하며 page scroll / viewport 변화로 **해당 차트 SVG가 viewport 밖으로 완전히 벗어나면 tooltip과 hover guide를 자동 정리**한다. Desktop / Tablet / Mobile 공통 동작이며, 확대 차트 overlay 내부 tooltip은 이 page-scroll 정리 대상에서 제외한다.
+일반 차트 tooltip은 owner SVG가 viewport 밖으로 완전히 벗어나면 tooltip과 hover guide를 정리한다. 확대 차트 overlay 내부 tooltip은 이 page-scroll 정리 대상에서 제외한다.
 
-누적차트 하단의 날짜 이동 카드(`최대 수익`, `Best`, `Worst`)는 즉시 날짜를 바꾸지 않는다. 현재 동작은:
-
-```text
-카드 선택
-→ "YYYY년 M월 D일 화면으로 이동할까요?" 확인 modal
-→ 취소: 현재 날짜 유지
-→ 이동: target date로 변경 후 해당 차트로 이동
-```
-
-이며 mouse / keyboard 모두 같은 확인 flow를 사용한다.
+누적차트 하단 날짜 이동 카드는 즉시 날짜를 바꾸지 않고 확인 modal을 거친 뒤 이동하며, mouse / keyboard 모두 같은 flow를 사용한다.
 
 listener 중복 또는 chart 이중 생성은 FAIL이다.
 
