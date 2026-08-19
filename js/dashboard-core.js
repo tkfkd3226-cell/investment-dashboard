@@ -26,21 +26,6 @@ const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원
   return `${Number(m)}월 ${Number(day)}일 종가 기준`;
 };
 
-const SEPARATE_PROFIT_TRADES=Object.freeze([
-  {date:'2026-06-09',profit:15975},
-  {date:'2026-06-16',profit:5004},
-  {date:'2026-06-19',profit:50215},
-  {date:'2026-06-23',profit:10446},
-  {date:'2026-06-25',profit:427007},
-  {date:'2026-07-30',profit:-4036636},
-  {date:'2026-07-31',profit:5804782},
-  {date:'2026-08-04',profit:206313},
-  {date:'2026-08-05',profit:4826661},
-  {date:'2026-08-06',profit:202219},
-  {date:'2026-08-07',profit:163334},
-  {date:'2026-08-12',profit:68059}
-]);
-const SEPARATE_PROFIT_REINVESTED=6700000;
 const SECURITY_SYMBOL_COLORS=Object.freeze({
   'SK하이닉스':'#ff8a65',
   '삼성전자':'#8bc34a',
@@ -422,9 +407,11 @@ const account1SourceHoldingGapForDate=d=>isLedgerCheckDate(d)?securitiesHoldingC
 const account1PrincipalForDate=d=>isLedgerCheckDate(d)?securitiesHoldingCostForDate(d):account1SourcePrincipalForDate(d);
 const externalPrincipalForDate=d=>(Number(dataState.portfolio?.constants?.externalPrincipal)||0)-securityExternalPrincipalContributionAfter(d)+securityWithdrawalAfter(d);
 const sourceExternalPrincipalForDate=d=>externalPrincipalForDate(d)-securityExcludedTransferSum(d);
-const outsideCashForDate=d=>(Number(dataState.portfolio?.constants?.outsideCash??2035097)||0)-securityInternalCashTransferSum(d);
-const separateProfitCumulativeForDate=d=>SEPARATE_PROFIT_TRADES.filter(v=>v.date<=d).reduce((a,v)=>a+v.profit,0);
-const separateProfitReinvestedForDate=d=>Math.min(SEPARATE_PROFIT_REINVESTED,securityExcludedTransferSum(d),Math.max(0,separateProfitCumulativeForDate(d)));
+const outsideCashForDate=d=>(Number(dataState.portfolio?.constants?.outsideCash)||0)-securityInternalCashTransferSum(d);
+const separateProfitTrades=()=>Array.isArray(dataState.portfolio?.separateProfit?.trades)?dataState.portfolio.separateProfit.trades:[];
+const separateProfitReinvestedLimit=()=>Number(dataState.portfolio?.separateProfit?.reinvestedLimit)||0;
+const separateProfitCumulativeForDate=d=>separateProfitTrades().filter(v=>String(v?.date||'')<=d).reduce((a,v)=>a+(Number(v?.profit)||0),0);
+const separateProfitReinvestedForDate=d=>Math.min(separateProfitReinvestedLimit(),securityExcludedTransferSum(d),Math.max(0,separateProfitCumulativeForDate(d)));
 const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCash})=>{
   const activeRows=holdings.filter(h=>(Number(h?.qty)||0)>0);
   const holdingCost=activeRows.reduce((a,h)=>a+(Number(h?.cost)||0),0);
@@ -575,7 +562,7 @@ const separateProfitView=x=>{
 function calc(date){
   const p=dataState.portfolio,c=p.constants,s=dataState.prices[date]||{},pk=previousDate(date),prev=pk?dataState.prices[pk]:null,daily=dataState.account1Daily?.[date]||null,extraPensionContrib=pensionContributionSum(date),prevExtraPensionContrib=pk?pensionContributionSum(pk):0,pensionPrincipal=(Number(c.pensionContributionPrincipal)||0)+extraPensionContrib;
   const account2Included=includeAccount2(date),tossIncluded=includeToss(date),hasPension=hasPensionData(date);
-  const ledgerAccount1ActualGap=(Number(c.account2RealizedAmount)||0)-(Number(c.account2ReinvestedToAccount1)||0)+(Number(c.tossRealizedAmount)||0)-(Number(c.tossReinvestedToAccount1)||0)-(Number(c.outsideCash??2035097)||0)-(Number(c.livingSpent)||0);
+  const ledgerAccount1ActualGap=(Number(c.account2RealizedAmount)||0)-(Number(c.account2ReinvestedToAccount1)||0)+(Number(c.tossRealizedAmount)||0)-(Number(c.tossReinvestedToAccount1)||0)-(Number(c.outsideCash)||0)-(Number(c.livingSpent)||0);
   let holdings,rawHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,etfEval,stockEval,allocTotal,securitiesCash;
   if(daily){
     const prevDaily=pk?dataState.account1Daily?.[pk]:null;
