@@ -727,9 +727,9 @@ function sectionToSecuritiesBlock(html, extraClass=''){
     .replace(/<\/section>\s*$/, '</div>');
 }
 function renderSecuritiesSummaryCards(x,{hidden=false}={}){
-  const securitiesScope=securitiesScopeText(x),v=separateProfitView(x),separateProfitOn=uiState.includeSeparateProfit;
-  const principalNote=separateProfitOn?'전체 투입원금 + 원천·보유 차액 | 별도 수익 재투입 670만 원 제외':'전체 투입원금 + 보유 자금 투입 670만 원 + 원천·보유 차액';
-  const principalMobileNote=separateProfitOn?'전체 투입원금 + 차액 | 670만 원 제외':'전체 투입원금 + 670만 원 + 차액';
+  const securitiesScope=securitiesScopeText(x),v=separateProfitView(x),separateProfitOn=uiState.includeSeparateProfit,reinvestedLimit=Number(dataState.portfolio.separateProfit?.reinvestedLimit)||0,reinvestedLimitText=reinvestedLimit%10000===0?`${fmt(reinvestedLimit/10000)}만 원`:won(reinvestedLimit);
+  const principalNote=separateProfitOn?`전체 투입원금 + 원천·보유 차액 | 별도 수익 재투입 ${reinvestedLimitText} 제외`:`전체 투입원금 + 보유 자금 투입 ${reinvestedLimitText} + 원천·보유 차액`;
+  const principalMobileNote=separateProfitOn?`전체 투입원금 + 차액 | ${reinvestedLimitText} 제외`:`전체 투입원금 + ${reinvestedLimitText} + 차액`;
   const returnNote='누적손익 ÷ 투입원금';
   return `<div id="securities-overall-summary"${hidden?' hidden':''}><div class="grid cards metric-grid">${metricCard('투자 결과물',won(v.totalResult),securitiesScope,true)}${metricCard('투입원금',won(v.totalPrincipal),principalNote,false,'',principalMobileNote)}${metricCard('누적손익',won(v.totalProfit),isLedgerCheckDate(x.date)?'투자 결과물 - 투입원금':'전체 누적 성과 기준',false,cls(v.totalProfit))}${metricCard('누적수익률',pct(v.totalReturn),returnNote,false,cls(v.totalReturn))}</div></div>`;
 }
