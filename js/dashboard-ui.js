@@ -464,7 +464,12 @@ function setupUiGlobalEvents(){
   });
   document.addEventListener('change',closeAccountMemoInfo);
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape')closeAccountMemoInfo();
+    if(e.key!=='Escape')return;
+    if(mobileDateMenuIsOpen()){
+      closeDateActionMenu();
+      document.getElementById('dateActionMenuButton')?.focus();
+    }
+    closeAccountMemoInfo();
   });
   window.addEventListener('scroll',closeAccountMemoInfo,{passive:true});
   window.addEventListener('resize',()=>{

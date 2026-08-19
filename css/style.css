@@ -5142,7 +5142,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .accounts-memo-source-link{
   background:var(--source-linked-bg);
   border:1px solid var(--status-caution-soft-border);
-  border-radius:var(--corner-inner);
+  border-radius:var(--corner-inner-cap);
   padding:1px 4px;
   box-decoration-break:clone;
   -webkit-box-decoration-break:clone;
