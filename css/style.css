@@ -1784,6 +1784,17 @@ body.chart-expanded-open .dash-tooltip{
 .accounts-memo-tooltip-source,
 .accounts-memo-floating-tooltip{display:none}
 
+/* Account Performance Compact · 계좌별 성과: 태블릿/모바일에서 손익+수익률을 한 셀로 합쳐 메모 열을 유지 */
+.performance-inline-return{display:none}
+@media (max-width:1100px){
+  #accounts-summary .accounts-table .performance-return-col{display:none}
+  #accounts-summary .accounts-table .performance-profit-col{text-align:center}
+  #accounts-summary .accounts-table .performance-inline-return{
+    display:inline;
+    font-size:var(--type-size-xs);
+  }
+}
+
 /* 초소형 화면 기능 예외: 400px 이하에서는 통합성과 수익률 열을 축약하고, 계좌별 성과 메모는 전용 열의 정보 tooltip으로 전환한다. */
 @media(max-width:400px){
   #summary-section .combined-performance-table .combined-return-col{
