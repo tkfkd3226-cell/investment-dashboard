@@ -1,13 +1,16 @@
 // Market AI standalone dashboard adapter
 // - 메인 7개 ES Module graph와 분리
 // - dashboard-app.js / dashboard-ui.js 수정 없이 index.html에서 독립 로드
+// - 연금+계좌 성과 영역 안에 한 줄짜리 compact signal row만 부착
 // - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
 // - Stage 9 calibration이 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
+// - GitHub Pages 등 비로컬 환경에서는 Market AI UI 자체를 표시하지 않음
 
 const MARKET_AI_POLL_MS=60_000;
 const MARKET_AI_TIMEOUT_MS=2_500;
 const MARKET_AI_STALE_MS=5*60_000;
 const LOCAL_DASHBOARD_HOSTS=new Set(['localhost','127.0.0.1']);
+const MARKET_AI_STYLE_ID='marketAiStandaloneStyles';
 
 const marketAiState={
   signal:null,
@@ -18,10 +21,6 @@ const marketAiState={
 
 let marketAiPollTimer=0;
 let mountFrame=0;
-
-function activityIconSvg(){
-  return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12h4l2.2-5.2L13 17l2.2-5H21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-}
 
 function marketAiApiBase(){
   if(!LOCAL_DASHBOARD_HOSTS.has(location.hostname))return '';
@@ -101,140 +100,133 @@ function marketAiSignalFreshness(signal){
   };
 }
 
-function marketAiMetricCard(label,key){
-  return `<article class="card metric-card" aria-label="${label}" data-market-ai-card="${key}"><div class="label" data-market-ai-label>${label}</div><div class="value"><span data-market-ai-score="${key}">--</span></div><div class="sub" data-market-ai-basis>100점 기준</div></article>`;
+function ensureMarketAiStyles(){
+  if(document.getElementById(MARKET_AI_STYLE_ID))return;
+  const style=document.createElement('style');
+  style.id=MARKET_AI_STYLE_ID;
+  style.textContent=`
+#market-ai-section{margin-top:var(--space-3xl);min-width:0}
+.market-ai-inline-strip{display:flex;align-items:center;gap:10px;min-width:0;min-height:32px;padding:5px 10px;border:1px solid var(--line);border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));background:var(--card);box-shadow:var(--shadow-low);font-size:var(--type-size-sm);line-height:1.2;white-space:nowrap;overflow:hidden}
+.market-ai-inline-title{flex:0 0 auto;color:var(--ink);font-weight:var(--type-weight-strong);letter-spacing:-.02em}
+.market-ai-inline-metrics{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:1 1 auto;min-width:0}
+.market-ai-inline-metric{display:inline-flex;align-items:baseline;gap:4px;min-width:0}
+.market-ai-inline-label{color:var(--muted);font-weight:var(--type-weight-bold);letter-spacing:-.02em}
+.market-ai-inline-value{font-weight:var(--type-weight-emphasis);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.market-ai-inline-status{min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-weight:var(--type-weight-bold)}
+@media (min-width:761px) and (max-width:1100px){
+  .market-ai-inline-strip{gap:8px;padding:5px 8px;font-size:11px}
+  .market-ai-inline-metrics{gap:9px}
+  .market-ai-inline-metric{gap:3px}
+}
+@media (max-width:760px){
+  #market-ai-section{margin-top:var(--space-2xl)}
+  .market-ai-inline-strip{gap:5px;min-height:28px;padding:4px 6px;font-size:clamp(9px,2.35vw,10.5px)}
+  .market-ai-inline-title{padding-right:5px;border-right:1px solid var(--line)}
+  .market-ai-inline-metrics{gap:5px}
+  .market-ai-inline-metric{gap:2px}
+}
+`;
+  document.head.appendChild(style);
+}
+
+function marketAiInlineMetric(label,key){
+  return `<span class="market-ai-inline-metric" data-market-ai-card="${key}"><span class="market-ai-inline-label" data-market-ai-label>${label}</span><strong class="market-ai-inline-value" data-market-ai-score="${key}">--</strong></span>`;
 }
 
 function createMarketAiSection(){
-  const section=document.createElement('section');
-  section.id='market-ai-section';
-  section.setAttribute('aria-labelledby','marketAiTitle');
-  section.innerHTML=`<div class="section-title"><h2 id="marketAiTitle"><span class="section-title-icon" aria-hidden="true">${activityIconSvg()}</span>AI Market Signal</h2><span class="section-control-chip section-basis-chip" data-market-ai-status role="status" aria-live="polite">연결 확인 중</span></div><div class="grid cards" aria-label="Market AI 시장 신호">${marketAiMetricCard('KOSPI 신호','kospi')}${marketAiMetricCard('반도체 신호','semiconductors')}${marketAiMetricCard('갭상 신호','gap')}${marketAiMetricCard('상승마감 신호','up-close')}</div><div class="sub" data-market-ai-meta>선택일과 무관한 현재 Market AI 신호를 확인하고 있습니다.</div>`;
-  return section;
+  const row=document.createElement('div');
+  row.id='market-ai-section';
+  row.setAttribute('role','group');
+  row.setAttribute('aria-labelledby','marketAiTitle');
+  row.innerHTML=`<div class="market-ai-inline-strip"><span id="marketAiTitle" class="market-ai-inline-title">AI Market Signal</span><span class="market-ai-inline-metrics" aria-label="현재 Market AI 시장 신호">${marketAiInlineMetric('KOSPI','kospi')}${marketAiInlineMetric('반도체','semiconductors')}${marketAiInlineMetric('갭상','gap')}${marketAiInlineMetric('상승마감','up-close')}</span><span class="market-ai-inline-status" data-market-ai-status role="status" aria-live="polite">연결 확인 중</span></div>`;
+  return row;
 }
 
 function mountMarketAiSection(){
-  const wrap=document.querySelector('#app > .wrap');
-  if(!wrap)return null;
-  let section=document.getElementById('market-ai-section');
-  if(section&&section.closest('#app')===document.getElementById('app'))return section;
-  section=createMarketAiSection();
+  if(!marketAiApiBase())return null;
+  ensureMarketAiStyles();
   const summary=document.getElementById('summary-section');
-  const assetWorkspace=document.getElementById('asset-workspace');
-  const securities=document.getElementById('securities-section');
-  if(summary&&summary.parentElement===wrap)summary.insertAdjacentElement('afterend',section);
-  else if(assetWorkspace&&assetWorkspace.parentElement===wrap)wrap.insertBefore(section,assetWorkspace);
-  else if(securities&&securities.parentElement===wrap)wrap.insertBefore(section,securities);
-  else wrap.appendChild(section);
-  return section;
+  if(!summary)return null;
+  let row=document.getElementById('market-ai-section');
+  if(row&&row.parentElement===summary)return row;
+  row=createMarketAiSection();
+  summary.appendChild(row);
+  return row;
 }
 
-function ensureMarketAiNavItem(group,selector,kind){
-  if(!group||group.querySelector('[data-section-target="market-ai-section"]'))return;
-  const source=group.querySelector(selector);
-  if(!source)return;
-  const item=source.cloneNode(true);
-  item.removeAttribute('id');
-  item.dataset.dashboardAction='jump-section';
-  item.dataset.sectionTarget='market-ai-section';
-  item.removeAttribute('aria-current');
-  item.classList.remove('is-current');
-  if(kind==='desktop'){
-    item.removeAttribute('data-toc-target');
-    item.dataset.tocTarget='market-ai-section';
-    const icon=item.querySelector('.desktop-edge-toc-icon');
-    if(icon)icon.innerHTML=activityIconSvg();
-    const spans=item.querySelectorAll(':scope > span');
-    if(spans.length)spans[spans.length-1].textContent='AI Market Signal';
-  }else{
-    item.dataset.closeDateMenu='true';
-    const icon=item.querySelector('.nav-icon');
-    if(icon)icon.innerHTML=activityIconSvg();
-    const strong=item.querySelector('strong');
-    if(strong)strong.textContent='AI Market Signal';
-  }
-  group.appendChild(item);
-}
-
-function mountMarketAiNavigation(){
-  document.querySelectorAll('.desktop-edge-toc-group').forEach(group=>{
-    if(group.querySelector(':scope > p')?.textContent.trim()!=='전체')return;
-    ensureMarketAiNavItem(group,'.desktop-edge-toc-item[data-section-target="summary-section"]','desktop');
-  });
-  document.querySelectorAll('.mobile-nav-group').forEach(group=>{
-    if(group.querySelector(':scope > p')?.textContent.trim()!=='전체')return;
-    ensureMarketAiNavItem(group,'.mobile-nav-item[data-section-target="summary-section"]','mobile');
-  });
+function removeMarketAiUi(){
+  document.getElementById('market-ai-section')?.remove();
+  document.querySelectorAll('[data-section-target="market-ai-section"]').forEach(item=>item.remove());
 }
 
 function syncMarketAiSignalView(){
-  const section=mountMarketAiSection();
-  if(!section)return;
+  if(!marketAiApiBase()){
+    removeMarketAiUi();
+    return;
+  }
+  const row=mountMarketAiSection();
+  if(!row)return;
   const signal=marketAiState.signal;
   const calibration=signal?.calibration||{};
   const calibratedTargets=new Set(Array.isArray(calibration.available_targets)?calibration.available_targets:[]);
   const probabilities=calibration.probabilities||{};
   const modelMeta=calibration.models||{};
   const metrics=[
-    {key:'kospi',target:'kospi_up',score:signal?.kospi_score,signalLabel:'KOSPI 신호',probabilityLabel:'KOSPI 상승확률'},
-    {key:'semiconductors',target:'semiconductor_up',score:signal?.semiconductor_score,signalLabel:'반도체 신호',probabilityLabel:'반도체 상승확률'},
-    {key:'gap',target:'gap_up',score:signal?.gap_up_probability,signalLabel:'갭상 신호',probabilityLabel:'갭상 확률'},
-    {key:'up-close',target:'up_close',score:signal?.up_close_probability,signalLabel:'상승마감 신호',probabilityLabel:'상승마감 확률'}
+    {key:'kospi',target:'kospi_up',score:signal?.kospi_score,shortLabel:'KOSPI',fullSignalLabel:'KOSPI 신호',fullProbabilityLabel:'KOSPI 상승확률'},
+    {key:'semiconductors',target:'semiconductor_up',score:signal?.semiconductor_score,shortLabel:'반도체',fullSignalLabel:'반도체 신호',fullProbabilityLabel:'반도체 상승확률'},
+    {key:'gap',target:'gap_up',score:signal?.gap_up_probability,shortLabel:'갭상',fullSignalLabel:'갭상 신호',fullProbabilityLabel:'갭상 확률'},
+    {key:'up-close',target:'up_close',score:signal?.up_close_probability,shortLabel:'상승마감',fullSignalLabel:'상승마감 신호',fullProbabilityLabel:'상승마감 확률'}
   ];
+
+  const metricsWrap=row.querySelector('.market-ai-inline-metrics');
+  const status=row.querySelector('[data-market-ai-status]');
+  if(metricsWrap)metricsWrap.hidden=!signal;
+  if(status)status.hidden=!!signal;
+
   metrics.forEach(metric=>{
-    const card=section.querySelector(`[data-market-ai-card="${metric.key}"]`);
-    const el=section.querySelector(`[data-market-ai-score="${metric.key}"]`);
-    if(!el)return;
+    const item=row.querySelector(`[data-market-ai-card="${metric.key}"]`);
+    const value=row.querySelector(`[data-market-ai-score="${metric.key}"]`);
+    if(!value)return;
     const probability=Number(probabilities[metric.target]);
     const calibrated=calibratedTargets.has(metric.target)&&Number.isFinite(probability);
     const displayValue=calibrated?probability*100:metric.score;
-    el.textContent=calibrated?marketAiProbabilityText(probability):marketAiScoreText(metric.score);
-    el.classList.remove('positive','negative');
+    value.textContent=calibrated?marketAiProbabilityText(probability):marketAiScoreText(metric.score);
+    value.classList.remove('positive','negative');
     const valueClass=marketAiScoreClass(displayValue);
-    if(valueClass)el.classList.add(valueClass);
-    const label=card?.querySelector('[data-market-ai-label]');
-    const basis=card?.querySelector('[data-market-ai-basis]');
-    if(label)label.textContent=calibrated?metric.probabilityLabel:metric.signalLabel;
-    if(card)card.setAttribute('aria-label',calibrated?metric.probabilityLabel:metric.signalLabel);
-    if(basis){
+    if(valueClass)value.classList.add(valueClass);
+    const label=item?.querySelector('[data-market-ai-label]');
+    if(label)label.textContent=metric.shortLabel;
+    if(item){
       const sampleCount=Number(modelMeta?.[metric.target]?.sample_count);
-      basis.textContent=calibrated&&Number.isFinite(sampleCount)
-        ?`통계 보정 · n=${sampleCount}`
-        :(calibrated?'통계 보정':'100점 기준');
+      const fullLabel=calibrated?metric.fullProbabilityLabel:metric.fullSignalLabel;
+      const basis=calibrated&&Number.isFinite(sampleCount)?`통계 보정 · n=${sampleCount}`:(calibrated?'통계 보정':'100점 기준');
+      item.setAttribute('title',`${fullLabel} · ${basis}`);
+      item.setAttribute('aria-label',fullLabel);
     }
   });
 
-  const status=section.querySelector('[data-market-ai-status]');
-  const meta=section.querySelector('[data-market-ai-meta]');
   if(!signal){
     if(status){
       status.textContent=marketAiState.status||'연결 확인 중';
-      status.removeAttribute('title');
-    }
-    if(meta){
       const lastSignal=marketAiKstTime(marketAiState.lastSignalAt);
       const message=marketAiState.message||'Market AI 신호를 확인하고 있습니다.';
-      meta.textContent=lastSignal?`${message} · 마지막 신호 ${lastSignal} KST`:message;
+      status.setAttribute('title',lastSignal?`${message} · 마지막 신호 ${lastSignal} KST`:message);
     }
+    row.setAttribute('aria-label',`AI Market Signal · ${marketAiState.status||'연결 확인 중'}`);
     return;
   }
 
   const updated=marketAiKstTime(signal.updated_at);
-  if(status){
-    status.textContent=marketAiState.status||'연결됨';
-    if(updated)status.setAttribute('title',`Market AI ${updated} 기준`);
-    else status.removeAttribute('title');
-  }
-  if(meta){
-    const parts=[
-      '현재 시장',
-      `신뢰도 ${marketAiPercentText(signal.confidence)}`,
-      `데이터 완성도 ${marketAiPercentText(signal.data_completeness)}`,
-      calibratedTargets.size?`확률 보정 ${calibratedTargets.size}/4`:'비보정 룰 기반 신호'
-    ];
-    if(updated)parts.push(`${updated} KST`);
-    meta.textContent=parts.join(' · ');
-  }
+  const meta=[
+    '현재 시장',
+    `신뢰도 ${marketAiPercentText(signal.confidence)}`,
+    `데이터 완성도 ${marketAiPercentText(signal.data_completeness)}`,
+    calibratedTargets.size?`확률 보정 ${calibratedTargets.size}/4`:'비보정 룰 기반 신호'
+  ];
+  if(updated)meta.push(`${updated} KST`);
+  const metaText=meta.join(' · ');
+  row.setAttribute('title',metaText);
+  row.setAttribute('aria-label',`AI Market Signal · ${metaText}`);
 }
 
 function setMarketAiState(next){
@@ -245,12 +237,7 @@ function setMarketAiState(next){
 async function refreshMarketAiSignal(){
   const apiBase=marketAiApiBase();
   if(!apiBase){
-    setMarketAiState({
-      signal:null,
-      status:'로컬 전용',
-      message:'GitHub Pages에서는 아직 Market AI 서버를 연결하지 않습니다. 로컬 대시보드에서 확인하세요.',
-      lastSignalAt:null
-    });
+    removeMarketAiUi();
     return;
   }
 
@@ -301,18 +288,17 @@ function scheduleMount(){
   if(mountFrame)return;
   mountFrame=requestAnimationFrame(()=>{
     mountFrame=0;
-    mountMarketAiSection();
-    mountMarketAiNavigation();
     syncMarketAiSignalView();
   });
 }
 
 function startMarketAiBridge(){
+  if(!marketAiApiBase()){
+    removeMarketAiUi();
+    return;
+  }
   const app=document.getElementById('app');
-  const tabs=document.getElementById('tabs');
   if(app)new MutationObserver(scheduleMount).observe(app,{childList:true,subtree:false});
-  if(tabs)new MutationObserver(scheduleMount).observe(tabs,{childList:true,subtree:true});
-  document.addEventListener('click',scheduleMount,{passive:true});
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible')refreshMarketAiSignal();
   });
