@@ -636,7 +636,6 @@ export {
   SECURITY_SYMBOL_COLORS,
   account1PrincipalForDate,
   account1SourceHoldingGapForDate,
-  account1SourcePrincipalForDate,
   allocHistory,
   allAvailableDates,
   assetTypeColor,
