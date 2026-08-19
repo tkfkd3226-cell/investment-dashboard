@@ -1923,7 +1923,7 @@ body.chart-expanded-open .dash-tooltip{
   gap:var(--space-lg) var(--space-3xl);
 }
 
-/* Phone Allocation Summary · 폰 평가액 비중: 총액 카드가 grid 전체 행 사용 */
+/* Phone Allocation Summary · 폰 평가금액 비중: 총액 카드가 grid 전체 행 사용 */
 .phone-chart-ui #securityAllocCards > .alloc-total-card{
   grid-column:1 / -1;
   display:grid;
@@ -3295,7 +3295,7 @@ body.contrib-modal-open{
   margin-top:0;
 }
 
-/* Allocation Metadata · 평가액 비중 메타: 비율은 상세값보다 1px 크게, 둘 다 일반 굵기 */
+/* Allocation Metadata · 평가금액 비중 메타: 비율은 상세값보다 1px 크게, 둘 다 일반 굵기 */
 .mini-card .alloc-ratio-meta,
 .mini-card .alloc-cash-meta{
   color:var(--muted);
@@ -3317,7 +3317,7 @@ body.contrib-modal-open{
   .mini-card .alloc-cash-meta{font-size:8.5px}
 }
 
-/* Allocation Summary · 평가액 비중 카드: 연금/증권 공통 총액 + 화면군별 grid */
+/* Allocation Summary · 평가금액 비중 카드: 연금/증권 공통 총액 + 화면군별 grid */
 #pension-chart-alloc .pension-alloc-total-card,
 #chart-alloc:not(.phone-chart-ui) #securityAllocCards > .alloc-total-card{
   display:grid;
@@ -3345,7 +3345,7 @@ body.contrib-modal-open{
 #pension-chart-alloc .pension-cash-detail-full{display:block}
 #pension-chart-alloc .pension-cash-detail-compact{display:none}
 
-/* [07. Pension · continuation] Pension Allocation Responsive · 퇴직연금 평가액 비중: 웹/태블릿 4열, 모바일 2열 */
+/* [07. Pension · continuation] Pension Allocation Responsive · 퇴직연금 평가금액 비중: 웹/태블릿 4열, 모바일 2열 */
 @media (min-width:761px) and (max-width:1100px){
   #pension-chart-alloc .chart-note{
     grid-template-columns:repeat(4,minmax(0,1fr));
@@ -3361,7 +3361,7 @@ body.contrib-modal-open{
   grid-template-columns:repeat(2,minmax(0,1fr));
 }
 
-/* [06. Securities / Asset Workspace · continuation] Securities Allocation · 증권 평가액 비중: 유형/종목별 카드 배치 정책 */
+/* [06. Securities / Asset Workspace · continuation] Securities Allocation · 증권 평가금액 비중: 유형/종목별 카드 배치 정책 */
 #securityAllocCards.security-alloc-card-grid{
   grid-template-columns:repeat(var(--security-alloc-card-count,4),minmax(0,1fr));
 }
@@ -3369,7 +3369,7 @@ body.contrib-modal-open{
   grid-column:span 2;
 }
 
-/* Securities Allocation Responsive · 증권 평가액 비중: 태블릿 4열, 모바일 2열 + 총액 full row */
+/* Securities Allocation Responsive · 증권 평가금액 비중: 태블릿 4열, 모바일 2열 + 총액 full row */
 @media (min-width:761px) and (max-width:1100px){
   #securityAllocCards.security-alloc-card-grid{
     grid-template-columns:repeat(2,minmax(0,1fr));

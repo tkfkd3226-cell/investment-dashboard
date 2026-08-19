@@ -152,7 +152,7 @@ function renderUnifiedMobileMenuContent(){
         {type:'section',id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
         {type:'section',id:'chart-cum',icon:'lineChart',title:'누적손익 및 누적수익률'},
         {type:'section',id:'chart-symbol',icon:'barChart',title:'종목별 누적손익'},
-        {type:'section',id:'chart-alloc',icon:'pie',title:'평가액 비중'},
+        {type:'section',id:'chart-alloc',icon:'pie',title:'평가금액 비중'},
         {type:'section',id:'ledger-check',icon:'search',title:'장부결과 VS 실제보유'},
         ...(isLedgerCheckDate(dataState.activeDate)?[{type:'section',id:'capital-source-check',icon:'receipt',title:'투자원금 원천 및 검산'}]:[])
       ]
@@ -163,7 +163,7 @@ function renderUnifiedMobileMenuContent(){
         {type:'section',id:'pension-section',icon:'briefcase',title:'퇴직연금 현황'},
         {type:'section',id:'pension-products',icon:'package',title:'연금상품별 현황'},
         {type:'section',id:'pension-change',icon:'trending',title:'전일 대비 변동'},
-        {type:'section',id:'pension-chart-cum',icon:'lineChart',title:'운용손익 및 누적수익률'},
+        {type:'section',id:'pension-chart-cum',icon:'lineChart',title:'운용손익 및 운용수익률'},
         {type:'section',id:'pension-chart-symbol',icon:'barChart',title:'연금상품별 운용손익'},
         {type:'section',id:'pension-chart-alloc',icon:'pie',title:'평가금액 비중'}
       ]
@@ -193,7 +193,7 @@ function renderDesktopTocContent(){
         {id:'securities-holdings',icon:'folder',title:'증권계좌 보유분'},
         {id:'chart-cum',icon:'lineChart',title:'누적손익 및 누적수익률'},
         {id:'chart-symbol',icon:'barChart',title:'종목별 누적손익'},
-        {id:'chart-alloc',icon:'pie',title:'평가액 비중'},
+        {id:'chart-alloc',icon:'pie',title:'평가금액 비중'},
         {id:'ledger-check',icon:'search',title:'장부결과 VS 실제보유'},
         ...(isLedgerCheckDate(dataState.activeDate)?[{id:'capital-source-check',icon:'receipt',title:'투자원금 원천 및 검산'}]:[])
       ]
@@ -204,7 +204,7 @@ function renderDesktopTocContent(){
         {id:'pension-section',icon:'briefcase',title:'퇴직연금 현황'},
         {id:'pension-products',icon:'package',title:'연금상품별 현황'},
         {id:'pension-change',icon:'trending',title:'전일 대비 변동'},
-        {id:'pension-chart-cum',icon:'lineChart',title:'운용손익 및 누적수익률'},
+        {id:'pension-chart-cum',icon:'lineChart',title:'운용손익 및 운용수익률'},
         {id:'pension-chart-symbol',icon:'barChart',title:'연금상품별 운용손익'},
         {id:'pension-chart-alloc',icon:'pie',title:'평가금액 비중'}
       ]
