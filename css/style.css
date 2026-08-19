@@ -5105,9 +5105,10 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 /* Account Labels · 계좌명: table/mobile card 동일 강조 계층 */
 .accounts-table tbody tr:not(.summary-row) .accounts-name{font-weight:var(--data-table-label-weight)}
 .dashboard-data-table .accounts-memo{
-  min-width:180px;
+  min-width:0;
   max-width:none;
-  white-space:nowrap;
+  white-space:normal;
+  word-break:keep-all;
   color:var(--muted);
   font-size:calc(var(--data-table-font-size) - .5px);
   font-weight:var(--data-table-memo-weight);
