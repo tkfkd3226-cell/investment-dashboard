@@ -223,6 +223,7 @@
   --highlight-card-shadow:var(--shadow-low);
   --source-highlight-bg:var(--insight-bg);
   --source-highlight-border:rgba(37,99,235,.22);
+  --source-linked-bg:#fffaf5;
   --special-profit-control-bg:#fff7f8;
   --special-profit-control-border:#f3a0a7;
   --special-profit-note-bg:#fff8f8;
@@ -487,6 +488,7 @@ html.dark{
   --highlight-card-shadow:0 10px 26px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);
   --source-highlight-bg:linear-gradient(180deg,#111827 0%,#0f172a 100%);
   --source-highlight-border:rgba(96,165,250,.24);
+  --source-linked-bg:rgba(194,65,12,.10);
   --special-profit-control-bg:#30181d;
   --special-profit-control-border:#7f3340;
   --special-profit-note-bg:#30181d;
@@ -1397,6 +1399,15 @@ button.legend-item.chart-series-all.active{
   color:var(--segmented-active-text);
   box-shadow:var(--segmented-active-shadow);
 }
+/* Securities Performance Switch · 전체/계좌별 segment 폭과 위치를 선택 상태와 무관하게 고정 */
+.securities-performance-toggle button{
+  width:calc(var(--dashboard-switch-min-width) + var(--space-xl));
+  min-width:calc(var(--dashboard-switch-min-width) + var(--space-xl));
+  padding-left:0;
+  padding-right:0;
+}
+/* 계좌별 전용 표/카드 전환 wrapper는 데스크톱에서 빈 flex item/gap을 만들지 않는다. */
+.securities-summary-block [data-accounts-view-toggle-wrap]{display:none}
 
 /* Chart Tooltip Responsive · 차트 tooltip 반응형 */
 /* Symbol Tooltip Mobile · 종목 tooltip: 모바일 viewport 이탈 방지 */
@@ -1796,6 +1807,7 @@ body.chart-expanded-open .dash-tooltip{
     font-size:var(--type-size-xs);
     line-height:var(--type-line-compact);
   }
+  #accounts-summary .accounts-table .accounts-memo-sentence{white-space:nowrap}
 }
 
 /* 초소형 화면 기능 예외: 400px 이하에서는 통합성과 수익률 열을 축약하고, 계좌별 성과 메모는 전용 열의 정보 tooltip으로 전환한다. */
@@ -2738,6 +2750,7 @@ body.chart-expanded-open .dash-tooltip{
 /* Section Controls Mobile · 섹션 제목 모바일: 제목/chip 크기를 줄여 한 줄 배치 우선 */
 @media(max-width:760px){
   .section-title{align-items:flex-end}
+  .securities-summary-block .chart-head-actions > [data-accounts-view-toggle-wrap]:not([hidden]){display:inline-flex;order:-1}
   .section-title > .section-control-chip,
   .section-title > .section-title-actions,
   .section-title > .separate-profit-control-row{position:relative;top:1px}
@@ -3659,6 +3672,8 @@ body.contrib-modal-open{
 .source-card:not(.highlight) .value{
   font-size:calc(var(--metric-value-size) - 2px);
 }
+.source-data-table .source-base-row > :is(th,td){background:var(--card)}
+.source-data-table .source-derived-row > :is(th,td){background:var(--source-linked-bg)}
 
 /* Source highlight Light/Dark colors resolve through source-highlight tokens. */
 
@@ -5124,6 +5139,15 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   line-height:var(--type-line-compact);
   white-space:normal;
 }
+.accounts-memo-sentence{display:block}
+.accounts-memo-source-link{
+  background:var(--source-linked-bg);
+  border:1px solid var(--status-caution-soft-border);
+  border-radius:var(--corner-inner);
+  padding:1px 4px;
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+}
 .dashboard-data-table .accounts-memo{
   min-width:0;
   max-width:none;
@@ -5172,8 +5196,8 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
     --data-table-line-height:1.22;
     --data-table-bar-width:56px;
   }
-  .asset-status-table .mobile-table-kodex-prefix,
-  .asset-change-table .mobile-table-kodex-prefix{
+  .asset-status-table .mobile-table-brand-prefix,
+  .asset-change-table .mobile-table-brand-prefix{
     display:none;
   }
   .mobile-view-toggle{

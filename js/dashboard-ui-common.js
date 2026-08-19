@@ -119,6 +119,15 @@ function escapeHtml(value){
 }
 
 
+function mobileTableAssetName(name=''){
+  const text=String(name||'');
+  const match=text.match(/^(KODEX|KOACT|KoAct)\s+/);
+  if(!match)return escapeHtml(text);
+  const prefix=match[0];
+  return `<span class="mobile-table-brand-prefix">${escapeHtml(prefix)}</span>${escapeHtml(text.slice(prefix.length))}`;
+}
+
+
 // Asset Detail 공통 renderer: 자산별 계산은 adapter가 소유하고, 이 레이어는 표현만 담당한다.
 function renderAssetTableRows(rows=[]){
   return rows.map(row=>`<tr${row.className?` class="${row.className}"`:''}><th scope="row"${row.labelClass?` class="${row.labelClass}"`:''}>${row.labelHtml??''}</th>${(row.cells||[]).map(cell=>`<td${cell.className?` class="${cell.className}"`:''}>${cell.html??''}</td>`).join('')}</tr>`).join('');
@@ -254,6 +263,7 @@ export {
   renderAssetWeight,
   chartSeriesSwatch,
   escapeHtml,
+  mobileTableAssetName,
   navIconSvg,
   pensionProductSwatch,
   releaseDashboardDialogFocus,

@@ -13,6 +13,7 @@ import {
   won
 } from './dashboard-core.js';
 import {
+  mobileTableAssetName,
   pensionProductSwatch,
   renderAssetContributionCard,
   renderAssetDayChangeBlock,
@@ -42,7 +43,7 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
         cashWeight=x.pensionEval?x.pensionCash/x.pensionEval*100:0;
   const rows=orderedPensionRows.map(r=>({
     className:'asset-item-row',
-    labelHtml:`${mobileTableProductName(r.name)}${pensionProductSwatch(r.name)}`,
+    labelHtml:`${mobileTableAssetName(r.name)}${pensionProductSwatch(r.name)}`,
     cells:[
       {className:'num table-cell-center',html:fmt(r.qty)},
       {className:'num table-cell-right',html:fmt(r.qty?r.cost/r.qty:0)},
@@ -123,7 +124,7 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
         prevDateLabel=x.prevKey?shortDate(x.prevKey):'-',
         currentDateLabel=shortDate(x.date);
   const rows=orderedPensionRows.map(r=>({
-    labelHtml:`<strong>${mobileTableProductName(r.name)}</strong>${pensionProductSwatch(r.name)}`,
+    labelHtml:`<strong>${mobileTableAssetName(r.name)}</strong>${pensionProductSwatch(r.name)}`,
     cells:[
       {className:'num table-cell-right',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span>`},
       {className:'num table-cell-right asset-change-current-col',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span><span class="asset-change-mobile-delta ${tableCls(r.dayChange)}"><span class="visually-hidden">일변동 </span>${r.dayChange==null?'-':signed(r.dayChange)}</span>`},
@@ -198,11 +199,7 @@ function renderPension(x){
         pensionHeldProfit=x.pensionEval-pensionHeldCost,
         pensionHeldReturn=pensionHeldCost?pensionHeldProfit/pensionHeldCost*100:0,
         orderedPensionRows=sortPensionItems(x.pensionRows);
-  return `<section id="pension-section"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="briefcase" aria-hidden="true"></span>퇴직연금 현황</h2></div><div class="pension-band"><div class="asset-overview"><div class="section-title"><h3>성과 요약</h3></div><div class="grid cards metric-grid pension-metric-grid">${metricCard('평가금액',won(x.pensionEval),pensionEvaluationBasisText(x.date),true,'',pensionEvaluationMobileSubText(x))}${metricCard('납입원금',won(x.pensionPrincipal),'최근 적립금 반영',false,'','최근 적립금 반영')}${metricCard('운용손익',won(x.pensionProfit),'평가금액 - 납입원금',false,cls(x.pensionProfit))}${metricCard('운용수익률',pct(x.pensionReturn),'운용손익 ÷ 납입원금',false,cls(x.pensionReturn))}</div></div><div class="grid two asset-detail-grid">${renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHeldProfit,pensionHeldReturn)}${renderPensionChangeBlock(x,orderedPensionRows,day,rate)}</div>${renderPensionCharts(x)}</div></section>`;
-}
-function mobileTableProductName(name=''){
-  const text=String(name||'');
-  return text.startsWith('KODEX ')?`<span class="mobile-table-kodex-prefix">KODEX </span>${text.slice(6)}`:text;
+  return `<section id="pension-section"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="briefcase" aria-hidden="true"></span>퇴직연금 현황</h2></div><div class="pension-band"><div class="asset-overview"><div class="section-title"><h3><span class="section-title-icon" data-section-title-icon="chart" aria-hidden="true"></span>성과 요약</h3></div><div class="grid cards metric-grid pension-metric-grid">${metricCard('평가금액',won(x.pensionEval),pensionEvaluationBasisText(x.date),true,'',pensionEvaluationMobileSubText(x))}${metricCard('납입원금',won(x.pensionPrincipal),'최근 적립금 반영',false,'','최근 적립금 반영')}${metricCard('운용손익',won(x.pensionProfit),'평가금액 - 납입원금',false,cls(x.pensionProfit))}${metricCard('운용수익률',pct(x.pensionReturn),'운용손익 ÷ 납입원금',false,cls(x.pensionReturn))}</div></div><div class="grid two asset-detail-grid">${renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHeldProfit,pensionHeldReturn)}${renderPensionChangeBlock(x,orderedPensionRows,day,rate)}</div>${renderPensionCharts(x)}</div></section>`;
 }
 function isSafePensionAsset(name=''){return /(채권|현금|예금|MMF|RP|CMA|단기채)/.test(String(name));}
 function getPensionDayContributionItems(x){

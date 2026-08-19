@@ -440,7 +440,7 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
   const summaryRows=[
     {id:'holdings',label:'보유종목 합계',cost:holdingCost,evalAmount:holdingEval,profit:holdingProfit,returnRate:holdingCost?holdingProfit/holdingCost*100:0,weightPct:weightPct(holdingEval)},
     {id:'cash',label:'증권계좌 현금',cost:cash,evalAmount:cash,profit:0,returnRate:0,weightPct:weightPct(cash)},
-    {id:'total',label:'총계(보유분+현금)',cost:totalCost,evalAmount:evaluationTotal,profit:holdingProfit,returnRate:totalCost?holdingProfit/totalCost*100:0,weightPct:evaluationTotal?100:0}
+    {id:'total',label:'총합계',cost:totalCost,evalAmount:evaluationTotal,profit:holdingProfit,returnRate:totalCost?holdingProfit/totalCost*100:0,weightPct:evaluationTotal?100:0}
   ];
 
   const prevDaily=prevKey?dataState.account1Daily?.[prevKey]:null;
@@ -458,6 +458,7 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
     })
     .map(h=>{
       const snapshot=prevDailyHoldings.find(v=>(h.ticker&&v?.ticker===h.ticker)||v?.name===h.name);
+      const prevProfit=snapshot?.profit??h.prevProfit??null;
       return {
         name:h.name,
         ticker:h.ticker,
@@ -465,15 +466,30 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
         cssClass:h.cssClass,
         prevPrice:snapshot?.price??h.prevPrice??null,
         price:h.price??null,
-        prevEval:snapshot?.evalAmount??h.prevEval??null,
+        prevEval:snapshot?.evalAmount??h.prevEval??0,
         evalAmount:Number(h.evalAmount)||0,
-        dayChange:h.dayChange??null
+        dayChange:hasPrev?(Number(h.profit)||0)-(Number(prevProfit)||0):null
       };
     });
-  const prevDailyTotal=Number(prevDaily?.totalEval);
-  const prevEvaluationTotal=hasPrev
-    ?(prevDaily&&Number.isFinite(prevDailyTotal)?prevDailyTotal:changeRows.reduce((a,r)=>a+(Number(r.prevEval)||0),0)+(Number(prevCash)||0))
-    :null;
+  if(hasPrev&&prevDailyHoldings.length){
+    const currentKeys=new Set(changeRows.map(r=>String(r.ticker||r.name)));
+    prevDailyHoldings.forEach(snapshot=>{
+      const key=String(snapshot?.ticker||snapshot?.name||'');
+      if(!key||currentKeys.has(key))return;
+      changeRows.push({
+        name:snapshot.name,
+        ticker:snapshot.ticker,
+        type:snapshot.type,
+        cssClass:snapshot.cssClass,
+        prevPrice:snapshot.price??null,
+        price:null,
+        prevEval:Number(snapshot.evalAmount)||0,
+        evalAmount:0,
+        dayChange:-(Number(snapshot.profit)||0)
+      });
+    });
+  }
+  const prevHoldingEval=hasPrev?changeRows.reduce((a,r)=>a+(Number(r.prevEval)||0),0):null;
   let cashDayChange=null,tradeFlow={buyAmount:0,sellAmount:0,buyQty:0,sellQty:0},fundingFlow={contributionAmount:0,withdrawalAmount:0};
   if(hasPrev){
     if(daily){
@@ -486,12 +502,20 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
       cashDayChange=cash-(Number(prevCash)||0)-fundingFlow.contributionAmount+fundingFlow.withdrawalAmount+tradeFlow.buyAmount-tradeFlow.sellAmount;
     }
   }
-  const dayChange=hasPrev?changeRows.reduce((a,r)=>a+(Number(r.dayChange)||0),0)+(Number(cashDayChange)||0):null;
-  const dayRate=hasPrev&&Number(prevEvaluationTotal)?Number(dayChange||0)/Number(prevEvaluationTotal)*100:null;
-  const positiveItems=[
-    ...changeRows.filter(r=>Number(r.dayChange)>0).map(r=>({id:String(r.ticker||r.name),name:r.name,ticker:r.ticker,type:r.type,value:Number(r.dayChange)})),
-    ...(Number(cashDayChange)>0?[{id:'cash',name:'증권계좌 현금',ticker:null,type:'cash',value:Number(cashDayChange)}]:[])
-  ];
+  // 증권계좌 현금은 수동 장부 보정값이므로 시장 성과인 전일 대비 변동/기여도에서 제외한다.
+  const currentPerformanceProfit=daily&&Number.isFinite(Number(daily.totalProfit))
+    ?Number(daily.totalProfit)
+    :holdings.reduce((a,h)=>a+(Number(h.profit)||0),0);
+  const previousPerformanceProfit=hasPrev
+    ?(prevDaily&&Number.isFinite(Number(prevDaily.totalProfit))
+      ?Number(prevDaily.totalProfit)
+      :holdings.reduce((a,h)=>a+(Number(h.prevProfit)||0),0))
+    :null;
+  const dayChange=hasPrev?currentPerformanceProfit-Number(previousPerformanceProfit||0):null;
+  const dayRate=hasPrev&&Number(prevHoldingEval)?Number(dayChange||0)/Number(prevHoldingEval)*100:null;
+  const positiveItems=changeRows
+    .filter(r=>Number(r.dayChange)>0)
+    .map(r=>({id:String(r.ticker||r.name),name:r.name,ticker:r.ticker,type:r.type,value:Number(r.dayChange)}));
   const positiveTotal=positiveItems.reduce((a,item)=>a+item.value,0);
   const contributionItems=positiveItems.map(item=>({...item,sharePct:positiveTotal?item.value/positiveTotal*100:0}));
 
@@ -506,8 +530,8 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
     statusRows,
     summaryRows,
     change:{
-      prevEvaluationTotal,
-      evaluationTotal,
+      prevEvaluationTotal:prevHoldingEval,
+      evaluationTotal:holdingEval,
       dayChange,
       dayRate,
       rows:changeRows,
