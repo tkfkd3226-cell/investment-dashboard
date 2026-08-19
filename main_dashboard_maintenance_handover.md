@@ -3571,19 +3571,27 @@ Light / Dark 모두 icon contrast가 유지돼야 한다.
 
 ### Table alignment
 
-메인 `dashboard-data-table` 정렬은 개별 표 override보다 공통 규칙을 우선한다.
+메인 `dashboard-data-table` 정렬은 개별 표 override보다 공통 semantic utility를 우선한다. 숫자 의미와 정렬 책임은 분리한다.
 
 ```text
+.num               → 숫자 표현 품질(tabular-nums / nowrap)만 담당, 정렬하지 않음
+.table-cell-text   → 좌측 정렬
+.table-cell-right  → 우측 정렬
+.table-cell-center → 가운데 정렬
+
 문자 컬럼 제목 / 문자 값  → 좌측
 숫자 컬럼 제목           → 중앙
-일반 숫자 값              → 우측
-수익률 값                 → 중앙
+일반 숫자 값              → .num + .table-cell-right
+수량 / 수익률 값          → .num + .table-cell-center
 ```
 
-- 수량도 일반 숫자 값이므로 우측 정렬한다.
-- 비중처럼 숫자 시각화가 포함된 셀도 값 축은 우측 정렬하고 bar는 우측에 붙인다.
-- 비첫열 문자 컬럼은 `table-cell-text` 같은 semantic class로 선언하고, 단순 `nth-child` 보정은 기능상 필요한 예외 외에는 늘리지 않는다.
-- 400px 이하 계좌 메모는 텍스트 대신 중앙 정보 버튼으로 전환되므로 해당 breakpoint의 메모 열 중앙 정렬은 기능 예외로 유지한다.
+- `.num`에 `text-align`을 넣지 않는다. 숫자 값의 정렬은 반드시 `table-cell-right` 또는 `table-cell-center`로 명시한다.
+- 수량은 사용자 지정 기준으로 제목과 값을 가운데 정렬한다. 증권계좌 보유분과 연금상품별 현황 모두 `table-cell-center` semantic class로 처리한다.
+- 비중처럼 숫자 시각화가 포함된 셀은 기본적으로 값 축을 우측 정렬하고 bar를 우측에 붙인다. 단, `연금상품별 현황`의 `비중` 컬럼은 사용자 지정 기준으로 값과 bar를 모두 가운데 정렬하며, `table-cell-center` semantic class와 `.pension-products-table .bar-box`의 `margin-inline:auto`로 처리한다.
+- 비첫열 문자 컬럼은 `table-cell-text` semantic class로 선언하고, 정렬/표시 제어에 컬럼 위치 기반 `nth-child`를 사용하지 않는다.
+- 통합성과 수익률 열은 `combined-return-col`, 계좌별 성과 메모 열은 `accounts-memo-head` / `accounts-memo`처럼 의미 기반 class로 제어한다. 현재 메인 table CSS의 컬럼 위치 기반 `nth-child` 의존은 0개를 유지한다.
+- 400px 이하 계좌 메모는 텍스트 대신 중앙 정보 버튼으로 전환되므로 해당 breakpoint의 메모 열 중앙 정렬은 semantic class 기준 기능 예외로 유지한다.
+- 400px 이하 `연금+계좌 성과` 표는 수익률 열을 축약해 누적손익 셀에 함께 표시하므로, `combined-profit-col` semantic class로 누적손익 값(모바일 수익률 포함)을 가운데 정렬한다. 401px 이상에서는 일반 숫자값 우측 정렬을 유지한다.
 
 ### 장부결과 VS 실제보유
 

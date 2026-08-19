@@ -797,7 +797,6 @@ thead th{
 }
 
 td.num{
-  text-align:right;
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
 }
@@ -1787,9 +1786,11 @@ body.chart-expanded-open .dash-tooltip{
 
 /* 초소형 화면 기능 예외: 400px 이하에서는 통합성과 수익률 열을 축약하고, 계좌별 성과 메모는 전용 열의 정보 tooltip으로 전환한다. */
 @media(max-width:400px){
-  #summary-section .combined-performance-table th:nth-child(5),
-  #summary-section .combined-performance-table td:nth-child(5){
+  #summary-section .combined-performance-table .combined-return-col{
     display:none;
+  }
+  #summary-section .combined-performance-table .combined-profit-col{
+    text-align:center;
   }
   #summary-section .combined-performance-table .combined-mobile-return{
     display:inline;
@@ -1802,7 +1803,7 @@ body.chart-expanded-open .dash-tooltip{
     width:100%;
     min-width:100%;
   }
-  #accounts-summary .accounts-table :is(th,td):nth-child(5){
+  #accounts-summary .accounts-table :is(.accounts-memo-head,.accounts-memo){
     width:34px;
     min-width:34px;
     max-width:34px;
@@ -2404,12 +2405,6 @@ body.chart-expanded-open .dash-tooltip{
   margin-left:auto;
   font-size:var(--symbol-metric-value-size,12px);
   font-weight:var(--type-weight-emphasis);
-  white-space:nowrap;
-  font-variant-numeric:tabular-nums;
-}
-
-.change-table tbody td:nth-child(4){
-  text-align:right;
   white-space:nowrap;
   font-variant-numeric:tabular-nums;
 }
@@ -5039,10 +5034,11 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .dashboard-data-table tbody th[scope="row"]{font-weight:var(--data-table-value-weight);text-align:left}
 .dashboard-data-table tbody .summary-row > td{font-weight:var(--data-table-summary-weight);border-top:1px solid var(--table-column-line)}
 .dashboard-data-table tbody .summary-row > td.accounts-memo{font-weight:var(--data-table-memo-weight)}
-/* Table Alignment Hierarchy · 문자 열 좌측 / 숫자 헤더 중앙 / 숫자 값 우측 / 수익률 값 중앙 */
+/* Table Alignment Hierarchy · .num은 숫자 표현만 담당 / 정렬은 semantic utility로 명시 */
 .dashboard-data-table thead th:first-child{text-align:left}
-.dashboard-data-table thead th:not(:first-child){text-align:center}
-.dashboard-data-table thead th.table-cell-text{text-align:left}
+.dashboard-data-table thead th:not(:first-child):not(.table-cell-text){text-align:center}
+.dashboard-data-table .table-cell-text{text-align:left}
+.dashboard-data-table .table-cell-right{text-align:right}
 .dashboard-data-table .table-cell-center{text-align:center}
 /* Table Value States · 표 수익/손실 색상은 공통 semantic utility 재사용 */
 
@@ -5063,7 +5059,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .pension-products-table .bar-box{
   width:var(--data-table-bar-width);
   min-width:var(--data-table-bar-width);
-  margin-left:auto;
+  margin-inline:auto;
 }
 .pension-products-table .bar-box[role="progressbar"]{
   outline:none;
