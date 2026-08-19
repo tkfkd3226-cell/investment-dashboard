@@ -3569,6 +3569,22 @@ Light / Dark 모두 icon contrast가 유지돼야 한다.
 
 > **첫 `th`와 이후 `td`의 배경·border가 달라지면 FAIL**
 
+### Table alignment
+
+메인 `dashboard-data-table` 정렬은 개별 표 override보다 공통 규칙을 우선한다.
+
+```text
+문자 컬럼 제목 / 문자 값  → 좌측
+숫자 컬럼 제목           → 중앙
+일반 숫자 값              → 우측
+수익률 값                 → 중앙
+```
+
+- 수량도 일반 숫자 값이므로 우측 정렬한다.
+- 비중처럼 숫자 시각화가 포함된 셀도 값 축은 우측 정렬하고 bar는 우측에 붙인다.
+- 비첫열 문자 컬럼은 `table-cell-text` 같은 semantic class로 선언하고, 단순 `nth-child` 보정은 기능상 필요한 예외 외에는 늘리지 않는다.
+- 400px 이하 계좌 메모는 텍스트 대신 중앙 정보 버튼으로 전환되므로 해당 breakpoint의 메모 열 중앙 정렬은 기능 예외로 유지한다.
+
 ### 장부결과 VS 실제보유
 
 현재 정보 우선순위:
@@ -3622,6 +3638,16 @@ rgb(251, 191, 36)
 
 ### 퇴직연금
 
+퇴직연금 인사이트 제목(`오늘 상승분 기여도`, `위험자산 70% 룰`)은 현재:
+
+```text
+Desktop 15px
+Tablet  14px
+Mobile  13px
+```
+
+을 기준으로 유지한다.
+
 관련 수정 시:
 
 - 금액 조정 modal
@@ -3658,6 +3684,19 @@ QA에서 실제 GAS write는 하지 않는다.
 - smartphone landscape
 
 를 확인한다.
+
+현재 일반 차트 tooltip은 owner SVG를 추적하며 page scroll / viewport 변화로 **해당 차트 SVG가 viewport 밖으로 완전히 벗어나면 tooltip과 hover guide를 자동 정리**한다. Desktop / Tablet / Mobile 공통 동작이며, 확대 차트 overlay 내부 tooltip은 이 page-scroll 정리 대상에서 제외한다.
+
+누적차트 하단의 날짜 이동 카드(`최대 수익`, `Best`, `Worst`)는 즉시 날짜를 바꾸지 않는다. 현재 동작은:
+
+```text
+카드 선택
+→ "YYYY년 M월 D일 화면으로 이동할까요?" 확인 modal
+→ 취소: 현재 날짜 유지
+→ 이동: target date로 변경 후 해당 차트로 이동
+```
+
+이며 mouse / keyboard 모두 같은 확인 flow를 사용한다.
 
 listener 중복 또는 chart 이중 생성은 FAIL이다.
 

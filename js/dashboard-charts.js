@@ -912,9 +912,10 @@ function tooltipViewport(){
     height:Math.max(1,Math.min(window.innerHeight,vv?.height||window.innerHeight))
   };
 }
-function showTooltip(evt, html, kind=''){
+function showTooltip(evt, html, kind='', ownerChartId=''){
   const tt=tooltip(); if(!tt) return;
   tt.dataset.tooltipKind=kind;
+  tt.dataset.chartOwner=ownerChartId;
   tt.innerHTML=html;
   tt.setAttribute('aria-hidden','false');
   tt.style.visibility='hidden';
@@ -944,12 +945,34 @@ function hideTooltip(){
   tt.classList.remove('visible');
   tt.setAttribute('aria-hidden','true');
   tt.style.visibility='';
+  delete tt.dataset.chartOwner;
 }
 function clearChartHover(){hideTooltip();document.querySelectorAll('.chart-hover-line').forEach(line=>line.setAttribute('opacity',0))}
+let chartTooltipViewportCheckRaf=0;
+function chartTooltipOwnerVisible(){
+  const tt=tooltip();
+  if(!tt?.classList.contains('visible')||chartRuntimeState.expanded)return true;
+  const ownerId=tt.dataset.chartOwner||'';
+  const owner=ownerId?document.getElementById(ownerId):null;
+  if(!owner)return false;
+  const rect=owner.getBoundingClientRect(),viewport=tooltipViewport();
+  return rect.bottom>0&&rect.top<viewport.height&&rect.right>0&&rect.left<viewport.width;
+}
+function scheduleChartTooltipViewportCheck(){
+  if(chartTooltipViewportCheckRaf)return;
+  chartTooltipViewportCheckRaf=requestAnimationFrame(()=>{
+    chartTooltipViewportCheckRaf=0;
+    if(!chartTooltipOwnerVisible())clearChartHover();
+  });
+}
 function setupChartGlobalEvents(){
   document.addEventListener('pointerdown',event=>{
     if(!event.target.closest('.svg-hitbox')&&!event.target.closest('#dashTooltip'))clearChartHover();
   });
+  window.addEventListener('scroll',scheduleChartTooltipViewportCheck,{passive:true,capture:true});
+  window.addEventListener('resize',scheduleChartTooltipViewportCheck,{passive:true});
+  window.visualViewport?.addEventListener('scroll',scheduleChartTooltipViewportCheck,{passive:true});
+  window.visualViewport?.addEventListener('resize',scheduleChartTooltipViewportCheck,{passive:true});
 }
 function handleChartDashboardAction(event,control){
   const action=control.dataset.dashboardAction;
@@ -1020,7 +1043,7 @@ function addHover(svg,cfg,data,renderHtml,tooltipKind=''){
     line.setAttribute('x1',x);
     line.setAttribute('x2',x);
     line.setAttribute('opacity',1);
-    showTooltip(evt||chartKeyboardAnchor(svg,cfg,data.length,activeIndex),html,tooltipKind);
+    showTooltip(evt||chartKeyboardAnchor(svg,cfg,data.length,activeIndex),html,tooltipKind,svg.id||'');
     if(announce)announceChartTooltip(html);
   };
   const showPointer=evt=>showIndex(nearestIndex(evt,svg,cfg,data),evt);

@@ -1733,6 +1733,7 @@ body.chart-expanded-open .dash-tooltip{
 }
 .phone-chart-ui .chart-title-info{
   position:relative;
+  display:inline-flex;
   align-items:center;
   justify-content:center;
   width:18px;
@@ -1752,7 +1753,6 @@ body.chart-expanded-open .dash-tooltip{
   -webkit-tap-highlight-color:transparent;
   z-index:12;
 }
-.phone-chart-ui .chart-title-info{display:inline-flex}
 .phone-chart-ui .chart-title-info::before{content:"";position:absolute;inset:-3px}
 .phone-chart-ui .chart-title-info > span[aria-hidden="true"]{
   transform:translateY(-.2px);
@@ -2045,7 +2045,7 @@ body.chart-expanded-open .dash-tooltip{
 
 .pension-insight-head h3{
   margin:0;
-  font-size:var(--type-size-md);
+  font-size:calc(var(--type-size-md) + 2px);
   font-weight:var(--type-weight-bold);
   letter-spacing:-.03em;
   color:var(--ink);
@@ -2256,16 +2256,16 @@ body.chart-expanded-open .dash-tooltip{
   color:var(--text-secondary);
 }
 
-/* Pension Insight Label Responsive · 메인 핵심지표 라벨과 동일한 단계로 축소 */
+/* Pension Insight Label Responsive · 각 viewport의 기존 단계에서 2px 확대 */
 @media (min-width:761px) and (max-width:1100px){
   .pension-insight-head h3{
-    font-size:var(--type-size-sm);
+    font-size:calc(var(--type-size-sm) + 2px);
   }
 }
 
 @media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   .pension-insight-head h3{
-    font-size:var(--type-size-xs);
+    font-size:calc(var(--type-size-xs) + 2px);
   }
 }
 
@@ -3607,11 +3607,11 @@ body.contrib-modal-open{
   background:var(--modal-overlay-soft);
   backdrop-filter:blur(6px);
 }
-.krx-action-modal{
+:is(.krx-action-modal,.chart-date-confirm-modal){
   z-index:13000;
   display:none;
 }
-.krx-action-modal.show{display:flex}
+:is(.krx-action-modal,.chart-date-confirm-modal).show{display:flex}
 .pension-action-pin-modal{z-index:14000}
 .action-modal-card{
   position:relative;
@@ -3713,6 +3713,8 @@ body.contrib-modal-open{
   justify-content:flex-end;
 }
 .pension-action-pin-buttons .ghost{min-width:72px}
+.chart-date-confirm-buttons{display:flex;justify-content:flex-end}
+.chart-date-confirm-buttons .action-modal-btn{min-width:76px}
 .pension-action-pin-buttons .primary.danger{
   background:var(--status-danger-strong);
   border-color:var(--status-danger-strong);
@@ -5037,12 +5039,11 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .dashboard-data-table tbody th[scope="row"]{font-weight:var(--data-table-value-weight);text-align:left}
 .dashboard-data-table tbody .summary-row > td{font-weight:var(--data-table-summary-weight);border-top:1px solid var(--table-column-line)}
 .dashboard-data-table tbody .summary-row > td.accounts-memo{font-weight:var(--data-table-memo-weight)}
-/* Table Alignment Hierarchy · label 열은 좌측, 숫자 열은 우측, 명시적 center 열은 중앙 정렬 */
+/* Table Alignment Hierarchy · 문자 열 좌측 / 숫자 헤더 중앙 / 숫자 값 우측 / 수익률 값 중앙 */
 .dashboard-data-table thead th:first-child{text-align:left}
-.dashboard-data-table thead th:not(:first-child){text-align:right}
-.dashboard-data-table thead th.table-cell-center{text-align:center}
+.dashboard-data-table thead th:not(:first-child){text-align:center}
+.dashboard-data-table thead th.table-cell-text{text-align:left}
 .dashboard-data-table .table-cell-center{text-align:center}
-:is(.accounts-table,.pension-products-table) thead th:last-child{text-align:left}
 /* Table Value States · 표 수익/손실 색상은 공통 semantic utility 재사용 */
 
 /* Table Exceptions · 표 예외: memo 줄바꿈 + 연금 allocation bar 폭 */
@@ -5062,6 +5063,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .pension-products-table .bar-box{
   width:var(--data-table-bar-width);
   min-width:var(--data-table-bar-width);
+  margin-left:auto;
 }
 .pension-products-table .bar-box[role="progressbar"]{
   outline:none;

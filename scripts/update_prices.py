@@ -649,7 +649,7 @@ def update_one_date(
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--date", default="", help="YYYY-MM-DD. 지정하면 해당 날짜만 갱신하고, 비워두면 누락 거래일을 자동 보충.")
+    parser.add_argument("--date", default="", help="YYYY-MM-DD. 지정하면 해당 날짜만 갱신하고, 비워두면 누락 거래일 보완 및 장중 저장분의 종가 재확정 대상을 자동 갱신.")
     parser.add_argument("--force-display", action="store_true")
     parser.add_argument("--no-display", action="store_true")
     args = parser.parse_args()

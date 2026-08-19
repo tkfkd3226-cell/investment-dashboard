@@ -10,8 +10,10 @@ import {
   won
 } from './dashboard-core.js';
 import {
+  activateDashboardDialogFocus,
   escapeHtml,
-  navIconSvg
+  navIconSvg,
+  releaseDashboardDialogFocus
 } from './dashboard-ui-common.js';
 import {
   drawAllCharts,
@@ -95,11 +97,77 @@ function setActiveDashboardDate(date,{keepMobileMenuOpen=false}={}){
   if(keepMobileMenuOpen)restoreMobileDateMenuAfterRender();
   return true;
 }
-function jumpToChartDate(date,chartId){
-  if(!setActiveDashboardDate(date)) return;
+const chartDateJumpState={date:'',chartId:''};
+function chartDateDialogLabel(date){
+  const [year,month,day]=String(date||'').split('-').map(Number);
+  if(!year||!month||!day)return String(date||'');
+  return `${year}년 ${month}월 ${day}일`;
+}
+function ensureChartDateConfirmModal(){
+  let modal=document.getElementById('chartDateConfirmModal');
+  if(modal)return modal;
+  modal=document.createElement('div');
+  modal.id='chartDateConfirmModal';
+  modal.className='action-modal chart-date-confirm-modal';
+  modal.setAttribute('aria-hidden','true');
+  modal.innerHTML=`<div class="action-modal-card chart-date-confirm-card" role="dialog" aria-modal="true" aria-labelledby="chartDateConfirmTitle" aria-describedby="chartDateConfirmDescription">
+    <h3 id="chartDateConfirmTitle" class="modal-main-title">날짜 이동</h3>
+    <p id="chartDateConfirmDescription" class="action-modal-description"></p>
+    <div class="action-modal-buttons chart-date-confirm-buttons">
+      <button type="button" class="action-modal-btn ghost" data-dashboard-action="close-chart-date-confirm">취소</button>
+      <button type="button" class="action-modal-btn primary" data-dashboard-action="confirm-chart-date-jump">이동</button>
+    </div>
+  </div>`;
+  modal.addEventListener('click',event=>{if(event.target===modal)closeChartDateConfirmModal()});
+  modal.addEventListener('keydown',event=>{
+    if(event.key!=='Escape')return;
+    event.preventDefault();
+    closeChartDateConfirmModal();
+  });
+  document.body.appendChild(modal);
+  return modal;
+}
+function closeChartDateConfirmModal(){
+  const modal=document.getElementById('chartDateConfirmModal');
+  if(!modal)return;
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden','true');
+  releaseDashboardDialogFocus(modal);
+  chartDateJumpState.date='';
+  chartDateJumpState.chartId='';
+}
+function performChartDateJump(date,chartId){
+  if(!setActiveDashboardDate(date))return;
   requestAnimationFrame(()=>{
     document.getElementById(chartId)?.scrollIntoView({behavior:'smooth',block:'start'});
   });
+}
+function requestChartDateJump(date,chartId,returnFocus=null){
+  if(!allAvailableDates().includes(date)||!chartId)return;
+  if(date===dataState.activeDate)return;
+  const modal=ensureChartDateConfirmModal();
+  const description=modal.querySelector('#chartDateConfirmDescription');
+  if(description)description.textContent=`${chartDateDialogLabel(date)} 화면으로 이동할까요?`;
+  chartDateJumpState.date=date;
+  chartDateJumpState.chartId=chartId;
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden','false');
+  activateDashboardDialogFocus(modal,{
+    initialFocus:modal.querySelector('[data-dashboard-action="close-chart-date-confirm"]'),
+    returnFocus:returnFocus||null
+  });
+}
+function confirmChartDateJump(){
+  const {date,chartId}=chartDateJumpState;
+  const modal=document.getElementById('chartDateConfirmModal');
+  if(modal){
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden','true');
+    releaseDashboardDialogFocus(modal);
+  }
+  chartDateJumpState.date='';
+  chartDateJumpState.chartId='';
+  if(date&&chartId)performChartDateJump(date,chartId);
 }
 function handleDashboardDateChange(target){
   const keepMobileMenuOpen=mobileDateMenuIsOpen();
@@ -125,7 +193,9 @@ function handleDashboardAction(event,control){
     return;
   }
   if(action==='hero-basis-tap')return handleHeroBasisTap();
-  if(action==='jump-chart-date')return jumpToChartDate(control.dataset.chartDate||'',control.dataset.chartId||'');
+  if(action==='jump-chart-date')return requestChartDateJump(control.dataset.chartDate||'',control.dataset.chartId||'',control);
+  if(action==='close-chart-date-confirm')return closeChartDateConfirmModal();
+  if(action==='confirm-chart-date-jump')return confirmChartDateJump();
   if(handleChartDashboardAction(event,control))return;
   handleUiDashboardAction(event,control);
 }
@@ -145,7 +215,7 @@ function setupDashboardEventDelegation(){
     const control=event.target.closest?.('[data-dashboard-action="jump-chart-date"]');
     if(!control)return;
     event.preventDefault();
-    jumpToChartDate(control.dataset.chartDate||'',control.dataset.chartId||'');
+    requestChartDateJump(control.dataset.chartDate||'',control.dataset.chartId||'',control);
   });
 }
 function renderAssetWorkspace(x){
