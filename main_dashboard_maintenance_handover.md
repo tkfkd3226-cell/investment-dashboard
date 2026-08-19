@@ -3433,6 +3433,13 @@ JS ↔ GAS 계약 검증 시:
 
 `비워두면 한국시간 오늘`이라는 과거 설명으로 되돌리지 않는다.
 
+Python / Workflow 유지보수 구조:
+
+- `scripts/update_prices.py`는 `설정·공통 helper → 시장 데이터 조회 → 대상일 판단 → 포트폴리오 계산 → 저장/CLI` 순서의 섹션 구조를 유지한다.
+- 반복되는 날짜 형식, 조회 재시도, HTTP timeout/User-Agent 같은 실행 설정은 상수로 관리하고 함수 안에 같은 magic value를 중복하지 않는다.
+- `.github/workflows/update-prices.yml`은 `trigger → permission → runtime setup → updater 실행 → 생성 데이터 commit` 흐름을 유지한다.
+- Workflow가 자동 commit하는 운영 데이터는 `data/prices.json`, `data/performance_snapshots.json` 두 파일로 한정하며 다른 운영 JSON을 함께 `git add`하지 않는다.
+
 
 # 9. UI · Responsive · 반복 회귀 불변조건
 

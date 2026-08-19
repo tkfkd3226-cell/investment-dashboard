@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""KRX 가격과 성과 스냅샷을 갱신하는 GitHub Actions용 스크립트.
+
+운영 원칙:
+- ``prices.json``과 ``performance_snapshots.json``만 갱신한다.
+- ``--date``가 있으면 해당 날짜만 처리한다.
+- ``--date``가 없으면 최신·누락·장중 재확정 대상을 자동 계산한다.
+- KOSPI 지수는 pykrx → Naver → Yahoo 순서로 fallback 한다.
+
+함수는 아래 순서로 배치한다.
+설정/공통 helper → 시장 데이터 조회 → 대상일 계산 → 포트폴리오 계산 → 저장/CLI.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -14,16 +26,30 @@ from typing import Any
 import requests
 from pykrx import stock
 
+# ---------------------------------------------------------------------------
+# Repository paths / runtime constants
+# ---------------------------------------------------------------------------
+
 ROOT = Path(__file__).resolve().parents[1]
 PORTFOLIO_PATH = ROOT / "data" / "portfolio.json"
 PRICES_PATH = ROOT / "data" / "prices.json"
 SNAPSHOTS_PATH = ROOT / "data" / "performance_snapshots.json"
-KST = timezone(timedelta(hours=9))
-KOSPI_INDEX_TICKER = "1001"
 
+KST = timezone(timedelta(hours=9))
+DATE_FORMAT = "%Y-%m-%d"
+KOSPI_INDEX_TICKER = "1001"
+DEFAULT_LOOKBACK_DAYS = 7
+FETCH_RETRIES = 2
+FETCH_RETRY_DELAY_SECONDS = 1.5
+HTTP_TIMEOUT_SECONDS = 20
+HTTP_USER_AGENT = "Mozilla/5.0 (compatible; investment-dashboard/1.0)"
+
+# ---------------------------------------------------------------------------
+# Time / JSON helpers
+# ---------------------------------------------------------------------------
 
 def today_kst() -> str:
-    return datetime.now(KST).strftime("%Y-%m-%d")
+    return datetime.now(KST).strftime(DATE_FORMAT)
 
 
 def market_status_kst() -> str:
@@ -46,7 +72,7 @@ def market_status_for_date(target_date: str) -> str:
 
 def is_valid_date_text(value: str) -> bool:
     try:
-        datetime.strptime(value, "%Y-%m-%d")
+        datetime.strptime(value, DATE_FORMAT)
         return True
     except ValueError:
         return False
@@ -68,10 +94,20 @@ def previous_snapshot(prices: dict[str, Any], before: str | None = None):
         return None, None
     return keys[-1], prices[keys[-1]]
 
+# ---------------------------------------------------------------------------
+# Market data fetchers
+# ---------------------------------------------------------------------------
 
-def fetch_close(ticker: str, target_date: str, lookback_days: int = 7, retries: int = 2, retry_delay: float = 1.5):
-    start = datetime.strptime(target_date, "%Y-%m-%d") - timedelta(days=lookback_days)
-    end = datetime.strptime(target_date, "%Y-%m-%d")
+def fetch_close(
+    ticker: str,
+    target_date: str,
+    lookback_days: int = DEFAULT_LOOKBACK_DAYS,
+    retries: int = FETCH_RETRIES,
+    retry_delay: float = FETCH_RETRY_DELAY_SECONDS,
+):
+    """Return the latest available close on or before ``target_date``."""
+    start = datetime.strptime(target_date, DATE_FORMAT) - timedelta(days=lookback_days)
+    end = datetime.strptime(target_date, DATE_FORMAT)
     last_error = None
 
     for attempt in range(retries + 1):
@@ -81,7 +117,7 @@ def fetch_close(ticker: str, target_date: str, lookback_days: int = 7, retries: 
                 last_error = "empty-dataframe"
             else:
                 last_idx = df.index[-1]
-                actual_date = last_idx.strftime("%Y-%m-%d") if hasattr(last_idx, "strftime") else str(last_idx)[:10]
+                actual_date = last_idx.strftime(DATE_FORMAT) if hasattr(last_idx, "strftime") else str(last_idx)[:10]
                 close = int(df.iloc[-1]["종가"])
                 return actual_date, close, None
         except Exception as exc:
@@ -97,9 +133,10 @@ def fetch_index_history_from_pykrx(
     start_date: str,
     end_date: str,
     ticker: str = KOSPI_INDEX_TICKER,
-    retries: int = 2,
-    retry_delay: float = 1.5,
+    retries: int = FETCH_RETRIES,
+    retry_delay: float = FETCH_RETRY_DELAY_SECONDS,
 ):
+    """Fetch KOSPI history through pykrx when the endpoint is available."""
     last_error = None
     for attempt in range(retries + 1):
         try:
@@ -112,7 +149,7 @@ def fetch_index_history_from_pykrx(
             else:
                 values: dict[str, float] = {}
                 for index, row in df.iterrows():
-                    date = index.strftime("%Y-%m-%d") if hasattr(index, "strftime") else str(index)[:10]
+                    date = index.strftime(DATE_FORMAT) if hasattr(index, "strftime") else str(index)[:10]
                     close = row.get("종가")
                     if close is not None:
                         values[date] = round(float(close), 2)
@@ -128,7 +165,7 @@ def fetch_index_history_from_pykrx(
 
 def fetch_index_history_from_naver(start_date: str, end_date: str):
     """Fallback for environments where KRX index endpoints require a login session."""
-    start = datetime.strptime(start_date, "%Y-%m-%d")
+    start = datetime.strptime(start_date, DATE_FORMAT)
     today = datetime.now(KST).replace(tzinfo=None)
     calendar_days = max(1, (today - start).days)
     count = min(5000, max(180, int(calendar_days * 1.7) + 45))
@@ -141,8 +178,8 @@ def fetch_index_history_from_naver(start_date: str, end_date: str):
             "count": count,
             "requestType": 0,
         },
-        headers={"User-Agent": "Mozilla/5.0 (compatible; investment-dashboard/1.0)"},
-        timeout=20,
+        headers={"User-Agent": HTTP_USER_AGENT},
+        timeout=HTTP_TIMEOUT_SECONDS,
     )
     response.raise_for_status()
 
@@ -165,9 +202,9 @@ def fetch_index_history_from_naver(start_date: str, end_date: str):
 
 def fetch_index_history_from_yahoo(start_date: str, end_date: str):
     """Fallback using Yahoo Finance chart data for the KOSPI composite index (^KS11)."""
-    start_dt = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=KST)
+    start_dt = datetime.strptime(start_date, DATE_FORMAT).replace(tzinfo=KST)
     # Yahoo period2 is exclusive, so include the full end date plus one extra day.
-    end_dt = (datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1)).replace(tzinfo=KST)
+    end_dt = (datetime.strptime(end_date, DATE_FORMAT) + timedelta(days=1)).replace(tzinfo=KST)
 
     response = requests.get(
         "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11",
@@ -179,10 +216,10 @@ def fetch_index_history_from_yahoo(start_date: str, end_date: str):
             "includeAdjustedClose": "true",
         },
         headers={
-            "User-Agent": "Mozilla/5.0 (compatible; investment-dashboard/1.0)",
+            "User-Agent": HTTP_USER_AGENT,
             "Accept": "application/json,text/plain,*/*",
         },
-        timeout=20,
+        timeout=HTTP_TIMEOUT_SECONDS,
     )
     response.raise_for_status()
     payload = response.json()
@@ -205,7 +242,7 @@ def fetch_index_history_from_yahoo(start_date: str, end_date: str):
     for timestamp, close in zip(timestamps, closes):
         if timestamp is None or close is None:
             continue
-        date = datetime.fromtimestamp(int(timestamp), KST).strftime("%Y-%m-%d")
+        date = datetime.fromtimestamp(int(timestamp), KST).strftime(DATE_FORMAT)
         if start_date <= date <= end_date:
             values[date] = round(float(close), 2)
 
@@ -215,6 +252,12 @@ def fetch_index_history_from_yahoo(start_date: str, end_date: str):
 
 
 def fetch_index_history(start_date: str, end_date: str, ticker: str = KOSPI_INDEX_TICKER):
+    """Fetch KOSPI history with a deterministic fallback chain.
+
+    Source priority is pykrx → Naver fchart → Yahoo Finance.  The fallback is
+    intentionally kept here so the workflow does not silently lose KOSPI data
+    when a single upstream endpoint changes or requires a session.
+    """
     errors: list[str] = []
 
     values, pykrx_error = fetch_index_history_from_pykrx(start_date, end_date, ticker)
@@ -239,6 +282,10 @@ def fetch_index_history(start_date: str, end_date: str, ticker: str = KOSPI_INDE
 
     return {}, "; ".join(errors)
 
+
+# ---------------------------------------------------------------------------
+# KOSPI backfill
+# ---------------------------------------------------------------------------
 
 def backfill_kospi_index(prices: dict[str, Any], snapshots: dict[str, Any], through_date: str) -> list[str]:
     stored_dates = sorted({
@@ -272,28 +319,37 @@ def backfill_kospi_index(prices: dict[str, Any], snapshots: dict[str, Any], thro
     return changed
 
 
+# ---------------------------------------------------------------------------
+# Target-date resolution
+# ---------------------------------------------------------------------------
+
 def date_range(start_date: str, end_date: str) -> list[str]:
-    start = datetime.strptime(start_date, "%Y-%m-%d")
-    end = datetime.strptime(end_date, "%Y-%m-%d")
+    start = datetime.strptime(start_date, DATE_FORMAT)
+    end = datetime.strptime(end_date, DATE_FORMAT)
     dates: list[str] = []
 
     current = start
     while current <= end:
-        dates.append(current.strftime("%Y-%m-%d"))
+        dates.append(current.strftime(DATE_FORMAT))
         current += timedelta(days=1)
 
     return dates
 
 
-def latest_price_date(prices: dict[str, Any]) -> str | None:
-    keys = sorted(
-        k
-        for k, v in prices.items()
-        if is_valid_date_text(k)
-        and isinstance(v, dict)
-        and v.get("display", True) is not False
+def visible_price_dates(prices: dict[str, Any]) -> list[str]:
+    """Return stored dashboard dates that are valid and visible."""
+    return sorted(
+        date
+        for date, snapshot in prices.items()
+        if is_valid_date_text(date)
+        and isinstance(snapshot, dict)
+        and snapshot.get("display", True) is not False
     )
-    return keys[-1] if keys else None
+
+
+def latest_price_date(prices: dict[str, Any]) -> str | None:
+    dates = visible_price_dates(prices)
+    return dates[-1] if dates else None
 
 
 def first_security_ticker(portfolio: dict[str, Any]) -> str | None:
@@ -325,12 +381,17 @@ def is_actual_trading_date(portfolio: dict[str, Any], target_date: str) -> bool:
     if not ticker:
         return False
 
-    actual, close, err = fetch_close(ticker, target_date)
+    actual, close, _ = fetch_close(ticker, target_date)
 
     return actual == target_date and close is not None
 
 
 def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], explicit_date: str | None) -> list[str]:
+    """Resolve explicit or automatic KRX refresh dates.
+
+    Automatic mode includes missing trading dates and snapshots that still need
+    intraday/closing-price reconfirmation.
+    """
     if explicit_date:
         return [explicit_date]
 
@@ -346,8 +407,9 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
     # 가장 최근 저장일이 아직 종가로 확정되지 않은 상태(intraday)라면,
     # 이미 prices에 존재하더라도 다시 갱신 대상에 포함시켜서
     # 장중 재요청 시 최신가로 갱신하거나, 마감 후 요청 시 종가로 확정되게 한다.
-    # 저장 시점이 장중이었던 과거 날짜가 남아 있으면 최신 저장일이 아니어도 다시 갱신한다.
-    # 예: 다음 거래일 장중에 누락된 전 거래일을 보충한 경우, 전 거래일은 종가로 확정해야 한다.
+    # 저장 시점이 장중이었던 과거 날짜가 남아 있으면 최신 저장일이 아니어도
+    # 다시 갱신한다. 예: 다음 거래일 장중에 누락된 전 거래일을 보충한 경우,
+    # 전 거래일은 종가로 확정해야 한다.
     refresh_dates = [
         date
         for date, snapshot in prices.items()
@@ -366,13 +428,7 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
         # 이미 close로 표시되어 있어도 한 번 더 갱신할 수 있게 한다.
         refresh_dates.append(latest_saved)
 
-    stored_dates = sorted(
-        date
-        for date, snapshot in prices.items()
-        if is_valid_date_text(date)
-        and isinstance(snapshot, dict)
-        and snapshot.get("display", True) is not False
-    )
+    stored_dates = visible_price_dates(prices)
     first_saved = stored_dates[0] if stored_dates else latest_saved
 
     # 최신 저장일 이후뿐 아니라 저장 구간 내부의 누락도 함께 확인한다.
@@ -381,7 +437,7 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
         date
         for date in date_range(first_saved, latest_market)
         if date not in prices
-        and datetime.strptime(date, "%Y-%m-%d").weekday() < 5
+        and datetime.strptime(date, DATE_FORMAT).weekday() < 5
     ]
     missing_dates = [
         date
@@ -391,6 +447,10 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
 
     return sorted(set(refresh_dates + missing_dates))
 
+
+# ---------------------------------------------------------------------------
+# Portfolio state / performance calculation
+# ---------------------------------------------------------------------------
 
 def symbol_key(name: str) -> str:
     return "KODEX200" if name == "KODEX 200" else name
@@ -436,7 +496,11 @@ def security_position_state(item: dict[str, Any], target_date: str, portfolio: d
     return max(0.0, qty), max(0, cost)
 
 
-def securities_cash_for_date(target_date: str, portfolio: dict[str, Any], snapshots: dict[str, Any] | None = None) -> int:
+def securities_cash_for_date(
+    target_date: str,
+    portfolio: dict[str, Any],
+    snapshots: dict[str, Any] | None = None,
+) -> int:
     if isinstance(snapshots, dict):
         saved_dates = sorted(
             date for date, item in snapshots.items()
@@ -493,8 +557,13 @@ def init_security_symbols(portfolio: dict[str, Any], target_date: str) -> dict[s
     return symbols
 
 
-def calculate_performance_snapshot(target_date: str, portfolio: dict[str, Any], prices: dict[str, Any], snapshots: dict[str, Any]) -> dict[str, Any]:
-    constants = portfolio["constants"]
+def calculate_performance_snapshot(
+    target_date: str,
+    portfolio: dict[str, Any],
+    prices: dict[str, Any],
+    snapshots: dict[str, Any],
+) -> dict[str, Any]:
+    """Build the performance snapshot corresponding to one price snapshot."""
     price_snapshot = prices[target_date]
     securities_prices = price_snapshot.get("securities", {})
 
@@ -554,6 +623,10 @@ def calculate_performance_snapshot(target_date: str, portfolio: dict[str, Any], 
     }
 
 
+# ---------------------------------------------------------------------------
+# Per-date update / persistence
+# ---------------------------------------------------------------------------
+
 def update_one_date(
     target_date: str,
     portfolio: dict[str, Any],
@@ -562,6 +635,7 @@ def update_one_date(
     force_display: bool = False,
     no_display: bool = False,
 ) -> list[str]:
+    """Fetch one date, update prices, then rebuild its performance snapshot."""
     prev_key, prev = previous_snapshot(prices, before=target_date)
     securities, pension, warnings, actual_dates = {}, {}, [], set()
 
@@ -642,27 +716,64 @@ def update_one_date(
         for warning in warnings:
             print("-", warning)
 
-    print(f"updated prices and performance snapshots for {target_date} actualMarketDate={actual_date} marketStatus={status}")
+    print(
+        "updated prices and performance snapshots "
+        f"for {target_date} actualMarketDate={actual_date} marketStatus={status}"
+    )
 
     return warnings
 
+# ---------------------------------------------------------------------------
+# CLI orchestration
+# ---------------------------------------------------------------------------
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="KRX 가격, 성과 스냅샷, KOSPI 지수를 갱신합니다.",
+    )
+    parser.add_argument(
+        "--date",
+        default="",
+        help=(
+            "YYYY-MM-DD. 지정하면 해당 날짜만 갱신하고, 비워두면 누락 거래일 "
+            "보완 및 장중 저장분의 종가 재확정 대상을 자동 갱신."
+        ),
+    )
+    parser.add_argument(
+        "--force-display",
+        action="store_true",
+        help="갱신 날짜를 dashboard 표시 대상으로 강제합니다.",
+    )
+    parser.add_argument(
+        "--no-display",
+        action="store_true",
+        help="갱신 날짜를 dashboard 비표시 대상으로 저장합니다.",
+    )
+    return parser.parse_args()
+
+
+def load_dashboard_data() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    """Load the three JSON documents required by the updater."""
+    portfolio = load_json(PORTFOLIO_PATH)
+    prices = load_json(PRICES_PATH)
+    snapshots = load_json(SNAPSHOTS_PATH) if SNAPSHOTS_PATH.exists() else {}
+    return portfolio, prices, snapshots
+
+
+def save_dashboard_data(prices: dict[str, Any], snapshots: dict[str, Any]) -> None:
+    """Persist only the generated KRX data files managed by this script."""
+    save_json(PRICES_PATH, dict(sorted(prices.items())))
+    save_json(SNAPSHOTS_PATH, dict(sorted(snapshots.items())))
+
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--date", default="", help="YYYY-MM-DD. 지정하면 해당 날짜만 갱신하고, 비워두면 누락 거래일 보완 및 장중 저장분의 종가 재확정 대상을 자동 갱신.")
-    parser.add_argument("--force-display", action="store_true")
-    parser.add_argument("--no-display", action="store_true")
-    args = parser.parse_args()
-
+    args = parse_args()
     explicit_date = str(args.date or "").strip()
 
     if explicit_date and not is_valid_date_text(explicit_date):
         raise ValueError("--date는 YYYY-MM-DD 형식이어야 합니다.")
 
-    portfolio = load_json(PORTFOLIO_PATH)
-    prices = load_json(PRICES_PATH)
-    snapshots = load_json(SNAPSHOTS_PATH) if SNAPSHOTS_PATH.exists() else {}
-
+    portfolio, prices, snapshots = load_dashboard_data()
     target_dates = resolve_target_dates(portfolio, prices, explicit_date or None)
 
     if target_dates:
@@ -690,8 +801,7 @@ def main() -> int:
         print("No price, snapshot, or KOSPI index changes to save.")
         return 0
 
-    save_json(PRICES_PATH, dict(sorted(prices.items())))
-    save_json(SNAPSHOTS_PATH, dict(sorted(snapshots.items())))
+    save_dashboard_data(prices, snapshots)
 
     if all_warnings:
         print("WARNINGS:")

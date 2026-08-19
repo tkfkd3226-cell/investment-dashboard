@@ -1,5 +1,8 @@
 name: Update KRX closing prices
 
+# Manual-only workflow.
+# - date 지정: 해당 날짜만 갱신
+# - date 비움: Python이 최신·누락·장중 재확정 대상을 자동 판단
 on:
   workflow_dispatch:
     inputs:
@@ -8,6 +11,7 @@ on:
         required: false
         type: string
 
+# 이 workflow는 생성 데이터 2종을 commit/push 하므로 contents write만 허용한다.
 permissions:
   contents: write
 
@@ -16,20 +20,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      # 1) Repository / Python runtime
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install -r requirements.txt
 
-      - name: Update prices and snapshots
+      # 2) KRX price + performance snapshot update
+      - name: Update KRX prices and snapshots
         env:
           INPUT_DATE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.date || '' }}
         run: |
@@ -39,7 +45,9 @@ jobs:
             python scripts/update_prices.py
           fi
 
-      - name: Commit updated data
+      # 3) Persist only the data files managed by update_prices.py.
+      #    pension_contributions.json 등 다른 운영 JSON은 이 workflow에서 건드리지 않는다.
+      - name: Commit generated KRX data
         run: |
           if git diff --quiet data/prices.json data/performance_snapshots.json; then
             echo "No changes to commit."
