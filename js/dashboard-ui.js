@@ -1036,20 +1036,66 @@ function toggleAccountMemoInfo(event,button){
 }
 function renderAccounts(x,{hidden=false}={}){
   const c=dataState.portfolio.constants,v=separateProfitView(x),internalCashTransfer=securityInternalCashTransferSum(x.date),mobileReturnPct=n=>(Number(n)||0).toFixed(1)+'%';
+  const adjustmentHtml=value=>{
+    const amount=Math.round(Number(value)||0);
+    return amount?`<span class="accounts-ledger-adjustment">조정 ${signed(amount)}</span>`:'';
+  };
+  const account1PrincipalAdjustment=v.totalPrincipal-v.account1Principal;
+  const account1ResultAdjustment=-internalCashTransfer;
   const rows=[
-    ['삼성증권1',v.account1Principal,v.account1Result-internalCashTransfer,v.account1Profit,v.account1Return,'2025-10-16 최초 시작.'],
-    ...(x.account2Included?[['삼성증권2',c.account2Principal,x.account2Remainder,c.account2Profit,c.account2Profit/c.account2Principal*100,'2023-12-20 최초 시작. 2026-05-22 전량 매도.']]:[]),
-    ['토스증권',0,x.tossRemainder,c.tossProfit,0,'2026-03-09 매수 후 익일 매도. 누적손익과 투자 결과물의 차액 2,009,374원은 삼성증권1 재투입분.']
+    {
+      name:'삼성증권1',
+      principal:v.account1Principal,
+      principalAdjustment:account1PrincipalAdjustment,
+      result:v.account1Result,
+      resultAdjustment:account1ResultAdjustment,
+      profit:v.account1Profit,
+      returnRate:v.account1Return,
+      memo:`2025-10-16 최초 시작.${account1PrincipalAdjustment?` 투자원금 조정 ${signed(account1PrincipalAdjustment)}원은 계좌1 투자원금 검산에 포함된 재투입·내부이동·원천/보유 차이를 전체 투입원금 기준으로 조정한 값.`:''}${account1ResultAdjustment?` 투자 결과물 조정 ${signed(account1ResultAdjustment)}원은 내부자금 이동분의 중복 반영 제거값.`:''}`
+    },
+    ...(x.account2Included?[{
+      name:'삼성증권2',
+      principal:Number(c.account2Principal)||0,
+      principalAdjustment:-(Number(c.account2Principal)||0),
+      result:Number(c.account2RealizedAmount)||0,
+      resultAdjustment:-(Number(c.account2ReinvestedToAccount1)||0),
+      profit:Number(c.account2Profit)||0,
+      returnRate:(Number(c.account2Principal)||0)?(Number(c.account2Profit)||0)/(Number(c.account2Principal)||0)*100:0,
+      memo:`2023-12-20 최초 시작. 2026-05-22 전량 매도. 투자원금 조정 ${signed(-(Number(c.account2Principal)||0))}원은 삼성증권1에 이미 반영된 이전 원금의 중복 제거값. 투자 결과물 조정 ${signed(-(Number(c.account2ReinvestedToAccount1)||0))}원은 원금과 수익을 포함한 삼성증권1 재투입액의 중복 제거값.`
+    }]:[]),
+    {
+      name:'토스증권',
+      principal:0,
+      principalAdjustment:0,
+      result:Number(c.tossRealizedAmount)||0,
+      resultAdjustment:-(Number(c.tossReinvestedToAccount1)||0),
+      profit:Number(c.tossProfit)||0,
+      returnRate:null,
+      memo:`2026-03-09 매수 후 익일 매도. 투자 결과물 조정 ${signed(-(Number(c.tossReinvestedToAccount1)||0))}원은 삼성증권1 재투입분의 중복 제거값. 투자원금은 0원으로 별도 원금 조정 없음.`
+    }
   ];
-  const totalMemo='계좌 간 자금 이동 반영';
+  const totalPrincipal=rows.reduce((sum,row)=>sum+(Number(row.principal)||0),0);
+  const totalResult=rows.reduce((sum,row)=>sum+(Number(row.result)||0),0);
+  const totalPrincipalAdjustment=v.totalPrincipal-totalPrincipal;
+  const totalResultAdjustment=v.totalResult-totalResult;
+  const totalReturn=totalPrincipal?v.totalProfit/totalPrincipal*100:0;
+  const totalMemo=`윗줄은 계좌별 성과 기준 단순합계. 아래 장부 조정을 반영하면 전체 보기의 투자원금 ${won(v.totalPrincipal)}, 투자 결과물 ${won(v.totalResult)}과 일치.`;
   const hiddenNote=x.account2Included?'':'<p class="table-note"><strong>참고:</strong> 삼성증권2는 2026-05-22 전량 매도 후 실현분 반영. 선택일이 2026-05-21 이전이면 당시 전체 성과 기준에서 제외되어 이 표에서도 숨김.</p>';
-  const cards=rows.map(r=>mobileInfoCard(r[0],[
-    ['투자원금',r[1]?won(r[1]):'-'],['투자 결과물',won(r[2])],['누적손익',won(r[3]),cls(r[3])],['누적수익률',r[1]?pct(r[4]):'-',r[1]?cls(r[4]):''],['',r[5],'','stacked note-only']
+  const cards=rows.map(row=>mobileInfoCard(row.name,[
+    ['투자원금',`${won(row.principal)}${adjustmentHtml(row.principalAdjustment)}`],
+    ['투자 결과물',`${won(row.result)}${adjustmentHtml(row.resultAdjustment)}`],
+    ['누적손익',won(row.profit),cls(row.profit)],
+    ['누적수익률',row.returnRate==null?'-':pct(row.returnRate),row.returnRate==null?'':cls(row.returnRate)],
+    ['',row.memo,'','stacked note-only']
   ])).join('')+mobileInfoCard('합계',[
-    ['투자원금',won(v.totalPrincipal)],['투자 결과물',won(v.totalResult)],['누적손익',won(v.totalProfit),cls(v.totalProfit)],['누적수익률',pct(v.totalReturn),cls(v.totalReturn)],['',totalMemo,'','stacked note-only']
+    ['투자원금',`${won(totalPrincipal)}${adjustmentHtml(totalPrincipalAdjustment)}`],
+    ['투자 결과물',`${won(totalResult)}${adjustmentHtml(totalResultAdjustment)}`],
+    ['누적손익',won(v.totalProfit),cls(v.totalProfit)],
+    ['누적수익률',pct(totalReturn),cls(totalReturn)],
+    ['',totalMemo,'','stacked note-only']
   ],'summary-card mobile-total-card');
-  const totalRow=`<tr class="summary-row"><th scope="row" class="accounts-name">합계</th><td class="num table-cell-right">${fmt(v.totalPrincipal)}</td><td class="num table-cell-right">${fmt(v.totalResult)}</td><td class="num table-cell-right performance-profit-col ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}<span class="performance-inline-return ${tableCls(v.totalReturn)}"> (${mobileReturnPct(v.totalReturn)})</span></td><td class="num table-cell-center performance-return-col ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td><td class="table-cell-text accounts-memo"><span class="accounts-memo-text">${totalMemo}</span>${accountMemoInfoButton(totalMemo)}</td></tr>`;
-  return `<div id="accounts-summary" ${mobileViewAttrs('accounts')}${hidden?' hidden':''}><div id="accounts-table-view" class="mobile-scroll accounts-scroll table-view"><table class="dashboard-data-table accounts-table"><caption class="visually-hidden">성과 요약 계좌별 보기</caption><thead><tr><th scope="col" class="accounts-name-head">구분</th><th scope="col">투자원금</th><th scope="col">투자 결과물</th><th scope="col" class="performance-profit-col">누적손익</th><th scope="col" class="table-cell-center performance-return-col">누적수익률</th><th scope="col" class="table-cell-text accounts-memo-head" aria-label="메모"><span class="accounts-memo-head-label">메모</span><span class="accounts-memo-head-compact" aria-hidden="true">i</span></th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row" class="accounts-name">${r[0]}</th><td class="num table-cell-right">${r[1]?fmt(r[1]):'-'}</td><td class="num table-cell-right">${fmt(r[2])}</td><td class="num table-cell-right performance-profit-col ${tableCls(r[3])}">${fmt(r[3])}${r[1]?`<span class="performance-inline-return ${tableCls(r[4])}"> (${mobileReturnPct(r[4])})</span>`:''}</td><td class="num table-cell-center performance-return-col ${r[1]?tableCls(r[4]):''}">${r[1]?pct(r[4]):'-'}</td><td class="table-cell-text accounts-memo"><span class="accounts-memo-text">${accountMemoTableHtml(r[5])}</span>${accountMemoInfoButton(r[5])}</td></tr>`).join('')}${totalRow}</tbody></table></div><div id="accounts-card-view" class="mobile-card-view">${cards}</div>${hiddenNote}</div>`;
+  const totalRow=`<tr class="summary-row"><th scope="row" class="accounts-name">합계</th><td class="num table-cell-right">${fmt(totalPrincipal)}${adjustmentHtml(totalPrincipalAdjustment)}</td><td class="num table-cell-right">${fmt(totalResult)}${adjustmentHtml(totalResultAdjustment)}</td><td class="num table-cell-right performance-profit-col ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}<span class="performance-inline-return ${tableCls(totalReturn)}"> (${mobileReturnPct(totalReturn)})</span></td><td class="num table-cell-center performance-return-col ${tableCls(totalReturn)}">${pct(totalReturn)}</td><td class="table-cell-text accounts-memo"><span class="accounts-memo-text">${accountMemoTableHtml(totalMemo)}</span>${accountMemoInfoButton(totalMemo)}</td></tr>`;
+  return `<div id="accounts-summary" ${mobileViewAttrs('accounts')}${hidden?' hidden':''}><div id="accounts-table-view" class="mobile-scroll accounts-scroll table-view"><table class="dashboard-data-table accounts-table"><caption class="visually-hidden">성과 요약 계좌별 보기</caption><thead><tr><th scope="col" class="accounts-name-head">구분</th><th scope="col">투자원금</th><th scope="col">투자 결과물</th><th scope="col" class="performance-profit-col">누적손익</th><th scope="col" class="table-cell-center performance-return-col">누적수익률</th><th scope="col" class="table-cell-text accounts-memo-head" aria-label="메모"><span class="accounts-memo-head-label">메모</span><span class="accounts-memo-head-compact" aria-hidden="true">i</span></th></tr></thead><tbody>${rows.map(row=>`<tr><th scope="row" class="accounts-name">${row.name}</th><td class="num table-cell-right">${fmt(row.principal)}${adjustmentHtml(row.principalAdjustment)}</td><td class="num table-cell-right">${fmt(row.result)}${adjustmentHtml(row.resultAdjustment)}</td><td class="num table-cell-right performance-profit-col ${tableCls(row.profit)}">${fmt(row.profit)}${row.returnRate==null?'':`<span class="performance-inline-return ${tableCls(row.returnRate)}"> (${mobileReturnPct(row.returnRate)})</span>`}</td><td class="num table-cell-center performance-return-col ${row.returnRate==null?'':tableCls(row.returnRate)}">${row.returnRate==null?'-':pct(row.returnRate)}</td><td class="table-cell-text accounts-memo"><span class="accounts-memo-text">${accountMemoTableHtml(row.memo)}</span>${accountMemoInfoButton(row.memo)}</td></tr>`).join('')}${totalRow}</tbody></table></div><div id="accounts-card-view" class="mobile-card-view">${cards}</div>${hiddenNote}</div>`;
 }
 function renderSourceTables(x){
   const c=dataState.portfolio.constants,
