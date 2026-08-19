@@ -2,6 +2,7 @@
 // - 메인 7개 ES Module graph와 분리
 // - dashboard-app.js / dashboard-ui.js 수정 없이 index.html에서 독립 로드
 // - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
+// - Stage 9 calibration이 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
 
 const MARKET_AI_POLL_MS=60_000;
 const MARKET_AI_TIMEOUT_MS=2_500;
@@ -54,6 +55,12 @@ function marketAiPercentText(value){
   return Number.isFinite(n)?`${Math.round(n*100)}%`:'--';
 }
 
+function marketAiProbabilityText(value){
+  if(value==null||value==='')return '--';
+  const n=Number(value);
+  return Number.isFinite(n)?`${(n*100).toFixed(1)}%`:'--';
+}
+
 function kstDateParts(date){
   const parts=new Intl.DateTimeFormat('en-CA',{
     timeZone:'Asia/Seoul',
@@ -95,7 +102,7 @@ function marketAiSignalFreshness(signal){
 }
 
 function marketAiMetricCard(label,key){
-  return `<article class="card metric-card" aria-label="${label}"><div class="label">${label}</div><div class="value"><span data-market-ai-score="${key}">--</span></div><div class="sub">100점 기준</div></article>`;
+  return `<article class="card metric-card" aria-label="${label}" data-market-ai-card="${key}"><div class="label" data-market-ai-label>${label}</div><div class="value"><span data-market-ai-score="${key}">--</span></div><div class="sub" data-market-ai-basis>100점 기준</div></article>`;
 }
 
 function createMarketAiSection(){
@@ -164,19 +171,37 @@ function syncMarketAiSignalView(){
   const section=mountMarketAiSection();
   if(!section)return;
   const signal=marketAiState.signal;
-  const scoreValues={
-    kospi:signal?.kospi_score,
-    semiconductors:signal?.semiconductor_score,
-    gap:signal?.gap_up_probability,
-    'up-close':signal?.up_close_probability
-  };
-  Object.entries(scoreValues).forEach(([key,value])=>{
-    const el=section.querySelector(`[data-market-ai-score="${key}"]`);
+  const calibration=signal?.calibration||{};
+  const calibratedTargets=new Set(Array.isArray(calibration.available_targets)?calibration.available_targets:[]);
+  const probabilities=calibration.probabilities||{};
+  const modelMeta=calibration.models||{};
+  const metrics=[
+    {key:'kospi',target:'kospi_up',score:signal?.kospi_score,signalLabel:'KOSPI 신호',probabilityLabel:'KOSPI 상승확률'},
+    {key:'semiconductors',target:'semiconductor_up',score:signal?.semiconductor_score,signalLabel:'반도체 신호',probabilityLabel:'반도체 상승확률'},
+    {key:'gap',target:'gap_up',score:signal?.gap_up_probability,signalLabel:'갭상 신호',probabilityLabel:'갭상 확률'},
+    {key:'up-close',target:'up_close',score:signal?.up_close_probability,signalLabel:'상승마감 신호',probabilityLabel:'상승마감 확률'}
+  ];
+  metrics.forEach(metric=>{
+    const card=section.querySelector(`[data-market-ai-card="${metric.key}"]`);
+    const el=section.querySelector(`[data-market-ai-score="${metric.key}"]`);
     if(!el)return;
-    el.textContent=marketAiScoreText(value);
+    const probability=Number(probabilities[metric.target]);
+    const calibrated=calibratedTargets.has(metric.target)&&Number.isFinite(probability);
+    const displayValue=calibrated?probability*100:metric.score;
+    el.textContent=calibrated?marketAiProbabilityText(probability):marketAiScoreText(metric.score);
     el.classList.remove('positive','negative');
-    const valueClass=marketAiScoreClass(value);
+    const valueClass=marketAiScoreClass(displayValue);
     if(valueClass)el.classList.add(valueClass);
+    const label=card?.querySelector('[data-market-ai-label]');
+    const basis=card?.querySelector('[data-market-ai-basis]');
+    if(label)label.textContent=calibrated?metric.probabilityLabel:metric.signalLabel;
+    if(card)card.setAttribute('aria-label',calibrated?metric.probabilityLabel:metric.signalLabel);
+    if(basis){
+      const sampleCount=Number(modelMeta?.[metric.target]?.sample_count);
+      basis.textContent=calibrated&&Number.isFinite(sampleCount)
+        ?`통계 보정 · n=${sampleCount}`
+        :(calibrated?'통계 보정':'100점 기준');
+    }
   });
 
   const status=section.querySelector('[data-market-ai-status]');
@@ -205,7 +230,7 @@ function syncMarketAiSignalView(){
       '현재 시장',
       `신뢰도 ${marketAiPercentText(signal.confidence)}`,
       `데이터 완성도 ${marketAiPercentText(signal.data_completeness)}`,
-      signal.calibrated===true?'확률 보정 완료':'비보정 룰 기반 신호'
+      calibratedTargets.size?`확률 보정 ${calibratedTargets.size}/4`:'비보정 룰 기반 신호'
     ];
     if(updated)parts.push(`${updated} KST`);
     meta.textContent=parts.join(' · ');
