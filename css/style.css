@@ -2047,7 +2047,7 @@ body.chart-expanded-open .dash-tooltip{
 
 .pension-insight-head h3{
   margin:0;
-  font-size:calc(var(--type-size-md) + 2px);
+  font-size:var(--type-size-xl);
   font-weight:var(--type-weight-bold);
   letter-spacing:-.03em;
   color:var(--ink);
@@ -2272,16 +2272,16 @@ body.chart-expanded-open .dash-tooltip{
   color:var(--text-secondary);
 }
 
-/* Pension Insight Label Responsive · 각 viewport의 기존 단계에서 2px 확대 */
+/* Pension Insight Label Responsive · viewport별 type token 단계 적용 */
 @media (min-width:761px) and (max-width:1100px){
   .pension-insight-head h3{
-    font-size:calc(var(--type-size-sm) + 2px);
+    font-size:var(--type-size-lg);
   }
 }
 
 @media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   .pension-insight-head h3{
-    font-size:calc(var(--type-size-xs) + 2px);
+    font-size:var(--type-size-md);
   }
 }
 
@@ -3753,12 +3753,11 @@ body.contrib-modal-open{
   overflow-wrap:normal;
 }
 .krx-action-buttons .primary:disabled{opacity:.55;cursor:wait}
-.pension-action-pin-buttons{
+:is(.pension-action-pin-buttons,.chart-date-confirm-buttons){
   display:flex;
   justify-content:flex-end;
 }
 .pension-action-pin-buttons .ghost{min-width:72px}
-.chart-date-confirm-buttons{display:flex;justify-content:flex-end}
 .chart-date-confirm-buttons .action-modal-btn{min-width:76px}
 .pension-action-pin-buttons .primary.danger{
   background:var(--status-danger-strong);
@@ -5085,8 +5084,8 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .dashboard-data-table tbody .summary-row > td{font-weight:var(--data-table-summary-weight);border-top:1px solid var(--table-column-line)}
 .dashboard-data-table tbody .summary-row > td.accounts-memo{font-weight:var(--data-table-memo-weight)}
 /* Table Alignment Hierarchy · .num은 숫자 표현만 담당 / 정렬은 semantic utility로 명시 */
-.dashboard-data-table thead th:first-child{text-align:left}
-.dashboard-data-table thead th:not(:first-child):not(.table-cell-text){text-align:center}
+.dashboard-data-table thead th:where(:first-child){text-align:left}
+.dashboard-data-table thead th:where(:not(:first-child)){text-align:center}
 .dashboard-data-table .table-cell-text{text-align:left}
 .dashboard-data-table .table-cell-right{text-align:right}
 .dashboard-data-table .table-cell-center{text-align:center}
