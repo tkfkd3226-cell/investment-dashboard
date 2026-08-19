@@ -1780,6 +1780,7 @@ body.chart-expanded-open .dash-tooltip{
 }
 
 /* Account Memo Info · 계좌별 성과 메모 전용 정보 UI */
+.accounts-memo-head-compact,
 .accounts-memo-info-button,
 .accounts-memo-tooltip-source,
 .accounts-memo-floating-tooltip{display:none}
@@ -1818,12 +1819,19 @@ body.chart-expanded-open .dash-tooltip{
     min-width:100%;
   }
   #accounts-summary .accounts-table :is(.accounts-memo-head,.accounts-memo){
-    width:34px;
-    min-width:34px;
-    max-width:34px;
+    width:28px;
+    min-width:28px;
+    max-width:28px;
     padding-left:var(--space-xs);
     padding-right:var(--space-xs);
     text-align:center;
+  }
+  #accounts-summary .accounts-memo-head-label{display:none}
+  #accounts-summary .accounts-memo-head-compact{
+    display:inline;
+    font-size:var(--type-size-2xs);
+    font-weight:var(--type-weight-bold);
+    line-height:1;
   }
   #accounts-summary .accounts-memo{
     vertical-align:middle;
@@ -1836,9 +1844,9 @@ body.chart-expanded-open .dash-tooltip{
     position:relative;
     align-items:center;
     justify-content:center;
-    width:16px;
-    height:16px;
-    flex:0 0 16px;
+    width:14px;
+    height:14px;
+    flex:0 0 14px;
     margin:0;
     padding:0;
     border:1px solid var(--chart-info-border);
