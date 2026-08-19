@@ -3719,7 +3719,9 @@ body.contrib-modal-open{
   bottom:22px;
   transform:translate(-50%,16px);
   z-index:13001;
+  width:max-content;
   max-width:min(420px,calc(100vw - 32px));
+  box-sizing:border-box;
   padding:var(--space-5xl) var(--space-7xl);
   border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
   background:var(--toast-bg);
@@ -3769,10 +3771,8 @@ body.contrib-modal-open{
 
   .app-toast{
     bottom:16px;
-    width:calc(100vw - 16px);
-    max-width:520px;
-    box-sizing:border-box;
-    border-radius:16px;
+    max-width:min(520px,calc(100vw - 16px));
+    border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
     text-align:center;
   }
 
