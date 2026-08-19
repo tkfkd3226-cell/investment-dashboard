@@ -2,7 +2,7 @@
 
 삼성증권 증권계좌와 퇴직연금 계좌의 **날짜별 투자 성과를 복원·검산·분석하기 위한 정적 웹 대시보드**입니다.
 
-메인 화면은 GitHub Pages에서 제공하며, KRX 가격과 성과 스냅샷은 GitHub Actions + Python으로 갱신합니다. 퇴직연금 금액 조정과 KRX 갱신 요청처럼 브라우저에서 직접 파일을 수정할 수 없는 쓰기 작업은 Google Apps Script Web App을 통해 연결합니다.
+메인 화면은 GitHub Pages에서 제공하며, KRX 가격과 성과 스냅샷은 GitHub Actions + Python으로 갱신합니다. 퇴직연금 금액 조정과 KRX 갱신 요청처럼 브라우저에서 직접 파일을 수정할 수 없는 쓰기 작업은 Google Apps Script 웹 앱을 통해 연결합니다.
 
 이 저장소는 단순 시세 조회 화면이 아니라 다음 세 가지를 함께 관리하는 것을 목표로 합니다.
 
@@ -12,9 +12,9 @@
 
 ---
 
-## 1. 핵심 기능
+## 핵심 기능
 
-### 1.1 증권계좌
+### 증권계좌
 
 - 날짜별 증권계좌 성과 복원
 - 투자원금·평가금액·누적손익·수익률 조회
@@ -24,7 +24,7 @@
 - 별도수익 ON/OFF 비교
 - KOSPI 대비 초과성과 확인
 
-### 1.2 퇴직연금
+### 퇴직연금
 
 - 퇴직연금 계좌의 날짜별 성과 및 상품 현황
 - 상품별 손익·비중·인사이트
@@ -33,7 +33,7 @@
 - PIN 기반 저장·삭제 흐름
 - 여러 변경사항을 모아 적용하는 batch 처리
 
-### 1.3 차트 / 분석
+### 차트 / 분석
 
 - 누적손익 및 누적수익률
 - KOSPI 비교
@@ -45,14 +45,14 @@
 - 차트 확대 보기
 - Desktop / Tablet / Mobile 반응형 tooltip 및 조작 UI
 
-### 1.4 데이터 갱신
+### 데이터 갱신
 
 - KRX 현재가 **최신/누락 반영**
 - 선택된 날짜 **재갱신**
 - GitHub Actions 수동 실행을 통한 가격 및 성과 스냅샷 갱신
 - 과거 거래일 보완 및 과거 장중 데이터의 종가 확정
 
-### 1.5 부가 도구
+### 부가 도구
 
 - 투자 계산기: `add/calc.html`
 - 기간별 거래/성과 리포트: `add/report/`
@@ -61,77 +61,58 @@
 
 ---
 
-## 2. 전체 동작 구조
+## 전체 동작 구조
 
-메인 화면은 `index.html`에서 시작하고, `dashboard-app.js`가 **단일 ES Module entry point**로 나머지 모듈을 조율합니다.
-
-가로로 긴 하나의 도식 대신 실제 동작을 **조회 / 퇴직연금 쓰기 / KRX 갱신**의 세 흐름으로 나눠 보면 다음과 같습니다.
-
-### 2.1 화면 조회 흐름
+메인 화면은 `index.html`에서 시작하고, `dashboard-app.js`가 **단일 ES Module entry point**로 6개 기능/공통 모듈을 조율합니다.
 
 ```text
 GitHub Pages / Browser
-          ↓
-      index.html
-          ↓
-  dashboard-app.js
-          ↓
-   나머지 ES Modules
-          ↓
-      data/*.json
-          ↓
-   화면 계산 / 렌더링
+        │
+        ├─ index.html
+        ├─ css/style.css
+        │
+        └─ js/dashboard-app.js  ← entry / orchestration
+               │
+               ├─ dashboard-core.js
+               ├─ dashboard-ui-common.js
+               ├─ dashboard-charts.js
+               ├─ dashboard-ui.js
+               ├─ dashboard-pension.js
+               └─ dashboard-pension-editor.js
+               │
+               ├─────────────── 읽기 ───────────────┐
+               │                                    ▼
+               │                              data/*.json
+               │
+               └─────────────── 쓰기 요청 ──────────┐
+                                                    ▼
+                                      Google Apps Script Web App
+                                  (GitHub 저장소와 별도 관리·별도 배포)
+                                                    │
+                              ┌─────────────────────┴─────────────────────┐
+                              │                                           │
+                              ▼                                           ▼
+                    퇴직연금 데이터 저장·삭제                      KRX 현재가 반영 요청
+                              │                                           │
+                              ▼                                           ▼
+                       GitHub REST API                         GitHub Actions workflow_dispatch
+                              │                                           │
+                              ▼                                           ▼
+              pension_*.json 직접 commit                    .github/workflows/update-prices.yml
+                                                                          │
+                                                                          ▼
+                                                               scripts/update_prices.py
+                                                                          │
+                                                           ┌──────────────┴──────────────┐
+                                                           ▼                             ▼
+                                                   data/prices.json       data/performance_snapshots.json
 ```
 
-`dashboard-app.js`가 연결하는 메인 모듈:
-
-```text
-dashboard-core.js
-dashboard-ui-common.js
-dashboard-charts.js
-dashboard-ui.js
-dashboard-pension.js
-dashboard-pension-editor.js
-```
-
-### 2.2 퇴직연금 쓰기 흐름
-
-```text
-Browser
-   ↓
-GAS Web App
-   ↓
-GitHub REST API
-   ↓
-pension 관련 JSON
-   ↓
-GitHub commit
-```
-
-### 2.3 KRX 가격 갱신 흐름
-
-```text
-Browser
-   ↓
-GAS Web App
-   ↓
-workflow_dispatch
-   ↓
-update-prices.yml
-   ↓
-update_prices.py
-   ↓
-prices.json
-performance_snapshots.json
-```
-
-프론트엔드는 별도 번들러나 프레임워크 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 동작합니다.
-
-조회 데이터는 GitHub Pages의 JSON을 읽고, 브라우저에서 GitHub 저장소에 직접 쓰지 않습니다. 퇴직연금 쓰기와 KRX 갱신 요청은 **GitHub 저장소와 별도로 운영·배포되는 Google Apps Script Web App**을 거칩니다.
+프론트엔드는 별도 번들러나 프레임워크 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 동작합니다. 조회 데이터는 GitHub Pages의 JSON을 읽고, 브라우저에서 직접 GitHub에 쓰지 않습니다. 퇴직연금 쓰기와 KRX 갱신 요청은 **GitHub 저장소와 별도로 관리·배포되는 Google Apps Script Web App**을 거칩니다.
 
 ---
 
-## 3. 프로젝트 구조
+## 프로젝트 구조
 
 ```text
 investment-dashboard-main/
@@ -171,11 +152,17 @@ investment-dashboard-main/
 └─ main_dashboard_maintenance_handover.md
 ```
 
----
+### Google Apps Script 연동
 
-## 4. 프론트엔드 아키텍처
+퇴직연금 쓰기와 KRX 갱신 요청은 **GitHub 저장소와 별도로 운영되는 Google Apps Script Web App**을 거칩니다.
 
-### 4.1 JavaScript 모듈
+- 운영 인증값과 GitHub 연동 정보는 Apps Script의 Script Properties에서 관리합니다.
+- 프런트엔드는 배포된 GAS Web App URL을 호출합니다.
+- GAS 수정·검증이 필요한 경우에는 사용자가 별도로 제공한 최신 운영 소스를 기준으로 확인합니다.
+- 운영 Web App 코드가 변경되면 배포 버전도 함께 갱신해야 실제 `/exec` 호출에 반영됩니다.
+
+
+## JavaScript 아키텍처
 
 메인 JavaScript는 **7개 ES Module**로 구성되어 있으며 `dashboard-app.js`가 단일 entry point입니다.
 
@@ -189,13 +176,13 @@ investment-dashboard-main/
 | `dashboard-pension-editor.js` | 퇴직연금 **Editor** — 금액조정, PIN, batch, 저장·삭제 |
 | `dashboard-app.js` | 날짜·별도수익 등 cross-module 흐름, 전체 render orchestration, 초기화·boot |
 
-### 4.2 Dependency 방향
+### Dependency 방향
 
-아래 표기에서 **`A → B`는 A가 B를 import한다는 의미**입니다.
+아래 표기에서 **`A → B`는 A가 B를 import한다는 의미**입니다. 현재 실제 import 관계는 다음과 같습니다.
 
 ```text
 dashboard-core.js
-└─ 다른 메인 JS 모듈 import 없음
+└─ 다른 메인 JS 모듈을 import하지 않음
 
 dashboard-ui-common.js
 └─ dashboard-core.js
@@ -231,7 +218,7 @@ dashboard-app.js
 
 현재 구조에서는 **순환 dependency를 만들지 않는 것**이 기본 원칙입니다.
 
-### 4.3 State ownership
+### State ownership
 
 - 여러 모듈이 공유해야 하는 데이터 state만 `dashboard-core.js`에 둡니다.
 - chart runtime state는 `dashboard-charts.js`가 소유합니다.
@@ -239,7 +226,10 @@ dashboard-app.js
 - 특정 모듈 내부 DOM이나 state를 다른 모듈이 직접 조작하지 않고 필요한 경우 공개 API를 사용합니다.
 - `window` / `globalThis`에 기능 API를 매달아 dependency를 우회하지 않습니다.
 
-### 4.4 CSS / Responsive
+
+---
+
+## CSS / Responsive 구조
 
 메인 대시보드 CSS는 다음 단일 파일을 사용합니다.
 
@@ -270,9 +260,7 @@ Mobile  : 760px 이하
 
 ---
 
-## 5. 데이터 구조와 보호
-
-### 5.1 데이터 파일
+## 데이터 파일
 
 | 파일 | 용도 |
 |---|---|
@@ -286,7 +274,7 @@ Mobile  : 760px 이하
 
 대시보드는 이 데이터들을 결합하여 선택 날짜의 계좌 상태를 계산하고 화면을 렌더링합니다.
 
-### 5.2 운영 데이터 보호
+### 운영 데이터 보호
 
 특히 아래 3개는 GitHub에 소스 패치를 반영할 때 주의해야 하는 실제 운영 데이터입니다.
 
@@ -300,67 +288,43 @@ data/pension_contributions.json
 
 - `prices.json`, `performance_snapshots.json`은 KRX workflow로 재생성 가능한 영역이 있습니다.
 - `pension_contributions.json`은 사용자 입력 기반 운영 데이터이므로 특히 보존에 주의합니다.
-- 코드 수정 ZIP은 원칙적으로 **변경된 소스 파일만** 포함하고 운영 JSON은 요청이 없는 한 넣지 않습니다.
+
+코드 수정 ZIP은 원칙적으로 **변경된 소스 파일만** 포함하고 운영 JSON은 요청이 없는 한 넣지 않습니다.
 
 ---
 
-## 6. 쓰기 · 갱신 구조
-
-### 6.1 Google Apps Script 연동
-
-퇴직연금 쓰기와 KRX 갱신 요청은 **GitHub 저장소와 별도로 운영되는 Google Apps Script Web App**을 거칩니다.
-
-- 운영 인증값과 GitHub 연동 정보는 Apps Script의 Script Properties에서 관리합니다.
-- 프런트엔드는 배포된 GAS Web App URL을 호출합니다.
-- GAS 수정·검증이 필요한 경우에는 사용자가 별도로 제공한 최신 운영 소스를 기준으로 확인합니다.
-- 운영 Web App 코드가 변경되면 배포 버전도 함께 갱신해야 실제 `/exec` 호출에 반영됩니다.
-
-### 6.2 KRX 가격 갱신
+## KRX 가격 갱신
 
 대시보드에서 KRX 가격 갱신은 **날짜 입력창을 직접 사용하는 방식이 아닙니다.** 화면의 두 버튼이 요청에 `date`를 포함할지 여부를 결정합니다.
 
-#### 최신/누락 반영
+### 대시보드의 KRX 버튼
 
-- GAS 요청에 `date`를 보내지 않습니다.
-- GAS가 현재 한국시간, `prices.json`의 최신 데이터, 장중/종가 상태를 확인합니다.
-- 필요한 경우에만 `update-prices.yml`을 `workflow_dispatch`로 실행합니다.
-- 오늘 데이터 갱신, 누락 거래일 보완, 저장된 장중 데이터의 종가 확정이 이 흐름에 포함됩니다.
-
-```text
-Browser
-  ↓
-GAS 요청
-(date 없음)
-  ↓
-대상 날짜 판단
-  ↓
-필요 시 workflow 실행
-```
-
-#### 재갱신
-
-- 현재 대시보드에서 선택되어 있는 `activeDate`를 JS가 요청의 `date`로 자동 전달합니다.
-- GAS는 해당 날짜의 `prices.json` 상태를 먼저 확인합니다.
-- 해당 날짜가 이미 `marketStatus: "close"`이면 `이미 종가 기준 데이터가 반영되어 있습니다.`를 반환하고 workflow를 실행하지 않습니다.
-- 해당 날짜가 장중(`intraday`)이거나 데이터가 없을 때만 해당 날짜의 workflow를 실행합니다.
-- 사용자가 날짜를 별도의 입력칸에 다시 입력하는 기능은 없습니다.
+- **최신/누락 반영**
+  - GAS 요청에 `date`를 보내지 않습니다.
+  - GAS가 현재 한국시간, `prices.json`의 최신 데이터, 장중/종가 상태를 확인합니다.
+  - 필요한 경우에만 `update-prices.yml`을 `workflow_dispatch`로 실행합니다.
+  - 오늘 데이터 갱신, 누락 거래일 보완, 저장된 장중 데이터의 종가 확정이 이 흐름에 포함됩니다.
+- **재갱신**
+  - 현재 대시보드에서 선택되어 있는 `activeDate`를 JS가 요청의 `date`로 자동 전달합니다.
+  - GAS는 해당 날짜의 `prices.json` 상태를 먼저 확인합니다.
+  - 해당 날짜가 이미 `marketStatus: "close"`이면 `이미 종가 기준 데이터가 반영되어 있습니다.`를 반환하고 workflow를 실행하지 않습니다.
+  - 해당 날짜가 장중(`intraday`)이거나 데이터가 없을 때만 해당 날짜의 workflow를 실행합니다.
+  - 사용자가 날짜를 별도의 입력칸에 다시 입력하는 기능은 없습니다.
 
 ```text
-Browser
-  ↓
-GAS 요청
-(date = activeDate)
-  ↓
-marketStatus 확인
-  ↓
-close
-→ workflow 생략
+최신/누락 반영
+Browser → GAS (date 없음)
+        → 최신/누락/장중 상태 판단
+        → 필요한 경우 workflow_dispatch
 
-intraday / 미존재
-→ workflow 실행
+재갱신
+Browser → GAS (date = 현재 activeDate)
+        → 해당 날짜의 marketStatus 확인
+        → close면 workflow 생략 + 안내
+        → intraday/미존재면 해당 날짜 workflow_dispatch
 ```
 
-### 6.3 GitHub Actions / Python 처리
+### GitHub Actions / Python 처리
 
 GitHub Actions workflow:
 
@@ -377,29 +341,22 @@ scripts/update_prices.py
 기본 처리 흐름:
 
 ```text
-GAS 또는 수동 실행
-        ↓
-GitHub Actions
-        ↓
-Python 3.11 설정
-        ↓
-requirements.txt 설치
-        ↓
-update_prices.py 실행
-        ↓
-JSON 변경 확인
-        ↓
-변경 시 commit + push
+GAS 또는 GitHub Actions 수동 실행
+→ Update KRX closing prices
+→ Python 3.11 설정
+→ requirements.txt 설치
+→ scripts/update_prices.py 실행
+→ prices.json / performance_snapshots.json 변경 확인
+→ 변경이 있으면 자동 commit + push
 ```
 
-GitHub Actions 화면에서 workflow를 **직접 수동 실행하는 운영/개발 경로**에는 선택적인 `YYYY-MM-DD` input이 있습니다.
+GitHub Actions 화면에서 workflow를 **직접 수동 실행하는 운영/개발 경로**에는 선택적인 `YYYY-MM-DD` input이 있습니다. 이 input은 대시보드 UI의 날짜 입력 기능이 아닙니다. 날짜를 명시하면 해당 날짜를 처리하고, 날짜를 명시하지 않으면 Python 스크립트가 최신/누락/재확정이 필요한 날짜를 자동으로 결정합니다.
 
-- 날짜를 명시하면 해당 날짜를 처리합니다.
-- 날짜를 비워두면 Python 스크립트가 최신/누락/재확정이 필요한 날짜를 자동으로 결정합니다.
-- 이 input은 대시보드 UI의 날짜 입력 기능이 아닙니다.
-- 과거 날짜를 명시적으로 재갱신하는 경우 실행 시각이 장중이어도 과거 데이터는 종가 데이터로 취급합니다.
+과거 날짜를 명시적으로 재갱신하는 경우 실행 시각이 장중이어도 과거 데이터는 종가 데이터로 취급합니다.
 
-### 6.4 퇴직연금 편집 흐름
+---
+
+## 퇴직연금 편집 흐름
 
 퇴직연금은 조회와 편집 책임을 분리합니다.
 
@@ -408,38 +365,35 @@ dashboard-pension.js
 → 보여주는 View
 
 dashboard-pension-editor.js
-→ 변경·저장하는 Editor
+→ 변경하고 저장하는 Editor
 ```
 
 Editor의 주요 흐름:
 
 ```text
 금액조정 모달
-     ↓
-입력 / 변경사항 구성
-     ↓
-batch / simulation
-     ↓
-PIN 확인
-     ↓
-GAS 요청
-     ↓
-로컬 반영 / 재렌더
+→ 입력 및 변경사항 구성
+→ 필요 시 batch queue / simulation
+→ PIN 확인
+→ Google Apps Script 요청
+→ 성공 시 로컬 데이터 반영 및 dashboard 재렌더
 ```
 
 실제 저장·삭제 요청은 QA 목적으로 임의 실행하지 않습니다.
 
 ---
 
-## 7. 로컬 실행
+## 로컬 실행
 
 JSON 데이터를 `fetch()`로 읽기 때문에 `index.html`을 `file://`로 직접 열기보다 로컬 HTTP 서버를 사용합니다.
 
-Windows에서는 프로젝트 루트의 다음 파일을 실행합니다.
+Windows에서는 프로젝트 루트의:
 
 ```text
 start-local-server.bat
 ```
+
+을 실행합니다.
 
 기본 주소:
 
@@ -465,7 +419,7 @@ py -m http.server 8000
 
 ---
 
-## 8. GitHub Pages 배포
+## GitHub Pages 배포
 
 메인 대시보드는 GitHub Pages의 branch 배포를 기준으로 합니다.
 
@@ -480,25 +434,22 @@ Folder : /root
 
 ---
 
-## 9. 수정 · QA 운영 방식
+## 수정 · QA 운영 방식
 
 대규모 구조 작업은 한 번에 전부 수정하지 않고 차수별로 진행합니다.
 
 ```text
 1차
- ↓
-QA
- ↓
-2차
- ↓
-QA
- ↓
-...
- ↓
-최종 누적 QA
+→ QA
+→ 2차
+→ QA
+→ 3차
+→ QA
+→ ...
+→ 최종 누적 QA
 ```
 
-### 9.1 차수 요청
+### 차수 요청
 
 사용자가 `1차`, `2차`, `3차`처럼 차수만 요청하면:
 
@@ -507,7 +458,7 @@ QA
 - QA는 수행하지 않음
 - 실제 변경 파일만 원래 프로젝트 경로대로 ZIP 전달
 
-### 9.2 QA 요청
+### QA 요청
 
 사용자가 `QA`라고 요청하면:
 
@@ -516,7 +467,7 @@ QA
 - 관련 기능의 계산·렌더 결과가 변하지 않았는지 필요 범위에서 비교
 - FAIL이면 다음 차수로 넘어가지 않고 수정 후 다시 QA
 
-### 9.3 최종 누적 QA
+### 최종 누적 QA
 
 각 차수 QA가 모두 PASS했더라도 마지막에는 누적 최종본을 다시 검증합니다.
 
@@ -528,7 +479,9 @@ QA
 main_dashboard_maintenance_handover.md
 ```
 
-### 9.4 수정 파일 전달 규칙
+---
+
+## 수정 파일 전달 규칙
 
 코드 또는 문서를 수정해 전달할 때:
 
@@ -541,27 +494,25 @@ main_dashboard_maintenance_handover.md
 예:
 
 ```text
-investment-dashboard-main/
-└─ js/
-   └─ dashboard-ui.js
+js/dashboard-ui.js만 수정
+
+ZIP 내부:
+js/
+└─ dashboard-ui.js
 ```
 
 ---
 
-## 10. 유지보수 기준
+## 유지보수 원칙
 
-현재 프로젝트는 다음 순서의 대규모 리팩토링을 완료한 상태입니다.
+현재 프로젝트는 다음 리팩토링을 완료한 상태입니다.
 
 ```text
 CSS 구조 최적화
-       ↓
-JavaScript 책임 분리
-       ↓
-UI/UX 공통화·반응형 정리
-       ↓
-ES Module migration
-       ↓
-JS 3차 구조 리팩토링
+→ JavaScript 책임 분리
+→ UI/UX 공통화 및 반응형 정리
+→ JavaScript ES Module migration
+→ JavaScript 3차 구조 리팩토링
 ```
 
 앞으로는 **현재 정상 구조를 유지하면서 필요한 범위만 최소 수정**하는 것을 기본으로 합니다.
@@ -580,33 +531,31 @@ JS 3차 구조 리팩토링
 
 ---
 
-## 11. 새 작업 시작 시 Source of Truth
+## 새 작업 시작 시 Source of Truth
 
 새 채팅이나 새로운 작업 세션에서는 다음 순서로 기준을 잡습니다.
 
 ```text
 최신 전체 ZIP
-      ↓
-handover MD 확인
-      ↓
-실제 소스 확인
-      ↓
-문서 / 코드 대조
-      ↓
-작업 시작
+→ ZIP 내부 인수인계 MD 확인
+→ 같은 ZIP의 실제 소스 확인
+→ 문서와 코드의 현재 상태 대조
+→ 작업 시작
 ```
 
 과거 대화에서 기억한 코드나 과거 ZIP을 최신본으로 추정하지 않습니다.
 
-기준 운영 문서:
+가장 간단한 시작 요청은:
 
 ```text
-main_dashboard_maintenance_handover.md
+첨부한 최신 ZIP 기준으로 시작해줘.
 ```
+
+입니다.
 
 ---
 
-## 12. 저장소 정리
+## 저장소 정리
 
 Python cache 등 실행 중 자동 생성되는 파일은 저장소에 포함하지 않습니다.
 
@@ -617,7 +566,7 @@ __pycache__/
 
 ---
 
-## 13. 상세 운영 문서
+## 상세 운영 문서
 
 세부 구조, 반복 회귀 이력, QA 범위, 차수별 작업 규칙, 점수 이력, 운영 JSON 보호 기준 및 새 채팅 인수인계 방식은 다음 문서를 기준으로 합니다.
 
@@ -625,4 +574,4 @@ __pycache__/
 main_dashboard_maintenance_handover.md
 ```
 
-README는 저장소의 **전체 구조와 운영 개요**를 설명하고, 위 MD는 **실제 수정 작업에 적용하는 상세 유지보수 규칙**을 담당합니다.
+README는 저장소의 전체 구조와 운영 개요를 설명하고, 위 MD는 **실제 수정 작업을 수행할 때 적용하는 상세 유지보수 규칙**을 담당합니다.
