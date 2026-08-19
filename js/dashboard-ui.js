@@ -165,7 +165,7 @@ function renderUnifiedMobileMenuContent(){
         {type:'section',id:'pension-change',icon:'trending',title:'전일 대비 변동'},
         {type:'section',id:'pension-chart-cum',icon:'lineChart',title:'운용손익 및 누적수익률'},
         {type:'section',id:'pension-chart-symbol',icon:'barChart',title:'연금상품별 운용손익'},
-        {type:'section',id:'pension-chart-alloc',icon:'pie',title:'평가액 비중'}
+        {type:'section',id:'pension-chart-alloc',icon:'pie',title:'평가금액 비중'}
       ]
     }
   ];
@@ -206,7 +206,7 @@ function renderDesktopTocContent(){
         {id:'pension-change',icon:'trending',title:'전일 대비 변동'},
         {id:'pension-chart-cum',icon:'lineChart',title:'운용손익 및 누적수익률'},
         {id:'pension-chart-symbol',icon:'barChart',title:'연금상품별 운용손익'},
-        {id:'pension-chart-alloc',icon:'pie',title:'평가액 비중'}
+        {id:'pension-chart-alloc',icon:'pie',title:'평가금액 비중'}
       ]
     }
   ];
@@ -868,12 +868,12 @@ function renderAccounts(x){
   const totalMemo='계좌 간 자금 이동 반영';
   const hiddenNote=x.account2Included?'':'<p class="table-note"><strong>참고:</strong> 삼성증권2는 2026-05-22 전량 매도 후 실현분 반영. 선택일이 2026-05-21 이전이면 당시 전체 성과 기준에서 제외되어 이 표에서도 숨김.</p>';
   const cards=rows.map(r=>mobileInfoCard(r[0],[
-    ['투자원금',r[1]?won(r[1]):'-'],['누적손익',won(r[2]),cls(r[2])],['수익률',r[1]?pct(r[3]):'-',r[1]?cls(r[3]):''],['',r[4],'','stacked note-only']
+    ['투자원금',r[1]?won(r[1]):'-'],['누적손익',won(r[2]),cls(r[2])],['누적수익률',r[1]?pct(r[3]):'-',r[1]?cls(r[3]):''],['',r[4],'','stacked note-only']
   ])).join('')+mobileInfoCard('합계',[
-    ['투자원금',won(v.totalPrincipal)],['누적손익',won(v.totalProfit),cls(v.totalProfit)],['수익률',pct(v.totalReturn),cls(v.totalReturn)],['',totalMemo,'','stacked note-only']
+    ['투자원금',won(v.totalPrincipal)],['누적손익',won(v.totalProfit),cls(v.totalProfit)],['누적수익률',pct(v.totalReturn),cls(v.totalReturn)],['',totalMemo,'','stacked note-only']
   ],'summary-card mobile-total-card');
   const totalRow=`<tr class="summary-row"><th scope="row" class="accounts-name">합계</th><td class="num table-cell-right">${fmt(v.totalPrincipal)}</td><td class="num table-cell-right ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}</td><td class="num table-cell-center ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td><td class="table-cell-text accounts-memo"><span class="accounts-memo-text">${totalMemo}</span>${accountMemoInfoButton(totalMemo)}</td></tr>`;
-  return `<section id="accounts-summary" ${mobileViewAttrs('accounts')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="list" aria-hidden="true"></span>계좌별 성과 요약</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('accounts')}</div></div><div id="accounts-table-view" class="mobile-scroll accounts-scroll table-view"><table class="dashboard-data-table accounts-table"><caption class="visually-hidden">계좌별 성과 요약</caption><thead><tr><th scope="col" class="accounts-name-head">구분</th><th scope="col">투자원금</th><th scope="col">누적손익</th><th scope="col" class="table-cell-center">수익률</th><th scope="col" class="table-cell-text accounts-memo-head">메모</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row" class="accounts-name">${r[0]}</th><td class="num table-cell-right">${r[1]?fmt(r[1]):'-'}</td><td class="num table-cell-right ${tableCls(r[2])}">${fmt(r[2])}</td><td class="num table-cell-center ${r[1]?tableCls(r[3]):''}">${r[1]?pct(r[3]):'-'}</td><td class="table-cell-text accounts-memo"><span class="accounts-memo-text">${accountMemoTableHtml(r[4])}</span>${accountMemoInfoButton(r[4])}</td></tr>`).join('')}${totalRow}</tbody></table></div><div id="accounts-card-view" class="mobile-card-view">${cards}</div>${hiddenNote}</section>`;
+  return `<section id="accounts-summary" ${mobileViewAttrs('accounts')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="list" aria-hidden="true"></span>계좌별 성과 요약</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('accounts')}</div></div><div id="accounts-table-view" class="mobile-scroll accounts-scroll table-view"><table class="dashboard-data-table accounts-table"><caption class="visually-hidden">계좌별 성과 요약</caption><thead><tr><th scope="col" class="accounts-name-head">구분</th><th scope="col">투자원금</th><th scope="col">누적손익</th><th scope="col" class="table-cell-center">누적수익률</th><th scope="col" class="table-cell-text accounts-memo-head">메모</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row" class="accounts-name">${r[0]}</th><td class="num table-cell-right">${r[1]?fmt(r[1]):'-'}</td><td class="num table-cell-right ${tableCls(r[2])}">${fmt(r[2])}</td><td class="num table-cell-center ${r[1]?tableCls(r[3]):''}">${r[1]?pct(r[3]):'-'}</td><td class="table-cell-text accounts-memo"><span class="accounts-memo-text">${accountMemoTableHtml(r[4])}</span>${accountMemoInfoButton(r[4])}</td></tr>`).join('')}${totalRow}</tbody></table></div><div id="accounts-card-view" class="mobile-card-view">${cards}</div>${hiddenNote}</section>`;
 }
 function renderSourceTables(x){
   const c=dataState.portfolio.constants,
