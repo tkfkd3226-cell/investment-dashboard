@@ -1784,14 +1784,16 @@ body.chart-expanded-open .dash-tooltip{
 .accounts-memo-tooltip-source,
 .accounts-memo-floating-tooltip{display:none}
 
-/* Account Performance Compact · 계좌별 성과: 태블릿/모바일에서 손익+수익률을 한 셀로 합쳐 메모 열을 유지 */
+/* Account Performance Compact · 계좌별 성과: 폰 UI에서만 손익+수익률을 한 셀로 합쳐 메모 열을 유지 */
 .performance-inline-return{display:none}
-@media (max-width:1100px){
+@media (max-width:760px),
+       (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   #accounts-summary .accounts-table .performance-return-col{display:none}
   #accounts-summary .accounts-table .performance-profit-col{text-align:center}
   #accounts-summary .accounts-table .performance-inline-return{
     display:inline;
-    font-size:var(--type-size-xs);
+    font-size:var(--type-size-2xs);
+    line-height:1;
   }
 }
 
@@ -1811,6 +1813,7 @@ body.chart-expanded-open .dash-tooltip{
     overflow:visible;
   }
   #accounts-summary .accounts-table{
+    --data-table-cell-x:5px;
     width:100%;
     min-width:100%;
   }
