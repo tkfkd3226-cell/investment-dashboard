@@ -2041,7 +2041,8 @@ body.chart-expanded-open .dash-tooltip{
 
 .pension-insight-head h3{
   margin:0;
-  font-size:var(--type-size-3xl);
+  font-size:var(--type-size-md);
+  font-weight:var(--type-weight-bold);
   letter-spacing:-.03em;
   color:var(--ink);
 }
@@ -2249,6 +2250,19 @@ body.chart-expanded-open .dash-tooltip{
   font-size:var(--type-size-xs);
   font-weight:var(--type-weight-strong);
   color:var(--text-secondary);
+}
+
+/* Pension Insight Label Responsive · 메인 핵심지표 라벨과 동일한 단계로 축소 */
+@media (min-width:761px) and (max-width:1100px){
+  .pension-insight-head h3{
+    font-size:var(--type-size-sm);
+  }
+}
+
+@media (max-width:760px), (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  .pension-insight-head h3{
+    font-size:var(--type-size-xs);
+  }
 }
 
 /* Pension Insight Mobile · 퇴직연금 인사이트 모바일: 카드/스택바 압축, 정보 구조 유지 */
