@@ -5151,21 +5151,6 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
     --data-table-line-height:1.22;
     --data-table-bar-width:56px;
   }
-  /* Asset Status Phone Fit · 고정 컬럼폭 없이 카드 폭 안에서 긴 이름/금액만 필요 시 줄바꿈 */
-  .asset-status-table{
-    width:100%;
-    min-width:100%;
-    max-width:100%;
-  }
-  .asset-status-table :is(th,td){
-    white-space:normal;
-    overflow-wrap:anywhere;
-  }
-  .asset-status-table .bar-box{
-    width:100%;
-    min-width:0;
-    max-width:var(--data-table-bar-width);
-  }
   .asset-status-table .mobile-table-kodex-prefix,
   .asset-change-table .mobile-table-kodex-prefix{
     display:none;
