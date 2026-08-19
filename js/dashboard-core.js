@@ -64,14 +64,12 @@ const pensionSeriesColor=name=>{
 };
 const ASSET_TYPE_COLORS=Object.freeze({ETF:'#ff6b6b','개별주식':'#ffc857','현금':CASH_ASSET_COLOR});
 const SECURITY_DISPLAY_ORDER=Object.freeze(['KODEX 200','SK하이닉스','삼성전자','현대차']);
-const sortSecurityItems=items=>[...items].sort((a,b)=>{
-  const principalDiff=(Number(b?.cost)||0)-(Number(a?.cost)||0);
-  return principalDiff||String(a?.name||'').localeCompare(String(b?.name||''),'ko');
-});
-const sortPensionItems=items=>[...items].sort((a,b)=>{
+const sortAssetItemsByEvaluation=items=>[...items].sort((a,b)=>{
   const evalDiff=(Number(b?.evalAmount)||0)-(Number(a?.evalAmount)||0);
   return evalDiff||String(a?.name||'').localeCompare(String(b?.name||''),'ko');
 });
+const sortSecurityItems=sortAssetItemsByEvaluation;
+const sortPensionItems=sortAssetItemsByEvaluation;
 const sortSecurityChartItems=items=>[...items].sort((a,b)=>{
   const profitDiff=(Number(b?.profit)||0)-(Number(a?.profit)||0);
   if(profitDiff) return profitDiff;

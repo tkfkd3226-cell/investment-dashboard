@@ -155,7 +155,7 @@ function renderUnifiedMobileMenuContent(){
     {
       label:'증권계좌',
       items:[
-        {type:'section',id:'securities-section',icon:'bank',title:'증권계좌 성과 요약'},
+        {type:'section',id:'securities-section',icon:'chart',title:'증권계좌 성과 요약'},
         {type:'section',id:'securities-holdings',icon:'folder',title:'보유종목 현황'},
         {type:'section',id:'securities-change',icon:'trending',title:'전일 대비 변동'},
         {type:'section',id:'chart-cum',icon:'lineChart',title:'누적손익 및 누적수익률'},
@@ -168,7 +168,7 @@ function renderUnifiedMobileMenuContent(){
     {
       label:'퇴직연금',
       items:[
-        {type:'section',id:'pension-section',icon:'briefcase',title:'퇴직연금 성과 요약'},
+        {type:'section',id:'pension-section',icon:'chart',title:'퇴직연금 성과 요약'},
         {type:'section',id:'pension-products',icon:'package',title:'연금상품별 현황'},
         {type:'section',id:'pension-change',icon:'trending',title:'전일 대비 변동'},
         {type:'section',id:'pension-chart-cum',icon:'lineChart',title:'운용손익 및 운용수익률'},
@@ -196,7 +196,7 @@ function renderDesktopTocContent(){
     {
       label:'증권계좌',
       items:[
-        {id:'securities-section',icon:'bank',title:'증권계좌 성과 요약'},
+        {id:'securities-section',icon:'chart',title:'증권계좌 성과 요약'},
         {id:'securities-holdings',icon:'folder',title:'보유종목 현황'},
         {id:'securities-change',icon:'trending',title:'전일 대비 변동'},
         {id:'chart-cum',icon:'lineChart',title:'누적손익 및 누적수익률'},
@@ -209,7 +209,7 @@ function renderDesktopTocContent(){
     {
       label:'퇴직연금',
       items:[
-        {id:'pension-section',icon:'briefcase',title:'퇴직연금 성과 요약'},
+        {id:'pension-section',icon:'chart',title:'퇴직연금 성과 요약'},
         {id:'pension-products',icon:'package',title:'연금상품별 현황'},
         {id:'pension-change',icon:'trending',title:'전일 대비 변동'},
         {id:'pension-chart-cum',icon:'lineChart',title:'운용손익 및 운용수익률'},
