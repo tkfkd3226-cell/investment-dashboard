@@ -2349,8 +2349,8 @@ body.chart-expanded-open .dash-tooltip{
 
 .change-mobile-list{margin-top:var(--space-5xl)}
 
-/* [07. Pension · continuation] Pension Detail Responsive · 퇴직연금 상세: 웹 2열, 1100px 이하 1열 */
-@media (max-width:1100px){
+/* [07. Pension · continuation] Pension Detail Responsive · 퇴직연금 상세: 1280px 이하 1열로 전환해 표 가로 스크롤 방지 */
+@media (max-width:1280px){
   .pension-detail-grid{
     grid-template-columns:1fr;
   }
@@ -4810,7 +4810,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 }
 .date-select option{color:var(--ink);background:var(--card)}
 .month-select{min-width:148px;flex:0 0 148px}
-.day-select{min-width:116px;flex:0 0 116px}
+.day-select{min-width:148px;flex:0 0 148px}
 .date-tool-btn{
   width:auto;
   min-width:0;
