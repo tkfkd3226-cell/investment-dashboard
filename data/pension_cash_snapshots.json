@@ -265,5 +265,20 @@
       "contrib-2026-07-01-7d22970c-821c-4a89-88fb-202be9336241",
       "contrib-2026-07-31-29fa5f29-83d2-4b79-a756-32de1003a3c2"
     ]
+  },
+  {
+    "date": "2026-08-19",
+    "valuation": 42799,
+    "memo": "현금성자산 앱 확인",
+    "updatedBy": "google-apps-script",
+    "updatedAtKST": "2026-08-19T18:03:32+09:00",
+    "costBasis": 12840,
+    "afterTradeIds": [
+      "trade-2026-08-11-448330-6267d507-cd21-43d0-b28f-c13de6aae35d"
+    ],
+    "afterContributionIds": [
+      "contrib-2026-07-01-7d22970c-821c-4a89-88fb-202be9336241",
+      "contrib-2026-07-31-29fa5f29-83d2-4b79-a756-32de1003a3c2"
+    ]
   }
 ]
