@@ -1840,7 +1840,7 @@ body.chart-expanded-open .dash-tooltip{
     border:1px solid var(--tooltip-border);
     border-radius:var(--tooltip-radius);
     background:var(--tooltip-bg);
-    color:var(--tooltip-text);
+    color:var(--tooltip-color);
     box-shadow:var(--tooltip-shadow);
     font-weight:var(--tooltip-info-weight);
     letter-spacing:-.02em;
