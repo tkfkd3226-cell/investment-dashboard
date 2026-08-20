@@ -38,7 +38,7 @@ const CASH_ASSET_COLOR='#94a3b8';
 const PENSION_PRODUCT_COLORS=Object.freeze({
   'KODEX 200TR':'#42a5f5',
   'KODEX AI반도체':SECURITY_SYMBOL_COLORS['KODEX AI반도체'],
-  'KODEX 삼전채권혼합':'#66bb6a'
+  'KODEX 삼전채권':'#66bb6a'
 });
 const pensionSeriesColor=name=>{
   if(PENSION_PRODUCT_COLORS[name])return PENSION_PRODUCT_COLORS[name];
