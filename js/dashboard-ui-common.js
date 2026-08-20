@@ -235,12 +235,62 @@ function setupAssetVizTooltips(zoneSelector){
   const isTouchLike=()=>window.matchMedia('(hover: none)').matches||window.innerWidth<=900;
   const targetSelector=()=>[...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip`).join(',');
   const openSelector=()=>[...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip.tooltip-open`).join(',');
+  const clearTooltipFollow=target=>{
+    if(!target)return;
+    target.classList.remove('asset-tooltip-following');
+    target.style.removeProperty('--asset-tooltip-left');
+    target.style.removeProperty('--asset-tooltip-arrow-left');
+  };
   const closeTooltips=except=>{
     const selector=openSelector();
     if(!selector)return;
-    document.querySelectorAll(selector).forEach(el=>{if(el!==except)el.classList.remove('tooltip-open')});
+    document.querySelectorAll(selector).forEach(el=>{
+      if(el===except)return;
+      el.classList.remove('tooltip-open');
+      clearTooltipFollow(el);
+    });
+  };
+  const positionStackTooltip=(target,event)=>{
+    if(!target?.classList.contains('asset-stack-segment')||!Number.isFinite(event?.clientX))return;
+    const tooltip=target.querySelector('.asset-viz-tooltip');
+    if(!tooltip)return;
+    const segmentRect=target.getBoundingClientRect();
+    target.classList.add('asset-tooltip-following');
+    target.style.setProperty('--asset-tooltip-left',`${event.clientX-segmentRect.left}px`);
+    requestAnimationFrame(()=>{
+      if(!target.isConnected||!target.classList.contains('asset-tooltip-following'))return;
+      const tooltipRect=tooltip.getBoundingClientRect();
+      const viewportWidth=Math.max(1,Math.min(window.innerWidth,window.visualViewport?.width||window.innerWidth));
+      const pad=14;
+      const width=Math.min(tooltipRect.width,Math.max(1,viewportWidth-pad*2));
+      const half=width/2;
+      const center=Math.max(pad+half,Math.min(event.clientX,viewportWidth-pad-half));
+      const localLeft=center-segmentRect.left;
+      const tooltipLeft=center-width/2;
+      const arrowLeft=Math.max(10,Math.min(event.clientX-tooltipLeft,width-10));
+      target.style.setProperty('--asset-tooltip-left',`${localLeft}px`);
+      target.style.setProperty('--asset-tooltip-arrow-left',`${arrowLeft}px`);
+    });
   };
 
+  document.addEventListener('pointerdown',event=>{
+    const selector=targetSelector();
+    const target=selector?event.target.closest(selector):null;
+    positionStackTooltip(target,event);
+  });
+  document.addEventListener('pointermove',event=>{
+    const selector=targetSelector();
+    const target=selector?event.target.closest(selector):null;
+    if(!target)return;
+    if(event.pointerType==='touch'&&!target.classList.contains('tooltip-open'))return;
+    positionStackTooltip(target,event);
+  },{passive:true});
+  document.addEventListener('pointerout',event=>{
+    const selector=targetSelector();
+    const target=selector?event.target.closest(selector):null;
+    if(!target||target.contains(event.relatedTarget)||target.classList.contains('tooltip-open'))return;
+    clearTooltipFollow(target);
+  });
   document.addEventListener('click',event=>{
     const selector=targetSelector();
     const target=selector?event.target.closest(selector):null;
@@ -248,9 +298,11 @@ function setupAssetVizTooltips(zoneSelector){
     if(!isTouchLike())return;
     event.preventDefault();
     event.stopPropagation();
+    positionStackTooltip(target,event);
     const shouldOpen=!target.classList.contains('tooltip-open');
     closeTooltips(target);
     target.classList.toggle('tooltip-open',shouldOpen);
+    if(!shouldOpen)clearTooltipFollow(target);
   });
   document.addEventListener('scroll',()=>closeTooltips(null),true);
 }
