@@ -2377,6 +2377,36 @@ body.chart-expanded-open .dash-tooltip{
   }
 }
 
+/* Asset Tooltip Mobile · segment 폭과 무관하게 stack bar 중앙 기준으로 고정해 viewport overflow 방지 */
+@media (max-width:760px){
+  .asset-stack-segment{
+    position:static;
+  }
+
+  .asset-stack-segment:first-child .asset-viz-tooltip,
+  .asset-stack-segment:last-child .asset-viz-tooltip{
+    left:50%;
+    right:auto;
+    transform:translateX(-50%) translateY(6px);
+  }
+
+  .asset-stack-segment:first-child:hover .asset-viz-tooltip,
+  .asset-stack-segment:first-child:focus-within .asset-viz-tooltip,
+  .asset-stack-segment:first-child.tooltip-open .asset-viz-tooltip,
+  .asset-stack-segment:last-child:hover .asset-viz-tooltip,
+  .asset-stack-segment:last-child:focus-within .asset-viz-tooltip,
+  .asset-stack-segment:last-child.tooltip-open .asset-viz-tooltip{
+    transform:translateX(-50%) translateY(0);
+  }
+
+  .asset-stack-segment:first-child .asset-viz-tooltip::after,
+  .asset-stack-segment:last-child .asset-viz-tooltip::after{
+    left:50%;
+    right:auto;
+    transform:translateX(-50%);
+  }
+}
+
 .change-kpis{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
