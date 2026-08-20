@@ -2407,6 +2407,29 @@ body.chart-expanded-open .dash-tooltip{
   }
 }
 
+/* Asset Tooltip Pointer Follow · 차트 tooltip처럼 포인터를 추적하되 viewport 가장자리에서만 위치 보정 */
+.asset-stack-segment.asset-tooltip-following{
+  position:relative;
+}
+
+.asset-stack-segment.asset-tooltip-following .asset-viz-tooltip{
+  left:var(--asset-tooltip-left,50%);
+  right:auto;
+  transform:translateX(-50%) translateY(6px);
+}
+
+.asset-stack-segment.asset-tooltip-following:hover .asset-viz-tooltip,
+.asset-stack-segment.asset-tooltip-following:focus-within .asset-viz-tooltip,
+.asset-stack-segment.asset-tooltip-following.tooltip-open .asset-viz-tooltip{
+  transform:translateX(-50%) translateY(0);
+}
+
+.asset-stack-segment.asset-tooltip-following .asset-viz-tooltip::after{
+  left:var(--asset-tooltip-arrow-left,50%);
+  right:auto;
+  transform:translateX(-50%);
+}
+
 .change-kpis{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
