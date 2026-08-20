@@ -235,6 +235,10 @@ function setupAssetVizTooltips(zoneSelector){
   const isTouchLike=()=>window.matchMedia('(hover: none)').matches||window.innerWidth<=900;
   const targetSelector=()=>[...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip`).join(',');
   const openSelector=()=>[...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip.tooltip-open`).join(',');
+  const touchDragThreshold=6;
+  let touchDragState=null;
+  let suppressTouchClickTargets=[];
+  let suppressTouchClickUntil=0;
   const clearTooltipFollow=target=>{
     if(!target)return;
     target.classList.remove('asset-tooltip-following');
@@ -273,19 +277,65 @@ function setupAssetVizTooltips(zoneSelector){
     });
   };
 
+  const targetAtPoint=(selector,event)=>{
+    if(!selector||!Number.isFinite(event?.clientX)||!Number.isFinite(event?.clientY))return null;
+    return document.elementFromPoint(event.clientX,event.clientY)?.closest(selector)||null;
+  };
+  const finishTouchDrag=(event,cancelled=false)=>{
+    if(!touchDragState||touchDragState.pointerId!==event.pointerId)return;
+    const {currentTarget,initialTarget,moved}=touchDragState;
+    clearTooltipFollow(currentTarget);
+    if(moved&&!cancelled){
+      suppressTouchClickTargets=[initialTarget,currentTarget].filter(Boolean);
+      suppressTouchClickUntil=performance.now()+600;
+    }
+    touchDragState=null;
+  };
+
   document.addEventListener('pointerdown',event=>{
     const selector=targetSelector();
     const target=selector?event.target.closest(selector):null;
+    if(event.pointerType==='touch'&&target?.classList.contains('asset-stack-segment')){
+      closeTooltips(target);
+      touchDragState={
+        pointerId:event.pointerId,
+        startX:event.clientX,
+        startY:event.clientY,
+        initialTarget:target,
+        currentTarget:target,
+        moved:false
+      };
+    }
     positionStackTooltip(target,event);
   });
   document.addEventListener('pointermove',event=>{
     const selector=targetSelector();
+    if(event.pointerType==='touch'&&touchDragState?.pointerId===event.pointerId){
+      const dx=event.clientX-touchDragState.startX;
+      const dy=event.clientY-touchDragState.startY;
+      if(Math.hypot(dx,dy)>=touchDragThreshold)touchDragState.moved=true;
+      const target=targetAtPoint(selector,event);
+      if(!target?.classList.contains('asset-stack-segment')){
+        clearTooltipFollow(touchDragState.currentTarget);
+        touchDragState.currentTarget=null;
+        return;
+      }
+      if(target!==touchDragState.currentTarget){
+        clearTooltipFollow(touchDragState.currentTarget);
+        closeTooltips(target);
+        touchDragState.currentTarget=target;
+      }
+      positionStackTooltip(target,event);
+      return;
+    }
     const target=selector?event.target.closest(selector):null;
     if(!target)return;
-    if(event.pointerType==='touch'&&!target.classList.contains('tooltip-open'))return;
     positionStackTooltip(target,event);
   },{passive:true});
+  document.addEventListener('pointerup',event=>finishTouchDrag(event));
+  document.addEventListener('pointercancel',event=>finishTouchDrag(event,true));
   document.addEventListener('pointerout',event=>{
+    if(event.pointerType==='touch'&&touchDragState?.pointerId===event.pointerId)return;
     const selector=targetSelector();
     const target=selector?event.target.closest(selector):null;
     if(!target||target.contains(event.relatedTarget)||target.classList.contains('tooltip-open'))return;
@@ -294,6 +344,15 @@ function setupAssetVizTooltips(zoneSelector){
   document.addEventListener('click',event=>{
     const selector=targetSelector();
     const target=selector?event.target.closest(selector):null;
+    if(target&&suppressTouchClickTargets.includes(target)&&performance.now()<=suppressTouchClickUntil){
+      event.preventDefault();
+      event.stopPropagation();
+      suppressTouchClickTargets=[];
+      suppressTouchClickUntil=0;
+      return;
+    }
+    suppressTouchClickTargets=[];
+    suppressTouchClickUntil=0;
     if(!target){closeTooltips(null);return;}
     if(!isTouchLike())return;
     event.preventDefault();
