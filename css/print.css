@@ -40,7 +40,7 @@
       display:none;
     }
     .asset-workspace-panel[hidden]{
-      display:block !important;
+      display:block;
     }
     .asset-workspace-panel-pension{
       margin-top:var(--space-9xl);

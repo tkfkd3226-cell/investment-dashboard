@@ -67,7 +67,7 @@
       stroke-dashoffset:0 !important;
     }
 
-  /* Components · 공통 component: transition보다 사용자 접근성 설정이 우선하므로 important 유지 */
+  /* Components · interaction.css가 일반 component CSS 뒤에 로드되므로 정상 cascade로 transition을 제거한다. */
     .card,
     .note,
     .chart-card,
@@ -77,7 +77,7 @@
     .pill,
     button,
     .btn{
-      transition:none !important;
+      transition:none;
     }
 }
 

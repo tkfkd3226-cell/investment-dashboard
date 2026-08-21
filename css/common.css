@@ -2747,10 +2747,10 @@ body.contrib-modal-open{
 /* Contribution target tabs resolve Light/Dark states through shared tab tokens. */
 
 /* Pension ETF Trade · 퇴직연금 ETF 거래 입력/미리보기 */
-/* 상태 utility: 기본 grid/display 선언보다 hidden 상태가 반드시 우선해야 하므로 important 강제 우선순위를 유지한다. */
+/* 상태 utility: selector 우선순위만으로 hidden 상태가 base grid/display 선언보다 우선한다. */
 #pensionContribStandardFields[hidden],
 .pension-etf-trade-fields[hidden]{
-  display:none !important;
+  display:none;
 }
 
 .pension-etf-trade-apply-note{
@@ -3214,16 +3214,16 @@ button:not(:disabled):active,
 /* Semantic Value Colors · 의미 색상: 수익/양수 빨강, 손실/음수 파랑 */
 /*
   의미 색상 utility
-  - 수익/손실/차이 색은 카드·표·tooltip의 일반 text color보다 항상 우선해야 한다.
-  - 선언 위치를 화면별 CSS 뒤로 반복 이동시키지 않기 위해 이 5개의 color important는 의미 상태 utility로 유지한다.
+  - 현재 cascade에서 semantic selector가 일반 text color보다 우선하므로 !important 없이 유지한다.
+  - 이후 디자인 변경 시 충돌이 생기면 specificity/선언 순서를 먼저 정리한다.
 */
 .positive,
-.table-positive{color:var(--value-positive) !important}
+.table-positive{color:var(--value-positive)}
 .negative,
-.table-negative{color:var(--value-negative) !important}
-.ledger-gap-value{color:var(--highlight-card-difference) !important}
-.dash-tooltip .tt-pos{color:var(--tooltip-positive) !important}
-.dash-tooltip .tt-neg{color:var(--tooltip-negative) !important}
+.table-negative{color:var(--value-negative)}
+.ledger-gap-value{color:var(--highlight-card-difference)}
+.dash-tooltip .tt-pos{color:var(--tooltip-positive)}
+.dash-tooltip .tt-neg{color:var(--tooltip-negative)}
 
 /* Mobile View Switch · 모바일 표/카드 보기 전환 */
 .mobile-card-view,
@@ -3543,9 +3543,9 @@ button:not(:disabled):active,
   margin-left:auto;
 }
 
-/* 상태 utility: 현금성자산이 아닌 유형에서는 cost-basis field를 base grid 규칙보다 확실히 숨긴다. */
+/* 상태 utility: ID + [hidden] selector 우선순위로 cost-basis field를 숨긴다. */
 #pensionCashCostField[hidden]{
-  display:none !important;
+  display:none;
 }
 
 /* Combined Performance Emphasis · Hero 직후 통합성과 표는 중복 강조를 줄여 상세 summary 계층으로 표시 */

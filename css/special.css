@@ -337,11 +337,11 @@
       background:var(--card);
       color:var(--muted);
     }
-    /* View State Utility · 보기 상태 utility: 현재 table/card mode가 base display보다 우선하므로 display important 유지 */
-    [data-mobile-view="card"] .table-view{display:none !important}
-    [data-mobile-view="card"] .mobile-card-view{display:grid !important}
-    [data-mobile-view="table"] .table-view{display:block !important}
-    [data-mobile-view="table"] .mobile-card-view{display:none !important}
+    /* View State Utility · 상태 selector의 specificity로 base display보다 우선한다. */
+    [data-mobile-view="card"] .table-view{display:none}
+    [data-mobile-view="card"] .mobile-card-view{display:grid}
+    [data-mobile-view="table"] .table-view{display:block}
+    [data-mobile-view="table"] .mobile-card-view{display:none}
     .mobile-card-view{grid-template-columns:1fr;gap:var(--space-3xl);width:100%}
     /* Mobile Data Cards · 모바일 데이터 카드: 모든 table/card 전환 공통 */
     .mobile-data-card{
