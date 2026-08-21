@@ -4277,6 +4277,18 @@ Report UI 수정 시 다시:
 
 기존 규칙 자체를 수정·통합한다.
 
+### add 전용 거래 리포트 handover
+
+`add/` 계산기·거래 리포트 또는 새로운 KODEX 레버리지 실현손익 반영 작업에서는 이 문서 확인 후 반드시 다음 문서를 추가로 읽는다.
+
+```text
+add/add_maintenance_handover.md
+```
+
+이 문서는 거래 리포트의 고정 파일명, 증권사 원본별 역할, `data/portfolio.json` 별도수익 연동, 본 포지션/단타 분류, 자금 출처·대출이자 제외 기준, 리포트 전체 갱신 범위와 검산 절차를 전담한다.
+
+전역 운영 규칙은 이 문서에서 관리하고, `add/`에만 해당하는 반복 계산·리포트 규칙은 `add/add_maintenance_handover.md`에 두어 같은 내용을 양쪽에 중복 작성하지 않는다.
+
 
 ## 8.9 공통화는 실제 공통일 때만 수행
 
@@ -5190,7 +5202,7 @@ CSS 종합               100 / 100
 
 README는 **저장소의 기능·전체 동작 구조·프로젝트 구조·데이터/갱신 방식·실행/배포 개요**를 설명하는 문서로 유지한다.
 
-다음과 같은 상세 작업 운영 규칙은 README에 반복 기재하지 않고 **`main_dashboard_maintenance_handover.md`에서 단일 관리**한다.
+다음과 같은 전역 상세 작업 운영 규칙은 README에 반복 기재하지 않고 **`main_dashboard_maintenance_handover.md`에서 관리**한다. 단, `add/` 거래 리포트처럼 독립 영역에서 반복되는 계산·연동 규칙은 `add/add_maintenance_handover.md`가 해당 영역의 전용 handover 역할을 한다.
 
 - 수정 · QA 운영 방식
 - 수정 파일 전달 규칙
@@ -5203,6 +5215,7 @@ README는 **저장소의 기능·전체 동작 구조·프로젝트 구조·데�
 원칙:
 
 - README와 handover MD에 같은 유지보수 규칙을 중복 작성하지 않는다.
+- `add/` 전용 거래 리포트 규칙은 `add/add_maintenance_handover.md`에 두고, root handover에는 읽기 의무와 전역 연결 원칙만 기록한다.
 - README는 사용자·저장소 관점의 개요를 우선하고, 상세 작업 규칙은 handover MD로 연결한다.
 - 상세 유지보수 규칙이 변경되어도 README 내용까지 같이 수정해야 하는 구조를 만들지 않는다.
 - README에 반드시 필요한 운영 개요가 아니라면 handover MD에만 기록한다.
