@@ -13,7 +13,7 @@ const MARKET_AI_TIMEOUT_MS=2_500;
 const MARKET_AI_STALE_MS=5*60_000;
 const LOCAL_DASHBOARD_HOSTS=new Set(['localhost','127.0.0.1']);
 const MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200';
-const MARKET_AI_NASDAQ100_FUTURES_SYMBOL='FUTURES:NASDAQ100';
+const MARKET_AI_NASDAQ100_FUTURES_SYMBOL='FUTURES:NQ';
 const MARKET_AI_TOOLTIP_ID='marketAiTooltip';
 const MARKET_AI_SCORE_RANGE_TEXT='0–34.9 강한 약세 · 35–45 약세 · 45 초과–54.9 중립 · 55–64.9 강세 · 65–100 강한 강세';
 const MARKET_AI_SIGNAL_METRICS=[
@@ -430,7 +430,7 @@ function marketAiMarketTooltipHtml(key){
   const config={
     'kospi-index':{label:'KOSPI',row:marketAiSnapshotRow('INDEX:KOSPI'),price:item=>marketAiIndexText(item?.price),source:'Yahoo KOSPI 현물지수'},
     'sox-index':{label:'SOX',row:marketAiSnapshotRow('INDEX:SOX'),price:item=>marketAiIndexText(item?.price),source:'Yahoo PHLX 반도체 현물지수'},
-    'nasdaq100-futures':{label:'NASDAQ100 선물',row:marketAiSnapshotRow(MARKET_AI_NASDAQ100_FUTURES_SYMBOL),price:item=>marketAiPriceText(item?.price,2),source:'Yahoo NASDAQ100 선물'},
+    'nasdaq100-futures':{label:'NASDAQ100 선물',row:marketAiSnapshotRow(MARKET_AI_NASDAQ100_FUTURES_SYMBOL),price:item=>marketAiPriceText(item?.price,2),source:'Yahoo Nasdaq-100 선물 (NQ=F)'},
     'kospi200-futures':{label:'KOSPI200 선물',row:futuresState.row,price:item=>marketAiPriceText(item?.price,2),source:'KIS eFriend 실제 선물',state:futuresState}
   }[key];
   if(!config)return '';
