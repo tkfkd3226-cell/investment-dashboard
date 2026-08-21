@@ -7,7 +7,7 @@
 
 @media (hover:hover) and (pointer:fine){
     .card:hover,
-    .note:hover,
+    .note:not(.asset-status-note):not(.asset-change-note):hover,
     .asset-insight-card:hover,
     .mini-card:hover{
       transform:translateY(-2px);

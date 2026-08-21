@@ -241,7 +241,7 @@
     }
 
     .card,
-    .note,
+    .note:not(.asset-status-note):not(.asset-change-note),
     .asset-insight-card,
     .mini-card{
       transition:box-shadow .18s ease, border-color .18s ease, background-color .18s ease;

@@ -2378,7 +2378,7 @@ body.contrib-modal-open{
 /*
   iOS Safari native date control 예외
   - date input은 WebKit 내부 native control이 일반 input의 font/padding을 덮어쓸 수 있다.
-  - 2차 최소화에서는 일반 cascade로 동일 스타일을 적용하고 실제 iPhone Safari에서 최종 확인한다.
+  - 2차 최소화에서 !important 제거 후 일반 cascade로 동일 스타일을 유지했고, 실제 iPhone Safari 수동 QA까지 PASS했다.
 */
 .contrib-modal input[type="date"]{
   -webkit-appearance:none;
@@ -3072,7 +3072,7 @@ body.contrib-modal-open{
 
 /* Interaction Effects · 공통 인터랙션 효과 */
 .card,
-.note,
+.note:not(.asset-status-note):not(.asset-change-note),
 .asset-insight-card,
 .mini-card{
   transition:

@@ -3479,6 +3479,10 @@ rgb(251, 191, 36)
 
 QA에서 실제 GAS write는 하지 않는다.
 
+증권계좌와 퇴직연금의 **현황 / 전일 대비 변동 바깥 `.note` surface는 hover lift/transition을 적용하지 않는다.** 단, 그 안의 table row hover, `mini-card`, 모바일 내부 카드 등 개별 content interaction은 유지한다. 바깥 surface의 모션을 없애기 위해 내부 component animation까지 함께 제거하지 않는다.
+
+퇴직연금 `추가 매수`의 체결수량·체결금액 입력칸은 예시 숫자를 placeholder로 미리 표시하지 않는다. 빈 입력칸에서 사용자가 직접 입력을 시작하는 현재 UX를 유지한다.
+
 ### Chart
 
 관련 수정 시:
@@ -3499,6 +3503,12 @@ QA에서 실제 GAS write는 하지 않는다.
 를 확인한다.
 
 일반 차트 tooltip은 owner SVG가 viewport 밖으로 완전히 벗어나면 tooltip과 hover guide를 정리한다. 확대 차트 overlay 내부 tooltip은 이 page-scroll 정리 대상에서 제외한다.
+
+차트의 **표시 기준 스위치와 tooltip 정보량은 분리**한다. 현재 불변조건:
+
+- 증권/퇴직연금 누적차트의 `수익률 ↔ 코스피` 스위치는 선 그래프 표시 기준만 바꾸며, tooltip에는 수익률과 코스피 지수를 함께 표시한다.
+- 증권 종목별 / 퇴직연금 상품별 `손익 ↔ 수익률` 스위치는 Y축·선 표시 기준만 바꾸며, tooltip은 두 모드 모두 `손익 원화 (수익률 %)` 형식으로 표시한다.
+- 범례에서 사용자가 숨긴 series는 기존처럼 tooltip 대상에서도 제외한다.
 
 누적차트 하단 날짜 이동 카드는 즉시 날짜를 바꾸지 않고 확인 modal을 거친 뒤 이동하며, mouse / keyboard 모두 같은 flow를 사용한다.
 
@@ -3594,7 +3604,7 @@ common.css
 - CSS 구조 변경과 디자인 변경을 같은 차수에 섞지 않는다.
 - 새 breakpoint는 실제 레이아웃/정보구조 문제가 있을 때만 추가하고 `special.css`에 기능명 + 존재 이유를 남긴다.
 - 파일 분리 자체를 이유로 같은 selector를 여러 파일에 중복 생성하지 않는다.
-- `common → 일반 viewport → special → interaction/accessibility → print`의 우선순위를 보존한다.
+- `common → 일반 viewport → special → interaction → print`의 우선순위를 보존한다.
 
 
 ## 6.2 반응형 CSS는 뷰포트/역할별 섹션으로 모아 관리
@@ -3841,35 +3851,34 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 
 ## 6.10 `!important` 사용 정책
 
-새로운 `!important`는 원칙적으로 추가하지 않는다.
+현재 메인 CSS의 실제 `!important` 선언은 **0개**다. 2026-08-21 최소화 작업은 단순히 숫자를 0으로 맞춘 것이 아니라, 각 선언의 cascade 필요성을 분리 검증한 뒤 제거했고 마지막 iOS Safari date control 13개까지 **실제 iPhone Safari 수동 QA PASS**로 확정했다.
 
-현재 메인 CSS는 과거 대량의 `!important`를 대부분 제거하여 정상 cascade 구조로 정리된 상태다.
+최종 정리 경로:
 
-단순 specificity 해결 수단으로 사용하지 않는다.
+- 시작: `!important` 30개
+- 1차: semantic color 5 + 모바일 table/card 상태 4 + `[hidden]` 2 + reduced-motion transition 1 + print panel 1 = 13개 제거 → 17개
+- 운영 기준 재확정: OS `prefers-reduced-motion`을 대시보드 모션보다 우선하지 않기로 하면서 차트 reduced-motion 4개와 관련 CSS/JS 분기 제거 → 13개
+- 2차: iOS Safari date control 13개 제거 → 0개
+- 자동/브라우저 QA PASS + 실제 iPhone Safari 날짜 입력 UI QA PASS → **0개 상태 최종 확정**
 
-현재 운영 기준(2026-08-21):
+현재 운영 원칙:
 
-- 1차 최소화에서 semantic color 5, 모바일 table/card 상태 4, `[hidden]` 2, reduced-motion transition 1, print panel 1의 `!important` 총 13개를 제거했다.
-- 1차 QA PASS 후 메인 CSS의 `!important`는 30개 → 17개였다.
-- 이후 OS `prefers-reduced-motion`을 대시보드 애니메이션보다 우선할 필요가 없다는 운영 기준을 확정하여, 차트 강제 완료상태 `!important` 4개와 관련 CSS/JS reduced-motion 분기를 제거했다.
-- 2차 최소화에서 iOS Safari date control의 `!important` 13개를 제거하여 현재 메인 CSS의 실제 `!important` 선언은 **0개**다.
-- 2차는 실제 iPhone Safari 수동 확인이 최종 판정 기준이며, 날짜 입력 UI의 타이포·정렬·색상·패딩·사용성에 문제가 있으면 해당 13개 제거만 즉시 롤백한다.
+- 새로운 `!important`는 원칙적으로 추가하지 않는다.
+- 단순 specificity 충돌은 canonical selector, source order, 구조 정리로 해결한다.
+- `[hidden]`, semantic color, 모바일 view state, print override처럼 정상 cascade로 해결되는 상태를 유지한다.
 - Windows/macOS 등의 OS 모션 감소 설정은 차트·카드·버튼 animation/transition을 비활성화하는 조건으로 사용하지 않는다.
+- 향후 Safari/WebKit 등 실제 브라우저 고유 문제로 강제 우선순위가 다시 필요해 보이더라도 먼저 실기기 재현과 정상 cascade 해결 가능성을 확인한다.
 
-현재 허용 가능한 대표 사례:
+새 `!important`가 불가피하다고 판단되면 반드시:
 
-- Safari / WebKit intrinsic control처럼 실제 브라우저 고유 UI 검증이 필요한 경우
-- 정상 cascade/specificity로 해결하기 어려운 명확한 브라우저 예외
+1. 실제 재현되는 브라우저/상태 문제인지
+2. 기존 canonical rule 수정으로 해결 가능한지
+3. specificity/source-order 정리로 가능한지
+4. 해당 선언만 강제해야 하는 이유가 명확한지
 
-`[hidden]`, semantic color, 모바일 view state, print override처럼 현재 selector 순서/우선순위만으로 해결되는 경우에는 `!important`를 사용하지 않는다.
+를 확인하고, 추가 이유와 영향 범위를 별도 보고한다.
 
-새 `!important`가 필요하다면 먼저:
-
-1. 기존 구조 수정으로 해결 가능한지
-2. specificity 정리로 가능한지
-3. 실제로 강제 우선순위가 필요한지
-
-확인한다.
+**현재 0개는 유지보수 결과이지 점수용 숫자 목표가 아니다.** 정상 동작을 깨면서 0개를 고집하지 않지만, 현재 검증된 0개 기준선에 불필요한 `!important`를 다시 추가하지 않는다.
 
 
 ## 6.11 디자인 토큰과 CSS variable 우선 재사용
@@ -4677,6 +4686,28 @@ common
 
 따라서 **리팩토링 7차 완료본이 현재 CSS canonical 기준선**이다.
 
+### 리팩토링 7차 후속 CSS 유지보수 · `!important` 30 → 0 · 2026-08-21
+
+7차 구조 분리 이후 cascade를 다시 점검해 `!important`를 단계적으로 제거했다. 이 작업은 별도 프로젝트 리팩토링 차수를 추가한 것이 아니라 **현재 7파일 canonical 구조의 후속 유지보수**다.
+
+```text
+30개
+→ 1차 13개 제거 / QA PASS
+→ reduced-motion 4개 제거 / QA PASS
+→ iOS Safari date 13개 제거 / 자동 QA PASS
+→ 실제 iPhone Safari 수동 QA PASS
+→ 최종 0개
+```
+
+핵심 결론:
+
+- semantic color / hidden / mobile view / print는 정상 cascade만으로 유지 가능함을 확인했다.
+- OS Reduced Motion 설정은 이 대시보드의 차트·카드·버튼 모션 비활성화 기준으로 사용하지 않는다.
+- iOS Safari date input도 `!important` 없이 기존 타이포·정렬·패딩·입력 동작이 유지됨을 실기기에서 확인했다.
+- 따라서 현재 메인 CSS의 `!important` 0개 상태가 새 유지보수 기준선이다.
+
+운영 정책은 6.10을 따른다. 과거 snapshot의 `!important 30개` 기록은 당시 상태를 설명하는 역사 자료이며 현재 개수로 해석하지 않는다.
+
 
 ## 10.3 현재 리팩토링 완료 기준선
 
@@ -4690,6 +4721,7 @@ common
 ✅ 리팩토링 5차 · JavaScript ownership / 7모듈 구조 정리
 ✅ 리팩토링 6차 · CSS 기능군 / Chart / Topbar 구조 정리
 ✅ 리팩토링 7차 · CSS viewport 재편 / 7파일 분리
+✅ 7차 후속 CSS 유지보수 · `!important` 30 → 0 / iPhone Safari QA PASS
 ```
 
 현재 메인 JavaScript 기준:

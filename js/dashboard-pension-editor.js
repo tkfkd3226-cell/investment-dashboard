@@ -139,8 +139,8 @@ function renderPensionContributionModal(x){
     <div class="pension-adjust-form trade-mode">
       <div class="contrib-field full"><label for="pensionEtfTradeDate">신청일</label><input id="pensionEtfTradeDate" type="date" value="${cashDefaultDate}" data-pension-change="trade-preview"></div>
       <div class="contrib-field full"><label for="pensionEtfTradeTicker">ETF 상품</label><select id="pensionEtfTradeTicker" data-pension-change="trade-preview">${pensionTradeProductOptions()}</select></div>
-      <div class="contrib-field"><label for="pensionEtfTradeQty">체결수량</label><input id="pensionEtfTradeQty" type="text" inputmode="numeric" placeholder="77" data-pension-input="trade-preview"></div>
-      <div class="contrib-field"><label for="pensionEtfTradeAmount">체결금액</label><input id="pensionEtfTradeAmount" type="text" inputmode="numeric" placeholder="1,290,580" data-pension-input="money-preview"></div>
+      <div class="contrib-field"><label for="pensionEtfTradeQty">체결수량</label><input id="pensionEtfTradeQty" type="text" inputmode="numeric" data-pension-input="trade-preview"></div>
+      <div class="contrib-field"><label for="pensionEtfTradeAmount">체결금액</label><input id="pensionEtfTradeAmount" type="text" inputmode="numeric" data-pension-input="money-preview"></div>
     </div>
     <div class="pension-etf-trade-apply-note">앱 반영일 <strong id="pensionEtfTradeApplyDate">${applyDate}</strong> · 저장한 날 기준으로 보유수량/원가/현금에 적용</div>
     <div id="pensionEtfTradePreview" class="pension-etf-trade-preview"><span class="small">상품·수량·체결금액을 입력하면 적용 후 예상값을 보여줍니다.</span></div>
