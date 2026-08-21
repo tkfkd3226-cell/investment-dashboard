@@ -204,23 +204,21 @@
       --data-table-bar-width:64px;
     }
 
-  /* Market AI Tablet · 상단 독립 strip을 한 줄 compact 순서로 유지 */
-    #market-ai-section{margin-bottom:var(--space-3xl)}
-    .market-ai-panel{
-      gap:var(--space-2xl);
-      min-height:36px;
-      padding:6px 9px;
-      font-size:11px;
+  /* Market AI Tablet · Hero 내부 하단 보조 카드 */
+    .hero.market-ai-mounted{
+      grid-template-columns:1fr;
+      grid-template-areas:
+        "title"
+        "pills"
+        "market";
+      column-gap:0;
     }
-    .market-ai-heading{gap:var(--space-md)}
-    .market-ai-desktop{
-      padding-left:var(--space-xl);
-    }
-    .market-ai-desktop-metric{
-      gap:2px;
-      padding:0 var(--space-xl);
-    }
-    .market-ai-desktop-change{font-size:.9em}
+    .hero.market-ai-mounted #market-ai-section{margin-top:11px}
+    .market-ai-panel{padding:9px 11px}
+    .market-ai-heading{margin-bottom:6px}
+    .market-ai-market-row{grid-template-columns:46px repeat(3,minmax(0,1fr))}
+    .market-ai-signal-row{grid-template-columns:46px repeat(4,minmax(0,1fr))}
+    .market-ai-desktop-metric{padding:0 5px}
 
 }
 

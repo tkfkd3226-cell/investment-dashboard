@@ -294,9 +294,5 @@
     }
 
 
-
-  /* Market AI · 로컬 전용 기능이므로 모바일에서는 숨김 */
-    #market-ai-section{display:none}
-
 }
 
