@@ -2,8 +2,8 @@
 // - 메인 7개 ES Module graph와 분리
 // - dashboard-app.js / dashboard-ui.js 수정 없이 index.html에서 독립 로드
 // - 상단 날짜 바 바로 아래, 본문 KPI보다 앞에 독립 Market Signal 영역으로 부착
-// - Desktop/Tablet: KOSPI → K200선물 → SOX → 갭상 → 상승마감 순서로 compact 표시
-// - Mobile: 현재 시장(KOSPI/K200선물/SOX)과 AI 신호(코스피/반도체/갭상/상승마감)를 분리 표시
+// - Desktop/Tablet: 현재 시장(KOSPI/K200선물/SOX)과 AI 신호(코스피/반도체/갭상/상승마감)를 한 줄에서 그룹 분리 표시
+// - Mobile: 현재 시장 3개 + AI 신호 4개를 2줄 compact 구조로 분리 표시
 // - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
 // - Stage 9 calibration이 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
 // - GitHub Pages 등 비로컬 환경에서는 Market AI UI 자체를 표시하지 않음
@@ -201,12 +201,16 @@ function marketAiDesktopSignalMetric(label,key){
   return `<span class="market-ai-desktop-metric" data-market-ai-card="${key}"><span class="market-ai-desktop-label">${label}</span><strong class="market-ai-desktop-signal" data-market-ai-score="${key}">--</strong></span>`;
 }
 
-function marketAiDesktopIndexSignalMetric(label,key,marketKey){
-  return `<span class="market-ai-desktop-metric" data-market-ai-card="${key}" data-market-ai-market-card="${marketKey}"><span class="market-ai-desktop-label">${label}</span><strong class="market-ai-desktop-value" data-market-ai-market="${marketKey}">--</strong><span class="market-ai-desktop-sep">·</span><span class="market-ai-desktop-signal-prefix">신호</span><strong class="market-ai-desktop-signal" data-market-ai-score="${key}">--</strong></span>`;
+function marketAiDesktopMarketMetric(label,marketKey){
+  return `<span class="market-ai-desktop-metric" data-market-ai-market-card="${marketKey}"><span class="market-ai-desktop-label">${label}</span><strong class="market-ai-desktop-value" data-market-ai-market="${marketKey}">--</strong></span>`;
 }
 
 function marketAiDesktopFuturesMetric(){
   return `<span class="market-ai-desktop-metric" data-market-ai-market-card="kospi200-futures"><span class="market-ai-desktop-label">K200선물</span><strong class="market-ai-desktop-value" data-market-ai-market="kospi200-futures">--</strong><strong class="market-ai-desktop-change" data-market-ai-change="kospi200-futures"></strong></span>`;
+}
+
+function marketAiDesktopGroupLabel(label){
+  return `<span class="market-ai-desktop-group-label">${label}</span>`;
 }
 
 function marketAiMobileMarketMetric(label,marketKey,{futures=false}={}){
@@ -223,7 +227,7 @@ function createMarketAiSection(){
   row.id='market-ai-section';
   row.setAttribute('role','group');
   row.setAttribute('aria-labelledby','marketAiTitle');
-  row.innerHTML=`<div class="market-ai-panel"><div class="market-ai-heading"><span id="marketAiTitle" class="market-ai-title">AI Market Signal</span><span class="market-ai-status" data-market-ai-status role="status" aria-live="polite">연결 확인 중</span></div><div class="market-ai-desktop" data-market-ai-content aria-label="현재 시장과 AI 신호">${marketAiDesktopIndexSignalMetric('KOSPI','kospi','kospi-index')}${marketAiDesktopFuturesMetric()}${marketAiDesktopIndexSignalMetric('SOX','semiconductors','sox-index')}${marketAiDesktopSignalMetric('갭상','gap')}${marketAiDesktopSignalMetric('상승마감','up-close')}</div><div class="market-ai-mobile" data-market-ai-content><div class="market-ai-mobile-group"><span class="market-ai-mobile-group-label">현재 시장</span><div class="market-ai-mobile-grid market-ai-mobile-market-grid" aria-label="현재 시장 지수">${marketAiMobileMarketMetric('KOSPI','kospi-index')}${marketAiMobileMarketMetric('K200선물','kospi200-futures',{futures:true})}${marketAiMobileMarketMetric('SOX','sox-index')}</div></div><div class="market-ai-mobile-group"><span class="market-ai-mobile-group-label">AI 신호</span><div class="market-ai-mobile-grid market-ai-mobile-signal-grid" aria-label="AI 시장 신호">${marketAiMobileSignalMetric('코스피','kospi')}${marketAiMobileSignalMetric('반도체','semiconductors')}${marketAiMobileSignalMetric('갭상','gap')}${marketAiMobileSignalMetric('상승마감','up-close')}</div></div></div></div>`;
+  row.innerHTML=`<div class="market-ai-panel"><div class="market-ai-heading"><span id="marketAiTitle" class="market-ai-title">AI Market Signal</span><span class="market-ai-status" data-market-ai-status role="status" aria-live="polite">연결 확인 중</span></div><div class="market-ai-desktop" data-market-ai-content aria-label="현재 시장과 AI 신호">${marketAiDesktopGroupLabel('시장')}${marketAiDesktopMarketMetric('KOSPI','kospi-index')}${marketAiDesktopFuturesMetric()}${marketAiDesktopMarketMetric('SOX','sox-index')}${marketAiDesktopGroupLabel('AI 신호')}${marketAiDesktopSignalMetric('코스피','kospi')}${marketAiDesktopSignalMetric('반도체','semiconductors')}${marketAiDesktopSignalMetric('갭상','gap')}${marketAiDesktopSignalMetric('상승마감','up-close')}</div><div class="market-ai-mobile" data-market-ai-content><div class="market-ai-mobile-group"><span class="market-ai-mobile-group-label">시장</span><div class="market-ai-mobile-grid market-ai-mobile-market-grid" aria-label="현재 시장 지수">${marketAiMobileMarketMetric('KOSPI','kospi-index')}${marketAiMobileMarketMetric('K200선물','kospi200-futures',{futures:true})}${marketAiMobileMarketMetric('SOX','sox-index')}</div></div><div class="market-ai-mobile-group"><span class="market-ai-mobile-group-label">AI 신호</span><div class="market-ai-mobile-grid market-ai-mobile-signal-grid" aria-label="AI 시장 신호">${marketAiMobileSignalMetric('코스피','kospi')}${marketAiMobileSignalMetric('반도체','semiconductors')}${marketAiMobileSignalMetric('갭상','gap')}${marketAiMobileSignalMetric('상승마감','up-close')}</div></div></div></div>`;
   return row;
 }
 

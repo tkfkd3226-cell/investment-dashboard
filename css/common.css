@@ -633,13 +633,26 @@ body{
   padding:0 var(--space-2xl);
   border-left:1px solid var(--line);
 }
-.market-ai-desktop-metric:first-child{
+.market-ai-desktop-group-label{
+  flex:0 0 auto;
+  padding:0 var(--space-lg);
+  color:var(--muted);
+  font-size:.9em;
+  font-weight:var(--type-weight-bold);
+  letter-spacing:-.02em;
+  white-space:nowrap;
+}
+.market-ai-desktop-group-label:first-child{padding-left:0}
+.market-ai-desktop-group-label:not(:first-child){
+  margin-left:var(--space-lg);
+  padding-left:var(--space-2xl);
+  border-left:1px solid var(--line);
+}
+.market-ai-desktop-group-label + .market-ai-desktop-metric{
   padding-left:0;
   border-left:0;
 }
-.market-ai-desktop-label,
-.market-ai-desktop-signal-prefix,
-.market-ai-desktop-sep{
+.market-ai-desktop-label{
   color:var(--muted);
   font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
