@@ -974,6 +974,7 @@ function setupChartGlobalEvents(){
   window.addEventListener('resize',scheduleChartTooltipViewportCheck,{passive:true});
   window.visualViewport?.addEventListener('scroll',scheduleChartTooltipViewportCheck,{passive:true});
   window.visualViewport?.addEventListener('resize',scheduleChartTooltipViewportCheck,{passive:true});
+  window.addEventListener('beforeprint',drawInactiveChartsForPrint);
 }
 function handleChartDashboardAction(event,control){
   const action=control.dataset.dashboardAction;
@@ -1415,6 +1416,17 @@ function drawAllCharts(){
   setTimeout(refreshScrollHints,120);
 }
 
+function drawInactiveChartsForPrint(){
+  if(uiState.activeAssetTab==='pension'){
+    drawCumChart();
+    drawLineChart();
+    drawStacked();
+  }else{
+    drawPensionCumChart();
+    drawPensionSymbolChart();
+    drawPensionStacked();
+  }
+}
 
 
 

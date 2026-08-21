@@ -703,6 +703,7 @@ dead code는 다음 근거를 함께 봐야 한다.
 - state class
 - pseudo state
 - print / media
+- 인쇄 직전에는 `dashboard-charts.js`가 `beforeprint`를 직접 소유하고, 현재 비활성 자산 탭의 차트 3개만 추가 렌더링해 결과적으로 증권계좌·퇴직연금 차트가 모두 인쇄되게 한다. 활성 탭 차트까지 불필요하게 재렌더하거나, 비활성 탭 차트를 lazy-render 상태로 둔 채 인쇄해 차트가 비어 나오는 회귀를 허용하지 않는다.
 - chart SVG 생성 코드
 
 정적 검색 한 번으로 안 나온다는 이유만으로 dead code라고 단정하지 않는다.
