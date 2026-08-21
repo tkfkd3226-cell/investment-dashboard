@@ -1090,6 +1090,8 @@ UX 문제는:
 
 native `<select>`의 펼친 option UI는 browser/OS native rendering일 수 있으므로 **DevTools viewport별 selected color가 다르다는 이유만으로 custom select 전환을 권하지 않는다.**
 
+퇴직연금 Action PIN의 `type="text" + inputmode="numeric" + -webkit-text-security:disc` 조합은 **Chrome 비밀번호 저장 제안을 피하면서 숫자 PIN 마스킹을 유지하기 위한 의도적 Chromium/Safari 호환 처리**다. 비표준 CSS라는 이유만으로 감점하거나 표준 `type="password"`로 되돌리라고 제안하지 않는다. 실제 대상 브라우저에서 마스킹·입력·접근성 문제가 확인된 경우에만 재검토한다.
+
 ### L. 성능 / 유지보수성
 
 평가:
@@ -1106,7 +1108,7 @@ native `<select>`의 펼친 option UI는 browser/OS native rendering일 수 있�
 - debugging path
 - 기능 추가 시 수정 위치 예측 가능성
 
-현재 규모에서는 다음을 **측정된 문제가 없다는 전제에서 반복 감점/개선안으로 제시하지 않는다.**
+현재 규모에서는 다음을 **실제 문제가 확인되지 않는 한 감점하거나, 점수를 낮추기 위한 선택적 개선안으로 제시하지 않는다.**
 
 ```text
 전체 dashboard render 방식
@@ -1114,9 +1116,12 @@ Date.now() 기반 cache bust
 Vanilla JS 구조
 framework / state library 미사용
 CSS 파일 개수 자체
+CSS / JS / handover의 파일 길이·줄 수·byte 크기 자체
+requirements.txt의 일부 dependency가 version pinning되어 있지 않다는 사실 자체
+automated regression test / lint / Playwright / Jest / ESLint / Stylelint 등이 없다는 사실 자체
 ```
 
-실제 체감 지연 또는 profiling 근거가 있을 때만 다시 검토한다.
+위 항목은 **잠재적 위험 가능성만 추정해서 감점하지 않는다.** 실제 체감 지연·profiling 병목, workflow 실패·재현성 장애, 반복 회귀가 테스트 부재와 직접 연결되는 상황처럼 구체적인 문제가 확인되었거나 사용자가 해당 최적화/테스트 인프라 도입을 명시적으로 요청한 경우에만 재검토한다. 현재의 변경 범위 diff + syntax/import/cascade 검사 + viewport/fixture + 필요 시 실기기 QA 방식은 이 프로젝트에서 허용된 유지보수 검증 방식으로 본다.
 
 ### M. 실제 Render / Runtime 검증 원칙
 
