@@ -2734,8 +2734,7 @@ app             → cross-module orchestration / boot
 
 반대로 책임 경계가 명확하지 않은 작은 기능마다 새 파일을 추가하지 않는다.
 
-`dashboard-market-ai.js`는 현재 이 7파일 main dependency graph와 분리되어 `index.html`에서 독립 module로 로드되는 standalone adapter다. 로컬 Market AI API의 현재 snapshot/signal 조회와 Hero 보조 UI mount를 자체 책임지며, main graph 모듈을 import하거나 그 내부 state를 우회 접근하지 않는다. 이 파일을 이유로 main graph의 dependency 규칙을 변경하지 않는다.
-
+`dashboard-market-ai.js`는 이 7파일 main dependency graph에 포함하지 않는 standalone module이다. `index.html`에서 별도 entry로 로드하며 main graph를 import하지 않는다. 상세 책임과 실패 격리 기준은 **4.9**에서 관리한다.
 
 ## 4.4 `dashboard-core.js` 책임
 
@@ -2770,40 +2769,7 @@ input
 
 형태를 유지한다.
 
-
-## 4.5 메인 상태 ownership 유지
-
-현재 공유 state와 module-private state를 구분한다.
-
-공유 state:
-
-```text
-dataState  → 현재 데이터 / activeDate 등
-uiState    → 앱 전체에서 공유하는 UI 상태
-```
-
-module-private state:
-
-```text
-dashboard-charts.js
-→ chartState
-→ chartRuntimeState
-
-dashboard-pension-editor.js
-→ pensionEditorState
-
-dashboard-pension.js
-→ View 전용 tooltip binding state
-```
-
-`chartState`나 editor batch state를 다시 core/global로 올리지 않는다.
-
-상태를 추가할 때는 **누가 사용하는가보다 누가 책임져야 하는가**를 기준으로 owner를 정한다.
-
-새 global store / event bus / 거대한 단일 state 객체를 만들지 않는다.
-
-
-## 4.6 `dashboard-ui.js`와 `dashboard-ui-common.js` 책임
+## 4.5 `dashboard-ui.js`와 `dashboard-ui-common.js` 책임
 
 ### `dashboard-ui.js`
 
@@ -2867,7 +2833,7 @@ dashboard-pension.js
 
 화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js`로 보내지 않는다.
 
-## 4.7 `dashboard-charts.js` 책임
+## 4.6 `dashboard-charts.js` 책임
 
 차트 관련 기능은 기본적으로:
 
@@ -2894,8 +2860,7 @@ js/dashboard-charts.js
 
 `dashboard-app.js`는 charts가 제공하는 공개 command/API만 사용한다.
 
-
-## 4.8 퇴직연금 View / Editor 책임
+## 4.7 퇴직연금 View / Editor 책임
 
 퇴직연금은 현재 의도적으로 두 파일로 나뉜다.
 
@@ -2928,8 +2893,7 @@ js/dashboard-charts.js
 
 View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다.
 
-
-## 4.9 `dashboard-app.js` 책임
+## 4.8 `dashboard-app.js` 책임
 
 `dashboard-app.js`는 앱 전체를 연결하는 orchestration 계층이다.
 
@@ -2953,8 +2917,91 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 새 기능의 실제 계산, 특정 화면 rendering, chart DOM, modal 내부 구현을 app에 누적하지 않는다.
 
+## 4.9 `dashboard-market-ai.js` standalone 책임
 
-## 4.10 메인 JS의 파일 간 책임을 함부로 섞지 않는다
+`dashboard-market-ai.js`는 메인 7개 ES Module graph와 분리된 **로컬 조회 전용 adapter**다.
+
+현재 책임:
+
+- 로컬 대시보드(`localhost`, `127.0.0.1`)에서만 동작
+- Market AI `:8001`의 `/api/market-data/snapshot` 조회
+- `/api/signal/latest?include_details=true` 조회
+- 60초 polling, 요청 timeout, stale signal 판정
+- 현재 시장 snapshot과 현재 AI signal을 자체 state로 보유
+- 시장 행과 AI 신호 행은 모두 `그룹 라벨 1 + metric 4`의 5-column 구조를 유지
+- Hero 안에 `#market-ai-section`을 자체 mount
+- 메인 대시보드가 `#app`을 다시 렌더링해도 `MutationObserver`로 자기 영역만 재부착
+- 기존 `.dash-tooltip` 기반을 확장한 Market AI tooltip 생성/위치 계산
+- API unavailable / stale / invalid response 시 메인 대시보드와 실패 격리
+
+반드시 유지할 경계:
+
+```text
+dashboard-market-ai.js
+→ main 7모듈 import 없음
+→ window/globalThis bridge 없음
+→ 메인 dataState/uiState 직접 접근 없음
+→ 선택된 과거 activeDate와 무관한 현재 시점 신호
+```
+
+CSS ownership은 JS와 분리한다.
+
+```text
+common.css
+→ Hero mount layout + Market AI theme/surface + heading/status + rows/metrics + focus/tooltip
+
+tablet.css
+→ Hero Tablet 직후의 Tablet 배치/밀도 override
+
+special.css
+→ 1101~1280 Compact Desktop 보정 + 실제 Phone 숨김/hero layout 복원
+```
+
+`dashboard-market-ai.js`가 전용 class를 생성하더라도 JS에서 구조용 inline style을 누적하거나 별도 Market AI CSS 파일을 새로 만들지 않는다. 동적 tooltip 좌표처럼 런타임 계산이 필요한 값만 JS가 직접 처리한다.
+
+## 4.10 JS state · initialization ownership
+
+공유 state와 module-private state를 구분하고, **누가 사용하는가보다 누가 책임져야 하는가**를 기준으로 owner를 정한다.
+
+공유 state:
+
+```text
+dataState
+→ core / 현재 데이터 · activeDate 등 앱 공통 데이터 상태
+
+uiState
+→ core / 여러 메인 모듈이 공유하는 UI 상태
+```
+
+module-private state:
+
+```text
+dashboard-charts.js
+→ chartState
+→ chartRuntimeState
+
+dashboard-pension-editor.js
+→ pensionEditorState
+
+dashboard-pension.js
+→ View 전용 tooltip binding state
+
+dashboard-market-ai.js
+→ marketAiState
+→ polling / mount / tooltip binding runtime state
+```
+
+유지 원칙:
+
+- `chartState`나 editor batch state를 core/global로 올리지 않는다.
+- Market AI state를 메인 `dataState` / `uiState`에 합치지 않는다.
+- 새 global store / event bus / framework state manager / 거대한 단일 state 객체를 만들지 않는다.
+- `window` / `globalThis` state bridge로 module ownership을 우회하지 않는다.
+- 반복 render에 필요한 listener/tooltip/chart guard는 각 owner module 안에서 관리한다.
+- 퇴직연금 dashboard 재렌더 연결은 editor setup 단계의 명시적 `renderDashboard` callback dependency를 유지한다.
+- main app boot는 `dashboard-app.js` 단일 entry가 담당하며 Market AI는 별도 standalone entry에서 자기 initialization만 담당한다.
+
+## 4.11 메인 JS의 파일 간 책임을 함부로 섞지 않는다
 
 예를 들어:
 
@@ -2965,6 +3012,7 @@ Topbar/Navigation/UI action → ui
 퇴직연금 조회 View → pension
 퇴직연금 변경/저장 → pension-editor
 앱 boot/cross-module orchestration → app
+로컬 Market AI 조회/mount/fail isolation → market-ai standalone
 ```
 
 처럼 책임을 유지한다.
@@ -2973,8 +3021,7 @@ Topbar/Navigation/UI action → ui
 
 그렇게 해야만 구현되는 요청이라면 구조가 잘못된 방향인지 먼저 검토한다.
 
-
-## 4.11 현재 구조별 수정 위치 기준
+## 4.12 현재 구조별 수정 위치 기준
 
 향후 수정 시 기본적으로 다음 책임을 참고한다.
 
@@ -3048,8 +3095,7 @@ calc/report 공통 CSS
 
 단, 기능의 실제 책임을 확인한 뒤 판단하며 파일명만 보고 무조건 수정하지 않는다.
 
-
-## 4.12 현재 ES Module dependency graph
+## 4.13 현재 ES Module dependency graph
 
 현재 dependency 방향은 다음과 같다.
 
@@ -3060,6 +3106,9 @@ ui              → core + ui-common + charts
 pension         → core + ui-common + charts + ui
 pension-editor  → core + ui-common + ui
 app             → core + ui-common + charts + ui + pension + pension-editor
+
+standalone
+market-ai       → main graph import 없음
 ```
 
 계층 원칙:
@@ -3089,8 +3138,7 @@ circular import = 0
 
 새 dependency가 필요하면 현재 방향 안에서 자연스럽게 표현할 수 있는지 먼저 판단한다.
 
-
-## 4.13 ES Module import / export 운영 규칙
+## 4.14 ES Module import / export 운영 규칙
 
 모듈 간 기능 사용은 실제 named `import / export`로 표현한다.
 
@@ -3122,8 +3170,7 @@ register hook registry
 
 반복 render 때문에 실제로 필요한 listener/tooltip/chart guard는 별개의 문제이므로 함부로 제거하지 않는다.
 
-
-## 4.14 `index.html` module entry와 cache bust 정책
+## 4.15 `index.html` module entry와 cache bust 정책
 
 현재 `index.html`은 main dependency graph를 classic script 다중 load로 구성하지 않는다.
 
@@ -3137,7 +3184,7 @@ importmap
 <script type="module" src="js/dashboard-market-ai.js?...">  # standalone
 ```
 
-`index.html`에서 `Date.now()`를 기준으로 module dependency와 app entry에 동일 계열 cache bust를 적용한다.
+`index.html`에서 `Date.now()`를 기준으로 main module dependency importmap과 두 module entry(`dashboard-app.js`, `dashboard-market-ai.js`)에 cache bust를 적용한다.
 
 중요:
 
@@ -3148,51 +3195,9 @@ importmap
 - module 전환과 무관한 viewport/theme 초기화 inline script는 함부로 변경하지 않음
 - 다시 classic script 다중 load 구조로 돌아가지 않음
 
+## 4.16 main graph 단일 entry와 Market AI standalone 분리를 유지한다
 
-
-## 4.15 현재 JS state / initialization ownership
-
-상태는 공유 필요성에 따라 owner를 명확히 둔다.
-
-```text
-dataState
-→ core / 앱 공통 데이터 상태
-
-uiState
-→ core / 여러 모듈이 공유하는 UI 상태
-
-chartState + chartRuntimeState
-→ dashboard-charts.js private
-
-pensionEditorState
-→ dashboard-pension-editor.js private
-
-pension View tooltip binding state
-→ dashboard-pension.js private
-```
-
-새 기능 때문에:
-
-```text
-새 global store
-event bus
-framework state manager
-하나의 거대한 state
-window/globalThis state bridge
-```
-
-를 만들지 않는다.
-
-현재 app은 단일 module entry에서 boot된다.
-
-반복 render 때문에 실제로 필요한 listener/tooltip/chart guard는 owner module 안에서 관리한다.
-
-퇴직연금 dashboard 재렌더 연결은 editor setup 단계의 명시적 `renderDashboard` callback dependency를 유지한다.
-
-
-## 4.16 현재 ES Module 구조와 단일 entry를 유지한다
-
-현재 main dependency graph는 **7개 ES Module**이며 `dashboard-app.js`가 단일 entry다. `dashboard-market-ai.js`는 이 graph와 분리된 standalone module이다.
+현재 main dependency graph는 **7개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 이 graph와 분리된 두 번째 standalone entry이며 main boot 책임을 공유하지 않는다.
 
 현재 기본 구조:
 
@@ -3684,9 +3689,17 @@ Phone Landscape
 Market AI처럼 기존 component를 확장하는 기능은 별도 파일 하단에 모으지 않고 **기준 component와 가까운 순서**로 둔다. 현재 기준은 다음과 같다.
 
 ```text
-common.css  → Hero 기본 규칙 직후 Market AI Hero Extension
-tablet.css  → Hero Tablet 규칙 직후 Market AI Tablet
-special.css → 동일 특수 media 안에서 기능별 sub-comment로 범위를 명시
+common.css
+→ Hero 기본 규칙 직후 Market AI Hero Extension
+→ 내부 순서: mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip
+
+tablet.css
+→ Hero Tablet 규칙 직후 Market AI Tablet
+→ common component를 복제하지 않고 배치/밀도만 override
+
+special.css
+→ 1101~1280 Compact Desktop block 안에서 폭/밀도만 보정
+→ Phone UI Shared block 첫 부분에서 Market AI 숨김 + mounted Hero layout 복원
 ```
 
 특수 media가 같은 조건을 공유하는 경우 media block을 불필요하게 복제하기보다 하나의 trigger block 안에서 기능별 sub-comment를 분리하고, 상단 `Scope` 주석에 포함 기능을 정확히 적는다.
