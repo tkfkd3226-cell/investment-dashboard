@@ -4364,7 +4364,7 @@ Python / Workflow 유지보수 구조:
 | **4차** | JavaScript | classic script → ES Module migration | 내부 `1~3차` | 최종 QA PASS |
 | **5차** | JavaScript | ES Module 이후 ownership / encapsulation 재정리 | 내부 `1~5차` | 최종 QA PASS |
 | **6차** | CSS | 단일 CSS 내부 기능군 / Chart / Topbar 구조 재정리 | 내부 `1~4차` | 최종 누적 QA PASS |
-| **7차** | CSS | viewport 중심 재배치 + 7파일 역할 분리 | 내부 `1~5차` | **최종 QA PASS / 현재 canonical** |
+| **7차** | CSS | viewport 중심 재배치 + 7파일 역할 분리 | 내부 `1~5차` | **최종 QA PASS / 역사적 기준선** |
 
 아래 상세 기록을 현재 구조를 되돌리는 명령으로 해석하지 않는다. 현재 유지보수 기준은 **4장 Architecture, 5장 UI 불변조건, 6장 CSS, 7장 JavaScript 규칙**을 우선한다.
 
