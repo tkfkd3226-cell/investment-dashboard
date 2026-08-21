@@ -640,7 +640,10 @@ body{
 
 
 /* Market AI Hero Extension · Market AI Hero 확장
-   Desktop baseline은 Hero 우측 보조 카드이며 Tablet/Phone 차이는 역할별 CSS에서 override한다. */
+   Placement · 위치: Hero 기본 규칙 직후에 두고 별도 파일 하단 override로 분리하지 않는다.
+   Ownership · 책임: common은 Desktop baseline + 공통 component/tooltip, Tablet/Phone 차이는 역할별 CSS가 담당한다.
+   Order · 순서: mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip. */
+/* Market AI Mount Layout · Hero에 standalone 보조 영역을 연결하는 Desktop layout */
 .hero.market-ai-mounted{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(600px,780px);
@@ -652,6 +655,8 @@ body{
 }
 .hero.market-ai-mounted .hero-title-row{grid-area:title}
 .hero.market-ai-mounted .hero-metric-pills{grid-area:pills}
+
+/* Market AI Theme / Surface · 라이트/다크 token과 보조 카드 surface */
 #market-ai-section{
   --market-ai-panel-bg:rgba(255,255,255,.97);
   --market-ai-panel-border:rgba(255,255,255,.98);
@@ -684,6 +689,7 @@ html.dark #market-ai-section{
   -webkit-backdrop-filter:blur(10px);
   color:var(--market-ai-text);
 }
+/* Market AI Heading / Status · 제목과 연결 상태 */
 .market-ai-heading{
   display:flex;
   align-items:center;
@@ -707,6 +713,7 @@ html.dark #market-ai-section{
   text-overflow:ellipsis;
   white-space:nowrap;
 }
+/* Market AI Rows / Metrics · 시장 행과 AI 신호 행의 공통 표시 구조 */
 .market-ai-desktop{
   display:grid;
   gap:6px;
@@ -764,6 +771,7 @@ html.dark #market-ai-section{
 .market-ai-desktop .positive{color:var(--value-positive)}
 .market-ai-desktop .negative{color:var(--value-negative)}
 
+/* Market AI Interaction / Tooltip · 키보드 focus와 기존 dash-tooltip 확장 */
 .market-ai-desktop-metric[data-market-ai-tooltip]{
   border-radius:min(7px,var(--corner-surface-cap));
   cursor:help;
