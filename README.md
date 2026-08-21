@@ -138,7 +138,6 @@ investment-dashboard-main/
 ├─ index.html
 ├─ css/
 │  ├─ common.css
-│  ├─ desktop.css
 │  ├─ tablet.css
 │  ├─ mobile.css
 │  ├─ special.css
@@ -247,11 +246,10 @@ dashboard-app.js
 
 ### 4.4 CSS / Responsive
 
-메인 대시보드 CSS는 **7개 역할 파일**로 분리합니다.
+메인 대시보드 CSS는 **6개 역할 파일**로 분리합니다. Desktop은 별도 CSS 파일을 두지 않고 `common.css`의 기본값을 사용합니다. Tablet/Mobile 공통 차이는 `common.css`의 Responsive Shared에서, 각 구간 고유 차이는 `tablet.css` / `mobile.css`에서 override합니다.
 
 ```text
-css/common.css       # 공통 변수·기본 컴포넌트·Responsive Shared
-css/desktop.css      # Desktop ≥1101px
+css/common.css       # 공통 변수·기본 컴포넌트·Desktop baseline·Responsive Shared
 css/tablet.css       # Tablet 761~1100px
 css/mobile.css       # Mobile ≤760px
 css/special.css      # 기능상 필요한 특수 viewport
@@ -262,7 +260,7 @@ css/print.css        # 인쇄 전용
 `index.html`의 CSS load order는 다음 순서를 유지합니다. 이 순서가 cascade order이므로 임의로 바꾸지 않습니다.
 
 ```text
-common → desktop → tablet → mobile → special → interaction → print
+common → tablet → mobile → special → interaction → print
 ```
 
 기본 viewport 기준:

@@ -237,7 +237,7 @@ boot 구조
 ### 4. CSS / Responsive
 
 ```text
-메인 CSS 7파일 canonical role / load order
+메인 CSS 6파일 canonical role / load order
 1101 / 761~1100 / ≤760 구조
 기능 media / special.css 예외
 section-title rule
@@ -509,7 +509,6 @@ GAS 자체의 코드 품질 점수는 사용자가 별도로 요청하지 않는
 ```text
 index.html
 css/common.css
-css/desktop.css
 css/tablet.css
 css/mobile.css
 css/special.css
@@ -591,7 +590,7 @@ add/report/*
 
 ### F. CSS 평가 프로토콜
 
-메인 CSS는 현재 `common / desktop / tablet / mobile / special / interaction / print`의 **7개 역할 파일 구조**를 사용한다. 평가 시 파일별 책임과 `index.html` load order를 함께 확인한다.
+메인 CSS는 현재 `common / tablet / mobile / special / interaction / print`의 **6개 역할 파일 구조**를 사용한다. Desktop은 `common.css`의 baseline을 사용하며, 평가 시 파일별 책임과 `index.html` load order를 함께 확인한다.
 
 단일 파일 또는 다중 파일이라는 **파일 개수 자체**는 감점하지 않는다. 실제 구조의 탐색성, cascade 안전성, 중복/override, 역할 분리가 평가 기준이다.
 
@@ -2609,7 +2608,6 @@ investment-dashboard-main/
 │  └─ report/*.html
 ├─ css/
 │  ├─ common.css
-│  ├─ desktop.css
 │  ├─ tablet.css
 │  ├─ mobile.css
 │  ├─ special.css
@@ -2651,7 +2649,7 @@ investment-dashboard-main/
 | `dashboard-pension-editor.js` | 1,158 |
 | `dashboard-app.js` | 195 |
 
-메인 CSS는 7개 역할 파일로 분리되어 있으며 `css/style.css`는 최종 구조에서 제거되었다. 파일별 줄 수와 크기는 변경 시점의 snapshot으로만 보고 고정값으로 취급하지 않는다.
+메인 CSS는 6개 역할 파일로 분리되어 있으며 Desktop은 `common.css` baseline을 사용하고 `css/style.css`는 최종 구조에서 제거되었다. 파일별 줄 수와 크기는 변경 시점의 snapshot으로만 보고 고정값으로 취급하지 않는다.
 
 
 
@@ -2666,7 +2664,6 @@ investment-dashboard-main/
 │
 ├─ css/
 │  ├─ common.css
-│  ├─ desktop.css
 │  ├─ tablet.css
 │  ├─ mobile.css
 │  ├─ special.css
@@ -2984,11 +2981,8 @@ Topbar/Navigation/UI action → ui
 향후 수정 시 기본적으로 다음 책임을 참고한다.
 
 ```text
-메인 CSS 공통/기본 규칙
+메인 CSS 공통/기본 규칙 + Desktop baseline
 → css/common.css
-
-웹 전용 반응형
-→ css/desktop.css
 
 태블릿 전용 반응형
 → css/tablet.css
@@ -3556,18 +3550,17 @@ Hero 기준일 영역을 **연속 3회 클릭하여 개인보기를 ON/OFF하는
 # 6. CSS · Responsive 유지보수 규칙
 
 
-## 6.1 메인 CSS 7파일 구조 원칙
+## 6.1 메인 CSS 6파일 구조 원칙
 
-메인 대시보드 CSS는 2026-08-21 구조정리 1~5차를 거쳐 기존 `css/style.css` 단일 파일에서 **뷰포트/역할별 7파일 구조**로 전환을 완료했다. `css/style.css`는 최종 구조에서 제거되었으며 다시 만들지 않는다.
+메인 대시보드 CSS는 2026-08-21 구조정리 이후 후속 정리를 거쳐 기존 `css/style.css` 단일 파일에서 **역할별 6파일 구조**로 정착했다. Desktop 전용 파일은 제거하고 `common.css`를 Desktop baseline으로 사용한다. `css/style.css`와 `css/desktop.css`는 최종 구조에서 제거되었으며 다시 만들지 않는다.
 
 현재 canonical 구조:
 
 ```text
 css/
-├─ common.css       # 변수 / 기본 스타일 / 공통 컴포넌트 / Responsive Shared
-├─ desktop.css      # Desktop ≥1101px
-├─ tablet.css       # Tablet 761~1100px
-├─ mobile.css       # Mobile ≤760px
+├─ common.css       # 변수 / 기본 스타일 / 공통 컴포넌트 / Desktop baseline / Responsive Shared
+├─ tablet.css       # Tablet 761~1100px에서 common baseline 변경
+├─ mobile.css       # Mobile ≤760px에서 common baseline 변경
 ├─ special.css      # 기능상 필요한 특수 viewport
 ├─ interaction.css  # hover / pointer
 └─ print.css        # Print 전용
@@ -3577,7 +3570,6 @@ css/
 
 ```text
 common.css
-→ desktop.css
 → tablet.css
 → mobile.css
 → special.css
@@ -3587,9 +3579,8 @@ common.css
 
 파일별 책임:
 
-- `common.css`: viewport와 무관한 기본 component, theme/token, 공통 layout, `max-width:1100px` / `min-width:761px` 같은 Responsive Shared
-- `desktop.css`: `min-width:1101px`에서만 달라지는 웹 전용 규칙
-- `tablet.css`: `761px ~ 1100px` 태블릿 전용 규칙
+- `common.css`: viewport와 무관한 기본 component, theme/token, 공통 layout, **Desktop baseline**, `max-width:1100px` / `min-width:761px` 같은 Responsive Shared
+- `tablet.css`: `761px ~ 1100px`에서 common의 Desktop baseline을 태블릿 표현으로 변경하는 전용 규칙
 - `mobile.css`: `max-width:760px` 모바일 전용 규칙
 - `special.css`: `≤400px`, `≤1280px`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
 - `interaction.css`: `hover:hover + pointer:fine`처럼 viewport가 아닌 입력장치 조건
@@ -3609,14 +3600,14 @@ common.css
 
 ## 6.2 반응형 CSS는 뷰포트/역할별 섹션으로 모아 관리
 
-기본 component CSS는 `common.css`의 기능별 영역에 유지하고, viewport별 변경은 해당 역할 파일에 모아 관리한다. Responsive Shared는 `common.css`, 일반 3구간은 `desktop.css` / `tablet.css` / `mobile.css`, 기능 예외는 `special.css`로 분리한다.
+기본 component CSS와 Desktop baseline은 `common.css`의 기능별 영역에 유지하고, Tablet/Mobile에서 달라지는 값만 각 역할 파일에 모아 관리한다. Responsive Shared는 `common.css`, 일반 좁은 뷰포트 override는 `tablet.css` / `mobile.css`, 기능 예외는 `special.css`로 분리한다.
 
 현재 논리적인 cascade 순서는 다음과 같다.
 
 ```text
-Common component CSS + Responsive Shared
+Common component CSS + Desktop baseline + Responsive Shared
 ↓
-Desktop / Tablet / Mobile
+Tablet / Mobile override
 ↓
 Special Viewports
 ↓
@@ -3648,7 +3639,7 @@ Phone Landscape
 
 `hover:hover + pointer:fine`, `print`는 viewport가 아니므로 Desktop/Tablet/Mobile과 분리한다.
 
-`desktop.css`, `tablet.css`, `mobile.css` 내부의 기능 섹션 순서는 가능한 한 동일하게 맞춰 같은 기능의 viewport 차이를 빠르게 비교할 수 있게 한다. 예:
+`tablet.css`, `mobile.css` 내부의 기능 섹션 순서는 가능한 한 동일하게 맞춰 common baseline과 각 viewport 차이를 빠르게 비교할 수 있게 한다. 예:
 
 ```text
 01 Topbar
@@ -4178,7 +4169,6 @@ calc-events.js
 
 ```text
 css/common.css
-css/desktop.css
 css/tablet.css
 css/mobile.css
 css/special.css
@@ -4657,7 +4647,7 @@ property/value 변경 0
 → 최종 QA PASS
 ```
 
-현재 canonical CSS 구조:
+7차 완료 당시 canonical CSS 구조:
 
 ```text
 css/
@@ -4670,7 +4660,7 @@ css/
 └─ print.css
 ```
 
-현재 load order:
+7차 완료 당시 load order:
 
 ```text
 common
@@ -4684,11 +4674,11 @@ common
 
 7차 최종 QA에서 4차 PASS본과 실행 CSS의 selector / property / value / media condition / source-order 동일성을 확인했고, 주요 경계 viewport, Phone Landscape, Dark, 상태 UI, Reduced Motion, Print까지 회귀가 없음을 확인했다.
 
-따라서 **리팩토링 7차 완료본이 현재 CSS canonical 기준선**이다.
+따라서 이 시점에는 **리팩토링 7차 완료본이 CSS canonical 기준선**이었다. 이후 후속 유지보수에서 `desktop.css`를 `common.css` baseline으로 흡수해 현재는 6파일 구조를 사용한다.
 
 ### 리팩토링 7차 후속 CSS 유지보수 · `!important` 30 → 0 · 2026-08-21
 
-7차 구조 분리 이후 cascade를 다시 점검해 `!important`를 단계적으로 제거했다. 이 작업은 별도 프로젝트 리팩토링 차수를 추가한 것이 아니라 **현재 7파일 canonical 구조의 후속 유지보수**다.
+7차 구조 분리 이후 cascade를 다시 점검해 `!important`를 단계적으로 제거했다. 이 작업은 별도 프로젝트 리팩토링 차수를 추가한 것이 아니라 **당시 7파일 canonical 구조의 후속 유지보수**다.
 
 ```text
 30개
@@ -4708,6 +4698,21 @@ common
 
 운영 정책은 6.10을 따른다. 과거 snapshot의 `!important 30개` 기록은 당시 상태를 설명하는 역사 자료이며 현재 개수로 해석하지 않는다.
 
+### 리팩토링 7차 후속 CSS 구조 정리 · Desktop baseline 흡수 · 2026-08-21
+
+7차의 역할 분리 원칙을 유지하되, 실제 `desktop.css`가 담당하던 내용이 소수의 기본값 override에 불과한 점을 재검토해 **Desktop을 별도 파일로 관리하지 않고 `common.css` 기본값으로 승격**했다.
+
+핵심 정리:
+
+- `desktop.css` 삭제 및 `index.html` load list 제거
+- 확대차트의 웹 표현을 `common.css` 기본값으로 승격하고 `max-width:1100px` Responsive Shared에서 비웹 회전형 compact 표현으로 전환
+- 웹 전용 `.wrap` 상단 여백 축소 override 제거 → common 기본 여백 사용
+- 웹 차트 `overflow:hidden / 360px` override 제거 → common의 `overflow-x:auto / min-width:960px / 330px` 전략을 Desktop도 사용
+- 장부검산은 `common.css`의 기본 3열 `[결론][A][B]`로 두고 `tablet.css`에서 2열 + 결론 full-width, `mobile.css`에서 1열로 변경
+- 더 이상 사용하지 않는 `desktop-expanded` 상태 class도 제거
+
+현재 canonical CSS는 **6파일 구조**이며, Desktop은 common baseline이라는 원칙을 따른다.
+
 
 ## 10.3 현재 리팩토링 완료 기준선
 
@@ -4722,6 +4727,7 @@ common
 ✅ 리팩토링 6차 · CSS 기능군 / Chart / Topbar 구조 정리
 ✅ 리팩토링 7차 · CSS viewport 재편 / 7파일 분리
 ✅ 7차 후속 CSS 유지보수 · `!important` 30 → 0 / iPhone Safari QA PASS
+✅ 7차 후속 CSS 구조 정리 · `desktop.css` 제거 / common Desktop baseline + 6파일 canonical
 ```
 
 현재 메인 JavaScript 기준:
@@ -4742,7 +4748,6 @@ js/
 ```text
 css/
 ├─ common.css
-├─ desktop.css
 ├─ tablet.css
 ├─ mobile.css
 ├─ special.css
@@ -5075,7 +5080,8 @@ CSS 점수는 구조 변화 추적용 역사 기록이며 현재 소스의 영�
 |---|---:|---|
 | 리팩토링 1차 초기 대규모 CSS 구조 정리 | **93 / 100** | 단일 canonical CSS, 중복·specificity·responsive 정리 진행 |
 | 리팩토링 6차 · 2026-08-19 기능군 구조정리 | **100 / 100 milestone** | selector/value 유지, 기능군 탐색성과 source-order 설명 정리, 최종 누적 QA PASS |
-| 리팩토링 7차 · 2026-08-21 7파일 구조 분리 | **최종 QA PASS / 현재 canonical** | viewport·special·interaction·print 역할 파일 분리, 실행 CSS parity 유지 |
+| 리팩토링 7차 · 2026-08-21 7파일 구조 분리 | **최종 QA PASS / 역사적 기준선** | viewport·special·interaction·print 역할 파일 분리, 실행 CSS parity 유지 |
+| 7차 후속 · Desktop baseline 정리 | **현재 canonical** | `desktop.css` 제거, common을 Desktop 기본값으로 사용하고 Tablet/Mobile만 override |
 
 리팩토링 1차 당시 대표 상세 snapshot:
 
@@ -5113,7 +5119,7 @@ CSS 종합               100 / 100
 - 여러 기능이 공유하는 cross-cutting rule
 - QA PASS된 shared / special media 조건
 
-현재 CSS 운영 기준은 **리팩토링 7차의 7파일 구조**이며 세부 규칙은 6장을 따른다.
+현재 CSS 운영 기준은 **리팩토링 7차 이후 후속 정리된 6파일 구조**이며 세부 규칙은 6장을 따른다.
 
 
 ## 10.10 README와 handover 문서의 역할 분리

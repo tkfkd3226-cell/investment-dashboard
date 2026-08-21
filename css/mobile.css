@@ -4,6 +4,7 @@
    ========================================================= */
 
 @media (max-width:760px){
+
     .hero .hero-metric-pills{
       display:grid;
       grid-template-columns:1fr;

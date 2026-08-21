@@ -5,19 +5,19 @@
    - Variables / Base · 변수 / 기본 스타일
    - Global Layout / Shell · 전체 레이아웃 / 기본 구조
    - Common component CSS · 공통 컴포넌트
+   - Desktop baseline · 별도 override가 없는 기본 웹 표현
    - Responsive Shared · 태블릿+모바일 / 태블릿+웹 공통 조건
 
    Viewport / Environment files · 뷰포트 / 환경별 파일
-   - desktop.css     · Desktop ≥1101px
-   - tablet.css      · Tablet 761~1100px
-   - mobile.css      · Mobile ≤760px
+   - tablet.css      · Tablet 761~1100px에서 common baseline 변경
+   - mobile.css      · Mobile ≤760px에서 common baseline 변경
    - special.css     · 기능상 필요한 특수 viewport
    - interaction.css · hover / pointer
    - print.css       · Print 전용
 
    Cascade Safety · cascade 안전 원칙
-   - index.html의 load order는 common → desktop → tablet → mobile → special → interaction → print 순서를 유지한다.
-   - selector / declaration / media condition 값은 파일 분리 과정에서 변경하지 않는다.
+   - index.html의 load order는 common → tablet → mobile → special → interaction → print 순서를 유지한다.
+   - Desktop은 별도 파일을 두지 않고 common의 기본값을 사용한다.
    - 특수 viewport는 숫자보다 기능명 + 존재 이유 + 적용 범위를 우선해 관리한다.
    ========================================================= */
 
@@ -1376,15 +1376,15 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   position:absolute;
   left:0;
   top:0;
-  width:var(--chart-expanded-vh,100dvh);
-  height:var(--chart-expanded-vw,100dvw);
+  width:100%;
+  height:100%;
   box-sizing:border-box;
   display:grid;
   grid-template-rows:auto minmax(0,1fr) auto;
-  gap:var(--space-md);
-  padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
+  gap:var(--space-4xl);
+  padding:20px 68px var(--space-7xl) var(--space-10xl);
   transform-origin:top left;
-  transform:rotate(90deg) translateY(-100%);
+  transform:none;
   background:var(--chart-expanded-surface);
 }
 .chart-expanded-head{
@@ -1405,18 +1405,18 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   align-items:center;
   min-width:0;
   margin:0;
-  gap:var(--space-2xl);
+  gap:var(--space-3xl);
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
   color:var(--text);
-  font-size:var(--type-size-xl);
+  font-size:var(--type-size-4xl);
   font-weight:var(--type-weight-emphasis);
   line-height:var(--type-line-compact);
   letter-spacing:-.03em;
 }
 .chart-expanded-title .chart-title-sub{
-  font-size:var(--type-size-xs);
+  font-size:var(--type-size-sm);
   flex:0 1 auto;
 }
 .chart-expanded-controls-host{
@@ -1452,21 +1452,14 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
 .chart-expanded-legend-host:empty{display:none}
 .chart-expanded-legend-host .chart-legend{
   margin-top:0;
-  column-gap:var(--space-4xl);
+  column-gap:var(--space-6xl);
   line-height:var(--type-line-tight);
 }
 .chart-expanded-legend-host .chart-legend-series{
   width:100%;
-  gap:var(--space-md) var(--space-4xl);
+  gap:var(--space-xl) var(--space-6xl);
 }
 
-/* Expanded Chart Landscape · 확대 차트: 실제 가로모드에서는 landscape viewport 직접 사용 */
-.chart-expanded-overlay.device-landscape .chart-expanded-stage{
-  width:100%;
-  height:100%;
-  transform:none;
-  padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
-}
 
 .chart-expanded-chart-host .svg-hitbox{
   pointer-events:all;
@@ -3173,21 +3166,22 @@ button:not(:disabled):active,
 
 /* Ledger Check Hierarchy · 장부결과 VS 실제보유: 결론 → 주요값 → 근거 순서 */
 #ledger-check .ledger-overview-grid{
-  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-columns:repeat(3,minmax(0,1fr));
   align-items:stretch;
   gap:var(--space-4xl);
   margin-top:var(--space-8xl);
 }
 #ledger-check .ledger-conclusion-card{
   display:grid;
-  grid-column:1 / -1;
-  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-column:auto;
+  grid-template-columns:1fr;
   align-items:center;
-  gap:var(--space-8xl);
+  gap:var(--space-4xl);
 }
 #ledger-check .ledger-conclusion-card .value{min-height:0}
-#ledger-check .ledger-conclusion-inline-reason{display:none}
+#ledger-check .ledger-conclusion-inline-reason{display:block}
 #ledger-check .ledger-conclusion-reason{
+  display:none;
   min-width:0;
   padding-left:var(--space-8xl);
   border-left:1px solid var(--line);
@@ -3954,6 +3948,35 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 }
 
 @media (max-width:1100px){
+
+  /* Expanded Chart · 비웹 viewport: 세로 확대 회전형 + compact 타이포 유지 */
+    .chart-expanded-stage{
+      width:var(--chart-expanded-vh,100dvh);
+      height:var(--chart-expanded-vw,100dvw);
+      gap:var(--space-md);
+      padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
+      transform:rotate(90deg) translateY(-100%);
+    }
+    .chart-expanded-title .chart-expanded-title-heading{
+      gap:var(--space-2xl);
+      font-size:var(--type-size-xl);
+    }
+    .chart-expanded-title .chart-title-sub{
+      font-size:var(--type-size-xs);
+    }
+    .chart-expanded-legend-host .chart-legend{
+      column-gap:var(--space-4xl);
+    }
+    .chart-expanded-legend-host .chart-legend-series{
+      gap:var(--space-md) var(--space-4xl);
+    }
+
+    .chart-expanded-overlay.device-landscape .chart-expanded-stage{
+      width:100%;
+      height:100%;
+      transform:none;
+      padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
+    }
   /* Large Grid Responsive · 대형 카드 그리드 반응형: 1100px 이하에서 세로 1열 */
     .cards, .three, .two{
       grid-template-columns:1fr;

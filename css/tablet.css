@@ -6,6 +6,7 @@
 /* Hero Tablet · 핵심요약 태블릿: 카드 여백·제목·요약 pill을 한 단계 축소 */
 
 @media (min-width:761px) and (max-width:1100px){
+
     .hero{
       --hero-pad-y:18px;
       --hero-pad-x:20px;
@@ -119,6 +120,18 @@
     .asset-change-note .change-kpis{
       grid-template-columns:repeat(4,minmax(0,1fr));
     }
+
+  /* Ledger Check Tablet · common의 웹 3열을 태블릿 2열 + 결론 full-width로 전환 */
+    #ledger-check .ledger-overview-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    #ledger-check .ledger-conclusion-card{
+      grid-column:1 / -1;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:var(--space-8xl);
+    }
+    #ledger-check .ledger-conclusion-inline-reason{display:none}
+    #ledger-check .ledger-conclusion-reason{display:block}
 
     #pension-investment-analysis .chart-wrap,
     #investment-analysis .chart-wrap{

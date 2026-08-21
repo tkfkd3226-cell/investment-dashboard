@@ -192,9 +192,7 @@ function syncExpandedChartViewport(){
   if(!overlay)return;
   overlay.style.setProperty('--chart-expanded-vw',`${window.innerWidth}px`);
   overlay.style.setProperty('--chart-expanded-vh',`${window.innerHeight}px`);
-  const desktopExpanded=window.matchMedia?.('(min-width:1101px)').matches===true;
-  overlay.classList.toggle('desktop-expanded',desktopExpanded);
-  overlay.classList.toggle('device-landscape',desktopExpanded||expandedChartLandscapeViewport());
+  overlay.classList.toggle('device-landscape',expandedChartLandscapeViewport());
 }
 function openExpandedChart(button){
   const opener=button||null;
