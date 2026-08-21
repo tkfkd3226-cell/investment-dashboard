@@ -3219,7 +3219,8 @@ button:not(:disabled):active,
 .mobile-card-view,
 .mobile-view-toggle{display:none}
 
-/* Pension PIN Status · 퇴직연금 PIN 자동 실행/상태 표시 */
+/* Pension PIN · Chrome 비밀번호 저장 감지를 피하면서 PIN 마스킹/상태 표시 유지 */
+#pensionActionPinInput{-webkit-text-security:disc}
 .pension-action-pin-status.checking{color:var(--status-info-strong)}
 .pension-action-pin-card .action-modal-input:disabled{opacity:.68;cursor:wait}
 

@@ -2915,6 +2915,7 @@ js/dashboard-charts.js
 - form state
 - 기업적립금 / 현금성자산 / ETF 추가매수
 - PIN
+  - 퇴직연금 Action PIN 입력은 Chrome 비밀번호 저장 대상으로 오인되지 않도록 credential `password` field를 사용하지 않고, 숫자 입력 + CSS 마스킹을 유지한다.
 - batch queue / simulation / apply
 - 저장 / 삭제
 - Google Apps Script persistence
