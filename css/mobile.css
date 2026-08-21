@@ -305,7 +305,8 @@
       box-shadow:var(--mobile-top-shadow-mobile);
     }
 
-  /* Topbar Mobile · 상단바 모바일: 날짜 접힘/고정 상태 + 동일폭 select + 우측 고정 action */
+  /* Topbar Mobile · 가로 터치폰은 special.css의 Tablet형 Topbar를 사용 */
+  @media (orientation:portrait), (min-height:501px), (hover:hover), (pointer:fine){
     body.mobile-topbar-fixed-visible #app{padding-top:40px}
     .switcher{
       position:fixed;
@@ -462,5 +463,6 @@
     .date-action-menu.mobile-combined-menu .mobile-nav-item em{display:none}
     .date-action-menu.mobile-combined-menu::-webkit-scrollbar{width:8px}
     .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{border-radius:var(--radius-pill);background:var(--nav-scrollbar)}
+  }
 }
 

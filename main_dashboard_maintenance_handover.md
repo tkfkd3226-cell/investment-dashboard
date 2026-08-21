@@ -3258,6 +3258,7 @@ Mobile  ≤ 760px
 `Phone UI Shared`는 **세로 Mobile과 실제 가로폰이 공통으로 가져야 하는 compact 디자인 밀도**만 소유한다.
 
 - Hero / KPI / mini-card / 섹션 제목 / 자산 탭 / 자산 인사이트 / tooltip의 폰트·여백은 세로폰과 가로폰 동일
+- `투자원금 원천 및 검산`의 3개 `.source-card`도 세로폰·가로폰 모두 같은 compact 내부 padding을 사용한다.
 - 증권·퇴직연금 KPI는 가로폰에서도 2×2 compact 유지
 - 성과/현황/변동 표는 가로폰에서도 세로폰과 동일한 font / cell padding을 사용하고 첫 열 sticky 유지
 - 계좌별 성과의 수익률은 가로폰에서도 손익 아래 `(~%)`로 결합하여 긴 메모 열 폭을 확보
@@ -3270,11 +3271,12 @@ Mobile  ≤ 760px
 - 비중카드는 Tablet 수준의 열 수를 사용하되 카드 내부 밀도는 Phone Shared 기준
 - 투자원금 원천 3카드 한 줄
 - 장부검산은 결론 full-width + A/B 2열, 내부 밀도는 세로폰 기준
-- Topbar는 Tablet 스타일 유지
+- Topbar는 Tablet 스타일을 유지한다. 실기기 Safari에서 `max-width:760px` Mobile Topbar 규칙이 함께 매치되는 경우에도 Phone Landscape가 Tablet형 Topbar를 최종 복원하며, 우측 edge TOC도 Tablet 방식으로 사용한다.
+- `평가금액 비중`의 종목별 모드에서는 4열 grid 안에서 `평가금액 합계` 카드가 2칸을 차지하고, 유형별 모드의 합계 카드는 기존처럼 전체폭을 사용한다.
 - 차트 control은 제목 오른쪽 한 줄을 유지하고 가로폰에서는 차트를 컨테이너 폭에 맞춰 no-scroll로 표시하며 `← / →` 버튼을 숨김
 - 차트 높이는 낮은 가로 viewport에 맞게 축소하고 Tablet / 가로폰 모두 범례를 차트 쪽으로 당김
 - 별도수익은 compact control 크기는 유지하되 가로폰에서는 `별도수익` 라벨과 활성 시 선택일 설명을 표시
-- 퇴직연금 / PIN / KRX 모달은 가로폰에서 중앙 modal 레이아웃을 유지하고, iPhone Safari 확대 방지가 필요한 input font만 16px 계열을 사용
+- 퇴직연금 / PIN / KRX 모달은 가로폰에서 중앙 modal 레이아웃을 유지한다. Mobile bottom-sheet 규칙이 실기기에서 함께 매치되어도 Phone Landscape가 중앙형 구조를 복원하고, iPhone Safari 확대 방지가 필요한 input font만 16px 계열을 사용한다.
 
 JavaScript의 차트 반응형 판정도 역할을 분리한다. `compactPhoneChartUi()`는 세로폰 + 가로폰의 compact 표현에 사용하고, `portraitPhoneChartFlow()`는 세로폰 전용 control-row / 스크롤 flow에만 사용한다. `phoneLandscapeUi()`는 위 `960×500 + coarse/no-hover` 조건의 가로폰 배치 판정만 담당한다.
 
@@ -4747,6 +4749,8 @@ common
 핵심 정리:
 
 - 가로폰 기능 media 상한 `900px → 960px`으로 확대, `height≤500 + hover:none + pointer:coarse`는 유지
+- iPhone Safari 실기기에서 Mobile CSS가 함께 매치되는 경우를 반영해 Phone Landscape가 Tablet형 Topbar / edge TOC / 중앙 모달을 명시적으로 복원하도록 보강
+- 종목별 `평가금액 비중` 합계 카드는 가로폰 4열에서 2칸 span으로 복원하고, `투자원금 원천 및 검산` 3카드는 세로·가로폰 공통 compact padding으로 통일
 - Phone Shared에서 모바일 카드보기 UI와 브랜드 접두어 축약을 분리해 세로폰 전용으로 이동
 - 가로폰 성과/현황/변동은 항상 표를 사용하고 세로폰과 동일한 compact 표 밀도 + 첫 열 sticky 유지
 - 가로폰 Hero 2/4열, 누적 6카드 3열, 종목/상품 카드 4열, 전일대비 KPI 4열, 원천 3열, 장부검산 결론 + A/B 2열로 가로폭 활용

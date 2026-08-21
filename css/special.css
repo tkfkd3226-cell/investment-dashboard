@@ -194,6 +194,7 @@
     }
     .metric-grid > .metric-card{padding:var(--space-4xl)}
     .metric-grid > .metric-card .value{min-height:28px}
+    #capital-source-check .source-card{padding:var(--space-4xl)}
 
   /* Account Performance · 메모 폭 확보를 위해 손익 아래 수익률 결합 */
     #accounts-summary .accounts-table .performance-return-col{display:none}
@@ -373,6 +374,17 @@
    Scope · 범위: Hero/요약 카드 열 수, 표 고정, 차트 flow, 원천/검산 배치, 모달 input zoom 방지.
    ------------------------------------------------------------------------- */
 @media (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  /* Topbar / Edge TOC · 가로폰은 Tablet형 구조 + compact action을 사용 */
+    .topbar-label-full{display:none}
+    .topbar-label-short{display:inline}
+    .switcher{padding-left:var(--space-2xl);padding-right:var(--space-2xl)}
+    .date-picker-action{gap:var(--space-md)}
+    .date-tool-btn{padding-left:var(--space-xl);padding-right:var(--space-xl);gap:var(--space-2xs);font-size:var(--type-size-2xs)}
+    .date-tool-action-icon{margin-right:var(--space-2xs)}
+    .desktop-edge-toc{right:8px}
+    .desktop-edge-toc-trigger{width:30px;min-width:30px;height:60px;padding:var(--space-lg) 0;font-size:var(--type-size-2xs)}
+    .desktop-edge-toc-panel{right:38px}
+
   /* Hero Metrics · compact 밀도 유지 + 가로폭 2/4열 활용 */
     .hero .hero-metric-pills{
       display:grid;
@@ -406,6 +418,7 @@
       grid-template-columns:repeat(4,minmax(0,1fr));
     }
     #securityAllocCards > .alloc-total-card:not(.alloc-total-card-wide){grid-column:1 / -1}
+    #securityAllocCards > .alloc-total-card-wide{grid-column:span 2}
 
   /* Capital Source · 3개 원천카드는 한 행, 내부 밀도는 Shared compact 사용 */
     #capital-source-check .source-grid{
@@ -464,7 +477,20 @@
     .chart-card .chart-scroll-end{display:none}
     .chart-web-expand-button{display:inline-flex}
 
-  /* Modal Input · 중앙 모달은 유지하되 iPhone Safari 확대 방지 폰트만 적용 */
+  /* Modal Landscape · 중앙형 구조 복원 + iPhone Safari 확대 방지 입력 폰트 */
+    .action-modal{align-items:center;padding:20px}
+    .action-modal-card{padding:var(--space-10xl)}
     .action-modal-input{font-size:var(--type-size-2xl)}
-    .contrib-modal{--contrib-control-font-size:var(--type-size-2xl)}
+    .krx-action-buttons{gap:var(--space-2xl)}
+    .krx-action-buttons .action-modal-btn{min-height:40px;height:40px;padding:0 var(--space-4xl);font-size:inherit}
+    .contrib-modal{--contrib-control-font-size:var(--type-size-2xl);align-items:center;padding:var(--space-8xl)}
+    .contrib-modal-card{width:min(760px,100%);padding:var(--space-8xl)}
+    .contrib-modal .pension-adjust-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .contrib-existing-list{max-height:96px}
+    .contrib-existing-item{padding:var(--space-3xl) var(--space-4xl)}
+    .contrib-existing-title{display:inline-block;margin-right:var(--space-4xl);font-size:var(--type-size-md);line-height:inherit}
+    .contrib-existing-memo{display:inline-block;margin:0 0 0 var(--space-2xs);font-size:var(--type-size-sm)}
+    .contrib-target-option{padding:var(--space-xl) var(--space-3xl);font-size:var(--type-size-md)}
+    .pension-etf-trade-preview-grid{grid-template-columns:minmax(110px,.8fr) minmax(0,1.2fr);gap:var(--space-xl) var(--space-5xl)}
+    .pension-etf-trade-preview-grid strong{margin-bottom:0;text-align:right}
 }

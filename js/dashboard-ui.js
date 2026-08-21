@@ -220,6 +220,16 @@ function renderDesktopTocContent(){
   ];
   return groups.map(group=>`<div class="desktop-edge-toc-group"><p>${group.label}</p>${group.items.map(item=>`<button type="button" class="desktop-edge-toc-item" data-toc-target="${item.id}" data-dashboard-action="jump-section" data-section-target="${item.id}"><span class="desktop-edge-toc-icon">${navIconSvg(item.icon)}</span><span>${item.title}</span></button>`).join('')}</div>`).join('');
 }
+function phoneLandscapeUi(){
+  return window.matchMedia?.('(orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)').matches===true;
+}
+function portraitMobileUi(){
+  return window.matchMedia?.('(max-width:760px)').matches===true&&!phoneLandscapeUi();
+}
+function desktopEdgeTocUi(){
+  return window.matchMedia?.('(min-width:761px)').matches===true||phoneLandscapeUi();
+}
+
 function ensureDesktopEdgeToc(){
   let toc=document.getElementById('desktopEdgeToc');
   if(!toc){
@@ -235,7 +245,7 @@ function setDesktopEdgeTocOpen(open,{focusTrigger=false}={}){
   const toc=document.getElementById('desktopEdgeToc');
   const trigger=document.getElementById('desktopEdgeTocTrigger');
   if(!toc||!trigger)return;
-  const next=!!open&&window.matchMedia?.('(min-width:761px)').matches!==false;
+  const next=!!open&&desktopEdgeTocUi();
   toc.classList.toggle('is-open',next);
   trigger.setAttribute('aria-expanded',String(next));
   trigger.setAttribute('title',next?'목차 닫기':'목차 열기');
@@ -264,7 +274,7 @@ function setSectionNavigationCurrent(id){
 function currentSectionNavigationId(){
   const sections=visibleSectionNavigationTargets();
   if(!sections.length)return '';
-  const threshold=window.matchMedia?.('(max-width:760px)').matches?64:96;
+  const threshold=portraitMobileUi()?64:96;
   let passed=null,below=null;
   sections.forEach(section=>{
     const top=section.getBoundingClientRect().top;
@@ -292,7 +302,7 @@ function setupSectionNavigationTracking(){
     window.addEventListener('scroll',scheduleSectionNavigationSync,{passive:true});
     window.addEventListener('resize',()=>{
       scheduleSectionNavigationSync();
-      if(window.matchMedia?.('(max-width:760px)').matches)closeDesktopEdgeToc();
+      if(portraitMobileUi())closeDesktopEdgeToc();
     },{passive:true});
     document.addEventListener('click',event=>{
       const toc=document.getElementById('desktopEdgeToc');
@@ -315,7 +325,7 @@ function mobileDatePinned(){
 function syncMobileTopbarState(){
   const tabs=document.getElementById('tabs');
   const toggle=document.getElementById('mobileDatePinToggle');
-  const mobile=window.matchMedia?.('(max-width:760px)').matches===true;
+  const mobile=portraitMobileUi();
   const pinned=mobileDatePinned();
   if(tabs)tabs.classList.toggle('mobile-date-pinned',mobile&&pinned);
   if(toggle){
@@ -449,7 +459,7 @@ function toggleDateActionMenu(event){
   syncMobileTopbarState();
 }
 function mobileDateMenuIsOpen(){
-  return window.matchMedia('(max-width:760px)').matches&&document.getElementById('dateActionMenu')?.classList.contains('show');
+  return portraitMobileUi()&&document.getElementById('dateActionMenu')?.classList.contains('show');
 }
 function restoreMobileDateMenuAfterRender(){
   document.getElementById('tabs')?.classList.add('mobile-menu-open');
