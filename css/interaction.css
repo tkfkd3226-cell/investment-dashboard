@@ -48,36 +48,3 @@
       transform:translateY(-1px);
     }
 }
-
-/* =========================================================
-   Accessibility · 접근성
-   Reduced Motion · 사용자의 OS 모션 감소 설정을 viewport/일반 component animation보다
-   우선 적용하고, 차트는 애니메이션 없이 완성 상태로 즉시 표시한다.
-   ========================================================= */
-
-/* Charts · 차트: SVG animation과 시작 상태를 강제로 해제 */
-
-@media (prefers-reduced-motion:reduce){
-    .chart-card .chart-anim-bar,
-    .chart-card .chart-anim-point,
-    .chart-card .chart-anim-line{
-      animation:none !important;
-      opacity:1 !important;
-      transform:none !important;
-      stroke-dashoffset:0 !important;
-    }
-
-  /* Components · interaction.css가 일반 component CSS 뒤에 로드되므로 정상 cascade로 transition을 제거한다. */
-    .card,
-    .note,
-    .chart-card,
-    .asset-insight-card,
-    .mini-card,
-    .date-tool-btn,
-    .pill,
-    button,
-    .btn{
-      transition:none;
-    }
-}
-

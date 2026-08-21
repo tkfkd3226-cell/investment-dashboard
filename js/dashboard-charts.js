@@ -395,9 +395,6 @@ function setupResponsiveChartControls(){
   },{passive:true});
 }
 
-function chartEntranceReducedMotion(){
-  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true;
-}
 function chartEntrancePhoneLandscape(){
   return window.matchMedia?.('(orientation: landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse)').matches===true;
 }
@@ -433,7 +430,7 @@ function prepareChartEntranceForSvg(svg){
   if(!svg)return;
   const card=svg.closest('.chart-card');
   if(!card)return;
-  if(chartEntranceReducedMotion()||card.dataset.chartEntrancePlayed==='true'){
+  if(card.dataset.chartEntrancePlayed==='true'){
     card.classList.remove('chart-entrance-ready');
     card.classList.add('chart-entrance-active');
     return;
@@ -482,7 +479,7 @@ function setupChartEntranceAnimations(){
     window.addEventListener('resize',syncLandscapeEntrance,{passive:true});
     window.addEventListener('orientationchange',syncLandscapeEntrance,{passive:true});
   }
-  if(chartEntranceReducedMotion()||chartEntrancePhoneLandscape()||!('IntersectionObserver' in window)){
+  if(chartEntrancePhoneLandscape()||!('IntersectionObserver' in window)){
     wraps.forEach(activateChartEntrance);
     return;
   }

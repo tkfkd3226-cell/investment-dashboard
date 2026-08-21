@@ -656,7 +656,7 @@ Mobile   ≤ 760
 추가 breakpoint는:
 
 - 기능상 필요한 예외인지
-- orientation / pointer / hover / print / reduced-motion인지
+- orientation / pointer / hover / print인지
 - 단순 임의 breakpoint인지
 - 기본 3구간으로 합치면 기능이 깨지는지
 
@@ -1085,7 +1085,6 @@ UX 문제는:
 - color contrast token
 - hover-only information
 - touch target
-- reduced-motion
 - user-select
 - touch-action
 - draggable/link drag
@@ -3000,7 +2999,7 @@ Topbar/Navigation/UI action → ui
 특수 viewport
 → css/special.css
 
-입력장치 / reduced-motion
+입력장치 hover / pointer
 → css/interaction.css
 
 인쇄
@@ -3560,7 +3559,7 @@ css/
 ├─ tablet.css       # Tablet 761~1100px
 ├─ mobile.css       # Mobile ≤760px
 ├─ special.css      # 기능상 필요한 특수 viewport
-├─ interaction.css  # hover / pointer / prefers-reduced-motion
+├─ interaction.css  # hover / pointer
 └─ print.css        # Print 전용
 ```
 
@@ -3583,7 +3582,7 @@ common.css
 - `tablet.css`: `761px ~ 1100px` 태블릿 전용 규칙
 - `mobile.css`: `max-width:760px` 모바일 전용 규칙
 - `special.css`: `≤400px`, `≤1280px`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
-- `interaction.css`: `hover:hover + pointer:fine`, `prefers-reduced-motion`처럼 viewport가 아닌 입력장치/접근성 조건
+- `interaction.css`: `hover:hover + pointer:fine`처럼 viewport가 아닌 입력장치 조건
 - `print.css`: 인쇄 전용 최종 override
 
 상세 리팩토링 이력은 **10.2의 리팩토링 7차 기록**을 참고한다. 현재 장에서는 최종 구조와 유지보수 규칙만 관리한다.
@@ -3637,7 +3636,7 @@ Phone Landscape
 → iPhone 844×390처럼 width만 보면 Tablet으로 오판되는 실제 터치폰 가로모드 대응
 ```
 
-`hover:hover + pointer:fine`, `prefers-reduced-motion`, `print`는 viewport가 아니므로 Desktop/Tablet/Mobile과 분리한다.
+`hover:hover + pointer:fine`, `print`는 viewport가 아니므로 Desktop/Tablet/Mobile과 분리한다.
 
 `desktop.css`, `tablet.css`, `mobile.css` 내부의 기능 섹션 순서는 가능한 한 동일하게 맞춰 같은 기능의 viewport 차이를 빠르게 비교할 수 있게 한다. 예:
 
@@ -3851,14 +3850,15 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 현재 운영 기준(2026-08-21):
 
 - 1차 최소화에서 semantic color 5, 모바일 table/card 상태 4, `[hidden]` 2, reduced-motion transition 1, print panel 1의 `!important` 총 13개를 제거했다.
-- 1차 QA PASS 후 메인 CSS의 `!important`는 30개 → 17개다.
-- 남은 17개는 차트 `prefers-reduced-motion` 강제 완료상태 4개와 iOS Safari date control 13개다.
+- 1차 QA PASS 후 메인 CSS의 `!important`는 30개 → 17개였다.
+- 이후 OS `prefers-reduced-motion`을 대시보드 애니메이션보다 우선할 필요가 없다는 운영 기준을 확정하여, 차트 강제 완료상태 `!important` 4개와 관련 CSS/JS reduced-motion 분기를 제거했다.
+- 현재 메인 CSS의 `!important`는 **13개**이며, 모두 iOS Safari date control 대응이다.
 - iOS Safari date control 13개는 2차 후보이며, 실제 iPhone Safari 수동 확인 후 문제가 있으면 즉시 롤백한다.
+- Windows/macOS 등의 OS 모션 감소 설정은 차트·카드·버튼 animation/transition을 비활성화하는 조건으로 사용하지 않는다.
 
 현재 허용 가능한 대표 사례:
 
 - Safari / WebKit intrinsic control처럼 실제 브라우저 고유 UI 검증이 필요한 경우
-- `prefers-reduced-motion`에서 기존 animation 상태를 즉시 무효화해야 하는 경우
 - 정상 cascade/specificity로 해결하기 어려운 명확한 브라우저 예외
 
 `[hidden]`, semantic color, 모바일 view state, print override처럼 현재 selector 순서/우선순위만으로 해결되는 경우에는 `!important`를 사용하지 않는다.
