@@ -3,7 +3,9 @@
 // - dashboard-app.js / dashboard-ui.js 수정 없이 index.html에서 독립 로드
 // - Desktop: Hero 우측의 보조 카드로 현재 시장 + AI 신호를 표시
 // - Tablet: Hero 내부 하단에 보조 카드로 표시
-// - Mobile: 로컬 사용 시나리오가 없어 Market AI UI를 숨김
+// - Mobile/실제 터치폰 가로: Market AI UI를 숨김
+// - CSS ownership: common(Hero baseline/component) → tablet(layout) → special(compact/phone exception)
+// - 구조 스타일은 CSS class에 맡기고 JS는 mount/state/tooltip 위치 계산만 담당
 // - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
 // - Stage 9 calibration이 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
 // - GitHub Pages 등 비로컬 환경에서는 Market AI UI 자체를 표시하지 않음
