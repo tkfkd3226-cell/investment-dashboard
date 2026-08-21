@@ -220,9 +220,9 @@ boot 구조
 ### 4. CSS / Responsive
 
 ```text
-style.css canonical rule
+메인 CSS 7파일 canonical role / load order
 1101 / 761~1100 / ≤760 구조
-기능 media
+기능 media / special.css 예외
 section-title rule
 iphone-request-desktop
 ```
@@ -492,7 +492,13 @@ GAS 자체의 코드 품질 점수는 사용자가 별도로 요청하지 않는
 
 ```text
 index.html
-css/style.css
+css/common.css
+css/desktop.css
+css/tablet.css
+css/mobile.css
+css/special.css
+css/interaction.css
+css/print.css
 
 js/dashboard-core.js
 js/dashboard-ui-common.js
@@ -569,9 +575,9 @@ add/report/*
 
 ### F. CSS 평가 프로토콜
 
-`css/style.css`는 단일 파일 유지가 현재 설계 원칙이다.
+메인 CSS는 현재 `common / desktop / tablet / mobile / special / interaction / print`의 **7개 역할 파일 구조**를 사용한다. 평가 시 파일별 책임과 `index.html` load order를 함께 확인한다.
 
-단일 파일이라는 사실 자체는 감점하지 않는다.
+단일 파일 또는 다중 파일이라는 **파일 개수 자체**는 감점하지 않는다. 실제 구조의 탐색성, cascade 안전성, 중복/override, 역할 분리가 평가 기준이다.
 
 #### F-1. 구조 / 파일 구성
 
@@ -1092,7 +1098,7 @@ native `<select>`의 펼친 option UI는 browser/OS native rendering일 수 있�
 Date.now() 기반 cache bust
 Vanilla JS 구조
 framework / state library 미사용
-단일 style.css
+CSS 파일 개수 자체
 ```
 
 실제 체감 지연 또는 profiling 근거가 있을 때만 다시 검토한다.
@@ -1898,7 +1904,7 @@ QA에서는 다음만 확인/보고한다.
 
 ## 3.19 대규모 JS 구조 작업의 차수 · QA · 보고 운영
 
-이번 JS 3차 구조 리팩토링에서 실제로 사용한 작업 방식은 이후 유사한 대규모 JS 구조 작업의 기본 운영 방식으로 사용한다.
+이 운영 방식은 프로젝트 전체 **리팩토링 5차(JavaScript ownership / encapsulation 구조 재정리)**에서 실제로 검증한 방식이며, 이후 유사한 대규모 JS 구조 작업의 기본 운영 방식으로 사용한다. 상세 역사 기록은 11.2에 한곳에 모아둔다.
 
 핵심 순서:
 
@@ -2020,7 +2026,7 @@ event 종류 / 중복
 
 를 다시 본다.
 
-이번 JS 3차 리팩토링에서는 1~5차 QA가 모두 진행된 뒤 최종 누적 QA에서 `dashboard-ui.js`의 `renderResultSummary()` 누락 1건을 추가로 발견했다.
+리팩토링 5차에서는 내부 1~5차 QA가 모두 진행된 뒤 최종 누적 QA에서 `dashboard-ui.js`의 `renderResultSummary()` 누락 1건을 추가로 발견했다.
 
 따라서 앞으로도:
 
@@ -2108,7 +2114,7 @@ PASS / FAIL
 # 4. 현재 프로젝트 구조 · Architecture
 
 
-## 4.1 2026-08-19 첨부 최신 ZIP 실제 구조 snapshot
+## 4.1 2026-08-21 CSS 7파일 분리 완료 기준 구조 snapshot
 
 아래는 이 문서를 재정비할 때 함께 확인한 최신 전체 ZIP의 실제 구조다. 이후 새 ZIP이 달라지면 **새 ZIP의 실제 파일을 우선**한다.
 
@@ -2123,7 +2129,14 @@ investment-dashboard-main/
 │  ├─ css/calc.css
 │  ├─ js/calc.js
 │  └─ report/*.html
-├─ css/style.css
+├─ css/
+│  ├─ common.css
+│  ├─ desktop.css
+│  ├─ tablet.css
+│  ├─ mobile.css
+│  ├─ special.css
+│  ├─ interaction.css
+│  ├─ print.css
 ├─ data/
 │  ├─ account1_daily_snapshots.json
 │  ├─ pension_cash_snapshots.json
@@ -2160,7 +2173,7 @@ investment-dashboard-main/
 | `dashboard-pension-editor.js` | 1,158 |
 | `dashboard-app.js` | 195 |
 
-현재 `css/style.css`는 5,273줄이며, 이 수치는 **검증 시점 snapshot**일 뿐 고정값이 아니다.
+메인 CSS는 7개 역할 파일로 분리되어 있으며 `css/style.css`는 최종 구조에서 제거되었다. 파일별 줄 수와 크기는 변경 시점의 snapshot으로만 보고 고정값으로 취급하지 않는다.
 
 
 
@@ -2174,7 +2187,13 @@ investment-dashboard-main/
 ├─ index.html
 │
 ├─ css/
-│  └─ style.css
+│  ├─ common.css
+│  ├─ desktop.css
+│  ├─ tablet.css
+│  ├─ mobile.css
+│  ├─ special.css
+│  ├─ interaction.css
+│  ├─ print.css
 │
 ├─ js/
 │  ├─ dashboard-core.js
@@ -2487,8 +2506,26 @@ Topbar/Navigation/UI action → ui
 향후 수정 시 기본적으로 다음 책임을 참고한다.
 
 ```text
-메인 CSS
-→ css/style.css
+메인 CSS 공통/기본 규칙
+→ css/common.css
+
+웹 전용 반응형
+→ css/desktop.css
+
+태블릿 전용 반응형
+→ css/tablet.css
+
+모바일 전용 반응형
+→ css/mobile.css
+
+특수 viewport
+→ css/special.css
+
+입력장치 / reduced-motion
+→ css/interaction.css
+
+인쇄
+→ css/print.css
 
 데이터 / 공통 계산 / formatter / 공용 데이터 state
 → js/dashboard-core.js
@@ -2720,87 +2757,121 @@ globalThis.dashboard = ...
 # 5. CSS · Responsive 유지보수 규칙
 
 
-## 5.1 메인 CSS는 `css/style.css` 단일 파일 유지
+## 5.1 메인 CSS 7파일 구조 원칙
 
-메인 투자 성과 대시보드 CSS는:
+메인 대시보드 CSS는 2026-08-21 구조정리 1~5차를 거쳐 기존 `css/style.css` 단일 파일에서 **뷰포트/역할별 7파일 구조**로 전환을 완료했다. `css/style.css`는 최종 구조에서 제거되었으며 다시 만들지 않는다.
+
+현재 canonical 구조:
 
 ```text
-css/style.css
+css/
+├─ common.css       # 변수 / 기본 스타일 / 공통 컴포넌트 / Responsive Shared
+├─ desktop.css      # Desktop ≥1101px
+├─ tablet.css       # Tablet 761~1100px
+├─ mobile.css       # Mobile ≤760px
+├─ special.css      # 기능상 필요한 특수 viewport
+├─ interaction.css  # hover / pointer / prefers-reduced-motion
+└─ print.css        # Print 전용
 ```
 
-**하나의 파일로 유지한다.**
-
-다음처럼 역할별 CSS 파일로 다시 분리하지 않는다.
+`index.html`의 load order는 다음 순서를 유지한다. **이 순서가 cascade order**이므로 특별한 구조 변경 작업이 아닌 이상 임의로 바꾸지 않는다.
 
 ```text
-base.css
-layout.css
-components.css
-charts.css
-pension.css
-responsive.css
-...
+common.css
+→ desktop.css
+→ tablet.css
+→ mobile.css
+→ special.css
+→ interaction.css
+→ print.css
 ```
 
-현재 프로젝트에서는 단일 CSS 안에서 cascade와 관련 규칙을 함께 추적하는 것이 더 안전하다.
+파일별 책임:
 
-특히 별도의:
+- `common.css`: viewport와 무관한 기본 component, theme/token, 공통 layout, `max-width:1100px` / `min-width:761px` 같은 Responsive Shared
+- `desktop.css`: `min-width:1101px`에서만 달라지는 웹 전용 규칙
+- `tablet.css`: `761px ~ 1100px` 태블릿 전용 규칙
+- `mobile.css`: `max-width:760px` 모바일 전용 규칙
+- `special.css`: `≤400px`, `≤1280px`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
+- `interaction.css`: `hover:hover + pointer:fine`, `prefers-reduced-motion`처럼 viewport가 아닌 입력장치/접근성 조건
+- `print.css`: 인쇄 전용 최종 override
+
+구조정리 완료 이력:
 
 ```text
-responsive.css
+1차 media query 역할별 재배치                         → QA PASS
+2차 동일 media query block 병합                      → QA PASS
+3차 특수 viewport / interaction / accessibility 구조화 → QA PASS
+4차 역할별 CSS 7파일 분리 + index load order 확정      → QA PASS
+5차 style.css 제거 + README / handover 최종 정리       → 최종 QA PASS
 ```
 
-를 만들지 않는다.
+핵심 유지보수 원칙:
+
+- 기능 수정은 먼저 **어느 역할 파일이 canonical인지** 판단하고 그 파일의 기존 rule을 직접 수정한다.
+- 같은 기능을 해결하기 위해 다른 CSS 파일 하단에 임시 override를 누적하지 않는다.
+- CSS 구조 변경과 디자인 변경을 같은 차수에 섞지 않는다.
+- 새 breakpoint는 실제 레이아웃/정보구조 문제가 있을 때만 추가하고 `special.css`에 기능명 + 존재 이유를 남긴다.
+- 파일 분리 자체를 이유로 같은 selector를 여러 파일에 중복 생성하지 않는다.
+- `common → 일반 viewport → special → interaction/accessibility → print`의 우선순위를 보존한다.
 
 
-## 5.2 메인 CSS는 기능별 영역 안에서 반응형까지 함께 관리
+## 5.2 반응형 CSS는 뷰포트/역할별 섹션으로 모아 관리
 
-각 기능의 CSS는 가능한 한 해당 기능 영역 안에서:
+기본 component CSS는 `common.css`의 기능별 영역에 유지하고, viewport별 변경은 해당 역할 파일에 모아 관리한다. Responsive Shared는 `common.css`, 일반 3구간은 `desktop.css` / `tablet.css` / `mobile.css`, 기능 예외는 `special.css`로 분리한다.
+
+현재 논리적인 cascade 순서는 다음과 같다.
 
 ```text
-기본
+Common component CSS + Responsive Shared
 ↓
-Desktop · 웹
+Desktop / Tablet / Mobile
 ↓
-Tablet · 태블릿
+Special Viewports
 ↓
-Mobile · 모바일
+Interaction / Accessibility
 ↓
-기능상 필요한 예외
+Print
 ```
 
-를 같이 관리한다.
-
-예:
-
-```css
-/* =========================================================
-   Charts · 차트
-   ========================================================= */
-
-.chart-card {
-  ...
-}
-
-/* Tablet · 태블릿 */
-@media (min-width:761px) and (max-width:1100px) {
-  ...
-}
-
-/* Mobile · 모바일 */
-@media (max-width:760px) {
-  ...
-}
-```
-
-다음처럼 같은 기능의 CSS가 파일 여러 곳에 다시 흩어지지 않게 한다.
+기본 viewport는 계속 다음 3구간을 사용한다.
 
 ```text
-기본 CSS
-→ 파일 한참 아래 tablet fix
-→ 맨 아래 mobile fix
-→ 마지막 final override
+Desktop · 웹: 1101px 이상
+Tablet · 태블릿: 761px ~ 1100px
+Mobile · 모바일: 760px 이하
 ```
+
+특수 viewport는 일반 viewport 섹션에 섞지 않고 **왜 필요한지 기능 기준으로 추적 가능하게 관리**한다. 대표적인 현재 예외는 다음과 같다.
+
+```text
+≤400px
+→ 초소형 화면에서 계좌별 성과 정보 구조 보정
+
+≤1280px
+→ Asset Detail 2-column 유지 시 가용폭 부족 대응
+
+Phone Landscape
+→ iPhone 844×390처럼 width만 보면 Tablet으로 오판되는 실제 터치폰 가로모드 대응
+```
+
+`hover:hover + pointer:fine`, `prefers-reduced-motion`, `print`는 viewport가 아니므로 Desktop/Tablet/Mobile과 분리한다.
+
+`desktop.css`, `tablet.css`, `mobile.css` 내부의 기능 섹션 순서는 가능한 한 동일하게 맞춰 같은 기능의 viewport 차이를 빠르게 비교할 수 있게 한다. 예:
+
+```text
+01 Topbar
+02 Hero
+03 KPI
+04 Securities
+05 Pension
+06 Tables
+07 Charts
+08 Ledger
+09 Modal
+```
+
+새 특수 breakpoint를 단순 미관 보정용으로 추가하지 않는다. 실제 레이아웃/정보구조 문제를 해결해야 할 때만 추가하고, `special.css`에 **기능명 + 존재 이유**를 주석으로 남긴다.
 
 
 ## 5.3 CSS 섹션과 주요 주석은 영어 + 한글 병기
@@ -3309,7 +3380,13 @@ calc-events.js
 ## 7.6 Calc CSS와 메인 CSS를 통합하지 않는다
 
 ```text
-css/style.css
+css/common.css
+css/desktop.css
+css/tablet.css
+css/mobile.css
+css/special.css
+css/interaction.css
+css/print.css
 ```
 
 는 메인 대시보드 전용이다.
@@ -3920,7 +3997,7 @@ state 구조 재설계
 
 ## 10.6 CSS 수정 후 기본 보고
 
-메인 `css/style.css`를 수정했다면 다음을 보고한다.
+메인 CSS(`css/*.css`)를 수정했다면 변경된 CSS 파일 기준으로 다음을 보고한다.
 
 - 수정 전 전체 줄 수
 - 수정 후 전체 줄 수
@@ -4062,7 +4139,7 @@ patch/
 예:
 
 ```text
-css/style.css의 공통 component
+css/common.css의 공통 component
 dashboard-core.js의 formatter/helper
 공통 date helper
 공통 table/card renderer
@@ -4148,7 +4225,7 @@ add/css/common.css
 ```text
 investment-dashboard-main/
 └─ css/
-   └─ style.css
+   └─ mobile.css
 ```
 
 또는:
@@ -4220,18 +4297,37 @@ Description: 주요 변경 내용을 간단히 설명
 
 ## 11.1 역사 기록의 사용 원칙
 
-이 장의 수치와 PASS 기록은 당시 작업의 **역사적 snapshot**이다. 최신 소스의 현재 점수나 현재 줄 수를 고정하는 값이 아니다. 새 `점수` 또는 `평가` 요청에서는 반드시 최신 전체 ZIP을 다시 확인한다.
+이 장은 지금까지 진행한 대규모 구조 개선을 **프로젝트 전체 리팩토링 차수** 기준으로 한곳에 모아 기록한다.
+
+여기서 사용하는 `리팩토링 1차 ~ 7차`는 프로젝트 전체의 큰 단계다. 각 리팩토링 안에 다시 등장하는 `1차 → QA → 2차 → QA`는 **그 리팩토링 내부의 작업 차수**다. 두 종류의 차수를 혼동하지 않는다.
+
+이 장의 수치와 PASS 기록은 당시 작업의 **역사적 snapshot**이다. 최신 소스의 현재 점수나 줄 수를 고정하는 값이 아니다. 새 `점수` 또는 `평가` 요청에서는 반드시 최신 전체 ZIP을 다시 확인한다.
 
 
-## 11.2 지금까지의 주요 리팩토링 이력
+## 11.2 전체 리팩토링 통합 연혁
 
-현재 프로젝트는 대략 다음 순서로 발전했다.
+현재 프로젝트의 대규모 구조 개선 흐름은 다음 **7개 주요 리팩토링**으로 정리한다.
 
-### 1번째 · CSS 최적화 / 구조 리팩토링
+| 프로젝트 리팩토링 | 영역 | 핵심 목적 | 내부 작업 흐름 | 최종 상태 |
+|---|---|---|---|---|
+| **1차** | CSS | CSS 최적화 / canonical 구조 확립 | 영역별 CSS 정리 | 완료 |
+| **2차** | JavaScript | 통파일 JS를 5개 책임 파일로 분리 | core / charts / ui / pension / app | 완료 |
+| **3차** | UI · UX | UI/UX 전반 polish 및 당시 평가표 100점화 | `1차 → QA → ... → 17차` | 완료 |
+| **4차** | JavaScript | classic script → ES Module migration | 내부 `1~3차` | 최종 QA PASS |
+| **5차** | JavaScript | ES Module 이후 ownership / encapsulation 재정리 | 내부 `1~5차` | 최종 QA PASS |
+| **6차** | CSS | 단일 CSS 내부 기능군 / Chart / Topbar 구조 재정리 | 내부 `1~4차` | 최종 누적 QA PASS |
+| **7차** | CSS | viewport 중심 재배치 + 7파일 역할 분리 | 내부 `1~5차` | **최종 QA PASS / 현재 canonical** |
+
+아래 상세 기록을 현재 구조를 되돌리는 명령으로 해석하지 않는다. 현재 유지보수 기준은 **4장 Architecture, 5장 CSS, 6장 JavaScript 규칙**을 우선한다.
+
+
+### 리팩토링 1차 · CSS 최적화 / canonical 구조 확립
+
+초기 대규모 CSS 정리 단계다.
 
 핵심:
 
-- 메인 CSS를 `css/style.css` 단일 canonical 파일로 정리
+- 메인 CSS를 당시 `css/style.css` 단일 canonical 파일로 정리
 - cascade / specificity 정리
 - 중복 selector / override 축소
 - 불필요한 `!important` 축소
@@ -4239,15 +4335,16 @@ Description: 주요 변경 내용을 간단히 설명
 - Topbar / Chart / Modal / Table / Tooltip 등 영역별 CSS 책임 정리
 - design token / theme 구조 정리
 
-이 단계 이후 CSS는:
+이 단계에서 확립된 핵심 원칙은 다음과 같다.
 
-> **새 patch를 파일 하단에 누적하기보다 기존 canonical rule을 직접 수정**
+> 새 patch를 파일 하단에 계속 누적하지 않고 기존 canonical rule을 우선 수정한다.
 
-하는 것이 기본 원칙이 됐다.
+당시 대표 구조 평가 snapshot은 이후 11.9에 별도로 보존한다.
 
-### 2번째 · JavaScript 5분할 리팩토링
 
-기존 통파일 JS를 다음 5개 책임 파일로 분리했다.
+### 리팩토링 2차 · JavaScript 5분할
+
+기존 통파일 JavaScript를 책임별 5파일로 분리했다.
 
 ```text
 dashboard-core.js
@@ -4259,65 +4356,49 @@ dashboard-app.js
 
 핵심:
 
-- 계산/data/state → core
-- chart → charts
-- 일반 UI → ui
-- 퇴직연금 → pension
-- orchestration/boot → app
+- 계산 / data / shared state → `core`
+- Chart → `charts`
+- 일반 UI → `ui`
+- 퇴직연금 → `pension`
+- boot / orchestration → `app`
 - inline event 의존 제거
 - event delegation 정리
 - 역할별 state / render / event 책임 분리
 
-### 3번째 · UI/UX 100점화 polish 작업
+이 단계는 이후 ES Module migration과 7모듈 구조 재정리의 기반이 되었다.
 
-`investment-dashboard-main 3.zip`을 UI 점수 비교 기준점으로 잡고 여러 차수의 수정:
+
+### 리팩토링 3차 · UI/UX polish · 17차 milestone
+
+`investment-dashboard-main 3.zip`을 당시 UI 비교 기준점으로 잡고 여러 작업 차수를 진행했다.
 
 ```text
 1차 → QA → 2차 → QA → ... → 17차
 ```
 
-를 진행했다.
+목표는 기능 추가가 아니라 다음 영역의 일관성과 완성도를 높이는 것이었다.
 
-당시 목표는 기능 추가가 아니라:
-
-- UI 구조
-- 공통 component
-- typography
-- color
-- spacing
-- radius
-- border
-- shadow
-- icon
-- buttons/forms
-- tables
-- charts
-- modal/tooltip
+- visual hierarchy
+- typography / color / spacing
+- radius / border / shadow
+- icon / button / form
+- card / table / chart
+- modal / tooltip
 - responsive
 - accessibility
-- theme consistency
+- light / dark theme consistency
+- information density / navigation / usability
 
-등을 점검하여 **당시 정의한 평가표 전체를 100점으로 만드는 것**이었다.
+17차 완료 시점에는 **당시 정의한 평가표 기준 전체 100점 milestone**을 기록했다.
 
-17차 완료 시점에는 당시 평가표 기준:
+단, 이 기록은 현재 소스의 영구 고정 점수가 아니다. 점수 상세 이력은 11.4~11.7에 따로 보존한다.
 
-```text
-UI 처리 항목 전체 100
-화면 영역별 전체 100
-최종 UI 점수 전체 100
-```
 
-을 기록했다.
+### 리팩토링 4차 · JavaScript ES Module migration
 
-단, 이 100점은 **당시 평가기준의 역사적 milestone**이다.
+2차에서 만든 5파일 책임 구조를 유지하면서 classic script의 암묵적 global / load-order dependency를 ES Module의 명시적 dependency로 전환했다.
 
-현재 최신 ZIP을 앞으로 재평가할 때 무조건 100점이라고 가정하지 않는다.
-
-### 4번째 · JavaScript ES Module migration
-
-5분할 구조는 유지하면서 classic script의 암묵적 global dependency를 ES Module의 명시적 dependency로 전환했다.
-
-진행:
+내부 작업 차수:
 
 ```text
 1차 · module 전환 전 dependency 정리
@@ -4332,22 +4413,22 @@ UI 처리 항목 전체 100
 
 최종 결과:
 
-- 명시적 import/export
+- 명시적 import / export
 - circular import 0
 - unresolved import 0
-- legacy global dependency 0
-- 임시 `window/globalThis` bridge 0
+- legacy global dependency 제거
+- 임시 `window/globalThis` bridge 제거
 - classic load-order dependency 제거
-- listener 중복 0
+- listener 중복 방지
 - 계산 baseline parity 유지
 - UI / Responsive parity 유지
 
 
-### 5번째 · JavaScript 3차 구조 리팩토링
+### 리팩토링 5차 · JavaScript ownership / encapsulation 구조 재정리
 
 ES Module 전환 후 독립 구조 평가에서 남은 결합도를 줄이기 위해 2026-08-18 진행했다.
 
-진행:
+내부 작업 차수:
 
 ```text
 1차 · module-private state 정리 + JSON/network 오류 경계 강화
@@ -4364,11 +4445,15 @@ ES Module 전환 후 독립 구조 평가에서 남은 결합도를 줄이기 �
 
 5차 · module별 action routing + app orchestration 최종 정리
 → QA PASS
+
+최종 누적 QA
+→ renderResultSummary() 누락 1건 복구
+→ 최종 QA PASS
 ```
 
 핵심 결과:
 
-- 5모듈 → 책임이 명확한 7모듈 구조
+- 5모듈 → 책임이 명확한 **7모듈** 구조
 - `dashboard-core.js` DOM 의존 제거
 - `chartState` / chart runtime state를 charts private로 이동
 - pension batch/runtime state를 editor private로 이동
@@ -4379,100 +4464,219 @@ ES Module 전환 후 독립 구조 평가에서 남은 결합도를 줄이기 �
 - public API 축소
 - 순환 dependency 없이 단일 entry 유지
 
-이 단계의 목적은 파일 수 자체가 아니라:
-
-> **각 모듈이 자기 상태·DOM·action을 스스로 소유하고 app은 cross-module orchestration에 집중하도록 만드는 것**
-
-이다.
-
-
-## 11.3 2026-08-18 JS 3차 리팩토링 당시 최종 QA PASS 기준선
-
-당시 메인 구조는 다음과 같았다.
+최종 구조:
 
 ```text
-investment-dashboard-main/
-├─ index.html
-├─ css/
-│  └─ style.css
-├─ js/
-│  ├─ dashboard-core.js
-│  ├─ dashboard-ui-common.js
-│  ├─ dashboard-charts.js
-│  ├─ dashboard-ui.js
-│  ├─ dashboard-pension.js
-│  ├─ dashboard-pension-editor.js
-│  └─ dashboard-app.js
-├─ data/
-│  ├─ portfolio.json
-│  ├─ prices.json
-│  ├─ performance_snapshots.json
-│  ├─ account1_daily_snapshots.json
-│  ├─ pension_contributions.json
-│  ├─ pension_cash_snapshots.json
-│  └─ pension_trades.json
-├─ scripts/
-│  └─ update_prices.py
-├─ add/
-│  ├─ calc.html
-│  ├─ css/
-│  │  ├─ common.css
-│  │  └─ calc.css
-│  ├─ js/
-│  │  └─ calc.js
-│  └─ report/
-├─ .github/workflows/
-├─ start-local-server.bat
-└─ README.md
+dashboard-core.js
+dashboard-ui-common.js
+dashboard-charts.js
+dashboard-ui.js
+dashboard-pension.js
+dashboard-pension-editor.js
+dashboard-app.js
 ```
 
-JS 3차 리팩토링 최종 QA PASS 기준 참고용 규모:
+목표는 파일 수 자체가 아니라 다음 상태를 만드는 것이었다.
 
-| 파일 | 줄 수 |
-|---|---:|
-| `dashboard-core.js` | 714 |
-| `dashboard-ui-common.js` | 129 |
-| `dashboard-charts.js` | 1,407 |
-| `dashboard-ui.js` | 883 |
-| `dashboard-pension.js` | 140 |
-| `dashboard-pension-editor.js` | 1,157 |
-| `dashboard-app.js` | 194 |
-
-이 수치는 최신본 여부를 의심할 때 참고하는 snapshot이지 고정값이 아니다.
-
-새 채팅에서 수치가 다르면 과거 ZIP으로 단정하지 말고 실제 diff와 Git 상태를 먼저 확인한다.
+> 각 모듈이 자기 state · DOM · action을 스스로 소유하고 app은 cross-module orchestration에 집중한다.
 
 
-## 11.4 2026-08-18 구조 리팩토링 완료 시점 기록
+### 리팩토링 6차 · CSS 기능군 구조 재정리 · 2026-08-19
 
-당시 완료 상태:
+당시에는 **단일 `css/style.css`를 유지한 상태**에서 기능군 탐색성과 source-order 설명을 개선했다. 현재는 7차에서 파일 구조가 변경되었으므로 이 단계는 역사 기록으로만 사용한다.
+
+내부 작업 차수:
 
 ```text
-✅ 1번째 CSS 구조 리팩토링 완료
-✅ 2번째 JS 5분할 리팩토링 완료
-✅ 3번째 UI/UX polish · 17차 역사적 100점 milestone 완료
-✅ 4번째 JS ES Module migration 완료
-   ├─ 1차 dependency 정리 → QA PASS
-   ├─ 2차 atomic ES Module 전환 → QA PASS
-   └─ 3차 cleanup → 최종 QA PASS
+1차 · Topbar / Navigation 통합
+- Date Action Menu
+- Navigation Primitives
+- Edge TOC
+- Topbar Layout
+- Tablet / Mobile Topbar
+→ QA PASS
 
-✅ 5번째 · JS 3차 구조 리팩토링 완료
-   ├─ 1차 private state / network 정리 → QA PASS
-   ├─ 2차 pension View / Editor 분리 → QA PASS
-   ├─ 3차 chart state ownership / encapsulation → QA PASS
-   ├─ 4차 core 순수화 / ui-common / public API 정리 → QA PASS
-   ├─ 5차 module action routing / app 최종 정리 → QA PASS
-   └─ 최종 QA에서 `renderResultSummary()` 누락 1건 복구 후 → 최종 QA PASS
+2차 · Chart 일반 영역 통합
+- Primitives / Tooltip
+- Core
+- Legend / Controls
+- Presentation / Compare
+- Tooltip Responsive
+- Motion / Entrance Animation
+→ QA PASS
+
+3차 · Chart 후속 영역 통합
+- Navigation
+- Expanded Chart
+- Expanded tooltip / hitbox
+- Phone Chart UI
+- Phone Chart Controls / Flow
+- Phone Allocation / Options
+→ QA PASS
+
+4차 · 최종 구조 마감
+- Role / Continuation Map
+- continuation / cross-cutting continuation 소속 명시
+- Chart 내부 중복 section header를 sub-role로 정리
+- source-order 의존 영역은 억지로 이동하지 않고 유지
+→ QA PASS
+
+최종 누적 QA → PASS
 ```
 
-따라서 현재 **7모듈 구조를 JS 3차 구조 리팩토링 완료 기준선으로 확정**한다.
+당시 최종 검증 snapshot:
 
-이후 JS 수정은 이 7모듈 구조와 각 모듈의 책임·state ownership·public API 경계를 보존하는 유지보수 작업으로 진행한다.
+```text
+CSS rules          814 → 814
+declarations       3,248 → 3,248
+!important         30 → 30
+selector 변경       0
+property/value 변경 0
+새 breakpoint       0
+```
 
-과거 `1차~17차` UI 작업이나 ES Module migration 차수를 다시 이어서 실행하지 않는다.
+대표 Desktop / Tablet / Mobile / phone-landscape / reduced-motion 및 Light / Dark 환경에서 최종 cascade 적용값 차이 **0건**을 확인했다.
+
+이 단계에서 사용한 `continuation` / `cross-cutting continuation` 표시는 source-order 또는 여러 기능 간 공통 책임 때문에 rule을 억지로 이동하지 않았음을 설명하는 역사적 표기다.
 
 
-## 11.5 UI/UX 점수 이력 ① `investment-dashboard-main 3.zip` 최초 기준
+### 리팩토링 7차 · CSS viewport 구조 재편 + 7파일 역할 분리 · 2026-08-21
+
+사용자가 실제 유지보수할 때 **웹 / 태블릿 / 모바일 단위로 CSS를 찾고 수정하기 쉽도록** 구조를 다시 설계했다.
+
+목표:
+
+- 기본 component CSS와 viewport CSS의 역할 분리
+- Desktop / Tablet / Mobile 수정 위치를 명확하게 고정
+- 특수 viewport는 숫자보다 **기능과 존재 이유**를 중심으로 관리
+- Interaction / Accessibility / Print를 일반 viewport와 분리
+- 5천 줄이 넘던 단일 CSS를 역할별 파일로 분리
+- 구조 변경 과정에서 디자인 값과 cascade는 유지
+
+내부 작업 차수:
+
+```text
+1차 · 74개 media block을 역할별 영역으로 재배치
+- Responsive Shared
+- Desktop
+- Tablet
+- Mobile
+- Special Viewports
+- Interaction / Device
+- Accessibility
+- Print
+→ QA PASS
+
+2차 · 동일 media condition 병합
+- 전체 @media 74 → 12
+- selector / declaration / condition / source-order 보존
+→ QA PASS
+
+3차 · Special / 환경 규칙 기능 기준 구조화
+- Account Performance ≤400
+- Asset Detail ≤1280
+- Phone UI Shared
+- Phone Landscape
+- Interaction / Accessibility / Print 존재 이유 명시
+→ QA PASS
+
+4차 · 실제 CSS 7파일 분리
+- common.css
+- desktop.css
+- tablet.css
+- mobile.css
+- special.css
+- interaction.css
+- print.css
+- index.html load order 확정
+- style.css는 QA용 rollback 기준으로만 임시 유지
+→ QA PASS
+
+5차 · 최종 cleanup
+- 미사용 style.css 제거
+- README / handover 7파일 canonical 구조 반영
+- 작업차수용 임시 주석 정리
+→ 최종 QA PASS
+```
+
+현재 canonical CSS 구조:
+
+```text
+css/
+├─ common.css
+├─ desktop.css
+├─ tablet.css
+├─ mobile.css
+├─ special.css
+├─ interaction.css
+└─ print.css
+```
+
+현재 load order:
+
+```text
+common
+→ desktop
+→ tablet
+→ mobile
+→ special
+→ interaction
+→ print
+```
+
+7차 최종 QA에서 4차 PASS본과 실행 CSS의 selector / property / value / media condition / source-order 동일성을 확인했고, 주요 경계 viewport, Phone Landscape, Dark, 상태 UI, Reduced Motion, Print까지 회귀가 없음을 확인했다.
+
+따라서 **리팩토링 7차 완료본이 현재 CSS canonical 기준선**이다.
+
+
+## 11.3 현재 리팩토링 완료 기준선
+
+현재 대규모 리팩토링 완료 상태를 한 번에 보면 다음과 같다.
+
+```text
+✅ 리팩토링 1차 · CSS 최적화 / canonical 정리
+✅ 리팩토링 2차 · JavaScript 5분할
+✅ 리팩토링 3차 · UI/UX polish · 17차 milestone
+✅ 리팩토링 4차 · JavaScript ES Module migration
+✅ 리팩토링 5차 · JavaScript ownership / 7모듈 구조 정리
+✅ 리팩토링 6차 · CSS 기능군 / Chart / Topbar 구조 정리
+✅ 리팩토링 7차 · CSS viewport 재편 / 7파일 분리
+```
+
+현재 메인 JavaScript 기준:
+
+```text
+js/
+├─ dashboard-core.js
+├─ dashboard-ui-common.js
+├─ dashboard-charts.js
+├─ dashboard-ui.js
+├─ dashboard-pension.js
+├─ dashboard-pension-editor.js
+└─ dashboard-app.js
+```
+
+현재 메인 CSS 기준:
+
+```text
+css/
+├─ common.css
+├─ desktop.css
+├─ tablet.css
+├─ mobile.css
+├─ special.css
+├─ interaction.css
+└─ print.css
+```
+
+현재 구조를 유지보수 기준선으로 사용하며, 과거 리팩토링 차수를 다시 이어서 실행하지 않는다.
+
+새로운 대규모 작업에서 사용자가 다시 `1차`, `2차`라고 요청하면 그것은 **새 작업의 내부 차수**다. 과거의 프로젝트 리팩토링 1~7차를 다시 수행한다는 뜻이 아니다.
+
+현재 구조별 세부 책임과 수정 위치는 4장, CSS 규칙은 5장, JavaScript 규칙은 6장을 따른다.
+
+
+## 11.4 UI/UX 점수 이력 ① `investment-dashboard-main 3.zip` 최초 기준
 
 `investment-dashboard-main 3.zip`은 UI 개선 이력의 최초 비교 기준점이다.
 
@@ -4549,7 +4753,7 @@ JS 3차 리팩토링 최종 QA PASS 기준 참고용 규모:
 | 전체 UI 종합 점수 | 95 |
 
 
-## 11.6 UI/UX 점수 이력 ② 2026-08-16 중간 QA 기준
+## 11.5 UI/UX 점수 이력 ② 2026-08-16 중간 QA 기준
 
 `main 3` 이후 누적 UI polish가 진행되고 17차 최종 100점화에 도달하기 전의 대표 중간 snapshot이다.
 
@@ -4624,7 +4828,7 @@ JS 3차 리팩토링 최종 QA PASS 기준 참고용 규모:
 | 전체 UI 종합 점수 | 97 |
 
 
-## 11.7 UI/UX 점수 이력 ③ 17차 최종 100점 milestone
+## 11.6 UI/UX 점수 이력 ③ 17차 최종 100점 milestone
 
 2026-08-17 `17차 작업 완료 기준`에서 당시 정의한 점수표 기준으로 최종 확인된 milestone:
 
@@ -4709,7 +4913,7 @@ Responsive quality         100
 이 기록은 **당시 UI 100점화 작업이 완료됐다는 역사적 기준**이다.
 
 
-## 11.8 `100점`은 현재 소스의 영구 고정 점수가 아니다
+## 11.7 `100점`은 현재 소스의 영구 고정 점수가 아니다
 
 17차의 전체 100점은 당시 평가기준과 당시 QA 결과다.
 
@@ -4742,18 +4946,18 @@ Responsive quality         100
 문제가 없다면 근거를 제시한 뒤 100을 줄 수 있다.
 
 
-## 11.9 JavaScript 구조 점수 변화 이력
+## 11.8 JavaScript 구조 점수 변화 이력
 
 JS 점수는 절대 품질 인증이 아니라 구조 변화 추적용 역사 기록이다.
 
 | 단계 | 역사적 평가 | 핵심 상태 |
 |---|---:|---|
 | 통파일 JS 시절 | **8.9 / 10** | 파일 규모와 implicit dependency, state/event/render 결합 부담 |
-| 5파일 책임 분리 완료 | **9.6 / 10** | core/charts/ui/pension/app 책임 분리 |
-| ES Module migration 완료 | **9.8 / 10** | import/export 명시화, 순환/global/load-order dependency 제거 |
-| JS 3차 구조 리팩토링 완료 | **10.0 / 10** | private state ownership, pension View/Editor, ui-common, action routing, public API 축소, 최종 QA PASS |
+| 리팩토링 2차 · 5파일 책임 분리 | **9.6 / 10** | core/charts/ui/pension/app 책임 분리 |
+| 리팩토링 4차 · ES Module migration | **9.8 / 10** | import/export 명시화, 순환/global/load-order dependency 제거 |
+| 리팩토링 5차 · ownership / 7모듈 구조 정리 | **10.0 / 10** | private state ownership, pension View/Editor, ui-common, action routing, public API 축소, 최종 QA PASS |
 
-이번 JS 3차 리팩토링은 단순히 파일을 더 쪼개 점수를 올리는 작업이 아니다.
+리팩토링 5차는 단순히 파일을 더 쪼개 점수를 올리는 작업이 아니었다.
 
 구조적 목표:
 
@@ -4777,14 +4981,22 @@ pension-editor
 app
 ```
 
-최종 QA에서 실제 회귀·dependency·API·state ownership을 다시 검증했고, `renderResultSummary()` 누락 1건을 복구한 뒤 최종 PASS했다. 현재 JS 구조 평가는 **10.0 / 10**으로 확정한다.
+최종 QA에서 실제 회귀·dependency·API·state ownership을 다시 검증했고, `renderResultSummary()` 누락 1건을 복구한 뒤 최종 PASS했다. **당시 역사적 JS 구조 평가는 10.0 / 10**을 기록했다.
 
 숫자 10점을 맞추기 위한 불필요한 파일 분할이나 framework 도입은 하지 않는다.
 
 
-## 11.10 CSS 구조 점수의 역사적 참고값
+## 11.9 CSS 구조 점수의 역사적 참고값
 
-CSS 1차 대규모 구조 정리 과정에서 기록된 대표 역사적 평가 snapshot:
+CSS 점수는 구조 변화 추적용 역사 기록이며 현재 소스의 영구 고정 점수가 아니다.
+
+| 단계 | 역사적 평가 | 핵심 상태 |
+|---|---:|---|
+| 리팩토링 1차 초기 대규모 CSS 구조 정리 | **93 / 100** | 단일 canonical CSS, 중복·specificity·responsive 정리 진행 |
+| 리팩토링 6차 · 2026-08-19 기능군 구조정리 | **100 / 100 milestone** | selector/value 유지, 기능군 탐색성과 source-order 설명 정리, 최종 누적 QA PASS |
+| 리팩토링 7차 · 2026-08-21 7파일 구조 분리 | **최종 QA PASS / 현재 canonical** | viewport·special·interaction·print 역할 파일 분리, 실행 CSS parity 유지 |
+
+리팩토링 1차 당시 대표 상세 snapshot:
 
 ```text
 CSS 최종 구조 점수   93 / 100
@@ -4798,146 +5010,32 @@ dark mode            96
 회귀 안정성           97
 ```
 
-이 값은 이후 UI polish와 추가 CSS 정리가 더 진행되기 전의 **역사적 구조 평가값**이다.
-
-현재 `style.css`의 고정 점수로 사용하지 않는다.
-
-현재 CSS 점수가 필요하면 최신 ZIP으로 다시 평가한다.
-
-2026-08-19에는 아래의 **CSS 1~4차 구조정리와 최종 누적 QA**가 완료되었고, 그 시점의 최신 기준선에서는 기존의 “기능군 CSS 분산” 감점 근거가 해소되어 CSS 구조/파일 구성·유지보수성·종합 평가가 모두 **100 / 100**으로 재평가되었다. 이는 영구 고정 점수가 아니라 해당 기준선의 milestone이며, 향후 실제 코드 변경이 있으면 최신 소스로 다시 평가한다.
-
-다만 앞으로 다음 사실만을 이유로 반복 감점하지 않는다.
+리팩토링 6차 당시 최종 구조 평가 milestone:
 
 ```text
-css/style.css가 단일 파일이라는 사실 자체
-source-order 때문에 의도적으로 남겨둔 continuation
-여러 기능이 공유하는 cross-cutting continuation
-동일 breakpoint 조건을 기능별 block에서 나누어 관리하는 구조
-```
-
-위 구조는 최신 CSS에서 소속과 유지 이유를 명시한 **의도된 유지보수 구조**다.
-
-
-## 11.11 2026-08-19 CSS 1~4차 구조정리 당시 최종 기준선
-
-메인 CSS는 계속 **`css/style.css` 단일 파일**을 유지한다. 이번 구조정리의 목적은 파일 분할이 아니라, 같은 기능군을 찾기 쉽게 모으고 source-order 때문에 이동하면 위험한 rule은 소속을 명확히 표시하는 것이었다.
-
-차수별 작업:
-
-```text
-1차
-Topbar / Navigation 통합
-- Date Action Menu
-- Navigation Primitives
-- Edge TOC
-- Topbar Layout
-- Tablet / Mobile Topbar
-
-2차
-Chart 일반 영역 통합
-- Primitives / Tooltip
-- Core
-- Legend / Controls
-- Presentation / Compare
-- Tooltip Responsive
-- Motion / Entrance Animation
-
-3차
-Chart 후속 영역 통합
-- Navigation
-- Expanded Chart
-- Expanded tooltip / hitbox
-- Phone Chart UI
-- Phone Chart Controls / Flow
-- Phone Allocation / Options
-
-4차
-최종 구조 마감
-- Role / Continuation Map
-- continuation / cross-cutting continuation 소속 명시
-- Chart 내부 중복 section header를 sub-role로 정리
-- source-order 의존 영역은 억지로 이동하지 않고 유지
-```
-
-당시 정리된 주요 탐색 구조:
-
-```text
-[03. Topbar / Navigation]
-Date Action
-→ Navigation Primitives
-→ Edge TOC
-→ Topbar Layout
-→ Tablet / Mobile
-
-[08. Charts]
-Primitives / Tooltip
-→ Core
-→ Presentation / Controls
-→ Motion / Animation
-→ Navigation
-→ Expanded Chart
-→ Phone Chart UI
-```
-
-그 밖의 기능은 실제 위치가 떨어져 있더라도 다음 표기를 통해 원 소속을 추적한다.
-
-```text
-continuation
-cross-cutting continuation
-```
-
-의미:
-
-- `continuation`: 같은 기능의 후속 rule이지만 source-order 또는 responsive 관계 때문에 현재 위치를 유지한다.
-- `cross-cutting continuation`: 여러 기능/공통 layout/print/browser 정책과 함께 적용되므로 한 기능 영역으로 억지 이동하지 않는다.
-- 이런 rule을 “분산되어 있다”는 이유만으로 다시 이동하지 않는다.
-
-최종 누적 QA 기준:
-
-```text
-1차 PASS
-2차 PASS
-3차 PASS
-4차 PASS
-최종 누적 QA PASS
-
-CSS rules          814 → 814
-declarations       3,248 → 3,248
-!important         30 → 30
-selector 변경       0
-property/value 변경 0
-새 breakpoint       0
-```
-
-1차 이전 기준본과 4차 최종본의 selector / declaration / media-context 의미 집합은 동일했고, 대표 Desktop / Tablet / Mobile / phone-landscape / reduced-motion 및 Light / Dark 환경에서 최종 cascade 적용값 차이도 **0건**으로 검증했다.
-
-`@media (min-width:1101px)` block 수가 기능 분리를 위해 늘어난 부분은 있지만 **새 breakpoint가 추가된 것이 아니며 기존 rule의 media condition은 유지**된다.
-
-최종 구조 평가 milestone:
-
-```text
-구조 / 파일 구성    100 / 100
+구조 / 파일 구성       100 / 100
 Cascade / Specificity 100 / 100
-Responsive          100 / 100
-Theme / Token       100 / 100
-Interaction CSS     100 / 100
-Dead / Legacy       100 / 100
-유지보수성           100 / 100
-CSS 종합            100 / 100
+Responsive             100 / 100
+Theme / Token          100 / 100
+Interaction CSS        100 / 100
+Dead / Legacy          100 / 100
+유지보수성              100 / 100
+CSS 종합               100 / 100
 ```
 
-이 점수를 유지하기 위해 CSS를 더 움직이는 것이 목표가 아니다. 앞으로는:
+이 값들은 해당 시점의 역사적 평가다. 현재 CSS 점수가 필요하면 최신 ZIP으로 처음부터 다시 평가한다.
 
-- 점수 목적의 추가 재배치 금지
-- 단일 CSS라는 이유만의 파일 분할 제안 금지
-- `continuation` / `cross-cutting continuation`을 단순 분산으로 다시 감점 금지
-- 실제 UI 회귀, cascade 충돌, dead code, 중복, 불필요한 specificity 등 **새로운 실질 문제를 최신 코드에서 확인한 경우에만** 수정 또는 감점
+다음 사실만으로 반복 감점하거나 재리팩토링하지 않는다.
 
-을 원칙으로 한다.
+- CSS 파일 개수 자체
+- source-order 때문에 의도적으로 유지되는 rule
+- 여러 기능이 공유하는 cross-cutting rule
+- QA PASS된 shared / special media 조건
+
+현재 CSS 운영 기준은 **리팩토링 7차의 7파일 구조**이며 세부 규칙은 5장을 따른다.
 
 
-
-### README와 handover 문서의 역할 분리
+## 11.10 README와 handover 문서의 역할 분리
 
 README는 **저장소의 기능·전체 동작 구조·프로젝트 구조·데이터/갱신 방식·실행/배포 개요**를 설명하는 문서로 유지한다.
 
@@ -4957,6 +5055,7 @@ README는 **저장소의 기능·전체 동작 구조·프로젝트 구조·데�
 - README는 사용자·저장소 관점의 개요를 우선하고, 상세 작업 규칙은 handover MD로 연결한다.
 - 상세 유지보수 규칙이 변경되어도 README 내용까지 같이 수정해야 하는 구조를 만들지 않는다.
 - README에 반드시 필요한 운영 개요가 아니라면 handover MD에만 기록한다.
+
 
 # 12. 최종 운영 원칙 · 체크리스트
 

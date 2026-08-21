@@ -1,0 +1,162 @@
+/* =========================================================
+   Tablet · 태블릿 (761px ~ 1100px)
+   - 태블릿 전용 media query 모음
+   ========================================================= */
+
+/* Hero Tablet · 핵심요약 태블릿: 카드 여백·제목·요약 pill을 한 단계 축소 */
+
+@media (min-width:761px) and (max-width:1100px){
+    .hero{
+      --hero-pad-y:18px;
+      --hero-pad-x:20px;
+      --hero-radius:18px;
+      --hero-title-size:25px;
+      --hero-title-line:1.15;
+      --hero-title-gap-y:6px;
+      --hero-title-gap-x:7px;
+      --hero-basis-size:12.5px;
+      --hero-pill-margin-top:9px;
+      --hero-pill-gap:6px;
+      --hero-pill-pad-y:5px;
+      --hero-pill-pad-x:8px;
+      --hero-pill-size:11.5px;
+      --hero-pill-line:1.28;
+      --hero-decor-size:240px;
+      --hero-decor-right:-72px;
+      --hero-decor-top:-70px;
+    }
+
+    .mini-card{
+      --mini-card-pad-y:10px;
+      --mini-card-pad-x:10px;
+      --mini-label-size:11px;
+      --mini-value-size:17px;
+      --mini-detail-size:10.5px;
+    }
+
+    .asset-contribution-empty-state{font-size:var(--type-size-sm)}
+
+  /* Asset Insight Label Responsive · viewport별 type token 단계 적용 */
+    .asset-insight-head h3{
+      font-size:var(--type-size-lg);
+    }
+
+  /* Six Summary Cards · 6개 요약카드: 웹 6열 → 태블릿 3열 → 모바일 2열, 실제 폰 가로 3열 */
+    .chart-note.six{
+      gap:var(--space-2xl);
+      grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+
+  /* Metric Cards Responsive · 핵심지표 카드 반응형: 태블릿/모바일에서 타이포·여백 단계 축소 */
+    .metric-card{
+      --metric-label-size:12px;
+      --metric-value-size:24px;
+      --metric-sub-size:12px;
+      --metric-label-gap:6px;
+      --metric-sub-gap:4px;
+    }
+
+    .metric-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .metric-grid > .metric-card{
+      padding:var(--space-6xl);
+    }
+
+    .metric-grid > .metric-card .value{
+      min-height:30px;
+    }
+
+    .chart-note.symbol-summary-grid{
+      --symbol-metric-label-size:10px;
+      --symbol-metric-value-size:11px;
+      --symbol-metric-gap:7px;
+      gap:var(--space-2xl);
+    }
+
+    .mini-card .alloc-ratio-meta{font-size:10.5px}
+    .mini-card .alloc-cash-meta{font-size:9.5px}
+
+  /* [07. Pension · continuation] Pension Allocation Responsive · 퇴직연금 평가금액 비중: 웹/태블릿 4열, 모바일 2열 */
+    #pension-chart-alloc .chart-note{
+      grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+
+  /* Securities Allocation Responsive · 증권 평가금액 비중: 태블릿 4열, 모바일 2열 + 총액 full row */
+    #securityAllocCards.security-alloc-card-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    #securityAllocCards.security-alloc-card-grid:has(> .alloc-total-card-wide){
+      grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+    #securityAllocCards > .alloc-total-card:not(.alloc-total-card-wide){
+      grid-column:1 / -1;
+    }
+
+  /* Tablet Integration · 태블릿 통합: 차트 control, 종목요약/KPI, 투자기간 차트, 원천/검산 */
+    .chart-card.has-horizontal-scroll .chart-scroll-row{
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap:var(--space-md);
+      min-height:27px;
+      margin:var(--space-2xs) 1px var(--space-md);
+    }
+    .chart-card.has-horizontal-scroll .chart-scroll-start,
+    .chart-card.has-horizontal-scroll .chart-scroll-end{
+      --chart-square-size:27px;
+      display:inline-flex;
+      border-radius:min(8px,var(--corner-control-cap));
+      font-size:var(--type-size-2xl);
+      font-weight:var(--type-weight-emphasis);
+    }
+
+    #chart-symbol .chart-note.symbol-summary-grid{
+      gap:var(--space-xl);
+    }
+
+    .asset-change-note .change-kpis{
+      grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+
+    #pension-investment-analysis .chart-wrap,
+    #investment-analysis .chart-wrap{
+      overflow-x:hidden;
+    }
+    #pension-investment-analysis .chart-wrap svg.chart,
+    #investment-analysis .chart-wrap svg.chart{
+      width:100%;
+      min-width:100%;
+    }
+
+    #capital-source-check .source-grid{
+      grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+    #capital-source-check .source-card{
+      min-width:0;
+    }
+
+  /* Edge TOC Tablet · 태블릿 우측 목차: 본문 침범을 줄이는 compact trigger */
+    .desktop-edge-toc{right:8px}
+    .desktop-edge-toc-trigger{width:30px;min-width:30px;height:60px;padding:var(--space-lg) 0;font-size:var(--type-size-2xs)}
+    .desktop-edge-toc-panel{right:38px}
+
+  /* Topbar Tablet · 상단바 태블릿: 날짜 select는 웹과 동일, 우측 action만 compact */
+    .topbar-label-full{display:none}
+    .topbar-label-short{display:inline}
+    .switcher{padding-left:var(--space-2xl);padding-right:var(--space-2xl)}
+    .date-picker-action{gap:var(--space-md)}
+    .date-tool-btn{padding-left:var(--space-xl);padding-right:var(--space-xl);gap:var(--space-2xs);font-size:var(--type-size-2xs)}
+    .date-tool-action-icon{margin-right:var(--space-2xs)}
+
+  /* Data Tables Tablet · 데이터 표 태블릿: 열 구조 유지 + font/padding 축소 */
+    .dashboard-data-table{
+      --data-table-font-size:var(--type-size-sm);
+      --data-table-cell-y:6px;
+      --data-table-cell-x:7px;
+      --data-table-line-height:var(--type-line-compact);
+      --data-table-bar-width:64px;
+    }
+}
+

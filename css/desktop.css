@@ -1,0 +1,55 @@
+/* =========================================================
+   Desktop · 웹 (≥1101px)
+   - 웹 전용 media query 모음
+   ========================================================= */
+
+@media (min-width:1101px){
+    .chart-expanded-overlay.desktop-expanded .chart-expanded-stage{
+      width:100%;
+      height:100%;
+      transform:none;
+      gap:var(--space-4xl);
+      padding:20px 68px var(--space-7xl) var(--space-10xl);
+    }
+    .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-expanded-title-heading{
+      font-size:var(--type-size-4xl);
+      gap:var(--space-3xl);
+    }
+    .chart-expanded-overlay.desktop-expanded .chart-expanded-title .chart-title-sub{
+      font-size:var(--type-size-sm);
+    }
+    .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend{
+      column-gap:var(--space-6xl);
+    }
+    .chart-expanded-overlay.desktop-expanded .chart-expanded-legend-host .chart-legend-series{
+      gap:var(--space-xl) var(--space-6xl);
+    }
+
+  /* Action modal Light/Dark surface, text and input colors resolve through modal tokens. */
+  /* [08. Charts · cross-cutting continuation] Chart Desktop · .wrap과 source-order를 공유하므로 이 위치 유지 */
+    .wrap{
+      padding-top:var(--space-9xl);
+    }
+
+    .chart-wrap{
+      overflow-x:hidden;
+    }
+
+    svg.chart{
+      min-width:100%;
+      height:360px;
+    }
+
+    /* Ledger Check Desktop · 장부결과 웹: 결론 / A / B를 동일 폭 3열로 배치 */
+    #ledger-check .ledger-overview-grid{
+      grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+    #ledger-check .ledger-conclusion-card{
+      grid-column:auto;
+      grid-template-columns:1fr;
+      gap:var(--space-4xl);
+    }
+    #ledger-check .ledger-conclusion-inline-reason{display:block}
+    #ledger-check .ledger-conclusion-reason{display:none}
+}
+

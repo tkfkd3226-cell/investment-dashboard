@@ -137,7 +137,13 @@ performance_snapshots.json
 investment-dashboard-main/
 ├─ index.html
 ├─ css/
-│  └─ style.css
+│  ├─ common.css
+│  ├─ desktop.css
+│  ├─ tablet.css
+│  ├─ mobile.css
+│  ├─ special.css
+│  ├─ interaction.css
+│  └─ print.css
 ├─ js/
 │  ├─ dashboard-core.js
 │  ├─ dashboard-ui-common.js
@@ -241,13 +247,23 @@ dashboard-app.js
 
 ### 4.4 CSS / Responsive
 
-메인 대시보드 CSS는 다음 단일 파일을 사용합니다.
+메인 대시보드 CSS는 **7개 역할 파일**로 분리합니다.
 
 ```text
-css/style.css
+css/common.css       # 공통 변수·기본 컴포넌트·Responsive Shared
+css/desktop.css      # Desktop ≥1101px
+css/tablet.css       # Tablet 761~1100px
+css/mobile.css       # Mobile ≤760px
+css/special.css      # 기능상 필요한 특수 viewport
+css/interaction.css  # hover/pointer/reduced-motion
+css/print.css        # 인쇄 전용
 ```
 
-역할별 CSS 파일을 추가로 나누지 않고, 각 기능 섹션 안에서 기본 규칙과 반응형 규칙을 함께 관리합니다.
+`index.html`의 CSS load order는 다음 순서를 유지합니다. 이 순서가 cascade order이므로 임의로 바꾸지 않습니다.
+
+```text
+common → desktop → tablet → mobile → special → interaction → print
+```
 
 기본 viewport 기준:
 
@@ -261,7 +277,7 @@ Mobile  : 760px 이하
 
 유지보수 시 기본 원칙:
 
-- canonical selector를 직접 수정
+- 해당 역할 파일의 canonical selector를 직접 수정
 - 후행 `final override` 누적 금지
 - 불필요한 `!important` 추가 금지
 - 임의의 신규 breakpoint 남발 금지

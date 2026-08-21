@@ -27,7 +27,21 @@
   })();
 </script>
 <script>
-  document.write('<link rel="stylesheet" href="css/style.css?v=' + Date.now() + '">');
+  (function(){
+    const version=Date.now();
+    const cssFiles=[
+      'common.css',
+      'desktop.css',
+      'tablet.css',
+      'mobile.css',
+      'special.css',
+      'interaction.css',
+      'print.css'
+    ];
+    cssFiles.forEach(file=>{
+      document.write('<link rel="stylesheet" href="css/'+file+'?v='+version+'">');
+    });
+  })();
 </script>
 </head>
 <body>

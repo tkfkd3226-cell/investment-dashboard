@@ -1,0 +1,83 @@
+/* =========================================================
+   Interaction / Device · 입력장치 / 기기 특성
+   viewport가 아니라 입력장치 능력으로 분기한다.
+   Fine Pointer Hover · 마우스/트랙패드에서만 hover 피드백을 활성화해
+   터치 기기의 sticky hover를 피한다.
+   ========================================================= */
+
+@media (hover:hover) and (pointer:fine){
+    .card:hover,
+    .note:hover,
+    .asset-insight-card:hover,
+    .mini-card:hover{
+      transform:translateY(-2px);
+      box-shadow:var(--shadow-hover-surface);
+      border-color:var(--interaction-border-accent);
+    }
+
+    .pill:hover{
+      transform:translateY(-1px);
+      background:var(--hero-pill-hover-bg);
+    }
+
+    .table-view > .dashboard-data-table:not(.source-data-table) tbody tr:not(.summary-row):hover > :is(th,td){
+      background:var(--interaction-row-bg);
+    }
+
+    .date-tool-btn:hover,
+    .date-action-menu.mobile-combined-menu .mobile-nav-item:hover{
+      transform:translateY(-1px);
+    }
+
+    :is(
+      button.legend-item.chart-series-all,
+      .chart-y-auto-toggle,
+      .pension-batch-clear,
+      .pension-batch-item-actions button,
+      .chart-scroll-start,
+      .chart-scroll-end,
+      .chart-expand-button,
+      .chart-web-expand-button,
+      .mobile-view-toggle
+    ):not(:disabled):hover{
+      border-color:var(--control-border-hover);
+    }
+
+    button:not(:disabled):hover,
+    .btn:not(:disabled):hover{
+      transform:translateY(-1px);
+    }
+}
+
+/* =========================================================
+   Accessibility · 접근성
+   Reduced Motion · 사용자의 OS 모션 감소 설정을 viewport/일반 component animation보다
+   우선 적용하고, 차트는 애니메이션 없이 완성 상태로 즉시 표시한다.
+   ========================================================= */
+
+/* Charts · 차트: SVG animation과 시작 상태를 강제로 해제 */
+
+@media (prefers-reduced-motion:reduce){
+    .chart-card .chart-anim-bar,
+    .chart-card .chart-anim-point,
+    .chart-card .chart-anim-line{
+      animation:none !important;
+      opacity:1 !important;
+      transform:none !important;
+      stroke-dashoffset:0 !important;
+    }
+
+  /* Components · 공통 component: transition보다 사용자 접근성 설정이 우선하므로 important 유지 */
+    .card,
+    .note,
+    .chart-card,
+    .asset-insight-card,
+    .mini-card,
+    .date-tool-btn,
+    .pill,
+    button,
+    .btn{
+      transition:none !important;
+    }
+}
+
