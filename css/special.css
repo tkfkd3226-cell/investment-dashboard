@@ -116,7 +116,7 @@
    각 표의 가용폭이 부족해져 내부 가로 스크롤이 생기므로 공통 상세 grid를 1열로 전환한다.
    Scope · 범위: 증권/퇴직연금이 공유하는 .asset-detail-grid에만 적용한다.
    ------------------------------------------------------------------------- */
-@media (max-width:1280px){
+@media (min-width:1101px) and (max-width:1280px){
     .asset-detail-grid{
       grid-template-columns:1fr;
     }
@@ -437,7 +437,7 @@
     pointer-events:auto;
   }
   .date-tool-icon{font-size:var(--type-size-xl);line-height:1}
-.date-tool-icon svg{display:block;width:17px;height:17px}
+  .date-tool-icon svg{display:block;width:17px;height:17px}
   .date-tool-menu-label{display:none}
 
   .switcher:is(.mobile-menu-open,.mobile-date-pinned){
@@ -511,7 +511,7 @@
   .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px;color:var(--nav-muted);font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);line-height:25px}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);font-size:var(--type-size-4xl);line-height:1;cursor:pointer}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:var(--nav-surface-hover);color:var(--nav-text)}
-.date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:16px;height:16px;margin:auto}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:16px;height:16px;margin:auto}
   .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:var(--space-sm) 0 0;padding:var(--space-sm) 0 0;border-top:1px solid var(--nav-divider)}
   .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{margin-top:0;padding-top:0;border-top:0}
   .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:var(--space-2xs) var(--space-lg);color:var(--nav-muted);font-size:9.5px;font-weight:var(--type-weight-semibold);letter-spacing:0;line-height:14px}
@@ -569,7 +569,6 @@
       grid-template-columns:repeat(4,minmax(0,1fr));
     }
     #securityAllocCards > .alloc-total-card:not(.alloc-total-card-wide){grid-column:1 / -1}
-    #securityAllocCards > .alloc-total-card-wide{grid-column:span 2}
 
   /* Capital Source · 3개 원천카드는 한 행, 내부 밀도는 Shared compact 사용 */
     #capital-source-check .source-grid{
@@ -590,7 +589,6 @@
     #ledger-check .ledger-conclusion-reason{
       display:block;
       padding:0 0 0 var(--space-5xl);
-      border-left:1px solid var(--line);
       border-top:0;
     }
 
@@ -619,14 +617,12 @@
       border-right:0;
     }
     svg.chart{
-      width:100%;
       min-width:100%;
       height:clamp(235px,64dvh,270px);
     }
     .chart-card > .chart-legend{margin-top:var(--space-md)}
     .chart-card .chart-scroll-start,
     .chart-card .chart-scroll-end{display:none}
-    .chart-web-expand-button{display:inline-flex}
 
   /* Modal Landscape · 중앙형 구조 복원 + iPhone Safari 확대 방지 입력 폰트 */
     .action-modal{align-items:center;padding:20px}
@@ -634,13 +630,12 @@
     .action-modal-input{font-size:var(--type-size-2xl)}
     .krx-action-buttons{gap:var(--space-2xl)}
     .krx-action-buttons .action-modal-btn{min-height:40px;height:40px;padding:0 var(--space-4xl);font-size:var(--type-size-sm)}
-    .contrib-modal{--contrib-control-font-size:var(--type-size-2xl);align-items:center;padding:var(--space-8xl)}
+    .contrib-modal{--contrib-control-font-size:var(--type-size-2xl)}
     .contrib-modal-card{width:min(760px,100%);padding:var(--space-8xl)}
     .contrib-modal .pension-adjust-form{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .contrib-existing-list{max-height:96px}
     .contrib-existing-item{padding:var(--space-3xl) var(--space-4xl)}
-    .contrib-existing-title{display:inline-block;margin:0 var(--space-4xl) 0 0;vertical-align:baseline;font-size:var(--type-size-md);font-weight:var(--type-weight-emphasis);line-height:normal}
-    .contrib-existing-memo{display:inline-block;margin:0 0 0 var(--space-2xs);vertical-align:baseline;font-size:var(--type-size-sm);font-weight:var(--type-weight-bold);line-height:normal}
+    .contrib-existing-title{display:inline-block;margin-right:var(--space-4xl);font-size:var(--type-size-md);line-height:normal}
+    .contrib-existing-memo{display:inline-block;margin:0 0 0 var(--space-2xs);font-size:var(--type-size-sm);line-height:normal}
     .contrib-target-option{padding:var(--space-xl) var(--space-3xl);font-size:var(--type-size-md)}
     .pension-etf-trade-preview-grid{grid-template-columns:minmax(110px,.8fr) minmax(0,1.2fr);gap:var(--space-xl) var(--space-5xl)}
     .pension-etf-trade-preview-grid strong{margin-bottom:0;text-align:right}

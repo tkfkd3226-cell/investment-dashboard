@@ -37,6 +37,7 @@ import {
   escapeHtml,
   navIconSvg,
   pensionProductSwatch,
+  phoneLandscapeUi,
   releaseDashboardDialogFocus,
   securitySymbolSwatch
 } from './dashboard-ui-common.js';
@@ -157,10 +158,6 @@ function toggleChartTitleInfo(event,button){
   closeChartTitleInfo(button);
   button.classList.toggle('open',open);
   button.setAttribute('aria-expanded',String(open));
-}
-const PHONE_LANDSCAPE_QUERY='(orientation: landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
-function phoneLandscapeUi(){
-  return window.matchMedia?.(PHONE_LANDSCAPE_QUERY).matches===true;
 }
 function compactPhoneChartUi(){
   return window.matchMedia?.('(max-width:760px)').matches===true||phoneLandscapeUi();
@@ -399,11 +396,8 @@ function setupResponsiveChartControls(){
   },{passive:true});
 }
 
-function chartEntrancePhoneLandscape(){
-  return phoneLandscapeUi();
-}
 function activatePendingChartEntrancesForPhoneLandscape(){
-  if(!chartEntrancePhoneLandscape())return;
+  if(!phoneLandscapeUi())return;
   document.querySelectorAll('.chart-card .chart-wrap').forEach(activateChartEntrance);
 }
 function chartEntranceDataElements(svg){
@@ -483,7 +477,7 @@ function setupChartEntranceAnimations(){
     window.addEventListener('resize',syncLandscapeEntrance,{passive:true});
     window.addEventListener('orientationchange',syncLandscapeEntrance,{passive:true});
   }
-  if(chartEntrancePhoneLandscape()||!('IntersectionObserver' in window)){
+  if(phoneLandscapeUi()||!('IntersectionObserver' in window)){
     wraps.forEach(activateChartEntrance);
     return;
   }
@@ -1428,8 +1422,6 @@ function drawInactiveChartsForPrint(){
     drawPensionStacked();
   }
 }
-
-
 
 export {
   drawAllCharts,

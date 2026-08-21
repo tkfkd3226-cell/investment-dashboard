@@ -17,14 +17,11 @@
       --hero-title-gap-x:7px;
       --hero-basis-size:12.5px;
       --hero-pill-margin-top:9px;
-      --hero-pill-gap:6px;
-      --hero-pill-pad-y:5px;
       --hero-pill-pad-x:8px;
       --hero-pill-size:11.5px;
       --hero-pill-line:1.28;
       --hero-decor-size:240px;
       --hero-decor-right:-72px;
-      --hero-decor-top:-70px;
     }
 
     .mini-card{
@@ -79,7 +76,7 @@
     .mini-card .alloc-ratio-meta{font-size:10.5px}
     .mini-card .alloc-cash-meta{font-size:9.5px}
 
-  /* [07. Pension · continuation] Pension Allocation Responsive · 퇴직연금 평가금액 비중: 웹/태블릿 4열, 모바일 2열 */
+  /* Pension Allocation Responsive · 퇴직연금 평가금액 비중: 웹/태블릿 4열, 모바일 2열 */
     #pension-chart-alloc .chart-note{
       grid-template-columns:repeat(4,minmax(0,1fr));
     }
@@ -195,7 +192,6 @@
     .dashboard-data-table{
       --data-table-font-size:var(--type-size-sm);
       --data-table-cell-y:6px;
-      --data-table-cell-x:7px;
       --data-table-line-height:var(--type-line-compact);
       --data-table-bar-width:64px;
     }

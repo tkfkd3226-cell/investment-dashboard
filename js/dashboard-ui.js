@@ -33,6 +33,7 @@ import {
   escapeHtml,
   mobileTableAssetName,
   navIconSvg,
+  phoneLandscapeUi,
   releaseDashboardDialogFocus,
   renderAssetContributionCard,
   renderAssetDayChangeBlock,
@@ -107,8 +108,6 @@ function setCornerTheme(theme){
   syncCornerThemeControls();
 }
 function toggleCornerTheme(){setCornerTheme(currentCornerTheme()==='rounded'?'soft-square':'rounded')}
-
-
 
 const separateProfitToggle=()=>`<button type="button" class="section-control-chip section-action-chip separate-profit-toggle ${uiState.includeSeparateProfit?'active':''}" aria-pressed="${uiState.includeSeparateProfit}" data-dashboard-action="toggle-separate-profit"><span>별도수익</span><strong>${uiState.includeSeparateProfit?'ON':'OFF'}</strong></button>`;
 const separateProfitControl=(x,extraClass='')=>{
@@ -224,9 +223,6 @@ function renderDesktopTocContent(){
 }
 function renderTabletTocMenuContent(){
   return dashboardTocGroups().map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map(item=>`<button type="button" class="mobile-nav-item" data-dashboard-action="jump-section" data-section-target="${item.id}" data-close-date-menu="true"><span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span></button>`).join('')}</div>`).join('');
-}
-function phoneLandscapeUi(){
-  return window.matchMedia?.('(orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)').matches===true;
 }
 function mobileTopbarUi(){
   return window.matchMedia?.('(max-width:760px)').matches===true||phoneLandscapeUi();

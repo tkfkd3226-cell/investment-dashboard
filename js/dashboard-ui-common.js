@@ -7,6 +7,11 @@ import {
 
 // 여러 UI 모듈이 공유하는 저수준 DOM · 접근성 · 마크업 helper
 
+const PHONE_LANDSCAPE_QUERY='(orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
+function phoneLandscapeUi(){
+  return window.matchMedia?.(PHONE_LANDSCAPE_QUERY).matches===true;
+}
+
 const dashboardDialogFocusState=new WeakMap();
 function dashboardElementVisible(el){
   if(!el||!el.isConnected||el.disabled)return false;
@@ -377,6 +382,7 @@ export {
   mobileTableAssetName,
   navIconSvg,
   pensionProductSwatch,
+  phoneLandscapeUi,
   releaseDashboardDialogFocus,
   securitySymbolSwatch,
   setupAssetVizTooltips

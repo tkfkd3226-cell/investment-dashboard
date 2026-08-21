@@ -27,7 +27,6 @@
     }
 
   /* Section Controls Mobile · 섹션 제목 모바일: 제목/chip 크기를 줄여 한 줄 배치 우선 */
-    .section-title{align-items:flex-end}
     .securities-summary-block .chart-head-actions > [data-accounts-view-toggle-wrap]:not([hidden]){display:inline-flex;order:-1}
     .section-title > .section-control-chip,
     .section-title > .section-title-actions,
@@ -186,7 +185,6 @@
       padding:var(--space-4xl) var(--space-2xl);
     }
 
-  /* Blocked alert text resolves through --status-danger-soft-text. */
     .contrib-target-option{
       padding:var(--space-xl) var(--space-sm);
       font-size:var(--type-size-xs);
@@ -206,14 +204,11 @@
       text-align:left;
     }
 
-  /* Source highlight Light/Dark colors resolve through source-highlight tokens. */
-
   /* Capital Source Responsive · 투자원금 원천/검산: 모바일 1열, 태블릿 3열 */
     .source-grid{
       gap:var(--space-5xl);
     }
 
-  /* Pension Action PIN Modal · 퇴직연금 작업 PIN 모달: 공통 Action Modal component 사용 */
   /* Action Modals Mobile · KRX/PIN 모바일: 공통 bottom-sheet */
     .action-modal{
       align-items:flex-end;
@@ -266,14 +261,7 @@
     [id]{scroll-margin-top:52px}
 
     #ledger-check .ledger-overview-grid{grid-template-columns:1fr}
-    #ledger-check .ledger-conclusion-card{
-      grid-column:auto;
-      grid-template-columns:1fr;
-      gap:var(--space-4xl);
-      padding:var(--space-5xl);
-    }
-    #ledger-check .ledger-conclusion-inline-reason{display:block}
-    #ledger-check .ledger-conclusion-reason{display:none}
+    #ledger-check .ledger-conclusion-card{padding:var(--space-5xl)}
 
     .chart-head > div{min-width:0}
 

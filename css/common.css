@@ -2041,7 +2041,7 @@ body.chart-expanded-open .dash-tooltip{
   word-break:normal;
 }
 
-/* [04. Common Cards / Components · continuation] Metric Cards · 핵심지표 카드: 공통 타이포와 대표 viewport grid 사용 */
+/* Metric Cards · 핵심지표 카드: 공통 타이포와 대표 viewport grid 사용 */
 
 /* [04. Common Cards / Components · 공통 카드 / 컴포넌트] Common Metrics · 공통 핵심지표 */
 .metric-card{
@@ -2116,7 +2116,7 @@ body.chart-expanded-open .dash-tooltip{
 .cash-basis-note-mark{color:var(--value-positive);font-weight:var(--type-weight-strong)}
 .cash-basis-note-sup{font-size:.72em;margin-left:var(--space-2xs);line-height:0}
 
-/* [04. Common Cards / Components · continuation] Section Controls · 섹션 제목 control: 기준, 별도수익 상태, 표/카드 전환 chip */
+/* Section Controls · 섹션 제목 control: 기준, 별도수익 상태, 표/카드 전환 chip */
 .section-control-chip{
   display:inline-flex;
   align-items:center;
@@ -2368,11 +2368,7 @@ body.contrib-modal-open{
   font-weight:var(--type-weight-strong);
   line-height:normal;
 }
-/*
-  iOS Safari native date control 예외
-  - date input은 WebKit 내부 native control이 일반 input의 font/padding을 덮어쓸 수 있다.
-  - 2차 최소화에서 !important 제거 후 일반 cascade로 동일 스타일을 유지했고, 실제 iPhone Safari 수동 QA까지 PASS했다.
-*/
+/* iOS Safari native date control 예외 · WebKit 내부 control이 일반 input의 font/padding을 덮어쓸 수 있어 명시적으로 고정한다. */
 .contrib-modal input[type="date"]{
   -webkit-appearance:none;
   appearance:none;
@@ -2648,7 +2644,7 @@ body.contrib-modal-open{
   letter-spacing:-.02em;
 }
 
-/* [06. Securities / Asset Workspace · continuation] Securities Summary Spacing · 증권계좌 KPI 상단 간격 */
+/* Securities Summary Spacing · 증권계좌 KPI 상단 간격 */
 .securities-summary-block .cards{
   margin-top:0;
 }
@@ -2696,7 +2692,7 @@ body.contrib-modal-open{
   grid-template-columns:repeat(2,minmax(0,1fr));
 }
 
-/* [06. Securities / Asset Workspace · continuation] Securities Allocation · 증권 평가금액 비중: 유형/종목별 카드 배치 정책 */
+/* Securities Allocation · 증권 평가금액 비중: 유형/종목별 카드 배치 정책 */
 #securityAllocCards.security-alloc-card-grid{
   grid-template-columns:repeat(var(--security-alloc-card-count,4),minmax(0,1fr));
 }
@@ -3208,7 +3204,7 @@ button:not(:disabled):active,
 /* Semantic Value Colors · 의미 색상: 수익/양수 빨강, 손실/음수 파랑 */
 /*
   의미 색상 utility
-  - 현재 cascade에서 semantic selector가 일반 text color보다 우선하므로 !important 없이 유지한다.
+  - 현재 cascade에서 semantic selector가 일반 text color보다 우선하므로 별도 우선순위 강제 없이 유지한다.
   - 이후 디자인 변경 시 충돌이 생기면 specificity/선언 순서를 먼저 정리한다.
 */
 .positive,
@@ -3603,13 +3599,9 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 :is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon) svg{display:block}
 
 /* Edge TOC · 우측 목차: 웹 전용 hover·focus 목차 / Tablet·Phone은 Topbar hamburger 사용 */
-
-/* [03. Topbar / Navigation · 상단바 / 내비게이션] Edge TOC · 우측 목차 */
 .desktop-edge-toc{display:none}
 
-/* Topbar Responsive · 상단바: 웹 기본 / Tablet action+TOC hamburger / Phone 세로·가로 동일 Mobile Topbar */
-
-/* [03. Topbar / Navigation · 상단바 / 내비게이션] Topbar Layout · 상단바 레이아웃 */
+/* Topbar Layout · 웹 기본 / Tablet action+TOC hamburger / Phone 세로·가로 동일 Mobile Topbar */
 .switcher{
   position:sticky;
   top:0;
@@ -3715,7 +3707,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .date-action-menu-wrap,
 .topbar-label-short{display:none}
 
-/* [05. Tables / Forms · continuation] Data Tables · 데이터 표: 웹/태블릿 table, 폰 UI table↔card 전환 */
+/* Data Tables · 데이터 표: 웹/태블릿 table, 폰 UI table↔card 전환 */
 
 /* [05. Tables / Forms · 테이블 / 입력 폼] Data Table / Mobile Card · 데이터 표 / 모바일 카드 */
 .mobile-scroll{
@@ -3820,7 +3812,6 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
    Responsive Shared · 반응형 공통
    - Tablet + Mobile: max-width:1100px
    - Tablet + Desktop + Phone Landscape: min-width:761px 또는 실제 가로폰
-   - 동일 media query 조건 병합 완료 · 2차
    ========================================================= */
 
 @media (min-width:761px),
@@ -3835,9 +3826,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 }
 
 @media (min-width:1101px){
-  /* Edge TOC Desktop · 웹 우측 hover/focus 목차 */
-    /* 웹(≥1101px)만 우측 edge TOC를 사용한다. */
-
+  /* Edge TOC Desktop · 웹(≥1101px) 우측 hover/focus 목차 */
     .desktop-edge-toc{
       position:fixed;
       top:50%;
@@ -3990,8 +3979,6 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
     .value{
       font-size:var(--type-size-display-sm);
     }
-
-
 
   /* Asset Tooltip Responsive · 공통 자산 tooltip: 1100px 이하에서 viewport 이탈 방지 */
     .asset-viz-tooltip,
