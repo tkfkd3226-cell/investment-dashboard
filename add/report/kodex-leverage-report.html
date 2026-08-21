@@ -25,8 +25,9 @@ button{font:inherit}
 .eyebrow{font-size:12px;font-weight:900;letter-spacing:.08em;color:#bfd0eb}
 h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.045em}
 .hero p{margin:0;color:#d6e0ef;font-size:14px}
-.hero-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;position:relative;z-index:1}
+.hero-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px;position:relative;z-index:1}
 .hero-summary > .hero-chip{min-width:0;width:auto}
+.hero-summary > .hero-chip:nth-child(3){grid-column:auto}
 .hero-chip{padding:9px 11px;border:1px solid rgba(255,255,255,.17);border-radius:13px;background:rgba(255,255,255,.08)}
 .hero-chip span{display:block;font-size:9.5px;line-height:1.2;color:#bed0e8;font-weight:800}
 .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1.18;letter-spacing:-.035em}
@@ -96,6 +97,7 @@ details p,details li{font-size:12px;color:var(--muted)}
   .eyebrow{font-size:10px;line-height:1.2}
   .hero p{font-size:12px;line-height:1.35}
   .hero-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px}
+  .hero-summary > .hero-chip:nth-child(3){grid-column:1 / -1}
   .hero-chip{padding:8px 9px;border-radius:11px}
   .hero-chip span{font-size:9px;line-height:1.2}
   .hero-chip strong{margin-top:1px;font-size:16px;line-height:1.16}
@@ -215,7 +217,8 @@ details p,details li{font-size:12px;color:var(--muted)}
   .hero-summary{grid-template-columns:minmax(0,1fr);gap:8px}
   .hero-summary > .hero-chip:nth-child(1),
   .hero-summary > .hero-chip:nth-child(2),
-    .hero-chip strong{font-size:15px}
+  .hero-summary > .hero-chip:nth-child(3){grid-column:auto}
+  .hero-chip strong{font-size:15px}
 }
 
 /* iPhone Safari 320~900px 그리드 안정화 */
@@ -368,6 +371,7 @@ details p,details li{font-size:12px;color:var(--muted)}
     </div>
     <div class="hero-summary">
       <div class="hero-chip"><span>누적 실현 순손익</span><strong>8,833,802원</strong></div>
+      <div class="hero-chip"><span>본 포지션 추정 순손익</span><strong>7,731,007원</strong></div>
       <div class="hero-chip"><span>추정 단타 순손익</span><strong>1,102,795원</strong></div>
     </div>
   </header>
@@ -399,9 +403,9 @@ details p,details li{font-size:12px;color:var(--muted)}
       <div class="card kpi"><div class="label">총 손익금액</div><div class="value pos">8,944,790원</div><div class="sub">거래비용 차감 전</div></div>
       <div class="card kpi"><div class="label">총 거래비용</div><div class="value">110,988원</div><div class="sub">13개 매도일 합계</div></div>
       
-      <div class="card kpi"><div class="label">본 포지션 추정 순손익</div><div class="value pos">7,731,007원</div><div class="sub">혼합일 비용 거래대금 비율</div></div>
+      <div class="card kpi"><div class="label">본 포지션 추정 순손익</div><div class="value pos">7,731,007원</div><div class="sub">총 순손익의 87.5%</div></div>
       <div class="card kpi"><div class="label">단타 추정 순손익</div><div class="value pos">1,102,795원</div><div class="sub">총 순손익의 12.5%</div></div>
-      
+      <div class="card kpi"><div class="label">매도일 기준 승률</div><div class="value pos">92.3%</div><div class="sub">수익 12일 / 전체 13일</div></div>
     </div>
 
     <div class="grid-2">
