@@ -1,4 +1,13 @@
-﻿@echo off
+@echo off
+if /i "%~1"=="--inner" goto :main
+
+set "LOCAL_SUITE_LOG=%~dp0start-local-server.log"
+set "LOCAL_SUITE_BAT=%~f0"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$cmd=[char]34 + $env:LOCAL_SUITE_BAT + [char]34 + ' --inner'; & cmd.exe /d /s /c $cmd 2>&1 | Tee-Object -FilePath $env:LOCAL_SUITE_LOG; exit $LASTEXITCODE"
+exit /b %errorlevel%
+
+:main
+@echo off
 setlocal EnableExtensions
 
 cd /d "%~dp0"
@@ -28,6 +37,8 @@ echo.
 echo ==========================================================
 echo   Investment Dashboard + Market AI Local Suite
 echo ==========================================================
+echo Started   : %date% %time%
+echo Log file  : %DASHBOARD_DIR%\start-local-server.log
 echo.
 echo Dashboard : http://localhost:%DASHBOARD_PORT%/
 echo Market AI : http://127.0.0.1:%MARKET_AI_PORT%/
@@ -35,6 +46,8 @@ echo API Docs  : http://127.0.0.1:%MARKET_AI_PORT%/docs
 echo.
 
 if not defined PYTHON_EXE goto :python_missing
+
+echo Python    : %PYTHON_EXE%
 
 if not defined MARKET_AI_DIR (
     echo [WARN] market-ai folder was not found.
@@ -54,8 +67,12 @@ if exist "%MARKET_AI_DIR%\build-kis-bridge-release.bat" (
     if errorlevel 1 (
         echo [WARN] KIS Bridge build/deploy failed.
         echo        Market AI can still start, but KOSPI200 futures will not update.
+        echo        See start-local-server.log for the complete build diagnostics.
         echo.
     )
+) else (
+    echo [WARN] build-kis-bridge-release.bat was not found.
+    echo.
 )
 
 rem Market AI core dependencies. OpenAI is intentionally NOT required.
@@ -119,8 +136,7 @@ if "%MARKET_AI_READY%"=="1" (
         )
     ) else (
         echo [WARN] %MARKET_AI_DIR%\KisKospi200Bridge.exe was not found.
-        echo        Install Visual Studio 2022 with '.NET desktop development',
-        echo        then run start-local-server.bat again.
+        echo        Bridge build/deploy did not complete. Attach start-local-server.log.
     )
 )
 
@@ -132,6 +148,7 @@ echo [START] Investment Dashboard :%DASHBOARD_PORT%
 echo.
 echo Close this CMD window to stop the local web servers.
 echo The KIS Bridge is a Windows GUI process and can be closed from its own window.
+echo If startup fails, attach: %DASHBOARD_DIR%\start-local-server.log
 echo.
 "%PYTHON_EXE%" -m http.server %DASHBOARD_PORT% --bind 127.0.0.1
 goto :eof
