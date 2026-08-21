@@ -536,3 +536,7 @@ main_dashboard_maintenance_handover.md
 ```
 
 같은 유지보수 규칙을 README와 위 문서에 중복 기재하지 않습니다.
+
+### 통합 로컬 실행
+
+`start-local-server.bat` 하나로 투자 대시보드(:8000), 형제 폴더의 Market AI API(:8001), KIS KOSPI200 Bridge를 함께 실행합니다. 최초 실행에서 Market AI 핵심 Python 패키지가 없으면 자동 설치하고, Bridge 실행파일이 없거나 소스보다 오래되면 Release/x86으로 빌드해 `market-ai\KisKospi200Bridge.exe`로 배포합니다.

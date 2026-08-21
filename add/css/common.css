@@ -4,6 +4,12 @@
   --navy:#1d3557;
   --positive:#EF3341;
   --negative:#3182F6;
+
+  /* Main Dashboard 기본 corner cap과 동일 */
+  --corner-surface-cap:6px;
+  --corner-control-cap:5px;
+  --corner-inner-cap:4px;
+  --radius-pill:999px;
 }
 *{box-sizing:border-box}
 body{
