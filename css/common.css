@@ -2378,26 +2378,26 @@ body.contrib-modal-open{
 /*
   iOS Safari native date control 예외
   - date input은 WebKit 내부 native control이 일반 input의 font/padding을 덮어쓸 수 있다.
-  - 실제 표시값과 ::-webkit-date-and-time-value 모두 동일한 타이포/정렬을 강제해야 하므로 이 구간의 important 강제 우선순위는 유지한다.
+  - 2차 최소화에서는 일반 cascade로 동일 스타일을 적용하고 실제 iPhone Safari에서 최종 확인한다.
 */
 .contrib-modal input[type="date"]{
   -webkit-appearance:none;
   appearance:none;
-  font-family:inherit !important;
-  font-size:var(--contrib-control-font-size) !important;
-  font-weight:var(--type-weight-strong) !important;
-  line-height:normal !important;
-  text-align:left !important;
-  color:var(--text) !important;
-  padding:var(--space-3xl) var(--space-4xl) !important;
+  font-family:inherit;
+  font-size:var(--contrib-control-font-size);
+  font-weight:var(--type-weight-strong);
+  line-height:normal;
+  text-align:left;
+  color:var(--text);
+  padding:var(--space-3xl) var(--space-4xl);
 }
 .contrib-modal input[type="date"]::-webkit-date-and-time-value{
-  text-align:left !important;
-  font-family:inherit !important;
-  font-size:var(--contrib-control-font-size) !important;
-  font-weight:var(--type-weight-strong) !important;
-  line-height:normal !important;
-  color:var(--text) !important;
+  text-align:left;
+  font-family:inherit;
+  font-size:var(--contrib-control-font-size);
+  font-weight:var(--type-weight-strong);
+  line-height:normal;
+  color:var(--text);
 }
 .contrib-modal input[type="date"]::-webkit-calendar-picker-indicator{
   margin-left:auto;

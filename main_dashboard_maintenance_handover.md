@@ -3852,8 +3852,8 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 - 1차 최소화에서 semantic color 5, 모바일 table/card 상태 4, `[hidden]` 2, reduced-motion transition 1, print panel 1의 `!important` 총 13개를 제거했다.
 - 1차 QA PASS 후 메인 CSS의 `!important`는 30개 → 17개였다.
 - 이후 OS `prefers-reduced-motion`을 대시보드 애니메이션보다 우선할 필요가 없다는 운영 기준을 확정하여, 차트 강제 완료상태 `!important` 4개와 관련 CSS/JS reduced-motion 분기를 제거했다.
-- 현재 메인 CSS의 `!important`는 **13개**이며, 모두 iOS Safari date control 대응이다.
-- iOS Safari date control 13개는 2차 후보이며, 실제 iPhone Safari 수동 확인 후 문제가 있으면 즉시 롤백한다.
+- 2차 최소화에서 iOS Safari date control의 `!important` 13개를 제거하여 현재 메인 CSS의 실제 `!important` 선언은 **0개**다.
+- 2차는 실제 iPhone Safari 수동 확인이 최종 판정 기준이며, 날짜 입력 UI의 타이포·정렬·색상·패딩·사용성에 문제가 있으면 해당 13개 제거만 즉시 롤백한다.
 - Windows/macOS 등의 OS 모션 감소 설정은 차트·카드·버튼 animation/transition을 비활성화하는 조건으로 사용하지 않는다.
 
 현재 허용 가능한 대표 사례:
