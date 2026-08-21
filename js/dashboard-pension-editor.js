@@ -346,6 +346,7 @@ function syncPensionContributionTargetUi(){
   const cashCostEl=document.getElementById('pensionCashCostBasis');
   const deleteHelp=document.getElementById('pensionContribDeleteHelp');
   const deleteStatus=document.getElementById('pensionContribDeleteStatus');
+  const outputFile=document.getElementById('pensionContribOutputFile');
   const output=document.getElementById('pensionContribOutput');
 
   if(target!=='etfTrade'){
@@ -374,6 +375,10 @@ function syncPensionContributionTargetUi(){
   if(deleteStatus){
     deleteStatus.textContent='';
     deleteStatus.className='contrib-status';
+  }
+  if(outputFile){
+    outputFile.textContent='';
+    outputFile.hidden=true;
   }
   if(output){
     output.textContent='';
