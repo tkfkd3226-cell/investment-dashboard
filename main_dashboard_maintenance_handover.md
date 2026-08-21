@@ -5,6 +5,23 @@
 
 새 채팅이나 새 작업에서는 최신 전체 ZIP 안의 이 파일을 가장 먼저 읽고, 그 다음 같은 ZIP의 실제 소스를 확인한다. **읽는 순서와 source of truth의 우선순위는 다르다.** 문서는 작업 원칙을 설명하지만 실제 구현 상태는 항상 최신 ZIP의 실제 파일이 우선한다.
 
+문서의 기본 흐름은 다음과 같다.
+
+```text
+1. 인수인계 / Source of Truth
+2. 평가 / 점수
+3. 수정 / QA / Diff / 결과 전달
+4. 현재 프로젝트 구조
+5. UI / Responsive 반복 회귀 불변조건
+6. CSS / Responsive 유지보수 규칙
+7. JavaScript 구현 규칙
+8. Calc / Report 유지보수 규칙
+9. 운영 데이터 / GitHub Actions / GAS
+10. 리팩토링 이력 / 역사적 기준선
+11. 최종 운영 체크리스트
+```
+
+**1~9장은 현재 작업에 직접 적용하는 현행 규칙이고, 10장은 과거 구조 변경의 역사 기록, 11장은 작업 전후 최종 확인용이다.**
 
 # 1. 인수인계 · Source of Truth
 
@@ -322,7 +339,6 @@ MD가 최신이라고 가정해서 ZIP 수정
 > **다음 채팅이 이 문서 하나와 최신 ZIP만 읽고 정확히 이어서 작업할 수 있게 하는 것**
 
 이다.
-
 
 # 2. 평가 · 점수
 
@@ -1368,8 +1384,64 @@ C급 유지 권장 수
 - 점수는 표로 정리하되, 상세 평가는 점수표만 나열하지 않고 실제 근거를 함께 설명한다.
 - 과거 평가 문구를 재사용하기보다 최신 실제 코드에서 확인한 사실을 자연어로 설명한다.
 
+## 2.5 점수 · 성능 평가 최종 운영 원칙
 
-# 3. 수정 · QA 실행 명령
+### 숫자 점수나 코드량 자체를 목표로 하지 않는다
+
+현재 리팩토링된 상태를 더 높은 점수로 만들겠다는 이유만으로 구조를 계속 뜯지 않는다.
+
+예:
+
+```text
+!important 무조건 0
+media query 무조건 최소화
+JS 파일을 더 많이 분리
+dashboard-pension.js를 무조건 더 쪼개기
+calc.js를 다시 여러 파일로 나누기
+```
+
+같은 숫자 목표를 세우지 않는다.
+
+현재 정상적인 구조와 예외는 유지한다.
+
+### 점수 운영의 최종 원칙
+
+점수를 올리기 위해 구조를 뜯지 않는다.
+
+다음은 금지:
+
+```text
+!important 숫자를 0으로 만들기 위한 억지 수정
+media query 개수만 줄이기
+JS 파일을 점수 때문에 더 분할
+대형 함수가 있다는 이유만으로 무조건 재작성
+2px 조정만으로 전체 점수 상승
+```
+
+점수보다 우선:
+
+1. 기능 정확성
+2. 계산 parity
+3. 회귀 없음
+4. 현재 책임 구조 유지
+5. UI 일관성
+6. 유지보수성
+7. 최소 변경
+
+점수는 그 결과를 추적하는 보조 지표다.
+
+### 성능 평가에서 반복 제안하지 않을 항목
+
+현재 프로젝트 규모와 실제 사용량에서는 다음 두 항목을 **이미 검토가 끝난 허용 가능한 trade-off**로 취급한다.
+
+- 날짜 변경·별도수익 변경 등에서 메인 대시보드 DOM을 전체 `render()`하는 구조
+- `Date.now()`를 이용한 CSS / ES Module / JSON cache bust 구조
+
+따라서 향후 CSS·JS·UI/UX 구조 평가에서 위 두 항목을 단순한 이론적 최적화 관점으로 다시 감점하거나 선택적 개선사항으로 반복 제시하지 않는다. **실제 체감 지연, 과도한 네트워크 사용, 렌더 병목 등 측정 가능한 성능 문제가 발생했거나 사용자가 성능 최적화를 명시적으로 요청한 경우에만 재검토**한다.
+
+이 원칙 때문에 현재의 전체 render나 cache bust를 무조건 유지해야 하는 것은 아니며, 실제 문제가 확인되면 그때 최신 소스와 측정 결과를 기준으로 최소 범위에서 개선한다.
+
+# 3. 수정 · QA · Diff · 결과 전달
 
 
 ## 3.1 명령별 실행 모드
@@ -1904,7 +1976,7 @@ QA에서는 다음만 확인/보고한다.
 
 ## 3.19 대규모 JS 구조 작업의 차수 · QA · 보고 운영
 
-이 운영 방식은 프로젝트 전체 **리팩토링 5차(JavaScript ownership / encapsulation 구조 재정리)**에서 실제로 검증한 방식이며, 이후 유사한 대규모 JS 구조 작업의 기본 운영 방식으로 사용한다. 상세 역사 기록은 11.2에 한곳에 모아둔다.
+이 운영 방식은 프로젝트 전체 **리팩토링 5차(JavaScript ownership / encapsulation 구조 재정리)**에서 실제로 검증한 방식이며, 이후 유사한 대규모 JS 구조 작업의 기본 운영 방식으로 사용한다. 상세 역사 기록은 10.2에 한곳에 모아둔다.
 
 핵심 순서:
 
@@ -2110,11 +2182,417 @@ PASS / FAIL
 
 구조 점수는 실제 구조와 회귀 결과를 설명하기 위한 보조 지표이며, 점수 자체를 맞추기 위해 불필요한 파일 분리나 framework 도입을 하지 않는다.
 
+## 3.20 수정 원칙 · Diff · 결과 파일 전달
+
+### 3.20.1 과도한 리팩토링 금지
+
+기능 수정 요청을 받았다고 관련 없는 영역까지 리팩토링하지 않는다.
+
+예:
+
+> 버튼 하나 수정
+
+요청인데:
+
+```text
+전체 Topbar 재작성
+JS 파일 재분리
+CSS 변수명 전체 변경
+state 구조 재설계
+```
+
+등으로 작업 범위를 확대하지 않는다.
+
+현재 요청에 필요한 최소 범위만 수정한다.
+
+추가 구조 개선이 필요하다면 이번 작업에 섞지 말고 별도 제안한다.
+
+### 3.20.2 사용자의 요청이 현재 구조를 훼손하면 작업 중지
+
+이 규칙은 매우 중요하다.
+
+내가 요청한 방법 자체가 다음 문제를 만든다고 판단되면 바로 파일을 수정하지 않는다.
+
+- 불필요한 새 breakpoint 필요
+- `!important` 다수 추가 필요
+- 동일 selector override 누적 필요
+- 특정 해상도 전용 임시 patch 필요
+- 공통 component 파괴
+- 디자인 token 무시
+- 메인 JS 책임 경계 파괴
+- `dashboard-core.js`에 DOM 조작 추가
+- `dashboard-app.js`에 복잡한 기능 구현 누적
+- inline event 재도입
+- 같은 기능을 여러 JS 파일에 중복 구현
+- calc의 계산/validation/render 분리 구조 파괴
+- calc CSS/JS를 다시 HTML inline으로 합침
+- 메인과 `add/` 영역을 불필요하게 결합
+- 현재보다 유지보수성이 명백하게 악화
+- 다른 viewport나 기능에 높은 회귀 위험 발생
+
+이 경우 작업을 중지하고 다음 형식으로 먼저 알려준다.
+
+```text
+이 요청을 그대로 구현하면 현재 리팩토링 구조를 훼손할 가능성이 있습니다.
+
+문제
+- 어떤 구조가 깨지는지
+- 왜 유지보수성이 나빠지는지
+- 예상되는 회귀 위험
+
+권장 대안
+- 현재 구조를 유지하면서 같은 목적을 달성하는 방법
+```
+
+단순히 구현하기 어렵다는 이유로 중지하지 않는다.
+
+### 3.20.3 수정 전 영향 범위는 필요한 만큼만 확인
+
+파일을 수정하기 전에 관련:
+
+- selector
+- function
+- state
+- DOM
+- action
+- helper
+
+사용처를 확인한다.
+
+특히 공통 class/helper를 수정하면 영향을 받는 직접 사용처를 확인한다.
+
+다만 매번 프로젝트 전체를 전수 분석하지 않는다.
+
+원칙:
+
+> **변경 대상의 직접 사용처와 영향을 받을 가능성이 높은 범위만 확인한다.**
+
+### 3.20.4 새 코드 적용 후 불필요한 예전 코드 제거
+
+새 구조를 적용한 뒤 예전 workaround가 필요 없어졌다면 같이 제거한다.
+
+다음처럼 남기지 않는다.
+
+```text
+기존 코드
++
+새 코드
+```
+
+가능하면:
+
+```text
+기존 코드 수정 또는 제거
+→ 최종 코드 하나
+```
+
+만 남긴다.
+
+### 3.20.5 Diff 검사 필수
+
+수정 완료 후 변경 파일의 diff를 확인한다.
+
+확인 항목:
+
+- 요청한 부분만 변경됐는지
+- 무관한 코드가 포맷팅되지 않았는지
+- 기존 기능이 실수로 삭제되지 않았는지
+- 같은 목적 코드가 이중으로 남지 않았는지
+- 이전 workaround가 불필요하게 남아 있지 않은지
+- 다른 책임 파일을 불필요하게 건드리지 않았는지
+
+전체 프로젝트 diff가 아니라 변경 파일 중심으로 확인한다.
+
+### 3.20.6 CSS 수정 후 기본 보고
+
+메인 CSS(`css/*.css`)를 수정했다면 변경된 CSS 파일 기준으로 다음을 보고한다.
+
+- 수정 전 전체 줄 수
+- 수정 후 전체 줄 수
+- 증감 줄 수
+- 수정 전 파일 크기
+- 수정 후 파일 크기
+- 증감 크기
+- 새 `!important` 수
+- 새 breakpoint 여부
+- 동일 목적 selector override 추가 여부
+- 예상 외 diff 여부
+
+코드 줄 수 감소 자체를 목표로 하지 않는다.
+
+새 기능 때문에 CSS가 늘어나는 것은 정상이다.
+
+중요한 것은:
+
+> **구조적으로 올바르게 증가했는가**
+
+이다.
+
+### 3.20.7 JS 수정 후 기본 보고
+
+메인 JS를 수정했다면 다음을 간단히 보고한다.
+
+```text
+변경한 JS 파일:
+주요 변경 함수:
+새 state 추가:
+새 전역 변수:
+새 inline event:
+다른 책임 파일 변경:
+예상 외 diff:
+```
+
+정상 목표는 상황에 따라 다음과 같다.
+
+```text
+새 inline event: 0
+불필요한 전역 변수: 0
+관련 없는 JS 파일 변경: 없음
+예상 외 diff: 없음
+```
+
+특히 어떤 기능을 어느 책임 파일에 넣었는지 알려준다.
+
+### 3.20.8 Calc 수정 후 기본 보고
+
+계산기를 수정했다면 다음을 알려준다.
+
+```text
+변경 파일:
+계산 공식 변경:
+Validation 변경:
+UI 변경:
+새 breakpoint:
+새 !important:
+메인 css/js 변경:
+예상 외 diff:
+```
+
+기능 추가가 아닌 UI 수정이라면 계산 공식은 원칙적으로 변경하지 않는다.
+
+### 3.20.9 새로운 breakpoint / `!important` 발생 시 별도 보고
+
+새 breakpoint나 `!important`가 생겼다면 반드시 이유를 설명한다.
+
+예:
+
+```text
+새 breakpoint: 없음
+새 !important: 없음
+```
+
+또는:
+
+```text
+새 breakpoint: 1개
+
+이유:
+기존 3개 viewport 규칙만으로 실제 기능 문제를 해결할 수 없어 추가함.
+```
+
+설명할 수 없는 예외는 추가하지 않는다.
+
+### 3.20.10 변경 파일만 전달
+
+수정 후 ZIP을 제공한다면 **실제로 변경된 파일만 포함**한다.
+
+변경 파일이 하나여도 프로젝트 폴더 구조를 유지한다.
+
+예:
+
+```text
+patch/
+└─ js/
+   └─ dashboard-charts.js
+```
+
+또는:
+
+```text
+patch/
+└─ add/
+   ├─ calc.html
+   └─ js/
+      └─ calc.js
+```
+
+변경되지 않은 전체 프로젝트를 다시 압축할 필요는 없다.
+
+### 3.20.11 계산 로직 수정은 UI보다 엄격하게 검증
+
+다음 영역을 수정한다면 조금 더 엄격하게 확인한다.
+
+- 수익률
+- 손익
+- 투자원금
+- 현금
+- 퇴직연금
+- 자산배분
+- calc 계산식
+
+가능한 경우 동일 입력값 기준 전후 결과를 비교한다.
+
+계산 함수는 DOM과 분리된 구조를 유지한다.
+
+### 3.20.12 공통 코드 변경은 더 신중하게
+
+다음과 같은 공통 영역은 여러 기능에 영향을 줄 수 있다.
+
+예:
+
+```text
+css/common.css의 공통 component
+dashboard-core.js의 formatter/helper
+공통 date helper
+공통 table/card renderer
+add/css/common.css
+```
+
+단일 화면 문제를 해결하기 위해 공통 코드를 섣불리 변경하지 않는다.
+
+공통 변경이 필요하면 직접 영향을 받는 사용처를 필요한 범위에서 먼저 확인한다.
+
+### 3.20.13 신규 기능 추가 시 판단 순서
+
+새 기능 요청을 받으면 내부적으로 다음 순서로 판단한다.
+
+#### 1
+이 기능은 어느 책임 영역에 속하는가
+
+#### 2
+기존 component/helper/state/action으로 구현 가능한가
+
+#### 3
+현재 3개 viewport 규칙 안에서 해결 가능한가
+
+#### 4
+기존 CSS/JS 규칙을 수정하면 되는가
+
+#### 5
+새 class/function/state/action이 정말 필요한가
+
+#### 6
+새 breakpoint, `!important`, inline style 같은 예외가 정말 필요한가
+
+이 순서를 거친 뒤 구현한다.
+
+### 3.20.14 구조 보존을 이유로 과도하게 소극적이지 않는다
+
+기존 구조 안에서 정상적으로 구현 가능한 요청이라면 바로 수행한다.
+
+매번:
+
+> 구조를 변경해도 될까요?
+
+라고 확인하지 않는다.
+
+**명백하게 현재 구조를 훼손하는 경우에만 작업을 중지하고 대안을 제시한다.**
+
+### 3.20.15 최우선 판단 기준
+
+모든 수정의 우선순위는 다음과 같다.
+
+#### 1순위
+기존 기능과 계산 결과가 정확하게 유지되는가
+
+#### 2순위
+현재 리팩토링된 책임 구조가 유지되는가
+
+#### 3순위
+기존 component / helper / state / action을 재사용하는가
+
+#### 4순위
+최소 범위로 수정했는가
+
+#### 5순위
+코드가 읽기 쉽고 명확한가
+
+#### 6순위
+코드 양이 적은가
+
+코드 줄 수 감소는 가장 낮은 우선순위다.
+
+### 3.20.16 차수 결과 파일 전달과 통계
+
+차수 수정 후 기본 전달 방식:
+
+> **실제로 변경된 파일만 원래 프로젝트 폴더 구조를 유지해 ZIP으로 제공**
+
+예:
+
+```text
+investment-dashboard-main/
+└─ css/
+   └─ mobile.css
+```
+
+또는:
+
+```text
+investment-dashboard-main/
+├─ index.html
+└─ js/
+   ├─ dashboard-core.js
+   └─ dashboard-app.js
+```
+
+변경되지 않은 파일을 억지로 포함하지 않는다.
+
+각 변경 파일별 보고:
+
+```text
+수정 전 line
+수정 후 line
+증감 line
+수정 전 byte
+수정 후 byte
+증감 byte
+```
+
+그리고:
+
+```text
+예상하지 않은 diff
+대량 formatting
+CSS 변경 여부
+JS 변경 여부
+운영 JSON 변경 여부
+```
+
+를 명시한다.
+
+또한 **파일 수정 작업을 완료해 결과 파일을 전달할 때는 GitHub 커밋에 바로 사용할 `Summary`와 `Description`을 함께 제공한다.**
+
+기본 형식:
+
+```text
+Summary: 변경 핵심만 매우 짧게 작성
+Description: 주요 변경 내용을 간단히 설명
+```
+
+작성 원칙:
+
+- `Summary`는 기존보다 더 짧게, 커밋 제목 수준으로 작성한다.
+- `Description`은 기존 Summary 수준의 간단한 설명으로 작성한다.
+- 둘 다 실제 수정된 내용만 반영한다.
+- QA 결과나 상세 작업내역을 길게 넣지 않는다.
+- 여러 파일을 수정했더라도 하나의 커밋 단위로 간결하게 작성한다.
+- 사용자가 별도 커밋 문구 형식을 지정하면 그 형식을 우선한다.
+
+또한 사용자가 대화 중 **앞으로 반복 적용할 유지보수 규칙, 수정 조건, QA 조건, 파일 전달 방식 등의 운영 조건을 추가하거나 변경하면**, 별도로 문서 반영을 다시 지시하지 않아도 **`main_dashboard_maintenance_handover.md`에 해당 내용을 자동 반영한다.**
+
+운영 조건 자동 반영 원칙:
+
+- 일회성 작업 지시는 장기 운영 규칙으로 확대해 기록하지 않는다.
+- 앞으로 반복 적용할 명확한 조건만 반영한다.
+- 기존 규칙과 충돌하면 최신 사용자 지시를 우선하고 기존 관련 문구도 함께 갱신한다.
+- 같은 의미의 규칙을 새 섹션으로 중복 추가하지 않고 기존 관련 항목에 통합한다.
+- 운영 조건 반영 때문에 요청과 무관한 코드나 프로젝트 파일까지 수정 범위를 넓히지 않는다.
 
 # 4. 현재 프로젝트 구조 · Architecture
 
 
-## 4.1 2026-08-21 CSS 7파일 분리 완료 기준 구조 snapshot
+## 4.1 현재 canonical 프로젝트 구조 snapshot
 
 아래는 이 문서를 재정비할 때 함께 확인한 최신 전체 ZIP의 실제 구조다. 이후 새 ZIP이 달라지면 **새 ZIP의 실제 파일을 우선**한다.
 
@@ -2753,812 +3231,10 @@ globalThis.dashboard = ...
 
 새 구조 개편은 사용자가 별도로 요청한 경우에만 검토한다.
 
+# 5. UI · Responsive · 반복 회귀 불변조건
 
-# 5. CSS · Responsive 유지보수 규칙
 
-
-## 5.1 메인 CSS 7파일 구조 원칙
-
-메인 대시보드 CSS는 2026-08-21 구조정리 1~5차를 거쳐 기존 `css/style.css` 단일 파일에서 **뷰포트/역할별 7파일 구조**로 전환을 완료했다. `css/style.css`는 최종 구조에서 제거되었으며 다시 만들지 않는다.
-
-현재 canonical 구조:
-
-```text
-css/
-├─ common.css       # 변수 / 기본 스타일 / 공통 컴포넌트 / Responsive Shared
-├─ desktop.css      # Desktop ≥1101px
-├─ tablet.css       # Tablet 761~1100px
-├─ mobile.css       # Mobile ≤760px
-├─ special.css      # 기능상 필요한 특수 viewport
-├─ interaction.css  # hover / pointer / prefers-reduced-motion
-└─ print.css        # Print 전용
-```
-
-`index.html`의 load order는 다음 순서를 유지한다. **이 순서가 cascade order**이므로 특별한 구조 변경 작업이 아닌 이상 임의로 바꾸지 않는다.
-
-```text
-common.css
-→ desktop.css
-→ tablet.css
-→ mobile.css
-→ special.css
-→ interaction.css
-→ print.css
-```
-
-파일별 책임:
-
-- `common.css`: viewport와 무관한 기본 component, theme/token, 공통 layout, `max-width:1100px` / `min-width:761px` 같은 Responsive Shared
-- `desktop.css`: `min-width:1101px`에서만 달라지는 웹 전용 규칙
-- `tablet.css`: `761px ~ 1100px` 태블릿 전용 규칙
-- `mobile.css`: `max-width:760px` 모바일 전용 규칙
-- `special.css`: `≤400px`, `≤1280px`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
-- `interaction.css`: `hover:hover + pointer:fine`, `prefers-reduced-motion`처럼 viewport가 아닌 입력장치/접근성 조건
-- `print.css`: 인쇄 전용 최종 override
-
-구조정리 완료 이력:
-
-```text
-1차 media query 역할별 재배치                         → QA PASS
-2차 동일 media query block 병합                      → QA PASS
-3차 특수 viewport / interaction / accessibility 구조화 → QA PASS
-4차 역할별 CSS 7파일 분리 + index load order 확정      → QA PASS
-5차 style.css 제거 + README / handover 최종 정리       → 최종 QA PASS
-```
-
-핵심 유지보수 원칙:
-
-- 기능 수정은 먼저 **어느 역할 파일이 canonical인지** 판단하고 그 파일의 기존 rule을 직접 수정한다.
-- 같은 기능을 해결하기 위해 다른 CSS 파일 하단에 임시 override를 누적하지 않는다.
-- CSS 구조 변경과 디자인 변경을 같은 차수에 섞지 않는다.
-- 새 breakpoint는 실제 레이아웃/정보구조 문제가 있을 때만 추가하고 `special.css`에 기능명 + 존재 이유를 남긴다.
-- 파일 분리 자체를 이유로 같은 selector를 여러 파일에 중복 생성하지 않는다.
-- `common → 일반 viewport → special → interaction/accessibility → print`의 우선순위를 보존한다.
-
-
-## 5.2 반응형 CSS는 뷰포트/역할별 섹션으로 모아 관리
-
-기본 component CSS는 `common.css`의 기능별 영역에 유지하고, viewport별 변경은 해당 역할 파일에 모아 관리한다. Responsive Shared는 `common.css`, 일반 3구간은 `desktop.css` / `tablet.css` / `mobile.css`, 기능 예외는 `special.css`로 분리한다.
-
-현재 논리적인 cascade 순서는 다음과 같다.
-
-```text
-Common component CSS + Responsive Shared
-↓
-Desktop / Tablet / Mobile
-↓
-Special Viewports
-↓
-Interaction / Accessibility
-↓
-Print
-```
-
-기본 viewport는 계속 다음 3구간을 사용한다.
-
-```text
-Desktop · 웹: 1101px 이상
-Tablet · 태블릿: 761px ~ 1100px
-Mobile · 모바일: 760px 이하
-```
-
-특수 viewport는 일반 viewport 섹션에 섞지 않고 **왜 필요한지 기능 기준으로 추적 가능하게 관리**한다. 대표적인 현재 예외는 다음과 같다.
-
-```text
-≤400px
-→ 초소형 화면에서 계좌별 성과 정보 구조 보정
-
-≤1280px
-→ Asset Detail 2-column 유지 시 가용폭 부족 대응
-
-Phone Landscape
-→ iPhone 844×390처럼 width만 보면 Tablet으로 오판되는 실제 터치폰 가로모드 대응
-```
-
-`hover:hover + pointer:fine`, `prefers-reduced-motion`, `print`는 viewport가 아니므로 Desktop/Tablet/Mobile과 분리한다.
-
-`desktop.css`, `tablet.css`, `mobile.css` 내부의 기능 섹션 순서는 가능한 한 동일하게 맞춰 같은 기능의 viewport 차이를 빠르게 비교할 수 있게 한다. 예:
-
-```text
-01 Topbar
-02 Hero
-03 KPI
-04 Securities
-05 Pension
-06 Tables
-07 Charts
-08 Ledger
-09 Modal
-```
-
-새 특수 breakpoint를 단순 미관 보정용으로 추가하지 않는다. 실제 레이아웃/정보구조 문제를 해결해야 할 때만 추가하고, `special.css`에 **기능명 + 존재 이유**를 주석으로 남긴다.
-
-
-## 5.3 CSS 섹션과 주요 주석은 영어 + 한글 병기
-
-주요 CSS 영역과 의미 있는 하위 주석은 영어와 한글을 함께 사용한다.
-
-예:
-
-```css
-/* =========================================================
-   Topbar / Navigation · 상단바 / 내비게이션
-   ========================================================= */
-
-/* Chart Controls · 차트 조작 버튼 */
-
-/* Pension Contribution · 퇴직연금 납입 */
-
-/* Custom Tooltip · 커스텀 툴팁 */
-```
-
-다만 모든 selector에 주석을 붙이지 않는다.
-
-주석의 목적은:
-
-> **사람이나 GPT가 원하는 기능 영역을 빠르게 찾도록 하는 것**
-
-이다.
-
-다음과 같은 누적 패치형 주석은 사용하지 않는다.
-
-```text
-Fix
-Final
-Final Fix
-Mobile Fix
-Override
-Temp
-New
-```
-
-날짜나 작업차수도 CSS 주석에 변경 이력처럼 남기지 않는다.
-
-
-## 5.4 반응형 기본 viewport는 3구간 고정
-
-메인 대시보드 기본 viewport는 다음과 같다.
-
-- **Desktop · 웹:** `1101px 이상`
-- **Tablet · 태블릿:** `761px ~ 1100px`
-- **Mobile · 모바일:** `760px 이하`
-
-새로운 UI를 추가하거나 수정할 때 기본적으로 이 세 구간 안에서 해결한다.
-
-
-## 5.5 불필요한 추가 breakpoint 금지
-
-다음과 같은 특정 폭을 단순 미관 보정 목적으로 추가하지 않는다.
-
-- 900px
-- 720px
-- 520px
-- 430px
-- 420px
-- 390px
-- 374px
-- 기타 특정 기기 폭
-
-추가 breakpoint는 다음 조건을 모두 만족할 때만 허용한다.
-
-1. 기존 웹 / 태블릿 / 모바일 규칙만으로 해결할 수 없음
-2. 실제 기능적 문제가 존재함
-3. 해당 구간을 별도로 처리해야 할 명확한 이유가 있음
-4. 기존 component 자체를 수정하는 것보다 별도 breakpoint가 더 적절함
-
-현재 이미 존재하는 기능상 필요한 예외 breakpoint는 함부로 제거하지 않는다.
-
-현재 허용된 기능상 예외 breakpoint 중 `1280px 이하`는 **공통 Asset Detail 기능 breakpoint**다. 증권의 `보유종목 현황 + 전일 대비 변동`과 퇴직연금의 `연금상품별 현황 + 전일 대비 변동`이 Desktop에서 2열로 배치되다가 `1280px 이하`에서 1열로 전환하여 표 내부 가로 스크롤을 방지한다. 이 규칙은 `.asset-detail-grid`의 공통 기능 기준이며, 다른 일반 영역의 반응형 breakpoint로 확대 적용하지 않는다. 새 증권 전용 breakpoint도 만들지 않는다.
-
-공통 Asset Detail CSS는 기존 generic class/token을 우선 재사용하고, 실제로 양쪽 자산이 공유하는 의미에만 최소 `.asset-*` semantic class를 사용한다. 현황/전일변동/상승분기여도에서 공통화된 selector는 neutral `.asset-*`가 canonical이며, 같은 역할의 `.pension-*` legacy alias를 병렬로 유지하지 않는다. 위험자산 70% 룰·퇴직연금 조정/PIN/납입 등 연금 전용 UI는 계속 `.pension-*`를 사용한다.
-
-
-
-## 5.6 특정 viewport 스크린샷 맞춤식 수정 금지
-
-내가 특정 해상도 화면을 보여주더라도 바로:
-
-> `390px 전용 CSS`
-
-같은 방식으로 해결하지 않는다.
-
-먼저 해당 문제가:
-
-- 모바일 전체 문제인지
-- 태블릿 전체 문제인지
-- 웹 전체 문제인지
-- component 자체 문제인지
-- 브라우저 고유 문제인지
-- 실제 특정 기기 기능 예외인지
-
-판단한다.
-
-가능하면 대표 breakpoint나 component 자체를 수정해서 해결한다.
-
-목표는 특정 스크린샷 한 장을 맞추는 것이 아니라:
-
-> **해당 viewport 범위 전체를 안정적으로 만드는 것**
-
-이다.
-
-
-## 5.7 미관 문제와 실제 문제를 구분
-
-다음은 수정해야 할 실제 문제다.
-
-- 요소 겹침
-- 텍스트 잘림
-- 화면 밖 overflow
-- 버튼 조작 불가
-- 기능 오류
-- 읽기 어려운 텍스트
-- 레이아웃 붕괴
-- breakpoint 정책 위반
-- 명백한 정렬 오류
-
-반면 다음만으로 새 breakpoint나 override를 만들지 않는다.
-
-- 특정 중간 폭에서 약간 어색함
-- 여백이 2~3px 마음에 안 듦
-- 카드 비율이 조금 덜 예쁨
-- 특정 화면에서 아주 미묘한 시각적 차이
-
-
-## 5.8 CSS 추가보다 기존 규칙 수정·통합 우선
-
-새 수정 요청이 있다고 CSS 파일 하단에 보정 규칙을 계속 추가하지 않는다.
-
-피해야 할 구조:
-
-```css
-기존 규칙
-
-/* fix */
-같은 selector 재정의
-
-/* mobile fix */
-같은 selector 재정의
-
-/* final */
-같은 selector 재정의
-```
-
-수정 순서:
-
-1. 기존 selector 위치 확인
-2. 기존 선언 자체를 수정할 수 있는지 확인
-3. 같은 목적의 중복 규칙이 있는지 확인
-4. 새 규칙 적용 후 불필요해진 예전 workaround 제거
-
-기본 원칙:
-
-> **patch를 추가하기보다 현재 최종 규칙을 수정한다.**
-
-
-## 5.9 동일 selector override 누적 금지
-
-동일한 cascade context에서 같은 selector를 뒤에서 반복적으로 덮지 않는다.
-
-예:
-
-```css
-.card {
-  ...
-}
-
-/* 수백 줄 뒤 */
-
-.card {
-  ...
-}
-```
-
-또한 같은 media context에서 동일 component를 여러 위치에서 반복 보정하지 않는다.
-
-component별 CSS 책임 위치를 명확하게 유지한다.
-
-
-## 5.10 `!important` 사용 정책
-
-새로운 `!important`는 원칙적으로 추가하지 않는다.
-
-현재 메인 CSS는 과거 대량의 `!important`를 대부분 제거하여 정상 cascade 구조로 정리된 상태다.
-
-단순 specificity 해결 수단으로 사용하지 않는다.
-
-허용 가능한 대표 사례:
-
-- 브라우저 고유 UI
-- Safari / WebKit intrinsic control
-- 명시적인 `[hidden]`
-- `prefers-reduced-motion`
-- 정상 cascade만으로 해결하기 어려운 명확한 브라우저 예외
-
-새 `!important`가 필요하다면 먼저:
-
-1. 기존 구조 수정으로 해결 가능한지
-2. specificity 정리로 가능한지
-3. 실제로 강제 우선순위가 필요한지
-
-확인한다.
-
-
-## 5.11 디자인 토큰과 CSS variable 우선 재사용
-
-이미 존재하는:
-
-- color
-- padding
-- gap
-- border-radius
-- font-size
-- control height
-- positive / negative
-- card spacing
-- chart control size
-
-등의 CSS variable과 design token을 우선 활용한다.
-
-비슷한 값을 새로 하드코딩하거나 의미가 겹치는 변수를 다시 만들지 않는다.
-
-
-
-## 5.12 증권·퇴직연금 KPI 모바일 2열 규칙
-
-증권·퇴직연금의 `성과 요약` 4개 KPI 카드는 모바일(`<=760px` 및 실제 스마트폰 가로모드)에서만 `2 × 2` grid를 유지한다. 다른 `.metric-grid`에는 이 규칙을 확대 적용하지 않는다.
-
-모바일 KPI 타이포 기준:
-
-```text
-라벨 11px
-값 18px
-설명 10px
-```
-
-세 요소는 한 줄 유지한다. 모바일 전용 축약 설명이 필요한 경우 `metricCard()`의 mobile sub variant를 사용하고, 데스크톱/태블릿 설명을 CSS로 억지 축소하거나 ellipsis 처리하지 않는다.
-
-## 5.13 Topbar 날짜 셀렉트 폭 정합성
-
-Topbar의 `년/월`과 `일` 셀렉트는 모든 viewport에서 **동일한 가로 폭 체계**를 유지한다. Desktop / Tablet은 두 셀렉트 모두 `148px`, Mobile은 두 셀렉트가 동일한 반응형 계산폭(`max 148px`)을 사용한다. 한쪽만 별도 고정폭으로 축소하지 않는다.
-
-# 6. JavaScript 구현 세부 규칙
-
-
-## 6.1 Inline event handler 재도입 금지
-
-메인 대시보드는 현재 동적 HTML의:
-
-```html
-onclick=""
-onchange=""
-oninput=""
-onkeydown=""
-```
-
-의존성을 제거하고:
-
-```html
-data-dashboard-action="..."
-```
-
-기반 event delegation 구조를 사용한다.
-
-새 UI를 추가할 때 inline event를 다시 만들지 않는다.
-
-기존:
-
-```text
-data-dashboard-action
-→ 중앙 event dispatcher
-→ 기능 handler
-```
-
-구조를 우선 활용한다.
-
-
-## 6.2 Event handler에 비즈니스 로직을 과도하게 넣지 않는다
-
-피해야 할 구조:
-
-```js
-click handler {
-  데이터 읽기
-  계산 수십 줄
-  DOM 생성
-  API 저장
-  전체 render
-}
-```
-
-권장 흐름:
-
-```text
-event
-→ handler
-→ helper / calculation
-→ state 변경
-→ render
-```
-
-event handler는 가능한 한 연결 역할에 집중한다.
-
-
-## 6.3 JavaScript에서 UI 스타일 직접 지정 최소화
-
-JS에서:
-
-```js
-element.style.color = ...
-element.style.padding = ...
-element.style.fontSize = ...
-```
-
-또는 HTML 문자열 안의:
-
-```html
-style="..."
-```
-
-를 단순 시각 표현 목적으로 새로 늘리지 않는다.
-
-색상, 여백, font, 정렬 등은 가능한 CSS class가 담당한다.
-
-단, 다음처럼 runtime 계산이 반드시 필요한 경우는 예외다.
-
-- chart 좌표
-- tooltip 위치
-- 동적 width/height
-- SVG path
-- CSS custom property 값
-
-
-## 6.4 JS 중복 로직 추가 금지
-
-새 함수를 만들기 전에 기존 helper가 있는지 확인한다.
-
-대표적인 공통 대상:
-
-- 날짜 처리
-- fetch
-- formatter
-- modal open/close
-- tooltip
-- chart option
-- responsive sync
-- swatch
-- table cell
-- positive / negative 처리
-- data refresh
-
-비슷한 로직을 각 파일에 복사하지 않는다.
-
-
-# 7. Calc · Report 유지보수 규칙
-
-
-## 7.1 Calc는 메인과 독립된 부가 기능으로 유지
-
-현재 계산기는 다음 구조로 분리되어 있다.
-
-```text
-add/
-├─ calc.html
-├─ css/
-│  ├─ common.css
-│  └─ calc.css
-└─ js/
-   └─ calc.js
-```
-
-계산기 수정 때문에 메인:
-
-```text
-css/
-js/
-```
-
-구조를 변경하지 않는다.
-
-반대로 메인 기능 수정 때문에 `add/calc.*`를 건드리지 않는다.
-
-두 영역의 코드가 우연히 비슷하다는 이유만으로 억지로 공통화하지 않는다.
-
-
-## 7.2 Calc의 HTML / CSS / JS 책임 분리 유지
-
-현재:
-
-```text
-add/calc.html
-→ HTML 구조
-
-add/css/calc.css
-→ 계산기 전용 스타일
-
-add/js/calc.js
-→ 계산 / validation / rendering / event
-```
-
-책임을 유지한다.
-
-다시 `calc.html` 안에 대규모:
-
-```html
-<style>...</style>
-<script>...</script>
-```
-
-블록을 넣지 않는다.
-
-새 계산기 CSS는 `add/css/calc.css`에,
-
-새 계산기 JavaScript는 `add/js/calc.js`에 둔다.
-
-
-## 7.3 Calc 계산 구조 유지
-
-계산기의 기본 흐름은:
-
-```text
-Input · 입력
-↓
-Validation · 검증
-↓
-Calculation · 계산
-↓
-Result · 결과
-↓
-Rendering · 화면 출력
-```
-
-이다.
-
-특히 핵심 `compute()`는 DOM과 분리된 계산 함수 성격을 유지한다.
-
-계산 함수 안에서 새로:
-
-```js
-document...
-classList...
-textContent...
-innerHTML...
-```
-
-등을 직접 조작하지 않는다.
-
-
-## 7.4 Calc Validation 구조 유지
-
-Validation은:
-
-```text
-validation 규칙
-↓
-validation 결과
-↓
-UI 표시
-```
-
-로 분리된 현재 구조를 유지한다.
-
-검증 함수가 다시:
-
-```text
-오류 판단
-+
-invalid class 직접 변경
-+
-오류 문구 직접 출력
-```
-
-까지 모두 담당하게 만들지 않는다.
-
-
-## 7.5 Calc JS는 현재 단일 `calc.js` 유지
-
-현재 계산기 JS 규모에서는:
-
-```text
-add/js/calc.js
-```
-
-하나의 파일이 적절하다.
-
-다시:
-
-```text
-calc-core.js
-calc-ui.js
-calc-validation.js
-calc-events.js
-...
-```
-
-처럼 과도하게 분할하지 않는다.
-
-
-## 7.6 Calc CSS와 메인 CSS를 통합하지 않는다
-
-```text
-css/common.css
-css/desktop.css
-css/tablet.css
-css/mobile.css
-css/special.css
-css/interaction.css
-css/print.css
-```
-
-는 메인 대시보드 전용이다.
-
-```text
-add/css/common.css
-add/css/calc.css
-```
-
-는 부가 페이지 영역이다.
-
-비슷한 card나 button이 있다는 이유만으로 CSS를 서로 이동하거나 공통화하지 않는다.
-
-
-## 7.7 Calc 모바일 KPI 설명은 강제 ellipsis로 다시 자르지 않는다
-
-계산기의 모바일 KPI/미니카드 하단 설명은 좁은 화면에서 필요한 경우 자연스럽게 줄바꿈되도록 현재 구조를 유지한다.
-
-다시:
-
-```css
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-```
-
-를 이용해 중요한 설명문을 `...`으로 잘라내지 않는다.
-
-특히:
-
-- 기존 보유분 투자금액 설명
-- 추가매수 당일 종가 설명
-
-등 사용자가 읽어야 하는 정보는 카드 안에서 정상적으로 표시되어야 한다.
-
-
-## 7.8 Report 영역 구조 보존
-
-Report는:
-
-```text
-add/report/
-```
-
-안에서 독립적으로 관리한다.
-
-공통 CSS가 필요한 경우 현재:
-
-```text
-add/css/common.css
-```
-
-를 활용한다.
-
-Report UI 수정 시 다시:
-
-```text
-기본
-→ 모바일 fix
-→ iPhone fix
-→ final
-→ !important
-```
-
-식으로 patch를 누적하지 않는다.
-
-기존 규칙 자체를 수정·통합한다.
-
-
-## 7.9 공통화는 실제 공통일 때만 수행
-
-공통화 자체를 목표로 하지 않는다.
-
-먼저:
-
-- 정말 두 곳 이상에서 같은 책임인가
-- 앞으로 같이 변경될 가능성이 있는가
-- 공통화 후 결합도가 오히려 높아지지 않는가
-
-를 판단한다.
-
-메인과 calc처럼 독립적인 영역의 코드가 우연히 비슷하다는 이유만으로 공통화하지 않는다.
-
-
-# 8. 운영 데이터 · GitHub Actions · GAS
-
-
-## 8.1 운영 JSON과 외부 write 보호
-
-다음 운영 데이터는 코드 리팩토링 / UI 수정 과정에서 함부로 변경하지 않는다.
-
-특히:
-
-```text
-data/prices.json
-data/performance_snapshots.json
-data/pension_contributions.json
-```
-
-은 항상 주의한다.
-
-또한 나머지 `data/*.json`도 요청과 직접 관련 없으면 수정하지 않는다.
-
-장부·성과 계산에 쓰이는 실제 데이터성 값은 JS literal로 중복 보관하지 않는다. 현재 증권의 별도수익 거래 이력과 재투입 한도는 `data/portfolio.json`의 `separateProfit`, 6/18 확인 현금 기준값은 `constants.outsideCash`, 원천별 추적의 고정 원천값은 `securitiesSourceTracking`을 source of truth로 사용하며, `dashboard-core.js`/`dashboard-ui.js`는 이를 읽어 계산·표시한다.
-
-주의:
-
-- `prices.json`, `performance_snapshots.json`은 KRX 현재가 반영/워크플로우 때문에 정상적으로 바뀔 수 있다.
-- 최신 KRX 반영분과 코드 patch를 섞을 때 단순 hash 차이를 코드 회귀로 오인하지 않는다.
-- `pension_contributions.json`은 KRX 재갱신 대상이라고 가정하지 않는다.
-- 실제 운영 데이터가 포함된 최신 ZIP을 과거 코드 ZIP으로 덮어쓰기 전에 먼저 확인한다.
-
-QA 중 실제 운영 write 금지:
-
-```text
-GAS pension save
-GAS delete
-batch apply
-KRX GitHub workflow 실제 실행
-운영 JSON update
-```
-
-필요하면 mock / stub으로 검증한다.
-
-
-## 8.2 Google Apps Script(GAS) 운영 및 배포 원칙
-
-Google Apps Script는 **GitHub 프로젝트와 별도로 운영되는 백엔드**다.
-
-기본 원칙:
-
-- GAS 수정이 필요한 경우 사용자가 별도로 제공한 최신 운영 소스를 기준으로 작업한다.
-- 과거 대화에서 기억한 GAS 코드를 최신 운영본으로 추정하지 않는다.
-- 운영 인증값과 GitHub 연동 정보는 Apps Script의 Script Properties에서 관리하고 문서나 저장소에 실제 값을 기록하지 않는다.
-- 프런트엔드는 배포된 GAS Web App `/exec` URL을 호출한다.
-- 운영 코드를 수정한 경우 Web App 배포 버전도 함께 갱신한다.
-- 가능하면 기존 운영 배포를 갱신하여 기존 `/exec` URL을 유지한다.
-- 새 Web App URL을 사용하는 경우에는 메인 JS의 GAS API URL도 함께 맞춘다.
-- GAS QA에서는 실제 운영 JSON write, delete, batch apply, KRX workflow 실행을 하지 않고 mock/stub을 우선 사용한다.
-
-JS ↔ GAS 계약 검증 시:
-
-- 프런트 JS의 요청 payload는 GitHub ZIP에서 확인한다.
-- 서버 측 handler는 최신 운영 GAS 소스가 별도로 제공된 경우에만 완전 검증한다.
-
-
-## 8.3 현재 Workflow 날짜 입력 의미
-
-현재 `.github/workflows/update-prices.yml`의 실제 설명은 다음 의미와 일치한다.
-
-```text
-날짜 지정
-→ 해당 날짜 갱신
-
-날짜 비움
-→ 최신·누락·장중 재확정 대상 날짜를 Python이 자동 판단
-```
-
-`비워두면 한국시간 오늘`이라는 과거 설명으로 되돌리지 않는다.
-
-Python / Workflow 유지보수 구조:
-
-- `scripts/update_prices.py`는 `설정·공통 helper → 시장 데이터 조회 → 대상일 판단 → 포트폴리오 계산 → 저장/CLI` 순서의 섹션 구조를 유지한다.
-- 반복되는 날짜 형식, 조회 재시도, HTTP timeout/User-Agent 같은 실행 설정은 상수로 관리하고 함수 안에 같은 magic value를 중복하지 않는다.
-- `.github/workflows/update-prices.yml`은 `trigger → permission → runtime setup → updater 실행 → 생성 데이터 commit` 흐름을 유지한다.
-- Workflow가 자동 commit하는 운영 데이터는 `data/prices.json`, `data/performance_snapshots.json` 두 파일로 한정하며 다른 운영 JSON을 함께 `git add`하지 않는다.
-
-
-# 9. UI · Responsive · 반복 회귀 불변조건
-
-
-## 9.1 최신 반응형 기준과 iPhone 데스크탑 웹사이트 요청
+## 5.1 최신 반응형 기준과 iPhone 데스크탑 웹사이트 요청
 
 기본 breakpoint:
 
@@ -3611,7 +3287,7 @@ width=1980
 새 작업에서 1980으로 되돌리지 않는다.
 
 
-## 9.2 Section Title / ON·OFF 버튼 높이 최신 불변조건
+## 5.2 Section Title / ON·OFF 버튼 높이 최신 불변조건
 
 현재 section title은 ON/OFF 버튼이 있는 제목행의 현재 레이아웃을 기준으로 맞춘다.
 
@@ -3676,7 +3352,7 @@ visibility:hidden note
 ```
 
 
-## 9.3 반복 회귀 이력이 있는 UI/기능 상시 불변조건
+## 5.3 반복 회귀 이력이 있는 UI/기능 상시 불변조건
 
 다음은 과거 실제 회귀가 있었거나 자주 의심된 영역이므로 관련 수정 시 우선 확인한다.
 
@@ -3829,7 +3505,7 @@ QA에서 실제 GAS write는 하지 않는다.
 listener 중복 또는 chart 이중 생성은 FAIL이다.
 
 
-## 9.4 계좌별 성과 메모 툴팁 현재 불변조건
+## 5.4 계좌별 성과 메모 툴팁 현재 불변조건
 
 계좌별 성과 메모 동작은 `js/dashboard-ui.js`가 소유하며 차트 tooltip 구현과 섞지 않는다.
 
@@ -3843,7 +3519,7 @@ listener 중복 또는 chart 이중 생성은 FAIL이다.
 
 이 기능을 수정할 때 계좌 메모 전용 동작을 `dashboard-charts.js`로 옮기지 않는다.
 
-## 9.5 개인보기 3회 클릭 제스처 평가·유지 원칙
+## 5.5 개인보기 3회 클릭 제스처 평가·유지 원칙
 
 Hero 기준일 영역을 **연속 3회 클릭하여 개인보기를 ON/OFF하는 방식은 사용자가 개인보기 진입 경로를 일반 화면에서 의도적으로 숨기기 위해 선택한 비공개 제스처**다.
 
@@ -3867,435 +3543,800 @@ Hero 기준일 영역을 **연속 3회 클릭하여 개인보기를 ON/OFF하는
 
 이 제스처는 **보안 인증 수단이 아니라 화면상 진입 경로를 숨기기 위한 UX**로 취급한다.
 
+# 6. CSS · Responsive 유지보수 규칙
 
-# 10. 수정 원칙 · Diff · 결과 파일 전달
+
+## 6.1 메인 CSS 7파일 구조 원칙
+
+메인 대시보드 CSS는 2026-08-21 구조정리 1~5차를 거쳐 기존 `css/style.css` 단일 파일에서 **뷰포트/역할별 7파일 구조**로 전환을 완료했다. `css/style.css`는 최종 구조에서 제거되었으며 다시 만들지 않는다.
+
+현재 canonical 구조:
+
+```text
+css/
+├─ common.css       # 변수 / 기본 스타일 / 공통 컴포넌트 / Responsive Shared
+├─ desktop.css      # Desktop ≥1101px
+├─ tablet.css       # Tablet 761~1100px
+├─ mobile.css       # Mobile ≤760px
+├─ special.css      # 기능상 필요한 특수 viewport
+├─ interaction.css  # hover / pointer / prefers-reduced-motion
+└─ print.css        # Print 전용
+```
+
+`index.html`의 load order는 다음 순서를 유지한다. **이 순서가 cascade order**이므로 특별한 구조 변경 작업이 아닌 이상 임의로 바꾸지 않는다.
+
+```text
+common.css
+→ desktop.css
+→ tablet.css
+→ mobile.css
+→ special.css
+→ interaction.css
+→ print.css
+```
+
+파일별 책임:
+
+- `common.css`: viewport와 무관한 기본 component, theme/token, 공통 layout, `max-width:1100px` / `min-width:761px` 같은 Responsive Shared
+- `desktop.css`: `min-width:1101px`에서만 달라지는 웹 전용 규칙
+- `tablet.css`: `761px ~ 1100px` 태블릿 전용 규칙
+- `mobile.css`: `max-width:760px` 모바일 전용 규칙
+- `special.css`: `≤400px`, `≤1280px`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
+- `interaction.css`: `hover:hover + pointer:fine`, `prefers-reduced-motion`처럼 viewport가 아닌 입력장치/접근성 조건
+- `print.css`: 인쇄 전용 최종 override
+
+상세 리팩토링 이력은 **10.2의 리팩토링 7차 기록**을 참고한다. 현재 장에서는 최종 구조와 유지보수 규칙만 관리한다.
+
+핵심 유지보수 원칙:
+
+- 기능 수정은 먼저 **어느 역할 파일이 canonical인지** 판단하고 그 파일의 기존 rule을 직접 수정한다.
+- 같은 기능을 해결하기 위해 다른 CSS 파일 하단에 임시 override를 누적하지 않는다.
+- CSS 구조 변경과 디자인 변경을 같은 차수에 섞지 않는다.
+- 새 breakpoint는 실제 레이아웃/정보구조 문제가 있을 때만 추가하고 `special.css`에 기능명 + 존재 이유를 남긴다.
+- 파일 분리 자체를 이유로 같은 selector를 여러 파일에 중복 생성하지 않는다.
+- `common → 일반 viewport → special → interaction/accessibility → print`의 우선순위를 보존한다.
 
 
-## 10.1 과도한 리팩토링 금지
+## 6.2 반응형 CSS는 뷰포트/역할별 섹션으로 모아 관리
 
-기능 수정 요청을 받았다고 관련 없는 영역까지 리팩토링하지 않는다.
+기본 component CSS는 `common.css`의 기능별 영역에 유지하고, viewport별 변경은 해당 역할 파일에 모아 관리한다. Responsive Shared는 `common.css`, 일반 3구간은 `desktop.css` / `tablet.css` / `mobile.css`, 기능 예외는 `special.css`로 분리한다.
+
+현재 논리적인 cascade 순서는 다음과 같다.
+
+```text
+Common component CSS + Responsive Shared
+↓
+Desktop / Tablet / Mobile
+↓
+Special Viewports
+↓
+Interaction / Accessibility
+↓
+Print
+```
+
+기본 viewport는 계속 다음 3구간을 사용한다.
+
+```text
+Desktop · 웹: 1101px 이상
+Tablet · 태블릿: 761px ~ 1100px
+Mobile · 모바일: 760px 이하
+```
+
+특수 viewport는 일반 viewport 섹션에 섞지 않고 **왜 필요한지 기능 기준으로 추적 가능하게 관리**한다. 대표적인 현재 예외는 다음과 같다.
+
+```text
+≤400px
+→ 초소형 화면에서 계좌별 성과 정보 구조 보정
+
+≤1280px
+→ Asset Detail 2-column 유지 시 가용폭 부족 대응
+
+Phone Landscape
+→ iPhone 844×390처럼 width만 보면 Tablet으로 오판되는 실제 터치폰 가로모드 대응
+```
+
+`hover:hover + pointer:fine`, `prefers-reduced-motion`, `print`는 viewport가 아니므로 Desktop/Tablet/Mobile과 분리한다.
+
+`desktop.css`, `tablet.css`, `mobile.css` 내부의 기능 섹션 순서는 가능한 한 동일하게 맞춰 같은 기능의 viewport 차이를 빠르게 비교할 수 있게 한다. 예:
+
+```text
+01 Topbar
+02 Hero
+03 KPI
+04 Securities
+05 Pension
+06 Tables
+07 Charts
+08 Ledger
+09 Modal
+```
+
+새 특수 breakpoint를 단순 미관 보정용으로 추가하지 않는다. 실제 레이아웃/정보구조 문제를 해결해야 할 때만 추가하고, `special.css`에 **기능명 + 존재 이유**를 주석으로 남긴다.
+
+
+## 6.3 CSS 섹션과 주요 주석은 영어 + 한글 병기
+
+주요 CSS 영역과 의미 있는 하위 주석은 영어와 한글을 함께 사용한다.
 
 예:
 
-> 버튼 하나 수정
+```css
+/* =========================================================
+   Topbar / Navigation · 상단바 / 내비게이션
+   ========================================================= */
 
-요청인데:
+/* Chart Controls · 차트 조작 버튼 */
 
-```text
-전체 Topbar 재작성
-JS 파일 재분리
-CSS 변수명 전체 변경
-state 구조 재설계
+/* Pension Contribution · 퇴직연금 납입 */
+
+/* Custom Tooltip · 커스텀 툴팁 */
 ```
 
-등으로 작업 범위를 확대하지 않는다.
+다만 모든 selector에 주석을 붙이지 않는다.
 
-현재 요청에 필요한 최소 범위만 수정한다.
+주석의 목적은:
 
-추가 구조 개선이 필요하다면 이번 작업에 섞지 말고 별도 제안한다.
+> **사람이나 GPT가 원하는 기능 영역을 빠르게 찾도록 하는 것**
 
+이다.
 
-## 10.2 사용자의 요청이 현재 구조를 훼손하면 작업 중지
-
-이 규칙은 매우 중요하다.
-
-내가 요청한 방법 자체가 다음 문제를 만든다고 판단되면 바로 파일을 수정하지 않는다.
-
-- 불필요한 새 breakpoint 필요
-- `!important` 다수 추가 필요
-- 동일 selector override 누적 필요
-- 특정 해상도 전용 임시 patch 필요
-- 공통 component 파괴
-- 디자인 token 무시
-- 메인 JS 책임 경계 파괴
-- `dashboard-core.js`에 DOM 조작 추가
-- `dashboard-app.js`에 복잡한 기능 구현 누적
-- inline event 재도입
-- 같은 기능을 여러 JS 파일에 중복 구현
-- calc의 계산/validation/render 분리 구조 파괴
-- calc CSS/JS를 다시 HTML inline으로 합침
-- 메인과 `add/` 영역을 불필요하게 결합
-- 현재보다 유지보수성이 명백하게 악화
-- 다른 viewport나 기능에 높은 회귀 위험 발생
-
-이 경우 작업을 중지하고 다음 형식으로 먼저 알려준다.
+다음과 같은 누적 패치형 주석은 사용하지 않는다.
 
 ```text
-이 요청을 그대로 구현하면 현재 리팩토링 구조를 훼손할 가능성이 있습니다.
-
-문제
-- 어떤 구조가 깨지는지
-- 왜 유지보수성이 나빠지는지
-- 예상되는 회귀 위험
-
-권장 대안
-- 현재 구조를 유지하면서 같은 목적을 달성하는 방법
+Fix
+Final
+Final Fix
+Mobile Fix
+Override
+Temp
+New
 ```
 
-단순히 구현하기 어렵다는 이유로 중지하지 않는다.
+날짜나 작업차수도 CSS 주석에 변경 이력처럼 남기지 않는다.
 
 
-## 10.3 수정 전 영향 범위는 필요한 만큼만 확인
+## 6.4 반응형 기본 viewport는 3구간 고정
 
-파일을 수정하기 전에 관련:
+메인 대시보드 기본 viewport는 다음과 같다.
 
-- selector
-- function
-- state
-- DOM
-- action
-- helper
+- **Desktop · 웹:** `1101px 이상`
+- **Tablet · 태블릿:** `761px ~ 1100px`
+- **Mobile · 모바일:** `760px 이하`
 
-사용처를 확인한다.
-
-특히 공통 class/helper를 수정하면 영향을 받는 직접 사용처를 확인한다.
-
-다만 매번 프로젝트 전체를 전수 분석하지 않는다.
-
-원칙:
-
-> **변경 대상의 직접 사용처와 영향을 받을 가능성이 높은 범위만 확인한다.**
+새로운 UI를 추가하거나 수정할 때 기본적으로 이 세 구간 안에서 해결한다.
 
 
-## 10.4 새 코드 적용 후 불필요한 예전 코드 제거
+## 6.5 불필요한 추가 breakpoint 금지
 
-새 구조를 적용한 뒤 예전 workaround가 필요 없어졌다면 같이 제거한다.
+다음과 같은 특정 폭을 단순 미관 보정 목적으로 추가하지 않는다.
 
-다음처럼 남기지 않는다.
+- 900px
+- 720px
+- 520px
+- 430px
+- 420px
+- 390px
+- 374px
+- 기타 특정 기기 폭
 
-```text
-기존 코드
-+
-새 코드
-```
+추가 breakpoint는 다음 조건을 모두 만족할 때만 허용한다.
 
-가능하면:
+1. 기존 웹 / 태블릿 / 모바일 규칙만으로 해결할 수 없음
+2. 실제 기능적 문제가 존재함
+3. 해당 구간을 별도로 처리해야 할 명확한 이유가 있음
+4. 기존 component 자체를 수정하는 것보다 별도 breakpoint가 더 적절함
 
-```text
-기존 코드 수정 또는 제거
-→ 최종 코드 하나
-```
+현재 이미 존재하는 기능상 필요한 예외 breakpoint는 함부로 제거하지 않는다.
 
-만 남긴다.
+현재 허용된 기능상 예외 breakpoint 중 `1280px 이하`는 **공통 Asset Detail 기능 breakpoint**다. 증권의 `보유종목 현황 + 전일 대비 변동`과 퇴직연금의 `연금상품별 현황 + 전일 대비 변동`이 Desktop에서 2열로 배치되다가 `1280px 이하`에서 1열로 전환하여 표 내부 가로 스크롤을 방지한다. 이 규칙은 `.asset-detail-grid`의 공통 기능 기준이며, 다른 일반 영역의 반응형 breakpoint로 확대 적용하지 않는다. 새 증권 전용 breakpoint도 만들지 않는다.
 
-
-## 10.5 Diff 검사 필수
-
-수정 완료 후 변경 파일의 diff를 확인한다.
-
-확인 항목:
-
-- 요청한 부분만 변경됐는지
-- 무관한 코드가 포맷팅되지 않았는지
-- 기존 기능이 실수로 삭제되지 않았는지
-- 같은 목적 코드가 이중으로 남지 않았는지
-- 이전 workaround가 불필요하게 남아 있지 않은지
-- 다른 책임 파일을 불필요하게 건드리지 않았는지
-
-전체 프로젝트 diff가 아니라 변경 파일 중심으로 확인한다.
+공통 Asset Detail CSS는 기존 generic class/token을 우선 재사용하고, 실제로 양쪽 자산이 공유하는 의미에만 최소 `.asset-*` semantic class를 사용한다. 현황/전일변동/상승분기여도에서 공통화된 selector는 neutral `.asset-*`가 canonical이며, 같은 역할의 `.pension-*` legacy alias를 병렬로 유지하지 않는다. 위험자산 70% 룰·퇴직연금 조정/PIN/납입 등 연금 전용 UI는 계속 `.pension-*`를 사용한다.
 
 
-## 10.6 CSS 수정 후 기본 보고
 
-메인 CSS(`css/*.css`)를 수정했다면 변경된 CSS 파일 기준으로 다음을 보고한다.
+## 6.6 특정 viewport 스크린샷 맞춤식 수정 금지
 
-- 수정 전 전체 줄 수
-- 수정 후 전체 줄 수
-- 증감 줄 수
-- 수정 전 파일 크기
-- 수정 후 파일 크기
-- 증감 크기
-- 새 `!important` 수
-- 새 breakpoint 여부
-- 동일 목적 selector override 추가 여부
-- 예상 외 diff 여부
+내가 특정 해상도 화면을 보여주더라도 바로:
 
-코드 줄 수 감소 자체를 목표로 하지 않는다.
+> `390px 전용 CSS`
 
-새 기능 때문에 CSS가 늘어나는 것은 정상이다.
+같은 방식으로 해결하지 않는다.
 
-중요한 것은:
+먼저 해당 문제가:
 
-> **구조적으로 올바르게 증가했는가**
+- 모바일 전체 문제인지
+- 태블릿 전체 문제인지
+- 웹 전체 문제인지
+- component 자체 문제인지
+- 브라우저 고유 문제인지
+- 실제 특정 기기 기능 예외인지
+
+판단한다.
+
+가능하면 대표 breakpoint나 component 자체를 수정해서 해결한다.
+
+목표는 특정 스크린샷 한 장을 맞추는 것이 아니라:
+
+> **해당 viewport 범위 전체를 안정적으로 만드는 것**
 
 이다.
 
 
-## 10.7 JS 수정 후 기본 보고
+## 6.7 미관 문제와 실제 문제를 구분
 
-메인 JS를 수정했다면 다음을 간단히 보고한다.
+다음은 수정해야 할 실제 문제다.
 
-```text
-변경한 JS 파일:
-주요 변경 함수:
-새 state 추가:
-새 전역 변수:
-새 inline event:
-다른 책임 파일 변경:
-예상 외 diff:
+- 요소 겹침
+- 텍스트 잘림
+- 화면 밖 overflow
+- 버튼 조작 불가
+- 기능 오류
+- 읽기 어려운 텍스트
+- 레이아웃 붕괴
+- breakpoint 정책 위반
+- 명백한 정렬 오류
+
+반면 다음만으로 새 breakpoint나 override를 만들지 않는다.
+
+- 특정 중간 폭에서 약간 어색함
+- 여백이 2~3px 마음에 안 듦
+- 카드 비율이 조금 덜 예쁨
+- 특정 화면에서 아주 미묘한 시각적 차이
+
+
+## 6.8 CSS 추가보다 기존 규칙 수정·통합 우선
+
+새 수정 요청이 있다고 CSS 파일 하단에 보정 규칙을 계속 추가하지 않는다.
+
+피해야 할 구조:
+
+```css
+기존 규칙
+
+/* fix */
+같은 selector 재정의
+
+/* mobile fix */
+같은 selector 재정의
+
+/* final */
+같은 selector 재정의
 ```
 
-정상 목표는 상황에 따라 다음과 같다.
+수정 순서:
 
-```text
-새 inline event: 0
-불필요한 전역 변수: 0
-관련 없는 JS 파일 변경: 없음
-예상 외 diff: 없음
-```
+1. 기존 selector 위치 확인
+2. 기존 선언 자체를 수정할 수 있는지 확인
+3. 같은 목적의 중복 규칙이 있는지 확인
+4. 새 규칙 적용 후 불필요해진 예전 workaround 제거
 
-특히 어떤 기능을 어느 책임 파일에 넣었는지 알려준다.
+기본 원칙:
 
-
-## 10.8 Calc 수정 후 기본 보고
-
-계산기를 수정했다면 다음을 알려준다.
-
-```text
-변경 파일:
-계산 공식 변경:
-Validation 변경:
-UI 변경:
-새 breakpoint:
-새 !important:
-메인 css/js 변경:
-예상 외 diff:
-```
-
-기능 추가가 아닌 UI 수정이라면 계산 공식은 원칙적으로 변경하지 않는다.
+> **patch를 추가하기보다 현재 최종 규칙을 수정한다.**
 
 
-## 10.9 새로운 breakpoint / `!important` 발생 시 별도 보고
+## 6.9 동일 selector override 누적 금지
 
-새 breakpoint나 `!important`가 생겼다면 반드시 이유를 설명한다.
+동일한 cascade context에서 같은 selector를 뒤에서 반복적으로 덮지 않는다.
 
 예:
 
-```text
-새 breakpoint: 없음
-새 !important: 없음
+```css
+.card {
+  ...
+}
+
+/* 수백 줄 뒤 */
+
+.card {
+  ...
+}
 ```
 
-또는:
+또한 같은 media context에서 동일 component를 여러 위치에서 반복 보정하지 않는다.
+
+component별 CSS 책임 위치를 명확하게 유지한다.
+
+
+## 6.10 `!important` 사용 정책
+
+새로운 `!important`는 원칙적으로 추가하지 않는다.
+
+현재 메인 CSS는 과거 대량의 `!important`를 대부분 제거하여 정상 cascade 구조로 정리된 상태다.
+
+단순 specificity 해결 수단으로 사용하지 않는다.
+
+허용 가능한 대표 사례:
+
+- 브라우저 고유 UI
+- Safari / WebKit intrinsic control
+- 명시적인 `[hidden]`
+- `prefers-reduced-motion`
+- 정상 cascade만으로 해결하기 어려운 명확한 브라우저 예외
+
+새 `!important`가 필요하다면 먼저:
+
+1. 기존 구조 수정으로 해결 가능한지
+2. specificity 정리로 가능한지
+3. 실제로 강제 우선순위가 필요한지
+
+확인한다.
+
+
+## 6.11 디자인 토큰과 CSS variable 우선 재사용
+
+이미 존재하는:
+
+- color
+- padding
+- gap
+- border-radius
+- font-size
+- control height
+- positive / negative
+- card spacing
+- chart control size
+
+등의 CSS variable과 design token을 우선 활용한다.
+
+비슷한 값을 새로 하드코딩하거나 의미가 겹치는 변수를 다시 만들지 않는다.
+
+
+
+## 6.12 증권·퇴직연금 KPI 모바일 2열 규칙
+
+증권·퇴직연금의 `성과 요약` 4개 KPI 카드는 모바일(`<=760px` 및 실제 스마트폰 가로모드)에서만 `2 × 2` grid를 유지한다. 다른 `.metric-grid`에는 이 규칙을 확대 적용하지 않는다.
+
+모바일 KPI 타이포 기준:
 
 ```text
-새 breakpoint: 1개
-
-이유:
-기존 3개 viewport 규칙만으로 실제 기능 문제를 해결할 수 없어 추가함.
+라벨 11px
+값 18px
+설명 10px
 ```
 
-설명할 수 없는 예외는 추가하지 않는다.
+세 요소는 한 줄 유지한다. 모바일 전용 축약 설명이 필요한 경우 `metricCard()`의 mobile sub variant를 사용하고, 데스크톱/태블릿 설명을 CSS로 억지 축소하거나 ellipsis 처리하지 않는다.
+
+## 6.13 Topbar 날짜 셀렉트 폭 정합성
+
+Topbar의 `년/월`과 `일` 셀렉트는 모든 viewport에서 **동일한 가로 폭 체계**를 유지한다. Desktop / Tablet은 두 셀렉트 모두 `148px`, Mobile은 두 셀렉트가 동일한 반응형 계산폭(`max 148px`)을 사용한다. 한쪽만 별도 고정폭으로 축소하지 않는다.
+
+# 7. JavaScript 구현 세부 규칙
 
 
-## 10.10 변경 파일만 전달
+## 7.1 Inline event handler 재도입 금지
 
-수정 후 ZIP을 제공한다면 **실제로 변경된 파일만 포함**한다.
+메인 대시보드는 현재 동적 HTML의:
 
-변경 파일이 하나여도 프로젝트 폴더 구조를 유지한다.
+```html
+onclick=""
+onchange=""
+oninput=""
+onkeydown=""
+```
 
-예:
+의존성을 제거하고:
+
+```html
+data-dashboard-action="..."
+```
+
+기반 event delegation 구조를 사용한다.
+
+새 UI를 추가할 때 inline event를 다시 만들지 않는다.
+
+기존:
 
 ```text
-patch/
+data-dashboard-action
+→ 중앙 event dispatcher
+→ 기능 handler
+```
+
+구조를 우선 활용한다.
+
+
+## 7.2 Event handler에 비즈니스 로직을 과도하게 넣지 않는다
+
+피해야 할 구조:
+
+```js
+click handler {
+  데이터 읽기
+  계산 수십 줄
+  DOM 생성
+  API 저장
+  전체 render
+}
+```
+
+권장 흐름:
+
+```text
+event
+→ handler
+→ helper / calculation
+→ state 변경
+→ render
+```
+
+event handler는 가능한 한 연결 역할에 집중한다.
+
+
+## 7.3 JavaScript에서 UI 스타일 직접 지정 최소화
+
+JS에서:
+
+```js
+element.style.color = ...
+element.style.padding = ...
+element.style.fontSize = ...
+```
+
+또는 HTML 문자열 안의:
+
+```html
+style="..."
+```
+
+를 단순 시각 표현 목적으로 새로 늘리지 않는다.
+
+색상, 여백, font, 정렬 등은 가능한 CSS class가 담당한다.
+
+단, 다음처럼 runtime 계산이 반드시 필요한 경우는 예외다.
+
+- chart 좌표
+- tooltip 위치
+- 동적 width/height
+- SVG path
+- CSS custom property 값
+
+
+## 7.4 JS 중복 로직 추가 금지
+
+새 함수를 만들기 전에 기존 helper가 있는지 확인한다.
+
+대표적인 공통 대상:
+
+- 날짜 처리
+- fetch
+- formatter
+- modal open/close
+- tooltip
+- chart option
+- responsive sync
+- swatch
+- table cell
+- positive / negative 처리
+- data refresh
+
+비슷한 로직을 각 파일에 복사하지 않는다.
+
+# 8. Calc · Report 유지보수 규칙
+
+
+## 8.1 Calc는 메인과 독립된 부가 기능으로 유지
+
+현재 계산기는 다음 구조로 분리되어 있다.
+
+```text
+add/
+├─ calc.html
+├─ css/
+│  ├─ common.css
+│  └─ calc.css
 └─ js/
-   └─ dashboard-charts.js
+   └─ calc.js
 ```
 
-또는:
+계산기 수정 때문에 메인:
 
 ```text
-patch/
-└─ add/
-   ├─ calc.html
-   └─ js/
-      └─ calc.js
+css/
+js/
 ```
 
-변경되지 않은 전체 프로젝트를 다시 압축할 필요는 없다.
+구조를 변경하지 않는다.
+
+반대로 메인 기능 수정 때문에 `add/calc.*`를 건드리지 않는다.
+
+두 영역의 코드가 우연히 비슷하다는 이유만으로 억지로 공통화하지 않는다.
 
 
-## 10.11 계산 로직 수정은 UI보다 엄격하게 검증
+## 8.2 Calc의 HTML / CSS / JS 책임 분리 유지
 
-다음 영역을 수정한다면 조금 더 엄격하게 확인한다.
-
-- 수익률
-- 손익
-- 투자원금
-- 현금
-- 퇴직연금
-- 자산배분
-- calc 계산식
-
-가능한 경우 동일 입력값 기준 전후 결과를 비교한다.
-
-계산 함수는 DOM과 분리된 구조를 유지한다.
-
-
-## 10.12 공통 코드 변경은 더 신중하게
-
-다음과 같은 공통 영역은 여러 기능에 영향을 줄 수 있다.
-
-예:
+현재:
 
 ```text
-css/common.css의 공통 component
-dashboard-core.js의 formatter/helper
-공통 date helper
-공통 table/card renderer
+add/calc.html
+→ HTML 구조
+
+add/css/calc.css
+→ 계산기 전용 스타일
+
+add/js/calc.js
+→ 계산 / validation / rendering / event
+```
+
+책임을 유지한다.
+
+다시 `calc.html` 안에 대규모:
+
+```html
+<style>...</style>
+<script>...</script>
+```
+
+블록을 넣지 않는다.
+
+새 계산기 CSS는 `add/css/calc.css`에,
+
+새 계산기 JavaScript는 `add/js/calc.js`에 둔다.
+
+
+## 8.3 Calc 계산 구조 유지
+
+계산기의 기본 흐름은:
+
+```text
+Input · 입력
+↓
+Validation · 검증
+↓
+Calculation · 계산
+↓
+Result · 결과
+↓
+Rendering · 화면 출력
+```
+
+이다.
+
+특히 핵심 `compute()`는 DOM과 분리된 계산 함수 성격을 유지한다.
+
+계산 함수 안에서 새로:
+
+```js
+document...
+classList...
+textContent...
+innerHTML...
+```
+
+등을 직접 조작하지 않는다.
+
+
+## 8.4 Calc Validation 구조 유지
+
+Validation은:
+
+```text
+validation 규칙
+↓
+validation 결과
+↓
+UI 표시
+```
+
+로 분리된 현재 구조를 유지한다.
+
+검증 함수가 다시:
+
+```text
+오류 판단
++
+invalid class 직접 변경
++
+오류 문구 직접 출력
+```
+
+까지 모두 담당하게 만들지 않는다.
+
+
+## 8.5 Calc JS는 현재 단일 `calc.js` 유지
+
+현재 계산기 JS 규모에서는:
+
+```text
+add/js/calc.js
+```
+
+하나의 파일이 적절하다.
+
+다시:
+
+```text
+calc-core.js
+calc-ui.js
+calc-validation.js
+calc-events.js
+...
+```
+
+처럼 과도하게 분할하지 않는다.
+
+
+## 8.6 Calc CSS와 메인 CSS를 통합하지 않는다
+
+```text
+css/common.css
+css/desktop.css
+css/tablet.css
+css/mobile.css
+css/special.css
+css/interaction.css
+css/print.css
+```
+
+는 메인 대시보드 전용이다.
+
+```text
+add/css/common.css
+add/css/calc.css
+```
+
+는 부가 페이지 영역이다.
+
+비슷한 card나 button이 있다는 이유만으로 CSS를 서로 이동하거나 공통화하지 않는다.
+
+
+## 8.7 Calc 모바일 KPI 설명은 강제 ellipsis로 다시 자르지 않는다
+
+계산기의 모바일 KPI/미니카드 하단 설명은 좁은 화면에서 필요한 경우 자연스럽게 줄바꿈되도록 현재 구조를 유지한다.
+
+다시:
+
+```css
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+```
+
+를 이용해 중요한 설명문을 `...`으로 잘라내지 않는다.
+
+특히:
+
+- 기존 보유분 투자금액 설명
+- 추가매수 당일 종가 설명
+
+등 사용자가 읽어야 하는 정보는 카드 안에서 정상적으로 표시되어야 한다.
+
+
+## 8.8 Report 영역 구조 보존
+
+Report는:
+
+```text
+add/report/
+```
+
+안에서 독립적으로 관리한다.
+
+공통 CSS가 필요한 경우 현재:
+
+```text
 add/css/common.css
 ```
 
-단일 화면 문제를 해결하기 위해 공통 코드를 섣불리 변경하지 않는다.
+를 활용한다.
 
-공통 변경이 필요하면 직접 영향을 받는 사용처를 필요한 범위에서 먼저 확인한다.
-
-
-## 10.13 신규 기능 추가 시 판단 순서
-
-새 기능 요청을 받으면 내부적으로 다음 순서로 판단한다.
-
-#### 1
-이 기능은 어느 책임 영역에 속하는가
-
-#### 2
-기존 component/helper/state/action으로 구현 가능한가
-
-#### 3
-현재 3개 viewport 규칙 안에서 해결 가능한가
-
-#### 4
-기존 CSS/JS 규칙을 수정하면 되는가
-
-#### 5
-새 class/function/state/action이 정말 필요한가
-
-#### 6
-새 breakpoint, `!important`, inline style 같은 예외가 정말 필요한가
-
-이 순서를 거친 뒤 구현한다.
-
-
-## 10.14 구조 보존을 이유로 과도하게 소극적이지 않는다
-
-기존 구조 안에서 정상적으로 구현 가능한 요청이라면 바로 수행한다.
-
-매번:
-
-> 구조를 변경해도 될까요?
-
-라고 확인하지 않는다.
-
-**명백하게 현재 구조를 훼손하는 경우에만 작업을 중지하고 대안을 제시한다.**
-
-
-## 10.15 최우선 판단 기준
-
-모든 수정의 우선순위는 다음과 같다.
-
-#### 1순위
-기존 기능과 계산 결과가 정확하게 유지되는가
-
-#### 2순위
-현재 리팩토링된 책임 구조가 유지되는가
-
-#### 3순위
-기존 component / helper / state / action을 재사용하는가
-
-#### 4순위
-최소 범위로 수정했는가
-
-#### 5순위
-코드가 읽기 쉽고 명확한가
-
-#### 6순위
-코드 양이 적은가
-
-코드 줄 수 감소는 가장 낮은 우선순위다.
-
-
-## 10.16 차수 결과 파일 전달과 통계
-
-차수 수정 후 기본 전달 방식:
-
-> **실제로 변경된 파일만 원래 프로젝트 폴더 구조를 유지해 ZIP으로 제공**
-
-예:
+Report UI 수정 시 다시:
 
 ```text
-investment-dashboard-main/
-└─ css/
-   └─ mobile.css
+기본
+→ 모바일 fix
+→ iPhone fix
+→ final
+→ !important
 ```
 
-또는:
+식으로 patch를 누적하지 않는다.
+
+기존 규칙 자체를 수정·통합한다.
+
+
+## 8.9 공통화는 실제 공통일 때만 수행
+
+공통화 자체를 목표로 하지 않는다.
+
+먼저:
+
+- 정말 두 곳 이상에서 같은 책임인가
+- 앞으로 같이 변경될 가능성이 있는가
+- 공통화 후 결합도가 오히려 높아지지 않는가
+
+를 판단한다.
+
+메인과 calc처럼 독립적인 영역의 코드가 우연히 비슷하다는 이유만으로 공통화하지 않는다.
+
+# 9. 운영 데이터 · GitHub Actions · GAS
+
+
+## 9.1 운영 JSON과 외부 write 보호
+
+다음 운영 데이터는 코드 리팩토링 / UI 수정 과정에서 함부로 변경하지 않는다.
+
+특히:
 
 ```text
-investment-dashboard-main/
-├─ index.html
-└─ js/
-   ├─ dashboard-core.js
-   └─ dashboard-app.js
+data/prices.json
+data/performance_snapshots.json
+data/pension_contributions.json
 ```
 
-변경되지 않은 파일을 억지로 포함하지 않는다.
+은 항상 주의한다.
 
-각 변경 파일별 보고:
+또한 나머지 `data/*.json`도 요청과 직접 관련 없으면 수정하지 않는다.
+
+장부·성과 계산에 쓰이는 실제 데이터성 값은 JS literal로 중복 보관하지 않는다. 현재 증권의 별도수익 거래 이력과 재투입 한도는 `data/portfolio.json`의 `separateProfit`, 6/18 확인 현금 기준값은 `constants.outsideCash`, 원천별 추적의 고정 원천값은 `securitiesSourceTracking`을 source of truth로 사용하며, `dashboard-core.js`/`dashboard-ui.js`는 이를 읽어 계산·표시한다.
+
+주의:
+
+- `prices.json`, `performance_snapshots.json`은 KRX 현재가 반영/워크플로우 때문에 정상적으로 바뀔 수 있다.
+- 최신 KRX 반영분과 코드 patch를 섞을 때 단순 hash 차이를 코드 회귀로 오인하지 않는다.
+- `pension_contributions.json`은 KRX 재갱신 대상이라고 가정하지 않는다.
+- 실제 운영 데이터가 포함된 최신 ZIP을 과거 코드 ZIP으로 덮어쓰기 전에 먼저 확인한다.
+
+QA 중 실제 운영 write 금지:
 
 ```text
-수정 전 line
-수정 후 line
-증감 line
-수정 전 byte
-수정 후 byte
-증감 byte
+GAS pension save
+GAS delete
+batch apply
+KRX GitHub workflow 실제 실행
+운영 JSON update
 ```
 
-그리고:
+필요하면 mock / stub으로 검증한다.
+
+
+## 9.2 Google Apps Script(GAS) 운영 및 배포 원칙
+
+Google Apps Script는 **GitHub 프로젝트와 별도로 운영되는 백엔드**다.
+
+기본 원칙:
+
+- GAS 수정이 필요한 경우 사용자가 별도로 제공한 최신 운영 소스를 기준으로 작업한다.
+- 과거 대화에서 기억한 GAS 코드를 최신 운영본으로 추정하지 않는다.
+- 운영 인증값과 GitHub 연동 정보는 Apps Script의 Script Properties에서 관리하고 문서나 저장소에 실제 값을 기록하지 않는다.
+- 프런트엔드는 배포된 GAS Web App `/exec` URL을 호출한다.
+- 운영 코드를 수정한 경우 Web App 배포 버전도 함께 갱신한다.
+- 가능하면 기존 운영 배포를 갱신하여 기존 `/exec` URL을 유지한다.
+- 새 Web App URL을 사용하는 경우에는 메인 JS의 GAS API URL도 함께 맞춘다.
+- GAS QA에서는 실제 운영 JSON write, delete, batch apply, KRX workflow 실행을 하지 않고 mock/stub을 우선 사용한다.
+
+JS ↔ GAS 계약 검증 시:
+
+- 프런트 JS의 요청 payload는 GitHub ZIP에서 확인한다.
+- 서버 측 handler는 최신 운영 GAS 소스가 별도로 제공된 경우에만 완전 검증한다.
+
+
+## 9.3 현재 Workflow 날짜 입력 의미
+
+현재 `.github/workflows/update-prices.yml`의 실제 설명은 다음 의미와 일치한다.
 
 ```text
-예상하지 않은 diff
-대량 formatting
-CSS 변경 여부
-JS 변경 여부
-운영 JSON 변경 여부
+날짜 지정
+→ 해당 날짜 갱신
+
+날짜 비움
+→ 최신·누락·장중 재확정 대상 날짜를 Python이 자동 판단
 ```
 
-를 명시한다.
+`비워두면 한국시간 오늘`이라는 과거 설명으로 되돌리지 않는다.
 
-또한 **파일 수정 작업을 완료해 결과 파일을 전달할 때는 GitHub 커밋에 바로 사용할 `Summary`와 `Description`을 함께 제공한다.**
+Python / Workflow 유지보수 구조:
 
-기본 형식:
+- `scripts/update_prices.py`는 `설정·공통 helper → 시장 데이터 조회 → 대상일 판단 → 포트폴리오 계산 → 저장/CLI` 순서의 섹션 구조를 유지한다.
+- 반복되는 날짜 형식, 조회 재시도, HTTP timeout/User-Agent 같은 실행 설정은 상수로 관리하고 함수 안에 같은 magic value를 중복하지 않는다.
+- `.github/workflows/update-prices.yml`은 `trigger → permission → runtime setup → updater 실행 → 생성 데이터 commit` 흐름을 유지한다.
+- Workflow가 자동 commit하는 운영 데이터는 `data/prices.json`, `data/performance_snapshots.json` 두 파일로 한정하며 다른 운영 JSON을 함께 `git add`하지 않는다.
 
-```text
-Summary: 변경 핵심만 매우 짧게 작성
-Description: 주요 변경 내용을 간단히 설명
-```
-
-작성 원칙:
-
-- `Summary`는 기존보다 더 짧게, 커밋 제목 수준으로 작성한다.
-- `Description`은 기존 Summary 수준의 간단한 설명으로 작성한다.
-- 둘 다 실제 수정된 내용만 반영한다.
-- QA 결과나 상세 작업내역을 길게 넣지 않는다.
-- 여러 파일을 수정했더라도 하나의 커밋 단위로 간결하게 작성한다.
-- 사용자가 별도 커밋 문구 형식을 지정하면 그 형식을 우선한다.
-
-또한 사용자가 대화 중 **앞으로 반복 적용할 유지보수 규칙, 수정 조건, QA 조건, 파일 전달 방식 등의 운영 조건을 추가하거나 변경하면**, 별도로 문서 반영을 다시 지시하지 않아도 **`main_dashboard_maintenance_handover.md`에 해당 내용을 자동 반영한다.**
-
-운영 조건 자동 반영 원칙:
-
-- 일회성 작업 지시는 장기 운영 규칙으로 확대해 기록하지 않는다.
-- 앞으로 반복 적용할 명확한 조건만 반영한다.
-- 기존 규칙과 충돌하면 최신 사용자 지시를 우선하고 기존 관련 문구도 함께 갱신한다.
-- 같은 의미의 규칙을 새 섹션으로 중복 추가하지 않고 기존 관련 항목에 통합한다.
-- 운영 조건 반영 때문에 요청과 무관한 코드나 프로젝트 파일까지 수정 범위를 넓히지 않는다.
+# 10. 리팩토링 이력 · 역사적 기준선
 
 
-# 11. 리팩토링 이력 · 역사적 기준선
-
-
-## 11.1 역사 기록의 사용 원칙
+## 10.1 역사 기록의 사용 원칙
 
 이 장은 지금까지 진행한 대규모 구조 개선을 **프로젝트 전체 리팩토링 차수** 기준으로 한곳에 모아 기록한다.
 
@@ -4304,7 +4345,7 @@ Description: 주요 변경 내용을 간단히 설명
 이 장의 수치와 PASS 기록은 당시 작업의 **역사적 snapshot**이다. 최신 소스의 현재 점수나 줄 수를 고정하는 값이 아니다. 새 `점수` 또는 `평가` 요청에서는 반드시 최신 전체 ZIP을 다시 확인한다.
 
 
-## 11.2 전체 리팩토링 통합 연혁
+## 10.2 전체 리팩토링 통합 연혁
 
 현재 프로젝트의 대규모 구조 개선 흐름은 다음 **7개 주요 리팩토링**으로 정리한다.
 
@@ -4318,7 +4359,7 @@ Description: 주요 변경 내용을 간단히 설명
 | **6차** | CSS | 단일 CSS 내부 기능군 / Chart / Topbar 구조 재정리 | 내부 `1~4차` | 최종 누적 QA PASS |
 | **7차** | CSS | viewport 중심 재배치 + 7파일 역할 분리 | 내부 `1~5차` | **최종 QA PASS / 현재 canonical** |
 
-아래 상세 기록을 현재 구조를 되돌리는 명령으로 해석하지 않는다. 현재 유지보수 기준은 **4장 Architecture, 5장 CSS, 6장 JavaScript 규칙**을 우선한다.
+아래 상세 기록을 현재 구조를 되돌리는 명령으로 해석하지 않는다. 현재 유지보수 기준은 **4장 Architecture, 5장 UI 불변조건, 6장 CSS, 7장 JavaScript 규칙**을 우선한다.
 
 
 ### 리팩토링 1차 · CSS 최적화 / canonical 구조 확립
@@ -4339,7 +4380,7 @@ Description: 주요 변경 내용을 간단히 설명
 
 > 새 patch를 파일 하단에 계속 누적하지 않고 기존 canonical rule을 우선 수정한다.
 
-당시 대표 구조 평가 snapshot은 이후 11.9에 별도로 보존한다.
+당시 대표 구조 평가 snapshot은 이후 10.9에 별도로 보존한다.
 
 
 ### 리팩토링 2차 · JavaScript 5분할
@@ -4391,7 +4432,7 @@ dashboard-app.js
 
 17차 완료 시점에는 **당시 정의한 평가표 기준 전체 100점 milestone**을 기록했다.
 
-단, 이 기록은 현재 소스의 영구 고정 점수가 아니다. 점수 상세 이력은 11.4~11.7에 따로 보존한다.
+단, 이 기록은 현재 소스의 영구 고정 점수가 아니다. 점수 상세 이력은 10.4~10.7에 따로 보존한다.
 
 
 ### 리팩토링 4차 · JavaScript ES Module migration
@@ -4629,7 +4670,7 @@ common
 따라서 **리팩토링 7차 완료본이 현재 CSS canonical 기준선**이다.
 
 
-## 11.3 현재 리팩토링 완료 기준선
+## 10.3 현재 리팩토링 완료 기준선
 
 현재 대규모 리팩토링 완료 상태를 한 번에 보면 다음과 같다.
 
@@ -4673,10 +4714,10 @@ css/
 
 새로운 대규모 작업에서 사용자가 다시 `1차`, `2차`라고 요청하면 그것은 **새 작업의 내부 차수**다. 과거의 프로젝트 리팩토링 1~7차를 다시 수행한다는 뜻이 아니다.
 
-현재 구조별 세부 책임과 수정 위치는 4장, CSS 규칙은 5장, JavaScript 규칙은 6장을 따른다.
+현재 구조별 세부 책임과 수정 위치는 4장, UI 불변조건은 5장, CSS 규칙은 6장, JavaScript 규칙은 7장을 따른다.
 
 
-## 11.4 UI/UX 점수 이력 ① `investment-dashboard-main 3.zip` 최초 기준
+## 10.4 UI/UX 점수 이력 ① `investment-dashboard-main 3.zip` 최초 기준
 
 `investment-dashboard-main 3.zip`은 UI 개선 이력의 최초 비교 기준점이다.
 
@@ -4753,7 +4794,7 @@ css/
 | 전체 UI 종합 점수 | 95 |
 
 
-## 11.5 UI/UX 점수 이력 ② 2026-08-16 중간 QA 기준
+## 10.5 UI/UX 점수 이력 ② 2026-08-16 중간 QA 기준
 
 `main 3` 이후 누적 UI polish가 진행되고 17차 최종 100점화에 도달하기 전의 대표 중간 snapshot이다.
 
@@ -4828,7 +4869,7 @@ css/
 | 전체 UI 종합 점수 | 97 |
 
 
-## 11.6 UI/UX 점수 이력 ③ 17차 최종 100점 milestone
+## 10.6 UI/UX 점수 이력 ③ 17차 최종 100점 milestone
 
 2026-08-17 `17차 작업 완료 기준`에서 당시 정의한 점수표 기준으로 최종 확인된 milestone:
 
@@ -4913,7 +4954,7 @@ Responsive quality         100
 이 기록은 **당시 UI 100점화 작업이 완료됐다는 역사적 기준**이다.
 
 
-## 11.7 `100점`은 현재 소스의 영구 고정 점수가 아니다
+## 10.7 `100점`은 현재 소스의 영구 고정 점수가 아니다
 
 17차의 전체 100점은 당시 평가기준과 당시 QA 결과다.
 
@@ -4946,7 +4987,7 @@ Responsive quality         100
 문제가 없다면 근거를 제시한 뒤 100을 줄 수 있다.
 
 
-## 11.8 JavaScript 구조 점수 변화 이력
+## 10.8 JavaScript 구조 점수 변화 이력
 
 JS 점수는 절대 품질 인증이 아니라 구조 변화 추적용 역사 기록이다.
 
@@ -4986,7 +5027,7 @@ app
 숫자 10점을 맞추기 위한 불필요한 파일 분할이나 framework 도입은 하지 않는다.
 
 
-## 11.9 CSS 구조 점수의 역사적 참고값
+## 10.9 CSS 구조 점수의 역사적 참고값
 
 CSS 점수는 구조 변화 추적용 역사 기록이며 현재 소스의 영구 고정 점수가 아니다.
 
@@ -5032,10 +5073,10 @@ CSS 종합               100 / 100
 - 여러 기능이 공유하는 cross-cutting rule
 - QA PASS된 shared / special media 조건
 
-현재 CSS 운영 기준은 **리팩토링 7차의 7파일 구조**이며 세부 규칙은 5장을 따른다.
+현재 CSS 운영 기준은 **리팩토링 7차의 7파일 구조**이며 세부 규칙은 6장을 따른다.
 
 
-## 11.10 README와 handover 문서의 역할 분리
+## 10.10 README와 handover 문서의 역할 분리
 
 README는 **저장소의 기능·전체 동작 구조·프로젝트 구조·데이터/갱신 방식·실행/배포 개요**를 설명하는 문서로 유지한다.
 
@@ -5056,69 +5097,9 @@ README는 **저장소의 기능·전체 동작 구조·프로젝트 구조·데�
 - 상세 유지보수 규칙이 변경되어도 README 내용까지 같이 수정해야 하는 구조를 만들지 않는다.
 - README에 반드시 필요한 운영 개요가 아니라면 handover MD에만 기록한다.
 
+# 11. 최종 운영 체크리스트
 
-# 12. 최종 운영 원칙 · 체크리스트
-
-
-## 12.1 숫자 점수나 코드량 자체를 목표로 하지 않는다
-
-현재 리팩토링된 상태를 더 높은 점수로 만들겠다는 이유만으로 구조를 계속 뜯지 않는다.
-
-예:
-
-```text
-!important 무조건 0
-media query 무조건 최소화
-JS 파일을 더 많이 분리
-dashboard-pension.js를 무조건 더 쪼개기
-calc.js를 다시 여러 파일로 나누기
-```
-
-같은 숫자 목표를 세우지 않는다.
-
-현재 정상적인 구조와 예외는 유지한다.
-
-
-## 12.2 점수 운영의 최종 원칙
-
-점수를 올리기 위해 구조를 뜯지 않는다.
-
-다음은 금지:
-
-```text
-!important 숫자를 0으로 만들기 위한 억지 수정
-media query 개수만 줄이기
-JS 파일을 점수 때문에 더 분할
-대형 함수가 있다는 이유만으로 무조건 재작성
-2px 조정만으로 전체 점수 상승
-```
-
-점수보다 우선:
-
-1. 기능 정확성
-2. 계산 parity
-3. 회귀 없음
-4. 현재 책임 구조 유지
-5. UI 일관성
-6. 유지보수성
-7. 최소 변경
-
-점수는 그 결과를 추적하는 보조 지표다.
-
-
-## 12.3 성능 평가에서 반복 제안하지 않을 항목
-
-현재 프로젝트 규모와 실제 사용량에서는 다음 두 항목을 **이미 검토가 끝난 허용 가능한 trade-off**로 취급한다.
-
-- 날짜 변경·별도수익 변경 등에서 메인 대시보드 DOM을 전체 `render()`하는 구조
-- `Date.now()`를 이용한 CSS / ES Module / JSON cache bust 구조
-
-따라서 향후 CSS·JS·UI/UX 구조 평가에서 위 두 항목을 단순한 이론적 최적화 관점으로 다시 감점하거나 선택적 개선사항으로 반복 제시하지 않는다. **실제 체감 지연, 과도한 네트워크 사용, 렌더 병목 등 측정 가능한 성능 문제가 발생했거나 사용자가 성능 최적화를 명시적으로 요청한 경우에만 재검토**한다.
-
-이 원칙 때문에 현재의 전체 render나 cache bust를 무조건 유지해야 하는 것은 아니며, 실제 문제가 확인되면 그때 최신 소스와 측정 결과를 기준으로 최소 범위에서 개선한다.
-
-
-## 12.4 새 작업 시작 전 최종 체크리스트
+## 11.1 새 작업 시작 전 · 수정 후 체크리스트
 
 새 기능/수정 전에 내부적으로 다음을 확인한다.
 
@@ -5147,8 +5128,7 @@ JS 파일을 점수 때문에 더 분할
 [ ] 다음 요청을 안내했는가
 ```
 
-
-## 12.5 최종 원칙
+## 11.2 최종 구조 보존 원칙
 
 기능 요청을 받으면 코드부터 추가하지 말고 내부적으로 먼저 판단한다.
 
@@ -5170,7 +5150,6 @@ JS 파일을 점수 때문에 더 분할
 
 > **구조 보호는 항상 적용하되 검증 범위는 변경 범위에 비례시키고, 전체 QA는 내가 명시적으로 요청한 경우에만 수행한다.**
 
-
-## 12.6 최종 한 문장 운영 원칙
+## 11.3 최종 한 문장 운영 원칙
 
 > **새 채팅에서는 최신 전체 ZIP의 `main_dashboard_maintenance_handover.md`를 가장 먼저 읽고 같은 ZIP의 실제 소스를 source of truth로 확인한다. `점수`는 CSS·JS·UI·UX 세부점수와 각 총점·UI/UX 총점·전체 총점만 출력하고, `평가` 또는 `평가해줘`는 최신 실제 소스를 처음부터 독립적으로 전체 평가한다. 수정은 현재 구조 안에서 최소 범위로 수행하고 QA는 별도 요청에서 변경 위험에 비례해 검증하며, 여러 차수 작업은 마지막에 누적 최종 QA를 수행한다. 결과 파일은 실제 변경 파일만 원래 경로를 유지한 ZIP으로 전달하고 GitHub 커밋용 짧은 Summary와 간단한 Description을 함께 제공한다. 사용자가 앞으로 반복 적용할 운영 조건을 추가·변경하면 별도 요청이 없어도 이 문서의 기존 관련 항목에 자동 반영한다. GAS는 GitHub 프로젝트와 별도로 운영하며, 서버 내부 검증은 최신 운영 GAS 소스가 별도 제공된 경우에만 수행한다.**
