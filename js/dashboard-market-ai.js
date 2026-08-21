@@ -2,7 +2,7 @@
 // - 메인 7개 ES Module graph와 분리
 // - dashboard-app.js / dashboard-ui.js 수정 없이 index.html에서 독립 로드
 // - 연금+계좌 성과 영역 안에 compact signal row만 부착
-// - KOSPI / SOX 현물지수와 실제 KIS KOSPI200 선물을 AI 신호와 함께 표시
+// - KOSPI / SOX 현물지수와 최근 5분 이내 실제 KIS KOSPI200 선물을 AI 신호와 함께 표시
 // - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
 // - Stage 9 calibration이 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
 // - GitHub Pages 등 비로컬 환경에서는 Market AI UI 자체를 표시하지 않음
@@ -142,12 +142,48 @@ function marketAiSnapshotRow(symbol){
   return marketAiState.marketSnapshot?.[symbol]||null;
 }
 
-function marketAiVerifiedKisFutures(){
-  const row=marketAiSnapshotRow(MARKET_AI_KIS_FUTURES_SYMBOL);
-  if(!row)return null;
-  const source=String(row.source||'');
-  if(!source.startsWith('kis-efriend:')||source.includes(':proxy'))return null;
-  return row;
+function marketAiSnapshotFreshness(row){
+  const observedAt=Date.parse(row?.observed_at||'');
+  if(!Number.isFinite(observedAt))return {fresh:false,observedAt:null};
+  const age=Date.now()-observedAt;
+  return {
+    fresh:age>=-MARKET_AI_STALE_MS&&age<=MARKET_AI_STALE_MS,
+    observedAt:row.observed_at
+  };
+}
+
+function marketAiKisFuturesState(){
+  const rawRow=marketAiSnapshotRow(MARKET_AI_KIS_FUTURES_SYMBOL);
+  if(!rawRow)return {row:null,rawRow:null,reason:'missing'};
+  const source=String(rawRow.source||'');
+  if(!source.startsWith('kis-efriend:')||source.includes(':proxy')){
+    return {row:null,rawRow,reason:'source'};
+  }
+  const freshness=marketAiSnapshotFreshness(rawRow);
+  if(!freshness.fresh){
+    return {row:null,rawRow,reason:'stale',observedAt:freshness.observedAt};
+  }
+  return {row:rawRow,rawRow,reason:'fresh',observedAt:freshness.observedAt};
+}
+
+function marketAiKisFuturesTitle(state){
+  if(state?.row){
+    return marketAiMarketTitle('KOSPI200 선물',state.row,{sourceLabel:'KIS eFriend 실제 선물'});
+  }
+  if(state?.reason==='stale'&&state.rawRow){
+    const observed=marketAiKstTime(state.rawRow.observed_at);
+    const parts=['KOSPI200 선물 데이터 지연'];
+    if(observed)parts.push(`마지막 수신 ${observed} KST`);
+    parts.push('KIS eFriend 실제 선물');
+    if(state.rawRow.source)parts.push(String(state.rawRow.source));
+    return parts.join(' · ');
+  }
+  if(state?.reason==='source'&&state.rawRow){
+    const parts=['KOSPI200 선물 데이터 없음','실제 KIS 선물 데이터가 확인되지 않았습니다.'];
+    if(state.rawRow.source)parts.push(String(state.rawRow.source));
+    return parts.join(' · ');
+  }
+  return 'KOSPI200 선물 데이터 없음 · 실제 KIS 선물 데이터가 확인되지 않았습니다.';
 }
 
 function marketAiMarketTitle(label,row,{sourceLabel='시장 데이터'}={}){
@@ -170,6 +206,7 @@ function ensureMarketAiStyles(){
 .market-ai-inline-strip{display:flex;align-items:center;gap:9px;min-width:0;min-height:32px;padding:5px 10px;border:1px solid var(--line);border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));background:var(--card);box-shadow:var(--shadow-low);font-size:var(--type-size-sm);line-height:1.2;white-space:nowrap;overflow:hidden}
 .market-ai-inline-title{flex:0 0 auto;color:var(--ink);font-weight:var(--type-weight-strong);letter-spacing:-.02em}
 .market-ai-inline-metrics{display:flex;align-items:center;justify-content:space-between;gap:9px;flex:1 1 auto;min-width:0}
+.market-ai-inline-metrics-row{display:contents}
 .market-ai-inline-metric{display:inline-flex;align-items:baseline;gap:3px;min-width:0}
 .market-ai-inline-label{color:var(--muted);font-weight:var(--type-weight-bold);letter-spacing:-.02em}
 .market-ai-inline-value,.market-ai-inline-signal,.market-ai-inline-change{font-weight:var(--type-weight-emphasis);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
@@ -183,10 +220,11 @@ function ensureMarketAiStyles(){
 }
 @media (max-width:760px){
   #market-ai-section{margin-top:var(--space-2xl)}
-  .market-ai-inline-strip{gap:4px;min-height:28px;padding:4px 6px;font-size:clamp(9px,2.25vw,10px)}
-  .market-ai-inline-title{padding-right:4px;border-right:1px solid var(--line)}
-  .market-ai-inline-metrics{gap:4px}
-  .market-ai-inline-metric{gap:1px}
+  .market-ai-inline-strip{align-items:stretch;gap:5px;min-height:38px;padding:4px 6px;font-size:clamp(9px,2.25vw,10px)}
+  .market-ai-inline-title{display:flex;align-items:center;padding-right:5px;border-right:1px solid var(--line)}
+  .market-ai-inline-metrics{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:2px;overflow:hidden}
+  .market-ai-inline-metrics-row{display:flex;align-items:baseline;justify-content:space-between;gap:5px;min-width:0}
+  .market-ai-inline-metric{flex:0 1 auto;gap:1px}
   .market-ai-inline-signal-prefix{display:none}
   .market-ai-inline-change{font-size:.88em}
 }
@@ -211,7 +249,7 @@ function createMarketAiSection(){
   row.id='market-ai-section';
   row.setAttribute('role','group');
   row.setAttribute('aria-labelledby','marketAiTitle');
-  row.innerHTML=`<div class="market-ai-inline-strip"><span id="marketAiTitle" class="market-ai-inline-title">AI Market Signal</span><span class="market-ai-inline-metrics" aria-label="현재 Market AI 시장 신호">${marketAiIndexSignalMetric('KOSPI','kospi','kospi-index')}${marketAiIndexSignalMetric('SOX','semiconductors','sox-index')}${marketAiInlineMetric('갭상','gap')}${marketAiInlineMetric('상승마감','up-close')}${marketAiFuturesMetric()}</span><span class="market-ai-inline-status" data-market-ai-status role="status" aria-live="polite">연결 확인 중</span></div>`;
+  row.innerHTML=`<div class="market-ai-inline-strip"><span id="marketAiTitle" class="market-ai-inline-title">AI Market Signal</span><span class="market-ai-inline-metrics" aria-label="현재 Market AI 시장 신호"><span class="market-ai-inline-metrics-row market-ai-inline-metrics-row-primary">${marketAiIndexSignalMetric('KOSPI','kospi','kospi-index')}${marketAiIndexSignalMetric('SOX','semiconductors','sox-index')}</span><span class="market-ai-inline-metrics-row market-ai-inline-metrics-row-secondary">${marketAiInlineMetric('갭상','gap')}${marketAiInlineMetric('상승마감','up-close')}${marketAiFuturesMetric()}</span></span><span class="market-ai-inline-status" data-market-ai-status role="status" aria-live="polite">연결 확인 중</span></div>`;
   return row;
 }
 
@@ -233,6 +271,7 @@ function removeMarketAiUi(){
 }
 
 function syncMarketAiMarketView(row){
+  const futuresState=marketAiKisFuturesState();
   const marketItems=[
     {
       key:'kospi-index',
@@ -251,9 +290,10 @@ function syncMarketAiMarketView(row){
     {
       key:'kospi200-futures',
       label:'KOSPI200 선물',
-      marketRow:marketAiVerifiedKisFutures(),
+      marketRow:futuresState.row,
       valueText:item=>marketAiPriceText(item?.price,2),
-      sourceLabel:'KIS eFriend 실제 선물'
+      sourceLabel:'KIS eFriend 실제 선물',
+      title:()=>marketAiKisFuturesTitle(futuresState)
     }
   ];
 
@@ -265,7 +305,8 @@ function syncMarketAiMarketView(row){
     value.classList.remove('positive','negative');
     const directionClass=marketAiDirectionClass(item.marketRow?.change_pct);
     if(directionClass)value.classList.add(directionClass);
-    card.setAttribute('title',marketAiMarketTitle(item.label,item.marketRow,{sourceLabel:item.sourceLabel}));
+    const title=item.title?item.title():marketAiMarketTitle(item.label,item.marketRow,{sourceLabel:item.sourceLabel});
+    card.setAttribute('title',title);
   });
 
   const futures=marketItems.find(item=>item.key==='kospi200-futures')?.marketRow||null;
@@ -390,7 +431,7 @@ async function refreshMarketAiSignal(){
       }),
       refreshMarketAiMarketSnapshot(apiBase)
     ]);
-    if(nextMarketSnapshot)setMarketAiState({marketSnapshot:nextMarketSnapshot});
+    setMarketAiState({marketSnapshot:nextMarketSnapshot||{}});
     if(response.status===404){
       setMarketAiState({
         signal:null,
