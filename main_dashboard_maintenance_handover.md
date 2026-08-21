@@ -3263,6 +3263,7 @@ Mobile  ≤ 760px
 - 성과/현황/변동 표는 가로폰에서도 세로폰과 동일한 font / cell padding을 사용하고 첫 열 sticky 유지
 - 계좌별 성과의 수익률은 가로폰에서도 손익 아래 `(~%)`로 결합하여 긴 메모 열 폭을 확보
 - `KODEX` / `KOACT` 접두어 숨김과 `표 보기 / 카드 보기` UI는 **세로폰 전용**이며 가로폰에서는 전체 종목명 + 표만 표시
+- Navigation은 **Phone 세로/가로 = Mobile hamburger 전체 메뉴**, **Tablet = 기존 action + hamburger 목차 전용**, **Desktop = 기존 action + 우측 edge TOC**로 역할을 분리한다.
 
 `Phone Landscape`는 **가로폰에서 세로폰과 배치가 달라지는 최소 규칙만** 소유한다.
 
@@ -3271,7 +3272,7 @@ Mobile  ≤ 760px
 - 비중카드는 Tablet 수준의 열 수를 사용하되 카드 내부 밀도는 Phone Shared 기준
 - 투자원금 원천 3카드 한 줄
 - 장부검산은 결론 full-width + A/B 2열, 내부 밀도는 세로폰 기준
-- Topbar는 Tablet 스타일을 유지한다. 실기기 Safari에서 `max-width:760px` Mobile Topbar 규칙이 함께 매치되는 경우에도 Phone Landscape가 Tablet형 Topbar를 최종 복원하며, 우측 edge TOC도 Tablet 방식으로 사용한다.
+- Topbar는 **폰 세로/가로 모두 동일한 Mobile Topbar**를 사용한다. 가로폰에서도 `[년월][일][테마][모서리][햄버거]` 구조와 날짜 고정/모바일 메뉴 flow를 그대로 사용한다. Tablet은 기존 축약 action 버튼을 유지하되 우측 edge TOC를 사용하지 않고 Topbar hamburger에 **목차만** 넣는다. 웹(`≥1101px`)만 우측 edge TOC를 사용한다.
 - `평가금액 비중`의 종목별 모드에서는 4열 grid 안에서 `평가금액 합계` 카드가 2칸을 차지하고, 유형별 모드의 합계 카드는 기존처럼 전체폭을 사용한다.
 - 차트 control은 제목 오른쪽 한 줄을 유지하고 가로폰에서는 차트를 컨테이너 폭에 맞춰 no-scroll로 표시하며 `← / →` 버튼을 숨김
 - 차트 높이는 낮은 가로 viewport에 맞게 축소하고 Tablet / 가로폰 모두 범례를 차트 쪽으로 당김
@@ -3937,7 +3938,7 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 
 ## 6.13 Topbar 날짜 셀렉트 폭 정합성
 
-Topbar의 `년/월`과 `일` 셀렉트는 모든 viewport에서 **동일한 가로 폭 체계**를 유지한다. Desktop / Tablet은 두 셀렉트 모두 `148px`, Mobile은 두 셀렉트가 동일한 반응형 계산폭(`max 148px`)을 사용한다. 한쪽만 별도 고정폭으로 축소하지 않는다.
+Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode 안에서 **동일한 가로 폭 체계**를 유지한다. Desktop / Tablet은 두 셀렉트 모두 `148px`, Phone 세로/가로 Mobile Topbar는 두 셀렉트가 동일한 반응형 계산폭(`max 148px`)을 사용한다. 한쪽만 별도 고정폭으로 축소하지 않는다.
 
 # 7. JavaScript 구현 세부 규칙
 
@@ -4749,7 +4750,7 @@ common
 핵심 정리:
 
 - 가로폰 기능 media 상한 `900px → 960px`으로 확대, `height≤500 + hover:none + pointer:coarse`는 유지
-- iPhone Safari 실기기에서 Mobile CSS가 함께 매치되는 경우를 반영해 Phone Landscape가 Tablet형 Topbar / edge TOC / 중앙 모달을 명시적으로 복원하도록 보강
+- iPhone Safari 실기기에서 Mobile CSS가 함께 매치되는 경우를 반영해 **Phone Landscape Topbar를 세로폰과 동일한 Mobile Topbar로 통일**했다. Tablet은 기존 축약 action 버튼을 유지하고 우측 edge TOC 대신 Topbar hamburger에서 목차만 제공하며, 웹만 edge TOC를 유지한다. 가로폰 모달은 중앙형을 유지한다.
 - 종목별 `평가금액 비중` 합계 카드는 가로폰 4열에서 2칸 span으로 복원하고, `투자원금 원천 및 검산` 3카드는 세로·가로폰 공통 compact padding으로 통일
 - Phone Shared에서 모바일 카드보기 UI와 브랜드 접두어 축약을 분리해 세로폰 전용으로 이동
 - 가로폰 성과/현황/변동은 항상 표를 사용하고 세로폰과 동일한 compact 표 밀도 + 첫 열 sticky 유지

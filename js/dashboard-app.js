@@ -33,11 +33,11 @@ import {
   handleUiDashboardChange,
   handleUiDashboardKeydown,
   hydrateSectionTitleIcons,
-  mobileDateMenuIsOpen,
+  dateActionMenuIsOpen,
   renderCombined,
   renderSecuritiesSection,
   renderTabs,
-  restoreMobileDateMenuAfterRender,
+  restoreDateActionMenuAfterRender,
   setupSectionNavigationTracking,
   setupUiGlobalEvents,
   syncAssetTabs,
@@ -87,12 +87,12 @@ function toggleSeparateProfitModeFromExpanded(cardId){
   });
 }
 
-function setActiveDashboardDate(date,{keepMobileMenuOpen=false}={}){
+function setActiveDashboardDate(date,{keepDateMenuOpen=false}={}){
   if(!allAvailableDates().includes(date))return false;
   dataState.activeDate=date;
   history.replaceState(null,'','#'+dataState.activeDate);
   render();
-  if(keepMobileMenuOpen)restoreMobileDateMenuAfterRender();
+  if(keepDateMenuOpen)restoreDateActionMenuAfterRender();
   return true;
 }
 const chartDateJumpState={date:'',chartId:''};
@@ -168,15 +168,15 @@ function confirmChartDateJump(){
   if(date&&chartId)performChartDateJump(date,chartId);
 }
 function handleDashboardDateChange(target){
-  const keepMobileMenuOpen=mobileDateMenuIsOpen();
+  const keepDateMenuOpen=dateActionMenuIsOpen();
   if(target.id==='monthSelect'){
     const dates=allAvailableDates().filter(date=>date.startsWith(target.value));
     const nextDate=dates.at(-1);
-    if(nextDate)setActiveDashboardDate(nextDate,{keepMobileMenuOpen});
+    if(nextDate)setActiveDashboardDate(nextDate,{keepDateMenuOpen});
     return true;
   }
   if(target.id==='dateSelect'){
-    setActiveDashboardDate(target.value,{keepMobileMenuOpen});
+    setActiveDashboardDate(target.value,{keepDateMenuOpen});
     return true;
   }
   return false;

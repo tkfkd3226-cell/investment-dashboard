@@ -127,7 +127,7 @@
    Trigger · 조건: Mobile ≤760px 또는 실제 터치폰 가로모드(landscape + width≤960 + height≤500)
    Why · 이유: 일반 세로폰과 대형 스마트폰 가로화면은 입력 방식과 낮은 세로 공간이 같으므로,
    타이포·여백·control·표 밀도는 동일한 compact 기준을 공유한다.
-   Scope · 범위: 폰용 토큰, Hero, 차트 compact UI, KPI, 성과 요약, 인사이트, 데이터 표 밀도.
+   Scope · 범위: 폰용 토큰, Mobile Topbar, Hero, 차트 compact UI, KPI, 성과 요약, 인사이트, 데이터 표 밀도.
    ------------------------------------------------------------------------- */
 @media (max-width:760px),
        (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
@@ -365,6 +365,168 @@
     }
     .table-view > .dashboard-data-table:not(.source-data-table) thead th:first-child{z-index:5;background:var(--table-head-bg)}
     .table-view > .dashboard-data-table:not(.source-data-table) tbody tr.summary-row > :first-child{z-index:4;background:var(--summary-row-bg)}
+
+  /* Topbar Phone Shared · 세로/가로폰 동일 Mobile Topbar + hamburger */
+  body.mobile-topbar-fixed-visible #app{padding-top:40px}
+  .switcher{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    z-index:2450;
+    height:0;
+    padding:0;
+    background:transparent;
+    border-bottom:0;
+    box-shadow:none;
+    overflow:visible;
+    pointer-events:none;
+  }
+  .date-picker{display:block;width:auto;height:0;overflow:visible}
+  .date-picker-center{display:none}
+  .date-picker-action{display:block;width:0;height:0}
+  .date-tool-btn-desktop{display:none}
+  .month-select,
+  .day-select{
+    min-width:0;
+    width:min(148px,calc((100vw - 124px)/2));
+    max-width:100%;
+    flex:none;
+  }
+  .date-select{
+    min-height:30px;
+    height:30px;
+    border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
+    padding:var(--space-xs) 17px var(--space-xs) var(--space-xl);
+    font-size:11.5px;
+  }
+  .topbar-theme-action,
+  .topbar-corner-action,
+  .date-tool-menu-btn{
+    width:30px;
+    min-width:30px;
+    max-width:30px;
+    height:30px;
+    padding:0;
+    flex:0 0 30px;
+    border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
+    pointer-events:auto;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+  }
+  html:not(.dark) :is(.topbar-theme-action,.topbar-corner-action,.date-tool-menu-btn){
+    background:var(--topbar-floating-bg);
+    border-color:var(--topbar-floating-border);
+    color:var(--topbar-floating-text);
+    box-shadow:var(--topbar-floating-shadow);
+  }
+  .topbar-theme-action,
+  .topbar-corner-action{
+    position:fixed;
+    top:max(5px,env(safe-area-inset-top));
+    z-index:2400;
+  }
+  .topbar-theme-action{right:75px}
+  .topbar-corner-action{right:41px}
+  .date-action-menu-wrap{
+    display:block;
+    position:fixed;
+    top:max(5px,env(safe-area-inset-top));
+    right:7px;
+    z-index:2400;
+    pointer-events:auto;
+  }
+  .date-tool-icon{font-size:var(--type-size-xl);line-height:1}
+.date-tool-icon svg{display:block;width:17px;height:17px}
+  .date-tool-menu-label{display:none}
+
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned){
+    height:40px;
+    padding:var(--space-md) var(--space-xl);
+    background:var(--topbar-bg);
+    border-bottom:1px solid var(--topbar-divider);
+    box-shadow:var(--topbar-shadow);
+    pointer-events:auto;
+  }
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .date-picker{
+    display:grid;
+    width:100%;
+    height:auto;
+    grid-template-columns:auto auto minmax(0,1fr) 30px 30px 30px;
+    gap:var(--space-sm);
+  }
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.date-picker-center,.date-picker-action){display:contents}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .month-select{grid-column:1}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .day-select{grid-column:2}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-theme-action,.topbar-corner-action,.date-tool-menu-btn){
+    background:var(--topbar-control-bg);
+    border-color:var(--topbar-control-border);
+    color:var(--topbar-text);
+    box-shadow:var(--topbar-control-shadow);
+  }
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-theme-action,.topbar-corner-action,.date-tool-menu-btn):hover{background:var(--topbar-control-hover-bg)}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-theme-action,.topbar-corner-action){
+    position:relative;
+    top:auto;
+    right:auto;
+    z-index:auto;
+    justify-self:end;
+  }
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-theme-action{grid-column:4}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-corner-action{grid-column:5}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .date-action-menu-wrap{
+    position:relative;
+    top:auto;
+    right:auto;
+    z-index:auto;
+    grid-column:6;
+    justify-self:end;
+  }
+
+  /* Date Pin · 날짜 고정 toggle: 모바일 hamburger header 내부 */
+  .mobile-date-pin-control{display:inline-flex;align-items:center;gap:var(--space-lg);margin-left:auto;color:var(--nav-muted);cursor:pointer;user-select:none}
+  .mobile-date-pin-control > span:first-child{font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);letter-spacing:-.02em;line-height:25px;white-space:nowrap}
+  .mobile-date-pin-control input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  .mobile-date-pin-track{position:relative;width:31px;height:18px;flex:0 0 31px;border:1px solid var(--pin-track-border);border-radius:var(--radius-pill);background:var(--pin-track-bg);transition:background .16s ease,border-color .16s ease}
+  .mobile-date-pin-track > span{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--pin-track-thumb);box-shadow:var(--pin-track-shadow);transition:transform .16s ease}
+  .mobile-date-pin-control input:checked + .mobile-date-pin-track{background:var(--pin-track-active-bg);border-color:var(--pin-track-active-border)}
+  .mobile-date-pin-control input:checked + .mobile-date-pin-track > span{transform:translateX(13px)}
+  .mobile-date-pin-control input:focus-visible + .mobile-date-pin-track{outline:var(--control-focus-outline-width) solid var(--control-focus-outline);outline-offset:var(--control-focus-outline-offset)}
+
+  /* Hamburger Panel · 햄버거 panel: Topbar 모바일 breakpoint와 동일 범위 */
+  .date-action-menu.mobile-combined-menu{
+    position:fixed;
+    top:43px;
+    right:6px;
+    z-index:2600;
+    width:min(258px,calc(100vw - 12px));
+    max-height:calc(100vh - 54px);
+    overflow:auto;
+    padding:var(--space-lg);
+    border-radius:min(10px,var(--corner-surface-cap));
+    box-shadow:var(--nav-shadow-mobile);
+  }
+  .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2xl);margin:0;padding:0 1px var(--space-2xs);background:transparent}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:var(--space-2xs);min-width:0}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px;color:var(--nav-muted);font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);line-height:25px}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);font-size:var(--type-size-4xl);line-height:1;cursor:pointer}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:var(--nav-surface-hover);color:var(--nav-text)}
+.date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:16px;height:16px;margin:auto}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:var(--space-sm) 0 0;padding:var(--space-sm) 0 0;border-top:1px solid var(--nav-divider)}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{margin-top:0;padding-top:0;border-top:0}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:var(--space-2xs) var(--space-lg);color:var(--nav-muted);font-size:9.5px;font-weight:var(--type-weight-semibold);letter-spacing:0;line-height:14px}
+  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:var(--space-lg);min-height:30px;padding:var(--space-md) var(--space-lg);border-radius:min(var(--control-radius-md),var(--corner-control-cap));text-decoration:none;font-size:var(--type-size-sm);font-weight:var(--type-weight-regular);line-height:17px;box-shadow:none}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{padding-left:var(--space-lg)}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{flex:0 0 16px;width:16px;height:16px;margin:0;border:0;border-radius:0;background:transparent;font-size:0;box-shadow:none}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{display:block;width:16px;height:16px}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item strong{display:block;color:inherit;font-size:var(--type-size-sm);font-weight:var(--type-weight-medium);line-height:17px}
+  .date-action-menu.mobile-combined-menu .mobile-nav-item em{display:none}
+  .date-action-menu.mobile-combined-menu::-webkit-scrollbar{width:8px}
+  .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{border-radius:var(--radius-pill);background:var(--nav-scrollbar)}
+
+  /* Phone Menu Layout · 폰에서는 전체 모바일 메뉴를 사용 */
+    .mobile-menu-layout{display:block}
+    .tablet-toc-menu-layout{display:none}
 }
 
 /* -------------------------------------------------------------------------
@@ -374,17 +536,6 @@
    Scope · 범위: Hero/요약 카드 열 수, 표 고정, 차트 flow, 원천/검산 배치, 모달 input zoom 방지.
    ------------------------------------------------------------------------- */
 @media (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  /* Topbar / Edge TOC · 가로폰은 Tablet형 구조 + compact action을 사용 */
-    .topbar-label-full{display:none}
-    .topbar-label-short{display:inline}
-    .switcher{padding-left:var(--space-2xl);padding-right:var(--space-2xl)}
-    .date-picker-action{gap:var(--space-md)}
-    .date-tool-btn{padding-left:var(--space-xl);padding-right:var(--space-xl);gap:var(--space-2xs);font-size:var(--type-size-2xs)}
-    .date-tool-action-icon{margin-right:var(--space-2xs)}
-    .desktop-edge-toc{right:8px}
-    .desktop-edge-toc-trigger{width:30px;min-width:30px;height:60px;padding:var(--space-lg) 0;font-size:var(--type-size-2xs)}
-    .desktop-edge-toc-panel{right:38px}
-
   /* Hero Metrics · compact 밀도 유지 + 가로폭 2/4열 활용 */
     .hero .hero-metric-pills{
       display:grid;
@@ -482,14 +633,14 @@
     .action-modal-card{padding:var(--space-10xl)}
     .action-modal-input{font-size:var(--type-size-2xl)}
     .krx-action-buttons{gap:var(--space-2xl)}
-    .krx-action-buttons .action-modal-btn{min-height:40px;height:40px;padding:0 var(--space-4xl);font-size:inherit}
+    .krx-action-buttons .action-modal-btn{min-height:40px;height:40px;padding:0 var(--space-4xl);font-size:var(--type-size-sm)}
     .contrib-modal{--contrib-control-font-size:var(--type-size-2xl);align-items:center;padding:var(--space-8xl)}
     .contrib-modal-card{width:min(760px,100%);padding:var(--space-8xl)}
     .contrib-modal .pension-adjust-form{grid-template-columns:repeat(2,minmax(0,1fr))}
     .contrib-existing-list{max-height:96px}
     .contrib-existing-item{padding:var(--space-3xl) var(--space-4xl)}
-    .contrib-existing-title{display:inline-block;margin-right:var(--space-4xl);font-size:var(--type-size-md);line-height:inherit}
-    .contrib-existing-memo{display:inline-block;margin:0 0 0 var(--space-2xs);font-size:var(--type-size-sm)}
+    .contrib-existing-title{display:inline-block;margin:0 var(--space-4xl) 0 0;vertical-align:baseline;font-size:var(--type-size-md);font-weight:var(--type-weight-emphasis);line-height:normal}
+    .contrib-existing-memo{display:inline-block;margin:0 0 0 var(--space-2xs);vertical-align:baseline;font-size:var(--type-size-sm);font-weight:var(--type-weight-bold);line-height:normal}
     .contrib-target-option{padding:var(--space-xl) var(--space-3xl);font-size:var(--type-size-md)}
     .pension-etf-trade-preview-grid{grid-template-columns:minmax(110px,.8fr) minmax(0,1.2fr);gap:var(--space-xl) var(--space-5xl)}
     .pension-etf-trade-preview-grid strong{margin-bottom:0;text-align:right}

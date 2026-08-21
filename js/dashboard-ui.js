@@ -185,8 +185,8 @@ function renderUnifiedMobileMenuContent(){
     return `<button type="button" class="${cls}" data-dashboard-action="jump-section" data-section-target="${item.id}" data-close-date-menu="true">${inner}</button>`;
   }).join('')}</div>`).join('');
 }
-function renderDesktopTocContent(){
-  const groups=[
+function dashboardTocGroups(){
+  return [
     {
       label:'전체',
       items:[
@@ -218,20 +218,29 @@ function renderDesktopTocContent(){
       ]
     }
   ];
-  return groups.map(group=>`<div class="desktop-edge-toc-group"><p>${group.label}</p>${group.items.map(item=>`<button type="button" class="desktop-edge-toc-item" data-toc-target="${item.id}" data-dashboard-action="jump-section" data-section-target="${item.id}"><span class="desktop-edge-toc-icon">${navIconSvg(item.icon)}</span><span>${item.title}</span></button>`).join('')}</div>`).join('');
+}
+function renderDesktopTocContent(){
+  return dashboardTocGroups().map(group=>`<div class="desktop-edge-toc-group"><p>${group.label}</p>${group.items.map(item=>`<button type="button" class="desktop-edge-toc-item" data-toc-target="${item.id}" data-dashboard-action="jump-section" data-section-target="${item.id}"><span class="desktop-edge-toc-icon">${navIconSvg(item.icon)}</span><span>${item.title}</span></button>`).join('')}</div>`).join('');
+}
+function renderTabletTocMenuContent(){
+  return dashboardTocGroups().map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map(item=>`<button type="button" class="mobile-nav-item" data-dashboard-action="jump-section" data-section-target="${item.id}" data-close-date-menu="true"><span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span></button>`).join('')}</div>`).join('');
 }
 function phoneLandscapeUi(){
   return window.matchMedia?.('(orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)').matches===true;
 }
-function portraitMobileUi(){
-  return window.matchMedia?.('(max-width:760px)').matches===true&&!phoneLandscapeUi();
+function mobileTopbarUi(){
+  return window.matchMedia?.('(max-width:760px)').matches===true||phoneLandscapeUi();
 }
 function desktopEdgeTocUi(){
-  return window.matchMedia?.('(min-width:761px)').matches===true||phoneLandscapeUi();
+  return window.matchMedia?.('(min-width:1101px)').matches===true;
 }
 
 function ensureDesktopEdgeToc(){
   let toc=document.getElementById('desktopEdgeToc');
+  if(!desktopEdgeTocUi()){
+    toc?.remove();
+    return;
+  }
   if(!toc){
     toc=document.createElement('aside');
     toc.id='desktopEdgeToc';
@@ -274,7 +283,7 @@ function setSectionNavigationCurrent(id){
 function currentSectionNavigationId(){
   const sections=visibleSectionNavigationTargets();
   if(!sections.length)return '';
-  const threshold=portraitMobileUi()?64:96;
+  const threshold=mobileTopbarUi()?64:96;
   let passed=null,below=null;
   sections.forEach(section=>{
     const top=section.getBoundingClientRect().top;
@@ -302,7 +311,7 @@ function setupSectionNavigationTracking(){
     window.addEventListener('scroll',scheduleSectionNavigationSync,{passive:true});
     window.addEventListener('resize',()=>{
       scheduleSectionNavigationSync();
-      if(portraitMobileUi())closeDesktopEdgeToc();
+      if(!desktopEdgeTocUi())closeDesktopEdgeToc();
     },{passive:true});
     document.addEventListener('click',event=>{
       const toc=document.getElementById('desktopEdgeToc');
@@ -325,7 +334,7 @@ function mobileDatePinned(){
 function syncMobileTopbarState(){
   const tabs=document.getElementById('tabs');
   const toggle=document.getElementById('mobileDatePinToggle');
-  const mobile=portraitMobileUi();
+  const mobile=mobileTopbarUi();
   const pinned=mobileDatePinned();
   if(tabs)tabs.classList.toggle('mobile-date-pinned',mobile&&pinned);
   if(toggle){
@@ -371,7 +380,10 @@ function renderTabs(){
         </button>
         <div class="date-action-menu-wrap">
           <button type="button" id="dateActionMenuButton" class="date-tool-btn date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-controls="dateActionMenu" aria-expanded="false" data-dashboard-action="toggle-date-menu"><span class="date-tool-icon">${navIconSvg('menu')}</span><span class="date-tool-menu-label">목차</span></button>
-          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderUnifiedMobileMenuContent()}</div>
+          <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차">
+            <div class="mobile-menu-layout"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="mobile-date-pin-track" aria-hidden="true"><span></span></span></label><button type="button" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderUnifiedMobileMenuContent()}</div>
+            <div class="tablet-toc-menu-layout"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><button type="button" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderTabletTocMenuContent()}</div>
+          </div>
         </div>
       </div>
     </div>`;
@@ -458,10 +470,10 @@ function toggleDateActionMenu(event){
   if(button) button.setAttribute('aria-expanded',String(shouldOpen));
   syncMobileTopbarState();
 }
-function mobileDateMenuIsOpen(){
-  return portraitMobileUi()&&document.getElementById('dateActionMenu')?.classList.contains('show');
+function dateActionMenuIsOpen(){
+  return document.getElementById('dateActionMenu')?.classList.contains('show')===true;
 }
-function restoreMobileDateMenuAfterRender(){
+function restoreDateActionMenuAfterRender(){
   document.getElementById('tabs')?.classList.add('mobile-menu-open');
   document.getElementById('dateActionMenu')?.classList.add('show');
   document.getElementById('dateActionMenuButton')?.setAttribute('aria-expanded','true');
@@ -475,7 +487,7 @@ function setupUiGlobalEvents(){
   document.addEventListener('change',closeAccountMemoInfo);
   document.addEventListener('keydown',e=>{
     if(e.key!=='Escape')return;
-    if(mobileDateMenuIsOpen()){
+    if(dateActionMenuIsOpen()){
       closeDateActionMenu();
       document.getElementById('dateActionMenuButton')?.focus();
     }
@@ -1185,14 +1197,14 @@ export {
   handleUiDashboardKeydown,
   hydrateSectionTitleIcons,
   metricCard,
-  mobileDateMenuIsOpen,
+  dateActionMenuIsOpen,
   mobileInfoCard,
   mobileViewAttrs,
   mobileViewToggle,
   renderCombined,
   renderSecuritiesSection,
   renderTabs,
-  restoreMobileDateMenuAfterRender,
+  restoreDateActionMenuAfterRender,
   setupSectionNavigationTracking,
   setupUiGlobalEvents,
   showAppToast,

@@ -3567,6 +3567,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 /* [03. Topbar / Navigation · 상단바 / 내비게이션] Date Action Menu · 날짜 action menu */
 .date-action-menu{display:none}
 .date-action-menu.show{display:block}
+.mobile-menu-layout,.tablet-toc-menu-layout{display:none}
 
 /* Navigation Primitives · 목차/메뉴 공통 panel·item·SVG icon */
 :is(.desktop-edge-toc-panel,.date-action-menu.mobile-combined-menu){
@@ -3601,12 +3602,12 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 }
 :is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon) svg{display:block}
 
-/* Edge TOC · 우측 목차: 태블릿/웹 hover·focus 목차, 모바일은 hamburger menu 사용 */
+/* Edge TOC · 우측 목차: 웹 전용 hover·focus 목차 / Tablet·Phone은 Topbar hamburger 사용 */
 
 /* [03. Topbar / Navigation · 상단바 / 내비게이션] Edge TOC · 우측 목차 */
 .desktop-edge-toc{display:none}
 
-/* Topbar Responsive · 상단바: 웹 기본 / 태블릿 761~1100 / 모바일 <=760 */
+/* Topbar Responsive · 상단바: 웹 기본 / Tablet action+TOC hamburger / Phone 세로·가로 동일 Mobile Topbar */
 
 /* [03. Topbar / Navigation · 상단바 / 내비게이션] Topbar Layout · 상단바 레이아웃 */
 .switcher{
@@ -3831,8 +3832,11 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       max-height:96px;
     }
 
-  /* Edge TOC Responsive · 우측 목차: 761px 이상에서만 표시 */
-    /* 태블릿·웹은 우측 edge TOC를 사용한다. */
+}
+
+@media (min-width:1101px){
+  /* Edge TOC Desktop · 웹 우측 hover/focus 목차 */
+    /* 웹(≥1101px)만 우측 edge TOC를 사용한다. */
 
     .desktop-edge-toc{
       position:fixed;
