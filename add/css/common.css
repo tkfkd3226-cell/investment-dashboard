@@ -1,16 +1,24 @@
-/* calc.html · 거래 리포트 공통 기반 */
+/* =========================================================
+   add 공통 CSS · CALC / 거래 리포트 공유 기반
+   - 두 화면에서 함께 쓰는 의미 색상, Corner, box-sizing, 기본 글꼴만 둔다.
+   - 화면별 레이아웃·반응형은 calc.css 또는 report 내부 CSS가 소유한다.
+   ========================================================= */
+
+/* 01. 공통 의미 토큰 / Main Dashboard Corner 기준 */
 :root{
   --ink:#172033;
   --navy:#1d3557;
   --positive:#EF3341;
   --negative:#3182F6;
 
-  /* Main Dashboard 기본 corner cap과 동일 */
+  /* 메인 대시보드 기본 Corner cap과 동일 */
   --corner-surface-cap:6px;
   --corner-control-cap:5px;
   --corner-inner-cap:4px;
   --radius-pill:999px;
 }
+
+/* 02. 공통 박스 모델 / 기본 글꼴 */
 *{box-sizing:border-box}
 body{
   margin:0;

@@ -2,7 +2,7 @@
 
 > 적용 범위: `add/calc.html`, `add/css/*`, `add/js/calc.js`, `add/report/*` 및 **KODEX 레버리지 실현손익 반영 때문에 함께 수정되는 `data/portfolio.json`**
 >
-> 목적: 새로운 KODEX 레버리지 거래가 생길 때마다 리포트 구조·계산 기준·연동 파일을 다시 분석하지 않고, 아래 고정 절차와 산식으로 바로 갱신한다.
+> 목적: `add/` 영역의 **CALC + KODEX 레버리지 거래 리포트**를 현재 canonical 구조 그대로 유지하고, 새 거래 반영·UI 수정·CSS/JS 유지보수 때 구조와 기준을 다시 분석하지 않고 바로 작업할 수 있게 한다.
 
 ---
 
@@ -17,7 +17,6 @@
    - data/portfolio.json
    - add/calc.html
    - add/report/kodex-leverage-report.html
-     (아직 canonical 전환 전이면 현재 존재하는 legacy dated report)
    - 필요 시 add/css/*, add/js/calc.js
 4. 사용자가 이번 작업에 제공한 최신 증권사 원본 자료
 ```
@@ -57,6 +56,119 @@ Mobile · 모바일   ≤ 760px
 - CALC 전략 탭과 report 패널 탭은 `role=tablist/tab/tabpanel`, `aria-controls`, `aria-selected` 및 좌우 방향키/Home/End 키보드 이동을 유지한다. 시각적 `.active` 상태와 ARIA 선택 상태가 항상 함께 갱신되어야 한다.
 - 동적 custom tooltip은 고유 `id`와 `aria-describedby` 연결을 유지한다. report 표는 숨김 caption, column `scope=col`, 첫 열 row header `scope=row`를 유지한다.
 - CALC 화면의 설명문·툴팁·검증문구·전략 설명은 `~입니다/~합니다/~됩니다/~주세요` 같은 존댓말 서술형을 사용하지 않고, **명사형·단어형 또는 `~했음/~됨` 계열의 짧은 종결**을 우선한다. 버튼·라벨은 기존 명사형 유지.
+
+### 1.3 현재 canonical 소스 구조
+
+현재 `add/` 영역은 아래 구조를 기준으로 유지한다.
+
+```text
+add/
+├─ calc.html
+├─ add_maintenance_handover.md
+├─ css/
+│  ├─ common.css
+│  └─ calc.css
+├─ js/
+│  └─ calc.js
+└─ report/
+   └─ kodex-leverage-report.html
+```
+
+역할은 다음과 같다.
+
+- `add/calc.html`
+  - CALC DOM과 접근성 구조만 소유한다.
+  - CSS는 `css/common.css` → `css/calc.css` 순서로 로드한다.
+  - JS는 `js/calc.js` 단일 파일을 사용한다.
+  - 기능 로직이나 대량 스타일을 HTML 안으로 다시 넣지 않는다.
+- `add/css/common.css`
+  - CALC와 리포트가 공유하는 의미 색상, Corner token, box-sizing, 기본 글꼴만 소유한다.
+  - 화면별 layout/responsive 규칙을 넣지 않는다.
+- `add/css/calc.css`
+  - CALC 화면의 전체 UI·거래유형별 layout·반응형을 소유한다.
+- `add/js/calc.js`
+  - CALC 계산·렌더·프리셋·이벤트·툴팁·초기화를 소유하는 단일 IIFE 파일이다.
+  - 현재 규모에서는 추가 파일 분리를 기본 작업으로 하지 않는다.
+- `add/report/kodex-leverage-report.html`
+  - 거래 리포트 canonical 단일 파일이다.
+  - `../css/common.css`를 공유하고, 리포트 전용 CSS/JS는 standalone 결과물 특성상 HTML 내부 `<style>` / `<script>`에 유지한다.
+  - 사용자가 별도로 외부 파일 분리를 요청하지 않는 한 CSS/JS를 새 파일로 쪼개지 않는다.
+
+### 1.4 CSS / JS 내부 정렬 순서
+
+구조 정리 작업에서는 **기능값·산식·DOM 의미를 바꾸지 않고** 아래 순서와 한글 섹션 주석을 유지한다.
+
+#### `add/css/common.css`
+
+```text
+01. 공통 의미 토큰 / Corner
+02. 공통 박스 모델 / 기본 글꼴
+```
+
+#### `add/css/calc.css`
+
+```text
+01. 기본 토큰 / 페이지 기반
+02. 상단 헤더 / 주요 액션 / 거래유형 프리셋
+03. 입력 패널 / 폼 컨트롤 / 도움말 툴팁
+04. 거래유형별 입력 레이아웃 / 빠른 매수 프리셋
+05. 핵심 지표 / 가격 구간 요약
+06. 전략 탭 / 계산 결과 / 상세 데이터
+07. 반응형 규칙
+```
+
+- Desktop/Tablet/Mobile media는 기본 component 규칙 뒤쪽의 `07. 반응형 규칙`에 모은다.
+- 모바일 거래유형 전용 세부 배치는 공통 Mobile 규칙 뒤에 둬 cascade 의도를 명확히 한다.
+- selector를 기능과 무관하게 가나다/알파벳 순으로 재배치하지 않는다. 화면 흐름과 component 책임 순서를 우선한다.
+
+#### `add/js/calc.js`
+
+```text
+01. 고정 데이터 / 프리셋
+02. 런타임 상태 / 공통 유틸리티
+03. 거래유형별 화면 문구 설정
+04. 공통 계산 보조 함수
+05. 거래유형 UI 구성 / DOM 재배치
+06. 입력 수집 / 검증
+07. 핵심 계산 엔진
+08. 결과 렌더링
+09. 재계산 흐름 / 계산 기준 모드
+10. 프리셋 / 저장상태 적용
+11. 사용자 이벤트
+12. 도움말 툴팁
+13. 초기화 / 부팅
+```
+
+- 함수 정의를 먼저 배치하고 이벤트 등록과 초기 부팅은 파일 하단에서 명시적으로 실행한다.
+- 이벤트 등록은 `initEventBindings()`, 툴팁 등록은 `initHelpTooltips()`, 저장상태 복원은 `restoreInitialState()`로 구분한다.
+- 계산 엔진은 DOM을 직접 수정하지 않고 계산 결과를 반환하며, 화면 반영은 render 계층이 담당하는 구조를 유지한다.
+
+#### `add/report/kodex-leverage-report.html` 내부 CSS
+
+```text
+01. 페이지 기반 / 공통 토큰
+02. 히어로 / 상단 메뉴 / 패널 전환
+03. 핵심 요약 / KPI / 손익 차트 / 수익 구성
+04. 날짜별 실현손익 / 공통 표 / 배지 / 보조 시각화
+05. 본 포지션 / 단타 분리 결과
+06. 거래 흐름 Timeline / 근거·산식
+07. 모바일 패널 메뉴
+08. 반응형 규칙
+```
+
+#### `add/report/kodex-leverage-report.html` 내부 JS
+
+```text
+01. 리포트 데이터 / DOM 참조
+02. 패널 전환 / 접근성 상태 동기화
+03. 메뉴 이벤트 / 키보드 조작
+04. 차트 표시 보조 함수
+05. 누적 실현손익 차트 렌더링
+06. 차트 초기화 / resize 재렌더
+```
+
+- 리포트 JS 부팅 순서는 `initNavigationEvents()` → `initChart()` 순서로 유지한다.
+- 차트의 날짜 thinning, 마지막 거래일 고정 표시, DPR 처리, resize debounce를 임의로 제거하지 않는다.
 ---
 
 ## 2. 거래 리포트 canonical 파일명
@@ -82,7 +194,7 @@ add/report/kodex-leverage-report.html
 - 거래기간의 시작일·최종일은 **리포트 본문에 표시**하고 파일명에는 넣지 않는다.
 - 새 거래가 추가되어도 `kodex-leverage-report.html`을 계속 갱신한다.
 - 사용자가 별도로 보관본 생성을 요청하지 않는 한 날짜가 붙은 병렬 report 파일을 만들지 않는다.
-- 기존 날짜형 파일을 canonical 파일명으로 전환하는 작업에서는 기존 dated report를 제거하고 새 파일 하나만 남긴다.
+- 과거 날짜형 report 파일은 legacy로 취급하며 새로 만들거나 복원하지 않는다. canonical report는 항상 위 파일 하나만 유지한다.
 
 `add/calc.html`의 거래 리포트 버튼도 항상 다음 고정 경로를 가리킨다.
 
@@ -90,9 +202,7 @@ add/report/kodex-leverage-report.html
 href="report/kodex-leverage-report.html"
 ```
 
-파일명을 바꾸는 작업에서는 **report 파일만 변경하지 말고 `add/calc.html` 링크까지 반드시 함께 수정**한다.
-
-아직 `kodex-leverage-report.html`이 없고 날짜형 report만 존재한다면, 다음 실제 거래 리포트 갱신 작업에서 canonical 이름으로 1회 전환한다. handover 파일 생성만을 위한 작업에서는 리포트 내용이나 파일명을 억지로 함께 변경하지 않는다.
+현재 canonical 파일명은 이미 정착된 상태다. 향후 거래 추가나 UI 정리 때문에 날짜형 파일명으로 되돌리지 않는다. `add/calc.html`의 링크도 위 고정 경로를 계속 유지한다.
 
 ---
 
@@ -479,7 +589,7 @@ Timeline 모바일 카드 상단 날짜 표시
 
 ## 12. 필수 QA / 검산
 
-새 거래 반영 후 최소한 다음은 확인한다.
+새 거래 반영 또는 `add/` 구조·UI 수정 후 관련 범위에서 최소한 다음은 확인한다.
 
 ```text
 [ ] 새 매도일의 수량/평균매수/평균매도/손익/비용/순손익이 증권사 원본과 일치
@@ -504,6 +614,10 @@ Timeline 모바일 카드 상단 날짜 표시
 [ ] add/calc.html report link가 report/kodex-leverage-report.html인지 확인
 [ ] dated report filename이나 이전 canonical 경로 참조가 남아 있지 않음
 [ ] 과거 마지막 날짜/과거 누계/과거 총수량 문자열이 잘못 잔존하지 않음
+[ ] add/css/common.css, calc.css와 report 내부 CSS의 기능별 섹션 순서·한글 주석이 canonical 구조와 일치
+[ ] calc.js와 report 내부 JS의 기능별 섹션 순서·한글 주석이 canonical 구조와 일치
+[ ] calc.js 이벤트 등록은 initEventBindings(), 저장상태 복원은 restoreInitialState()에서 수행되고 top-level 중복 listener가 없음
+[ ] report JS 부팅이 initNavigationEvents() → initChart() 순서이며 resize listener가 중복 등록되지 않음
 ```
 
 ---

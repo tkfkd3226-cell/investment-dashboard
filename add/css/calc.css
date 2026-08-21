@@ -1,7 +1,9 @@
-        /* =========================================================
-       Variables / Base · 변수 / 기본 스타일
-       ========================================================= */
-    :root{
+/* =========================================================
+   01. 기본 토큰 / 페이지 기반
+   - CALC 전용 색상·그림자와 페이지 공통 기본값
+   - 모서리 값은 add/css/common.css의 공통 Corner 토큰 사용
+   ========================================================= */
+:root{
       --bg:#f4f6fa;
       --card:#ffffff;
       --muted:#6c768a;
@@ -14,10 +16,13 @@
     body{background:var(--bg);line-height:1.45;overflow-x:hidden}
     button,input,select{font:inherit}
 
-    /* =========================================================
-       Header / Presets · 상단 영역 / 프리셋
-       ========================================================= */
-    .wrap{max-width:1480px;margin:0 auto;padding:18px}
+
+/* =========================================================
+   02. 상단 헤더 / 주요 액션 / 거래유형 프리셋
+   - 제목·설명문·거래 리포트·기본값 복원 버튼
+   - 보유 중 추가매수 / 이전 거래 후 재매수 / 이전 거래 없음 선택
+   ========================================================= */
+.wrap{max-width:1480px;margin:0 auto;padding:18px}
     .hero{display:grid;gap:8px;margin-bottom:14px}
     .hero-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
     .hero h1{margin:0;font-size:30px;letter-spacing:-.04em;line-height:1.18;flex:1 1 auto;min-width:0}
@@ -34,10 +39,12 @@
     .preset-btn.active{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 5px 14px rgba(29,53,87,.16)}
 
 
-    /* =========================================================
-       Form / Inputs / Tooltip · 입력 폼 / 툴팁
-       ========================================================= */
-    .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+/* =========================================================
+   03. 입력 패널 / 폼 컨트롤 / 도움말 툴팁
+   - 입력 카드 공통 레이아웃과 숫자·수량·비율 컨트롤
+   - readonly·검증 오류·툴팁·계산 기준 세그먼트 포함
+   ========================================================= */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
     .input-panel{padding:14px;margin-bottom:12px}
     .input-grid{display:grid;grid-template-columns:1.15fr 1.15fr 1fr;gap:12px}
     .input-grid.no-prior-layout{
@@ -88,9 +95,6 @@
     .seg button.active{background:var(--navy);border-color:var(--navy);color:#fff}
     .calculation-group .group-title{margin-bottom:0}
     .calculation-group .seg{margin-top:18px}
-    @media(min-width:1101px){
-      .calculation-group .seg{margin-top:35px;margin-bottom:10px}
-    }
     .formula{font-size:11px;color:var(--muted);background:#f0f3f8;border-radius:var(--corner-inner-cap);padding:6px 8px;margin-top:6px}
     .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;margin-top:6px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--corner-control-cap);background:#fff;color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;text-align:left;appearance:none;-webkit-appearance:none}
     .actual-sale-price:hover{border-color:#9fb0c8;background:#f7f9fc}
@@ -103,10 +107,121 @@
     .control.invalid{border-color:#d9363e;background:#fff7f7;box-shadow:0 0 0 3px rgba(217,54,62,.10)}
 
 
-    /* =========================================================
-       KPI / Range · 핵심지표 / 가격 구간
-       ========================================================= */
-    .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px;padding:12px 14px}
+/* =========================================================
+   04. 거래유형별 입력 레이아웃 / 빠른 매수 프리셋
+   - 보유 중 추가매수 / 이전 거래 후 재매수 / 이전 거래 없음의 DOM 재배치 대응
+   - 현재 보유분·계산 기준 카드의 시작선과 하단 정렬을 구조적으로 유지
+   ========================================================= */
+/* 보유 중 추가매수: 기존 매수정보와 평가·회수정보 */
+    .existing-group.holding-layout #holdingPriorFields{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:0;
+      align-items:start;
+    }
+    .existing-subsection{
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+      gap:10px;
+      min-width:0;
+      padding:0 10px 12px;
+    }
+    .existing-purchase-section{border-right:1px dashed #cfd7e4}
+    .existing-group:not(.holding-layout) .existing-subsection{display:none}
+
+    /* 추가매수 내역: 매수·보유원가·종가평가·회복결과 */
+    .additional-group.holding-layout #currentFields{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:0;
+      align-items:start;
+    }
+    .current-subsection{
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+      gap:10px;
+      min-width:0;
+      padding:0 10px 12px;
+    }
+    .current-subsection:nth-of-type(odd){border-right:1px dashed #cfd7e4}
+    .current-subsection:nth-of-type(n+3){border-top:1px dashed #cfd7e4;padding-top:12px}
+    .additional-group.settled-layout .current-subsection{display:none}
+
+    /* 이전 거래 후 재매수: 보유원가·종가평가·손익결과 */
+    .settled-subsection{display:none}
+    .additional-group.settled-layout #currentFields{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:0;
+      align-items:start;
+    }
+    .additional-group.settled-layout .settled-subsection{
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+      gap:10px;
+      min-width:0;
+      padding:0 10px 12px;
+    }
+    .additional-group.settled-layout .settled-cost-section{border-right:1px dashed #cfd7e4}
+    .additional-group.settled-layout .settled-result-section{
+      grid-column:1 / -1;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      border-top:1px dashed #cfd7e4;
+      padding-top:12px;
+    }
+    .additional-group.settled-layout.no-prior-current .settled-result-section{
+      grid-template-columns:minmax(0,1fr);
+    }
+    .additional-group.holding-layout .settled-subsection{display:none}
+
+    .hidden{display:none}
+    .settled-summary{display:none}
+    .prior-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;align-items:start}
+    .prior-date-section{grid-column:1/-1;min-width:0;padding:0 10px 12px;border-bottom:1px dashed #cfd7e4}
+    .prior-trade-section{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;min-width:0;padding:12px 10px}
+    .prior-buy-section{border-right:1px dashed #cfd7e4}
+    .prior-entry-grid .field{min-width:0}
+    .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;height:42px;border:1px solid #cfd7e4;border-radius:var(--corner-control-cap);background:#fff;overflow:hidden;box-sizing:border-box}
+    .date-control-shell:focus-within{border-color:#6d8fc1;box-shadow:0 0 0 3px rgba(73,115,174,.12)}
+    .date-control-shell .date-control{position:absolute;inset:0;display:block;width:100%;min-width:0;max-width:100%;height:100%;border:0;border-radius:0;background:transparent;box-shadow:none;outline:none;text-align:left;padding:0 11px;box-sizing:border-box;-webkit-min-logical-width:0}
+    .date-control-shell .date-control::-webkit-date-and-time-value{height:100%;min-height:100%;margin:0;padding:0;display:flex;align-items:center;justify-content:center;text-align:center}
+    .date-control-shell .date-control::-webkit-datetime-edit{height:100%;padding:0;display:flex;align-items:center;justify-content:center}
+    .date-control-shell .date-control::-webkit-datetime-edit-fields-wrapper{display:flex;align-items:center;justify-content:center;height:100%;padding:0}
+    .date-control-shell .date-control::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
+    .date-control-shell:has(.date-control.invalid){border-color:#d9363e;background:#fff7f7;box-shadow:0 0 0 3px rgba(217,54,62,.10)}
+    .prior-entry-grid .field.auto-field .control{background:#f1f4f8;color:#576176}
+    .case-note{font-size:11px;color:var(--muted);margin-top:8px}
+    #currentPriceSlot,#currentPriceAnchor{display:none}
+    .strategy-card.no-badge .badge{display:none}
+    .tabs.settled-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .five-grid{grid-template-columns:repeat(5,minmax(135px,1fr));min-width:675px}
+    .five-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
+    .five-grid .cell:nth-child(5n){border-right:0}
+    .simple-grid{grid-template-columns:repeat(4,minmax(145px,1fr));min-width:580px}
+    .simple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
+    .simple-grid .cell:nth-child(4n){border-right:0}
+    .triple-grid{grid-template-columns:repeat(3,minmax(165px,1fr));min-width:495px}
+    .triple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
+    .triple-grid .cell:nth-child(3n){border-right:0}
+
+    .input-grid.no-prior-layout .current-column{display:contents}
+    .input-grid.no-prior-layout .current-purchase-preset{display:flex;grid-area:purchase-preset}
+    .input-grid.no-prior-layout #currentGroup{grid-area:current-group}
+    .input-grid.no-prior-layout .calculation-group{grid-area:calculation-group;align-self:stretch}
+
+    /* 이전 거래 없음: 현재 매수값 빠른 입력 */
+    .current-column{display:flex;flex-direction:column;gap:8px;min-width:0;align-self:stretch}
+    .current-column > #currentGroup{flex:1 1 auto}
+    .current-purchase-preset{display:none;align-items:center;justify-content:flex-start;gap:6px;min-width:0}
+    .current-purchase-btn{border:1px solid var(--navy);background:#fff;color:var(--navy);border-radius:var(--corner-control-cap);padding:7px 12px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 3px 10px rgba(29,53,87,.07)}
+    .current-purchase-btn:hover{background:#f3f6fb;border-color:var(--navy2)}
+    .current-purchase-btn.active{background:var(--navy);color:#fff}
+    .current-purchase-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(73,115,174,.14)}
+    .current-purchase-btn:active{transform:translateY(1px)}
+
+
+/* =========================================================
+   05. 핵심 지표 / 가격 구간 요약
+   - 계산 직후 보여주는 KPI와 손실·회복 가격 구간 카드
+   ========================================================= */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px;padding:12px 14px}
     .kpi{padding:12px 14px;border:1px solid var(--line);border-radius:var(--corner-surface-cap);background:#fff}
     .kpi .name{font-size:12px;color:var(--muted);font-weight:700}
     .kpi .value{margin-top:5px;font-size:21px;font-weight:900;letter-spacing:-.03em}
@@ -122,10 +237,12 @@
     .range-box.green{background:#f2fbf6;border-color:#c9ead8}
 
 
-    /* =========================================================
-       Strategies / Results · 전략 / 계산 결과
-       ========================================================= */
-    .tabs{display:flex;gap:6px;margin:0 0 10px;overflow:auto;padding:2px}
+/* =========================================================
+   06. 전략 탭 / 계산 결과 / 상세 데이터
+   - 전략 선택 탭, 결과 카드, 데스크톱 표, 모바일 데이터 카드
+   - 손익 색상·안내문·경고문 포함
+   ========================================================= */
+.tabs{display:flex;gap:6px;margin:0 0 10px;overflow:auto;padding:2px}
     .tab{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:var(--corner-control-cap);padding:9px 12px;cursor:pointer;font-weight:800;color:var(--muted)}
     .tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
     .strategy{display:none}
@@ -174,17 +291,23 @@
     .muted{color:var(--muted)}
 
 
-    /* =========================================================
-       Responsive · 반응형 (Main Dashboard canonical)
-       Desktop ≥1101 / Tablet 761~1100 / Mobile ≤760
-       ========================================================= */
-    @media(max-width:1100px){
+/* =========================================================
+   07. 반응형 규칙
+   - 메인 대시보드와 동일: Desktop ≥1101 / Tablet 761~1100 / Mobile ≤760
+   - 특수 breakpoint를 추가하지 않고 이 구간 안에서만 재배치
+   ========================================================= */
+@media(min-width:1101px){
+  .calculation-group .seg{margin-top:35px;margin-bottom:10px}
+}
+
+@media(max-width:1100px){
       .input-grid{grid-template-columns:1fr 1fr}
       .input-grid:not(.no-prior-layout) > .input-group:last-child{grid-column:1/-1}
       .input-grid.no-prior-layout{grid-template-columns:1fr 1fr}
       .kpis{grid-template-columns:repeat(2,1fr)}
     }
     @media(max-width:760px){
+
       .wrap{padding:10px}.hero{gap:7px}.hero-head{gap:8px;align-items:flex-start}.hero h1{font-size:24px;min-width:0}.actions{position:static;margin:0;display:flex;gap:6px;flex-wrap:nowrap;flex:0 0 auto}
       .hero p{font-size:11px;line-height:1.4}
       #reportBtn,#resetBtn{width:36px;height:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--corner-control-cap)}
@@ -268,116 +391,8 @@
       .mobile-data-card{padding:5px 9px}
       .mobile-data-row{gap:6px;padding:8px 0}
       .mobile-data-value{max-width:58%;font-size:13px;white-space:nowrap;word-break:normal;letter-spacing:-.035em}
-    }
 
-
-    /* =========================================================
-       Case Layouts / Quick Presets · 거래유형 레이아웃 / 빠른 프리셋
-       ========================================================= */
-    /* Holding Case · 보유 중 추가매수: 기존 매수정보·평가/회수정보 */
-    .existing-group.holding-layout #holdingPriorFields{
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:0;
-      align-items:start;
-    }
-    .existing-subsection{
-      display:grid;
-      grid-template-columns:minmax(0,1fr);
-      gap:10px;
-      min-width:0;
-      padding:0 10px 12px;
-    }
-    .existing-purchase-section{border-right:1px dashed #cfd7e4}
-    .existing-group:not(.holding-layout) .existing-subsection{display:none}
-
-    /* Additional Purchase · 추가매수: 매수·보유원가·종가평가·회복결과 */
-    .additional-group.holding-layout #currentFields{
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:0;
-      align-items:start;
-    }
-    .current-subsection{
-      display:grid;
-      grid-template-columns:minmax(0,1fr);
-      gap:10px;
-      min-width:0;
-      padding:0 10px 12px;
-    }
-    .current-subsection:nth-of-type(odd){border-right:1px dashed #cfd7e4}
-    .current-subsection:nth-of-type(n+3){border-top:1px dashed #cfd7e4;padding-top:12px}
-    .additional-group.settled-layout .current-subsection{display:none}
-
-    /* Settled Case · 이전 거래 후 재매수: 보유원가·종가평가·손익결과 */
-    .settled-subsection{display:none}
-    .additional-group.settled-layout #currentFields{
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:0;
-      align-items:start;
-    }
-    .additional-group.settled-layout .settled-subsection{
-      display:grid;
-      grid-template-columns:minmax(0,1fr);
-      gap:10px;
-      min-width:0;
-      padding:0 10px 12px;
-    }
-    .additional-group.settled-layout .settled-cost-section{border-right:1px dashed #cfd7e4}
-    .additional-group.settled-layout .settled-result-section{
-      grid-column:1 / -1;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      border-top:1px dashed #cfd7e4;
-      padding-top:12px;
-    }
-    .additional-group.settled-layout.no-prior-current .settled-result-section{
-      grid-template-columns:minmax(0,1fr);
-    }
-    .additional-group.holding-layout .settled-subsection{display:none}
-
-    .hidden{display:none}
-    .settled-summary{display:none}
-    .prior-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;align-items:start}
-    .prior-date-section{grid-column:1/-1;min-width:0;padding:0 10px 12px;border-bottom:1px dashed #cfd7e4}
-    .prior-trade-section{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;min-width:0;padding:12px 10px}
-    .prior-buy-section{border-right:1px dashed #cfd7e4}
-    .prior-entry-grid .field{min-width:0}
-    .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;height:42px;border:1px solid #cfd7e4;border-radius:var(--corner-control-cap);background:#fff;overflow:hidden;box-sizing:border-box}
-    .date-control-shell:focus-within{border-color:#6d8fc1;box-shadow:0 0 0 3px rgba(73,115,174,.12)}
-    .date-control-shell .date-control{position:absolute;inset:0;display:block;width:100%;min-width:0;max-width:100%;height:100%;border:0;border-radius:0;background:transparent;box-shadow:none;outline:none;text-align:left;padding:0 11px;box-sizing:border-box;-webkit-min-logical-width:0}
-    .date-control-shell .date-control::-webkit-date-and-time-value{height:100%;min-height:100%;margin:0;padding:0;display:flex;align-items:center;justify-content:center;text-align:center}
-    .date-control-shell .date-control::-webkit-datetime-edit{height:100%;padding:0;display:flex;align-items:center;justify-content:center}
-    .date-control-shell .date-control::-webkit-datetime-edit-fields-wrapper{display:flex;align-items:center;justify-content:center;height:100%;padding:0}
-    .date-control-shell .date-control::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
-    .date-control-shell:has(.date-control.invalid){border-color:#d9363e;background:#fff7f7;box-shadow:0 0 0 3px rgba(217,54,62,.10)}
-    .prior-entry-grid .field.auto-field .control{background:#f1f4f8;color:#576176}
-    .case-note{font-size:11px;color:var(--muted);margin-top:8px}
-    #currentPriceSlot,#currentPriceAnchor{display:none}
-    .strategy-card.no-badge .badge{display:none}
-    .tabs.settled-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .five-grid{grid-template-columns:repeat(5,minmax(135px,1fr));min-width:675px}
-    .five-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
-    .five-grid .cell:nth-child(5n){border-right:0}
-    .simple-grid{grid-template-columns:repeat(4,minmax(145px,1fr));min-width:580px}
-    .simple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
-    .simple-grid .cell:nth-child(4n){border-right:0}
-    .triple-grid{grid-template-columns:repeat(3,minmax(165px,1fr));min-width:495px}
-    .triple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
-    .triple-grid .cell:nth-child(3n){border-right:0}
-
-    .input-grid.no-prior-layout .current-column{display:contents}
-    .input-grid.no-prior-layout .current-purchase-preset{display:flex;grid-area:purchase-preset}
-    .input-grid.no-prior-layout #currentGroup{grid-area:current-group}
-    .input-grid.no-prior-layout .calculation-group{grid-area:calculation-group;align-self:stretch}
-
-    /* Current-only Presets · 이전 거래 없음: 매수값 빠른 입력 */
-    .current-column{display:flex;flex-direction:column;gap:8px;min-width:0;align-self:stretch}
-    .current-column > #currentGroup{flex:1 1 auto}
-    .current-purchase-preset{display:none;align-items:center;justify-content:flex-start;gap:6px;min-width:0}
-    .current-purchase-btn{border:1px solid var(--navy);background:#fff;color:var(--navy);border-radius:var(--corner-control-cap);padding:7px 12px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 3px 10px rgba(29,53,87,.07)}
-    .current-purchase-btn:hover{background:#f3f6fb;border-color:var(--navy2)}
-    .current-purchase-btn.active{background:var(--navy);color:#fff}
-    .current-purchase-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(73,115,174,.14)}
-    .current-purchase-btn:active{transform:translateY(1px)}
-    @media(max-width:760px){
+      /* 거래유형별 모바일 세부 배치 */
       .input-grid.no-prior-layout{
         grid-template-columns:minmax(0,1fr);
         grid-template-areas:

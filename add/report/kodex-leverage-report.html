@@ -11,6 +11,11 @@
 <title>KODEX 레버리지 거래 종합 리포트</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
+/* =========================================================
+   01. 페이지 기반 / 공통 토큰
+   - 리포트 전용 배경·선·그림자와 접근성용 숨김 텍스트
+   - Corner는 ../css/common.css의 공통 6 / 5 / 4px 체계 사용
+   ========================================================= */
 :root {
   --bg:#f3f6fb; --card:#fff; --muted:#6b768c; --line:#dce3ef;
   --navy2:#284b7c; --shadow:0 10px 24px rgba(31,48,76,.08);
@@ -20,6 +25,11 @@ body{background:var(--bg);line-height:1.55}
 button{font:inherit}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .wrap{max-width:1280px;margin:0 auto;padding:20px}
+
+/* =========================================================
+   02. 히어로 / 상단 메뉴 / 패널 전환
+   - Hero 3개 요약과 Desktop 탭, 활성 패널 공통 surface
+   ========================================================= */
 .hero{padding:24px;border-radius:var(--corner-surface-cap);background:linear-gradient(135deg,#152844,#284b7c);color:#fff;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .hero:after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;right:-110px;top:-150px;background:rgba(255,255,255,.08)}
 .hero-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;position:relative;z-index:1}
@@ -37,6 +47,11 @@ h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.045em}
 .tab.active{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:800}
 .panel{display:none}
 .panel.active{display:block}
+
+/* =========================================================
+   03. 핵심 요약 / KPI / 손익 차트 / 수익 구성
+   - KPI 6개, 누적손익 Canvas, 본 포지션·단타 도넛과 범례
+   ========================================================= */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--corner-surface-cap);box-shadow:var(--shadow)}
 .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .kpi{padding:14px}
@@ -61,6 +76,24 @@ canvas{width:100%;height:100%}
 .legend-name{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800}
 .dot{width:9px;height:9px;border-radius:50%}
 .legend-row strong{font-size:14px}
+.pnl-chart-card,.composition-card{min-height:430px}
+.pnl-chart-card{overflow:hidden}
+.pnl-chart-card .chart-wrap{margin:2px -4px -4px}
+.chart-title{align-items:center}
+.chart-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:10px;font-weight:800}
+.chart-legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.chart-legend i{display:inline-block;position:relative;flex:none}
+.legend-bar{width:9px;height:9px;border-radius:3px;background:linear-gradient(180deg,#EF3341,#f77a84)}
+.legend-line{width:18px;height:2px;border-radius:var(--radius-pill);background:var(--navy)}
+.legend-line:after{content:"";position:absolute;width:6px;height:6px;border:2px solid var(--navy);background:#fff;border-radius:50%;left:5px;top:-4px}
+.composition-card{display:flex;flex-direction:column}
+.composition-card .split-box{flex:1;align-content:center;margin:4px 0 12px}
+.composition-card .volume-bars{margin-top:auto;padding-top:18px;border-top:1px solid #edf1f6}
+
+/* =========================================================
+   04. 날짜별 실현손익 / 공통 표 / 배지 / 보조 시각화
+   - 날짜별 표와 근거 표에서 공통으로 사용하는 table·badge·note 스타일
+   ========================================================= */
 .table-card{overflow:hidden}
 .table-head{padding:14px 16px;border-bottom:1px solid var(--line)}
 .table-head h2{font-size:19px;margin:0}
@@ -80,22 +113,11 @@ tfoot td,tfoot th{font-weight:950;background:#fafbfd;position:static}
 .volume-row{display:grid;grid-template-columns:105px 1fr 90px;gap:10px;align-items:center;font-size:12px}
 .bar-track{height:11px;border-radius:var(--radius-pill);background:#edf1f6;overflow:hidden}
 .bar-fill{height:100%;border-radius:inherit}
-.timeline{position:relative;margin-top:4px}
-.timeline:before{content:"";position:absolute;left:142px;top:10px;bottom:10px;width:2px;background:#dce3ee}
-.timeline-item{display:grid;grid-template-columns:126px 32px 1fr;align-items:start;margin-bottom:10px;position:relative}
-.timeline-date{font-size:11px;font-weight:900;color:var(--muted);padding-top:15px;white-space:nowrap}
-.timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--navy);margin:17px 0 0 10px;box-shadow:0 0 0 5px #e7edf6;z-index:1}
-.timeline-card{padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:var(--corner-surface-cap)}
-.timeline-card-date{display:none}
-.timeline-card h3{font-size:14px;margin:0 0 3px} .timeline-card strong{font-size:12px;color:var(--navy)} .timeline-card p{font-size:11px;color:var(--muted);margin:5px 0 0}
-.source-img{width:100%;display:block;border:1px solid var(--line);border-radius:var(--corner-surface-cap);background:#fff}
-details{background:#fff;border:1px solid var(--line);border-radius:var(--corner-surface-cap);padding:12px 14px;margin-top:10px}
-summary{cursor:pointer;font-weight:900;font-size:13px}
-details p,details li{font-size:12px;color:var(--muted)}
 
-
-
-/* 본 포지션·단타 그룹 분리 */
+/* =========================================================
+   05. 본 포지션 / 단타 분리 결과
+   - 두 거래유형의 요약·상세표·합계 및 모바일 전용 합계 카드
+   ========================================================= */
 .split-group{margin-bottom:14px;border:1px solid var(--line);border-radius:var(--corner-surface-cap);padding:14px;background:#fff;box-shadow:var(--shadow)}
 .split-group-core{border-top:4px solid var(--navy)}
 .split-group-day{border-top:4px solid #80a9e2}
@@ -117,25 +139,31 @@ details p,details li{font-size:12px;color:var(--muted)}
 .split-total-stats{display:flex;align-items:center;justify-content:flex-end;gap:18px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
 .split-total-stats b{font-size:13px}
 .split-total-stats b:not(.pos):not(.neg){color:var(--ink)}
+.split-total-mobile{
+  display:none;
+}
 
+/* =========================================================
+   06. 거래 흐름 Timeline / 근거·산식
+   - 웹·태블릿 좌측 날짜축, 모바일 카드 내부 날짜, 원본 이미지·details
+   ========================================================= */
+.timeline{position:relative;margin-top:4px}
+.timeline:before{content:"";position:absolute;left:142px;top:10px;bottom:10px;width:2px;background:#dce3ee}
+.timeline-item{display:grid;grid-template-columns:126px 32px 1fr;align-items:start;margin-bottom:10px;position:relative}
+.timeline-date{font-size:11px;font-weight:900;color:var(--muted);padding-top:15px;white-space:nowrap}
+.timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--navy);margin:17px 0 0 10px;box-shadow:0 0 0 5px #e7edf6;z-index:1}
+.timeline-card{padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:var(--corner-surface-cap)}
+.timeline-card-date{display:none}
+.timeline-card h3{font-size:14px;margin:0 0 3px} .timeline-card strong{font-size:12px;color:var(--navy)} .timeline-card p{font-size:11px;color:var(--muted);margin:5px 0 0}
+.source-img{width:100%;display:block;border:1px solid var(--line);border-radius:var(--corner-surface-cap);background:#fff}
+details{background:#fff;border:1px solid var(--line);border-radius:var(--corner-surface-cap);padding:12px 14px;margin-top:10px}
+summary{cursor:pointer;font-weight:900;font-size:13px}
+details p,details li{font-size:12px;color:var(--muted)}
 
-
-/* 핵심 요약 차트 · 수익 구성 정리 */
-.pnl-chart-card,.composition-card{min-height:430px}
-.pnl-chart-card{overflow:hidden}
-.pnl-chart-card .chart-wrap{margin:2px -4px -4px}
-.chart-title{align-items:center}
-.chart-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:10px;font-weight:800}
-.chart-legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
-.chart-legend i{display:inline-block;position:relative;flex:none}
-.legend-bar{width:9px;height:9px;border-radius:3px;background:linear-gradient(180deg,#EF3341,#f77a84)}
-.legend-line{width:18px;height:2px;border-radius:var(--radius-pill);background:var(--navy)}
-.legend-line:after{content:"";position:absolute;width:6px;height:6px;border:2px solid var(--navy);background:#fff;border-radius:50%;left:5px;top:-4px}
-.composition-card{display:flex;flex-direction:column}
-.composition-card .split-box{flex:1;align-content:center;margin:4px 0 12px}
-.composition-card .volume-bars{margin-top:auto;padding-top:18px;border-top:1px solid #edf1f6}
-
-/* 모바일 햄버거 메뉴 */
+/* =========================================================
+   07. 모바일 패널 메뉴
+   - Desktop 탭을 대체하는 햄버거 메뉴와 활성 상태
+   ========================================================= */
 .mobile-nav{display:none;position:sticky;top:0;z-index:30;padding:10px 0 8px;background:linear-gradient(var(--bg) 78%,rgba(243,246,251,0))}
 .mobile-menu-toggle{width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:var(--corner-control-cap);background:#fff;color:var(--ink);padding:9px 12px;box-shadow:0 6px 18px rgba(31,48,76,.08);font-size:13px;font-weight:900;cursor:pointer}
 .hamburger-icon{width:20px;height:16px;display:flex;flex-direction:column;justify-content:space-between;flex:none}
@@ -148,20 +176,10 @@ details p,details li{font-size:12px;color:var(--muted)}
 .mobile-tab{border:0;background:transparent;color:#59657a;text-align:left;border-radius:var(--corner-control-cap);padding:10px 11px;font-size:12px;font-weight:850;cursor:pointer}
 .mobile-tab.active{background:#eef3f9;color:var(--navy)}
 
-
-
-
-
-
-/* 본 포지션·단타 전체 결과: 모바일은 4개 카드 요약 */
-.split-total-mobile{
-  display:none;
-}
-
 /* =========================================================
-   Responsive · Main Dashboard canonical viewport
-   Desktop ≥1101 / Tablet 761~1100 / Mobile ≤760
-   No special viewport breakpoint is used in this report.
+   08. 반응형 규칙
+   - 메인 대시보드와 동일: Desktop ≥1101 / Tablet 761~1100 / Mobile ≤760
+   - 별도 특수 viewport 없이 이 3구간만 사용
    ========================================================= */
 @media(max-width:1100px){
   .wrap{padding:12px}
@@ -231,7 +249,6 @@ details p,details li{font-size:12px;color:var(--muted)}
   .split-total-mobile-card span{display:block;color:var(--muted);font-size:10px;font-weight:800;line-height:1.2}
   .split-total-mobile-card strong{display:block;margin-top:4px;color:var(--ink);font-size:15px;line-height:1.15;letter-spacing:-.035em;white-space:nowrap}
 }
-
 </style>
 </head>
 <body>
@@ -533,6 +550,10 @@ details p,details li{font-size:12px;color:var(--muted)}
 </div>
 
 <script>
+// =========================================================
+// 01. 리포트 데이터 / DOM 참조
+// - 차트 원천 데이터와 Desktop·Mobile 메뉴 요소를 초기화
+// =========================================================
 const chartData = {"labels": ["06-09", "06-16", "06-19", "06-23", "06-25", "07-30", "07-31", "08-04", "08-05", "08-06", "08-07", "08-12", "08-20"], "net": [15975, 5004, 50215, 10446, 427007, -4036636, 5804782, 206313, 4826661, 202219, 163334, 68059, 1090423], "cum": [15975, 20979, 71194, 81640, 508647, -3527989, 2276793, 2483106, 7309767, 7511986, 7675320, 7743379, 8833802]};
 
 const desktopTabs = [...document.querySelectorAll('.tab')];
@@ -541,6 +562,10 @@ const mobileNav = document.querySelector('.mobile-nav');
 const mobileToggle = document.querySelector('.mobile-menu-toggle');
 const mobileLabel = document.getElementById('mobileMenuLabel');
 
+// =========================================================
+// 02. 패널 전환 / 접근성 상태 동기화
+// - Desktop·Mobile 탭의 active, aria-selected, tabindex를 동일하게 유지
+// =========================================================
 function setTabState(tabs, panelId){
   tabs.forEach(btn => {
     const active = btn.dataset.panel === panelId;
@@ -577,32 +602,42 @@ function bindTabKeyboard(container, tabs){
   });
 }
 
-desktopTabs.forEach(btn => btn.addEventListener('click', () => activatePanel(btn.dataset.panel, btn.textContent.trim())));
-mobileTabs.forEach(btn => btn.addEventListener('click', () => { activatePanel(btn.dataset.panel, btn.textContent.trim()); mobileToggle?.focus(); }));
-bindTabKeyboard(document.querySelector('.tabs'), desktopTabs);
-bindTabKeyboard(document.getElementById('mobileMenuPanel'), mobileTabs);
-
-if (mobileToggle) {
-  mobileToggle.addEventListener('click', () => {
-    const open = mobileNav.classList.toggle('open');
-    mobileToggle.setAttribute('aria-expanded', String(open));
-    if(open) requestAnimationFrame(() => mobileTabs.find(btn => btn.getAttribute('aria-selected') === 'true')?.focus());
+// =========================================================
+// 03. 메뉴 이벤트 / 키보드 조작
+// - 클릭, 방향키·Home·End, 모바일 메뉴 열기·닫기, ESC·외부 클릭 처리
+// =========================================================
+function initNavigationEvents(){
+  desktopTabs.forEach(btn => btn.addEventListener('click', () => activatePanel(btn.dataset.panel, btn.textContent.trim())));
+  mobileTabs.forEach(btn => btn.addEventListener('click', () => { activatePanel(btn.dataset.panel, btn.textContent.trim()); mobileToggle?.focus(); }));
+  bindTabKeyboard(document.querySelector('.tabs'), desktopTabs);
+  bindTabKeyboard(document.getElementById('mobileMenuPanel'), mobileTabs);
+  
+  if (mobileToggle) {
+    mobileToggle.addEventListener('click', () => {
+      const open = mobileNav.classList.toggle('open');
+      mobileToggle.setAttribute('aria-expanded', String(open));
+      if(open) requestAnimationFrame(() => mobileTabs.find(btn => btn.getAttribute('aria-selected') === 'true')?.focus());
+    });
+  }
+  document.addEventListener('click', e => {
+    if (mobileNav && mobileNav.classList.contains('open') && !mobileNav.contains(e.target)) {
+      mobileNav.classList.remove('open');
+      mobileToggle?.setAttribute('aria-expanded','false');
+    }
+  });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && mobileNav?.classList.contains('open')){
+      mobileNav.classList.remove('open');
+      mobileToggle?.setAttribute('aria-expanded','false');
+      mobileToggle?.focus();
+    }
   });
 }
-document.addEventListener('click', e => {
-  if (mobileNav && mobileNav.classList.contains('open') && !mobileNav.contains(e.target)) {
-    mobileNav.classList.remove('open');
-    mobileToggle?.setAttribute('aria-expanded','false');
-  }
-});
-document.addEventListener('keydown', e => {
-  if(e.key === 'Escape' && mobileNav?.classList.contains('open')){
-    mobileNav.classList.remove('open');
-    mobileToggle?.setAttribute('aria-expanded','false');
-    mobileToggle?.focus();
-  }
-});
 
+// =========================================================
+// 04. 차트 표시 보조 함수
+// - Y축 금액 축약과 둥근 막대 path 생성을 담당
+// =========================================================
 function formatWon(v){
   const abs = Math.abs(v);
   if(abs >= 1000000) return (v/1000000).toFixed(abs >= 10000000 ? 0 : 1).replace('.0','') + '백만';
@@ -620,6 +655,10 @@ function roundedRect(ctx,x,y,w,h,r){
   ctx.closePath();
 }
 
+// =========================================================
+// 05. 누적 실현손익 차트 렌더링
+// - DPR 대응, 반응형 패딩, 막대·누적선·라벨 충돌 회피를 한 번에 처리
+// =========================================================
 function drawChart(){
   const canvas=document.getElementById('pnlChart');
   if(!canvas || !canvas.closest('.panel.active')) return;
@@ -644,7 +683,7 @@ function drawChart(){
 
   ctx.clearRect(0,0,W,H);
 
-  // Soft plot background
+  // 차트 플롯 배경
   const bg=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
   bg.addColorStop(0,'rgba(238,243,250,.68)');
   bg.addColorStop(1,'rgba(255,255,255,0)');
@@ -652,7 +691,7 @@ function drawChart(){
   roundedRect(ctx,pad.l,pad.t,plotW,plotH,14);
   ctx.fill();
 
-  // Horizontal grid & y labels
+  // 가로 그리드와 Y축 금액 라벨
   ctx.font=(mobile?'9px':'10px')+' system-ui';
   ctx.textAlign='right';
   ctx.textBaseline='middle';
@@ -668,7 +707,7 @@ function drawChart(){
     ctx.fillText(formatWon(v),pad.l-8,yy);
   }
 
-  // Zero line
+  // 손익 0원 기준선
   ctx.strokeStyle='rgba(74,91,115,.45)';
   ctx.lineWidth=1.2;
   ctx.beginPath();ctx.moveTo(pad.l,zeroY);ctx.lineTo(W-pad.r,zeroY);ctx.stroke();
@@ -676,13 +715,13 @@ function drawChart(){
   const step=plotW/chartData.labels.length;
   const barW=Math.min(mobile?25:34,step*.38);
 
-  // X-axis labels: thin dynamically by available plot width, without viewport-specific breakpoints.
+  // X축 날짜: 별도 breakpoint 없이 실제 가용 폭에 따라 자동 생략
   ctx.font='10px system-ui';
   const maxXLabelWidth=Math.max(...chartData.labels.map(label=>ctx.measureText(label).width),0);
   const xLabelEvery=Math.max(1,Math.ceil((maxXLabelWidth+8)/step));
   const lastXLabelIndex=chartData.labels.length-1;
 
-  // Bars
+  // 일별 실현손익 막대
   const dailyLabelBoxes=[];
   const collides=(a,b)=>!(a.right<b.left || a.left>b.right || a.bottom<b.top || a.top>b.bottom);
   chartData.net.forEach((v,i)=>{
@@ -700,7 +739,7 @@ function drawChart(){
     roundedRect(ctx,cx-barW/2,topY,barW,h,6);
     ctx.fill();
 
-    // daily value label - stagger when adjacent small labels overlap
+    // 일별 손익 라벨: 인접 라벨과 겹치면 위·아래로 순차 이동
     const dailyText=(v>=0?'+':'')+formatWon(v);
     const dailyFontSize=mobile?9:10;
     ctx.font='800 '+dailyFontSize+'px system-ui';
@@ -748,7 +787,7 @@ function drawChart(){
     dailyLabelBoxes.push(box);
     ctx.fillText(dailyText,cx,labelY);
 
-    // x label: always keep the last date, and reserve enough spacing before it.
+    // 날짜 라벨: 마지막 거래일은 항상 표시하고 직전 라벨과 최소 간격 확보
     const showXLabel=i===lastXLabelIndex || (i%xLabelEvery===0 && lastXLabelIndex-i>=xLabelEvery);
     if(showXLabel){
       ctx.font='10px system-ui';
@@ -758,7 +797,7 @@ function drawChart(){
     }
   });
 
-  // Area under cumulative line
+  // 누적손익 선 아래 영역 채움
   const points=chartData.cum.map((v,i)=>({x:pad.l+step*(i+.5),y:y(v),v}));
   const area=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
   area.addColorStop(0,'rgba(29,53,87,.17)');
@@ -770,7 +809,7 @@ function drawChart(){
   ctx.closePath();
   ctx.fillStyle=area;ctx.fill();
 
-  // Cumulative line
+  // 누적손익 선
   ctx.beginPath();
   points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
   ctx.strokeStyle='#1d3557';
@@ -779,15 +818,15 @@ function drawChart(){
   ctx.lineCap='round';
   ctx.stroke();
 
-  // Points
+  // 누적손익 데이터 포인트
   points.forEach((p,i)=>{
     ctx.fillStyle='#fff';
     ctx.beginPath();ctx.arc(p.x,p.y,4.5,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle='#1d3557';ctx.lineWidth=2.5;ctx.stroke();
 
-    // cumulative value label: final value only.
-    // Intermediate cumulative labels are intentionally hidden to prevent overlap
-    // with the small daily P/L labels (especially 06-09 ~ 06-23).
+    // 누적손익 값은 마지막 값만 표시
+    // 중간 누적값은 일별 손익 라벨과의 겹침 방지를 위해 숨김
+    // 특히 초기 거래일 구간의 작은 일별 손익 라벨과 충돌 방지
     if(i===points.length-1){
       ctx.font='900 '+(mobile?'9px':'10px')+' system-ui';
       ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle='#1d3557';
@@ -796,12 +835,22 @@ function drawChart(){
   });
 }
 
+// =========================================================
+// 06. 차트 초기화 / resize 재렌더
+// - resize 연속 호출은 80ms debounce 후 다시 그림
+// =========================================================
 let resizeTimer;
-window.addEventListener('resize',()=>{
-  clearTimeout(resizeTimer);
-  resizeTimer=setTimeout(drawChart,80);
-});
-drawChart();
+function initChart(){
+  window.addEventListener('resize',()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer=setTimeout(drawChart,80);
+  });
+  drawChart();
+}
+
+// 리포트 부팅 순서: 메뉴 이벤트 등록 → 차트 초기 렌더 및 resize 감시
+initNavigationEvents();
+initChart();
 </script>
 </body>
 </html>
