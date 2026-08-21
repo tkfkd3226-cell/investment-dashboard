@@ -15,7 +15,10 @@ const LOCAL_DASHBOARD_HOSTS=new Set(['localhost','127.0.0.1']);
 const MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200';
 const MARKET_AI_NASDAQ100_FUTURES_SYMBOL='FUTURES:NQ';
 const MARKET_AI_TOOLTIP_ID='marketAiTooltip';
-const MARKET_AI_SCORE_RANGE_TEXT='0–34.9 강한 약세 · 35–45 약세 · 45 초과–54.9 중립 · 55–64.9 강세 · 65–100 강한 강세';
+const MARKET_AI_SCORE_RANGE_LINES=[
+  '0–34.9 강한 약세 · 35–45 약세 · 45 초과–54.9 중립',
+  '55–64.9 강세 · 65–100 강한 강세'
+];
 const MARKET_AI_SIGNAL_METRICS=[
   {key:'kospi',target:'kospi_up',scoreField:'kospi_score',detailKeys:['kospi','kospi_up'],fullSignalLabel:'코스피 신호',fullProbabilityLabel:'코스피 상승확률'},
   {key:'semiconductors',target:'semiconductor_up',scoreField:'semiconductor_score',detailKeys:['semiconductors','semiconductor','semiconductor_up'],fullSignalLabel:'반도체 신호',fullProbabilityLabel:'반도체 상승확률'},
@@ -255,6 +258,11 @@ function marketAiTooltipNote(text){
   return `<div class="market-ai-tooltip-note">${marketAiEscape(text)}</div>`;
 }
 
+function marketAiScoreRangeHtml(calibrated){
+  const lines=MARKET_AI_SCORE_RANGE_LINES.map(line=>calibrated?line.replace(/(\d+(?:\.\d+)?)/g,'$1%'):line);
+  return `<div class="market-ai-tooltip-score-range">${lines.map(line=>`<div class="market-ai-tooltip-score-line">${marketAiEscape(line)}</div>`).join('')}</div>`;
+}
+
 function marketAiTooltip(){
   let tooltip=document.getElementById(MARKET_AI_TOOLTIP_ID);
   if(tooltip)return tooltip;
@@ -421,8 +429,7 @@ function marketAiSignalBasis(signal,metric){
 
   return entries
     .filter(item=>item.weight!=null||item.quality!=null)
-    .sort((a,b)=>Math.abs(Number(b.weight)||0)-Math.abs(Number(a.weight)||0))
-    .slice(0,5);
+    .sort((a,b)=>Math.abs(Number(b.weight)||0)-Math.abs(Number(a.weight)||0));
 }
 
 function marketAiMarketTooltipHtml(key){
@@ -483,7 +490,7 @@ function marketAiSignalTooltipHtml(key){
   if(calibrated&&Number.isFinite(sampleCount))parts.push(marketAiTooltipRow('보정 표본',`n=${sampleCount}`));
   parts.push(marketAiTooltipDivider());
   parts.push(marketAiTooltipSection(calibrated?'확률 구간':'점수 구간'));
-  parts.push(marketAiTooltipNote(calibrated?MARKET_AI_SCORE_RANGE_TEXT.replace(/(\d+(?:\.\d+)?)/g,'$1%'):MARKET_AI_SCORE_RANGE_TEXT));
+  parts.push(marketAiScoreRangeHtml(calibrated));
 
   const basis=marketAiSignalBasis(signal,metric);
   parts.push(marketAiTooltipDivider());

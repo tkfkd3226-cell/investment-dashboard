@@ -643,7 +643,7 @@ body{
    Desktop baseline은 Hero 우측 보조 카드이며 Tablet/Phone 차이는 역할별 CSS에서 override한다. */
 .hero.market-ai-mounted{
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(540px,700px);
+  grid-template-columns:minmax(0,1fr) minmax(600px,780px);
   grid-template-areas:
     "title market"
     "pills market";
@@ -741,17 +741,19 @@ html.dark #market-ai-section{
   white-space:nowrap;
 }
 .market-ai-desktop-label{
-  overflow:hidden;
+  flex:0 0 auto;
+  overflow:visible;
   color:var(--market-ai-label);
   font-size:9.5px;
   font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
-  text-overflow:ellipsis;
+  text-overflow:clip;
   white-space:nowrap;
 }
 .market-ai-desktop-value,
 .market-ai-desktop-signal,
 .market-ai-desktop-change{
+  flex:0 0 auto;
   color:var(--market-ai-text);
   font-size:11px;
   font-weight:var(--type-weight-emphasis);
@@ -771,19 +773,20 @@ html.dark #market-ai-section{
   outline-offset:var(--control-focus-outline-offset);
 }
 .dash-tooltip.market-ai-tooltip{
-  min-width:270px;
-  max-width:min(380px,calc(100vw - 28px));
+  width:min(440px,calc(100vw - 28px));
+  min-width:0;
+  max-width:min(440px,calc(100vw - 28px));
 }
 .dash-tooltip.market-ai-tooltip .tt-row{
   align-items:flex-start;
-  white-space:normal;
+  white-space:nowrap;
 }
 .dash-tooltip.market-ai-tooltip .tt-name{
   flex:1 1 auto;
   min-width:0;
 }
 .dash-tooltip.market-ai-tooltip .tt-val{
-  flex:0 1 230px;
+  flex:0 0 auto;
   min-width:0;
   text-align:right;
 }
@@ -792,9 +795,15 @@ html.dark #market-ai-section{
   color:var(--tooltip-color);
   font-weight:var(--tooltip-title-weight);
 }
-.market-ai-tooltip-note{
+.market-ai-tooltip-note,
+.market-ai-tooltip-score-line{
   color:var(--tooltip-muted);
   line-height:var(--tooltip-line-height);
+  white-space:nowrap;
+}
+.market-ai-tooltip-score-range{
+  display:grid;
+  gap:1px;
 }
 
 .grid{
