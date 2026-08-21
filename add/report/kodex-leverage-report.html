@@ -4,8 +4,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- build: 20260822-compact-ui -->
-  <meta name="build-version" content="20260822-compact-ui">
+  <!-- build: 20260822-a11y-100 -->
+  <meta name="build-version" content="20260822-a11y-100">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>KODEX 레버리지 거래 종합 리포트</title>
@@ -18,6 +18,7 @@
 html{scroll-behavior:smooth}
 body{background:var(--bg);line-height:1.55}
 button{font:inherit}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .wrap{max-width:1280px;margin:0 auto;padding:20px}
 .hero{padding:24px;border-radius:var(--corner-surface-cap);background:linear-gradient(135deg,#152844,#284b7c);color:#fff;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .hero:after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;right:-110px;top:-150px;background:rgba(255,255,255,.08)}
@@ -67,9 +68,10 @@ canvas{width:100%;height:100%}
 .table-scroll{overflow:auto}
 table{width:100%;border-collapse:collapse;min-width:860px}
 th,td{padding:10px 12px;border-bottom:1px solid #edf1f6;font-size:12px;text-align:left;white-space:nowrap}
-th{background:#f7f9fc;color:#5e697e;font-size:11px;position:sticky;top:0}
+thead th{background:#f7f9fc;color:#5e697e;font-size:11px;position:sticky;top:0}
+tbody th[scope="row"]{font-weight:400;background:transparent;position:static}
 td.num,th.num{text-align:right}
-tfoot td{font-weight:950;background:#fafbfd}
+tfoot td,tfoot th{font-weight:950;background:#fafbfd;position:static}
 .badge{display:inline-flex;align-items:center;border-radius:var(--radius-pill);padding:5px 9px;font-size:10px;font-weight:900}
 .badge.exact{background:#eaf8f1;color:#147252}
 .badge.estimate{background:#fff5df;color:#8d5b00}
@@ -249,28 +251,28 @@ details p,details li{font-size:12px;color:var(--muted)}
     </div>
   </header>
 
-  <nav class="tabs" aria-label="리포트 메뉴">
-    <button class="tab active" data-panel="summary">핵심 요약</button>
-    <button class="tab" data-panel="daily">날짜별 실현손익</button>
-    <button class="tab" data-panel="split">본 포지션·단타 분리</button>
-    <button class="tab" data-panel="timeline">거래 흐름</button>
-    <button class="tab" data-panel="source">근거·산식</button>
+  <nav class="tabs" role="tablist" aria-label="리포트 메뉴">
+    <button class="tab active" id="reportTabSummary" type="button" role="tab" data-panel="summary" aria-controls="summary" aria-selected="true" tabindex="0">핵심 요약</button>
+    <button class="tab" id="reportTabDaily" type="button" role="tab" data-panel="daily" aria-controls="daily" aria-selected="false" tabindex="-1">날짜별 실현손익</button>
+    <button class="tab" id="reportTabSplit" type="button" role="tab" data-panel="split" aria-controls="split" aria-selected="false" tabindex="-1">본 포지션·단타 분리</button>
+    <button class="tab" id="reportTabTimeline" type="button" role="tab" data-panel="timeline" aria-controls="timeline" aria-selected="false" tabindex="-1">거래 흐름</button>
+    <button class="tab" id="reportTabSource" type="button" role="tab" data-panel="source" aria-controls="source" aria-selected="false" tabindex="-1">근거·산식</button>
   </nav>
   <nav class="mobile-nav" aria-label="모바일 리포트 메뉴">
     <button class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="mobileMenuPanel">
       <span id="mobileMenuLabel">핵심 요약</span>
       <span class="hamburger-icon" aria-hidden="true"><i></i><i></i><i></i></span>
     </button>
-    <div class="mobile-menu-panel" id="mobileMenuPanel">
-      <button class="mobile-tab active" type="button" data-panel="summary">핵심 요약</button>
-      <button class="mobile-tab" type="button" data-panel="daily">날짜별 실현손익</button>
-      <button class="mobile-tab" type="button" data-panel="split">본 포지션·단타 분리</button>
-      <button class="mobile-tab" type="button" data-panel="timeline">거래 흐름</button>
-      <button class="mobile-tab" type="button" data-panel="source">근거·산식</button>
+    <div class="mobile-menu-panel" id="mobileMenuPanel" role="tablist" aria-label="모바일 리포트 메뉴 선택">
+      <button class="mobile-tab active" id="reportMobileTabSummary" type="button" role="tab" data-panel="summary" aria-controls="summary" aria-selected="true" tabindex="0">핵심 요약</button>
+      <button class="mobile-tab" id="reportMobileTabDaily" type="button" role="tab" data-panel="daily" aria-controls="daily" aria-selected="false" tabindex="-1">날짜별 실현손익</button>
+      <button class="mobile-tab" id="reportMobileTabSplit" type="button" role="tab" data-panel="split" aria-controls="split" aria-selected="false" tabindex="-1">본 포지션·단타 분리</button>
+      <button class="mobile-tab" id="reportMobileTabTimeline" type="button" role="tab" data-panel="timeline" aria-controls="timeline" aria-selected="false" tabindex="-1">거래 흐름</button>
+      <button class="mobile-tab" id="reportMobileTabSource" type="button" role="tab" data-panel="source" aria-controls="source" aria-selected="false" tabindex="-1">근거·산식</button>
     </div>
   </nav>
 
-  <section class="panel active" id="summary">
+  <section class="panel active" id="summary" role="tabpanel" aria-label="핵심 요약" aria-hidden="false" tabindex="0">
     <div class="kpis">
       <div class="card kpi"><div class="label">누적 실현 순손익</div><div class="value pos">8,833,802원</div><div class="sub">거래비용 차감 후 증권사 합계</div></div>
       <div class="card kpi"><div class="label">총 손익금액</div><div class="value pos">8,944,790원</div><div class="sub">거래비용 차감 전</div></div>
@@ -290,7 +292,7 @@ details p,details li{font-size:12px;color:var(--muted)}
             <span><i class="legend-line"></i>누적 순손익</span>
           </div>
         </div>
-        <div class="chart-wrap"><canvas id="pnlChart" aria-label="날짜별 순손익 차트"></canvas></div>
+        <div class="chart-wrap"><canvas id="pnlChart" role="img" aria-label="날짜별 순손익 막대와 누적 순손익 선 차트">날짜별 순손익과 누적 순손익 추이</canvas></div>
       </div>
       <div class="card section-card composition-card">
         <div class="section-title"><div><h2>수익 구성</h2><p>거래대금 비율로 혼합일 비용 배분</p></div><span class="badge estimate">추정 분리</span></div>
@@ -310,34 +312,35 @@ details p,details li{font-size:12px;color:var(--muted)}
     </div>
   </section>
 
-  <section class="panel" id="daily">
+  <section class="panel" id="daily" role="tabpanel" aria-label="날짜별 실현손익" aria-hidden="true" tabindex="0">
     <div class="card table-card">
       <div class="table-head"><h2>증권사 기준 날짜별 실현손익</h2></div>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>매도일</th><th class="num">매도수량</th><th class="num">평균 매수</th><th class="num">평균 매도</th><th class="num">손익금액</th><th class="num">거래비용</th><th class="num">순손익</th><th class="num">누적 순손익</th></tr></thead>
+          <caption class="sr-only">날짜별 KODEX 레버리지 실현손익</caption>
+          <thead><tr><th scope="col">매도일</th><th scope="col" class="num">매도수량</th><th scope="col" class="num">평균 매수</th><th scope="col" class="num">평균 매도</th><th scope="col" class="num">손익금액</th><th scope="col" class="num">거래비용</th><th scope="col" class="num">순손익</th><th scope="col" class="num">누적 순손익</th></tr></thead>
           <tbody>
-<tr><td>2026-06-09</td><td class="num">12주</td><td class="num">164,170</td><td class="num">165,515</td><td class="num pos">16,140원</td><td class="num">165원</td><td class="num pos">15,975원</td><td class="num pos">15,975원</td></tr>
-<tr><td>2026-06-16</td><td class="num">36주</td><td class="num">210,398</td><td class="num">210,554</td><td class="num pos">5,640원</td><td class="num">636원</td><td class="num pos">5,004원</td><td class="num pos">20,979원</td></tr>
-<tr><td>2026-06-19</td><td class="num">15주</td><td class="num">235,711</td><td class="num">239,078</td><td class="num pos">50,510원</td><td class="num">295원</td><td class="num pos">50,215원</td><td class="num pos">71,194원</td></tr>
-<tr><td>2026-06-23</td><td class="num">26주</td><td class="num">229,138</td><td class="num">229,558</td><td class="num pos">10,945원</td><td class="num">499원</td><td class="num pos">10,446원</td><td class="num pos">81,640원</td></tr>
-<tr><td>2026-06-25</td><td class="num">15주</td><td class="num">198,500</td><td class="num">226,985</td><td class="num pos">427,275원</td><td class="num">268원</td><td class="num pos">427,007원</td><td class="num pos">508,647원</td></tr>
-<tr><td>2026-07-30</td><td class="num">642주</td><td class="num">80,861</td><td class="num">74,580</td><td class="num neg">-4,032,440원</td><td class="num">4,196원</td><td class="num neg">-4,036,636원</td><td class="num neg">-3,527,989원</td></tr>
-<tr><td>2026-07-31</td><td class="num">5,946주</td><td class="num">101,778</td><td class="num">102,763</td><td class="num pos">5,855,965원</td><td class="num">51,183원</td><td class="num pos">5,804,782원</td><td class="num pos">2,276,793원</td></tr>
-<tr><td>2026-08-04</td><td class="num">371주</td><td class="num">90,649</td><td class="num">91,212</td><td class="num pos">209,150원</td><td class="num">2,837원</td><td class="num pos">206,313원</td><td class="num pos">2,483,106원</td></tr>
-<tr><td>2026-08-05</td><td class="num">1,558주</td><td class="num">100,153</td><td class="num">103,259</td><td class="num pos">4,839,995원</td><td class="num">13,334원</td><td class="num pos">4,826,661원</td><td class="num pos">7,309,767원</td></tr>
-<tr><td>2026-08-06</td><td class="num">4,002주</td><td class="num">92,364</td><td class="num">92,422</td><td class="num pos">233,340원</td><td class="num">31,121원</td><td class="num pos">202,219원</td><td class="num pos">7,511,986원</td></tr>
-<tr><td>2026-08-07</td><td class="num">493주</td><td class="num">90,384</td><td class="num">90,723</td><td class="num pos">167,090원</td><td class="num">3,756원</td><td class="num pos">163,334원</td><td class="num pos">7,675,320원</td></tr>
-<tr><td>2026-08-12</td><td class="num">101주</td><td class="num">99,463</td><td class="num">100,145</td><td class="num pos">68,905원</td><td class="num">846원</td><td class="num pos">68,059원</td><td class="num pos">7,743,379원</td></tr>
-<tr><td>2026-08-20</td><td class="num">220주</td><td class="num">97,685</td><td class="num">102,650</td><td class="num pos">1,092,275원</td><td class="num">1,852원</td><td class="num pos">1,090,423원</td><td class="num pos">8,833,802원</td></tr>
+<tr><th scope="row">2026-06-09</th><td class="num">12주</td><td class="num">164,170</td><td class="num">165,515</td><td class="num pos">16,140원</td><td class="num">165원</td><td class="num pos">15,975원</td><td class="num pos">15,975원</td></tr>
+<tr><th scope="row">2026-06-16</th><td class="num">36주</td><td class="num">210,398</td><td class="num">210,554</td><td class="num pos">5,640원</td><td class="num">636원</td><td class="num pos">5,004원</td><td class="num pos">20,979원</td></tr>
+<tr><th scope="row">2026-06-19</th><td class="num">15주</td><td class="num">235,711</td><td class="num">239,078</td><td class="num pos">50,510원</td><td class="num">295원</td><td class="num pos">50,215원</td><td class="num pos">71,194원</td></tr>
+<tr><th scope="row">2026-06-23</th><td class="num">26주</td><td class="num">229,138</td><td class="num">229,558</td><td class="num pos">10,945원</td><td class="num">499원</td><td class="num pos">10,446원</td><td class="num pos">81,640원</td></tr>
+<tr><th scope="row">2026-06-25</th><td class="num">15주</td><td class="num">198,500</td><td class="num">226,985</td><td class="num pos">427,275원</td><td class="num">268원</td><td class="num pos">427,007원</td><td class="num pos">508,647원</td></tr>
+<tr><th scope="row">2026-07-30</th><td class="num">642주</td><td class="num">80,861</td><td class="num">74,580</td><td class="num neg">-4,032,440원</td><td class="num">4,196원</td><td class="num neg">-4,036,636원</td><td class="num neg">-3,527,989원</td></tr>
+<tr><th scope="row">2026-07-31</th><td class="num">5,946주</td><td class="num">101,778</td><td class="num">102,763</td><td class="num pos">5,855,965원</td><td class="num">51,183원</td><td class="num pos">5,804,782원</td><td class="num pos">2,276,793원</td></tr>
+<tr><th scope="row">2026-08-04</th><td class="num">371주</td><td class="num">90,649</td><td class="num">91,212</td><td class="num pos">209,150원</td><td class="num">2,837원</td><td class="num pos">206,313원</td><td class="num pos">2,483,106원</td></tr>
+<tr><th scope="row">2026-08-05</th><td class="num">1,558주</td><td class="num">100,153</td><td class="num">103,259</td><td class="num pos">4,839,995원</td><td class="num">13,334원</td><td class="num pos">4,826,661원</td><td class="num pos">7,309,767원</td></tr>
+<tr><th scope="row">2026-08-06</th><td class="num">4,002주</td><td class="num">92,364</td><td class="num">92,422</td><td class="num pos">233,340원</td><td class="num">31,121원</td><td class="num pos">202,219원</td><td class="num pos">7,511,986원</td></tr>
+<tr><th scope="row">2026-08-07</th><td class="num">493주</td><td class="num">90,384</td><td class="num">90,723</td><td class="num pos">167,090원</td><td class="num">3,756원</td><td class="num pos">163,334원</td><td class="num pos">7,675,320원</td></tr>
+<tr><th scope="row">2026-08-12</th><td class="num">101주</td><td class="num">99,463</td><td class="num">100,145</td><td class="num pos">68,905원</td><td class="num">846원</td><td class="num pos">68,059원</td><td class="num pos">7,743,379원</td></tr>
+<tr><th scope="row">2026-08-20</th><td class="num">220주</td><td class="num">97,685</td><td class="num">102,650</td><td class="num pos">1,092,275원</td><td class="num">1,852원</td><td class="num pos">1,090,423원</td><td class="num pos">8,833,802원</td></tr>
           </tbody>
-          <tfoot><tr><td>합계</td><td class="num">13,437주</td><td></td><td></td><td class="num pos">8,944,790원</td><td class="num">110,988원</td><td class="num pos">8,833,802원</td><td class="num pos">8,833,802원</td></tr></tfoot>
+          <tfoot><tr><th scope="row">합계</th><td class="num">13,437주</td><td></td><td></td><td class="num pos">8,944,790원</td><td class="num">110,988원</td><td class="num pos">8,833,802원</td><td class="num pos">8,833,802원</td></tr></tfoot>
         </table>
       </div>
     </div>
   </section>
 
-  <section class="panel" id="split">
+  <section class="panel" id="split" role="tabpanel" aria-label="본 포지션·단타 분리" aria-hidden="true" tabindex="0">
     <div class="split-group split-group-core">
       <div class="split-group-head">
         <div>
@@ -357,18 +360,19 @@ details p,details li{font-size:12px;color:var(--muted)}
       <div class="card table-card split-inner-card">
         <div class="table-scroll">
           <table class="split-detail-table core-table">
-            <thead><tr><th>매도일</th><th class="num">수량</th><th class="num">매수단가</th><th class="num">실제 매도단가</th><th class="num">손익금액</th><th class="num">거래비용</th><th class="num">순손익</th></tr></thead>
+            <caption class="sr-only">본 포지션 거래 상세</caption>
+            <thead><tr><th scope="col">매도일</th><th scope="col" class="num">수량</th><th scope="col" class="num">매수단가</th><th scope="col" class="num">실제 매도단가</th><th scope="col" class="num">손익금액</th><th scope="col" class="num">거래비용</th><th scope="col" class="num">순손익</th></tr></thead>
             <tbody>
-              <tr><td>2026-06-09</td><td class="num">12</td><td class="num">164,170</td><td class="num">165,515</td><td class="num pos">+16,140원</td><td class="num">165원</td><td class="num pos">+15,975원</td></tr>
-              <tr><td>2026-06-25</td><td class="num">15</td><td class="num">198,500</td><td class="num">226,985</td><td class="num pos">+427,275원</td><td class="num">268원</td><td class="num pos">+427,007원</td></tr>
-              <tr><td>2026-07-30</td><td class="num">642</td><td class="num">80,861</td><td class="num">74,580</td><td class="num neg">-4,032,440원</td><td class="num">4,196원</td><td class="num neg">-4,036,636원</td></tr>
-              <tr><td>2026-07-31</td><td class="num">576</td><td class="num">82,680</td><td class="num">91,065</td><td class="num pos">+4,829,760원</td><td class="num">4,212원</td><td class="num pos">+4,825,548원</td></tr>
-              <tr><td>2026-08-05</td><td class="num">532</td><td class="num">94,417</td><td class="num">104,035</td><td class="num pos">+5,116,776원</td><td class="num">4,442원</td><td class="num pos">+5,112,334원</td></tr>
-              <tr><td>2026-08-07</td><td class="num">100</td><td class="num">91,767</td><td class="num">93,813</td><td class="num pos">+204,590원</td><td class="num">781원</td><td class="num pos">+203,809원</td></tr>
-              <tr><td>2026-08-12</td><td class="num">32</td><td class="num">92,580</td><td class="num">95,480</td><td class="num pos">+92,800원</td><td class="num">253원</td><td class="num pos">+92,547원</td></tr>
-              <tr><td>2026-08-20</td><td class="num">220</td><td class="num">97,685</td><td class="num">102,650</td><td class="num pos">+1,092,275원</td><td class="num">1,852원</td><td class="num pos">+1,090,423원</td></tr>
+              <tr><th scope="row">2026-06-09</th><td class="num">12</td><td class="num">164,170</td><td class="num">165,515</td><td class="num pos">+16,140원</td><td class="num">165원</td><td class="num pos">+15,975원</td></tr>
+              <tr><th scope="row">2026-06-25</th><td class="num">15</td><td class="num">198,500</td><td class="num">226,985</td><td class="num pos">+427,275원</td><td class="num">268원</td><td class="num pos">+427,007원</td></tr>
+              <tr><th scope="row">2026-07-30</th><td class="num">642</td><td class="num">80,861</td><td class="num">74,580</td><td class="num neg">-4,032,440원</td><td class="num">4,196원</td><td class="num neg">-4,036,636원</td></tr>
+              <tr><th scope="row">2026-07-31</th><td class="num">576</td><td class="num">82,680</td><td class="num">91,065</td><td class="num pos">+4,829,760원</td><td class="num">4,212원</td><td class="num pos">+4,825,548원</td></tr>
+              <tr><th scope="row">2026-08-05</th><td class="num">532</td><td class="num">94,417</td><td class="num">104,035</td><td class="num pos">+5,116,776원</td><td class="num">4,442원</td><td class="num pos">+5,112,334원</td></tr>
+              <tr><th scope="row">2026-08-07</th><td class="num">100</td><td class="num">91,767</td><td class="num">93,813</td><td class="num pos">+204,590원</td><td class="num">781원</td><td class="num pos">+203,809원</td></tr>
+              <tr><th scope="row">2026-08-12</th><td class="num">32</td><td class="num">92,580</td><td class="num">95,480</td><td class="num pos">+92,800원</td><td class="num">253원</td><td class="num pos">+92,547원</td></tr>
+              <tr><th scope="row">2026-08-20</th><td class="num">220</td><td class="num">97,685</td><td class="num">102,650</td><td class="num pos">+1,092,275원</td><td class="num">1,852원</td><td class="num pos">+1,090,423원</td></tr>
             </tbody>
-            <tfoot><tr><td>합계</td><td class="num">2,129</td><td></td><td></td><td class="num pos">+7,747,176원</td><td class="num">16,169원</td><td class="num pos">+7,731,007원</td></tr></tfoot>
+            <tfoot><tr><th scope="row">합계</th><td class="num">2,129</td><td></td><td></td><td class="num pos">+7,747,176원</td><td class="num">16,169원</td><td class="num pos">+7,731,007원</td></tr></tfoot>
           </table>
         </div>
       </div>
@@ -393,19 +397,20 @@ details p,details li{font-size:12px;color:var(--muted)}
       <div class="card table-card split-inner-card">
         <div class="table-scroll">
           <table class="split-detail-table day-table">
-            <thead><tr><th>거래일</th><th class="num">단타 매도수량</th><th class="num">손익금액</th><th class="num">거래비용</th><th class="num">순손익</th></tr></thead>
+            <caption class="sr-only">단타 거래 상세</caption>
+            <thead><tr><th scope="col">거래일</th><th scope="col" class="num">단타 매도수량</th><th scope="col" class="num">손익금액</th><th scope="col" class="num">거래비용</th><th scope="col" class="num">순손익</th></tr></thead>
             <tbody>
-              <tr><td>2026-06-16</td><td class="num">36</td><td class="num pos">+5,640원</td><td class="num">636원</td><td class="num pos">+5,004원</td></tr>
-              <tr><td>2026-06-19</td><td class="num">15</td><td class="num pos">+50,510원</td><td class="num">295원</td><td class="num pos">+50,215원</td></tr>
-              <tr><td>2026-06-23</td><td class="num">26</td><td class="num pos">+10,945원</td><td class="num">499원</td><td class="num pos">+10,446원</td></tr>
-              <tr><td>2026-07-31</td><td class="num">5,370</td><td class="num pos">+1,026,205원</td><td class="num">46,971원</td><td class="num pos">+979,234원</td></tr>
-              <tr><td>2026-08-04</td><td class="num">371</td><td class="num pos">+209,150원</td><td class="num">2,837원</td><td class="num pos">+206,313원</td></tr>
-              <tr><td>2026-08-05</td><td class="num">1,026</td><td class="num neg">-276,781원</td><td class="num">8,892원</td><td class="num neg">-285,673원</td></tr>
-              <tr><td>2026-08-06</td><td class="num">4,002</td><td class="num pos">+233,340원</td><td class="num">31,121원</td><td class="num pos">+202,219원</td></tr>
-              <tr><td>2026-08-07</td><td class="num">393</td><td class="num neg">-37,500원</td><td class="num">2,975원</td><td class="num neg">-40,475원</td></tr>
-              <tr><td>2026-08-12</td><td class="num">69</td><td class="num neg">-23,895원</td><td class="num">593원</td><td class="num neg">-24,488원</td></tr>
+              <tr><th scope="row">2026-06-16</th><td class="num">36</td><td class="num pos">+5,640원</td><td class="num">636원</td><td class="num pos">+5,004원</td></tr>
+              <tr><th scope="row">2026-06-19</th><td class="num">15</td><td class="num pos">+50,510원</td><td class="num">295원</td><td class="num pos">+50,215원</td></tr>
+              <tr><th scope="row">2026-06-23</th><td class="num">26</td><td class="num pos">+10,945원</td><td class="num">499원</td><td class="num pos">+10,446원</td></tr>
+              <tr><th scope="row">2026-07-31</th><td class="num">5,370</td><td class="num pos">+1,026,205원</td><td class="num">46,971원</td><td class="num pos">+979,234원</td></tr>
+              <tr><th scope="row">2026-08-04</th><td class="num">371</td><td class="num pos">+209,150원</td><td class="num">2,837원</td><td class="num pos">+206,313원</td></tr>
+              <tr><th scope="row">2026-08-05</th><td class="num">1,026</td><td class="num neg">-276,781원</td><td class="num">8,892원</td><td class="num neg">-285,673원</td></tr>
+              <tr><th scope="row">2026-08-06</th><td class="num">4,002</td><td class="num pos">+233,340원</td><td class="num">31,121원</td><td class="num pos">+202,219원</td></tr>
+              <tr><th scope="row">2026-08-07</th><td class="num">393</td><td class="num neg">-37,500원</td><td class="num">2,975원</td><td class="num neg">-40,475원</td></tr>
+              <tr><th scope="row">2026-08-12</th><td class="num">69</td><td class="num neg">-23,895원</td><td class="num">593원</td><td class="num neg">-24,488원</td></tr>
             </tbody>
-            <tfoot><tr><td>합계</td><td class="num">11,308</td><td class="num pos">+1,197,614원</td><td class="num">94,819원</td><td class="num pos">+1,102,795원</td></tr></tfoot>
+            <tfoot><tr><th scope="row">합계</th><td class="num">11,308</td><td class="num pos">+1,197,614원</td><td class="num">94,819원</td><td class="num pos">+1,102,795원</td></tr></tfoot>
           </table>
         </div>
       </div>
@@ -419,7 +424,7 @@ details p,details li{font-size:12px;color:var(--muted)}
         <span>거래비용 <b>110,988원</b></span>
         <span>순손익 <b class="pos">+8,833,802원</b></span>
       </div>
-      <div class="split-total-mobile" aria-label="전체 결과 모바일 요약">
+      <div class="split-total-mobile" role="group" aria-label="전체 결과 모바일 요약">
         <div class="split-total-mobile-card"><span>매도수량</span><strong>13,437주</strong></div>
         <div class="split-total-mobile-card"><span>손익금액</span><strong class="pos">+8,944,790원</strong></div>
         <div class="split-total-mobile-card"><span>거래비용</span><strong>110,988원</strong></div>
@@ -428,7 +433,7 @@ details p,details li{font-size:12px;color:var(--muted)}
     </div>
   </section>
 
-  <section class="panel" id="timeline">
+  <section class="panel" id="timeline" role="tabpanel" aria-label="거래 흐름" aria-hidden="true" tabindex="0">
     <div class="card section-card">
       <div class="section-title"><div><h2>거래 흐름</h2><p>주요 보유 포지션과 당일 반복매매를 시간순으로 정리</p></div></div>
       <div class="timeline">
@@ -488,7 +493,7 @@ details p,details li{font-size:12px;color:var(--muted)}
     </div>
   </section>
 
-  <section class="panel" id="source">
+  <section class="panel" id="source" role="tabpanel" aria-label="근거·산식" aria-hidden="true" tabindex="0">
     <div class="grid-2">
       <div class="card section-card">
         <div class="section-title"><div><h2>증권사 실현손익 원본</h2><p>2026-08-22 02:49 업데이트 캡처</p></div><span class="badge exact">원본 근거</span></div>
@@ -536,29 +541,65 @@ const mobileNav = document.querySelector('.mobile-nav');
 const mobileToggle = document.querySelector('.mobile-menu-toggle');
 const mobileLabel = document.getElementById('mobileMenuLabel');
 
-function activatePanel(panelId, label){
-  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === panelId));
-  desktopTabs.forEach(b => b.classList.toggle('active', b.dataset.panel === panelId));
-  mobileTabs.forEach(b => b.classList.toggle('active', b.dataset.panel === panelId));
+function setTabState(tabs, panelId){
+  tabs.forEach(btn => {
+    const active = btn.dataset.panel === panelId;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-selected', String(active));
+    btn.tabIndex = active ? 0 : -1;
+  });
+}
+
+function activatePanel(panelId, label, {closeMobile=true}={}){
+  document.querySelectorAll('.panel').forEach(panel => {
+    const active = panel.id === panelId;
+    panel.classList.toggle('active', active);
+    panel.setAttribute('aria-hidden', String(!active));
+  });
+  setTabState(desktopTabs, panelId);
+  setTabState(mobileTabs, panelId);
   if (mobileLabel && label) mobileLabel.textContent = label;
-  if (mobileNav) mobileNav.classList.remove('open');
-  if (mobileToggle) mobileToggle.setAttribute('aria-expanded','false');
+  if (closeMobile && mobileNav) mobileNav.classList.remove('open');
+  if (closeMobile && mobileToggle) mobileToggle.setAttribute('aria-expanded','false');
   if (panelId === 'summary') requestAnimationFrame(drawChart);
 }
 
+function bindTabKeyboard(container, tabs){
+  container?.addEventListener('keydown', e => {
+    if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return;
+    const current = Math.max(0, tabs.indexOf(document.activeElement));
+    const nextIndex = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : e.key === 'ArrowRight' ? (current + 1) % tabs.length : (current - 1 + tabs.length) % tabs.length;
+    const next = tabs[nextIndex];
+    if(!next) return;
+    e.preventDefault();
+    activatePanel(next.dataset.panel, next.textContent.trim(), {closeMobile: container !== document.getElementById('mobileMenuPanel')});
+    next.focus();
+  });
+}
+
 desktopTabs.forEach(btn => btn.addEventListener('click', () => activatePanel(btn.dataset.panel, btn.textContent.trim())));
-mobileTabs.forEach(btn => btn.addEventListener('click', () => activatePanel(btn.dataset.panel, btn.textContent.trim())));
+mobileTabs.forEach(btn => btn.addEventListener('click', () => { activatePanel(btn.dataset.panel, btn.textContent.trim()); mobileToggle?.focus(); }));
+bindTabKeyboard(document.querySelector('.tabs'), desktopTabs);
+bindTabKeyboard(document.getElementById('mobileMenuPanel'), mobileTabs);
 
 if (mobileToggle) {
   mobileToggle.addEventListener('click', () => {
     const open = mobileNav.classList.toggle('open');
     mobileToggle.setAttribute('aria-expanded', String(open));
+    if(open) requestAnimationFrame(() => mobileTabs.find(btn => btn.getAttribute('aria-selected') === 'true')?.focus());
   });
 }
 document.addEventListener('click', e => {
   if (mobileNav && mobileNav.classList.contains('open') && !mobileNav.contains(e.target)) {
     mobileNav.classList.remove('open');
     mobileToggle?.setAttribute('aria-expanded','false');
+  }
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && mobileNav?.classList.contains('open')){
+    mobileNav.classList.remove('open');
+    mobileToggle?.setAttribute('aria-expanded','false');
+    mobileToggle?.focus();
   }
 });
 

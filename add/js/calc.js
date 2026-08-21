@@ -44,7 +44,7 @@
   const setClass=(node,cls)=>{node.classList.remove('positive','negative','zero');if(cls)node.classList.add(cls);};
   const setText=(id,text,cls)=>{const n=$(id);n.classList.remove('has-help');n.textContent=text;if(cls)setClass(n,cls);};
   const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const setHelpText=(id,text,tip)=>{const n=$(id);n.classList.add('has-help');n.innerHTML=`<span class="inline-help-label"><span>${esc(text)}</span><span class="help-tooltip"><button type="button" class="help-icon" aria-label="${esc(text)} 설명" aria-expanded="false">i</button><span class="custom-tooltip" role="tooltip">${esc(tip)}</span></span></span>`;};
+  const setHelpText=(id,text,tip)=>{const n=$(id),tooltipId=`${id}Tooltip`;n.classList.add('has-help');n.innerHTML=`<span class="inline-help-label"><span>${esc(text)}</span><span class="help-tooltip"><button type="button" class="help-icon" aria-label="${esc(text)} 설명" aria-describedby="${tooltipId}" aria-expanded="false">i</button><span class="custom-tooltip" id="${tooltipId}" role="tooltip">${esc(tip)}</span></span></span>`;};
   const formatPctInput=n=>Number(n).toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
   const readPct=id=>{const n=$(id);return n.dataset.exactValue!==undefined?parseNum(n.dataset.exactValue):parseNum(n.value);};
   const setPct=(id,n,digits=2)=>{const el=$(id);el.dataset.exactValue=String(n);el.value=Number(n).toFixed(digits).replace(/0+$/,'').replace(/\.$/,'');};
@@ -101,7 +101,7 @@
   // =========================================================
   // Case / Preset UI · 거래유형 / 프리셋 UI
   // =========================================================
-  function setPresetActive(id){document.querySelectorAll('.preset-btn').forEach(b=>b.classList.toggle('active',b.dataset.preset===id));}
+  function setPresetActive(id){document.querySelectorAll('.preset-btn').forEach(b=>{const active=b.dataset.preset===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});}
   function setCurrentPurchasePresetActive(id){document.querySelectorAll('.current-purchase-btn').forEach(b=>{const active=b.dataset.currentPurchasePreset===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});}
   function getActualSellPrice(){
     if(noPriorMode)return currentPurchasePresets[currentPurchasePresetId]?.actualSellPrice??null;
@@ -202,6 +202,17 @@
     $('s2').classList.remove('hidden');
   }
 
+  function updateStepperAccessibility(){
+    document.querySelectorAll('.share-step-btn,.pct-step-btn').forEach(btn=>{
+      const input=$(btn.dataset.target),label=input?.closest('.field')?.querySelector('label');
+      const delta=parseNum(btn.dataset.delta);
+      if(!input||!label||!Number.isFinite(delta))return;
+      const name=label.textContent.replace(/\s+/g,' ').trim();
+      const amount=btn.classList.contains('share-step-btn')?`${Math.abs(delta)}주`:`${Math.abs(delta)}%p`;
+      btn.setAttribute('aria-label',`${name} ${amount} ${delta<0?'감소':'증가'}`);
+    });
+  }
+
   function updateCaseUI(){
     const {settled,noPrior}=getCaseContext();
     updateActualSellPriceUI();
@@ -218,6 +229,7 @@
 
     reorderCurrentFields(settled);
     reorderHoldingPriorFields(settled);
+    updateStepperAccessibility();
     setMode(mode,false);
   }
 
@@ -483,9 +495,7 @@
 
   function setMode(next,doRecalc=true){
     mode=['current','rise','target'].includes(next)?next:'current';
-    $('modeCurrent').classList.toggle('active',mode==='current');
-    $('modeRise').classList.toggle('active',mode==='rise');
-    $('modeTarget').classList.toggle('active',mode==='target');
+    [['modeCurrent','current'],['modeRise','rise'],['modeTarget','target']].forEach(([id,value])=>{const active=mode===value;$(id).classList.toggle('active',active);$(id).setAttribute('aria-pressed',String(active));});
     $('overnightPct').readOnly=mode!=='current';
     $('risePct').readOnly=mode!=='rise';
     $('targetPrice').readOnly=mode!=='target';
@@ -519,7 +529,13 @@
     updateCaseUI();setMode(mode,false);recalc();
   }
 
-  function applyPreset(id){if(!presets[id])return;applying=true;activePresetId=id;setPresetActive(id);applyValues({...presets[id]});document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab==='s3'));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id==='s3'));applying=false;}
+  function setStrategyActive(strategyId,{focus=false}={}){
+    const tabs=[...document.querySelectorAll('#strategyTabs .tab')];
+    tabs.forEach(b=>{const active=b.dataset.tab===strategyId;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active));b.tabIndex=active?0:-1;});
+    document.querySelectorAll('.strategy').forEach(panel=>{const active=panel.id===strategyId;panel.classList.toggle('active',active);panel.setAttribute('aria-hidden',String(!active));});
+    if(focus)tabs.find(b=>b.dataset.tab===strategyId)?.focus();
+  }
+  function applyPreset(id){if(!presets[id])return;applying=true;activePresetId=id;setPresetActive(id);applyValues({...presets[id]});setStrategyActive('s3');applying=false;}
 
   // =========================================================
   // Events · 이벤트
@@ -565,7 +581,16 @@
   });
   $('priorSellDateInput').addEventListener('input',recalc);
   $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV17');storage.remove('investmentLossRecoveryCalcV16');storage.remove('investmentLossRecoveryCalcV15');storage.remove('investmentLossRecoveryCalcV12');applyPreset(defaultPresetId);});
-  document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('hidden'))return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.strategy').forEach(s=>s.classList.toggle('active',s.id===b.dataset.tab));}));
+  document.querySelectorAll('#strategyTabs .tab').forEach(b=>b.addEventListener('click',()=>{if(!b.classList.contains('hidden'))setStrategyActive(b.dataset.tab);}));
+  $('strategyTabs').addEventListener('keydown',e=>{
+    if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+    const tabs=[...document.querySelectorAll('#strategyTabs .tab:not(.hidden)')];
+    if(!tabs.length)return;
+    const current=Math.max(0,tabs.indexOf(document.activeElement));
+    const nextIndex=e.key==='Home'?0:e.key==='End'?tabs.length-1:e.key==='ArrowRight'?(current+1)%tabs.length:(current-1+tabs.length)%tabs.length;
+    e.preventDefault();
+    setStrategyActive(tabs[nextIndex].dataset.tab,{focus:true});
+  });
   // =========================================================
   // Tooltip / UI · 툴팁 / UI
   // =========================================================

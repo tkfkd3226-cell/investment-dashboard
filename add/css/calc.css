@@ -40,7 +40,15 @@
     .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
     .input-panel{padding:14px;margin-bottom:12px}
     .input-grid{display:grid;grid-template-columns:1.15fr 1.15fr 1fr;gap:12px}
-    .input-grid.no-prior-layout{grid-template-columns:1.15fr 1fr;align-items:stretch}
+    .input-grid.no-prior-layout{
+      grid-template-columns:1.15fr 1fr;
+      grid-template-areas:
+        "purchase-preset ."
+        "current-group calculation-group";
+      column-gap:12px;
+      row-gap:8px;
+      align-items:stretch
+    }
     .input-group{border:1px solid var(--line);border-radius:var(--corner-surface-cap);padding:12px;background:#fbfcfe}
     .group-title{display:flex;align-items:center;justify-content:space-between;font-weight:800;margin-bottom:10px}
     .group-title small{font-weight:500;color:var(--muted)}
@@ -171,9 +179,9 @@
        Desktop ≥1101 / Tablet 761~1100 / Mobile ≤760
        ========================================================= */
     @media(max-width:1100px){
-      .input-grid{grid-template-columns:1fr 1fr}.input-group:last-child{grid-column:1/-1}
+      .input-grid{grid-template-columns:1fr 1fr}
+      .input-grid:not(.no-prior-layout) > .input-group:last-child{grid-column:1/-1}
       .input-grid.no-prior-layout{grid-template-columns:1fr 1fr}
-      .input-grid.no-prior-layout .input-group:last-child{grid-column:auto}
       .kpis{grid-template-columns:repeat(2,1fr)}
     }
     @media(max-width:760px){
@@ -190,7 +198,8 @@
       .input-grid{width:100%}
       .input-group{width:100%;max-width:100%}
       .control{width:100%;min-width:0}
-      .input-grid,.input-grid.no-prior-layout{grid-template-columns:minmax(0,1fr)}.input-group:last-child,.input-grid.no-prior-layout .input-group:last-child{grid-column:auto}
+      .input-grid,.input-grid.no-prior-layout{grid-template-columns:minmax(0,1fr)}
+      .input-grid:not(.no-prior-layout) > .input-group:last-child{grid-column:auto}
       .kpis{
         grid-template-columns:repeat(2,minmax(0,1fr));
         gap:6px;
@@ -354,24 +363,29 @@
     .triple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
     .triple-grid .cell:nth-child(3n){border-right:0}
 
-    .input-grid.no-prior-layout .current-column{display:grid;grid-template-rows:auto 1fr;align-self:stretch}
-    .input-grid.no-prior-layout #currentGroup{height:100%}
-    .input-grid.no-prior-layout .calculation-group{align-self:stretch}
+    .input-grid.no-prior-layout .current-column{display:contents}
+    .input-grid.no-prior-layout .current-purchase-preset{display:flex;grid-area:purchase-preset}
+    .input-grid.no-prior-layout #currentGroup{grid-area:current-group}
+    .input-grid.no-prior-layout .calculation-group{grid-area:calculation-group;align-self:stretch}
 
     /* Current-only Presets · 이전 거래 없음: 매수값 빠른 입력 */
     .current-column{display:flex;flex-direction:column;gap:8px;min-width:0;align-self:stretch}
     .current-column > #currentGroup{flex:1 1 auto}
     .current-purchase-preset{display:none;align-items:center;justify-content:flex-start;gap:6px;min-width:0}
-    .input-grid.no-prior-layout .current-purchase-preset{display:flex}
     .current-purchase-btn{border:1px solid var(--navy);background:#fff;color:var(--navy);border-radius:var(--corner-control-cap);padding:7px 12px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 3px 10px rgba(29,53,87,.07)}
     .current-purchase-btn:hover{background:#f3f6fb;border-color:var(--navy2)}
     .current-purchase-btn.active{background:var(--navy);color:#fff}
     .current-purchase-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(73,115,174,.14)}
     .current-purchase-btn:active{transform:translateY(1px)}
-    @media(min-width:761px){
-      .input-grid.no-prior-layout .calculation-group{margin-top:43px;height:calc(100% - 43px)}
-    }
     @media(max-width:760px){
+      .input-grid.no-prior-layout{
+        grid-template-columns:minmax(0,1fr);
+        grid-template-areas:
+          "purchase-preset"
+          "current-group"
+          "calculation-group";
+        gap:8px
+      }
       .prior-entry-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
       .prior-date-section{padding:0 6px 10px}
       .prior-trade-section{gap:8px;padding:10px 6px}

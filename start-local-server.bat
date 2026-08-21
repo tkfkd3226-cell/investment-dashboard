@@ -33,7 +33,6 @@ if not defined MARKET_AI_DIR if exist "%DASHBOARD_DIR%\market-ai\app.py" set "MA
 for /f "delims=" %%I in ('where python 2^>nul') do if not defined PYTHON_EXE set "PYTHON_EXE=%%I"
 if not defined PYTHON_EXE for /f "delims=" %%I in ('where py 2^>nul') do if not defined PYTHON_EXE set "PYTHON_EXE=%%I"
 
-cls
 echo.
 echo ==========================================================
 echo   Investment Dashboard + Market AI Local Suite
