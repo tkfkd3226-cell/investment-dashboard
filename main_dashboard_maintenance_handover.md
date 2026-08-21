@@ -226,7 +226,7 @@ core DOM 비의존 여부
 ui-common 저수준 공통 책임
 pension View / Editor 분리
 module-private state ownership
-index.html 단일 module entry
+main graph 단일 module entry + Market AI standalone module
 importmap/cache bust
 import graph
 circular import

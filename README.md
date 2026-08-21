@@ -63,7 +63,7 @@
 
 ## 2. 전체 동작 구조
 
-메인 화면은 `index.html`에서 시작하고, `dashboard-app.js`가 **단일 ES Module entry point**로 나머지 모듈을 조율합니다.
+메인 화면은 `index.html`에서 시작하고, `dashboard-app.js`가 **main dependency graph의 단일 ES Module entry point**로 나머지 메인 모듈을 조율합니다. `dashboard-market-ai.js`는 이 graph와 분리된 standalone module로 `index.html`에서 독립 로드됩니다.
 
 가로로 긴 하나의 도식 대신 실제 동작을 **조회 / 퇴직연금 쓰기 / KRX 갱신**의 세 흐름으로 나눠 보면 다음과 같습니다.
 
