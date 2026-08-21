@@ -124,14 +124,14 @@
 
 /* -------------------------------------------------------------------------
    Phone UI Shared · 폰 공통 UI
-   Trigger · 조건: Mobile ≤760px 또는 실제 터치폰 가로모드
-   Why · 이유: 844×390 같은 스마트폰 가로화면은 width만 보면 Tablet이지만,
-   낮은 높이·coarse pointer 특성상 세로 Mobile과 같은 compact UI가 필요하다.
-   Scope · 범위: 폰용 토큰, Hero, 성과 요약, 인사이트, KPI, 별도수익, 데이터 표.
+   Trigger · 조건: Mobile ≤760px 또는 실제 터치폰 가로모드(landscape + width≤960 + height≤500)
+   Why · 이유: 일반 세로폰과 대형 스마트폰 가로화면은 입력 방식과 낮은 세로 공간이 같으므로,
+   타이포·여백·control·표 밀도는 동일한 compact 기준을 공유한다.
+   Scope · 범위: 폰용 토큰, Hero, 차트 compact UI, KPI, 성과 요약, 인사이트, 데이터 표 밀도.
    ------------------------------------------------------------------------- */
 @media (max-width:760px),
-       (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  /* Phone Control Tokens · 폰 공통 컨트롤 토큰 */
+       (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  /* Phone Control Tokens · 세로폰/가로폰 공통 compact control */
     :root{
       --dashboard-control-height:25px;
       --dashboard-control-font-size:9.5px;
@@ -149,7 +149,7 @@
       --section-chip-height:25px;
     }
 
-  /* Hero Phone UI · 핵심요약 폰 UI: 세로 모바일과 실제 스마트폰 가로모드에 동일한 타이포/여백 적용 */
+  /* Hero Phone UI · Hero 타이포/여백은 세로·가로폰 동일 */
     .hero{
       --hero-pad-y:15px;
       --hero-pad-x:14px;
@@ -176,7 +176,7 @@
       letter-spacing:-.02em;
     }
 
-  /* Mini Cards · 폰 공통 미니카드 밀도 */
+  /* Mini / Metric Cards · 카드 밀도는 세로폰 기준 공유 */
     .mini-card{
       --mini-card-pad-y:8px;
       --mini-card-pad-x:6px;
@@ -185,8 +185,17 @@
       --mini-detail-size:9.6px;
       --mini-detail-weight:500;
     }
+    .metric-card{
+      --metric-label-size:11px;
+      --metric-value-size:22px;
+      --metric-sub-size:11px;
+      --metric-label-gap:5px;
+      --metric-sub-gap:3px;
+    }
+    .metric-grid > .metric-card{padding:var(--space-4xl)}
+    .metric-grid > .metric-card .value{min-height:28px}
 
-  /* Account Performance · 계좌별 성과: 손익 아래 수익률 결합 */
+  /* Account Performance · 메모 폭 확보를 위해 손익 아래 수익률 결합 */
     #accounts-summary .accounts-table .performance-return-col{display:none}
     #accounts-summary .accounts-table .performance-profit-col{text-align:center}
     #accounts-summary .accounts-table .performance-inline-return{
@@ -196,21 +205,59 @@
     }
     #accounts-summary .accounts-table .accounts-memo-sentence{white-space:nowrap}
 
-  /* Asset Insight · 자산 인사이트: 빈 상태/제목 compact */
+  /* Section / Asset Tabs · 제목·chip·자산 탭은 세로폰과 같은 compact 크기 */
+    .section-basis-chip{
+      padding:var(--space-sm) var(--space-2xl);
+      font-size:var(--type-size-xs);
+    }
+    .asset-workspace-tab{
+      min-height:34px;
+      font-size:var(--type-size-sm);
+    }
+
+  /* Compact Chart Typography · 차트 제목/tooltip은 세로폰 기준 공유 */
+    #pension-chart-cum .chart-head h3,
+    #pension-chart-symbol .chart-head h3,
+    #pension-chart-alloc .chart-head h3,
+    #chart-cum .chart-head h3,
+    #chart-symbol .chart-head h3,
+    #chart-alloc .chart-head h3{
+      font-size:var(--type-size-xl);
+      line-height:1.22;
+    }
+    #pension-chart-cum .chart-title-sub,
+    #pension-chart-symbol .chart-title-sub{font-size:var(--type-size-xs)}
+
+    .dash-tooltip[data-tooltip-kind="symbol"]{
+      max-width:min(320px, calc(100vw - 28px));
+      box-sizing:border-box;
+      transform:none;
+      font-size:var(--type-size-xs);
+      line-height:var(--type-line-relaxed);
+    }
+    .dash-tooltip[data-tooltip-kind="symbol"] .tt-date{font-size:var(--type-size-sm)}
+    .dash-tooltip[data-tooltip-kind="symbol"] .tt-row{
+      white-space:normal;
+      flex-wrap:wrap;
+      column-gap:var(--space-5xl);
+      row-gap:var(--space-2xs);
+    }
+    .dash-tooltip[data-tooltip-kind="symbol"] .tt-name{
+      min-width:0;
+      overflow-wrap:anywhere;
+    }
+    .dash-tooltip[data-tooltip-kind="symbol"] .tt-val{
+      margin-left:0;
+      white-space:nowrap;
+    }
+
+  /* Asset Insight · 인사이트 카드/스택/tooltip은 세로폰과 같은 compact 기준 */
     .asset-contribution-empty-state{font-size:var(--type-size-xs)}
-
-    .asset-insight-head h3{
-      font-size:var(--type-size-md);
-    }
-
-  /* Asset Tooltip Mobile · 포인터가 없을 때만 stack bar 중앙을 안전한 fallback으로 사용 */
-    .asset-stack-bar{
-      touch-action:pan-y;
-    }
-
-    .asset-stack-segment{
-      position:static;
-    }
+    .asset-insight-card{padding:var(--space-5xl)}
+    .asset-insight-head h3{font-size:var(--type-size-md)}
+    .asset-stack-bar{height:18px;touch-action:pan-y}
+    .asset-stack-segment{position:static}
+    .asset-stack-segment span{font-size:var(--type-size-2xs)}
 
     .asset-stack-segment:first-child .asset-viz-tooltip,
     .asset-stack-segment:last-child .asset-viz-tooltip{
@@ -218,7 +265,6 @@
       right:auto;
       transform:translateX(-50%) translateY(6px);
     }
-
     .asset-stack-segment:first-child:hover .asset-viz-tooltip,
     .asset-stack-segment:first-child:focus-within .asset-viz-tooltip,
     .asset-stack-segment:first-child.tooltip-open .asset-viz-tooltip,
@@ -227,7 +273,6 @@
     .asset-stack-segment:last-child.tooltip-open .asset-viz-tooltip{
       transform:translateX(-50%) translateY(0);
     }
-
     .asset-stack-segment:first-child .asset-viz-tooltip::after,
     .asset-stack-segment:last-child .asset-viz-tooltip::after{
       left:50%;
@@ -235,16 +280,12 @@
       transform:translateX(-50%);
     }
 
-  /* Phone Shell · 폰 UI: 히어로 상단 여백을 좌우 page shell 여백과 동일하게 유지 */
-    .wrap{padding-top:var(--space-xl)}
-
-  /* Securities / Pension KPI · 모바일 2×2 전용: 다른 metric-grid는 기존 모바일 구조 유지 */
+  /* Securities / Pension KPI · 4개 KPI는 세로·가로폰 모두 2×2 + 동일 타이포 */
     .securities-summary-block .metric-grid,
     .pension-metric-grid{
       grid-template-columns:repeat(2,minmax(0,1fr));
       gap:var(--space-2xl);
     }
-
     .securities-summary-block .metric-card,
     .pension-metric-grid > .metric-card{
       --metric-label-size:11px;
@@ -253,40 +294,31 @@
       min-width:0;
       padding:var(--space-4xl) var(--space-lg);
     }
-
     .securities-summary-block .metric-card :is(.label,.value,.sub),
-    .pension-metric-grid > .metric-card :is(.label,.value,.sub){
-      white-space:nowrap;
-    }
-
+    .pension-metric-grid > .metric-card :is(.label,.value,.sub){white-space:nowrap}
     .securities-summary-block .metric-card .value,
-    .pension-metric-grid > .metric-card .value{
-      min-height:24px;
-    }
-
+    .pension-metric-grid > .metric-card .value{min-height:24px}
     .securities-summary-block .metric-sub-default,
     .pension-metric-grid .metric-sub-default{display:none}
-
     .securities-summary-block .metric-sub-mobile,
     .pension-metric-grid .metric-sub-mobile{display:inline}
 
-  /* Symbol Summary · 종목 요약: 2열 compact */
+  /* Symbol Summary · 종목/상품 카드 내부 밀도만 공통, 열 수는 방향별로 분리 */
     .chart-note.symbol-summary-grid{
       --symbol-metric-label-size:9px;
       --symbol-metric-value-size:10.5px;
       --symbol-metric-gap:5px;
-      grid-template-columns:repeat(2,minmax(0,1fr));
       gap:var(--space-2xl);
     }
 
-  /* Allocation Meta · 비중 메타 타이포 */
+  /* Allocation / Change Meta · 비중·전일대비 카드 내부 밀도 */
     .mini-card .alloc-ratio-meta{font-size:9.5px}
     .mini-card .alloc-cash-meta{font-size:8.5px}
+    .change-kpis{gap:clamp(7px,1.35vw,10px)}
+    .chart-note .m-value{overflow-wrap:anywhere}
 
-  /* Separate Profit Phone UI · 별도수익 폰 UI: compact label + state 중심 표시 */
-    .section-title-actions{
-      gap:var(--space-md);
-    }
+  /* Separate Profit Compact · 위치는 유지하고 control 자체만 compact */
+    .section-title-actions{gap:var(--space-md)}
     .section-title > .separate-profit-control-row,
     .section-title-actions > .separate-profit-control-row,
     .chart-head > .separate-profit-control-row{
@@ -298,26 +330,20 @@
       overflow:visible;
     }
     .section-title > .separate-profit-control-row,
-    .chart-head > .separate-profit-control-row{
-      margin-left:auto;
-    }
-    .separate-profit-control-note{
-      display:none;
-    }
+    .chart-head > .separate-profit-control-row{margin-left:auto}
+    .separate-profit-control-note{display:none}
     .separate-profit-toggle{
       padding:1px var(--space-xs);
       gap:0;
     }
-    .separate-profit-toggle span{
-      display:none;
-    }
+    .separate-profit-toggle span{display:none}
     .separate-profit-toggle strong{
       min-width:var(--dashboard-control-state-min-width);
       height:21px;
       padding:0 var(--space-lg);
     }
 
-  /* Data Tables Phone UI · 데이터 표 폰 UI: 세로 모바일/실제 폰 가로 동일 compact-card 정책 */
+  /* Data Tables Compact · 가로폰도 표 구조는 유지하되 세로폰과 동일한 표 밀도 사용 */
     .dashboard-data-table{
       --data-table-font-size:var(--type-size-xs);
       --data-table-cell-y:5px;
@@ -325,90 +351,16 @@
       --data-table-line-height:1.22;
       --data-table-bar-width:56px;
     }
-    .asset-status-table .mobile-table-brand-prefix{
-      display:none;
-    }
-    .mobile-view-toggle{
-      display:inline-flex;
-      flex:0 0 auto;
-      padding:0 var(--space-3xl);
-      border:1px solid var(--control-border);
-      border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
-      background:var(--card);
-      color:var(--muted);
-    }
-    /* View State Utility · 상태 selector의 specificity로 base display보다 우선한다. */
-    [data-mobile-view="card"] .table-view{display:none}
-    [data-mobile-view="card"] .mobile-card-view{display:grid}
-    [data-mobile-view="table"] .table-view{display:block}
-    [data-mobile-view="table"] .mobile-card-view{display:none}
-    .mobile-card-view{grid-template-columns:1fr;gap:var(--space-3xl);width:100%}
-    /* Mobile Data Cards · 모바일 데이터 카드: 모든 table/card 전환 공통 */
-    .mobile-data-card{
-      --mobile-data-title-weight:var(--type-weight-strong);
-      --mobile-data-label-weight:var(--type-weight-bold);
-      --mobile-data-value-weight:var(--type-weight-semibold);
-      --mobile-data-total-title-weight:var(--type-weight-emphasis);
-      --mobile-data-total-value-weight:var(--type-weight-strong);
-      min-width:0;
-      padding:13px var(--space-6xl);
-      border:1px solid var(--line);
-      border-radius:min(15px,var(--corner-surface-cap));
-      background:var(--card);
-      box-shadow:var(--shadow-mobile-card);
-    }
-    .mobile-data-card-title{
-      margin:0 0 var(--space-lg);
-      color:var(--ink);
-      font-size:var(--type-size-lg);
-      font-weight:var(--mobile-data-title-weight);
-      line-height:var(--type-line-compact);
-      letter-spacing:-.03em;
-    }
-    .mobile-data-card-row{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:var(--space-5xl);
-      padding:var(--space-md) 0;
-      border-top:1px dashed var(--line);
-    }
-    /* Mobile Card First Row · 모바일 카드 첫 행은 상단 separator 생략 */
-    .mobile-data-card-row:first-child{border-top:0}
-    .mobile-data-card-label{
-      color:var(--muted);
-      font-size:var(--type-size-xs);
-      font-weight:var(--mobile-data-label-weight);
-      line-height:var(--type-line-body);
-    }
-    .mobile-data-card-value{
-      min-width:0;
-      text-align:right;
-      font-size:11.5px;
-      font-weight:var(--mobile-data-value-weight);
-      line-height:var(--type-line-body);
-      font-variant-numeric:tabular-nums;
-    }
-    /* Mobile Total Cards · 모바일 합계/총계 카드만 제목·수치 강조 */
-    .mobile-data-card.mobile-total-card .mobile-data-card-title{font-weight:var(--mobile-data-total-title-weight)}
-    .mobile-data-card.mobile-total-card .mobile-data-card-value{font-weight:var(--mobile-data-total-value-weight)}
-    .mobile-data-card-row.stacked{display:block}
-    .mobile-data-card-row.stacked .mobile-data-card-value{margin-top:var(--space-xs);text-align:left}
-    .mobile-data-card-row.note-only .mobile-data-card-label{display:none}
-    .mobile-data-card-row.note-only .mobile-data-card-value{
-      display:block;
-      width:100%;
-      margin-top:0;
-      color:var(--muted);
-      text-align:left;
-      font-size:var(--type-size-xs);
-      font-weight:var(--type-weight-regular);
-      line-height:var(--type-line-relaxed);
-    }
 
+  /* Sticky First Column · 터치폰 표의 첫 열은 좌우 스크롤 시 고정 */
     .table-view > .dashboard-data-table:not(.source-data-table) th:first-child,
     .table-view > .dashboard-data-table:not(.source-data-table) td:first-child{
-      position:-webkit-sticky;position:sticky;left:0;z-index:3;background:var(--card);background-clip:padding-box;
+      position:-webkit-sticky;
+      position:sticky;
+      left:0;
+      z-index:3;
+      background:var(--card);
+      background-clip:padding-box;
     }
     .table-view > .dashboard-data-table:not(.source-data-table) thead th:first-child{z-index:5;background:var(--table-head-bg)}
     .table-view > .dashboard-data-table:not(.source-data-table) tbody tr.summary-row > :first-child{z-index:4;background:var(--summary-row-bg)}
@@ -416,79 +368,103 @@
 
 /* -------------------------------------------------------------------------
    Phone Landscape · 실제 스마트폰 가로모드
-   Trigger · 조건: landscape + width≤900 + height≤500 + hover:none + pointer:coarse
-   Why · 이유: 폰 공통 compact UI는 유지하되 가로 공간은 적극 활용하고,
-   낮은 세로 공간에서는 카드/검산 영역의 세로 길이를 줄여야 한다.
-   Scope · 범위: Hero pills, 요약/KPI grid, 투자원금 원천, 모바일 카드, 장부 검산.
+   Trigger · 조건: landscape + width≤960 + height≤500 + hover:none + pointer:coarse
+   Why · 이유: 폰 공통 compact 디자인은 유지하되, 가로폭은 열 수 확대와 no-scroll 차트에 사용한다.
+   Scope · 범위: Hero/요약 카드 열 수, 표 고정, 차트 flow, 원천/검산 배치, 모달 input zoom 방지.
    ------------------------------------------------------------------------- */
-@media (orientation:landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  /* Hero Metrics · 가로폰 Hero pill 공간 활용 */
+@media (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  /* Hero Metrics · compact 밀도 유지 + 가로폭 2/4열 활용 */
     .hero .hero-metric-pills{
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
-    .hero .hero-metric-pills.has-pension{
-      grid-template-columns:repeat(4,minmax(0,1fr));
-    }
+    .hero .hero-metric-pills.has-pension{grid-template-columns:repeat(4,minmax(0,1fr))}
     .hero .hero-return-pill{
       display:inline-flex;
       align-items:center;
       justify-content:center;
     }
 
-  /* Summary / KPI Grids · 요약/KPI: 가로 공간을 3열/2열로 활용 */
+  /* Summary Grids · 누적차트 6카드 3열, 종목/상품 손익카드 4열 */
     .chart-note.six{
       gap:var(--space-lg);
       grid-template-columns:repeat(3,minmax(0,1fr));
     }
+    .chart-note.symbol-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .asset-change-note .change-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
 
-    .metric-card{
-      --metric-label-size:11px;
-      --metric-value-size:22px;
-      --metric-sub-size:11px;
-      --metric-label-gap:5px;
-      --metric-sub-gap:3px;
+  /* Allocation Cards · 비중 카드 열 수는 Tablet과 동일하게 가로폭 활용 */
+    #pension-chart-alloc .chart-note{
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:clamp(7px,1.35vw,10px);
     }
-
-    .metric-grid{
+    #securityAllocCards.security-alloc-card-grid{
       grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:clamp(7px,1.35vw,10px);
     }
-
-    .metric-grid > .metric-card{
-      padding:var(--space-4xl);
+    #securityAllocCards.security-alloc-card-grid:has(> .alloc-total-card-wide){
+      grid-template-columns:repeat(4,minmax(0,1fr));
     }
+    #securityAllocCards > .alloc-total-card:not(.alloc-total-card-wide){grid-column:1 / -1}
 
-    .metric-grid > .metric-card .value{
-      min-height:28px;
-    }
-
-  /* Capital Source · 투자원금 원천: 실제 폰 가로에서 3카드 1행 */
+  /* Capital Source · 3개 원천카드는 한 행, 내부 밀도는 Shared compact 사용 */
     #capital-source-check .source-grid{
       grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:var(--space-2xl);
+      gap:var(--space-5xl);
     }
-    #capital-source-check .source-card{
-      min-width:0;
-    }
+    #capital-source-check .source-card{min-width:0}
 
-  /* Mobile Data Cards · 모바일 데이터 카드: 가로폰 2열 */
-    .mobile-card-view{grid-template-columns:repeat(2,minmax(0,1fr))}
-
-  /* Ledger Check · 장부 검산: 가로폰 2열 + 결론 카드 확장 */
-    #ledger-check .ledger-overview-grid{
-      grid-template-columns:repeat(2,minmax(0,1fr));
-    }
+  /* Ledger Check · 결론 전체폭 + A/B 2열, 내부 padding은 세로폰 밀도 */
+    #ledger-check .ledger-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     #ledger-check .ledger-conclusion-card{
       grid-column:1 / -1;
       grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:var(--space-8xl);
+      gap:var(--space-4xl);
+      padding:var(--space-5xl);
     }
     #ledger-check .ledger-conclusion-inline-reason{display:none}
     #ledger-check .ledger-conclusion-reason{
       display:block;
-      padding:0 0 0 var(--space-8xl);
+      padding:0 0 0 var(--space-5xl);
       border-left:1px solid var(--line);
       border-top:0;
     }
-}
 
+  /* Separate Profit · 가로폰은 compact control에 설명/라벨을 다시 표시 */
+    .separate-profit-control-note{display:inline}
+    .separate-profit-toggle{
+      gap:var(--space-sm);
+      padding:1px var(--space-lg);
+    }
+    .separate-profit-toggle span{display:inline}
+
+  /* Table-only Landscape · 성과/현황/변동은 카드 전환 없이 항상 표 */
+    .mobile-view-toggle,
+    .securities-summary-block [data-accounts-view-toggle-wrap]{display:none}
+    [data-mobile-view="card"] .table-view,
+    [data-mobile-view="table"] .table-view{display:block}
+    [data-mobile-view="card"] .mobile-card-view,
+    [data-mobile-view="table"] .mobile-card-view,
+    .mobile-card-view{display:none}
+    .asset-status-table .mobile-table-brand-prefix{display:inline}
+
+  /* Chart Landscape · compact 타이포 + 폭 맞춤 + 낮은 높이 + ←/→ 제거 */
+    .chart-wrap{
+      overflow-x:hidden;
+      box-shadow:none;
+      border-right:0;
+    }
+    svg.chart{
+      width:100%;
+      min-width:100%;
+      height:clamp(235px,64dvh,270px);
+    }
+    .chart-card > .chart-legend{margin-top:var(--space-md)}
+    .chart-card .chart-scroll-start,
+    .chart-card .chart-scroll-end{display:none}
+    .chart-web-expand-button{display:inline-flex}
+
+  /* Modal Input · 중앙 모달은 유지하되 iPhone Safari 확대 방지 폰트만 적용 */
+    .action-modal-input{font-size:var(--type-size-2xl)}
+    .contrib-modal{--contrib-control-font-size:var(--type-size-2xl)}
+}

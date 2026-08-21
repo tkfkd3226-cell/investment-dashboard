@@ -3245,13 +3245,38 @@ Mobile  ≤ 760px
 ```css
 @media
   (orientation:landscape)
-  and (max-width:900px)
+  and (max-width:960px)
   and (max-height:500px)
   and (hover:none)
   and (pointer:coarse)
 ```
 
-이 media는 특정 844px 기기 맞춤식 patch가 아니라 실제 coarse-pointer 스마트폰 가로를 식별하기 위한 기능 media다.
+이 media는 특정 844px 기기 맞춤식 patch가 아니라 실제 coarse-pointer 스마트폰 가로를 식별하기 위한 기능 media다. `960px` 상한은 iPhone 13의 844×390뿐 아니라 956×440급 대형 iPhone / 일반 대형 Android / Z Flip 가로까지 같은 Phone UI를 적용하기 위한 범용 상한이며, 펼친 Z Fold처럼 높이가 500px를 넘는 화면은 Phone Landscape에서 제외하여 Tablet 계열로 둔다.
+
+### Phone UI Shared / Phone Landscape 최신 역할
+
+`Phone UI Shared`는 **세로 Mobile과 실제 가로폰이 공통으로 가져야 하는 compact 디자인 밀도**만 소유한다.
+
+- Hero / KPI / mini-card / 섹션 제목 / 자산 탭 / 자산 인사이트 / tooltip의 폰트·여백은 세로폰과 가로폰 동일
+- 증권·퇴직연금 KPI는 가로폰에서도 2×2 compact 유지
+- 성과/현황/변동 표는 가로폰에서도 세로폰과 동일한 font / cell padding을 사용하고 첫 열 sticky 유지
+- 계좌별 성과의 수익률은 가로폰에서도 손익 아래 `(~%)`로 결합하여 긴 메모 열 폭을 확보
+- `KODEX` / `KOACT` 접두어 숨김과 `표 보기 / 카드 보기` UI는 **세로폰 전용**이며 가로폰에서는 전체 종목명 + 표만 표시
+
+`Phone Landscape`는 **가로폰에서 세로폰과 배치가 달라지는 최소 규칙만** 소유한다.
+
+- Hero pill 2열 / 연금 포함 4열
+- 누적차트 아래 6개 요약카드 3열, 종목·연금상품 손익카드 4열, 전일대비 4 KPI 한 줄
+- 비중카드는 Tablet 수준의 열 수를 사용하되 카드 내부 밀도는 Phone Shared 기준
+- 투자원금 원천 3카드 한 줄
+- 장부검산은 결론 full-width + A/B 2열, 내부 밀도는 세로폰 기준
+- Topbar는 Tablet 스타일 유지
+- 차트 control은 제목 오른쪽 한 줄을 유지하고 가로폰에서는 차트를 컨테이너 폭에 맞춰 no-scroll로 표시하며 `← / →` 버튼을 숨김
+- 차트 높이는 낮은 가로 viewport에 맞게 축소하고 Tablet / 가로폰 모두 범례를 차트 쪽으로 당김
+- 별도수익은 compact control 크기는 유지하되 가로폰에서는 `별도수익` 라벨과 활성 시 선택일 설명을 표시
+- 퇴직연금 / PIN / KRX 모달은 가로폰에서 중앙 modal 레이아웃을 유지하고, iPhone Safari 확대 방지가 필요한 input font만 16px 계열을 사용
+
+JavaScript의 차트 반응형 판정도 역할을 분리한다. `compactPhoneChartUi()`는 세로폰 + 가로폰의 compact 표현에 사용하고, `portraitPhoneChartFlow()`는 세로폰 전용 control-row / 스크롤 flow에만 사용한다. `phoneLandscapeUi()`는 위 `960×500 + coarse/no-hover` 조건의 가로폰 배치 판정만 담당한다.
 
 ### iPhone Safari 데스크탑 웹사이트 요청
 
@@ -3634,7 +3659,7 @@ Mobile · 모바일: 760px 이하
 → Asset Detail 2-column 유지 시 가용폭 부족 대응
 
 Phone Landscape
-→ iPhone 844×390처럼 width만 보면 Tablet으로 오판되는 실제 터치폰 가로모드 대응
+→ iPhone 13 844×390부터 956×440급 대형 스마트폰까지 width만 보면 Tablet으로 오판되는 실제 터치폰 가로모드 대응
 ```
 
 `hover:hover + pointer:fine`, `print`는 viewport가 아니므로 Desktop/Tablet/Mobile과 분리한다.
@@ -4713,6 +4738,20 @@ common
 
 현재 canonical CSS는 **6파일 구조**이며, Desktop은 common baseline이라는 원칙을 따른다.
 
+### 리팩토링 7차 후속 Phone UI 정리 · Shared / Landscape 역할 최소화 · 2026-08-21
+
+스마트폰 가로 대응이 반복 수정 과정에서 Tablet / Mobile 규칙과 중복된 부분을 다시 정리했다. `Phone UI Shared`는 세로폰과 가로폰이 공유하는 compact 밀도만, `Phone Landscape`는 가로폰에서 실제로 달라지는 배치와 차트 flow만 소유하도록 역할을 축소했다.
+
+핵심 정리:
+
+- 가로폰 기능 media 상한 `900px → 960px`으로 확대, `height≤500 + hover:none + pointer:coarse`는 유지
+- Phone Shared에서 모바일 카드보기 UI와 브랜드 접두어 축약을 분리해 세로폰 전용으로 이동
+- 가로폰 성과/현황/변동은 항상 표를 사용하고 세로폰과 동일한 compact 표 밀도 + 첫 열 sticky 유지
+- 가로폰 Hero 2/4열, 누적 6카드 3열, 종목/상품 카드 4열, 전일대비 KPI 4열, 원천 3열, 장부검산 결론 + A/B 2열로 가로폭 활용
+- 차트는 세로폰과 동일한 compact 타이포를 사용하되 가로폰에서는 control을 제목 오른쪽에 유지하고 no-scroll / `← →` 없음 / 낮은 viewport용 높이 축소
+- Tablet과 가로폰의 차트 범례 간격을 줄여 축소된 차트와 범례가 분리되어 보이지 않도록 조정
+- 차트 JS는 `compact-chart-ui`와 세로폰 전용 `phone-chart-ui` flow를 분리하여 가로폰이 모바일 scroll control을 상속하지 않도록 정리
+
 
 ## 10.3 현재 리팩토링 완료 기준선
 
@@ -4728,6 +4767,7 @@ common
 ✅ 리팩토링 7차 · CSS viewport 재편 / 7파일 분리
 ✅ 7차 후속 CSS 유지보수 · `!important` 30 → 0 / iPhone Safari QA PASS
 ✅ 7차 후속 CSS 구조 정리 · `desktop.css` 제거 / common Desktop baseline + 6파일 canonical
+✅ 7차 후속 Phone UI 정리 · Shared compact / Landscape layout 분리 + 가로폰 960×500 범위
 ```
 
 현재 메인 JavaScript 기준:

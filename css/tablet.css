@@ -95,6 +95,9 @@
       grid-column:1 / -1;
     }
 
+  /* Chart Legend Tablet · 축소된 차트와 범례 사이 불필요한 간격 축소 */
+    .chart-card > .chart-legend{margin-top:var(--space-md)}
+
   /* Tablet Integration · 태블릿 통합: 차트 control, 종목요약/KPI, 투자기간 차트, 원천/검산 */
     .chart-card.has-horizontal-scroll .chart-scroll-row{
       display:flex;

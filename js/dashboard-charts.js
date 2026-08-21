@@ -158,10 +158,15 @@ function toggleChartTitleInfo(event,button){
   button.classList.toggle('open',open);
   button.setAttribute('aria-expanded',String(open));
 }
+const PHONE_LANDSCAPE_QUERY='(orientation: landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
+function phoneLandscapeUi(){
+  return window.matchMedia?.(PHONE_LANDSCAPE_QUERY).matches===true;
+}
 function compactPhoneChartUi(){
-  const portraitOrNarrow=window.matchMedia?.('(max-width:760px)').matches===true;
-  const phoneLandscape=window.matchMedia?.('(orientation: landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse)').matches===true;
-  return portraitOrNarrow||phoneLandscape;
+  return window.matchMedia?.('(max-width:760px)').matches===true||phoneLandscapeUi();
+}
+function portraitPhoneChartFlow(){
+  return window.matchMedia?.('(max-width:760px)').matches===true&&!phoneLandscapeUi();
 }
 function chartDisplayLabel(scope,label){
   const compact=compactPhoneChartUi();
@@ -351,7 +356,7 @@ function refreshChartOptions(scope){
   if(card&&legend)syncChartOptions(scope,card,legend);
 }
 function syncResponsiveChartControls(){
-  const mobile=compactPhoneChartUi();
+  const compact=compactPhoneChartUi(),phoneFlow=portraitPhoneChartFlow();
   RESPONSIVE_CHART_SCOPES.forEach(({id,scope})=>{
     const card=document.getElementById(id);
     const head=card?.querySelector('.chart-head');
@@ -359,11 +364,12 @@ function syncResponsiveChartControls(){
     const row=card?.querySelector('.chart-scroll-row');
     const mobileExpand=row?.querySelector('.chart-expand-button')||head?.querySelector('.chart-expand-button');
     if(!card||!row)return;
-    card.classList.toggle('phone-chart-ui',mobile);
+    card.classList.toggle('compact-chart-ui',compact);
+    card.classList.toggle('phone-chart-ui',phoneFlow);
     if(head&&actions){
       const hasLeadingSwitch=!!actions.querySelector('.chart-compare-toggle');
-      actions.classList.toggle('mobile-no-leading-switch',mobile&&!hasLeadingSwitch);
-      if(mobile){
+      actions.classList.toggle('mobile-no-leading-switch',phoneFlow&&!hasLeadingSwitch);
+      if(phoneFlow){
         if(actions.parentElement!==row)row.insertBefore(actions,row.querySelector('.chart-scroll-start')||null);
         if(mobileExpand&&mobileExpand.parentElement!==head)head.appendChild(mobileExpand);
       }else{
@@ -378,7 +384,7 @@ function syncResponsiveChartControls(){
       syncChartOptions(scope,card,legend);
     }
   });
-  if(!mobile)closeChartTitleInfo();
+  if(!compact)closeChartTitleInfo();
 }
 function setupResponsiveChartControls(){
   syncResponsiveChartControls();
@@ -394,7 +400,7 @@ function setupResponsiveChartControls(){
 }
 
 function chartEntrancePhoneLandscape(){
-  return window.matchMedia?.('(orientation: landscape) and (max-width:900px) and (max-height:500px) and (hover:none) and (pointer:coarse)').matches===true;
+  return phoneLandscapeUi();
 }
 function activatePendingChartEntrancesForPhoneLandscape(){
   if(!chartEntrancePhoneLandscape())return;
