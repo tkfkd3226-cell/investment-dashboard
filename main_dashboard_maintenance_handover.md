@@ -3281,6 +3281,10 @@ Mobile  ≤ 760px
 
 JavaScript의 차트 반응형 판정도 역할을 분리한다. `compactPhoneChartUi()`는 세로폰 + 가로폰의 compact 표현에 사용하고, `portraitPhoneChartFlow()`는 세로폰 전용 control-row / 스크롤 flow에만 사용한다. `phoneLandscapeUi()`는 위 `960×500 + coarse/no-hover` 조건의 가로폰 배치 판정만 담당한다.
 
+`phoneLandscapeUi()`와 해당 media query 문자열은 **`dashboard-ui-common.js` 한 곳만 canonical source**로 둔다. `dashboard-charts.js`와 `dashboard-ui.js`는 이 helper를 import해서 사용하며, 각 모듈 안에 같은 `matchMedia` 조건을 다시 복사하지 않는다.
+
+Navigation의 viewport 전환도 상태를 동기화한다. Tablet/Mobile에서 Desktop(`>=1101px`)으로 resize될 때는 우측 Edge TOC가 생성되고, Desktop에서 `<=1100px`로 내려갈 때는 제거되어야 한다. 단, Desktop 구간 안에서 단순 resize할 때는 기존 Edge TOC DOM을 불필요하게 재생성하지 않아 열린 상태를 보존한다. 현재 구현은 **Desktop 필요 여부와 실제 `#desktopEdgeToc` 존재 여부가 다를 때만** `ensureDesktopEdgeToc()`를 호출하는 방식이다.
+
 ### iPhone Safari 데스크탑 웹사이트 요청
 
 **현재 최신 ZIP의 실제 기준은 `width=1280`이다.**
@@ -3610,7 +3614,7 @@ common.css
 - `common.css`: viewport와 무관한 기본 component, theme/token, 공통 layout, **Desktop baseline**, `max-width:1100px` / `min-width:761px` 같은 Responsive Shared
 - `tablet.css`: `761px ~ 1100px`에서 common의 Desktop baseline을 태블릿 표현으로 변경하는 전용 규칙
 - `mobile.css`: `max-width:760px` 모바일 전용 규칙
-- `special.css`: `≤400px`, `≤1280px`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
+- `special.css`: `≤400px`, `1101~1280px Asset Detail`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
 - `interaction.css`: `hover:hover + pointer:fine`처럼 viewport가 아닌 입력장치 조건
 - `print.css`: 인쇄 전용 최종 override
 
@@ -3658,8 +3662,8 @@ Mobile · 모바일: 760px 이하
 ≤400px
 → 초소형 화면에서 계좌별 성과 정보 구조 보정
 
-≤1280px
-→ Asset Detail 2-column 유지 시 가용폭 부족 대응
+1101~1280px
+→ Desktop Asset Detail 2-column 유지 시 가용폭 부족 대응
 
 Phone Landscape
 → iPhone 13 844×390부터 956×440급 대형 스마트폰까지 width만 보면 Tablet으로 오판되는 실제 터치폰 가로모드 대응
@@ -3758,7 +3762,7 @@ New
 
 현재 이미 존재하는 기능상 필요한 예외 breakpoint는 함부로 제거하지 않는다.
 
-현재 허용된 기능상 예외 breakpoint 중 `1280px 이하`는 **공통 Asset Detail 기능 breakpoint**다. 증권의 `보유종목 현황 + 전일 대비 변동`과 퇴직연금의 `연금상품별 현황 + 전일 대비 변동`이 Desktop에서 2열로 배치되다가 `1280px 이하`에서 1열로 전환하여 표 내부 가로 스크롤을 방지한다. 이 규칙은 `.asset-detail-grid`의 공통 기능 기준이며, 다른 일반 영역의 반응형 breakpoint로 확대 적용하지 않는다. 새 증권 전용 breakpoint도 만들지 않는다.
+현재 허용된 기능상 예외 breakpoint 중 `1101~1280px`는 **Desktop 공통 Asset Detail 기능 breakpoint**다. 증권의 `보유종목 현황 + 전일 대비 변동`과 퇴직연금의 `연금상품별 현황 + 전일 대비 변동`이 넓은 Desktop에서는 2열로 배치되다가 `1101~1280px`에서 1열로 전환하여 표 내부 가로 스크롤을 방지한다. `1100px 이하`는 Tablet/Mobile의 기존 responsive rule이 이미 담당하므로 `special.css`의 Asset Detail media를 그 아래까지 넓히지 않는다. 이 규칙은 `.asset-detail-grid`의 공통 기능 기준이며, 다른 일반 영역의 반응형 breakpoint로 확대 적용하지 않는다. 새 증권 전용 breakpoint도 만들지 않는다.
 
 또한 `landscape + max-width:960px + max-height:500px + hover:none + pointer:coarse`는 **실제 스마트폰 가로를 식별하기 위해 허용된 기능 media**다. `960px`을 일반 반응형 breakpoint로 확대 사용하지 않고, `special.css`의 Phone UI Shared / Phone Landscape와 이에 대응하는 JavaScript 판정에서만 같은 조건을 유지한다. 펼친 Z Fold처럼 높이가 `500px`을 넘는 coarse-pointer 화면은 이 media에서 제외하여 Tablet 계열로 둔다.
 
@@ -4034,6 +4038,8 @@ style="..."
 ## 7.4 JS 중복 로직 추가 금지
 
 새 함수를 만들기 전에 기존 helper가 있는지 확인한다.
+
+특히 스마트폰 가로 판정은 `dashboard-ui-common.js`의 `phoneLandscapeUi()`가 canonical이다. `dashboard-charts.js`, `dashboard-ui.js` 또는 새 모듈에서 같은 `960×500 + hover:none + pointer:coarse` `matchMedia` 문자열이나 동등 helper를 다시 정의하지 않는다.
 
 대표적인 공통 대상:
 
@@ -4759,6 +4765,38 @@ common
 - Tablet과 가로폰의 차트 범례 간격을 줄여 축소된 차트와 범례가 분리되어 보이지 않도록 조정
 - 차트 JS는 `compact-chart-ui`와 세로폰 전용 `phone-chart-ui` flow를 분리하여 가로폰이 모바일 scroll control을 상속하지 않도록 정리
 
+### 리팩토링 7차 후속 Responsive 동기화 + CSS/JS 청소 · 2026-08-22
+
+Phone UI 후속 작업을 마무리하면서 viewport 전환 회귀와 CSS/JS 찌꺼기를 함께 정리했다. 이 작업도 새 프로젝트 리팩토링 차수를 추가한 것이 아니라 **7차 이후 canonical 구조의 유지보수 마무리**다.
+
+핵심 정리:
+
+- Tablet 상태에서 페이지를 연 뒤 Desktop(`>=1101px`)으로 resize할 때 우측 Edge TOC가 없던 회귀를 수정했다.
+- `dashboard-ui.js`의 resize 동기화는 **Desktop 필요 여부와 실제 `#desktopEdgeToc` 존재 여부가 다를 때만** `ensureDesktopEdgeToc()`를 호출한다. 따라서 Tablet/Mobile → Desktop에서는 TOC를 생성하고 Desktop → `<=1100px`에서는 제거하되, Desktop 내부 단순 resize에서는 DOM을 다시 만들지 않아 열린 상태를 유지한다.
+- `dashboard-charts.js`와 `dashboard-ui.js`에 각각 있던 Phone Landscape 판정을 `dashboard-ui-common.js`의 단일 `phoneLandscapeUi()` helper로 공통화했다. 같은 `960×500 + coarse/no-hover` query를 여러 모듈에 복제하지 않는다.
+- `dashboard-charts.js`의 의미 없는 `chartEntrancePhoneLandscape()` 1단 wrapper를 제거하고 canonical helper를 직접 사용하도록 정리했다.
+- `common.css`, `mobile.css`, `tablet.css`, `special.css`에서 현재 cascade 결과를 바꾸지 않는 확실한 no-op / 중복 property, stale 작업이력 주석, 관계없는 떠 있는 주석, 들여쓰기·연속 빈 줄·trailing whitespace를 정리했다.
+- `special.css`의 Asset Detail 예외 범위를 실제 역할에 맞춰 `1101~1280px`로 명확히 했다. `1100px 이하`는 기존 Tablet/Mobile responsive rule이 담당한다.
+- `-webkit-sticky → sticky`, `100vh → 100dvh`처럼 호환성 fallback을 위한 의도적 중복 선언은 제거하지 않는다.
+- 메인 CSS의 실제 `!important` 0개 상태를 유지한다.
+
+최종 청소 QA:
+
+```text
+CSS parse error            0
+JS syntax error             0
+unresolved import           0
+circular import             0
+named import/export mismatch 0
+Phone Landscape helper      1 canonical definition
+stale 작업이력 주석          0
+실제 !important             0
+```
+
+세로폰 `390×844`, 가로폰 `844×390 / 956×440`, Tablet `820 / 1100`, Desktop `1101 / 1200 / 1280 / 1281`에서 청소 전후 computed style 차이 **0건**을 확인했다. Phone Landscape 경계도 `960×500=ON`, `961×500=OFF`, `960×501=OFF`로 확인했다.
+
+이 단계까지 최종 QA PASS했으며, 이후에는 CSS/JS 구조 자체를 더 잘게 나누거나 점수 목적의 추가 리팩토링을 하지 않는다. 새 기능 요청은 현재 6 CSS + 7 JS module canonical 구조 안에서 최소 변경한다.
+
 
 ## 10.3 현재 리팩토링 완료 기준선
 
@@ -4775,6 +4813,8 @@ common
 ✅ 7차 후속 CSS 유지보수 · `!important` 30 → 0 / iPhone Safari QA PASS
 ✅ 7차 후속 CSS 구조 정리 · `desktop.css` 제거 / common Desktop baseline + 6파일 canonical
 ✅ 7차 후속 Phone UI 정리 · Shared compact / Landscape layout 분리 + 가로폰 960×500 범위
+✅ 7차 후속 Responsive 동기화 · 태블릿↔웹 Edge TOC 생성/제거 + Desktop 내부 상태 보존
+✅ 7차 후속 CSS/JS 청소 · no-op/stale 주석 정리 + `phoneLandscapeUi()` 단일 공통 helper · 최종 QA PASS
 ```
 
 현재 메인 JavaScript 기준:
@@ -5128,7 +5168,8 @@ CSS 점수는 구조 변화 추적용 역사 기록이며 현재 소스의 영�
 | 리팩토링 1차 초기 대규모 CSS 구조 정리 | **93 / 100** | 단일 canonical CSS, 중복·specificity·responsive 정리 진행 |
 | 리팩토링 6차 · 2026-08-19 기능군 구조정리 | **100 / 100 milestone** | selector/value 유지, 기능군 탐색성과 source-order 설명 정리, 최종 누적 QA PASS |
 | 리팩토링 7차 · 2026-08-21 7파일 구조 분리 | **최종 QA PASS / 역사적 기준선** | viewport·special·interaction·print 역할 파일 분리, 실행 CSS parity 유지 |
-| 7차 후속 · Desktop baseline 정리 | **현재 canonical** | `desktop.css` 제거, common을 Desktop 기본값으로 사용하고 Tablet/Mobile만 override |
+| 7차 후속 · Desktop baseline 정리 | **canonical 구조 확정** | `desktop.css` 제거, common을 Desktop 기본값으로 사용하고 Tablet/Mobile만 override |
+| 7차 후속 · Phone UI / Responsive / CSS·JS 청소 | **현재 canonical / 최종 QA PASS** | 960×500 Phone Landscape, Topbar·Edge TOC viewport 동기화, JS 판정 공통화, no-op/stale 코드 정리 |
 
 리팩토링 1차 당시 대표 상세 snapshot:
 
@@ -5203,6 +5244,7 @@ README는 **저장소의 기능·전체 동작 구조·프로젝트 구조·데�
 [ ] 수정 책임 파일이 맞는가
 [ ] 공통 canonical CSS rule을 먼저 찾았는가
 [ ] 새 breakpoint가 정말 필요한가
+[ ] Phone Landscape 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하는가
 [ ] 새 !important가 정말 필요한가
 [ ] inline event/global bridge를 만들지 않는가
 [ ] protected JSON을 건드리지 않는가
