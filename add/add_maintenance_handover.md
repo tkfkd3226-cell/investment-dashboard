@@ -362,6 +362,13 @@ separateProfit.reinvestedLimit
 
 ## 9. 리포트에서 새 거래 반영 시 반드시 함께 갱신할 부분
 
+### 거래 리포트 차트·도넛 데이터 표현 규칙
+
+- 수익 구성 도넛의 본 포지션 비율은 CSS selector 내부 숫자로 하드코딩하지 않는다. `--main-position-ratio` CSS custom property로 주입하고, 도넛 중앙의 표시 비율과 동일한 최신 계산값을 사용한다.
+- 신규 거래 반영으로 본 포지션/단타 비율이 바뀌면 도넛 custom property와 중앙 표시값을 함께 갱신하고 서로 일치하는지 검산한다.
+- 누적손익 차트 X축 날짜는 별도 특수 viewport/breakpoint를 만들지 않고 실제 plot 폭과 날짜 label 폭을 기준으로 동적으로 생략한다.
+- X축 날짜를 생략하더라도 마지막 거래일 label은 항상 표시하며, 마지막 label과 직전 표시 label이 겹치지 않도록 마지막 구간의 label 간격을 확보한다.
+
 ### Hero / 핵심 요약 KPI 고정 구성
 
 거래 리포트 상단 정보구성은 임의로 다시 선정하지 않고 아래 구성을 유지한다.

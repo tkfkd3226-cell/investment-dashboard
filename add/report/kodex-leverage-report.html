@@ -51,7 +51,7 @@ h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.045em}
 .chart-wrap{height:350px;position:relative}
 canvas{width:100%;height:100%}
 .split-box{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center}
-.donut{width:148px;height:148px;border-radius:50%;background:conic-gradient(var(--navy) 0 87.5%,#80a9e2 87.5% 100%);position:relative}
+.donut{width:148px;height:148px;border-radius:50%;background:conic-gradient(var(--navy) 0 var(--main-position-ratio),#80a9e2 var(--main-position-ratio) 100%);position:relative}
 .donut:after{content:"";position:absolute;inset:25px;border-radius:50%;background:#fff}
 .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}
 .donut-center strong{font-size:21px} .donut-center span{font-size:10px;color:var(--muted)}
@@ -295,7 +295,7 @@ details p,details li{font-size:12px;color:var(--muted)}
       <div class="card section-card composition-card">
         <div class="section-title"><div><h2>수익 구성</h2><p>거래대금 비율로 혼합일 비용 배분</p></div><span class="badge estimate">추정 분리</span></div>
         <div class="split-box">
-          <div class="donut"><div class="donut-center"><strong>87.5%</strong><span>본 포지션 비중</span></div></div>
+          <div class="donut" style="--main-position-ratio:87.5%"><div class="donut-center"><strong>87.5%</strong><span>본 포지션 비중</span></div></div>
           <div>
             <div class="legend-row"><div class="legend-name"><span class="dot" style="background:#1d3557"></span>본 포지션</div><strong>7,731,007원</strong></div>
             <div class="legend-row"><div class="legend-name"><span class="dot" style="background:#80a9e2"></span>반복 단타</div><strong>1,102,795원</strong></div>
@@ -635,6 +635,12 @@ function drawChart(){
   const step=plotW/chartData.labels.length;
   const barW=Math.min(mobile?25:34,step*.38);
 
+  // X-axis labels: thin dynamically by available plot width, without viewport-specific breakpoints.
+  ctx.font='10px system-ui';
+  const maxXLabelWidth=Math.max(...chartData.labels.map(label=>ctx.measureText(label).width),0);
+  const xLabelEvery=Math.max(1,Math.ceil((maxXLabelWidth+8)/step));
+  const lastXLabelIndex=chartData.labels.length-1;
+
   // Bars
   const dailyLabelBoxes=[];
   const collides=(a,b)=>!(a.right<b.left || a.left>b.right || a.bottom<b.top || a.top>b.bottom);
@@ -701,11 +707,14 @@ function drawChart(){
     dailyLabelBoxes.push(box);
     ctx.fillText(dailyText,cx,labelY);
 
-    // x label
-    ctx.font='10px system-ui';
-    ctx.textBaseline='top';
-    ctx.fillStyle='#6b768c';
-    ctx.fillText(chartData.labels[i],cx,H-pad.b+13);
+    // x label: always keep the last date, and reserve enough spacing before it.
+    const showXLabel=i===lastXLabelIndex || (i%xLabelEvery===0 && lastXLabelIndex-i>=xLabelEvery);
+    if(showXLabel){
+      ctx.font='10px system-ui';
+      ctx.textBaseline='top';
+      ctx.fillStyle='#6b768c';
+      ctx.fillText(chartData.labels[i],cx,H-pad.b+13);
+    }
   });
 
   // Area under cumulative line
