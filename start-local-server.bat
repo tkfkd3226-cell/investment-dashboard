@@ -3,7 +3,7 @@ if /i "%~1"=="--inner" goto :main
 
 set "LOCAL_SUITE_LOG=%~dp0start-local-server.log"
 set "LOCAL_SUITE_BAT=%~f0"
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$cmd=[char]34 + $env:LOCAL_SUITE_BAT + [char]34 + ' --inner'; & cmd.exe /d /s /c $cmd 2>&1 | Tee-Object -FilePath $env:LOCAL_SUITE_LOG; exit $LASTEXITCODE"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$cmd=[char]34 + $env:LOCAL_SUITE_BAT + [char]34 + ' --inner 2>&1'; & cmd.exe /d /s /c $cmd | Tee-Object -FilePath $env:LOCAL_SUITE_LOG; exit $LASTEXITCODE"
 exit /b %errorlevel%
 
 :main
