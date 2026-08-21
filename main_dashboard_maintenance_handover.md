@@ -3942,7 +3942,7 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 
 ## 6.13 Topbar 날짜 셀렉트 폭 정합성
 
-Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode 안에서 **동일한 가로 폭 체계**를 유지한다. Desktop은 두 셀렉트 모두 `148px`을 유지한다. Tablet(`761~1100px`)은 계산기 등 우측 action이 늘어나는 경우 작은 태블릿 폭에서도 충돌하지 않도록 **기존 Tablet 구간 안에서만** 두 셀렉트를 동일한 `flex:1 1 148px` 구조로 두고 `110~148px` 범위에서 함께 축소한다. 이를 위해 별도 breakpoint를 추가하지 않는다. Phone 세로/가로 Mobile Topbar는 두 셀렉트가 동일한 반응형 계산폭(`max 148px`)을 사용한다. 어느 UI mode에서도 한쪽만 별도 고정폭으로 축소하지 않는다.
+Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode 안에서 **동일한 가로 폭 체계**를 유지한다. Desktop은 두 셀렉트 모두 `148px`을 유지한다. Tablet(`761~1100px`)은 계산기 등 우측 action이 늘어나는 경우 작은 태블릿 폭에서도 충돌하지 않도록 **기존 Tablet 구간 안에서만** 날짜 그룹을 `minmax(0,1fr)`의 실제 shrink 영역으로 두고, 우측 action을 별도 `auto` 열로 유지한다. 날짜 그룹은 최대 `302px`(148px + gap + 148px)이며 두 셀렉트는 `max-width:148px; flex:1 1 148px`으로 같은 폭을 유지하면서 **가용 공간이 부족할 때만 함께 축소**한다. 충분한 공간에서는 다시 각각 `148px`로 복원되며, 이를 위해 별도 breakpoint를 추가하지 않는다. Phone 세로/가로 Mobile Topbar는 두 셀렉트가 동일한 반응형 계산폭(`max 148px`)을 사용한다. 어느 UI mode에서도 한쪽만 별도 고정폭으로 축소하지 않는다.
 
 # 7. JavaScript 구현 세부 규칙
 
@@ -4757,7 +4757,7 @@ common
 
 - 가로폰 기능 media 상한 `900px → 960px`으로 확대, `height≤500 + hover:none + pointer:coarse`는 유지
 - iPhone Safari 실기기에서 Mobile CSS가 함께 매치되는 경우를 반영해 **Phone Landscape Topbar를 세로폰과 동일한 Mobile Topbar로 통일**했다. Tablet은 기존 축약 action 버튼을 유지하고 우측 edge TOC 대신 Topbar hamburger에서 목차만 제공하며, 웹만 edge TOC를 유지한다. 가로폰 모달은 중앙형을 유지한다.
-- Tablet Topbar의 `년/월`·`일` 셀렉트는 계산기 버튼이 노출되는 작은 태블릿에서 우측 action과 충돌하지 않도록 기존 `761~1100px` media 안에서만 `110~148px` 동일 flex-shrink를 허용한다. 새 breakpoint는 만들지 않는다.
+- Tablet Topbar의 `년/월`·`일` 셀렉트는 계산기 버튼이 노출되는 작은 태블릿에서 우측 action과 충돌하지 않도록 기존 `761~1100px` media 안에서 날짜 그룹 자체를 shrink 영역으로 둔다. 공간이 충분하면 두 셀렉트는 각각 `148px`을 유지하고, 부족할 때만 같은 폭으로 함께 축소한다. 새 breakpoint는 만들지 않는다.
 - 종목별 `평가금액 비중` 합계 카드는 가로폰 4열에서 2칸 span으로 복원하고, `투자원금 원천 및 검산` 3카드는 세로·가로폰 공통 compact padding으로 통일
 - Phone Shared에서 모바일 카드보기 UI와 브랜드 접두어 축약을 분리해 세로폰 전용으로 이동
 - 가로폰 성과/현황/변동은 항상 표를 사용하고 세로폰과 동일한 compact 표 밀도 + 첫 열 sticky 유지

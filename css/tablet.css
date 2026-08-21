@@ -154,13 +154,15 @@
     .topbar-label-full{display:none}
     .topbar-label-short{display:inline}
     .switcher{padding-left:var(--space-2xl);padding-right:var(--space-2xl)}
+    .date-picker{grid-template-columns:minmax(0,1fr) auto}
+    .date-picker-center{width:100%;max-width:302px}
+    .date-picker-action{grid-column:2;gap:var(--space-md)}
     .month-select,
     .day-select{
-      min-width:110px;
+      min-width:0;
       max-width:148px;
       flex:1 1 148px;
     }
-    .date-picker-action{gap:var(--space-md)}
     .date-tool-btn{padding-left:var(--space-xl);padding-right:var(--space-xl);gap:var(--space-2xs);font-size:var(--type-size-2xs)}
     .date-tool-action-icon{margin-right:var(--space-2xs)}
     .date-action-menu-wrap{display:block;position:relative;flex:0 0 auto}
