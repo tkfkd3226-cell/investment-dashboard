@@ -570,6 +570,93 @@ body{
   padding:var(--space-10xl);
 }
 
+
+/* Market AI Signal · 상단 날짜바 바로 아래의 현재 시장 + AI 신호 독립 strip */
+#market-ai-section{
+  min-width:0;
+  margin:0 0 var(--space-4xl);
+}
+.market-ai-panel{
+  display:flex;
+  align-items:center;
+  gap:var(--space-3xl);
+  min-width:0;
+  min-height:38px;
+  padding:7px 12px;
+  border:1px solid var(--line);
+  border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
+  background:var(--card);
+  box-shadow:var(--shadow-low);
+  font-size:var(--type-size-sm);
+  line-height:1.2;
+}
+.market-ai-heading{
+  display:flex;
+  align-items:center;
+  gap:var(--space-xl);
+  flex:0 0 auto;
+  min-width:0;
+}
+.market-ai-title{
+  color:var(--ink);
+  font-weight:var(--type-weight-strong);
+  letter-spacing:-.02em;
+  white-space:nowrap;
+}
+.market-ai-status{
+  max-width:360px;
+  overflow:hidden;
+  color:var(--muted);
+  font-weight:var(--type-weight-bold);
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.market-ai-desktop{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex:1 1 auto;
+  min-width:0;
+  overflow:hidden;
+  padding-left:var(--space-2xl);
+  border-left:1px solid var(--line);
+  white-space:nowrap;
+}
+.market-ai-desktop[hidden],
+.market-ai-mobile[hidden]{display:none}
+.market-ai-desktop-metric{
+  display:inline-flex;
+  align-items:baseline;
+  gap:3px;
+  flex:0 0 auto;
+  min-width:0;
+  padding:0 var(--space-2xl);
+  border-left:1px solid var(--line);
+}
+.market-ai-desktop-metric:first-child{
+  padding-left:0;
+  border-left:0;
+}
+.market-ai-desktop-label,
+.market-ai-desktop-signal-prefix,
+.market-ai-desktop-sep{
+  color:var(--muted);
+  font-weight:var(--type-weight-bold);
+  letter-spacing:-.02em;
+}
+.market-ai-desktop-value,
+.market-ai-desktop-signal,
+.market-ai-desktop-change{
+  font-weight:var(--type-weight-emphasis);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em;
+}
+.market-ai-desktop-change{
+  margin-left:1px;
+  font-size:.92em;
+}
+.market-ai-mobile{display:none}
+
 .hero{
   --hero-pad-y:20px;
   --hero-pad-x:24px;

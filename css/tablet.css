@@ -203,5 +203,24 @@
       --data-table-line-height:var(--type-line-compact);
       --data-table-bar-width:64px;
     }
+
+  /* Market AI Tablet · 상단 독립 strip을 한 줄 compact 순서로 유지 */
+    #market-ai-section{margin-bottom:var(--space-3xl)}
+    .market-ai-panel{
+      gap:var(--space-2xl);
+      min-height:36px;
+      padding:6px 9px;
+      font-size:11px;
+    }
+    .market-ai-heading{gap:var(--space-md)}
+    .market-ai-desktop{
+      padding-left:var(--space-xl);
+    }
+    .market-ai-desktop-metric{
+      gap:2px;
+      padding:0 var(--space-xl);
+    }
+    .market-ai-desktop-change{font-size:.9em}
+
 }
 

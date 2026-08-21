@@ -294,5 +294,97 @@
     }
 
 
+
+  /* Market AI Mobile · 실제 시장 3열 + AI 신호 4열로 의미별 분리 */
+    #market-ai-section{margin-bottom:var(--space-2xl)}
+    .market-ai-panel{
+      display:block;
+      min-height:0;
+      padding:var(--space-xl) var(--space-2xl);
+      font-size:var(--type-size-xs);
+    }
+    .market-ai-heading{
+      justify-content:space-between;
+      gap:var(--space-2xl);
+      margin-bottom:var(--space-xl);
+      padding-bottom:var(--space-lg);
+      border-bottom:1px solid var(--line);
+    }
+    .market-ai-title{
+      font-size:11.5px;
+      line-height:1.2;
+    }
+    .market-ai-status{
+      max-width:62%;
+      text-align:right;
+      font-size:var(--type-size-2xs);
+    }
+    .market-ai-desktop{display:none}
+    .market-ai-mobile{
+      display:grid;
+      gap:var(--space-xl);
+      min-width:0;
+    }
+    .market-ai-mobile-group{min-width:0}
+    .market-ai-mobile-group-label{
+      display:block;
+      margin:0 0 var(--space-md);
+      color:var(--muted);
+      font-size:9.5px;
+      font-weight:var(--type-weight-bold);
+      line-height:1.15;
+      letter-spacing:-.02em;
+    }
+    .market-ai-mobile-grid{
+      display:grid;
+      align-items:stretch;
+      min-width:0;
+    }
+    .market-ai-mobile-market-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .market-ai-mobile-signal-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .market-ai-mobile-metric{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:2px;
+      min-width:0;
+      min-height:32px;
+      padding:0 var(--space-sm);
+      text-align:center;
+    }
+    .market-ai-mobile-metric + .market-ai-mobile-metric{border-left:1px solid var(--line)}
+    .market-ai-mobile-label{
+      display:block;
+      width:100%;
+      overflow:hidden;
+      color:var(--muted);
+      font-size:9.5px;
+      font-weight:var(--type-weight-bold);
+      line-height:1.1;
+      letter-spacing:-.02em;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .market-ai-mobile-value-line{
+      display:flex;
+      align-items:baseline;
+      justify-content:center;
+      gap:3px;
+      min-width:0;
+      white-space:nowrap;
+    }
+    .market-ai-mobile-value,
+    .market-ai-mobile-signal,
+    .market-ai-mobile-change{
+      font-variant-numeric:tabular-nums;
+      font-weight:var(--type-weight-emphasis);
+      letter-spacing:-.02em;
+      white-space:nowrap;
+    }
+    .market-ai-mobile-value,
+    .market-ai-mobile-signal{font-size:11.5px}
+    .market-ai-mobile-change{font-size:9.5px}
+
 }
 
