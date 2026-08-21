@@ -191,15 +191,6 @@
     #currentPriceSlot,#currentPriceAnchor{display:none}
     .strategy-card.no-badge .badge{display:none}
     .tabs.settled-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .five-grid{grid-template-columns:repeat(5,minmax(135px,1fr));min-width:675px}
-    .five-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
-    .five-grid .cell:nth-child(5n){border-right:0}
-    .simple-grid{grid-template-columns:repeat(4,minmax(145px,1fr));min-width:580px}
-    .simple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
-    .simple-grid .cell:nth-child(4n){border-right:0}
-    .triple-grid{grid-template-columns:repeat(3,minmax(165px,1fr));min-width:495px}
-    .triple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
-    .triple-grid .cell:nth-child(3n){border-right:0}
 
     .input-grid.no-prior-layout .current-column{display:contents}
     .input-grid.no-prior-layout .current-purchase-preset{display:flex;grid-area:purchase-preset}
@@ -277,6 +268,16 @@
     .data-grid .head{background:#f2f5f9;color:#5d6779;font-size:11px;font-weight:800;text-align:center;vertical-align:middle}
     .data-grid .val{font-weight:800;text-align:center;font-size:13px;vertical-align:middle}
     .data-grid .lastrow{border-bottom:0}
+    /* 열 수가 다른 상세표는 공통 7열 .data-grid 뒤에서 재정의해야 함 */
+    .five-grid{grid-template-columns:repeat(5,minmax(135px,1fr));min-width:675px}
+    .five-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
+    .five-grid .cell:nth-child(5n){border-right:0}
+    .simple-grid{grid-template-columns:repeat(4,minmax(145px,1fr));min-width:580px}
+    .simple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
+    .simple-grid .cell:nth-child(4n){border-right:0}
+    .triple-grid{grid-template-columns:repeat(3,minmax(165px,1fr));min-width:495px}
+    .triple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
+    .triple-grid .cell:nth-child(3n){border-right:0}
     .loan-grid{grid-template-columns:repeat(6,minmax(145px,1fr));min-width:870px}
     .loan-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
     .loan-grid .cell:nth-child(6n){border-right:0}
