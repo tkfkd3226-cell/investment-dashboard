@@ -571,7 +571,76 @@ body{
 }
 
 
-/* Market AI Signal · Hero 우측 보조 카드 */
+.hero{
+  --hero-pad-y:20px;
+  --hero-pad-x:24px;
+  --hero-radius:19px;
+  --hero-title-size:27px;
+  --hero-title-line:1.16;
+  --hero-title-gap-y:8px;
+  --hero-title-gap-x:8px;
+  --hero-basis-size:13.5px;
+  --hero-pill-margin-top:10px;
+  --hero-pill-gap:6px;
+  --hero-pill-pad-y:5px;
+  --hero-pill-pad-x:9px;
+  --hero-pill-size:12px;
+  --hero-pill-line:1.3;
+  --hero-decor-size:270px;
+  --hero-decor-right:-76px;
+  --hero-decor-top:-70px;
+  position:relative;
+  overflow:hidden;
+  padding:var(--hero-pad-y) var(--hero-pad-x);
+  border-radius:min(var(--hero-radius),var(--corner-surface-cap));
+  background:
+    radial-gradient(circle at 94% 8%,var(--hero-glow),transparent 26%),
+    var(--hero-bg);
+  color:var(--hero-title-color);
+  box-shadow:var(--hero-shadow);
+}
+
+.hero:after{
+  content:"";
+  position:absolute;
+  right:var(--hero-decor-right);
+  top:var(--hero-decor-top);
+  width:var(--hero-decor-size);
+  height:var(--hero-decor-size);
+  border-radius:var(--radius-pill);
+  background:var(--hero-decor-bg);
+}
+
+.hero-title-row{
+  display:flex;
+  align-items:baseline;
+  flex-wrap:wrap;
+  gap:var(--hero-title-gap-y) var(--hero-title-gap-x);
+  position:relative;
+  z-index:1;
+}
+
+.hero h1{
+  margin:0;
+  color:var(--hero-title-color);
+  font-size:var(--hero-title-size);
+  line-height:var(--hero-title-line);
+  letter-spacing:-.04em;
+}
+
+.hero-basis{
+  color:var(--hero-basis-color);
+  font-size:var(--hero-basis-size);
+  font-weight:var(--type-weight-bold);
+  letter-spacing:-.02em;
+  white-space:nowrap;
+  user-select:none;
+  touch-action:manipulation;
+}
+
+
+/* Market AI Hero Extension · Market AI Hero 확장
+   Desktop baseline은 Hero 우측 보조 카드이며 Tablet/Phone 차이는 역할별 CSS에서 override한다. */
 .hero.market-ai-mounted{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(500px,620px);
@@ -692,73 +761,6 @@ html.dark #market-ai-section{
 .market-ai-desktop-change{font-size:9.5px}
 .market-ai-desktop .positive{color:var(--value-positive)}
 .market-ai-desktop .negative{color:var(--value-negative)}
-
-.hero{
-  --hero-pad-y:20px;
-  --hero-pad-x:24px;
-  --hero-radius:19px;
-  --hero-title-size:27px;
-  --hero-title-line:1.16;
-  --hero-title-gap-y:8px;
-  --hero-title-gap-x:8px;
-  --hero-basis-size:13.5px;
-  --hero-pill-margin-top:10px;
-  --hero-pill-gap:6px;
-  --hero-pill-pad-y:5px;
-  --hero-pill-pad-x:9px;
-  --hero-pill-size:12px;
-  --hero-pill-line:1.3;
-  --hero-decor-size:270px;
-  --hero-decor-right:-76px;
-  --hero-decor-top:-70px;
-  position:relative;
-  overflow:hidden;
-  padding:var(--hero-pad-y) var(--hero-pad-x);
-  border-radius:min(var(--hero-radius),var(--corner-surface-cap));
-  background:
-    radial-gradient(circle at 94% 8%,var(--hero-glow),transparent 26%),
-    var(--hero-bg);
-  color:var(--hero-title-color);
-  box-shadow:var(--hero-shadow);
-}
-
-.hero:after{
-  content:"";
-  position:absolute;
-  right:var(--hero-decor-right);
-  top:var(--hero-decor-top);
-  width:var(--hero-decor-size);
-  height:var(--hero-decor-size);
-  border-radius:var(--radius-pill);
-  background:var(--hero-decor-bg);
-}
-
-.hero-title-row{
-  display:flex;
-  align-items:baseline;
-  flex-wrap:wrap;
-  gap:var(--hero-title-gap-y) var(--hero-title-gap-x);
-  position:relative;
-  z-index:1;
-}
-
-.hero h1{
-  margin:0;
-  color:var(--hero-title-color);
-  font-size:var(--hero-title-size);
-  line-height:var(--hero-title-line);
-  letter-spacing:-.04em;
-}
-
-.hero-basis{
-  color:var(--hero-basis-color);
-  font-size:var(--hero-basis-size);
-  font-weight:var(--type-weight-bold);
-  letter-spacing:-.02em;
-  white-space:nowrap;
-  user-select:none;
-  touch-action:manipulation;
-}
 
 .grid{
   display:grid;

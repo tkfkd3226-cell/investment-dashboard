@@ -111,15 +111,17 @@
 }
 
 /* -------------------------------------------------------------------------
-   Asset Detail · 자산 상세 — Compact Desktop 1101~1280px
-   Why · 이유: 1101~1280px Desktop에서 현황 + 전일대비 2열을 유지하면
-   각 표의 가용폭이 부족해져 내부 가로 스크롤이 생기므로 공통 상세 grid를 1열로 전환한다.
-   Scope · 범위: 증권/퇴직연금이 공유하는 .asset-detail-grid에만 적용한다.
+   Compact Desktop · 중간폭 웹 — 1101~1280px
+   Why · 이유: Desktop baseline은 유지하되 이 구간에서 폭이 빠듯해지는 기능만 보정한다.
+   Scope · 범위: Asset Detail grid + Market AI Hero 확장에만 적용한다.
    ------------------------------------------------------------------------- */
 @media (min-width:1101px) and (max-width:1280px){
+  /* Asset Detail Compact · 현황 + 전일대비 2열의 내부 스크롤을 피하도록 상세 grid를 1열로 전환 */
     .asset-detail-grid{
       grid-template-columns:1fr;
     }
+
+  /* Market AI Compact Desktop · Hero 우측 보조 카드 폭과 내부 밀도만 축소 */
     .hero.market-ai-mounted{
       grid-template-columns:minmax(0,1fr) minmax(460px,500px);
       column-gap:var(--space-3xl);
@@ -139,7 +141,7 @@
    ------------------------------------------------------------------------- */
 @media (max-width:760px),
        (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  /* Market AI Phone · 실제 폰 세로/가로 모두 숨김 + Hero 레이아웃 원복 */
+  /* Market AI Phone · 실제 폰에서는 UI를 숨기고 mounted Hero의 grid를 기본 block 흐름으로 복원 */
     .hero.market-ai-mounted{display:block}
     #market-ai-section{display:none}
 

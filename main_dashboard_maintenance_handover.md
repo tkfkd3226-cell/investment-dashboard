@@ -2734,7 +2734,7 @@ app             → cross-module orchestration / boot
 
 반대로 책임 경계가 명확하지 않은 작은 기능마다 새 파일을 추가하지 않는다.
 
-`dashboard-market-ai.js`는 현재 이 7파일 main dependency graph와 분리되어 `index.html`에서 독립 module로 로드되는 standalone adapter다. 이 파일을 이유로 main graph의 dependency 규칙을 변경하지 않는다.
+`dashboard-market-ai.js`는 현재 이 7파일 main dependency graph와 분리되어 `index.html`에서 독립 module로 로드되는 standalone adapter다. 로컬 Market AI API의 현재 snapshot/signal 조회와 Hero 보조 UI mount를 자체 책임지며, main graph 모듈을 import하거나 그 내부 state를 우회 접근하지 않는다. 이 파일을 이유로 main graph의 dependency 규칙을 변경하지 않는다.
 
 
 ## 4.4 `dashboard-core.js` 책임
@@ -3017,6 +3017,18 @@ Topbar / Navigation / 일반 UI
 
 cross-module event routing / render orchestration / boot
 → js/dashboard-app.js
+
+로컬 Market AI 현재 신호 조회 / Hero 보조 UI standalone adapter
+→ js/dashboard-market-ai.js
+
+Market AI Desktop baseline / 공통 component
+→ css/common.css의 Hero 확장 영역
+
+Market AI Tablet 배치
+→ css/tablet.css의 Hero 인접 영역
+
+Market AI 1101~1280 compact Desktop / 실제 Phone 숨김
+→ css/special.css의 해당 기능 viewport
 
 투자 계산기 HTML
 → add/calc.html
@@ -3612,7 +3624,7 @@ common.css
 - `common.css`: viewport와 무관한 기본 component, theme/token, 공통 layout, **Desktop baseline**, `max-width:1100px` / `min-width:761px` 같은 Responsive Shared
 - `tablet.css`: `761px ~ 1100px`에서 common의 Desktop baseline을 태블릿 표현으로 변경하는 전용 규칙
 - `mobile.css`: `max-width:760px` 모바일 전용 규칙
-- `special.css`: `≤400px`, `1101~1280px Asset Detail`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
+- `special.css`: `≤400px`, `1101~1280px Compact Desktop(Asset Detail + Market AI)`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
 - `interaction.css`: `hover:hover + pointer:fine`처럼 viewport가 아닌 입력장치 조건
 - `print.css`: 인쇄 전용 최종 override
 
@@ -3661,13 +3673,23 @@ Mobile · 모바일: 760px 이하
 → 초소형 화면에서 계좌별 성과 정보 구조 보정
 
 1101~1280px
-→ Desktop Asset Detail 2-column 유지 시 가용폭 부족 대응
+→ Compact Desktop 예외: Asset Detail 2-column 가용폭 보정 + Market AI Hero 폭/밀도 보정
 
 Phone Landscape
 → iPhone 13 844×390부터 956×440급 대형 스마트폰까지 width만 보면 Tablet으로 오판되는 실제 터치폰 가로모드 대응
 ```
 
 `hover:hover + pointer:fine`, `print`는 viewport가 아니므로 Desktop/Tablet/Mobile과 분리한다.
+
+Market AI처럼 기존 component를 확장하는 기능은 별도 파일 하단에 모으지 않고 **기준 component와 가까운 순서**로 둔다. 현재 기준은 다음과 같다.
+
+```text
+common.css  → Hero 기본 규칙 직후 Market AI Hero Extension
+tablet.css  → Hero Tablet 규칙 직후 Market AI Tablet
+special.css → 동일 특수 media 안에서 기능별 sub-comment로 범위를 명시
+```
+
+특수 media가 같은 조건을 공유하는 경우 media block을 불필요하게 복제하기보다 하나의 trigger block 안에서 기능별 sub-comment를 분리하고, 상단 `Scope` 주석에 포함 기능을 정확히 적는다.
 
 `tablet.css`, `mobile.css` 내부의 기능 섹션 순서는 가능한 한 동일하게 맞춰 common baseline과 각 viewport 차이를 빠르게 비교할 수 있게 한다. 예:
 
@@ -3762,7 +3784,7 @@ New
 
 현재 허용된 대표 기능 예외는 다음 두 가지다.
 
-- `1101~1280px`: Desktop의 `.asset-detail-grid`만 1열로 전환한다. `1100px 이하`는 기존 Tablet/Mobile 규칙이 담당하며 이 조건을 다른 영역의 일반 breakpoint로 확대하지 않는다.
+- `1101~1280px`: Compact Desktop 기능 예외다. `.asset-detail-grid`는 1열로 전환하고, Market AI Hero는 우측 카드 폭과 내부 타이포/여백만 축소한다. `1100px 이하`는 기존 Tablet/Mobile/Phone 규칙이 담당하며 이 조건을 다른 영역의 일반 breakpoint로 확대하지 않는다.
 - `landscape + width≤960 + height≤500 + hover:none + pointer:coarse`: 실제 스마트폰 가로 판정에만 사용한다. `960px`을 일반 breakpoint로 재사용하지 않는다.
 
 공통 Asset Detail CSS는 기존 generic class/token을 우선 재사용하고, 실제로 양쪽 자산이 공유하는 의미에만 최소 `.asset-*` semantic class를 사용한다. 현황/전일변동/상승분기여도에서 공통화된 selector는 neutral `.asset-*`가 canonical이며, 같은 역할의 `.pension-*` legacy alias를 병렬로 유지하지 않는다. 위험자산 70% 룰·퇴직연금 조정/PIN/납입 등 연금 전용 UI는 계속 `.pension-*`를 사용한다.
@@ -4808,6 +4830,7 @@ common
 현재 메인 JavaScript 기준:
 
 ```text
+main dependency graph
 js/
 ├─ dashboard-core.js
 ├─ dashboard-ui-common.js
@@ -4816,6 +4839,9 @@ js/
 ├─ dashboard-pension.js
 ├─ dashboard-pension-editor.js
 └─ dashboard-app.js
+
+standalone adapter
+└─ dashboard-market-ai.js
 ```
 
 현재 메인 CSS 기준:
@@ -5231,6 +5257,7 @@ README는 **저장소의 기능·전체 동작 구조·프로젝트 구조·데�
 [ ] 과거 코드 기억을 최신본으로 가정하지 않았는가
 [ ] 현재 ES Module 구조를 유지하는가
 [ ] 수정 책임 파일이 맞는가
+[ ] standalone Market AI 변경이면 main 7모듈 graph와 불필요하게 결합하지 않았는가
 [ ] 공통 canonical CSS rule을 먼저 찾았는가
 [ ] 새 breakpoint가 정말 필요한가
 [ ] Phone Landscape 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하는가

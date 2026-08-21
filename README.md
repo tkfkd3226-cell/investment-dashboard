@@ -2,7 +2,7 @@
 
 삼성증권 증권계좌와 퇴직연금 계좌의 **날짜별 투자 성과를 복원·검산·분석하기 위한 정적 웹 대시보드**입니다.
 
-메인 화면은 GitHub Pages에서 제공하며, KRX 가격과 성과 스냅샷은 GitHub Actions + Python으로 갱신합니다. 퇴직연금 금액 조정과 KRX 갱신 요청처럼 브라우저에서 직접 파일을 수정할 수 없는 쓰기 작업은 Google Apps Script Web App을 통해 연결합니다.
+메인 화면은 GitHub Pages에서 제공하며, KRX 가격과 성과 스냅샷은 GitHub Actions + Python으로 갱신합니다. 퇴직연금 금액 조정과 KRX 갱신 요청처럼 브라우저에서 직접 파일을 수정할 수 없는 쓰기 작업은 Google Apps Script Web App을 통해 연결합니다. 로컬 실행 시에는 별도 `market-ai` 프로젝트의 현재 시장·AI 신호를 Hero 보조 카드로 선택적으로 표시합니다.
 
 이 저장소는 단순 시세 조회 화면이 아니라 다음 세 가지를 함께 관리하는 것을 목표로 합니다.
 
@@ -52,7 +52,14 @@
 - GitHub Actions 수동 실행을 통한 가격 및 성과 스냅샷 갱신
 - 과거 거래일 보완 및 과거 장중 데이터의 종가 확정
 
-### 1.5 부가 도구
+### 1.5 로컬 Market AI 연동
+
+- `dashboard-market-ai.js` standalone adapter를 통한 현재 시장·AI 신호 표시
+- Desktop Hero 우측 / Tablet Hero 하단 보조 카드
+- 실제 Phone UI와 GitHub Pages 등 비로컬 환경에서는 표시하지 않음
+- 선택한 과거 기준일과 분리된 **현재 시점 신호**로 동작
+
+### 1.6 부가 도구
 
 - 투자 계산기: `add/calc.html`
 - 기간별 거래/성과 리포트: `add/report/`
@@ -65,7 +72,7 @@
 
 메인 화면은 `index.html`에서 시작하고, `dashboard-app.js`가 **main dependency graph의 단일 ES Module entry point**로 나머지 메인 모듈을 조율합니다. `dashboard-market-ai.js`는 이 graph와 분리된 standalone module로 `index.html`에서 독립 로드됩니다.
 
-가로로 긴 하나의 도식 대신 실제 동작을 **조회 / 퇴직연금 쓰기 / KRX 갱신**의 세 흐름으로 나눠 보면 다음과 같습니다.
+가로로 긴 하나의 도식 대신 실제 동작을 **조회 / 퇴직연금 쓰기 / KRX 갱신 / 로컬 Market AI 조회**의 네 흐름으로 나눠 보면 다음과 같습니다.
 
 ### 2.1 화면 조회 흐름
 
@@ -124,6 +131,22 @@ update_prices.py
 prices.json
 performance_snapshots.json
 ```
+
+### 2.4 로컬 Market AI 조회 흐름
+
+```text
+Local Browser (:8000)
+        ↓
+dashboard-market-ai.js
+        ↓
+Market AI FastAPI (:8001)
+        ↓
+현재 market snapshot / signal
+        ↓
+Hero 보조 카드
+```
+
+이 흐름은 main dependency graph와 분리된 조회 전용 adapter입니다. 로컬 Market AI API가 없거나 비로컬 환경이면 메인 대시보드 기능을 건드리지 않고 Market AI UI만 표시하지 않습니다.
 
 프론트엔드는 별도 번들러나 프레임워크 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 동작합니다.
 
@@ -194,7 +217,7 @@ investment-dashboard-main/
 | `dashboard-pension.js` | 퇴직연금 **View** — 현황, 상품 정보, 인사이트, 시각화 tooltip |
 | `dashboard-pension-editor.js` | 퇴직연금 **Editor** — 금액조정, PIN, batch, 저장·삭제 |
 | `dashboard-app.js` | 날짜·별도수익 등 cross-module 흐름, 전체 render orchestration, 초기화·boot |
-| `dashboard-market-ai.js` | 메인 dependency graph와 분리되어 독립 로드되는 standalone adapter |
+| `dashboard-market-ai.js` | 로컬 Market AI API를 polling하고 Hero 보조 UI를 자체 mount/re-mount하는 standalone adapter; main graph와 분리 |
 
 ### 4.2 Dependency 방향
 
@@ -274,6 +297,8 @@ Mobile  : 760px 이하
 ```
 
 추가 breakpoint는 특정 기능에 실제로 필요한 경우에만 사용합니다.
+
+Market AI UI의 CSS도 같은 역할 분리를 따릅니다. Desktop baseline과 공통 component는 `common.css`의 **Hero 확장 영역**, Tablet 배치는 `tablet.css`의 **Hero 인접 영역**, 1101~1280 compact Desktop 및 실제 Phone 숨김은 `special.css`의 해당 기능 viewport에서 관리합니다. `dashboard-market-ai.js` 전용 class라는 이유로 파일 하단에 별도 override 묶음을 추가하지 않습니다.
 
 유지보수 시 기본 원칙:
 

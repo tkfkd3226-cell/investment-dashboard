@@ -24,6 +24,22 @@
       --hero-decor-right:-72px;
     }
 
+  /* Market AI Tablet · common의 Hero 우측 2열을 Hero 하단 1열 보조 카드로 전환 */
+    .hero.market-ai-mounted{
+      grid-template-columns:1fr;
+      grid-template-areas:
+        "title"
+        "pills"
+        "market";
+      column-gap:0;
+    }
+    .hero.market-ai-mounted #market-ai-section{margin-top:11px}
+    .market-ai-panel{padding:9px 11px}
+    .market-ai-heading{margin-bottom:6px}
+    .market-ai-market-row{grid-template-columns:46px repeat(3,minmax(0,1fr))}
+    .market-ai-signal-row{grid-template-columns:46px repeat(4,minmax(0,1fr))}
+    .market-ai-desktop-metric{padding:0 5px}
+
     .mini-card{
       --mini-card-pad-y:10px;
       --mini-card-pad-x:10px;
@@ -203,22 +219,6 @@
       --data-table-line-height:var(--type-line-compact);
       --data-table-bar-width:64px;
     }
-
-  /* Market AI Tablet · Hero 내부 하단 보조 카드 */
-    .hero.market-ai-mounted{
-      grid-template-columns:1fr;
-      grid-template-areas:
-        "title"
-        "pills"
-        "market";
-      column-gap:0;
-    }
-    .hero.market-ai-mounted #market-ai-section{margin-top:11px}
-    .market-ai-panel{padding:9px 11px}
-    .market-ai-heading{margin-bottom:6px}
-    .market-ai-market-row{grid-template-columns:46px repeat(3,minmax(0,1fr))}
-    .market-ai-signal-row{grid-template-columns:46px repeat(4,minmax(0,1fr))}
-    .market-ai-desktop-metric{padding:0 5px}
 
 }
 
