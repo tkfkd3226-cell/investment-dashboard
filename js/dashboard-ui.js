@@ -310,8 +310,11 @@ function setupSectionNavigationTracking(){
     uiRuntimeState.sectionNavigationBound=true;
     window.addEventListener('scroll',scheduleSectionNavigationSync,{passive:true});
     window.addEventListener('resize',()=>{
+      const shouldHaveDesktopToc=desktopEdgeTocUi();
+      const hasDesktopToc=!!document.getElementById('desktopEdgeToc');
+      if(shouldHaveDesktopToc!==hasDesktopToc)ensureDesktopEdgeToc();
       scheduleSectionNavigationSync();
-      if(!desktopEdgeTocUi())closeDesktopEdgeToc();
+      if(!shouldHaveDesktopToc)closeDesktopEdgeToc();
     },{passive:true});
     document.addEventListener('click',event=>{
       const toc=document.getElementById('desktopEdgeToc');
