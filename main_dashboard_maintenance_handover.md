@@ -2630,24 +2630,13 @@ investment-dashboard-main/
 │  ├─ dashboard-pension-editor.js
 │  ├─ dashboard-pension.js
 │  ├─ dashboard-ui-common.js
-│  └─ dashboard-ui.js
+│  ├─ dashboard-ui.js
+│  └─ dashboard-market-ai.js
 ├─ main_dashboard_maintenance_handover.md
 ├─ requirements.txt
 ├─ scripts/update_prices.py
 └─ start-local-server.bat
 ```
-
-현재 확인된 메인 JS 참고 규모:
-
-| 파일 | 줄 수 |
-|---|---:|
-| `dashboard-core.js` | 705 |
-| `dashboard-ui-common.js` | 129 |
-| `dashboard-charts.js` | 1,407 |
-| `dashboard-ui.js` | 958 |
-| `dashboard-pension.js` | 140 |
-| `dashboard-pension-editor.js` | 1,158 |
-| `dashboard-app.js` | 195 |
 
 메인 CSS는 6개 역할 파일로 분리되어 있으며 Desktop은 `common.css` baseline을 사용하고 `css/style.css`는 최종 구조에서 제거되었다. 파일별 줄 수와 크기는 변경 시점의 snapshot으로만 보고 고정값으로 취급하지 않는다.
 
@@ -2677,7 +2666,8 @@ investment-dashboard-main/
 │  ├─ dashboard-ui.js
 │  ├─ dashboard-pension.js
 │  ├─ dashboard-pension-editor.js
-│  └─ dashboard-app.js
+│  ├─ dashboard-app.js
+│  └─ dashboard-market-ai.js  # main graph와 분리된 standalone module
 │
 └─ add/
    ├─ calc.html
@@ -2708,9 +2698,9 @@ inline calc JavaScript
 등의 구조가 현재도 존재한다고 가정하지 않는다.
 
 
-## 4.3 메인 JavaScript는 현재 7파일 ES Module 구조 유지
+## 4.3 메인 dependency graph는 7파일 ES Module 구조 유지
 
-현재 메인 JavaScript 구조는 다음과 같다.
+현재 메인 dependency graph는 다음과 같다.
 
 ```text
 js/
@@ -2727,7 +2717,7 @@ js/
 
 ```text
 core            → 데이터 / 계산 / 공통 state / loading
-ui-common      → 공통 저수준 DOM / 접근성 / 마크업 helper
+ui-common      → 공통 저수준 DOM / 접근성 / 마크업 / 반응형 UI 판정 helper
 charts          → 차트 state / SVG / chart action
 ui              → 일반 UI / topbar / navigation / UI action
 pension         → 퇴직연금 조회 View
@@ -2738,6 +2728,8 @@ app             → cross-module orchestration / boot
 단순 수정 때문에 다시 하나의 거대한 JS 파일로 합치지 않는다.
 
 반대로 책임 경계가 명확하지 않은 작은 기능마다 새 파일을 추가하지 않는다.
+
+`dashboard-market-ai.js`는 현재 이 7파일 main dependency graph와 분리되어 `index.html`에서 독립 module로 로드되는 standalone adapter다. 이 파일을 이유로 main graph의 dependency 규칙을 변경하지 않는다.
 
 
 ## 4.4 `dashboard-core.js` 책임
@@ -3115,7 +3107,7 @@ register hook registry
 
 ## 4.14 `index.html` module entry와 cache bust 정책
 
-현재 `index.html`은 메인 JS 7개를 classic script로 순서대로 load하지 않는다.
+현재 `index.html`은 main dependency graph를 classic script 다중 load로 구성하지 않는다.
 
 현재 구조:
 
@@ -3123,6 +3115,8 @@ register hook registry
 importmap
 +
 <script type="module" src="js/dashboard-app.js?...">
++
+<script type="module" src="js/dashboard-market-ai.js?...">  # standalone
 ```
 
 `index.html`에서 `Date.now()`를 기준으로 module dependency와 app entry에 동일 계열 cache bust를 적용한다.
@@ -3180,7 +3174,7 @@ window/globalThis state bridge
 
 ## 4.16 현재 ES Module 구조와 단일 entry를 유지한다
 
-현재 메인 JavaScript는 **7개 ES Module + `dashboard-app.js` 단일 entry** 구조로 동작한다.
+현재 main dependency graph는 **7개 ES Module**이며 `dashboard-app.js`가 단일 entry다. `dashboard-market-ai.js`는 이 graph와 분리된 standalone module이다.
 
 현재 기본 구조:
 
@@ -3279,11 +3273,9 @@ Mobile  ≤ 760px
 - 별도수익은 compact control 크기는 유지하되 가로폰에서는 `별도수익` 라벨과 활성 시 선택일 설명을 표시
 - 퇴직연금 / PIN / KRX 모달은 가로폰에서 중앙 modal 레이아웃을 유지한다. Mobile bottom-sheet 규칙이 실기기에서 함께 매치되어도 Phone Landscape가 중앙형 구조를 복원하고, iPhone Safari 확대 방지가 필요한 input font만 16px 계열을 사용한다.
 
-JavaScript의 차트 반응형 판정도 역할을 분리한다. `compactPhoneChartUi()`는 세로폰 + 가로폰의 compact 표현에 사용하고, `portraitPhoneChartFlow()`는 세로폰 전용 control-row / 스크롤 flow에만 사용한다. `phoneLandscapeUi()`는 위 `960×500 + coarse/no-hover` 조건의 가로폰 배치 판정만 담당한다.
+JavaScript 반응형 판정은 `compactPhoneChartUi()`(세로폰+가로폰 compact), `portraitPhoneChartFlow()`(세로폰 전용 flow), `phoneLandscapeUi()`(가로폰 판정)로 역할을 나눈다. `phoneLandscapeUi()`는 `dashboard-ui-common.js`의 canonical helper를 재사용하고 같은 `matchMedia` 조건을 다른 모듈에 복제하지 않는다.
 
-`phoneLandscapeUi()`와 해당 media query 문자열은 **`dashboard-ui-common.js` 한 곳만 canonical source**로 둔다. `dashboard-charts.js`와 `dashboard-ui.js`는 이 helper를 import해서 사용하며, 각 모듈 안에 같은 `matchMedia` 조건을 다시 복사하지 않는다.
-
-Navigation의 viewport 전환도 상태를 동기화한다. Tablet/Mobile에서 Desktop(`>=1101px`)으로 resize될 때는 우측 Edge TOC가 생성되고, Desktop에서 `<=1100px`로 내려갈 때는 제거되어야 한다. 단, Desktop 구간 안에서 단순 resize할 때는 기존 Edge TOC DOM을 불필요하게 재생성하지 않아 열린 상태를 보존한다. 현재 구현은 **Desktop 필요 여부와 실제 `#desktopEdgeToc` 존재 여부가 다를 때만** `ensureDesktopEdgeToc()`를 호출하는 방식이다.
+Navigation은 Tablet/Mobile ↔ Desktop 전환 시 Edge TOC의 생성·제거를 동기화하되, Desktop 구간 내부 resize에서는 기존 TOC DOM을 재생성하지 않아 상태를 보존한다.
 
 ### iPhone Safari 데스크탑 웹사이트 요청
 
@@ -3762,9 +3754,10 @@ New
 
 현재 이미 존재하는 기능상 필요한 예외 breakpoint는 함부로 제거하지 않는다.
 
-현재 허용된 기능상 예외 breakpoint 중 `1101~1280px`는 **Desktop 공통 Asset Detail 기능 breakpoint**다. 증권의 `보유종목 현황 + 전일 대비 변동`과 퇴직연금의 `연금상품별 현황 + 전일 대비 변동`이 넓은 Desktop에서는 2열로 배치되다가 `1101~1280px`에서 1열로 전환하여 표 내부 가로 스크롤을 방지한다. `1100px 이하`는 Tablet/Mobile의 기존 responsive rule이 이미 담당하므로 `special.css`의 Asset Detail media를 그 아래까지 넓히지 않는다. 이 규칙은 `.asset-detail-grid`의 공통 기능 기준이며, 다른 일반 영역의 반응형 breakpoint로 확대 적용하지 않는다. 새 증권 전용 breakpoint도 만들지 않는다.
+현재 허용된 대표 기능 예외는 다음 두 가지다.
 
-또한 `landscape + max-width:960px + max-height:500px + hover:none + pointer:coarse`는 **실제 스마트폰 가로를 식별하기 위해 허용된 기능 media**다. `960px`을 일반 반응형 breakpoint로 확대 사용하지 않고, `special.css`의 Phone UI Shared / Phone Landscape와 이에 대응하는 JavaScript 판정에서만 같은 조건을 유지한다. 펼친 Z Fold처럼 높이가 `500px`을 넘는 coarse-pointer 화면은 이 media에서 제외하여 Tablet 계열로 둔다.
+- `1101~1280px`: Desktop의 `.asset-detail-grid`만 1열로 전환한다. `1100px 이하`는 기존 Tablet/Mobile 규칙이 담당하며 이 조건을 다른 영역의 일반 breakpoint로 확대하지 않는다.
+- `landscape + width≤960 + height≤500 + hover:none + pointer:coarse`: 실제 스마트폰 가로 판정에만 사용한다. `960px`을 일반 breakpoint로 재사용하지 않는다.
 
 공통 Asset Detail CSS는 기존 generic class/token을 우선 재사용하고, 실제로 양쪽 자산이 공유하는 의미에만 최소 `.asset-*` semantic class를 사용한다. 현황/전일변동/상승분기여도에서 공통화된 selector는 neutral `.asset-*`가 canonical이며, 같은 역할의 `.pension-*` legacy alias를 병렬로 유지하지 않는다. 위험자산 70% 룰·퇴직연금 조정/PIN/납입 등 연금 전용 UI는 계속 `.pension-*`를 사용한다.
 
@@ -3942,7 +3935,7 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 
 ## 6.13 Topbar 날짜 셀렉트 폭 정합성
 
-Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode 안에서 **동일한 가로 폭 체계**를 유지한다. Desktop은 두 셀렉트 모두 `148px`을 유지한다. Tablet(`761~1100px`)은 계산기 등 우측 action이 늘어나는 경우 작은 태블릿 폭에서도 충돌하지 않도록 **기존 Tablet 구간 안에서만** 날짜 그룹을 `minmax(0,1fr)`의 실제 shrink 영역으로 두고, 우측 action을 별도 `auto` 열로 유지한다. 날짜 그룹은 최대 `302px`(148px + gap + 148px)이며 두 셀렉트는 `max-width:148px; flex:1 1 148px`으로 같은 폭을 유지하면서 **가용 공간이 부족할 때만 함께 축소**한다. 충분한 공간에서는 다시 각각 `148px`로 복원되며, 이를 위해 별도 breakpoint를 추가하지 않는다. Phone 세로/가로 Mobile Topbar는 두 셀렉트가 동일한 반응형 계산폭(`max 148px`)을 사용한다. 어느 UI mode에서도 한쪽만 별도 고정폭으로 축소하지 않는다.
+Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유지한다. Desktop은 각각 `148px`, Tablet(`761~1100px`)은 기존 구간 안에서 날짜 그룹만 가용폭에 따라 shrink되어 두 셀렉트가 함께 줄고 공간이 충분하면 `148px`로 복원된다. 우측 action은 `auto` 열로 유지하며 이 문제 때문에 새 breakpoint를 추가하지 않는다. Phone 세로/가로도 두 셀렉트가 같은 반응형 폭 체계를 사용한다.
 
 # 7. JavaScript 구현 세부 규칙
 
@@ -4757,7 +4750,6 @@ common
 
 - 가로폰 기능 media 상한 `900px → 960px`으로 확대, `height≤500 + hover:none + pointer:coarse`는 유지
 - iPhone Safari 실기기에서 Mobile CSS가 함께 매치되는 경우를 반영해 **Phone Landscape Topbar를 세로폰과 동일한 Mobile Topbar로 통일**했다. Tablet은 기존 축약 action 버튼을 유지하고 우측 edge TOC 대신 Topbar hamburger에서 목차만 제공하며, 웹만 edge TOC를 유지한다. 가로폰 모달은 중앙형을 유지한다.
-- Tablet Topbar의 `년/월`·`일` 셀렉트는 계산기 버튼이 노출되는 작은 태블릿에서 우측 action과 충돌하지 않도록 기존 `761~1100px` media 안에서 날짜 그룹 자체를 shrink 영역으로 둔다. 공간이 충분하면 두 셀렉트는 각각 `148px`을 유지하고, 부족할 때만 같은 폭으로 함께 축소한다. 새 breakpoint는 만들지 않는다.
 - 종목별 `평가금액 비중` 합계 카드는 가로폰 4열에서 2칸 span으로 복원하고, `투자원금 원천 및 검산` 3카드는 세로·가로폰 공통 compact padding으로 통일
 - Phone Shared에서 모바일 카드보기 UI와 브랜드 접두어 축약을 분리해 세로폰 전용으로 이동
 - 가로폰 성과/현황/변동은 항상 표를 사용하고 세로폰과 동일한 compact 표 밀도 + 첫 열 sticky 유지
@@ -4768,36 +4760,14 @@ common
 
 ### 리팩토링 7차 후속 Responsive 동기화 + CSS/JS 청소 · 2026-08-22
 
-Phone UI 후속 작업을 마무리하면서 viewport 전환 회귀와 CSS/JS 찌꺼기를 함께 정리했다. 이 작업도 새 프로젝트 리팩토링 차수를 추가한 것이 아니라 **7차 이후 canonical 구조의 유지보수 마무리**다.
+7차 후속 유지보수에서 다음만 정리했다.
 
-핵심 정리:
+- Tablet/Mobile ↔ Desktop 전환 시 Edge TOC 생성·제거를 동기화하고 Desktop 내부 resize에서는 기존 상태를 보존
+- Phone Landscape 판정을 `dashboard-ui-common.js`의 `phoneLandscapeUi()`로 단일화
+- CSS no-op·stale 주석·whitespace를 정리하고 `special.css` Asset Detail 범위를 `1101~1280px`로 명확화
+- 호환성 fallback은 유지하고 메인 CSS `!important` 0개 상태 보존
 
-- Tablet 상태에서 페이지를 연 뒤 Desktop(`>=1101px`)으로 resize할 때 우측 Edge TOC가 없던 회귀를 수정했다.
-- `dashboard-ui.js`의 resize 동기화는 **Desktop 필요 여부와 실제 `#desktopEdgeToc` 존재 여부가 다를 때만** `ensureDesktopEdgeToc()`를 호출한다. 따라서 Tablet/Mobile → Desktop에서는 TOC를 생성하고 Desktop → `<=1100px`에서는 제거하되, Desktop 내부 단순 resize에서는 DOM을 다시 만들지 않아 열린 상태를 유지한다.
-- `dashboard-charts.js`와 `dashboard-ui.js`에 각각 있던 Phone Landscape 판정을 `dashboard-ui-common.js`의 단일 `phoneLandscapeUi()` helper로 공통화했다. 같은 `960×500 + coarse/no-hover` query를 여러 모듈에 복제하지 않는다.
-- `dashboard-charts.js`의 의미 없는 `chartEntrancePhoneLandscape()` 1단 wrapper를 제거하고 canonical helper를 직접 사용하도록 정리했다.
-- `common.css`, `mobile.css`, `tablet.css`, `special.css`에서 현재 cascade 결과를 바꾸지 않는 확실한 no-op / 중복 property, stale 작업이력 주석, 관계없는 떠 있는 주석, 들여쓰기·연속 빈 줄·trailing whitespace를 정리했다.
-- `special.css`의 Asset Detail 예외 범위를 실제 역할에 맞춰 `1101~1280px`로 명확히 했다. `1100px 이하`는 기존 Tablet/Mobile responsive rule이 담당한다.
-- `-webkit-sticky → sticky`, `100vh → 100dvh`처럼 호환성 fallback을 위한 의도적 중복 선언은 제거하지 않는다.
-- 메인 CSS의 실제 `!important` 0개 상태를 유지한다.
-
-최종 청소 QA:
-
-```text
-CSS parse error            0
-JS syntax error             0
-unresolved import           0
-circular import             0
-named import/export mismatch 0
-Phone Landscape helper      1 canonical definition
-stale 작업이력 주석          0
-실제 !important             0
-```
-
-세로폰 `390×844`, 가로폰 `844×390 / 956×440`, Tablet `820 / 1100`, Desktop `1101 / 1200 / 1280 / 1281`에서 청소 전후 computed style 차이 **0건**을 확인했다. Phone Landscape 경계도 `960×500=ON`, `961×500=OFF`, `960×501=OFF`로 확인했다.
-
-이 단계까지 최종 QA PASS했으며, 이후에는 CSS/JS 구조 자체를 더 잘게 나누거나 점수 목적의 추가 리팩토링을 하지 않는다. 새 기능 요청은 현재 6 CSS + 7 JS module canonical 구조 안에서 최소 변경한다.
-
+최종 정적 검증과 대표 viewport 회귀 QA는 PASS. 이후 구조를 더 세분화하지 않고 현재 canonical 구조에서 최소 변경한다.
 
 ## 10.3 현재 리팩토링 완료 기준선
 
@@ -4814,8 +4784,7 @@ stale 작업이력 주석          0
 ✅ 7차 후속 CSS 유지보수 · `!important` 30 → 0 / iPhone Safari QA PASS
 ✅ 7차 후속 CSS 구조 정리 · `desktop.css` 제거 / common Desktop baseline + 6파일 canonical
 ✅ 7차 후속 Phone UI 정리 · Shared compact / Landscape layout 분리 + 가로폰 960×500 범위
-✅ 7차 후속 Responsive 동기화 · 태블릿↔웹 Edge TOC 생성/제거 + Desktop 내부 상태 보존
-✅ 7차 후속 CSS/JS 청소 · no-op/stale 주석 정리 + `phoneLandscapeUi()` 단일 공통 helper · 최종 QA PASS
+✅ 7차 후속 Responsive/CSS·JS 정리 · Edge TOC 동기화 + Phone Landscape helper 공통화 + no-op/stale 정리 · 최종 QA PASS
 ```
 
 현재 메인 JavaScript 기준:

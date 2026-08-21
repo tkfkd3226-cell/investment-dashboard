@@ -5,7 +5,7 @@ import {
   securityChartNamesForDate
 } from './dashboard-core.js';
 
-// 여러 UI 모듈이 공유하는 저수준 DOM · 접근성 · 마크업 helper
+// 여러 UI 모듈이 공유하는 저수준 DOM · 접근성 · 마크업 · 반응형 UI 판정 helper
 
 const PHONE_LANDSCAPE_QUERY='(orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
 function phoneLandscapeUi(){

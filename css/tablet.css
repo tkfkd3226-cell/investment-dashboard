@@ -150,7 +150,7 @@
       min-width:0;
     }
 
-  /* Topbar Tablet · 날짜 select/축약 action 유지 + 우측 edge TOC 대신 hamburger 목차 */
+  /* Topbar Tablet · 날짜 select는 가용폭에 따라 같은 폭으로 축소, action + hamburger 목차 유지 */
     .topbar-label-full{display:none}
     .topbar-label-short{display:inline}
     .switcher{padding-left:var(--space-2xl);padding-right:var(--space-2xl)}

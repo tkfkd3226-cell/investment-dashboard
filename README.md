@@ -150,7 +150,8 @@ investment-dashboard-main/
 │  ├─ dashboard-ui.js
 │  ├─ dashboard-pension.js
 │  ├─ dashboard-pension-editor.js
-│  └─ dashboard-app.js
+│  ├─ dashboard-app.js
+│  └─ dashboard-market-ai.js
 ├─ data/
 │  ├─ portfolio.json
 │  ├─ prices.json
@@ -182,17 +183,18 @@ investment-dashboard-main/
 
 ### 4.1 JavaScript 모듈
 
-메인 JavaScript는 **7개 ES Module**로 구성되어 있으며 `dashboard-app.js`가 단일 entry point입니다.
+메인 dependency graph는 **7개 ES Module**로 구성되어 있으며 `dashboard-app.js`가 단일 entry point입니다. `dashboard-market-ai.js`는 이 graph와 분리되어 `index.html`에서 독립 module로 로드됩니다.
 
 | 파일 | 책임 |
 |---|---|
 | `dashboard-core.js` | 공통 데이터 state, JSON 로딩, 계산, formatter, 데이터 helper |
-| `dashboard-ui-common.js` | 여러 UI 모듈이 공유하는 저수준 DOM·접근성·마크업 helper |
+| `dashboard-ui-common.js` | 여러 UI 모듈이 공유하는 저수준 DOM·접근성·마크업·반응형 UI 판정 helper |
 | `dashboard-charts.js` | 차트 state, SVG 렌더링, 범례, tooltip, 확대, 반응형, 차트 action routing |
 | `dashboard-ui.js` | Topbar, Navigation, 일반 카드·표·모달, KRX UI, UI action routing |
 | `dashboard-pension.js` | 퇴직연금 **View** — 현황, 상품 정보, 인사이트, 시각화 tooltip |
 | `dashboard-pension-editor.js` | 퇴직연금 **Editor** — 금액조정, PIN, batch, 저장·삭제 |
 | `dashboard-app.js` | 날짜·별도수익 등 cross-module 흐름, 전체 render orchestration, 초기화·boot |
+| `dashboard-market-ai.js` | 메인 dependency graph와 분리되어 독립 로드되는 standalone adapter |
 
 ### 4.2 Dependency 방향
 
