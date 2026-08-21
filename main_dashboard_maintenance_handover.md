@@ -3610,7 +3610,7 @@ Desktop / Tablet / Mobile
 ↓
 Special Viewports
 ↓
-Interaction / Accessibility
+Interaction
 ↓
 Print
 ```

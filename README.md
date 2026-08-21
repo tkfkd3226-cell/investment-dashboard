@@ -255,7 +255,7 @@ css/desktop.css      # Desktop ≥1101px
 css/tablet.css       # Tablet 761~1100px
 css/mobile.css       # Mobile ≤760px
 css/special.css      # 기능상 필요한 특수 viewport
-css/interaction.css  # hover/pointer/reduced-motion
+css/interaction.css  # hover/pointer
 css/print.css        # 인쇄 전용
 ```
 
