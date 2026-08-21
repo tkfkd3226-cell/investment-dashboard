@@ -463,9 +463,26 @@ start-local-server.bat
 http://localhost:8000/
 ```
 
-배치 파일은 `python` 또는 `py` 명령을 찾아 Python 내장 HTTP 서버를 실행하고 브라우저를 엽니다.
+`market-ai` 폴더가 투자성과 대시보드 폴더와 같은 상위 폴더에 있으면 배치 파일 하나가 다음을 함께 실행합니다.
 
-직접 실행하려면:
+- 투자성과 대시보드 HTTP 서버: `http://localhost:8000/`
+- Market AI API: `http://127.0.0.1:8001/`
+- KIS KOSPI200 Bridge: `market-ai\KisKospi200Bridge.exe`
+
+Market AI API는 별도 CMD 창을 만들지 않고 같은 콘솔에서 백그라운드로 실행하며, KIS Bridge는 Windows GUI 프로그램이라 별도 CMD 창을 만들지 않습니다. Bridge 루트 EXE가 없거나 최신 C# 소스보다 오래된 경우 `market-ai\build-kis-bridge-release.bat`을 통해 Release/x86 자동 빌드를 시도합니다.
+
+기본 권장 폴더 배치는 다음과 같습니다.
+
+```text
+작업폴더\
+├─ investment-dashboard-main\
+│  └─ start-local-server.bat
+└─ market-ai\
+   ├─ app.py
+   └─ KisKospi200Bridge.exe   # 최초 실행 시 자동 빌드/배포 가능
+```
+
+직접 대시보드 HTTP 서버만 실행하려면:
 
 ```bash
 python -m http.server 8000

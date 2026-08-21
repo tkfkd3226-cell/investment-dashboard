@@ -65,8 +65,8 @@
       },
       currentGroupSub:{withPrior:'현재 보유 기준',noPrior:'신규·단일 보유 기준'},
       heroDescription:{
-        withPrior:'이전 거래 손익과 현재 보유분을 분리해 손익분기, 통합 회복가격과 매도 결과를 계산합니다. 수수료·세금 등 거래비용은 제외합니다.',
-        noPrior:'이전 거래 없이 현재 보유분만 입력해 손익분기, 목표가격과 매도 결과를 계산합니다. 수수료·세금 등 거래비용은 제외합니다.'
+        withPrior:'이전 거래 손익과 현재 보유분 분리 · 손익분기, 통합 회복가격, 매도 결과 계산 · 수수료·세금 등 거래비용 제외',
+        noPrior:'이전 거래 없이 현재 보유분만 입력 · 손익분기, 목표가격, 매도 결과 계산 · 수수료·세금 등 거래비용 제외'
       }
     },
     holding:{
@@ -77,7 +77,7 @@
         actualLoanLabel:'추가매수금액',currentBuyGainLabel:'추가매수가 대비 종가 변동률',out1Label:'최종 평단',out2Label:'최종 평가금액',
         out3Label:'최종 보유수량',out4Label:'추가매수 반영 총손익',out5Label:'최종 투자금액',out6Label:'추가매수 반영 총손익률',
         modeCurrent:'매수일 종가',modeRise:'추가매수가',modeTarget:'목표단가',overnightLabel:'다음 거래일 변동률',riseLabel:'추가매수가 대비 변동률',
-        heroDescription:'추가매수 당일 종가 또는 추가매수가 대비 변동률을 기준으로 목표 매도단가와 3가지 손실 회복 방식을 자동 계산합니다. 수수료·세금 등 거래비용은 제외합니다.',
+        heroDescription:'추가매수 당일 종가 또는 추가매수가 대비 변동률 기준 · 목표 매도단가와 3가지 손실 회복 방식 자동 계산 · 수수료·세금 등 거래비용 제외',
         tabS3:'① 전체 보유분 매도',tabS2:'② 추가매수 수량 매도',tabS1:'③ 추가매수 원금만 회수'
       },
       currentGroupSubHtml:'<span class="desktop-only">실제 체결 기준 · 3개 전략 공통</span><span class="mobile-only">실제 체결 기준</span>'
@@ -249,23 +249,23 @@
     if(!settled)checks.push(['existingShares','기존 보유수량',i.existingShares,n=>Number.isInteger(n)&&n>=0],['existingCost','기존 보유분 투자금액',i.existingCost,n=>Number.isInteger(n)&&n>=0],['oldOverdraft','기존 회수 대상 금액',i.oldRecovery,n=>Number.isInteger(n)&&n>=0]);
     if(validationMode==='current')checks.push(['overnightPct',settled?'매수일 종가 대비 목표 변동률':'다음 거래일 변동률',i.overnightPct,n=>Number.isFinite(n)&&n>-100]);
     else if(validationMode==='rise')checks.push(['risePct',settled?'매수가 대비 목표 변동률':'추가매수가 대비 변동률',i.risePct,n=>Number.isFinite(n)&&n>-100]);
-    for(const [id,label,v,test] of checks){if(!test(v))addError(`${label} 값을 확인해 주세요.`,id);}
+    for(const [id,label,v,test] of checks){if(!test(v))addError(`${label} 값 확인 필요.`,id);}
     const totalShares=(settled?0:i.existingShares)+i.addShares;
-    if(totalShares<=0)addError(settled?'보유수량은 1주 이상이어야 합니다.':'최종 보유수량은 1주 이상이어야 합니다.');
+    if(totalShares<=0)addError(settled?'보유수량 1주 이상 필요.':'최종 보유수량 1주 이상 필요.');
     if(settled){
       const priorNumericChecks=[
         ['priorSoldSharesInput','매도수량',i.existingShares,n=>Number.isInteger(n)&&n>=0],
         ['priorCostInput','매수금액',i.existingCost,n=>Number.isInteger(n)&&n>=0],
         ['priorSettlementValueInput','매도금액',i.priorSettlementValue,n=>Number.isInteger(n)&&n>=0]
       ];
-      for(const [id,label,v,test] of priorNumericChecks){if(!test(v))addError(`${label} 값을 확인해 주세요.`,id);}
+      for(const [id,label,v,test] of priorNumericChecks){if(!test(v))addError(`${label} 값 확인 필요.`,id);}
       const hasPriorTrade=i.existingShares>0||i.existingCost>0||i.priorSettlementValue>0;
       if(hasPriorTrade){
-        if(!/^\d{4}-\d{2}-\d{2}$/.test(i.priorSellDate))addError('매도일 값을 확인해 주세요.','priorSellDateInput');
-        if(!(Number.isInteger(i.existingShares)&&i.existingShares>0))addError('이전 거래가 있는 경우 매도수량은 1주 이상이어야 합니다.','priorSoldSharesInput');
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(i.priorSellDate))addError('매도일 값 확인 필요.','priorSellDateInput');
+        if(!(Number.isInteger(i.existingShares)&&i.existingShares>0))addError('이전 거래 입력 시 매도수량 1주 이상 필요.','priorSoldSharesInput');
       }
     }
-    if(validationMode==='target'&&!(Number.isInteger(i.targetPrice)&&i.targetPrice>0))addError('목표 매도단가 값을 확인해 주세요.','targetPrice');
+    if(validationMode==='target'&&!(Number.isInteger(i.targetPrice)&&i.targetPrice>0))addError('목표 매도단가 값 확인 필요.','targetPrice');
     return {errors:[...new Set(errors)],invalidIds:[...new Set(invalidIds)]};
   }
 
@@ -275,7 +275,7 @@
     const b=$('validationMessage');
     if(!validation.errors.length){b.classList.remove('show');b.innerHTML='';return;}
     b.classList.add('show');
-    b.innerHTML=`입력값을 확인해 주세요.<ul>${validation.errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
+    b.innerHTML=`입력값 확인 필요.<ul>${validation.errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
   }
 
   // =========================================================
@@ -367,15 +367,15 @@
     const full=typeNo===3;
     const remH=full?['보유수량','합산 손익']:['평단','보유수량','투자금액','평가가격','평가금액','평가손익','합산 손익'];
     const remV=full?[{text:shareText(d.remainShares)},{text:won(d.combined),cls:signClass(d.combined)}]:[{text:won(c.finalAvg)},{text:shareText(d.remainShares)},{text:won(d.remainCost)},{text:won(c.targetPrice)},{text:won(d.remainValue)},{text:won(d.remainPL),cls:signClass(d.remainPL)},{text:won(d.combined),cls:signClass(d.combined)}];
-    return `<div class="panel strategy-card"><div class="strategy-head"><div class="strategy-title"><h2>${displayNo} ${title}</h2><p>${desc}</p></div><span class="badge ${badgeCls}">${badge}</span></div><div class="strategy-body"><div class="summary-row">${metric('매도금액',won(d.net))}${metric('합산 손익',won(d.combined),signClass(d.combined))}${metric('추가투입금·회수대상 차감 후 잔여현금',won(d.cashAfter),d.cashAfter?'positive':'')}${metric('추가매수 전 대비 손익 개선액',won(d.combined-(c.i.existingShares*c.targetPrice-c.i.existingCost)),signClass(d.combined-(c.i.existingShares*c.targetPrice-c.i.existingCost)))}</div><div class="desktop-details"><div class="section-title">매도 결과</div>${desktopGrid(saleH,saleV,'five-grid')}<div class="section-title">원금 회수 결과</div>${desktopGrid(flowH,flowV,'loan-grid')}<div class="section-title">${full?'매도 후 최종 상태':'매도 후 보유 현황'}</div>${desktopGrid(remH,remV,full?'final-grid':'')}</div><div class="mobile-data">${mobileRows('매도 결과',saleH,saleV)}${mobileRows('원금 회수 결과',flowH,flowV)}${mobileRows(full?'매도 후 최종 상태':'매도 후 보유 현황',remH,remV)}</div><div class="note">${typeNo===1?'매도금액이 추가매수금액과 같거나 넘도록 필요한 최소 매도수량을 올림 처리합니다.':typeNo===2?`추가매수 수량 ${shareText(c.i.addShares)}를 그대로 매도하고 기존 보유분은 유지합니다.`:'전체 보유분 매도 후 보유수량은 0주가 됩니다.'} 수수료·세금 등 거래비용은 반영하지 않습니다.</div></div></div>`;
+    return `<div class="panel strategy-card"><div class="strategy-head"><div class="strategy-title"><h2>${displayNo} ${title}</h2><p>${desc}</p></div><span class="badge ${badgeCls}">${badge}</span></div><div class="strategy-body"><div class="summary-row">${metric('매도금액',won(d.net))}${metric('합산 손익',won(d.combined),signClass(d.combined))}${metric('추가투입금·회수대상 차감 후 잔여현금',won(d.cashAfter),d.cashAfter?'positive':'')}${metric('추가매수 전 대비 손익 개선액',won(d.combined-(c.i.existingShares*c.targetPrice-c.i.existingCost)),signClass(d.combined-(c.i.existingShares*c.targetPrice-c.i.existingCost)))}</div><div class="desktop-details"><div class="section-title">매도 결과</div>${desktopGrid(saleH,saleV,'five-grid')}<div class="section-title">원금 회수 결과</div>${desktopGrid(flowH,flowV,'loan-grid')}<div class="section-title">${full?'매도 후 최종 상태':'매도 후 보유 현황'}</div>${desktopGrid(remH,remV,full?'final-grid':'')}</div><div class="mobile-data">${mobileRows('매도 결과',saleH,saleV)}${mobileRows('원금 회수 결과',flowH,flowV)}${mobileRows(full?'매도 후 최종 상태':'매도 후 보유 현황',remH,remV)}</div><div class="note">${typeNo===1?'매도금액이 추가매수금액 이상이 되도록 필요한 최소 매도수량 올림 처리.':typeNo===2?`추가매수 수량 ${shareText(c.i.addShares)} 그대로 매도 · 기존 보유분 유지.`:'전체 보유분 매도 후 보유수량 0주.'} 수수료·세금 등 거래비용 미반영.</div></div></div>`;
   }
 
   function settledStrategyHTML(kind,d,c){
     const full=kind==='full';
     const title=full?'① 전체 보유분 매도':'② 투자원금만 회수';
     const desc=c.noPrior
-      ?(full?'<span class="desktop-only">현재 보유분을 전량 매도했을 때 실현손익을 계산합니다.</span><span class="mobile-only">전량 매도 후 실현손익을 계산합니다.</span>':'<span class="desktop-only">매도금액이 현재 투자금액에 도달하도록 최소 수량만 매도하고 나머지는 보유합니다.</span><span class="mobile-only">원금 회수분만 매도하고 나머지는 보유합니다.</span>')
-      :(full?`<span class="desktop-only">현재 ${shareText(c.finalShares)}를 전량 매도했을 때 현재 보유분과 이전 거래 확정손익을 합산합니다.</span><span class="mobile-only">전량 매도 후 현재 보유분·이전 손익을 합산합니다.</span>`:'<span class="desktop-only">매도금액이 현재 투자금액에 도달하도록 최소 수량만 매도하고 나머지는 보유합니다.</span><span class="mobile-only">원금 회수분만 매도하고 나머지는 보유합니다.</span>');
+      ?(full?'<span class="desktop-only">현재 보유분 전량 매도 시 실현손익 계산.</span><span class="mobile-only">전량 매도 후 실현손익 계산.</span>':'<span class="desktop-only">매도금액이 현재 투자금액에 도달하도록 최소 수량만 매도 · 잔여 보유분 유지.</span><span class="mobile-only">원금 회수분만 매도 · 잔여 보유분 유지.</span>')
+      :(full?`<span class="desktop-only">현재 ${shareText(c.finalShares)} 전량 매도 시 현재 보유분과 이전 거래 확정손익 합산.</span><span class="mobile-only">전량 매도 후 현재 보유분·이전 손익 합산.</span>`:'<span class="desktop-only">매도금액이 현재 투자금액에 도달하도록 최소 수량만 매도 · 잔여 보유분 유지.</span><span class="mobile-only">원금 회수분만 매도 · 잔여 보유분 유지.</span>');
     const saleH=['매도단가','매도수량','매도금액','현재 보유분 실현손익','매도 후 보유수량'];
     const saleV=[{text:won(c.targetPrice)},{text:shareText(d.saleQty)},{text:won(d.gross)},{text:won(d.realizedPL),cls:signClass(d.realizedPL)},{text:shareText(d.remainShares)}];
     const integratedH=c.noPrior?['목표가격 기준 손익','목표가격 수익률']:['현재 보유분 손익','이전 거래 확정손익','통합손익'];
@@ -383,16 +383,16 @@
     const integratedV=c.noPrior?[{text:won(d.currentCombined),cls:signClass(d.currentCombined)},{text:pct(targetRate,2),cls:signClass(targetRate)}]:[{text:won(d.currentCombined),cls:signClass(d.currentCombined)},{text:won(c.priorPL),cls:signClass(c.priorPL)},{text:won(d.combined),cls:signClass(d.combined)}];
     const remainH=full?['보유수량',c.noPrior?'최종 손익':'최종 통합손익']:['남은 보유수량','남은 투자원가','목표가격 평가금액','남은 보유분 평가손익'];
     const remainV=full?[{text:shareText(0)},{text:won(c.noPrior?d.currentCombined:d.combined),cls:signClass(c.noPrior?d.currentCombined:d.combined)}]:[{text:shareText(d.remainShares)},{text:won(d.remainCost)},{text:won(d.remainValue)},{text:won(d.remainPL),cls:signClass(d.remainPL)}];
-    const warning=!full&&d.principalShortfall>0?`<div class="warning-note">현재 목표가격에서는 전량을 매도해도 투자원금이 ${won(d.principalShortfall)} 부족합니다.</div>`:'';
+    const warning=!full&&d.principalShortfall>0?`<div class="warning-note">현재 목표가격에서 전량 매도 시에도 투자원금 ${won(d.principalShortfall)} 부족.</div>`:'';
     const summary=c.noPrior
       ?`${metric('매도금액',won(d.net))}${metric('현재 보유분 실현손익',won(d.realizedPL),signClass(d.realizedPL))}${metric('매도 후 보유수량',shareText(d.remainShares))}${metric('목표가격 기준 전체 손익',won(d.currentCombined),signClass(d.currentCombined))}`
       :`${metric('매도금액',won(d.net))}${metric('현재 보유분 손익',won(d.currentCombined),signClass(d.currentCombined))}${metric('이전 거래 확정손익',won(c.priorPL),signClass(c.priorPL))}${metric('통합손익',won(d.combined),signClass(d.combined))}`;
     const integrationTitle=c.noPrior?'손익 요약':'손익 통합';
     const integrationGridClass=c.noPrior?'final-grid':'triple-grid';
     const note=c.noPrior
-      ?(full?'현재 보유분의 최종 실현손익입니다.':'현재 투자원금만 회수하고 남은 주식은 목표가격 기준 평가금액으로 표시합니다.')
-      :(full?'현재 보유분 실현손익에 이전 거래 확정손익을 더해 통합손익을 계산합니다.':'현재 투자원금만 회수하고 남은 주식은 목표가격 기준 평가금액으로 표시합니다. 이전 거래 확정손익은 통합손익에 계속 포함됩니다.');
-    return `<div class="panel strategy-card no-badge"><div class="strategy-head"><div class="strategy-title"><h2>${title}</h2><p>${desc}</p></div></div><div class="strategy-body"><div class="summary-row">${summary}</div><div class="desktop-details"><div class="section-title">매도 결과</div>${desktopGrid(saleH,saleV,'five-grid')}<div class="section-title">${integrationTitle}</div>${desktopGrid(integratedH,integratedV,integrationGridClass)}<div class="section-title">${full?'매도 후 최종 상태':'원금 회수 후 보유 현황'}</div>${desktopGrid(remainH,remainV,full?'final-grid':'simple-grid')}</div><div class="mobile-data">${mobileRows('매도 결과',saleH,saleV)}${mobileRows(integrationTitle,integratedH,integratedV)}${mobileRows(full?'매도 후 최종 상태':'원금 회수 후 보유 현황',remainH,remainV)}</div>${warning}<div class="note">${note} 수수료·세금 등 거래비용은 반영하지 않습니다.</div></div></div>`;
+      ?(full?'현재 보유분 최종 실현손익.':'현재 투자원금만 회수 · 잔여 주식은 목표가격 기준 평가금액으로 표시.')
+      :(full?'현재 보유분 실현손익 + 이전 거래 확정손익으로 통합손익 계산.':'현재 투자원금만 회수 · 잔여 주식은 목표가격 기준 평가금액으로 표시. 이전 거래 확정손익은 통합손익에 계속 포함.');
+    return `<div class="panel strategy-card no-badge"><div class="strategy-head"><div class="strategy-title"><h2>${title}</h2><p>${desc}</p></div></div><div class="strategy-body"><div class="summary-row">${summary}</div><div class="desktop-details"><div class="section-title">매도 결과</div>${desktopGrid(saleH,saleV,'five-grid')}<div class="section-title">${integrationTitle}</div>${desktopGrid(integratedH,integratedV,integrationGridClass)}<div class="section-title">${full?'매도 후 최종 상태':'원금 회수 후 보유 현황'}</div>${desktopGrid(remainH,remainV,full?'final-grid':'simple-grid')}</div><div class="mobile-data">${mobileRows('매도 결과',saleH,saleV)}${mobileRows(integrationTitle,integratedH,integratedV)}${mobileRows(full?'매도 후 최종 상태':'원금 회수 후 보유 현황',remainH,remainV)}</div>${warning}<div class="note">${note} 수수료·세금 등 거래비용 미반영.</div></div></div>`;
   }
 
   function render(c){
@@ -425,11 +425,11 @@
       }else{
         setText('kpi1Name','현재 보유분 손익분기');setText('kpi1Value',won(c.positionBEOrder));setText('kpi1Sub',`현재 ${shareText(c.finalShares)} 자체의 거래비용 제외 기준`);
         setText('kpi2Name','이전 거래 확정손익');setText('kpi2Value',won(c.priorPL),signClass(c.priorPL));setText('kpi2Sub','이전 거래내역에서 자동 계산');
-        setHelpText('kpi3Name','통합 회복가격','현재 보유분의 투자금액에 이전 거래에서 확정된 손익까지 반영한 통합 손익분기 가격입니다.');setText('kpi3Value',won(c.integratedBEOrder));
+        setHelpText('kpi3Name','통합 회복가격','현재 보유분 투자금액에 이전 거래 확정손익까지 반영한 통합 손익분기 가격.');setText('kpi3Value',won(c.integratedBEOrder));
         $('kpi3Sub').innerHTML=c.priorPL<0?'<span class="desktop-only">현재 보유분 투자금액·이전 거래 확정손실 전부 회복</span><span class="mobile-only">투자금·이전 손실까지 회복</span>':c.priorPL>0?'<span class="desktop-only">현재 보유분 투자금액에 이전 거래 확정이익 반영</span><span class="mobile-only">투자금에 이전 이익 반영</span>':'<span class="desktop-only">현재 보유분 투자금액 회복</span><span class="mobile-only">투자금 회복</span>';
         setText('kpi4Name','목표 매도단가');setText('kpi4Value',won(c.targetPrice),signClass(c.targetIntegratedPL));setText('kpi4Sub',`목표가격 통합손익 ${won(c.targetIntegratedPL)}`);
         setText('range1Title','현재 보유분 손익분기');setText('range1Value',pct((c.positionBEOrder/c.i.currentPrice-1)*100,2),signClass(c.positionBEOrder-c.i.currentPrice));setText('range1Sub',`${won(c.positionBEOrder)} · 현재 ${shareText(c.finalShares)} 자체 손익분기`);
-        setHelpText('range2Title','이전 손익 반영 통합 회복','현재 보유분의 투자금액에 이전 거래에서 확정된 손익까지 반영한 통합 손익분기 가격입니다.');setText('range2Value',pct((c.integratedBEOrder/c.i.currentPrice-1)*100,2),signClass(c.integratedBEOrder-c.i.currentPrice));setText('range2Sub',c.priorPL<0?`${won(c.integratedBEOrder)} · 이전 거래 확정손실까지 회복`:c.priorPL>0?`${won(c.integratedBEOrder)} · 이전 거래 확정이익 반영`:`${won(c.integratedBEOrder)} · 현재 보유분 자체 손익분기`);
+        setHelpText('range2Title','이전 손익 반영 통합 회복','현재 보유분 투자금액에 이전 거래 확정손익까지 반영한 통합 손익분기 가격.');setText('range2Value',pct((c.integratedBEOrder/c.i.currentPrice-1)*100,2),signClass(c.integratedBEOrder-c.i.currentPrice));setText('range2Sub',c.priorPL<0?`${won(c.integratedBEOrder)} · 이전 거래 확정손실까지 회복`:c.priorPL>0?`${won(c.integratedBEOrder)} · 이전 거래 확정이익 반영`:`${won(c.integratedBEOrder)} · 현재 보유분 자체 손익분기`);
         setText('range3Title','목표가격 통합 상태');setText('range3Value',c.targetIntegratedPL>=0?'통합 회복':'미회복',c.targetIntegratedPL>=0?'positive':'negative');setText('range3Sub',`${won(c.targetPrice)}에서 통합손익 ${won(c.targetIntegratedPL)}`);
       }
       $('s3').innerHTML=settledStrategyHTML('full',c.sFull,c);$('s1').innerHTML=settledStrategyHTML('principal',c.sPrincipal,c);$('s2').innerHTML='';
@@ -442,14 +442,14 @@
       $('out6').value=pct(c.currentPositionPLRate,2);setClass($('out6'),signClass(c.currentPositionPLRate));
       setText('kpi1Name','기존 보유분 원래 평단');setText('kpi1Value',won(c.priorAvg));setText('kpi1Sub','기존 보유분 투자금액 ÷ 기존 보유수량');
       setText('kpi2Name','기존 보유분 손익');setText('kpi2Value',won(c.priorPL),signClass(c.priorPL));setText('kpi2Sub','추가매수 당일 종가 기준 · 추가매수 전');
-      setHelpText('kpi3Name','손익분기','기존 보유분과 추가매수분의 전체 투자금액을 회수하는 가격입니다. 기존 회수 대상 금액은 포함하지 않습니다.');setText('kpi3Value',won(c.positionBE));setText('kpi3Sub','거래비용 제외 기준');
+      setHelpText('kpi3Name','손익분기','기존 보유분과 추가매수분의 전체 투자금액 회수 가격. 기존 회수 대상 금액 제외.');setText('kpi3Value',won(c.positionBE));setText('kpi3Sub','거래비용 제외 기준');
       setText('kpi4Name','목표 매도단가');setText('kpi4Value',won(c.targetPrice),signClass(c.targetPrice-c.positionBE));setText('kpi4Sub',`손익분기 대비 ${c.targetPrice>=c.positionBE?'+':''}${nf0.format(c.targetPrice-c.positionBE)}원`);
-      setHelpText('range1Title','추가매수 효과 0원 기준','추가매수분만 놓고 손익이 0원이 되는 가격입니다. 기존 보유분 손익과 기존 회수 대상 금액은 포함하지 않습니다.');setText('range1Value',c.addZeroRaw?pct((c.addZeroRaw/c.i.currentPrice-1)*100,2):'해당 없음',c.addZeroRaw?signClass(c.addZeroRaw-c.i.currentPrice):'zero');setText('range1Sub',c.addZeroRaw?`${won(Math.ceil(c.addZeroRaw))} · 5원 호가 ${won(ceil5(c.addZeroRaw))}`:'추가매수수량이 0주입니다.');
-      setHelpText('range2Title','손익분기 구간','기존 보유분과 추가매수분의 전체 투자금액을 회수하는 가격입니다. 기존 회수 대상 금액은 포함하지 않습니다.');setText('range2Value',pct((c.positionBE/c.i.currentPrice-1)*100,2),signClass(c.positionBE-c.i.currentPrice));setText('range2Sub',`${won(c.positionBE)} · 5원 호가 ${won(c.positionBEOrder)}`);
+      setHelpText('range1Title','추가매수 효과 0원 기준','추가매수분 기준 손익 0원 가격. 기존 보유분 손익과 기존 회수 대상 금액 제외.');setText('range1Value',c.addZeroRaw?pct((c.addZeroRaw/c.i.currentPrice-1)*100,2):'해당 없음',c.addZeroRaw?signClass(c.addZeroRaw-c.i.currentPrice):'zero');setText('range1Sub',c.addZeroRaw?`${won(Math.ceil(c.addZeroRaw))} · 5원 호가 ${won(ceil5(c.addZeroRaw))}`:'추가매수수량 0주.');
+      setHelpText('range2Title','손익분기 구간','기존 보유분과 추가매수분의 전체 투자금액 회수 가격. 기존 회수 대상 금액 제외.');setText('range2Value',pct((c.positionBE/c.i.currentPrice-1)*100,2),signClass(c.positionBE-c.i.currentPrice));setText('range2Sub',`${won(c.positionBE)} · 5원 호가 ${won(c.positionBEOrder)}`);
       setText('range3Title','목표가격 상태');setText('range3Value',c.targetPrice>=c.positionBE?'손익분기 이상':'손익분기 미달',c.targetPrice>=c.positionBE?'positive':'negative');setText('range3Sub',`${won(c.targetPrice)} · 손익분기 대비 ${c.targetPrice>=c.positionBE?'+':''}${nf0.format(c.targetPrice-c.positionBE)}원`);
-      $('s1').innerHTML=holdingStrategyHTML(1,'③','추가매수 원금만 회수','비추천','bad','추가매수 원금을 회수하는 데 필요한 최소 수량만 매도합니다.',c.sPrincipal,c);
-      $('s2').innerHTML=holdingStrategyHTML(2,'②','추가매수 수량 매도','조건부 추천','conditional','추가매수 수량만 매도하고 기존 보유분은 유지합니다.',c.sAdd,c);
-      $('s3').innerHTML=holdingStrategyHTML(3,'①','전체 보유분 매도','추천','good','전체 보유분을 매도해 투입금액 회수를 우선합니다.',c.sFull,c);
+      $('s1').innerHTML=holdingStrategyHTML(1,'③','추가매수 원금만 회수','비추천','bad','추가매수 원금 회수에 필요한 최소 수량만 매도.',c.sPrincipal,c);
+      $('s2').innerHTML=holdingStrategyHTML(2,'②','추가매수 수량 매도','조건부 추천','conditional','추가매수 수량만 매도 · 기존 보유분 유지.',c.sAdd,c);
+      $('s3').innerHTML=holdingStrategyHTML(3,'①','전체 보유분 매도','추천','good','전체 보유분 매도 · 투입금액 회수 우선.',c.sFull,c);
     }
   }
 
