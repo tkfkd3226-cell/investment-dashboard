@@ -945,7 +945,7 @@ readability
 - source-data table 예외
 - row hover
 - light/dark hover
-- mobile table/card 전환
+- 세로 Mobile의 table/card 전환 + 실제 가로폰의 table-only 유지
 - 좁은 폭 기능 예외
 - tooltip이 table overflow/stacking context에 잘리는지
 
@@ -2848,7 +2848,7 @@ dashboard-pension.js
 - 증권 `보유종목 현황`과 퇴직연금 `연금상품별 현황`, 양쪽 `전일 대비 변동`과 `오늘 상승분 기여도`는 같은 renderer/CSS 체계를 사용한다.
 - 현황/변동 표는 공통 auto layout을 사용하며 컬럼별 고정 px/% 폭이나 `table-layout:fixed`를 새로 강제하지 않는다. 자산명 길이에 따른 실제 컬럼 폭 차이는 허용한다.
 - 상품 행은 증권/연금 모두 **선택일 평가금액 내림차순**으로 정렬하고, 현금·현금성자산·합계 같은 비상품 행은 고정 위치를 유지한다.
-- 모바일 상품명 브랜드 축약은 공통 helper/class를 사용한다. **현황표에만** 퇴직연금 `KODEX`, 증권 `KODEX`·`KOACT/KoAct` 선두 prefix를 숨기고, 증권/퇴직연금 **전일 대비 변동표는 모바일에서도 전체 상품명을 유지**한다. 웹·태블릿은 모두 원문을 유지한다.
+- **세로 Mobile(`≤760px`)에서만** 상품명 브랜드 축약 공통 helper/class를 사용한다. 현황표에 한해 퇴직연금 `KODEX`, 증권 `KODEX`·`KOACT/KoAct` 선두 prefix를 숨기고, 증권/퇴직연금 **전일 대비 변동표는 세로 Mobile에서도 전체 상품명을 유지**한다. 실제 가로폰·Tablet·Desktop은 모두 원문을 유지한다.
 - 증권 `보유종목 현황` summary는 `보유종목 합계 → 증권계좌 현금 → 총합계` 3단 구조를 유지한다.
 - 증권계좌 현금은 장부 보정값이므로 증권 `전일 대비 변동`과 `오늘 상승분 기여도`에서는 제외한다. 퇴직연금 현금성자산은 운용자산이므로 기존처럼 포함한다.
 - 누적/운용 수익률 카드의 `전일 대비` 보조 비율은 각 자산의 `하루 변동률`을 `%`로 표시하고, 본 누적/운용 수익률 계산은 변경하지 않는다.
@@ -2865,8 +2865,8 @@ dashboard-pension.js
 - 삼성증권2 투자 결과물 조정은 VIP 재투입액 중복 제거이며, 원천 추적의 `VIP 금 투입분 + VIP 재투입-금` 관계와 연결된다.
 - `투자원금 원천 및 검산`은 기존 3단 카드 구조를 유지한다. base 원천과 재투입 원천을 구분하되 `원천·보유 차액`은 양쪽 표에서 중립 검산값으로 표시한다.
 - `2026-06-18` 이후 전체 성과 카드의 누적손익 설명은 `투자 결과물 - 투입원금`, 이전 복원 구간은 `전체 누적 성과 기준`처럼 중립적으로 표시한다. 과거 수치를 설명에 맞추기 위해 재계산하지 않는다.
-- 계좌별 모바일 table은 누적수익률을 누적손익 셀의 보조값으로 합쳐 5열로 축약하고, `400px 이하`에서는 메모 내용을 정보 버튼으로 전환한다. 모바일 카드의 메모는 카드 폭에 맞춰 자연스럽게 줄바꿈한다.
-- 성과 요약 title/action은 기존 `.section-title`, `.section-title-icon`, `.chart-head-actions`, segmented/button, mobile table/card control을 재사용한다. 증권 성과 요약에서 별도수익 control은 `전체 / 계좌별` 왼쪽에 두고, 모바일에서는 표/카드 보기 control이 가장 왼쪽에 온다.
+- 계좌별 table은 **세로 Mobile과 실제 가로폰**에서 누적수익률을 누적손익 셀의 보조값으로 합쳐 5열로 축약한다. `400px 이하`에서는 메모 내용을 정보 버튼으로 전환하고, **세로 Mobile card view**의 메모는 카드 폭에 맞춰 자연스럽게 줄바꿈한다.
+- 성과 요약 title/action은 기존 `.section-title`, `.section-title-icon`, `.chart-head-actions`, segmented/button, mobile table/card control을 재사용한다. 증권 성과 요약에서 별도수익 control은 `전체 / 계좌별` 왼쪽에 둔다. **세로 Mobile에서만** `표 보기 / 카드 보기` control을 표시해 가장 왼쪽에 두고, 실제 가로폰에서는 해당 control을 숨긴 채 table view를 유지한다.
 
 화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js`로 보내지 않는다.
 
@@ -3543,7 +3543,7 @@ listener 중복 또는 chart 이중 생성은 FAIL이다.
 - `400px 이하`에서는 메모 헤더 `메모`를 유지하고 각 행의 메모 내용만 정보 버튼으로 전환한다.
 - 정보 버튼의 floating tooltip은 table stacking context에 가려지지 않도록 body 레벨에서 표시하고, viewport를 벗어나지 않게 위치를 보정한다.
 - outside click / ESC / scroll / resize 등에서 열린 tooltip 상태를 정리한다.
-- `401px 이상`에서는 메모 텍스트를 직접 표시한다. 모바일 table view에서는 문장 단위 흐름을 유지하고, 모바일 card view에서는 카드 폭에 맞춰 자연스럽게 줄바꿈한다.
+- `401px 이상`에서는 메모 텍스트를 직접 표시한다. **세로 Mobile / 실제 가로폰의 table view**에서는 문장 단위 흐름을 유지하고, **세로 Mobile card view**에서는 카드 폭에 맞춰 자연스럽게 줄바꿈한다.
 - 계좌 메모 전용 class/action은 `accounts-memo-*` 계열을 사용하며 chart 전용 tooltip class를 재사용하지 않는다.
 
 이 기능을 수정할 때 계좌 메모 전용 동작을 `dashboard-charts.js`로 옮기지 않는다.
@@ -3730,7 +3730,7 @@ New
 - **Tablet · 태블릿:** `761px ~ 1100px`
 - **Mobile · 모바일:** `760px 이하`
 
-새로운 UI를 추가하거나 수정할 때 기본적으로 이 세 구간 안에서 해결한다.
+새로운 UI를 추가하거나 수정할 때 기본적으로 이 세 구간 안에서 해결한다. **Phone Landscape는 이 기본 3구간을 다시 정의하는 네 번째 breakpoint가 아니라, 실제 터치 스마트폰 가로를 식별하는 기능 media 예외**로만 취급한다.
 
 
 ## 6.5 불필요한 추가 breakpoint 금지
@@ -3756,6 +3756,8 @@ New
 현재 이미 존재하는 기능상 필요한 예외 breakpoint는 함부로 제거하지 않는다.
 
 현재 허용된 기능상 예외 breakpoint 중 `1280px 이하`는 **공통 Asset Detail 기능 breakpoint**다. 증권의 `보유종목 현황 + 전일 대비 변동`과 퇴직연금의 `연금상품별 현황 + 전일 대비 변동`이 Desktop에서 2열로 배치되다가 `1280px 이하`에서 1열로 전환하여 표 내부 가로 스크롤을 방지한다. 이 규칙은 `.asset-detail-grid`의 공통 기능 기준이며, 다른 일반 영역의 반응형 breakpoint로 확대 적용하지 않는다. 새 증권 전용 breakpoint도 만들지 않는다.
+
+또한 `landscape + max-width:960px + max-height:500px + hover:none + pointer:coarse`는 **실제 스마트폰 가로를 식별하기 위해 허용된 기능 media**다. `960px`을 일반 반응형 breakpoint로 확대 사용하지 않고, `special.css`의 Phone UI Shared / Phone Landscape와 이에 대응하는 JavaScript 판정에서만 같은 조건을 유지한다. 펼친 Z Fold처럼 높이가 `500px`을 넘는 coarse-pointer 화면은 이 media에서 제외하여 Tablet 계열로 둔다.
 
 공통 Asset Detail CSS는 기존 generic class/token을 우선 재사용하고, 실제로 양쪽 자산이 공유하는 의미에만 최소 `.asset-*` semantic class를 사용한다. 현황/전일변동/상승분기여도에서 공통화된 selector는 neutral `.asset-*`가 canonical이며, 같은 역할의 `.pension-*` legacy alias를 병렬로 유지하지 않는다. 위험자산 70% 룰·퇴직연금 조정/PIN/납입 등 연금 전용 UI는 계속 `.pension-*`를 사용한다.
 
