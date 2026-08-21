@@ -154,6 +154,12 @@
     .topbar-label-full{display:none}
     .topbar-label-short{display:inline}
     .switcher{padding-left:var(--space-2xl);padding-right:var(--space-2xl)}
+    .month-select,
+    .day-select{
+      min-width:110px;
+      max-width:148px;
+      flex:1 1 148px;
+    }
     .date-picker-action{gap:var(--space-md)}
     .date-tool-btn{padding-left:var(--space-xl);padding-right:var(--space-xl);gap:var(--space-2xs);font-size:var(--type-size-2xs)}
     .date-tool-action-icon{margin-right:var(--space-2xs)}
