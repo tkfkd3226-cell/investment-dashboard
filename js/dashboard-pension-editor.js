@@ -149,6 +149,7 @@ function renderPensionContributionModal(x){
     <button type="button" id="pensionContribSaveButton" class="contrib-btn" data-pension-action="save">저장</button>
   </div>
   <div id="pensionContribStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="pensionContribOutputFile" class="contrib-output-file" hidden></div>
   <pre id="pensionContribOutput" class="contrib-output"></pre>
 </div>
 <div id="pensionContribDeleteCard" class="contrib-list modal-card-box" role="group" aria-labelledby="pensionContribDeleteTitle"${pensionCashSnapshotItems().length?'':' hidden'}>
@@ -243,6 +244,10 @@ function pensionContributionTarget(){
 function pensionContributionTargetLabel(target=pensionContributionTarget()){
   if(target==='etfTrade') return '추가 매수';
   return target==='cashSnapshot'?'현금성자산':'기업적립금';
+}
+function pensionContributionDataFile(target=pensionContributionTarget()){
+  if(target==='etfTrade') return 'data/pension_trades.json';
+  return target==='cashSnapshot'?'data/pension_cash_snapshots.json':'data/pension_contributions.json';
 }
 function pensionSavePinDescription(item){
   if(item.target==='cashSnapshot') return `${item.date} 현금성자산 평가금액 ${won(item.valuation)}, 매수원금 ${won(item.costBasis)}을 저장합니다.`;
@@ -540,7 +545,9 @@ function resetPensionContributionForm(){
   if(qtyEl)qtyEl.value='';
   if(tradeAmountEl)tradeAmountEl.value='';
   document.querySelectorAll('input[name="pensionContribDeleteTarget"]').forEach(input=>{input.checked=false});
+  const outputFile=document.getElementById('pensionContribOutputFile');
   const output=document.getElementById('pensionContribOutput');
+  if(outputFile){outputFile.textContent='';outputFile.hidden=true}
   if(output){output.textContent='';output.classList.remove('show')}
   clearPensionContributionStatus('pensionContribStatus');
   clearPensionContributionStatus('pensionContribDeleteStatus');
@@ -989,6 +996,8 @@ async function savePensionContribution(){
       }
     }
     const item=buildPensionContributionItem();
+    const outFile=document.getElementById('pensionContribOutputFile');
+    if(outFile){outFile.textContent=`반영 파일 · ${pensionContributionDataFile(item.target)}`;outFile.hidden=false}
     if(out){out.textContent=JSON.stringify(item,null,2);out.classList.add('show')}
     const targetText=pensionContributionTargetLabel(item.target);
     if(pensionEditorState.batchMode){

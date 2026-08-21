@@ -2206,6 +2206,19 @@ body.chart-expanded-open .dash-tooltip{
   opacity:var(--control-disabled-opacity);
   cursor:not-allowed;
 }
+.contrib-output-file{
+  margin-top:var(--space-4xl);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:var(--type-size-sm);
+  line-height:var(--type-line-helper);
+  color:var(--muted);
+}
+.contrib-output-file[hidden]{
+  display:none;
+}
+.contrib-output-file + .contrib-output{
+  margin-top:var(--space-md);
+}
 .contrib-output{
   display:none;
   margin-top:var(--space-4xl);
