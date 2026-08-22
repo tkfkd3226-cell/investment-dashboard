@@ -92,7 +92,7 @@ function securityAllocTypeTotals(x){
 }
 
 const assetTypeColor=type=>ASSET_TYPE_COLORS[type]||CASH_ASSET_COLOR;
-const PENSION_CONTRIBUTION_SAVE_CONFIG = {
+const DASHBOARD_WRITE_CONFIG = {
   githubPages: {
     label: 'GitHub Pages',
     url: 'https://script.google.com/macros/s/AKfycbwxPSFL8VMQLOuncl5ul_leqdnbfjhJve09ZReyaJvjWj8C-5UINeGhtwBxyklRj9AE/exec',
@@ -765,7 +765,7 @@ async function loadInitialData(){
 export {
   ASSET_TYPE_COLORS,
   CASH_ASSET_COLOR,
-  PENSION_CONTRIBUTION_SAVE_CONFIG,
+  DASHBOARD_WRITE_CONFIG,
   SECURITY_SYMBOL_COLORS,
   account1PrincipalForDate,
   account1SourceHoldingGapForDate,

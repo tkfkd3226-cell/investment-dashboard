@@ -1,5 +1,5 @@
 import {
-  PENSION_CONTRIBUTION_SAVE_CONFIG,
+  DASHBOARD_WRITE_CONFIG,
   dataState,
   fetchWithTimeout,
   fmt,
@@ -922,7 +922,7 @@ function showPensionBatchStatus(message,type='ok'){
   setPensionContributionStatus('pensionBatchStatus',message,type);
 }
 async function savePensionBatchViaGithubPages(operations,pin,batchRequestId){
-  const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
+  const config=DASHBOARD_WRITE_CONFIG.githubPages;
   if(!config.url||config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
   const payload={pin:String(pin||'').trim(),action:'batchPension',batchRequestId:String(batchRequestId||'').trim(),operations:operations.map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null}))};
   const res=await fetchWithTimeout(config.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
@@ -977,7 +977,7 @@ async function applyPensionBatchQueue(renderDashboard){
 
 // Persistence / Save/Delete · 저장 / 삭제
 async function savePensionContributionViaGithubPages(item,pin){
-  const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
+  const config=DASHBOARD_WRITE_CONFIG.githubPages;
   if(!config.url || config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
   const payload={...item,pin:String(pin||'').trim(),target:item.target||'contribution',action:'upsert',updatedBy:'github-pages'};
   const res=await fetchWithTimeout(config.url,{
@@ -1042,7 +1042,7 @@ async function savePensionContribution(){
 }
 
 async function deletePensionContributionViaGithubPages(target,key,pin){
-  const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
+  const config=DASHBOARD_WRITE_CONFIG.githubPages;
   if(!config.url || config.url.includes('여기에_'))throw new Error('GitHub Pages 삭제 URL이 설정되지 않았습니다.');
   const isCash=target==='cashSnapshot';
   const res=await fetchWithTimeout(config.url,{

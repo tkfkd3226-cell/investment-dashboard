@@ -1,5 +1,5 @@
 import {
-  PENSION_CONTRIBUTION_SAVE_CONFIG,
+  DASHBOARD_WRITE_CONFIG,
   account1PrincipalForDate,
   account1SourceHoldingGapForDate,
   allAvailableDates,
@@ -500,7 +500,7 @@ function setupUiGlobalEvents(){
   },{passive:true});
 }
 async function dispatchKrxPriceUpdate(pin, mode='selected'){
-  const config=PENSION_CONTRIBUTION_SAVE_CONFIG.githubPages;
+  const config=DASHBOARD_WRITE_CONFIG.githubPages;
   const selectedDate=dataState.activeDate || '';
   const updateMode=mode==='auto'?'auto':'selected';
 
