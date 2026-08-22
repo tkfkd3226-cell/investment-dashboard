@@ -9,7 +9,7 @@
 // - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
 // - Stage 9 calibration이 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
 // - GitHub Pages 등 비로컬 환경에서는 Market AI UI 자체를 표시하지 않음
-// - localhost/LAN에서는 API 실패/신호 부재 시 DB 응답 형태의 fallback을 자동 사용; iPhone 데스크탑 요청 보조 감지는 기존 canonical iphone-request-desktop + viewport 1280 상태로 합류
+// - API endpoint가 없거나 응답 실패/신호 부재이면 DB 응답 형태의 UI fallback을 사용; 실제 API 호출은 localhost/LAN에서만 수행
 
 const MARKET_AI_POLL_MS=60_000;
 const MARKET_AI_TIMEOUT_MS=2_500;
@@ -66,37 +66,14 @@ function marketAiApiBase(){
 }
 
 function marketAiPhonePreviewRequested(){
-  if(!marketAiLocalHost())return false;
   return new URLSearchParams(location.search).get(MARKET_AI_PREVIEW_PARAM)==='1';
 }
 
-function marketAiIphoneDesktopRequested(){
-  const root=document.documentElement;
-  if(root.classList.contains('iphone-request-desktop'))return true;
-  const ua=String(navigator.userAgent||'');
-  const desktopAppleUA=/Macintosh/.test(ua)&&!/(iPhone|iPad|iPod)/.test(ua);
-  const touchApple=(navigator.maxTouchPoints||0)>0;
-  const shortSide=Math.min(Number(screen.width)||9999,Number(screen.height)||9999);
-  return desktopAppleUA&&touchApple&&shortSide<=500;
-}
-
-function ensureMarketAiIphoneDesktopState(){
-  if(!marketAiIphoneDesktopRequested())return false;
-  const root=document.documentElement;
-  const viewport=document.querySelector('meta[name="viewport"]');
-  if(viewport&&viewport.getAttribute('content')!=='width=1280'){
-    viewport.setAttribute('content','width=1280');
-  }
-  root.classList.add('iphone-request-desktop');
+function marketAiPreviewEnabled(){
   return true;
 }
 
-function marketAiPreviewEnabled(){
-  return marketAiLocalHost();
-}
-
 function syncMarketAiPreviewMode(){
-  ensureMarketAiIphoneDesktopState();
   document.documentElement.classList.toggle('market-ai-preview',marketAiPhonePreviewRequested());
 }
 
@@ -683,7 +660,6 @@ function createMarketAiSection(){
 }
 
 function mountMarketAiSection(){
-  if(!marketAiApiBase())return null;
   const hero=document.querySelector('#app > .wrap > .hero');
   if(!hero)return null;
   let row=document.getElementById('market-ai-section');
@@ -737,10 +713,6 @@ function syncMarketAiMarketView(row){
 }
 
 function syncMarketAiSignalView(){
-  if(!marketAiApiBase()){
-    removeMarketAiUi();
-    return;
-  }
   const row=mountMarketAiSection();
   if(!row)return;
   const signal=marketAiState.signal;
@@ -824,7 +796,7 @@ async function refreshMarketAiMarketSnapshot(apiBase){
 async function refreshMarketAiSignal(){
   const apiBase=marketAiApiBase();
   if(!apiBase){
-    removeMarketAiUi();
+    applyMarketAiPreview();
     return;
   }
 
@@ -900,17 +872,16 @@ function scheduleMount(){
 function startMarketAiBridge(){
   syncMarketAiPreviewMode();
   setupMarketAiTooltipEvents();
-  if(!marketAiApiBase()){
-    removeMarketAiUi();
-    return;
-  }
   const app=document.getElementById('app');
   if(app)new MutationObserver(scheduleMount).observe(app,{childList:true,subtree:false});
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible')refreshMarketAiSignal();
   });
   scheduleMount();
-  if(marketAiPreviewEnabled())applyMarketAiPreview();
+  applyMarketAiPreview();
+
+  if(!marketAiApiBase())return;
+
   refreshMarketAiSignal();
   if(!marketAiPollTimer){
     marketAiPollTimer=window.setInterval(()=>{
