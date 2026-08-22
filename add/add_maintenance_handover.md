@@ -72,6 +72,11 @@ add/
 │  └─ calc.js
 └─ report/
    └─ kodex-leverage-report.html
+
+루트 회귀검증:
+
+tests/
+└─ calc.test.cjs
 ```
 
 역할은 다음과 같다.
@@ -89,6 +94,10 @@ add/
 - `add/js/calc.js`
   - CALC 계산·렌더·프리셋·이벤트·툴팁·초기화를 소유하는 단일 IIFE 파일이다.
   - 현재 규모에서는 추가 파일 분리를 기본 작업으로 하지 않는다.
+  - Node 회귀검증에서는 `compute`, `validate`, `ceil5`만 노출하고 DOM 부팅은 실행하지 않는다.
+- `tests/calc.test.cjs`
+  - Node 내장 `node:test` / `node:assert`만 사용한다.
+  - production `add/js/calc.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
 - `add/report/kodex-leverage-report.html`
   - 거래 리포트 canonical 단일 파일이다.
   - `../css/common.css`를 공유하고, 리포트 전용 CSS/JS는 standalone 결과물 특성상 HTML 내부 `<style>` / `<script>`에 유지한다.
@@ -142,6 +151,7 @@ add/
 - 함수 정의를 먼저 배치하고 이벤트 등록과 초기 부팅은 파일 하단에서 명시적으로 실행한다.
 - 이벤트 등록은 `initEventBindings()`, 툴팁 등록은 `initHelpTooltips()`, 저장상태 복원은 `restoreInitialState()`로 구분한다.
 - 계산 엔진은 DOM을 직접 수정하지 않고 계산 결과를 반환하며, 화면 반영은 render 계층이 담당하는 구조를 유지한다.
+- 파일 하단의 Node export guard와 browser boot guard를 유지한다. 계산 로직을 수정하면 `node --test tests/calc.test.cjs`를 실행한다.
 
 #### `add/report/kodex-leverage-report.html` 내부 CSS
 
@@ -616,6 +626,8 @@ Timeline 모바일 카드 상단 날짜 표시
 [ ] 과거 마지막 날짜/과거 누계/과거 총수량 문자열이 잘못 잔존하지 않음
 [ ] add/css/common.css, calc.css와 report 내부 CSS의 기능별 섹션 순서·한글 주석이 canonical 구조와 일치
 [ ] calc.js와 report 내부 JS의 기능별 섹션 순서·한글 주석이 canonical 구조와 일치
+[ ] calc 계산/validation 변경 시 `node --test tests/calc.test.cjs` 전체 PASS
+[ ] tests/calc.test.cjs가 production compute()/validate()/ceil5()를 직접 검증하고 계산식 복사본을 갖지 않음
 [ ] calc.js 이벤트 등록은 initEventBindings(), 저장상태 복원은 restoreInitialState()에서 수행되고 top-level 중복 listener가 없음
 [ ] report JS 부팅이 initNavigationEvents() → initChart() 순서이며 resize listener가 중복 등록되지 않음
 ```
