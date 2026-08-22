@@ -33,12 +33,12 @@
         "market";
       column-gap:0;
     }
-    .hero.market-ai-mounted #market-ai-section{width:min(100%,600px);margin-top:9px;justify-self:center}
-    .market-ai-panel{padding:6px 8px}
-    .market-ai-heading{margin-bottom:3px}
-    .market-ai-desktop{gap:5px}
-    .market-ai-card-row{padding:4px 7px 5px}
-    .market-ai-desktop-metric{min-height:16px;padding:2px 0}
+    .hero.market-ai-mounted #market-ai-section{width:auto;max-width:100%;margin-top:9px;justify-self:center}
+    .market-ai-panel{max-width:min(100%,528px);padding:5px 7px}
+    .market-ai-heading{margin-bottom:4px}
+    .market-ai-desktop{width:fit-content;max-width:100%;grid-template-columns:repeat(2,minmax(226px,248px));gap:6px;justify-content:center}
+    .market-ai-card-row{padding:5px 8px}
+    .market-ai-desktop-metric{min-height:22px;padding:3px 0}
 
     .mini-card{
       --mini-card-pad-y:10px;
