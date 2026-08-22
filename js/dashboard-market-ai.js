@@ -9,7 +9,7 @@
 // - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
 // - Stage 9 calibration이 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
 // - GitHub Pages 등 비로컬 환경에서는 Market AI UI 자체를 표시하지 않음
-// - localhost/LAN의 ?marketAiPreview=1 또는 기존 iphone-request-desktop 상태는 API 실패/신호 부재 시 DB 응답 형태의 로컬 UI preview를 사용
+// - localhost/LAN에서는 API 실패/신호 부재 시 DB 응답 형태의 fallback을 자동 사용; ?marketAiPreview=1은 일반 폰 UI를 강제로 확인할 때만 사용
 
 const MARKET_AI_POLL_MS=60_000;
 const MARKET_AI_TIMEOUT_MS=2_500;
@@ -65,14 +65,27 @@ function marketAiApiBase(){
   return `${location.protocol}//${location.hostname}:8001`;
 }
 
-function marketAiPreviewEnabled(){
+function marketAiPhonePreviewRequested(){
   if(!marketAiLocalHost())return false;
-  if(document.documentElement.classList.contains('iphone-request-desktop'))return true;
   return new URLSearchParams(location.search).get(MARKET_AI_PREVIEW_PARAM)==='1';
 }
 
+function marketAiIphoneDesktopRequested(){
+  const root=document.documentElement;
+  if(root.classList.contains('iphone-request-desktop'))return true;
+  const ua=String(navigator.userAgent||'');
+  const shortSide=Math.min(Number(screen.width)||9999,Number(screen.height)||9999);
+  return /Macintosh/.test(ua)&&shortSide<=500;
+}
+
+function marketAiPreviewEnabled(){
+  return marketAiLocalHost();
+}
+
 function syncMarketAiPreviewMode(){
-  document.documentElement.classList.toggle('market-ai-preview',marketAiPreviewEnabled());
+  const root=document.documentElement;
+  root.classList.toggle('market-ai-preview',marketAiPhonePreviewRequested());
+  root.classList.toggle('market-ai-iphone-desktop',marketAiIphoneDesktopRequested());
 }
 
 function marketAiPreviewPayload(){
