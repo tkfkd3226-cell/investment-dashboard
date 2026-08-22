@@ -4,10 +4,23 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- build: 20260822-a11y-100 -->
-  <meta name="build-version" content="20260822-a11y-100">
+  <!-- build: 20260822-kpi-order-desktop1280 -->
+  <meta name="build-version" content="20260822-kpi-order-desktop1280">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>
+  (function(){
+    var ua=navigator.userAgent||'';
+    var desktopAppleUA=/Macintosh/.test(ua)&&!/(iPhone|iPad|iPod)/.test(ua);
+    var touchApple=(navigator.maxTouchPoints||0)>0;
+    var shortSide=Math.min(screen.width||9999,screen.height||9999);
+    if(desktopAppleUA&&touchApple&&shortSide<=500){
+      var viewport=document.querySelector('meta[name="viewport"]');
+      if(viewport)viewport.setAttribute('content','width=1280');
+      document.documentElement.classList.add('iphone-request-desktop');
+    }
+  })();
+</script>
 <title>KODEX 레버리지 거래 종합 리포트</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
@@ -196,6 +209,12 @@ details p,details li{font-size:12px;color:var(--muted)}
   .hero-chip span{font-size:9px;line-height:1.2}
   .hero-chip strong{margin-top:1px;font-size:16px;line-height:1.16}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #summary .kpi:nth-child(1){order:1}
+  #summary .kpi:nth-child(2){order:2}
+  #summary .kpi:nth-child(4){order:3}
+  #summary .kpi:nth-child(5){order:4}
+  #summary .kpi:nth-child(3){order:5}
+  #summary .kpi:nth-child(6){order:6}
   .grid-2{grid-template-columns:1fr}
 }
 
