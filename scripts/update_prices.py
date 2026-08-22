@@ -4,7 +4,7 @@
 
 운영 원칙:
 - ``prices.json``과 ``performance_snapshots.json``만 갱신한다.
-- ``--date``가 있으면 해당 날짜만 처리한다.
+- ``--date``가 있으면 해당 날짜가 실제 KRX 거래일인지 확인한 뒤 그 날짜만 처리한다.
 - ``--date``가 없으면 최신·누락·장중 재확정 대상을 자동 계산한다.
 - KOSPI 지수는 pykrx → Naver → Yahoo 순서로 fallback 한다.
 
@@ -735,8 +735,8 @@ def parse_args() -> argparse.Namespace:
         "--date",
         default="",
         help=(
-            "YYYY-MM-DD. 지정하면 해당 날짜만 갱신하고, 비워두면 누락 거래일 "
-            "보완 및 장중 저장분의 종가 재확정 대상을 자동 갱신."
+            "YYYY-MM-DD. 지정하면 실제 KRX 거래일인지 확인한 뒤 해당 날짜만 갱신하고, "
+            "비워두면 누락 거래일 보완 및 장중 저장분의 종가 재확정 대상을 자동 갱신."
         ),
     )
     parser.add_argument(
@@ -774,6 +774,12 @@ def main() -> int:
         raise ValueError("--date는 YYYY-MM-DD 형식이어야 합니다.")
 
     portfolio, prices, snapshots = load_dashboard_data()
+
+    if explicit_date and not is_actual_trading_date(portfolio, explicit_date):
+        raise ValueError(
+            f"--date {explicit_date}는 KRX 거래일이 아니거나 해당 날짜 종가를 확인할 수 없습니다."
+        )
+
     target_dates = resolve_target_dates(portfolio, prices, explicit_date or None)
 
     if target_dates:
