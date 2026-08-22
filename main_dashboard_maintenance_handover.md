@@ -2933,7 +2933,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 메인 대시보드가 `#app`을 다시 렌더링해도 `MutationObserver`로 자기 영역만 재부착
 - 기존 `.dash-tooltip` 기반을 확장한 Market AI tooltip 생성/위치 계산
 - API unavailable / stale / invalid response 시 메인 대시보드와 실패 격리
-- 로컬 UI 점검용 `?marketAiPreview=1`은 API 실패/404/stale일 때만 DB 응답 형태의 preview 값을 사용하며, 정상 API 응답이 있으면 실제 데이터를 우선한다. 실제 Market AI DB에는 UI 점검용 가짜 row를 넣지 않는다.
+- 로컬 UI 점검용 `?marketAiPreview=1`은 localhost뿐 아니라 사설 LAN IP(10.x / 172.16~31.x / 192.168.x / 169.254.x)와 `.local` 호스트에서도 동작한다. API 실패/404/stale일 때만 DB 응답 형태의 preview 값을 사용하고 정상 API 응답이 있으면 실제 데이터를 우선한다. 평상시 Mobile/실제 터치폰 가로 숨김 정책은 유지하되, preview 파라미터가 명시된 경우에만 폰에서도 2×2 metric layout으로 UI를 확인한다. 실제 Market AI DB에는 UI 점검용 가짜 row를 넣지 않는다.
 
 반드시 유지할 경계:
 
