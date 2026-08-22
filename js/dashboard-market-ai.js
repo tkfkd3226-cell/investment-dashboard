@@ -9,6 +9,7 @@
 // - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
 // - Stage 9 calibration이 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
 // - GitHub Pages 등 비로컬 환경에서는 Market AI UI 자체를 표시하지 않음
+// - localhost의 ?marketAiPreview=1은 API 실패/신호 부재 시 DB 응답 형태의 로컬 UI preview를 사용
 
 const MARKET_AI_POLL_MS=60_000;
 const MARKET_AI_TIMEOUT_MS=2_500;
@@ -17,6 +18,7 @@ const LOCAL_DASHBOARD_HOSTS=new Set(['localhost','127.0.0.1']);
 const MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200';
 const MARKET_AI_NASDAQ100_FUTURES_SYMBOL='FUTURES:NQ';
 const MARKET_AI_TOOLTIP_ID='marketAiTooltip';
+const MARKET_AI_PREVIEW_PARAM='marketAiPreview';
 const MARKET_AI_SCORE_RANGE_LINES=[
   '0–34.9 강한 약세 · 35–45 약세 · 45 초과–54.9 중립',
   '55–64.9 강세 · 65–100 강한 강세'
@@ -53,6 +55,60 @@ let marketAiTooltipEventsBound=false;
 function marketAiApiBase(){
   if(!LOCAL_DASHBOARD_HOSTS.has(location.hostname))return '';
   return `${location.protocol}//${location.hostname}:8001`;
+}
+
+function marketAiPreviewEnabled(){
+  if(!LOCAL_DASHBOARD_HOSTS.has(location.hostname))return false;
+  return new URLSearchParams(location.search).get(MARKET_AI_PREVIEW_PARAM)==='1';
+}
+
+function marketAiPreviewPayload(){
+  const observedAt=new Date().toISOString();
+  const snapshotRows=[
+    {symbol:'INDEX:KOSPI',price:6912.95,change_pct:0.88,source:'yfinance:^KS11'},
+    {symbol:MARKET_AI_KIS_FUTURES_SYMBOL,price:1074.55,change_pct:-2.29,source:'kis-efriend:day:FC_R:A01609'},
+    {symbol:'INDEX:SOX',price:11740.37,change_pct:-0.51,source:'yfinance:^SOX'},
+    {symbol:MARKET_AI_NASDAQ100_FUTURES_SYMBOL,price:29374.00,change_pct:0.25,source:'yfinance:NQ=F'}
+  ].map(row=>({...row,observed_at:observedAt}));
+  return {
+    signal:{
+      updated_at:observedAt,
+      engine_version:'stage6_rule_v5',
+      kospi_score:27.14,
+      semiconductor_score:56.89,
+      gap_up_probability:32.54,
+      up_close_probability:42.72,
+      confidence:0.86,
+      data_completeness:0.79,
+      calibrated:false,
+      calibration:null,
+      details:{
+        method:'stage6_rule_v5',
+        weights:{
+          kospi:{kospi_index:0.35,kospi200_futures:0.65},
+          semiconductors:{samsung_electronics:0.20,sk_hynix:0.20,sox_index:0.20,nvidia:0.15,sk_hynix_adr:0.15,micron:0.10},
+          gap_up:{kospi200_futures:0.50,sox_index:0.25,nasdaq100_futures:0.20,usdkrw:0.05},
+          up_close:{kospi_index:0.45,kospi200_futures:0.35,sox_index:0.12,nasdaq100_futures:0.08}
+        },
+        qualities:{
+          kospi_index:1,kospi200_futures:1,samsung_electronics:1,sk_hynix:1,sox_index:1,
+          nvidia:1,sk_hynix_adr:1,micron:1,nasdaq100_futures:1,usdkrw:1
+        }
+      }
+    },
+    marketSnapshot:Object.fromEntries(snapshotRows.map(row=>[row.symbol,row]))
+  };
+}
+
+function applyMarketAiPreview(){
+  const preview=marketAiPreviewPayload();
+  setMarketAiState({
+    signal:preview.signal,
+    marketSnapshot:preview.marketSnapshot,
+    status:'연결됨',
+    message:'',
+    lastSignalAt:null
+  });
 }
 
 function fetchWithTimeout(url,options={},timeoutMs=MARKET_AI_TIMEOUT_MS){
@@ -746,8 +802,14 @@ async function refreshMarketAiSignal(){
       }),
       refreshMarketAiMarketSnapshot(apiBase)
     ]);
-    setMarketAiState({marketSnapshot:nextMarketSnapshot||{}});
+    setMarketAiState({
+      marketSnapshot:nextMarketSnapshot||(marketAiPreviewEnabled()?marketAiPreviewPayload().marketSnapshot:{})
+    });
     if(response.status===404){
+      if(marketAiPreviewEnabled()){
+        applyMarketAiPreview();
+        return;
+      }
       setMarketAiState({
         signal:null,
         status:'신호 대기',
@@ -760,6 +822,10 @@ async function refreshMarketAiSignal(){
     const signal=await response.json();
     const freshness=marketAiSignalFreshness(signal);
     if(!freshness.fresh){
+      if(marketAiPreviewEnabled()){
+        applyMarketAiPreview();
+        return;
+      }
       setMarketAiState({
         signal:null,
         status:'신호 지연',
@@ -772,6 +838,10 @@ async function refreshMarketAiSignal(){
     }
     setMarketAiState({signal,status:'연결됨',message:'',lastSignalAt:null});
   }catch(_){
+    if(marketAiPreviewEnabled()){
+      applyMarketAiPreview();
+      return;
+    }
     setMarketAiState({
       signal:null,
       status:'서버 연결 안 됨',
@@ -801,6 +871,7 @@ function startMarketAiBridge(){
     if(document.visibilityState==='visible')refreshMarketAiSignal();
   });
   scheduleMount();
+  if(marketAiPreviewEnabled())applyMarketAiPreview();
   refreshMarketAiSignal();
   if(!marketAiPollTimer){
     marketAiPollTimer=window.setInterval(()=>{
