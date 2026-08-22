@@ -9,12 +9,12 @@
 // - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
 // - Stage 9 calibration이 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
 // - GitHub Pages 등 비로컬 환경에서는 Market AI UI 자체를 표시하지 않음
-// - localhost의 ?marketAiPreview=1은 API 실패/신호 부재 시 DB 응답 형태의 로컬 UI preview를 사용
+// - localhost/LAN의 ?marketAiPreview=1은 API 실패/신호 부재 시 DB 응답 형태의 로컬 UI preview를 사용
 
 const MARKET_AI_POLL_MS=60_000;
 const MARKET_AI_TIMEOUT_MS=2_500;
 const MARKET_AI_STALE_MS=5*60_000;
-const LOCAL_DASHBOARD_HOSTS=new Set(['localhost','127.0.0.1']);
+const LOCAL_DASHBOARD_HOSTS=new Set(['localhost','127.0.0.1','::1']);
 const MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200';
 const MARKET_AI_NASDAQ100_FUTURES_SYMBOL='FUTURES:NQ';
 const MARKET_AI_TOOLTIP_ID='marketAiTooltip';
@@ -52,14 +52,26 @@ let marketAiPollTimer=0;
 let mountFrame=0;
 let marketAiTooltipEventsBound=false;
 
+function marketAiLocalHost(){
+  const host=String(location.hostname||'').toLowerCase();
+  if(LOCAL_DASHBOARD_HOSTS.has(host)||host.endsWith('.local'))return true;
+  if(/^10\./.test(host)||/^192\.168\./.test(host)||/^169\.254\./.test(host))return true;
+  const match=host.match(/^172\.(\d{1,3})\./);
+  return !!match&&Number(match[1])>=16&&Number(match[1])<=31;
+}
+
 function marketAiApiBase(){
-  if(!LOCAL_DASHBOARD_HOSTS.has(location.hostname))return '';
+  if(!marketAiLocalHost())return '';
   return `${location.protocol}//${location.hostname}:8001`;
 }
 
 function marketAiPreviewEnabled(){
-  if(!LOCAL_DASHBOARD_HOSTS.has(location.hostname))return false;
+  if(!marketAiLocalHost())return false;
   return new URLSearchParams(location.search).get(MARKET_AI_PREVIEW_PARAM)==='1';
+}
+
+function syncMarketAiPreviewMode(){
+  document.documentElement.classList.toggle('market-ai-preview',marketAiPreviewEnabled());
 }
 
 function marketAiPreviewPayload(){
@@ -860,6 +872,7 @@ function scheduleMount(){
 }
 
 function startMarketAiBridge(){
+  syncMarketAiPreviewMode();
   setupMarketAiTooltipEvents();
   if(!marketAiApiBase()){
     removeMarketAiUi();
