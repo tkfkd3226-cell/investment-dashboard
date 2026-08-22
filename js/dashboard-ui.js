@@ -12,6 +12,7 @@ import {
   monthLabel,
   outsideCashForDate,
   pct,
+  readJsonResponse,
   securityExcludedTransferSum,
   securityExternalContributionSum,
   securityInternalCashTransferSum,
@@ -525,7 +526,7 @@ async function dispatchKrxPriceUpdate(pin, mode='selected'){
     body:JSON.stringify(body)
   });
 
-  const data=await res.json().catch(()=>({}));
+  const data=await readJsonResponse(res,'KRX 현재가 반영 요청');
 
   if(!data.ok){
     throw new Error(data.error||'KRX 현재가 반영 요청 실패');

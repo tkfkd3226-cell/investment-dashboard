@@ -17,6 +17,7 @@ import {
   rawPensionCashSnapshotItems,
   rawPensionContributionItems,
   rawPensionTradeItems,
+  readJsonResponse,
   won
 } from './dashboard-core.js';
 import {
@@ -925,7 +926,7 @@ async function savePensionBatchViaGithubPages(operations,pin,batchRequestId){
   if(!config.url||config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
   const payload={pin:String(pin||'').trim(),action:'batchPension',batchRequestId:String(batchRequestId||'').trim(),operations:operations.map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null}))};
   const res=await fetchWithTimeout(config.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
-  const data=await res.json().catch(()=>({}));
+  const data=await readJsonResponse(res,'작업 모음 일괄 적용');
   if(!data.ok)throw new Error(data.error||'작업 모음 일괄 적용에 실패했습니다.');
   return data;
 }
@@ -984,7 +985,7 @@ async function savePensionContributionViaGithubPages(item,pin){
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(payload)
   });
-  const data=await res.json().catch(()=>({}));
+  const data=await readJsonResponse(res,'GitHub Pages 방식 저장');
   if(!data.ok)throw new Error(data.error||'GitHub Pages 방식 저장 실패');
   return data;
 }
@@ -1049,7 +1050,7 @@ async function deletePensionContributionViaGithubPages(target,key,pin){
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({pin:String(pin||'').trim(),target:target||'contribution',action:'delete',id:isCash?'':key,date:isCash?key:''})
   });
-  const data=await res.json().catch(()=>({}));
+  const data=await readJsonResponse(res,'GitHub Pages 방식 삭제');
   if(!data.ok)throw new Error(data.error||'GitHub Pages 방식 삭제 실패');
   return data;
 }

@@ -698,6 +698,31 @@ async function fetchWithTimeout(url,options={},timeoutMs=NETWORK_REQUEST_TIMEOUT
 function dataUrlLabel(url){
   return String(url||'').split('?')[0]||'데이터';
 }
+async function readJsonResponse(response,label='요청'){
+  let data;
+  try{
+    data=await response.json();
+  }catch(cause){
+    const message=response.ok
+      ?`${label} 응답 JSON 형식이 올바르지 않습니다.`
+      :`${label} 실패 (HTTP ${response.status})`;
+    const error=new Error(message);
+    error.status=response.status;
+    error.cause=cause;
+    throw error;
+  }
+  if(!response.ok){
+    const detail=String(data?.error||'').trim();
+    const message=detail
+      ?`${detail} (HTTP ${response.status})`
+      :`${label} 실패 (HTTP ${response.status})`;
+    const error=new Error(message);
+    error.status=response.status;
+    error.data=data;
+    throw error;
+  }
+  return data;
+}
 async function loadJson(url){
   const response=await fetchWithTimeout(url);
   if(!response.ok){
@@ -779,6 +804,7 @@ export {
   rawPensionCashSnapshotItems,
   rawPensionContributionItems,
   rawPensionTradeItems,
+  readJsonResponse,
   securityAllocOneShareEval,
   securityAllocTypeTotals,
   securityAllocVisibleHoldings,
