@@ -499,6 +499,19 @@ GitHub ZIP만 제공
 
 GAS 자체의 코드 품질 점수는 사용자가 별도로 요청하지 않는 한 CSS / JS / UI / UX 점수에 섞지 않는다.
 
+### C-1. Market AI 백엔드 평가 범위
+
+Market AI 백엔드는 대시보드 ZIP의 기본 평가 대상에서 제외한다. 대시보드 평가에서는 `dashboard-market-ai.js`의 **프런트엔드 adapter 구조, main graph와의 분리, mount/polling/timeout/stale 처리, 실패 격리, CSS ownership**처럼 대시보드 측 유지보수성만 필요한 범위에서 확인한다.
+
+```text
+대시보드 ZIP만 제공
+→ Market AI 백엔드의 정확성 / 성능 / 모델·신호 품질 / API 내부 구현은 직접 검증하지 않음
+→ 백엔드 미첨부·미연결 자체를 CSS / JS / UI / UX 점수에서 감점하지 않음
+→ dashboard-market-ai.js가 메인 대시보드를 깨뜨리지 않고 실패를 격리하는지만 확인
+```
+
+Market AI 백엔드 자체 평가는 사용자가 최신 백엔드 소스를 별도로 제공하고 명시적으로 평가를 요청한 경우에만 별도 범위로 진행하며, 그 결과를 메인 대시보드 CSS / JS / UI / UX 점수와 자동 합산하지 않는다.
+
 
 ### D. 프로젝트 구조부터 실제로 확인
 
@@ -3408,7 +3421,7 @@ Python / Workflow 유지보수 구조:
 
 ### Python dependency 재현성
 
-`requirements.txt`의 직접 dependency는 호환 확인된 버전으로 pin한다. 현재 기준은 `pykrx==1.0.51`, `pandas==2.3.3`, `requests==2.34.2`다. 버전을 올릴 때는 Python 3.11 / pykrx 호환성과 `scripts/update_prices.py` 동작 범위를 먼저 확인한다. 하위 transitive dependency까지 `pip freeze` 전체를 저장하는 방식은 기본 운영으로 사용하지 않는다.
+`requirements.txt`의 직접 dependency는 호환 확인된 버전으로 pin한다. 현재 기준은 `pykrx==1.2.8`, `pandas==2.3.3`, `requests==2.34.2`다. `pykrx`를 다시 올릴 때는 Python 3.11 지원 여부와 `scripts/update_prices.py`가 사용하는 종목/지수 OHLCV API의 호환성을 먼저 확인한다. 하위 transitive dependency까지 `pip freeze` 전체를 저장하는 방식은 기본 운영으로 사용하지 않는다.
 
 # 10. 리팩토링 이력 · 역사적 기준선
 
