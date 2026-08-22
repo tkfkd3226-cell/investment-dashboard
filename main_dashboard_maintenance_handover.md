@@ -2933,6 +2933,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 메인 대시보드가 `#app`을 다시 렌더링해도 `MutationObserver`로 자기 영역만 재부착
 - 기존 `.dash-tooltip` 기반을 확장한 Market AI tooltip 생성/위치 계산
 - API unavailable / stale / invalid response 시 메인 대시보드와 실패 격리
+- 로컬 UI 점검용 `?marketAiPreview=1`은 API 실패/404/stale일 때만 DB 응답 형태의 preview 값을 사용하며, 정상 API 응답이 있으면 실제 데이터를 우선한다. 실제 Market AI DB에는 UI 점검용 가짜 row를 넣지 않는다.
 
 반드시 유지할 경계:
 
@@ -2955,6 +2956,9 @@ tablet.css
 
 special.css
 → 1101~1280 Compact Desktop 보정 + 실제 Phone 숨김/hero layout 복원
+
+print.css
+→ 인쇄 시 현재 시점 Market AI 영역/tooltip 제외 + Hero block 흐름 복원
 ```
 
 `dashboard-market-ai.js`가 전용 class를 생성하더라도 JS에서 구조용 inline style을 누적하거나 별도 Market AI CSS 파일을 새로 만들지 않는다. 동적 tooltip 좌표처럼 런타임 계산이 필요한 값만 JS가 직접 처리한다.
@@ -3076,6 +3080,9 @@ Market AI Tablet 배치
 
 Market AI 1101~1280 compact Desktop / 실제 Phone 숨김
 → css/special.css의 해당 기능 viewport
+
+Market AI 인쇄 제외
+→ css/print.css
 
 투자 계산기 HTML
 → add/calc.html
