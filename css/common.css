@@ -824,7 +824,7 @@ html.dark #market-ai-section{
   margin-top:var(--space-8xl);
 }
 
-/* [04. Common Cards / Components · 공통 카드 / 컴포넌트] Cards / Typography · 카드 / 타이포 */
+/* [03. Common Cards / Components · 공통 카드 / 컴포넌트] Cards / Typography · 카드 / 타이포 */
 .card{
   background:var(--card);
   border:1px solid var(--line);
@@ -897,7 +897,7 @@ section{
   min-height:var(--section-chip-height);
 }
 
-/* [05. Tables / Forms · 테이블 / 입력 폼] Base Tables · 기본 테이블 */
+/* [04. Tables / Forms · 테이블 / 입력 폼] Base Tables · 기본 테이블 */
 table{
   width:100%;
   border-collapse:separate;
@@ -1050,7 +1050,7 @@ td.num{
   letter-spacing:-.02em;
 }
 
-/* [08. Charts · 차트] Chart Primitives / Tooltip · 차트 기본 요소 / tooltip */
+/* [05. Charts · 차트] Chart Primitives / Tooltip · 차트 기본 요소 / tooltip */
 .bar-box{
   height:12px;
   background:var(--bar-track-bg);
@@ -1850,7 +1850,7 @@ body.chart-expanded-open .dash-tooltip{
   min-width:0;
 }
 
-/* [07. Asset Detail · 자산 상세] Shared Status / Change / Insight · 공통 현황 / 변동 / 인사이트 */
+/* [06. Asset Detail · 자산 상세] Shared Status / Change / Insight · 공통 현황 / 변동 / 인사이트 */
 .asset-detail-grid{
   width:100%;
   margin-top:var(--space-7xl);
@@ -2220,7 +2220,7 @@ body.chart-expanded-open .dash-tooltip{
 
 /* Metric Cards · 핵심지표 카드: 공통 타이포와 대표 viewport grid 사용 */
 
-/* [04. Common Cards / Components · 공통 카드 / 컴포넌트] Common Metrics · 공통 핵심지표 */
+/* [07. Common Metrics · 공통 핵심지표] Metric Cards · 핵심지표 카드 */
 .metric-card{
   --metric-label-size:13px;
   --metric-value-size:28px;
@@ -2320,7 +2320,7 @@ body.chart-expanded-open .dash-tooltip{
   cursor:pointer;
 }
 
-/* [07. Pension · 퇴직연금] Contribution / Adjustment · 납입 / 금액조정 */
+/* [08. Pension Contribution / Adjustment · 퇴직연금 납입 / 금액조정] */
 .pension-contrib-tool{
   margin-top:var(--space-6xl);
   padding:var(--space-6xl);
@@ -2744,7 +2744,7 @@ body.contrib-modal-open{
   background:var(--securities-band-bg);
 }
 
-/* [06. Securities / Asset Workspace · 증권계좌 / 자산 작업영역] Asset Workspace · 자산 작업영역 */
+/* [09. Securities / Asset Workspace · 증권계좌 / 자산 작업영역] Asset Workspace · 자산 작업영역 */
 /* Asset Workspace Tabs · 자산 작업영역 탭: 증권 → 퇴직연금 순서, 기존 section ID 유지 */
 .asset-workspace{margin-top:var(--space-9xl)}
 .asset-workspace-tabs{
@@ -3097,7 +3097,7 @@ body.contrib-modal-open{
 .source-data-table .source-base-row > :is(th,td){background:var(--card)}
 .source-data-table .source-derived-row > :is(th,td){background:var(--source-linked-bg)}
 
-/* [09. Modal / Tooltip / Overlay · 모달 / 툴팁 / 오버레이] Action Modals · 작업 모달 */
+/* [10. Modal / Tooltip / Overlay · 모달 / 툴팁 / 오버레이] Action Modals · 작업 모달 */
 .action-modal{
   position:fixed;
   inset:0;
@@ -3476,7 +3476,7 @@ button:not(:disabled):active,
   vertical-align:1px;
 }
 
-/* [07. Pension · 퇴직연금] Batch Operations · 작업 모음 */
+/* [11. Pension Batch Operations · 퇴직연금 작업 모음] */
 /* Pension Batch · 퇴직연금 작업 모음 */
 .pension-batch-count{
   display:inline-flex;
@@ -3747,11 +3747,11 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-inline-reason{displ
 html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none}
 
 /* =========================================================
-   [03. Topbar / Navigation · 상단바 / 내비게이션]
+   [12. Topbar / Navigation · 상단바 / 내비게이션]
    Date Action / Navigation Primitives / Edge TOC / Topbar Layout
    ========================================================= */
 
-/* [03. Topbar / Navigation · 상단바 / 내비게이션] Date Action Menu · 날짜 action menu */
+/* [12. Topbar / Navigation · 상단바 / 내비게이션] Date Action Menu · 날짜 action menu */
 .date-action-menu{display:none}
 .date-action-menu.show{display:block}
 .mobile-menu-layout,.tablet-toc-menu-layout{display:none}
@@ -3900,7 +3900,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 
 /* Data Tables · 데이터 표: 웹/태블릿 table, 폰 UI table↔card 전환 */
 
-/* [05. Tables / Forms · 테이블 / 입력 폼] Data Table / Mobile Card · 데이터 표 / 모바일 카드 */
+/* [13. Data Table / Mobile Card · 데이터 표 / 모바일 카드] */
 .mobile-scroll{
   width:100%;
   max-width:100%;
