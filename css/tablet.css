@@ -36,8 +36,7 @@
     .hero.market-ai-mounted #market-ai-section{margin-top:11px}
     .market-ai-panel{padding:9px 11px}
     .market-ai-heading{margin-bottom:6px}
-    .market-ai-market-row{grid-template-columns:46px repeat(4,minmax(0,1fr))}
-    .market-ai-signal-row{grid-template-columns:46px repeat(4,minmax(0,1fr))}
+    .market-ai-card-row{grid-template-columns:repeat(4,minmax(0,1fr))}
     .market-ai-desktop-metric{padding:0 5px}
 
     .mini-card{
