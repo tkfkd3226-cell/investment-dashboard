@@ -646,11 +646,11 @@ body{
 /* Market AI Mount Layout · Hero에 standalone 보조 영역을 연결하는 Desktop layout */
 .hero.market-ai-mounted{
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(520px,600px);
+  grid-template-columns:minmax(0,1fr) minmax(330px,350px);
   grid-template-areas:
     "title market"
     "pills market";
-  column-gap:var(--space-5xl);
+  column-gap:var(--space-3xl);
   align-items:center;
 }
 .hero.market-ai-mounted .hero-title-row{grid-area:title}
@@ -684,8 +684,8 @@ html.dark #market-ai-section{
 }
 .market-ai-panel{
   width:fit-content;
-  max-width:min(100%,528px);
-  padding:5px 7px;
+  max-width:min(100%,330px);
+  padding:4px 5px;
   border:1px solid var(--market-ai-panel-border);
   border-radius:min(15px,var(--corner-surface-cap));
   background:var(--market-ai-panel-bg);
@@ -699,12 +699,12 @@ html.dark #market-ai-section{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:var(--space-sm);
-  margin-bottom:4px;
+  gap:6px;
+  margin-bottom:2px;
 }
 .market-ai-title{
   color:var(--market-ai-text);
-  font-size:11.5px;
+  font-size:10.5px;
   font-weight:var(--type-weight-strong);
   letter-spacing:-.02em;
   white-space:nowrap;
@@ -713,7 +713,7 @@ html.dark #market-ai-section{
   min-width:0;
   overflow:hidden;
   color:var(--market-ai-muted);
-  font-size:10px;
+  font-size:9.2px;
   font-weight:var(--type-weight-bold);
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -723,8 +723,8 @@ html.dark #market-ai-section{
   display:grid;
   width:fit-content;
   max-width:100%;
-  grid-template-columns:repeat(2,minmax(232px,250px));
-  gap:6px;
+  grid-template-columns:repeat(2,minmax(154px,160px));
+  gap:5px;
   align-items:stretch;
   justify-content:start;
 }
@@ -735,47 +735,54 @@ html.dark #market-ai-section{
   align-content:start;
   min-width:0;
   border:1px solid var(--market-ai-divider);
-  border-radius:min(9px,var(--corner-surface-cap));
-  padding:5px 8px;
+  border-radius:min(8px,var(--corner-surface-cap));
+  padding:3px 6px 4px;
 }
 .market-ai-desktop-group-label{
   color:var(--market-ai-muted);
-  font-size:9.5px;
+  font-size:9px;
   font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
-  line-height:1.1;
-  margin-bottom:3px;
+  line-height:1;
+  margin-bottom:1px;
   white-space:nowrap;
 }
 .market-ai-desktop-metric{
+  position:relative;
   display:grid;
   align-items:center;
   min-width:0;
-  min-height:22px;
+  min-height:17px;
   border:0;
   border-radius:0;
-  padding:3px 0;
+  padding:0;
   white-space:nowrap;
 }
-.market-ai-desktop-metric:not(:last-child){
-  border-bottom:1px solid var(--market-ai-divider);
+.market-ai-desktop-metric:not(:last-child)::after{
+  content:"";
+  position:absolute;
+  right:0;
+  bottom:0;
+  left:0;
+  height:1px;
+  background:var(--market-ai-divider);
 }
 .market-ai-market-row .market-ai-desktop-metric{
-  grid-template-columns:minmax(0,1fr) 68px 50px;
-  column-gap:6px;
+  grid-template-columns:minmax(0,1fr) 50px 39px;
+  column-gap:3px;
 }
 .market-ai-signal-row .market-ai-desktop-metric{
-  grid-template-columns:minmax(0,1fr) 58px;
-  column-gap:8px;
+  grid-template-columns:minmax(0,1fr) 44px;
+  column-gap:4px;
 }
 .market-ai-desktop-label{
   min-width:0;
   overflow:hidden;
   color:var(--market-ai-label);
-  font-size:9.5px;
+  font-size:9px;
   font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
-  line-height:1.15;
+  line-height:1;
   text-align:left;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -785,14 +792,14 @@ html.dark #market-ai-section{
 .market-ai-desktop-change{
   justify-self:end;
   color:var(--market-ai-text);
-  font-size:10.5px;
+  font-size:9.5px;
   font-weight:var(--type-weight-emphasis);
   font-variant-numeric:tabular-nums;
   letter-spacing:-.02em;
-  line-height:1.15;
+  line-height:1;
   text-align:right;
 }
-.market-ai-desktop-change{font-size:9px}
+.market-ai-desktop-change{font-size:8.5px}
 .market-ai-desktop .positive{color:var(--value-positive)}
 .market-ai-desktop .negative{color:var(--value-negative)}
 

@@ -121,15 +121,20 @@
       grid-template-columns:1fr;
     }
 
-  /* Market AI Compact Desktop · 동일 Compact Desktop 예외 안에서 Hero 우측 카드의 폭/밀도만 보정 */
+  /* Market AI Compact Desktop · 1280 요청 화면에서도 원래 Hero 높이에 최대한 맞도록 폭/행 높이를 압축 */
     .hero.market-ai-mounted{
-      grid-template-columns:minmax(0,1fr) minmax(460px,500px);
-      column-gap:var(--space-3xl);
+      grid-template-columns:minmax(0,1fr) minmax(316px,334px);
+      column-gap:var(--space-xl);
     }
-    .market-ai-desktop-metric{padding:0 5px}
-    .market-ai-desktop-label{font-size:9px}
+    .market-ai-panel{max-width:min(100%,323px);padding:4px 5px}
+    .market-ai-heading{margin-bottom:2px}
+    .market-ai-desktop{grid-template-columns:repeat(2,154px);gap:5px}
+    .market-ai-card-row{padding:3px 6px 4px}
+    .market-ai-desktop-metric{min-height:17px;padding:0}
+    .market-ai-desktop-label{font-size:8.8px}
     .market-ai-desktop-value,
-    .market-ai-desktop-signal{font-size:10.5px}
+    .market-ai-desktop-signal{font-size:9.5px}
+    .market-ai-desktop-change{font-size:8.3px}
 }
 
 /* -------------------------------------------------------------------------
