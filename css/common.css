@@ -680,7 +680,7 @@ html.dark #market-ai-section{
   --market-ai-divider:rgba(255,255,255,.11);
 }
 .market-ai-panel{
-  padding:10px 12px;
+  padding:8px 10px;
   border:1px solid var(--market-ai-panel-border);
   border-radius:min(15px,var(--corner-surface-cap));
   background:var(--market-ai-panel-bg);
@@ -695,7 +695,7 @@ html.dark #market-ai-section{
   align-items:center;
   justify-content:space-between;
   gap:var(--space-lg);
-  margin-bottom:7px;
+  margin-bottom:5px;
 }
 .market-ai-title{
   color:var(--market-ai-text);
@@ -713,65 +713,83 @@ html.dark #market-ai-section{
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-/* Market AI Rows / Metrics · 시장 행과 AI 신호 행의 공통 표시 구조 */
+/* Market AI Rows / Metrics · 2×4 균등 카드는 유지하되 Hero 높이를 늘리지 않는 compact 구성 */
 .market-ai-desktop{
   display:grid;
-  gap:6px;
+  gap:4px;
 }
 .market-ai-desktop[hidden]{display:none}
 .market-ai-card-row{
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  column-gap:6px;
-  row-gap:5px;
-  align-items:stretch;
+  grid-template-columns:50px repeat(4,minmax(0,1fr));
+  column-gap:5px;
+  align-items:center;
   min-width:0;
   border-top:1px solid var(--market-ai-divider);
-  padding-top:6px;
+  padding-top:4px;
 }
 .market-ai-desktop-group-label{
-  grid-column:1 / -1;
   align-self:center;
   color:var(--market-ai-muted);
-  font-size:9.5px;
+  font-size:9px;
   font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
+  line-height:1.1;
   white-space:nowrap;
 }
 .market-ai-desktop-metric{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:1px;
   min-width:0;
-  min-height:48px;
-  padding:6px 7px;
   border:1px solid var(--market-ai-divider);
   border-radius:min(9px,var(--corner-surface-cap));
   white-space:nowrap;
+}
+.market-ai-market-row .market-ai-desktop-metric{
+  display:grid;
+  grid-template-columns:auto auto;
+  grid-template-areas:
+    "label label"
+    "value change";
+  justify-content:center;
+  align-content:center;
+  column-gap:4px;
+  row-gap:0;
+  min-height:36px;
+  padding:3px 6px;
+}
+.market-ai-signal-row .market-ai-desktop-metric{
+  display:flex;
+  align-items:baseline;
+  justify-content:center;
+  gap:5px;
+  min-height:30px;
+  padding:3px 6px;
 }
 .market-ai-desktop-label{
   flex:0 0 auto;
   overflow:visible;
   color:var(--market-ai-label);
-  font-size:9.5px;
+  font-size:9px;
   font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
+  line-height:1.1;
   text-overflow:clip;
   white-space:nowrap;
 }
+.market-ai-market-row .market-ai-desktop-label{grid-area:label;text-align:center}
+.market-ai-market-row .market-ai-desktop-value{grid-area:value}
+.market-ai-market-row .market-ai-desktop-change{grid-area:change}
 .market-ai-desktop-value,
 .market-ai-desktop-signal,
 .market-ai-desktop-change{
   flex:0 0 auto;
   color:var(--market-ai-text);
-  font-size:11px;
+  font-size:10.5px;
   font-weight:var(--type-weight-emphasis);
   font-variant-numeric:tabular-nums;
   letter-spacing:-.02em;
+  line-height:1.12;
 }
-.market-ai-desktop-change{font-size:9.5px}
+.market-ai-desktop-change{font-size:9px}
 .market-ai-desktop .positive{color:var(--value-positive)}
 .market-ai-desktop .negative{color:var(--value-negative)}
 
