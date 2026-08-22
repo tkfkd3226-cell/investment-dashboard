@@ -834,7 +834,7 @@ module-private로 내려도 되는 후보
 - JSON parse
 - required vs optional JSON
 - fallback
-- GAS POST
+- GAS POST (`response.ok/status` 확인 후 JSON/application-level `ok` 계약 판정)
 - loading/disabled state
 - error text
 - duplicate request
@@ -4407,7 +4407,8 @@ JS ↔ GAS 계약 검증 시:
 
 ```text
 날짜 지정
-→ 해당 날짜 갱신
+→ 실제 KRX 거래일인지 확인한 뒤 해당 날짜 갱신
+→ 비거래일 또는 종가 확인 불가 날짜면 저장하지 않고 실패 처리
 
 날짜 비움
 → 최신·누락·장중 재확정 대상 날짜를 Python이 자동 판단
