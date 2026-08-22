@@ -36,9 +36,9 @@
     .hero.market-ai-mounted #market-ai-section{margin-top:11px}
     .market-ai-panel{padding:8px 10px}
     .market-ai-heading{margin-bottom:5px}
-    .market-ai-card-row{grid-template-columns:46px repeat(4,minmax(0,1fr));column-gap:4px}
-    .market-ai-market-row .market-ai-desktop-metric{min-height:34px;padding:3px 5px}
-    .market-ai-signal-row .market-ai-desktop-metric{min-height:29px;padding:3px 5px}
+    .market-ai-desktop{gap:5px}
+    .market-ai-card-row{padding:5px 7px 6px}
+    .market-ai-desktop-metric{min-height:18px;padding:3px 0}
 
     .mini-card{
       --mini-card-pad-y:10px;
