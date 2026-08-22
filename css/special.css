@@ -144,17 +144,17 @@
    ------------------------------------------------------------------------- */
 @media (max-width:760px),
        (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  /* Market AI Phone · 일반 폰만 숨김. iPhone 데스크탑 요청은 기존 class 또는 Market AI 자체 감지 class로 숨김에서 제외 */
-    html:not(.iphone-request-desktop):not(.market-ai-iphone-desktop) .hero.market-ai-mounted{display:block}
-    html:not(.iphone-request-desktop):not(.market-ai-iphone-desktop) #market-ai-section{display:none}
-    html.market-ai-preview:not(.iphone-request-desktop):not(.market-ai-iphone-desktop) #market-ai-section{display:block;margin-top:10px}
-    html.market-ai-preview:not(.iphone-request-desktop):not(.market-ai-iphone-desktop) #market-ai-section .market-ai-card-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 0}
-    html.market-ai-preview:not(.iphone-request-desktop):not(.market-ai-iphone-desktop) #market-ai-section .market-ai-desktop-group-label{grid-column:1/-1}
-    html.market-ai-preview:not(.iphone-request-desktop):not(.market-ai-iphone-desktop) #market-ai-section .market-ai-desktop-metric{flex-wrap:wrap;justify-content:flex-start;gap:1px 4px;padding:0 8px}
-    html.market-ai-preview:not(.iphone-request-desktop):not(.market-ai-iphone-desktop) #market-ai-section .market-ai-desktop-label{flex-basis:100%;font-size:9px}
-    html.market-ai-preview:not(.iphone-request-desktop):not(.market-ai-iphone-desktop) #market-ai-section .market-ai-desktop-value,
-    html.market-ai-preview:not(.iphone-request-desktop):not(.market-ai-iphone-desktop) #market-ai-section .market-ai-desktop-signal{font-size:10.5px}
-    html.market-ai-preview:not(.iphone-request-desktop):not(.market-ai-iphone-desktop) #market-ai-section .market-ai-desktop-change{font-size:9px}
+  /* Market AI Phone · 일반 폰만 숨김. iPhone 데스크탑 요청은 canonical iphone-request-desktop(1280px) 상태로 Desktop CSS를 사용 */
+    html:not(.iphone-request-desktop) .hero.market-ai-mounted{display:block}
+    html:not(.iphone-request-desktop) #market-ai-section{display:none}
+    html.market-ai-preview:not(.iphone-request-desktop) #market-ai-section{display:block;margin-top:10px}
+    html.market-ai-preview:not(.iphone-request-desktop) #market-ai-section .market-ai-card-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 0}
+    html.market-ai-preview:not(.iphone-request-desktop) #market-ai-section .market-ai-desktop-group-label{grid-column:1/-1}
+    html.market-ai-preview:not(.iphone-request-desktop) #market-ai-section .market-ai-desktop-metric{flex-wrap:wrap;justify-content:flex-start;gap:1px 4px;padding:0 8px}
+    html.market-ai-preview:not(.iphone-request-desktop) #market-ai-section .market-ai-desktop-label{flex-basis:100%;font-size:9px}
+    html.market-ai-preview:not(.iphone-request-desktop) #market-ai-section .market-ai-desktop-value,
+    html.market-ai-preview:not(.iphone-request-desktop) #market-ai-section .market-ai-desktop-signal{font-size:10.5px}
+    html.market-ai-preview:not(.iphone-request-desktop) #market-ai-section .market-ai-desktop-change{font-size:9px}
 
   /* Phone Control Tokens · 세로폰/가로폰 공통 compact control */
     :root{
