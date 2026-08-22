@@ -46,7 +46,8 @@
       margin-top:var(--space-9xl);
     }
 
-    /* Market AI는 선택일과 무관한 현재 신호이므로 과거/현재 대시보드 인쇄물에서는 제외한다. */
+    /* Market AI는 선택일과 무관한 현재 신호이므로 preview 여부와 관계없이 인쇄물에서는 제외한다. */
+    html.market-ai-preview:not(.iphone-request-desktop) #market-ai-section,
     #market-ai-section,
     .dash-tooltip.market-ai-tooltip{
       display:none;
