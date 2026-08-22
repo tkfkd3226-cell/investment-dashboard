@@ -121,15 +121,18 @@
       grid-template-columns:1fr;
     }
 
-  /* Market AI Compact Desktop · 동일 Compact Desktop 예외 안에서 Hero 우측 카드의 폭/밀도만 보정 */
+  /* Market AI Compact Desktop · NQ100선물까지 4개 시장 metric이 한 줄에서 잘리지 않도록 카드 폭/밀도를 함께 보정 */
     .hero.market-ai-mounted{
-      grid-template-columns:minmax(0,1fr) minmax(460px,500px);
-      column-gap:var(--space-3xl);
+      grid-template-columns:minmax(0,1fr) minmax(540px,560px);
+      column-gap:var(--space-2xl);
     }
-    .market-ai-desktop-metric{padding:0 5px}
-    .market-ai-desktop-label{font-size:9px}
+    .market-ai-market-row,
+    .market-ai-signal-row{grid-template-columns:44px repeat(4,minmax(0,1fr))}
+    .market-ai-desktop-metric{gap:2px;padding:0 3px}
+    .market-ai-desktop-label{font-size:8.5px}
     .market-ai-desktop-value,
-    .market-ai-desktop-signal{font-size:10.5px}
+    .market-ai-desktop-signal{font-size:9.5px}
+    .market-ai-desktop-change{font-size:8.5px}
 }
 
 /* -------------------------------------------------------------------------
