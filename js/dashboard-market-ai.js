@@ -9,7 +9,7 @@
 // - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
 // - Stage 9 calibration이 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
 // - GitHub Pages 등 비로컬 환경에서는 Market AI UI 자체를 표시하지 않음
-// - localhost/LAN에서는 API 실패/신호 부재 시 DB 응답 형태의 fallback을 자동 사용; ?marketAiPreview=1은 일반 폰 UI를 강제로 확인할 때만 사용
+// - localhost/LAN에서는 API 실패/신호 부재 시 DB 응답 형태의 fallback을 자동 사용; iPhone 데스크탑 요청 보조 감지는 기존 canonical iphone-request-desktop + viewport 1280 상태로 합류
 
 const MARKET_AI_POLL_MS=60_000;
 const MARKET_AI_TIMEOUT_MS=2_500;
@@ -74,8 +74,21 @@ function marketAiIphoneDesktopRequested(){
   const root=document.documentElement;
   if(root.classList.contains('iphone-request-desktop'))return true;
   const ua=String(navigator.userAgent||'');
+  const desktopAppleUA=/Macintosh/.test(ua)&&!/(iPhone|iPad|iPod)/.test(ua);
+  const touchApple=(navigator.maxTouchPoints||0)>0;
   const shortSide=Math.min(Number(screen.width)||9999,Number(screen.height)||9999);
-  return /Macintosh/.test(ua)&&shortSide<=500;
+  return desktopAppleUA&&touchApple&&shortSide<=500;
+}
+
+function ensureMarketAiIphoneDesktopState(){
+  if(!marketAiIphoneDesktopRequested())return false;
+  const root=document.documentElement;
+  const viewport=document.querySelector('meta[name="viewport"]');
+  if(viewport&&viewport.getAttribute('content')!=='width=1280'){
+    viewport.setAttribute('content','width=1280');
+  }
+  root.classList.add('iphone-request-desktop');
+  return true;
 }
 
 function marketAiPreviewEnabled(){
@@ -83,9 +96,8 @@ function marketAiPreviewEnabled(){
 }
 
 function syncMarketAiPreviewMode(){
-  const root=document.documentElement;
-  root.classList.toggle('market-ai-preview',marketAiPhonePreviewRequested());
-  root.classList.toggle('market-ai-iphone-desktop',marketAiIphoneDesktopRequested());
+  ensureMarketAiIphoneDesktopState();
+  document.documentElement.classList.toggle('market-ai-preview',marketAiPhonePreviewRequested());
 }
 
 function marketAiPreviewPayload(){
