@@ -2933,7 +2933,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 메인 대시보드가 `#app`을 다시 렌더링해도 `MutationObserver`로 자기 영역만 재부착
 - 기존 `.dash-tooltip` 기반을 확장한 Market AI tooltip 생성/위치 계산
 - API unavailable / stale / invalid response 시 메인 대시보드와 실패 격리
-- 실제 Market AI API 호출은 localhost/LAN(localhost, 10.x, 172.16~31.x, 192.168.x, 169.254.x, `.local`)에서만 수행한다. 다만 API endpoint가 없는 GitHub Pages/외부 host이거나 API 실패·404·stale 상태이면 DB 응답 형태의 UI fallback 값을 사용해 Market AI 영역 자체는 mount한다. 정상 로컬 API 응답이 있으면 실제 데이터를 즉시 우선한다. iPhone '데스크탑 웹사이트 요청' 판별과 `html.iphone-request-desktop`/`width=1280` 처리는 기존 `index.html`의 canonical 로직만 사용하고 `dashboard-market-ai.js`에서 별도 기기 판별을 중복하지 않는다. 일반 Mobile/실제 터치폰 가로 숨김 정책은 유지하며, 일반 폰에서 `?marketAiPreview=1`을 명시한 경우에만 2×2 metric layout을 강제로 확인한다. 실제 Market AI DB에는 UI 점검용 가짜 row를 넣지 않는다.
+- 실제 Market AI API 호출은 localhost/LAN(localhost, 10.x, 172.16~31.x, 192.168.x, 169.254.x, `.local`)에서만 수행한다. 일반 모드에서는 임의 fallback 값을 절대 표시하지 않으며, API endpoint가 없는 GitHub Pages/외부 host에서는 Market AI UI 자체를 mount하지 않는다. `?marketAiPreview=1`을 명시한 경우에만 API endpoint 부재·실패·404·stale 시 DB 응답 형태의 fallback 값을 허용하고, 로컬 API가 정상 응답하면 실제 데이터를 우선한다. iPhone '데스크탑 웹사이트 요청' 판별과 `html.iphone-request-desktop`/`width=1280` 처리는 기존 `index.html`의 canonical 로직만 사용하고 `dashboard-market-ai.js`에서 별도 기기 판별을 중복하지 않는다. 일반 Mobile/실제 터치폰 가로 숨김 정책은 유지하며, 일반 폰에서 preview query를 명시한 경우에만 2×2 metric layout을 강제로 확인한다. 실제 Market AI DB에는 UI 점검용 가짜 row를 넣지 않는다.
 
 반드시 유지할 경계:
 
