@@ -1,13 +1,13 @@
 name: Update KRX closing prices
 
 # Manual-only workflow.
-# - date 지정: 해당 날짜만 갱신
+# - date 지정: 실제 KRX 거래일인지 확인한 뒤 해당 날짜만 갱신
 # - date 비움: Python이 최신·누락·장중 재확정 대상을 자동 판단
 on:
   workflow_dispatch:
     inputs:
       date:
-        description: "YYYY-MM-DD. 지정하면 해당 날짜만 갱신하고, 비워두면 최신·누락·장중 재확정 대상 날짜를 자동 판단"
+        description: "YYYY-MM-DD. 지정하면 실제 KRX 거래일인지 확인한 뒤 해당 날짜만 갱신하고, 비워두면 최신·누락·장중 재확정 대상 날짜를 자동 판단"
         required: false
         type: string
 
