@@ -679,8 +679,15 @@
     }
   }
 
-  initEventBindings();
-  initHelpTooltips();
-  restoreInitialState();
+  // Node 기반 회귀검증에서는 계산/검증 함수만 노출하고 브라우저 부팅은 실행하지 않는다.
+  if(typeof module==='object'&&module.exports){
+    module.exports={compute,validate,ceil5};
+  }
+
+  if(typeof document!=='undefined'&&typeof window!=='undefined'){
+    initEventBindings();
+    initHelpTooltips();
+    restoreInitialState();
+  }
 })();
 
