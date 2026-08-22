@@ -8,8 +8,8 @@
 // - 구조 스타일은 CSS class에 맡기고 JS는 mount/state/tooltip 위치 계산만 담당
 // - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
 // - Stage 9 calibration이 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
-// - 일반 모드의 실제 API 호출은 localhost/LAN에서만 수행하며, 비로컬 환경에서는 Market AI UI를 표시하지 않음
-// - ?marketAiPreview=1을 명시한 경우에만 API 부재/실패/404/stale 시 DB 응답 형태의 UI fallback을 사용
+// - 실제 API 호출은 localhost/LAN에서만 수행하며, 로컬/LAN에서는 API 부재/실패/404/stale 시 DB 응답 형태의 UI fallback을 자동 사용
+// - 비로컬 환경에서는 Market AI UI를 기본 숨김하고, ?marketAiPreview=1을 명시한 경우에만 fallback을 허용
 
 const MARKET_AI_POLL_MS=60_000;
 const MARKET_AI_TIMEOUT_MS=2_500;
@@ -70,7 +70,7 @@ function marketAiPreviewRequested(){
 }
 
 function marketAiPreviewEnabled(){
-  return marketAiPreviewRequested();
+  return marketAiLocalHost()||marketAiPreviewRequested();
 }
 
 function syncMarketAiPreviewMode(){
