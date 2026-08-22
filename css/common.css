@@ -646,7 +646,7 @@ body{
 /* Market AI Mount Layout · Hero에 standalone 보조 영역을 연결하는 Desktop layout */
 .hero.market-ai-mounted{
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(600px,780px);
+  grid-template-columns:minmax(0,1fr) minmax(520px,600px);
   grid-template-areas:
     "title market"
     "pills market";
@@ -668,7 +668,9 @@ body{
   grid-area:market;
   position:relative;
   z-index:1;
+  width:min(100%,600px);
   min-width:0;
+  justify-self:end;
 }
 html.dark #market-ai-section{
   --market-ai-panel-bg:rgba(15,23,42,.48);
@@ -680,7 +682,7 @@ html.dark #market-ai-section{
   --market-ai-divider:rgba(255,255,255,.11);
 }
 .market-ai-panel{
-  padding:8px 10px;
+  padding:6px 8px;
   border:1px solid var(--market-ai-panel-border);
   border-radius:min(15px,var(--corner-surface-cap));
   background:var(--market-ai-panel-bg);
@@ -695,7 +697,7 @@ html.dark #market-ai-section{
   align-items:center;
   justify-content:space-between;
   gap:var(--space-lg);
-  margin-bottom:5px;
+  margin-bottom:3px;
 }
 .market-ai-title{
   color:var(--market-ai-text);
@@ -717,7 +719,7 @@ html.dark #market-ai-section{
 .market-ai-desktop{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:6px;
+  gap:5px;
   align-items:stretch;
 }
 .market-ai-desktop[hidden]{display:none}
@@ -728,7 +730,7 @@ html.dark #market-ai-section{
   min-width:0;
   border:1px solid var(--market-ai-divider);
   border-radius:min(9px,var(--corner-surface-cap));
-  padding:5px 7px 6px;
+  padding:4px 7px 5px;
 }
 .market-ai-desktop-group-label{
   color:var(--market-ai-muted);
@@ -743,22 +745,22 @@ html.dark #market-ai-section{
   display:grid;
   align-items:baseline;
   min-width:0;
-  min-height:18px;
+  min-height:16px;
   border:0;
   border-radius:0;
-  padding:3px 0;
+  padding:2px 0;
   white-space:nowrap;
 }
 .market-ai-desktop-metric:not(:last-child){
   border-bottom:1px solid var(--market-ai-divider);
 }
 .market-ai-market-row .market-ai-desktop-metric{
-  grid-template-columns:minmax(0,1fr) auto auto;
-  column-gap:5px;
+  grid-template-columns:minmax(0,1fr) 72px 46px;
+  column-gap:4px;
 }
 .market-ai-signal-row .market-ai-desktop-metric{
-  grid-template-columns:minmax(0,1fr) auto;
-  column-gap:8px;
+  grid-template-columns:minmax(0,1fr) 50px;
+  column-gap:6px;
 }
 .market-ai-desktop-label{
   min-width:0;
@@ -789,7 +791,7 @@ html.dark #market-ai-section{
 
 /* Market AI Interaction / Tooltip · 키보드 focus와 기존 dash-tooltip 확장 */
 .market-ai-desktop-metric[data-market-ai-tooltip]{
-  border-radius:min(7px,var(--corner-surface-cap));
+  border-radius:0;
   cursor:help;
 }
 .market-ai-desktop-metric[data-market-ai-tooltip]:focus-visible{
