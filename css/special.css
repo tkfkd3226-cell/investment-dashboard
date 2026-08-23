@@ -373,15 +373,15 @@
     padding:var(--space-xs) 17px var(--space-xs) var(--space-xl);
     font-size:11.5px;
   }
-  .control-icon-button{
-    --icon-button-size:30px;
+  .control-icon-button{--icon-button-size:30px}
+  .switcher .control-icon-button{
     max-width:var(--icon-button-size);
     border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
     pointer-events:auto;
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
   }
-  html:not(.dark) .control-icon-button{
+  html:not(.dark) .switcher .control-icon-button{
     background:var(--topbar-floating-bg);
     border-color:var(--topbar-floating-border);
     color:var(--topbar-floating-text);

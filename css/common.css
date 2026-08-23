@@ -3802,7 +3802,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
    Date Action / Navigation Primitives / Edge TOC / Topbar Layout
    ========================================================= */
 
-/* [12. Topbar / Navigation · 상단바 / 내비게이션] Date Action Menu · 날짜 action menu */
+/* Date Action Menu · 날짜 action menu */
 .date-action-menu{display:none}
 .date-action-menu.show{display:block}
 .mobile-menu-layout,.tablet-toc-menu-layout{display:none}
