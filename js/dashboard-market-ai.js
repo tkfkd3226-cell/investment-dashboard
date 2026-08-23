@@ -8,13 +8,14 @@
 // - 구조 스타일은 CSS class에 맡기고 JS는 mount/state/tooltip 위치 계산만 담당
 // - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
 // - Stage 9 calibration이 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
-// - GitHub Pages 등 비로컬 환경에서는 기본적으로 숨기되 ?market-ai-preview=1이면 예시 데이터로 UI만 미리보기
+// - GitHub Pages 등 비로컬 환경에서는 기본적으로 숨기되 ?market-ai-preview=1 또는 2면 예시 데이터로 UI만 미리보기
 
 const MARKET_AI_POLL_MS=60_000;
 const MARKET_AI_TIMEOUT_MS=2_500;
 const MARKET_AI_STALE_MS=5*60_000;
 const LOCAL_DASHBOARD_HOSTS=new Set(['localhost','127.0.0.1']);
-const MARKET_AI_PREVIEW_MODE=new URLSearchParams(location.search).get('market-ai-preview')==='1';
+const MARKET_AI_PREVIEW_VARIANT=new URLSearchParams(location.search).get('market-ai-preview');
+const MARKET_AI_PREVIEW_MODE=MARKET_AI_PREVIEW_VARIANT==='1'||MARKET_AI_PREVIEW_VARIANT==='2';
 const MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200';
 const MARKET_AI_NASDAQ100_FUTURES_SYMBOL='FUTURES:NQ';
 const MARKET_AI_TOOLTIP_ID='marketAiTooltip';
