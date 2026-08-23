@@ -2096,7 +2096,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - `/api/signal/latest?include_details=true` 조회
 - 60초 polling, 요청 timeout, stale signal 판정
 - 현재 시장 snapshot과 현재 AI signal을 자체 state로 보유
-- 시장 행과 AI 신호 행은 모두 `그룹 라벨 1 + metric 4`의 5-column 구조를 유지
+- 시장 4개 metric과 AI 신호 4개 metric은 **시장 / AI 신호 2개 compact list card**로 나란히 배치하고, 각 카드 내부 metric은 세로 list로 유지
 - Hero 안에 `#market-ai-section`을 자체 mount
 - 메인 대시보드가 `#app`을 다시 렌더링해도 `MutationObserver`로 자기 영역만 재부착
 - 기존 `.dash-tooltip` 기반을 확장한 Market AI tooltip 생성/위치 계산
@@ -2122,7 +2122,8 @@ tablet.css
 → Hero Tablet 직후의 Tablet 배치/밀도 override
 
 special.css
-→ 1101~1279 Compact Desktop Asset Detail 보정 + 실제 Phone 숨김/hero layout 복원
+→ Market AI용 Compact Desktop override는 두지 않음
+→ Phone UI Shared에서 실제 Phone 숨김 + mounted Hero layout 복원
 ```
 
 `dashboard-market-ai.js`가 전용 class를 생성하더라도 JS에서 구조용 inline style을 누적하거나 별도 Market AI CSS 파일을 새로 만들지 않는다. 동적 tooltip 좌표처럼 런타임 계산이 필요한 값만 JS가 직접 처리한다.
@@ -2496,7 +2497,11 @@ width=1980
 새 작업에서 1980으로 되돌리지 않는다.
 
 
-## 5.2 Section Title / ON·OFF 버튼 높이 최신 불변조건
+## 5.2 Section Title / Control 공통 불변조건
+
+메인 `h2`, 하위 `h3`, 차트 `h3`의 제목 typography와 SVG 아이콘 크기·간격·정렬은 공통 title rule을 사용하고, `.section-title` / `.chart-head` 같은 부모는 배치 책임만 가진다.
+
+같은 모양·상호작용의 control은 기능별 CSS를 복제하지 않고 공통 primitive를 우선 사용한다. 현재 canonical primitive는 `control-action-button`, `control-icon-button`, `control-icon-button-compact`, `control-info-button`, `control-square-button`, `control-switch-*`, `control-tab-group` / `control-tab`, `control-text-toggle`이며, 2분할 선택은 `.chart-compare-toggle`, 라벨+ON/OFF는 `.chart-y-auto-toggle` / `.separate-profit-toggle`의 공통 골격을 사용한다. 기능별 class는 의미·위치·표시조건·semantic color처럼 필요한 차이만 담당한다.
 
 현재 section title은 ON/OFF 버튼이 있는 제목행의 현재 레이아웃을 기준으로 맞춘다.
 

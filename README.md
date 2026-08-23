@@ -55,9 +55,9 @@
 ### 1.5 로컬 Market AI 연동
 
 - `dashboard-market-ai.js` standalone adapter를 통한 현재 시장·AI 신호 표시
-- 시장 4개 metric(KOSPI·KOSPI200선물·SOX·NQ100선물)과 AI 신호 4개 metric을 동일한 5-column 행(그룹 라벨 1 + metric 4)으로 표시
-- Desktop Hero 우측 / Tablet Hero 하단 보조 카드
-- Mobile ≤760px·실제 터치폰 가로 UI와 GitHub Pages 등 비로컬 환경에서는 표시하지 않음
+- 시장 4개 metric(KOSPI·KOSPI200선물·SOX·NQ100선물)과 AI 신호 4개 metric을 **시장 / AI 신호 2개 compact list card**로 나란히 표시
+- Desktop / Tablet 모두 Hero 우측 보조 카드로 표시하며, Tablet은 좌측 성과 pill만 가용 폭에서 wrap
+- Mobile ≤760px·실제 터치폰 가로 UI에서는 숨기고, GitHub Pages 등 비로컬 환경은 기본 숨김. 단 `?market-ai-preview=1`(Desktop 1280) / `2`(Tablet 961)에서는 내장 예시 데이터로 UI만 미리보기
 - 선택한 과거 기준일과 분리된 **현재 시점 신호**로 동작
 
 ### 1.6 부가 도구
@@ -148,7 +148,7 @@ Market AI FastAPI (:8001)
 Hero 보조 카드
 ```
 
-이 흐름은 main dependency graph와 분리된 조회 전용 adapter입니다. `dashboard-market-ai.js`는 main 모듈을 import하지 않고 자체 polling/state/mount를 관리합니다. 로컬 Market AI API가 없거나 신호가 stale이거나 비로컬 환경이면 메인 대시보드 기능을 건드리지 않고 Market AI 영역만 실패 격리합니다.
+이 흐름은 main dependency graph와 분리된 조회 전용 adapter입니다. `dashboard-market-ai.js`는 main 모듈을 import하지 않고 자체 polling/state/mount를 관리합니다. 로컬 Market AI API가 없거나 신호가 stale이거나 **비로컬 기본 모드**이면 메인 대시보드 기능을 건드리지 않고 Market AI 영역만 실패 격리하며, 명시적 preview mode에서는 API polling 없이 내장 예시 데이터만 표시합니다.
 
 프론트엔드는 별도 번들러나 프레임워크 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 동작합니다.
 
@@ -189,12 +189,15 @@ investment-dashboard-main/
 │  └─ update_prices.py
 ├─ add/
 │  ├─ calc.html
+│  ├─ add_maintenance_handover.md
 │  ├─ css/
 │  │  ├─ common.css
 │  │  └─ calc.css
 │  ├─ js/
 │  │  └─ calc.js
 │  └─ report/
+├─ tests/
+│  └─ calc.test.cjs
 ├─ .github/workflows/
 │  └─ update-prices.yml
 ├─ requirements.txt
@@ -304,7 +307,7 @@ Mobile  : 760px 이하
 
 추가 breakpoint는 특정 기능에 실제로 필요한 경우에만 사용합니다.
 
-Market AI UI의 CSS도 같은 역할 분리를 따릅니다. Desktop baseline과 공통 component/tooltip은 `common.css`의 **Hero 기본 규칙 직후**, Tablet 배치/밀도는 `tablet.css`의 **Hero Tablet 직후**, 1101~1280 compact Desktop 및 실제 Phone 숨김은 `special.css`의 해당 기능 viewport에서 관리합니다. `common.css` 내부 전용 selector는 **mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip** 순서를 유지합니다. `dashboard-market-ai.js` 전용 class라는 이유로 파일 하단에 별도 override 묶음을 추가하지 않습니다.
+Market AI UI의 CSS도 같은 역할 분리를 따릅니다. Desktop baseline과 공통 component/tooltip은 `common.css`의 **Hero 기본 규칙 직후**, Tablet 배치/밀도는 `tablet.css`의 **Hero Tablet 직후**, 실제 Phone 숨김과 mounted Hero layout 복원은 `special.css`의 Phone UI Shared에서 관리합니다. **1101~1279 compact Desktop은 Asset Detail 전용이며 Market AI override를 두지 않고, 1280px은 일반 Desktop으로 유지합니다.** `common.css` 내부 전용 selector는 **mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip** 순서를 유지합니다. `dashboard-market-ai.js` 전용 class라는 이유로 파일 하단에 별도 override 묶음을 추가하지 않습니다.
 
 유지보수 시 기본 원칙:
 
