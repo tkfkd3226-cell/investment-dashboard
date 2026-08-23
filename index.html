@@ -6,11 +6,19 @@
 <script>
   (function(){
     var ua=navigator.userAgent||'';
-    var desktopAppleUA=/Macintosh/.test(ua)&&!/(iPhone|iPad|iPod)/.test(ua);
+    var appleMobileUA=/(iPhone|iPad|iPod)/.test(ua);
+    var desktopAppleUA=/Macintosh/.test(ua)&&!appleMobileUA;
     var touchApple=(navigator.maxTouchPoints||0)>0;
     var shortSide=Math.min(screen.width||9999,screen.height||9999);
+    var previewDesktop=false;
+    try{previewDesktop=new URLSearchParams(location.search).get('market-ai-preview')==='1'&&shortSide<=760}catch(_){ }
+    var viewport=document.querySelector('meta[name="viewport"]');
+    if(previewDesktop){
+      if(viewport)viewport.setAttribute('content','width=1280');
+      if((appleMobileUA||desktopAppleUA)&&touchApple&&shortSide<=500)document.documentElement.classList.add('iphone-request-desktop');
+      return;
+    }
     if(desktopAppleUA&&touchApple&&shortSide<=500){
-      var viewport=document.querySelector('meta[name="viewport"]');
       if(viewport)viewport.setAttribute('content','width=1280');
       document.documentElement.classList.add('iphone-request-desktop');
     }
