@@ -2083,11 +2083,14 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 ## 4.9 `dashboard-market-ai.js` standalone 책임
 
-`dashboard-market-ai.js`는 메인 7개 ES Module graph와 분리된 **로컬 조회 전용 adapter**다.
+`dashboard-market-ai.js`는 메인 7개 ES Module graph와 분리된 **로컬 조회 + 명시적 preview 전용 adapter**다.
 
 현재 책임:
 
-- 로컬 대시보드(`localhost`, `127.0.0.1`)에서만 동작
+- 기본 동작은 로컬 대시보드(`localhost`, `127.0.0.1`)에서만 실제 Market AI API를 조회
+- 비로컬에서는 기본적으로 UI를 숨기되 URL에 `?market-ai-preview=1`을 명시한 경우에만 기존 UI에 내장 예시 데이터를 표시
+- `?market-ai-preview=1`을 phone 화면에서 열면 초기 viewport를 자동으로 `width=1280`으로 전환해 별도 “데스크탑 웹사이트 요청” 없이 Desktop preview로 표시한다. 일반 URL의 phone viewport 동작은 유지한다.
+- preview mode에서는 `:8001` API fetch / 60초 polling을 시작하지 않으며, 실제 데이터로 오해하지 않도록 상태에 `예시 데이터`를 표시
 - Market AI `:8001`의 `/api/market-data/snapshot` 조회
 - `/api/signal/latest?include_details=true` 조회
 - 60초 polling, 요청 timeout, stale signal 판정
@@ -2118,7 +2121,7 @@ tablet.css
 → Hero Tablet 직후의 Tablet 배치/밀도 override
 
 special.css
-→ 1101~1280 Compact Desktop 보정 + 실제 Phone 숨김/hero layout 복원
+→ 1101~1279 Compact Desktop Asset Detail 보정 + 실제 Phone 숨김/hero layout 복원
 ```
 
 `dashboard-market-ai.js`가 전용 class를 생성하더라도 JS에서 구조용 inline style을 누적하거나 별도 Market AI CSS 파일을 새로 만들지 않는다. 동적 tooltip 좌표처럼 런타임 계산이 필요한 값만 JS가 직접 처리한다.
@@ -2176,7 +2179,7 @@ Topbar/Navigation/UI action → ui
 퇴직연금 조회 View → pension
 퇴직연금 변경/저장 → pension-editor
 앱 boot/cross-module orchestration → app
-로컬 Market AI 조회/mount/fail isolation → market-ai standalone
+Market AI 로컬 조회/preview/mount/fail isolation → market-ai standalone
 ```
 
 처럼 책임을 유지한다.
@@ -2229,7 +2232,7 @@ Topbar / Navigation / 일반 UI
 cross-module event routing / render orchestration / boot
 → js/dashboard-app.js
 
-로컬 Market AI 현재 신호 조회 / Hero 보조 UI standalone adapter
+Market AI 로컬 현재 신호 조회 + 비로컬 명시적 preview / Hero 보조 UI standalone adapter
 → js/dashboard-market-ai.js
 
 Market AI Desktop baseline / 공통 component
@@ -2238,8 +2241,8 @@ Market AI Desktop baseline / 공통 component
 Market AI Tablet 배치
 → css/tablet.css의 Hero 인접 영역
 
-Market AI 1101~1280 compact Desktop / 실제 Phone 숨김
-→ css/special.css의 해당 기능 viewport
+Market AI 실제 Phone 숨김 / mounted Hero layout 복원
+→ css/special.css의 Phone UI Shared 기능 viewport
 
 투자 계산기 HTML
 → add/calc.html
@@ -2793,7 +2796,7 @@ common.css
 - `common.css`: viewport와 무관한 기본 component, theme/token, 공통 layout, **Desktop baseline**, `max-width:1100px` / `min-width:761px` 같은 Responsive Shared
 - `tablet.css`: `761px ~ 1100px`에서 common의 Desktop baseline을 태블릿 표현으로 변경하는 전용 규칙
 - `mobile.css`: `max-width:760px` 모바일 전용 규칙
-- `special.css`: `≤400px`, `1101~1280px Compact Desktop(Asset Detail + Market AI)`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
+- `special.css`: `≤400px`, `1101~1279px Compact Desktop(Asset Detail)`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
 - `interaction.css`: `hover:hover + pointer:fine`처럼 viewport가 아닌 입력장치 조건
 - `print.css`: 인쇄 전용 최종 override
 
@@ -2841,8 +2844,8 @@ Mobile · 모바일: 760px 이하
 ≤400px
 → 초소형 화면에서 계좌별 성과 정보 구조 보정
 
-1101~1280px
-→ Compact Desktop 예외: Asset Detail 2-column 가용폭 보정 + Market AI Hero 폭/밀도 보정
+1101~1279px
+→ Compact Desktop 예외: Asset Detail 2-column 가용폭 보정. 1280px은 일반 Desktop 2-column을 유지하며 모바일 preview의 1280 viewport도 이 기준을 따른다.
 
 Phone Landscape
 → iPhone 13 844×390부터 956×440급 대형 스마트폰까지 width만 보면 Tablet으로 오판되는 실제 터치폰 가로모드 대응
@@ -2862,7 +2865,7 @@ tablet.css
 → common component를 복제하지 않고 배치/밀도만 override
 
 special.css
-→ 1101~1280 Compact Desktop block 안에서 폭/밀도만 보정
+→ Market AI용 Compact Desktop override는 두지 않는다.
 → Phone UI Shared block 첫 부분에서 Market AI 숨김 + mounted Hero layout 복원
 ```
 
@@ -2961,7 +2964,7 @@ New
 
 현재 허용된 대표 기능 예외는 다음 두 가지다.
 
-- `1101~1280px`: Compact Desktop 기능 예외다. `.asset-detail-grid`는 1열로 전환하고, Market AI Hero는 우측 카드 폭과 내부 타이포/여백만 축소한다. `1100px 이하`는 기존 Tablet/Mobile/Phone 규칙이 담당하며 이 조건을 다른 영역의 일반 breakpoint로 확대하지 않는다.
+- `1101~1279px`: Compact Desktop 기능 예외다. `.asset-detail-grid`만 1열로 전환한다. `1280px`은 의도적으로 제외해 일반 Desktop 2-column을 유지하고, 모바일 Market AI preview가 강제하는 1280 viewport에서도 변동 카드가 내려가지 않게 한다. `1100px 이하`는 기존 Tablet/Mobile/Phone 규칙이 담당하며 이 조건을 다른 영역의 일반 breakpoint로 확대하지 않는다.
 - `landscape + width≤960 + height≤500 + hover:none + pointer:coarse`: 실제 스마트폰 가로 판정에만 사용한다. `960px`을 일반 breakpoint로 재사용하지 않는다.
 
 공통 Asset Detail CSS는 기존 generic class/token을 우선 재사용하고, 실제로 양쪽 자산이 공유하는 의미에만 최소 `.asset-*` semantic class를 사용한다. 현황/전일변동/상승분기여도에서 공통화된 selector는 neutral `.asset-*`가 canonical이며, 같은 역할의 `.pension-*` legacy alias를 병렬로 유지하지 않는다. 위험자산 70% 룰·퇴직연금 조정/PIN/납입 등 연금 전용 UI는 계속 `.pension-*`를 사용한다.
