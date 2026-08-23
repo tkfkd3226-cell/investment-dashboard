@@ -1734,7 +1734,7 @@ body.chart-expanded-open .dash-tooltip{
   justify-content:flex-start;
   gap:var(--space-md);
   min-height:var(--dashboard-control-height);
-  margin:var(--space-2xs) 1px var(--space-md);
+  margin:var(--space-2xs) 0 var(--space-md);
   padding:0;
   box-sizing:border-box;
 }
