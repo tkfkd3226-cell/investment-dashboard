@@ -3102,6 +3102,7 @@ body.contrib-modal-open{
   font-size:0;
 }
 .section-title-icon[data-section-title-icon] svg{display:block;width:var(--section-title-icon-size);height:var(--section-title-icon-size)}
+.section-title :is(h2,h3) > .section-title-icon[data-section-title-icon]{margin-bottom:1px}
 
 .chart-card h3{
   display:flex;
