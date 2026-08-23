@@ -435,7 +435,7 @@
     pointer-events:auto;
   }
   .date-tool-icon{font-size:var(--type-size-xl);line-height:1}
-  .date-tool-icon svg{display:block;width:17px;height:17px}
+  .date-tool-icon svg{display:block;width:18px;height:18px}
   .date-tool-menu-label{display:none}
 
   .switcher:is(.mobile-menu-open,.mobile-date-pinned){
