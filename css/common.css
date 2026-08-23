@@ -1326,30 +1326,41 @@ button.legend-item.chart-series-all.active{
   color:var(--ink);
 }
 
-.chart-y-auto-toggle{
+/* State Toggle Base · 라벨 + ON/OFF control의 크기/여백/badge 골격 공통 */
+:is(.chart-y-auto-toggle,.separate-profit-toggle){
   gap:var(--space-md);
+  flex:0 0 auto;
   padding:0 var(--dashboard-control-pad-x);
   border:1px solid var(--control-border);
   border-radius:var(--radius-pill);
-  background:transparent;
   color:var(--muted);
+}
+
+:is(.chart-y-auto-state,.separate-profit-toggle strong){
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  min-width:var(--dashboard-control-state-min-width);
+  height:18px;
+  padding:0 var(--space-md);
+  border-radius:var(--radius-pill);
+  background:var(--state-chip-bg);
+  color:var(--state-chip-text);
+  font-size:var(--dashboard-control-state-font-size);
+  line-height:1;
+  letter-spacing:0;
+  text-align:center;
+}
+
+.chart-y-auto-toggle{
+  background:transparent;
   font-weight:var(--type-weight-semibold);
 }
 
 .chart-y-auto-toggle.active{
   background:var(--subtle-card);
   color:var(--ink);
-}
-
-.chart-y-auto-state{
-  min-width:var(--dashboard-control-state-min-width);
-  padding:1px var(--space-md);
-  border-radius:var(--radius-pill);
-  background:var(--state-chip-bg);
-  color:var(--state-chip-text);
-  font-size:var(--dashboard-control-state-font-size);
-  line-height:var(--type-line-loose);
-  text-align:center;
 }
 
 .chart-y-auto-toggle.active .chart-y-auto-state{
@@ -1420,7 +1431,7 @@ button.legend-item.chart-series-all.active{
 .chart-compare-toggle button{
   min-width:var(--dashboard-switch-min-width);
   height:100%;
-  padding:0 var(--dashboard-control-pad-x);
+  padding:0;
   border:0;
   border-radius:min(var(--dashboard-control-radius),var(--corner-control-cap));
   background:transparent;
@@ -1436,13 +1447,6 @@ button.legend-item.chart-series-all.active{
   background:var(--segmented-active-bg);
   color:var(--segmented-active-text);
   box-shadow:var(--segmented-active-shadow);
-}
-/* Securities Performance Switch · 전체/계좌별 segment 폭과 위치를 선택 상태와 무관하게 고정 */
-.securities-performance-toggle button{
-  width:calc(var(--dashboard-switch-min-width) + var(--space-xl));
-  min-width:calc(var(--dashboard-switch-min-width) + var(--space-xl));
-  padding-left:0;
-  padding-right:0;
 }
 /* 계좌별 전용 표/카드 전환 wrapper는 데스크톱에서 빈 flex item/gap을 만들지 않는다. */
 .securities-summary-block [data-accounts-view-toggle-wrap]{display:none}
@@ -3664,27 +3668,8 @@ button:not(:disabled):active,
   white-space:nowrap;
 }
 .separate-profit-toggle{
-  gap:var(--space-xl);
-  flex:0 0 auto;
-  padding:var(--space-2xs) var(--space-2xl) var(--space-2xs) var(--space-4xl);
-  border:1px solid var(--control-border);
-  border-radius:var(--radius-pill);
   background:var(--card);
-  color:var(--muted);
   letter-spacing:-.025em;
-}
-.separate-profit-toggle strong{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:var(--dashboard-control-state-min-width);
-  height:18px;
-  padding:0 var(--space-md);
-  border-radius:var(--radius-pill);
-  background:var(--state-chip-bg);
-  color:var(--state-chip-text);
-  font-size:var(--dashboard-control-state-font-size);
-  letter-spacing:0;
 }
 .separate-profit-toggle.active{
   border-color:var(--special-profit-control-border);
