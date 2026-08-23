@@ -3793,6 +3793,29 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .date-action-menu.show{display:block}
 .mobile-menu-layout,.tablet-toc-menu-layout{display:none}
 
+/* Navigation Motion · 웹/태블릿/폰 목차는 우→좌 열림, 좌→우 닫힘을 동일하게 사용 */
+.date-action-menu.mobile-combined-menu{
+  display:block;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translateX(14px);
+  transition:opacity .18s ease,transform .18s ease,visibility 0s linear .18s;
+}
+.date-action-menu.mobile-combined-menu.show{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  transform:translateX(0);
+  transition-delay:0s;
+}
+
+
+@media (prefers-reduced-motion:reduce){
+  .date-action-menu.mobile-combined-menu,
+  .desktop-edge-toc-panel{transition:none}
+}
+
 /* Navigation Primitives · 목차/메뉴 공통 panel·item·SVG icon */
 :is(.desktop-edge-toc-panel,.date-action-menu.mobile-combined-menu){
   border:1px solid var(--nav-border);
@@ -4109,7 +4132,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       visibility:hidden;
       pointer-events:none;
       transform:translate(12px,-50%);
-      transition:opacity .16s ease,transform .16s ease,visibility .16s ease;
+      transition:opacity .18s ease,transform .18s ease,visibility 0s linear .18s;
     }
     .desktop-edge-toc:hover .desktop-edge-toc-panel,
     .desktop-edge-toc.is-open .desktop-edge-toc-panel{
@@ -4117,6 +4140,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       visibility:visible;
       pointer-events:auto;
       transform:translate(0,-50%);
+      transition-delay:0s;
     }
     .desktop-edge-toc:hover .desktop-edge-toc-trigger,
     .desktop-edge-toc.is-open .desktop-edge-toc-trigger{

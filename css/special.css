@@ -488,8 +488,8 @@
   }
 
   /* Date Pin · 날짜 고정 toggle: 모바일 hamburger header 내부 */
-  .mobile-date-pin-control{display:inline-flex;align-items:center;gap:var(--space-lg);margin-left:auto;color:var(--nav-muted);cursor:pointer;user-select:none}
-  .mobile-date-pin-control > span:first-child{font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);letter-spacing:-.02em;line-height:25px;white-space:nowrap}
+  .mobile-date-pin-control{display:inline-flex;align-items:center;height:25px;gap:var(--space-md);margin-left:auto;color:var(--nav-muted);cursor:pointer;user-select:none}
+  .mobile-date-pin-control > span:first-child{display:flex;align-items:center;height:18px;font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);letter-spacing:-.02em;line-height:18px;white-space:nowrap}
   .mobile-date-pin-control input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
   .mobile-date-pin-track{position:relative;width:31px;height:18px;flex:0 0 31px;border:1px solid var(--pin-track-border);border-radius:var(--radius-pill);background:var(--pin-track-bg);transition:background .16s ease,border-color .16s ease}
   .date-action-menu.mobile-combined-menu .mobile-date-pin-track{border-color:var(--nav-border-hover);background:var(--nav-surface-hover)}
@@ -504,23 +504,23 @@
     top:43px;
     right:6px;
     z-index:2600;
-    width:min(258px,calc(100vw - 12px));
+    width:min(236px,calc(100vw - 12px));
     max-height:calc(100vh - 54px);
     overflow:auto;
-    padding:var(--space-lg);
+    padding:var(--space-sm);
     border-radius:min(10px,var(--corner-surface-cap));
     box-shadow:var(--nav-shadow-mobile);
   }
-  .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2xl);margin:0;padding:0 1px var(--space-2xs);background:transparent}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-lg);margin:0;padding:0 1px var(--space-2xs);background:transparent}
   .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:var(--space-2xs);min-width:0}
   .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px;color:var(--nav-muted);font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);line-height:25px}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);font-size:var(--type-size-4xl);line-height:1.12;cursor:pointer}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:var(--nav-surface-hover);color:var(--nav-text)}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:16px;height:16px;margin:auto}
-  .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:var(--space-xs) 0 0;padding:var(--space-xs) 0 0;border-top:1px solid var(--nav-divider)}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:2px 0 0;padding:2px 0 0;border-top:1px solid var(--nav-divider)}
   .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{margin-top:0;padding-top:0;border-top:0}
   .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:1px var(--space-lg);color:var(--nav-muted);font-size:9.5px;font-weight:var(--type-weight-semibold);letter-spacing:0;line-height:14px}
-  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:var(--space-lg);min-height:28px;margin:0;padding:var(--space-xs) var(--space-lg);border-radius:min(var(--control-radius-md),var(--corner-control-cap));text-decoration:none;font-size:var(--type-size-sm);font-weight:var(--type-weight-regular);line-height:17px;box-shadow:none}
+  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:var(--space-md);min-height:26px;margin:0;padding:2px var(--space-md);border-radius:min(var(--control-radius-md),var(--corner-control-cap));text-decoration:none;font-size:var(--type-size-sm);font-weight:var(--type-weight-regular);line-height:17px;box-shadow:none}
   .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{padding-left:var(--space-lg)}
   .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{flex:0 0 16px;width:16px;height:16px;margin:0;border:0;border-radius:0;background:transparent;font-size:0;box-shadow:none}
   .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{display:block;width:16px;height:16px}
