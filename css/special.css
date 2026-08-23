@@ -111,11 +111,11 @@
 }
 
 /* -------------------------------------------------------------------------
-   Compact Desktop · 중간폭 웹 — 1101~1280px
+   Compact Desktop · 중간폭 웹 — 1101~1279px
    Why · 이유: Desktop baseline은 유지하되 이 구간에서 폭이 빠듯해지는 기능만 보정한다.
    Scope · 범위: Asset Detail grid에만 적용한다.
    ------------------------------------------------------------------------- */
-@media (min-width:1101px) and (max-width:1280px){
+@media (min-width:1101px) and (max-width:1279px){
   /* Asset Detail Compact · 현황 + 전일대비 2열의 내부 스크롤을 피하도록 상세 grid를 1열로 전환 */
     .asset-detail-grid{
       grid-template-columns:1fr;
