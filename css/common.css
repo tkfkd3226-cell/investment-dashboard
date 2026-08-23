@@ -97,6 +97,14 @@
   --dashboard-control-pad-x:8px;
   --dashboard-switch-min-width:52px;
   --dashboard-control-radius:9px;
+  --icon-button-size:32px;
+  --switch-track-width:31px;
+  --switch-track-height:18px;
+  --switch-thumb-size:12px;
+  --switch-thumb-offset:2px;
+  --switch-thumb-travel:13px;
+  --switch-motion:.16s ease;
+  --text-toggle-pad-x:var(--space-3xl);
   --corner-surface-cap:6px;
   --corner-control-cap:5px;
   --corner-inner-cap:4px;
@@ -268,12 +276,12 @@
   --topbar-floating-border:rgba(15,23,42,.42);
   --topbar-floating-text:#374151;
   --topbar-floating-shadow:0 4px 12px rgba(15,23,42,.10);
-  --pin-track-bg:rgba(255,255,255,.24);
-  --pin-track-border:rgba(255,255,255,.20);
-  --pin-track-thumb:#ffffff;
-  --pin-track-shadow:0 1px 4px rgba(0,0,0,.24);
-  --pin-track-active-bg:#3182F6;
-  --pin-track-active-border:#60a5fa;
+  --switch-track-bg:rgba(255,255,255,.24);
+  --switch-track-border:rgba(255,255,255,.20);
+  --switch-thumb-bg:#ffffff;
+  --switch-thumb-shadow:0 1px 4px rgba(0,0,0,.24);
+  --switch-track-active-bg:#3182F6;
+  --switch-track-active-border:#60a5fa;
 
   /* Interaction Elevation · hover / compact control */
   --shadow-hover-surface:0 14px 34px rgba(15,23,42,.12);
@@ -3284,6 +3292,53 @@ body.contrib-modal-open{
 .chart-card.transition-suppressed-once,
 .mini-card.transition-suppressed-once{transition:none}
 
+/* Control Shape Primitives · 기능이 아니라 모양/상호작용 방식 기준 공통 골격 */
+.control-text-toggle{
+  flex:0 0 auto;
+  padding:0 var(--text-toggle-pad-x);
+  border:1px solid var(--control-border);
+  border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
+  background:var(--card);
+  color:var(--muted);
+}
+.control-switch-input{
+  position:absolute;
+  width:1px;
+  height:1px;
+  opacity:0;
+  pointer-events:none;
+}
+.control-switch-track{
+  position:relative;
+  width:var(--switch-track-width);
+  height:var(--switch-track-height);
+  flex:0 0 var(--switch-track-width);
+  border:1px solid var(--switch-track-border);
+  border-radius:var(--radius-pill);
+  background:var(--switch-track-bg);
+  transition:background var(--switch-motion),border-color var(--switch-motion);
+}
+.control-switch-thumb{
+  position:absolute;
+  top:var(--switch-thumb-offset);
+  left:var(--switch-thumb-offset);
+  width:var(--switch-thumb-size);
+  height:var(--switch-thumb-size);
+  border-radius:50%;
+  background:var(--switch-thumb-bg);
+  box-shadow:var(--switch-thumb-shadow);
+  transition:transform var(--switch-motion);
+}
+.control-switch-input:checked + .control-switch-track{
+  background:var(--switch-track-active-bg);
+  border-color:var(--switch-track-active-border);
+}
+.control-switch-input:checked + .control-switch-track > .control-switch-thumb{transform:translateX(var(--switch-thumb-travel))}
+.control-switch-input:focus-visible + .control-switch-track{
+  outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
+  outline-offset:var(--control-focus-outline-offset);
+}
+
 .date-tool-btn,
 .date-action-menu.mobile-combined-menu .mobile-nav-item{
   -webkit-user-select:none;
@@ -3909,6 +3964,14 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .date-tool-btn:hover,
 .date-tool-btn:active{background:var(--topbar-control-hover-bg)}
 .date-tool-btn:active{border-color:var(--topbar-control-border-hover)}
+/* Icon Button Primitive · 정사각 icon control shell */
+button.control-icon-button{
+  width:var(--icon-button-size);
+  min-width:var(--icon-button-size);
+  height:var(--icon-button-size);
+  flex:0 0 var(--icon-button-size);
+  padding:0;
+}
 .topbar-calc-action{text-decoration:none}
 .date-tool-action-icon{
   width:16px;
@@ -3921,8 +3984,6 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   font-size:0;
 }
 .date-tool-action-icon svg{display:block;width:16px;height:16px;vertical-align:middle}
-.topbar-theme-action,
-.topbar-corner-action{width:32px;padding:0}
 :is(.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{width:18px;height:18px;flex-basis:18px;margin-right:0}
 :is(.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon svg{width:18px;height:18px}
 .date-action-menu-wrap,

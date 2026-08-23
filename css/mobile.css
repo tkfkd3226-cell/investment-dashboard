@@ -82,15 +82,7 @@
 
   /* Phone Portrait Data Views · 세로폰만 표/카드 전환과 축약 종목명을 사용 */
     .asset-status-table .mobile-table-brand-prefix{display:none}
-    .mobile-view-toggle{
-      display:inline-flex;
-      flex:0 0 auto;
-      padding:0 var(--space-3xl);
-      border:1px solid var(--control-border);
-      border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
-      background:var(--card);
-      color:var(--muted);
-    }
+    .mobile-view-toggle{display:inline-flex}
     [data-mobile-view="card"] .table-view{display:none}
     [data-mobile-view="card"] .mobile-card-view{display:grid}
     [data-mobile-view="table"] .table-view{display:block}

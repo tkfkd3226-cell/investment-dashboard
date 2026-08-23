@@ -185,7 +185,7 @@
     .date-tool-btn{padding-left:var(--space-xl);padding-right:var(--space-xl);gap:var(--space-2xs);font-size:var(--type-size-2xs)}
     .date-tool-action-icon{margin-right:var(--space-2xs)}
     .date-action-menu-wrap{display:block;position:relative;flex:0 0 auto}
-    .date-tool-menu-btn{width:30px;min-width:30px;padding:0}
+    .date-tool-menu-btn{--icon-button-size:30px}
     .date-tool-menu-label{display:none}
     .mobile-menu-layout{display:none}
     .tablet-toc-menu-layout{display:block}

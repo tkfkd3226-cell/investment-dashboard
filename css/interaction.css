@@ -38,7 +38,7 @@
       .chart-scroll-end,
       .chart-expand-button,
       .chart-web-expand-button,
-      .mobile-view-toggle
+      .control-text-toggle
     ):not(:disabled):hover{
       border-color:var(--control-border-hover);
     }
