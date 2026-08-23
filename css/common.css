@@ -644,7 +644,7 @@ body{
    Ownership · 책임: common은 Desktop baseline + 공통 component/tooltip, Tablet/Phone 차이는 역할별 CSS가 담당한다.
    Order · 순서: mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip. */
 /* Market AI Mount Layout · Hero에 standalone 보조 영역을 연결하는 Desktop layout */
-.hero:where(.market-ai-mounted){--hero-pad-y:6px}
+.hero:where(.market-ai-mounted){--hero-pad-y:6px;padding-right:var(--hero-pad-y)}
 .hero.market-ai-mounted{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(330px,350px);
