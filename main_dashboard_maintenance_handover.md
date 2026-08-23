@@ -2090,7 +2090,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 기본 동작은 로컬 대시보드(`localhost`, `127.0.0.1`)에서만 실제 Market AI API를 조회
 - 비로컬에서는 기본적으로 UI를 숨기되 URL에 `?market-ai-preview=1` 또는 `?market-ai-preview=2`를 명시한 경우에만 기존 UI에 내장 예시 데이터를 표시
 - `?market-ai-preview=1`을 phone 화면에서 열면 초기 viewport를 자동으로 `width=1280`으로 전환해 별도 “데스크탑 웹사이트 요청” 없이 Desktop preview로 표시한다.
-- `?market-ai-preview=2`를 phone 화면에서 열면 초기 viewport를 자동으로 `width=768`으로 전환해 Tablet preview로 표시한다. 실제 iPad mini 6의 744px 폭은 프로젝트의 Mobile 경계(`≤760px`)에 걸리므로, Tablet QA용 preview는 768px을 canonical 값으로 사용한다. 일반 URL의 phone viewport 동작은 유지한다.
+- `?market-ai-preview=2`를 phone 화면에서 열면 초기 viewport를 자동으로 `width=961`으로 전환해 Tablet preview로 표시한다. 프로젝트 Tablet 범위(`761~1100px`) 안에 있으면서 실제 스마트폰 가로 공통 조건의 상한(`max-width:960px`)은 벗어나므로, iPhone 세로·가로 모두 Tablet UI와 Market AI preview를 유지한다. 일반 URL의 phone viewport 동작은 유지한다.
 - preview mode에서는 `:8001` API fetch / 60초 polling을 시작하지 않으며, 실제 데이터로 오해하지 않도록 상태에 `예시 데이터`를 표시
 - Market AI `:8001`의 `/api/market-data/snapshot` 조회
 - `/api/signal/latest?include_details=true` 조회
