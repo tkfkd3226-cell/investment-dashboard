@@ -916,19 +916,23 @@ section{
   margin:0 0 var(--space-5xl);
 }
 
-.section-title :is(h2,h3),
+/* Shared Title Label · 메인/하위/차트 제목은 동일한 시각 규칙을 사용하고 부모는 배치만 담당 */
+:is(.section-title :is(h2,h3),.chart-head h3){
+  display:flex;
+  align-items:center;
+  gap:var(--section-title-gap);
+  margin:0;
+  font-size:var(--section-title-font-size);
+  font-weight:var(--type-weight-strong);
+  letter-spacing:-.04em;
+  line-height:1.12;
+}
 .modal-main-title{
   margin:0;
   font-size:var(--section-title-font-size);
   font-weight:var(--type-weight-strong);
   letter-spacing:-.04em;
   line-height:1.15;
-}
-.section-title :is(h2,h3){
-  display:flex;
-  align-items:center;
-  gap:var(--section-title-gap);
-  line-height:1.12;
 }
 :is(#summary-section,#securities-section,#pension-section,#accounts-summary,#ledger-check,#capital-source-check) > .section-title{
   min-height:var(--section-chip-height);
@@ -1200,12 +1204,6 @@ td.num{
   margin-bottom:var(--space-4xl);
 }
 
-.chart-head h3{
-  margin:0;
-  font-size:var(--type-size-4xl);
-  letter-spacing:-.03em;
-}
-
 .chart-head p{
   margin:var(--space-sm) 0 0;
   color:var(--muted);
@@ -1380,17 +1378,6 @@ button.legend-item.chart-series-all.active{
 }
 
 /* Chart Presentation / Controls · 차트 제목 / 비교 control */
-/* Chart Title Scale · 차트 제목 크기 */
-#pension-chart-cum .chart-head h3,
-#pension-chart-symbol .chart-head h3,
-#pension-chart-alloc .chart-head h3,
-#chart-cum .chart-head h3,
-#chart-symbol .chart-head h3,
-#chart-alloc .chart-head h3{
-  font-size:var(--type-size-2xl);
-  line-height:var(--type-line-compact);
-}
-
 #pension-chart-cum .chart-title-sub,
 #pension-chart-symbol .chart-title-sub{
   font-size:var(--type-size-sm);
@@ -1706,10 +1693,7 @@ body.chart-expanded-open .dash-tooltip{
   min-width:0;
 }
 .compact-chart-ui .chart-head h3{
-  display:flex;
-  align-items:center;
   flex-wrap:nowrap;
-  gap:var(--space-sm);
   min-width:0;
   white-space:nowrap;
 }
@@ -3102,13 +3086,7 @@ body.contrib-modal-open{
   font-size:0;
 }
 .section-title-icon[data-section-title-icon] svg{display:block;width:var(--section-title-icon-size);height:var(--section-title-icon-size)}
-.section-title :is(h2,h3) > .section-title-icon[data-section-title-icon]{margin-bottom:1px}
-
-.chart-card h3{
-  display:flex;
-  align-items:center;
-  gap:var(--space-2xl);
-}
+:is(.section-title :is(h2,h3),.chart-head h3) > .section-title-icon[data-section-title-icon]{margin-bottom:1px}
 
 /* Capital Source Cards · 투자원금 원천/검산: 외곽 panel 없이 3개 데이터 카드만 사용 */
 .capital-source-section .source-title{
