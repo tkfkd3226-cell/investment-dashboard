@@ -24,17 +24,18 @@
       --hero-decor-right:-72px;
     }
 
-  /* Market AI Tablet · Hero 기본 규칙 직후 배치. common의 우측 2열을 하단 1열로 바꾸고 배치/밀도만 override */
+  /* Market AI Tablet · Desktop의 좌측 성과 / 우측 Market AI 구조를 유지하고, 좌측 pill만 가용 폭에서 wrap */
     .hero.market-ai-mounted{
       --hero-pad-y:10px;
-      grid-template-columns:1fr;
+      grid-template-columns:minmax(0,1fr) minmax(316px,330px);
       grid-template-areas:
-        "title"
-        "pills"
-        "market";
-      column-gap:0;
+        "title market"
+        "pills market";
+      column-gap:12px;
+      align-items:center;
     }
-    .hero.market-ai-mounted #market-ai-section{width:auto;max-width:100%;margin-top:6px;justify-self:center}
+    .hero.market-ai-mounted .hero-metric-pills{min-width:0;flex-wrap:wrap;align-content:flex-start}
+    .hero.market-ai-mounted #market-ai-section{width:auto;max-width:100%;margin-top:0;justify-self:end}
     .market-ai-panel{max-width:min(100%,330px);padding:2px 3px}
     .market-ai-heading{margin-bottom:1px}
     .market-ai-desktop{width:fit-content;max-width:100%;grid-template-columns:repeat(2,minmax(150px,156px));gap:4px;justify-content:center}
