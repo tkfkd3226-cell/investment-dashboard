@@ -123,15 +123,16 @@
 
   /* Market AI Compact Desktop · 1280 요청 화면에서도 원래 Hero 높이에 최대한 맞도록 폭/행 높이를 압축 */
     .hero.market-ai-mounted{
+      --hero-pad-y:6px;
       grid-template-columns:minmax(0,1fr) minmax(316px,334px);
       column-gap:var(--space-xl);
     }
     .market-ai-panel{max-width:min(100%,323px);padding:2px 3px}
     .market-ai-heading{margin-bottom:1px}
     .market-ai-desktop{grid-template-columns:repeat(2,154px);gap:4px}
-    .market-ai-card-row{padding:2px 5px 3px}
+    .market-ai-card-row{padding:2px 5px 1px}
     .market-ai-desktop-metric{min-height:18px;padding:0}
-    .market-ai-desktop-metric:last-child{min-height:16px;padding-bottom:0}
+    .market-ai-desktop-metric:last-child{min-height:13px;padding-bottom:0}
     .market-ai-desktop-label{font-size:8.8px}
     .market-ai-desktop-value,
     .market-ai-desktop-signal{font-size:9.5px}

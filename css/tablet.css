@@ -26,6 +26,7 @@
 
   /* Market AI Tablet · Hero 기본 규칙 직후 배치. common의 우측 2열을 하단 1열로 바꾸고 배치/밀도만 override */
     .hero.market-ai-mounted{
+      --hero-pad-y:10px;
       grid-template-columns:1fr;
       grid-template-areas:
         "title"
@@ -37,9 +38,9 @@
     .market-ai-panel{max-width:min(100%,330px);padding:2px 3px}
     .market-ai-heading{margin-bottom:1px}
     .market-ai-desktop{width:fit-content;max-width:100%;grid-template-columns:repeat(2,minmax(150px,156px));gap:4px;justify-content:center}
-    .market-ai-card-row{padding:2px 5px 3px}
+    .market-ai-card-row{padding:2px 5px 1px}
     .market-ai-desktop-metric{min-height:18px;padding:0}
-    .market-ai-desktop-metric:last-child{min-height:16px;padding-bottom:0}
+    .market-ai-desktop-metric:last-child{min-height:13px;padding-bottom:0}
 
     .mini-card{
       --mini-card-pad-y:10px;

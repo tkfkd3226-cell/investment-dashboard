@@ -644,6 +644,7 @@ body{
    Ownership · 책임: common은 Desktop baseline + 공통 component/tooltip, Tablet/Phone 차이는 역할별 CSS가 담당한다.
    Order · 순서: mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip. */
 /* Market AI Mount Layout · Hero에 standalone 보조 영역을 연결하는 Desktop layout */
+.hero:where(.market-ai-mounted){--hero-pad-y:6px}
 .hero.market-ai-mounted{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(330px,350px);
@@ -736,7 +737,7 @@ html.dark #market-ai-section{
   min-width:0;
   border:1px solid var(--market-ai-divider);
   border-radius:min(8px,var(--corner-surface-cap));
-  padding:2px 5px 3px;
+  padding:2px 5px 1px;
 }
 .market-ai-desktop-group-label{
   color:var(--market-ai-muted);
@@ -768,7 +769,7 @@ html.dark #market-ai-section{
   background:var(--market-ai-divider);
 }
 .market-ai-desktop-metric:last-child{
-  min-height:16px;
+  min-height:13px;
   padding-bottom:0;
 }
 .market-ai-market-row .market-ai-desktop-metric{
