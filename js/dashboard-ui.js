@@ -381,8 +381,8 @@ function renderTabs(){
         <div class="date-action-menu-wrap">
           <button type="button" id="dateActionMenuButton" class="date-tool-btn control-icon-button date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-controls="dateActionMenu" aria-expanded="false" data-dashboard-action="toggle-date-menu"><span class="date-tool-icon">${navIconSvg('menu')}</span><span class="date-tool-menu-label">목차</span></button>
           <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차">
-            <div class="mobile-menu-layout"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" class="control-switch-input" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="control-switch-track" aria-hidden="true"><span class="control-switch-thumb"></span></span></label><button type="button" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderUnifiedMobileMenuContent()}</div>
-            <div class="tablet-toc-menu-layout"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><button type="button" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderTabletTocMenuContent()}</div>
+            <div class="mobile-menu-layout"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" class="control-switch-input" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="control-switch-track" aria-hidden="true"><span class="control-switch-thumb"></span></span></label><button type="button" class="control-icon-button-compact" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderUnifiedMobileMenuContent()}</div>
+            <div class="tablet-toc-menu-layout"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><button type="button" class="control-icon-button-compact" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderTabletTocMenuContent()}</div>
           </div>
         </div>
       </div>
@@ -562,7 +562,7 @@ function ensureKrxActionModal(){
   modal.className='action-modal krx-action-modal';
   modal.setAttribute('aria-hidden','true');
   modal.innerHTML=`<div class="action-modal-card krx-action-card" role="dialog" aria-modal="true" aria-labelledby="krxActionTitle">
-    <button type="button" class="modal-icon-btn krx-action-close" data-dashboard-action="close-krx-modal" aria-label="닫기">${navIconSvg('close')}</button>
+    <button type="button" class="control-icon-button modal-icon-btn krx-action-close" data-dashboard-action="close-krx-modal" aria-label="닫기">${navIconSvg('close')}</button>
     <h3 id="krxActionTitle" class="modal-main-title">KRX 현재가 반영</h3>
     <p id="krxActionDescription" class="action-modal-description">최신/누락 반영은 오늘 데이터와 누락 거래일을 생성·보완하고, 재갱신은 선택된 날짜를 확인해 종가 기준이 아니면 다시 반영합니다.</p>
     <label class="action-modal-label krx-action-label" for="krxActionPin">저장/실행 PIN</label>
@@ -570,9 +570,9 @@ function ensureKrxActionModal(){
     <p id="krxActionEnterHelp" class="action-modal-input-help">Enter 시 재갱신됩니다.</p>
     <div id="krxActionStatus" class="action-modal-status krx-action-status" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="action-modal-buttons krx-action-buttons">
-      <button type="button" class="action-modal-btn ghost" data-dashboard-action="close-krx-modal">취소</button>
-      <button type="button" class="action-modal-btn ghost" data-dashboard-action="submit-krx-modal" data-krx-mode="auto">최신/누락 반영</button>
-      <button type="button" class="action-modal-btn primary" data-dashboard-action="submit-krx-modal" data-krx-mode="selected">재갱신</button>
+      <button type="button" class="control-action-button action-modal-btn ghost" data-dashboard-action="close-krx-modal">취소</button>
+      <button type="button" class="control-action-button action-modal-btn ghost" data-dashboard-action="submit-krx-modal" data-krx-mode="auto">최신/누락 반영</button>
+      <button type="button" class="control-action-button action-modal-btn primary" data-dashboard-action="submit-krx-modal" data-krx-mode="selected">재갱신</button>
     </div>
   </div>`;
   document.body.appendChild(modal);
@@ -1000,7 +1000,7 @@ function accountMemoTableHtml(text,{joinFirstTwo=false}={}){
 }
 function accountMemoInfoButton(text){
   const safe=escapeHtml(String(text||''));
-  return `<button type="button" class="accounts-memo-info-button" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-account-memo-info"><span aria-hidden="true">i</span><span class="accounts-memo-tooltip-source" role="tooltip">${safe}</span></button>`;
+  return `<button type="button" class="control-info-button accounts-memo-info-button" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-account-memo-info"><span aria-hidden="true">i</span><span class="accounts-memo-tooltip-source" role="tooltip">${safe}</span></button>`;
 }
 function removeAccountMemoFloatingTooltip(){
   document.querySelector('.accounts-memo-floating-tooltip')?.remove();

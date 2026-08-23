@@ -122,7 +122,7 @@ function renderPensionContributionModal(x){
   const cashDefaultValue=Number.isFinite(Number(x.pensionCash))?fmt(x.pensionCash):'';
   const cashDefaultCostBasis=Number.isFinite(Number(x.pensionCashCost))?fmt(x.pensionCashCost):'';
   const applyDate=kstTodayText();
-  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" data-pension-backdrop-close="true"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle" class="modal-main-title">퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="modal-icon-btn contrib-modal-icon-btn pension-form-reset" data-pension-action="reset-form" title="입력값 초기화" aria-label="입력값 초기화">${navIconSvg('reset')}</button><button type="button" class="modal-icon-btn contrib-modal-icon-btn contrib-modal-close" data-pension-action="close-modal" aria-label="닫기">${navIconSvg('close')}</button></div></div>
+  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" data-pension-backdrop-close="true"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle" class="modal-main-title">퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="control-icon-button modal-icon-btn contrib-modal-icon-btn pension-form-reset" data-pension-action="reset-form" title="입력값 초기화" aria-label="입력값 초기화">${navIconSvg('reset')}</button><button type="button" class="control-icon-button modal-icon-btn contrib-modal-icon-btn contrib-modal-close" data-pension-action="close-modal" aria-label="닫기">${navIconSvg('close')}</button></div></div>
 <div class="pension-contrib-context" aria-label="퇴직연금 금액 조정 옵션">
   <div class="pension-contrib-context-head"><span class="contrib-field-label">조정 항목</span><div class="chart-compare-toggle pension-work-mode" role="group" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" aria-pressed="true" data-mode="single" data-pension-action="set-batch-mode" data-pension-enabled="false">개별 처리</button><button type="button" class="pension-work-mode-btn" aria-pressed="false" data-mode="batch" data-pension-action="set-batch-mode" data-pension-enabled="true">작업 모음 <span id="pensionBatchModeCount" class="pension-batch-count" hidden>0</span></button></div></div>
   <input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="contrib-target-tabs" role="tablist" aria-label="조정 항목 선택" aria-orientation="horizontal"><button type="button" id="pension-target-tab-cash" class="contrib-target-option active" role="tab" aria-selected="true" aria-controls="pensionContribTargetPanel" tabindex="0" data-target="cashSnapshot" data-pension-action="set-target">현금성자산</button><button type="button" id="pension-target-tab-contribution" class="contrib-target-option" role="tab" aria-selected="false" aria-controls="pensionContribTargetPanel" tabindex="-1" data-target="contribution" data-pension-action="set-target">기업적립금</button><button type="button" id="pension-target-tab-trade" class="contrib-target-option" role="tab" aria-selected="false" aria-controls="pensionContribTargetPanel" tabindex="-1" data-target="etfTrade" data-pension-action="set-target">추가 매수</button></div>
@@ -147,7 +147,7 @@ function renderPensionContributionModal(x){
     <div id="pensionEtfTradePreview" class="pension-etf-trade-preview"><span class="small">상품·수량·체결금액을 입력하면 적용 후 예상값을 보여줍니다.</span></div>
   </div>
   <div class="contrib-actions">
-    <button type="button" id="pensionContribSaveButton" class="contrib-btn" data-pension-action="save">저장</button>
+    <button type="button" id="pensionContribSaveButton" class="control-action-button primary contrib-btn" data-pension-action="save">저장</button>
   </div>
   <div id="pensionContribStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
   <div id="pensionContribOutputFile" class="contrib-output-file" hidden></div>
@@ -157,16 +157,16 @@ function renderPensionContributionModal(x){
   <h3 id="pensionContribDeleteTitle">삭제</h3>
   <p id="pensionContribDeleteHelp" class="small">잘못 등록한 현금성자산 기록 선택 후 삭제</p>
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList('cashSnapshot')}</div>
-  <div class="contrib-actions"><button type="button" id="pensionContribDeleteButton" class="contrib-btn danger" data-pension-action="delete-selected">선택 항목 삭제</button></div>
+  <div class="contrib-actions"><button type="button" id="pensionContribDeleteButton" class="control-action-button danger contrib-btn" data-pension-action="delete-selected">선택 항목 삭제</button></div>
   <div id="pensionContribDeleteStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
 </div>
 </div>
 <div id="pensionBatchPanel" class="pension-batch-panel modal-card-box" role="group" aria-labelledby="pensionBatchTitle" hidden>
-  <div class="pension-batch-head"><div><h3 id="pensionBatchTitle">작업 모음 <span id="pensionBatchTitleCount">0건</span></h3><p>저장·삭제 작업을 모아 PIN 한 번으로 한 커밋에 반영합니다.</p></div><button type="button" id="pensionBatchClearButton" class="pension-batch-clear" data-pension-action="clear-batch">전체 비우기</button></div>
+  <div class="pension-batch-head"><div><h3 id="pensionBatchTitle">작업 모음 <span id="pensionBatchTitleCount">0건</span></h3><p>저장·삭제 작업을 모아 PIN 한 번으로 한 커밋에 반영합니다.</p></div><button type="button" id="pensionBatchClearButton" class="control-action-button compact ghost pension-batch-clear" data-pension-action="clear-batch">전체 비우기</button></div>
   <div id="pensionBatchQueueList" class="pension-batch-queue"><div class="pension-batch-empty">아직 추가된 작업이 없습니다.</div></div>
   <div id="pensionBatchOrderNote" class="pension-batch-order-note" hidden></div>
   <div id="pensionBatchStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
-  <div class="pension-batch-actions"><button type="button" id="pensionBatchApplyButton" class="contrib-btn" data-pension-action="apply-batch" disabled>일괄 적용</button></div>
+  <div class="pension-batch-actions"><button type="button" id="pensionBatchApplyButton" class="control-action-button primary contrib-btn" data-pension-action="apply-batch" disabled>일괄 적용</button></div>
 </div>
 <details class="token-guide">
   <summary><span class="token-guide-chevron" aria-hidden="true">${navIconSvg('chevronRight')}</span>GitHub 토큰 만료/교체 방법</summary>
@@ -578,14 +578,14 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
     modal.id='pensionActionPinModal';
     modal.className='action-modal pension-action-pin-modal';
     modal.innerHTML=`<div class="action-modal-card pension-action-pin-card" role="dialog" aria-modal="true" aria-labelledby="pensionActionPinTitle">
-      <button type="button" class="modal-icon-btn pension-action-pin-close" aria-label="닫기">${navIconSvg('close')}</button>
+      <button type="button" class="control-icon-button modal-icon-btn pension-action-pin-close" aria-label="닫기">${navIconSvg('close')}</button>
       <h3 id="pensionActionPinTitle" class="modal-main-title">${title}</h3>
       <p id="pensionActionPinDescription" class="action-modal-description">${description}</p>
       <label class="action-modal-label" for="pensionActionPinInput">PIN</label>
       <input id="pensionActionPinInput" class="action-modal-input" type="text" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="pensionActionPinDescription pensionActionPinAutoHelp pensionActionPinStatus">
       <p id="pensionActionPinAutoHelp" class="action-modal-input-help">PIN이 확인되면 바로 적용됩니다.</p>
       <div id="pensionActionPinStatus" class="action-modal-status pension-action-pin-status" role="status" aria-live="polite" aria-atomic="true"></div>
-      <div class="action-modal-buttons pension-action-pin-buttons"><button type="button" class="action-modal-btn ghost">취소</button></div>
+      <div class="action-modal-buttons pension-action-pin-buttons"><button type="button" class="control-action-button action-modal-btn ghost">취소</button></div>
     </div>`;
 
     let busy=false;
@@ -830,7 +830,7 @@ function renderPensionBatchQueue(){
   if(badge){badge.textContent=String(pensionEditorState.batchQueue.length);badge.hidden=pensionEditorState.batchQueue.length===0}
   if(clear)clear.disabled=pensionEditorState.batchQueue.length===0;
   if(list){
-    list.innerHTML=pensionEditorState.batchQueue.length?pensionEditorState.batchQueue.map((op,index)=>`<div class="pension-batch-item"><div class="pension-batch-index">${index+1}</div><div class="pension-batch-item-text">${escapeHtml(pensionBatchOperationDescription(op))}</div><div class="pension-batch-item-actions"><button type="button" data-pension-action="move-batch" data-pension-qid="${op.qid}" data-pension-direction="-1" aria-label="위로" ${index===0?'disabled':''}>${navIconSvg('chevronUp')}</button><button type="button" data-pension-action="move-batch" data-pension-qid="${op.qid}" data-pension-direction="1" aria-label="아래로" ${index===pensionEditorState.batchQueue.length-1?'disabled':''}>${navIconSvg('chevronDown')}</button><button type="button" class="remove" data-pension-action="remove-batch" data-pension-qid="${op.qid}" aria-label="작업 제거">${navIconSvg('trash')}</button></div></div>`).join(''):'<div class="pension-batch-empty">아직 추가된 작업이 없습니다.</div>';
+    list.innerHTML=pensionEditorState.batchQueue.length?pensionEditorState.batchQueue.map((op,index)=>`<div class="pension-batch-item"><div class="pension-batch-index">${index+1}</div><div class="pension-batch-item-text">${escapeHtml(pensionBatchOperationDescription(op))}</div><div class="pension-batch-item-actions"><button type="button" class="control-icon-button-compact" data-pension-action="move-batch" data-pension-qid="${op.qid}" data-pension-direction="-1" aria-label="위로" ${index===0?'disabled':''}>${navIconSvg('chevronUp')}</button><button type="button" class="control-icon-button-compact" data-pension-action="move-batch" data-pension-qid="${op.qid}" data-pension-direction="1" aria-label="아래로" ${index===pensionEditorState.batchQueue.length-1?'disabled':''}>${navIconSvg('chevronDown')}</button><button type="button" class="control-icon-button-compact remove" data-pension-action="remove-batch" data-pension-qid="${op.qid}" aria-label="작업 제거">${navIconSvg('trash')}</button></div></div>`).join(''):'<div class="pension-batch-empty">아직 추가된 작업이 없습니다.</div>';
   }
   let error='';let reordered=false;
   if(pensionEditorState.batchQueue.length){

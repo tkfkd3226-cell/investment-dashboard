@@ -112,8 +112,8 @@ function ensureChartDateConfirmModal(){
     <h3 id="chartDateConfirmTitle" class="modal-main-title">날짜 이동</h3>
     <p id="chartDateConfirmDescription" class="action-modal-description"></p>
     <div class="action-modal-buttons chart-date-confirm-buttons">
-      <button type="button" class="action-modal-btn ghost" data-dashboard-action="close-chart-date-confirm">취소</button>
-      <button type="button" class="action-modal-btn primary" data-dashboard-action="confirm-chart-date-jump">이동</button>
+      <button type="button" class="control-action-button action-modal-btn ghost" data-dashboard-action="close-chart-date-confirm">취소</button>
+      <button type="button" class="control-action-button action-modal-btn primary" data-dashboard-action="confirm-chart-date-jump">이동</button>
     </div>
   </div>`;
   modal.addEventListener('click',event=>{if(event.target===modal)closeChartDateConfirmModal()});
