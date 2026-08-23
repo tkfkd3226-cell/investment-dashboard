@@ -177,11 +177,6 @@
       padding:var(--space-4xl) var(--space-2xl);
     }
 
-    .contrib-target-option{
-      padding:var(--space-xl) var(--space-sm);
-      font-size:var(--type-size-xs);
-    }
-
     .pension-adjust-form.trade-mode .contrib-field.full{
       grid-column:1/-1;
     }

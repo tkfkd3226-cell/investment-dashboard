@@ -1416,21 +1416,7 @@ button.legend-item.chart-series-all.active{
   gap:var(--dashboard-control-group-gap);
   flex:0 0 auto;
 }
-/* Chart Control Groups · data selector와 확대 같은 utility control 사이에 약한 구분선만 둔다. */
-.chart-head-actions .chart-compare-toggle + :is(.chart-expand-button,.chart-web-expand-button){
-  position:relative;
-  margin-left:var(--space-sm);
-}
-.chart-head-actions .chart-compare-toggle + :is(.chart-expand-button,.chart-web-expand-button)::before{
-  content:"";
-  position:absolute;
-  left:calc(-1 * (var(--dashboard-control-group-gap) + 3px));
-  top:50%;
-  width:1px;
-  height:17px;
-  background:var(--line);
-  transform:translateY(-50%);
-}
+/* Chart Control Groups · selector와 확대 utility는 공통 gap만 사용하고 별도 구분선은 두지 않는다. */
 /* Segmented Toggle · 2분할 선택형 버튼의 공통 골격 */
 .chart-compare-toggle{
   display:inline-flex;
@@ -2719,36 +2705,44 @@ body.contrib-modal-open{
 }
 
 /* [09. Securities / Asset Workspace · 증권계좌 / 자산 작업영역] Asset Workspace · 자산 작업영역 */
-/* Asset Workspace Tabs · 자산 작업영역 탭: 증권 → 퇴직연금 순서, 기존 section ID 유지 */
-.asset-workspace{margin-top:var(--space-9xl)}
-.asset-workspace-tabs{
+/* Tab Primitives · 자산/조정 항목 탭이 공유하는 geometry·typography·focus 골격 */
+.control-tab-group{
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
   gap:var(--space-lg);
-  width:min(430px,100%);
-  margin:0 0 var(--space-5xl);
   padding:var(--space-sm);
   border:1px solid var(--control-border);
   border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
-  background:var(--subtle-card);
+  box-sizing:border-box;
 }
-.asset-workspace-tab{
+.control-tab{
   min-height:36px;
+  padding:0 var(--space-3xl);
   border:0;
   border-radius:min(var(--control-radius-md),var(--corner-control-cap));
   background:transparent;
-  color:var(--muted);
   font-family:inherit;
   font-size:var(--type-size-md);
   font-weight:var(--type-weight-emphasis);
+  line-height:var(--type-line-compact);
+  white-space:nowrap;
   cursor:pointer;
   transition:background .14s ease,color .14s ease,box-shadow .14s ease;
 }
-.asset-workspace-tab:not(.active):hover{background:var(--nav-surface-hover);color:var(--ink)}
-.asset-workspace-tab:focus-visible{
+.control-tab:focus-visible{
   outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
   outline-offset:var(--control-focus-outline-offset);
 }
+
+/* Asset Workspace Tabs · 자산 작업영역 탭: 증권 → 퇴직연금 순서, 기존 section ID 유지 */
+.asset-workspace{margin-top:var(--space-9xl)}
+.asset-workspace-tabs{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  width:min(430px,100%);
+  margin:0 0 var(--space-5xl);
+  background:var(--subtle-card);
+}
+.asset-workspace-tab{color:var(--muted)}
+.asset-workspace-tab:not(.active):hover{background:var(--nav-surface-hover);color:var(--ink)}
 .asset-workspace-tab.active{background:var(--asset-tab-active-bg);color:var(--asset-tab-active-color)}
 .asset-workspace-panel[hidden]{display:none}
 .asset-workspace-panel > section{margin-top:0}
@@ -2869,26 +2863,10 @@ body.contrib-modal-open{
 }
 
 .contrib-target-tabs{
-  display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:var(--space-lg);
-  padding:var(--space-xs);
-  border:1px solid var(--control-border);
-  border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
   background:var(--tab-group-bg);
 }
-.contrib-target-option{
-  padding:var(--space-xl) var(--space-3xl);
-  border:0;
-  border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
-  background:transparent;
-  color:var(--tab-text);
-  font-size:var(--type-size-md);
-  font-weight:var(--type-weight-emphasis);
-  line-height:var(--type-line-compact);
-  white-space:normal;
-  cursor:pointer;
-}
+.contrib-target-option{color:var(--tab-text)}
 .contrib-target-option.active{
   background:var(--tab-active-bg);
   color:var(--tab-active-text);

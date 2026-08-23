@@ -193,8 +193,9 @@
       padding:var(--space-sm) var(--space-2xl);
       font-size:var(--type-size-xs);
     }
-    .asset-workspace-tab{
+    .control-tab{
       min-height:34px;
+      padding-inline:var(--space-sm);
       font-size:var(--type-size-sm);
     }
 
@@ -598,7 +599,6 @@
     .contrib-existing-item{padding:var(--space-3xl) var(--space-4xl)}
     .contrib-existing-title{display:inline-block;margin-right:var(--space-4xl);font-size:var(--type-size-md);line-height:normal}
     .contrib-existing-memo{display:inline-block;margin:0 0 0 var(--space-2xs);font-size:var(--type-size-sm);line-height:normal}
-    .contrib-target-option{padding:var(--space-xl) var(--space-3xl);font-size:var(--type-size-md)}
     .pension-etf-trade-preview-grid{grid-template-columns:minmax(110px,.8fr) minmax(0,1.2fr);gap:var(--space-xl) var(--space-5xl)}
     .pension-etf-trade-preview-grid strong{margin-bottom:0;text-align:right}
 }
