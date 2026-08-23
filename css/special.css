@@ -492,6 +492,7 @@
   .mobile-date-pin-control > span:first-child{font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);letter-spacing:-.02em;line-height:25px;white-space:nowrap}
   .mobile-date-pin-control input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
   .mobile-date-pin-track{position:relative;width:31px;height:18px;flex:0 0 31px;border:1px solid var(--pin-track-border);border-radius:var(--radius-pill);background:var(--pin-track-bg);transition:background .16s ease,border-color .16s ease}
+  .date-action-menu.mobile-combined-menu .mobile-date-pin-track{border-color:var(--nav-border-hover);background:var(--nav-surface-hover)}
   .mobile-date-pin-track > span{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--pin-track-thumb);box-shadow:var(--pin-track-shadow);transition:transform .16s ease}
   .mobile-date-pin-control input:checked + .mobile-date-pin-track{background:var(--pin-track-active-bg);border-color:var(--pin-track-active-border)}
   .mobile-date-pin-control input:checked + .mobile-date-pin-track > span{transform:translateX(13px)}
@@ -516,10 +517,10 @@
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);font-size:var(--type-size-4xl);line-height:1.12;cursor:pointer}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:var(--nav-surface-hover);color:var(--nav-text)}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:16px;height:16px;margin:auto}
-  .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:var(--space-sm) 0 0;padding:var(--space-sm) 0 0;border-top:1px solid var(--nav-divider)}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:var(--space-xs) 0 0;padding:var(--space-xs) 0 0;border-top:1px solid var(--nav-divider)}
   .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{margin-top:0;padding-top:0;border-top:0}
-  .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:var(--space-2xs) var(--space-lg);color:var(--nav-muted);font-size:9.5px;font-weight:var(--type-weight-semibold);letter-spacing:0;line-height:14px}
-  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:var(--space-lg);min-height:30px;padding:var(--space-md) var(--space-lg);border-radius:min(var(--control-radius-md),var(--corner-control-cap));text-decoration:none;font-size:var(--type-size-sm);font-weight:var(--type-weight-regular);line-height:17px;box-shadow:none}
+  .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:1px var(--space-lg);color:var(--nav-muted);font-size:9.5px;font-weight:var(--type-weight-semibold);letter-spacing:0;line-height:14px}
+  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,a.mobile-nav-item,button.mobile-nav-item){gap:var(--space-lg);min-height:28px;margin:0;padding:var(--space-xs) var(--space-lg);border-radius:min(var(--control-radius-md),var(--corner-control-cap));text-decoration:none;font-size:var(--type-size-sm);font-weight:var(--type-weight-regular);line-height:17px;box-shadow:none}
   .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{padding-left:var(--space-lg)}
   .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{flex:0 0 16px;width:16px;height:16px;margin:0;border:0;border-radius:0;background:transparent;font-size:0;box-shadow:none}
   .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{display:block;width:16px;height:16px}
