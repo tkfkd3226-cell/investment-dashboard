@@ -2704,7 +2704,7 @@ body.contrib-modal-open{
   background:var(--securities-band-bg);
 }
 
-/* [09. Securities / Asset Workspace · 증권계좌 / 자산 작업영역] Asset Workspace · 자산 작업영역 */
+/* [09. Asset Workspace / Shared Asset UI · 자산 작업영역 / 공통 자산 UI] */
 /* Tab Primitives · 자산/조정 항목 탭이 공유하는 geometry·typography·focus 골격 */
 .control-tab-group{
   display:grid;

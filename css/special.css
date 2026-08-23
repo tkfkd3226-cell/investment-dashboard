@@ -188,7 +188,7 @@
     }
     #accounts-summary .accounts-table .accounts-memo-sentence{white-space:nowrap}
 
-  /* Section / Asset Tabs · 제목·chip·자산 탭은 세로폰과 같은 compact 크기 */
+  /* Section Chip / Shared Tabs · section chip·공통 탭은 세로폰과 같은 compact 크기 */
     .section-basis-chip{
       padding:var(--space-sm) var(--space-2xl);
       font-size:var(--type-size-xs);
