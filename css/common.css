@@ -3793,21 +3793,27 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .date-action-menu.show{display:block}
 .mobile-menu-layout,.tablet-toc-menu-layout{display:none}
 
-/* Navigation Motion · 웹/태블릿/폰 목차는 우→좌 열림, 좌→우 닫힘을 동일하게 사용 */
+/* Navigation Motion · 열림은 짧은 fade 후 우→좌 slide, 닫힘은 좌→우 slide 후 fade */
 .date-action-menu.mobile-combined-menu{
   display:block;
-  opacity:0;
+  opacity:.92;
   visibility:hidden;
   pointer-events:none;
-  transform:translateX(14px);
-  transition:opacity .18s ease,transform .18s ease,visibility 0s linear .18s;
+  transform:translateX(24px);
+  transition:
+    transform .24s ease-in 0s,
+    opacity .07s ease .24s,
+    visibility 0s linear .31s;
 }
 .date-action-menu.mobile-combined-menu.show{
   opacity:1;
   visibility:visible;
   pointer-events:auto;
   transform:translateX(0);
-  transition-delay:0s;
+  transition:
+    opacity .07s ease 0s,
+    transform .24s ease-out .07s,
+    visibility 0s linear 0s;
 }
 
 
@@ -4128,11 +4134,14 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       padding:var(--space-4xl);
       border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
       box-shadow:var(--nav-shadow-panel);
-      opacity:0;
+      opacity:.92;
       visibility:hidden;
       pointer-events:none;
-      transform:translate(12px,-50%);
-      transition:opacity .18s ease,transform .18s ease,visibility 0s linear .18s;
+      transform:translate(24px,-50%);
+      transition:
+        transform .24s ease-in 0s,
+        opacity .07s ease .24s,
+        visibility 0s linear .31s;
     }
     .desktop-edge-toc:hover .desktop-edge-toc-panel,
     .desktop-edge-toc.is-open .desktop-edge-toc-panel{
@@ -4140,7 +4149,10 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       visibility:visible;
       pointer-events:auto;
       transform:translate(0,-50%);
-      transition-delay:0s;
+      transition:
+        opacity .07s ease 0s,
+        transform .24s ease-out .07s,
+        visibility 0s linear 0s;
     }
     .desktop-edge-toc:hover .desktop-edge-toc-trigger,
     .desktop-edge-toc.is-open .desktop-edge-toc-trigger{

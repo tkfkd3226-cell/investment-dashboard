@@ -504,7 +504,7 @@
     top:43px;
     right:6px;
     z-index:2600;
-    width:min(236px,calc(100vw - 12px));
+    width:min(224px,calc(100vw - 12px));
     max-height:calc(100vh - 54px);
     overflow:auto;
     padding:var(--space-sm);
