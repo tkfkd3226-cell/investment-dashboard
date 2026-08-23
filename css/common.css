@@ -98,6 +98,11 @@
   --dashboard-switch-min-width:52px;
   --dashboard-control-radius:9px;
   --icon-button-size:32px;
+  --compact-icon-button-size:25px;
+  --action-button-height:40px;
+  --action-button-compact-height:29px;
+  --info-button-size:18px;
+  --info-button-hit-inset:-3px;
   --switch-track-width:31px;
   --switch-track-height:18px;
   --switch-thumb-size:12px;
@@ -1513,14 +1518,9 @@ button.legend-item.chart-series-all.active{
   to{stroke-dashoffset:0}
 }
 
-/* Chart Navigation / Expanded · 배치는 Tablet overflow / phone-chart-ui가 소유하고 버튼은 공통 정사각 control을 사용 */
+/* Chart Navigation / Expanded · 배치는 Tablet overflow / phone-chart-ui가 소유하고 공통 square-button geometry를 사용 */
 :is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
-  --chart-square-size:var(--dashboard-control-height);
   display:none;
-  width:var(--chart-square-size);
-  height:var(--chart-square-size);
-  flex:0 0 var(--chart-square-size);
-  padding:0;
   border:1px solid var(--control-border);
   border-radius:min(var(--dashboard-control-radius),var(--corner-control-cap));
   background:transparent;
@@ -1560,12 +1560,6 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   top:max(10px,env(safe-area-inset-top));
   right:max(10px,env(safe-area-inset-right));
   z-index:12003;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:36px;
-  height:36px;
-  padding:0;
   border:1px solid var(--chart-expanded-close-border);
   border-radius:min(11px,var(--corner-control-cap));
   background:var(--chart-expanded-close-bg);
@@ -1577,7 +1571,7 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   box-shadow:var(--chart-expanded-close-shadow);
   cursor:pointer;
 }
-.chart-expanded-close svg{display:block;width:19px;height:19px}
+.chart-expanded-close svg{display:block;width:18px;height:18px}
 .chart-expanded-stage{
   position:absolute;
   left:0;
@@ -1704,30 +1698,12 @@ body.chart-expanded-open .dash-tooltip{
   display:none;
 }
 .compact-chart-ui .chart-title-info{
-  position:relative;
   display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:18px;
-  height:18px;
-  flex:0 0 18px;
   margin-left:1px;
-  padding:0;
-  border:1.5px solid var(--chart-info-border);
-  border-radius:50%;
-  background:var(--chart-info-bg);
-  color:var(--chart-info-color);
-  font-family:inherit;
+  border-width:1.5px;
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-emphasis);
-  line-height:1.12;
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
   z-index:12;
-}
-.compact-chart-ui .chart-title-info::before{content:"";position:absolute;inset:-3px}
-.compact-chart-ui .chart-title-info > span[aria-hidden="true"]{
-  transform:translateY(-.2px);
 }
 .compact-chart-ui .chart-title-info-tooltip{
   position:absolute;
@@ -2391,21 +2367,8 @@ body.chart-expanded-open .dash-tooltip{
   flex-wrap:wrap;
   margin-top:var(--space-2xl);
 }
-.contrib-btn{
-  border:1px solid var(--asset-tab-active-bg);
-  border-radius:min(var(--control-radius-xs),var(--corner-control-cap));
-  padding:var(--space-xl) 11px;
-  font-size:var(--type-size-sm);
-  line-height:var(--type-line-tight);
-  font-weight:var(--type-weight-strong);
-  cursor:pointer;
-  background:var(--asset-tab-active-bg);
-  color:var(--asset-tab-active-color);
-}
-.contrib-btn:disabled{
-  opacity:var(--control-disabled-opacity);
-  cursor:not-allowed;
-}
+.contrib-btn{font-size:var(--type-size-sm)}
+.contrib-btn:disabled{opacity:var(--control-disabled-opacity)}
 .contrib-output-file{
   margin-top:var(--space-4xl);
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -2516,20 +2479,13 @@ body.contrib-modal-open{
   gap:var(--space-lg);
 }
 .modal-icon-btn{
-  width:34px;
-  height:34px;
   border:0;
   border-radius:var(--radius-pill);
-  padding:0;
   background:var(--icon-button-bg);
   color:var(--icon-button-color);
   font-size:22px;
   font-weight:var(--type-weight-regular);
   line-height:1.12;
-  cursor:pointer;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
 }
 .modal-icon-btn svg{
   width:18px;
@@ -2746,11 +2702,6 @@ body.contrib-modal-open{
   word-break:break-word;
 }
 
-.contrib-btn.danger{
-  border-color:var(--status-danger-strong);
-  background:var(--status-danger-strong);
-  color:var(--asset-tab-active-color);
-}
 .wrap > section,
 .grid.cards{
   width:100%;
@@ -3196,18 +3147,7 @@ body.contrib-modal-open{
   gap:var(--space-2xl);
   margin-top:var(--modal-action-gap);
 }
-.action-modal-btn{
-  height:40px;
-  border-radius:min(12px,var(--corner-control-cap));
-  border:1px solid var(--control-border);
-  padding:0 var(--space-5xl);
-  font-weight:var(--type-weight-strong);
-  line-height:var(--type-line-compact);
-  cursor:pointer;
-  box-sizing:border-box;
-}
-.action-modal-btn.ghost{background:var(--modal-surface);color:var(--text)}
-.action-modal-btn.primary{background:var(--asset-tab-active-bg);color:var(--asset-tab-active-color);border-color:var(--asset-tab-active-bg)}
+.action-modal-btn{font-weight:var(--type-weight-strong)}
 .krx-action-buttons{
   display:grid;
   grid-template-columns:minmax(52px,max-content) minmax(0,1fr) minmax(72px,max-content);
@@ -3276,6 +3216,87 @@ body.contrib-modal-open{
 
 .chart-card.transition-suppressed-once,
 .mini-card.transition-suppressed-once{transition:none}
+
+/* Button Primitives · 정사각 icon / square utility / modal action / info 버튼의 공통 geometry */
+button.control-icon-button{
+  width:var(--icon-button-size);
+  min-width:var(--icon-button-size);
+  height:var(--icon-button-size);
+  flex:0 0 var(--icon-button-size);
+  padding:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  cursor:pointer;
+}
+button.control-icon-button-compact{
+  width:var(--compact-icon-button-size);
+  min-width:var(--compact-icon-button-size);
+  height:var(--compact-icon-button-size);
+  flex:0 0 var(--compact-icon-button-size);
+  padding:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  cursor:pointer;
+}
+.control-square-button{
+  --control-square-size:var(--dashboard-control-height);
+  width:var(--control-square-size);
+  min-width:var(--control-square-size);
+  height:var(--control-square-size);
+  flex:0 0 var(--control-square-size);
+  padding:0;
+  box-sizing:border-box;
+}
+.control-action-button{
+  min-height:var(--action-button-height);
+  height:var(--action-button-height);
+  border:1px solid var(--control-border);
+  border-radius:min(12px,var(--corner-control-cap));
+  padding:0 var(--space-5xl);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  font-family:inherit;
+  font-weight:var(--type-weight-strong);
+  line-height:var(--type-line-compact);
+  white-space:nowrap;
+  cursor:pointer;
+}
+.control-action-button.ghost{background:var(--modal-surface);color:var(--text)}
+.control-action-button.primary{background:var(--asset-tab-active-bg);color:var(--asset-tab-active-color);border-color:var(--asset-tab-active-bg)}
+.control-action-button.danger{background:var(--status-danger-strong);color:var(--asset-tab-active-color);border-color:var(--status-danger-strong)}
+.control-action-button.compact{
+  min-height:var(--action-button-compact-height);
+  height:var(--action-button-compact-height);
+  padding:0 var(--space-2xl);
+  border-radius:min(7px,var(--corner-control-cap));
+}
+.control-action-button:disabled{cursor:not-allowed}
+.control-info-button{
+  position:relative;
+  align-items:center;
+  justify-content:center;
+  width:var(--info-button-size);
+  height:var(--info-button-size);
+  flex:0 0 var(--info-button-size);
+  margin:0;
+  padding:0;
+  border:1px solid var(--chart-info-border);
+  border-radius:50%;
+  background:var(--chart-info-bg);
+  color:var(--chart-info-color);
+  font-family:inherit;
+  line-height:1.12;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.control-info-button::before{content:"";position:absolute;inset:var(--info-button-hit-inset)}
+.control-info-button > span[aria-hidden="true"]{transform:translateY(-.2px)}
 
 /* Text / Switch Control Primitives · 텍스트 전환 버튼과 track/thumb 스위치의 공통 골격 */
 .control-text-toggle{
@@ -3573,16 +3594,10 @@ button:not(:disabled):active,
 }
 .pension-batch-clear{
   flex:0 0 auto;
-  border:1px solid var(--control-border);
-  border-radius:min(7px,var(--corner-control-cap));
-  padding:var(--space-md) var(--space-2xl);
-  background:transparent;
-  color:var(--muted);
   font-size:var(--type-size-xs);
   font-weight:var(--type-weight-strong);
-  cursor:pointer;
 }
-.pension-batch-clear:disabled{opacity:.4;cursor:not-allowed}
+.pension-batch-clear:disabled{opacity:.4}
 .pension-batch-queue{
   display:flex;
   flex-direction:column;
@@ -3629,16 +3644,12 @@ button:not(:disabled):active,
   gap:var(--space-xs);
 }
 .pension-batch-item-actions button{
-  width:25px;
-  height:25px;
-  padding:0;
   border:1px solid var(--control-border);
   border-radius:min(6px,var(--corner-control-cap));
   background:var(--card);
   color:var(--text);
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-emphasis);
-  cursor:pointer;
 }
 .pension-batch-item-actions button svg{display:block;width:13px;height:13px;margin:auto}
 .pension-batch-item-actions button:disabled{opacity:.3;cursor:not-allowed}
@@ -3948,14 +3959,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .date-tool-btn:hover,
 .date-tool-btn:active{background:var(--topbar-control-hover-bg)}
 .date-tool-btn:active{border-color:var(--topbar-control-border-hover)}
-/* Icon Button Primitive · Topbar 정사각 icon button은 같은 viewport에서 동일 외곽 크기를 공유 */
-button.control-icon-button{
-  width:var(--icon-button-size);
-  min-width:var(--icon-button-size);
-  height:var(--icon-button-size);
-  flex:0 0 var(--icon-button-size);
-  padding:0;
-}
+/* Topbar Icon Buttons · 공통 control-icon-button geometry + topbar surface styling */
 .topbar-calc-action{text-decoration:none}
 .date-tool-action-icon{
   width:16px;

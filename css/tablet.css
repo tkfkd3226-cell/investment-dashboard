@@ -125,7 +125,7 @@
     }
     .chart-card.has-horizontal-scroll .chart-scroll-start,
     .chart-card.has-horizontal-scroll .chart-scroll-end{
-      --chart-square-size:27px;
+      --control-square-size:27px;
       display:inline-flex;
       border-radius:min(8px,var(--corner-control-cap));
       font-size:var(--type-size-2xl);
@@ -203,7 +203,7 @@
     .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2xl);margin:0;padding:0 1px var(--space-2xs);background:transparent}
     .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:var(--space-2xs);min-width:0}
     .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px;color:var(--nav-muted);font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);line-height:25px}
-    .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);line-height:1.12;cursor:pointer}
+    .date-action-menu.mobile-combined-menu .mobile-nav-head > button{border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);line-height:1.12}
     .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:var(--nav-surface-hover);color:var(--nav-text)}
     .date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:16px;height:16px;margin:auto}
     .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:var(--space-sm) 0 0;padding:var(--space-sm) 0 0;border-top:1px solid var(--nav-divider)}

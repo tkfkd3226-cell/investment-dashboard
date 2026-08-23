@@ -260,7 +260,7 @@
     .krx-action-buttons{
       gap:var(--space-lg);
     }
-    .krx-action-buttons .action-modal-btn{
+    .krx-action-buttons .control-action-button{
       min-height:42px;
       height:auto;
       padding:var(--space-md) var(--space-xl);

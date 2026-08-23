@@ -32,12 +32,10 @@
     :is(
       button.legend-item.chart-series-all,
       .chart-y-auto-toggle,
-      .pension-batch-clear,
-      .pension-batch-item-actions button,
-      .chart-scroll-start,
-      .chart-scroll-end,
-      .chart-expand-button,
-      .chart-web-expand-button,
+      .control-action-button,
+      .control-icon-button-compact,
+      .control-square-button,
+      .control-info-button,
       .control-text-toggle
     ):not(:disabled):hover{
       border-color:var(--control-border-hover);

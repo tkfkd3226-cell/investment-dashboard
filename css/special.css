@@ -53,35 +53,13 @@
       display:none;
     }
     #accounts-summary .accounts-memo-info-button{
+      --info-button-size:14px;
+      --info-button-hit-inset:-4px;
       display:inline-flex;
-      position:relative;
-      align-items:center;
-      justify-content:center;
-      width:14px;
-      height:14px;
-      flex:0 0 14px;
-      margin:0;
-      padding:0;
-      border:1px solid var(--chart-info-border);
-      border-radius:50%;
-      background:var(--chart-info-bg);
-      color:var(--chart-info-color);
-      font-family:inherit;
       font-size:var(--type-size-2xs);
       font-weight:var(--type-weight-bold);
-      line-height:1.12;
-      cursor:pointer;
-      -webkit-tap-highlight-color:transparent;
       vertical-align:middle;
       z-index:80;
-    }
-    #accounts-summary .accounts-memo-info-button::before{
-      content:"";
-      position:absolute;
-      inset:-4px;
-    }
-    #accounts-summary .accounts-memo-info-button > span[aria-hidden="true"]{
-      transform:translateY(-.2px);
     }
     #accounts-summary .accounts-memo-info-button.open{
       z-index:90;
@@ -493,7 +471,7 @@
   .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-lg);margin:0;padding:0 1px var(--space-2xs);background:transparent}
   .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:var(--space-2xs);min-width:0}
   .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px;color:var(--nav-muted);font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);line-height:25px}
-  .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);font-size:var(--type-size-4xl);line-height:1.12;cursor:pointer}
+  .date-action-menu.mobile-combined-menu .mobile-nav-head > button{border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);font-size:var(--type-size-4xl);line-height:1.12}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:var(--nav-surface-hover);color:var(--nav-text)}
   .date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:16px;height:16px;margin:auto}
   .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:2px 0 0;padding:2px 0 0;border-top:1px solid var(--nav-divider)}
