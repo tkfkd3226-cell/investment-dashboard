@@ -220,16 +220,7 @@
       font-size:var(--type-size-sm);
     }
 
-  /* Compact Chart Typography · 차트 제목/tooltip은 세로폰 기준 공유 */
-    #pension-chart-cum .chart-head h3,
-    #pension-chart-symbol .chart-head h3,
-    #pension-chart-alloc .chart-head h3,
-    #chart-cum .chart-head h3,
-    #chart-symbol .chart-head h3,
-    #chart-alloc .chart-head h3{
-      font-size:var(--type-size-xl);
-      line-height:1.22;
-    }
+  /* Compact Chart Support · 제목은 공통 title token을 그대로 쓰고 부제/tooltip만 폰 기준으로 축소 */
     #pension-chart-cum .chart-title-sub,
     #pension-chart-symbol .chart-title-sub{font-size:var(--type-size-xs)}
 
@@ -603,7 +594,7 @@
     .mobile-card-view{display:none}
     .asset-status-table .mobile-table-brand-prefix{display:inline}
 
-  /* Chart Landscape · compact 타이포 + 폭 맞춤 + 낮은 높이 + ←/→ 제거 */
+  /* Chart Landscape · 공통 compact 제목은 유지하고 차트 폭/높이와 ←/→ 표시만 가로폰에 맞춤 */
     .chart-wrap{
       overflow-x:hidden;
       box-shadow:none;

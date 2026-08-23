@@ -68,7 +68,7 @@
       aspect-ratio:1120 / 330;
     }
 
-    /* [08→10. Charts / Print · cross-cutting] Print Charts · 인쇄에서는 Browser / Accessibility / Print 정책이 최종 소유 */
+    /* Print Charts · 화면 진입 animation 상태와 무관하게 인쇄에서는 차트를 정적 표시 */
     .chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-bar,
     .chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-point{
       opacity:1;

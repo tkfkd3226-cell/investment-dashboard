@@ -1403,7 +1403,7 @@ button.legend-item.chart-series-all.active{
   font-weight:var(--type-weight-bold);
 }
 
-/* Chart Compare Control · 누적차트 비교: 수익률 / KOSPI */
+/* Chart Action Group · 차트 제목 우측 control 공통 정렬 */
 .chart-head-actions{
   display:flex;
   align-items:center;
@@ -1426,6 +1426,7 @@ button.legend-item.chart-series-all.active{
   background:var(--line);
   transform:translateY(-50%);
 }
+/* Segmented Toggle · 2분할 선택형 버튼의 공통 골격 */
 .chart-compare-toggle{
   display:inline-flex;
   align-items:center;
@@ -1459,10 +1460,7 @@ button.legend-item.chart-series-all.active{
 /* 계좌별 전용 표/카드 전환 wrapper는 데스크톱에서 빈 flex item/gap을 만들지 않는다. */
 .securities-summary-block [data-accounts-view-toggle-wrap]{display:none}
 
-/* Chart Motion · 차트 진입 animation */
-/* Chart Entrance Animation · 차트 진입 animation: viewport 진입 후 좌→우 reveal */
-
-/* Chart Entrance Keyframes · 차트 진입 keyframes */
+/* Chart Entrance Animation · viewport 진입 후 좌→우 reveal, 아래 keyframes가 bar/point/line 모션을 분담 */
 .chart-card.chart-entrance-ready .chart-anim-bar,
 .chart-card.chart-entrance-ready .chart-anim-point,
 .chart-card.chart-entrance-ready .chart-anim-line{
@@ -1515,12 +1513,7 @@ button.legend-item.chart-series-all.active{
   to{stroke-dashoffset:0}
 }
 
-/* Chart Navigation / Expanded / Phone · 차트 이동 / 확대 / 모바일 전용 UI */
-/* Chart Navigation Ownership · 차트 이동 배치는 Tablet overflow / 세로폰 phone-chart-ui flow에서 관리 */
-
-/* Chart Navigation Controls · 차트 이동/확대: 공통 정사각형 control primitive */
-
-/* Chart Navigation / Expanded Chart · 이동 / 확대 차트 */
+/* Chart Navigation / Expanded · 배치는 Tablet overflow / phone-chart-ui가 소유하고 버튼은 공통 정사각 control을 사용 */
 :is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
   --chart-square-size:var(--dashboard-control-height);
   display:none;
@@ -1689,9 +1682,7 @@ body.chart-expanded-open .dash-tooltip{
   overscroll-behavior:contain;
 }
 
-/* Compact Chart Header · 폰 공통 compact 차트 헤더: 한 줄 제목 + 정보 tooltip */
-
-/* Compact Chart UI · 세로폰/가로폰 공통 차트 밀도 */
+/* Compact Chart UI · 세로/가로폰 공통: 제목 한 줄 유지 + 부제 대신 정보 tooltip 사용 */
 .chart-title-info{
   display:none;
 }
@@ -2238,6 +2229,7 @@ body.chart-expanded-open .dash-tooltip{
   font-variant-numeric:tabular-nums;
 }
 
+/* [07. Common Metrics · 공통 핵심지표] Summary / Metric Cards · 요약 / 핵심지표 카드 */
 /* Cumulative Summary Cards · 연금/증권 누적 요약카드: layout만 담당하고 surface/타이포는 mini-card 공통 규칙 사용 */
 .chart-note.six{
   grid-template-columns:repeat(6,minmax(0,1fr));
@@ -2252,8 +2244,6 @@ body.chart-expanded-open .dash-tooltip{
 }
 
 /* Metric Cards · 핵심지표 카드: 공통 타이포와 대표 viewport grid 사용 */
-
-/* [07. Common Metrics · 공통 핵심지표] Metric Cards · 핵심지표 카드 */
 .metric-card{
   --metric-label-size:13px;
   --metric-value-size:28px;
@@ -3080,12 +3070,7 @@ body.contrib-modal-open{
   font-size:var(--section-icon-font-size);
   line-height:1.12;
 }
-.section-title-icon.chart-icon{
-  --section-icon-size:26px;
-  --section-icon-radius:10px;
-  --section-icon-font-size:var(--type-size-xl);
-}
-/* Shared SVG Labels · 메인 라벨: 목차 SVG를 배경 없이 동일 크기로 재사용 */
+/* Shared SVG Title Icons · 메인/하위/차트 제목이 같은 SVG 크기·간격·정렬 규칙을 공유 */
 .section-title-icon[data-section-title-icon]{
   width:var(--section-title-icon-size);
   height:var(--section-title-icon-size);
@@ -3292,7 +3277,7 @@ body.contrib-modal-open{
 .chart-card.transition-suppressed-once,
 .mini-card.transition-suppressed-once{transition:none}
 
-/* Control Shape Primitives · 기능이 아니라 모양/상호작용 방식 기준 공통 골격 */
+/* Text / Switch Control Primitives · 텍스트 전환 버튼과 track/thumb 스위치의 공통 골격 */
 .control-text-toggle{
   flex:0 0 auto;
   padding:0 var(--text-toggle-pad-x);
@@ -3551,8 +3536,7 @@ button:not(:disabled):active,
   vertical-align:1px;
 }
 
-/* [11. Pension Batch Operations · 퇴직연금 작업 모음] */
-/* Pension Batch · 퇴직연금 작업 모음 */
+/* [11. Pension Batch Operations · 퇴직연금 작업 모음] Batch Controls / Panel · 작업 count / panel */
 .pension-batch-count{
   display:inline-flex;
   align-items:center;
@@ -3964,7 +3948,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .date-tool-btn:hover,
 .date-tool-btn:active{background:var(--topbar-control-hover-bg)}
 .date-tool-btn:active{border-color:var(--topbar-control-border-hover)}
-/* Icon Button Primitive · 정사각 icon control shell */
+/* Icon Button Primitive · Topbar 정사각 icon button은 같은 viewport에서 동일 외곽 크기를 공유 */
 button.control-icon-button{
   width:var(--icon-button-size);
   min-width:var(--icon-button-size);
@@ -3989,9 +3973,7 @@ button.control-icon-button{
 .date-action-menu-wrap,
 .topbar-label-short{display:none}
 
-/* Data Tables · 데이터 표: 웹/태블릿 table, 폰 UI table↔card 전환 */
-
-/* [13. Data Table / Mobile Card · 데이터 표 / 모바일 카드] */
+/* [13. Data Table / Mobile Card · 데이터 표 / 모바일 카드] Data Tables · 웹/태블릿 table, 폰 UI table↔card 전환 */
 .mobile-scroll{
   width:100%;
   max-width:100%;

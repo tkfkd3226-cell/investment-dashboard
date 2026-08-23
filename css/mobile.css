@@ -26,7 +26,7 @@
       grid-template-columns:1fr;
     }
 
-  /* Section Controls Mobile · 섹션 제목 모바일: 제목/chip 크기를 줄여 한 줄 배치 우선 */
+  /* Section Controls Mobile · 제목 시각 규칙은 Phone Shared token을 따르고 여기서는 우측 control 순서/수직 정렬만 보정 */
     .securities-summary-block .chart-head-actions > [data-accounts-view-toggle-wrap]:not([hidden]){display:inline-flex;order:-1}
     .section-title > .section-control-chip,
     .section-title > .section-title-actions,
