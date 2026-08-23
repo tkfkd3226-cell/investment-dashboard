@@ -34,11 +34,12 @@
       column-gap:0;
     }
     .hero.market-ai-mounted #market-ai-section{width:auto;max-width:100%;margin-top:6px;justify-self:center}
-    .market-ai-panel{max-width:min(100%,330px);padding:4px 5px}
-    .market-ai-heading{margin-bottom:2px}
-    .market-ai-desktop{width:fit-content;max-width:100%;grid-template-columns:repeat(2,minmax(150px,156px));gap:5px;justify-content:center}
-    .market-ai-card-row{padding:3px 6px 4px}
-    .market-ai-desktop-metric{min-height:17px;padding:0}
+    .market-ai-panel{max-width:min(100%,330px);padding:2px 3px}
+    .market-ai-heading{margin-bottom:1px}
+    .market-ai-desktop{width:fit-content;max-width:100%;grid-template-columns:repeat(2,minmax(150px,156px));gap:4px;justify-content:center}
+    .market-ai-card-row{padding:2px 5px 3px}
+    .market-ai-desktop-metric{min-height:18px;padding:0}
+    .market-ai-desktop-metric:last-child{min-height:16px;padding-bottom:0}
 
     .mini-card{
       --mini-card-pad-y:10px;
@@ -201,7 +202,7 @@
     .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2xl);margin:0;padding:0 1px var(--space-2xs);background:transparent}
     .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:var(--space-2xs);min-width:0}
     .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px;color:var(--nav-muted);font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);line-height:25px}
-    .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);line-height:1;cursor:pointer}
+    .date-action-menu.mobile-combined-menu .mobile-nav-head > button{width:25px;height:25px;padding:0;border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);line-height:1.12;cursor:pointer}
     .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:var(--nav-surface-hover);color:var(--nav-text)}
     .date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:16px;height:16px;margin:auto}
     .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:var(--space-sm) 0 0;padding:var(--space-sm) 0 0;border-top:1px solid var(--nav-divider)}

@@ -685,7 +685,7 @@ html.dark #market-ai-section{
 .market-ai-panel{
   width:fit-content;
   max-width:min(100%,330px);
-  padding:4px 5px;
+  padding:2px 3px;
   border:1px solid var(--market-ai-panel-border);
   border-radius:min(15px,var(--corner-surface-cap));
   background:var(--market-ai-panel-bg);
@@ -700,7 +700,7 @@ html.dark #market-ai-section{
   align-items:center;
   justify-content:space-between;
   gap:6px;
-  margin-bottom:2px;
+  margin-bottom:1px;
 }
 .market-ai-title{
   color:var(--market-ai-text);
@@ -724,7 +724,7 @@ html.dark #market-ai-section{
   width:fit-content;
   max-width:100%;
   grid-template-columns:repeat(2,minmax(154px,160px));
-  gap:5px;
+  gap:4px;
   align-items:stretch;
   justify-content:start;
 }
@@ -736,14 +736,14 @@ html.dark #market-ai-section{
   min-width:0;
   border:1px solid var(--market-ai-divider);
   border-radius:min(8px,var(--corner-surface-cap));
-  padding:3px 6px 4px;
+  padding:2px 5px 3px;
 }
 .market-ai-desktop-group-label{
   color:var(--market-ai-muted);
   font-size:9px;
   font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
-  line-height:1;
+  line-height:1.12;
   margin-bottom:1px;
   white-space:nowrap;
 }
@@ -752,7 +752,7 @@ html.dark #market-ai-section{
   display:grid;
   align-items:center;
   min-width:0;
-  min-height:17px;
+  min-height:18px;
   border:0;
   border-radius:0;
   padding:0;
@@ -766,6 +766,10 @@ html.dark #market-ai-section{
   left:0;
   height:1px;
   background:var(--market-ai-divider);
+}
+.market-ai-desktop-metric:last-child{
+  min-height:16px;
+  padding-bottom:0;
 }
 .market-ai-market-row .market-ai-desktop-metric{
   grid-template-columns:minmax(0,1fr) 50px 39px;
@@ -782,7 +786,7 @@ html.dark #market-ai-section{
   font-size:9px;
   font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
-  line-height:1;
+  line-height:1.12;
   text-align:left;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -796,7 +800,7 @@ html.dark #market-ai-section{
   font-weight:var(--type-weight-emphasis);
   font-variant-numeric:tabular-nums;
   letter-spacing:-.02em;
-  line-height:1;
+  line-height:1.12;
   text-align:right;
 }
 .market-ai-desktop-change{font-size:8.5px}
@@ -923,7 +927,7 @@ section{
   display:flex;
   align-items:center;
   gap:var(--section-title-gap);
-  line-height:1;
+  line-height:1.12;
 }
 :is(#summary-section,#securities-section,#pension-section,#accounts-summary,#ledger-check,#capital-source-check) > .section-title{
   min-height:var(--section-chip-height);
@@ -1292,7 +1296,7 @@ svg.chart:focus-visible{
   height:var(--dashboard-control-height);
   min-height:var(--dashboard-control-height);
   font-size:var(--dashboard-control-font-size);
-  line-height:1;
+  line-height:1.12;
   white-space:nowrap;
   cursor:pointer;
 }
@@ -1436,7 +1440,7 @@ button.legend-item.chart-series-all.active{
   font-family:inherit;
   font-size:var(--dashboard-control-font-size);
   font-weight:var(--type-weight-emphasis);
-  line-height:1;
+  line-height:1.12;
   white-space:nowrap;
   cursor:pointer;
 }
@@ -1576,7 +1580,7 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   font-family:inherit;
   font-size:25px;
   font-weight:var(--type-weight-medium);
-  line-height:1;
+  line-height:1.12;
   box-shadow:var(--chart-expanded-close-shadow);
   cursor:pointer;
 }
@@ -1728,7 +1732,7 @@ body.chart-expanded-open .dash-tooltip{
   font-family:inherit;
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-emphasis);
-  line-height:1;
+  line-height:1.12;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
   z-index:12;
@@ -2258,7 +2262,7 @@ body.chart-expanded-open .dash-tooltip{
   --metric-value-size:28px;
   --metric-sub-size:13px;
   --metric-label-gap:7px;
-  --metric-sub-gap:5px;
+  --metric-sub-gap:4px;
   --metric-label-weight:var(--type-weight-bold);
   --metric-value-weight:var(--type-weight-strong);
   --metric-value-emphasis-weight:var(--type-weight-emphasis);
@@ -2534,7 +2538,7 @@ body.contrib-modal-open{
   color:var(--icon-button-color);
   font-size:22px;
   font-weight:var(--type-weight-regular);
-  line-height:1;
+  line-height:1.12;
   cursor:pointer;
   display:inline-flex;
   align-items:center;
@@ -3077,7 +3081,7 @@ body.contrib-modal-open{
   background:var(--section-icon-bg);
   box-shadow:var(--section-icon-shadow);
   font-size:var(--section-icon-font-size);
-  line-height:1;
+  line-height:1.12;
 }
 .section-title-icon.chart-icon{
   --section-icon-size:26px;
@@ -3464,7 +3468,7 @@ button:not(:disabled):active,
   font-family:inherit;
   font-size:var(--type-size-xs);
   font-weight:var(--type-weight-emphasis);
-  line-height:1;
+  line-height:1.12;
   letter-spacing:-.02em;
   white-space:nowrap;
   gap:var(--space-2xs);
@@ -3504,7 +3508,7 @@ button:not(:disabled):active,
   margin-left:var(--space-md);
   color:var(--asset-swatch-color);
   font-size:var(--type-size-2xs);
-  line-height:1;
+  line-height:1.12;
   vertical-align:1px;
 }
 
@@ -3522,7 +3526,7 @@ button:not(:disabled):active,
   background:var(--batch-count-bg);
   color:var(--batch-count-text);
   font-size:var(--type-size-2xs);
-  line-height:1;
+  line-height:1.12;
 }
 .pension-batch-panel{
   padding:var(--space-5xl);
@@ -3898,7 +3902,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   justify-content:center;
   gap:var(--space-sm);
   font-size:11.5px;
-  line-height:1;
+  line-height:1.12;
   white-space:nowrap;
   cursor:pointer;
 }
@@ -4080,7 +4084,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       box-shadow:var(--nav-shadow-trigger);
       font-size:var(--type-size-xs);
       font-weight:var(--type-weight-strong);
-      line-height:1;
+      line-height:1.12;
       letter-spacing:-.02em;
       cursor:pointer;
     }
