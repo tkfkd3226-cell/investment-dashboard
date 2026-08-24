@@ -100,11 +100,8 @@
   --card-grid-gap-large:var(--space-7xl);
   --card-grid-gap-medium:var(--space-5xl);
   --card-grid-gap-compact:var(--space-4xl);
-  /* Card Vertical Rhythm System · 카드 내부 label/value/sub·detail 간격 */
-  --metric-gap-label-value:var(--space-sm);
-  --metric-gap-value-sub:var(--space-lg);
-  --mini-gap-label-value:var(--space-xs);
-  --mini-gap-value-detail:var(--space-sm);
+  /* Card Vertical Rhythm System · Metric/Mini 텍스트 간격 공통화 */
+  --card-text-rhythm-gap:var(--space-sm);
   --info-stack-gap:var(--space-4xl);
   --control-radius-md:10px;
   --control-radius-sm:9px;
@@ -1134,11 +1131,11 @@ td.num{
   line-height:var(--type-line-tight);
   letter-spacing:-.025em;
   font-weight:var(--type-weight-emphasis);
-  margin-top:var(--mini-gap-label-value);
+  margin-top:var(--card-text-rhythm-gap);
 }
 
 .mini-card .m-detail{
-  margin-top:var(--mini-gap-value-detail);
+  margin-top:var(--card-text-rhythm-gap);
   font-size:var(--mini-detail-size);
   font-weight:var(--mini-detail-weight);
   line-height:var(--type-line-compact);
@@ -2199,7 +2196,7 @@ body.chart-expanded-open .dash-tooltip{
 .symbol-metrics{
   display:grid;
   gap:var(--space-lg);
-  margin-top:var(--mini-gap-value-detail);
+  margin-top:var(--card-text-rhythm-gap);
   padding-top:var(--space-3xl);
   border-top:1px solid var(--line);
 }
@@ -2261,7 +2258,7 @@ body.chart-expanded-open .dash-tooltip{
 }
 
 .metric-card .label{
-  margin-bottom:var(--metric-gap-label-value);
+  margin-bottom:var(--card-text-rhythm-gap);
   font-size:var(--metric-label-size);
   font-weight:var(--metric-label-weight);
   line-height:var(--type-line-compact);
@@ -2276,7 +2273,7 @@ body.chart-expanded-open .dash-tooltip{
 .metric-card:is(.dark,.highlight) .value{font-weight:var(--metric-value-emphasis-weight)}
 
 .metric-card .sub{
-  margin-top:var(--metric-gap-value-sub);
+  margin-top:var(--card-text-rhythm-gap);
   font-size:var(--metric-sub-size);
   font-weight:var(--metric-sub-weight);
   line-height:var(--type-line-body);

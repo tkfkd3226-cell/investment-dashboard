@@ -18,10 +18,7 @@
       --card-grid-gap-large:var(--space-6xl);
       --card-grid-gap-medium:var(--space-4xl);
       --card-grid-gap-compact:var(--space-2xl);
-      --metric-gap-label-value:var(--space-xs);
-      --metric-gap-value-sub:var(--space-md);
-      --mini-gap-label-value:var(--space-2xs);
-      --mini-gap-value-detail:var(--space-xs);
+      --card-text-rhythm-gap:var(--space-xs);
       --info-stack-gap:var(--space-2xl);
     }
 
