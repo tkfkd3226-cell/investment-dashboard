@@ -73,25 +73,35 @@ function marketAiPreviewState(){
       data_completeness:0.96,
       updated_at:now,
       calibration:{
-        available_targets:['kospi_up','semiconductor_up','gap_up','up_close'],
-        probabilities:{
-          kospi_up:0.684,
-          semiconductor_up:0.731,
-          gap_up:0.642,
-          up_close:0.596
-        },
-        models:{
-          kospi_up:{sample_count:480},
-          semiconductor_up:{sample_count:452},
-          gap_up:{sample_count:410},
-          up_close:{sample_count:438}
-        }
+        available_targets:[],
+        probabilities:{},
+        models:{}
       },
       effective_weights:{
-        kospi_up:{kospi:{effective_weight:0.42,quality:1},usdkrw:{effective_weight:0.21,quality:0.97},us10y:{effective_weight:0.18,quality:0.95}},
-        semiconductor_up:{sox:{effective_weight:0.38,quality:1},nvidia:{effective_weight:0.27,quality:0.98},micron:{effective_weight:0.16,quality:0.96}},
-        gap_up:{nasdaq100_futures:{effective_weight:0.36,quality:1},kospi200_futures:{effective_weight:0.29,quality:0.98},usdkrw:{effective_weight:0.14,quality:0.97}},
-        up_close:{kospi:{effective_weight:0.34,quality:1},semiconductors:{effective_weight:0.25,quality:0.98},news:{effective_weight:0.17,quality:0.92}}
+        kospi_up:{
+          kospi_index:{effective_weight:0.35,quality:1},
+          kospi200_futures:{effective_weight:0.65,quality:1}
+        },
+        semiconductor_up:{
+          samsung_electronics:{effective_weight:0.20,quality:1},
+          sk_hynix:{effective_weight:0.20,quality:1},
+          sox_index:{effective_weight:0.20,quality:1},
+          nvidia:{effective_weight:0.15,quality:1},
+          sk_hynix_adr:{effective_weight:0.15,quality:1},
+          micron:{effective_weight:0.10,quality:1}
+        },
+        gap_up:{
+          kospi200_futures:{effective_weight:0.50,quality:1},
+          sox_index:{effective_weight:0.25,quality:1},
+          nasdaq100_futures:{effective_weight:0.20,quality:1},
+          usdkrw:{effective_weight:0.05,quality:1}
+        },
+        up_close:{
+          kospi_index:{effective_weight:0.45,quality:1},
+          kospi200_futures:{effective_weight:0.35,quality:1},
+          sox_index:{effective_weight:0.12,quality:1},
+          nasdaq100_futures:{effective_weight:0.08,quality:1}
+        }
       }
     },
     marketSnapshot:marketAiSnapshotMap({items:[
