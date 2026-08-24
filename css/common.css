@@ -79,6 +79,7 @@
   --surface-radius-large:var(--surface-radius-lg);
   --surface-radius-medium:var(--surface-radius-md);
   --surface-radius-mini:var(--surface-radius-sm);
+  --surface-radius-mobile-data:15px;
   /* Spacing Scale · 반복 여백의 canonical scale */
   --space-2xs:2px;
   --space-xs:3px;
@@ -1437,9 +1438,6 @@ button.legend-item.chart-series-all.active{
   margin-top:var(--space-5xl);
 }
 
-.chart-note .mini-card{
-  background:var(--subtle-card);
-}
 
 /* Chart Presentation / Controls · 차트 제목 / 비교 control */
 #pension-chart-cum .chart-title-sub,
@@ -1906,10 +1904,13 @@ body.chart-expanded-open .dash-tooltip{
   margin-top:var(--space-6xl);
 }
 
+:is(.asset-insight-card,.source-card){
+  padding:var(--surface-pad-medium);
+  border-radius:min(var(--surface-radius-medium),var(--corner-surface-cap));
+}
+
 .asset-insight-card{
   border:1px solid var(--line);
-  border-radius:min(var(--surface-radius-medium),var(--corner-surface-cap));
-  padding:var(--surface-pad-medium);
   background:var(--insight-bg);
   box-shadow:var(--insight-inset-shadow);
 }
@@ -3056,8 +3057,7 @@ body.contrib-modal-open{
 }
 
 .source-card{
-  padding:var(--surface-pad-medium);
-  border-radius:min(var(--surface-radius-medium),var(--corner-surface-cap));
+  min-width:0;
   box-shadow:none;
   border-color:var(--surface-border-muted);
 }

@@ -96,7 +96,7 @@
       min-width:0;
       padding:var(--surface-pad-mobile-data);
       border:1px solid var(--line);
-      border-radius:min(15px,var(--corner-surface-cap));
+      border-radius:min(var(--surface-radius-mobile-data),var(--corner-surface-cap));
       background:var(--card);
       box-shadow:var(--shadow-mobile-card);
     }

@@ -538,8 +538,6 @@
     #capital-source-check .source-grid{
       grid-template-columns:repeat(3,minmax(0,1fr));
     }
-    #capital-source-check .source-card{min-width:0}
-
   /* Ledger Check · 결론 전체폭 + A/B 2열, 내부 padding은 세로폰 밀도 */
     #ledger-check .ledger-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     #ledger-check .ledger-conclusion-card{
