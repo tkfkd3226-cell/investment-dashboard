@@ -146,6 +146,11 @@
       --section-chip-height:25px;
     }
 
+
+  /* Asset Status Phone Density · 증권/퇴직연금 현황 공통 compact surface */
+    .asset-status-note{padding:var(--space-5xl)}
+    .asset-status-note .mobile-data-card{padding:var(--space-4xl)}
+
   /* Hero Phone UI · Hero 타이포/여백은 세로·가로폰 동일 */
     .hero{
       --hero-pad-y:15px;
