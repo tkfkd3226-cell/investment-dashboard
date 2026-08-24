@@ -120,7 +120,7 @@
       justify-content:flex-end;
       gap:var(--space-md);
       min-height:var(--dashboard-control-height);
-      margin:var(--space-2xs) 0 var(--chart-content-rhythm-gap);
+      margin:var(--space-md) 0 var(--chart-content-rhythm-gap);
     }
     .chart-card.has-horizontal-scroll .chart-scroll-start,
     .chart-card.has-horizontal-scroll .chart-scroll-end{
