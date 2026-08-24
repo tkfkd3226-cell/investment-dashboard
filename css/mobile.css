@@ -18,7 +18,6 @@
 
 
     .chart-note.six{
-      gap:var(--space-lg);
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
 
@@ -86,7 +85,6 @@
     [data-mobile-view="table"] .mobile-card-view{display:none}
     .mobile-card-view{
       grid-template-columns:1fr;
-      gap:var(--space-3xl);
       width:100%;
     }
     .mobile-data-card{
@@ -158,12 +156,10 @@
 
     #pension-chart-alloc .chart-note{
       grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:clamp(7px,1.35vw,10px);
     }
 
     #securityAllocCards.security-alloc-card-grid{
       grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:clamp(7px,1.35vw,10px);
     }
     #securityAllocCards > .alloc-total-card{
       grid-column:1 / -1;
@@ -189,9 +185,6 @@
     }
 
   /* Capital Source Responsive · 투자원금 원천/검산: 모바일 1열, 태블릿 3열 */
-    .source-grid{
-      gap:var(--space-5xl);
-    }
 
   /* Action Modals Mobile · KRX/PIN 모바일: 공통 bottom-sheet */
     .action-modal{

@@ -121,6 +121,14 @@
       --surface-pad-mini:var(--space-2xl);
       --surface-pad-metric:var(--space-4xl);
       --surface-pad-emphasis:var(--space-5xl);
+      --card-grid-gap-large:var(--space-5xl);
+      --card-grid-gap-medium:var(--space-2xl);
+      --card-grid-gap-compact:var(--space-lg);
+      --metric-gap-label-value:var(--space-2xs);
+      --metric-gap-value-sub:var(--space-sm);
+      --mini-gap-label-value:var(--space-2xs);
+      --mini-gap-value-detail:var(--space-xs);
+      --info-stack-gap:var(--space-lg);
       --surface-radius-outer:20px;
       --dashboard-control-height:25px;
       --dashboard-control-font-size:9.5px;
@@ -176,8 +184,6 @@
       --metric-label-size:11px;
       --metric-value-size:22px;
       --metric-sub-size:11px;
-      --metric-label-gap:4px;
-      --metric-sub-gap:3px;
     }
     .metric-grid > .metric-card .value{min-height:28px}
 
@@ -261,7 +267,6 @@
     .securities-summary-block .metric-grid,
     .pension-metric-grid{
       grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:var(--space-2xl);
     }
     .securities-summary-block .metric-card,
     .pension-metric-grid > .metric-card{
@@ -284,13 +289,11 @@
       --symbol-metric-label-size:9px;
       --symbol-metric-value-size:10.5px;
       --symbol-metric-gap:4px;
-      gap:var(--space-2xl);
     }
 
   /* Allocation / Change Meta · 비중·전일대비 카드 내부 밀도 */
     .mini-card .alloc-ratio-meta{font-size:9.5px}
     .mini-card .alloc-cash-meta{font-size:8.5px}
-    .change-kpis{gap:clamp(7px,1.35vw,10px)}
     .chart-note .m-value{overflow-wrap:anywhere}
 
   /* Separate Profit Compact · 위치는 유지하고 control 자체만 compact */
@@ -514,7 +517,6 @@
 
   /* Summary Grids · 누적차트 6카드 3열, 종목/상품 손익카드 4열 */
     .chart-note.six{
-      gap:var(--space-lg);
       grid-template-columns:repeat(3,minmax(0,1fr));
     }
     .chart-note.symbol-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -523,11 +525,9 @@
   /* Allocation Cards · 비중 카드 열 수는 Tablet과 동일하게 가로폭 활용 */
     #pension-chart-alloc .chart-note{
       grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:clamp(7px,1.35vw,10px);
     }
     #securityAllocCards.security-alloc-card-grid{
       grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:clamp(7px,1.35vw,10px);
     }
     #securityAllocCards.security-alloc-card-grid:has(> .alloc-total-card-wide){
       grid-template-columns:repeat(4,minmax(0,1fr));
@@ -537,7 +537,6 @@
   /* Capital Source · 3개 원천카드는 한 행, 내부 밀도는 Shared compact 사용 */
     #capital-source-check .source-grid{
       grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:var(--space-5xl);
     }
     #capital-source-check .source-card{min-width:0}
 

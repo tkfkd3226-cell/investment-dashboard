@@ -95,6 +95,16 @@
   --space-8xl:18px;
   --space-9xl:22px;
   --space-10xl:24px;
+  /* Card Grid Gap System · 카드와 카드 사이 간격의 hierarchy */
+  --card-grid-gap-large:var(--space-7xl);
+  --card-grid-gap-medium:var(--space-5xl);
+  --card-grid-gap-compact:var(--space-4xl);
+  /* Card Vertical Rhythm System · 카드 내부 label/value/sub·detail 간격 */
+  --metric-gap-label-value:var(--space-sm);
+  --metric-gap-value-sub:var(--space-lg);
+  --mini-gap-label-value:var(--space-xs);
+  --mini-gap-value-detail:var(--space-sm);
+  --info-stack-gap:var(--space-4xl);
   --control-radius-md:10px;
   --control-radius-sm:9px;
   --control-disabled-opacity:.45;
@@ -1123,11 +1133,11 @@ td.num{
   line-height:var(--type-line-tight);
   letter-spacing:-.025em;
   font-weight:var(--type-weight-emphasis);
-  margin-top:var(--space-2xs);
+  margin-top:var(--mini-gap-label-value);
 }
 
 .mini-card .m-detail{
-  margin-top:var(--space-sm);
+  margin-top:var(--mini-gap-value-detail);
   font-size:var(--mini-detail-size);
   font-weight:var(--mini-detail-weight);
   line-height:var(--type-line-compact);
@@ -1228,7 +1238,7 @@ td.num{
 /* Chart Core · 차트 공통 구조 */
 .chart-grid{
   grid-template-columns:1fr;
-  gap:var(--space-8xl);
+  gap:var(--card-grid-gap-large);
 }
 
 .chart-card{
@@ -1421,7 +1431,7 @@ button.legend-item.chart-series-all.active{
 .chart-note{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:var(--space-4xl);
+  gap:var(--card-grid-gap-compact);
   width:100%;
   min-width:0;
   margin-top:var(--space-5xl);
@@ -1871,6 +1881,7 @@ body.chart-expanded-open .dash-tooltip{
   width:100%;
   margin-top:var(--space-7xl);
   grid-template-columns:minmax(0,1.56fr) minmax(min(42%,480px),.72fr);
+  gap:var(--card-grid-gap-large);
   align-items:stretch;
 }
 
@@ -1891,7 +1902,7 @@ body.chart-expanded-open .dash-tooltip{
 .asset-insight-zone{
   display:grid;
   grid-template-columns:1fr;
-  gap:var(--space-6xl);
+  gap:var(--card-grid-gap-medium);
   margin-top:var(--space-6xl);
 }
 
@@ -1908,7 +1919,7 @@ body.chart-expanded-open .dash-tooltip{
   align-items:center;
   justify-content:space-between;
   gap:var(--space-5xl);
-  margin-bottom:var(--space-2xl);
+  margin-bottom:var(--info-stack-gap);
 }
 
 .asset-insight-head h3{
@@ -1966,7 +1977,6 @@ body.chart-expanded-open .dash-tooltip{
   position:relative;
   width:100%;
   height:22px;
-  margin-top:var(--space-2xs);
   overflow:visible;
   border-radius:var(--radius-pill);
   background:var(--meter-track-bg);
@@ -2073,7 +2083,6 @@ body.chart-expanded-open .dash-tooltip{
 
 .pension-risk-gauge{
   position:relative;
-  margin-top:var(--space-sm);
   height:16px;
   border-radius:var(--radius-pill);
   background:var(--meter-track-bg);
@@ -2124,7 +2133,7 @@ body.chart-expanded-open .dash-tooltip{
   display:flex;
   justify-content:space-between;
   gap:var(--space-4xl);
-  margin-top:var(--space-lg);
+  margin-top:var(--info-stack-gap);
   font-size:var(--type-size-xs);
   font-weight:var(--type-weight-strong);
   color:var(--text-secondary);
@@ -2157,7 +2166,7 @@ body.chart-expanded-open .dash-tooltip{
 .change-kpis{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:var(--space-4xl);
+  gap:var(--card-grid-gap-compact);
   margin-top:var(--space-4xl);
 }
 
@@ -2189,7 +2198,7 @@ body.chart-expanded-open .dash-tooltip{
 .symbol-metrics{
   display:grid;
   gap:var(--space-lg);
-  margin-top:var(--space-4xl);
+  margin-top:var(--mini-gap-value-detail);
   padding-top:var(--space-3xl);
   border-top:1px solid var(--line);
 }
@@ -2225,11 +2234,15 @@ body.chart-expanded-open .dash-tooltip{
 /* Cumulative Summary Cards · 연금/증권 누적 요약카드: layout만 담당하고 surface/타이포는 mini-card 공통 규칙 사용 */
 .chart-note.six{
   grid-template-columns:repeat(6,minmax(0,1fr));
-  gap:var(--space-4xl);
 }
+/* Six Summary Text Exceptions · 날짜가 포함된 긴 label/detail은 좁은 카드에서 자연 줄바꿈하고 숫자 value만 한 줄 유지 */
 .chart-note.six .m-label,
-.chart-note.six .m-value,
 .chart-note.six .m-detail{
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:keep-all;
+}
+.chart-note.six .m-value{
   white-space:nowrap;
   overflow-wrap:normal;
   word-break:normal;
@@ -2240,8 +2253,6 @@ body.chart-expanded-open .dash-tooltip{
   --metric-label-size:13px;
   --metric-value-size:28px;
   --metric-sub-size:13px;
-  --metric-label-gap:7px;
-  --metric-sub-gap:4px;
   --metric-label-weight:var(--type-weight-bold);
   --metric-value-weight:var(--type-weight-strong);
   --metric-value-emphasis-weight:var(--type-weight-emphasis);
@@ -2249,7 +2260,7 @@ body.chart-expanded-open .dash-tooltip{
 }
 
 .metric-card .label{
-  margin-bottom:var(--metric-label-gap);
+  margin-bottom:var(--metric-gap-label-value);
   font-size:var(--metric-label-size);
   font-weight:var(--metric-label-weight);
   line-height:var(--type-line-compact);
@@ -2264,7 +2275,7 @@ body.chart-expanded-open .dash-tooltip{
 .metric-card:is(.dark,.highlight) .value{font-weight:var(--metric-value-emphasis-weight)}
 
 .metric-card .sub{
-  margin-top:var(--metric-sub-gap);
+  margin-top:var(--metric-gap-value-sub);
   font-size:var(--metric-sub-size);
   font-weight:var(--metric-sub-weight);
   line-height:var(--type-line-body);
@@ -2273,8 +2284,9 @@ body.chart-expanded-open .dash-tooltip{
 
 .metric-grid{
   grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:var(--card-grid-gap-large);
+  margin-top:0;
 }
-.pension-metric-grid{margin-top:0}
 
 .metric-grid > .metric-card{
   padding:var(--surface-pad-metric);
@@ -2826,11 +2838,6 @@ body.contrib-modal-open{
   letter-spacing:-.02em;
 }
 
-/* Securities Summary Spacing · 증권계좌 KPI 상단 간격 */
-.securities-summary-block .cards{
-  margin-top:0;
-}
-
 /* Allocation Metadata · 평가금액 비중 메타: 비율은 상세값보다 1px 크게, 둘 다 일반 굵기 */
 .mini-card .alloc-ratio-meta,
 .mini-card .alloc-cash-meta{
@@ -3045,7 +3052,7 @@ body.contrib-modal-open{
 }
 
 .source-grid{
-  margin-top:0;
+  gap:var(--card-grid-gap-medium);
 }
 
 .source-card{
@@ -3439,7 +3446,7 @@ button:not(:disabled):active,
 #ledger-check .ledger-overview-grid{
   grid-template-columns:repeat(3,minmax(0,1fr));
   align-items:stretch;
-  gap:var(--space-4xl);
+  gap:var(--card-grid-gap-large);
   margin-top:var(--space-8xl);
 }
 #ledger-check .ledger-conclusion-card{
@@ -3494,6 +3501,7 @@ button:not(:disabled):active,
 /* Mobile View Switch · 모바일 표/카드 보기 전환 */
 .mobile-card-view,
 .mobile-view-toggle{display:none}
+.mobile-card-view{gap:var(--card-grid-gap-medium)}
 
 /* Pension PIN · Chrome 비밀번호 저장 감지를 피하면서 PIN 마스킹/상태 표시 유지 */
 #pensionActionPinInput{-webkit-text-security:disc}

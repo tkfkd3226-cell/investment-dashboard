@@ -15,6 +15,14 @@
       --surface-pad-mini:var(--space-4xl);
       --surface-pad-metric:var(--space-6xl);
       --surface-pad-emphasis:var(--space-7xl);
+      --card-grid-gap-large:var(--space-6xl);
+      --card-grid-gap-medium:var(--space-4xl);
+      --card-grid-gap-compact:var(--space-2xl);
+      --metric-gap-label-value:var(--space-xs);
+      --metric-gap-value-sub:var(--space-md);
+      --mini-gap-label-value:var(--space-2xs);
+      --mini-gap-value-detail:var(--space-xs);
+      --info-stack-gap:var(--space-2xl);
     }
 
     .hero{
@@ -63,7 +71,6 @@
 
   /* Six Summary Cards · 6개 요약카드: 웹 6열 → 태블릿 3열 → 모바일 2열, 실제 폰 가로 3열 */
     .chart-note.six{
-      gap:var(--space-2xl);
       grid-template-columns:repeat(3,minmax(0,1fr));
     }
 
@@ -72,8 +79,6 @@
       --metric-label-size:12px;
       --metric-value-size:24px;
       --metric-sub-size:12px;
-      --metric-label-gap:6px;
-      --metric-sub-gap:4px;
     }
 
     .metric-grid{
@@ -88,7 +93,6 @@
       --symbol-metric-label-size:10px;
       --symbol-metric-value-size:11px;
       --symbol-metric-gap:7px;
-      gap:var(--space-2xl);
     }
 
     .mini-card .alloc-ratio-meta{font-size:10.5px}
@@ -125,10 +129,6 @@
     .chart-card.has-horizontal-scroll .chart-scroll-start,
     .chart-card.has-horizontal-scroll .chart-scroll-end{
       display:inline-flex;
-    }
-
-    #chart-symbol .chart-note.symbol-summary-grid{
-      gap:var(--space-xl);
     }
 
     .asset-change-note .change-kpis{

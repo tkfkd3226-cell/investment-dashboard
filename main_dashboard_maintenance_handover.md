@@ -3202,6 +3202,57 @@ Responsive 방향은 `Web → Tablet → Mobile` 순으로 자연스럽게 compa
 
 이 영역을 수정할 때 메인/하위/차트 라벨, 제목 아이콘, segmented/state/date toggle, 각종 button, asset/pension tab, chart control, Topbar, Hero/Market AI, table 구조, JS 기능 로직은 별도 요청이 없는 한 동결한다. 카드 작업과 무관한 이상을 발견해도 같은 diff에 섞지 않는다.
 
+## 6.15 카드 Grid Gap System
+
+카드 surface의 외곽 padding과 별도로 **카드와 카드 사이 간격도 hierarchy token으로 관리**한다. 같은 계층 + 같은 viewport의 카드 그룹은 같은 gap을 사용하고, 카드 내부의 label/value/sub, heading/body, chart control 등 정보구조 간격은 이 규칙에 포함하지 않는다.
+
+현재 canonical gap token은 다음 3개다.
+
+| Gap hierarchy | 대표 대상 | Web ≥1101 | Tablet 761~1100 | Phone UI |
+|---|---|---:|---:|---:|
+| Large | `.metric-grid`, `.asset-detail-grid`, `.chart-grid`, `.ledger-overview-grid` | 16px | 14px | 12px |
+| Medium | `.source-grid`, `.asset-insight-zone`, `.mobile-card-view` | 12px | 10px | 8px |
+| Compact | `.chart-note`의 mini-card 그룹, `.change-kpis` | 10px | 8px | 6px |
+
+토큰명은 `--card-grid-gap-large`, `--card-grid-gap-medium`, `--card-grid-gap-compact`다. Web baseline은 `common.css`, Tablet 값은 `tablet.css`의 Tablet `:root`, Phone 값은 `special.css`의 Phone UI Shared `:root`가 소유한다. 각 카드 grid selector는 gap token을 한 번만 참조하고, `mobile.css`나 phone landscape 예외에서 같은 `gap` 숫자를 다시 선언하지 않는다.
+
+`grid-template-columns`처럼 화면 방향/폭에 따라 달라져야 하는 배치 규칙은 각 viewport CSS가 계속 소유한다. 다만 열 수가 바뀐다는 이유만으로 gap도 별도 숫자로 재정의하지 않는다. 실제 정보밀도 때문에 hierarchy 자체가 달라져야 하는 경우에만 기존 세 token 중 다른 계층을 선택하고, 임의의 7px/9px/clamp gap을 새로 추가하지 않는다.
+
+## 6.16 카드 Vertical Rhythm System
+
+카드 외곽 padding 및 카드 간 Grid Gap과 별도로 **카드 내부의 정보 관계(label → value → sub/detail, heading → content)**는 vertical rhythm token으로 관리한다. 목적은 모든 간격을 같은 숫자로 만드는 것이 아니라, 같은 정보 계층 + 같은 viewport에서 같은 관계를 유지하는 것이다.
+
+현재 canonical rhythm token은 다음 5개다.
+
+| Rhythm | 대표 관계 | Web ≥1101 | Tablet 761~1100 | Phone UI |
+|---|---|---:|---:|---:|
+| Metric label → value | `.metric-card .label → .value` | 4px | 3px | 2px |
+| Metric value → sub | `.metric-card .value → .sub` | 6px | 5px | 4px |
+| Mini label → value | `.mini-card .m-label → .m-value` | 3px | 2px | 2px |
+| Mini value → detail | `.mini-card .m-value → .m-detail` 및 세로형 detail 영역 | 4px | 3px | 3px |
+| Info stack | `.asset-insight-card`의 heading → content 및 연속 정보영역 | 10px | 8px | 6px |
+
+토큰명은 `--metric-gap-label-value`, `--metric-gap-value-sub`, `--mini-gap-label-value`, `--mini-gap-value-detail`, `--info-stack-gap`이다. Web baseline은 `common.css`, Tablet 값은 `tablet.css`의 Tablet `:root`, Phone 값은 `special.css`의 Phone UI Shared `:root`가 소유한다.
+
+`.source-card`는 `metric-card` typography를 재사용하므로 label/value 관계도 Metric rhythm을 그대로 상속한다. `ledger-conclusion-card`의 핵심 숫자 영역도 `.metric-card`이므로 Metric rhythm을 공유하고, 별도 근거 영역의 divider/padding처럼 정보구조가 다른 간격은 예외로 유지한다. `symbol-card`의 값 아래 상세 metric 영역은 Mini value→detail rhythm을 사용하되 divider 뒤의 내부 padding은 해당 상세영역 구조로 유지한다. 가로 정렬을 위한 allocation detail의 미세 baseline 보정은 vertical stack rhythm 대상이 아니다.
+
+이 규칙을 적용할 때 font-size, font-weight, line-height, surface padding/radius/shadow, Grid Gap, 열 수, breakpoint는 함께 변경하지 않는다. viewport별 selector에서 동일한 margin 숫자를 반복하지 않고 token 값만 단계적으로 줄인다.
+
+## 6.17 카드 예외 / Long-content 처리 원칙
+
+Surface / Grid Gap / Vertical Rhythm 공통 규칙을 적용한 뒤에도 **정보구조 또는 실제 문자열 길이 때문에 필요한 예외만 scoped selector로 유지**한다. 일반 카드 전체에 임시 margin/gap/nowrap을 추가해 예외를 해결하지 않는다.
+
+현재 확정 예외 기준:
+
+- 누적/운용차트 아래 `.chart-note.six`의 숫자 `.m-value`는 금액·수익률 정렬을 위해 한 줄을 유지한다. 반면 날짜가 포함될 수 있는 `.m-label`과 `.m-detail`은 좁은 카드에서 자연 줄바꿈을 허용한다. 중요한 설명을 ellipsis로 잘라내지 않는다.
+- `.metric-grid`는 KPI grid 공통 baseline으로 `margin-top:0`을 직접 소유한다. 증권/퇴직연금 KPI별로 같은 `margin-top:0` 보정 selector를 다시 만들지 않는다. `ledger-overview-grid`처럼 실제 section 간격이 필요한 variant는 자체 `margin-top`으로 명시한다.
+- `.source-card`의 label/value는 Metric rhythm을 사용하되, value 아래 검산 table의 `source-table-scroll` 간격은 별도 정보영역 전환이므로 Metric `value → sub` rhythm에 합치지 않는다. Source label은 긴 문구가 생겨도 기본 자연 줄바꿈을 유지한다.
+- `.ledger-conclusion-card`의 `.value{min-height:0}`, 근거 영역 divider/padding, Tablet/실제 가로폰의 2-column 전환 gap은 결론+근거 복합구조를 위한 실제 예외이므로 유지한다. 일반 metric-card에 확대하지 않는다.
+- `symbol-card`의 긴 종목/상품명은 기본 자연 줄바꿈을 허용하고, `symbol-metrics`의 divider 뒤 padding 및 allocation detail의 baseline 미세보정은 별도 내부구조이므로 유지한다.
+- Phone KPI의 `2×2`, 모바일 전용 sub 문구, 한 줄 KPI 텍스트는 현재 좁은 화면에서 검증된 전용 예외로 유지한다. 카드 예외 때문에 `<=400px` 같은 새 breakpoint를 추가하지 않으며, 기존 `<=400px` 조건은 계좌성과 table 과밀 해결 범위에만 둔다.
+
+예외 정리 시 **공통 규칙으로 흡수 가능한 중복 보정 → 공통 selector로 이동**, **실제 정보구조 차이 → scoped 예외 유지** 순서로 판단한다. 숫자가 다르다는 이유만으로 예외를 삭제하거나, 동일하게 보이게 만들기 위해 typography/padding을 함께 변경하지 않는다.
+
 # 7. JavaScript 구현 세부 규칙
 
 
