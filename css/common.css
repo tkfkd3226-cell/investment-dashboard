@@ -103,6 +103,8 @@
   /* Card Vertical Rhythm System · Metric/Mini 텍스트 간격 공통화 */
   --card-text-rhythm-gap:var(--space-sm);
   --info-stack-gap:var(--space-4xl);
+  /* Chart Content Rhythm · 제목/차트/범례/요약영역의 공통 세로 간격 */
+  --chart-content-rhythm-gap:var(--space-4xl);
   --control-radius-md:10px;
   --control-radius-sm:9px;
   --control-disabled-opacity:.45;
@@ -1252,7 +1254,7 @@ td.num{
   align-items:flex-start;
   justify-content:space-between;
   gap:var(--space-5xl);
-  margin-bottom:var(--space-4xl);
+  margin-bottom:var(--chart-content-rhythm-gap);
 }
 
 .chart-head p{
@@ -1291,7 +1293,7 @@ svg.chart:focus-visible{
   align-items:center;
   justify-content:center;
   min-height:var(--dashboard-control-height);
-  margin-top:var(--space-3xl);
+  margin-top:var(--chart-content-rhythm-gap);
   padding:0 var(--space-2xs);
   font-size:var(--dashboard-legend-font-size);
   color:var(--muted);
@@ -1432,7 +1434,7 @@ button.legend-item.chart-series-all.active{
   gap:var(--card-grid-gap-compact);
   width:100%;
   min-width:0;
-  margin-top:var(--space-5xl);
+  margin-top:var(--chart-content-rhythm-gap);
 }
 
 
@@ -1763,13 +1765,14 @@ body.chart-expanded-open .dash-tooltip{
   margin-left:auto;
 }
 /* Portrait Phone Chart Flow · 세로폰 전용: switch/화살표 → 차트 → 범례 → 옵션 */
+.chart-card.phone-chart-ui .chart-head{margin-bottom:0}
 .chart-card.phone-chart-ui .chart-scroll-row{
   display:flex;
   align-items:center;
   justify-content:flex-start;
   gap:var(--space-md);
   min-height:var(--dashboard-control-height);
-  margin:var(--space-2xs) 0 var(--space-md);
+  margin:var(--space-2xs) 0 var(--chart-content-rhythm-gap);
   padding:0;
   box-sizing:border-box;
 }

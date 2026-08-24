@@ -20,6 +20,7 @@
       --card-grid-gap-compact:var(--space-2xl);
       --card-text-rhythm-gap:var(--space-xs);
       --info-stack-gap:var(--space-2xl);
+      --chart-content-rhythm-gap:var(--space-2xl);
     }
 
     .hero{
@@ -111,17 +112,15 @@
       grid-column:1 / -1;
     }
 
-  /* Chart Legend Tablet · 축소된 차트와 범례 사이 불필요한 간격 축소 */
-    .chart-card > .chart-legend{margin-top:var(--space-md)}
-
   /* Tablet Integration · 태블릿 통합: 차트 control, 종목요약/KPI, 투자기간 차트, 원천/검산 */
+    .chart-card.has-horizontal-scroll .chart-head{margin-bottom:0}
     .chart-card.has-horizontal-scroll .chart-scroll-row{
       display:flex;
       align-items:center;
       justify-content:flex-end;
       gap:var(--space-md);
       min-height:var(--dashboard-control-height);
-      margin:var(--space-2xs) 0 var(--space-md);
+      margin:var(--space-2xs) 0 var(--chart-content-rhythm-gap);
     }
     .chart-card.has-horizontal-scroll .chart-scroll-start,
     .chart-card.has-horizontal-scroll .chart-scroll-end{
