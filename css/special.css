@@ -115,7 +115,7 @@
 
   /* Phone Control Tokens · 세로폰/가로폰 공통 compact control */
     :root{
-      --surface-pad-outer:var(--space-6xl);
+      --surface-pad-outer:var(--space-2xl);
       --surface-pad-large:var(--space-6xl);
       --surface-pad-medium:var(--space-4xl);
       --surface-pad-mini:var(--space-2xl);
@@ -148,7 +148,7 @@
 
 
   /* Asset Status Phone Density · 증권/퇴직연금 현황 공통 compact surface */
-    .asset-status-note{padding:var(--space-5xl)}
+    .asset-status-note{padding:var(--surface-pad-outer)}
     .asset-status-note .mobile-data-card{padding:var(--space-4xl)}
 
   /* Hero Phone UI · Hero 타이포/여백은 세로·가로폰 동일 */
