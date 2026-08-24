@@ -240,7 +240,7 @@ function renderAssetContributionCard({
   title='오늘 상승분 기여도',
   hasPrev=false,
   items=[],
-  cardClass='asset-insight-card compact-card',
+  cardClass='asset-insight-card',
   headClass='asset-insight-head simple',
   stackClass='asset-stack-bar compact simple',
   segmentClass='asset-stack-segment has-tooltip',
