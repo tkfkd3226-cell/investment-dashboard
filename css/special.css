@@ -147,8 +147,8 @@
     }
 
 
-  /* Asset Status Phone Density · 증권/퇴직연금 현황 공통 compact surface */
-    .asset-status-note{padding:var(--surface-pad-outer)}
+  /* Asset Area Phone Density · 증권/퇴직연금 영역의 Large surface는 Outer와 같은 compact padding 공유 */
+    :is(.securities-band,.pension-band){--surface-pad-large:var(--surface-pad-outer)}
     .asset-status-note .mobile-data-card{padding:var(--space-4xl)}
 
   /* Hero Phone UI · Hero 타이포/여백은 세로·가로폰 동일 */
