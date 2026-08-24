@@ -115,6 +115,13 @@
 
   /* Phone Control Tokens · 세로폰/가로폰 공통 compact control */
     :root{
+      --surface-pad-outer:var(--space-6xl);
+      --surface-pad-large:var(--space-6xl);
+      --surface-pad-medium:var(--space-4xl);
+      --surface-pad-mini:var(--space-2xl);
+      --surface-pad-metric:var(--space-4xl);
+      --surface-pad-emphasis:var(--space-5xl);
+      --surface-radius-outer:20px;
       --dashboard-control-height:25px;
       --dashboard-control-font-size:9.5px;
       --dashboard-control-state-font-size:9.5px;
@@ -160,8 +167,6 @@
 
   /* Mini / Metric Cards · 카드 밀도는 세로폰 기준 공유 */
     .mini-card{
-      --mini-card-pad-y:8px;
-      --mini-card-pad-x:6px;
       --mini-label-size:10px;
       --mini-value-size:13.5px;
       --mini-detail-size:9.6px;
@@ -174,9 +179,7 @@
       --metric-label-gap:4px;
       --metric-sub-gap:3px;
     }
-    .metric-grid > .metric-card{padding:var(--space-4xl)}
     .metric-grid > .metric-card .value{min-height:28px}
-    #capital-source-check .source-card{padding:var(--space-4xl)}
 
   /* Account Performance · 메모 폭 확보를 위해 손익 아래 수익률 결합 */
     #accounts-summary .accounts-table .performance-return-col{display:none}
@@ -228,7 +231,6 @@
 
   /* Asset Insight · 인사이트 카드/스택/tooltip은 세로폰과 같은 compact 기준 */
     .asset-contribution-empty-state{font-size:var(--type-size-xs)}
-    .asset-insight-card{padding:var(--space-5xl)}
     .asset-insight-head h3{font-size:var(--type-size-md)}
     .asset-stack-bar{height:18px;touch-action:pan-y}
     .asset-stack-segment{position:static}
@@ -267,7 +269,6 @@
       --metric-value-size:18px;
       --metric-sub-size:10px;
       min-width:0;
-      padding:var(--space-4xl) var(--space-lg);
     }
     .securities-summary-block .metric-card :is(.label,.value,.sub),
     .pension-metric-grid > .metric-card :is(.label,.value,.sub){white-space:nowrap}
@@ -546,7 +547,6 @@
       grid-column:1 / -1;
       grid-template-columns:repeat(2,minmax(0,1fr));
       gap:var(--space-4xl);
-      padding:var(--space-5xl);
     }
     #ledger-check .ledger-conclusion-inline-reason{display:none}
     #ledger-check .ledger-conclusion-reason{

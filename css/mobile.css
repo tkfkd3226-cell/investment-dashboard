@@ -5,6 +5,17 @@
 
 @media (max-width:760px){
 
+  /* Card Surface Density Mobile · typography는 유지하고 surface geometry만 compact 정렬 */
+    :root{
+      --surface-pad-outer:var(--space-6xl);
+      --surface-pad-large:var(--space-6xl);
+      --surface-pad-medium:var(--space-4xl);
+      --surface-pad-mini:var(--space-2xl);
+      --surface-pad-metric:var(--space-4xl);
+      --surface-pad-emphasis:var(--space-5xl);
+      --surface-radius-outer:20px;
+    }
+
     .hero .hero-metric-pills{
       display:grid;
       grid-template-columns:1fr;
@@ -73,10 +84,7 @@
       line-height:var(--type-line-body);
     }
 
-  /* Asset Bands Mobile · 자산 band 모바일: 외곽 여백/라운드 축소 */
-    .pension-band,
-    .securities-band{border-radius:min(20px,var(--corner-surface-cap))}
-
+  /* Asset Workspace Tabs Mobile · 모바일 자산 탭 폭 / 하단 여백 조정 */
     .asset-workspace-tabs{width:100%;margin-bottom:var(--space-4xl)}
 
 
@@ -99,7 +107,7 @@
       --mobile-data-total-title-weight:var(--type-weight-emphasis);
       --mobile-data-total-value-weight:var(--type-weight-strong);
       min-width:0;
-      padding:13px var(--space-6xl);
+      padding:var(--surface-pad-mobile-data);
       border:1px solid var(--line);
       border-radius:min(15px,var(--corner-surface-cap));
       background:var(--card);
@@ -248,7 +256,6 @@
     [id]{scroll-margin-top:52px}
 
     #ledger-check .ledger-overview-grid{grid-template-columns:1fr}
-    #ledger-check .ledger-conclusion-card{padding:var(--space-5xl)}
 
     .chart-head > div{min-width:0}
 

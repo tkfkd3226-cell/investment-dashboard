@@ -1767,6 +1767,7 @@ investment-dashboard-main/
 ├─ README.md
 ├─ add/
 │  ├─ calc.html
+│  ├─ add_maintenance_handover.md
 │  ├─ css/common.css
 │  ├─ css/calc.css
 │  ├─ js/calc.js
@@ -1838,6 +1839,7 @@ investment-dashboard-main/
 │
 └─ add/
    ├─ calc.html
+   ├─ add_maintenance_handover.md
    │
    ├─ css/
    │  ├─ common.css
@@ -2806,7 +2808,7 @@ common.css
 - `interaction.css`: `hover:hover + pointer:fine`처럼 viewport가 아닌 입력장치 조건
 - `print.css`: 인쇄 전용 최종 override
 
-상세 리팩토링 이력은 **10.2의 리팩토링 7차 기록**을 참고한다. 현재 장에서는 최종 구조와 유지보수 규칙만 관리한다.
+상세 리팩토링 이력은 **10.2 통합 연혁**을 참고한다. 현재 장에서는 최종 구조와 유지보수 규칙만 관리한다.
 
 핵심 유지보수 원칙:
 
@@ -3150,6 +3152,51 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 ## 6.13 Topbar 날짜 셀렉트 폭 정합성
 
 Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유지한다. Desktop은 각각 `148px`, Tablet(`761~1100px`)은 기존 구간 안에서 날짜 그룹만 가용폭에 따라 shrink되어 두 셀렉트가 함께 줄고 공간이 충분하면 `148px`로 복원된다. 우측 action은 `auto` 열로 유지하며 이 문제 때문에 새 breakpoint를 추가하지 않는다. Phone 세로/가로도 두 셀렉트가 같은 반응형 폭 체계를 사용한다.
+
+## 6.14 본문 카드 Surface / Density System
+
+본문 카드는 **같은 hierarchy + 같은 viewport = 같은 surface geometry**를 유지한다. 카드 surface 자체의 외곽 `padding`은 상·하·좌·우가 동일한 단일값을 사용한다. 제목↔내용, 값↔설명처럼 카드 내부 정보구조를 위한 `gap`/`margin`은 별도 의미를 가지므로 일괄 통일하지 않는다.
+
+Hierarchy 기준:
+
+```text
+Outer Surface   = .pension-band / .securities-band
+Large Surface   = .card / .note / .chart-card
+Medium / Info   = .asset-insight-card / .source-card 등
+Mini Surface    = .mini-card (symbol/allocation variant 포함)
+Metric Variant  = .metric-card (.card 기반)
+Emphasis        = .ledger-conclusion-card (설명 콘텐츠가 많은 강조 결론 surface)
+Mobile Data     = .mobile-data-card (모바일 전용 data-view surface)
+```
+
+Responsive 방향은 `Web → Tablet → Mobile` 순으로 자연스럽게 compact해지도록 유지한다. Mobile은 현재 typography, font weight, line-height, 내부 정보 간격, button/toggle/tab/chart control의 compact 상태를 기준선으로 보고 **카드 외곽 geometry만 hierarchy 규칙에 맞춰 관리**한다. 이를 보상하기 위해 모바일 폰트나 내부 gap을 연쇄적으로 축소하지 않는다.
+
+현재 확정 density 기준:
+
+| Surface | Web ≥1101 | Tablet 761~1100 | Phone UI |
+|---|---:|---:|---:|
+| Outer / Large | 18px | 16px | 14px |
+| Medium / Info | 14px | 12px | 10px |
+| Mini | 12px | 10px | 8px |
+| Metric variant | 18px | 14px | 10px |
+| Emphasis | 18px | 16px | 12px |
+| Mobile Data | - | - | 13px |
+
+`Metric variant`는 `.card` 기반이지만 KPI 정보밀도를 위해 별도 compact 단계(`18 → 14 → 10`)를 유지한다. `.source-card`는 `metric-card` typography를 재사용하더라도 surface geometry는 Medium / Info(`14 → 12 → 10`)를 따른다. `Emphasis`는 일반 KPI보다 설명 콘텐츠가 많은 `ledger-conclusion-card` 전용 variant이며 `--surface-pad-emphasis`로 관리한다. `.mobile-data-card`는 모바일 전용 data-view surface로 `13px` 단일 padding을 사용한다.
+
+현재 확정 radius 기준:
+
+| Surface | Radius | 비고 |
+|---|---:|---|
+| Outer | Web/Tablet 24px · Phone 20px | `.pension-band` / `.securities-band` 동일 token |
+| Large / Metric / Emphasis | 18px | 일반 주요 surface와 KPI/강조 결론 |
+| Medium / Info | 16px | `.asset-insight-card` / `.source-card` |
+| Mini | 14px | `.mini-card` |
+| Mobile Data | 15px | 모바일 data-view 전용 예외 surface |
+
+유지보수 시 base selector가 semantic surface token을 소유하고, viewport CSS에서는 가능한 한 **token 값만 변경**한다. 같은 `padding:var(--surface-pad-*)`를 responsive selector에서 반복 선언하거나 `--mini-card-pad` 같은 중간 alias를 다시 만들지 않는다. 현재 canonical padding token은 `--surface-pad-outer`, `--surface-pad-large`, `--surface-pad-medium`, `--surface-pad-mini`, `--surface-pad-metric`, `--surface-pad-emphasis`, `--surface-pad-mobile-data`다.
+
+이 영역을 수정할 때 메인/하위/차트 라벨, 제목 아이콘, segmented/state/date toggle, 각종 button, asset/pension tab, chart control, Topbar, Hero/Market AI, table 구조, JS 기능 로직은 별도 요청이 없는 한 동결한다. 카드 작업과 무관한 이상을 발견해도 같은 diff에 섞지 않는다.
 
 # 7. JavaScript 구현 세부 규칙
 
