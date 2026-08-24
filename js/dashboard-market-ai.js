@@ -26,8 +26,8 @@ const MARKET_AI_SCORE_RANGE_LINES=[
 const MARKET_AI_SIGNAL_METRICS=[
   {key:'kospi',target:'kospi_up',scoreField:'kospi_score',detailKeys:['kospi','kospi_up'],fullSignalLabel:'코스피 신호',fullProbabilityLabel:'코스피 상승확률'},
   {key:'semiconductors',target:'semiconductor_up',scoreField:'semiconductor_score',detailKeys:['semiconductors','semiconductor','semiconductor_up'],fullSignalLabel:'반도체 신호',fullProbabilityLabel:'반도체 상승확률'},
-  {key:'gap',target:'gap_up',scoreField:'gap_up_probability',detailKeys:['gap','gap_up'],fullSignalLabel:'갭상 신호',fullProbabilityLabel:'갭상 확률'},
-  {key:'up-close',target:'up_close',scoreField:'up_close_probability',detailKeys:['up_close','up-close','up_close_probability'],fullSignalLabel:'상승마감 신호',fullProbabilityLabel:'상승마감 확률'}
+  {key:'gap',target:'gap_up',stateKey:'gap_up',scoreField:'gap_up_probability',detailKeys:['gap','gap_up'],fullSignalLabel:'갭상 신호',fullProbabilityLabel:'갭상 확률'},
+  {key:'up-close',target:'up_close',stateKey:'up_close',scoreField:'up_close_probability',detailKeys:['up_close','up-close','up_close_probability'],fullSignalLabel:'상승마감 신호',fullProbabilityLabel:'상승마감 확률'}
 ];
 const MARKET_AI_COMPONENT_LABELS={
   kospi:'KOSPI',kospi_index:'KOSPI',kospi_spot:'KOSPI 현물',kospi200:'KOSPI200',kospi200_futures:'KOSPI200 선물',
@@ -76,6 +76,13 @@ function marketAiPreviewState(){
         available_targets:[],
         probabilities:{},
         models:{}
+      },
+      details:{
+        session_phase:{phase:'intraday',kst:now,trading_today:true,calendar_source:'preview'},
+        signal_state:{
+          gap_up:{mode:'locked_preopen',available:true,target_session_date:now.slice(0,10),forecast_at:now,note:'예시 장전 확정 신호'},
+          up_close:{mode:'intraday_forecast',available:true,target_session_date:now.slice(0,10),forecast_at:now,note:'예시 장중 예측'}
+        }
       },
       effective_weights:{
         kospi_up:{
@@ -448,7 +455,50 @@ function marketAiWeightText(value){
   return `${pct.toFixed(Math.abs(pct)>=10?0:1)}%`;
 }
 
+function marketAiSignalState(signal,metric){
+  if(!metric?.stateKey)return null;
+  const state=signal?.details?.signal_state?.[metric.stateKey];
+  return marketAiObject(state);
+}
+
+function marketAiSignalStateLabel(state){
+  return {
+    live_preopen:'장전 실시간 예측',
+    next_session_preopen:'다음 장 예측',
+    locked_preopen:'장전 확정',
+    preopen_forecast:'장전 예측',
+    intraday_forecast:'장중 예측',
+    post_close_pending:'종가 확정 대기',
+    actual_close:'장 마감 확정'
+  }[state?.mode]||'';
+}
+
+function marketAiSessionDateText(value){
+  if(!value)return '';
+  const match=String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!match)return String(value);
+  return `${Number(match[2])}/${Number(match[3])}`;
+}
+
 function marketAiSignalBasis(signal,metric){
+  const state=marketAiSignalState(signal,metric);
+  if(Array.isArray(state?.basis)&&state.basis.length){
+    return state.basis
+      .map(item=>{
+        const key=String(item?.key||'');
+        const weight=item?.weight==null?NaN:Number(item.weight);
+        const quality=item?.quality==null?NaN:Number(item.quality);
+        return {
+          key,
+          label:marketAiComponentLabel(key),
+          weight:Number.isFinite(weight)?weight:null,
+          effective:false,
+          quality:Number.isFinite(quality)?quality:null
+        };
+      })
+      .filter(item=>item.key&&(item.weight!=null||item.quality!=null))
+      .sort((a,b)=>Math.abs(Number(b.weight)||0)-Math.abs(Number(a.weight)||0));
+  }
   const targets=metric.detailKeys||[];
   const effective=marketAiTargetBucket(signal,['effective_weights','effectiveWeights','effective_weight'],targets);
   const weights=marketAiTargetBucket(signal,['weights','base_weights','raw_weights'],targets);
@@ -536,11 +586,44 @@ function marketAiSignalTooltipHtml(key){
   const signal=marketAiState.signal;
   const metric=marketAiSignalMetric(key);
   if(!signal||!metric)return '';
+  const state=marketAiSignalState(signal,metric);
   const calibration=signal.calibration||{};
   const calibratedTargets=new Set(Array.isArray(calibration.available_targets)?calibration.available_targets:[]);
   const probability=Number(calibration.probabilities?.[metric.target]);
   const calibrated=calibratedTargets.has(metric.target)&&Number.isFinite(probability);
   const rawScore=Number(signal[metric.scoreField]);
+  const stateLabel=marketAiSignalStateLabel(state);
+
+  if(state?.mode==='actual_close'){
+    const actualLabel=String(state.actual_label||'확정');
+    const change=Number(state.actual_change_pct);
+    const changeText=Number.isFinite(change)?`${change>0?'+':''}${change.toFixed(2)}%`:'--';
+    const className=change>0?'tt-pos':(change<0?'tt-neg':'');
+    const parts=[`<div class="tt-date">${marketAiEscape(`상승마감 · ${actualLabel} 확정`)}</div>`];
+    parts.push(marketAiTooltipRow('결과',`${actualLabel} 마감`,className));
+    parts.push(marketAiTooltipRow('KOSPI 등락률',changeText,className));
+    if(state.target_session_date)parts.push(marketAiTooltipRow('대상 장',marketAiSessionDateText(state.target_session_date)));
+    const actualAt=marketAiKstTime(state.actual_at);
+    parts.push(marketAiTooltipRow('상태',stateLabel||'장 마감 확정'));
+    if(actualAt)parts.push(marketAiTooltipRow('확정 시각',`${actualAt} KST`));
+    parts.push(marketAiTooltipDivider());
+    parts.push(marketAiTooltipRow('산출 방식','실제 KOSPI 종가 결과'));
+    parts.push(marketAiTooltipRow('신뢰도','확정값'));
+    return parts.join('');
+  }
+
+  if(state&&state.available===false){
+    const parts=[`<div class="tt-date">${marketAiEscape(`${metric.fullSignalLabel} · --`)}</div>`];
+    parts.push(marketAiTooltipRow('상태',stateLabel||'신호 없음'));
+    if(state.target_session_date)parts.push(marketAiTooltipRow('대상 장',marketAiSessionDateText(state.target_session_date)));
+    parts.push(marketAiTooltipDivider());
+    parts.push(marketAiTooltipNote(state.note||'현재 시점에 유효한 신호가 없습니다.'));
+    const updated=marketAiKstTime(signal.updated_at);
+    parts.push(marketAiTooltipDivider());
+    parts.push(marketAiTooltipRow('갱신',updated?`${updated} KST`:'--'));
+    return parts.join('');
+  }
+
   const displayValue=calibrated?probability*100:rawScore;
   const displayText=calibrated?marketAiProbabilityText(probability):marketAiScoreText(rawScore);
   const band=marketAiScoreBand(displayValue);
@@ -548,6 +631,10 @@ function marketAiSignalTooltipHtml(key){
   const fullLabel=calibrated?metric.fullProbabilityLabel:metric.fullSignalLabel;
   const parts=[`<div class="tt-date">${marketAiEscape(`${fullLabel} ${displayText} · ${band.label}`)}</div>`];
   parts.push(marketAiTooltipRow('판단',band.label,band.className));
+  if(stateLabel)parts.push(marketAiTooltipRow('상태',stateLabel));
+  if(state?.target_session_date)parts.push(marketAiTooltipRow('대상 장',marketAiSessionDateText(state.target_session_date)));
+  const forecastAt=marketAiKstTime(state?.forecast_at);
+  if(forecastAt)parts.push(marketAiTooltipRow(state?.mode==='locked_preopen'?'장전 기준':'기준 시각',`${forecastAt} KST`));
   parts.push(marketAiTooltipRow('산출 방식',calibrated?'통계 보정 상승확률':'룰 기반 100점 점수'));
   if(calibrated&&Number.isFinite(rawScore))parts.push(marketAiTooltipRow('원신호',`${rawScore.toFixed(1)}점`));
   if(calibrated&&Number.isFinite(sampleCount))parts.push(marketAiTooltipRow('보정 표본',`n=${sampleCount}`));
@@ -733,10 +820,24 @@ function syncMarketAiSignalView(){
     const items=[...row.querySelectorAll(`[data-market-ai-card="${metric.key}"]`)];
     const values=[...row.querySelectorAll(`[data-market-ai-score="${metric.key}"]`)];
     if(!values.length)return;
+    const state=marketAiSignalState(signal,metric);
     const probability=Number(probabilities[metric.target]);
     const calibrated=calibratedTargets.has(metric.target)&&Number.isFinite(probability);
-    const displayValue=calibrated?probability*100:metric.score;
-    const valueText=calibrated?marketAiProbabilityText(probability):marketAiScoreText(metric.score);
+    const actualClose=state?.mode==='actual_close';
+    const unavailable=state&&state.available===false;
+    let displayValue=calibrated?probability*100:metric.score;
+    let valueText=calibrated?marketAiProbabilityText(probability):marketAiScoreText(metric.score);
+    let stateText='';
+    if(actualClose){
+      stateText=String(state.actual_label||'확정');
+      valueText=stateText;
+      const change=Number(state.actual_change_pct);
+      displayValue=Number.isFinite(change)?(change>0?100:(change<0?0:50)):50;
+    }else if(unavailable){
+      valueText='--';
+      displayValue=null;
+      stateText=marketAiSignalStateLabel(state)||'신호 없음';
+    }
     const valueClass=marketAiScoreClass(displayValue);
     values.forEach(value=>{
       value.textContent=valueText;
@@ -747,7 +848,8 @@ function syncMarketAiSignalView(){
     const band=marketAiScoreBand(displayValue);
     items.forEach(item=>{
       item.removeAttribute('title');
-      item.setAttribute('aria-label',`${fullLabel} ${valueText} · ${band.label}`);
+      const suffix=actualClose?`${stateText} 확정`:(unavailable?stateText:band.label);
+      item.setAttribute('aria-label',`${fullLabel} ${valueText} · ${suffix}`);
     });
   });
 
