@@ -5,17 +5,6 @@
 
 @media (max-width:760px){
 
-  /* Card Surface Density Mobile · typography는 유지하고 surface geometry만 compact 정렬 */
-    :root{
-      --surface-pad-outer:var(--space-6xl);
-      --surface-pad-large:var(--space-6xl);
-      --surface-pad-medium:var(--space-4xl);
-      --surface-pad-mini:var(--space-2xl);
-      --surface-pad-metric:var(--space-4xl);
-      --surface-pad-emphasis:var(--space-5xl);
-      --surface-radius-outer:20px;
-    }
-
     .hero .hero-metric-pills{
       display:grid;
       grid-template-columns:1fr;

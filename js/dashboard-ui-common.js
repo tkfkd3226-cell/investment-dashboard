@@ -13,6 +13,33 @@ function phoneLandscapeUi(){
 }
 
 const dashboardDialogFocusState=new WeakMap();
+function dashboardDialogBackgroundElements(container){
+  const elements=[];
+  let current=container;
+  while(current&&current!==document.body){
+    const parent=current.parentElement;
+    if(!parent)break;
+    [...parent.children].forEach(sibling=>{if(sibling!==current)elements.push(sibling)});
+    current=parent;
+  }
+  return [...new Set(elements)];
+}
+function setDashboardDialogBackgroundInert(container,state){
+  if(!container||!state||state.inertSnapshot)return;
+  const snapshot=new Map();
+  dashboardDialogBackgroundElements(container).forEach(element=>{
+    snapshot.set(element,element.inert===true);
+    element.inert=true;
+  });
+  state.inertSnapshot=snapshot;
+}
+function restoreDashboardDialogBackgroundInert(state){
+  if(!state?.inertSnapshot)return;
+  state.inertSnapshot.forEach((wasInert,element)=>{
+    if(element?.isConnected)element.inert=wasInert;
+  });
+  state.inertSnapshot=null;
+}
 function dashboardElementVisible(el){
   if(!el||!el.isConnected||el.disabled)return false;
   const style=getComputedStyle(el);
@@ -35,7 +62,7 @@ function activateDashboardDialogFocus(container,{initialFocus=null,fallbackSelec
   if(!container)return;
   let state=dashboardDialogFocusState.get(container);
   if(!state){
-    state={returnFocus:null,fallbackSelector:'',keydown:null};
+    state={returnFocus:null,fallbackSelector:'',keydown:null,inertSnapshot:null};
     state.keydown=event=>{
       if(event.key!=='Tab')return;
       const focusables=dashboardDialogFocusables(container);
@@ -50,6 +77,7 @@ function activateDashboardDialogFocus(container,{initialFocus=null,fallbackSelec
   if(returnFocus)state.returnFocus=returnFocus;
   else if(!container.contains(document.activeElement)&&dashboardReturnFocusVisible(document.activeElement))state.returnFocus=document.activeElement;
   state.fallbackSelector=fallbackSelector||state.fallbackSelector||'';
+  setDashboardDialogBackgroundInert(container,state);
   const resolveInitial=()=>typeof initialFocus==='string'?container.querySelector(initialFocus):initialFocus;
   requestAnimationFrame(()=>{
     const target=resolveInitial()||dashboardDialogFocusables(container)[0];
@@ -61,6 +89,7 @@ function releaseDashboardDialogFocus(container,{fallbackSelector=''}={}){
   const state=dashboardDialogFocusState.get(container);
   const stored=state?.returnFocus||null;
   const fallback=fallbackSelector||state?.fallbackSelector||'';
+  restoreDashboardDialogBackgroundInert(state);
   if(state){state.returnFocus=null;state.fallbackSelector='';}
   requestAnimationFrame(()=>{
     const target=dashboardReturnFocusVisible(stored)?stored:dashboardVisibleFallback(fallback);

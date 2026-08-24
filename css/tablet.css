@@ -46,12 +46,7 @@
     }
     .hero.market-ai-mounted .hero-metric-pills{min-width:0;flex-wrap:wrap;align-content:flex-start}
     .hero.market-ai-mounted #market-ai-section{width:auto;max-width:100%;margin-top:0;justify-self:end}
-    .market-ai-panel{max-width:min(100%,330px);padding:2px 3px}
-    .market-ai-heading{margin-bottom:1px}
-    .market-ai-desktop{width:fit-content;max-width:100%;grid-template-columns:repeat(2,minmax(150px,156px));gap:4px;justify-content:center}
-    .market-ai-card-row{padding:2px 5px 1px}
-    .market-ai-desktop-metric{min-height:18px;padding:0}
-    .market-ai-desktop-metric:last-child{min-height:13px;padding-bottom:0}
+    .market-ai-desktop{grid-template-columns:repeat(2,minmax(150px,156px));justify-content:center}
 
     .mini-card{
       --mini-label-size:11px;
