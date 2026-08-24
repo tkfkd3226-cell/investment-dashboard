@@ -2130,6 +2130,10 @@ special.css
 
 `dashboard-market-ai.js`가 전용 class를 생성하더라도 JS에서 구조용 inline style을 누적하거나 별도 Market AI CSS 파일을 새로 만들지 않는다. 동적 tooltip 좌표처럼 런타임 계산이 필요한 값만 JS가 직접 처리한다.
 
+Market AI가 Hero에 mount된 경우 우측 panel edge는 Web/Tablet에서 `--market-ai-edge-pad`로 관리한다. 현재 기준은 `10px`이며, Tablet에서는 기존 Hero 좌측 콘텐츠 여백을 유지하면서 Market AI 우측 edge만 이 값을 사용한다. 이를 맞추기 위해 음수 margin이나 viewport별 임의 좌표 보정을 추가하지 않는다. 실제 Phone에서는 Market AI를 숨기고 `special.css`가 mounted Hero를 기본 block 흐름으로 복원한다.
+
+Market AI의 focus 가능한 시장/신호 metric은 공용 tooltip `#marketAiTooltip`과 `aria-describedby`로 명시적으로 연결한다. tooltip은 Market AI section 생성 전에 준비하고, focus/pointer 시 기존 shared tooltip 내용과 `aria-hidden` 상태를 갱신한다.
+
 ## 4.10 JS state · initialization ownership
 
 공유 state와 module-private state를 구분하고, **누가 사용하는가보다 누가 책임져야 하는가**를 기준으로 owner를 정한다.

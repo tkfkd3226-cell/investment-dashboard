@@ -615,11 +615,11 @@ function setupMarketAiTooltipEvents(){
 }
 
 function marketAiDesktopSignalMetric(label,key){
-  return `<span class="market-ai-desktop-metric" tabindex="0" data-market-ai-card="${key}" data-market-ai-tooltip="signal" data-market-ai-key="${key}"><span class="market-ai-desktop-label">${label}</span><strong class="market-ai-desktop-signal" data-market-ai-score="${key}">--</strong></span>`;
+  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-card="${key}" data-market-ai-tooltip="signal" data-market-ai-key="${key}"><span class="market-ai-desktop-label">${label}</span><strong class="market-ai-desktop-signal" data-market-ai-score="${key}">--</strong></span>`;
 }
 
 function marketAiDesktopMarketMetric(label,marketKey){
-  return `<span class="market-ai-desktop-metric" tabindex="0" data-market-ai-market-card="${marketKey}" data-market-ai-tooltip="market" data-market-ai-key="${marketKey}"><span class="market-ai-desktop-label">${label}</span><strong class="market-ai-desktop-value" data-market-ai-market="${marketKey}">--</strong><strong class="market-ai-desktop-change" data-market-ai-change="${marketKey}"></strong></span>`;
+  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-market-card="${marketKey}" data-market-ai-tooltip="market" data-market-ai-key="${marketKey}"><span class="market-ai-desktop-label">${label}</span><strong class="market-ai-desktop-value" data-market-ai-market="${marketKey}">--</strong><strong class="market-ai-desktop-change" data-market-ai-change="${marketKey}"></strong></span>`;
 }
 
 function marketAiDesktopFuturesMetric(){
@@ -631,6 +631,7 @@ function marketAiDesktopGroupLabel(label){
 }
 
 function createMarketAiSection(){
+  marketAiTooltip();
   const row=document.createElement('aside');
   row.id='market-ai-section';
   row.setAttribute('role','group');
