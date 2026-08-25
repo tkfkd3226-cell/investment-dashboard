@@ -2476,6 +2476,11 @@ body.chart-expanded-open .dash-tooltip{
   --pension-modal-aux-gap:var(--space-lg);
   --pension-modal-aux-pad-y:var(--space-lg);
   --pension-modal-aux-pad-x:var(--space-2xl);
+  /* Error feedback surface · 입력/작업모음/저장불가의 외곽 UI를 같은 danger 언어로 통일 */
+  --pension-modal-error-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
+  --pension-modal-error-bg:var(--status-danger-soft-bg);
+  --pension-modal-error-text:var(--status-danger-soft-text);
+  --pension-modal-error-border:var(--status-danger-border);
   --pension-modal-batch-pad:var(--space-4xl);
   /* Shared modal contract에 현재 pension 값을 연결한다. */
   --modal-overlay-color:var(--modal-overlay);
@@ -3833,6 +3838,27 @@ button:not(:disabled):active,
 .contrib-modal .pension-etf-trade-apply-note{margin-top:var(--pension-modal-aux-gap);padding:var(--pension-modal-aux-pad-y) var(--pension-modal-aux-pad-x)}
 .contrib-modal .pension-etf-trade-preview{margin-top:var(--pension-modal-aux-gap);padding:var(--pension-modal-section-gap)}
 .contrib-modal .pension-etf-trade-preview-title{margin-bottom:var(--pension-modal-aux-gap)}
+
+/* Pension modal error feedback · 내용 구조는 유지하고 외곽 surface만 하나의 규칙으로 맞춘다. */
+.contrib-modal .contrib-status.err,
+.contrib-modal .pension-batch-order-note.error,
+.contrib-modal .pension-etf-trade-preview.blocked{
+  border:1px solid var(--pension-modal-error-border);
+  border-radius:var(--pension-modal-error-radius);
+  background:var(--pension-modal-error-bg);
+  color:var(--pension-modal-error-text);
+}
+.contrib-modal .contrib-status.err,
+.contrib-modal .pension-batch-order-note.error{
+  margin-top:var(--pension-modal-aux-gap);
+  padding:var(--pension-modal-aux-pad-y) var(--pension-modal-aux-pad-x);
+  font-size:var(--pension-modal-label-size);
+  font-weight:var(--type-weight-strong);
+  line-height:var(--type-line-helper);
+}
+.contrib-modal .pension-etf-trade-preview.blocked{
+  padding:var(--pension-modal-aux-pad-y) var(--pension-modal-aux-pad-x);
+}
 
 .contrib-modal .pension-batch-panel{padding:var(--pension-modal-batch-pad)}
 .contrib-modal .pension-batch-head{gap:var(--pension-modal-section-gap)}
