@@ -47,6 +47,7 @@ import {
 const CHART_FRAME=Object.freeze({left:70,right:70,top:20,bottom:70});
 const CHART_EDGE_PAD=24;
 const CHART_VIEWBOX_BASE=Object.freeze({width:1120,height:330});
+const CHART_EXPANDED_VISUAL_GROWTH=.5;
 
 function chartViewBoxSize(svg){
   const h=CHART_VIEWBOX_BASE.height,rect=svg?.getBoundingClientRect?.();
@@ -61,6 +62,35 @@ function chartConfig(svg,edgePad=CHART_EDGE_PAD){
 }
 function chartY(cfg,min,max,value){
   return cfg.t+(max-value)/(max-min)*cfg.plotH;
+}
+function chartSvgDisplayScale(svg){
+  const rect=svg?.getBoundingClientRect?.(),viewH=Number(svg?.viewBox?.baseVal?.height||CHART_VIEWBOX_BASE.height);
+  const cssHeight=Number(rect?.height);
+  return cssHeight>0&&viewH>0?cssHeight/viewH:1;
+}
+function expandedChartVisualBaseline(svg){
+  const expanded=chartRuntimeState.expanded;
+  return expanded?.svg===svg?expanded.visualBaseline:null;
+}
+function chartExpandedFixedUnits(svg,baseUnits){
+  const baseline=expandedChartVisualBaseline(svg);
+  if(!baseline)return baseUnits;
+  const currentScale=chartSvgDisplayScale(svg);
+  return currentScale>0?baseUnits*baseline.scale/currentScale:baseUnits;
+}
+function chartExpandedHalfGrowthUnits(svg,currentUnits,normalUnits=currentUnits){
+  const baseline=expandedChartVisualBaseline(svg);
+  if(!baseline)return currentUnits;
+  const currentScale=chartSvgDisplayScale(svg);
+  if(!(currentScale>0))return currentUnits;
+  const normalPx=normalUnits*baseline.scale,currentPx=currentUnits*currentScale;
+  return (normalPx+(currentPx-normalPx)*CHART_EXPANDED_VISUAL_GROWTH)/currentScale;
+}
+function chartBarWidth(svg,cfg,n,ratio,minWidth=0){
+  const count=Math.max(1,n),current=Math.max(minWidth,cfg.plotW/count*ratio),baseline=expandedChartVisualBaseline(svg);
+  if(!baseline)return current;
+  const normal=Math.max(minWidth,baseline.plotW/count*ratio);
+  return chartExpandedHalfGrowthUnits(svg,current,normal);
 }
 function chartViewBoxNeedsRedraw(){
   if(chartRuntimeState.expanded)return false;
@@ -232,6 +262,8 @@ function openExpandedChart(button){
   closeExpandedChart();
   clearChartHover();
   const originalScrollLeft=wrap.scrollLeft;
+  const normalViewW=Number(svg.viewBox?.baseVal?.width||CHART_VIEWBOX_BASE.width);
+  const visualBaseline={scale:chartSvgDisplayScale(svg),plotW:Math.max(0,normalViewW-CHART_FRAME.left-CHART_FRAME.right)};
   const placeholder=document.createComment('expanded-chart-placeholder');
   svg.parentNode.insertBefore(placeholder,svg);
   const titleHeading=card.querySelector('.chart-head h3');
@@ -289,12 +321,12 @@ function openExpandedChart(button){
   if(legend)expandedLegendHost.appendChild(legend);
   document.body.appendChild(overlay);
   document.body.classList.add('chart-expanded-open');
-  chartRuntimeState.expanded={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,closeButton,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,cardId:card.id};
+  chartRuntimeState.expanded={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,closeButton,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,visualBaseline,renderedScale:visualBaseline.scale,cardId:card.id};
   syncExpandedChartViewport();
   closeButton.addEventListener('click',closeExpandedChart,{once:true});
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeExpandedChart()});
   requestAnimationFrame(()=>{
-    redrawChartForCardSize(card.id);
+    redrawChartForCardSize(card.id,{force:true});
     overlay.classList.add('show');
   });
   activateDashboardDialogFocus(overlay,{initialFocus:overlay.querySelector('.chart-expanded-close'),fallbackSelector:`#${card.id} [data-dashboard-action="open-expanded-chart"]`,returnFocus:opener});
@@ -363,15 +395,18 @@ const RESPONSIVE_CHART_SCOPES=[
   {id:'chart-alloc',scope:'securitiesAlloc'},
   {id:'pension-chart-alloc',scope:'pensionAlloc'}
 ];
-function redrawChartForCardSize(cardId){
+function redrawChartForCardSize(cardId,{force=false}={}){
   const scope=RESPONSIVE_CHART_SCOPES.find(item=>item.id===cardId)?.scope;
   if(!scope)return false;
   const expanded=chartRuntimeState.expanded;
   const svg=expanded?.cardId===cardId?expanded.svg:document.querySelector(`#${cardId} svg.chart`);
   if(!svg)return false;
   const current=Number(svg.viewBox?.baseVal?.width||0),next=chartViewBoxSize(svg).w;
-  if(current>0&&Math.abs(current-next)<=1)return false;
+  const currentScale=chartSvgDisplayScale(svg);
+  const scaleChanged=expanded?.svg===svg&&Number(expanded.renderedScale)>0&&Math.abs(currentScale-expanded.renderedScale)>.01;
+  if(!force&&current>0&&Math.abs(current-next)<=1&&!scaleChanged)return false;
   redrawChartScope(scope);
+  if(expanded?.svg===svg)expanded.renderedScale=chartSvgDisplayScale(svg);
   return true;
 }
 function redrawVisibleChartsForCurrentSize(){
@@ -1064,10 +1099,10 @@ function drawAxes(svg,cfg,yTicks,y2Ticks=null){
   const{w,h,l,r,t,b}=cfg;
   const surface=cssThemeValue('--chart-surface','#fff'),grid=cssThemeValue('--chart-grid','#e5e7eb'),axis=cssThemeValue('--chart-axis','#cbd5e1'),text=cssThemeValue('--chart-text','#6b7280');
   svg.appendChild(el('rect',{x:0,y:0,width:w,height:h,fill:surface}));
-  for(const tick of yTicks){const y=cfg.y(tick);svg.appendChild(el('line',{x1:l,y1:y,x2:w-r,y2:y,stroke:grid,'stroke-width':1}));const tx=el('text',{x:l-10,y:y+4,'text-anchor':'end','font-size':11,fill:text});tx.textContent=cfg.yFormatter?cfg.yFormatter(tick):fmt(tick);svg.appendChild(tx)}
+  for(const tick of yTicks){const y=cfg.y(tick);svg.appendChild(el('line',{x1:l,y1:y,x2:w-r,y2:y,stroke:grid,'stroke-width':1}));const tx=el('text',{x:l-10,y:y+4,'text-anchor':'end','font-size':chartExpandedFixedUnits(svg,11),fill:text});tx.textContent=cfg.yFormatter?cfg.yFormatter(tick):fmt(tick);svg.appendChild(tx)}
   svg.appendChild(el('line',{x1:l,y1:t,x2:l,y2:h-b,stroke:axis}));
   svg.appendChild(el('line',{x1:l,y1:h-b,x2:w-r,y2:h-b,stroke:axis}));
-  if(y2Ticks){for(const tick of y2Ticks){const y=cfg.y2(tick);const tx=el('text',{x:w-r+10,y:y+4,'text-anchor':'start','font-size':11,fill:text});tx.textContent=cfg.y2Formatter?cfg.y2Formatter(tick):tick.toFixed(0)+'%';svg.appendChild(tx)}svg.appendChild(el('line',{x1:w-r,y1:t,x2:w-r,y2:h-b,stroke:axis}))}
+  if(y2Ticks){for(const tick of y2Ticks){const y=cfg.y2(tick);const tx=el('text',{x:w-r+10,y:y+4,'text-anchor':'start','font-size':chartExpandedFixedUnits(svg,11),fill:text});tx.textContent=cfg.y2Formatter?cfg.y2Formatter(tick):tick.toFixed(0)+'%';svg.appendChild(tx)}svg.appendChild(el('line',{x1:w-r,y1:t,x2:w-r,y2:h-b,stroke:axis}))}
 }
 
 function chartX(cfg,dataLength,index){
@@ -1080,10 +1115,13 @@ function labelDates(svg,cfg,data,every=3){
   const{h,b}=cfg;
   const labelY=h-b+16;
   const interval=compactPhoneChartUi()?Math.max(every,Math.ceil(data.length/24)):every;
-  data.forEach((d,i)=>{if(i%interval===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:labelY,transform:`rotate(-65 ${x} ${labelY})`,'text-anchor':'end','font-size':10,fill:cssThemeValue('--chart-text','#6b7280')});txt.textContent=d['날짜'];svg.appendChild(txt)}})
+  data.forEach((d,i)=>{if(i%interval===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:labelY,transform:`rotate(-65 ${x} ${labelY})`,'text-anchor':'end','font-size':chartExpandedFixedUnits(svg,10),fill:cssThemeValue('--chart-text','#6b7280')});txt.textContent=d['날짜'];svg.appendChild(txt)}})
 }
-function polyline(svg,points,color,width=2){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':width,'stroke-linejoin':'round','stroke-linecap':'round'}))}
-function circles(svg,points,color){const fill=cssThemeValue('--chart-surface','#fff');points.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:2.2,fill,stroke:color,'stroke-width':1.1})))}
+function polyline(svg,points,color,width=2){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':chartExpandedHalfGrowthUnits(svg,width),'stroke-linejoin':'round','stroke-linecap':'round'}))}
+function circles(svg,points,color){
+  const fill=cssThemeValue('--chart-surface','#fff'),radius=chartExpandedHalfGrowthUnits(svg,2.2),strokeWidth=chartExpandedHalfGrowthUnits(svg,1.1);
+  points.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:radius,fill,stroke:color,'stroke-width':strokeWidth})));
+}
 function nearestIndex(evt,svg,cfg,data){
   const pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;
   const loc=pt.matrixTransform(svg.getScreenCTM().inverse());
@@ -1275,7 +1313,7 @@ function drawPensionCumChart(){
   const mode=chartState.compareModes.pension||'return',selection=chartSelection('pensionCum'),selected=selection.selected,autoY=chartAutoYEnabled('pensionCum');
   const leftAxis=cumulativeMoneyAxis('pensionCum',data,selected,autoY),rightAxis=cumulativeRightAxis('pensionCum',data,mode,leftAxis,selected.has('compare'),autoY);
   const yInfo=leftAxis.info,rInfo=rightAxis.info||{min:0,max:1,ticks:[]};
-  const cfg=chartConfig(svg),n=data.length,barW=Math.max(8,cfg.plotW/Math.max(1,n)/3);
+  const cfg=chartConfig(svg),n=data.length,barW=chartBarWidth(svg,cfg,n,1/3,8);
   cfg.edgePad=Math.max(CHART_EDGE_PAD,barW*2.1);
   cfg.y=v=>chartY(cfg,yInfo.min,yInfo.max,v);
   cfg.y2=v=>chartY(cfg,rInfo.min,rInfo.max,v);
@@ -1289,7 +1327,7 @@ function drawPensionCumChart(){
       const color=chartSeriesColor(key==='profit'?'profit':'daily');
       const off=moneyKeys.length===1?0:(index===0?-barW*.6:barW*.6);
       const y=cfg.y(v),hh=Math.abs(y0-y);
-      svg.appendChild(el('rect',{x:x+off-barW/2,y:Math.min(y,y0),width:barW,height:hh,rx:3,fill:color,opacity:.9}));
+      svg.appendChild(el('rect',{x:x+off-barW/2,y:Math.min(y,y0),width:barW,height:hh,rx:chartExpandedHalfGrowthUnits(svg,3),fill:color,opacity:.9}));
     });
   });
   if(selected.has('compare')){
@@ -1325,10 +1363,10 @@ function drawPensionStacked(){
   const selection=chartSelection('pensionAlloc'),allSeries=chartLegendItems('pensionAlloc').map(item=>item.key),series=allSeries.filter(s=>selection.selected.has(s)),autoY=chartAutoYEnabled('pensionAlloc');
   const colors=Object.fromEntries(allSeries.map(s=>[s,s==='현금성자산'?CASH_ASSET_COLOR:pensionSeriesColor(s)]));
   const axisSeries=autoY?series:allSeries,totals=data.map(d=>axisSeries.reduce((a,s)=>a+Number(d[s]||0),0));
-  const yInfo=fixedTickInfo(0,Math.max(1,...totals),10000000,true),cfg=chartConfig(svg),n=data.length,barW=Math.max(10,cfg.plotW/Math.max(1,n)*.55);
+  const yInfo=fixedTickInfo(0,Math.max(1,...totals),10000000,true),cfg=chartConfig(svg),n=data.length,barW=chartBarWidth(svg,cfg,n,.55,10);
   cfg.edgePad=Math.max(CHART_EDGE_PAD,barW*.62);
   cfg.y=v=>chartY(cfg,yInfo.min,yInfo.max,v);drawAxes(svg,cfg,yInfo.ticks);
-  data.forEach((d,i)=>{let acc=0;const x=chartX(cfg,n,i)-barW/2;series.forEach(s=>{const v=Number(d[s]||0),y1=cfg.y(acc+v),y0=cfg.y(acc);svg.appendChild(el('rect',{x,y:y1,width:barW,height:Math.max(0,y0-y1),fill:colors[s],rx:2}));acc+=v})});
+  data.forEach((d,i)=>{let acc=0;const x=chartX(cfg,n,i)-barW/2;series.forEach(s=>{const v=Number(d[s]||0),y1=cfg.y(acc+v),y0=cfg.y(acc);svg.appendChild(el('rect',{x,y:y1,width:barW,height:Math.max(0,y0-y1),fill:colors[s],rx:chartExpandedHalfGrowthUnits(svg,2)}));acc+=v})});
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{let html=tooltipDate(d['날짜']);const total=series.reduce((a,s)=>a+Number(d[s]||0),0);series.forEach(s=>html+=row(chartDisplayLabel('pensionAlloc',s),won(d[s]||0),''));return html+tooltipDivider()+totalRow('평가금액 합계',won(total),'')});
 }
@@ -1351,7 +1389,7 @@ function drawCumChart(){
   const mode=chartState.compareModes.securities||'return',selection=chartSelection('securitiesCum'),selected=selection.selected,autoY=chartAutoYEnabled('securitiesCum');
   const leftAxis=cumulativeMoneyAxis('securitiesCum',data,selected,autoY),rightAxis=cumulativeRightAxis('securitiesCum',data,mode,leftAxis,selected.has('compare'),autoY);
   const yInfo=leftAxis.info,rInfo=rightAxis.info||{min:0,max:1,ticks:[]};
-  const cfg=chartConfig(svg),n=data.length,gap=cfg.plotW/Math.max(n,1),bw=gap*.28;
+  const cfg=chartConfig(svg),n=data.length,bw=chartBarWidth(svg,cfg,n,.28);
   cfg.edgePad=Math.max(CHART_EDGE_PAD,bw*2.1);
   cfg.y=v=>chartY(cfg,yInfo.min,yInfo.max,v);
   cfg.y2=v=>chartY(cfg,rInfo.min,rInfo.max,v);
@@ -1435,10 +1473,10 @@ function drawStacked(){
   }else{
     maxY=Math.max(30000000,...values)*1.05;ticks=[0,5000000,10000000,15000000,20000000,25000000,30000000];
   }
-  const n=data.length,gap=cfg.plotW/Math.max(n,1),bw=gap*.72;
+  const n=data.length,bw=chartBarWidth(svg,cfg,n,.72);
   cfg.edgePad=Math.max(CHART_EDGE_PAD,bw*.62);
   cfg.y=v=>chartY(cfg,minY,maxY,v);drawAxes(svg,cfg,ticks);
-  data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;series.forEach(key=>{const value=Number(d[key]||0),yTop=cfg.y(base+value),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:colors[key],opacity:.75,stroke:cssThemeValue('--chart-stack-stroke','#fff'),'stroke-width':.4}));base+=value})});
+  data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;series.forEach(key=>{const value=Number(d[key]||0),yTop=cfg.y(base+value),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:colors[key],opacity:.75,stroke:cssThemeValue('--chart-stack-stroke','#fff'),'stroke-width':chartExpandedHalfGrowthUnits(svg,.4)}));base+=value})});
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{const displayedTotal=series.reduce((a,key)=>a+Number(d[key]||0),0),total=selection.all?(Number(d._total)||displayedTotal):displayedTotal;let html=tooltipDate(d['날짜']);series.forEach(key=>{const value=Number(d[key]||0),share=total?value/total*100:0;html+=row(chartDisplayLabel('securitiesAlloc',key),fmt(value)+`원 (${share.toFixed(1)}%)`)});return html+tooltipDivider()+totalRow('합계',fmt(total)+'원')});
 }

@@ -1243,7 +1243,7 @@ td.num{
 
 .chart-head{
   display:flex;
-  align-items:flex-start;
+  align-items:center;
   justify-content:space-between;
   gap:var(--space-5xl);
   margin-bottom:var(--chart-content-rhythm-gap);
@@ -1704,6 +1704,9 @@ body.chart-expanded-open .dash-tooltip{
   opacity:1;
   visibility:visible;
   transform:translate(-50%,0);
+}
+.compact-chart-ui .chart-expanded-title:has(.chart-title-info.open){
+  overflow:visible;
 }
 
 /* Account Memo Info · 계좌별 성과 메모 전용 정보 UI */
@@ -4191,10 +4194,26 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       width:var(--chart-expanded-vh,100dvh);
       height:var(--chart-expanded-vw,100dvw);
       gap:var(--space-md);
-      padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
+      padding:var(--space-4xl) var(--space-5xl) var(--space-2xl) var(--space-5xl);
       transform:rotate(90deg) translateY(-100%);
     }
-    .chart-expanded-legend-host .chart-legend{
+    .chart-expanded-overlay:not(.device-landscape) .chart-expanded-legend-host{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:var(--space-2xl);
+    }
+    .chart-expanded-overlay:not(.device-landscape) .chart-expanded-legend-host > .chart-options-row{
+      position:static;
+      left:auto;
+      bottom:auto;
+      flex:0 0 auto;
+      margin:0;
+      transform:none;
+    }
+    .chart-expanded-overlay:not(.device-landscape) .chart-expanded-legend-host .chart-legend{
+      flex:0 1 auto;
+      min-width:0;
       column-gap:var(--space-4xl);
     }
     .chart-expanded-legend-host .chart-legend-series{
