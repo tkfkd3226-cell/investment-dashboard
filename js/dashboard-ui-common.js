@@ -208,7 +208,7 @@ function renderAssetDayChangeBlock({
   renderWithoutPrev=false,
   summaryItems=[],
   tableWrapClass='change-table-wrap mobile-scroll table-view',
-  tableClass='dashboard-data-table change-table asset-change-table',
+  tableClass='dashboard-data-table asset-change-table',
   cardClass='change-mobile-list mobile-card-view',
   caption='',
   columns=[],

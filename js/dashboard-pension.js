@@ -100,19 +100,19 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
     icon:'package',
     caption:'퇴직연금 상품별 현황',
     columns:[
-      {label:'상품',className:'asset-status-col-name'},
-      {label:'수량',className:'asset-status-col-qty table-cell-center'},
-      {label:'평균단가',className:'asset-status-col-average'},
-      {label:'매수원금',className:'asset-status-col-principal'},
-      {label:'평가금액',className:'asset-status-col-evaluation'},
-      {label:'평가손익',className:'asset-status-col-profit'},
-      {label:'수익률',className:'asset-status-col-return table-cell-center'},
-      {label:'비중',className:'asset-status-col-weight'}
+      {label:'상품'},
+      {label:'수량',className:'table-cell-center'},
+      {label:'평균단가'},
+      {label:'매수원금'},
+      {label:'평가금액'},
+      {label:'평가손익'},
+      {label:'수익률',className:'table-cell-center'},
+      {label:'비중'}
     ],
     rows,
     summaryRows,
     cards,
-    afterHtml:`<p class="small section-explainer asset-status-basis-note">※ 매수원금 합계는 현재 보유상품 재투자 기준</p>${renderPensionProductInsights(x)}`,
+    afterHtml:`<p class="small section-explainer">※ 매수원금 합계는 현재 보유상품 재투자 기준</p>${renderPensionProductInsights(x)}`,
     mobileViewAttrs,
     mobileViewToggle,
     mobileInfoCard
@@ -127,7 +127,7 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
     labelHtml:`<strong>${mobileTableAssetName(r.name)}</strong>${pensionProductSwatch(r.name)}`,
     cells:[
       {className:'num table-cell-right',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span>`},
-      {className:'num table-cell-right asset-change-current-col',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span><span class="asset-change-mobile-delta ${tableCls(r.dayChange)}"><span class="visually-hidden">일변동 </span>${r.dayChange==null?'-':signed(r.dayChange)}</span>`},
+      {className:'num table-cell-right',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span><span class="asset-change-mobile-delta ${tableCls(r.dayChange)}"><span class="visually-hidden">일변동 </span>${r.dayChange==null?'-':signed(r.dayChange)}</span>`},
       {className:`num table-cell-right asset-change-delta-col ${tableCls(r.dayChange)}`,html:r.dayChange==null?'-':signed(r.dayChange)}
     ]
   }));
@@ -135,7 +135,7 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
     labelHtml:'현금성자산',
     cells:[
       {className:'num table-cell-right',html:`<span class="change-price">—</span><span class="change-eval">${won(x.prevPensionCash)}</span>`},
-      {className:'num table-cell-right asset-change-current-col',html:`<span class="change-price">—</span><span class="change-eval">${won(x.pensionCash)}</span><span class="asset-change-mobile-delta ${tableCls(x.pensionCashDayChange)}"><span class="visually-hidden">일변동 </span>${signed(x.pensionCashDayChange)}</span>`},
+      {className:'num table-cell-right',html:`<span class="change-price">—</span><span class="change-eval">${won(x.pensionCash)}</span><span class="asset-change-mobile-delta ${tableCls(x.pensionCashDayChange)}"><span class="visually-hidden">일변동 </span>${signed(x.pensionCashDayChange)}</span>`},
       {className:`num table-cell-right asset-change-delta-col ${tableCls(x.pensionCashDayChange)}`,html:signed(x.pensionCashDayChange)}
     ]
   });
@@ -144,7 +144,7 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
     labelHtml:'합계',
     cells:[
       {className:'num table-cell-right',html:fmt(x.pensionPrevEval)},
-      {className:'num table-cell-right asset-change-current-col',html:`${fmt(x.pensionEval)}<span class="asset-change-mobile-delta ${tableCls(day)}"><span class="visually-hidden">일변동 </span>${signed(day)}</span>`},
+      {className:'num table-cell-right',html:`${fmt(x.pensionEval)}<span class="asset-change-mobile-delta ${tableCls(day)}"><span class="visually-hidden">일변동 </span>${signed(day)}</span>`},
       {className:`num table-cell-right asset-change-delta-col ${tableCls(day)}`,html:signed(day)}
     ]
   }];
@@ -178,7 +178,7 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
     columns:[
       {label:'상품'},
       {label:`${prevDateLabel} 종가`},
-      {label:`${currentDateLabel} 종가`,className:'asset-change-current-col'},
+      {label:`${currentDateLabel} 종가`},
       {label:'일변동',className:'asset-change-delta-col'}
     ],
     rows,

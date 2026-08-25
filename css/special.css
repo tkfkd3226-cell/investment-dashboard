@@ -360,8 +360,8 @@
       background:var(--card);
       background-clip:padding-box;
     }
-    .table-view > .dashboard-data-table:not(.source-data-table) thead th:first-child{z-index:5;background:var(--table-head-bg)}
-    .table-view > .dashboard-data-table:not(.source-data-table) tbody tr.summary-row > :first-child{z-index:4;background:var(--summary-row-bg)}
+    .table-view > .dashboard-data-table:not(.source-data-table) thead th:first-child{z-index:5;background:var(--data-table-head-bg)}
+    .table-view > .dashboard-data-table:not(.source-data-table) tbody tr.summary-row > :first-child{z-index:4;background:var(--data-table-summary-bg)}
 
   /* Topbar Phone Shared · 세로/가로폰 동일 Mobile Topbar + hamburger */
   body.mobile-topbar-fixed-visible #app{padding-top:40px}
