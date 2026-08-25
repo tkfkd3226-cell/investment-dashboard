@@ -52,6 +52,7 @@
   --type-size-4xl:18px;
   --type-size-display-sm:24px;
   --type-size-display-md:28px;
+  --data-table-sub-font-size:11.5px;
   --type-line-tight:1.2;
   --type-line-compact:1.25;
   --type-line-body:1.35;
@@ -2116,8 +2117,6 @@ body.chart-expanded-open .dash-tooltip{
 .change-eval{
   display:block;
   margin-top:var(--space-2xs);
-  color:var(--muted);
-  font-size:var(--type-size-xs);
   white-space:nowrap;
 }
 .asset-change-mobile-delta{display:none}
@@ -3090,7 +3089,7 @@ body.contrib-modal-open{
 }
 
 .source-grid{
-  gap:var(--card-grid-gap-medium);
+  gap:var(--card-grid-gap-large);
 }
 
 .source-card{
@@ -4088,7 +4087,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 }
 .dashboard-data-table{
   /* Data Table Contract · density + semantic surface/weight hooks; variants override tokens, not cell properties */
-  --data-table-font-size:12.5px;
+  --data-table-font-size:12px;
   --data-table-cell-y:7px;
   --data-table-cell-x:7px;
   --data-table-line-height:1.28;
@@ -4103,6 +4102,8 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   --data-table-summary-border:1px solid var(--table-column-line);
   --data-table-summary-sticky-shadow:inset 0 1px 0 var(--table-column-line);
   --data-table-memo-weight:var(--type-weight-regular);
+  --data-table-sub-color:var(--muted);
+  --data-table-sub-weight:var(--type-weight-regular);
   width:max-content;
   min-width:100%;
   max-width:none;
@@ -4123,9 +4124,11 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   background:var(--data-table-head-bg);
   color:var(--data-table-head-color);
   font-weight:var(--data-table-head-weight);
+  text-align:center;
 }
-.dashboard-data-table tbody td.num{font-weight:var(--data-table-value-weight)}
-.dashboard-data-table tbody th[scope="row"]{font-weight:var(--data-table-value-weight);text-align:left}
+.dashboard-data-table tbody td{font-weight:var(--data-table-value-weight)}
+.dashboard-data-table .num{text-align:right}
+.dashboard-data-table tbody th[scope="row"]{font-weight:var(--data-table-label-weight);text-align:left}
 .dashboard-data-table tbody .summary-row > :is(th,td){
   background:var(--data-table-summary-bg);
   font-weight:var(--data-table-summary-weight);
@@ -4137,22 +4140,24 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   box-shadow:var(--data-table-summary-sticky-shadow);
 }
 .dashboard-data-table tbody .summary-row > td.accounts-memo{font-weight:var(--data-table-memo-weight)}
-/* Table Alignment Hierarchy · .num은 숫자 표현만 담당 / 정렬은 semantic utility로 명시 */
-.dashboard-data-table thead th:where(:first-child){text-align:left}
-.dashboard-data-table thead th:where(:not(:first-child)){text-align:center}
+.data-table-sub{
+  color:var(--data-table-sub-color,var(--muted));
+  font-size:var(--data-table-sub-font-size);
+  font-weight:var(--data-table-sub-weight,var(--type-weight-regular));
+}
+.dashboard-data-table tbody .summary-row .data-table-sub:not(.accounts-memo){
+  font-weight:var(--data-table-summary-weight);
+}
+/* Table Alignment Hierarchy · 문자 열/가운데 정렬만 semantic exception; 숫자는 .num의 우측 정렬 contract 사용 */
 .dashboard-data-table .table-cell-text{text-align:left}
-.dashboard-data-table .table-cell-right{text-align:right}
 .dashboard-data-table .table-cell-center{text-align:center}
+.dashboard-data-table tbody th[scope="row"].table-label-regular{font-weight:var(--data-table-value-weight)}
+/* Source table variant · 일반 row label만 regular, summary weight는 base contract 유지 */
 /* Table Exceptions · 계좌 메모 줄바꿈 + 자산 현황 비중 bar 폭; 수익/손실 색상은 공통 semantic utility 재사용 */
-/* Account Labels · 계좌명: table/mobile card 동일 강조 계층 */
 .accounts-table{width:100%}
-.accounts-table tbody tr:not(.summary-row) .accounts-name{font-weight:var(--data-table-label-weight)}
 .accounts-ledger-adjustment{
   display:block;
   margin-top:var(--space-2xs);
-  color:var(--muted);
-  font-size:var(--type-size-2xs);
-  font-weight:var(--data-table-memo-weight);
   line-height:var(--type-line-compact);
   white-space:normal;
 }
@@ -4170,14 +4175,8 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   max-width:none;
   white-space:normal;
   word-break:keep-all;
-  color:var(--muted);
-  font-size:calc(var(--data-table-font-size) - .5px);
-  font-weight:var(--data-table-memo-weight);
   line-height:var(--type-line-body);
   vertical-align:top;
-}
-.asset-status-table tbody .asset-item-row > th[scope="row"]{
-  font-weight:var(--data-table-label-weight);
 }
 .asset-status-table .bar-box{
   width:var(--data-table-bar-width);
@@ -4188,7 +4187,10 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   outline:none;
 }
 .source-table-scroll{margin-top:var(--space-5xl);border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
-.source-data-table{border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
+.source-data-table{
+  --data-table-label-weight:var(--data-table-value-weight);
+  border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
+}
 .change-table-wrap{margin-top:var(--space-5xl);border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
 
 /* =========================================================

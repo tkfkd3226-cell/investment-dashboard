@@ -34,7 +34,6 @@
       overflow:visible;
     }
     #accounts-summary .accounts-table{
-      --data-table-cell-x:5px;
       width:100%;
       min-width:100%;
     }
@@ -143,6 +142,7 @@
       --section-title-icon-size:15px;
       --section-title-gap:4px;
       --section-chip-height:25px;
+      --data-table-sub-font-size:10.5px;
     }
 
   /* Pension Modal Phone Density · 세로/가로폰 공통. iOS는 16px computed font를 62.5% 축소해 visual 10px을 유지한다. */
@@ -343,9 +343,9 @@
 
   /* Data Tables Compact · 가로폰도 표 구조는 유지하되 세로폰과 동일한 표 밀도 사용 */
     .dashboard-data-table{
-      --data-table-font-size:var(--type-size-xs);
+      --data-table-font-size:11px;
       --data-table-cell-y:5px;
-      --data-table-cell-x:6px;
+      --data-table-cell-x:5px;
       --data-table-line-height:1.22;
       --data-table-bar-width:56px;
     }

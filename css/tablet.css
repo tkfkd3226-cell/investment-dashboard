@@ -21,6 +21,7 @@
       --card-text-rhythm-gap:var(--space-xs);
       --info-stack-gap:var(--space-2xl);
       --chart-content-rhythm-gap:var(--space-2xl);
+      --data-table-sub-font-size:11px;
     }
 
   /* Pension Contribution Modal Tablet · semantic token만 한 단계 축소 */
@@ -217,9 +218,10 @@
 
   /* Data Tables Tablet · 데이터 표 태블릿: 열 구조 유지 + font/padding 축소 */
     .dashboard-data-table{
-      --data-table-font-size:var(--type-size-sm);
+      --data-table-font-size:11.5px;
       --data-table-cell-y:6px;
-      --data-table-line-height:var(--type-line-compact);
+      --data-table-cell-x:6px;
+      --data-table-line-height:1.25;
       --data-table-bar-width:64px;
     }
 
