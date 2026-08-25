@@ -457,6 +457,7 @@ function syncPensionContributionTargetUi(){
         ?'잘못 등록한 기업적립금 선택 후 삭제'
         :'잘못 등록한 추가 매수 거래 선택 후 삭제');
   }
+  clearPensionContributionStatus('pensionContribStatus');
   if(deleteStatus){
     deleteStatus.textContent='';
     deleteStatus.className='contrib-status';
@@ -623,6 +624,18 @@ function clearPensionContributionStatus(elementId){
   status.textContent='';
   status.className='contrib-status';
 }
+function clearPensionContributionOutput(){
+  const outputFile=document.getElementById('pensionContribOutputFile');
+  const output=document.getElementById('pensionContribOutput');
+  if(outputFile){outputFile.textContent='';outputFile.hidden=true}
+  if(output){output.textContent='';output.classList.remove('show')}
+}
+function showPensionContributionOutput(item){
+  const outputFile=document.getElementById('pensionContribOutputFile');
+  const output=document.getElementById('pensionContribOutput');
+  if(outputFile){outputFile.textContent=`반영 파일 · ${pensionContributionDataFile(item.target)}`;outputFile.hidden=false}
+  if(output){output.textContent=JSON.stringify(item,null,2);output.classList.add('show')}
+}
 function resetPensionContributionForm(){
   const dateEl=document.getElementById('pensionContribDate');
   const tradeDateEl=document.getElementById('pensionEtfTradeDate');
@@ -639,10 +652,7 @@ function resetPensionContributionForm(){
   if(qtyEl)qtyEl.value='';
   if(tradeAmountEl)tradeAmountEl.value='';
   document.querySelectorAll('input[name="pensionContribDeleteTarget"]').forEach(input=>{input.checked=false});
-  const outputFile=document.getElementById('pensionContribOutputFile');
-  const output=document.getElementById('pensionContribOutput');
-  if(outputFile){outputFile.textContent='';outputFile.hidden=true}
-  if(output){output.textContent='';output.classList.remove('show')}
+  clearPensionContributionOutput();
   clearPensionContributionStatus('pensionContribStatus');
   clearPensionContributionStatus('pensionContribDeleteStatus');
   clearPensionContributionStatus('pensionBatchStatus');
@@ -941,7 +951,14 @@ function syncPensionBatchModeUi(){
   renderPensionBatchQueue();
 }
 function setPensionBatchMode(enabled){
-  pensionEditorState.batchMode=!!enabled;
+  const nextMode=!!enabled;
+  const changed=pensionEditorState.batchMode!==nextMode;
+  pensionEditorState.batchMode=nextMode;
+  if(changed){
+    clearPensionContributionStatus('pensionContribStatus');
+    clearPensionContributionStatus('pensionContribDeleteStatus');
+    clearPensionContributionOutput();
+  }
   syncPensionBatchModeUi();
   updatePensionEtfTradePreview();
 }
@@ -995,6 +1012,7 @@ function removePensionBatchOperation(qid){
   pensionEditorState.batchLastAddFingerprint='';
   pensionEditorState.batchLastAddAt=0;
   resetPensionBatchRequestId();
+  clearPensionContributionStatus('pensionBatchStatus');
   renderPensionBatchQueue();
   updatePensionEtfTradePreview();
 }
@@ -1005,6 +1023,7 @@ function movePensionBatchOperation(qid,direction){
   const [item]=pensionEditorState.batchQueue.splice(index,1);
   pensionEditorState.batchQueue.splice(next,0,item);
   resetPensionBatchRequestId();
+  clearPensionContributionStatus('pensionBatchStatus');
   renderPensionBatchQueue();
   updatePensionEtfTradePreview();
 }
@@ -1089,7 +1108,9 @@ async function savePensionContributionViaGithubPages(item,pin){
 }
 
 async function savePensionContribution(){
-  const out=document.getElementById('pensionContribOutput');
+  clearPensionContributionStatus('pensionContribStatus');
+  clearPensionContributionStatus('pensionContribDeleteStatus');
+  clearPensionContributionOutput();
   try{
     if(pensionEditorState.batchMode&&pensionContributionTarget()==='etfTrade'){
       const qtyRaw=String(document.getElementById('pensionEtfTradeQty')?.value||'').trim();
@@ -1100,12 +1121,10 @@ async function savePensionContribution(){
       }
     }
     const item=buildPensionContributionItem();
-    const outFile=document.getElementById('pensionContribOutputFile');
-    if(outFile){outFile.textContent=`반영 파일 · ${pensionContributionDataFile(item.target)}`;outFile.hidden=false}
-    if(out){out.textContent=JSON.stringify(item,null,2);out.classList.add('show')}
     const targetText=pensionContributionTargetLabel(item.target);
     if(pensionEditorState.batchMode){
       addPensionBatchOperation({action:'upsert',target:item.target,item});
+      showPensionContributionOutput(item);
       if(item.target==='etfTrade'){
         const qtyEl=document.getElementById('pensionEtfTradeQty');
         const amountEl=document.getElementById('pensionEtfTradeAmount');
@@ -1118,12 +1137,13 @@ async function savePensionContribution(){
       return;
     }
     clearPensionContributionStatus('pensionContribStatus');
+    showPensionContributionOutput(item);
     const data=await requestPensionActionPin({
       title:`${targetText} 저장`,
       description:pensionSavePinDescription(item),
       execute:pin=>savePensionContributionViaGithubPages(item,pin)
     });
-    if(!data)return;
+    if(!data){clearPensionContributionOutput();return}
     if(data.item){
       upsertPensionItemLocally(item.target,data.item);
       if(item.target==='etfTrade'){
@@ -1159,6 +1179,8 @@ async function deletePensionContributionViaGithubPages(target,key,pin){
 }
 
 async function deleteSelectedPensionContribution(){
+  clearPensionContributionStatus('pensionContribStatus');
+  clearPensionContributionStatus('pensionContribDeleteStatus');
   const selected=document.querySelector('input[name="pensionContribDeleteTarget"]:checked');
   if(!selected){showPensionContributionDeleteStatus('삭제할 항목을 선택해주세요.','err');return}
   const [target,key]=String(selected.value||'').split('|');
@@ -1269,11 +1291,24 @@ function setupPensionEventDelegation({renderDashboard}={}){
     if(control)handlePensionAction(control,renderDashboard);
   });
   document.addEventListener('change',event=>{
-    const control=event.target?.closest?.('[data-pension-change]');
+    const changed=event.target;
+    if(changed?.matches?.('input[name="pensionContribDeleteTarget"]')){
+      clearPensionContributionStatus('pensionContribStatus');
+      clearPensionContributionStatus('pensionContribDeleteStatus');
+    }else if(changed?.closest?.('.contrib-modal .pension-contrib-tool')){
+      clearPensionContributionStatus('pensionContribStatus');
+      clearPensionContributionOutput();
+    }
+    const control=changed?.closest?.('[data-pension-change]');
     if(control?.dataset.pensionChange==='trade-preview')updatePensionEtfTradePreview();
   });
   document.addEventListener('input',event=>{
-    const control=event.target?.closest?.('[data-pension-input]');
+    const changed=event.target;
+    if(changed?.closest?.('.contrib-modal .pension-contrib-tool')){
+      clearPensionContributionStatus('pensionContribStatus');
+      clearPensionContributionOutput();
+    }
+    const control=changed?.closest?.('[data-pension-input]');
     if(!control)return;
     const mode=control.dataset.pensionInput;
     if(mode==='money'||mode==='money-preview')formatPensionMoneyInput(control);

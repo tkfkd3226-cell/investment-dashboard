@@ -2437,7 +2437,7 @@ body.chart-expanded-open .dash-tooltip{
   --pension-modal-label-size:var(--type-size-sm);
   --pension-modal-control-size:var(--type-size-sm);
   /* Input density / iOS visual-scale tokens · 시각 line/padding으로 shell 높이를 결정하고 모바일 내부만 확대 후 축소한다. */
-  --pension-modal-control-pad:var(--space-md);
+  --pension-modal-control-pad:6.5px;
   --pension-modal-control-line-height:var(--type-line-compact);
   --pension-modal-control-visual-line-size:15px;
   --pension-modal-control-scale:1;

@@ -37,11 +37,12 @@
       /* iOS Safari는 16px computed font를 유지하고 shell 내부만 62.5% 시각 축소해 10px로 보이게 한다. */
       --pension-modal-control-size:var(--type-size-2xl);
       --pension-modal-control-visual-line-size:12.5px;
+      --pension-modal-control-pad:6.75px;
       --pension-modal-control-scale:.625;
       --pension-modal-control-inner-width:160%;
       --pension-modal-control-inner-height:160%;
-      --pension-modal-control-inner-pad-y:var(--space-2xl);
-      --pension-modal-control-inner-pad-x:var(--space-2xl);
+      --pension-modal-control-inner-pad-y:10.8px;
+      --pension-modal-control-inner-pad-x:10.8px;
       --pension-modal-control-inner-icon-pad-right:calc(var(--space-8xl) + var(--space-7xl));
       --pension-modal-tab-size:var(--type-size-sm);
       --pension-modal-tab-height:28px;
