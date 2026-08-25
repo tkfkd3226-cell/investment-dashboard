@@ -183,6 +183,116 @@ function renderPensionContributionModal(x){
 }
 
 // Modal Lifecycle / Form State · 모달 생명주기 / 입력 상태
+const PENSION_MODAL_MEASURE_TARGETS=['cashSnapshot','contribution','etfTrade'];
+let pensionModalHeightFrame=0;
+
+function configurePensionModalMeasureState(card,target,batchMode){
+  const normalized=PENSION_MODAL_MEASURE_TARGETS.includes(target)?target:'cashSnapshot';
+  const standardFields=card.querySelector('#pensionContribStandardFields');
+  const tradeFields=card.querySelector('#pensionEtfTradeFields');
+  const cashCostField=card.querySelector('#pensionCashCostField');
+  const amountLabel=card.querySelector('#pensionContribAmountLabel');
+  const deleteCard=card.querySelector('#pensionContribDeleteCard');
+  const deleteHelp=card.querySelector('#pensionContribDeleteHelp');
+  const deleteList=card.querySelector('#pensionContribExistingList');
+  const batchPanel=card.querySelector('#pensionBatchPanel');
+  const saveButton=card.querySelector('#pensionContribSaveButton');
+  const deleteButton=card.querySelector('#pensionContribDeleteButton');
+
+  card.querySelectorAll('.contrib-target-option').forEach(btn=>{
+    const active=btn.dataset.target===normalized;
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-selected',String(active));
+  });
+  card.querySelectorAll('.pension-work-mode-btn').forEach(btn=>{
+    const active=(btn.dataset.mode==='batch')===batchMode;
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-pressed',String(active));
+  });
+
+  if(standardFields){
+    standardFields.hidden=normalized==='etfTrade';
+    standardFields.classList.toggle('cash-mode',normalized==='cashSnapshot');
+    standardFields.classList.toggle('contribution-mode',normalized==='contribution');
+  }
+  if(tradeFields)tradeFields.hidden=normalized!=='etfTrade';
+  if(cashCostField)cashCostField.hidden=normalized!=='cashSnapshot';
+  if(amountLabel)amountLabel.textContent=normalized==='cashSnapshot'?'평가금액':'금액';
+
+  const hasDeleteItems=pensionContributionDeleteCount(normalized)>0;
+  if(deleteCard)deleteCard.hidden=!hasDeleteItems;
+  if(deleteList){
+    deleteList.innerHTML=hasDeleteItems?renderPensionContributionList(normalized):'';
+    deleteList.querySelectorAll('input[type="radio"]').forEach(input=>{input.name='pensionContribDeleteTargetMeasure';input.checked=false});
+  }
+  if(deleteHelp){
+    deleteHelp.textContent=normalized==='cashSnapshot'
+      ?'잘못 등록한 현금성자산 기록 선택 후 삭제'
+      :(normalized==='contribution'
+        ?'잘못 등록한 기업적립금 선택 후 삭제'
+        :'잘못 등록한 추가 매수 거래 선택 후 삭제');
+  }
+
+  if(batchPanel)batchPanel.hidden=!batchMode;
+  if(saveButton)saveButton.textContent=batchMode?'작업 모음에 추가':'저장';
+  if(deleteButton)deleteButton.textContent=batchMode?'삭제 작업 추가':'선택 항목 삭제';
+}
+
+function measurePensionContributionModalHeight(){
+  const modal=document.getElementById('pensionContribModal');
+  const card=modal?.querySelector('.contrib-modal-card');
+  if(!modal?.classList.contains('show')||!card)return;
+  const width=card.getBoundingClientRect().width;
+  if(!(width>0))return;
+
+  const clone=card.cloneNode(true);
+  clone.setAttribute('aria-hidden','true');
+  clone.querySelectorAll('input[type="radio"]').forEach(input=>{input.name='pensionContribDeleteTargetMeasure';input.checked=false});
+  clone.querySelectorAll('details[open]').forEach(detail=>detail.removeAttribute('open'));
+  ['pensionContribStatus','pensionContribDeleteStatus','pensionBatchStatus'].forEach(id=>{
+    const status=clone.querySelector(`#${id}`);
+    if(status){status.textContent='';status.className='contrib-status'}
+  });
+  const outputFile=clone.querySelector('#pensionContribOutputFile');
+  if(outputFile){outputFile.textContent='';outputFile.hidden=true}
+  const output=clone.querySelector('#pensionContribOutput');
+  if(output){output.textContent='';output.classList.remove('show')}
+
+  Object.assign(clone.style,{
+    position:'absolute',
+    left:'-100000px',
+    top:'0',
+    width:`${width}px`,
+    height:'auto',
+    maxHeight:'none',
+    overflow:'visible',
+    visibility:'hidden',
+    pointerEvents:'none'
+  });
+  modal.appendChild(clone);
+
+  let maxHeight=0;
+  try{
+    for(const batchMode of [false,true]){
+      for(const target of PENSION_MODAL_MEASURE_TARGETS){
+        configurePensionModalMeasureState(clone,target,batchMode);
+        maxHeight=Math.max(maxHeight,Math.ceil(clone.getBoundingClientRect().height));
+      }
+    }
+  }finally{
+    clone.remove();
+  }
+  if(maxHeight>0)card.style.height=`${maxHeight}px`;
+}
+
+function schedulePensionContributionModalHeight(){
+  if(pensionModalHeightFrame)cancelAnimationFrame(pensionModalHeightFrame);
+  pensionModalHeightFrame=requestAnimationFrame(()=>{
+    pensionModalHeightFrame=0;
+    measurePensionContributionModalHeight();
+  });
+}
+
 function openPensionContributionModal(){
   const modal=document.getElementById('pensionContribModal');
   if(!modal) return;
@@ -191,6 +301,7 @@ function openPensionContributionModal(){
   modal.setAttribute('aria-hidden','false');
   setPensionContributionTarget('cashSnapshot');
   syncPensionBatchModeUi();
+  schedulePensionContributionModalHeight();
   activateDashboardDialogFocus(modal,{initialFocus:modal.querySelector('.contrib-modal-close'),fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
 }
 function closePensionContributionModal(){
@@ -300,6 +411,7 @@ function syncPensionContributionDeleteCard(target=pensionContributionTarget()){
   const hasItems=pensionContributionDeleteCount(target)>0;
   if(card) card.hidden=!hasItems;
   if(list) list.innerHTML=hasItems?renderPensionContributionList(target):'';
+  schedulePensionContributionModalHeight();
 }
 function removePensionItemLocally(target,key){
   if(target==='cashSnapshot'){
@@ -389,6 +501,7 @@ function syncPensionContributionTargetUi(){
     output.textContent='';
     output.classList.remove('show');
   }
+  schedulePensionContributionModalHeight();
 }
 function pensionEtfTradeDraft(){
   const tradeDate=String(document.getElementById('pensionEtfTradeDate')?.value||'').trim();
@@ -860,6 +973,7 @@ function renderPensionBatchQueue(){
     apply.disabled=pensionEditorState.batchQueue.length===0||!!error||pensionEditorState.batchApplying;
     apply.textContent=pensionEditorState.batchApplying?'처리 중...':(pensionEditorState.batchQueue.length?`${pensionEditorState.batchQueue.length}건 일괄 적용`:'일괄 적용');
   }
+  schedulePensionContributionModalHeight();
 }
 function syncPensionBatchModeUi(){
   document.querySelectorAll('.pension-work-mode-btn').forEach(btn=>{const active=(btn.dataset.mode==='batch')===pensionEditorState.batchMode;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))});
@@ -1218,6 +1332,7 @@ function setupPensionEventDelegation({renderDashboard}={}){
     }
     const control=changed?.closest?.('[data-pension-change]');
     if(control?.dataset.pensionChange==='trade-preview')updatePensionEtfTradePreview();
+    if(changed?.closest?.('.contrib-modal'))schedulePensionContributionModalHeight();
   });
   document.addEventListener('input',event=>{
     const changed=event.target;
@@ -1230,7 +1345,10 @@ function setupPensionEventDelegation({renderDashboard}={}){
     const mode=control.dataset.pensionInput;
     if(mode==='money'||mode==='money-preview')formatPensionMoneyInput(control);
     if(mode==='trade-preview'||mode==='money-preview')updatePensionEtfTradePreview();
+    if(changed?.closest?.('.contrib-modal'))schedulePensionContributionModalHeight();
   });
+  window.addEventListener('resize',schedulePensionContributionModalHeight);
+  window.addEventListener('orientationchange',schedulePensionContributionModalHeight);
 }
 
 export {

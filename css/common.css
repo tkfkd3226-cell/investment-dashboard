@@ -2514,9 +2514,7 @@ body.contrib-modal-open{
   position:relative;
   z-index:12001;
   width:var(--modal-card-width);
-  /* Pension modal frame height · 탭/처리 방식 전환 시 외곽 높이는 유지하고 남는 공간은 맨 아래에서만 흡수한다. */
-  height:min(calc(100vh - 36px),820px);
-  height:min(calc(100dvh - 36px),820px);
+  /* Pension modal frame height · JS가 개별/작업모음 × 3개 조정 항목의 실제 최대 높이를 적용하고, 여기서는 viewport 상한만 보장한다. */
   max-height:min(calc(100vh - 36px),820px);
   max-height:min(calc(100dvh - 36px),820px);
   overflow:auto;
