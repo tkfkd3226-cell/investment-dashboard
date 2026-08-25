@@ -42,26 +42,26 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
         cashReturn=pensionCashCost?cashProfit/pensionCashCost*100:0,
         cashWeight=x.pensionEval?x.pensionCash/x.pensionEval*100:0;
   const rows=orderedPensionRows.map(r=>({
-    className:'asset-item-row',
     labelHtml:`${mobileTableAssetName(r.name)}${pensionProductSwatch(r.name)}`,
     cells:[
       {className:'num table-cell-center',html:fmt(r.qty)},
-      {className:'num table-cell-right',html:fmt(r.qty?r.cost/r.qty:0)},
-      {className:'num table-cell-right',html:fmt(r.cost)},
-      {className:'num table-cell-right',html:fmt(r.evalAmount)},
-      {className:`num table-cell-right ${tableCls(r.profit)}`,html:fmt(r.profit)},
+      {className:'num',html:fmt(r.qty?r.cost/r.qty:0)},
+      {className:'num',html:fmt(r.cost)},
+      {className:'num',html:fmt(r.evalAmount)},
+      {className:`num ${tableCls(r.profit)}`,html:fmt(r.profit)},
       {className:`num table-cell-center ${tableCls(r.returnRate)}`,html:pct(r.returnRate)},
       {className:'num table-cell-center',html:renderAssetWeight({label:r.name,weight:x.pensionEval?r.evalAmount/x.pensionEval*100:0,color:pensionSeriesColor(r.name)})}
     ]
   }));
   rows.push({
+    labelClass:'table-label-regular',
     labelHtml:'현금성자산',
     cells:[
       {className:'num table-cell-center',html:'-'},
-      {className:'num table-cell-right',html:'-'},
-      {className:'num table-cell-right',html:fmt(pensionCashCost)},
-      {className:'num table-cell-right',html:fmt(x.pensionCash)},
-      {className:`num table-cell-right ${tableCls(cashProfit)}`,html:fmt(cashProfit)},
+      {className:'num',html:'-'},
+      {className:'num',html:fmt(pensionCashCost)},
+      {className:'num',html:fmt(x.pensionCash)},
+      {className:`num ${tableCls(cashProfit)}`,html:fmt(cashProfit)},
       {className:`num table-cell-center ${tableCls(cashReturn)}`,html:pct(cashReturn)},
       {className:'num table-cell-center',html:renderAssetWeight({label:'현금성자산',weight:cashWeight,fillClass:'bar-gray'})}
     ]
@@ -71,10 +71,10 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
     labelHtml:'합계',
     cells:[
       {className:'table-cell-center',html:'-'},
-      {className:'table-cell-right',html:'-'},
-      {className:'num table-cell-right',html:fmt(pensionHeldCost)},
-      {className:'num table-cell-right',html:fmt(x.pensionEval)},
-      {className:`num table-cell-right ${tableCls(pensionHeldProfit)}`,html:fmt(pensionHeldProfit)},
+      {className:'num',html:'-'},
+      {className:'num',html:fmt(pensionHeldCost)},
+      {className:'num',html:fmt(x.pensionEval)},
+      {className:`num ${tableCls(pensionHeldProfit)}`,html:fmt(pensionHeldProfit)},
       {className:`num table-cell-center ${tableCls(pensionHeldReturn)}`,html:pct(pensionHeldReturn)},
       {className:'num table-cell-center',html:renderAssetWeight({label:'합계',weight:100,fillClass:'bar-gray'})}
     ]
@@ -100,7 +100,7 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
     icon:'package',
     caption:'퇴직연금 상품별 현황',
     columns:[
-      {label:'상품'},
+      {label:'상품',className:'table-cell-text'},
       {label:'수량',className:'table-cell-center'},
       {label:'평균단가'},
       {label:'매수원금'},
@@ -126,26 +126,26 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
   const rows=orderedPensionRows.map(r=>({
     labelHtml:`<strong>${mobileTableAssetName(r.name)}</strong>${pensionProductSwatch(r.name)}`,
     cells:[
-      {className:'num table-cell-right',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval">${r.prevEval==null?'-':won(r.prevEval)}</span>`},
-      {className:'num table-cell-right',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval">${won(r.evalAmount)}</span><span class="asset-change-mobile-delta ${tableCls(r.dayChange)}"><span class="visually-hidden">일변동 </span>${r.dayChange==null?'-':signed(r.dayChange)}</span>`},
-      {className:`num table-cell-right asset-change-delta-col ${tableCls(r.dayChange)}`,html:r.dayChange==null?'-':signed(r.dayChange)}
+      {className:'num',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':won(r.prevEval)}</span>`},
+      {className:'num',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval data-table-sub">${won(r.evalAmount)}</span><span class="asset-change-mobile-delta ${tableCls(r.dayChange)}"><span class="visually-hidden">일변동 </span>${r.dayChange==null?'-':signed(r.dayChange)}</span>`},
+      {className:`num asset-change-delta-col ${tableCls(r.dayChange)}`,html:r.dayChange==null?'-':signed(r.dayChange)}
     ]
   }));
   rows.push({
     labelHtml:'현금성자산',
     cells:[
-      {className:'num table-cell-right',html:`<span class="change-price">—</span><span class="change-eval">${won(x.prevPensionCash)}</span>`},
-      {className:'num table-cell-right',html:`<span class="change-price">—</span><span class="change-eval">${won(x.pensionCash)}</span><span class="asset-change-mobile-delta ${tableCls(x.pensionCashDayChange)}"><span class="visually-hidden">일변동 </span>${signed(x.pensionCashDayChange)}</span>`},
-      {className:`num table-cell-right asset-change-delta-col ${tableCls(x.pensionCashDayChange)}`,html:signed(x.pensionCashDayChange)}
+      {className:'num',html:`<span class="change-price">—</span><span class="change-eval data-table-sub">${won(x.prevPensionCash)}</span>`},
+      {className:'num',html:`<span class="change-price">—</span><span class="change-eval data-table-sub">${won(x.pensionCash)}</span><span class="asset-change-mobile-delta ${tableCls(x.pensionCashDayChange)}"><span class="visually-hidden">일변동 </span>${signed(x.pensionCashDayChange)}</span>`},
+      {className:`num asset-change-delta-col ${tableCls(x.pensionCashDayChange)}`,html:signed(x.pensionCashDayChange)}
     ]
   });
   const summaryRows=[{
     className:'summary-row',
     labelHtml:'합계',
     cells:[
-      {className:'num table-cell-right',html:fmt(x.pensionPrevEval)},
-      {className:'num table-cell-right',html:`${fmt(x.pensionEval)}<span class="asset-change-mobile-delta ${tableCls(day)}"><span class="visually-hidden">일변동 </span>${signed(day)}</span>`},
-      {className:`num table-cell-right asset-change-delta-col ${tableCls(day)}`,html:signed(day)}
+      {className:'num',html:fmt(x.pensionPrevEval)},
+      {className:'num',html:`${fmt(x.pensionEval)}<span class="asset-change-mobile-delta ${tableCls(day)}"><span class="visually-hidden">일변동 </span>${signed(day)}</span>`},
+      {className:`num asset-change-delta-col ${tableCls(day)}`,html:signed(day)}
     ]
   }];
   const cards=orderedPensionRows.map(r=>({
@@ -176,7 +176,7 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
     ],
     caption:'퇴직연금 전일 대비 상품별 변동',
     columns:[
-      {label:'상품'},
+      {label:'상품',className:'table-cell-text'},
       {label:`${prevDateLabel} 종가`},
       {label:`${currentDateLabel} 종가`},
       {label:'일변동',className:'asset-change-delta-col'}

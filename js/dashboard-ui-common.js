@@ -233,7 +233,7 @@ function renderAssetWeight({label='',weight=0,color='',fillClass=''}={}){
   const weightText=safeWeight.toFixed(1);
   const fillClasses=['bar-fill',fillClass].filter(Boolean).join(' ');
   const fillStyle=`width:${weightText}%${color?`;background:${color}`:''}`;
-  return `<div class="bar-box" role="progressbar" aria-label="${escapeHtml(label)} 비중" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${weightText}" aria-valuetext="${weightText}%"><div class="${fillClasses}" aria-hidden="true" style="${fillStyle}"></div></div><div class="small">${weightText}%</div>`;
+  return `<div class="bar-box" role="progressbar" aria-label="${escapeHtml(label)} 비중" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${weightText}" aria-valuetext="${weightText}%"><div class="${fillClasses}" aria-hidden="true" style="${fillStyle}"></div></div><div class="small data-table-sub">${weightText}%</div>`;
 }
 function renderAssetContributionCard({
   idPrefix='assetContribution',
