@@ -129,20 +129,19 @@ function renderPensionContributionModal(x){
   <input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="control-tab-group contrib-target-tabs" role="tablist" aria-label="조정 항목 선택" aria-orientation="horizontal"><button type="button" id="pension-target-tab-cash" class="control-tab contrib-target-option active" role="tab" aria-selected="true" aria-controls="pensionContribTargetPanel" tabindex="0" data-target="cashSnapshot" data-pension-action="set-target">현금성자산</button><button type="button" id="pension-target-tab-contribution" class="control-tab contrib-target-option" role="tab" aria-selected="false" aria-controls="pensionContribTargetPanel" tabindex="-1" data-target="contribution" data-pension-action="set-target">기업적립금</button><button type="button" id="pension-target-tab-trade" class="control-tab contrib-target-option" role="tab" aria-selected="false" aria-controls="pensionContribTargetPanel" tabindex="-1" data-target="etfTrade" data-pension-action="set-target">추가 매수</button></div>
 </div>
 <div id="pensionContribTargetPanel" role="tabpanel" aria-labelledby="pension-target-tab-cash">
-<div class="pension-contrib-tool modal-card-box" role="group" aria-labelledby="pensionContribRegisterTitle">
-  <h3 id="pensionContribRegisterTitle">등록</h3>
+<div class="pension-contrib-tool modal-card-box" role="group" aria-label="등록">
   <div id="pensionContribStandardFields" class="pension-adjust-form cash-mode">
-    <div class="contrib-field"><label for="pensionContribDate">일자</label><input id="pensionContribDate" type="date" value="${cashDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></div>
-    <div class="contrib-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">평가금액</label><input id="pensionContribAmount" type="text" inputmode="numeric" value="${cashDefaultValue}" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}" data-pension-input="money"></div>
-    <div id="pensionCashCostField" class="contrib-field"><label for="pensionCashCostBasis">매수원금</label><input id="pensionCashCostBasis" type="text" inputmode="numeric" value="${cashDefaultCostBasis}" data-cash-default-value="${cashDefaultCostBasis}" data-pension-input="money"></div>
-    <div class="contrib-field full"><label for="pensionContribMemo">메모</label><input id="pensionContribMemo" type="text" value="현금성자산 앱 확인" data-contrib-default-memo="${contribDefaultMemo}" data-cash-default-memo="현금성자산 앱 확인"></div>
+    <div class="contrib-field pension-cash-date-field"><label for="pensionContribDate">일자</label><span class="pension-control-shell pension-date-shell"><input id="pensionContribDate" type="date" value="${cashDefaultDate}" data-contrib-default-date="${contribDefaultDate}" data-cash-default-date="${cashDefaultDate}"></span></div>
+    <div class="contrib-field pension-cash-amount-field"><label id="pensionContribAmountLabel" for="pensionContribAmount">평가금액</label><span class="pension-control-shell"><input id="pensionContribAmount" type="text" inputmode="numeric" value="${cashDefaultValue}" data-contrib-default-value="618,060" data-cash-default-value="${cashDefaultValue}" data-pension-input="money"></span></div>
+    <div id="pensionCashCostField" class="contrib-field pension-cash-cost-field"><label for="pensionCashCostBasis">매수원금</label><span class="pension-control-shell"><input id="pensionCashCostBasis" type="text" inputmode="numeric" value="${cashDefaultCostBasis}" data-cash-default-value="${cashDefaultCostBasis}" data-pension-input="money"></span></div>
+    <div class="contrib-field full pension-cash-memo-field"><label for="pensionContribMemo">메모</label><span class="pension-control-shell"><input id="pensionContribMemo" type="text" value="현금성자산 앱 확인" data-contrib-default-memo="${contribDefaultMemo}" data-cash-default-memo="현금성자산 앱 확인"></span></div>
   </div>
   <div id="pensionEtfTradeFields" class="pension-etf-trade-fields" hidden>
     <div class="pension-adjust-form trade-mode">
-      <div class="contrib-field full"><label for="pensionEtfTradeDate">신청일</label><input id="pensionEtfTradeDate" type="date" value="${cashDefaultDate}" data-pension-change="trade-preview"></div>
-      <div class="contrib-field full"><label for="pensionEtfTradeTicker">ETF 상품</label><select id="pensionEtfTradeTicker" data-pension-change="trade-preview">${pensionTradeProductOptions()}</select></div>
-      <div class="contrib-field"><label for="pensionEtfTradeQty">체결수량</label><input id="pensionEtfTradeQty" type="text" inputmode="numeric" data-pension-input="trade-preview"></div>
-      <div class="contrib-field"><label for="pensionEtfTradeAmount">체결금액</label><input id="pensionEtfTradeAmount" type="text" inputmode="numeric" data-pension-input="money-preview"></div>
+      <div class="contrib-field full pension-trade-date-field"><label for="pensionEtfTradeDate">신청일</label><span class="pension-control-shell pension-date-shell"><input id="pensionEtfTradeDate" type="date" value="${cashDefaultDate}" data-pension-change="trade-preview"></span></div>
+      <div class="contrib-field full pension-trade-product-field"><label for="pensionEtfTradeTicker">ETF 상품</label><span class="pension-control-shell pension-select-shell"><select id="pensionEtfTradeTicker" data-pension-change="trade-preview">${pensionTradeProductOptions()}</select></span></div>
+      <div class="contrib-field pension-trade-qty-field"><label for="pensionEtfTradeQty">체결수량</label><span class="pension-control-shell"><input id="pensionEtfTradeQty" type="text" inputmode="numeric" data-pension-input="trade-preview"></span></div>
+      <div class="contrib-field pension-trade-amount-field"><label for="pensionEtfTradeAmount">체결금액</label><span class="pension-control-shell"><input id="pensionEtfTradeAmount" type="text" inputmode="numeric" data-pension-input="money-preview"></span></div>
     </div>
     <div class="pension-etf-trade-apply-note">앱 반영일 <strong id="pensionEtfTradeApplyDate">${applyDate}</strong> · 저장한 날 기준으로 보유수량/원가/현금에 적용</div>
     <div id="pensionEtfTradePreview" class="pension-etf-trade-preview"><span class="small">상품·수량·체결금액을 입력하면 적용 후 예상값을 보여줍니다.</span></div>
@@ -154,8 +153,7 @@ function renderPensionContributionModal(x){
   <div id="pensionContribOutputFile" class="contrib-output-file" hidden></div>
   <pre id="pensionContribOutput" class="contrib-output"></pre>
 </div>
-<div id="pensionContribDeleteCard" class="contrib-list modal-card-box" role="group" aria-labelledby="pensionContribDeleteTitle"${pensionCashSnapshotItems().length?'':' hidden'}>
-  <h3 id="pensionContribDeleteTitle">삭제</h3>
+<div id="pensionContribDeleteCard" class="contrib-list modal-card-box" role="group" aria-label="삭제"${pensionCashSnapshotItems().length?'':' hidden'}>
   <p id="pensionContribDeleteHelp" class="small">잘못 등록한 현금성자산 기록 선택 후 삭제</p>
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList('cashSnapshot')}</div>
   <div class="contrib-actions"><button type="button" id="pensionContribDeleteButton" class="control-action-button compact danger contrib-btn" data-pension-action="delete-selected">선택 항목 삭제</button></div>

@@ -23,6 +23,21 @@
       --chart-content-rhythm-gap:var(--space-2xl);
     }
 
+  /* Pension Contribution Modal Tablet · semantic token만 한 단계 축소 */
+    .contrib-modal{
+      --pension-modal-title-size:var(--type-size-2xl);
+      --pension-modal-label-size:var(--type-size-xs);
+      --pension-modal-control-size:var(--type-size-xs);
+      --pension-modal-tab-size:var(--type-size-md);
+      --pension-modal-tab-height:29px;
+      --pension-modal-mode-size:var(--type-size-xs);
+      --pension-modal-action-size:var(--type-size-xs);
+      --pension-modal-action-height:29px;
+      --pension-modal-delete-title-size:var(--type-size-xs);
+      --pension-modal-delete-memo-size:var(--type-size-xs);
+      --pension-modal-pad:var(--space-5xl);
+    }
+
     .hero{
       --hero-pad-y:18px;
       --hero-pad-x:20px;

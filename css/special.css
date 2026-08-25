@@ -585,17 +585,39 @@
     .chart-card .chart-scroll-end{display:none}
 
   /* Modal Landscape · 중앙형 구조 복원 + iPhone Safari 확대 방지 입력 폰트 */
-    .action-modal{align-items:center;padding:20px}
-    .action-modal-card{padding:var(--space-10xl)}
-    .action-modal-input{font-size:var(--type-size-2xl)}
+    .action-modal{
+      align-items:center;
+      --modal-overlay-pad:20px;
+      --modal-card-pad-y:var(--space-10xl);
+      --modal-card-pad-x:var(--space-10xl);
+      --modal-control-font-size:var(--type-size-2xl);
+    }
     .krx-action-buttons{gap:var(--space-2xl)}
     .krx-action-buttons .action-modal-btn{min-height:40px;height:40px;padding:0 var(--space-4xl);font-size:var(--type-size-sm)}
-    .contrib-modal{--contrib-control-font-size:var(--type-size-2xl)}
-    .contrib-modal-card{width:min(760px,100%);padding:var(--space-6xl)}
+    .contrib-modal{
+      --pension-modal-title-size:var(--type-size-lg);
+      --pension-modal-label-size:var(--type-size-2xs);
+      --pension-modal-control-size:var(--type-size-2xl);
+      --pension-modal-control-scale:.625;
+      --pension-modal-control-inner-width:160%;
+      --pension-modal-control-inner-height:160%;
+      --pension-modal-control-inner-pad-y:var(--space-2xl);
+      --pension-modal-control-inner-pad-x:var(--space-2xl);
+      --pension-modal-control-inner-icon-pad-right:calc(var(--space-8xl) + var(--space-7xl));
+      --pension-modal-tab-size:var(--type-size-sm);
+      --pension-modal-tab-height:28px;
+      --pension-modal-mode-size:var(--type-size-2xs);
+      --pension-modal-action-size:var(--type-size-2xs);
+      --pension-modal-action-height:28px;
+      --pension-modal-delete-title-size:var(--type-size-2xs);
+      --pension-modal-delete-memo-size:var(--type-size-2xs);
+      --modal-card-width:min(760px,100%);
+      --pension-modal-pad:var(--space-4xl);
+    }
     .contrib-modal .pension-adjust-form{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .contrib-existing-item{padding:var(--space-3xl) var(--space-4xl)}
-    .contrib-existing-title{display:inline-block;margin-right:var(--space-4xl);font-size:var(--type-size-md);line-height:normal}
-    .contrib-existing-memo{display:inline-block;margin:0 0 0 var(--space-2xs);font-size:var(--type-size-sm);line-height:normal}
+    .contrib-existing-item{align-items:center}
+    .contrib-existing-title{display:inline-block;margin-right:var(--space-4xl);line-height:normal}
+    .contrib-existing-memo{display:inline-block;margin:0 0 0 var(--space-2xs);line-height:normal}
     .pension-etf-trade-preview-grid{grid-template-columns:minmax(110px,.8fr) minmax(0,1.2fr);gap:var(--space-xl) var(--space-5xl)}
     .pension-etf-trade-preview-grid strong{margin-bottom:0;text-align:right}
 }

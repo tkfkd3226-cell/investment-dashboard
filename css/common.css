@@ -141,6 +141,11 @@
   --modal-action-gap:12px;
   --modal-focus-ring:rgba(43,61,89,.18);
   --focus-ring-shadow:0 0 0 3px var(--modal-focus-ring);
+  /* Modal / Form Control Contract · KRX·퇴직연금 등 modal이 공유하는 구조 토큰 */
+  --modal-control-border:var(--control-border);
+  --modal-control-focus-border:var(--control-focus-border);
+  --modal-control-focus-ring:var(--focus-ring-shadow);
+  --modal-control-transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
   --interaction-row-bg:#f4f4f4;
   --nav-current-shadow:inset 3px 0 0 var(--nav-current-indicator);
   --table-summary-separator-shadow:inset 0 1px 0 var(--table-column-line);
@@ -2306,27 +2311,45 @@ body.chart-expanded-open .dash-tooltip{
 .contrib-field.full{
   grid-column:1/-1;
 }
-.contrib-modal .pension-adjust-form.cash-mode > .contrib-field:first-child{
-  grid-column:1/-1;
+/* Pension form semantic layout · cash/date+memo, amount+cost / ETF date+product를 같은 행으로 유지 */
+.contrib-modal .pension-adjust-form.cash-mode{
+  grid-template-areas:
+    "cash-date cash-memo"
+    "cash-amount cash-cost";
 }
+.contrib-modal .pension-adjust-form.cash-mode .pension-cash-date-field{grid-area:cash-date}
+.contrib-modal .pension-adjust-form.cash-mode .pension-cash-memo-field{grid-area:cash-memo;grid-column:auto}
+.contrib-modal .pension-adjust-form.cash-mode .pension-cash-amount-field{grid-area:cash-amount}
+.contrib-modal .pension-adjust-form.cash-mode .pension-cash-cost-field{grid-area:cash-cost}
+.contrib-modal .pension-adjust-form.trade-mode{
+  grid-template-areas:
+    "trade-date trade-product"
+    "trade-qty trade-amount";
+}
+.contrib-modal .pension-adjust-form.trade-mode .pension-trade-date-field{grid-area:trade-date;grid-column:auto}
+.contrib-modal .pension-adjust-form.trade-mode .pension-trade-product-field{grid-area:trade-product;grid-column:auto}
+.contrib-modal .pension-adjust-form.trade-mode .pension-trade-qty-field{grid-area:trade-qty}
+.contrib-modal .pension-adjust-form.trade-mode .pension-trade-amount-field{grid-area:trade-amount}
 .contrib-field label,
 .contrib-field-label{
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-emphasis);
   color:var(--muted);
 }
-.contrib-field input,
-.contrib-field select{
+.contrib-modal :is(.contrib-field label,.contrib-field-label){font-size:var(--pension-modal-label-size)}
+/* Modal Form Control Primitive · action modal과 pension modal의 border/radius/padding/state 골격 공통화 */
+:is(.action-modal-input,.contrib-field input,.contrib-field select){
   width:100%;
   box-sizing:border-box;
-  border:1px solid var(--control-border);
-  border-radius:min(var(--control-radius-md),var(--corner-control-cap));
-  padding:var(--space-3xl) var(--space-4xl);
-  font-size:var(--type-size-md);
-  font-weight:var(--type-weight-strong);
-  background:var(--field-bg);
-  color:var(--field-text);
-  transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
+  border:1px solid var(--modal-control-border);
+  border-radius:var(--modal-control-radius);
+  padding:var(--modal-control-pad-y) var(--modal-control-pad-x);
+  font-family:inherit;
+  font-size:var(--modal-control-font-size);
+  font-weight:var(--modal-control-font-weight);
+  background:var(--modal-control-bg);
+  color:var(--modal-control-text);
+  transition:var(--modal-control-transition);
 }
 /* Field Light/Dark colors resolve through --field-bg / --field-text. */
 .contrib-actions{
@@ -2398,12 +2421,72 @@ body.chart-expanded-open .dash-tooltip{
   inset:0;
   display:none;
   justify-content:center;
-  --contrib-control-font-size:var(--type-size-md);
+  /* Pension Modal Semantic Tokens · 이후 breakpoint는 selector 재작성보다 이 값만 조정 */
+  --pension-modal-pad:var(--space-6xl);
+  --pension-modal-title-size:var(--type-size-4xl);
+  --pension-modal-label-size:var(--type-size-sm);
+  --pension-modal-control-size:var(--type-size-sm);
+  /* Input density / iOS visual-scale tokens · 실제 control box와 글자 렌더링을 분리해 관리 */
+  --pension-modal-control-pad-y:var(--space-md);
+  --pension-modal-control-pad-x:var(--space-md);
+  --pension-modal-control-scale:1;
+  --pension-modal-control-inner-width:100%;
+  --pension-modal-control-inner-height:100%;
+  --pension-modal-control-inner-pad-y:var(--pension-modal-control-pad-y);
+  --pension-modal-control-inner-pad-x:var(--pension-modal-control-pad-x);
+  --pension-modal-control-icon-inset:var(--space-md);
+  --pension-modal-control-icon-size:var(--space-5xl);
+  --pension-modal-control-inner-icon-pad-right:calc(var(--space-md) + var(--space-5xl) + var(--space-sm));
+  --pension-modal-tab-size:var(--type-size-lg);
+  --pension-modal-tab-height:30px;
+  --pension-modal-tab-pad-x:var(--space-3xl);
+  --pension-modal-mode-size:var(--type-size-sm);
+  --pension-modal-mode-height:var(--dashboard-control-height);
+  --pension-modal-action-size:var(--type-size-sm);
+  --pension-modal-action-height:30px;
+  --pension-modal-delete-title-size:var(--type-size-sm);
+  --pension-modal-delete-title-weight:var(--type-weight-regular);
+  --pension-modal-delete-memo-size:var(--type-size-sm);
+  --pension-modal-delete-memo-weight:var(--type-weight-regular);
+  --pension-modal-head-gap:var(--space-2xl);
+  --pension-modal-head-action-gap:var(--space-sm);
+  --pension-modal-context-gap:var(--space-md);
+  --pension-modal-section-gap:var(--space-2xl);
+  --pension-modal-card-pad:var(--space-4xl);
+  --pension-modal-form-gap:var(--space-lg);
+  --pension-modal-field-gap:var(--space-xs);
+  --pension-modal-action-margin-top:var(--space-md);
+  --pension-modal-list-gap:var(--space-lg);
+  --pension-modal-item-gap:var(--space-lg);
+  --pension-modal-item-pad-y:var(--space-lg);
+  --pension-modal-item-pad-x:var(--space-2xl);
+  --pension-modal-delete-item-pad-y:var(--space-xs);
+  --pension-modal-delete-item-pad-x:var(--space-sm);
+  --pension-modal-aux-gap:var(--space-lg);
+  --pension-modal-aux-pad-y:var(--space-lg);
+  --pension-modal-aux-pad-x:var(--space-2xl);
+  --pension-modal-batch-pad:var(--space-4xl);
+  /* Shared modal contract에 현재 pension 값을 연결한다. */
+  --modal-overlay-color:var(--modal-overlay);
+  --modal-overlay-pad:var(--space-8xl);
+  --modal-backdrop-blur:3px;
+  --modal-card-width:min(760px,100%);
+  --modal-card-radius:min(22px,var(--corner-surface-cap));
+  --modal-card-pad-y:var(--pension-modal-pad);
+  --modal-card-pad-x:var(--pension-modal-pad);
+  --modal-control-height:38px;
+  --modal-control-radius:min(var(--control-radius-md),var(--corner-control-cap));
+  --modal-control-pad-y:var(--pension-modal-control-pad-y);
+  --modal-control-pad-x:var(--pension-modal-control-pad-x);
+  --modal-control-font-size:var(--pension-modal-control-size);
+  --modal-control-font-weight:var(--type-weight-strong);
+  --modal-control-bg:var(--field-bg);
+  --modal-control-text:var(--field-text);
   z-index:12000;
   align-items:center;
-  padding:var(--space-8xl);
-  background:var(--modal-overlay);
-  backdrop-filter:blur(3px);
+  padding:var(--modal-overlay-pad);
+  background:var(--modal-overlay-color);
+  backdrop-filter:blur(var(--modal-backdrop-blur));
 }
 .contrib-modal.show{
   display:flex;
@@ -2414,15 +2497,15 @@ body.contrib-modal-open{
 .contrib-modal-card{
   position:relative;
   z-index:12001;
-  width:min(760px,100%);
+  width:var(--modal-card-width);
   max-height:min(calc(100vh - 36px),820px);
   max-height:min(calc(100dvh - 36px),820px);
   overflow:auto;
-  border-radius:min(22px,var(--corner-surface-cap));
+  border-radius:var(--modal-card-radius);
   background:var(--modal-surface);
   border:1px solid var(--modal-border);
   box-shadow:var(--shadow-high);
-  padding:var(--space-8xl);
+  padding:var(--modal-card-pad-y) var(--modal-card-pad-x);
 }
 /* Contribution modal surface resolves through --modal-surface / --modal-border. */
 .contrib-modal-head{
@@ -2435,6 +2518,7 @@ body.contrib-modal-open{
 .contrib-modal-head > div{
   min-width:0;
 }
+.contrib-modal .modal-main-title{font-size:var(--pension-modal-title-size)}
 .contrib-modal-head p{
   margin:var(--space-sm) 0 0;
   color:var(--muted);
@@ -2480,12 +2564,6 @@ body.contrib-modal-open{
 .modal-card-box:first-of-type{
   margin-top:0;
 }
-.contrib-list h3,
-.pension-contrib-tool h3{
-  margin:0 0 var(--space-sm);
-  font-size:var(--type-size-lg);
-  letter-spacing:-.03em;
-}
 .contrib-list .small,
 .pension-contrib-tool .small{
   margin:0 0 var(--space-4xl);
@@ -2495,41 +2573,95 @@ body.contrib-modal-open{
   min-width:0;
   overflow:hidden;
 }
-.contrib-modal .contrib-field input,
-.contrib-modal .contrib-field select{
+/* Pension Control Shell · border/focus/touch box는 유지하고 모바일에서 내부 control만 시각 축소한다. */
+.contrib-modal .pension-control-shell{
+  position:relative;
   display:block;
   width:100%;
-  max-width:100%;
   min-width:0;
-  height:38px;
+  height:var(--modal-control-height);
   box-sizing:border-box;
-  font-family:inherit;
-  font-size:var(--contrib-control-font-size);
-  font-weight:var(--type-weight-strong);
-  line-height:normal;
+  overflow:hidden;
+  border:1px solid var(--modal-control-border);
+  border-radius:var(--modal-control-radius);
+  background:var(--modal-control-bg);
+  transition:var(--modal-control-transition);
 }
-/* iOS Safari native date control 예외 · WebKit 내부 control이 일반 input의 font/padding을 덮어쓸 수 있어 명시적으로 고정한다. */
-.contrib-modal input[type="date"]{
+.contrib-modal .pension-control-shell:focus-within{
+  border-color:var(--modal-control-focus-border);
+  box-shadow:var(--modal-control-focus-ring);
+}
+.contrib-modal .pension-control-shell > :is(input,select){
+  display:block;
+  width:var(--pension-modal-control-inner-width);
+  max-width:none;
+  min-width:0;
+  height:var(--pension-modal-control-inner-height);
+  box-sizing:border-box;
+  border:0;
+  border-radius:0;
+  outline:0;
+  box-shadow:none;
+  padding:var(--pension-modal-control-inner-pad-y) var(--pension-modal-control-inner-pad-x);
+  font-family:inherit;
+  font-size:var(--modal-control-font-size);
+  font-weight:var(--modal-control-font-weight);
+  line-height:normal;
+  background:transparent;
+  color:var(--modal-control-text);
+  transform:scale(var(--pension-modal-control-scale));
+  transform-origin:top left;
+}
+.contrib-modal .pension-control-shell > :is(input,select):focus{
+  border:0;
+  outline:0;
+  box-shadow:none;
+}
+/* Date/select icon은 같은 inset token을 사용해 우측 기준선을 맞춘다. */
+.contrib-modal :is(.pension-date-shell,.pension-select-shell)::after{
+  content:"";
+  position:absolute;
+  z-index:1;
+  top:50%;
+  right:var(--pension-modal-control-icon-inset);
+  width:var(--pension-modal-control-icon-size);
+  height:var(--pension-modal-control-icon-size);
+  transform:translateY(-50%);
+  background:var(--muted);
+  pointer-events:none;
+}
+.contrib-modal .pension-date-shell::after{
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 2v3M17 2v3M3.5 9h17M5.5 4h13a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 2v3M17 2v3M3.5 9h17M5.5 4h13a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.contrib-modal .pension-select-shell::after{
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.contrib-modal :is(.pension-date-shell input[type="date"],.pension-select-shell select){
+  padding-right:var(--pension-modal-control-inner-icon-pad-right);
+}
+.contrib-modal .pension-select-shell select{
   -webkit-appearance:none;
   appearance:none;
-  font-family:inherit;
-  font-size:var(--contrib-control-font-size);
-  font-weight:var(--type-weight-strong);
-  line-height:normal;
-  text-align:left;
-  color:var(--text);
-  padding:var(--space-3xl) var(--space-4xl);
 }
-.contrib-modal input[type="date"]::-webkit-date-and-time-value{
+.contrib-modal .pension-date-shell input[type="date"]{
+  -webkit-appearance:none;
+  appearance:none;
+  text-align:left;
+}
+.contrib-modal .pension-date-shell input[type="date"]::-webkit-date-and-time-value{
   text-align:left;
   font-family:inherit;
-  font-size:var(--contrib-control-font-size);
-  font-weight:var(--type-weight-strong);
+  font-size:inherit;
+  font-weight:inherit;
   line-height:normal;
-  color:var(--text);
+  color:inherit;
 }
-.contrib-modal input[type="date"]::-webkit-calendar-picker-indicator{
-  margin-left:auto;
+.contrib-modal .pension-date-shell input[type="date"]::-webkit-calendar-picker-indicator{
+  opacity:0;
+  margin:0;
+  padding:0;
 }
 
 .token-guide{
@@ -2607,11 +2739,6 @@ body.contrib-modal-open{
   padding:var(--space-5xl);
   background:var(--modal-panel-surface);
 }
-.contrib-list h3{
-  margin:0 0 var(--space-md);
-  font-size:var(--type-size-lg);
-  letter-spacing:-.03em;
-}
 .contrib-existing-list{
   display:flex;
   flex-direction:column;
@@ -2637,7 +2764,7 @@ body.contrib-modal-open{
 /* Existing-list scrollbar Light/Dark color resolves through --scrollbar-color. */
 .contrib-existing-item{
   display:flex;
-  align-items:flex-start;
+  align-items:center;
   gap:var(--space-2xl);
   border:1px solid var(--modal-border);
   background:var(--modal-item-surface);
@@ -2647,7 +2774,8 @@ body.contrib-modal-open{
 }
 /* Existing-item Light/Dark surface resolves through --modal-item-surface. */
 .contrib-existing-item input{
-  margin-top:var(--space-xs);
+  flex:0 0 auto;
+  margin:0;
 }
 .contrib-existing-main{
   display:block;
@@ -2658,8 +2786,8 @@ body.contrib-modal-open{
   display:inline-block;
   margin-right:var(--space-4xl);
   vertical-align:baseline;
-  font-size:var(--type-size-md);
-  font-weight:var(--type-weight-emphasis);
+  font-size:var(--pension-modal-delete-title-size);
+  font-weight:var(--pension-modal-delete-title-weight);
   color:var(--text);
 }
 .contrib-existing-memo{
@@ -2667,8 +2795,8 @@ body.contrib-modal-open{
   margin-top:0;
   margin-left:var(--space-2xs);
   vertical-align:baseline;
-  font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-bold);
+  font-size:var(--pension-modal-delete-memo-size);
+  font-weight:var(--pension-modal-delete-memo-weight);
   color:var(--muted);
   word-break:break-word;
 }
@@ -3013,9 +3141,24 @@ body.contrib-modal-open{
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:20px;
-  background:var(--modal-overlay-soft);
-  backdrop-filter:blur(6px);
+  --modal-overlay-color:var(--modal-overlay-soft);
+  --modal-overlay-pad:20px;
+  --modal-backdrop-blur:6px;
+  --modal-card-width:min(420px,100%);
+  --modal-card-radius:min(24px,var(--corner-surface-cap));
+  --modal-card-pad-y:var(--space-10xl);
+  --modal-card-pad-x:var(--space-10xl);
+  --modal-control-height:44px;
+  --modal-control-radius:min(14px,var(--corner-control-cap));
+  --modal-control-pad-y:0px;
+  --modal-control-pad-x:13px;
+  --modal-control-font-size:var(--type-size-xl);
+  --modal-control-font-weight:var(--type-weight-regular);
+  --modal-control-bg:var(--action-input-bg);
+  --modal-control-text:var(--action-input-text);
+  padding:var(--modal-overlay-pad);
+  background:var(--modal-overlay-color);
+  backdrop-filter:blur(var(--modal-backdrop-blur));
 }
 :is(.krx-action-modal,.chart-date-confirm-modal){
   z-index:13000;
@@ -3025,9 +3168,9 @@ body.contrib-modal-open{
 .pension-action-pin-modal{z-index:14000}
 .action-modal-card{
   position:relative;
-  width:min(420px,100%);
-  padding:var(--space-10xl);
-  border-radius:min(24px,var(--corner-surface-cap));
+  width:var(--modal-card-width);
+  padding:var(--modal-card-pad-y) var(--modal-card-pad-x);
+  border-radius:var(--modal-card-radius);
   background:var(--modal-surface);
   border:1px solid var(--modal-border);
   box-shadow:var(--shadow-high);
@@ -3053,25 +3196,14 @@ body.contrib-modal-open{
   font-weight:var(--type-weight-regular);
 }
 .action-modal-input{
-  width:100%;
-  height:44px;
-  border:1px solid var(--control-border);
-  border-radius:min(14px,var(--corner-control-cap));
-  padding:0 13px;
-  font-family:inherit;
-  font-size:var(--type-size-xl);
-  font-weight:var(--type-weight-regular);
-  background:var(--action-input-bg);
-  color:var(--action-input-text);
+  height:var(--modal-control-height);
   outline:none;
-  box-sizing:border-box;
-  transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
 }
 /* Modal Form Focus · 모달 입력 포커스 공통 UI */
-:is(.action-modal-input,.contrib-field input,.contrib-field select):focus{
+.action-modal-input:focus{
   outline:none;
-  border-color:var(--control-focus-border);
-  box-shadow:var(--focus-ring-shadow);
+  border-color:var(--modal-control-focus-border);
+  box-shadow:var(--modal-control-focus-ring);
 }
 .action-modal-input-help{
   margin:var(--space-md) 0 0;
@@ -3647,52 +3779,59 @@ button:not(:disabled):active,
 }
 .pension-contrib-context .pension-work-mode{
   flex:0 0 auto;
+  height:var(--pension-modal-mode-height);
 }
 .pension-contrib-context .pension-work-mode .pension-work-mode-btn{
   min-width:0;
   padding-inline:var(--space-lg);
+  font-size:var(--pension-modal-mode-size);
 }
 .pension-contrib-context .contrib-target-tabs{
   width:100%;
   min-width:0;
 }
 
-/* Pension Contribution Modal Compact Rhythm · 금액 조정 모달은 폰트/상태 UI를 유지하고 세로 여백만 압축 */
-.contrib-modal-card{padding:var(--space-6xl)}
-.contrib-modal-head{gap:var(--space-2xl);margin-bottom:var(--space-2xl)}
-.contrib-modal-head p{margin-top:var(--space-xs)}
-.contrib-modal-head-actions{gap:var(--space-sm)}
+/* Pension Contribution Modal Compact Rhythm · 실제 수치는 .contrib-modal semantic token에서 단일 관리 */
+.contrib-modal-card{padding:var(--modal-card-pad-y) var(--modal-card-pad-x)}
+.contrib-modal-head{gap:var(--pension-modal-head-gap);margin-bottom:var(--pension-modal-section-gap)}
+.contrib-modal-head p{margin-top:var(--pension-modal-field-gap)}
+.contrib-modal-head-actions{gap:var(--pension-modal-head-action-gap)}
 
-/* 조정 항목 탭은 메인 자산 탭의 skin/state/typography를 유지하고 모달 안에서만 높이·내부 여백을 compact화한다. */
+/* 조정 항목 탭은 메인 자산 탭의 skin/state를 공유하고 geometry만 pension semantic token으로 분리한다. */
 .contrib-modal .contrib-target-tabs{gap:var(--space-sm);padding:var(--space-2xs)}
-.contrib-modal .contrib-target-option{min-height:var(--action-button-compact-height)}
+.contrib-modal .contrib-target-option{
+  min-height:var(--pension-modal-tab-height);
+  padding-inline:var(--pension-modal-tab-pad-x);
+  font-size:var(--pension-modal-tab-size);
+}
+.contrib-modal .contrib-btn{font-size:var(--pension-modal-action-size)}
+.contrib-modal .control-action-button.compact{min-height:var(--pension-modal-action-height);height:var(--pension-modal-action-height)}
 
-.contrib-modal .pension-contrib-context{gap:var(--space-md);margin-bottom:var(--space-2xl)}
-.contrib-modal .pension-contrib-tool{padding:var(--space-4xl)}
-.contrib-modal .modal-card-box{margin-top:var(--space-2xl)}
+.contrib-modal .pension-contrib-context{gap:var(--pension-modal-context-gap);margin-bottom:var(--pension-modal-section-gap)}
+.contrib-modal .pension-contrib-tool{padding:var(--pension-modal-card-pad)}
+.contrib-modal .modal-card-box{margin-top:var(--pension-modal-section-gap)}
 .contrib-modal .modal-card-box:first-of-type{margin-top:0}
-.contrib-modal .pension-adjust-form{gap:var(--space-lg)}
-.contrib-modal .contrib-field{gap:var(--space-xs)}
-.contrib-modal .contrib-actions{margin-top:var(--space-md)}
+.contrib-modal .pension-adjust-form{gap:var(--pension-modal-form-gap)}
+.contrib-modal .contrib-field{gap:var(--pension-modal-field-gap)}
+.contrib-modal .contrib-actions{margin-top:var(--pension-modal-action-margin-top)}
 
-.contrib-modal .contrib-list{margin-top:var(--space-2xl);padding:var(--space-4xl)}
-.contrib-modal .contrib-list h3{margin-bottom:var(--space-xs)}
+.contrib-modal .contrib-list{margin-top:var(--pension-modal-section-gap);padding:var(--pension-modal-card-pad)}
 .contrib-modal .contrib-list .small,
-.contrib-modal .pension-contrib-tool .small{margin-bottom:var(--space-2xl)}
-.contrib-modal .contrib-existing-list{gap:var(--space-lg);margin-top:var(--space-lg)}
-.contrib-modal .contrib-existing-item{gap:var(--space-lg);padding:var(--space-lg) var(--space-2xl)}
+.contrib-modal .pension-contrib-tool .small{margin-bottom:var(--pension-modal-section-gap)}
+.contrib-modal .contrib-existing-list{gap:var(--pension-modal-list-gap);margin-top:var(--pension-modal-list-gap)}
+.contrib-modal .contrib-existing-item{gap:var(--pension-modal-item-gap);padding:var(--pension-modal-delete-item-pad-y) var(--pension-modal-delete-item-pad-x)}
 
-.contrib-modal .pension-etf-trade-apply-note{margin-top:var(--space-lg);padding:var(--space-lg) var(--space-2xl)}
-.contrib-modal .pension-etf-trade-preview{margin-top:var(--space-lg);padding:var(--space-2xl)}
-.contrib-modal .pension-etf-trade-preview-title{margin-bottom:var(--space-lg)}
+.contrib-modal .pension-etf-trade-apply-note{margin-top:var(--pension-modal-aux-gap);padding:var(--pension-modal-aux-pad-y) var(--pension-modal-aux-pad-x)}
+.contrib-modal .pension-etf-trade-preview{margin-top:var(--pension-modal-aux-gap);padding:var(--pension-modal-section-gap)}
+.contrib-modal .pension-etf-trade-preview-title{margin-bottom:var(--pension-modal-aux-gap)}
 
-.contrib-modal .pension-batch-panel{padding:var(--space-4xl)}
-.contrib-modal .pension-batch-head{gap:var(--space-2xl)}
-.contrib-modal .pension-batch-queue{gap:var(--space-sm);margin-top:var(--space-lg)}
-.contrib-modal .pension-batch-item{gap:var(--space-lg);padding:var(--space-lg) var(--space-2xl)}
-.contrib-modal .pension-batch-empty{padding:var(--space-2xl)}
-.contrib-modal .pension-batch-order-note{margin-top:var(--space-md);padding:var(--space-lg) var(--space-2xl)}
-.contrib-modal .pension-batch-actions{margin-top:var(--space-md)}
+.contrib-modal .pension-batch-panel{padding:var(--pension-modal-batch-pad)}
+.contrib-modal .pension-batch-head{gap:var(--pension-modal-section-gap)}
+.contrib-modal .pension-batch-queue{gap:var(--space-sm);margin-top:var(--pension-modal-list-gap)}
+.contrib-modal .pension-batch-item{gap:var(--pension-modal-item-gap);padding:var(--pension-modal-item-pad-y) var(--pension-modal-item-pad-x)}
+.contrib-modal .pension-batch-empty{padding:var(--pension-modal-section-gap)}
+.contrib-modal .pension-batch-order-note{margin-top:var(--pension-modal-context-gap);padding:var(--pension-modal-aux-pad-y) var(--pension-modal-aux-pad-x)}
+.contrib-modal .pension-batch-actions{margin-top:var(--pension-modal-action-margin-top)}
 
 /* Separate Profit Mode · 별도수익 ON/OFF 보기 모드 */
 .separate-profit-control-row{

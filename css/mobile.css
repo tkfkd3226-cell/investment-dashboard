@@ -31,13 +31,29 @@
     .section-title > .section-title-actions,
     .section-title > .separate-profit-control-row{position:relative;top:1px}
   /* 퇴직연금 금액조정 모달: 모바일은 1열 form과 좁은 카드 폭을 사용한다. */
-    .contrib-modal{--contrib-control-font-size:var(--type-size-2xl)}
-    .contrib-modal-card{
-      width:min(100%, calc(100vw - 36px));
-      box-sizing:border-box;
-      border-radius:min(var(--surface-radius-lg),var(--corner-surface-cap));
-      padding:var(--space-6xl);
+    .contrib-modal{
+      --pension-modal-title-size:var(--type-size-lg);
+      --pension-modal-label-size:var(--type-size-2xs);
+      /* iOS Safari는 16px computed font를 유지하고 shell 내부만 62.5% 시각 축소해 10px로 보이게 한다. */
+      --pension-modal-control-size:var(--type-size-2xl);
+      --pension-modal-control-scale:.625;
+      --pension-modal-control-inner-width:160%;
+      --pension-modal-control-inner-height:160%;
+      --pension-modal-control-inner-pad-y:var(--space-2xl);
+      --pension-modal-control-inner-pad-x:var(--space-2xl);
+      --pension-modal-control-inner-icon-pad-right:calc(var(--space-8xl) + var(--space-7xl));
+      --pension-modal-tab-size:var(--type-size-sm);
+      --pension-modal-tab-height:28px;
+      --pension-modal-mode-size:var(--type-size-2xs);
+      --pension-modal-action-size:var(--type-size-2xs);
+      --pension-modal-action-height:28px;
+      --pension-modal-delete-title-size:var(--type-size-2xs);
+      --pension-modal-delete-memo-size:var(--type-size-2xs);
+      --modal-card-width:min(100%, calc(100vw - 36px));
+      --modal-card-radius:min(var(--surface-radius-lg),var(--corner-surface-cap));
+      --pension-modal-pad:var(--space-4xl);
     }
+    .contrib-modal-card{box-sizing:border-box}
     .contrib-modal-head p{
       font-size:var(--type-size-sm);
       line-height:var(--type-line-helper);
@@ -53,7 +69,7 @@
       max-height:min(18vh,160px);
     }
     .contrib-existing-item{
-      padding:var(--space-2xl) var(--space-3xl);
+      align-items:flex-start;
     }
     .contrib-existing-main{
       width:100%;
@@ -62,13 +78,11 @@
       display:block;
       margin-left:0;
       margin-right:0;
-      font-size:var(--type-size-sm);
       line-height:var(--type-line-body);
     }
     .contrib-existing-memo{
       display:block;
       margin:var(--space-sm) 0 0;
-      font-size:var(--type-size-xs);
       line-height:var(--type-line-body);
     }
 
@@ -170,10 +184,6 @@
       padding:var(--space-4xl) var(--space-2xl);
     }
 
-    .pension-adjust-form.trade-mode .contrib-field.full{
-      grid-column:1/-1;
-    }
-
     .pension-etf-trade-preview-grid{
       grid-template-columns:1fr;
       gap:var(--space-xs);
@@ -189,12 +199,11 @@
   /* Action Modals Mobile · KRX/PIN 모바일: 공통 bottom-sheet */
     .action-modal{
       align-items:flex-end;
-      padding:var(--space-5xl);
-    }
-
-    .action-modal-card{
-      border-radius:min(22px,var(--corner-surface-cap));
-      padding:var(--space-9xl) var(--space-8xl);
+      --modal-overlay-pad:var(--space-5xl);
+      --modal-card-pad-y:var(--space-9xl);
+      --modal-card-pad-x:var(--space-8xl);
+      --modal-card-radius:min(22px,var(--corner-surface-cap));
+      --modal-control-font-size:var(--type-size-2xl);
     }
 
     .app-toast{
@@ -232,8 +241,7 @@
       opacity:.55;
     }
 
-  /* iOS Safari input zoom fix: keep 16px only on PIN inputs that use it in the final mobile UI. */
-    .action-modal-input{font-size:var(--type-size-2xl)}
+  /* iOS Safari input zoom fix: action modal의 16px은 shared modal-control token으로 유지한다. */
 
     [id]{scroll-margin-top:52px}
 
@@ -251,12 +259,11 @@
       font-size:var(--type-size-sm);
     }
 
-    .pension-batch-panel{padding:var(--space-4xl)}
     .pension-batch-queue{max-height:150px}
     .pension-batch-item{grid-template-columns:22px minmax(0,1fr);align-items:start}
     .pension-batch-item-actions{grid-column:2;justify-content:flex-end}
     .pension-batch-head{align-items:center}
-    .pension-contrib-context{gap:var(--space-4xl);padding:0}
+    .pension-contrib-context{padding:0}
 
   /* Mobile Top Button · 모바일 맨위로 버튼 위치 */
     .mobile-top-button{
