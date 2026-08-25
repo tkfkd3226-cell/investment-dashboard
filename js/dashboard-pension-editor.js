@@ -41,8 +41,7 @@ const pensionEditorState={
   batchLastAddFingerprint:'',
   batchLastAddAt:0,
   batchApplying:false,
-  batchRequestId:'',
-  targetPanelHeightFrame:0
+  batchRequestId:''
 };
 
 const defaultPensionContributionDate=d=>{
@@ -192,7 +191,6 @@ function openPensionContributionModal(){
   modal.setAttribute('aria-hidden','false');
   setPensionContributionTarget('cashSnapshot');
   syncPensionBatchModeUi();
-  syncPensionTargetPanelMinHeight();
   activateDashboardDialogFocus(modal,{initialFocus:modal.querySelector('.contrib-modal-close'),fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
 }
 function closePensionContributionModal(){
@@ -296,91 +294,12 @@ function pensionContributionDeleteCount(target=pensionContributionTarget()){
   if(target==='etfTrade') return pensionTradeItems().length;
   return pensionContributionItems().length;
 }
-function configurePensionTargetMeasureClone(clone,target){
-  const standardFields=clone.querySelector('#pensionContribStandardFields');
-  const tradeFields=clone.querySelector('#pensionEtfTradeFields');
-  const cashCostField=clone.querySelector('#pensionCashCostField');
-  if(standardFields){
-    standardFields.hidden=target==='etfTrade';
-    standardFields.classList.toggle('cash-mode',target==='cashSnapshot');
-    standardFields.classList.toggle('contribution-mode',target==='contribution');
-  }
-  if(tradeFields)tradeFields.hidden=target!=='etfTrade';
-  if(cashCostField)cashCostField.hidden=target!=='cashSnapshot';
-
-  const deleteCard=clone.querySelector('#pensionContribDeleteCard');
-  const deleteList=clone.querySelector('#pensionContribExistingList');
-  const deleteHelp=clone.querySelector('#pensionContribDeleteHelp');
-  const hasItems=pensionContributionDeleteCount(target)>0;
-  if(deleteCard)deleteCard.hidden=!hasItems;
-  if(deleteList)deleteList.innerHTML=hasItems?renderPensionContributionList(target):'';
-  if(deleteHelp){
-    deleteHelp.textContent=target==='cashSnapshot'
-      ?'잘못 등록한 현금성자산 기록 선택 후 삭제'
-      :(target==='contribution'
-        ?'잘못 등록한 기업적립금 선택 후 삭제'
-        :'잘못 등록한 추가 매수 거래 선택 후 삭제');
-  }
-
-  clone.querySelectorAll('.contrib-status').forEach(status=>{
-    status.textContent='';
-    status.className='contrib-status';
-  });
-  const outputFile=clone.querySelector('#pensionContribOutputFile');
-  if(outputFile){outputFile.textContent='';outputFile.hidden=true}
-  const output=clone.querySelector('#pensionContribOutput');
-  if(output){output.textContent='';output.classList.remove('show')}
-  const preview=clone.querySelector('#pensionEtfTradePreview');
-  if(preview){
-    preview.className='pension-etf-trade-preview';
-    preview.innerHTML='<span class="small">상품·수량·체결금액을 입력하면 적용 후 예상값을 보여줍니다.</span>';
-  }
-}
-function measurePensionTargetPanelHeight(panel,target){
-  const width=panel.getBoundingClientRect().width;
-  const parent=panel.parentElement;
-  if(!(width>0)||!parent)return 0;
-  const clone=panel.cloneNode(true);
-  configurePensionTargetMeasureClone(clone,target);
-  clone.setAttribute('aria-hidden','true');
-  clone.style.position='absolute';
-  clone.style.left='0';
-  clone.style.top='0';
-  clone.style.width=`${width}px`;
-  clone.style.minHeight='0';
-  clone.style.height='auto';
-  clone.style.visibility='hidden';
-  clone.style.pointerEvents='none';
-  clone.style.zIndex='-1';
-  parent.appendChild(clone);
-  const height=Math.ceil(clone.getBoundingClientRect().height);
-  clone.remove();
-  return height;
-}
-function syncPensionTargetPanelMinHeight(){
-  const modal=document.getElementById('pensionContribModal');
-  const panel=document.getElementById('pensionContribTargetPanel');
-  if(!modal?.classList.contains('show')||!panel)return;
-  const heights=['cashSnapshot','contribution','etfTrade']
-    .map(target=>measurePensionTargetPanelHeight(panel,target))
-    .filter(height=>height>0);
-  if(!heights.length)return;
-  panel.style.minHeight=`${Math.max(...heights)}px`;
-}
-function schedulePensionTargetPanelMinHeight(){
-  if(pensionEditorState.targetPanelHeightFrame)cancelAnimationFrame(pensionEditorState.targetPanelHeightFrame);
-  pensionEditorState.targetPanelHeightFrame=requestAnimationFrame(()=>{
-    pensionEditorState.targetPanelHeightFrame=0;
-    syncPensionTargetPanelMinHeight();
-  });
-}
 function syncPensionContributionDeleteCard(target=pensionContributionTarget()){
   const card=document.getElementById('pensionContribDeleteCard');
   const list=document.getElementById('pensionContribExistingList');
   const hasItems=pensionContributionDeleteCount(target)>0;
   if(card) card.hidden=!hasItems;
   if(list) list.innerHTML=hasItems?renderPensionContributionList(target):'';
-  if(document.getElementById('pensionContribModal')?.classList.contains('show'))schedulePensionTargetPanelMinHeight();
 }
 function removePensionItemLocally(target,key){
   if(target==='cashSnapshot'){
@@ -1269,8 +1188,6 @@ function handlePensionAction(control,renderDashboard){
   if(action==='remove-batch')return removePensionBatchOperation(control.dataset.pensionQid||'');
 }
 function setupPensionEventDelegation({renderDashboard}={}){
-  window.addEventListener('resize',schedulePensionTargetPanelMinHeight,{passive:true});
-  window.addEventListener('orientationchange',schedulePensionTargetPanelMinHeight,{passive:true});
   document.addEventListener('keydown',event=>{
     const targetTab=event.target?.closest?.('.contrib-target-option[role="tab"]');
     if(targetTab&&handlePensionTargetTabKeydown(event,targetTab))return;
