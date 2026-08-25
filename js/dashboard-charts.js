@@ -64,13 +64,17 @@ function chartViewBoxSize(svg){
   const minWidth=CHART_FRAME.left+CHART_FRAME.right+1;
   return {w:Math.max(minWidth,Math.round(h*cssWidth/cssHeight)),h};
 }
-function chartExpandedFrameUnits(svg,baseUnits){
-  if(!expandedChartVisualBaseline(svg)||!compactPhoneChartUi())return baseUnits;
-  return Math.max(baseUnits,chartExpandedFixedUnits(svg,baseUnits));
+function chartExpandedFrameUnits(svg,baseUnits,safetyPx=0){
+  const baseline=expandedChartVisualBaseline(svg);
+  if(!baseline||!compactPhoneChartUi())return baseUnits;
+  const currentScale=chartSvgDisplayScale(svg);
+  if(!(currentScale>0))return baseUnits;
+  const targetUnits=(baseUnits*baseline.scale+safetyPx)/currentScale;
+  return Math.max(baseUnits,targetUnits);
 }
 function chartConfig(svg,edgePad=CHART_EDGE_PAD){
   const {w,h}=chartViewBoxSize(svg),{right:r,top:t}=CHART_FRAME;
-  const l=chartExpandedFrameUnits(svg,CHART_FRAME.left),b=chartExpandedFrameUnits(svg,CHART_FRAME.bottom);
+  const l=chartExpandedFrameUnits(svg,CHART_FRAME.left,4),b=chartExpandedFrameUnits(svg,CHART_FRAME.bottom);
   svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   return {w,h,l,r,t,b,plotW:w-l-r,plotH:h-t-b,edgePad};
 }
