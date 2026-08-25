@@ -250,8 +250,6 @@
   --special-profit-note-border:#f1a7ae;
   --special-profit-text:#b4232f;
   --special-profit-badge:#EF3341;
-  --batch-count-bg:#2563eb;
-  --batch-count-text:#ffffff;
   --batch-index-bg:#e2e8f0;
   --batch-index-text:#334155;
 
@@ -3621,20 +3619,6 @@ button:not(:disabled):active,
 }
 
 /* [11. Pension Modal Composition / Batch · 퇴직연금 모달 구성 / 작업 모음] Batch Controls / Panel · 작업 count / panel */
-.pension-batch-count{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:18px;
-  height:18px;
-  margin-left:var(--space-sm);
-  padding:0 var(--space-md);
-  border-radius:var(--radius-pill);
-  background:var(--batch-count-bg);
-  color:var(--batch-count-text);
-  font-size:var(--type-size-2xs);
-  line-height:1.12;
-}
 .pension-batch-panel{
   padding:var(--space-5xl);
   background:var(--card);
