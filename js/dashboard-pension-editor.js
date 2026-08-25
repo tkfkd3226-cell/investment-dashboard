@@ -977,8 +977,11 @@ function addPensionBatchOperation(operation){
   const now=Date.now();
   const fingerprint=pensionBatchOperationFingerprint(operation);
   if(fingerprint&&fingerprint===pensionEditorState.batchLastAddFingerprint&&now-pensionEditorState.batchLastAddAt<800)throw pensionBatchDuplicateError('이미 추가된 작업입니다.','PENSION_BATCH_DUPLICATE');
-  const op={...operation,qid:`batch-${now}-${++pensionEditorState.batchSequence}`,tempId:`batch-temp-${now}-${pensionEditorState.batchSequence}`};
+  const nextSequence=pensionEditorState.batchSequence+1;
+  const op={...operation,qid:`batch-${now}-${nextSequence}`,tempId:`batch-temp-${now}-${nextSequence}`};
   if(op.action==='delete'&&pensionEditorState.batchQueue.some(v=>v.action==='delete'&&v.target===op.target&&String(v.key)===String(op.key)))throw pensionBatchDuplicateError('이미 추가된 삭제 항목입니다.','PENSION_BATCH_DUPLICATE_DELETE');
+  pensionBatchSimulate([...pensionEditorState.batchQueue,op]);
+  pensionEditorState.batchSequence=nextSequence;
   pensionEditorState.batchQueue.push(op);
   pensionEditorState.batchLastAddFingerprint=fingerprint;
   pensionEditorState.batchLastAddAt=now;
