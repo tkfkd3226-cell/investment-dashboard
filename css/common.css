@@ -2321,6 +2321,16 @@ body.chart-expanded-open .dash-tooltip{
 .contrib-modal .pension-adjust-form.cash-mode .pension-cash-memo-field{grid-area:cash-memo;grid-column:auto}
 .contrib-modal .pension-adjust-form.cash-mode .pension-cash-amount-field{grid-area:cash-amount}
 .contrib-modal .pension-adjust-form.cash-mode .pension-cash-cost-field{grid-area:cash-cost}
+/* 기업적립금은 모든 viewport에서 일자/금액 1행 + 메모 전체폭 1행을 유지한다. */
+.contrib-modal .pension-adjust-form.contribution-mode{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-areas:
+    "contribution-date contribution-amount"
+    "contribution-memo contribution-memo";
+}
+.contrib-modal .pension-adjust-form.contribution-mode .pension-cash-date-field{grid-area:contribution-date}
+.contrib-modal .pension-adjust-form.contribution-mode .pension-cash-amount-field{grid-area:contribution-amount}
+.contrib-modal .pension-adjust-form.contribution-mode .pension-cash-memo-field{grid-area:contribution-memo}
 .contrib-modal .pension-adjust-form.trade-mode{
   grid-template-areas:
     "trade-date trade-product"
@@ -2426,14 +2436,15 @@ body.chart-expanded-open .dash-tooltip{
   --pension-modal-title-size:var(--type-size-4xl);
   --pension-modal-label-size:var(--type-size-sm);
   --pension-modal-control-size:var(--type-size-sm);
-  /* Input density / iOS visual-scale tokens · 실제 control box와 글자 렌더링을 분리해 관리 */
-  --pension-modal-control-pad-y:var(--space-md);
-  --pension-modal-control-pad-x:var(--space-md);
+  /* Input density / iOS visual-scale tokens · 시각 line/padding으로 shell 높이를 결정하고 모바일 내부만 확대 후 축소한다. */
+  --pension-modal-control-pad:var(--space-md);
+  --pension-modal-control-line-height:var(--type-line-compact);
+  --pension-modal-control-visual-line-size:15px;
   --pension-modal-control-scale:1;
   --pension-modal-control-inner-width:100%;
   --pension-modal-control-inner-height:100%;
-  --pension-modal-control-inner-pad-y:var(--pension-modal-control-pad-y);
-  --pension-modal-control-inner-pad-x:var(--pension-modal-control-pad-x);
+  --pension-modal-control-inner-pad-y:var(--pension-modal-control-pad);
+  --pension-modal-control-inner-pad-x:var(--pension-modal-control-pad);
   --pension-modal-control-icon-inset:var(--space-md);
   --pension-modal-control-icon-size:var(--space-5xl);
   --pension-modal-control-inner-icon-pad-right:calc(var(--space-md) + var(--space-5xl) + var(--space-sm));
@@ -2474,10 +2485,10 @@ body.chart-expanded-open .dash-tooltip{
   --modal-card-radius:min(22px,var(--corner-surface-cap));
   --modal-card-pad-y:var(--pension-modal-pad);
   --modal-card-pad-x:var(--pension-modal-pad);
-  --modal-control-height:38px;
+  --modal-control-height:calc(var(--pension-modal-control-visual-line-size) + var(--pension-modal-control-pad) + var(--pension-modal-control-pad) + 2px);
   --modal-control-radius:min(var(--control-radius-md),var(--corner-control-cap));
-  --modal-control-pad-y:var(--pension-modal-control-pad-y);
-  --modal-control-pad-x:var(--pension-modal-control-pad-x);
+  --modal-control-pad-y:var(--pension-modal-control-pad);
+  --modal-control-pad-x:var(--pension-modal-control-pad);
   --modal-control-font-size:var(--pension-modal-control-size);
   --modal-control-font-weight:var(--type-weight-strong);
   --modal-control-bg:var(--field-bg);
@@ -2606,7 +2617,7 @@ body.contrib-modal-open{
   font-family:inherit;
   font-size:var(--modal-control-font-size);
   font-weight:var(--modal-control-font-weight);
-  line-height:normal;
+  line-height:var(--pension-modal-control-line-height);
   background:transparent;
   color:var(--modal-control-text);
   transform:scale(var(--pension-modal-control-scale));
@@ -2646,8 +2657,6 @@ body.contrib-modal-open{
   appearance:none;
 }
 .contrib-modal .pension-date-shell input[type="date"]{
-  -webkit-appearance:none;
-  appearance:none;
   text-align:left;
 }
 .contrib-modal .pension-date-shell input[type="date"]::-webkit-date-and-time-value{
@@ -2655,13 +2664,13 @@ body.contrib-modal-open{
   font-family:inherit;
   font-size:inherit;
   font-weight:inherit;
-  line-height:normal;
+  line-height:inherit;
   color:inherit;
 }
+/* Native indicator는 투명하게만 유지해 picker interaction을 보존하고, 보이는 아이콘은 shell pseudo-element가 담당한다. */
 .contrib-modal .pension-date-shell input[type="date"]::-webkit-calendar-picker-indicator{
   opacity:0;
-  margin:0;
-  padding:0;
+  cursor:pointer;
 }
 
 .token-guide{

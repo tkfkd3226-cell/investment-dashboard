@@ -299,6 +299,7 @@ function configurePensionTargetMeasureClone(clone,target){
   if(standardFields){
     standardFields.hidden=target==='etfTrade';
     standardFields.classList.toggle('cash-mode',target==='cashSnapshot');
+    standardFields.classList.toggle('contribution-mode',target==='contribution');
   }
   if(tradeFields)tradeFields.hidden=target!=='etfTrade';
   if(cashCostField)cashCostField.hidden=target!=='cashSnapshot';
@@ -414,6 +415,7 @@ function syncPensionContributionTargetUi(){
   if(standardFields){
     standardFields.hidden=target==='etfTrade';
     standardFields.classList.toggle('cash-mode',target==='cashSnapshot');
+    standardFields.classList.toggle('contribution-mode',target==='contribution');
   }
   if(tradeFields) tradeFields.hidden=target!=='etfTrade';
 
@@ -1198,6 +1200,12 @@ function handlePensionTargetTabKeydown(event,tab){
   return true;
 }
 
+function openPensionDatePickerForPointer(event){
+  const input=event.target?.closest?.('.contrib-modal .pension-date-shell input[type="date"]');
+  if(!input||typeof input.showPicker!=='function'||!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;
+  try{input.showPicker()}catch(_){/* Native date interaction remains the fallback. */}
+}
+
 function handlePensionAction(control,renderDashboard){
   const action=control.dataset.pensionAction;
   if(action==='reset-form')return resetPensionContributionForm();
@@ -1229,6 +1237,7 @@ function setupPensionEventDelegation({renderDashboard}={}){
       closePensionContributionModal();
       return;
     }
+    openPensionDatePickerForPointer(event);
     const control=event.target?.closest?.('[data-pension-action]');
     if(control)handlePensionAction(control,renderDashboard);
   });

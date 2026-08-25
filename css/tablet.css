@@ -28,6 +28,7 @@
       --pension-modal-title-size:var(--type-size-2xl);
       --pension-modal-label-size:var(--type-size-xs);
       --pension-modal-control-size:var(--type-size-xs);
+      --pension-modal-control-visual-line-size:13.75px;
       --pension-modal-tab-size:var(--type-size-md);
       --pension-modal-tab-height:29px;
       --pension-modal-mode-size:var(--type-size-xs);
