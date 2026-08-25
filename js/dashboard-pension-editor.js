@@ -1037,6 +1037,7 @@ function showPensionBatchDuplicateToast(error){
   return true;
 }
 function addPensionBatchOperation(operation){
+  clearPensionContributionOutput();
   const now=Date.now();
   const fingerprint=pensionBatchOperationFingerprint(operation);
   if(fingerprint&&fingerprint===pensionEditorState.batchLastAddFingerprint&&now-pensionEditorState.batchLastAddAt<800)throw pensionBatchDuplicateError('이미 추가된 작업입니다.','PENSION_BATCH_DUPLICATE');
@@ -1054,6 +1055,7 @@ function addPensionBatchOperation(operation){
   return op;
 }
 function removePensionBatchOperation(qid){
+  clearPensionContributionOutput();
   pensionEditorState.batchQueue=pensionEditorState.batchQueue.filter(v=>v.qid!==qid);
   pensionEditorState.batchLastAddFingerprint='';
   pensionEditorState.batchLastAddAt=0;
@@ -1066,6 +1068,7 @@ function movePensionBatchOperation(qid,direction){
   const index=pensionEditorState.batchQueue.findIndex(v=>v.qid===qid);
   const next=index+Number(direction||0);
   if(index<0||next<0||next>=pensionEditorState.batchQueue.length)return;
+  clearPensionContributionOutput();
   const [item]=pensionEditorState.batchQueue.splice(index,1);
   pensionEditorState.batchQueue.splice(next,0,item);
   resetPensionBatchRequestId();
@@ -1074,6 +1077,7 @@ function movePensionBatchOperation(qid,direction){
   updatePensionEtfTradePreview();
 }
 function clearPensionBatchQueue(){
+  clearPensionContributionOutput();
   pensionEditorState.batchQueue=[];
   pensionEditorState.batchLastAddFingerprint='';
   pensionEditorState.batchLastAddAt=0;
@@ -1120,6 +1124,7 @@ async function applyPensionBatchQueue(renderDashboard){
     if(!data)return;
     const duplicateWithoutState=!!data.duplicate&&!data.state;
     if(!duplicateWithoutState)applyPensionBatchStateLocally(data.state);
+    clearPensionContributionOutput();
     pensionEditorState.batchQueue=[];
     pensionEditorState.batchLastAddFingerprint='';
     pensionEditorState.batchLastAddAt=0;
