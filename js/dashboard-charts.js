@@ -44,6 +44,32 @@ import {
 
 // 메인 대시보드 차트 UI · SVG · legend · 확대 · responsive chart 처리
 
+const CHART_FRAME=Object.freeze({left:70,right:70,top:20,bottom:70});
+const CHART_EDGE_PAD=24;
+const CHART_VIEWBOX_BASE=Object.freeze({width:1120,height:330});
+
+function chartViewBoxSize(svg){
+  const h=CHART_VIEWBOX_BASE.height,rect=svg?.getBoundingClientRect?.();
+  const cssWidth=Number(rect?.width),cssHeight=Number(rect?.height);
+  if(!(cssWidth>0&&cssHeight>0))return {w:CHART_VIEWBOX_BASE.width,h};
+  return {w:Math.max(1,Math.round(h*cssWidth/cssHeight)),h};
+}
+function chartConfig(svg,edgePad=CHART_EDGE_PAD){
+  const {w,h}=chartViewBoxSize(svg),{left:l,right:r,top:t,bottom:b}=CHART_FRAME;
+  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  return {w,h,l,r,t,b,plotW:w-l-r,plotH:h-t-b,edgePad};
+}
+function chartY(cfg,min,max,value){
+  return cfg.t+(max-value)/(max-min)*cfg.plotH;
+}
+function chartViewBoxNeedsRedraw(){
+  if(chartRuntimeState.expanded)return false;
+  return [...document.querySelectorAll('svg.chart')].some(svg=>{
+    const current=Number(svg.viewBox?.baseVal?.width||0),next=chartViewBoxSize(svg).w;
+    return current>0&&Math.abs(current-next)>1;
+  });
+}
+
 // Expanded / Responsive Controls · 확대 / 반응형 컨트롤
 const chartRuntimeState={
   entranceObserver:null,
@@ -258,7 +284,10 @@ function openExpandedChart(button){
   syncExpandedChartViewport();
   overlay.querySelector('.chart-expanded-close')?.addEventListener('click',closeExpandedChart,{once:true});
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeExpandedChart()});
-  requestAnimationFrame(()=>overlay.classList.add('show'));
+  requestAnimationFrame(()=>{
+    redrawChartForCardSize(card.id);
+    overlay.classList.add('show');
+  });
   activateDashboardDialogFocus(overlay,{initialFocus:overlay.querySelector('.chart-expanded-close'),fallbackSelector:`#${card.id} [data-dashboard-action="open-expanded-chart"]`,returnFocus:opener});
 }
 function closeExpandedChart(){
@@ -281,12 +310,16 @@ function closeExpandedChart(){
   const restoreFocus=()=>releaseDashboardDialogFocus(overlay,{fallbackSelector:cardId?`#${cardId} [data-dashboard-action="open-expanded-chart"]`:'[data-dashboard-action="open-expanded-chart"]'});
   if(typeof afterClose==='function'){
     afterClose();
-    requestAnimationFrame(restoreFocus);
+    requestAnimationFrame(()=>{
+      redrawVisibleChartsForCurrentSize();
+      restoreFocus();
+    });
     return;
   }
   restoreFocus();
   if(wrap){
     requestAnimationFrame(()=>{
+      redrawVisibleChartsForCurrentSize();
       requestAnimationFrame(()=>{
         wrap.scrollLeft=scrollLeft||0;
         if(typeof prepareChartEntranceForSvg==='function')prepareChartEntranceForSvg(svg);
@@ -302,7 +335,11 @@ function setupExpandedChartViewport(){
   const sync=()=>{
     if(!chartRuntimeState.expanded)return;
     cancelAnimationFrame(frame);
-    frame=requestAnimationFrame(syncExpandedChartViewport);
+    frame=requestAnimationFrame(()=>{
+      const cardId=chartRuntimeState.expanded?.cardId;
+      syncExpandedChartViewport();
+      redrawChartForCardSize(cardId);
+    });
   };
   window.addEventListener('resize',sync,{passive:true});
   window.addEventListener('orientationchange',sync,{passive:true});
@@ -316,6 +353,24 @@ const RESPONSIVE_CHART_SCOPES=[
   {id:'chart-alloc',scope:'securitiesAlloc'},
   {id:'pension-chart-alloc',scope:'pensionAlloc'}
 ];
+function redrawChartForCardSize(cardId){
+  const scope=RESPONSIVE_CHART_SCOPES.find(item=>item.id===cardId)?.scope;
+  if(!scope)return false;
+  const expanded=chartRuntimeState.expanded;
+  const svg=expanded?.cardId===cardId?expanded.svg:document.querySelector(`#${cardId} svg.chart`);
+  if(!svg)return false;
+  const current=Number(svg.viewBox?.baseVal?.width||0),next=chartViewBoxSize(svg).w;
+  if(current>0&&Math.abs(current-next)<=1)return false;
+  redrawChartScope(scope);
+  return true;
+}
+function redrawVisibleChartsForCurrentSize(){
+  RESPONSIVE_CHART_SCOPES.forEach(({id})=>{
+    const svg=document.querySelector(`#${id} svg.chart`);
+    const rect=svg?.getBoundingClientRect?.();
+    if(Number(rect?.width)>0&&Number(rect?.height)>0)redrawChartForCardSize(id);
+  });
+}
 // Responsive Controls / Entrance Motion · 반응형 컨트롤 / 진입 모션
 function syncChartOptions(scope,card,legend){
   if(!card||!legend)return;
@@ -392,7 +447,10 @@ function setupResponsiveChartControls(){
   let frame=0;
   window.addEventListener('resize',()=>{
     cancelAnimationFrame(frame);
-    frame=requestAnimationFrame(syncResponsiveChartControls);
+    frame=requestAnimationFrame(()=>{
+      if(chartViewBoxNeedsRedraw())drawAllCharts();
+      else syncResponsiveChartControls();
+    });
   },{passive:true});
 }
 
@@ -401,18 +459,18 @@ function activatePendingChartEntrancesForPhoneLandscape(){
   document.querySelectorAll('.chart-card .chart-wrap').forEach(activateChartEntrance);
 }
 function chartEntranceDataElements(svg){
-  const viewWidth=svg.viewBox?.baseVal?.width||Number(svg.getAttribute('width'))||1120;
+  const viewWidth=svg.viewBox?.baseVal?.width||Number(svg.getAttribute('width'))||CHART_VIEWBOX_BASE.width;
   return [...svg.querySelectorAll('rect, polyline, circle')].filter(node=>{
     if(node.classList.contains('svg-hitbox'))return false;
     if(node.tagName.toLowerCase()!=='rect')return true;
     const x=Number(node.getAttribute('x')||0),y=Number(node.getAttribute('y')||0);
     const width=Number(node.getAttribute('width')||0),height=Number(node.getAttribute('height')||0);
-    const viewHeight=svg.viewBox?.baseVal?.height||Number(svg.getAttribute('height'))||330;
+    const viewHeight=svg.viewBox?.baseVal?.height||Number(svg.getAttribute('height'))||CHART_VIEWBOX_BASE.height;
     return !(x===0&&y===0&&width>=viewWidth*.98&&height>=viewHeight*.98);
   });
 }
 function chartEntranceXRatio(node,svg){
-  const viewWidth=svg.viewBox?.baseVal?.width||1120;
+  const viewWidth=svg.viewBox?.baseVal?.width||CHART_VIEWBOX_BASE.width;
   let x=0;
   if(node.tagName.toLowerCase()==='rect'){
     x=Number(node.getAttribute('x')||0)+Number(node.getAttribute('width')||0)/2;
@@ -970,6 +1028,7 @@ function setupChartGlobalEvents(){
   window.visualViewport?.addEventListener('scroll',scheduleChartTooltipViewportCheck,{passive:true});
   window.visualViewport?.addEventListener('resize',scheduleChartTooltipViewportCheck,{passive:true});
   window.addEventListener('beforeprint',drawInactiveChartsForPrint);
+  window.addEventListener('afterprint',drawAllCharts);
 }
 function handleChartDashboardAction(event,control){
   const action=control.dataset.dashboardAction;
@@ -1002,10 +1061,9 @@ function drawAxes(svg,cfg,yTicks,y2Ticks=null){
 }
 
 function chartX(cfg,dataLength,index){
-  const plotW=cfg.w-cfg.l-cfg.r;
   const edge=Number(cfg.edgePad||0);
-  if(dataLength<=1) return cfg.l+plotW/2;
-  return cfg.l+edge+index*(plotW-edge*2)/(dataLength-1);
+  if(dataLength<=1)return cfg.l+cfg.plotW/2;
+  return cfg.l+edge+index*(cfg.plotW-edge*2)/(dataLength-1);
 }
 
 function labelDates(svg,cfg,data,every=3){
@@ -1019,16 +1077,15 @@ function circles(svg,points,color){const fill=cssThemeValue('--chart-surface','#
 function nearestIndex(evt,svg,cfg,data){
   const pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;
   const loc=pt.matrixTransform(svg.getScreenCTM().inverse());
-  const plotW=cfg.w-cfg.l-cfg.r;
   const edge=Number(cfg.edgePad||0);
-  const usable=Math.max(1,plotW-edge*2);
+  const usable=Math.max(1,cfg.plotW-edge*2);
   let idx=Math.round((loc.x-cfg.l-edge)/usable*(data.length-1));
   return Math.max(0,Math.min(data.length-1,idx));
 }
 function addHover(svg,cfg,data,renderHtml,tooltipKind=''){
   const line=el('line',{x1:cfg.l,y1:cfg.t,x2:cfg.l,y2:cfg.h-cfg.b,stroke:cssThemeValue('--chart-hover','#334155'),'stroke-width':1.2,'stroke-dasharray':'4 4',opacity:0,class:'chart-hover-line'});
   svg.appendChild(line);
-  const hit=el('rect',{x:cfg.l,y:cfg.t,width:cfg.w-cfg.l-cfg.r,height:cfg.h-cfg.t-cfg.b,class:'svg-hitbox'});
+  const hit=el('rect',{x:cfg.l,y:cfg.t,width:cfg.plotW,height:cfg.plotH,class:'svg-hitbox'});
   svg.appendChild(hit);
   const savedIndex=Number(svg.dataset.chartKeyboardIndex);
   let activeIndex=Number.isInteger(savedIndex)&&savedIndex>=0&&savedIndex<data.length?savedIndex:Math.max(0,data.length-1);
@@ -1208,10 +1265,11 @@ function drawPensionCumChart(){
   const mode=chartState.compareModes.pension||'return',selection=chartSelection('pensionCum'),selected=selection.selected,autoY=chartAutoYEnabled('pensionCum');
   const leftAxis=cumulativeMoneyAxis('pensionCum',data,selected,autoY),rightAxis=cumulativeRightAxis('pensionCum',data,mode,leftAxis,selected.has('compare'),autoY);
   const yInfo=leftAxis.info,rInfo=rightAxis.info||{min:0,max:1,ticks:[]};
-  const w=1120,h=330,l=82,rgt=72,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-  const plotW=w-l-rgt,n=data.length,barW=Math.max(8,plotW/Math.max(1,n)/3);
-  const edgePad=Math.max(24,barW*2.1);
-  const cfg={w,h,l,r:rgt,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),y2:v=>t+(rInfo.max-v)/(rInfo.max-rInfo.min)*(h-t-b),y2Formatter:mode==='kospi'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:0})):(v=>v.toFixed(0)+'%')};
+  const cfg=chartConfig(svg),n=data.length,barW=Math.max(8,cfg.plotW/Math.max(1,n)/3);
+  cfg.edgePad=Math.max(CHART_EDGE_PAD,barW*2.1);
+  cfg.y=v=>chartY(cfg,yInfo.min,yInfo.max,v);
+  cfg.y2=v=>chartY(cfg,rInfo.min,rInfo.max,v);
+  cfg.y2Formatter=mode==='kospi'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:0})):(v=>v.toFixed(0)+'%');
   drawAxes(svg,cfg,leftAxis.visible?yInfo.ticks:[],rightAxis.visible?rInfo.ticks:null);
   const moneyKeys=[...(selected.has('profit')?['profit']:[]),...(selected.has('daily')?['daily']:[])];
   data.forEach((d,i)=>{
@@ -1246,9 +1304,10 @@ function drawPensionSymbolChart(){
   const data=pensionSymbolHistory(dataState.activeDate),svg=document.getElementById('pensionChartSymbol');if(!svg||!data.length)return;clear(svg);
   const mode=chartState.symbolModes.pension||'profit',selection=chartSelection('pensionSymbol'),allSeries=chartLegendItems('pensionSymbol').map(item=>item.key),series=allSeries.filter(name=>selection.selected.has(name)),autoY=chartAutoYEnabled('pensionSymbol');
   const valueOf=(d,s)=>mode==='rate'?Number(d._rates?.[s]||0):Number(d[s]||0),axisSeries=autoY?series:allSeries,values=data.flatMap(d=>axisSeries.map(s=>valueOf(d,s))).filter(Number.isFinite);
-  const yInfo=mode==='rate'?fixedTickInfo(Math.min(0,...values),Math.max(0,...values),20,true):fixedTickInfo(Math.min(0,...values),Math.max(0,...values),2000000,true),w=1120,h=330,l=82,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-  const cfg={w,h,l,r,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),yFormatter:mode==='rate'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%'):null};drawAxes(svg,cfg,yInfo.ticks);
-  const plotW=w-l-r,n=data.length;series.forEach(name=>{const pts=data.map((d,i)=>[l+(n===1?0:i*plotW/(n-1)),cfg.y(valueOf(d,name))]);polyline(svg,pts,pensionSeriesColor(name));circles(svg,pts,pensionSeriesColor(name))});labelDates(svg,cfg,data,3);
+  const yInfo=mode==='rate'?fixedTickInfo(Math.min(0,...values),Math.max(0,...values),20,true):fixedTickInfo(Math.min(0,...values),Math.max(0,...values),2000000,true),cfg=chartConfig(svg);
+  cfg.y=v=>chartY(cfg,yInfo.min,yInfo.max,v);
+  cfg.yFormatter=mode==='rate'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%'):null;drawAxes(svg,cfg,yInfo.ticks);
+  const n=data.length;series.forEach(name=>{const pts=data.map((d,i)=>[chartX(cfg,n,i),cfg.y(valueOf(d,name))]);polyline(svg,pts,pensionSeriesColor(name));circles(svg,pts,pensionSeriesColor(name))});labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{let html=tooltipDate(d['날짜']);series.forEach(s=>{const rawProfit=d[s],profit=Number(rawProfit),rate=Number(d._rates?.[s]);if(rawProfit==null||!Number.isFinite(profit))return;const rateText=Number.isFinite(rate)?`${rate>0?'+':''}${pct(rate)}`:'-';html+=row(chartDisplayLabel('pensionSymbol',s),`${signed(profit,'원')} (${rateText})`,clsBy(profit))});const total=series.reduce((a,s)=>{const raw=d[s],value=Number(raw);return a+(raw!=null&&Number.isFinite(value)?value:0)},0);return html+tooltipDivider()+totalRow(selection.all?'상품 합계':`${series.length}상품 합계`,signed(total,'원'),clsBy(total))},'symbol');
 }
 function drawPensionStacked(){
@@ -1256,10 +1315,9 @@ function drawPensionStacked(){
   const selection=chartSelection('pensionAlloc'),allSeries=chartLegendItems('pensionAlloc').map(item=>item.key),series=allSeries.filter(s=>selection.selected.has(s)),autoY=chartAutoYEnabled('pensionAlloc');
   const colors=Object.fromEntries(allSeries.map(s=>[s,s==='현금성자산'?CASH_ASSET_COLOR:pensionSeriesColor(s)]));
   const axisSeries=autoY?series:allSeries,totals=data.map(d=>axisSeries.reduce((a,s)=>a+Number(d[s]||0),0));
-  const yInfo=fixedTickInfo(0,Math.max(1,...totals),10000000,true),w=1120,h=330,l=82,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-  const plotW=w-l-r,n=data.length,barW=Math.max(10,plotW/Math.max(1,n)*.55);
-  const edgePad=Math.max(24,barW*.62);
-  const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b)};drawAxes(svg,cfg,yInfo.ticks);
+  const yInfo=fixedTickInfo(0,Math.max(1,...totals),10000000,true),cfg=chartConfig(svg),n=data.length,barW=Math.max(10,cfg.plotW/Math.max(1,n)*.55);
+  cfg.edgePad=Math.max(CHART_EDGE_PAD,barW*.62);
+  cfg.y=v=>chartY(cfg,yInfo.min,yInfo.max,v);drawAxes(svg,cfg,yInfo.ticks);
   data.forEach((d,i)=>{let acc=0;const x=chartX(cfg,n,i)-barW/2;series.forEach(s=>{const v=Number(d[s]||0),y1=cfg.y(acc+v),y0=cfg.y(acc);svg.appendChild(el('rect',{x,y:y1,width:barW,height:Math.max(0,y0-y1),fill:colors[s],rx:2}));acc+=v})});
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{let html=tooltipDate(d['날짜']);const total=series.reduce((a,s)=>a+Number(d[s]||0),0);series.forEach(s=>html+=row(chartDisplayLabel('pensionAlloc',s),won(d[s]||0),''));return html+tooltipDivider()+totalRow('평가금액 합계',won(total),'')});
@@ -1283,10 +1341,11 @@ function drawCumChart(){
   const mode=chartState.compareModes.securities||'return',selection=chartSelection('securitiesCum'),selected=selection.selected,autoY=chartAutoYEnabled('securitiesCum');
   const leftAxis=cumulativeMoneyAxis('securitiesCum',data,selected,autoY),rightAxis=cumulativeRightAxis('securitiesCum',data,mode,leftAxis,selected.has('compare'),autoY);
   const yInfo=leftAxis.info,rInfo=rightAxis.info||{min:0,max:1,ticks:[]};
-  const w=1120,h=330,l=70,r=76,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-  const plotW=w-l-r,n=data.length,gap=plotW/Math.max(n,1),bw=gap*.28;
-  const edgePad=Math.max(24,bw*2.1);
-  const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),y2:v=>t+(rInfo.max-v)/(rInfo.max-rInfo.min)*(h-t-b),y2Formatter:mode==='kospi'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:0})):(v=>v.toFixed(0)+'%')};
+  const cfg=chartConfig(svg),n=data.length,gap=cfg.plotW/Math.max(n,1),bw=gap*.28;
+  cfg.edgePad=Math.max(CHART_EDGE_PAD,bw*2.1);
+  cfg.y=v=>chartY(cfg,yInfo.min,yInfo.max,v);
+  cfg.y2=v=>chartY(cfg,rInfo.min,rInfo.max,v);
+  cfg.y2Formatter=mode==='kospi'?(v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:0})):(v=>v.toFixed(0)+'%');
   drawAxes(svg,cfg,leftAxis.visible?yInfo.ticks:[],rightAxis.visible?rInfo.ticks:null);
   const moneyKeys=[...(selected.has('profit')?['profit']:[]),...(selected.has('daily')?['daily']:[])];
   data.forEach((d,i)=>{
@@ -1332,10 +1391,12 @@ function drawLineChart(){
   const data=symbolHistory(dataState.activeDate),svg=document.getElementById('chartSymbol');if(!svg)return;clear(svg);
   const mode=chartState.symbolModes.securities||'profit',selection=chartSelection('securitiesSymbol'),allSeries=chartLegendItems('securitiesSymbol').map(item=>item.key),series=allSeries.filter(s=>selection.selected.has(s)),autoY=chartAutoYEnabled('securitiesSymbol');
   const colors=SECURITY_SYMBOL_COLORS,valueOf=(d,s)=>{const value=mode==='rate'?d._rates?.[s]:d[s];return value==null?null:Number(value);},axisSeries=autoY?series:allSeries,values=data.flatMap(d=>axisSeries.map(s=>valueOf(d,s))).filter(Number.isFinite);
-  const w=1120,h=330,l=70,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  const cfg=chartConfig(svg);
   if(mode==='rate'){
-    const yInfo=fixedTickInfo(Math.min(0,...values),Math.max(0,...values),20,true),cfg={w,h,l,r,t,b,y:v=>t+(yInfo.max-v)/(yInfo.max-yInfo.min)*(h-t-b),yFormatter:v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%'};drawAxes(svg,cfg,yInfo.ticks);
-    const plotW=w-l-r,n=data.length;series.forEach(s=>{const pts=data.map((d,i)=>{const value=valueOf(d,s);return Number.isFinite(value)?[l+(n===1?0:i*plotW/(n-1)),cfg.y(value)]:null}).filter(Boolean);if(pts.length){polyline(svg,pts,colors[s]||securityAllocationColor(s));circles(svg,pts,colors[s]||securityAllocationColor(s))}});labelDates(svg,cfg,data,3);
+    const yInfo=fixedTickInfo(Math.min(0,...values),Math.max(0,...values),20,true);
+    cfg.y=v=>chartY(cfg,yInfo.min,yInfo.max,v);
+    cfg.yFormatter=v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%';drawAxes(svg,cfg,yInfo.ticks);
+    const n=data.length;series.forEach(s=>{const pts=data.map((d,i)=>{const value=valueOf(d,s);return Number.isFinite(value)?[chartX(cfg,n,i),cfg.y(value)]:null}).filter(Boolean);if(pts.length){polyline(svg,pts,colors[s]||securityAllocationColor(s));circles(svg,pts,colors[s]||securityAllocationColor(s))}});labelDates(svg,cfg,data,3);
     addHover(svg,cfg,data,d=>{let html=tooltipDate(d['날짜']);series.forEach(s=>{const rawProfit=d[s],profit=Number(rawProfit),rate=Number(d._rates?.[s]);if(rawProfit==null||!Number.isFinite(profit))return;const rateText=Number.isFinite(rate)?`${rate>0?'+':''}${pct(rate)}`:'-';html+=row(chartDisplayLabel('securitiesSymbol',s),`${signed(profit,'원')} (${rateText})`,clsBy(profit))});const total=series.reduce((a,s)=>{const raw=d[s],value=Number(raw);return a+(raw!=null&&Number.isFinite(value)?value:0)},0);return html+tooltipDivider()+totalRow(`${series.length}종목 합계`,signed(total,'원'),clsBy(total))},'symbol');
     return;
   }
@@ -1345,8 +1406,8 @@ function drawLineChart(){
   }else{
     const allValues=data.flatMap(d=>allSeries.map(s=>valueOf(d,s))).filter(Number.isFinite);minY=Math.min(-1000000,...allValues);maxY=Math.max(7000000,...allValues);ticks=[-1000000,0,1000000,2000000,3000000,4000000,5000000,6000000,7000000];
   }
-  const cfg={w,h,l,r,t,b,y:v=>t+(maxY-v)/(maxY-minY)*(h-t-b)};drawAxes(svg,cfg,ticks);
-  const plotW=w-l-r,n=data.length;series.forEach(s=>{const pts=data.map((d,i)=>{const value=valueOf(d,s);return Number.isFinite(value)?[l+(n===1?0:i*plotW/(n-1)),cfg.y(value)]:null}).filter(Boolean);if(pts.length){polyline(svg,pts,colors[s]||securityAllocationColor(s));circles(svg,pts,colors[s]||securityAllocationColor(s))}});labelDates(svg,cfg,data,3);
+  cfg.y=v=>chartY(cfg,minY,maxY,v);drawAxes(svg,cfg,ticks);
+  const n=data.length;series.forEach(s=>{const pts=data.map((d,i)=>{const value=valueOf(d,s);return Number.isFinite(value)?[chartX(cfg,n,i),cfg.y(value)]:null}).filter(Boolean);if(pts.length){polyline(svg,pts,colors[s]||securityAllocationColor(s));circles(svg,pts,colors[s]||securityAllocationColor(s))}});labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{let html=tooltipDate(d['날짜']);series.forEach(s=>{const value=valueOf(d,s),rate=d._rates?.[s];if(!Number.isFinite(value))return;html+=row(chartDisplayLabel('securitiesSymbol',s),`${signed(value,'원')} (${Number(rate)>0?'+':''}${pct(rate)})`,clsBy(value))});const total=series.reduce((a,s)=>{const value=valueOf(d,s);return a+(Number.isFinite(value)?value:0)},0);return html+tooltipDivider()+totalRow(`${series.length}종목 합계`,signed(total,'원'),clsBy(total))},'symbol');
 }
 function drawStacked(){
@@ -1357,16 +1418,16 @@ function drawStacked(){
   if(!data.length)return;
   const colors=mode==='symbol'?Object.fromEntries(allSeries.map(name=>[name,name==='현금'?CASH_ASSET_COLOR:securityAllocationColor(name)])):ASSET_TYPE_COLORS;
   const axisSeries=autoY?series:allSeries,values=data.map(d=>axisSeries.reduce((a,key)=>a+Number(d[key]||0),0));
-  const w=1120,h=330,l=70,r=25,t=22,b=72;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  const cfg=chartConfig(svg);
   let minY=0,maxY,ticks;
   if(autoY){
     const info=fixedTickInfo(0,Math.max(1,...values)*1.05,5000000,true);maxY=info.max;ticks=info.ticks;
   }else{
     maxY=Math.max(30000000,...values)*1.05;ticks=[0,5000000,10000000,15000000,20000000,25000000,30000000];
   }
-  const plotW=w-l-r,n=data.length,gap=plotW/Math.max(n,1),bw=gap*.72;
-  const edgePad=Math.max(24,bw*.62);
-  const cfg={w,h,l,r,t,b,edgePad,y:v=>t+(maxY-v)/(maxY-minY)*(h-t-b)};drawAxes(svg,cfg,ticks);
+  const n=data.length,gap=cfg.plotW/Math.max(n,1),bw=gap*.72;
+  cfg.edgePad=Math.max(CHART_EDGE_PAD,bw*.62);
+  cfg.y=v=>chartY(cfg,minY,maxY,v);drawAxes(svg,cfg,ticks);
   data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;series.forEach(key=>{const value=Number(d[key]||0),yTop=cfg.y(base+value),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:colors[key],opacity:.75,stroke:cssThemeValue('--chart-stack-stroke','#fff'),'stroke-width':.4}));base+=value})});
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{const displayedTotal=series.reduce((a,key)=>a+Number(d[key]||0),0),total=selection.all?(Number(d._total)||displayedTotal):displayedTotal;let html=tooltipDate(d['날짜']);series.forEach(key=>{const value=Number(d[key]||0),share=total?value/total*100:0;html+=row(chartDisplayLabel('securitiesAlloc',key),fmt(value)+`원 (${share.toFixed(1)}%)`)});return html+tooltipDivider()+totalRow('합계',fmt(total)+'원')});
@@ -1412,15 +1473,12 @@ function drawAllCharts(){
 }
 
 function drawInactiveChartsForPrint(){
-  if(uiState.activeAssetTab==='pension'){
-    drawCumChart();
-    drawLineChart();
-    drawStacked();
-  }else{
-    drawPensionCumChart();
-    drawPensionSymbolChart();
-    drawPensionStacked();
-  }
+  drawCumChart();
+  drawLineChart();
+  drawStacked();
+  drawPensionCumChart();
+  drawPensionSymbolChart();
+  drawPensionStacked();
 }
 
 export {
