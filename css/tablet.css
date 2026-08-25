@@ -28,13 +28,12 @@
       --pension-modal-title-size:var(--type-size-2xl);
       --pension-modal-label-size:var(--type-size-xs);
       --pension-modal-control-size:var(--type-size-xs);
+      --pension-modal-row-height:29px;
       --pension-modal-control-visual-line-size:13.75px;
       --pension-modal-control-pad:6.625px;
       --pension-modal-tab-size:var(--type-size-md);
-      --pension-modal-tab-height:29px;
       --pension-modal-mode-size:var(--type-size-xs);
       --pension-modal-action-size:var(--type-size-xs);
-      --pension-modal-action-height:29px;
       --pension-modal-delete-title-size:var(--type-size-xs);
       --pension-modal-delete-memo-size:var(--type-size-xs);
       --pension-modal-pad:var(--space-5xl);

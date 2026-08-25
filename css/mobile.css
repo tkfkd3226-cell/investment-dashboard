@@ -30,32 +30,11 @@
     .section-title > .section-control-chip,
     .section-title > .section-title-actions,
     .section-title > .separate-profit-control-row{position:relative;top:1px}
-  /* 퇴직연금 금액조정 모달: 모바일은 1열 form과 좁은 카드 폭을 사용한다. */
+  /* Pension Modal Portrait · 폰 공통 density는 special.css Phone UI Shared가 소유하고, 여기서는 세로폰 폭/구성만 정의 */
     .contrib-modal{
-      --pension-modal-title-size:var(--type-size-lg);
-      --pension-modal-label-size:var(--type-size-2xs);
-      /* iOS Safari는 16px computed font를 유지하고 shell 내부만 62.5% 시각 축소해 10px로 보이게 한다. */
-      --pension-modal-control-size:var(--type-size-2xl);
-      --pension-modal-control-visual-line-size:12.5px;
-      --pension-modal-control-pad:6.75px;
-      --pension-modal-control-scale:.625;
-      --pension-modal-control-inner-width:160%;
-      --pension-modal-control-inner-height:160%;
-      --pension-modal-control-inner-pad-y:10.8px;
-      --pension-modal-control-inner-pad-x:10.8px;
-      --pension-modal-control-inner-icon-pad-right:calc(var(--space-8xl) + var(--space-7xl));
-      --pension-modal-tab-size:var(--type-size-sm);
-      --pension-modal-tab-height:28px;
-      --pension-modal-mode-size:var(--type-size-2xs);
-      --pension-modal-action-size:var(--type-size-2xs);
-      --pension-modal-action-height:28px;
-      --pension-modal-delete-title-size:var(--type-size-2xs);
-      --pension-modal-delete-memo-size:var(--type-size-2xs);
       --modal-card-width:min(100%, calc(100vw - 36px));
       --modal-card-radius:min(var(--surface-radius-lg),var(--corner-surface-cap));
-      --pension-modal-pad:var(--space-4xl);
     }
-    .contrib-modal-card{box-sizing:border-box}
     .contrib-modal-head p{
       font-size:var(--type-size-sm);
       line-height:var(--type-line-helper);

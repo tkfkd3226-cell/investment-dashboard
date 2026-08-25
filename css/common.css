@@ -2292,7 +2292,7 @@ body.chart-expanded-open .dash-tooltip{
   cursor:pointer;
 }
 
-/* [08. Pension Contribution / Adjustment · 퇴직연금 납입 / 금액조정] */
+/* [08. Pension Contribution / Adjustment · 퇴직연금 납입 / 금액조정] Modal Core / Form · 모달 기본 / 입력 폼 */
 .pension-contrib-tool{
   margin-top:var(--space-6xl);
   padding:var(--space-6xl);
@@ -2402,29 +2402,8 @@ body.chart-expanded-open .dash-tooltip{
 .contrib-output.show{
   display:block;
 }
-.contrib-status{
-  display:none;
-  margin-top:var(--space-4xl);
-  border-radius:min(12px,var(--corner-inner-cap));
-  padding:var(--space-4xl) var(--space-5xl);
-  font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-strong);
-  line-height:var(--type-line-helper);
-}
-.contrib-status.show{
-  display:block;
-}
-.contrib-status.ok{
-  background:var(--status-success-bg);
-  color:var(--status-success-text);
-  border:1px solid var(--status-success-border);
-}
-.contrib-status.err{
-  background:var(--status-danger-bg);
-  color:var(--status-danger-text);
-  border:1px solid var(--status-danger-border);
-}
-/* Contribution status Light/Dark colors resolve through the status tokens. */
+.contrib-status{display:none}
+.contrib-status.show{display:block}
 
 .contrib-modal{
   position:fixed;
@@ -2436,25 +2415,22 @@ body.chart-expanded-open .dash-tooltip{
   --pension-modal-title-size:var(--type-size-4xl);
   --pension-modal-label-size:var(--type-size-sm);
   --pension-modal-control-size:var(--type-size-sm);
-  /* Input density / iOS visual-scale tokens · 시각 line/padding으로 shell 높이를 결정하고 모바일 내부만 확대 후 축소한다. */
+  /* Input density · row-height는 탭/입력/action 공통 높이, pad는 해당 높이에 맞춘 visual 여백이다. */
+  --pension-modal-row-height:30px;
   --pension-modal-control-pad:6.5px;
   --pension-modal-control-line-height:var(--type-line-compact);
   --pension-modal-control-visual-line-size:15px;
   --pension-modal-control-scale:1;
-  --pension-modal-control-inner-width:100%;
-  --pension-modal-control-inner-height:100%;
-  --pension-modal-control-inner-pad-y:var(--pension-modal-control-pad);
-  --pension-modal-control-inner-pad-x:var(--pension-modal-control-pad);
+  --pension-modal-control-inner-size:100%;
+  --pension-modal-control-inner-pad:var(--pension-modal-control-pad);
   --pension-modal-control-icon-inset:var(--space-md);
   --pension-modal-control-icon-size:var(--space-5xl);
   --pension-modal-control-inner-icon-pad-right:calc(var(--space-md) + var(--space-5xl) + var(--space-sm));
   --pension-modal-tab-size:var(--type-size-lg);
-  --pension-modal-tab-height:30px;
   --pension-modal-tab-pad-x:var(--space-3xl);
   --pension-modal-mode-size:var(--type-size-sm);
   --pension-modal-mode-height:var(--dashboard-control-height);
   --pension-modal-action-size:var(--type-size-sm);
-  --pension-modal-action-height:30px;
   --pension-modal-delete-title-size:var(--type-size-sm);
   --pension-modal-delete-title-weight:var(--type-weight-regular);
   --pension-modal-delete-memo-size:var(--type-size-sm);
@@ -2490,7 +2466,7 @@ body.chart-expanded-open .dash-tooltip{
   --modal-card-radius:min(22px,var(--corner-surface-cap));
   --modal-card-pad-y:var(--pension-modal-pad);
   --modal-card-pad-x:var(--pension-modal-pad);
-  --modal-control-height:calc(var(--pension-modal-control-visual-line-size) + var(--pension-modal-control-pad) + var(--pension-modal-control-pad) + 2px);
+  --modal-control-height:var(--pension-modal-row-height);
   --modal-control-radius:min(var(--control-radius-md),var(--corner-control-cap));
   --modal-control-pad-y:var(--pension-modal-control-pad);
   --modal-control-pad-x:var(--pension-modal-control-pad);
@@ -2610,16 +2586,16 @@ body.contrib-modal-open{
 }
 .contrib-modal .pension-control-shell > :is(input,select){
   display:block;
-  width:var(--pension-modal-control-inner-width);
+  width:var(--pension-modal-control-inner-size);
   max-width:none;
   min-width:0;
-  height:var(--pension-modal-control-inner-height);
+  height:var(--pension-modal-control-inner-size);
   box-sizing:border-box;
   border:0;
   border-radius:0;
   outline:0;
   box-shadow:none;
-  padding:var(--pension-modal-control-inner-pad-y) var(--pension-modal-control-inner-pad-x);
+  padding:var(--pension-modal-control-inner-pad);
   font-family:inherit;
   font-size:var(--modal-control-font-size);
   font-weight:var(--modal-control-font-weight);
@@ -3023,13 +2999,6 @@ body.contrib-modal-open{
 }
 
 /* Warning preview Light/Dark colors resolve through warning tokens. */
-
-.pension-etf-trade-preview.blocked{
-  border-color:var(--status-danger-strong);
-  background:var(--status-danger-soft-bg);
-}
-
-/* Blocked preview Light/Dark colors resolve through danger tokens. */
 
 .pension-etf-trade-preview-title{
   margin-bottom:var(--space-2xl);
@@ -3651,7 +3620,7 @@ button:not(:disabled):active,
   vertical-align:1px;
 }
 
-/* [11. Pension Batch Operations · 퇴직연금 작업 모음] Batch Controls / Panel · 작업 count / panel */
+/* [11. Pension Modal Composition / Batch · 퇴직연금 모달 구성 / 작업 모음] Batch Controls / Panel · 작업 count / panel */
 .pension-batch-count{
   display:inline-flex;
   align-items:center;
@@ -3767,11 +3736,7 @@ button:not(:disabled):active,
   font-weight:var(--type-weight-strong);
   line-height:var(--type-line-relaxed);
 }
-.pension-batch-order-note.error{
-  background:var(--status-danger-soft-bg);
-  color:var(--status-danger-soft-text);
-}
-/* Batch note Light/Dark colors resolve through info/danger tokens. */
+/* Batch info note Light/Dark colors resolve through info tokens; error surface is unified below. */
 .pension-batch-actions{
   display:flex;
   justify-content:flex-end;
@@ -3807,7 +3772,6 @@ button:not(:disabled):active,
 }
 
 /* Pension Contribution Modal Compact Rhythm · 실제 수치는 .contrib-modal semantic token에서 단일 관리 */
-.contrib-modal-card{padding:var(--modal-card-pad-y) var(--modal-card-pad-x)}
 .contrib-modal-head{gap:var(--pension-modal-head-gap);margin-bottom:var(--pension-modal-section-gap)}
 .contrib-modal-head p{margin-top:var(--pension-modal-field-gap)}
 .contrib-modal-head-actions{gap:var(--pension-modal-head-action-gap)}
@@ -3815,17 +3779,16 @@ button:not(:disabled):active,
 /* 조정 항목 탭은 메인 자산 탭의 skin/state를 공유하고 geometry만 pension semantic token으로 분리한다. */
 .contrib-modal .contrib-target-tabs{gap:var(--space-sm);padding:var(--space-2xs)}
 .contrib-modal .contrib-target-option{
-  min-height:var(--pension-modal-tab-height);
+  min-height:var(--pension-modal-row-height);
   padding-inline:var(--pension-modal-tab-pad-x);
   font-size:var(--pension-modal-tab-size);
 }
 .contrib-modal .contrib-btn{font-size:var(--pension-modal-action-size)}
-.contrib-modal .control-action-button.compact{min-height:var(--pension-modal-action-height);height:var(--pension-modal-action-height)}
+.contrib-modal .control-action-button.compact{min-height:var(--pension-modal-row-height);height:var(--pension-modal-row-height)}
 
 .contrib-modal .pension-contrib-context{gap:var(--pension-modal-context-gap);margin-bottom:var(--pension-modal-section-gap)}
 .contrib-modal .pension-contrib-tool{padding:var(--pension-modal-card-pad)}
 .contrib-modal .modal-card-box{margin-top:var(--pension-modal-section-gap)}
-.contrib-modal .modal-card-box:first-of-type{margin-top:0}
 .contrib-modal .pension-adjust-form{gap:var(--pension-modal-form-gap)}
 .contrib-modal .contrib-field{gap:var(--pension-modal-field-gap)}
 .contrib-modal .contrib-actions{margin-top:var(--pension-modal-action-margin-top)}
@@ -3959,10 +3922,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-card{
 html.iphone-request-desktop #ledger-check .ledger-conclusion-inline-reason{display:block}
 html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none}
 
-/* =========================================================
-   [12. Topbar / Navigation · 상단바 / 내비게이션]
-   Date Action / Navigation Primitives / Edge TOC / Topbar Layout
-   ========================================================= */
+/* [12. Topbar / Navigation · 상단바 / 내비게이션] Date Action / Navigation Primitives / Edge TOC / Topbar Layout */
 
 /* Date Action Menu · 날짜 action menu */
 .date-action-menu{display:none}
