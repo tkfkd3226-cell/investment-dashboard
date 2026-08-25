@@ -49,11 +49,20 @@ const CHART_EDGE_PAD=24;
 const CHART_VIEWBOX_BASE=Object.freeze({width:1120,height:330});
 const CHART_EXPANDED_VISUAL_GROWTH=.5;
 
+function chartSvgLayoutSize(svg){
+  const clientWidth=Number(svg?.clientWidth),clientHeight=Number(svg?.clientHeight);
+  if(clientWidth>0&&clientHeight>0)return {width:clientWidth,height:clientHeight};
+  const computed=svg&&typeof window!=='undefined'?window.getComputedStyle?.(svg):null;
+  const computedWidth=Number.parseFloat(computed?.width),computedHeight=Number.parseFloat(computed?.height);
+  if(computedWidth>0&&computedHeight>0)return {width:computedWidth,height:computedHeight};
+  const rect=svg?.getBoundingClientRect?.();
+  return {width:Number(rect?.width)||0,height:Number(rect?.height)||0};
+}
 function chartViewBoxSize(svg){
-  const h=CHART_VIEWBOX_BASE.height,rect=svg?.getBoundingClientRect?.();
-  const cssWidth=Number(rect?.width),cssHeight=Number(rect?.height);
+  const h=CHART_VIEWBOX_BASE.height,{width:cssWidth,height:cssHeight}=chartSvgLayoutSize(svg);
   if(!(cssWidth>0&&cssHeight>0))return {w:CHART_VIEWBOX_BASE.width,h};
-  return {w:Math.max(1,Math.round(h*cssWidth/cssHeight)),h};
+  const minWidth=CHART_FRAME.left+CHART_FRAME.right+1;
+  return {w:Math.max(minWidth,Math.round(h*cssWidth/cssHeight)),h};
 }
 function chartConfig(svg,edgePad=CHART_EDGE_PAD){
   const {w,h}=chartViewBoxSize(svg),{left:l,right:r,top:t,bottom:b}=CHART_FRAME;
@@ -64,8 +73,7 @@ function chartY(cfg,min,max,value){
   return cfg.t+(max-value)/(max-min)*cfg.plotH;
 }
 function chartSvgDisplayScale(svg){
-  const rect=svg?.getBoundingClientRect?.(),viewH=Number(svg?.viewBox?.baseVal?.height||CHART_VIEWBOX_BASE.height);
-  const cssHeight=Number(rect?.height);
+  const {height:cssHeight}=chartSvgLayoutSize(svg),viewH=Number(svg?.viewBox?.baseVal?.height||CHART_VIEWBOX_BASE.height);
   return cssHeight>0&&viewH>0?cssHeight/viewH:1;
 }
 function expandedChartVisualBaseline(svg){

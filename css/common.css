@@ -1431,12 +1431,6 @@ button.legend-item.chart-series-all.active{
 
 
 /* Chart Presentation / Controls · 차트 제목 / 비교 control */
-#pension-chart-cum .chart-title-sub,
-#pension-chart-symbol .chart-title-sub{
-  font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-bold);
-}
-
 /* Chart Action Group · 차트 제목 우측 control 공통 정렬 */
 .chart-head-actions{
   display:flex;
@@ -1705,8 +1699,12 @@ body.chart-expanded-open .dash-tooltip{
   visibility:visible;
   transform:translate(-50%,0);
 }
-.compact-chart-ui .chart-expanded-title:has(.chart-title-info.open){
-  overflow:visible;
+/* Expanded compact chart title · 확대 시에는 웹/태블릿처럼 기준 문구를 직접 표시하고 info tooltip은 숨긴다. */
+.compact-chart-ui .chart-expanded-title .chart-title-sub{
+  display:inline;
+}
+.compact-chart-ui .chart-expanded-title .chart-title-info{
+  display:none;
 }
 
 /* Account Memo Info · 계좌별 성과 메모 전용 정보 UI */
