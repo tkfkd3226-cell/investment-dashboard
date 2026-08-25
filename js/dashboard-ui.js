@@ -44,6 +44,7 @@ import {
 } from './dashboard-ui-common.js';
 import {
   drawAllCharts,
+  refreshScrollHints,
   renderCharts
 } from './dashboard-charts.js';
 
@@ -420,6 +421,7 @@ function toggleMobileDataView(key){
     btn.textContent=action;
     btn.setAttribute('aria-label',`${meta.label} ${action}`);
   });
+  requestAnimationFrame(refreshScrollHints);
 }
 function mobileInfoCard(title,items=[],extraClass='',accessibleLabel=''){
   const accessibleTitle=escapeHtml(String(accessibleLabel||title||'').replace(/<[^>]*>/g,'').replace(/■/g,'').trim());

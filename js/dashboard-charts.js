@@ -511,7 +511,10 @@ function setupResponsiveChartControls(){
     cancelAnimationFrame(frame);
     frame=requestAnimationFrame(()=>{
       if(chartViewBoxNeedsRedraw())drawAllCharts();
-      else syncResponsiveChartControls();
+      else{
+        syncResponsiveChartControls();
+        refreshScrollHints();
+      }
     });
   },{passive:true});
 }
@@ -1548,6 +1551,7 @@ function drawInactiveChartsForPrint(){
 
 export {
   drawAllCharts,
+  refreshScrollHints,
   handleChartDashboardAction,
   isExpandedChart,
   refreshExpandedSeparateProfitChart,
