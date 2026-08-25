@@ -668,12 +668,8 @@ body{
    Placement · 위치: Hero 기본 규칙 직후에 두고 별도 파일 하단 override로 분리하지 않는다.
    Ownership · 책임: common은 Desktop baseline + 공통 component/tooltip, Tablet/Phone 차이는 역할별 CSS가 담당한다.
    Order · 순서: mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip. */
-/* Market AI Mount Layout · Hero에 standalone 보조 영역을 연결하는 Desktop layout */
-.hero:where(.market-ai-mounted){
-  --hero-pad-y:10px;
-  --hero-pad-x:10px;
-  --market-ai-edge-pad:var(--space-4xl);
-}
+/* Market AI Mount Layout · Hero에 standalone 보조 영역을 연결하는 Desktop layout
+   Surface padding · Hero 외곽 여백은 AI mount 여부와 무관하게 .hero의 공통 token을 그대로 사용한다. */
 .hero.market-ai-mounted{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(330px,350px);
@@ -682,7 +678,6 @@ body{
     "pills market";
   column-gap:var(--space-3xl);
   align-items:center;
-  padding-right:var(--market-ai-edge-pad);
 }
 .hero.market-ai-mounted .hero-title-row{grid-area:title}
 .hero.market-ai-mounted .hero-metric-pills{grid-area:pills}

@@ -42,7 +42,6 @@
 
   /* Market AI Tablet · Desktop의 좌측 성과 / 우측 Market AI 구조를 유지하고, 좌측 pill만 가용 폭에서 wrap */
     .hero.market-ai-mounted{
-      --hero-pad-y:10px;
       grid-template-columns:minmax(0,1fr) minmax(316px,330px);
       grid-template-areas:
         "title market"
