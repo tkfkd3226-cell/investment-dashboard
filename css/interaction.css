@@ -24,6 +24,18 @@
       background:var(--interaction-row-bg);
     }
 
+    :is(.date-select,.date-tool-btn):hover{
+      border-color:var(--topbar-control-border-hover);
+    }
+
+    .date-tool-btn:hover{
+      background:var(--topbar-control-hover-bg);
+    }
+
+    .switcher:is(.mobile-menu-open,.mobile-date-pinned) .control-icon-button:hover{
+      background:var(--topbar-control-hover-bg);
+    }
+
     .date-tool-btn:hover,
     .date-action-menu.mobile-combined-menu .mobile-nav-item:hover{
       transform:translateY(-1px);

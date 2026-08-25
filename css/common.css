@@ -3914,15 +3914,12 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   white-space:nowrap;
   cursor:pointer;
 }
-:is(.date-select,.date-tool-btn):hover{border-color:var(--topbar-control-border-hover)}
 :is(.date-select,.date-tool-btn):focus-visible{
   border-color:var(--topbar-control-border-focus);
   outline:var(--control-focus-outline-width) solid var(--topbar-control-border-focus);
   outline-offset:var(--control-focus-outline-offset);
 }
-.date-tool-btn:hover,
-.date-tool-btn:active{background:var(--topbar-control-hover-bg)}
-.date-tool-btn:active{border-color:var(--topbar-control-border-hover)}
+.date-tool-btn:active{background:var(--topbar-control-hover-bg);border-color:var(--topbar-control-border-hover)}
 /* Topbar Icon Buttons · 공통 control-icon-button geometry + topbar surface styling */
 .topbar-calc-action{text-decoration:none}
 .date-tool-action-icon{

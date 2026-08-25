@@ -386,7 +386,9 @@
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
   }
-  html:not(.dark) .switcher .control-icon-button{
+  /* Light floating controls apply only while the mobile topbar is not fixed/open.
+     Pinned/open states intentionally reuse the same dark topbar control system in both themes. */
+  html:not(.dark) .switcher:not(.mobile-menu-open):not(.mobile-date-pinned) .control-icon-button{
     background:var(--topbar-floating-bg);
     border-color:var(--topbar-floating-border);
     color:var(--topbar-floating-text);
@@ -436,7 +438,6 @@
     color:var(--topbar-text);
     box-shadow:var(--topbar-control-shadow);
   }
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .control-icon-button:hover{background:var(--topbar-control-hover-bg)}
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-theme-action,.topbar-corner-action){
     position:relative;
     top:auto;
