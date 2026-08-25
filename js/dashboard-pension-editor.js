@@ -533,7 +533,7 @@ function updatePensionEtfTradePreview(){
         <span>체결금액</span><strong>${won(draft.amount)}</strong>
         <span>부족금액</span><strong class="pension-etf-trade-shortage">${won(Math.abs(expected.cashAfter))}</strong>
       </div>
-      <div class="pension-etf-trade-preview-alert">현금성자산보다 큰 금액의 추가 매수는 저장할 수 없습니다. 앱 기준 현금성자산 평가금액을 먼저 확인해주세요.</div>`;
+      <div class="pension-etf-trade-preview-alert">체결금액이 현금성자산보다 큽니다.</div>`;
     return;
   }
   setPensionContributionSaveDisabled(false);
@@ -547,6 +547,11 @@ function updatePensionEtfTradePreview(){
       <span>이번 체결단가</span><strong>${fmtDecimal(expected.tradePrice,3)}원/좌</strong>
     </div>`;
 }
+function pensionEditorInternalError(message){
+  const error=new Error(message);
+  error.code='PENSION_EDITOR_INTERNAL';
+  return error;
+}
 function buildPensionContributionItem(){
   const target=pensionContributionTarget();
   if(target==='etfTrade'){
@@ -557,8 +562,8 @@ function buildPensionContributionItem(){
     if(draft.amountRaw===''||!Number.isFinite(draft.amount)||draft.amount<=0) throw new Error('체결금액을 입력해주세요.');
     if(draft.tradeDate>draft.applyDate) throw new Error('신청일은 앱 반영일보다 늦을 수 없습니다.');
     const expected=pensionEtfTradeExpected(draft);
-    if(!expected) throw new Error('추가 매수 예상값을 계산하지 못했습니다.');
-    if(expected.cashAfter<0) throw new Error(`현재 현금성자산 ${won(expected.cashBefore)}보다 체결금액이 큽니다. 현금성자산 평가금액을 먼저 확인해주세요.`);
+    if(!expected) throw new Error('예상값을 계산할 수 없습니다.');
+    if(expected.cashAfter<0) throw new Error('체결금액이 현금성자산보다 큽니다.');
     const amount=Math.round(draft.amount);
     return {
       target:'etfTrade',
@@ -581,7 +586,7 @@ function buildPensionContributionItem(){
   const amountEl=document.getElementById('pensionContribAmount');
   const memoEl=document.getElementById('pensionContribMemo');
   const cashCostEl=document.getElementById('pensionCashCostBasis');
-  if(!dateEl||!amountEl||!memoEl) throw new Error('입력칸을 찾지 못했습니다.');
+  if(!dateEl||!amountEl||!memoEl) throw pensionEditorInternalError('입력칸을 찾지 못했습니다.');
   const date=dateEl.value;
   const rawAmount=String(amountEl.value||'').trim();
   const amount=cleanNumberInput(rawAmount);
@@ -837,7 +842,7 @@ function pensionBatchSimulate(operations=pensionEditorState.batchQueue){
       const item=list.find(v=>String(v.id)===String(op.key));
       if(!item)throw new Error(`${index+1}번 삭제 대상을 찾지 못했습니다.`);
       const linked=op.target==='etfTrade'?pensionBatchLinkedSnapshotForTrade(state,item):pensionBatchLinkedSnapshotForContribution(state,item);
-      if(linked)throw new Error(`${linked.date} 현금성자산 기록이 이 ${op.target==='etfTrade'?'추가 매수를':'기업적립금을'} 반영하고 있습니다. 해당 날짜 현금성자산 삭제 작업을 작업 모음에 먼저 추가해주세요.`);
+      if(linked)throw new Error(`${linked.date} 현금성자산 삭제 작업을 먼저 추가해주세요.`);
       if(op.target==='etfTrade')state.trades=state.trades.filter(v=>String(v.id)!==String(op.key));
       else state.contributions=state.contributions.filter(v=>String(v.id)!==String(op.key));
       return;
@@ -870,12 +875,12 @@ function pensionBatchSimulate(operations=pensionEditorState.batchQueue){
     }
 
     const product=(dataState.portfolio?.pension||[]).find(v=>String(v.ticker)===String(item.ticker));
-    if(!product)throw new Error(`${index+1}번 추가 매수 상품이 현재 퇴직연금 상품 목록에 없습니다.`);
+    if(!product)throw new Error(`${index+1}번 추가 매수 상품이 현재 목록에 없습니다.`);
     const qty=Number(item.qty),amount=Math.round(Number(item.amount));
     if(!/^\d{4}-\d{2}-\d{2}$/.test(String(item.tradeDate||''))||String(item.tradeDate)>today)throw new Error(`${index+1}번 추가 매수 신청일을 확인해주세요.`);
     if(!Number.isInteger(qty)||qty<=0||!Number.isFinite(amount)||amount<=0)throw new Error(`${index+1}번 추가 매수 수량·금액을 확인해주세요.`);
     const cashBefore=pensionBatchCashAvailable(state,today);
-    if(cashBefore<amount)throw new Error(`${index+1}번 추가 매수 시점의 현금성자산 ${won(cashBefore)}보다 체결금액 ${won(amount)}이 큽니다. 기업적립금/현금성자산 작업 순서를 확인해주세요.`);
+    if(cashBefore<amount)throw new Error(`${index+1}번 추가 매수 금액이 현금성자산보다 큽니다. 작업 순서를 확인해주세요.`);
     const saved={...item,id:item.id||op.tempId||`batch-trade-${index}`,date:today,applyDate:today,tradeDate:String(item.tradeDate),ticker:String(item.ticker),name:product.name,type:'buy',qty,price:amount/qty,amount,funding:'pension_cash',cashBefore,cashAfter:cashBefore-amount,updatedAtKST:`batch-${String(index).padStart(4,'0')}`,appliedAtKST:`batch-${String(index).padStart(4,'0')}`};
     state.trades=state.trades.filter(v=>String(v.id)!==String(saved.id));
     state.trades.push(saved);
@@ -958,12 +963,22 @@ function getPensionBatchRequestId(){
   pensionEditorState.batchRequestId=`pension-batch-${uuid}`;
   return pensionEditorState.batchRequestId;
 }
+function pensionBatchDuplicateError(message,code){
+  const error=new Error(message);
+  error.code=code;
+  return error;
+}
+function showPensionBatchDuplicateToast(error){
+  if(error?.code!=='PENSION_BATCH_DUPLICATE'&&error?.code!=='PENSION_BATCH_DUPLICATE_DELETE')return false;
+  showPensionToast(error.message||'이미 추가된 작업입니다.');
+  return true;
+}
 function addPensionBatchOperation(operation){
   const now=Date.now();
   const fingerprint=pensionBatchOperationFingerprint(operation);
-  if(fingerprint&&fingerprint===pensionEditorState.batchLastAddFingerprint&&now-pensionEditorState.batchLastAddAt<800)throw new Error('동일한 작업이 방금 추가되었습니다. 중복 클릭은 반영하지 않았습니다.');
+  if(fingerprint&&fingerprint===pensionEditorState.batchLastAddFingerprint&&now-pensionEditorState.batchLastAddAt<800)throw pensionBatchDuplicateError('이미 추가된 작업입니다.','PENSION_BATCH_DUPLICATE');
   const op={...operation,qid:`batch-${now}-${++pensionEditorState.batchSequence}`,tempId:`batch-temp-${now}-${pensionEditorState.batchSequence}`};
-  if(op.action==='delete'&&pensionEditorState.batchQueue.some(v=>v.action==='delete'&&v.target===op.target&&String(v.key)===String(op.key)))throw new Error('이미 작업 모음에 추가된 삭제 항목입니다.');
+  if(op.action==='delete'&&pensionEditorState.batchQueue.some(v=>v.action==='delete'&&v.target===op.target&&String(v.key)===String(op.key)))throw pensionBatchDuplicateError('이미 추가된 삭제 항목입니다.','PENSION_BATCH_DUPLICATE_DELETE');
   pensionEditorState.batchQueue.push(op);
   pensionEditorState.batchLastAddFingerprint=fingerprint;
   pensionEditorState.batchLastAddAt=now;
@@ -1020,7 +1035,7 @@ function applyPensionBatchStateLocally(state){
 }
 async function applyPensionBatchQueue(renderDashboard){
   if(pensionEditorState.batchApplying)return;
-  if(!pensionEditorState.batchQueue.length){showPensionBatchStatus('적용할 작업이 없습니다.','err');return}
+  if(!pensionEditorState.batchQueue.length)return;
   let simulated;
   try{simulated=pensionBatchSimulate(pensionEditorState.batchQueue)}catch(e){showPensionBatchStatus(e.message||String(e),'err');return}
   const count=pensionEditorState.batchQueue.length;
@@ -1034,7 +1049,7 @@ async function applyPensionBatchQueue(renderDashboard){
       description:`저장·삭제 ${count}건을 한 번에 적용합니다. 하나라도 실패하면 전체 작업을 반영하지 않습니다.`,
       execute:pin=>savePensionBatchViaGithubPages(simulated.orderedOperations,pin,batchRequestId)
     });
-    if(!data){showPensionBatchStatus('일괄 적용 취소','err');return}
+    if(!data)return;
     const duplicateWithoutState=!!data.duplicate&&!data.state;
     if(!duplicateWithoutState)applyPensionBatchStateLocally(data.state);
     pensionEditorState.batchQueue=[];
@@ -1078,7 +1093,7 @@ async function savePensionContribution(){
       const amountRaw=String(document.getElementById('pensionEtfTradeAmount')?.value||'').trim();
       const last=pensionEditorState.batchQueue.at(-1);
       if(!qtyRaw&&!amountRaw&&last?.action==='upsert'&&last?.target==='etfTrade'&&Date.now()-pensionEditorState.batchLastAddAt<800){
-        throw new Error('동일한 작업이 방금 추가되었습니다. 중복 클릭은 반영하지 않았습니다.');
+        throw pensionBatchDuplicateError('이미 추가된 작업입니다.','PENSION_BATCH_DUPLICATE');
       }
     }
     const item=buildPensionContributionItem();
@@ -1105,7 +1120,7 @@ async function savePensionContribution(){
       description:pensionSavePinDescription(item),
       execute:pin=>savePensionContributionViaGithubPages(item,pin)
     });
-    if(!data){showPensionContributionStatus('저장 취소','err');return}
+    if(!data)return;
     if(data.item){
       upsertPensionItemLocally(item.target,data.item);
       if(item.target==='etfTrade'){
@@ -1119,7 +1134,11 @@ async function savePensionContribution(){
     }
     clearPensionContributionStatus('pensionContribStatus');
     showPensionToast(`${pensionContributionTargetObjectLabel(item.target)} 저장했습니다.`);
-  }catch(e){showPensionContributionStatus(e.message||String(e),'err')}
+  }catch(e){
+    if(showPensionBatchDuplicateToast(e)){clearPensionContributionStatus('pensionContribStatus');return}
+    if(e?.code==='PENSION_EDITOR_INTERNAL'){console.error('[Pension editor]',e);clearPensionContributionStatus('pensionContribStatus');return}
+    showPensionContributionStatus(e.message||String(e),'err');
+  }
 }
 
 async function deletePensionContributionViaGithubPages(target,key,pin){
@@ -1152,20 +1171,23 @@ async function deleteSelectedPensionContribution(){
       selected.checked=false;
       clearPensionContributionStatus('pensionContribDeleteStatus');
       showPensionToast('작업 모음에 추가했습니다.');
-    }catch(e){showPensionContributionDeleteStatus(e.message||String(e),'err')}
+    }catch(e){
+      if(showPensionBatchDuplicateToast(e)){clearPensionContributionStatus('pensionContribDeleteStatus');return}
+      showPensionContributionDeleteStatus(e.message||String(e),'err');
+    }
     return;
   }
   if(isTrade&&item){
     const linkedSnapshot=linkedPensionCashSnapshotForTrade(item);
     if(linkedSnapshot){
-      showPensionContributionDeleteStatus(`${linkedSnapshot.date} 현금성자산 기록이 이 추가 매수를 반영하고 있습니다. 먼저 조정 항목을 '현금성자산'으로 바꿔 해당 날짜 항목을 삭제한 뒤 추가 매수를 삭제해주세요.`,'err');
+      showPensionContributionDeleteStatus(`${linkedSnapshot.date} 현금성자산 기록을 먼저 삭제해주세요.`,'err');
       return;
     }
   }
   if(target==='contribution'&&item){
     const linkedSnapshot=linkedPensionCashSnapshotForContribution(item);
     if(linkedSnapshot){
-      showPensionContributionDeleteStatus(`${linkedSnapshot.date} 현금성자산 기록이 이 기업적립금을 반영하고 있습니다. 먼저 조정 항목을 '현금성자산'으로 바꿔 해당 날짜 항목을 삭제한 뒤 기업적립금을 삭제해주세요.`,'err');
+      showPensionContributionDeleteStatus(`${linkedSnapshot.date} 현금성자산 기록을 먼저 삭제해주세요.`,'err');
       return;
     }
   }
@@ -1176,7 +1198,7 @@ async function deleteSelectedPensionContribution(){
     danger:true,
     execute:pin=>deletePensionContributionViaGithubPages(target,key,pin)
   });
-  if(!data){showPensionContributionDeleteStatus('삭제 취소','err');return}
+  if(!data)return;
   removePensionItemLocally(target,key);
   syncPensionContributionDeleteCard(target);
   if(target==='etfTrade') updatePensionEtfTradePreview();
