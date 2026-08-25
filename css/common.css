@@ -2514,6 +2514,9 @@ body.contrib-modal-open{
   position:relative;
   z-index:12001;
   width:var(--modal-card-width);
+  /* Pension modal frame height · 탭/처리 방식 전환 시 외곽 높이는 유지하고 남는 공간은 맨 아래에서만 흡수한다. */
+  height:min(calc(100vh - 36px),820px);
+  height:min(calc(100dvh - 36px),820px);
   max-height:min(calc(100vh - 36px),820px);
   max-height:min(calc(100dvh - 36px),820px);
   overflow:auto;
