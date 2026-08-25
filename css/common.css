@@ -363,10 +363,6 @@
   --chart-series-return:#5abdf2;
   --chart-series-kospi:#7c3aed;
   --chart-expanded-surface:#ffffff;
-  --chart-expanded-close-border:rgba(15,23,42,.14);
-  --chart-expanded-close-bg:rgba(255,255,255,.94);
-  --chart-expanded-close-color:#111827;
-  --chart-expanded-close-shadow:0 5px 18px rgba(15,23,42,.16);
   --chart-info-border:#94a3b8;
   --chart-info-bg:var(--card);
   --chart-info-color:var(--muted);
@@ -413,10 +409,6 @@ html.dark{
   --chart-hover:#94a3b8;
   --chart-stack-stroke:#121826;
   --chart-expanded-surface:#0b1020;
-  --chart-expanded-close-border:rgba(255,255,255,.16);
-  --chart-expanded-close-bg:rgba(17,24,39,.96);
-  --chart-expanded-close-color:#f8fafc;
-  --chart-expanded-close-shadow:0 5px 18px rgba(0,0,0,.34);
   --chart-info-border:#64748b;
   --chart-info-bg:#111827;
   --chart-info-color:var(--highlight-card-muted);
@@ -1340,7 +1332,7 @@ svg.chart:focus-visible{
   cursor:pointer;
 }
 
-:is(.chart-series-all,.chart-y-auto-toggle,.separate-profit-toggle,.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
+:is(.chart-series-all,.chart-y-auto-toggle,.separate-profit-toggle,.chart-scroll-start,.chart-scroll-end,.chart-expand-control){
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -1542,7 +1534,7 @@ button.legend-item.chart-series-all.active{
 }
 
 /* Chart Navigation / Expanded · 배치는 Tablet overflow / phone-chart-ui가 소유하고 공통 square-button geometry를 사용 */
-:is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
+:is(.chart-scroll-start,.chart-scroll-end,.chart-expand-control){
   display:none;
   border:1px solid var(--control-border);
   border-radius:min(var(--dashboard-control-radius),var(--corner-control-cap));
@@ -1550,7 +1542,7 @@ button.legend-item.chart-series-all.active{
   color:var(--muted);
   box-shadow:none;
 }
-:is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button) svg{
+:is(.chart-scroll-start,.chart-scroll-end,.chart-expand-control) svg{
   width:var(--dashboard-expand-icon-size);
   height:var(--dashboard-expand-icon-size);
   fill:none;
@@ -1560,7 +1552,7 @@ button.legend-item.chart-series-all.active{
   stroke-linejoin:round;
   pointer-events:none;
 }
-.dark :is(.chart-scroll-start,.chart-scroll-end,.chart-expand-button,.chart-web-expand-button){
+.dark :is(.chart-scroll-start,.chart-scroll-end,.chart-expand-control){
   background:transparent;
   border-color:var(--control-border);
   color:var(--muted);
@@ -1578,23 +1570,7 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   overscroll-behavior:none;
 }
 .chart-expanded-overlay.show{opacity:1}
-.chart-expanded-close{
-  position:fixed;
-  top:max(10px,env(safe-area-inset-top));
-  right:max(10px,env(safe-area-inset-right));
-  z-index:12003;
-  border:1px solid var(--chart-expanded-close-border);
-  border-radius:min(11px,var(--corner-control-cap));
-  background:var(--chart-expanded-close-bg);
-  color:var(--chart-expanded-close-color);
-  font-family:inherit;
-  font-size:25px;
-  font-weight:var(--type-weight-medium);
-  line-height:1.12;
-  box-shadow:var(--chart-expanded-close-shadow);
-  cursor:pointer;
-}
-.chart-expanded-close svg{display:block;width:18px;height:18px}
+.chart-expanded-close{display:inline-flex}
 .chart-expanded-stage{
   position:absolute;
   left:0;
@@ -1612,6 +1588,7 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
 }
 .chart-expanded-head{
   min-width:0;
+  margin-bottom:0;
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -1623,34 +1600,12 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   overflow:hidden;
   color:var(--text);
 }
-.chart-expanded-title .chart-expanded-title-heading{
-  display:flex;
-  align-items:center;
-  min-width:0;
-  margin:0;
-  gap:var(--space-3xl);
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-  color:var(--text);
-  font-size:var(--type-size-4xl);
-  font-weight:var(--type-weight-emphasis);
-  line-height:var(--type-line-compact);
-  letter-spacing:-.03em;
-}
-.chart-expanded-title .chart-title-sub{
-  font-size:var(--type-size-sm);
-  flex:0 1 auto;
-}
 .chart-expanded-controls-host{
   flex:0 0 auto;
   min-width:0;
 }
 .chart-expanded-controls-host:empty{display:none}
-.chart-expanded-controls-host .chart-head-actions{
-  margin:0;
-}
-.chart-expanded-controls-host .chart-web-expand-button{display:none}
+.chart-expanded-controls-host [data-dashboard-action="open-expanded-chart"]{display:none}
 .chart-expanded-chart-host{
   min-width:0;
   min-height:0;
@@ -4238,13 +4193,6 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       gap:var(--space-md);
       padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
       transform:rotate(90deg) translateY(-100%);
-    }
-    .chart-expanded-title .chart-expanded-title-heading{
-      gap:var(--space-2xl);
-      font-size:var(--type-size-xl);
-    }
-    .chart-expanded-title .chart-title-sub{
-      font-size:var(--type-size-xs);
     }
     .chart-expanded-legend-host .chart-legend{
       column-gap:var(--space-4xl);

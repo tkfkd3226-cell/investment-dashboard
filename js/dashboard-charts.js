@@ -160,10 +160,10 @@ function chartExpandIcon(){
   return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"></path><path d="M9 9 3 3M15 9l6-6M15 15l6 6M9 15l-6 6"></path></svg>`;
 }
 function chartWebExpandButton(){
-  return `<button type="button" class="control-square-button chart-web-expand-button" aria-label="차트를 전체화면으로 확대" title="전체화면" data-dashboard-action="open-expanded-chart">${chartExpandIcon()}</button>`;
+  return `<button type="button" class="control-square-button chart-expand-control chart-web-expand-button" aria-label="차트를 전체화면으로 확대" title="전체화면" data-dashboard-action="open-expanded-chart">${chartExpandIcon()}</button>`;
 }
 function chartScrollButton(){
-  return `<div class="chart-scroll-row"><button type="button" class="control-square-button chart-scroll-start" aria-label="차트를 왼쪽 끝으로 이동" title="왼쪽 끝으로 이동" data-dashboard-action="scroll-chart-start">${navIconSvg('arrowLeft')}</button><button type="button" class="control-square-button chart-scroll-end" aria-label="차트를 오른쪽 끝으로 이동" title="오른쪽 끝으로 이동" data-dashboard-action="scroll-chart-end">${navIconSvg('arrowRight')}</button><button type="button" class="control-square-button chart-expand-button" aria-label="차트를 가로 전체화면으로 확대" title="가로 전체화면" data-dashboard-action="open-expanded-chart">${chartExpandIcon()}</button></div>`;
+  return `<div class="chart-scroll-row"><button type="button" class="control-square-button chart-scroll-start" aria-label="차트를 왼쪽 끝으로 이동" title="왼쪽 끝으로 이동" data-dashboard-action="scroll-chart-start">${navIconSvg('arrowLeft')}</button><button type="button" class="control-square-button chart-scroll-end" aria-label="차트를 오른쪽 끝으로 이동" title="오른쪽 끝으로 이동" data-dashboard-action="scroll-chart-end">${navIconSvg('arrowRight')}</button><button type="button" class="control-square-button chart-expand-control chart-expand-button" aria-label="차트를 가로 전체화면으로 확대" title="가로 전체화면" data-dashboard-action="open-expanded-chart">${chartExpandIcon()}</button></div>`;
 }
 function chartTitleInfoButton(text){
   const safe=escapeHtml(text);
@@ -221,6 +221,7 @@ function syncExpandedChartViewport(){
   overlay.style.setProperty('--chart-expanded-vw',`${window.innerWidth}px`);
   overlay.style.setProperty('--chart-expanded-vh',`${window.innerHeight}px`);
   overlay.classList.toggle('device-landscape',expandedChartLandscapeViewport());
+  overlay.classList.toggle('compact-chart-ui',compactPhoneChartUi());
 }
 function openExpandedChart(button){
   const opener=button||null;
@@ -263,26 +264,34 @@ function openExpandedChart(button){
   overlay.setAttribute('role','dialog');
   overlay.setAttribute('aria-modal','true');
   overlay.setAttribute('aria-label',`${title} 확대 보기`);
-  overlay.innerHTML=`<button type="button" class="control-icon-button chart-expanded-close" aria-label="확대 차트 닫기" title="닫기">${navIconSvg('close')}</button><div class="chart-expanded-stage"><div class="chart-expanded-head"><div class="chart-expanded-title"></div><div class="chart-expanded-controls-host"></div></div><div class="chart-expanded-chart-host"></div><div class="chart-expanded-legend-host"></div></div>`;
+  overlay.innerHTML=`<div class="chart-expanded-stage"><div class="chart-expanded-head chart-head"><div class="chart-expanded-title"></div><div class="chart-expanded-controls-host"></div></div><div class="chart-expanded-chart-host"></div><div class="chart-expanded-legend-host"></div></div>`;
   const expandedTitle=overlay.querySelector('.chart-expanded-title');
   if(titleHeading&&expandedTitle){
     const clonedTitle=titleHeading.cloneNode(true);
     clonedTitle.removeAttribute('id');
-    clonedTitle.classList.add('chart-expanded-title-heading');
     expandedTitle.appendChild(clonedTitle);
   }else if(expandedTitle){
     expandedTitle.textContent=title;
   }
-  if(controls)overlay.querySelector('.chart-expanded-controls-host').appendChild(controls);
+  const closeButton=document.createElement('button');
+  closeButton.type='button';
+  closeButton.className='control-square-button chart-expand-control chart-expanded-close';
+  closeButton.setAttribute('aria-label','확대 차트 닫기');
+  closeButton.title='닫기';
+  closeButton.innerHTML=navIconSvg('close');
+  if(controls){
+    overlay.querySelector('.chart-expanded-controls-host').appendChild(controls);
+    controls.appendChild(closeButton);
+  }
   overlay.querySelector('.chart-expanded-chart-host').appendChild(svg);
   const expandedLegendHost=overlay.querySelector('.chart-expanded-legend-host');
   if(optionsRow)expandedLegendHost.appendChild(optionsRow);
   if(legend)expandedLegendHost.appendChild(legend);
   document.body.appendChild(overlay);
   document.body.classList.add('chart-expanded-open');
-  chartRuntimeState.expanded={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,cardId:card.id};
+  chartRuntimeState.expanded={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,closeButton,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,cardId:card.id};
   syncExpandedChartViewport();
-  overlay.querySelector('.chart-expanded-close')?.addEventListener('click',closeExpandedChart,{once:true});
+  closeButton.addEventListener('click',closeExpandedChart,{once:true});
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeExpandedChart()});
   requestAnimationFrame(()=>{
     redrawChartForCardSize(card.id);
@@ -295,10 +304,11 @@ function closeExpandedChart(){
   if(!state)return;
   clearChartHover();
   chartRuntimeState.expanded=null;
-  const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,cardId,afterClose}=state;
+  const {overlay,svg,placeholder,wrap,scrollLeft,controls,controlsPlaceholder,closeButton,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,cardId,afterClose}=state;
   if(placeholder?.parentNode)placeholder.parentNode.insertBefore(svg,placeholder);
   placeholder?.remove();
   expandedSeparateProfitControl?.remove();
+  closeButton?.remove();
   if(controls&&controlsPlaceholder?.parentNode)controlsPlaceholder.parentNode.insertBefore(controls,controlsPlaceholder);
   controlsPlaceholder?.remove();
   if(optionsRow&&optionsPlaceholder?.parentNode)optionsPlaceholder.parentNode.insertBefore(optionsRow,optionsPlaceholder);
