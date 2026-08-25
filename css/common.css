@@ -198,12 +198,6 @@
   --state-chip-text:#64748b;
   --state-chip-active-bg:#dbeafe;
   --state-chip-active-text:#1d4ed8;
-  --tab-group-bg:rgba(15,23,42,.06);
-  --tab-text:#64748b;
-  --tab-active-bg:#ffffff;
-  --tab-active-text:#172033;
-  --tab-active-shadow:0 4px 12px rgba(15,23,42,.12);
-  --tab-hover-bg:rgba(255,255,255,.72);
   --modal-surface:var(--card);
   --modal-border:var(--line);
   --modal-panel-surface:#ffffff;
@@ -466,12 +460,6 @@ html.dark{
   --state-chip-text:#94a3b8;
   --state-chip-active-bg:#1e3a5f;
   --state-chip-active-text:#93c5fd;
-  --tab-group-bg:rgba(15,23,42,.06);
-  --tab-text:#94a3b8;
-  --tab-active-bg:#334155;
-  --tab-active-text:#f8fafc;
-  --tab-active-shadow:0 0 0 1px rgba(148,163,184,.28);
-  --tab-hover-bg:#273449;
   --modal-surface:#111827;
   --modal-border:rgba(148,163,184,.24);
   --modal-panel-surface:#0f172a;
@@ -2347,7 +2335,10 @@ body.chart-expanded-open .dash-tooltip{
   flex-wrap:wrap;
   margin-top:var(--space-2xl);
 }
-.contrib-btn{font-size:var(--type-size-sm)}
+.contrib-btn{
+  padding-inline:var(--space-lg);
+  font-size:var(--type-size-sm);
+}
 .contrib-btn:disabled{opacity:var(--control-disabled-opacity)}
 .contrib-output-file{
   margin-top:var(--space-4xl);
@@ -2721,17 +2712,19 @@ body.contrib-modal-open{
   outline-offset:var(--control-focus-outline-offset);
 }
 
+/* Shared Asset Tabs Skin · 메인 자산 탭과 퇴직연금 조정 탭이 같은 surface/state를 공유 */
+:is(.asset-workspace-tabs,.contrib-target-tabs){background:var(--subtle-card)}
+:is(.asset-workspace-tab,.contrib-target-option){color:var(--muted)}
+:is(.asset-workspace-tab,.contrib-target-option):not(.active):hover{background:var(--nav-surface-hover);color:var(--ink)}
+:is(.asset-workspace-tab,.contrib-target-option).active{background:var(--asset-tab-active-bg);color:var(--asset-tab-active-color)}
+
 /* Asset Workspace Tabs · 자산 작업영역 탭: 증권 → 퇴직연금 순서, 기존 section ID 유지 */
 .asset-workspace{margin-top:var(--space-9xl)}
 .asset-workspace-tabs{
   grid-template-columns:repeat(2,minmax(0,1fr));
   width:min(430px,100%);
   margin:0 0 var(--space-5xl);
-  background:var(--subtle-card);
 }
-.asset-workspace-tab{color:var(--muted)}
-.asset-workspace-tab:not(.active):hover{background:var(--nav-surface-hover);color:var(--ink)}
-.asset-workspace-tab.active{background:var(--asset-tab-active-bg);color:var(--asset-tab-active-color)}
 .asset-workspace-panel[hidden]{display:none}
 .asset-workspace-panel > section{margin-top:0}
 
@@ -2847,18 +2840,8 @@ body.contrib-modal-open{
 
 .contrib-target-tabs{
   grid-template-columns:repeat(3,minmax(0,1fr));
-  background:var(--tab-group-bg);
 }
-.contrib-target-option{color:var(--tab-text)}
-.contrib-target-option.active{
-  background:var(--tab-active-bg);
-  color:var(--tab-active-text);
-  box-shadow:var(--tab-active-shadow);
-}
-.contrib-target-option:hover{
-  background:var(--tab-hover-bg);
-}
-/* Contribution target tabs resolve Light/Dark states through shared tab tokens. */
+/* Contribution target tabs reuse the same skin/state rules as Asset Workspace tabs. */
 
 /* Pension ETF Trade · 퇴직연금 ETF 거래 입력/미리보기 */
 /* 상태 utility: selector 우선순위만으로 hidden 상태가 base grid/display 선언보다 우선한다. */
@@ -3647,7 +3630,6 @@ button:not(:disabled):active,
   justify-content:flex-end;
   margin-top:var(--space-2xl);
 }
-.pension-batch-actions .contrib-btn{min-width:112px}
 
 /* Pension Adjustment Context · 등록/삭제에 공통 적용되는 처리 방식·조정 항목 */
 .pension-contrib-context{
@@ -3665,6 +3647,10 @@ button:not(:disabled):active,
 }
 .pension-contrib-context .pension-work-mode{
   flex:0 0 auto;
+}
+.pension-contrib-context .pension-work-mode .pension-work-mode-btn{
+  min-width:0;
+  padding-inline:var(--space-lg);
 }
 .pension-contrib-context .contrib-target-tabs{
   width:100%;

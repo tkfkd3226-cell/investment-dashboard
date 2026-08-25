@@ -147,7 +147,7 @@ function renderPensionContributionModal(x){
     <div id="pensionEtfTradePreview" class="pension-etf-trade-preview"><span class="small">상품·수량·체결금액을 입력하면 적용 후 예상값을 보여줍니다.</span></div>
   </div>
   <div class="contrib-actions">
-    <button type="button" id="pensionContribSaveButton" class="control-action-button primary contrib-btn" data-pension-action="save">저장</button>
+    <button type="button" id="pensionContribSaveButton" class="control-action-button compact primary contrib-btn" data-pension-action="save">저장</button>
   </div>
   <div id="pensionContribStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
   <div id="pensionContribOutputFile" class="contrib-output-file" hidden></div>
@@ -157,7 +157,7 @@ function renderPensionContributionModal(x){
   <h3 id="pensionContribDeleteTitle">삭제</h3>
   <p id="pensionContribDeleteHelp" class="small">잘못 등록한 현금성자산 기록 선택 후 삭제</p>
   <div id="pensionContribExistingList" class="contrib-existing-list">${renderPensionContributionList('cashSnapshot')}</div>
-  <div class="contrib-actions"><button type="button" id="pensionContribDeleteButton" class="control-action-button danger contrib-btn" data-pension-action="delete-selected">선택 항목 삭제</button></div>
+  <div class="contrib-actions"><button type="button" id="pensionContribDeleteButton" class="control-action-button compact danger contrib-btn" data-pension-action="delete-selected">선택 항목 삭제</button></div>
   <div id="pensionContribDeleteStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
 </div>
 </div>
@@ -166,7 +166,7 @@ function renderPensionContributionModal(x){
   <div id="pensionBatchQueueList" class="pension-batch-queue"><div class="pension-batch-empty">아직 추가된 작업이 없습니다.</div></div>
   <div id="pensionBatchOrderNote" class="pension-batch-order-note" hidden></div>
   <div id="pensionBatchStatus" class="contrib-status" role="status" aria-live="polite" aria-atomic="true"></div>
-  <div class="pension-batch-actions"><button type="button" id="pensionBatchApplyButton" class="control-action-button primary contrib-btn" data-pension-action="apply-batch" disabled>일괄 적용</button></div>
+  <div class="pension-batch-actions"><button type="button" id="pensionBatchApplyButton" class="control-action-button compact primary contrib-btn" data-pension-action="apply-batch" disabled>일괄 적용</button></div>
 </div>
 <details class="token-guide">
   <summary><span class="token-guide-chevron" aria-hidden="true">${navIconSvg('chevronRight')}</span>GitHub 토큰 만료/교체 방법</summary>
