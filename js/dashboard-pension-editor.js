@@ -246,6 +246,10 @@ function pensionContributionTargetLabel(target=pensionContributionTarget()){
   if(target==='etfTrade') return '추가 매수';
   return target==='cashSnapshot'?'현금성자산':'기업적립금';
 }
+function pensionContributionTargetObjectLabel(target=pensionContributionTarget()){
+  if(target==='etfTrade') return '추가 매수를';
+  return target==='cashSnapshot'?'현금성자산을':'기업적립금을';
+}
 function pensionContributionDataFile(target=pensionContributionTarget()){
   if(target==='etfTrade') return 'data/pension_trades.json';
   return target==='cashSnapshot'?'data/pension_cash_snapshots.json':'data/pension_contributions.json';
@@ -593,20 +597,19 @@ function buildPensionContributionItem(){
   if(rawAmount===''||!Number.isFinite(amount)||amount<=0) throw new Error('금액을 입력해주세요.');
   return {target,date,amount,memo};
 }
-function setPensionContributionStatus(elementId,message,type='ok'){
+function setPensionContributionStatus(elementId,message,type='err'){
   const status=document.getElementById(elementId);
   if(!status) return;
   status.textContent=message;
   status.className=`contrib-status show ${type}`;
 }
-function showPensionContributionStatus(message,type='ok'){
+function showPensionContributionStatus(message,type='err'){
   setPensionContributionStatus('pensionContribStatus',message,type);
 }
-function showPensionMobileToast(message,type='ok',delay=3500){
-  if(typeof window==='undefined'||!window.matchMedia||!window.matchMedia('(max-width:760px)').matches)return;
+function showPensionToast(message,type='ok',delay=3500){
   showAppToast(message,type,delay);
 }
-function showPensionContributionDeleteStatus(message,type='ok'){
+function showPensionContributionDeleteStatus(message,type='err'){
   setPensionContributionStatus('pensionContribDeleteStatus',message,type);
 }
 function clearPensionContributionStatus(elementId){
@@ -642,9 +645,7 @@ function resetPensionContributionForm(){
   pensionEditorState.batchLastAddAt=0;
   updatePensionEtfTradePreview();
   const queuedCount=pensionEditorState.batchQueue.length;
-  showPensionContributionStatus(queuedCount
-    ? `입력값과 삭제 선택을 초기화했습니다. 작업 모음 ${queuedCount}건은 유지됩니다.`
-    : '입력값과 삭제 선택을 초기화했습니다.','ok');
+  showPensionToast(queuedCount?'입력값만 초기화했습니다.':'입력값을 초기화했습니다.');
   document.activeElement?.blur?.();
 }
 
@@ -996,9 +997,10 @@ function clearPensionBatchQueue(){
   resetPensionBatchRequestId();
   renderPensionBatchQueue();
   updatePensionEtfTradePreview();
-  showPensionBatchStatus('작업 모음을 비웠습니다.','ok');
+  clearPensionContributionStatus('pensionBatchStatus');
+  showPensionToast('작업 모음을 비웠습니다.');
 }
-function showPensionBatchStatus(message,type='ok'){
+function showPensionBatchStatus(message,type='err'){
   setPensionContributionStatus('pensionBatchStatus',message,type);
 }
 async function savePensionBatchViaGithubPages(operations,pin,batchRequestId){
@@ -1043,12 +1045,10 @@ async function applyPensionBatchQueue(renderDashboard){
     renderDashboard?.();
     openPensionContributionModal();
     setPensionBatchMode(true);
-    showPensionBatchStatus(duplicateWithoutState
-      ?'동일한 작업 모음은 이미 반영되어 있습니다. 중복 적용하지 않았습니다. 최신 값은 새로고침 후 확인해주세요.'
-      :`작업 모음 ${count}건 적용 완료`,'ok');
-    showPensionMobileToast(duplicateWithoutState
-      ?`작업 모음 ${count}건 이미 반영 완료`
-      :`작업 모음 ${count}건 적용 완료`,'ok');
+    clearPensionContributionStatus('pensionBatchStatus');
+    showPensionToast(duplicateWithoutState
+      ?'이미 적용된 작업입니다. 새로고침해 확인해주세요.'
+      :`작업 ${count}건을 적용했습니다.`);
   }finally{
     pensionEditorState.batchApplying=false;
     renderPensionBatchQueue();
@@ -1095,7 +1095,8 @@ async function savePensionContribution(){
         if(amountEl)amountEl.value='';
         updatePensionEtfTradePreview();
       }
-      showPensionContributionStatus(`${targetText} 저장 작업 추가 완료`,'ok');
+      clearPensionContributionStatus('pensionContribStatus');
+      showPensionToast('작업 모음에 추가했습니다.');
       return;
     }
     clearPensionContributionStatus('pensionContribStatus');
@@ -1116,8 +1117,8 @@ async function savePensionContribution(){
       }
       syncPensionContributionDeleteCard(item.target);
     }
-    showPensionContributionStatus(`${targetText} 저장 완료`,'ok');
-    showPensionMobileToast(`${targetText} 저장 완료`,'ok');
+    clearPensionContributionStatus('pensionContribStatus');
+    showPensionToast(`${pensionContributionTargetObjectLabel(item.target)} 저장했습니다.`);
   }catch(e){showPensionContributionStatus(e.message||String(e),'err')}
 }
 
@@ -1149,7 +1150,8 @@ async function deleteSelectedPensionContribution(){
     try{
       addPensionBatchOperation({action:'delete',target,key,sourceItem:item?{...item}:null});
       selected.checked=false;
-      showPensionContributionDeleteStatus(`${targetText} 삭제 작업 추가 완료`,'ok');
+      clearPensionContributionStatus('pensionContribDeleteStatus');
+      showPensionToast('작업 모음에 추가했습니다.');
     }catch(e){showPensionContributionDeleteStatus(e.message||String(e),'err')}
     return;
   }
@@ -1178,8 +1180,8 @@ async function deleteSelectedPensionContribution(){
   removePensionItemLocally(target,key);
   syncPensionContributionDeleteCard(target);
   if(target==='etfTrade') updatePensionEtfTradePreview();
-  showPensionContributionDeleteStatus(`${targetText} 삭제 완료`,'ok');
-  showPensionMobileToast(`${targetText} 삭제 완료`,'ok');
+  clearPensionContributionStatus('pensionContribDeleteStatus');
+  showPensionToast(`${pensionContributionTargetObjectLabel(target)} 삭제했습니다.`);
 }
 
 // Event Delegation / Tooltip · 이벤트 위임 / 툴팁
