@@ -186,7 +186,7 @@ function renderPensionContributionModal(x){
 const PENSION_MODAL_MEASURE_TARGETS=['cashSnapshot','contribution','etfTrade'];
 let pensionModalHeightFrame=0;
 
-function configurePensionModalMeasureState(card,target,batchMode){
+function configurePensionModalMeasureState(card,target,batchMode,tradeDraft){
   const normalized=PENSION_MODAL_MEASURE_TARGETS.includes(target)?target:'cashSnapshot';
   const standardFields=card.querySelector('#pensionContribStandardFields');
   const tradeFields=card.querySelector('#pensionEtfTradeFields');
@@ -236,6 +236,11 @@ function configurePensionModalMeasureState(card,target,batchMode){
   if(batchPanel)batchPanel.hidden=!batchMode;
   if(saveButton)saveButton.textContent=batchMode?'작업 모음에 추가':'저장';
   if(deleteButton)deleteButton.textContent=batchMode?'삭제 작업 추가':'선택 항목 삭제';
+  if(normalized==='etfTrade'){
+    const preview=card.querySelector('#pensionEtfTradePreview');
+    const draft=tradeDraft||pensionEtfTradeDraft();
+    renderPensionEtfTradePreview(preview,draft,pensionEtfTradeExpectedForMode(draft,batchMode),{syncSaveDisabled:false});
+  }
 }
 
 function measurePensionContributionModalHeight(){
@@ -244,6 +249,7 @@ function measurePensionContributionModalHeight(){
   if(!modal?.classList.contains('show')||!card)return;
   const width=card.getBoundingClientRect().width;
   if(!(width>0))return;
+  const tradeDraft=pensionEtfTradeDraft();
 
   const clone=card.cloneNode(true);
   clone.setAttribute('aria-hidden','true');
@@ -275,7 +281,7 @@ function measurePensionContributionModalHeight(){
   try{
     for(const batchMode of [false,true]){
       for(const target of PENSION_MODAL_MEASURE_TARGETS){
-        configurePensionModalMeasureState(clone,target,batchMode);
+        configurePensionModalMeasureState(clone,target,batchMode,tradeDraft);
         maxHeight=Math.max(maxHeight,Math.ceil(clone.getBoundingClientRect().height));
       }
     }
@@ -514,10 +520,10 @@ function pensionEtfTradeDraft(){
   const product=(dataState.portfolio?.pension||[]).find(v=>String(v.ticker)===ticker)||null;
   return {tradeDate,ticker,qtyRaw,amountRaw,qty,amount,applyDate,product};
 }
-function pensionEtfTradeExpected(draft=pensionEtfTradeDraft()){
+function pensionEtfTradeExpectedForMode(draft,batchMode){
   const {applyDate,product,qty,amount}=draft;
   if(!product||!Number.isFinite(qty)||qty<=0||!Number.isFinite(amount)||amount<=0) return null;
-  const batchState=pensionEditorState.batchMode?pensionBatchCurrentState():null;
+  const batchState=batchMode?pensionBatchCurrentState():null;
   const state=batchState?pensionBatchPositionState(product,applyDate,batchState):pensionPositionState(product,applyDate);
   const cashBefore=batchState?pensionBatchCashAvailable(batchState,applyDate):pensionCashBeforeNewTrade(applyDate);
   const cashAfter=cashBefore-amount;
@@ -533,32 +539,33 @@ function pensionEtfTradeExpected(draft=pensionEtfTradeDraft()){
     avgAfter:qtyAfter>0?costAfter/qtyAfter:0
   };
 }
-function updatePensionEtfTradePreview(){
-  const box=document.getElementById('pensionEtfTradePreview');
-  if(!box) return;
-  const draft=pensionEtfTradeDraft();
-  const expected=pensionEtfTradeExpected(draft);
+function pensionEtfTradeExpected(draft=pensionEtfTradeDraft()){
+  return pensionEtfTradeExpectedForMode(draft,pensionEditorState.batchMode);
+}
+function renderPensionEtfTradePreview(box,draft,expected,{syncSaveDisabled=true}={}){
+  if(!box)return;
+  const setDisabled=disabled=>{if(syncSaveDisabled)setPensionContributionSaveDisabled(disabled)};
   if(!draft.tradeDate||!draft.product||draft.qtyRaw===''||draft.amountRaw===''||!expected){
-    setPensionContributionSaveDisabled(false);
+    setDisabled(false);
     box.className='pension-etf-trade-preview';
     box.innerHTML='<span class="small">상품·수량·체결금액을 입력하면 적용 후 예상값을 보여줍니다.</span>';
     return;
   }
   if(!Number.isInteger(draft.qty)||draft.qty<=0){
-    setPensionContributionSaveDisabled(false);
+    setDisabled(false);
     box.className='pension-etf-trade-preview warning';
     box.innerHTML='<strong>체결수량은 1좌 이상의 정수로 입력해주세요.</strong>';
     return;
   }
   if(draft.tradeDate>draft.applyDate){
-    setPensionContributionSaveDisabled(false);
+    setDisabled(false);
     box.className='pension-etf-trade-preview warning';
     box.innerHTML='<strong>신청일은 앱 반영일보다 늦을 수 없습니다.</strong>';
     return;
   }
   const insufficient=expected.cashAfter<0;
   if(insufficient){
-    setPensionContributionSaveDisabled(true);
+    setDisabled(true);
     box.className='pension-etf-trade-preview warning blocked';
     box.innerHTML=`<div class="pension-etf-trade-preview-title pension-etf-trade-blocked-title">⚠ 저장 불가</div>
       <div class="pension-etf-trade-preview-grid">
@@ -569,7 +576,7 @@ function updatePensionEtfTradePreview(){
       <div class="pension-etf-trade-preview-alert">체결금액이 현금성자산보다 큽니다.</div>`;
     return;
   }
-  setPensionContributionSaveDisabled(false);
+  setDisabled(false);
   box.className='pension-etf-trade-preview';
   box.innerHTML=`<div class="pension-etf-trade-preview-title">적용 후 예상</div>
     <div class="pension-etf-trade-preview-grid">
@@ -579,6 +586,12 @@ function updatePensionEtfTradePreview(){
       <span>평균단가</span><strong>${fmtDecimal(expected.avgAfter,3)}원 <em>(화면 ${fmt(expected.avgAfter)}원)</em></strong>
       <span>이번 체결단가</span><strong>${fmtDecimal(expected.tradePrice,3)}원/좌</strong>
     </div>`;
+}
+function updatePensionEtfTradePreview(){
+  const box=document.getElementById('pensionEtfTradePreview');
+  if(!box) return;
+  const draft=pensionEtfTradeDraft();
+  renderPensionEtfTradePreview(box,draft,pensionEtfTradeExpected(draft));
 }
 function pensionEditorInternalError(message){
   const error=new Error(message);
