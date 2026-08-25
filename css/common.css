@@ -3657,6 +3657,43 @@ button:not(:disabled):active,
   min-width:0;
 }
 
+/* Pension Contribution Modal Compact Rhythm · 금액 조정 모달은 폰트/상태 UI를 유지하고 세로 여백만 압축 */
+.contrib-modal-card{padding:var(--space-6xl)}
+.contrib-modal-head{gap:var(--space-2xl);margin-bottom:var(--space-2xl)}
+.contrib-modal-head p{margin-top:var(--space-xs)}
+.contrib-modal-head-actions{gap:var(--space-sm)}
+
+/* 조정 항목 탭은 메인 자산 탭의 skin/state/typography를 유지하고 모달 안에서만 높이·내부 여백을 compact화한다. */
+.contrib-modal .contrib-target-tabs{gap:var(--space-sm);padding:var(--space-2xs)}
+.contrib-modal .contrib-target-option{min-height:var(--action-button-compact-height)}
+
+.contrib-modal .pension-contrib-context{gap:var(--space-md);margin-bottom:var(--space-2xl)}
+.contrib-modal .pension-contrib-tool{padding:var(--space-4xl)}
+.contrib-modal .modal-card-box{margin-top:var(--space-2xl)}
+.contrib-modal .modal-card-box:first-of-type{margin-top:0}
+.contrib-modal .pension-adjust-form{gap:var(--space-lg)}
+.contrib-modal .contrib-field{gap:var(--space-xs)}
+.contrib-modal .contrib-actions{margin-top:var(--space-md)}
+
+.contrib-modal .contrib-list{margin-top:var(--space-2xl);padding:var(--space-4xl)}
+.contrib-modal .contrib-list h3{margin-bottom:var(--space-xs)}
+.contrib-modal .contrib-list .small,
+.contrib-modal .pension-contrib-tool .small{margin-bottom:var(--space-2xl)}
+.contrib-modal .contrib-existing-list{gap:var(--space-lg);margin-top:var(--space-lg)}
+.contrib-modal .contrib-existing-item{gap:var(--space-lg);padding:var(--space-lg) var(--space-2xl)}
+
+.contrib-modal .pension-etf-trade-apply-note{margin-top:var(--space-lg);padding:var(--space-lg) var(--space-2xl)}
+.contrib-modal .pension-etf-trade-preview{margin-top:var(--space-lg);padding:var(--space-2xl)}
+.contrib-modal .pension-etf-trade-preview-title{margin-bottom:var(--space-lg)}
+
+.contrib-modal .pension-batch-panel{padding:var(--space-4xl)}
+.contrib-modal .pension-batch-head{gap:var(--space-2xl)}
+.contrib-modal .pension-batch-queue{gap:var(--space-sm);margin-top:var(--space-lg)}
+.contrib-modal .pension-batch-item{gap:var(--space-lg);padding:var(--space-lg) var(--space-2xl)}
+.contrib-modal .pension-batch-empty{padding:var(--space-2xl)}
+.contrib-modal .pension-batch-order-note{margin-top:var(--space-md);padding:var(--space-lg) var(--space-2xl)}
+.contrib-modal .pension-batch-actions{margin-top:var(--space-md)}
+
 /* Separate Profit Mode · 별도수익 ON/OFF 보기 모드 */
 .separate-profit-control-row{
   display:flex;

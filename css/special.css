@@ -591,7 +591,7 @@
     .krx-action-buttons{gap:var(--space-2xl)}
     .krx-action-buttons .action-modal-btn{min-height:40px;height:40px;padding:0 var(--space-4xl);font-size:var(--type-size-sm)}
     .contrib-modal{--contrib-control-font-size:var(--type-size-2xl)}
-    .contrib-modal-card{width:min(760px,100%);padding:var(--space-8xl)}
+    .contrib-modal-card{width:min(760px,100%);padding:var(--space-6xl)}
     .contrib-modal .pension-adjust-form{grid-template-columns:repeat(2,minmax(0,1fr))}
     .contrib-existing-item{padding:var(--space-3xl) var(--space-4xl)}
     .contrib-existing-title{display:inline-block;margin-right:var(--space-4xl);font-size:var(--type-size-md);line-height:normal}
