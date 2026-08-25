@@ -2417,7 +2417,6 @@ body.chart-expanded-open .dash-tooltip{
   --pension-modal-row-height:30px;
   --pension-modal-control-pad:6.5px;
   --pension-modal-control-line-height:var(--type-line-compact);
-  --pension-modal-control-visual-line-size:15px;
   --pension-modal-control-scale:1;
   --pension-modal-control-inner-size:100%;
   --pension-modal-control-inner-pad:var(--pension-modal-control-pad);
