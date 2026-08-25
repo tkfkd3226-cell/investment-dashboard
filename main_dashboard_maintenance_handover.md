@@ -2612,18 +2612,18 @@ Light / Dark 모두 icon contrast가 유지돼야 한다.
 
 ### Table alignment
 
-메인 `dashboard-data-table` 정렬은 개별 표 override보다 공통 semantic utility를 우선한다. 숫자 의미와 정렬 책임은 분리한다.
+메인 `dashboard-data-table` 정렬은 개별 표 override보다 공통 semantic contract를 우선한다. 숫자 셀은 `.num` 자체가 기본 우측 정렬을 담당하고, 문자형 열과 가운데 정렬 예외만 semantic class로 명시한다.
 
 ```text
-.num               → 숫자 표현 품질(tabular-nums / nowrap)만 담당, 정렬하지 않음
-.table-cell-text   → 좌측 정렬
-.table-cell-right  → 우측 정렬
-.table-cell-center → 가운데 정렬
+.num               → 숫자 표현 품질(tabular-nums / nowrap) + 기본 우측 정렬
+.table-cell-text   → 문자형 열 좌측 정렬
+.table-cell-center → 수량 / % 등 가운데 정렬 예외
 ```
 
-- `.num`에 `text-align`을 넣지 않는다. 숫자 값의 정렬은 `table-cell-right` 또는 `table-cell-center`로 명시한다.
+- 일반 숫자 셀에 우측 정렬 class를 반복해서 붙이지 않는다. `.num`의 기본 contract를 사용한다.
+- 수량 / %처럼 UI상 가운데 정렬이 필요한 값은 `table-cell-center`를 명시한다.
 - 문자형 셀과 정렬 예외는 semantic class로 제어하고, 컬럼 위치 기반 `nth-child`에 의존하지 않는다.
-- 일반 숫자 값은 우측 정렬을 기본으로 하되, UI상 가운데 정렬이 필요한 값은 `table-cell-center`를 명시한다.
+- `table-cell-right` 같은 `.num`과 역할이 중복되는 utility를 다시 도입하지 않는다.
 - 특정 표·컬럼의 현재 정렬 상태나 문구 변경 이력은 이 문서에 누적하지 않고 최신 실제 소스를 기준으로 확인한다.
 
 ### 성과 용어
