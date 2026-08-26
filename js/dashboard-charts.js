@@ -60,7 +60,9 @@ function chartSvgLayoutSize(svg){
   return {width:Number(rect?.width)||0,height:Number(rect?.height)||0};
 }
 function chartViewBoxSize(svg){
-  const h=CHART_VIEWBOX_BASE.height,{width:cssWidth,height:cssHeight}=chartSvgLayoutSize(svg);
+  const h=CHART_VIEWBOX_BASE.height;
+  if(chartRuntimeState.printFixedViewBox)return {w:CHART_VIEWBOX_BASE.width,h};
+  const {width:cssWidth,height:cssHeight}=chartSvgLayoutSize(svg);
   if(!(cssWidth>0&&cssHeight>0))return {w:CHART_VIEWBOX_BASE.width,h};
   const minWidth=CHART_FRAME.left+CHART_FRAME.right+1;
   return {w:Math.max(minWidth,Math.round(h*cssWidth/cssHeight)),h};
@@ -126,6 +128,7 @@ const chartRuntimeState={
   entrancePhoneLandscapeBound:false,
   skipEntranceOnce:false,
   securitiesCumTransitionSuppressionPending:false,
+  printFixedViewBox:false,
   expanded:null
 };
 const chartState={
@@ -1550,15 +1553,20 @@ function prepareChartsForPrint(){
   drawInactiveChartsForPrint();
 }
 function drawInactiveChartsForPrint(){
-  if(uiState.activeAssetTab==='pension'){
-    drawCumChart();
-    drawLineChart();
-    drawStacked();
-    return;
+  chartRuntimeState.printFixedViewBox=true;
+  try{
+    if(uiState.activeAssetTab==='pension'){
+      drawCumChart();
+      drawLineChart();
+      drawStacked();
+      return;
+    }
+    drawPensionCumChart();
+    drawPensionSymbolChart();
+    drawPensionStacked();
+  }finally{
+    chartRuntimeState.printFixedViewBox=false;
   }
-  drawPensionCumChart();
-  drawPensionSymbolChart();
-  drawPensionStacked();
 }
 
 export {

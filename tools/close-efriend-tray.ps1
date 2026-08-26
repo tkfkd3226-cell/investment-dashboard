@@ -219,9 +219,9 @@ function Find-EFriendExitConfirmDialog {
         if (-not [TrayExitNative]::IsWindowVisible($hwnd)) { continue }
         if ((Get-ClassName $hwnd) -ne '#32770') { continue }
 
-        [uint32]$pid = 0
-        [void][TrayExitNative]::GetWindowThreadProcessId($hwnd, [ref]$pid)
-        if ($mainPids -notcontains $pid) { continue }
+        [uint32]$ownerPid = 0
+        [void][TrayExitNative]::GetWindowThreadProcessId($hwnd, [ref]$ownerPid)
+        if ($mainPids -notcontains $ownerPid) { continue }
 
         $exitButton = [TrayExitNative]::GetDlgItem($hwnd, 1)
         $cancelButton = [TrayExitNative]::GetDlgItem($hwnd, 2)
@@ -233,7 +233,7 @@ function Find-EFriendExitConfirmDialog {
             DialogHwnd = $hwnd
             ExitHwnd   = $exitButton
             CancelHwnd = $cancelButton
-            ProcessId  = $pid
+            ProcessId  = $ownerPid
         }
     }
 
