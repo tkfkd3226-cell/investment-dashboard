@@ -28,56 +28,33 @@
 
 ## 1.1 이 문서의 역할과 현재 파일명
 
-이 문서는 기존의:
+이 파일은 투자 대시보드의 **단일 유지보수·인수인계 기준 문서**다.
 
-```text
-과거 한글명 유지보수 문서
-20260816_과거 한글명 유지보수 문서
-각 채팅에서 별도로 작성하던 인수인계 요청문
-```
-
-을 하나로 통합한 **최신 단일 관리 문서**다.
-
-앞으로 새 채팅으로 이동할 때 사용자는 원칙적으로:
-
-```text
-현재 GitHub 기준의 최신 투자 대시보드 전체 ZIP
-```
-
-**하나만 첨부하면 된다.**
-
-GPT는 새 채팅 시작 시 최신 ZIP을 먼저 열고, ZIP 내부의 정확한 파일명:
+정확한 파일명:
 
 ```text
 main_dashboard_maintenance_handover.md
 ```
 
-을 찾아 **가장 먼저 읽는다.**
+새 채팅이나 새 작업에서는 사용자가 제공한 **최신 전체 ZIP**을 기준으로 다음 순서를 따른다.
 
-그 후:
+```text
+최신 ZIP 확인
+→ ZIP 내부 이 MD 전체 읽기
+→ 같은 ZIP의 실제 구조/소스 확인
+→ 사용자 명령에 해당하는 범위만 수행
+```
 
-1. 이 MD에서 구조 보존 원칙, QA 방식, 점수 이력, 진행상태, 인수인계 기준을 확인한다.
-2. 같은 ZIP 안의 실제 소스를 직접 읽는다.
-3. 실제 구현 상태는 반드시 최신 ZIP을 source of truth로 사용한다.
-4. MD 기록과 실제 ZIP 상태가 일치하는지 확인한다.
-5. 일치하면 과거 작업을 재설계하거나 재수정하지 않고 다음 요청을 기다린다.
-6. 다르면 임의로 고치지 말고 차이만 먼저 보고한다.
+읽는 순서와 진실의 우선순위는 다르다. 이 MD는 설계 의도·운영 제약·QA 기준을 설명하고, **실제 구현 상태는 항상 같은 최신 ZIP의 실제 파일이 우선**한다.
 
-중요:
+사용자는 이 MD를 별도로 첨부할 필요가 없다. 최신 전체 ZIP 하나가 코드와 인수인계 문서를 함께 전달하는 단일 패키지다.
 
-> **사용자는 이 MD를 새 채팅에 별도로 첨부할 필요가 없다.**  
-> **최신 전체 ZIP 하나가 코드와 인수인계 문서를 함께 전달하는 단일 패키지다.**
-
-만약 ZIP 내부에 이 MD가 없거나 읽을 수 없다면 과거 대화 기억으로 대체하지 말고 그 사실을 사용자에게 알린다.
-
-과거 채팅 기억이나 이 문서의 오래된 수치가 최신 ZIP보다 우선할 수 없다.
+ZIP 내부에 이 MD가 없거나 읽을 수 없으면 과거 대화 기억으로 대체하지 말고 그 사실을 사용자에게 알린다.
 
 
 ## 1.2 최신 ZIP 작업의 공통 읽기 순서
 
-최신 전체 ZIP이 첨부된 모든 작업에서는 **작업 종류와 관계없이 ZIP 루트의 `main_dashboard_maintenance_handover.md`를 가장 먼저 전체 읽는다.**
-
-그 다음 같은 ZIP의 실제 파일 구조와 필요한 소스를 확인한 뒤, **사용자가 함께 보낸 명령에 따라 해당 작업만 수행**한다.
+최신 전체 ZIP이 첨부된 작업에서는 작업 종류와 관계없이 이 MD를 먼저 읽고, 그 다음 실제 파일 구조와 요청 관련 소스를 확인한다.
 
 중요:
 
@@ -89,35 +66,27 @@ ZIP 첨부 자체
 ≠ QA
 ```
 
-ZIP은 최신 source of truth를 제공하는 입력일 뿐이며, **실행 모드는 사용자 명령이 결정**한다.
+ZIP은 최신 source of truth를 제공하는 입력이고, **실행 모드는 사용자 명령이 결정**한다.
 
-공통 순서:
-
-```text
-최신 ZIP 첨부
-→ 인수인계 MD 전체 읽기
-→ 같은 ZIP의 실제 구조/소스 확인
-→ 사용자 명령 해석
-→ 해당 범위만 수행
-```
+새 채팅 최초 진입 또는 기준 구조를 아직 읽지 않은 상태에서는 이 MD를 전체 읽는다. 같은 채팅에서 이미 같은 기준 구조를 읽은 뒤 더 최신 ZIP이 올라온 경우에는 **MD 자체가 변경되었는지 확인한 뒤 변경된 문서/관련 section과 실제 diff를 중심으로 재확인**할 수 있다. 다만 구조·운영 규칙이 바뀌었을 가능성이 있거나 평가/최종 QA처럼 전체 기준이 필요한 작업에서는 다시 전체를 확인한다.
 
 과거 채팅 기억이나 예전 ZIP을 최신 기준으로 추정하지 않는다.
 
 
 ## 1.3 `인수인계` 명령
 
-최신 전체 ZIP을 첨부한 뒤 사용자가 아래 한마디만 보내면 된다.
+최신 전체 ZIP과 함께 사용자가:
 
 ```text
 인수인계
 ```
 
-처리 방식:
+라고 하면 다음만 수행한다.
 
 ```text
-인수인계 MD 전체 읽기
-→ 같은 ZIP의 실제 구조와 핵심 소스 확인
-→ 현재 기준선 / 운영 원칙 / 유지보수 제약 / 주의사항 파악
+이 MD 확인
+→ 실제 구조와 핵심 소스 확인
+→ 현재 기준선 / 운영 원칙 / 유지보수 제약 파악
 → 파일 수정 안 함
 → QA/점수평가 안 함
 → 인수인계 완료 여부만 간단히 보고
@@ -129,10 +98,10 @@ ZIP은 최신 source of truth를 제공하는 입력일 뿐이며, **실행 모�
 ## 1.4 최신 파일 우선 원칙
 
 - 이전 대화에서 기억한 코드를 최종본이라고 추정하지 않는다.
-- 내가 현재 채팅에 첨부한 **최신 ZIP 또는 최신 파일을 반드시 직접 읽고 작업한다.**
-- 과거 버전의 selector, 함수, DOM, 파일 경로를 현재 코드에 적용하지 않는다.
-- 수정 전 요청과 직접 관련된 파일과 사용처를 필요한 범위에서 확인한다.
-- 요청과 관계없는 파일이나 영역은 수정하지 않는다.
+- 현재 작업에 첨부된 최신 ZIP/파일을 직접 읽고 작업한다.
+- 과거 selector, 함수, DOM, 파일 경로를 현재 코드에 그대로 적용하지 않는다.
+- 요청과 직접 관련된 파일과 사용처를 필요한 범위에서 확인한다.
+- 요청과 무관한 파일이나 영역은 수정하지 않는다.
 
 기본 원칙:
 
@@ -141,45 +110,29 @@ ZIP은 최신 source of truth를 제공하는 입력일 뿐이며, **실행 모�
 
 ## 1.5 Source of Truth 우선순위
 
-새 작업에서의 **읽기 순서**는 `main_dashboard_maintenance_handover.md → 실제 소스`이지만, 내용이 충돌할 때의 **진실 우선순위**는 다음과 같다.
+내용이 충돌할 때의 우선순위는 다음과 같다.
 
 1. 현재 작업에 첨부된 최신 전체 ZIP의 실제 파일
 2. 같은 ZIP의 `main_dashboard_maintenance_handover.md`
 3. 같은 ZIP의 `README.md`
 4. 과거 대화·과거 ZIP·역사적 점수 기록
 
-따라서 MD나 README가 실제 코드와 다르면 문서 내용을 근거로 코드를 되돌리지 않는다. 먼저 차이를 확인하고 실제 최신 코드 상태를 기준으로 판단한다.
+따라서 MD나 README가 실제 코드와 다르면 문서를 근거로 코드를 되돌리지 않는다. 먼저 차이를 확인하고 **실제 최신 코드 상태를 기준으로 판단**한다.
 
 
 ## 1.6 새 채팅으로 이동할 때의 기본 인수인계 방식
 
-앞으로 긴 별도 인수인계문을 매번 새로 만들거나 MD를 별도로 첨부할 필요가 없다.
+새 채팅에는 원칙적으로 최신 전체 ZIP 하나만 첨부한다. 별도의 긴 인수인계문을 새로 만들 필요가 없다.
 
-새 채팅에는:
-
-```text
-최신 투자 대시보드 전체 ZIP
-```
-
-**하나만 첨부한다.**
-
-GPT는 ZIP을 열자마자 내부의:
-
-```text
-main_dashboard_maintenance_handover.md
-```
-
-를 가장 먼저 읽고, 그 다음 실제 소스를 확인한다.
-
-사용자는 최신 전체 ZIP을 첨부한 뒤 다음 한마디만 보내면 된다.
+사용자는 ZIP 첨부 후:
 
 ```text
 인수인계
 ```
 
-또는 별도 문구 없이 ZIP을 첨부한 뒤 바로 작업 요청을 이어가도 된다.
+또는 바로 작업 요청을 보낼 수 있다.
 
-이후 사용자는:
+이후 작업은 필요에 따라:
 
 ```text
 1차
@@ -189,154 +142,98 @@ QA
 ...
 ```
 
-형태로 이어갈 수 있다.
-
-최신 ZIP 내부 MD가 인수인계 기준이며, 실제 소스 상태는 같은 ZIP의 파일들이 source of truth다.
+형태로 이어간다.
 
 
 ## 1.7 새 채팅 시작 시 먼저 확인할 것
 
-새 채팅에서는 수정 전에 다음 순서를 지킨다.
+새 채팅에서 수정 전에 최소 다음을 확인한다.
 
 ### 1. ZIP 내부 인수인계 MD
 
-최신 ZIP 안에서:
+- `main_dashboard_maintenance_handover.md` 존재/가독 여부
+- 현재 구조·운영 규칙·진행 기준선
 
-```text
-main_dashboard_maintenance_handover.md
-```
+### 2. 프로젝트 구조
 
-를 찾아 가장 먼저 읽는다.
+- 실제 디렉토리/파일 구조
+- 요청 관련 변경 대상
+- MD 기록과 실제 ZIP의 구조 일치 여부
 
-없거나 읽을 수 없으면 과거 기억으로 작업을 시작하지 않고 사용자에게 알린다.
+### 3. JavaScript
 
-### 2. 프로젝트
-
-```text
-현재 디렉토리 구조
-실제 변경 대상 파일
-MD가 기록한 현재 구조와 실제 ZIP의 일치 여부
-```
-
-### 3. JS
-
-```text
-7개 module 구조
-core DOM 비의존 여부
-ui-common 저수준 공통 책임
-pension View / Editor 분리
-module-private state ownership
-main graph 단일 module entry + Market AI standalone module
-importmap/cache bust
-import graph
-circular import
-global bridge 여부
-boot 구조
-```
+- 7개 module graph
+- `core` DOM 비의존
+- `ui-common` 저수준 공통 책임
+- pension View / Editor 분리
+- module-private state ownership
+- main graph 단일 module entry + Market AI standalone
+- import graph / circular import / global bridge / boot 구조
 
 ### 4. CSS / Responsive
 
-```text
-메인 CSS 6파일 canonical role / load order
-1101 / 761~1100 / ≤760 구조
-기능 media / special.css 예외
-section-title rule
-iphone-request-desktop
-```
+- 메인 CSS 6파일 canonical role / load order
+- Desktop ≥1101 / Tablet 761~1100 / Mobile ≤760 기본 구간
+- `special.css`의 기능성 예외
+- 현재 section/title/topbar 관련 불변조건
 
-### 5. 데이터
+### 5. 데이터 / 진행위치
 
-```text
-보호 JSON 존재
-요청과 무관한 data 변경 금지
-```
+- 보호 JSON 존재 여부와 요청 무관 data 변경 금지
+- MD의 기준선과 최신 ZIP이 실제로 일치하는지
 
-### 6. 현재 진행위치
-
-MD에 적힌 진행위치와 최신 ZIP이 실제로 일치하는지 확인한다.
-
-일치하면:
-
-> **다시 과거 작업을 재설계하거나 재수정하지 않고 바로 다음 요청으로 이어간다.**
+일치하면 과거 작업을 다시 설계하거나 재수정하지 않고 바로 현재 요청으로 이어간다.
 
 
 ## 1.8 MD와 최신 ZIP이 다를 때
 
-MD의 기록과 최신 ZIP이 다르면:
+MD와 최신 ZIP이 다르면 **임의로 어느 한쪽을 맞추지 않는다.**
 
-```text
-MD가 최신이라고 가정해서 ZIP 수정
-```
-
-하지 않는다.
-
-반드시 먼저 차이를 보고한다.
-
-예:
-
-```text
-현재 ZIP은 MD의 ES Module 기준과 다릅니다.
-
-차이
-- index.html이 classic script
-- dashboard-app.js import 없음
-- 현재 HEAD가 과거 상태
-
-임의 수정하지 않고 확인 대기
-```
-
-반대로 최신 ZIP이 MD보다 더 최신 구조라면 최신 ZIP을 우선하고 MD가 오래된 것으로 판단한다.
+- ZIP이 과거 구조라면 차이를 보고하고 확인한다.
+- ZIP이 MD보다 더 최신 구조라면 실제 ZIP을 우선하고 MD가 오래된 것으로 판단한다.
+- 문서 정합화가 필요하면 코드가 아니라 MD를 현재 구조에 맞춰 수정하는 것이 기본이다.
 
 
 ## 1.9 GitHub / 로컬 파일이 엇갈릴 때
 
-모바일 GitHub 수정 후 GitHub Desktop을 실행하는 등 로컬/원격 상태가 엇갈릴 수 있다.
+로컬/원격 상태가 엇갈릴 수 있으므로 파일명이나 수정시간만으로 최신본을 판단하지 않는다.
 
-이 경우:
+필요 시 확인:
 
-- 파일명이나 수정시간만 보고 최신본 판단 금지
-- Git HEAD / remote / working tree 상태 확인
-- 필요한 경우 실제 file hash/diff 비교
-- 운영 JSON 차이는 KRX 갱신 여부와 분리해서 판단
-- conflict가 난 파일을 무작정 ours/theirs로 선택하지 않음
+- Git HEAD / remote / working tree
+- 실제 file hash / diff
+- 운영 JSON 갱신과 코드 변경의 분리
+- conflict 파일의 양쪽 실제 내용
 
-대규모 patch를 적용하기 전에:
-
-> **어느 전체 ZIP이 최종 PASS 기준인지 먼저 확정**
-
-한다.
-
-코드 기준본과 오늘 갱신된 운영 JSON을 구분해서 판단한다.
+대규모 patch 전에는 **어느 전체 ZIP이 최종 PASS 기준본인지 먼저 확정**한다.
 
 
 ## 1.10 이 문서의 유지관리 원칙
 
-이 문서는 매 소규모 UI 수정마다 변경이력을 누적하는 changelog가 아니다.
+이 문서는 changelog가 아니라 **장기 유지보수 기준서**다.
 
-다음과 같은 **기준선이 바뀔 때** 갱신한다.
+다음처럼 기준선이 바뀔 때 갱신한다.
 
 - 구조 리팩토링 완료
 - JS/CSS architecture 변경
 - breakpoint 정책 변경
 - 중요한 UI 불변조건 변경
-- QA 운영 방식 변경
-- 점수 기준/기준본 변경
-- 차수형 대규모 작업 완료
-- 새 채팅 인수인계에 반드시 필요한 진행위치 변경
+- QA/평가 운영 방식 변경
+- 새 채팅 인수인계에 필요한 기준선 변경
 
-반대로 다음은 매번 이 문서에 누적하지 않는다.
+다음은 별도 요청이 없는 한 누적하지 않는다.
 
-- 버튼 1개 간격 수정
-- 문구 1개 변경
+- 버튼 하나의 미세 간격
+- 문구 1개
 - 단발성 버그 수정
-- 단순 data 갱신
-- KRX 현재가 갱신
+- 단순 data/KRX 갱신
+- CSS가 직접 소유해야 할 미세 px 값
 
-단, 사용자가 대화 중 **앞으로 반복 적용할 유지보수·수정·QA·파일전달 조건을 새로 추가하거나 기존 조건을 변경하면**, 별도 문서 반영 요청이 없어도 이 파일의 기존 관련 항목에 자동 반영한다. 일회성 작업 지시는 장기 운영 규칙으로 확대하지 않는다.
+사용자가 앞으로 반복 적용할 유지보수·수정·QA·파일전달 조건을 새로 추가하거나 바꾸면 관련 기존 항목에 반영한다. 일회성 작업 지시는 장기 규칙으로 확대하지 않는다.
 
 목표는 문서를 계속 길게 만드는 것이 아니라:
 
-> **다음 채팅이 이 문서 하나와 최신 ZIP만 읽고 정확히 이어서 작업할 수 있게 하는 것**
+> **다음 채팅이 최신 ZIP과 이 문서를 읽고 현재 구조를 정확히 이어서 작업할 수 있게 하는 것**
 
 이다.
 
@@ -349,26 +246,23 @@ MD가 최신이라고 가정해서 ZIP 수정
 
 ```text
 점수
-→ 최신 실제 소스를 필요한 범위에서 검증해 점수를 새로 산정
-→ CSS / JS / UI / UX 세부 점수와 각 총점, UI/UX 총점, 전체 총점만 출력
-→ 상세 평가문, A/B/C 문제 설명, 수정 제안, ZIP 생성 없음
+→ 최신 실제 소스를 필요한 범위에서 검증해 CSS / JS / UI / UX 점수를 새로 산정
+→ 점수표만 간결하게 출력
+→ 상세 문제 분석·수정·ZIP 생성 없음
 
-평가
-평가해줘
-→ 아래 공통 전역 독립 평가 프로토콜 전체 적용
-→ 이전 답변 수준의 상세한 CSS / JS / UI / UX 전체 평가
-→ A/B/C 문제 분류와 최종 결론 포함
-→ 파일 수정 / ZIP 생성 없음
+평가 / 평가해줘
+→ 최신 ZIP을 처음부터 독립 분석
+→ CSS / JS / UI / UX 상세 평가
+→ A / B / C 문제 분류와 최종 결론 포함
+→ 파일 수정·ZIP 생성 없음
 ```
 
-`평가`와 `평가해줘`는 완전히 같은 명령으로 처리한다.
+`평가`와 `평가해줘`는 같은 명령으로 처리한다. 현재 채팅에 최신 전체 ZIP이 명확히 없으면 과거 ZIP이나 기억으로 평가하지 않고 최신 전체 ZIP을 요청한다.
 
 
 ## 2.2 `점수` 명령 출력 규칙
 
-사용자가 **`점수`**라고만 하면 과거 점수표를 복사하지 않고 현재 최신 전체 ZIP의 실제 상태를 기준으로 점수를 새로 산정한다. 점수 산정에 필요한 정적·구조·가능한 runtime 검증은 내부적으로 수행하되, **답변에는 점수만 표시**한다.
-
-출력 범위:
+`점수`는 과거 점수표를 복사하지 않고 최신 ZIP 실제 상태에서 새로 산정한다. 필요한 검증은 내부적으로 수행하되 답변에는 점수 중심으로 표시한다.
 
 ### CSS
 - 구조 / 파일 구성
@@ -376,10 +270,10 @@ MD가 최신이라고 가정해서 ZIP 수정
 - Responsive
 - Theme / Token
 - Interaction CSS
-- `!important` 관리
-- Dead / Legacy 관리
+- `!important`
+- Dead / Legacy
 - 유지보수성
-- **CSS 총점 / 100**
+- **CSS 총점 /100**
 
 ### JavaScript
 - Module responsibility
@@ -389,767 +283,296 @@ MD가 최신이라고 가정해서 ZIP 수정
 - Events
 - Rendering
 - Async / Error
-- 유지보수성
-- 확장성
-- **JS 총점 / 100**
+- 유지보수성 / 확장성
+- **JS 총점 /100**
 
 ### UI
-- Visual hierarchy
-- Layout
-- Typography
-- Spacing
-- Table
-- Modal
-- Tooltip
-- Chart UI
-- Responsive
-- Theme
-- Interaction consistency
-- **UI 총점 / 100**
+- Visual hierarchy / Layout / Typography / Spacing
+- Table / Modal / Tooltip / Chart UI
+- Responsive / Theme / Interaction consistency
+- **UI 총점 /100**
 
 ### UX
-- 날짜 흐름
-- KRX
-- 개인보기
-- 퇴직연금
-- 차트
-- 모바일
-- Feedback
-- Error recovery
-- Accessibility
-- **UX 총점 / 100**
+- 날짜 / KRX / 개인보기 / 퇴직연금 / 차트 / 모바일
+- Feedback / Error recovery / Accessibility
+- **UX 총점 /100**
 
-마지막에는 반드시 다음만 추가한다.
+마지막에는:
 
 ```text
-UI/UX 총점 = UI 총점과 UX 총점의 평균
-전체 총점 = CSS / JS / UI / UX 총점의 동일가중 평균
+UI/UX 총점 = UI와 UX 평균
+전체 총점 = CSS / JS / UI / UX 동일가중 평균
 ```
 
-점수가 정수로 충분하면 정수로, 평균 계산에 소수점이 생기면 소수점 첫째 자리까지 표시한다.
-
-`모든 점수`는 과거 호환을 위해 단독 사용 시 `점수`와 같은 의미로 처리한다.
-
-최신 전체 ZIP이 현재 채팅에 명확히 없으면 과거 ZIP이나 기억으로 점수를 만들지 말고 최신 전체 ZIP을 요청한다.
+을 표시한다. `모든 점수`는 단독 사용 시 `점수`와 같은 의미로 처리한다.
 
 
-## 2.3 `평가` / `평가해줘` 공통 전역 독립 평가 프로토콜
+## 2.3 `평가` / `평가해줘` 공통 독립 평가 프로토콜
 
-사용자가 최신 전체 ZIP을 첨부한 상태에서 **`평가` 또는 `평가해줘`**라고 요청하면, 별도의 긴 평가 요청문을 다시 요구하지 않고 **이 섹션의 전체 프로토콜을 자동 적용**한다.
+### A. 기본 원칙
 
-이 프로토콜의 목적은 과거 평가를 이어받아 점수를 확인하는 것이 아니라, **그 시점의 최신 ZIP 실제 소스를 처음부터 다시 독립 분석하여 CSS / JavaScript / UI / UX의 현재 품질을 판정하는 것**이다.
-
-### A. 평가 요청의 의미
-
-`평가`와 `평가해줘`는 다음 의미로 처리한다.
+평가는 그 시점의 최신 ZIP을 **처음부터 다시 독립 분석**하는 작업이다.
 
 ```text
-최신 ZIP만 source of truth로 사용
-→ 인수인계 MD를 먼저 읽어 설계 의도와 운영 제약 확인
-→ 과거 점수/100점 판정은 증거로 사용하지 않음
-→ 실제 파일 구조와 실제 코드를 처음부터 다시 분석
-→ CSS / JS / UI / UX를 각각 세부 평가
-→ 실제 감점 근거가 있는 경우에만 감점
-→ 문제를 A / B / C로 분류
-→ 파일은 수정하지 않음
-→ ZIP도 만들지 않음
+최신 ZIP 실제 파일 우선
+→ 이 MD로 설계 의도와 허용된 trade-off 확인
+→ 실제 구조/코드를 재검증
+→ 실제 근거가 있는 경우에만 감점
+→ A / B / C로 문제 분류
+→ 평가만 수행하고 파일은 수정하지 않음
 ```
 
-평가 중 발견한 문제가 있더라도 사용자가 별도로 `수정`을 요청하기 전에는 파일을 고치지 않는다.
+과거 `PASS`, `100점`, 이전 평가문은 최신 정상 판정의 증거가 아니다.
 
-현재 채팅에 최신 전체 ZIP이 명확히 없으면 과거 ZIP이나 기억한 파일을 임의로 사용하지 말고 **최신 전체 ZIP을 요청**한다.
+Source of Truth 우선순위는 1.5와 동일하다.
 
-### B. Source of Truth 우선순위
 
-평가 시 기준 순서는 다음과 같다.
+### B. 평가 범위와 외부 백엔드 경계
 
-1. 사용자가 현재 평가 요청과 함께 제공한 **최신 전체 ZIP의 실제 파일**
-2. 같은 ZIP의 `main_dashboard_maintenance_handover.md`
-3. 같은 ZIP의 `README.md`
-4. 과거 대화 내용은 배경 이해에만 사용하고 **점수·정상 판정의 근거로 사용하지 않는다.**
+#### GAS
 
-인수인계 MD의 역할:
+GitHub ZIP만 제공된 경우 frontend가 GAS로 보내는 request와 client-side response 처리까지 본다. 최신 운영 GAS 소스가 별도로 제공된 경우에만 server handler까지 완전 대조한다.
 
-- 현재 설계 의도
-- 유지보수 제약
-- 의도된 예외
-- source of truth 정책
-- GAS 별도 관리 원칙
-- 평가에서 반복 감점하지 않기로 확정한 trade-off
+GAS 미첨부 자체는 CSS / JS / UI / UX 감점 사유가 아니다. GAS 코드 품질도 사용자가 별도 요청하지 않는 한 메인 점수에 합산하지 않는다.
 
-를 이해하기 위한 문서다.
+#### Market AI
 
-그러나 MD에 `PASS`, `100점`, `완료`라고 적혀 있다는 사실만으로 정상 판정하지 않는다. **실제 코드를 다시 확인해야 한다.**
+Market AI 백엔드는 기본 평가 대상에서 제외한다.
 
-### C. GAS 평가 범위
-
-Google Apps Script는 GitHub 프로젝트 구조 평가 대상이 아니라 **별도 운영 백엔드**로 취급한다.
-
-평가 범위:
+대시보드에서는 `dashboard-market-ai.js`의 frontend adapter 구조, main graph와의 분리, mount/polling/timeout/stale 처리, 실패 격리, CSS ownership만 필요한 범위에서 확인한다.
 
 ```text
-GitHub ZIP만 제공
-→ Frontend JS가 GAS로 보내는 request payload와 client-side 처리까지 검증
-→ GAS server handler 내부는 최신 운영 소스가 별도 제공되지 않으면 직접 검증하지 않음
-→ 이것 자체로 CSS / JS / UI / UX 점수를 감점하지 않음
+백엔드 미첨부·미연결
+→ 메인 CSS / JS / UI / UX 감점 없음
 
-최신 운영 GAS 소스도 별도 제공
-→ JS ↔ GAS request / response contract까지 완전 검증
+백엔드 최신 소스 + 별도 평가 요청
+→ Market AI 백엔드를 별도 범위로 평가
+→ 메인 대시보드 점수와 자동 합산하지 않음
 ```
 
-GAS 자체의 코드 품질 점수는 사용자가 별도로 요청하지 않는 한 CSS / JS / UI / UX 점수에 섞지 않는다.
 
-### C-1. Market AI 백엔드 평가 범위
+### C. 프로젝트 구조와 정적 검증
 
-Market AI 백엔드는 대시보드 ZIP의 기본 평가 대상에서 제외한다. 대시보드 평가에서는 `dashboard-market-ai.js`의 **프런트엔드 adapter 구조, main graph와의 분리, mount/polling/timeout/stale 처리, 실패 격리, CSS ownership**처럼 대시보드 측 유지보수성만 필요한 범위에서 확인한다.
+평가 시작 시 실제 ZIP의 디렉토리/파일 목록을 먼저 확인한다. 현재 canonical 구조는 4장을 참고하되 **실제 ZIP이 다르면 실제 구조가 우선**한다.
 
-```text
-대시보드 ZIP만 제공
-→ Market AI 백엔드의 정확성 / 성능 / 모델·신호 품질 / API 내부 구현은 직접 검증하지 않음
-→ 백엔드 미첨부·미연결 자체를 CSS / JS / UI / UX 점수에서 감점하지 않음
-→ dashboard-market-ai.js가 메인 대시보드를 깨뜨리지 않고 실패를 격리하는지만 확인
-```
+최소 보고:
 
-Market AI 백엔드 자체 평가는 사용자가 최신 백엔드 소스를 별도로 제공하고 명시적으로 평가를 요청한 경우에만 별도 범위로 진행하며, 그 결과를 메인 대시보드 CSS / JS / UI / UX 점수와 자동 합산하지 않는다.
-
-
-### D. 프로젝트 구조부터 실제로 확인
-
-평가 시작 시 ZIP의 실제 디렉터리와 파일 목록을 먼저 확인한다.
-
-현재 기본 기대 구조는 다음 계열이다.
-
-```text
-index.html
-css/common.css
-css/tablet.css
-css/mobile.css
-css/special.css
-css/interaction.css
-css/print.css
-
-js/dashboard-core.js
-js/dashboard-ui-common.js
-js/dashboard-charts.js
-js/dashboard-ui.js
-js/dashboard-pension.js
-js/dashboard-pension-editor.js
-js/dashboard-app.js
-
-scripts/update_prices.py
-.github/workflows/update-prices.yml
-data/*.json
-
-add/calc.html
-add/css/common.css
-add/css/calc.css
-add/js/calc.js
-add/report/*
-```
-
-그러나 실제 ZIP이 다르면 **실제 구조를 우선**한다.
-
-평가 보고 첫 부분에는 최소 다음을 적는다.
-
-- 실제 메인 entry
-- 메인 CSS
-- 실제 JS module 수와 파일명
+- 실제 main entry
+- 메인 CSS 파일/역할
+- JS module 수와 파일명
 - Python / Workflow
-- data 파일
-- calc / report 등 부가 페이지
-- 문서상 구조와 실제 ZIP 구조의 불일치가 있는지
+- data
+- `add/calc` / report
+- 문서와 실제 구조의 불일치 여부
 
-`add/calc`와 report는 존재 여부와 구조를 확인하되, **메인 대시보드 점수를 왜곡하지 않도록 메인과 부가 페이지를 구분해서 평가**한다.
-
-### E. 정적 검증 기본 세트
-
-가능한 실행 환경에서는 평가 전에 다음을 실제로 검사한다.
+가능한 실행 환경에서는 다음을 실제 검사한다.
 
 #### CSS
-
-- parse 성공 여부
-- 전체 line / byte
-- rule 수
-- declaration 수
-- `!important` 수
-- media query 조건과 분포
-- exact duplicate selector + 동일 context
-- 중복 declaration / override 후보
-- specificity outlier
+- parse
+- rule/declaration 구조
+- `!important`
+- media query inventory
+- exact duplicate selector / 동일 context
+- override / specificity outlier
 - CSS variable 정의/사용
-- hard-coded color 후보
-- 사용처를 찾기 어려운 selector / token 후보
+- hard-coded color 및 dead/legacy 후보
 
 #### JavaScript
-
-- 7개 ES Module syntax
-- 실제 import graph
-- circular dependency
-- module별 export 수
-- 실제 import되지 않는 export
-- `window` / `globalThis` 등에 의도치 않은 global export
-- 동일 helper 중복 후보
-- listener 등록 구조와 guard
-- state 정의 위치와 실제 소비 module
+- ES Module syntax
+- 실제 import graph / circular dependency
+- export 사용처
+- 의도치 않은 global bridge
+- helper 중복 후보
+- listener/state ownership
 - fetch / timeout / response / parse handling
 
 #### Python / Workflow
-
 - Python syntax
-- workflow YAML parse 가능 여부
-- workflow input 설명과 Python 실제 target-date 처리 의미가 일치하는지
+- workflow YAML parse
+- workflow input 설명과 Python 실제 동작의 정합성
 
-정적 분석 도구가 특정 문법을 해석하지 못한 경우 이를 실제 오류라고 단정하지 말고 **도구 한계와 코드 오류를 구분**한다.
+도구가 특정 문법을 해석하지 못한 경우 도구 한계와 실제 코드 오류를 구분한다.
 
-### F. CSS 평가 프로토콜
 
-메인 CSS는 현재 `common / tablet / mobile / special / interaction / print`의 **6개 역할 파일 구조**를 사용한다. Desktop은 `common.css`의 baseline을 사용하며, 평가 시 파일별 책임과 `index.html` load order를 함께 확인한다.
+### D. CSS 평가 기준
 
-단일 파일 또는 다중 파일이라는 **파일 개수 자체**는 감점하지 않는다. 실제 구조의 탐색성, cascade 안전성, 중복/override, 역할 분리가 평가 기준이다.
+현재 메인 CSS는 `common / tablet / mobile / special / interaction / print` 6파일 구조다. 파일 개수 자체를 감점하지 않고 실제 역할 분리와 cascade 안정성을 본다.
 
-#### F-1. 구조 / 파일 구성
+확인:
 
-다음을 본다.
+- section / ownership이 실제 기능과 맞는지
+- 관련 rule의 응집도와 탐색성
+- 이유 없는 override chain / 높은 specificity
+- source-order 의존성의 명확성
+- Desktop ≥1101 / Tablet 761~1100 / Mobile ≤760 기본 구간
+- `special.css` 등 기능성 예외의 실제 필요성
+- theme / semantic token / spacing / radius / typography
+- light/dark counterpart
+- dead / legacy CSS의 실제 사용처
 
-- section / role anchor가 실제 기능 배치와 맞는지
-- 같은 기능 CSS를 찾기 쉬운지
-- Topbar / Navigation / Chart 등 주요 기능군의 응집도
-- `continuation`
-- `cross-cutting continuation`
-- source-order 때문에 의도적으로 떨어진 rule의 소속이 설명되어 있는지
-- 관련 rule이 이유 없이 멀리 분산되어 있는지
-- 동일 기능을 여러 위치에서 응급 override하는 구조인지
+`continuation`, cross-cutting rule, selector 길이, 추가 media query는 **실제 이유와 영향**을 보고 판단한다.
 
-`continuation` 또는 `cross-cutting continuation`이 실제 source-order/cross-cutting 이유를 가지고 있다면 **단순 분산으로 감점하지 않는다.**
+`!important`는 개수만으로 감점하지 않는다. browser/native 대응 등 실제 이유가 있으면 허용한다. 현재 0개라는 사실 자체를 점수 목표로 삼지 않는다.
 
-반대로 이름만 continuation이고 실제로는 의미 없는 중복/override라면 실제 코드 근거로 지적한다.
+Dead CSS 판정 전에는 HTML, JS dynamic class, template literal, `classList`, state class, pseudo/media/print, chart SVG 생성까지 확인한다.
 
-#### F-2. Cascade / Specificity
+인쇄 관련 selector를 dead로 판단할 때는 `dashboard-charts.js`의 `beforeprint` 흐름까지 확인한다. 현재 비활성 자산 탭의 차트만 추가 렌더링해 증권계좌·퇴직연금 차트가 모두 인쇄되도록 하는 구조를 보존하며, 활성 탭 차트를 불필요하게 재렌더하거나 비활성 탭 차트를 lazy-render 상태로 남겨 빈 차트가 인쇄되는 회귀를 허용하지 않는다.
 
-- 불필요하게 높은 specificity
-- ID selector 남용
-- 긴 selector가 실제 유지보수 위험을 만드는지
-- 후반 override chain
-- 동일 element/property의 반복 재정의
-- media 간 충돌
-- source-order 의존성이 불투명한 부분
 
-을 실제 cascade 관점에서 평가한다.
+### E. JavaScript 평가 기준
 
-selector 길이 자체를 감점 이유로 삼지 않는다.
+7개 ES Module을 실제로 읽고 다음을 확인한다.
 
-#### F-3. `!important`
+- module responsibility
+- dependency 방향 / circular dependency
+- core의 DOM 비의존
+- app의 orchestration 범위
+- pension View / Editor 분리
+- chart state ownership
+- public export 실제 소비처
+- module-private/shared state 구분
+- delegated/direct event와 중복 listener guard
+- render / DOM insertion / escape / ARIA reference
+- async fetch / timeout / response.ok / JSON/application-level contract
+- duplicate request / race / operation id / idempotency
 
-전체 `!important`를 다음으로 분류한다.
+파일 길이만으로 분리를 권하지 않는다. 하나의 subsystem으로 응집되어 있으면 큰 파일도 허용한다.
 
-```text
-필수 또는 browser/native 대응
-구조상 허용 가능
-제거 후보
-설명 곤란
-```
+전체 dashboard `render()` 방식 역시 현재 규모에서 허용된 trade-off이므로 실제 병목이 측정되지 않는 한 감점하지 않는다.
 
-개수만으로 감점하지 않는다.
 
-`!important` 제거를 점수 올리기용 작업으로 제안하지 않는다.
-
-#### F-4. Responsive
-
-기본 구간:
-
-```text
-Desktop  ≥ 1101
-Tablet   761 ~ 1100
-Mobile   ≤ 760
-```
-
-실제 CSS에서 모든 media 조건을 inventory하고 추가 breakpoint를 확인한다.
-
-추가 breakpoint는:
-
-- 기능상 필요한 예외인지
-- orientation / pointer / hover / print인지
-- 단순 임의 breakpoint인지
-- 기본 3구간으로 합치면 기능이 깨지는지
-
-를 판단한다.
-
-대표 검증 폭:
-
-```text
-1440
-1024
-900
-768
-430
-390
-```
-
-실제 코드에 기능성 좁은 폭 예외가 존재하면 그 조건도 함께 평가한다. 특정 과거 수정사항을 재확인 목록으로 외우지 말고 **현재 CSS에서 발견되는 실제 예외를 inventory하여 검증**한다.
-
-#### F-5. Token / Theme
-
-- semantic CSS variable 구조
-- light / dark counterpart
-- surface / border / text / positive / negative / accent
-- spacing
-- radius
-- shadow
-- typography
-- interaction token
-- JS가 CSS variable을 읽어 쓰는 chart token
-
-을 확인한다.
-
-일부 값이 hard-coded되어 있어도 browser-native/print/특수 이유가 있으면 맥락을 본다.
-
-#### F-6. Dead / Legacy CSS
-
-dead code는 다음 근거를 함께 봐야 한다.
-
-- HTML 정적 class/id
-- JS가 동적으로 생성하는 class/id
-- template literal
-- `classList`
-- `dataset`
-- state class
-- pseudo state
-- print / media
-- 인쇄 직전에는 `dashboard-charts.js`가 `beforeprint`를 직접 소유하고, 현재 비활성 자산 탭의 차트 3개만 추가 렌더링해 결과적으로 증권계좌·퇴직연금 차트가 모두 인쇄되게 한다. 활성 탭 차트까지 불필요하게 재렌더하거나, 비활성 탭 차트를 lazy-render 상태로 둔 채 인쇄해 차트가 비어 나오는 회귀를 허용하지 않는다.
-- chart SVG 생성 코드
-
-정적 검색 한 번으로 안 나온다는 이유만으로 dead code라고 단정하지 않는다.
-
-### G. JavaScript 평가 프로토콜
-
-7개 ES Module을 모두 실제로 읽고 평가한다.
-
-#### G-1. Module responsibility
-
-최소 다음을 확인한다.
-
-```text
-dashboard-core.js
-dashboard-ui-common.js
-dashboard-charts.js
-dashboard-ui.js
-dashboard-pension.js
-dashboard-pension-editor.js
-dashboard-app.js
-```
-
-각 파일별로:
-
-- 실제 책임
-- import 대상
-- export API
-- module-private state
-- DOM ownership
-- 다른 module에 노출하는 API
-
-를 요약한다.
-
-파일 길이만으로 분리를 권하지 않는다.
-
-응집도가 높고 하나의 subsystem이면 큰 파일도 허용한다.
-
-#### G-2. Dependency graph
-
-실제 `import`를 파싱해 방향 그래프를 만든다.
-
-반드시 확인:
-
-- circular dependency
-- 불필요한 역방향 dependency
-- core가 UI/DOM을 참조하는지
-- app이 orchestration 이상으로 business/UI 구현을 떠안는지
-- pension view/editor 책임이 섞이는지
-- charts가 외부 내부 state를 직접 침범하는지
-
-#### G-3. Public API
-
-module별 export를 실제 소비처와 대조한다.
-
-분류:
-
-```text
-사용 중 public API
-unused export
-module-private로 내려도 되는 후보
-공통화가 필요한 중복 helper 후보
-```
-
-실제 unused가 0이면 억지 후보를 만들지 않는다.
-
-#### G-4. State ownership
-
-실제 코드에서 state를 inventory한다.
-
-최소 범위:
-
-- active date / date selection
-- personal view
-- separate profit
-- theme / UI persistent preference
-- chart state
-- expanded chart state
-- pension editor state
-- modal state
-- batch/idempotency client state
-- localStorage state
-- listener/runtime state
-
-평가 기준:
-
-- 여러 module이 실제 공유 → shared state 가능
-- 한 module만 사용 → module-private이 기본
-- DOM state와 계산 state가 불필요하게 뒤섞이지 않는지
-- reset 시 숨은 상태가 남지 않는지
-
-#### G-5. Event architecture
-
-다음을 inventory한다.
-
-- delegated click
-- direct listener
-- change / input / submit
-- resize
-- pointer / touch
-- keyboard
-- focus / focus trap
-- outside click
-- ESC
-- dynamically recreated DOM의 listener
-- listener guard / duplicate prevention
-
-특정 최근 버그를 암기해 재검증하는 식으로 하지 않는다. **현재 코드에서 실제 존재하는 이벤트 흐름 전체를 기준으로 중복 등록·입력 차단·stale DOM reference 가능성을 평가**한다.
-
-#### G-6. DOM rendering
-
-- `innerHTML`
-- `insertAdjacentHTML`
-- DOM API
-- render 함수 책임
-- 전체 render / 부분 render
-- 반복 DOM query
-- escape helper 사용
-- 사용자/JSON 값의 HTML 삽입
-- dynamically generated IDs / ARIA references
-
-를 확인한다.
-
-전체 render 자체는 현재 규모에서 이미 허용 가능한 trade-off로 정리되어 있으므로 **실제 성능 문제가 측정되지 않는 한 반복 감점하지 않는다.**
-
-#### G-7. Async / Error
-
-- fetch timeout
-- `response.ok`
-- JSON parse
-- required vs optional JSON
-- fallback
-- GAS POST (`response.ok/status` 확인 후 JSON/application-level `ok` 계약 판정)
-- loading/disabled state
-- error text
-- duplicate request
-- race condition 가능성
-- operation id / batch request id
-
-을 실제 흐름별로 확인한다.
-
-### H. Frontend ↔ Backend 계약
+### F. Frontend ↔ Backend contract
 
 #### KRX
 
-Frontend에서 두 mode를 코드로 직접 확인한다.
+Frontend의 두 mode를 실제 코드로 확인한다.
 
 ```text
-최신/누락
-→ body.date 없음
-
-재갱신
-→ body.date = activeDate
+최신/누락 → body.date 없음
+재갱신   → body.date = activeDate
 ```
 
-화면에 선택 날짜가 항상 존재한다는 사실과 request body에 `date`가 존재한다는 사실을 혼동하지 않는다.
+선택 날짜가 화면에 존재한다는 사실과 request body의 `date` 존재를 혼동하지 않는다.
 
-최신 운영 GAS 소스가 함께 제공된 경우 서버 측도 확인한다.
-
-- 명시 날짜 처리
-- 이미 종가 데이터인 경우 skip 여부
-- workflow dispatch 조건
-- 반환 action / reason / message
-- PIN error contract
-
-GAS가 제공되지 않은 경우 frontend payload까지만 판정하고 서버 내부는 미검증으로 표시한다.
+GAS가 제공된 경우 명시 날짜 처리, skip, workflow dispatch, action/reason/message, PIN error contract까지 확인한다.
 
 #### Pension
 
-Frontend에서 최소 확인:
+최소 확인:
 
 ```text
-upsert
-delete
-batchPension
-batchRequestId
-PIN
-operations
-response state
-duplicate/idempotency 처리
+upsert / delete / batchPension
+batchRequestId / PIN / operations
+response state / duplicate·idempotency 처리
 ```
 
-최신 운영 GAS 소스가 별도 제공된 경우에만 server contract까지 완전 대조한다.
+server contract는 최신 GAS가 제공된 경우에만 완전 대조한다.
 
-### I. UI 평가 프로토콜
 
-UI 평가는 코드 구조 점수와 분리해서 실제 화면 설계 관점으로 평가한다.
+### G. UI / UX 평가 기준
 
-최소 영역:
+UI는 코드 구조와 분리해서 실제 화면 설계 관점으로 본다.
 
-- Topbar
-- Hero
-- date controls
+주요 영역:
+
+- Topbar / Hero / date controls
 - action buttons / external links
 - 연금+계좌 성과
-- 증권계좌 현황
-- 증권/퇴직연금 성과 요약 (증권 전체/계좌별 전환 포함)
-- 보유분
-- 투자기간 차트
+- 증권계좌 / 퇴직연금 성과·보유분
+- 차트 / 확대
 - 장부결과 VS 실제보유
 - 투자원금 원천 및 검산
-- 퇴직연금
-- Table
-- Modal
-- Tooltip
-- Navigation / TOC
-- Mobile hamburger
-- Footer가 실제 존재하면 Footer
+- Table / Modal / Tooltip
+- Navigation / TOC / Mobile hamburger
+- 실제 존재하는 Footer
 
-실제 존재하지 않는 영역은 `N/A`로 처리하며 없는 것을 이유로 감점하지 않는다.
+실제 존재하지 않는 영역은 `N/A`이며 감점하지 않는다.
 
-각 영역에서 평가:
+공통 평가 요소:
 
 ```text
-정보 위계
-alignment
-spacing
-density
-typography
-label clarity
-button/link consistency
-hover
-active
-focus
-touch
-responsive
-light/dark
-overflow
-stacking / z-index
-readability
+정보 위계 / alignment / spacing / density / typography
+label clarity / interaction consistency
+hover / active / focus / touch
+responsive / light-dark / overflow / z-index / readability
 ```
 
 #### Table
 
-모든 실제 table variant를 보며:
+현재 존재하는 모든 table variant를 기준으로 header/body alignment, sticky first column, summary, source table 예외, hover, mobile table/card, phone landscape table-only, narrow-width 예외, tooltip clipping을 본다.
 
-- header/body alignment
-- `th` / `td`
-- first-column sticky
-- summary row
-- source-data table 예외
-- row hover
-- light/dark hover
-- 세로 Mobile의 table/card 전환 + 실제 가로폰의 table-only 유지
-- 좁은 폭 기능 예외
-- tooltip이 table overflow/stacking context에 잘리는지
-
-를 평가한다.
-
-특정 과거 표 수정사항을 별도 체크리스트로 고정하지 않고 **현재 DOM/CSS에서 실제 구현된 table behavior 전체를 평가**한다.
+특정 과거 표 수정사항을 체크리스트로 외우지 않고 현재 DOM/CSS에서 실제 구현된 behavior를 inventory한다.
 
 #### Tooltip / Overlay
 
-- trigger semantic
-- tooltip class 공통화
-- open/close
-- outside click
-- aria-expanded
-- `role=tooltip`
-- viewport overflow
-- table overflow clipping
-- stacking context / z-index
-- light/dark
+trigger semantic, open/close, outside click, ARIA, viewport overflow, stacking, light/dark를 확인한다.
 
-를 확인한다.
-
-### J. UX 평가 프로토콜
-
-최소 다음 실제 사용자 flow를 코드 순서대로 따라간다.
-
-#### 날짜
+#### 주요 UX flow
 
 ```text
-year/month 선택
-→ day 선택
-→ activeDate
-→ render
-→ mobile sticky/pin
+날짜: year/month → day → activeDate → render
+KRX: modal → PIN → action → loading → success/skip/error → feedback
+개인보기: OFF/ON 3회 gesture → state/reset/layout
+퇴직연금: 조정/적립/추가매수/삭제/PIN/batch/save/render
+Chart: legend/최소1개/전체/Y auto/mode/확대/keyboard/resize/tooltip
 ```
 
-#### KRX
+개인보기 3회 클릭은 **일반 사용자에게 진입 경로를 숨기는 의도된 private gesture**이므로 discoverability나 일반 button이 아니라는 이유만으로 감점하지 않는다.
 
-```text
-modal open
-→ PIN
-→ 최신/누락 또는 재갱신
-→ loading
-→ success / skip / error
-→ toast / modal feedback
-```
+UX는 실제 상태 혼란, 오동작 가능성, feedback 불일치, 복구 어려움, 불필요 반복, destructive action 불명확성처럼 **사용자 영향이 있을 때만** 지적한다.
 
-#### 개인보기
 
-개인보기 3회 클릭은 **일반 사용자에게 진입 경로를 숨기기 위한 의도된 private gesture**다.
+### H. Accessibility / Interaction
 
-따라서:
+실제 static/dynamic markup에서 다음을 확인한다.
 
-- discoverability가 낮음
-- 일반 button이 아님
-- keyboard로 쉽게 찾기 어려움
-
-만을 이유로 감점하지 않는다.
-
-대신 실제 기능 품질만 본다.
-
-```text
-OFF → 3회 → ON
-ON → 3회 → OFF
-OFF 후 숨은 state reset
-별도수익 연동
-계산기/메뉴 노출
-layout 안정성
-일반 클릭 방해 여부
-```
-
-#### 퇴직연금
-
-```text
-금액 조정
-기업적립금
-현금성자산
-ETF 추가매수
-삭제
-PIN
-작업모음
-simulation
-batch
-save
-완료 후 state/render
-```
-
-#### Chart
-
-```text
-legend
-최소 1개 유지
-전체
-Y축 auto
-mode 변경
-확대
-확대 중 state 변경
-keyboard
-resize
-mobile tooltip
-```
-
-UX 문제는:
-
-- 사용자가 현재 상태를 알 수 없음
-- 잘못된 action을 하기 쉬움
-- feedback이 실제 동작과 다름
-- 취소/복구가 어려움
-- 불필요한 반복 입력/클릭
-- destructive action이 불명확
-
-같은 **실제 영향이 있을 때만** 지적한다.
-
-“더 예쁘게/더 일반적으로 만들 수 있다”만으로 개선안을 만들지 않는다.
-
-### K. Accessibility / Interaction
-
-다음을 실제 markup과 dynamic markup에서 확인한다.
-
-- `<a>` / `<button>` semantic
-- button `type`
-- keyboard focus
-- `:focus-visible`
-- dialog role / aria-modal
-- focus trap
-- focus return
-- ESC
-- label / aria-label
-- aria-controls
-- aria-labelledby
-- aria-describedby
-- aria-expanded
+- `<a>` / `<button>` semantic과 button `type`
+- keyboard / `:focus-visible`
+- dialog role / aria-modal / focus trap / focus return / ESC
+- label / aria-label / aria-controls / labelledby / describedby / expanded
 - aria-live/status
 - table caption / scope
 - chart keyboard support
-- color contrast token
-- hover-only information
-- touch target
-- user-select
-- touch-action
-- draggable/link drag
+- hover-only 정보 / touch target
+- contrast / user-select / touch-action / draggable
 
-native `<select>`의 펼친 option UI는 browser/OS native rendering일 수 있으므로 **DevTools viewport별 selected color가 다르다는 이유만으로 custom select 전환을 권하지 않는다.**
+Native `<select>`의 펼친 option UI는 browser/OS native rendering일 수 있으므로 viewport별 native 색상 차이만으로 custom select 전환을 권하지 않는다.
 
-퇴직연금 Action PIN의 `type="text" + inputmode="numeric" + -webkit-text-security:disc` 조합은 **Chrome 비밀번호 저장 제안을 피하면서 숫자 PIN 마스킹을 유지하기 위한 의도적 Chromium/Safari 호환 처리**다. 비표준 CSS라는 이유만으로 감점하거나 표준 `type="password"`로 되돌리라고 제안하지 않는다. 실제 대상 브라우저에서 마스킹·입력·접근성 문제가 확인된 경우에만 재검토한다.
+퇴직연금 Action PIN의 `type="text" + inputmode="numeric" + -webkit-text-security:disc`는 Chrome 비밀번호 저장 제안을 피하면서 PIN 마스킹을 유지하기 위한 의도된 처리다. 비표준 CSS라는 이유만으로 감점하거나 `type="password"`로 되돌리라고 제안하지 않는다. 실제 대상 브라우저에서 문제가 확인된 경우에만 재검토한다.
 
-### L. 성능 / 유지보수성
 
-평가:
+### I. 성능 / 유지보수성에서 반복 감점하지 않을 항목
 
-- render frequency
-- SVG redraw
-- resize throttling/debounce
-- repeated querySelector
-- listener duplication
-- fetch duplication
-- data size
-- localStorage use
-- module size와 실제 응집도
-- debugging path
-- 기능 추가 시 수정 위치 예측 가능성
-
-현재 규모에서는 다음을 **실제 문제가 확인되지 않는 한 감점하거나, 점수를 낮추기 위한 선택적 개선안으로 제시하지 않는다.**
+다음은 **실제 문제가 확인되지 않는 한** 감점하거나 선택적 개선안으로 반복 제시하지 않는다.
 
 ```text
 전체 dashboard render 방식
 Date.now() 기반 cache bust
-Vanilla JS 구조
-framework / state library 미사용
+Vanilla JS / framework·state library 미사용
 CSS 파일 개수 자체
-CSS / JS / handover의 파일 길이·줄 수·byte 크기 자체
-Playwright / Jest / ESLint / Stylelint 같은 별도 대형 테스트·lint 도구가 없다는 사실 자체
+CSS / JS / handover의 길이·줄 수·byte 크기 자체
+Playwright / Jest / ESLint / Stylelint 등 대형 테스트·lint 인프라 부재 자체
 ```
 
-위 항목은 **잠재적 위험 가능성만 추정해서 감점하지 않는다.** 실제 체감 지연·profiling 병목, workflow 실패·재현성 장애, 반복 회귀가 테스트 부재와 직접 연결되는 상황처럼 구체적인 문제가 확인되었거나 사용자가 해당 최적화/테스트 인프라 도입을 명시적으로 요청한 경우에만 재검토한다. 현재의 변경 범위 diff + syntax/import/cascade 검사 + viewport/fixture + Calc Node 회귀테스트 + 필요 시 실기기 QA 방식은 이 프로젝트에서 허용된 유지보수 검증 방식으로 본다.
+잠재적 가능성만으로 감점하지 않는다. 실제 체감 지연·profiling 병목·재현성 장애·반복 회귀와의 직접 연관이 확인되었거나 사용자가 해당 최적화/인프라 도입을 명시적으로 요청한 경우에만 재검토한다.
 
-### M. 실제 Render / Runtime 검증 원칙
+현재의 변경 범위 diff + syntax/import/cascade 검사 + viewport/fixture + Calc Node 회귀테스트 + 필요 시 실기기 QA는 이 프로젝트에서 허용된 유지보수 검증 방식이다.
 
-가능한 환경이면 정적 분석에 더해 runtime smoke를 수행한다.
+
+### J. Runtime 검증 원칙
+
+가능한 환경에서는 정적 분석에 더해 runtime smoke를 수행한다.
 
 우선순위:
 
 1. 로컬 정적 서버
-2. 실제 data JSON 로딩
-3. representative date render
-4. 최신 날짜와 과거 날짜
-5. personal view OFF / ON
-6. representative viewports
-7. light / dark
+2. 실제 data JSON
+3. 대표 날짜 / 최신·과거 날짜
+4. personal view OFF / ON
+5. representative viewport
+6. light / dark
 
-대표 viewport:
+대표 기본 viewport는 다음을 사용한다.
 
 ```text
 1440
@@ -1160,281 +583,100 @@ Playwright / Jest / ESLint / Stylelint 같은 별도 대형 테스트·lint 도�
 390
 ```
 
-실제 CSS에 기능성 exception이 있으면 그 폭도 추가한다.
+현재 CSS에 기능성 exception이 있으면 해당 조건을 추가한다. 이 숫자는 UI 미세 geometry가 아니라 **Desktop / Tablet / Mobile의 대표 runtime 검증 폭**이므로 평가 프로토콜 값으로 유지한다.
 
 확인 예:
 
-- runtime exception
-- duplicate id
-- broken ARIA reference
-- overflow
-- hidden content collision
+- runtime exception / duplicate id / broken ARIA
+- overflow / hidden collision
 - modal focus
 - table/tooltip clipping
 - chart SVG size
 - mobile layout
 
-브라우저 실행 환경이 제공되지 않으면 **실제 pixel/render를 확인했다고 가장하지 않는다.** 그 경우 `정적 코드 기준` 또는 `runtime smoke 미실시`라고 명확히 표시한다.
+브라우저 실행 환경이 없으면 실제 pixel/render를 확인했다고 가장하지 않고 `정적 코드 기준` 또는 `runtime smoke 미실시`라고 명시한다.
 
-### N. 점수 산정
+
+### K. 점수 산정과 문제 분류
 
 과거 점수를 참고하지 않고 최신 실제 근거로 새로 산정한다.
-
-#### CSS
-
-- 구조 / 파일 구성
-- Cascade / Specificity
-- Responsive
-- Theme / Token
-- Interaction CSS
-- `!important` 관리
-- Dead / Legacy 관리
-- 유지보수성
-- **CSS 종합 /100**
-
-#### JavaScript
-
-- Module responsibility
-- Dependency
-- State ownership
-- Public API
-- Events
-- Rendering
-- Async / Error
-- 유지보수성
-- 확장성
-- **JS 종합 /100**
-
-#### UI
-
-- Visual hierarchy
-- Layout
-- Typography
-- Spacing
-- Table
-- Modal
-- Tooltip
-- Chart UI
-- Responsive
-- Theme
-- Interaction consistency
-- **UI 종합 /100**
-
-#### UX
-
-- 날짜 흐름
-- KRX
-- 개인보기
-- 퇴직연금
-- 차트
-- 모바일
-- Feedback
-- Error recovery
-- Accessibility
-- **UX 종합 /100**
-
-마지막에 **UI/UX 종합 /100**과 **전체 총점 /100**을 표시한다. 전체 총점은 CSS / JS / UI / UX 총점의 동일가중 평균으로 계산한다.
-
-평가 원칙:
 
 ```text
 실제 감점 근거 있음 → 감점
 실제 감점 근거 없음 → 100 가능
 "완벽한 소프트웨어는 없으니 99" 식 감점 금지
-점수를 100으로 만들기 위한 억지 개선안 금지
+점수용 억지 개선안 금지
 N/A 항목을 점수 하락 근거로 사용 금지
 ```
 
-### O. 문제 분류
-
-문제는 반드시 아래로 분류한다.
+문제는 다음으로 분류한다.
 
 #### A. 실제 수정 권장
 
-명확한:
-
-- bug
-- 기능 불일치
-- cascade 문제
-- responsive 회귀
-- 접근성 오류
-- 실제 UX 혼란
-- documentation이 실제 운영을 잘못 설명하여 오작동을 유발할 가능성
+bug, 기능 불일치, cascade/responsive 회귀, 접근성 오류, 실제 UX 혼란, 운영을 잘못 유도할 문서 오류 등 **구체적 영향이 있는 문제**.
 
 #### B. 선택적 개선
 
-현재 정상이고 회귀도 없지만 **실제 장점이 분명한 경우만** 제안한다.
-
-B급을 채우기 위해 후보를 억지로 만들지 않는다.
+현재 정상이고 회귀도 없지만 실제 장점이 분명한 경우만 제안한다. B급을 채우기 위해 후보를 만들지 않는다.
 
 #### C. 수정하지 않는 게 나음
 
-- 현재 설계 의도에 맞음
-- 복잡도 증가
-- regression risk가 이득보다 큼
-- browser native behavior
-- 이미 검토된 trade-off
-- 점수 목적의 정리
+현재 설계 의도에 맞거나, 복잡도/회귀 위험이 이득보다 큰 경우, browser native behavior, 이미 검토된 trade-off, 점수 목적의 정리.
 
-각 A/B/C 항목마다 가능하면:
+가능하면 A/B/C 각 항목에 파일, selector/함수/영역, 현재 상태, 실제 영향, 판정 이유, 권장 방향을 적는다.
 
-```text
-파일
-selector / 함수 / 영역
-현재 상태
-실제 영향
-판정 이유
-권장 방향
-```
-
-을 적는다.
-
-### P. 문서 정확성은 별도 표시
-
-README / 인수인계 MD / workflow description이 실제 코드와 다르면 **문서 정확성 문제**로 따로 보고한다.
-
-문서 오류가 CSS/JS/UI/UX의 실제 실행 품질과 무관하면 해당 점수에 억지로 섞지 않는다.
-
-운영자가 잘못된 action을 수행할 정도의 문서 오류라면 A급 문제로 분류할 수 있다.
-
-### Q. 평가 결과 출력 순서
-
-`평가` / `평가해줘` 결과는 기본적으로 다음 순서로 작성한다.
-
-1. **한눈에 보는 결론**
-2. **실제 프로젝트 구조**
-3. **검증 방법과 검증 가능/불가 범위**
-4. **CSS 상세 평가**
-5. **JS 상세 평가 + 실제 dependency graph**
-6. **Frontend ↔ GAS / Workflow contract**
-7. **UI 영역별 평가**
-8. **UX flow별 평가**
-9. **Accessibility / Interaction**
-10. **성능 / 유지보수성**
-11. **A / B / C 문제 목록**
-12. **전체 세부 점수표**
-13. **최종 결론**
-
-최종 결론에는 반드시:
-
-```text
-CSS 최종 점수
-JS 최종 점수
-UI 최종 점수
-UX 최종 점수
-UI/UX 종합점수
-전체 총점
-
-A급 실제 수정 필요 수
-B급 선택적 개선 수
-C급 유지 권장 수
-
-현재 구조가 유지보수 기준선으로 적절한지
-추가 구조 리팩토링이 실제로 필요한지
-아니면 실제 사용 중 발견되는 문제만 최소 수정하는 단계인지
-```
-
-를 명시한다.
-
-### R. 과거 수정사항을 평가 체크리스트로 고정하지 않는 원칙
-
-공통 평가 프로토콜에는 **“최근 ○○를 수정했으니 재확인” 같은 과거 작업별 체크리스트를 누적하지 않는다.**
-
-이유:
-
-- 평가가 과거 수정사항 중심으로 편향됨
-- 새로 생긴 문제를 놓칠 수 있음
-- 오래된 회귀 목록이 계속 비대해짐
-- 이미 제거된 UI까지 검사하려는 오류가 생김
-
-대신 최신 ZIP에서:
-
-```text
-현재 존재하는 DOM
-현재 존재하는 CSS
-현재 존재하는 state
-현재 존재하는 event
-현재 존재하는 UX flow
-현재 존재하는 breakpoint / exception
-```
-
-을 처음부터 inventory하여 평가한다.
-
-과거 작업 이력은 **설계 의도를 이해하는 참고자료**이며, 최신 평가 범위는 항상 실제 최신 코드 전체다.
+README / handover / workflow description이 실제 코드와 다르면 **문서 정확성 문제**로 별도 표시한다. 실행 품질과 무관한 문서 오류를 CSS/JS/UI/UX 점수에 억지로 섞지 않는다.
 
 
-앞으로 이 투자 대시보드의 모든 소스 수정은 아래 원칙을 최우선으로 지켜서 수행한다.
+### L. 평가 결과 출력 순서
 
-현재 프로젝트는 이미 다음 영역의 대규모 리팩토링을 완료한 상태다.
+기본 순서:
 
-- 메인 대시보드 CSS
-- 메인 대시보드 JavaScript
-- 투자 계산기 `calc`
-- report HTML
-- 디렉토리 구조
+1. 한눈에 보는 결론
+2. 실제 프로젝트 구조
+3. 검증 방법과 가능/불가 범위
+4. CSS 상세 평가
+5. JS 상세 평가 + dependency graph
+6. Frontend ↔ GAS / Workflow contract
+7. UI 영역별 평가
+8. UX flow별 평가
+9. Accessibility / Interaction
+10. 성능 / 유지보수성
+11. A / B / C 문제 목록
+12. 세부 점수표
+13. 최종 결론
 
-따라서 현재 최신 버전은 과거 누적 패치본이 아니라 **새로운 구조 기준선**이다.
+최종 결론에는 CSS / JS / UI / UX / UI·UX 종합 / 전체 총점, A/B/C 개수, 현재 구조가 기준선으로 적절한지와 추가 구조 리팩토링이 실제로 필요한지를 명시한다.
 
-앞으로의 목표는 단순히 기능을 정상적으로 추가·수정하는 것이 아니다.
-
-> **기능을 추가하면서도 현재 리팩토링된 구조를 다시 망가뜨리지 않는 것**
-
-을 기능 구현과 동등하게 중요한 요구사항으로 취급한다.
-
-다만 구조 보호 때문에 매 작업마다 프로젝트 전체를 분석하거나 전체 QA를 수행해서 작업 시간이 과도하게 늘어나서는 안 된다.
-
-핵심 운영 원칙은 다음과 같다.
-
-> **구조 보호는 항상 적용한다.**  
-> **검증 범위는 변경 범위에 비례한다.**  
-> **전체 QA는 내가 명시적으로 요청한 경우에만 수행한다.**
+과거 특정 수정사항을 평가 체크리스트로 계속 누적하지 않는다. 최신 ZIP에서 현재 존재하는 DOM/CSS/state/event/UX flow/breakpoint를 처음부터 inventory하여 평가한다.
 
 
 ## 2.4 평가 답변 작성 형식
 
-전체 평가는 사용자가 읽기 쉽게 **일반 Markdown 제목, 문단, 표** 중심으로 작성한다.
+전체 평가는 일반 Markdown 제목, 문단, 표 중심으로 작성한다.
 
-- 별도의 불투명한 참조 박스나 읽기 어려운 특수 UI 형식에 의존하지 않는다.
-- 코드나 selector를 보여줄 필요가 있을 때만 짧은 코드 블록을 사용한다.
-- 검증 근거와 문제 설명은 해당 항목 바로 아래에 적는다.
-- 점수는 표로 정리하되, 상세 평가는 점수표만 나열하지 않고 실제 근거를 함께 설명한다.
-- 과거 평가 문구를 재사용하기보다 최신 실제 코드에서 확인한 사실을 자연어로 설명한다.
+- 읽기 어려운 특수 형식에 의존하지 않는다.
+- selector/함수 증거가 필요할 때만 짧은 코드 블록을 사용한다.
+- 검증 근거는 해당 항목 바로 아래에 둔다.
+- 점수표만 나열하지 않고 실제 근거를 함께 설명한다.
+- 과거 평가 문구를 복사하지 않고 최신 실제 코드에서 확인한 사실을 설명한다.
+
 
 ## 2.5 점수 · 성능 평가 최종 운영 원칙
 
-### 숫자 점수나 코드량 자체를 목표로 하지 않는다
+현재 리팩토링된 구조는 새로운 기준선이다. 점수를 올리기 위해 정상 구조를 계속 뜯지 않는다.
 
-현재 리팩토링된 상태를 더 높은 점수로 만들겠다는 이유만으로 구조를 계속 뜯지 않는다.
-
-예:
+금지 예:
 
 ```text
-!important 무조건 0
-media query 무조건 최소화
-JS 파일을 더 많이 분리
-dashboard-pension.js를 무조건 더 쪼개기
-calc.js를 다시 여러 파일로 나누기
-```
-
-같은 숫자 목표를 세우지 않는다.
-
-현재 정상적인 구조와 예외는 유지한다.
-
-### 점수 운영의 최종 원칙
-
-점수를 올리기 위해 구조를 뜯지 않는다.
-
-다음은 금지:
-
-```text
-!important 숫자를 0으로 만들기 위한 억지 수정
+!important 숫자를 줄이기 위한 억지 수정
 media query 개수만 줄이기
-JS 파일을 점수 때문에 더 분할
-대형 함수가 있다는 이유만으로 무조건 재작성
-2px 조정만으로 전체 점수 상승
+JS 파일을 점수 때문에 추가 분할
+큰 함수라는 이유만으로 무조건 재작성
+미세 UI 수치 조정만으로 전체 점수 상승
 ```
 
-점수보다 우선:
+우선순위:
 
 1. 기능 정확성
 2. 계산 parity
@@ -1446,16 +688,7 @@ JS 파일을 점수 때문에 더 분할
 
 점수는 그 결과를 추적하는 보조 지표다.
 
-### 성능 평가에서 반복 제안하지 않을 항목
-
-현재 프로젝트 규모와 실제 사용량에서는 다음 두 항목을 **이미 검토가 끝난 허용 가능한 trade-off**로 취급한다.
-
-- 날짜 변경·별도수익 변경 등에서 메인 대시보드 DOM을 전체 `render()`하는 구조
-- `Date.now()`를 이용한 CSS / ES Module / JSON cache bust 구조
-
-따라서 향후 CSS·JS·UI/UX 구조 평가에서 위 두 항목을 단순한 이론적 최적화 관점으로 다시 감점하거나 선택적 개선사항으로 반복 제시하지 않는다. **실제 체감 지연, 과도한 네트워크 사용, 렌더 병목 등 측정 가능한 성능 문제가 발생했거나 사용자가 성능 최적화를 명시적으로 요청한 경우에만 재검토**한다.
-
-이 원칙 때문에 현재의 전체 render나 cache bust를 무조건 유지해야 하는 것은 아니며, 실제 문제가 확인되면 그때 최신 소스와 측정 결과를 기준으로 최소 범위에서 개선한다.
+현재 전체 `render()`와 `Date.now()` cache bust는 이미 검토된 허용 가능한 trade-off다. 실제 체감 지연·과도한 네트워크 사용·렌더 병목 등이 확인되었거나 사용자가 성능 최적화를 명시적으로 요청한 경우에만 최신 소스와 측정 결과를 기준으로 재검토한다.
 
 # 3. 수정 · QA · Diff · 결과 전달
 
@@ -2113,12 +1346,19 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 `dashboard-market-ai.js`는 메인 7개 ES Module graph와 분리된 **로컬 조회 + 명시적 preview 전용 adapter**다.
 
-현재 책임:
+preview mode의 초기 viewport ownership은 `dashboard-market-ai.js`가 아니라 `index.html`의 head inline script가 가진다.
+
+```text
+index.html head inline script
+→ ?market-ai-preview=1: phone 초기 viewport를 Desktop preview용으로 전환
+→ ?market-ai-preview=2: phone 초기 viewport를 Tablet preview용으로 전환
+→ 일반 URL의 phone viewport 동작은 유지
+```
+
+`dashboard-market-ai.js`의 현재 책임:
 
 - 기본 동작은 로컬 대시보드(`localhost`, `127.0.0.1`)에서만 실제 Market AI API를 조회
-- 비로컬에서는 기본적으로 UI를 숨기되 URL에 `?market-ai-preview=1` 또는 `?market-ai-preview=2`를 명시한 경우에만 기존 UI에 내장 예시 데이터를 표시
-- `?market-ai-preview=1`을 phone 화면에서 열면 초기 viewport를 자동으로 `width=1280`으로 전환해 별도 “데스크탑 웹사이트 요청” 없이 Desktop preview로 표시한다.
-- `?market-ai-preview=2`를 phone 화면에서 열면 초기 viewport를 자동으로 `width=961`으로 전환해 Tablet preview로 표시한다. 프로젝트 Tablet 범위(`761~1100px`) 안에 있으면서 실제 스마트폰 가로 공통 조건의 상한(`max-width:960px`)은 벗어나므로, iPhone 세로·가로 모두 Tablet UI와 Market AI preview를 유지한다. 일반 URL의 phone viewport 동작은 유지한다.
+- 비로컬에서는 기본적으로 UI를 숨기되 preview mode에서는 기존 UI에 내장 예시 데이터를 표시
 - preview mode에서는 `:8001` API fetch / 60초 polling을 시작하지 않으며, 실제 데이터로 오해하지 않도록 상태에 `예시 데이터`를 표시
 - Market AI `:8001`의 `/api/market-data/snapshot` 조회
 - `/api/signal/latest?include_details=true` 조회
@@ -3173,7 +2413,7 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 
 ## 6.13 Topbar 날짜 셀렉트 폭 정합성
 
-Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유지한다. Desktop은 각각 `148px`, Tablet(`761~1100px`)은 기존 구간 안에서 날짜 그룹만 가용폭에 따라 shrink되어 두 셀렉트가 함께 줄고 공간이 충분하면 `148px`로 복원된다. 우측 action은 `auto` 열로 유지하며 이 문제 때문에 새 breakpoint를 추가하지 않는다. Phone 세로/가로도 두 셀렉트가 같은 반응형 폭 체계를 사용한다.
+Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유지한다. Desktop의 실제 기본폭과 Tablet/Phone에서의 shrink 값은 CSS가 Source of Truth다. Tablet에서는 기존 구간 안에서 날짜 그룹만 가용폭에 따라 두 셀렉트가 함께 줄고, 우측 action은 `auto` 열로 유지한다. 이 정합성 문제 때문에 새 breakpoint를 추가하지 않는다. Phone 세로/가로도 두 셀렉트가 같은 반응형 폭 체계를 사용한다.
 
 ## 6.14 본문 카드 공통 시스템
 
