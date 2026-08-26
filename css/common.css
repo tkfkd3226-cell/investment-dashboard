@@ -471,6 +471,9 @@ html.dark{
   --status-success-soft-border:rgba(134,239,172,.28);
   --status-info-bg:rgba(37,99,235,.16);
   --status-info-text:#bfdbfe;
+  --status-info-strong:#7dd3fc;
+  --status-info-soft-bg:rgba(59,130,246,.12);
+  --status-info-soft-border:rgba(96,165,250,.28);
   --status-warning-bg:rgba(146,64,14,.18);
   --status-warning-text:#fbbf24;
   --status-warning-border:rgba(245,158,11,.55);
