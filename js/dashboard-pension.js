@@ -158,7 +158,7 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
         prevDateLabel=x.prevKey?shortDate(x.prevKey):'-',
         currentDateLabel=shortDate(x.date);
   const rows=orderedPensionRows.map(r=>({
-    labelHtml:`<strong>${mobileTableAssetName(r.name)}</strong>${pensionProductSwatch(r.name)}`,
+    labelHtml:`${mobileTableAssetName(r.name)}${pensionProductSwatch(r.name)}`,
     cells:[
       {className:'num',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':won(r.prevEval)}</span>`},
       {className:'num',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval data-table-sub">${won(r.evalAmount)}</span><span class="asset-change-mobile-delta ${tableCls(r.dayChange)}"><span class="visually-hidden">일변동 </span>${r.dayChange==null?'-':signed(r.dayChange)}</span>`},
@@ -166,6 +166,7 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
     ]
   }));
   rows.push({
+    labelClass:'table-label-regular',
     labelHtml:'현금성자산',
     cells:[
       {className:'num',html:`<span class="change-price">—</span><span class="change-eval data-table-sub">${won(x.prevPensionCash)}</span>`},

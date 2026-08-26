@@ -142,7 +142,6 @@
       --section-title-icon-size:15px;
       --section-title-gap:4px;
       --section-chip-height:25px;
-      --data-table-sub-font-size:10.5px;
     }
 
   /* Pension Modal Phone Density · 세로/가로폰 공통. iOS는 16px computed font를 62.5% 축소해 visual 10px을 유지한다. */
@@ -348,6 +347,7 @@
       --data-table-cell-x:5px;
       --data-table-line-height:1.22;
       --data-table-bar-width:56px;
+      --data-table-sub-font-size:10.5px;
     }
 
   /* Sticky First Column · 터치폰 표의 첫 열은 좌우 스크롤 시 고정 */

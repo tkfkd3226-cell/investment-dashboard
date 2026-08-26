@@ -30,6 +30,10 @@ DETACHED_PROCESS = getattr(subprocess, "DETACHED_PROCESS", 0)
 CREATE_NEW_PROCESS_GROUP = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
 
 
+class StartupCancelled(Exception):
+    """Internal control-flow signal for a user-requested shutdown during startup."""
+
+
 def _is_admin() -> bool:
     """Return True when the current launcher already has an elevated token."""
     if os.name != "nt":
@@ -316,8 +320,11 @@ class LocalSuiteLauncher:
         self.action_queue: queue.Queue[str] = queue.Queue()
         self.tray = TrayIcon(self.action_queue)
         self.stop_event = threading.Event()
+        self.lifecycle_lock = threading.RLock()
         self.started_processes: dict[str, subprocess.Popen] = {}
+        self.startup_thread = None
         self.log_handle = None
+        self.log_lock = threading.Lock()
         self.status = "시작 준비"
         self.status_lock = threading.Lock()
 
@@ -336,7 +343,8 @@ class LocalSuiteLauncher:
         self.tray.start()
         self.root.after(150, self._process_actions)
         self.root.after(800, self._refresh_view)
-        threading.Thread(target=self._startup, name="local-suite-startup", daemon=True).start()
+        self.startup_thread = threading.Thread(target=self._startup, name="local-suite-startup", daemon=True)
+        self.startup_thread.start()
         self.root.mainloop()
 
     def _reset_log(self):
@@ -350,9 +358,23 @@ class LocalSuiteLauncher:
 
     def log(self, message: str = ""):
         line = message.rstrip("\r\n")
-        if self.log_handle:
-            self.log_handle.write(line + "\n")
-            self.log_handle.flush()
+        with self.log_lock:
+            handle = self.log_handle
+            if handle is None or handle.closed:
+                return
+            try:
+                handle.write(line + "\n")
+                handle.flush()
+            except (OSError, ValueError):
+                # Shutdown may close the log while the daemon startup thread is
+                # returning from a long build/dependency check. Never let that
+                # race surface as a second launcher error.
+                return
+
+    def _cancel_gate(self):
+        """Abort startup cleanly once tray Exit has requested shutdown."""
+        if self.stop_event.is_set():
+            raise StartupCancelled()
 
     def set_status(self, value: str):
         # Worker threads only update Python state. Tk state is refreshed on the
@@ -366,12 +388,14 @@ class LocalSuiteLauncher:
                 raise RuntimeError("이 런처는 Windows 전용입니다.")
             if not _is_admin():
                 raise RuntimeError("런처 관리자 권한이 확인되지 않았습니다.")
+            self._cancel_gate()
 
             self.log("[OK]    Launcher administrator token confirmed (single UAC mode).")
             python_exe = self._console_python()
             market_ai_dir = self._find_market_ai_dir()
             if market_ai_dir is None:
                 raise RuntimeError("market-ai 폴더를 찾지 못했습니다. 대시보드와 같은 상위 폴더에 배치해 주세요.")
+            self._cancel_gate()
 
             self.log(f"Dashboard : http://localhost:{DASHBOARD_PORT}/")
             self.log(f"Market AI : http://127.0.0.1:{MARKET_AI_PORT}/")
@@ -387,49 +411,78 @@ class LocalSuiteLauncher:
                 raise RuntimeError("기존 KIS Bridge를 종료하지 못해 시작을 중단했습니다.")
             self._stop_port_listener(MARKET_AI_PORT)
             self._stop_port_listener(DASHBOARD_PORT)
+            self._cancel_gate()
 
             # Runtime dependency gate 1: eFriend Expert must be genuinely running.
             self.set_status("eFriend Expert 확인 중")
             if not self._ensure_efriend():
+                if self.stop_event.is_set():
+                    raise StartupCancelled()
                 raise RuntimeError("eFriend Expert 실행을 확인하지 못해 시작을 중단했습니다.")
+            self._cancel_gate()
 
             # Prepare Bridge and API before runtime startup. The tray-capable
             # source must actually be present before we build/launch the Bridge.
             self.set_status("KIS Bridge 트레이 소스 확인 중")
             if not self._bridge_tray_source_ready(market_ai_dir):
                 raise RuntimeError("KIS Bridge 트레이 수정 소스가 없어 시작을 중단했습니다.")
+            self._cancel_gate()
 
             self.set_status("KIS Bridge 빌드 확인 중")
             if not self._ensure_bridge_build(market_ai_dir):
+                if self.stop_event.is_set():
+                    raise StartupCancelled()
                 raise RuntimeError("KIS Bridge 빌드/배포에 실패해 시작을 중단했습니다.")
+            self._cancel_gate()
 
             self.set_status("Market AI 의존성 확인 중")
             if not self._ensure_market_ai_deps(python_exe, market_ai_dir):
+                if self.stop_event.is_set():
+                    raise StartupCancelled()
                 raise RuntimeError("Market AI Python 패키지 준비에 실패해 시작을 중단했습니다.")
+            self._cancel_gate()
 
             # Runtime dependency gate 2: Bridge process first.
             self.set_status("KIS Bridge 시작 중")
             if not self._start_bridge(market_ai_dir):
+                if self.stop_event.is_set():
+                    raise StartupCancelled()
                 raise RuntimeError("KIS Bridge 프로세스 실행을 확인하지 못해 시작을 중단했습니다.")
+            self._cancel_gate()
 
             # Only after Bridge is confirmed do API and dashboard start.
             self.set_status("Market AI API 시작 중")
             if not self._start_market_ai_api(python_exe, market_ai_dir):
+                if self.stop_event.is_set():
+                    raise StartupCancelled()
                 raise RuntimeError("Market AI API가 준비되지 않아 대시보드를 시작하지 않았습니다.")
+            self._cancel_gate()
 
             self.set_status("대시보드 시작 중")
             if not self._start_dashboard(python_exe):
+                if self.stop_event.is_set():
+                    raise StartupCancelled()
                 raise RuntimeError("대시보드 HTTP 서버가 준비되지 않았습니다.")
+            self._cancel_gate()
 
-            self.set_status("실행 중")
-            self.log()
-            self.log("[OK] Startup sequence complete.")
-            self.log("     eFriend Expert -> KIS Bridge -> Market AI API -> Dashboard")
-            self.log("     Tray icon: right-click View / 종료")
-            try:
-                webbrowser.open(f"http://localhost:{DASHBOARD_PORT}/")
-            except Exception as exc:
-                self.log(f"[WARN] Browser open failed: {exc}")
+            # Commit the final ready state and browser launch under the same
+            # lifecycle gate used by shutdown/runtime spawning. If tray Exit
+            # wins this lock, StartupCancelled prevents a dead localhost tab
+            # from opening after the suite has already been stopped.
+            with self.lifecycle_lock:
+                self._cancel_gate()
+                self.set_status("실행 중")
+                self.log()
+                self.log("[OK] Startup sequence complete.")
+                self.log("     eFriend Expert -> KIS Bridge -> Market AI API -> Dashboard")
+                self.log("     Tray icon: right-click View / 종료")
+                try:
+                    webbrowser.open(f"http://localhost:{DASHBOARD_PORT}/")
+                except Exception as exc:
+                    self.log(f"[WARN] Browser open failed: {exc}")
+        except StartupCancelled:
+            # Tray Exit owns shutdown logging/cleanup. Startup simply stops.
+            return
         except Exception as exc:
             self.set_status("시작 실패")
             self.log()
@@ -608,11 +661,15 @@ class LocalSuiteLauncher:
         self.log("[START] eFriend Expert")
         self.log("        관리자 권한 런처에서 실행하므로 추가 UAC는 표시되지 않습니다.")
         try:
-            subprocess.Popen(
-                [str(EFRIEND_EXE)],
-                cwd=str(EFRIEND_EXE.parent),
-                creationflags=CREATE_NEW_PROCESS_GROUP,
-            )
+            with self.lifecycle_lock:
+                self._cancel_gate()
+                subprocess.Popen(
+                    [str(EFRIEND_EXE)],
+                    cwd=str(EFRIEND_EXE.parent),
+                    creationflags=CREATE_NEW_PROCESS_GROUP,
+                )
+        except StartupCancelled:
+            return False
         except Exception as exc:
             self.log(f"[WARN] eFriend Expert launch failed: {exc}")
             return False
@@ -674,10 +731,13 @@ class LocalSuiteLauncher:
             self.log(f"[WARN] Could not inspect port {port}: {exc}")
         return pids
 
-    def _stop_port_listener(self, port: int):
-        for pid in self._pids_listening_on_port(port):
-            if pid == os.getpid():
-                continue
+    def _stop_port_listener(self, port: int) -> bool:
+        initial_pids = self._pids_listening_on_port(port)
+        targets = {pid for pid in initial_pids if pid != os.getpid()}
+        if not targets:
+            return True
+
+        for pid in sorted(targets):
             self.log(f"[STOP]  Existing listener on port {port} (PID {pid})")
             try:
                 self._run_hidden(["taskkill", "/PID", str(pid), "/T"], timeout=8)
@@ -686,6 +746,15 @@ class LocalSuiteLauncher:
                     self._run_hidden(["taskkill", "/F", "/PID", str(pid), "/T"], timeout=8)
             except Exception as exc:
                 self.log(f"[WARN] Could not stop PID {pid}: {exc}")
+
+        time.sleep(0.4)
+        remaining = {pid for pid in self._pids_listening_on_port(port) if pid != os.getpid()}
+        if remaining:
+            self.log(f"[ERROR] Port {port} is still listening (PID {', '.join(map(str, sorted(remaining)))}).")
+            return False
+
+        self.log(f"[OK]    Port {port} listener stopped.")
+        return True
 
     def _bridge_tray_source_ready(self, market_ai_dir: Path) -> bool:
         source = market_ai_dir / "KisKospi200Bridge" / "MainForm.cs"
@@ -783,12 +852,16 @@ class LocalSuiteLauncher:
         self.log("[START] KIS KOSPI200 Bridge")
         self.log("        관리자 권한 런처에서 실행하므로 추가 UAC는 표시되지 않습니다.")
         try:
-            proc = subprocess.Popen(
-                [str(bridge_exe)],
-                cwd=str(market_ai_dir),
-                creationflags=CREATE_NEW_PROCESS_GROUP,
-            )
-            self.started_processes["bridge"] = proc
+            with self.lifecycle_lock:
+                self._cancel_gate()
+                proc = subprocess.Popen(
+                    [str(bridge_exe)],
+                    cwd=str(market_ai_dir),
+                    creationflags=CREATE_NEW_PROCESS_GROUP,
+                )
+                self.started_processes["bridge"] = proc
+        except StartupCancelled:
+            return False
         except Exception as exc:
             self.log(f"[WARN] KIS Bridge launch failed: {exc}")
             return False
@@ -819,18 +892,20 @@ class LocalSuiteLauncher:
         return False
 
     def _spawn_server(self, name: str, args, cwd: Path):
-        if self.log_handle is None:
-            raise RuntimeError("log file is not open")
-        proc = subprocess.Popen(
-            [str(x) for x in args],
-            cwd=str(cwd),
-            stdout=self.log_handle,
-            stderr=subprocess.STDOUT,
-            creationflags=CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
-            startupinfo=_hidden_startupinfo(),
-        )
-        self.started_processes[name] = proc
-        return proc
+        with self.lifecycle_lock:
+            self._cancel_gate()
+            if self.log_handle is None or self.log_handle.closed:
+                raise RuntimeError("log file is not open")
+            proc = subprocess.Popen(
+                [str(x) for x in args],
+                cwd=str(cwd),
+                stdout=self.log_handle,
+                stderr=subprocess.STDOUT,
+                creationflags=CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP,
+                startupinfo=_hidden_startupinfo(),
+            )
+            self.started_processes[name] = proc
+            return proc
 
     def _start_market_ai_api(self, python_exe: Path, market_ai_dir: Path) -> bool:
         health = f"http://127.0.0.1:{MARKET_AI_PORT}/api/health"
@@ -841,6 +916,8 @@ class LocalSuiteLauncher:
                 [python_exe, "-m", "uvicorn", "app:app", "--host", "127.0.0.1", "--port", str(MARKET_AI_PORT)],
                 market_ai_dir,
             )
+        except StartupCancelled:
+            return False
         except Exception as exc:
             self.log(f"[WARN] Market AI API launch failed: {exc}")
             return False
@@ -859,6 +936,8 @@ class LocalSuiteLauncher:
                 [python_exe, "-m", "http.server", str(DASHBOARD_PORT), "--bind", "127.0.0.1"],
                 self.root_dir,
             )
+        except StartupCancelled:
+            return False
         except Exception as exc:
             self.log(f"[WARN] Dashboard launch failed: {exc}")
             return False
@@ -943,14 +1022,20 @@ class LocalSuiteLauncher:
             self.root.after(800, self._refresh_view)
 
     def shutdown(self):
-        if self.stop_event.is_set():
-            return
-        self.stop_event.set()
+        with self.lifecycle_lock:
+            if self.stop_event.is_set():
+                return
+            # Setting this while holding the same lifecycle lock used by every
+            # runtime spawn makes shutdown and new-process creation mutually
+            # exclusive: after this point Bridge/API/Dashboard cannot appear.
+            self.stop_event.set()
         self.set_status("종료 중")
         self.log()
         self.log("[STOP] Local Suite shutdown requested.")
 
-        # Stop only runtime components owned by the suite. eFriend Expert is left open.
+        # First ask child processes started by this launcher to exit normally.
+        # The final gate below verifies the actual ports/process image, so stale
+        # handles or processes inherited from an earlier launcher cannot survive.
         for name in ("dashboard", "market_ai"):
             proc = self.started_processes.get(name)
             if proc is None or proc.poll() is not None:
@@ -964,16 +1049,22 @@ class LocalSuiteLauncher:
                 except Exception:
                     pass
 
-        bridge_proc = self.started_processes.get("bridge")
-        if bridge_proc is not None and bridge_proc.poll() is None:
-            if not self._stop_image(BRIDGE_PROCESS, reason="Local Suite 종료"):
-                self.log("[WARN] KIS Bridge가 종료되지 않았습니다. Bridge 트레이 메뉴의 종료를 사용해 주세요.")
+        dashboard_stopped = self._stop_port_listener(DASHBOARD_PORT)
+        market_ai_stopped = self._stop_port_listener(MARKET_AI_PORT)
+        bridge_stopped = self._stop_image(BRIDGE_PROCESS, reason="Local Suite 종료")
 
-        self.log("[OK]    Local Suite stopped. eFriend Expert remains open.")
+        if dashboard_stopped and market_ai_stopped and bridge_stopped:
+            self.log("[OK]    Local Suite stopped. eFriend Expert remains open.")
+        else:
+            self.log("[WARN] Local Suite 종료 후 일부 런타임이 남아 있습니다. 위 ERROR 로그를 확인해 주세요.")
+            self.log("       eFriend Expert는 종료 대상이 아니므로 계속 실행됩니다.")
+
         try:
-            if self.log_handle:
-                self.log_handle.flush()
-                self.log_handle.close()
+            with self.log_lock:
+                if self.log_handle is not None:
+                    self.log_handle.flush()
+                    self.log_handle.close()
+                    self.log_handle = None
         except Exception:
             pass
         self.tray.stop()
