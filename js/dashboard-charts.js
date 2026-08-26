@@ -32,15 +32,18 @@ import {
   won
 } from './dashboard-core.js';
 import {
-  activateDashboardDialogFocus,
   chartSeriesSwatch,
   escapeHtml,
   navIconSvg,
   pensionProductSwatch,
   phoneLandscapeUi,
-  releaseDashboardDialogFocus,
   securitySymbolSwatch
 } from './dashboard-ui-common.js';
+import {
+  activateDashboardDialogFocus,
+  bindDashboardModalDismiss,
+  releaseDashboardDialogFocus
+} from './dashboard-modal.js';
 
 // 메인 대시보드 차트 UI · SVG · legend · 확대 · responsive chart 처리
 
@@ -344,6 +347,7 @@ function openExpandedChart(button){
   document.body.classList.add('chart-expanded-open');
   chartRuntimeState.expanded={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,closeButton,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,visualBaseline,renderedScale:visualBaseline.scale,cardId:card.id};
   syncExpandedChartViewport();
+  bindDashboardModalDismiss(overlay,{onDismiss:closeExpandedChart,backdrop:false,preventEscapeDefault:false,stopEscapePropagation:false});
   closeButton.addEventListener('click',closeExpandedChart,{once:true});
   requestAnimationFrame(()=>{
     redrawChartForCardSize(card.id,{force:true});
@@ -406,7 +410,6 @@ function setupExpandedChartViewport(){
   };
   window.addEventListener('resize',sync,{passive:true});
   window.addEventListener('orientationchange',sync,{passive:true});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&chartRuntimeState.expanded)closeExpandedChart()});
 }
 const RESPONSIVE_CHART_SCOPES=[
   {id:'pension-chart-cum',scope:'pensionCum'},

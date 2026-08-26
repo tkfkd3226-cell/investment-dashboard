@@ -13,107 +13,6 @@ function phoneLandscapeUi(){
   return window.matchMedia?.(PHONE_LANDSCAPE_QUERY).matches===true;
 }
 
-// Dialog Focus / Accessibility · 다이얼로그 포커스 / 접근성
-const dashboardDialogFocusState=new WeakMap();
-let dashboardDialogBodyLockCount=0;
-function dashboardDialogBackgroundElements(container){
-  const elements=[];
-  let current=container;
-  while(current&&current!==document.body){
-    const parent=current.parentElement;
-    if(!parent)break;
-    [...parent.children].forEach(sibling=>{if(sibling!==current)elements.push(sibling)});
-    current=parent;
-  }
-  return [...new Set(elements)];
-}
-function lockDashboardDialogBody(state){
-  if(!state||state.bodyLocked)return;
-  state.bodyLocked=true;
-  dashboardDialogBodyLockCount+=1;
-  document.body?.classList.add('dashboard-dialog-open');
-}
-function unlockDashboardDialogBody(state){
-  if(!state?.bodyLocked)return;
-  state.bodyLocked=false;
-  dashboardDialogBodyLockCount=Math.max(0,dashboardDialogBodyLockCount-1);
-  if(dashboardDialogBodyLockCount===0)document.body?.classList.remove('dashboard-dialog-open');
-}
-function setDashboardDialogBackgroundInert(container,state){
-  if(!container||!state||state.inertSnapshot)return;
-  const snapshot=new Map();
-  dashboardDialogBackgroundElements(container).forEach(element=>{
-    snapshot.set(element,element.inert===true);
-    element.inert=true;
-  });
-  state.inertSnapshot=snapshot;
-}
-function restoreDashboardDialogBackgroundInert(state){
-  if(!state?.inertSnapshot)return;
-  state.inertSnapshot.forEach((wasInert,element)=>{
-    if(element?.isConnected)element.inert=wasInert;
-  });
-  state.inertSnapshot=null;
-}
-function dashboardElementVisible(el){
-  if(!el||!el.isConnected||el.disabled)return false;
-  const style=getComputedStyle(el);
-  return style.display!=='none'&&style.visibility!=='hidden'&&(el.offsetWidth>0||el.offsetHeight>0||el.getClientRects().length>0);
-}
-function dashboardDialogFocusables(container){
-  if(!container)return [];
-  return [...container.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(dashboardElementVisible);
-}
-function dashboardVisibleFallback(selector){
-  if(!selector)return null;
-  return [...document.querySelectorAll(selector)].find(dashboardElementVisible)||null;
-}
-function dashboardReturnFocusVisible(el){
-  if(!dashboardElementVisible(el)||el===document.body||el===document.documentElement)return false;
-  const tag=String(el.tagName||'').toLowerCase();
-  return typeof el.focus==='function'&&(el.tabIndex>=0||['a','button','input','select','textarea','summary'].includes(tag));
-}
-function activateDashboardDialogFocus(container,{initialFocus=null,fallbackSelector='',returnFocus=null}={}){
-  if(!container)return;
-  let state=dashboardDialogFocusState.get(container);
-  if(!state){
-    state={returnFocus:null,fallbackSelector:'',keydown:null,inertSnapshot:null,bodyLocked:false};
-    state.keydown=event=>{
-      if(event.key!=='Tab')return;
-      const focusables=dashboardDialogFocusables(container);
-      if(!focusables.length){event.preventDefault();return;}
-      const first=focusables[0],last=focusables.at(-1),active=document.activeElement;
-      if(event.shiftKey&&(active===first||!container.contains(active))){event.preventDefault();last.focus();}
-      else if(!event.shiftKey&&(active===last||!container.contains(active))){event.preventDefault();first.focus();}
-    };
-    container.addEventListener('keydown',state.keydown);
-    dashboardDialogFocusState.set(container,state);
-  }
-  if(returnFocus)state.returnFocus=returnFocus;
-  else if(!container.contains(document.activeElement)&&dashboardReturnFocusVisible(document.activeElement))state.returnFocus=document.activeElement;
-  state.fallbackSelector=fallbackSelector||state.fallbackSelector||'';
-  setDashboardDialogBackgroundInert(container,state);
-  lockDashboardDialogBody(state);
-  const resolveInitial=()=>typeof initialFocus==='string'?container.querySelector(initialFocus):initialFocus;
-  requestAnimationFrame(()=>{
-    const target=resolveInitial()||dashboardDialogFocusables(container)[0];
-    target?.focus?.({preventScroll:true});
-  });
-}
-function releaseDashboardDialogFocus(container,{fallbackSelector=''}={}){
-  if(!container)return;
-  const state=dashboardDialogFocusState.get(container);
-  const stored=state?.returnFocus||null;
-  const fallback=fallbackSelector||state?.fallbackSelector||'';
-  restoreDashboardDialogBackgroundInert(state);
-  unlockDashboardDialogBody(state);
-  if(state){state.returnFocus=null;state.fallbackSelector='';}
-  requestAnimationFrame(()=>{
-    const target=dashboardReturnFocusVisible(stored)?stored:dashboardVisibleFallback(fallback);
-    target?.focus?.({preventScroll:true});
-  });
-}
-
 // Icon / Markup Helpers · 아이콘 / 마크업 helper
 const NAV_ICON_ATTRS='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"';
 const NAV_ICONS=Object.freeze({
@@ -421,7 +320,6 @@ function setupAssetVizTooltips(zoneSelector){
 }
 
 export {
-  activateDashboardDialogFocus,
   renderAssetContributionCard,
   renderAssetDayChangeBlock,
   renderAssetStatusBlock,
@@ -432,7 +330,6 @@ export {
   navIconSvg,
   pensionProductSwatch,
   phoneLandscapeUi,
-  releaseDashboardDialogFocus,
   securitySymbolSwatch,
   setupAssetVizTooltips
 };

@@ -10,12 +10,15 @@ import {
   won
 } from './dashboard-core.js';
 import {
-  activateDashboardDialogFocus,
   escapeHtml,
   navIconSvg,
-  releaseDashboardDialogFocus,
   setupAssetVizTooltips
 } from './dashboard-ui-common.js';
+import {
+  bindDashboardModalDismiss,
+  closeDashboardModal,
+  openDashboardModal
+} from './dashboard-modal.js';
 import {
   drawAllCharts,
   handleChartDashboardAction,
@@ -118,21 +121,14 @@ function ensureChartDateConfirmModal(){
       <button type="button" class="control-action-button action-modal-btn primary" data-dashboard-action="confirm-chart-date-jump">이동</button>
     </div>
   </div>`;
-  modal.addEventListener('click',event=>{if(event.target===modal)closeChartDateConfirmModal()});
-  modal.addEventListener('keydown',event=>{
-    if(event.key!=='Escape')return;
-    event.preventDefault();
-    closeChartDateConfirmModal();
-  });
+  bindDashboardModalDismiss(modal,{onDismiss:closeChartDateConfirmModal,stopEscapePropagation:false});
   document.body.appendChild(modal);
   return modal;
 }
 function closeChartDateConfirmModal(){
   const modal=document.getElementById('chartDateConfirmModal');
   if(!modal)return;
-  modal.classList.remove('show');
-  modal.setAttribute('aria-hidden','true');
-  releaseDashboardDialogFocus(modal);
+  closeDashboardModal(modal);
   chartDateJumpState.date='';
   chartDateJumpState.chartId='';
 }
@@ -150,9 +146,7 @@ function requestChartDateJump(date,chartId,returnFocus=null){
   if(description)description.textContent=`${chartDateDialogLabel(date)} 화면으로 이동할까요?`;
   chartDateJumpState.date=date;
   chartDateJumpState.chartId=chartId;
-  modal.classList.add('show');
-  modal.setAttribute('aria-hidden','false');
-  activateDashboardDialogFocus(modal,{
+  openDashboardModal(modal,{
     initialFocus:modal.querySelector('[data-dashboard-action="close-chart-date-confirm"]'),
     returnFocus:returnFocus||null
   });
@@ -160,11 +154,7 @@ function requestChartDateJump(date,chartId,returnFocus=null){
 function confirmChartDateJump(){
   const {date,chartId}=chartDateJumpState;
   const modal=document.getElementById('chartDateConfirmModal');
-  if(modal){
-    modal.classList.remove('show');
-    modal.setAttribute('aria-hidden','true');
-    releaseDashboardDialogFocus(modal);
-  }
+  if(modal)closeDashboardModal(modal);
   chartDateJumpState.date='';
   chartDateJumpState.chartId='';
   if(date&&chartId)performChartDateJump(date,chartId);

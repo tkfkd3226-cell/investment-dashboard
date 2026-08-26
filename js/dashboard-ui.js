@@ -30,18 +30,21 @@ import {
   won
 } from './dashboard-core.js';
 import {
-  activateDashboardDialogFocus,
   escapeHtml,
   mobileTableAssetName,
   navIconSvg,
   phoneLandscapeUi,
-  releaseDashboardDialogFocus,
   renderAssetContributionCard,
   renderAssetDayChangeBlock,
   renderAssetStatusBlock,
   renderAssetWeight,
   securitySymbolSwatch
 } from './dashboard-ui-common.js';
+import {
+  bindDashboardModalDismiss,
+  closeDashboardModal,
+  openDashboardModal
+} from './dashboard-modal.js';
 import {
   drawAllCharts,
   refreshScrollHints,
@@ -562,13 +565,7 @@ function ensureKrxActionModal(){
     </div>
   </div>`;
   document.body.appendChild(modal);
-  modal.addEventListener('click',e=>{if(e.target===modal)closeKrxActionModal()});
-  modal.addEventListener('keydown',e=>{
-    if(e.key!=='Escape')return;
-    e.preventDefault();
-    e.stopPropagation();
-    closeKrxActionModal();
-  });
+  bindDashboardModalDismiss(modal,{onDismiss:closeKrxActionModal});
   const pinInput=modal.querySelector('#krxActionPin');
   pinInput?.addEventListener('input',()=>{
     const cleaned=String(pinInput.value||'').replace(/\D/g,'').slice(0,6);
@@ -590,9 +587,7 @@ function openKrxActionModal(){
   const input=modal.querySelector('#krxActionPin');
   if(status){status.textContent='';status.className='action-modal-status krx-action-status'}
   input?.setAttribute('aria-invalid','false');
-  modal.classList.add('show');
-  modal.setAttribute('aria-hidden','false');
-  activateDashboardDialogFocus(modal,{initialFocus:input,fallbackSelector:'[data-dashboard-action="krx-update"]'});
+  openDashboardModal(modal,{initialFocus:input,fallbackSelector:'[data-dashboard-action="krx-update"]'});
 }
 
 function forceMobileViewportReflow(){
@@ -614,11 +609,7 @@ function forceMobileViewportReflow(){
 
 function closeKrxActionModal(){
   const modal=document.getElementById('krxActionModal');
-  if(modal){
-    modal.classList.remove('show');
-    modal.setAttribute('aria-hidden','true');
-    releaseDashboardDialogFocus(modal,{fallbackSelector:'[data-dashboard-action="krx-update"]'});
-  }
+  if(modal)closeDashboardModal(modal,{fallbackSelector:'[data-dashboard-action="krx-update"]'});
   forceMobileViewportReflow();
 }
 async function submitKrxActionModal(mode='selected'){

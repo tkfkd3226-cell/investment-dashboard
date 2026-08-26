@@ -21,13 +21,15 @@ import {
   won
 } from './dashboard-core.js';
 import {
-  activateDashboardDialogFocus,
   escapeHtml,
-  navIconSvg,
-  releaseDashboardDialogFocus
+  navIconSvg
 } from './dashboard-ui-common.js';
 import {
-  closeDateActionMenu,
+  bindDashboardModalDismiss,
+  closeDashboardModal,
+  openDashboardModal
+} from './dashboard-modal.js';
+import {
   forceMobileViewportReflow,
   showAppToast
 } from './dashboard-ui.js';
@@ -122,7 +124,7 @@ function renderPensionContributionModal(x){
   const cashDefaultValue=Number.isFinite(Number(x.pensionCash))?fmt(x.pensionCash):'';
   const cashDefaultCostBasis=Number.isFinite(Number(x.pensionCashCost))?fmt(x.pensionCashCost):'';
   const applyDate=kstTodayText();
-  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true" data-pension-backdrop-close="true"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle" class="modal-main-title">퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="control-icon-button modal-icon-btn pension-form-reset" data-pension-action="reset-form" title="입력값 초기화" aria-label="입력값 초기화">${navIconSvg('reset')}</button><button type="button" class="control-icon-button modal-icon-btn contrib-modal-close" data-pension-action="close-modal" aria-label="닫기">${navIconSvg('close')}</button></div></div>
+  return `<div id="pensionContribModal" class="contrib-modal" aria-hidden="true"><div class="contrib-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionContribModalTitle"><div class="contrib-modal-head"><div><h2 id="pensionContribModalTitle" class="modal-main-title">퇴직연금 금액 조정</h2></div><div class="contrib-modal-head-actions"><button type="button" class="control-icon-button modal-icon-btn pension-form-reset" data-pension-action="reset-form" title="입력값 초기화" aria-label="입력값 초기화">${navIconSvg('reset')}</button><button type="button" class="control-icon-button modal-icon-btn contrib-modal-close" data-pension-action="close-modal" aria-label="닫기">${navIconSvg('close')}</button></div></div>
 <div class="pension-contrib-context" aria-label="퇴직연금 금액 조정 옵션">
   <div class="pension-contrib-context-head"><span class="contrib-field-label">조정 항목</span><div class="chart-compare-toggle pension-work-mode" role="group" aria-label="처리 방식 선택"><button type="button" class="pension-work-mode-btn active" aria-pressed="true" data-mode="single" data-pension-action="set-batch-mode" data-pension-enabled="false">개별 처리</button><button type="button" class="pension-work-mode-btn" aria-pressed="false" data-mode="batch" data-pension-action="set-batch-mode" data-pension-enabled="true">작업 모음 <span id="pensionBatchModeCount">0</span></button></div></div>
   <input type="hidden" id="pensionContribTarget" value="cashSnapshot"><div class="control-tab-group contrib-target-tabs" role="tablist" aria-label="조정 항목 선택" aria-orientation="horizontal"><button type="button" id="pension-target-tab-cash" class="control-tab contrib-target-option active" role="tab" aria-selected="true" aria-controls="pensionContribTargetPanel" tabindex="0" data-target="cashSnapshot" data-pension-action="set-target">현금성자산</button><button type="button" id="pension-target-tab-contribution" class="control-tab contrib-target-option" role="tab" aria-selected="false" aria-controls="pensionContribTargetPanel" tabindex="-1" data-target="contribution" data-pension-action="set-target">기업적립금</button><button type="button" id="pension-target-tab-trade" class="control-tab contrib-target-option" role="tab" aria-selected="false" aria-controls="pensionContribTargetPanel" tabindex="-1" data-target="etfTrade" data-pension-action="set-target">추가 매수</button></div>
@@ -303,19 +305,16 @@ function schedulePensionContributionModalHeight(){
 function openPensionContributionModal(){
   const modal=document.getElementById('pensionContribModal');
   if(!modal) return;
-  modal.classList.add('show');
-  modal.setAttribute('aria-hidden','false');
+  bindDashboardModalDismiss(modal,{onDismiss:closePensionContributionModal,stopEscapePropagation:false});
   setPensionContributionTarget('cashSnapshot');
   syncPensionBatchModeUi();
   schedulePensionContributionModalHeight();
-  activateDashboardDialogFocus(modal,{initialFocus:modal.querySelector('.contrib-modal-close'),fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
+  openDashboardModal(modal,{initialFocus:modal.querySelector('.contrib-modal-close'),fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
 }
 function closePensionContributionModal(){
   const modal=document.getElementById('pensionContribModal');
   if(!modal) return;
-  modal.classList.remove('show');
-  modal.setAttribute('aria-hidden','true');
-  releaseDashboardDialogFocus(modal,{fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
+  closeDashboardModal(modal,{fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
   forceMobileViewportReflow();
 }
 // Input Formatting / Target State · 입력 포맷 / 대상 상태
@@ -741,8 +740,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
 
     const finish=value=>{
       clearTimeout(submitTimer);
-      modal.remove();
-      releaseDashboardDialogFocus(modal);
+      closeDashboardModal(modal,{visibleClass:'',manageAriaHidden:false,remove:true});
       resolve(value);
     };
     const submit=async()=>{
@@ -772,18 +770,12 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
 
     input?.addEventListener('input',onInput);
     input?.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
-    modal.addEventListener('keydown',e=>{
-      if(e.key!=='Escape')return;
-      e.preventDefault();
-      e.stopPropagation();
-      finish(null);
-    });
     cancel?.addEventListener('click',()=>finish(null));
     close?.addEventListener('click',()=>finish(null));
-    modal.addEventListener('click',e=>{if(e.target===modal)finish(null)});
 
     document.body.appendChild(modal);
-    activateDashboardDialogFocus(modal,{initialFocus:input});
+    bindDashboardModalDismiss(modal,{onDismiss:()=>finish(null)});
+    openDashboardModal(modal,{visibleClass:'',manageAriaHidden:false,initialFocus:input});
   });
 }
 
@@ -1325,19 +1317,9 @@ function handlePensionAction(control,renderDashboard){
 function setupPensionEventDelegation({renderDashboard}={}){
   document.addEventListener('keydown',event=>{
     const targetTab=event.target?.closest?.('.contrib-target-option[role="tab"]');
-    if(targetTab&&handlePensionTargetTabKeydown(event,targetTab))return;
-    if(event.key!=='Escape'||event.defaultPrevented||document.getElementById('pensionActionPinModal'))return;
-    const modal=document.getElementById('pensionContribModal');
-    if(!modal?.classList.contains('show'))return;
-    event.preventDefault();
-    closeDateActionMenu();
-    closePensionContributionModal();
+    if(targetTab)handlePensionTargetTabKeydown(event,targetTab);
   });
   document.addEventListener('click',event=>{
-    if(event.target?.matches?.('[data-pension-backdrop-close="true"]')){
-      closePensionContributionModal();
-      return;
-    }
     openPensionDatePickerForPointer(event);
     const control=event.target?.closest?.('[data-pension-action]');
     if(control)handlePensionAction(control,renderDashboard);
