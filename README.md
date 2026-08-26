@@ -198,6 +198,8 @@ investment-dashboard-main/
 │  └─ report/
 ├─ tests/
 │  └─ calc.test.cjs
+├─ tools/
+│  └─ close-efriend-tray.ps1
 ├─ .github/workflows/
 │  └─ update-prices.yml
 ├─ requirements.txt
@@ -509,7 +511,7 @@ eFriend의 최종 Ready 기준은 `efexpertmain.exe`입니다. 로그인 또는 
 
 - Local Suite 트레이 `View` → 실행 상태와 `start-local-server.log` 확인
 - Local Suite 트레이 `eFriend 자동 로그인 설정` → Windows Credential Manager에 로컬 자격 증명 저장/삭제
-- Local Suite 트레이 `eFriend·Bridge·서버 종료` → Dashboard / Market AI API / KIS Bridge / eFriend Expert 함께 종료
+- Local Suite 트레이 `eFriend·Bridge·서버 종료` → Dashboard / Market AI API / KIS Bridge / eFriend Expert를 함께 종료하며, Bridge와 eFriend는 각 프로그램의 정상 종료 경로를 우선해 트레이 잔상을 정리
 - KIS Bridge 트레이 `View` → 상태창 표시, `종료` → Bridge 종료
 
 통합 런처 없이 대시보드만 실행하려면:
