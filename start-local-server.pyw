@@ -163,13 +163,21 @@ class TrayIcon:
             ("hBalloonIcon", wintypes.HICON),
         ]
 
-    def __init__(self, action_queue: queue.Queue[str]):
+    def __init__(self, action_queue: queue.Queue[str], shutdown_requested: threading.Event):
         self.action_queue = action_queue
+        self.shutdown_requested = shutdown_requested
         self.hwnd = None
         self.nid = None
         self._thread = None
         self._wndproc_ref = None
         self._class_name = f"InvestmentLocalSuiteTray_{os.getpid()}"
+
+    def _request_exit(self):
+        # Set the shutdown intent immediately on the tray thread. The Tk main
+        # loop may process the queued action slightly later, so this event is
+        # the authoritative early gate for startup/browser completion races.
+        self.shutdown_requested.set()
+        self.action_queue.put("exit")
 
     def start(self):
         if os.name != "nt":
@@ -233,7 +241,7 @@ class TrayIcon:
                     self.action_queue.put("view")
                     return 0
                 if command == self.ID_EXIT:
-                    self.action_queue.put("exit")
+                    self._request_exit()
                     return 0
             elif msg == self.WM_DESTROY:
                 if self.nid is not None:
@@ -308,7 +316,7 @@ class TrayIcon:
             if command == self.ID_VIEW:
                 self.action_queue.put("view")
             elif command == self.ID_EXIT:
-                self.action_queue.put("exit")
+                self._request_exit()
         finally:
             user32.DestroyMenu(menu)
 
@@ -318,7 +326,8 @@ class LocalSuiteLauncher:
         self.root_dir = Path(__file__).resolve().parent
         self.log_path = self.root_dir / "start-local-server.log"
         self.action_queue: queue.Queue[str] = queue.Queue()
-        self.tray = TrayIcon(self.action_queue)
+        self.shutdown_requested = threading.Event()
+        self.tray = TrayIcon(self.action_queue, self.shutdown_requested)
         self.stop_event = threading.Event()
         self.lifecycle_lock = threading.RLock()
         self.started_processes: dict[str, subprocess.Popen] = {}
@@ -328,15 +337,128 @@ class LocalSuiteLauncher:
         self.status = "시작 준비"
         self.status_lock = threading.Lock()
 
+        # Phase 2: startup progress is event-driven. Worker threads only mutate
+        # plain Python state; Tk variables are refreshed on the main thread.
+        self.progress_lock = threading.Lock()
+        self.progress_percent = 0
+        self.progress_message = "초기화 중"
+        self.progress_failed = False
+        self.step_states = {
+            "efriend": "대기",
+            "bridge": "대기",
+            "market_ai": "대기",
+            "dashboard": "대기",
+        }
+
         self.root = tk.Tk()
         self.root.withdraw()
         self.root.title(APP_TITLE)
-        self.root.protocol("WM_DELETE_WINDOW", self.hide_view)
+        self.root.resizable(False, False)
+        self.root.protocol("WM_DELETE_WINDOW", self._hide_loading)
 
         self.view_window = None
         self.status_var = tk.StringVar(value=self.status)
+        self.progress_var = tk.DoubleVar(value=0)
+        self.progress_percent_var = tk.StringVar(value="0%")
+        self.progress_message_var = tk.StringVar(value=self.progress_message)
+        self.step_vars = {key: tk.StringVar(value="○ 대기") for key in self.step_states}
         self.log_text = None
         self.last_log_snapshot = ""
+        self._build_loading_ui()
+
+    def _build_loading_ui(self):
+        outer = ttk.Frame(self.root, padding=(24, 22, 24, 20))
+        outer.pack(fill="both", expand=True)
+
+        ttk.Label(outer, text=APP_TITLE, font=("Segoe UI", 15, "bold")).pack(anchor="w")
+        ttk.Label(outer, text="로컬 투자 환경을 준비하고 있습니다.").pack(anchor="w", pady=(4, 18))
+
+        progress_row = ttk.Frame(outer)
+        progress_row.pack(fill="x")
+        ttk.Progressbar(progress_row, variable=self.progress_var, maximum=100, length=390).pack(side="left", fill="x", expand=True)
+        ttk.Label(progress_row, textvariable=self.progress_percent_var, width=5, anchor="e").pack(side="right", padx=(12, 0))
+
+        ttk.Label(outer, textvariable=self.progress_message_var, font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(10, 18))
+
+        steps = ttk.Frame(outer)
+        steps.pack(fill="x")
+        labels = (
+            ("efriend", "eFriend Expert"),
+            ("bridge", "KIS KOSPI200 Bridge"),
+            ("market_ai", "Market AI API"),
+            ("dashboard", "Investment Dashboard"),
+        )
+        for row, (key, label) in enumerate(labels):
+            ttk.Label(steps, text=label).grid(row=row, column=0, sticky="w", pady=3)
+            ttk.Label(steps, textvariable=self.step_vars[key], width=10, anchor="e").grid(row=row, column=1, sticky="e", pady=3, padx=(24, 0))
+        steps.columnconfigure(0, weight=1)
+
+        footer = ttk.Frame(outer)
+        footer.pack(fill="x", pady=(18, 0))
+        ttk.Button(footer, text="로그 보기", command=self.show_view).pack(side="right")
+
+        self.root.update_idletasks()
+        width = max(self.root.winfo_reqwidth(), 470)
+        height = max(self.root.winfo_reqheight(), 330)
+        x = max((self.root.winfo_screenwidth() - width) // 2, 0)
+        y = max((self.root.winfo_screenheight() - height) // 2, 0)
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+        self.root.deiconify()
+        self.root.lift()
+
+    def _hide_loading(self):
+        # Closing the progress window only hides it; the Local Suite remains
+        # controllable from its tray icon and View window.
+        try:
+            self.root.withdraw()
+        except Exception:
+            pass
+
+    def set_progress(self, percent: int, message: str, *, active: str | None = None, complete: tuple[str, ...] = (), failed: bool = False):
+        with self.progress_lock:
+            requested_percent = max(0, min(100, int(percent)))
+            # Progress represents completed startup work, so transient eFriend
+            # process hand-offs must never make the UI move backwards.
+            self.progress_percent = max(self.progress_percent, requested_percent)
+            self.progress_message = message
+            self.progress_failed = bool(failed)
+            for key in complete:
+                if key in self.step_states:
+                    self.step_states[key] = "완료"
+            if active in self.step_states and self.step_states[active] != "완료":
+                self.step_states[active] = "진행"
+
+    def _refresh_loading_state(self):
+        with self.progress_lock:
+            percent = self.progress_percent
+            message = self.progress_message
+            failed = self.progress_failed
+            states = dict(self.step_states)
+
+        self.progress_var.set(percent)
+        self.progress_percent_var.set(f"{percent}%")
+        self.progress_message_var.set(("실패: " if failed else "") + message)
+        symbols = {"대기": "○ 대기", "진행": "● 진행", "완료": "✓ 완료"}
+        for key, state in states.items():
+            value = symbols.get(state, state)
+            if self.step_vars[key].get() != value:
+                self.step_vars[key].set(value)
+
+    def _queue_startup_complete(self):
+        # Give the main thread enough time to paint the real 100% state before
+        # hiding the loader and opening the dashboard.
+        self.root.after(650, self._finish_startup_ui)
+
+    def _finish_startup_ui(self):
+        try:
+            with self.lifecycle_lock:
+                self._cancel_gate()
+                self.root.withdraw()
+                webbrowser.open(f"http://localhost:{DASHBOARD_PORT}/")
+        except StartupCancelled:
+            return
+        except Exception as exc:
+            self.log(f"[WARN] Browser open failed: {exc}")
 
     def run(self):
         self._reset_log()
@@ -373,7 +495,7 @@ class LocalSuiteLauncher:
 
     def _cancel_gate(self):
         """Abort startup cleanly once tray Exit has requested shutdown."""
-        if self.stop_event.is_set():
+        if self.shutdown_requested.is_set() or self.stop_event.is_set():
             raise StartupCancelled()
 
     def set_status(self, value: str):
@@ -407,6 +529,7 @@ class LocalSuiteLauncher:
             # Always clear stale suite runtimes first. This guarantees that API/Dashboard
             # from a previous run cannot remain alive when the eFriend gate fails.
             self.set_status("기존 로컬 프로세스 정리 중")
+            self.set_progress(5, "기존 로컬 프로세스를 정리하고 있습니다.")
             if not self._stop_image(BRIDGE_PROCESS, reason="새 시작 순서 적용"):
                 raise RuntimeError("기존 KIS Bridge를 종료하지 못해 시작을 중단했습니다.")
             self._stop_port_listener(MARKET_AI_PORT)
@@ -415,6 +538,7 @@ class LocalSuiteLauncher:
 
             # Runtime dependency gate 1: eFriend Expert must be genuinely running.
             self.set_status("eFriend Expert 확인 중")
+            self.set_progress(15, "eFriend Expert 실행 상태를 확인하고 있습니다.", active="efriend")
             if not self._ensure_efriend():
                 if self.stop_event.is_set():
                     raise StartupCancelled()
@@ -424,11 +548,13 @@ class LocalSuiteLauncher:
             # Prepare Bridge and API before runtime startup. The tray-capable
             # source must actually be present before we build/launch the Bridge.
             self.set_status("KIS Bridge 트레이 소스 확인 중")
+            self.set_progress(60, "KIS Bridge 실행 준비를 확인하고 있습니다.", active="bridge", complete=("efriend",))
             if not self._bridge_tray_source_ready(market_ai_dir):
                 raise RuntimeError("KIS Bridge 트레이 수정 소스가 없어 시작을 중단했습니다.")
             self._cancel_gate()
 
             self.set_status("KIS Bridge 빌드 확인 중")
+            self.set_progress(63, "KIS Bridge Release/x86 빌드를 확인하고 있습니다.", active="bridge", complete=("efriend",))
             if not self._ensure_bridge_build(market_ai_dir):
                 if self.stop_event.is_set():
                     raise StartupCancelled()
@@ -436,6 +562,7 @@ class LocalSuiteLauncher:
             self._cancel_gate()
 
             self.set_status("Market AI 의존성 확인 중")
+            self.set_progress(67, "Market AI 실행 환경을 확인하고 있습니다.", active="bridge", complete=("efriend",))
             if not self._ensure_market_ai_deps(python_exe, market_ai_dir):
                 if self.stop_event.is_set():
                     raise StartupCancelled()
@@ -444,6 +571,7 @@ class LocalSuiteLauncher:
 
             # Runtime dependency gate 2: Bridge process first.
             self.set_status("KIS Bridge 시작 중")
+            self.set_progress(70, "KIS KOSPI200 Bridge를 시작하고 있습니다.", active="bridge", complete=("efriend",))
             if not self._start_bridge(market_ai_dir):
                 if self.stop_event.is_set():
                     raise StartupCancelled()
@@ -452,6 +580,7 @@ class LocalSuiteLauncher:
 
             # Only after Bridge is confirmed do API and dashboard start.
             self.set_status("Market AI API 시작 중")
+            self.set_progress(80, "Market AI API를 시작하고 있습니다.", active="market_ai", complete=("efriend", "bridge"))
             if not self._start_market_ai_api(python_exe, market_ai_dir):
                 if self.stop_event.is_set():
                     raise StartupCancelled()
@@ -459,6 +588,7 @@ class LocalSuiteLauncher:
             self._cancel_gate()
 
             self.set_status("대시보드 시작 중")
+            self.set_progress(93, "Investment Dashboard를 시작하고 있습니다.", active="dashboard", complete=("efriend", "bridge", "market_ai"))
             if not self._start_dashboard(python_exe):
                 if self.stop_event.is_set():
                     raise StartupCancelled()
@@ -472,19 +602,20 @@ class LocalSuiteLauncher:
             with self.lifecycle_lock:
                 self._cancel_gate()
                 self.set_status("실행 중")
+                self.set_progress(100, "모든 서비스가 준비되었습니다.", complete=("efriend", "bridge", "market_ai", "dashboard"))
                 self.log()
                 self.log("[OK] Startup sequence complete.")
                 self.log("     eFriend Expert -> KIS Bridge -> Market AI API -> Dashboard")
                 self.log("     Tray icon: right-click View / 종료")
-                try:
-                    webbrowser.open(f"http://localhost:{DASHBOARD_PORT}/")
-                except Exception as exc:
-                    self.log(f"[WARN] Browser open failed: {exc}")
+                self.action_queue.put("startup_complete")
         except StartupCancelled:
             # Tray Exit owns shutdown logging/cleanup. Startup simply stops.
             return
         except Exception as exc:
             self.set_status("시작 실패")
+            with self.progress_lock:
+                current_percent = self.progress_percent
+            self.set_progress(current_percent, str(exc), failed=True)
             self.log()
             self.log(f"[ERROR] {exc}")
             self.log("        시스템 트레이 아이콘 우클릭 > View에서 로그를 확인하세요.")
@@ -590,8 +721,18 @@ class LocalSuiteLauncher:
         ready_seen_at = None
         login_process_seen = self._efriend_login_in_progress()
         login_gone_at = None
+        last_login_ui_stage = None
 
         while not self.stop_event.is_set():
+            if self._process_running(EFRIEND_GATE_PROCESS):
+                if last_login_ui_stage != "certificate":
+                    self.set_progress(35, "eFriend 공동인증서 승인을 완료해 주세요.", active="efriend")
+                    last_login_ui_stage = "certificate"
+            elif self._process_running(EFRIEND_BOOTSTRAP_PROCESS):
+                if last_login_ui_stage != "login":
+                    self.set_progress(25, "eFriend Expert 로그인을 완료해 주세요.", active="efriend")
+                    last_login_ui_stage = "login"
+
             if self._efriend_ready():
                 if ready_seen_at is None:
                     ready_seen_at = time.monotonic()
@@ -642,6 +783,7 @@ class LocalSuiteLauncher:
         # bootstrap image name must never be used as the readiness criterion.
         if self._efriend_ready():
             self.log(f"[OK]    eFriend Expert already logged in ({EFRIEND_READY_PROCESS}); launch skipped.")
+            self.set_progress(55, "eFriend Expert 로그인/인증이 완료되었습니다.", complete=("efriend",))
             return True
 
         # If the login/gate process is already alive, do not launch a duplicate
@@ -649,17 +791,21 @@ class LocalSuiteLauncher:
         if self._efriend_login_in_progress():
             if self._process_running(EFRIEND_GATE_PROCESS):
                 self.log("[WAIT]  eFriend Expert 인증서 선택/승인 진행 중.")
+                self.set_progress(35, "eFriend 공동인증서 승인을 완료해 주세요.", active="efriend")
             else:
                 self.log("[WAIT]  eFriend Expert 아이디/비밀번호 로그인 진행 중.")
+                self.set_progress(25, "eFriend Expert 로그인을 완료해 주세요.", active="efriend")
             self.log(f"        최종 로그인 완료 프로세스 대기: {EFRIEND_READY_PROCESS}")
             if self._wait_efriend_ready():
                 self.log(f"[OK]    eFriend Expert login/certificate ready ({EFRIEND_READY_PROCESS}).")
+                self.set_progress(55, "eFriend Expert 로그인/인증이 완료되었습니다.", complete=("efriend",))
                 return True
             self.log("[WARN] eFriend Expert 로그인 흐름이 완료 전에 종료되었습니다.")
             return False
 
         self.log("[START] eFriend Expert")
         self.log("        관리자 권한 런처에서 실행하므로 추가 UAC는 표시되지 않습니다.")
+        self.set_progress(20, "eFriend Expert를 실행하고 있습니다.", active="efriend")
         try:
             with self.lifecycle_lock:
                 self._cancel_gate()
@@ -676,8 +822,10 @@ class LocalSuiteLauncher:
 
         self.log("[WAIT]  eFriend Expert 로그인 + 공인인증서 승인 완료를 기다립니다.")
         self.log(f"        최종 Ready 기준: {EFRIEND_READY_PROCESS}")
+        self.set_progress(25, "eFriend 로그인과 공동인증서 승인을 완료해 주세요.", active="efriend")
         if self._wait_efriend_ready():
             self.log(f"[OK]    eFriend Expert login/certificate ready ({EFRIEND_READY_PROCESS}).")
+            self.set_progress(55, "eFriend Expert 로그인/인증이 완료되었습니다.", complete=("efriend",))
             return True
 
         self.log("[WARN] eFriend Expert 로그인 흐름이 완료 전에 종료되었습니다.")
@@ -874,6 +1022,7 @@ class LocalSuiteLauncher:
 
         self.log("[OK]    KIS KOSPI200 Bridge process ready.")
         self.log("        Market AI API will start next; Bridge AUTO route retries until API is ready.")
+        self.set_progress(75, "KIS KOSPI200 Bridge가 준비되었습니다.", complete=("efriend", "bridge"))
         return True
 
     def _url_ready(self, url: str, timeout: float = 1.0) -> bool:
@@ -925,6 +1074,7 @@ class LocalSuiteLauncher:
             self.log("[WARN] Market AI API did not become ready within 30 seconds.")
             return False
         self.log("[OK]    Market AI API ready.")
+        self.set_progress(90, "Market AI API가 준비되었습니다.", complete=("efriend", "bridge", "market_ai"))
         return True
 
     def _start_dashboard(self, python_exe: Path) -> bool:
@@ -945,6 +1095,7 @@ class LocalSuiteLauncher:
             self.log("[WARN] Dashboard HTTP server did not become ready within 15 seconds.")
             return False
         self.log("[OK]    Investment Dashboard ready.")
+        self.set_progress(100, "Investment Dashboard가 준비되었습니다.", complete=("efriend", "bridge", "market_ai", "dashboard"))
         return True
 
     def _process_actions(self):
@@ -952,12 +1103,15 @@ class LocalSuiteLauncher:
             current_status = self.status
         if self.status_var.get() != current_status:
             self.status_var.set(current_status)
+        self._refresh_loading_state()
 
         try:
             while True:
                 action = self.action_queue.get_nowait()
                 if action == "view":
                     self.show_view()
+                elif action == "startup_complete":
+                    self._queue_startup_complete()
                 elif action == "exit":
                     self.shutdown()
                     return
@@ -1022,6 +1176,7 @@ class LocalSuiteLauncher:
             self.root.after(800, self._refresh_view)
 
     def shutdown(self):
+        self.shutdown_requested.set()
         with self.lifecycle_lock:
             if self.stop_event.is_set():
                 return
