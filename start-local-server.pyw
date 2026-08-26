@@ -1589,6 +1589,134 @@ class LocalSuiteLauncher:
         self.log("[WARN] eFriend Expert 로그인 흐름이 완료 전에 종료되었습니다.")
         return False
 
+    def _process_pids(self, image_name: str) -> set[int]:
+        """Return exact PIDs for an image name using tasklist CSV output."""
+        pids: set[int] = set()
+        try:
+            result = self._run_hidden(
+                ["tasklist", "/FI", f"IMAGENAME eq {image_name}", "/FO", "CSV", "/NH"],
+                timeout=5,
+            )
+            for row in csv.reader(result.stdout.splitlines()):
+                if len(row) >= 2 and row[0].strip().lower() == image_name.lower():
+                    pid_text = row[1].strip()
+                    if pid_text.isdigit():
+                        pids.add(int(pid_text))
+        except Exception:
+            pass
+        return pids
+
+    def _post_wm_close_to_pids(self, pids: set[int]) -> int:
+        """Ask visible top-level windows owned by pids to close normally."""
+        if os.name != "nt" or not pids:
+            return 0
+        try:
+            user32 = ctypes.WinDLL("user32", use_last_error=True)
+            enum_windows = user32.EnumWindows
+            get_window_pid = user32.GetWindowThreadProcessId
+            is_visible = user32.IsWindowVisible
+            post_message = user32.PostMessageW
+
+            WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+            enum_windows.argtypes = [WNDENUMPROC, wintypes.LPARAM]
+            enum_windows.restype = wintypes.BOOL
+            get_window_pid.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+            get_window_pid.restype = wintypes.DWORD
+            is_visible.argtypes = [wintypes.HWND]
+            is_visible.restype = wintypes.BOOL
+            post_message.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+            post_message.restype = wintypes.BOOL
+
+            WM_CLOSE = 0x0010
+            posted = 0
+
+            def enum_proc(hwnd, _lparam):
+                nonlocal posted
+                pid = wintypes.DWORD()
+                get_window_pid(hwnd, ctypes.byref(pid))
+                if pid.value in pids and is_visible(hwnd):
+                    if post_message(hwnd, WM_CLOSE, 0, 0):
+                        posted += 1
+                return True
+
+            callback = WNDENUMPROC(enum_proc)
+            enum_windows(callback, 0)
+            return posted
+        except Exception as exc:
+            self.log(f"[WARN] eFriend graceful window-close request failed: {type(exc).__name__}: {exc}")
+            return 0
+
+    def _efriend_running_entries(self) -> list[tuple[str, int]]:
+        entries: list[tuple[str, int]] = []
+        for image_name in (EFRIEND_READY_PROCESS, EFRIEND_GATE_PROCESS, EFRIEND_BOOTSTRAP_PROCESS):
+            for pid in sorted(self._process_pids(image_name)):
+                entries.append((image_name, pid))
+        return entries
+
+    def _stop_efriend_chain(self, reason: str = "") -> bool:
+        """Close the eFriend runtime as one cooperating process chain.
+
+        efexpertmain.exe and xexpertgate.exe can outlive or re-create each other
+        briefly during shutdown.  Treating them as independent images leaves a
+        race, so first request a normal UI close and then converge the whole
+        chain to zero with gate-first forced termination rounds.
+        """
+        initial = self._efriend_running_entries()
+        if not initial:
+            return True
+
+        suffix = f" ({reason})" if reason else ""
+        self.log(f"[STOP]  eFriend Expert{suffix}")
+
+        # Give the application a chance to release its own session/resources.
+        initial_pids = {pid for _name, pid in initial}
+        posted = self._post_wm_close_to_pids(initial_pids)
+        if posted:
+            self.log(f"        eFriend normal close requested ({posted} window(s)).")
+            deadline = time.monotonic() + 4.0
+            while time.monotonic() < deadline:
+                if not self._efriend_running_entries():
+                    self.log("[OK]    eFriend Expert stopped.")
+                    return True
+                time.sleep(0.25)
+
+        # Stop the gate/watchdog before the main runtime.  Re-scan each round so
+        # any short-lived replacement PID is also removed before we declare done.
+        kill_order = (EFRIEND_GATE_PROCESS, EFRIEND_READY_PROCESS, EFRIEND_BOOTSTRAP_PROCESS)
+        for round_no in range(1, 5):
+            remaining_before = self._efriend_running_entries()
+            if not remaining_before:
+                self.log("[OK]    eFriend Expert stopped.")
+                return True
+
+            if round_no == 1:
+                self.log("[WARN] eFriend normal close did not finish; forcing the full eFriend chain.")
+
+            for image_name in kill_order:
+                for pid in sorted(self._process_pids(image_name)):
+                    try:
+                        result = self._run_hidden(
+                            ["taskkill", "/F", "/PID", str(pid), "/T"],
+                            timeout=8,
+                        )
+                        if result.returncode != 0:
+                            detail = (result.stderr or result.stdout or "").strip()
+                            if detail:
+                                self.log(f"[WARN] eFriend force stop PID {pid} ({image_name}) returned {result.returncode}: {detail}")
+                    except Exception as exc:
+                        self.log(f"[WARN] eFriend force stop PID {pid} ({image_name}) failed: {type(exc).__name__}: {exc}")
+
+            time.sleep(0.75)
+
+        remaining = self._efriend_running_entries()
+        if remaining:
+            detail = ", ".join(f"{name}(PID {pid})" for name, pid in remaining)
+            self.log(f"[ERROR] eFriend Expert processes are still running: {detail}")
+            return False
+
+        self.log("[OK]    eFriend Expert stopped.")
+        return True
+
     def _stop_image(self, image_name: str, reason: str = "") -> bool:
         if not self._process_running(image_name):
             return True
@@ -2007,14 +2135,9 @@ class LocalSuiteLauncher:
         market_ai_stopped = self._stop_port_listener(MARKET_AI_PORT)
         bridge_stopped = self._stop_image(BRIDGE_PROCESS, reason="Local Suite 종료")
 
-        # This PC uses eFriend only for the Local Suite, so close the entire
-        # eFriend login/runtime chain after the Bridge no longer depends on it.
-        efriend_results = [
-            self._stop_image(EFRIEND_READY_PROCESS, reason="Local Suite 종료"),
-            self._stop_image(EFRIEND_GATE_PROCESS, reason="Local Suite 종료"),
-            self._stop_image(EFRIEND_BOOTSTRAP_PROCESS, reason="Local Suite 종료"),
-        ]
-        efriend_stopped = all(efriend_results)
+        # This PC uses eFriend only for the Local Suite.  Stop its cooperating
+        # runtime/gate processes as one chain after Bridge is down.
+        efriend_stopped = self._stop_efriend_chain(reason="Local Suite 종료")
 
         if dashboard_stopped and market_ai_stopped and bridge_stopped and efriend_stopped:
             self.log("[OK]    Local Suite runtimes and eFriend Expert stopped.")
