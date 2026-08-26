@@ -4,17 +4,13 @@ import {
   openDashboardNativeDialog
 } from './dashboard-modal.js';
 
-// Market AI standalone dashboard adapter
-// - 메인 feature graph와 분리된 독립 entry이며, 저수준 dashboard-modal.js primitive만 공유
-// - dashboard-app.js / dashboard-ui.js 수정 없이 index.html에서 독립 로드
-// - Desktop: Hero 우측의 보조 카드로 현재 시장 + AI 신호를 표시
-// - Tablet: Desktop과 같은 Hero 우측 배치를 유지하고 좌측 성과 pill만 가용 폭에서 wrap
-// - Mobile/실제 터치폰 가로: Hero 제목 우측 AI Signal 버튼 → 공통 modal surface에서 동일 Market AI panel을 이동 재사용 (Tooltip 비활성)
-// - CSS ownership: common(Hero baseline/component) → tablet(layout/density) → special(phone hide/mounted Hero restore); Market AI compact Desktop override 없음
-// - 구조 스타일은 CSS class에 맡기고 JS는 mount/state/tooltip 위치 계산만 담당
-// - 기존 대시보드 render가 #app을 교체해도 MutationObserver로 자체 영역만 재부착
-// - calibration 데이터가 있으면 해당 target만 확률로 표시하고, 없으면 기존 100점 신호 유지
-// - GitHub Pages 등 비로컬 환경에서는 기본적으로 숨기되 ?market-ai-preview=1/2는 Desktop/Tablet, 3은 실제 Mobile viewport 예시 데이터 미리보기
+// Market AI Standalone Adapter · main feature graph와 분리된 독립 entry
+// Ownership: dashboard-modal.js의 저수준 dialog lifecycle만 공유하고, mount/state/fetch/render는 이 파일이 소유한다.
+// Responsive contract: Desktop/Tablet은 Hero 우측 panel, Phone은 동일 panel을 modal로 이동 재사용하며 Tooltip을 비활성화한다.
+// Preview contract: ?market-ai-preview=1/2는 Desktop/Tablet, 3은 실제 Mobile viewport 예시 데이터다.
+// Structure: config/state → environment/preview → formatting/freshness → snapshot/session → tooltip core → signal detail → tooltip interaction → metric/mobile UI → mount/render → refresh → lifecycle.
+
+// [MARKET01] Configuration / Runtime State · endpoint / preview / metric contract
 
 const MARKET_AI_POLL_MS=60_000;
 const MARKET_AI_TIMEOUT_MS=2_500;
@@ -65,6 +61,7 @@ let marketAiPollTimer=0;
 let mountFrame=0;
 let marketAiTooltipEventsBound=false;
 
+// [MARKET02] Environment / Preview / Fetch · 실행 환경 / 예시 데이터 / timeout
 function marketAiApiBase(){
   if(!LOCAL_DASHBOARD_HOSTS.has(location.hostname))return '';
   return `${location.protocol}//${location.hostname}:8001`;
@@ -150,6 +147,7 @@ function fetchWithTimeout(url,options={},timeoutMs=MARKET_AI_TIMEOUT_MS){
   return fetch(url,{...options,signal:controller.signal}).finally(()=>window.clearTimeout(timer));
 }
 
+// [MARKET03] Formatting / Time / Freshness · 점수 / 시장값 / 시간 표현
 function marketAiScoreClass(value){
   if(value==null||value==='')return '';
   const n=Number(value);
@@ -253,6 +251,7 @@ function marketAiSignalFreshness(signal){
   };
 }
 
+// [MARKET04] Snapshot / Session State · 시장 snapshot / K200 session 판단
 function marketAiSnapshotMap(payload){
   const items=Array.isArray(payload?.items)?payload.items:[];
   return Object.fromEntries(
@@ -330,6 +329,7 @@ function marketAiKisFuturesState(){
   return {row:rawRow,rawRow,reason:'fresh',observedAt:freshness.observedAt,bridgeStatus};
 }
 
+// [MARKET05] Tooltip Core · markup / positioning / visibility
 function marketAiEscape(value){
   return String(value??'')
     .replace(/&/g,'&amp;')
@@ -421,6 +421,7 @@ function hideMarketAiTooltip(){
   tooltip.style.visibility='';
 }
 
+// [MARKET06] Signal Detail Normalization · API details / availability / effective weights
 function marketAiObject(value){
   return value&&typeof value==='object'&&!Array.isArray(value)?value:null;
 }
@@ -571,6 +572,7 @@ function marketAiSignalBasis(signal,metric){
     .sort((a,b)=>Math.abs(Number(b.weight)||0)-Math.abs(Number(a.weight)||0));
 }
 
+// [MARKET07] Tooltip Content / Interaction · 시장·신호 설명 / desktop interaction
 function marketAiMarketTooltipHtml(key){
   const futuresState=marketAiKisFuturesState();
   const config={
@@ -740,6 +742,7 @@ function setupMarketAiTooltipEvents(){
   window.visualViewport?.addEventListener('resize',hideMarketAiTooltip,{passive:true});
 }
 
+// [MARKET08] Metric Markup / Responsive Mobile UI · panel metric / trigger / dialog
 function marketAiDesktopSignalMetric(label,key){
   return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-card="${key}" data-market-ai-tooltip="signal" data-market-ai-key="${key}"><span class="data-list-card-label market-ai-desktop-label">${label}</span><strong class="data-list-card-value market-ai-desktop-signal" data-market-ai-score="${key}">--</strong></span>`;
 }
@@ -853,6 +856,7 @@ function syncMarketAiResponsiveMount(row,hero){
   row.dataset.marketAiPlacement='hero';
 }
 
+// [MARKET09] Mount / Render · 하나의 canonical panel을 Hero ↔ Mobile dialog 사이에서 재사용
 function createMarketAiSection(){
   const row=document.createElement('aside');
   row.id='market-ai-section';
@@ -1014,6 +1018,7 @@ function syncMarketAiSignalView(){
   row.setAttribute('aria-label',`AI Market Signal · ${metaText}`);
 }
 
+// [MARKET10] State Update / Data Refresh · snapshot / bridge / signal refresh
 function setMarketAiState(next){
   Object.assign(marketAiState,next);
   syncMarketAiSignalView();
@@ -1109,6 +1114,7 @@ async function refreshMarketAiSignal(){
   }
 }
 
+// [MARKET11] Lifecycle / Polling · render 교체 감시 / polling boot
 function scheduleMount(){
   if(mountFrame)return;
   mountFrame=requestAnimationFrame(()=>{

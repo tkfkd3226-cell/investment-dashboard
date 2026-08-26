@@ -5,15 +5,17 @@ import {
   securityChartNamesForDate
 } from './dashboard-core.js';
 
-// 여러 UI 모듈이 공유하는 저수준 DOM · 접근성 · 마크업 · 반응형 UI 판정 helper
+// Dashboard UI Common · feature-neutral DOM / markup / responsive helpers
+// Ownership: business state는 feature module이 소유하고, 이 모듈은 공통 표현과 저수준 interaction만 제공한다.
+// Structure: responsive predicates → icon/markup → shared asset renderers → asset tooltip interaction.
 
-// Responsive Predicate · 반응형 UI 판정
+// [UICOMMON01] Responsive Predicate · 반응형 UI 판정
 const PHONE_LANDSCAPE_QUERY='(orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
 function phoneLandscapeUi(){
   return window.matchMedia?.(PHONE_LANDSCAPE_QUERY).matches===true;
 }
 
-// Icon / Markup Helpers · 아이콘 / 마크업 helper
+// [UICOMMON02] Icon / Markup Helpers · 아이콘 / 마크업 helper
 const NAV_ICON_ATTRS='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"';
 const NAV_ICONS=Object.freeze({
     sun:`<svg ${NAV_ICON_ATTRS}><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>`,
@@ -79,8 +81,8 @@ function mobileTableAssetName(name=''){
 }
 
 
-// Asset Shared Renderers · 자산 공통 renderer
-// 자산별 계산은 adapter가 소유하고, 이 레이어는 표현만 담당한다.
+// [UICOMMON03] Asset Shared Renderers · 자산 공통 renderer
+// 자산별 계산은 adapter가 소유하고, 이 레이어는 표현 contract만 담당한다.
 function renderAssetTableRows(rows=[]){
   return rows.map(row=>`<tr${row.className?` class="${row.className}"`:''}><th scope="row"${row.labelClass?` class="${row.labelClass}"`:''}>${row.labelHtml??''}</th>${(row.cells||[]).map(cell=>`<td${cell.className?` class="${cell.className}"`:''}>${cell.html??''}</td>`).join('')}</tr>`).join('');
 }
@@ -177,9 +179,9 @@ function renderAssetContributionCard({
   return `<div class="${cardClass}" role="group" aria-labelledby="${titleId}"><div class="${headClass}"><h3 id="${titleId}">${title}</h3></div>${content}</div>`;
 }
 
+// [UICOMMON04] Asset Tooltip Interaction · 자산 시각화 툴팁 상호작용
 const assetVizTooltipZoneSelectors=new Set();
 let assetVizTooltipTouchBound=false;
-// Asset Tooltip Interaction · 자산 시각화 툴팁 상호작용
 function setupAssetVizTooltips(zoneSelector){
   if(zoneSelector)assetVizTooltipZoneSelectors.add(zoneSelector);
   if(assetVizTooltipTouchBound)return;
@@ -319,6 +321,7 @@ function setupAssetVizTooltips(zoneSelector){
   document.addEventListener('scroll',()=>closeTooltips(null),true);
 }
 
+// [UICOMMON05] Public API
 export {
   renderAssetContributionCard,
   renderAssetDayChangeBlock,

@@ -34,7 +34,8 @@ import {
   showAppToast
 } from './dashboard-ui.js';
 
-// 퇴직연금 금액조정 editor · PIN · batch · 저장/삭제
+// Pension Editor · 금액조정 / PIN / batch / persistence
+// Structure: modal render → lifecycle/form state → input/ETF draft → validation/output → PIN → batch simulation → persistence → event delegation.
 
 const pensionEditorState={
   batchMode:false,
@@ -79,7 +80,7 @@ const defaultPensionContributionMemo=d=>{
 const fmtDecimal=(n,digits=3)=>Number(n||0).toLocaleString('ko-KR',{minimumFractionDigits:digits,maximumFractionDigits:digits});
 const pensionTradeProductOptions=()=>((dataState.portfolio?.pension)||[]).map(v=>`<option value="${escapeHtml(String(v.ticker))}">${escapeHtml(v.name)}</option>`).join('');
 
-// Modal Rendering · 금액조정 모달 렌더링
+// [PEDIT01] Modal Rendering · 금액조정 모달 렌더링
 function renderPensionContributionList(target='cashSnapshot'){
   const selectedTarget=['contribution','cashSnapshot','etfTrade'].includes(target)?target:'cashSnapshot';
   const contribItems=pensionContributionItems()
@@ -184,11 +185,11 @@ function renderPensionContributionModal(x){
 </details></div></div>`;
 }
 
-// Modal Lifecycle / Form State · 모달 생명주기 / 입력 상태
+// [PEDIT02] Modal Lifecycle / Form State · 모달 생명주기 / 입력 상태
 const PENSION_MODAL_MEASURE_TARGETS=['cashSnapshot','contribution','etfTrade'];
 let pensionModalHeightFrame=0;
 
-// Modal Measurement / Open / Close · 모달 측정 / 열기 / 닫기
+// Modal geometry and feature-owned open/close hooks; shell lifecycle is delegated to dashboard-modal.js.
 function configurePensionModalMeasureState(card,target,batchMode,tradeDraft){
   const normalized=PENSION_MODAL_MEASURE_TARGETS.includes(target)?target:'cashSnapshot';
   const standardFields=card.querySelector('#pensionContribStandardFields');
@@ -317,7 +318,7 @@ function closePensionContributionModal(){
   closeDashboardModal(modal,{fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
   forceMobileViewportReflow();
 }
-// Input Formatting / Target State · 입력 포맷 / 대상 상태
+// [PEDIT03] Input Formatting / Target State · 입력 포맷 / 대상 상태
 function cleanNumberInput(v){
   return Number(String(v||'').replace(/[^\d.-]/g,''));
 }
@@ -508,7 +509,7 @@ function syncPensionContributionTargetUi(){
   }
   schedulePensionContributionModalHeight();
 }
-// ETF Trade Draft / Preview · ETF 거래 초안 / 미리보기
+// [PEDIT04] ETF Trade Draft / Preview · ETF 거래 초안 / 미리보기
 function pensionEtfTradeDraft(){
   const tradeDate=String(document.getElementById('pensionEtfTradeDate')?.value||'').trim();
   const ticker=String(document.getElementById('pensionEtfTradeTicker')?.value||'').trim();
@@ -593,7 +594,7 @@ function updatePensionEtfTradePreview(){
   const draft=pensionEtfTradeDraft();
   renderPensionEtfTradePreview(box,draft,pensionEtfTradeExpected(draft));
 }
-// Validation / Item Build · 검증 / 저장 항목 생성
+// [PEDIT05] Validation / Item Build · 검증 / 저장 항목 생성
 function pensionEditorInternalError(message){
   const error=new Error(message);
   error.code='PENSION_EDITOR_INTERNAL';
@@ -649,7 +650,7 @@ function buildPensionContributionItem(){
   if(rawAmount===''||!Number.isFinite(amount)||amount<=0) throw new Error('금액을 입력해주세요.');
   return {target,date,amount,memo};
 }
-// Status / Output / Form Reset · 상태 / 결과 / 폼 초기화
+// [PEDIT06] Status / Output / Form Reset · 상태 / 결과 / 폼 초기화
 function setPensionContributionStatus(elementId,message,type='err'){
   const status=document.getElementById(elementId);
   if(!status) return;
@@ -711,7 +712,7 @@ function resetPensionContributionForm(){
   document.activeElement?.blur?.();
 }
 
-// PIN Dialog · PIN 확인
+// [PEDIT07] PIN Dialog · PIN 확인
 function requestPensionActionPin({title='PIN 입력',description='작업 내용을 확인한 뒤 PIN 6자리를 입력하세요.',danger=false,execute}={}){
   return new Promise(resolve=>{
     const old=document.getElementById('pensionActionPinModal');
@@ -780,7 +781,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
 }
 
 
-// Batch Queue / Simulation · 작업 모음 / 시뮬레이션
+// [PEDIT08] Batch Queue / Simulation · 작업 모음 / 시뮬레이션
 function pensionBatchBaseState(){
   return {
     cashSnapshots:pensionCashSnapshotItems().map(v=>({...v,afterTradeIds:Array.isArray(v.afterTradeIds)?[...v.afterTradeIds]:v.afterTradeIds,afterContributionIds:Array.isArray(v.afterContributionIds)?[...v.afterContributionIds]:v.afterContributionIds})),
@@ -1138,7 +1139,7 @@ async function applyPensionBatchQueue(renderDashboard){
   }
 }
 
-// Persistence / Save/Delete · 저장 / 삭제
+// [PEDIT09] Persistence / Save/Delete · 저장 / 삭제
 async function savePensionContributionViaGithubPages(item,pin){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
   if(!config.url || config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
@@ -1277,7 +1278,7 @@ async function deleteSelectedPensionContribution(){
   showPensionToast(`${pensionContributionTargetObjectLabel(target)} 삭제했습니다.`);
 }
 
-// Event Delegation / Keyboard / Native Date Picker · 이벤트 위임 / 키보드 / 네이티브 날짜 선택
+// [PEDIT10] Event Delegation / Keyboard / Native Date Picker · 이벤트 위임 / 키보드 / 네이티브 날짜 선택
 function handlePensionTargetTabKeydown(event,tab){
   const tabs=[...tab.closest('[role="tablist"]')?.querySelectorAll('.contrib-target-option[role="tab"]')||[]];
   if(!tabs.length)return false;
@@ -1354,6 +1355,7 @@ function setupPensionEventDelegation({renderDashboard}={}){
   window.addEventListener('orientationchange',schedulePensionContributionModalHeight);
 }
 
+// [PEDIT11] Public API
 export {
   openPensionContributionModal,
   renderPensionContributionModal,

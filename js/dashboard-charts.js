@@ -45,9 +45,10 @@ import {
   releaseDashboardDialogFocus
 } from './dashboard-modal.js';
 
-// 메인 대시보드 차트 UI · SVG · legend · 확대 · responsive chart 처리
+// Dashboard Charts · chart state / SVG rendering / responsive controls / expanded view
+// Structure: layout → expanded/responsive controls → scroll/entrance → series state → card render → SVG/tooltip → events/axes → drawing.
 
-// Chart Layout / Sizing Primitives · 차트 레이아웃 / 크기 primitive
+// [CHART01] Layout / Sizing Primitives · 차트 레이아웃 / 크기 primitive
 const CHART_FRAME=Object.freeze({left:70,right:70,top:20,bottom:70});
 const CHART_EDGE_PAD=24;
 const CHART_VIEWBOX_BASE=Object.freeze({width:1120,height:330});
@@ -123,7 +124,7 @@ function chartViewBoxNeedsRedraw(){
   });
 }
 
-// Expanded / Responsive Controls · 확대 / 반응형 컨트롤
+// [CHART02] Expanded View / Responsive Controls · 확대 / 반응형 컨트롤
 const chartRuntimeState={
   entranceObserver:null,
   expandedViewportBound:false,
@@ -440,7 +441,7 @@ function redrawVisibleChartsForCurrentSize(){
     if(Number(rect?.width)>0&&Number(rect?.height)>0)redrawChartForCardSize(id);
   });
 }
-// Responsive Controls / Entrance Motion · 반응형 컨트롤 / 진입 모션
+// [CHART03] Responsive Controls / Entrance Motion · 반응형 컨트롤 / 진입 모션
 function syncChartOptions(scope,card,legend){
   if(!card||!legend)return;
   let options=document.querySelector(`.chart-options-row[data-chart-scope="${scope}"]`);
@@ -476,7 +477,7 @@ function refreshChartOptions(scope){
   const legendId=chartLegendId(scope),legend=legendId?document.getElementById(legendId):null;
   if(card&&legend)syncChartOptions(scope,card,legend);
 }
-// Scroll State / Hints · 가로 스크롤 상태 / 힌트
+// [CHART04] Scroll State / Hints · 가로 스크롤 상태 / 힌트
 function refreshScrollHints(){
   document.querySelectorAll('.scroll-hint').forEach(el=>el.remove());
   document.querySelectorAll('.mobile-scroll, .chart-wrap').forEach(wrap=>{
@@ -636,7 +637,7 @@ function setupChartEntranceAnimations(){
   }));
 }
 
-// Series State / Legend Controls · 시리즈 상태 / 범례 컨트롤
+// [CHART05] Series State / Legend Controls · 시리즈 상태 / 범례 컨트롤
 const CHART_SERIES_THEME=Object.freeze({
   profit:{token:'--chart-series-profit',fallback:'#ffb84d'},
   daily:{token:'--chart-series-daily',fallback:'#a7d7a8'},
@@ -879,7 +880,7 @@ function setSecurityAllocMode(mode){
 }
 
 
-// Chart Data / Card Rendering · 차트 데이터 / 카드 렌더링
+// [CHART06] Chart Data / Card Rendering · 차트 데이터 / 카드 렌더링
 function calcMdd(cum){
   if(!cum.length)return null;
   let peak=cum[0], maxDrop=0, from=cum[0].날짜, to=cum[0].날짜;
@@ -985,7 +986,7 @@ function renderPensionCharts(x){
 }
 
 
-// SVG Core / Tooltip Infrastructure · SVG 기반 / 툴팁 인프라
+// [CHART07] SVG Core / Tooltip Infrastructure · SVG 기반 / 툴팁 인프라
 function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
 function el(name, attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',name);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e}
 function cssThemeValue(name,fallback){
@@ -1103,7 +1104,7 @@ function scheduleChartTooltipViewportCheck(){
     if(!chartTooltipOwnerVisible())clearChartHover();
   });
 }
-// Global Events / Action Routing · 전역 이벤트 / 차트 액션 라우팅
+// [CHART08] Global Events / Action Routing · 전역 이벤트 / 차트 액션 라우팅
 function setupChartGlobalEvents(){
   document.addEventListener('pointerdown',event=>{
     if(!event.target.closest('.svg-hitbox')&&!event.target.closest('#dashTooltip'))clearChartHover();
@@ -1132,7 +1133,7 @@ function handleChartDashboardAction(event,control){
   else return false;
   return true;
 }
-// Tooltip Rows / Axes / Hover Geometry · 툴팁 행 / 축 / hover 좌표
+// [CHART09] Tooltip Rows / Axes / Hover Geometry · 툴팁 행 / 축 / hover 좌표
 function row(name,val,clsName='',rowClass=''){return `<div class="tt-row${rowClass?' '+rowClass:''}"><span class="tt-name">${tooltipEscape(name)}</span><span class="tt-val ${clsName}">${tooltipEscape(val)}</span></div>`}
 function totalRow(name,val,clsName=''){return row(name,val,clsName,'tt-total')}
 function clsBy(n){return n<0?'tt-neg':(n>0?'tt-pos':'')}
@@ -1348,7 +1349,7 @@ function cumulativeRightAxis(scope,data,mode,leftAxis,compareSelected,autoY){
   return {info:raw,visible:true};
 }
 
-// Chart Drawing / Refresh · 차트 그리기 / 갱신
+// [CHART10] Chart Drawing / Refresh · 차트 그리기 / 갱신
 function drawPensionCumChart(){
   const data=pensionCumHistory(dataState.activeDate),svg=document.getElementById('pensionChartCum');if(!svg||!data.length)return;clear(svg);
   const mode=chartState.compareModes.pension||'return',selection=chartSelection('pensionCum'),selected=selection.selected,autoY=chartAutoYEnabled('pensionCum');
@@ -1572,6 +1573,7 @@ function drawInactiveChartsForPrint(){
   }
 }
 
+// [CHART11] Public API
 export {
   drawAllCharts,
   refreshScrollHints,

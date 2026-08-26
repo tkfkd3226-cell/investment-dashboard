@@ -54,9 +54,10 @@ import {
   setupPensionEventDelegation
 } from './dashboard-pension-editor.js';
 
-// 메인 대시보드 app action · render · event binding · boot orchestration
+// Dashboard App Orchestration · action routing / render / boot
+// Structure: personal view → date navigation → action routing → render orchestration → initialization.
 
-// Personal View / Separate Profit · 개인 보기 / 별도수익
+// [APP01] Personal View / Separate Profit · 개인 보기 / 별도수익
 const heroBasisTapState={count:0,lastTap:0};
 
 function togglePersonalView(){
@@ -91,7 +92,7 @@ function toggleSeparateProfitModeFromExpanded(cardId){
   });
 }
 
-// Date Navigation / Chart Date Confirm · 날짜 이동 / 차트 날짜 확인
+// [APP02] Date Navigation / Chart Date Confirm · 날짜 이동 / 차트 날짜 확인
 function setActiveDashboardDate(date,{keepDateMenuOpen=false}={}){
   if(!allAvailableDates().includes(date))return false;
   dataState.activeDate=date;
@@ -173,7 +174,7 @@ function handleDashboardDateChange(target){
   }
   return false;
 }
-// Dashboard Action Routing · 대시보드 액션 라우팅
+// [APP03] Dashboard Action Routing · 대시보드 액션 라우팅
 function handleDashboardAction(event,control){
   const action=control.dataset.dashboardAction;
   if(action==='toggle-separate-profit')return toggleSeparateProfitMode();
@@ -209,7 +210,7 @@ function setupDashboardEventDelegation(){
     requestChartDateJump(control.dataset.chartDate||'',control.dataset.chartId||'',control);
   });
 }
-// Render Orchestration · 자산 workspace / 전체 렌더링
+// [APP04] Render Orchestration · 자산 workspace / 전체 렌더링
 function renderAssetWorkspace(x){
   if(!x.hasPension)return renderSecuritiesSection(x);
   return `<section id="asset-workspace" class="asset-workspace"><div class="control-tab-group asset-workspace-tabs" role="tablist" aria-label="자산 현황 선택" aria-orientation="horizontal"><button type="button" id="asset-tab-securities" class="control-tab asset-workspace-tab" data-asset-tab="securities" role="tab" aria-controls="asset-panel-securities" data-dashboard-action="set-asset-tab"><span>증권계좌</span></button><button type="button" id="asset-tab-pension" class="control-tab asset-workspace-tab" data-asset-tab="pension" role="tab" aria-controls="asset-panel-pension" data-dashboard-action="set-asset-tab"><span>퇴직연금</span></button></div><div id="asset-panel-securities" class="asset-workspace-panel asset-workspace-panel-securities" data-asset-panel="securities" role="tabpanel" aria-labelledby="asset-tab-securities">${renderSecuritiesSection(x)}</div><div id="asset-panel-pension" class="asset-workspace-panel asset-workspace-panel-pension" data-asset-panel="pension" role="tabpanel" aria-labelledby="asset-tab-pension">${renderPension(x)}</div></section>`;
@@ -230,7 +231,7 @@ function render(){
   ensureDesktopEdgeToc();
   setupSectionNavigationTracking();
 }
-// Initialization / Boot · 상태 초기화 / 이벤트 바인딩 / 부팅
+// [APP05] Initialization / Boot · 상태 초기화 / 이벤트 바인딩 / 부팅
 function initializeDashboardState(){
   const dates=allAvailableDates();
   dataState.activeDate=dates.at(-1);

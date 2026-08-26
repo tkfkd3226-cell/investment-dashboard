@@ -1,12 +1,13 @@
-// Dashboard Modal Lifecycle · 범용 모달 lifecycle / focus / dismiss
-// Feature content와 business logic은 각 feature module이 소유하고, 이 파일은 modal shell 동작만 담당한다.
+// Dashboard Modal Lifecycle · 범용 modal shell / focus / dismiss
+// Ownership: feature content와 business logic은 각 feature module이 소유하고, 이 모듈은 lifecycle만 담당한다.
+// Structure: shared state → focus/accessibility → custom overlay → native dialog → public API.
 
 const dashboardDialogFocusState=new WeakMap();
 const dashboardModalDismissState=new WeakMap();
 const dashboardNativeDialogState=new WeakMap();
 let dashboardDialogBodyLockCount=0;
 
-// Focus / Accessibility · custom overlay focus trap / inert / body lock
+// [MODAL01] Focus / Accessibility · focus trap / inert / body lock
 function dashboardDialogBackgroundElements(container){
   const elements=[];
   let current=container;
@@ -105,7 +106,7 @@ function releaseDashboardDialogFocus(container,{fallbackSelector=''}={}){
   });
 }
 
-// Custom Overlay · class 기반 modal open / close / dismiss
+// [MODAL02] Custom Overlay · class 기반 modal open / close / dismiss
 function openDashboardModal(container,{visibleClass='show',initialFocus=null,fallbackSelector='',returnFocus=null,manageAriaHidden=true}={}){
   if(!container)return false;
   if(visibleClass)container.classList.add(visibleClass);
@@ -146,7 +147,7 @@ function bindDashboardModalDismiss(container,{onDismiss,backdrop=true,escape=tru
   return cleanup;
 }
 
-// Native Dialog · <dialog> show/close/dismiss와 focus return
+// [MODAL03] Native Dialog · <dialog> show/close/dismiss / focus return
 function nativeDialogState(dialog){
   let state=dashboardNativeDialogState.get(dialog);
   if(!state){
@@ -204,6 +205,7 @@ function bindDashboardNativeDialogDismiss(dialog,{onDismiss,backdrop=true,escape
   return cleanup;
 }
 
+// [MODAL04] Public API
 export {
   activateDashboardDialogFocus,
   bindDashboardModalDismiss,

@@ -28,7 +28,8 @@ import {
   mobileViewToggle
 } from './dashboard-ui.js';
 
-// 퇴직연금 현황 rendering · 상품 인사이트
+// Pension Rendering · summary / product status / daily change / section composition
+// Structure: insight calculations → product/change renderers → pension section composition.
 
 
 const pensionEvaluationMobileSubText=x=>{
@@ -36,7 +37,7 @@ const pensionEvaluationMobileSubText=x=>{
   return `${shortDate(x.date)}${full.includes(' 추정 ')?' 추정':''} 기준`;
 };
 
-// Pension Insights / Risk Gauge · 퇴직연금 인사이트 / 위험자산 게이지
+// [PENSION01] Insights / Risk Gauge · 퇴직연금 인사이트 / 위험자산 게이지
 function isSafePensionAsset(name=''){return /(채권|현금|예금|MMF|RP|CMA|단기채)/.test(String(name));}
 function getPensionDayContributionItems(x){
   if(x.pensionPrevEval==null)return [];
@@ -69,7 +70,7 @@ function renderPensionProductInsights(x){
   return `<div class="asset-insight-zone" role="group" aria-label="퇴직연금 인사이트">${contributionHtml}${riskHtml}</div>`;
 }
 
-// Pension Product / Change Rendering · 상품 현황 / 전일대비 렌더링
+// [PENSION02] Product / Change Rendering · 상품 현황 / 전일대비 렌더링
 function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHeldProfit,pensionHeldReturn){
   const orderedPensionRows=sortPensionItems(x.pensionRows),
         cashProfit=x.pensionCash-pensionCashCost,
@@ -225,7 +226,7 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
     mobileInfoCard
   });
 }
-// Pension Section Composition · 퇴직연금 섹션 조합
+// [PENSION03] Section Composition · 퇴직연금 섹션 조합
 function renderPension(x){
   const c=dataState.portfolio.constants,
         day=x.pensionDayChange,
@@ -239,6 +240,7 @@ function renderPension(x){
 }
 
 
+// [PENSION04] Public API
 export {
   renderPension
 };

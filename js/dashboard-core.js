@@ -1,6 +1,7 @@
-// 메인 대시보드 공통 상태 · 데이터 · 계산 · 공통 helper
+// Dashboard Core · DOM 비의존 상태 / 데이터 / 계산 / 네트워크
+// Structure: state/format → allocation helpers → date/write config → pension ledger → securities ledger → calculation → chart history → loading.
 
-// State / Formatting / Semantic Helpers · 상태 / 포맷 / 의미 helper
+// [CORE01] State / Formatting / Semantic Helpers · 상태 / 포맷 / 의미 helper
 const dataState={
   portfolio:null,
   prices:null,
@@ -72,7 +73,7 @@ const securityAllocationColor=name=>{
   const idx=Math.max(0,(dataState.portfolio?.securities||[]).findIndex(r=>r.name===name));
   return SECURITY_ALLOC_FALLBACK_COLORS[idx%SECURITY_ALLOC_FALLBACK_COLORS.length];
 };
-// Securities Allocation Helpers · 증권 allocation 공용 계산 helper
+// [CORE02] Securities Allocation Helpers · 증권 allocation 공용 계산 helper
 function securityAllocHoldingVisible(h,date){
   const oneShare=Number(h?.qty)===1;
   const explicitChart=oneShare&&h?.chart===true&&(!h?.chartFrom||String(date||'')>=String(h.chartFrom));
@@ -94,7 +95,7 @@ function securityAllocTypeTotals(x){
 
 const assetTypeColor=type=>ASSET_TYPE_COLORS[type]||CASH_ASSET_COLOR;
 
-// Date / Scope / Write Configuration · 날짜 / 범위 / 저장 설정
+// [CORE03] Date / Scope / Write Configuration · 날짜 / 범위 / 저장 설정
 const DASHBOARD_WRITE_CONFIG = {
   githubPages: {
     label: 'GitHub Pages',
@@ -132,7 +133,7 @@ const pensionEvaluationBasisText=d=>{
   const estimated=intraday||d===kstTodayText();
   return `${koreanDateLabel(d)}${estimated?' 추정':''} 평가금액`;
 };
-// Pension Ledger / Valuation · 퇴직연금 데이터 원장 / 평가 계산 helper
+// [CORE04] Pension Ledger / Valuation · 퇴직연금 데이터 원장 / 평가 계산 helper
 const rawPensionContributionItems=()=>Array.isArray(dataState.pensionContributions)?dataState.pensionContributions:(dataState.pensionContributions?.contributions||[]);
 const pensionContributionItems=()=>rawPensionContributionItems()
   .filter(v=>v&&v.date)
@@ -349,7 +350,7 @@ const pensionBaseCashForDate=d=>{
 const pensionCashBeforeNewTrade=d=>pensionCashValuation(d,pensionBaseCashForDate(d));
 const hasPensionData=d=>{const pp=dataState.prices?.[d]?.pension||{};return !!(pp['278530']&&pp['395160']&&pp['448330'])};
 
-// Securities Ledger / Price Lookup · 증권 원장 / 가격 조회
+// [CORE05] Securities Ledger / Price Lookup · 증권 원장 / 가격 조회
 function previousDate(date){return allAvailableDates().filter(d=>d<date).sort(byDate).at(-1)||null}
 function getPrice(s,section,ticker){return s?.[section]?.[ticker]??null}
 const securityEventItems=()=>Array.isArray(dataState.portfolio?.securitiesEvents)?dataState.portfolio.securitiesEvents:[];
@@ -564,7 +565,7 @@ const separateProfitView=x=>{
   };
 };
 
-// Main Calculation · 메인 계산
+// [CORE06] Main Calculation · 메인 계산
 function calc(date){
   const p=dataState.portfolio,c=p.constants,s=dataState.prices[date]||{},pk=previousDate(date),prev=pk?dataState.prices[pk]:null,daily=dataState.account1Daily?.[date]||null,extraPensionContrib=pensionContributionSum(date),prevExtraPensionContrib=pk?pensionContributionSum(pk):0,pensionPrincipal=(Number(c.pensionContributionPrincipal)||0)+extraPensionContrib;
   const account2Included=includeAccount2(date),tossIncluded=includeToss(date),hasPension=hasPensionData(date);
@@ -623,7 +624,7 @@ function calc(date){
   const securitiesAssetDetail=securitiesAssetDetailViewModel({date,prevKey:pk,daily,holdings,securitiesCash});
   return {date,s,prevKey:pk,prev,daily,hasDaily:!!daily,account2Included,tossIncluded,hasPension,holdings,securitiesCash,securitiesAssetDetail,rawHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,account2Profit,account2Principal,account2RealizedAmount,account2Remainder,tossProfit,tossRealizedAmount,tossRemainder,totalPrincipal,totalProfit,totalResult,returnRate,actualHolding,pensionRows,pensionCash,prevPensionCash,pensionCashCost,pensionCashDayChange,pensionTradeDayFlow,pensionExternalFlow,pensionEval,pensionPrevEval,pensionDayChange,pensionDayRate,pensionProfit,pensionReturn,extraPensionContrib,prevExtraPensionContrib,basePensionCash,basePrevPensionCash,pensionPrincipal,combinedPrincipal,combinedResult,combinedProfit,combinedReturn,etfEval,stockEval,allocTotal}
 }
-// Chart History Data · 차트 이력 데이터
+// [CORE07] Chart History Data · 차트 이력 데이터
 function snapshotDates(d){
   return allAvailableDates().filter(x=>x<=d);
 }
@@ -688,7 +689,7 @@ function securitySymbolAllocHistory(d,series){
   });
 }
 
-// Network / Data Loading · 네트워크 / 데이터 로딩
+// [CORE08] Network / Data Loading · 네트워크 / 데이터 로딩
 const NETWORK_REQUEST_TIMEOUT_MS=20000;
 async function fetchWithTimeout(url,options={},timeoutMs=NETWORK_REQUEST_TIMEOUT_MS){
   const controller=new AbortController();
@@ -770,6 +771,7 @@ async function loadInitialData(){
   Object.assign(dataState,{portfolio,prices,snapshots,account1Daily,pensionContributions,pensionCashSnapshots,pensionTrades});
 }
 
+// [CORE09] Public API
 export {
   ASSET_TYPE_COLORS,
   CASH_ASSET_COLOR,
