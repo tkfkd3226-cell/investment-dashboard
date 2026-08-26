@@ -133,62 +133,7 @@ function hydrateSectionTitleIcons(root=document){
   });
 }
 // Navigation / TOC · 모바일 메뉴 / 데스크톱 목차 / 섹션 이동
-function renderUnifiedMobileMenuContent(){
-  const groups=[
-    {
-      label:'링크',
-      items:[
-        {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:TOPBAR_ACTION_ICONS.kospiNight,title:'코스피200 야간선물'},
-        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:TOPBAR_ACTION_ICONS.nasdaqFutures,title:'나스닥100 선물'}
-      ]
-    },
-    {
-      label:'관리',
-      items:[
-        {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
-        {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'},
-        ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[])
-      ]
-    },
-    {
-      label:'전체',
-      items:[
-        {type:'section',id:'summary-section',icon:'home',title:'연금+계좌 성과'}
-      ]
-    },
-    {
-      label:'증권계좌',
-      items:[
-        {type:'section',id:'securities-section',icon:'chart',title:'증권계좌 성과 요약'},
-        {type:'section',id:'securities-holdings',icon:'folder',title:'보유종목 현황'},
-        {type:'section',id:'securities-change',icon:'trending',title:'전일 대비 변동'},
-        {type:'section',id:'chart-cum',icon:'lineChart',title:'누적손익 및 누적수익률'},
-        {type:'section',id:'chart-symbol',icon:'barChart',title:'종목별 누적손익'},
-        {type:'section',id:'chart-alloc',icon:'pie',title:'평가금액 비중'},
-        {type:'section',id:'ledger-check',icon:'search',title:'장부결과 VS 실제보유'},
-        ...(isLedgerCheckDate(dataState.activeDate)?[{type:'section',id:'capital-source-check',icon:'receipt',title:'투자원금 원천 및 검산'}]:[])
-      ]
-    },
-    {
-      label:'퇴직연금',
-      items:[
-        {type:'section',id:'pension-section',icon:'chart',title:'퇴직연금 성과 요약'},
-        {type:'section',id:'pension-products',icon:'package',title:'연금상품별 현황'},
-        {type:'section',id:'pension-change',icon:'trending',title:'전일 대비 변동'},
-        {type:'section',id:'pension-chart-cum',icon:'lineChart',title:'운용손익 및 운용수익률'},
-        {type:'section',id:'pension-chart-symbol',icon:'barChart',title:'연금상품별 운용손익'},
-        {type:'section',id:'pension-chart-alloc',icon:'pie',title:'평가금액 비중'}
-      ]
-    }
-  ];
-  return groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>{
-    const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
-    const cls=`mobile-nav-item ${idx?'sub':''}`;
-    if(item.type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" draggable="false" data-dashboard-action="close-date-menu">${inner}</a>`;
-    if(item.type==='action') return `<button type="button" class="${cls}" data-dashboard-action="${item.action}">${inner}</button>`;
-    return `<button type="button" class="${cls}" data-dashboard-action="jump-section" data-section-target="${item.id}" data-close-date-menu="true">${inner}</button>`;
-  }).join('')}</div>`).join('');
-}
+// Section Navigation Source · Desktop Edge TOC / Tablet 목차 / Phone 섹션 메뉴가 공유하는 canonical 목록
 function dashboardTocGroups(){
   return [
     {
@@ -223,11 +168,42 @@ function dashboardTocGroups(){
     }
   ];
 }
+function renderMobileNavigationGroups(groups,{indentAfterFirst=false}={}){
+  return groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>{
+    const type=item.type||(item.id?'section':'');
+    const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
+    const cls=`mobile-nav-item ${indentAfterFirst&&idx?'sub':''}`;
+    if(type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" draggable="false" data-dashboard-action="close-date-menu">${inner}</a>`;
+    if(type==='action') return `<button type="button" class="${cls}" data-dashboard-action="${item.action}">${inner}</button>`;
+    return `<button type="button" class="${cls}" data-dashboard-action="jump-section" data-section-target="${item.id}" data-close-date-menu="true">${inner}</button>`;
+  }).join('')}</div>`).join('');
+}
+function renderUnifiedMobileMenuContent(){
+  const groups=[
+    {
+      label:'링크',
+      items:[
+        {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:TOPBAR_ACTION_ICONS.kospiNight,title:'코스피200 야간선물'},
+        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:TOPBAR_ACTION_ICONS.nasdaqFutures,title:'나스닥100 선물'}
+      ]
+    },
+    {
+      label:'관리',
+      items:[
+        {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
+        {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'},
+        ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[])
+      ]
+    },
+    ...dashboardTocGroups()
+  ];
+  return renderMobileNavigationGroups(groups,{indentAfterFirst:true});
+}
 function renderDesktopTocContent(){
   return dashboardTocGroups().map(group=>`<div class="desktop-edge-toc-group"><p>${group.label}</p>${group.items.map(item=>`<button type="button" class="desktop-edge-toc-item" data-toc-target="${item.id}" data-dashboard-action="jump-section" data-section-target="${item.id}"><span class="desktop-edge-toc-icon">${navIconSvg(item.icon)}</span><span>${item.title}</span></button>`).join('')}</div>`).join('');
 }
 function renderTabletTocMenuContent(){
-  return dashboardTocGroups().map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map(item=>`<button type="button" class="mobile-nav-item" data-dashboard-action="jump-section" data-section-target="${item.id}" data-close-date-menu="true"><span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span></button>`).join('')}</div>`).join('');
+  return renderMobileNavigationGroups(dashboardTocGroups());
 }
 function mobileTopbarUi(){
   return window.matchMedia?.('(max-width:760px)').matches===true||phoneLandscapeUi();

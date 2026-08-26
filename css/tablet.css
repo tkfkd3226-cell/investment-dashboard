@@ -172,21 +172,26 @@
     #capital-source-check .source-grid{
       grid-template-columns:repeat(3,minmax(0,1fr));
     }
-  /* Topbar Tablet · 날짜 select는 가용폭에 따라 같은 폭으로 축소, action + hamburger 목차 유지 */
+  /* Topbar Tablet · 날짜 select는 동일 폭 token을 공유하고, action + hamburger 목차는 Tablet density token만 조정 */
     .topbar-label-full{display:none}
     .topbar-label-short{display:inline}
-    .switcher{padding-left:var(--space-2xl);padding-right:var(--space-2xl)}
+    .switcher{
+      --topbar-pad-x:var(--space-2xl);
+      --topbar-action-group-gap:var(--space-md);
+      --topbar-action-pad-x:var(--space-xl);
+      --topbar-action-gap:var(--space-2xs);
+      --topbar-action-font-size:var(--type-size-2xs);
+      --topbar-action-icon-margin-right:var(--space-2xs);
+    }
     .date-picker{grid-template-columns:minmax(0,1fr) auto}
-    .date-picker-center{width:100%;max-width:302px}
-    .date-picker-action{grid-column:2;gap:var(--space-md)}
+    .date-picker-center{width:100%;max-width:calc(var(--topbar-date-select-width) + var(--topbar-date-select-width) + var(--topbar-layout-gap))}
+    .date-picker-action{grid-column:2}
     .month-select,
     .day-select{
       min-width:0;
-      max-width:148px;
-      flex:1 1 148px;
+      max-width:var(--topbar-date-select-width);
+      flex:1 1 var(--topbar-date-select-width);
     }
-    .date-tool-btn{padding-left:var(--space-xl);padding-right:var(--space-xl);gap:var(--space-2xs);font-size:var(--type-size-2xs)}
-    .date-tool-action-icon{margin-right:var(--space-2xs)}
     .date-action-menu-wrap{display:block;position:relative;flex:0 0 auto}
     .date-tool-menu-label{display:none}
     .mobile-menu-layout{display:none}
@@ -199,23 +204,7 @@
       width:280px;
       max-height:min(72vh,620px);
       overflow:auto;
-      padding:var(--space-lg);
-      border-radius:min(10px,var(--corner-surface-cap));
-      box-shadow:var(--nav-shadow-mobile);
     }
-    .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2xl);margin:0;padding:0 1px var(--space-2xs);background:transparent}
-    .date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:var(--space-2xs);min-width:0}
-    .date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px;color:var(--nav-muted);font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);line-height:25px}
-    .date-action-menu.mobile-combined-menu .mobile-nav-head > button{border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);line-height:1.12}
-    .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{background:var(--nav-surface-hover);color:var(--nav-text)}
-    .date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:16px;height:16px;margin:auto}
-    .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:var(--space-sm) 0 0;padding:var(--space-sm) 0 0;border-top:1px solid var(--nav-divider)}
-    .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{margin-top:0;padding-top:0;border-top:0}
-    .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:var(--space-2xs) var(--space-lg);color:var(--nav-muted);font-size:9.5px;font-weight:var(--type-weight-semibold);line-height:14px}
-    .date-action-menu.mobile-combined-menu .mobile-nav-item{gap:var(--space-lg);min-height:30px;padding:var(--space-md) var(--space-lg);border-radius:min(var(--control-radius-md),var(--corner-control-cap));font-size:var(--type-size-sm);font-weight:var(--type-weight-regular);line-height:17px}
-    .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{flex:0 0 16px;width:16px;height:16px;margin:0;font-size:0}
-    .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{width:16px;height:16px}
-    .date-action-menu.mobile-combined-menu .mobile-nav-item strong{font-size:var(--type-size-sm);font-weight:var(--type-weight-medium);line-height:17px}
 
   /* Data Tables Tablet · 데이터 표 태블릿: 열 구조 유지 + font/padding 축소 */
     .dashboard-data-table{
