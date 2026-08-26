@@ -213,8 +213,7 @@
 
     .date-action-menu.mobile-combined-menu .mobile-nav-item:active,
     .date-tool-btn:not(:disabled):active,
-    button:not(:disabled):active,
-    .btn:not(:disabled):active{
+    button:not(:disabled):active{
       transform:scale(.985);
     }
 

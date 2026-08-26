@@ -552,7 +552,7 @@ body{
 }
 
 /* Control State Baseline · 공통 disabled / placeholder / icon interaction */
-:is(button,.btn,input,select,textarea):disabled{
+:is(button,input,select,textarea):disabled{
   opacity:var(--control-disabled-opacity);
   cursor:not-allowed;
 }
@@ -560,8 +560,8 @@ body{
   color:var(--control-placeholder);
   opacity:1;
 }
-:is(button,.btn,select,input[type="checkbox"],input[type="radio"]){touch-action:manipulation}
-:is(button,.btn) svg{pointer-events:none;flex-shrink:0}
+:is(button,select,input[type="checkbox"],input[type="radio"]){touch-action:manipulation}
+button svg{pointer-events:none;flex-shrink:0}
 
 /* Accessibility Utility · 화면에는 숨기고 보조기기에는 유지 */
 .visually-hidden{
@@ -3182,7 +3182,6 @@ body.contrib-modal-open{
   gap:var(--space-2xl);
   margin-top:var(--modal-action-gap);
 }
-.action-modal-btn{font-weight:var(--type-weight-strong)}
 .krx-action-buttons{
   display:grid;
   grid-template-columns:minmax(52px,max-content) minmax(0,1fr) minmax(72px,max-content);
@@ -3203,10 +3202,6 @@ body.contrib-modal-open{
 }
 .pension-action-pin-buttons .ghost{min-width:72px}
 .chart-date-confirm-buttons .action-modal-btn{min-width:76px}
-.pension-action-pin-buttons .primary.danger{
-  background:var(--status-danger-strong);
-  border-color:var(--status-danger-strong);
-}
 .app-toast{
   position:fixed;
   left:50%;
@@ -3394,8 +3389,7 @@ a.date-tool-btn,
 .date-tool-btn,
 .date-action-menu.mobile-combined-menu .mobile-nav-item,
 .pill,
-button,
-.btn{
+button{
   transition:
     transform .16s ease,
     background-color .16s ease,
@@ -3406,8 +3400,7 @@ button,
 
 .date-action-menu.mobile-combined-menu .mobile-nav-item:active,
 .date-tool-btn:not(:disabled):active,
-button:not(:disabled):active,
-.btn:not(:disabled):active{
+button:not(:disabled):active{
   transform:translateY(1px) scale(.98);
 }
 
@@ -3430,16 +3423,10 @@ button:not(:disabled):active,
 
 .contrib-modal.show button:hover,
 .contrib-modal.show button:active,
-.contrib-modal.show .btn:hover,
-.contrib-modal.show .btn:active,
 .krx-action-modal.show button:hover,
 .krx-action-modal.show button:active,
-.krx-action-modal.show .btn:hover,
-.krx-action-modal.show .btn:active,
 .pension-action-pin-modal button:hover,
-.pension-action-pin-modal button:active,
-.pension-action-pin-modal .btn:hover,
-.pension-action-pin-modal .btn:active{
+.pension-action-pin-modal button:active{
   transform:none;
 }
 

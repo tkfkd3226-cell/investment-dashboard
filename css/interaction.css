@@ -53,8 +53,7 @@
       border-color:var(--control-border-hover);
     }
 
-    button:not(:disabled):hover,
-    .btn:not(:disabled):hover{
+    button:not(:disabled):hover{
       transform:translateY(-1px);
     }
 }
