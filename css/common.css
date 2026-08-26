@@ -74,12 +74,12 @@
   --surface-pad-mini:var(--space-5xl);
   --surface-pad-metric:var(--space-8xl);
   --surface-pad-emphasis:var(--space-8xl);
-  --surface-pad-mobile-data:13px;
+  --surface-pad-data-list:13px;
   --surface-radius-outer:24px;
   --surface-radius-large:var(--surface-radius-lg);
   --surface-radius-medium:var(--surface-radius-md);
   --surface-radius-mini:var(--surface-radius-sm);
-  --surface-radius-mobile-data:15px;
+  --surface-radius-data-list:15px;
   /* Data List Card Typography · 모바일 카드보기와 compact data list surface가 공유 */
   --data-list-title-weight:var(--type-weight-strong);
   --data-list-label-weight:var(--type-weight-bold);
@@ -340,7 +340,7 @@
 
   /* Interaction Elevation · hover / compact control */
   --shadow-hover-surface:0 14px 34px rgba(15,23,42,.12);
-  --shadow-mobile-card:0 5px 14px rgba(15,23,42,.045);
+  --shadow-data-list-card:0 5px 14px rgba(15,23,42,.045);
   --scroll-edge-border:rgba(148,163,184,.75);
   --scroll-edge-shadow:inset -20px 0 18px -22px rgba(15,23,42,.8);
   --scroll-edge-shadow-compact:inset -16px 0 14px -20px rgba(15,23,42,.55);
@@ -419,7 +419,6 @@
   --market-ai-column-min:390px;
   --market-ai-column-max:410px;
   --market-ai-layout-gap:var(--space-3xl);
-  --market-ai-panel-max-width:410px;
   --market-ai-group-columns:minmax(0,3fr) minmax(0,2fr);
   --market-ai-title-size:var(--type-size-sm);
   --market-ai-status-size:var(--type-size-2xs);
@@ -750,13 +749,13 @@ button svg{pointer-events:none;flex-shrink:0}
   position:relative;
   z-index:1;
   width:100%;
-  max-width:var(--market-ai-panel-max-width);
+  max-width:var(--market-ai-column-max);
   min-width:0;
   justify-self:end;
 }
 .market-ai-panel{
   width:100%;
-  max-width:var(--market-ai-panel-max-width);
+  max-width:var(--market-ai-column-max);
   padding:var(--space-2xs) var(--space-xs);
   border:1px solid var(--line);
   border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
@@ -945,11 +944,11 @@ button svg{pointer-events:none;flex-shrink:0}
 /* Data List Card Primitive · 모바일 카드보기 / Market AI compact list가 같은 surface·label·value contract를 공유 */
 .data-list-card{
   min-width:0;
-  padding:var(--data-list-card-pad,var(--surface-pad-mobile-data));
+  padding:var(--data-list-card-pad,var(--surface-pad-data-list));
   border:1px solid var(--line);
-  border-radius:min(var(--surface-radius-mobile-data),var(--corner-surface-cap));
+  border-radius:min(var(--surface-radius-data-list),var(--corner-surface-cap));
   background:var(--card);
-  box-shadow:var(--shadow-mobile-card);
+  box-shadow:var(--shadow-data-list-card);
 }
 .data-list-card-title{
   color:var(--ink);

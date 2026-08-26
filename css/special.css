@@ -112,7 +112,7 @@
       --surface-pad-mini:var(--space-2xl);
       --surface-pad-metric:var(--space-4xl);
       --surface-pad-emphasis:var(--space-4xl);
-      --surface-pad-mobile-data:var(--space-4xl);
+      --surface-pad-data-list:var(--space-4xl);
       --card-grid-gap-large:var(--space-4xl);
       --card-grid-gap-medium:var(--space-2xl);
       --card-grid-gap-compact:var(--space-lg);
