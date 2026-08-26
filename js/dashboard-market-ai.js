@@ -735,11 +735,11 @@ function setupMarketAiTooltipEvents(){
 }
 
 function marketAiDesktopSignalMetric(label,key){
-  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-card="${key}" data-market-ai-tooltip="signal" data-market-ai-key="${key}"><span class="market-ai-desktop-label">${label}</span><strong class="market-ai-desktop-signal" data-market-ai-score="${key}">--</strong></span>`;
+  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-card="${key}" data-market-ai-tooltip="signal" data-market-ai-key="${key}"><span class="data-list-card-label market-ai-desktop-label">${label}</span><strong class="data-list-card-value market-ai-desktop-signal" data-market-ai-score="${key}">--</strong></span>`;
 }
 
 function marketAiDesktopMarketMetric(label,marketKey){
-  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-market-card="${marketKey}" data-market-ai-tooltip="market" data-market-ai-key="${marketKey}"><span class="market-ai-desktop-label">${label}</span><strong class="market-ai-desktop-value" data-market-ai-market="${marketKey}">--</strong><strong class="market-ai-desktop-change" data-market-ai-change="${marketKey}"></strong></span>`;
+  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-market-card="${marketKey}" data-market-ai-tooltip="market" data-market-ai-key="${marketKey}"><span class="data-list-card-label market-ai-desktop-label">${label}</span><strong class="data-list-card-value market-ai-desktop-value" data-market-ai-market="${marketKey}">--</strong><strong class="data-list-card-value market-ai-desktop-change" data-market-ai-change="${marketKey}"></strong></span>`;
 }
 
 function marketAiDesktopFuturesMetric(){
@@ -747,7 +747,7 @@ function marketAiDesktopFuturesMetric(){
 }
 
 function marketAiDesktopGroupLabel(label){
-  return `<span class="market-ai-desktop-group-label">${label}</span>`;
+  return `<span class="data-list-card-title market-ai-desktop-group-label">${label}</span>`;
 }
 
 function syncMarketAiMetricInteractivity(row,phoneUi){
@@ -853,7 +853,7 @@ function createMarketAiSection(){
   row.id='market-ai-section';
   row.setAttribute('role','group');
   row.setAttribute('aria-labelledby','marketAiTitle');
-  row.innerHTML=`<div class="market-ai-panel"><div class="market-ai-heading"><span id="marketAiTitle" class="market-ai-title">AI Market Signal</span><span class="market-ai-status" data-market-ai-status role="status" aria-live="polite">연결 확인 중</span></div><div class="market-ai-desktop" data-market-ai-content aria-label="현재 시장과 AI 신호"><div class="market-ai-card-row market-ai-market-row">${marketAiDesktopGroupLabel('시장')}${marketAiDesktopMarketMetric('KOSPI','kospi-index')}${marketAiDesktopFuturesMetric()}${marketAiDesktopMarketMetric('SOX','sox-index')}${marketAiDesktopMarketMetric('NQ100선물','nasdaq100-futures')}</div><div class="market-ai-card-row market-ai-signal-row">${marketAiDesktopGroupLabel('AI 신호')}${marketAiDesktopSignalMetric('코스피','kospi')}${marketAiDesktopSignalMetric('반도체','semiconductors')}${marketAiDesktopSignalMetric('갭상','gap')}${marketAiDesktopSignalMetric('상승마감','up-close')}</div></div></div>`;
+  row.innerHTML=`<div class="market-ai-panel"><div class="market-ai-heading"><span id="marketAiTitle" class="market-ai-title">AI Market Signal</span><span class="market-ai-status" data-market-ai-status role="status" aria-live="polite">연결 확인 중</span></div><div class="market-ai-desktop" data-market-ai-content aria-label="현재 시장과 AI 신호"><div class="data-list-card market-ai-card-row market-ai-market-row">${marketAiDesktopGroupLabel('시장')}${marketAiDesktopMarketMetric('KOSPI','kospi-index')}${marketAiDesktopFuturesMetric()}${marketAiDesktopMarketMetric('SOX','sox-index')}${marketAiDesktopMarketMetric('NQ100선물','nasdaq100-futures')}</div><div class="data-list-card market-ai-card-row market-ai-signal-row">${marketAiDesktopGroupLabel('AI 신호')}${marketAiDesktopSignalMetric('코스피','kospi')}${marketAiDesktopSignalMetric('반도체','semiconductors')}${marketAiDesktopSignalMetric('갭상','gap')}${marketAiDesktopSignalMetric('상승마감','up-close')}</div></div></div>`;
   return row;
 }
 

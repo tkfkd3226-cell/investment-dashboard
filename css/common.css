@@ -80,6 +80,12 @@
   --surface-radius-medium:var(--surface-radius-md);
   --surface-radius-mini:var(--surface-radius-sm);
   --surface-radius-mobile-data:15px;
+  /* Data List Card Typography · 모바일 카드보기와 compact data list surface가 공유 */
+  --data-list-title-weight:var(--type-weight-strong);
+  --data-list-label-weight:var(--type-weight-bold);
+  --data-list-value-weight:var(--type-weight-semibold);
+  --data-list-total-title-weight:var(--type-weight-emphasis);
+  --data-list-total-value-weight:var(--type-weight-strong);
   /* Spacing Scale · 반복 여백의 canonical scale */
   --space-2xs:2px;
   --space-xs:3px;
@@ -421,6 +427,11 @@
   --market-ai-value-size:var(--type-size-xs);
   --market-ai-change-size:var(--type-size-2xs);
   --market-ai-metric-row-height:18px;
+  --market-ai-market-value-column:50px;
+  --market-ai-market-change-column:39px;
+  --market-ai-signal-value-column:44px;
+  --market-ai-market-column-gap:var(--space-xs);
+  --market-ai-signal-column-gap:var(--space-sm);
   --market-ai-tooltip-max-width:440px;
   --market-ai-mobile-dialog-width:360px;
   --market-ai-mobile-trigger-height:var(--action-button-compact-height);
@@ -794,19 +805,13 @@ button svg{pointer-events:none;flex-shrink:0}
 }
 .market-ai-desktop[hidden]{display:none}
 .market-ai-card-row{
+  --data-list-card-pad:var(--space-md);
   display:grid;
   grid-template-columns:1fr;
   align-content:start;
-  min-width:0;
-  border:1px solid var(--line);
-  border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
-  background:var(--subtle-card);
-  padding:var(--space-2xs) var(--space-md);
 }
 .market-ai-desktop-group-label{
-  color:var(--muted);
   font-size:var(--market-ai-label-size);
-  font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
   line-height:1.12;
   margin-bottom:1px;
@@ -833,19 +838,17 @@ button svg{pointer-events:none;flex-shrink:0}
   background:var(--line);
 }
 .market-ai-market-row .market-ai-desktop-metric{
-  grid-template-columns:minmax(0,1fr) 50px 39px;
-  column-gap:3px;
+  grid-template-columns:minmax(0,1fr) var(--market-ai-market-value-column) var(--market-ai-market-change-column);
+  column-gap:var(--market-ai-market-column-gap);
 }
 .market-ai-signal-row .market-ai-desktop-metric{
-  grid-template-columns:minmax(0,1fr) 44px;
-  column-gap:4px;
+  grid-template-columns:minmax(0,1fr) var(--market-ai-signal-value-column);
+  column-gap:var(--market-ai-signal-column-gap);
 }
 .market-ai-desktop-label{
   min-width:0;
   overflow:hidden;
-  color:var(--muted);
   font-size:var(--market-ai-label-size);
-  font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
   line-height:1.12;
   text-align:left;
@@ -858,8 +861,6 @@ button svg{pointer-events:none;flex-shrink:0}
   justify-self:end;
   color:var(--ink);
   font-size:var(--market-ai-value-size);
-  font-weight:var(--type-weight-emphasis);
-  font-variant-numeric:tabular-nums;
   letter-spacing:-.02em;
   line-height:1.12;
   text-align:right;
@@ -931,13 +932,36 @@ button svg{pointer-events:none;flex-shrink:0}
   - Mini: .mini-card (including symbol/allocation variants)
   - Metric: .metric-card is a .card-based variant
   - Emphasis: .ledger-conclusion-card is a mixed-content conclusion surface with its own density token
-  - Mobile Data: .mobile-data-card is a mobile-only data-view surface; preserve its typography/layout
+  - Data List: .data-list-card is the shared compact data surface used by mobile card views and Market AI groups
+  - Mobile Data: .mobile-data-card extends .data-list-card with mobile-only title/row density
   Responsive density is token-driven: Web → Tablet → Phone 순으로 compact하며,
   카드 surface 외곽 padding은 각 계층에서 단일값(상=하=좌=우)을 사용한다.
 */
 :is(.card,.note,.chart-card,.pension-band,.securities-band){
   border:1px solid var(--line);
   box-shadow:var(--shadow-low);
+}
+
+/* Data List Card Primitive · 모바일 카드보기 / Market AI compact list가 같은 surface·label·value contract를 공유 */
+.data-list-card{
+  min-width:0;
+  padding:var(--data-list-card-pad,var(--surface-pad-mobile-data));
+  border:1px solid var(--line);
+  border-radius:min(var(--surface-radius-mobile-data),var(--corner-surface-cap));
+  background:var(--card);
+  box-shadow:var(--shadow-mobile-card);
+}
+.data-list-card-title{
+  color:var(--ink);
+  font-weight:var(--data-list-title-weight);
+}
+.data-list-card-label{
+  color:var(--muted);
+  font-weight:var(--data-list-label-weight);
+}
+.data-list-card-value{
+  font-weight:var(--data-list-value-weight);
+  font-variant-numeric:tabular-nums;
 }
 
 .card{
