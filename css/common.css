@@ -409,32 +409,21 @@
   --hero-pill-color:#f8fafc;
   --hero-shadow:0 18px 42px rgba(15,23,42,.16);
 
-  /* Market AI Component Contract · Hero 보조 카드의 theme / density / responsive geometry */
+  /* Market AI Component Contract · 고유 geometry만 보유하고 surface/type/color는 메인 primitive를 재사용 */
   --market-ai-edge-pad:var(--space-4xl);
   --market-ai-column-min:330px;
   --market-ai-column-max:350px;
   --market-ai-layout-gap:var(--space-3xl);
   --market-ai-panel-max-width:330px;
-  --market-ai-card-column-min:154px;
-  --market-ai-card-column-max:160px;
-  --market-ai-panel-radius:15px;
-  --market-ai-card-radius:8px;
-  --market-ai-title-size:var(--dashboard-control-font-size);
-  --market-ai-status-size:9.2px;
-  --market-ai-label-size:9px;
-  --market-ai-value-size:9.5px;
-  --market-ai-change-size:8.5px;
+  --market-ai-group-columns:minmax(0,3fr) minmax(0,2fr);
+  --market-ai-title-size:var(--type-size-sm);
+  --market-ai-status-size:var(--type-size-2xs);
+  --market-ai-label-size:var(--type-size-2xs);
+  --market-ai-value-size:var(--type-size-xs);
+  --market-ai-change-size:var(--type-size-2xs);
   --market-ai-tooltip-max-width:440px;
   --market-ai-mobile-dialog-width:360px;
-  --market-ai-mobile-dialog-radius:16px;
-  --market-ai-mobile-trigger-height:24px;
-  --market-ai-panel-bg:rgba(255,255,255,.97);
-  --market-ai-panel-border:rgba(255,255,255,.98);
-  --market-ai-panel-shadow:0 8px 20px rgba(15,23,42,.13),inset 0 1px 0 rgba(255,255,255,.96);
-  --market-ai-text:#0f172a;
-  --market-ai-muted:#475569;
-  --market-ai-label:#64748b;
-  --market-ai-divider:rgba(15,23,42,.11);
+  --market-ai-mobile-trigger-height:var(--action-button-compact-height);
 
   --asset-tab-active-bg:#2b3d59;
   --asset-tab-active-color:#ffffff;
@@ -474,13 +463,6 @@ html.dark{
   --chart-info-color:var(--highlight-card-muted);
   --hero-bg:linear-gradient(135deg,#151d2c 0%,#1c283b 58%,#24344b 100%);
   --hero-shadow:0 18px 42px rgba(0,0,0,.24);
-  --market-ai-panel-bg:rgba(15,23,42,.48);
-  --market-ai-panel-border:rgba(255,255,255,.16);
-  --market-ai-panel-shadow:0 12px 28px rgba(2,6,23,.28),inset 0 1px 0 rgba(255,255,255,.05);
-  --market-ai-text:#f8fafc;
-  --market-ai-muted:rgba(226,232,240,.74);
-  --market-ai-label:rgba(226,232,240,.72);
-  --market-ai-divider:rgba(255,255,255,.11);
   --asset-tab-active-bg:#36506f;
   --asset-tab-active-color:#ffffff;
   --modal-focus-ring:rgba(54,80,111,.28);
@@ -763,16 +745,13 @@ button svg{pointer-events:none;flex-shrink:0}
   justify-self:end;
 }
 .market-ai-panel{
-  width:fit-content;
-  max-width:min(100%,var(--market-ai-panel-max-width));
+  width:min(100%,var(--market-ai-panel-max-width));
   padding:var(--space-2xs) var(--space-xs);
-  border:1px solid var(--market-ai-panel-border);
-  border-radius:min(var(--market-ai-panel-radius),var(--corner-surface-cap));
-  background:var(--market-ai-panel-bg);
-  box-shadow:var(--market-ai-panel-shadow);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
-  color:var(--market-ai-text);
+  border:1px solid var(--line);
+  border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
+  background:var(--card);
+  box-shadow:var(--shadow-low);
+  color:var(--ink);
 }
 /* Market AI Heading / Status · 제목과 연결 상태 */
 .market-ai-heading{
@@ -783,7 +762,7 @@ button svg{pointer-events:none;flex-shrink:0}
   margin-bottom:1px;
 }
 .market-ai-title{
-  color:var(--market-ai-text);
+  color:var(--ink);
   font-size:var(--market-ai-title-size);
   font-weight:var(--type-weight-strong);
   letter-spacing:-.02em;
@@ -792,7 +771,7 @@ button svg{pointer-events:none;flex-shrink:0}
 .market-ai-status{
   min-width:0;
   overflow:hidden;
-  color:var(--market-ai-muted);
+  color:var(--muted);
   font-size:var(--market-ai-status-size);
   font-weight:var(--type-weight-bold);
   text-overflow:ellipsis;
@@ -806,9 +785,9 @@ button svg{pointer-events:none;flex-shrink:0}
 /* Market AI Rows / Metrics · 시장/AI 신호를 2개 compact list card로 나란히 배치 */
 .market-ai-desktop{
   display:grid;
-  width:fit-content;
+  width:100%;
   max-width:100%;
-  grid-template-columns:repeat(2,minmax(var(--market-ai-card-column-min),var(--market-ai-card-column-max)));
+  grid-template-columns:var(--market-ai-group-columns);
   gap:var(--space-sm);
   align-items:stretch;
   justify-content:start;
@@ -819,12 +798,13 @@ button svg{pointer-events:none;flex-shrink:0}
   grid-template-columns:1fr;
   align-content:start;
   min-width:0;
-  border:1px solid var(--market-ai-divider);
-  border-radius:min(var(--market-ai-card-radius),var(--corner-surface-cap));
+  border:1px solid var(--line);
+  border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
+  background:var(--subtle-card);
   padding:var(--space-2xs) var(--space-md) 1px;
 }
 .market-ai-desktop-group-label{
-  color:var(--market-ai-muted);
+  color:var(--muted);
   font-size:var(--market-ai-label-size);
   font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
@@ -850,7 +830,7 @@ button svg{pointer-events:none;flex-shrink:0}
   bottom:0;
   left:0;
   height:1px;
-  background:var(--market-ai-divider);
+  background:var(--line);
 }
 .market-ai-desktop-metric:last-child{
   min-height:13px;
@@ -867,8 +847,8 @@ button svg{pointer-events:none;flex-shrink:0}
 .market-ai-desktop-label{
   min-width:0;
   overflow:hidden;
-  color:var(--market-ai-label);
-  font-size:9px;
+  color:var(--muted);
+  font-size:var(--market-ai-label-size);
   font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
   line-height:1.12;
@@ -880,7 +860,7 @@ button svg{pointer-events:none;flex-shrink:0}
 .market-ai-desktop-signal,
 .market-ai-desktop-change{
   justify-self:end;
-  color:var(--market-ai-text);
+  color:var(--ink);
   font-size:var(--market-ai-value-size);
   font-weight:var(--type-weight-emphasis);
   font-variant-numeric:tabular-nums;
@@ -891,7 +871,7 @@ button svg{pointer-events:none;flex-shrink:0}
 .market-ai-desktop-change{font-size:var(--market-ai-change-size)}
 .market-ai-desktop .positive{color:var(--value-positive)}
 .market-ai-desktop .negative{color:var(--value-negative)}
-.market-ai-desktop-metric.is-unavailable :is(.market-ai-desktop-value,.market-ai-desktop-signal,.market-ai-desktop-change){color:var(--market-ai-muted)}
+.market-ai-desktop-metric.is-unavailable :is(.market-ai-desktop-value,.market-ai-desktop-signal,.market-ai-desktop-change){color:var(--muted)}
 
 /* Market AI Interaction / Tooltip · 키보드 focus와 기존 dash-tooltip 확장 */
 .market-ai-desktop-metric[data-market-ai-tooltip]{

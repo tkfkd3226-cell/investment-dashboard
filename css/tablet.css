@@ -23,8 +23,6 @@
       --market-ai-column-min:316px;
       --market-ai-column-max:330px;
       --market-ai-layout-gap:var(--space-5xl);
-      --market-ai-card-column-min:150px;
-      --market-ai-card-column-max:156px;
     }
 
   /* Pension Contribution Modal Tablet · semantic token만 한 단계 축소 */
@@ -71,7 +69,7 @@
     }
     .hero.market-ai-mounted .hero-metric-pills{min-width:0;flex-wrap:wrap;align-content:flex-start}
     .hero.market-ai-mounted #market-ai-section{width:auto;max-width:100%;margin-top:0;justify-self:end}
-    .market-ai-desktop{grid-template-columns:repeat(2,minmax(var(--market-ai-card-column-min),var(--market-ai-card-column-max)));justify-content:center}
+    .market-ai-desktop{grid-template-columns:var(--market-ai-group-columns);justify-content:center}
 
     .mini-card{
       --mini-label-size:11px;

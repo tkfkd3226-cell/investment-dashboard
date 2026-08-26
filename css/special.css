@@ -211,36 +211,40 @@
       letter-spacing:-.02em;
     }
     .market-ai-mobile-dialog{
+      --modal-card-width:100%;
+      --modal-card-radius:min(var(--surface-radius-lg),var(--corner-surface-cap));
+      --modal-card-pad-y:var(--space-4xl);
+      --modal-card-pad-x:var(--space-4xl);
+      --modal-backdrop-blur:3px;
       width:min(var(--market-ai-mobile-dialog-width),calc(100vw - var(--space-8xl)));
       max-width:calc(100vw - var(--space-8xl));
       max-height:calc(100dvh - var(--space-8xl));
       margin:auto;
       padding:0;
       border:0;
-      border-radius:min(var(--market-ai-mobile-dialog-radius),var(--corner-surface-cap));
       background:transparent;
-      color:var(--market-ai-text);
+      color:var(--ink);
       overflow:visible;
     }
     .market-ai-mobile-dialog:not([open]){display:none}
     .market-ai-mobile-dialog::backdrop{
-      background:var(--modal-overlay-soft);
-      backdrop-filter:blur(3px);
-      -webkit-backdrop-filter:blur(3px);
+      background:var(--modal-overlay);
+      backdrop-filter:blur(var(--modal-backdrop-blur));
+      -webkit-backdrop-filter:blur(var(--modal-backdrop-blur));
     }
-    .market-ai-mobile-dialog-content{
+    .market-ai-mobile-dialog-card{
+      box-sizing:border-box;
       width:100%;
       max-height:calc(100dvh - var(--space-8xl));
       overflow:auto;
-      border-radius:inherit;
     }
+    .market-ai-mobile-dialog-content{width:100%}
     .market-ai-mobile-dialog #market-ai-section{
       display:block;
       width:100%;
       max-width:none;
     }
     .market-ai-mobile-dialog .market-ai-panel{
-      --market-ai-title-size:var(--type-size-md);
       --market-ai-status-size:var(--type-size-xs);
       --market-ai-label-size:var(--type-size-xs);
       --market-ai-value-size:var(--type-size-sm);
@@ -248,27 +252,27 @@
       box-sizing:border-box;
       width:100%;
       max-width:none;
-      padding:var(--space-4xl);
+      padding:0;
+      border:0;
+      border-radius:0;
+      background:transparent;
+      box-shadow:none;
     }
     .market-ai-mobile-dialog .market-ai-heading{
-      min-height:var(--market-ai-mobile-trigger-height);
-      padding-right:calc(var(--market-ai-mobile-trigger-height) + var(--space-3xl));
-      margin-bottom:var(--space-sm);
+      min-height:var(--icon-button-size);
+      padding-right:calc(var(--icon-button-size) + var(--space-lg));
+      margin-bottom:var(--space-2xl);
     }
     .market-ai-mobile-dialog .market-ai-desktop{
       width:100%;
-      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-columns:var(--market-ai-group-columns);
       gap:var(--space-lg);
     }
     .market-ai-mobile-dialog .market-ai-card-row{
       padding:var(--space-sm) var(--space-lg) var(--space-2xs);
     }
-    .market-ai-mobile-dialog .market-ai-desktop-metric{
-      min-height:22px;
-    }
-    .market-ai-mobile-dialog .market-ai-desktop-metric:last-child{
-      min-height:18px;
-    }
+    .market-ai-mobile-dialog .market-ai-desktop-metric{min-height:22px}
+    .market-ai-mobile-dialog .market-ai-desktop-metric:last-child{min-height:18px}
     .market-ai-mobile-dialog .market-ai-market-row .market-ai-desktop-metric{
       grid-template-columns:minmax(0,1fr) 50px 40px;
     }
@@ -276,26 +280,10 @@
       grid-template-columns:minmax(0,1fr) 46px;
     }
     .market-ai-mobile-close{
-      --icon-button-size:var(--market-ai-mobile-trigger-height);
       position:absolute;
       top:var(--space-3xl);
       right:var(--space-3xl);
       z-index:2;
-      border:1px solid var(--market-ai-divider);
-      border-radius:min(8px,var(--corner-control-cap));
-      background:var(--market-ai-panel-bg);
-      color:var(--market-ai-text);
-      font-family:inherit;
-      font-size:var(--type-size-xl);
-      line-height:1;
-    }
-    .market-ai-mobile-dialog .market-ai-tooltip{
-      max-width:min(320px,calc(100vw - var(--tooltip-viewport-gutter)));
-    }
-    .market-ai-mobile-dialog .market-ai-tooltip :is(.market-ai-tooltip-note,.market-ai-tooltip-score-line){
-      white-space:normal;
-      word-break:keep-all;
-      overflow-wrap:break-word;
     }
 
   /* Mini / Metric Cards · 카드 밀도는 세로폰 기준 공유 */
