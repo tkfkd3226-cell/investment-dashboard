@@ -35,8 +35,20 @@ import {
 } from './dashboard-ui.js';
 
 // Pension Editor · 금액조정 / PIN / batch / persistence
-// Structure: modal render → lifecycle/form state → input/ETF draft → validation/output → PIN → batch simulation → persistence → event delegation.
+// Structure map:
+//   [PEDIT01] Runtime State / Modal Rendering
+//   [PEDIT02] Modal Lifecycle / Form State
+//   [PEDIT03] Input Formatting / Target State
+//   [PEDIT04] ETF Trade Draft / Preview
+//   [PEDIT05] Validation / Item Build
+//   [PEDIT06] Status / Output / Form Reset
+//   [PEDIT07] PIN Dialog
+//   [PEDIT08] Batch Queue / Simulation
+//   [PEDIT09] Persistence / Save/Delete
+//   [PEDIT10] Event Delegation / Keyboard / Native Date Picker
+//   [PEDIT11] Public API
 
+// [PEDIT01] Runtime State / Modal Rendering · 편집 상태 / 금액조정 모달 렌더링
 const pensionEditorState={
   batchMode:false,
   batchQueue:[],
@@ -80,7 +92,6 @@ const defaultPensionContributionMemo=d=>{
 const fmtDecimal=(n,digits=3)=>Number(n||0).toLocaleString('ko-KR',{minimumFractionDigits:digits,maximumFractionDigits:digits});
 const pensionTradeProductOptions=()=>((dataState.portfolio?.pension)||[]).map(v=>`<option value="${escapeHtml(String(v.ticker))}">${escapeHtml(v.name)}</option>`).join('');
 
-// [PEDIT01] Modal Rendering · 금액조정 모달 렌더링
 function renderPensionContributionList(target='cashSnapshot'){
   const selectedTarget=['contribution','cashSnapshot','etfTrade'].includes(target)?target:'cashSnapshot';
   const contribItems=pensionContributionItems()

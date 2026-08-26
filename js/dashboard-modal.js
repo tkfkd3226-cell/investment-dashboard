@@ -1,13 +1,17 @@
 // Dashboard Modal Lifecycle · 범용 modal shell / focus / dismiss
 // Ownership: feature content와 business logic은 각 feature module이 소유하고, 이 모듈은 lifecycle만 담당한다.
-// Structure: shared state → focus/accessibility → custom overlay → native dialog → public API.
+// Structure map:
+//   [MODAL01] Runtime State / Focus / Accessibility
+//   [MODAL02] Custom Overlay
+//   [MODAL03] Native Dialog
+//   [MODAL04] Public API
 
+// [MODAL01] Runtime State / Focus / Accessibility · 상태 / focus trap / inert / body lock
 const dashboardDialogFocusState=new WeakMap();
 const dashboardModalDismissState=new WeakMap();
 const dashboardNativeDialogState=new WeakMap();
 let dashboardDialogBodyLockCount=0;
 
-// [MODAL01] Focus / Accessibility · focus trap / inert / body lock
 function dashboardDialogBackgroundElements(container){
   const elements=[];
   let current=container;

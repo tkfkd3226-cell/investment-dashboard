@@ -46,7 +46,18 @@ import {
 } from './dashboard-modal.js';
 
 // Dashboard Charts · chart state / SVG rendering / responsive controls / expanded view
-// Structure: layout → expanded/responsive controls → scroll/entrance → series state → card render → SVG/tooltip → events/axes → drawing.
+// Structure map:
+//   [CHART01] Layout / Sizing Primitives
+//   [CHART02] Expanded View / Responsive Controls
+//   [CHART03] Responsive Controls / Entrance Motion
+//   [CHART04] Scroll State / Hints
+//   [CHART05] Series State / Legend Controls
+//   [CHART06] Chart Data / Card Rendering
+//   [CHART07] SVG Core / Tooltip Infrastructure
+//   [CHART08] Global Events / Action Routing
+//   [CHART09] Tooltip Rows / Axes / Hover Geometry
+//   [CHART10] Chart Drawing / Refresh
+//   [CHART11] Public API
 
 // [CHART01] Layout / Sizing Primitives · 차트 레이아웃 / 크기 primitive
 const CHART_FRAME=Object.freeze({left:70,right:70,top:20,bottom:70});

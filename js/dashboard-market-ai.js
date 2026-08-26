@@ -8,7 +8,18 @@ import {
 // Ownership: dashboard-modal.js의 저수준 dialog lifecycle만 공유하고, mount/state/fetch/render는 이 파일이 소유한다.
 // Responsive contract: Desktop/Tablet은 Hero 우측 panel, Phone은 동일 panel을 modal로 이동 재사용하며 Tooltip을 비활성화한다.
 // Preview contract: ?market-ai-preview=1/2는 Desktop/Tablet, 3은 실제 Mobile viewport 예시 데이터다.
-// Structure: config/state → environment/preview → formatting/freshness → snapshot/session → tooltip core → signal detail → tooltip interaction → metric/mobile UI → mount/render → refresh → lifecycle.
+// Structure map:
+//   [MARKET01] Configuration / Runtime State
+//   [MARKET02] Environment / Preview / Fetch
+//   [MARKET03] Formatting / Time / Freshness
+//   [MARKET04] Snapshot / Session State
+//   [MARKET05] Tooltip Core
+//   [MARKET06] Signal Detail Normalization
+//   [MARKET07] Tooltip Content / Interaction
+//   [MARKET08] Metric Markup / Responsive Mobile UI
+//   [MARKET09] Mount / Render
+//   [MARKET10] State Update / Data Refresh
+//   [MARKET11] Lifecycle / Polling
 
 // [MARKET01] Configuration / Runtime State · endpoint / preview / metric contract
 

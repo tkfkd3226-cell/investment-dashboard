@@ -52,7 +52,20 @@ import {
 } from './dashboard-charts.js';
 
 // Dashboard UI · theme / navigation / topbar / securities rendering / global UI events
-// Structure: appearance → section controls → navigation → topbar → shared render helpers → date/KRX feedback → asset workspace → securities/tables → event routing.
+// Structure map:
+//   [UI01] Theme / Appearance
+//   [UI02] Section Controls / Title Icons
+//   [UI03] Navigation / TOC
+//   [UI04] Topbar / Date Menu State
+//   [UI05] Shared Rendering / Responsive View Helpers
+//   [UI06] Mobile Top Button
+//   [UI07] Date Action Menu / Global UI Events
+//   [UI08] KRX Action Modal / Toast
+//   [UI09] Asset Workspace Navigation
+//   [UI10] Securities Rendering
+//   [UI11] Accounts / Capital Source Tables
+//   [UI12] Event Routing
+//   [UI13] Public API
 
 // [UI01] Theme / Appearance · 테마 / 모서리 스타일
 const THEME_STORAGE_KEY='investmentDashboard.theme';

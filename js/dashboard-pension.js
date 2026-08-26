@@ -29,15 +29,19 @@ import {
 } from './dashboard-ui.js';
 
 // Pension Rendering · summary / product status / daily change / section composition
-// Structure: insight calculations → product/change renderers → pension section composition.
+// Structure map:
+//   [PENSION01] Evaluation Text / Insights / Risk Gauge
+//   [PENSION02] Product / Change Rendering
+//   [PENSION03] Section Composition
+//   [PENSION04] Public API
 
 
+// [PENSION01] Evaluation Text / Insights / Risk Gauge · 평가기준 문구 / 인사이트 / 위험자산 게이지
 const pensionEvaluationMobileSubText=x=>{
   const full=pensionEvaluationBasisText(x.date);
   return `${shortDate(x.date)}${full.includes(' 추정 ')?' 추정':''} 기준`;
 };
 
-// [PENSION01] Insights / Risk Gauge · 퇴직연금 인사이트 / 위험자산 게이지
 function isSafePensionAsset(name=''){return /(채권|현금|예금|MMF|RP|CMA|단기채)/.test(String(name));}
 function getPensionDayContributionItems(x){
   if(x.pensionPrevEval==null)return [];

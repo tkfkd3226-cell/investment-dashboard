@@ -1,5 +1,14 @@
 // Dashboard Core · DOM 비의존 상태 / 데이터 / 계산 / 네트워크
-// Structure: state/format → allocation helpers → date/write config → pension ledger → securities ledger → calculation → chart history → loading.
+// Structure map:
+//   [CORE01] State / Formatting / Semantic Helpers
+//   [CORE02] Securities Allocation Helpers
+//   [CORE03] Date / Scope / Write Configuration
+//   [CORE04] Pension Ledger / Valuation
+//   [CORE05] Securities Ledger / Price Lookup
+//   [CORE06] Main Calculation
+//   [CORE07] Chart History Data
+//   [CORE08] Network / Data Loading
+//   [CORE09] Public API
 
 // [CORE01] State / Formatting / Semantic Helpers · 상태 / 포맷 / 의미 helper
 const dataState={

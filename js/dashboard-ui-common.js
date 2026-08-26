@@ -7,7 +7,12 @@ import {
 
 // Dashboard UI Common · feature-neutral DOM / markup / responsive helpers
 // Ownership: business state는 feature module이 소유하고, 이 모듈은 공통 표현과 저수준 interaction만 제공한다.
-// Structure: responsive predicates → icon/markup → shared asset renderers → asset tooltip interaction.
+// Structure map:
+//   [UICOMMON01] Responsive Predicate
+//   [UICOMMON02] Icon / Markup Helpers
+//   [UICOMMON03] Asset Shared Renderers
+//   [UICOMMON04] Asset Tooltip Interaction
+//   [UICOMMON05] Public API
 
 // [UICOMMON01] Responsive Predicate · 반응형 UI 판정
 const PHONE_LANDSCAPE_QUERY='(orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';

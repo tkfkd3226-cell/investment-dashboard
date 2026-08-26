@@ -55,7 +55,12 @@ import {
 } from './dashboard-pension-editor.js';
 
 // Dashboard App Orchestration · action routing / render / boot
-// Structure: personal view → date navigation → action routing → render orchestration → initialization.
+// Structure map:
+//   [APP01] Personal View / Separate Profit
+//   [APP02] Date Navigation / Chart Date Confirm
+//   [APP03] Dashboard Action Routing
+//   [APP04] Render Orchestration
+//   [APP05] Initialization / Boot
 
 // [APP01] Personal View / Separate Profit · 개인 보기 / 별도수익
 const heroBasisTapState={count:0,lastTap:0};
