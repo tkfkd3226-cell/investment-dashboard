@@ -26,6 +26,20 @@ EFRIEND_GATE_PROCESS = "xexpertgate.exe"
 EFRIEND_READY_PROCESS = "efexpertmain.exe"
 BRIDGE_PROCESS = "KisKospi200Bridge.exe"
 
+# eFriend Expert UI contract verified on the current installation.  These are
+# Win32 dialog/control IDs, not screen coordinates, so automation remains
+# stable when the window moves or the display resolution changes.
+EFRIEND_LOGIN_WINDOW_TITLE = "eFriend Expert 로그인"
+EFRIEND_CERT_WINDOW_TOKEN = "인증서 선택"
+EFRIEND_CTRL_CUSTOMER_ID = 1000
+EFRIEND_CTRL_ID_PASSWORD = 1001
+EFRIEND_CTRL_CERT_PASSWORD = 1002
+EFRIEND_CTRL_LOGIN = 1003
+EFRIEND_CTRL_CERT_CONFIRM = 1
+WM_SETTEXT = 0x000C
+BM_CLICK = 0x00F5
+SMTO_ABORTIFHUNG = 0x0002
+
 CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 DETACHED_PROCESS = getattr(subprocess, "DETACHED_PROCESS", 0)
 CREATE_NEW_PROCESS_GROUP = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
@@ -139,8 +153,8 @@ class _CREDENTIALW(ctypes.Structure):
 class WindowsCredentialStore:
     """Windows Credential Manager wrapper for eFriend auto-login secrets.
 
-    This class only establishes secure local storage. Startup does not consume
-    these values until the UI automation path is explicitly enabled.
+    Secrets are consumed only in memory by the local eFriend UI automation path
+    and are never written to logs or repository files.
     """
 
     CRED_TYPE_GENERIC = 1
@@ -686,7 +700,7 @@ class LocalSuiteLauncher:
             self.log(f"eFriend   : {EFRIEND_EXE}")
             try:
                 credential_state = "configured" if self.credential_store.exists() else "not configured"
-                self.log(f"Credential: eFriend auto-login {credential_state} (secure storage; auto-fill disabled)")
+                self.log(f"Credential: eFriend auto-login {credential_state} (Windows Credential Manager)")
             except Exception as exc:
                 self.log(f"[WARN] eFriend credential status check failed: {type(exc).__name__}")
             self.log()
@@ -860,6 +874,362 @@ class LocalSuiteLauncher:
         except Exception:
             return False
 
+    def _window_process_name(self, hwnd: int) -> str:
+        """Return the executable name that owns hwnd, or an empty string."""
+        if os.name != "nt" or not hwnd:
+            return ""
+        try:
+            user32 = ctypes.windll.user32
+            kernel32 = ctypes.windll.kernel32
+            pid = wintypes.DWORD(0)
+            user32.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+            user32.GetWindowThreadProcessId.restype = wintypes.DWORD
+            user32.GetWindowThreadProcessId(wintypes.HWND(hwnd), ctypes.byref(pid))
+            if not pid.value:
+                return ""
+
+            PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+            kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+            kernel32.OpenProcess.restype = wintypes.HANDLE
+            handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid.value)
+            if not handle:
+                return ""
+            try:
+                size = wintypes.DWORD(32768)
+                buffer = ctypes.create_unicode_buffer(size.value)
+                kernel32.QueryFullProcessImageNameW.argtypes = [
+                    wintypes.HANDLE,
+                    wintypes.DWORD,
+                    wintypes.LPWSTR,
+                    ctypes.POINTER(wintypes.DWORD),
+                ]
+                kernel32.QueryFullProcessImageNameW.restype = wintypes.BOOL
+                if not kernel32.QueryFullProcessImageNameW(handle, 0, buffer, ctypes.byref(size)):
+                    return ""
+                return Path(buffer.value).name.lower()
+            finally:
+                kernel32.CloseHandle(handle)
+        except Exception:
+            return ""
+
+    def _control_class_matches(self, dialog_hwnd: int, control_id: int, expected_class: str) -> bool:
+        """Verify that one dialog child has the expected Win32 class."""
+        if os.name != "nt" or not dialog_hwnd:
+            return False
+        try:
+            user32 = ctypes.windll.user32
+            user32.GetDlgItem.argtypes = [wintypes.HWND, ctypes.c_int]
+            user32.GetDlgItem.restype = wintypes.HWND
+            user32.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+            user32.GetClassNameW.restype = ctypes.c_int
+            child = user32.GetDlgItem(wintypes.HWND(dialog_hwnd), int(control_id))
+            if not child:
+                return False
+            class_buffer = ctypes.create_unicode_buffer(128)
+            if not user32.GetClassNameW(child, class_buffer, len(class_buffer)):
+                return False
+            return class_buffer.value.lower() == expected_class.lower()
+        except Exception:
+            return False
+
+    def _find_efriend_dialog(
+        self,
+        *,
+        exact_title: str | None = None,
+        title_contains: str | None = None,
+        required_controls: tuple[int, ...] = (),
+        required_control_classes: tuple[tuple[int, str], ...] = (),
+    ) -> int:
+        """Find a verified visible dialog owned by efriendexpert.exe.
+
+        Automation is intentionally fail-closed: title, process ownership, required
+        CtrlIds and expected child classes must all match before a window is used.
+        """
+        if os.name != "nt":
+            return 0
+
+        user32 = ctypes.windll.user32
+        user32.GetDlgItem.argtypes = [wintypes.HWND, ctypes.c_int]
+        user32.GetDlgItem.restype = wintypes.HWND
+        user32.GetWindowTextLengthW.argtypes = [wintypes.HWND]
+        user32.GetWindowTextLengthW.restype = ctypes.c_int
+        user32.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+        user32.GetWindowTextW.restype = ctypes.c_int
+        user32.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+        user32.GetClassNameW.restype = ctypes.c_int
+        user32.IsWindowVisible.argtypes = [wintypes.HWND]
+        user32.IsWindowVisible.restype = wintypes.BOOL
+        found = [0]
+        exact_lower = exact_title.lower() if exact_title else None
+        contains_lower = title_contains.lower() if title_contains else None
+        WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+
+        def enum_proc(hwnd, _lparam):
+            if not user32.IsWindowVisible(hwnd):
+                return True
+
+            class_buffer = ctypes.create_unicode_buffer(128)
+            user32.GetClassNameW(hwnd, class_buffer, len(class_buffer))
+            if class_buffer.value != "#32770":
+                return True
+
+            # Never automate a similarly named dialog from another application.
+            if self._window_process_name(int(hwnd)) != EFRIEND_BOOTSTRAP_PROCESS.lower():
+                return True
+
+            length = user32.GetWindowTextLengthW(hwnd)
+            title_buffer = ctypes.create_unicode_buffer(max(length + 1, 2))
+            user32.GetWindowTextW(hwnd, title_buffer, len(title_buffer))
+            title = title_buffer.value
+            title_lower = title.lower()
+            if exact_lower is not None and title_lower != exact_lower:
+                return True
+            if contains_lower is not None and contains_lower not in title_lower:
+                return True
+
+            for control_id in required_controls:
+                if not user32.GetDlgItem(hwnd, int(control_id)):
+                    return True
+            for control_id, expected_class in required_control_classes:
+                if not self._control_class_matches(int(hwnd), int(control_id), expected_class):
+                    return True
+
+            found[0] = int(hwnd)
+            return False
+
+        callback = WNDENUMPROC(enum_proc)
+        user32.EnumWindows(callback, 0)
+        return found[0]
+
+    def _wait_efriend_dialog(
+        self,
+        *,
+        exact_title: str | None = None,
+        title_contains: str | None = None,
+        required_controls: tuple[int, ...] = (),
+        required_control_classes: tuple[tuple[int, str], ...] = (),
+        timeout_seconds: float = 20.0,
+    ) -> int:
+        """Wait for one of the verified eFriend dialogs without blocking shutdown."""
+        deadline = time.monotonic() + timeout_seconds
+        while time.monotonic() < deadline:
+            self._cancel_gate()
+            if self._efriend_ready():
+                return 0
+            hwnd = self._find_efriend_dialog(
+                exact_title=exact_title,
+                title_contains=title_contains,
+                required_controls=required_controls,
+                required_control_classes=required_control_classes,
+            )
+            if hwnd:
+                return hwnd
+            time.sleep(0.25)
+        return 0
+
+    def _set_dialog_edit(self, dialog_hwnd: int, control_id: int, value: str) -> bool:
+        """Set a verified Win32 Edit control through WM_SETTEXT without reading it back."""
+        if os.name != "nt" or not dialog_hwnd:
+            return False
+        if self._window_process_name(dialog_hwnd) != EFRIEND_BOOTSTRAP_PROCESS.lower():
+            return False
+        if not self._control_class_matches(dialog_hwnd, control_id, "Edit"):
+            return False
+        user32 = ctypes.windll.user32
+        user32.GetDlgItem.argtypes = [wintypes.HWND, ctypes.c_int]
+        user32.GetDlgItem.restype = wintypes.HWND
+        user32.IsWindowEnabled.argtypes = [wintypes.HWND]
+        user32.IsWindowEnabled.restype = wintypes.BOOL
+        user32.SendMessageTimeoutW.argtypes = [
+            wintypes.HWND,
+            wintypes.UINT,
+            ctypes.c_size_t,
+            ctypes.c_ssize_t,
+            wintypes.UINT,
+            wintypes.UINT,
+            ctypes.POINTER(ctypes.c_size_t),
+        ]
+        user32.SendMessageTimeoutW.restype = ctypes.c_ssize_t
+        child = user32.GetDlgItem(wintypes.HWND(dialog_hwnd), int(control_id))
+        if not child or not user32.IsWindowEnabled(child):
+            return False
+
+        # Keep the secret in a temporary writable buffer only for the synchronous
+        # cross-process WM_SETTEXT call.  We deliberately never read control text.
+        buffer = ctypes.create_unicode_buffer(value)
+        message_result = ctypes.c_size_t(0)
+        try:
+            sent = user32.SendMessageTimeoutW(
+                child,
+                WM_SETTEXT,
+                0,
+                ctypes.cast(buffer, ctypes.c_void_p).value,
+                SMTO_ABORTIFHUNG,
+                2000,
+                ctypes.byref(message_result),
+            )
+            return bool(sent) and bool(message_result.value)
+        finally:
+            ctypes.memset(ctypes.addressof(buffer), 0, ctypes.sizeof(buffer))
+
+    def _click_dialog_button(self, dialog_hwnd: int, control_id: int) -> bool:
+        """Invoke a verified eFriend Button by CtrlId; no mouse coordinates are used."""
+        if os.name != "nt" or not dialog_hwnd:
+            return False
+        if self._window_process_name(dialog_hwnd) != EFRIEND_BOOTSTRAP_PROCESS.lower():
+            return False
+        if not self._control_class_matches(dialog_hwnd, control_id, "Button"):
+            return False
+        user32 = ctypes.windll.user32
+        user32.GetDlgItem.argtypes = [wintypes.HWND, ctypes.c_int]
+        user32.GetDlgItem.restype = wintypes.HWND
+        user32.IsWindowEnabled.argtypes = [wintypes.HWND]
+        user32.IsWindowEnabled.restype = wintypes.BOOL
+        user32.SendMessageTimeoutW.argtypes = [
+            wintypes.HWND,
+            wintypes.UINT,
+            ctypes.c_size_t,
+            ctypes.c_ssize_t,
+            wintypes.UINT,
+            wintypes.UINT,
+            ctypes.POINTER(ctypes.c_size_t),
+        ]
+        user32.SendMessageTimeoutW.restype = ctypes.c_ssize_t
+        child = user32.GetDlgItem(wintypes.HWND(dialog_hwnd), int(control_id))
+        if not child or not user32.IsWindowEnabled(child):
+            return False
+        message_result = ctypes.c_size_t(0)
+        sent = user32.SendMessageTimeoutW(
+            child,
+            BM_CLICK,
+            0,
+            0,
+            SMTO_ABORTIFHUNG,
+            2000,
+            ctypes.byref(message_result),
+        )
+        return bool(sent)
+
+    def _read_efriend_auto_login_credentials(self) -> dict[str, str] | None:
+        """Read the three local secrets once; never log their values."""
+        try:
+            credentials = self.credential_store.read()
+        except Exception as exc:
+            self.log(f"[WARN] eFriend auto-login credential read failed: {type(exc).__name__}")
+            return None
+        if not credentials:
+            self.log("[INFO]  eFriend auto-login credentials are not configured; manual login mode.")
+            return None
+
+        required = ("customer_id", "id_password", "certificate_password")
+        if not all(str(credentials.get(key, "")) for key in required):
+            self.log("[WARN] eFriend auto-login credentials are incomplete; manual login mode.")
+            for key in required:
+                credentials[key] = ""
+            return None
+        return credentials
+
+    def _attempt_efriend_auto_login(self) -> bool:
+        """Attempt one eFriend login/certificate approval cycle, then fall back safely.
+
+        No credential is retried automatically.  A failed/changed eFriend UI simply
+        returns False so the existing human-login readiness loop can continue.
+        """
+        credentials = self._read_efriend_auto_login_credentials()
+        if credentials is None:
+            return False
+
+        try:
+            self._cancel_gate()
+            self.log("[AUTO]  eFriend auto-login started (stored credential values are not logged).")
+            self.set_progress(25, "eFriend Expert 자동 로그인을 준비하고 있습니다.", active="efriend")
+
+            # If the certificate dialog is already open (for example after the
+            # user manually pressed Login), continue from that stage only.
+            cert_hwnd = self._find_efriend_dialog(
+                title_contains=EFRIEND_CERT_WINDOW_TOKEN,
+                required_controls=(EFRIEND_CTRL_CERT_CONFIRM,),
+                required_control_classes=((EFRIEND_CTRL_CERT_CONFIRM, "Button"),),
+            )
+            if not cert_hwnd:
+                login_hwnd = self._wait_efriend_dialog(
+                    exact_title=EFRIEND_LOGIN_WINDOW_TITLE,
+                    required_controls=(
+                        EFRIEND_CTRL_CUSTOMER_ID,
+                        EFRIEND_CTRL_ID_PASSWORD,
+                        EFRIEND_CTRL_CERT_PASSWORD,
+                        EFRIEND_CTRL_LOGIN,
+                    ),
+                    required_control_classes=(
+                        (EFRIEND_CTRL_CUSTOMER_ID, "Edit"),
+                        (EFRIEND_CTRL_ID_PASSWORD, "Edit"),
+                        (EFRIEND_CTRL_CERT_PASSWORD, "Edit"),
+                        (EFRIEND_CTRL_LOGIN, "Button"),
+                    ),
+                    timeout_seconds=20.0,
+                )
+                if self._efriend_ready():
+                    return True
+                if not login_hwnd:
+                    self.log("[WARN] eFriend login dialog was not detected; switching to manual login.")
+                    return False
+
+                self.set_progress(28, "저장된 eFriend 로그인 정보를 입력하고 있습니다.", active="efriend")
+                fields = (
+                    (EFRIEND_CTRL_CUSTOMER_ID, credentials["customer_id"]),
+                    (EFRIEND_CTRL_ID_PASSWORD, credentials["id_password"]),
+                    (EFRIEND_CTRL_CERT_PASSWORD, credentials["certificate_password"]),
+                )
+                for control_id, value in fields:
+                    if not self._set_dialog_edit(login_hwnd, control_id, value):
+                        self.log(f"[WARN] eFriend login CtrlId {control_id} 입력에 실패해 수동 로그인으로 전환합니다.")
+                        return False
+
+                if not self._click_dialog_button(login_hwnd, EFRIEND_CTRL_LOGIN):
+                    self.log("[WARN] eFriend 로그인 버튼 실행에 실패해 수동 로그인으로 전환합니다.")
+                    return False
+                self.log("[AUTO]  eFriend login form submitted.")
+                self.set_progress(32, "eFriend 로그인 요청을 처리하고 있습니다.", active="efriend")
+
+                # One submission only.  If the certificate dialog never appears,
+                # do not retry passwords; hand control back to the user.
+                cert_hwnd = self._wait_efriend_dialog(
+                    title_contains=EFRIEND_CERT_WINDOW_TOKEN,
+                    required_controls=(EFRIEND_CTRL_CERT_CONFIRM,),
+                    required_control_classes=((EFRIEND_CTRL_CERT_CONFIRM, "Button"),),
+                    timeout_seconds=45.0,
+                )
+                if self._efriend_ready():
+                    return True
+                if not cert_hwnd:
+                    self.log("[WARN] eFriend certificate dialog was not detected after one auto-login attempt; manual login fallback.")
+                    return False
+
+            self.set_progress(42, "eFriend 인증서 선택을 자동 승인하고 있습니다.", active="efriend")
+            if not self._click_dialog_button(cert_hwnd, EFRIEND_CTRL_CERT_CONFIRM):
+                self.log("[WARN] eFriend 인증서 선택(확인) 실행에 실패해 수동 처리로 전환합니다.")
+                return False
+            self.log("[AUTO]  eFriend certificate selection confirmed.")
+            self.set_progress(48, "eFriend 로그인/인증 완료를 확인하고 있습니다.", active="efriend")
+
+            if self._wait_process(EFRIEND_READY_PROCESS, 30, stable_seconds=1.5):
+                return True
+
+            self.log("[WARN] eFriend main process was not ready after auto approval; manual login fallback.")
+            return False
+        except StartupCancelled:
+            raise
+        except Exception as exc:
+            self.log(f"[WARN] eFriend auto-login automation failed ({type(exc).__name__}); manual login fallback.")
+            return False
+        finally:
+            # Drop references as soon as the single attempt ends.  Python strings
+            # cannot be reliably zeroed, but they are never persisted/logged here.
+            for key in ("customer_id", "id_password", "certificate_password"):
+                if key in credentials:
+                    credentials[key] = ""
+            del credentials
+
     def _efriend_ready(self) -> bool:
         """Return True only when the logged-in eFriend Expert main process is ready."""
         return self._process_running(EFRIEND_READY_PROCESS)
@@ -943,22 +1313,28 @@ class LocalSuiteLauncher:
             self.log(f"[WARN] eFriend Expert executable not found: {EFRIEND_EXE}")
             return False
 
-        # The actual logged-in runtime is efexpertmain.exe. The launcher
-        # executable hands off to xexpertgate.exe / efexpertmain.exe, so the
-        # bootstrap image name must never be used as the readiness criterion.
+        # The actual logged-in runtime is efexpertmain.exe.  If it is already
+        # present, auto-login is never entered and the user's existing session is
+        # left untouched.
         if self._efriend_ready():
             self.log(f"[OK]    eFriend Expert already logged in ({EFRIEND_READY_PROCESS}); launch skipped.")
             self.set_progress(55, "eFriend Expert 로그인/인증이 완료되었습니다.", complete=("efriend",))
             return True
 
-        # If the login/gate process is already alive, do not launch a duplicate
-        # eFriend instance. Wait for the user to complete login, then continue.
+        # Never start a duplicate login launcher.  If a login/certificate flow is
+        # already open, attempt the configured automation once from its current
+        # stage; otherwise fall back to the existing manual wait loop.
         if self._efriend_login_in_progress():
+            if self._attempt_efriend_auto_login():
+                self.log(f"[OK]    eFriend Expert auto-login ready ({EFRIEND_READY_PROCESS}).")
+                self.set_progress(55, "eFriend Expert 자동 로그인/인증이 완료되었습니다.", complete=("efriend",))
+                return True
+
             if self._process_running(EFRIEND_GATE_PROCESS):
-                self.log("[WAIT]  eFriend Expert 인증서 선택/승인 진행 중.")
+                self.log("[WAIT]  eFriend Expert 인증서 선택/승인을 수동으로 완료해 주세요.")
                 self.set_progress(35, "eFriend 공동인증서 승인을 완료해 주세요.", active="efriend")
             else:
-                self.log("[WAIT]  eFriend Expert 아이디/비밀번호 로그인 진행 중.")
+                self.log("[WAIT]  eFriend Expert 아이디/비밀번호 로그인을 수동으로 완료해 주세요.")
                 self.set_progress(25, "eFriend Expert 로그인을 완료해 주세요.", active="efriend")
             self.log(f"        최종 로그인 완료 프로세스 대기: {EFRIEND_READY_PROCESS}")
             if self._wait_efriend_ready():
@@ -985,7 +1361,12 @@ class LocalSuiteLauncher:
             self.log(f"[WARN] eFriend Expert launch failed: {exc}")
             return False
 
-        self.log("[WAIT]  eFriend Expert 로그인 + 공인인증서 승인 완료를 기다립니다.")
+        if self._attempt_efriend_auto_login():
+            self.log(f"[OK]    eFriend Expert auto-login ready ({EFRIEND_READY_PROCESS}).")
+            self.set_progress(55, "eFriend Expert 자동 로그인/인증이 완료되었습니다.", complete=("efriend",))
+            return True
+
+        self.log("[WAIT]  eFriend Expert 수동 로그인 + 공동인증서 승인을 기다립니다.")
         self.log(f"        최종 Ready 기준: {EFRIEND_READY_PROCESS}")
         self.set_progress(25, "eFriend 로그인과 공동인증서 승인을 완료해 주세요.", active="efriend")
         if self._wait_efriend_ready():
@@ -1306,7 +1687,7 @@ class LocalSuiteLauncher:
         ttk.Label(outer, text="eFriend 자동 로그인 자격 증명", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, columnspan=2, sticky="w")
         ttk.Label(
             outer,
-            text="Windows 자격 증명 관리자에 현재 Windows 사용자 전용으로 저장됩니다.\n코드·로그·Git 파일에는 기록하지 않습니다.",
+            text="Windows 자격 증명 관리자에 저장되며 다음 실행부터 eFriend 자동 로그인에 사용됩니다.\n코드·로그·Git 파일에는 기록하지 않습니다.",
             justify="left",
         ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(5, 14))
 
