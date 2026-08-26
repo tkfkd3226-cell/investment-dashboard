@@ -411,10 +411,10 @@
 
   /* Market AI Component Contract · 고유 geometry만 보유하고 surface/type/color는 메인 primitive를 재사용 */
   --market-ai-edge-pad:var(--space-4xl);
-  --market-ai-column-min:330px;
-  --market-ai-column-max:350px;
+  --market-ai-column-min:390px;
+  --market-ai-column-max:410px;
   --market-ai-layout-gap:var(--space-3xl);
-  --market-ai-panel-max-width:330px;
+  --market-ai-panel-max-width:410px;
   --market-ai-group-columns:minmax(0,3fr) minmax(0,2fr);
   --market-ai-title-size:var(--type-size-sm);
   --market-ai-status-size:var(--type-size-2xs);

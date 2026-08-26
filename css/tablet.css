@@ -20,8 +20,9 @@
       --info-stack-gap:var(--space-2xl);
       --chart-content-rhythm-gap:var(--space-2xl);
       --empty-state-font-size:var(--type-size-sm);
-      --market-ai-column-min:316px;
-      --market-ai-column-max:330px;
+      --market-ai-column-min:360px;
+      --market-ai-column-max:380px;
+      --market-ai-panel-max-width:380px;
       --market-ai-layout-gap:var(--space-5xl);
     }
 
