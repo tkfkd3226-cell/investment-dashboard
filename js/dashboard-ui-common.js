@@ -265,7 +265,7 @@ function renderAssetContributionCard({
   segmentClass='asset-stack-segment has-tooltip',
   tooltipClass='asset-viz-tooltip',
   emptyClass='asset-empty-state',
-  emptyNoItemsClass='asset-empty-state asset-contribution-empty-state',
+  emptyNoItemsClass='asset-empty-state',
   noPrevMessage='전일 데이터가 없어 오늘 상승분 기여도를 표시하지 않습니다.',
   emptyMessage='상승한 자산이 없어 기여도를 표시하지 않습니다.'
 }={}){

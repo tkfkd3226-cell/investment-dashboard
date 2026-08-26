@@ -642,7 +642,7 @@ async function submitKrxActionModal(mode='selected'){
       status.textContent=updateMode==='selected'
         ? `${selectedDate} KRX 현재가 재갱신 요청 중...`
         : '최신/누락 KRX 현재가 반영 요청 중...';
-      status.className='action-modal-status krx-action-status ok';
+      status.className='action-modal-status krx-action-status checking';
     }
     const data = await dispatchKrxPriceUpdate(pin, updateMode);
 

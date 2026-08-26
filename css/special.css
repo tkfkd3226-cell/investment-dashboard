@@ -69,19 +69,11 @@
       z-index:9999;
       box-sizing:border-box;
       width:max-content;
-      max-width:calc(100vw - 28px);
+      max-width:calc(100vw - var(--tooltip-viewport-gutter));
       padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
-      border:1px solid var(--tooltip-border);
-      border-radius:var(--tooltip-radius);
-      background:var(--tooltip-bg);
-      color:var(--tooltip-color);
-      box-shadow:var(--tooltip-shadow);
-      font-size:var(--tooltip-font-size);
       font-weight:var(--tooltip-info-weight);
       letter-spacing:-.02em;
-      line-height:1.45;
       white-space:normal;
-      overflow-wrap:anywhere;
       text-align:left;
       pointer-events:none;
     }
@@ -152,6 +144,7 @@
         var(--space-sm) + var(--space-sm) + var(--space-sm) + var(--space-sm) + var(--space-sm) +
         var(--topbar-phone-edge) + var(--topbar-phone-edge)
       );
+      --empty-state-font-size:var(--type-size-xs);
     }
 
   /* Pension Modal Phone Density · 세로/가로폰 공통. iOS는 16px computed font를 62.5% 축소해 visual 10px을 유지한다. */
@@ -241,7 +234,7 @@
     #pension-chart-symbol .chart-title-sub{font-size:var(--type-size-xs)}
 
     .dash-tooltip[data-tooltip-kind="symbol"]{
-      max-width:min(320px, calc(100vw - 28px));
+      max-width:min(320px, calc(100vw - var(--tooltip-viewport-gutter)));
       box-sizing:border-box;
       transform:none;
       font-size:var(--type-size-xs);
@@ -264,7 +257,6 @@
     }
 
   /* Asset Insight · 인사이트 카드/스택/tooltip은 세로폰과 같은 compact 기준 */
-    .asset-contribution-empty-state{font-size:var(--type-size-xs)}
     .asset-insight-head h3{font-size:var(--type-size-md)}
     .asset-stack-bar{height:18px;touch-action:pan-y}
     .asset-stack-segment{position:static}

@@ -19,6 +19,7 @@
       --card-text-rhythm-gap:var(--space-xs);
       --info-stack-gap:var(--space-2xl);
       --chart-content-rhythm-gap:var(--space-2xl);
+      --empty-state-font-size:var(--type-size-sm);
     }
 
   /* Pension Contribution Modal Tablet · semantic token만 한 단계 축소 */
@@ -73,7 +74,6 @@
       --mini-detail-size:10.5px;
     }
 
-    .asset-contribution-empty-state{font-size:var(--type-size-sm)}
 
   /* Asset Insight Label Responsive · viewport별 type token 단계 적용 */
     .asset-insight-head h3{

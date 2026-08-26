@@ -192,6 +192,18 @@
   --status-danger-emphasis:#dc2626;
   --status-danger-divider:rgba(239,68,68,.35);
 
+  /* Feedback UI Contract · 상태/빈 화면/toast의 공통 의미 토큰 */
+  --feedback-active-text:var(--status-info-strong);
+  --feedback-error-text:var(--status-danger-emphasis);
+  --empty-state-border:var(--line);
+  --empty-state-color:var(--muted);
+  --empty-state-weight:var(--type-weight-regular);
+  --empty-state-font-size:var(--type-size-md);
+  --empty-state-padding:var(--space-2xl);
+  --empty-state-radius:min(9px,var(--corner-surface-cap));
+  --empty-state-bg:transparent;
+  --empty-state-text-align:center;
+
   /* Shared Component States · 공통 control / modal / meter */
   --segmented-bg:#f8fafc;
   --segmented-text:#64748b;
@@ -348,6 +360,16 @@
   --tooltip-pad-y:9px;
   --tooltip-pad-x:11px;
   --tooltip-row-gap:3px;
+  --tooltip-viewport-gutter:28px;
+  --tooltip-anchor-gap:10px;
+  --tooltip-stack-anchor-gap:12px;
+  --tooltip-offset-y:6px;
+  --tooltip-arrow-size:6px;
+  --tooltip-info-anchor-gap:7px;
+  --tooltip-info-offset-y:3px;
+  --tooltip-fade-fast:.08s ease;
+  --tooltip-info-motion:.12s ease;
+  --tooltip-motion:.16s ease;
   --table-head-bg:#f1f5f9;
   --table-column-line:#e8ebf0;
   --summary-row-bg:#f8fafc;
@@ -1170,7 +1192,8 @@ td.num{
 
 .dash-tooltip,
 .asset-viz-tooltip,
-.compact-chart-ui .chart-title-info-tooltip{
+.compact-chart-ui .chart-title-info-tooltip,
+.accounts-memo-floating-tooltip{
   background:var(--tooltip-bg);
   color:var(--tooltip-color);
   border:1px solid var(--tooltip-border);
@@ -1186,12 +1209,12 @@ td.num{
   z-index:9999;
   box-sizing:border-box;
   min-width:210px;
-  max-width:min(320px,calc(100vw - 28px));
+  max-width:min(320px,calc(100vw - var(--tooltip-viewport-gutter)));
   padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
   pointer-events:none;
   opacity:0;
   transform:none;
-  transition:opacity .08s ease;
+  transition:opacity var(--tooltip-fade-fast);
 }
 
 .dash-tooltip.visible{
@@ -1685,9 +1708,9 @@ body.chart-expanded-open .dash-tooltip{
 .compact-chart-ui .chart-title-info-tooltip{
   position:absolute;
   left:50%;
-  top:calc(100% + 7px);
+  top:calc(100% + var(--tooltip-info-anchor-gap));
   width:max-content;
-  max-width:min(210px,calc(100vw - 28px));
+  max-width:min(210px,calc(100vw - var(--tooltip-viewport-gutter)));
   padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
   font-weight:var(--tooltip-info-weight);
   letter-spacing:-.02em;
@@ -1695,8 +1718,8 @@ body.chart-expanded-open .dash-tooltip{
   opacity:0;
   visibility:hidden;
   pointer-events:none;
-  transform:translate(-50%,-3px);
-  transition:opacity .12s ease,transform .12s ease,visibility .12s ease;
+  transform:translate(-50%,calc(-1 * var(--tooltip-info-offset-y)));
+  transition:opacity var(--tooltip-info-motion),transform var(--tooltip-info-motion),visibility var(--tooltip-info-motion);
   z-index:30;
 }
 .compact-chart-ui .chart-title-info.open .chart-title-info-tooltip{
@@ -1917,20 +1940,16 @@ body.chart-expanded-open .dash-tooltip{
 }
 /* Light/Dark badge colors resolve through the shared status tokens above. */
 
-.asset-empty-state{
-  padding:var(--space-6xl);
-  border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
-  background:var(--subtle-card);
-  border:1px dashed var(--line);
-  color:var(--muted);
-  font-size:var(--type-size-md);
-  font-weight:var(--type-weight-bold);
-}
-
-/* Asset contribution empty note · 기여도 없음 안내만 일반 굵기 + viewport별 축소 */
-.asset-contribution-empty-state{
-  font-size:var(--type-size-md);
-  font-weight:var(--type-weight-regular);
+/* Empty State Contract · 자산 기여도 / 작업 모음의 빈 상태를 같은 surface·typography로 통일 */
+:is(.asset-empty-state,.pension-batch-empty){
+  padding:var(--empty-state-padding);
+  border:1px dashed var(--empty-state-border);
+  border-radius:var(--empty-state-radius);
+  background:var(--empty-state-bg);
+  color:var(--empty-state-color);
+  font-size:var(--empty-state-font-size);
+  font-weight:var(--empty-state-weight);
+  text-align:var(--empty-state-text-align);
 }
 
 .asset-stack-bar{
@@ -1990,13 +2009,13 @@ body.chart-expanded-open .dash-tooltip{
 .asset-viz-tooltip{
   position:absolute;
   left:50%;
-  bottom:calc(100% + 10px);
-  transform:translateX(-50%) translateY(6px);
+  bottom:calc(100% + var(--tooltip-anchor-gap));
+  transform:translateX(-50%) translateY(var(--tooltip-offset-y));
   opacity:0;
   pointer-events:none;
-  transition:opacity .16s ease, transform .16s ease;
+  transition:opacity var(--tooltip-motion), transform var(--tooltip-motion);
   min-width:118px;
-  max-width:min(220px,calc(100vw - 28px));
+  max-width:min(220px,calc(100vw - var(--tooltip-viewport-gutter)));
   padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
   text-align:center;
   z-index:30;
@@ -2005,7 +2024,7 @@ body.chart-expanded-open .dash-tooltip{
 
 .asset-viz-tooltip.wide{
   min-width:220px;
-  max-width:min(260px,calc(100vw - 28px));
+  max-width:min(260px,calc(100vw - var(--tooltip-viewport-gutter)));
   white-space:normal;
 }
 
@@ -2018,7 +2037,7 @@ body.chart-expanded-open .dash-tooltip{
 }
 
 .asset-stack-bar .asset-viz-tooltip{
-  bottom:calc(100% + 12px);
+  bottom:calc(100% + var(--tooltip-stack-anchor-gap));
 }
 
 .asset-viz-tooltip::after{
@@ -2027,7 +2046,7 @@ body.chart-expanded-open .dash-tooltip{
   left:50%;
   top:100%;
   transform:translateX(-50%);
-  border:6px solid transparent;
+  border:var(--tooltip-arrow-size) solid transparent;
   border-top-color:var(--tooltip-bg);
 }
 
@@ -3178,9 +3197,9 @@ body.dashboard-dialog-open{
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-strong);
 }
-.krx-action-status.ok{color:var(--status-info-strong)}
-.krx-action-status.err,
-.pension-action-pin-status{color:var(--status-danger-emphasis)}
+/* Feedback Status States · action modal 종류와 무관하게 상태 class가 의미 색을 소유 */
+.action-modal-status:is(.ok,.checking){color:var(--feedback-active-text)}
+.action-modal-status.err{color:var(--feedback-error-text)}
 .action-modal-buttons{
   gap:var(--space-2xl);
   margin-top:var(--modal-action-gap);
@@ -3206,24 +3225,34 @@ body.dashboard-dialog-open{
 .pension-action-pin-buttons .ghost{min-width:72px}
 .chart-date-confirm-buttons .action-modal-btn{min-width:76px}
 .app-toast{
+  --toast-bottom:22px;
+  --toast-offset-y:16px;
+  --toast-max-width:420px;
+  --toast-viewport-gutter:32px;
+  --toast-pad-y:var(--space-5xl);
+  --toast-pad-x:var(--space-7xl);
+  --toast-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
+  --toast-font-size:var(--type-size-md);
+  --toast-font-weight:var(--type-weight-emphasis);
+  --toast-motion:.18s ease;
   position:fixed;
   left:50%;
-  bottom:22px;
-  transform:translate(-50%,16px);
+  bottom:var(--toast-bottom);
+  transform:translate(-50%,var(--toast-offset-y));
   z-index:13001;
   width:max-content;
-  max-width:min(420px,calc(100vw - 32px));
+  max-width:min(var(--toast-max-width),calc(100vw - var(--toast-viewport-gutter)));
   box-sizing:border-box;
-  padding:var(--space-5xl) var(--space-7xl);
-  border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
+  padding:var(--toast-pad-y) var(--toast-pad-x);
+  border-radius:var(--toast-radius);
   background:var(--toast-bg);
   color:var(--toast-color);
-  font-size:var(--type-size-md);
-  font-weight:var(--type-weight-emphasis);
+  font-size:var(--toast-font-size);
+  font-weight:var(--toast-font-weight);
   box-shadow:var(--toast-shadow);
   opacity:0;
   pointer-events:none;
-  transition:.18s ease;
+  transition:opacity var(--toast-motion),transform var(--toast-motion);
 }
 .app-toast.show{
   opacity:1;
@@ -3513,7 +3542,6 @@ button:not(:disabled):active{
 
 /* Pension PIN · Chrome 비밀번호 저장 감지를 피하면서 PIN 마스킹/상태 표시 유지 */
 #pensionActionPinInput{-webkit-text-security:disc}
-.pension-action-pin-status.checking{color:var(--status-info-strong)}
 .pension-action-pin-card .action-modal-input:disabled{opacity:.68;cursor:wait}
 
 .mobile-top-button{
@@ -3661,15 +3689,6 @@ button:not(:disabled):active{
 .pension-batch-item-actions button svg{display:block;width:13px;height:13px;margin:auto}
 .pension-batch-item-actions button:disabled{opacity:.3;cursor:not-allowed}
 .pension-batch-item-actions .remove{color:var(--status-danger-strong)}
-.pension-batch-empty{
-  padding:var(--space-4xl);
-  border:1px dashed var(--line);
-  border-radius:min(9px,var(--corner-surface-cap));
-  color:var(--muted);
-  font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-bold);
-  text-align:center;
-}
 .pension-batch-order-note{
   margin-top:var(--space-2xl);
   padding:var(--space-xl) var(--space-2xl);
@@ -3767,7 +3786,6 @@ button:not(:disabled):active{
 .contrib-modal .pension-batch-head{gap:var(--pension-modal-section-gap)}
 .contrib-modal .pension-batch-queue{gap:var(--space-sm);margin-top:var(--pension-modal-list-gap)}
 .contrib-modal .pension-batch-item{gap:var(--pension-modal-item-gap);padding:var(--pension-modal-item-pad-y) var(--pension-modal-item-pad-x)}
-.contrib-modal .pension-batch-empty{padding:var(--pension-modal-section-gap)}
 .contrib-modal .pension-batch-order-note{margin-top:var(--pension-modal-context-gap);padding:var(--pension-modal-aux-pad-y) var(--pension-modal-aux-pad-x)}
 .contrib-modal .pension-batch-actions{margin-top:var(--pension-modal-action-margin-top)}
 
@@ -4391,19 +4409,19 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
     .asset-viz-tooltip,
     .asset-viz-tooltip.wide{
       white-space:normal;
-      max-width:min(260px, calc(100vw - 28px));
+      max-width:min(260px, calc(100vw - var(--tooltip-viewport-gutter)));
       z-index:80;
     }
 
     .asset-stack-segment:first-child .asset-viz-tooltip{
       left:0;
-      transform:translateY(6px);
+      transform:translateY(var(--tooltip-offset-y));
     }
 
     .asset-stack-segment:last-child .asset-viz-tooltip{
       left:auto;
       right:0;
-      transform:translateY(6px);
+      transform:translateY(var(--tooltip-offset-y));
     }
 
     .asset-stack-segment:first-child:hover .asset-viz-tooltip,

@@ -190,9 +190,9 @@
     }
 
     .app-toast{
-      bottom:16px;
-      max-width:min(520px,calc(100vw - 16px));
-      border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
+      --toast-bottom:16px;
+      --toast-max-width:520px;
+      --toast-viewport-gutter:16px;
       text-align:center;
     }
 
