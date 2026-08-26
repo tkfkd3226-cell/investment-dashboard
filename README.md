@@ -502,9 +502,12 @@ eFriend Expert 로그인/공인인증 완료
 → Dashboard
 ```
 
-eFriend의 최종 Ready 기준은 `efexpertmain.exe`입니다. 로그인 또는 인증 절차가 진행 중이면 중복 실행하지 않고 완료를 기다립니다. KIS Bridge는 필요 시 Release/x86 빌드·배포를 갱신한 뒤 시스템 트레이에서 실행됩니다.
+eFriend의 최종 Ready 기준은 `efexpertmain.exe`입니다. 로그인 또는 인증 절차가 진행 중이면 중복 실행하지 않고 완료를 기다립니다. 저장된 eFriend 자격 증명이 있으면 Windows Credential Manager에서 읽어 로그인·인증서 확인을 한 번 자동 시도하고, 실패하거나 UI 구조가 달라지면 수동 로그인 대기로 전환합니다. KIS Bridge는 필요 시 Release/x86 빌드·배포를 갱신한 뒤 시스템 트레이에서 실행됩니다.
+
+시작 중에는 실제 Ready 단계에 연동된 진행창이 표시되며 정상 완료 시 100% 후 Dashboard를 엽니다. 런처는 단일 인스턴스로 유지됩니다.
 
 - Local Suite 트레이 `View` → 실행 상태와 `start-local-server.log` 확인
+- Local Suite 트레이 `eFriend 자동 로그인 설정` → Windows Credential Manager에 로컬 자격 증명 저장/삭제
 - Local Suite 트레이 `종료` → Dashboard / Market AI API / KIS Bridge 종료
 - KIS Bridge 트레이 `View` → 상태창 표시, `종료` → Bridge 종료
 - eFriend Expert는 Local Suite 종료 대상에 포함하지 않음

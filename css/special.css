@@ -144,6 +144,7 @@
         var(--space-sm) + var(--space-sm) + var(--space-sm) + var(--space-sm) + var(--space-sm) +
         var(--topbar-phone-edge) + var(--topbar-phone-edge)
       );
+      --page-anchor-offset:calc(var(--topbar-phone-height) + var(--space-5xl));
       --empty-state-font-size:var(--type-size-xs);
     }
 

@@ -96,6 +96,16 @@
   --space-8xl:18px;
   --space-9xl:22px;
   --space-10xl:24px;
+
+  /* Page Layout Contract · 페이지 shell / section / asset band의 공통 배치 */
+  --page-shell-max-width:1680px;
+  --page-shell-gutter:var(--space-10xl);
+  --page-content-max-width:calc(var(--page-shell-max-width) - var(--page-shell-gutter) - var(--page-shell-gutter));
+  --page-section-gap:var(--space-9xl);
+  --page-section-title-gap:var(--space-5xl);
+  --asset-band-section-gap:var(--space-7xl);
+  --page-anchor-offset:76px;
+
   /* Card Grid Gap System · 카드와 카드 사이 간격의 hierarchy */
   --card-grid-gap-large:var(--space-7xl);
   --card-grid-gap-medium:var(--space-5xl);
@@ -606,9 +616,9 @@ button svg{pointer-events:none;flex-shrink:0}
 
 /* [02. Global Layout / Shell · 전체 레이아웃 / 기본 구조] Page Shell · 페이지 shell */
 .wrap{
-  max-width:1680px;
+  max-width:var(--page-shell-max-width);
   margin:0 auto;
-  padding:var(--space-10xl);
+  padding:var(--page-shell-gutter);
 }
 
 
@@ -965,7 +975,7 @@ html.dark #market-ai-section{
 }
 
 section{
-  margin-top:var(--space-9xl);
+  margin-top:var(--page-section-gap);
 }
 
 .section-title{
@@ -973,7 +983,7 @@ section{
   align-items:flex-end;
   justify-content:space-between;
   gap:var(--space-5xl);
-  margin:0 0 var(--space-5xl);
+  margin:0 0 var(--page-section-title-gap);
 }
 
 /* Shared Title Label · 메인/하위/차트 제목은 동일한 시각 규칙을 사용하고 부모는 배치만 담당 */
@@ -1860,7 +1870,7 @@ body.chart-expanded-open .dash-tooltip{
 /* [06. Asset Detail · 자산 상세] Shared Status / Change / Insight · 공통 현황 / 변동 / 인사이트 */
 .asset-detail-grid{
   width:100%;
-  margin-top:var(--space-7xl);
+  margin-top:var(--asset-band-section-gap);
   grid-template-columns:minmax(0,1.56fr) minmax(min(42%,480px),.72fr);
   gap:var(--card-grid-gap-large);
   align-items:stretch;
@@ -2866,7 +2876,6 @@ body.dashboard-dialog-open{
 :is(.asset-workspace-tab,.contrib-target-option).active{background:var(--asset-tab-active-bg);color:var(--asset-tab-active-color)}
 
 /* Asset Workspace Tabs · 자산 작업영역 탭: 증권 → 퇴직연금 순서, 기존 section ID 유지 */
-.asset-workspace{margin-top:var(--space-9xl)}
 .asset-workspace-tabs{
   grid-template-columns:repeat(2,minmax(0,1fr));
   width:min(430px,100%);
@@ -2885,7 +2894,7 @@ body.dashboard-dialog-open{
 /* Separate-profit Light/Dark colors resolve through dedicated semantic tokens. */
 
 .securities-subsection{
-  margin-top:var(--space-8xl);
+  margin-top:var(--asset-band-section-gap);
 }
 .securities-subsection:first-child{
   margin-top:0;
@@ -2899,7 +2908,7 @@ body.dashboard-dialog-open{
 
 /* Quick Navigation Anchor · 빠른 이동 anchor */
 [id]{
-  scroll-margin-top:76px;
+  scroll-margin-top:var(--page-anchor-offset);
 }
 
 /* 퇴직연금 비중 막대 색상은 dashboard-core.js의 pensionSeriesColor()를 단일 원천으로 사용. */
@@ -2918,7 +2927,7 @@ body.dashboard-dialog-open{
 }
 
 .pension-chart-block{
-  margin-top:var(--space-7xl);
+  margin-top:var(--asset-band-section-gap);
 }
 
 .chart-title-sub{
@@ -3089,7 +3098,6 @@ body.dashboard-dialog-open{
 
 /* [09B. Capital Source / Source Data · 투자원금 원천 / 검산 데이터] 외곽 panel 없이 3개 데이터 카드만 사용 */
 .capital-source-section .source-title{
-  margin-bottom:var(--space-5xl);
   padding:0 var(--space-2xs);
 }
 
@@ -3985,7 +3993,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   /* Topbar Geometry Contract · viewport는 token만 바꾸고 date/action primitive는 같은 geometry를 공유 */
   --topbar-pad-y:var(--space-lg);
   --topbar-pad-x:var(--space-5xl);
-  --topbar-content-max-width:1632px;
+  --topbar-content-max-width:var(--page-content-max-width);
   --topbar-layout-gap:var(--space-lg);
   --topbar-action-group-gap:var(--topbar-layout-gap);
   --topbar-control-height:32px;
@@ -4444,13 +4452,10 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       transform:none;
     }
 
-  /* Page Shell Responsive · 1100px 이하 공통 shell / scroll 보정 */
-    .wrap{
-      padding:var(--space-xl);
-    }
-
-    .section-title{
-      margin-bottom:var(--space-xl);
+  /* Page Shell Responsive · 1100px 이하 공통 shell / section title 간격은 token만 축소 */
+    :root{
+      --page-shell-gutter:var(--space-xl);
+      --page-section-title-gap:var(--space-xl);
     }
 
     .mobile-scroll.is-scrollable,

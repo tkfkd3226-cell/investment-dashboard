@@ -148,10 +148,6 @@
   /* Symbol Summary Portrait · 세로폰 종목/상품 손익카드는 2열 */
     .chart-note.symbol-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 
-    .securities-subsection{
-      margin-top:var(--space-7xl);
-    }
-
     #pension-chart-alloc .chart-note{
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
@@ -222,8 +218,6 @@
       height:2px;
       opacity:.55;
     }
-
-    [id]{scroll-margin-top:52px}
 
     #ledger-check .ledger-overview-grid{grid-template-columns:1fr}
 
