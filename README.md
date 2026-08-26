@@ -201,7 +201,7 @@ investment-dashboard-main/
 ├─ .github/workflows/
 │  └─ update-prices.yml
 ├─ requirements.txt
-├─ start-local-server.bat
+├─ start-local-server.pyw
 └─ main_dashboard_maintenance_handover.md
 ```
 
@@ -484,52 +484,42 @@ GAS 요청
 
 ## 7. 로컬 실행
 
-JSON 데이터를 `fetch()`로 읽기 때문에 `index.html`을 `file://`로 직접 열기보다 로컬 HTTP 서버를 사용합니다.
-
-Windows에서는 프로젝트 루트의 다음 파일을 실행합니다.
-
-```text
-start-local-server.bat
-```
+JSON 데이터를 `fetch()`로 읽기 때문에 `file://` 직접 실행 대신 프로젝트 루트의 `start-local-server.pyw`를 사용합니다. `.pyw`는 콘솔 없이 트레이에서 실행되며, 시작 시 관리자 권한을 한 번만 요청합니다.
 
 기본 주소:
 
 ```text
-http://localhost:8000/
+Dashboard : http://localhost:8000/
+Market AI : http://127.0.0.1:8001/
 ```
 
-`market-ai` 폴더가 투자성과 대시보드 폴더와 같은 상위 폴더에 있으면 배치 파일 하나가 다음을 함께 실행합니다.
-
-- 투자성과 대시보드 HTTP 서버: `http://localhost:8000/`
-- Market AI API: `http://127.0.0.1:8001/`
-- KIS KOSPI200 Bridge: `market-ai\KisKospi200Bridge.exe`
-
-Market AI API는 별도 CMD 창을 만들지 않고 같은 콘솔에서 백그라운드로 실행하며, KIS Bridge는 Windows GUI 프로그램이라 별도 CMD 창을 만들지 않습니다. Bridge 루트 EXE가 없거나 최신 C# 소스보다 오래된 경우 `market-ai\build-kis-bridge-release.bat`을 통해 Release/x86 자동 빌드를 시도합니다.
-
-기본 권장 폴더 배치는 다음과 같습니다.
+통합 실행 순서는 다음과 같습니다.
 
 ```text
-작업폴더\
-├─ investment-dashboard-main\
-│  └─ start-local-server.bat
-└─ market-ai\
-   ├─ app.py
-   └─ KisKospi200Bridge.exe   # 최초 실행 시 자동 빌드/배포 가능
+eFriend Expert 로그인/공인인증 완료
+→ KIS KOSPI200 Bridge
+→ Market AI API
+→ Dashboard
 ```
 
-직접 대시보드 HTTP 서버만 실행하려면:
+eFriend의 최종 Ready 기준은 `efexpertmain.exe`입니다. 로그인 또는 인증 절차가 진행 중이면 중복 실행하지 않고 완료를 기다립니다. KIS Bridge는 필요 시 Release/x86 빌드·배포를 갱신한 뒤 시스템 트레이에서 실행됩니다.
+
+- Local Suite 트레이 `View` → 실행 상태와 `start-local-server.log` 확인
+- Local Suite 트레이 `종료` → Dashboard / Market AI API / KIS Bridge 종료
+- KIS Bridge 트레이 `View` → 상태창 표시, `종료` → Bridge 종료
+- eFriend Expert는 Local Suite 종료 대상에 포함하지 않음
+
+통합 런처 없이 대시보드만 실행하려면:
 
 ```bash
 python -m http.server 8000
 ```
 
-또는 Windows Python Launcher를 사용하는 경우:
+또는:
 
 ```bash
 py -m http.server 8000
 ```
-
-서버 창을 닫으면 로컬 서버도 종료됩니다.
 
 ---
 
