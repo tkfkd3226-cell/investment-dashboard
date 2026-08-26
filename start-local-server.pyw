@@ -422,15 +422,59 @@ class TrayIcon:
         kernel32 = ctypes.windll.kernel32
 
         try:
-            # Explicit Win32 return types are required on 64-bit Python; otherwise
-            # pointer-sized HWND/HMENU/HINSTANCE values can be truncated to c_int.
+            # Explicit Win32 signatures are required on 64-bit Python.  ctypes
+            # otherwise assumes c_int for unspecified parameters, which truncates
+            # pointer-sized HWND/HMENU/HINSTANCE values (e.g. CreateWindowExW arg 11).
+            LRESULT = ctypes.c_ssize_t
+            UINT_PTR = ctypes.c_size_t
+            LPVOID = ctypes.c_void_p
+
+            kernel32.GetModuleHandleW.argtypes = [wintypes.LPCWSTR]
             kernel32.GetModuleHandleW.restype = wintypes.HMODULE
+
+            user32.LoadIconW.argtypes = [wintypes.HINSTANCE, ctypes.c_void_p]
             user32.LoadIconW.restype = wintypes.HICON
-            user32.CreateWindowExW.restype = wintypes.HWND
-            user32.CreatePopupMenu.restype = wintypes.HMENU
-            user32.TrackPopupMenu.restype = wintypes.UINT
-            user32.DefWindowProcW.restype = ctypes.c_ssize_t
+            user32.RegisterWindowMessageW.argtypes = [wintypes.LPCWSTR]
             user32.RegisterWindowMessageW.restype = wintypes.UINT
+            user32.DefWindowProcW.argtypes = [
+                wintypes.HWND,
+                wintypes.UINT,
+                wintypes.WPARAM,
+                wintypes.LPARAM,
+            ]
+            user32.DefWindowProcW.restype = LRESULT
+            user32.CreatePopupMenu.argtypes = []
+            user32.CreatePopupMenu.restype = wintypes.HMENU
+            user32.AppendMenuW.argtypes = [
+                wintypes.HMENU,
+                wintypes.UINT,
+                UINT_PTR,
+                wintypes.LPCWSTR,
+            ]
+            user32.AppendMenuW.restype = wintypes.BOOL
+            user32.GetCursorPos.argtypes = [ctypes.POINTER(wintypes.POINT)]
+            user32.GetCursorPos.restype = wintypes.BOOL
+            user32.SetForegroundWindow.argtypes = [wintypes.HWND]
+            user32.SetForegroundWindow.restype = wintypes.BOOL
+            user32.TrackPopupMenu.argtypes = [
+                wintypes.HMENU,
+                wintypes.UINT,
+                ctypes.c_int,
+                ctypes.c_int,
+                ctypes.c_int,
+                wintypes.HWND,
+                ctypes.c_void_p,
+            ]
+            user32.TrackPopupMenu.restype = wintypes.UINT
+            user32.DestroyMenu.argtypes = [wintypes.HMENU]
+            user32.DestroyMenu.restype = wintypes.BOOL
+            user32.PostQuitMessage.argtypes = [ctypes.c_int]
+            user32.PostQuitMessage.restype = None
+
+            shell32.Shell_NotifyIconW.argtypes = [
+                wintypes.DWORD,
+                ctypes.POINTER(self.NOTIFYICONDATAW),
+            ]
             shell32.Shell_NotifyIconW.restype = wintypes.BOOL
 
             WNDPROCTYPE = ctypes.WINFUNCTYPE(
@@ -454,6 +498,35 @@ class TrayIcon:
                     ("lpszMenuName", wintypes.LPCWSTR),
                     ("lpszClassName", wintypes.LPCWSTR),
                 ]
+
+            user32.RegisterClassW.argtypes = [ctypes.POINTER(WNDCLASSW)]
+            user32.RegisterClassW.restype = wintypes.ATOM
+            user32.CreateWindowExW.argtypes = [
+                wintypes.DWORD,
+                wintypes.LPCWSTR,
+                wintypes.LPCWSTR,
+                wintypes.DWORD,
+                ctypes.c_int,
+                ctypes.c_int,
+                ctypes.c_int,
+                ctypes.c_int,
+                wintypes.HWND,
+                wintypes.HMENU,
+                wintypes.HINSTANCE,
+                LPVOID,
+            ]
+            user32.CreateWindowExW.restype = wintypes.HWND
+            user32.GetMessageW.argtypes = [
+                ctypes.POINTER(wintypes.MSG),
+                wintypes.HWND,
+                wintypes.UINT,
+                wintypes.UINT,
+            ]
+            user32.GetMessageW.restype = wintypes.BOOL
+            user32.TranslateMessage.argtypes = [ctypes.POINTER(wintypes.MSG)]
+            user32.TranslateMessage.restype = wintypes.BOOL
+            user32.DispatchMessageW.argtypes = [ctypes.POINTER(wintypes.MSG)]
+            user32.DispatchMessageW.restype = LRESULT
 
             self._taskbar_created_message = int(user32.RegisterWindowMessageW("TaskbarCreated"))
 
@@ -501,7 +574,7 @@ class TrayIcon:
             wc.lpfnWndProc = self._wndproc_ref
             wc.hInstance = hinstance
             wc.lpszClassName = self._class_name
-            wc.hIcon = user32.LoadIconW(None, self.IDI_APPLICATION)
+            wc.hIcon = user32.LoadIconW(None, ctypes.c_void_p(self.IDI_APPLICATION))
             atom = user32.RegisterClassW(ctypes.byref(wc))
             if not atom:
                 raise ctypes.WinError()
@@ -530,7 +603,7 @@ class TrayIcon:
             nid.uID = 1
             nid.uFlags = self.NIF_MESSAGE | self.NIF_ICON | self.NIF_TIP
             nid.uCallbackMessage = self.WM_TRAY
-            nid.hIcon = user32.LoadIconW(None, self.IDI_APPLICATION)
+            nid.hIcon = user32.LoadIconW(None, ctypes.c_void_p(self.IDI_APPLICATION))
             nid.szTip = APP_TITLE
             self.nid = nid
             if not add_tray_icon():
