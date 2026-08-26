@@ -55,7 +55,7 @@
 ### 1.5 로컬 Market AI 연동
 
 - `dashboard-market-ai.js` standalone adapter를 통한 현재 시장·AI 신호 표시
-- 시장 4개 metric(KOSPI·KOSPI200선물·SOX·NQ100선물)과 AI 신호 4개 metric을 **시장 / AI 신호 2개 compact list card**로 나란히 표시
+- 시장 4개 metric(KOSPI·KOSPI200선물·SOX/SOX-F·NQ100선물)과 AI 신호 4개 metric을 **시장 / AI 신호 2개 compact list card**로 나란히 표시. SOX는 미국 정규장 중 현물, 정규장 외 선물(SOX-F)로 자동 전환
 - Desktop / Tablet 모두 Hero 우측 보조 카드로 표시하며, Tablet은 좌측 성과 pill만 가용 폭에서 wrap
 - Mobile ≤760px·실제 터치폰 가로 UI에서는 숨기고, GitHub Pages 등 비로컬 환경은 기본 숨김. 단 `?market-ai-preview=1`(Desktop 1280) / `2`(Tablet 961)에서는 내장 예시 데이터로 UI만 미리보기
 - 선택한 과거 기준일과 분리된 **현재 시점 신호**로 동작
