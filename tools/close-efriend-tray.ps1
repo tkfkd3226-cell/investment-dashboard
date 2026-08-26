@@ -36,6 +36,15 @@ public static class TrayExitNative {
     public static extern bool IsWindowVisible(IntPtr hWnd);
 
     [DllImport("user32.dll")]
+    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetDlgItem(IntPtr hDlg, int nIDDlgItem);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
     public static extern bool SetCursorPos(int X, int Y);
 
     [DllImport("user32.dll")]
@@ -197,6 +206,46 @@ function Find-TrayElement {
     return $null
 }
 
+function Find-EFriendExitConfirmDialog {
+    # The verified final shutdown dialog is an efexpertmain.exe-owned visible
+    # #32770 dialog with Button CtrlId 1 (종료) and CtrlId 2 (취소).
+    $mainPids = @(
+        Get-Process -Name 'efexpertmain' -ErrorAction SilentlyContinue |
+            ForEach-Object { [uint32]$_.Id }
+    )
+    if ($mainPids.Count -eq 0) { return $null }
+
+    foreach ($hwnd in (Get-TopWindows)) {
+        if (-not [TrayExitNative]::IsWindowVisible($hwnd)) { continue }
+        if ((Get-ClassName $hwnd) -ne '#32770') { continue }
+
+        [uint32]$pid = 0
+        [void][TrayExitNative]::GetWindowThreadProcessId($hwnd, [ref]$pid)
+        if ($mainPids -notcontains $pid) { continue }
+
+        $exitButton = [TrayExitNative]::GetDlgItem($hwnd, 1)
+        $cancelButton = [TrayExitNative]::GetDlgItem($hwnd, 2)
+        if ($exitButton -eq [IntPtr]::Zero -or $cancelButton -eq [IntPtr]::Zero) { continue }
+        if ((Get-ClassName $exitButton) -ne 'Button') { continue }
+        if ((Get-ClassName $cancelButton) -ne 'Button') { continue }
+
+        return [PSCustomObject]@{
+            DialogHwnd = $hwnd
+            ExitHwnd   = $exitButton
+            CancelHwnd = $cancelButton
+            ProcessId  = $pid
+        }
+    }
+
+    return $null
+}
+
+function Test-EFriendProcessesStopped {
+    return -not [bool](
+        Get-Process -Name 'efexpertmain','xexpertgate','efriendexpert' -ErrorAction SilentlyContinue
+    )
+}
+
 $tray = Find-TrayElement -Name $TrayName
 if ($null -eq $tray) {
     Write-Output "TRAY_NOT_FOUND:$TrayName"
@@ -220,5 +269,46 @@ try {
     exit 3
 }
 
-Write-Output 'EXIT_INVOKED'
-exit 0
+# eFriend does not exit immediately after selecting tray > 종료.  It shows a
+# dedicated confirmation dialog.  The real dialog has been observed as:
+#   owner process: efexpertmain.exe
+#   class:         #32770
+#   CtrlId 1:      종료 (Button)
+#   CtrlId 2:      취소 (Button)
+# Find that exact native dialog and invoke CtrlId 1 directly, without relying
+# on screen coordinates, dialog text, or a second keyboard focus assumption.
+$deadline = [DateTime]::UtcNow.AddSeconds([Math]::Max(2, $TimeoutSeconds))
+$confirm = $null
+while ([DateTime]::UtcNow -lt $deadline) {
+    $confirm = Find-EFriendExitConfirmDialog
+    if ($null -ne $confirm) { break }
+    if (Test-EFriendProcessesStopped) {
+        Write-Output 'EXIT_CONFIRMED'
+        exit 0
+    }
+    Start-Sleep -Milliseconds 100
+}
+
+if ($null -eq $confirm) {
+    Write-Output 'EXIT_CONFIRM_NOT_FOUND'
+    exit 4
+}
+
+$BM_CLICK = 0x00F5
+[void][TrayExitNative]::SendMessage(
+    $confirm.ExitHwnd,
+    $BM_CLICK,
+    [IntPtr]::Zero,
+    [IntPtr]::Zero
+)
+
+while ([DateTime]::UtcNow -lt $deadline) {
+    if (Test-EFriendProcessesStopped) {
+        Write-Output 'EXIT_CONFIRMED'
+        exit 0
+    }
+    Start-Sleep -Milliseconds 100
+}
+
+Write-Output 'EXIT_CONFIRM_CLICKED_BUT_RUNNING'
+exit 5
