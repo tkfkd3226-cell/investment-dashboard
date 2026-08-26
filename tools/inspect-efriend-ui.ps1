@@ -1,4 +1,4 @@
-param(
+﻿param(
     [ValidateSet('login','certificate','ready','any')]
     [string]$Stage = 'any'
 )
