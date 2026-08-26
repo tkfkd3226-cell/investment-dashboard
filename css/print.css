@@ -1,5 +1,15 @@
 /* =========================================================
    Print · 인쇄
+
+   Internal Order · 내부 순서
+   [P01] Document / Body
+   [P02] Interaction Exclusions
+   [P03] Surface / Page Width
+   [P04] Asset Flow
+   [P05] Data Views
+   [P06] Charts
+   [P07] Pagination
+   [P08] Animation Reset
    ========================================================= */
 
 /*
@@ -12,7 +22,7 @@
   - 6개 자산 차트는 960px 최소폭/가로 스크롤을 해제하고 인쇄 가능 폭에 맞춰 SVG 전체를 축소한다.
 */
 
-/* Print Layout · 인쇄 레이아웃: 화면의 탭/스크롤/확대 상태와 무관하게 전체 자산을 연속 출력 */
+/* [P01. Document / Body · 인쇄 기본 문서 상태] */
 @media print{
     html,
     body{
@@ -36,7 +46,7 @@
       padding-top:0;
     }
 
-    /* Print-only Content · 화면 조작용 UI와 일시 상태는 인쇄물에서 제외 */
+    /* [P02. Interaction Exclusions · 화면 조작 UI와 일시 상태 제외] */
     .switcher,
     .desktop-edge-toc,
     .mobile-top-button,
@@ -58,7 +68,7 @@
       display:none;
     }
 
-    /* Print Surfaces · 화면 elevation은 제거하고 border/background 정보는 유지 */
+    /* [P03. Surface / Page Width · elevation 제거 + 용지 폭] */
     .card,
     .note,
     .hero,
@@ -76,7 +86,7 @@
       padding:var(--space-2xl);
     }
 
-    /* 인쇄에서는 자산 선택 탭 없이 증권계좌 다음에 퇴직연금을 연속 출력한다. */
+    /* [P04. Asset Flow · 자산 탭 없이 증권계좌 → 퇴직연금 연속 출력] */
     .asset-workspace-panel[hidden]{
       display:block;
     }
@@ -84,7 +94,7 @@
       margin-top:var(--space-9xl);
     }
 
-    /* Print Data Views · 모바일 카드보기/스크롤/sticky 상태와 무관하게 표 전체를 출력한다. */
+    /* [P05. Data Views · 카드보기/scroll/sticky 상태와 무관하게 canonical 표 출력] */
     [data-mobile-view] .table-view{
       display:block;
     }
@@ -131,7 +141,7 @@
       box-shadow:none;
     }
 
-    /* A4 폭에서는 차트 내부 스크롤 대신 1120:330 SVG 전체를 용지 폭에 맞춰 축소한다. */
+    /* [P06. Charts · 1120:330 SVG를 용지 폭에 맞춰 축소] */
     .chart-wrap,
     .chart-wrap.is-scrollable{
       width:100%;
@@ -148,7 +158,7 @@
       aspect-ratio:1120 / 330;
     }
 
-    /* Print Pagination · 제목/차트/소형 surface가 페이지 경계에서 어색하게 분리되지 않게 한다. */
+    /* [P07. Pagination · 제목/차트/소형 surface의 부자연스러운 page split 방지] */
     .section-title{
       break-after:avoid-page;
       page-break-after:avoid;
@@ -162,7 +172,7 @@
       page-break-inside:avoid;
     }
 
-    /* Print Charts · 화면 진입 animation 상태와 무관하게 인쇄에서는 차트를 정적 표시 */
+    /* [P08. Animation Reset · 화면 진입 상태와 무관하게 정적 차트 출력] */
     .chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-bar,
     .chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-point{
       opacity:1;

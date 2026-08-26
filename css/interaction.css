@@ -1,11 +1,18 @@
 /* =========================================================
    Interaction / Device · 입력장치 / 기기 특성
+
+   Internal Order · 내부 순서
+   [I01] Surface Hover
+   [I02] Topbar / Navigation Hover
+   [I03] Control Hover
+   [I04] Generic Button Motion
+
    viewport가 아니라 입력장치 능력으로 분기한다.
-   Fine Pointer Hover · 마우스/트랙패드에서만 hover 피드백을 활성화해
-   터치 기기의 sticky hover를 피한다.
+   마우스/트랙패드에서만 hover 피드백을 활성화해 터치 기기의 sticky hover를 피한다.
    ========================================================= */
 
 @media (hover:hover) and (pointer:fine){
+  /* [I01. Surface Hover · 카드 / pill / 표 row] */
     .card:hover,
     .note:not(.asset-status-note):not(.asset-change-note):hover,
     .asset-insight-card:hover,
@@ -24,6 +31,7 @@
       background:var(--interaction-row-bg);
     }
 
+  /* [I02. Topbar / Navigation Hover · 날짜 control / 모바일 menu] */
     :is(.date-select,.date-tool-btn):hover{
       border-color:var(--topbar-control-border-hover);
     }
@@ -41,6 +49,7 @@
       transform:translateY(-1px);
     }
 
+  /* [I03. Control Hover · 공통 control border feedback] */
     :is(
       button.legend-item.chart-series-all,
       .chart-y-auto-toggle,
@@ -53,6 +62,7 @@
       border-color:var(--control-border-hover);
     }
 
+  /* [I04. Generic Button Motion · 개별 component가 덮지 않는 기본 hover lift] */
     button:not(:disabled):hover{
       transform:translateY(-1px);
     }

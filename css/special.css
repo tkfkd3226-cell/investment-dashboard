@@ -1,11 +1,20 @@
 /* =========================================================
    Special Viewports · 특수 뷰포트
-   일반 Desktop / Tablet / Mobile 3구간만으로 해결하기 어려운 기능 예외만 둔다.
-   각 예외는 숫자보다 "기능명 + 존재 이유 + 적용 범위"가 먼저 보이도록 관리한다.
+
+   Scope Order · 적용 순서
+   [S01] Extra Small Phone ≤400px
+   [S02] Compact Desktop 1101~1279px
+   [S03] Phone Shared · 세로폰 + 실제 터치폰 가로 공통
+   [S04] Phone Landscape · 실제 스마트폰 가로 추가 override
+
+   Rules · 관리 원칙
+   - 일반 Desktop / Tablet / Mobile 3구간으로 해결되지 않는 기능 예외만 둔다.
+   - 숫자보다 기능명 + 존재 이유 + 적용 범위를 먼저 기록한다.
+   - 뒤의 Phone Landscape는 Phone Shared를 의도적으로 덮는 추가 override다.
    ========================================================= */
 
 /* -------------------------------------------------------------------------
-   Account Performance · 계좌별 성과 — Extra Small Phone ≤400px
+   [S01] Account Performance · 계좌별 성과 — Extra Small Phone ≤400px
    Why · 이유: 390px급 초소형 화면에서는 손익·수익률·메모를 기존 열 구조로
    유지하면 정보가 과밀해지므로, 수익률을 손익과 결합하고 메모를 tooltip로 축약한다.
    Scope · 범위: 통합성과 / 전일대비 / 계좌별 성과 표에만 적용한다.
@@ -602,7 +611,7 @@
 }
 
 /* -------------------------------------------------------------------------
-   Phone Landscape · 실제 스마트폰 가로모드
+   [S04] Phone Landscape · 실제 스마트폰 가로모드
    Trigger · 조건: landscape + width≤960 + height≤500 + hover:none + pointer:coarse
    Why · 이유: 폰 공통 compact 디자인은 유지하되, 가로폭은 열 수 확대와 no-scroll 차트에 사용한다.
    Scope · 범위: Hero/요약 카드 열 수, 표 고정, 차트 flow, 원천/검산 배치, 모달 input zoom 방지.

@@ -1,27 +1,35 @@
 /* =========================================================
-   Main CSS File Map · 메인 CSS 파일 구조
+   Common / Desktop Baseline · 공통 / 웹 기본
 
-   common.css
-   - Variables / Base · 변수 / 기본 스타일
-   - Global Layout / Shell · 전체 레이아웃 / 기본 구조
-   - Common component CSS · 공통 컴포넌트
-   - Desktop baseline · 별도 override가 없는 기본 웹 표현
-   - Responsive Shared · 태블릿+모바일 / 태블릿+웹 공통 조건
+   File Role · 파일 역할
+   - 전역 token과 Desktop baseline을 소유한다.
+   - 공통 primitive → feature component → navigation/data view 순서로 내려간다.
+   - viewport별 값 변경은 tablet.css / mobile.css / special.css에서 담당한다.
 
-   Viewport / Environment files · 뷰포트 / 환경별 파일
-   - tablet.css      · Tablet 761~1100px에서 common baseline 변경
-   - mobile.css      · Mobile ≤760px에서 common baseline 변경
-   - special.css     · 기능상 필요한 특수 viewport
-   - interaction.css · hover / pointer
-   - print.css       · Print 전용
+   Internal Order · 내부 순서
+   [01] Foundations / Tokens
+   [02] Page Shell / Hero / Market AI Mount
+   [03] Card / Typography / Data List Primitives
+   [04] Base Tables
+   [05] Charts
+   [06] Asset Detail
+   [07] Summary / Metric Cards
+   [08] Pension Contribution / Form Controls
+   [09] Asset Workspace / Shared Asset UI
+   [09B] Capital Source / Source Data
+   [10] Modal / Control / Semantic Utilities
+   [11] Pension Modal Composition / Batch
+   [12] Topbar / Navigation
+   [13] Data Table / Mobile Card
+   [14] Responsive Shared
 
-   Cascade Safety · cascade 안전 원칙
-   - index.html의 load order는 common → tablet → mobile → special → interaction → print 순서를 유지한다.
-   - Desktop은 별도 파일을 두지 않고 common의 기본값을 사용한다.
-   - 특수 viewport는 숫자보다 기능명 + 존재 이유 + 적용 범위를 우선해 관리한다.
+   Cascade Contract · cascade 원칙
+   - index.html load order: common → tablet → mobile → special → interaction → print.
+   - Desktop은 별도 stylesheet 없이 이 파일의 baseline을 사용한다.
+   - 같은 역할의 시각값은 token/primitive가 소유하고 feature selector는 배치·의미 차이만 가진다.
    ========================================================= */
 
-/* [01. Variables / Base · 변수 / 기본 스타일] Global Tokens · 전역 토큰 */
+/* [01. Foundations / Tokens · 기반 / 전역 토큰] */
 :root{
   --bg:#ffffff;
   --card:#ffffff;
@@ -84,6 +92,7 @@
   --data-list-title-weight:var(--type-weight-strong);
   --data-list-label-weight:var(--type-weight-bold);
   --data-list-value-weight:var(--type-weight-semibold);
+  --data-list-row-separator:1px dashed var(--line);
   --data-list-total-title-weight:var(--type-weight-emphasis);
   --data-list-total-value-weight:var(--type-weight-strong);
   /* Spacing Scale · 반복 여백의 canonical scale */
@@ -644,7 +653,7 @@ button svg{pointer-events:none;flex-shrink:0}
   border:0;
 }
 
-/* [02. Global Layout / Shell · 전체 레이아웃 / 기본 구조] Page Shell · 페이지 shell */
+/* [02. Page Shell / Hero · 페이지 shell / Hero] */
 .wrap{
   max-width:var(--page-shell-max-width);
   margin:0 auto;
@@ -724,7 +733,7 @@ button svg{pointer-events:none;flex-shrink:0}
 }
 
 
-/* Market AI Hero Extension · Market AI Hero 확장
+/* [02A. Market AI Hero Extension · Hero 우측 Market AI mount]
    Placement · 위치: Hero 기본 규칙 직후에 두고 별도 파일 하단 override로 분리하지 않는다.
    Ownership · 책임: common은 Desktop baseline + 공통 component/tooltip, Tablet/Phone 차이는 역할별 CSS가 담당한다.
    Order · 순서: mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip. */
@@ -743,7 +752,7 @@ button svg{pointer-events:none;flex-shrink:0}
 .hero.market-ai-mounted .hero-metric-pills{grid-area:pills}
 .market-ai-mobile-trigger{display:none}
 
-/* Market AI Theme / Surface · 라이트/다크 token과 보조 카드 surface */
+/* Market AI Panel / Surface · 공통 surface/color token을 소비하고 전용 geometry만 소유 */
 #market-ai-section{
   grid-area:market;
   position:relative;
@@ -769,13 +778,11 @@ button svg{pointer-events:none;flex-shrink:0}
   align-items:center;
   justify-content:space-between;
   gap:var(--space-lg);
-  margin-bottom:1px;
 }
 .market-ai-title{
   color:var(--ink);
   font-size:var(--market-ai-title-size);
   font-weight:var(--type-weight-strong);
-  letter-spacing:-.02em;
   white-space:nowrap;
 }
 .market-ai-status{
@@ -811,9 +818,7 @@ button svg{pointer-events:none;flex-shrink:0}
 }
 .market-ai-desktop-group-label{
   font-size:var(--market-ai-label-size);
-  letter-spacing:-.02em;
-  line-height:1.12;
-  margin-bottom:1px;
+  line-height:1.1;
   white-space:nowrap;
 }
 .market-ai-desktop-metric{
@@ -833,8 +838,8 @@ button svg{pointer-events:none;flex-shrink:0}
   right:0;
   bottom:0;
   left:0;
-  height:1px;
-  background:var(--line);
+  height:0;
+  border-top:var(--data-list-row-separator);
 }
 .market-ai-market-row .market-ai-desktop-metric{
   grid-template-columns:minmax(0,1fr) var(--market-ai-market-value-column) var(--market-ai-market-change-column);
@@ -848,8 +853,7 @@ button svg{pointer-events:none;flex-shrink:0}
   min-width:0;
   overflow:hidden;
   font-size:var(--market-ai-label-size);
-  letter-spacing:-.02em;
-  line-height:1.12;
+  line-height:1.1;
   text-align:left;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -860,8 +864,7 @@ button svg{pointer-events:none;flex-shrink:0}
   justify-self:end;
   color:var(--ink);
   font-size:var(--market-ai-value-size);
-  letter-spacing:-.02em;
-  line-height:1.12;
+  line-height:1.1;
   text-align:right;
 }
 .market-ai-desktop-change{font-size:var(--market-ai-change-size)}
@@ -922,7 +925,7 @@ button svg{pointer-events:none;flex-shrink:0}
   margin-top:var(--space-8xl);
 }
 
-/* [03. Common Cards / Components · 공통 카드 / 컴포넌트] Cards / Typography · 카드 / 타이포 */
+/* [03. Card / Typography / Data List Primitives · 카드 / 타이포 / 데이터 리스트 공통요소] */
 /*
   Card Surface Hierarchy · 본문 카드 계층
   - Outer: .pension-band / .securities-band
@@ -941,7 +944,7 @@ button svg{pointer-events:none;flex-shrink:0}
   box-shadow:var(--shadow-low);
 }
 
-/* Data List Card Primitive · 모바일 카드보기 / Market AI compact list가 같은 surface·label·value contract를 공유 */
+/* [03A. Data List Card Primitive · 모바일 카드보기 / Market AI가 같은 surface·label·value contract를 공유] */
 .data-list-card{
   min-width:0;
   padding:var(--data-list-card-pad,var(--surface-pad-data-list));
@@ -1156,7 +1159,7 @@ section{
   letter-spacing:-.02em;
 }
 
-/* [04. Tables / Forms · 테이블 / 입력 폼] Base Tables · 기본 테이블 */
+/* [04. Base Tables · 기본 테이블] */
 table{
   width:100%;
   border-collapse:separate;
@@ -1202,7 +1205,7 @@ td.num{
 }
 
 
-/* [05. Charts · 차트] Chart Primitives / Tooltip · 차트 기본 요소 / tooltip */
+/* [05. Charts · 차트] Primitives / Tooltip / Controls / Expanded */
 .bar-box{
   height:12px;
   background:var(--bar-track-bg);
@@ -1896,7 +1899,7 @@ body.chart-expanded-open .dash-tooltip{
   min-width:0;
 }
 
-/* [06. Asset Detail · 자산 상세] Shared Status / Change / Insight · 공통 현황 / 변동 / 인사이트 */
+/* [06. Asset Detail · 자산 상세] Status / Change / Insight */
 .asset-detail-grid{
   width:100%;
   margin-top:var(--asset-band-section-gap);
@@ -1977,7 +1980,6 @@ body.chart-expanded-open .dash-tooltip{
   color:var(--status-caution-soft-text);
   border-color:var(--status-caution-soft-border);
 }
-/* Light/Dark badge colors resolve through the shared status tokens above. */
 
 /* Empty State Contract · 자산 기여도 / 작업 모음의 빈 상태를 같은 surface·typography로 통일 */
 :is(.asset-empty-state,.pension-batch-empty){
@@ -2247,7 +2249,7 @@ body.chart-expanded-open .dash-tooltip{
   font-variant-numeric:tabular-nums;
 }
 
-/* [07. Common Metrics · 공통 핵심지표] Summary / Metric Cards · 요약 / 핵심지표 카드 */
+/* [07. Summary / Metric Cards · 요약 / 핵심지표 카드] */
 /* Cumulative Summary Cards · 연금/증권 누적 요약카드: layout만 담당하고 surface/타이포는 mini-card 공통 규칙 사용 */
 .chart-note.six{
   grid-template-columns:repeat(6,minmax(0,1fr));
@@ -2364,7 +2366,7 @@ body.chart-expanded-open .dash-tooltip{
   cursor:pointer;
 }
 
-/* [08. Pension Contribution / Adjustment · 퇴직연금 납입 / 금액조정] Pension Modal / Shared Modal Form Controls · 퇴직연금 모달 / 공통 입력 control */
+/* [08. Pension Contribution / Form Controls · 퇴직연금 납입 / 공통 입력 control] */
 .pension-contrib-tool{
   margin-top:var(--space-6xl);
   padding:var(--space-6xl);
@@ -2433,7 +2435,6 @@ body.chart-expanded-open .dash-tooltip{
   color:var(--modal-control-text);
   transition:var(--modal-control-transition);
 }
-/* Field Light/Dark colors resolve through --field-bg / --field-text. */
 .contrib-actions{
   display:flex;
   gap:var(--space-lg);
@@ -2571,7 +2572,6 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
   box-shadow:var(--shadow-high);
   padding:var(--modal-card-pad-y) var(--modal-card-pad-x);
 }
-/* Contribution modal surface resolves through --modal-surface / --modal-border. */
 .contrib-modal-head{
   display:grid;
   grid-template-columns:minmax(0,1fr) auto;
@@ -2619,7 +2619,6 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
   border:1px solid var(--modal-border);
   border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
 }
-/* Modal card borders inherit the shared modal/surface border system. */
 .modal-card-box:first-of-type{
   margin-top:0;
 }
@@ -2774,7 +2773,6 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
   padding:1px var(--space-md);
   font-weight:var(--type-weight-emphasis);
 }
-/* Code-chip Light/Dark colors resolve through --code-bg / --code-text. */
 .token-guide-alert{
   margin-top:var(--space-2xl);
   padding:var(--space-2xl) var(--space-4xl);
@@ -2784,7 +2782,6 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
   border:1px solid var(--status-caution-border);
   font-weight:var(--type-weight-emphasis);
 }
-/* Token guide alert Light/Dark colors resolve through caution tokens. */
 
 /* Pension Contribution Modal · 퇴직연금 납입/삭제 모달: 필드·목록·섹션 레이아웃 */
 .contrib-field,
@@ -2819,7 +2816,6 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
   background:var(--scrollbar-thumb);
   border-radius:var(--radius-pill);
 }
-/* Existing-list scrollbar Light/Dark color resolves through --scrollbar-color. */
 .contrib-existing-item{
   display:flex;
   align-items:center;
@@ -2830,7 +2826,6 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
   padding:var(--space-3xl) var(--space-4xl);
   cursor:pointer;
 }
-/* Existing-item Light/Dark surface resolves through --modal-item-surface. */
 .contrib-existing-item input{
   flex:0 0 auto;
   margin:0;
@@ -2913,14 +2908,9 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
 .asset-workspace-panel[hidden]{display:none}
 .asset-workspace-panel > section{margin-top:0}
 
-/* Dark Theme States · 다크 테마 상태: 공통 변수만으로 해결되지 않는 차이만 선언 */
+/* Dark-only Selector Overrides · semantic token만으로 해결되지 않는 selector 차이만 선언 */
 .dark :is(.note,.chart-card,.card:not(.dark),.mini-card,.mobile-data-card){background-color:var(--card);border-color:var(--line);color:var(--ink)}
-/* Y-axis state chip Light/Dark colors resolve through state-chip tokens. */
-/* Pension insight inset Light/Dark shadow resolves through --insight-inset-shadow. */
-/* Meter/bar Light/Dark colors resolve through the shared track tokens. */
-/* Pension risk threshold Light/Dark color resolves through --risk-threshold. */
 .dark .pension-risk-scale{color:var(--muted)}
-/* Separate-profit Light/Dark colors resolve through dedicated semantic tokens. */
 
 .securities-subsection{
   margin-top:var(--asset-band-section-gap);
@@ -3064,7 +3054,6 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
   background:var(--status-warning-bg);
 }
 
-/* Warning preview Light/Dark colors resolve through warning tokens. */
 
 .pension-etf-trade-preview-title{
   margin-bottom:var(--space-2xl);
@@ -3078,7 +3067,6 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
   color:var(--status-danger-emphasis);
 }
 
-/* Blocked text Light/Dark color resolves through --status-danger-emphasis. */
 
 .pension-etf-trade-preview-grid{
   display:grid;
@@ -3118,14 +3106,13 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
   line-height:var(--type-line-helper);
 }
 
-/* Warning alert text resolves through --status-warning-text. */
 
 .pension-etf-trade-preview.blocked .pension-etf-trade-preview-alert{
   border-top-color:var(--status-danger-divider);
   color:var(--status-danger-soft-text);
 }
 
-/* [09B. Capital Source / Source Data · 투자원금 원천 / 검산 데이터] 외곽 panel 없이 3개 데이터 카드만 사용 */
+/* [09B. Capital Source / Source Data · 투자원금 원천 / 검산 데이터] */
 .capital-source-section .source-title{
   padding:0 var(--space-2xs);
 }
@@ -3147,8 +3134,8 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
 .source-data-table .source-base-row > :is(th,td){background:var(--card)}
 .source-data-table .source-derived-row > :is(th,td){background:var(--source-linked-bg)}
 
-/* [10. Modal / Interaction Primitives / Semantic Utilities · 모달 / 상호작용 공통요소 / 의미 유틸리티]
-   Action modal을 시작점으로 하되, cascade 우선순위가 필요한 공통 control/semantic utility는 이 구간의 source order를 유지한다. */
+/* [10. Modal / Control / Semantic Utilities · 모달 / control / 의미 유틸리티]
+   Action modal을 시작점으로 하되 cascade 우선순위가 필요한 공통 control/semantic utility는 이 구간의 source order를 유지한다. */
 .action-modal{
   position:fixed;
   inset:0;
@@ -3624,7 +3611,6 @@ button:not(:disabled):active{
   box-shadow:var(--mobile-top-shadow-hover);
 }
 .mobile-top-button:active{transform:scale(.96)}
-/* Mobile top button Light/Dark colors and elevation resolve through navigation tokens. */
 
 /* Securities Holding Markers · 증권 보유종목: 차트 색상 marker */
 .holding-name-text{
@@ -3698,7 +3684,6 @@ button:not(:disabled):active{
   font-size:var(--type-size-2xs);
   font-weight:var(--type-weight-emphasis);
 }
-/* Batch index Light/Dark colors resolve through batch-index tokens. */
 .pension-batch-item-text{
   min-width:0;
   color:var(--text);
@@ -3733,7 +3718,6 @@ button:not(:disabled):active{
   font-weight:var(--type-weight-strong);
   line-height:var(--type-line-relaxed);
 }
-/* Batch info note Light/Dark colors resolve through info tokens; error surface is unified below. */
 .pension-batch-actions{
   display:flex;
   justify-content:flex-end;
@@ -4252,9 +4236,10 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .change-table-wrap{margin-top:var(--space-5xl);border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
 
 /* =========================================================
-   Responsive Shared · 반응형 공통
+   [14. Responsive Shared · 반응형 공통]
    - Tablet + Mobile: max-width:1100px
    - Tablet + Desktop + Phone Landscape: min-width:761px 또는 실제 가로폰
+   - 개별 viewport 파일보다 앞선 baseline 공유 규칙만 둔다.
    ========================================================= */
 
 @media (min-width:761px),

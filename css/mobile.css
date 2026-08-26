@@ -1,12 +1,23 @@
 /* =========================================================
    Mobile · 모바일 (≤760px)
-   - 모바일 전용 media query 모음
+
+   Internal Order · 내부 순서
+   [M01] Hero
+   [M02] Cards / Metrics / Section Controls
+   [M03] Asset Tabs / Data Views / Allocation
+   [M04] Charts / Ledger
+   [M05] Modal / Feedback
+   [M06] Pension Feature
+   [M07] Interaction
+   [M08] Navigation Utility
+
+   세로폰 전용 구조만 둔다. 세로·가로폰 공통 compact density는 special.css의 Phone Shared가 소유한다.
    ========================================================= */
 
 @media (max-width:760px){
 
-  /* Hero Mobile · 핵심요약 pill/label의 세로폰 구성 */
-    .hero .hero-metric-pills{
+  /* [M01. Hero · 세로폰 Hero pill / label 구성] */
+.hero .hero-metric-pills{
       display:grid;
       grid-template-columns:1fr;
     }
@@ -17,9 +28,8 @@
     .hero .hero-label-default{display:none}
     .hero .hero-label-mobile{display:inline}
 
-
-  /* Summary / Metric Grid Mobile · 요약카드와 핵심지표는 세로폰 열 수만 조정 */
-    .chart-note.six{
+  /* [M02. Cards / Metrics / Section Controls · 요약 열 수와 제목 control 배치] */
+.chart-note.six{
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
 
@@ -27,13 +37,133 @@
       grid-template-columns:1fr;
     }
 
-  /* Section Controls Mobile · 제목 시각 규칙은 Phone Shared token을 따르고 여기서는 우측 control 순서/수직 정렬만 보정 */
-    .securities-summary-block .chart-head-actions > [data-accounts-view-toggle-wrap]:not([hidden]){display:inline-flex;order:-1}
+.securities-summary-block .chart-head-actions > [data-accounts-view-toggle-wrap]:not([hidden]){display:inline-flex;order:-1}
     .section-title > .section-control-chip,
     .section-title > .section-title-actions,
     .section-title > .separate-profit-control-row{position:relative;top:1px}
-  /* Pension Modal Portrait · 폰 공통 density는 special.css Phone UI Shared가 소유하고, 여기서는 세로폰 폭/구성만 정의 */
-    .contrib-modal{
+
+  /* [M03. Asset Tabs / Data Views / Allocation · 세로폰 표↔카드와 비중 카드] */
+.asset-workspace-tabs{width:100%;margin-bottom:var(--space-4xl)}
+
+.asset-status-table .mobile-table-brand-prefix{display:none}
+    .mobile-view-toggle{display:inline-flex}
+    [data-mobile-view="card"] .table-view{display:none}
+    [data-mobile-view="card"] .mobile-card-view{display:grid}
+    [data-mobile-view="table"] .table-view{display:block}
+    [data-mobile-view="table"] .mobile-card-view{display:none}
+    .mobile-card-view{
+      grid-template-columns:1fr;
+      width:100%;
+    }
+    .mobile-data-card-title{
+      margin:0 0 var(--space-lg);
+      font-size:var(--type-size-lg);
+      line-height:var(--type-line-compact);
+      letter-spacing:-.03em;
+    }
+    .mobile-data-card-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:var(--space-5xl);
+      padding:var(--space-md) 0;
+      border-top:var(--data-list-row-separator);
+    }
+    .mobile-data-card-row:first-child{border-top:0}
+    .mobile-data-card-label{
+      font-size:var(--type-size-xs);
+      line-height:var(--type-line-body);
+    }
+    .mobile-data-card-value{
+      min-width:0;
+      text-align:right;
+      font-size:11.5px;
+      line-height:var(--type-line-body);
+    }
+    .mobile-data-card.mobile-total-card .mobile-data-card-title{font-weight:var(--data-list-total-title-weight)}
+    .mobile-data-card.mobile-total-card .mobile-data-card-value{font-weight:var(--data-list-total-value-weight)}
+    .mobile-data-card-row.stacked{display:block}
+    .mobile-data-card-row.stacked .mobile-data-card-value{margin-top:var(--space-xs);text-align:left}
+    .mobile-data-card-row.note-only .mobile-data-card-label{display:none}
+    .mobile-data-card-row.note-only .mobile-data-card-value{
+      display:block;
+      width:100%;
+      margin-top:0;
+      color:var(--muted);
+      text-align:left;
+      font-size:var(--type-size-xs);
+      font-weight:var(--type-weight-regular);
+      line-height:var(--type-line-relaxed);
+    }
+
+.chart-note.symbol-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+    #pension-chart-alloc .chart-note{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    #securityAllocCards.security-alloc-card-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    #securityAllocCards > .alloc-total-card{
+      grid-column:1 / -1;
+    }
+
+    .asset-no-prev-note{
+      min-height:66px;
+      padding:var(--space-4xl) var(--space-2xl);
+    }
+
+    .pension-etf-trade-preview-grid{
+      grid-template-columns:1fr;
+      gap:var(--space-xs);
+    }
+
+    .pension-etf-trade-preview-grid strong{
+      margin-bottom:var(--space-md);
+      text-align:left;
+    }
+
+  /* [M04. Charts / Ledger · 세로폰 차트 장식과 장부 layout] */
+.chart-card::before{
+      height:2px;
+      opacity:.55;
+    }
+
+#ledger-check .ledger-overview-grid{grid-template-columns:1fr}
+
+.chart-head > div{min-width:0}
+
+  /* [M05. Modal / Feedback · KRX/PIN bottom-sheet와 toast] */
+.action-modal{
+      align-items:flex-end;
+      --modal-overlay-pad:var(--space-5xl);
+      --modal-card-pad-y:var(--space-9xl);
+      --modal-card-pad-x:var(--space-8xl);
+      --modal-card-radius:min(22px,var(--corner-surface-cap));
+      /* iOS Safari input zoom 방지: action modal control은 shared token으로 16px을 유지한다. */
+      --modal-control-font-size:var(--type-size-2xl);
+    }
+
+.app-toast{
+      --toast-bottom:16px;
+      --toast-max-width:520px;
+      --toast-viewport-gutter:16px;
+      text-align:center;
+    }
+
+.krx-action-buttons{
+      gap:var(--space-lg);
+    }
+    .krx-action-buttons .control-action-button{
+      min-height:42px;
+      height:auto;
+      padding:var(--space-md) var(--space-xl);
+      font-size:var(--type-size-sm);
+    }
+
+  /* [M06. Pension Feature · 퇴직연금 세로폰 form / 기존항목 / batch] */
+.contrib-modal{
       align-items:flex-end;
       --modal-card-width:min(100%, calc(100vw - 36px));
       --modal-card-radius:min(var(--surface-radius-lg),var(--corner-surface-cap));
@@ -70,110 +200,7 @@
       line-height:var(--type-line-body);
     }
 
-  /* Asset Workspace Tabs Mobile · 모바일 자산 탭 폭 / 하단 여백 조정 */
-    .asset-workspace-tabs{width:100%;margin-bottom:var(--space-4xl)}
-
-
-  /* Phone Portrait Data Views · 세로폰만 표/카드 전환과 축약 종목명을 사용 */
-    .asset-status-table .mobile-table-brand-prefix{display:none}
-    .mobile-view-toggle{display:inline-flex}
-    [data-mobile-view="card"] .table-view{display:none}
-    [data-mobile-view="card"] .mobile-card-view{display:grid}
-    [data-mobile-view="table"] .table-view{display:block}
-    [data-mobile-view="table"] .mobile-card-view{display:none}
-    .mobile-card-view{
-      grid-template-columns:1fr;
-      width:100%;
-    }
-    .mobile-data-card-title{
-      margin:0 0 var(--space-lg);
-      font-size:var(--type-size-lg);
-      line-height:var(--type-line-compact);
-      letter-spacing:-.03em;
-    }
-    .mobile-data-card-row{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:var(--space-5xl);
-      padding:var(--space-md) 0;
-      border-top:1px dashed var(--line);
-    }
-    .mobile-data-card-row:first-child{border-top:0}
-    .mobile-data-card-label{
-      font-size:var(--type-size-xs);
-      line-height:var(--type-line-body);
-    }
-    .mobile-data-card-value{
-      min-width:0;
-      text-align:right;
-      font-size:11.5px;
-      line-height:var(--type-line-body);
-    }
-    .mobile-data-card.mobile-total-card .mobile-data-card-title{font-weight:var(--data-list-total-title-weight)}
-    .mobile-data-card.mobile-total-card .mobile-data-card-value{font-weight:var(--data-list-total-value-weight)}
-    .mobile-data-card-row.stacked{display:block}
-    .mobile-data-card-row.stacked .mobile-data-card-value{margin-top:var(--space-xs);text-align:left}
-    .mobile-data-card-row.note-only .mobile-data-card-label{display:none}
-    .mobile-data-card-row.note-only .mobile-data-card-value{
-      display:block;
-      width:100%;
-      margin-top:0;
-      color:var(--muted);
-      text-align:left;
-      font-size:var(--type-size-xs);
-      font-weight:var(--type-weight-regular);
-      line-height:var(--type-line-relaxed);
-    }
-
-  /* Symbol Summary Portrait · 세로폰 종목/상품 손익카드는 2열 */
-    .chart-note.symbol-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-
-    #pension-chart-alloc .chart-note{
-      grid-template-columns:repeat(2,minmax(0,1fr));
-    }
-
-    #securityAllocCards.security-alloc-card-grid{
-      grid-template-columns:repeat(2,minmax(0,1fr));
-    }
-    #securityAllocCards > .alloc-total-card{
-      grid-column:1 / -1;
-    }
-
-    .asset-no-prev-note{
-      min-height:66px;
-      padding:var(--space-4xl) var(--space-2xl);
-    }
-
-    .pension-etf-trade-preview-grid{
-      grid-template-columns:1fr;
-      gap:var(--space-xs);
-    }
-
-    .pension-etf-trade-preview-grid strong{
-      margin-bottom:var(--space-md);
-      text-align:left;
-    }
-
-  /* Action Modals Mobile · KRX/PIN 모바일: 공통 bottom-sheet */
-    .action-modal{
-      align-items:flex-end;
-      --modal-overlay-pad:var(--space-5xl);
-      --modal-card-pad-y:var(--space-9xl);
-      --modal-card-pad-x:var(--space-8xl);
-      --modal-card-radius:min(22px,var(--corner-surface-cap));
-      /* iOS Safari input zoom 방지: action modal control은 shared token으로 16px을 유지한다. */
-      --modal-control-font-size:var(--type-size-2xl);
-    }
-
-    .app-toast{
-      --toast-bottom:16px;
-      --toast-max-width:520px;
-      --toast-viewport-gutter:16px;
-      text-align:center;
-    }
-
-    .contrib-existing-date,
+.contrib-existing-date,
     .contrib-existing-info{
       display:block;
     }
@@ -182,46 +209,28 @@
       display:none;
     }
 
-    .card,
+.pension-batch-queue{max-height:150px}
+    .pension-batch-item{grid-template-columns:22px minmax(0,1fr);align-items:start}
+    .pension-batch-item-actions{grid-column:2;justify-content:flex-end}
+    .pension-batch-head{align-items:center}
+    .pension-contrib-context{padding:0}
+
+  /* [M07. Interaction · 터치 press와 카드 transition] */
+.card,
     .note:not(.asset-status-note):not(.asset-change-note),
     .asset-insight-card,
     .mini-card{
       transition:box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
     }
 
-    .date-action-menu.mobile-combined-menu .mobile-nav-item:active,
+.date-action-menu.mobile-combined-menu .mobile-nav-item:active,
     .date-tool-btn:not(:disabled):active,
     button:not(:disabled):active{
       transform:scale(.985);
     }
 
-    .chart-card::before{
-      height:2px;
-      opacity:.55;
-    }
-
-    #ledger-check .ledger-overview-grid{grid-template-columns:1fr}
-
-    .chart-head > div{min-width:0}
-
-    .krx-action-buttons{
-      gap:var(--space-lg);
-    }
-    .krx-action-buttons .control-action-button{
-      min-height:42px;
-      height:auto;
-      padding:var(--space-md) var(--space-xl);
-      font-size:var(--type-size-sm);
-    }
-
-    .pension-batch-queue{max-height:150px}
-    .pension-batch-item{grid-template-columns:22px minmax(0,1fr);align-items:start}
-    .pension-batch-item-actions{grid-column:2;justify-content:flex-end}
-    .pension-batch-head{align-items:center}
-    .pension-contrib-context{padding:0}
-
-  /* Mobile Top Button · 모바일 맨위로 버튼 위치 */
-    .mobile-top-button{
+  /* [M08. Navigation Utility · 모바일 맨위로 버튼] */
+.mobile-top-button{
       right:12px;
       bottom:max(14px,calc(env(safe-area-inset-bottom) + 9px));
       width:48px;
@@ -231,6 +240,4 @@
       box-shadow:var(--mobile-top-shadow-mobile);
     }
 
-
 }
-
