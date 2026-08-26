@@ -26,6 +26,7 @@ EFRIEND_GATE_PROCESS = "xexpertgate.exe"
 EFRIEND_READY_PROCESS = "efexpertmain.exe"
 BRIDGE_PROCESS = "KisKospi200Bridge.exe"
 LOCAL_SUITE_ICON = "InvestmentLocalSuite.ico"
+EFRIEND_TRAY_EXIT_SCRIPT = Path("tools") / "close-efriend-tray.ps1"
 
 # eFriend Expert UI contract verified on the current installation.  These are
 # Win32 dialog/control IDs, not screen coordinates, so automation remains
@@ -1653,13 +1654,63 @@ class LocalSuiteLauncher:
                 entries.append((image_name, pid))
         return entries
 
-    def _stop_efriend_chain(self, reason: str = "") -> bool:
-        """Close the eFriend runtime as one cooperating process chain.
+    def _invoke_efriend_tray_exit(self) -> bool:
+        """Use eFriend's own tray menu (e-Friend Expert > 종료) for normal shutdown."""
+        if os.name != "nt":
+            return False
 
-        efexpertmain.exe and xexpertgate.exe can outlive or re-create each other
-        briefly during shutdown.  Treating them as independent images leaves a
-        race, so first request a normal UI close and then converge the whole
-        chain to zero with gate-first forced termination rounds.
+        script = self.root_dir / EFRIEND_TRAY_EXIT_SCRIPT
+        if not script.exists():
+            self.log(f"[WARN] eFriend tray-exit helper not found: {script}")
+            return False
+
+        try:
+            result = subprocess.run(
+                [
+                    "powershell.exe",
+                    "-NoProfile",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    str(script),
+                    "-TrayName",
+                    "e-Friend Expert",
+                    "-ExitName",
+                    "종료",
+                    "-TimeoutSeconds",
+                    "6",
+                ],
+                cwd=str(self.root_dir),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                startupinfo=_hidden_startupinfo(),
+                creationflags=CREATE_NO_WINDOW,
+                timeout=12,
+            )
+        except Exception as exc:
+            self.log(f"[WARN] eFriend tray 종료 자동화 실행 실패: {type(exc).__name__}: {exc}")
+            return False
+
+        detail = (result.stdout or result.stderr or "").strip()
+        if result.returncode != 0:
+            if detail:
+                self.log(f"[WARN] eFriend tray 종료 자동화 실패 ({result.returncode}): {detail}")
+            else:
+                self.log(f"[WARN] eFriend tray 종료 자동화 실패 ({result.returncode}).")
+            return False
+
+        self.log("        e-Friend Expert tray > 종료 invoked.")
+        return True
+
+    def _stop_efriend_chain(self, reason: str = "") -> bool:
+        """Close eFriend through its verified tray Exit command, then verify zero processes.
+
+        On this installation the main-window X/WM_CLOSE and `파일 > 끝내기` do not
+        terminate the eFriend runtime.  The verified normal exit path is the
+        `e-Friend Expert` system-tray icon's `종료` command.  Use that path first;
+        only if tray automation fails do we retain the old force-stop fallback.
         """
         initial = self._efriend_running_entries()
         if not initial:
@@ -1668,45 +1719,29 @@ class LocalSuiteLauncher:
         suffix = f" ({reason})" if reason else ""
         self.log(f"[STOP]  eFriend Expert{suffix}")
 
-        # Give the application a chance to release its own session/resources.
-        initial_pids = {pid for _name, pid in initial}
-        posted = self._post_wm_close_to_pids(initial_pids)
-        if posted:
-            self.log(f"        eFriend normal close requested ({posted} window(s)).")
-            deadline = time.monotonic() + 4.0
+        if self._invoke_efriend_tray_exit():
+            deadline = time.monotonic() + 8.0
             while time.monotonic() < deadline:
                 if not self._efriend_running_entries():
-                    self.log("[OK]    eFriend Expert stopped.")
+                    self.log("[OK]    eFriend Expert stopped via tray Exit.")
                     return True
                 time.sleep(0.25)
+            self.log("[WARN] eFriend tray 종료 명령 후 프로세스가 남아 있어 fallback 종료를 시도합니다.")
 
-        # Stop the gate/watchdog before the main runtime.  Re-scan each round so
-        # any short-lived replacement PID is also removed before we declare done.
+        # Fallback only: eFriend's own tray Exit is the primary verified path.
         kill_order = (EFRIEND_GATE_PROCESS, EFRIEND_READY_PROCESS, EFRIEND_BOOTSTRAP_PROCESS)
-        for round_no in range(1, 5):
-            remaining_before = self._efriend_running_entries()
-            if not remaining_before:
+        for _round_no in range(1, 3):
+            if not self._efriend_running_entries():
                 self.log("[OK]    eFriend Expert stopped.")
                 return True
-
-            if round_no == 1:
-                self.log("[WARN] eFriend normal close did not finish; forcing the full eFriend chain.")
 
             for image_name in kill_order:
                 for pid in sorted(self._process_pids(image_name)):
                     try:
-                        result = self._run_hidden(
-                            ["taskkill", "/F", "/PID", str(pid), "/T"],
-                            timeout=8,
-                        )
-                        if result.returncode != 0:
-                            detail = (result.stderr or result.stdout or "").strip()
-                            if detail:
-                                self.log(f"[WARN] eFriend force stop PID {pid} ({image_name}) returned {result.returncode}: {detail}")
+                        self._run_hidden(["taskkill", "/F", "/PID", str(pid)], timeout=8)
                     except Exception as exc:
-                        self.log(f"[WARN] eFriend force stop PID {pid} ({image_name}) failed: {type(exc).__name__}: {exc}")
-
-            time.sleep(0.75)
+                        self.log(f"[WARN] eFriend fallback stop PID {pid} ({image_name}) failed: {type(exc).__name__}: {exc}")
+            time.sleep(0.5)
 
         remaining = self._efriend_running_entries()
         if remaining:
