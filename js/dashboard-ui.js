@@ -50,6 +50,7 @@ import {
 
 // 메인 대시보드 일반 UI · topbar · navigation · rendering component
 
+// Theme / Appearance · 테마 / 모서리 스타일
 const THEME_STORAGE_KEY='investmentDashboard.theme';
 const CORNER_THEME_STORAGE_KEY='investmentDashboard.cornerTheme';
 const currentTheme=()=>document.documentElement.classList.contains('dark')?'dark':'light';
@@ -111,6 +112,7 @@ function setCornerTheme(theme){
 }
 function toggleCornerTheme(){setCornerTheme(currentCornerTheme()==='rounded'?'soft-square':'rounded')}
 
+// Section Controls / Title Icons · 섹션 컨트롤 / 제목 아이콘
 const separateProfitToggle=()=>`<button type="button" class="section-control-chip section-action-chip separate-profit-toggle ${uiState.includeSeparateProfit?'active':''}" aria-pressed="${uiState.includeSeparateProfit}" data-dashboard-action="toggle-separate-profit"><span>별도수익</span><strong>${uiState.includeSeparateProfit?'ON':'OFF'}</strong></button>`;
 const separateProfitControl=(x,extraClass='')=>{
   if(!uiState.personalViewUnlocked)return '';
@@ -130,6 +132,7 @@ function hydrateSectionTitleIcons(root=document){
     el.innerHTML=navIconSvg(el.dataset.sectionTitleIcon||'list');
   });
 }
+// Navigation / TOC · 모바일 메뉴 / 데스크톱 목차 / 섹션 이동
 function renderUnifiedMobileMenuContent(){
   const groups=[
     {
@@ -329,6 +332,7 @@ function setupSectionNavigationTracking(){
   syncSectionNavigationState();
 }
 const MOBILE_DATE_PIN_STORAGE_KEY='investmentDashboard.mobileDatePinned';
+// Topbar / Date Menu State · 상단바 / 날짜 메뉴 상태
 function mobileDatePinned(){
   try{return localStorage.getItem(MOBILE_DATE_PIN_STORAGE_KEY)==='1'}catch(_){return false}
 }
@@ -349,6 +353,7 @@ function setMobileDatePinned(pinned){
   try{localStorage.setItem(MOBILE_DATE_PIN_STORAGE_KEY,pinned?'1':'0')}catch(_){}
   syncMobileTopbarState();
 }
+// Shared Rendering / Responsive View Helpers · 공통 렌더링 / 반응형 보기 helper
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=dataState.activeDate.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
   document.getElementById('tabs').innerHTML=`
@@ -428,6 +433,7 @@ function mobileInfoCard(title,items=[],extraClass='',accessibleLabel=''){
   return `<article class="mobile-data-card ${extraClass}" aria-label="${accessibleTitle}"><div class="mobile-data-card-title">${title}</div><div class="mobile-data-card-list">${items.map(item=>{const [label,value,valueClass='',rowClass='']=item;return `<div class="mobile-data-card-row ${rowClass}"><span class="mobile-data-card-label">${label}</span><span class="mobile-data-card-value ${valueClass}">${value}</span></div>`}).join('')}</div></article>`;
 }
 
+// Mobile Top Button · 모바일 TOP 버튼
 function scrollToDashboardTop(){
   window.scrollTo({top:0,left:0,behavior:'smooth'});
 }
@@ -451,6 +457,7 @@ function ensureMobileTopButton(){
   update();
 }
 
+// Date Action Menu / Global UI Events · 날짜 액션 메뉴 / 전역 UI 이벤트
 function closeDateActionMenu(){
   const menu=document.getElementById('dateActionMenu');
   const tabs=document.getElementById('tabs');
@@ -501,6 +508,7 @@ function setupUiGlobalEvents(){
     syncMobileTopbarState();
   },{passive:true});
 }
+// KRX Action Modal / Toast · KRX 현재가 반영 모달 / 토스트
 async function dispatchKrxPriceUpdate(pin, mode='selected'){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
   const selectedDate=dataState.activeDate || '';
@@ -686,6 +694,7 @@ async function triggerKrxPriceUpdate(){
   openKrxActionModal();
 }
 
+// Asset Workspace Navigation · 자산 탭 / 섹션 이동
 function syncAssetTabs(){
   document.querySelectorAll('[data-asset-tab]').forEach(button=>{
     const active=button.dataset.assetTab===uiState.activeAssetTab;
@@ -740,6 +749,7 @@ function jumpToSection(id){
   });
 }
 
+// Securities Rendering · 증권계좌 렌더링
 function sectionToSecuritiesBlock(html, extraClass=''){
   if(!html) return '';
   return html
@@ -1057,6 +1067,7 @@ function toggleAccountMemoInfo(event,button){
 
   if(open)showAccountMemoFloatingTooltip(button);
 }
+// Accounts / Capital Source Tables · 계좌별 성과 / 투자원금 원천 표
 function renderAccounts(x,{hidden=false}={}){
   const c=dataState.portfolio.constants,sourceTracking=dataState.portfolio.securitiesSourceTracking||{},v=separateProfitView(x),realizedProfitInput=securityInternalCashTransferSum(x.date),excludedTransfer=securityExcludedTransferSum(x.date),vipProfitReinvest=(Number(c.account2ReinvestedToAccount1)||0)-(Number(c.account2Principal)||0),vipGoldInput=Number(sourceTracking.vipGoldInput)||0,vipReinvestLessGold=(Number(c.account2ReinvestedToAccount1)||0)-vipGoldInput,mobileReturnPct=n=>(Number(n)||0).toFixed(1)+'%';
   const separateProfitModeMemo=excludedTransfer
@@ -1163,6 +1174,7 @@ function renderSourceTables(x){
 }
 
 
+// UI Event Routing · 일반 UI 액션 / 변경 / 키보드 라우팅
 function handleUiDashboardAction(event,control){
   const action=control.dataset.dashboardAction;
   if(action==='close-date-menu')closeDateActionMenu();

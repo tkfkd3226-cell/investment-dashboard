@@ -1985,6 +1985,17 @@ input
 - 누적/운용 수익률 카드의 `전일 대비` 보조 비율은 각 자산의 `하루 변동률`을 `%`로 표시하고, 본 누적/운용 수익률 계산은 변경하지 않는다.
 - `400px 이하` 변동 table의 3열 축약 등 실제 좁은 폭 기능 예외는 현재 구현을 유지하며 다른 화면에 확대 적용하지 않는다.
 
+### Table 공통 contract
+
+- 메인 표의 기본 geometry/typography는 `.dashboard-data-table`의 `--data-table-*` semantic token이 소유한다. viewport별 실제 font-size/padding/line-height 값은 CSS를 Source of Truth로 보고 이 문서에 중복 기록하지 않는다.
+- `table / tr / th / td` 높이를 직접 고정하지 않는다. 셀 높이는 font-size, line-height, padding으로 결정한다.
+- 숫자는 `.num`이 기본 우측 정렬을 담당하고, 문자형 열은 `.table-cell-text`, 수량/%처럼 의미상 가운데가 필요한 값은 `.table-cell-center`를 사용한다. 위치 기반 `nth-child`나 `table-cell-right` 같은 중복 utility를 다시 도입하지 않는다.
+- 일반 row label은 bold가 기본이고, 증권 `현금`, 퇴직연금 `현금성자산`, 투자원금 원천 source table의 일반 첫 열은 regular 예외다. summary/합계/합산 행은 전체 bold를 유지하되 계좌별 성과표의 summary 메모만 regular다.
+- 비중, 계좌 메모, 장부 조정 하단값, 변동표 평가금액 하단값은 `.data-table-sub` secondary typography contract를 공유한다. 일반 secondary는 regular, summary 내부 secondary는 summary weight를 따르며 계좌 summary memo만 regular 예외다.
+- 손익/수익률/일변동의 양수·음수 색상은 기존 positive/negative semantic color를 재사용하고 table 전용 색상 token을 새로 만들지 않는다.
+- `투자원금 원천 및 검산` 3개 표는 `renderSourceDataTable({ caption, rows })`가 공통 table shell을 담당한다. 계산식, row 구성, summary 데이터는 각 기능이 소유하며 renderer 하나로 억지 통합하지 않는다.
+- 현황표의 종목/상품 색상 swatch는 `assetColorSwatch()` 계열 helper를 통해 기존 chart series color source를 재사용한다. table 전용 색상 mapping을 별도로 만들지 않는다.
+
 ### 성과 요약 · 계좌별 불변조건
 
 - 증권과 퇴직연금 상단 KPI는 공통 **`성과 요약` shell**을 사용하며 기본 vertical rhythm과 title/action 구조를 공유한다.
@@ -1998,6 +2009,12 @@ input
 - `2026-06-18` 이후 전체 성과 카드의 누적손익 설명은 `투자 결과물 - 투입원금`, 이전 복원 구간은 `전체 누적 성과 기준`처럼 중립적으로 표시한다. 과거 수치를 설명에 맞추기 위해 재계산하지 않는다.
 - 계좌별 table은 **세로 Mobile과 실제 가로폰**에서 누적수익률을 누적손익 셀의 보조값으로 합쳐 5열로 축약한다. `400px 이하`에서는 메모 내용을 정보 버튼으로 전환하고, **세로 Mobile card view**의 메모는 카드 폭에 맞춰 자연스럽게 줄바꿈한다.
 - 성과 요약 title/action은 기존 `.section-title`, `.section-title-icon`, `.chart-head-actions`, segmented/button, mobile table/card control을 재사용한다. 증권 성과 요약에서 별도수익 control은 `전체 / 계좌별` 왼쪽에 둔다. **세로 Mobile에서만** `표 보기 / 카드 보기` control을 표시해 가장 왼쪽에 두고, 실제 가로폰에서는 해당 control을 숨긴 채 table view를 유지한다.
+
+### Modal / Action Form 공통 contract
+
+- KRX 현재가 반영과 퇴직연금 금액조정처럼 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, border/radius, 상태 표시 등 공통 form/control 표현은 기존 modal/control token과 공통 dialog helper를 재사용한다.
+- 기능별 modal은 자기 업무 구조와 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금의 PIN·기업적립금·현금성자산·ETF 추가매수·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
+- 세로 Mobile bottom-sheet, Desktop/Tablet/Phone Landscape 중앙 modal, iOS 입력 확대 방지 같은 실제 viewport/browser 예외는 현재 검증된 범위에서 유지한다. 공통화를 이유로 기능 예외를 제거하지 않는다.
 
 화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js`로 보내지 않는다.
 
@@ -2027,6 +2044,13 @@ js/dashboard-charts.js
 차트 내부 DOM/state 구현을 `dashboard-ui.js`나 `dashboard-app.js`가 직접 만지지 않는다.
 
 `dashboard-app.js`는 charts가 제공하는 공개 command/API만 사용한다.
+
+### Chart UI / Expanded / SVG 공통 contract
+
+- 일반 차트는 `.chart-card`, `.chart-head`, 공통 control primitive, options row, legend, mini-card와 공통 vertical rhythm을 재사용한다. 기능별 차트가 동일 역할의 padding/control geometry를 별도로 만들지 않는다.
+- 확대 차트는 별도의 독립 chart/control state를 복제하지 않는다. 기존 SVG와 controls/options/legend를 expanded overlay로 이동해 사용하고 닫을 때 placeholder 위치로 복원하며, chart state와 공개 action 흐름을 그대로 공유한다. 확대에서만 필요한 닫기/viewport 처리와 별도수익 control 보조는 expanded layer가 소유한다.
+- SVG 내부는 frame/scale/좌표 helper처럼 의미가 동일한 계산만 공통화한다. dual axis, KOSPI 비교, line/bar/stack처럼 데이터 의미가 다른 renderer를 범용 renderer 하나로 억지 통합하지 않는다.
+- 일반 차트와 확대 차트의 tooltip/resize/keyboard/legend 최소 1개 선택/Y축 자동 등 기존 불변조건은 같은 chart state에서 함께 검증한다.
 
 ## 4.7 퇴직연금 View / Editor 책임
 
@@ -3091,15 +3115,7 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 
 ## 6.10 `!important` 사용 정책
 
-현재 메인 CSS의 실제 `!important` 선언은 **0개**다. 2026-08-21 최소화 작업은 단순히 숫자를 0으로 맞춘 것이 아니라, 각 선언의 cascade 필요성을 분리 검증한 뒤 제거했고 마지막 iOS Safari date control 13개까지 **실제 iPhone Safari 수동 QA PASS**로 확정했다.
-
-최종 정리 경로:
-
-- 시작: `!important` 30개
-- 1차: semantic color 5 + 모바일 table/card 상태 4 + `[hidden]` 2 + reduced-motion transition 1 + print panel 1 = 13개 제거 → 17개
-- 운영 기준 재확정: OS `prefers-reduced-motion`을 대시보드 모션보다 우선하지 않기로 하면서 차트 reduced-motion 4개와 관련 CSS/JS 분기 제거 → 13개
-- 2차: iOS Safari date control 13개 제거 → 0개
-- 자동/브라우저 QA PASS + 실제 iPhone Safari 날짜 입력 UI QA PASS → **0개 상태 최종 확정**
+현재 메인 CSS의 실제 `!important` 선언은 **0개**이며, 이 상태는 정상 cascade/source order/token 구조로 동작하도록 검증된 현재 기준선이다. 과거 제거 차수와 개수는 Git 이력으로 관리하고 이 문서에는 누적하지 않는다.
 
 현재 운영 원칙:
 
@@ -3161,18 +3177,21 @@ Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유�
 
 ## 6.14 본문 카드 공통 시스템
 
-본문 카드는 **같은 hierarchy + 같은 viewport = 같은 geometry/spacing**을 유지한다. 카드 외곽 padding, 카드 간 gap, 카드 내부 rhythm은 서로 다른 책임으로 관리하며 임의 숫자를 개별 selector에 추가하지 않는다.
+본문 카드는 **같은 hierarchy + 같은 viewport = 같은 geometry/spacing**을 유지한다. 카드 외곽 padding, 카드 간 gap, 카드 내부 rhythm은 서로 다른 책임으로 관리하며 개별 selector에 임의 숫자를 추가하지 않는다.
 
-### Surface / Radius
+### Surface / Radius ownership
 
-| Surface | Web ≥1101 | Tablet 761~1100 | Phone UI | Radius |
-|---|---:|---:|---:|---:|
-| Outer / Large | 18px | 16px | 14px | Outer 24/24/20px · Large 18px |
-| Medium / Info | 14px | 12px | 10px | 16px |
-| Mini | 12px | 10px | 8px | 14px |
-| Metric | 18px | 14px | 10px | Large 상속 |
-| Emphasis | 18px | 16px | 12px | Large 상속 |
-| Mobile Data | - | - | 13px | 15px |
+카드 surface는 아래 semantic token을 canonical로 사용한다. viewport별 실제 px 값은 CSS token이 Source of Truth이며 이 문서에 중복 기록하지 않는다.
+
+```text
+--surface-pad-outer
+--surface-pad-large
+--surface-pad-medium
+--surface-pad-mini
+--surface-pad-metric
+--surface-pad-emphasis
+--surface-pad-mobile-data
+```
 
 - Outer: `.pension-band`, `.securities-band`
 - Large: `.card`, `.note`, `.chart-card`
@@ -3181,27 +3200,32 @@ Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유�
 - Metric/Emphasis는 `.card` 기반 variant다.
 - base selector가 semantic token을 소유하고 Tablet/Phone에서는 **token 값만 변경**한다. 같은 padding/radius를 responsive selector에 반복하지 않는다.
 
-### Card Grid Gap
+### Card Grid Gap ownership
 
-| Gap | 대표 대상 | Web | Tablet | Phone |
-|---|---|---:|---:|---:|
-| Large | Metric / Asset Detail / Chart / Ledger grid | 16px | 14px | 12px |
-| Medium | Source / Insight / Mobile Data grid | 12px | 10px | 8px |
-| Compact | Mini / Change KPI grid | 10px | 8px | 6px |
+카드 그룹 간 gap은 아래 3단계 contract만 사용한다.
 
-`--card-grid-gap-large/medium/compact`만 사용한다. 열 수는 viewport별로 바꿀 수 있지만 gap 숫자는 별도 재정의하지 않는다.
+```text
+--card-grid-gap-large
+--card-grid-gap-medium
+--card-grid-gap-compact
+```
 
-### Vertical Rhythm
+- Large: Metric / Asset Detail / Chart / Ledger / **투자원금 원천 및 검산 Source grid**
+- Medium: Insight / Mobile Data grid
+- Compact: Mini / Change KPI grid
 
-| 관계 | Web | Tablet | Phone |
-|---|---:|---:|---:|
-| Metric label → value | 4px | 3px | 2px |
-| Metric value → sub | 6px | 5px | 4px |
-| Mini label → value | 3px | 2px | 2px |
-| Mini value → detail | 4px | 3px | 3px |
-| Info heading → content | 10px | 8px | 6px |
+열 수는 viewport별로 바꿀 수 있지만 같은 hierarchy의 gap을 개별 px로 다시 정의하지 않는다.
 
-이 규칙을 수정할 때 font-size, line-height, grid 열 수, breakpoint, Topbar/Hero/table/chart/JS 로직을 함께 변경하지 않는다.
+### Vertical Rhythm ownership
+
+카드 내부 세로 간격은 surface padding이나 grid gap과 별도로 관리한다. 현재 공통 rhythm은 `--card-text-rhythm-gap`, `--info-stack-gap`, `--chart-content-rhythm-gap`과 각 component typography token이 소유한다.
+
+- Metric label → value / value → sub
+- Mini label → value / value → detail
+- Info heading → content
+- Chart title/content/legend/mini-card 사이의 공통 흐름
+
+이 규칙을 수정할 때 font-size, grid 열 수, breakpoint, Topbar/Hero/table/chart/JS 로직을 한 차수에 함께 변경하지 않는다.
 
 ## 6.15 카드 확정 예외 / 완료 기준
 

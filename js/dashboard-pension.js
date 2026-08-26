@@ -36,6 +36,40 @@ const pensionEvaluationMobileSubText=x=>{
   return `${shortDate(x.date)}${full.includes(' 추정 ')?' 추정':''} 기준`;
 };
 
+// Pension Insights / Risk Gauge · 퇴직연금 인사이트 / 위험자산 게이지
+function isSafePensionAsset(name=''){return /(채권|현금|예금|MMF|RP|CMA|단기채)/.test(String(name));}
+function getPensionDayContributionItems(x){
+  if(x.pensionPrevEval==null)return [];
+  const cashDelta=Number(x.pensionCashDayChange)||0;
+  const items=[...x.pensionRows.map(r=>({name:r.name,value:Number(r.dayChange)||0,color:pensionSeriesColor(r.name)})),{name:'현금성자산',value:cashDelta,color:CASH_ASSET_COLOR}]
+    .filter(v=>v.value>0)
+    .sort((a,b)=>b.value-a.value);
+  const total=items.reduce((a,v)=>a+v.value,0);
+  return items.map(v=>({...v,share:total?v.value/total*100:0}));
+}
+function getPensionRiskGauge(x){
+  const riskEval=x.pensionRows.filter(r=>!isSafePensionAsset(r.name)).reduce((a,r)=>a+Number(r.evalAmount||0),0);
+  const safeEval=Math.max(0,Number(x.pensionEval||0)-riskEval);
+  const ratio=Number(x.pensionEval||0)?riskEval/Number(x.pensionEval)*100:0;
+  const threshold=70;
+  return {riskEval,safeEval,ratio,threshold,gap:ratio-threshold,allowedEval:Number(x.pensionEval||0)*(threshold/100)};
+}
+function renderPensionProductInsights(x){
+  const items=getPensionDayContributionItems(x);
+  const risk=getPensionRiskGauge(x);
+  const gaugeWidth=Math.max(0,Math.min(100,risk.ratio));
+  const riskTone=risk.ratio>risk.threshold?'danger':'safe';
+  const contributionHtml=renderAssetContributionCard({
+    idPrefix:'pensionContribution',
+    hasPrev:x.pensionPrevEval!=null,
+    items:items.map(item=>({...item,shortLabel:item.name.replace('KODEX ',''),valueText:signed(item.value)})),
+  });
+  const riskTooltip=`위험자산 ${won(risk.riskEval)} / 안전자산 ${won(risk.safeEval)} / 기준 대비 ${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p`;
+  const riskHtml=`<div class="asset-insight-card" role="group" aria-labelledby="pensionRiskInsightTitle"><div class="asset-insight-head simple"><h3 id="pensionRiskInsightTitle">위험자산 70% 룰</h3><span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}" aria-hidden="true">현재 ${risk.ratio.toFixed(1)}%</span></div><div class="pension-risk-gauge compact has-tooltip" tabindex="0" role="img" aria-label="위험자산 비중 ${risk.ratio.toFixed(1)}%, 기준 ${risk.threshold}%, 기준 대비 ${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p" aria-describedby="pensionRiskTooltip"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}" style="width:${gaugeWidth.toFixed(1)}%"></div><div class="pension-risk-threshold" aria-hidden="true" style="left:${risk.threshold}%"><span>${risk.threshold}%</span></div><div id="pensionRiskTooltip" class="asset-viz-tooltip wide" role="tooltip"><strong>위험자산 70% 룰</strong><div>${riskTooltip}</div></div></div><div class="pension-risk-scale" aria-hidden="true"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div></div>`;
+  return `<div class="asset-insight-zone" role="group" aria-label="퇴직연금 인사이트">${contributionHtml}${riskHtml}</div>`;
+}
+
+// Pension Product / Change Rendering · 상품 현황 / 전일대비 렌더링
 function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHeldProfit,pensionHeldReturn){
   const orderedPensionRows=sortPensionItems(x.pensionRows),
         cashProfit=x.pensionCash-pensionCashCost,
@@ -190,6 +224,7 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
     mobileInfoCard
   });
 }
+// Pension Section Composition · 퇴직연금 섹션 조합
 function renderPension(x){
   const c=dataState.portfolio.constants,
         day=x.pensionDayChange,
@@ -201,37 +236,7 @@ function renderPension(x){
         orderedPensionRows=sortPensionItems(x.pensionRows);
   return `<section id="pension-section"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="briefcase" aria-hidden="true"></span>퇴직연금 현황</h2></div><div class="pension-band"><div class="asset-overview"><div class="section-title"><h3><span class="section-title-icon" data-section-title-icon="chart" aria-hidden="true"></span>성과 요약</h3></div><div class="grid cards metric-grid pension-metric-grid">${metricCard('평가금액',won(x.pensionEval),pensionEvaluationBasisText(x.date),true,'',pensionEvaluationMobileSubText(x))}${metricCard('납입원금',won(x.pensionPrincipal),'최근 적립금 반영',false,'','최근 적립금 반영')}${metricCard('운용손익',won(x.pensionProfit),'평가금액 - 납입원금',false,cls(x.pensionProfit))}${metricCard('운용수익률',pct(x.pensionReturn),'운용손익 ÷ 납입원금',false,cls(x.pensionReturn))}</div></div><div class="grid two asset-detail-grid">${renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHeldProfit,pensionHeldReturn)}${renderPensionChangeBlock(x,orderedPensionRows,day,rate)}</div>${renderPensionCharts(x)}</div></section>`;
 }
-function isSafePensionAsset(name=''){return /(채권|현금|예금|MMF|RP|CMA|단기채)/.test(String(name));}
-function getPensionDayContributionItems(x){
-  if(x.pensionPrevEval==null)return [];
-  const cashDelta=Number(x.pensionCashDayChange)||0;
-  const items=[...x.pensionRows.map(r=>({name:r.name,value:Number(r.dayChange)||0,color:pensionSeriesColor(r.name)})),{name:'현금성자산',value:cashDelta,color:CASH_ASSET_COLOR}]
-    .filter(v=>v.value>0)
-    .sort((a,b)=>b.value-a.value);
-  const total=items.reduce((a,v)=>a+v.value,0);
-  return items.map(v=>({...v,share:total?v.value/total*100:0}));
-}
-function getPensionRiskGauge(x){
-  const riskEval=x.pensionRows.filter(r=>!isSafePensionAsset(r.name)).reduce((a,r)=>a+Number(r.evalAmount||0),0);
-  const safeEval=Math.max(0,Number(x.pensionEval||0)-riskEval);
-  const ratio=Number(x.pensionEval||0)?riskEval/Number(x.pensionEval)*100:0;
-  const threshold=70;
-  return {riskEval,safeEval,ratio,threshold,gap:ratio-threshold,allowedEval:Number(x.pensionEval||0)*(threshold/100)};
-}
-function renderPensionProductInsights(x){
-  const items=getPensionDayContributionItems(x);
-  const risk=getPensionRiskGauge(x);
-  const gaugeWidth=Math.max(0,Math.min(100,risk.ratio));
-  const riskTone=risk.ratio>risk.threshold?'danger':'safe';
-  const contributionHtml=renderAssetContributionCard({
-    idPrefix:'pensionContribution',
-    hasPrev:x.pensionPrevEval!=null,
-    items:items.map(item=>({...item,shortLabel:item.name.replace('KODEX ',''),valueText:signed(item.value)})),
-  });
-  const riskTooltip=`위험자산 ${won(risk.riskEval)} / 안전자산 ${won(risk.safeEval)} / 기준 대비 ${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p`;
-  const riskHtml=`<div class="asset-insight-card" role="group" aria-labelledby="pensionRiskInsightTitle"><div class="asset-insight-head simple"><h3 id="pensionRiskInsightTitle">위험자산 70% 룰</h3><span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}" aria-hidden="true">현재 ${risk.ratio.toFixed(1)}%</span></div><div class="pension-risk-gauge compact has-tooltip" tabindex="0" role="img" aria-label="위험자산 비중 ${risk.ratio.toFixed(1)}%, 기준 ${risk.threshold}%, 기준 대비 ${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p" aria-describedby="pensionRiskTooltip"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}" style="width:${gaugeWidth.toFixed(1)}%"></div><div class="pension-risk-threshold" aria-hidden="true" style="left:${risk.threshold}%"><span>${risk.threshold}%</span></div><div id="pensionRiskTooltip" class="asset-viz-tooltip wide" role="tooltip"><strong>위험자산 70% 룰</strong><div>${riskTooltip}</div></div></div><div class="pension-risk-scale" aria-hidden="true"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div></div>`;
-  return `<div class="asset-insight-zone" role="group" aria-label="퇴직연금 인사이트">${contributionHtml}${riskHtml}</div>`;
-}
+
 
 export {
   renderPension

@@ -48,10 +48,10 @@ Mobile · 모바일   ≤ 760px
 - 사용자가 별도로 둥근 모서리를 요청하지 않는 한 `10~14px` 같은 독립 radius 값을 다시 넣어 메인 대시보드보다 둥글게 만들지 않는다.
 - 전반적인 레이아웃은 과도한 여백보다 **응집감 있는 간격**을 우선한다. 카드 내부 padding, 카드 간 gap, 상하 margin을 필요 이상으로 다시 키우지 않는다.
 - `calc` 상단 hero는 **제목 + 우측 액션 버튼 2개**를 한 줄에 두고, 설명문은 그 아래에서 **버튼 폭의 영향을 받지 않고 전체 가로폭**을 사용하도록 유지한다. 태블릿에서도 `거래 리포트`, `기본값 복원` 버튼이 줄바꿈으로 아래로 떨어지지 않게 한다.
-- `calc` 상단의 `거래 리포트`, `기본값 복원` 버튼 텍스트는 메인 대시보드 상단 컨트롤과 같은 compact 수준인 **11.5px**을 기본으로 유지한다.
+- `calc` 상단의 `거래 리포트`, `기본값 복원` 버튼은 메인 대시보드 상단 컨트롤과 같은 **compact action typography** 수준을 유지한다. 실제 font-size는 add CSS를 Source of Truth로 본다.
 - `calc`의 `이전 거래 없음` / `이전 거래 후 재매수` 계열 2열 입력구간에서는 좌측 현재보유분 카드와 우측 계산기준 카드의 상하 균형이 어색하게 벌어지지 않도록 **카드 높이와 시작선 정렬**을 함께 본다.
 - 특히 `current-column`은 grid row 높이까지 stretch하고, 내부 `#currentGroup`이 남는 높이를 채우도록 유지해 `이전 거래 후 재매수`에서 `현재 보유분` 카드 하단이 좌우 카드보다 짧아지지 않게 한다.
-- `이전 거래 없음`의 빠른 매수 프리셋 행과 `계산 기준` 시작선을 맞출 때 `43px` 같은 고정 offset/magic number를 쓰지 않는다. `grid-template-areas` 등 구조적 배치로 프리셋 행 / 현재 보유분 / 계산 기준을 정렬한다.
+- `이전 거래 없음`의 빠른 매수 프리셋 행과 `계산 기준` 시작선을 맞출 때 고정 offset/magic number를 쓰지 않는다. `grid-template-areas` 등 구조적 배치로 프리셋 행 / 현재 보유분 / 계산 기준을 정렬한다.
 - CALC 입력 요소는 가능한 한 `<label for>`로 명시 연결하고, 복합 label 구조는 `aria-labelledby`를 사용한다. +/- stepper에는 대상과 증감량을 알 수 있는 `aria-label`을 유지한다.
 - CALC 전략 탭과 report 패널 탭은 `role=tablist/tab/tabpanel`, `aria-controls`, `aria-selected` 및 좌우 방향키/Home/End 키보드 이동을 유지한다. report `tabpanel`은 canonical desktop tab ID를 `aria-labelledby`로 연결한다. 시각적 `.active` 상태와 ARIA 선택 상태가 항상 함께 갱신되어야 한다.
 - 동적 custom tooltip은 고유 `id`와 `aria-describedby` 연결을 유지한다. report 표는 숨김 caption, column `scope=col`, 첫 열 row header `scope=row`를 유지한다.

@@ -44,6 +44,7 @@ import {
 
 // 메인 대시보드 차트 UI · SVG · legend · 확대 · responsive chart 처리
 
+// Chart Layout / Sizing Primitives · 차트 레이아웃 / 크기 primitive
 const CHART_FRAME=Object.freeze({left:70,right:70,top:20,bottom:70});
 const CHART_EDGE_PAD=24;
 const CHART_VIEWBOX_BASE=Object.freeze({width:1120,height:330});
@@ -469,6 +470,18 @@ function refreshChartOptions(scope){
   const legendId=chartLegendId(scope),legend=legendId?document.getElementById(legendId):null;
   if(card&&legend)syncChartOptions(scope,card,legend);
 }
+// Scroll State / Hints · 가로 스크롤 상태 / 힌트
+function refreshScrollHints(){
+  document.querySelectorAll('.scroll-hint').forEach(el=>el.remove());
+  document.querySelectorAll('.mobile-scroll, .chart-wrap').forEach(wrap=>{
+    const scrollable=wrap.scrollWidth>wrap.clientWidth+4;
+    wrap.classList.toggle('is-scrollable',scrollable);
+    if(wrap.classList.contains('chart-wrap')){
+      wrap.closest('.chart-card')?.classList.toggle('has-horizontal-scroll',scrollable);
+    }
+  });
+}
+
 function syncResponsiveChartControls(){
   const compact=compactPhoneChartUi(),phoneFlow=portraitPhoneChartFlow();
   RESPONSIVE_CHART_SCOPES.forEach(({id,scope})=>{
@@ -966,7 +979,7 @@ function renderPensionCharts(x){
 }
 
 
-// SVG Primitives / Tooltip / Axes · SVG 기본요소 / 툴팁 / 축
+// SVG Core / Tooltip Infrastructure · SVG 기반 / 툴팁 인프라
 function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
 function el(name, attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',name);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e}
 function cssThemeValue(name,fallback){
@@ -1084,6 +1097,7 @@ function scheduleChartTooltipViewportCheck(){
     if(!chartTooltipOwnerVisible())clearChartHover();
   });
 }
+// Global Events / Action Routing · 전역 이벤트 / 차트 액션 라우팅
 function setupChartGlobalEvents(){
   document.addEventListener('pointerdown',event=>{
     if(!event.target.closest('.svg-hitbox')&&!event.target.closest('#dashTooltip'))clearChartHover();
@@ -1112,6 +1126,7 @@ function handleChartDashboardAction(event,control){
   else return false;
   return true;
 }
+// Tooltip Rows / Axes / Hover Geometry · 툴팁 행 / 축 / hover 좌표
 function row(name,val,clsName='',rowClass=''){return `<div class="tt-row${rowClass?' '+rowClass:''}"><span class="tt-name">${tooltipEscape(name)}</span><span class="tt-val ${clsName}">${tooltipEscape(val)}</span></div>`}
 function totalRow(name,val,clsName=''){return row(name,val,clsName,'tt-total')}
 function clsBy(n){return n<0?'tt-neg':(n>0?'tt-pos':'')}
@@ -1499,16 +1514,6 @@ function drawStacked(){
   data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;series.forEach(key=>{const value=Number(d[key]||0),yTop=cfg.y(base+value),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:colors[key],opacity:.75,stroke:cssThemeValue('--chart-stack-stroke','#fff'),'stroke-width':chartExpandedHalfGrowthUnits(svg,.4)}));base+=value})});
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{const displayedTotal=series.reduce((a,key)=>a+Number(d[key]||0),0),total=selection.all?(Number(d._total)||displayedTotal):displayedTotal;let html=tooltipDate(d['날짜']);series.forEach(key=>{const value=Number(d[key]||0),share=total?value/total*100:0;html+=row(chartDisplayLabel('securitiesAlloc',key),fmt(value)+`원 (${share.toFixed(1)}%)`)});return html+tooltipDivider()+totalRow('합계',fmt(total)+'원')});
-}
-function refreshScrollHints(){
-  document.querySelectorAll('.scroll-hint').forEach(el=>el.remove());
-  document.querySelectorAll('.mobile-scroll, .chart-wrap').forEach(wrap=>{
-    const scrollable=wrap.scrollWidth>wrap.clientWidth+4;
-    wrap.classList.toggle('is-scrollable',scrollable);
-    if(wrap.classList.contains('chart-wrap')){
-      wrap.closest('.chart-card')?.classList.toggle('has-horizontal-scroll',scrollable);
-    }
-  });
 }
 function drawAllCharts(){
   applySecuritiesCumCardTransitionSuppression();

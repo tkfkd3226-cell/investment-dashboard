@@ -186,6 +186,7 @@ function renderPensionContributionModal(x){
 const PENSION_MODAL_MEASURE_TARGETS=['cashSnapshot','contribution','etfTrade'];
 let pensionModalHeightFrame=0;
 
+// Modal Measurement / Open / Close · 모달 측정 / 열기 / 닫기
 function configurePensionModalMeasureState(card,target,batchMode,tradeDraft){
   const normalized=PENSION_MODAL_MEASURE_TARGETS.includes(target)?target:'cashSnapshot';
   const standardFields=card.querySelector('#pensionContribStandardFields');
@@ -319,6 +320,7 @@ function closePensionContributionModal(){
   releaseDashboardDialogFocus(modal,{fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
   forceMobileViewportReflow();
 }
+// Input Formatting / Target State · 입력 포맷 / 대상 상태
 function cleanNumberInput(v){
   return Number(String(v||'').replace(/[^\d.-]/g,''));
 }
@@ -509,6 +511,7 @@ function syncPensionContributionTargetUi(){
   }
   schedulePensionContributionModalHeight();
 }
+// ETF Trade Draft / Preview · ETF 거래 초안 / 미리보기
 function pensionEtfTradeDraft(){
   const tradeDate=String(document.getElementById('pensionEtfTradeDate')?.value||'').trim();
   const ticker=String(document.getElementById('pensionEtfTradeTicker')?.value||'').trim();
@@ -593,6 +596,7 @@ function updatePensionEtfTradePreview(){
   const draft=pensionEtfTradeDraft();
   renderPensionEtfTradePreview(box,draft,pensionEtfTradeExpected(draft));
 }
+// Validation / Item Build · 검증 / 저장 항목 생성
 function pensionEditorInternalError(message){
   const error=new Error(message);
   error.code='PENSION_EDITOR_INTERNAL';
@@ -648,6 +652,7 @@ function buildPensionContributionItem(){
   if(rawAmount===''||!Number.isFinite(amount)||amount<=0) throw new Error('금액을 입력해주세요.');
   return {target,date,amount,memo};
 }
+// Status / Output / Form Reset · 상태 / 결과 / 폼 초기화
 function setPensionContributionStatus(elementId,message,type='err'){
   const status=document.getElementById(elementId);
   if(!status) return;
@@ -1282,7 +1287,7 @@ async function deleteSelectedPensionContribution(){
   showPensionToast(`${pensionContributionTargetObjectLabel(target)} 삭제했습니다.`);
 }
 
-// Event Delegation / Tooltip · 이벤트 위임 / 툴팁
+// Event Delegation / Keyboard / Native Date Picker · 이벤트 위임 / 키보드 / 네이티브 날짜 선택
 function handlePensionTargetTabKeydown(event,tab){
   const tabs=[...tab.closest('[role="tablist"]')?.querySelectorAll('.contrib-target-option[role="tab"]')||[]];
   if(!tabs.length)return false;

@@ -5,6 +5,7 @@
 
 @media (max-width:760px){
 
+  /* Hero Mobile · 핵심요약 pill/label의 세로폰 구성 */
     .hero .hero-metric-pills{
       display:grid;
       grid-template-columns:1fr;
@@ -17,6 +18,7 @@
     .hero .hero-label-mobile{display:inline}
 
 
+  /* Summary / Metric Grid Mobile · 요약카드와 핵심지표는 세로폰 열 수만 조정 */
     .chart-note.six{
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
@@ -175,8 +177,6 @@
       text-align:left;
     }
 
-  /* Capital Source Responsive · 투자원금 원천/검산: 모바일 1열, 태블릿 3열 */
-
   /* Action Modals Mobile · KRX/PIN 모바일: 공통 bottom-sheet */
     .action-modal{
       align-items:flex-end;
@@ -184,6 +184,7 @@
       --modal-card-pad-y:var(--space-9xl);
       --modal-card-pad-x:var(--space-8xl);
       --modal-card-radius:min(22px,var(--corner-surface-cap));
+      /* iOS Safari input zoom 방지: action modal control은 shared token으로 16px을 유지한다. */
       --modal-control-font-size:var(--type-size-2xl);
     }
 
@@ -221,8 +222,6 @@
       height:2px;
       opacity:.55;
     }
-
-  /* iOS Safari input zoom fix: action modal의 16px은 shared modal-control token으로 유지한다. */
 
     [id]{scroll-margin-top:52px}
 
