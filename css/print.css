@@ -5,10 +5,11 @@
 /*
   인쇄 전용 최종 override
   - 화면용 Web/Tablet/Mobile 규칙보다 뒤에서 적용되어 A4 인쇄 구조를 일관되게 만든다.
+  - 화면용 Topbar/Navigation/Modal/Tooltip 등 상호작용 UI는 제외한다.
   - 자산 탭은 숨기고 증권계좌 → 퇴직연금 순서로 두 panel을 모두 펼친다.
+  - 모바일 카드보기 상태와 무관하게 데이터 표를 canonical 인쇄 표현으로 사용한다.
   - 브라우저가 카드/밴드 배경색을 생략하지 않도록 print-color-adjust를 요청한다.
   - 6개 자산 차트는 960px 최소폭/가로 스크롤을 해제하고 인쇄 가능 폭에 맞춰 SVG 전체를 축소한다.
-  - 화면 우측 목차와 차트 스크롤/확대 버튼은 인쇄물에서 제외한다.
 */
 
 /* Print Layout · 인쇄 레이아웃: 화면의 탭/스크롤/확대 상태와 무관하게 전체 자산을 연속 출력 */
@@ -19,13 +20,50 @@
       print-color-adjust:exact;
     }
 
+    body,
+    body.dashboard-dialog-open,
+    body.chart-expanded-open{
+      overflow:visible;
+      touch-action:auto;
+    }
+
     body{
       background:white;
     }
 
+    #app{
+      padding-top:0;
+    }
+
+    /* Print-only Content · 화면 조작용 UI와 일시 상태는 인쇄물에서 제외 */
+    .switcher,
+    .desktop-edge-toc,
+    .mobile-top-button,
+    .app-toast,
+    .dash-tooltip,
+    .contrib-modal,
+    .action-modal,
+    .chart-expanded-overlay,
+    .asset-workspace-tabs,
+    .mobile-view-toggle,
+    .chart-scroll-row,
+    .chart-expand-button,
+    .chart-web-expand-button,
+    .chart-options-row,
+    .chart-title-info,
+    .accounts-memo-info-button{
+      display:none;
+    }
+
+    /* Print Surfaces · 화면 elevation은 제거하고 border/background 정보는 유지 */
     .card,
     .note,
     .hero,
+    .chart-card,
+    .pension-band,
+    .securities-band,
+    .mini-card,
+    .asset-insight-card,
     table{
       box-shadow:none;
     }
@@ -36,9 +74,6 @@
     }
 
     /* 인쇄에서는 자산 선택 탭 없이 증권계좌 다음에 퇴직연금을 연속 출력한다. */
-    .asset-workspace-tabs{
-      display:none;
-    }
     .asset-workspace-panel[hidden]{
       display:block;
     }
@@ -46,12 +81,54 @@
       margin-top:var(--space-9xl);
     }
 
-    /* A4 폭에서는 차트 내부 스크롤 대신 1120:330 SVG 전체를 용지 폭에 맞춰 축소한다. */
-    .chart-scroll-row,
-    .chart-expand-button,
-    .chart-web-expand-button{
+    /* Print Data Views · 모바일 카드보기/스크롤/sticky 상태와 무관하게 표 전체를 출력한다. */
+    [data-mobile-view] .table-view{
+      display:block;
+    }
+    [data-mobile-view] .mobile-card-view{
       display:none;
     }
+    .mobile-scroll{
+      width:100%;
+      max-width:100%;
+      overflow:visible;
+      border-radius:0;
+    }
+    .dashboard-data-table{
+      --data-table-font-size:10px;
+      --data-table-cell-y:4px;
+      --data-table-cell-x:4px;
+      --data-table-line-height:1.2;
+      --data-table-sub-font-size:9.5px;
+      width:100%;
+      min-width:0;
+      max-width:100%;
+      table-layout:auto;
+    }
+    .dashboard-data-table thead{
+      display:table-header-group;
+    }
+    .dashboard-data-table tr{
+      break-inside:avoid-page;
+      page-break-inside:avoid;
+    }
+    .dashboard-data-table :is(th,td):first-child,
+    .dashboard-data-table .accounts-memo{
+      white-space:normal;
+      overflow-wrap:anywhere;
+    }
+    .table-view > .dashboard-data-table:not(.source-data-table) th:first-child,
+    .table-view > .dashboard-data-table:not(.source-data-table) td:first-child{
+      position:static;
+      left:auto;
+      z-index:auto;
+    }
+    .dashboard-data-table tbody .summary-row > th[scope="row"]{
+      border-top:var(--data-table-summary-border);
+      box-shadow:none;
+    }
+
+    /* A4 폭에서는 차트 내부 스크롤 대신 1120:330 SVG 전체를 용지 폭에 맞춰 축소한다. */
     .chart-wrap,
     .chart-wrap.is-scrollable{
       width:100%;
@@ -68,6 +145,20 @@
       aspect-ratio:1120 / 330;
     }
 
+    /* Print Pagination · 제목/차트/소형 surface가 페이지 경계에서 어색하게 분리되지 않게 한다. */
+    .section-title{
+      break-after:avoid-page;
+      page-break-after:avoid;
+    }
+    .hero,
+    .card,
+    .chart-card,
+    .mini-card,
+    .asset-insight-card{
+      break-inside:avoid-page;
+      page-break-inside:avoid;
+    }
+
     /* Print Charts · 화면 진입 animation 상태와 무관하게 인쇄에서는 차트를 정적 표시 */
     .chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-bar,
     .chart-card.chart-entrance-ready:not(.chart-entrance-active) .chart-anim-point{
@@ -81,10 +172,5 @@
     .chart-card.chart-entrance-active .chart-anim-point,
     .chart-card.chart-entrance-active .chart-anim-line{
       animation:none;
-    }
-
-    /* 화면용 우측 목차는 인쇄 내용에 포함하지 않는다. */
-    .desktop-edge-toc{
-      display:none;
     }
 }

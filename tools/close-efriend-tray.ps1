@@ -16,10 +16,26 @@ $OutputEncoding = $utf8
 
 Add-Type @"
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 
-public static class TrayMouseNative {
-    [DllImport("user32.dll", SetLastError=true)]
+public static class TrayExitNative {
+    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+    public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+    [DllImport("user32.dll")]
+    public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+    [DllImport("user32.dll", CharSet=CharSet.Unicode)]
+    public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
     public static extern bool SetCursorPos(int X, int Y);
 
     [DllImport("user32.dll")]
@@ -32,43 +48,68 @@ $MOUSEEVENTF_LEFTUP    = 0x0004
 $MOUSEEVENTF_RIGHTDOWN = 0x0008
 $MOUSEEVENTF_RIGHTUP   = 0x0010
 
-function Get-VisibleElementByName {
+function Get-ClassName {
+    param([IntPtr]$Hwnd)
+    if ($Hwnd -eq [IntPtr]::Zero) { return '' }
+    $sb = New-Object System.Text.StringBuilder 256
+    [void][TrayExitNative]::GetClassName($Hwnd, $sb, $sb.Capacity)
+    return $sb.ToString()
+}
+
+function Get-TopWindows {
+    $result = New-Object System.Collections.Generic.List[System.IntPtr]
+    $callback = [TrayExitNative+EnumWindowsProc]{
+        param([IntPtr]$hWnd, [IntPtr]$lParam)
+        $result.Add($hWnd)
+        return $true
+    }
+    [void][TrayExitNative]::EnumWindows($callback, [IntPtr]::Zero)
+    return $result.ToArray()
+}
+
+function Get-AutomationElement {
+    param([IntPtr]$Hwnd)
+    if ($Hwnd -eq [IntPtr]::Zero) { return $null }
+    try {
+        return [System.Windows.Automation.AutomationElement]::FromHandle($Hwnd)
+    } catch {
+        return $null
+    }
+}
+
+function Find-ExactNameInRoot {
     param(
+        [Parameter(Mandatory=$true)]$Root,
         [Parameter(Mandatory=$true)][string]$Name,
         [string]$ControlTypeName = ''
     )
 
-    $root = [System.Windows.Automation.AutomationElement]::RootElement
-    $condition = [System.Windows.Automation.PropertyCondition]::new(
-        [System.Windows.Automation.AutomationElement]::NameProperty,
-        $Name
-    )
-    $items = $root.FindAll(
-        [System.Windows.Automation.TreeScope]::Descendants,
-        $condition
-    )
-
-    $best = $null
-    $bestArea = [double]::MaxValue
-    foreach ($item in $items) {
-        try {
-            if ($item.Current.IsOffscreen) { continue }
-            $rect = $item.Current.BoundingRectangle
-            if ($rect.Width -le 0 -or $rect.Height -le 0) { continue }
-            if ($ControlTypeName) {
-                $programmatic = $item.Current.ControlType.ProgrammaticName
-                if ($programmatic -ne $ControlTypeName) { continue }
+    try {
+        $condition = [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::NameProperty,
+            $Name
+        )
+        $items = $Root.FindAll(
+            [System.Windows.Automation.TreeScope]::Descendants,
+            $condition
+        )
+        foreach ($item in $items) {
+            try {
+                if ($item.Current.IsOffscreen) { continue }
+                $rect = $item.Current.BoundingRectangle
+                if ($rect.Width -le 0 -or $rect.Height -le 0) { continue }
+                if ($ControlTypeName) {
+                    if ($item.Current.ControlType.ProgrammaticName -ne $ControlTypeName) { continue }
+                }
+                return $item
+            } catch {
+                continue
             }
-            $area = $rect.Width * $rect.Height
-            if ($area -lt $bestArea) {
-                $best = $item
-                $bestArea = $area
-            }
-        } catch {
-            continue
         }
+    } catch {
+        return $null
     }
-    return $best
+    return $null
 }
 
 function Click-Element {
@@ -84,56 +125,99 @@ function Click-Element {
 
     $x = [int][Math]::Round($rect.Left + ($rect.Width / 2.0))
     $y = [int][Math]::Round($rect.Top  + ($rect.Height / 2.0))
-    if (-not [TrayMouseNative]::SetCursorPos($x, $y)) {
+    if (-not [TrayExitNative]::SetCursorPos($x, $y)) {
         throw "SetCursorPos failed for $x,$y"
     }
     Start-Sleep -Milliseconds 120
 
     if ($Right) {
-        [TrayMouseNative]::mouse_event($MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, [UIntPtr]::Zero)
-        [TrayMouseNative]::mouse_event($MOUSEEVENTF_RIGHTUP,   0, 0, 0, [UIntPtr]::Zero)
+        [TrayExitNative]::mouse_event($MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, [UIntPtr]::Zero)
+        [TrayExitNative]::mouse_event($MOUSEEVENTF_RIGHTUP,   0, 0, 0, [UIntPtr]::Zero)
     } else {
-        [TrayMouseNative]::mouse_event($MOUSEEVENTF_LEFTDOWN, 0, 0, 0, [UIntPtr]::Zero)
-        [TrayMouseNative]::mouse_event($MOUSEEVENTF_LEFTUP,   0, 0, 0, [UIntPtr]::Zero)
+        [TrayExitNative]::mouse_event($MOUSEEVENTF_LEFTDOWN, 0, 0, 0, [UIntPtr]::Zero)
+        [TrayExitNative]::mouse_event($MOUSEEVENTF_LEFTUP,   0, 0, 0, [UIntPtr]::Zero)
     }
 }
 
-$tray = Get-VisibleElementByName -Name $TrayName
+function Find-TrayElement {
+    param([string]$Name)
+
+    # Search only Explorer's taskbar/notification roots. Do not traverse the
+    # complete desktop UIA tree; some providers can block for many seconds.
+    $candidateHandles = New-Object System.Collections.Generic.List[System.IntPtr]
+    $shellTray = [TrayExitNative]::FindWindow('Shell_TrayWnd', $null)
+    if ($shellTray -ne [IntPtr]::Zero) { $candidateHandles.Add($shellTray) }
+
+    foreach ($hwnd in (Get-TopWindows)) {
+        $className = Get-ClassName $hwnd
+        if ($className -match 'NotifyIconOverflowWindow|TopLevelWindowForOverflowXamlIsland|Overflow|TrayNotify|Xaml') {
+            if (-not $candidateHandles.Contains($hwnd)) { $candidateHandles.Add($hwnd) }
+        }
+    }
+
+    foreach ($hwnd in $candidateHandles) {
+        $root = Get-AutomationElement $hwnd
+        if ($null -eq $root) { continue }
+        $item = Find-ExactNameInRoot -Root $root -Name $Name
+        if ($null -ne $item) { return $item }
+    }
+
+    # The icon may live in Windows 11's hidden-icons flyout. Open that flyout
+    # through the taskbar UI and repeat the bounded search.
+    if ($shellTray -ne [IntPtr]::Zero) {
+        $taskbarRoot = Get-AutomationElement $shellTray
+        if ($null -ne $taskbarRoot) {
+            $showHidden = $null
+            foreach ($label in @('숨겨진 아이콘 표시', 'Show hidden icons')) {
+                $showHidden = Find-ExactNameInRoot -Root $taskbarRoot -Name $label
+                if ($null -ne $showHidden) { break }
+            }
+            if ($null -ne $showHidden) {
+                try {
+                    $invoke = $showHidden.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+                    if ($null -ne $invoke) { $invoke.Invoke() } else { Click-Element -Element $showHidden }
+                } catch {
+                    Click-Element -Element $showHidden
+                }
+                Start-Sleep -Milliseconds 400
+
+                foreach ($hwnd in (Get-TopWindows)) {
+                    $className = Get-ClassName $hwnd
+                    if ($className -match 'NotifyIconOverflowWindow|TopLevelWindowForOverflowXamlIsland|Overflow|TrayNotify|Xaml') {
+                        $root = Get-AutomationElement $hwnd
+                        if ($null -eq $root) { continue }
+                        $item = Find-ExactNameInRoot -Root $root -Name $Name
+                        if ($null -ne $item) { return $item }
+                    }
+                }
+            }
+        }
+    }
+
+    return $null
+}
+
+$tray = Find-TrayElement -Name $TrayName
 if ($null -eq $tray) {
     Write-Output "TRAY_NOT_FOUND:$TrayName"
     exit 2
 }
 
+# e-Friend Expert uses a custom tray popup that does not expose its items
+# reliably through UI Automation or a standard Win32 HMENU.  On the actual
+# program, opening the tray menu and pressing Down three times selects the
+# final "종료" item; Enter then performs the program's own clean shutdown.
 Click-Element -Element $tray -Right
+Start-Sleep -Milliseconds 300
 
-$deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
-$exitItem = $null
-while ([DateTime]::UtcNow -lt $deadline) {
-    Start-Sleep -Milliseconds 100
-    $exitItem = Get-VisibleElementByName -Name $ExitName -ControlTypeName 'ControlType.MenuItem'
-    if ($null -ne $exitItem) { break }
-}
-
-if ($null -eq $exitItem) {
-    # Close any popup menu without choosing an item.
-    [System.Windows.Forms.SendKeys]::SendWait('{ESC}') 2>$null
-    Write-Output "EXIT_MENU_NOT_FOUND:$ExitName"
-    exit 3
-}
-
-$invoked = $false
 try {
-    $pattern = $exitItem.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-    if ($null -ne $pattern) {
-        $pattern.Invoke()
-        $invoked = $true
-    }
+    [System.Windows.Forms.SendKeys]::SendWait('{DOWN 3}')
+    Start-Sleep -Milliseconds 120
+    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
 } catch {
-    $invoked = $false
-}
-
-if (-not $invoked) {
-    Click-Element -Element $exitItem
+    [System.Windows.Forms.SendKeys]::SendWait('{ESC}') 2>$null
+    Write-Output "EXIT_KEY_SEQUENCE_FAILED:$($_.Exception.GetType().Name)"
+    exit 3
 }
 
 Write-Output 'EXIT_INVOKED'

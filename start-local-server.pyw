@@ -1669,6 +1669,7 @@ class LocalSuiteLauncher:
                 [
                     "powershell.exe",
                     "-NoProfile",
+                    "-STA",
                     "-ExecutionPolicy",
                     "Bypass",
                     "-File",
@@ -1687,7 +1688,7 @@ class LocalSuiteLauncher:
                 errors="replace",
                 startupinfo=_hidden_startupinfo(),
                 creationflags=CREATE_NO_WINDOW,
-                timeout=12,
+                timeout=10,
             )
         except Exception as exc:
             self.log(f"[WARN] eFriend tray 종료 자동화 실행 실패: {type(exc).__name__}: {exc}")

@@ -1550,9 +1550,12 @@ function prepareChartsForPrint(){
   drawInactiveChartsForPrint();
 }
 function drawInactiveChartsForPrint(){
-  drawCumChart();
-  drawLineChart();
-  drawStacked();
+  if(uiState.activeAssetTab==='pension'){
+    drawCumChart();
+    drawLineChart();
+    drawStacked();
+    return;
+  }
   drawPensionCumChart();
   drawPensionSymbolChart();
   drawPensionStacked();
