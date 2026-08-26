@@ -308,8 +308,6 @@
   /* Interaction Elevation · hover / compact control */
   --shadow-hover-surface:0 14px 34px rgba(15,23,42,.12);
   --shadow-mobile-card:0 5px 14px rgba(15,23,42,.045);
-  --section-icon-bg:linear-gradient(135deg,rgba(20,184,166,.16),rgba(59,130,246,.12));
-  --section-icon-shadow:0 6px 16px rgba(15,23,42,.08);
   --scroll-edge-border:rgba(148,163,184,.75);
   --scroll-edge-shadow:inset -20px 0 18px -22px rgba(15,23,42,.8);
   --scroll-edge-shadow-compact:inset -16px 0 14px -20px rgba(15,23,42,.55);
@@ -958,38 +956,20 @@ section{
   letter-spacing:-.04em;
   line-height:1.12;
 }
-/* Section Title Icons · 섹션 제목 아이콘 */
+/* Shared SVG Title Icons · 메인/하위/차트 제목이 같은 SVG 크기·간격·정렬 규칙을 공유 */
 .section-title-icon{
-  --section-icon-size:30px;
-  --section-icon-radius:12px;
-  --section-icon-font-size:var(--type-size-3xl);
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  width:var(--section-icon-size);
-  height:var(--section-icon-size);
-  flex:0 0 var(--section-icon-size);
-  border:1px solid var(--surface-border-muted);
-  border-radius:var(--section-icon-radius);
-  background:var(--section-icon-bg);
-  box-shadow:var(--section-icon-shadow);
-  font-size:var(--section-icon-font-size);
-  line-height:1.12;
-}
-/* Shared SVG Title Icons · 메인/하위/차트 제목이 같은 SVG 크기·간격·정렬 규칙을 공유 */
-.section-title-icon[data-section-title-icon]{
   width:var(--section-title-icon-size);
   height:var(--section-title-icon-size);
   flex:0 0 var(--section-title-icon-size);
-  border:0;
-  border-radius:0;
-  background:transparent;
-  box-shadow:none;
   color:currentColor;
   font-size:0;
+  line-height:1.12;
 }
-.section-title-icon[data-section-title-icon] svg{display:block;width:var(--section-title-icon-size);height:var(--section-title-icon-size)}
-:is(.section-title :is(h2,h3),.chart-head h3) > .section-title-icon[data-section-title-icon]{margin-bottom:1px}
+.section-title-icon svg{display:block;width:var(--section-title-icon-size);height:var(--section-title-icon-size)}
+:is(.section-title :is(h2,h3),.chart-head h3) > .section-title-icon{margin-bottom:1px}
 
 .modal-main-title{
   margin:0;
