@@ -36,6 +36,9 @@ public static class TrayExitNative {
     public static extern bool IsWindowVisible(IntPtr hWnd);
 
     [DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
     public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
     [DllImport("user32.dll")]
@@ -206,6 +209,18 @@ function Find-TrayElement {
     return $null
 }
 
+function Hide-HiddenTrayFlyout {
+    # If the helper had to open Windows 11's hidden-icons flyout to reach
+    # e-Friend Expert, close that flyout again so shutdown leaves no tray UI open.
+    foreach ($hwnd in (Get-TopWindows)) {
+        $className = Get-ClassName $hwnd
+        if ($className -eq 'NotifyIconOverflowWindow' -or
+            $className -eq 'TopLevelWindowForOverflowXamlIsland') {
+            try { [void][TrayExitNative]::ShowWindow($hwnd, 0) } catch { }
+        }
+    }
+}
+
 function Find-EFriendExitConfirmDialog {
     # The verified final shutdown dialog is an efexpertmain.exe-owned visible
     # #32770 dialog with Button CtrlId 1 (종료) and CtrlId 2 (취소).
@@ -249,6 +264,7 @@ function Test-EFriendProcessesStopped {
 $tray = Find-TrayElement -Name $TrayName
 if ($null -eq $tray) {
     Write-Output "TRAY_NOT_FOUND:$TrayName"
+    Hide-HiddenTrayFlyout
     exit 2
 }
 
@@ -266,6 +282,7 @@ try {
 } catch {
     [System.Windows.Forms.SendKeys]::SendWait('{ESC}') 2>$null
     Write-Output "EXIT_KEY_SEQUENCE_FAILED:$($_.Exception.GetType().Name)"
+    Hide-HiddenTrayFlyout
     exit 3
 }
 
@@ -284,6 +301,7 @@ while ([DateTime]::UtcNow -lt $deadline) {
     if ($null -ne $confirm) { break }
     if (Test-EFriendProcessesStopped) {
         Write-Output 'EXIT_CONFIRMED'
+        Hide-HiddenTrayFlyout
         exit 0
     }
     Start-Sleep -Milliseconds 100
@@ -291,6 +309,7 @@ while ([DateTime]::UtcNow -lt $deadline) {
 
 if ($null -eq $confirm) {
     Write-Output 'EXIT_CONFIRM_NOT_FOUND'
+    Hide-HiddenTrayFlyout
     exit 4
 }
 
@@ -305,10 +324,12 @@ $BM_CLICK = 0x00F5
 while ([DateTime]::UtcNow -lt $deadline) {
     if (Test-EFriendProcessesStopped) {
         Write-Output 'EXIT_CONFIRMED'
+        Hide-HiddenTrayFlyout
         exit 0
     }
     Start-Sleep -Milliseconds 100
 }
 
 Write-Output 'EXIT_CONFIRM_CLICKED_BUT_RUNNING'
+Hide-HiddenTrayFlyout
 exit 5

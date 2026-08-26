@@ -927,7 +927,7 @@ class LocalSuiteLauncher:
             # from a previous run cannot remain alive when the eFriend gate fails.
             self.set_status("기존 로컬 프로세스 정리 중")
             self.set_progress(5, "기존 로컬 프로세스를 정리하고 있습니다.")
-            if not self._stop_image(BRIDGE_PROCESS, reason="새 시작 순서 적용"):
+            if not self._stop_bridge_gracefully(reason="새 시작 순서 적용"):
                 raise RuntimeError("기존 KIS Bridge를 종료하지 못해 시작을 중단했습니다.")
             self._stop_port_listener(MARKET_AI_PORT)
             self._stop_port_listener(DASHBOARD_PORT)
@@ -1753,6 +1753,73 @@ class LocalSuiteLauncher:
         self.log("[OK]    eFriend Expert stopped.")
         return True
 
+    def _stop_bridge_gracefully(self, reason: str = "") -> bool:
+        """Ask KIS Bridge to run its own tray Exit cleanup before any force-stop fallback."""
+        if not self._process_running(BRIDGE_PROCESS):
+            return True
+
+        suffix = f" ({reason})" if reason else ""
+        self.log(f"[STOP]  {BRIDGE_PROCESS}{suffix}")
+
+        posted = 0
+        try:
+            pids = self._process_pids(BRIDGE_PROCESS)
+            if pids and os.name == "nt":
+                user32 = ctypes.WinDLL("user32", use_last_error=True)
+                enum_windows = user32.EnumWindows
+                get_window_pid = user32.GetWindowThreadProcessId
+                post_message = user32.PostMessageW
+
+                WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+                enum_windows.argtypes = [WNDENUMPROC, wintypes.LPARAM]
+                enum_windows.restype = wintypes.BOOL
+                get_window_pid.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+                get_window_pid.restype = wintypes.DWORD
+                post_message.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+                post_message.restype = wintypes.BOOL
+
+                LOCAL_SUITE_EXIT_MESSAGE = 0x8200
+
+                def enum_proc(hwnd, _lparam):
+                    nonlocal posted
+                    owner_pid = wintypes.DWORD()
+                    get_window_pid(hwnd, ctypes.byref(owner_pid))
+                    if owner_pid.value in pids:
+                        if post_message(hwnd, LOCAL_SUITE_EXIT_MESSAGE, 0, 0):
+                            posted += 1
+                    return True
+
+                callback = WNDENUMPROC(enum_proc)
+                enum_windows(callback, 0)
+        except Exception as exc:
+            self.log(f"[WARN] KIS Bridge graceful exit request failed: {type(exc).__name__}: {exc}")
+
+        if posted:
+            deadline = time.monotonic() + 5.0
+            while time.monotonic() < deadline:
+                if not self._process_running(BRIDGE_PROCESS):
+                    self.log(f"[OK]    {BRIDGE_PROCESS} stopped cleanly.")
+                    return True
+                time.sleep(0.1)
+        else:
+            self.log("[WARN] KIS Bridge graceful exit message could not be delivered.")
+
+        # Last resort only. A force stop may briefly leave an Explorer tray ghost,
+        # so the private Bridge exit message above is always preferred.
+        self.log(f"[WARN] Graceful exit did not remove {BRIDGE_PROCESS}; forcing termination.")
+        try:
+            self._run_hidden(["taskkill", "/F", "/IM", BRIDGE_PROCESS, "/T"], timeout=8)
+        except Exception as exc:
+            self.log(f"[WARN] Forced stop failed for {BRIDGE_PROCESS}: {exc}")
+
+        time.sleep(0.4)
+        if self._process_running(BRIDGE_PROCESS):
+            self.log(f"[ERROR] {BRIDGE_PROCESS} is still running.")
+            return False
+
+        self.log(f"[OK]    {BRIDGE_PROCESS} stopped.")
+        return True
+
     def _stop_image(self, image_name: str, reason: str = "") -> bool:
         if not self._process_running(image_name):
             return True
@@ -2169,7 +2236,7 @@ class LocalSuiteLauncher:
 
         dashboard_stopped = self._stop_port_listener(DASHBOARD_PORT)
         market_ai_stopped = self._stop_port_listener(MARKET_AI_PORT)
-        bridge_stopped = self._stop_image(BRIDGE_PROCESS, reason="Local Suite 종료")
+        bridge_stopped = self._stop_bridge_gracefully(reason="Local Suite 종료")
 
         # This PC uses eFriend only for the Local Suite.  Stop its cooperating
         # runtime/gate processes as one chain after Bridge is down.
