@@ -39,6 +39,8 @@ EFRIEND_CTRL_CERT_CONFIRM = 1
 WM_SETTEXT = 0x000C
 BM_CLICK = 0x00F5
 SMTO_ABORTIFHUNG = 0x0002
+SINGLE_INSTANCE_MUTEX = r"Local\InvestmentLocalSuiteLauncher"
+ERROR_ALREADY_EXISTS = 183
 
 CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 DETACHED_PROCESS = getattr(subprocess, "DETACHED_PROCESS", 0)
@@ -122,6 +124,56 @@ def _hidden_startupinfo():
     info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     info.wShowWindow = 0
     return info
+
+
+class SingleInstanceGuard:
+    """Keep exactly one elevated Local Suite launcher alive per Windows session."""
+
+    def __init__(self, name: str = SINGLE_INSTANCE_MUTEX):
+        self.name = name
+        self.handle = None
+
+    def acquire(self) -> bool:
+        if os.name != "nt":
+            return True
+        kernel32 = ctypes.WinDLL("kernel32.dll", use_last_error=True)
+        kernel32.CreateMutexW.argtypes = [ctypes.c_void_p, wintypes.BOOL, wintypes.LPCWSTR]
+        kernel32.CreateMutexW.restype = wintypes.HANDLE
+        kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+        kernel32.CloseHandle.restype = wintypes.BOOL
+
+        ctypes.set_last_error(0)
+        handle = kernel32.CreateMutexW(None, False, self.name)
+        if not handle:
+            raise ctypes.WinError(ctypes.get_last_error())
+        self.handle = handle
+        return ctypes.get_last_error() != ERROR_ALREADY_EXISTS
+
+    def close(self):
+        if os.name != "nt" or not self.handle:
+            return
+        try:
+            kernel32 = ctypes.WinDLL("kernel32.dll", use_last_error=True)
+            kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+            kernel32.CloseHandle.restype = wintypes.BOOL
+            kernel32.CloseHandle(self.handle)
+        finally:
+            self.handle = None
+
+
+def _show_already_running():
+    if os.name != "nt":
+        return
+    try:
+        ctypes.windll.user32.MessageBoxW(
+            None,
+            f"{APP_TITLE}가 이미 실행 중입니다.\n\n"
+            "시스템 트레이의 Investment Local Suite 아이콘에서 View 또는 종료를 사용해 주세요.",
+            APP_TITLE,
+            0x00000040,
+        )
+    except Exception:
+        pass
 
 
 class _GUID(ctypes.Structure):
@@ -337,6 +389,10 @@ class TrayIcon:
         self._thread = None
         self._wndproc_ref = None
         self._class_name = f"InvestmentLocalSuiteTray_{os.getpid()}"
+        self._ready = threading.Event()
+        self.available = False
+        self.error = ""
+        self._taskbar_created_message = 0
 
     def _request_exit(self):
         # Set the shutdown intent immediately on the tray thread. The Tk main
@@ -345,11 +401,15 @@ class TrayIcon:
         self.shutdown_requested.set()
         self.action_queue.put("exit")
 
-    def start(self):
+    def start(self) -> bool:
         if os.name != "nt":
-            return
+            return False
         self._thread = threading.Thread(target=self._run, name="tray-icon", daemon=True)
         self._thread.start()
+        if not self._ready.wait(3.0):
+            self.error = "tray initialization timed out"
+            return False
+        return self.available
 
     def stop(self):
         if os.name != "nt" or not self.hwnd:
@@ -361,105 +421,132 @@ class TrayIcon:
         shell32 = ctypes.windll.shell32
         kernel32 = ctypes.windll.kernel32
 
-        # Explicit Win32 return types are required on 64-bit Python; otherwise
-        # pointer-sized HWND/HMENU/HINSTANCE values can be truncated to c_int.
-        kernel32.GetModuleHandleW.restype = wintypes.HMODULE
-        user32.LoadIconW.restype = wintypes.HICON
-        user32.CreateWindowExW.restype = wintypes.HWND
-        user32.CreatePopupMenu.restype = wintypes.HMENU
-        user32.TrackPopupMenu.restype = wintypes.UINT
-        user32.DefWindowProcW.restype = ctypes.c_ssize_t
+        try:
+            # Explicit Win32 return types are required on 64-bit Python; otherwise
+            # pointer-sized HWND/HMENU/HINSTANCE values can be truncated to c_int.
+            kernel32.GetModuleHandleW.restype = wintypes.HMODULE
+            user32.LoadIconW.restype = wintypes.HICON
+            user32.CreateWindowExW.restype = wintypes.HWND
+            user32.CreatePopupMenu.restype = wintypes.HMENU
+            user32.TrackPopupMenu.restype = wintypes.UINT
+            user32.DefWindowProcW.restype = ctypes.c_ssize_t
+            user32.RegisterWindowMessageW.restype = wintypes.UINT
+            shell32.Shell_NotifyIconW.restype = wintypes.BOOL
 
-        WNDPROCTYPE = ctypes.WINFUNCTYPE(
-            ctypes.c_ssize_t,
-            wintypes.HWND,
-            wintypes.UINT,
-            wintypes.WPARAM,
-            wintypes.LPARAM,
-        )
+            WNDPROCTYPE = ctypes.WINFUNCTYPE(
+                ctypes.c_ssize_t,
+                wintypes.HWND,
+                wintypes.UINT,
+                wintypes.WPARAM,
+                wintypes.LPARAM,
+            )
 
-        class WNDCLASSW(ctypes.Structure):
-            _fields_ = [
-                ("style", wintypes.UINT),
-                ("lpfnWndProc", WNDPROCTYPE),
-                ("cbClsExtra", ctypes.c_int),
-                ("cbWndExtra", ctypes.c_int),
-                ("hInstance", wintypes.HINSTANCE),
-                ("hIcon", wintypes.HICON),
-                ("hCursor", wintypes.HANDLE),
-                ("hbrBackground", wintypes.HBRUSH),
-                ("lpszMenuName", wintypes.LPCWSTR),
-                ("lpszClassName", wintypes.LPCWSTR),
-            ]
+            class WNDCLASSW(ctypes.Structure):
+                _fields_ = [
+                    ("style", wintypes.UINT),
+                    ("lpfnWndProc", WNDPROCTYPE),
+                    ("cbClsExtra", ctypes.c_int),
+                    ("cbWndExtra", ctypes.c_int),
+                    ("hInstance", wintypes.HINSTANCE),
+                    ("hIcon", wintypes.HICON),
+                    ("hCursor", wintypes.HANDLE),
+                    ("hbrBackground", wintypes.HBRUSH),
+                    ("lpszMenuName", wintypes.LPCWSTR),
+                    ("lpszClassName", wintypes.LPCWSTR),
+                ]
 
-        def wndproc(hwnd, msg, wparam, lparam):
-            if msg == self.WM_TRAY:
-                event = int(lparam) & 0xFFFF
-                if event == self.WM_LBUTTONDBLCLK:
-                    self.action_queue.put("view")
+            self._taskbar_created_message = int(user32.RegisterWindowMessageW("TaskbarCreated"))
+
+            def add_tray_icon() -> bool:
+                if self.nid is None:
+                    return False
+                return bool(shell32.Shell_NotifyIconW(self.NIM_ADD, ctypes.byref(self.nid)))
+
+            def wndproc(hwnd, msg, wparam, lparam):
+                if self._taskbar_created_message and msg == self._taskbar_created_message:
+                    # Explorer can restart independently of the launcher. Re-register
+                    # the icon so tray access does not silently disappear.
+                    add_tray_icon()
                     return 0
-                if event in (self.WM_RBUTTONUP, self.WM_CONTEXTMENU):
-                    self._show_menu(hwnd)
+                if msg == self.WM_TRAY:
+                    event = int(lparam) & 0xFFFF
+                    if event == self.WM_LBUTTONDBLCLK:
+                        self.action_queue.put("view")
+                        return 0
+                    if event in (self.WM_RBUTTONUP, self.WM_CONTEXTMENU):
+                        self._show_menu(hwnd)
+                        return 0
+                elif msg == self.WM_COMMAND:
+                    command = int(wparam) & 0xFFFF
+                    if command == self.ID_VIEW:
+                        self.action_queue.put("view")
+                        return 0
+                    if command == self.ID_CREDENTIALS:
+                        self.action_queue.put("credentials")
+                        return 0
+                    if command == self.ID_EXIT:
+                        self._request_exit()
+                        return 0
+                elif msg == self.WM_DESTROY:
+                    if self.nid is not None:
+                        shell32.Shell_NotifyIconW(self.NIM_DELETE, ctypes.byref(self.nid))
+                    user32.PostQuitMessage(0)
                     return 0
-            elif msg == self.WM_COMMAND:
-                command = int(wparam) & 0xFFFF
-                if command == self.ID_VIEW:
-                    self.action_queue.put("view")
-                    return 0
-                if command == self.ID_CREDENTIALS:
-                    self.action_queue.put("credentials")
-                    return 0
-                if command == self.ID_EXIT:
-                    self._request_exit()
-                    return 0
-            elif msg == self.WM_DESTROY:
-                if self.nid is not None:
-                    shell32.Shell_NotifyIconW(self.NIM_DELETE, ctypes.byref(self.nid))
-                user32.PostQuitMessage(0)
-                return 0
-            return user32.DefWindowProcW(hwnd, msg, wparam, lparam)
+                return user32.DefWindowProcW(hwnd, msg, wparam, lparam)
 
-        self._wndproc_ref = WNDPROCTYPE(wndproc)
-        hinstance = kernel32.GetModuleHandleW(None)
+            self._wndproc_ref = WNDPROCTYPE(wndproc)
+            hinstance = kernel32.GetModuleHandleW(None)
 
-        wc = WNDCLASSW()
-        wc.lpfnWndProc = self._wndproc_ref
-        wc.hInstance = hinstance
-        wc.lpszClassName = self._class_name
-        wc.hIcon = user32.LoadIconW(None, self.IDI_APPLICATION)
-        user32.RegisterClassW(ctypes.byref(wc))
+            wc = WNDCLASSW()
+            wc.lpfnWndProc = self._wndproc_ref
+            wc.hInstance = hinstance
+            wc.lpszClassName = self._class_name
+            wc.hIcon = user32.LoadIconW(None, self.IDI_APPLICATION)
+            atom = user32.RegisterClassW(ctypes.byref(wc))
+            if not atom:
+                raise ctypes.WinError()
 
-        hwnd = user32.CreateWindowExW(
-            0,
-            self._class_name,
-            APP_TITLE,
-            0,
-            0,
-            0,
-            0,
-            0,
-            None,
-            None,
-            hinstance,
-            None,
-        )
-        self.hwnd = hwnd
+            hwnd = user32.CreateWindowExW(
+                0,
+                self._class_name,
+                APP_TITLE,
+                0,
+                0,
+                0,
+                0,
+                0,
+                None,
+                None,
+                hinstance,
+                None,
+            )
+            if not hwnd:
+                raise ctypes.WinError()
+            self.hwnd = hwnd
 
-        nid = self.NOTIFYICONDATAW()
-        nid.cbSize = ctypes.sizeof(self.NOTIFYICONDATAW)
-        nid.hWnd = hwnd
-        nid.uID = 1
-        nid.uFlags = self.NIF_MESSAGE | self.NIF_ICON | self.NIF_TIP
-        nid.uCallbackMessage = self.WM_TRAY
-        nid.hIcon = user32.LoadIconW(None, self.IDI_APPLICATION)
-        nid.szTip = APP_TITLE
-        self.nid = nid
-        shell32.Shell_NotifyIconW(self.NIM_ADD, ctypes.byref(nid))
+            nid = self.NOTIFYICONDATAW()
+            nid.cbSize = ctypes.sizeof(self.NOTIFYICONDATAW)
+            nid.hWnd = hwnd
+            nid.uID = 1
+            nid.uFlags = self.NIF_MESSAGE | self.NIF_ICON | self.NIF_TIP
+            nid.uCallbackMessage = self.WM_TRAY
+            nid.hIcon = user32.LoadIconW(None, self.IDI_APPLICATION)
+            nid.szTip = APP_TITLE
+            self.nid = nid
+            if not add_tray_icon():
+                raise RuntimeError("Shell_NotifyIconW(NIM_ADD) failed")
 
-        msg = wintypes.MSG()
-        while user32.GetMessageW(ctypes.byref(msg), None, 0, 0) != 0:
-            user32.TranslateMessage(ctypes.byref(msg))
-            user32.DispatchMessageW(ctypes.byref(msg))
+            self.available = True
+            self._ready.set()
+
+            msg = wintypes.MSG()
+            while user32.GetMessageW(ctypes.byref(msg), None, 0, 0) != 0:
+                user32.TranslateMessage(ctypes.byref(msg))
+                user32.DispatchMessageW(ctypes.byref(msg))
+        except Exception as exc:
+            self.available = False
+            self.error = f"{type(exc).__name__}: {exc}"
+            self._ready.set()
 
     def _show_menu(self, hwnd):
         user32 = ctypes.windll.user32
@@ -500,6 +587,7 @@ class LocalSuiteLauncher:
         self.action_queue: queue.Queue[str] = queue.Queue()
         self.shutdown_requested = threading.Event()
         self.tray = TrayIcon(self.action_queue, self.shutdown_requested)
+        self.tray_available = False
         self.credential_store = WindowsCredentialStore()
         self.stop_event = threading.Event()
         self.lifecycle_lock = threading.RLock()
@@ -569,6 +657,7 @@ class LocalSuiteLauncher:
 
         footer = ttk.Frame(outer)
         footer.pack(fill="x", pady=(18, 0))
+        ttk.Button(footer, text="eFriend 자동 로그인 설정", command=self.show_credential_setup).pack(side="left")
         ttk.Button(footer, text="로그 보기", command=self.show_view).pack(side="right")
 
         self.root.update_idletasks()
@@ -581,10 +670,13 @@ class LocalSuiteLauncher:
         self.root.lift()
 
     def _hide_loading(self):
-        # Closing the progress window only hides it; the Local Suite remains
-        # controllable from its tray icon and View window.
+        # Never make the launcher inaccessible when tray registration failed.
         try:
-            self.root.withdraw()
+            if self.tray_available:
+                self.root.withdraw()
+            else:
+                self.show_view()
+                self.root.withdraw()
         except Exception:
             pass
 
@@ -627,7 +719,13 @@ class LocalSuiteLauncher:
         try:
             with self.lifecycle_lock:
                 self._cancel_gate()
-                self.root.withdraw()
+                if self.tray_available:
+                    self.root.withdraw()
+                else:
+                    # Keep a visible control surface when Windows rejected the
+                    # tray icon so View/Credentials/Shutdown are still reachable.
+                    self.root.deiconify()
+                    self.root.lift()
                 webbrowser.open(f"http://localhost:{DASHBOARD_PORT}/")
         except StartupCancelled:
             return
@@ -636,7 +734,12 @@ class LocalSuiteLauncher:
 
     def run(self):
         self._reset_log()
-        self.tray.start()
+        self.tray_available = self.tray.start()
+        if self.tray_available:
+            self.log("[OK]    Investment Local Suite tray icon registered.")
+        else:
+            self.log(f"[WARN] Local Suite tray icon registration failed: {self.tray.error or 'unknown error'}")
+            self.log("       Progress/View UI will remain available as a fallback.")
         self.root.after(150, self._process_actions)
         self.root.after(800, self._refresh_view)
         self.startup_thread = threading.Thread(target=self._startup, name="local-suite-startup", daemon=True)
@@ -1772,6 +1875,7 @@ class LocalSuiteLauncher:
             ttk.Label(header, text="상태:").pack(side="left")
             ttk.Label(header, textvariable=self.status_var).pack(side="left", padx=(6, 0))
             ttk.Button(header, text="브라우저 열기", command=lambda: webbrowser.open(f"http://localhost:{DASHBOARD_PORT}/")).pack(side="right")
+            ttk.Button(header, text="eFriend 자동 로그인 설정", command=self.show_credential_setup).pack(side="right", padx=(0, 8))
 
             frame = ttk.Frame(win, padding=(12, 0, 12, 12))
             frame.pack(fill="both", expand=True)
@@ -1891,6 +1995,7 @@ def _report_fatal_error(exc: BaseException):
 
 
 if __name__ == "__main__":
+    instance_guard = None
     try:
         if os.name == "nt" and not _is_admin():
             if _request_launcher_elevation():
@@ -1900,8 +2005,19 @@ if __name__ == "__main__":
             _show_elevation_error()
             sys.exit(1)
 
+        # The launcher intentionally remains resident after startup to own its
+        # tray menu. A named mutex prevents repeated double-clicks from leaving
+        # multiple hidden pythonw.exe launcher instances behind.
+        instance_guard = SingleInstanceGuard()
+        if not instance_guard.acquire():
+            _show_already_running()
+            sys.exit(0)
+
         launcher = LocalSuiteLauncher()
         launcher.run()
     except Exception as exc:
         _report_fatal_error(exc)
         sys.exit(1)
+    finally:
+        if instance_guard is not None:
+            instance_guard.close()
