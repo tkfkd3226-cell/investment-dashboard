@@ -800,6 +800,7 @@ function marketAiMobileDialog(){
   dialog=document.createElement('dialog');
   dialog.id=MARKET_AI_MOBILE_DIALOG_ID;
   dialog.className='market-ai-mobile-dialog';
+  dialog.tabIndex=-1;
   dialog.setAttribute('aria-labelledby','marketAiTitle');
   dialog.innerHTML=`<div class="action-modal-card market-ai-mobile-dialog-card"><button type="button" class="control-icon-button modal-icon-btn market-ai-mobile-close" aria-label="AI Market Signal 닫기">${MARKET_AI_CLOSE_ICON}</button><div class="market-ai-mobile-dialog-content" data-market-ai-mobile-content></div></div>`;
   dialog.querySelector('.market-ai-mobile-close')?.addEventListener('click',()=>dialog.close());
@@ -823,7 +824,7 @@ function openMarketAiMobileDialog(){
   if(!dialog.open)dialog.showModal();
   document.body.classList.add('market-ai-mobile-dialog-open');
   document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.setAttribute('aria-expanded','true');
-  requestAnimationFrame(()=>dialog.querySelector('.market-ai-mobile-close')?.focus({preventScroll:true}));
+  dialog.focus({preventScroll:true});
 }
 
 function syncMarketAiResponsiveMount(row,hero){

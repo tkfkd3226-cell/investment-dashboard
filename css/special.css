@@ -227,6 +227,7 @@
       overflow:visible;
     }
     .market-ai-mobile-dialog:not([open]){display:none}
+    .market-ai-mobile-dialog:focus{outline:none}
     .market-ai-mobile-dialog::backdrop{
       background:var(--modal-overlay);
       backdrop-filter:blur(var(--modal-backdrop-blur));

@@ -69,7 +69,7 @@
       align-items:center;
     }
     .hero.market-ai-mounted .hero-metric-pills{min-width:0;flex-wrap:wrap;align-content:flex-start}
-    .hero.market-ai-mounted #market-ai-section{width:auto;max-width:100%;margin-top:0;justify-self:end}
+    .hero.market-ai-mounted #market-ai-section{width:100%;max-width:var(--market-ai-panel-max-width);margin-top:0;justify-self:end}
     .market-ai-desktop{grid-template-columns:var(--market-ai-group-columns);justify-content:center}
 
     .mini-card{

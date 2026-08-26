@@ -410,7 +410,6 @@
   --hero-shadow:0 18px 42px rgba(15,23,42,.16);
 
   /* Market AI Component Contract · 고유 geometry만 보유하고 surface/type/color는 메인 primitive를 재사용 */
-  --market-ai-edge-pad:var(--space-4xl);
   --market-ai-column-min:390px;
   --market-ai-column-max:410px;
   --market-ai-layout-gap:var(--space-3xl);
@@ -719,7 +718,7 @@ button svg{pointer-events:none;flex-shrink:0}
    Ownership · 책임: common은 Desktop baseline + 공통 component/tooltip, Tablet/Phone 차이는 역할별 CSS가 담당한다.
    Order · 순서: mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip. */
 /* Market AI Mount Layout · Hero에 standalone 보조 영역을 연결하는 Desktop layout
-   Surface edge · 좌측 Hero 여백은 유지하고 Market AI가 mount된 우측 edge만 --market-ai-edge-pad로 관리한다. */
+   Surface edge · AI mount 여부와 무관하게 Hero의 공통 좌우 padding을 그대로 유지한다. */
 .hero.market-ai-mounted{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(var(--market-ai-column-min),var(--market-ai-column-max));
@@ -728,7 +727,6 @@ button svg{pointer-events:none;flex-shrink:0}
     "pills market";
   column-gap:var(--market-ai-layout-gap);
   align-items:center;
-  padding-right:var(--market-ai-edge-pad);
 }
 .hero.market-ai-mounted .hero-title-row{grid-area:title}
 .hero.market-ai-mounted .hero-metric-pills{grid-area:pills}
@@ -739,13 +737,14 @@ button svg{pointer-events:none;flex-shrink:0}
   grid-area:market;
   position:relative;
   z-index:1;
-  width:auto;
-  max-width:100%;
+  width:100%;
+  max-width:var(--market-ai-panel-max-width);
   min-width:0;
   justify-self:end;
 }
 .market-ai-panel{
-  width:min(100%,var(--market-ai-panel-max-width));
+  width:100%;
+  max-width:var(--market-ai-panel-max-width);
   padding:var(--space-2xs) var(--space-xs);
   border:1px solid var(--line);
   border-radius:min(var(--surface-radius-sm),var(--corner-surface-cap));
