@@ -1017,6 +1017,6 @@ if __name__ == "__main__":
 
         launcher = LocalSuiteLauncher()
         launcher.run()
-    except BaseException as exc:
+    except Exception as exc:
         _report_fatal_error(exc)
         sys.exit(1)
