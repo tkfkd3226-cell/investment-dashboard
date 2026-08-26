@@ -292,6 +292,11 @@
     .market-ai-mobile-dialog .market-ai-tooltip{
       max-width:min(320px,calc(100vw - var(--tooltip-viewport-gutter)));
     }
+    .market-ai-mobile-dialog .market-ai-tooltip :is(.market-ai-tooltip-note,.market-ai-tooltip-score-line){
+      white-space:normal;
+      word-break:keep-all;
+      overflow-wrap:break-word;
+    }
 
   /* Mini / Metric Cards · 카드 밀도는 세로폰 기준 공유 */
     .mini-card{
