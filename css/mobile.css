@@ -34,6 +34,7 @@
     .section-title > .separate-profit-control-row{position:relative;top:1px}
   /* Pension Modal Portrait · 폰 공통 density는 special.css Phone UI Shared가 소유하고, 여기서는 세로폰 폭/구성만 정의 */
     .contrib-modal{
+      align-items:flex-end;
       --modal-card-width:min(100%, calc(100vw - 36px));
       --modal-card-radius:min(var(--surface-radius-lg),var(--corner-surface-cap));
     }

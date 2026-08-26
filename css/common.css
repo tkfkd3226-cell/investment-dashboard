@@ -2486,7 +2486,7 @@ body.chart-expanded-open .dash-tooltip{
 .contrib-modal.show{
   display:flex;
 }
-body.contrib-modal-open{
+body.dashboard-dialog-open{
   overflow:hidden;
 }
 .contrib-modal-card{
@@ -2535,9 +2535,6 @@ body.contrib-modal-open{
   border-radius:var(--radius-pill);
   background:var(--icon-button-bg);
   color:var(--icon-button-color);
-  font-size:22px;
-  font-weight:var(--type-weight-regular);
-  line-height:1.12;
 }
 .modal-icon-btn svg{
   width:18px;
@@ -2545,10 +2542,6 @@ body.contrib-modal-open{
   display:block;
 }
 .modal-icon-btn:hover{background:var(--icon-button-hover-bg)}
-.contrib-modal-icon-btn{
-  position:static;
-  flex:0 0 auto;
-}
 .contrib-modal .pension-contrib-tool{
   margin-top:0;
   padding:var(--pension-modal-card-pad);
@@ -3409,24 +3402,18 @@ button:not(:disabled):active{
 .contrib-modal.show *,
 .contrib-modal.show *::before,
 .contrib-modal.show *::after,
-.krx-action-modal.show,
-.krx-action-modal.show *,
-.krx-action-modal.show *::before,
-.krx-action-modal.show *::after,
-.pension-action-pin-modal,
-.pension-action-pin-modal *,
-.pension-action-pin-modal *::before,
-.pension-action-pin-modal *::after{
+.action-modal,
+.action-modal *,
+.action-modal *::before,
+.action-modal *::after{
   animation:none;
   transition:none;
 }
 
 .contrib-modal.show button:hover,
 .contrib-modal.show button:active,
-.krx-action-modal.show button:hover,
-.krx-action-modal.show button:active,
-.pension-action-pin-modal button:hover,
-.pension-action-pin-modal button:active{
+.action-modal button:hover,
+.action-modal button:active{
   transform:none;
 }
 

@@ -15,6 +15,7 @@ function phoneLandscapeUi(){
 
 // Dialog Focus / Accessibility · 다이얼로그 포커스 / 접근성
 const dashboardDialogFocusState=new WeakMap();
+let dashboardDialogBodyLockCount=0;
 function dashboardDialogBackgroundElements(container){
   const elements=[];
   let current=container;
@@ -25,6 +26,18 @@ function dashboardDialogBackgroundElements(container){
     current=parent;
   }
   return [...new Set(elements)];
+}
+function lockDashboardDialogBody(state){
+  if(!state||state.bodyLocked)return;
+  state.bodyLocked=true;
+  dashboardDialogBodyLockCount+=1;
+  document.body?.classList.add('dashboard-dialog-open');
+}
+function unlockDashboardDialogBody(state){
+  if(!state?.bodyLocked)return;
+  state.bodyLocked=false;
+  dashboardDialogBodyLockCount=Math.max(0,dashboardDialogBodyLockCount-1);
+  if(dashboardDialogBodyLockCount===0)document.body?.classList.remove('dashboard-dialog-open');
 }
 function setDashboardDialogBackgroundInert(container,state){
   if(!container||!state||state.inertSnapshot)return;
@@ -64,7 +77,7 @@ function activateDashboardDialogFocus(container,{initialFocus=null,fallbackSelec
   if(!container)return;
   let state=dashboardDialogFocusState.get(container);
   if(!state){
-    state={returnFocus:null,fallbackSelector:'',keydown:null,inertSnapshot:null};
+    state={returnFocus:null,fallbackSelector:'',keydown:null,inertSnapshot:null,bodyLocked:false};
     state.keydown=event=>{
       if(event.key!=='Tab')return;
       const focusables=dashboardDialogFocusables(container);
@@ -80,6 +93,7 @@ function activateDashboardDialogFocus(container,{initialFocus=null,fallbackSelec
   else if(!container.contains(document.activeElement)&&dashboardReturnFocusVisible(document.activeElement))state.returnFocus=document.activeElement;
   state.fallbackSelector=fallbackSelector||state.fallbackSelector||'';
   setDashboardDialogBackgroundInert(container,state);
+  lockDashboardDialogBody(state);
   const resolveInitial=()=>typeof initialFocus==='string'?container.querySelector(initialFocus):initialFocus;
   requestAnimationFrame(()=>{
     const target=resolveInitial()||dashboardDialogFocusables(container)[0];
@@ -92,6 +106,7 @@ function releaseDashboardDialogFocus(container,{fallbackSelector=''}={}){
   const stored=state?.returnFocus||null;
   const fallback=fallbackSelector||state?.fallbackSelector||'';
   restoreDashboardDialogBackgroundInert(state);
+  unlockDashboardDialogBody(state);
   if(state){state.returnFocus=null;state.fallbackSelector='';}
   requestAnimationFrame(()=>{
     const target=dashboardReturnFocusVisible(stored)?stored:dashboardVisibleFallback(fallback);

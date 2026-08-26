@@ -604,6 +604,7 @@
     .chart-card .chart-scroll-end{display:none}
 
   /* Modal Landscape · 중앙형 구조 복원 + iPhone Safari 확대 방지 입력 폰트 */
+    .contrib-modal{align-items:center}
     .action-modal{
       align-items:center;
       --modal-overlay-pad:20px;
