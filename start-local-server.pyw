@@ -1,7 +1,8 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import csv
 import ctypes
+import json
 from ctypes import wintypes
 import os
 from pathlib import Path
@@ -11,7 +12,7 @@ import sys
 import threading
 import time
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import urllib.request
 import webbrowser
 
@@ -118,6 +119,156 @@ class _GUID(ctypes.Structure):
     ]
 
 
+class _CREDENTIALW(ctypes.Structure):
+    _fields_ = [
+        ("Flags", wintypes.DWORD),
+        ("Type", wintypes.DWORD),
+        ("TargetName", wintypes.LPWSTR),
+        ("Comment", wintypes.LPWSTR),
+        ("LastWritten", wintypes.FILETIME),
+        ("CredentialBlobSize", wintypes.DWORD),
+        ("CredentialBlob", ctypes.POINTER(ctypes.c_ubyte)),
+        ("Persist", wintypes.DWORD),
+        ("AttributeCount", wintypes.DWORD),
+        ("Attributes", ctypes.c_void_p),
+        ("TargetAlias", wintypes.LPWSTR),
+        ("UserName", wintypes.LPWSTR),
+    ]
+
+
+class WindowsCredentialStore:
+    """Windows Credential Manager wrapper for eFriend auto-login secrets.
+
+    This class only establishes secure local storage. Startup does not consume
+    these values until the UI automation path is explicitly enabled.
+    """
+
+    CRED_TYPE_GENERIC = 1
+    CRED_PERSIST_LOCAL_MACHINE = 2
+    ERROR_NOT_FOUND = 1168
+    TARGET = "InvestmentLocalSuite/eFriendExpert"
+
+    def __init__(self, target: str | None = None):
+        self.target = target or self.TARGET
+
+    @staticmethod
+    def _encode_payload(id_password: str, certificate_password: str) -> bytes:
+        payload = {
+            "version": 1,
+            "id_password": id_password,
+            "certificate_password": certificate_password,
+        }
+        return json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+    @staticmethod
+    def _decode_payload(blob: bytes) -> dict[str, str]:
+        payload = json.loads(blob.decode("utf-8"))
+        if payload.get("version") != 1:
+            raise ValueError("지원하지 않는 eFriend 자격 증명 형식입니다.")
+        return {
+            "id_password": str(payload.get("id_password", "")),
+            "certificate_password": str(payload.get("certificate_password", "")),
+        }
+
+    def _api(self):
+        if os.name != "nt":
+            raise RuntimeError("Windows Credential Manager는 Windows에서만 사용할 수 있습니다.")
+        advapi32 = ctypes.WinDLL("Advapi32.dll", use_last_error=True)
+        advapi32.CredWriteW.argtypes = [ctypes.POINTER(_CREDENTIALW), wintypes.DWORD]
+        advapi32.CredWriteW.restype = wintypes.BOOL
+        advapi32.CredReadW.argtypes = [
+            wintypes.LPCWSTR,
+            wintypes.DWORD,
+            wintypes.DWORD,
+            ctypes.POINTER(ctypes.POINTER(_CREDENTIALW)),
+        ]
+        advapi32.CredReadW.restype = wintypes.BOOL
+        advapi32.CredDeleteW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD]
+        advapi32.CredDeleteW.restype = wintypes.BOOL
+        advapi32.CredFree.argtypes = [ctypes.c_void_p]
+        advapi32.CredFree.restype = None
+        return advapi32
+
+    def exists(self) -> bool:
+        api = self._api()
+        pointer = ctypes.POINTER(_CREDENTIALW)()
+        ctypes.set_last_error(0)
+        if not api.CredReadW(self.target, self.CRED_TYPE_GENERIC, 0, ctypes.byref(pointer)):
+            error = ctypes.get_last_error()
+            if error == self.ERROR_NOT_FOUND:
+                return False
+            raise ctypes.WinError(error)
+        try:
+            return True
+        finally:
+            api.CredFree(pointer)
+
+    def username(self) -> str:
+        api = self._api()
+        pointer = ctypes.POINTER(_CREDENTIALW)()
+        ctypes.set_last_error(0)
+        if not api.CredReadW(self.target, self.CRED_TYPE_GENERIC, 0, ctypes.byref(pointer)):
+            error = ctypes.get_last_error()
+            if error == self.ERROR_NOT_FOUND:
+                return ""
+            raise ctypes.WinError(error)
+        try:
+            return pointer.contents.UserName or ""
+        finally:
+            api.CredFree(pointer)
+
+    def read(self) -> dict[str, str] | None:
+        api = self._api()
+        pointer = ctypes.POINTER(_CREDENTIALW)()
+        ctypes.set_last_error(0)
+        if not api.CredReadW(self.target, self.CRED_TYPE_GENERIC, 0, ctypes.byref(pointer)):
+            error = ctypes.get_last_error()
+            if error == self.ERROR_NOT_FOUND:
+                return None
+            raise ctypes.WinError(error)
+        try:
+            credential = pointer.contents
+            blob = ctypes.string_at(credential.CredentialBlob, credential.CredentialBlobSize)
+            payload = self._decode_payload(blob)
+            payload["customer_id"] = credential.UserName or ""
+            return payload
+        finally:
+            api.CredFree(pointer)
+
+    def write(self, customer_id: str, id_password: str, certificate_password: str):
+        if not customer_id or not id_password or not certificate_password:
+            raise ValueError("고객 ID와 두 비밀번호를 모두 입력해 주세요.")
+
+        api = self._api()
+        blob_bytes = self._encode_payload(id_password, certificate_password)
+        blob = ctypes.create_string_buffer(blob_bytes, len(blob_bytes))
+        credential = _CREDENTIALW()
+        credential.Type = self.CRED_TYPE_GENERIC
+        credential.TargetName = self.target
+        credential.CredentialBlobSize = len(blob_bytes)
+        credential.CredentialBlob = ctypes.cast(blob, ctypes.POINTER(ctypes.c_ubyte))
+        credential.Persist = self.CRED_PERSIST_LOCAL_MACHINE
+        credential.UserName = customer_id
+        credential.Comment = "Investment Local Suite eFriend auto-login"
+
+        try:
+            ctypes.set_last_error(0)
+            if not api.CredWriteW(ctypes.byref(credential), 0):
+                raise ctypes.WinError(ctypes.get_last_error())
+        finally:
+            ctypes.memset(ctypes.addressof(blob), 0, ctypes.sizeof(blob))
+
+    def delete(self) -> bool:
+        api = self._api()
+        ctypes.set_last_error(0)
+        if api.CredDeleteW(self.target, self.CRED_TYPE_GENERIC, 0):
+            return True
+        error = ctypes.get_last_error()
+        if error == self.ERROR_NOT_FOUND:
+            return False
+        raise ctypes.WinError(error)
+
+
 class TrayIcon:
     """Small Windows tray icon implemented with Win32 only (no extra packages)."""
 
@@ -141,7 +292,8 @@ class TrayIcon:
     TPM_RETURNCMD = 0x0100
 
     ID_VIEW = 1001
-    ID_EXIT = 1002
+    ID_CREDENTIALS = 1002
+    ID_EXIT = 1003
     IDI_APPLICATION = 32512
 
     class NOTIFYICONDATAW(ctypes.Structure):
@@ -240,6 +392,9 @@ class TrayIcon:
                 if command == self.ID_VIEW:
                     self.action_queue.put("view")
                     return 0
+                if command == self.ID_CREDENTIALS:
+                    self.action_queue.put("credentials")
+                    return 0
                 if command == self.ID_EXIT:
                     self._request_exit()
                     return 0
@@ -299,6 +454,7 @@ class TrayIcon:
             return
         try:
             user32.AppendMenuW(menu, self.MF_STRING, self.ID_VIEW, "View")
+            user32.AppendMenuW(menu, self.MF_STRING, self.ID_CREDENTIALS, "eFriend 자동 로그인 설정")
             user32.AppendMenuW(menu, self.MF_SEPARATOR, 0, None)
             user32.AppendMenuW(menu, self.MF_STRING, self.ID_EXIT, "종료")
             point = wintypes.POINT()
@@ -315,6 +471,8 @@ class TrayIcon:
             )
             if command == self.ID_VIEW:
                 self.action_queue.put("view")
+            elif command == self.ID_CREDENTIALS:
+                self.action_queue.put("credentials")
             elif command == self.ID_EXIT:
                 self._request_exit()
         finally:
@@ -328,6 +486,7 @@ class LocalSuiteLauncher:
         self.action_queue: queue.Queue[str] = queue.Queue()
         self.shutdown_requested = threading.Event()
         self.tray = TrayIcon(self.action_queue, self.shutdown_requested)
+        self.credential_store = WindowsCredentialStore()
         self.stop_event = threading.Event()
         self.lifecycle_lock = threading.RLock()
         self.started_processes: dict[str, subprocess.Popen] = {}
@@ -357,6 +516,7 @@ class LocalSuiteLauncher:
         self.root.protocol("WM_DELETE_WINDOW", self._hide_loading)
 
         self.view_window = None
+        self.credential_window = None
         self.status_var = tk.StringVar(value=self.status)
         self.progress_var = tk.DoubleVar(value=0)
         self.progress_percent_var = tk.StringVar(value="0%")
@@ -524,6 +684,11 @@ class LocalSuiteLauncher:
             self.log(f"Python    : {python_exe}")
             self.log(f"Market AI : {market_ai_dir}")
             self.log(f"eFriend   : {EFRIEND_EXE}")
+            try:
+                credential_state = "configured" if self.credential_store.exists() else "not configured"
+                self.log(f"Credential: eFriend auto-login {credential_state} (secure storage; auto-fill disabled)")
+            except Exception as exc:
+                self.log(f"[WARN] eFriend credential status check failed: {type(exc).__name__}")
             self.log()
 
             # Always clear stale suite runtimes first. This guarantees that API/Dashboard
@@ -1110,6 +1275,8 @@ class LocalSuiteLauncher:
                 action = self.action_queue.get_nowait()
                 if action == "view":
                     self.show_view()
+                elif action == "credentials":
+                    self.show_credential_setup()
                 elif action == "startup_complete":
                     self._queue_startup_complete()
                 elif action == "exit":
@@ -1119,6 +1286,97 @@ class LocalSuiteLauncher:
             pass
         if not self.stop_event.is_set():
             self.root.after(150, self._process_actions)
+
+    def show_credential_setup(self):
+        """Local-only credential setup; values never enter logs or repository files."""
+        if self.credential_window is not None and self.credential_window.winfo_exists():
+            self.credential_window.deiconify()
+            self.credential_window.lift()
+            self.credential_window.focus_force()
+            return
+
+        win = tk.Toplevel(self.root)
+        win.title("eFriend 자동 로그인 설정")
+        win.resizable(False, False)
+        win.transient(self.root)
+        self.credential_window = win
+
+        outer = ttk.Frame(win, padding=(20, 18, 20, 18))
+        outer.pack(fill="both", expand=True)
+        ttk.Label(outer, text="eFriend 자동 로그인 자격 증명", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, columnspan=2, sticky="w")
+        ttk.Label(
+            outer,
+            text="Windows 자격 증명 관리자에 현재 Windows 사용자 전용으로 저장됩니다.\n코드·로그·Git 파일에는 기록하지 않습니다.",
+            justify="left",
+        ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(5, 14))
+
+        customer_var = tk.StringVar()
+        id_password_var = tk.StringVar()
+        cert_password_var = tk.StringVar()
+        status_var = tk.StringVar(value="")
+
+        try:
+            customer_var.set(self.credential_store.username())
+            configured = self.credential_store.exists()
+            status_var.set("현재 상태: 저장됨" if configured else "현재 상태: 저장되지 않음")
+        except Exception as exc:
+            status_var.set(f"현재 상태 확인 실패: {type(exc).__name__}")
+
+        fields = (
+            ("고객 ID", customer_var, False),
+            ("ID 비밀번호", id_password_var, True),
+            ("공동인증 비밀번호", cert_password_var, True),
+        )
+        first_entry = None
+        for row, (label, variable, secret) in enumerate(fields, start=2):
+            ttk.Label(outer, text=label).grid(row=row, column=0, sticky="w", pady=5)
+            entry = ttk.Entry(outer, textvariable=variable, width=34, show="●" if secret else "")
+            entry.grid(row=row, column=1, sticky="ew", padx=(14, 0), pady=5)
+            if first_entry is None:
+                first_entry = entry
+
+        ttk.Label(outer, textvariable=status_var).grid(row=5, column=0, columnspan=2, sticky="w", pady=(10, 0))
+
+        def clear_secret_entries():
+            id_password_var.set("")
+            cert_password_var.set("")
+
+        def save_credentials():
+            try:
+                self.credential_store.write(customer_var.get().strip(), id_password_var.get(), cert_password_var.get())
+                clear_secret_entries()
+                status_var.set("현재 상태: 저장됨")
+                messagebox.showinfo(APP_TITLE, "eFriend 자격 증명을 Windows 자격 증명 관리자에 저장했습니다.", parent=win)
+            except Exception as exc:
+                clear_secret_entries()
+                messagebox.showerror(APP_TITLE, f"자격 증명을 저장하지 못했습니다.\n\n{type(exc).__name__}: {exc}", parent=win)
+
+        def delete_credentials():
+            if not messagebox.askyesno(APP_TITLE, "저장된 eFriend 자동 로그인 자격 증명을 삭제할까요?", parent=win):
+                return
+            try:
+                self.credential_store.delete()
+                customer_var.set("")
+                clear_secret_entries()
+                status_var.set("현재 상태: 저장되지 않음")
+            except Exception as exc:
+                messagebox.showerror(APP_TITLE, f"자격 증명을 삭제하지 못했습니다.\n\n{type(exc).__name__}: {exc}", parent=win)
+
+        buttons = ttk.Frame(outer)
+        buttons.grid(row=6, column=0, columnspan=2, sticky="e", pady=(16, 0))
+        ttk.Button(buttons, text="저장 정보 삭제", command=delete_credentials).pack(side="left")
+        ttk.Button(buttons, text="닫기", command=win.destroy).pack(side="left", padx=(8, 0))
+        ttk.Button(buttons, text="저장", command=save_credentials).pack(side="left", padx=(8, 0))
+        outer.columnconfigure(1, weight=1)
+
+        win.update_idletasks()
+        width = max(win.winfo_reqwidth(), 500)
+        height = max(win.winfo_reqheight(), 290)
+        x = max((win.winfo_screenwidth() - width) // 2, 0)
+        y = max((win.winfo_screenheight() - height) // 2, 0)
+        win.geometry(f"{width}x{height}+{x}+{y}")
+        if first_entry is not None:
+            first_entry.focus_set()
 
     def show_view(self):
         if self.view_window is None or not self.view_window.winfo_exists():
