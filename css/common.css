@@ -425,6 +425,9 @@
   --market-ai-value-size:9.5px;
   --market-ai-change-size:8.5px;
   --market-ai-tooltip-max-width:440px;
+  --market-ai-mobile-dialog-width:360px;
+  --market-ai-mobile-dialog-radius:16px;
+  --market-ai-mobile-trigger-height:24px;
   --market-ai-panel-bg:rgba(255,255,255,.97);
   --market-ai-panel-border:rgba(255,255,255,.98);
   --market-ai-panel-shadow:0 8px 20px rgba(15,23,42,.13),inset 0 1px 0 rgba(255,255,255,.96);
@@ -747,6 +750,7 @@ button svg{pointer-events:none;flex-shrink:0}
 }
 .hero.market-ai-mounted .hero-title-row{grid-area:title}
 .hero.market-ai-mounted .hero-metric-pills{grid-area:pills}
+.market-ai-mobile-trigger{display:none}
 
 /* Market AI Theme / Surface · 라이트/다크 token과 보조 카드 surface */
 #market-ai-section{
@@ -2551,7 +2555,7 @@ body.chart-expanded-open .dash-tooltip{
 .contrib-modal.show{
   display:flex;
 }
-body.dashboard-dialog-open{
+body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
   overflow:hidden;
 }
 .contrib-modal-card{
@@ -3140,9 +3144,6 @@ body.dashboard-dialog-open{
 .source-card.highlight{
   background:var(--source-highlight-bg);
   border-color:var(--source-highlight-border);
-}
-.source-card:not(.highlight) .value{
-  font-size:calc(var(--metric-value-size) - 2px);
 }
 .source-data-table .source-base-row > :is(th,td){background:var(--card)}
 .source-data-table .source-derived-row > :is(th,td){background:var(--source-linked-bg)}

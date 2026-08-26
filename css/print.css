@@ -22,6 +22,7 @@
 
     body,
     body.dashboard-dialog-open,
+    body.market-ai-mobile-dialog-open,
     body.chart-expanded-open{
       overflow:visible;
       touch-action:auto;
@@ -51,7 +52,9 @@
     .chart-web-expand-button,
     .chart-options-row,
     .chart-title-info,
-    .accounts-memo-info-button{
+    .accounts-memo-info-button,
+    .market-ai-mobile-trigger,
+    .market-ai-mobile-dialog{
       display:none;
     }
 
