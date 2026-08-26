@@ -1398,7 +1398,7 @@ special.css
 
 로컬 통합 실행의 canonical entry는 `start-local-server.pyw`다. 런처는 single-UAC·단일 인스턴스를 유지하고, 실제 Ready 이벤트 기반 진행 UI와 함께 **eFriend Ready → KIS Bridge → Market AI API → Dashboard** 순서를 보존한다. eFriend Ready는 실제 로그인·공인인증 완료 상태인 `efexpertmain.exe`를 기준으로 한다. eFriend 자동 로그인 자격 증명은 Windows Credential Manager만 사용하며 코드·로그·Git 파일에 저장하지 않고, 자동화 대상 검증 또는 로그인에 실패하면 수동 로그인으로 fallback한다.
 
-KIS Bridge는 Release/x86 기준으로 실행하고 평상시 시스템 트레이에 상주한다. Local Suite와 Bridge의 `View`/`종료` 동작 및 `start-local-server.log` 기반 진단 흐름을 유지하며, eFriend Ready 또는 Bridge 시작 실패 시 뒤 단계는 실행하지 않는다. Local Suite 종료는 Dashboard / Market AI API / KIS Bridge만 정리하고 eFriend Expert는 유지한다.
+KIS Bridge는 사전 빌드된 Release/x86 실행 파일을 사용하고 런처 기동 시 자동 재빌드하지 않으며, 평상시 시스템 트레이에 상주한다. Local Suite와 Bridge의 `View`/종료 동작 및 `start-local-server.log` 기반 진단 흐름을 유지하며, eFriend Ready 또는 Bridge 시작 실패 시 뒤 단계는 실행하지 않는다. Local Suite 전체 종료는 Dashboard / Market AI API / KIS Bridge / eFriend Expert를 함께 정리한다.
 
 Market AI가 Hero에 mount된 경우 우측 panel edge는 Web/Tablet에서 `--market-ai-edge-pad`로 관리한다. 현재 기준은 `10px`이며, Tablet에서는 기존 Hero 좌측 콘텐츠 여백을 유지하면서 Market AI 우측 edge만 이 값을 사용한다. 이를 맞추기 위해 음수 margin이나 viewport별 임의 좌표 보정을 추가하지 않는다. 실제 Phone에서는 Market AI를 숨기고 `special.css`가 mounted Hero를 기본 block 흐름으로 복원한다.
 
@@ -2862,7 +2862,7 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 [ ] 현재 ES Module 구조를 유지하는가
 [ ] 수정 책임 파일이 맞는가
 [ ] standalone Market AI 변경이면 main 7모듈 graph와 불필요하게 결합하지 않았는가
-[ ] 로컬 런처/Bridge 변경이면 eFriend Ready(efexpertmain.exe) → Bridge → Market AI API → Dashboard 순서와 single-UAC/tray 동작을 보존했는가
+[ ] 로컬 런처/Bridge 변경이면 eFriend Ready(efexpertmain.exe) → Bridge → Market AI API → Dashboard 순서, single-UAC/tray, eFriend 포함 전체 종료 동작을 보존했는가
 [ ] 공통 canonical CSS rule을 먼저 찾았는가
 [ ] 새 breakpoint가 정말 필요한가
 [ ] Phone Landscape 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하는가

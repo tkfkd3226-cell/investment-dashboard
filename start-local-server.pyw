@@ -25,6 +25,7 @@ EFRIEND_BOOTSTRAP_PROCESS = "efriendexpert.exe"
 EFRIEND_GATE_PROCESS = "xexpertgate.exe"
 EFRIEND_READY_PROCESS = "efexpertmain.exe"
 BRIDGE_PROCESS = "KisKospi200Bridge.exe"
+LOCAL_SUITE_ICON = "InvestmentLocalSuite.ico"
 
 # eFriend Expert UI contract verified on the current installation.  These are
 # Win32 dialog/control IDs, not screen coordinates, so automation remains
@@ -361,6 +362,9 @@ class TrayIcon:
     ID_CREDENTIALS = 1002
     ID_EXIT = 1003
     IDI_APPLICATION = 32512
+    IMAGE_ICON = 1
+    LR_LOADFROMFILE = 0x0010
+    LR_DEFAULTSIZE = 0x0040
 
     class NOTIFYICONDATAW(ctypes.Structure):
         _fields_ = [
@@ -392,6 +396,9 @@ class TrayIcon:
         self._ready = threading.Event()
         self.available = False
         self.error = ""
+        self.icon_warning = ""
+        self.custom_icon_loaded = False
+        self._icon_handle = None
         self._taskbar_created_message = 0
 
     def _request_exit(self):
@@ -434,6 +441,10 @@ class TrayIcon:
 
             user32.LoadIconW.argtypes = [wintypes.HINSTANCE, ctypes.c_void_p]
             user32.LoadIconW.restype = wintypes.HICON
+            user32.LoadImageW.argtypes = [wintypes.HINSTANCE, wintypes.LPCWSTR, wintypes.UINT, ctypes.c_int, ctypes.c_int, wintypes.UINT]
+            user32.LoadImageW.restype = wintypes.HANDLE
+            user32.DestroyIcon.argtypes = [wintypes.HICON]
+            user32.DestroyIcon.restype = wintypes.BOOL
             user32.RegisterWindowMessageW.argtypes = [wintypes.LPCWSTR]
             user32.RegisterWindowMessageW.restype = wintypes.UINT
             user32.DefWindowProcW.argtypes = [
@@ -563,6 +574,9 @@ class TrayIcon:
                 elif msg == self.WM_DESTROY:
                     if self.nid is not None:
                         shell32.Shell_NotifyIconW(self.NIM_DELETE, ctypes.byref(self.nid))
+                    if self._icon_handle:
+                        user32.DestroyIcon(self._icon_handle)
+                        self._icon_handle = None
                     user32.PostQuitMessage(0)
                     return 0
                 return user32.DefWindowProcW(hwnd, msg, wparam, lparam)
@@ -570,11 +584,34 @@ class TrayIcon:
             self._wndproc_ref = WNDPROCTYPE(wndproc)
             hinstance = kernel32.GetModuleHandleW(None)
 
+            icon_path = Path(__file__).resolve().parent / LOCAL_SUITE_ICON
+            hicon = None
+            if icon_path.exists():
+                loaded = user32.LoadImageW(
+                    None,
+                    str(icon_path),
+                    self.IMAGE_ICON,
+                    0,
+                    0,
+                    self.LR_LOADFROMFILE | self.LR_DEFAULTSIZE,
+                )
+                if loaded:
+                    hicon = wintypes.HICON(loaded)
+                    self._icon_handle = hicon
+                    self.custom_icon_loaded = True
+                else:
+                    self.icon_warning = f"custom icon load failed: {icon_path}"
+            else:
+                self.icon_warning = f"custom icon not found: {icon_path}"
+
+            if not hicon:
+                hicon = user32.LoadIconW(None, ctypes.c_void_p(self.IDI_APPLICATION))
+
             wc = WNDCLASSW()
             wc.lpfnWndProc = self._wndproc_ref
             wc.hInstance = hinstance
             wc.lpszClassName = self._class_name
-            wc.hIcon = user32.LoadIconW(None, ctypes.c_void_p(self.IDI_APPLICATION))
+            wc.hIcon = hicon
             atom = user32.RegisterClassW(ctypes.byref(wc))
             if not atom:
                 raise ctypes.WinError()
@@ -603,7 +640,7 @@ class TrayIcon:
             nid.uID = 1
             nid.uFlags = self.NIF_MESSAGE | self.NIF_ICON | self.NIF_TIP
             nid.uCallbackMessage = self.WM_TRAY
-            nid.hIcon = user32.LoadIconW(None, ctypes.c_void_p(self.IDI_APPLICATION))
+            nid.hIcon = hicon
             nid.szTip = APP_TITLE
             self.nid = nid
             if not add_tray_icon():
@@ -630,7 +667,7 @@ class TrayIcon:
             user32.AppendMenuW(menu, self.MF_STRING, self.ID_VIEW, "View")
             user32.AppendMenuW(menu, self.MF_STRING, self.ID_CREDENTIALS, "eFriend 자동 로그인 설정")
             user32.AppendMenuW(menu, self.MF_SEPARATOR, 0, None)
-            user32.AppendMenuW(menu, self.MF_STRING, self.ID_EXIT, "종료")
+            user32.AppendMenuW(menu, self.MF_STRING, self.ID_EXIT, "eFriend·Bridge·서버 종료")
             point = wintypes.POINT()
             user32.GetCursorPos(ctypes.byref(point))
             user32.SetForegroundWindow(hwnd)
@@ -810,6 +847,10 @@ class LocalSuiteLauncher:
         self.tray_available = self.tray.start()
         if self.tray_available:
             self.log("[OK]    Investment Local Suite tray icon registered.")
+            if self.tray.custom_icon_loaded:
+                self.log(f"[OK]    Local Suite tray image loaded: {LOCAL_SUITE_ICON}")
+            elif self.tray.icon_warning:
+                self.log(f"[WARN] Local Suite tray image unavailable; default icon used: {self.tray.icon_warning}")
         else:
             self.log(f"[WARN] Local Suite tray icon registration failed: {self.tray.error or 'unknown error'}")
             self.log("       Progress/View UI will remain available as a fallback.")
@@ -900,20 +941,15 @@ class LocalSuiteLauncher:
                 raise RuntimeError("eFriend Expert 실행을 확인하지 못해 시작을 중단했습니다.")
             self._cancel_gate()
 
-            # Prepare Bridge and API before runtime startup. The tray-capable
-            # source must actually be present before we build/launch the Bridge.
-            self.set_status("KIS Bridge 트레이 소스 확인 중")
-            self.set_progress(60, "KIS Bridge 실행 준비를 확인하고 있습니다.", active="bridge", complete=("efriend",))
-            if not self._bridge_tray_source_ready(market_ai_dir):
-                raise RuntimeError("KIS Bridge 트레이 수정 소스가 없어 시작을 중단했습니다.")
-            self._cancel_gate()
-
-            self.set_status("KIS Bridge 빌드 확인 중")
-            self.set_progress(63, "KIS Bridge Release/x86 빌드를 확인하고 있습니다.", active="bridge", complete=("efriend",))
-            if not self._ensure_bridge_build(market_ai_dir):
-                if self.stop_event.is_set():
-                    raise StartupCancelled()
-                raise RuntimeError("KIS Bridge 빌드/배포에 실패해 시작을 중단했습니다.")
+            # Runtime uses the prebuilt Release/x86 Bridge executable. Rebuilding
+            # is a development task and must not delay or complicate normal startup.
+            self.set_status("KIS Bridge 실행 파일 확인 중")
+            self.set_progress(62, "KIS Bridge 실행 파일을 확인하고 있습니다.", active="bridge", complete=("efriend",))
+            bridge_exe = market_ai_dir / BRIDGE_PROCESS
+            if not bridge_exe.exists():
+                self.log(f"[ERROR] KIS Bridge executable not found: {bridge_exe}")
+                raise RuntimeError("KIS Bridge 실행 파일이 없어 시작을 중단했습니다.")
+            self.log("[OK]    KIS Bridge prebuilt Release/x86 runtime ready.")
             self._cancel_gate()
 
             self.set_status("Market AI 의존성 확인 중")
@@ -961,7 +997,7 @@ class LocalSuiteLauncher:
                 self.log()
                 self.log("[OK] Startup sequence complete.")
                 self.log("     eFriend Expert -> KIS Bridge -> Market AI API -> Dashboard")
-                self.log("     Tray icon: right-click View / 종료")
+                self.log("     Tray icon: right-click View / eFriend·Bridge·서버 종료")
                 self.action_queue.put("startup_complete")
         except StartupCancelled:
             # Tray Exit owns shutdown logging/cleanup. Startup simply stops.
@@ -1626,59 +1662,6 @@ class LocalSuiteLauncher:
         self.log(f"[OK]    Port {port} listener stopped.")
         return True
 
-    def _bridge_tray_source_ready(self, market_ai_dir: Path) -> bool:
-        source = market_ai_dir / "KisKospi200Bridge" / "MainForm.cs"
-        if not source.exists():
-            self.log(f"[ERROR] KIS Bridge source not found: {source}")
-            return False
-
-        try:
-            text = source.read_text(encoding="utf-8-sig", errors="replace")
-        except Exception as exc:
-            self.log(f"[ERROR] KIS Bridge source read failed: {exc}")
-            return False
-
-        required_tokens = (
-            "NotifyIcon",
-            "ShowInTaskbar = false",
-            "TrayViewMenuItem_Click",
-            "MainForm_FormClosing",
-        )
-        missing = [token for token in required_tokens if token not in text]
-        if missing:
-            self.log("[ERROR] KIS Bridge tray source is not applied to the current market-ai checkout.")
-            self.log(f"        Source: {source}")
-            self.log("        Missing: " + ", ".join(missing))
-            self.log("        KisKospi200Bridge/MainForm.cs를 트레이 수정본으로 교체해야 합니다.")
-            return False
-
-        self.log("[OK]    KIS Bridge tray source confirmed.")
-        return True
-
-    def _ensure_bridge_build(self, market_ai_dir: Path) -> bool:
-        build_bat = market_ai_dir / "build-kis-bridge-release.bat"
-        bridge_exe = market_ai_dir / BRIDGE_PROCESS
-        if not build_bat.exists():
-            self.log(f"[WARN] {build_bat.name} was not found.")
-            return bridge_exe.exists()
-
-        self.log("[CHECK] KIS Bridge Release/x86 build")
-        try:
-            result = self._run_hidden(["cmd.exe", "/d", "/s", "/c", str(build_bat), "--ensure"], cwd=market_ai_dir, timeout=180)
-            if result.stdout:
-                for line in result.stdout.splitlines():
-                    self.log("        " + line)
-            if result.stderr:
-                for line in result.stderr.splitlines():
-                    self.log("        " + line)
-            if result.returncode != 0:
-                self.log(f"[WARN] KIS Bridge build returned {result.returncode}.")
-                return False
-        except Exception as exc:
-            self.log(f"[WARN] KIS Bridge build failed: {exc}")
-            return False
-        return bridge_exe.exists()
-
     def _check_market_ai_deps(self, python_exe: Path, market_ai_dir: Path) -> bool:
         imports = "import fastapi, uvicorn, sqlalchemy, dotenv, yfinance, pandas, httpx, pydantic, exchange_calendars, korean_lunar_calendar"
         try:
@@ -2024,11 +2007,19 @@ class LocalSuiteLauncher:
         market_ai_stopped = self._stop_port_listener(MARKET_AI_PORT)
         bridge_stopped = self._stop_image(BRIDGE_PROCESS, reason="Local Suite 종료")
 
-        if dashboard_stopped and market_ai_stopped and bridge_stopped:
-            self.log("[OK]    Local Suite stopped. eFriend Expert remains open.")
+        # This PC uses eFriend only for the Local Suite, so close the entire
+        # eFriend login/runtime chain after the Bridge no longer depends on it.
+        efriend_results = [
+            self._stop_image(EFRIEND_READY_PROCESS, reason="Local Suite 종료"),
+            self._stop_image(EFRIEND_GATE_PROCESS, reason="Local Suite 종료"),
+            self._stop_image(EFRIEND_BOOTSTRAP_PROCESS, reason="Local Suite 종료"),
+        ]
+        efriend_stopped = all(efriend_results)
+
+        if dashboard_stopped and market_ai_stopped and bridge_stopped and efriend_stopped:
+            self.log("[OK]    Local Suite runtimes and eFriend Expert stopped.")
         else:
-            self.log("[WARN] Local Suite 종료 후 일부 런타임이 남아 있습니다. 위 ERROR 로그를 확인해 주세요.")
-            self.log("       eFriend Expert는 종료 대상이 아니므로 계속 실행됩니다.")
+            self.log("[WARN] 전체 종료 후 일부 프로세스가 남아 있습니다. 위 ERROR 로그를 확인해 주세요.")
 
         try:
             with self.log_lock:
