@@ -975,7 +975,7 @@ function renderCombined(x){
   return `<section id="summary-section" ${mobileViewAttrs('combined')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="home" aria-hidden="true"></span>연금+계좌 성과</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('combined')}</div></div><div id="combined-table-view" class="mobile-scroll table-view"><table class="dashboard-data-table combined-performance-table"><caption class="visually-hidden">연금과 증권계좌 성과 비교</caption><thead><tr><th scope="col" class="table-cell-text">구분</th><th scope="col">투입원금</th><th scope="col">투자 결과물</th><th scope="col" class="combined-profit-col">누적손익</th><th scope="col" class="table-cell-center combined-return-col">${returnLabel}</th></tr></thead><tbody><tr><th scope="row">퇴직연금</th><td class="num">${fmt(x.pensionPrincipal)}</td><td class="num">${fmt(x.pensionEval)}</td><td class="num combined-profit-col ${tableCls(x.pensionProfit)}">${fmt(x.pensionProfit)}<span class="combined-mobile-return ${tableCls(x.pensionReturn)}"> (${mobileReturnPct(x.pensionReturn)})</span></td><td class="num table-cell-center combined-return-col ${tableCls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr><th scope="row">증권계좌</th><td class="num">${fmt(v.totalPrincipal)}</td><td class="num">${fmt(v.totalResult)}</td><td class="num combined-profit-col ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}<span class="combined-mobile-return ${tableCls(v.totalReturn)}"> (${mobileReturnPct(v.totalReturn)})</span></td><td class="num table-cell-center combined-return-col ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td></tr><tr class="summary-row"><th scope="row">합산</th><td class="num">${fmt(v.combinedPrincipal)}</td><td class="num">${fmt(v.combinedResult)}</td><td class="num combined-profit-col ${tableCls(v.combinedProfit)}">${fmt(v.combinedProfit)}<span class="combined-mobile-return ${tableCls(v.combinedReturn)}"> (${mobileReturnPct(v.combinedReturn)})</span></td><td class="num table-cell-center combined-return-col ${tableCls(v.combinedReturn)}">${pct(v.combinedReturn)}</td></tr></tbody></table></div><div id="combined-card-view" class="mobile-card-view">${cards}</div></section>`;
 }
 
-function accountMemoTableHtml(text,{joinFirstTwo=false}={}){
+function accountMemoTableHtml(text,{joinFirstTwo=false,highlightSourceLink=true}={}){
   const parts=String(text||'').match(/[^.]+\.(?:\s*|$)|[^.]+$/g)||[];
   if(joinFirstTwo&&parts.length>1){
     parts.splice(0,2,`${parts[0].trim()} ${parts[1].trim()}`);
@@ -983,12 +983,15 @@ function accountMemoTableHtml(text,{joinFirstTwo=false}={}){
   const sourceLinkPattern=/([+-]?[\d,]+원은 계좌1 투자원금 검산의 레버수익 재투입·VIP 수익 재투입·실현수익 투입)/;
   return parts.map(part=>{
     const safe=escapeHtml(part.trim());
-    return `<span class="accounts-memo-sentence">${safe.replace(sourceLinkPattern,'<span class="accounts-memo-source-link">$1</span>')}</span>`;
+    const content=highlightSourceLink
+      ? safe.replace(sourceLinkPattern,'<span class="accounts-memo-source-link">$1</span>')
+      : safe;
+    return `<span class="accounts-memo-sentence">${content}</span>`;
   }).join(' ');
 }
 function accountMemoInfoButton(text,{joinFirstTwo=false}={}){
   const plain=escapeHtml(String(text||''));
-  const formatted=accountMemoTableHtml(text,{joinFirstTwo});
+  const formatted=accountMemoTableHtml(text,{joinFirstTwo,highlightSourceLink:false});
   return `<button type="button" class="control-info-button accounts-memo-info-button" aria-label="${plain} 설명" aria-expanded="false" data-dashboard-action="toggle-account-memo-info"><span aria-hidden="true">i</span><span class="accounts-memo-tooltip-source" role="tooltip">${formatted}</span></button>`;
 }
 function removeAccountMemoFloatingTooltip(){
