@@ -285,7 +285,7 @@ function openExpandedChart(button){
   const placeholder=document.createComment('expanded-chart-placeholder');
   svg.parentNode.insertBefore(placeholder,svg);
   const titleHeading=card.querySelector('.chart-head h3');
-  const title=titleHeading?.textContent?.trim()||'차트';
+  const title=chartAccessibleTitle(svg);
   const controls=card.querySelector('.chart-head-actions');
   let expandedSeparateProfitControl=null;
   if(card.id==='chart-cum'&&controls){
@@ -342,7 +342,6 @@ function openExpandedChart(button){
   chartRuntimeState.expanded={overlay,svg,placeholder,wrap,scrollLeft:originalScrollLeft,controls,controlsPlaceholder,closeButton,optionsRow,optionsPlaceholder,legend,legendPlaceholder,expandedSeparateProfitControl,visualBaseline,renderedScale:visualBaseline.scale,cardId:card.id};
   syncExpandedChartViewport();
   closeButton.addEventListener('click',closeExpandedChart,{once:true});
-  overlay.addEventListener('click',e=>{if(e.target===overlay)closeExpandedChart()});
   requestAnimationFrame(()=>{
     redrawChartForCardSize(card.id,{force:true});
     overlay.classList.add('show');
@@ -367,6 +366,7 @@ function closeExpandedChart(){
   legendPlaceholder?.remove();
   overlay?.remove();
   document.body.classList.remove('chart-expanded-open');
+  syncResponsiveChartControls();
   const restoreFocus=()=>releaseDashboardDialogFocus(overlay,{fallbackSelector:cardId?`#${cardId} [data-dashboard-action="open-expanded-chart"]`:'[data-dashboard-action="open-expanded-chart"]'});
   if(typeof afterClose==='function'){
     afterClose();
@@ -1106,7 +1106,7 @@ function setupChartGlobalEvents(){
   window.addEventListener('resize',scheduleChartTooltipViewportCheck,{passive:true});
   window.visualViewport?.addEventListener('scroll',scheduleChartTooltipViewportCheck,{passive:true});
   window.visualViewport?.addEventListener('resize',scheduleChartTooltipViewportCheck,{passive:true});
-  window.addEventListener('beforeprint',drawInactiveChartsForPrint);
+  window.addEventListener('beforeprint',prepareChartsForPrint);
   window.addEventListener('afterprint',drawAllCharts);
 }
 function handleChartDashboardAction(event,control){
@@ -1545,6 +1545,10 @@ function drawAllCharts(){
   setTimeout(refreshScrollHints,120);
 }
 
+function prepareChartsForPrint(){
+  if(chartRuntimeState.expanded)closeExpandedChart();
+  drawInactiveChartsForPrint();
+}
 function drawInactiveChartsForPrint(){
   drawCumChart();
   drawLineChart();
