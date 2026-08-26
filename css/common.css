@@ -408,6 +408,31 @@
   --hero-pill-border:rgba(255,255,255,.28);
   --hero-pill-color:#f8fafc;
   --hero-shadow:0 18px 42px rgba(15,23,42,.16);
+
+  /* Market AI Component Contract · Hero 보조 카드의 theme / density / responsive geometry */
+  --market-ai-edge-pad:var(--space-4xl);
+  --market-ai-column-min:330px;
+  --market-ai-column-max:350px;
+  --market-ai-layout-gap:var(--space-3xl);
+  --market-ai-panel-max-width:330px;
+  --market-ai-card-column-min:154px;
+  --market-ai-card-column-max:160px;
+  --market-ai-panel-radius:15px;
+  --market-ai-card-radius:8px;
+  --market-ai-title-size:var(--dashboard-control-font-size);
+  --market-ai-status-size:9.2px;
+  --market-ai-label-size:9px;
+  --market-ai-value-size:9.5px;
+  --market-ai-change-size:8.5px;
+  --market-ai-tooltip-max-width:440px;
+  --market-ai-panel-bg:rgba(255,255,255,.97);
+  --market-ai-panel-border:rgba(255,255,255,.98);
+  --market-ai-panel-shadow:0 8px 20px rgba(15,23,42,.13),inset 0 1px 0 rgba(255,255,255,.96);
+  --market-ai-text:#0f172a;
+  --market-ai-muted:#475569;
+  --market-ai-label:#64748b;
+  --market-ai-divider:rgba(15,23,42,.11);
+
   --asset-tab-active-bg:#2b3d59;
   --asset-tab-active-color:#ffffff;
   --securities-band-bg:var(--bg);
@@ -446,6 +471,13 @@ html.dark{
   --chart-info-color:var(--highlight-card-muted);
   --hero-bg:linear-gradient(135deg,#151d2c 0%,#1c283b 58%,#24344b 100%);
   --hero-shadow:0 18px 42px rgba(0,0,0,.24);
+  --market-ai-panel-bg:rgba(15,23,42,.48);
+  --market-ai-panel-border:rgba(255,255,255,.16);
+  --market-ai-panel-shadow:0 12px 28px rgba(2,6,23,.28),inset 0 1px 0 rgba(255,255,255,.05);
+  --market-ai-text:#f8fafc;
+  --market-ai-muted:rgba(226,232,240,.74);
+  --market-ai-label:rgba(226,232,240,.72);
+  --market-ai-divider:rgba(255,255,255,.11);
   --asset-tab-active-bg:#36506f;
   --asset-tab-active-color:#ffffff;
   --modal-focus-ring:rgba(54,80,111,.28);
@@ -702,28 +734,22 @@ button svg{pointer-events:none;flex-shrink:0}
    Ownership · 책임: common은 Desktop baseline + 공통 component/tooltip, Tablet/Phone 차이는 역할별 CSS가 담당한다.
    Order · 순서: mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip. */
 /* Market AI Mount Layout · Hero에 standalone 보조 영역을 연결하는 Desktop layout
-   Surface padding · Hero 외곽 여백은 AI mount 여부와 무관하게 .hero의 공통 token을 그대로 사용한다. */
+   Surface edge · 좌측 Hero 여백은 유지하고 Market AI가 mount된 우측 edge만 --market-ai-edge-pad로 관리한다. */
 .hero.market-ai-mounted{
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(330px,350px);
+  grid-template-columns:minmax(0,1fr) minmax(var(--market-ai-column-min),var(--market-ai-column-max));
   grid-template-areas:
     "title market"
     "pills market";
-  column-gap:var(--space-3xl);
+  column-gap:var(--market-ai-layout-gap);
   align-items:center;
+  padding-right:var(--market-ai-edge-pad);
 }
 .hero.market-ai-mounted .hero-title-row{grid-area:title}
 .hero.market-ai-mounted .hero-metric-pills{grid-area:pills}
 
 /* Market AI Theme / Surface · 라이트/다크 token과 보조 카드 surface */
 #market-ai-section{
-  --market-ai-panel-bg:rgba(255,255,255,.97);
-  --market-ai-panel-border:rgba(255,255,255,.98);
-  --market-ai-panel-shadow:0 8px 20px rgba(15,23,42,.13),inset 0 1px 0 rgba(255,255,255,.96);
-  --market-ai-text:#0f172a;
-  --market-ai-muted:#475569;
-  --market-ai-label:#64748b;
-  --market-ai-divider:rgba(15,23,42,.11);
   grid-area:market;
   position:relative;
   z-index:1;
@@ -732,21 +758,12 @@ button svg{pointer-events:none;flex-shrink:0}
   min-width:0;
   justify-self:end;
 }
-html.dark #market-ai-section{
-  --market-ai-panel-bg:rgba(15,23,42,.48);
-  --market-ai-panel-border:rgba(255,255,255,.16);
-  --market-ai-panel-shadow:0 12px 28px rgba(2,6,23,.28),inset 0 1px 0 rgba(255,255,255,.05);
-  --market-ai-text:#f8fafc;
-  --market-ai-muted:rgba(226,232,240,.74);
-  --market-ai-label:rgba(226,232,240,.72);
-  --market-ai-divider:rgba(255,255,255,.11);
-}
 .market-ai-panel{
   width:fit-content;
-  max-width:min(100%,330px);
-  padding:2px 3px;
+  max-width:min(100%,var(--market-ai-panel-max-width));
+  padding:var(--space-2xs) var(--space-xs);
   border:1px solid var(--market-ai-panel-border);
-  border-radius:min(15px,var(--corner-surface-cap));
+  border-radius:min(var(--market-ai-panel-radius),var(--corner-surface-cap));
   background:var(--market-ai-panel-bg);
   box-shadow:var(--market-ai-panel-shadow);
   backdrop-filter:blur(10px);
@@ -758,12 +775,12 @@ html.dark #market-ai-section{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:6px;
+  gap:var(--space-lg);
   margin-bottom:1px;
 }
 .market-ai-title{
   color:var(--market-ai-text);
-  font-size:10.5px;
+  font-size:var(--market-ai-title-size);
   font-weight:var(--type-weight-strong);
   letter-spacing:-.02em;
   white-space:nowrap;
@@ -772,18 +789,23 @@ html.dark #market-ai-section{
   min-width:0;
   overflow:hidden;
   color:var(--market-ai-muted);
-  font-size:9.2px;
+  font-size:var(--market-ai-status-size);
   font-weight:var(--type-weight-bold);
   text-overflow:ellipsis;
   white-space:nowrap;
 }
+.market-ai-status[data-market-ai-state="checking"],
+.market-ai-status[data-market-ai-state="preview"]{color:var(--feedback-active-text)}
+.market-ai-status[data-market-ai-state="waiting"],
+.market-ai-status[data-market-ai-state="stale"]{color:var(--status-warning-text)}
+.market-ai-status[data-market-ai-state="error"]{color:var(--feedback-error-text)}
 /* Market AI Rows / Metrics · 시장/AI 신호를 2개 compact list card로 나란히 배치 */
 .market-ai-desktop{
   display:grid;
   width:fit-content;
   max-width:100%;
-  grid-template-columns:repeat(2,minmax(154px,160px));
-  gap:4px;
+  grid-template-columns:repeat(2,minmax(var(--market-ai-card-column-min),var(--market-ai-card-column-max)));
+  gap:var(--space-sm);
   align-items:stretch;
   justify-content:start;
 }
@@ -794,12 +816,12 @@ html.dark #market-ai-section{
   align-content:start;
   min-width:0;
   border:1px solid var(--market-ai-divider);
-  border-radius:min(8px,var(--corner-surface-cap));
-  padding:2px 5px 1px;
+  border-radius:min(var(--market-ai-card-radius),var(--corner-surface-cap));
+  padding:var(--space-2xs) var(--space-md) 1px;
 }
 .market-ai-desktop-group-label{
   color:var(--market-ai-muted);
-  font-size:9px;
+  font-size:var(--market-ai-label-size);
   font-weight:var(--type-weight-bold);
   letter-spacing:-.02em;
   line-height:1.12;
@@ -855,16 +877,17 @@ html.dark #market-ai-section{
 .market-ai-desktop-change{
   justify-self:end;
   color:var(--market-ai-text);
-  font-size:9.5px;
+  font-size:var(--market-ai-value-size);
   font-weight:var(--type-weight-emphasis);
   font-variant-numeric:tabular-nums;
   letter-spacing:-.02em;
   line-height:1.12;
   text-align:right;
 }
-.market-ai-desktop-change{font-size:8.5px}
+.market-ai-desktop-change{font-size:var(--market-ai-change-size)}
 .market-ai-desktop .positive{color:var(--value-positive)}
 .market-ai-desktop .negative{color:var(--value-negative)}
+.market-ai-desktop-metric.is-unavailable :is(.market-ai-desktop-value,.market-ai-desktop-signal,.market-ai-desktop-change){color:var(--market-ai-muted)}
 
 /* Market AI Interaction / Tooltip · 키보드 focus와 기존 dash-tooltip 확장 */
 .market-ai-desktop-metric[data-market-ai-tooltip]{
@@ -876,9 +899,9 @@ html.dark #market-ai-section{
   outline-offset:var(--control-focus-outline-offset);
 }
 .dash-tooltip.market-ai-tooltip{
-  width:min(440px,calc(100vw - 28px));
+  width:min(var(--market-ai-tooltip-max-width),calc(100vw - var(--tooltip-viewport-gutter)));
   min-width:0;
-  max-width:min(440px,calc(100vw - 28px));
+  max-width:min(var(--market-ai-tooltip-max-width),calc(100vw - var(--tooltip-viewport-gutter)));
 }
 .dash-tooltip.market-ai-tooltip .tt-row{
   align-items:flex-start;

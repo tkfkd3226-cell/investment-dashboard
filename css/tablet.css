@@ -20,6 +20,11 @@
       --info-stack-gap:var(--space-2xl);
       --chart-content-rhythm-gap:var(--space-2xl);
       --empty-state-font-size:var(--type-size-sm);
+      --market-ai-column-min:316px;
+      --market-ai-column-max:330px;
+      --market-ai-layout-gap:var(--space-5xl);
+      --market-ai-card-column-min:150px;
+      --market-ai-card-column-max:156px;
     }
 
   /* Pension Contribution Modal Tablet · semantic token만 한 단계 축소 */
@@ -57,16 +62,16 @@
 
   /* Market AI Tablet · Desktop의 좌측 성과 / 우측 Market AI 구조를 유지하고, 좌측 pill만 가용 폭에서 wrap */
     .hero.market-ai-mounted{
-      grid-template-columns:minmax(0,1fr) minmax(316px,330px);
+      grid-template-columns:minmax(0,1fr) minmax(var(--market-ai-column-min),var(--market-ai-column-max));
       grid-template-areas:
         "title market"
         "pills market";
-      column-gap:12px;
+      column-gap:var(--market-ai-layout-gap);
       align-items:center;
     }
     .hero.market-ai-mounted .hero-metric-pills{min-width:0;flex-wrap:wrap;align-content:flex-start}
     .hero.market-ai-mounted #market-ai-section{width:auto;max-width:100%;margin-top:0;justify-self:end}
-    .market-ai-desktop{grid-template-columns:repeat(2,minmax(150px,156px));justify-content:center}
+    .market-ai-desktop{grid-template-columns:repeat(2,minmax(var(--market-ai-card-column-min),var(--market-ai-card-column-max)));justify-content:center}
 
     .mini-card{
       --mini-label-size:11px;

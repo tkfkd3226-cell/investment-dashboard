@@ -18,17 +18,14 @@ const MARKET_AI_PREVIEW_VARIANT=new URLSearchParams(location.search).get('market
 const MARKET_AI_PREVIEW_MODE=MARKET_AI_PREVIEW_VARIANT==='1'||MARKET_AI_PREVIEW_VARIANT==='2';
 const MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200';
 const MARKET_AI_NASDAQ100_FUTURES_SYMBOL='FUTURES:NQ';
-const MARKET_AI_SOX_INDEX_SYMBOL='INDEX:SOX';
-const MARKET_AI_SOX_FUTURES_SYMBOL='FUTURES:SOX';
-const MARKET_AI_SOX_SPOT_FRESH_MS=45*60_000;
 const MARKET_AI_TOOLTIP_ID='marketAiTooltip';
 const MARKET_AI_SCORE_RANGE_LINES=[
   '0–34.9 강한 약세 · 35–45 약세 · 45 초과–54.9 중립',
   '55–64.9 강세 · 65–100 강한 강세'
 ];
 const MARKET_AI_SIGNAL_METRICS=[
-  {key:'kospi',target:'kospi_up',scoreField:'kospi_score',detailKeys:['kospi','kospi_up'],fullSignalLabel:'코스피 신호',fullProbabilityLabel:'코스피 상승확률'},
-  {key:'semiconductors',target:'semiconductor_up',scoreField:'semiconductor_score',detailKeys:['semiconductors','semiconductor','semiconductor_up'],fullSignalLabel:'반도체 신호',fullProbabilityLabel:'반도체 상승확률'},
+  {key:'kospi',target:'kospi_up',stateKey:'kospi',scoreField:'kospi_score',detailKeys:['kospi','kospi_up'],fullSignalLabel:'코스피 신호',fullProbabilityLabel:'코스피 상승확률'},
+  {key:'semiconductors',target:'semiconductor_up',stateKey:'semiconductors',scoreField:'semiconductor_score',detailKeys:['semiconductors','semiconductor','semiconductor_up'],fullSignalLabel:'반도체 신호',fullProbabilityLabel:'반도체 상승확률'},
   {key:'gap',target:'gap_up',stateKey:'gap_up',scoreField:'gap_up_probability',detailKeys:['gap','gap_up'],fullSignalLabel:'갭상 신호',fullProbabilityLabel:'갭상 확률'},
   {key:'up-close',target:'up_close',stateKey:'up_close',scoreField:'up_close_probability',detailKeys:['up_close','up-close','up_close_probability'],fullSignalLabel:'상승마감 신호',fullProbabilityLabel:'상승마감 확률'}
 ];
@@ -46,7 +43,9 @@ const MARKET_AI_COMPONENT_LABELS={
 const marketAiState={
   signal:null,
   marketSnapshot:{},
+  bridgeStatus:null,
   status:'연결 확인 중',
+  statusKind:'checking',
   message:'선택일과 무관한 현재 Market AI 신호를 확인하고 있습니다.',
   lastSignalAt:null
 };
@@ -83,45 +82,48 @@ function marketAiPreviewState(){
       details:{
         session_phase:{phase:'intraday',kst:now,trading_today:true,calendar_source:'preview'},
         signal_state:{
+          kospi:{available:true,note:'예시 KOSPI 신호'},
+          semiconductors:{available:true,note:'예시 반도체 신호'},
           gap_up:{mode:'locked_preopen',available:true,target_session_date:now.slice(0,10),forecast_at:now,note:'예시 장전 확정 신호'},
           up_close:{mode:'intraday_forecast',available:true,target_session_date:now.slice(0,10),forecast_at:now,note:'예시 장중 예측'}
-        }
-      },
-      effective_weights:{
-        kospi_up:{
-          kospi_index:{effective_weight:0.35,quality:1},
-          kospi200_futures:{effective_weight:0.65,quality:1}
         },
-        semiconductor_up:{
-          samsung_electronics:{effective_weight:0.20,quality:1},
-          sk_hynix:{effective_weight:0.20,quality:1},
-          sox_index:{effective_weight:0.20,quality:1},
-          nvidia:{effective_weight:0.15,quality:1},
-          sk_hynix_adr:{effective_weight:0.15,quality:1},
-          micron:{effective_weight:0.10,quality:1}
-        },
-        gap_up:{
-          kospi200_futures:{effective_weight:0.50,quality:1},
-          sox_index:{effective_weight:0.25,quality:1},
-          nasdaq100_futures:{effective_weight:0.20,quality:1},
-          usdkrw:{effective_weight:0.05,quality:1}
-        },
-        up_close:{
-          kospi_index:{effective_weight:0.45,quality:1},
-          kospi200_futures:{effective_weight:0.35,quality:1},
-          sox_index:{effective_weight:0.12,quality:1},
-          nasdaq100_futures:{effective_weight:0.08,quality:1}
+        effective_weights:{
+          kospi:{
+            kospi_index:{configured_weight:0.35,effective_weight:0.35,quality:1,available:true},
+            kospi200_futures:{configured_weight:0.65,effective_weight:0.65,quality:1,available:true}
+          },
+          semiconductors:{
+            samsung_electronics:{configured_weight:0.20,effective_weight:0.20,quality:1,available:true},
+            sk_hynix:{configured_weight:0.20,effective_weight:0.20,quality:1,available:true},
+            sox_index:{configured_weight:0.20,effective_weight:0.20,quality:1,available:true},
+            nvidia:{configured_weight:0.15,effective_weight:0.15,quality:1,available:true},
+            sk_hynix_adr:{configured_weight:0.15,effective_weight:0.15,quality:1,available:true},
+            micron:{configured_weight:0.10,effective_weight:0.10,quality:1,available:true}
+          },
+          gap_up:{
+            kospi200_futures:{configured_weight:0.50,effective_weight:0.50,quality:1,available:true},
+            sox_index:{configured_weight:0.25,effective_weight:0.25,quality:1,available:true},
+            nasdaq100_futures:{configured_weight:0.20,effective_weight:0.20,quality:1,available:true},
+            usdkrw:{configured_weight:0.05,effective_weight:0.05,quality:1,available:true}
+          },
+          up_close:{
+            kospi_index:{configured_weight:0.45,effective_weight:0.45,quality:1,available:true},
+            kospi200_futures:{configured_weight:0.35,effective_weight:0.35,quality:1,available:true},
+            sox_index:{configured_weight:0.12,effective_weight:0.12,quality:1,available:true},
+            nasdaq100_futures:{configured_weight:0.08,effective_weight:0.08,quality:1,available:true}
+          }
         }
       }
     },
     marketSnapshot:marketAiSnapshotMap({items:[
       {symbol:'INDEX:KOSPI',price:3278.64,change_pct:0.84,observed_at:now,source:'preview'},
       {symbol:MARKET_AI_KIS_FUTURES_SYMBOL,price:438.25,change_pct:0.72,observed_at:now,source:'kis-efriend:preview'},
-      {symbol:MARKET_AI_SOX_INDEX_SYMBOL,price:5916.43,change_pct:1.18,observed_at:now,source:'preview'},
-      {symbol:MARKET_AI_SOX_FUTURES_SYMBOL,price:5934.50,change_pct:1.31,observed_at:now,source:'preview'},
+      {symbol:'INDEX:SOX',price:5916.43,change_pct:1.18,observed_at:now,source:'preview'},
       {symbol:MARKET_AI_NASDAQ100_FUTURES_SYMBOL,price:24386.75,change_pct:0.61,observed_at:now,source:'preview'}
     ]}),
+    bridgeStatus:{market_open:true,connected:true,expected_session:'day'},
     status:'예시 데이터',
+    statusKind:'preview',
     message:'비로컬 미리보기용 예시 데이터입니다.',
     lastSignalAt:null
   };
@@ -277,7 +279,7 @@ function marketAiKstClockParts(date=new Date()){
   };
 }
 
-function marketAiK200SessionOpen(date=new Date()){
+function marketAiK200FallbackSessionOpen(date=new Date()){
   const {weekday,minuteOfDay}=marketAiKstClockParts(date);
   if(weekday<0||minuteOfDay<0)return true;
 
@@ -293,19 +295,24 @@ function marketAiK200SessionOpen(date=new Date()){
 
 function marketAiKisFuturesState(){
   const rawRow=marketAiSnapshotRow(MARKET_AI_KIS_FUTURES_SYMBOL);
-  if(!rawRow)return {row:null,rawRow:null,reason:'missing'};
+  const bridgeStatus=marketAiObject(marketAiState.bridgeStatus);
+  if(!rawRow)return {row:null,rawRow:null,reason:'missing',bridgeStatus};
   const source=String(rawRow.source||'');
   if(!source.startsWith('kis-efriend:')||source.includes(':proxy')){
-    return {row:null,rawRow,reason:'source'};
+    return {row:null,rawRow,reason:'source',bridgeStatus};
   }
   const freshness=marketAiSnapshotFreshness(rawRow);
   if(!freshness.fresh){
-    if(!marketAiK200SessionOpen()){
-      return {row:rawRow,rawRow,reason:'closed',observedAt:freshness.observedAt};
+    const backendMarketOpen=typeof bridgeStatus?.market_open==='boolean'?bridgeStatus.market_open:null;
+    if(backendMarketOpen===false||(backendMarketOpen==null&&!marketAiK200FallbackSessionOpen())){
+      return {row:rawRow,rawRow,reason:'closed',observedAt:freshness.observedAt,bridgeStatus};
     }
-    return {row:null,rawRow,reason:'stale',observedAt:freshness.observedAt};
+    if(backendMarketOpen===true&&bridgeStatus?.connected===false){
+      return {row:null,rawRow,reason:'bridge',observedAt:freshness.observedAt,bridgeStatus};
+    }
+    return {row:null,rawRow,reason:'stale',observedAt:freshness.observedAt,bridgeStatus};
   }
-  return {row:rawRow,rawRow,reason:'fresh',observedAt:freshness.observedAt};
+  return {row:rawRow,rawRow,reason:'fresh',observedAt:freshness.observedAt,bridgeStatus};
 }
 
 function marketAiEscape(value){
@@ -549,61 +556,11 @@ function marketAiSignalBasis(signal,metric){
     .sort((a,b)=>Math.abs(Number(b.weight)||0)-Math.abs(Number(a.weight)||0));
 }
 
-
-function marketAiNewYorkClock(at=new Date()){
-  const parts=new Intl.DateTimeFormat('en-US',{
-    timeZone:'America/New_York',
-    weekday:'short',
-    year:'numeric',
-    month:'2-digit',
-    day:'2-digit',
-    hour:'2-digit',
-    minute:'2-digit',
-    hourCycle:'h23'
-  }).formatToParts(at);
-  const values=Object.fromEntries(parts.filter(part=>part.type!=='literal').map(part=>[part.type,part.value]));
-  const hour=Number(values.hour);
-  const minute=Number(values.minute);
-  return {
-    weekday:values.weekday||'',
-    date:`${values.year}-${values.month}-${values.day}`,
-    minutes:hour*60+minute
-  };
-}
-
-function marketAiSoxDisplayState(now=new Date()){
-  const spot=marketAiSnapshotRow(MARKET_AI_SOX_INDEX_SYMBOL);
-  const futures=marketAiSnapshotRow(MARKET_AI_SOX_FUTURES_SYMBOL);
-  const ny=marketAiNewYorkClock(now);
-  const weekday=!['Sat','Sun'].includes(ny.weekday);
-  const cashClockOpen=weekday&&ny.minutes>=9*60+30&&ny.minutes<16*60;
-  const spotAt=spot?.observed_at?new Date(spot.observed_at):null;
-  const spotClock=spotAt&&!Number.isNaN(spotAt.getTime())?marketAiNewYorkClock(spotAt):null;
-  const spotAge=spotAt&&!Number.isNaN(spotAt.getTime())?Math.max(0,now.getTime()-spotAt.getTime()):Infinity;
-  const spotIsLiveToday=!!spot&&spotClock?.date===ny.date&&spotAge<=MARKET_AI_SOX_SPOT_FRESH_MS;
-  const useSpot=cashClockOpen&&spotIsLiveToday;
-  const useFutures=!useSpot&&!!futures;
-  if(useFutures){
-    return {
-      label:'SOX-F',
-      row:futures,
-      source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo E-mini PHLX 반도체 선물 (SOX=F)',
-      symbol:MARKET_AI_SOX_FUTURES_SYMBOL
-    };
-  }
-  return {
-    label:'SOX',
-    row:spot,
-    source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo PHLX 반도체 현물지수',
-    symbol:MARKET_AI_SOX_INDEX_SYMBOL
-  };
-}
-
 function marketAiMarketTooltipHtml(key){
   const futuresState=marketAiKisFuturesState();
   const config={
     'kospi-index':{label:'KOSPI',row:marketAiSnapshotRow('INDEX:KOSPI'),price:item=>marketAiIndexText(item?.price),source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo KOSPI 현물지수'},
-    'sox-index':{...marketAiSoxDisplayState(),price:item=>marketAiIndexText(item?.price)},
+    'sox-index':{label:'SOX',row:marketAiSnapshotRow('INDEX:SOX'),price:item=>marketAiIndexText(item?.price),source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo PHLX 반도체 현물지수'},
     'nasdaq100-futures':{label:'NASDAQ100 선물',row:marketAiSnapshotRow(MARKET_AI_NASDAQ100_FUTURES_SYMBOL),price:item=>marketAiPriceText(item?.price,2),source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo Nasdaq-100 선물 (NQ=F)'},
     'kospi200-futures':{label:'KOSPI200 선물',row:futuresState.row,price:item=>marketAiPriceText(item?.price,2),source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'KIS eFriend 실제 선물',state:futuresState}
   }[key];
@@ -622,8 +579,10 @@ function marketAiMarketTooltipHtml(key){
   }
 
   if(config.state){
-    const stateLabel=MARKET_AI_PREVIEW_MODE?'예시 데이터':({fresh:'거래 데이터 정상',closed:'장 종료 · 마지막 정상값',stale:'장중 데이터 지연',source:'실제 선물 소스 없음',missing:'데이터 없음'}[config.state.reason]||'상태 확인');
+    const stateLabel=MARKET_AI_PREVIEW_MODE?'예시 데이터':({fresh:'거래 데이터 정상',closed:'장 종료 · 마지막 정상값',stale:'장중 데이터 지연',bridge:'Bridge 연결 지연',source:'실제 선물 소스 없음',missing:'데이터 없음'}[config.state.reason]||'상태 확인');
     parts.push(marketAiTooltipRow('상태',stateLabel));
+    const sessionLabel={day:'주간',night:'야간',closed:'장외'}[config.state.bridgeStatus?.expected_session];
+    if(sessionLabel)parts.push(marketAiTooltipRow('세션',sessionLabel));
   }
   parts.push(marketAiTooltipDivider());
   parts.push(marketAiTooltipRow('데이터',config.source));
@@ -816,7 +775,7 @@ function syncMarketAiMarketView(row){
   const marketItems=[
     {key:'kospi-index',marketRow:marketAiSnapshotRow('INDEX:KOSPI'),valueText:item=>marketAiIndexText(item?.price)},
     {key:'kospi200-futures',marketRow:futuresState.row,valueText:item=>marketAiPriceText(item?.price,2)},
-    {key:'sox-index',...(()=>{const state=marketAiSoxDisplayState();return {marketRow:state.row,labelText:state.label};})(),valueText:item=>marketAiIndexText(item?.price)},
+    {key:'sox-index',marketRow:marketAiSnapshotRow('INDEX:SOX'),valueText:item=>marketAiIndexText(item?.price)},
     {key:'nasdaq100-futures',marketRow:marketAiSnapshotRow(MARKET_AI_NASDAQ100_FUTURES_SYMBOL),valueText:item=>marketAiPriceText(item?.price,2)}
   ];
 
@@ -837,9 +796,9 @@ function syncMarketAiMarketView(row){
     });
     const card=row.querySelector(`[data-market-ai-market-card="${item.key}"]`);
     if(card){
-      const labelNode=card.querySelector('.market-ai-desktop-label');
-      if(item.labelText&&labelNode)labelNode.textContent=item.labelText;
-      const label=labelNode?.textContent?.trim()||item.key;
+      const unavailable=!item.marketRow;
+      card.classList.toggle('is-unavailable',unavailable);
+      const label=card.querySelector('.market-ai-desktop-label')?.textContent?.trim()||item.key;
       const valueText=item.valueText(item.marketRow);
       const changeText=marketAiChangeText(item.marketRow?.change_pct)||'등락률 없음';
       card.setAttribute('aria-label',`${label} ${valueText} · ${changeText}`);
@@ -861,9 +820,11 @@ function syncMarketAiSignalView(){
   const metrics=MARKET_AI_SIGNAL_METRICS.map(metric=>({...metric,score:signal?.[metric.scoreField]}));
 
   const status=row.querySelector('[data-market-ai-status]');
-  row.querySelectorAll('[data-market-ai-content]').forEach(content=>{content.hidden=!signal;});
+  const hasMarketData=Object.keys(marketAiState.marketSnapshot||{}).length>0;
+  row.querySelectorAll('[data-market-ai-content]').forEach(content=>{content.hidden=!signal&&!hasMarketData;});
   if(status){
     status.hidden=!!signal&&!MARKET_AI_PREVIEW_MODE;
+    status.dataset.marketAiState=MARKET_AI_PREVIEW_MODE?'preview':(marketAiState.statusKind||'checking');
     if(MARKET_AI_PREVIEW_MODE){
       status.textContent='예시 데이터';
       status.setAttribute('aria-label','Market AI 비로컬 미리보기용 예시 데이터');
@@ -880,7 +841,8 @@ function syncMarketAiSignalView(){
     const probability=Number(probabilities[metric.target]);
     const calibrated=calibratedTargets.has(metric.target)&&Number.isFinite(probability);
     const actualClose=state?.mode==='actual_close';
-    const unavailable=state&&state.available===false;
+    const rawScore=Number(metric.score);
+    const unavailable=!signal||state?.available===false||(!actualClose&&!calibrated&&!Number.isFinite(rawScore));
     let displayValue=calibrated?probability*100:metric.score;
     let valueText=calibrated?marketAiProbabilityText(probability):marketAiScoreText(metric.score);
     let stateText='';
@@ -904,7 +866,8 @@ function syncMarketAiSignalView(){
     const band=marketAiScoreBand(displayValue);
     items.forEach(item=>{
       item.removeAttribute('title');
-      const suffix=actualClose?`${stateText} 확정`:(unavailable?stateText:band.label);
+      item.classList.toggle('is-unavailable',unavailable);
+      const suffix=actualClose?`${stateText} 확정`:(unavailable?(stateText||'신호 없음'):band.label);
       item.setAttribute('aria-label',`${fullLabel} ${valueText} · ${suffix}`);
     });
   });
@@ -954,6 +917,22 @@ async function refreshMarketAiMarketSnapshot(apiBase){
   }
 }
 
+
+async function refreshMarketAiBridgeStatus(apiBase){
+  try{
+    const response=await fetchWithTimeout(`${apiBase}/api/bridge/kis-efriend/status`,{
+      method:'GET',
+      headers:{Accept:'application/json'},
+      cache:'no-store'
+    });
+    if(!response.ok)return null;
+    const payload=await response.json();
+    return marketAiObject(payload);
+  }catch(_){
+    return null;
+  }
+}
+
 async function refreshMarketAiSignal(){
   const apiBase=marketAiApiBase();
   if(!apiBase){
@@ -962,22 +941,24 @@ async function refreshMarketAiSignal(){
   }
 
   if(!marketAiState.signal){
-    setMarketAiState({status:'연결 확인 중',message:'Market AI 서버에 연결하고 있습니다.'});
+    setMarketAiState({status:'연결 확인 중',statusKind:'checking',message:'Market AI 서버에 연결하고 있습니다.'});
   }
   try{
-    const [response,nextMarketSnapshot]=await Promise.all([
+    const [response,nextMarketSnapshot,nextBridgeStatus]=await Promise.all([
       fetchWithTimeout(`${apiBase}/api/signal/latest?include_details=true`,{
         method:'GET',
         headers:{Accept:'application/json'},
         cache:'no-store'
       }),
-      refreshMarketAiMarketSnapshot(apiBase)
+      refreshMarketAiMarketSnapshot(apiBase),
+      refreshMarketAiBridgeStatus(apiBase)
     ]);
-    setMarketAiState({marketSnapshot:nextMarketSnapshot||{}});
+    Object.assign(marketAiState,{marketSnapshot:nextMarketSnapshot||{},bridgeStatus:nextBridgeStatus});
     if(response.status===404){
       setMarketAiState({
         signal:null,
         status:'신호 대기',
+        statusKind:'waiting',
         message:'Market AI가 첫 신호를 생성하면 자동으로 표시됩니다.',
         lastSignalAt:null
       });
@@ -990,6 +971,7 @@ async function refreshMarketAiSignal(){
       setMarketAiState({
         signal:null,
         status:'신호 지연',
+        statusKind:'stale',
         message:freshness.updatedAt
           ?'Market AI 신호가 5분 이상 갱신되지 않았습니다.'
           :'Market AI 신호의 갱신 시각을 확인할 수 없습니다.',
@@ -997,12 +979,15 @@ async function refreshMarketAiSignal(){
       });
       return;
     }
-    setMarketAiState({signal,status:'연결됨',message:'',lastSignalAt:null});
+    setMarketAiState({signal,status:'연결됨',statusKind:'connected',message:'',lastSignalAt:null});
   }catch(_){
     setMarketAiState({
       signal:null,
+      marketSnapshot:{},
+      bridgeStatus:null,
       status:'서버 연결 안 됨',
-      message:'start-local-server.bat 실행 후 자동으로 다시 연결합니다.',
+      statusKind:'error',
+      message:'Local Suite 실행 후 자동으로 다시 연결합니다.',
       lastSignalAt:null
     });
   }
