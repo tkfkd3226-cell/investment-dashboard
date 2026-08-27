@@ -1,6 +1,6 @@
 /* =========================================================
    add 공통 CSS · CALC / 거래 리포트 공유 기반
-   - 두 화면에서 함께 쓰는 의미 색상, Corner, box-sizing, 기본 글꼴만 둔다.
+   - 두 화면에서 함께 쓰는 의미 색상, Corner, Spacing/Density, Card Surface primitive를 둔다.
    - 화면별 레이아웃·반응형은 calc.css 또는 report 내부 CSS가 소유한다.
    ========================================================= */
 
@@ -96,7 +96,20 @@ html.dark{
   --on-accent:#ffffff;
 }
 
-/* 02. 공통 박스 모델 / 기본 글꼴 */
+
+/* 02. Add 공통 Card Surface primitive
+   - shell은 border/radius만 소유하고, 배경·shadow는 역할 class로 조합한다.
+   - feature별 class는 layout/content만 소유하며 동일 shell을 반복 정의하지 않는다. */
+.add-card-shell{
+  border:1px solid var(--line);
+  border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
+}
+.add-card-base{background:var(--card)}
+.add-card-control{background:var(--surface-control)}
+.add-card-subtle{background:var(--surface-subtle)}
+.add-card-shadow{box-shadow:var(--shadow)}
+
+/* 03. 공통 박스 모델 / 기본 글꼴 */
 *{box-sizing:border-box}
 body{
   margin:0;

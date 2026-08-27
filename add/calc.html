@@ -36,9 +36,9 @@
     <button class="preset-btn active" type="button" data-preset="current-only" aria-pressed="true"><span class="preset-main">이전 거래 없음</span></button>
   </div>
 
-  <section class="panel input-panel">
+  <section class="panel input-panel add-card-shell add-card-base add-card-shadow">
     <div class="input-grid" id="inputGrid">
-      <div class="input-group existing-group" id="priorGroup">
+      <div class="input-group existing-group add-card-shell add-card-subtle" id="priorGroup">
         <div class="group-title"><span id="priorGroupTitle">기존 보유분</span><small id="priorGroupSub">기본 투자 정보</small></div>
         <div class="fields" id="holdingPriorFields">
           <div class="field" id="existingAvgField"><label id="existingAvgLabel" for="existingOriginalAvg">기존 보유분 원래 평단</label><input id="existingOriginalAvg" class="control" readonly></div>
@@ -82,7 +82,7 @@
           <button class="current-purchase-btn" id="applyBuy20260806" type="button" data-current-purchase-preset="buy-2026-08-06" aria-pressed="false">2026-08-06 매수</button>
         </div>
 
-      <div class="input-group additional-group" id="currentGroup">
+      <div class="input-group additional-group add-card-shell add-card-subtle" id="currentGroup">
         <div class="group-title"><span id="currentGroupTitle">추가매수 내역</span><small id="currentGroupSub"><span class="desktop-only">실제 체결 기준 · 3개 전략 공통</span><span class="mobile-only">실제 체결 기준</span></small></div>
         <div class="fields" id="currentFields">
           <span id="currentPriceSlot"></span>
@@ -107,7 +107,7 @@
       </div>
       </div>
 
-      <div class="input-group calculation-group">
+      <div class="input-group calculation-group add-card-shell add-card-subtle">
         <div class="group-title">계산 기준 <small>세 기준 중 하나만 입력</small></div>
         <div class="seg" role="group" aria-label="목표가격 계산 기준"><button id="modeCurrent" class="active" type="button" aria-pressed="true">매수일 종가</button><button id="modeRise" type="button" aria-pressed="false">추가매수가</button><button id="modeTarget" type="button" aria-pressed="false">목표단가</button></div>
         <div class="fields">
@@ -121,19 +121,19 @@
     </div>
   </section>
 
-  <div id="validationMessage" class="validation-panel" role="alert" aria-live="polite"></div>
+  <div id="validationMessage" class="validation-panel add-card-shell" role="alert" aria-live="polite"></div>
 
-  <section class="panel kpis">
-    <div class="kpi"><div class="name" id="kpi1Name"></div><div class="value" id="kpi1Value"></div><div class="sub" id="kpi1Sub"></div></div>
-    <div class="kpi"><div class="name" id="kpi2Name"></div><div class="value" id="kpi2Value"></div><div class="sub" id="kpi2Sub"></div></div>
-    <div class="kpi"><div class="name" id="kpi3Name"></div><div class="value" id="kpi3Value"></div><div class="sub" id="kpi3Sub"></div></div>
-    <div class="kpi"><div class="name" id="kpi4Name"></div><div class="value" id="kpi4Value"></div><div class="sub" id="kpi4Sub"></div></div>
+  <section class="panel kpis add-card-shell add-card-base add-card-shadow">
+    <div class="kpi add-card-shell add-card-control"><div class="name" id="kpi1Name"></div><div class="value" id="kpi1Value"></div><div class="sub" id="kpi1Sub"></div></div>
+    <div class="kpi add-card-shell add-card-control"><div class="name" id="kpi2Name"></div><div class="value" id="kpi2Value"></div><div class="sub" id="kpi2Sub"></div></div>
+    <div class="kpi add-card-shell add-card-control"><div class="name" id="kpi3Name"></div><div class="value" id="kpi3Value"></div><div class="sub" id="kpi3Sub"></div></div>
+    <div class="kpi add-card-shell add-card-control"><div class="name" id="kpi4Name"></div><div class="value" id="kpi4Value"></div><div class="sub" id="kpi4Sub"></div></div>
   </section>
 
-  <section class="panel range-panel">
-    <div class="range-box blue"><strong id="range1Title"></strong><div class="big" id="range1Value"></div><div class="muted" id="range1Sub"></div></div>
-    <div class="range-box red"><strong id="range2Title"></strong><div class="big" id="range2Value"></div><div class="muted" id="range2Sub"></div></div>
-    <div class="range-box green"><strong id="range3Title"></strong><div class="big" id="range3Value"></div><div class="muted" id="range3Sub"></div></div>
+  <section class="panel range-panel add-card-shell add-card-base add-card-shadow">
+    <div class="range-box blue add-card-shell"><strong id="range1Title"></strong><div class="big" id="range1Value"></div><div class="muted" id="range1Sub"></div></div>
+    <div class="range-box red add-card-shell"><strong id="range2Title"></strong><div class="big" id="range2Value"></div><div class="muted" id="range2Sub"></div></div>
+    <div class="range-box green add-card-shell"><strong id="range3Title"></strong><div class="big" id="range3Value"></div><div class="muted" id="range3Sub"></div></div>
   </section>
 
   <div class="tabs" id="strategyTabs" role="tablist" aria-label="매도 전략 선택">
