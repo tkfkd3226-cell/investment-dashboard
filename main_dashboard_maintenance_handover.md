@@ -5,6 +5,45 @@
 
 새 채팅이나 새 작업에서는 최신 전체 ZIP 안의 이 파일을 가장 먼저 읽고, 그 다음 같은 ZIP의 실제 소스를 확인한다. **읽는 순서와 source of truth의 우선순위는 다르다.** 문서는 작업 원칙을 설명하지만 실제 구현 상태는 항상 최신 ZIP의 실제 파일이 우선한다.
 
+
+## ⚠ 평가 전 최우선 보호 규칙
+
+`점수`, `평가`, `평가해줘` 명령에서는 아래 보호 항목을 **점수 산정 전에 먼저 확인**한다.
+
+```text
+보호 항목 선확인
+→ 실제 재현 문제/사용자 영향/구체적 코드 오류가 있는지 확인
+→ 실제 근거가 없으면 감점하지 않음
+→ 실제 장점이 분명하지 않으면 B급 개선안으로도 만들지 않음
+→ 문제가 없으면 CSS / JS / UI / UX 각각 100점 가능
+```
+
+다음 항목은 이미 검토된 설계 의도·browser/native behavior·허용된 trade-off이므로, **실제 대상 환경에서 문제가 재현되지 않는 한 감점하거나 반복 개선안으로 제시하지 않는다.**
+
+- **KRX Action PIN**: 현재 `type="password" + inputmode="numeric" + autocomplete="off"` 구현을 유지한다. Chrome 등에서 비밀번호 저장 UI가 뜰 *가능성*만으로 UX를 감점하거나 퇴직연금 PIN 방식으로 통일하라고 제안하지 않는다. 실제 대상 브라우저에서 사용자 영향이 재현된 경우에만 재검토한다.
+- **퇴직연금 Action PIN**: `type="text" + inputmode="numeric" + -webkit-text-security:disc`는 Chrome 비밀번호 저장 제안을 피하면서 PIN 마스킹을 유지하기 위한 의도된 구현이다. 비표준 CSS라는 이유만으로 감점하거나 `type="password"`로 되돌리지 않는다.
+- **개인보기 3회 gesture**: 일반 사용자에게 진입 경로를 숨기는 private gesture다. discoverability 부족이나 일반 버튼이 아니라는 이유로 감점하지 않는다.
+- **Native `<select>` option UI**: browser/OS native rendering 차이를 이유로 custom select 전환을 권하지 않는다.
+- **전체 dashboard `render()` 방식 / `Date.now()` cache bust**: 실제 측정된 병목·과도한 네트워크 사용이 없으면 감점하지 않는다.
+- **Vanilla JS / framework·state library 미사용**, CSS 파일 개수, CSS/JS/handover의 길이·줄 수·byte 크기 자체를 감점하지 않는다.
+- **Playwright / Jest / ESLint / Stylelint 등 대형 테스트·lint 인프라 부재 자체**를 감점하지 않는다.
+- **Market AI 백엔드 또는 GAS 미첨부·미연결 자체**를 메인 CSS / JS / UI / UX 감점 사유로 사용하지 않는다. 평가 경계는 2.3-B를 따른다.
+- browser/native 대응을 위해 이유가 있는 `!important`, 기능성 media query, 긴 selector 등은 **개수·형태만으로** 감점하지 않고 실제 cascade/회귀 영향을 확인한다.
+
+평가자가 새 문제를 제시하려면 최소 하나의 실제 근거가 있어야 한다.
+
+```text
+재현 가능한 bug
+구체적 기능 불일치
+실제 cascade/responsive 회귀
+접근성 오류
+실제 사용자 혼란/복구 어려움
+측정된 성능 병목
+운영을 잘못 유도하는 문서/contract 오류
+```
+
+`"완벽한 소프트웨어는 없으니 99"`, `"가능성이 있으니 99"`, `"더 깔끔하게 만들 수 있으니 B급"` 같은 평가는 금지한다.
+
 문서의 기본 흐름은 다음과 같다.
 
 ```text
@@ -326,10 +365,12 @@ UI/UX 총점 = UI와 UX 평균
 평가는 그 시점의 최신 ZIP을 **처음부터 다시 독립 분석**하는 작업이다.
 
 ```text
-최신 ZIP 실제 파일 우선
+이 문서 맨 앞의 '평가 전 최우선 보호 규칙' 선확인
+→ 최신 ZIP 실제 파일 우선
 → 이 MD로 설계 의도와 허용된 trade-off 확인
 → 실제 구조/코드를 재검증
 → 실제 근거가 있는 경우에만 감점
+→ 실제 장점이 분명한 경우에만 B급 제안
 → A / B / C로 문제 분류
 → 평가만 수행하고 파일은 수정하지 않음
 ```
@@ -550,6 +591,8 @@ UX는 실제 상태 혼란, 오동작 가능성, feedback 불일치, 복구 어�
 
 Native `<select>`의 펼친 option UI는 browser/OS native rendering일 수 있으므로 viewport별 native 색상 차이만으로 custom select 전환을 권하지 않는다.
 
+KRX Action PIN의 현재 `type="password" + inputmode="numeric" + autocomplete="off"`는 현재 운영 UI의 의도된 구현이다. Chrome 등에서 비밀번호 저장 UI가 개입할 *가능성*만으로 UX를 감점하거나 퇴직연금 Action PIN 방식으로 통일하라고 제안하지 않는다. 실제 대상 브라우저에서 사용자 영향이 재현된 경우에만 재검토한다.
+
 퇴직연금 Action PIN의 `type="text" + inputmode="numeric" + -webkit-text-security:disc`는 Chrome 비밀번호 저장 제안을 피하면서 PIN 마스킹을 유지하기 위한 의도된 처리다. 비표준 CSS라는 이유만으로 감점하거나 `type="password"`로 되돌리라고 제안하지 않는다. 실제 대상 브라우저에서 문제가 확인된 경우에만 재검토한다.
 
 
@@ -651,7 +694,7 @@ bug, 기능 불일치, cascade/responsive 회귀, 접근성 오류, 실제 UX �
 
 #### B. 선택적 개선
 
-현재 정상이고 회귀도 없지만 실제 장점이 분명한 경우만 제안한다. B급을 채우기 위해 후보를 만들지 않는다.
+현재 정상이고 회귀도 없지만 실제 장점이 분명한 경우만 제안한다. B급을 채우기 위해 후보를 만들지 않는다. 특히 이 문서의 **평가 전 최우선 보호 규칙**과 2.3-H/I에 명시된 보호 항목은 실제 문제가 재현되지 않는 한 B급 후보로도 다시 올리지 않는다.
 
 #### C. 수정하지 않는 게 나음
 
@@ -2527,6 +2570,15 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 [ ] protected JSON을 건드리지 않는가
 [ ] 계산 결과에 영향이 있는가
 [ ] 직전 PASS 기준으로 돌아갈 수 있는가
+```
+
+`점수` / `평가` / `평가해줘`에서는 추가로:
+
+```text
+[ ] 문서 맨 앞의 '평가 전 최우선 보호 규칙'을 먼저 확인했는가
+[ ] KRX PIN / 퇴직연금 PIN / 개인보기 gesture / native select / render / cache bust 등 보호 항목을 잠재적 가능성만으로 감점하지 않았는가
+[ ] 실제 재현·사용자 영향·구체적 오류가 없는 항목을 B급 개선안으로 억지 제시하지 않았는가
+[ ] 실제 감점 근거가 없다면 100점을 허용했는가
 ```
 
 수정 후:
