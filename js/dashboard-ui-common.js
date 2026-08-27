@@ -312,7 +312,7 @@ function setupAssetVizTooltips(zoneSelector){
     const timer=setTimeout(()=>{
       touchTooltipTimers.delete(target);
       target.classList.remove('tooltip-open');
-      clearTooltipFollow(target);
+      leaveTooltipFollow(target);
     },touchTooltipMs);
     touchTooltipTimers.set(target,timer);
   };
@@ -322,7 +322,8 @@ function setupAssetVizTooltips(zoneSelector){
     document.querySelectorAll(selector).forEach(el=>{
       if(el===except)return;
       el.classList.remove('tooltip-open');
-      clearTooltipFollow(el);
+      if(el.classList.contains('asset-stack-segment'))leaveTooltipFollow(el);
+      else clearTooltipFollow(el);
     });
   };
   const positionStackTooltip=(target,event)=>{
@@ -356,7 +357,8 @@ function setupAssetVizTooltips(zoneSelector){
   const finishTouchDrag=(event,cancelled=false)=>{
     if(!touchDragState||touchDragState.pointerId!==event.pointerId)return;
     const {currentTarget,initialTarget,moved}=touchDragState;
-    clearTooltipFollow(currentTarget);
+    if(cancelled)clearTooltipFollow(currentTarget);
+    else leaveTooltipFollow(currentTarget);
     if(moved&&!cancelled){
       suppressTouchClickTargets=[initialTarget,currentTarget].filter(Boolean);
       suppressTouchClickUntil=performance.now()+600;
@@ -388,12 +390,12 @@ function setupAssetVizTooltips(zoneSelector){
       if(Math.hypot(dx,dy)>=touchDragThreshold)touchDragState.moved=true;
       const target=targetAtPoint(selector,event);
       if(!target?.classList.contains('asset-stack-segment')){
-        clearTooltipFollow(touchDragState.currentTarget);
+        leaveTooltipFollow(touchDragState.currentTarget);
         touchDragState.currentTarget=null;
         return;
       }
       if(target!==touchDragState.currentTarget){
-        clearTooltipFollow(touchDragState.currentTarget);
+        leaveTooltipFollow(touchDragState.currentTarget);
         closeTooltips(target);
         touchDragState.currentTarget=target;
       }
