@@ -9,6 +9,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <script>
+  try{if(localStorage.getItem('investmentDashboard.theme')==='dark') document.documentElement.classList.add('dark')}catch(_){}
+</script>
+<script>
   (function(){
     var ua=navigator.userAgent||'';
     var desktopAppleUA=/Macintosh/.test(ua)&&!/(iPhone|iPad|iPod)/.test(ua);
@@ -30,8 +33,131 @@
    - Corner는 ../css/common.css의 공통 6 / 5 / 4px 체계 사용
    ========================================================= */
 :root {
-  --bg:#f3f6fb; --card:#fff; --muted:#6b768c; --line:#dce3ef;
-  --navy2:#284b7c; --shadow:0 10px 24px rgba(31,48,76,.08);
+  --bg:#f3f6fb;
+  --card:#ffffff;
+  --muted:#6b768c;
+  --line:#dce3ef;
+  --navy2:#284b7c;
+  --shadow:0 10px 24px rgba(31,48,76,.08);
+
+  /* Report semantic surfaces / states */
+  --surface-control:#ffffff;
+  --surface-soft:#f7f9fc;
+  --surface-total:#fafbfd;
+  --surface-subtle:#f8fafd;
+  --surface-highlight:#edf3fb;
+  --row-line:#edf1f6;
+  --table-head-text:#5e697e;
+  --hero-start:#152844;
+  --hero-end:#284b7c;
+  --hero-decoration:rgba(255,255,255,.08);
+  --hero-eyebrow:#bfd0eb;
+  --hero-copy:#d6e0ef;
+  --hero-chip-border:rgba(255,255,255,.17);
+  --hero-chip-bg:rgba(255,255,255,.08);
+  --hero-chip-label:#bed0e8;
+  --tab-shadow:0 1px 2px rgba(31,48,76,.035);
+  --series-secondary:#80a9e2;
+  --series-positive-soft:#f77a84;
+  --donut-hole:#ffffff;
+  --badge-exact-bg:#eaf8f1;
+  --badge-exact-text:#147252;
+  --badge-estimate-bg:#fff5df;
+  --badge-estimate-text:#8d5b00;
+  --note-border:#ead7ad;
+  --note-bg:#fffaf0;
+  --note-text:#71501a;
+  --split-day-kicker:#527ba9;
+  --split-summary-border:#e5eaf2;
+  --split-total-border:#cfdbea;
+  --timeline-line:#dce3ee;
+  --timeline-ring:#e7edf6;
+  --mobile-tab-text:#59657a;
+  --mobile-tab-active-bg:#eef3f9;
+  --mobile-total-border:#dce5f1;
+  --mobile-nav-transparent:rgba(243,246,251,0);
+  --mobile-toggle-shadow:0 6px 18px rgba(31,48,76,.08);
+  --mobile-menu-shadow:0 16px 36px rgba(31,48,76,.14);
+
+  /* Canvas chart semantic palette */
+  --chart-plot-top:rgba(238,243,250,.68);
+  --chart-plot-bottom:rgba(255,255,255,0);
+  --chart-grid:rgba(173,185,201,.34);
+  --chart-axis-text:#8994a7;
+  --chart-zero:rgba(74,91,115,.45);
+  --chart-positive:#EF3341;
+  --chart-positive-soft:rgba(239,51,65,.55);
+  --chart-negative:#3182F6;
+  --chart-negative-soft:rgba(49,130,246,.55);
+  --chart-positive-label:#d92d3a;
+  --chart-negative-label:#2172d8;
+  --chart-x-text:#6b768c;
+  --chart-area-top:rgba(29,53,87,.17);
+  --chart-area-bottom:rgba(29,53,87,.015);
+  --chart-line:#1d3557;
+  --chart-point-bg:#ffffff;
+}
+
+html.dark{
+  --bg:#0b1020;
+  --card:#121826;
+  --muted:#94a3b8;
+  --line:#2b3548;
+  --navy2:#5274a2;
+  --shadow:0 10px 24px rgba(0,0,0,.28);
+  --surface-control:#111827;
+  --surface-soft:#1a2233;
+  --surface-total:#182132;
+  --surface-subtle:#161f30;
+  --surface-highlight:#172033;
+  --row-line:#273248;
+  --table-head-text:#94a3b8;
+  --hero-start:#151d2c;
+  --hero-end:#24344b;
+  --hero-decoration:rgba(255,255,255,.06);
+  --hero-eyebrow:#bfdbfe;
+  --hero-copy:#cbd5e1;
+  --hero-chip-border:rgba(148,163,184,.25);
+  --hero-chip-bg:rgba(255,255,255,.06);
+  --hero-chip-label:#bfdbfe;
+  --tab-shadow:0 1px 2px rgba(0,0,0,.28);
+  --series-secondary:#7faee8;
+  --series-positive-soft:#fb7185;
+  --donut-hole:#121826;
+  --badge-exact-bg:rgba(22,101,52,.25);
+  --badge-exact-text:#86efac;
+  --badge-estimate-bg:rgba(146,64,14,.22);
+  --badge-estimate-text:#fbbf24;
+  --note-border:rgba(245,158,11,.40);
+  --note-bg:rgba(146,64,14,.18);
+  --note-text:#fcd34d;
+  --split-day-kicker:#93c5fd;
+  --split-summary-border:#334155;
+  --split-total-border:#3b4c66;
+  --timeline-line:#334155;
+  --timeline-ring:#243149;
+  --mobile-tab-text:#cbd5e1;
+  --mobile-tab-active-bg:#1e293b;
+  --mobile-total-border:#334155;
+  --mobile-nav-transparent:rgba(11,16,32,0);
+  --mobile-toggle-shadow:0 6px 18px rgba(0,0,0,.28);
+  --mobile-menu-shadow:0 16px 36px rgba(0,0,0,.38);
+  --chart-plot-top:rgba(30,41,59,.72);
+  --chart-plot-bottom:rgba(18,24,38,0);
+  --chart-grid:rgba(100,116,139,.35);
+  --chart-axis-text:#94a3b8;
+  --chart-zero:rgba(148,163,184,.45);
+  --chart-positive:#FF5964;
+  --chart-positive-soft:rgba(255,89,100,.55);
+  --chart-negative:#60A5FA;
+  --chart-negative-soft:rgba(96,165,250,.55);
+  --chart-positive-label:#ff7a83;
+  --chart-negative-label:#7ab4ff;
+  --chart-x-text:#94a3b8;
+  --chart-area-top:rgba(147,197,253,.16);
+  --chart-area-bottom:rgba(147,197,253,.015);
+  --chart-line:#93c5fd;
+  --chart-point-bg:#121826;
 }
 html{scroll-behavior:smooth}
 body{background:var(--bg);line-height:1.55}
@@ -43,21 +169,21 @@ button{font:inherit}
    02. 히어로 / 상단 메뉴 / 패널 전환
    - Hero 3개 요약과 Desktop 탭, 활성 패널 공통 surface
    ========================================================= */
-.hero{padding:24px;border-radius:var(--corner-surface-cap);background:linear-gradient(135deg,#152844,#284b7c);color:#fff;box-shadow:var(--shadow);position:relative;overflow:hidden}
-.hero:after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;right:-110px;top:-150px;background:rgba(255,255,255,.08)}
+.hero{padding:24px;border-radius:var(--corner-surface-cap);background:linear-gradient(135deg,var(--hero-start),var(--hero-end));color:var(--on-accent);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;right:-110px;top:-150px;background:var(--hero-decoration)}
 .hero-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;position:relative;z-index:1}
-.eyebrow{font-size:12px;font-weight:900;letter-spacing:.08em;color:#bfd0eb}
+.eyebrow{font-size:12px;font-weight:900;letter-spacing:.08em;color:var(--hero-eyebrow)}
 h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.045em}
-.hero p{margin:0;color:#d6e0ef;font-size:14px}
+.hero p{margin:0;color:var(--hero-copy);font-size:14px}
 .hero-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:12px;position:relative;z-index:1}
 .hero-summary > .hero-chip{min-width:0;width:auto}
 .hero-summary > .hero-chip:nth-child(3){grid-column:auto}
-.hero-chip{padding:8px 10px;border:1px solid rgba(255,255,255,.17);border-radius:var(--corner-inner-cap);background:rgba(255,255,255,.08)}
-.hero-chip span{display:block;font-size:9.5px;line-height:1.2;color:#bed0e8;font-weight:800}
+.hero-chip{padding:8px 10px;border:1px solid var(--hero-chip-border);border-radius:var(--corner-inner-cap);background:var(--hero-chip-bg)}
+.hero-chip span{display:block;font-size:9.5px;line-height:1.2;color:var(--hero-chip-label);font-weight:800}
 .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1.18;letter-spacing:-.035em}
 .tabs{display:flex;gap:6px;overflow:auto;padding:10px 2px 6px;position:sticky;top:0;z-index:20;background:linear-gradient(var(--bg) 75%,transparent)}
-.tab{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:var(--corner-control-cap);padding:7px 10px;font-size:13px;font-weight:750;letter-spacing:-.015em;box-shadow:0 1px 2px rgba(31,48,76,.035);cursor:pointer;white-space:nowrap}
-.tab.active{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:800}
+.tab{border:1px solid var(--line);background:var(--surface-control);color:var(--muted);border-radius:var(--corner-control-cap);padding:7px 10px;font-size:13px;font-weight:750;letter-spacing:-.015em;box-shadow:var(--tab-shadow);cursor:pointer;white-space:nowrap}
+.tab.active{background:var(--navy);border-color:var(--navy);color:var(--on-accent);font-weight:800}
 .panel{display:none}
 .panel.active{display:block}
 
@@ -80,11 +206,11 @@ h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.045em}
 .chart-wrap{height:350px;position:relative}
 canvas{width:100%;height:100%}
 .split-box{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center}
-.donut{width:148px;height:148px;border-radius:50%;background:conic-gradient(var(--navy) 0 var(--main-position-ratio),#80a9e2 var(--main-position-ratio) 100%);position:relative}
-.donut:after{content:"";position:absolute;inset:25px;border-radius:50%;background:#fff}
+.donut{width:148px;height:148px;border-radius:50%;background:conic-gradient(var(--navy) 0 var(--main-position-ratio),var(--series-secondary) var(--main-position-ratio) 100%);position:relative}
+.donut:after{content:"";position:absolute;inset:25px;border-radius:50%;background:var(--donut-hole)}
 .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}
 .donut-center strong{font-size:21px} .donut-center span{font-size:10px;color:var(--muted)}
-.legend-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #edf1f6}
+.legend-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--row-line)}
 .legend-row:last-child{border-bottom:0}
 .legend-name{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800}
 .dot{width:9px;height:9px;border-radius:50%}
@@ -96,12 +222,12 @@ canvas{width:100%;height:100%}
 .chart-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:10px;font-weight:800}
 .chart-legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .chart-legend i{display:inline-block;position:relative;flex:none}
-.legend-bar{width:9px;height:9px;border-radius:3px;background:linear-gradient(180deg,#EF3341,#f77a84)}
+.legend-bar{width:9px;height:9px;border-radius:3px;background:linear-gradient(180deg,var(--positive),var(--series-positive-soft))}
 .legend-line{width:18px;height:2px;border-radius:var(--radius-pill);background:var(--navy)}
-.legend-line:after{content:"";position:absolute;width:6px;height:6px;border:2px solid var(--navy);background:#fff;border-radius:50%;left:5px;top:-4px}
+.legend-line:after{content:"";position:absolute;width:6px;height:6px;border:2px solid var(--navy);background:var(--surface-control);border-radius:50%;left:5px;top:-4px}
 .composition-card{display:flex;flex-direction:column}
 .composition-card .split-box{flex:1;align-content:center;margin:4px 0 12px}
-.composition-card .volume-bars{margin-top:auto;padding-top:18px;border-top:1px solid #edf1f6}
+.composition-card .volume-bars{margin-top:auto;padding-top:18px;border-top:1px solid var(--row-line)}
 
 /* =========================================================
    04. 날짜별 실현손익 / 공통 표 / 배지 / 보조 시각화
@@ -113,40 +239,40 @@ canvas{width:100%;height:100%}
 .table-head p{font-size:11px;color:var(--muted);margin:5px 0 0}
 .table-scroll{overflow:auto}
 table{width:100%;border-collapse:collapse;min-width:860px}
-th,td{padding:10px 12px;border-bottom:1px solid #edf1f6;font-size:12px;text-align:left;white-space:nowrap}
-thead th{background:#f7f9fc;color:#5e697e;font-size:11px;position:sticky;top:0}
+th,td{padding:10px 12px;border-bottom:1px solid var(--row-line);font-size:12px;text-align:left;white-space:nowrap}
+thead th{background:var(--surface-soft);color:var(--table-head-text);font-size:11px;position:sticky;top:0}
 tbody th[scope="row"]{font-weight:400;background:transparent;position:static}
 td.num,th.num{text-align:right}
-tfoot td,tfoot th{font-weight:950;background:#fafbfd;position:static}
+tfoot td,tfoot th{font-weight:950;background:var(--surface-total);position:static}
 .badge{display:inline-flex;align-items:center;border-radius:var(--radius-pill);padding:5px 9px;font-size:10px;font-weight:900}
-.badge.exact{background:#eaf8f1;color:#147252}
-.badge.estimate{background:#fff5df;color:#8d5b00}
-.note-box{margin-top:12px;padding:12px 14px;border:1px solid #ead7ad;background:#fffaf0;border-radius:var(--corner-surface-cap);color:#71501a;font-size:12px}
+.badge.exact{background:var(--badge-exact-bg);color:var(--badge-exact-text)}
+.badge.estimate{background:var(--badge-estimate-bg);color:var(--badge-estimate-text)}
+.note-box{margin-top:12px;padding:12px 14px;border:1px solid var(--note-border);background:var(--note-bg);border-radius:var(--corner-surface-cap);color:var(--note-text);font-size:12px}
 .volume-bars{display:grid;gap:10px;margin-top:12px}
 .volume-row{display:grid;grid-template-columns:105px 1fr 90px;gap:10px;align-items:center;font-size:12px}
-.bar-track{height:11px;border-radius:var(--radius-pill);background:#edf1f6;overflow:hidden}
+.bar-track{height:11px;border-radius:var(--radius-pill);background:var(--row-line);overflow:hidden}
 .bar-fill{height:100%;border-radius:inherit}
 
 /* =========================================================
    05. 본 포지션 / 단타 분리 결과
    - 두 거래유형의 요약·상세표·합계 및 모바일 전용 합계 카드
    ========================================================= */
-.split-group{margin-bottom:14px;border:1px solid var(--line);border-radius:var(--corner-surface-cap);padding:14px;background:#fff;box-shadow:var(--shadow)}
+.split-group{margin-bottom:14px;border:1px solid var(--line);border-radius:var(--corner-surface-cap);padding:14px;background:var(--surface-control);box-shadow:var(--shadow)}
 .split-group-core{border-top:4px solid var(--navy)}
-.split-group-day{border-top:4px solid #80a9e2}
+.split-group-day{border-top:4px solid var(--series-secondary)}
 .split-group-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
 .split-group-head h2{margin:2px 0 2px;font-size:20px;letter-spacing:-.035em}
 .split-group-head p{margin:0;color:var(--muted);font-size:11px}
 .split-group-kicker{display:block;font-size:10px;font-weight:950;letter-spacing:.09em;color:var(--navy)}
-.split-group-day .split-group-kicker{color:#527ba9}
+.split-group-day .split-group-kicker{color:var(--split-day-kicker)}
 .split-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:12px}
-.split-summary-item{border:1px solid #e5eaf2;background:#f8fafd;border-radius:var(--corner-inner-cap);padding:10px 11px}
+.split-summary-item{border:1px solid var(--split-summary-border);background:var(--surface-subtle);border-radius:var(--corner-inner-cap);padding:10px 11px}
 .split-summary-item span{display:block;color:var(--muted);font-size:10px;font-weight:800}
 .split-summary-item strong{display:block;margin-top:3px;font-size:15px;letter-spacing:-.025em}
 .split-inner-card{box-shadow:none;border-radius:var(--corner-surface-cap)}
 .split-detail-table{min-width:820px}
 .split-detail-table.day-table{min-width:650px}
-.split-total{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border-radius:var(--corner-surface-cap);background:#edf3fb;border:1px solid #cfdbea;margin-top:4px}
+.split-total{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border-radius:var(--corner-surface-cap);background:var(--surface-highlight);border:1px solid var(--split-total-border);margin-top:4px}
 .split-total>div:first-child span{display:block;font-size:15px;font-weight:950;color:var(--navy)}
 .split-total>div:first-child small{display:block;color:var(--muted);font-size:10px;margin-top:1px}
 .split-total-stats{display:flex;align-items:center;justify-content:flex-end;gap:18px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
@@ -161,15 +287,15 @@ tfoot td,tfoot th{font-weight:950;background:#fafbfd;position:static}
    - 웹·태블릿 좌측 날짜축, 모바일 카드 내부 날짜, 원본 이미지·details
    ========================================================= */
 .timeline{position:relative;margin-top:4px}
-.timeline:before{content:"";position:absolute;left:142px;top:10px;bottom:10px;width:2px;background:#dce3ee}
+.timeline:before{content:"";position:absolute;left:142px;top:10px;bottom:10px;width:2px;background:var(--timeline-line)}
 .timeline-item{display:grid;grid-template-columns:126px 32px 1fr;align-items:start;margin-bottom:10px;position:relative}
 .timeline-date{font-size:11px;font-weight:900;color:var(--muted);padding-top:15px;white-space:nowrap}
-.timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--navy);margin:17px 0 0 10px;box-shadow:0 0 0 5px #e7edf6;z-index:1}
-.timeline-card{padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:var(--corner-surface-cap)}
+.timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--navy);margin:17px 0 0 10px;box-shadow:0 0 0 5px var(--timeline-ring);z-index:1}
+.timeline-card{padding:12px 14px;background:var(--surface-control);border:1px solid var(--line);border-radius:var(--corner-surface-cap)}
 .timeline-card-date{display:none}
 .timeline-card h3{font-size:14px;margin:0 0 3px} .timeline-card strong{font-size:12px;color:var(--navy)} .timeline-card p{font-size:11px;color:var(--muted);margin:5px 0 0}
-.source-img{width:100%;display:block;border:1px solid var(--line);border-radius:var(--corner-surface-cap);background:#fff}
-details{background:#fff;border:1px solid var(--line);border-radius:var(--corner-surface-cap);padding:12px 14px;margin-top:10px}
+.source-img{width:100%;display:block;border:1px solid var(--line);border-radius:var(--corner-surface-cap);background:var(--surface-control)}
+details{background:var(--surface-control);border:1px solid var(--line);border-radius:var(--corner-surface-cap);padding:12px 14px;margin-top:10px}
 summary{cursor:pointer;font-weight:900;font-size:13px}
 details p,details li{font-size:12px;color:var(--muted)}
 
@@ -177,17 +303,17 @@ details p,details li{font-size:12px;color:var(--muted)}
    07. 모바일 패널 메뉴
    - Desktop 탭을 대체하는 햄버거 메뉴와 활성 상태
    ========================================================= */
-.mobile-nav{display:none;position:sticky;top:0;z-index:30;padding:10px 0 8px;background:linear-gradient(var(--bg) 78%,rgba(243,246,251,0))}
-.mobile-menu-toggle{width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:var(--corner-control-cap);background:#fff;color:var(--ink);padding:9px 12px;box-shadow:0 6px 18px rgba(31,48,76,.08);font-size:13px;font-weight:900;cursor:pointer}
+.mobile-nav{display:none;position:sticky;top:0;z-index:30;padding:10px 0 8px;background:linear-gradient(var(--bg) 78%,var(--mobile-nav-transparent))}
+.mobile-menu-toggle{width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:var(--corner-control-cap);background:var(--surface-control);color:var(--ink);padding:9px 12px;box-shadow:var(--mobile-toggle-shadow);font-size:13px;font-weight:900;cursor:pointer}
 .hamburger-icon{width:20px;height:16px;display:flex;flex-direction:column;justify-content:space-between;flex:none}
 .hamburger-icon i{height:2px;border-radius:var(--radius-pill);background:var(--navy);transition:transform .18s ease,opacity .18s ease}
 .mobile-nav.open .hamburger-icon i:nth-child(1){transform:translateY(7px) rotate(45deg)}
 .mobile-nav.open .hamburger-icon i:nth-child(2){opacity:0}
 .mobile-nav.open .hamburger-icon i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-.mobile-menu-panel{display:none;margin-top:7px;padding:6px;border:1px solid var(--line);border-radius:var(--corner-surface-cap);background:#fff;box-shadow:0 16px 36px rgba(31,48,76,.14)}
+.mobile-menu-panel{display:none;margin-top:7px;padding:6px;border:1px solid var(--line);border-radius:var(--corner-surface-cap);background:var(--surface-control);box-shadow:var(--mobile-menu-shadow)}
 .mobile-nav.open .mobile-menu-panel{display:grid;grid-template-columns:1fr}
-.mobile-tab{border:0;background:transparent;color:#59657a;text-align:left;border-radius:var(--corner-control-cap);padding:10px 11px;font-size:12px;font-weight:850;cursor:pointer}
-.mobile-tab.active{background:#eef3f9;color:var(--navy)}
+.mobile-tab{border:0;background:transparent;color:var(--mobile-tab-text);text-align:left;border-radius:var(--corner-control-cap);padding:10px 11px;font-size:12px;font-weight:850;cursor:pointer}
+.mobile-tab.active{background:var(--mobile-tab-active-bg);color:var(--navy)}
 
 /* =========================================================
    08. 반응형 규칙
@@ -264,7 +390,7 @@ details p,details li{font-size:12px;color:var(--muted)}
   .split-total{align-items:flex-start;flex-direction:column;gap:12px}
   .split-total-stats{display:none;justify-content:flex-start;gap:8px 14px}
   .split-total-mobile{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .split-total-mobile-card{min-width:0;padding:10px 9px;border:1px solid #dce5f1;border-radius:var(--corner-surface-cap);background:#fff}
+  .split-total-mobile-card{min-width:0;padding:10px 9px;border:1px solid var(--mobile-total-border);border-radius:var(--corner-surface-cap);background:var(--surface-control)}
   .split-total-mobile-card span{display:block;color:var(--muted);font-size:10px;font-weight:800;line-height:1.2}
   .split-total-mobile-card strong{display:block;margin-top:4px;color:var(--ink);font-size:15px;line-height:1.15;letter-spacing:-.035em;white-space:nowrap}
 }
@@ -335,14 +461,14 @@ details p,details li{font-size:12px;color:var(--muted)}
         <div class="split-box">
           <div class="donut" style="--main-position-ratio:87.5%"><div class="donut-center"><strong>87.5%</strong><span>본 포지션 비중</span></div></div>
           <div>
-            <div class="legend-row"><div class="legend-name"><span class="dot" style="background:#1d3557"></span>본 포지션</div><strong>7,731,007원</strong></div>
-            <div class="legend-row"><div class="legend-name"><span class="dot" style="background:#80a9e2"></span>반복 단타</div><strong>1,102,795원</strong></div>
+            <div class="legend-row"><div class="legend-name"><span class="dot" style="background:var(--navy)"></span>본 포지션</div><strong>7,731,007원</strong></div>
+            <div class="legend-row"><div class="legend-name"><span class="dot" style="background:var(--series-secondary)"></span>반복 단타</div><strong>1,102,795원</strong></div>
             <div class="legend-row"><div class="legend-name">합계</div><strong>8,833,802원</strong></div>
           </div>
         </div>
         <div class="volume-bars">
-          <div class="volume-row"><span>본 포지션</span><div class="bar-track"><div class="bar-fill" style="width:15.84%;background:#1d3557"></div></div><strong>2,129주</strong></div>
-          <div class="volume-row"><span>반복 단타</span><div class="bar-track"><div class="bar-fill" style="width:84.16%;background:#80a9e2"></div></div><strong>11,308주</strong></div>
+          <div class="volume-row"><span>본 포지션</span><div class="bar-track"><div class="bar-fill" style="width:15.84%;background:var(--navy)"></div></div><strong>2,129주</strong></div>
+          <div class="volume-row"><span>반복 단타</span><div class="bar-track"><div class="bar-fill" style="width:84.16%;background:var(--series-secondary)"></div></div><strong>11,308주</strong></div>
         </div>
       </div>
     </div>
@@ -688,6 +814,8 @@ function drawChart(){
   canvas.height=Math.round(rect.height*dpr);
   const ctx=canvas.getContext('2d');
   ctx.setTransform(dpr,0,0,dpr,0,0);
+  const rootStyle=getComputedStyle(document.documentElement);
+  const chartColor=name=>rootStyle.getPropertyValue(name).trim();
 
   const W=rect.width,H=rect.height;
   const mobile=window.matchMedia('(max-width:760px)').matches;
@@ -704,8 +832,8 @@ function drawChart(){
 
   // 차트 플롯 배경
   const bg=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
-  bg.addColorStop(0,'rgba(238,243,250,.68)');
-  bg.addColorStop(1,'rgba(255,255,255,0)');
+  bg.addColorStop(0,chartColor('--chart-plot-top'));
+  bg.addColorStop(1,chartColor('--chart-plot-bottom'));
   ctx.fillStyle=bg;
   roundedRect(ctx,pad.l,pad.t,plotW,plotH,14);
   ctx.fill();
@@ -717,17 +845,17 @@ function drawChart(){
   for(let i=0;i<=4;i++){
     const v=bottom+(top-bottom)*i/4;
     const yy=y(v);
-    ctx.strokeStyle='rgba(173,185,201,.34)';
+    ctx.strokeStyle=chartColor('--chart-grid');
     ctx.lineWidth=1;
     ctx.setLineDash([3,5]);
     ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(W-pad.r,yy);ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle='#8994a7';
+    ctx.fillStyle=chartColor('--chart-axis-text');
     ctx.fillText(formatWon(v),pad.l-8,yy);
   }
 
   // 손익 0원 기준선
-  ctx.strokeStyle='rgba(74,91,115,.45)';
+  ctx.strokeStyle=chartColor('--chart-zero');
   ctx.lineWidth=1.2;
   ctx.beginPath();ctx.moveTo(pad.l,zeroY);ctx.lineTo(W-pad.r,zeroY);ctx.stroke();
 
@@ -748,11 +876,11 @@ function drawChart(){
     const topY=Math.min(yy,zeroY),h=Math.max(2,Math.abs(zeroY-yy));
     const grad=ctx.createLinearGradient(0,topY,0,topY+h);
     if(v>=0){
-      grad.addColorStop(0,'#EF3341');
-      grad.addColorStop(1,'rgba(239,51,65,.55)');
+      grad.addColorStop(0,chartColor('--chart-positive'));
+      grad.addColorStop(1,chartColor('--chart-positive-soft'));
     }else{
-      grad.addColorStop(0,'rgba(49,130,246,.55)');
-      grad.addColorStop(1,'#3182F6');
+      grad.addColorStop(0,chartColor('--chart-negative-soft'));
+      grad.addColorStop(1,chartColor('--chart-negative'));
     }
     ctx.fillStyle=grad;
     roundedRect(ctx,cx-barW/2,topY,barW,h,6);
@@ -764,7 +892,7 @@ function drawChart(){
     ctx.font='800 '+dailyFontSize+'px system-ui';
     ctx.textAlign='center';
     ctx.textBaseline=v>=0?'bottom':'top';
-    ctx.fillStyle=v>=0?'#d92d3a':'#2172d8';
+    ctx.fillStyle=v>=0?chartColor('--chart-positive-label'):chartColor('--chart-negative-label');
 
     const textW=ctx.measureText(dailyText).width;
     const textH=dailyFontSize+3;
@@ -811,7 +939,7 @@ function drawChart(){
     if(showXLabel){
       ctx.font='10px system-ui';
       ctx.textBaseline='top';
-      ctx.fillStyle='#6b768c';
+      ctx.fillStyle=chartColor('--chart-x-text');
       ctx.fillText(chartData.labels[i],cx,H-pad.b+13);
     }
   });
@@ -819,8 +947,8 @@ function drawChart(){
   // 누적손익 선 아래 영역 채움
   const points=chartData.cum.map((v,i)=>({x:pad.l+step*(i+.5),y:y(v),v}));
   const area=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
-  area.addColorStop(0,'rgba(29,53,87,.17)');
-  area.addColorStop(1,'rgba(29,53,87,.015)');
+  area.addColorStop(0,chartColor('--chart-area-top'));
+  area.addColorStop(1,chartColor('--chart-area-bottom'));
   ctx.beginPath();
   points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
   ctx.lineTo(points[points.length-1].x,H-pad.b);
@@ -831,7 +959,7 @@ function drawChart(){
   // 누적손익 선
   ctx.beginPath();
   points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-  ctx.strokeStyle='#1d3557';
+  ctx.strokeStyle=chartColor('--chart-line');
   ctx.lineWidth=3;
   ctx.lineJoin='round';
   ctx.lineCap='round';
@@ -839,16 +967,16 @@ function drawChart(){
 
   // 누적손익 데이터 포인트
   points.forEach((p,i)=>{
-    ctx.fillStyle='#fff';
+    ctx.fillStyle=chartColor('--chart-point-bg');
     ctx.beginPath();ctx.arc(p.x,p.y,4.5,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#1d3557';ctx.lineWidth=2.5;ctx.stroke();
+    ctx.strokeStyle=chartColor('--chart-line');ctx.lineWidth=2.5;ctx.stroke();
 
     // 누적손익 값은 마지막 값만 표시
     // 중간 누적값은 일별 손익 라벨과의 겹침 방지를 위해 숨김
     // 특히 초기 거래일 구간의 작은 일별 손익 라벨과 충돌 방지
     if(i===points.length-1){
       ctx.font='900 '+(mobile?'9px':'10px')+' system-ui';
-      ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle='#1d3557';
+      ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle=chartColor('--chart-line');
       ctx.fillText(formatWon(p.v),p.x,p.y-8);
     }
   });
