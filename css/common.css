@@ -888,6 +888,8 @@ button svg{pointer-events:none;flex-shrink:0}
 .market-ai-market-row .market-ai-desktop-metric{
   grid-template-columns:minmax(0,1fr) var(--market-ai-market-value-column) var(--market-ai-market-change-column);
   column-gap:var(--market-ai-market-column-gap);
+  align-content:center;
+  align-items:baseline;
 }
 .market-ai-signal-row .market-ai-desktop-metric{
   grid-template-columns:minmax(0,1fr) var(--market-ai-signal-value-column);
@@ -912,7 +914,6 @@ button svg{pointer-events:none;flex-shrink:0}
   text-align:right;
 }
 .market-ai-desktop-change{font-size:var(--market-ai-change-size)}
-.market-ai-market-row :is(.market-ai-desktop-value,.market-ai-desktop-change){line-height:var(--market-ai-metric-row-height)}
 .market-ai-desktop .positive{color:var(--value-positive)}
 .market-ai-desktop .negative{color:var(--value-negative)}
 .market-ai-desktop-metric.is-unavailable :is(.market-ai-desktop-value,.market-ai-desktop-signal,.market-ai-desktop-change){color:var(--muted)}
