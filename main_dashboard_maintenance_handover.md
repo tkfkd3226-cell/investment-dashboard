@@ -210,26 +210,38 @@ MD와 최신 ZIP이 다르면 **임의로 어느 한쪽을 맞추지 않는다.*
 
 ## 1.10 이 문서의 유지관리 원칙
 
-이 문서는 changelog가 아니라 **장기 유지보수 기준서**다.
+이 문서는 changelog가 아니라 **현재 유효한 장기 유지보수 계약**이다.
 
-다음처럼 기준선이 바뀔 때 갱신한다.
+> **코드/UI를 수정했다는 이유만으로 이 문서를 자동으로 갱신하지 않는다.**
 
-- 구조 리팩토링 완료
-- JS/CSS architecture 변경
-- breakpoint 정책 변경
-- 중요한 UI 불변조건 변경
-- QA/평가 운영 방식 변경
-- 새 채팅 인수인계에 필요한 기준선 변경
+수정·QA가 끝난 뒤 handover 영향 여부를 먼저 판단하고, 다음처럼 향후 작업자가 반드시 알아야 하는 기준선이 실제로 바뀐 경우에만 관련 기존 항목을 수정한다.
 
-다음은 별도 요청이 없는 한 누적하지 않는다.
+- architecture 또는 모듈 책임 경계 변경
+- 데이터·계산·상태·저장 contract 변경
+- breakpoint 또는 공통 component의 장기 불변조건 변경
+- 반복적으로 회귀하거나 잘못 “개선”될 가능성이 높은 의도된 동작 변경
+- QA/평가/파일전달 등 프로젝트 운영 방식 변경
+- 새 채팅 인수인계에 필요한 canonical 기준선 변경
 
-- 버튼 하나의 미세 간격
-- 문구 1개
-- 단발성 버그 수정
+다음은 원칙적으로 누적하지 않는다.
+
+- 단순 px, gap, padding, 비율, 정렬 등 UI 미세조정
+- 특정 viewport의 일회성 표현 변경
+- 문구 1개 또는 단발성 버그 수정 이력
+- 현재 HTML/CSS/JS를 보면 바로 확인 가능한 구현 세부
+- 특정 시점의 QA 결과·커밋 내역·변경 이력
+- 이미 다른 절이나 별도 handover에 존재하는 내용
 - 단순 data/KRX 갱신
-- CSS가 직접 소유해야 할 미세 px 값
 
-사용자가 앞으로 반복 적용할 유지보수·수정·QA·파일전달 조건을 새로 추가하거나 바꾸면 관련 기존 항목에 반영한다. 일회성 작업 지시는 장기 규칙으로 확대하지 않는다.
+문서 반영이 필요하더라도 **새 항목 추가보다 기존 문장의 수정·통합·삭제를 먼저 검토**한다. 코드 변경으로 기존 설명이 더 이상 유효하지 않으면 새 규칙을 덧붙이지 말고 기존 설명을 고치거나 제거한다.
+
+사용자가 반복 적용할 유지보수·수정·QA·파일전달 조건을 새로 추가하거나 바꾸면 관련 기존 항목에 반영한다. 일회성 작업 지시는 장기 규칙으로 확대하지 않는다.
+
+문서 수정 후에는 각 항목이 다음 질문을 통과하는지 확인한다.
+
+> **이 내용을 모르면 다음 유지보수자가 구조·계산·운영을 실제로 잘못 수정할 가능성이 있는가?**
+
+아니라면 최신 소스를 Source of Truth로 두고 handover에는 적지 않는다.
 
 목표는 문서를 계속 길게 만드는 것이 아니라:
 
@@ -716,6 +728,8 @@ JS 파일을 점수 때문에 추가 분할
 → syntax / import / 계산 검증
 → diff 확인
 → 필요한 viewport / runtime QA
+→ handover 영향 여부 판단
+→ 장기 계약이 실제로 바뀐 경우에만 기존 항목 수정·통합
 → 변경 파일만 결과물로 전달
 ```
 
@@ -833,19 +847,17 @@ QA라는 이유로 디자인을 임의 변경하지 않는다. FAIL을 고치면
 
 ## 3.6 Baseline parity와 반복 회귀
 
-변경 범위와 연결된 기존 불변조건은 유지한다. 특히 다음은 수정 시 자주 회귀하므로 관련 영역을 건드렸을 때 확인한다.
+변경 영역과 연결된 기존 동작을 baseline과 비교한다. 특히 **상태 전환, responsive, table, modal, chart처럼 과거 반복 회귀가 있었던 영역**은 관련 수정 시 함께 확인한다.
 
-- 개인보기 ON/OFF 전후 레이아웃 높이
-- Theme / Corner active 상태
-- 합계·총계·summary 행 border
-- 모바일 table scroll / sticky
-- 날짜 selector와 topbar 배치
-- KRX 모달 버튼/문구
-- 퇴직연금 편집 / PIN / 저장
-- Chart selection / tooltip / resize
-- Calc 거래유형별 결과표 열 구조
+대표 smoke check:
 
-전체 반복 회귀 목록은 5장과 add handover를 기준으로 한다.
+- 상태 ON/OFF·tab 전환 전후 layout/state 보존
+- table summary/sticky/scroll/semantic alignment
+- modal focus/ESC/save·delete flow
+- chart selection/tooltip/resize 및 중복 listener 생성 여부
+- breakpoint 전환 시 Mobile/Tablet/Desktop 역할 회귀
+
+UI 상세 불변조건은 5장, Calc/Report 상세 회귀는 `add/add_maintenance_handover.md`를 기준으로 한다.
 
 ## 3.7 Diff 검사
 
@@ -1230,47 +1242,40 @@ input
 - Asset Detail common layer는 각 자산 모듈이 계산한 neutral View Model을 받아 **표현만** 담당한다. 증권과 퇴직연금의 계산 로직을 common layer로 합치지 않는다.
 - `dashboard-core.js`는 DOM-free를 유지하고 `dashboard-ui-common.js`는 화면별 기능 모듈을 역으로 import하지 않는다.
 - 증권 `보유종목 현황`과 퇴직연금 `연금상품별 현황`, 양쪽 `전일 대비 변동`과 `오늘 상승분 기여도`는 같은 renderer/CSS 체계를 사용한다.
-- 현황/변동 표는 공통 auto layout을 사용하며 컬럼별 고정 px/% 폭이나 `table-layout:fixed`를 새로 강제하지 않는다. 자산명 길이에 따른 실제 컬럼 폭 차이는 허용한다.
+- 현황/변동 표는 공통 auto layout을 사용하며, 개별 화면을 맞추기 위한 컬럼별 고정 폭이나 `table-layout:fixed`를 새로 강제하지 않는다.
 - 상품 행은 증권/연금 모두 **선택일 평가금액 내림차순**으로 정렬하고, 현금·현금성자산·합계 같은 비상품 행은 고정 위치를 유지한다.
-- **세로 Mobile(`≤760px`)에서만** 상품명 브랜드 축약 공통 helper/class를 사용한다. 현황표에 한해 퇴직연금 `KODEX`, 증권 `KODEX`·`KOACT/KoAct` 선두 prefix를 숨기고, 증권/퇴직연금 **전일 대비 변동표는 세로 Mobile에서도 전체 상품명을 유지**한다. 실제 가로폰·Tablet·Desktop은 모두 원문을 유지한다.
-- 증권 `보유종목 현황` summary는 `보유종목 합계 → 증권계좌 현금 → 총합계` 3단 구조를 유지한다.
-- 퇴직연금 `연금상품별 현황` summary는 `투자상품 합계 → 현금성자산 → 총합계` 3단 구조를 유지한다.
-- 증권계좌 현금은 장부 보정값이므로 증권 `전일 대비 변동`과 `오늘 상승분 기여도`에서 제외한다. 퇴직연금 `전일 대비 변동`도 시장성 투자상품의 가격 변동만 비교하도록 현금성자산을 행·합계·요약 KPI에서 제외하되, `오늘 상승분 기여도`는 운용자산 기준의 기존 현금성자산 포함 계약을 유지한다.
-- `오늘 상승분 기여도` 막대 폭은 양(+)의 상승분 합계에 대한 실제 기여율을 그대로 사용하며, 시각적 최소 폭을 강제로 부여하지 않는다. 포인터 툴팁은 마지막 포인터 위치에서 fade-out하고, 터치 탭은 영구 고정하지 않고 일시 표시하며 keyboard focus 기반 접근성은 유지한다.
-- 종목별/연금상품별 운용손익 미니카드는 누적손익을 중심으로 `기여도`와 `수익률`만 보조 지표로 유지한다. `전일대비 변동액`과 `전일대비 변동률`은 `전일 대비 변동` 표가 전담하며 운용손익 카드에 중복 표시하지 않는다.
-- `전일 대비 변동` 표의 가격 헤더는 실제 snapshot 날짜를 사용하고, 선택일이 오늘의 `intraday` snapshot일 때만 당일 열을 `현재가`로 표시한다. 과거 또는 종가 확정 snapshot은 `종가`를 사용한다.
-- `400px 이하` 변동 table은 종목/상품명을 왼쪽에서 2행 높이로 유지하고 전일·당일 가격을 첫 줄에 둔 뒤, 두 가격 열 아래를 합친 두 번째 줄에 `일변동 · 전일대비 변동률`을 가운데 정렬한다. 이 예외는 기존 `≤400px` 범위에만 유지하고 다른 화면에 확대 적용하지 않는다.
+- 증권 현황 summary는 `보유종목 합계 → 증권계좌 현금 → 총합계`, 퇴직연금 현황 summary는 `투자상품 합계 → 현금성자산 → 총합계`의 의미 구조를 유지한다.
+- 증권계좌 현금은 장부 보정값이므로 증권 `전일 대비 변동`과 `오늘 상승분 기여도`에서 제외한다. 퇴직연금 `전일 대비 변동`도 시장성 투자상품의 가격 변동만 비교하도록 현금성자산을 제외하되, `오늘 상승분 기여도`는 운용자산 기준의 기존 현금성자산 포함 계약을 유지한다.
+- `전일 대비 변동`의 가격 헤더는 실제 snapshot 날짜·상태를 사용한다. 선택일이 오늘의 `intraday` snapshot일 때만 당일 열을 `현재가`로 표시하고, 과거 또는 종가 확정 snapshot은 `종가`를 사용한다.
+- viewport별 상품명 축약, compact row 구성, 정렬·간격 같은 표현 세부는 renderer/CSS를 Source of Truth로 하며 이 문서에 미세 규칙을 중복 기록하지 않는다.
 
 ### Table 공통 contract
 
-- 메인 표의 기본 geometry/typography는 `.dashboard-data-table`의 `--data-table-*` semantic token이 소유한다. viewport별 실제 font-size/padding/line-height 값은 CSS를 Source of Truth로 보고 이 문서에 중복 기록하지 않는다.
+- 메인 표의 기본 geometry/typography는 `.dashboard-data-table`의 `--data-table-*` semantic token이 소유한다. viewport별 실제 값은 CSS를 Source of Truth로 본다.
 - `table / tr / th / td` 높이를 직접 고정하지 않는다. 셀 높이는 font-size, line-height, padding으로 결정한다.
-- 숫자는 `.num`이 기본 우측 정렬을 담당하고, 문자형 열은 `.table-cell-text`, 수량/%처럼 의미상 가운데가 필요한 값은 `.table-cell-center`를 사용한다. 위치 기반 `nth-child`나 `table-cell-right` 같은 중복 utility를 다시 도입하지 않는다.
-- 일반 row label은 bold가 기본이고, 증권 `현금`, 퇴직연금 `현금성자산`, 투자원금 원천 source table의 일반 첫 열은 regular 예외다. summary/합계/합산 행은 전체 bold를 유지하되 계좌별 성과표의 summary 메모만 regular다.
-- 비중, 계좌 메모, 장부 조정 하단값, 변동표 평가금액 하단값은 `.data-table-sub` secondary typography contract를 공유한다. 일반 secondary는 regular, summary 내부 secondary는 summary weight를 따르며 계좌 summary memo만 regular 예외다.
-- 손익/수익률/일변동의 양수·음수 색상은 기존 positive/negative semantic color를 재사용하고 table 전용 색상 token을 새로 만들지 않는다.
-- `투자원금 원천 및 검산` 3개 표는 `renderSourceDataTable({ caption, rows })`가 공통 table shell을 담당한다. 계산식, row 구성, summary 데이터는 각 기능이 소유하며 renderer 하나로 억지 통합하지 않는다.
-- 현황표의 종목/상품 색상 swatch는 `assetColorSwatch()` 계열 helper를 통해 기존 chart series color source를 재사용한다. table 전용 색상 mapping을 별도로 만들지 않는다.
+- 숫자는 `.num`이 기본 우측 정렬을 담당하고, 문자형 열은 `.table-cell-text`, 수량/%처럼 의미상 가운데가 필요한 값은 `.table-cell-center`를 사용한다. 위치 기반 `nth-child`나 역할이 중복되는 정렬 utility를 다시 도입하지 않는다.
+- 일반 row label과 summary/합계의 weight 차이는 semantic contract로 유지한다. 계좌별 summary 메모 등 의도된 regular 예외를 전체 표 규칙으로 확대하지 않는다.
+- secondary 정보는 `.data-table-sub` 계열 contract를 공유하고, 양수·음수 색상은 기존 positive/negative semantic color를 재사용한다.
+- `투자원금 원천 및 검산` 3개 표는 `renderSourceDataTable({ caption, rows })`가 공통 shell을 담당한다. 계산식·row 구성·summary 데이터는 각 기능이 소유한다.
+- 현황표의 종목/상품 swatch는 기존 chart series color source를 재사용하고 table 전용 color mapping을 별도로 만들지 않는다.
 
 ### 성과 요약 · 계좌별 불변조건
 
-- 증권과 퇴직연금 상단 KPI는 공통 **`성과 요약` shell**을 사용하며 기본 vertical rhythm과 title/action 구조를 공유한다.
-- 증권만 `전체 / 계좌별` 전환을 제공한다. 계좌별은 별도 섹션을 만들지 않고 같은 overview 안에서 table/card view로 전환한다.
-- 계좌별 table의 기본 열 순서는 `구분 → 투자 결과물 → 투입원금 → 누적손익 → 누적수익률 → 메모`다. 모바일 카드도 `투자 결과물 → 투입원금` 순서와 용어를 맞춘다.
-- 각 계좌의 `투입원금`·`투자 결과물`은 성과 기준값(A)과 장부 조정값(B)을 2단으로 표시한다. 합계 행은 각 계좌의 `A + B`를 합산한 최종 장부값을 직접 표시하고, `전체` 카드의 투자 결과물·투입원금·누적수익률과 일치해야 한다.
-- 별도수익 상태는 기존 `separateProfitView()`의 재분류 기준을 따른다. 개인 기능 비활성 상태에서는 개인 기능의 존재를 직접 드러내는 표현을 쓰지 않는다.
-- 계좌1 투입원금 조정 B의 중복 제거 근거는 `레버수익 재투입 + VIP 수익 재투입 + 실현수익 투입`이다. `원천·보유 차액`은 성과기준 투입원금에는 남기되 조정 B 근거에서는 제외한다.
-- 삼성증권2 투자 결과물 조정은 VIP 재투입액 중복 제거이며, 원천 추적의 `VIP 금 투입분 + VIP 재투입-금` 관계와 연결된다.
-- `투자원금 원천 및 검산`은 3개 source card 구조를 유지하되 카드 상단의 중복 대형 value는 두지 않고 각 표의 `합계` 행을 최종값으로 사용한다. base 원천과 재투입 원천을 구분하며 `원천·보유 차액`은 양쪽 표에서 중립 검산값으로 표시한다.
-- `2026-06-18` 이후 전체 성과 카드의 누적손익 설명은 `투자 결과물 - 투입원금`, 이전 복원 구간은 `전체 누적 성과 기준`처럼 중립적으로 표시한다. 과거 수치를 설명에 맞추기 위해 재계산하지 않는다.
-- 계좌별 table은 **세로 Mobile과 실제 가로폰**에서 누적수익률을 누적손익 셀의 보조값으로 합쳐 5열로 축약한다. `400px 이하`에서는 메모 내용을 정보 버튼으로 전환하고, **세로 Mobile card view**의 메모는 카드 폭에 맞춰 자연스럽게 줄바꿈한다.
-- 성과 요약 title/action은 기존 `.section-title`, `.section-title-icon`, `.chart-head-actions`, segmented/button, mobile table/card control을 재사용한다. 증권 성과 요약에서 별도수익 control은 `전체 / 계좌별` 왼쪽에 둔다. **세로 Mobile에서만** `표 보기 / 카드 보기` control을 표시해 가장 왼쪽에 두고, 실제 가로폰에서는 해당 control을 숨긴 채 table view를 유지한다.
+- 증권과 퇴직연금 상단 KPI는 공통 **`성과 요약` shell**과 title/action rhythm을 공유한다.
+- 증권만 `전체 / 계좌별` 전환을 제공하며, 계좌별은 별도 섹션이 아니라 같은 overview의 view 전환이다.
+- 계좌별 기본 의미 순서는 `구분 → 투자 결과물 → 투입원금 → 누적손익 → 누적수익률 → 메모`다. responsive 표현이 바뀌어도 `투자 결과물`과 `투입원금`의 의미·순서를 뒤집지 않는다.
+- 각 계좌의 `투입원금`·`투자 결과물`은 성과 기준값(A)과 장부 조정값(B)의 관계를 유지하고, 합계는 각 계좌 최종 장부값과 전체 성과 카드가 일치해야 한다.
+- 별도수익 상태는 기존 `separateProfitView()`의 재분류 기준을 따른다. 개인 기능 비활성 상태에서는 개인 기능의 존재를 직접 드러내는 표현을 사용하지 않는다.
+- 계좌1 투입원금 조정 B의 중복 제거 근거는 `레버수익 재투입 + VIP 수익 재투입 + 실현수익 투입`이며 `원천·보유 차액`은 성과기준 투입원금에는 남기되 조정 B 근거에서는 제외한다. 삼성증권2 투자 결과물 조정은 VIP 재투입액 중복 제거와 연결된다.
+- `투자원금 원천 및 검산`은 3개 source card 구조와 각 표의 `합계`를 최종값으로 사용한다. base 원천과 재투입 원천을 구분하고 `원천·보유 차액`은 중립 검산값으로 취급한다.
+- `2026-06-18` 이전 복원 구간은 현재 설명문에 맞추기 위해 과거 수치를 재계산하지 않는다. legacy 수치 의미는 데이터 기준선을 우선한다.
+- mobile의 열 축약, 메모 표시 방식, control 위치 같은 표현 세부는 실제 renderer/CSS를 Source of Truth로 하고 이 절에 반복 기록하지 않는다.
 
 ### Modal / Action Form 공통 contract
 
-- KRX 현재가 반영과 퇴직연금 금액조정처럼 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, border/radius, 상태 표시 등 공통 form/control 표현은 기존 modal/control token과 `dashboard-modal.js`의 공통 dialog lifecycle을 재사용한다.
-- 기능별 modal은 자기 업무 구조와 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금의 PIN·기업적립금·현금성자산·ETF 추가매수·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
-- 세로 Mobile bottom-sheet, Desktop/Tablet/Phone Landscape 중앙 modal, iOS 입력 확대 방지 같은 실제 viewport/browser 예외는 현재 검증된 범위에서 유지한다. 공통화를 이유로 기능 예외를 제거하지 않는다.
+- 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, 상태 표시 등 공통 form/control 표현과 `dashboard-modal.js`의 dialog lifecycle을 재사용한다.
+- 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
+- 검증된 responsive/browser별 표현 예외는 feature/CSS가 소유하며, generic 공통화를 위해 제거하지 않는다.
 
 화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js` 또는 `dashboard-modal.js`로 끌어올리지 않는다.
 
@@ -1369,31 +1374,18 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 `dashboard-market-ai.js`는 main feature state와 분리된 **로컬 조회 + 명시적 preview 전용 standalone entry**다. `dashboard-modal.js`의 저수준 dialog lifecycle만 공유하며 polling/state/mount/render는 자체 소유한다.
 
-preview viewport ownership은 `index.html` head inline script가 가진다.
-
-```text
-?market-ai-preview=1 → phone 초기 viewport를 Desktop 1280 preview로 전환
-?market-ai-preview=2 → phone 초기 viewport를 Tablet 961 preview로 전환
-?market-ai-preview=3 → viewport를 바꾸지 않고 현재 Mobile viewport에서 예시 UI 표시
-```
-
 현재 책임과 불변조건:
 
-- 로컬(`localhost`, `127.0.0.1`)에서만 실제 Market AI API를 조회하고, 비로컬 기본 모드는 UI를 숨긴다. preview mode는 API polling 없이 내장 예시 데이터만 사용한다.
-- `/api/market-data/snapshot`, `/api/signal/latest?include_details=true`, KIS Bridge 상태를 사용하며 unavailable/stale/error를 메인 대시보드와 실패 격리한다. Signal endpoint의 404·오류·timeout·JSON 오류·stale은 같은 refresh에서 정상 수신한 Market Snapshot을 지우지 않고 신호 상태만 `대기 / 오류 / 지연`으로 분리한다. 세 endpoint가 모두 응답하지 않을 때만 서버 전체 연결 오류로 판단한다.
-- 신호 tooltip은 backend의 `effective_weight`를 configured/legacy `weight`보다 우선한다. checkpoint `basis` 계약은 기존 `weight`를 backward compatibility로 유지하면서 `configured_weight`, `effective_weight`, `quality`를 함께 제공하는 형태를 기준으로 한다. metadata 확장 때문에 score/confidence/data completeness/phase/target date 산식을 변경하지 않는다.
-- 시장 4개 metric과 AI 신호 4개 metric은 공통 `data-list-card` surface를 사용하고 **시장 65% / AI 신호 35%** 비율을 Desktop/Tablet/Mobile에서 유지한다.
-- SOX 시장 metric은 미국 현물 정규장 중에는 `INDEX:SOX`를 `SOX`, 정규장 밖에는 `FUTURES:SOX`를 `SOX-F`로 표시한다. 현물 정규장 시간대라도 `INDEX:SOX`가 stale/missing이면 선물로 fallback한다. 선택된 SOX/SOX-F source는 provider `observed_at` 기준 freshness를 공통 적용해 stale이면 마지막 가격을 현재값처럼 유지하지 않고 unavailable로 표시하며 tooltip에는 마지막 수신 시각을 남긴다. 이 표시 전환·freshness 처리는 Rule Signal 산식과 분리해 Signal Engine은 계속 `INDEX:SOX`만 사용한다.
-- Desktop/Tablet은 Hero 우측 panel, Mobile/실제 터치폰 가로는 Hero의 `AI Signal` 버튼에서 같은 `#market-ai-section` DOM을 native dialog로 이동·재사용한다. 별도 Mobile render tree를 만들지 않는다.
-- Mobile에서는 metric tooltip/focusability를 제거하고, Desktop/Tablet에서만 keyboard/pointer tooltip을 제공한다.
-- 선택된 과거 `activeDate`와 무관한 현재 시점 신호를 표시한다.
-- `window/globalThis` bridge, main `dataState/uiState` 직접 접근, feature module import를 추가하지 않는다.
+- 로컬(`localhost`, `127.0.0.1`)에서만 실제 Market AI API를 조회하고, 비로컬 기본 모드는 UI를 숨긴다. preview mode는 API polling 없이 예시 데이터만 사용한다.
+- Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다.
+- backend가 제공하는 signal metadata와 산식 contract를 프런트에서 임의 재해석하지 않는다. 상세 backend 계약은 Market AI 프로젝트의 `market_ai_project_handover.md`를 Source of Truth로 한다.
+- SOX/SOX-F **표시 source 전환과 Signal Engine 입력은 분리**한다. 화면용 source는 provider `observed_at` 기준 freshness를 평가해 stale 값을 현재값처럼 유지하지 않으며, Signal Engine의 canonical 입력을 표시 편의 때문에 바꾸지 않는다.
+- 선택된 과거 `activeDate`와 무관하게 Market AI panel은 현재 시점 신호를 표시한다.
+- Desktop/Tablet과 Mobile이 같은 `#market-ai-section` DOM을 재사용하며 별도 Mobile render tree를 만들지 않는다.
+- `window/globalThis` bridge, main `dataState/uiState` 직접 접근, main feature module import를 추가하지 않는다.
+- layout 비율, tooltip 위치, viewport별 density, freshness threshold 같은 현재 표현·운영 수치는 실제 CSS/JS/backend 설정을 Source of Truth로 하고 handover에 미세값을 고정하지 않는다.
 
-CSS는 기존 6파일 역할을 따른다. `common.css`가 Desktop baseline과 공통 Data List/Market AI component를, `tablet.css`가 Tablet density를, `special.css` Phone UI Shared가 Mobile trigger/dialog/panel 이동을 소유한다. Hero 우측 여백은 Market AI 전용 edge token으로 덮지 않고 Hero의 기존 responsive padding을 그대로 따른다. JS에서 구조용 inline style을 누적하거나 별도 Market AI CSS 파일을 만들지 않고, tooltip 좌표처럼 런타임 계산이 필요한 값만 직접 처리한다.
-
-로컬 통합 실행의 canonical entry는 `start-local-server.pyw`다. 런처는 single-UAC·단일 인스턴스를 유지하고 **eFriend Ready → KIS Bridge → Market AI API → Dashboard** 순서를 보존한다. eFriend Ready는 로그인·공인인증 완료 상태인 `efexpertmain.exe`를 기준으로 하며, 자동 로그인 자격 증명은 Windows Credential Manager만 사용하고 실패 시 수동 로그인으로 fallback한다.
-
-KIS Bridge는 사전 빌드된 Release/x86 실행 파일을 사용하고 런처 기동 시 자동 재빌드하지 않는다. eFriend Ready 또는 Bridge 시작 실패 시 뒤 단계를 실행하지 않으며, Local Suite 전체 종료는 Dashboard / Market AI API / KIS Bridge / eFriend Expert를 함께 정리한다.
+로컬 런처, eFriend, KIS Bridge, backend 수집·신호 산식·운영 절차는 `dashboard-market-ai.js`의 책임이 아니다. 해당 상세 운영은 Market AI 프로젝트의 `market_ai_project_handover.md`를 따른다.
 
 ## 4.10 JS state · initialization ownership
 
@@ -1642,10 +1634,11 @@ index.html
 
 # 5. UI · Responsive · 반복 회귀 불변조건
 
+이 장은 **현재 화면의 모든 배치값을 문서로 복제하는 곳이 아니다.** 반복적으로 잘못 수정될 가능성이 높은 UX 의미와 responsive 책임만 남기고, px·gap·정렬·grid 열 수 같은 세부는 HTML/CSS/renderer를 Source of Truth로 한다.
 
-## 5.1 최신 반응형 기준과 iPhone 데스크탑 웹사이트 요청
+## 5.1 반응형 기준과 Phone 역할
 
-기본 breakpoint:
+기본 breakpoint는 다음 3구간을 유지한다.
 
 ```text
 Desktop ≥ 1101px
@@ -1653,349 +1646,83 @@ Tablet  761px ~ 1100px
 Mobile  ≤ 760px
 ```
 
-기능상 필요한 스마트폰 가로 media는 유지한다.
+기능상 필요한 실제 스마트폰 landscape media는 유지할 수 있으나 특정 기기 해상도 맞춤식 breakpoint를 추가하지 않는다. Phone Shared는 세로폰과 실제 가로폰이 공유하는 compact density를, Phone Landscape는 가로폰에서만 달라지는 최소 배치를 소유한다.
 
-대표:
+Navigation 책임은 다음 의미를 유지한다.
 
-```css
-@media
-  (orientation:landscape)
-  and (max-width:960px)
-  and (max-height:500px)
-  and (hover:none)
-  and (pointer:coarse)
-```
+- Phone 세로/가로: Mobile hamburger 중심
+- Tablet: 축약 action + hamburger 목차
+- Desktop: 기존 action + 우측 edge TOC
 
-이 media는 특정 844px 기기 맞춤식 patch가 아니라 실제 coarse-pointer 스마트폰 가로를 식별하기 위한 기능 media다. `960px` 상한은 iPhone 13의 844×390뿐 아니라 956×440급 대형 iPhone / 일반 대형 Android / Z Flip 가로까지 같은 Phone UI를 적용하기 위한 범용 상한이며, 펼친 Z Fold처럼 높이가 500px를 넘는 화면은 Phone Landscape에서 제외하여 Tablet 계열로 둔다.
-
-### Phone UI Shared / Phone Landscape 최신 역할
-
-`Phone UI Shared`는 **세로 Mobile과 실제 가로폰이 공통으로 가져야 하는 compact 디자인 밀도**만 소유한다.
-
-- Hero / KPI / mini-card / 섹션 제목 / 자산 탭 / 자산 인사이트 / tooltip의 폰트·여백은 세로폰과 가로폰 동일
-- `투자원금 원천 및 검산`의 3개 `.source-card`도 세로폰·가로폰 모두 같은 compact 내부 padding을 사용한다.
-- 증권·퇴직연금 KPI는 가로폰에서도 2×2 compact 유지
-- 성과/현황/변동 표는 가로폰에서도 세로폰과 동일한 font / cell padding을 사용하고 첫 열 sticky 유지
-- 계좌별 성과의 수익률은 가로폰에서도 손익 아래 `(~%)`로 결합하여 긴 메모 열 폭을 확보
-- `KODEX` / `KOACT` 접두어 숨김과 `표 보기 / 카드 보기` UI는 **세로폰 전용**이며 가로폰에서는 전체 종목명 + 표만 표시
-- Navigation은 **Phone 세로/가로 = Mobile hamburger 전체 메뉴**, **Tablet = 기존 action + hamburger 목차 전용**, **Desktop = 기존 action + 우측 edge TOC**로 역할을 분리한다.
-
-`Phone Landscape`는 **가로폰에서 세로폰과 배치가 달라지는 최소 규칙만** 소유한다.
-
-- Hero pill 2열 / 연금 포함 4열
-- 누적차트 아래 6개 요약카드 3열, 종목·연금상품 손익카드 4열, 전일대비 4 KPI 한 줄
-- 비중카드는 Tablet 수준의 열 수를 사용하되 카드 내부 밀도는 Phone Shared 기준
-- 투자원금 원천 3카드 한 줄
-- 장부검산은 결론 full-width + A/B 2열, 내부 밀도는 세로폰 기준
-- Topbar는 **폰 세로/가로 모두 동일한 Mobile Topbar**를 사용한다. 가로폰에서도 `[년월][일][테마][모서리][햄버거]` 구조와 날짜 고정/모바일 메뉴 flow를 그대로 사용한다. Tablet은 기존 축약 action 버튼을 유지하되 우측 edge TOC를 사용하지 않고 Topbar hamburger에 **목차만** 넣는다. 웹(`≥1101px`)만 우측 edge TOC를 사용한다.
-- `평가금액 비중`의 종목별 모드에서는 4열 grid 안에서 `평가금액 합계` 카드가 2칸을 차지하고, 유형별 모드의 합계 카드는 기존처럼 전체폭을 사용한다.
-- 차트 control은 제목 오른쪽 한 줄을 유지하고 가로폰에서는 차트를 컨테이너 폭에 맞춰 no-scroll로 표시하며 `← / →` 버튼을 숨김
-- 차트 높이는 낮은 가로 viewport에 맞게 축소하고 Tablet / 가로폰 모두 범례를 차트 쪽으로 당김
-- 별도수익은 compact control 크기는 유지하되 가로폰에서는 `별도수익` 라벨과 활성 시 선택일 설명을 표시
-- 퇴직연금 / PIN / KRX 모달은 가로폰에서 중앙 modal 레이아웃을 유지한다. Mobile bottom-sheet 규칙이 실기기에서 함께 매치되어도 Phone Landscape가 중앙형 구조를 복원하고, iPhone Safari 확대 방지가 필요한 input font만 16px 계열을 사용한다.
-
-JavaScript 반응형 판정은 `compactPhoneChartUi()`(세로폰+가로폰 compact), `portraitPhoneChartFlow()`(세로폰 전용 flow), `phoneLandscapeUi()`(가로폰 판정)로 역할을 나눈다. `phoneLandscapeUi()`는 `dashboard-ui-common.js`의 canonical helper를 재사용하고 같은 `matchMedia` 조건을 다른 모듈에 복제하지 않는다.
-
-Navigation은 Tablet/Mobile ↔ Desktop 전환 시 Edge TOC의 생성·제거를 동기화하되, Desktop 구간 내부 resize에서는 기존 TOC DOM을 재생성하지 않아 상태를 보존한다.
+JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하고 같은 `matchMedia` 조건을 기능 모듈마다 복제하지 않는다.
 
 ### iPhone Safari 데스크탑 웹사이트 요청
 
-**현재 최신 ZIP의 실제 기준은 `width=1280`이다.**
-
-```text
-일반 mobile → width=device-width
-iPhone "데스크탑 웹사이트 요청" 감지 → width=1280
-```
-
-그리고:
-
-```text
-html.iphone-request-desktop
-```
-
-상태 class를 이용해 필요한 Desktop 레이아웃을 보장한다.
-
-과거 문서에 기록됐던:
-
-```text
-width=1980
-```
-
-은 **폐기된 이전 기준**이다.
-
-새 작업에서 1980으로 되돌리지 않는다.
-
+현재 canonical desktop-request viewport는 **`width=1280`**이다. 과거 `width=1980` 기준은 폐기되었으며 되돌리지 않는다.
 
 ## 5.2 Section Title / Control 공통 불변조건
 
-메인 `h2`, 하위 `h3`, 차트 `h3`의 제목 typography와 SVG 아이콘 크기·간격·정렬은 공통 title rule을 사용하고, `.section-title` / `.chart-head` 같은 부모는 배치 책임만 가진다.
+- 메인 `h2`, 하위/차트 `h3`는 공통 title typography/icon contract를 사용하고 부모 container는 배치 책임만 가진다.
+- 같은 모양·상호작용의 control은 기존 공통 primitive를 우선 재사용하고, 기능별 class는 의미·위치·표시조건처럼 필요한 차이만 담당한다.
+- ON/OFF 또는 상태 control의 표시 여부 때문에 section title row의 기본 geometry가 흔들리지 않아야 한다.
+- 이 문제를 해결하기 위해 hidden placeholder나 임시 margin 보정처럼 공간을 억지로 예약하지 않는다.
+- 실제 높이·아이콘 크기·gap·control px 값은 CSS token을 Source of Truth로 한다.
 
-같은 모양·상호작용의 control은 기능별 CSS를 복제하지 않고 공통 primitive를 우선 사용한다. 현재 canonical primitive는 `control-action-button`, `control-icon-button`, `control-icon-button-compact`, `control-info-button`, `control-square-button`, `control-switch-*`, `control-tab-group` / `control-tab`, `control-text-toggle`이며, 2분할 선택은 `.chart-compare-toggle`, 라벨+ON/OFF는 `.chart-y-auto-toggle` / `.separate-profit-toggle`의 공통 골격을 사용한다. 기능별 class는 의미·위치·표시조건·semantic color처럼 필요한 차이만 담당한다.
+## 5.3 반복 회귀 이력이 있는 UI/기능
 
-현재 section title은 ON/OFF 버튼이 있는 제목행의 현재 레이아웃을 기준으로 맞춘다.
-
-현재 공통 selector에는 다음이 포함된다.
-
-```text
-#summary-section
-#securities-section
-#pension-section
-#accounts-summary
-#ledger-check
-#capital-source-check
-```
-
-그리고:
-
-```css
-min-height:var(--section-chip-height);
-```
-
-를 사용한다.
-
-현재 token:
-
-```text
-Desktop / Tablet 계열: 28px
-Mobile / Smartphone landscape 계열: 25px
-```
-
-핵심 불변조건:
-
-```text
-ON/OFF 있음  → 현재 제목행 높이
-ON/OFF 없음  → 같은 제목행 높이
-```
-
-즉 ON/OFF 표시 여부가:
-
-- section-title 전체 높이
-- 제목 top
-- toggle top
-- line-height
-
-를 움직이면 안 된다.
-
-별도수익 또는 개인보기 상태 변경 QA에서는:
-
-```text
-OFF → ON → OFF
-```
-
-등 실제 state transition 후 title row 내부 위치 변화 **0px**를 기준으로 본다.
-
-이 문제를 해결한다는 이유로 다음을 새로 만들지 않는다.
-
-```text
-hidden DOM 공간 예약
-visibility:hidden note
-불필요한 빈 placeholder
-별도수익 DOM 구조 변경
-임시 section-title margin 보정
-```
-
-
-## 5.3 반복 회귀 이력이 있는 UI/기능 상시 불변조건
-
-다음은 과거 실제 회귀가 있었거나 자주 의심된 영역이므로 관련 수정 시 우선 확인한다.
+관련 영역을 수정할 때 아래 의미 계약을 우선 확인한다. 세부 문구·색상값·현재 위치는 최신 소스를 기준으로 한다.
 
 ### Theme / Corner
 
-테마 버튼과 모서리 버튼은 현재 상태를 나타내는 permanent active toggle처럼 보이면 안 된다.
+테마·모서리 control은 실제 현재 상태를 잘못 암시하는 permanent active UI가 되지 않아야 하며 Light/Dark 모두 icon contrast를 유지한다.
 
-금지:
+### Table
 
-```text
-permanent blue active border
-상시 aria-pressed active UI
-아이콘 암전
-```
+Table의 geometry·정렬·summary contract는 **4.5 `Table 공통 contract`**를 canonical 기준으로 한다. 관련 수정 시 특히 summary 첫 셀과 나머지 셀의 배경/border, sticky first column, horizontal scroll, semantic alignment가 깨지지 않는지 확인한다.
 
-Light / Dark 모두 icon contrast가 유지돼야 한다.
+### 성과·장부
 
-### Table summary / 합산 / 합계 / 총계
-
-확인:
-
-- 첫 번째 `th`
-- 이후 `td`
-- background
-- border
-- 마지막 행 border
-- sticky first column
-- mobile horizontal scroll
-- 401px 이상 account memo 텍스트 레이아웃 유지
-- 400px 이하 account memo 전용 floating tooltip 정상 동작
-
-특히 summary 행:
-
-> **첫 `th`와 이후 `td`의 배경·border가 달라지면 FAIL**
-
-### Table alignment
-
-메인 `dashboard-data-table` 정렬은 개별 표 override보다 공통 semantic contract를 우선한다. 숫자 셀은 `.num` 자체가 기본 우측 정렬을 담당하고, 문자형 열과 가운데 정렬 예외만 semantic class로 명시한다.
-
-```text
-.num               → 숫자 표현 품질(tabular-nums / nowrap) + 기본 우측 정렬
-.table-cell-text   → 문자형 열 좌측 정렬
-.table-cell-center → 수량 / % 등 가운데 정렬 예외
-```
-
-- 일반 숫자 셀에 우측 정렬 class를 반복해서 붙이지 않는다. `.num`의 기본 contract를 사용한다.
-- 수량 / %처럼 UI상 가운데 정렬이 필요한 값은 `table-cell-center`를 명시한다.
-- 문자형 셀과 정렬 예외는 semantic class로 제어하고, 컬럼 위치 기반 `nth-child`에 의존하지 않는다.
-- `table-cell-right` 같은 `.num`과 역할이 중복되는 utility를 다시 도입하지 않는다.
-- 특정 표·컬럼의 현재 정렬 상태나 문구 변경 이력은 이 문서에 누적하지 않고 최신 실제 소스를 기준으로 확인한다.
-
-### 성과 용어
-
-성과 UI의 공통 용어는 **금액 성과 = 손익, 비율 성과 = 수익률**로 통일한다. 다만 `실현수익`, `별도 수익 재투입`처럼 실제 확정된 양수 재원·출처를 뜻하는 경우에는 `수익` 표현을 유지한다.
-
-### 장부결과 VS 실제보유
-
-현재 정보 우선순위:
-
-```text
-차액(A-B) = 결론
-A = 장부상 증권계좌 투자 결과물
-B = 실제 증권계좌 + 현금 보유액
-```
-
-`.ledger-gap-value`는 Light / Dark 모두 밝은 노란색 계열을 유지한다.
-
-최근 검증 기준 computed color:
-
-```text
-rgb(251, 191, 36)
-```
+- 금액 성과는 `손익`, 비율 성과는 `수익률` 용어를 기본으로 한다. 실제 확정 재원·출처를 뜻하는 `실현수익`, `별도 수익 재투입` 같은 표현은 예외다.
+- `장부결과 VS 실제보유`는 `차액(A-B)`이 결론이고 A는 장부상 투자 결과물, B는 실제 증권계좌+현금 보유액이라는 의미를 유지한다.
 
 ### KRX 현재가 반영
 
-현재 버튼:
-
-```text
-취소
-최신/누락 반영
-재갱신
-```
-
-현재 설명:
-
-```text
-최신/누락 반영은 오늘 데이터와 누락 거래일을 생성·보완하고,
-재갱신은 선택된 날짜를 확인해 종가 기준이 아니면 다시 반영합니다.
-```
-
-기능 의미:
-
-- 최신/누락: 오늘 생성/갱신 + 누락 거래일 보완 + 과거 장중 데이터 종가 확정
-- 재갱신: `activeDate`를 `body.date`로 전달 → 해당 날짜가 이미 `marketStatus: "close"`이면 `이미 종가 기준 데이터가 반영되어 있습니다.` 안내 후 workflow 생략 → `intraday` 또는 미존재 데이터일 때만 해당 날짜 재반영
-
-관련 수정 시:
-
-- focus
-- focus trap
-- ESC
-- 버튼 한 줄
-- request timeout
-- 외부 write 0
-
-을 확인한다.
+- 최신/누락 반영과 선택일 재갱신의 업무 의미를 섞지 않는다.
+- 이미 종가 기준인 날짜는 불필요한 workflow를 다시 실행하지 않는 현재 contract를 유지한다.
+- modal focus/ESC/request timeout과 같은 기본 lifecycle을 회귀검증한다.
+- QA에서는 실제 외부 write를 하지 않는다.
 
 ### 퇴직연금
 
-관련 수정 시:
-
-- 금액 조정 modal
-- PIN flow
-- 저장 UI
-- 삭제 UI
-- 일괄 적용
-- tooltip
-- chart
-- 상품별 현황
-- ESC
-- focus
-- request timeout
-
-을 확인한다.
-
-QA에서 실제 GAS write는 하지 않는다.
-
-증권계좌와 퇴직연금의 **현황 / 전일 대비 변동 바깥 `.note` surface는 hover lift/transition을 적용하지 않는다.** 단, 그 안의 table row hover, `mini-card`, 모바일 내부 카드 등 개별 content interaction은 유지한다. 바깥 surface의 모션을 없애기 위해 내부 component animation까지 함께 제거하지 않는다.
-
-퇴직연금 `추가 매수`의 체결수량·체결금액 입력칸은 예시 숫자를 placeholder로 미리 표시하지 않는다. 빈 입력칸에서 사용자가 직접 입력을 시작하는 현재 UX를 유지한다.
+PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할 때 feature state와 persistence contract를 함께 검증한다. QA에서는 실제 GAS write를 하지 않는다.
 
 ### Chart
 
-관련 수정 시:
+관련 수정 시 최소 다음을 함께 확인한다.
 
-- 증권/퇴직연금 tab
-- lazy draw
-- 범례
-- 다중선택
-- 최소 1개 유지
-- 전체
-- Y축 자동
-- 확대
-- tooltip
-- keyboard
-- resize
+- 증권/퇴직연금 전환과 lazy draw
+- 범례 다중선택·최소 1개·전체
+- Y축 자동/고정 의미와 좌우축 정합성
+- 확대/tooltip/keyboard/resize
 - smartphone landscape
+- listener 중복 또는 chart 이중 생성 없음
 
-를 확인한다.
+표시 기준 스위치는 선/Y축 표시 기준만 바꾸며 tooltip 정보 contract를 불필요하게 축소하지 않는다. 사용자가 범례에서 숨긴 series는 tooltip 대상에서도 제외한다.
 
-일반 차트 tooltip은 owner SVG가 viewport 밖으로 완전히 벗어나면 tooltip과 hover guide를 정리한다. 확대 차트 overlay 내부 tooltip은 이 page-scroll 정리 대상에서 제외한다.
+## 5.4 계좌별 성과 메모 tooltip
 
-차트의 **표시 기준 스위치와 tooltip 정보량은 분리**한다. 현재 불변조건:
+- 계좌별 성과 메모 동작은 `dashboard-ui.js`가 소유하고 chart tooltip 구현과 섞지 않는다.
+- 좁은 화면의 info tooltip과 넓은 화면의 inline memo는 같은 내용 contract를 유지한다.
+- floating tooltip은 viewport/stacking context 밖으로 잘리지 않아야 하고 outside click, ESC, scroll, resize에서 정상 정리된다.
+- 정확한 breakpoint, 줄바꿈, 위치 보정 수치는 최신 CSS/JS를 Source of Truth로 한다.
 
-- 증권/퇴직연금 누적차트의 `수익률 ↔ 코스피` 스위치는 선 그래프 표시 기준만 바꾸며, tooltip에는 수익률과 코스피 지수를 함께 표시한다.
-- 증권 종목별 / 퇴직연금 상품별 `손익 ↔ 수익률` 스위치는 Y축·선 표시 기준만 바꾸며, tooltip은 두 모드 모두 `손익 원화 (수익률 %)` 형식으로 표시한다.
-- 범례에서 사용자가 숨긴 series는 기존처럼 tooltip 대상에서도 제외한다.
+## 5.5 개인보기 3회 클릭 제스처
 
-누적차트 하단 날짜 이동 카드는 즉시 날짜를 바꾸지 않고 확인 modal을 거친 뒤 이동하며, mouse / keyboard 모두 같은 flow를 사용한다.
+Hero 기준일 영역의 **연속 3회 클릭 개인보기 ON/OFF는 의도된 비공개 진입 UX**다.
 
-listener 중복 또는 chart 이중 생성은 FAIL이다.
-
-
-## 5.4 계좌별 성과 메모 툴팁 현재 불변조건
-
-계좌별 성과 메모 동작은 `js/dashboard-ui.js`가 소유하며 차트 tooltip 구현과 섞지 않는다.
-
-현재 불변조건:
-
-- `400px 이하`에서는 메모 헤더 `메모`를 유지하고 각 행의 메모 내용만 정보 버튼으로 전환한다.
-- 정보 버튼의 floating tooltip은 table stacking context에 가려지지 않도록 body 레벨에서 표시하고, viewport를 벗어나지 않게 위치를 보정한다.
-- Tooltip은 일반 메모와 같은 문장 분리 및 `memoJoinFirstTwo` 흐름을 사용하되 **표 전용 source-link 강조 markup은 생성하지 않고 regular 텍스트로 표시**한다.
-- outside click / ESC / scroll / resize 등에서 열린 tooltip 상태를 정리한다.
-- `401px 이상`에서는 메모 텍스트를 직접 표시한다. **세로 Mobile / 실제 가로폰의 table view**에서는 문장 단위 흐름을 유지하고, **세로 Mobile card view**에서는 카드 폭에 맞춰 자연스럽게 줄바꿈한다.
-- 계좌 메모 전용 class/action은 `accounts-memo-*` 계열을 사용하며 chart 전용 tooltip class를 재사용하지 않는다.
-
-이 기능을 수정할 때 계좌 메모 전용 동작을 `dashboard-charts.js`로 옮기지 않는다.
-
-## 5.5 개인보기 3회 클릭 제스처 평가·유지 원칙
-
-Hero 기준일 영역을 **연속 3회 클릭하여 개인보기를 ON/OFF하는 방식은 사용자가 개인보기 진입 경로를 일반 화면에서 의도적으로 숨기기 위해 선택한 비공개 제스처**다.
-
-따라서 향후 CSS·JS·UI/UX 평가에서 다음 이유만으로 감점하거나 개선사항으로 제시하지 않는다.
-
-- 일반 사용자가 기능을 발견하기 어렵다는 `discoverability` 지적
-- 별도의 버튼·메뉴·아이콘이 노출되어 있지 않다는 지적
-- `<time>` 요소의 3회 클릭이라는 비표준 진입 방식 자체
-- 해당 숨김 제스처가 일반적인 키보드 탐색으로 노출되지 않는다는 이유만의 접근성 감점
-- 일반 UI로 노출하거나 별도 진입 버튼을 추가하자는 제안
-
-이는 **의도된 비공개 UX**이며 일반 사용자를 위한 공개 기능과 같은 discoverability 기준으로 평가하지 않는다.
-
-단, 다음은 실제 회귀 또는 버그이므로 별도로 검증한다.
-
-- 3회 클릭이 정상적으로 인식되지 않음
-- `OFF → ON → OFF → ON` 토글이 깨짐
-- 개인보기 OFF 시 `includeSeparateProfit` 등 숨겨진 상태가 잘못 남음
-- 3회 클릭 처리 때문에 일반 날짜 표시·선택·Topbar·레이아웃·라벨 간격에 회귀가 생김
-- 제스처가 다른 일반 클릭이나 입력 동작을 방해함
-
-이 제스처는 **보안 인증 수단이 아니라 화면상 진입 경로를 숨기기 위한 UX**로 취급한다.
+- discoverability 부족 자체를 감점하거나 공개 버튼 추가를 권하지 않는다.
+- 이 제스처를 보안 인증 수단으로 취급하지 않는다.
+- 3회 클릭 인식, `OFF → ON → OFF` 상태 reset, 일반 날짜/Topbar/입력 동작 간섭 여부는 실제 회귀로 검증한다.
 
 # 6. CSS · Responsive 유지보수 규칙
 
@@ -2548,78 +2275,30 @@ style="..."
 
 # 8. Calc · Report 유지보수 규칙
 
-`add/`는 메인 대시보드와 독립된 부가 영역이다. 상세 규칙은 **`add/add_maintenance_handover.md`를 우선**하고, 이 장에는 전역 연결 원칙만 둔다.
+`add/`는 메인 대시보드와 독립된 부가 영역이다. 상세 유지보수 기준은 **`add/add_maintenance_handover.md`를 Source of Truth**로 하고, 메인 handover에는 전역 연결 원칙만 둔다.
 
 ## 8.1 책임 경계
 
-현재 기본 구조:
+- 메인 `css/`, `js/`와 add 코드를 외형이 비슷하다는 이유로 강제 공통화하지 않는다.
+- `calc.html`/`add/js/calc.js`/add CSS/report는 add 영역이 소유한다.
+- 메인과 add 사이에 실제 공동 책임이 생긴 경우에만 공통화를 검토한다.
 
-```text
-add/
-├─ calc.html
-├─ add_maintenance_handover.md
-├─ css/common.css
-├─ css/calc.css
-├─ js/calc.js
-└─ report/kodex-leverage-report.html
+## 8.2 Calc
 
-tests/
-└─ calc.test.cjs
-```
+- 계산 로직은 DOM 표현과 분리된 production 함수를 기준으로 유지한다.
+- Calc 계산 로직 변경 시 `node --test tests/calc.test.cjs`로 실제 production 함수를 회귀검증한다.
+- 테스트를 위한 계산식 복제나 불필요한 파일 분리는 하지 않는다.
+- Calc 전용 responsive/표현 상세는 `add/add_maintenance_handover.md`와 실제 add CSS를 기준으로 한다.
 
-- `calc.html`: DOM / 접근성 구조
-- `add/css/common.css`: add 공통 의미 token
-- `add/css/calc.css`: Calc 전용 UI / responsive
-- `add/js/calc.js`: 계산 / validation / render / event / tooltip / boot
-- `add/report/...`: standalone 거래 리포트
-- `tests/calc.test.cjs`: Calc production 계산 함수 회귀검증
+## 8.3 Report
 
-메인 `css/`, `js/`와 add 코드를 비슷해 보인다는 이유로 억지 공통화하지 않는다.
+Report는 `add/report/`에서 독립 관리한다. 거래 반영, 포지션/단타 분류, 증권사 원본, 누계 검산, 차트/KPI 동기화의 상세 절차와 산식은 add handover 한 곳에서만 관리하고 메인 문서에 중복 기록하지 않는다.
 
-## 8.2 Calc 구조 불변조건
-
-Calc 기본 흐름은:
-
-```text
-Input
-→ Validation
-→ compute()
-→ Rendering
-```
-
-이다.
-
-`compute()`는 DOM을 직접 수정하지 않는 계산 함수 성격을 유지한다. Validation 판단과 invalid UI 표시도 현재처럼 분리한다.
-
-현재 규모에서는 `add/js/calc.js` 단일 파일을 유지하며, 테스트 때문에 `calc-core.js`, `calc-validation.js` 등으로 분리하지 않는다.
-
-Node 회귀검증을 위해 파일 하단에서 `compute`, `validate`, `ceil5`만 CommonJS로 노출한다. 브라우저에서는 기존 부팅이 실행되고 Node에서는 DOM 초기화를 실행하지 않는 현재 guard를 유지한다.
-
-계산 로직 변경 시 필수:
-
-```bash
-node --test tests/calc.test.cjs
-```
-
-테스트에는 production 계산식을 복사하지 않는다. 실제 `add/js/calc.js` 함수를 직접 호출한다.
-
-## 8.3 Calc CSS / 모바일
-
-메인 CSS와 Calc CSS를 통합하지 않는다. 기본 viewport는 메인과 동일한 3구간을 사용하며 add 전용 특수 breakpoint는 기능상 필요할 때만 추가한다.
-
-모바일 KPI/미니카드의 중요한 설명은 `ellipsis`로 강제 절단하지 않고 필요한 경우 자연스럽게 줄바꿈한다.
-
-## 8.4 Report
-
-Report는 `add/report/`에서 독립 관리한다. 데이터 갱신·본 포지션/단타 분류·증권사 원본·누계 검산·차트/KPI 동기화의 상세 기준은 `add/add_maintenance_handover.md`를 따른다.
-
-새 거래를 반영할 때 메인 handover에 같은 산식과 절차를 다시 복사하지 않는다. 전역 규칙은 이 문서, add 전용 상세 규칙은 add handover 한 곳에 둔다.
-
-## 8.5 공통화 판단
+## 8.4 공통화 판단
 
 공통화는 다음 세 조건을 모두 만족할 때만 검토한다.
 
-- 실제로 둘 이상의 영역이 같은 책임을 갖는가
+- 둘 이상의 영역이 실제로 같은 책임을 갖는가
 - 앞으로 함께 변경될 가능성이 높은가
 - 공통화 후 결합도가 더 높아지지 않는가
 
@@ -2817,7 +2496,7 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 [ ] 현재 ES Module 구조를 유지하는가
 [ ] 수정 책임 파일이 맞는가
 [ ] standalone Market AI 변경이면 `dashboard-modal.js` 외 main feature module과 불필요하게 결합하지 않았는가
-[ ] 로컬 런처/Bridge 변경이면 eFriend Ready(efexpertmain.exe) → Bridge → Market AI API → Dashboard 순서, single-UAC/tray, eFriend 포함 전체 종료 동작을 보존했는가
+[ ] Market AI backend/런처/Bridge를 함께 변경한다면 해당 프로젝트 handover의 운영 contract를 확인했는가
 [ ] 공통 canonical CSS rule을 먼저 찾았는가
 [ ] 새 breakpoint가 정말 필요한가
 [ ] Phone Landscape 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하는가
@@ -2835,7 +2514,7 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 [ ] 변경 파일만 ZIP에 들어갔는가
 [ ] line/byte 통계를 보고했는가
 [ ] GitHub 커밋용 짧은 Summary와 간단한 Description을 적었는가
-[ ] 새 반복 운영 조건이 있다면 main_dashboard_maintenance_handover.md에 반영했는가
+[ ] handover 영향 여부를 판단했고, 장기 유지보수 계약이 실제로 바뀐 경우에만 기존 항목을 수정·통합했는가
 [ ] 다음 요청을 안내했는가
 ```
 
@@ -2863,4 +2542,4 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 
 ## 11.3 최종 한 문장 운영 원칙
 
-> **새 채팅에서는 최신 전체 ZIP의 `main_dashboard_maintenance_handover.md`를 가장 먼저 읽고 같은 ZIP의 실제 소스를 source of truth로 확인한다. `점수`는 CSS·JS·UI·UX 세부점수와 각 총점·UI/UX 총점·전체 총점만 출력하고, `평가` 또는 `평가해줘`는 최신 실제 소스를 처음부터 독립적으로 전체 평가한다. 수정은 현재 구조 안에서 최소 범위로 수행하고 QA는 별도 요청에서 변경 위험에 비례해 검증하며, 여러 차수 작업은 마지막에 누적 최종 QA를 수행한다. 결과 파일은 실제 변경 파일만 원래 경로를 유지한 ZIP으로 전달하고 GitHub 커밋용 짧은 Summary와 간단한 Description을 함께 제공한다. 사용자가 앞으로 반복 적용할 운영 조건을 추가·변경하면 별도 요청이 없어도 이 문서의 기존 관련 항목에 자동 반영한다. GAS는 GitHub 프로젝트와 별도로 운영하며, 서버 내부 검증은 최신 운영 GAS 소스가 별도 제공된 경우에만 수행한다.**
+> **새 채팅에서는 최신 전체 ZIP의 `main_dashboard_maintenance_handover.md`를 가장 먼저 읽고 같은 ZIP의 실제 소스를 source of truth로 확인한다. `점수`는 CSS·JS·UI·UX 세부점수와 각 총점·UI/UX 총점·전체 총점만 출력하고, `평가` 또는 `평가해줘`는 최신 실제 소스를 처음부터 독립적으로 전체 평가한다. 수정은 현재 구조 안에서 최소 범위로 수행하고 QA는 별도 요청에서 변경 위험에 비례해 검증하며, 여러 차수 작업은 마지막에 누적 최종 QA를 수행한다. 결과 파일은 실제 변경 파일만 원래 경로를 유지한 ZIP으로 전달하고 GitHub 커밋용 짧은 Summary와 간단한 Description을 함께 제공한다. handover는 수정 이력을 자동 누적하지 않고 장기 유지보수 계약이 실제로 바뀐 경우에만 기존 관련 항목을 수정·통합한다. GAS는 GitHub 프로젝트와 별도로 운영하며, 서버 내부 검증은 최신 운영 GAS 소스가 별도 제공된 경우에만 수행한다.**
