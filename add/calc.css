@@ -169,7 +169,7 @@
       align-items:stretch
     }
     .input-group{padding:var(--density-surface-sm)}
-    .group-title{display:flex;align-items:center;justify-content:space-between;font-weight:800;margin-bottom:var(--density-gap-md)}
+    .group-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--density-gap-md)}
     .group-title small{font-weight:500;color:var(--muted)}
     .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--density-gap-sm)}
     .field{display:flex;flex-direction:column;gap:var(--density-gap-xs)}
@@ -352,7 +352,7 @@
     .strategy.active{display:block}
     .strategy-card{overflow:hidden}
     .strategy-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--density-surface-md);padding:var(--density-surface-md) var(--density-surface-lg);border-bottom:1px solid var(--line);background:var(--surface-subtle)}
-    .strategy-title h2{margin:0;font-size:20px}
+    .strategy-title h2{margin:0}
     .strategy-title p{margin:var(--density-gap-xs) 0 0;color:var(--muted);font-size:13px;white-space:nowrap}
     .badge{padding:var(--density-gap-xs) var(--density-gap-md);border-radius:var(--radius-pill);font-size:12px;font-weight:900;white-space:nowrap}
     .badge.bad{background:var(--badge-bad-bg);color:var(--badge-bad-text)}
@@ -363,12 +363,12 @@
     .summary-card{padding:var(--density-surface-sm)}
     .summary-card .sname{font-size:11px;color:var(--muted);font-weight:700}
     .summary-card .svalue{font-size:19px;font-weight:900;margin-top:var(--density-gap-micro)}
-    .section-title{font-weight:900;font-size:14px;margin:var(--density-surface-lg) 0 var(--density-gap-sm)}
+    .section-title{margin:var(--density-surface-lg) 0 var(--density-gap-sm)}
     .table-scroll{width:100%;overflow-x:auto;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap))}
     .desktop-details{display:block}
     .mobile-data{display:none}
     .mobile-data-card{padding:var(--density-surface-sm);min-width:0}
-    .mobile-section-title{font-size:12px;font-weight:900;color:var(--ink);padding:var(--density-gap-md) 0 var(--density-gap-xs)}
+    .mobile-section-title{color:var(--ink);padding:var(--density-gap-md) 0 var(--density-gap-xs)}
     .mobile-section-title:first-child{padding-top:3px}
     .mobile-data-row{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--density-gap-lg);padding:var(--density-gap-md) 0;border-bottom:1px solid var(--soft)}
     .mobile-data-row:last-child{border-bottom:0}

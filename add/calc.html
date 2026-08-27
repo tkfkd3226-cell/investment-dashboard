@@ -39,7 +39,7 @@
   <section class="panel input-panel add-card-shell add-card-base add-card-shadow">
     <div class="input-grid" id="inputGrid">
       <div class="input-group existing-group add-card-shell add-card-subtle" id="priorGroup">
-        <div class="group-title"><span id="priorGroupTitle">기존 보유분</span><small id="priorGroupSub">기본 투자 정보</small></div>
+        <div class="group-title add-heading-subsection"><span id="priorGroupTitle">기존 보유분</span><small id="priorGroupSub">기본 투자 정보</small></div>
         <div class="fields" id="holdingPriorFields">
           <div class="field" id="existingAvgField"><label id="existingAvgLabel" for="existingOriginalAvg">기존 보유분 원래 평단</label><input id="existingOriginalAvg" class="control" readonly></div>
           <div class="field" id="existingSharesField"><label id="existingSharesLabel" for="existingShares">기존 보유수량</label><div class="share-stepper"><button class="share-step-btn" type="button" data-target="existingShares" data-delta="-1" aria-label="기존 보유수량 1주 감소">−</button><input id="existingShares" class="control" type="number" min="0" step="1" inputmode="numeric" value="38"><button class="share-step-btn" type="button" data-target="existingShares" data-delta="1" aria-label="기존 보유수량 1주 증가">+</button></div></div>
@@ -83,7 +83,7 @@
         </div>
 
       <div class="input-group additional-group add-card-shell add-card-subtle" id="currentGroup">
-        <div class="group-title"><span id="currentGroupTitle">추가매수 내역</span><small id="currentGroupSub"><span class="desktop-only">실제 체결 기준 · 3개 전략 공통</span><span class="mobile-only">실제 체결 기준</span></small></div>
+        <div class="group-title add-heading-subsection"><span id="currentGroupTitle">추가매수 내역</span><small id="currentGroupSub"><span class="desktop-only">실제 체결 기준 · 3개 전략 공통</span><span class="mobile-only">실제 체결 기준</span></small></div>
         <div class="fields" id="currentFields">
           <span id="currentPriceSlot"></span>
           <div class="current-subsection" id="purchaseInputSection"></div>
@@ -108,7 +108,7 @@
       </div>
 
       <div class="input-group calculation-group add-card-shell add-card-subtle">
-        <div class="group-title">계산 기준 <small>세 기준 중 하나만 입력</small></div>
+        <div class="group-title add-heading-subsection">계산 기준 <small>세 기준 중 하나만 입력</small></div>
         <div class="seg" role="group" aria-label="목표가격 계산 기준"><button id="modeCurrent" class="active" type="button" aria-pressed="true">매수일 종가</button><button id="modeRise" type="button" aria-pressed="false">추가매수가</button><button id="modeTarget" type="button" aria-pressed="false">목표단가</button></div>
         <div class="fields">
           <div class="field"><label id="overnightLabel" for="overnightPct">다음 거래일 변동률</label><div class="pct-stepper"><button class="pct-step-btn" type="button" data-target="overnightPct" data-delta="-0.1" aria-label="다음 거래일 변동률 0.1%p 감소">−</button><div class="with-unit"><input id="overnightPct" class="control" type="number" min="-99.999999" step="0.1" value="2.34"><span class="unit">%</span></div><button class="pct-step-btn" type="button" data-target="overnightPct" data-delta="0.1" aria-label="다음 거래일 변동률 0.1%p 증가">+</button></div></div>

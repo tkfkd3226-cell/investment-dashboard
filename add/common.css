@@ -1,6 +1,6 @@
 /* =========================================================
    add 공통 CSS · CALC / 거래 리포트 공유 기반
-   - 두 화면에서 함께 쓰는 의미 색상, Corner, Spacing/Density, Card Surface primitive를 둔다.
+   - 두 화면에서 함께 쓰는 의미 색상, Corner, Spacing/Density, Heading, Card Surface primitive를 둔다.
    - 화면별 레이아웃·반응형은 calc.css 또는 report 내부 CSS가 소유한다.
    ========================================================= */
 
@@ -97,7 +97,35 @@ html.dark{
 }
 
 
-/* 02. Add 공통 Card Surface primitive
+/* 02. Add 공통 Heading / Typography primitive
+   - 비슷한 제목 크기는 20 / 14 / 12px의 3단계 hierarchy로 통합한다.
+   - Hero h1, KPI value, badge 등 제목이 아닌 typography는 이 contract에 포함하지 않는다. */
+:root{
+  --heading-section-size:20px;
+  --heading-subsection-size:14px;
+  --heading-minor-size:12px;
+  --heading-section-weight:800;
+  --heading-subsection-weight:800;
+  --heading-minor-weight:900;
+}
+.add-heading-section{
+  font-size:var(--heading-section-size);
+  font-weight:var(--heading-section-weight);
+  line-height:1.25;
+  letter-spacing:-.035em;
+}
+.add-heading-subsection{
+  font-size:var(--heading-subsection-size);
+  font-weight:var(--heading-subsection-weight);
+  line-height:1.3;
+}
+.add-heading-minor{
+  font-size:var(--heading-minor-size);
+  font-weight:var(--heading-minor-weight);
+  line-height:1.35;
+}
+
+/* 03. Add 공통 Card Surface primitive
    - shell은 border/radius만 소유하고, 배경·shadow는 역할 class로 조합한다.
    - feature별 class는 layout/content만 소유하며 동일 shell을 반복 정의하지 않는다. */
 .add-card-shell{
@@ -109,7 +137,7 @@ html.dark{
 .add-card-subtle{background:var(--surface-subtle)}
 .add-card-shadow{box-shadow:var(--shadow)}
 
-/* 03. 공통 박스 모델 / 기본 글꼴 */
+/* 04. 공통 박스 모델 / 기본 글꼴 */
 *{box-sizing:border-box}
 body{
   margin:0;

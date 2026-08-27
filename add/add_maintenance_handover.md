@@ -66,7 +66,7 @@ Mobile · 모바일   ≤ 760px
 
 ### 1.2 add 영역 UI 공통 구성 원칙
 
-- `calc`와 `report`는 `add/common.css`의 공통 의미색·Corner·Spacing/Density token을 재사용한다. 현재 수치 자체는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다. Corner는 역할별 기본 radius와 soft-square cap을 분리하고, 메인의 `investmentDashboard.cornerTheme` 저장값을 읽어 동일한 `rounded-corners` mode contract를 적용한다.
+- `calc`와 `report`는 `add/common.css`의 공통 의미색·Corner·Spacing/Density·Heading token/primitive를 재사용한다. 현재 수치 자체는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다. Corner는 역할별 기본 radius와 soft-square cap을 분리하고, 메인의 `investmentDashboard.cornerTheme` 저장값을 읽어 동일한 `rounded-corners` mode contract를 적용한다.
 - 카드·패널·폼·표·탭·버튼처럼 역할이 비슷한 component의 padding/gap은 공통 density token을 우선 사용하고, Desktop → Tablet → Mobile 순으로 일관되게 compact해지는 3단계 contract를 유지한다. 카드·패널·요약박스처럼 독립된 Surface의 기본 padding은 상하좌우 동일값을 사용하며, 표 셀·버튼·input·header row처럼 기능상 X/Y 여백이 달라야 하는 요소만 예외로 둔다. Touch target 높이, 차트 geometry, 광학 보정처럼 기능상 필요한 값은 억지로 density token에 합치지 않는다. 단순 미관 조정 때문에 독립 radius·magic number·임시 offset을 누적하지 않는다.
 - 거래유형 전환이나 responsive 변경 시 입력 패널의 정보 순서·시각적 균형·사용성을 유지하되, 해결 방법은 구조적 CSS를 우선한다.
 - 입력 요소는 가능한 한 `<label for>` 또는 `aria-labelledby`로 연결하고, 전략/리포트 탭은 `tablist/tab/tabpanel`, `aria-controls`, `aria-selected`와 키보드 이동을 유지한다. 시각 상태와 ARIA 상태가 함께 갱신되어야 한다.
