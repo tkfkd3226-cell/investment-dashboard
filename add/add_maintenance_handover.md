@@ -83,13 +83,9 @@ add/
 ├─ common.css
 ├─ calc.css
 ├─ calc.js
+├─ calc.test.cjs
 ├─ kodex-leverage-report.html
 └─ add_maintenance_handover.md
-
-루트 회귀검증:
-
-tests/
-└─ calc.test.cjs
 ```
 
 역할은 다음과 같다.
@@ -108,7 +104,7 @@ tests/
   - CALC 계산·렌더·프리셋·이벤트·툴팁·초기화를 소유하는 단일 IIFE 파일이다.
   - 현재 규모에서는 추가 파일 분리를 기본 작업으로 하지 않는다.
   - Node 회귀검증에서는 `compute`, `validate`, `ceil5`만 노출하고 DOM 부팅은 실행하지 않는다.
-- `tests/calc.test.cjs`
+- `add/calc.test.cjs`
   - Node 내장 `node:test` / `node:assert`만 사용한다.
   - production `add/calc.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
 - `add/kodex-leverage-report.html`
@@ -122,7 +118,7 @@ tests/
 - CSS는 기본 component 규칙 뒤에 responsive 규칙을 두고, 기능과 무관한 알파벳/가나다 정렬을 목적으로 재배치하지 않는다.
 - `calc.js`의 계산 엔진은 DOM-free를 유지하고 render/event 책임과 분리한다.
 - 이벤트·툴팁·초기화는 중복 등록되지 않게 명시적으로 관리하며, Node export/browser boot guard를 유지한다.
-- 계산 또는 validation을 변경한 경우 production `add/calc.js`를 대상으로 `node --test tests/calc.test.cjs`를 실행한다.
+- 계산 또는 validation을 변경한 경우 production `add/calc.js`를 대상으로 `node --test add/calc.test.cjs`를 실행한다.
 - Report의 차트 label thinning, 마지막 거래일 식별, DPR/resize 처리처럼 동작 의미가 있는 로직은 관련 변경 시 회귀 확인한다.
 
 ## 2. 거래 리포트 canonical 파일명
@@ -396,7 +392,7 @@ separateProfit.reinvestedLimit
 
 ### 12.2 Calc 계산·validation 변경 시
 
-- `node --test tests/calc.test.cjs` 전체 PASS.
+- `node --test add/calc.test.cjs` 전체 PASS.
 - 테스트는 production `compute()/validate()/ceil5()`를 직접 검증하고 계산식 복사본을 만들지 않는다.
 
 ### 12.3 Calc/Report UI·responsive 변경 시
