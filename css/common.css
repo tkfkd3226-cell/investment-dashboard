@@ -652,8 +652,7 @@ button svg{pointer-events:none;flex-shrink:0}
 
 
 .hero{
-  --hero-pad-y:20px;
-  --hero-pad-x:24px;
+  --hero-pad:var(--space-7xl);
   --hero-radius:19px;
   --hero-title-size:27px;
   --hero-title-line:1.16;
@@ -674,7 +673,7 @@ button svg{pointer-events:none;flex-shrink:0}
   --hero-decor-top:-70px;
   position:relative;
   overflow:hidden;
-  padding:var(--hero-pad-y) var(--hero-pad-x);
+  padding:var(--hero-pad);
   border-radius:min(var(--hero-radius),var(--corner-surface-cap));
   background:
     radial-gradient(circle at 94% 8%,var(--hero-glow),transparent 26%),

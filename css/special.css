@@ -179,8 +179,7 @@
 
   /* Hero Phone UI · Hero 타이포/여백은 세로·가로폰 동일 */
     .hero{
-      --hero-pad-y:15px;
-      --hero-pad-x:14px;
+      --hero-pad:var(--space-5xl);
       --hero-radius:17px;
       --hero-title-size:21px;
       --hero-title-line:1.15;
