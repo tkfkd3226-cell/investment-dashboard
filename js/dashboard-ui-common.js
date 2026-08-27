@@ -222,7 +222,7 @@ function renderAssetContributionCard({
   const content=!hasPrev
     ? `<div class="${emptyClass}">${noPrevMessage}</div>`
     : items.length
-      ? `<div class="${stackClass}" role="group" aria-label="${escapeHtml(title)} 구성">${items.map((item,index)=>{const tooltipId=`${idPrefix}Tooltip${index}`;const share=Number(item.share)||0;const valueText=item.valueText??'';const ariaLabel=escapeHtml(`${item.name} 상승분 기여도 ${share.toFixed(1)}%, ${valueText}`);return `<div class="${segmentClass}" tabindex="0" role="img" aria-label="${ariaLabel}" aria-describedby="${tooltipId}" style="width:${Math.max(share,2).toFixed(2)}%;background:${item.color}"><span>${share>=8?(item.shortLabel??item.name):''}</span><div id="${tooltipId}" class="${tooltipClass}" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${share.toFixed(1)}%</div><div>${valueText}</div></div></div>`}).join('')}</div>`
+      ? `<div class="${stackClass}" role="group" aria-label="${escapeHtml(title)} 구성">${items.map((item,index)=>{const tooltipId=`${idPrefix}Tooltip${index}`;const share=Math.max(0,Number(item.share)||0);const valueText=item.valueText??'';const ariaLabel=escapeHtml(`${item.name} 상승분 기여도 ${share.toFixed(1)}%, ${valueText}`);return `<div class="${segmentClass}" tabindex="0" role="img" aria-label="${ariaLabel}" aria-describedby="${tooltipId}" style="width:${share.toFixed(4)}%;background:${item.color}"><span>${share>=8?(item.shortLabel??item.name):''}</span><div id="${tooltipId}" class="${tooltipClass}" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${share.toFixed(1)}%</div><div>${valueText}</div></div></div>`}).join('')}</div>`
       : `<div class="${emptyNoItemsClass||emptyClass}">${emptyMessage}</div>`;
   return `<div class="${cardClass}" role="group" aria-labelledby="${titleId}"><div class="${headClass}"><h3 id="${titleId}">${title}</h3></div>${content}</div>`;
 }
@@ -275,14 +275,46 @@ function setupAssetVizTooltips(zoneSelector){
   const targetSelector=()=>[...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip`).join(',');
   const openSelector=()=>[...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip.tooltip-open`).join(',');
   const touchDragThreshold=6;
+  const tooltipLeaveMs=180;
+  const touchTooltipMs=1400;
+  const tooltipLeaveTimers=new WeakMap();
+  const touchTooltipTimers=new WeakMap();
   let touchDragState=null;
   let suppressTouchClickTargets=[];
   let suppressTouchClickUntil=0;
+  const cancelTooltipLeave=target=>{
+    if(!target)return;
+    const timer=tooltipLeaveTimers.get(target);
+    if(timer)clearTimeout(timer);
+    tooltipLeaveTimers.delete(target);
+    target.classList.remove('asset-tooltip-leaving');
+  };
   const clearTooltipFollow=target=>{
     if(!target)return;
+    cancelTooltipLeave(target);
     target.classList.remove('asset-tooltip-following');
     target.style.removeProperty('--asset-tooltip-left');
     target.style.removeProperty('--asset-tooltip-arrow-left');
+  };
+  const leaveTooltipFollow=target=>{
+    if(!target?.classList.contains('asset-tooltip-following'))return;
+    cancelTooltipLeave(target);
+    target.classList.add('asset-tooltip-leaving');
+    const timer=setTimeout(()=>{
+      tooltipLeaveTimers.delete(target);
+      clearTooltipFollow(target);
+    },tooltipLeaveMs);
+    tooltipLeaveTimers.set(target,timer);
+  };
+  const scheduleTouchTooltipClose=target=>{
+    const previous=touchTooltipTimers.get(target);
+    if(previous)clearTimeout(previous);
+    const timer=setTimeout(()=>{
+      touchTooltipTimers.delete(target);
+      target.classList.remove('tooltip-open');
+      clearTooltipFollow(target);
+    },touchTooltipMs);
+    touchTooltipTimers.set(target,timer);
   };
   const closeTooltips=except=>{
     const selector=openSelector();
@@ -297,6 +329,7 @@ function setupAssetVizTooltips(zoneSelector){
     if(!target?.classList.contains('asset-stack-segment')||!Number.isFinite(event?.clientX))return;
     const tooltip=target.querySelector('.asset-viz-tooltip');
     if(!tooltip)return;
+    cancelTooltipLeave(target);
     const segmentRect=target.getBoundingClientRect();
     target.classList.add('asset-tooltip-following');
     target.style.setProperty('--asset-tooltip-left',`${event.clientX-segmentRect.left}px`);
@@ -378,7 +411,8 @@ function setupAssetVizTooltips(zoneSelector){
     const selector=targetSelector();
     const target=selector?event.target.closest(selector):null;
     if(!target||target.contains(event.relatedTarget)||target.classList.contains('tooltip-open'))return;
-    clearTooltipFollow(target);
+    if(target.classList.contains('asset-stack-segment'))leaveTooltipFollow(target);
+    else clearTooltipFollow(target);
   });
   document.addEventListener('click',event=>{
     const selector=targetSelector();
@@ -393,6 +427,21 @@ function setupAssetVizTooltips(zoneSelector){
     suppressTouchClickTargets=[];
     suppressTouchClickUntil=0;
     if(!target){closeTooltips(null);return;}
+    if(target.classList.contains('asset-stack-segment')){
+      if(event.detail===0)return;
+      if(!isTouchLike()){
+        if(document.activeElement===target)target.blur();
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      positionStackTooltip(target,event);
+      closeTooltips(target);
+      target.classList.add('tooltip-open');
+      if(document.activeElement===target&&window.matchMedia('(hover: none)').matches)target.blur();
+      scheduleTouchTooltipClose(target);
+      return;
+    }
     if(!isTouchLike())return;
     event.preventDefault();
     event.stopPropagation();
