@@ -7,8 +7,8 @@
 <script>
   try{if(localStorage.getItem('investmentDashboard.theme')==='dark') document.documentElement.classList.add('dark')}catch(_){}
 </script>
-<link rel="stylesheet" href="css/common.css" />
-<link rel="stylesheet" href="css/calc.css" />
+<link rel="stylesheet" href="common.css" />
+<link rel="stylesheet" href="calc.css" />
 </head>
 <body>
 
@@ -17,7 +17,7 @@
     <div class="hero-head">
       <h1>투자 계산기</h1>
       <div class="actions">
-      <a class="btn report-top-link" id="reportBtn" href="report/kodex-leverage-report.html" target="_blank" rel="noopener" aria-label="거래 리포트">
+      <a class="btn report-top-link" id="reportBtn" href="kodex-leverage-report.html" target="_blank" rel="noopener" aria-label="거래 리포트">
         <span class="report-text">거래 리포트</span>
         <svg class="report-icon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M6 3h9l3 3v15H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -144,6 +144,6 @@
   <main><section id="s3" class="strategy active" role="tabpanel" aria-labelledby="tabS3" aria-hidden="false" tabindex="0"></section><section id="s2" class="strategy" role="tabpanel" aria-labelledby="tabS2" aria-hidden="true" tabindex="0"></section><section id="s1" class="strategy" role="tabpanel" aria-labelledby="tabS1" aria-hidden="true" tabindex="0"></section></main>
 </div>
 
-<script src="js/calc.js"></script>
+<script src="calc.js"></script>
 </body>
 </html>

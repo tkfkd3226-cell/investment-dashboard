@@ -1,6 +1,6 @@
 # add 영역 유지보수 및 거래 리포트 인수인계
 
-> 적용 범위: `add/calc.html`, `add/css/*`, `add/js/calc.js`, `add/report/*` 및 **KODEX 레버리지 실현손익 반영 때문에 함께 수정되는 `data/portfolio.json`**
+> 적용 범위: `add/calc.html`, `add/common.css`, `add/calc.css`, `add/calc.js`, `add/kodex-leverage-report.html` 및 **KODEX 레버리지 실현손익 반영 때문에 함께 수정되는 `data/portfolio.json`**
 >
 > 목적: `add/` 영역의 **CALC + KODEX 레버리지 거래 리포트**를 현재 canonical 구조 그대로 유지하고, 새 거래 반영·UI 수정·CSS/JS 유지보수 때 구조와 기준을 다시 분석하지 않고 바로 작업할 수 있게 한다.
 
@@ -41,8 +41,8 @@
 3. 현재 ZIP의 실제 관련 소스
    - data/portfolio.json
    - add/calc.html
-   - add/report/kodex-leverage-report.html
-   - 필요 시 add/css/*, add/js/calc.js
+   - add/kodex-leverage-report.html
+   - 필요 시 add/common.css, add/calc.css, add/calc.js
 4. 사용자가 이번 작업에 제공한 최신 증권사 원본 자료
 ```
 
@@ -66,7 +66,7 @@ Mobile · 모바일   ≤ 760px
 
 ### 1.2 add 영역 UI 공통 구성 원칙
 
-- `calc`와 `report`는 `add/css/common.css`의 공통 Corner/의미 token을 재사용한다. 현재 수치 자체는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다.
+- `calc`와 `report`는 `add/common.css`의 공통 Corner/의미 token을 재사용한다. 현재 수치 자체는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다.
 - 카드·패널·폼·탭·버튼 등은 기존 공통 token과 의미 class를 우선 사용하며, 단순 미관 조정 때문에 독립 radius·magic number·임시 offset을 누적하지 않는다.
 - 거래유형 전환이나 responsive 변경 시 입력 패널의 정보 순서·시각적 균형·사용성을 유지하되, 해결 방법은 구조적 CSS를 우선한다.
 - 입력 요소는 가능한 한 `<label for>` 또는 `aria-labelledby`로 연결하고, 전략/리포트 탭은 `tablist/tab/tabpanel`, `aria-controls`, `aria-selected`와 키보드 이동을 유지한다. 시각 상태와 ARIA 상태가 함께 갱신되어야 한다.
@@ -80,14 +80,11 @@ Mobile · 모바일   ≤ 760px
 ```text
 add/
 ├─ calc.html
-├─ add_maintenance_handover.md
-├─ css/
-│  ├─ common.css
-│  └─ calc.css
-├─ js/
-│  └─ calc.js
-└─ report/
-   └─ kodex-leverage-report.html
+├─ common.css
+├─ calc.css
+├─ calc.js
+├─ kodex-leverage-report.html
+└─ add_maintenance_handover.md
 
 루트 회귀검증:
 
@@ -99,24 +96,24 @@ tests/
 
 - `add/calc.html`
   - CALC DOM과 접근성 구조만 소유한다.
-  - CSS는 `css/common.css` → `css/calc.css` 순서로 로드한다.
-  - JS는 `js/calc.js` 단일 파일을 사용한다.
+  - CSS는 `common.css` → `calc.css` 순서로 로드한다.
+  - JS는 `calc.js` 단일 파일을 사용한다.
   - 기능 로직이나 대량 스타일을 HTML 안으로 다시 넣지 않는다.
-- `add/css/common.css`
+- `add/common.css`
   - CALC와 리포트가 공유하는 의미 색상, Corner token, box-sizing, 기본 글꼴만 소유한다.
   - 화면별 layout/responsive 규칙을 넣지 않는다.
-- `add/css/calc.css`
+- `add/calc.css`
   - CALC 화면의 전체 UI·거래유형별 layout·반응형을 소유한다.
-- `add/js/calc.js`
+- `add/calc.js`
   - CALC 계산·렌더·프리셋·이벤트·툴팁·초기화를 소유하는 단일 IIFE 파일이다.
   - 현재 규모에서는 추가 파일 분리를 기본 작업으로 하지 않는다.
   - Node 회귀검증에서는 `compute`, `validate`, `ceil5`만 노출하고 DOM 부팅은 실행하지 않는다.
 - `tests/calc.test.cjs`
   - Node 내장 `node:test` / `node:assert`만 사용한다.
-  - production `add/js/calc.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
-- `add/report/kodex-leverage-report.html`
+  - production `add/calc.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
+- `add/kodex-leverage-report.html`
   - 거래 리포트 canonical 단일 파일이다.
-  - `../css/common.css`를 공유하고, 리포트 전용 CSS/JS는 standalone 결과물 특성상 HTML 내부 `<style>` / `<script>`에 유지한다.
+  - `common.css`를 공유하고, 리포트 전용 CSS/JS는 standalone 결과물 특성상 HTML 내부 `<style>` / `<script>`에 유지한다.
   - 사용자가 별도로 외부 파일 분리를 요청하지 않는 한 CSS/JS를 새 파일로 쪼개지 않는다.
 
 ### 1.4 CSS / JS 내부 구조 원칙
@@ -125,7 +122,7 @@ tests/
 - CSS는 기본 component 규칙 뒤에 responsive 규칙을 두고, 기능과 무관한 알파벳/가나다 정렬을 목적으로 재배치하지 않는다.
 - `calc.js`의 계산 엔진은 DOM-free를 유지하고 render/event 책임과 분리한다.
 - 이벤트·툴팁·초기화는 중복 등록되지 않게 명시적으로 관리하며, Node export/browser boot guard를 유지한다.
-- 계산 또는 validation을 변경한 경우 production `add/js/calc.js`를 대상으로 `node --test tests/calc.test.cjs`를 실행한다.
+- 계산 또는 validation을 변경한 경우 production `add/calc.js`를 대상으로 `node --test tests/calc.test.cjs`를 실행한다.
 - Report의 차트 label thinning, 마지막 거래일 식별, DPR/resize 처리처럼 동작 의미가 있는 로직은 관련 변경 시 회귀 확인한다.
 
 ## 2. 거래 리포트 canonical 파일명
@@ -133,13 +130,13 @@ tests/
 거래 리포트 canonical 파일은 아래 하나로 고정한다.
 
 ```text
-add/report/kodex-leverage-report.html
+add/kodex-leverage-report.html
 ```
 
 - 거래기간은 본문에서 표시하고 파일명에는 넣지 않는다.
 - 새 거래가 추가되어도 같은 canonical 파일을 갱신한다.
 - 사용자가 별도로 보관본을 요청하지 않는 한 날짜형/병렬 report 파일을 새로 만들거나 복원하지 않는다.
-- `add/calc.html`의 거래 리포트 링크는 `report/kodex-leverage-report.html`을 가리킨다.
+- `add/calc.html`의 거래 리포트 링크는 `kodex-leverage-report.html`을 가리킨다.
 
 ## 3. 새로운 KODEX 레버리지 실현거래가 생겼을 때 기본 수정 범위
 
@@ -147,7 +144,7 @@ add/report/kodex-leverage-report.html
 
 ```text
 data/portfolio.json
-add/report/kodex-leverage-report.html
+add/kodex-leverage-report.html
 add/calc.html            # 링크/연동 확인. canonical 파일명 정착 후 보통 내용 변경 없음
 add/add_maintenance_handover.md  # 장기 contract가 실제로 변경된 경우에만
 main_dashboard_maintenance_handover.md # 메인 전역 contract가 실제로 변경된 경우에만
@@ -411,7 +408,7 @@ Calc
 https://tkfkd3226-cell.github.io/investment-dashboard/add/calc.html
 
 KODEX 레버리지 거래 리포트
-https://tkfkd3226-cell.github.io/investment-dashboard/add/report/kodex-leverage-report.html
+https://tkfkd3226-cell.github.io/investment-dashboard/add/kodex-leverage-report.html
 ```
 
 - `평가`, UI/UX·responsive QA 또는 실제 렌더링 검증에서 사용자가 주소를 다시 제공하지 않아도 위 URL을 사용한다.
@@ -428,7 +425,7 @@ https://tkfkd3226-cell.github.io/investment-dashboard/add/report/kodex-leverage-
 
 ### 12.5 canonical 경로 관련 변경 시
 
-- `add/calc.html`의 report 링크가 `report/kodex-leverage-report.html`인지 확인한다.
+- `add/calc.html`의 report 링크가 `kodex-leverage-report.html`인지 확인한다.
 - 날짜형 report나 legacy canonical 경로 참조가 다시 생기지 않았는지 확인한다.
 
 ## 13. 수정하지 말아야 할 것
