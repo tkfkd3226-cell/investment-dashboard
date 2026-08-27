@@ -102,10 +102,10 @@
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
 
-    #securityAllocCards.security-alloc-card-grid{
+    .security-alloc-card-grid{
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
-    #securityAllocCards > .alloc-total-card{
+    .security-alloc-card-grid > .alloc-total-card{
       grid-column:1 / -1;
     }
 

@@ -1832,20 +1832,20 @@ body.chart-expanded-open .dash-tooltip{
 }
 
 /* Phone Allocation Summary · 폰 평가금액 비중: 총액 카드가 grid 전체 행 사용 */
-.phone-chart-ui #securityAllocCards > .alloc-total-card{
+.phone-chart-ui .security-alloc-card-grid > .alloc-total-card{
   grid-column:1 / -1;
   display:grid;
   grid-template-columns:max-content minmax(0,1fr);
   column-gap:var(--space-lg);
   align-items:baseline;
 }
-.phone-chart-ui #securityAllocCards > .alloc-total-card > .m-label{
+.phone-chart-ui .security-alloc-card-grid > .alloc-total-card > .m-label{
   grid-column:1 / -1;
 }
-.phone-chart-ui #securityAllocCards > .alloc-total-card > .m-value{
+.phone-chart-ui .security-alloc-card-grid > .alloc-total-card > .m-value{
   grid-column:1;
 }
-.phone-chart-ui #securityAllocCards > .alloc-total-card > .alloc-cash-meta{
+.phone-chart-ui .security-alloc-card-grid > .alloc-total-card > .alloc-cash-meta{
   grid-column:2;
   margin-top:var(--space-2xs);
 }
@@ -2983,7 +2983,7 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
 
 /* Allocation Summary · 평가금액 비중 카드: 연금/증권 공통 총액 + 화면군별 grid */
 #pension-chart-alloc .pension-alloc-total-card,
-#chart-alloc:not(.phone-chart-ui) #securityAllocCards > .alloc-total-card{
+:where(.chart-card:not(.phone-chart-ui)) .security-alloc-card-grid > .alloc-total-card{
   display:grid;
   grid-template-columns:max-content minmax(0,max-content);
   column-gap:clamp(3px,.45vw,6px);
@@ -2991,16 +2991,16 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
   justify-content:start;
 }
 #pension-chart-alloc .pension-alloc-total-card > .m-label,
-#chart-alloc:not(.phone-chart-ui) #securityAllocCards > .alloc-total-card > .m-label{
+:where(.chart-card:not(.phone-chart-ui)) .security-alloc-card-grid > .alloc-total-card > .m-label{
   grid-column:1 / -1;
 }
 #pension-chart-alloc .pension-alloc-total-card > .m-value,
-#chart-alloc:not(.phone-chart-ui) #securityAllocCards > .alloc-total-card > .m-value{
+:where(.chart-card:not(.phone-chart-ui)) .security-alloc-card-grid > .alloc-total-card > .m-value{
   grid-column:1;
   white-space:nowrap;
 }
 #pension-chart-alloc .pension-alloc-total-card > .pension-cash-detail,
-#chart-alloc:not(.phone-chart-ui) #securityAllocCards > .alloc-total-card > .alloc-cash-meta{
+:where(.chart-card:not(.phone-chart-ui)) .security-alloc-card-grid > .alloc-total-card > .alloc-cash-meta{
   grid-column:2;
   margin-top:var(--space-2xs);
   white-space:nowrap;
@@ -3013,14 +3013,14 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
 }
 
 /* Securities Allocation · 증권 평가금액 비중: 유형/종목별 카드 배치 정책 */
-#securityAllocCards.security-alloc-card-grid{
+.security-alloc-card-grid{
   grid-template-columns:repeat(var(--security-alloc-card-count,4),minmax(0,1fr));
 }
-#securityAllocCards > .alloc-total-card-wide{
+.security-alloc-card-grid > .alloc-total-card-wide{
   grid-column:span 2;
 }
 
-#chart-alloc.phone-chart-ui #securityAllocCards.security-alloc-card-grid{
+.phone-chart-ui .security-alloc-card-grid{
   grid-template-columns:repeat(2,minmax(0,1fr));
 }
 

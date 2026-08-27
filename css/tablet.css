@@ -103,13 +103,13 @@
       grid-template-columns:repeat(4,minmax(0,1fr));
     }
 
-#securityAllocCards.security-alloc-card-grid{
+.security-alloc-card-grid{
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
-    #securityAllocCards.security-alloc-card-grid:has(> .alloc-total-card-wide){
+    .security-alloc-card-grid:has(> .alloc-total-card-wide){
       grid-template-columns:repeat(4,minmax(0,1fr));
     }
-    #securityAllocCards > .alloc-total-card:not(.alloc-total-card-wide){
+    .security-alloc-card-grid > .alloc-total-card:not(.alloc-total-card-wide){
       grid-column:1 / -1;
     }
 
