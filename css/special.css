@@ -17,6 +17,7 @@
    [S01] Account Performance · 계좌별 성과 — Extra Small Phone ≤400px
    Why · 이유: 390px급 초소형 화면에서는 손익·수익률·메모를 기존 열 구조로
    유지하면 정보가 과밀해지므로, 수익률을 손익과 결합하고 메모를 tooltip로 축약한다.
+   전일대비 표는 전일/당일 값을 첫 줄에 유지하고 일변동·등락률을 두 가격 열 아래 공통 2행으로 합친다.
    Scope · 범위: 통합성과 / 전일대비 / 계좌별 성과 표에만 적용한다.
    ------------------------------------------------------------------------- */
 @media (max-width:400px){
@@ -30,14 +31,49 @@
       display:inline;
       font-size:var(--type-size-xs);
     }
-    .asset-change-table .asset-change-delta-col{display:none}
-    .asset-change-table .asset-change-mobile-delta{
+    .asset-change-table{
+      width:100%;
+      min-width:100%;
+    }
+    .asset-change-table thead tr,
+    .asset-change-table tbody tr.asset-change-row{
+      display:grid;
+      grid-template-columns:minmax(88px,1.2fr) repeat(2,minmax(0,1fr));
+      width:100%;
+    }
+    .asset-change-table thead tr > :nth-child(1),
+    .asset-change-table tbody tr.asset-change-row > :nth-child(1){grid-column:1}
+    .asset-change-table thead tr > :nth-child(2),
+    .asset-change-table tbody tr.asset-change-row > :nth-child(2){grid-column:2}
+    .asset-change-table thead tr > :nth-child(3),
+    .asset-change-table tbody tr.asset-change-row > :nth-child(3){grid-column:3;border-right:0}
+    .asset-change-table thead .asset-change-delta-col{display:none}
+    .asset-change-table tbody tr.asset-change-row > :nth-child(1){
+      grid-row:1 / span 2;
+      align-self:stretch;
+      display:flex;
+      align-items:center;
+    }
+    .asset-change-table tbody tr.asset-change-row > :nth-child(2),
+    .asset-change-table tbody tr.asset-change-row > :nth-child(3){grid-row:1}
+    .asset-change-table tbody tr.asset-change-row > .asset-change-delta-col{
       display:block;
-      margin-top:var(--space-2xs);
+      grid-column:2 / 4;
+      grid-row:2;
+      border-right:0;
+      text-align:center;
+    }
+    .asset-change-table tbody tr.asset-change-row > .asset-change-delta-col .asset-change-delta-value,
+    .asset-change-table tbody tr.asset-change-row > .asset-change-delta-col .asset-change-delta-rate{
+      display:inline;
+      margin:0;
       font-size:inherit;
       font-weight:var(--data-table-value-weight);
       line-height:var(--data-table-line-height);
-      white-space:nowrap;
+    }
+    .asset-change-table tbody tr.asset-change-row > .asset-change-delta-col .asset-change-delta-rate::before{
+      content:' · ';
+      color:var(--muted);
     }
     #accounts-summary #accounts-table-view{
       overflow:visible;

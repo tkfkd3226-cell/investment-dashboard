@@ -2,6 +2,7 @@ import {
   DASHBOARD_WRITE_CONFIG,
   account1PrincipalForDate,
   account1SourceHoldingGapForDate,
+  assetPriceColumnLabel,
   allAvailableDates,
   cls,
   dataState,
@@ -40,6 +41,7 @@ import {
   navIconSvg,
   phoneLandscapeUi,
   renderAssetContributionCard,
+  renderAssetDayChangeValue,
   renderAssetDayChangeBlock,
   renderAssetStatusBlock,
   renderAssetWeight,
@@ -836,32 +838,46 @@ function renderSecuritiesChangeBlock(x){
   const detail=x.securitiesAssetDetail,change=detail.change,hasPrev=detail.hasPrev;
   const prevDateLabel=detail.prevDate?shortDate(detail.prevDate):'전일';
   const currentDateLabel=shortDate(detail.date);
+  const prevPriceLabel=assetPriceColumnLabel(detail.prevDate);
+  const currentPriceLabel=assetPriceColumnLabel(detail.date,{current:true});
   const orderedRows=sortSecurityItems(change.rows);
   const rows=orderedRows.map(r=>({
+    className:'asset-change-row',
     labelHtml:`${mobileTableAssetName(r.name)}${securitySymbolSwatch(r.name)}`,
     cells:[
-      {className:'num',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':won(r.prevEval)}</span>`},
-      {className:'num',html:`<span class="change-price">${r.price==null?'-':fmt(r.price)}</span><span class="change-eval data-table-sub">${won(r.evalAmount)}</span><span class="asset-change-mobile-delta ${tableCls(r.dayChange)}"><span class="visually-hidden">일변동 </span>${r.dayChange==null?'-':signed(r.dayChange)}</span>`},
-      {className:`num asset-change-delta-col ${tableCls(r.dayChange)}`,html:r.dayChange==null?'-':signed(r.dayChange)}
+      {className:'num',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':fmt(r.prevEval)}</span>`},
+      {className:'num',html:`<span class="change-price">${r.price==null?'-':fmt(r.price)}</span><span class="change-eval data-table-sub">${fmt(r.evalAmount)}</span>`},
+      {className:'num asset-change-delta-col',html:renderAssetDayChangeValue({
+        amountText:r.dayChange==null?'-':signed(r.dayChange),
+        rateText:r.dayRate==null?'-':`${r.dayRate>0?'+':''}${pct(r.dayRate)}`,
+        amountClass:tableCls(r.dayChange),
+        rateClass:tableCls(r.dayRate)
+      })}
     ]
   }));
   const summaryRows=[{
-    className:'summary-row',
+    className:'summary-row asset-change-row',
     labelHtml:'합계',
     cells:[
       {className:'num',html:hasPrev?fmt(change.prevEvaluationTotal):'-'},
-      {className:'num',html:`${fmt(change.evaluationTotal)}<span class="asset-change-mobile-delta ${tableCls(change.dayChange)}"><span class="visually-hidden">일변동 </span>${change.dayChange==null?'-':signed(change.dayChange)}</span>`},
-      {className:`num asset-change-delta-col ${tableCls(change.dayChange)}`,html:change.dayChange==null?'-':signed(change.dayChange)}
+      {className:'num',html:fmt(change.evaluationTotal)},
+      {className:'num asset-change-delta-col',html:renderAssetDayChangeValue({
+        amountText:change.dayChange==null?'-':signed(change.dayChange),
+        rateText:change.dayRate==null?'-':`${change.dayRate>0?'+':''}${pct(change.dayRate)}`,
+        amountClass:tableCls(change.dayChange),
+        rateClass:tableCls(change.dayRate)
+      })}
     ]
   }];
   const cards=orderedRows.map(r=>({
     title:r.name,
     items:[
-      [prevDateLabel+' 종가',r.prevPrice==null?'-':fmt(r.prevPrice)],
+      [prevPriceLabel,r.prevPrice==null?'-':fmt(r.prevPrice)],
       [prevDateLabel+' 평가금액',r.prevEval==null?'-':won(r.prevEval)],
-      [currentDateLabel+' 종가',r.price==null?'-':fmt(r.price)],
+      [currentPriceLabel,r.price==null?'-':fmt(r.price)],
       [currentDateLabel+' 평가금액',won(r.evalAmount)],
-      ['일변동',r.dayChange==null?'-':signed(r.dayChange),cls(r.dayChange)]
+      ['일변동',r.dayChange==null?'-':signed(r.dayChange),cls(r.dayChange)],
+      ['전일대비 변동률',r.dayRate==null?'-':`${r.dayRate>0?'+':''}${pct(r.dayRate)}`,cls(r.dayRate)]
     ]
   }));
   return renderAssetDayChangeBlock({
@@ -879,8 +895,8 @@ function renderSecuritiesChangeBlock(x){
     caption:'증권계좌 전일 대비 종목별 변동',
     columns:[
       {label:'종목',className:'table-cell-text'},
-      {label:`${prevDateLabel} 종가`},
-      {label:`${currentDateLabel} 종가`},
+      {label:prevPriceLabel},
+      {label:currentPriceLabel},
       {label:'일변동',className:'asset-change-delta-col'}
     ],
     rows,

@@ -1,5 +1,6 @@
 import {
   CASH_ASSET_COLOR,
+  assetPriceColumnLabel,
   cls,
   fmt,
   pct,
@@ -16,6 +17,7 @@ import {
   mobileTableAssetName,
   pensionProductSwatch,
   renderAssetContributionCard,
+  renderAssetDayChangeValue,
   renderAssetDayChangeBlock,
   renderAssetStatusBlock,
   renderAssetWeight
@@ -176,35 +178,49 @@ function renderPensionChangeBlock(x,orderedPensionRows){
   const hasPrev=x.pensionPrevEval!=null,
         prevDateLabel=x.prevKey?shortDate(x.prevKey):'-',
         currentDateLabel=shortDate(x.date),
+        prevPriceLabel=assetPriceColumnLabel(x.prevKey),
+        currentPriceLabel=assetPriceColumnLabel(x.date,{current:true}),
         productPrevEval=hasPrev?orderedPensionRows.reduce((a,r)=>a+(Number(r.prevEval)||0),0):null,
         productEval=orderedPensionRows.reduce((a,r)=>a+(Number(r.evalAmount)||0),0),
         productDayChange=hasPrev?orderedPensionRows.reduce((a,r)=>a+(Number(r.dayChange)||0),0):null,
         productDayRate=hasPrev&&productPrevEval?Number(productDayChange||0)/productPrevEval*100:null;
   const rows=orderedPensionRows.map(r=>({
+    className:'asset-change-row',
     labelHtml:`${mobileTableAssetName(r.name)}${pensionProductSwatch(r.name)}`,
     cells:[
-      {className:'num',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':won(r.prevEval)}</span>`},
-      {className:'num',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval data-table-sub">${won(r.evalAmount)}</span><span class="asset-change-mobile-delta ${tableCls(r.dayChange)}"><span class="visually-hidden">일변동 </span>${r.dayChange==null?'-':signed(r.dayChange)}</span>`},
-      {className:`num asset-change-delta-col ${tableCls(r.dayChange)}`,html:r.dayChange==null?'-':signed(r.dayChange)}
+      {className:'num',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':fmt(r.prevEval)}</span>`},
+      {className:'num',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval data-table-sub">${fmt(r.evalAmount)}</span>`},
+      {className:'num asset-change-delta-col',html:renderAssetDayChangeValue({
+        amountText:r.dayChange==null?'-':signed(r.dayChange),
+        rateText:r.dayRate==null?'-':`${r.dayRate>0?'+':''}${pct(r.dayRate)}`,
+        amountClass:tableCls(r.dayChange),
+        rateClass:tableCls(r.dayRate)
+      })}
     ]
   }));
   const summaryRows=[{
-    className:'summary-row',
+    className:'summary-row asset-change-row',
     labelHtml:'합계',
     cells:[
       {className:'num',html:hasPrev?fmt(productPrevEval):'-'},
-      {className:'num',html:`${fmt(productEval)}<span class="asset-change-mobile-delta ${tableCls(productDayChange)}"><span class="visually-hidden">일변동 </span>${productDayChange==null?'-':signed(productDayChange)}</span>`},
-      {className:`num asset-change-delta-col ${tableCls(productDayChange)}`,html:productDayChange==null?'-':signed(productDayChange)}
+      {className:'num',html:fmt(productEval)},
+      {className:'num asset-change-delta-col',html:renderAssetDayChangeValue({
+        amountText:productDayChange==null?'-':signed(productDayChange),
+        rateText:productDayRate==null?'-':`${productDayRate>0?'+':''}${pct(productDayRate)}`,
+        amountClass:tableCls(productDayChange),
+        rateClass:tableCls(productDayRate)
+      })}
     ]
   }];
   const cards=orderedPensionRows.map(r=>({
     title:r.name,
     items:[
-      [prevDateLabel+' 종가',r.prevPrice==null?'-':fmt(r.prevPrice)],
+      [prevPriceLabel,r.prevPrice==null?'-':fmt(r.prevPrice)],
       [prevDateLabel+' 평가금액',r.prevEval==null?'-':won(r.prevEval)],
-      [currentDateLabel+' 종가',fmt(r.price)],
+      [currentPriceLabel,fmt(r.price)],
       [currentDateLabel+' 평가금액',won(r.evalAmount)],
-      ['일변동',r.dayChange==null?'-':signed(r.dayChange),cls(r.dayChange)]
+      ['일변동',r.dayChange==null?'-':signed(r.dayChange),cls(r.dayChange)],
+      ['전일대비 변동률',r.dayRate==null?'-':`${r.dayRate>0?'+':''}${pct(r.dayRate)}`,cls(r.dayRate)]
     ]
   }));
   return renderAssetDayChangeBlock({
@@ -221,8 +237,8 @@ function renderPensionChangeBlock(x,orderedPensionRows){
     caption:'퇴직연금 전일 대비 상품별 변동',
     columns:[
       {label:'상품',className:'table-cell-text'},
-      {label:`${prevDateLabel} 종가`},
-      {label:`${currentDateLabel} 종가`},
+      {label:prevPriceLabel},
+      {label:currentPriceLabel},
       {label:'일변동',className:'asset-change-delta-col'}
     ],
     rows,

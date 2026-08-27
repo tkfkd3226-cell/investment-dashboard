@@ -26,7 +26,7 @@ const uiState={
   personalViewUnlocked:false,
   includeSeparateProfit:false
 };
-const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원',pct=n=>(Number(n)||0).toFixed(2)+'%',signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s,cls=n=>n<0?'negative':(n>0?'positive':''),tableCls=n=>n<0?'table-negative':(n>0?'table-positive':''),byDate=(a,b)=>a.localeCompare(b),shortDate=d=>{const [y,m,day]=d.split('-');return `${Number(m)}/${Number(day)}`},koreanDateLabel=d=>{
+const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원',pct=n=>(Number(n)||0).toFixed(2)+'%',signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s,cls=n=>n<0?'negative':(n>0?'positive':''),tableCls=n=>n<0?'table-negative':(n>0?'table-positive':''),byDate=(a,b)=>a.localeCompare(b),shortDate=d=>{const [y,m,day]=d.split('-');return `${Number(m)}/${Number(day)}`},dayChangeRate=(dayChange,base)=>dayChange==null||!Number(base)?null:Number(dayChange)/Number(base)*100,koreanDateLabel=d=>{
   const [y,m,day]=d.split('-');
   const snap=dataState.prices?.[d]||{};
   const status=snap.marketStatus||'close';
@@ -134,6 +134,13 @@ const kstTodayText=()=>{
   const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
   const get=type=>parts.find(v=>v.type===type)?.value||'';
   return `${get('year')}-${get('month')}-${get('day')}`;
+};
+
+const assetPriceColumnLabel=(date,{current=false}={})=>{
+  if(!date)return current?'당일 종가':'전일 종가';
+  const snap=dataState.prices?.[date]||{};
+  const valueLabel=current&&date===kstTodayText()&&(snap.marketStatus||'close')==='intraday'?'현재가':'종가';
+  return `${shortDate(date)} ${valueLabel}`;
 };
 
 const pensionEvaluationBasisText=d=>{
@@ -459,6 +466,9 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
     .map(h=>{
       const snapshot=prevDailyHoldings.find(v=>(h.ticker&&v?.ticker===h.ticker)||v?.name===h.name);
       const prevProfit=snapshot?.profit??h.prevProfit??null;
+      const prevEval=snapshot?.evalAmount??h.prevEval??0;
+      const dayChange=hasPrev?(Number(h.profit)||0)-(Number(prevProfit)||0):null;
+      const dayBase=Number(prevEval||0)+(Number(h?.tradeFlow?.buyAmount)||0);
       return {
         name:h.name,
         ticker:h.ticker,
@@ -466,9 +476,10 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
         cssClass:h.cssClass,
         prevPrice:snapshot?.price??h.prevPrice??null,
         price:h.price??null,
-        prevEval:snapshot?.evalAmount??h.prevEval??0,
+        prevEval,
         evalAmount:Number(h.evalAmount)||0,
-        dayChange:hasPrev?(Number(h.profit)||0)-(Number(prevProfit)||0):null
+        dayChange,
+        dayRate:hasPrev?dayChangeRate(dayChange,dayBase):null
       };
     });
   if(hasPrev&&prevDailyHoldings.length){
@@ -485,7 +496,8 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
         price:null,
         prevEval:Number(snapshot.evalAmount)||0,
         evalAmount:0,
-        dayChange:-(Number(snapshot.profit)||0)
+        dayChange:-(Number(snapshot.profit)||0),
+        dayRate:null
       });
     });
   }
@@ -626,7 +638,8 @@ function calc(date){
     const prevEval=prevPrice==null||!prevState?null:prevPrice*prevState.qty;
     const tradeFlow=pk?pensionTradeFlow(pk,date,pos.ticker):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0};
     const dayChange=prevEval==null?null:evalAmount-prevEval-tradeFlow.buyAmount+tradeFlow.sellAmount;
-    return {...pos,qty:state.qty,cost:state.cost,realizedProfit:state.realizedProfit,totalProfit,price,prevPrice,evalAmount,profit,returnRate:state.cost?profit/state.cost*100:0,dayChange,prevEval,prevQty:prevState?.qty??null,prevCost:prevState?.cost??null,tradeFlow};
+    const dayRate=dayChangeRate(dayChange,prevEval);
+    return {...pos,qty:state.qty,cost:state.cost,realizedProfit:state.realizedProfit,totalProfit,price,prevPrice,evalAmount,profit,returnRate:state.cost?profit/state.cost*100:0,dayChange,dayRate,prevEval,prevQty:prevState?.qty??null,prevCost:prevState?.cost??null,tradeFlow};
   }):[];
   const basePensionCash=hasPension?Number(s?.pension?.cash||0):0,basePrevPensionCash=Number(prev?.pension?.cash||0),pensionCash=hasPension?pensionCashValuation(date,basePensionCash):0,prevPensionCash=prev?pensionCashValuation(pk,basePrevPensionCash):0,pensionTradeDayFlow=pk?pensionTradeFlow(pk,date):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0},pensionExternalFlow=pk?pensionContributionSumAfter(pk,date):0,pensionCashDayChange=prev?pensionCash-prevPensionCash-pensionExternalFlow+pensionTradeDayFlow.buyAmount-pensionTradeDayFlow.sellAmount:null,pensionCashCost=hasPension?pensionCashCostBasis(date):0,pensionEval=hasPension?pensionRows.reduce((a,r)=>a+r.evalAmount,0)+pensionCash:0,pensionPrevEval=hasPension&&prev?pensionRows.reduce((a,r)=>a+(r.prevEval||0),0)+prevPensionCash:null,pensionDayChange=hasPension&&prev?pensionRows.reduce((a,r)=>a+(Number(r.dayChange)||0),0)+(Number(pensionCashDayChange)||0):null,pensionDayRate=pensionPrevEval?pensionDayChange/pensionPrevEval*100:0,pensionProfit=hasPension?pensionEval-pensionPrincipal:0,pensionReturn=hasPension&&pensionPrincipal?pensionProfit/pensionPrincipal*100:0;
   const combinedPrincipal=hasPension?totalPrincipal+pensionPrincipal:totalPrincipal,combinedResult=hasPension?totalResult+pensionEval:totalResult,combinedProfit=hasPension?totalProfit+pensionProfit:totalProfit,combinedReturn=combinedPrincipal?combinedProfit/combinedPrincipal*100:0;
@@ -790,6 +803,7 @@ export {
   account1SourceHoldingGapForDate,
   allocHistory,
   allAvailableDates,
+  assetPriceColumnLabel,
   assetTypeColor,
   calc,
   cls,

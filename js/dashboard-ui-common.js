@@ -141,6 +141,9 @@ function renderAssetTableRows(rows=[]){
 function renderAssetTableHead(columns=[]){
   return columns.map(column=>`<th scope="col"${column.className?` class="${column.className}"`:''}>${column.label??''}</th>`).join('');
 }
+function renderAssetDayChangeValue({amountText='-',rateText='-',amountClass='',rateClass=''}={}){
+  return `<span class="asset-change-delta-value ${amountClass}">${amountText}</span><span class="asset-change-delta-rate ${rateClass}">${rateText}</span>`;
+}
 function renderAssetMobileCards(cards=[]){
   return cards.map(card=>mobileInfoCard(card.title,card.items||[],card.extraClass||'',card.accessibleLabel||'')).join('');
 }
@@ -416,6 +419,7 @@ export {
   pensionProductSwatch,
   phoneLandscapeUi,
   renderAssetContributionCard,
+  renderAssetDayChangeValue,
   renderAssetDayChangeBlock,
   renderAssetStatusBlock,
   renderAssetWeight,
