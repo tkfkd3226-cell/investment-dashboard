@@ -404,6 +404,19 @@ separateProfit.reinvestedLimit
 
 ### 12.3 Calc/Report UI·responsive 변경 시
 
+공개 browser runtime 검증용 canonical URL은 다음으로 고정한다.
+
+```text
+Calc
+https://tkfkd3226-cell.github.io/investment-dashboard/add/calc.html
+
+KODEX 레버리지 거래 리포트
+https://tkfkd3226-cell.github.io/investment-dashboard/add/report/kodex-leverage-report.html
+```
+
+- `평가`, UI/UX·responsive QA 또는 실제 렌더링 검증에서 사용자가 주소를 다시 제공하지 않아도 위 URL을 사용한다.
+- 실제 브라우저 runtime 검증은 로컬 HTTP가 아니라 위 GitHub Pages HTTPS 주소를 기본으로 사용한다. 로컬 `localhost` / `127.0.0.1`는 기본 검증 경로로 사용하지 않으며, 사용자가 명시적으로 로컬 실행 검증을 요청한 경우에만 보조적으로 사용한다.
+- GitHub Pages는 배포된 revision의 runtime 검증 수단일 뿐이며, 최신 ZIP 실제 소스보다 우선하지 않는다. 최신 ZIP과 배포본의 동일 revision 여부가 확인되지 않으면 결과를 `배포본 runtime`으로 구분하고, 미배포 변경을 pixel/render PASS라고 단정하지 않는다.
 - Desktop/Tablet/Mobile 기준에서 관련 화면을 확인하고, 요청하지 않은 add 전용 breakpoint가 생기지 않았는지 본다.
 - tab/ARIA/tooltip/table semantic이 관련 변경으로 깨지지 않았는지 확인한다.
 - Timeline을 건드렸다면 날짜 누락·순서 왜곡·카드 겹침을 확인한다.

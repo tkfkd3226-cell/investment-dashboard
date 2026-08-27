@@ -575,14 +575,36 @@ Playwright / Jest / ESLint / Stylelint 등 대형 테스트·lint 인프라 부�
 
 가능한 환경에서는 정적 분석에 더해 runtime smoke를 수행한다.
 
-우선순위:
+#### 공개 GitHub Pages Runtime 검증 경로
 
-1. 로컬 정적 서버
+메인 대시보드의 canonical 공개 검증 주소는 다음으로 고정한다.
+
+```text
+https://tkfkd3226-cell.github.io/investment-dashboard
+```
+
+`평가`, `평가해줘`, `점수`, UI/UX·responsive QA처럼 실제 브라우저 렌더링 확인이 필요한 작업에서는 사용자가 주소를 다시 제공하지 않아도 위 공개 HTTPS 주소를 사용할 수 있다.
+
+실제 브라우저 runtime 검증은 **로컬 HTTP가 아니라 위 GitHub Pages HTTPS 공개 페이지를 기본 경로로 사용한다.** 사용자가 매번 공개 주소를 다시 알려줄 필요는 없다. 로컬 `http://localhost:*` 또는 `http://127.0.0.1:*`는 기본 검증 경로로 사용하지 않으며, 해당 환경에서 `ERR_BLOCKED_BY_ADMINISTRATOR`가 발생하더라도 프로젝트 오류나 서버 오류로 판정하지 않는다.
+
+단, GitHub Pages는 **현재 배포된 revision의 runtime 검증 수단**이며 최신 ZIP의 Source of Truth를 대체하지 않는다.
+
+- CSS / JS / UI / UX의 코드 판정과 수정 기준은 항상 현재 작업의 최신 ZIP 실제 소스가 우선한다.
+- GitHub Pages 배포본과 최신 ZIP이 동일하다고 확인되지 않은 경우, 공개 페이지에서 확인한 결과는 `배포본 runtime`으로 구분한다.
+- 최신 ZIP의 미배포 변경사항을 GitHub Pages 화면만 보고 `실제 pixel/render 검증 PASS`라고 보고하지 않는다.
+- 공개 페이지의 runtime 결과가 최신 ZIP과 충돌하면 배포 지연·revision 차이 가능성을 먼저 구분하고, 공개 페이지를 근거로 최신 ZIP 코드를 되돌리지 않는다.
+- Market AI/K200 bridge 등 로컬 전용 backend가 공개 페이지에서 연결되지 않는 것은 해당 frontend의 UI·responsive 렌더링 검증 자체를 막는 사유가 아니며, 외부 backend 미연결은 2.3-B의 평가 경계를 따른다.
+
+runtime smoke의 확인 순서는 다음을 기본으로 한다.
+
+1. canonical GitHub Pages HTTPS 공개 페이지
 2. 실제 data JSON
 3. 대표 날짜 / 최신·과거 날짜
 4. personal view OFF / ON
 5. representative viewport
 6. light / dark
+
+로컬 정적 서버는 기본 평가·QA 절차에 포함하지 않는다. 사용자가 명시적으로 로컬 실행 검증을 요청했거나, 공개 배포 전 변경분을 별도로 실행 확인할 필요가 있고 해당 환경에서 실제 접근 가능하다고 판단되는 경우에만 보조 수단으로 사용한다.
 
 대표 기본 viewport는 다음을 사용한다.
 
@@ -827,7 +849,7 @@ FAIL 원인 특정
 
 QA라는 이유로 디자인을 임의 변경하지 않는다. FAIL을 고치면서 기존 의도까지 롤백하지 않는다.
 
-환경 제한으로 실제 browser test가 불가능하면 정적 검증과 가능한 runtime 범위를 끝까지 수행하고, 실행하지 못한 항목만 명확히 표시한다. 실행하지 못한 검사를 PASS라고 쓰지 않는다.
+실제 browser test는 2.3-J의 canonical GitHub Pages HTTPS 주소를 기본으로 사용한다. 공개 HTTPS에서 검증할 수 없거나 최신 ZIP 변경분이 아직 배포되지 않은 경우에는 로컬 실행을 기본 대안으로 강제하지 않고, 정적 검증과 가능한 runtime 범위를 끝까지 수행한 뒤 실행하지 못한 항목만 명확히 표시한다. 실행하지 못한 검사를 PASS라고 쓰지 않는다.
 
 ## 3.5 누적 기준본 관리
 
