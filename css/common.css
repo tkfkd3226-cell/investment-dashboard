@@ -187,9 +187,6 @@
   --interaction-border-accent:rgba(59,130,246,.28);
 
   /* Status System · 성공 / 정보 / 주의 / 오류 상태 */
-  --status-success-bg:#dcfce7;
-  --status-success-text:#166534;
-  --status-success-border:#86efac;
   --status-success-soft-bg:#ecfdf5;
   --status-success-soft-text:#15803d;
   --status-success-soft-border:#bbf7d0;
@@ -208,8 +205,6 @@
   --status-caution-soft-bg:#fff7ed;
   --status-caution-soft-text:#c2410c;
   --status-caution-soft-border:#fed7aa;
-  --status-danger-bg:#fee2e2;
-  --status-danger-text:#991b1b;
   --status-danger-border:#fecaca;
   --status-danger-soft-bg:#fef2f2;
   --status-danger-soft-text:#b91c1c;
@@ -499,9 +494,6 @@ html.dark{
   --interaction-border-accent:rgba(96,165,250,.34);
   --interaction-row-bg:rgba(255,255,255,.050);
 
-  --status-success-bg:rgba(22,101,52,.22);
-  --status-success-text:#bbf7d0;
-  --status-success-border:rgba(134,239,172,.28);
   --status-success-soft-bg:rgba(22,101,52,.28);
   --status-success-soft-text:#bbf7d0;
   --status-success-soft-border:rgba(134,239,172,.28);
@@ -520,8 +512,6 @@ html.dark{
   --status-caution-soft-bg:rgba(194,65,12,.24);
   --status-caution-soft-text:#fed7aa;
   --status-caution-soft-border:rgba(253,186,116,.28);
-  --status-danger-bg:rgba(153,27,27,.22);
-  --status-danger-text:#fecaca;
   --status-danger-border:rgba(254,202,202,.25);
   --status-danger-soft-bg:rgba(127,29,29,.18);
   --status-danger-soft-text:#fca5a5;
