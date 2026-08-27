@@ -320,21 +320,52 @@ function marketAiSoxDisplayState(date=new Date()){
   const indexRow=marketAiSnapshotRow(MARKET_AI_SOX_INDEX_SYMBOL);
   const futuresRow=marketAiSnapshotRow(MARKET_AI_SOX_FUTURES_SYMBOL);
   const regularClockOpen=marketAiUsCashSessionOpen(date);
-  const indexFresh=marketAiSnapshotFreshness(indexRow).fresh;
-  const useIndex=regularClockOpen&&(MARKET_AI_PREVIEW_MODE||indexFresh);
-  if(useIndex||(!futuresRow&&indexRow)){
+  const indexFreshness=marketAiSnapshotFreshness(indexRow);
+  const futuresFreshness=marketAiSnapshotFreshness(futuresRow);
+  const indexFresh=MARKET_AI_PREVIEW_MODE||indexFreshness.fresh;
+  const futuresFresh=MARKET_AI_PREVIEW_MODE||futuresFreshness.fresh;
+  const useIndex=regularClockOpen&&indexFresh;
+
+  if(useIndex){
     return {
       row:indexRow,
       label:'SOX',
       price:item=>marketAiIndexText(item?.price),
-      source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo PHLX 반도체 현물지수'
+      source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo PHLX 반도체 현물지수',
+      state:{reason:'fresh',rawRow:indexRow,observedAt:indexFreshness.observedAt}
     };
   }
+
+  if(futuresFresh){
+    return {
+      row:futuresRow,
+      label:'SOX-F',
+      price:item=>marketAiPriceText(item?.price,2),
+      source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo E-mini PHLX 반도체 선물 (SOX=F)',
+      state:{reason:'fresh',rawRow:futuresRow,observedAt:futuresFreshness.observedAt}
+    };
+  }
+
+  if(regularClockOpen&&indexRow&&!futuresRow){
+    return {
+      row:null,
+      label:'SOX',
+      price:item=>marketAiIndexText(item?.price),
+      source:'Yahoo PHLX 반도체 현물지수',
+      state:{reason:'stale',rawRow:indexRow,observedAt:indexFreshness.observedAt}
+    };
+  }
+
   return {
-    row:futuresRow,
+    row:null,
     label:'SOX-F',
     price:item=>marketAiPriceText(item?.price,2),
-    source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo E-mini PHLX 반도체 선물 (SOX=F)'
+    source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo E-mini PHLX 반도체 선물 (SOX=F)',
+    state:{
+      reason:futuresRow?'stale':'missing',
+      rawRow:futuresRow,
+      observedAt:futuresFreshness.observedAt
+    }
   };
 }
 
@@ -645,7 +676,7 @@ function marketAiMarketTooltipHtml(key){
   }
 
   if(config.state){
-    const stateLabel=MARKET_AI_PREVIEW_MODE?'예시 데이터':({fresh:'거래 데이터 정상',closed:'장 종료 · 마지막 정상값',stale:'장중 데이터 지연',bridge:'Bridge 연결 지연',source:'실제 선물 소스 없음',missing:'데이터 없음'}[config.state.reason]||'상태 확인');
+    const stateLabel=MARKET_AI_PREVIEW_MODE?'예시 데이터':({fresh:'거래 데이터 정상',closed:'장 종료 · 마지막 정상값',stale:'데이터 지연',bridge:'Bridge 연결 지연',source:'실제 선물 소스 없음',missing:'데이터 없음'}[config.state.reason]||'상태 확인');
     parts.push(marketAiTooltipRow('상태',stateLabel));
     const sessionLabel={day:'주간',night:'야간',closed:'장외'}[config.state.bridgeStatus?.expected_session];
     if(sessionLabel)parts.push(marketAiTooltipRow('세션',sessionLabel));
@@ -653,7 +684,7 @@ function marketAiMarketTooltipHtml(key){
   parts.push(marketAiTooltipDivider());
   parts.push(marketAiTooltipRow('데이터',config.source));
   const observed=marketAiKstTime((row||config.state?.rawRow)?.observed_at);
-  parts.push(marketAiTooltipRow(config.state?.reason==='closed'?'마지막 수신':'갱신',observed?`${observed} KST`:'--'));
+  parts.push(marketAiTooltipRow(['closed','stale'].includes(config.state?.reason)?'마지막 수신':'갱신',observed?`${observed} KST`:'--'));
   return parts.join('');
 }
 

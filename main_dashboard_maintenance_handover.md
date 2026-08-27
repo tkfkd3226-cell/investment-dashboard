@@ -1380,8 +1380,8 @@ preview viewport ownership은 `index.html` head inline script가 가진다.
 - 로컬(`localhost`, `127.0.0.1`)에서만 실제 Market AI API를 조회하고, 비로컬 기본 모드는 UI를 숨긴다. preview mode는 API polling 없이 내장 예시 데이터만 사용한다.
 - `/api/market-data/snapshot`, `/api/signal/latest?include_details=true`, KIS Bridge 상태를 사용하며 unavailable/stale/error를 메인 대시보드와 실패 격리한다. Signal endpoint의 404·오류·timeout·JSON 오류·stale은 같은 refresh에서 정상 수신한 Market Snapshot을 지우지 않고 신호 상태만 `대기 / 오류 / 지연`으로 분리한다. 세 endpoint가 모두 응답하지 않을 때만 서버 전체 연결 오류로 판단한다.
 - 신호 tooltip은 backend의 `effective_weight`를 configured/legacy `weight`보다 우선한다. checkpoint `basis` 계약은 기존 `weight`를 backward compatibility로 유지하면서 `configured_weight`, `effective_weight`, `quality`를 함께 제공하는 형태를 기준으로 한다. metadata 확장 때문에 score/confidence/data completeness/phase/target date 산식을 변경하지 않는다.
-- 시장 4개 metric과 AI 신호 4개 metric은 공통 `data-list-card` surface를 사용하고 **시장 60% / AI 신호 40%** 비율을 Desktop/Tablet/Mobile에서 유지한다.
-- SOX 시장 metric은 미국 현물 정규장 중에는 `INDEX:SOX`를 `SOX`, 정규장 밖에는 `FUTURES:SOX`를 `SOX-F`로 표시한다. 현물 정규장 시간대라도 `INDEX:SOX`가 stale/missing이면 선물로 fallback하며, 이 표시 전환은 Rule Signal 산식과 분리해 Signal Engine은 계속 `INDEX:SOX`만 사용한다.
+- 시장 4개 metric과 AI 신호 4개 metric은 공통 `data-list-card` surface를 사용하고 **시장 65% / AI 신호 35%** 비율을 Desktop/Tablet/Mobile에서 유지한다.
+- SOX 시장 metric은 미국 현물 정규장 중에는 `INDEX:SOX`를 `SOX`, 정규장 밖에는 `FUTURES:SOX`를 `SOX-F`로 표시한다. 현물 정규장 시간대라도 `INDEX:SOX`가 stale/missing이면 선물로 fallback한다. 선택된 SOX/SOX-F source는 provider `observed_at` 기준 freshness를 공통 적용해 stale이면 마지막 가격을 현재값처럼 유지하지 않고 unavailable로 표시하며 tooltip에는 마지막 수신 시각을 남긴다. 이 표시 전환·freshness 처리는 Rule Signal 산식과 분리해 Signal Engine은 계속 `INDEX:SOX`만 사용한다.
 - Desktop/Tablet은 Hero 우측 panel, Mobile/실제 터치폰 가로는 Hero의 `AI Signal` 버튼에서 같은 `#market-ai-section` DOM을 native dialog로 이동·재사용한다. 별도 Mobile render tree를 만들지 않는다.
 - Mobile에서는 metric tooltip/focusability를 제거하고, Desktop/Tablet에서만 keyboard/pointer tooltip을 제공한다.
 - 선택된 과거 `activeDate`와 무관한 현재 시점 신호를 표시한다.

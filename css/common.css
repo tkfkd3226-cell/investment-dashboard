@@ -423,7 +423,7 @@
   --market-ai-column-min:390px;
   --market-ai-column-max:410px;
   --market-ai-layout-gap:var(--space-3xl);
-  --market-ai-group-columns:minmax(0,3fr) minmax(0,2fr);
+  --market-ai-group-columns:minmax(0,13fr) minmax(0,7fr);
   --market-ai-title-size:var(--type-size-sm);
   --market-ai-status-size:var(--type-size-2xs);
   --market-ai-label-size:var(--type-size-2xs);
