@@ -22,6 +22,7 @@ import {
   securityChartNamesForDate,
   securitySymbolAllocHistory,
   separateProfitCumulativeForDate,
+  separateProfitReinvestedForDate,
   signed,
   snapshotDates,
   sortPensionItems,
@@ -1326,13 +1327,7 @@ function pensionCumFullMoneyAxis(data){
   return alignZeroTickRanges(money,5000000,rate,25)[0];
 }
 function securitiesCumFullMoneyAxis(){
-  const vals=securitiesCumMoneyAxisValues(dataState.activeDate);
-  let info=fixedTickInfo(Math.min(-4000000,...vals),Math.max(12000000,...vals),2000000,true);
-  const step=2000000;
-  const below=Math.max(1,Math.round(-Math.min(0,info.min)/step),Math.ceil(Math.max(0,info.max)/step/3));
-  const above=below*3,ticks=[];
-  for(let i=-below;i<=above;i++)ticks.push(i*step);
-  return {min:-below*step,max:above*step,ticks};
+  return securitiesCumFullAxes().money;
 }
 function cumulativeMoneyAxis(scope,data,selection,autoY){
   const step=scope==='pensionCum'?5000000:2000000;
@@ -1347,9 +1342,9 @@ function cumulativeRightAxis(scope,data,mode,leftAxis,compareSelected,autoY){
   if(!compareSelected)return {info:null,visible:false};
   const values=data.map(d=>mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률']).filter(Number.isFinite);
   if(mode==='kospi')return {info:values.length?niceTickInfo(Math.min(...values),Math.max(...values),6,false):{min:0,max:1,ticks:[0,1]},visible:true};
-  const step=scope==='pensionCum'?25:20;
+  const step=scope==='pensionCum'?25:(!autoY&&scope==='securitiesCum'?10:20);
   let raw;
-  if(!autoY&&scope==='securitiesCum')raw={min:-40,max:120,ticks:[-40,-20,0,20,40,60,80,100,120]};
+  if(!autoY&&scope==='securitiesCum')raw=securitiesCumFullAxes().returns;
   else if(!autoY&&scope==='pensionCum')raw=fixedTickInfo(Math.min(0,...values),Math.max(25,...values),25,true);
   else raw=fixedTickInfo(Math.min(0,...values),Math.max(0,...values),step,true);
   if(leftAxis.visible)raw=alignFixedAxisZeroToReference(leftAxis.info,leftAxis.step,raw,step);
@@ -1420,18 +1415,43 @@ function drawPensionStacked(){
   addHover(svg,cfg,data,d=>{let html=tooltipDate(d['날짜']);const total=series.reduce((a,s)=>a+Number(d[s]||0),0);series.forEach(s=>html+=row(chartDisplayLabel('pensionAlloc',s),won(d[s]||0),''));return html+tooltipDivider()+totalRow('평가금액 합계',won(total),'')});
 }
 
-function securitiesCumMoneyAxisValues(d){
+function securitiesCumAxisValues(d){
   const rows=snapshotDates(d).map(x=>{
-    const baseProfit=calc(x).rawHoldingProfit;
+    const value=calc(x);
+    const baseProfit=value.rawHoldingProfit;
     const separateProfit=separateProfitCumulativeForDate(x);
-    return {off:baseProfit,on:baseProfit+separateProfit};
+    const reinvested=separateProfitReinvestedForDate(x);
+    const offPrincipal=Math.max(0,value.account1Principal)||1;
+    const onPrincipal=Math.max(0,value.account1Principal-reinvested)||1;
+    return {
+      off:baseProfit,
+      on:baseProfit+separateProfit,
+      offReturn:baseProfit/offPrincipal*100,
+      onReturn:(baseProfit+separateProfit)/onPrincipal*100
+    };
   });
-  return rows.flatMap((row,i)=>{
+  const money=[];
+  rows.forEach((row,i)=>{
     const prev=i>0?rows[i-1]:null;
-    const offDaily=prev?row.off-prev.off:row.off;
-    const onDaily=prev?row.on-prev.on:row.on;
-    return [row.off,row.on,offDaily,onDaily];
+    money.push(
+      row.off,
+      row.on,
+      prev?row.off-prev.off:row.off,
+      prev?row.on-prev.on:row.on
+    );
   });
+  return {
+    money:money.filter(Number.isFinite),
+    returns:rows.flatMap(row=>[row.offReturn,row.onReturn]).filter(Number.isFinite)
+  };
+}
+// 별도수익 OFF/ON 양쪽 범위를 함께 사용해 토글 시 축을 고정하고 좌우 0선을 같은 높이에 유지한다.
+function securitiesCumFullAxes(){
+  const values=securitiesCumAxisValues(dataState.activeDate);
+  const money=fixedTickInfo(Math.min(0,...values.money),Math.max(0,...values.money),2000000,true);
+  const returns=fixedTickInfo(Math.min(0,...values.returns),Math.max(0,...values.returns),10,true);
+  const aligned=alignZeroTickRanges(money,2000000,returns,10);
+  return {money:aligned[0],returns:aligned[1]};
 }
 function drawCumChart(){
   const data=cumHistory(dataState.activeDate),svg=document.getElementById('chartCum');if(!svg||!data.length)return;clear(svg);

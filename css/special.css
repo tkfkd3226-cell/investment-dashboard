@@ -61,7 +61,7 @@
       grid-column:2 / 4;
       grid-row:2;
       border-right:0;
-      text-align:center;
+      text-align:right;
     }
     .asset-change-table tbody tr.asset-change-row > .asset-change-delta-col .asset-change-delta-value,
     .asset-change-table tbody tr.asset-change-row > .asset-change-delta-col .asset-change-delta-rate{
