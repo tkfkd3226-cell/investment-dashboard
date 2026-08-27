@@ -12,14 +12,23 @@
   --negative:#3182F6;
   --on-accent:#ffffff;
 
-  /* 메인 대시보드 기본 Corner cap과 동일 */
+  /* 역할별 기본 Corner + 메인 대시보드와 동일한 soft-square cap */
+  --surface-radius-md:16px;
+  --control-radius-md:10px;
+  --inner-radius-md:8px;
   --corner-surface-cap:6px;
   --corner-control-cap:5px;
   --corner-inner-cap:4px;
   --radius-pill:999px;
 }
 
-/* Main과 같은 저장 테마를 Add에도 적용하되, 화면별 색상 토큰은 각 화면이 소유한다. */
+/* Main과 같은 저장 theme/corner mode를 Add에도 적용하되, 화면별 색상 토큰은 각 화면이 소유한다. */
+html.rounded-corners{
+  --corner-surface-cap:999px;
+  --corner-control-cap:999px;
+  --corner-inner-cap:999px;
+}
+
 html.dark{
   color-scheme:dark;
   --ink:#e5e7eb;

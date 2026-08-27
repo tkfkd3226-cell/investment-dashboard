@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>투자 계산기</title>
 <script>
-  try{if(localStorage.getItem('investmentDashboard.theme')==='dark') document.documentElement.classList.add('dark')}catch(_){}
+  try{const root=document.documentElement;if(localStorage.getItem('investmentDashboard.theme')==='dark')root.classList.add('dark');if(localStorage.getItem('investmentDashboard.cornerTheme')==='rounded')root.classList.add('rounded-corners')}catch(_){}
 </script>
 <link rel="stylesheet" href="common.css" />
 <link rel="stylesheet" href="calc.css" />
