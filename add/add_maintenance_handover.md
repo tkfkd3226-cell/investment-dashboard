@@ -66,8 +66,8 @@ Mobile · 모바일   ≤ 760px
 
 ### 1.2 add 영역 UI 공통 구성 원칙
 
-- `calc`와 `report`는 `add/common.css`의 공통 Corner/의미 token을 재사용한다. 현재 수치 자체는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다. Corner는 역할별 기본 radius와 soft-square cap을 분리하고, 메인의 `investmentDashboard.cornerTheme` 저장값을 읽어 동일한 `rounded-corners` mode contract를 적용한다.
-- 카드·패널·폼·탭·버튼 등은 기존 공통 token과 의미 class를 우선 사용하며, 단순 미관 조정 때문에 독립 radius·magic number·임시 offset을 누적하지 않는다.
+- `calc`와 `report`는 `add/common.css`의 공통 의미색·Corner·Spacing/Density token을 재사용한다. 현재 수치 자체는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다. Corner는 역할별 기본 radius와 soft-square cap을 분리하고, 메인의 `investmentDashboard.cornerTheme` 저장값을 읽어 동일한 `rounded-corners` mode contract를 적용한다.
+- 카드·패널·폼·표·탭·버튼처럼 역할이 비슷한 component의 padding/gap은 공통 density token을 우선 사용하고, Desktop → Tablet → Mobile 순으로 일관되게 compact해지는 3단계 contract를 유지한다. Touch target 높이, 차트 geometry, 광학 보정처럼 기능상 필요한 값은 억지로 density token에 합치지 않는다. 단순 미관 조정 때문에 독립 radius·magic number·임시 offset을 누적하지 않는다.
 - 거래유형 전환이나 responsive 변경 시 입력 패널의 정보 순서·시각적 균형·사용성을 유지하되, 해결 방법은 구조적 CSS를 우선한다.
 - 입력 요소는 가능한 한 `<label for>` 또는 `aria-labelledby`로 연결하고, 전략/리포트 탭은 `tablist/tab/tabpanel`, `aria-controls`, `aria-selected`와 키보드 이동을 유지한다. 시각 상태와 ARIA 상태가 함께 갱신되어야 한다.
 - 동적 tooltip은 `aria-describedby` 연결을 유지하고, report 표는 caption/column header/row header의 의미 구조를 보존한다.
@@ -96,8 +96,8 @@ add/
   - JS는 `calc.js` 단일 파일을 사용한다.
   - 기능 로직이나 대량 스타일을 HTML 안으로 다시 넣지 않는다.
 - `add/common.css`
-  - CALC와 리포트가 공유하는 의미 색상, Corner token, box-sizing, 기본 글꼴만 소유한다.
-  - 화면별 layout/responsive 규칙을 넣지 않는다.
+  - CALC와 리포트가 공유하는 의미 색상, Corner, Spacing/Density token, box-sizing, 기본 글꼴을 소유한다.
+  - component별 layout은 넣지 않으며, 공통 token 값의 Desktop/Tablet/Mobile 단계만 viewport contract로 관리한다.
 - `add/calc.css`
   - CALC 화면의 전체 UI·거래유형별 layout·반응형을 소유한다.
 - `add/calc.js`

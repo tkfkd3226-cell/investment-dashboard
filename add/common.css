@@ -20,6 +20,64 @@
   --corner-control-cap:5px;
   --corner-inner-cap:4px;
   --radius-pill:999px;
+
+  /* Add 공통 Spacing / Density
+     - 비슷한 역할은 같은 값을 공유한다.
+     - component density는 Desktop → Tablet → Mobile 순으로 단계적으로 compact해진다.
+     - touch target 높이·차트 geometry·광학 보정은 이 scale의 적용 대상이 아니다. */
+  --density-page-pad:18px;
+  --density-surface-lg:16px;
+  --density-surface-md:14px;
+  --density-surface-sm:12px;
+  --density-gap-lg:12px;
+  --density-gap-md:10px;
+  --density-gap-sm:8px;
+  --density-gap-xs:6px;
+  --density-gap-micro:4px;
+  --density-layout-gap:16px;
+  --density-action-pad-x:12px;
+  --density-action-pad-y:8px;
+  --density-field-pad-x:10px;
+  --density-table-pad-x:12px;
+  --density-table-pad-y:10px;
+}
+
+@media(max-width:1100px){
+  :root{
+    --density-page-pad:14px;
+    --density-surface-lg:14px;
+    --density-surface-md:12px;
+    --density-surface-sm:10px;
+    --density-gap-lg:10px;
+    --density-gap-md:8px;
+    --density-gap-sm:6px;
+    --density-gap-xs:4px;
+    --density-gap-micro:4px;
+    --density-layout-gap:14px;
+    --density-action-pad-x:10px;
+    --density-field-pad-x:8px;
+    --density-table-pad-x:10px;
+    --density-table-pad-y:8px;
+  }
+}
+
+@media(max-width:760px){
+  :root{
+    --density-page-pad:10px;
+    --density-surface-lg:12px;
+    --density-surface-md:10px;
+    --density-surface-sm:8px;
+    --density-gap-lg:8px;
+    --density-gap-md:6px;
+    --density-gap-sm:4px;
+    --density-gap-xs:4px;
+    --density-gap-micro:2px;
+    --density-layout-gap:12px;
+    --density-action-pad-x:8px;
+    --density-field-pad-x:8px;
+    --density-table-pad-x:8px;
+    --density-table-pad-y:6px;
+  }
 }
 
 /* Main과 같은 저장 theme/corner mode를 Add에도 적용하되, 화면별 색상 토큰은 각 화면이 소유한다. */
