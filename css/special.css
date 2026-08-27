@@ -110,7 +110,7 @@
 @media (max-width:760px),
        (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
   /* Market AI Phone · Hero 내 Desktop panel은 숨기고 mounted grid를 기본 block 흐름으로 복원; 실제 panel은 dialog로 이동 재사용 */
-    .hero.market-ai-mounted{display:block;padding-right:var(--hero-pad-x)}
+    .hero.market-ai-mounted{display:block}
     .hero > #market-ai-section{display:none}
 
   /* Phone Control Tokens · 세로폰/가로폰 공통 compact control */
@@ -277,11 +277,7 @@
       padding-right:calc(var(--icon-button-size) + var(--space-lg));
       margin-bottom:var(--space-2xl);
     }
-    .market-ai-mobile-dialog .market-ai-desktop{
-      width:100%;
-      grid-template-columns:var(--market-ai-group-columns);
-      gap:var(--space-lg);
-    }
+    .market-ai-mobile-dialog .market-ai-desktop{gap:var(--space-lg)}
     .market-ai-mobile-dialog .market-ai-card-row{
       --data-list-card-pad:var(--space-lg);
     }

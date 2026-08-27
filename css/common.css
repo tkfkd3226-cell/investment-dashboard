@@ -9,7 +9,7 @@
    Internal Order · 내부 순서
    [01] Foundations / Tokens
    [02] Page Shell / Hero / Market AI Mount
-   [03] Card / Typography / Data List Primitives
+   [03] Card / Typography / Data List / Tooltip Primitives
    [04] Base Tables
    [05] Charts
    [06] Asset Detail
@@ -726,7 +726,8 @@ button svg{pointer-events:none;flex-shrink:0}
 /* [02A. Market AI Hero Extension · Hero 우측 Market AI mount]
    Placement · 위치: Hero 기본 규칙 직후에 두고 별도 파일 하단 override로 분리하지 않는다.
    Ownership · 책임: common은 Desktop baseline + 공통 component/tooltip, Tablet/Phone 차이는 역할별 CSS가 담당한다.
-   Order · 순서: mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip. */
+   Order · 순서: mount layout → theme/surface → heading/status.
+   Data List/Tooltip variant는 공통 primitive 선언 뒤 [03B]/[03C]에서 확장한다. */
 /* Market AI Mount Layout · Hero에 standalone 보조 영역을 연결하는 Desktop layout
    Surface edge · AI mount 여부와 무관하게 Hero의 공통 좌우 padding을 그대로 유지한다. */
 .hero.market-ai-mounted{
@@ -740,7 +741,7 @@ button svg{pointer-events:none;flex-shrink:0}
 }
 .hero.market-ai-mounted .hero-title-row{grid-area:title}
 .hero.market-ai-mounted .hero-metric-pills{grid-area:pills}
-.market-ai-mobile-trigger{display:none}
+.hero-title-row .market-ai-mobile-trigger{display:none}
 
 /* Market AI Panel / Surface · 공통 surface/color token을 소비하고 전용 geometry만 소유 */
 #market-ai-section{
@@ -789,6 +790,59 @@ button svg{pointer-events:none;flex-shrink:0}
 .market-ai-status[data-market-ai-state="waiting"],
 .market-ai-status[data-market-ai-state="stale"]{color:var(--status-warning-text)}
 .market-ai-status[data-market-ai-state="error"]{color:var(--feedback-error-text)}
+
+/* [03. Card / Typography / Data List / Tooltip Primitives · 카드 / 타이포 / 데이터 리스트 / 툴팁 공통요소] */
+/*
+  Card Surface Hierarchy · 본문 카드 계층
+  - Outer: .pension-band / .securities-band
+  - Large: .card / .note / .chart-card
+  - Medium / Info: .asset-insight-card / .source-card variants
+  - Mini: .mini-card (including symbol/allocation variants)
+  - Metric: .metric-card is a .card-based variant
+  - Emphasis: .ledger-conclusion-card is a mixed-content conclusion surface with its own density token
+  - Data List: .data-list-card is the shared compact data surface used by mobile card views and Market AI groups
+  - Mobile Data: .mobile-data-card extends .data-list-card with mobile-only title/row density
+  Responsive density is token-driven: Web → Tablet → Phone 순으로 compact하며,
+  카드 surface 외곽 padding은 각 계층에서 단일값(상=하=좌=우)을 사용한다.
+*/
+.grid{
+  display:grid;
+  gap:var(--space-7xl);
+}
+
+.cards{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  margin-top:var(--space-8xl);
+}
+
+:is(.card,.note,.chart-card,.pension-band,.securities-band){
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-low);
+}
+
+/* [03A. Data List Card Primitive · 모바일 카드보기 / Market AI가 같은 surface·label·value contract를 공유] */
+.data-list-card{
+  min-width:0;
+  padding:var(--data-list-card-pad,var(--surface-pad-data-list));
+  border:1px solid var(--line);
+  border-radius:min(var(--surface-radius-data-list),var(--corner-surface-cap));
+  background:var(--card);
+  box-shadow:var(--shadow-data-list-card);
+}
+.data-list-card-title{
+  color:var(--ink);
+  font-weight:var(--data-list-title-weight);
+}
+.data-list-card-label{
+  color:var(--muted);
+  font-weight:var(--data-list-label-weight);
+}
+.data-list-card-value{
+  font-weight:var(--data-list-value-weight);
+  font-variant-numeric:tabular-nums;
+}
+
+/* [03B. Market AI Data List Variant · 공통 Data List Card 위에 Market AI compact geometry만 확장] */
 /* Market AI Rows / Metrics · 시장/AI 신호를 2개 compact list card로 나란히 배치 */
 .market-ai-desktop{
   display:grid;
@@ -862,6 +916,72 @@ button svg{pointer-events:none;flex-shrink:0}
 .market-ai-desktop .negative{color:var(--value-negative)}
 .market-ai-desktop-metric.is-unavailable :is(.market-ai-desktop-value,.market-ai-desktop-signal,.market-ai-desktop-change){color:var(--muted)}
 
+/* [03C. Tooltip Primitive / Market AI Variant · 공통 tooltip surface를 먼저 선언하고 feature variant가 확장] */
+.dash-tooltip,
+.asset-viz-tooltip,
+.compact-chart-ui .chart-title-info-tooltip,
+.accounts-memo-floating-tooltip{
+  background:var(--tooltip-bg);
+  color:var(--tooltip-color);
+  border:1px solid var(--tooltip-border);
+  border-radius:var(--tooltip-radius);
+  box-shadow:var(--tooltip-shadow);
+  font-size:var(--tooltip-font-size);
+  line-height:var(--tooltip-line-height);
+  overflow-wrap:anywhere;
+}
+
+.dash-tooltip{
+  position:fixed;
+  z-index:9999;
+  box-sizing:border-box;
+  min-width:210px;
+  max-width:min(320px,calc(100vw - var(--tooltip-viewport-gutter)));
+  padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
+  pointer-events:none;
+  opacity:0;
+  transform:none;
+  transition:opacity var(--tooltip-fade-fast);
+}
+
+.dash-tooltip.visible{
+  opacity:1;
+}
+
+.dash-tooltip .tt-date{
+  margin-bottom:var(--space-lg);
+  color:var(--tooltip-color);
+  font-size:var(--tooltip-title-font-size);
+  font-weight:var(--tooltip-title-weight);
+}
+
+.dash-tooltip .tt-divider{
+  height:0;
+  margin:var(--space-lg) 0;
+  border-top:1px solid var(--tooltip-divider);
+}
+
+.dash-tooltip .tt-row{
+  display:flex;
+  justify-content:space-between;
+  gap:var(--space-7xl);
+  white-space:nowrap;
+}
+.dash-tooltip .tt-row + .tt-row{margin-top:var(--tooltip-row-gap)}
+
+.dash-tooltip .tt-name{
+  color:var(--tooltip-muted);
+}
+
+.dash-tooltip .tt-val{
+  color:var(--tooltip-color);
+  font-weight:var(--tooltip-value-weight);
+}
+.dash-tooltip .tt-total .tt-name{
+  color:var(--tooltip-color);
+  font-weight:var(--tooltip-total-label-weight);
+}
+
 /* Market AI Interaction / Tooltip · 키보드 focus와 기존 dash-tooltip 확장 */
 .market-ai-desktop-metric[data-market-ai-tooltip]{
   border-radius:0;
@@ -903,57 +1023,6 @@ button svg{pointer-events:none;flex-shrink:0}
 .market-ai-tooltip-score-range{
   display:grid;
   gap:1px;
-}
-
-.grid{
-  display:grid;
-  gap:var(--space-7xl);
-}
-
-.cards{
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  margin-top:var(--space-8xl);
-}
-
-/* [03. Card / Typography / Data List Primitives · 카드 / 타이포 / 데이터 리스트 공통요소] */
-/*
-  Card Surface Hierarchy · 본문 카드 계층
-  - Outer: .pension-band / .securities-band
-  - Large: .card / .note / .chart-card
-  - Medium / Info: .asset-insight-card / .source-card variants
-  - Mini: .mini-card (including symbol/allocation variants)
-  - Metric: .metric-card is a .card-based variant
-  - Emphasis: .ledger-conclusion-card is a mixed-content conclusion surface with its own density token
-  - Data List: .data-list-card is the shared compact data surface used by mobile card views and Market AI groups
-  - Mobile Data: .mobile-data-card extends .data-list-card with mobile-only title/row density
-  Responsive density is token-driven: Web → Tablet → Phone 순으로 compact하며,
-  카드 surface 외곽 padding은 각 계층에서 단일값(상=하=좌=우)을 사용한다.
-*/
-:is(.card,.note,.chart-card,.pension-band,.securities-band){
-  border:1px solid var(--line);
-  box-shadow:var(--shadow-low);
-}
-
-/* [03A. Data List Card Primitive · 모바일 카드보기 / Market AI가 같은 surface·label·value contract를 공유] */
-.data-list-card{
-  min-width:0;
-  padding:var(--data-list-card-pad,var(--surface-pad-data-list));
-  border:1px solid var(--line);
-  border-radius:min(var(--surface-radius-data-list),var(--corner-surface-cap));
-  background:var(--card);
-  box-shadow:var(--shadow-data-list-card);
-}
-.data-list-card-title{
-  color:var(--ink);
-  font-weight:var(--data-list-title-weight);
-}
-.data-list-card-label{
-  color:var(--muted);
-  font-weight:var(--data-list-label-weight);
-}
-.data-list-card-value{
-  font-weight:var(--data-list-value-weight);
-  font-variant-numeric:tabular-nums;
 }
 
 .card{
@@ -1195,7 +1264,7 @@ td.num{
 }
 
 
-/* [05. Charts · 차트] Primitives / Tooltip / Controls / Expanded */
+/* [05. Charts · 차트] Primitives / Controls / Expanded */
 .bar-box{
   height:12px;
   background:var(--bar-track-bg);
@@ -1220,71 +1289,6 @@ td.num{
 .svg-hitbox{
   fill:transparent;
   cursor:crosshair;
-}
-
-.dash-tooltip,
-.asset-viz-tooltip,
-.compact-chart-ui .chart-title-info-tooltip,
-.accounts-memo-floating-tooltip{
-  background:var(--tooltip-bg);
-  color:var(--tooltip-color);
-  border:1px solid var(--tooltip-border);
-  border-radius:var(--tooltip-radius);
-  box-shadow:var(--tooltip-shadow);
-  font-size:var(--tooltip-font-size);
-  line-height:var(--tooltip-line-height);
-  overflow-wrap:anywhere;
-}
-
-.dash-tooltip{
-  position:fixed;
-  z-index:9999;
-  box-sizing:border-box;
-  min-width:210px;
-  max-width:min(320px,calc(100vw - var(--tooltip-viewport-gutter)));
-  padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
-  pointer-events:none;
-  opacity:0;
-  transform:none;
-  transition:opacity var(--tooltip-fade-fast);
-}
-
-.dash-tooltip.visible{
-  opacity:1;
-}
-
-.dash-tooltip .tt-date{
-  margin-bottom:var(--space-lg);
-  color:var(--tooltip-color);
-  font-size:var(--tooltip-title-font-size);
-  font-weight:var(--tooltip-title-weight);
-}
-
-.dash-tooltip .tt-divider{
-  height:0;
-  margin:var(--space-lg) 0;
-  border-top:1px solid var(--tooltip-divider);
-}
-
-.dash-tooltip .tt-row{
-  display:flex;
-  justify-content:space-between;
-  gap:var(--space-7xl);
-  white-space:nowrap;
-}
-.dash-tooltip .tt-row + .tt-row{margin-top:var(--tooltip-row-gap)}
-
-.dash-tooltip .tt-name{
-  color:var(--tooltip-muted);
-}
-
-.dash-tooltip .tt-val{
-  color:var(--tooltip-color);
-  font-weight:var(--tooltip-value-weight);
-}
-.dash-tooltip .tt-total .tt-name{
-  color:var(--tooltip-color);
-  font-weight:var(--tooltip-total-label-weight);
 }
 
 /* Chart Core · 차트 공통 구조 */

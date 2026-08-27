@@ -36,7 +36,7 @@
       --market-ai-layout-gap:var(--space-5xl);
     }
 
-  /* [T02. Hero / Market AI · Hero와 우측 Market AI layout] */
+  /* [T02. Hero / Market AI · Hero density + 좁아진 Market AI column에서 pill wrap만 보완] */
 .hero{
       --hero-pad-y:18px;
       --hero-pad-x:20px;
@@ -54,17 +54,8 @@
       --hero-decor-right:-72px;
     }
 
-.hero.market-ai-mounted{
-      grid-template-columns:minmax(0,1fr) minmax(var(--market-ai-column-min),var(--market-ai-column-max));
-      grid-template-areas:
-        "title market"
-        "pills market";
-      column-gap:var(--market-ai-layout-gap);
-      align-items:center;
-    }
-    .hero.market-ai-mounted .hero-metric-pills{min-width:0;flex-wrap:wrap;align-content:flex-start}
-    .hero.market-ai-mounted #market-ai-section{width:100%;max-width:var(--market-ai-column-max);margin-top:0;justify-self:end}
-    .market-ai-desktop{grid-template-columns:var(--market-ai-group-columns);justify-content:center}
+.hero.market-ai-mounted .hero-metric-pills{min-width:0;flex-wrap:wrap;align-content:flex-start}
+    .market-ai-desktop{justify-content:center}
 
   /* [T03. Cards / Metrics · 카드·요약·핵심지표 density와 열 수] */
 .mini-card{

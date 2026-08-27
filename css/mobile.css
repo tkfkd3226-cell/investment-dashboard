@@ -168,10 +168,7 @@
       --modal-card-width:min(100%, calc(100vw - 36px));
       --modal-card-radius:min(var(--surface-radius-lg),var(--corner-surface-cap));
     }
-    .contrib-modal-head p{
-      font-size:var(--type-size-sm);
-      line-height:var(--type-line-helper);
-    }
+    .contrib-modal-head p{line-height:var(--type-line-helper)}
     .contrib-modal .pension-adjust-form{
       grid-template-columns:1fr;
     }
