@@ -524,13 +524,16 @@ function marketAiSignalBasis(signal,metric){
     return state.basis
       .map(item=>{
         const key=String(item?.key||'');
-        const weight=item?.weight==null?NaN:Number(item.weight);
+        const effectiveWeight=Number(item?.effective_weight??item?.effectiveWeight);
+        const configuredWeight=Number(item?.configured_weight??item?.configuredWeight??item?.weight);
+        const usesEffectiveWeight=Number.isFinite(effectiveWeight);
+        const weight=usesEffectiveWeight?effectiveWeight:configuredWeight;
         const quality=item?.quality==null?NaN:Number(item.quality);
         return {
           key,
           label:marketAiComponentLabel(key),
           weight:Number.isFinite(weight)?weight:null,
-          effective:false,
+          effective:usesEffectiveWeight,
           quality:Number.isFinite(quality)?quality:null
         };
       })
@@ -1035,6 +1038,18 @@ function setMarketAiState(next){
   syncMarketAiSignalView();
 }
 
+async function refreshMarketAiSignalResponse(apiBase){
+  try{
+    return await fetchWithTimeout(`${apiBase}/api/signal/latest?include_details=true`,{
+      method:'GET',
+      headers:{Accept:'application/json'},
+      cache:'no-store'
+    });
+  }catch(_){
+    return null;
+  }
+}
+
 async function refreshMarketAiMarketSnapshot(apiBase){
   try{
     const response=await fetchWithTimeout(`${apiBase}/api/market-data/snapshot`,{
@@ -1075,54 +1090,91 @@ async function refreshMarketAiSignal(){
   if(!marketAiState.signal){
     setMarketAiState({status:'연결 확인 중',statusKind:'checking',message:'Market AI 서버에 연결하고 있습니다.'});
   }
-  try{
-    const [response,nextMarketSnapshot,nextBridgeStatus]=await Promise.all([
-      fetchWithTimeout(`${apiBase}/api/signal/latest?include_details=true`,{
-        method:'GET',
-        headers:{Accept:'application/json'},
-        cache:'no-store'
-      }),
-      refreshMarketAiMarketSnapshot(apiBase),
-      refreshMarketAiBridgeStatus(apiBase)
-    ]);
-    Object.assign(marketAiState,{marketSnapshot:nextMarketSnapshot||{},bridgeStatus:nextBridgeStatus});
-    if(response.status===404){
-      setMarketAiState({
-        signal:null,
-        status:'신호 대기',
-        statusKind:'waiting',
-        message:'Market AI가 첫 신호를 생성하면 자동으로 표시됩니다.',
-        lastSignalAt:null
-      });
-      return;
-    }
-    if(!response.ok)throw new Error(`Market AI HTTP ${response.status}`);
-    const signal=await response.json();
-    const freshness=marketAiSignalFreshness(signal);
-    if(!freshness.fresh){
-      setMarketAiState({
-        signal:null,
-        status:'신호 지연',
-        statusKind:'stale',
-        message:freshness.updatedAt
-          ?'Market AI 신호가 5분 이상 갱신되지 않았습니다.'
-          :'Market AI 신호의 갱신 시각을 확인할 수 없습니다.',
-        lastSignalAt:freshness.updatedAt
-      });
-      return;
-    }
-    setMarketAiState({signal,status:'연결됨',statusKind:'connected',message:'',lastSignalAt:null});
-  }catch(_){
+
+  const previousSignalAt=marketAiState.signal?.updated_at||marketAiState.lastSignalAt||null;
+  const [response,nextMarketSnapshot,nextBridgeStatus]=await Promise.all([
+    refreshMarketAiSignalResponse(apiBase),
+    refreshMarketAiMarketSnapshot(apiBase),
+    refreshMarketAiBridgeStatus(apiBase)
+  ]);
+  const serverReachable=response!==null||nextMarketSnapshot!==null||nextBridgeStatus!==null;
+  Object.assign(marketAiState,{
+    marketSnapshot:nextMarketSnapshot??{},
+    bridgeStatus:nextBridgeStatus
+  });
+
+  if(!serverReachable){
     setMarketAiState({
       signal:null,
-      marketSnapshot:{},
-      bridgeStatus:null,
       status:'서버 연결 안 됨',
       statusKind:'error',
       message:'Local Suite 실행 후 자동으로 다시 연결합니다.',
       lastSignalAt:null
     });
+    return;
   }
+
+  if(!response){
+    setMarketAiState({
+      signal:null,
+      status:'신호 오류',
+      statusKind:'signal-error',
+      message:'시장 데이터는 연결되었지만 AI 신호 응답을 확인할 수 없습니다.',
+      lastSignalAt:previousSignalAt
+    });
+    return;
+  }
+
+  if(response.status===404){
+    setMarketAiState({
+      signal:null,
+      status:'신호 대기',
+      statusKind:'waiting',
+      message:'Market AI가 첫 신호를 생성하면 자동으로 표시됩니다.',
+      lastSignalAt:null
+    });
+    return;
+  }
+
+  if(!response.ok){
+    setMarketAiState({
+      signal:null,
+      status:'신호 오류',
+      statusKind:'signal-error',
+      message:`Market AI 신호 API 응답 오류 (${response.status})`,
+      lastSignalAt:previousSignalAt
+    });
+    return;
+  }
+
+  let signal=null;
+  try{
+    signal=await response.json();
+  }catch(_){
+    setMarketAiState({
+      signal:null,
+      status:'신호 오류',
+      statusKind:'signal-error',
+      message:'Market AI 신호 응답 형식을 확인할 수 없습니다.',
+      lastSignalAt:previousSignalAt
+    });
+    return;
+  }
+
+  const freshness=marketAiSignalFreshness(signal);
+  if(!freshness.fresh){
+    setMarketAiState({
+      signal:null,
+      status:'신호 지연',
+      statusKind:'stale',
+      message:freshness.updatedAt
+        ?'Market AI 신호가 5분 이상 갱신되지 않았습니다.'
+        :'Market AI 신호의 갱신 시각을 확인할 수 없습니다.',
+      lastSignalAt:freshness.updatedAt
+    });
+    return;
+  }
+  setMarketAiState({signal,status:'연결됨',statusKind:'connected',message:'',lastSignalAt:null});
 }
 
 // [MARKET11] Lifecycle / Polling · render 교체 감시 / polling boot
