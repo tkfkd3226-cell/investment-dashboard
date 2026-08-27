@@ -55,7 +55,7 @@
 ### 1.5 로컬 Market AI 연동
 
 - `dashboard-market-ai.js` standalone entry를 통한 현재 시장·AI 신호 표시. main feature state와는 분리하고 공통 `dashboard-modal.js`의 dialog lifecycle만 공유
-- 시장 4개 metric(KOSPI·KOSPI200선물·SOX·NQ100선물)과 AI 신호 4개 metric을 공통 `data-list-card` 기반의 **시장 60% / AI 신호 40%** 구조로 표시
+- 시장 4개 metric(KOSPI·KOSPI200선물·SOX/SOX-F·NQ100선물)과 AI 신호 4개 metric을 공통 `data-list-card` 기반의 **시장 60% / AI 신호 40%** 구조로 표시. SOX 시장 metric은 미국 현물 정규장 중 `INDEX:SOX`를 `SOX`, 정규장 밖에는 `FUTURES:SOX`를 `SOX-F`로 표시하며 Signal 입력은 계속 `INDEX:SOX`를 사용
 - Desktop / Tablet은 Hero 우측 보조 카드, Mobile ≤760px·실제 터치폰 가로 UI는 Hero의 **AI Signal** 버튼에서 같은 Market AI panel을 modal로 이동·재사용
 - 로컬에서는 실제 API 데이터를 사용하고 비로컬은 기본 숨김. `?market-ai-preview=1`(Desktop 1280) / `?market-ai-preview=2`(Tablet 961) / `?market-ai-preview=3`(현재 Mobile viewport)에서는 API polling 없이 내장 예시 데이터로 UI를 확인
 - Mobile modal에서는 metric tooltip을 사용하지 않고, Desktop / Tablet에서만 keyboard/pointer tooltip을 제공
