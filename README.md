@@ -2,7 +2,7 @@
 
 삼성증권 증권계좌와 퇴직연금 계좌의 **날짜별 투자 성과를 복원·검산·분석하기 위한 정적 웹 대시보드**입니다.
 
-메인 화면은 GitHub Pages에서 제공하며, KRX 가격과 성과 스냅샷은 GitHub Actions + Python으로 갱신합니다. 퇴직연금 금액 조정과 KRX 갱신 요청처럼 브라우저에서 직접 파일을 수정할 수 없는 쓰기 작업은 Google Apps Script Web App을 통해 연결합니다. 로컬 실행 시에는 별도 `market-ai` 프로젝트의 현재 시장·AI 신호를 Hero 보조 카드로 선택적으로 표시합니다.
+메인 화면은 GitHub Pages에서 제공하며, KRX 가격과 성과 스냅샷은 GitHub Actions + Python으로 갱신합니다. 퇴직연금 금액 조정과 KRX 갱신 요청처럼 브라우저에서 직접 파일을 수정할 수 없는 쓰기 작업은 Google Apps Script Web App을 통해 연결합니다. 로컬 실행 시에는 별도 `market-ai` 프로젝트의 현재 시장·AI 신호를 Desktop/Tablet Hero 보조 카드 또는 Mobile dialog로 선택적으로 표시합니다.
 
 이 저장소는 단순 시세 조회 화면이 아니라 다음 세 가지를 함께 관리하는 것을 목표로 합니다.
 
@@ -54,10 +54,11 @@
 
 ### 1.5 로컬 Market AI 연동
 
-- `dashboard-market-ai.js` standalone adapter를 통한 현재 시장·AI 신호 표시
-- 시장 4개 metric(KOSPI·KOSPI200선물·SOX/SOX-F·NQ100선물)과 AI 신호 4개 metric을 **시장 / AI 신호 2개 compact list card**로 나란히 표시. SOX는 미국 정규장 중 현물, 정규장 외 선물(SOX-F)로 자동 전환
-- Desktop / Tablet 모두 Hero 우측 보조 카드로 표시하며, Tablet은 좌측 성과 pill만 가용 폭에서 wrap
-- Mobile ≤760px·실제 터치폰 가로 UI에서는 숨기고, GitHub Pages 등 비로컬 환경은 기본 숨김. 단 `?market-ai-preview=1`(Desktop 1280) / `2`(Tablet 961)에서는 내장 예시 데이터로 UI만 미리보기
+- `dashboard-market-ai.js` standalone entry를 통한 현재 시장·AI 신호 표시. main feature state와는 분리하고 공통 `dashboard-modal.js`의 dialog lifecycle만 공유
+- 시장 4개 metric(KOSPI·KOSPI200선물·SOX·NQ100선물)과 AI 신호 4개 metric을 공통 `data-list-card` 기반의 **시장 60% / AI 신호 40%** 구조로 표시
+- Desktop / Tablet은 Hero 우측 보조 카드, Mobile ≤760px·실제 터치폰 가로 UI는 Hero의 **AI Signal** 버튼에서 같은 Market AI panel을 modal로 이동·재사용
+- 로컬에서는 실제 API 데이터를 사용하고 비로컬은 기본 숨김. `?market-ai-preview=1`(Desktop 1280) / `?market-ai-preview=2`(Tablet 961) / `?market-ai-preview=3`(현재 Mobile viewport)에서는 API polling 없이 내장 예시 데이터로 UI를 확인
+- Mobile modal에서는 metric tooltip을 사용하지 않고, Desktop / Tablet에서만 keyboard/pointer tooltip을 제공
 - 선택한 과거 기준일과 분리된 **현재 시점 신호**로 동작
 
 ### 1.6 부가 도구
@@ -91,11 +92,12 @@ GitHub Pages / Browser
    화면 계산 / 렌더링
 ```
 
-`dashboard-app.js`가 연결하는 메인 모듈:
+`dashboard-app.js`가 연결하는 main graph 구성:
 
 ```text
 dashboard-core.js
 dashboard-ui-common.js
+dashboard-modal.js
 dashboard-charts.js
 dashboard-ui.js
 dashboard-pension.js
@@ -139,16 +141,17 @@ performance_snapshots.json
 Local Browser (:8000)
         ↓
 dashboard-market-ai.js
-        ↓
+   ├─ dashboard-modal.js   (공통 dialog lifecycle만 공유)
+   ↓
 Market AI FastAPI (:8001)
+   ├─ /api/market-data/snapshot
+   ├─ /api/signal/latest?include_details=true
+   └─ /api/bridge/kis-efriend/status
         ↓
-/api/market-data/snapshot
-/api/signal/latest?include_details=true
-        ↓
-Hero 보조 카드
+Desktop/Tablet Hero 또는 Mobile dialog
 ```
 
-이 흐름은 main dependency graph와 분리된 조회 전용 adapter입니다. `dashboard-market-ai.js`는 main 모듈을 import하지 않고 자체 polling/state/mount를 관리합니다. 로컬 Market AI API가 없거나 신호가 stale이거나 **비로컬 기본 모드**이면 메인 대시보드 기능을 건드리지 않고 Market AI 영역만 실패 격리하며, 명시적 preview mode에서는 API polling 없이 내장 예시 데이터만 표시합니다.
+이 흐름은 main feature state와 분리된 조회 전용 entry입니다. `dashboard-market-ai.js`는 `dashboard-modal.js`의 저수준 dialog lifecycle만 공유하고 polling/state/mount/render는 자체 소유합니다. 로컬 Market AI API가 없거나 신호가 unavailable/stale이거나 **비로컬 기본 모드**이면 메인 대시보드 기능을 건드리지 않고 Market AI 영역만 실패 격리하며, 명시적 preview mode에서는 API polling 없이 내장 예시 데이터만 표시합니다.
 
 프론트엔드는 별도 번들러나 프레임워크 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 동작합니다.
 
@@ -171,6 +174,7 @@ investment-dashboard-main/
 ├─ js/
 │  ├─ dashboard-core.js
 │  ├─ dashboard-ui-common.js
+│  ├─ dashboard-modal.js
 │  ├─ dashboard-charts.js
 │  ├─ dashboard-ui.js
 │  ├─ dashboard-pension.js
@@ -199,7 +203,8 @@ investment-dashboard-main/
 ├─ tests/
 │  └─ calc.test.cjs
 ├─ tools/
-│  └─ close-efriend-tray.ps1
+│  ├─ close-efriend-tray.ps1
+│  └─ inspect-efriend-ui.ps1
 ├─ .github/workflows/
 │  └─ update-prices.yml
 ├─ requirements.txt
@@ -214,18 +219,19 @@ investment-dashboard-main/
 
 ### 4.1 JavaScript 모듈
 
-메인 dependency graph는 **7개 ES Module**로 구성되어 있으며 `dashboard-app.js`가 단일 entry point입니다. `dashboard-market-ai.js`는 이 graph와 분리되어 `index.html`에서 독립 module로 로드됩니다.
+main dependency graph는 **8개 ES Module**로 구성되어 있으며 `dashboard-app.js`가 단일 entry point입니다. `dashboard-market-ai.js`는 두 번째 standalone entry로 로드되며 main feature state와는 분리하고 `dashboard-modal.js`의 저수준 dialog lifecycle만 공유합니다.
 
 | 파일 | 책임 |
 |---|---|
 | `dashboard-core.js` | 공통 데이터 state, JSON 로딩, 계산, formatter, 데이터 helper |
-| `dashboard-ui-common.js` | 여러 UI 모듈이 공유하는 저수준 DOM·접근성·마크업·반응형 UI 판정 helper |
+| `dashboard-ui-common.js` | 여러 UI 모듈이 공유하는 저수준 DOM·마크업·반응형 UI 판정 helper |
+| `dashboard-modal.js` | custom/native modal의 focus·inert·body lock·ESC·backdrop·focus return lifecycle |
 | `dashboard-charts.js` | 차트 state, SVG 렌더링, 범례, tooltip, 확대, 반응형, 차트 action routing |
-| `dashboard-ui.js` | Topbar, Navigation, 일반 카드·표·모달, KRX UI, UI action routing |
+| `dashboard-ui.js` | Topbar, Navigation, 일반 카드·표, KRX UI, UI action routing |
 | `dashboard-pension.js` | 퇴직연금 **View** — 현황, 상품 정보, 인사이트, 시각화 tooltip |
 | `dashboard-pension-editor.js` | 퇴직연금 **Editor** — 금액조정, PIN, batch, 저장·삭제 |
 | `dashboard-app.js` | 날짜·별도수익 등 cross-module 흐름, 전체 render orchestration, 초기화·boot |
-| `dashboard-market-ai.js` | 로컬 Market AI API를 polling하고 Hero 보조 UI를 자체 mount/re-mount하는 standalone adapter; main graph와 분리 |
+| `dashboard-market-ai.js` | 로컬 Market AI API polling/state/render와 Mobile modal mount를 자체 소유하는 standalone entry; `dashboard-modal.js`만 공유 |
 
 ### 4.2 Dependency 방향
 
@@ -238,13 +244,18 @@ dashboard-core.js
 dashboard-ui-common.js
 └─ dashboard-core.js
 
+dashboard-modal.js
+└─ 다른 dashboard module import 없음
+
 dashboard-charts.js
 ├─ dashboard-core.js
-└─ dashboard-ui-common.js
+├─ dashboard-ui-common.js
+└─ dashboard-modal.js
 
 dashboard-ui.js
 ├─ dashboard-core.js
 ├─ dashboard-ui-common.js
+├─ dashboard-modal.js
 └─ dashboard-charts.js
 
 dashboard-pension.js
@@ -256,18 +267,20 @@ dashboard-pension.js
 dashboard-pension-editor.js
 ├─ dashboard-core.js
 ├─ dashboard-ui-common.js
+├─ dashboard-modal.js
 └─ dashboard-ui.js
 
 dashboard-app.js
 ├─ dashboard-core.js
 ├─ dashboard-ui-common.js
+├─ dashboard-modal.js
 ├─ dashboard-charts.js
 ├─ dashboard-ui.js
 ├─ dashboard-pension.js
 └─ dashboard-pension-editor.js
 
 dashboard-market-ai.js
-└─ main dependency graph import 없음 · browser API + local Market AI API만 사용
+└─ dashboard-modal.js만 공유 · polling/state/render는 standalone 소유
 ```
 
 현재 구조에서는 **순환 dependency를 만들지 않는 것**이 기본 원칙입니다.
@@ -275,6 +288,7 @@ dashboard-market-ai.js
 ### 4.3 State ownership
 
 - 여러 모듈이 공유해야 하는 데이터 state만 `dashboard-core.js`에 둡니다.
+- modal focus stack·body lock 같은 dialog lifecycle state는 `dashboard-modal.js`가 소유합니다.
 - chart runtime state는 `dashboard-charts.js`가 소유합니다.
 - 퇴직연금 Editor의 batch/runtime state는 `dashboard-pension-editor.js`가 소유합니다.
 - Market AI의 signal/snapshot/status/polling state는 standalone `dashboard-market-ai.js` 내부에서 소유합니다.
@@ -310,7 +324,7 @@ Mobile  : 760px 이하
 
 추가 breakpoint는 특정 기능에 실제로 필요한 경우에만 사용합니다.
 
-Market AI UI의 CSS도 같은 역할 분리를 따릅니다. Desktop baseline과 공통 component/tooltip은 `common.css`의 **Hero 기본 규칙 직후**, Tablet 배치/밀도는 `tablet.css`의 **Hero Tablet 직후**, 실제 Phone 숨김과 mounted Hero layout 복원은 `special.css`의 Phone UI Shared에서 관리합니다. **1101~1279 compact Desktop은 Asset Detail 전용이며 Market AI override를 두지 않고, 1280px은 일반 Desktop으로 유지합니다.** `common.css` 내부 전용 selector는 **mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip** 순서를 유지합니다. `dashboard-market-ai.js` 전용 class라는 이유로 파일 하단에 별도 override 묶음을 추가하지 않습니다.
+Market AI UI의 CSS도 같은 역할 분리를 따릅니다. Desktop baseline과 공통 `data-list-card`/tooltip은 `common.css`의 **Hero 인접 영역**, Tablet 배치·밀도는 `tablet.css`의 Hero 영역, 실제 Phone 진입 버튼·modal·panel 이동은 `special.css`의 Phone UI Shared에서 관리합니다. **1101~1279 compact Desktop은 Asset Detail 전용이며 Market AI override를 두지 않고, 1280px은 일반 Desktop으로 유지합니다.** Mobile Market AI metric tooltip은 사용하지 않습니다. `dashboard-market-ai.js` 전용 class라는 이유로 파일 하단에 별도 override 묶음을 추가하지 않습니다.
 
 유지보수 시 기본 원칙:
 
@@ -511,7 +525,7 @@ eFriend의 최종 Ready 기준은 `efexpertmain.exe`입니다. 로그인 또는 
 
 - Local Suite 트레이 `View` → 실행 상태와 `start-local-server.log` 확인
 - Local Suite 트레이 `eFriend 자동 로그인 설정` → Windows Credential Manager에 로컬 자격 증명 저장/삭제
-- Local Suite 트레이 `eFriend·Bridge·서버 종료` → Dashboard / Market AI API / KIS Bridge / eFriend Expert를 함께 종료하며, Bridge와 eFriend는 각 프로그램의 정상 종료 경로를 우선해 트레이 잔상을 정리
+- Local Suite 트레이 `eFriend·Bridge·서버 종료` → Dashboard / Market AI API / KIS Bridge / eFriend Expert 함께 종료
 - KIS Bridge 트레이 `View` → 상태창 표시, `종료` → Bridge 종료
 
 통합 런처 없이 대시보드만 실행하려면:

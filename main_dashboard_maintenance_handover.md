@@ -162,7 +162,7 @@ QA
 
 ### 3. JavaScript
 
-- 7개 module graph
+- main 8개 module graph + Market AI standalone entry (`dashboard-modal.js` lifecycle 공유)
 - `core` DOM 비의존
 - `ui-common` 저수준 공통 책임
 - pension View / Editor 분리
@@ -421,7 +421,7 @@ Dead CSS 판정 전에는 HTML, JS dynamic class, template literal, `classList`,
 
 ### E. JavaScript 평가 기준
 
-7개 ES Module을 실제로 읽고 다음을 확인한다.
+main graph 8개 ES Module과 `dashboard-market-ai.js` standalone entry를 실제로 읽고 다음을 확인한다.
 
 - module responsibility
 - dependency 방향 / circular dependency
@@ -1006,14 +1006,14 @@ investment-dashboard-main/
 │  ├─ css/common.css
 │  ├─ css/calc.css
 │  ├─ js/calc.js
-│  └─ report/*.html
+│  └─ report/kodex-leverage-report.html
 ├─ css/
 │  ├─ common.css
 │  ├─ tablet.css
 │  ├─ mobile.css
 │  ├─ special.css
 │  ├─ interaction.css
-│  ├─ print.css
+│  └─ print.css
 ├─ data/
 │  ├─ account1_daily_snapshots.json
 │  ├─ pension_cash_snapshots.json
@@ -1028,18 +1028,19 @@ investment-dashboard-main/
 │  ├─ dashboard-app.js
 │  ├─ dashboard-charts.js
 │  ├─ dashboard-core.js
+│  ├─ dashboard-market-ai.js
+│  ├─ dashboard-modal.js
 │  ├─ dashboard-pension-editor.js
 │  ├─ dashboard-pension.js
 │  ├─ dashboard-ui-common.js
-│  ├─ dashboard-ui.js
-│  └─ dashboard-market-ai.js
+│  └─ dashboard-ui.js
 ├─ main_dashboard_maintenance_handover.md
 ├─ requirements.txt
 ├─ scripts/update_prices.py
-├─ tests/
-│  └─ calc.test.cjs
+├─ tests/calc.test.cjs
 ├─ tools/
-│  └─ close-efriend-tray.ps1
+│  ├─ close-efriend-tray.ps1
+│  └─ inspect-efriend-ui.ps1
 ├─ InvestmentLocalSuite.ico
 └─ start-local-server.pyw
 ```
@@ -1068,12 +1069,13 @@ investment-dashboard-main/
 ├─ js/
 │  ├─ dashboard-core.js
 │  ├─ dashboard-ui-common.js
+│  ├─ dashboard-modal.js
 │  ├─ dashboard-charts.js
 │  ├─ dashboard-ui.js
 │  ├─ dashboard-pension.js
 │  ├─ dashboard-pension-editor.js
 │  ├─ dashboard-app.js
-│  └─ dashboard-market-ai.js  # main graph와 분리된 standalone module
+│  └─ dashboard-market-ai.js  # standalone entry · dashboard-modal lifecycle만 공유
 │
 └─ add/
    ├─ calc.html
@@ -1107,14 +1109,15 @@ inline calc JavaScript
 등의 구조가 현재도 존재한다고 가정하지 않는다.
 
 
-## 4.3 메인 dependency graph는 7파일 ES Module 구조 유지
+## 4.3 메인 dependency graph는 8파일 ES Module 구조 유지
 
-현재 메인 dependency graph는 다음과 같다.
+현재 main graph는 다음과 같다.
 
 ```text
 js/
 ├─ dashboard-core.js
 ├─ dashboard-ui-common.js
+├─ dashboard-modal.js
 ├─ dashboard-charts.js
 ├─ dashboard-ui.js
 ├─ dashboard-pension.js
@@ -1122,11 +1125,12 @@ js/
 └─ dashboard-app.js
 ```
 
-이 7개는 파일 수를 늘리기 위한 분리가 아니라 다음 책임 경계를 표현한다.
+책임 경계:
 
 ```text
 core            → 데이터 / 계산 / 공통 state / loading
-ui-common      → 공통 저수준 DOM / 접근성 / 마크업 / 반응형 UI 판정 helper
+ui-common       → 공통 저수준 DOM / 마크업 / 반응형 UI helper
+modal           → custom/native dialog lifecycle / focus / inert / body lock
 charts          → 차트 state / SVG / chart action
 ui              → 일반 UI / topbar / navigation / UI action
 pension         → 퇴직연금 조회 View
@@ -1134,11 +1138,9 @@ pension-editor  → 퇴직연금 변경 Editor / persistence flow
 app             → cross-module orchestration / boot
 ```
 
-단순 수정 때문에 다시 하나의 거대한 JS 파일로 합치지 않는다.
+단순 수정 때문에 다시 하나의 거대한 JS 파일로 합치지 않고, 반대로 책임 경계가 없는 작은 기능마다 새 파일을 추가하지 않는다.
 
-반대로 책임 경계가 명확하지 않은 작은 기능마다 새 파일을 추가하지 않는다.
-
-`dashboard-market-ai.js`는 이 7파일 main dependency graph에 포함하지 않는 standalone module이다. `index.html`에서 별도 entry로 로드하며 main graph를 import하지 않는다. 상세 책임과 실패 격리 기준은 **4.9**에서 관리한다.
+`dashboard-market-ai.js`는 main feature state와 분리된 standalone entry다. 다만 Mobile dialog lifecycle을 위해 저수준 `dashboard-modal.js`만 공유하며, 상세 책임과 실패 격리 기준은 **4.9**에서 관리한다.
 
 ## 4.4 `dashboard-core.js` 책임
 
@@ -1197,7 +1199,6 @@ input
 
 예:
 
-- dialog focus / focus-trap / focus 복귀
 - 공통 SVG navigation icon
 - HTML escape
 - 공통 swatch markup
@@ -1207,6 +1208,17 @@ input
   - 전일 대비 변동 KPI + table/card shell
   - 오늘 상승분 기여도
   - Asset tooltip interaction
+
+### `dashboard-modal.js`
+
+기능 내용과 분리된 **Modal/Dialog lifecycle foundation**을 담당한다.
+
+- custom overlay / native `<dialog>` open·close
+- ESC / backdrop dismiss
+- focus trap / initial focus / focus return
+- background inert / body scroll lock / nested modal count
+
+각 feature는 modal 안의 데이터·저장·API·렌더링을 계속 직접 소유한다. Modal markup 전체를 범용 factory로 합치지 않는다.
 
 ### Asset Detail 공통 불변조건
 
@@ -1241,18 +1253,18 @@ input
 - 별도수익 상태는 기존 `separateProfitView()`의 재분류 기준을 따른다. 개인 기능 비활성 상태에서는 개인 기능의 존재를 직접 드러내는 표현을 쓰지 않는다.
 - 계좌1 투입원금 조정 B의 중복 제거 근거는 `레버수익 재투입 + VIP 수익 재투입 + 실현수익 투입`이다. `원천·보유 차액`은 성과기준 투입원금에는 남기되 조정 B 근거에서는 제외한다.
 - 삼성증권2 투자 결과물 조정은 VIP 재투입액 중복 제거이며, 원천 추적의 `VIP 금 투입분 + VIP 재투입-금` 관계와 연결된다.
-- `투자원금 원천 및 검산`은 기존 3단 카드 구조를 유지한다. base 원천과 재투입 원천을 구분하되 `원천·보유 차액`은 양쪽 표에서 중립 검산값으로 표시한다.
+- `투자원금 원천 및 검산`은 3개 source card 구조를 유지하되 카드 상단의 중복 대형 value는 두지 않고 각 표의 `합계` 행을 최종값으로 사용한다. base 원천과 재투입 원천을 구분하며 `원천·보유 차액`은 양쪽 표에서 중립 검산값으로 표시한다.
 - `2026-06-18` 이후 전체 성과 카드의 누적손익 설명은 `투자 결과물 - 투입원금`, 이전 복원 구간은 `전체 누적 성과 기준`처럼 중립적으로 표시한다. 과거 수치를 설명에 맞추기 위해 재계산하지 않는다.
 - 계좌별 table은 **세로 Mobile과 실제 가로폰**에서 누적수익률을 누적손익 셀의 보조값으로 합쳐 5열로 축약한다. `400px 이하`에서는 메모 내용을 정보 버튼으로 전환하고, **세로 Mobile card view**의 메모는 카드 폭에 맞춰 자연스럽게 줄바꿈한다.
 - 성과 요약 title/action은 기존 `.section-title`, `.section-title-icon`, `.chart-head-actions`, segmented/button, mobile table/card control을 재사용한다. 증권 성과 요약에서 별도수익 control은 `전체 / 계좌별` 왼쪽에 둔다. **세로 Mobile에서만** `표 보기 / 카드 보기` control을 표시해 가장 왼쪽에 두고, 실제 가로폰에서는 해당 control을 숨긴 채 table view를 유지한다.
 
 ### Modal / Action Form 공통 contract
 
-- KRX 현재가 반영과 퇴직연금 금액조정처럼 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, border/radius, 상태 표시 등 공통 form/control 표현은 기존 modal/control token과 공통 dialog helper를 재사용한다.
+- KRX 현재가 반영과 퇴직연금 금액조정처럼 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, border/radius, 상태 표시 등 공통 form/control 표현은 기존 modal/control token과 `dashboard-modal.js`의 공통 dialog lifecycle을 재사용한다.
 - 기능별 modal은 자기 업무 구조와 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금의 PIN·기업적립금·현금성자산·ETF 추가매수·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
 - 세로 Mobile bottom-sheet, Desktop/Tablet/Phone Landscape 중앙 modal, iOS 입력 확대 방지 같은 실제 viewport/browser 예외는 현재 검증된 범위에서 유지한다. 공통화를 이유로 기능 예외를 제거하지 않는다.
 
-화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js`로 보내지 않는다.
+화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js` 또는 `dashboard-modal.js`로 끌어올리지 않는다.
 
 ## 4.6 `dashboard-charts.js` 책임
 
@@ -1347,65 +1359,31 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 ## 4.9 `dashboard-market-ai.js` standalone 책임
 
-`dashboard-market-ai.js`는 메인 7개 ES Module graph와 분리된 **로컬 조회 + 명시적 preview 전용 adapter**다.
+`dashboard-market-ai.js`는 main feature state와 분리된 **로컬 조회 + 명시적 preview 전용 standalone entry**다. `dashboard-modal.js`의 저수준 dialog lifecycle만 공유하며 polling/state/mount/render는 자체 소유한다.
 
-preview mode의 초기 viewport ownership은 `dashboard-market-ai.js`가 아니라 `index.html`의 head inline script가 가진다.
-
-```text
-index.html head inline script
-→ ?market-ai-preview=1: phone 초기 viewport를 Desktop preview용으로 전환
-→ ?market-ai-preview=2: phone 초기 viewport를 Tablet preview용으로 전환
-→ 일반 URL의 phone viewport 동작은 유지
-```
-
-`dashboard-market-ai.js`의 현재 책임:
-
-- 기본 동작은 로컬 대시보드(`localhost`, `127.0.0.1`)에서만 실제 Market AI API를 조회
-- 비로컬에서는 기본적으로 UI를 숨기되 preview mode에서는 기존 UI에 내장 예시 데이터를 표시
-- preview mode에서는 `:8001` API fetch / 60초 polling을 시작하지 않으며, 실제 데이터로 오해하지 않도록 상태에 `예시 데이터`를 표시
-- Market AI `:8001`의 `/api/market-data/snapshot` 조회
-- `/api/signal/latest?include_details=true` 조회
-- 60초 polling, 요청 timeout, stale signal 판정
-- 현재 시장 snapshot과 현재 AI signal을 자체 state로 보유
-- 시장 4개 metric과 AI 신호 4개 metric은 **시장 / AI 신호 2개 compact list card**로 나란히 배치하고, 각 카드 내부 metric은 세로 list로 유지
-- Hero 안에 `#market-ai-section`을 자체 mount
-- 메인 대시보드가 `#app`을 다시 렌더링해도 `MutationObserver`로 자기 영역만 재부착
-- 기존 `.dash-tooltip` 기반을 확장한 Market AI tooltip 생성/위치 계산
-- API unavailable / stale / invalid response 시 메인 대시보드와 실패 격리
-
-반드시 유지할 경계:
+preview viewport ownership은 `index.html` head inline script가 가진다.
 
 ```text
-dashboard-market-ai.js
-→ main 7모듈 import 없음
-→ window/globalThis bridge 없음
-→ 메인 dataState/uiState 직접 접근 없음
-→ 선택된 과거 activeDate와 무관한 현재 시점 신호
+?market-ai-preview=1 → phone 초기 viewport를 Desktop 1280 preview로 전환
+?market-ai-preview=2 → phone 초기 viewport를 Tablet 961 preview로 전환
+?market-ai-preview=3 → viewport를 바꾸지 않고 현재 Mobile viewport에서 예시 UI 표시
 ```
 
-CSS ownership은 JS와 분리한다.
+현재 책임과 불변조건:
 
-```text
-common.css
-→ Hero mount layout + Market AI theme/surface + heading/status + rows/metrics + focus/tooltip
+- 로컬(`localhost`, `127.0.0.1`)에서만 실제 Market AI API를 조회하고, 비로컬 기본 모드는 UI를 숨긴다. preview mode는 API polling 없이 내장 예시 데이터만 사용한다.
+- `/api/market-data/snapshot`, `/api/signal/latest?include_details=true`, KIS Bridge 상태를 사용하며 unavailable/stale/error를 메인 대시보드와 실패 격리한다.
+- 시장 4개 metric과 AI 신호 4개 metric은 공통 `data-list-card` surface를 사용하고 **시장 60% / AI 신호 40%** 비율을 Desktop/Tablet/Mobile에서 유지한다.
+- Desktop/Tablet은 Hero 우측 panel, Mobile/실제 터치폰 가로는 Hero의 `AI Signal` 버튼에서 같은 `#market-ai-section` DOM을 native dialog로 이동·재사용한다. 별도 Mobile render tree를 만들지 않는다.
+- Mobile에서는 metric tooltip/focusability를 제거하고, Desktop/Tablet에서만 keyboard/pointer tooltip을 제공한다.
+- 선택된 과거 `activeDate`와 무관한 현재 시점 신호를 표시한다.
+- `window/globalThis` bridge, main `dataState/uiState` 직접 접근, feature module import를 추가하지 않는다.
 
-tablet.css
-→ Hero Tablet 직후의 Tablet 배치/밀도 override
+CSS는 기존 6파일 역할을 따른다. `common.css`가 Desktop baseline과 공통 Data List/Market AI component를, `tablet.css`가 Tablet density를, `special.css` Phone UI Shared가 Mobile trigger/dialog/panel 이동을 소유한다. Hero 우측 여백은 Market AI 전용 edge token으로 덮지 않고 Hero의 기존 responsive padding을 그대로 따른다. JS에서 구조용 inline style을 누적하거나 별도 Market AI CSS 파일을 만들지 않고, tooltip 좌표처럼 런타임 계산이 필요한 값만 직접 처리한다.
 
-special.css
-→ Market AI용 Compact Desktop override는 두지 않음
-→ Phone UI Shared에서 실제 Phone 숨김 + mounted Hero layout 복원
-```
+로컬 통합 실행의 canonical entry는 `start-local-server.pyw`다. 런처는 single-UAC·단일 인스턴스를 유지하고 **eFriend Ready → KIS Bridge → Market AI API → Dashboard** 순서를 보존한다. eFriend Ready는 로그인·공인인증 완료 상태인 `efexpertmain.exe`를 기준으로 하며, 자동 로그인 자격 증명은 Windows Credential Manager만 사용하고 실패 시 수동 로그인으로 fallback한다.
 
-`dashboard-market-ai.js`가 전용 class를 생성하더라도 JS에서 구조용 inline style을 누적하거나 별도 Market AI CSS 파일을 새로 만들지 않는다. 동적 tooltip 좌표처럼 런타임 계산이 필요한 값만 JS가 직접 처리한다.
-
-로컬 통합 실행의 canonical entry는 `start-local-server.pyw`다. 런처는 single-UAC·단일 인스턴스를 유지하고, 실제 Ready 이벤트 기반 진행 UI와 함께 **eFriend Ready → KIS Bridge → Market AI API → Dashboard** 순서를 보존한다. eFriend Ready는 실제 로그인·공인인증 완료 상태인 `efexpertmain.exe`를 기준으로 한다. eFriend 자동 로그인 자격 증명은 Windows Credential Manager만 사용하며 코드·로그·Git 파일에 저장하지 않고, 자동화 대상 검증 또는 로그인에 실패하면 수동 로그인으로 fallback한다.
-
-KIS Bridge는 사전 빌드된 Release/x86 실행 파일을 사용하고 런처 기동 시 자동 재빌드하지 않으며, 평상시 시스템 트레이에 상주한다. Local Suite와 Bridge의 `View`/종료 동작 및 `start-local-server.log` 기반 진단 흐름을 유지하며, eFriend Ready 또는 Bridge 시작 실패 시 뒤 단계는 실행하지 않는다. Local Suite 전체 종료는 Dashboard / Market AI API / KIS Bridge / eFriend Expert를 함께 정리하되, KIS Bridge와 eFriend는 강제 종료를 기본 경로로 사용하지 않고 각 프로그램의 정상 종료 경로를 우선해 프로세스와 트레이 아이콘을 함께 정리한다.
-
-Market AI가 Hero에 mount된 경우 우측 panel edge는 Web/Tablet에서 `--market-ai-edge-pad`로 관리한다. 현재 기준은 `10px`이며, Tablet에서는 기존 Hero 좌측 콘텐츠 여백을 유지하면서 Market AI 우측 edge만 이 값을 사용한다. 이를 맞추기 위해 음수 margin이나 viewport별 임의 좌표 보정을 추가하지 않는다. 실제 Phone에서는 Market AI를 숨기고 `special.css`가 mounted Hero를 기본 block 흐름으로 복원한다.
-
-Market AI의 focus 가능한 시장/신호 metric은 공용 tooltip `#marketAiTooltip`과 `aria-describedby`로 명시적으로 연결한다. tooltip은 Market AI section 생성 전에 준비하고, focus/pointer 시 기존 shared tooltip 내용과 `aria-hidden` 상태를 갱신한다.
+KIS Bridge는 사전 빌드된 Release/x86 실행 파일을 사용하고 런처 기동 시 자동 재빌드하지 않는다. eFriend Ready 또는 Bridge 시작 실패 시 뒤 단계를 실행하지 않으며, Local Suite 전체 종료는 Dashboard / Market AI API / KIS Bridge / eFriend Expert를 함께 정리한다.
 
 ## 4.10 JS state · initialization ownership
 
@@ -1424,6 +1402,9 @@ uiState
 module-private state:
 
 ```text
+dashboard-modal.js
+→ focus stack / body lock count / native dialog lifecycle state
+
 dashboard-charts.js
 → chartState
 → chartRuntimeState
@@ -1457,6 +1438,7 @@ dashboard-market-ai.js
 차트 계산/DOM/action → charts
 Topbar/Navigation/UI action → ui
 공통 저수준 UI helper → ui-common
+Modal/Dialog lifecycle → modal
 퇴직연금 조회 View → pension
 퇴직연금 변경/저장 → pension-editor
 앱 boot/cross-module orchestration → app
@@ -1495,8 +1477,11 @@ Market AI 로컬 조회/preview/mount/fail isolation → market-ai standalone
 데이터 / 공통 계산 / formatter / 공용 데이터 state
 → js/dashboard-core.js
 
-공통 저수준 DOM / 접근성 / 마크업 helper
+공통 저수준 DOM / 마크업 helper
 → js/dashboard-ui-common.js
+
+Modal/Dialog lifecycle / focus / inert / body lock
+→ js/dashboard-modal.js
 
 차트
 → js/dashboard-charts.js
@@ -1522,7 +1507,7 @@ Market AI Desktop baseline / 공통 component
 Market AI Tablet 배치
 → css/tablet.css의 Hero 인접 영역
 
-Market AI 실제 Phone 숨김 / mounted Hero layout 복원
+Market AI Phone 진입 버튼 / native dialog / mounted panel 이동
 → css/special.css의 Phone UI Shared 기능 viewport
 
 투자 계산기 HTML
@@ -1549,42 +1534,30 @@ calc/report 공통 CSS
 
 ```text
 ui-common       → core
-charts          → core + ui-common
-ui              → core + ui-common + charts
+modal           → 다른 dashboard module import 없음
+charts          → core + ui-common + modal
+ui              → core + ui-common + modal + charts
 pension         → core + ui-common + charts + ui
-pension-editor  → core + ui-common + ui
-app             → core + ui-common + charts + ui + pension + pension-editor
+pension-editor  → core + ui-common + modal + ui
+app             → core + ui-common + modal + charts + ui + pension + pension-editor
 
-standalone
-market-ai       → main graph import 없음
+standalone entry
+market-ai       → modal만 공유
 ```
 
-계층 원칙:
+`core`와 `modal`은 서로 독립된 저수준 foundation으로 유지하고 feature module을 역으로 import하지 않는다. `market-ai`도 modal lifecycle 외의 main feature module과 결합하지 않는다.
 
-```text
-core
-↑
-ui-common
-↑
-기능 모듈(charts / ui / pension / pension-editor)
-↑
-app
-```
-
-`ui`가 chart rendering을 포함하는 화면 조합을 위해 charts를 사용하고, pension View가 공통 card/UI helper를 위해 ui를 사용하는 현재 방향은 허용한다.
-
-반드시 유지할 불변조건:
+불변조건:
 
 ```text
 core → DOM/UI module import 금지
-ui-common → 화면별 기능 module import 금지
+ui-common / modal → 화면별 feature module import 금지
 charts → ui 역참조 금지
 하위 module → app import 금지
 pension View ↔ pension-editor 상호 import 금지
+market-ai → modal 외 main feature import 금지
 circular import = 0
 ```
-
-새 dependency가 필요하면 현재 방향 안에서 자연스럽게 표현할 수 있는지 먼저 판단한다.
 
 ## 4.14 ES Module import / export 운영 규칙
 
@@ -1645,50 +1618,16 @@ importmap
 
 ## 4.16 main graph 단일 entry와 Market AI standalone 분리를 유지한다
 
-현재 main dependency graph는 **7개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 이 graph와 분리된 두 번째 standalone entry이며 main boot 책임을 공유하지 않는다.
-
-현재 기본 구조:
+현재 main dependency graph는 **8개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 두 번째 standalone entry로 main boot 책임을 공유하지 않고, 공통 저수준 `dashboard-modal.js`만 import한다.
 
 ```text
 index.html
-└─ <script type="module" src="js/dashboard-app.js?...">
-
-core
-↑
-ui-common
-↑
-├─ charts
-├─ ui ──→ charts
-├─ pension ──→ charts + ui
-├─ pension-editor ──→ ui
-└─ app ──→ charts + ui + pension + pension-editor
+├─ dashboard-app.js      → main graph 8모듈
+└─ dashboard-market-ai.js
+   └─ dashboard-modal.js → dialog lifecycle만 공유
 ```
 
-실제 dependency는 named `import / export`로 표현하며 circular import는 허용하지 않는다.
-
-단순 기능 수정 과정에서 다음으로 다시 구조를 변경하지 않는다.
-
-```text
-classic script 다중 load
-window/globalThis compatibility bridge
-React
-Vue
-TypeScript
-Webpack/Vite
-npm/bundler 프로젝트화
-새 framework
-```
-
-특히 ES Module 문제를 우회하기 위해:
-
-```js
-window.someFunction = ...
-globalThis.dashboard = ...
-```
-
-같은 임시 global bridge를 만들지 않는다.
-
-새 구조 개편은 사용자가 별도로 요청한 경우에만 검토한다.
+실제 dependency는 named `import / export`로 표현하며 circular import와 `window/globalThis` compatibility bridge를 허용하지 않는다. classic script 다중 load, framework/bundler 도입 같은 구조 개편은 사용자가 별도로 요청한 경우에만 검토한다.
 
 # 5. UI · Responsive · 반복 회귀 불변조건
 
@@ -2016,6 +1955,7 @@ listener 중복 또는 chart 이중 생성은 FAIL이다.
 
 - `400px 이하`에서는 메모 헤더 `메모`를 유지하고 각 행의 메모 내용만 정보 버튼으로 전환한다.
 - 정보 버튼의 floating tooltip은 table stacking context에 가려지지 않도록 body 레벨에서 표시하고, viewport를 벗어나지 않게 위치를 보정한다.
+- Tooltip은 일반 메모와 같은 문장 분리 및 `memoJoinFirstTwo` 흐름을 사용하되 **표 전용 source-link 강조 markup은 생성하지 않고 regular 텍스트로 표시**한다.
 - outside click / ESC / scroll / resize 등에서 열린 tooltip 상태를 정리한다.
 - `401px 이상`에서는 메모 텍스트를 직접 표시한다. **세로 Mobile / 실제 가로폰의 table view**에서는 문장 단위 흐름을 유지하고, **세로 Mobile card view**에서는 카드 폭에 맞춰 자연스럽게 줄바꿈한다.
 - 계좌 메모 전용 class/action은 `accounts-memo-*` 계열을 사용하며 chart 전용 tooltip class를 재사용하지 않는다.
@@ -2151,24 +2091,12 @@ tablet.css
 
 special.css
 → Market AI용 Compact Desktop override는 두지 않는다.
-→ Phone UI Shared block 첫 부분에서 Market AI 숨김 + mounted Hero layout 복원
+→ Phone UI Shared에서 Hero의 Desktop panel을 숨기고 AI Signal trigger + native dialog로 같은 panel을 이동·재사용
 ```
 
 특수 media가 같은 조건을 공유하는 경우 media block을 불필요하게 복제하기보다 하나의 trigger block 안에서 기능별 sub-comment를 분리하고, 상단 `Scope` 주석에 포함 기능을 정확히 적는다.
 
-`tablet.css`, `mobile.css` 내부의 기능 섹션 순서는 가능한 한 동일하게 맞춰 common baseline과 각 viewport 차이를 빠르게 비교할 수 있게 한다. 예:
-
-```text
-01 Topbar
-02 Hero
-03 KPI
-04 Securities
-05 Pension
-06 Tables
-07 Charts
-08 Ledger
-09 Modal
-```
+17차 구조 정리 이후 각 CSS 파일 상단의 Scope/Structure map과 본문의 번호 섹션은 **1:1로 대응**해야 한다. 섹션 순서는 해당 파일의 실제 source order를 Source of Truth로 보고, 문서에 별도의 고정 번호표를 중복 저장하지 않는다.
 
 새 특수 breakpoint를 단순 미관 보정용으로 추가하지 않는다. 실제 레이아웃/정보구조 문제를 해결해야 할 때만 추가하고, `special.css`에 **기능명 + 존재 이유**를 주석으로 남긴다.
 
@@ -2437,13 +2365,14 @@ Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유�
 --surface-pad-mini
 --surface-pad-metric
 --surface-pad-emphasis
---surface-pad-mobile-data
+--surface-pad-data-list
 ```
 
 - Outer: `.pension-band`, `.securities-band`
 - Large: `.card`, `.note`, `.chart-card`
 - Medium: `.asset-insight-card`, `.source-card`
 - Mini: `.mini-card`
+- Data List: `.data-list-card`를 모바일 카드보기와 Market AI compact group이 공유하며 `--surface-pad-data-list`, `--surface-radius-data-list`, `--shadow-data-list-card`, `--data-list-row-separator` contract를 함께 사용한다.
 - Metric/Emphasis는 `.card` 기반 variant다.
 - base selector가 semantic token을 소유하고 Tablet/Phone에서는 **token 값만 변경**한다. 같은 padding/radius를 responsive selector에 반복하지 않는다.
 
@@ -2599,6 +2528,12 @@ style="..."
 - data refresh
 
 비슷한 로직을 각 파일에 복사하지 않는다.
+
+## 7.5 JS Structure Map / 책임 주석
+
+18차 구조 정리 이후 9개 `dashboard-*.js`는 파일 상단 Structure Map과 본문의 번호 섹션을 **1:1로 대응**시킨다. 번호 자체를 changelog로 사용하지 않고, 실행 흐름과 ownership 탐색을 위한 구조 표지로만 사용한다. 기능 수정 시 코드와 주석 책임이 달라지면 같은 작업에서 Structure Map도 함께 정합화한다.
+
+코드를 그대로 읽어주는 주석은 늘리지 않고 module ownership, 예외, lifecycle 경계처럼 코드만으로 바로 알기 어려운 이유를 설명한다.
 
 # 8. Calc · Report 유지보수 규칙
 
@@ -2798,6 +2733,7 @@ Python / Workflow 유지보수 구조:
 | CSS 기능군 정리 | component / viewport 역할과 cascade 책임 재정비 |
 | CSS viewport 재편 | 현재 6파일 `common / tablet / mobile / special / interaction / print` 구조 확립 |
 | 후속 정리 | `!important` 제거, Desktop baseline 흡수, Phone UI 역할 최소화, dead/legacy 정리 |
+| UI 시스템 통합 리팩토링 (1~18차) | 제목·카드·컨트롤·차트·모달·표·페이지·Feedback·Theme/Corner·Print·Market AI를 공통 primitive/semantic token으로 정리하고, Data List Card와 Modal lifecycle 공통화 및 CSS 6파일·JS 9파일 구조/주석 체계를 확정 |
 
 세부 작업일지는 Git 이력 또는 당시 작업 결과물로 확인하고, handover에 다시 누적하지 않는다.
 
@@ -2823,6 +2759,7 @@ Desktop은 `common.css` baseline을 사용한다. `style.css`, `desktop.css`, �
 ```text
 dashboard-core.js
 dashboard-ui-common.js
+dashboard-modal.js
 dashboard-charts.js
 dashboard-ui.js
 dashboard-pension.js
@@ -2830,7 +2767,7 @@ dashboard-pension-editor.js
 dashboard-app.js
 ```
 
-`dashboard-app.js`가 main graph entry이며, `dashboard-market-ai.js`는 standalone adapter로 분리한다.
+`dashboard-app.js`가 main graph entry이며, `dashboard-market-ai.js`는 standalone entry로 분리하되 `dashboard-modal.js`의 dialog lifecycle만 공유한다.
 
 ### add
 
@@ -2864,8 +2801,8 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 [ ] 과거 코드 기억을 최신본으로 가정하지 않았는가
 [ ] 현재 ES Module 구조를 유지하는가
 [ ] 수정 책임 파일이 맞는가
-[ ] standalone Market AI 변경이면 main 7모듈 graph와 불필요하게 결합하지 않았는가
-[ ] 로컬 런처/Bridge 변경이면 eFriend Ready(efexpertmain.exe) → Bridge → Market AI API → Dashboard 순서, single-UAC/tray, eFriend 포함 전체 종료와 Bridge/eFriend 정상 종료 경로를 보존했는가
+[ ] standalone Market AI 변경이면 `dashboard-modal.js` 외 main feature module과 불필요하게 결합하지 않았는가
+[ ] 로컬 런처/Bridge 변경이면 eFriend Ready(efexpertmain.exe) → Bridge → Market AI API → Dashboard 순서, single-UAC/tray, eFriend 포함 전체 종료 동작을 보존했는가
 [ ] 공통 canonical CSS rule을 먼저 찾았는가
 [ ] 새 breakpoint가 정말 필요한가
 [ ] Phone Landscape 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하는가
