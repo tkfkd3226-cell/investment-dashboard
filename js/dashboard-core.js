@@ -42,9 +42,7 @@ const SECURITY_SYMBOL_COLORS=Object.freeze({
   '삼성전자':'#8bc34a',
   '현대차':'#26c6da',
   'KODEX 200':'#4f46e5',
-  'KoAct 코스닥액티브':'#ffa726',
   'KODEX AI반도체':'#ec4899',
-  'KODEX 로봇액티브':'#29b6f6',
   '삼성전기':'#8D6E63'
 });
 const CASH_ASSET_COLOR='#94a3b8';
@@ -364,7 +362,6 @@ const hasPensionData=d=>{const pp=dataState.prices?.[d]?.pension||{};return !!(p
 // [CORE05] Securities Ledger / Price Lookup · 증권 원장 / 가격 조회
 function previousDate(date){return allAvailableDates().filter(d=>d<date).sort(byDate).at(-1)||null}
 function getPrice(s,section,ticker){return s?.[section]?.[ticker]??null}
-const marketPriceForDate=(date,section,ticker)=>getPrice(dataState.prices?.[date],section,ticker);
 const securityEventItems=()=>Array.isArray(dataState.portfolio?.securitiesEvents)?dataState.portfolio.securitiesEvents:[];
 const securityChartItemsForDate=d=>(dataState.portfolio?.securities||[]).filter(item=>item.chart!==false&&(!item.chartFrom||d>=item.chartFrom));
 const securityValuationOverride=(ticker,d)=>{const e=securityEventItems().find(v=>String(v?.ticker||'')===String(ticker||'')&&String(v?.date||'')===String(d||'')&&Number(v?.valuationPrice)>0);return e?Number(e.valuationPrice):null};
@@ -677,18 +674,6 @@ function symbolHistory(d){
     return row;
   });
 }
-function assetPriceHistory(d,items=[],priceSection='securities'){
-  const source=Array.isArray(items)?items:[];
-  const assets=source.map(item=>({name:String(item?.name||'').trim(),ticker:String(item?.ticker||'').trim()})).filter(item=>item.name&&item.ticker);
-  return Object.keys(dataState.prices||{}).filter(date=>date<=d&&dataState.prices?.[date]?.display!==false).sort(byDate).map(date=>{
-    const snapshot=dataState.prices?.[date]||{},row={'날짜':date,'_marketStatus':snapshot.marketStatus||'close'};
-    assets.forEach(item=>{
-      const value=Number(marketPriceForDate(date,priceSection,item.ticker));
-      row[item.name]=Number.isFinite(value)&&value>0?value:null;
-    });
-    return row;
-  }).filter(row=>assets.some(item=>Number.isFinite(Number(row[item.name]))));
-}
 function allocHistory(d){
   return snapshotDates(d).map(x=>{
     const v=calc(x),typeTotals=securityAllocTypeTotals(v);
@@ -847,7 +832,6 @@ export {
   securityExcludedTransferSum,
   securityExternalContributionSum,
   securityInternalCashTransferSum,
-  assetPriceHistory,
   securitySymbolAllocHistory,
   securitiesScopeText,
   separateProfitCumulativeForDate,

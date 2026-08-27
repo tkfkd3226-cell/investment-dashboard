@@ -1194,13 +1194,8 @@ section{
   padding:var(--surface-pad-mini);
   min-width:0;
 }
-.chart-date-jump,
-.chart-choice-card{
+.chart-date-jump{
   cursor:pointer;
-}
-.chart-choice-card[aria-pressed="true"]{
-  border-color:var(--interaction-border-accent);
-  box-shadow:var(--shadow-hover-surface);
 }
 .mini-card .m-label{
   font-size:var(--mini-label-size);
