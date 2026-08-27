@@ -919,7 +919,7 @@ function priceChartColor(account,name){
   return account==='pension'?pensionSeriesColor(name):(SECURITY_SYMBOL_COLORS[name]||securityAllocationColor(name));
 }
 function priceChartSwatch(account,name){
-  return account==='pension'?pensionProductSwatch(name):securitySymbolSwatch(name);
+  return chartSeriesSwatch(priceChartColor(account,name));
 }
 function priceChartCardItems(account,date,orderedAssets){
   const config=PRICE_CHART_ACCOUNT[account];
