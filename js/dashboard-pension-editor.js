@@ -54,7 +54,9 @@ const pensionEditorState={
   batchLastAddFingerprint:'',
   batchLastAddAt:0,
   batchApplying:false,
-  batchRequestId:''
+  batchRequestId:'',
+  singleSaveFingerprint:'',
+  singleSaveId:''
 };
 
 const defaultPensionContributionDate=d=>{
@@ -715,6 +717,7 @@ function resetPensionContributionForm(){
   clearPensionContributionStatus('pensionBatchStatus');
   pensionEditorState.batchLastAddFingerprint='';
   pensionEditorState.batchLastAddAt=0;
+  resetPensionSingleSaveIdentity();
   updatePensionEtfTradePreview();
   const queuedCount=pensionEditorState.batchQueue.length;
   showPensionToast(queuedCount?'입력값만 초기화했습니다.':'입력값을 초기화했습니다.');
@@ -1149,6 +1152,28 @@ async function applyPensionBatchQueue(renderDashboard){
 }
 
 // [PEDIT09] Persistence / Save/Delete · 저장 / 삭제
+function pensionSingleSaveFingerprint(item){
+  if(item?.target==='contribution')return `contribution|${String(item.date||'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
+  if(item?.target==='etfTrade')return `etfTrade|${String(item.tradeDate||'')}|${String(item.ticker||'')}|${String(item.qty??'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
+  return '';
+}
+function resetPensionSingleSaveIdentity(){
+  pensionEditorState.singleSaveFingerprint='';
+  pensionEditorState.singleSaveId='';
+}
+function preparePensionSingleSaveItem(item){
+  if(!item||!['contribution','etfTrade'].includes(item.target))return item;
+  const fingerprint=pensionSingleSaveFingerprint(item);
+  if(!fingerprint)return item;
+  if(pensionEditorState.singleSaveFingerprint!==fingerprint||!pensionEditorState.singleSaveId){
+    const uuid=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
+    const date=item.target==='contribution'?String(item.date||kstTodayText()):kstTodayText();
+    const suffix=item.target==='etfTrade'?`-${String(item.ticker||'unknown').replace(/[^A-Za-z0-9._:-]/g,'')}`:'';
+    pensionEditorState.singleSaveFingerprint=fingerprint;
+    pensionEditorState.singleSaveId=`${item.target==='contribution'?'contrib':'trade'}-${date}${suffix}-${uuid}`;
+  }
+  return {...item,id:pensionEditorState.singleSaveId};
+}
 async function savePensionContributionViaGithubPages(item,pin){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
   if(!config.url || config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
@@ -1176,7 +1201,7 @@ async function savePensionContribution(){
         throw pensionBatchDuplicateError('이미 추가된 작업입니다.','PENSION_BATCH_DUPLICATE');
       }
     }
-    const item=buildPensionContributionItem();
+    let item=buildPensionContributionItem();
     const targetText=pensionContributionTargetLabel(item.target);
     if(pensionEditorState.batchMode){
       addPensionBatchOperation({action:'upsert',target:item.target,item});
@@ -1192,12 +1217,13 @@ async function savePensionContribution(){
       showPensionToast('작업 모음에 추가했습니다.');
       return;
     }
+    const saveItem=preparePensionSingleSaveItem(item);
     clearPensionContributionStatus('pensionContribStatus');
     showPensionContributionOutput(item);
     const data=await requestPensionActionPin({
       title:`${targetText} 저장`,
       description:pensionSavePinDescription(item),
-      execute:pin=>savePensionContributionViaGithubPages(item,pin)
+      execute:pin=>savePensionContributionViaGithubPages(saveItem,pin)
     });
     if(!data){clearPensionContributionOutput();return}
     if(data.item){
@@ -1211,8 +1237,11 @@ async function savePensionContribution(){
       }
       syncPensionContributionDeleteCard(item.target);
     }
+    resetPensionSingleSaveIdentity();
     clearPensionContributionStatus('pensionContribStatus');
-    showPensionToast(`${pensionContributionTargetObjectLabel(item.target)} 저장했습니다.`);
+    showPensionToast(data.duplicate
+      ?`${pensionContributionTargetObjectLabel(item.target)} 이미 반영된 요청을 확인했습니다.`
+      :`${pensionContributionTargetObjectLabel(item.target)} 저장했습니다.`);
   }catch(e){
     if(showPensionBatchDuplicateToast(e)){clearPensionContributionStatus('pensionContribStatus');return}
     if(e?.code==='PENSION_EDITOR_INTERNAL'){console.error('[Pension editor]',e);clearPensionContributionStatus('pensionContribStatus');return}

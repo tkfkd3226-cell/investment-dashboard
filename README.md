@@ -380,6 +380,8 @@ data/pension_contributions.json
 
 - 운영 인증값과 GitHub 연동 정보는 Apps Script의 Script Properties에서 관리합니다.
 - 프런트엔드는 배포된 GAS Web App URL을 호출합니다.
+- `upsert`/`delete`는 허용된 pension target만 처리하고, 알 수 없는 action/target은 다른 작업으로 fallback하지 않고 거부합니다.
+- 기업적립금·ETF 추가매수 단건 저장은 프런트에서 생성한 요청 ID를 실패·재시도 동안 유지하며, GAS는 같은 ID·같은 내용이 이미 반영된 경우 추가 GitHub write 없이 기존 결과를 반환합니다.
 - GAS 수정·검증이 필요한 경우에는 사용자가 별도로 제공한 최신 운영 소스를 기준으로 확인합니다.
 - 운영 Web App 코드가 변경되면 배포 버전도 함께 갱신해야 실제 `/exec` 호출에 반영됩니다.
 
