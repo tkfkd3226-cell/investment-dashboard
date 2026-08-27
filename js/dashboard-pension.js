@@ -13,6 +13,7 @@ import {
   won
 } from './dashboard-core.js';
 import {
+  metricCard,
   mobileTableAssetName,
   pensionProductSwatch,
   renderAssetContributionCard,
@@ -21,12 +22,6 @@ import {
   renderAssetWeight
 } from './dashboard-ui-common.js';
 import { renderPensionCharts } from './dashboard-charts.js';
-import {
-  metricCard,
-  mobileInfoCard,
-  mobileViewAttrs,
-  mobileViewToggle
-} from './dashboard-ui.js';
 
 // Pension Rendering · summary / product status / daily change / section composition
 // Structure map:
@@ -151,10 +146,7 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
     rows,
     summaryRows,
     cards,
-    afterHtml:`<p class="small section-explainer">※ 매수원금 합계는 현재 보유상품 재투자 기준</p>${renderPensionProductInsights(x)}`,
-    mobileViewAttrs,
-    mobileViewToggle,
-    mobileInfoCard
+    afterHtml:`<p class="small section-explainer">※ 매수원금 합계는 현재 보유상품 재투자 기준</p>${renderPensionProductInsights(x)}`
   });
 }
 
@@ -224,10 +216,7 @@ function renderPensionChangeBlock(x,orderedPensionRows,day,rate){
     rows,
     summaryRows,
     cards,
-    noPrevHtml:'<div class="asset-no-prev-note">전일 데이터가 없습니다.</div>',
-    mobileViewAttrs,
-    mobileViewToggle,
-    mobileInfoCard
+    noPrevHtml:'<div class="asset-no-prev-note">전일 데이터가 없습니다.</div>'
   });
 }
 // [PENSION03] Section Composition · 퇴직연금 섹션 조합

@@ -22,17 +22,15 @@ import {
 } from './dashboard-core.js';
 import {
   escapeHtml,
-  navIconSvg
+  forceMobileViewportReflow,
+  navIconSvg,
+  showAppToast
 } from './dashboard-ui-common.js';
 import {
   bindDashboardModalDismiss,
   closeDashboardModal,
   openDashboardModal
 } from './dashboard-modal.js';
-import {
-  forceMobileViewportReflow,
-  showAppToast
-} from './dashboard-ui.js';
 
 // Pension Editor · 금액조정 / PIN / batch / persistence
 // Structure map:

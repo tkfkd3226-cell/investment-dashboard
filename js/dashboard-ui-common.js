@@ -8,17 +8,36 @@ import {
 // Dashboard UI Common · feature-neutral DOM / markup / responsive helpers
 // Ownership: business state는 feature module이 소유하고, 이 모듈은 공통 표현과 저수준 interaction만 제공한다.
 // Structure map:
-//   [UICOMMON01] Responsive Predicate
+//   [UICOMMON01] Responsive Predicate / Shared View State
 //   [UICOMMON02] Icon / Markup Helpers
-//   [UICOMMON03] Asset Shared Renderers
-//   [UICOMMON04] Asset Tooltip Interaction
-//   [UICOMMON05] Public API
+//   [UICOMMON03] Shared Cards / Mobile Data View
+//   [UICOMMON04] Asset Shared Renderers
+//   [UICOMMON05] Feedback / Viewport Utilities
+//   [UICOMMON06] Asset Tooltip Interaction
+//   [UICOMMON07] Public API
 
-// [UICOMMON01] Responsive Predicate · 반응형 UI 판정
+// [UICOMMON01] Responsive Predicate / Shared View State · 반응형 판정 / 공통 보기 상태
 const PHONE_LANDSCAPE_QUERY='(orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
 function phoneLandscapeUi(){
   return window.matchMedia?.(PHONE_LANDSCAPE_QUERY).matches===true;
 }
+
+const mobileViewModes={
+  combined:'table',
+  pensionProducts:'table',
+  holdings:'table',
+  securitiesChange:'table',
+  accounts:'table',
+  pensionChange:'table'
+};
+const MOBILE_VIEW_META=Object.freeze({
+  holdings:{label:'보유종목 현황',controls:'securities-holdings-table-view securities-holdings-card-view'},
+  securitiesChange:{label:'전일 대비 변동',controls:'securities-change-table-view securities-change-card-view'},
+  combined:{label:'연금+계좌 성과',controls:'combined-table-view combined-card-view'},
+  accounts:{label:'계좌별 성과 요약',controls:'accounts-table-view accounts-card-view'},
+  pensionProducts:{label:'퇴직연금 상품별 현황',controls:'pension-products-table-view pension-products-card-view'},
+  pensionChange:{label:'전일 대비 변동',controls:'pension-change-table-view pension-change-card-view'}
+});
 
 // [UICOMMON02] Icon / Markup Helpers · 아이콘 / 마크업 helper
 const NAV_ICON_ATTRS='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"';
@@ -86,7 +105,35 @@ function mobileTableAssetName(name=''){
 }
 
 
-// [UICOMMON03] Asset Shared Renderers · 자산 공통 renderer
+// [UICOMMON03] Shared Cards / Mobile Data View · 공통 카드 / 모바일 데이터 보기
+function metricCard(label,value,sub,dark=false,vcls='',mobileSub=''){const accessibleLabel=escapeHtml(String(label||'').replace(/<[^>]*>/g,'').trim()),subContent=mobileSub?`<span class="metric-sub-default">${sub}</span><span class="metric-sub-mobile">${mobileSub}</span>`:sub;return `<article class="card metric-card ${dark?'dark':''}" aria-label="${accessibleLabel}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${subContent}</div></article>`}
+function mobileViewMode(key){return mobileViewModes[key]||'card'}
+function mobileViewAttrs(key){return `data-mobile-view-key="${key}" data-mobile-view="${mobileViewMode(key)}"`;}
+function mobileViewToggle(key){
+  const mode=mobileViewMode(key);
+  const action=mode==='card'?'표 보기':'카드 보기';
+  const meta=MOBILE_VIEW_META[key]||{label:'데이터 보기',controls:''};
+  return `<button type="button" class="section-control-chip section-action-chip control-text-toggle mobile-view-toggle" data-mobile-view-button="${key}" data-dashboard-action="toggle-mobile-view" data-mobile-view-key="${key}" aria-label="${meta.label} ${action}"${meta.controls?` aria-controls="${meta.controls}"`:''}>${action}</button>`;
+}
+function setMobileViewMode(key,mode){
+  const next=mode==='table'?'table':'card';
+  mobileViewModes[key]=next;
+  document.querySelectorAll(`[data-mobile-view-key="${key}"]`).forEach(el=>el.dataset.mobileView=next);
+  const meta=MOBILE_VIEW_META[key]||{label:'데이터 보기'};
+  const action=next==='card'?'표 보기':'카드 보기';
+  document.querySelectorAll(`[data-mobile-view-button="${key}"]`).forEach(btn=>{
+    btn.textContent=action;
+    btn.setAttribute('aria-label',`${meta.label} ${action}`);
+  });
+  return next;
+}
+function toggleMobileViewMode(key){return setMobileViewMode(key,mobileViewMode(key)==='card'?'table':'card');}
+function mobileInfoCard(title,items=[],extraClass='',accessibleLabel=''){
+  const accessibleTitle=escapeHtml(String(accessibleLabel||title||'').replace(/<[^>]*>/g,'').replace(/■/g,'').trim());
+  return `<article class="data-list-card mobile-data-card ${extraClass}" aria-label="${accessibleTitle}"><div class="data-list-card-title mobile-data-card-title">${title}</div><div class="mobile-data-card-list">${items.map(item=>{const [label,value,valueClass='',rowClass='']=item;return `<div class="mobile-data-card-row ${rowClass}"><span class="data-list-card-label mobile-data-card-label">${label}</span><span class="data-list-card-value mobile-data-card-value ${valueClass}">${value}</span></div>`}).join('')}</div></article>`;
+}
+
+// [UICOMMON04] Asset Shared Renderers · 자산 공통 renderer
 // 자산별 계산은 adapter가 소유하고, 이 레이어는 표현 contract만 담당한다.
 function renderAssetTableRows(rows=[]){
   return rows.map(row=>`<tr${row.className?` class="${row.className}"`:''}><th scope="row"${row.labelClass?` class="${row.labelClass}"`:''}>${row.labelHtml??''}</th>${(row.cells||[]).map(cell=>`<td${cell.className?` class="${cell.className}"`:''}>${cell.html??''}</td>`).join('')}</tr>`).join('');
@@ -94,8 +141,7 @@ function renderAssetTableRows(rows=[]){
 function renderAssetTableHead(columns=[]){
   return columns.map(column=>`<th scope="col"${column.className?` class="${column.className}"`:''}>${column.label??''}</th>`).join('');
 }
-function renderAssetMobileCards(cards=[],mobileInfoCard){
-  if(typeof mobileInfoCard!=='function')return '';
+function renderAssetMobileCards(cards=[]){
   return cards.map(card=>mobileInfoCard(card.title,card.items||[],card.extraClass||'',card.accessibleLabel||'')).join('');
 }
 function renderAssetStatusBlock({
@@ -111,15 +157,12 @@ function renderAssetStatusBlock({
   rows=[],
   summaryRows=[],
   cards=[],
-  afterHtml='',
-  mobileViewAttrs,
-  mobileViewToggle,
-  mobileInfoCard
+  afterHtml=''
 }={}){
-  const viewAttrs=typeof mobileViewAttrs==='function'?mobileViewAttrs(viewStateKey):'';
-  const toggle=typeof mobileViewToggle==='function'?mobileViewToggle(viewStateKey):'';
+  const viewAttrs=mobileViewAttrs(viewStateKey);
+  const toggle=mobileViewToggle(viewStateKey);
   const tableRows=renderAssetTableRows([...rows,...summaryRows]);
-  const cardHtml=renderAssetMobileCards(cards,mobileInfoCard);
+  const cardHtml=renderAssetMobileCards(cards);
   return `<div class="${sectionClass}" id="${sectionId}"${viewAttrs?` ${viewAttrs}`:''}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${title}</h2>${toggle}</div><div id="${idPrefix}-table-view" class="mobile-scroll table-view"><table class="${tableClass}"><caption class="visually-hidden">${caption}</caption><thead><tr>${renderAssetTableHead(columns)}</tr></thead><tbody>${tableRows}</tbody></table></div><div id="${idPrefix}-card-view" class="mobile-card-view">${cardHtml}</div>${afterHtml}</div>`;
 }
 function renderAssetDayChangeBlock({
@@ -140,16 +183,13 @@ function renderAssetDayChangeBlock({
   rows=[],
   summaryRows=[],
   cards=[],
-  noPrevHtml='',
-  mobileViewAttrs,
-  mobileViewToggle,
-  mobileInfoCard
+  noPrevHtml=''
 }={}){
-  const viewAttrs=typeof mobileViewAttrs==='function'?mobileViewAttrs(viewStateKey):'';
+  const viewAttrs=mobileViewAttrs(viewStateKey);
   const showDetail=hasPrev||renderWithoutPrev;
-  const toggle=showDetail&&typeof mobileViewToggle==='function'?mobileViewToggle(viewStateKey):'';
+  const toggle=showDetail?mobileViewToggle(viewStateKey):'';
   const content=showDetail
-    ? `<div class="change-kpis">${summaryItems.map(item=>`<div class="mini-card"><div class="m-label">${item.label??''}</div><div class="m-value ${item.valueClass||''}">${item.value??''}</div></div>`).join('')}</div><div id="${idPrefix}-table-view" class="${tableWrapClass}"><table class="${tableClass}"><caption class="visually-hidden">${caption}</caption><thead><tr>${renderAssetTableHead(columns)}</tr></thead><tbody>${renderAssetTableRows([...rows,...summaryRows])}</tbody></table></div><div id="${idPrefix}-card-view" class="${cardClass}">${renderAssetMobileCards(cards,mobileInfoCard)}</div>`
+    ? `<div class="change-kpis">${summaryItems.map(item=>`<div class="mini-card"><div class="m-label">${item.label??''}</div><div class="m-value ${item.valueClass||''}">${item.value??''}</div></div>`).join('')}</div><div id="${idPrefix}-table-view" class="${tableWrapClass}"><table class="${tableClass}"><caption class="visually-hidden">${caption}</caption><thead><tr>${renderAssetTableHead(columns)}</tr></thead><tbody>${renderAssetTableRows([...rows,...summaryRows])}</tbody></table></div><div id="${idPrefix}-card-view" class="${cardClass}">${renderAssetMobileCards(cards)}</div>`
     : noPrevHtml;
   return `<div class="${sectionClass}" id="${sectionId}"${viewAttrs?` ${viewAttrs}`:''}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${title}</h2>${toggle}</div>${content}</div>`;
 }
@@ -184,7 +224,43 @@ function renderAssetContributionCard({
   return `<div class="${cardClass}" role="group" aria-labelledby="${titleId}"><div class="${headClass}"><h3 id="${titleId}">${title}</h3></div>${content}</div>`;
 }
 
-// [UICOMMON04] Asset Tooltip Interaction · 자산 시각화 툴팁 상호작용
+// [UICOMMON05] Feedback / Viewport Utilities · 토스트 / 모바일 viewport 보정
+function ensureAppToast(){
+  let toast=document.getElementById('appToast');
+  if(!toast){
+    toast=document.createElement('div');
+    toast.id='appToast';
+    toast.className='app-toast';
+    toast.setAttribute('role','status');
+    toast.setAttribute('aria-live','polite');
+    toast.setAttribute('aria-atomic','true');
+    document.body.appendChild(toast);
+  }
+  return toast;
+}
+function showAppToast(message,type='ok',delay=3500){
+  const toast=ensureAppToast();
+  toast.className=`app-toast show ${type==='err'?'err':'ok'}`;
+  toast.textContent=message;
+  clearTimeout(showAppToast._timer);
+  showAppToast._timer=setTimeout(()=>toast.classList.remove('show'),delay);
+}
+function forceMobileViewportReflow(){
+  const y=window.scrollY||document.documentElement.scrollTop||0;
+  if(document.activeElement&&typeof document.activeElement.blur==='function')document.activeElement.blur();
+  setTimeout(()=>{
+    window.scrollTo({top:y,left:0,behavior:'auto'});
+    window.scrollBy(0,1);
+    window.scrollBy(0,-1);
+    document.body.style.transform='translateZ(0)';
+    requestAnimationFrame(()=>{
+      document.body.style.transform='';
+      window.dispatchEvent(new Event('resize'));
+    });
+  },120);
+}
+
+// [UICOMMON06] Asset Tooltip Interaction · 자산 시각화 툴팁 상호작용
 const assetVizTooltipZoneSelectors=new Set();
 let assetVizTooltipTouchBound=false;
 function setupAssetVizTooltips(zoneSelector){
@@ -326,18 +402,25 @@ function setupAssetVizTooltips(zoneSelector){
   document.addEventListener('scroll',()=>closeTooltips(null),true);
 }
 
-// [UICOMMON05] Public API
+// [UICOMMON07] Public API
 export {
+  chartSeriesSwatch,
+  escapeHtml,
+  forceMobileViewportReflow,
+  metricCard,
+  mobileInfoCard,
+  mobileTableAssetName,
+  mobileViewAttrs,
+  mobileViewToggle,
+  navIconSvg,
+  pensionProductSwatch,
+  phoneLandscapeUi,
   renderAssetContributionCard,
   renderAssetDayChangeBlock,
   renderAssetStatusBlock,
   renderAssetWeight,
-  chartSeriesSwatch,
-  escapeHtml,
-  mobileTableAssetName,
-  navIconSvg,
-  pensionProductSwatch,
-  phoneLandscapeUi,
   securitySymbolSwatch,
-  setupAssetVizTooltips
+  setupAssetVizTooltips,
+  showAppToast,
+  toggleMobileViewMode
 };

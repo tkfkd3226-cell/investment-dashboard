@@ -31,14 +31,21 @@ import {
 } from './dashboard-core.js';
 import {
   escapeHtml,
+  forceMobileViewportReflow,
+  metricCard,
+  mobileInfoCard,
   mobileTableAssetName,
+  mobileViewAttrs,
+  mobileViewToggle,
   navIconSvg,
   phoneLandscapeUi,
   renderAssetContributionCard,
   renderAssetDayChangeBlock,
   renderAssetStatusBlock,
   renderAssetWeight,
-  securitySymbolSwatch
+  securitySymbolSwatch,
+  showAppToast,
+  toggleMobileViewMode
 } from './dashboard-ui-common.js';
 import {
   bindDashboardModalDismiss,
@@ -57,10 +64,10 @@ import {
 //   [UI02] Section Controls / Title Icons
 //   [UI03] Navigation / TOC
 //   [UI04] Topbar / Date Menu State
-//   [UI05] Shared Rendering / Responsive View Helpers
+//   [UI05] Date Tabs / Mobile Data View Routing
 //   [UI06] Mobile Top Button
 //   [UI07] Date Action Menu / Global UI Events
-//   [UI08] KRX Action Modal / Toast
+//   [UI08] KRX Action Modal
 //   [UI09] Asset Workspace Navigation
 //   [UI10] Securities Rendering
 //   [UI11] Accounts / Capital Source Tables
@@ -76,14 +83,6 @@ const uiRuntimeState={
   sectionNavigationBound:false,
   sectionNavigationFrame:0,
   securitiesPerformanceView:'overall'
-};
-const mobileViewModes={
-  combined:'table',
-  pensionProducts:'table',
-  holdings:'table',
-  securitiesChange:'table',
-  accounts:'table',
-  pensionChange:'table'
 };
 const currentCornerTheme=()=>document.documentElement.classList.contains('rounded-corners')?'rounded':'soft-square';
 function themeToggleIconMarkup(dark){
@@ -346,7 +345,7 @@ function setMobileDatePinned(pinned){
   try{localStorage.setItem(MOBILE_DATE_PIN_STORAGE_KEY,pinned?'1':'0')}catch(_){}
   syncMobileTopbarState();
 }
-// [UI05] Shared Rendering / Responsive View Helpers · 공통 렌더링 / 반응형 보기 helper
+// [UI05] Date Tabs / Mobile Data View Routing · 날짜 탭 / 모바일 데이터 보기 라우팅
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=dataState.activeDate.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
   document.getElementById('tabs').innerHTML=`
@@ -388,42 +387,9 @@ function renderTabs(){
     </div>`;
   syncMobileTopbarState();
 }
-function metricCard(label,value,sub,dark=false,vcls='',mobileSub=''){const accessibleLabel=escapeHtml(String(label||'').replace(/<[^>]*>/g,'').trim()),subContent=mobileSub?`<span class="metric-sub-default">${sub}</span><span class="metric-sub-mobile">${mobileSub}</span>`:sub;return `<article class="card metric-card ${dark?'dark':''}" aria-label="${accessibleLabel}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${subContent}</div></article>`}
-
-function mobileViewAttrs(key){
-  const mode=mobileViewModes[key]||'card';
-  return `data-mobile-view-key="${key}" data-mobile-view="${mode}"`;
-}
-const MOBILE_VIEW_META=Object.freeze({
-  holdings:{label:'보유종목 현황',controls:'securities-holdings-table-view securities-holdings-card-view'},
-  securitiesChange:{label:'전일 대비 변동',controls:'securities-change-table-view securities-change-card-view'},
-  combined:{label:'연금+계좌 성과',controls:'combined-table-view combined-card-view'},
-  accounts:{label:'계좌별 성과 요약',controls:'accounts-table-view accounts-card-view'},
-  pensionProducts:{label:'퇴직연금 상품별 현황',controls:'pension-products-table-view pension-products-card-view'},
-  pensionChange:{label:'전일 대비 변동',controls:'pension-change-table-view pension-change-card-view'}
-});
-function mobileViewToggle(key){
-  const mode=mobileViewModes[key]||'card';
-  const action=mode==='card'?'표 보기':'카드 보기';
-  const meta=MOBILE_VIEW_META[key]||{label:'데이터 보기',controls:''};
-  return `<button type="button" class="section-control-chip section-action-chip control-text-toggle mobile-view-toggle" data-mobile-view-button="${key}" data-dashboard-action="toggle-mobile-view" data-mobile-view-key="${key}" aria-label="${meta.label} ${action}"${meta.controls?` aria-controls="${meta.controls}"`:''}>${action}</button>`;
-}
 function toggleMobileDataView(key){
-  const current=mobileViewModes[key]||'card';
-  const next=current==='card'?'table':'card';
-  mobileViewModes[key]=next;
-  document.querySelectorAll(`[data-mobile-view-key="${key}"]`).forEach(el=>el.dataset.mobileView=next);
-  const meta=MOBILE_VIEW_META[key]||{label:'데이터 보기'};
-  const action=next==='card'?'표 보기':'카드 보기';
-  document.querySelectorAll(`[data-mobile-view-button="${key}"]`).forEach(btn=>{
-    btn.textContent=action;
-    btn.setAttribute('aria-label',`${meta.label} ${action}`);
-  });
+  toggleMobileViewMode(key);
   requestAnimationFrame(refreshScrollHints);
-}
-function mobileInfoCard(title,items=[],extraClass='',accessibleLabel=''){
-  const accessibleTitle=escapeHtml(String(accessibleLabel||title||'').replace(/<[^>]*>/g,'').replace(/■/g,'').trim());
-  return `<article class="data-list-card mobile-data-card ${extraClass}" aria-label="${accessibleTitle}"><div class="data-list-card-title mobile-data-card-title">${title}</div><div class="mobile-data-card-list">${items.map(item=>{const [label,value,valueClass='',rowClass='']=item;return `<div class="mobile-data-card-row ${rowClass}"><span class="data-list-card-label mobile-data-card-label">${label}</span><span class="data-list-card-value mobile-data-card-value ${valueClass}">${value}</span></div>`}).join('')}</div></article>`;
 }
 
 // [UI06] Mobile Top Button · 모바일 TOP 버튼
@@ -501,7 +467,7 @@ function setupUiGlobalEvents(){
     syncMobileTopbarState();
   },{passive:true});
 }
-// [UI08] KRX Action Modal / Toast · KRX 현재가 반영 모달 / 토스트
+// [UI08] KRX Action Modal · KRX 현재가 반영 모달
 async function dispatchKrxPriceUpdate(pin, mode='selected'){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
   const selectedDate=dataState.activeDate || '';
@@ -536,26 +502,6 @@ async function dispatchKrxPriceUpdate(pin, mode='selected'){
   }
 
   return data;
-}
-function ensureAppToast(){
-  let toast=document.getElementById('appToast');
-  if(!toast){
-    toast=document.createElement('div');
-    toast.id='appToast';
-    toast.className='app-toast';
-    toast.setAttribute('role','status');
-    toast.setAttribute('aria-live','polite');
-    toast.setAttribute('aria-atomic','true');
-    document.body.appendChild(toast);
-  }
-  return toast;
-}
-function showAppToast(message,type='ok',delay=3500){
-  const toast=ensureAppToast();
-  toast.className=`app-toast show ${type==='err'?'err':'ok'}`;
-  toast.textContent=message;
-  clearTimeout(showAppToast._timer);
-  showAppToast._timer=setTimeout(()=>toast.classList.remove('show'),delay);
 }
 function ensureKrxActionModal(){
   let modal=document.getElementById('krxActionModal');
@@ -602,23 +548,6 @@ function openKrxActionModal(){
   if(status){status.textContent='';status.className='action-modal-status krx-action-status'}
   input?.setAttribute('aria-invalid','false');
   openDashboardModal(modal,{initialFocus:input,fallbackSelector:'[data-dashboard-action="krx-update"]'});
-}
-
-function forceMobileViewportReflow(){
-  const y=window.scrollY||document.documentElement.scrollTop||0;
-  if(document.activeElement&&typeof document.activeElement.blur==='function'){
-    document.activeElement.blur();
-  }
-  setTimeout(()=>{
-    window.scrollTo({top:y,left:0,behavior:'auto'});
-    window.scrollBy(0,1);
-    window.scrollBy(0,-1);
-    document.body.style.transform='translateZ(0)';
-    requestAnimationFrame(()=>{
-      document.body.style.transform='';
-      window.dispatchEvent(new Event('resize'));
-    });
-  },120);
 }
 
 function closeKrxActionModal(){
@@ -898,10 +827,7 @@ function renderHoldings(x){
     rows,
     summaryRows,
     cards,
-    afterHtml:`<p class="small section-explainer">※ 투자원금 합계는 현재 보유상품 재투자 기준</p>${contributionHtml}`,
-    mobileViewAttrs,
-    mobileViewToggle,
-    mobileInfoCard
+    afterHtml:`<p class="small section-explainer">※ 투자원금 합계는 현재 보유상품 재투자 기준</p>${contributionHtml}`
   });
 }
 
@@ -959,10 +885,7 @@ function renderSecuritiesChangeBlock(x){
     ],
     rows,
     summaryRows,
-    cards,
-    mobileViewAttrs,
-    mobileViewToggle,
-    mobileInfoCard
+    cards
   });
 }
 function renderSecuritiesAssetDetail(x){
@@ -1197,23 +1120,17 @@ export {
   closeDateActionMenu,
   ensureDesktopEdgeToc,
   ensureMobileTopButton,
-  forceMobileViewportReflow,
   handleUiDashboardAction,
   handleUiDashboardChange,
   handleUiDashboardKeydown,
   hydrateSectionTitleIcons,
-  metricCard,
   dateActionMenuIsOpen,
-  mobileInfoCard,
-  mobileViewAttrs,
-  mobileViewToggle,
   renderCombined,
   renderSecuritiesSection,
   renderTabs,
   restoreDateActionMenuAfterRender,
   setupSectionNavigationTracking,
   setupUiGlobalEvents,
-  showAppToast,
   syncAssetTabs,
   syncCornerThemeControls,
   syncThemeControls
