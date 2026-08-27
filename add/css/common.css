@@ -10,12 +10,23 @@
   --navy:#1d3557;
   --positive:#EF3341;
   --negative:#3182F6;
+  --on-accent:#ffffff;
 
   /* 메인 대시보드 기본 Corner cap과 동일 */
   --corner-surface-cap:6px;
   --corner-control-cap:5px;
   --corner-inner-cap:4px;
   --radius-pill:999px;
+}
+
+/* Main과 같은 저장 테마를 Add에도 적용하되, 화면별 색상 토큰은 각 화면이 소유한다. */
+html.dark{
+  color-scheme:dark;
+  --ink:#e5e7eb;
+  --navy:#36506f;
+  --positive:#FF5964;
+  --negative:#60A5FA;
+  --on-accent:#ffffff;
 }
 
 /* 02. 공통 박스 모델 / 기본 글꼴 */
