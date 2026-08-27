@@ -364,7 +364,7 @@ const hasPensionData=d=>{const pp=dataState.prices?.[d]?.pension||{};return !!(p
 // [CORE05] Securities Ledger / Price Lookup · 증권 원장 / 가격 조회
 function previousDate(date){return allAvailableDates().filter(d=>d<date).sort(byDate).at(-1)||null}
 function getPrice(s,section,ticker){return s?.[section]?.[ticker]??null}
-const securityMarketPriceForDate=(date,ticker)=>getPrice(dataState.prices?.[date],'securities',ticker);
+const marketPriceForDate=(date,section,ticker)=>getPrice(dataState.prices?.[date],section,ticker);
 const securityEventItems=()=>Array.isArray(dataState.portfolio?.securitiesEvents)?dataState.portfolio.securitiesEvents:[];
 const securityChartItemsForDate=d=>(dataState.portfolio?.securities||[]).filter(item=>item.chart!==false&&(!item.chartFrom||d>=item.chartFrom));
 const securityValuationOverride=(ticker,d)=>{const e=securityEventItems().find(v=>String(v?.ticker||'')===String(ticker||'')&&String(v?.date||'')===String(d||'')&&Number(v?.valuationPrice)>0);return e?Number(e.valuationPrice):null};
@@ -677,17 +677,17 @@ function symbolHistory(d){
     return row;
   });
 }
-function securityPriceHistory(d,items=[]){
-  const source=Array.isArray(items)&&items.length?items:(dataState.portfolio?.securities||[]);
-  const securities=source.map(item=>({name:String(item?.name||'').trim(),ticker:String(item?.ticker||'').trim()})).filter(item=>item.name&&item.ticker);
+function assetPriceHistory(d,items=[],priceSection='securities'){
+  const source=Array.isArray(items)?items:[];
+  const assets=source.map(item=>({name:String(item?.name||'').trim(),ticker:String(item?.ticker||'').trim()})).filter(item=>item.name&&item.ticker);
   return Object.keys(dataState.prices||{}).filter(date=>date<=d&&dataState.prices?.[date]?.display!==false).sort(byDate).map(date=>{
     const snapshot=dataState.prices?.[date]||{},row={'날짜':date,'_marketStatus':snapshot.marketStatus||'close'};
-    securities.forEach(item=>{
-      const value=Number(securityMarketPriceForDate(date,item.ticker));
+    assets.forEach(item=>{
+      const value=Number(marketPriceForDate(date,priceSection,item.ticker));
       row[item.name]=Number.isFinite(value)&&value>0?value:null;
     });
     return row;
-  }).filter(row=>securities.some(item=>Number.isFinite(Number(row[item.name]))));
+  }).filter(row=>assets.some(item=>Number.isFinite(Number(row[item.name]))));
 }
 function allocHistory(d){
   return snapshotDates(d).map(x=>{
@@ -847,7 +847,7 @@ export {
   securityExcludedTransferSum,
   securityExternalContributionSum,
   securityInternalCashTransferSum,
-  securityPriceHistory,
+  assetPriceHistory,
   securitySymbolAllocHistory,
   securitiesScopeText,
   separateProfitCumulativeForDate,
