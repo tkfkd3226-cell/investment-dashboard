@@ -860,7 +860,7 @@ listener 중복 0
 `add/calc.js`의 계산/validation을 건드렸으면 일반 syntax 검사에 더해 반드시 실행한다.
 
 ```bash
-node --test tests/calc.test.cjs
+node --test add/calc.test.cjs
 ```
 
 현재 회귀테스트는 production `compute()`, `validate()`, `ceil5()`를 직접 호출한다. 테스트를 위해 계산식을 별도 복사하지 않는다.
@@ -995,7 +995,7 @@ Calc는 UI보다 계산 결과의 정확성을 우선한다.
 계산 로직을 수정한 경우:
 
 1. `node --check add/calc.js`
-2. `node --test tests/calc.test.cjs`
+2. `node --test add/calc.test.cjs`
 3. 관련 거래유형 fixture 확인
 4. 관련 결과표 UI 확인
 5. diff 확인
@@ -1031,8 +1031,9 @@ UI/CSS만 수정했고 계산 엔진에 diff가 없다면 회귀테스트는 선
 
 ```text
 investment-dashboard-main/
-├─ add/calc.js
-├─ tests/calc.test.cjs
+├─ add/
+│  ├─ calc.js
+│  └─ calc.test.cjs
 └─ requirements.txt
 ```
 
@@ -1087,11 +1088,12 @@ investment-dashboard-main/
 ├─ README.md
 ├─ add/
 │  ├─ calc.html
-│  ├─ add_maintenance_handover.md
-│  ├─ css/common.css
-│  ├─ css/calc.css
-│  ├─ js/calc.js
-│  └─ report/kodex-leverage-report.html
+│  ├─ common.css
+│  ├─ calc.css
+│  ├─ calc.js
+│  ├─ calc.test.cjs
+│  ├─ kodex-leverage-report.html
+│  └─ add_maintenance_handover.md
 ├─ css/
 │  ├─ common.css
 │  ├─ tablet.css
@@ -1122,7 +1124,6 @@ investment-dashboard-main/
 ├─ main_dashboard_maintenance_handover.md
 ├─ requirements.txt
 ├─ scripts/update_prices.py
-├─ tests/calc.test.cjs
 ├─ tools/
 │  ├─ close-efriend-tray.ps1
 │  └─ inspect-efriend-ui.ps1
@@ -1164,20 +1165,15 @@ investment-dashboard-main/
 │
 └─ add/
    ├─ calc.html
-   ├─ add_maintenance_handover.md
-   │
-   ├─ css/
-   │  ├─ common.css
-   │  └─ calc.css
-   │
-   ├─ js/
-   │  └─ calc.js
-   │
-   └─ report/
-      └─ *.html
+   ├─ common.css
+   ├─ calc.css
+   ├─ calc.js
+   ├─ calc.test.cjs
+   ├─ kodex-leverage-report.html
+   └─ add_maintenance_handover.md
 ```
 
-Calc 계산 회귀검증은 루트 `tests/calc.test.cjs`에서 관리한다.
+Calc 계산 회귀검증은 `add/calc.test.cjs`에서 관리한다.
 
 이 구조를 앞으로의 기본 구조로 취급한다.
 
@@ -2359,7 +2355,7 @@ style="..."
 ## 8.2 Calc
 
 - 계산 로직은 DOM 표현과 분리된 production 함수를 기준으로 유지한다.
-- Calc 계산 로직 변경 시 `node --test tests/calc.test.cjs`로 실제 production 함수를 회귀검증한다.
+- Calc 계산 로직 변경 시 `node --test add/calc.test.cjs`로 실제 production 함수를 회귀검증한다.
 - 테스트를 위한 계산식 복제나 불필요한 파일 분리는 하지 않는다.
 - Calc 전용 responsive/표현 상세는 `add/add_maintenance_handover.md`와 실제 add CSS를 기준으로 한다.
 
@@ -2538,7 +2534,7 @@ dashboard-app.js
 
 ### add
 
-Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로직은 `tests/calc.test.cjs`로 회귀검증한다. Report는 canonical standalone 파일과 add handover 기준을 유지한다.
+Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로직은 `add/calc.test.cjs`로 회귀검증한다. Report는 canonical standalone 파일과 add handover 기준을 유지한다.
 
 ## 10.4 과거 점수 기록 처리
 
