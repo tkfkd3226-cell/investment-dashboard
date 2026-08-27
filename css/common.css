@@ -433,7 +433,7 @@
   --market-ai-market-value-column:50px;
   --market-ai-market-change-column:39px;
   --market-ai-signal-value-column:44px;
-  --market-ai-market-column-gap:var(--space-md);
+  --market-ai-market-column-gap:var(--space-4xl);
   --market-ai-signal-column-gap:var(--space-sm);
   --market-ai-tooltip-max-width:440px;
   --market-ai-mobile-dialog-width:360px;
@@ -776,6 +776,8 @@ button svg{pointer-events:none;flex-shrink:0}
   font-weight:var(--type-weight-strong);
   white-space:nowrap;
 }
+#market-ai-section[data-market-ai-placement="hero"] .market-ai-title{display:none}
+#market-ai-section[data-market-ai-placement="hero"] .market-ai-heading{justify-content:flex-end}
 .market-ai-status{
   min-width:0;
   overflow:hidden;
