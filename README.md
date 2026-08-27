@@ -66,7 +66,7 @@
 ### 1.6 부가 도구
 
 - 투자 계산기: `add/calc.html`
-- 기간별 거래/성과 리포트: `add/report/`
+- 기간별 거래/성과 리포트: `add/kodex-leverage-report.html`
 - Light / Dark 테마
 - 모바일 날짜 고정 ON/OFF
 

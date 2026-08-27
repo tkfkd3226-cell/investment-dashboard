@@ -857,7 +857,7 @@ listener 중복 0
 
 ### Calc 계산 로직 변경
 
-`add/js/calc.js`의 계산/validation을 건드렸으면 일반 syntax 검사에 더해 반드시 실행한다.
+`add/calc.js`의 계산/validation을 건드렸으면 일반 syntax 검사에 더해 반드시 실행한다.
 
 ```bash
 node --test tests/calc.test.cjs
@@ -994,7 +994,7 @@ Calc는 UI보다 계산 결과의 정확성을 우선한다.
 
 계산 로직을 수정한 경우:
 
-1. `node --check add/js/calc.js`
+1. `node --check add/calc.js`
 2. `node --test tests/calc.test.cjs`
 3. 관련 거래유형 fixture 확인
 4. 관련 결과표 UI 확인
@@ -1031,7 +1031,7 @@ UI/CSS만 수정했고 계산 엔진에 diff가 없다면 회귀테스트는 선
 
 ```text
 investment-dashboard-main/
-├─ add/js/calc.js
+├─ add/calc.js
 ├─ tests/calc.test.cjs
 └─ requirements.txt
 ```
@@ -1589,16 +1589,16 @@ Market AI Phone 진입 버튼 / native dialog / mounted panel 이동
 → add/calc.html
 
 투자 계산기 CSS
-→ add/css/calc.css
+→ add/calc.css
 
 투자 계산기 JS
-→ add/js/calc.js
+→ add/calc.js
 
 calc/report 공통 CSS
-→ add/css/common.css
+→ add/common.css
 
 거래 리포트
-→ add/report/
+→ add/kodex-leverage-report.html
 ```
 
 단, 기능의 실제 책임을 확인한 뒤 판단하며 파일명만 보고 무조건 수정하지 않는다.
@@ -2353,7 +2353,7 @@ style="..."
 ## 8.1 책임 경계
 
 - 메인 `css/`, `js/`와 add 코드를 외형이 비슷하다는 이유로 강제 공통화하지 않는다.
-- `calc.html`/`add/js/calc.js`/add CSS/report는 add 영역이 소유한다.
+- `calc.html`/`add/calc.js`/add CSS/report는 add 영역이 소유한다.
 - 메인과 add 사이에 실제 공동 책임이 생긴 경우에만 공통화를 검토한다.
 
 ## 8.2 Calc
@@ -2365,7 +2365,7 @@ style="..."
 
 ## 8.3 Report
 
-Report는 `add/report/`에서 독립 관리한다. 거래 반영, 포지션/단타 분류, 증권사 원본, 누계 검산, 차트/KPI 동기화의 상세 절차와 산식은 add handover 한 곳에서만 관리하고 메인 문서에 중복 기록하지 않는다.
+Report는 `add/kodex-leverage-report.html`을 canonical 파일로 독립 관리한다. 거래 반영, 포지션/단타 분류, 증권사 원본, 누계 검산, 차트/KPI 동기화의 상세 절차와 산식은 add handover 한 곳에서만 관리하고 메인 문서에 중복 기록하지 않는다.
 
 ## 8.4 공통화 판단
 
