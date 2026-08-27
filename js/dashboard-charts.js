@@ -20,6 +20,7 @@ import {
   securityAllocVisibleHoldings,
   securityAllocationColor,
   securityChartNamesForDate,
+  securityPriceHistory,
   securitySymbolAllocHistory,
   separateProfitCumulativeForDate,
   signed,
@@ -150,6 +151,7 @@ const chartState={
   compareModes:{securities:'return',pension:'return'},
   symbolModes:{securities:'profit',pension:'profit'},
   securityAllocMode:'type',
+  securityPriceSymbol:null,
   series:{
     securitiesCum:{selected:null,autoY:false},
     pensionCum:{selected:null,autoY:false},
@@ -892,6 +894,28 @@ function setSecurityAllocMode(mode){
 
 
 // [CHART06] Chart Data / Card Rendering · 차트 데이터 / 카드 렌더링
+function securityPriceCardItems(date,orderedHoldings){
+  const holdings=(orderedHoldings||[]).filter(h=>h?.name&&h?.ticker);
+  const history=securityPriceHistory(date,holdings),current=history.find(row=>row.날짜===date)||null;
+  return holdings.map(h=>{
+    const previous=[...history].reverse().find(row=>row.날짜<date&&Number.isFinite(Number(row[h.name])))||null;
+    const price=current&&Number.isFinite(Number(current[h.name]))?Number(current[h.name]):null,prevPrice=previous?Number(previous[h.name]):null;
+    return {
+      name:h.name,
+      ticker:h.ticker,
+      price,
+      previousPrice:prevPrice,
+      changeRate:price!=null&&prevPrice>0?(price-prevPrice)/prevPrice*100:null,
+      marketStatus:current?String(current._marketStatus||'close'):'close'
+    };
+  });
+}
+function syncSecurityPriceSelection(items){
+  const available=(items||[]).filter(item=>Number.isFinite(Number(item?.price)));
+  const selected=available.find(item=>item.name===chartState.securityPriceSymbol)||available[0]||null;
+  chartState.securityPriceSymbol=selected?.name||null;
+  return selected;
+}
 function calcMdd(cum){
   if(!cum.length)return null;
   let peak=cum[0], maxDrop=0, from=cum[0].날짜, to=cum[0].날짜;
@@ -907,11 +931,14 @@ function renderCharts(x,separateProfitHtml=''){
         bestDay=cum.reduce((a,b)=>b['합계 : 전일대비손익']>a['합계 : 전일대비손익']?b:a,cum[0]),
         worstDay=cum.reduce((a,b)=>b['합계 : 전일대비손익']<a['합계 : 전일대비손익']?b:a,cum[0]),
         mdd=calcMdd(cum),chartNames=securityChartNamesForDate(x.date),symbolCards=x.holdings.filter(h=>chartNames.includes(h.name)||h.name==='KODEX 로봇액티브'||h.name==='KoAct 코스닥액티브'),orderedSymbols=sortSecurityChartItems(symbolCards),symbolTotal=symbolCards.reduce((a,h)=>a+h.profit,0),
+        orderedPriceSymbols=sortSecurityChartItems(x.holdings.filter(h=>(Number(h?.qty)||0)>0)),
         lastProfit=last['합계 : 누적손익'], lastReturn=last['합계 : 누적수익률'],
         profitDelta=prevCum?lastProfit-prevCum['합계 : 누적손익']:0,
         dayReturnRate=x?.securitiesAssetDetail?.change?.dayRate??null,
         bestGap=best['합계 : 누적손익']-lastProfit,
-        bestDetail=bestGap===0?'금일 갱신':'금일 대비 '+signed(bestGap,'원');
+        bestDetail=bestGap===0?'금일 갱신':'금일 대비 '+signed(bestGap,'원'),
+        priceCardItems=securityPriceCardItems(x.date,orderedPriceSymbols);
+  syncSecurityPriceSelection(priceCardItems);
   return `<section id="investment-analysis"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="period" aria-hidden="true"></span>투자 기간 분석</h2><p class="section-control-chip section-basis-chip">삼성증권1 기준</p></div><div class="grid chart-grid">
   <div class="chart-card" id="chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon" data-section-title-icon="lineChart" aria-hidden="true"></span>누적손익 및 누적수익률</h3></div>${separateProfitHtml}<div class="chart-head-actions">${chartCompareToggle('securities')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend" id="securitiesCumLegend">${chartLegendHtml('securitiesCum')}</div><div class="chart-note six"><div class="mini-card"><div class="m-label">누적손익</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">누적수익률</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${dayReturnRate==null?'':cls(dayReturnRate)}">전일 대비 ${dayReturnRate==null?'-':`${dayReturnRate>0?'+':''}${pct(dayReturnRate)}`}</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" data-dashboard-action="jump-chart-date" data-chart-date="${best.날짜}" data-chart-id="chart-cum" title="${best.날짜} 기준으로 이동"><div class="m-label">최대 누적손익(${best.날짜})</div><div class="m-value ${cls(best['합계 : 누적손익'])}">${won(best['합계 : 누적손익'])}</div><div class="m-detail ${bestGap===0?'positive':''}">${bestDetail}</div></div><div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" data-dashboard-action="jump-chart-date" data-chart-date="${bestDay.날짜}" data-chart-id="chart-cum" title="${bestDay.날짜} 기준으로 이동"><div class="m-label">Best(${bestDay.날짜})</div><div class="m-value positive">${signed(bestDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail positive">전일 대비 변화</div></div><div class="mini-card chart-date-jump" role="button" tabindex="0" data-dashboard-action="jump-chart-date" data-chart-date="${worstDay.날짜}" data-chart-id="chart-cum" title="${worstDay.날짜} 기준으로 이동"><div class="m-label">Worst(${worstDay.날짜})</div><div class="m-value negative">${signed(worstDay['합계 : 전일대비손익'],'원')}</div><div class="m-detail negative">전일 대비 변화</div></div></div></div>
   <div class="chart-card" id="chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon" data-section-title-icon="barChart" aria-hidden="true"></span>종목별 누적손익</h3></div><div class="chart-head-actions">${symbolChartToggle('securities')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-legend" id="securitiesSymbolLegend">${chartLegendHtml('securitiesSymbol')}</div><div class="chart-note symbol-summary-grid">${orderedSymbols.map(h=>symbolCard(h,symbolTotal)).join('')}</div></div>
