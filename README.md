@@ -60,6 +60,8 @@
 - 로컬에서는 실제 API 데이터를 사용하고 비로컬은 기본 숨김. `?market-ai-preview=1`(Desktop 1280) / `?market-ai-preview=2`(Tablet 961) / `?market-ai-preview=3`(현재 Mobile viewport)에서는 API polling 없이 내장 예시 데이터로 UI를 확인
 - Mobile modal에서는 metric tooltip을 사용하지 않고, Desktop / Tablet에서만 keyboard/pointer tooltip을 제공
 - 선택한 과거 기준일과 분리된 **현재 시점 신호**로 동작
+- Signal endpoint가 대기·오류·timeout·stale 상태여도 같은 refresh에서 정상 수신한 Market Snapshot은 유지하고 신호 상태만 분리 표시
+- 신호 tooltip의 가중치는 backend `effective_weight`를 우선 사용하며, checkpoint metadata가 없는 구버전 응답에서는 configured/legacy weight로 fallback
 
 ### 1.6 부가 도구
 
@@ -151,7 +153,7 @@ Market AI FastAPI (:8001)
 Desktop/Tablet Hero 또는 Mobile dialog
 ```
 
-이 흐름은 main feature state와 분리된 조회 전용 entry입니다. `dashboard-market-ai.js`는 `dashboard-modal.js`의 저수준 dialog lifecycle만 공유하고 polling/state/mount/render는 자체 소유합니다. 로컬 Market AI API가 없거나 신호가 unavailable/stale이거나 **비로컬 기본 모드**이면 메인 대시보드 기능을 건드리지 않고 Market AI 영역만 실패 격리하며, 명시적 preview mode에서는 API polling 없이 내장 예시 데이터만 표시합니다.
+이 흐름은 main feature state와 분리된 조회 전용 entry입니다. `dashboard-market-ai.js`는 `dashboard-modal.js`의 저수준 dialog lifecycle만 공유하고 polling/state/mount/render는 자체 소유합니다. Signal endpoint의 404·오류·timeout·stale은 Market Snapshot과 분리해 처리하며, 같은 refresh에서 snapshot이 정상 수신되면 시장값을 유지한 채 신호 상태만 `대기 / 오류 / 지연`으로 표시합니다. 세 endpoint가 모두 응답하지 않아 서버 전체 접근 불가로 판단될 때만 전체 연결 오류로 전환합니다. **비로컬 기본 모드**에서는 UI를 숨기고, 명시적 preview mode에서는 API polling 없이 내장 예시 데이터만 표시합니다.
 
 프론트엔드는 별도 번들러나 프레임워크 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 동작합니다.
 
@@ -224,7 +226,7 @@ main dependency graph는 **8개 ES Module**로 구성되어 있으며 `dashboard
 | 파일 | 책임 |
 |---|---|
 | `dashboard-core.js` | 공통 데이터 state, JSON 로딩, 계산, formatter, 데이터 helper |
-| `dashboard-ui-common.js` | 여러 UI 모듈이 공유하는 저수준 DOM·마크업·반응형 UI 판정 helper |
+| `dashboard-ui-common.js` | 여러 UI 모듈이 공유하는 저수준 DOM·마크업, 공통 카드/모바일 보기 state, Toast·viewport·tooltip helper |
 | `dashboard-modal.js` | custom/native modal의 focus·inert·body lock·ESC·backdrop·focus return lifecycle |
 | `dashboard-charts.js` | 차트 state, SVG 렌더링, 범례, tooltip, 확대, 반응형, 차트 action routing |
 | `dashboard-ui.js` | Topbar, Navigation, 일반 카드·표, KRX UI, UI action routing |
@@ -261,14 +263,12 @@ dashboard-ui.js
 dashboard-pension.js
 ├─ dashboard-core.js
 ├─ dashboard-ui-common.js
-├─ dashboard-charts.js
-└─ dashboard-ui.js
+└─ dashboard-charts.js
 
 dashboard-pension-editor.js
 ├─ dashboard-core.js
 ├─ dashboard-ui-common.js
-├─ dashboard-modal.js
-└─ dashboard-ui.js
+└─ dashboard-modal.js
 
 dashboard-app.js
 ├─ dashboard-core.js
@@ -291,6 +291,7 @@ dashboard-market-ai.js
 - modal focus stack·body lock 같은 dialog lifecycle state는 `dashboard-modal.js`가 소유합니다.
 - chart runtime state는 `dashboard-charts.js`가 소유합니다.
 - 퇴직연금 Editor의 batch/runtime state는 `dashboard-pension-editor.js`가 소유합니다.
+- 공통 mobile table/card 보기 state와 toggle helper, App Toast·mobile viewport reflow는 `dashboard-ui-common.js`가 소유합니다. 화면별 feature가 `dashboard-ui.js`를 단순 helper 저장소처럼 import하지 않습니다.
 - Market AI의 signal/snapshot/status/polling state는 standalone `dashboard-market-ai.js` 내부에서 소유합니다.
 - 특정 모듈 내부 DOM이나 state를 다른 모듈이 직접 조작하지 않고 필요한 경우 공개 API를 사용합니다.
 - `window` / `globalThis`에 기능 API를 매달아 dependency를 우회하지 않습니다.

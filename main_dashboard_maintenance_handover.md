@@ -1129,7 +1129,7 @@ js/
 
 ```text
 core            → 데이터 / 계산 / 공통 state / loading
-ui-common       → 공통 저수준 DOM / 마크업 / 반응형 UI helper
+ui-common       → 공통 저수준 DOM / 마크업 / shared view-state / feedback·viewport helper
 modal           → custom/native dialog lifecycle / focus / inert / body lock
 charts          → 차트 state / SVG / chart action
 ui              → 일반 UI / topbar / navigation / UI action
@@ -1201,13 +1201,18 @@ input
 
 - 공통 SVG navigation icon
 - HTML escape
-- 공통 swatch markup
+- 공통 swatch / metric card / mobile info card markup
+- Phone Landscape 공통 predicate
+- mobile table/card 보기 state · attrs · toggle helper
+- 공통 App Toast / mobile viewport reflow helper
 - 증권·퇴직연금 공통 Asset Detail renderer
   - 현황 table/card shell
   - 비중 bar
   - 전일 대비 변동 KPI + table/card shell
   - 오늘 상승분 기여도
   - Asset tooltip interaction
+
+공통 helper를 빌리기 위한 이유만으로 `dashboard-pension.js`, `dashboard-pension-editor.js` 같은 feature module이 `dashboard-ui.js`를 직접 import하지 않는다. 여러 feature가 재사용하는 저수준 UI helper/state는 `dashboard-ui-common.js`에 두되, 화면별 계산·render/action을 common layer로 끌어올리지 않는다.
 
 ### `dashboard-modal.js`
 
@@ -1372,7 +1377,8 @@ preview viewport ownership은 `index.html` head inline script가 가진다.
 현재 책임과 불변조건:
 
 - 로컬(`localhost`, `127.0.0.1`)에서만 실제 Market AI API를 조회하고, 비로컬 기본 모드는 UI를 숨긴다. preview mode는 API polling 없이 내장 예시 데이터만 사용한다.
-- `/api/market-data/snapshot`, `/api/signal/latest?include_details=true`, KIS Bridge 상태를 사용하며 unavailable/stale/error를 메인 대시보드와 실패 격리한다.
+- `/api/market-data/snapshot`, `/api/signal/latest?include_details=true`, KIS Bridge 상태를 사용하며 unavailable/stale/error를 메인 대시보드와 실패 격리한다. Signal endpoint의 404·오류·timeout·JSON 오류·stale은 같은 refresh에서 정상 수신한 Market Snapshot을 지우지 않고 신호 상태만 `대기 / 오류 / 지연`으로 분리한다. 세 endpoint가 모두 응답하지 않을 때만 서버 전체 연결 오류로 판단한다.
+- 신호 tooltip은 backend의 `effective_weight`를 configured/legacy `weight`보다 우선한다. checkpoint `basis` 계약은 기존 `weight`를 backward compatibility로 유지하면서 `configured_weight`, `effective_weight`, `quality`를 함께 제공하는 형태를 기준으로 한다. metadata 확장 때문에 score/confidence/data completeness/phase/target date 산식을 변경하지 않는다.
 - 시장 4개 metric과 AI 신호 4개 metric은 공통 `data-list-card` surface를 사용하고 **시장 60% / AI 신호 40%** 비율을 Desktop/Tablet/Mobile에서 유지한다.
 - Desktop/Tablet은 Hero 우측 panel, Mobile/실제 터치폰 가로는 Hero의 `AI Signal` 버튼에서 같은 `#market-ai-section` DOM을 native dialog로 이동·재사용한다. 별도 Mobile render tree를 만들지 않는다.
 - Mobile에서는 metric tooltip/focusability를 제거하고, Desktop/Tablet에서만 keyboard/pointer tooltip을 제공한다.
@@ -1477,7 +1483,7 @@ Market AI 로컬 조회/preview/mount/fail isolation → market-ai standalone
 데이터 / 공통 계산 / formatter / 공용 데이터 state
 → js/dashboard-core.js
 
-공통 저수준 DOM / 마크업 helper
+공통 저수준 DOM / 마크업 / shared mobile view state / Toast·viewport helper
 → js/dashboard-ui-common.js
 
 Modal/Dialog lifecycle / focus / inert / body lock
@@ -1537,8 +1543,8 @@ ui-common       → core
 modal           → 다른 dashboard module import 없음
 charts          → core + ui-common + modal
 ui              → core + ui-common + modal + charts
-pension         → core + ui-common + charts + ui
-pension-editor  → core + ui-common + modal + ui
+pension         → core + ui-common + charts
+pension-editor  → core + ui-common + modal
 app             → core + ui-common + modal + charts + ui + pension + pension-editor
 
 standalone entry
@@ -1552,6 +1558,7 @@ market-ai       → modal만 공유
 ```text
 core → DOM/UI module import 금지
 ui-common / modal → 화면별 feature module import 금지
+feature module → ui를 공통 helper 저장소처럼 직접 import하지 않음
 charts → ui 역참조 금지
 하위 module → app import 금지
 pension View ↔ pension-editor 상호 import 금지
@@ -2729,7 +2736,7 @@ Python / Workflow 유지보수 구조:
 | JS 5분할 | core / charts / ui / pension / app 책임 분리 |
 | UI/UX polish | 모바일·표·KPI·topbar·툴팁 반복 회귀 정리 |
 | ES Module 전환 | main entry를 module로 전환하고 전역 bridge 제거 |
-| JS ownership 재정리 | `dashboard-ui-common`, `dashboard-pension-editor`를 포함한 7-module graph 확립 |
+| JS ownership 재정리 | 공통 UI helper/state와 퇴직연금 Editor 책임을 분리해 현재 main graph의 ownership 기반 확립 |
 | CSS 기능군 정리 | component / viewport 역할과 cascade 책임 재정비 |
 | CSS viewport 재편 | 현재 6파일 `common / tablet / mobile / special / interaction / print` 구조 확립 |
 | 후속 정리 | `!important` 제거, Desktop baseline 흡수, Phone UI 역할 최소화, dead/legacy 정리 |
