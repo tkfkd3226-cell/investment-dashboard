@@ -2248,7 +2248,7 @@ body.chart-expanded-open .dash-tooltip{
   color:var(--muted);
   font-size:var(--symbol-metric-label-size,11px);
   font-weight:var(--type-weight-strong);
-  line-height:var(--type-line-tight);
+  line-height:1;
   white-space:nowrap;
 }
 
@@ -2257,7 +2257,7 @@ body.chart-expanded-open .dash-tooltip{
   margin-left:auto;
   font-size:var(--symbol-metric-value-size,12px);
   font-weight:var(--type-weight-emphasis);
-  line-height:var(--type-line-tight);
+  line-height:1;
   white-space:nowrap;
   font-variant-numeric:tabular-nums;
 }
