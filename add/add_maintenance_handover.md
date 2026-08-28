@@ -1,6 +1,16 @@
 # add 영역 유지보수 및 거래 리포트 인수인계
 
-> 적용 범위: `add/calc.html`, `add/common.css`, `add/calc.css`, `add/calc.js`, `add/kodex-leverage-report.html` 및 **KODEX 레버리지 실현손익 반영 때문에 함께 수정되는 `data/portfolio.json`**
+
+## 현재 파일 구성
+
+- `calc.html`: 계산기 entry HTML
+- `kodex-leverage-report.html`: 거래 리포트 entry HTML
+- `add.css`: 두 페이지가 공유하는 단일 런타임 CSS. 공통 primitive와 `data-add-page` 기반 Calc/Report 전용 규칙을 함께 관리
+- `add.js`: 두 페이지가 공유하는 단일 런타임 JS. 공통 조기 테마 처리 후 `data-add-page`에 따라 Calc/Report만 선택 부팅
+- `calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
+- `add_maintenance_handover.md`: Add 유지보수 기준
+
+> 적용 범위: `add/calc.html`, `add/add.css`, `add/add.js`, `add/kodex-leverage-report.html` 및 **KODEX 레버리지 실현손익 반영 때문에 함께 수정되는 `data/portfolio.json`**
 >
 > 목적: `add/` 영역의 **CALC + KODEX 레버리지 거래 리포트**를 현재 canonical 구조 그대로 유지하고, 새 거래 반영·UI 수정·CSS/JS 유지보수 때 구조와 기준을 다시 분석하지 않고 바로 작업할 수 있게 한다.
 
@@ -42,7 +52,7 @@
    - data/portfolio.json
    - add/calc.html
    - add/kodex-leverage-report.html
-   - 필요 시 add/common.css, add/calc.css, add/calc.js
+   - 필요 시 add/add.css, add/add.js
 4. 사용자가 이번 작업에 제공한 최신 증권사 원본 자료
 ```
 
@@ -66,7 +76,7 @@ Mobile · 모바일   ≤ 760px
 
 ### 1.2 add 영역 UI 공통 구성 원칙
 
-- `calc`와 `report`는 `add/common.css`의 공통 의미색·Corner·Spacing/Density·Heading·Button token/primitive를 재사용한다. 현재 수치 자체는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다. Corner는 역할별 기본 radius와 soft-square cap을 분리하고, 메인의 `investmentDashboard.cornerTheme` 저장값을 읽어 동일한 `rounded-corners` mode contract를 적용한다.
+- `calc`와 `report`는 `add/add.css`의 공통 의미색·Corner·Spacing/Density·Heading·Button token/primitive를 재사용한다. 현재 수치 자체는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다. Corner는 역할별 기본 radius와 soft-square cap을 분리하고, 메인의 `investmentDashboard.cornerTheme` 저장값을 읽어 동일한 `rounded-corners` mode contract를 적용한다.
 - 카드·패널·폼·표·탭·버튼처럼 역할이 비슷한 component의 padding/gap은 공통 density token을 우선 사용하고, Desktop → Tablet → Mobile 순으로 일관되게 compact해지는 3단계 contract를 유지한다. 카드·패널·요약박스처럼 독립된 Surface의 기본 padding은 상하좌우 동일값을 사용하며, 표 셀·버튼·input·header row처럼 기능상 X/Y 여백이 달라야 하는 요소만 예외로 둔다. Touch target 높이, 차트 geometry, 광학 보정처럼 기능상 필요한 값은 억지로 density token에 합치지 않는다. 단순 미관 조정 때문에 독립 radius·magic number·임시 offset을 누적하지 않는다.
 - 거래유형 전환이나 responsive 변경 시 입력 패널의 정보 순서·시각적 균형·사용성을 유지하되, 해결 방법은 구조적 CSS를 우선한다.
 - 입력 요소는 가능한 한 `<label for>` 또는 `aria-labelledby`로 연결하고, 전략/리포트 탭은 `tablist/tab/tabpanel`, `aria-controls`, `aria-selected`와 키보드 이동을 유지한다. 시각 상태와 ARIA 상태가 함께 갱신되어야 한다.
@@ -81,11 +91,10 @@ Mobile · 모바일   ≤ 760px
 ```text
 add/
 ├─ calc.html
-├─ common.css
-├─ calc.css
-├─ calc.js
-├─ calc.test.cjs
 ├─ kodex-leverage-report.html
+├─ add.css
+├─ add.js
+├─ calc.test.cjs
 └─ add_maintenance_handover.md
 ```
 
@@ -93,33 +102,31 @@ add/
 
 - `add/calc.html`
   - CALC DOM과 접근성 구조만 소유한다.
-  - CSS는 `common.css` → `calc.css` 순서로 로드한다.
-  - JS는 `calc.js` 단일 파일을 사용한다.
+  - 런타임 asset은 `add.css`와 `add.js`만 로드한다.
   - 기능 로직이나 대량 스타일을 HTML 안으로 다시 넣지 않는다.
-- `add/common.css`
-  - CALC와 리포트가 공유하는 의미 색상, Corner, Spacing/Density token, Heading·Button·Card Surface primitive, box-sizing, 기본 글꼴을 소유한다. Button은 Action/Toggle·Tab/Step/Icon 역할만 공통화하고 hover·focus-visible·disabled lifecycle을 공유하며, feature class에는 배치·문구·의미별 예외만 둔다. Card Surface는 shell(border/radius)과 역할별 background/shadow를 조합하고, 화면별 feature class에는 layout/content만 둔다.
-  - component별 layout은 넣지 않으며, 공통 token 값의 Desktop/Tablet/Mobile 단계만 viewport contract로 관리한다.
-- `add/calc.css`
-  - CALC 화면의 전체 UI·거래유형별 layout·반응형을 소유한다.
-- `add/calc.js`
-  - CALC 계산·렌더·프리셋·이벤트·툴팁·초기화를 소유하는 단일 IIFE 파일이다.
-  - 현재 규모에서는 추가 파일 분리를 기본 작업으로 하지 않는다.
-  - Node 회귀검증에서는 `compute`, `validate`, `ceil5`만 노출하고 DOM 부팅은 실행하지 않는다.
+- `add/kodex-leverage-report.html`
+  - 거래 리포트 canonical HTML과 증빙/본문 DOM을 소유한다.
+  - 런타임 asset은 Calc와 동일하게 `add.css`와 `add.js`만 로드하며, CSS/JS를 다시 HTML 내부 `<style>` / `<script>`로 되돌리지 않는다.
+- `add/add.css`
+  - Calc와 Report의 단일 런타임 stylesheet다.
+  - 공통 의미색·Corner·Spacing/Density·Heading·Button·Card Surface primitive를 먼저 정의하고, Calc/Report 전용 규칙은 `data-add-page` scope로 서로 격리한다.
+  - 페이지 scope는 `:where()`를 사용해 기존 selector specificity를 바꾸지 않는다.
+- `add/add.js`
+  - Calc와 Report의 단일 런타임 script다.
+  - 공통 조기 테마/Corner 처리를 수행한 뒤 `data-add-page="calc|report"`에 따라 해당 페이지의 boot만 실행한다.
+  - Calc 계산·렌더·프리셋·이벤트·툴팁과 Report 데이터·탭·차트 로직은 한 파일 안에서도 section/boot 경계를 유지하고 서로의 DOM/state를 참조하지 않는다.
+  - Node 회귀검증에서는 `compute`, `validate`, `ceil5`만 노출하고 브라우저 boot는 실행하지 않는다.
 - `add/calc.test.cjs`
   - Node 내장 `node:test` / `node:assert`만 사용한다.
-  - production `add/calc.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
-- `add/kodex-leverage-report.html`
-  - 거래 리포트 canonical 단일 파일이다.
-  - `common.css`를 공유하고, 리포트 전용 CSS/JS는 standalone 결과물 특성상 HTML 내부 `<style>` / `<script>`에 유지한다.
-  - 사용자가 별도로 외부 파일 분리를 요청하지 않는 한 CSS/JS를 새 파일로 쪼개지 않는다.
+  - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
 
 ### 1.4 CSS / JS 내부 구조 원칙
 
 - CSS/JS는 기능 책임과 화면 흐름 기준의 한글 section 구성을 유지하되, 이 문서가 파일 내부 목차를 중복 보관하지 않는다. 실제 section 순서와 selector/function 구성은 현재 소스를 Source of Truth로 본다.
 - CSS는 기본 component 규칙 뒤에 responsive 규칙을 두고, 기능과 무관한 알파벳/가나다 정렬을 목적으로 재배치하지 않는다.
-- `calc.js`의 계산 엔진은 DOM-free를 유지하고 render/event 책임과 분리한다.
+- `add.js`의 계산 엔진은 DOM-free를 유지하고 render/event 책임과 분리한다.
 - 이벤트·툴팁·초기화는 중복 등록되지 않게 명시적으로 관리하며, Node export/browser boot guard를 유지한다.
-- 계산 또는 validation을 변경한 경우 production `add/calc.js`를 대상으로 `node --test add/calc.test.cjs`를 실행한다.
+- 계산 또는 validation을 변경한 경우 production `add/add.js`를 대상으로 `node --test add/calc.test.cjs`를 실행한다.
 - Report의 차트 label thinning, 마지막 거래일 식별, DPR/resize 처리처럼 동작 의미가 있는 로직은 관련 변경 시 회귀 확인한다.
 
 ## 2. 거래 리포트 canonical 파일명
@@ -417,7 +424,7 @@ https://tkfkd3226-cell.github.io/investment-dashboard/add/kodex-leverage-report.
 
 ### 12.4 구조 리팩터링 시
 
-- `common.css` / `calc.css` / `calc.js` / report의 책임 경계가 유지되는지 확인한다.
+- `add.css`의 Shared/Calc/Report scope와 `add.js`의 Calc/Report boot 책임 경계가 유지되는지 확인한다.
 - 계산 engine과 render/event가 다시 결합되거나 listener/boot가 중복 등록되지 않았는지 확인한다.
 
 ### 12.5 canonical 경로 관련 변경 시

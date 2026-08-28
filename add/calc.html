@@ -1,14 +1,11 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-add-page="calc">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>투자 계산기</title>
-<script>
-  try{const root=document.documentElement;if(localStorage.getItem('investmentDashboard.theme')==='dark')root.classList.add('dark');if(localStorage.getItem('investmentDashboard.cornerTheme')==='rounded')root.classList.add('rounded-corners')}catch(_){}
-</script>
-<link rel="stylesheet" href="common.css" />
-<link rel="stylesheet" href="calc.css" />
+<link rel="stylesheet" href="add.css" />
+<script src="add.js"></script>
 </head>
 <body>
 
@@ -144,6 +141,5 @@
   <main><section id="s3" class="strategy active" role="tabpanel" aria-labelledby="tabS3" aria-hidden="false" tabindex="0"></section><section id="s2" class="strategy" role="tabpanel" aria-labelledby="tabS2" aria-hidden="true" tabindex="0"></section><section id="s1" class="strategy" role="tabpanel" aria-labelledby="tabS1" aria-hidden="true" tabindex="0"></section></main>
 </div>
 
-<script src="calc.js"></script>
 </body>
 </html>
