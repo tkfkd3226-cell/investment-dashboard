@@ -2223,6 +2223,7 @@ body.chart-expanded-open .dash-tooltip{
 
 .symbol-summary-grid .m-value{
   white-space:nowrap;
+  line-height:1;
 }
 
 .symbol-metrics{
