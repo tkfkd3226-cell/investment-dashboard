@@ -155,7 +155,7 @@ function bindDashboardModalDismiss(container,{onDismiss,backdrop=true,escape=tru
 function nativeDialogState(dialog){
   let state=dashboardNativeDialogState.get(dialog);
   if(!state){
-    state={returnFocus:null,fallbackSelector:'',cleanup:null};
+    state={returnFocus:null,fallbackSelector:'',cleanup:null,bodyLocked:false};
     dashboardNativeDialogState.set(dialog,state);
   }
   return state;
@@ -167,6 +167,7 @@ function openDashboardNativeDialog(dialog,{initialFocus=null,returnFocus=null,fa
   else if(!dialog.contains(document.activeElement)&&dashboardReturnFocusVisible(document.activeElement))state.returnFocus=document.activeElement;
   state.fallbackSelector=fallbackSelector||state.fallbackSelector||'';
   if(!dialog.open)dialog.showModal();
+  lockDashboardDialogBody(state);
   const target=typeof initialFocus==='string'?dialog.querySelector(initialFocus):initialFocus;
   (target||dialog)?.focus?.({preventScroll:true});
   return true;
@@ -179,6 +180,7 @@ function closeDashboardNativeDialog(dialog,{fallbackSelector=''}={}){
   state.returnFocus=null;
   state.fallbackSelector='';
   if(dialog.open)dialog.close();
+  unlockDashboardDialogBody(state);
   requestAnimationFrame(()=>{
     const target=dashboardReturnFocusVisible(stored)?stored:dashboardVisibleFallback(fallback);
     target?.focus?.({preventScroll:true});

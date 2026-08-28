@@ -896,7 +896,6 @@ function marketAiMobileDialog(){
   dialog.querySelector('.market-ai-mobile-close')?.addEventListener('click',closeDialog);
   bindDashboardNativeDialogDismiss(dialog,{onDismiss:closeDialog});
   dialog.addEventListener('close',()=>{
-    document.body.classList.remove('market-ai-mobile-dialog-open');
     hideMarketAiTooltip();
     document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.setAttribute('aria-expanded','false');
   });
@@ -911,7 +910,6 @@ function openMarketAiMobileDialog(){
   const dialog=marketAiMobileDialog();
   const trigger=document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID);
   openDashboardNativeDialog(dialog,{initialFocus:dialog,returnFocus:trigger,fallbackSelector:`#${MARKET_AI_MOBILE_TRIGGER_ID}`});
-  document.body.classList.add('market-ai-mobile-dialog-open');
   trigger?.setAttribute('aria-expanded','true');
 }
 
@@ -962,7 +960,6 @@ function removeMarketAiUi(){
   const hero=document.querySelector('#app > .wrap > .hero');
   const dialog=document.getElementById(MARKET_AI_MOBILE_DIALOG_ID);
   if(dialog?.open)closeDashboardNativeDialog(dialog,{fallbackSelector:`#${MARKET_AI_MOBILE_TRIGGER_ID}`});
-  document.body.classList.remove('market-ai-mobile-dialog-open');
   row?.remove();
   dialog?.remove();
   document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.remove();
