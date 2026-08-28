@@ -263,7 +263,9 @@ body{
 
       /* Calc typography hierarchy
          - 같은 역할은 같은 token만 사용한다.
-         - Desktop → Tablet → Mobile에서 모든 계층이 정확히 2px씩 compact해진다. */
+         - Desktop → Tablet → Phone에서 모든 계층이 정확히 2px씩 compact해진다.
+         - Phone landscape도 Phone token을 그대로 사용한다. */
+      --calc-type-page-title:28px;
       --calc-type-section:20px;
       --calc-type-subsection:18px;
       --calc-type-support:16px;
@@ -365,7 +367,7 @@ body{
       --table-head-text:#94a3b8;
       --warning-text:#fca5a5;
     }
-    :where(html[data-add-page="calc"]) body{background:var(--bg);line-height:1.45;overflow-x:hidden}
+    :where(html[data-add-page="calc"]) body{background:var(--bg);line-height:1.45;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
     :where(html[data-add-page="calc"]) button, :where(html[data-add-page="calc"]) input, :where(html[data-add-page="calc"]) select{font:inherit}
 
     /* Calc 역할별 typography contract */
@@ -383,7 +385,7 @@ body{
 :where(html[data-add-page="calc"]) .wrap{max-width:1480px;margin:0 auto;padding:var(--density-page-pad)}
     :where(html[data-add-page="calc"]) .hero{display:grid;gap:var(--density-gap-sm);margin-bottom:var(--density-surface-md)}
     :where(html[data-add-page="calc"]) .hero-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--density-gap-lg)}
-    :where(html[data-add-page="calc"]) .hero h1{margin:0;font-size:30px;letter-spacing:-.04em;line-height:1.18;flex:1 1 auto;min-width:0}
+    :where(html[data-add-page="calc"]) .hero h1{margin:0;font-size:var(--calc-type-page-title);letter-spacing:-.04em;line-height:1.18;flex:1 1 auto;min-width:0}
     :where(html[data-add-page="calc"]) .hero p{margin:0;color:var(--muted);font-size:var(--calc-type-label);line-height:1.4}
     :where(html[data-add-page="calc"]) .actions{display:flex;gap:var(--density-gap-xs);flex-wrap:nowrap;flex:0 0 auto}
     :where(html[data-add-page="calc"]) .reset-icon, :where(html[data-add-page="calc"]) .report-icon{display:none;width:18px;height:18px}
@@ -618,6 +620,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
 
 @media(max-width:1100px){
       :root:where([data-add-page="calc"]){
+        --calc-type-page-title:26px;
         --calc-type-section:18px;
         --calc-type-subsection:16px;
         --calc-type-support:14px;
@@ -650,6 +653,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         --button-compact-pad-x:4px;
 
         --calc-control-pad-y:6px;
+        --calc-type-page-title:24px;
         --calc-type-section:16px;
         --calc-type-subsection:14px;
         --calc-type-support:12px;
@@ -662,7 +666,6 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         padding:0;
       }
 
-      :where(html[data-add-page="calc"]) .hero h1{font-size:24px}
       :where(html[data-add-page="calc"]) .hero p{font-size:var(--calc-type-label)}
       :where(html[data-add-page="calc"]) #reportBtn .report-text, :where(html[data-add-page="calc"]) #resetBtn .reset-text{display:none}
       :where(html[data-add-page="calc"]) #reportBtn .report-icon, :where(html[data-add-page="calc"]) #resetBtn .reset-icon{display:block}
@@ -708,7 +711,6 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) :is(.share-step-btn,.pct-step-btn){display:block;height:auto;align-self:stretch;border-color:var(--control-border)}
       :where(html[data-add-page="calc"]) .share-step-btn:active{background:var(--control-hover-bg)}
       :where(html[data-add-page="calc"]) .input-group .group-title small{font-size:var(--calc-type-support)}
-      :where(html[data-add-page="calc"]) .input-group .field label{font-size:var(--calc-type-label)}
       /* Mobile input optical density: keep every Calc control at 16px to prevent iOS focus zoom.
          Apply the optical Y padding to all controls, not only .input-group descendants,
          so prior-trade/date/current fields share the same glyph + padding-driven height. */

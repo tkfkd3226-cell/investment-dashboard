@@ -71,9 +71,9 @@ test('Report tab도 active/aria-selected/tabindex contract를 유지한다',()=>
 });
 
 test('Calc label typography는 역할별 token으로 통일되고 viewport마다 2px씩 줄어든다',()=>{
-  assert.match(css1,/--calc-type-section:20px; --calc-type-subsection:18px; --calc-type-support:16px; --calc-type-label:14px;/);
-  assert.match(css1,/@media\(max-width:1100px\)\{ :root:where\(\[data-add-page="calc"\]\)\{ --calc-type-section:18px; --calc-type-subsection:16px; --calc-type-support:14px; --calc-type-label:12px;/);
-  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px; --calc-type-section:16px; --calc-type-subsection:14px; --calc-type-support:12px; --calc-type-label:10px;/);
+  assert.match(css1,/--calc-type-page-title:28px; --calc-type-section:20px; --calc-type-subsection:18px; --calc-type-support:16px; --calc-type-label:14px;/);
+  assert.match(css1,/@media\(max-width:1100px\)\{ :root:where\(\[data-add-page="calc"\]\)\{ --calc-type-page-title:26px; --calc-type-section:18px; --calc-type-subsection:16px; --calc-type-support:14px; --calc-type-label:12px;/);
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px; --calc-type-page-title:24px; --calc-type-section:16px; --calc-type-subsection:14px; --calc-type-support:12px; --calc-type-label:10px;/);
 
   for(const selector of [
     ':where(html[data-add-page="calc"]) .add-heading-section',
@@ -97,12 +97,36 @@ test('Calc label typography는 역할별 token으로 통일되고 viewport마다
 });
 
 
+
+test('Calc는 iOS 가로 회전 text autosizing을 막아 CSS font-size를 그대로 유지한다',()=>{
+  const body=rule(':where(html[data-add-page="calc"]) body');
+  assert.match(body,/-webkit-text-size-adjust:100%/);
+  assert.match(body,/text-size-adjust:100%/);
+});
+
+test('Calc 페이지 제목도 Desktop Tablet Phone 2px typography contract를 사용한다',()=>{
+  assert.match(css1,/--calc-type-page-title:28px/);
+  assert.match(css1,/@media\(max-width:1100px\)\{ :root:where\(\[data-add-page="calc"\]\)\{ --calc-type-page-title:26px/);
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-type-page-title:24px/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .hero h1'),/font-size:var\(--calc-type-page-title\)/);
+  assert.doesNotMatch(css1,/:where\(html\[data-add-page="calc"\]\) \.hero h1\{font-size:24px\}/);
+});
+
+test('Calc 3개 거래유형의 동적 문구는 inline font-size 없이 공통 typography selector를 사용한다',()=>{
+  for(const preset of ['buy-2026-07-29','buy-2026-07-30','current-only']) assert.match(js,new RegExp(`['"]${preset}['"]`));
+  assert.match(js1,/\$\('heroDescription'\)\.textContent=/);
+  assert.match(js1,/class="mobile-section-title add-heading-minor"/);
+  assert.match(js1,/class="summary-card add-card-shell add-card-control"/);
+  assert.doesNotMatch(js,/style\s*=\s*["'][^"']*font-size/i);
+  assert.doesNotMatch(calc,/style\s*=\s*["'][^"']*font-size/i);
+});
+
 test('Calc 가로 터치폰은 Tablet이 아니라 세로 Phone과 같은 UI contract를 사용한다',()=>{
   assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{/);
   assert.match(css1,/--density-page-pad:10px; --density-surface-lg:12px; --density-surface-md:10px; --density-surface-sm:8px;/);
   assert.match(css1,/--density-gap-lg:8px; --density-gap-md:6px; --density-gap-sm:4px; --density-gap-micro:2px;/);
   assert.match(css1,/--density-action-pad-x:8px; --density-table-pad-x:8px; --density-table-pad-y:6px; --button-compact-pad-x:4px;/);
-  assert.match(css1,/--calc-type-section:16px; --calc-type-subsection:14px; --calc-type-support:12px; --calc-type-label:10px;/);
+  assert.match(css1,/--calc-type-page-title:24px; --calc-type-section:16px; --calc-type-subsection:14px; --calc-type-support:12px; --calc-type-label:10px;/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.input-grid, :where\(html\[data-add-page="calc"\]\) \.input-grid\.no-prior-layout\{grid-template-columns:minmax\(0,1fr\)\}/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) #reportBtn \.report-text, :where\(html\[data-add-page="calc"\]\) #resetBtn \.reset-text\{display:none\}/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.add-button-mobile-icon\{ width:var\(--button-icon-size\); height:var\(--button-icon-size\); padding:0;/);
