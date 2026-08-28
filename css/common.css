@@ -2230,7 +2230,7 @@ body.chart-expanded-open .dash-tooltip{
   display:grid;
   gap:var(--space-2xs);
   margin-top:var(--card-text-rhythm-gap);
-  padding-top:var(--card-text-rhythm-gap);
+  padding-top:calc(var(--card-text-rhythm-gap) + 3px);
   border-top:1px solid var(--line);
 }
 
