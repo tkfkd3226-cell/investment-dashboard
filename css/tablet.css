@@ -172,6 +172,8 @@
 .topbar-label-full{display:none}
     .topbar-label-short{display:inline}
     .switcher{
+      overflow-x:clip;
+      overflow-y:visible;
       --topbar-pad-x:var(--space-2xl);
       --topbar-action-group-gap:var(--space-md);
       --topbar-action-pad-x:var(--space-xl);
