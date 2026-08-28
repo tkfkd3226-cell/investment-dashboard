@@ -4,7 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>투자 계산기</title>
-<link rel="stylesheet" href="add.css" />
+<!-- DEV/QA: force a fresh add.css request on every page load. -->
+<script>
+(() => {
+  const stylesheet = document.createElement("link");
+  stylesheet.rel = "stylesheet";
+  stylesheet.href = `add.css?qa=${Date.now()}`;
+  document.head.appendChild(stylesheet);
+})();
+</script>
 <script src="add.js"></script>
 </head>
 <body>
