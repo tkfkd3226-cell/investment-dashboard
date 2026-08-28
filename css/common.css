@@ -2566,7 +2566,7 @@ body.chart-expanded-open .dash-tooltip{
 .contrib-modal.show{
   display:flex;
 }
-body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
+body.dashboard-dialog-open{
   overflow:hidden;
 }
 .contrib-modal-card{

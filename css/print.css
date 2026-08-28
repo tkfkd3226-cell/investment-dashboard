@@ -32,7 +32,6 @@
 
     body,
     body.dashboard-dialog-open,
-    body.market-ai-mobile-dialog-open,
     body.chart-expanded-open{
       overflow:visible;
       touch-action:auto;
