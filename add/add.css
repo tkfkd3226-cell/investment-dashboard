@@ -260,6 +260,14 @@ body{
    ========================================================= */
 :root:where([data-add-page="calc"]){
       --calc-control-pad-y:8px;
+
+      /* Calc typography hierarchy
+         - 같은 역할은 같은 token만 사용한다.
+         - Desktop → Tablet → Mobile에서 모든 계층이 정확히 2px씩 compact해진다. */
+      --calc-type-section:20px;
+      --calc-type-subsection:18px;
+      --calc-type-support:16px;
+      --calc-type-label:14px;
       --bg:#f4f6fa;
       --card:#ffffff;
       --muted:#6c768a;
@@ -360,6 +368,13 @@ body{
     :where(html[data-add-page="calc"]) body{background:var(--bg);line-height:1.45;overflow-x:hidden}
     :where(html[data-add-page="calc"]) button, :where(html[data-add-page="calc"]) input, :where(html[data-add-page="calc"]) select{font:inherit}
 
+    /* Calc 역할별 typography contract */
+    :where(html[data-add-page="calc"]) .add-heading-section{font-size:var(--calc-type-section)}
+    :where(html[data-add-page="calc"]) .add-heading-subsection{font-size:var(--calc-type-subsection)}
+    :where(html[data-add-page="calc"]) .add-heading-minor{font-size:var(--calc-type-support)}
+    :where(html[data-add-page="calc"]) .mobile-section-title{font-size:var(--calc-type-subsection)}
+    :where(html[data-add-page="calc"]) :is(.add-button-action,.add-button-toggle){font-size:var(--calc-type-label)}
+
 /* =========================================================
    02. 상단 헤더 / 주요 액션 / 거래유형 프리셋
    - 제목·설명문·거래 리포트·기본값 복원 버튼
@@ -369,14 +384,14 @@ body{
     :where(html[data-add-page="calc"]) .hero{display:grid;gap:var(--density-gap-sm);margin-bottom:var(--density-surface-md)}
     :where(html[data-add-page="calc"]) .hero-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--density-gap-lg)}
     :where(html[data-add-page="calc"]) .hero h1{margin:0;font-size:30px;letter-spacing:-.04em;line-height:1.18;flex:1 1 auto;min-width:0}
-    :where(html[data-add-page="calc"]) .hero p{margin:0;color:var(--muted);font-size:12px;line-height:1.4}
+    :where(html[data-add-page="calc"]) .hero p{margin:0;color:var(--muted);font-size:var(--calc-type-label);line-height:1.4}
     :where(html[data-add-page="calc"]) .actions{display:flex;gap:var(--density-gap-xs);flex-wrap:nowrap;flex:0 0 auto}
     :where(html[data-add-page="calc"]) .reset-icon, :where(html[data-add-page="calc"]) .report-icon{display:none;width:18px;height:18px}
     :where(html[data-add-page="calc"]) .report-top-link{text-decoration:none}
     :where(html[data-add-page="calc"]) .btn{line-height:1}
     :where(html[data-add-page="calc"]) .preset-bar{display:flex;align-items:center;gap:var(--density-gap-sm);flex-wrap:wrap;margin-bottom:var(--density-gap-md)}
     :where(html[data-add-page="calc"]) .preset-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--density-gap-micro)}
-    :where(html[data-add-page="calc"]) .preset-btn .preset-main{font-size:var(--button-font-size)}
+    :where(html[data-add-page="calc"]) .preset-btn .preset-main{font-size:var(--calc-type-label)}
     :where(html[data-add-page="calc"]) .preset-btn.active{box-shadow:var(--active-shadow)}
 
 /* =========================================================
@@ -397,11 +412,12 @@ body{
     }
     :where(html[data-add-page="calc"]) .input-group{padding:var(--density-surface-sm)}
     :where(html[data-add-page="calc"]) .group-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--density-gap-md)}
-    :where(html[data-add-page="calc"]) .group-title small{font-weight:500;color:var(--muted)}
+    :where(html[data-add-page="calc"]) .group-title small{font-size:var(--calc-type-support);font-weight:500;color:var(--muted)}
     :where(html[data-add-page="calc"]) .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--density-gap-sm)}
     :where(html[data-add-page="calc"]) .field{display:flex;flex-direction:column;gap:var(--density-gap-xs)}
     :where(html[data-add-page="calc"]) .field.full{grid-column:1/-1}
-    :where(html[data-add-page="calc"]) label, :where(html[data-add-page="calc"]) .kpi .name{font-size:12px;color:var(--muted);font-weight:700}
+    :where(html[data-add-page="calc"]) label, :where(html[data-add-page="calc"]) .kpi .name{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
+    :where(html[data-add-page="calc"]) .kpi .sub{font-size:var(--calc-type-label)}
     :where(html[data-add-page="calc"]) .label-with-help, :where(html[data-add-page="calc"]) .inline-help-label{display:inline-flex;align-items:center;gap:var(--density-gap-xs);width:max-content;max-width:100%;position:relative}
     :where(html[data-add-page="calc"]) .inline-help-label{vertical-align:middle}
     :where(html[data-add-page="calc"]) .help-tooltip{position:relative;display:inline-flex;align-items:center;flex:0 0 auto}
@@ -409,7 +425,7 @@ body{
 html:where([data-add-page="calc"]).dark .help-icon{border-color:#526178;background:#111827;color:#93c5fd}
     :where(html[data-add-page="calc"]) .help-icon:hover, :where(html[data-add-page="calc"]) .help-icon:focus-visible{background:#e7f0fb;border-color:#6f8fb8}
 html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-page="calc"]).dark .help-icon:focus-visible{background:#1e293b;border-color:#60a5fa}
-    :where(html[data-add-page="calc"]) .custom-tooltip{position:fixed;z-index:1000;left:var(--tooltip-left,-9999px);top:var(--tooltip-top,-9999px);width:min(290px,calc(100vw - 24px));padding:var(--density-surface-sm);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--tooltip-bg);color:var(--tooltip-text);font-size:11px;font-weight:600;line-height:1.5;letter-spacing:-.01em;box-shadow:var(--tooltip-shadow);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;pointer-events:none;text-align:left;white-space:normal;overflow-wrap:break-word;word-break:keep-all}
+    :where(html[data-add-page="calc"]) .custom-tooltip{position:fixed;z-index:1000;left:var(--tooltip-left,-9999px);top:var(--tooltip-top,-9999px);width:min(290px,calc(100vw - 24px));padding:var(--density-surface-sm);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--tooltip-bg);color:var(--tooltip-text);font-size:var(--calc-type-label);font-weight:600;line-height:1.5;letter-spacing:-.01em;box-shadow:var(--tooltip-shadow);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;pointer-events:none;text-align:left;white-space:normal;overflow-wrap:break-word;word-break:keep-all}
     :where(html[data-add-page="calc"]) .custom-tooltip::after{content:"";position:absolute;left:var(--tooltip-arrow-x,50%);top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--tooltip-bg)}
     :where(html[data-add-page="calc"]) .custom-tooltip.tooltip-below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--tooltip-bg)}
     :where(html[data-add-page="calc"]) .help-tooltip:hover .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip:focus-within .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip.is-open .custom-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
@@ -434,12 +450,12 @@ html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-p
     :where(html[data-add-page="calc"]) .seg button{height:var(--button-control-height)}
     :where(html[data-add-page="calc"]) .calculation-group .group-title{margin-bottom:0}
     :where(html[data-add-page="calc"]) .calculation-group .seg{margin-top:var(--density-layout-gap)}
-    :where(html[data-add-page="calc"]) .formula{font-size:11px;color:var(--muted);background:#f0f3f8;border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-gap-xs);margin-top:var(--density-gap-xs)}
+    :where(html[data-add-page="calc"]) .formula{font-size:var(--calc-type-label);color:var(--muted);background:#f0f3f8;border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-gap-xs);margin-top:var(--density-gap-xs)}
 html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);width:100%;margin-top:var(--density-gap-xs);color:var(--muted);text-align:left;appearance:none;-webkit-appearance:none}
     :where(html[data-add-page="calc"]) .actual-sale-price:active{transform:translateY(1px)}
     :where(html[data-add-page="calc"]) .actual-sale-price strong{color:var(--navy);font-size:13px;font-weight:900;white-space:nowrap}
-    :where(html[data-add-page="calc"]) .validation-panel{display:none;margin:0 0 var(--density-gap-lg);padding:var(--density-surface-sm);border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger-text);font-size:13px;font-weight:700}
+    :where(html[data-add-page="calc"]) .validation-panel{display:none;margin:0 0 var(--density-gap-lg);padding:var(--density-surface-sm);border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger-text);font-size:var(--calc-type-label);font-weight:700}
     :where(html[data-add-page="calc"]) .validation-panel.show{display:block}
     :where(html[data-add-page="calc"]) .validation-panel ul{margin:7px 0 0;padding-left:20px;font-weight:600}
     :where(html[data-add-page="calc"]) .control.invalid, :where(html[data-add-page="calc"]) .date-control-shell:has(.date-control.invalid){border-color:var(--danger-strong);background:var(--danger-control-bg);box-shadow:0 0 0 3px var(--danger-ring)}
@@ -504,7 +520,7 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-datetime-edit-fields-wrapper{display:flex;align-items:center;justify-content:center;padding:0}
     :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
     :where(html[data-add-page="calc"]) .prior-entry-grid .field.auto-field .control{background:var(--control-readonly-bg);color:var(--control-readonly-text)}
-    :where(html[data-add-page="calc"]) .case-note{font-size:11px;color:var(--muted);margin-top:var(--density-gap-sm)}
+    :where(html[data-add-page="calc"]) .case-note{font-size:var(--calc-type-label);color:var(--muted);margin-top:var(--density-gap-sm)}
     :where(html[data-add-page="calc"]) #currentPriceSlot, :where(html[data-add-page="calc"]) #currentPriceAnchor{display:none}
     :where(html[data-add-page="calc"]) .strategy-card.no-badge .badge{display:none}
     :where(html[data-add-page="calc"]) .tabs.settled-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -531,9 +547,9 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
 
     :where(html[data-add-page="calc"]) .range-panel{padding:var(--density-surface-md);margin-bottom:var(--density-gap-lg);display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--density-gap-md)}
     :where(html[data-add-page="calc"]) .range-box{padding:var(--density-surface-md)}
-    :where(html[data-add-page="calc"]) .range-box strong{display:block;font-size:13px;margin-bottom:var(--density-gap-xs)}
+    :where(html[data-add-page="calc"]) .range-box strong{display:block;font-size:var(--calc-type-label);margin-bottom:var(--density-gap-xs)}
     :where(html[data-add-page="calc"]) .range-box .big{font-size:21px;font-weight:900}
-    :where(html[data-add-page="calc"]) .range-box .muted{font-size:11px;line-height:1.4;margin-top:var(--density-gap-micro)}
+    :where(html[data-add-page="calc"]) .range-box .muted{font-size:var(--calc-type-label);line-height:1.4;margin-top:var(--density-gap-micro)}
     :where(html[data-add-page="calc"]) .range-box.blue{background:var(--range-blue-bg);border-color:var(--range-blue-border)}
     :where(html[data-add-page="calc"]) .range-box.red{background:var(--danger-bg);border-color:var(--range-red-border)}
     :where(html[data-add-page="calc"]) .range-box.green{background:var(--range-green-bg);border-color:var(--range-green-border)}
@@ -550,15 +566,15 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .strategy-card{overflow:hidden}
     :where(html[data-add-page="calc"]) .strategy-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--density-surface-md);padding:var(--density-surface-md) var(--density-surface-lg);border-bottom:1px solid var(--line);background:var(--surface-subtle)}
     :where(html[data-add-page="calc"]) .strategy-title h2{margin:0}
-    :where(html[data-add-page="calc"]) .strategy-title p{margin:var(--density-gap-xs) 0 0;color:var(--muted);font-size:13px;white-space:nowrap}
-    :where(html[data-add-page="calc"]) .badge{padding:var(--density-gap-xs) var(--density-gap-md);border-radius:var(--radius-pill);font-size:12px;font-weight:900;white-space:nowrap}
+    :where(html[data-add-page="calc"]) .strategy-title p{margin:var(--density-gap-xs) 0 0;color:var(--muted);font-size:var(--calc-type-label);white-space:nowrap}
+    :where(html[data-add-page="calc"]) .badge{padding:var(--density-gap-xs) var(--density-gap-md);border-radius:var(--radius-pill);font-size:var(--calc-type-label);font-weight:900;white-space:nowrap}
     :where(html[data-add-page="calc"]) .badge.bad{background:var(--badge-bad-bg);color:var(--badge-bad-text)}
     :where(html[data-add-page="calc"]) .badge.conditional{background:var(--badge-conditional-bg);color:var(--badge-conditional-text)}
     :where(html[data-add-page="calc"]) .badge.good{background:var(--badge-good-bg);color:var(--badge-good-text)}
     :where(html[data-add-page="calc"]) .strategy-body{padding:var(--density-surface-md)}
     :where(html[data-add-page="calc"]) .summary-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--density-gap-sm);margin-bottom:var(--density-gap-lg)}
     :where(html[data-add-page="calc"]) .summary-card{padding:var(--density-surface-sm)}
-    :where(html[data-add-page="calc"]) .summary-card .sname{font-size:11px;color:var(--muted);font-weight:700}
+    :where(html[data-add-page="calc"]) .summary-card .sname{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
     :where(html[data-add-page="calc"]) .summary-card .svalue{font-size:19px;font-weight:900;margin-top:var(--density-gap-micro)}
     :where(html[data-add-page="calc"]) .section-title{margin:var(--density-surface-lg) 0 var(--density-gap-sm)}
     :where(html[data-add-page="calc"]) .table-scroll{border-radius:min(var(--surface-radius-md),var(--corner-surface-cap))}
@@ -569,7 +585,7 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .mobile-section-title:first-child{padding-top:3px}
     :where(html[data-add-page="calc"]) .mobile-data-row{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--density-gap-lg);padding:var(--density-gap-md) 0;border-bottom:1px solid var(--soft)}
     :where(html[data-add-page="calc"]) .mobile-data-row:last-child{border-bottom:0}
-    :where(html[data-add-page="calc"]) .mobile-data-label{flex:1;min-width:0;font-size:11px;color:var(--muted);font-weight:800;line-height:1.35}
+    :where(html[data-add-page="calc"]) .mobile-data-label{flex:1;min-width:0;font-size:var(--calc-type-label);color:var(--muted);font-weight:800;line-height:1.35}
     :where(html[data-add-page="calc"]) .mobile-data-value{flex:0 0 auto;max-width:55%;text-align:right;font-size:14px;font-weight:900;line-height:1.35;word-break:break-word}
     :where(html[data-add-page="calc"]) .calc-data-table{table-layout:fixed;min-width:875px;border:1px solid var(--line);border-collapse:separate;border-spacing:0;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));overflow:hidden}
     :where(html[data-add-page="calc"]) .calc-data-table :is(th,td){border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0;text-align:center}
@@ -581,9 +597,9 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .triple-grid{min-width:495px}
     :where(html[data-add-page="calc"]) .loan-grid{min-width:870px}
     :where(html[data-add-page="calc"]) .final-grid{min-width:360px}
-    :where(html[data-add-page="calc"]) .warning-note{margin-top:var(--density-gap-md);padding:var(--density-surface-sm);border-color:var(--danger-border);background:#fff2f2;color:var(--warning-text);font-size:12px;font-weight:900}
+    :where(html[data-add-page="calc"]) .warning-note{margin-top:var(--density-gap-md);padding:var(--density-surface-sm);border-color:var(--danger-border);background:#fff2f2;color:var(--warning-text);font-size:var(--calc-type-label);font-weight:900}
 html:where([data-add-page="calc"]).dark .warning-note{background:rgba(127,29,29,.18)}
-    :where(html[data-add-page="calc"]) .note{margin-top:var(--density-gap-md);padding:var(--density-surface-sm);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:#f5f7fb;color:#596478;font-size:12px}
+    :where(html[data-add-page="calc"]) .note{margin-top:var(--density-gap-md);padding:var(--density-surface-sm);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:#f5f7fb;color:#596478;font-size:var(--calc-type-label)}
 html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
     :where(html[data-add-page="calc"]) .positive{color:var(--positive)}
     :where(html[data-add-page="calc"]) .negative{color:var(--negative)}
@@ -601,21 +617,33 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
 }
 
 @media(max-width:1100px){
+      :root:where([data-add-page="calc"]){
+        --calc-type-section:18px;
+        --calc-type-subsection:16px;
+        --calc-type-support:14px;
+        --calc-type-label:12px;
+      }
       :where(html[data-add-page="calc"]) .input-grid{grid-template-columns:1fr 1fr}
       :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout) > .input-group:last-child{grid-column:1/-1}
       :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{grid-template-columns:1fr 1fr}
       :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,1fr)}
     }
     @media(max-width:760px){
-      :root:where([data-add-page="calc"]){--calc-control-pad-y:6px}
+      :root:where([data-add-page="calc"]){
+        --calc-control-pad-y:6px;
+        --calc-type-section:16px;
+        --calc-type-subsection:14px;
+        --calc-type-support:12px;
+        --calc-type-label:10px;
+      }
 
       :where(html[data-add-page="calc"]) .hero h1{font-size:24px}
-      :where(html[data-add-page="calc"]) .hero p{font-size:11px}
+      :where(html[data-add-page="calc"]) .hero p{font-size:var(--calc-type-label)}
       :where(html[data-add-page="calc"]) #reportBtn .report-text, :where(html[data-add-page="calc"]) #resetBtn .reset-text{display:none}
       :where(html[data-add-page="calc"]) #reportBtn .report-icon, :where(html[data-add-page="calc"]) #resetBtn .reset-icon{display:block}
       :where(html[data-add-page="calc"]) .preset-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs)}
       :where(html[data-add-page="calc"]) .preset-btn{min-width:0;width:100%;padding:var(--button-compact-pad-y) var(--button-compact-pad-x)}
-      :where(html[data-add-page="calc"]) .preset-btn .preset-main{font-size:var(--button-font-size-compact);letter-spacing:-.04em}
+      :where(html[data-add-page="calc"]) .preset-btn .preset-main{font-size:var(--calc-type-label);letter-spacing:-.04em}
       :where(html[data-add-page="calc"]) .input-grid, :where(html[data-add-page="calc"]) .input-group, :where(html[data-add-page="calc"]) .fields, :where(html[data-add-page="calc"]) .field, :where(html[data-add-page="calc"]) .share-stepper, :where(html[data-add-page="calc"]) .pct-stepper, :where(html[data-add-page="calc"]) .with-unit{min-width:0}
       :where(html[data-add-page="calc"]) .input-grid{width:100%}
       :where(html[data-add-page="calc"]) .input-group{width:100%;max-width:100%}
@@ -625,7 +653,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
       :where(html[data-add-page="calc"]) .kpi{min-width:0}
       :where(html[data-add-page="calc"]) .kpi .name{
-        font-size:10px;
+        font-size:var(--calc-type-label);
         white-space:nowrap;
         letter-spacing:-.055em;
         overflow:hidden;
@@ -639,7 +667,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         letter-spacing:-.045em;
       }
       :where(html[data-add-page="calc"]) .kpi .sub{
-        font-size:9px;
+        font-size:var(--calc-type-label);
         line-height:1.35;
         white-space:normal;
         letter-spacing:-.045em;
@@ -654,30 +682,30 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) .share-stepper{display:grid;grid-template-columns:25px minmax(0,1fr) 25px;gap:3px;align-items:center}
       :where(html[data-add-page="calc"]) :is(.share-step-btn,.pct-step-btn){display:block;height:auto;align-self:stretch;border-color:var(--control-border)}
       :where(html[data-add-page="calc"]) .share-step-btn:active{background:var(--control-hover-bg)}
-      :where(html[data-add-page="calc"]) .input-group .group-title small{font-size:12px}
-      :where(html[data-add-page="calc"]) .input-group .field label{font-size:11px}
+      :where(html[data-add-page="calc"]) .input-group .group-title small{font-size:var(--calc-type-support)}
+      :where(html[data-add-page="calc"]) .input-group .field label{font-size:var(--calc-type-label)}
       /* Mobile input optical density: keep every Calc control at 16px to prevent iOS focus zoom.
          Apply the optical Y padding to all controls, not only .input-group descendants,
          so prior-trade/date/current fields share the same glyph + padding-driven height. */
       :where(html[data-add-page="calc"]) .control{font-size:16px;line-height:1}
       :where(html[data-add-page="calc"]) .input-group :is(.share-step-btn,.pct-step-btn){font-size:16px}
       :where(html[data-add-page="calc"]) .calculation-group .seg{margin-top:var(--density-gap-sm)}
-      :where(html[data-add-page="calc"]) .calculation-group .seg button{height:var(--button-control-height);padding:0 var(--button-compact-pad-x);font-size:var(--button-font-size-compact);letter-spacing:-.025em}
+      :where(html[data-add-page="calc"]) .calculation-group .seg button{height:var(--button-control-height);padding:0 var(--button-compact-pad-x);font-size:var(--calc-type-label);letter-spacing:-.025em}
       :where(html[data-add-page="calc"]) .calculation-group .unit{font-size:15px}
       :where(html[data-add-page="calc"]) .calculation-group{padding:var(--density-surface-sm)}
       :where(html[data-add-page="calc"]) .calculation-group .fields{grid-template-columns:minmax(0,1fr)}
       :where(html[data-add-page="calc"]) .calculation-group .field.full{grid-column:auto}
       :where(html[data-add-page="calc"]) .strategy-head{display:block}:where(html[data-add-page="calc"]) .badge{display:inline-block;margin-top:var(--density-gap-md)}
       :where(html[data-add-page="calc"]) .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible;padding:0}
-      :where(html[data-add-page="calc"]) .tab{min-width:0;width:100%;padding:var(--button-compact-pad-y) var(--button-compact-pad-x);font-size:var(--button-font-size-compact);line-height:1.25;white-space:normal;word-break:keep-all}
+      :where(html[data-add-page="calc"]) .tab{min-width:0;width:100%;padding:var(--button-compact-pad-y) var(--button-compact-pad-x);font-size:var(--calc-type-label);line-height:1.25;white-space:normal;word-break:keep-all}
       :where(html[data-add-page="calc"]) .desktop-details{display:none}
       :where(html[data-add-page="calc"]) .desktop-data{display:none}
       :where(html[data-add-page="calc"]) .mobile-data{display:grid;gap:var(--density-gap-sm)}
-      :where(html[data-add-page="calc"]) .strategy-title p{font-size:10px;letter-spacing:-.025em}
+      :where(html[data-add-page="calc"]) .strategy-title p{font-size:var(--calc-type-label);letter-spacing:-.025em}
       :where(html[data-add-page="calc"]) .strategy-body{padding:var(--density-surface-sm)}
       :where(html[data-add-page="calc"]) .summary-row{grid-template-columns:repeat(2,1fr);gap:var(--density-gap-xs);margin-bottom:var(--density-gap-sm)}
       :where(html[data-add-page="calc"]) .summary-card{min-width:0}
-      :where(html[data-add-page="calc"]) .summary-card .sname{font-size:10px;line-height:1.25}
+      :where(html[data-add-page="calc"]) .summary-card .sname{font-size:var(--calc-type-label);line-height:1.25}
       :where(html[data-add-page="calc"]) .summary-card .svalue{font-size:17px;line-height:1.2;letter-spacing:-.045em;white-space:nowrap}
       :where(html[data-add-page="calc"]) .mobile-data-row{gap:var(--density-gap-xs);padding:var(--density-gap-sm) 0}
       :where(html[data-add-page="calc"]) .mobile-data-value{max-width:58%;font-size:13px;white-space:nowrap;word-break:normal;letter-spacing:-.035em}
@@ -701,7 +729,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) .additional-group.holding-layout #currentFields{gap:0}
       :where(html[data-add-page="calc"]) .additional-group.settled-layout #currentFields{gap:0}
       :where(html[data-add-page="calc"]) .additional-group.holding-layout #currentBuyGainLabel{white-space:nowrap;letter-spacing:-.055em}
-      :where(html[data-add-page="calc"]) .current-purchase-btn{flex:1;min-width:0;padding:var(--button-compact-pad-y) var(--button-compact-pad-x);font-size:var(--button-font-size-compact);line-height:1.1;letter-spacing:-.04em;white-space:nowrap;word-break:keep-all;overflow-wrap:normal}
+      :where(html[data-add-page="calc"]) .current-purchase-btn{flex:1;min-width:0;padding:var(--button-compact-pad-y) var(--button-compact-pad-x);font-size:var(--calc-type-label);line-height:1.1;letter-spacing:-.04em;white-space:nowrap;word-break:keep-all;overflow-wrap:normal}
     }
 
 /* ==================== 03. Report ==================== */
