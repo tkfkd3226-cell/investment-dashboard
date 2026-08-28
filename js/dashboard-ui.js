@@ -187,19 +187,24 @@ function dashboardTocGroups(){
   ];
 }
 function renderMobileNavigationGroups(groups,{indentAfterFirst=false}={}){
-  return groups.map(group=>`<div class="mobile-nav-group"><p>${group.label}</p>${group.items.map((item,idx)=>{
-    const type=item.type||(item.id?'section':'');
-    const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
-    const cls=`mobile-nav-item ${indentAfterFirst&&idx?'sub':''}`;
-    if(type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" draggable="false" data-dashboard-action="close-date-menu">${inner}</a>`;
-    if(type==='action') return `<button type="button" class="${cls}" data-dashboard-action="${item.action}">${inner}</button>`;
-    return `<button type="button" class="${cls}" data-dashboard-action="jump-section" data-section-target="${item.id}" data-close-date-menu="true">${inner}</button>`;
-  }).join('')}</div>`).join('');
+  return groups.map(group=>{
+    const groupClass=`mobile-nav-group${group.phoneOnly?' mobile-nav-group-phone-only':''}${group.tocFirst?' mobile-nav-group-toc-first':''}`;
+    return `<div class="${groupClass}"><p>${group.label}</p>${group.items.map((item,idx)=>{
+      const type=item.type||(item.id?'section':'');
+      const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
+      const cls=`mobile-nav-item ${indentAfterFirst&&idx?'sub':''}`;
+      if(type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" draggable="false" data-dashboard-action="close-date-menu">${inner}</a>`;
+      if(type==='action') return `<button type="button" class="${cls}" data-dashboard-action="${item.action}">${inner}</button>`;
+      return `<button type="button" class="${cls}" data-dashboard-action="jump-section" data-section-target="${item.id}" data-close-date-menu="true">${inner}</button>`;
+    }).join('')}</div>`;
+  }).join('');
 }
-function renderUnifiedMobileMenuContent(){
+function renderResponsiveNavigationMenuContent(){
+  const tocGroups=dashboardTocGroups().map((group,idx)=>({...group,tocFirst:idx===0}));
   const groups=[
     {
       label:'링크',
+      phoneOnly:true,
       items:[
         {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:TOPBAR_ACTION_ICONS.kospiNight,title:'코스피200 야간선물'},
         {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:TOPBAR_ACTION_ICONS.nasdaqFutures,title:'나스닥100 선물'}
@@ -207,21 +212,19 @@ function renderUnifiedMobileMenuContent(){
     },
     {
       label:'관리',
+      phoneOnly:true,
       items:[
         {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
         {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'},
         ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[])
       ]
     },
-    ...dashboardTocGroups()
+    ...tocGroups
   ];
   return renderMobileNavigationGroups(groups,{indentAfterFirst:true});
 }
 function renderDesktopTocContent(){
   return dashboardTocGroups().map(group=>`<div class="desktop-edge-toc-group"><p>${group.label}</p>${group.items.map(item=>`<button type="button" class="desktop-edge-toc-item" data-toc-target="${item.id}" data-dashboard-action="jump-section" data-section-target="${item.id}"><span class="desktop-edge-toc-icon">${navIconSvg(item.icon)}</span><span>${item.title}</span></button>`).join('')}</div>`).join('');
-}
-function renderTabletTocMenuContent(){
-  return renderMobileNavigationGroups(dashboardTocGroups());
 }
 function mobileTopbarUi(){
   return window.matchMedia?.('(max-width:760px)').matches===true||phoneLandscapeUi();
@@ -381,8 +384,7 @@ function renderTabs(){
         <div class="date-action-menu-wrap">
           <button type="button" id="dateActionMenuButton" class="date-tool-btn control-icon-button date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-controls="dateActionMenu" aria-expanded="false" data-dashboard-action="toggle-date-menu"><span class="date-tool-icon">${navIconSvg('menu')}</span><span class="date-tool-menu-label">목차</span></button>
           <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차">
-            <div class="mobile-menu-layout"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" class="control-switch-input" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="control-switch-track" aria-hidden="true"><span class="control-switch-thumb"></span></span></label><button type="button" class="control-icon-button-compact" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderUnifiedMobileMenuContent()}</div>
-            <div class="tablet-toc-menu-layout"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><button type="button" class="control-icon-button-compact" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderTabletTocMenuContent()}</div>
+            <div class="responsive-nav-menu-layout"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" class="control-switch-input" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="control-switch-track" aria-hidden="true"><span class="control-switch-thumb"></span></span></label><button type="button" class="control-icon-button-compact" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderResponsiveNavigationMenuContent()}</div>
           </div>
         </div>
       </div>
