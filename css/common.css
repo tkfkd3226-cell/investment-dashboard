@@ -1978,8 +1978,8 @@ body.chart-expanded-open .dash-tooltip{
   border-color:var(--status-caution-soft-border);
 }
 
-/* Empty State Contract · 자산 기여도 / 작업 모음의 빈 상태를 같은 surface·typography로 통일 */
-:is(.asset-empty-state,.pension-batch-empty){
+/* Empty State Contract · 자산 기여도 / 작업 모음 / 전일 데이터 없음의 빈 상태를 같은 surface·typography로 통일 */
+:is(.asset-empty-state,.pension-batch-empty,.asset-no-prev-note){
   padding:var(--empty-state-padding);
   border:1px dashed var(--empty-state-border);
   border-radius:var(--empty-state-radius);
@@ -2948,12 +2948,6 @@ body:is(.dashboard-dialog-open,.market-ai-mobile-dialog-open){
   align-items:center;
   justify-content:center;
   min-height:168px;
-  padding:var(--space-10xl) var(--space-4xl);
-  text-align:center;
-  color:var(--muted);
-  font-size:var(--type-size-md);
-  font-weight:var(--type-weight-emphasis);
-  line-height:var(--type-line-helper);
 }
 
 .pension-chart-block{

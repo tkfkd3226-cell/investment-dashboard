@@ -111,7 +111,6 @@
 
     .asset-no-prev-note{
       min-height:66px;
-      padding:var(--space-4xl) var(--space-2xl);
     }
 
     .pension-etf-trade-preview-grid{
