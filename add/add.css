@@ -51,10 +51,9 @@
   --density-table-pad-y:10px;
 
   /* Add 공통 Button density / typography
-     - 일반 버튼은 12px, 좁은 폭 compact 버튼은 11px로 제한한다.
+     - 공통 버튼 글자 크기는 단일 토큰으로 관리한다.
      - touch target 높이는 viewport가 작아져도 축소하지 않는다. */
   --button-font-size:12px;
-  --button-font-size-compact:11px;
   --button-font-weight:800;
   --button-control-height:40px;
   --button-icon-size:36px;
