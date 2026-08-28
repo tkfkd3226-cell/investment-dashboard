@@ -793,9 +793,14 @@ function roundedRect(ctx,x,y,w,h,r){
   ctx.closePath();
 }
 
+const REPORT_CHART_FRAME=Object.freeze({
+  desktop:Object.freeze({left:60,right:60,top:30,bottom:40}),
+  mobile:Object.freeze({left:48,right:48,top:28,bottom:38})
+});
+
 // =========================================================
 // 05. 누적 실현손익 차트 렌더링
-// - DPR 대응, 반응형 패딩, 막대·누적선·라벨 충돌 회피를 한 번에 처리
+// - DPR 대응, 공통 Plot Frame, 막대·누적선·라벨 충돌 회피를 한 번에 처리
 // =========================================================
 function drawChart(){
   const canvas=document.getElementById('pnlChart');
@@ -812,23 +817,23 @@ function drawChart(){
 
   const W=rect.width,H=rect.height;
   const mobile=window.matchMedia('(max-width:760px)').matches;
-  const pad={l:mobile?48:62,r:mobile?18:26,t:30,b:42};
-  const plotW=W-pad.l-pad.r,plotH=H-pad.t-pad.b;
+  const frame=mobile?REPORT_CHART_FRAME.mobile:REPORT_CHART_FRAME.desktop;
+  const plotW=W-frame.left-frame.right,plotH=H-frame.top-frame.bottom;
   const values=chartData.net.concat(chartData.cum);
   const rawMax=Math.max(...values,0),rawMin=Math.min(...values,0);
   const range=(rawMax-rawMin)||1;
   const top=rawMax+range*.13,bottom=rawMin-range*.11;
-  const y=v=>pad.t+(top-v)/(top-bottom)*plotH;
+  const y=v=>frame.top+(top-v)/(top-bottom)*plotH;
   const zeroY=y(0);
 
   ctx.clearRect(0,0,W,H);
 
   // 차트 플롯 배경
-  const bg=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
+  const bg=ctx.createLinearGradient(0,frame.top,0,H-frame.bottom);
   bg.addColorStop(0,chartColor('--chart-plot-top'));
   bg.addColorStop(1,chartColor('--chart-plot-bottom'));
   ctx.fillStyle=bg;
-  roundedRect(ctx,pad.l,pad.t,plotW,plotH,14);
+  roundedRect(ctx,frame.left,frame.top,plotW,plotH,14);
   ctx.fill();
 
   // 가로 그리드와 Y축 금액 라벨
@@ -841,16 +846,16 @@ function drawChart(){
     ctx.strokeStyle=chartColor('--chart-grid');
     ctx.lineWidth=1;
     ctx.setLineDash([3,5]);
-    ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(W-pad.r,yy);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(frame.left,yy);ctx.lineTo(W-frame.right,yy);ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle=chartColor('--chart-axis-text');
-    ctx.fillText(formatWon(v),pad.l-8,yy);
+    ctx.fillText(formatWon(v),frame.left-8,yy);
   }
 
   // 손익 0원 기준선
   ctx.strokeStyle=chartColor('--chart-zero');
   ctx.lineWidth=1.2;
-  ctx.beginPath();ctx.moveTo(pad.l,zeroY);ctx.lineTo(W-pad.r,zeroY);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(frame.left,zeroY);ctx.lineTo(W-frame.right,zeroY);ctx.stroke();
 
   const step=plotW/chartData.labels.length;
   const barW=Math.min(mobile?25:34,step*.38);
@@ -865,7 +870,7 @@ function drawChart(){
   const dailyLabelBoxes=[];
   const collides=(a,b)=>!(a.right<b.left || a.left>b.right || a.bottom<b.top || a.top>b.bottom);
   chartData.net.forEach((v,i)=>{
-    const cx=pad.l+step*(i+.5),yy=y(v);
+    const cx=frame.left+step*(i+.5),yy=y(v);
     const topY=Math.min(yy,zeroY),h=Math.max(2,Math.abs(zeroY-yy));
     const grad=ctx.createLinearGradient(0,topY,0,topY+h);
     if(v>=0){
@@ -913,13 +918,13 @@ function drawChart(){
       guard++;
     }
 
-    if(v>=0 && box.top<pad.t+2){
-      labelY=pad.t+textH+2;
+    if(v>=0 && box.top<frame.top+2){
+      labelY=frame.top+textH+2;
       box.top=labelY-textH;
       box.bottom=labelY;
     }
-    if(v<0 && box.bottom>H-pad.b-2){
-      labelY=H-pad.b-textH-2;
+    if(v<0 && box.bottom>H-frame.bottom-2){
+      labelY=H-frame.bottom-textH-2;
       box.top=labelY;
       box.bottom=labelY+textH;
     }
@@ -933,19 +938,19 @@ function drawChart(){
       ctx.font='10px system-ui';
       ctx.textBaseline='top';
       ctx.fillStyle=chartColor('--chart-x-text');
-      ctx.fillText(chartData.labels[i],cx,H-pad.b+13);
+      ctx.fillText(chartData.labels[i],cx,H-frame.bottom+13);
     }
   });
 
   // 누적손익 선 아래 영역 채움
-  const points=chartData.cum.map((v,i)=>({x:pad.l+step*(i+.5),y:y(v),v}));
-  const area=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
+  const points=chartData.cum.map((v,i)=>({x:frame.left+step*(i+.5),y:y(v),v}));
+  const area=ctx.createLinearGradient(0,frame.top,0,H-frame.bottom);
   area.addColorStop(0,chartColor('--chart-area-top'));
   area.addColorStop(1,chartColor('--chart-area-bottom'));
   ctx.beginPath();
   points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-  ctx.lineTo(points[points.length-1].x,H-pad.b);
-  ctx.lineTo(points[0].x,H-pad.b);
+  ctx.lineTo(points[points.length-1].x,H-frame.bottom);
+  ctx.lineTo(points[0].x,H-frame.bottom);
   ctx.closePath();
   ctx.fillStyle=area;ctx.fill();
 
