@@ -2356,7 +2356,7 @@ style="..."
 
 ## 8.3 Report
 
-Report는 `add/kodex-leverage-report.html`을 canonical 파일로 독립 관리한다. 거래 반영, 포지션/단타 분류, 증권사 원본, 누계 검산, 차트/KPI 동기화의 상세 절차와 산식은 add handover 한 곳에서만 관리하고 메인 문서에 중복 기록하지 않는다.
+Report는 `add/kodex-leverage-report.html`을 canonical HTML entry로 독립 관리하되, 표현과 실행 코드는 add 공통 `add.css` / `add.js`를 사용한다. 거래 반영, 포지션/단타 분류, 증권사 원본, 누계 검산, 차트/KPI 동기화의 상세 절차와 산식은 add handover 한 곳에서만 관리하고 메인 문서에 중복 기록하지 않는다.
 
 ## 8.4 공통화 판단
 
@@ -2529,7 +2529,7 @@ dashboard-app.js
 
 ### add
 
-Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로직은 `add/calc.test.cjs`로 회귀검증한다. Report는 canonical standalone 파일과 add handover 기준을 유지한다.
+Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로직은 `add/calc.test.cjs`로 회귀검증한다. Report는 canonical HTML entry를 유지하고, 공통 `add.css` / `add.js`와 add handover 기준을 따른다.
 
 ## 10.4 과거 점수 기록 처리
 
