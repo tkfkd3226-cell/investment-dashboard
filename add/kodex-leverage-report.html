@@ -405,9 +405,9 @@ details p,details li{font-size:12px;color:var(--muted)}
       </div>
     </div>
     <div class="hero-summary">
-      <div class="hero-chip"><span>본 포지션 추정 순손익</span><strong>7,731,007원</strong></div>
-      <div class="hero-chip"><span>추정 단타 순손익</span><strong>1,102,795원</strong></div>
-      <div class="hero-chip"><span>누적 실현 순손익</span><strong>8,833,802원</strong></div>
+      <div class="hero-chip"><span>본 포지션 추정 순손익</span><strong data-report-value="coreNet" data-format="won"></strong></div>
+      <div class="hero-chip"><span>추정 단타 순손익</span><strong data-report-value="dayNet" data-format="won"></strong></div>
+      <div class="hero-chip"><span>누적 실현 순손익</span><strong data-report-value="totalNet" data-format="won"></strong></div>
     </div>
   </header>
 
@@ -427,13 +427,13 @@ details p,details li{font-size:12px;color:var(--muted)}
 
   <section class="panel active" id="summary" role="tabpanel" aria-labelledby="reportTabSummary" aria-hidden="false" tabindex="0">
     <div class="kpis">
-      <div class="card add-card-shell add-card-base add-card-shadow kpi"><div class="label">누적 실현 순손익</div><div class="value pos">8,833,802원</div><div class="sub">거래비용 차감 후 증권사 합계</div></div>
-      <div class="card add-card-shell add-card-base add-card-shadow kpi"><div class="label">총 손익금액</div><div class="value pos">8,944,790원</div><div class="sub">거래비용 차감 전</div></div>
-      <div class="card add-card-shell add-card-base add-card-shadow kpi"><div class="label">총 거래비용</div><div class="value">110,988원</div><div class="sub">13개 매도일 합계</div></div>
+      <div class="card add-card-shell add-card-base add-card-shadow kpi"><div class="label">누적 실현 순손익</div><div class="value pos" data-report-value="totalNet" data-format="won"></div><div class="sub">거래비용 차감 후 증권사 합계</div></div>
+      <div class="card add-card-shell add-card-base add-card-shadow kpi"><div class="label">총 손익금액</div><div class="value pos" data-report-value="totalPnl" data-format="won"></div><div class="sub">거래비용 차감 전</div></div>
+      <div class="card add-card-shell add-card-base add-card-shadow kpi"><div class="label">총 거래비용</div><div class="value" data-report-value="totalFee" data-format="won"></div><div class="sub"><span data-report-value="sellDays" data-format="integer"></span>개 매도일 합계</div></div>
       
-      <div class="card add-card-shell add-card-base add-card-shadow kpi"><div class="label">본 포지션 추정 순손익</div><div class="value pos">7,731,007원</div><div class="sub">총 순손익의 87.5%</div></div>
-      <div class="card add-card-shell add-card-base add-card-shadow kpi"><div class="label">단타 추정 순손익</div><div class="value pos">1,102,795원</div><div class="sub">총 순손익의 12.5%</div></div>
-      <div class="card add-card-shell add-card-base add-card-shadow kpi"><div class="label">매도일 기준 승률</div><div class="value pos">92.3%</div><div class="sub">수익 12일 / 전체 13일</div></div>
+      <div class="card add-card-shell add-card-base add-card-shadow kpi"><div class="label">본 포지션 추정 순손익</div><div class="value pos" data-report-value="coreNet" data-format="won"></div><div class="sub">총 순손익의 <span data-report-value="coreNetRatio" data-format="percent1"></span></div></div>
+      <div class="card add-card-shell add-card-base add-card-shadow kpi"><div class="label">단타 추정 순손익</div><div class="value pos" data-report-value="dayNet" data-format="won"></div><div class="sub">총 순손익의 <span data-report-value="dayNetRatio" data-format="percent1"></span></div></div>
+      <div class="card add-card-shell add-card-base add-card-shadow kpi"><div class="label">매도일 기준 승률</div><div class="value pos" data-report-value="winRate" data-format="percent1"></div><div class="sub">수익 <span data-report-value="winDays" data-format="integer"></span>일 / 전체 <span data-report-value="sellDays" data-format="integer"></span>일</div></div>
     </div>
 
     <div class="grid-2">
@@ -450,16 +450,16 @@ details p,details li{font-size:12px;color:var(--muted)}
       <div class="card add-card-shell add-card-base add-card-shadow section-card composition-card">
         <div class="section-title"><div><h2 class="add-heading-section">수익 구성</h2><p>거래대금 비율로 혼합일 비용 배분</p></div><span class="badge estimate">추정 분리</span></div>
         <div class="split-box">
-          <div class="donut" style="--main-position-ratio:87.5%"><div class="donut-center"><strong>87.5%</strong><span>본 포지션 비중</span></div></div>
+          <div class="donut" id="profitCompositionDonut"><div class="donut-center"><strong data-report-value="coreNetRatio" data-format="percent1"></strong><span>본 포지션 비중</span></div></div>
           <div>
-            <div class="legend-row"><div class="legend-name"><span class="dot" style="background:var(--navy)"></span>본 포지션</div><strong>7,731,007원</strong></div>
-            <div class="legend-row"><div class="legend-name"><span class="dot" style="background:var(--series-secondary)"></span>반복 단타</div><strong>1,102,795원</strong></div>
-            <div class="legend-row"><div class="legend-name">합계</div><strong>8,833,802원</strong></div>
+            <div class="legend-row"><div class="legend-name"><span class="dot" style="background:var(--navy)"></span>본 포지션</div><strong data-report-value="coreNet" data-format="won"></strong></div>
+            <div class="legend-row"><div class="legend-name"><span class="dot" style="background:var(--series-secondary)"></span>반복 단타</div><strong data-report-value="dayNet" data-format="won"></strong></div>
+            <div class="legend-row"><div class="legend-name">합계</div><strong data-report-value="totalNet" data-format="won"></strong></div>
           </div>
         </div>
         <div class="volume-bars">
-          <div class="volume-row"><span>본 포지션</span><div class="bar-track"><div class="bar-fill" style="width:15.84%;background:var(--navy)"></div></div><strong>2,129주</strong></div>
-          <div class="volume-row"><span>반복 단타</span><div class="bar-track"><div class="bar-fill" style="width:84.16%;background:var(--series-secondary)"></div></div><strong>11,308주</strong></div>
+          <div class="volume-row"><span>본 포지션</span><div class="bar-track"><div class="bar-fill" id="coreVolumeBar" style="background:var(--navy)"></div></div><strong data-report-value="coreQty" data-format="qty"></strong></div>
+          <div class="volume-row"><span>반복 단타</span><div class="bar-track"><div class="bar-fill" id="dayVolumeBar" style="background:var(--series-secondary)"></div></div><strong data-report-value="dayQty" data-format="qty"></strong></div>
         </div>
       </div>
     </div>
@@ -472,22 +472,8 @@ details p,details li{font-size:12px;color:var(--muted)}
         <table class="add-data-table">
           <caption class="sr-only">날짜별 KODEX 레버리지 실현손익</caption>
           <thead><tr><th scope="col">매도일</th><th scope="col" class="num">매도수량</th><th scope="col" class="num">평균 매수</th><th scope="col" class="num">평균 매도</th><th scope="col" class="num">손익금액</th><th scope="col" class="num">거래비용</th><th scope="col" class="num">순손익</th><th scope="col" class="num">누적 순손익</th></tr></thead>
-          <tbody>
-<tr><th scope="row">2026-06-09</th><td class="num">12주</td><td class="num">164,170</td><td class="num">165,515</td><td class="num pos">16,140원</td><td class="num">165원</td><td class="num pos">15,975원</td><td class="num pos">15,975원</td></tr>
-<tr><th scope="row">2026-06-16</th><td class="num">36주</td><td class="num">210,398</td><td class="num">210,554</td><td class="num pos">5,640원</td><td class="num">636원</td><td class="num pos">5,004원</td><td class="num pos">20,979원</td></tr>
-<tr><th scope="row">2026-06-19</th><td class="num">15주</td><td class="num">235,711</td><td class="num">239,078</td><td class="num pos">50,510원</td><td class="num">295원</td><td class="num pos">50,215원</td><td class="num pos">71,194원</td></tr>
-<tr><th scope="row">2026-06-23</th><td class="num">26주</td><td class="num">229,138</td><td class="num">229,558</td><td class="num pos">10,945원</td><td class="num">499원</td><td class="num pos">10,446원</td><td class="num pos">81,640원</td></tr>
-<tr><th scope="row">2026-06-25</th><td class="num">15주</td><td class="num">198,500</td><td class="num">226,985</td><td class="num pos">427,275원</td><td class="num">268원</td><td class="num pos">427,007원</td><td class="num pos">508,647원</td></tr>
-<tr><th scope="row">2026-07-30</th><td class="num">642주</td><td class="num">80,861</td><td class="num">74,580</td><td class="num neg">-4,032,440원</td><td class="num">4,196원</td><td class="num neg">-4,036,636원</td><td class="num neg">-3,527,989원</td></tr>
-<tr><th scope="row">2026-07-31</th><td class="num">5,946주</td><td class="num">101,778</td><td class="num">102,763</td><td class="num pos">5,855,965원</td><td class="num">51,183원</td><td class="num pos">5,804,782원</td><td class="num pos">2,276,793원</td></tr>
-<tr><th scope="row">2026-08-04</th><td class="num">371주</td><td class="num">90,649</td><td class="num">91,212</td><td class="num pos">209,150원</td><td class="num">2,837원</td><td class="num pos">206,313원</td><td class="num pos">2,483,106원</td></tr>
-<tr><th scope="row">2026-08-05</th><td class="num">1,558주</td><td class="num">100,153</td><td class="num">103,259</td><td class="num pos">4,839,995원</td><td class="num">13,334원</td><td class="num pos">4,826,661원</td><td class="num pos">7,309,767원</td></tr>
-<tr><th scope="row">2026-08-06</th><td class="num">4,002주</td><td class="num">92,364</td><td class="num">92,422</td><td class="num pos">233,340원</td><td class="num">31,121원</td><td class="num pos">202,219원</td><td class="num pos">7,511,986원</td></tr>
-<tr><th scope="row">2026-08-07</th><td class="num">493주</td><td class="num">90,384</td><td class="num">90,723</td><td class="num pos">167,090원</td><td class="num">3,756원</td><td class="num pos">163,334원</td><td class="num pos">7,675,320원</td></tr>
-<tr><th scope="row">2026-08-12</th><td class="num">101주</td><td class="num">99,463</td><td class="num">100,145</td><td class="num pos">68,905원</td><td class="num">846원</td><td class="num pos">68,059원</td><td class="num pos">7,743,379원</td></tr>
-<tr><th scope="row">2026-08-20</th><td class="num">220주</td><td class="num">97,685</td><td class="num">102,650</td><td class="num pos">1,092,275원</td><td class="num">1,852원</td><td class="num pos">1,090,423원</td><td class="num pos">8,833,802원</td></tr>
-          </tbody>
-          <tfoot><tr><th scope="row">합계</th><td class="num">13,437주</td><td></td><td></td><td class="num pos">8,944,790원</td><td class="num">110,988원</td><td class="num pos">8,833,802원</td><td class="num pos">8,833,802원</td></tr></tfoot>
+          <tbody id="dailyTradeRows"></tbody>
+          <tfoot><tr><th scope="row">합계</th><td class="num" data-report-value="totalQty" data-format="qty"></td><td></td><td></td><td class="num pos" data-report-value="totalPnl" data-format="won"></td><td class="num" data-report-value="totalFee" data-format="won"></td><td class="num pos" data-report-value="totalNet" data-format="won"></td><td class="num pos" data-report-value="totalNet" data-format="won"></td></tr></tfoot>
         </table>
       </div>
     </div>
@@ -504,10 +490,10 @@ details p,details li{font-size:12px;color:var(--muted)}
       </div>
 
       <div class="split-summary-grid">
-        <div class="split-summary-item"><span>매도수량</span><strong>2,129주</strong></div>
-        <div class="split-summary-item"><span>손익금액</span><strong class="pos">+7,747,176원</strong></div>
-        <div class="split-summary-item"><span>거래비용</span><strong>16,169원</strong></div>
-        <div class="split-summary-item"><span>순손익</span><strong class="pos">+7,731,007원</strong></div>
+        <div class="split-summary-item"><span>매도수량</span><strong data-report-value="coreQty" data-format="qty"></strong></div>
+        <div class="split-summary-item"><span>손익금액</span><strong class="pos" data-report-value="corePnl" data-format="signedWon"></strong></div>
+        <div class="split-summary-item"><span>거래비용</span><strong data-report-value="coreFee" data-format="won"></strong></div>
+        <div class="split-summary-item"><span>순손익</span><strong class="pos" data-report-value="coreNet" data-format="signedWon"></strong></div>
       </div>
 
       <div class="card add-card-shell add-card-base add-card-shadow table-card split-inner-card">
@@ -515,17 +501,8 @@ details p,details li{font-size:12px;color:var(--muted)}
           <table class="add-data-table split-detail-table core-table">
             <caption class="sr-only">본 포지션 거래 상세</caption>
             <thead><tr><th scope="col">매도일</th><th scope="col" class="num">수량</th><th scope="col" class="num">매수단가</th><th scope="col" class="num">실제 매도단가</th><th scope="col" class="num">손익금액</th><th scope="col" class="num">거래비용</th><th scope="col" class="num">순손익</th></tr></thead>
-            <tbody>
-              <tr><th scope="row">2026-06-09</th><td class="num">12</td><td class="num">164,170</td><td class="num">165,515</td><td class="num pos">+16,140원</td><td class="num">165원</td><td class="num pos">+15,975원</td></tr>
-              <tr><th scope="row">2026-06-25</th><td class="num">15</td><td class="num">198,500</td><td class="num">226,985</td><td class="num pos">+427,275원</td><td class="num">268원</td><td class="num pos">+427,007원</td></tr>
-              <tr><th scope="row">2026-07-30</th><td class="num">642</td><td class="num">80,861</td><td class="num">74,580</td><td class="num neg">-4,032,440원</td><td class="num">4,196원</td><td class="num neg">-4,036,636원</td></tr>
-              <tr><th scope="row">2026-07-31</th><td class="num">576</td><td class="num">82,680</td><td class="num">91,065</td><td class="num pos">+4,829,760원</td><td class="num">4,212원</td><td class="num pos">+4,825,548원</td></tr>
-              <tr><th scope="row">2026-08-05</th><td class="num">532</td><td class="num">94,417</td><td class="num">104,035</td><td class="num pos">+5,116,776원</td><td class="num">4,442원</td><td class="num pos">+5,112,334원</td></tr>
-              <tr><th scope="row">2026-08-07</th><td class="num">100</td><td class="num">91,767</td><td class="num">93,813</td><td class="num pos">+204,590원</td><td class="num">781원</td><td class="num pos">+203,809원</td></tr>
-              <tr><th scope="row">2026-08-12</th><td class="num">32</td><td class="num">92,580</td><td class="num">95,480</td><td class="num pos">+92,800원</td><td class="num">253원</td><td class="num pos">+92,547원</td></tr>
-              <tr><th scope="row">2026-08-20</th><td class="num">220</td><td class="num">97,685</td><td class="num">102,650</td><td class="num pos">+1,092,275원</td><td class="num">1,852원</td><td class="num pos">+1,090,423원</td></tr>
-            </tbody>
-            <tfoot><tr><th scope="row">합계</th><td class="num">2,129</td><td></td><td></td><td class="num pos">+7,747,176원</td><td class="num">16,169원</td><td class="num pos">+7,731,007원</td></tr></tfoot>
+            <tbody id="coreTradeRows"></tbody>
+            <tfoot><tr><th scope="row">합계</th><td class="num" data-report-value="coreQty" data-format="integer"></td><td></td><td></td><td class="num pos" data-report-value="corePnl" data-format="signedWon"></td><td class="num" data-report-value="coreFee" data-format="won"></td><td class="num pos" data-report-value="coreNet" data-format="signedWon"></td></tr></tfoot>
           </table>
         </div>
       </div>
@@ -541,10 +518,10 @@ details p,details li{font-size:12px;color:var(--muted)}
       </div>
 
       <div class="split-summary-grid">
-        <div class="split-summary-item"><span>매도수량</span><strong>11,308주</strong></div>
-        <div class="split-summary-item"><span>손익금액</span><strong class="pos">+1,197,614원</strong></div>
-        <div class="split-summary-item"><span>거래비용</span><strong>94,819원</strong></div>
-        <div class="split-summary-item"><span>순손익</span><strong class="pos">+1,102,795원</strong></div>
+        <div class="split-summary-item"><span>매도수량</span><strong data-report-value="dayQty" data-format="qty"></strong></div>
+        <div class="split-summary-item"><span>손익금액</span><strong class="pos" data-report-value="dayPnl" data-format="signedWon"></strong></div>
+        <div class="split-summary-item"><span>거래비용</span><strong data-report-value="dayFee" data-format="won"></strong></div>
+        <div class="split-summary-item"><span>순손익</span><strong class="pos" data-report-value="dayNet" data-format="signedWon"></strong></div>
       </div>
 
       <div class="card add-card-shell add-card-base add-card-shadow table-card split-inner-card">
@@ -552,18 +529,8 @@ details p,details li{font-size:12px;color:var(--muted)}
           <table class="add-data-table split-detail-table day-table">
             <caption class="sr-only">단타 거래 상세</caption>
             <thead><tr><th scope="col">거래일</th><th scope="col" class="num">단타 매도수량</th><th scope="col" class="num">손익금액</th><th scope="col" class="num">거래비용</th><th scope="col" class="num">순손익</th></tr></thead>
-            <tbody>
-              <tr><th scope="row">2026-06-16</th><td class="num">36</td><td class="num pos">+5,640원</td><td class="num">636원</td><td class="num pos">+5,004원</td></tr>
-              <tr><th scope="row">2026-06-19</th><td class="num">15</td><td class="num pos">+50,510원</td><td class="num">295원</td><td class="num pos">+50,215원</td></tr>
-              <tr><th scope="row">2026-06-23</th><td class="num">26</td><td class="num pos">+10,945원</td><td class="num">499원</td><td class="num pos">+10,446원</td></tr>
-              <tr><th scope="row">2026-07-31</th><td class="num">5,370</td><td class="num pos">+1,026,205원</td><td class="num">46,971원</td><td class="num pos">+979,234원</td></tr>
-              <tr><th scope="row">2026-08-04</th><td class="num">371</td><td class="num pos">+209,150원</td><td class="num">2,837원</td><td class="num pos">+206,313원</td></tr>
-              <tr><th scope="row">2026-08-05</th><td class="num">1,026</td><td class="num neg">-276,781원</td><td class="num">8,892원</td><td class="num neg">-285,673원</td></tr>
-              <tr><th scope="row">2026-08-06</th><td class="num">4,002</td><td class="num pos">+233,340원</td><td class="num">31,121원</td><td class="num pos">+202,219원</td></tr>
-              <tr><th scope="row">2026-08-07</th><td class="num">393</td><td class="num neg">-37,500원</td><td class="num">2,975원</td><td class="num neg">-40,475원</td></tr>
-              <tr><th scope="row">2026-08-12</th><td class="num">69</td><td class="num neg">-23,895원</td><td class="num">593원</td><td class="num neg">-24,488원</td></tr>
-            </tbody>
-            <tfoot><tr><th scope="row">합계</th><td class="num">11,308</td><td class="num pos">+1,197,614원</td><td class="num">94,819원</td><td class="num pos">+1,102,795원</td></tr></tfoot>
+            <tbody id="dayTradeRows"></tbody>
+            <tfoot><tr><th scope="row">합계</th><td class="num" data-report-value="dayQty" data-format="integer"></td><td class="num pos" data-report-value="dayPnl" data-format="signedWon"></td><td class="num" data-report-value="dayFee" data-format="won"></td><td class="num pos" data-report-value="dayNet" data-format="signedWon"></td></tr></tfoot>
           </table>
         </div>
       </div>
@@ -572,16 +539,16 @@ details p,details li{font-size:12px;color:var(--muted)}
     <div class="split-total add-card-shell">
       <div><span>전체 결과</span><small>본 포지션 + 단타</small></div>
       <div class="split-total-stats">
-        <span><b>13,437주</b> 매도</span>
-        <span>손익금액 <b class="pos">+8,944,790원</b></span>
-        <span>거래비용 <b>110,988원</b></span>
-        <span>순손익 <b class="pos">+8,833,802원</b></span>
+        <span><b data-report-value="totalQty" data-format="qty"></b> 매도</span>
+        <span>손익금액 <b class="pos" data-report-value="totalPnl" data-format="signedWon"></b></span>
+        <span>거래비용 <b data-report-value="totalFee" data-format="won"></b></span>
+        <span>순손익 <b class="pos" data-report-value="totalNet" data-format="signedWon"></b></span>
       </div>
       <div class="split-total-mobile" role="group" aria-label="전체 결과 모바일 요약">
-        <div class="split-total-mobile-card add-card-shell add-card-control"><span>매도수량</span><strong>13,437주</strong></div>
-        <div class="split-total-mobile-card add-card-shell add-card-control"><span>손익금액</span><strong class="pos">+8,944,790원</strong></div>
-        <div class="split-total-mobile-card add-card-shell add-card-control"><span>거래비용</span><strong>110,988원</strong></div>
-        <div class="split-total-mobile-card add-card-shell add-card-control"><span>순손익</span><strong class="pos">+8,833,802원</strong></div>
+        <div class="split-total-mobile-card add-card-shell add-card-control"><span>매도수량</span><strong data-report-value="totalQty" data-format="qty"></strong></div>
+        <div class="split-total-mobile-card add-card-shell add-card-control"><span>손익금액</span><strong class="pos" data-report-value="totalPnl" data-format="signedWon"></strong></div>
+        <div class="split-total-mobile-card add-card-shell add-card-control"><span>거래비용</span><strong data-report-value="totalFee" data-format="won"></strong></div>
+        <div class="split-total-mobile-card add-card-shell add-card-control"><span>순손익</span><strong class="pos" data-report-value="totalNet" data-format="signedWon"></strong></div>
       </div>
     </div>
   </section>
@@ -657,10 +624,10 @@ details p,details li{font-size:12px;color:var(--muted)}
         <details class="add-card-shell add-card-control" open>
           <summary>1. 정확값</summary>
           <ul>
-            <li>전체 매도수량 13,437주</li>
-            <li>전체 손익금액 8,944,790원</li>
-            <li>전체 거래비용 110,988원</li>
-            <li>전체 누적 실현 순손익 8,833,802원</li>
+            <li>전체 매도수량 <span data-report-value="totalQty" data-format="qty"></span></li>
+            <li>전체 손익금액 <span data-report-value="totalPnl" data-format="won"></span></li>
+            <li>전체 거래비용 <span data-report-value="totalFee" data-format="won"></span></li>
+            <li>전체 누적 실현 순손익 <span data-report-value="totalNet" data-format="won"></span></li>
             <li>날짜별 전체 매도수량, 손익금액, 거래비용, 순손익은 증권사 매도실현손익 화면 기준</li>
           </ul>
         </details>
@@ -678,7 +645,7 @@ details p,details li{font-size:12px;color:var(--muted)}
         </details>
         <details class="add-card-shell add-card-control">
           <summary>5. 거래비용 배분</summary>
-          <p>증권사 화면은 날짜별 총 거래비용만 보여주므로, 7/31·8/5·8/7·8/12의 비용은 본 포지션과 단타의 추정 왕복 거래대금 비율로 나눴다. 8/20은 220주 전량이 본 포지션이므로 거래비용 1,852원 전액을 본 포지션에 반영했다. 따라서 본 포지션·단타의 순손익에는 기존 혼합일 추정값이 포함되지만 두 값의 합계는 정확히 8,833,802원이다.</p>
+          <p>증권사 화면은 날짜별 총 거래비용만 보여주므로, 7/31·8/5·8/7·8/12의 비용은 본 포지션과 단타의 추정 왕복 거래대금 비율로 나눴다. 8/20은 220주 전량이 본 포지션이므로 거래비용 1,852원 전액을 본 포지션에 반영했다. 따라서 본 포지션·단타의 순손익에는 기존 혼합일 추정값이 포함되지만 두 값의 합계는 정확히 <span data-report-value="totalNet" data-format="won"></span>이다.</p>
         </details>
       </div>
     </div>
@@ -688,9 +655,131 @@ details p,details li{font-size:12px;color:var(--muted)}
 <script>
 // =========================================================
 // 01. 리포트 데이터 / DOM 참조
-// - 차트 원천 데이터와 viewport 공통 tablist를 초기화
+// - 거래 원천 데이터에서 합계·표·차트를 파생하고 viewport 공통 tablist를 초기화
 // =========================================================
-const chartData = {"labels": ["06-09", "06-16", "06-19", "06-23", "06-25", "07-30", "07-31", "08-04", "08-05", "08-06", "08-07", "08-12", "08-20"], "net": [15975, 5004, 50215, 10446, 427007, -4036636, 5804782, 206313, 4826661, 202219, 163334, 68059, 1090423], "cum": [15975, 20979, 71194, 81640, 508647, -3527989, 2276793, 2483106, 7309767, 7511986, 7675320, 7743379, 8833802]};
+const REPORT_DATA = Object.freeze([{"date":"2026-06-09","qty":12,"buy":164170,"sell":165515,"pnl":16140,"fee":165,"segment":"core"},{"date":"2026-06-16","qty":36,"buy":210398,"sell":210554,"pnl":5640,"fee":636,"segment":"day"},{"date":"2026-06-19","qty":15,"buy":235711,"sell":239078,"pnl":50510,"fee":295,"segment":"day"},{"date":"2026-06-23","qty":26,"buy":229138,"sell":229558,"pnl":10945,"fee":499,"segment":"day"},{"date":"2026-06-25","qty":15,"buy":198500,"sell":226985,"pnl":427275,"fee":268,"segment":"core"},{"date":"2026-07-30","qty":642,"buy":80861,"sell":74580,"pnl":-4032440,"fee":4196,"segment":"core"},{"date":"2026-07-31","qty":5946,"buy":101778,"sell":102763,"pnl":5855965,"fee":51183,"segment":"mixed","core":{"qty":576,"buy":82680,"sell":91065,"pnl":4829760,"fee":4212}},{"date":"2026-08-04","qty":371,"buy":90649,"sell":91212,"pnl":209150,"fee":2837,"segment":"day"},{"date":"2026-08-05","qty":1558,"buy":100153,"sell":103259,"pnl":4839995,"fee":13334,"segment":"mixed","core":{"qty":532,"buy":94417,"sell":104035,"pnl":5116776,"fee":4442}},{"date":"2026-08-06","qty":4002,"buy":92364,"sell":92422,"pnl":233340,"fee":31121,"segment":"day"},{"date":"2026-08-07","qty":493,"buy":90384,"sell":90723,"pnl":167090,"fee":3756,"segment":"mixed","core":{"qty":100,"buy":91767,"sell":93813,"pnl":204590,"fee":781}},{"date":"2026-08-12","qty":101,"buy":99463,"sell":100145,"pnl":68905,"fee":846,"segment":"mixed","core":{"qty":32,"buy":92580,"sell":95480,"pnl":92800,"fee":253}},{"date":"2026-08-20","qty":220,"buy":97685,"sell":102650,"pnl":1092275,"fee":1852,"segment":"core"}]);
+
+function reportSum(rows, key){
+  return rows.reduce((sum,row)=>sum+Number(row[key]||0),0);
+}
+function deriveReportRows(rows){
+  let cumulative=0;
+  return rows.map(row=>{
+    const net=Number(row.pnl||0)-Number(row.fee||0);
+    cumulative+=net;
+    return Object.freeze({...row,net,cumulative});
+  });
+}
+function deriveSplitRows(rows, segment){
+  return rows.flatMap(row=>{
+    if(row.segment===segment){
+      return [Object.freeze({date:row.date,qty:row.qty,buy:row.buy,sell:row.sell,pnl:row.pnl,fee:row.fee})];
+    }
+    if(row.segment!=='mixed') return [];
+    if(segment==='core'){
+      return [Object.freeze({date:row.date,...row.core})];
+    }
+    return [Object.freeze({
+      date:row.date,
+      qty:row.qty-row.core.qty,
+      pnl:row.pnl-row.core.pnl,
+      fee:row.fee-row.core.fee
+    })];
+  });
+}
+function deriveSplitMetrics(rows){
+  const qty=reportSum(rows,'qty');
+  const pnl=reportSum(rows,'pnl');
+  const fee=reportSum(rows,'fee');
+  return Object.freeze({qty,pnl,fee,net:pnl-fee});
+}
+
+const reportDailyRows=Object.freeze(deriveReportRows(REPORT_DATA));
+const coreTradeRows=Object.freeze(deriveSplitRows(REPORT_DATA,'core'));
+const dayTradeRows=Object.freeze(deriveSplitRows(REPORT_DATA,'day'));
+const coreMetrics=deriveSplitMetrics(coreTradeRows);
+const dayMetrics=deriveSplitMetrics(dayTradeRows);
+const totalPnl=reportSum(reportDailyRows,'pnl');
+const totalFee=reportSum(reportDailyRows,'fee');
+const totalNet=reportSum(reportDailyRows,'net');
+const totalQty=reportSum(reportDailyRows,'qty');
+const sellDays=reportDailyRows.length;
+const winDays=reportDailyRows.filter(row=>row.net>0).length;
+const coreNetRatio=totalNet?coreMetrics.net/totalNet*100:0;
+const dayNetRatio=totalNet?dayMetrics.net/totalNet*100:0;
+const splitQty=coreMetrics.qty+dayMetrics.qty;
+const coreQtyRatio=splitQty?coreMetrics.qty/splitQty*100:0;
+const dayQtyRatio=splitQty?dayMetrics.qty/splitQty*100:0;
+
+const reportMetrics=Object.freeze({
+  totalPnl,totalFee,totalNet,totalQty,sellDays,winDays,
+  winRate:sellDays?winDays/sellDays*100:0,
+  coreQty:coreMetrics.qty,corePnl:coreMetrics.pnl,coreFee:coreMetrics.fee,coreNet:coreMetrics.net,
+  dayQty:dayMetrics.qty,dayPnl:dayMetrics.pnl,dayFee:dayMetrics.fee,dayNet:dayMetrics.net,
+  coreNetRatio,dayNetRatio,coreQtyRatio,dayQtyRatio
+});
+
+const chartData=Object.freeze({
+  labels:Object.freeze(reportDailyRows.map(row=>row.date.slice(5))),
+  net:Object.freeze(reportDailyRows.map(row=>row.net)),
+  cum:Object.freeze(reportDailyRows.map(row=>row.cumulative))
+});
+
+function reportNumber(value){
+  return Number(value||0).toLocaleString('ko-KR');
+}
+function reportSigned(value){
+  const n=Number(value||0);
+  return `${n>0?'+':''}${reportNumber(n)}`;
+}
+function reportMetricText(value,format){
+  if(format==='qty') return `${reportNumber(value)}주`;
+  if(format==='won') return `${reportNumber(value)}원`;
+  if(format==='signedWon') return `${reportSigned(value)}원`;
+  if(format==='percent1') return `${Number(value||0).toFixed(1)}%`;
+  return reportNumber(value);
+}
+function reportValueClass(value){
+  const n=Number(value||0);
+  return n<0?'neg':n>0?'pos':'';
+}
+function renderReportMetricValues(){
+  document.querySelectorAll('[data-report-value]').forEach(node=>{
+    const key=node.dataset.reportValue;
+    if(!(key in reportMetrics)) return;
+    node.textContent=reportMetricText(reportMetrics[key],node.dataset.format||'integer');
+  });
+  document.getElementById('profitCompositionDonut')?.style.setProperty('--main-position-ratio',`${coreNetRatio}%`);
+  document.getElementById('coreVolumeBar')?.style.setProperty('width',`${coreQtyRatio}%`);
+  document.getElementById('dayVolumeBar')?.style.setProperty('width',`${dayQtyRatio}%`);
+}
+function renderDailyTradeRows(){
+  const tbody=document.getElementById('dailyTradeRows');
+  if(!tbody) return;
+  tbody.innerHTML=reportDailyRows.map(row=>`<tr><th scope="row">${row.date}</th><td class="num">${reportMetricText(row.qty,'qty')}</td><td class="num">${reportNumber(row.buy)}</td><td class="num">${reportNumber(row.sell)}</td><td class="num ${reportValueClass(row.pnl)}">${reportMetricText(row.pnl,'won')}</td><td class="num">${reportMetricText(row.fee,'won')}</td><td class="num ${reportValueClass(row.net)}">${reportMetricText(row.net,'won')}</td><td class="num ${reportValueClass(row.cumulative)}">${reportMetricText(row.cumulative,'won')}</td></tr>`).join('');
+}
+function renderCoreTradeRows(){
+  const tbody=document.getElementById('coreTradeRows');
+  if(!tbody) return;
+  tbody.innerHTML=coreTradeRows.map(row=>{
+    const net=row.pnl-row.fee;
+    return `<tr><th scope="row">${row.date}</th><td class="num">${reportNumber(row.qty)}</td><td class="num">${reportNumber(row.buy)}</td><td class="num">${reportNumber(row.sell)}</td><td class="num ${reportValueClass(row.pnl)}">${reportMetricText(row.pnl,'signedWon')}</td><td class="num">${reportMetricText(row.fee,'won')}</td><td class="num ${reportValueClass(net)}">${reportMetricText(net,'signedWon')}</td></tr>`;
+  }).join('');
+}
+function renderDayTradeRows(){
+  const tbody=document.getElementById('dayTradeRows');
+  if(!tbody) return;
+  tbody.innerHTML=dayTradeRows.map(row=>{
+    const net=row.pnl-row.fee;
+    return `<tr><th scope="row">${row.date}</th><td class="num">${reportNumber(row.qty)}</td><td class="num ${reportValueClass(row.pnl)}">${reportMetricText(row.pnl,'signedWon')}</td><td class="num">${reportMetricText(row.fee,'won')}</td><td class="num ${reportValueClass(net)}">${reportMetricText(net,'signedWon')}</td></tr>`;
+  }).join('');
+}
+function renderCanonicalReportData(){
+  renderReportMetricValues();
+  renderDailyTradeRows();
+  renderCoreTradeRows();
+  renderDayTradeRows();
+}
 
 const reportTabs = [...document.querySelectorAll('.tab')];
 const reportNav = document.querySelector('.report-nav');
@@ -993,7 +1082,8 @@ function initChart(){
   drawChart();
 }
 
-// 리포트 부팅 순서: 메뉴 이벤트 등록 → 차트 초기 렌더 및 resize 감시
+// 리포트 부팅 순서: canonical data 렌더 → 메뉴 이벤트 등록 → 차트 초기 렌더 및 resize 감시
+renderCanonicalReportData();
 initNavigationEvents();
 initChart();
 </script>
