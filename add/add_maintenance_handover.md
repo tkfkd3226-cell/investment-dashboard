@@ -74,11 +74,15 @@ Mobile · 모바일   ≤ 760px
 - 사용자가 별도로 요청하지 않는 한 add 전용 미관용 breakpoint를 추가하지 않는다.
 - 좁은 화면 대응은 새 breakpoint보다 grid/flex/overflow/`clamp()` 같은 component 자체의 유동 규칙을 우선한다.
 - 공통 범위 media는 위 경계값을 공유하는 범위에서 허용한다.
+- **Calc의 실제 터치 스마트폰 가로화면은 예외적으로 Tablet이 아니라 Phone UI로 분류한다.** 메인 `special.css`와 동일하게 `landscape + width≤960px + height≤500px + hover:none + pointer:coarse` 조건을 사용하며, 이 조건은 미관용 추가 breakpoint가 아니라 장치 분류 contract다.
+- 위 가로폰 조건에서는 세로폰과 동일한 Phone typography·density·control/input 배치·mobile/desktop 표시 규칙을 다시 적용한다. 폭이 761px 이상이라는 이유만으로 Tablet UI로 바꾸지 않는다.
 
 ### 1.2 add 영역 UI 공통 구성 원칙
 
 - `calc`와 `report`는 `add/add.css`의 공통 의미색·Corner·Spacing/Density·Heading·Button token/primitive를 재사용한다. 현재 수치 자체는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다. Corner는 역할별 기본 radius와 soft-square cap을 분리하고, 메인의 `investmentDashboard.cornerTheme` 저장값을 읽어 동일한 `rounded-corners` mode contract를 적용한다.
 - 카드·패널·폼·표·탭·버튼처럼 역할이 비슷한 component의 padding/gap은 공통 density token을 우선 사용하고, Desktop → Tablet → Mobile 순으로 일관되게 compact해지는 3단계 contract를 유지한다. 카드·패널·요약박스처럼 독립된 Surface의 기본 padding은 상하좌우 동일값을 사용하며, 표 셀·버튼·input·header row처럼 기능상 X/Y 여백이 달라야 하는 요소만 예외로 둔다. Touch target 높이, 차트 geometry, 광학 보정처럼 기능상 필요한 값은 억지로 density token에 합치지 않는다. 단순 미관 조정 때문에 독립 radius·magic number·임시 offset을 누적하지 않는다.
+- **Calc typography는 역할별 공통 token을 Source of Truth로 사용한다.** 페이지 제목·section·subsection·support·label처럼 의미가 같은 텍스트는 같은 역할 token을 사용하고, 개별 selector에 별도 font-size를 다시 만들지 않는다. 동일 역할은 Desktop → Tablet → Phone으로 갈 때 **각 단계 2px씩 compact**해지는 contract를 유지하며, 가로폰도 Phone token을 그대로 사용한다. input 값·강조 value·기능 아이콘처럼 역할이 다른 텍스트는 이 label 계층에 억지로 합치지 않는다.
+- iPhone Safari가 가로 회전 시 제목·설명문 일부만 선택적으로 확대하지 않도록 Calc의 `-webkit-text-size-adjust:100%` / `text-size-adjust:100%` 방어를 유지한다. 이 설정을 제거하거나 가로폰에서만 별도 font-size를 덧대는 방식으로 대체하지 않는다.
 - 거래유형 전환이나 responsive 변경 시 입력 패널의 정보 순서·시각적 균형·사용성을 유지하되, 해결 방법은 구조적 CSS를 우선한다.
 - 입력 요소는 가능한 한 `<label for>` 또는 `aria-labelledby`로 연결하고, 전략/리포트 탭은 `tablist/tab/tabpanel`, `aria-controls`, `aria-selected`와 키보드 이동을 유지한다. 시각 상태와 ARIA 상태가 함께 갱신되어야 한다.
 - Report 탭은 Desktop/Mobile별 중복 DOM을 만들지 않고 하나의 `tablist`/탭 집합을 viewport에서 재배치한다. 모바일 햄버거는 동일 tablist의 표시만 열고 닫으며 active/ARIA/tabindex state owner도 하나로 유지한다.
@@ -124,7 +128,7 @@ add/
   - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
 - `add/ui-contract.test.cjs`
   - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
-  - 선택 active와 ARIA 동기화, fine-pointer hover 보호, padding-driven input/date/stepper contract처럼 실제 회귀가 있었던 UI 경계를 production HTML/CSS/JS에서 직접 확인한다.
+  - 선택 active와 ARIA 동기화, fine-pointer hover 보호, padding-driven input/date/stepper, 역할별 typography token, 가로폰 Phone UI 분류, iOS text autosizing 방지처럼 실제 회귀가 있었던 UI 경계를 production HTML/CSS/JS에서 직접 확인한다.
 
 ### 1.4 CSS / JS 내부 구조 원칙
 
@@ -133,7 +137,7 @@ add/
 - `add.js`의 계산 엔진은 DOM-free를 유지하고 render/event 책임과 분리한다.
 - 이벤트·툴팁·초기화는 중복 등록되지 않게 명시적으로 관리하며, Node export/browser boot guard를 유지한다.
 - 계산 또는 validation을 변경한 경우 production `add/add.js`를 대상으로 `node --test add/calc.test.cjs`를 실행한다.
-- Calc/Report의 버튼 선택상태·ARIA·hover·input/date/stepper density를 변경한 경우 `node --test add/ui-contract.test.cjs`를 함께 실행한다.
+- Calc/Report의 버튼 선택상태·ARIA·hover·input/date/stepper density 또는 Calc typography·가로폰 Phone UI contract를 변경한 경우 `node --test add/ui-contract.test.cjs`를 함께 실행한다.
 - Report의 차트 label thinning, 마지막 거래일 식별, DPR/resize 처리처럼 동작 의미가 있는 로직은 관련 변경 시 회귀 확인한다.
 
 ## 2. 거래 리포트 canonical 파일명

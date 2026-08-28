@@ -666,7 +666,6 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         padding:0;
       }
 
-      :where(html[data-add-page="calc"]) .hero p{font-size:var(--calc-type-label)}
       :where(html[data-add-page="calc"]) #reportBtn .report-text, :where(html[data-add-page="calc"]) #resetBtn .reset-text{display:none}
       :where(html[data-add-page="calc"]) #reportBtn .report-icon, :where(html[data-add-page="calc"]) #resetBtn .reset-icon{display:block}
       :where(html[data-add-page="calc"]) .preset-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs)}
