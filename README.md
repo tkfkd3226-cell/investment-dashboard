@@ -241,7 +241,7 @@ dashboard-core.js
 └─ 다른 메인 JS 모듈 import 없음
 
 dashboard-ui-common.js
-└─ dashboard-core.js
+└─ 다른 dashboard module import 없음
 
 dashboard-modal.js
 └─ 다른 dashboard module import 없음

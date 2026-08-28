@@ -1604,7 +1604,7 @@ calc/report 공통 CSS
 현재 dependency 방향은 다음과 같다.
 
 ```text
-ui-common       → core
+ui-common       → 다른 dashboard module import 없음
 modal           → 다른 dashboard module import 없음
 charts          → core + ui-common + modal
 ui              → core + ui-common + modal + charts
