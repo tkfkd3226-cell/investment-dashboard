@@ -651,7 +651,10 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) .share-step-btn:active{background:var(--control-hover-bg)}
       :where(html[data-add-page="calc"]) .input-group .group-title small{font-size:12px}
       :where(html[data-add-page="calc"]) .input-group .field label{font-size:11px}
-      :where(html[data-add-page="calc"]) .input-group .control{font-size:16px}
+      /* Mobile input optical density: keep 16px to prevent iOS focus zoom,
+         but compensate for the larger glyph/line box so the visible text-to-border
+         spacing feels comparable to the compact action button (8px inline). */
+      :where(html[data-add-page="calc"]) .input-group .control{font-size:16px;line-height:1.1;padding-top:6px;padding-bottom:6px}
       :where(html[data-add-page="calc"]) .input-group :is(.share-step-btn,.pct-step-btn){font-size:16px}
       :where(html[data-add-page="calc"]) .calculation-group .seg{margin-top:var(--density-gap-sm)}
       :where(html[data-add-page="calc"]) .calculation-group .seg button{height:var(--button-control-height);padding:0 var(--button-compact-pad-x);font-size:var(--button-font-size-compact);letter-spacing:-.025em}
