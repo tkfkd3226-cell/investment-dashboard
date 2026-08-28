@@ -283,7 +283,7 @@
     .prior-trade-section{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--density-gap-md);min-width:0;padding:var(--density-surface-sm) var(--density-field-pad-x)}
     .prior-buy-section{border-right:1px dashed var(--control-border)}
     .prior-entry-grid .field{min-width:0}
-    .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;height:42px;border:1px solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);overflow:hidden;box-sizing:border-box}
+    .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;height:40px;border:1px solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);overflow:hidden;box-sizing:border-box}
     .date-control-shell:focus-within{border-color:var(--control-focus-border);box-shadow:0 0 0 3px var(--control-focus-ring)}
     .date-control-shell .date-control{position:absolute;inset:0;display:block;width:100%;min-width:0;max-width:100%;height:100%;border:0;border-radius:0;background:transparent;box-shadow:none;outline:none;text-align:left;padding:0 var(--density-field-pad-x);box-sizing:border-box;-webkit-min-logical-width:0}
     .date-control-shell .date-control::-webkit-date-and-time-value{height:100%;min-height:100%;margin:0;padding:0;display:flex;align-items:center;justify-content:center;text-align:center}
