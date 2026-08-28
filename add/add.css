@@ -99,6 +99,7 @@
   }
 }
 
+
 /* Main과 같은 저장 theme/corner mode를 Add에도 적용하되, 화면별 색상 토큰은 각 화면이 소유한다. */
 html.rounded-corners{
   --corner-surface-cap:999px;
@@ -258,6 +259,7 @@ body{
    - 모서리 값은 위 Shared 영역의 공통 Corner 토큰 사용
    ========================================================= */
 :root:where([data-add-page="calc"]){
+      --calc-control-pad-y:8px;
       --bg:#f4f6fa;
       --card:#ffffff;
       --muted:#6c768a;
@@ -411,7 +413,7 @@ html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-p
     :where(html[data-add-page="calc"]) .custom-tooltip::after{content:"";position:absolute;left:var(--tooltip-arrow-x,50%);top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--tooltip-bg)}
     :where(html[data-add-page="calc"]) .custom-tooltip.tooltip-below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--tooltip-bg)}
     :where(html[data-add-page="calc"]) .help-tooltip:hover .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip:focus-within .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip.is-open .custom-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
-    :where(html[data-add-page="calc"]) .control{height:auto;min-height:0;border:1px solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);padding:var(--density-action-pad-y) var(--density-action-pad-x);outline:none;text-align:right;font-weight:700;line-height:1;color:var(--ink);-webkit-appearance:none;appearance:none}
+    :where(html[data-add-page="calc"]) .control{height:calc(1em + var(--calc-control-pad-y) + var(--calc-control-pad-y) + 2px);min-height:0;border:1px solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);padding:var(--calc-control-pad-y) var(--density-action-pad-x);outline:none;text-align:right;font-weight:700;line-height:1;color:var(--ink);-webkit-appearance:none;appearance:none}
     :where(html[data-add-page="calc"]) .control:focus, :where(html[data-add-page="calc"]) .date-control-shell:focus-within{border-color:var(--control-focus-border);box-shadow:0 0 0 3px var(--control-focus-ring)}
     :where(html[data-add-page="calc"]) .control[readonly]{background:var(--control-readonly-bg)}
     :where(html[data-add-page="calc"]) .control[readonly]:not(.positive):not(.negative):not(.zero){color:var(--control-readonly-text)}
@@ -496,7 +498,7 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .prior-buy-section{border-right:1px dashed var(--control-border)}
     :where(html[data-add-page="calc"]) .prior-entry-grid .field{min-width:0}
     :where(html[data-add-page="calc"]) .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;border:1px solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);overflow:hidden;box-sizing:border-box}
-    :where(html[data-add-page="calc"]) .date-control-shell .date-control{position:relative;display:block;width:100%;min-width:0;max-width:100%;height:auto;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;outline:none;text-align:left;padding:var(--density-action-pad-y) var(--density-action-pad-x);box-sizing:border-box;line-height:1;-webkit-min-logical-width:0;-webkit-appearance:none;appearance:none}
+    :where(html[data-add-page="calc"]) .date-control-shell .date-control{position:relative;display:block;width:100%;min-width:0;max-width:100%;height:calc(1em + var(--calc-control-pad-y) + var(--calc-control-pad-y));min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;outline:none;text-align:left;padding:var(--calc-control-pad-y) var(--density-action-pad-x);box-sizing:border-box;line-height:1;-webkit-min-logical-width:0;-webkit-appearance:none;appearance:none}
     :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-date-and-time-value{margin:0;padding:0;display:flex;align-items:center;justify-content:center;text-align:center}
     :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-datetime-edit{padding:0;display:flex;align-items:center;justify-content:center}
     :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-datetime-edit-fields-wrapper{display:flex;align-items:center;justify-content:center;padding:0}
@@ -605,6 +607,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,1fr)}
     }
     @media(max-width:760px){
+      :root:where([data-add-page="calc"]){--calc-control-pad-y:6px}
 
       :where(html[data-add-page="calc"]) .hero h1{font-size:24px}
       :where(html[data-add-page="calc"]) .hero p{font-size:11px}
@@ -656,7 +659,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       /* Mobile input optical density: keep every Calc control at 16px to prevent iOS focus zoom.
          Apply the optical Y padding to all controls, not only .input-group descendants,
          so prior-trade/date/current fields share the same glyph + padding-driven height. */
-      :where(html[data-add-page="calc"]) .control{font-size:16px;line-height:1;padding-top:6px;padding-bottom:6px}
+      :where(html[data-add-page="calc"]) .control{font-size:16px;line-height:1}
       :where(html[data-add-page="calc"]) .input-group :is(.share-step-btn,.pct-step-btn){font-size:16px}
       :where(html[data-add-page="calc"]) .calculation-group .seg{margin-top:var(--density-gap-sm)}
       :where(html[data-add-page="calc"]) .calculation-group .seg button{height:var(--button-control-height);padding:0 var(--button-compact-pad-x);font-size:var(--button-font-size-compact);letter-spacing:-.025em}
@@ -690,7 +693,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) .prior-date-section{padding:0 var(--density-gap-xs) var(--density-surface-md)}
       :where(html[data-add-page="calc"]) .prior-trade-section{gap:var(--density-gap-sm);padding:var(--density-surface-md) var(--density-gap-xs)}
       :where(html[data-add-page="calc"]) .prior-entry-grid .control{min-width:0;max-width:100%;font-size:16px}
-      :where(html[data-add-page="calc"]) .date-control-shell .date-control{font-size:16px;line-height:1;padding-top:6px;padding-bottom:6px}
+      :where(html[data-add-page="calc"]) .date-control-shell .date-control{font-size:16px;line-height:1}
       :where(html[data-add-page="calc"]) .existing-group.holding-layout #holdingPriorFields{gap:0}
       :where(html[data-add-page="calc"]) .existing-subsection,
       :where(html[data-add-page="calc"]) .current-subsection,

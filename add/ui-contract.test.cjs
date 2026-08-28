@@ -27,21 +27,26 @@ test('shared hover는 fine pointer에서만 동작하고 선택 상태를 덮지
   assert.match(css1,/:hover:not\(:disabled\):not\(\.active\):not\(\[aria-selected="true"\]\):not\(\[aria-pressed="true"\]\)/);
 });
 
-test('Calc control은 고정 높이/native appearance 없이 padding-driven이다',()=>{
+test('Calc control 높이는 고정 px가 아니라 1em + 공통 Y padding에서 파생된다',()=>{
   const body=rule(':where(html[data-add-page="calc"]) .control');
-  assert.match(body,/height:auto/);
+  assert.match(body,/height:calc\(1em \+ var\(--calc-control-pad-y\) \+ var\(--calc-control-pad-y\) \+ 2px\)/);
+  assert.match(body,/padding:var\(--calc-control-pad-y\) var\(--density-action-pad-x\)/);
   assert.match(body,/min-height:0/);
   assert.match(body,/line-height:1/);
   assert.match(body,/-webkit-appearance:none/);
   assert.match(body,/appearance:none/);
-  assert.doesNotMatch(body,/height:40px/);
+  assert.doesNotMatch(body,/height:(?:30|34|40)px/);
 });
 
-test('date와 일반 input의 모바일 typography/padding contract가 동일 계열이다',()=>{
-  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.control\{font-size:16px;line-height:1;padding-top:6px;padding-bottom:6px\}/);
-  assert.match(css1,/\.date-control-shell \.date-control\{font-size:16px;line-height:1;padding-top:6px;padding-bottom:6px\}/);
-  assert.doesNotMatch(css1,/\.input-group \.control\{font-size:16px;line-height:1;padding-top:6px;padding-bottom:6px\}/);
-  assert.match(css1,/\.date-control-shell \.date-control\{[^}]*-webkit-appearance:none;appearance:none\}/);
+test('date와 일반 input은 같은 Y padding token으로 동일 외곽 높이를 만든다',()=>{
+  assert.match(css1,/--calc-control-pad-y:8px/);
+  assert.match(css1,/@media\(max-width:760px\)\{ :root:where\(\[data-add-page="calc"\]\)\{--calc-control-pad-y:6px\}/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.control\{font-size:16px;line-height:1\}/);
+  const dateBody=rule(':where(html[data-add-page="calc"]) .date-control-shell .date-control');
+  assert.match(dateBody,/height:calc\(1em \+ var\(--calc-control-pad-y\) \+ var\(--calc-control-pad-y\)\)/);
+  assert.match(dateBody,/padding:var\(--calc-control-pad-y\) var\(--density-action-pad-x\)/);
+  assert.match(dateBody,/-webkit-appearance:none/);
+  assert.match(dateBody,/appearance:none/);
 });
 
 test('모바일 share/pct step 버튼은 input 높이에 stretch되어 별도 40px 높이를 강제하지 않는다',()=>{
