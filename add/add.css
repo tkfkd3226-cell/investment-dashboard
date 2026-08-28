@@ -608,8 +608,8 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
 
 /* =========================================================
    07. 반응형 규칙
-   - 메인 대시보드와 동일: Desktop ≥1101 / Tablet 761~1100 / Mobile ≤760
-   - 특수 breakpoint를 추가하지 않고 이 구간 안에서만 재배치
+   - 메인 대시보드와 동일: Desktop ≥1101 / Tablet 761~1100 / Phone ≤760
+   - 실제 터치폰 가로(landscape + ≤960×500 + hover:none + pointer:coarse)는 폭과 무관하게 Phone UI를 유지
    ========================================================= */
 @media(min-width:1101px){
   /* 옆 입력카드의 제목+필드 시작선과 맞추는 desktop geometry 예외 */
@@ -628,13 +628,38 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{grid-template-columns:1fr 1fr}
       :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,1fr)}
     }
-    @media(max-width:760px){
+    /* Calc Phone UI · Main Dashboard와 같은 실제 스마트폰 판정
+       - 세로폰(≤760px)과 터치폰 가로모드(landscape + ≤960×500)를 동일한 Phone UI로 처리한다.
+       - 가로폰이 761~960px 폭이라는 이유만으로 Tablet typography/density/layout을 사용하지 않는다. */
+    @media (max-width:760px),
+           (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
       :root:where([data-add-page="calc"]){
+        /* Shared density의 Mobile 값도 Calc 범위에서 그대로 재적용한다. */
+        --density-page-pad:10px;
+        --density-surface-lg:12px;
+        --density-surface-md:10px;
+        --density-surface-sm:8px;
+        --density-gap-lg:8px;
+        --density-gap-md:6px;
+        --density-gap-sm:4px;
+        --density-gap-micro:2px;
+        --density-layout-gap:12px;
+        --density-action-pad-x:8px;
+        --density-table-pad-x:8px;
+        --density-table-pad-y:6px;
+        --button-compact-pad-x:4px;
+
         --calc-control-pad-y:6px;
         --calc-type-section:16px;
         --calc-type-subsection:14px;
         --calc-type-support:12px;
         --calc-type-label:10px;
+      }
+
+      :where(html[data-add-page="calc"]) .add-button-mobile-icon{
+        width:var(--button-icon-size);
+        height:var(--button-icon-size);
+        padding:0;
       }
 
       :where(html[data-add-page="calc"]) .hero h1{font-size:24px}

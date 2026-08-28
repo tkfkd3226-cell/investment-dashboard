@@ -40,7 +40,7 @@ test('Calc control 높이는 고정 px가 아니라 1em + 공통 Y padding에서
 
 test('date와 일반 input은 같은 Y padding token으로 동일 외곽 높이를 만든다',()=>{
   assert.match(css1,/--calc-control-pad-y:8px/);
-  assert.match(css1,/@media\(max-width:760px\)\{ :root:where\(\[data-add-page="calc"\]\)\{ --calc-control-pad-y:6px;/);
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px;/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.control\{font-size:16px;line-height:1\}/);
   const dateBody=rule(':where(html[data-add-page="calc"]) .date-control-shell .date-control');
   assert.match(dateBody,/height:calc\(1em \+ var\(--calc-control-pad-y\) \+ var\(--calc-control-pad-y\)\)/);
@@ -73,7 +73,7 @@ test('Report tab도 active/aria-selected/tabindex contract를 유지한다',()=>
 test('Calc label typography는 역할별 token으로 통일되고 viewport마다 2px씩 줄어든다',()=>{
   assert.match(css1,/--calc-type-section:20px; --calc-type-subsection:18px; --calc-type-support:16px; --calc-type-label:14px;/);
   assert.match(css1,/@media\(max-width:1100px\)\{ :root:where\(\[data-add-page="calc"\]\)\{ --calc-type-section:18px; --calc-type-subsection:16px; --calc-type-support:14px; --calc-type-label:12px;/);
-  assert.match(css1,/@media\(max-width:760px\)\{ :root:where\(\[data-add-page="calc"\]\)\{ --calc-control-pad-y:6px; --calc-type-section:16px; --calc-type-subsection:14px; --calc-type-support:12px; --calc-type-label:10px;/);
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px; --calc-type-section:16px; --calc-type-subsection:14px; --calc-type-support:12px; --calc-type-label:10px;/);
 
   for(const selector of [
     ':where(html[data-add-page="calc"]) .add-heading-section',
@@ -94,4 +94,16 @@ test('Calc label typography는 역할별 token으로 통일되고 viewport마다
   assert.doesNotMatch(css1,/\.input-group \.field label\{font-size:11px\}/);
   assert.doesNotMatch(css1,/\.summary-card \.sname\{font-size:(?:10|11)px/);
   assert.doesNotMatch(css1,/\.range-box strong\{[^}]*font-size:13px/);
+});
+
+
+test('Calc 가로 터치폰은 Tablet이 아니라 세로 Phone과 같은 UI contract를 사용한다',()=>{
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{/);
+  assert.match(css1,/--density-page-pad:10px; --density-surface-lg:12px; --density-surface-md:10px; --density-surface-sm:8px;/);
+  assert.match(css1,/--density-gap-lg:8px; --density-gap-md:6px; --density-gap-sm:4px; --density-gap-micro:2px;/);
+  assert.match(css1,/--density-action-pad-x:8px; --density-table-pad-x:8px; --density-table-pad-y:6px; --button-compact-pad-x:4px;/);
+  assert.match(css1,/--calc-type-section:16px; --calc-type-subsection:14px; --calc-type-support:12px; --calc-type-label:10px;/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.input-grid, :where\(html\[data-add-page="calc"\]\) \.input-grid\.no-prior-layout\{grid-template-columns:minmax\(0,1fr\)\}/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) #reportBtn \.report-text, :where\(html\[data-add-page="calc"\]\) #resetBtn \.reset-text\{display:none\}/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.add-button-mobile-icon\{ width:var\(--button-icon-size\); height:var\(--button-icon-size\); padding:0;/);
 });
