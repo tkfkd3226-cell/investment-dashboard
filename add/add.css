@@ -653,10 +653,10 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) .share-step-btn:active{background:var(--control-hover-bg)}
       :where(html[data-add-page="calc"]) .input-group .group-title small{font-size:12px}
       :where(html[data-add-page="calc"]) .input-group .field label{font-size:11px}
-      /* Mobile input optical density: keep 16px to prevent iOS focus zoom.
-         Controls are appearance-free so Safari cannot reintroduce a native minimum
-         textfield height; visible height is determined by glyph + padding only. */
-      :where(html[data-add-page="calc"]) .input-group .control{font-size:16px;line-height:1;padding-top:6px;padding-bottom:6px}
+      /* Mobile input optical density: keep every Calc control at 16px to prevent iOS focus zoom.
+         Apply the optical Y padding to all controls, not only .input-group descendants,
+         so prior-trade/date/current fields share the same glyph + padding-driven height. */
+      :where(html[data-add-page="calc"]) .control{font-size:16px;line-height:1;padding-top:6px;padding-bottom:6px}
       :where(html[data-add-page="calc"]) .input-group :is(.share-step-btn,.pct-step-btn){font-size:16px}
       :where(html[data-add-page="calc"]) .calculation-group .seg{margin-top:var(--density-gap-sm)}
       :where(html[data-add-page="calc"]) .calculation-group .seg button{height:var(--button-control-height);padding:0 var(--button-compact-pad-x);font-size:var(--button-font-size-compact);letter-spacing:-.025em}

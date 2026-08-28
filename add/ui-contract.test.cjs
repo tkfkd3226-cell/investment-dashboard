@@ -38,8 +38,9 @@ test('Calc control은 고정 높이/native appearance 없이 padding-driven이�
 });
 
 test('date와 일반 input의 모바일 typography/padding contract가 동일 계열이다',()=>{
-  assert.match(css1,/\.input-group \.control\{font-size:16px;line-height:1;padding-top:6px;padding-bottom:6px\}/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.control\{font-size:16px;line-height:1;padding-top:6px;padding-bottom:6px\}/);
   assert.match(css1,/\.date-control-shell \.date-control\{font-size:16px;line-height:1;padding-top:6px;padding-bottom:6px\}/);
+  assert.doesNotMatch(css1,/\.input-group \.control\{font-size:16px;line-height:1;padding-top:6px;padding-bottom:6px\}/);
   assert.match(css1,/\.date-control-shell \.date-control\{[^}]*-webkit-appearance:none;appearance:none\}/);
 });
 
