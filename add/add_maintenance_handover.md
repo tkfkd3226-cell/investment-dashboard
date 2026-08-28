@@ -8,6 +8,7 @@
 - `add.css`: 두 페이지가 공유하는 단일 런타임 CSS. 공통 primitive와 `data-add-page` 기반 Calc/Report 전용 규칙을 함께 관리
 - `add.js`: 두 페이지가 공유하는 단일 런타임 JS. 공통 조기 테마 처리 후 `data-add-page`에 따라 Calc/Report만 선택 부팅
 - `calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
+- `ui-contract.test.cjs`: 선택상태/ARIA/hover/input density 등 UI interaction·style contract 회귀 테스트
 - `add_maintenance_handover.md`: Add 유지보수 기준
 
 > 적용 범위: `add/calc.html`, `add/add.css`, `add/add.js`, `add/kodex-leverage-report.html` 및 **KODEX 레버리지 실현손익 반영 때문에 함께 수정되는 `data/portfolio.json`**
@@ -95,6 +96,7 @@ add/
 ├─ add.css
 ├─ add.js
 ├─ calc.test.cjs
+├─ ui-contract.test.cjs
 └─ add_maintenance_handover.md
 ```
 
@@ -120,6 +122,9 @@ add/
 - `add/calc.test.cjs`
   - Node 내장 `node:test` / `node:assert`만 사용한다.
   - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
+- `add/ui-contract.test.cjs`
+  - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
+  - 선택 active와 ARIA 동기화, fine-pointer hover 보호, padding-driven input/date/stepper contract처럼 실제 회귀가 있었던 UI 경계를 production HTML/CSS/JS에서 직접 확인한다.
 
 ### 1.4 CSS / JS 내부 구조 원칙
 
@@ -128,6 +133,7 @@ add/
 - `add.js`의 계산 엔진은 DOM-free를 유지하고 render/event 책임과 분리한다.
 - 이벤트·툴팁·초기화는 중복 등록되지 않게 명시적으로 관리하며, Node export/browser boot guard를 유지한다.
 - 계산 또는 validation을 변경한 경우 production `add/add.js`를 대상으로 `node --test add/calc.test.cjs`를 실행한다.
+- Calc/Report의 버튼 선택상태·ARIA·hover·input/date/stepper density를 변경한 경우 `node --test add/ui-contract.test.cjs`를 함께 실행한다.
 - Report의 차트 label thinning, 마지막 거래일 식별, DPR/resize 처리처럼 동작 의미가 있는 로직은 관련 변경 시 회귀 확인한다.
 
 ## 2. 거래 리포트 canonical 파일명
@@ -421,6 +427,7 @@ https://tkfkd3226-cell.github.io/investment-dashboard/add/kodex-leverage-report.
 - GitHub Pages는 배포된 revision의 runtime 검증 수단일 뿐이며, 최신 ZIP 실제 소스보다 우선하지 않는다. 최신 ZIP과 배포본의 동일 revision 여부가 확인되지 않으면 결과를 `배포본 runtime`으로 구분하고, 미배포 변경을 pixel/render PASS라고 단정하지 않는다.
 - Desktop/Tablet/Mobile 기준에서 관련 화면을 확인하고, 요청하지 않은 add 전용 breakpoint가 생기지 않았는지 본다.
 - tab/ARIA/tooltip/table semantic이 관련 변경으로 깨지지 않았는지 확인한다.
+- 선택상태·hover·input/date/stepper CSS contract 관련 변경은 `node --test add/ui-contract.test.cjs` 전체 PASS를 확인한다.
 - Timeline을 건드렸다면 날짜 누락·순서 왜곡·카드 겹침을 확인한다.
 
 ### 12.4 구조 리팩터링 시
