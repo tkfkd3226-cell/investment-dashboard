@@ -72,14 +72,14 @@
         <div class="split-box">
           <div class="donut" id="profitCompositionDonut"><div class="donut-center"><strong data-report-value="coreNetRatio" data-format="percent1"></strong><span>본 포지션 비중</span></div></div>
           <div>
-            <div class="legend-row"><div class="legend-name"><span class="dot" style="background:var(--navy)"></span>본 포지션</div><strong data-report-value="coreNet" data-format="won"></strong></div>
-            <div class="legend-row"><div class="legend-name"><span class="dot" style="background:var(--series-secondary)"></span>반복 단타</div><strong data-report-value="dayNet" data-format="won"></strong></div>
+            <div class="legend-row"><div class="legend-name"><span class="dot dot-core"></span>본 포지션</div><strong data-report-value="coreNet" data-format="won"></strong></div>
+            <div class="legend-row"><div class="legend-name"><span class="dot dot-day"></span>반복 단타</div><strong data-report-value="dayNet" data-format="won"></strong></div>
             <div class="legend-row"><div class="legend-name">합계</div><strong data-report-value="totalNet" data-format="won"></strong></div>
           </div>
         </div>
         <div class="volume-bars">
-          <div class="volume-row"><span>본 포지션</span><div class="bar-track"><div class="bar-fill" id="coreVolumeBar" style="background:var(--navy)"></div></div><strong data-report-value="coreQty" data-format="qty"></strong></div>
-          <div class="volume-row"><span>반복 단타</span><div class="bar-track"><div class="bar-fill" id="dayVolumeBar" style="background:var(--series-secondary)"></div></div><strong data-report-value="dayQty" data-format="qty"></strong></div>
+          <div class="volume-row"><span>본 포지션</span><div class="bar-track"><div class="bar-fill bar-fill-core" id="coreVolumeBar"></div></div><strong data-report-value="coreQty" data-format="qty"></strong></div>
+          <div class="volume-row"><span>반복 단타</span><div class="bar-track"><div class="bar-fill bar-fill-day" id="dayVolumeBar"></div></div><strong data-report-value="dayQty" data-format="qty"></strong></div>
         </div>
       </div>
     </div>
