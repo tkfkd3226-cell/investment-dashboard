@@ -156,10 +156,14 @@ html.dark{
   border-radius:min(var(--control-radius-md),var(--corner-control-cap));
   background:var(--surface-control);
 }
-:is(.add-button-action,.add-button-toggle,.add-button-step):hover:not(:disabled){
-  border-color:var(--button-hover-border,var(--navy));
-  background:var(--button-hover-bg,var(--surface-control));
-  color:var(--button-hover-text,var(--ink));
+/* Hover는 실제 hover 가능한 fine pointer에서만 사용한다.
+   선택된 toggle은 hover primitive 대상에서 제외해 active/ARIA 상태색을 항상 보존한다. */
+@media (hover:hover) and (pointer:fine){
+  :is(.add-button-action,.add-button-toggle,.add-button-step):hover:not(:disabled):not(.active):not([aria-selected="true"]):not([aria-pressed="true"]){
+    border-color:var(--button-hover-border,var(--navy));
+    background:var(--button-hover-bg,var(--surface-control));
+    color:var(--button-hover-text,var(--ink));
+  }
 }
 .add-button-action{
   display:inline-flex;
@@ -372,8 +376,6 @@ body{
     :where(html[data-add-page="calc"]) .preset-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--density-gap-micro)}
     :where(html[data-add-page="calc"]) .preset-btn .preset-main{font-size:var(--button-font-size)}
     :where(html[data-add-page="calc"]) .preset-btn.active{box-shadow:var(--active-shadow)}
-    /* Touch Safari can keep :hover after tap. Keep selected toggle colors above the shared hover primitive so the active background appears immediately. */
-    :where(html[data-add-page="calc"]) .add-button-toggle:is(.active,[aria-selected="true"],[aria-pressed="true"]):hover:not(:disabled){background:var(--navy);border-color:var(--navy);color:var(--on-accent)}
 
 /* =========================================================
    03. 입력 패널 / 폼 컨트롤 / 도움말 툴팁

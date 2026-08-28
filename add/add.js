@@ -792,6 +792,181 @@
       const n=Number(value||0);
       return n<0?'neg':n>0?'pos':'';
     }
+
+    // Timeline의 실현거래 숫자는 REPORT_DATA/분리 파생값을 그대로 사용한다.
+    // 매수만 존재해 REPORT_DATA에 없는 포지션 형성 사실만 별도 context로 둔다.
+    const reportRowByDate=new Map(reportDailyRows.map(row=>[row.date,row]));
+    const coreRowByDate=new Map(coreTradeRows.map(row=>[row.date,row]));
+    const dayRowByDate=new Map(dayTradeRows.map(row=>[row.date,row]));
+    const POSITION_CONTEXT=Object.freeze({
+      legacyBuild:Object.freeze({firstQty:16,firstBuy:203800,secondQty:22,secondBuy:170215}),
+      julyAdd:Object.freeze({extraBuy:74350}),
+      augustFinalBuild:Object.freeze({firstQty:15,firstBuy:110465,secondBuy:96750})
+    });
+
+    function timelineDateShort(date){
+      const [,m,d]=date.split('-');
+      return `${Number(m)}/${Number(d)}`;
+    }
+    function timelineRow(date){
+      return reportRowByDate.get(date)||null;
+    }
+    function timelineCore(date){
+      return coreRowByDate.get(date)||null;
+    }
+    function timelineDay(date){
+      return dayRowByDate.get(date)||null;
+    }
+    function timelineEvent(sortDate,range,title,strong,body){
+      return Object.freeze({sortDate,range,title,strong,body});
+    }
+    function timelineGeneric(row){
+      const type=row.segment==='core'?'본 포지션 청산':row.segment==='day'?'당일 단타':'혼합 거래';
+      return timelineEvent(
+        row.date,
+        row.date,
+        type,
+        `${reportNumber(row.qty)}주 · ${reportNumber(row.buy)}원 매수 → ${reportNumber(row.sell)}원 매도`,
+        `순손익 ${reportMetricText(row.net,'signedWon')}. ${row.segment==='mixed'?'본 포지션과 단타가 함께 포함된 매도일.':row.segment==='core'?'본 포지션으로 분류.':'당일 단타로 분류.'}`
+      );
+    }
+    function buildTimelineEvents(){
+      const coveredDates=new Set();
+      const events=[];
+      const addRealized=(dates,builder)=>{
+        const rows=dates.map(timelineRow).filter(Boolean);
+        if(rows.length!==dates.length) return;
+        dates.forEach(date=>coveredDates.add(date));
+        events.push(builder(rows));
+      };
+
+      addRealized(['2026-06-09'],([row])=>timelineEvent(
+        row.date,'2026-06-08~09','첫 오버나이트 거래',
+        `${reportNumber(row.qty)}주 · ${reportNumber(row.buy)}원 매수 → ${reportNumber(row.sell)}원 매도`,
+        `6/8 매수 후 6/9 청산. 순이익 ${reportMetricText(row.net,'won')}으로 본 포지션에 분류.`
+      ));
+
+      addRealized(['2026-06-16','2026-06-19','2026-06-23'],rows=>{
+        const qty=reportSum(rows,'qty');
+        const net=reportSum(rows,'net');
+        return timelineEvent(
+          rows[0].date,'2026-06-16~23','초기 당일 단타 구간',
+          rows.map(row=>`${timelineDateShort(row.date)} ${reportNumber(row.qty)}주`).join(' · '),
+          `같은 날 매수·매도를 완료한 ${reportNumber(qty)}주. 세 거래일 단타 순이익 합계 ${reportMetricText(net,'won')}.`
+        );
+      });
+
+      addRealized(['2026-06-25'],([row])=>timelineEvent(
+        row.date,'2026-06-23~25',`${reportNumber(row.qty)}주 보유 포지션 청산`,
+        `${reportNumber(row.buy)}원 매수 → ${reportNumber(row.sell)}원 매도`,
+        `6/23 별도로 매수한 ${reportNumber(row.qty)}주를 6/25 청산. 순이익 ${reportMetricText(row.net,'won')}.`
+      ));
+
+      const legacy=POSITION_CONTEXT.legacyBuild;
+      const legacyQty=legacy.firstQty+legacy.secondQty;
+      const legacyCost=legacy.firstQty*legacy.firstBuy+legacy.secondQty*legacy.secondBuy;
+      events.push(timelineEvent(
+        '2026-07-02','2026-06-26~07-02',`기존 ${reportNumber(legacyQty)}주 고평단 포지션 형성`,
+        `${reportNumber(legacyQty)}주 · 총 취득원가 ${reportMetricText(legacyCost,'won')} · 평단 ${reportNumber(Math.round(legacyCost/legacyQty))}원`,
+        `6/26 ${reportNumber(legacy.firstQty)}주를 ${reportNumber(legacy.firstBuy)}원에 매수하고 7/2 ${reportNumber(legacy.secondQty)}주를 ${reportNumber(legacy.secondBuy)}원에 추가매수.`
+      ));
+
+      const july30=timelineRow('2026-07-30');
+      if(july30){
+        const extraQty=july30.qty-legacyQty;
+        const totalCost=legacyCost+extraQty*POSITION_CONTEXT.julyAdd.extraBuy;
+        events.push(timelineEvent(
+          '2026-07-29','2026-07-29','대규모 추가매수',
+          `${reportNumber(extraQty)}주 × ${reportNumber(POSITION_CONTEXT.julyAdd.extraBuy)}원 추가 → 총 ${reportNumber(july30.qty)}주`,
+          `기존 ${reportNumber(legacyQty)}주 취득원가 ${reportMetricText(legacyCost,'won')}과 ${reportNumber(extraQty)}주 추가매수 ${reportMetricText(extraQty*POSITION_CONTEXT.julyAdd.extraBuy,'won')}을 합쳐 총 ${reportNumber(july30.qty)}주 운용원가 ${reportMetricText(totalCost,'won')}.`
+        ));
+      }
+
+      addRealized(['2026-07-30'],([row])=>{
+        const nextCore=timelineCore('2026-07-31');
+        const repurchase=nextCore?` 같은 날 ${reportNumber(nextCore.qty)}주를 ${reportNumber(nextCore.buy)}원에 재매수.`:'';
+        return timelineEvent(
+          row.date,row.date,'첫 대규모 포지션 청산',
+          `${reportNumber(row.qty)}주 · ${reportNumber(row.sell)}원 매도`,
+          `순손실 ${reportMetricText(Math.abs(row.net),'won')}.${repurchase}`
+        );
+      });
+
+      addRealized(['2026-07-31'],([row])=>{
+        const core=timelineCore(row.date),day=timelineDay(row.date);
+        return timelineEvent(
+          row.date,row.date,'재매수분 청산 + 대량 단타',
+          `총 매도 ${reportNumber(row.qty)}주`,
+          core&&day?`본 포지션 ${reportNumber(core.qty)}주를 청산하고 나머지 ${reportNumber(day.qty)}주는 반복 단타 물량으로 분리.`:`순손익 ${reportMetricText(row.net,'signedWon')}.`
+        );
+      });
+
+      addRealized(['2026-08-04'],([row])=>{
+        const nextCore=timelineCore('2026-08-05');
+        return timelineEvent(
+          row.date,row.date,'단타 + 종가 매수',
+          `당일 매도 ${reportNumber(row.qty)}주${nextCore?` · 신규 ${reportNumber(nextCore.qty)}주`:''}`,
+          `단타 순이익 ${reportMetricText(row.net,'won')}.${nextCore?` ${reportNumber(nextCore.qty)}주는 ${reportNumber(nextCore.buy)}원에 다음 날까지 보유.`:''}`
+        );
+      });
+
+      addRealized(['2026-08-05'],([row])=>{
+        const core=timelineCore(row.date),day=timelineDay(row.date);
+        return timelineEvent(
+          row.date,row.date,'보유분 청산 + 추가 단타',
+          `총 매도 ${reportNumber(row.qty)}주`,
+          core&&day?`본 포지션 ${reportNumber(core.qty)}주를 ${reportNumber(core.sell)}원에 청산하고 나머지 ${reportNumber(day.qty)}주는 당일 반복매매.`:`순손익 ${reportMetricText(row.net,'signedWon')}.`
+        );
+      });
+
+      addRealized(['2026-08-06'],([row])=>{
+        const nextCore=timelineCore('2026-08-07');
+        return timelineEvent(
+          row.date,row.date,'대량 단타 + 소규모 오버나이트',
+          `당일 매도 ${reportNumber(row.qty)}주${nextCore?` · 신규 ${reportNumber(nextCore.qty)}주`:''}`,
+          `당일 단타 순이익 ${reportMetricText(row.net,'won')}.${nextCore?` ${reportNumber(nextCore.qty)}주는 ${reportNumber(nextCore.buy)}원에 매수해 다음 날까지 보유.`:''}`
+        );
+      });
+
+      addRealized(['2026-08-07'],([row])=>{
+        const core=timelineCore(row.date),day=timelineDay(row.date);
+        return timelineEvent(
+          row.date,row.date,'보유분 청산 + 추가 단타',
+          `총 매도 ${reportNumber(row.qty)}주`,
+          core&&day?`전일 보유 ${reportNumber(core.qty)}주는 ${reportNumber(core.sell)}원에 청산. 추가 ${reportNumber(day.qty)}주는 당일 단타로 분류되며, ${timelineDateShort(row.date)} 전체 순손익은 ${reportMetricText(row.net,'won')}.`:`순손익 ${reportMetricText(row.net,'signedWon')}.`
+        );
+      });
+
+      addRealized(['2026-08-12'],([row])=>{
+        const core=timelineCore(row.date),day=timelineDay(row.date);
+        return timelineEvent(
+          row.date,'2026-08-11~12',`${reportNumber(core?.qty||0)}주 오버나이트 청산 + 추가 단타`,
+          `총 매도 ${reportNumber(row.qty)}주`,
+          core&&day?`8/11 매수한 ${reportNumber(core.qty)}주는 ${reportNumber(core.buy)}원 → ${reportNumber(core.sell)}원에 청산해 본 포지션으로 분류. 나머지 ${reportNumber(day.qty)}주는 8/12 당일 단타이며, 전체 순손익은 ${reportMetricText(row.net,'won')}.`:`순손익 ${reportMetricText(row.net,'signedWon')}.`
+        );
+      });
+
+      addRealized(['2026-08-20'],([row])=>{
+        const build=POSITION_CONTEXT.augustFinalBuild;
+        const secondQty=row.qty-build.firstQty;
+        return timelineEvent(
+          row.date,'2026-08-18~20',`${reportNumber(row.qty)}주 오버나이트 포지션 청산`,
+          `8/18 ${reportNumber(build.firstQty)}주 + 8/19 ${reportNumber(secondQty)}주 → 8/20 전량 매도`,
+          `${reportNumber(build.firstQty)}주는 ${reportNumber(build.firstBuy)}원, ${reportNumber(secondQty)}주는 ${reportNumber(build.secondBuy)}원에 매수해 가중평균 ${reportNumber(row.buy)}원. 8/20 ${reportNumber(row.sell)}원에 ${reportNumber(row.qty)}주 전량 매도해 순이익 ${reportMetricText(row.net,'won')}으로 본 포지션에 분류.`
+        );
+      });
+
+      // 새 REPORT_DATA 행이 curated group에 아직 정의되지 않아도 Timeline에서 누락되지 않게 자동 보완한다.
+      reportDailyRows.forEach(row=>{
+        if(!coveredDates.has(row.date)) events.push(timelineGeneric(row));
+      });
+      return events.sort((a,b)=>a.sortDate.localeCompare(b.sortDate));
+    }
+    function renderReportTimeline(){
+      const timeline=document.getElementById('reportTimeline');
+      if(!timeline) return;
+      timeline.innerHTML=buildTimelineEvents().map(item=>`<article class="timeline-item"><div class="timeline-date">${item.range}</div><div class="timeline-dot"></div><div class="timeline-card add-card-shell add-card-control"><div class="timeline-card-date">${item.range}</div><h3 class="add-heading-subsection">${item.title}</h3><strong>${item.strong}</strong><p>${item.body}</p></div></article>`).join('');
+    }
     function renderReportMetricValues(){
       document.querySelectorAll('[data-report-value]').forEach(node=>{
         const key=node.dataset.reportValue;
@@ -828,6 +1003,7 @@
       renderDailyTradeRows();
       renderCoreTradeRows();
       renderDayTradeRows();
+      renderReportTimeline();
     }
     
     const reportTabs=[...document.querySelectorAll('.tab')];

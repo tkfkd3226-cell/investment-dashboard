@@ -105,7 +105,7 @@ add/
   - 런타임 asset은 `add.css`와 `add.js`만 로드한다.
   - 기능 로직이나 대량 스타일을 HTML 안으로 다시 넣지 않는다.
 - `add/kodex-leverage-report.html`
-  - 거래 리포트 canonical HTML과 증빙/본문 DOM을 소유한다.
+  - 거래 리포트 canonical HTML과 증빙/본문 DOM을 소유한다. Timeline은 렌더 대상 shell만 소유하고 실현거래 숫자를 HTML에 중복 하드코딩하지 않는다.
   - 런타임 asset은 Calc와 동일하게 `add.css`와 `add.js`만 로드하며, CSS/JS를 다시 HTML 내부 `<style>` / `<script>`로 되돌리지 않는다.
 - `add/add.css`
   - Calc와 Report의 단일 런타임 stylesheet다.
@@ -114,7 +114,8 @@ add/
 - `add/add.js`
   - Calc와 Report의 단일 런타임 script다.
   - 공통 조기 테마/Corner 처리를 수행한 뒤 `data-add-page="calc|report"`에 따라 해당 페이지의 boot만 실행한다.
-  - Calc 계산·렌더·프리셋·이벤트·툴팁과 Report 데이터·탭·차트 로직은 한 파일 안에서도 section/boot 경계를 유지하고 서로의 DOM/state를 참조하지 않는다.
+  - Calc 계산·렌더·프리셋·이벤트·툴팁과 Report 데이터·탭·차트·Timeline 파생 로직은 한 파일 안에서도 section/boot 경계를 유지하고 서로의 DOM/state를 참조하지 않는다.
+  - Report Timeline의 실현거래 수량·단가·손익·비용은 `REPORT_DATA`와 본 포지션/단타 파생값을 Source of Truth로 사용한다. 매도실현 데이터에 없는 매수-only 포지션 형성 사실만 별도 context로 유지한다. 새 `REPORT_DATA` 행은 curated 설명이 없어도 Timeline에 기본 항목으로 자동 노출되어야 한다.
   - Node 회귀검증에서는 `compute`, `validate`, `ceil5`만 노출하고 브라우저 boot는 실행하지 않는다.
 - `add/calc.test.cjs`
   - Node 내장 `node:test` / `node:assert`만 사용한다.
@@ -365,7 +366,7 @@ separateProfit.reinvestedLimit
 - 본 포지션/단타 비율 같은 시각화 값은 selector 내부 숫자로 하드코딩하지 않고 계산값에서 주입한다.
 - 누적손익 차트 X축 날짜는 실제 plot 폭에 따라 생략할 수 있지만 마지막 거래일은 항상 식별 가능해야 한다.
 - `매도일 기준 승률`은 `순손익 > 0인 매도일 수 ÷ 전체 매도일 수 × 100`이며, 0원인 날은 승리로 계산하지 않는다. 현재 표시 자릿수·보조문구는 report 소스를 Source of Truth로 본다.
-- 새 거래 반영 후 Hero/KPI/표/차트/본 포지션·단타 요약/Timeline 등 **동일 지표가 반복되는 모든 위치**를 전체 검색하여 같은 최신 계산값인지 검산한다.
+- 새 거래 반영 후 Hero/KPI/표/차트/본 포지션·단타 요약은 동일 canonical 계산값을 사용해야 한다. Timeline의 실현거래 숫자는 `REPORT_DATA`에서 파생하고 HTML에 별도 숫자를 복제하지 않는다. 새 거래가 curated Timeline 설명에 없더라도 기본 항목이 자동 생성되는지 확인한다.
 - 과거 마지막 날짜·누계·총수량 같은 문자열이 잔존하지 않는지 마지막에 검색한다.
 
 ## 10. 증권사 원본 이미지 반영
@@ -379,7 +380,7 @@ separateProfit.reinvestedLimit
 2. 상세 매매보고서에서 매수일·수량·오버나이트/포지션 연결 확인
 3. data/portfolio.json separateProfit.trades 반영
 4. canonical report의 날짜별 표·합계·본 포지션/단타 분류 반영
-5. 동일 지표가 반복되는 요약·차트·Timeline·원본근거 갱신 및 검산
+5. 동일 지표가 반복되는 요약·차트·원본근거 검산 + Timeline 자동 파생/누락 여부 확인
 6. 변경 유형에 해당하는 QA 수행
 ```
 
@@ -395,7 +396,7 @@ separateProfit.reinvestedLimit
 - 날짜별 `손익금액 - 거래비용 = 순손익`, 전체 합계와 날짜별 합계가 일치한다.
 - `data/portfolio.json separateProfit`과 report의 누적 실현 순손익이 일치하고 같은 날짜 레코드가 중복되지 않는다.
 - 본 포지션 + 단타의 수량·손익·비용·순손익 합계가 전체와 일치한다.
-- 동일 지표를 사용하는 요약·차트·표·Timeline에 과거 값이 잔존하지 않는다.
+- 동일 지표를 사용하는 요약·차트·표에 과거 값이 잔존하지 않으며, Timeline은 `REPORT_DATA` 파생값과 일치하고 새 매도일이 누락되지 않는다.
 - 원본 이미지/근거를 갱신하는 작업이라면 최신 숫자와 같은 시점인지 확인한다.
 
 ### 12.2 Calc 계산·validation 변경 시
