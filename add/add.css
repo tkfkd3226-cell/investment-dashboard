@@ -9,8 +9,8 @@
 /* ==================== 01. Shared ==================== */
 /* =========================================================
    Add 공통 기반
-   - 두 화면이 공유하는 의미 색상, Corner, Spacing/Density, Heading, Button, Card Surface, Table primitive를 둔다.
-   - 화면별 색상·레이아웃·반응형은 아래 Calc / Report scope가 각각 소유한다.
+   - 재사용 가치가 있는 의미 색상, Corner, Spacing/Density, Button, Card Surface, Table primitive만 둔다.
+   - 1회성 component 색상은 사용 규칙 옆에 두고, 화면별 레이아웃·반응형은 Calc / Report scope가 각각 소유한다.
    ========================================================= */
 
 /* 01. 공통 의미 토큰 / Main Dashboard Corner 기준 */
@@ -61,13 +61,6 @@
   --button-compact-pad-x:6px;
   --button-compact-pad-y:8px;
 
-  /* Add 공통 Heading hierarchy */
-  --heading-section-size:20px;
-  --heading-subsection-size:14px;
-  --heading-minor-size:12px;
-  --heading-section-weight:800;
-  --heading-subsection-weight:800;
-  --heading-minor-weight:900;
 }
 
 @media(max-width:1100px){
@@ -123,22 +116,22 @@ html.dark{
 }
 
 /* 02. Add 공통 Heading / Typography primitive
-   - 비슷한 제목 크기는 20 / 14 / 12px의 3단계 hierarchy로 통합한다.
+   - 한 번만 쓰는 size/weight token은 만들지 않고 20 / 14 / 12px의 3단계 hierarchy를 primitive가 직접 소유한다.
    - Hero h1, KPI value, badge 등 제목이 아닌 typography는 이 contract에 포함하지 않는다. */
 .add-heading-section{
-  font-size:var(--heading-section-size);
-  font-weight:var(--heading-section-weight);
+  font-size:20px;
+  font-weight:800;
   line-height:1.25;
   letter-spacing:-.035em;
 }
 .add-heading-subsection{
-  font-size:var(--heading-subsection-size);
-  font-weight:var(--heading-subsection-weight);
+  font-size:14px;
+  font-weight:800;
   line-height:1.3;
 }
 .add-heading-minor{
-  font-size:var(--heading-minor-size);
-  font-weight:var(--heading-minor-weight);
+  font-size:12px;
+  font-weight:900;
   line-height:1.35;
 }
 
@@ -256,8 +249,8 @@ body{
 
 /* ==================== 02. Calc ==================== */
 /* =========================================================
-   01. 기본 토큰 / 페이지 기반
-   - CALC 전용 색상·그림자와 페이지 공통 기본값
+   01. 재사용 토큰 / 페이지 기반
+   - CALC에서 여러 규칙이 공유하거나 theme/state contract가 필요한 값만 token으로 둔다.
    - 모서리 값은 위 Shared 영역의 공통 Corner 토큰 사용
    ========================================================= */
 :root:where([data-add-page="calc"]){
@@ -266,7 +259,6 @@ body{
       --muted:#6c768a;
       --line:#dce2ec;
       --soft:#eef2f7;
-      --navy2:#284b7c;
       --shadow:0 8px 20px rgba(31,48,76,.07);
 
       /* CALC semantic surfaces / controls */
@@ -288,17 +280,11 @@ body{
       --button-hover-text:var(--ink);
 
       /* Help / tooltip */
-      --help-border:#9eb0c9;
-      --help-bg:#f3f7fc;
-      --help-text:#315a8f;
-      --help-hover-bg:#e7f0fb;
-      --help-hover-border:#6f8fb8;
       --tooltip-bg:#17243a;
       --tooltip-text:#ffffff;
       --tooltip-shadow:0 8px 22px rgba(20,35,60,.22);
 
       /* Validation / status */
-      --formula-bg:#f0f3f8;
       --danger-border:#efb8bc;
       --danger-bg:#fff5f5;
       --danger-text:#9c252d;
@@ -307,7 +293,6 @@ body{
       --danger-ring:rgba(217,54,62,.10);
       --range-blue-bg:#f3f7ff;
       --range-blue-border:#cddbf3;
-      --range-red-bg:#fff5f5;
       --range-red-border:#f3cdcf;
       --range-green-bg:#f2fbf6;
       --range-green-border:#c9ead8;
@@ -319,10 +304,7 @@ body{
       --badge-good-text:#177343;
       --table-head-bg:#f2f5f9;
       --table-head-text:#5d6779;
-      --warning-bg:#fff2f2;
       --warning-text:#a5242c;
-      --note-bg:#f5f7fb;
-      --note-text:#596478;
     }
 
     html:where([data-add-page="calc"]).dark{
@@ -331,7 +313,6 @@ body{
       --muted:#94a3b8;
       --line:#2b3548;
       --soft:#273248;
-      --navy2:#5274a2;
       --shadow:0 8px 20px rgba(0,0,0,.24);
       --surface-control:#111827;
       --surface-hover-soft:#172033;
@@ -346,15 +327,9 @@ body{
       --control-disabled-text:#64748b;
       --active-shadow:0 5px 14px rgba(0,0,0,.30);
       --action-shadow:0 3px 10px rgba(0,0,0,.24);
-      --help-border:#526178;
-      --help-bg:#111827;
-      --help-text:#93c5fd;
-      --help-hover-bg:#1e293b;
-      --help-hover-border:#60a5fa;
       --tooltip-bg:#020617;
       --tooltip-text:#f8fafc;
       --tooltip-shadow:0 8px 22px rgba(0,0,0,.42);
-      --formula-bg:#1f2937;
       --danger-border:rgba(254,202,202,.25);
       --danger-bg:rgba(127,29,29,.18);
       --danger-text:#fca5a5;
@@ -363,7 +338,6 @@ body{
       --danger-ring:rgba(248,113,113,.18);
       --range-blue-bg:rgba(37,99,235,.14);
       --range-blue-border:rgba(96,165,250,.28);
-      --range-red-bg:rgba(127,29,29,.18);
       --range-red-border:rgba(248,113,113,.28);
       --range-green-bg:rgba(22,101,52,.22);
       --range-green-border:rgba(74,222,128,.26);
@@ -375,10 +349,7 @@ body{
       --badge-good-text:#86efac;
       --table-head-bg:#1a2233;
       --table-head-text:#94a3b8;
-      --warning-bg:rgba(127,29,29,.18);
       --warning-text:#fca5a5;
-      --note-bg:#1f2937;
-      --note-text:#cbd5e1;
     }
     :where(html[data-add-page="calc"]) body{background:var(--bg);line-height:1.45;overflow-x:hidden}
     :where(html[data-add-page="calc"]) button, :where(html[data-add-page="calc"]) input, :where(html[data-add-page="calc"]) select{font:inherit}
@@ -428,8 +399,10 @@ body{
     :where(html[data-add-page="calc"]) .label-with-help, :where(html[data-add-page="calc"]) .inline-help-label{display:inline-flex;align-items:center;gap:var(--density-gap-xs);width:max-content;max-width:100%;position:relative}
     :where(html[data-add-page="calc"]) .inline-help-label{vertical-align:middle}
     :where(html[data-add-page="calc"]) .help-tooltip{position:relative;display:inline-flex;align-items:center;flex:0 0 auto}
-    :where(html[data-add-page="calc"]) .help-icon{width:17px;height:17px;border:1px solid var(--help-border);border-radius:50%;background:var(--help-bg);color:var(--help-text);font-size:11px;font-weight:900;line-height:15px;text-align:center;padding:0;cursor:help}
-    :where(html[data-add-page="calc"]) .help-icon:hover, :where(html[data-add-page="calc"]) .help-icon:focus-visible{background:var(--help-hover-bg);border-color:var(--help-hover-border)}
+    :where(html[data-add-page="calc"]) .help-icon{width:17px;height:17px;border:1px solid #9eb0c9;border-radius:50%;background:#f3f7fc;color:#315a8f;font-size:11px;font-weight:900;line-height:15px;text-align:center;padding:0;cursor:help}
+html:where([data-add-page="calc"]).dark .help-icon{border-color:#526178;background:#111827;color:#93c5fd}
+    :where(html[data-add-page="calc"]) .help-icon:hover, :where(html[data-add-page="calc"]) .help-icon:focus-visible{background:#e7f0fb;border-color:#6f8fb8}
+html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-page="calc"]).dark .help-icon:focus-visible{background:#1e293b;border-color:#60a5fa}
     :where(html[data-add-page="calc"]) .custom-tooltip{position:fixed;z-index:1000;left:var(--tooltip-left,-9999px);top:var(--tooltip-top,-9999px);width:min(290px,calc(100vw - 24px));padding:var(--density-surface-sm);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--tooltip-bg);color:var(--tooltip-text);font-size:11px;font-weight:600;line-height:1.5;letter-spacing:-.01em;box-shadow:var(--tooltip-shadow);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;pointer-events:none;text-align:left;white-space:normal;overflow-wrap:break-word;word-break:keep-all}
     :where(html[data-add-page="calc"]) .custom-tooltip::after{content:"";position:absolute;left:var(--tooltip-arrow-x,50%);top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--tooltip-bg)}
     :where(html[data-add-page="calc"]) .custom-tooltip.tooltip-below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--tooltip-bg)}
@@ -455,7 +428,8 @@ body{
     :where(html[data-add-page="calc"]) .seg button{height:var(--button-control-height)}
     :where(html[data-add-page="calc"]) .calculation-group .group-title{margin-bottom:0}
     :where(html[data-add-page="calc"]) .calculation-group .seg{margin-top:var(--density-layout-gap)}
-    :where(html[data-add-page="calc"]) .formula{font-size:11px;color:var(--muted);background:var(--formula-bg);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-gap-xs);margin-top:var(--density-gap-xs)}
+    :where(html[data-add-page="calc"]) .formula{font-size:11px;color:var(--muted);background:#f0f3f8;border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-gap-xs);margin-top:var(--density-gap-xs)}
+html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);width:100%;margin-top:var(--density-gap-xs);color:var(--muted);text-align:left;appearance:none;-webkit-appearance:none}
     :where(html[data-add-page="calc"]) .actual-sale-price:active{transform:translateY(1px)}
     :where(html[data-add-page="calc"]) .actual-sale-price strong{color:var(--navy);font-size:13px;font-weight:900;white-space:nowrap}
@@ -555,7 +529,7 @@ body{
     :where(html[data-add-page="calc"]) .range-box .big{font-size:21px;font-weight:900}
     :where(html[data-add-page="calc"]) .range-box .muted{font-size:11px;line-height:1.4;margin-top:var(--density-gap-micro)}
     :where(html[data-add-page="calc"]) .range-box.blue{background:var(--range-blue-bg);border-color:var(--range-blue-border)}
-    :where(html[data-add-page="calc"]) .range-box.red{background:var(--range-red-bg);border-color:var(--range-red-border)}
+    :where(html[data-add-page="calc"]) .range-box.red{background:var(--danger-bg);border-color:var(--range-red-border)}
     :where(html[data-add-page="calc"]) .range-box.green{background:var(--range-green-bg);border-color:var(--range-green-border)}
 
 /* =========================================================
@@ -601,8 +575,10 @@ body{
     :where(html[data-add-page="calc"]) .triple-grid{min-width:495px}
     :where(html[data-add-page="calc"]) .loan-grid{min-width:870px}
     :where(html[data-add-page="calc"]) .final-grid{min-width:360px}
-    :where(html[data-add-page="calc"]) .warning-note{margin-top:var(--density-gap-md);padding:var(--density-surface-sm);border-color:var(--danger-border);background:var(--warning-bg);color:var(--warning-text);font-size:12px;font-weight:900}
-    :where(html[data-add-page="calc"]) .note{margin-top:var(--density-gap-md);padding:var(--density-surface-sm);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--note-bg);color:var(--note-text);font-size:12px}
+    :where(html[data-add-page="calc"]) .warning-note{margin-top:var(--density-gap-md);padding:var(--density-surface-sm);border-color:var(--danger-border);background:#fff2f2;color:var(--warning-text);font-size:12px;font-weight:900}
+html:where([data-add-page="calc"]).dark .warning-note{background:rgba(127,29,29,.18)}
+    :where(html[data-add-page="calc"]) .note{margin-top:var(--density-gap-md);padding:var(--density-surface-sm);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:#f5f7fb;color:#596478;font-size:12px}
+html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
     :where(html[data-add-page="calc"]) .positive{color:var(--positive)}
     :where(html[data-add-page="calc"]) .negative{color:var(--negative)}
     :where(html[data-add-page="calc"]) .zero{color:var(--ink)}
@@ -720,8 +696,8 @@ body{
 
 /* ==================== 03. Report ==================== */
 /* =========================================================
-   01. 페이지 기반 / 공통 토큰
-   - 리포트 전용 배경·선·그림자와 접근성용 숨김 텍스트
+   01. 페이지 기반 / 재사용 토큰
+   - 리포트에서 여러 규칙이 공유하거나 JS/chart contract가 필요한 값만 token으로 둔다.
    - Corner는 위 Shared 영역의 역할별 radius + soft-square cap 체계 사용
    ========================================================= */
 :root:where([data-add-page="report"]){
@@ -740,38 +716,17 @@ body{
   --surface-highlight:#edf3fb;
   --row-line:#edf1f6;
   --table-head-text:#5e697e;
-  --hero-start:#152844;
-  --hero-end:#284b7c;
-  --hero-decoration:rgba(255,255,255,.08);
-  --hero-eyebrow:#bfd0eb;
-  --hero-copy:#d6e0ef;
-  --hero-chip-border:rgba(255,255,255,.17);
-  --hero-chip-bg:rgba(255,255,255,.08);
-  --hero-chip-label:#bed0e8;
-  --tab-shadow:0 1px 2px rgba(31,48,76,.035);
   --series-secondary:#80a9e2;
   --series-positive-soft:#f77a84;
-  --donut-hole:#ffffff;
   --badge-exact-bg:#eaf8f1;
   --badge-exact-text:#147252;
   --badge-estimate-bg:#fff5df;
   --badge-estimate-text:#8d5b00;
-  --split-day-kicker:#527ba9;
-  --split-summary-border:#e5eaf2;
-  --split-total-border:#cfdbea;
-  --timeline-line:#dce3ee;
-  --timeline-ring:#e7edf6;
-  --mobile-tab-text:#59657a;
-  --mobile-tab-active-bg:#eef3f9;
-  --mobile-total-border:#dce5f1;
-  --mobile-nav-transparent:rgba(243,246,251,0);
-  --mobile-toggle-shadow:0 6px 18px rgba(31,48,76,.08);
-  --mobile-menu-shadow:0 16px 36px rgba(31,48,76,.14);
   --button-hover-border:var(--navy2);
   --button-hover-bg:var(--surface-soft);
   --button-hover-text:var(--ink);
 
-  /* Canvas chart semantic palette */
+  /* JS contract: add.js Canvas chart가 직접 읽는 semantic palette — 사용 횟수와 무관하게 유지 */
   --chart-plot-top:rgba(238,243,250,.68);
   --chart-plot-bottom:rgba(255,255,255,0);
   --chart-grid:rgba(173,185,201,.34);
@@ -804,33 +759,12 @@ html:where([data-add-page="report"]).dark{
   --surface-highlight:#172033;
   --row-line:#273248;
   --table-head-text:#94a3b8;
-  --hero-start:#151d2c;
-  --hero-end:#24344b;
-  --hero-decoration:rgba(255,255,255,.06);
-  --hero-eyebrow:#bfdbfe;
-  --hero-copy:#cbd5e1;
-  --hero-chip-border:rgba(148,163,184,.25);
-  --hero-chip-bg:rgba(255,255,255,.06);
-  --hero-chip-label:#bfdbfe;
-  --tab-shadow:0 1px 2px rgba(0,0,0,.28);
   --series-secondary:#7faee8;
   --series-positive-soft:#fb7185;
-  --donut-hole:#121826;
   --badge-exact-bg:rgba(22,101,52,.25);
   --badge-exact-text:#86efac;
   --badge-estimate-bg:rgba(146,64,14,.22);
   --badge-estimate-text:#fbbf24;
-  --split-day-kicker:#93c5fd;
-  --split-summary-border:#334155;
-  --split-total-border:#3b4c66;
-  --timeline-line:#334155;
-  --timeline-ring:#243149;
-  --mobile-tab-text:#cbd5e1;
-  --mobile-tab-active-bg:#1e293b;
-  --mobile-total-border:#334155;
-  --mobile-nav-transparent:rgba(11,16,32,0);
-  --mobile-toggle-shadow:0 6px 18px rgba(0,0,0,.28);
-  --mobile-menu-shadow:0 16px 36px rgba(0,0,0,.38);
   --chart-plot-top:rgba(30,41,59,.72);
   --chart-plot-bottom:rgba(18,24,38,0);
   --chart-grid:rgba(100,116,139,.35);
@@ -858,20 +792,28 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
    02. 히어로 / 상단 메뉴 / 패널 전환
    - Hero 3개 요약과 Desktop 탭, 활성 패널 공통 surface
    ========================================================= */
-:where(html[data-add-page="report"]) .hero{padding:24px;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:linear-gradient(135deg,var(--hero-start),var(--hero-end));color:var(--on-accent);box-shadow:var(--shadow);position:relative;overflow:hidden}
-:where(html[data-add-page="report"]) .hero:after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;right:-110px;top:-150px;background:var(--hero-decoration)}
+:where(html[data-add-page="report"]) .hero{padding:24px;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:linear-gradient(135deg,#152844,#284b7c);color:var(--on-accent);box-shadow:var(--shadow);position:relative;overflow:hidden}
+:where(html[data-add-page="report"]) .hero:after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;right:-110px;top:-150px;background:rgba(255,255,255,.08)}
 :where(html[data-add-page="report"]) .hero-top{display:flex;justify-content:space-between;gap:var(--density-layout-gap);align-items:flex-start;position:relative;z-index:1}
-:where(html[data-add-page="report"]) .eyebrow{font-size:12px;font-weight:900;letter-spacing:.08em;color:var(--hero-eyebrow)}
+:where(html[data-add-page="report"]) .eyebrow{font-size:12px;font-weight:900;letter-spacing:.08em;color:#bfd0eb}
 :where(html[data-add-page="report"]) h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.045em}
-:where(html[data-add-page="report"]) .hero p{margin:0;color:var(--hero-copy);font-size:14px}
+:where(html[data-add-page="report"]) .hero p{margin:0;color:#d6e0ef;font-size:14px}
 :where(html[data-add-page="report"]) .hero-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs);margin-top:var(--density-gap-lg);position:relative;z-index:1}
 :where(html[data-add-page="report"]) .hero-summary > .hero-chip{min-width:0;width:auto}
 :where(html[data-add-page="report"]) .hero-summary > .hero-chip:nth-child(3){grid-column:auto}
-:where(html[data-add-page="report"]) .hero-chip{padding:var(--density-gap-sm) var(--density-gap-md);border:1px solid var(--hero-chip-border);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:var(--hero-chip-bg)}
-:where(html[data-add-page="report"]) .hero-chip span{display:block;font-size:9.5px;line-height:1.2;color:var(--hero-chip-label);font-weight:800}
+:where(html[data-add-page="report"]) .hero-chip{padding:var(--density-gap-sm) var(--density-gap-md);border:1px solid rgba(255,255,255,.17);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:rgba(255,255,255,.08)}
+:where(html[data-add-page="report"]) .hero-chip span{display:block;font-size:9.5px;line-height:1.2;color:#bed0e8;font-weight:800}
 :where(html[data-add-page="report"]) .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1.18;letter-spacing:-.035em}
+/* Dark overrides for Report hero-local colors (kept local instead of one-use tokens). */
+html:where([data-add-page="report"]).dark .hero{background:linear-gradient(135deg,#151d2c,#24344b)}
+html:where([data-add-page="report"]).dark .hero:after{background:rgba(255,255,255,.06)}
+html:where([data-add-page="report"]).dark .eyebrow{color:#bfdbfe}
+html:where([data-add-page="report"]).dark .hero p{color:#cbd5e1}
+html:where([data-add-page="report"]).dark .hero-chip{border-color:rgba(148,163,184,.25);background:rgba(255,255,255,.06)}
+html:where([data-add-page="report"]).dark .hero-chip span{color:#bfdbfe}
+html:where([data-add-page="report"]).dark .tab{box-shadow:0 1px 2px rgba(0,0,0,.28)}
 :where(html[data-add-page="report"]) .tabs{display:flex;gap:var(--density-gap-xs);overflow:auto;padding:var(--density-gap-md) 2px var(--density-gap-xs)}
-:where(html[data-add-page="report"]) .tab{letter-spacing:-.015em;box-shadow:var(--tab-shadow);white-space:nowrap}
+:where(html[data-add-page="report"]) .tab{letter-spacing:-.015em;box-shadow:0 1px 2px rgba(31,48,76,.035);white-space:nowrap}
 :where(html[data-add-page="report"]) .panel{display:none}
 :where(html[data-add-page="report"]) .panel.active{display:block}
 
@@ -893,7 +835,7 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
 :where(html[data-add-page="report"]) canvas{width:100%;height:100%}
 :where(html[data-add-page="report"]) .split-box{display:grid;grid-template-columns:150px 1fr;gap:var(--density-layout-gap);align-items:center}
 :where(html[data-add-page="report"]) .donut{width:148px;height:148px;border-radius:50%;background:conic-gradient(var(--navy) 0 var(--main-position-ratio),var(--series-secondary) var(--main-position-ratio) 100%);position:relative}
-:where(html[data-add-page="report"]) .donut:after{content:"";position:absolute;inset:25px;border-radius:50%;background:var(--donut-hole)}
+:where(html[data-add-page="report"]) .donut:after{content:"";position:absolute;inset:25px;border-radius:50%;background:var(--card)}
 :where(html[data-add-page="report"]) .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}
 :where(html[data-add-page="report"]) .donut-center strong{font-size:21px} :where(html[data-add-page="report"]) .donut-center span{font-size:10px;color:var(--muted)}
 :where(html[data-add-page="report"]) .legend-row{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);padding:var(--density-table-pad-y) 0;border-bottom:1px solid var(--row-line)}
@@ -950,49 +892,56 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
 :where(html[data-add-page="report"]) .split-group-head h2{margin:2px 0}
 :where(html[data-add-page="report"]) .split-group-head p{margin:0;color:var(--muted);font-size:11px}
 :where(html[data-add-page="report"]) .split-group-kicker{display:block;font-size:10px;font-weight:950;letter-spacing:.09em;color:var(--navy)}
-:where(html[data-add-page="report"]) .split-group-day .split-group-kicker{color:var(--split-day-kicker)}
+:where(html[data-add-page="report"]) .split-group-day .split-group-kicker{color:#527ba9}
 :where(html[data-add-page="report"]) .split-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--density-gap-md);margin-bottom:var(--density-gap-lg)}
-:where(html[data-add-page="report"]) .split-summary-item{border:1px solid var(--split-summary-border);background:var(--surface-subtle);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-surface-sm)}
+:where(html[data-add-page="report"]) .split-summary-item{border:1px solid #e5eaf2;background:var(--surface-subtle);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-surface-sm)}
 :where(html[data-add-page="report"]) .split-summary-item span{display:block;color:var(--muted);font-size:10px;font-weight:800}
 :where(html[data-add-page="report"]) .split-summary-item strong{display:block;margin-top:var(--density-gap-micro);font-size:15px;letter-spacing:-.025em}
 :where(html[data-add-page="report"]) .split-inner-card{box-shadow:none}
 :where(html[data-add-page="report"]) .split-detail-table{min-width:820px}
 :where(html[data-add-page="report"]) .split-detail-table.day-table{min-width:650px}
-:where(html[data-add-page="report"]) .split-total{display:flex;align-items:center;justify-content:space-between;gap:var(--density-surface-md);padding:var(--density-surface-md);background:var(--surface-highlight);border-color:var(--split-total-border);margin-top:4px}
+:where(html[data-add-page="report"]) .split-total{display:flex;align-items:center;justify-content:space-between;gap:var(--density-surface-md);padding:var(--density-surface-md);background:var(--surface-highlight);border-color:#cfdbea;margin-top:4px}
 :where(html[data-add-page="report"]) .split-total>div:first-child span{display:block;font-size:15px;font-weight:950;color:var(--navy)}
 :where(html[data-add-page="report"]) .split-total>div:first-child small{display:block;color:var(--muted);font-size:10px;margin-top:1px}
 :where(html[data-add-page="report"]) .split-total-stats{display:flex;align-items:center;justify-content:flex-end;gap:var(--density-layout-gap);flex-wrap:wrap;font-size:11px;color:var(--muted)}
 :where(html[data-add-page="report"]) .split-total-stats b{font-size:13px}
 :where(html[data-add-page="report"]) .split-total-stats b:not(.pos):not(.neg){color:var(--ink)}
 :where(html[data-add-page="report"]) .split-total-mobile{display:none}
+html:where([data-add-page="report"]).dark .split-group-day .split-group-kicker{color:#93c5fd}
+html:where([data-add-page="report"]).dark .split-summary-item{border-color:#334155}
+html:where([data-add-page="report"]).dark .split-total{border-color:#3b4c66}
 
 /* =========================================================
    06. 거래 흐름 Timeline / 근거·산식
    - 웹·태블릿 좌측 날짜축, 모바일 카드 내부 날짜, 원본 이미지·details
    ========================================================= */
 :where(html[data-add-page="report"]) .timeline{position:relative;margin-top:4px}
-:where(html[data-add-page="report"]) .timeline:before{content:"";position:absolute;left:142px;top:10px;bottom:10px;width:2px;background:var(--timeline-line)}
+:where(html[data-add-page="report"]) .timeline:before{content:"";position:absolute;left:142px;top:10px;bottom:10px;width:2px;background:#dce3ee}
 :where(html[data-add-page="report"]) .timeline-item{display:grid;grid-template-columns:126px 32px 1fr;align-items:start;margin-bottom:var(--density-gap-md);position:relative}
 :where(html[data-add-page="report"]) .timeline-date{font-size:11px;font-weight:900;color:var(--muted);padding-top:15px;white-space:nowrap}
-:where(html[data-add-page="report"]) .timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--navy);margin:17px 0 0 10px;box-shadow:0 0 0 5px var(--timeline-ring);z-index:1}
+:where(html[data-add-page="report"]) .timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--navy);margin:17px 0 0 10px;box-shadow:0 0 0 5px #e7edf6;z-index:1}
 :where(html[data-add-page="report"]) .timeline-card{padding:var(--density-surface-md)}
 :where(html[data-add-page="report"]) .timeline-card-date{display:none}
 :where(html[data-add-page="report"]) .timeline-card h3{margin:0 0 var(--density-gap-micro)} :where(html[data-add-page="report"]) .timeline-card strong{font-size:12px;color:var(--navy)} :where(html[data-add-page="report"]) .source-img{width:100%;display:block}
 :where(html[data-add-page="report"]) details{padding:var(--density-surface-md);margin-top:var(--density-gap-md)}
 :where(html[data-add-page="report"]) summary{cursor:pointer;font-weight:900;font-size:13px}
 :where(html[data-add-page="report"]) details p, :where(html[data-add-page="report"]) details li{font-size:12px;color:var(--muted)}
+html:where([data-add-page="report"]).dark .timeline:before{background:#334155}
+html:where([data-add-page="report"]).dark .timeline-dot{box-shadow:0 0 0 5px #243149}
 
 /* =========================================================
    07. 리포트 메뉴 / 모바일 전환
    - 동일 tablist를 Desktop에서는 가로 탭, Mobile에서는 햄버거 패널로 재배치
    ========================================================= */
-:where(html[data-add-page="report"]) .report-nav{position:sticky;top:0;z-index:30;background:linear-gradient(var(--bg) 78%,var(--mobile-nav-transparent))}
-:where(html[data-add-page="report"]) .mobile-menu-toggle{display:none;width:100%;min-height:44px;align-items:center;justify-content:space-between;gap:var(--density-gap-lg);box-shadow:var(--mobile-toggle-shadow)}
+:where(html[data-add-page="report"]) .report-nav{position:sticky;top:0;z-index:30;background:linear-gradient(var(--bg) 78%,rgba(243,246,251,0))}
+:where(html[data-add-page="report"]) .mobile-menu-toggle{display:none;width:100%;min-height:44px;align-items:center;justify-content:space-between;gap:var(--density-gap-lg);box-shadow:0 6px 18px rgba(31,48,76,.08)}
 :where(html[data-add-page="report"]) .hamburger-icon{width:20px;height:16px;display:flex;flex-direction:column;justify-content:space-between;flex:none}
 :where(html[data-add-page="report"]) .hamburger-icon i{height:2px;border-radius:var(--radius-pill);background:var(--navy);transition:transform .18s ease,opacity .18s ease}
 :where(html[data-add-page="report"]) .report-nav.open .hamburger-icon i:nth-child(1){transform:translateY(7px) rotate(45deg)}
 :where(html[data-add-page="report"]) .report-nav.open .hamburger-icon i:nth-child(2){opacity:0}
 :where(html[data-add-page="report"]) .report-nav.open .hamburger-icon i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+html:where([data-add-page="report"]).dark .report-nav{background:linear-gradient(var(--bg) 78%,rgba(11,16,32,0))}
+html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 18px rgba(0,0,0,.28)}
 
 /* =========================================================
    08. 반응형 규칙
@@ -1033,10 +982,10 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
 
   :where(html[data-add-page="report"]) .report-nav{padding:var(--density-gap-md) 0 var(--density-gap-xs)}
   :where(html[data-add-page="report"]) .mobile-menu-toggle{display:flex}
-  :where(html[data-add-page="report"]) .report-nav .tabs{display:none;margin-top:var(--density-gap-xs);padding:var(--density-gap-xs);border:1px solid var(--line);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--surface-control);box-shadow:var(--mobile-menu-shadow);overflow:visible}
+  :where(html[data-add-page="report"]) .report-nav .tabs{display:none;margin-top:var(--density-gap-xs);padding:var(--density-gap-xs);border:1px solid var(--line);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--surface-control);box-shadow:0 16px 36px rgba(31,48,76,.14);overflow:visible}
   :where(html[data-add-page="report"]) .report-nav.open .tabs{display:grid;grid-template-columns:1fr}
-  :where(html[data-add-page="report"]) .report-nav .tab{text-align:left;box-shadow:none;color:var(--mobile-tab-text);padding:var(--density-table-pad-y) var(--density-table-pad-x)}
-  :where(html[data-add-page="report"]) .report-nav .tab.active{background:var(--mobile-tab-active-bg);color:var(--navy)}
+  :where(html[data-add-page="report"]) .report-nav .tab{text-align:left;box-shadow:none;color:#59657a;padding:var(--density-table-pad-y) var(--density-table-pad-x)}
+  :where(html[data-add-page="report"]) .report-nav .tab.active{background:#eef3f9;color:var(--navy)}
 
   :where(html[data-add-page="report"]) #summary .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--density-gap-xs);margin-top:var(--density-gap-md)}
   :where(html[data-add-page="report"]) #summary .kpi{min-width:0}
@@ -1067,7 +1016,11 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
   :where(html[data-add-page="report"]) .split-total{align-items:flex-start;flex-direction:column;gap:var(--density-gap-lg)}
   :where(html[data-add-page="report"]) .split-total-stats{display:none;justify-content:flex-start;gap:var(--density-gap-sm) var(--density-surface-md)}
   :where(html[data-add-page="report"]) .split-total-mobile{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--density-gap-sm)}
-  :where(html[data-add-page="report"]) .split-total-mobile-card{min-width:0;padding:var(--density-surface-md);border-color:var(--mobile-total-border)}
+  :where(html[data-add-page="report"]) .split-total-mobile-card{min-width:0;padding:var(--density-surface-md);border-color:#dce5f1}
   :where(html[data-add-page="report"]) .split-total-mobile-card span{display:block;color:var(--muted);font-size:10px;font-weight:800;line-height:1.2}
   :where(html[data-add-page="report"]) .split-total-mobile-card strong{display:block;margin-top:var(--density-gap-xs);color:var(--ink);font-size:15px;line-height:1.15;letter-spacing:-.035em;white-space:nowrap}
+  html:where([data-add-page="report"]).dark .report-nav .tabs{box-shadow:0 16px 36px rgba(0,0,0,.38)}
+  html:where([data-add-page="report"]).dark .report-nav .tab{color:#cbd5e1}
+  html:where([data-add-page="report"]).dark .report-nav .tab.active{background:#1e293b}
+  html:where([data-add-page="report"]).dark .split-total-mobile-card{border-color:#334155}
 }
