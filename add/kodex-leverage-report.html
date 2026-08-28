@@ -184,7 +184,7 @@ h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.045em}
 .hero-chip{padding:var(--density-gap-sm) var(--density-gap-md);border:1px solid var(--hero-chip-border);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:var(--hero-chip-bg)}
 .hero-chip span{display:block;font-size:9.5px;line-height:1.2;color:var(--hero-chip-label);font-weight:800}
 .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1.18;letter-spacing:-.035em}
-.tabs{display:flex;gap:var(--density-gap-xs);overflow:auto;padding:var(--density-gap-md) 2px var(--density-gap-xs);position:sticky;top:0;z-index:20;background:linear-gradient(var(--bg) 75%,transparent)}
+.tabs{display:flex;gap:var(--density-gap-xs);overflow:auto;padding:var(--density-gap-md) 2px var(--density-gap-xs)}
 .tab{letter-spacing:-.015em;box-shadow:var(--tab-shadow);white-space:nowrap}
 .panel{display:none}
 .panel.active{display:block}
@@ -301,20 +301,16 @@ summary{cursor:pointer;font-weight:900;font-size:13px}
 details p,details li{font-size:12px;color:var(--muted)}
 
 /* =========================================================
-   07. 모바일 패널 메뉴
-   - Desktop 탭을 대체하는 햄버거 메뉴와 활성 상태
+   07. 리포트 메뉴 / 모바일 전환
+   - 동일 tablist를 Desktop에서는 가로 탭, Mobile에서는 햄버거 패널로 재배치
    ========================================================= */
-.mobile-nav{display:none;position:sticky;top:0;z-index:30;padding:var(--density-gap-md) 0 var(--density-gap-sm);background:linear-gradient(var(--bg) 78%,var(--mobile-nav-transparent))}
-.mobile-menu-toggle{width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-lg);box-shadow:var(--mobile-toggle-shadow)}
+.report-nav{position:sticky;top:0;z-index:30;background:linear-gradient(var(--bg) 78%,var(--mobile-nav-transparent))}
+.mobile-menu-toggle{display:none;width:100%;min-height:44px;align-items:center;justify-content:space-between;gap:var(--density-gap-lg);box-shadow:var(--mobile-toggle-shadow)}
 .hamburger-icon{width:20px;height:16px;display:flex;flex-direction:column;justify-content:space-between;flex:none}
 .hamburger-icon i{height:2px;border-radius:var(--radius-pill);background:var(--navy);transition:transform .18s ease,opacity .18s ease}
-.mobile-nav.open .hamburger-icon i:nth-child(1){transform:translateY(7px) rotate(45deg)}
-.mobile-nav.open .hamburger-icon i:nth-child(2){opacity:0}
-.mobile-nav.open .hamburger-icon i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-.mobile-menu-panel{display:none;margin-top:var(--density-gap-xs);padding:var(--density-gap-xs);box-shadow:var(--mobile-menu-shadow)}
-.mobile-nav.open .mobile-menu-panel{display:grid;grid-template-columns:1fr}
-.mobile-tab{color:var(--mobile-tab-text);text-align:left;padding:var(--density-table-pad-y) var(--density-table-pad-x);font-size:var(--button-font-size);font-weight:var(--button-font-weight)}
-.mobile-tab.active{background:var(--mobile-tab-active-bg);color:var(--navy)}
+.report-nav.open .hamburger-icon i:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.report-nav.open .hamburger-icon i:nth-child(2){opacity:0}
+.report-nav.open .hamburger-icon i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 
 /* =========================================================
    08. 반응형 규칙
@@ -357,8 +353,12 @@ details p,details li{font-size:12px;color:var(--muted)}
   .hero-chip span{font-size:9px}
   .hero-chip strong{margin-top:1px;font-size:clamp(15px,4.4vw,16px);letter-spacing:-.035em}
 
-  .tabs{display:none}
-  .mobile-nav{display:block;padding:var(--density-gap-md) 0 var(--density-gap-xs)}
+  .report-nav{padding:var(--density-gap-md) 0 var(--density-gap-xs)}
+  .mobile-menu-toggle{display:flex}
+  .report-nav .tabs{display:none;margin-top:var(--density-gap-xs);padding:var(--density-gap-xs);border:1px solid var(--line);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--surface-control);box-shadow:var(--mobile-menu-shadow);overflow:visible}
+  .report-nav.open .tabs{display:grid;grid-template-columns:1fr}
+  .report-nav .tab{text-align:left;box-shadow:none;color:var(--mobile-tab-text);padding:var(--density-table-pad-y) var(--density-table-pad-x)}
+  .report-nav .tab.active{background:var(--mobile-tab-active-bg);color:var(--navy)}
 
   #summary .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--density-gap-xs);margin-top:var(--density-gap-md);margin-left:-2px;margin-right:-2px}
   #summary .kpi{min-width:0;padding:var(--density-surface-md)}
@@ -414,24 +414,17 @@ details p,details li{font-size:12px;color:var(--muted)}
     </div>
   </header>
 
-  <nav class="tabs" role="tablist" aria-label="리포트 메뉴">
-    <button class="tab add-button add-button-toggle active" id="reportTabSummary" type="button" role="tab" data-panel="summary" aria-controls="summary" aria-selected="true" tabindex="0">핵심 요약</button>
-    <button class="tab add-button add-button-toggle" id="reportTabDaily" type="button" role="tab" data-panel="daily" aria-controls="daily" aria-selected="false" tabindex="-1">날짜별 실현손익</button>
-    <button class="tab add-button add-button-toggle" id="reportTabSplit" type="button" role="tab" data-panel="split" aria-controls="split" aria-selected="false" tabindex="-1">본 포지션·단타 분리</button>
-    <button class="tab add-button add-button-toggle" id="reportTabTimeline" type="button" role="tab" data-panel="timeline" aria-controls="timeline" aria-selected="false" tabindex="-1">거래 흐름</button>
-    <button class="tab add-button add-button-toggle" id="reportTabSource" type="button" role="tab" data-panel="source" aria-controls="source" aria-selected="false" tabindex="-1">근거·산식</button>
-  </nav>
-  <nav class="mobile-nav" aria-label="모바일 리포트 메뉴">
-    <button class="mobile-menu-toggle add-button add-button-action" type="button" aria-expanded="false" aria-controls="mobileMenuPanel">
+  <nav class="report-nav" aria-label="리포트 메뉴">
+    <button class="mobile-menu-toggle add-button add-button-action" type="button" aria-expanded="false" aria-controls="reportTabs">
       <span id="mobileMenuLabel">핵심 요약</span>
       <span class="hamburger-icon" aria-hidden="true"><i></i><i></i><i></i></span>
     </button>
-    <div class="mobile-menu-panel add-card-shell add-card-control" id="mobileMenuPanel" role="tablist" aria-label="모바일 리포트 메뉴 선택">
-      <button class="mobile-tab add-button add-button-ghost active" id="reportMobileTabSummary" type="button" role="tab" data-panel="summary" aria-controls="summary" aria-selected="true" tabindex="0">핵심 요약</button>
-      <button class="mobile-tab add-button add-button-ghost" id="reportMobileTabDaily" type="button" role="tab" data-panel="daily" aria-controls="daily" aria-selected="false" tabindex="-1">날짜별 실현손익</button>
-      <button class="mobile-tab add-button add-button-ghost" id="reportMobileTabSplit" type="button" role="tab" data-panel="split" aria-controls="split" aria-selected="false" tabindex="-1">본 포지션·단타 분리</button>
-      <button class="mobile-tab add-button add-button-ghost" id="reportMobileTabTimeline" type="button" role="tab" data-panel="timeline" aria-controls="timeline" aria-selected="false" tabindex="-1">거래 흐름</button>
-      <button class="mobile-tab add-button add-button-ghost" id="reportMobileTabSource" type="button" role="tab" data-panel="source" aria-controls="source" aria-selected="false" tabindex="-1">근거·산식</button>
+    <div class="tabs" id="reportTabs" role="tablist" aria-label="리포트 메뉴 선택">
+      <button class="tab add-button add-button-toggle active" id="reportTabSummary" type="button" role="tab" data-panel="summary" aria-controls="summary" aria-selected="true" tabindex="0">핵심 요약</button>
+      <button class="tab add-button add-button-toggle" id="reportTabDaily" type="button" role="tab" data-panel="daily" aria-controls="daily" aria-selected="false" tabindex="-1">날짜별 실현손익</button>
+      <button class="tab add-button add-button-toggle" id="reportTabSplit" type="button" role="tab" data-panel="split" aria-controls="split" aria-selected="false" tabindex="-1">본 포지션·단타 분리</button>
+      <button class="tab add-button add-button-toggle" id="reportTabTimeline" type="button" role="tab" data-panel="timeline" aria-controls="timeline" aria-selected="false" tabindex="-1">거래 흐름</button>
+      <button class="tab add-button add-button-toggle" id="reportTabSource" type="button" role="tab" data-panel="source" aria-controls="source" aria-selected="false" tabindex="-1">근거·산식</button>
     </div>
   </nav>
 
@@ -698,27 +691,32 @@ details p,details li{font-size:12px;color:var(--muted)}
 <script>
 // =========================================================
 // 01. 리포트 데이터 / DOM 참조
-// - 차트 원천 데이터와 Desktop·Mobile 메뉴 요소를 초기화
+// - 차트 원천 데이터와 viewport 공통 tablist를 초기화
 // =========================================================
 const chartData = {"labels": ["06-09", "06-16", "06-19", "06-23", "06-25", "07-30", "07-31", "08-04", "08-05", "08-06", "08-07", "08-12", "08-20"], "net": [15975, 5004, 50215, 10446, 427007, -4036636, 5804782, 206313, 4826661, 202219, 163334, 68059, 1090423], "cum": [15975, 20979, 71194, 81640, 508647, -3527989, 2276793, 2483106, 7309767, 7511986, 7675320, 7743379, 8833802]};
 
-const desktopTabs = [...document.querySelectorAll('.tab')];
-const mobileTabs = [...document.querySelectorAll('.mobile-tab')];
-const mobileNav = document.querySelector('.mobile-nav');
+const reportTabs = [...document.querySelectorAll('.tab')];
+const reportNav = document.querySelector('.report-nav');
+const reportTablist = document.getElementById('reportTabs');
 const mobileToggle = document.querySelector('.mobile-menu-toggle');
 const mobileLabel = document.getElementById('mobileMenuLabel');
 
 // =========================================================
 // 02. 패널 전환 / 접근성 상태 동기화
-// - Desktop·Mobile 탭의 active, aria-selected, tabindex를 동일하게 유지
+// - 단일 tablist의 active, aria-selected, tabindex를 viewport와 무관하게 유지
 // =========================================================
-function setTabState(tabs, panelId){
-  tabs.forEach(btn => {
+function setTabState(panelId){
+  reportTabs.forEach(btn => {
     const active = btn.dataset.panel === panelId;
     btn.classList.toggle('active', active);
     btn.setAttribute('aria-selected', String(active));
     btn.tabIndex = active ? 0 : -1;
   });
+}
+
+function closeMobileMenu(){
+  reportNav?.classList.remove('open');
+  mobileToggle?.setAttribute('aria-expanded','false');
 }
 
 function activatePanel(panelId, label, {closeMobile=true}={}){
@@ -727,54 +725,51 @@ function activatePanel(panelId, label, {closeMobile=true}={}){
     panel.classList.toggle('active', active);
     panel.setAttribute('aria-hidden', String(!active));
   });
-  setTabState(desktopTabs, panelId);
-  setTabState(mobileTabs, panelId);
+  setTabState(panelId);
   if (mobileLabel && label) mobileLabel.textContent = label;
-  if (closeMobile && mobileNav) mobileNav.classList.remove('open');
-  if (closeMobile && mobileToggle) mobileToggle.setAttribute('aria-expanded','false');
+  if (closeMobile) closeMobileMenu();
   if (panelId === 'summary') requestAnimationFrame(drawChart);
 }
 
-function bindTabKeyboard(container, tabs){
-  container?.addEventListener('keydown', e => {
+function bindTabKeyboard(){
+  reportTablist?.addEventListener('keydown', e => {
     if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return;
-    const current = Math.max(0, tabs.indexOf(document.activeElement));
-    const nextIndex = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : e.key === 'ArrowRight' ? (current + 1) % tabs.length : (current - 1 + tabs.length) % tabs.length;
-    const next = tabs[nextIndex];
+    const current = Math.max(0, reportTabs.indexOf(document.activeElement));
+    const nextIndex = e.key === 'Home' ? 0 : e.key === 'End' ? reportTabs.length - 1 : e.key === 'ArrowRight' ? (current + 1) % reportTabs.length : (current - 1 + reportTabs.length) % reportTabs.length;
+    const next = reportTabs[nextIndex];
     if(!next) return;
     e.preventDefault();
-    activatePanel(next.dataset.panel, next.textContent.trim(), {closeMobile: container !== document.getElementById('mobileMenuPanel')});
+    const keepMobileMenuOpen = window.matchMedia('(max-width:760px)').matches && reportNav?.classList.contains('open');
+    activatePanel(next.dataset.panel, next.textContent.trim(), {closeMobile: !keepMobileMenuOpen});
     next.focus();
   });
 }
 
 // =========================================================
 // 03. 메뉴 이벤트 / 키보드 조작
-// - 클릭, 방향키·Home·End, 모바일 메뉴 열기·닫기, ESC·외부 클릭 처리
+// - 동일 탭의 클릭·방향키와 모바일 패널 열기·닫기, ESC·외부 클릭 처리
 // =========================================================
 function initNavigationEvents(){
-  desktopTabs.forEach(btn => btn.addEventListener('click', () => activatePanel(btn.dataset.panel, btn.textContent.trim())));
-  mobileTabs.forEach(btn => btn.addEventListener('click', () => { activatePanel(btn.dataset.panel, btn.textContent.trim()); mobileToggle?.focus(); }));
-  bindTabKeyboard(document.querySelector('.tabs'), desktopTabs);
-  bindTabKeyboard(document.getElementById('mobileMenuPanel'), mobileTabs);
+  reportTabs.forEach(btn => btn.addEventListener('click', () => {
+    const mobile = window.matchMedia('(max-width:760px)').matches;
+    activatePanel(btn.dataset.panel, btn.textContent.trim());
+    if(mobile) mobileToggle?.focus();
+  }));
+  bindTabKeyboard();
   
   if (mobileToggle) {
     mobileToggle.addEventListener('click', () => {
-      const open = mobileNav.classList.toggle('open');
+      const open = reportNav?.classList.toggle('open') ?? false;
       mobileToggle.setAttribute('aria-expanded', String(open));
-      if(open) requestAnimationFrame(() => mobileTabs.find(btn => btn.getAttribute('aria-selected') === 'true')?.focus());
+      if(open) requestAnimationFrame(() => reportTabs.find(btn => btn.getAttribute('aria-selected') === 'true')?.focus());
     });
   }
   document.addEventListener('click', e => {
-    if (mobileNav && mobileNav.classList.contains('open') && !mobileNav.contains(e.target)) {
-      mobileNav.classList.remove('open');
-      mobileToggle?.setAttribute('aria-expanded','false');
-    }
+    if (reportNav?.classList.contains('open') && !reportNav.contains(e.target)) closeMobileMenu();
   });
   document.addEventListener('keydown', e => {
-    if(e.key === 'Escape' && mobileNav?.classList.contains('open')){
-      mobileNav.classList.remove('open');
-      mobileToggle?.setAttribute('aria-expanded','false');
+    if(e.key === 'Escape' && reportNav?.classList.contains('open')){
+      closeMobileMenu();
       mobileToggle?.focus();
     }
   });

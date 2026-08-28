@@ -70,6 +70,7 @@ Mobile · 모바일   ≤ 760px
 - 카드·패널·폼·표·탭·버튼처럼 역할이 비슷한 component의 padding/gap은 공통 density token을 우선 사용하고, Desktop → Tablet → Mobile 순으로 일관되게 compact해지는 3단계 contract를 유지한다. 카드·패널·요약박스처럼 독립된 Surface의 기본 padding은 상하좌우 동일값을 사용하며, 표 셀·버튼·input·header row처럼 기능상 X/Y 여백이 달라야 하는 요소만 예외로 둔다. Touch target 높이, 차트 geometry, 광학 보정처럼 기능상 필요한 값은 억지로 density token에 합치지 않는다. 단순 미관 조정 때문에 독립 radius·magic number·임시 offset을 누적하지 않는다.
 - 거래유형 전환이나 responsive 변경 시 입력 패널의 정보 순서·시각적 균형·사용성을 유지하되, 해결 방법은 구조적 CSS를 우선한다.
 - 입력 요소는 가능한 한 `<label for>` 또는 `aria-labelledby`로 연결하고, 전략/리포트 탭은 `tablist/tab/tabpanel`, `aria-controls`, `aria-selected`와 키보드 이동을 유지한다. 시각 상태와 ARIA 상태가 함께 갱신되어야 한다.
+- Report 탭은 Desktop/Mobile별 중복 DOM을 만들지 않고 하나의 `tablist`/탭 집합을 viewport에서 재배치한다. 모바일 햄버거는 동일 tablist의 표시만 열고 닫으며 active/ARIA/tabindex state owner도 하나로 유지한다.
 - 동적 tooltip은 `aria-describedby` 연결을 유지하고, report 표는 caption/column header/row header의 의미 구조를 보존한다.
 - CALC 설명문·툴팁·검증문구는 기존의 짧은 명사형·단문 스타일을 유지한다.
 
