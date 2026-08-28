@@ -131,3 +131,9 @@ test('Calc 가로 터치폰은 Tablet이 아니라 세로 Phone과 같은 UI con
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) #reportBtn \.report-text, :where\(html\[data-add-page="calc"\]\) #resetBtn \.reset-text\{display:none\}/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.add-button-mobile-icon\{ width:var\(--button-icon-size\); height:var\(--button-icon-size\); padding:0;/);
 });
+
+
+test('calculation criteria buttons share Calc input-derived box height', () => {
+  assert.match(css1, /\.calculation-group \.seg button\{[^}]*height:calc\(1rem \+ var\(--calc-control-pad-y\) \+ var\(--calc-control-pad-y\) \+ 2px\)[^}]*line-height:1/);
+  assert.doesNotMatch(css1, /\.calculation-group \.seg button\{[^}]*height:var\(--button-control-height\)/);
+});
