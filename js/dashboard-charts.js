@@ -1323,8 +1323,8 @@ function pensionCumFullMoneyAxis(data){
   const profits=data.map(d=>d['합계 : 누적손익']),daily=data.map(d=>d['합계 : 전일대비손익']);
   const returns=data.map(d=>d['합계 : 누적수익률']).filter(Number.isFinite);
   const money=fixedTickInfo(Math.min(...profits,...daily),Math.max(...profits,...daily),5000000,true);
-  const rate=fixedTickInfo(Math.min(0,...returns),Math.max(25,...returns),25,true);
-  return alignZeroTickRanges(money,5000000,rate,25)[0];
+  const rate=fixedTickInfo(Math.min(0,...returns),Math.max(20,...returns),20,true);
+  return alignZeroTickRanges(money,5000000,rate,20)[0];
 }
 function securitiesCumFullMoneyAxis(){
   return securitiesCumFullAxes().money;
@@ -1342,10 +1342,10 @@ function cumulativeRightAxis(scope,data,mode,leftAxis,compareSelected,autoY){
   if(!compareSelected)return {info:null,visible:false};
   const values=data.map(d=>mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률']).filter(Number.isFinite);
   if(mode==='kospi')return {info:values.length?niceTickInfo(Math.min(...values),Math.max(...values),6,false):{min:0,max:1,ticks:[0,1]},visible:true};
-  const step=scope==='pensionCum'?25:(!autoY&&scope==='securitiesCum'?10:20);
+  const step=scope==='pensionCum'?20:(!autoY&&scope==='securitiesCum'?10:20);
   let raw;
   if(!autoY&&scope==='securitiesCum')raw=securitiesCumFullAxes().returns;
-  else if(!autoY&&scope==='pensionCum')raw=fixedTickInfo(Math.min(0,...values),Math.max(25,...values),25,true);
+  else if(!autoY&&scope==='pensionCum')raw=fixedTickInfo(Math.min(0,...values),Math.max(20,...values),20,true);
   else raw=fixedTickInfo(Math.min(0,...values),Math.max(0,...values),step,true);
   if(leftAxis.visible)raw=alignFixedAxisZeroToReference(leftAxis.info,leftAxis.step,raw,step);
   return {info:raw,visible:true};
