@@ -40,6 +40,17 @@
   --density-field-pad-x:10px;
   --density-table-pad-x:12px;
   --density-table-pad-y:10px;
+
+  /* Add 공통 Button density / typography
+     - 일반 버튼은 12px, 좁은 폭 compact 버튼은 11px로 제한한다.
+     - touch target 높이는 viewport가 작아져도 축소하지 않는다. */
+  --button-font-size:12px;
+  --button-font-size-compact:11px;
+  --button-font-weight:800;
+  --button-control-height:40px;
+  --button-icon-size:36px;
+  --button-compact-pad-x:6px;
+  --button-compact-pad-y:8px;
 }
 
 @media(max-width:1100px){
@@ -58,6 +69,7 @@
     --density-field-pad-x:8px;
     --density-table-pad-x:10px;
     --density-table-pad-y:8px;
+    --button-compact-pad-x:6px;
   }
 }
 
@@ -77,6 +89,7 @@
     --density-field-pad-x:8px;
     --density-table-pad-x:8px;
     --density-table-pad-y:6px;
+    --button-compact-pad-x:4px;
   }
 }
 
@@ -125,7 +138,85 @@ html.dark{
   line-height:1.35;
 }
 
-/* 03. Add 공통 Card Surface primitive
+
+/* 03. Add 공통 Button primitive
+   - add-button은 focus/disabled lifecycle만 소유한다.
+   - action/toggle/step 역할 class가 shell·density를 공유하고, mobile-icon/ghost는 필요한 표시 방식만 보완한다. feature class는 배치·문구만 소유한다.
+   - hover 색은 각 화면의 semantic token(--button-hover-*)을 사용한다. */
+.add-button{
+  font-family:inherit;
+  cursor:pointer;
+}
+.add-button:focus-visible{
+  outline:2px solid var(--navy);
+  outline-offset:2px;
+}
+.add-button:disabled{
+  cursor:not-allowed;
+  opacity:.55;
+}
+:is(.add-button-action,.add-button-toggle,.add-button-step){
+  border:1px solid var(--line);
+  border-radius:min(var(--control-radius-md),var(--corner-control-cap));
+  background:var(--surface-control);
+}
+:is(.add-button-action,.add-button-toggle,.add-button-step):hover:not(:disabled){
+  border-color:var(--button-hover-border,var(--navy));
+  background:var(--button-hover-bg,var(--surface-control));
+  color:var(--button-hover-text,var(--ink));
+}
+.add-button-action{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:var(--density-action-pad-y) var(--density-action-pad-x);
+  color:var(--ink);
+  font-size:var(--button-font-size);
+  font-weight:var(--button-font-weight);
+  line-height:1.2;
+}
+.add-button-toggle{
+  padding:var(--density-action-pad-y) var(--density-action-pad-x);
+  color:var(--muted);
+  font-size:var(--button-font-size);
+  font-weight:var(--button-font-weight);
+  line-height:1.25;
+}
+.add-button-toggle:is(.active,[aria-selected="true"],[aria-pressed="true"]){
+  background:var(--navy);
+  border-color:var(--navy);
+  color:var(--on-accent);
+}
+.add-button-step{
+  height:var(--button-control-height);
+  padding:0;
+  color:var(--navy);
+  font-size:16px;
+  font-weight:900;
+  line-height:1;
+}
+.add-button-ghost{
+  border:0;
+  border-radius:min(var(--control-radius-md),var(--corner-control-cap));
+  background:transparent;
+}
+.add-button-compact{
+  padding:var(--button-compact-pad-y) var(--button-compact-pad-x);
+  font-size:var(--button-font-size-compact);
+}
+@media(max-width:760px){
+  .add-button-mobile-icon{
+    width:var(--button-icon-size);
+    height:var(--button-icon-size);
+    padding:0;
+  }
+}
+.add-button-ghost:hover:not(:disabled){
+  background:var(--button-hover-bg,var(--surface-control));
+  color:var(--button-hover-text,var(--ink));
+}
+
+/* 04. Add 공통 Card Surface primitive
    - shell은 border/radius만 소유하고, 배경·shadow는 역할 class로 조합한다.
    - feature별 class는 layout/content만 소유하며 동일 shell을 반복 정의하지 않는다. */
 .add-card-shell{
@@ -137,7 +228,7 @@ html.dark{
 .add-card-subtle{background:var(--surface-subtle)}
 .add-card-shadow{box-shadow:var(--shadow)}
 
-/* 04. 공통 박스 모델 / 기본 글꼴 */
+/* 05. 공통 박스 모델 / 기본 글꼴 */
 *{box-sizing:border-box}
 body{
   margin:0;

@@ -17,23 +17,23 @@
     <div class="hero-head">
       <h1>투자 계산기</h1>
       <div class="actions">
-      <a class="btn report-top-link" id="reportBtn" href="kodex-leverage-report.html" target="_blank" rel="noopener" aria-label="거래 리포트">
+      <a class="btn add-button add-button-action add-button-mobile-icon report-top-link" id="reportBtn" href="kodex-leverage-report.html" target="_blank" rel="noopener" aria-label="거래 리포트">
         <span class="report-text">거래 리포트</span>
         <svg class="report-icon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M6 3h9l3 3v15H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
           <path d="M15 3v4h4M9 16l2-3 2 2 3-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </a>
-      <button class="btn" id="resetBtn" type="button" aria-label="기본값 복원"><span class="reset-text">기본값 복원</span><svg class="reset-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="btn add-button add-button-action add-button-mobile-icon" id="resetBtn" type="button" aria-label="기본값 복원"><span class="reset-text">기본값 복원</span><svg class="reset-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
     </div>
     <p id="heroDescription">추가매수 당일 종가 또는 추가매수가 대비 변동률 기준 · 목표 매도단가와 3가지 손실 회복 방식 자동 계산</p>
   </div>
 
   <div class="preset-bar" role="group" aria-label="매수 사례 선택">
-    <button class="preset-btn" type="button" data-preset="buy-2026-07-29" aria-pressed="false"><span class="preset-main">보유 중 추가매수</span></button>
-    <button class="preset-btn" type="button" data-preset="buy-2026-07-30" aria-pressed="false"><span class="preset-main">이전 거래 후 재매수</span></button>
-    <button class="preset-btn active" type="button" data-preset="current-only" aria-pressed="true"><span class="preset-main">이전 거래 없음</span></button>
+    <button class="preset-btn add-button add-button-toggle" type="button" data-preset="buy-2026-07-29" aria-pressed="false"><span class="preset-main">보유 중 추가매수</span></button>
+    <button class="preset-btn add-button add-button-toggle" type="button" data-preset="buy-2026-07-30" aria-pressed="false"><span class="preset-main">이전 거래 후 재매수</span></button>
+    <button class="preset-btn add-button add-button-toggle active" type="button" data-preset="current-only" aria-pressed="true"><span class="preset-main">이전 거래 없음</span></button>
   </div>
 
   <section class="panel input-panel add-card-shell add-card-base add-card-shadow">
@@ -42,13 +42,13 @@
         <div class="group-title add-heading-subsection"><span id="priorGroupTitle">기존 보유분</span><small id="priorGroupSub">기본 투자 정보</small></div>
         <div class="fields" id="holdingPriorFields">
           <div class="field" id="existingAvgField"><label id="existingAvgLabel" for="existingOriginalAvg">기존 보유분 원래 평단</label><input id="existingOriginalAvg" class="control" readonly></div>
-          <div class="field" id="existingSharesField"><label id="existingSharesLabel" for="existingShares">기존 보유수량</label><div class="share-stepper"><button class="share-step-btn" type="button" data-target="existingShares" data-delta="-1" aria-label="기존 보유수량 1주 감소">−</button><input id="existingShares" class="control" type="number" min="0" step="1" inputmode="numeric" value="38"><button class="share-step-btn" type="button" data-target="existingShares" data-delta="1" aria-label="기존 보유수량 1주 증가">+</button></div></div>
+          <div class="field" id="existingSharesField"><label id="existingSharesLabel" for="existingShares">기존 보유수량</label><div class="share-stepper"><button class="share-step-btn add-button add-button-step" type="button" data-target="existingShares" data-delta="-1" aria-label="기존 보유수량 1주 감소">−</button><input id="existingShares" class="control" type="number" min="0" step="1" inputmode="numeric" value="38"><button class="share-step-btn add-button add-button-step" type="button" data-target="existingShares" data-delta="1" aria-label="기존 보유수량 1주 증가">+</button></div></div>
           <div class="field" id="existingCostField"><label id="existingCostLabel" for="existingCost">기존 보유분 투자금액</label><input id="existingCost" class="control money-input" inputmode="numeric" value="7,005,530"></div>
           <span id="currentPriceAnchor"></span>
           <div class="field" id="currentPriceField"><label id="currentPriceLabel" for="currentPrice">추가매수 당일 종가</label><input id="currentPrice" class="control money-input" inputmode="numeric" value="79,020"></div>
           <div class="field" id="existingValueField"><label id="existingValueLabel" for="existingCurrentValue">기존 보유분 평가금액</label><input id="existingCurrentValue" class="control" readonly></div>
           <div class="field" id="existingPLField"><label id="existingPLLabel" for="existingCurrentPL">기존 보유분 손익</label><input id="existingCurrentPL" class="control" readonly></div>
-          <div class="field" id="oldRecoveryField"><label class="label-with-help"><span id="oldRecoveryLabel">기존 회수 대상 금액</span><span class="help-tooltip" id="oldRecoveryHelpWrap"><button type="button" class="help-icon" id="oldRecoveryHelp" aria-label="기존 회수 대상 금액 설명" aria-describedby="oldRecoveryTooltip" aria-expanded="false">i</button><span class="custom-tooltip" id="oldRecoveryTooltip" role="tooltip">기존 보유분에 사용된 마이너스통장 원금 등 매도대금으로 우선 회수·상환하려는 금액. 손실·평단·손익분기 계산 제외, 전략별 회수 결과에만 반영.</span></span></label><input id="oldOverdraft" class="control money-input" inputmode="numeric" value="3,700,000" aria-labelledby="oldRecoveryLabel"></div>
+          <div class="field" id="oldRecoveryField"><label class="label-with-help"><span id="oldRecoveryLabel">기존 회수 대상 금액</span><span class="help-tooltip" id="oldRecoveryHelpWrap"><button type="button" class="help-icon add-button" id="oldRecoveryHelp" aria-label="기존 회수 대상 금액 설명" aria-describedby="oldRecoveryTooltip" aria-expanded="false">i</button><span class="custom-tooltip" id="oldRecoveryTooltip" role="tooltip">기존 보유분에 사용된 마이너스통장 원금 등 매도대금으로 우선 회수·상환하려는 금액. 손실·평단·손익분기 계산 제외, 전략별 회수 결과에만 반영.</span></span></label><input id="oldOverdraft" class="control money-input" inputmode="numeric" value="3,700,000" aria-labelledby="oldRecoveryLabel"></div>
           <div class="existing-subsection existing-purchase-section" id="existingPurchaseSection"></div>
           <div class="existing-subsection existing-evaluation-section" id="existingEvaluationSection"></div>
           <div class="field" id="breakEvenInputField"><label id="breakEvenInputLabel" for="brokerBreakEven">통합 회복 기준가격</label><input id="brokerBreakEven" class="control" readonly></div>
@@ -63,7 +63,7 @@
             </div>
             <div class="prior-trade-section prior-buy-section">
               <div class="field auto-field"><label for="priorAvgDisplay">매수단가</label><input id="priorAvgDisplay" class="control" readonly></div>
-              <div class="field"><label for="priorSoldSharesInput">매도수량</label><div class="share-stepper"><button class="share-step-btn" type="button" data-target="priorSoldSharesInput" data-delta="-1" aria-label="매도수량 1주 감소">−</button><input id="priorSoldSharesInput" class="control" type="number" min="0" step="1" inputmode="numeric" value="642"><button class="share-step-btn" type="button" data-target="priorSoldSharesInput" data-delta="1" aria-label="매도수량 1주 증가">+</button></div></div>
+              <div class="field"><label for="priorSoldSharesInput">매도수량</label><div class="share-stepper"><button class="share-step-btn add-button add-button-step" type="button" data-target="priorSoldSharesInput" data-delta="-1" aria-label="매도수량 1주 감소">−</button><input id="priorSoldSharesInput" class="control" type="number" min="0" step="1" inputmode="numeric" value="642"><button class="share-step-btn add-button add-button-step" type="button" data-target="priorSoldSharesInput" data-delta="1" aria-label="매도수량 1주 증가">+</button></div></div>
               <div class="field"><label for="priorCostInput">매수금액</label><input id="priorCostInput" class="control money-input" inputmode="numeric" value="51,912,930"></div>
             </div>
             <div class="prior-trade-section prior-sell-section">
@@ -78,8 +78,8 @@
 
       <div class="current-column" id="currentColumn">
         <div class="current-purchase-preset" id="currentPurchasePreset" role="group" aria-label="현재 보유분 빠른 매수값">
-          <button class="current-purchase-btn" id="applyBuy20260804" type="button" data-current-purchase-preset="buy-2026-08-04" aria-pressed="false">2026-08-04 매수</button>
-          <button class="current-purchase-btn" id="applyBuy20260806" type="button" data-current-purchase-preset="buy-2026-08-06" aria-pressed="false">2026-08-06 매수</button>
+          <button class="current-purchase-btn add-button add-button-toggle" id="applyBuy20260804" type="button" data-current-purchase-preset="buy-2026-08-04" aria-pressed="false">2026-08-04 매수</button>
+          <button class="current-purchase-btn add-button add-button-toggle" id="applyBuy20260806" type="button" data-current-purchase-preset="buy-2026-08-06" aria-pressed="false">2026-08-06 매수</button>
         </div>
 
       <div class="input-group additional-group add-card-shell add-card-subtle" id="currentGroup">
@@ -94,7 +94,7 @@
           <div class="settled-subsection settled-evaluation-section" id="settledEvaluationSection"></div>
           <div class="settled-subsection settled-result-section" id="settledResultSection"></div>
           <div class="field" id="addPriceField"><label id="addPriceLabel" for="addPrice">추가매수단가</label><input id="addPrice" class="control money-input" inputmode="numeric" value="74,350"></div>
-          <div class="field" id="addSharesField"><label id="addSharesLabel" for="addShares">추가매수수량</label><div class="share-stepper"><button class="share-step-btn" type="button" data-target="addShares" data-delta="-1" aria-label="추가매수수량 1주 감소">−</button><input id="addShares" class="control" type="number" min="0" step="1" inputmode="numeric" value="604"><button class="share-step-btn" type="button" data-target="addShares" data-delta="1" aria-label="추가매수수량 1주 증가">+</button></div></div>
+          <div class="field" id="addSharesField"><label id="addSharesLabel" for="addShares">추가매수수량</label><div class="share-stepper"><button class="share-step-btn add-button add-button-step" type="button" data-target="addShares" data-delta="-1" aria-label="추가매수수량 1주 감소">−</button><input id="addShares" class="control" type="number" min="0" step="1" inputmode="numeric" value="604"><button class="share-step-btn add-button add-button-step" type="button" data-target="addShares" data-delta="1" aria-label="추가매수수량 1주 증가">+</button></div></div>
           <div class="field" id="actualLoanField"><label id="actualLoanLabel" for="actualLoan">추가매수금액</label><input id="actualLoan" class="control" readonly></div>
           <div class="field" id="currentBuyGainField"><label id="currentBuyGainLabel" for="currentBuyGain">추가매수가 대비 종가 변동률</label><input id="currentBuyGain" class="control" readonly></div>
           <div class="field" id="out1Field"><label id="out1Label" for="out1">최종 평단</label><input id="out1" class="control" readonly></div>
@@ -109,14 +109,14 @@
 
       <div class="input-group calculation-group add-card-shell add-card-subtle">
         <div class="group-title add-heading-subsection">계산 기준 <small>세 기준 중 하나만 입력</small></div>
-        <div class="seg" role="group" aria-label="목표가격 계산 기준"><button id="modeCurrent" class="active" type="button" aria-pressed="true">매수일 종가</button><button id="modeRise" type="button" aria-pressed="false">추가매수가</button><button id="modeTarget" type="button" aria-pressed="false">목표단가</button></div>
+        <div class="seg" role="group" aria-label="목표가격 계산 기준"><button id="modeCurrent" class="add-button add-button-toggle active" type="button" aria-pressed="true">매수일 종가</button><button id="modeRise" class="add-button add-button-toggle" type="button" aria-pressed="false">추가매수가</button><button id="modeTarget" class="add-button add-button-toggle" type="button" aria-pressed="false">목표단가</button></div>
         <div class="fields">
-          <div class="field"><label id="overnightLabel" for="overnightPct">다음 거래일 변동률</label><div class="pct-stepper"><button class="pct-step-btn" type="button" data-target="overnightPct" data-delta="-0.1" aria-label="다음 거래일 변동률 0.1%p 감소">−</button><div class="with-unit"><input id="overnightPct" class="control" type="number" min="-99.999999" step="0.1" value="2.34"><span class="unit">%</span></div><button class="pct-step-btn" type="button" data-target="overnightPct" data-delta="0.1" aria-label="다음 거래일 변동률 0.1%p 증가">+</button></div></div>
-          <div class="field"><label id="riseLabel" for="risePct">추가매수가 대비 변동률</label><div class="pct-stepper"><button class="pct-step-btn" type="button" data-target="risePct" data-delta="-0.1" aria-label="추가매수가 대비 변동률 0.1%p 감소">−</button><div class="with-unit"><input id="risePct" class="control" type="number" min="-99.999999" step="0.1" value="8.769"><span class="unit">%</span></div><button class="pct-step-btn" type="button" data-target="risePct" data-delta="0.1" aria-label="추가매수가 대비 변동률 0.1%p 증가">+</button></div></div>
+          <div class="field"><label id="overnightLabel" for="overnightPct">다음 거래일 변동률</label><div class="pct-stepper"><button class="pct-step-btn add-button add-button-step" type="button" data-target="overnightPct" data-delta="-0.1" aria-label="다음 거래일 변동률 0.1%p 감소">−</button><div class="with-unit"><input id="overnightPct" class="control" type="number" min="-99.999999" step="0.1" value="2.34"><span class="unit">%</span></div><button class="pct-step-btn add-button add-button-step" type="button" data-target="overnightPct" data-delta="0.1" aria-label="다음 거래일 변동률 0.1%p 증가">+</button></div></div>
+          <div class="field"><label id="riseLabel" for="risePct">추가매수가 대비 변동률</label><div class="pct-stepper"><button class="pct-step-btn add-button add-button-step" type="button" data-target="risePct" data-delta="-0.1" aria-label="추가매수가 대비 변동률 0.1%p 감소">−</button><div class="with-unit"><input id="risePct" class="control" type="number" min="-99.999999" step="0.1" value="8.769"><span class="unit">%</span></div><button class="pct-step-btn add-button add-button-step" type="button" data-target="risePct" data-delta="0.1" aria-label="추가매수가 대비 변동률 0.1%p 증가">+</button></div></div>
           <div class="field full"><label for="targetPrice">목표 매도단가</label><input id="targetPrice" class="control money-input" inputmode="numeric" readonly></div>
         </div>
         <div class="formula" id="formulaText"></div>
-        <button class="actual-sale-price" id="applyActualSellPrice" type="button" aria-label="실제 매도 단가를 목표 매도단가에 반영"><span>실제 매도 단가</span><strong id="actualSellPriceValue">91,065</strong></button>
+        <button class="actual-sale-price add-button add-button-action" id="applyActualSellPrice" type="button" aria-label="실제 매도 단가를 목표 매도단가에 반영"><span>실제 매도 단가</span><strong id="actualSellPriceValue">91,065</strong></button>
       </div>
     </div>
   </section>
@@ -137,9 +137,9 @@
   </section>
 
   <div class="tabs" id="strategyTabs" role="tablist" aria-label="매도 전략 선택">
-    <button class="tab active" id="tabS3" type="button" role="tab" data-tab="s3" aria-controls="s3" aria-selected="true" tabindex="0">① 전체 보유분 매도</button>
-    <button class="tab" id="tabS2" type="button" role="tab" data-tab="s2" aria-controls="s2" aria-selected="false" tabindex="-1">② 추가매수 수량 매도</button>
-    <button class="tab" id="tabS1" type="button" role="tab" data-tab="s1" aria-controls="s1" aria-selected="false" tabindex="-1">③ 추가매수 원금만 회수</button>
+    <button class="tab add-button add-button-toggle active" id="tabS3" type="button" role="tab" data-tab="s3" aria-controls="s3" aria-selected="true" tabindex="0">① 전체 보유분 매도</button>
+    <button class="tab add-button add-button-toggle" id="tabS2" type="button" role="tab" data-tab="s2" aria-controls="s2" aria-selected="false" tabindex="-1">② 추가매수 수량 매도</button>
+    <button class="tab add-button add-button-toggle" id="tabS1" type="button" role="tab" data-tab="s1" aria-controls="s1" aria-selected="false" tabindex="-1">③ 추가매수 원금만 회수</button>
   </div>
   <main><section id="s3" class="strategy active" role="tabpanel" aria-labelledby="tabS3" aria-hidden="false" tabindex="0"></section><section id="s2" class="strategy" role="tabpanel" aria-labelledby="tabS2" aria-hidden="true" tabindex="0"></section><section id="s1" class="strategy" role="tabpanel" aria-labelledby="tabS1" aria-hidden="true" tabindex="0"></section></main>
 </div>

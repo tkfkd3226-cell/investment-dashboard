@@ -78,6 +78,9 @@
   --mobile-nav-transparent:rgba(243,246,251,0);
   --mobile-toggle-shadow:0 6px 18px rgba(31,48,76,.08);
   --mobile-menu-shadow:0 16px 36px rgba(31,48,76,.14);
+  --button-hover-border:var(--navy2);
+  --button-hover-bg:var(--surface-soft);
+  --button-hover-text:var(--ink);
 
   /* Canvas chart semantic palette */
   --chart-plot-top:rgba(238,243,250,.68);
@@ -182,8 +185,7 @@ h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.045em}
 .hero-chip span{display:block;font-size:9.5px;line-height:1.2;color:var(--hero-chip-label);font-weight:800}
 .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1.18;letter-spacing:-.035em}
 .tabs{display:flex;gap:var(--density-gap-xs);overflow:auto;padding:var(--density-gap-md) 2px var(--density-gap-xs);position:sticky;top:0;z-index:20;background:linear-gradient(var(--bg) 75%,transparent)}
-.tab{border:1px solid var(--line);background:var(--surface-control);color:var(--muted);border-radius:min(var(--control-radius-md),var(--corner-control-cap));padding:var(--density-action-pad-y) var(--density-action-pad-x);font-size:13px;font-weight:750;letter-spacing:-.015em;box-shadow:var(--tab-shadow);cursor:pointer;white-space:nowrap}
-.tab.active{background:var(--navy);border-color:var(--navy);color:var(--on-accent);font-weight:800}
+.tab{letter-spacing:-.015em;box-shadow:var(--tab-shadow);white-space:nowrap}
 .panel{display:none}
 .panel.active{display:block}
 
@@ -303,7 +305,7 @@ details p,details li{font-size:12px;color:var(--muted)}
    - Desktop 탭을 대체하는 햄버거 메뉴와 활성 상태
    ========================================================= */
 .mobile-nav{display:none;position:sticky;top:0;z-index:30;padding:var(--density-gap-md) 0 var(--density-gap-sm);background:linear-gradient(var(--bg) 78%,var(--mobile-nav-transparent))}
-.mobile-menu-toggle{width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-lg);border:1px solid var(--line);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);color:var(--ink);padding:var(--density-action-pad-y) var(--density-action-pad-x);box-shadow:var(--mobile-toggle-shadow);font-size:13px;font-weight:900;cursor:pointer}
+.mobile-menu-toggle{width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-lg);box-shadow:var(--mobile-toggle-shadow)}
 .hamburger-icon{width:20px;height:16px;display:flex;flex-direction:column;justify-content:space-between;flex:none}
 .hamburger-icon i{height:2px;border-radius:var(--radius-pill);background:var(--navy);transition:transform .18s ease,opacity .18s ease}
 .mobile-nav.open .hamburger-icon i:nth-child(1){transform:translateY(7px) rotate(45deg)}
@@ -311,7 +313,7 @@ details p,details li{font-size:12px;color:var(--muted)}
 .mobile-nav.open .hamburger-icon i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 .mobile-menu-panel{display:none;margin-top:var(--density-gap-xs);padding:var(--density-gap-xs);box-shadow:var(--mobile-menu-shadow)}
 .mobile-nav.open .mobile-menu-panel{display:grid;grid-template-columns:1fr}
-.mobile-tab{border:0;background:transparent;color:var(--mobile-tab-text);text-align:left;border-radius:min(var(--control-radius-md),var(--corner-control-cap));padding:var(--density-table-pad-y) var(--density-table-pad-x);font-size:12px;font-weight:850;cursor:pointer}
+.mobile-tab{color:var(--mobile-tab-text);text-align:left;padding:var(--density-table-pad-y) var(--density-table-pad-x);font-size:var(--button-font-size);font-weight:var(--button-font-weight)}
 .mobile-tab.active{background:var(--mobile-tab-active-bg);color:var(--navy)}
 
 /* =========================================================
@@ -413,23 +415,23 @@ details p,details li{font-size:12px;color:var(--muted)}
   </header>
 
   <nav class="tabs" role="tablist" aria-label="리포트 메뉴">
-    <button class="tab active" id="reportTabSummary" type="button" role="tab" data-panel="summary" aria-controls="summary" aria-selected="true" tabindex="0">핵심 요약</button>
-    <button class="tab" id="reportTabDaily" type="button" role="tab" data-panel="daily" aria-controls="daily" aria-selected="false" tabindex="-1">날짜별 실현손익</button>
-    <button class="tab" id="reportTabSplit" type="button" role="tab" data-panel="split" aria-controls="split" aria-selected="false" tabindex="-1">본 포지션·단타 분리</button>
-    <button class="tab" id="reportTabTimeline" type="button" role="tab" data-panel="timeline" aria-controls="timeline" aria-selected="false" tabindex="-1">거래 흐름</button>
-    <button class="tab" id="reportTabSource" type="button" role="tab" data-panel="source" aria-controls="source" aria-selected="false" tabindex="-1">근거·산식</button>
+    <button class="tab add-button add-button-toggle active" id="reportTabSummary" type="button" role="tab" data-panel="summary" aria-controls="summary" aria-selected="true" tabindex="0">핵심 요약</button>
+    <button class="tab add-button add-button-toggle" id="reportTabDaily" type="button" role="tab" data-panel="daily" aria-controls="daily" aria-selected="false" tabindex="-1">날짜별 실현손익</button>
+    <button class="tab add-button add-button-toggle" id="reportTabSplit" type="button" role="tab" data-panel="split" aria-controls="split" aria-selected="false" tabindex="-1">본 포지션·단타 분리</button>
+    <button class="tab add-button add-button-toggle" id="reportTabTimeline" type="button" role="tab" data-panel="timeline" aria-controls="timeline" aria-selected="false" tabindex="-1">거래 흐름</button>
+    <button class="tab add-button add-button-toggle" id="reportTabSource" type="button" role="tab" data-panel="source" aria-controls="source" aria-selected="false" tabindex="-1">근거·산식</button>
   </nav>
   <nav class="mobile-nav" aria-label="모바일 리포트 메뉴">
-    <button class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="mobileMenuPanel">
+    <button class="mobile-menu-toggle add-button add-button-action" type="button" aria-expanded="false" aria-controls="mobileMenuPanel">
       <span id="mobileMenuLabel">핵심 요약</span>
       <span class="hamburger-icon" aria-hidden="true"><i></i><i></i><i></i></span>
     </button>
     <div class="mobile-menu-panel add-card-shell add-card-control" id="mobileMenuPanel" role="tablist" aria-label="모바일 리포트 메뉴 선택">
-      <button class="mobile-tab active" id="reportMobileTabSummary" type="button" role="tab" data-panel="summary" aria-controls="summary" aria-selected="true" tabindex="0">핵심 요약</button>
-      <button class="mobile-tab" id="reportMobileTabDaily" type="button" role="tab" data-panel="daily" aria-controls="daily" aria-selected="false" tabindex="-1">날짜별 실현손익</button>
-      <button class="mobile-tab" id="reportMobileTabSplit" type="button" role="tab" data-panel="split" aria-controls="split" aria-selected="false" tabindex="-1">본 포지션·단타 분리</button>
-      <button class="mobile-tab" id="reportMobileTabTimeline" type="button" role="tab" data-panel="timeline" aria-controls="timeline" aria-selected="false" tabindex="-1">거래 흐름</button>
-      <button class="mobile-tab" id="reportMobileTabSource" type="button" role="tab" data-panel="source" aria-controls="source" aria-selected="false" tabindex="-1">근거·산식</button>
+      <button class="mobile-tab add-button add-button-ghost active" id="reportMobileTabSummary" type="button" role="tab" data-panel="summary" aria-controls="summary" aria-selected="true" tabindex="0">핵심 요약</button>
+      <button class="mobile-tab add-button add-button-ghost" id="reportMobileTabDaily" type="button" role="tab" data-panel="daily" aria-controls="daily" aria-selected="false" tabindex="-1">날짜별 실현손익</button>
+      <button class="mobile-tab add-button add-button-ghost" id="reportMobileTabSplit" type="button" role="tab" data-panel="split" aria-controls="split" aria-selected="false" tabindex="-1">본 포지션·단타 분리</button>
+      <button class="mobile-tab add-button add-button-ghost" id="reportMobileTabTimeline" type="button" role="tab" data-panel="timeline" aria-controls="timeline" aria-selected="false" tabindex="-1">거래 흐름</button>
+      <button class="mobile-tab add-button add-button-ghost" id="reportMobileTabSource" type="button" role="tab" data-panel="source" aria-controls="source" aria-selected="false" tabindex="-1">근거·산식</button>
     </div>
   </nav>
 
