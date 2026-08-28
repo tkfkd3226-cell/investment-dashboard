@@ -636,9 +636,8 @@
   .date-action-menu.mobile-combined-menu::-webkit-scrollbar{width:8px}
   .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{border-radius:var(--radius-pill);background:var(--nav-scrollbar)}
 
-  /* Phone Menu Layout · 폰에서는 전체 모바일 메뉴를 사용 */
-    .mobile-menu-layout{display:block}
-    .tablet-toc-menu-layout{display:none}
+  /* Phone Menu Extras · 공통 TOC는 유지하고 링크/관리/날짜고정만 폰에서 추가 표시 */
+    .mobile-nav-group-phone-only{display:block}
 }
 
 /* -------------------------------------------------------------------------

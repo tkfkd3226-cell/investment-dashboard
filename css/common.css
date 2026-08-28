@@ -3904,7 +3904,8 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 /* Date Action Menu · 날짜 action menu */
 .date-action-menu{display:none}
 .date-action-menu.show{display:block}
-.mobile-menu-layout,.tablet-toc-menu-layout{display:none}
+.responsive-nav-menu-layout{display:block}
+.mobile-date-pin-control,.mobile-nav-group-phone-only{display:none}
 
 /* Navigation Motion · 열림은 짧은 fade 후 우→좌 slide, 닫힘은 좌→우 slide 후 fade */
 .date-action-menu.mobile-combined-menu{
