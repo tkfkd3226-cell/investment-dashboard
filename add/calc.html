@@ -3,6 +3,18 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>
+  (function(){
+    var ua=navigator.userAgent||'';
+    var desktopAppleUA=/Macintosh/.test(ua)&&!/(iPhone|iPad|iPod)/.test(ua);
+    var touchApple=(navigator.maxTouchPoints||0)>0;
+    var shortSide=Math.min(screen.width||9999,screen.height||9999);
+    if(desktopAppleUA&&touchApple&&shortSide<=500){
+      var viewport=document.querySelector('meta[name="viewport"]');
+      if(viewport)viewport.setAttribute('content','width=1024');
+    }
+  })();
+</script>
 <title>투자 계산기</title>
 <link rel="stylesheet" href="add.css" />
 <script src="add.js"></script>
