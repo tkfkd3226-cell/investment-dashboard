@@ -244,7 +244,7 @@ function renderPensionChangeBlock(x,orderedPensionRows){
     rows,
     summaryRows,
     cards,
-    noPrevHtml:'<div class="asset-no-prev-note">전일 데이터가 없습니다.</div>'
+    noPrevHtml:'<div class="asset-empty-state asset-no-prev-note">전일 데이터가 없습니다.</div>'
   });
 }
 // [PENSION03] Section Composition · 퇴직연금 섹션 조합
