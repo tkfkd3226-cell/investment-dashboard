@@ -857,7 +857,7 @@ listener 중복 0
 
 ### Calc 계산 로직 변경
 
-`add/calc.js`의 계산/validation을 건드렸으면 일반 syntax 검사에 더해 반드시 실행한다.
+`add/add.js`의 Calc 계산/validation을 건드렸으면 일반 syntax 검사에 더해 반드시 실행한다.
 
 ```bash
 node --test add/calc.test.cjs
@@ -994,7 +994,7 @@ Calc는 UI보다 계산 결과의 정확성을 우선한다.
 
 계산 로직을 수정한 경우:
 
-1. `node --check add/calc.js`
+1. `node --check add/add.js`
 2. `node --test add/calc.test.cjs`
 3. 관련 거래유형 fixture 확인
 4. 관련 결과표 UI 확인
@@ -1032,7 +1032,7 @@ UI/CSS만 수정했고 계산 엔진에 diff가 없다면 회귀테스트는 선
 ```text
 investment-dashboard-main/
 ├─ add/
-│  ├─ calc.js
+│  ├─ add.js
 │  └─ calc.test.cjs
 └─ requirements.txt
 ```
@@ -1088,11 +1088,10 @@ investment-dashboard-main/
 ├─ README.md
 ├─ add/
 │  ├─ calc.html
-│  ├─ common.css
-│  ├─ calc.css
-│  ├─ calc.js
-│  ├─ calc.test.cjs
 │  ├─ kodex-leverage-report.html
+│  ├─ add.css
+│  ├─ add.js
+│  ├─ calc.test.cjs
 │  └─ add_maintenance_handover.md
 ├─ css/
 │  ├─ common.css
@@ -1165,11 +1164,10 @@ investment-dashboard-main/
 │
 └─ add/
    ├─ calc.html
-   ├─ common.css
-   ├─ calc.css
-   ├─ calc.js
-   ├─ calc.test.cjs
    ├─ kodex-leverage-report.html
+   ├─ add.css
+   ├─ add.js
+   ├─ calc.test.cjs
    └─ add_maintenance_handover.md
 ```
 
@@ -1584,16 +1582,13 @@ Market AI Phone 진입 버튼 / native dialog / mounted panel 이동
 투자 계산기 HTML
 → add/calc.html
 
-투자 계산기 CSS
-→ add/calc.css
+add 통합 CSS (Shared + Calc + Report page scope)
+→ add/add.css
 
-투자 계산기 JS
-→ add/calc.js
+add 통합 JS (Calc + Report page boot)
+→ add/add.js
 
-calc/report 공통 CSS
-→ add/common.css
-
-거래 리포트
+거래 리포트 HTML
 → add/kodex-leverage-report.html
 ```
 
@@ -2349,7 +2344,7 @@ style="..."
 ## 8.1 책임 경계
 
 - 메인 `css/`, `js/`와 add 코드를 외형이 비슷하다는 이유로 강제 공통화하지 않는다.
-- `calc.html`/`add/calc.js`/add CSS/report는 add 영역이 소유한다.
+- `calc.html`/`kodex-leverage-report.html`/`add/add.css`/`add/add.js`는 add 영역이 소유한다.
 - 메인과 add 사이에 실제 공동 책임이 생긴 경우에만 공통화를 검토한다.
 
 ## 8.2 Calc

@@ -195,11 +195,10 @@ investment-dashboard-main/
 │  └─ update_prices.py
 ├─ add/
 │  ├─ calc.html
-│  ├─ common.css
-│  ├─ calc.css
-│  ├─ calc.js
-│  ├─ calc.test.cjs
 │  ├─ kodex-leverage-report.html
+│  ├─ add.css
+│  ├─ add.js
+│  ├─ calc.test.cjs
 │  └─ add_maintenance_handover.md
 ├─ tools/
 │  ├─ close-efriend-tray.ps1
