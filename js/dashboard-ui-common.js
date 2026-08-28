@@ -1,10 +1,3 @@
-import {
-  dataState,
-  pensionSeriesColor,
-  securityAllocationColor,
-  securityChartNamesForDate
-} from './dashboard-core.js';
-
 // Dashboard UI Common · feature-neutral DOM / markup / responsive helpers
 // Ownership: business state는 feature module이 소유하고, 이 모듈은 공통 표현과 저수준 interaction만 제공한다.
 // Structure map:
@@ -82,8 +75,6 @@ function navIconSvg(name){
 }
 
 const assetColorSwatch=color=>color?`<span class="asset-color-swatch" style="--asset-swatch-color:${color}" aria-hidden="true">■</span>`:'';
-const securitySymbolSwatch=name=>(!dataState.activeDate||securityChartNamesForDate(dataState.activeDate).includes(name))?assetColorSwatch(securityAllocationColor(name)):'';
-const pensionProductSwatch=name=>assetColorSwatch(pensionSeriesColor(name));
 const chartSeriesSwatch=color=>assetColorSwatch(color);
 
 function escapeHtml(value){
@@ -93,15 +84,6 @@ function escapeHtml(value){
     .replaceAll('>','&gt;')
     .replaceAll('"','&quot;')
     .replaceAll("'","&#39;");
-}
-
-
-function mobileTableAssetName(name=''){
-  const text=String(name||'');
-  const match=text.match(/^(KODEX|KOACT|KoAct)\s+/);
-  if(!match)return escapeHtml(text);
-  const prefix=match[0];
-  return `<span class="mobile-table-brand-prefix">${escapeHtml(prefix)}</span>${escapeHtml(text.slice(prefix.length))}`;
 }
 
 
@@ -458,23 +440,21 @@ function setupAssetVizTooltips(zoneSelector){
 
 // [UICOMMON07] Public API
 export {
+  assetColorSwatch,
   chartSeriesSwatch,
   escapeHtml,
   forceMobileViewportReflow,
   metricCard,
   mobileInfoCard,
-  mobileTableAssetName,
   mobileViewAttrs,
   mobileViewToggle,
   navIconSvg,
-  pensionProductSwatch,
   phoneLandscapeUi,
   renderAssetContributionCard,
   renderAssetDayChangeValue,
   renderAssetDayChangeBlock,
   renderAssetStatusBlock,
   renderAssetWeight,
-  securitySymbolSwatch,
   setupAssetVizTooltips,
   showAppToast,
   toggleMobileViewMode

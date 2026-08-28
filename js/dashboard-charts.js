@@ -33,12 +33,11 @@ import {
   won
 } from './dashboard-core.js';
 import {
+  assetColorSwatch,
   chartSeriesSwatch,
   escapeHtml,
   navIconSvg,
-  pensionProductSwatch,
-  phoneLandscapeUi,
-  securitySymbolSwatch
+  phoneLandscapeUi
 } from './dashboard-ui-common.js';
 import {
   activateDashboardDialogFocus,
@@ -890,6 +889,12 @@ function setSecurityAllocMode(mode){
 
 
 // [CHART06] Chart Data / Card Rendering · 차트 데이터 / 카드 렌더링
+// Feature-owned swatch adapters: series 존재/팔레트 판단은 chart feature가 소유한다.
+const securitySymbolSwatch=name=>(!dataState.activeDate||securityChartNamesForDate(dataState.activeDate).includes(name))
+  ?assetColorSwatch(securityAllocationColor(name))
+  :'';
+const pensionProductSwatch=name=>assetColorSwatch(pensionSeriesColor(name));
+
 function calcMdd(cum){
   if(!cum.length)return null;
   let peak=cum[0], maxDrop=0, from=cum[0].날짜, to=cum[0].날짜;
