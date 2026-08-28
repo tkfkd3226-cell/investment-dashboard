@@ -1,17 +1,19 @@
 // =========================================================
 // ADD unified runtime
-// - calc/report가 같은 파일을 사용하되 data-add-page로 부팅 책임을 분리한다.
+// - Calc / Report가 add.js 하나를 공유하고 data-add-page로 실행 경계를 분리한다.
+// - Calc의 순수 계산 함수만 CommonJS 경로로 노출해 Node 회귀테스트에 사용한다.
 // =========================================================
 (() => {
   if(typeof document==='undefined'||typeof window==='undefined')return;
   const root=document.documentElement;
+  const page=root.dataset.addPage;
   try{
     if(localStorage.getItem('investmentDashboard.theme')==='dark')root.classList.add('dark');
     if(localStorage.getItem('investmentDashboard.cornerTheme')==='rounded')root.classList.add('rounded-corners');
-  }catch(_){}
+  }catch{}
 
   // Report의 iPhone '데스크탑 웹사이트 요청' 보정은 viewport 계산 전에 적용한다.
-  if(root.dataset.addPage==='report'){
+  if(page==='report'){
     const ua=navigator.userAgent||'';
     const desktopAppleUA=/Macintosh/.test(ua)&&!/(iPhone|iPad|iPod)/.test(ua);
     const touchApple=(navigator.maxTouchPoints||0)>0;
@@ -26,10 +28,12 @@
 
 // ==================== Calc ====================
 (() => {
-  // =========================================================
+  const isCommonJs=typeof module==='object'&&!!module.exports;
+  const isCalcPage=typeof document!=='undefined'&&typeof window!=='undefined'&&document.documentElement.dataset.addPage==='calc';
+  if(!isCommonJs&&!isCalcPage)return;
+
   // 01. 고정 데이터 / 프리셋
-  // - 거래유형 기본값과 이전 거래 없음 빠른 매수값을 한곳에서 관리
-  // =========================================================
+  // 거래유형 기본값과 이전 거래 없음 빠른 매수값을 한곳에서 관리
   const presets = {
     'buy-2026-07-29': {
       caseType:'holding', noPrior:false, existingShares:38, existingCost:7005530, priorSettlementValue:0, priorSellPrice:0,
@@ -50,10 +54,8 @@
   };
   const defaultPresetId='current-only';
 
-  // =========================================================
   // 02. 런타임 상태 / 공통 유틸리티
-  // - 현재 거래유형·계산모드·프리셋 상태와 숫자/문자열/저장소 공통 함수
-  // =========================================================
+  // 현재 거래유형·계산모드·프리셋 상태와 숫자/문자열/저장소 공통 함수
   // 계산에 직접 영향을 주는 상태
   let caseType='settled', noPriorMode=true, mode='current', autoBreakEvenTarget=false;
 
@@ -76,12 +78,10 @@
   const formatPctInput=n=>Number(n).toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
   const readPct=id=>{const n=$(id);return n.dataset.exactValue!==undefined?parseNum(n.dataset.exactValue):parseNum(n.value);};
   const setPct=(id,n,digits=2)=>{const el=$(id);el.dataset.exactValue=String(n);el.value=Number(n).toFixed(digits).replace(/0+$/,'').replace(/\.$/,'');};
-  const storage={get:k=>{try{return localStorage.getItem(k);}catch(e){return null;}},set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}},remove:k=>{try{localStorage.removeItem(k);}catch(e){}}};
+  const storage={get:k=>{try{return localStorage.getItem(k);}catch{return null;}},set:(k,v)=>{try{localStorage.setItem(k,v);}catch{}},remove:k=>{try{localStorage.removeItem(k);}catch{}}};
 
-  // =========================================================
   // 03. 거래유형별 화면 문구 설정
-  // - 보유 중 추가매수와 이전 거래 후 재매수에서 바뀌는 라벨·설명·탭 문구 정의
-  // =========================================================
+  // 보유 중 추가매수와 이전 거래 후 재매수에서 바뀌는 라벨·설명·탭 문구 정의
   const CASE_UI_COPY={
     settled:{
       text:{
@@ -116,10 +116,8 @@
   function setTextMap(values){Object.entries(values).forEach(([id,text])=>{$(id).textContent=text;});}
   function getCaseContext(){const settled=caseType==='settled';return {settled,noPrior:settled&&noPriorMode};}
 
-  // =========================================================
   // 04. 공통 계산 보조 함수
-  // - 이전 거래 손익과 통합 회복가격처럼 여러 흐름에서 재사용하는 순수 계산
-  // =========================================================
+  // 이전 거래 손익과 통합 회복가격처럼 여러 흐름에서 재사용하는 순수 계산
   function priorPLFrom(v){return (v.priorSettlementValue||0)-(v.existingCost||0);}
   function integratedRecoveryOrder(v){
     const qty=v.addShares||0, principal=(v.addPrice||0)*qty;
@@ -128,10 +126,8 @@
     return ceil5(Math.max(principal-priorPL,0)/qty);
   }
 
-  // =========================================================
   // 05. 거래유형 UI 구성 / DOM 재배치
-  // - 거래유형 변경 시 필드 위치·표시 여부·접근성 상태를 함께 동기화
-  // =========================================================
+  // 거래유형 변경 시 필드 위치·표시 여부·접근성 상태를 함께 동기화
   function setPresetActive(id){document.querySelectorAll('.preset-btn').forEach(b=>{const active=b.dataset.preset===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});}
   function setCurrentPurchasePresetActive(id){document.querySelectorAll('.current-purchase-btn').forEach(b=>{const active=b.dataset.currentPurchasePreset===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});}
   function getActualSellPrice(){
@@ -264,10 +260,8 @@
     setMode(mode,false);
   }
 
-  // =========================================================
   // 06. 입력 수집 / 검증
-  // - 화면 값을 계산용 숫자로 읽고 거래유형별 필수조건을 검증
-  // =========================================================
+  // 화면 값을 계산용 숫자로 읽고 거래유형별 필수조건을 검증
   function getInputs(){
     const {settled}=getCaseContext();
     const existingShares=settled?parseNum($('priorSoldSharesInput').value):parseNum($('existingShares').value);
@@ -322,10 +316,8 @@
     b.innerHTML=`입력값 확인 필요.<ul>${validation.errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
   }
 
-  // =========================================================
   // 07. 핵심 계산 엔진
-  // - 입력값을 받아 보유현황·목표가격·전략별 매도결과를 계산하며 DOM은 직접 수정하지 않음
-  // =========================================================
+  // 입력값을 받아 보유현황·목표가격·전략별 매도결과를 계산하며 DOM은 직접 수정하지 않음
   function compute(i,options){
     const settled=options.caseType==='settled';
     const noPrior=!!options.noPrior;
@@ -392,10 +384,8 @@
     return {i:input,inputUpdates,settled,noPrior,priorAvg,priorValue,priorPL,recoveryAmount,integratedBasis,addedPrincipal,finalShares,finalCost,finalAvg,r:0,buyFee:0,allInCost:finalCost,currentValue,currentPositionPL,currentPositionPLRate,integratedCurrentPL,positionBE,positionBEOrder,integratedBE,integratedBEOrder,targetPrice,targetPositionNet,targetIntegratedPL,addZeroRaw,sFull:strategy('full'),sAdd:strategy('addOnly'),sPrincipal:strategy('principal')};
   }
 
-  // =========================================================
   // 08. 결과 렌더링
-  // - 계산결과를 KPI·전략카드·상세표·모바일 카드에 반영
-  // =========================================================
+  // 계산결과를 KPI·전략카드·상세표·모바일 카드에 반영
   function renderCalculationInputs(c){
     if(c.inputUpdates.overnightPct!==undefined)setPct('overnightPct',c.inputUpdates.overnightPct);
     if(c.inputUpdates.risePct!==undefined)setPct('risePct',c.inputUpdates.risePct);
@@ -499,10 +489,8 @@
     }
   }
 
-  // =========================================================
   // 09. 재계산 흐름 / 계산 기준 모드
-  // - 입력→검증→계산→렌더 순서를 통제하고 종가·매수가·목표단가 모드를 전환
-  // =========================================================
+  // 입력→검증→계산→렌더 순서를 통제하고 종가·매수가·목표단가 모드를 전환
   function getCalculationOptions(){return {caseType,noPrior:noPriorMode,mode,autoBreakEvenTarget};}
 
   function recalc(){
@@ -539,10 +527,8 @@
     if(doRecalc)recalc();
   }
 
-  // =========================================================
   // 10. 프리셋 / 저장상태 적용
-  // - 프리셋 또는 localStorage 값을 화면 상태에 복원하고 전략 선택상태까지 맞춤
-  // =========================================================
+  // 프리셋 또는 localStorage 값을 화면 상태에 복원하고 전략 선택상태까지 맞춤
   function applyValues(v){
     caseType=v.caseType||'holding';noPriorMode=!!v.noPrior;mode=['current','rise','target'].includes(v.mode)?v.mode:'current';autoBreakEvenTarget=!!v.autoBreakEvenTarget;currentPurchasePresetId=noPriorMode&&currentPurchasePresets[v.currentPurchasePresetId]?v.currentPurchasePresetId:null;setCurrentPurchasePresetActive(currentPurchasePresetId);
     $('existingShares').value=String(v.existingShares??0);$('existingCost').value=nf0.format(v.existingCost??0);$('priorSettlementValue').value=String(v.priorSettlementValue??0);$('priorSellPrice').value=String(v.priorSellPrice??0);$('currentPrice').value=nf0.format(v.currentPrice??0);$('oldOverdraft').value=nf0.format(v.oldRecovery??0);$('addPrice').value=nf0.format(v.addPrice??0);$('addShares').value=String(v.addShares??0);
@@ -573,10 +559,8 @@
   }
   function applyPreset(id){if(!presets[id])return;applying=true;activePresetId=id;setPresetActive(id);applyValues({...presets[id]});setStrategyActive('s3');applying=false;}
 
-  // =========================================================
   // 11. 사용자 이벤트
-  // - 입력·스테퍼·프리셋·전략탭·초기화 버튼의 이벤트를 한 번만 등록
-  // =========================================================
+  // 입력·스테퍼·프리셋·전략탭·초기화 버튼의 이벤트를 한 번만 등록
   function handleMoneyFocus(e){const inp=e.currentTarget,n=parseNum(inp.value);if(Number.isFinite(n))inp.value=String(n);}
   function handleMoneyBlur(e){const inp=e.currentTarget,n=parseNum(inp.value);if(Number.isInteger(n))inp.value=nf0.format(n);recalc();}
   function handleMoneyInput(e){if(e.currentTarget.id==='targetPrice')disableAutoBreakEven();recalc();}
@@ -631,10 +615,8 @@
     });
   }
 
-  // =========================================================
   // 12. 도움말 툴팁
-  // - 화면 경계를 벗어나지 않도록 위치를 계산하고 마우스·키보드·ESC 동작을 처리
-  // =========================================================
+  // 화면 경계를 벗어나지 않도록 위치를 계산하고 마우스·키보드·ESC 동작을 처리
   const positionHelpTooltip=wrap=>{
     if(!wrap)return;
     const btn=wrap.querySelector('.help-icon'),tip=wrap.querySelector('.custom-tooltip');
@@ -680,10 +662,8 @@
     });
   }
 
-  // =========================================================
   // 13. 초기화 / 부팅
-  // - 이벤트·툴팁을 등록한 뒤 저장상태가 있으면 복원하고 없으면 기본 프리셋 적용
-  // =========================================================
+  // 이벤트·툴팁을 등록한 뒤 저장상태가 있으면 복원하고 없으면 기본 프리셋 적용
   function restoreInitialState(){
     const saved=storage.get('investmentLossRecoveryCalcV17');
     if(!saved){
@@ -699,18 +679,16 @@
       setPresetActive(activePresetId);
       applyValues(v);
       applying=false;
-    }catch(e){
+    }catch{
       applying=false;
       applyPreset(defaultPresetId);
     }
   }
 
   // Node 기반 회귀검증에서는 계산/검증 함수만 노출하고 브라우저 부팅은 실행하지 않는다.
-  if(typeof module==='object'&&module.exports){
-    module.exports={compute,validate,ceil5};
-  }
+  if(isCommonJs)module.exports={compute,validate,ceil5};
 
-  if(typeof document!=='undefined'&&typeof window!=='undefined'&&document.documentElement.dataset.addPage==='calc'){
+  if(isCalcPage){
     const bootCalcPage=()=>{
       initEventBindings();
       initHelpTooltips();
@@ -722,16 +700,11 @@
 })();
 
 // ==================== Report ====================
-// =========================================================
-// Report page runtime
-// =========================================================
 (() => {
   if(typeof document==='undefined'||typeof window==='undefined'||document.documentElement.dataset.addPage!=='report')return;
   const bootReportPage=()=>{
-    // =========================================================
     // 01. 리포트 데이터 / DOM 참조
-    // - 거래 원천 데이터에서 합계·표·차트를 파생하고 viewport 공통 tablist를 초기화
-    // =========================================================
+    // 거래 원천 데이터에서 합계·표·차트를 파생하고 단일 tablist를 초기화
     const REPORT_DATA = Object.freeze([{"date":"2026-06-09","qty":12,"buy":164170,"sell":165515,"pnl":16140,"fee":165,"segment":"core"},{"date":"2026-06-16","qty":36,"buy":210398,"sell":210554,"pnl":5640,"fee":636,"segment":"day"},{"date":"2026-06-19","qty":15,"buy":235711,"sell":239078,"pnl":50510,"fee":295,"segment":"day"},{"date":"2026-06-23","qty":26,"buy":229138,"sell":229558,"pnl":10945,"fee":499,"segment":"day"},{"date":"2026-06-25","qty":15,"buy":198500,"sell":226985,"pnl":427275,"fee":268,"segment":"core"},{"date":"2026-07-30","qty":642,"buy":80861,"sell":74580,"pnl":-4032440,"fee":4196,"segment":"core"},{"date":"2026-07-31","qty":5946,"buy":101778,"sell":102763,"pnl":5855965,"fee":51183,"segment":"mixed","core":{"qty":576,"buy":82680,"sell":91065,"pnl":4829760,"fee":4212}},{"date":"2026-08-04","qty":371,"buy":90649,"sell":91212,"pnl":209150,"fee":2837,"segment":"day"},{"date":"2026-08-05","qty":1558,"buy":100153,"sell":103259,"pnl":4839995,"fee":13334,"segment":"mixed","core":{"qty":532,"buy":94417,"sell":104035,"pnl":5116776,"fee":4442}},{"date":"2026-08-06","qty":4002,"buy":92364,"sell":92422,"pnl":233340,"fee":31121,"segment":"day"},{"date":"2026-08-07","qty":493,"buy":90384,"sell":90723,"pnl":167090,"fee":3756,"segment":"mixed","core":{"qty":100,"buy":91767,"sell":93813,"pnl":204590,"fee":781}},{"date":"2026-08-12","qty":101,"buy":99463,"sell":100145,"pnl":68905,"fee":846,"segment":"mixed","core":{"qty":32,"buy":92580,"sell":95480,"pnl":92800,"fee":253}},{"date":"2026-08-20","qty":220,"buy":97685,"sell":102650,"pnl":1092275,"fee":1852,"segment":"core"}]);
     
     function reportSum(rows, key){
@@ -800,8 +773,9 @@
       cum:Object.freeze(reportDailyRows.map(row=>row.cumulative))
     });
     
+    const reportNf0=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
     function reportNumber(value){
-      return Number(value||0).toLocaleString('ko-KR');
+      return reportNf0.format(Number(value||0));
     }
     function reportSigned(value){
       const n=Number(value||0);
@@ -856,16 +830,16 @@
       renderDayTradeRows();
     }
     
-    const reportTabs = [...document.querySelectorAll('.tab')];
-    const reportNav = document.querySelector('.report-nav');
-    const reportTablist = document.getElementById('reportTabs');
-    const mobileToggle = document.querySelector('.mobile-menu-toggle');
-    const mobileLabel = document.getElementById('mobileMenuLabel');
+    const reportTabs=[...document.querySelectorAll('.tab')];
+    const reportPanels=[...document.querySelectorAll('.panel')];
+    const reportNav=document.querySelector('.report-nav');
+    const reportTablist=document.getElementById('reportTabs');
+    const mobileToggle=document.querySelector('.mobile-menu-toggle');
+    const mobileLabel=document.getElementById('mobileMenuLabel');
+    const reportMobileMedia=window.matchMedia('(max-width:760px)');
     
-    // =========================================================
     // 02. 패널 전환 / 접근성 상태 동기화
-    // - 단일 tablist의 active, aria-selected, tabindex를 viewport와 무관하게 유지
-    // =========================================================
+    // 단일 tablist의 active, aria-selected, tabindex를 viewport와 무관하게 유지
     function setTabState(panelId){
       reportTabs.forEach(btn => {
         const active = btn.dataset.panel === panelId;
@@ -881,7 +855,7 @@
     }
     
     function activatePanel(panelId, label, {closeMobile=true}={}){
-      document.querySelectorAll('.panel').forEach(panel => {
+      reportPanels.forEach(panel => {
         const active = panel.id === panelId;
         panel.classList.toggle('active', active);
         panel.setAttribute('aria-hidden', String(!active));
@@ -906,13 +880,11 @@
       });
     }
     
-    // =========================================================
     // 03. 메뉴 이벤트 / 키보드 조작
-    // - 동일 탭의 클릭·방향키와 모바일 패널 열기·닫기, ESC·외부 클릭 처리
-    // =========================================================
+    // 동일 탭의 클릭·방향키와 모바일 패널 열기·닫기, ESC·외부 클릭 처리
     function initNavigationEvents(){
       reportTabs.forEach(btn => btn.addEventListener('click', () => {
-        const mobile = window.matchMedia('(max-width:760px)').matches;
+        const mobile=reportMobileMedia.matches;
         activatePanel(btn.dataset.panel, btn.textContent.trim());
         if(mobile) mobileToggle?.focus();
       }));
@@ -936,10 +908,8 @@
       });
     }
     
-    // =========================================================
     // 04. 차트 표시 보조 함수
-    // - Y축 금액 축약과 둥근 막대 path 생성을 담당
-    // =========================================================
+    // Y축 금액 축약과 둥근 막대 path 생성을 담당
     function formatWon(v){
       const abs = Math.abs(v);
       if(abs >= 1000000) return (v/1000000).toFixed(abs >= 10000000 ? 0 : 1).replace('.0','') + '백만';
@@ -962,10 +932,8 @@
       mobile:Object.freeze({left:48,right:48,top:28,bottom:38})
     });
     
-    // =========================================================
     // 05. 누적 실현손익 차트 렌더링
-    // - DPR 대응, 공통 Plot Frame, 막대·누적선·라벨 충돌 회피를 한 번에 처리
-    // =========================================================
+    // DPR 대응, 공통 Plot Frame, 막대·누적선·라벨 충돌 회피를 한 번에 처리
     function drawChart(){
       const canvas=document.getElementById('pnlChart');
       if(!canvas || !canvas.closest('.panel.active')) return;
@@ -977,10 +945,11 @@
       const ctx=canvas.getContext('2d');
       ctx.setTransform(dpr,0,0,dpr,0,0);
       const rootStyle=getComputedStyle(document.documentElement);
-      const chartColor=name=>rootStyle.getPropertyValue(name).trim();
+      const chartColorCache=Object.create(null);
+      const chartColor=name=>chartColorCache[name]||(chartColorCache[name]=rootStyle.getPropertyValue(name).trim());
     
       const W=rect.width,H=rect.height;
-      const mobile=window.matchMedia('(max-width:760px)').matches;
+      const mobile=reportMobileMedia.matches;
       const frame=mobile?REPORT_CHART_FRAME.mobile:REPORT_CHART_FRAME.desktop;
       const plotW=W-frame.left-frame.right,plotH=H-frame.top-frame.bottom;
       const values=chartData.net.concat(chartData.cum);
@@ -1133,9 +1102,7 @@
         ctx.beginPath();ctx.arc(p.x,p.y,4.5,0,Math.PI*2);ctx.fill();
         ctx.strokeStyle=chartColor('--chart-line');ctx.lineWidth=2.5;ctx.stroke();
     
-        // 누적손익 값은 마지막 값만 표시
-        // 중간 누적값은 일별 손익 라벨과의 겹침 방지를 위해 숨김
-        // 특히 초기 거래일 구간의 작은 일별 손익 라벨과 충돌 방지
+        // 누적값은 일별 손익 라벨과의 충돌을 피하기 위해 마지막 값만 표시한다.
         if(i===points.length-1){
           ctx.font='900 '+(mobile?'9px':'10px')+' system-ui';
           ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle=chartColor('--chart-line');
@@ -1144,10 +1111,8 @@
       });
     }
     
-    // =========================================================
     // 06. 차트 초기화 / resize 재렌더
-    // - resize 연속 호출은 80ms debounce 후 다시 그림
-    // =========================================================
+    // resize 연속 호출은 80ms debounce 후 다시 그림
     let resizeTimer;
     function initChart(){
       window.addEventListener('resize',()=>{
