@@ -372,6 +372,8 @@ body{
     :where(html[data-add-page="calc"]) .preset-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--density-gap-micro)}
     :where(html[data-add-page="calc"]) .preset-btn .preset-main{font-size:var(--button-font-size)}
     :where(html[data-add-page="calc"]) .preset-btn.active{box-shadow:var(--active-shadow)}
+    /* Touch Safari can keep :hover after tap. Keep selected toggle colors above the shared hover primitive so the active background appears immediately. */
+    :where(html[data-add-page="calc"]) .add-button-toggle:is(.active,[aria-selected="true"],[aria-pressed="true"]):hover:not(:disabled){background:var(--navy);border-color:var(--navy);color:var(--on-accent)}
 
 /* =========================================================
    03. 입력 패널 / 폼 컨트롤 / 도움말 툴팁
