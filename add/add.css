@@ -422,7 +422,7 @@ body{
     :where(html[data-add-page="calc"]) .label-with-help, :where(html[data-add-page="calc"]) .inline-help-label{display:inline-flex;align-items:center;gap:var(--density-gap-xs);width:max-content;max-width:100%;position:relative}
     :where(html[data-add-page="calc"]) .inline-help-label{vertical-align:middle}
     :where(html[data-add-page="calc"]) .help-tooltip{position:relative;display:inline-flex;align-items:center;flex:0 0 auto}
-    :where(html[data-add-page="calc"]) .help-icon{width:17px;height:17px;border:1px solid #9eb0c9;border-radius:50%;background:#f3f7fc;color:#315a8f;font-size:11px;font-weight:900;line-height:15px;text-align:center;padding:0;cursor:help}
+    :where(html[data-add-page="calc"]) .help-icon{display:inline-flex;align-items:center;justify-content:center;width:calc(var(--calc-type-label) + 4px);height:calc(var(--calc-type-label) + 4px);border:1px solid #9eb0c9;border-radius:50%;background:#f3f7fc;color:#315a8f;font-size:calc(var(--calc-type-label) - 1px);font-weight:900;line-height:1;text-align:center;padding:0;cursor:help}
 html:where([data-add-page="calc"]).dark .help-icon{border-color:#526178;background:#111827;color:#93c5fd}
     :where(html[data-add-page="calc"]) .help-icon:hover, :where(html[data-add-page="calc"]) .help-icon:focus-visible{background:#e7f0fb;border-color:#6f8fb8}
 html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-page="calc"]).dark .help-icon:focus-visible{background:#1e293b;border-color:#60a5fa}
