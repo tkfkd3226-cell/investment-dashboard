@@ -14,7 +14,6 @@
 
       /* CALC semantic surfaces / controls */
       --surface-control:#ffffff;
-      --surface-hover:#fafbfd;
       --surface-hover-soft:#f7f9fc;
       --surface-subtle:#fbfcfe;
       --border-hover:#9fb0c8;
@@ -78,7 +77,6 @@
       --navy2:#5274a2;
       --shadow:0 8px 20px rgba(0,0,0,.24);
       --surface-control:#111827;
-      --surface-hover:#182132;
       --surface-hover-soft:#172033;
       --surface-subtle:#0f172a;
       --border-hover:#526178;
@@ -218,7 +216,11 @@
    - 현재 보유분·계산 기준 카드의 시작선과 하단 정렬을 구조적으로 유지
    ========================================================= */
 /* 보유 중 추가매수: 기존 매수정보와 평가·회수정보 */
-    .existing-group.holding-layout #holdingPriorFields{
+    :is(
+      .existing-group.holding-layout #holdingPriorFields,
+      .additional-group.holding-layout #currentFields,
+      .additional-group.settled-layout #currentFields
+    ){
       grid-template-columns:repeat(2,minmax(0,1fr));
       gap:0;
       align-items:start;
@@ -234,11 +236,6 @@
     .existing-group:not(.holding-layout) .existing-subsection{display:none}
 
     /* 추가매수 내역: 매수·보유원가·종가평가·회복결과 */
-    .additional-group.holding-layout #currentFields{
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:0;
-      align-items:start;
-    }
     .current-subsection{
       display:grid;
       grid-template-columns:minmax(0,1fr);
@@ -252,11 +249,6 @@
 
     /* 이전 거래 후 재매수: 보유원가·종가평가·손익결과 */
     .settled-subsection{display:none}
-    .additional-group.settled-layout #currentFields{
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:0;
-      align-items:start;
-    }
     .additional-group.settled-layout .settled-subsection{
       display:grid;
       grid-template-columns:minmax(0,1fr);
@@ -388,7 +380,7 @@
    ========================================================= */
 @media(min-width:1101px){
   /* 옆 입력카드의 제목+필드 시작선과 맞추는 desktop geometry 예외 */
-  .calculation-group .seg{margin-top:35px;margin-bottom:var(--density-gap-md)}
+  .calculation-group .seg{margin-top:35px}
 }
 
 @media(max-width:1100px){
@@ -399,14 +391,13 @@
     }
     @media(max-width:760px){
 
-      .wrap{padding:var(--density-page-pad)}.hero{gap:var(--density-gap-sm)}.hero-head{gap:var(--density-gap-lg);align-items:flex-start}.hero h1{font-size:24px;min-width:0}.actions{position:static;margin:0;display:flex;gap:var(--density-gap-xs);flex-wrap:nowrap;flex:0 0 auto}
-      .hero p{font-size:11px;line-height:1.4}
+      .hero h1{font-size:24px}
+      .hero p{font-size:11px}
       #reportBtn .report-text,#resetBtn .reset-text{display:none}
       #reportBtn .report-icon,#resetBtn .reset-icon{display:block}
       .preset-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs)}
       .preset-btn{min-width:0;width:100%;padding:var(--button-compact-pad-y) var(--button-compact-pad-x)}
       .preset-btn .preset-main{font-size:var(--button-font-size-compact);letter-spacing:-.04em}
-      .input-panel{padding:var(--density-surface-md)}
       .input-grid,.input-group,.fields,.field,.share-stepper,.pct-stepper,.with-unit{min-width:0}
       .input-grid{width:100%}
       .input-group{width:100%;max-width:100%}
@@ -416,12 +407,8 @@
       .kpis{
         grid-template-columns:repeat(2,minmax(0,1fr));
         gap:var(--density-gap-sm);
-        padding:var(--density-surface-md);
       }
-      .kpi{
-        min-width:0;
-        padding:var(--density-surface-md);
-      }
+      .kpi{min-width:0}
       .kpi .name{
         font-size:10px;
         white-space:nowrap;
@@ -452,10 +439,10 @@
       .share-stepper{display:grid;grid-template-columns:25px minmax(0,1fr) 25px;gap:3px;align-items:center}
       .share-step-btn{display:block;height:var(--button-control-height);border-color:var(--control-border)}
       .share-step-btn:active{background:var(--control-hover-bg)}
-      .existing-group .group-title small,.additional-group .group-title small,.calculation-group .group-title small{font-size:12px}
-      .existing-group .field label,.additional-group .field label,.calculation-group .field label{font-size:11px}
-      .existing-group .control,.additional-group .control,.calculation-group .control{font-size:16px}
-      .existing-group .share-step-btn,.additional-group .share-step-btn,.calculation-group .pct-step-btn{font-size:16px}
+      .input-group .group-title small{font-size:12px}
+      .input-group .field label{font-size:11px}
+      .input-group .control{font-size:16px}
+      .input-group :is(.share-step-btn,.pct-step-btn){font-size:16px}
       .calculation-group .seg{margin-top:var(--density-gap-sm)}
       .calculation-group .seg button{height:var(--button-control-height);padding:0 var(--button-compact-pad-x);font-size:var(--button-font-size-compact);letter-spacing:-.025em}
       .calculation-group .unit{font-size:15px}
@@ -469,36 +456,26 @@
       .desktop-data{display:none}
       .mobile-data{display:grid;gap:var(--density-gap-sm)}
       .strategy-title p{font-size:10px;white-space:nowrap;letter-spacing:-.025em}
-      .existing-group,.additional-group{padding:var(--density-surface-sm)}
-      .existing-group .fields,.additional-group .fields{gap:var(--density-gap-sm)}
-      .existing-group .field,.additional-group .field{gap:var(--density-gap-xs)}
-      .existing-group .control,.additional-group .control{height:40px;padding-left:var(--density-field-pad-x);padding-right:var(--density-field-pad-x)}
       .strategy-body{padding:var(--density-surface-sm)}
       .summary-row{grid-template-columns:repeat(2,1fr);gap:var(--density-gap-xs);margin-bottom:var(--density-gap-sm)}
       .summary-card{min-width:0}
       .summary-card .sname{font-size:10px;line-height:1.25}
       .summary-card .svalue{font-size:17px;line-height:1.2;letter-spacing:-.045em;white-space:nowrap}
-      .mobile-data-card{padding:var(--density-surface-sm)}
       .mobile-data-row{gap:var(--density-gap-xs);padding:var(--density-gap-sm) 0}
       .mobile-data-value{max-width:58%;font-size:13px;white-space:nowrap;word-break:normal;letter-spacing:-.035em}
 
       /* 거래유형별 모바일 세부 배치 */
       .input-grid.no-prior-layout{
-        grid-template-columns:minmax(0,1fr);
         grid-template-areas:
           "purchase-preset"
           "current-group"
           "calculation-group";
         gap:var(--density-gap-sm)
       }
-      .prior-entry-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
       .prior-date-section{padding:0 var(--density-gap-xs) var(--density-surface-md)}
       .prior-trade-section{gap:var(--density-gap-sm);padding:var(--density-surface-md) var(--density-gap-xs)}
-      .prior-entry-grid .field{gap:var(--density-gap-xs);min-width:0}
-      .prior-entry-grid .control{height:40px;min-width:0;max-width:100%;padding-left:var(--density-field-pad-x);padding-right:var(--density-field-pad-x);font-size:16px}
-      .date-control-shell{height:40px;min-width:0;max-width:100%}
-      .date-control-shell .date-control{height:100%;width:100%;min-width:0;max-width:100%;padding-left:var(--density-field-pad-x);padding-right:var(--density-field-pad-x);font-size:16px}
-      .tabs.settled-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .prior-entry-grid .control{min-width:0;max-width:100%;font-size:16px}
+      .date-control-shell .date-control{font-size:16px}
       .existing-group.holding-layout #holdingPriorFields{gap:0}
       .existing-subsection{gap:var(--density-gap-sm);padding:0 var(--density-gap-xs) var(--density-surface-md)}
       .additional-group.holding-layout #currentFields{gap:0}
@@ -508,6 +485,5 @@
       .additional-group.settled-layout .settled-subsection{gap:var(--density-gap-sm);padding:0 var(--density-gap-xs) var(--density-surface-md)}
       .additional-group.settled-layout .settled-result-section{padding-top:var(--density-surface-sm)}
       .additional-group.holding-layout #currentBuyGainLabel{white-space:nowrap;letter-spacing:-.055em}
-      .current-purchase-preset{gap:var(--density-gap-xs)}
       .current-purchase-btn{flex:1;min-width:0;padding:var(--button-compact-pad-y) var(--button-compact-pad-x);font-size:var(--button-font-size-compact);line-height:1.1;letter-spacing:-.04em;white-space:nowrap;word-break:keep-all;overflow-wrap:normal}
     }

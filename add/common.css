@@ -51,6 +51,14 @@
   --button-icon-size:36px;
   --button-compact-pad-x:6px;
   --button-compact-pad-y:8px;
+
+  /* Add 공통 Heading hierarchy */
+  --heading-section-size:20px;
+  --heading-subsection-size:14px;
+  --heading-minor-size:12px;
+  --heading-section-weight:800;
+  --heading-subsection-weight:800;
+  --heading-minor-weight:900;
 }
 
 @media(max-width:1100px){
@@ -63,13 +71,11 @@
     --density-gap-md:8px;
     --density-gap-sm:6px;
     --density-gap-xs:4px;
-    --density-gap-micro:4px;
     --density-layout-gap:14px;
     --density-action-pad-x:10px;
     --density-field-pad-x:8px;
     --density-table-pad-x:10px;
     --density-table-pad-y:8px;
-    --button-compact-pad-x:6px;
   }
 }
 
@@ -82,11 +88,9 @@
     --density-gap-lg:8px;
     --density-gap-md:6px;
     --density-gap-sm:4px;
-    --density-gap-xs:4px;
     --density-gap-micro:2px;
     --density-layout-gap:12px;
     --density-action-pad-x:8px;
-    --density-field-pad-x:8px;
     --density-table-pad-x:8px;
     --density-table-pad-y:6px;
     --button-compact-pad-x:4px;
@@ -113,14 +117,6 @@ html.dark{
 /* 02. Add 공통 Heading / Typography primitive
    - 비슷한 제목 크기는 20 / 14 / 12px의 3단계 hierarchy로 통합한다.
    - Hero h1, KPI value, badge 등 제목이 아닌 typography는 이 contract에 포함하지 않는다. */
-:root{
-  --heading-section-size:20px;
-  --heading-subsection-size:14px;
-  --heading-minor-size:12px;
-  --heading-section-weight:800;
-  --heading-subsection-weight:800;
-  --heading-minor-weight:900;
-}
 .add-heading-section{
   font-size:var(--heading-section-size);
   font-weight:var(--heading-section-weight);
@@ -195,25 +191,12 @@ html.dark{
   font-weight:900;
   line-height:1;
 }
-.add-button-ghost{
-  border:0;
-  border-radius:min(var(--control-radius-md),var(--corner-control-cap));
-  background:transparent;
-}
-.add-button-compact{
-  padding:var(--button-compact-pad-y) var(--button-compact-pad-x);
-  font-size:var(--button-font-size-compact);
-}
 @media(max-width:760px){
   .add-button-mobile-icon{
     width:var(--button-icon-size);
     height:var(--button-icon-size);
     padding:0;
   }
-}
-.add-button-ghost:hover:not(:disabled){
-  background:var(--button-hover-bg,var(--surface-control));
-  color:var(--button-hover-text,var(--ink));
 }
 
 /* 04. Add 공통 Card Surface primitive
@@ -252,8 +235,7 @@ html.dark{
   font-size:11px;
   font-weight:800;
 }
-.add-data-table :is(.num,.add-table-cell-num){text-align:right}
-.add-data-table .add-table-cell-text{text-align:left}
+.add-data-table .num{text-align:right}
 .add-data-table .add-table-cell-center{text-align:center}
 
 /* 06. 공통 박스 모델 / 기본 글꼴 */
