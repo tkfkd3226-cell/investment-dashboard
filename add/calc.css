@@ -475,7 +475,7 @@
       .existing-group .control,.additional-group .control{height:40px;padding-left:var(--density-field-pad-x);padding-right:var(--density-field-pad-x)}
       .strategy-body{padding:var(--density-surface-sm)}
       .summary-row{grid-template-columns:repeat(2,1fr);gap:var(--density-gap-xs);margin-bottom:var(--density-gap-sm)}
-      .summary-card{padding:var(--density-surface-md);min-width:0}
+      .summary-card{min-width:0}
       .summary-card .sname{font-size:10px;line-height:1.25}
       .summary-card .svalue{font-size:17px;line-height:1.2;letter-spacing:-.045em;white-space:nowrap}
       .mobile-data-card{padding:var(--density-surface-sm)}
