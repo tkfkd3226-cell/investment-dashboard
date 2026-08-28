@@ -353,7 +353,7 @@
     .summary-card .sname{font-size:11px;color:var(--muted);font-weight:700}
     .summary-card .svalue{font-size:19px;font-weight:900;margin-top:var(--density-gap-micro)}
     .section-title{margin:var(--density-surface-lg) 0 var(--density-gap-sm)}
-    .table-scroll{width:100%;overflow-x:auto;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap))}
+    .table-scroll{border-radius:min(var(--surface-radius-md),var(--corner-surface-cap))}
     .desktop-details{display:block}
     .mobile-data{display:none}
     .mobile-data-card{padding:var(--density-surface-sm);min-width:0}
@@ -363,28 +363,16 @@
     .mobile-data-row:last-child{border-bottom:0}
     .mobile-data-label{flex:1;min-width:0;font-size:11px;color:var(--muted);font-weight:800;line-height:1.35}
     .mobile-data-value{flex:0 0 auto;max-width:55%;text-align:right;font-size:14px;font-weight:900;line-height:1.35;word-break:break-word}
-    .data-grid{display:grid;grid-template-columns:repeat(7,minmax(125px,1fr));min-width:875px;border:1px solid var(--line);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));overflow:hidden}
-    .cell{padding:var(--density-table-pad-y) var(--density-table-pad-x);border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0}
-    .cell:nth-child(7n){border-right:0}
-    .data-grid .head{background:var(--table-head-bg);color:var(--table-head-text);font-size:11px;font-weight:800;text-align:center;vertical-align:middle}
-    .data-grid .val{font-weight:800;text-align:center;font-size:13px;vertical-align:middle}
-    .data-grid .lastrow{border-bottom:0}
-    /* 열 수가 다른 상세표는 공통 7열 .data-grid 뒤에서 재정의해야 함 */
-    .five-grid{grid-template-columns:repeat(5,minmax(135px,1fr));min-width:675px}
-    .five-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
-    .five-grid .cell:nth-child(5n){border-right:0}
-    .simple-grid{grid-template-columns:repeat(4,minmax(145px,1fr));min-width:580px}
-    .simple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
-    .simple-grid .cell:nth-child(4n){border-right:0}
-    .triple-grid{grid-template-columns:repeat(3,minmax(165px,1fr));min-width:495px}
-    .triple-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
-    .triple-grid .cell:nth-child(3n){border-right:0}
-    .loan-grid{grid-template-columns:repeat(6,minmax(145px,1fr));min-width:870px}
-    .loan-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
-    .loan-grid .cell:nth-child(6n){border-right:0}
-    .final-grid{grid-template-columns:repeat(2,minmax(180px,1fr));min-width:360px}
-    .final-grid .cell:nth-child(7n){border-right:1px solid var(--line)}
-    .final-grid .cell:nth-child(2n){border-right:0}
+    .calc-data-table{table-layout:fixed;min-width:875px;border:1px solid var(--line);border-collapse:separate;border-spacing:0;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));overflow:hidden}
+    .calc-data-table :is(th,td){border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0;text-align:center}
+    .calc-data-table tr > :last-child{border-right:0}
+    .calc-data-table tbody tr:last-child > *{border-bottom:0}
+    .calc-data-table tbody td{font-size:13px;font-weight:800}
+    .five-grid{min-width:675px}
+    .simple-grid{min-width:580px}
+    .triple-grid{min-width:495px}
+    .loan-grid{min-width:870px}
+    .final-grid{min-width:360px}
     .warning-note{margin-top:var(--density-gap-md);padding:var(--density-surface-sm);border-color:var(--danger-border);background:var(--warning-bg);color:var(--warning-text);font-size:12px;font-weight:900}
     .note{margin-top:var(--density-gap-md);padding:var(--density-surface-sm);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--note-bg);color:var(--note-text);font-size:12px}
     .positive{color:var(--positive)}

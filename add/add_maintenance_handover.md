@@ -436,6 +436,12 @@ https://tkfkd3226-cell.github.io/investment-dashboard/add/kodex-leverage-report.
 
 다른 개선 아이디어가 보여도 사용자가 요청하지 않았다면 현재 작업과 섞지 않는다.
 
+### Table 공통 contract
+- Calc 데스크톱 상세표와 Report 표는 `add-data-table` / `add-table-scroll` 공통 primitive를 사용한다.
+- Calc 상세표는 semantic `<table>`(`thead`/`tbody`, `th scope="col"`, 의미 정렬 class)로 렌더하며 열 수에 따른 `nth-child(Nn)` border 보정을 만들지 않는다.
+- 열 수별 차이는 `min-width` 같은 layout 값만 feature CSS가 소유하고, 계산 로직과 모바일 카드 표현은 table presentation과 분리한다.
+
+
 ## 14. 최종 한 문장 운영 원칙
 
 > **새 KODEX 레버리지 실현거래가 생기면 증권사 확정 순손익을 `data/portfolio.json`과 canonical report에 함께 반영하고 관련 합계·분류·시각화·근거를 동일 기준으로 검산한다. 자금 출처·대출이자 등은 추적하지 않으며 report 파일명은 고정하고, handover는 장기 contract가 바뀐 경우에만 수정한다.**

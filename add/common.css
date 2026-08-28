@@ -1,6 +1,6 @@
 /* =========================================================
    add 공통 CSS · CALC / 거래 리포트 공유 기반
-   - 두 화면에서 함께 쓰는 의미 색상, Corner, Spacing/Density, Heading, Card Surface primitive를 둔다.
+   - 두 화면에서 함께 쓰는 의미 색상, Corner, Spacing/Density, Heading, Button, Card Surface, Table primitive를 둔다.
    - 화면별 레이아웃·반응형은 calc.css 또는 report 내부 CSS가 소유한다.
    ========================================================= */
 
@@ -228,7 +228,35 @@ html.dark{
 .add-card-subtle{background:var(--surface-subtle)}
 .add-card-shadow{box-shadow:var(--shadow)}
 
-/* 05. 공통 박스 모델 / 기본 글꼴 */
+
+/* 05. Add 공통 Table primitive
+   - scroll/table/cell density와 semantic alignment를 Calc / Report가 공유한다.
+   - feature별 파일은 min-width, sticky, total row 등 고유 표현만 소유한다. */
+.add-table-scroll{
+  width:100%;
+  overflow:auto;
+}
+.add-data-table{
+  width:100%;
+  border-collapse:collapse;
+}
+.add-data-table :is(th,td){
+  padding:var(--density-table-pad-y) var(--density-table-pad-x);
+  font-size:12px;
+  white-space:nowrap;
+  vertical-align:middle;
+}
+.add-data-table thead th{
+  background:var(--table-head-bg,var(--surface-soft));
+  color:var(--table-head-text);
+  font-size:11px;
+  font-weight:800;
+}
+.add-data-table :is(.num,.add-table-cell-num){text-align:right}
+.add-data-table .add-table-cell-text{text-align:left}
+.add-data-table .add-table-cell-center{text-align:center}
+
+/* 06. 공통 박스 모델 / 기본 글꼴 */
 *{box-sizing:border-box}
 body{
   margin:0;

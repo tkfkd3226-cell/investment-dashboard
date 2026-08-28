@@ -238,13 +238,11 @@ canvas{width:100%;height:100%}
 .table-head{padding:var(--density-surface-md) var(--density-surface-lg);border-bottom:1px solid var(--line)}
 .table-head h2{margin:0}
 .table-head p{font-size:11px;color:var(--muted);margin:var(--density-gap-xs) 0 0}
-.table-scroll{overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:860px}
-th,td{padding:var(--density-table-pad-y) var(--density-table-pad-x);border-bottom:1px solid var(--row-line);font-size:12px;text-align:left;white-space:nowrap}
-thead th{background:var(--surface-soft);color:var(--table-head-text);font-size:11px;position:sticky;top:0}
-tbody th[scope="row"]{font-weight:400;background:transparent;position:static}
-td.num,th.num{text-align:right}
-tfoot td,tfoot th{font-weight:950;background:var(--surface-total);position:static}
+.add-data-table{min-width:860px}
+.add-data-table :is(th,td){border-bottom:1px solid var(--row-line);text-align:left}
+.add-data-table thead th{position:sticky;top:0}
+.add-data-table tbody th[scope="row"]{font-weight:400;background:transparent;position:static}
+.add-data-table tfoot :is(td,th){font-weight:950;background:var(--surface-total);position:static}
 .badge{display:inline-flex;align-items:center;border-radius:var(--radius-pill);padding:var(--density-gap-xs) var(--density-gap-md);font-size:10px;font-weight:900}
 .badge.exact{background:var(--badge-exact-bg);color:var(--badge-exact-text)}
 .badge.estimate{background:var(--badge-estimate-bg);color:var(--badge-estimate-text)}
@@ -471,8 +469,8 @@ details p,details li{font-size:12px;color:var(--muted)}
   <section class="panel" id="daily" role="tabpanel" aria-labelledby="reportTabDaily" aria-hidden="true" tabindex="0">
     <div class="card add-card-shell add-card-base add-card-shadow table-card">
       <div class="table-head"><h2 class="add-heading-section">증권사 기준 날짜별 실현손익</h2></div>
-      <div class="table-scroll">
-        <table>
+      <div class="table-scroll add-table-scroll">
+        <table class="add-data-table">
           <caption class="sr-only">날짜별 KODEX 레버리지 실현손익</caption>
           <thead><tr><th scope="col">매도일</th><th scope="col" class="num">매도수량</th><th scope="col" class="num">평균 매수</th><th scope="col" class="num">평균 매도</th><th scope="col" class="num">손익금액</th><th scope="col" class="num">거래비용</th><th scope="col" class="num">순손익</th><th scope="col" class="num">누적 순손익</th></tr></thead>
           <tbody>
@@ -514,8 +512,8 @@ details p,details li{font-size:12px;color:var(--muted)}
       </div>
 
       <div class="card add-card-shell add-card-base add-card-shadow table-card split-inner-card">
-        <div class="table-scroll">
-          <table class="split-detail-table core-table">
+        <div class="table-scroll add-table-scroll">
+          <table class="add-data-table split-detail-table core-table">
             <caption class="sr-only">본 포지션 거래 상세</caption>
             <thead><tr><th scope="col">매도일</th><th scope="col" class="num">수량</th><th scope="col" class="num">매수단가</th><th scope="col" class="num">실제 매도단가</th><th scope="col" class="num">손익금액</th><th scope="col" class="num">거래비용</th><th scope="col" class="num">순손익</th></tr></thead>
             <tbody>
@@ -551,8 +549,8 @@ details p,details li{font-size:12px;color:var(--muted)}
       </div>
 
       <div class="card add-card-shell add-card-base add-card-shadow table-card split-inner-card">
-        <div class="table-scroll">
-          <table class="split-detail-table day-table">
+        <div class="table-scroll add-table-scroll">
+          <table class="add-data-table split-detail-table day-table">
             <caption class="sr-only">단타 거래 상세</caption>
             <thead><tr><th scope="col">거래일</th><th scope="col" class="num">단타 매도수량</th><th scope="col" class="num">손익금액</th><th scope="col" class="num">거래비용</th><th scope="col" class="num">순손익</th></tr></thead>
             <tbody>
