@@ -2,6 +2,7 @@ import {
   CASH_ASSET_COLOR,
   assetPriceColumnLabel,
   cls,
+  dayChangeRate,
   fmt,
   pct,
   pensionEvaluationBasisText,
@@ -183,7 +184,8 @@ function renderPensionChangeBlock(x,orderedPensionRows){
         productPrevEval=hasPrev?orderedPensionRows.reduce((a,r)=>a+(Number(r.prevEval)||0),0):null,
         productEval=orderedPensionRows.reduce((a,r)=>a+(Number(r.evalAmount)||0),0),
         productDayChange=hasPrev?orderedPensionRows.reduce((a,r)=>a+(Number(r.dayChange)||0),0):null,
-        productDayRate=hasPrev&&productPrevEval?Number(productDayChange||0)/productPrevEval*100:null;
+        productBuyAmount=hasPrev?orderedPensionRows.reduce((a,r)=>a+(Number(r.tradeFlow?.buyAmount)||0),0):0,
+        productDayRate=hasPrev?dayChangeRate(productDayChange,productPrevEval,productBuyAmount):null;
   const rows=orderedPensionRows.map(r=>({
     className:'asset-change-row',
     labelHtml:`${mobileTableAssetName(r.name)}${pensionProductSwatch(r.name)}`,

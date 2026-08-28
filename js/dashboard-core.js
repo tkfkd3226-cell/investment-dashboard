@@ -26,7 +26,10 @@ const uiState={
   personalViewUnlocked:false,
   includeSeparateProfit:false
 };
-const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원',pct=n=>(Number(n)||0).toFixed(2)+'%',signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s,cls=n=>n<0?'negative':(n>0?'positive':''),tableCls=n=>n<0?'table-negative':(n>0?'table-positive':''),byDate=(a,b)=>a.localeCompare(b),shortDate=d=>{const [y,m,day]=d.split('-');return `${Number(m)}/${Number(day)}`},dayChangeRate=(dayChange,base)=>dayChange==null||!Number(base)?null:Number(dayChange)/Number(base)*100,koreanDateLabel=d=>{
+const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원',pct=n=>(Number(n)||0).toFixed(2)+'%',signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s,cls=n=>n<0?'negative':(n>0?'positive':''),tableCls=n=>n<0?'table-negative':(n>0?'table-positive':''),byDate=(a,b)=>a.localeCompare(b),shortDate=d=>{const [y,m,day]=d.split('-');return `${Number(m)}/${Number(day)}`},dayChangeRate=(dayChange,prevEval,inflowAmount=0)=>{
+  const base=Number(prevEval||0)+Math.max(0,Number(inflowAmount)||0);
+  return dayChange==null||!base?null:Number(dayChange)/base*100;
+},koreanDateLabel=d=>{
   const [y,m,day]=d.split('-');
   const snap=dataState.prices?.[d]||{};
   const status=snap.marketStatus||'close';
@@ -468,7 +471,7 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
       const prevProfit=snapshot?.profit??h.prevProfit??null;
       const prevEval=snapshot?.evalAmount??h.prevEval??0;
       const dayChange=hasPrev?(Number(h.profit)||0)-(Number(prevProfit)||0):null;
-      const dayBase=Number(prevEval||0)+(Number(h?.tradeFlow?.buyAmount)||0);
+      const buyAmount=Number(h?.tradeFlow?.buyAmount)||0;
       return {
         name:h.name,
         ticker:h.ticker,
@@ -479,7 +482,8 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
         prevEval,
         evalAmount:Number(h.evalAmount)||0,
         dayChange,
-        dayRate:hasPrev?dayChangeRate(dayChange,dayBase):null
+        buyAmount,
+        dayRate:hasPrev?dayChangeRate(dayChange,prevEval,buyAmount):null
       };
     });
   if(hasPrev&&prevDailyHoldings.length){
@@ -497,11 +501,13 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
         prevEval:Number(snapshot.evalAmount)||0,
         evalAmount:0,
         dayChange:-(Number(snapshot.profit)||0),
+        buyAmount:0,
         dayRate:null
       });
     });
   }
   const prevHoldingEval=hasPrev?changeRows.reduce((a,r)=>a+(Number(r.prevEval)||0),0):null;
+  const holdingBuyAmount=hasPrev?changeRows.reduce((a,r)=>a+(Number(r.buyAmount)||0),0):0;
   let cashDayChange=null,tradeFlow={buyAmount:0,sellAmount:0,buyQty:0,sellQty:0},fundingFlow={contributionAmount:0,withdrawalAmount:0};
   if(hasPrev){
     if(daily){
@@ -524,7 +530,7 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
       :holdings.reduce((a,h)=>a+(Number(h.prevProfit)||0),0))
     :null;
   const dayChange=hasPrev?currentPerformanceProfit-Number(previousPerformanceProfit||0):null;
-  const dayRate=hasPrev&&Number(prevHoldingEval)?Number(dayChange||0)/Number(prevHoldingEval)*100:null;
+  const dayRate=hasPrev?dayChangeRate(dayChange,prevHoldingEval,holdingBuyAmount):null;
   const positiveItems=changeRows
     .filter(r=>Number(r.dayChange)>0)
     .map(r=>({id:String(r.ticker||r.name),name:r.name,ticker:r.ticker,type:r.type,value:Number(r.dayChange)}));
@@ -638,10 +644,10 @@ function calc(date){
     const prevEval=prevPrice==null||!prevState?null:prevPrice*prevState.qty;
     const tradeFlow=pk?pensionTradeFlow(pk,date,pos.ticker):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0};
     const dayChange=prevEval==null?null:evalAmount-prevEval-tradeFlow.buyAmount+tradeFlow.sellAmount;
-    const dayRate=dayChangeRate(dayChange,prevEval);
+    const dayRate=dayChangeRate(dayChange,prevEval,tradeFlow.buyAmount);
     return {...pos,qty:state.qty,cost:state.cost,realizedProfit:state.realizedProfit,totalProfit,price,prevPrice,evalAmount,profit,returnRate:state.cost?profit/state.cost*100:0,dayChange,dayRate,prevEval,prevQty:prevState?.qty??null,prevCost:prevState?.cost??null,tradeFlow};
   }):[];
-  const basePensionCash=hasPension?Number(s?.pension?.cash||0):0,basePrevPensionCash=Number(prev?.pension?.cash||0),pensionCash=hasPension?pensionCashValuation(date,basePensionCash):0,prevPensionCash=prev?pensionCashValuation(pk,basePrevPensionCash):0,pensionTradeDayFlow=pk?pensionTradeFlow(pk,date):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0},pensionExternalFlow=pk?pensionContributionSumAfter(pk,date):0,pensionCashDayChange=prev?pensionCash-prevPensionCash-pensionExternalFlow+pensionTradeDayFlow.buyAmount-pensionTradeDayFlow.sellAmount:null,pensionCashCost=hasPension?pensionCashCostBasis(date):0,pensionEval=hasPension?pensionRows.reduce((a,r)=>a+r.evalAmount,0)+pensionCash:0,pensionPrevEval=hasPension&&prev?pensionRows.reduce((a,r)=>a+(r.prevEval||0),0)+prevPensionCash:null,pensionDayChange=hasPension&&prev?pensionRows.reduce((a,r)=>a+(Number(r.dayChange)||0),0)+(Number(pensionCashDayChange)||0):null,pensionDayRate=pensionPrevEval?pensionDayChange/pensionPrevEval*100:0,pensionProfit=hasPension?pensionEval-pensionPrincipal:0,pensionReturn=hasPension&&pensionPrincipal?pensionProfit/pensionPrincipal*100:0;
+  const basePensionCash=hasPension?Number(s?.pension?.cash||0):0,basePrevPensionCash=Number(prev?.pension?.cash||0),pensionCash=hasPension?pensionCashValuation(date,basePensionCash):0,prevPensionCash=prev?pensionCashValuation(pk,basePrevPensionCash):0,pensionTradeDayFlow=pk?pensionTradeFlow(pk,date):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0},pensionExternalFlow=pk?pensionContributionSumAfter(pk,date):0,pensionCashDayChange=prev?pensionCash-prevPensionCash-pensionExternalFlow+pensionTradeDayFlow.buyAmount-pensionTradeDayFlow.sellAmount:null,pensionCashCost=hasPension?pensionCashCostBasis(date):0,pensionEval=hasPension?pensionRows.reduce((a,r)=>a+r.evalAmount,0)+pensionCash:0,pensionPrevEval=hasPension&&prev?pensionRows.reduce((a,r)=>a+(r.prevEval||0),0)+prevPensionCash:null,pensionDayChange=hasPension&&prev?pensionRows.reduce((a,r)=>a+(Number(r.dayChange)||0),0)+(Number(pensionCashDayChange)||0):null,pensionDayRate=pensionPrevEval==null?null:(dayChangeRate(pensionDayChange,pensionPrevEval,pensionExternalFlow)??0),pensionProfit=hasPension?pensionEval-pensionPrincipal:0,pensionReturn=hasPension&&pensionPrincipal?pensionProfit/pensionPrincipal*100:0;
   const combinedPrincipal=hasPension?totalPrincipal+pensionPrincipal:totalPrincipal,combinedResult=hasPension?totalResult+pensionEval:totalResult,combinedProfit=hasPension?totalProfit+pensionProfit:totalProfit,combinedReturn=combinedPrincipal?combinedProfit/combinedPrincipal*100:0;
   const securitiesAssetDetail=securitiesAssetDetailViewModel({date,prevKey:pk,daily,holdings,securitiesCash});
   return {date,s,prevKey:pk,prev,daily,hasDaily:!!daily,account2Included,tossIncluded,hasPension,holdings,securitiesCash,securitiesAssetDetail,rawHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,account2Profit,account2Principal,account2RealizedAmount,account2Remainder,tossProfit,tossRealizedAmount,tossRemainder,totalPrincipal,totalProfit,totalResult,returnRate,actualHolding,pensionRows,pensionCash,prevPensionCash,pensionCashCost,pensionCashDayChange,pensionTradeDayFlow,pensionExternalFlow,pensionEval,pensionPrevEval,pensionDayChange,pensionDayRate,pensionProfit,pensionReturn,extraPensionContrib,prevExtraPensionContrib,basePensionCash,basePrevPensionCash,pensionPrincipal,combinedPrincipal,combinedResult,combinedProfit,combinedReturn,etfEval,stockEval,allocTotal}
@@ -809,6 +815,7 @@ export {
   cls,
   cumHistory,
   dataState,
+  dayChangeRate,
   dayOptionLabel,
   fetchWithTimeout,
   fmt,
