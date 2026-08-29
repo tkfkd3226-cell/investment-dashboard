@@ -62,6 +62,9 @@
   // 화면 선택 상태와 프리셋 적용 중 여부
   let activePresetId=defaultPresetId, currentPurchasePresetId=null, applying=false;
 
+  // 마지막 정상 계산결과가 존재하는지 추적해 invalid 입력 중 stale 결과임을 명확히 표시
+  let hasRenderedCalculation=false;
+
   const $=id=>document.getElementById(id);
   const nf0=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
   const won=n=>`${nf0.format(Math.round(Number.isFinite(n)?n:0))}원`;
@@ -307,13 +310,20 @@
     return {errors:[...new Set(errors)],invalidIds:[...new Set(invalidIds)]};
   }
 
+  function setCalculationResultsStale(stale){
+    document.documentElement.classList.toggle('calc-results-stale',stale);
+  }
+
   function renderValidation(validation){
     document.querySelectorAll('.control.invalid').forEach(n=>n.classList.remove('invalid'));
     validation.invalidIds.forEach(id=>{const n=$(id);if(n)n.classList.add('invalid');});
     const b=$('validationMessage');
     if(!validation.errors.length){b.classList.remove('show');b.innerHTML='';return;}
+    const resultNote=hasRenderedCalculation
+      ? '<div class="validation-result-note">아래 결과는 마지막 정상 입력 기준입니다. 입력값을 수정하면 자동으로 다시 계산됩니다.</div>'
+      : '<div class="validation-result-note">입력값을 수정하면 결과가 자동으로 계산됩니다.</div>';
     b.classList.add('show');
-    b.innerHTML=`입력값 확인 필요.<ul>${validation.errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
+    b.innerHTML=`입력값 확인 필요.${resultNote}<ul>${validation.errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
   }
 
   // 07. 핵심 계산 엔진
@@ -498,10 +508,15 @@
     const options=getCalculationOptions();
     const validation=validate(i,options);
     renderValidation(validation);
-    if(validation.errors.length)return;
+    if(validation.errors.length){
+      setCalculationResultsStale(hasRenderedCalculation);
+      return;
+    }
+    setCalculationResultsStale(false);
     const c=compute(i,options);
     renderCalculationInputs(c);
     render(c);
+    hasRenderedCalculation=true;
     storage.set('investmentLossRecoveryCalcV17',JSON.stringify({...c.i,targetPrice:c.targetPrice,...options,presetId:activePresetId,currentPurchasePresetId}));
   }
 

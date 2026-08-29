@@ -479,8 +479,12 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .actual-sale-price strong{color:var(--navy);font-size:13px;font-weight:900;white-space:nowrap}
     :where(html[data-add-page="calc"]) .validation-panel{display:none;margin:0 0 var(--density-gap-lg);padding:var(--density-surface-sm);border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger-text);font-size:var(--calc-type-label);font-weight:700}
     :where(html[data-add-page="calc"]) .validation-panel.show{display:block}
+    :where(html[data-add-page="calc"]) .validation-result-note{margin-top:var(--density-gap-xs);font-weight:600}
     :where(html[data-add-page="calc"]) .validation-panel ul{margin:7px 0 0;padding-left:20px;font-weight:600}
     :where(html[data-add-page="calc"]) .control.invalid, :where(html[data-add-page="calc"]) .date-control-shell:has(.date-control.invalid){border-color:var(--danger-strong);background:var(--danger-control-bg);box-shadow:0 0 0 3px var(--danger-ring)}
+    /* invalid 입력 중에는 마지막 정상 결과임을 시각적으로만 구분한다.
+       결과를 제거하거나 조작을 막지 않아 입력 수정 중 레이아웃이 흔들리지 않도록 한다. */
+    html:where([data-add-page="calc"]).calc-results-stale :is(.kpis,.range-panel,#strategyTabs,main){opacity:.48;transition:opacity .14s ease}
 
 /* =========================================================
    04. 거래유형별 입력 레이아웃 / 빠른 매수 프리셋

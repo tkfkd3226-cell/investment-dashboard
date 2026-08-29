@@ -183,3 +183,12 @@ test('계산 기준은 전용 정렬 보정 없이 공통 field/row gap 구조�
   assert.doesNotMatch(css1,/margin-top:35px/);
   assert.doesNotMatch(css1,/calc\(1\.45em \+ var\(--density-gap-xs\)\)/);
 });
+
+test('Calc invalid 입력은 마지막 정상 결과를 stale 상태로 표시하고 정상 입력 시 즉시 해제한다',()=>{
+  assert.match(js1,/let hasRenderedCalculation=false/);
+  assert.match(js1,/function setCalculationResultsStale\(stale\)\{ document\.documentElement\.classList\.toggle\('calc-results-stale',stale\); \}/);
+  assert.match(js1,/if\(validation\.errors\.length\)\{ setCalculationResultsStale\(hasRenderedCalculation\); return; \} setCalculationResultsStale\(false\)/);
+  assert.match(js1,/hasRenderedCalculation=true/);
+  assert.match(js,/아래 결과는 마지막 정상 입력 기준입니다\. 입력값을 수정하면 자동으로 다시 계산됩니다\./);
+  assert.match(css1,/html:where\(\[data-add-page="calc"\]\)\.calc-results-stale :is\(\.kpis,\.range-panel,#strategyTabs,main\)\{opacity:\.48;transition:opacity \.14s ease\}/);
+});
