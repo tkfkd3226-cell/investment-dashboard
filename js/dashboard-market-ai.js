@@ -1146,6 +1146,7 @@ async function refreshMarketAiBridgeStatus(apiBase){
   }
 }
 
+// 겹친 refresh에서는 최신 요청만 state를 반영해 늦게 도착한 이전 응답의 역덮어쓰기를 막는다.
 let marketAiRefreshSequence=0;
 
 async function refreshMarketAiSignal(){
