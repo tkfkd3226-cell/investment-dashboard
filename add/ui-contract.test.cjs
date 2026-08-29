@@ -90,7 +90,7 @@ test('Calc label typography는 역할별 token으로 통일되고 viewport마다
     assert.match(rule(selector),/font-size:var\(--calc-type-(?:section|subsection|support|label)\)/,`${selector} must use Calc type token`);
   }
 
-  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) label, :where\(html\[data-add-page="calc"\]\) \.kpi \.name\{font-size:var\(--calc-type-label\)/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) label, :where\(html\[data-add-page="calc"\]\) \.field-label-slot, :where\(html\[data-add-page="calc"\]\) \.kpi \.name\{font-size:var\(--calc-type-label\)/);
   assert.doesNotMatch(css1,/\.input-group \.field label\{font-size:11px\}/);
   assert.doesNotMatch(css1,/\.summary-card \.sname\{font-size:(?:10|11)px/);
   assert.doesNotMatch(css1,/\.range-box strong\{[^}]*font-size:13px/);
@@ -139,12 +139,33 @@ test('calculation criteria buttons share Calc input-derived box height', () => {
 });
 
 
-test('calculation criteria card keeps common title flow and uses a non-collapsing desktop label-row spacer', () => {
-  const titleBody=rule(':where(html[data-add-page=\"calc\"]) .group-title');
+test('Calc 입력영역은 viewport 공통 Field Layout primitive를 사용한다', () => {
+  assert.match(css1,/--calc-field-label-gap:var\(--density-gap-xs\)/);
+  assert.match(css1,/--calc-field-row-gap:var\(--density-gap-sm\)/);
+  assert.match(css1,/--calc-field-label-line-height:1\.45/);
+  assert.equal((css.match(/--calc-field-label-gap:/g)||[]).length,1);
+  assert.equal((css.match(/--calc-field-row-gap:/g)||[]).length,1);
+  assert.match(rule(':where(html[data-add-page="calc"]) .fields'),/gap:var\(--calc-field-row-gap\)/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.field\{display:flex;flex-direction:column;gap:var\(--calc-field-label-gap\)\}/);
+  assert.match(css1,/\.field > :is\(label,\.field-label-slot\)\{line-height:var\(--calc-field-label-line-height\);min-height:1lh\}/);
+  assert.match(css1,/\.existing-subsection,[^}]*\.current-subsection,[^}]*\.settled-subsection\{[^}]*gap:var\(--calc-field-row-gap\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .prior-trade-section'),/gap:var\(--calc-field-row-gap\)/);
+  assert.doesNotMatch(css1,/\.prior-trade-section\{gap:var\(--density-gap-(?:sm|md)\)/);
+  assert.doesNotMatch(css1,/\.settled-subsection\{gap:var\(--density-gap-(?:sm|md)\)/);
+});
+
+test('계산 기준은 전용 정렬 보정 없이 공통 field/row gap 구조를 사용한다', () => {
+  const titleBody=rule(':where(html[data-add-page="calc"]) .group-title');
   assert.match(titleBody,/margin-bottom:var\(--density-gap-md\)/);
-  assert.doesNotMatch(css1,/\.calculation-group \.group-title\{[^}]*margin-bottom:0/);
-  assert.match(css1,/@media\(min-width:1101px\)\{\s*:where\(html\[data-add-page="calc"\]\) \.calculation-group \.seg\{font-size:var\(--calc-type-label\);padding-top:calc\(1\.45em \+ var\(--density-gap-xs\)\)\}\s*\}/);
+  assert.match(calc,/class="calculation-flow"/);
+  assert.match(calc,/class="field calculation-mode-field"/);
+  assert.match(calc,/class="field-label-slot" aria-hidden="true"/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calculation-flow'),/gap:var\(--calc-field-row-gap\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .seg'),/gap:var\(--calc-field-row-gap\);margin:0/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .formula'),/margin:0/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .actual-sale-price'),/margin:0/);
+  assert.doesNotMatch(css1,/\.calculation-group \.seg\{[^}]*padding-top:/);
   assert.doesNotMatch(css1,/\.calculation-group \.seg\{[^}]*margin-top:/);
-  assert.doesNotMatch(css1,/\.calculation-group \.seg\{[^}]*margin-top:35px/);
-  assert.doesNotMatch(css1,/\.calculation-group\{[^}]*padding:var\(--density-surface-sm\)/);
+  assert.doesNotMatch(css1,/margin-top:35px/);
+  assert.doesNotMatch(css1,/calc\(1\.45em \+ var\(--density-gap-xs\)\)/);
 });

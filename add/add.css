@@ -260,6 +260,13 @@ body{
 :root:where([data-add-page="calc"]){
       --calc-control-pad-y:8px;
 
+      /* Calc Field Layout primitive
+         - label/control 간격과 field 간격은 모든 입력 카드가 이 alias만 사용한다.
+         - alias가 shared density token을 참조하므로 Desktop/Tablet/Phone에서 함께 compact된다. */
+      --calc-field-label-gap:var(--density-gap-xs);
+      --calc-field-row-gap:var(--density-gap-sm);
+      --calc-field-label-line-height:1.45;
+
       /* Calc typography hierarchy
          - 같은 역할은 같은 token만 사용한다.
          - Desktop → Tablet → Phone에서 모든 계층이 정확히 2px씩 compact해진다.
@@ -414,10 +421,12 @@ body{
     :where(html[data-add-page="calc"]) .input-group{padding:var(--density-surface-sm)}
     :where(html[data-add-page="calc"]) .group-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--density-gap-md)}
     :where(html[data-add-page="calc"]) .group-title small{font-size:var(--calc-type-support);font-weight:500;color:var(--muted)}
-    :where(html[data-add-page="calc"]) .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--density-gap-sm)}
-    :where(html[data-add-page="calc"]) .field{display:flex;flex-direction:column;gap:var(--density-gap-xs)}
+    :where(html[data-add-page="calc"]) .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--calc-field-row-gap)}
+    :where(html[data-add-page="calc"]) .field{display:flex;flex-direction:column;gap:var(--calc-field-label-gap)}
     :where(html[data-add-page="calc"]) .field.full{grid-column:1/-1}
-    :where(html[data-add-page="calc"]) label, :where(html[data-add-page="calc"]) .kpi .name{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
+    :where(html[data-add-page="calc"]) .field > :is(label,.field-label-slot){line-height:var(--calc-field-label-line-height);min-height:1lh}
+    :where(html[data-add-page="calc"]) .field-label-slot{display:block;visibility:hidden;pointer-events:none;user-select:none}
+    :where(html[data-add-page="calc"]) label, :where(html[data-add-page="calc"]) .field-label-slot, :where(html[data-add-page="calc"]) .kpi .name{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
     :where(html[data-add-page="calc"]) .kpi .sub{font-size:var(--calc-type-label)}
     :where(html[data-add-page="calc"]) .label-with-help, :where(html[data-add-page="calc"]) .inline-help-label{display:inline-flex;align-items:center;gap:var(--density-gap-xs);width:max-content;max-width:100%;position:relative}
     :where(html[data-add-page="calc"]) .inline-help-label{vertical-align:middle}
@@ -447,20 +456,17 @@ html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-p
     :where(html[data-add-page="calc"]) .share-step-btn{display:none}
     :where(html[data-add-page="calc"]) .desktop-only{display:inline}
     :where(html[data-add-page="calc"]) .mobile-only{display:none}
-    :where(html[data-add-page="calc"]) .seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs);margin-bottom:var(--density-gap-md)}
-    /* Desktop에서 계산 기준이 다른 입력 카드와 나란히 있을 때,
-       실제 필드의 작은 라벨 line-box(1.45em) + label→control gap만 padding으로 확보한다.
-       margin 보정은 인접 margin collapse로 실제 간격이 줄 수 있으므로 사용하지 않는다.
-       Tablet/Phone에서는 카드가 재배치되므로 이 spacer를 적용하지 않는다. */
-    @media(min-width:1101px){
-      :where(html[data-add-page="calc"]) .calculation-group .seg{font-size:var(--calc-type-label);padding-top:calc(1.45em + var(--density-gap-xs))}
-    }
+    /* Field Layout primitive를 계산 기준에도 그대로 적용한다.
+       calculation-flow는 field 간 row gap만 소유하고, mode 선택도 일반 .field의 label/control track을 사용한다.
+       viewport 전용 spacer·margin·padding 보정은 두지 않는다. */
+    :where(html[data-add-page="calc"]) .calculation-flow{display:grid;gap:var(--calc-field-row-gap)}
+    :where(html[data-add-page="calc"]) .seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--calc-field-row-gap);margin:0}
     /* 계산 기준 3버튼은 입력필드와 같은 외곽 geometry를 사용한다.
        버튼 글자 hierarchy는 유지하고, box 높이만 input의 1rem + Y padding + border에서 파생한다. */
     :where(html[data-add-page="calc"]) .calculation-group .seg button{display:flex;align-items:center;justify-content:center;height:calc(1rem + var(--calc-control-pad-y) + var(--calc-control-pad-y) + 2px);min-height:0;padding:0 var(--density-action-pad-x);line-height:1}
-    :where(html[data-add-page="calc"]) .formula{font-size:var(--calc-type-label);color:var(--muted);background:#f0f3f8;border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-gap-xs);margin-top:var(--density-gap-xs)}
+    :where(html[data-add-page="calc"]) .formula{font-size:var(--calc-type-label);color:var(--muted);background:#f0f3f8;border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-gap-xs);margin:0}
 html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
-    :where(html[data-add-page="calc"]) .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);width:100%;margin-top:var(--density-gap-xs);color:var(--muted);text-align:left;appearance:none;-webkit-appearance:none}
+    :where(html[data-add-page="calc"]) .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);width:100%;margin:0;color:var(--muted);text-align:left;appearance:none;-webkit-appearance:none}
     :where(html[data-add-page="calc"]) .actual-sale-price:active{transform:translateY(1px)}
     :where(html[data-add-page="calc"]) .actual-sale-price strong{color:var(--navy);font-size:13px;font-weight:900;white-space:nowrap}
     :where(html[data-add-page="calc"]) .validation-panel{display:none;margin:0 0 var(--density-gap-lg);padding:var(--density-surface-sm);border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger-text);font-size:var(--calc-type-label);font-weight:700}
@@ -488,7 +494,7 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-subsection{
       display:grid;
       grid-template-columns:minmax(0,1fr);
-      gap:var(--density-gap-md);
+      gap:var(--calc-field-row-gap);
       min-width:0;
       padding:0 var(--density-field-pad-x) var(--density-surface-sm);
     }
@@ -518,7 +524,7 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .settled-summary{display:none}
     :where(html[data-add-page="calc"]) .prior-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;align-items:start}
     :where(html[data-add-page="calc"]) .prior-date-section{grid-column:1/-1;min-width:0;padding:0 var(--density-field-pad-x) var(--density-surface-sm);border-bottom:1px dashed var(--control-border)}
-    :where(html[data-add-page="calc"]) .prior-trade-section{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--density-gap-md);min-width:0;padding:var(--density-surface-sm) var(--density-field-pad-x)}
+    :where(html[data-add-page="calc"]) .prior-trade-section{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--calc-field-row-gap);min-width:0;padding:var(--density-surface-sm) var(--density-field-pad-x)}
     :where(html[data-add-page="calc"]) .prior-buy-section{border-right:1px dashed var(--control-border)}
     :where(html[data-add-page="calc"]) .prior-entry-grid .field{min-width:0}
     :where(html[data-add-page="calc"]) .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;border:1px solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);overflow:hidden;box-sizing:border-box}
@@ -744,13 +750,13 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         gap:var(--density-gap-sm)
       }
       :where(html[data-add-page="calc"]) .prior-date-section{padding:0 var(--density-gap-xs) var(--density-surface-md)}
-      :where(html[data-add-page="calc"]) .prior-trade-section{gap:var(--density-gap-sm);padding:var(--density-surface-md) var(--density-gap-xs)}
+      :where(html[data-add-page="calc"]) .prior-trade-section{padding:var(--density-surface-md) var(--density-gap-xs)}
       :where(html[data-add-page="calc"]) .prior-entry-grid .control{min-width:0;max-width:100%;font-size:16px}
       :where(html[data-add-page="calc"]) .date-control-shell .date-control{font-size:16px;line-height:1}
       :where(html[data-add-page="calc"]) .existing-group.holding-layout #holdingPriorFields{gap:0}
       :where(html[data-add-page="calc"]) .existing-subsection,
       :where(html[data-add-page="calc"]) .current-subsection,
-      :where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-subsection{gap:var(--density-gap-sm);padding:0 var(--density-gap-xs) var(--density-surface-md)}
+      :where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-subsection{padding:0 var(--density-gap-xs) var(--density-surface-md)}
       :where(html[data-add-page="calc"]) .additional-group.holding-layout #currentFields{gap:0}
       :where(html[data-add-page="calc"]) .additional-group.settled-layout #currentFields{gap:0}
       :where(html[data-add-page="calc"]) .additional-group.holding-layout #currentBuyGainLabel{white-space:nowrap;letter-spacing:-.055em}
