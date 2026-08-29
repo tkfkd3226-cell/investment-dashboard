@@ -14,6 +14,9 @@ const PHONE_LANDSCAPE_QUERY='(orientation:landscape) and (max-width:960px) and (
 function phoneLandscapeUi(){
   return window.matchMedia?.(PHONE_LANDSCAPE_QUERY).matches===true;
 }
+function phoneUi(){
+  return window.matchMedia?.('(max-width:760px)').matches===true||phoneLandscapeUi();
+}
 
 const mobileViewModes={
   combined:'table',
@@ -31,6 +34,14 @@ const MOBILE_VIEW_META=Object.freeze({
   pensionProducts:{label:'퇴직연금 상품별 현황',controls:'pension-products-table-view pension-products-card-view'},
   pensionChange:{label:'전일 대비 변동',controls:'pension-change-table-view pension-change-card-view'}
 });
+
+function mobileTableAssetName(name=''){
+  const text=String(name||'');
+  const match=text.match(/^(KODEX|KOACT|KoAct)\s+/);
+  if(!match)return escapeHtml(text);
+  const prefix=match[0];
+  return `<span class="mobile-table-brand-prefix">${escapeHtml(prefix)}</span>${escapeHtml(text.slice(prefix.length))}`;
+}
 
 // [UICOMMON02] Icon / Markup Helpers · 아이콘 / 마크업 helper
 const NAV_ICON_ATTRS='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"';
@@ -448,8 +459,10 @@ export {
   mobileInfoCard,
   mobileViewAttrs,
   mobileViewToggle,
+  mobileTableAssetName,
   navIconSvg,
   phoneLandscapeUi,
+  phoneUi,
   renderAssetContributionCard,
   renderAssetDayChangeValue,
   renderAssetDayChangeBlock,

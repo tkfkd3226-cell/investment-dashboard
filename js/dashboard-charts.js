@@ -37,7 +37,8 @@ import {
   chartSeriesSwatch,
   escapeHtml,
   navIconSvg,
-  phoneLandscapeUi
+  phoneLandscapeUi,
+  phoneUi
 } from './dashboard-ui-common.js';
 import {
   activateDashboardDialogFocus,
@@ -84,7 +85,7 @@ function chartViewBoxSize(svg){
 }
 function chartExpandedFrameUnits(svg,baseUnits,safetyPx=0){
   const baseline=expandedChartVisualBaseline(svg);
-  if(!baseline||!compactPhoneChartUi())return baseUnits;
+  if(!baseline||!phoneUi())return baseUnits;
   const currentScale=chartSvgDisplayScale(svg);
   if(!(currentScale>0))return baseUnits;
   const targetUnits=(baseUnits*baseline.scale+safetyPx)/currentScale;
@@ -251,14 +252,11 @@ function toggleChartTitleInfo(event,button){
   button.classList.toggle('open',open);
   button.setAttribute('aria-expanded',String(open));
 }
-function compactPhoneChartUi(){
-  return window.matchMedia?.('(max-width:760px)').matches===true||phoneLandscapeUi();
-}
 function portraitPhoneChartFlow(){
   return window.matchMedia?.('(max-width:760px)').matches===true&&!phoneLandscapeUi();
 }
 function chartDisplayLabel(scope,label){
-  const compact=compactPhoneChartUi();
+  const compact=phoneUi();
   const symbolScope=scope==='pensionSymbol'||scope==='pensionAlloc'||scope==='securitiesSymbol'||(scope==='securitiesAlloc'&&chartState.securityAllocMode==='symbol');
   return compact&&symbolScope?String(label||'').replace(/^KODEX\s+/i,''):String(label||'');
 }
@@ -284,7 +282,7 @@ function syncExpandedChartViewport(){
   overlay.style.setProperty('--chart-expanded-vw',`${window.innerWidth}px`);
   overlay.style.setProperty('--chart-expanded-vh',`${window.innerHeight}px`);
   overlay.classList.toggle('device-landscape',expandedChartLandscapeViewport());
-  overlay.classList.toggle('compact-chart-ui',compactPhoneChartUi());
+  overlay.classList.toggle('compact-chart-ui',phoneUi());
 }
 function openExpandedChart(button){
   const opener=button||null;
@@ -498,7 +496,7 @@ function refreshScrollHints(){
 }
 
 function syncResponsiveChartControls(){
-  const compact=compactPhoneChartUi(),phoneFlow=portraitPhoneChartFlow();
+  const compact=phoneUi(),phoneFlow=portraitPhoneChartFlow();
   RESPONSIVE_CHART_SCOPES.forEach(({id,scope})=>{
     const card=document.getElementById(id);
     const head=card?.querySelector('.chart-head');
@@ -1169,7 +1167,7 @@ function chartX(cfg,dataLength,index){
 function labelDates(svg,cfg,data,every=3){
   const{h,b}=cfg;
   const labelY=h-b+16;
-  const interval=compactPhoneChartUi()?Math.max(every,Math.ceil(data.length/24)):every;
+  const interval=phoneUi()?Math.max(every,Math.ceil(data.length/24)):every;
   data.forEach((d,i)=>{if(i%interval===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:labelY,transform:`rotate(-65 ${x} ${labelY})`,'text-anchor':'end','font-size':chartExpandedFixedUnits(svg,10),fill:cssThemeValue('--chart-text','#6b7280')});txt.textContent=d['날짜'];svg.appendChild(txt)}})
 }
 function polyline(svg,points,color,width=2){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':chartExpandedHalfGrowthUnits(svg,width),'stroke-linejoin':'round','stroke-linecap':'round'}))}

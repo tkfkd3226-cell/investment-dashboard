@@ -1146,7 +1146,10 @@ async function refreshMarketAiBridgeStatus(apiBase){
   }
 }
 
+let marketAiRefreshSequence=0;
+
 async function refreshMarketAiSignal(){
+  const refreshSequence=++marketAiRefreshSequence;
   const apiBase=marketAiApiBase();
   if(!apiBase){
     removeMarketAiUi();
@@ -1163,6 +1166,7 @@ async function refreshMarketAiSignal(){
     refreshMarketAiMarketSnapshot(apiBase),
     refreshMarketAiBridgeStatus(apiBase)
   ]);
+  if(refreshSequence!==marketAiRefreshSequence)return;
   const serverReachable=response!==null||nextMarketSnapshot!==null||nextBridgeStatus!==null;
   Object.assign(marketAiState,{
     marketSnapshot:nextMarketSnapshot??{},

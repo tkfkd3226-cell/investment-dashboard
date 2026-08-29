@@ -17,6 +17,7 @@ import {
   assetColorSwatch,
   escapeHtml,
   metricCard,
+  mobileTableAssetName,
   renderAssetContributionCard,
   renderAssetDayChangeValue,
   renderAssetDayChangeBlock,
@@ -74,14 +75,6 @@ function renderPensionProductInsights(x){
 // [PENSION02] Product / Change Rendering · 상품 현황 / 전일대비 렌더링
 // Feature-owned presentation adapters: 연금 상품 팔레트/표시명 정책은 연금 feature가 소유한다.
 const pensionProductSwatch=name=>assetColorSwatch(pensionSeriesColor(name));
-function pensionMobileTableAssetName(name=''){
-  const text=String(name||'');
-  const match=text.match(/^(KODEX|KOACT|KoAct)\s+/);
-  if(!match)return escapeHtml(text);
-  const prefix=match[0];
-  return `<span class="mobile-table-brand-prefix">${escapeHtml(prefix)}</span>${escapeHtml(text.slice(prefix.length))}`;
-}
-
 function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHeldProfit,pensionHeldReturn){
   const orderedPensionRows=sortPensionItems(x.pensionRows),
         productCost=orderedPensionRows.reduce((a,r)=>a+(Number(r.cost)||0),0),
@@ -93,7 +86,7 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
         cashReturn=pensionCashCost?cashProfit/pensionCashCost*100:0,
         cashWeight=x.pensionEval?x.pensionCash/x.pensionEval*100:0;
   const rows=orderedPensionRows.map(r=>({
-    labelHtml:`${pensionMobileTableAssetName(r.name)}${pensionProductSwatch(r.name)}`,
+    labelHtml:`${mobileTableAssetName(r.name)}${pensionProductSwatch(r.name)}`,
     cells:[
       {className:'num table-cell-center',html:fmt(r.qty)},
       {className:'num',html:fmt(r.qty?r.cost/r.qty:0)},
@@ -198,7 +191,7 @@ function renderPensionChangeBlock(x,orderedPensionRows){
         productDayRate=hasPrev?dayChangeRate(productDayChange,productPrevEval,productBuyAmount):null;
   const rows=orderedPensionRows.map(r=>({
     className:'asset-change-row',
-    labelHtml:`${pensionMobileTableAssetName(r.name)}${pensionProductSwatch(r.name)}`,
+    labelHtml:`${mobileTableAssetName(r.name)}${pensionProductSwatch(r.name)}`,
     cells:[
       {className:'num',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':fmt(r.prevEval)}</span>`},
       {className:'num',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval data-table-sub">${fmt(r.evalAmount)}</span>`},

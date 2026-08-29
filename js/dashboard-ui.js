@@ -39,8 +39,9 @@ import {
   mobileInfoCard,
   mobileViewAttrs,
   mobileViewToggle,
+  mobileTableAssetName,
   navIconSvg,
-  phoneLandscapeUi,
+  phoneUi,
   renderAssetContributionCard,
   renderAssetDayChangeValue,
   renderAssetDayChangeBlock,
@@ -226,9 +227,6 @@ function renderResponsiveNavigationMenuContent(){
 function renderDesktopTocContent(){
   return dashboardTocGroups().map(group=>`<div class="desktop-edge-toc-group"><p>${group.label}</p>${group.items.map(item=>`<button type="button" class="desktop-edge-toc-item" data-toc-target="${item.id}" data-dashboard-action="jump-section" data-section-target="${item.id}"><span class="desktop-edge-toc-icon">${navIconSvg(item.icon)}</span><span>${item.title}</span></button>`).join('')}</div>`).join('');
 }
-function mobileTopbarUi(){
-  return window.matchMedia?.('(max-width:760px)').matches===true||phoneLandscapeUi();
-}
 function desktopEdgeTocUi(){
   return window.matchMedia?.('(min-width:1101px)').matches===true;
 }
@@ -281,7 +279,7 @@ function setSectionNavigationCurrent(id){
 function currentSectionNavigationId(){
   const sections=visibleSectionNavigationTargets();
   if(!sections.length)return '';
-  const threshold=mobileTopbarUi()?64:96;
+  const threshold=phoneUi()?64:96;
   let passed=null,below=null;
   sections.forEach(section=>{
     const top=section.getBoundingClientRect().top;
@@ -336,7 +334,7 @@ function mobileDatePinned(){
 function syncMobileTopbarState(){
   const tabs=document.getElementById('tabs');
   const toggle=document.getElementById('mobileDatePinToggle');
-  const mobile=mobileTopbarUi();
+  const mobile=phoneUi();
   const pinned=mobileDatePinned();
   if(tabs)tabs.classList.toggle('mobile-date-pinned',mobile&&pinned);
   if(toggle){
@@ -668,14 +666,6 @@ function jumpToSection(id){
 const securitySymbolSwatch=name=>(!dataState.activeDate||securityChartNamesForDate(dataState.activeDate).includes(name))
   ?assetColorSwatch(securityAllocationColor(name))
   :'';
-function securityMobileTableAssetName(name=''){
-  const text=String(name||'');
-  const match=text.match(/^(KODEX|KOACT|KoAct)\s+/);
-  if(!match)return escapeHtml(text);
-  const prefix=match[0];
-  return `<span class="mobile-table-brand-prefix">${escapeHtml(prefix)}</span>${escapeHtml(text.slice(prefix.length))}`;
-}
-
 function sectionToSecuritiesBlock(html, extraClass=''){
   if(!html) return '';
   return html
@@ -754,7 +744,7 @@ function renderHoldings(x){
   const orderedHoldings=sortSecurityItems(detail.statusRows);
   const summaryById=Object.fromEntries(detail.summaryRows.map(row=>[row.id,row]));
   const rows=orderedHoldings.map(h=>({
-    labelHtml:`<span class="holding-name-text">${securityMobileTableAssetName(h.name)}</span>${securitySymbolSwatch(h.name)}`,
+    labelHtml:`<span class="holding-name-text">${mobileTableAssetName(h.name)}</span>${securitySymbolSwatch(h.name)}`,
     cells:[
       {className:'num table-cell-center',html:fmt(h.qty)},
       {className:'num',html:fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))},
@@ -857,7 +847,7 @@ function renderSecuritiesChangeBlock(x){
   const orderedRows=sortSecurityItems(change.rows);
   const rows=orderedRows.map(r=>({
     className:'asset-change-row',
-    labelHtml:`${securityMobileTableAssetName(r.name)}${securitySymbolSwatch(r.name)}`,
+    labelHtml:`${mobileTableAssetName(r.name)}${securitySymbolSwatch(r.name)}`,
     cells:[
       {className:'num',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':fmt(r.prevEval)}</span>`},
       {className:'num',html:`<span class="change-price">${r.price==null?'-':fmt(r.price)}</span><span class="change-eval data-table-sub">${fmt(r.evalAmount)}</span>`},
