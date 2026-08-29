@@ -137,3 +137,12 @@ test('calculation criteria buttons share Calc input-derived box height', () => {
   assert.match(css1, /\.calculation-group \.seg button\{[^}]*height:calc\(1rem \+ var\(--calc-control-pad-y\) \+ var\(--calc-control-pad-y\) \+ 2px\)[^}]*line-height:1/);
   assert.doesNotMatch(css1, /\.calculation-group \.seg button\{[^}]*height:var\(--button-control-height\)/);
 });
+
+
+test('calculation criteria card uses the same title-to-content spacing flow as other input cards', () => {
+  const titleBody=rule(':where(html[data-add-page=\"calc\"]) .group-title');
+  assert.match(titleBody,/margin-bottom:var\(--density-gap-md\)/);
+  assert.doesNotMatch(css1,/\.calculation-group \.group-title\{[^}]*margin-bottom:0/);
+  assert.doesNotMatch(css1,/\.calculation-group \.seg\{[^}]*margin-top:/);
+  assert.doesNotMatch(css1,/\.calculation-group\{[^}]*padding:var\(--density-surface-sm\)/);
+});

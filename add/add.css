@@ -451,8 +451,6 @@ html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-p
     /* 계산 기준 3버튼은 입력필드와 같은 외곽 geometry를 사용한다.
        버튼 글자 hierarchy는 유지하고, box 높이만 input의 1rem + Y padding + border에서 파생한다. */
     :where(html[data-add-page="calc"]) .calculation-group .seg button{display:flex;align-items:center;justify-content:center;height:calc(1rem + var(--calc-control-pad-y) + var(--calc-control-pad-y) + 2px);min-height:0;padding:0 var(--density-action-pad-x);line-height:1}
-    :where(html[data-add-page="calc"]) .calculation-group .group-title{margin-bottom:0}
-    :where(html[data-add-page="calc"]) .calculation-group .seg{margin-top:var(--density-layout-gap)}
     :where(html[data-add-page="calc"]) .formula{font-size:var(--calc-type-label);color:var(--muted);background:#f0f3f8;border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-gap-xs);margin-top:var(--density-gap-xs)}
 html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);width:100%;margin-top:var(--density-gap-xs);color:var(--muted);text-align:left;appearance:none;-webkit-appearance:none}
@@ -614,11 +612,6 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
    - 메인 대시보드와 동일: Desktop ≥1101 / Tablet 761~1100 / Phone ≤760
    - 실제 터치폰 가로(landscape + ≤960×500 + hover:none + pointer:coarse)는 폭과 무관하게 Phone UI를 유지
    ========================================================= */
-@media(min-width:1101px){
-  /* 옆 입력카드의 제목+필드 시작선과 맞추는 desktop geometry 예외 */
-  :where(html[data-add-page="calc"]) .calculation-group .seg{margin-top:35px}
-}
-
 @media(max-width:1100px){
       :root:where([data-add-page="calc"]){
         --calc-type-page-title:26px;
@@ -716,10 +709,8 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
          so prior-trade/date/current fields share the same glyph + padding-driven height. */
       :where(html[data-add-page="calc"]) .control{font-size:16px;line-height:1}
       :where(html[data-add-page="calc"]) .input-group :is(.share-step-btn,.pct-step-btn){font-size:16px}
-      :where(html[data-add-page="calc"]) .calculation-group .seg{margin-top:var(--density-gap-sm)}
       :where(html[data-add-page="calc"]) .calculation-group .seg button{height:calc(1rem + var(--calc-control-pad-y) + var(--calc-control-pad-y) + 2px);padding:0 var(--button-compact-pad-x);font-size:var(--calc-type-label);letter-spacing:-.025em}
       :where(html[data-add-page="calc"]) .calculation-group .unit{font-size:15px}
-      :where(html[data-add-page="calc"]) .calculation-group{padding:var(--density-surface-sm)}
       :where(html[data-add-page="calc"]) .calculation-group .fields{grid-template-columns:minmax(0,1fr)}
       :where(html[data-add-page="calc"]) .calculation-group .field.full{grid-column:auto}
       :where(html[data-add-page="calc"]) .strategy-head{display:block}:where(html[data-add-page="calc"]) .badge{display:inline-block;margin-top:var(--density-gap-md)}
