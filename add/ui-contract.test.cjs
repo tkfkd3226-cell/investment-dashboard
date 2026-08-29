@@ -139,11 +139,12 @@ test('calculation criteria buttons share Calc input-derived box height', () => {
 });
 
 
-test('calculation criteria card keeps common title flow and uses only a desktop label-row spacer', () => {
+test('calculation criteria card keeps common title flow and uses a non-collapsing desktop label-row spacer', () => {
   const titleBody=rule(':where(html[data-add-page=\"calc\"]) .group-title');
   assert.match(titleBody,/margin-bottom:var\(--density-gap-md\)/);
   assert.doesNotMatch(css1,/\.calculation-group \.group-title\{[^}]*margin-bottom:0/);
-  assert.match(css1,/@media\(min-width:1101px\)\{\s*:where\(html\[data-add-page="calc"\]\) \.calculation-group \.seg\{margin-top:calc\(var\(--calc-type-label\) \+ var\(--density-gap-md\)\)\}\s*\}/);
+  assert.match(css1,/@media\(min-width:1101px\)\{\s*:where\(html\[data-add-page="calc"\]\) \.calculation-group \.seg\{font-size:var\(--calc-type-label\);padding-top:calc\(1\.45em \+ var\(--density-gap-xs\)\)\}\s*\}/);
+  assert.doesNotMatch(css1,/\.calculation-group \.seg\{[^}]*margin-top:/);
   assert.doesNotMatch(css1,/\.calculation-group \.seg\{[^}]*margin-top:35px/);
   assert.doesNotMatch(css1,/\.calculation-group\{[^}]*padding:var\(--density-surface-sm\)/);
 });
