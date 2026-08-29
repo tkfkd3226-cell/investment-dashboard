@@ -324,14 +324,7 @@ Mobile  : 760px 이하
 
 Market AI UI의 CSS도 같은 역할 분리를 따릅니다. Desktop baseline과 공통 `data-list-card`/tooltip은 `common.css`의 **Hero 인접 영역**, Tablet 배치·밀도는 `tablet.css`의 Hero 영역, 실제 Phone 진입 버튼·modal·panel 이동은 `special.css`의 Phone UI Shared에서 관리합니다. **1101~1279 compact Desktop은 Asset Detail 전용이며 Market AI override를 두지 않고, 1280px은 일반 Desktop으로 유지합니다.** Mobile Market AI metric tooltip은 사용하지 않습니다. `dashboard-market-ai.js` 전용 class라는 이유로 파일 하단에 별도 override 묶음을 추가하지 않습니다.
 
-유지보수 시 기본 원칙:
-
-- 해당 역할 파일의 canonical selector를 직접 수정
-- 후행 `final override` 누적 금지
-- 불필요한 `!important` 추가 금지
-- 임의의 신규 breakpoint 남발 금지
-- Light / Dark 양쪽 상태 확인
-- Desktop / Tablet / Mobile UI 일관성 유지
+세부 CSS 수정·QA 원칙과 breakpoint/override 규칙은 `main_dashboard_maintenance_handover.md`를 Source of Truth로 따른다.
 
 ---
 

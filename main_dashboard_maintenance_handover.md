@@ -1447,6 +1447,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 - 로컬(`localhost`, `127.0.0.1`)에서만 실제 Market AI API를 조회하고, 비로컬 기본 모드는 UI를 숨긴다. preview mode는 API polling 없이 예시 데이터만 사용한다.
 - Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다.
+- refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답이 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 request sequence를 state 반영 전에 확인한다.
 - backend가 제공하는 signal metadata와 산식 contract를 프런트에서 임의 재해석하지 않는다. 상세 backend 계약은 Market AI 프로젝트의 `market_ai_project_handover.md`를 Source of Truth로 한다.
 - SOX/SOX-F **표시 source 전환과 Signal Engine 입력은 분리**한다. 화면용 source는 provider `observed_at` 기준 freshness를 평가해 stale 값을 현재값처럼 유지하지 않으며, Signal Engine의 canonical 입력을 표시 편의 때문에 바꾸지 않는다.
 - 선택된 과거 `activeDate`와 무관하게 Market AI panel은 현재 시점 신호를 표시한다.
@@ -2315,7 +2316,7 @@ style="..."
 
 새 함수를 만들기 전에 기존 helper가 있는지 확인한다.
 
-특히 스마트폰 가로 판정은 `dashboard-ui-common.js`의 `phoneLandscapeUi()`가 canonical이다. `dashboard-charts.js`, `dashboard-ui.js` 또는 새 모듈에서 같은 `960×500 + hover:none + pointer:coarse` `matchMedia` 문자열이나 동등 helper를 다시 정의하지 않는다.
+스마트폰 responsive 판정은 `dashboard-ui-common.js`의 공통 helper를 canonical로 사용한다. `phoneLandscapeUi()`는 실제 터치 스마트폰 가로(`960×500 + hover:none + pointer:coarse`) 판정만 담당하고, `phoneUi()`는 `≤760px` 세로폰과 실제 터치폰 가로를 하나의 Phone UI family로 묶는다. UI/Charts 등 Phone 표현 여부는 `phoneUi()`를 재사용하고, 각 feature에서 같은 `matchMedia` 문자열이나 동등 helper를 다시 정의하지 않는다.
 
 대표적인 공통 대상:
 
