@@ -160,6 +160,7 @@ test('계산 기준은 전용 정렬 보정 없이 공통 field/row gap 구조�
   assert.match(calc,/class="calculation-flow"/);
   assert.match(calc,/class="field calculation-mode-field"/);
   assert.match(calc,/class="field-label-slot" aria-hidden="true"/);
+  assert.match(css1,/@media\(max-width:1100px\)\{[^}]*\.calculation-mode-field \.field-label-slot\{display:none\}/);
   assert.match(rule(':where(html[data-add-page="calc"]) .calculation-flow'),/gap:var\(--calc-field-row-gap\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .seg'),/gap:var\(--calc-field-row-gap\);margin:0/);
   assert.match(rule(':where(html[data-add-page="calc"]) .formula'),/margin:0/);

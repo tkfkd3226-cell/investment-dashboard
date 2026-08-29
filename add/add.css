@@ -426,6 +426,11 @@ body{
     :where(html[data-add-page="calc"]) .field.full{grid-column:1/-1}
     :where(html[data-add-page="calc"]) .field > :is(label,.field-label-slot){line-height:var(--calc-field-label-line-height);min-height:1lh}
     :where(html[data-add-page="calc"]) .field-label-slot{display:block;visibility:hidden;pointer-events:none;user-select:none}
+    /* 계산 기준의 비어 있는 label slot은 Desktop 3열 정렬에만 필요하다.
+       Tablet/Phone에서는 카드가 독립 행으로 내려오므로 슬롯을 제거하고 제목 다음에 바로 버튼을 배치한다. */
+    @media(max-width:1100px){
+      :where(html[data-add-page="calc"]) .calculation-mode-field .field-label-slot{display:none}
+    }
     :where(html[data-add-page="calc"]) label, :where(html[data-add-page="calc"]) .field-label-slot, :where(html[data-add-page="calc"]) .kpi .name{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
     :where(html[data-add-page="calc"]) .kpi .sub{font-size:var(--calc-type-label)}
     :where(html[data-add-page="calc"]) .label-with-help, :where(html[data-add-page="calc"]) .inline-help-label{display:inline-flex;align-items:center;gap:var(--density-gap-xs);width:max-content;max-width:100%;position:relative}
