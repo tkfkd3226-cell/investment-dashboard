@@ -15,7 +15,6 @@ import {
 } from './dashboard-core.js';
 import {
   assetColorSwatch,
-  escapeHtml,
   metricCard,
   mobileTableAssetName,
   renderAssetContributionCard,
