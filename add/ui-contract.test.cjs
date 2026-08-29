@@ -27,9 +27,14 @@ test('shared hover는 fine pointer에서만 동작하고 선택 상태를 덮지
   assert.match(css1,/:hover:not\(:disabled\):not\(\.active\):not\(\[aria-selected="true"\]\):not\(\[aria-pressed="true"\]\)/);
 });
 
-test('Calc control 높이는 고정 px가 아니라 1em + 공통 Y padding에서 파생된다',()=>{
+test('Calc control geometry는 단일 box-height token을 Source of Truth로 사용한다',()=>{
+  assert.match(css1,/--calc-control-border-width:1px/);
+  assert.match(css1,/--calc-control-box-height:calc\(1rem \+ var\(--calc-control-pad-y\) \+ var\(--calc-control-pad-y\) \+ var\(--calc-control-border-width\) \+ var\(--calc-control-border-width\)\)/);
+  assert.match(css1,/--calc-control-inner-height:calc\(var\(--calc-control-box-height\) - var\(--calc-control-border-width\) - var\(--calc-control-border-width\)\)/);
+  assert.equal((css.match(/--calc-control-box-height:/g)||[]).length,1);
   const body=rule(':where(html[data-add-page="calc"]) .control');
-  assert.match(body,/height:calc\(1em \+ var\(--calc-control-pad-y\) \+ var\(--calc-control-pad-y\) \+ 2px\)/);
+  assert.match(body,/height:var\(--calc-control-box-height\)/);
+  assert.match(body,/border:var\(--calc-control-border-width\) solid var\(--control-border\)/);
   assert.match(body,/padding:var\(--calc-control-pad-y\) var\(--density-action-pad-x\)/);
   assert.match(body,/min-height:0/);
   assert.match(body,/line-height:1/);
@@ -43,7 +48,7 @@ test('date와 일반 input은 같은 Y padding token으로 동일 외곽 높이�
   assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px;/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.control\{font-size:16px;line-height:1\}/);
   const dateBody=rule(':where(html[data-add-page="calc"]) .date-control-shell .date-control');
-  assert.match(dateBody,/height:calc\(1em \+ var\(--calc-control-pad-y\) \+ var\(--calc-control-pad-y\)\)/);
+  assert.match(dateBody,/height:var\(--calc-control-inner-height\)/);
   assert.match(dateBody,/padding:var\(--calc-control-pad-y\) var\(--density-action-pad-x\)/);
   assert.match(dateBody,/-webkit-appearance:none/);
   assert.match(dateBody,/appearance:none/);
@@ -121,6 +126,13 @@ test('Calc 3개 거래유형의 동적 문구는 inline font-size 없이 공통 
   assert.doesNotMatch(calc,/style\s*=\s*["'][^"']*font-size/i);
 });
 
+test('Calc iPhone 데스크탑 웹사이트 요청은 1280 viewport contract를 유지한다',()=>{
+  assert.match(calc,/desktopAppleUA=\/Macintosh\//);
+  assert.match(calc,/touchApple=\(navigator\.maxTouchPoints\|\|0\)>0/);
+  assert.match(calc,/shortSide<=500/);
+  assert.match(calc,/viewport\.setAttribute\('content','width=1280'\)/);
+});
+
 test('Calc 가로 터치폰은 Tablet이 아니라 세로 Phone과 같은 UI contract를 사용한다',()=>{
   assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{/);
   assert.match(css1,/--density-page-pad:10px; --density-surface-lg:12px; --density-surface-md:10px; --density-surface-sm:8px;/);
@@ -133,8 +145,9 @@ test('Calc 가로 터치폰은 Tablet이 아니라 세로 Phone과 같은 UI con
 });
 
 
-test('calculation criteria buttons share Calc input-derived box height', () => {
-  assert.match(css1, /\.calculation-group \.seg button\{[^}]*height:calc\(1rem \+ var\(--calc-control-pad-y\) \+ var\(--calc-control-pad-y\) \+ 2px\)[^}]*line-height:1/);
+test('calculation criteria buttons share the same Calc control geometry token', () => {
+  assert.match(css1, /\.calculation-group \.seg button\{[^}]*height:var\(--calc-control-box-height\)[^}]*border-width:var\(--calc-control-border-width\)[^}]*line-height:1/);
+  assert.doesNotMatch(css1, /\.calculation-group \.seg button\{[^}]*height:calc\(/);
   assert.doesNotMatch(css1, /\.calculation-group \.seg button\{[^}]*height:var\(--button-control-height\)/);
 });
 

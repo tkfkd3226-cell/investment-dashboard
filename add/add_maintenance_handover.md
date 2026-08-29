@@ -76,12 +76,15 @@ Mobile · 모바일   ≤ 760px
 - 공통 범위 media는 위 경계값을 공유하는 범위에서 허용한다.
 - **Calc의 실제 터치 스마트폰 가로화면은 예외적으로 Tablet이 아니라 Phone UI로 분류한다.** 메인 `special.css`와 동일하게 `landscape + width≤960px + height≤500px + hover:none + pointer:coarse` 조건을 사용하며, 이 조건은 미관용 추가 breakpoint가 아니라 장치 분류 contract다.
 - 위 가로폰 조건에서는 세로폰과 동일한 Phone typography·density·control/input 배치·mobile/desktop 표시 규칙을 다시 적용한다. 폭이 761px 이상이라는 이유만으로 Tablet UI로 바꾸지 않는다.
+- **Calc에서 iPhone의 ‘데스크탑 웹사이트 요청’으로 감지되는 경우에는 `calc.html`이 viewport를 1280px로 전환한다.** 일반 모바일/가로폰 Phone UI 판정과 별개의 명시적 사용 모드이며, 이 head script를 임의로 제거하거나 3구간 breakpoint 값으로 대체하지 않는다.
 
 ### 1.2 add 영역 UI 공통 구성 원칙
 
 - `calc`와 `report`는 `add/add.css`의 공통 의미색·Corner·Spacing/Density·Heading·Button token/primitive를 재사용한다. 현재 수치 자체는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다. Corner는 역할별 기본 radius와 soft-square cap을 분리하고, 메인의 `investmentDashboard.cornerTheme` 저장값을 읽어 동일한 `rounded-corners` mode contract를 적용한다.
 - 카드·패널·폼·표·탭·버튼처럼 역할이 비슷한 component의 padding/gap은 공통 density token을 우선 사용하고, Desktop → Tablet → Mobile 순으로 일관되게 compact해지는 3단계 contract를 유지한다. 카드·패널·요약박스처럼 독립된 Surface의 기본 padding은 상하좌우 동일값을 사용하며, 표 셀·버튼·input·header row처럼 기능상 X/Y 여백이 달라야 하는 요소만 예외로 둔다. Touch target 높이, 차트 geometry, 광학 보정처럼 기능상 필요한 값은 억지로 density token에 합치지 않는다. 단순 미관 조정 때문에 독립 radius·magic number·임시 offset을 누적하지 않는다.
 - **Calc typography는 역할별 공통 token을 Source of Truth로 사용한다.** 페이지 제목·section·subsection·support·label처럼 의미가 같은 텍스트는 같은 역할 token을 사용하고, 개별 selector에 별도 font-size를 다시 만들지 않는다. 동일 역할은 Desktop → Tablet → Phone으로 갈 때 **각 단계 2px씩 compact**해지는 contract를 유지하며, 가로폰도 Phone token을 그대로 사용한다. input 값·강조 value·기능 아이콘처럼 역할이 다른 텍스트는 이 label 계층에 억지로 합치지 않는다.
+- **Calc 입력영역은 하나의 Field Layout primitive를 사용한다.** 일반 입력카드와 계산 기준 모두 `label → 공통 label/control gap → control → 공통 field row gap` 리듬을 공유하며, 계산 기준에 정렬용 magic margin·padding·고정 offset을 별도로 만들지 않는다. Desktop에서 나란한 카드의 첫 control 시작선을 맞추기 위한 빈 label slot은 같은 field track을 재사용하고, 카드가 독립 행으로 내려오는 Tablet/Phone에서는 그 slot만 제거한다. 라벨 크기·field gap·control density를 바꿀 때는 공통 token을 수정해 전 viewport와 모든 입력카드가 함께 움직이게 한다.
+- **Calc control 외곽 geometry도 단일 token을 Source of Truth로 사용한다.** 일반 input·date shell/inner control·계산 기준 선택버튼은 `--calc-control-box-height` 계열에서 같은 높이와 border 기준을 파생하고, feature selector에 동일한 `calc(...)` 높이식을 복제하지 않는다.
 - iPhone Safari가 가로 회전 시 제목·설명문 일부만 선택적으로 확대하지 않도록 Calc의 `-webkit-text-size-adjust:100%` / `text-size-adjust:100%` 방어를 유지한다. 이 설정을 제거하거나 가로폰에서만 별도 font-size를 덧대는 방식으로 대체하지 않는다.
 - 거래유형 전환이나 responsive 변경 시 입력 패널의 정보 순서·시각적 균형·사용성을 유지하되, 해결 방법은 구조적 CSS를 우선한다.
 - 입력 요소는 가능한 한 `<label for>` 또는 `aria-labelledby`로 연결하고, 전략/리포트 탭은 `tablist/tab/tabpanel`, `aria-controls`, `aria-selected`와 키보드 이동을 유지한다. 시각 상태와 ARIA 상태가 함께 갱신되어야 한다.
