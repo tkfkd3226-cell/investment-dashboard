@@ -824,11 +824,11 @@ function setupMarketAiTooltipEvents(){
 
 // [MARKET08] Metric Markup / Responsive Mobile UI · panel metric / trigger / dialog
 function marketAiDesktopSignalMetric(label,key){
-  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-card="${key}" data-market-ai-tooltip="signal" data-market-ai-key="${key}"><span class="data-list-card-label market-ai-desktop-label">${label}</span><strong class="data-list-card-value market-ai-desktop-signal" data-market-ai-score="${key}">--</strong></span>`;
+  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-card="${key}" data-market-ai-tooltip="signal" data-market-ai-key="${key}"><span class="data-list-card-label market-ai-desktop-label">${label}</span><span class="market-ai-desktop-data"><strong class="data-list-card-value market-ai-desktop-signal" data-market-ai-score="${key}">--</strong></span></span>`;
 }
 
 function marketAiDesktopMarketMetric(label,marketKey){
-  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-market-card="${marketKey}" data-market-ai-tooltip="market" data-market-ai-key="${marketKey}"><span class="data-list-card-label market-ai-desktop-label">${label}</span><strong class="data-list-card-value market-ai-desktop-value" data-market-ai-market="${marketKey}">--</strong><strong class="data-list-card-value market-ai-desktop-change" data-market-ai-change="${marketKey}"></strong></span>`;
+  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-market-card="${marketKey}" data-market-ai-tooltip="market" data-market-ai-key="${marketKey}"><span class="data-list-card-label market-ai-desktop-label">${label}</span><span class="market-ai-desktop-data"><strong class="data-list-card-value market-ai-desktop-value" data-market-ai-market="${marketKey}">--</strong><strong class="data-list-card-value market-ai-desktop-change" data-market-ai-change="${marketKey}"></strong></span></span>`;
 }
 
 function marketAiDesktopFuturesMetric(){
