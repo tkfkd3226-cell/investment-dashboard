@@ -417,8 +417,9 @@
   --hero-basis-color:#d1d5db;
   --hero-glow:rgba(255,255,255,.10);
   --hero-decor-bg:rgba(255,255,255,.08);
-  --hero-pill-bg:rgba(15,23,42,.16);
-  --hero-pill-hover-bg:rgba(255,255,255,.18);
+  /* 투명도를 .16에서 .45 정도로 상향 (필요시 조절) */
+  --hero-pill-bg:rgba(15,23,42,.80);
+  --hero-pill-hover-bg:rgba(255,255,255,.38);
   --hero-pill-border:rgba(255,255,255,.28);
   --hero-pill-color:#f8fafc;
   --hero-shadow:0 18px 42px rgba(15,23,42,.16);
@@ -699,9 +700,10 @@ button svg{pointer-events:none;flex-shrink:0}
   content: "";
   position: absolute;
   inset: 0;
-  background: url('../img/hero-bg.png') center/cover no-repeat;
-  opacity: 0.35; /* 투명도 대폭 상향 (필요시 0.3~0.5 사이 조절) */
-  mix-blend-mode: screen; /* 어두운 배경에서 밝은 패턴만 예쁘게 뽑아내는 모드 */
+  /* 비율 유지(cover), 밝은 선이 있는 위치(대략 위에서 40% 지점)로 초점 고정 */
+  background: url('../img/hero-bg.png') center 40% / cover no-repeat;
+  opacity: 0.8; /* 밝은 선이 잘 보이도록 투명도 상향 */
+  mix-blend-mode: screen; /* 남색 배경은 날리고 밝은 선만 덧입힘 */
   pointer-events: none;
   z-index: 0;
 }

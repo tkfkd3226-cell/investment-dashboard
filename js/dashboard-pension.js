@@ -190,10 +190,11 @@ function renderPensionChangeBlock(x,orderedPensionRows){
         productDayRate=hasPrev?dayChangeRate(productDayChange,productPrevEval,productBuyAmount):null;
   const rows=orderedPensionRows.map(r=>({
     className:'asset-change-row',
+    labelClass:'asset-change-asset-col',
     labelHtml:`${mobileTableAssetName(r.name)}${pensionProductSwatch(r.name)}`,
     cells:[
-      {className:'num',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':fmt(r.prevEval)}</span>`},
-      {className:'num',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval data-table-sub">${fmt(r.evalAmount)}</span>`},
+      {className:'num asset-change-prev-col',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':fmt(r.prevEval)}</span>`},
+      {className:'num asset-change-current-col',html:`<span class="change-price">${fmt(r.price)}</span><span class="change-eval data-table-sub">${fmt(r.evalAmount)}</span>`},
       {className:'num asset-change-delta-col',html:renderAssetDayChangeValue({
         amountText:r.dayChange==null?'-':signed(r.dayChange),
         rateText:r.dayRate==null?'-':`${r.dayRate>0?'+':''}${pct(r.dayRate)}`,
@@ -204,10 +205,11 @@ function renderPensionChangeBlock(x,orderedPensionRows){
   }));
   const summaryRows=[{
     className:'summary-row asset-change-row',
+    labelClass:'asset-change-asset-col',
     labelHtml:'합계',
     cells:[
-      {className:'num',html:hasPrev?fmt(productPrevEval):'-'},
-      {className:'num',html:fmt(productEval)},
+      {className:'num asset-change-prev-col',html:hasPrev?fmt(productPrevEval):'-'},
+      {className:'num asset-change-current-col',html:fmt(productEval)},
       {className:'num asset-change-delta-col',html:renderAssetDayChangeValue({
         amountText:productDayChange==null?'-':signed(productDayChange),
         rateText:productDayRate==null?'-':`${productDayRate>0?'+':''}${pct(productDayRate)}`,
@@ -240,9 +242,9 @@ function renderPensionChangeBlock(x,orderedPensionRows){
     ],
     caption:'퇴직연금 전일 대비 상품별 변동',
     columns:[
-      {label:'상품',className:'table-cell-text'},
-      {label:prevPriceLabel},
-      {label:currentPriceLabel},
+      {label:'상품',className:'table-cell-text asset-change-asset-col'},
+      {label:prevPriceLabel,className:'asset-change-prev-col'},
+      {label:currentPriceLabel,className:'asset-change-current-col'},
       {label:'일변동',className:'asset-change-delta-col'}
     ],
     rows,

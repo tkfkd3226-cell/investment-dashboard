@@ -847,10 +847,11 @@ function renderSecuritiesChangeBlock(x){
   const orderedRows=sortSecurityItems(change.rows);
   const rows=orderedRows.map(r=>({
     className:'asset-change-row',
+    labelClass:'asset-change-asset-col',
     labelHtml:`${mobileTableAssetName(r.name)}${securitySymbolSwatch(r.name)}`,
     cells:[
-      {className:'num',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':fmt(r.prevEval)}</span>`},
-      {className:'num',html:`<span class="change-price">${r.price==null?'-':fmt(r.price)}</span><span class="change-eval data-table-sub">${fmt(r.evalAmount)}</span>`},
+      {className:'num asset-change-prev-col',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':fmt(r.prevEval)}</span>`},
+      {className:'num asset-change-current-col',html:`<span class="change-price">${r.price==null?'-':fmt(r.price)}</span><span class="change-eval data-table-sub">${fmt(r.evalAmount)}</span>`},
       {className:'num asset-change-delta-col',html:renderAssetDayChangeValue({
         amountText:r.dayChange==null?'-':signed(r.dayChange),
         rateText:r.dayRate==null?'-':`${r.dayRate>0?'+':''}${pct(r.dayRate)}`,
@@ -861,10 +862,11 @@ function renderSecuritiesChangeBlock(x){
   }));
   const summaryRows=[{
     className:'summary-row asset-change-row',
+    labelClass:'asset-change-asset-col',
     labelHtml:'합계',
     cells:[
-      {className:'num',html:hasPrev?fmt(change.prevEvaluationTotal):'-'},
-      {className:'num',html:fmt(change.evaluationTotal)},
+      {className:'num asset-change-prev-col',html:hasPrev?fmt(change.prevEvaluationTotal):'-'},
+      {className:'num asset-change-current-col',html:fmt(change.evaluationTotal)},
       {className:'num asset-change-delta-col',html:renderAssetDayChangeValue({
         amountText:change.dayChange==null?'-':signed(change.dayChange),
         rateText:change.dayRate==null?'-':`${change.dayRate>0?'+':''}${pct(change.dayRate)}`,
@@ -898,9 +900,9 @@ function renderSecuritiesChangeBlock(x){
     ],
     caption:'증권계좌 전일 대비 종목별 변동',
     columns:[
-      {label:'종목',className:'table-cell-text'},
-      {label:prevPriceLabel},
-      {label:currentPriceLabel},
+      {label:'종목',className:'table-cell-text asset-change-asset-col'},
+      {label:prevPriceLabel,className:'asset-change-prev-col'},
+      {label:currentPriceLabel,className:'asset-change-current-col'},
       {label:'일변동',className:'asset-change-delta-col'}
     ],
     rows,
