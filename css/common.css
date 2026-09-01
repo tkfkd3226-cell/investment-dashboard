@@ -700,12 +700,16 @@ button svg{pointer-events:none;flex-shrink:0}
   content: "";
   position: absolute;
   inset: 0;
-  /* 비율 유지(cover), 밝은 선이 있는 위치(대략 위에서 40% 지점)로 초점 고정 */
-  background: url('../img/hero-bg.png') center 40% / cover no-repeat;
-  opacity: 0.8; /* 밝은 선이 잘 보이도록 투명도 상향 */
-  mix-blend-mode: screen; /* 남색 배경은 날리고 밝은 선만 덧입힘 */
+  background: url('../img/hero-bg.png') center / cover no-repeat;
+  opacity: 0.75;
+  mix-blend-mode: screen;
   pointer-events: none;
   z-index: 0;
+}
+
+/* 다크 모드 시 이질감(붕 뜨는 현상) 방지 */
+html.dark .hero::before {
+  opacity: 0.15; /* 다크 모드에서는 투명도를 대폭 낮춰 어두운 배경에 자연스럽게 스며들도록 조정 */
 }
 
 .hero-title-row{
