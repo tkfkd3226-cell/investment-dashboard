@@ -63,6 +63,7 @@ const marketAiState={
   signal:null,
   marketSnapshot:{},
   bridgeStatus:null,
+  serverReachable:marketAiLocalMode(),
   status:'연결 확인 중',
   statusKind:'checking',
   message:'선택일과 무관한 현재 Market AI 신호를 확인하고 있습니다.',
@@ -911,6 +912,10 @@ function syncMarketAiSignalView(){
     removeMarketAiUi();
     return;
   }
+  if(!marketAiLocalMode()&&marketAiState.serverReachable!==true){
+    removeMarketAiUi();
+    return;
+  }
   const row=mountMarketAiSection();
   if(!row)return;
   const signal=marketAiState.signal;
@@ -926,6 +931,7 @@ function syncMarketAiSignalView(){
     status.hidden=!!signal;
     status.dataset.marketAiState=marketAiState.statusKind||'checking';
   }
+  row.dataset.marketAiState=marketAiState.statusKind||'checking';
 
   syncMarketAiMarketView(row);
 
@@ -1065,6 +1071,7 @@ async function refreshMarketAiSignal(){
   if(refreshSequence!==marketAiRefreshSequence)return;
   const serverReachable=response!==null||nextMarketSnapshot!==null||nextBridgeStatus!==null;
   Object.assign(marketAiState,{
+    serverReachable,
     marketSnapshot:nextMarketSnapshot??{},
     bridgeStatus:nextBridgeStatus
   });
@@ -1076,9 +1083,9 @@ async function refreshMarketAiSignal(){
     }
     setMarketAiState({
       signal:null,
-      status:'서버 연결 안 됨',
-      statusKind:'error',
-      message:'Local Suite 실행 후 자동으로 다시 연결합니다.',
+      status:'연결 확인 중',
+      statusKind:'checking',
+      message:'Market AI 서버에 연결하고 있습니다.',
       lastSignalAt:null
     });
     return;
