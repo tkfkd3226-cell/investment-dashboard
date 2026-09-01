@@ -292,8 +292,6 @@
       --market-ai-value-size:var(--type-size-sm);
       --market-ai-change-size:var(--type-size-xs);
       --market-ai-metric-row-height:22px;
-      --market-ai-market-change-column:40px;
-      --market-ai-signal-value-column:46px;
       box-sizing:border-box;
       width:100%;
       max-width:none;
