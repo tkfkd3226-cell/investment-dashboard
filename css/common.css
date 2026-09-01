@@ -700,9 +700,9 @@ button svg{pointer-events:none;flex-shrink:0}
   position: absolute;
   inset: 0;
   background: url('../img/hero-bg.png') center/cover no-repeat;
-  opacity: 0.18; /* 투명도를 낮춰 텍스트 가독성 확보 */
-  mix-blend-mode: overlay; /* 기존 다크 네이비 그라데이션과 고급스럽게 융합 */
-  pointer-events: none; /* 클릭 간섭 방지 */
+  opacity: 0.35; /* 투명도 대폭 상향 (필요시 0.3~0.5 사이 조절) */
+  mix-blend-mode: screen; /* 어두운 배경에서 밝은 패턴만 예쁘게 뽑아내는 모드 */
+  pointer-events: none;
   z-index: 0;
 }
 
