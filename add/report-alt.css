@@ -20,6 +20,7 @@
 
   --energy-violet:#6d5dfc;
   --energy-cyan:#18a9c9;
+  --energy-cyan-text:#167c9a;
   --energy-gold:#d99a28;
 
   --chart-plot-top:rgba(244,242,255,.94);
@@ -48,6 +49,7 @@ html[data-add-page="report"][data-add-theme="alt"].dark{
 
   --energy-violet:#958cff;
   --energy-cyan:#4bc5dd;
+  --energy-cyan-text:#4bc5dd;
   --energy-gold:#f2b94b;
 
   --chart-plot-top:rgba(39,35,72,.72);
@@ -91,7 +93,7 @@ html[data-add-page="report"][data-add-theme="alt"].dark .timeline-item:nth-child
   background:var(--energy-cyan);
   box-shadow:0 0 0 5px rgba(75,197,221,.12),0 0 20px rgba(75,197,221,.20);
 }
-html[data-add-page="report"][data-add-theme="alt"].dark .split-group-day .split-group-kicker{color:var(--energy-cyan)}
+html[data-add-page="report"][data-add-theme="alt"].dark .split-group-day .split-group-kicker{color:var(--energy-cyan-text)}
 
 :where(html[data-add-page="report"][data-add-theme="alt"]) body{
   background:
@@ -345,7 +347,7 @@ html[data-add-page="report"][data-add-theme="alt"].dark .chart-wrap{
 }
 
 :where(html[data-add-page="report"][data-add-theme="alt"]) .split-group-day .split-group-kicker{
-  color:var(--energy-cyan);
+  color:var(--energy-cyan-text);
 }
 
 :where(html[data-add-page="report"][data-add-theme="alt"]) .split-summary-item{
