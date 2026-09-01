@@ -694,6 +694,18 @@ button svg{pointer-events:none;flex-shrink:0}
   background:var(--hero-decor-bg);
 }
 
+/* Hero Background Image Extension */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('../img/hero-bg.png') center/cover no-repeat;
+  opacity: 0.18; /* 투명도를 낮춰 텍스트 가독성 확보 */
+  mix-blend-mode: overlay; /* 기존 다크 네이비 그라데이션과 고급스럽게 융합 */
+  pointer-events: none; /* 클릭 간섭 방지 */
+  z-index: 0;
+}
+
 .hero-title-row{
   display:flex;
   align-items:baseline;
