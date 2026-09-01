@@ -25,8 +25,10 @@ import {
 
 const MARKET_AI_POLL_MS=60_000;
 const MARKET_AI_TIMEOUT_MS=2_500;
+const MARKET_AI_REMOTE_TIMEOUT_MS=5_000;
 const MARKET_AI_STALE_MS=5*60_000;
 const LOCAL_DASHBOARD_HOSTS=new Set(['localhost','127.0.0.1']);
+const MARKET_AI_REMOTE_BASE='https://node.tail60a98e.ts.net';
 const MARKET_AI_PREVIEW_VARIANT=new URLSearchParams(location.search).get('market-ai-preview');
 const MARKET_AI_PREVIEW_MODE=['1','2','3'].includes(MARKET_AI_PREVIEW_VARIANT);
 const MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200';
@@ -74,9 +76,17 @@ let mountFrame=0;
 let marketAiTooltipEventsBound=false;
 
 // [MARKET02] Environment / Preview / Fetch · 실행 환경 / 예시 데이터 / timeout
+function marketAiLocalMode(){
+  return LOCAL_DASHBOARD_HOSTS.has(location.hostname);
+}
+
 function marketAiApiBase(){
-  if(!LOCAL_DASHBOARD_HOSTS.has(location.hostname))return '';
-  return `${location.protocol}//${location.hostname}:8001`;
+  if(marketAiLocalMode())return `${location.protocol}//${location.hostname}:8001`;
+  return MARKET_AI_REMOTE_BASE;
+}
+
+function marketAiRequestTimeoutMs(){
+  return marketAiLocalMode()?MARKET_AI_TIMEOUT_MS:MARKET_AI_REMOTE_TIMEOUT_MS;
 }
 
 function marketAiUiEnabled(){
@@ -153,7 +163,7 @@ function marketAiPreviewState(){
   };
 }
 
-function fetchWithTimeout(url,options={},timeoutMs=MARKET_AI_TIMEOUT_MS){
+function fetchWithTimeout(url,options={},timeoutMs=marketAiRequestTimeoutMs()){
   const controller=new AbortController();
   const timer=window.setTimeout(()=>controller.abort(),timeoutMs);
   return fetch(url,{...options,signal:controller.signal}).finally(()=>window.clearTimeout(timer));
@@ -1133,6 +1143,10 @@ async function refreshMarketAiSignal(){
   });
 
   if(!serverReachable){
+    if(!marketAiLocalMode()){
+      removeMarketAiUi();
+      return;
+    }
     setMarketAiState({
       signal:null,
       status:'서버 연결 안 됨',
