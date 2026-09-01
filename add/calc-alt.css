@@ -1,0 +1,386 @@
+/* =========================================================
+   Calc alternate theme · Compact Trading Workbench
+   - 기존 add.css를 항상 기반으로 사용한다.
+   - html[data-add-theme="alt"]일 때만 정보 밀도와 시각 언어를 override한다.
+   - 계산 로직 / DOM 구조 / 반응형 기능은 변경하지 않는다.
+   ========================================================= */
+
+:root[data-add-page="calc"][data-add-theme="alt"]{
+  --bg:#edf1f5;
+  --card:#f9fbfd;
+  --muted:#647084;
+  --line:#cfd7e2;
+  --soft:#e8edf3;
+  --shadow:0 3px 10px rgba(31,48,76,.055);
+  --surface-control:#ffffff;
+  --surface-hover-soft:#f0f4f8;
+  --surface-subtle:#f2f5f8;
+  --control-border:#c4ceda;
+  --control-readonly-bg:#edf1f5;
+  --control-readonly-text:#566276;
+  --navy:#203a5d;
+
+  --surface-radius-md:8px;
+  --control-radius-md:6px;
+  --inner-radius-md:5px;
+
+  --density-page-pad:10px;
+  --density-surface-lg:9px;
+  --density-surface-md:7px;
+  --density-surface-sm:6px;
+  --density-gap-lg:7px;
+  --density-gap-md:5px;
+  --density-gap-sm:4px;
+  --density-gap-xs:3px;
+  --density-gap-micro:2px;
+  --density-layout-gap:8px;
+  --density-action-pad-x:8px;
+  --density-action-pad-y:5px;
+  --density-field-pad-x:6px;
+  --density-table-pad-x:8px;
+  --density-table-pad-y:6px;
+
+  --calc-control-pad-y:5px;
+  --calc-field-label-gap:3px;
+  --calc-field-row-gap:5px;
+  --calc-field-label-line-height:1.25;
+  --calc-type-page-title:22px;
+  --calc-type-section:16px;
+  --calc-type-subsection:13px;
+  --calc-type-support:11px;
+  --calc-type-label:11px;
+}
+
+html[data-add-page="calc"][data-add-theme="alt"].dark{
+  --bg:#0c121a;
+  --card:#121a24;
+  --muted:#8e9aae;
+  --line:#2b3746;
+  --soft:#202b38;
+  --shadow:0 3px 12px rgba(0,0,0,.22);
+  --surface-control:#101821;
+  --surface-hover-soft:#182330;
+  --surface-subtle:#0f1720;
+  --control-border:#344354;
+  --control-readonly-bg:#1b2632;
+  --control-readonly-text:#b3bfce;
+  --navy:#6c91bd;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) body{
+  background:
+    linear-gradient(rgba(32,58,93,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(32,58,93,.018) 1px,transparent 1px),
+    var(--bg);
+  background-size:24px 24px;
+  font-variant-numeric:tabular-nums;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .wrap{
+  max-width:1600px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .hero{
+  gap:4px;
+  margin-bottom:6px;
+  padding-bottom:7px;
+  border-bottom:1px solid var(--line);
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .hero-head{
+  align-items:center;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .hero h1{
+  font-weight:900;
+  letter-spacing:-.045em;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .hero p{
+  max-width:1100px;
+  line-height:1.3;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .actions{
+  gap:4px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) :is(.add-button-action,.add-button-toggle){
+  font-weight:800;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .preset-bar{
+  gap:4px;
+  margin-bottom:6px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .preset-btn{
+  min-height:30px;
+  padding:5px 8px;
+  box-shadow:none;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .preset-btn.active{
+  box-shadow:0 2px 7px rgba(32,58,93,.16);
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .input-panel{
+  padding:7px;
+  margin-bottom:7px;
+  background:rgba(249,251,253,.76);
+}
+
+html[data-add-page="calc"][data-add-theme="alt"].dark .input-panel{
+  background:rgba(18,26,36,.82);
+}
+
+@media(min-width:1101px){
+  :where(html[data-add-page="calc"][data-add-theme="alt"]) .input-grid{
+    grid-template-columns:1.18fr 1.18fr .86fr;
+    gap:6px;
+  }
+
+  :where(html[data-add-page="calc"][data-add-theme="alt"]) .input-grid.no-prior-layout{
+    grid-template-columns:1.2fr .8fr;
+    column-gap:6px;
+    row-gap:4px;
+  }
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .input-group{
+  padding:6px;
+  box-shadow:none;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .group-title{
+  margin-bottom:5px;
+  padding-bottom:5px;
+  border-bottom:1px solid var(--line);
+  letter-spacing:-.025em;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .group-title small{
+  font-size:10px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .fields{
+  gap:5px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .control{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.46);
+  font-weight:750;
+}
+
+html[data-add-page="calc"][data-add-theme="alt"].dark .control{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .control:focus,
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .date-control-shell:focus-within{
+  box-shadow:0 0 0 2px var(--control-focus-ring);
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) :is(.existing-subsection,.current-subsection,.additional-group.settled-layout .settled-subsection){
+  padding-right:6px;
+  padding-left:6px;
+  padding-bottom:6px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .current-subsection:nth-of-type(n+3),
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .additional-group.settled-layout .settled-result-section{
+  padding-top:6px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .prior-date-section{
+  padding:0 6px 6px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .prior-trade-section{
+  padding:6px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .current-column{
+  gap:4px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .current-purchase-preset{
+  gap:4px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .current-purchase-btn{
+  padding:5px 7px;
+  box-shadow:none;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .formula{
+  padding:4px 6px;
+  font-size:10px;
+  line-height:1.3;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .actual-sale-price{
+  min-height:30px;
+  padding:5px 7px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .actual-sale-price strong{
+  font-size:11px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .kpis{
+  gap:4px;
+  margin-bottom:7px;
+  padding:6px;
+  background:rgba(32,58,93,.025);
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .kpi{
+  padding:7px 8px;
+  box-shadow:none;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .kpi .value{
+  margin-top:2px;
+  font-size:18px;
+  line-height:1.15;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .range-panel{
+  padding:6px;
+  margin-bottom:7px;
+  gap:5px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .range-box{
+  padding:7px 8px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .range-box strong{
+  margin-bottom:2px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .range-box .big{
+  font-size:18px;
+  line-height:1.15;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .tabs{
+  gap:4px;
+  margin-bottom:6px;
+  padding:0;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .tab{
+  padding:5px 8px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .strategy-head{
+  gap:7px;
+  padding:7px 9px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .strategy-title p{
+  margin-top:3px;
+  line-height:1.3;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .badge{
+  padding:3px 6px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .strategy-body{
+  padding:7px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .summary-row{
+  gap:4px;
+  margin-bottom:7px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .summary-card{
+  padding:6px 7px;
+  box-shadow:none;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .summary-card .svalue{
+  margin-top:2px;
+  font-size:17px;
+  line-height:1.15;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .section-title{
+  margin:9px 0 5px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) .calc-data-table tbody td{
+  font-size:12px;
+}
+
+:where(html[data-add-page="calc"][data-add-theme="alt"]) :is(.warning-note,.note){
+  margin-top:6px;
+  padding:6px 8px;
+  line-height:1.35;
+}
+
+@media(max-width:1100px){
+  :root[data-add-page="calc"][data-add-theme="alt"]{
+    --density-page-pad:9px;
+    --density-surface-md:7px;
+    --density-surface-sm:6px;
+    --calc-type-page-title:21px;
+    --calc-type-section:15px;
+    --calc-type-subsection:13px;
+    --calc-type-support:11px;
+    --calc-type-label:11px;
+  }
+}
+
+@media (max-width:760px),
+       (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  :root[data-add-page="calc"][data-add-theme="alt"]{
+    /* Phone은 기존 iOS 입력 안정성과 터치 조작 밀도를 유지한다. */
+    --density-page-pad:9px;
+    --density-surface-md:9px;
+    --density-surface-sm:8px;
+    --density-gap-lg:8px;
+    --density-gap-md:6px;
+    --density-gap-sm:4px;
+    --density-action-pad-y:8px;
+    --calc-control-pad-y:6px;
+    --calc-type-page-title:22px;
+    --calc-type-section:15px;
+    --calc-type-subsection:13px;
+    --calc-type-support:11px;
+    --calc-type-label:10px;
+  }
+
+  :where(html[data-add-page="calc"][data-add-theme="alt"]) .hero{
+    padding-bottom:6px;
+  }
+
+  :where(html[data-add-page="calc"][data-add-theme="alt"]) .preset-btn,
+  :where(html[data-add-page="calc"][data-add-theme="alt"]) .tab{
+    min-height:36px;
+    padding-top:7px;
+    padding-bottom:7px;
+  }
+
+  :where(html[data-add-page="calc"][data-add-theme="alt"]) .input-panel{
+    padding:8px;
+  }
+
+  :where(html[data-add-page="calc"][data-add-theme="alt"]) .input-group{
+    padding:8px;
+  }
+
+  :where(html[data-add-page="calc"][data-add-theme="alt"]) .kpis,
+  :where(html[data-add-page="calc"][data-add-theme="alt"]) .range-panel{
+    padding:8px;
+  }
+
+  :where(html[data-add-page="calc"][data-add-theme="alt"]) .kpi,
+  :where(html[data-add-page="calc"][data-add-theme="alt"]) .range-box{
+    padding:8px;
+  }
+}
