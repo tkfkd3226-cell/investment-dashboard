@@ -10,6 +10,7 @@
 const dashboardDialogFocusState=new WeakMap();
 const dashboardModalDismissState=new WeakMap();
 const dashboardNativeDialogState=new WeakMap();
+const DASHBOARD_FOCUSABLE_SELECTOR='button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 let dashboardDialogBodyLockCount=0;
 
 function dashboardDialogBackgroundElements(container){
@@ -58,7 +59,7 @@ function dashboardElementVisible(el){
 }
 function dashboardDialogFocusables(container){
   if(!container)return [];
-  return [...container.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(dashboardElementVisible);
+  return [...container.querySelectorAll(DASHBOARD_FOCUSABLE_SELECTOR)].filter(dashboardElementVisible);
 }
 function dashboardVisibleFallback(selector){
   if(!selector)return null;
@@ -68,6 +69,15 @@ function dashboardReturnFocusVisible(el){
   if(!dashboardElementVisible(el)||el===document.body||el===document.documentElement)return false;
   const tag=String(el.tagName||'').toLowerCase();
   return typeof el.focus==='function'&&(el.tabIndex>=0||['a','button','input','select','textarea','summary'].includes(tag));
+}
+function dashboardVisibleDocumentFocusable(exclude=null){
+  return [...document.querySelectorAll(DASHBOARD_FOCUSABLE_SELECTOR)]
+    .find(el=>el!==exclude&&!exclude?.contains?.(el)&&dashboardReturnFocusVisible(el))||null;
+}
+function dashboardFocusReturnTarget(stored,fallback,exclude=null){
+  return dashboardReturnFocusVisible(stored)
+    ?stored
+    :(dashboardVisibleFallback(fallback)||dashboardVisibleDocumentFocusable(exclude));
 }
 function activateDashboardDialogFocus(container,{initialFocus=null,fallbackSelector='',returnFocus=null}={}){
   if(!container)return;
@@ -105,7 +115,7 @@ function releaseDashboardDialogFocus(container,{fallbackSelector=''}={}){
   unlockDashboardDialogBody(state);
   if(state){state.returnFocus=null;state.fallbackSelector='';}
   requestAnimationFrame(()=>{
-    const target=dashboardReturnFocusVisible(stored)?stored:dashboardVisibleFallback(fallback);
+    const target=dashboardFocusReturnTarget(stored,fallback,container);
     target?.focus?.({preventScroll:true});
   });
 }
@@ -182,7 +192,7 @@ function closeDashboardNativeDialog(dialog,{fallbackSelector=''}={}){
   if(dialog.open)dialog.close();
   unlockDashboardDialogBody(state);
   requestAnimationFrame(()=>{
-    const target=dashboardReturnFocusVisible(stored)?stored:dashboardVisibleFallback(fallback);
+    const target=dashboardFocusReturnTarget(stored,fallback,dialog);
     target?.focus?.({preventScroll:true});
   });
   return true;
