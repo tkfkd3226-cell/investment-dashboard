@@ -790,8 +790,8 @@ html.dark .hero::before {
   position: absolute;
   inset: 0;
   background: url('../img/ai-bg.png') center / cover no-repeat;
-  opacity: 0.22;
-  mix-blend-mode: normal;
+  opacity: 0.5;
+  mix-blend-mode: screen;
   pointer-events: none;
   z-index: 0;
 }
@@ -799,15 +799,6 @@ html.dark .hero::before {
 .market-ai-panel > * {
   position: relative;
   z-index: 1;
-}
-
-.market-ai-panel .market-ai-card-row{
-  background:color-mix(in srgb,var(--card) 84%,transparent);
-}
-
-html.dark .market-ai-panel::before{
-  opacity:0.16;
-  mix-blend-mode:screen;
 }
 
 /* Market AI Heading / Status · 제목과 연결 상태 */
@@ -2057,16 +2048,11 @@ body.chart-expanded-open .dash-tooltip{
   content: "";
   position: absolute;
   inset: 0;
-  background: url('../img/empty-bg.png') center / contain no-repeat;
-  opacity: 0.16;
-  mix-blend-mode: normal;
+  background: url('../img/empty-bg.png') center / 60% no-repeat;
+  opacity: 0.15;
+  mix-blend-mode: screen;
   pointer-events: none;
   z-index: 0;
-}
-
-html.dark :is(.asset-empty-state,.pension-batch-empty,.asset-no-prev-note)::before{
-  opacity:0.12;
-  mix-blend-mode:screen;
 }
 
 :is(.asset-empty-state,.pension-batch-empty,.asset-no-prev-note) > * {
@@ -3232,15 +3218,10 @@ body.dashboard-dialog-open{
   position: absolute;
   inset: 0;
   background: url('../img/vault-bg.png') center / cover no-repeat;
-  opacity: 0.0;
-  mix-blend-mode: normal;
+  opacity: 0.2;
+  mix-blend-mode: overlay;
   pointer-events: none;
   z-index: 0;
-}
-
-html.dark :is(.source-card.highlight,.card.highlight)::before{
-  opacity:0.16;
-  mix-blend-mode:soft-light;
 }
 
 .source-card.highlight > *,
