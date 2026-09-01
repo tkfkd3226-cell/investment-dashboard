@@ -709,7 +709,7 @@ button svg{pointer-events:none;flex-shrink:0}
 
 /* 다크 모드 시 이질감(붕 뜨는 현상) 방지 */
 html.dark .hero::before {
-  opacity: 0.15; /* 다크 모드에서는 투명도를 대폭 낮춰 어두운 배경에 자연스럽게 스며들도록 조정 */
+  opacity: 0.25;
 }
 
 .hero-title-row{
@@ -780,7 +780,27 @@ html.dark .hero::before {
   background:var(--card);
   box-shadow:var(--shadow-low);
   color:var(--ink);
+  position:relative;
+  overflow:hidden;
 }
+
+/* Market AI Panel Background Watermark */
+.market-ai-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('../img/ai-bg.png') center / cover no-repeat;
+  opacity: 0.05;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.market-ai-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Market AI Heading / Status · 제목과 연결 상태 */
 .market-ai-heading{
   display:flex;
@@ -2019,6 +2039,25 @@ body.chart-expanded-open .dash-tooltip{
   font-size:var(--empty-state-font-size);
   font-weight:var(--empty-state-weight);
   text-align:var(--empty-state-text-align);
+  position:relative;
+  overflow:hidden;
+}
+
+/* Empty State Background Watermark */
+:is(.asset-empty-state,.pension-batch-empty,.asset-no-prev-note)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('../img/empty-bg.png') center / 60% no-repeat;
+  opacity: 0.15;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
+}
+
+:is(.asset-empty-state,.pension-batch-empty,.asset-no-prev-note) > * {
+  position: relative;
+  z-index: 1;
 }
 
 .asset-stack-bar{
@@ -3164,6 +3203,31 @@ body.dashboard-dialog-open{
   min-width:0;
   box-shadow:none;
   border-color:var(--surface-border-muted);
+}
+
+.source-card.highlight,
+.card.highlight {
+  position:relative;
+  overflow:hidden;
+}
+
+/* Highlight Card (전체 투입원금 등) Background Extension */
+.source-card.highlight::before,
+.card.highlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('../img/vault-bg.png') center / cover no-repeat;
+  opacity: 0.2;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.source-card.highlight > *,
+.card.highlight > * {
+  position: relative;
+  z-index: 1;
 }
 
 .source-card.highlight{
