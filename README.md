@@ -2,7 +2,7 @@
 
 삼성증권 증권계좌와 퇴직연금 계좌의 **날짜별 투자 성과를 복원·검산·분석하기 위한 정적 웹 대시보드**입니다.
 
-메인 화면은 GitHub Pages에서 제공하며, KRX 가격과 성과 스냅샷은 GitHub Actions + Python으로 갱신합니다. 퇴직연금 금액 조정과 KRX 갱신 요청처럼 브라우저에서 직접 파일을 수정할 수 없는 쓰기 작업은 Google Apps Script Web App을 통해 연결합니다. 로컬 실행 시에는 별도 `market-ai` 프로젝트의 현재 시장·AI 신호를 Desktop/Tablet Hero 보조 카드 또는 Mobile dialog로 선택적으로 표시합니다.
+메인 화면은 GitHub Pages에서 제공하며, KRX 가격과 성과 스냅샷은 GitHub Actions + Python으로 갱신합니다. 퇴직연금 금액 조정과 KRX 갱신 요청처럼 브라우저에서 직접 파일을 수정할 수 없는 쓰기 작업은 Google Apps Script Web App을 통해 연결합니다. 별도 `market-ai` 프로젝트가 실행 중이면 로컬에서는 `127.0.0.1:8001`, 외부 GitHub Pages에서는 Tailscale Serve를 통해 같은 실제 현재 시장·AI 신호를 Desktop/Tablet Hero 보조 카드 또는 Mobile dialog로 표시합니다.
 
 이 저장소는 단순 시세 조회 화면이 아니라 다음 세 가지를 함께 관리하는 것을 목표로 합니다.
 
@@ -52,12 +52,15 @@
 - GitHub Actions 수동 실행을 통한 가격 및 성과 스냅샷 갱신
 - 과거 거래일 보완 및 과거 장중 데이터의 종가 확정
 
-### 1.5 로컬 Market AI 연동
+### 1.5 Market AI 연동
 
 - `dashboard-market-ai.js` standalone entry를 통한 현재 시장·AI 신호 표시. main feature state와는 분리하고 공통 `dashboard-modal.js`의 dialog lifecycle만 공유
-- 시장 4개 metric(KOSPI·KOSPI200선물·SOX/SOX-F·NQ100선물)과 AI 신호 4개 metric을 공통 `data-list-card` 기반의 **시장 65% / AI 신호 35%** 구조로 표시. SOX 시장 metric은 미국 현물 정규장 중 `INDEX:SOX`를 `SOX`, 정규장 밖에는 `FUTURES:SOX`를 `SOX-F`로 표시하고, 선택 source의 provider `observed_at`이 freshness 기준을 넘으면 오래된 가격을 현재값처럼 유지하지 않고 unavailable로 표시한다. Signal 입력은 계속 `INDEX:SOX`를 사용
+- 시장 4개 metric(KOSPI·KOSPI200선물·SOX·NQ100선물)과 AI 신호 4개 metric을 공통 `data-list-card` 기반의 **시장 65% / AI 신호 35%** 구조로 표시. SOX 시장 metric과 Signal 입력은 모두 `INDEX:SOX` 현물지수를 사용하며, 표시 편의를 위해 `FUTURES:SOX` 또는 `SOX-F`로 자동 전환하지 않음
 - Desktop / Tablet은 Hero 우측 보조 카드, Mobile ≤760px·실제 터치폰 가로 UI는 Hero의 **AI Signal** 버튼에서 같은 Market AI panel을 modal로 이동·재사용
-- 로컬에서는 실제 API 데이터를 사용하고 비로컬은 기본 숨김. `?market-ai-preview=1`(Desktop 1280) / `?market-ai-preview=2`(Tablet 961) / `?market-ai-preview=3`(현재 Mobile viewport)에서는 API polling 없이 내장 예시 데이터로 UI를 확인
+- 로컬에서는 `http://127.0.0.1:8001`의 실제 API 데이터를 사용
+- 외부 GitHub Pages에서는 `https://node.tail60a98e.ts.net` Tailscale Serve를 통해 같은 실제 Market AI API를 조회. FastAPI 8001 포트를 인터넷에 직접 공개하지 않음
+- 외부 조회는 Market AI PC의 Local Suite와 Tailscale이 실행 중이고, 조회 기기도 같은 tailnet에 연결되어 있을 때 사용 가능
+- 예시 데이터 전용 모드는 폐기했으며, 폰에서 화면 형태만 강제 확인할 때는 `?dashboard-view=web`, `?dashboard-view=tablet`, `?dashboard-view=mobile`을 사용하고 세 모드 모두 실제 Market AI 데이터를 사용
 - Mobile modal에서는 metric tooltip을 사용하지 않고, Desktop / Tablet에서만 keyboard/pointer tooltip을 제공
 - 선택한 과거 기준일과 분리된 **현재 시점 신호**로 동작
 - Signal endpoint가 대기·오류·timeout·stale 상태여도 같은 refresh에서 정상 수신한 Market Snapshot은 유지하고 신호 상태만 분리 표시
@@ -76,7 +79,7 @@
 
 메인 화면은 `index.html`에서 시작하고, `dashboard-app.js`가 **main dependency graph의 단일 ES Module entry point**로 나머지 메인 모듈을 조율합니다. `dashboard-market-ai.js`는 이 graph와 분리된 standalone module로 `index.html`에서 독립 로드됩니다.
 
-가로로 긴 하나의 도식 대신 실제 동작을 **조회 / 퇴직연금 쓰기 / KRX 갱신 / 로컬 Market AI 조회**의 네 흐름으로 나눠 보면 다음과 같습니다.
+가로로 긴 하나의 도식 대신 실제 동작을 **조회 / 퇴직연금 쓰기 / KRX 갱신 / Market AI 조회**의 네 흐름으로 나눠 보면 다음과 같습니다.
 
 ### 2.1 화면 조회 흐름
 
@@ -137,7 +140,7 @@ prices.json
 performance_snapshots.json
 ```
 
-### 2.4 로컬 Market AI 조회 흐름
+### 2.4 Market AI 조회 흐름
 
 ```text
 Local Browser (:8000)
@@ -149,11 +152,23 @@ Market AI FastAPI (:8001)
    ├─ /api/market-data/snapshot
    ├─ /api/signal/latest?include_details=true
    └─ /api/bridge/kis-efriend/status
+
+External GitHub Pages
         ↓
-Desktop/Tablet Hero 또는 Mobile dialog
+dashboard-market-ai.js
+        ↓
+https://node.tail60a98e.ts.net
+        ↓
+Tailscale Serve
+        ↓
+http://127.0.0.1:8001
+        ↓
+Market AI FastAPI
 ```
 
-이 흐름은 main feature state와 분리된 조회 전용 entry입니다. `dashboard-market-ai.js`는 `dashboard-modal.js`의 저수준 dialog lifecycle만 공유하고 polling/state/mount/render는 자체 소유합니다. Signal endpoint의 404·오류·timeout·stale은 Market Snapshot과 분리해 처리하며, 같은 refresh에서 snapshot이 정상 수신되면 시장값을 유지한 채 신호 상태만 `대기 / 오류 / 지연`으로 표시합니다. 세 endpoint가 모두 응답하지 않아 서버 전체 접근 불가로 판단될 때만 전체 연결 오류로 전환합니다. **비로컬 기본 모드**에서는 UI를 숨기고, 명시적 preview mode에서는 API polling 없이 내장 예시 데이터만 표시합니다.
+이 흐름은 main feature state와 분리된 조회 전용 entry입니다. `dashboard-market-ai.js`는 `dashboard-modal.js`의 저수준 dialog lifecycle만 공유하고 polling/state/mount/render는 자체 소유합니다. Signal endpoint의 404·오류·timeout·stale은 Market Snapshot과 분리해 처리하며, 같은 refresh에서 snapshot이 정상 수신되면 시장값을 유지한 채 신호 상태만 `대기 / 오류 / 지연`으로 표시합니다. 세 endpoint가 모두 응답하지 않아 서버 전체 접근 불가로 판단될 때만 전체 연결 오류로 전환합니다.
+
+로컬과 원격 모두 **실제 Market AI 데이터**를 사용합니다. 외부 GitHub Pages에서 cross-origin `fetch()`가 가능하도록 Market AI FastAPI는 Dashboard Origin `https://tkfkd3226-cell.github.io`를 명시적으로 CORS 허용합니다. Tailscale Serve와 CORS의 상세 운영 계약은 Market AI 프로젝트 문서를 Source of Truth로 합니다.
 
 프론트엔드는 별도 번들러나 프레임워크 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 동작합니다.
 
@@ -201,14 +216,9 @@ investment-dashboard-main/
 │  ├─ calc.test.cjs
 │  ├─ ui-contract.test.cjs
 │  └─ add_maintenance_handover.md
-├─ tools/
-│  ├─ close-efriend-tray.ps1
-│  └─ inspect-efriend-ui.ps1
 ├─ .github/workflows/
 │  └─ update-prices.yml
 ├─ requirements.txt
-├─ InvestmentLocalSuite.ico
-├─ start-local-server.pyw
 └─ main_dashboard_maintenance_handover.md
 ```
 
@@ -230,7 +240,7 @@ main dependency graph는 **8개 ES Module**로 구성되어 있으며 `dashboard
 | `dashboard-pension.js` | 퇴직연금 **View** — 현황, 상품 정보, 인사이트, 시각화 tooltip |
 | `dashboard-pension-editor.js` | 퇴직연금 **Editor** — 금액조정, PIN, batch, 저장·삭제 |
 | `dashboard-app.js` | 날짜·별도수익 등 cross-module 흐름, 전체 render orchestration, 초기화·boot |
-| `dashboard-market-ai.js` | 로컬 Market AI API polling/state/render와 Mobile modal mount를 자체 소유하는 standalone entry; `dashboard-modal.js`만 공유 |
+| `dashboard-market-ai.js` | 로컬 `:8001` 또는 원격 Tailscale Serve의 실제 Market AI API polling/state/render와 Mobile modal mount를 자체 소유하는 standalone entry; `dashboard-modal.js`만 공유 |
 
 ### 4.2 Dependency 방향
 
@@ -324,7 +334,7 @@ Mobile  : 760px 이하
 
 Market AI UI의 CSS도 같은 역할 분리를 따릅니다. Desktop baseline과 공통 `data-list-card`/tooltip은 `common.css`의 **Hero 인접 영역**, Tablet 배치·밀도는 `tablet.css`의 Hero 영역, 실제 Phone 진입 버튼·modal·panel 이동은 `special.css`의 Phone UI Shared에서 관리합니다. **1101~1279 compact Desktop은 Asset Detail 전용이며 Market AI override를 두지 않고, 1280px은 일반 Desktop으로 유지합니다.** Mobile Market AI metric tooltip은 사용하지 않습니다. `dashboard-market-ai.js` 전용 class라는 이유로 파일 하단에 별도 override 묶음을 추가하지 않습니다.
 
-세부 CSS 수정·QA 원칙과 breakpoint/override 규칙은 `main_dashboard_maintenance_handover.md`를 Source of Truth로 따른다.
+세부 CSS 수정·QA 원칙과 breakpoint/override 규칙은 `main_dashboard_maintenance_handover.md`를 Source of Truth로 따릅니다.
 
 ---
 
@@ -492,50 +502,7 @@ GAS 요청
 
 ---
 
-## 7. 로컬 실행
-
-JSON 데이터를 `fetch()`로 읽기 때문에 `file://` 직접 실행 대신 프로젝트 루트의 `start-local-server.pyw`를 사용합니다. `.pyw`는 콘솔 없이 트레이에서 실행되며, 시작 시 관리자 권한을 한 번만 요청합니다.
-
-기본 주소:
-
-```text
-Dashboard : http://localhost:8000/
-Market AI : http://127.0.0.1:8001/
-```
-
-통합 실행 순서는 다음과 같습니다.
-
-```text
-eFriend Expert 로그인/공인인증 완료
-→ KIS KOSPI200 Bridge
-→ Market AI API
-→ Dashboard
-```
-
-eFriend의 최종 Ready 기준은 `efexpertmain.exe`입니다. 로그인 또는 인증 절차가 진행 중이면 중복 실행하지 않고 완료를 기다립니다. 저장된 eFriend 자격 증명이 있으면 Windows Credential Manager에서 읽어 로그인·인증서 확인을 한 번 자동 시도하고, 실패하거나 UI 구조가 달라지면 수동 로그인 대기로 전환합니다. KIS Bridge는 사전 빌드된 Release/x86 실행 파일을 사용해 시스템 트레이에서 실행되며, 런처 기동 시 자동 재빌드하지 않습니다. Bridge 소스 변경 시에만 `build-kis-bridge-release.bat`을 수동 실행합니다.
-
-시작 중에는 실제 Ready 단계에 연동된 진행창이 표시되며 정상 완료 시 100% 후 Dashboard를 엽니다. 런처는 단일 인스턴스로 유지됩니다.
-
-- Local Suite 트레이 `View` → 실행 상태와 `start-local-server.log` 확인
-- Local Suite 트레이 `eFriend 자동 로그인 설정` → Windows Credential Manager에 로컬 자격 증명 저장/삭제
-- Local Suite 트레이 `eFriend·Bridge·서버 종료` → Dashboard / Market AI API / KIS Bridge / eFriend Expert 함께 종료
-- KIS Bridge 트레이 `View` → 상태창 표시, `종료` → Bridge 종료
-
-통합 런처 없이 대시보드만 실행하려면:
-
-```bash
-python -m http.server 8000
-```
-
-또는:
-
-```bash
-py -m http.server 8000
-```
-
----
-
-## 8. GitHub Pages 배포
+## 7. GitHub Pages 배포
 
 메인 대시보드는 GitHub Pages의 branch 배포를 기준으로 합니다.
 
@@ -550,8 +517,7 @@ Folder : /root
 
 ---
 
-
-## 9. 저장소 정리
+## 8. 저장소 정리
 
 Python cache 등 실행 중 자동 생성되는 파일은 저장소에 포함하지 않습니다.
 
@@ -562,7 +528,7 @@ __pycache__/
 
 ---
 
-## 10. 상세 운영 문서
+## 9. 상세 운영 문서
 
 README는 저장소의 **기능, 전체 동작 구조, 프로젝트 구조, 데이터·갱신 방식, 실행·배포 개요**만 설명합니다.
 

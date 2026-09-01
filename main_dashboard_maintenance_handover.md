@@ -406,6 +406,7 @@ Market AI 백엔드는 기본 평가 대상에서 제외한다.
 ```
 
 
+
 ### C. 프로젝트 구조와 정적 검증
 
 평가 시작 시 실제 ZIP의 디렉토리/파일 목록을 먼저 확인한다. 현재 canonical 구조는 4장을 참고하되 **실제 ZIP이 다르면 실제 구조가 우선**한다.
@@ -523,7 +524,6 @@ response state / duplicate·idempotency 처리
 
 server contract는 최신 GAS가 제공된 경우에만 완전 대조한다.
 
-
 ### G. UI / UX 평가 기준
 
 UI는 코드 구조와 분리해서 실제 화면 설계 관점으로 본다.
@@ -570,6 +570,7 @@ KRX: modal → PIN → action → loading → success/skip/error → feedback
 개인보기: OFF/ON 3회 gesture → state/reset/layout
 퇴직연금: 조정/적립/추가매수/삭제/PIN/batch/save/render
 Chart: legend/최소1개/전체/Y auto/mode/확대/keyboard/resize/tooltip
+Market AI: local/remote fetch → endpoint별 상태 격리 → Desktop/Tablet Hero 또는 Mobile dialog
 ```
 
 개인보기 3회 클릭은 **일반 사용자에게 진입 경로를 숨기는 의도된 private gesture**이므로 discoverability나 일반 button이 아니라는 이유만으로 감점하지 않는다.
@@ -640,7 +641,7 @@ https://tkfkd3226-cell.github.io/investment-dashboard
 - QA에서 공개 페이지가 우연히 현재 수정본과 같아 보이더라도 그 사실을 전제로 PASS를 판정하지 않는다. 배포 확인이 필요하면 사용자의 별도 `배포본 확인` 요청으로 분리한다.
 - 최신 ZIP의 미배포 변경사항을 GitHub Pages 화면만 보고 `실제 pixel/render 검증 PASS`라고 보고하지 않는다.
 - 공개 페이지의 runtime 결과가 최신 ZIP과 충돌하면 배포 지연·revision 차이 가능성을 먼저 구분하고, 공개 페이지를 근거로 최신 ZIP 코드를 되돌리지 않는다.
-- Market AI/K200 bridge 등 로컬 전용 backend가 공개 페이지에서 연결되지 않는 것은 해당 frontend의 UI·responsive 렌더링 검증 자체를 막는 사유가 아니며, 외부 backend 미연결은 2.3-B의 평가 경계를 따른다.
+- Market AI backend는 Tailscale Serve를 통해 원격 조회할 수 있지만 평가 환경이 같은 tailnet에 연결되지 않았다면 공개 페이지에서 Market AI가 연결되지 않을 수 있다. 이 사실만으로 frontend UI·responsive를 감점하지 않으며 backend 연결 자체의 평가는 2.3-B 경계를 따른다.
 
 runtime smoke의 확인 순서는 다음을 기본으로 한다.
 
@@ -1124,11 +1125,6 @@ investment-dashboard-main/
 ├─ main_dashboard_maintenance_handover.md
 ├─ requirements.txt
 ├─ scripts/update_prices.py
-├─ tools/
-│  ├─ close-efriend-tray.ps1
-│  └─ inspect-efriend-ui.ps1
-├─ InvestmentLocalSuite.ico
-└─ start-local-server.pyw
 ```
 
 메인 CSS는 6개 역할 파일로 분리되어 있으며 Desktop은 `common.css` baseline을 사용하고 `css/style.css`는 최종 구조에서 제거되었다. 파일별 줄 수와 크기는 변경 시점의 snapshot으로만 보고 고정값으로 취급하지 않는다.
@@ -1441,21 +1437,22 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 ## 4.9 `dashboard-market-ai.js` standalone 책임
 
-`dashboard-market-ai.js`는 main feature state와 분리된 **로컬 조회 + 명시적 preview 전용 standalone entry**다. `dashboard-modal.js`의 저수준 dialog lifecycle만 공유하며 polling/state/mount/render는 자체 소유한다.
+`dashboard-market-ai.js`는 main feature state와 분리된 **로컬·원격 실제 Market AI 조회 전용 standalone entry**다. `dashboard-modal.js`의 저수준 dialog lifecycle만 공유하며 polling/state/mount/render는 자체 소유한다.
 
 현재 책임과 불변조건:
 
-- 로컬(`localhost`, `127.0.0.1`)에서만 실제 Market AI API를 조회하고, 비로컬 기본 모드는 UI를 숨긴다. preview mode는 API polling 없이 예시 데이터만 사용한다.
+- 로컬(`localhost`, `127.0.0.1`)에서는 현재 host의 `:8001` Market AI API를 조회하고, 비로컬 GitHub Pages에서는 `https://node.tail60a98e.ts.net` Tailscale Serve를 통해 같은 실제 Market AI API를 조회한다.
+- `market-ai-preview` 예시 데이터 모드는 사용하지 않는다. `?dashboard-view=web`, `?dashboard-view=tablet`, `?dashboard-view=mobile`은 화면 형태만 바꾸며 세 모드 모두 실제 Market AI 데이터를 사용한다.
 - Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다.
 - refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답이 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 request sequence를 state 반영 전에 확인한다.
 - backend가 제공하는 signal metadata와 산식 contract를 프런트에서 임의 재해석하지 않는다. 상세 backend 계약은 Market AI 프로젝트의 `market_ai_project_handover.md`를 Source of Truth로 한다.
-- SOX/SOX-F **표시 source 전환과 Signal Engine 입력은 분리**한다. 화면용 source는 provider `observed_at` 기준 freshness를 평가해 stale 값을 현재값처럼 유지하지 않으며, Signal Engine의 canonical 입력을 표시 편의 때문에 바꾸지 않는다.
+- SOX 시장 metric과 Signal Engine 입력은 모두 `INDEX:SOX`를 사용하며 표시 편의를 위해 `FUTURES:SOX` 또는 `SOX-F`로 자동 전환하지 않는다.
 - 선택된 과거 `activeDate`와 무관하게 Market AI panel은 현재 시점 신호를 표시한다.
 - Desktop/Tablet과 Mobile이 같은 `#market-ai-section` DOM을 재사용하며 별도 Mobile render tree를 만들지 않는다.
 - `window/globalThis` bridge, main `dataState/uiState` 직접 접근, main feature module import를 추가하지 않는다.
 - layout 비율, tooltip 위치, viewport별 density, freshness threshold 같은 현재 표현·운영 수치는 실제 CSS/JS/backend 설정을 Source of Truth로 하고 handover에 미세값을 고정하지 않는다.
 
-로컬 런처, eFriend, KIS Bridge, backend 수집·신호 산식·운영 절차는 `dashboard-market-ai.js`의 책임이 아니다. 해당 상세 운영은 Market AI 프로젝트의 `market_ai_project_handover.md`를 따른다.
+eFriend, KIS Bridge, Tailscale Serve/CORS, backend 수집·신호 산식·운영 절차는 `dashboard-market-ai.js`의 책임이 아니다. 해당 상세 운영은 Market AI 프로젝트의 `market_ai_project_handover.md`를 따른다.
 
 ## 4.10 JS state · initialization ownership
 
@@ -1514,7 +1511,7 @@ Modal/Dialog lifecycle → modal
 퇴직연금 조회 View → pension
 퇴직연금 변경/저장 → pension-editor
 앱 boot/cross-module orchestration → app
-Market AI 로컬 조회/preview/mount/fail isolation → market-ai standalone
+Market AI local/remote 실제 API 조회/mount/fail isolation → market-ai standalone
 ```
 
 처럼 책임을 유지한다.
@@ -1570,7 +1567,7 @@ Topbar / Navigation / 일반 UI
 cross-module event routing / render orchestration / boot
 → js/dashboard-app.js
 
-Market AI 로컬 현재 신호 조회 + 비로컬 명시적 preview / Hero 보조 UI standalone adapter
+Market AI 로컬 `:8001` + 원격 Tailscale 실제 현재 신호 조회 / Hero 보조 UI standalone adapter
 → js/dashboard-market-ai.js
 
 Market AI Desktop baseline / 공통 component
@@ -1727,6 +1724,7 @@ JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 �
 
 현재 canonical desktop-request viewport는 **`width=1280`**이다. 과거 `width=1980` 기준은 폐기되었으며 되돌리지 않는다.
 
+
 ## 5.2 Section Title / Control 공통 불변조건
 
 - 메인 `h2`, 하위/차트 `h3`는 공통 title typography/icon contract를 사용하고 부모 container는 배치 책임만 가진다.
@@ -1775,6 +1773,14 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - listener 중복 또는 chart 이중 생성 없음
 
 표시 기준 스위치는 선/Y축 표시 기준만 바꾸며 tooltip 정보 contract를 불필요하게 축소하지 않는다. 사용자가 범례에서 숨긴 series는 tooltip 대상에서도 제외한다.
+
+### Market AI
+
+- local/remote 모두 실제 API를 사용한다.
+- 예시 데이터 전용 모드를 다시 도입하지 않는다.
+- Phone의 `dashboard-view`는 화면형태만 바꾼다.
+- remote 연결 실패는 일반 대시보드의 다른 기능을 깨뜨리지 않는다.
+- Desktop/Tablet Hero와 Mobile dialog가 같은 panel DOM을 재사용하는 구조를 유지한다.
 
 ## 5.4 계좌별 성과 메모 tooltip
 
@@ -1875,7 +1881,7 @@ Mobile · 모바일: 760px 이하
 → 초소형 화면에서 계좌별 성과 정보 구조 보정
 
 1101~1279px
-→ Compact Desktop 예외: Asset Detail 2-column 가용폭 보정. 1280px은 일반 Desktop 2-column을 유지하며 모바일 preview의 1280 viewport도 이 기준을 따른다.
+→ Compact Desktop 예외: Asset Detail 2-column 가용폭 보정. 1280px은 일반 Desktop 2-column을 유지하며 모바일의 `?dashboard-view=web` 1280 viewport도 이 기준을 따른다.
 
 Phone Landscape
 → iPhone 13 844×390부터 956×440급 대형 스마트폰까지 width만 보면 Tablet으로 오판되는 실제 터치폰 가로모드 대응
@@ -1982,7 +1988,7 @@ New
 
 현재 허용된 대표 기능 예외는 다음 두 가지다.
 
-- `1101~1279px`: Compact Desktop 기능 예외다. `.asset-detail-grid`만 1열로 전환한다. `1280px`은 의도적으로 제외해 일반 Desktop 2-column을 유지하고, 모바일 Market AI preview가 강제하는 1280 viewport에서도 변동 카드가 내려가지 않게 한다. `1100px 이하`는 기존 Tablet/Mobile/Phone 규칙이 담당하며 이 조건을 다른 영역의 일반 breakpoint로 확대하지 않는다.
+- `1101~1279px`: Compact Desktop 기능 예외다. `.asset-detail-grid`만 1열로 전환한다. `1280px`은 의도적으로 제외해 일반 Desktop 2-column을 유지하고, 모바일의 `?dashboard-view=web`이 강제하는 1280 viewport에서도 변동 카드가 내려가지 않게 한다. `1100px 이하`는 기존 Tablet/Mobile/Phone 규칙이 담당하며 이 조건을 다른 영역의 일반 breakpoint로 확대하지 않는다.
 - `landscape + width≤960 + height≤500 + hover:none + pointer:coarse`: 실제 스마트폰 가로 판정에만 사용한다. `960px`을 일반 breakpoint로 재사용하지 않는다.
 
 공통 Asset Detail CSS는 기존 generic class/token을 우선 재사용하고, 실제로 양쪽 자산이 공유하는 의미에만 최소 `.asset-*` semantic class를 사용한다. 현황/전일변동/상승분기여도에서 공통화된 selector는 neutral `.asset-*`가 canonical이며, 같은 역할의 `.pension-*` legacy alias를 병렬로 유지하지 않는다. 위험자산 70% 룰·퇴직연금 조정/PIN/납입 등 연금 전용 UI는 계속 `.pension-*`를 사용한다.
