@@ -31,7 +31,6 @@ const MARKET_AI_PREVIEW_VARIANT=new URLSearchParams(location.search).get('market
 const MARKET_AI_PREVIEW_MODE=['1','2','3'].includes(MARKET_AI_PREVIEW_VARIANT);
 const MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200';
 const MARKET_AI_SOX_INDEX_SYMBOL='INDEX:SOX';
-const MARKET_AI_SOX_FUTURES_SYMBOL='FUTURES:SOX';
 const MARKET_AI_NASDAQ100_FUTURES_SYMBOL='FUTURES:NQ';
 const MARKET_AI_TOOLTIP_ID='marketAiTooltip';
 const MARKET_AI_MOBILE_DIALOG_ID='marketAiMobileDialog';
@@ -144,7 +143,6 @@ function marketAiPreviewState(){
       {symbol:'INDEX:KOSPI',price:3278.64,change_pct:0.84,observed_at:now,source:'preview'},
       {symbol:MARKET_AI_KIS_FUTURES_SYMBOL,price:438.25,change_pct:0.72,observed_at:now,source:'kis-efriend:preview'},
       {symbol:MARKET_AI_SOX_INDEX_SYMBOL,price:5916.43,change_pct:1.18,observed_at:now,source:'preview'},
-      {symbol:MARKET_AI_SOX_FUTURES_SYMBOL,price:5934.75,change_pct:0.92,observed_at:now,source:'preview'},
       {symbol:MARKET_AI_NASDAQ100_FUTURES_SYMBOL,price:24386.75,change_pct:0.61,observed_at:now,source:'preview'}
     ]}),
     bridgeStatus:{market_open:true,connected:true,expected_session:'day'},
@@ -311,60 +309,20 @@ function marketAiKstClockParts(date=new Date()){
   return marketAiClockParts('Asia/Seoul',date);
 }
 
-function marketAiUsCashSessionOpen(date=new Date()){
-  const {weekday,minuteOfDay}=marketAiClockParts('America/New_York',date);
-  return weekday>=1&&weekday<=5&&minuteOfDay>=9*60+30&&minuteOfDay<16*60;
-}
-
-function marketAiSoxDisplayState(date=new Date()){
+function marketAiSoxDisplayState(){
   const indexRow=marketAiSnapshotRow(MARKET_AI_SOX_INDEX_SYMBOL);
-  const futuresRow=marketAiSnapshotRow(MARKET_AI_SOX_FUTURES_SYMBOL);
-  const regularClockOpen=marketAiUsCashSessionOpen(date);
   const indexFreshness=marketAiSnapshotFreshness(indexRow);
-  const futuresFreshness=marketAiSnapshotFreshness(futuresRow);
   const indexFresh=MARKET_AI_PREVIEW_MODE||indexFreshness.fresh;
-  const futuresFresh=MARKET_AI_PREVIEW_MODE||futuresFreshness.fresh;
-  const useIndex=regularClockOpen&&indexFresh;
-
-  if(useIndex){
-    return {
-      row:indexRow,
-      label:'SOX',
-      price:item=>marketAiIndexText(item?.price),
-      source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo PHLX 반도체 현물지수',
-      state:{reason:'fresh',rawRow:indexRow,observedAt:indexFreshness.observedAt}
-    };
-  }
-
-  if(futuresFresh){
-    return {
-      row:futuresRow,
-      label:'SOX-F',
-      price:item=>marketAiPriceText(item?.price,2),
-      source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo E-mini PHLX 반도체 선물 (SOX=F)',
-      state:{reason:'fresh',rawRow:futuresRow,observedAt:futuresFreshness.observedAt}
-    };
-  }
-
-  if(regularClockOpen&&indexRow&&!futuresRow){
-    return {
-      row:null,
-      label:'SOX',
-      price:item=>marketAiIndexText(item?.price),
-      source:'Yahoo PHLX 반도체 현물지수',
-      state:{reason:'stale',rawRow:indexRow,observedAt:indexFreshness.observedAt}
-    };
-  }
 
   return {
-    row:null,
-    label:'SOX-F',
-    price:item=>marketAiPriceText(item?.price,2),
-    source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo E-mini PHLX 반도체 선물 (SOX=F)',
+    row:indexRow,
+    label:'SOX',
+    price:item=>marketAiIndexText(item?.price),
+    source:MARKET_AI_PREVIEW_MODE?'내장 예시 데이터':'Yahoo PHLX 반도체 현물지수',
     state:{
-      reason:futuresRow?'stale':'missing',
-      rawRow:futuresRow,
-      observedAt:futuresFreshness.observedAt
+      reason:indexRow?(indexFresh?'fresh':'stale'):'missing',
+      rawRow:indexRow,
+      observedAt:indexFreshness.observedAt
     }
   };
 }
