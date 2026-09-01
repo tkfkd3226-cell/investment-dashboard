@@ -10,7 +10,7 @@ import {
 // View-mode contract: ?dashboard-view=web/tablet/mobile은 레이아웃만 선택하며 Market AI는 항상 실제 데이터를 사용한다.
 // Structure map:
 //   [MARKET01] Configuration / Runtime State
-//   [MARKET02] Environment / Preview / Fetch
+//   [MARKET02] Environment / Fetch
 //   [MARKET03] Formatting / Time / Freshness
 //   [MARKET04] Snapshot / Session State
 //   [MARKET05] Tooltip Core

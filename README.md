@@ -64,7 +64,10 @@
 - Mobile modal에서는 metric tooltip을 사용하지 않고, Desktop / Tablet에서만 keyboard/pointer tooltip을 제공
 - 선택한 과거 기준일과 분리된 **현재 시점 신호**로 동작
 - Signal endpoint가 대기·오류·timeout·stale 상태여도 같은 refresh에서 정상 수신한 Market Snapshot은 유지하고 신호 상태만 분리 표시
+- KOSPI200선물은 `kis-efriend:*` 실제 소스이면서 proxy가 아닌 데이터만 사용. 장 종료로 확인된 마지막 정상값은 유지하되 장중 stale·Bridge 단절·대체 소스는 사용 불가로 표시
+- backend가 `actual_close`를 제공한 상승마감 항목은 예측 점수 대신 실제 KOSPI 종가 결과와 확정 상태로 표시
 - 신호 tooltip의 가중치는 backend `effective_weight`를 우선 사용하며, checkpoint metadata가 없는 구버전 응답에서는 configured/legacy weight로 fallback
+- 세 endpoint가 모두 응답하지 않으면 로컬은 panel에 연결 오류를 표시하며 재시도하고, 원격은 Market AI panel·button·dialog만 제거한 채 polling을 유지. 두 경우 모두 메인 대시보드에는 영향을 주지 않음
 
 ### 1.6 부가 도구
 
@@ -166,7 +169,7 @@ http://127.0.0.1:8001
 Market AI FastAPI
 ```
 
-이 흐름은 main feature state와 분리된 조회 전용 entry입니다. `dashboard-market-ai.js`는 `dashboard-modal.js`의 저수준 dialog lifecycle만 공유하고 polling/state/mount/render는 자체 소유합니다. Signal endpoint의 404·오류·timeout·stale은 Market Snapshot과 분리해 처리하며, 같은 refresh에서 snapshot이 정상 수신되면 시장값을 유지한 채 신호 상태만 `대기 / 오류 / 지연`으로 표시합니다. 세 endpoint가 모두 응답하지 않아 서버 전체 접근 불가로 판단될 때만 전체 연결 오류로 전환합니다.
+이 흐름은 main feature state와 분리된 조회 전용 entry입니다. `dashboard-market-ai.js`는 `dashboard-modal.js`의 저수준 dialog lifecycle만 공유하고 polling/state/mount/render는 자체 소유합니다. Signal endpoint의 404·오류·timeout·stale은 Market Snapshot과 분리해 처리하며, 같은 refresh에서 snapshot이 정상 수신되면 시장값을 유지한 채 신호 상태만 `대기 / 오류 / 지연`으로 표시합니다. 세 endpoint가 모두 응답하지 않으면 로컬은 panel에 전체 연결 오류를 표시하고, 비로컬 환경은 Market AI UI만 제거합니다. polling은 계속되어 다음 정상 응답 때 UI가 다시 mount됩니다.
 
 로컬과 원격 모두 **실제 Market AI 데이터**를 사용합니다. 외부 GitHub Pages에서 cross-origin `fetch()`가 가능하도록 Market AI FastAPI는 Dashboard Origin `https://tkfkd3226-cell.github.io`를 명시적으로 CORS 허용합니다. Tailscale Serve와 CORS의 상세 운영 계약은 Market AI 프로젝트 문서를 Source of Truth로 합니다.
 

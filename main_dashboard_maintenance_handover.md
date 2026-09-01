@@ -1443,12 +1443,17 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 - 로컬(`localhost`, `127.0.0.1`)에서는 현재 host의 `:8001` Market AI API를 조회하고, 비로컬 GitHub Pages에서는 `https://node.tail60a98e.ts.net` Tailscale Serve를 통해 같은 실제 Market AI API를 조회한다.
 - `market-ai-preview` 예시 데이터 모드는 사용하지 않는다. `?dashboard-view=web`, `?dashboard-view=tablet`, `?dashboard-view=mobile`은 화면 형태만 바꾸며 세 모드 모두 실제 Market AI 데이터를 사용한다.
-- Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다.
+- Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다. 세 endpoint가 모두 응답하지 않으면 로컬은 panel에 연결 오류를 표시하며 재시도하고, 비로컬 환경은 Market AI panel·button·dialog만 제거한 채 polling을 유지한다.
 - refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답이 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 request sequence를 state 반영 전에 확인한다.
 - backend가 제공하는 signal metadata와 산식 contract를 프런트에서 임의 재해석하지 않는다. 상세 backend 계약은 Market AI 프로젝트의 `market_ai_project_handover.md`를 Source of Truth로 한다.
 - SOX 시장 metric과 Signal Engine 입력은 모두 `INDEX:SOX`를 사용하며 표시 편의를 위해 `FUTURES:SOX` 또는 `SOX-F`로 자동 전환하지 않는다.
+- KOSPI200선물은 `kis-efriend:*` 실제 소스이면서 proxy가 아닌 snapshot만 표시한다. 장 종료로 확인된 마지막 정상값은 허용하지만, 장중 stale·Bridge 단절·대체 소스는 사용 가능한 실선물 값처럼 표시하지 않는다.
+- signal state가 `actual_close`이면 상승마감 metric을 예측값으로 계속 표시하지 않고 실제 KOSPI 종가 결과와 확정 상태로 전환한다. `available:false`는 유효 신호 없음으로 처리한다.
+- 신호 상세의 판단 근거는 backend `effective_weight`를 우선 표시하고, 해당 metadata가 없는 호환 응답에서만 configured/legacy weight를 fallback한다. 이 normalization은 표시 호환용이며 프런트가 signal 산식을 다시 계산한다는 뜻이 아니다.
 - 선택된 과거 `activeDate`와 무관하게 Market AI panel은 현재 시점 신호를 표시한다.
 - Desktop/Tablet과 Mobile이 같은 `#market-ai-section` DOM을 재사용하며 별도 Mobile render tree를 만들지 않는다.
+- metric tooltip은 Desktop/Tablet의 keyboard/pointer interaction에서만 제공하고 Phone에서는 tooltip 속성·focus target을 제거한다.
+- polling은 문서가 보이는 동안만 실제 refresh하고, 다시 visible이 되면 즉시 갱신한다. 정확한 poll/timeout/freshness 수치는 최신 JS를 따른다.
 - `window/globalThis` bridge, main `dataState/uiState` 직접 접근, main feature module import를 추가하지 않는다.
 - layout 비율, tooltip 위치, viewport별 density, freshness threshold 같은 현재 표현·운영 수치는 실제 CSS/JS/backend 설정을 Source of Truth로 하고 handover에 미세값을 고정하지 않는다.
 
@@ -1779,8 +1784,9 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - local/remote 모두 실제 API를 사용한다.
 - 예시 데이터 전용 모드를 다시 도입하지 않는다.
 - Phone의 `dashboard-view`는 화면형태만 바꾼다.
-- remote 연결 실패는 일반 대시보드의 다른 기능을 깨뜨리지 않는다.
+- remote 전체 연결 실패는 Market AI UI만 제거하고 polling으로 복구를 기다리며, local 전체 연결 실패는 panel의 오류 상태를 유지한다. 어느 쪽도 일반 대시보드의 다른 기능을 깨뜨리지 않는다.
 - Desktop/Tablet Hero와 Mobile dialog가 같은 panel DOM을 재사용하는 구조를 유지한다.
+- Phone에서는 Market AI metric tooltip을 활성화하지 않는다.
 
 ## 5.4 계좌별 성과 메모 tooltip
 
