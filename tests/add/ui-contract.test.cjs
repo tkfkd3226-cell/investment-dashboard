@@ -203,11 +203,13 @@ test('상태 range 카드는 neutral surface와 semantic accent를 분리한다'
   assert.doesNotMatch(css1,/\.range-box\.(?:blue|red|green)\{[^}]*background:/);
 });
 
-test('Calc 결과 표와 Phone 카드는 title/label/value semantic typography role을 공유한다',()=>{
-  assert.match(rule(':where(html[data-add-page="calc"]) .calc-result-section-title'),/var\(--calc-result-title-/);
-  assert.match(rule(':where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-label'),/var\(--calc-result-label-/);
-  assert.match(rule(':where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-value'),/var\(--calc-result-value-/);
-  assert.match(js1,/calc-result-section-title/);
+test('Calc input/table/Phone card는 같은 data label/value typography source를 공유한다',()=>{
+  assert.match(rule(':where(html[data-add-page="calc"]) label, :where(html[data-add-page="calc"]) .field-label-slot, :where(html[data-add-page="calc"]) .kpi .name'),/font-size:var\(--calc-type-data-label\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-label'),/font-size:var\(--calc-type-data-label\)/);
+  assert.match(css1,/--calc-control-input-size:var\(--calc-type-data-value\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .control'),/font-size:var\(--calc-control-input-size\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-value'),/font-size:var\(--calc-type-data-value\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .actual-sale-price strong'),/font-size:var\(--calc-type-data-value\)/);
   assert.match(js1,/calc-result-label/);
   assert.match(js1,/calc-result-value/);
 });
@@ -244,11 +246,33 @@ test('Report tab은 하나의 tablist에서 active/ARIA/tabindex state를 유지
   assert.match(report,/role="tablist"/);
 });
 
-test('Calc typography는 역할 token을 사용하고 inline font-size를 만들지 않는다',()=>{
-  for(const token of ['--calc-type-page-title','--calc-type-section','--calc-type-subsection','--calc-type-support','--calc-type-label']) assert.match(css1,new RegExp(token.replace('--','--')));
+test('Calc typography는 위치가 아닌 역할 token을 공유하고 component별 size source를 만들지 않는다',()=>{
+  for(const token of [
+    '--calc-type-page-title','--calc-type-section-title','--calc-type-content-title','--calc-type-button',
+    '--calc-type-data-label','--calc-type-data-value','--calc-type-support','--calc-type-emphasis-value','--calc-type-micro'
+  ]) assert.match(css1,new RegExp(token.replace('--','--')));
+
   assert.match(rule(':where(html[data-add-page="calc"]) .hero h1'),/font-size:var\(--calc-type-page-title\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .add-heading-section'),/font-size:var\(--calc-type-section\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .add-heading-subsection'),/font-size:var\(--calc-type-subsection\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .add-heading-section'),/font-size:var\(--calc-type-section-title\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .add-heading-subsection'),/font-size:var\(--calc-type-content-title\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-result-section-title'),/font-size:var\(--calc-type-content-title\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.add-button-action,.add-button-toggle)'),/font-size:var\(--calc-type-button\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-choice-button'),/font-size:var\(--calc-type-button\)/);
+
+  for(const selector of [
+    ':where(html[data-add-page="calc"]) .kpi .value',
+    ':where(html[data-add-page="calc"]) .range-box .big',
+    ':where(html[data-add-page="calc"]) .summary-card .svalue'
+  ]) assert.match(rule(selector),/font-size:var\(--calc-type-emphasis-value\)/,selector);
+
+  for(const selector of [
+    ':where(html[data-add-page="calc"]) .hero p',
+    ':where(html[data-add-page="calc"]) .kpi .sub',
+    ':where(html[data-add-page="calc"]) .range-box .muted',
+    ':where(html[data-add-page="calc"]) .strategy-title p'
+  ]) assert.match(rule(selector),/font-size:var\(--calc-type-support\)/,selector);
+
+  assert.doesNotMatch(calcScope(),/--calc-result-(?:title|label|value)-/);
   assert.doesNotMatch(js,/style\s*=\s*["'][^"']*font-size/i);
   assert.doesNotMatch(calc,/style\s*=\s*["'][^"']*font-size/i);
 });
