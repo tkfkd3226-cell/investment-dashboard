@@ -63,10 +63,57 @@ test('모바일 share/pct step 버튼은 input 높이에 stretch되어 별도 40
   assert.match(css1,/:is\(\.share-step-btn,\.pct-step-btn\)\{display:block;height:auto;align-self:stretch/);
 });
 
-test('Calc preset 선택은 active와 aria-pressed를 한 번에 동기화한다',()=>{
+test('Calc 거래유형 preset 선택은 active와 aria-pressed를 한 번에 동기화한다',()=>{
   assert.match(js1,/function setPresetActive\(id\)\{[^}]*classList\.toggle\('active',active\);b\.setAttribute\('aria-pressed',String\(active\)\)/);
-  assert.match(js1,/function setCurrentPurchasePresetActive\(id\)\{[^}]*classList\.toggle\('active',active\);b\.setAttribute\('aria-pressed',String\(active\)\)/);
   assert.match(calc,/class="preset-btn[^\"]*"[^>]*aria-pressed="(?:true|false)"/);
+});
+
+test('Calc는 실제 거래일별 빠른 매수 shortcut을 두지 않고 이전 거래 없음도 직접 입력 구조를 사용한다',()=>{
+  assert.doesNotMatch(calc,/current-purchase-preset|current-purchase-btn|applyBuy20260804|applyBuy20260806|data-current-purchase-preset/);
+  assert.doesNotMatch(js1,/currentPurchasePresets|currentPurchasePresetId|setCurrentPurchasePresetActive|current-purchase-btn/);
+  assert.doesNotMatch(css1,/current-purchase-preset|current-purchase-btn|purchase-preset|current-column/);
+  const noPrior=rule(':where(html[data-add-page="calc"]) .input-grid.no-prior-layout');
+  assert.match(noPrior,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(noPrior,/grid-template-areas:"current-group calculation-group"/);
+});
+
+test('Calc 상단 입력카드는 Web/Tablet 동일 열 구성을 유지하고 Phone에서만 1열로 전환한다',()=>{
+  const base=rule(':where(html[data-add-page="calc"]) .input-grid');
+  const noPrior=rule(':where(html[data-add-page="calc"]) .input-grid.no-prior-layout');
+  assert.match(base,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(noPrior,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  const tabletStart=css1.indexOf('@media(max-width:1100px){');
+  const phoneStart=css1.indexOf('@media (max-width:760px),',tabletStart);
+  const tabletBlock=css1.slice(tabletStart,phoneStart);
+  assert.doesNotMatch(tabletBlock,/\.input-grid\{grid-template-columns:/);
+  assert.doesNotMatch(tabletBlock,/\.input-grid\.no-prior-layout\{grid-template-columns:/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.input-grid, :where\(html\[data-add-page="calc"\]\) \.input-grid\.no-prior-layout\{grid-template-columns:minmax\(0,1fr\)\}/);
+});
+
+test('Calc 결과 표와 Phone 카드는 title/label/value typography를 같은 role token에서 파생한다',()=>{
+  assert.match(css1,/--calc-result-title-size:13px; --calc-result-title-weight:800; --calc-result-title-line-height:1\.3;/);
+  assert.match(css1,/--calc-result-label-size:11px; --calc-result-label-weight:800; --calc-result-label-line-height:1\.35;/);
+  assert.match(css1,/--calc-result-value-size:12px; --calc-result-value-weight:800; --calc-result-value-line-height:1\.35;/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-result-section-title'),/font-size:var\(--calc-result-title-size\).*font-weight:var\(--calc-result-title-weight\).*line-height:var\(--calc-result-title-line-height\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-label'),/font-size:var\(--calc-result-label-size\).*font-weight:var\(--calc-result-label-weight\).*line-height:var\(--calc-result-label-line-height\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-value'),/font-size:var\(--calc-result-value-size\).*font-weight:var\(--calc-result-value-weight\).*line-height:var\(--calc-result-value-line-height\)/);
+  assert.match(js1,/class="section-title calc-result-section-title">매도 결과<\/div>/);
+  assert.match(js1,/class="add-table-cell-center calc-result-label"/);
+  assert.match(js1,/class="add-table-cell-center calc-result-value /);
+  assert.match(js1,/class="mobile-section-title calc-result-section-title"/);
+  assert.match(js1,/class="mobile-data-label calc-result-label"/);
+  assert.match(js1,/class="mobile-data-value calc-result-value /);
+  assert.doesNotMatch(rule(':where(html[data-add-page="calc"]) .mobile-data-value'),/font-size:/);
+});
+
+test('Calc 결과 표 값 셀은 semantic control surface를 사용한다',()=>{
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-data-table tbody td'),/background:var\(--surface-control\)/);
+});
+
+test('이전 거래 상세 자동계산 안내 문구는 Calc DOM에서 제거한다',()=>{
+  assert.doesNotMatch(calc,/매수단가·매도단가·확정손익은 실제 매수금액·매도금액 기준 자동 계산/);
+  assert.doesNotMatch(calc,/class="case-note"/);
+  assert.doesNotMatch(css1,/\.case-note\{/);
 });
 
 test('Calc strategy tab은 active/aria-selected/tabindex/panel aria-hidden을 동기화한다',()=>{
@@ -89,7 +136,6 @@ test('Calc Compact typography는 역할 token을 유지하고 viewport별 canoni
     ':where(html[data-add-page="calc"]) .add-heading-section',
     ':where(html[data-add-page="calc"]) .add-heading-subsection',
     ':where(html[data-add-page="calc"]) .mobile-section-title',
-    ':where(html[data-add-page="calc"]) .case-note',
     ':where(html[data-add-page="calc"]) .range-box strong',
     ':where(html[data-add-page="calc"]) .strategy-title p',
     ':where(html[data-add-page="calc"]) .summary-card .sname'
@@ -106,25 +152,6 @@ test('Calc Compact typography는 역할 token을 유지하고 viewport별 canoni
 });
 
 
-
-
-
-test('Calc 결과 상세는 표와 모바일 카드가 동일 semantic typography contract를 공유한다',()=>{
-  assert.match(css1,/--calc-result-title-size:var\(--calc-type-subsection\); --calc-result-title-weight:800; --calc-result-title-line-height:1\.3;/);
-  assert.match(css1,/--calc-result-label-size:var\(--calc-type-label\); --calc-result-label-weight:800; --calc-result-label-line-height:1\.35;/);
-  assert.match(css1,/--calc-result-value-size:12px; --calc-result-value-weight:800; --calc-result-value-line-height:1\.35;/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .calc-result-section-title'),/font-size:var\(--calc-result-title-size\).*font-weight:var\(--calc-result-title-weight\).*line-height:var\(--calc-result-title-line-height\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .calc-result-label'),/font-size:var\(--calc-result-label-size\).*font-weight:var\(--calc-result-label-weight\).*line-height:var\(--calc-result-label-line-height\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .calc-result-value'),/font-size:var\(--calc-result-value-size\).*font-weight:var\(--calc-result-value-weight\).*line-height:var\(--calc-result-value-line-height\)/);
-  assert.match(js1,/class="section-title calc-result-section-title">매도 결과<\/div>/);
-  assert.match(js1,/class="add-table-cell-center calc-result-label"/);
-  assert.match(js1,/class="add-table-cell-center calc-result-value /);
-  assert.match(js1,/class="mobile-section-title calc-result-section-title"/);
-  assert.match(js1,/class="mobile-data-label calc-result-label"/);
-  assert.match(js1,/class="mobile-data-value calc-result-value /);
-  assert.doesNotMatch(css1,/\.mobile-data-value\{[^}]*font-size:13px/);
-  assert.doesNotMatch(css1,/\.mobile-data-value\{[^}]*font-size:14px/);
-});
 
 test('Calc는 iOS 가로 회전 text autosizing을 막아 CSS font-size를 그대로 유지한다',()=>{
   const body=rule(':where(html[data-add-page="calc"]) body');
@@ -217,7 +244,8 @@ test('계산 기준은 전용 정렬 보정 없이 공통 field/row gap 구조�
   assert.match(calc,/class="calculation-flow"/);
   assert.match(calc,/class="field calculation-mode-field"/);
   assert.match(calc,/class="field-label-slot" aria-hidden="true"/);
-  assert.match(css1,/@media\(max-width:1100px\)\{[^}]*\.calculation-mode-field \.field-label-slot\{display:none\}/);
+  assert.doesNotMatch(css1,/@media\(max-width:1100px\)\{[^}]*\.calculation-mode-field \.field-label-slot\{display:none\}/);
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{[^]*?\.calculation-mode-field \.field-label-slot\{display:none\}/);
   assert.match(rule(':where(html[data-add-page="calc"]) .calculation-flow'),/gap:var\(--calc-field-row-gap\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .seg'),/gap:var\(--calc-field-row-gap\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .seg'),/margin:0/);

@@ -33,7 +33,7 @@
   if(!isCommonJs&&!isCalcPage)return;
 
   // 01. 고정 데이터 / 프리셋
-  // 거래유형 기본값과 이전 거래 없음 빠른 매수값을 한곳에서 관리
+  // 거래유형별 기본 입력값만 관리하고 실제 거래일 shortcut은 Report에 맡긴다.
   const presets = {
     'buy-2026-07-29': {
       caseType:'holding', noPrior:false, existingShares:38, existingCost:7005530, priorSettlementValue:0, priorSellPrice:0,
@@ -48,10 +48,6 @@
       currentPrice:80000, oldRecovery:0, addPrice:80000, addShares:100, autoBreakEvenTarget:true, mode:'current'
     }
   };
-  const currentPurchasePresets = {
-    'buy-2026-08-04': {addPrice:94417, currentPrice:95335, addShares:532, actualSellPrice:104035},
-    'buy-2026-08-06': {addPrice:91767, currentPrice:92200, addShares:100, actualSellPrice:93813}
-  };
   const defaultPresetId='current-only';
 
   // 02. 런타임 상태 / 공통 유틸리티
@@ -60,7 +56,7 @@
   let caseType='settled', noPriorMode=true, mode='current', autoBreakEvenTarget=false;
 
   // 화면 선택 상태와 프리셋 적용 중 여부
-  let activePresetId=defaultPresetId, currentPurchasePresetId=null, applying=false;
+  let activePresetId=defaultPresetId, applying=false;
 
   // 마지막 정상 계산결과가 존재하는지 추적해 invalid 입력 중 stale 결과임을 명확히 표시
   let hasRenderedCalculation=false;
@@ -132,9 +128,8 @@
   // 05. 거래유형 UI 구성 / DOM 재배치
   // 거래유형 변경 시 필드 위치·표시 여부·접근성 상태를 함께 동기화
   function setPresetActive(id){document.querySelectorAll('.preset-btn').forEach(b=>{const active=b.dataset.preset===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});}
-  function setCurrentPurchasePresetActive(id){document.querySelectorAll('.current-purchase-btn').forEach(b=>{const active=b.dataset.currentPurchasePreset===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});}
   function getActualSellPrice(){
-    if(noPriorMode)return currentPurchasePresets[currentPurchasePresetId]?.actualSellPrice??null;
+    if(noPriorMode)return null;
     return caseType==='settled'?91065:74580;
   }
   function updateActualSellPriceUI(){
@@ -517,7 +512,7 @@
     renderCalculationInputs(c);
     render(c);
     hasRenderedCalculation=true;
-    storage.set('investmentLossRecoveryCalcV17',JSON.stringify({...c.i,targetPrice:c.targetPrice,...options,presetId:activePresetId,currentPurchasePresetId}));
+    storage.set('investmentLossRecoveryCalcV17',JSON.stringify({...c.i,targetPrice:c.targetPrice,...options,presetId:activePresetId}));
   }
 
   function getModeFormula(activeMode){
@@ -545,7 +540,7 @@
   // 10. 프리셋 / 저장상태 적용
   // 프리셋 또는 localStorage 값을 화면 상태에 복원하고 전략 선택상태까지 맞춤
   function applyValues(v){
-    caseType=v.caseType||'holding';noPriorMode=!!v.noPrior;mode=['current','rise','target'].includes(v.mode)?v.mode:'current';autoBreakEvenTarget=!!v.autoBreakEvenTarget;currentPurchasePresetId=noPriorMode&&currentPurchasePresets[v.currentPurchasePresetId]?v.currentPurchasePresetId:null;setCurrentPurchasePresetActive(currentPurchasePresetId);
+    caseType=v.caseType||'holding';noPriorMode=!!v.noPrior;mode=['current','rise','target'].includes(v.mode)?v.mode:'current';autoBreakEvenTarget=!!v.autoBreakEvenTarget;
     $('existingShares').value=String(v.existingShares??0);$('existingCost').value=nf0.format(v.existingCost??0);$('priorSettlementValue').value=String(v.priorSettlementValue??0);$('priorSellPrice').value=String(v.priorSellPrice??0);$('currentPrice').value=nf0.format(v.currentPrice??0);$('oldOverdraft').value=nf0.format(v.oldRecovery??0);$('addPrice').value=nf0.format(v.addPrice??0);$('addShares').value=String(v.addShares??0);
     $('priorSellDateInput').value=v.priorSellDate||'';$('priorSoldSharesInput').value=String(v.existingShares??0);$('priorCostInput').value=nf0.format(v.existingCost??0);$('priorSettlementValueInput').value=nf0.format(v.priorSettlementValue??0);
     let overnight=v.overnightPct??0,rise=v.risePct??0,target=v.targetPrice??0;
@@ -591,23 +586,6 @@
     document.querySelectorAll('.pct-step-btn').forEach(b=>b.addEventListener('click',handlePctStep));
     document.querySelectorAll('.preset-btn[data-preset]').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));
     $('modeCurrent').addEventListener('click',()=>handleModeChange('current'));$('modeRise').addEventListener('click',()=>handleModeChange('rise'));$('modeTarget').addEventListener('click',()=>handleModeChange('target'));
-    document.querySelectorAll('.current-purchase-btn').forEach(b=>b.addEventListener('click',()=>{
-      if(!noPriorMode)return;
-      const preset=currentPurchasePresets[b.dataset.currentPurchasePreset];
-      if(!preset)return;
-      currentPurchasePresetId=b.dataset.currentPurchasePreset;
-      setCurrentPurchasePresetActive(currentPurchasePresetId);
-      activePresetId='current-only';
-      setPresetActive(activePresetId);
-      autoBreakEvenTarget=true;
-      mode='current';
-      $('addPrice').value=nf0.format(preset.addPrice);
-      $('currentPrice').value=nf0.format(preset.currentPrice);
-      $('addShares').value=String(preset.addShares);
-      updateActualSellPriceUI();
-      setMode('current',false);
-      recalc();
-    }));
     $('applyActualSellPrice').addEventListener('click',()=>{
       const actualSellPrice=getActualSellPrice();
       if(!Number.isFinite(actualSellPrice))return;
