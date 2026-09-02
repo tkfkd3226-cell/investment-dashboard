@@ -492,7 +492,7 @@ https://tkfkd3226-cell.github.io/investment-dashboard/add/kodex-leverage-report.
 ### Table 공통 contract
 - Calc 데스크톱 상세표와 Report 표는 `add-data-table` / `add-table-scroll` 공통 primitive를 사용한다.
 - Calc 상세표는 semantic `<table>`(`thead`/`tbody`, `th scope="col"`, 의미 정렬 class)로 렌더하며 열 수에 따른 `nth-child(Nn)` border 보정을 만들지 않는다.
-- 열 수별 차이는 `min-width` 같은 layout 값만 feature CSS가 소유하고, 계산 로직과 모바일 카드 표현은 table presentation과 분리한다.
+- Calc 상세표의 열은 `table-layout:fixed`로 동일 폭을 유지한다. 표 종류별 `675px`·`870px` 같은 임의 `min-width`를 두지 않고, 현재 렌더된 label/value의 자연 폭 중 가장 넓은 셀을 기준으로 `가장 넓은 셀 폭 × 열 수`를 표 최소폭으로 계산한다. 이 최소폭이 container를 넘는 경우에만 `add-table-scroll`에서 가로 스크롤하며 label/value를 압축·줄바꿈해 맞추지 않는다. viewport 변화로 typography가 달라질 수 있으므로 resize 시 같은 기준으로 다시 계산한다. 계산 로직과 Phone 카드 표현은 이 table presentation과 분리한다.
 
 
 ## 14. 최종 한 문장 운영 원칙

@@ -404,8 +404,37 @@
     return `<span class="inline-help-label"><span>${esc(spec.text)}</span><span class="help-tooltip"><button type="button" class="help-icon add-button" aria-label="${esc(spec.text)} 설명" aria-describedby="${tooltipId}" aria-expanded="false">i</button><span class="custom-tooltip" id="${tooltipId}" role="tooltip">${esc(spec.tip)}</span></span></span>`;
   };
   function metric(name,value,cls='',tip='',idPrefix='summary'){return `<div class="summary-card add-card-shell add-card-control"><div class="sname">${resultLabelHTML(resultLabel(name,tip,'metric'),idPrefix)}</div><div class="svalue ${cls}">${value}</div></div>`;}
-  function desktopTable(headers,vals,extra='',idPrefix='table'){return `<div class="table-scroll add-table-scroll desktop-data"><table class="add-data-table calc-data-table ${extra}"><thead><tr>${headers.map((h,k)=>`<th scope="col" class="add-table-cell-center calc-result-label">${resultLabelHTML(h,`${idPrefix}-${k}`)}</th>`).join('')}</tr></thead><tbody><tr>${vals.map(v=>`<td class="add-table-cell-center calc-result-value ${v.cls||''}">${v.text}</td>`).join('')}</tr></tbody></table></div>`;}
+  function desktopTable(headers,vals,idPrefix='table'){return `<div class="table-scroll add-table-scroll desktop-data"><table class="add-data-table calc-data-table"><thead><tr>${headers.map((h,k)=>`<th scope="col" class="add-table-cell-center calc-result-label">${resultLabelHTML(h,`${idPrefix}-${k}`)}</th>`).join('')}</tr></thead><tbody><tr>${vals.map(v=>`<td class="add-table-cell-center calc-result-value ${v.cls||''}">${v.text}</td>`).join('')}</tr></tbody></table></div>`;}
   function mobileRows(title,headers,vals,idPrefix='mobile'){return `<div class="mobile-data-card add-card-shell add-card-control"><div class="mobile-section-title calc-result-section-title">${title}</div>${headers.map((h,k)=>`<div class="mobile-data-row"><div class="mobile-data-label calc-result-label">${resultLabelHTML(h,`${idPrefix}-${k}`)}</div><div class="mobile-data-value calc-result-value ${vals[k].cls||''}">${vals[k].text}</div></div>`).join('')}</div>`;}
+
+  // 같은 표 안의 모든 열은 동일 폭을 유지하되, 표별 임의 min-width를 두지 않는다.
+  // 실제 label/value의 자연 폭 중 가장 넓은 셀을 측정해 그 폭 × 열 수를 표 최소폭으로 사용한다.
+  function measureCalcTableContentMinWidth(table){
+    const columnCount=table.tHead?.rows?.[0]?.cells?.length||0;
+    if(!columnCount)return 0;
+    const probe=table.cloneNode(true);
+    probe.querySelectorAll('.custom-tooltip').forEach(node=>node.remove());
+    probe.removeAttribute('style');
+    Object.assign(probe.style,{position:'fixed',left:'-10000px',top:'0',visibility:'hidden',pointerEvents:'none',width:'max-content',minWidth:'0',maxWidth:'none',tableLayout:'auto'});
+    document.body.append(probe);
+    const widestCell=[...probe.querySelectorAll('th,td')].reduce((max,cell)=>Math.max(max,Math.ceil(cell.getBoundingClientRect().width)),0);
+    probe.remove();
+    return widestCell?Math.ceil(widestCell*columnCount):0;
+  }
+
+  function syncCalcTableContentWidths(){
+    document.querySelectorAll('.calc-data-table').forEach(table=>{
+      const minWidth=measureCalcTableContentMinWidth(table);
+      if(minWidth)table.style.setProperty('--calc-table-content-min',`${minWidth}px`);
+      else table.style.removeProperty('--calc-table-content-min');
+    });
+  }
+
+  let calcTableWidthFrame=0;
+  function scheduleCalcTableContentWidths(){
+    if(calcTableWidthFrame)cancelAnimationFrame(calcTableWidthFrame);
+    calcTableWidthFrame=requestAnimationFrame(()=>{calcTableWidthFrame=0;syncCalcTableContentWidths();});
+  }
 
   function holdingStrategyHTML(typeNo,displayNo,title,badge,badgeCls,desc,d,c){
     const saleH=['매도단가','매도수량','매도금액','실현손익','매도 후 보유수량'];
@@ -418,7 +447,7 @@
     const full=typeNo===3;
     const remH=full?['보유수량','합산 손익']:['평단','보유수량','투자금액','평가가격','평가금액','평가손익','합산 손익'];
     const remV=full?[{text:shareText(d.remainShares)},{text:won(d.combined),cls:signClass(d.combined)}]:[{text:won(c.finalAvg)},{text:shareText(d.remainShares)},{text:won(d.remainCost)},{text:won(c.targetPrice)},{text:won(d.remainValue)},{text:won(d.remainPL),cls:signClass(d.remainPL)},{text:won(d.combined),cls:signClass(d.combined)}];
-    return `<div class="panel strategy-card add-card-shell add-card-base add-card-shadow"><div class="strategy-head"><div class="strategy-title"><h2 class="add-heading-section">${displayNo} ${title}</h2><p>${desc}</p></div><span class="badge ${badgeCls}">${badge}</span></div><div class="strategy-body"><div class="summary-row">${metric('매도금액',won(d.net))}${metric('합산 손익',won(d.combined),signClass(d.combined))}${metric(cashAfterLabel.text,won(d.cashAfter),d.cashAfter?'positive':'',cashAfterLabel.tip,`holding-${typeNo}-summary-cash`)}${metric(improvementLabel,won(d.combined-(c.i.existingShares*c.targetPrice-c.i.existingCost)),signClass(d.combined-(c.i.existingShares*c.targetPrice-c.i.existingCost)),improvementTip,`holding-${typeNo}-summary-improvement`)}</div><div class="desktop-details"><div class="section-title calc-result-section-title">매도 결과</div>${desktopTable(saleH,saleV,'five-grid',`holding-${typeNo}-sale-desktop`)}<div class="section-title calc-result-section-title">원금 회수 결과</div>${desktopTable(flowH,flowV,'loan-grid',`holding-${typeNo}-flow-desktop`)}<div class="section-title calc-result-section-title">${full?'매도 후 최종 상태':'매도 후 보유 현황'}</div>${desktopTable(remH,remV,full?'final-grid':'',`holding-${typeNo}-remain-desktop`)}</div><div class="mobile-data">${mobileRows('매도 결과',saleH,saleV,`holding-${typeNo}-sale-mobile`)}${mobileRows('원금 회수 결과',flowH,flowV,`holding-${typeNo}-flow-mobile`)}${mobileRows(full?'매도 후 최종 상태':'매도 후 보유 현황',remH,remV,`holding-${typeNo}-remain-mobile`)}</div><div class="note">${typeNo===1?'매도금액이 추가매수금액 이상이 되도록 필요한 최소 매도수량 올림 처리.':typeNo===2?`추가매수 수량 ${shareText(c.i.addShares)} 그대로 매도 · 기존 보유분 유지.`:'전체 보유분 매도 후 보유수량 0주.'} 수수료·세금 등 거래비용 미반영.</div></div></div>`;
+    return `<div class="panel strategy-card add-card-shell add-card-base add-card-shadow"><div class="strategy-head"><div class="strategy-title"><h2 class="add-heading-section">${displayNo} ${title}</h2><p>${desc}</p></div><span class="badge ${badgeCls}">${badge}</span></div><div class="strategy-body"><div class="summary-row">${metric('매도금액',won(d.net))}${metric('합산 손익',won(d.combined),signClass(d.combined))}${metric(cashAfterLabel.text,won(d.cashAfter),d.cashAfter?'positive':'',cashAfterLabel.tip,`holding-${typeNo}-summary-cash`)}${metric(improvementLabel,won(d.combined-(c.i.existingShares*c.targetPrice-c.i.existingCost)),signClass(d.combined-(c.i.existingShares*c.targetPrice-c.i.existingCost)),improvementTip,`holding-${typeNo}-summary-improvement`)}</div><div class="desktop-details"><div class="section-title calc-result-section-title">매도 결과</div>${desktopTable(saleH,saleV,`holding-${typeNo}-sale-desktop`)}<div class="section-title calc-result-section-title">원금 회수 결과</div>${desktopTable(flowH,flowV,`holding-${typeNo}-flow-desktop`)}<div class="section-title calc-result-section-title">${full?'매도 후 최종 상태':'매도 후 보유 현황'}</div>${desktopTable(remH,remV,`holding-${typeNo}-remain-desktop`)}</div><div class="mobile-data">${mobileRows('매도 결과',saleH,saleV,`holding-${typeNo}-sale-mobile`)}${mobileRows('원금 회수 결과',flowH,flowV,`holding-${typeNo}-flow-mobile`)}${mobileRows(full?'매도 후 최종 상태':'매도 후 보유 현황',remH,remV,`holding-${typeNo}-remain-mobile`)}</div><div class="note">${typeNo===1?'매도금액이 추가매수금액 이상이 되도록 필요한 최소 매도수량 올림 처리.':typeNo===2?`추가매수 수량 ${shareText(c.i.addShares)} 그대로 매도 · 기존 보유분 유지.`:'전체 보유분 매도 후 보유수량 0주.'} 수수료·세금 등 거래비용 미반영.</div></div></div>`;
   }
 
   function settledStrategyHTML(kind,d,c){
@@ -439,11 +468,10 @@
       ?`${metric('매도금액',won(d.net))}${metric('현재 보유분 실현손익',won(d.realizedPL),signClass(d.realizedPL))}${metric('매도 후 보유수량',shareText(d.remainShares))}${metric('목표가격 기준 전체 손익',won(d.currentCombined),signClass(d.currentCombined))}`
       :`${metric('매도금액',won(d.net))}${metric('현재 보유분 손익',won(d.currentCombined),signClass(d.currentCombined))}${metric('이전 거래 확정손익',won(c.priorPL),signClass(c.priorPL))}${metric('통합손익',won(d.combined),signClass(d.combined))}`;
     const integrationTitle=c.noPrior?'손익 요약':'손익 통합';
-    const integrationGridClass=c.noPrior?'final-grid':'triple-grid';
     const note=c.noPrior
       ?(full?'현재 보유분 최종 실현손익.':'현재 투자원금만 회수 · 잔여 주식은 목표가격 기준 평가금액으로 표시.')
       :(full?'현재 보유분 실현손익 + 이전 거래 확정손익으로 통합손익 계산.':'현재 투자원금만 회수 · 잔여 주식은 목표가격 기준 평가금액으로 표시. 이전 거래 확정손익은 통합손익에 계속 포함.');
-    return `<div class="panel strategy-card no-badge add-card-shell add-card-base add-card-shadow"><div class="strategy-head"><div class="strategy-title"><h2 class="add-heading-section">${title}</h2><p>${desc}</p></div></div><div class="strategy-body"><div class="summary-row">${summary}</div><div class="desktop-details"><div class="section-title calc-result-section-title">매도 결과</div>${desktopTable(saleH,saleV,'five-grid')}<div class="section-title calc-result-section-title">${integrationTitle}</div>${desktopTable(integratedH,integratedV,integrationGridClass)}<div class="section-title calc-result-section-title">${full?'매도 후 최종 상태':'원금 회수 후 보유 현황'}</div>${desktopTable(remainH,remainV,full?'final-grid':'simple-grid')}</div><div class="mobile-data">${mobileRows('매도 결과',saleH,saleV)}${mobileRows(integrationTitle,integratedH,integratedV)}${mobileRows(full?'매도 후 최종 상태':'원금 회수 후 보유 현황',remainH,remainV)}</div>${warning}<div class="note">${note} 수수료·세금 등 거래비용 미반영.</div></div></div>`;
+    return `<div class="panel strategy-card no-badge add-card-shell add-card-base add-card-shadow"><div class="strategy-head"><div class="strategy-title"><h2 class="add-heading-section">${title}</h2><p>${desc}</p></div></div><div class="strategy-body"><div class="summary-row">${summary}</div><div class="desktop-details"><div class="section-title calc-result-section-title">매도 결과</div>${desktopTable(saleH,saleV,`settled-${kind}-sale-desktop`)}<div class="section-title calc-result-section-title">${integrationTitle}</div>${desktopTable(integratedH,integratedV,`settled-${kind}-integration-desktop`)}<div class="section-title calc-result-section-title">${full?'매도 후 최종 상태':'원금 회수 후 보유 현황'}</div>${desktopTable(remainH,remainV,`settled-${kind}-remain-desktop`)}</div><div class="mobile-data">${mobileRows('매도 결과',saleH,saleV)}${mobileRows(integrationTitle,integratedH,integratedV)}${mobileRows(full?'매도 후 최종 상태':'원금 회수 후 보유 현황',remainH,remainV)}</div>${warning}<div class="note">${note} 수수료·세금 등 거래비용 미반영.</div></div></div>`;
   }
 
   function render(c){
@@ -502,6 +530,7 @@
       $('s2').innerHTML=holdingStrategyHTML(2,'②','추가매수 수량 매도','조건부 추천','conditional','추가매수 수량만 매도 · 기존 보유분 유지.',c.sAdd,c);
       $('s3').innerHTML=holdingStrategyHTML(3,'①','전체 보유분 매도','추천','good','전체 보유분 매도 · 투입금액 회수 우선.',c.sFull,c);
     }
+    scheduleCalcTableContentWidths();
   }
 
   // 09. 재계산 흐름 / 계산 기준 모드
@@ -695,6 +724,7 @@
     const bootCalcPage=()=>{
       initEventBindings();
       initHelpTooltips();
+      window.addEventListener('resize',scheduleCalcTableContentWidths,{passive:true});
       restoreInitialState();
     };
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootCalcPage,{once:true});

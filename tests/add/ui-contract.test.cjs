@@ -128,6 +128,19 @@ test('Calc 결과 표 값 셀은 semantic control surface를 사용한다',()=>{
   assert.match(rule(':where(html[data-add-page="calc"]) .calc-data-table tbody td'),/background:var\(--surface-control\)/);
 });
 
+test('Calc 결과 표 최소폭은 실제 label/value 자연 폭을 기준으로 계산하고 모든 열은 동일 폭을 유지한다',()=>{
+  const tableRule=rule(':where(html[data-add-page="calc"]) .calc-data-table');
+  assert.match(tableRule,/table-layout:fixed/);
+  assert.match(tableRule,/min-width:max\(100%,var\(--calc-table-content-min,0px\)\)/);
+  assert.doesNotMatch(css1,/\.(?:five-grid|simple-grid|triple-grid|loan-grid|final-grid)\{/);
+  assert.doesNotMatch(js1,/five-grid|simple-grid|triple-grid|loan-grid|final-grid/);
+  assert.match(js1,/function measureCalcTableContentMinWidth\(table\)/);
+  assert.match(js1,/probe\.querySelectorAll\('\.custom-tooltip'\)\.forEach\(node=>node\.remove\(\)\)/);
+  assert.match(js1,/widestCell\*columnCount/);
+  assert.match(js1,/function scheduleCalcTableContentWidths\(\)/);
+  assert.match(js1,/window\.addEventListener\('resize',scheduleCalcTableContentWidths,\{passive:true\}\)/);
+});
+
 test('보유 중 추가매수 결과의 잔여현금/손익 개선 라벨은 표·모바일 카드·요약카드에서 같은 설명형 tooltip contract를 사용한다',()=>{
   assert.doesNotMatch(js1,/추가투입금·회수대상 차감 후 잔여현금/);
   assert.doesNotMatch(js1,/추가매수 전 대비 손익 개선액/);
@@ -137,7 +150,7 @@ test('보유 중 추가매수 결과의 잔여현금/손익 개선 라벨은 표
   assert.match(js1,/동일 목표 매도단가 기준, 추가매수로 개선된 손익 · 계산: 추가매수 수량 × \(목표 매도단가 - 추가매수단가\)/);
   assert.match(js1,/const resultLabel=\(text,tip='',key=''\)=>Object\.freeze/);
   assert.match(js1,/function metric\(name,value,cls='',tip='',idPrefix='summary'\)/);
-  assert.match(js1,/desktopTable\(flowH,flowV,'loan-grid',`holding-\$\{typeNo\}-flow-desktop`\)/);
+  assert.match(js1,/desktopTable\(flowH,flowV,`holding-\$\{typeNo\}-flow-desktop`\)/);
   assert.match(js1,/mobileRows\('원금 회수 결과',flowH,flowV,`holding-\$\{typeNo\}-flow-mobile`\)/);
   assert.match(js1,/class="help-icon add-button" aria-label="\$\{esc\(spec\.text\)\} 설명" aria-describedby="\$\{tooltipId\}" aria-expanded="false">i<\/button>/);
   assert.doesNotMatch(js1,/남는 현금입니다|손익입니다|개선됩니다/);

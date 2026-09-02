@@ -652,16 +652,14 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .mobile-data-row:last-child{border-bottom:0}
     :where(html[data-add-page="calc"]) .mobile-data-label{flex:1;min-width:0;color:var(--muted)}
     :where(html[data-add-page="calc"]) .mobile-data-value{flex:0 0 auto;max-width:55%;text-align:right;word-break:break-word}
-    :where(html[data-add-page="calc"]) .calc-data-table{table-layout:fixed;min-width:875px;border:1px solid var(--line);border-collapse:separate;border-spacing:0;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));overflow:hidden}
+    /* 결과 표는 열 수별 고정 pixel 폭을 두지 않는다.
+       실제 label/value의 자연 폭 중 가장 넓은 셀을 기준으로 같은 열 폭을 보장하고,
+       컨테이너보다 넓어질 때만 add-table-scroll에서 가로 스크롤한다. */
+    :where(html[data-add-page="calc"]) .calc-data-table{table-layout:fixed;min-width:max(100%,var(--calc-table-content-min,0px));border:1px solid var(--line);border-collapse:separate;border-spacing:0;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));overflow:hidden}
     :where(html[data-add-page="calc"]) .calc-data-table :is(th,td){border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0;text-align:center}
     :where(html[data-add-page="calc"]) .calc-data-table tr > :last-child{border-right:0}
     :where(html[data-add-page="calc"]) .calc-data-table tbody tr:last-child > *{border-bottom:0}
     :where(html[data-add-page="calc"]) .calc-data-table tbody td{background:var(--surface-control)}
-    :where(html[data-add-page="calc"]) .five-grid{min-width:675px}
-    :where(html[data-add-page="calc"]) .simple-grid{min-width:580px}
-    :where(html[data-add-page="calc"]) .triple-grid{min-width:495px}
-    :where(html[data-add-page="calc"]) .loan-grid{min-width:870px}
-    :where(html[data-add-page="calc"]) .final-grid{min-width:360px}
     :where(html[data-add-page="calc"]) .warning-note{margin-top:var(--density-surface-sm);padding:var(--density-surface-sm) var(--density-action-pad-x);border-color:var(--danger-border);background:#fff2f2;color:var(--warning-text);font-size:var(--calc-type-label);font-weight:900;line-height:1.35}
 html:where([data-add-page="calc"]).dark .warning-note{background:rgba(127,29,29,.18)}
     :where(html[data-add-page="calc"]) .note{margin-top:var(--density-surface-sm);padding:var(--density-surface-sm) var(--density-action-pad-x);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:#f5f7fb;color:#596478;font-size:var(--calc-type-label);line-height:1.35}
