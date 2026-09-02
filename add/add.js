@@ -123,7 +123,7 @@
     holding:{
       text:{
         priorGroupTitle:'기존 보유분',priorGroupSub:'기본 투자 정보',existingAvgLabel:'원래 평단',existingSharesLabel:'보유수량',
-        existingCostLabel:'투자금액',existingValueLabel:'평가금액',existingPLLabel:'손익',oldRecoveryLabel:'기존 회수 대상 금액',
+        existingCostLabel:'투자금액',existingValueLabel:'평가금액',existingPLLabel:'손익',oldRecoveryLabel:'회수 대상 금액',
         currentGroupTitle:'추가매수 내역',currentPriceLabel:'추가매수 당일 종가',addPriceLabel:'추가매수단가',addSharesLabel:'추가매수수량',
         actualLoanLabel:'추가매수금액',currentBuyGainLabel:'추가매수가 대비 종가 변동률',out1Label:'최종 평단',out2Label:'최종 평가금액',
         out3Label:'최종 보유수량',out4Label:'추가매수 반영 총손익',out5Label:'최종 투자금액',out6Label:'추가매수 반영 총손익률',
@@ -305,7 +305,7 @@
     const invalidIds=[];
     const addError=(message,id)=>{errors.push(message);if(id)invalidIds.push(id);};
     const checks=[['currentPrice',settled?'매수일 종가':'추가매수 당일 종가',i.currentPrice,n=>Number.isInteger(n)&&n>0],['addPrice',settled?'매수단가':'추가매수단가',i.addPrice,n=>Number.isInteger(n)&&n>0],['addShares',settled?'보유수량':'추가매수수량',i.addShares,n=>Number.isInteger(n)&&n>=0]];
-    if(!settled)checks.push(['existingShares','기존 보유수량',i.existingShares,n=>Number.isInteger(n)&&n>=0],['existingCost','기존 보유분 투자금액',i.existingCost,n=>Number.isInteger(n)&&n>=0],['oldOverdraft','기존 회수 대상 금액',i.oldRecovery,n=>Number.isInteger(n)&&n>=0]);
+    if(!settled)checks.push(['existingShares','기존 보유수량',i.existingShares,n=>Number.isInteger(n)&&n>=0],['existingCost','기존 보유분 투자금액',i.existingCost,n=>Number.isInteger(n)&&n>=0],['oldOverdraft','회수 대상 금액',i.oldRecovery,n=>Number.isInteger(n)&&n>=0]);
     if(validationMode==='current')checks.push(['overnightPct',settled?'매수일 종가 대비 목표 변동률':'다음 거래일 변동률',i.overnightPct,n=>Number.isFinite(n)&&n>-100]);
     else if(validationMode==='rise')checks.push(['risePct',settled?'매수가 대비 목표 변동률':'추가매수가 대비 변동률',i.risePct,n=>Number.isFinite(n)&&n>-100]);
     for(const [id,label,v,test] of checks){if(!test(v))addError(`${label} 값 확인 필요.`,id);}
@@ -462,10 +462,10 @@
   function holdingStrategyHTML(typeNo,displayNo,title,badge,badgeCls,desc,d,c){
     const saleH=['매도단가','매도수량','매도금액','실현손익','매도 후 보유수량'];
     const saleV=[{text:won(c.targetPrice)},{text:shareText(d.saleQty)},{text:won(d.gross)},{text:won(d.realizedPL),cls:signClass(d.realizedPL)},{text:shareText(d.remainShares)}];
-    const cashAfterLabel=resultLabel('기존 회수 대상 차감 후 잔여현금','매도금액에서 추가매수 원금과 기존 회수 대상 금액을 차감한 뒤 남는 현금','cash-after-recovery');
+    const cashAfterLabel=resultLabel('회수 대상 차감 후 잔여현금','매도금액에서 추가매수 원금과 회수 대상 금액을 차감한 뒤 남는 현금','cash-after-recovery');
     const improvementLabel='추가매수로 인한 손익 개선액';
     const improvementTip='동일 목표 매도단가 기준, 추가매수로 개선된 손익 · 계산: 추가매수 수량 × (목표 매도단가 - 추가매수단가)';
-    const flowH=['추가매수 원금 회수액','투입금액 회수 후 잔여현금','추가매수 원금 미회수액','기존 금액 회수액','기존 회수 대상 잔액',cashAfterLabel];
+    const flowH=['추가매수 원금 회수액','투입금액 회수 후 잔여현금','추가매수 원금 미회수액','기존 금액 회수액','회수 대상 잔액',cashAfterLabel];
     const flowV=[{text:won(d.principalRecovered)},{text:won(Math.max(d.net-c.addedPrincipal,0))},{text:won(d.principalShortfall),cls:d.principalShortfall?'negative':''},{text:won(d.recoveryPaid)},{text:won(d.recoveryBalance),cls:d.recoveryBalance?'negative':''},{text:won(d.cashAfter),cls:d.cashAfter?'positive':''}];
     const full=typeNo===3;
     const remH=full?['보유수량','합산 손익']:['평단','보유수량','투자금액','평가가격','평가금액','평가손익','합산 손익'];
@@ -544,10 +544,10 @@
       $('out6').value=pct(c.currentPositionPLRate,2);setClass($('out6'),signClass(c.currentPositionPLRate));
       setText('kpi1Name','기존 보유분 원래 평단');setText('kpi1Value',won(c.priorAvg));setText('kpi1Sub','기존 보유분 투자금액 ÷ 기존 보유수량');
       setText('kpi2Name','기존 보유분 손익');setText('kpi2Value',won(c.priorPL),signClass(c.priorPL));setText('kpi2Sub','추가매수 당일 종가 기준 · 추가매수 전');
-      setHelpText('kpi3Name','손익분기','기존 보유분과 추가매수분의 전체 투자금액 회수 가격. 기존 회수 대상 금액 제외.');setText('kpi3Value',won(c.positionBE));setText('kpi3Sub','거래비용 제외 기준');
+      setHelpText('kpi3Name','손익분기','기존 보유분과 추가매수분의 전체 투자금액 회수 가격. 회수 대상 금액 제외.');setText('kpi3Value',won(c.positionBE));setText('kpi3Sub','거래비용 제외 기준');
       setText('kpi4Name','목표 매도단가');setText('kpi4Value',won(c.targetPrice),signClass(c.targetPrice-c.positionBE));setText('kpi4Sub',`손익분기 대비 ${c.targetPrice>=c.positionBE?'+':''}${nf0.format(c.targetPrice-c.positionBE)}원`);
-      setHelpText('range1Title','추가매수 효과 0원 기준','추가매수분 기준 손익 0원 가격. 기존 보유분 손익과 기존 회수 대상 금액 제외.');setText('range1Value',c.addZeroRaw?pct((c.addZeroRaw/c.i.currentPrice-1)*100,2):'해당 없음',c.addZeroRaw?signClass(c.addZeroRaw-c.i.currentPrice):'zero');setText('range1Sub',c.addZeroRaw?`${won(Math.ceil(c.addZeroRaw))} · 5원 호가 ${won(ceil5(c.addZeroRaw))}`:'추가매수수량 0주.');
-      setHelpText('range2Title','손익분기 구간','기존 보유분과 추가매수분의 전체 투자금액 회수 가격. 기존 회수 대상 금액 제외.');setText('range2Value',pct((c.positionBE/c.i.currentPrice-1)*100,2),signClass(c.positionBE-c.i.currentPrice));setText('range2Sub',`${won(c.positionBE)} · 5원 호가 ${won(c.positionBEOrder)}`);
+      setHelpText('range1Title','추가매수 효과 0원 기준','추가매수분 기준 손익 0원 가격. 기존 보유분 손익과 회수 대상 금액 제외.');setText('range1Value',c.addZeroRaw?pct((c.addZeroRaw/c.i.currentPrice-1)*100,2):'해당 없음',c.addZeroRaw?signClass(c.addZeroRaw-c.i.currentPrice):'zero');setText('range1Sub',c.addZeroRaw?`${won(Math.ceil(c.addZeroRaw))} · 5원 호가 ${won(ceil5(c.addZeroRaw))}`:'추가매수수량 0주.');
+      setHelpText('range2Title','손익분기 구간','기존 보유분과 추가매수분의 전체 투자금액 회수 가격. 회수 대상 금액 제외.');setText('range2Value',pct((c.positionBE/c.i.currentPrice-1)*100,2),signClass(c.positionBE-c.i.currentPrice));setText('range2Sub',`${won(c.positionBE)} · 5원 호가 ${won(c.positionBEOrder)}`);
       setText('range3Title','목표가격 상태');setText('range3Value',c.targetPrice>=c.positionBE?'손익분기 이상':'손익분기 미달',c.targetPrice>=c.positionBE?'positive':'negative');setText('range3Sub',`${won(c.targetPrice)} · 손익분기 대비 ${c.targetPrice>=c.positionBE?'+':''}${nf0.format(c.targetPrice-c.positionBE)}원`);
       $('s1').innerHTML=holdingStrategyHTML(1,'③','추가매수 원금만 회수','비추천','bad','추가매수 원금 회수에 필요한 최소 수량만 매도.',c.sPrincipal,c);
       $('s2').innerHTML=holdingStrategyHTML(2,'②','추가매수 수량 매도','조건부 추천','conditional','추가매수 수량만 매도 · 기존 보유분 유지.',c.sAdd,c);
