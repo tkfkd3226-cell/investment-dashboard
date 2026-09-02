@@ -44,15 +44,18 @@ test('Calc control geometry는 단일 box-height token을 Source of Truth로 사
   assert.doesNotMatch(body,/height:(?:30|34|40)px/);
 });
 
-test('date와 일반 input은 같은 Y padding token으로 동일 외곽 높이를 만든다',()=>{
-  assert.match(css1,/--calc-control-pad-y:5px/);
-  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px;/);
-  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.control\{font-size:16px;line-height:1\}/);
-  const dateBody=rule(':where(html[data-add-page="calc"]) .date-control-shell .date-control');
-  assert.match(dateBody,/height:var\(--calc-control-inner-height\)/);
-  assert.match(dateBody,/padding:var\(--calc-control-pad-y\) var\(--density-action-pad-x\)/);
-  assert.match(dateBody,/-webkit-appearance:none/);
-  assert.match(dateBody,/appearance:none/);
+test('Calc input 값은 Web/Tablet 12px, Phone은 iOS 16px computed + .75 optical scale로 12px을 유지한다',()=>{
+  assert.match(css1,/--calc-control-value-size:12px; --calc-control-input-size:var\(--calc-control-value-size\); --calc-control-scale:1; --calc-control-inner-size:100%/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .control'),/font-size:var\(--calc-control-input-size\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .unit'),/font-size:var\(--calc-control-value-size\)/);
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px;[^}]*--calc-control-input-size:16px; --calc-control-scale:\.75; --calc-control-inner-size:133\.333333%;[^}]*--calc-control-inner-pad-y:8px; --calc-control-inner-pad-x:10\.666667px;/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.calc-control-shell > \.control\{[^}]*transform:scale\(var\(--calc-control-scale\)\);transform-origin:top left/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.date-control-shell \.date-control\{[^}]*font-size:var\(--calc-control-input-size\);[^}]*transform:scale\(var\(--calc-control-scale\)\)/);
+  const wrappedControls=(calc.match(/class="calc-control-shell"><input[^>]*class="[^"]*\bcontrol\b[^"]*"[^>]*>/g)||[]).length;
+  const allControls=(calc.match(/<input[^>]*class="[^"]*\bcontrol\b[^"]*"[^>]*>/g)||[]).length;
+  assert.equal(allControls,28);
+  assert.equal(wrappedControls,27);
+  assert.match(calc,/class="date-control-shell"><input[^>]*class="control date-control"/);
 });
 
 test('모바일 share/pct step 버튼은 input 높이에 stretch되어 별도 40px 높이를 강제하지 않는다',()=>{
@@ -79,7 +82,7 @@ test('Report tab도 active/aria-selected/tabindex contract를 유지한다',()=>
 test('Calc Compact typography는 역할 token을 유지하고 viewport별 canonical scale을 사용한다',()=>{
   assert.match(css1,/--calc-type-page-title:22px; --calc-type-section:16px; --calc-type-subsection:13px; --calc-type-support:11px; --calc-type-label:11px;/);
   assert.match(css1,/@media\(max-width:1100px\)\{ :root:where\(\[data-add-page="calc"\]\)\{ --density-page-pad:9px;[^}]*--calc-type-page-title:21px; --calc-type-section:15px; --calc-type-subsection:13px; --calc-type-support:11px; --calc-type-label:11px;/);
-  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px; --calc-type-page-title:22px; --calc-type-section:15px; --calc-type-subsection:13px; --calc-type-support:11px; --calc-type-label:10px;/);
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px;[^}]*--calc-type-page-title:22px; --calc-type-section:15px; --calc-type-subsection:13px; --calc-type-support:11px; --calc-type-label:10px;/);
 
   for(const selector of [
     ':where(html[data-add-page="calc"]) .add-heading-section',

@@ -265,6 +265,15 @@ body{
       --calc-control-border-width:1px;
       --calc-control-box-height:calc(1rem + var(--calc-control-pad-y) + var(--calc-control-pad-y) + var(--calc-control-border-width) + var(--calc-control-border-width));
       --calc-control-inner-height:calc(var(--calc-control-box-height) - var(--calc-control-border-width) - var(--calc-control-border-width));
+      /* Control value typography
+         - Web/Tablet은 Compact 값 크기 12px을 그대로 사용한다.
+         - Phone은 iOS focus zoom 방지를 위해 실제 input computed size만 16px로 유지하고 shell 내부에서 .75 optical scale로 12px처럼 표시한다. */
+      --calc-control-value-size:12px;
+      --calc-control-input-size:var(--calc-control-value-size);
+      --calc-control-scale:1;
+      --calc-control-inner-size:100%;
+      --calc-control-inner-pad-y:var(--calc-control-pad-y);
+      --calc-control-inner-pad-x:var(--density-action-pad-x);
 
       /* Calc Field Layout primitive */
       --calc-field-label-gap:var(--density-gap-xs);
@@ -467,14 +476,15 @@ html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-p
     :where(html[data-add-page="calc"]) .custom-tooltip::after{content:"";position:absolute;left:var(--tooltip-arrow-x,50%);top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--tooltip-bg)}
     :where(html[data-add-page="calc"]) .custom-tooltip.tooltip-below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--tooltip-bg)}
     :where(html[data-add-page="calc"]) .help-tooltip:hover .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip:focus-within .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip.is-open .custom-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
-    :where(html[data-add-page="calc"]) .control{height:var(--calc-control-box-height);min-height:0;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);padding:var(--calc-control-pad-y) var(--density-action-pad-x);outline:none;text-align:right;font-weight:750;line-height:1;color:var(--ink);-webkit-appearance:none;appearance:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.46)}
+    :where(html[data-add-page="calc"]) .calc-control-shell{display:block;width:100%;min-width:0}
+    :where(html[data-add-page="calc"]) .control{height:var(--calc-control-box-height);min-height:0;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);padding:var(--calc-control-pad-y) var(--density-action-pad-x);outline:none;text-align:right;font-size:var(--calc-control-input-size);font-weight:750;line-height:1;color:var(--ink);-webkit-appearance:none;appearance:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.46)}
 html:where([data-add-page="calc"]).dark .control{box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
     :where(html[data-add-page="calc"]) .control:focus, :where(html[data-add-page="calc"]) .date-control-shell:focus-within{border-color:var(--control-focus-border);box-shadow:0 0 0 2px var(--control-focus-ring)}
     :where(html[data-add-page="calc"]) .control[readonly]{background:var(--control-readonly-bg)}
     :where(html[data-add-page="calc"]) .control[readonly]:not(.positive):not(.negative):not(.zero){color:var(--control-readonly-text)}
     :where(html[data-add-page="calc"]) .with-unit{position:relative}
     :where(html[data-add-page="calc"]) .with-unit .control{padding-right:34px;width:100%}
-    :where(html[data-add-page="calc"]) .unit{position:absolute;right:var(--density-action-pad-x);top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700}
+    :where(html[data-add-page="calc"]) .unit{position:absolute;right:var(--density-action-pad-x);top:50%;transform:translateY(-50%);color:var(--muted);font-size:var(--calc-control-value-size);font-weight:700}
     :where(html[data-add-page="calc"]) .pct-stepper{display:grid;grid-template-columns:30px minmax(0,1fr) 30px;gap:var(--density-gap-micro);align-items:center}
     :where(html[data-add-page="calc"]) .pct-step-btn{height:auto;align-self:stretch;border-color:var(--control-border)}
     :where(html[data-add-page="calc"]) .pct-step-btn:disabled{color:var(--control-disabled-text);background:var(--control-readonly-bg)}
@@ -700,6 +710,12 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         --button-compact-pad-x:4px;
 
         --calc-control-pad-y:6px;
+        --calc-control-input-size:16px;
+        --calc-control-scale:.75;
+        --calc-control-inner-size:133.333333%;
+        /* 6px / .75 = 8px, 8px / .75 = 10.666667px: visual padding은 기존 Phone control과 동일하게 유지한다. */
+        --calc-control-inner-pad-y:8px;
+        --calc-control-inner-pad-x:10.666667px;
         --calc-type-page-title:22px;
         --calc-type-section:15px;
         --calc-type-subsection:13px;
@@ -760,13 +776,24 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) :is(.share-step-btn,.pct-step-btn){display:block;height:auto;align-self:stretch;border-color:var(--control-border)}
       :where(html[data-add-page="calc"]) .share-step-btn:active{background:var(--control-hover-bg)}
       :where(html[data-add-page="calc"]) .input-group .group-title small{font-size:var(--calc-type-support)}
-      /* Mobile input optical density: keep every Calc control at 16px to prevent iOS focus zoom.
-         Apply the optical Y padding to all controls, not only .input-group descendants,
-         so prior-trade/date/current fields share the same glyph + padding-driven height. */
-      :where(html[data-add-page="calc"]) .control{font-size:16px;line-height:1}
+      /* Mobile input optical density · Main Dashboard의 iOS zoom 회피 방식과 동일한 shell contract
+         - focus 가능한 input의 computed font-size는 16px을 유지한다.
+         - shell의 외곽 geometry는 그대로 두고 내부 input만 .75 scale하여 visual 12px로 표시한다.
+         - date input은 기존 date-control-shell을 같은 optical shell로 재사용한다. */
+      :where(html[data-add-page="calc"]) .calc-control-shell{position:relative;height:var(--calc-control-box-height);overflow:hidden;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);box-shadow:inset 0 1px 0 rgba(255,255,255,.46)}
+      html:where([data-add-page="calc"]).dark .calc-control-shell{box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+      html:where([data-add-page="calc"]).dark .calc-control-shell > .control{box-shadow:none}
+      :where(html[data-add-page="calc"]) .calc-control-shell:focus-within{border-color:var(--control-focus-border);box-shadow:0 0 0 2px var(--control-focus-ring)}
+      :where(html[data-add-page="calc"]) .calc-control-shell:has(> .control[readonly]){background:var(--control-readonly-bg)}
+      :where(html[data-add-page="calc"]) .calc-control-shell:has(> .control.invalid){border-color:var(--danger-strong);background:var(--danger-control-bg);box-shadow:0 0 0 3px var(--danger-ring)}
+      :where(html[data-add-page="calc"]) .calc-control-shell > .control{display:block;width:var(--calc-control-inner-size);max-width:none;height:var(--calc-control-inner-size);min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;padding:var(--calc-control-inner-pad-y) var(--calc-control-inner-pad-x);font-size:var(--calc-control-input-size);line-height:1;transform:scale(var(--calc-control-scale));transform-origin:top left}
+      :where(html[data-add-page="calc"]) .calc-control-shell > .control:focus{border:0;box-shadow:none}
+      :where(html[data-add-page="calc"]) .calc-control-shell > .control:is([readonly],.invalid){background:transparent;box-shadow:none}
+      :where(html[data-add-page="calc"]) .with-unit .calc-control-shell > .control{padding-right:45.333333px}
+      :where(html[data-add-page="calc"]) .date-control-shell{height:var(--calc-control-box-height)}
+      :where(html[data-add-page="calc"]) .date-control-shell .date-control{width:var(--calc-control-inner-size);max-width:none;height:var(--calc-control-inner-size);padding:var(--calc-control-inner-pad-y) var(--calc-control-inner-pad-x);font-size:var(--calc-control-input-size);line-height:1;transform:scale(var(--calc-control-scale));transform-origin:top left}
       :where(html[data-add-page="calc"]) .input-group :is(.share-step-btn,.pct-step-btn){font-size:16px}
       :where(html[data-add-page="calc"]) .calculation-group .seg button{height:var(--calc-control-box-height);padding:0 var(--button-compact-pad-x);font-size:var(--calc-type-label);letter-spacing:-.025em}
-      :where(html[data-add-page="calc"]) .calculation-group .unit{font-size:15px}
       :where(html[data-add-page="calc"]) .calculation-group .fields{grid-template-columns:minmax(0,1fr)}
       :where(html[data-add-page="calc"]) .calculation-group .field.full{grid-column:auto}
       :where(html[data-add-page="calc"]) .strategy-head{display:block}:where(html[data-add-page="calc"]) .badge{display:inline-block;margin-top:var(--density-gap-md)}
@@ -794,8 +821,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       }
       :where(html[data-add-page="calc"]) .prior-date-section{padding:0 var(--density-gap-xs) var(--density-surface-md)}
       :where(html[data-add-page="calc"]) .prior-trade-section{padding:var(--density-surface-md) var(--density-gap-xs)}
-      :where(html[data-add-page="calc"]) .prior-entry-grid .control{min-width:0;max-width:100%;font-size:16px}
-      :where(html[data-add-page="calc"]) .date-control-shell .date-control{font-size:16px;line-height:1}
+      :where(html[data-add-page="calc"]) .prior-entry-grid .control{min-width:0;max-width:100%}
       :where(html[data-add-page="calc"]) .existing-group.holding-layout #holdingPriorFields{gap:0}
       :where(html[data-add-page="calc"]) .existing-subsection,
       :where(html[data-add-page="calc"]) .current-subsection,
