@@ -149,10 +149,22 @@ test('Calc 가로 터치폰은 Tablet이 아니라 세로 Phone과 같은 Compac
 });
 
 
-test('calculation criteria buttons share the same Calc control geometry token', () => {
-  assert.match(css1, /\.calculation-group \.seg button\{[^}]*height:var\(--calc-control-box-height\)[^}]*border-width:var\(--calc-control-border-width\)[^}]*line-height:1/);
-  assert.doesNotMatch(css1, /\.calculation-group \.seg button\{[^}]*height:calc\(/);
-  assert.doesNotMatch(css1, /\.calculation-group \.seg button\{[^}]*height:var\(--button-control-height\)/);
+test('Calc 주요 선택 버튼은 거래유형/계산기준/전략탭 하나의 Choice Group primitive를 공유한다', () => {
+  assert.equal((calc.match(/class="[^"]*calc-choice-group[^"]*"/g)||[]).length,3);
+  assert.equal((calc.match(/class="[^"]*calc-choice-button[^"]*"/g)||[]).length,9);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-choice-group'),/display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\);gap:var\(--calc-field-row-gap\)/);
+  const choice=rule(':where(html[data-add-page="calc"]) .calc-choice-group > .calc-choice-button');
+  assert.match(choice,/height:var\(--calc-control-box-height\)/);
+  assert.match(choice,/padding:0 var\(--calc-choice-pad-x\)/);
+  assert.match(choice,/border-width:var\(--calc-control-border-width\)/);
+  assert.match(choice,/font-size:var\(--calc-type-label\)/);
+  assert.match(choice,/line-height:1/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-choice-group.settled-tabs'),/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css1,/--calc-choice-pad-x:var\(--density-action-pad-x\)/);
+  assert.match(css1,/--calc-choice-pad-x:var\(--button-compact-pad-x\)/);
+  assert.doesNotMatch(css1,/:where\(html\[data-add-page="calc"\]\) \.preset-btn\{[^}]*\b(?:height|min-height|padding):/);
+  assert.doesNotMatch(css1,/:where\(html\[data-add-page="calc"\]\) \.calculation-group \.seg button\{/);
+  assert.doesNotMatch(css1,/:where\(html\[data-add-page="calc"\]\) \.tab\{[^}]*\b(?:height|min-height|padding):/);
 });
 
 
@@ -179,7 +191,8 @@ test('계산 기준은 전용 정렬 보정 없이 공통 field/row gap 구조�
   assert.match(calc,/class="field-label-slot" aria-hidden="true"/);
   assert.match(css1,/@media\(max-width:1100px\)\{[^}]*\.calculation-mode-field \.field-label-slot\{display:none\}/);
   assert.match(rule(':where(html[data-add-page="calc"]) .calculation-flow'),/gap:var\(--calc-field-row-gap\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .seg'),/gap:var\(--calc-field-row-gap\);margin:0/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-choice-group'),/gap:var\(--calc-field-row-gap\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .seg'),/margin:0/);
   assert.match(rule(':where(html[data-add-page="calc"]) .formula'),/margin:0/);
   assert.match(rule(':where(html[data-add-page="calc"]) .actual-sale-price'),/margin:0/);
   assert.doesNotMatch(css1,/\.calculation-group \.seg\{[^}]*padding-top:/);
