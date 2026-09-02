@@ -261,7 +261,8 @@ body{
       /* Compact geometry / field rhythm
          - Compact 스타일의 정보 밀도를 canonical Calc 기준으로 사용한다.
          - Compact 정보 밀도에 맞춰 Desktop 최대폭은 1280px을 사용하고, 입력/카드 내부 grid 비율은 기존 구조를 유지한다. */
-      --calc-control-pad-y:5px;
+      --calc-control-space:8px;
+      --calc-control-pad-y:var(--calc-control-space);
       --calc-control-border-width:1px;
       --calc-control-box-height:calc(1rem + var(--calc-control-pad-y) + var(--calc-control-pad-y) + var(--calc-control-border-width) + var(--calc-control-border-width));
       --calc-control-inner-height:calc(var(--calc-control-box-height) - var(--calc-control-border-width) - var(--calc-control-border-width));
@@ -273,7 +274,7 @@ body{
       --calc-control-scale:1;
       --calc-control-inner-size:100%;
       --calc-control-inner-pad-y:var(--calc-control-pad-y);
-      --calc-control-inner-pad-x:var(--density-action-pad-x);
+      --calc-control-inner-pad-x:var(--calc-control-space);
 
       /* Calc Field Layout primitive */
       --calc-field-label-gap:var(--density-gap-xs);
@@ -341,11 +342,16 @@ body{
       --density-gap-xs:3px;
       --density-gap-micro:2px;
       --density-layout-gap:8px;
-      --density-action-pad-x:8px;
-      --density-action-pad-y:5px;
+      --density-action-pad-x:var(--calc-control-space);
+      --density-action-pad-y:var(--calc-control-space);
       --density-field-pad-x:6px;
-      --density-table-pad-x:8px;
-      --density-table-pad-y:6px;
+      /* Calc surface/card/table spacing contract
+         - 카드·패널·표 cell의 상하좌우 여백과 카드 간 gap은 같은 responsive rhythm을 사용한다.
+         - Desktop / Tablet / Phone 8px. */
+      --calc-surface-space:8px;
+      --calc-card-gap:var(--calc-surface-space);
+      --density-table-pad-x:var(--calc-surface-space);
+      --density-table-pad-y:var(--calc-surface-space);
 
       /* Help / tooltip */
       --tooltip-bg:#17243a;
@@ -446,7 +452,7 @@ body{
     :where(html[data-add-page="calc"]) .btn{line-height:1}
     /* Calc Choice Button · 세 선택 영역이 공유하는 것은 버튼 자체의 세로 geometry / typography / state뿐이다.
        가로폭·열 구성·그룹 전체 폭은 preset-bar / seg / tabs가 각각 소유한다. */
-    :where(html[data-add-page="calc"]) .calc-choice-button{display:flex;align-items:center;justify-content:center;height:var(--calc-control-box-height);min-height:0;padding-block:0;border-width:var(--calc-control-border-width);font-size:var(--calc-type-label);line-height:1;letter-spacing:-.025em}
+    :where(html[data-add-page="calc"]) .calc-choice-button{display:flex;align-items:center;justify-content:center;height:var(--calc-control-box-height);min-height:0;padding:var(--calc-control-space);border-width:var(--calc-control-border-width);font-size:var(--calc-type-label);line-height:1;letter-spacing:-.025em}
     :where(html[data-add-page="calc"]) .preset-bar{display:flex;align-items:center;gap:var(--density-gap-sm);flex-wrap:wrap;margin-bottom:var(--density-surface-sm)}
     :where(html[data-add-page="calc"]) .preset-btn{flex-direction:column;gap:var(--density-gap-micro);padding-inline:var(--density-action-pad-x);box-shadow:none}
     :where(html[data-add-page="calc"]) .preset-btn .preset-main{font:inherit}
@@ -457,17 +463,17 @@ body{
    - 입력 카드 공통 레이아웃과 숫자·수량·비율 컨트롤
    - readonly·검증 오류·툴팁·계산 기준 세그먼트 포함
    ========================================================= */
-    :where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body){padding:var(--density-surface-md)}
-    :where(html[data-add-page="calc"]) .input-panel{margin-bottom:var(--density-gap-lg);background:rgba(249,251,253,.76)}
+    :where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body){padding:var(--calc-surface-space)}
+    :where(html[data-add-page="calc"]) .input-panel{margin-bottom:var(--calc-card-gap);background:rgba(249,251,253,.76)}
 html:where([data-add-page="calc"]).dark .input-panel{background:rgba(18,26,36,.82)}
-    :where(html[data-add-page="calc"]) .input-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-surface-sm)}
+    :where(html[data-add-page="calc"]) .input-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--calc-card-gap)}
     :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{
       grid-template-columns:repeat(2,minmax(0,1fr));
       grid-template-areas:"current-group calculation-group";
-      gap:var(--density-surface-sm);
+      gap:var(--calc-card-gap);
       align-items:stretch
     }
-    :where(html[data-add-page="calc"]) .input-group{padding:var(--density-surface-sm);box-shadow:none}
+    :where(html[data-add-page="calc"]) .input-group{padding:var(--calc-surface-space);box-shadow:none}
     :where(html[data-add-page="calc"]) .group-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--density-gap-md);padding-bottom:var(--density-gap-md);border-bottom:1px solid var(--line);letter-spacing:-.025em}
     :where(html[data-add-page="calc"]) .group-title small{font-size:10px;font-weight:500;color:var(--muted)}
     :where(html[data-add-page="calc"]) .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--calc-field-row-gap)}
@@ -494,7 +500,7 @@ html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-p
     /* Wrapper 도입 전 input이 .field의 flex stretch로 채우던 가로폭을 shell 내부에서도 그대로 유지한다.
        Phone에서는 뒤의 optical-scale 규칙이 width:133.333333%로 의도적으로 덮어쓴다. */
     :where(html[data-add-page="calc"]) .calc-control-shell > .control{display:block;width:100%;max-width:none}
-    :where(html[data-add-page="calc"]) .control{height:var(--calc-control-box-height);min-height:0;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);padding:var(--calc-control-pad-y) var(--density-action-pad-x);outline:none;text-align:right;font-size:var(--calc-control-input-size);font-weight:750;line-height:1;color:var(--ink);-webkit-appearance:none;appearance:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.46)}
+    :where(html[data-add-page="calc"]) .control{height:var(--calc-control-box-height);min-height:0;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);padding:var(--calc-control-space);outline:none;text-align:right;font-size:var(--calc-control-input-size);font-weight:750;line-height:1;color:var(--ink);-webkit-appearance:none;appearance:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.46)}
 html:where([data-add-page="calc"]).dark .control{box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
     :where(html[data-add-page="calc"]) .control:focus, :where(html[data-add-page="calc"]) .date-control-shell:focus-within{border-color:var(--control-focus-border);box-shadow:0 0 0 2px var(--control-focus-ring)}
     :where(html[data-add-page="calc"]) .control[readonly]{background:var(--control-readonly-bg)}
@@ -502,7 +508,8 @@ html:where([data-add-page="calc"]).dark .control{box-shadow:inset 0 1px 0 rgba(2
     :where(html[data-add-page="calc"]) .with-unit{position:relative}
     :where(html[data-add-page="calc"]) .with-unit .control{padding-right:34px;width:100%}
     :where(html[data-add-page="calc"]) .unit{position:absolute;right:var(--density-action-pad-x);top:50%;transform:translateY(-50%);color:var(--muted);font-size:var(--calc-control-value-size);font-weight:700}
-    :where(html[data-add-page="calc"]) .pct-stepper{display:grid;grid-template-columns:30px minmax(0,1fr) 30px;gap:var(--density-gap-micro);align-items:center}
+    :where(html[data-add-page="calc"]) .pct-stepper{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;gap:var(--density-gap-micro);align-items:center}
+    :where(html[data-add-page="calc"]) :is(.share-step-btn,.pct-step-btn){padding:var(--calc-control-space)}
     :where(html[data-add-page="calc"]) .pct-step-btn{height:auto;align-self:stretch;border-color:var(--control-border)}
     :where(html[data-add-page="calc"]) .pct-step-btn:disabled{color:var(--control-disabled-text);background:var(--control-readonly-bg)}
     :where(html[data-add-page="calc"]) .control[type=number]::-webkit-inner-spin-button, :where(html[data-add-page="calc"]) .control[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
@@ -520,10 +527,10 @@ html:where([data-add-page="calc"]).dark .control{box-shadow:inset 0 1px 0 rgba(2
     :where(html[data-add-page="calc"]) .calculation-group .seg button{padding-inline:var(--density-action-pad-x)}
     :where(html[data-add-page="calc"]) .formula{font-size:10px;color:var(--muted);background:#f0f3f8;border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:4px 6px;margin:0;line-height:1.3}
 html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
-    :where(html[data-add-page="calc"]) .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);width:100%;margin:0;color:var(--muted);text-align:left;appearance:none;-webkit-appearance:none;min-height:30px;padding:5px 7px}
+    :where(html[data-add-page="calc"]) .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);width:100%;margin:0;color:var(--muted);text-align:left;appearance:none;-webkit-appearance:none;min-height:30px;padding:var(--calc-control-space)}
     :where(html[data-add-page="calc"]) .actual-sale-price:active{transform:translateY(1px)}
     :where(html[data-add-page="calc"]) .actual-sale-price strong{color:var(--navy);font-size:11px;font-weight:900;white-space:nowrap}
-    :where(html[data-add-page="calc"]) .validation-panel{display:none;margin:0 0 var(--density-gap-lg);padding:var(--density-surface-sm);border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger-text);font-size:var(--calc-type-label);font-weight:700}
+    :where(html[data-add-page="calc"]) .validation-panel{display:none;margin:0 0 var(--calc-card-gap);padding:var(--calc-surface-space);border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger-text);font-size:var(--calc-type-label);font-weight:700}
     :where(html[data-add-page="calc"]) .validation-panel.show{display:block}
     :where(html[data-add-page="calc"]) .validation-result-note{margin-top:var(--density-gap-xs);font-weight:600}
     :where(html[data-add-page="calc"]) .validation-panel ul{margin:7px 0 0;padding-left:20px;font-weight:600}
@@ -586,7 +593,7 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .prior-buy-section{border-right:1px dashed var(--control-border)}
     :where(html[data-add-page="calc"]) .prior-entry-grid .field{min-width:0}
     :where(html[data-add-page="calc"]) .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);overflow:hidden;box-sizing:border-box}
-    :where(html[data-add-page="calc"]) .date-control-shell .date-control{position:relative;display:block;width:100%;min-width:0;max-width:100%;height:var(--calc-control-inner-height);min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;outline:none;text-align:left;padding:var(--calc-control-pad-y) var(--density-action-pad-x);box-sizing:border-box;line-height:1;-webkit-min-logical-width:0;-webkit-appearance:none;appearance:none}
+    :where(html[data-add-page="calc"]) .date-control-shell .date-control{position:relative;display:block;width:100%;min-width:0;max-width:100%;height:var(--calc-control-inner-height);min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;outline:none;text-align:left;padding:var(--calc-control-space);box-sizing:border-box;line-height:1;-webkit-min-logical-width:0;-webkit-appearance:none;appearance:none}
     :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-date-and-time-value{margin:0;padding:0;display:flex;align-items:center;justify-content:center;text-align:center}
     :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-datetime-edit{padding:0;display:flex;align-items:center;justify-content:center}
     :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-datetime-edit-fields-wrapper{display:flex;align-items:center;justify-content:center;padding:0}
@@ -602,13 +609,13 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
    05. 핵심 지표 / 가격 구간 요약
    - 계산 직후 보여주는 KPI와 손실·회복 가격 구간 카드
    ========================================================= */
-:where(html[data-add-page="calc"]) .calc-summary-panel{display:grid;gap:var(--density-gap-md);margin-bottom:var(--density-gap-lg)}
-:where(html[data-add-page="calc"]) .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--density-gap-sm)}
-    :where(html[data-add-page="calc"]) .kpi{padding:var(--density-surface-md) var(--density-action-pad-x);box-shadow:none}
+:where(html[data-add-page="calc"]) .calc-summary-panel{display:grid;gap:var(--calc-card-gap);margin-bottom:var(--calc-card-gap)}
+:where(html[data-add-page="calc"]) .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--calc-card-gap)}
+    :where(html[data-add-page="calc"]) .kpi{padding:var(--calc-surface-space);box-shadow:none}
     :where(html[data-add-page="calc"]) .kpi .value{margin-top:2px;font-size:18px;font-weight:900;letter-spacing:-.03em;line-height:1.15}
 
-    :where(html[data-add-page="calc"]) .range-panel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-md)}
-    :where(html[data-add-page="calc"]) .range-box{padding:var(--density-surface-md) var(--density-action-pad-x)}
+    :where(html[data-add-page="calc"]) .range-panel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--calc-card-gap)}
+    :where(html[data-add-page="calc"]) .range-box{padding:var(--calc-surface-space)}
     :where(html[data-add-page="calc"]) .range-box strong{display:block;font-size:var(--calc-type-label);margin-bottom:2px}
     :where(html[data-add-page="calc"]) .range-box .big{font-size:18px;font-weight:900;line-height:1.15}
     :where(html[data-add-page="calc"]) .range-box .muted{font-size:var(--calc-type-label);line-height:1.4;margin-top:var(--density-gap-micro)}
@@ -627,22 +634,22 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .strategy{display:none}
     :where(html[data-add-page="calc"]) .strategy.active{display:block}
     :where(html[data-add-page="calc"]) .strategy-card{overflow:hidden}
-    :where(html[data-add-page="calc"]) .strategy-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--density-gap-lg);padding:var(--density-surface-md) var(--density-surface-lg);border-bottom:1px solid var(--line);background:var(--surface-subtle)}
+    :where(html[data-add-page="calc"]) .strategy-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--density-gap-lg);padding:var(--calc-surface-space);border-bottom:1px solid var(--line);background:var(--surface-subtle)}
     :where(html[data-add-page="calc"]) .strategy-title h2{margin:0}
     :where(html[data-add-page="calc"]) .strategy-title p{margin:var(--density-gap-xs) 0 0;color:var(--muted);font-size:var(--calc-type-label);line-height:1.3;white-space:nowrap}
     :where(html[data-add-page="calc"]) .badge{padding:var(--density-gap-xs) var(--density-surface-sm);border-radius:var(--radius-pill);font-size:var(--calc-type-label);font-weight:900;white-space:nowrap}
     :where(html[data-add-page="calc"]) .badge.bad{background:var(--badge-bad-bg);color:var(--badge-bad-text)}
     :where(html[data-add-page="calc"]) .badge.conditional{background:var(--badge-conditional-bg);color:var(--badge-conditional-text)}
     :where(html[data-add-page="calc"]) .badge.good{background:var(--badge-good-bg);color:var(--badge-good-text)}
-    :where(html[data-add-page="calc"]) .summary-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--density-gap-sm);margin-bottom:var(--density-gap-lg)}
-    :where(html[data-add-page="calc"]) .summary-card{padding:var(--density-surface-sm) var(--density-gap-lg);box-shadow:none}
+    :where(html[data-add-page="calc"]) .summary-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--calc-card-gap);margin-bottom:var(--calc-card-gap)}
+    :where(html[data-add-page="calc"]) .summary-card{padding:var(--calc-surface-space);box-shadow:none}
     :where(html[data-add-page="calc"]) .summary-card .sname{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
     :where(html[data-add-page="calc"]) .summary-card .svalue{font-size:17px;font-weight:900;margin-top:2px;line-height:1.15}
     :where(html[data-add-page="calc"]) .section-title{margin:var(--density-surface-lg) 0 var(--density-gap-md)}
     :where(html[data-add-page="calc"]) .table-scroll{border-radius:min(var(--surface-radius-md),var(--corner-surface-cap))}
     :where(html[data-add-page="calc"]) .desktop-details{display:block}
     :where(html[data-add-page="calc"]) .mobile-data{display:none}
-    :where(html[data-add-page="calc"]) .mobile-data-card{padding:var(--density-surface-sm);min-width:0}
+    :where(html[data-add-page="calc"]) .mobile-data-card{padding:var(--calc-surface-space);min-width:0}
     :where(html[data-add-page="calc"]) .mobile-section-title{color:var(--ink);padding:var(--density-gap-md) 0 var(--density-gap-xs)}
     :where(html[data-add-page="calc"]) .mobile-section-title:first-child{padding-top:3px}
     :where(html[data-add-page="calc"]) .calc-result-section-title{font-size:var(--calc-result-title-size);font-weight:var(--calc-result-title-weight);line-height:var(--calc-result-title-line-height)}
@@ -656,13 +663,14 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
        실제 label/value의 자연 폭 중 가장 넓은 셀을 기준으로 같은 열 폭을 보장하고,
        컨테이너보다 넓어질 때만 add-table-scroll에서 가로 스크롤한다. */
     :where(html[data-add-page="calc"]) .calc-data-table{table-layout:fixed;min-width:max(100%,var(--calc-table-content-min,0px));border:1px solid var(--line);border-collapse:separate;border-spacing:0;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));overflow:hidden}
+    :where(html[data-add-page="calc"]) .calc-data-table :is(th,td){padding:var(--calc-surface-space)}
     :where(html[data-add-page="calc"]) .calc-data-table :is(th,td){border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0;text-align:center}
     :where(html[data-add-page="calc"]) .calc-data-table tr > :last-child{border-right:0}
     :where(html[data-add-page="calc"]) .calc-data-table tbody tr:last-child > *{border-bottom:0}
     :where(html[data-add-page="calc"]) .calc-data-table tbody td{background:var(--surface-control)}
-    :where(html[data-add-page="calc"]) .warning-note{margin-top:var(--density-surface-sm);padding:var(--density-surface-sm) var(--density-action-pad-x);border-color:var(--danger-border);background:#fff2f2;color:var(--warning-text);font-size:var(--calc-type-label);font-weight:900;line-height:1.35}
+    :where(html[data-add-page="calc"]) .warning-note{margin-top:var(--calc-card-gap);padding:var(--calc-surface-space);border-color:var(--danger-border);background:#fff2f2;color:var(--warning-text);font-size:var(--calc-type-label);font-weight:900;line-height:1.35}
 html:where([data-add-page="calc"]).dark .warning-note{background:rgba(127,29,29,.18)}
-    :where(html[data-add-page="calc"]) .note{margin-top:var(--density-surface-sm);padding:var(--density-surface-sm) var(--density-action-pad-x);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:#f5f7fb;color:#596478;font-size:var(--calc-type-label);line-height:1.35}
+    :where(html[data-add-page="calc"]) .note{margin-top:var(--calc-card-gap);padding:var(--calc-surface-space);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:#f5f7fb;color:#596478;font-size:var(--calc-type-label);line-height:1.35}
 html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
     :where(html[data-add-page="calc"]) .positive{color:var(--positive)}
     :where(html[data-add-page="calc"]) .negative{color:var(--negative)}
@@ -679,6 +687,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         --density-page-pad:9px;
         --density-surface-md:7px;
         --density-surface-sm:6px;
+        --calc-surface-space:8px;
         --calc-type-page-title:21px;
         --calc-type-section:15px;
         --calc-type-subsection:13px;
@@ -715,19 +724,16 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         --density-gap-xs:3px;
         --density-gap-micro:2px;
         --density-layout-gap:8px;
-        --density-action-pad-x:8px;
-        --density-action-pad-y:8px;
+        --density-action-pad-x:var(--calc-control-space);
+        --density-action-pad-y:var(--calc-control-space);
         --density-field-pad-x:6px;
-        --density-table-pad-x:8px;
-        --density-table-pad-y:6px;
-        --button-compact-pad-x:4px;
-
-        --calc-control-pad-y:6px;
+        --calc-surface-space:8px;
+        --calc-control-pad-y:var(--calc-control-space);
         --calc-control-input-size:16px;
         --calc-control-scale:.75;
         --calc-control-inner-size:133.333333%;
-        /* 6px / .75 = 8px, 8px / .75 = 10.666667px: visual padding은 기존 Phone control과 동일하게 유지한다. */
-        --calc-control-inner-pad-y:8px;
+        /* 10.666667px × .75 = 8px: iOS 16px input을 optical scale해도 상하좌우 visual padding은 8px을 유지한다. */
+        --calc-control-inner-pad-y:10.666667px;
         --calc-control-inner-pad-x:10.666667px;
         --calc-type-page-title:22px;
         --calc-type-section:15px;
@@ -736,7 +742,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         --calc-type-label:10px;
       }
       :where(html[data-add-page="calc"]) .hero{padding-bottom:var(--density-gap-md)}
-      :where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body){padding:var(--density-surface-sm)}
+      :where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body){padding:var(--calc-surface-space)}
       :where(html[data-add-page="calc"]) .calculation-mode-field .field-label-slot{display:none}
 
       :where(html[data-add-page="calc"]) .add-button-mobile-icon{
@@ -749,18 +755,18 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) #reportBtn .report-icon, :where(html[data-add-page="calc"]) #resetBtn .reset-icon{display:block}
       /* Phone horizontal composition · 버튼 시각 contract와 분리해 각 영역이 폭/열 구성을 소유한다. */
       :where(html[data-add-page="calc"]) .preset-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs)}
-      :where(html[data-add-page="calc"]) .preset-btn{min-width:0;width:100%;padding-inline:var(--button-compact-pad-x)}
+      :where(html[data-add-page="calc"]) .preset-btn{min-width:0;width:100%;padding-inline:var(--calc-control-space)}
       :where(html[data-add-page="calc"]) .preset-btn .preset-main{letter-spacing:-.04em}
-      :where(html[data-add-page="calc"]) .calculation-group .seg button{padding-inline:var(--button-compact-pad-x)}
+      :where(html[data-add-page="calc"]) .calculation-group .seg button{padding-inline:var(--calc-control-space)}
       :where(html[data-add-page="calc"]) .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible}
-      :where(html[data-add-page="calc"]) .tab{min-width:0;width:100%;padding-inline:var(--button-compact-pad-x);white-space:normal;word-break:keep-all}
+      :where(html[data-add-page="calc"]) .tab{min-width:0;width:100%;padding-inline:var(--calc-control-space);white-space:normal;word-break:keep-all}
       :where(html[data-add-page="calc"]) .input-grid, :where(html[data-add-page="calc"]) .input-group, :where(html[data-add-page="calc"]) .fields, :where(html[data-add-page="calc"]) .field, :where(html[data-add-page="calc"]) .share-stepper, :where(html[data-add-page="calc"]) .pct-stepper, :where(html[data-add-page="calc"]) .with-unit{min-width:0}
       :where(html[data-add-page="calc"]) .input-grid{width:100%}
-      :where(html[data-add-page="calc"]) .input-group{width:100%;max-width:100%;padding:8px}
+      :where(html[data-add-page="calc"]) .input-group{width:100%;max-width:100%;padding:var(--calc-surface-space)}
       :where(html[data-add-page="calc"]) .control{width:100%;min-width:0}
       :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout), :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{grid-template-columns:minmax(0,1fr)}
       :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-      :where(html[data-add-page="calc"]) .kpi{min-width:0;padding:var(--density-surface-sm)}
+      :where(html[data-add-page="calc"]) .kpi{min-width:0;padding:var(--calc-surface-space)}
       :where(html[data-add-page="calc"]) .kpi .name{
         font-size:var(--calc-type-label);
         white-space:nowrap;
@@ -786,10 +792,10 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         word-break:keep-all;
       }
       :where(html[data-add-page="calc"]) .range-panel{grid-template-columns:1fr}
-      :where(html[data-add-page="calc"]) .range-box{padding:var(--density-surface-sm)}
+      :where(html[data-add-page="calc"]) .range-box{padding:var(--calc-surface-space)}
       :where(html[data-add-page="calc"]) .mobile-only{display:inline}
       :where(html[data-add-page="calc"]) .desktop-only{display:none}
-      :where(html[data-add-page="calc"]) .share-stepper{display:grid;grid-template-columns:25px minmax(0,1fr) 25px;gap:3px;align-items:center}
+      :where(html[data-add-page="calc"]) .share-stepper{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;gap:3px;align-items:center}
       :where(html[data-add-page="calc"]) :is(.share-step-btn,.pct-step-btn){display:block;height:auto;align-self:stretch;border-color:var(--control-border)}
       :where(html[data-add-page="calc"]) .share-step-btn:active{background:var(--control-hover-bg)}
       :where(html[data-add-page="calc"]) .input-group .group-title small{font-size:var(--calc-type-support)}
@@ -815,9 +821,9 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) .strategy-head{display:block}:where(html[data-add-page="calc"]) .badge{display:inline-block;margin-top:var(--density-gap-md)}
       :where(html[data-add-page="calc"]) .desktop-details{display:none}
       :where(html[data-add-page="calc"]) .desktop-data{display:none}
-      :where(html[data-add-page="calc"]) .mobile-data{display:grid;gap:var(--density-gap-sm)}
+      :where(html[data-add-page="calc"]) .mobile-data{display:grid;gap:var(--calc-card-gap)}
       :where(html[data-add-page="calc"]) .strategy-title p{font-size:var(--calc-type-label);letter-spacing:-.025em}
-      :where(html[data-add-page="calc"]) .summary-row{grid-template-columns:repeat(2,1fr);gap:var(--density-gap-xs);margin-bottom:var(--density-gap-sm)}
+      :where(html[data-add-page="calc"]) .summary-row{grid-template-columns:repeat(2,1fr);gap:var(--calc-card-gap);margin-bottom:var(--calc-card-gap)}
       :where(html[data-add-page="calc"]) .summary-card{min-width:0}
       :where(html[data-add-page="calc"]) .summary-card .sname{font-size:var(--calc-type-label);line-height:1.25}
       :where(html[data-add-page="calc"]) .summary-card .svalue{font-size:17px;line-height:1.2;letter-spacing:-.045em;white-space:nowrap}
@@ -829,7 +835,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         grid-template-areas:
           "current-group"
           "calculation-group";
-        gap:var(--density-gap-sm)
+        gap:var(--calc-card-gap)
       }
       :where(html[data-add-page="calc"]) .prior-date-section{padding:0 var(--density-gap-xs) var(--density-surface-md)}
       :where(html[data-add-page="calc"]) .prior-trade-section{padding:var(--density-surface-md) var(--density-gap-xs)}
