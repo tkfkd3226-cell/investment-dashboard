@@ -63,10 +63,18 @@ test('모바일 share/pct step 버튼은 input 높이에 stretch되어 별도 40
   assert.match(css1,/:is\(\.share-step-btn,\.pct-step-btn\)\{display:block;height:auto;align-self:stretch/);
 });
 
-test('Calc preset 선택은 active와 aria-pressed를 한 번에 동기화한다',()=>{
+test('Calc 거래유형 preset 선택은 active와 aria-pressed를 한 번에 동기화한다',()=>{
   assert.match(js1,/function setPresetActive\(id\)\{[^}]*classList\.toggle\('active',active\);b\.setAttribute\('aria-pressed',String\(active\)\)/);
-  assert.match(js1,/function setCurrentPurchasePresetActive\(id\)\{[^}]*classList\.toggle\('active',active\);b\.setAttribute\('aria-pressed',String\(active\)\)/);
   assert.match(calc,/class="preset-btn[^\"]*"[^>]*aria-pressed="(?:true|false)"/);
+});
+
+test('Calc는 실제 거래일별 빠른 매수 shortcut을 두지 않고 이전 거래 없음도 직접 입력 구조를 사용한다',()=>{
+  assert.doesNotMatch(calc,/current-purchase-preset|current-purchase-btn|applyBuy20260804|applyBuy20260806|data-current-purchase-preset/);
+  assert.doesNotMatch(js1,/currentPurchasePresets|currentPurchasePresetId|setCurrentPurchasePresetActive|current-purchase-btn/);
+  assert.doesNotMatch(css1,/current-purchase-preset|current-purchase-btn|purchase-preset|current-column/);
+  const noPrior=rule(':where(html[data-add-page="calc"]) .input-grid.no-prior-layout');
+  assert.match(noPrior,/grid-template-columns:1\.2fr \.8fr/);
+  assert.match(noPrior,/grid-template-areas:"current-group calculation-group"/);
 });
 
 test('Calc strategy tab은 active/aria-selected/tabindex/panel aria-hidden을 동기화한다',()=>{
