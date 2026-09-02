@@ -63,18 +63,10 @@ test('모바일 share/pct step 버튼은 input 높이에 stretch되어 별도 40
   assert.match(css1,/:is\(\.share-step-btn,\.pct-step-btn\)\{display:block;height:auto;align-self:stretch/);
 });
 
-test('Calc 거래유형 preset 선택은 active와 aria-pressed를 한 번에 동기화한다',()=>{
+test('Calc preset 선택은 active와 aria-pressed를 한 번에 동기화한다',()=>{
   assert.match(js1,/function setPresetActive\(id\)\{[^}]*classList\.toggle\('active',active\);b\.setAttribute\('aria-pressed',String\(active\)\)/);
+  assert.match(js1,/function setCurrentPurchasePresetActive\(id\)\{[^}]*classList\.toggle\('active',active\);b\.setAttribute\('aria-pressed',String\(active\)\)/);
   assert.match(calc,/class="preset-btn[^\"]*"[^>]*aria-pressed="(?:true|false)"/);
-});
-
-test('Calc는 실제 거래일별 빠른 매수 shortcut을 두지 않고 이전 거래 없음도 직접 입력 구조를 사용한다',()=>{
-  assert.doesNotMatch(calc,/current-purchase-preset|current-purchase-btn|applyBuy20260804|applyBuy20260806|data-current-purchase-preset/);
-  assert.doesNotMatch(js1,/currentPurchasePresets|currentPurchasePresetId|setCurrentPurchasePresetActive|current-purchase-btn/);
-  assert.doesNotMatch(css1,/current-purchase-preset|current-purchase-btn|purchase-preset|current-column/);
-  const noPrior=rule(':where(html[data-add-page="calc"]) .input-grid.no-prior-layout');
-  assert.match(noPrior,/grid-template-columns:1\.2fr \.8fr/);
-  assert.match(noPrior,/grid-template-areas:"current-group calculation-group"/);
 });
 
 test('Calc strategy tab은 active/aria-selected/tabindex/panel aria-hidden을 동기화한다',()=>{
@@ -100,8 +92,7 @@ test('Calc Compact typography는 역할 token을 유지하고 viewport별 canoni
     ':where(html[data-add-page="calc"]) .case-note',
     ':where(html[data-add-page="calc"]) .range-box strong',
     ':where(html[data-add-page="calc"]) .strategy-title p',
-    ':where(html[data-add-page="calc"]) .summary-card .sname',
-    ':where(html[data-add-page="calc"]) .mobile-data-label'
+    ':where(html[data-add-page="calc"]) .summary-card .sname'
   ]){
     assert.match(rule(selector),/font-size:var\(--calc-type-(?:section|subsection|support|label)\)/,`${selector} must use Calc type token`);
   }
@@ -115,6 +106,25 @@ test('Calc Compact typography는 역할 token을 유지하고 viewport별 canoni
 });
 
 
+
+
+
+test('Calc 결과 상세는 표와 모바일 카드가 동일 semantic typography contract를 공유한다',()=>{
+  assert.match(css1,/--calc-result-title-size:var\(--calc-type-subsection\); --calc-result-title-weight:800; --calc-result-title-line-height:1\.3;/);
+  assert.match(css1,/--calc-result-label-size:var\(--calc-type-label\); --calc-result-label-weight:800; --calc-result-label-line-height:1\.35;/);
+  assert.match(css1,/--calc-result-value-size:12px; --calc-result-value-weight:800; --calc-result-value-line-height:1\.35;/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-result-section-title'),/font-size:var\(--calc-result-title-size\).*font-weight:var\(--calc-result-title-weight\).*line-height:var\(--calc-result-title-line-height\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-result-label'),/font-size:var\(--calc-result-label-size\).*font-weight:var\(--calc-result-label-weight\).*line-height:var\(--calc-result-label-line-height\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-result-value'),/font-size:var\(--calc-result-value-size\).*font-weight:var\(--calc-result-value-weight\).*line-height:var\(--calc-result-value-line-height\)/);
+  assert.match(js1,/class="section-title calc-result-section-title">매도 결과<\/div>/);
+  assert.match(js1,/class="add-table-cell-center calc-result-label"/);
+  assert.match(js1,/class="add-table-cell-center calc-result-value /);
+  assert.match(js1,/class="mobile-section-title calc-result-section-title"/);
+  assert.match(js1,/class="mobile-data-label calc-result-label"/);
+  assert.match(js1,/class="mobile-data-value calc-result-value /);
+  assert.doesNotMatch(css1,/\.mobile-data-value\{[^}]*font-size:13px/);
+  assert.doesNotMatch(css1,/\.mobile-data-value\{[^}]*font-size:14px/);
+});
 
 test('Calc는 iOS 가로 회전 text autosizing을 막아 CSS font-size를 그대로 유지한다',()=>{
   const body=rule(':where(html[data-add-page="calc"]) body');
@@ -132,7 +142,7 @@ test('Calc 페이지 제목은 Compact canonical token을 viewport별로 재사�
 test('Calc 3개 거래유형의 동적 문구는 inline font-size 없이 공통 typography selector를 사용한다',()=>{
   for(const preset of ['buy-2026-07-29','buy-2026-07-30','current-only']) assert.match(js,new RegExp(`['"]${preset}['"]`));
   assert.match(js1,/\$\('heroDescription'\)\.textContent=/);
-  assert.match(js1,/class="mobile-section-title add-heading-minor"/);
+  assert.match(js1,/class="mobile-section-title calc-result-section-title"/);
   assert.match(js1,/class="summary-card add-card-shell add-card-control"/);
   assert.doesNotMatch(js,/style\s*=\s*["'][^"']*font-size/i);
   assert.doesNotMatch(calc,/style\s*=\s*["'][^"']*font-size/i);
