@@ -49,6 +49,7 @@ test('Calc input 값은 Web/Tablet 12px, Phone은 iOS 16px computed + .75 optica
   assert.match(rule(':where(html[data-add-page="calc"]) .control'),/font-size:var\(--calc-control-input-size\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .unit'),/font-size:var\(--calc-control-value-size\)/);
   assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px;[^}]*--calc-control-input-size:16px; --calc-control-scale:\.75; --calc-control-inner-size:133\.333333%;[^}]*--calc-control-inner-pad-y:8px; --calc-control-inner-pad-x:10\.666667px;/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.calc-control-shell > \.control\{display:block;width:100%;max-width:none\}/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.calc-control-shell > \.control\{[^}]*transform:scale\(var\(--calc-control-scale\)\);transform-origin:top left/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.date-control-shell \.date-control\{[^}]*font-size:var\(--calc-control-input-size\);[^}]*transform:scale\(var\(--calc-control-scale\)\)/);
   const wrappedControls=(calc.match(/class="calc-control-shell"><input[^>]*class="[^"]*\bcontrol\b[^"]*"[^>]*>/g)||[]).length;
@@ -246,11 +247,11 @@ test('폐기된 theme/Alt 파일과 state contract는 Add canonical 구조에 �
   }
 });
 
-test('Calc Compact는 add.css의 canonical style이고 전체 폭은 기존 1480px baseline을 유지한다',()=>{
+test('Calc Compact는 add.css의 canonical style이고 Desktop 최대폭은 1280px을 유지한다',()=>{
   assert.match(css1,/:root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:5px/);
   assert.match(css1,/:root:where\(\[data-add-page="calc"\]\)\{[^}]*--surface-radius-md:8px; --control-radius-md:6px; --inner-radius-md:5px/);
   assert.match(css1,/:root:where\(\[data-add-page="calc"\]\)\{[^}]*--density-page-pad:10px; --density-surface-lg:9px; --density-surface-md:7px; --density-surface-sm:6px/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .wrap'),/max-width:1480px/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .wrap'),/max-width:1280px/);
   assert.doesNotMatch(rule(':where(html[data-add-page="calc"]) .wrap'),/max-width:1600px/);
   assert.match(rule(':where(html[data-add-page="calc"]) body'),/font-variant-numeric:tabular-nums/);
 });
