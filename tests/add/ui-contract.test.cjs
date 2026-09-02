@@ -193,6 +193,22 @@ test('Calc invalid 입력은 마지막 정상 결과를 stale 상태로 표시�
   assert.match(css1,/html:where\(\[data-add-page="calc"\]\)\.calc-results-stale :is\(\.kpis,\.range-panel,#strategyTabs,main\)\{opacity:\.48;transition:opacity \.14s ease\}/);
 });
 
+
+
+test('Report Timeline은 실현손익 미니카드를 canonical net에서 렌더하고 모바일에서 설명 하단으로 배치한다',()=>{
+  assert.match(js1,/function timelineEvent\(sortDate,range,title,strong,body,net=null\)/);
+  assert.match(js1,/events\.push\(Object\.freeze\(\{\.\.\.builder\(rows\),net:reportSum\(rows,'net'\)\}\)\)/);
+  assert.match(js1,/function timelineProfitCard\(net\)\{/);
+  assert.match(js1,/reportMetricText\(net,'signedWon'\)/);
+  assert.match(js1,/class="timeline-profit-card\$\{className\}"/);
+  assert.match(js1,/\$\{timelineProfitCard\(item\.net\)\}/);
+  assert.match(css1,/:where\(html\[data-add-page="report"\]\) \.timeline-card\{display:grid;grid-template-columns:minmax\(0,1fr\) auto;/);
+  assert.match(css1,/:where\(html\[data-add-page="report"\]\) \.timeline-profit-card\{[^}]*min-width:108px/);
+  assert.match(css1,/\.timeline-profit-card\.pos strong\{color:var\(--positive\)\}/);
+  assert.match(css1,/\.timeline-profit-card\.neg strong\{color:var\(--negative\)\}/);
+  assert.match(css1,/@media\(max-width:760px\)\{[^]*?\.timeline-card\{grid-column:2;grid-template-columns:minmax\(0,1fr\);gap:var\(--density-gap-xs\)\}[^]*?\.timeline-profit-card\{width:100%;min-width:0;margin-top:var\(--density-gap-xs\)/);
+});
+
 // Canonical Add UI contracts after Compact/Dynamic experiment cleanup.
 function contrastRatio(hexA,hexB){
   const lum=hex=>{

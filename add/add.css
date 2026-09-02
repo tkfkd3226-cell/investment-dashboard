@@ -1062,15 +1062,27 @@ html:where([data-add-page="report"]).dark .split-total{border-color:#3b4c66}
 :where(html[data-add-page="report"]) .timeline-date{font-size:11px;font-weight:900;color:var(--muted);padding-top:15px;white-space:nowrap}
 :where(html[data-add-page="report"]) .timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--energy-violet);margin:17px 0 0 10px;box-shadow:0 0 0 5px rgba(109,93,252,.11),0 0 20px rgba(109,93,252,.22);z-index:1}
 :where(html[data-add-page="report"]) .timeline-item:nth-child(even) .timeline-dot{background:var(--energy-cyan);box-shadow:0 0 0 5px rgba(24,169,201,.11),0 0 20px rgba(24,169,201,.20)}
-:where(html[data-add-page="report"]) .timeline-card{padding:var(--density-surface-md)}
+:where(html[data-add-page="report"]) .timeline-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:var(--density-gap-md);padding:var(--density-surface-md)}
+:where(html[data-add-page="report"]) .timeline-card-main{min-width:0}
 :where(html[data-add-page="report"]) .timeline-card-date{display:none}
-:where(html[data-add-page="report"]) .timeline-card h3{margin:0 0 var(--density-gap-micro)} :where(html[data-add-page="report"]) .timeline-card strong{font-size:12px;color:var(--navy)} :where(html[data-add-page="report"]) .source-img{width:100%;display:block}
+:where(html[data-add-page="report"]) .timeline-card-main h3{margin:0 0 var(--density-gap-micro)}
+:where(html[data-add-page="report"]) .timeline-card-main > strong{font-size:12px;color:var(--navy)}
+:where(html[data-add-page="report"]) .timeline-profit-card{position:relative;overflow:hidden;min-width:108px;padding:6px 8px;border:1px solid rgba(88,82,152,.13);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:linear-gradient(145deg,var(--surface-subtle),var(--card));box-shadow:inset 0 1px 0 rgba(255,255,255,.45);text-align:right}
+:where(html[data-add-page="report"]) .timeline-profit-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--energy-violet)}
+:where(html[data-add-page="report"]) .timeline-profit-card.pos:before{background:var(--positive)}
+:where(html[data-add-page="report"]) .timeline-profit-card.neg:before{background:var(--negative)}
+:where(html[data-add-page="report"]) .timeline-profit-card span{display:block;font-size:9px;font-weight:800;line-height:1.2;color:var(--muted)}
+:where(html[data-add-page="report"]) .timeline-profit-card strong{display:block;margin-top:2px;font-size:13px;font-weight:900;line-height:1.15;white-space:nowrap;color:var(--ink)}
+:where(html[data-add-page="report"]) .timeline-profit-card.pos strong{color:var(--positive)}
+:where(html[data-add-page="report"]) .timeline-profit-card.neg strong{color:var(--negative)}
+:where(html[data-add-page="report"]) .source-img{width:100%;display:block}
 :where(html[data-add-page="report"]) details{padding:var(--density-surface-md);margin-top:var(--density-gap-md)}
 :where(html[data-add-page="report"]) summary{cursor:pointer;font-weight:900;font-size:13px}
 :where(html[data-add-page="report"]) details p, :where(html[data-add-page="report"]) details li{font-size:12px;color:var(--muted)}
 html:where([data-add-page="report"]).dark .timeline:before{background:linear-gradient(var(--energy-violet),var(--energy-cyan))}
 html:where([data-add-page="report"]).dark .timeline-dot{box-shadow:0 0 0 5px rgba(149,140,255,.13),0 0 20px rgba(149,140,255,.22);background:var(--energy-violet)}
 html:where([data-add-page="report"]).dark .timeline-item:nth-child(even) .timeline-dot{background:var(--energy-cyan);box-shadow:0 0 0 5px rgba(75,197,221,.12),0 0 20px rgba(75,197,221,.20)}
+html:where([data-add-page="report"]).dark .timeline-profit-card{border-color:#334155;box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
 
 /* =========================================================
    07. 리포트 메뉴 / 모바일 전환
@@ -1162,8 +1174,10 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
   :where(html[data-add-page="report"]) .timeline-item{grid-template-columns:28px 1fr}
   :where(html[data-add-page="report"]) .timeline-date{display:none}
   :where(html[data-add-page="report"]) .timeline-dot{grid-column:1;margin-left:2px}
-  :where(html[data-add-page="report"]) .timeline-card{grid-column:2}
+  :where(html[data-add-page="report"]) .timeline-card{grid-column:2;grid-template-columns:minmax(0,1fr);gap:var(--density-gap-xs)}
   :where(html[data-add-page="report"]) .timeline-card-date{display:block;margin:0 0 var(--density-gap-xs);font-size:10px;line-height:1.2;font-weight:900;color:var(--muted);white-space:nowrap}
+  :where(html[data-add-page="report"]) .timeline-profit-card{width:100%;min-width:0;margin-top:var(--density-gap-xs);padding:6px 8px;display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-sm);text-align:left}
+  :where(html[data-add-page="report"]) .timeline-profit-card strong{margin-top:0;text-align:right}
 
   :where(html[data-add-page="report"]) .split-group-head{align-items:center}
   :where(html[data-add-page="report"]) .split-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}

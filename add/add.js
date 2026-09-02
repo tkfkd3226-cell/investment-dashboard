@@ -832,8 +832,8 @@
     function timelineDay(date){
       return dayRowByDate.get(date)||null;
     }
-    function timelineEvent(sortDate,range,title,strong,body){
-      return Object.freeze({sortDate,range,title,strong,body});
+    function timelineEvent(sortDate,range,title,strong,body,net=null){
+      return Object.freeze({sortDate,range,title,strong,body,net});
     }
     function timelineGeneric(row){
       const type=row.segment==='core'?'본 포지션 청산':row.segment==='day'?'당일 단타':'혼합 거래';
@@ -842,7 +842,8 @@
         row.date,
         type,
         `${reportNumber(row.qty)}주 · ${reportNumber(row.buy)}원 매수 → ${reportNumber(row.sell)}원 매도`,
-        `순손익 ${reportMetricText(row.net,'signedWon')}. ${row.segment==='mixed'?'본 포지션과 단타가 함께 포함된 매도일.':row.segment==='core'?'본 포지션으로 분류.':'당일 단타로 분류.'}`
+        `순손익 ${reportMetricText(row.net,'signedWon')}. ${row.segment==='mixed'?'본 포지션과 단타가 함께 포함된 매도일.':row.segment==='core'?'본 포지션으로 분류.':'당일 단타로 분류.'}`,
+        row.net
       );
     }
     function buildTimelineEvents(){
@@ -852,7 +853,7 @@
         const rows=dates.map(timelineRow).filter(Boolean);
         if(rows.length!==dates.length) return;
         dates.forEach(date=>coveredDates.add(date));
-        events.push(builder(rows));
+        events.push(Object.freeze({...builder(rows),net:reportSum(rows,'net')}));
       };
 
       addRealized(['2026-06-09'],([row])=>timelineEvent(
@@ -977,10 +978,17 @@
       });
       return events.sort((a,b)=>a.sortDate.localeCompare(b.sortDate));
     }
+    function timelineProfitCard(net){
+      if(!Number.isFinite(net)) return '';
+      const valueClass=reportValueClass(net);
+      const className=valueClass?` ${valueClass}`:'';
+      const valueText=reportMetricText(net,'signedWon');
+      return `<div class="timeline-profit-card${className}"><span>순손익</span><strong>${valueText}</strong></div>`;
+    }
     function renderReportTimeline(){
       const timeline=document.getElementById('reportTimeline');
       if(!timeline) return;
-      timeline.innerHTML=buildTimelineEvents().map(item=>`<article class="timeline-item"><div class="timeline-date">${item.range}</div><div class="timeline-dot"></div><div class="timeline-card add-card-shell add-card-control"><div class="timeline-card-date">${item.range}</div><h3 class="add-heading-subsection">${item.title}</h3><strong>${item.strong}</strong><p>${item.body}</p></div></article>`).join('');
+      timeline.innerHTML=buildTimelineEvents().map(item=>`<article class="timeline-item"><div class="timeline-date">${item.range}</div><div class="timeline-dot"></div><div class="timeline-card add-card-shell add-card-control"><div class="timeline-card-main"><div class="timeline-card-date">${item.range}</div><h3 class="add-heading-subsection">${item.title}</h3><strong>${item.strong}</strong><p>${item.body}</p></div>${timelineProfitCard(item.net)}</div></article>`).join('');
     }
     function renderReportMetricValues(){
       document.querySelectorAll('[data-report-value]').forEach(node=>{
