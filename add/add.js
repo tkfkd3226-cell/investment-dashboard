@@ -463,7 +463,7 @@
     const saleH=['매도단가','매도수량','매도금액','실현손익','매도 후 보유수량'];
     const saleV=[{text:won(c.targetPrice)},{text:shareText(d.saleQty)},{text:won(d.gross)},{text:won(d.realizedPL),cls:signClass(d.realizedPL)},{text:shareText(d.remainShares)}];
     const cashAfterLabel=resultLabel('회수 대상 차감 후 잔여현금','매도금액에서 추가매수 원금과 회수 대상 금액을 차감한 뒤 남는 현금','cash-after-recovery');
-    const improvementLabel='추가매수로 인한 손익 개선액';
+    const improvementLabel='추가매수로 인한 손익 개선';
     const improvementTip='동일 목표 매도단가 기준, 추가매수로 개선된 손익 · 계산: 추가매수 수량 × (목표 매도단가 - 추가매수단가)';
     const flowH=['추가매수 원금 회수액','투입금액 회수 후 잔여현금','추가매수 원금 미회수액','기존 금액 회수액','회수 대상 잔액',cashAfterLabel];
     const flowV=[{text:won(d.principalRecovered)},{text:won(Math.max(d.net-c.addedPrincipal,0))},{text:won(d.principalShortfall),cls:d.principalShortfall?'negative':''},{text:won(d.recoveryPaid)},{text:won(d.recoveryBalance),cls:d.recoveryBalance?'negative':''},{text:won(d.cashAfter),cls:d.cashAfter?'positive':''}];
