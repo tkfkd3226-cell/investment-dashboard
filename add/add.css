@@ -457,7 +457,8 @@ body{
    - 입력 카드 공통 레이아웃과 숫자·수량·비율 컨트롤
    - readonly·검증 오류·툴팁·계산 기준 세그먼트 포함
    ========================================================= */
-    :where(html[data-add-page="calc"]) .input-panel{padding:var(--density-surface-md);margin-bottom:var(--density-gap-lg);background:rgba(249,251,253,.76)}
+    :where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body){padding:var(--density-surface-md)}
+    :where(html[data-add-page="calc"]) .input-panel{margin-bottom:var(--density-gap-lg);background:rgba(249,251,253,.76)}
 html:where([data-add-page="calc"]).dark .input-panel{background:rgba(18,26,36,.82)}
     :where(html[data-add-page="calc"]) .input-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-surface-sm)}
     :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{
@@ -529,7 +530,7 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .control.invalid, :where(html[data-add-page="calc"]) .date-control-shell:has(.date-control.invalid){border-color:var(--danger-strong);background:var(--danger-control-bg);box-shadow:0 0 0 3px var(--danger-ring)}
     /* invalid 입력 중에는 마지막 정상 결과임을 시각적으로만 구분한다.
        결과를 제거하거나 조작을 막지 않아 입력 수정 중 레이아웃이 흔들리지 않도록 한다. */
-    html:where([data-add-page="calc"]).calc-results-stale :is(.kpis,.range-panel,#strategyTabs,main){opacity:.48;transition:opacity .14s ease}
+    html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#strategyTabs,main){opacity:.48;transition:opacity .14s ease}
 
 /* =========================================================
    04. 거래유형별 입력 레이아웃
@@ -601,11 +602,12 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
    05. 핵심 지표 / 가격 구간 요약
    - 계산 직후 보여주는 KPI와 손실·회복 가격 구간 카드
    ========================================================= */
-:where(html[data-add-page="calc"]) .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--density-gap-sm);margin-bottom:var(--density-gap-lg);padding:var(--density-surface-sm);background:rgba(32,58,93,.025)}
+:where(html[data-add-page="calc"]) .calc-summary-panel{display:grid;gap:var(--density-gap-md);margin-bottom:var(--density-gap-lg)}
+:where(html[data-add-page="calc"]) .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--density-gap-sm)}
     :where(html[data-add-page="calc"]) .kpi{padding:var(--density-surface-md) var(--density-action-pad-x);box-shadow:none}
     :where(html[data-add-page="calc"]) .kpi .value{margin-top:2px;font-size:18px;font-weight:900;letter-spacing:-.03em;line-height:1.15}
 
-    :where(html[data-add-page="calc"]) .range-panel{padding:var(--density-surface-sm);margin-bottom:var(--density-gap-lg);display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--density-gap-md)}
+    :where(html[data-add-page="calc"]) .range-panel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-md)}
     :where(html[data-add-page="calc"]) .range-box{padding:var(--density-surface-md) var(--density-action-pad-x)}
     :where(html[data-add-page="calc"]) .range-box strong{display:block;font-size:var(--calc-type-label);margin-bottom:2px}
     :where(html[data-add-page="calc"]) .range-box .big{font-size:18px;font-weight:900;line-height:1.15}
@@ -632,7 +634,6 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .badge.bad{background:var(--badge-bad-bg);color:var(--badge-bad-text)}
     :where(html[data-add-page="calc"]) .badge.conditional{background:var(--badge-conditional-bg);color:var(--badge-conditional-text)}
     :where(html[data-add-page="calc"]) .badge.good{background:var(--badge-good-bg);color:var(--badge-good-text)}
-    :where(html[data-add-page="calc"]) .strategy-body{padding:var(--density-surface-md)}
     :where(html[data-add-page="calc"]) .summary-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--density-gap-sm);margin-bottom:var(--density-gap-lg)}
     :where(html[data-add-page="calc"]) .summary-card{padding:var(--density-surface-sm) var(--density-gap-lg);box-shadow:none}
     :where(html[data-add-page="calc"]) .summary-card .sname{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
@@ -689,6 +690,15 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       /* Tablet은 Web과 같은 상단 카드 열 구성/가로 비율을 유지하고 density만 compact하게 조정한다. */
       :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,1fr)}
     }
+
+    /* Calc 기능성 특수 Tablet · 761~920px
+       - 보유 중 추가매수 / 이전 거래 후 재매수의 3열에서 계산 기준 내부 % stepper와 label이 눌리는 구간만 2+1로 전환한다.
+       - 이전 거래 없음의 2열 구성은 그대로 유지한다. */
+    @media (min-width:761px) and (max-width:920px){
+      :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout){grid-template-columns:repeat(2,minmax(0,1fr))}
+      :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout) .calculation-group{grid-column:1 / -1}
+    }
+
     /* Calc Phone UI · Main Dashboard와 같은 실제 스마트폰 판정
        - 세로폰(≤760px)과 터치폰 가로모드(landscape + ≤960×500)를 동일한 Phone UI로 처리한다.
        - 가로폰이 761~960px 폭이라는 이유만으로 Tablet typography/density/layout을 사용하지 않는다. */
@@ -728,7 +738,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         --calc-type-label:10px;
       }
       :where(html[data-add-page="calc"]) .hero{padding-bottom:var(--density-gap-md)}
-      :where(html[data-add-page="calc"]) .input-panel{padding:var(--density-surface-sm)}
+      :where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body){padding:var(--density-surface-sm)}
       :where(html[data-add-page="calc"]) .calculation-mode-field .field-label-slot{display:none}
 
       :where(html[data-add-page="calc"]) .add-button-mobile-icon{
@@ -750,8 +760,8 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) .input-grid{width:100%}
       :where(html[data-add-page="calc"]) .input-group{width:100%;max-width:100%;padding:8px}
       :where(html[data-add-page="calc"]) .control{width:100%;min-width:0}
-      :where(html[data-add-page="calc"]) .input-grid, :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{grid-template-columns:minmax(0,1fr)}
-      :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,minmax(0,1fr));padding:var(--density-surface-sm)}
+      :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout), :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{grid-template-columns:minmax(0,1fr)}
+      :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
       :where(html[data-add-page="calc"]) .kpi{min-width:0;padding:var(--density-surface-sm)}
       :where(html[data-add-page="calc"]) .kpi .name{
         font-size:var(--calc-type-label);
@@ -777,7 +787,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         overflow-wrap:anywhere;
         word-break:keep-all;
       }
-      :where(html[data-add-page="calc"]) .range-panel{grid-template-columns:1fr;padding:var(--density-surface-sm)}
+      :where(html[data-add-page="calc"]) .range-panel{grid-template-columns:1fr}
       :where(html[data-add-page="calc"]) .range-box{padding:var(--density-surface-sm)}
       :where(html[data-add-page="calc"]) .mobile-only{display:inline}
       :where(html[data-add-page="calc"]) .desktop-only{display:none}
@@ -809,7 +819,6 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) .desktop-data{display:none}
       :where(html[data-add-page="calc"]) .mobile-data{display:grid;gap:var(--density-gap-sm)}
       :where(html[data-add-page="calc"]) .strategy-title p{font-size:var(--calc-type-label);letter-spacing:-.025em}
-      :where(html[data-add-page="calc"]) .strategy-body{padding:var(--density-surface-sm)}
       :where(html[data-add-page="calc"]) .summary-row{grid-template-columns:repeat(2,1fr);gap:var(--density-gap-xs);margin-bottom:var(--density-gap-sm)}
       :where(html[data-add-page="calc"]) .summary-card{min-width:0}
       :where(html[data-add-page="calc"]) .summary-card .sname{font-size:var(--calc-type-label);line-height:1.25}

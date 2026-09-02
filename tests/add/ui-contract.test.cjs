@@ -77,17 +77,35 @@ test('Calc는 실제 거래일별 빠른 매수 shortcut을 두지 않고 이전
   assert.match(noPrior,/grid-template-areas:"current-group calculation-group"/);
 });
 
-test('Calc 상단 입력카드는 Web/Tablet 동일 열 구성을 유지하고 Phone에서만 1열로 전환한다',()=>{
+test('Calc 상단 입력카드는 761~920px 기능성 특수 Tablet에서 holding/settled만 2+1로 전환한다',()=>{
   const base=rule(':where(html[data-add-page="calc"]) .input-grid');
   const noPrior=rule(':where(html[data-add-page="calc"]) .input-grid.no-prior-layout');
   assert.match(base,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(noPrior,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  const tabletStart=css1.indexOf('@media(max-width:1100px){');
-  const phoneStart=css1.indexOf('@media (max-width:760px),',tabletStart);
-  const tabletBlock=css1.slice(tabletStart,phoneStart);
-  assert.doesNotMatch(tabletBlock,/\.input-grid\{grid-template-columns:/);
-  assert.doesNotMatch(tabletBlock,/\.input-grid\.no-prior-layout\{grid-template-columns:/);
-  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.input-grid, :where\(html\[data-add-page="calc"\]\) \.input-grid\.no-prior-layout\{grid-template-columns:minmax\(0,1fr\)\}/);
+  assert.match(css1,/@media \(min-width:761px\) and \(max-width:920px\)\{/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.input-grid:not\(\.no-prior-layout\)\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.input-grid:not\(\.no-prior-layout\) \.calculation-group\{grid-column:1 \/ -1\}/);
+  const specialStart=css1.indexOf('@media (min-width:761px) and (max-width:920px){');
+  const phoneStart=css1.indexOf('@media (max-width:760px),',specialStart);
+  const specialBlock=css1.slice(specialStart,phoneStart);
+  assert.doesNotMatch(specialBlock,/\.input-grid\.no-prior-layout\{grid-template-columns:/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.input-grid:not\(\.no-prior-layout\), :where\(html\[data-add-page="calc"\]\) \.input-grid\.no-prior-layout\{grid-template-columns:minmax\(0,1fr\)\}/);
+});
+
+test('Calc 중간 KPI/range 두 행은 하나의 outer summary surface를 공유한다',()=>{
+  assert.match(calc,/class="panel calc-summary-panel add-card-shell add-card-base add-card-shadow"/);
+  assert.match(calc,/class="panel calc-summary-panel[^]*<div class="kpis">[^]*<div class="range-panel">/);
+  assert.doesNotMatch(calc,/class="panel kpis add-card-shell/);
+  assert.doesNotMatch(calc,/class="panel range-panel add-card-shell/);
+  const summary=rule(':where(html[data-add-page="calc"]) .calc-summary-panel');
+  assert.match(summary,/display:grid/);
+  assert.match(summary,/gap:var\(--density-gap-md\)/);
+  assert.doesNotMatch(summary,/padding:/);
+  const largeSurfacePadding=rule(':where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body)');
+  assert.match(largeSurfacePadding,/padding:var\(--density-surface-md\)/);
+  assert.match(summary,/margin-bottom:var\(--density-gap-lg\)/);
+  assert.doesNotMatch(rule(':where(html[data-add-page="calc"]) .kpis'),/margin-bottom:|padding:|background:/);
+  assert.doesNotMatch(rule(':where(html[data-add-page="calc"]) .range-panel'),/margin-bottom:|padding:/);
 });
 
 test('Calc 결과 표와 Phone 카드는 title/label/value typography를 같은 role token에서 파생한다',()=>{
@@ -200,10 +218,11 @@ test('Calc iPhone 데스크탑 웹사이트 요청은 1280 viewport contract를 
 test('Calc 가로 터치폰은 Tablet이 아니라 세로 Phone과 같은 Compact UI contract를 사용한다',()=>{
   assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{/);
   assert.match(css1,/--density-page-pad:9px; --density-surface-lg:9px; --density-surface-md:9px; --density-surface-sm:8px;/);
+  assert.match(css1,/@media \(max-width:760px\),[^]*:where\(html\[data-add-page=\"calc\"\]\) :is\(\.input-panel,\.calc-summary-panel,\.strategy-body\)\{padding:var\(--density-surface-sm\)\}/);
   assert.match(css1,/--density-gap-lg:8px; --density-gap-md:6px; --density-gap-sm:4px; --density-gap-xs:3px; --density-gap-micro:2px;/);
   assert.match(css1,/--density-action-pad-x:8px; --density-action-pad-y:8px; --density-field-pad-x:6px; --density-table-pad-x:8px; --density-table-pad-y:6px; --button-compact-pad-x:4px;/);
   assert.match(css1,/--calc-type-page-title:22px; --calc-type-section:15px; --calc-type-subsection:13px; --calc-type-support:11px; --calc-type-label:10px;/);
-  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.input-grid, :where\(html\[data-add-page="calc"\]\) \.input-grid\.no-prior-layout\{grid-template-columns:minmax\(0,1fr\)\}/);
+  assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.input-grid:not\(\.no-prior-layout\), :where\(html\[data-add-page="calc"\]\) \.input-grid\.no-prior-layout\{grid-template-columns:minmax\(0,1fr\)\}/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) #reportBtn \.report-text, :where\(html\[data-add-page="calc"\]\) #resetBtn \.reset-text\{display:none\}/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.add-button-mobile-icon\{ width:var\(--button-icon-size\); height:var\(--button-icon-size\); padding:0;/);
 });
@@ -278,7 +297,7 @@ test('Calc invalid 입력은 마지막 정상 결과를 stale 상태로 표시�
   assert.match(js1,/if\(validation\.errors\.length\)\{ setCalculationResultsStale\(hasRenderedCalculation\); return; \} setCalculationResultsStale\(false\)/);
   assert.match(js1,/hasRenderedCalculation=true/);
   assert.match(js,/아래 결과는 마지막 정상 입력 기준입니다\. 입력값을 수정하면 자동으로 다시 계산됩니다\./);
-  assert.match(css1,/html:where\(\[data-add-page="calc"\]\)\.calc-results-stale :is\(\.kpis,\.range-panel,#strategyTabs,main\)\{opacity:\.48;transition:opacity \.14s ease\}/);
+  assert.match(css1,/html:where\(\[data-add-page="calc"\]\)\.calc-results-stale :is\(\.calc-summary-panel,#strategyTabs,main\)\{opacity:\.48;transition:opacity \.14s ease\}/);
 });
 
 
@@ -341,7 +360,7 @@ test('Calc Compact는 add.css의 canonical style이고 Desktop 최대폭은 1280
 });
 
 test('Calc Compact density는 canonical selector에 직접 병합되고 별도 override layer를 요구하지 않는다',()=>{
-  assert.match(rule(':where(html[data-add-page="calc"]) .input-panel'),/padding:var\(--density-surface-md\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body)'),/padding:var\(--density-surface-md\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .input-group'),/padding:var\(--density-surface-sm\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .kpi .value'),/font-size:18px/);
   assert.match(rule(':where(html[data-add-page="calc"]) .summary-card .svalue'),/font-size:17px/);
