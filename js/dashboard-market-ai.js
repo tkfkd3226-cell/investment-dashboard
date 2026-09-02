@@ -252,6 +252,21 @@ function marketAiKstClockParts(date=new Date()){
   return marketAiClockParts('Asia/Seoul',date);
 }
 
+function marketAiMarketSourceLabel(row,marketKey){
+  const source=String(row?.source||'').trim();
+  if(marketKey==='kospi-index'){
+    if(source.startsWith('kis-efriend:JUC_R:'))return 'KIS eFriend KOSPI 실시간';
+    if(source.startsWith('yfinance:'))return 'Yahoo KOSPI 현물지수';
+    return source||'KOSPI 데이터 소스 확인 필요';
+  }
+  if(marketKey==='kospi200-futures'){
+    if(source.startsWith('kis-efriend:'))return 'KIS eFriend 실제 선물';
+    if(source.startsWith('yfinance:'))return 'Yahoo KOSPI200 선물';
+    return source||'KOSPI200 선물 데이터 소스 확인 필요';
+  }
+  return source||'데이터 소스 확인 필요';
+}
+
 function marketAiSoxDisplayState(){
   const indexRow=marketAiSnapshotRow(MARKET_AI_SOX_INDEX_SYMBOL);
   const indexFreshness=marketAiSnapshotFreshness(indexRow);
@@ -557,10 +572,10 @@ function marketAiMarketTooltipHtml(key){
   const futuresState=marketAiKisFuturesState();
   const soxState=marketAiSoxDisplayState();
   const config={
-    'kospi-index':{label:'KOSPI',row:marketAiSnapshotRow('INDEX:KOSPI'),price:item=>marketAiIndexText(item?.price),source:'Yahoo KOSPI 현물지수'},
+    'kospi-index':{label:'KOSPI',row:marketAiSnapshotRow('INDEX:KOSPI'),price:item=>marketAiIndexText(item?.price),source:item=>marketAiMarketSourceLabel(item,'kospi-index')},
     'sox-index':soxState,
     'nasdaq100-futures':{label:'NASDAQ100 선물',row:marketAiSnapshotRow(MARKET_AI_NASDAQ100_FUTURES_SYMBOL),price:item=>marketAiPriceText(item?.price,2),source:'Yahoo Nasdaq-100 선물 (NQ=F)'},
-    'kospi200-futures':{label:'KOSPI200 선물',row:futuresState.row,price:item=>marketAiPriceText(item?.price,2),source:'KIS eFriend 실제 선물',state:futuresState}
+    'kospi200-futures':{label:'KOSPI200 선물',row:futuresState.row,price:item=>marketAiPriceText(item?.price,2),source:item=>marketAiMarketSourceLabel(item,'kospi200-futures'),state:futuresState}
   }[key];
   if(!config)return '';
   const row=config.row;
@@ -583,8 +598,10 @@ function marketAiMarketTooltipHtml(key){
     if(sessionLabel)parts.push(marketAiTooltipRow('세션',sessionLabel));
   }
   parts.push(marketAiTooltipDivider());
-  parts.push(marketAiTooltipRow('데이터',config.source));
-  const observed=marketAiKstTime((row||config.state?.rawRow)?.observed_at);
+  const sourceRow=row||config.state?.rawRow;
+  const sourceLabel=typeof config.source==='function'?config.source(sourceRow):config.source;
+  parts.push(marketAiTooltipRow('데이터',sourceLabel));
+  const observed=marketAiKstTime(sourceRow?.observed_at);
   parts.push(marketAiTooltipRow(['closed','stale'].includes(config.state?.reason)?'마지막 수신':'갱신',observed?`${observed} KST`:'--'));
   return parts.join('');
 }

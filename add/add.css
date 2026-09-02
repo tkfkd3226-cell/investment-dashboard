@@ -317,6 +317,12 @@ body{
       --surface-control:#ffffff;
       --surface-hover-soft:#f0f4f8;
       --surface-subtle:#f2f5f8;
+      /* Calc outer surface hierarchy
+         - page grid보다 큰 계산 surface를 한 단계 밝히고 border/shadow로 깊이만 분리한다.
+         - 내부 input/KPI/range surface 색은 기존 semantic token을 유지한다. */
+      --calc-shell-bg:#f7f9fc;
+      --calc-shell-border:#bac6d5;
+      --calc-shell-shadow:0 2px 8px rgba(31,48,76,.085),0 1px 2px rgba(31,48,76,.045);
       --border-hover:#9fb0c8;
       --control-border:#c4ceda;
       --control-focus-border:#6d8fc1;
@@ -390,6 +396,9 @@ body{
       --surface-control:#101821;
       --surface-hover-soft:#182330;
       --surface-subtle:#0f1720;
+      --calc-shell-bg:#151f2b;
+      --calc-shell-border:#3a4859;
+      --calc-shell-shadow:0 3px 10px rgba(0,0,0,.30),0 1px 2px rgba(0,0,0,.22);
       --border-hover:#526178;
       --control-border:#344354;
       --control-focus-border:#60a5fa;
@@ -468,8 +477,8 @@ body{
    - readonly·검증 오류·툴팁·계산 기준 세그먼트 포함
    ========================================================= */
     :where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body){padding:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .input-panel{margin-bottom:var(--calc-card-gap);background:rgba(249,251,253,.76)}
-html:where([data-add-page="calc"]).dark .input-panel{background:rgba(18,26,36,.82)}
+    :where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-card){background:var(--calc-shell-bg);border-color:var(--calc-shell-border);box-shadow:var(--calc-shell-shadow)}
+    :where(html[data-add-page="calc"]) .input-panel{margin-bottom:var(--calc-card-gap)}
     :where(html[data-add-page="calc"]) .input-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--calc-card-gap)}
     :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{
       grid-template-columns:repeat(2,minmax(0,1fr));

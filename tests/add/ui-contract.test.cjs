@@ -143,6 +143,16 @@ test('Calc 상단 입력카드는 761~920px 기능성 특수 Tablet에서 holdin
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.input-grid:not\(\.no-prior-layout\), :where\(html\[data-add-page="calc"\]\) \.input-grid\.no-prior-layout\{grid-template-columns:minmax\(0,1fr\)\}/);
 });
 
+test('Calc 큰 outer surface는 페이지 배경과 분리되는 공통 명도 계층을 사용한다',()=>{
+  assert.match(css1,/--calc-shell-bg:#f7f9fc; --calc-shell-border:#bac6d5; --calc-shell-shadow:0 2px 8px rgba\(31,48,76,\.085\),0 1px 2px rgba\(31,48,76,\.045\)/);
+  assert.match(css1,/html:where\(\[data-add-page="calc"\]\)\.dark\{[^}]*--calc-shell-bg:#151f2b; --calc-shell-border:#3a4859; --calc-shell-shadow:/);
+  const shell=rule(':where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-card)');
+  assert.match(shell,/background:var\(--calc-shell-bg\)/);
+  assert.match(shell,/border-color:var\(--calc-shell-border\)/);
+  assert.match(shell,/box-shadow:var\(--calc-shell-shadow\)/);
+  assert.doesNotMatch(css1,/\.input-panel\{[^}]*background:rgba\(/);
+});
+
 test('Calc 중간 KPI/range 두 행은 하나의 outer summary surface를 공유한다',()=>{
   assert.match(calc,/class="panel calc-summary-panel add-card-shell add-card-base add-card-shadow"/);
   assert.match(calc,/class="panel calc-summary-panel[^]*<div class="kpis">[^]*<div class="range-panel">/);
