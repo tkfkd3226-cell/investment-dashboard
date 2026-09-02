@@ -5,10 +5,13 @@
 
 - `calc.html`: 계산기 entry HTML
 - `kodex-leverage-report.html`: 거래 리포트 entry HTML
-- `add.css`: 두 페이지가 공유하는 단일 런타임 CSS. 공통 primitive와 `data-add-page` 기반 Calc/Report 전용 규칙을 함께 관리
-- `add.js`: 두 페이지가 공유하는 단일 런타임 JS. 공통 조기 테마 처리 후 `data-add-page`에 따라 Calc/Report만 선택 부팅
-- `calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
-- `ui-contract.test.cjs`: 선택상태/ARIA/hover/input density 등 UI interaction·style contract 회귀 테스트
+- `add.css`: 두 페이지가 공유하는 기본 런타임 CSS. 공통 primitive와 `data-add-page` 기반 Calc/Report 전용 규칙을 함께 관리
+- `add.js`: 두 페이지가 공유하는 런타임 JS. `data-add-page`에 따라 Calc/Report만 선택 부팅
+- `add-theme.css`, `add-theme.js`: 기본↔대체 디자인 전환의 공통 UI/저장 contract
+- `calc-alt.css`: Calc Compact 대체 디자인. `data-add-theme="alt"` 범위에서만 활성화
+- `report-alt.css`: Report Dynamic 대체 디자인. `data-add-theme="alt"` 범위에서만 활성화
+- `/tests/add/calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
+- `/tests/add/ui-contract.test.cjs`: 선택상태/ARIA/input density/반응형/대체 테마 등 UI contract 회귀 테스트
 - `add_maintenance_handover.md`: Add 유지보수 기준
 
 > 적용 범위: `add/calc.html`, `add/add.css`, `add/add.js`, `add/kodex-leverage-report.html` 및 **KODEX 레버리지 실현손익 반영 때문에 함께 수정되는 `data/portfolio.json`**
@@ -51,6 +54,14 @@ Add 영역의 토큰화·공통화 평가는 **literal 값의 존재 자체가 �
 - 따라서 `add.css`의 component-local/page-specific color literal이 위 조건을 만족하면 색상·Semantic Color 항목의 감점 사유로 보지 않는다.
 
 > **평가 기준: “더 토큰화할 수 있는가”가 아니라 “공통화해야 할 이유가 있는데도 분산되어 있는가”를 본다.**
+
+### 0.2 자동 테스트와 평가 점수 분리
+
+- Add 자동 테스트는 수정 후 계산·UI 회귀를 빠르게 확인하기 위한 QA 안전망이다.
+- 테스트 파일의 존재 여부나 테스트 개수 자체는 Add 평가의 가산·감점 기준이 아니다.
+- 자동 테스트가 없다는 이유만으로 B급을 만들거나 감점하지 않는다.
+- 테스트가 FAIL하면 실제 코드/계산/UI contract 결함인지, 변경된 의도에 비해 테스트가 낡은 것인지 먼저 구분한다. 실제 결함이 확인된 경우에만 그 결함 자체를 평가한다.
+- 자동 테스트 PASS는 실제 UI 미감·정보 위계·실기 UX까지 자동 PASS한다는 의미가 아니다.
 
 ---
 
@@ -115,20 +126,26 @@ add/
 ├─ kodex-leverage-report.html
 ├─ add.css
 ├─ add.js
-├─ calc.test.cjs
-├─ ui-contract.test.cjs
+├─ add-theme.css
+├─ add-theme.js
+├─ calc-alt.css
+├─ report-alt.css
 └─ add_maintenance_handover.md
+
+tests/add/
+├─ calc.test.cjs
+└─ ui-contract.test.cjs
 ```
 
 역할은 다음과 같다.
 
 - `add/calc.html`
   - CALC DOM과 접근성 구조만 소유한다.
-  - 런타임 asset은 `add.css`와 `add.js`만 로드한다.
+  - 기본 `add.css`/`add.js`와 대체 디자인용 `add-theme.css`/`add-theme.js`/`calc-alt.css`를 로드한다. 대체 CSS는 `data-add-theme="alt"`일 때만 기본 디자인 위에 override된다.
   - 기능 로직이나 대량 스타일을 HTML 안으로 다시 넣지 않는다.
 - `add/kodex-leverage-report.html`
   - 거래 리포트 canonical HTML과 증빙/본문 DOM을 소유한다. Timeline은 렌더 대상 shell만 소유하고 실현거래 숫자를 HTML에 중복 하드코딩하지 않는다.
-  - 런타임 asset은 Calc와 동일하게 `add.css`와 `add.js`만 로드하며, CSS/JS를 다시 HTML 내부 `<style>` / `<script>`로 되돌리지 않는다.
+  - 기본 `add.css`/`add.js`와 대체 디자인용 `add-theme.css`/`add-theme.js`/`report-alt.css`를 로드하며, CSS/JS를 다시 HTML 내부 대량 `<style>` / 기능 `<script>`로 되돌리지 않는다.
 - `add/add.css`
   - Calc와 Report의 단일 런타임 stylesheet다.
   - 공통 의미색·Corner·Spacing/Density·Heading·Button·Card Surface primitive를 먼저 정의하고, Calc/Report 전용 규칙은 `data-add-page` scope로 서로 격리한다.
@@ -139,12 +156,16 @@ add/
   - Calc 계산·렌더·프리셋·이벤트·툴팁과 Report 데이터·탭·차트·Timeline 파생 로직은 한 파일 안에서도 section/boot 경계를 유지하고 서로의 DOM/state를 참조하지 않는다.
   - Report Timeline의 실현거래 수량·단가·손익·비용은 `REPORT_DATA`와 본 포지션/단타 파생값을 Source of Truth로 사용한다. 매도실현 데이터에 없는 매수-only 포지션 형성 사실만 별도 context로 유지한다. 새 `REPORT_DATA` 행은 curated 설명이 없어도 Timeline에 기본 항목으로 자동 노출되어야 한다.
   - Node 회귀검증에서는 `compute`, `validate`, `ceil5`만 노출하고 브라우저 boot는 실행하지 않는다.
-- `add/calc.test.cjs`
+- `add/add-theme.css`, `add/add-theme.js`
+  - 기본 디자인은 그대로 유지하고, 페이지별 대체 디자인 선택과 localStorage 복원·ARIA 동기화만 소유한다. 계산/Report 데이터 로직을 소유하지 않는다.
+- `add/calc-alt.css`, `add/report-alt.css`
+  - 각각 Calc Compact / Report Dynamic 대체 디자인만 소유한다. 모든 대체 규칙은 `data-add-theme="alt"` 범위에 격리하고 기본 `add.css`를 대체하거나 삭제하지 않는다.
+- `tests/add/calc.test.cjs`
   - Node 내장 `node:test` / `node:assert`만 사용한다.
   - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
-- `add/ui-contract.test.cjs`
+- `tests/add/ui-contract.test.cjs`
   - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
-  - 선택 active와 ARIA 동기화, fine-pointer hover 보호, padding-driven input/date/stepper, 역할별 typography token, 가로폰 Phone UI 분류, iOS text autosizing 방지, invalid 입력 중 stale-result 표시와 정상 입력 복구처럼 실제 회귀가 있었던 UI 경계를 production HTML/CSS/JS에서 직접 확인한다.
+  - 선택 active와 ARIA 동기화, fine-pointer hover 보호, padding-driven input/date/stepper, 역할별 typography token, 가로폰 Phone UI 분류, iOS text autosizing 방지, invalid 입력 stale-result, 기본↔대체 테마 전환처럼 폐기되면 안 되는 UI 경계를 production HTML/CSS/JS에서 직접 확인한다.
 
 ### 1.4 CSS / JS 내부 구조 원칙
 
@@ -152,8 +173,8 @@ add/
 - CSS는 기본 component 규칙 뒤에 responsive 규칙을 두고, 기능과 무관한 알파벳/가나다 정렬을 목적으로 재배치하지 않는다.
 - `add.js`의 계산 엔진은 DOM-free를 유지하고 render/event 책임과 분리한다.
 - 이벤트·툴팁·초기화는 중복 등록되지 않게 명시적으로 관리하며, Node export/browser boot guard를 유지한다.
-- 계산 또는 validation을 변경한 경우 production `add/add.js`를 대상으로 `node --test add/calc.test.cjs`를 실행한다.
-- Calc/Report의 버튼 선택상태·ARIA·hover·input/date/stepper density 또는 Calc typography·가로폰 Phone UI contract를 변경한 경우 `node --test add/ui-contract.test.cjs`를 함께 실행한다.
+- 계산 또는 validation을 변경한 경우 production `add/add.js`를 대상으로 `node --test tests/add/calc.test.cjs`를 실행한다.
+- Calc/Report의 버튼 선택상태·ARIA·hover·input/date/stepper density 또는 Calc typography·가로폰 Phone UI contract를 변경한 경우 `node --test tests/add/ui-contract.test.cjs`를 함께 실행한다.
 - Report의 차트 label thinning, 마지막 거래일 식별, DPR/resize 처리처럼 동작 의미가 있는 로직은 관련 변경 시 회귀 확인한다.
 
 ## 2. 거래 리포트 canonical 파일명
@@ -427,7 +448,7 @@ separateProfit.reinvestedLimit
 
 ### 12.2 Calc 계산·validation 변경 시
 
-- `node --test add/calc.test.cjs` 전체 PASS.
+- `node --test tests/add/calc.test.cjs` 전체 PASS.
 - 테스트는 production `compute()/validate()/ceil5()`를 직접 검증하고 계산식 복사본을 만들지 않는다.
 
 ### 12.3 Calc/Report UI·responsive 변경 시
@@ -442,12 +463,13 @@ KODEX 레버리지 거래 리포트
 https://tkfkd3226-cell.github.io/investment-dashboard/add/kodex-leverage-report.html
 ```
 
-- `평가`, UI/UX·responsive QA 또는 실제 렌더링 검증에서 사용자가 주소를 다시 제공하지 않아도 위 URL을 사용한다.
-- 실제 브라우저 runtime 검증은 로컬 HTTP가 아니라 위 GitHub Pages HTTPS 주소를 기본으로 사용한다. 로컬 `localhost` / `127.0.0.1`는 기본 검증 경로로 사용하지 않으며, 사용자가 명시적으로 로컬 실행 검증을 요청한 경우에만 보조적으로 사용한다.
-- GitHub Pages는 배포된 revision의 runtime 검증 수단일 뿐이며, 최신 ZIP 실제 소스보다 우선하지 않는다. 최신 ZIP과 배포본의 동일 revision 여부가 확인되지 않으면 결과를 `배포본 runtime`으로 구분하고, 미배포 변경을 pixel/render PASS라고 단정하지 않는다.
+- `평가`, UI/UX 독립 평가 또는 사용자가 별도로 요청한 `배포본 확인`에서는 사용자가 주소를 다시 제공하지 않아도 위 URL을 사용할 수 있다.
+- **수정 직후 QA/차수별 QA/전체 QA에서는 GitHub Pages를 PASS/FAIL 근거로 사용하지 않는다.** QA 대상은 방금 수정한 현재 revision이며, 배포본은 revision이 다를 수 있다.
+- QA에서 실제 브라우저 runtime이 필요하면 현재 수정본 자체를 실행할 수 있는 환경에서 확인한다. 실행할 수 없으면 정적·자동테스트·diff 검증을 끝까지 수행하고 runtime 미실시 범위를 명시한다.
+- GitHub Pages는 배포된 revision의 runtime 검증 수단일 뿐이며 최신 ZIP 실제 소스보다 우선하지 않는다. 최신 ZIP과 배포본의 동일 revision 여부가 확인되지 않으면 결과를 `배포본 runtime`으로 구분한다.
 - Desktop/Tablet/Mobile 기준에서 관련 화면을 확인하고, 요청하지 않은 add 전용 breakpoint가 생기지 않았는지 본다.
 - tab/ARIA/tooltip/table semantic이 관련 변경으로 깨지지 않았는지 확인한다.
-- 선택상태·hover·input/date/stepper CSS contract 또는 invalid 입력의 stale-result UX 관련 변경은 `node --test add/ui-contract.test.cjs` 전체 PASS를 확인한다.
+- 선택상태·hover·input/date/stepper CSS contract 또는 invalid 입력의 stale-result UX 관련 변경은 `node --test tests/add/ui-contract.test.cjs` 전체 PASS를 확인한다.
 - Timeline을 건드렸다면 날짜 누락·순서 왜곡·카드 겹침을 확인한다.
 
 ### 12.4 구조 리팩터링 시

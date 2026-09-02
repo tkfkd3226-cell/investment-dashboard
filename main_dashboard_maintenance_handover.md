@@ -29,6 +29,7 @@
 - **전체 dashboard `render()` 방식 / `Date.now()` cache bust**: 실제 측정된 병목·과도한 네트워크 사용이 없으면 감점하지 않는다.
 - **Vanilla JS / framework·state library 미사용**, CSS 파일 개수, CSS/JS/handover의 길이·줄 수·byte 크기 자체를 감점하지 않는다.
 - **Playwright / Jest / ESLint / Stylelint 등 대형 테스트·lint 인프라 부재 자체**를 감점하지 않는다.
+- **자동 테스트 파일의 존재 여부나 테스트 개수 자체**를 감점·가산하지 않는다. 특정 기능에 자동 테스트가 없다는 이유만으로 A/B급을 만들거나 점수를 깎지 않는다. 반대로 테스트가 많다는 이유만으로 점수를 올리지 않는다. 테스트 실패가 실제 계산·기능·UI contract 결함을 확인해 준 경우에만 **그 실제 결함 자체**를 평가한다.
 - **Market AI 백엔드 또는 GAS 미첨부·미연결 자체**를 메인 CSS / JS / UI / UX 감점 사유로 사용하지 않는다. 평가 경계는 2.3-B를 따른다.
 - browser/native 대응을 위해 이유가 있는 `!important`, 기능성 media query, 긴 selector 등은 **개수·형태만으로** 감점하지 않고 실제 cascade/회귀 영향을 확인한다.
 
@@ -795,7 +796,9 @@ JS 파일을 점수 때문에 추가 분할
 → 관련 handover 확인
 → 영향 범위 확인
 → 최소 수정
+→ 변경 영역 Fast QA
 → syntax / import / 계산 검증
+→ 4종 자동 테스트 Full QA
 → diff 확인
 → 필요한 viewport / runtime QA
 → handover 영향 여부 판단
@@ -809,7 +812,59 @@ JS 파일을 점수 때문에 추가 분할
 
 ## 3.3 QA 범위와 판정
 
-QA는 변경범위에 비례한다.
+QA는 변경범위에 비례한다. 자동 테스트의 목적은 **평가 점수 확보가 아니라 수정 QA 가속과 기능·UI 회귀 방지**다.
+
+### 자동 회귀 테스트 4종
+
+자동 QA는 Main/Add를 같은 두 축으로 관리한다.
+
+```text
+tests/
+├─ main/
+│  ├─ calc.test.cjs
+│  └─ ui-contract.test.cjs
+└─ add/
+   ├─ calc.test.cjs
+   └─ ui-contract.test.cjs
+```
+
+역할:
+
+- `tests/main/calc.test.cjs`: Main의 합산·원금·손익·수익률·별도수익·연금·차트용 계산 등 정답이 명확한 계산 회귀를 보호한다.
+- `tests/main/ui-contract.test.cjs`: Main의 module boundary, 기본 breakpoint, Phone Landscape, table/chart/modal/Market AI 등 폐기되면 안 되는 UI/CSS/HTML 구조 contract를 보호한다.
+- `tests/add/calc.test.cjs`: Calc의 `compute()` / `validate()` / `ceil5()`와 주요 계산 branch를 보호한다.
+- `tests/add/ui-contract.test.cjs`: Add의 input/button/responsive/ARIA 및 기본↔Alt 테마 전환 contract를 보호한다.
+
+수정 직후에는 **변경 영역 Fast QA**를 먼저 실행한다.
+
+```bash
+# Main 계산
+node --test tests/main/calc.test.cjs
+
+# Main UI/CSS/HTML
+node --test tests/main/ui-contract.test.cjs
+
+# Add 계산
+node --test tests/add/calc.test.cjs
+
+# Add UI/CSS/HTML/대체 테마
+node --test tests/add/ui-contract.test.cjs
+```
+
+작업 완료 전에는 영향 범위와 무관하게 가능한 경우 **4종 Full QA**를 한 번 실행한다.
+
+```bash
+node --test tests/main/*.test.cjs tests/add/*.test.cjs
+```
+
+운영 원칙:
+
+- 테스트 파일은 웹페이지 실행 시 import하지 않는 개발/QA 전용 안전망이다.
+- 테스트를 만들기 위해 안정된 운영 코드를 대규모 리팩터링하지 않는다.
+- UI Contract는 미세 픽셀값을 무차별 고정하지 않고 장기적으로 폐기되면 안 되는 설계 규칙을 우선한다.
+- 정상적인 디자인 변경으로 contract 자체가 바뀌면 운영 코드와 함께 해당 테스트도 의도에 맞게 갱신한다.
+- 테스트가 FAIL하면 무조건 운영 코드를 고치지 말고 **실제 회귀인지 과도하거나 낡은 테스트인지 먼저 구분**한다.
+- 테스트 부재 자체는 평가 감점 사유가 아니며, 테스트 존재·개수 자체도 가산점이 아니다.
 
 ### 공통 최소 검사
 
@@ -858,10 +913,10 @@ listener 중복 0
 
 ### Calc 계산 로직 변경
 
-`add/add.js`의 Calc 계산/validation을 건드렸으면 일반 syntax 검사에 더해 반드시 실행한다.
+`add/add.js`의 Calc 계산/validation을 건드렸으면 일반 syntax 검사에 더해 Fast QA로 다음을 실행한다.
 
 ```bash
-node --test add/calc.test.cjs
+node --test tests/add/calc.test.cjs
 ```
 
 현재 회귀테스트는 production `compute()`, `validate()`, `ceil5()`를 직접 호출한다. 테스트를 위해 계산식을 별도 복사하지 않는다.
@@ -878,6 +933,16 @@ node --test add/calc.test.cjs
 - 주요 validation 실패 조건
 
 계산 테스트 FAIL이면 UI 수정 여부와 관계없이 결과물을 PASS로 보고하지 않는다.
+
+### Main 계산 로직 변경
+
+`dashboard-core.js` 등 Main 계산 책임을 건드렸으면 다음 Fast QA를 우선 실행한다.
+
+```bash
+node --test tests/main/calc.test.cjs
+```
+
+Main 계산 테스트는 production 순수 계산 함수를 직접 사용하고, 테스트 전용으로 계산식을 복제하지 않는다. 원금·합산·별도수익·연금·차트 데이터 같은 계산 contract가 실제 요구사항 변경으로 바뀐 경우에만 기대값도 함께 갱신한다.
 
 ### Report / 운영 숫자 변경
 
@@ -996,7 +1061,7 @@ Calc는 UI보다 계산 결과의 정확성을 우선한다.
 계산 로직을 수정한 경우:
 
 1. `node --check add/add.js`
-2. `node --test add/calc.test.cjs`
+2. `node --test tests/add/calc.test.cjs`
 3. 관련 거래유형 fixture 확인
 4. 관련 결과표 UI 확인
 5. diff 확인
@@ -1033,8 +1098,10 @@ UI/CSS만 수정했고 계산 엔진에 diff가 없다면 회귀테스트는 선
 ```text
 investment-dashboard-main/
 ├─ add/
-│  ├─ add.js
-│  └─ calc.test.cjs
+│  └─ add.js
+├─ tests/
+│  └─ add/
+│     └─ calc.test.cjs
 └─ requirements.txt
 ```
 
@@ -1092,9 +1159,18 @@ investment-dashboard-main/
 │  ├─ kodex-leverage-report.html
 │  ├─ add.css
 │  ├─ add.js
-│  ├─ calc.test.cjs
-│  ├─ ui-contract.test.cjs
+│  ├─ add-theme.css
+│  ├─ add-theme.js
+│  ├─ calc-alt.css
+│  ├─ report-alt.css
 │  └─ add_maintenance_handover.md
+├─ tests/
+│  ├─ main/
+│  │  ├─ calc.test.cjs
+│  │  └─ ui-contract.test.cjs
+│  └─ add/
+│     ├─ calc.test.cjs
+│     └─ ui-contract.test.cjs
 ├─ css/
 │  ├─ common.css
 │  ├─ tablet.css
@@ -1159,17 +1235,27 @@ investment-dashboard-main/
 │  ├─ dashboard-app.js
 │  └─ dashboard-market-ai.js  # standalone entry · dashboard-modal lifecycle만 공유
 │
-└─ add/
-   ├─ calc.html
-   ├─ kodex-leverage-report.html
-   ├─ add.css
-   ├─ add.js
-   ├─ calc.test.cjs
-   ├─ ui-contract.test.cjs
-   └─ add_maintenance_handover.md
+├─ add/
+│  ├─ calc.html
+│  ├─ kodex-leverage-report.html
+│  ├─ add.css
+│  ├─ add.js
+│  ├─ add-theme.css
+│  ├─ add-theme.js
+│  ├─ calc-alt.css
+│  ├─ report-alt.css
+│  └─ add_maintenance_handover.md
+│
+└─ tests/
+   ├─ main/
+   │  ├─ calc.test.cjs
+   │  └─ ui-contract.test.cjs
+   └─ add/
+      ├─ calc.test.cjs
+      └─ ui-contract.test.cjs
 ```
 
-Calc 계산 회귀검증은 `add/calc.test.cjs`에서 관리한다.
+계산 회귀와 UI Contract 자동 QA는 `tests/main/`, `tests/add/`의 대칭 구조에서 관리한다. 운영 코드와 테스트 코드를 다시 feature 폴더 안에 섞지 않는다.
 
 이 구조를 앞으로의 기본 구조로 취급한다.
 
@@ -2365,7 +2451,7 @@ style="..."
 ## 8.2 Calc
 
 - 계산 로직은 DOM 표현과 분리된 production 함수를 기준으로 유지한다.
-- Calc 계산 로직 변경 시 `node --test add/calc.test.cjs`로 실제 production 함수를 회귀검증한다.
+- Calc 계산 로직 변경 시 `node --test tests/add/calc.test.cjs`로 실제 production 함수를 회귀검증한다.
 - 테스트를 위한 계산식 복제나 불필요한 파일 분리는 하지 않는다.
 - Calc 전용 responsive/표현 상세는 `add/add_maintenance_handover.md`와 실제 add CSS를 기준으로 한다.
 
@@ -2544,7 +2630,7 @@ dashboard-app.js
 
 ### add
 
-Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로직은 `add/calc.test.cjs`로 회귀검증한다. Report는 canonical HTML entry를 유지하고, 공통 `add.css` / `add.js`와 add handover 기준을 따른다.
+Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로직은 `tests/add/calc.test.cjs`로 회귀검증한다. Report는 canonical HTML entry를 유지하고, 공통 `add.css` / `add.js`와 add handover 기준을 따른다.
 
 ## 10.4 과거 점수 기록 처리
 
@@ -2583,6 +2669,8 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 [ ] inline event/global bridge를 만들지 않는가
 [ ] protected JSON을 건드리지 않는가
 [ ] 계산 결과에 영향이 있는가
+[ ] 변경 영역에 대응하는 Fast QA 테스트를 실행했는가
+[ ] 테스트 FAIL이 실제 회귀인지 테스트 contract 노후화인지 구분했는가
 [ ] 직전 PASS 기준으로 돌아갈 수 있는가
 ```
 
@@ -2602,12 +2690,15 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 [ ] KRX PIN / 퇴직연금 PIN / 개인보기 gesture / native select / render / cache bust 등 보호 항목을 잠재적 가능성만으로 감점하지 않았는가
 [ ] 실제 재현·사용자 영향·구체적 오류가 없는 항목을 B급 개선안으로 억지 제시하지 않았는가
 [ ] 실제 감점 근거가 없다면 100점을 허용했는가
+[ ] 테스트 부재·개수 자체를 A/B급 또는 감점·가산 근거로 사용하지 않았는가
+[ ] 테스트 FAIL을 근거로 삼았다면 실제 기능/계산/UI contract 결함까지 확인했는가
 ```
 
 수정 후:
 
 ```text
 [ ] diff가 요청 범위뿐인가
+[ ] 가능한 경우 Main Calc / Main UI / Add Calc / Add UI 4종 Full QA를 완료했는가
 [ ] 변경 파일만 ZIP에 들어갔는가
 [ ] line/byte 통계를 보고했는가
 [ ] GitHub 커밋용 짧은 Summary와 간단한 Description을 적었는가

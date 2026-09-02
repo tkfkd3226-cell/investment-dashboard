@@ -216,9 +216,18 @@ investment-dashboard-main/
 │  ├─ kodex-leverage-report.html
 │  ├─ add.css
 │  ├─ add.js
-│  ├─ calc.test.cjs
-│  ├─ ui-contract.test.cjs
+│  ├─ add-theme.css
+│  ├─ add-theme.js
+│  ├─ calc-alt.css
+│  ├─ report-alt.css
 │  └─ add_maintenance_handover.md
+├─ tests/
+│  ├─ main/
+│  │  ├─ calc.test.cjs
+│  │  └─ ui-contract.test.cjs
+│  └─ add/
+│     ├─ calc.test.cjs
+│     └─ ui-contract.test.cjs
 ├─ .github/workflows/
 │  └─ update-prices.yml
 ├─ requirements.txt
@@ -531,7 +540,40 @@ __pycache__/
 
 ---
 
-## 9. 상세 운영 문서
+## 9. 자동 QA 테스트
+
+수정 작업의 QA를 빠르게 하고 계산·UI 회귀를 조기에 발견하기 위해 Main과 Add에 동일한 두 축의 Node 테스트를 둡니다. 테스트는 **개발/수정 QA용**이며 웹페이지 접속 시 자동 실행되지 않고 운영 성능에도 관여하지 않습니다.
+
+```text
+tests/
+├─ main/
+│  ├─ calc.test.cjs          # Main 계산 결과·경계값 회귀
+│  └─ ui-contract.test.cjs   # Main UI/CSS/HTML/반응형 핵심 contract
+└─ add/
+   ├─ calc.test.cjs          # Add Calc 계산·validation 회귀
+   └─ ui-contract.test.cjs   # Add UI/CSS/HTML/반응형·대체 테마 contract
+```
+
+전체 자동 QA:
+
+```bash
+node --test tests/main/*.test.cjs tests/add/*.test.cjs
+```
+
+영역별 빠른 QA도 가능합니다.
+
+```bash
+node --test tests/main/calc.test.cjs
+node --test tests/main/ui-contract.test.cjs
+node --test tests/add/calc.test.cjs
+node --test tests/add/ui-contract.test.cjs
+```
+
+자동 테스트는 반복적인 회귀 확인을 줄이는 **QA 안전망**입니다. 실제 UI 미감, 정보 위계, 신규 UX의 적절성, 실제 기기 체감처럼 자동화가 대신할 수 없는 항목은 별도 QA가 필요합니다. 테스트 파일의 존재 여부나 테스트 개수 자체는 프로젝트 품질 점수의 가산·감점 기준이 아닙니다.
+
+---
+
+## 10. 상세 운영 문서
 
 README는 저장소의 **기능, 전체 동작 구조, 프로젝트 구조, 데이터·갱신 방식, 실행·배포 개요**만 설명합니다.
 
@@ -539,6 +581,7 @@ README는 저장소의 **기능, 전체 동작 구조, 프로젝트 구조, 데�
 
 ```text
 main_dashboard_maintenance_handover.md
+add/add_maintenance_handover.md
 ```
 
-같은 유지보수 규칙을 README와 위 문서에 중복 기재하지 않습니다.
+전역 유지보수·평가·QA 규칙은 main handover를, Calc/Report 세부 contract는 add handover를 기준으로 합니다. 같은 유지보수 규칙을 README와 두 문서에 중복 기재하지 않습니다.

@@ -1,0 +1,170 @@
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+
+const ROOT=path.resolve(__dirname,'../..');
+const read=rel=>fs.readFileSync(path.join(ROOT,rel),'utf8');
+const compact=s=>s.replace(/\s+/g,' ');
+
+const index=read('index.html');
+const common=read('css/common.css');
+const tablet=read('css/tablet.css');
+const mobile=read('css/mobile.css');
+const special=read('css/special.css');
+const interaction=read('css/interaction.css');
+const charts=read('js/dashboard-charts.js');
+const core=read('js/dashboard-core.js');
+const modal=read('js/dashboard-modal.js');
+const uiCommon=read('js/dashboard-ui-common.js');
+const marketAi=read('js/dashboard-market-ai.js');
+const app=read('js/dashboard-app.js');
+
+const common1=compact(common);
+const special1=compact(special);
+const charts1=compact(charts);
+const modal1=compact(modal);
+const market1=compact(marketAi);
+const index1=compact(index);
+
+function importsOf(source){
+  return [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map(m=>m[1]);
+}
+
+test('Main boot contract: CSS 6개 순서와 app/Market AI 두 module entry를 유지한다',()=>{
+  const cssOrder=['common.css','tablet.css','mobile.css','special.css','interaction.css','print.css'];
+  let last=-1;
+  for(const file of cssOrder){
+    const at=index.indexOf(`'${file}'`);
+    assert.ok(at>last,`${file} must keep canonical CSS order`);
+    last=at;
+  }
+  assert.match(index,/type="module" src="js\/dashboard-app\.js\?v=/);
+  assert.match(index,/type="module" src="js\/dashboard-market-ai\.js\?v=/);
+});
+
+test('Main module boundary: core는 DOM 비의존, modal은 무의존, Market AI는 modal만 공유한다',()=>{
+  assert.doesNotMatch(core,/\bdocument\b/);
+  assert.doesNotMatch(core,/\bwindow\b/);
+  assert.deepEqual(importsOf(modal),[]);
+  assert.deepEqual(importsOf(marketAi),['./dashboard-modal.js']);
+});
+
+test('Main graph entry: app은 core/ui-common/modal/charts/ui/pension/pension-editor를 orchestration한다',()=>{
+  const imports=importsOf(app);
+  for(const dependency of [
+    './dashboard-core.js','./dashboard-ui-common.js','./dashboard-modal.js','./dashboard-charts.js',
+    './dashboard-ui.js','./dashboard-pension.js','./dashboard-pension-editor.js'
+  ])assert.ok(imports.includes(dependency),`missing app dependency ${dependency}`);
+  assert.equal(imports.includes('./dashboard-market-ai.js'),false);
+});
+
+test('Responsive 기본 3구간은 Desktop >=1101 / Tablet 761~1100 / Mobile <=760으로 유지한다',()=>{
+  assert.match(tablet,/@media\s*\(min-width:761px\)\s*and\s*\(max-width:1100px\)/);
+  assert.match(mobile,/@media\s*\(max-width:760px\)/);
+  assert.match(special,/@media\s*\(min-width:1101px\)\s*and\s*\(max-width:1279px\)/);
+  assert.match(special,/@media\s*\(max-width:400px\)/);
+});
+
+test('Phone Landscape는 별도 일반 breakpoint가 아니라 touch landscape 기능 media로 유지한다',()=>{
+  const query='(orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
+  assert.ok(compact(special).includes(`@media ${query}{`));
+  assert.match(uiCommon,/const PHONE_LANDSCAPE_QUERY='\(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)'/);
+  assert.match(uiCommon,/function phoneUi\(\)\{\s*return window\.matchMedia\?\.\('\(max-width:760px\)'\)\.matches===true\|\|phoneLandscapeUi\(\);\s*\}/);
+});
+
+test('Topbar 날짜 년월/일 select는 같은 width token을 공유한다',()=>{
+  assert.match(common1,/--topbar-date-select-width:148px/);
+  assert.match(common1,/\.month-select\{min-width:var\(--topbar-date-select-width\);flex:0 0 var\(--topbar-date-select-width\)\}/);
+  assert.match(common1,/\.day-select\{min-width:var\(--topbar-date-select-width\);flex:0 0 var\(--topbar-date-select-width\)\}/);
+});
+
+test('Table summary/sticky/scroll contract는 semantic token과 sticky first-column 규칙을 유지한다',()=>{
+  assert.match(common1,/--data-table-summary-bg:var\(--summary-row-bg\)/);
+  assert.match(common1,/--data-table-summary-weight:var\(--type-weight-strong\)/);
+  assert.match(common1,/\.dashboard-data-table tbody \.summary-row > :is\(th,td\)\{ background:var\(--data-table-summary-bg\); font-weight:var\(--data-table-summary-weight\)/);
+  assert.match(special1,/position:-webkit-sticky; position:sticky/);
+  assert.match(special1,/tbody tr\.summary-row > :first-child\{z-index:4;background:var\(--data-table-summary-bg\)\}/);
+});
+
+test('모바일 성과요약 KPI 4개는 Phone UI에서만 2x2 grid contract를 유지한다',()=>{
+  assert.match(special1,/\.securities-summary-block \.metric-grid, \.pension-metric-grid\{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\); \}/);
+});
+
+test('Chart geometry는 CHART_FRAME 단일 Source of Truth를 사용한다',()=>{
+  assert.match(charts1,/const CHART_FRAME=Object\.freeze\(\{left:70,right:70,top:20,bottom:70\}\)/);
+  assert.equal((charts.match(/const CHART_FRAME=/g)||[]).length,1);
+  assert.match(charts1,/const minWidth=CHART_FRAME\.left\+CHART_FRAME\.right\+1/);
+  assert.match(charts1,/plotW:Math\.max\(0,normalViewW-CHART_FRAME\.left-CHART_FRAME\.right\)/);
+});
+
+test('Chart legend는 전체선택/다중선택을 지원하되 마지막 1개는 해제하지 않는다',()=>{
+  assert.match(charts1,/if\(key==='__all__'\)\{ selection\.state\.selected=null;/);
+  assert.match(charts1,/if\(next\.has\(key\)\)\{ if\(next\.size<=1\)return; next\.delete\(key\);/);
+  assert.match(charts1,/aria-pressed="\$\{active\}"/);
+});
+
+test('Chart 확대는 별도 state 복제가 아니라 기존 SVG/controls/options/legend를 이동 후 복원한다',()=>{
+  assert.match(charts1,/document\.createComment\('expanded-chart-legend-placeholder'\)/);
+  assert.match(charts1,/expandedLegendHost\.appendChild\(legend\)/);
+  assert.match(charts1,/legendPlaceholder\?\.parentNode\)legendPlaceholder\.parentNode\.insertBefore\(legend,legendPlaceholder\)/);
+  assert.match(charts1,/chartRuntimeState\.expanded=\{overlay,svg,placeholder/);
+});
+
+test('Modal lifecycle는 focus trap / focus return / inert / ESC를 공통 layer에서 관리한다',()=>{
+  assert.match(modal1,/element\.inert=true/);
+  assert.match(modal1,/state\.inertSnapshot\.forEach/);
+  assert.match(modal1,/event\.key!=='Escape'/);
+  assert.match(modal1,/const first=focusables\[0\],last=focusables\.at\(-1\),active=document\.activeElement/);
+  assert.match(modal1,/target\?\.focus\?\.\(\{preventScroll:true\}\)/);
+});
+
+test('Market AI contract: KOSPI200 선물 / SOX 현물 / NQ100 선물 symbol을 고정한다',()=>{
+  assert.match(marketAi,/MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200'/);
+  assert.match(marketAi,/MARKET_AI_SOX_INDEX_SYMBOL='INDEX:SOX'/);
+  assert.match(marketAi,/MARKET_AI_NASDAQ100_FUTURES_SYMBOL='FUTURES:NQ'/);
+  assert.doesNotMatch(marketAi,/FUTURES:SOX/);
+});
+
+test('Market AI contract: local은 :8001, remote는 Tailscale Serve를 사용한다',()=>{
+  assert.match(marketAi,/LOCAL_DASHBOARD_HOSTS=new Set\(\['localhost','127\.0\.0\.1'\]\)/);
+  assert.match(marketAi,/MARKET_AI_REMOTE_BASE='https:\/\/node\.tail60a98e\.ts\.net'/);
+  assert.match(marketAi,/return `\$\{location\.protocol\}\/\/\$\{location\.hostname\}:8001`/);
+});
+
+test('Market AI contract: remote 전체 실패는 UI 미노출, local 전체 실패는 연결 확인 중을 유지한다',()=>{
+  assert.match(market1,/if\(!marketAiLocalMode\(\)&&marketAiState\.serverReachable!==true\)\{ removeMarketAiUi\(\); return;/);
+  assert.match(market1,/if\(!serverReachable\)\{ if\(!marketAiLocalMode\(\)\)\{ removeMarketAiUi\(\); return; \} setMarketAiState\(\{ signal:null, status:'연결 확인 중'/);
+});
+
+test('Market AI refresh는 3 endpoint를 독립 호출하고 최신 refresh sequence만 state에 반영한다',()=>{
+  assert.match(market1,/const \[response,nextMarketSnapshot,nextBridgeStatus\]=await Promise\.all\(\[/);
+  assert.match(market1,/const serverReachable=response!==null\|\|nextMarketSnapshot!==null\|\|nextBridgeStatus!==null/);
+  assert.match(market1,/let marketAiRefreshSequence=0/);
+  assert.match(market1,/if\(refreshSequence!==marketAiRefreshSequence\)return/);
+});
+
+test('Market AI는 main dataState/uiState를 참조하지 않는 standalone state를 유지한다',()=>{
+  assert.doesNotMatch(marketAi,/\bdataState\b/);
+  assert.doesNotMatch(marketAi,/\buiState\b/);
+  assert.match(marketAi,/const marketAiState=\{/);
+});
+
+test('CSS contract: 운영 CSS에는 !important override를 두지 않는다',()=>{
+  for(const [name,source] of Object.entries({common,tablet,mobile,special,interaction})){
+    assert.doesNotMatch(source,/!important/,`${name}.css contains !important`);
+  }
+});
+
+test('CSS 책임 분리: Desktop baseline은 common, Tablet/Mobile은 전용 파일, 예외는 special에 존재한다',()=>{
+  assert.match(common,/Desktop baseline/i);
+  assert.match(tablet,/Tablet/i);
+  assert.match(mobile,/Mobile/i);
+  assert.match(special,/Compact Desktop|Phone UI Shared|Phone Landscape/);
+});
+
+test('강제 웹보기 contract: 스마트폰 web 요청은 1280, tablet 요청은 961 viewport를 사용한다',()=>{
+  assert.match(index1,/if\(dashboardView==='web'\)forcedViewport=1280/);
+  assert.match(index1,/if\(dashboardView==='tablet'\)forcedViewport=961/);
+  assert.match(index1,/if\(forcedViewport===1280&&\(appleMobileUA\|\|desktopAppleUA\)&&touchApple&&shortSide<=500\)document\.documentElement\.classList\.add\('iphone-request-desktop'\)/);
+});
