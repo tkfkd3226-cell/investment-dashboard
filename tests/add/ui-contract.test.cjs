@@ -149,24 +149,34 @@ test('Calc 가로 터치폰은 Tablet이 아니라 세로 Phone과 같은 Compac
 });
 
 
-test('Calc 주요 선택 버튼은 거래유형/계산기준/전략탭 하나의 Choice Group primitive를 공유한다', () => {
-  assert.equal((calc.match(/class="[^"]*calc-choice-group[^"]*"/g)||[]).length,3);
+test('Calc 주요 선택 버튼은 시각/세로 geometry만 공통화하고 가로 layout은 각 영역이 소유한다', () => {
+  assert.equal((calc.match(/class="[^"]*calc-choice-group[^"]*"/g)||[]).length,0);
   assert.equal((calc.match(/class="[^"]*calc-choice-button[^"]*"/g)||[]).length,9);
-  assert.match(rule(':where(html[data-add-page="calc"]) .calc-choice-group'),/display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\);gap:var\(--calc-field-row-gap\)/);
-  const choice=rule(':where(html[data-add-page="calc"]) .calc-choice-group > .calc-choice-button');
+  const choice=rule(':where(html[data-add-page="calc"]) .calc-choice-button');
   assert.match(choice,/height:var\(--calc-control-box-height\)/);
-  assert.match(choice,/padding:0 var\(--calc-choice-pad-x\)/);
+  assert.match(choice,/padding-block:0/);
   assert.match(choice,/border-width:var\(--calc-control-border-width\)/);
   assert.match(choice,/font-size:var\(--calc-type-label\)/);
   assert.match(choice,/line-height:1/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .calc-choice-group.settled-tabs'),/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(css1,/--calc-choice-pad-x:var\(--density-action-pad-x\)/);
-  assert.match(css1,/--calc-choice-pad-x:var\(--button-compact-pad-x\)/);
-  assert.doesNotMatch(css1,/:where\(html\[data-add-page="calc"\]\) \.preset-btn\{[^}]*\b(?:height|min-height|padding):/);
-  assert.doesNotMatch(css1,/:where\(html\[data-add-page="calc"\]\) \.calculation-group \.seg button\{/);
-  assert.doesNotMatch(css1,/:where\(html\[data-add-page="calc"\]\) \.tab\{[^}]*\b(?:height|min-height|padding):/);
-});
+  assert.doesNotMatch(choice,/(?:^|;)width:/);
+  assert.doesNotMatch(choice,/padding-inline:/);
+  assert.doesNotMatch(choice,/grid-template-columns:/);
+  assert.doesNotMatch(css1,/--calc-choice-pad-x:/);
 
+  const preset=rule(':where(html[data-add-page="calc"]) .preset-bar');
+  assert.match(preset,/display:flex/);
+  assert.match(preset,/flex-wrap:wrap/);
+  const seg=rule(':where(html[data-add-page="calc"]) .seg');
+  assert.match(seg,/display:grid/);
+  assert.match(seg,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  const tabs=rule(':where(html[data-add-page="calc"]) .tabs');
+  assert.match(tabs,/display:flex/);
+  assert.match(tabs,/overflow:auto/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .tabs.settled-tabs'),/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{[^]*?\.preset-bar\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\);gap:var\(--density-gap-xs\)\}/);
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{[^]*?\.tabs\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\);overflow:visible\}/);
+});
 
 test('Calc 입력영역은 viewport 공통 Field Layout primitive를 사용한다', () => {
   assert.match(css1,/--calc-field-label-gap:var\(--density-gap-xs\)/);
@@ -191,7 +201,7 @@ test('계산 기준은 전용 정렬 보정 없이 공통 field/row gap 구조�
   assert.match(calc,/class="field-label-slot" aria-hidden="true"/);
   assert.match(css1,/@media\(max-width:1100px\)\{[^}]*\.calculation-mode-field \.field-label-slot\{display:none\}/);
   assert.match(rule(':where(html[data-add-page="calc"]) .calculation-flow'),/gap:var\(--calc-field-row-gap\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .calc-choice-group'),/gap:var\(--calc-field-row-gap\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .seg'),/gap:var\(--calc-field-row-gap\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .seg'),/margin:0/);
   assert.match(rule(':where(html[data-add-page="calc"]) .formula'),/margin:0/);
   assert.match(rule(':where(html[data-add-page="calc"]) .actual-sale-price'),/margin:0/);

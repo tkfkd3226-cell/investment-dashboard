@@ -39,7 +39,7 @@
     <p id="heroDescription">추가매수 당일 종가 또는 추가매수가 대비 변동률 기준 · 목표 매도단가와 3가지 손실 회복 방식 자동 계산</p>
   </div>
 
-  <div class="preset-bar calc-choice-group" role="group" aria-label="매수 사례 선택">
+  <div class="preset-bar" role="group" aria-label="매수 사례 선택">
     <button class="preset-btn calc-choice-button add-button add-button-toggle" type="button" data-preset="buy-2026-07-29" aria-pressed="false"><span class="preset-main">보유 중 추가매수</span></button>
     <button class="preset-btn calc-choice-button add-button add-button-toggle" type="button" data-preset="buy-2026-07-30" aria-pressed="false"><span class="preset-main">이전 거래 후 재매수</span></button>
     <button class="preset-btn calc-choice-button add-button add-button-toggle active" type="button" data-preset="current-only" aria-pressed="true"><span class="preset-main">이전 거래 없음</span></button>
@@ -121,7 +121,7 @@
         <div class="calculation-flow">
           <div class="field calculation-mode-field">
             <span class="field-label-slot" aria-hidden="true"></span>
-            <div class="seg calc-choice-group" role="group" aria-label="목표가격 계산 기준"><button id="modeCurrent" class="calc-choice-button add-button add-button-toggle active" type="button" aria-pressed="true">매수일 종가</button><button id="modeRise" class="calc-choice-button add-button add-button-toggle" type="button" aria-pressed="false">추가매수가</button><button id="modeTarget" class="calc-choice-button add-button add-button-toggle" type="button" aria-pressed="false">목표단가</button></div>
+            <div class="seg" role="group" aria-label="목표가격 계산 기준"><button id="modeCurrent" class="calc-choice-button add-button add-button-toggle active" type="button" aria-pressed="true">매수일 종가</button><button id="modeRise" class="calc-choice-button add-button add-button-toggle" type="button" aria-pressed="false">추가매수가</button><button id="modeTarget" class="calc-choice-button add-button add-button-toggle" type="button" aria-pressed="false">목표단가</button></div>
           </div>
           <div class="fields">
             <div class="field"><label id="overnightLabel" for="overnightPct">다음 거래일 변동률</label><div class="pct-stepper"><button class="pct-step-btn add-button add-button-step" type="button" data-target="overnightPct" data-delta="-0.1" aria-label="다음 거래일 변동률 0.1%p 감소">−</button><div class="with-unit"><span class="calc-control-shell"><input id="overnightPct" class="control" type="number" min="-99.999999" step="0.1" value="2.34"></span><span class="unit">%</span></div><button class="pct-step-btn add-button add-button-step" type="button" data-target="overnightPct" data-delta="0.1" aria-label="다음 거래일 변동률 0.1%p 증가">+</button></div></div>
@@ -150,7 +150,7 @@
     <div class="range-box green add-card-shell"><strong id="range3Title"></strong><div class="big" id="range3Value"></div><div class="muted" id="range3Sub"></div></div>
   </section>
 
-  <div class="tabs calc-choice-group" id="strategyTabs" role="tablist" aria-label="매도 전략 선택">
+  <div class="tabs" id="strategyTabs" role="tablist" aria-label="매도 전략 선택">
     <button class="tab calc-choice-button add-button add-button-toggle active" id="tabS3" type="button" role="tab" data-tab="s3" aria-controls="s3" aria-selected="true" tabindex="0">① 전체 보유분 매도</button>
     <button class="tab calc-choice-button add-button add-button-toggle" id="tabS2" type="button" role="tab" data-tab="s2" aria-controls="s2" aria-selected="false" tabindex="-1">② 추가매수 수량 매도</button>
     <button class="tab calc-choice-button add-button add-button-toggle" id="tabS1" type="button" role="tab" data-tab="s1" aria-controls="s1" aria-selected="false" tabindex="-1">③ 추가매수 원금만 회수</button>
