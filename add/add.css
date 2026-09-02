@@ -258,51 +258,69 @@ body{
    - 모서리 값은 위 Shared 영역의 공통 Corner 토큰 사용
    ========================================================= */
 :root:where([data-add-page="calc"]){
-      --calc-control-pad-y:8px;
+      /* Compact geometry / field rhythm
+         - Compact 스타일의 정보 밀도를 canonical Calc 기준으로 사용한다.
+         - 전체 페이지 폭은 기존 1480px baseline을 유지하고, 입력/카드 내부 밀도만 compact하게 조정한다. */
+      --calc-control-pad-y:5px;
       --calc-control-border-width:1px;
       --calc-control-box-height:calc(1rem + var(--calc-control-pad-y) + var(--calc-control-pad-y) + var(--calc-control-border-width) + var(--calc-control-border-width));
       --calc-control-inner-height:calc(var(--calc-control-box-height) - var(--calc-control-border-width) - var(--calc-control-border-width));
 
-      /* Calc Field Layout primitive
-         - label/control 간격과 field 간격은 모든 입력 카드가 이 alias만 사용한다.
-         - alias가 shared density token을 참조하므로 Desktop/Tablet/Phone에서 함께 compact된다. */
+      /* Calc Field Layout primitive */
       --calc-field-label-gap:var(--density-gap-xs);
-      --calc-field-row-gap:var(--density-gap-sm);
-      --calc-field-label-line-height:1.45;
+      --calc-field-row-gap:var(--density-gap-md);
+      --calc-field-label-line-height:1.25;
 
-      /* Calc typography hierarchy
-         - 같은 역할은 같은 token만 사용한다.
-         - Desktop → Tablet → Phone에서 모든 계층이 정확히 2px씩 compact해진다.
-         - Phone landscape도 Phone token을 그대로 사용한다. */
-      --calc-type-page-title:28px;
-      --calc-type-section:20px;
-      --calc-type-subsection:18px;
-      --calc-type-support:16px;
-      --calc-type-label:14px;
-      --bg:#f4f6fa;
-      --card:#ffffff;
-      --muted:#6c768a;
-      --line:#dce2ec;
-      --soft:#eef2f7;
-      --shadow:0 8px 20px rgba(31,48,76,.07);
+      /* Calc compact typography hierarchy
+         - 역할 token을 단일 Source of Truth로 사용한다.
+         - Tablet/Phone은 별도 media에서 가독성과 터치 안정성을 해치지 않는 범위로 조정한다. */
+      --calc-type-page-title:22px;
+      --calc-type-section:16px;
+      --calc-type-subsection:13px;
+      --calc-type-support:11px;
+      --calc-type-label:11px;
 
-      /* CALC semantic surfaces / controls */
+      /* Compact palette / surface */
+      --bg:#edf1f5;
+      --card:#f9fbfd;
+      --muted:#647084;
+      --line:#cfd7e2;
+      --soft:#e8edf3;
+      --shadow:0 3px 10px rgba(31,48,76,.055);
+      --navy:#203a5d;
       --surface-control:#ffffff;
-      --surface-hover-soft:#f7f9fc;
-      --surface-subtle:#fbfcfe;
+      --surface-hover-soft:#f0f4f8;
+      --surface-subtle:#f2f5f8;
       --border-hover:#9fb0c8;
-      --control-border:#cfd7e4;
+      --control-border:#c4ceda;
       --control-focus-border:#6d8fc1;
       --control-focus-ring:rgba(73,115,174,.12);
       --control-hover-bg:#f3f6fb;
-      --control-readonly-bg:#f1f4f8;
-      --control-readonly-text:#576176;
+      --control-readonly-bg:#edf1f5;
+      --control-readonly-text:#566276;
       --control-disabled-text:#b5bdca;
       --active-shadow:0 5px 14px rgba(29,53,87,.16);
       --action-shadow:0 3px 10px rgba(29,53,87,.07);
-      --button-hover-border:var(--border-hover);
-      --button-hover-bg:var(--surface-hover-soft);
-      --button-hover-text:var(--ink);
+
+      /* Compact corner / density */
+      --surface-radius-md:8px;
+      --control-radius-md:6px;
+      --inner-radius-md:5px;
+      --density-page-pad:10px;
+      --density-surface-lg:9px;
+      --density-surface-md:7px;
+      --density-surface-sm:6px;
+      --density-gap-lg:7px;
+      --density-gap-md:5px;
+      --density-gap-sm:4px;
+      --density-gap-xs:3px;
+      --density-gap-micro:2px;
+      --density-layout-gap:8px;
+      --density-action-pad-x:8px;
+      --density-action-pad-y:5px;
+      --density-field-pad-x:6px;
+      --density-table-pad-x:8px;
+      --density-table-pad-y:6px;
 
       /* Help / tooltip */
       --tooltip-bg:#17243a;
@@ -333,22 +351,23 @@ body{
     }
 
     html:where([data-add-page="calc"]).dark{
-      --bg:#0b1020;
-      --card:#121826;
-      --muted:#94a3b8;
-      --line:#2b3548;
-      --soft:#273248;
-      --shadow:0 8px 20px rgba(0,0,0,.24);
-      --surface-control:#111827;
-      --surface-hover-soft:#172033;
-      --surface-subtle:#0f172a;
+      --bg:#0c121a;
+      --card:#121a24;
+      --muted:#8e9aae;
+      --line:#2b3746;
+      --soft:#202b38;
+      --shadow:0 3px 12px rgba(0,0,0,.22);
+      --navy:#6c91bd;
+      --surface-control:#101821;
+      --surface-hover-soft:#182330;
+      --surface-subtle:#0f1720;
       --border-hover:#526178;
-      --control-border:#334155;
+      --control-border:#344354;
       --control-focus-border:#60a5fa;
       --control-focus-ring:rgba(96,165,250,.18);
       --control-hover-bg:#1e293b;
-      --control-readonly-bg:#1f2937;
-      --control-readonly-text:#cbd5e1;
+      --control-readonly-bg:#1b2632;
+      --control-readonly-text:#b3bfce;
       --control-disabled-text:#64748b;
       --active-shadow:0 5px 14px rgba(0,0,0,.30);
       --action-shadow:0 3px 10px rgba(0,0,0,.24);
@@ -376,7 +395,7 @@ body{
       --table-head-text:#94a3b8;
       --warning-text:#fca5a5;
     }
-    :where(html[data-add-page="calc"]) body{background:var(--bg);line-height:1.45;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+    :where(html[data-add-page="calc"]) body{background:linear-gradient(rgba(32,58,93,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(32,58,93,.018) 1px,transparent 1px),var(--bg);background-size:24px 24px;font-variant-numeric:tabular-nums;line-height:1.45;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
     :where(html[data-add-page="calc"]) button, :where(html[data-add-page="calc"]) input, :where(html[data-add-page="calc"]) select{font:inherit}
 
     /* Calc 역할별 typography contract */
@@ -384,7 +403,7 @@ body{
     :where(html[data-add-page="calc"]) .add-heading-subsection{font-size:var(--calc-type-subsection)}
     :where(html[data-add-page="calc"]) .add-heading-minor{font-size:var(--calc-type-support)}
     :where(html[data-add-page="calc"]) .mobile-section-title{font-size:var(--calc-type-subsection)}
-    :where(html[data-add-page="calc"]) :is(.add-button-action,.add-button-toggle){font-size:var(--calc-type-label)}
+    :where(html[data-add-page="calc"]) :is(.add-button-action,.add-button-toggle){font-size:var(--calc-type-label);font-weight:800}
 
 /* =========================================================
    02. 상단 헤더 / 주요 액션 / 거래유형 프리셋
@@ -392,38 +411,39 @@ body{
    - 보유 중 추가매수 / 이전 거래 후 재매수 / 이전 거래 없음 선택
    ========================================================= */
 :where(html[data-add-page="calc"]) .wrap{max-width:1480px;margin:0 auto;padding:var(--density-page-pad)}
-    :where(html[data-add-page="calc"]) .hero{display:grid;gap:var(--density-gap-sm);margin-bottom:var(--density-surface-md)}
-    :where(html[data-add-page="calc"]) .hero-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--density-gap-lg)}
-    :where(html[data-add-page="calc"]) .hero h1{margin:0;font-size:var(--calc-type-page-title);letter-spacing:-.04em;line-height:1.18;flex:1 1 auto;min-width:0}
-    :where(html[data-add-page="calc"]) .hero p{margin:0;color:var(--muted);font-size:var(--calc-type-label);line-height:1.4}
-    :where(html[data-add-page="calc"]) .actions{display:flex;gap:var(--density-gap-xs);flex-wrap:nowrap;flex:0 0 auto}
+    :where(html[data-add-page="calc"]) .hero{display:grid;gap:var(--density-gap-sm);margin-bottom:var(--density-surface-sm);padding-bottom:var(--density-surface-md);border-bottom:1px solid var(--line)}
+    :where(html[data-add-page="calc"]) .hero-head{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-lg)}
+    :where(html[data-add-page="calc"]) .hero h1{margin:0;font-size:var(--calc-type-page-title);letter-spacing:-.045em;line-height:1.18;flex:1 1 auto;min-width:0;font-weight:900}
+    :where(html[data-add-page="calc"]) .hero p{margin:0;color:var(--muted);font-size:var(--calc-type-label);line-height:1.3;max-width:1100px}
+    :where(html[data-add-page="calc"]) .actions{display:flex;gap:var(--density-gap-sm);flex-wrap:nowrap;flex:0 0 auto}
     :where(html[data-add-page="calc"]) .reset-icon, :where(html[data-add-page="calc"]) .report-icon{display:none;width:18px;height:18px}
     :where(html[data-add-page="calc"]) .report-top-link{text-decoration:none}
     :where(html[data-add-page="calc"]) .btn{line-height:1}
-    :where(html[data-add-page="calc"]) .preset-bar{display:flex;align-items:center;gap:var(--density-gap-sm);flex-wrap:wrap;margin-bottom:var(--density-gap-md)}
-    :where(html[data-add-page="calc"]) .preset-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--density-gap-micro)}
+    :where(html[data-add-page="calc"]) .preset-bar{display:flex;align-items:center;gap:var(--density-gap-sm);flex-wrap:wrap;margin-bottom:var(--density-surface-sm)}
+    :where(html[data-add-page="calc"]) .preset-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--density-gap-micro);min-height:30px;padding:var(--density-action-pad-y) var(--density-action-pad-x);box-shadow:none}
     :where(html[data-add-page="calc"]) .preset-btn .preset-main{font-size:var(--calc-type-label)}
-    :where(html[data-add-page="calc"]) .preset-btn.active{box-shadow:var(--active-shadow)}
+    :where(html[data-add-page="calc"]) .preset-btn.active{box-shadow:0 2px 7px rgba(32,58,93,.16)}
 
 /* =========================================================
    03. 입력 패널 / 폼 컨트롤 / 도움말 툴팁
    - 입력 카드 공통 레이아웃과 숫자·수량·비율 컨트롤
    - readonly·검증 오류·툴팁·계산 기준 세그먼트 포함
    ========================================================= */
-    :where(html[data-add-page="calc"]) .input-panel{padding:var(--density-surface-md);margin-bottom:var(--density-gap-lg)}
-    :where(html[data-add-page="calc"]) .input-grid{display:grid;grid-template-columns:1.15fr 1.15fr 1fr;gap:var(--density-gap-lg)}
+    :where(html[data-add-page="calc"]) .input-panel{padding:var(--density-surface-md);margin-bottom:var(--density-gap-lg);background:rgba(249,251,253,.76)}
+html:where([data-add-page="calc"]).dark .input-panel{background:rgba(18,26,36,.82)}
+    :where(html[data-add-page="calc"]) .input-grid{display:grid;grid-template-columns:1.18fr 1.18fr .86fr;gap:var(--density-surface-sm)}
     :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{
-      grid-template-columns:1.15fr 1fr;
+      grid-template-columns:1.2fr .8fr;
       grid-template-areas:
         "purchase-preset ."
         "current-group calculation-group";
-      column-gap:var(--density-gap-lg);
+      column-gap:var(--density-surface-sm);
       row-gap:var(--density-gap-sm);
       align-items:stretch
     }
-    :where(html[data-add-page="calc"]) .input-group{padding:var(--density-surface-sm)}
-    :where(html[data-add-page="calc"]) .group-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--density-gap-md)}
-    :where(html[data-add-page="calc"]) .group-title small{font-size:var(--calc-type-support);font-weight:500;color:var(--muted)}
+    :where(html[data-add-page="calc"]) .input-group{padding:var(--density-surface-sm);box-shadow:none}
+    :where(html[data-add-page="calc"]) .group-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--density-gap-md);padding-bottom:var(--density-gap-md);border-bottom:1px solid var(--line);letter-spacing:-.025em}
+    :where(html[data-add-page="calc"]) .group-title small{font-size:10px;font-weight:500;color:var(--muted)}
     :where(html[data-add-page="calc"]) .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--calc-field-row-gap)}
     :where(html[data-add-page="calc"]) .field{display:flex;flex-direction:column;gap:var(--calc-field-label-gap)}
     :where(html[data-add-page="calc"]) .field.full{grid-column:1/-1}
@@ -447,8 +467,9 @@ html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-p
     :where(html[data-add-page="calc"]) .custom-tooltip::after{content:"";position:absolute;left:var(--tooltip-arrow-x,50%);top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--tooltip-bg)}
     :where(html[data-add-page="calc"]) .custom-tooltip.tooltip-below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--tooltip-bg)}
     :where(html[data-add-page="calc"]) .help-tooltip:hover .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip:focus-within .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip.is-open .custom-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
-    :where(html[data-add-page="calc"]) .control{height:var(--calc-control-box-height);min-height:0;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);padding:var(--calc-control-pad-y) var(--density-action-pad-x);outline:none;text-align:right;font-weight:700;line-height:1;color:var(--ink);-webkit-appearance:none;appearance:none}
-    :where(html[data-add-page="calc"]) .control:focus, :where(html[data-add-page="calc"]) .date-control-shell:focus-within{border-color:var(--control-focus-border);box-shadow:0 0 0 3px var(--control-focus-ring)}
+    :where(html[data-add-page="calc"]) .control{height:var(--calc-control-box-height);min-height:0;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);padding:var(--calc-control-pad-y) var(--density-action-pad-x);outline:none;text-align:right;font-weight:750;line-height:1;color:var(--ink);-webkit-appearance:none;appearance:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.46)}
+html:where([data-add-page="calc"]).dark .control{box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+    :where(html[data-add-page="calc"]) .control:focus, :where(html[data-add-page="calc"]) .date-control-shell:focus-within{border-color:var(--control-focus-border);box-shadow:0 0 0 2px var(--control-focus-ring)}
     :where(html[data-add-page="calc"]) .control[readonly]{background:var(--control-readonly-bg)}
     :where(html[data-add-page="calc"]) .control[readonly]:not(.positive):not(.negative):not(.zero){color:var(--control-readonly-text)}
     :where(html[data-add-page="calc"]) .with-unit{position:relative}
@@ -472,11 +493,11 @@ html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-p
     /* 계산 기준 3버튼은 입력필드와 같은 control geometry token을 사용한다.
        버튼 글자 hierarchy는 유지하고, 높이·border 두께의 Source of Truth는 Calc control과 공유한다. */
     :where(html[data-add-page="calc"]) .calculation-group .seg button{display:flex;align-items:center;justify-content:center;height:var(--calc-control-box-height);min-height:0;border-width:var(--calc-control-border-width);padding:0 var(--density-action-pad-x);line-height:1}
-    :where(html[data-add-page="calc"]) .formula{font-size:var(--calc-type-label);color:var(--muted);background:#f0f3f8;border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-gap-xs);margin:0}
+    :where(html[data-add-page="calc"]) .formula{font-size:10px;color:var(--muted);background:#f0f3f8;border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:4px 6px;margin:0;line-height:1.3}
 html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
-    :where(html[data-add-page="calc"]) .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);width:100%;margin:0;color:var(--muted);text-align:left;appearance:none;-webkit-appearance:none}
+    :where(html[data-add-page="calc"]) .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);width:100%;margin:0;color:var(--muted);text-align:left;appearance:none;-webkit-appearance:none;min-height:30px;padding:5px 7px}
     :where(html[data-add-page="calc"]) .actual-sale-price:active{transform:translateY(1px)}
-    :where(html[data-add-page="calc"]) .actual-sale-price strong{color:var(--navy);font-size:13px;font-weight:900;white-space:nowrap}
+    :where(html[data-add-page="calc"]) .actual-sale-price strong{color:var(--navy);font-size:11px;font-weight:900;white-space:nowrap}
     :where(html[data-add-page="calc"]) .validation-panel{display:none;margin:0 0 var(--density-gap-lg);padding:var(--density-surface-sm);border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger-text);font-size:var(--calc-type-label);font-weight:700}
     :where(html[data-add-page="calc"]) .validation-panel.show{display:block}
     :where(html[data-add-page="calc"]) .validation-result-note{margin-top:var(--density-gap-xs);font-weight:600}
@@ -536,7 +557,7 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .settled-summary{display:none}
     :where(html[data-add-page="calc"]) .prior-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;align-items:start}
     :where(html[data-add-page="calc"]) .prior-date-section{grid-column:1/-1;min-width:0;padding:0 var(--density-field-pad-x) var(--density-surface-sm);border-bottom:1px dashed var(--control-border)}
-    :where(html[data-add-page="calc"]) .prior-trade-section{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--calc-field-row-gap);min-width:0;padding:var(--density-surface-sm) var(--density-field-pad-x)}
+    :where(html[data-add-page="calc"]) .prior-trade-section{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--calc-field-row-gap);min-width:0;padding:var(--density-surface-sm)}
     :where(html[data-add-page="calc"]) .prior-buy-section{border-right:1px dashed var(--control-border)}
     :where(html[data-add-page="calc"]) .prior-entry-grid .field{min-width:0}
     :where(html[data-add-page="calc"]) .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);overflow:hidden;box-sizing:border-box}
@@ -559,22 +580,22 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     /* 이전 거래 없음: 현재 매수값 빠른 입력 */
     :where(html[data-add-page="calc"]) .current-column{display:flex;flex-direction:column;gap:var(--density-gap-sm);min-width:0;align-self:stretch}
     :where(html[data-add-page="calc"]) .current-column > #currentGroup{flex:1 1 auto}
-    :where(html[data-add-page="calc"]) .current-purchase-preset{display:none;align-items:center;justify-content:flex-start;gap:var(--density-gap-xs);min-width:0}
-    :where(html[data-add-page="calc"]) .current-purchase-btn{border-color:var(--navy);color:var(--navy);box-shadow:var(--action-shadow)}
+    :where(html[data-add-page="calc"]) .current-purchase-preset{display:none;align-items:center;justify-content:flex-start;gap:var(--density-gap-sm);min-width:0}
+    :where(html[data-add-page="calc"]) .current-purchase-btn{border-color:var(--navy);color:var(--navy);box-shadow:none;padding:var(--density-action-pad-y) var(--density-gap-lg)}
     :where(html[data-add-page="calc"]) .current-purchase-btn:active{transform:translateY(1px)}
 
 /* =========================================================
    05. 핵심 지표 / 가격 구간 요약
    - 계산 직후 보여주는 KPI와 손실·회복 가격 구간 카드
    ========================================================= */
-:where(html[data-add-page="calc"]) .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--density-gap-sm);margin-bottom:var(--density-gap-lg);padding:var(--density-surface-md)}
-    :where(html[data-add-page="calc"]) .kpi{padding:var(--density-surface-md)}
-    :where(html[data-add-page="calc"]) .kpi .value{margin-top:var(--density-gap-xs);font-size:21px;font-weight:900;letter-spacing:-.03em}
+:where(html[data-add-page="calc"]) .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--density-gap-sm);margin-bottom:var(--density-gap-lg);padding:var(--density-surface-sm);background:rgba(32,58,93,.025)}
+    :where(html[data-add-page="calc"]) .kpi{padding:var(--density-surface-md) var(--density-action-pad-x);box-shadow:none}
+    :where(html[data-add-page="calc"]) .kpi .value{margin-top:2px;font-size:18px;font-weight:900;letter-spacing:-.03em;line-height:1.15}
 
-    :where(html[data-add-page="calc"]) .range-panel{padding:var(--density-surface-md);margin-bottom:var(--density-gap-lg);display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--density-gap-md)}
-    :where(html[data-add-page="calc"]) .range-box{padding:var(--density-surface-md)}
-    :where(html[data-add-page="calc"]) .range-box strong{display:block;font-size:var(--calc-type-label);margin-bottom:var(--density-gap-xs)}
-    :where(html[data-add-page="calc"]) .range-box .big{font-size:21px;font-weight:900}
+    :where(html[data-add-page="calc"]) .range-panel{padding:var(--density-surface-sm);margin-bottom:var(--density-gap-lg);display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--density-gap-md)}
+    :where(html[data-add-page="calc"]) .range-box{padding:var(--density-surface-md) var(--density-action-pad-x)}
+    :where(html[data-add-page="calc"]) .range-box strong{display:block;font-size:var(--calc-type-label);margin-bottom:2px}
+    :where(html[data-add-page="calc"]) .range-box .big{font-size:18px;font-weight:900;line-height:1.15}
     :where(html[data-add-page="calc"]) .range-box .muted{font-size:var(--calc-type-label);line-height:1.4;margin-top:var(--density-gap-micro)}
     :where(html[data-add-page="calc"]) .range-box.blue{background:var(--range-blue-bg);border-color:var(--range-blue-border)}
     :where(html[data-add-page="calc"]) .range-box.red{background:var(--danger-bg);border-color:var(--range-red-border)}
@@ -585,24 +606,24 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
    - 전략 선택 탭, 결과 카드, 데스크톱 표, 모바일 데이터 카드
    - 손익 색상·안내문·경고문 포함
    ========================================================= */
-:where(html[data-add-page="calc"]) .tabs{display:flex;gap:var(--density-gap-xs);margin:0 0 var(--density-gap-md);overflow:auto;padding:2px}
-    :where(html[data-add-page="calc"]) .tab{white-space:nowrap}
+:where(html[data-add-page="calc"]) .tabs{display:flex;gap:var(--density-gap-sm);margin:0 0 var(--density-surface-sm);overflow:auto;padding:0}
+    :where(html[data-add-page="calc"]) .tab{white-space:nowrap;padding:var(--density-action-pad-y) var(--density-action-pad-x)}
     :where(html[data-add-page="calc"]) .strategy{display:none}
     :where(html[data-add-page="calc"]) .strategy.active{display:block}
     :where(html[data-add-page="calc"]) .strategy-card{overflow:hidden}
-    :where(html[data-add-page="calc"]) .strategy-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--density-surface-md);padding:var(--density-surface-md) var(--density-surface-lg);border-bottom:1px solid var(--line);background:var(--surface-subtle)}
+    :where(html[data-add-page="calc"]) .strategy-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--density-gap-lg);padding:var(--density-surface-md) var(--density-surface-lg);border-bottom:1px solid var(--line);background:var(--surface-subtle)}
     :where(html[data-add-page="calc"]) .strategy-title h2{margin:0}
-    :where(html[data-add-page="calc"]) .strategy-title p{margin:var(--density-gap-xs) 0 0;color:var(--muted);font-size:var(--calc-type-label);white-space:nowrap}
-    :where(html[data-add-page="calc"]) .badge{padding:var(--density-gap-xs) var(--density-gap-md);border-radius:var(--radius-pill);font-size:var(--calc-type-label);font-weight:900;white-space:nowrap}
+    :where(html[data-add-page="calc"]) .strategy-title p{margin:var(--density-gap-xs) 0 0;color:var(--muted);font-size:var(--calc-type-label);line-height:1.3;white-space:nowrap}
+    :where(html[data-add-page="calc"]) .badge{padding:var(--density-gap-xs) var(--density-surface-sm);border-radius:var(--radius-pill);font-size:var(--calc-type-label);font-weight:900;white-space:nowrap}
     :where(html[data-add-page="calc"]) .badge.bad{background:var(--badge-bad-bg);color:var(--badge-bad-text)}
     :where(html[data-add-page="calc"]) .badge.conditional{background:var(--badge-conditional-bg);color:var(--badge-conditional-text)}
     :where(html[data-add-page="calc"]) .badge.good{background:var(--badge-good-bg);color:var(--badge-good-text)}
     :where(html[data-add-page="calc"]) .strategy-body{padding:var(--density-surface-md)}
     :where(html[data-add-page="calc"]) .summary-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--density-gap-sm);margin-bottom:var(--density-gap-lg)}
-    :where(html[data-add-page="calc"]) .summary-card{padding:var(--density-surface-sm)}
+    :where(html[data-add-page="calc"]) .summary-card{padding:var(--density-surface-sm) var(--density-gap-lg);box-shadow:none}
     :where(html[data-add-page="calc"]) .summary-card .sname{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
-    :where(html[data-add-page="calc"]) .summary-card .svalue{font-size:19px;font-weight:900;margin-top:var(--density-gap-micro)}
-    :where(html[data-add-page="calc"]) .section-title{margin:var(--density-surface-lg) 0 var(--density-gap-sm)}
+    :where(html[data-add-page="calc"]) .summary-card .svalue{font-size:17px;font-weight:900;margin-top:2px;line-height:1.15}
+    :where(html[data-add-page="calc"]) .section-title{margin:var(--density-surface-lg) 0 var(--density-gap-md)}
     :where(html[data-add-page="calc"]) .table-scroll{border-radius:min(var(--surface-radius-md),var(--corner-surface-cap))}
     :where(html[data-add-page="calc"]) .desktop-details{display:block}
     :where(html[data-add-page="calc"]) .mobile-data{display:none}
@@ -617,15 +638,15 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .calc-data-table :is(th,td){border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0;text-align:center}
     :where(html[data-add-page="calc"]) .calc-data-table tr > :last-child{border-right:0}
     :where(html[data-add-page="calc"]) .calc-data-table tbody tr:last-child > *{border-bottom:0}
-    :where(html[data-add-page="calc"]) .calc-data-table tbody td{font-size:13px;font-weight:800}
+    :where(html[data-add-page="calc"]) .calc-data-table tbody td{font-size:12px;font-weight:800}
     :where(html[data-add-page="calc"]) .five-grid{min-width:675px}
     :where(html[data-add-page="calc"]) .simple-grid{min-width:580px}
     :where(html[data-add-page="calc"]) .triple-grid{min-width:495px}
     :where(html[data-add-page="calc"]) .loan-grid{min-width:870px}
     :where(html[data-add-page="calc"]) .final-grid{min-width:360px}
-    :where(html[data-add-page="calc"]) .warning-note{margin-top:var(--density-gap-md);padding:var(--density-surface-sm);border-color:var(--danger-border);background:#fff2f2;color:var(--warning-text);font-size:var(--calc-type-label);font-weight:900}
+    :where(html[data-add-page="calc"]) .warning-note{margin-top:var(--density-surface-sm);padding:var(--density-surface-sm) var(--density-action-pad-x);border-color:var(--danger-border);background:#fff2f2;color:var(--warning-text);font-size:var(--calc-type-label);font-weight:900;line-height:1.35}
 html:where([data-add-page="calc"]).dark .warning-note{background:rgba(127,29,29,.18)}
-    :where(html[data-add-page="calc"]) .note{margin-top:var(--density-gap-md);padding:var(--density-surface-sm);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:#f5f7fb;color:#596478;font-size:var(--calc-type-label)}
+    :where(html[data-add-page="calc"]) .note{margin-top:var(--density-surface-sm);padding:var(--density-surface-sm) var(--density-action-pad-x);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:#f5f7fb;color:#596478;font-size:var(--calc-type-label);line-height:1.35}
 html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
     :where(html[data-add-page="calc"]) .positive{color:var(--positive)}
     :where(html[data-add-page="calc"]) .negative{color:var(--negative)}
@@ -638,12 +659,15 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
    - 실제 터치폰 가로(landscape + ≤960×500 + hover:none + pointer:coarse)는 폭과 무관하게 Phone UI를 유지
    ========================================================= */
 @media(max-width:1100px){
-      :root:where([data-add-page="calc"]){
-        --calc-type-page-title:26px;
-        --calc-type-section:18px;
-        --calc-type-subsection:16px;
-        --calc-type-support:14px;
-        --calc-type-label:12px;
+            :root:where([data-add-page="calc"]){
+        --density-page-pad:9px;
+        --density-surface-md:7px;
+        --density-surface-sm:6px;
+        --calc-type-page-title:21px;
+        --calc-type-section:15px;
+        --calc-type-subsection:13px;
+        --calc-type-support:11px;
+        --calc-type-label:11px;
       }
       :where(html[data-add-page="calc"]) .input-grid{grid-template-columns:1fr 1fr}
       :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout) > .input-group:last-child{grid-column:1/-1}
@@ -655,29 +679,35 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
        - 가로폰이 761~960px 폭이라는 이유만으로 Tablet typography/density/layout을 사용하지 않는다. */
     @media (max-width:760px),
            (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-      :root:where([data-add-page="calc"]){
-        /* Shared density의 Mobile 값도 Calc 범위에서 그대로 재적용한다. */
-        --density-page-pad:10px;
-        --density-surface-lg:12px;
-        --density-surface-md:10px;
+            :root:where([data-add-page="calc"]){
+        /* Compact Phone density
+           - iOS 입력 16px 및 터치 조작성은 유지하고, Surface 밀도만 Phone에 맞춰 조정한다. */
+        --density-page-pad:9px;
+        --density-surface-lg:9px;
+        --density-surface-md:9px;
         --density-surface-sm:8px;
         --density-gap-lg:8px;
         --density-gap-md:6px;
         --density-gap-sm:4px;
+        --density-gap-xs:3px;
         --density-gap-micro:2px;
-        --density-layout-gap:12px;
+        --density-layout-gap:8px;
         --density-action-pad-x:8px;
+        --density-action-pad-y:8px;
+        --density-field-pad-x:6px;
         --density-table-pad-x:8px;
         --density-table-pad-y:6px;
         --button-compact-pad-x:4px;
 
         --calc-control-pad-y:6px;
-        --calc-type-page-title:24px;
-        --calc-type-section:16px;
-        --calc-type-subsection:14px;
-        --calc-type-support:12px;
+        --calc-type-page-title:22px;
+        --calc-type-section:15px;
+        --calc-type-subsection:13px;
+        --calc-type-support:11px;
         --calc-type-label:10px;
       }
+      :where(html[data-add-page="calc"]) .hero{padding-bottom:var(--density-gap-md)}
+      :where(html[data-add-page="calc"]) .input-panel{padding:var(--density-surface-sm)}
 
       :where(html[data-add-page="calc"]) .add-button-mobile-icon{
         width:var(--button-icon-size);
@@ -688,16 +718,16 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) #reportBtn .report-text, :where(html[data-add-page="calc"]) #resetBtn .reset-text{display:none}
       :where(html[data-add-page="calc"]) #reportBtn .report-icon, :where(html[data-add-page="calc"]) #resetBtn .reset-icon{display:block}
       :where(html[data-add-page="calc"]) .preset-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs)}
-      :where(html[data-add-page="calc"]) .preset-btn{min-width:0;width:100%;padding:var(--button-compact-pad-y) var(--button-compact-pad-x)}
+      :where(html[data-add-page="calc"]) .preset-btn{min-width:0;width:100%;padding:7px var(--button-compact-pad-x);min-height:36px;}
       :where(html[data-add-page="calc"]) .preset-btn .preset-main{font-size:var(--calc-type-label);letter-spacing:-.04em}
       :where(html[data-add-page="calc"]) .input-grid, :where(html[data-add-page="calc"]) .input-group, :where(html[data-add-page="calc"]) .fields, :where(html[data-add-page="calc"]) .field, :where(html[data-add-page="calc"]) .share-stepper, :where(html[data-add-page="calc"]) .pct-stepper, :where(html[data-add-page="calc"]) .with-unit{min-width:0}
       :where(html[data-add-page="calc"]) .input-grid{width:100%}
-      :where(html[data-add-page="calc"]) .input-group{width:100%;max-width:100%}
+      :where(html[data-add-page="calc"]) .input-group{width:100%;max-width:100%;padding:8px}
       :where(html[data-add-page="calc"]) .control{width:100%;min-width:0}
       :where(html[data-add-page="calc"]) .input-grid, :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{grid-template-columns:minmax(0,1fr)}
       :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout) > .input-group:last-child{grid-column:auto}
-      :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-      :where(html[data-add-page="calc"]) .kpi{min-width:0}
+      :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,minmax(0,1fr));padding:var(--density-surface-sm)}
+      :where(html[data-add-page="calc"]) .kpi{min-width:0;padding:var(--density-surface-sm)}
       :where(html[data-add-page="calc"]) .kpi .name{
         font-size:var(--calc-type-label);
         white-space:nowrap;
@@ -722,7 +752,8 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         overflow-wrap:anywhere;
         word-break:keep-all;
       }
-      :where(html[data-add-page="calc"]) .range-panel{grid-template-columns:1fr}
+      :where(html[data-add-page="calc"]) .range-panel{grid-template-columns:1fr;padding:var(--density-surface-sm)}
+      :where(html[data-add-page="calc"]) .range-box{padding:var(--density-surface-sm)}
       :where(html[data-add-page="calc"]) .mobile-only{display:inline}
       :where(html[data-add-page="calc"]) .desktop-only{display:none}
       :where(html[data-add-page="calc"]) .share-stepper{display:grid;grid-template-columns:25px minmax(0,1fr) 25px;gap:3px;align-items:center}
@@ -740,7 +771,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       :where(html[data-add-page="calc"]) .calculation-group .field.full{grid-column:auto}
       :where(html[data-add-page="calc"]) .strategy-head{display:block}:where(html[data-add-page="calc"]) .badge{display:inline-block;margin-top:var(--density-gap-md)}
       :where(html[data-add-page="calc"]) .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible;padding:0}
-      :where(html[data-add-page="calc"]) .tab{min-width:0;width:100%;padding:var(--button-compact-pad-y) var(--button-compact-pad-x);font-size:var(--calc-type-label);line-height:1.25;white-space:normal;word-break:keep-all}
+      :where(html[data-add-page="calc"]) .tab{min-width:0;width:100%;padding:7px var(--button-compact-pad-x);font-size:var(--calc-type-label);line-height:1.25;white-space:normal;word-break:keep-all;min-height:36px;}
       :where(html[data-add-page="calc"]) .desktop-details{display:none}
       :where(html[data-add-page="calc"]) .desktop-data{display:none}
       :where(html[data-add-page="calc"]) .mobile-data{display:grid;gap:var(--density-gap-sm)}
@@ -782,23 +813,31 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
    - Corner는 위 Shared 영역의 역할별 radius + soft-square cap 체계 사용
    ========================================================= */
 :root:where([data-add-page="report"]){
-  --bg:#f3f6fb;
+  /* Dynamic visual language
+     - 색상·depth·chart palette만 canonical Report 스타일로 사용한다.
+     - 전체 폭·padding·gap·font-size는 기존 Report layout scale을 유지한다. */
+  --bg:#f4f4fb;
   --card:#ffffff;
   --muted:#6b768c;
-  --line:#dce3ef;
-  --navy2:#284b7c;
-  --shadow:0 10px 24px rgba(31,48,76,.08);
+  --line:#d9dceb;
+  --navy:#243b64;
+  --navy2:#4f46a5;
+  --shadow:0 16px 40px rgba(53,47,98,.11);
 
   /* Report semantic surfaces / states */
   --surface-control:#ffffff;
-  --surface-soft:#f7f9fc;
+  --surface-soft:#f7f6ff;
   --surface-total:#fafbfd;
-  --surface-subtle:#f8fafd;
-  --surface-highlight:#edf3fb;
-  --row-line:#edf1f6;
+  --surface-subtle:#f8f8fd;
+  --surface-highlight:#f2f0ff;
+  --row-line:#eaebf4;
   --table-head-text:#5e697e;
-  --series-secondary:#80a9e2;
+  --series-secondary:#22a4c9;
   --series-positive-soft:#f77a84;
+  --energy-violet:#6d5dfc;
+  --energy-cyan:#18a9c9;
+  --energy-cyan-text:#167c9a;
+  --energy-gold:#d99a28;
   --badge-exact-bg:#eaf8f1;
   --badge-exact-text:#147252;
   --badge-estimate-bg:#fff5df;
@@ -808,11 +847,11 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
   --button-hover-text:var(--ink);
 
   /* JS contract: add.js Canvas chart가 직접 읽는 semantic palette — 사용 횟수와 무관하게 유지 */
-  --chart-plot-top:rgba(238,243,250,.68);
-  --chart-plot-bottom:rgba(255,255,255,0);
-  --chart-grid:rgba(173,185,201,.34);
-  --chart-axis-text:#8994a7;
-  --chart-zero:rgba(74,91,115,.45);
+  --chart-plot-top:rgba(244,242,255,.94);
+  --chart-plot-bottom:rgba(255,255,255,.34);
+  --chart-grid:rgba(109,93,252,.13);
+  --chart-axis-text:#8587a0;
+  --chart-zero:rgba(67,70,105,.38);
   --chart-positive:#EF3341;
   --chart-positive-soft:rgba(239,51,65,.55);
   --chart-negative:#3182F6;
@@ -820,37 +859,42 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
   --chart-positive-label:#d92d3a;
   --chart-negative-label:#2172d8;
   --chart-x-text:#6b768c;
-  --chart-area-top:rgba(29,53,87,.17);
-  --chart-area-bottom:rgba(29,53,87,.015);
-  --chart-line:#1d3557;
+  --chart-area-top:rgba(109,93,252,.18);
+  --chart-area-bottom:rgba(109,93,252,.015);
+  --chart-line:#6d5dfc;
   --chart-point-bg:#ffffff;
 }
 
 html:where([data-add-page="report"]).dark{
-  --bg:#0b1020;
-  --card:#121826;
+  --bg:#090d18;
+  --card:#111827;
   --muted:#94a3b8;
-  --line:#2b3548;
-  --navy2:#5274a2;
-  --shadow:0 10px 24px rgba(0,0,0,.28);
+  --line:#2c3449;
+  --navy:#8fb3e9;
+  --navy2:#8f85ff;
+  --shadow:0 18px 46px rgba(0,0,0,.34);
   --surface-control:#111827;
-  --surface-soft:#1a2233;
+  --surface-soft:#171d2d;
   --surface-total:#182132;
-  --surface-subtle:#161f30;
-  --surface-highlight:#172033;
-  --row-line:#273248;
+  --surface-subtle:#131a29;
+  --surface-highlight:#1a1c36;
+  --row-line:#242c3f;
   --table-head-text:#94a3b8;
-  --series-secondary:#7faee8;
+  --series-secondary:#46c6dd;
   --series-positive-soft:#fb7185;
+  --energy-violet:#958cff;
+  --energy-cyan:#4bc5dd;
+  --energy-cyan-text:#4bc5dd;
+  --energy-gold:#f2b94b;
   --badge-exact-bg:rgba(22,101,52,.25);
   --badge-exact-text:#86efac;
   --badge-estimate-bg:rgba(146,64,14,.22);
   --badge-estimate-text:#fbbf24;
-  --chart-plot-top:rgba(30,41,59,.72);
-  --chart-plot-bottom:rgba(18,24,38,0);
-  --chart-grid:rgba(100,116,139,.35);
-  --chart-axis-text:#94a3b8;
-  --chart-zero:rgba(148,163,184,.45);
+  --chart-plot-top:rgba(39,35,72,.72);
+  --chart-plot-bottom:rgba(17,24,39,.12);
+  --chart-grid:rgba(149,140,255,.16);
+  --chart-axis-text:#9ca3b8;
+  --chart-zero:rgba(183,191,213,.36);
   --chart-positive:#FF5964;
   --chart-positive-soft:rgba(255,89,100,.55);
   --chart-negative:#60A5FA;
@@ -858,13 +902,16 @@ html:where([data-add-page="report"]).dark{
   --chart-positive-label:#ff7a83;
   --chart-negative-label:#7ab4ff;
   --chart-x-text:#94a3b8;
-  --chart-area-top:rgba(147,197,253,.16);
-  --chart-area-bottom:rgba(147,197,253,.015);
-  --chart-line:#93c5fd;
-  --chart-point-bg:#121826;
+  --chart-area-top:rgba(149,140,255,.22);
+  --chart-area-bottom:rgba(149,140,255,.02);
+  --chart-line:#a79fff;
+  --chart-point-bg:#111827;
 }
 html:where([data-add-page="report"]){scroll-behavior:smooth}
-:where(html[data-add-page="report"]) body{background:var(--bg);line-height:1.55}
+:where(html[data-add-page="report"]) body{background:radial-gradient(circle at 9% 4%,rgba(109,93,252,.12),transparent 29%),
+    radial-gradient(circle at 92% 14%,rgba(24,169,201,.10),transparent 27%),
+    radial-gradient(circle at 76% 92%,rgba(217,154,40,.07),transparent 25%),
+    var(--bg);line-height:1.55;font-variant-numeric:tabular-nums}
 :where(html[data-add-page="report"]) button{font:inherit}
 :where(html[data-add-page="report"]) .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 :where(html[data-add-page="report"]) .wrap{max-width:1280px;margin:0 auto;padding:var(--density-page-pad)}
@@ -873,28 +920,35 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
    02. 히어로 / 상단 메뉴 / 패널 전환
    - Hero 3개 요약과 Desktop 탭, 활성 패널 공통 surface
    ========================================================= */
-:where(html[data-add-page="report"]) .hero{padding:24px;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:linear-gradient(135deg,#152844,#284b7c);color:var(--on-accent);box-shadow:var(--shadow);position:relative;overflow:hidden}
-:where(html[data-add-page="report"]) .hero:after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;right:-110px;top:-150px;background:rgba(255,255,255,.08)}
+:where(html[data-add-page="report"]) .hero{padding:24px;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:radial-gradient(circle at 82% 18%,rgba(89,197,255,.30),transparent 26%),
+    radial-gradient(circle at 14% 115%,rgba(167,99,255,.34),transparent 33%),
+    linear-gradient(120deg,#151c3a 0%,#382c7e 47%,#15637c 100%);color:var(--on-accent);box-shadow:0 24px 54px rgba(37,34,85,.26);position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.20)}
+:where(html[data-add-page="report"]) .hero:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.09) 44%,transparent 51%);opacity:.72}
+:where(html[data-add-page="report"]) .hero:after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;right:-125px;top:-215px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.13);box-shadow:0 0 0 42px rgba(255,255,255,.018),0 0 0 84px rgba(255,255,255,.012)}
 :where(html[data-add-page="report"]) .hero-top{display:flex;justify-content:space-between;gap:var(--density-layout-gap);align-items:flex-start;position:relative;z-index:1}
-:where(html[data-add-page="report"]) .eyebrow{font-size:12px;font-weight:900;letter-spacing:.08em;color:#bfd0eb}
-:where(html[data-add-page="report"]) h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.045em}
-:where(html[data-add-page="report"]) .hero p{margin:0;color:#d6e0ef;font-size:14px}
+:where(html[data-add-page="report"]) .eyebrow{font-size:12px;font-weight:900;letter-spacing:.13em;color:#c9d8ff}
+:where(html[data-add-page="report"]) h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.055em;font-weight:950;text-shadow:0 8px 22px rgba(3,11,31,.22)}
+:where(html[data-add-page="report"]) .hero p{margin:0;color:#dbe7ff;font-size:14px}
 :where(html[data-add-page="report"]) .hero-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs);margin-top:var(--density-gap-lg);position:relative;z-index:1}
 :where(html[data-add-page="report"]) .hero-summary > .hero-chip{min-width:0;width:auto}
 :where(html[data-add-page="report"]) .hero-summary > .hero-chip:nth-child(3){grid-column:auto}
-:where(html[data-add-page="report"]) .hero-chip{padding:var(--density-gap-sm) var(--density-gap-md);border:1px solid rgba(255,255,255,.17);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:rgba(255,255,255,.08)}
-:where(html[data-add-page="report"]) .hero-chip span{display:block;font-size:9.5px;line-height:1.2;color:#bed0e8;font-weight:800}
-:where(html[data-add-page="report"]) .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1.18;letter-spacing:-.035em}
+:where(html[data-add-page="report"]) .hero-chip{position:relative;overflow:hidden;padding:var(--density-gap-sm) var(--density-gap-md);border:1px solid rgba(255,255,255,.20);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.055));box-shadow:inset 0 1px 0 rgba(255,255,255,.10);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+:where(html[data-add-page="report"]) .hero-chip:after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#b7aaff,#5ee4ef)}
+:where(html[data-add-page="report"]) .hero-chip span{display:block;font-size:9.5px;line-height:1.2;color:#c8d8f3;font-weight:800;letter-spacing:.015em}
+:where(html[data-add-page="report"]) .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1.18;letter-spacing:-.035em;font-weight:950}
 /* Dark overrides for Report hero-local colors (kept local instead of one-use tokens). */
-html:where([data-add-page="report"]).dark .hero{background:linear-gradient(135deg,#151d2c,#24344b)}
-html:where([data-add-page="report"]).dark .hero:after{background:rgba(255,255,255,.06)}
-html:where([data-add-page="report"]).dark .eyebrow{color:#bfdbfe}
-html:where([data-add-page="report"]).dark .hero p{color:#cbd5e1}
-html:where([data-add-page="report"]).dark .hero-chip{border-color:rgba(148,163,184,.25);background:rgba(255,255,255,.06)}
-html:where([data-add-page="report"]).dark .hero-chip span{color:#bfdbfe}
+html:where([data-add-page="report"]).dark .hero{background:radial-gradient(circle at 82% 18%,rgba(70,198,221,.23),transparent 26%),
+    radial-gradient(circle at 14% 115%,rgba(149,140,255,.30),transparent 33%),
+    linear-gradient(120deg,#0d1327 0%,#2b245f 48%,#105163 100%);border-color:rgba(149,140,255,.20)}
+html:where([data-add-page="report"]).dark .hero:after{background:rgba(255,255,255,.025)}
+html:where([data-add-page="report"]).dark .eyebrow{color:#d6d0ff}
+html:where([data-add-page="report"]).dark .hero p{color:#d4def4}
+html:where([data-add-page="report"]).dark .hero-chip{border-color:rgba(194,203,255,.18);background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.035))}
+html:where([data-add-page="report"]).dark .hero-chip span{color:#cbd5f3}
 html:where([data-add-page="report"]).dark .tab{box-shadow:0 1px 2px rgba(0,0,0,.28)}
 :where(html[data-add-page="report"]) .tabs{display:flex;gap:var(--density-gap-xs);overflow:auto;padding:var(--density-gap-md) 2px var(--density-gap-xs)}
-:where(html[data-add-page="report"]) .tab{letter-spacing:-.015em;box-shadow:0 1px 2px rgba(31,48,76,.035);white-space:nowrap}
+:where(html[data-add-page="report"]) .tab{letter-spacing:-.015em;box-shadow:0 5px 16px rgba(53,47,98,.06);white-space:nowrap;border-color:rgba(79,70,165,.18)}
+:where(html[data-add-page="report"]) .tab:is(.active,[aria-selected="true"]){border-color:transparent;background:linear-gradient(120deg,#3f397f,#5e55d6);color:#ffffff;box-shadow:0 9px 24px rgba(84,73,190,.24)}
 :where(html[data-add-page="report"]) .panel{display:none}
 :where(html[data-add-page="report"]) .panel.active{display:block}
 
@@ -903,19 +957,23 @@ html:where([data-add-page="report"]).dark .tab{box-shadow:0 1px 2px rgba(0,0,0,.
    - KPI 6개, 누적손익 Canvas, 본 포지션·단타 도넛과 범례
    ========================================================= */
 :where(html[data-add-page="report"]) .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-md)}
-:where(html[data-add-page="report"]) .kpi{padding:var(--density-surface-md)}
-:where(html[data-add-page="report"]) .kpi .label{font-size:12px;color:var(--muted);font-weight:800}
-:where(html[data-add-page="report"]) .kpi .value{font-size:25px;font-weight:950;letter-spacing:-.045em;margin-top:var(--density-gap-xs)}
+:where(html[data-add-page="report"]) .kpi{padding:var(--density-surface-md);position:relative;overflow:hidden;border-color:rgba(88,82,152,.15);background:radial-gradient(circle at 100% 0,rgba(109,93,252,.10),transparent 40%),
+    linear-gradient(145deg,var(--card),var(--surface-subtle));box-shadow:0 12px 30px rgba(55,48,104,.085)}
+:where(html[data-add-page="report"]) .kpi:before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--energy-violet),var(--energy-cyan),var(--energy-gold))}
+:where(html[data-add-page="report"]) .kpi .label{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.015em}
+:where(html[data-add-page="report"]) .kpi .value{font-size:25px;font-weight:950;letter-spacing:-.045em;margin-top:var(--density-gap-xs);text-shadow:0 4px 14px rgba(35,37,70,.055)}
 :where(html[data-add-page="report"]) .pos{color:var(--positive)} :where(html[data-add-page="report"]) .neg{color:var(--negative)}
 :where(html[data-add-page="report"]) .grid-2{display:grid;grid-template-columns:1.08fr .92fr;gap:var(--density-gap-lg);margin-top:var(--density-gap-lg);align-items:stretch}
 :where(html[data-add-page="report"]) .section-card{padding:var(--density-surface-lg)}
+:where(html[data-add-page="report"]) :is(.section-card,.table-card,.timeline-card,details){border-color:rgba(88,82,152,.14);box-shadow:0 14px 34px rgba(55,48,104,.085)}
 :where(html[data-add-page="report"]) .section-title{display:flex;justify-content:space-between;align-items:flex-end;gap:var(--density-gap-md);margin-bottom:var(--density-gap-lg)}
-:where(html[data-add-page="report"]) .section-title h2{margin:0}
+:where(html[data-add-page="report"]) .section-title h2{margin:0;letter-spacing:-.045em}
 :where(html[data-add-page="report"]) .section-title p{font-size:11px;color:var(--muted);margin:0}
-:where(html[data-add-page="report"]) .chart-wrap{height:350px;position:relative}
+:where(html[data-add-page="report"]) .chart-wrap{height:350px;position:relative;border:1px solid rgba(109,93,252,.10);border-radius:10px;background:linear-gradient(180deg,rgba(109,93,252,.025),transparent);box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+html:where([data-add-page="report"]).dark .chart-wrap{box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
 :where(html[data-add-page="report"]) canvas{width:100%;height:100%}
 :where(html[data-add-page="report"]) .split-box{display:grid;grid-template-columns:150px 1fr;gap:var(--density-layout-gap);align-items:center}
-:where(html[data-add-page="report"]) .donut{width:148px;height:148px;border-radius:50%;background:conic-gradient(var(--navy) 0 var(--main-position-ratio),var(--series-secondary) var(--main-position-ratio) 100%);position:relative}
+:where(html[data-add-page="report"]) .donut{width:148px;height:148px;border-radius:50%;background:conic-gradient(var(--navy) 0 var(--main-position-ratio),var(--series-secondary) var(--main-position-ratio) 100%);position:relative;box-shadow:0 14px 30px rgba(62,57,125,.16),0 0 0 7px rgba(109,93,252,.045)}
 :where(html[data-add-page="report"]) .donut:after{content:"";position:absolute;inset:25px;border-radius:50%;background:var(--card)}
 :where(html[data-add-page="report"]) .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}
 :where(html[data-add-page="report"]) .donut-center strong{font-size:21px} :where(html[data-add-page="report"]) .donut-center span{font-size:10px;color:var(--muted)}
@@ -927,7 +985,8 @@ html:where([data-add-page="report"]).dark .tab{box-shadow:0 1px 2px rgba(0,0,0,.
 :where(html[data-add-page="report"]) .dot-day{background:var(--series-secondary)}
 :where(html[data-add-page="report"]) .legend-row strong{font-size:14px}
 :where(html[data-add-page="report"]) .pnl-chart-card, :where(html[data-add-page="report"]) .composition-card{min-height:430px}
-:where(html[data-add-page="report"]) .pnl-chart-card{overflow:hidden}
+:where(html[data-add-page="report"]) .pnl-chart-card{overflow:hidden;background:radial-gradient(circle at 85% 2%,rgba(109,93,252,.085),transparent 28%),
+    var(--card)}
 :where(html[data-add-page="report"]) .chart-title{align-items:center}
 :where(html[data-add-page="report"]) .chart-legend{display:flex;align-items:center;gap:var(--density-gap-md);flex-wrap:wrap;color:var(--muted);font-size:10px;font-weight:800}
 :where(html[data-add-page="report"]) .chart-legend span{display:inline-flex;align-items:center;gap:var(--density-gap-xs);white-space:nowrap}
@@ -935,7 +994,8 @@ html:where([data-add-page="report"]).dark .tab{box-shadow:0 1px 2px rgba(0,0,0,.
 :where(html[data-add-page="report"]) .legend-bar{width:9px;height:9px;border-radius:3px;background:linear-gradient(180deg,var(--positive),var(--series-positive-soft))}
 :where(html[data-add-page="report"]) .legend-line{width:18px;height:2px;border-radius:var(--radius-pill);background:var(--navy)}
 :where(html[data-add-page="report"]) .legend-line:after{content:"";position:absolute;width:6px;height:6px;border:2px solid var(--navy);background:var(--surface-control);border-radius:50%;left:5px;top:-4px}
-:where(html[data-add-page="report"]) .composition-card{display:flex;flex-direction:column}
+:where(html[data-add-page="report"]) .composition-card{display:flex;flex-direction:column;background:radial-gradient(circle at 7% 5%,rgba(24,169,201,.09),transparent 30%),
+    var(--card)}
 :where(html[data-add-page="report"]) .composition-card .split-box{flex:1;align-content:center;margin:var(--density-gap-micro) 0 var(--density-gap-lg)}
 :where(html[data-add-page="report"]) .composition-card .volume-bars{margin-top:auto;padding-top:var(--density-layout-gap);border-top:1px solid var(--row-line)}
 
@@ -944,51 +1004,51 @@ html:where([data-add-page="report"]).dark .tab{box-shadow:0 1px 2px rgba(0,0,0,.
    - 날짜별 표와 근거 표에서 공통으로 사용하는 table·badge·보조 시각화 스타일
    ========================================================= */
 :where(html[data-add-page="report"]) .table-card{overflow:hidden}
-:where(html[data-add-page="report"]) .table-head{padding:var(--density-surface-md) var(--density-surface-lg);border-bottom:1px solid var(--line)}
-:where(html[data-add-page="report"]) .table-head h2{margin:0}
+:where(html[data-add-page="report"]) .table-head{padding:var(--density-surface-md) var(--density-surface-lg);border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(109,93,252,.055),transparent 65%)}
+:where(html[data-add-page="report"]) .table-head h2{margin:0;letter-spacing:-.045em}
 :where(html[data-add-page="report"]) .table-head p, :where(html[data-add-page="report"]) .timeline-card p{font-size:11px;color:var(--muted);margin:var(--density-gap-xs) 0 0}
 :where(html[data-add-page="report"]) .add-data-table{min-width:860px}
 :where(html[data-add-page="report"]) .add-data-table :is(th,td){border-bottom:1px solid var(--row-line);text-align:left}
-:where(html[data-add-page="report"]) .add-data-table thead th{position:sticky;top:0}
+:where(html[data-add-page="report"]) .add-data-table thead th{position:sticky;top:0;background:linear-gradient(180deg,var(--surface-subtle),var(--surface-soft))}
 :where(html[data-add-page="report"]) .add-data-table tbody th[scope="row"]{font-weight:400;background:transparent;position:static}
-:where(html[data-add-page="report"]) .add-data-table tfoot :is(td,th){font-weight:950;background:var(--surface-total);position:static}
+:where(html[data-add-page="report"]) .add-data-table tfoot :is(td,th){font-weight:950;background:linear-gradient(90deg,rgba(109,93,252,.065),rgba(24,169,201,.035));position:static}
 :where(html[data-add-page="report"]) .badge{display:inline-flex;align-items:center;border-radius:var(--radius-pill);padding:var(--density-gap-xs) var(--density-gap-md);font-size:10px;font-weight:900}
 :where(html[data-add-page="report"]) .badge.exact{background:var(--badge-exact-bg);color:var(--badge-exact-text)}
 :where(html[data-add-page="report"]) .badge.estimate{background:var(--badge-estimate-bg);color:var(--badge-estimate-text)}
 :where(html[data-add-page="report"]) .volume-bars{display:grid;gap:var(--density-gap-md);margin-top:var(--density-gap-lg)}
 :where(html[data-add-page="report"]) .volume-row{display:grid;grid-template-columns:105px 1fr 90px;gap:var(--density-gap-md);align-items:center;font-size:12px}
-:where(html[data-add-page="report"]) .bar-track{height:11px;border-radius:var(--radius-pill);background:var(--row-line);overflow:hidden}
+:where(html[data-add-page="report"]) .bar-track{height:11px;border-radius:var(--radius-pill);background:rgba(109,93,252,.09);overflow:hidden}
 :where(html[data-add-page="report"]) .bar-fill{height:100%;border-radius:inherit}
-:where(html[data-add-page="report"]) .bar-fill-core{background:var(--navy)}
-:where(html[data-add-page="report"]) .bar-fill-day{background:var(--series-secondary)}
+:where(html[data-add-page="report"]) .bar-fill-core{background:linear-gradient(90deg,#494191,var(--energy-violet))}
+:where(html[data-add-page="report"]) .bar-fill-day{background:linear-gradient(90deg,#167c9a,var(--energy-cyan))}
 
 /* =========================================================
    05. 본 포지션 / 단타 분리 결과
    - 두 거래유형의 요약·상세표·합계 및 모바일 전용 합계 카드
    ========================================================= */
-:where(html[data-add-page="report"]) .split-group{margin-bottom:var(--density-surface-md);padding:var(--density-surface-md)}
-:where(html[data-add-page="report"]) .split-group-core{border-top:4px solid var(--navy)}
-:where(html[data-add-page="report"]) .split-group-day{border-top:4px solid var(--series-secondary)}
+:where(html[data-add-page="report"]) .split-group{margin-bottom:var(--density-surface-md);padding:var(--density-surface-md);position:relative;overflow:hidden;box-shadow:0 14px 34px rgba(55,48,104,.08)}
+:where(html[data-add-page="report"]) .split-group-core{border-top:4px solid var(--energy-violet)}
+:where(html[data-add-page="report"]) .split-group-day{border-top:4px solid var(--energy-cyan)}
 :where(html[data-add-page="report"]) .split-group-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--density-surface-md);margin-bottom:var(--density-surface-md)}
 :where(html[data-add-page="report"]) .split-group-head h2{margin:2px 0}
 :where(html[data-add-page="report"]) .split-group-head p{margin:0;color:var(--muted);font-size:11px}
-:where(html[data-add-page="report"]) .split-group-kicker{display:block;font-size:10px;font-weight:950;letter-spacing:.09em;color:var(--navy)}
-:where(html[data-add-page="report"]) .split-group-day .split-group-kicker{color:#527ba9}
+:where(html[data-add-page="report"]) .split-group-kicker{display:block;font-size:10px;font-weight:950;letter-spacing:.09em;color:var(--energy-violet)}
+:where(html[data-add-page="report"]) .split-group-day .split-group-kicker{color:var(--energy-cyan-text)}
 :where(html[data-add-page="report"]) .split-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--density-gap-md);margin-bottom:var(--density-gap-lg)}
-:where(html[data-add-page="report"]) .split-summary-item{border:1px solid #e5eaf2;background:var(--surface-subtle);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-surface-sm)}
+:where(html[data-add-page="report"]) .split-summary-item{border:1px solid rgba(88,82,152,.13);background:linear-gradient(145deg,var(--surface-subtle),var(--card));border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-surface-sm)}
 :where(html[data-add-page="report"]) .split-summary-item span{display:block;color:var(--muted);font-size:10px;font-weight:800}
 :where(html[data-add-page="report"]) .split-summary-item strong{display:block;margin-top:var(--density-gap-micro);font-size:15px;letter-spacing:-.025em}
 :where(html[data-add-page="report"]) .split-inner-card{box-shadow:none}
 :where(html[data-add-page="report"]) .split-detail-table{min-width:820px}
 :where(html[data-add-page="report"]) .split-detail-table.day-table{min-width:650px}
-:where(html[data-add-page="report"]) .split-total{display:flex;align-items:center;justify-content:space-between;gap:var(--density-surface-md);padding:var(--density-surface-md);background:var(--surface-highlight);border-color:#cfdbea;margin-top:4px}
+:where(html[data-add-page="report"]) .split-total{display:flex;align-items:center;justify-content:space-between;gap:var(--density-surface-md);padding:var(--density-surface-md);background:linear-gradient(120deg,rgba(109,93,252,.085),rgba(24,169,201,.055));border-color:#cfdbea;margin-top:4px}
 :where(html[data-add-page="report"]) .split-total>div:first-child span{display:block;font-size:15px;font-weight:950;color:var(--navy)}
 :where(html[data-add-page="report"]) .split-total>div:first-child small{display:block;color:var(--muted);font-size:10px;margin-top:1px}
 :where(html[data-add-page="report"]) .split-total-stats{display:flex;align-items:center;justify-content:flex-end;gap:var(--density-layout-gap);flex-wrap:wrap;font-size:11px;color:var(--muted)}
 :where(html[data-add-page="report"]) .split-total-stats b{font-size:13px}
 :where(html[data-add-page="report"]) .split-total-stats b:not(.pos):not(.neg){color:var(--ink)}
 :where(html[data-add-page="report"]) .split-total-mobile{display:none}
-html:where([data-add-page="report"]).dark .split-group-day .split-group-kicker{color:#93c5fd}
+html:where([data-add-page="report"]).dark .split-group-day .split-group-kicker{color:var(--energy-cyan-text)}
 html:where([data-add-page="report"]).dark .split-summary-item{border-color:#334155}
 html:where([data-add-page="report"]).dark .split-total{border-color:#3b4c66}
 
@@ -997,32 +1057,45 @@ html:where([data-add-page="report"]).dark .split-total{border-color:#3b4c66}
    - 웹·태블릿 좌측 날짜축, 모바일 카드 내부 날짜, 원본 이미지·details
    ========================================================= */
 :where(html[data-add-page="report"]) .timeline{position:relative;margin-top:4px}
-:where(html[data-add-page="report"]) .timeline:before{content:"";position:absolute;left:142px;top:10px;bottom:10px;width:2px;background:#dce3ee}
+:where(html[data-add-page="report"]) .timeline:before{content:"";position:absolute;left:142px;top:10px;bottom:10px;width:2px;background:linear-gradient(var(--energy-violet),var(--energy-cyan))}
 :where(html[data-add-page="report"]) .timeline-item{display:grid;grid-template-columns:126px 32px 1fr;align-items:start;margin-bottom:var(--density-gap-md);position:relative}
 :where(html[data-add-page="report"]) .timeline-date{font-size:11px;font-weight:900;color:var(--muted);padding-top:15px;white-space:nowrap}
-:where(html[data-add-page="report"]) .timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--navy);margin:17px 0 0 10px;box-shadow:0 0 0 5px #e7edf6;z-index:1}
+:where(html[data-add-page="report"]) .timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--energy-violet);margin:17px 0 0 10px;box-shadow:0 0 0 5px rgba(109,93,252,.11),0 0 20px rgba(109,93,252,.22);z-index:1}
+:where(html[data-add-page="report"]) .timeline-item:nth-child(even) .timeline-dot{background:var(--energy-cyan);box-shadow:0 0 0 5px rgba(24,169,201,.11),0 0 20px rgba(24,169,201,.20)}
 :where(html[data-add-page="report"]) .timeline-card{padding:var(--density-surface-md)}
 :where(html[data-add-page="report"]) .timeline-card-date{display:none}
 :where(html[data-add-page="report"]) .timeline-card h3{margin:0 0 var(--density-gap-micro)} :where(html[data-add-page="report"]) .timeline-card strong{font-size:12px;color:var(--navy)} :where(html[data-add-page="report"]) .source-img{width:100%;display:block}
 :where(html[data-add-page="report"]) details{padding:var(--density-surface-md);margin-top:var(--density-gap-md)}
 :where(html[data-add-page="report"]) summary{cursor:pointer;font-weight:900;font-size:13px}
 :where(html[data-add-page="report"]) details p, :where(html[data-add-page="report"]) details li{font-size:12px;color:var(--muted)}
-html:where([data-add-page="report"]).dark .timeline:before{background:#334155}
-html:where([data-add-page="report"]).dark .timeline-dot{box-shadow:0 0 0 5px #243149}
+html:where([data-add-page="report"]).dark .timeline:before{background:linear-gradient(var(--energy-violet),var(--energy-cyan))}
+html:where([data-add-page="report"]).dark .timeline-dot{box-shadow:0 0 0 5px rgba(149,140,255,.13),0 0 20px rgba(149,140,255,.22);background:var(--energy-violet)}
+html:where([data-add-page="report"]).dark .timeline-item:nth-child(even) .timeline-dot{background:var(--energy-cyan);box-shadow:0 0 0 5px rgba(75,197,221,.12),0 0 20px rgba(75,197,221,.20)}
 
 /* =========================================================
    07. 리포트 메뉴 / 모바일 전환
    - 동일 tablist를 Desktop에서는 가로 탭, Mobile에서는 햄버거 패널로 재배치
    ========================================================= */
-:where(html[data-add-page="report"]) .report-nav{position:sticky;top:0;z-index:30;background:linear-gradient(var(--bg) 78%,rgba(243,246,251,0))}
+:where(html[data-add-page="report"]) .report-nav{position:sticky;top:0;z-index:30;background:linear-gradient(rgba(244,244,251,.92) 72%,rgba(244,244,251,0));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 :where(html[data-add-page="report"]) .mobile-menu-toggle{display:none;width:100%;min-height:44px;align-items:center;justify-content:space-between;gap:var(--density-gap-lg);box-shadow:0 6px 18px rgba(31,48,76,.08)}
 :where(html[data-add-page="report"]) .hamburger-icon{width:20px;height:16px;display:flex;flex-direction:column;justify-content:space-between;flex:none}
 :where(html[data-add-page="report"]) .hamburger-icon i{height:2px;border-radius:var(--radius-pill);background:var(--navy);transition:transform .18s ease,opacity .18s ease}
 :where(html[data-add-page="report"]) .report-nav.open .hamburger-icon i:nth-child(1){transform:translateY(7px) rotate(45deg)}
 :where(html[data-add-page="report"]) .report-nav.open .hamburger-icon i:nth-child(2){opacity:0}
 :where(html[data-add-page="report"]) .report-nav.open .hamburger-icon i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-html:where([data-add-page="report"]).dark .report-nav{background:linear-gradient(var(--bg) 78%,rgba(11,16,32,0))}
+html:where([data-add-page="report"]).dark .report-nav{background:linear-gradient(rgba(9,13,24,.92) 72%,rgba(9,13,24,0))}
 html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 18px rgba(0,0,0,.28)}
+
+/* Dynamic Report interaction
+   - 실제 hover 가능한 fine pointer에서만 lift를 적용하고 reduced-motion을 존중한다. */
+@media (hover:hover) and (pointer:fine){
+  :where(html[data-add-page="report"]) .add-data-table tbody tr:hover > *{background:rgba(109,93,252,.035)}
+  :where(html[data-add-page="report"]) :is(.kpi,.section-card,.timeline-card){transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+  :where(html[data-add-page="report"]) .kpi:hover{transform:translateY(-2px);border-color:rgba(109,93,252,.25);box-shadow:0 18px 38px rgba(55,48,104,.13)}
+}
+@media(prefers-reduced-motion:reduce){
+  :where(html[data-add-page="report"]) :is(.kpi,.section-card,.timeline-card){transition:none}
+}
 
 /* =========================================================
    08. 반응형 규칙
@@ -1052,7 +1125,7 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
 }
 
 @media(max-width:760px){
-  :where(html[data-add-page="report"]) h1{margin:5px 0;font-size:clamp(20px,6vw,24px);line-height:1.18;letter-spacing:-.055em}
+  :where(html[data-add-page="report"]) h1{margin:5px 0;font-size:clamp(20px,6vw,24px);line-height:1.18;letter-spacing:-.055em;text-shadow:none}
   :where(html[data-add-page="report"]) .hero{padding:12px}
   :where(html[data-add-page="report"]) .hero-top{display:block}
   :where(html[data-add-page="report"]) .eyebrow{font-size:8.5px;line-height:1.2;letter-spacing:.06em}
@@ -1061,7 +1134,7 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
   :where(html[data-add-page="report"]) .hero-chip span{font-size:9px}
   :where(html[data-add-page="report"]) .hero-chip strong{margin-top:1px;font-size:clamp(15px,4.4vw,16px)}
 
-  :where(html[data-add-page="report"]) .report-nav{padding:var(--density-gap-md) 0 var(--density-gap-xs)}
+  :where(html[data-add-page="report"]) .report-nav{padding:var(--density-gap-md) 0 var(--density-gap-xs);backdrop-filter:none;-webkit-backdrop-filter:none}
   :where(html[data-add-page="report"]) .mobile-menu-toggle{display:flex}
   :where(html[data-add-page="report"]) .report-nav .tabs{display:none;margin-top:var(--density-gap-xs);padding:var(--density-gap-xs);border:1px solid var(--line);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--surface-control);box-shadow:0 16px 36px rgba(31,48,76,.14);overflow:visible}
   :where(html[data-add-page="report"]) .report-nav.open .tabs{display:grid;grid-template-columns:1fr}
@@ -1077,7 +1150,7 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
 
   :where(html[data-add-page="report"]) .split-box{grid-template-columns:1fr;justify-items:center}
   :where(html[data-add-page="report"]) .pnl-chart-card, :where(html[data-add-page="report"]) .composition-card{min-height:0}
-  :where(html[data-add-page="report"]) .chart-wrap{height:clamp(280px,75vw,320px)}
+  :where(html[data-add-page="report"]) .chart-wrap{height:clamp(280px,75vw,320px);border-radius:8px}
   :where(html[data-add-page="report"]) .chart-title{align-items:flex-start}
   :where(html[data-add-page="report"]) .chart-legend{gap:var(--density-gap-sm);margin-top:2px;font-size:9px}
   :where(html[data-add-page="report"]) .pnl-chart-card .section-title.chart-title{display:block;margin-bottom:var(--density-gap-sm)}

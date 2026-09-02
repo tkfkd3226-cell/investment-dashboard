@@ -216,10 +216,6 @@ investment-dashboard-main/
 │  ├─ kodex-leverage-report.html
 │  ├─ add.css
 │  ├─ add.js
-│  ├─ add-theme.css
-│  ├─ add-theme.js
-│  ├─ calc-alt.css
-│  ├─ report-alt.css
 │  └─ add_maintenance_handover.md
 ├─ tests/
 │  ├─ main/
@@ -551,7 +547,7 @@ tests/
 │  └─ ui-contract.test.cjs   # Main UI/CSS/HTML/반응형 핵심 contract
 └─ add/
    ├─ calc.test.cjs          # Add Calc 계산·validation 회귀
-   └─ ui-contract.test.cjs   # Add UI/CSS/HTML/반응형·대체 테마 contract
+   └─ ui-contract.test.cjs   # Add UI/CSS/HTML/반응형·canonical style contract
 ```
 
 전체 자동 QA:

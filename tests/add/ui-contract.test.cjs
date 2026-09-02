@@ -2,7 +2,6 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const vm=require('node:vm');
 
 const ADD_DIR=path.resolve(__dirname,'../../add');
 const read=name=>fs.readFileSync(path.join(ADD_DIR,name),'utf8');
@@ -10,10 +9,6 @@ const css=read('add.css');
 const js=read('add.js');
 const calc=read('calc.html');
 const report=read('kodex-leverage-report.html');
-const themeJs=read('add-theme.js');
-const themeCss=read('add-theme.css');
-const calcAltCss=read('calc-alt.css');
-const reportAltCss=read('report-alt.css');
 
 const compact=s=>s.replace(/\s+/g,' ');
 const css1=compact(css);
@@ -50,7 +45,7 @@ test('Calc control geometry는 단일 box-height token을 Source of Truth로 사
 });
 
 test('date와 일반 input은 같은 Y padding token으로 동일 외곽 높이를 만든다',()=>{
-  assert.match(css1,/--calc-control-pad-y:8px/);
+  assert.match(css1,/--calc-control-pad-y:5px/);
   assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px;/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.control\{font-size:16px;line-height:1\}/);
   const dateBody=rule(':where(html[data-add-page="calc"]) .date-control-shell .date-control');
@@ -81,17 +76,15 @@ test('Report tab도 active/aria-selected/tabindex contract를 유지한다',()=>
   assert.match(report,/role="tablist"/);
 });
 
-test('Calc label typography는 역할별 token으로 통일되고 viewport마다 2px씩 줄어든다',()=>{
-  assert.match(css1,/--calc-type-page-title:28px; --calc-type-section:20px; --calc-type-subsection:18px; --calc-type-support:16px; --calc-type-label:14px;/);
-  assert.match(css1,/@media\(max-width:1100px\)\{ :root:where\(\[data-add-page="calc"\]\)\{ --calc-type-page-title:26px; --calc-type-section:18px; --calc-type-subsection:16px; --calc-type-support:14px; --calc-type-label:12px;/);
-  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px; --calc-type-page-title:24px; --calc-type-section:16px; --calc-type-subsection:14px; --calc-type-support:12px; --calc-type-label:10px;/);
+test('Calc Compact typography는 역할 token을 유지하고 viewport별 canonical scale을 사용한다',()=>{
+  assert.match(css1,/--calc-type-page-title:22px; --calc-type-section:16px; --calc-type-subsection:13px; --calc-type-support:11px; --calc-type-label:11px;/);
+  assert.match(css1,/@media\(max-width:1100px\)\{ :root:where\(\[data-add-page="calc"\]\)\{ --density-page-pad:9px;[^}]*--calc-type-page-title:21px; --calc-type-section:15px; --calc-type-subsection:13px; --calc-type-support:11px; --calc-type-label:11px;/);
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:6px; --calc-type-page-title:22px; --calc-type-section:15px; --calc-type-subsection:13px; --calc-type-support:11px; --calc-type-label:10px;/);
 
   for(const selector of [
     ':where(html[data-add-page="calc"]) .add-heading-section',
     ':where(html[data-add-page="calc"]) .add-heading-subsection',
     ':where(html[data-add-page="calc"]) .mobile-section-title',
-    ':where(html[data-add-page="calc"]) .group-title small',
-    ':where(html[data-add-page="calc"]) .formula',
     ':where(html[data-add-page="calc"]) .case-note',
     ':where(html[data-add-page="calc"]) .range-box strong',
     ':where(html[data-add-page="calc"]) .strategy-title p',
@@ -102,6 +95,8 @@ test('Calc label typography는 역할별 token으로 통일되고 viewport마다
   }
 
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) label, :where\(html\[data-add-page="calc"\]\) \.field-label-slot, :where\(html\[data-add-page="calc"\]\) \.kpi \.name\{font-size:var\(--calc-type-label\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .group-title small'),/font-size:10px/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .formula'),/font-size:10px/);
   assert.doesNotMatch(css1,/\.input-group \.field label\{font-size:11px\}/);
   assert.doesNotMatch(css1,/\.summary-card \.sname\{font-size:(?:10|11)px/);
   assert.doesNotMatch(css1,/\.range-box strong\{[^}]*font-size:13px/);
@@ -115,12 +110,11 @@ test('Calc는 iOS 가로 회전 text autosizing을 막아 CSS font-size를 그�
   assert.match(body,/text-size-adjust:100%/);
 });
 
-test('Calc 페이지 제목도 Desktop Tablet Phone 2px typography contract를 사용한다',()=>{
-  assert.match(css1,/--calc-type-page-title:28px/);
-  assert.match(css1,/@media\(max-width:1100px\)\{ :root:where\(\[data-add-page="calc"\]\)\{ --calc-type-page-title:26px/);
-  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-type-page-title:24px/);
+test('Calc 페이지 제목은 Compact canonical token을 viewport별로 재사용한다',()=>{
+  assert.match(css1,/--calc-type-page-title:22px/);
+  assert.match(css1,/@media\(max-width:1100px\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-type-page-title:21px/);
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-type-page-title:22px/);
   assert.match(rule(':where(html[data-add-page="calc"]) .hero h1'),/font-size:var\(--calc-type-page-title\)/);
-  assert.doesNotMatch(css1,/:where\(html\[data-add-page="calc"\]\) \.hero h1\{font-size:24px\}/);
 });
 
 test('Calc 3개 거래유형의 동적 문구는 inline font-size 없이 공통 typography selector를 사용한다',()=>{
@@ -139,12 +133,12 @@ test('Calc iPhone 데스크탑 웹사이트 요청은 1280 viewport contract를 
   assert.match(calc,/viewport\.setAttribute\('content','width=1280'\)/);
 });
 
-test('Calc 가로 터치폰은 Tablet이 아니라 세로 Phone과 같은 UI contract를 사용한다',()=>{
+test('Calc 가로 터치폰은 Tablet이 아니라 세로 Phone과 같은 Compact UI contract를 사용한다',()=>{
   assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{/);
-  assert.match(css1,/--density-page-pad:10px; --density-surface-lg:12px; --density-surface-md:10px; --density-surface-sm:8px;/);
-  assert.match(css1,/--density-gap-lg:8px; --density-gap-md:6px; --density-gap-sm:4px; --density-gap-micro:2px;/);
-  assert.match(css1,/--density-action-pad-x:8px; --density-table-pad-x:8px; --density-table-pad-y:6px; --button-compact-pad-x:4px;/);
-  assert.match(css1,/--calc-type-page-title:24px; --calc-type-section:16px; --calc-type-subsection:14px; --calc-type-support:12px; --calc-type-label:10px;/);
+  assert.match(css1,/--density-page-pad:9px; --density-surface-lg:9px; --density-surface-md:9px; --density-surface-sm:8px;/);
+  assert.match(css1,/--density-gap-lg:8px; --density-gap-md:6px; --density-gap-sm:4px; --density-gap-xs:3px; --density-gap-micro:2px;/);
+  assert.match(css1,/--density-action-pad-x:8px; --density-action-pad-y:8px; --density-field-pad-x:6px; --density-table-pad-x:8px; --density-table-pad-y:6px; --button-compact-pad-x:4px;/);
+  assert.match(css1,/--calc-type-page-title:22px; --calc-type-section:15px; --calc-type-subsection:13px; --calc-type-support:11px; --calc-type-label:10px;/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.input-grid, :where\(html\[data-add-page="calc"\]\) \.input-grid\.no-prior-layout\{grid-template-columns:minmax\(0,1fr\)\}/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) #reportBtn \.report-text, :where\(html\[data-add-page="calc"\]\) #resetBtn \.reset-text\{display:none\}/);
   assert.match(css1,/:where\(html\[data-add-page="calc"\]\) \.add-button-mobile-icon\{ width:var\(--button-icon-size\); height:var\(--button-icon-size\); padding:0;/);
@@ -160,8 +154,8 @@ test('calculation criteria buttons share the same Calc control geometry token', 
 
 test('Calc 입력영역은 viewport 공통 Field Layout primitive를 사용한다', () => {
   assert.match(css1,/--calc-field-label-gap:var\(--density-gap-xs\)/);
-  assert.match(css1,/--calc-field-row-gap:var\(--density-gap-sm\)/);
-  assert.match(css1,/--calc-field-label-line-height:1\.45/);
+  assert.match(css1,/--calc-field-row-gap:var\(--density-gap-md\)/);
+  assert.match(css1,/--calc-field-label-line-height:1\.25/);
   assert.equal((css.match(/--calc-field-label-gap:/g)||[]).length,1);
   assert.equal((css.match(/--calc-field-row-gap:/g)||[]).length,1);
   assert.match(rule(':where(html[data-add-page="calc"]) .fields'),/gap:var\(--calc-field-row-gap\)/);
@@ -199,46 +193,7 @@ test('Calc invalid 입력은 마지막 정상 결과를 stale 상태로 표시�
   assert.match(css1,/html:where\(\[data-add-page="calc"\]\)\.calc-results-stale :is\(\.kpis,\.range-panel,#strategyTabs,main\)\{opacity:\.48;transition:opacity \.14s ease\}/);
 });
 
-// Alt theme contracts are UI contracts, so they live in this file instead of a separate theme test.
-function createHarness(page,{storedTheme=null}={}){
-  const storage=new Map();
-  const storageKey=`investmentDashboard.addTheme.${page}`;
-  if(storedTheme!==null)storage.set(storageKey,storedTheme);
-
-  const events={};
-  const label={textContent:''};
-  const attrs=new Map();
-  const button={
-    title:'',
-    setAttribute(name,value){attrs.set(name,String(value));},
-    getAttribute(name){return attrs.get(name)??null;},
-    querySelector(selector){return selector==='[data-add-theme-label]'?label:null;},
-    addEventListener(type,handler){events[type]=handler;}
-  };
-  const root={dataset:{addPage:page}};
-  const dispatched=[];
-  const document={
-    documentElement:root,
-    readyState:'complete',
-    getElementById(id){return id==='addThemeToggle'?button:null;},
-    addEventListener(){}
-  };
-  const localStorage={
-    getItem(key){return storage.has(key)?storage.get(key):null;},
-    setItem(key,value){storage.set(key,String(value));},
-    removeItem(key){storage.delete(key);}
-  };
-  class Event{constructor(type){this.type=type;}}
-  const window={dispatchEvent(event){dispatched.push(event.type);}};
-  const context={document,window,localStorage,Event,requestAnimationFrame:fn=>fn()};
-  vm.runInNewContext(themeJs,context,{filename:'add-theme.js'});
-
-  return {
-    root,button,label,storage,storageKey,dispatched,
-    click(){assert.ok(events.click,'theme click handler must exist');events.click();}
-  };
-}
-
+// Canonical Add UI contracts after Compact/Dynamic experiment cleanup.
 function contrastRatio(hexA,hexB){
   const lum=hex=>{
     const rgb=hex.replace('#','').match(/.{2}/g).map(v=>parseInt(v,16)/255).map(v=>v<=0.04045?v/12.92:((v+0.055)/1.055)**2.4);
@@ -248,71 +203,67 @@ function contrastRatio(hexA,hexB){
   return (a+0.05)/(b+0.05);
 }
 
-test('Calc와 Report HTML은 기본 디자인을 유지한 채 각 Alt CSS와 공통 theme controller만 추가한다',()=>{
-  assert.match(calc,/data-add-page="calc"/);
-  assert.match(report,/data-add-page="report"/);
-  assert.match(calc,/href="calc-alt\.css"/);
-  assert.match(report,/href="report-alt\.css"/);
-  assert.match(calc,/src="add-theme\.js"/);
-  assert.match(report,/src="add-theme\.js"/);
-  assert.match(calc,/id="addThemeToggle"/);
-  assert.match(report,/id="addThemeToggle"/);
+test('Calc와 Report HTML은 add.css + add.js 단일 canonical runtime만 사용한다',()=>{
+  for(const html of [calc,report]){
+    assert.match(html,/href="add\.css"/);
+    assert.match(html,/src="add\.js"/);
+    assert.doesNotMatch(html,/add-theme\.(?:css|js)/);
+    assert.doesNotMatch(html,/(?:calc|report)-alt\.css/);
+    assert.doesNotMatch(html,/id="addThemeToggle"/);
+    assert.doesNotMatch(html,/data-add-theme/);
+  }
 });
 
-test('Alt CSS는 data-add-theme="alt" 범위에서만 활성화된다',()=>{
-  assert.match(calcAltCss,/data-add-page="calc"\]\[data-add-theme="alt"\]/);
-  assert.match(reportAltCss,/data-add-page="report"\]\[data-add-theme="alt"\]/);
-  assert.match(themeCss,/data-add-theme="alt"/);
+test('폐기된 theme/Alt 파일과 state contract는 Add canonical 구조에 남지 않는다',()=>{
+  for(const name of ['add-theme.css','add-theme.js','calc-alt.css','report-alt.css']){
+    assert.equal(fs.existsSync(path.join(ADD_DIR,name)),false,`${name} must be removed`);
+  }
+  for(const source of [css,js,calc,report]){
+    assert.doesNotMatch(source,/data-add-theme/);
+    assert.doesNotMatch(source,/investmentDashboard\.addTheme\./);
+    assert.doesNotMatch(source,/addThemeToggle/);
+  }
 });
 
-test('Calc 기본 상태에서 Compact 버튼 contract가 맞고 Alt 선택/복귀가 즉시 동기화된다',()=>{
-  const h=createHarness('calc');
-  assert.equal(h.root.dataset.addTheme,undefined);
-  assert.equal(h.button.getAttribute('aria-pressed'),'false');
-  assert.equal(h.label.textContent,'Compact');
-  assert.equal(h.storage.has(h.storageKey),false);
-
-  h.click();
-  assert.equal(h.root.dataset.addTheme,'alt');
-  assert.equal(h.button.getAttribute('aria-pressed'),'true');
-  assert.equal(h.label.textContent,'기본');
-  assert.equal(h.storage.get(h.storageKey),'alt');
-
-  h.click();
-  assert.equal(h.root.dataset.addTheme,undefined);
-  assert.equal(h.button.getAttribute('aria-pressed'),'false');
-  assert.equal(h.label.textContent,'Compact');
-  assert.equal(h.storage.has(h.storageKey),false);
+test('Calc Compact는 add.css의 canonical style이고 전체 폭은 기존 1480px baseline을 유지한다',()=>{
+  assert.match(css1,/:root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-control-pad-y:5px/);
+  assert.match(css1,/:root:where\(\[data-add-page="calc"\]\)\{[^}]*--surface-radius-md:8px; --control-radius-md:6px; --inner-radius-md:5px/);
+  assert.match(css1,/:root:where\(\[data-add-page="calc"\]\)\{[^}]*--density-page-pad:10px; --density-surface-lg:9px; --density-surface-md:7px; --density-surface-sm:6px/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .wrap'),/max-width:1480px/);
+  assert.doesNotMatch(rule(':where(html[data-add-page="calc"]) .wrap'),/max-width:1600px/);
+  assert.match(rule(':where(html[data-add-page="calc"]) body'),/font-variant-numeric:tabular-nums/);
 });
 
-test('Calc와 Report는 서로 독립적인 localStorage key를 사용한다',()=>{
-  const calc=createHarness('calc',{storedTheme:'alt'});
-  const report=createHarness('report');
-  assert.equal(calc.storageKey,'investmentDashboard.addTheme.calc');
-  assert.equal(report.storageKey,'investmentDashboard.addTheme.report');
-  assert.equal(calc.root.dataset.addTheme,'alt');
-  assert.equal(report.root.dataset.addTheme,undefined);
+test('Calc Compact density는 canonical selector에 직접 병합되고 별도 override layer를 요구하지 않는다',()=>{
+  assert.match(rule(':where(html[data-add-page="calc"]) .input-panel'),/padding:var\(--density-surface-md\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .input-group'),/padding:var\(--density-surface-sm\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .kpi .value'),/font-size:18px/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .summary-card .svalue'),/font-size:17px/);
+  assert.equal((css.match(/data-add-theme/g)||[]).length,0);
 });
 
-test('Report 저장된 Dynamic 상태는 초기 렌더 전에 복원되고 버튼 ARIA와 label이 동기화된다',()=>{
-  const h=createHarness('report',{storedTheme:'alt'});
-  assert.equal(h.root.dataset.addTheme,'alt');
-  assert.equal(h.button.getAttribute('aria-pressed'),'true');
-  assert.equal(h.button.getAttribute('aria-label'),'기본 디자인으로 전환');
-  assert.equal(h.label.textContent,'기본');
+test('Report Dynamic visual language는 canonical add.css가 직접 소유한다',()=>{
+  assert.match(css1,/--energy-violet:#6d5dfc; --energy-cyan:#18a9c9; --energy-cyan-text:#167c9a; --energy-gold:#d99a28/);
+  assert.match(rule(':where(html[data-add-page="report"]) .hero'),/linear-gradient\(120deg,#151c3a 0%,#382c7e 47%,#15637c 100%\)/);
+  assert.match(rule(':where(html[data-add-page="report"]) .kpi:before'),/linear-gradient\(90deg,var\(--energy-violet\),var\(--energy-cyan\),var\(--energy-gold\)\)/);
+  assert.match(rule(':where(html[data-add-page="report"]) .timeline:before'),/linear-gradient\(var\(--energy-violet\),var\(--energy-cyan\)\)/);
+  assert.match(rule(':where(html[data-add-page="report"]) .timeline-dot'),/background:var\(--energy-violet\)/);
 });
 
-test('Report 테마 전환은 기존 resize lifecycle을 호출해 Canvas palette를 다시 읽게 한다',()=>{
-  const h=createHarness('report');
-  h.click();
-  assert.deepEqual(h.dispatched,['resize']);
+test('Report Dynamic은 기존 1280px 레이아웃과 기존 typography scale을 유지한다',()=>{
+  assert.match(rule(':where(html[data-add-page="report"]) .wrap'),/max-width:1280px/);
+  assert.doesNotMatch(rule(':where(html[data-add-page="report"]) .wrap'),/max-width:1340px/);
+  assert.match(rule(':where(html[data-add-page="report"]) .hero'),/padding:24px/);
+  assert.match(rule(':where(html[data-add-page="report"]) h1'),/font-size:34px/);
+  assert.match(rule(':where(html[data-add-page="report"]) .kpi .value'),/font-size:25px/);
+  assert.match(css1,/@media\(max-width:1100px\)\{ :where\(html\[data-add-page="report"\]\) h1\{font-size:27px\}/);
+  assert.match(css1,/@media\(max-width:760px\)\{ :where\(html\[data-add-page="report"\]\) h1\{margin:5px 0;font-size:clamp\(20px,6vw,24px\)/);
 });
 
-test('Dynamic 라이트모드의 작은 cyan 텍스트는 그래픽 cyan과 분리되고 4.5:1 이상 대비를 확보한다',()=>{
-  const token=reportAltCss.match(/--energy-cyan-text:(#[0-9a-f]{6})/i);
+test('Dynamic cyan 작은 텍스트는 그래픽 cyan과 분리되고 라이트모드 4.5:1 이상 대비를 유지한다',()=>{
+  const token=css.match(/--energy-cyan-text:(#[0-9a-f]{6})/i);
   assert.ok(token,'missing --energy-cyan-text token');
   assert.ok(contrastRatio(token[1],'#ffffff')>=4.5,`cyan text contrast is ${contrastRatio(token[1],'#ffffff').toFixed(2)}:1`);
-  assert.match(reportAltCss,/\.split-group-day \.split-group-kicker\{\s*color:var\(--energy-cyan-text\)/);
-  assert.match(reportAltCss,/--energy-cyan:#18a9c9/);
+  assert.match(css1,/:where\(html\[data-add-page="report"\]\) \.split-group-day \.split-group-kicker\{color:var\(--energy-cyan-text\)\}/);
+  assert.match(css1,/--energy-cyan:#18a9c9/);
 });
-

@@ -833,7 +833,7 @@ tests/
 - `tests/main/calc.test.cjs`: Main의 합산·원금·손익·수익률·별도수익·연금·차트용 계산 등 정답이 명확한 계산 회귀를 보호한다.
 - `tests/main/ui-contract.test.cjs`: Main의 module boundary, 기본 breakpoint, Phone Landscape, table/chart/modal/Market AI 등 폐기되면 안 되는 UI/CSS/HTML 구조 contract를 보호한다.
 - `tests/add/calc.test.cjs`: Calc의 `compute()` / `validate()` / `ceil5()`와 주요 계산 branch를 보호한다.
-- `tests/add/ui-contract.test.cjs`: Add의 input/button/responsive/ARIA 및 기본↔Alt 테마 전환 contract를 보호한다.
+- `tests/add/ui-contract.test.cjs`: Add의 input/button/responsive/ARIA 및 Calc Compact·Report Dynamic canonical style contract를 보호한다.
 
 수정 직후에는 **변경 영역 Fast QA**를 먼저 실행한다.
 
@@ -847,7 +847,7 @@ node --test tests/main/ui-contract.test.cjs
 # Add 계산
 node --test tests/add/calc.test.cjs
 
-# Add UI/CSS/HTML/대체 테마
+# Add UI/CSS/HTML
 node --test tests/add/ui-contract.test.cjs
 ```
 
@@ -1159,10 +1159,6 @@ investment-dashboard-main/
 │  ├─ kodex-leverage-report.html
 │  ├─ add.css
 │  ├─ add.js
-│  ├─ add-theme.css
-│  ├─ add-theme.js
-│  ├─ calc-alt.css
-│  ├─ report-alt.css
 │  └─ add_maintenance_handover.md
 ├─ tests/
 │  ├─ main/
@@ -1240,10 +1236,6 @@ investment-dashboard-main/
 │  ├─ kodex-leverage-report.html
 │  ├─ add.css
 │  ├─ add.js
-│  ├─ add-theme.css
-│  ├─ add-theme.js
-│  ├─ calc-alt.css
-│  ├─ report-alt.css
 │  └─ add_maintenance_handover.md
 │
 └─ tests/

@@ -5,13 +5,10 @@
 
 - `calc.html`: 계산기 entry HTML
 - `kodex-leverage-report.html`: 거래 리포트 entry HTML
-- `add.css`: 두 페이지가 공유하는 기본 런타임 CSS. 공통 primitive와 `data-add-page` 기반 Calc/Report 전용 규칙을 함께 관리
+- `add.css`: 두 페이지가 공유하는 단일 런타임 CSS. 공통 primitive와 `data-add-page` 기반 Calc/Report 전용 규칙을 함께 관리하며, Calc Compact·Report Dynamic 시각 언어를 각 페이지의 canonical 스타일로 직접 소유
 - `add.js`: 두 페이지가 공유하는 런타임 JS. `data-add-page`에 따라 Calc/Report만 선택 부팅
-- `add-theme.css`, `add-theme.js`: 기본↔대체 디자인 전환의 공통 UI/저장 contract
-- `calc-alt.css`: Calc Compact 대체 디자인. `data-add-theme="alt"` 범위에서만 활성화
-- `report-alt.css`: Report Dynamic 대체 디자인. `data-add-theme="alt"` 범위에서만 활성화
 - `/tests/add/calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
-- `/tests/add/ui-contract.test.cjs`: 선택상태/ARIA/input density/반응형/대체 테마 등 UI contract 회귀 테스트
+- `/tests/add/ui-contract.test.cjs`: 선택상태/ARIA/input density/반응형 및 Calc/Report canonical style contract 회귀 테스트
 - `add_maintenance_handover.md`: Add 유지보수 기준
 
 > 적용 범위: `add/calc.html`, `add/add.css`, `add/add.js`, `add/kodex-leverage-report.html` 및 **KODEX 레버리지 실현손익 반영 때문에 함께 수정되는 `data/portfolio.json`**
@@ -105,7 +102,8 @@ Mobile · 모바일   ≤ 760px
 
 - `calc`와 `report`는 `add/add.css`의 공통 의미색·Corner·Spacing/Density·Heading·Button token/primitive를 재사용한다. 현재 수치 자체는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다. Corner는 역할별 기본 radius와 soft-square cap을 분리하고, 메인의 `investmentDashboard.cornerTheme` 저장값을 읽어 동일한 `rounded-corners` mode contract를 적용한다.
 - 카드·패널·폼·표·탭·버튼처럼 역할이 비슷한 component의 padding/gap은 공통 density token을 우선 사용하고, Desktop → Tablet → Mobile 순으로 일관되게 compact해지는 3단계 contract를 유지한다. 카드·패널·요약박스처럼 독립된 Surface의 기본 padding은 상하좌우 동일값을 사용하며, 표 셀·버튼·input·header row처럼 기능상 X/Y 여백이 달라야 하는 요소만 예외로 둔다. Touch target 높이, 차트 geometry, 광학 보정처럼 기능상 필요한 값은 억지로 density token에 합치지 않는다. 단순 미관 조정 때문에 독립 radius·magic number·임시 offset을 누적하지 않는다.
-- **Calc typography는 역할별 공통 token을 Source of Truth로 사용한다.** 페이지 제목·section·subsection·support·label처럼 의미가 같은 텍스트는 같은 역할 token을 사용하고, 개별 selector에 별도 font-size를 다시 만들지 않는다. 동일 역할은 Desktop → Tablet → Phone으로 갈 때 **각 단계 2px씩 compact**해지는 contract를 유지하며, 가로폰도 Phone token을 그대로 사용한다. input 값·강조 value·기능 아이콘처럼 역할이 다른 텍스트는 이 label 계층에 억지로 합치지 않는다.
+- **현재 Add는 선택형 대체 디자인을 두지 않는 단일 canonical 스타일 구조다.** Calc는 Compact 정보 밀도와 시각 언어를 기본 스타일로 사용하되 기존 페이지 폭 contract를 유지하고, Report는 Dynamic의 gradient·depth·accent 중심 시각 언어를 기본 스타일로 사용하되 기존 layout·typography scale을 유지한다. 두 디자인은 `add.css`의 각 `data-add-page` scope에 직접 통합하며 별도 디자인 전환 runtime이나 override stylesheet를 만들지 않는다.
+- **Calc typography는 역할별 공통 token을 Source of Truth로 사용한다.** 페이지 제목·section·subsection·support·label처럼 의미가 같은 텍스트는 같은 역할 token을 사용하고, 개별 selector에 별도 font-size를 다시 만들지 않는다. Desktop / Tablet / Phone의 실제 값과 compact 정도는 현재 `add.css`의 역할 token을 Source of Truth로 하며, 가로폰은 Phone token을 그대로 사용한다. input 값·강조 value·기능 아이콘처럼 역할이 다른 텍스트는 이 label 계층에 억지로 합치지 않는다.
 - **Calc 입력영역은 하나의 Field Layout primitive를 사용한다.** 일반 입력카드와 계산 기준 모두 `label → 공통 label/control gap → control → 공통 field row gap` 리듬을 공유하며, 계산 기준에 정렬용 magic margin·padding·고정 offset을 별도로 만들지 않는다. Desktop에서 나란한 카드의 첫 control 시작선을 맞추기 위한 빈 label slot은 같은 field track을 재사용하고, 카드가 독립 행으로 내려오는 Tablet/Phone에서는 그 slot만 제거한다. 라벨 크기·field gap·control density를 바꿀 때는 공통 token을 수정해 전 viewport와 모든 입력카드가 함께 움직이게 한다.
 - **Calc control 외곽 geometry도 단일 token을 Source of Truth로 사용한다.** 일반 input·date shell/inner control·계산 기준 선택버튼은 `--calc-control-box-height` 계열에서 같은 높이와 border 기준을 파생하고, feature selector에 동일한 `calc(...)` 높이식을 복제하지 않는다.
 - **Calc stale-result UX를 유지한다.** 한 번 이상 정상 계산한 뒤 입력이 invalid가 되면 직전 정상 결과를 삭제하지 않고 stale 상태로 명확히 구분하며, 안내문으로 마지막 정상 입력 기준임을 알린다. 입력이 다시 유효해지면 stale 상태를 즉시 제거하고 새 결과를 계산한다. 아직 정상 계산 결과가 한 번도 없는 초기 invalid 상태에서는 “마지막 정상 결과”라고 표현하지 않는다.
@@ -126,10 +124,6 @@ add/
 ├─ kodex-leverage-report.html
 ├─ add.css
 ├─ add.js
-├─ add-theme.css
-├─ add-theme.js
-├─ calc-alt.css
-├─ report-alt.css
 └─ add_maintenance_handover.md
 
 tests/add/
@@ -141,31 +135,28 @@ tests/add/
 
 - `add/calc.html`
   - CALC DOM과 접근성 구조만 소유한다.
-  - 기본 `add.css`/`add.js`와 대체 디자인용 `add-theme.css`/`add-theme.js`/`calc-alt.css`를 로드한다. 대체 CSS는 `data-add-theme="alt"`일 때만 기본 디자인 위에 override된다.
+  - 런타임 asset은 `add.css`와 `add.js`만 로드한다.
   - 기능 로직이나 대량 스타일을 HTML 안으로 다시 넣지 않는다.
 - `add/kodex-leverage-report.html`
   - 거래 리포트 canonical HTML과 증빙/본문 DOM을 소유한다. Timeline은 렌더 대상 shell만 소유하고 실현거래 숫자를 HTML에 중복 하드코딩하지 않는다.
-  - 기본 `add.css`/`add.js`와 대체 디자인용 `add-theme.css`/`add-theme.js`/`report-alt.css`를 로드하며, CSS/JS를 다시 HTML 내부 대량 `<style>` / 기능 `<script>`로 되돌리지 않는다.
+  - 런타임 asset은 Calc와 동일하게 `add.css`와 `add.js`만 로드하며, CSS/JS를 다시 HTML 내부 대량 `<style>` / 기능 `<script>`로 되돌리지 않는다.
 - `add/add.css`
   - Calc와 Report의 단일 런타임 stylesheet다.
   - 공통 의미색·Corner·Spacing/Density·Heading·Button·Card Surface primitive를 먼저 정의하고, Calc/Report 전용 규칙은 `data-add-page` scope로 서로 격리한다.
+  - Calc의 Compact 스타일과 Report의 Dynamic 시각 언어는 별도 override가 아니라 각 페이지 canonical 규칙 안에서 직접 관리한다.
   - 페이지 scope는 `:where()`를 사용해 기존 selector specificity를 바꾸지 않는다.
 - `add/add.js`
   - Calc와 Report의 단일 런타임 script다.
-  - 공통 조기 테마/Corner 처리를 수행한 뒤 `data-add-page="calc|report"`에 따라 해당 페이지의 boot만 실행한다.
+  - 공통 조기 Light/Dark·Corner 처리를 수행한 뒤 `data-add-page="calc|report"`에 따라 해당 페이지의 boot만 실행한다.
   - Calc 계산·렌더·프리셋·이벤트·툴팁과 Report 데이터·탭·차트·Timeline 파생 로직은 한 파일 안에서도 section/boot 경계를 유지하고 서로의 DOM/state를 참조하지 않는다.
   - Report Timeline의 실현거래 수량·단가·손익·비용은 `REPORT_DATA`와 본 포지션/단타 파생값을 Source of Truth로 사용한다. 매도실현 데이터에 없는 매수-only 포지션 형성 사실만 별도 context로 유지한다. 새 `REPORT_DATA` 행은 curated 설명이 없어도 Timeline에 기본 항목으로 자동 노출되어야 한다.
   - Node 회귀검증에서는 `compute`, `validate`, `ceil5`만 노출하고 브라우저 boot는 실행하지 않는다.
-- `add/add-theme.css`, `add/add-theme.js`
-  - 기본 디자인은 그대로 유지하고, 페이지별 대체 디자인 선택과 localStorage 복원·ARIA 동기화만 소유한다. 계산/Report 데이터 로직을 소유하지 않는다.
-- `add/calc-alt.css`, `add/report-alt.css`
-  - 각각 Calc Compact / Report Dynamic 대체 디자인만 소유한다. 모든 대체 규칙은 `data-add-theme="alt"` 범위에 격리하고 기본 `add.css`를 대체하거나 삭제하지 않는다.
 - `tests/add/calc.test.cjs`
   - Node 내장 `node:test` / `node:assert`만 사용한다.
   - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
 - `tests/add/ui-contract.test.cjs`
   - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
-  - 선택 active와 ARIA 동기화, fine-pointer hover 보호, padding-driven input/date/stepper, 역할별 typography token, 가로폰 Phone UI 분류, iOS text autosizing 방지, invalid 입력 stale-result, 기본↔대체 테마 전환처럼 폐기되면 안 되는 UI 경계를 production HTML/CSS/JS에서 직접 확인한다.
+  - 선택 active와 ARIA 동기화, fine-pointer hover 보호, padding-driven input/date/stepper, 역할별 typography token, 가로폰 Phone UI 분류, iOS text autosizing 방지, invalid 입력 stale-result, Calc Compact·Report Dynamic canonical style처럼 폐기되면 안 되는 UI 경계를 production HTML/CSS/JS에서 직접 확인한다.
 
 ### 1.4 CSS / JS 내부 구조 원칙
 
