@@ -202,6 +202,8 @@ test('Report Timeline은 실현손익 미니카드를 canonical net에서 렌더
   assert.match(js1,/reportMetricText\(net,'signedWon'\)/);
   assert.match(js1,/class="timeline-profit-card\$\{className\}"/);
   assert.match(js1,/\$\{timelineProfitCard\(item\.net\)\}/);
+  const timelineNarrative=js.slice(js.indexOf('function timelineGeneric'),js.indexOf('function timelineProfitCard'));
+  assert.doesNotMatch(timelineNarrative,/순손익|순이익|순손실/);
   assert.match(css1,/:where\(html\[data-add-page="report"\]\) \.timeline-card\{display:grid;grid-template-columns:minmax\(0,1fr\) auto;/);
   assert.match(css1,/:where\(html\[data-add-page="report"\]\) \.timeline-profit-card\{[^}]*min-width:108px/);
   assert.match(css1,/\.timeline-profit-card\.pos strong\{color:var\(--positive\)\}/);

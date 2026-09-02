@@ -832,6 +832,9 @@
     function timelineDay(date){
       return dayRowByDate.get(date)||null;
     }
+    function timelineClassification(row){
+      return row.segment==='mixed'?'본 포지션과 단타가 함께 포함된 매도일.':row.segment==='core'?'본 포지션으로 분류.':'당일 단타로 분류.';
+    }
     function timelineEvent(sortDate,range,title,strong,body,net=null){
       return Object.freeze({sortDate,range,title,strong,body,net});
     }
@@ -842,7 +845,7 @@
         row.date,
         type,
         `${reportNumber(row.qty)}주 · ${reportNumber(row.buy)}원 매수 → ${reportNumber(row.sell)}원 매도`,
-        `순손익 ${reportMetricText(row.net,'signedWon')}. ${row.segment==='mixed'?'본 포지션과 단타가 함께 포함된 매도일.':row.segment==='core'?'본 포지션으로 분류.':'당일 단타로 분류.'}`,
+        timelineClassification(row),
         row.net
       );
     }
@@ -859,23 +862,22 @@
       addRealized(['2026-06-09'],([row])=>timelineEvent(
         row.date,'2026-06-08~09','첫 오버나이트 거래',
         `${reportNumber(row.qty)}주 · ${reportNumber(row.buy)}원 매수 → ${reportNumber(row.sell)}원 매도`,
-        `6/8 매수 후 6/9 청산. 순이익 ${reportMetricText(row.net,'won')}으로 본 포지션에 분류.`
+        `6/8 매수 후 6/9 청산. 본 포지션으로 분류.`
       ));
 
       addRealized(['2026-06-16','2026-06-19','2026-06-23'],rows=>{
         const qty=reportSum(rows,'qty');
-        const net=reportSum(rows,'net');
         return timelineEvent(
           rows[0].date,'2026-06-16~23','초기 당일 단타 구간',
           rows.map(row=>`${timelineDateShort(row.date)} ${reportNumber(row.qty)}주`).join(' · '),
-          `같은 날 매수·매도를 완료한 ${reportNumber(qty)}주. 세 거래일 단타 순이익 합계 ${reportMetricText(net,'won')}.`
+          `같은 날 매수·매도를 완료한 ${reportNumber(qty)}주. 세 거래일 모두 당일 단타로 분류.`
         );
       });
 
       addRealized(['2026-06-25'],([row])=>timelineEvent(
         row.date,'2026-06-23~25',`${reportNumber(row.qty)}주 보유 포지션 청산`,
         `${reportNumber(row.buy)}원 매수 → ${reportNumber(row.sell)}원 매도`,
-        `6/23 별도로 매수한 ${reportNumber(row.qty)}주를 6/25 청산. 순이익 ${reportMetricText(row.net,'won')}.`
+        `6/23 별도로 매수한 ${reportNumber(row.qty)}주를 6/25 청산. 본 포지션으로 분류.`
       ));
 
       const legacy=POSITION_CONTEXT.legacyBuild;
@@ -904,7 +906,7 @@
         return timelineEvent(
           row.date,row.date,'첫 대규모 포지션 청산',
           `${reportNumber(row.qty)}주 · ${reportNumber(row.sell)}원 매도`,
-          `순손실 ${reportMetricText(Math.abs(row.net),'won')}.${repurchase}`
+          `기존 보유 포지션 전량 청산.${repurchase}`
         );
       });
 
@@ -913,7 +915,7 @@
         return timelineEvent(
           row.date,row.date,'재매수분 청산 + 대량 단타',
           `총 매도 ${reportNumber(row.qty)}주`,
-          core&&day?`본 포지션 ${reportNumber(core.qty)}주를 청산하고 나머지 ${reportNumber(day.qty)}주는 반복 단타 물량으로 분리.`:`순손익 ${reportMetricText(row.net,'signedWon')}.`
+          core&&day?`본 포지션 ${reportNumber(core.qty)}주를 청산하고 나머지 ${reportNumber(day.qty)}주는 반복 단타 물량으로 분리.`:timelineClassification(row)
         );
       });
 
@@ -922,7 +924,7 @@
         return timelineEvent(
           row.date,row.date,'단타 + 종가 매수',
           `당일 매도 ${reportNumber(row.qty)}주${nextCore?` · 신규 ${reportNumber(nextCore.qty)}주`:''}`,
-          `단타 순이익 ${reportMetricText(row.net,'won')}.${nextCore?` ${reportNumber(nextCore.qty)}주는 ${reportNumber(nextCore.buy)}원에 다음 날까지 보유.`:''}`
+          `당일 단타로 분류.${nextCore?` ${reportNumber(nextCore.qty)}주는 ${reportNumber(nextCore.buy)}원에 다음 날까지 보유.`:''}`
         );
       });
 
@@ -931,7 +933,7 @@
         return timelineEvent(
           row.date,row.date,'보유분 청산 + 추가 단타',
           `총 매도 ${reportNumber(row.qty)}주`,
-          core&&day?`본 포지션 ${reportNumber(core.qty)}주를 ${reportNumber(core.sell)}원에 청산하고 나머지 ${reportNumber(day.qty)}주는 당일 반복매매.`:`순손익 ${reportMetricText(row.net,'signedWon')}.`
+          core&&day?`본 포지션 ${reportNumber(core.qty)}주를 ${reportNumber(core.sell)}원에 청산하고 나머지 ${reportNumber(day.qty)}주는 당일 반복매매.`:timelineClassification(row)
         );
       });
 
@@ -940,7 +942,7 @@
         return timelineEvent(
           row.date,row.date,'대량 단타 + 소규모 오버나이트',
           `당일 매도 ${reportNumber(row.qty)}주${nextCore?` · 신규 ${reportNumber(nextCore.qty)}주`:''}`,
-          `당일 단타 순이익 ${reportMetricText(row.net,'won')}.${nextCore?` ${reportNumber(nextCore.qty)}주는 ${reportNumber(nextCore.buy)}원에 매수해 다음 날까지 보유.`:''}`
+          `당일 단타로 분류.${nextCore?` ${reportNumber(nextCore.qty)}주는 ${reportNumber(nextCore.buy)}원에 매수해 다음 날까지 보유.`:''}`
         );
       });
 
@@ -949,7 +951,7 @@
         return timelineEvent(
           row.date,row.date,'보유분 청산 + 추가 단타',
           `총 매도 ${reportNumber(row.qty)}주`,
-          core&&day?`전일 보유 ${reportNumber(core.qty)}주는 ${reportNumber(core.sell)}원에 청산. 추가 ${reportNumber(day.qty)}주는 당일 단타로 분류되며, ${timelineDateShort(row.date)} 전체 순손익은 ${reportMetricText(row.net,'won')}.`:`순손익 ${reportMetricText(row.net,'signedWon')}.`
+          core&&day?`전일 보유 ${reportNumber(core.qty)}주는 ${reportNumber(core.sell)}원에 청산. 추가 ${reportNumber(day.qty)}주는 당일 단타로 분류.`:timelineClassification(row)
         );
       });
 
@@ -958,7 +960,7 @@
         return timelineEvent(
           row.date,'2026-08-11~12',`${reportNumber(core?.qty||0)}주 오버나이트 청산 + 추가 단타`,
           `총 매도 ${reportNumber(row.qty)}주`,
-          core&&day?`8/11 매수한 ${reportNumber(core.qty)}주는 ${reportNumber(core.buy)}원 → ${reportNumber(core.sell)}원에 청산해 본 포지션으로 분류. 나머지 ${reportNumber(day.qty)}주는 8/12 당일 단타이며, 전체 순손익은 ${reportMetricText(row.net,'won')}.`:`순손익 ${reportMetricText(row.net,'signedWon')}.`
+          core&&day?`8/11 매수한 ${reportNumber(core.qty)}주는 ${reportNumber(core.buy)}원 → ${reportNumber(core.sell)}원에 청산해 본 포지션으로 분류. 나머지 ${reportNumber(day.qty)}주는 8/12 당일 단타로 분류.`:timelineClassification(row)
         );
       });
 
@@ -968,7 +970,7 @@
         return timelineEvent(
           row.date,'2026-08-18~20',`${reportNumber(row.qty)}주 오버나이트 포지션 청산`,
           `8/18 ${reportNumber(build.firstQty)}주 + 8/19 ${reportNumber(secondQty)}주 → 8/20 전량 매도`,
-          `${reportNumber(build.firstQty)}주는 ${reportNumber(build.firstBuy)}원, ${reportNumber(secondQty)}주는 ${reportNumber(build.secondBuy)}원에 매수해 가중평균 ${reportNumber(row.buy)}원. 8/20 ${reportNumber(row.sell)}원에 ${reportNumber(row.qty)}주 전량 매도해 순이익 ${reportMetricText(row.net,'won')}으로 본 포지션에 분류.`
+          `${reportNumber(build.firstQty)}주는 ${reportNumber(build.firstBuy)}원, ${reportNumber(secondQty)}주는 ${reportNumber(build.secondBuy)}원에 매수해 가중평균 ${reportNumber(row.buy)}원. 8/20 ${reportNumber(row.sell)}원에 ${reportNumber(row.qty)}주 전량 매도해 본 포지션으로 분류.`
         );
       });
 
