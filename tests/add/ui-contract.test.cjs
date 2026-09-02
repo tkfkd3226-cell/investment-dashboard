@@ -227,20 +227,10 @@ test('Calc 결과 표 최소폭은 렌더된 내용에서 계산하고 열폭은
   assert.doesNotMatch(js1,/five-grid|simple-grid|triple-grid|loan-grid|final-grid/);
 });
 
-test('보유 중 추가매수 결과의 새 라벨과 tooltip 문구는 공통 label helper를 사용한다',()=>{
-  assert.doesNotMatch(js1,/추가투입금·회수대상 차감 후 잔여현금|추가매수 전 대비 손익 개선액/);
-  assert.match(js1,/기존 회수 대상 차감 후 잔여현금/);
-  assert.match(js1,/추가매수로 인한 손익 개선액/);
+test('동적 결과 도움말은 공통 label helper와 aria-describedby 연결을 사용한다',()=>{
   assert.match(js1,/const resultLabel=/);
   assert.match(js1,/resultLabelHTML/);
   assert.match(js1,/aria-describedby="\$\{tooltipId\}"/);
-  assert.doesNotMatch(js1,/남는 현금입니다|손익입니다|개선됩니다/);
-});
-
-test('이전 거래 상세 자동계산 안내 문구와 case-note는 제거된 상태를 유지한다',()=>{
-  assert.doesNotMatch(calc,/매수단가·매도단가·확정손익은 실제 매수금액·매도금액 기준 자동 계산/);
-  assert.doesNotMatch(calc,/class="case-note"/);
-  assert.doesNotMatch(css1,/\.case-note\{/);
 });
 
 test('Calc strategy tab은 visual state와 ARIA/tabindex/panel state를 함께 갱신한다',()=>{

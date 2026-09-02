@@ -46,7 +46,6 @@
   --density-layout-gap:16px;
   --density-action-pad-x:12px;
   --density-action-pad-y:8px;
-  --density-field-pad-x:10px;
   --density-table-pad-x:12px;
   --density-table-pad-y:10px;
 
@@ -57,8 +56,6 @@
   --button-font-weight:800;
   --button-control-height:40px;
   --button-icon-size:36px;
-  --button-compact-pad-x:6px;
-  --button-compact-pad-y:8px;
 
 }
 
@@ -74,7 +71,6 @@
     --density-gap-xs:4px;
     --density-layout-gap:14px;
     --density-action-pad-x:10px;
-    --density-field-pad-x:8px;
     --density-table-pad-x:10px;
     --density-table-pad-y:8px;
   }
@@ -94,7 +90,6 @@
     --density-action-pad-x:8px;
     --density-table-pad-x:8px;
     --density-table-pad-y:6px;
-    --button-compact-pad-x:4px;
   }
 }
 
@@ -116,7 +111,7 @@ html.dark{
 }
 
 /* 02. Add 공통 Heading / Typography primitive
-   - 한 번만 쓰는 size/weight token은 만들지 않고 20 / 14 / 12px의 3단계 hierarchy를 primitive가 직접 소유한다.
+   - 여러 화면에서 실제 재사용되는 section/subsection heading만 공통 primitive가 소유한다.
    - Hero h1, KPI value, badge 등 제목이 아닌 typography는 이 contract에 포함하지 않는다. */
 .add-heading-section{
   font-size:20px;
@@ -128,11 +123,6 @@ html.dark{
   font-size:14px;
   font-weight:800;
   line-height:1.3;
-}
-.add-heading-minor{
-  font-size:12px;
-  font-weight:900;
-  line-height:1.35;
 }
 
 /* 03. Add 공통 Button primitive
@@ -331,7 +321,6 @@ body{
   --control-readonly-bg:#edf1f5;
   --control-readonly-text:#566276;
   --control-disabled-text:#b5bdca;
-  --active-shadow:0 5px 14px rgba(29,53,87,.16);
   --action-shadow:0 3px 10px rgba(29,53,87,.07);
 
   /* Compact density
@@ -348,7 +337,6 @@ body{
   --density-layout-gap:8px;
   --density-action-pad-x:var(--calc-control-space);
   --density-action-pad-y:var(--calc-control-space);
-  --density-field-pad-x:6px;
   /* Calc surface/card/table spacing contract
      - 카드·패널·표 cell과 카드 간 gap은 공통 spacing source를 공유한다. */
   --calc-surface-space:6px;
@@ -406,7 +394,6 @@ html:where([data-add-page="calc"]).dark{
   --control-readonly-bg:#1b2632;
   --control-readonly-text:#b3bfce;
   --control-disabled-text:#64748b;
-  --active-shadow:0 5px 14px rgba(0,0,0,.30);
   --action-shadow:0 3px 10px rgba(0,0,0,.24);
   --tooltip-bg:#020617;
   --tooltip-text:#f8fafc;
@@ -438,7 +425,6 @@ html:where([data-add-page="calc"]).dark{
 /* Calc 역할별 typography contract */
 :where(html[data-add-page="calc"]) .add-heading-section{font-size:var(--calc-type-section)}
 :where(html[data-add-page="calc"]) .add-heading-subsection{font-size:var(--calc-type-subsection)}
-:where(html[data-add-page="calc"]) .add-heading-minor{font-size:var(--calc-type-support)}
 :where(html[data-add-page="calc"]) .mobile-section-title{font-size:var(--calc-type-subsection)}
 :where(html[data-add-page="calc"]) :is(.add-button-action,.add-button-toggle){font-size:var(--calc-type-label);font-weight:800}
 
@@ -747,7 +733,6 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
     --density-layout-gap:8px;
     --density-action-pad-x:var(--calc-control-space);
     --density-action-pad-y:var(--calc-control-space);
-    --density-field-pad-x:6px;
     --calc-surface-space:6px;
     --calc-control-pad-y:var(--calc-control-space);
     --calc-control-input-size:16px;
@@ -886,9 +871,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
   /* Report semantic surfaces / states */
   --surface-control:#ffffff;
   --surface-soft:#f7f6ff;
-  --surface-total:#fafbfd;
   --surface-subtle:#f8f8fd;
-  --surface-highlight:#f2f0ff;
   --row-line:#eaebf4;
   --table-head-text:#5e697e;
   --series-secondary:#22a4c9;
@@ -934,9 +917,7 @@ html:where([data-add-page="report"]).dark{
   --shadow:0 18px 46px rgba(0,0,0,.34);
   --surface-control:#111827;
   --surface-soft:#171d2d;
-  --surface-total:#182132;
   --surface-subtle:#131a29;
-  --surface-highlight:#1a1c36;
   --row-line:#242c3f;
   --table-head-text:#94a3b8;
   --series-secondary:#46c6dd;
