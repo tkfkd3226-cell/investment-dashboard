@@ -261,7 +261,7 @@ body{
       /* Compact geometry / field rhythm
          - Compact 스타일의 정보 밀도를 canonical Calc 기준으로 사용한다.
          - Compact 정보 밀도에 맞춰 Desktop 최대폭은 1280px을 사용하고, 입력/카드 내부 grid 비율은 기존 구조를 유지한다. */
-      --calc-control-space:8px;
+      --calc-control-space:6px;
       --calc-control-pad-y:var(--calc-control-space);
       --calc-control-border-width:1px;
       --calc-control-box-height:calc(1rem + var(--calc-control-pad-y) + var(--calc-control-pad-y) + var(--calc-control-border-width) + var(--calc-control-border-width));
@@ -328,10 +328,8 @@ body{
       --active-shadow:0 5px 14px rgba(29,53,87,.16);
       --action-shadow:0 3px 10px rgba(29,53,87,.07);
 
-      /* Compact corner / density */
-      --surface-radius-md:8px;
-      --control-radius-md:6px;
-      --inner-radius-md:5px;
+      /* Compact density
+         - Corner role radius는 Shared/Main contract를 그대로 사용해 rounded ↔ soft-square 차이를 보존한다. */
       --density-page-pad:10px;
       --density-surface-lg:9px;
       --density-surface-md:7px;
@@ -347,8 +345,8 @@ body{
       --density-field-pad-x:6px;
       /* Calc surface/card/table spacing contract
          - 카드·패널·표 cell의 상하좌우 여백과 카드 간 gap은 같은 responsive rhythm을 사용한다.
-         - Desktop / Tablet / Phone 8px. */
-      --calc-surface-space:8px;
+         - Desktop / Tablet / Phone 6px. */
+      --calc-surface-space:6px;
       --calc-card-gap:var(--calc-surface-space);
       --density-table-pad-x:var(--calc-surface-space);
       --density-table-pad-y:var(--calc-surface-space);
@@ -365,11 +363,11 @@ body{
       --danger-strong:#d9363e;
       --danger-control-bg:#fff7f7;
       --danger-ring:rgba(217,54,62,.10);
-      --range-blue-bg:#f3f7ff;
-      --range-blue-border:#cddbf3;
-      --range-red-border:#f3cdcf;
-      --range-green-bg:#f2fbf6;
-      --range-green-border:#c9ead8;
+      --range-surface-bg:var(--surface-control);
+      --range-surface-border:var(--line);
+      --range-blue-accent:#7aa7e6;
+      --range-red-accent:#e78a92;
+      --range-green-accent:#72bd93;
       --badge-bad-bg:#fff0f0;
       --badge-bad-text:#b72b32;
       --badge-conditional-bg:#fff7df;
@@ -411,11 +409,11 @@ body{
       --danger-strong:#f87171;
       --danger-control-bg:rgba(127,29,29,.22);
       --danger-ring:rgba(248,113,113,.18);
-      --range-blue-bg:rgba(37,99,235,.14);
-      --range-blue-border:rgba(96,165,250,.28);
-      --range-red-border:rgba(248,113,113,.28);
-      --range-green-bg:rgba(22,101,52,.22);
-      --range-green-border:rgba(74,222,128,.26);
+      --range-surface-bg:var(--surface-control);
+      --range-surface-border:var(--line);
+      --range-blue-accent:#60a5fa;
+      --range-red-accent:#f87171;
+      --range-green-accent:#4ade80;
       --badge-bad-bg:rgba(127,29,29,.22);
       --badge-bad-text:#fca5a5;
       --badge-conditional-bg:rgba(146,64,14,.22);
@@ -447,7 +445,13 @@ body{
     :where(html[data-add-page="calc"]) .hero h1{margin:0;font-size:var(--calc-type-page-title);letter-spacing:-.045em;line-height:1.18;flex:1 1 auto;min-width:0;font-weight:900}
     :where(html[data-add-page="calc"]) .hero p{margin:0;color:var(--muted);font-size:var(--calc-type-label);line-height:1.3;max-width:1100px}
     :where(html[data-add-page="calc"]) .actions{display:flex;gap:var(--density-gap-sm);flex-wrap:nowrap;flex:0 0 auto}
-    :where(html[data-add-page="calc"]) .reset-icon, :where(html[data-add-page="calc"]) .report-icon{display:none;width:18px;height:18px}
+    :where(html[data-add-page="calc"]) .calc-utility-button{gap:5px;border-color:var(--control-border);background:linear-gradient(180deg,var(--surface-control),var(--surface-subtle));color:var(--navy);font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.52),var(--action-shadow)}
+    :where(html[data-add-page="calc"]) .calc-utility-button :is(.reset-icon,.report-icon){display:block;width:14px;height:14px;flex:0 0 auto}
+    @media (hover:hover) and (pointer:fine){
+      :where(html[data-add-page="calc"]) .calc-utility-button:hover:not(:disabled){border-color:var(--border-hover);background:var(--surface-hover-soft);color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 4px 12px rgba(29,53,87,.10)}
+    }
+    html:where([data-add-page="calc"]).dark .calc-utility-button{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),var(--action-shadow)}
+    html:where([data-add-page="calc"]).dark .calc-utility-button:hover:not(:disabled){box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 4px 12px rgba(0,0,0,.24)}
     :where(html[data-add-page="calc"]) .report-top-link{text-decoration:none}
     :where(html[data-add-page="calc"]) .btn{line-height:1}
     /* Calc Choice Button · 세 선택 영역이 공유하는 것은 버튼 자체의 세로 geometry / typography / state뿐이다.
@@ -485,10 +489,12 @@ html:where([data-add-page="calc"]).dark .input-panel{background:rgba(18,26,36,.8
        Phone에서만 카드가 독립 행으로 내려오므로 슬롯을 제거한다. */
     :where(html[data-add-page="calc"]) label, :where(html[data-add-page="calc"]) .field-label-slot, :where(html[data-add-page="calc"]) .kpi .name{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
     :where(html[data-add-page="calc"]) .kpi .sub{font-size:var(--calc-type-label)}
-    :where(html[data-add-page="calc"]) .label-with-help, :where(html[data-add-page="calc"]) .inline-help-label{display:inline-flex;align-items:center;gap:var(--density-gap-xs);width:max-content;max-width:100%;position:relative}
-    :where(html[data-add-page="calc"]) .inline-help-label{vertical-align:middle}
-    :where(html[data-add-page="calc"]) .help-tooltip{position:relative;display:inline-flex;align-items:center;flex:0 0 auto}
-    :where(html[data-add-page="calc"]) .help-icon{display:inline-flex;align-items:center;justify-content:center;width:calc(var(--calc-type-label) + 4px);height:calc(var(--calc-type-label) + 4px);border:1px solid #9eb0c9;border-radius:50%;background:#f3f7fc;color:#315a8f;font-size:calc(var(--calc-type-label) - 1px);font-weight:900;line-height:1;text-align:center;padding:0;cursor:help}
+    :where(html[data-add-page="calc"]) .label-with-help, :where(html[data-add-page="calc"]) .inline-help-label{display:inline-flex;align-items:center;gap:var(--density-gap-xs);width:max-content;max-width:100%;position:relative;vertical-align:middle}
+    :where(html[data-add-page="calc"]) .help-tooltip{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+    :where(html[data-add-page="calc"]) .help-icon{display:inline-flex;align-items:center;justify-content:center;width:calc(var(--calc-type-label) + 4px);height:calc(var(--calc-type-label) + 4px);border:1px solid #9eb0c9;border-radius:50%;background:#f3f7fc;color:#315a8f;font-size:calc(var(--calc-type-label) - 1px);font-weight:900;line-height:1.12;text-align:center;padding:0;cursor:help}
+    /* Main의 control-info-button과 같은 방식으로 glyph만 미세 광학 보정한다.
+       wrapper 위치를 top/margin으로 개별 보정하지 않는다. */
+    :where(html[data-add-page="calc"]) .help-icon > span[aria-hidden="true"]{display:block;line-height:1;transform:translateY(-.2px)}
 html:where([data-add-page="calc"]).dark .help-icon{border-color:#526178;background:#111827;color:#93c5fd}
     :where(html[data-add-page="calc"]) .help-icon:hover, :where(html[data-add-page="calc"]) .help-icon:focus-visible{background:#e7f0fb;border-color:#6f8fb8}
 html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-page="calc"]).dark .help-icon:focus-visible{background:#1e293b;border-color:#60a5fa}
@@ -615,13 +621,13 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
     :where(html[data-add-page="calc"]) .kpi .value{margin-top:2px;font-size:18px;font-weight:900;letter-spacing:-.03em;line-height:1.15}
 
     :where(html[data-add-page="calc"]) .range-panel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--calc-card-gap)}
-    :where(html[data-add-page="calc"]) .range-box{padding:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .range-box strong{display:block;font-size:var(--calc-type-label);margin-bottom:2px}
+    :where(html[data-add-page="calc"]) .range-box{--range-accent:var(--navy);padding:var(--calc-surface-space);background:var(--range-surface-bg);border-color:var(--range-surface-border);box-shadow:inset 3px 0 0 var(--range-accent)}
+    :where(html[data-add-page="calc"]) .range-box strong{display:block;font-size:var(--calc-type-label);margin-bottom:2px;color:var(--muted)}
     :where(html[data-add-page="calc"]) .range-box .big{font-size:18px;font-weight:900;line-height:1.15}
     :where(html[data-add-page="calc"]) .range-box .muted{font-size:var(--calc-type-label);line-height:1.4;margin-top:var(--density-gap-micro)}
-    :where(html[data-add-page="calc"]) .range-box.blue{background:var(--range-blue-bg);border-color:var(--range-blue-border)}
-    :where(html[data-add-page="calc"]) .range-box.red{background:var(--danger-bg);border-color:var(--range-red-border)}
-    :where(html[data-add-page="calc"]) .range-box.green{background:var(--range-green-bg);border-color:var(--range-green-border)}
+    :where(html[data-add-page="calc"]) .range-box.blue{--range-accent:var(--range-blue-accent)}
+    :where(html[data-add-page="calc"]) .range-box.red{--range-accent:var(--range-red-accent)}
+    :where(html[data-add-page="calc"]) .range-box.green{--range-accent:var(--range-green-accent)}
 
 /* =========================================================
    06. 전략 탭 / 계산 결과 / 상세 데이터
@@ -687,7 +693,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         --density-page-pad:9px;
         --density-surface-md:7px;
         --density-surface-sm:6px;
-        --calc-surface-space:8px;
+        --calc-surface-space:6px;
         --calc-type-page-title:21px;
         --calc-type-section:15px;
         --calc-type-subsection:13px;
@@ -727,14 +733,14 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
         --density-action-pad-x:var(--calc-control-space);
         --density-action-pad-y:var(--calc-control-space);
         --density-field-pad-x:6px;
-        --calc-surface-space:8px;
+        --calc-surface-space:6px;
         --calc-control-pad-y:var(--calc-control-space);
         --calc-control-input-size:16px;
         --calc-control-scale:.75;
         --calc-control-inner-size:133.333333%;
-        /* 10.666667px × .75 = 8px: iOS 16px input을 optical scale해도 상하좌우 visual padding은 8px을 유지한다. */
-        --calc-control-inner-pad-y:10.666667px;
-        --calc-control-inner-pad-x:10.666667px;
+        /* 8px × .75 = 6px: iOS 16px input을 optical scale해도 상하좌우 visual padding은 6px을 유지한다. */
+        --calc-control-inner-pad-y:8px;
+        --calc-control-inner-pad-x:8px;
         --calc-type-page-title:22px;
         --calc-type-section:15px;
         --calc-type-subsection:13px;
@@ -752,7 +758,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
       }
 
       :where(html[data-add-page="calc"]) #reportBtn .report-text, :where(html[data-add-page="calc"]) #resetBtn .reset-text{display:none}
-      :where(html[data-add-page="calc"]) #reportBtn .report-icon, :where(html[data-add-page="calc"]) #resetBtn .reset-icon{display:block}
+      :where(html[data-add-page="calc"]) .calc-utility-button :is(.report-icon,.reset-icon){width:18px;height:18px}
       /* Phone horizontal composition · 버튼 시각 contract와 분리해 각 영역이 폭/열 구성을 소유한다. */
       :where(html[data-add-page="calc"]) .preset-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs)}
       :where(html[data-add-page="calc"]) .preset-btn{min-width:0;width:100%;padding-inline:var(--calc-control-space)}

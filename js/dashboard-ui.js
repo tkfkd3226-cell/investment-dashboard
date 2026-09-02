@@ -80,6 +80,9 @@ import {
 // [UI01] Theme / Appearance · 테마 / 모서리 스타일
 const THEME_STORAGE_KEY='investmentDashboard.theme';
 const CORNER_THEME_STORAGE_KEY='investmentDashboard.cornerTheme';
+const APPEARANCE_CHANNEL_NAME='investmentDashboard.appearance';
+let appearanceChannel=null;
+try{if('BroadcastChannel' in window)appearanceChannel=new BroadcastChannel(APPEARANCE_CHANNEL_NAME)}catch(_){appearanceChannel=null}
 const currentTheme=()=>document.documentElement.classList.contains('dark')?'dark':'light';
 const uiRuntimeState={
   mobileTopScrollBound:false,
@@ -101,11 +104,15 @@ function syncThemeControls(){
     el.setAttribute('aria-label',nextLabel);
   });
 }
+function publishAppearanceChange(){
+  try{appearanceChannel?.postMessage({theme:currentTheme(),cornerTheme:currentCornerTheme()})}catch(_){}
+}
 function setTheme(theme,{redraw=true}={}){
   const dark=theme==='dark';
   document.documentElement.classList.toggle('dark',dark);
   try{localStorage.setItem(THEME_STORAGE_KEY,dark?'dark':'light')}catch(_){}
   syncThemeControls();
+  publishAppearanceChange();
   if(redraw&&dataState.portfolio)drawAllCharts();
 }
 function toggleTheme(){setTheme(currentTheme()==='dark'?'light':'dark')}
@@ -128,6 +135,7 @@ function setCornerTheme(theme){
   document.documentElement.classList.toggle('rounded-corners',rounded);
   try{localStorage.setItem(CORNER_THEME_STORAGE_KEY,rounded?'rounded':'soft-square')}catch(_){}
   syncCornerThemeControls();
+  publishAppearanceChange();
 }
 function toggleCornerTheme(){setCornerTheme(currentCornerTheme()==='rounded'?'soft-square':'rounded')}
 

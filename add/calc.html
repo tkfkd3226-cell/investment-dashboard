@@ -26,14 +26,14 @@
     <div class="hero-head">
       <h1>투자 계산기</h1>
       <div class="actions">
-      <a class="btn add-button add-button-action add-button-mobile-icon report-top-link" id="reportBtn" href="kodex-leverage-report.html" target="_blank" rel="noopener" aria-label="거래 리포트">
+      <a class="btn calc-utility-button add-button add-button-action add-button-mobile-icon report-top-link" id="reportBtn" href="kodex-leverage-report.html" target="_blank" rel="noopener" aria-label="거래 리포트">
         <span class="report-text">거래 리포트</span>
         <svg class="report-icon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M6 3h9l3 3v15H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
           <path d="M15 3v4h4M9 16l2-3 2 2 3-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </a>
-      <button class="btn add-button add-button-action add-button-mobile-icon" id="resetBtn" type="button" aria-label="기본값 복원"><span class="reset-text">기본값 복원</span><svg class="reset-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="btn calc-utility-button add-button add-button-action add-button-mobile-icon" id="resetBtn" type="button" aria-label="기본값 복원"><span class="reset-text">기본값 복원</span><svg class="reset-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
     </div>
     <p id="heroDescription">추가매수 당일 종가 또는 추가매수가 대비 변동률 기준 · 목표 매도단가와 3가지 손실 회복 방식 자동 계산</p>
@@ -57,7 +57,7 @@
           <div class="field" id="currentPriceField"><label id="currentPriceLabel" for="currentPrice">추가매수 당일 종가</label><span class="calc-control-shell"><input id="currentPrice" class="control money-input" inputmode="numeric" value="79,020"></span></div>
           <div class="field" id="existingValueField"><label id="existingValueLabel" for="existingCurrentValue">기존 보유분 평가금액</label><span class="calc-control-shell"><input id="existingCurrentValue" class="control" readonly></span></div>
           <div class="field" id="existingPLField"><label id="existingPLLabel" for="existingCurrentPL">기존 보유분 손익</label><span class="calc-control-shell"><input id="existingCurrentPL" class="control" readonly></span></div>
-          <div class="field" id="oldRecoveryField"><label class="label-with-help"><span id="oldRecoveryLabel">기존 회수 대상 금액</span><span class="help-tooltip" id="oldRecoveryHelpWrap"><button type="button" class="help-icon add-button" id="oldRecoveryHelp" aria-label="기존 회수 대상 금액 설명" aria-describedby="oldRecoveryTooltip" aria-expanded="false">i</button><span class="custom-tooltip" id="oldRecoveryTooltip" role="tooltip">기존 보유분에 사용된 마이너스통장 원금 등 매도대금으로 우선 회수·상환하려는 금액. 손실·평단·손익분기 계산 제외, 전략별 회수 결과에만 반영.</span></span></label><span class="calc-control-shell"><input id="oldOverdraft" class="control money-input" inputmode="numeric" value="3,700,000" aria-labelledby="oldRecoveryLabel"></span></div>
+          <div class="field" id="oldRecoveryField"><label class="label-with-help"><span id="oldRecoveryLabel">기존 회수 대상 금액</span><span class="help-tooltip" id="oldRecoveryHelpWrap"><button type="button" class="help-icon add-button" id="oldRecoveryHelp" aria-label="기존 회수 대상 금액 설명" aria-describedby="oldRecoveryTooltip" aria-expanded="false"><span aria-hidden="true">i</span></button><span class="custom-tooltip" id="oldRecoveryTooltip" role="tooltip">기존 보유분에 사용된 마이너스통장 원금 등 매도대금으로 우선 회수·상환하려는 금액. 손실·평단·손익분기 계산 제외, 전략별 회수 결과에만 반영.</span></span></label><span class="calc-control-shell"><input id="oldOverdraft" class="control money-input" inputmode="numeric" value="3,700,000" aria-labelledby="oldRecoveryLabel"></span></div>
           <div class="existing-subsection existing-purchase-section" id="existingPurchaseSection"></div>
           <div class="existing-subsection existing-evaluation-section" id="existingEvaluationSection"></div>
           <div class="field" id="breakEvenInputField"><label id="breakEvenInputLabel" for="brokerBreakEven">통합 회복 기준가격</label><span class="calc-control-shell"><input id="brokerBreakEven" class="control" readonly></span></div>

@@ -17,6 +17,7 @@ const charts=read('js/dashboard-charts.js');
 const core=read('js/dashboard-core.js');
 const modal=read('js/dashboard-modal.js');
 const uiCommon=read('js/dashboard-ui-common.js');
+const ui=read('js/dashboard-ui.js');
 const marketAi=read('js/dashboard-market-ai.js');
 const app=read('js/dashboard-app.js');
 
@@ -24,6 +25,7 @@ const common1=compact(common);
 const special1=compact(special);
 const charts1=compact(charts);
 const modal1=compact(modal);
+const ui1=compact(ui);
 const market1=compact(marketAi);
 const index1=compact(index);
 
@@ -41,6 +43,17 @@ test('Main boot contract: CSS 6개 순서와 app/Market AI 두 module entry를 �
   }
   assert.match(index,/type="module" src="js\/dashboard-app\.js\?v=/);
   assert.match(index,/type="module" src="js\/dashboard-market-ai\.js\?v=/);
+});
+
+
+test('Main appearance 두 control은 localStorage와 BroadcastChannel을 함께 갱신한다',()=>{
+  assert.match(ui1,/const THEME_STORAGE_KEY='investmentDashboard\.theme'/);
+  assert.match(ui1,/const CORNER_THEME_STORAGE_KEY='investmentDashboard\.cornerTheme'/);
+  assert.match(ui1,/const APPEARANCE_CHANNEL_NAME='investmentDashboard\.appearance'/);
+  assert.match(ui1,/appearanceChannel=new BroadcastChannel\(APPEARANCE_CHANNEL_NAME\)/);
+  assert.match(ui1,/function publishAppearanceChange\(\)\{ try\{appearanceChannel\?\.postMessage\(\{theme:currentTheme\(\),cornerTheme:currentCornerTheme\(\)\}\)\}catch\(_\)\{\} \}/);
+  assert.match(ui1,/function setTheme\(theme,\{redraw=true\}=\{\}\)\{[^]*?localStorage\.setItem\(THEME_STORAGE_KEY,dark\?'dark':'light'\)[^]*?syncThemeControls\(\); publishAppearanceChange\(\);/);
+  assert.match(ui1,/function setCornerTheme\(theme\)\{[^]*?localStorage\.setItem\(CORNER_THEME_STORAGE_KEY,rounded\?'rounded':'soft-square'\)[^]*?syncCornerThemeControls\(\); publishAppearanceChange\(\);/);
 });
 
 test('Main module boundary: core는 DOM 비의존, modal은 무의존, Market AI는 modal만 공유한다',()=>{

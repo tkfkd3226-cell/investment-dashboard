@@ -7,10 +7,33 @@
   if(typeof document==='undefined'||typeof window==='undefined')return;
   const root=document.documentElement;
   const page=root.dataset.addPage;
+  const THEME_KEY='investmentDashboard.theme';
+  const CORNER_KEY='investmentDashboard.cornerTheme';
+  const APPEARANCE_CHANNEL_NAME='investmentDashboard.appearance';
+
+  // Main Dashboard와 동일한 저장 appearance contract를 Add에서도 소비한다.
+  // 열린 Add 탭도 Main에서 설정이 바뀌면 storage + BroadcastChannel + focus/pageshow/visibility 경로로 즉시 재동기화한다.
+  const syncStoredAppearance=()=>{
+    try{
+      root.classList.toggle('dark',localStorage.getItem(THEME_KEY)==='dark');
+      root.classList.toggle('rounded-corners',localStorage.getItem(CORNER_KEY)==='rounded');
+    }catch{}
+  };
+  syncStoredAppearance();
+  window.addEventListener('storage',event=>{
+    if(event.key===THEME_KEY||event.key===CORNER_KEY)syncStoredAppearance();
+  });
+  let appearanceChannel=null;
   try{
-    if(localStorage.getItem('investmentDashboard.theme')==='dark')root.classList.add('dark');
-    if(localStorage.getItem('investmentDashboard.cornerTheme')==='rounded')root.classList.add('rounded-corners');
-  }catch{}
+    if('BroadcastChannel' in window){
+      appearanceChannel=new BroadcastChannel(APPEARANCE_CHANNEL_NAME);
+      appearanceChannel.addEventListener('message',syncStoredAppearance);
+    }
+  }catch{appearanceChannel=null}
+  window.addEventListener('pageshow',syncStoredAppearance);
+  window.addEventListener('focus',syncStoredAppearance);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncStoredAppearance();});
+  window.addEventListener('pagehide',()=>{try{appearanceChannel?.close()}catch{}},{once:true});
 
   // Report의 iPhone '데스크탑 웹사이트 요청' 보정은 viewport 계산 전에 적용한다.
   if(page==='report'){
@@ -73,7 +96,7 @@
   const setClass=(node,cls)=>{node.classList.remove('positive','negative','zero');if(cls)node.classList.add(cls);};
   const setText=(id,text,cls)=>{const n=$(id);n.classList.remove('has-help');n.textContent=text;if(cls)setClass(n,cls);};
   const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const setHelpText=(id,text,tip)=>{const n=$(id),tooltipId=`${id}Tooltip`;n.classList.add('has-help');n.innerHTML=`<span class="inline-help-label"><span>${esc(text)}</span><span class="help-tooltip"><button type="button" class="help-icon add-button" aria-label="${esc(text)} 설명" aria-describedby="${tooltipId}" aria-expanded="false">i</button><span class="custom-tooltip" id="${tooltipId}" role="tooltip">${esc(tip)}</span></span></span>`;};
+  const setHelpText=(id,text,tip)=>{const n=$(id),tooltipId=`${id}Tooltip`;n.classList.add('has-help');n.innerHTML=`<span class="inline-help-label"><span>${esc(text)}</span><span class="help-tooltip"><button type="button" class="help-icon add-button" aria-label="${esc(text)} 설명" aria-describedby="${tooltipId}" aria-expanded="false"><span aria-hidden="true">i</span></button><span class="custom-tooltip" id="${tooltipId}" role="tooltip">${esc(tip)}</span></span></span>`;};
   const formatPctInput=n=>Number(n).toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
   const readPct=id=>{const n=$(id);return n.dataset.exactValue!==undefined?parseNum(n.dataset.exactValue):parseNum(n.value);};
   const setPct=(id,n,digits=2)=>{const el=$(id);el.dataset.exactValue=String(n);el.value=Number(n).toFixed(digits).replace(/0+$/,'').replace(/\.$/,'');};
@@ -401,7 +424,7 @@
     const spec=typeof label==='string'?{text:label,tip:'',key:''}:label;
     if(!spec.tip)return esc(spec.text);
     const tooltipId=`${idPrefix}-${spec.key||'help'}-tooltip`;
-    return `<span class="inline-help-label"><span>${esc(spec.text)}</span><span class="help-tooltip"><button type="button" class="help-icon add-button" aria-label="${esc(spec.text)} 설명" aria-describedby="${tooltipId}" aria-expanded="false">i</button><span class="custom-tooltip" id="${tooltipId}" role="tooltip">${esc(spec.tip)}</span></span></span>`;
+    return `<span class="inline-help-label"><span>${esc(spec.text)}</span><span class="help-tooltip"><button type="button" class="help-icon add-button" aria-label="${esc(spec.text)} 설명" aria-describedby="${tooltipId}" aria-expanded="false"><span aria-hidden="true">i</span></button><span class="custom-tooltip" id="${tooltipId}" role="tooltip">${esc(spec.tip)}</span></span></span>`;
   };
   function metric(name,value,cls='',tip='',idPrefix='summary'){return `<div class="summary-card add-card-shell add-card-control"><div class="sname">${resultLabelHTML(resultLabel(name,tip,'metric'),idPrefix)}</div><div class="svalue ${cls}">${value}</div></div>`;}
   function desktopTable(headers,vals,idPrefix='table'){return `<div class="table-scroll add-table-scroll desktop-data"><table class="add-data-table calc-data-table"><thead><tr>${headers.map((h,k)=>`<th scope="col" class="add-table-cell-center calc-result-label">${resultLabelHTML(h,`${idPrefix}-${k}`)}</th>`).join('')}</tr></thead><tbody><tr>${vals.map(v=>`<td class="add-table-cell-center calc-result-value ${v.cls||''}">${v.text}</td>`).join('')}</tr></tbody></table></div>`;}

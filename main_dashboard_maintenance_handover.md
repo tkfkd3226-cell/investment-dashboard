@@ -1822,7 +1822,7 @@ JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 �
 
 ### Theme / Corner
 
-테마·모서리 control은 실제 현재 상태를 잘못 암시하는 permanent active UI가 되지 않아야 하며 Light/Dark 모두 icon contrast를 유지한다.
+테마·모서리 control은 실제 현재 상태를 잘못 암시하는 permanent active UI가 되지 않아야 하며 Light/Dark 모두 icon contrast를 유지한다. Main에서 두 appearance control을 변경할 때는 기존 localStorage key(`investmentDashboard.theme`, `investmentDashboard.cornerTheme`) 갱신과 함께 `investmentDashboard.appearance` BroadcastChannel로 현재 Light/Dark·Corner 상태를 발행한다. Add의 Calc/Report는 storage event를 fallback으로 유지하면서 이 channel을 소비해 이미 열린 탭도 실시간 동기화한다.
 
 ### Table
 
