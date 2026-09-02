@@ -11,8 +11,8 @@
   const CORNER_KEY='investmentDashboard.cornerTheme';
   const APPEARANCE_CHANNEL_NAME='investmentDashboard.appearance';
 
-  // Main Dashboard와 동일한 저장 appearance contract를 Add에서도 소비한다.
-  // 열린 Add 탭도 Main에서 설정이 바뀌면 storage + BroadcastChannel + focus/pageshow/visibility 경로로 즉시 재동기화한다.
+  // 00. Add 공통 사전 처리
+  // Main appearance 저장값을 Calc/Report가 함께 소비하고 열린 탭도 재동기화한다.
   const syncStoredAppearance=()=>{
     try{
       root.classList.toggle('dark',localStorage.getItem(THEME_KEY)==='dark');
@@ -35,7 +35,7 @@
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncStoredAppearance();});
   window.addEventListener('pagehide',()=>{try{appearanceChannel?.close()}catch{}},{once:true});
 
-  // Report의 iPhone '데스크탑 웹사이트 요청' 보정은 viewport 계산 전에 적용한다.
+  // Report viewport preflight · iPhone '데스크탑 웹사이트 요청' 보정은 page boot 전에 적용한다.
   if(page==='report'){
     const ua=navigator.userAgent||'';
     const desktopAppleUA=/Macintosh/.test(ua)&&!/(iPhone|iPad|iPod)/.test(ua);
@@ -1354,7 +1354,7 @@
     }
     
     // 06. 차트 초기화 / resize 재렌더
-    // resize 연속 호출은 80ms debounce 후 다시 그림
+    // resize 연속 호출은 debounce 후 다시 그림
     let resizeTimer;
     function initChart(){
       window.addEventListener('resize',()=>{

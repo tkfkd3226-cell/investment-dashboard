@@ -59,6 +59,8 @@ Add 영역의 토큰화·공통화 평가는 **literal 값의 존재 자체가 �
 - 자동 테스트가 없다는 이유만으로 B급을 만들거나 감점하지 않는다.
 - 테스트가 FAIL하면 실제 코드/계산/UI contract 결함인지, 변경된 의도에 비해 테스트가 낡은 것인지 먼저 구분한다. 실제 결함이 확인된 경우에만 그 결함 자체를 평가한다.
 - 자동 테스트 PASS는 실제 UI 미감·정보 위계·실기 UX까지 자동 PASS한다는 의미가 아니다.
+- `ui-contract.test.cjs`는 구조·상태·responsive·접근성처럼 폐기되면 실제 회귀가 생기는 경계를 보호한다. 장식용 exact px/hex/shadow/opacity, DOM 개수처럼 정상적인 디자인 수정에도 자주 바뀌는 구현값은 고정하지 않는다.
+- 숫자 자체가 제품 동작인 viewport 경계·명시적 데스크탑 요청 폭·브라우저 동작 회피 조건 등은 예외적으로 contract로 검증할 수 있다.
 
 ---
 
@@ -100,24 +102,18 @@ Mobile · 모바일   ≤ 760px
 
 ### 1.2 add 영역 UI 공통 구성 원칙
 
-- `calc`와 `report`는 `add/add.css`의 공통 의미색·Corner·Spacing/Density·Heading·Button token/primitive를 재사용한다. 현재 수치 자체는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다. Corner는 역할별 기본 radius와 soft-square cap을 분리하고, 메인의 `investmentDashboard.cornerTheme` 저장값을 읽어 동일한 `rounded-corners` mode contract를 적용한다. Calc가 공통 role radius를 별도 compact 값으로 다시 덮지 않으며, 열린 Add 문서도 `storage`와 `investmentDashboard.appearance` BroadcastChannel을 함께 소비하고 `focus`·`pageshow`·visibility 복귀 시 저장값을 재동기화해 Main의 Light/Dark 및 모서리 선택이 Calc와 Report 모두에 즉시/재진입 시 동일하게 반영되도록 한다.
-- 카드·패널·폼·표·탭·버튼처럼 역할이 비슷한 component의 padding/gap은 공통 density token을 우선 사용하고, Desktop → Tablet → Mobile 순으로 일관되게 compact해지는 3단계 contract를 유지한다. 카드·패널·요약박스처럼 독립된 Surface의 기본 padding은 상하좌우 동일값을 사용하며, 표 셀·버튼·input·header row처럼 기능상 X/Y 여백이 달라야 하는 요소만 예외로 둔다. Touch target 높이, 차트 geometry, 광학 보정처럼 기능상 필요한 값은 억지로 density token에 합치지 않는다. 단순 미관 조정 때문에 독립 radius·magic number·임시 offset을 누적하지 않는다.
-- **현재 Add는 선택형 대체 디자인을 두지 않는 단일 canonical 스타일 구조다.** Calc는 Compact 정보 밀도와 시각 언어를 기본 스타일로 사용하되 기존 페이지 폭 contract를 유지하고, Report는 Dynamic의 gradient·depth·accent 중심 시각 언어를 기본 스타일로 사용하되 기존 layout·typography scale을 유지한다. 두 디자인은 `add.css`의 각 `data-add-page` scope에 직접 통합하며 별도 디자인 전환 runtime이나 override stylesheet를 만들지 않는다.
-- **Calc typography는 역할별 공통 token을 Source of Truth로 사용한다.** 페이지 제목·section·subsection·support·label처럼 의미가 같은 텍스트는 같은 역할 token을 사용하고, 개별 selector에 별도 font-size를 다시 만들지 않는다. Desktop / Tablet / Phone의 실제 값과 compact 정도는 현재 `add.css`의 역할 token을 Source of Truth로 하며, 가로폰은 Phone token을 그대로 사용한다. input 값·강조 value·기능 아이콘처럼 역할이 다른 텍스트는 이 label 계층에 억지로 합치지 않는다.
-- **Calc 입력영역은 하나의 Field Layout primitive를 사용한다.** 일반 입력카드와 계산 기준 모두 `label → 공통 label/control gap → control → 공통 field row gap` 리듬을 공유하며, 계산 기준에 정렬용 magic margin·padding·고정 offset을 별도로 만들지 않는다. Web/Tablet에서 나란한 카드의 첫 control 시작선을 맞추기 위한 빈 label slot은 같은 field track을 재사용하고, 카드가 독립 행으로 내려오는 Phone에서만 그 slot을 제거한다. 라벨 크기·field gap·control density를 바꿀 때는 공통 token을 수정해 전 viewport와 모든 입력카드가 함께 움직이게 한다.
-- **Calc 상단 입력카드는 Desktop과 큰 Tablet에서 동일한 column composition을 유지하되, 실제 내용 충돌이 발생하는 761~920px에만 기능성 특수 viewport를 둔다.** `보유 중 추가매수`와 `이전 거래 후 재매수`는 기본적으로 동일폭 3열이며 921px 이상에서는 한 줄을 유지하고, 761~920px에서는 앞의 두 입력카드를 2열로 두고 `계산 기준`만 다음 행 전체폭으로 내린다. `이전 거래 없음`은 761~1100px에서도 `현재 보유분`과 `계산 기준`의 동일폭 2열을 유지한다. Phone에서는 모든 입력카드를 1열로 재배치하며, 실제 터치폰 가로 판정이 이 특수 Tablet 규칙보다 우선한다. 날짜형 빠른 매수 shortcut 삭제 후 생긴 빈 grid track이나 margin 보정으로 상단 여백을 만들지 않는다.
-- **Calc control 외곽 geometry와 내부 spacing도 단일 token을 Source of Truth로 사용한다.** 일반 input·date shell/inner control·주요 text/choice/step 버튼은 `--calc-control-box-height`와 `--calc-control-space`에서 같은 높이·border·6px 내부 여백을 파생하고, feature selector에 별도 padding 값을 복제하지 않는다. 일반 input은 `calc-control-shell`, date는 기존 `date-control-shell`이 외곽 geometry/focus/error surface를 소유한다. `원/%` 단위가 input 안에 겹쳐 표시되는 필드의 오른쪽 reserve와 고정 크기 icon/help button의 `padding:0`은 기능적 geometry 예외다. Phone에서는 iOS focus zoom을 막기 위해 focus 가능한 input의 computed font-size를 16px로 유지하되 shell 내부 control만 optical scale하고 pre-scale padding을 보정해 실제 visual padding 6px을 유지한다. `maximum-scale` 같은 viewport 확대 차단으로 대체하지 않는다.
-- **Calc의 주요 선택 버튼은 `calc-choice-button`의 공통 시각 contract를 공유하되 가로 layout은 공통화하지 않는다.** 상단 거래유형, `계산 기준`, 하단 매도 전략은 높이·상하좌우 6px padding·Corner·typography·active 상태를 Web/Tablet/Phone에서 동일하게 사용한다. 반면 버튼 가로폭·열 구성·그룹 전체 폭은 각각 `preset-bar` / `seg` / `tabs`가 소유하며, 상단 거래유형의 자연폭/Phone 3열, 계산 기준의 카드 내부 3등분, 하단 전략의 Desktop/Tablet 자연폭 및 Phone 3열·거래유형별 2열 전환을 서로 억지로 합치지 않는다. `거래 리포트`·`기본값 복원`은 선택 상태를 갖지 않는 secondary utility action이므로 `calc-utility-button`에서 regular weight와 subtle surface/icon contract를 공유하고, 선택 버튼의 bold/active 표현을 그대로 재사용하지 않는다.
-- **Calc의 중간 계산 요약은 하나의 공통 outer surface로 묶고 내부 정보 위계만 4개 KPI grid + 3개 range grid로 나눈다.** 두 행을 각각 별도 큰 카드로 다시 분리하거나 상단 입력카드 안에 편입하지 않는다. Calc의 상단 입력 outer surface·중간 summary outer surface·하단 strategy outer surface는 페이지의 grid 배경보다 한 단계 밝은 공통 `calc-shell` surface/border/shadow 역할 token을 사용해 페이지 → 큰 surface → 내부 카드의 명도 계층을 유지한다. 배경 격자를 지우거나 내부 input/KPI/range surface까지 같은 색으로 덮어 계층을 평탄화하지 않는다. 아래 3개 상태 range 카드는 전체 면을 파랑·빨강·초록으로 채우지 않고 중립 control surface를 공유하며, 상태 구분은 semantic accent만 사용한다. Calc의 카드·패널·결과표 cell은 `--calc-surface-space`를 단일 Source of Truth로 사용해 상하좌우 여백을 Desktop/Tablet/Phone 모두 6px로 동일하게 적용한다. 입력카드·KPI·range·전략 summary·Phone 결과카드 등 카드 사이 gap도 `--calc-card-gap`에서 같은 6px rhythm을 공유하며, 특정 카드만 별도 padding/gap 값을 만들지 않는다. 버튼·input 내부 padding도 별도 `--calc-control-space:6px` contract로 전 viewport 동일하게 관리하고, field label/control 간격·divider 보정처럼 역할이 다른 spacing은 카드 surface contract에 억지로 합치지 않는다. 입력카드 내부 subsection은 카드 외곽 방향에 추가 좌우·하단 padding을 만들지 않고, 점선 divider와 맞닿는 방향에만 `--calc-surface-space`를 사용해 separator breathing room을 확보한다.
-- **Calc 결과 상세의 Desktop/Tablet 표와 Phone 카드는 표현 방식만 다르고 동일한 typography 역할을 공유한다.** `매도 결과`·`손익 통합`·`매도 후 최종 상태` 같은 section 제목은 `calc-result-section-title`, 표 column header와 카드의 작은 label은 `calc-result-label`, 표 cell value와 카드 value는 `calc-result-value`를 함께 사용한다. Web/Tablet/Phone 모두 같은 semantic role의 실제 font-size/weight/line-height를 사용하며 viewport별 표현을 이유로 별도 typography를 다시 만들지 않는다. 결과 표의 값 셀 surface는 `--surface-control`을 사용해 Light에서 흰색, Dark에서 대응 surface가 되도록 유지한다.
-- **Calc는 거래유형 선택용 preset만 유지하고 실제 거래일별 빠른 매수 shortcut을 누적하지 않는다.** `이전 거래 없음`은 사용자가 현재 값을 직접 입력하는 범용 계산 시나리오로 유지하고, 실제 매수일·본 포지션 형성 이력은 거래 리포트가 소유한다. 새 실거래가 생겼다는 이유만으로 Calc에 날짜형 매수 버튼이나 그 전용 state/CSS를 추가하지 않는다.
-- **Calc stale-result UX를 유지한다.** 한 번 이상 정상 계산한 뒤 입력이 invalid가 되면 직전 정상 결과를 삭제하지 않고 stale 상태로 명확히 구분하며, 안내문으로 마지막 정상 입력 기준임을 알린다. 입력이 다시 유효해지면 stale 상태를 즉시 제거하고 새 결과를 계산한다. 아직 정상 계산 결과가 한 번도 없는 초기 invalid 상태에서는 “마지막 정상 결과”라고 표현하지 않는다.
-- iPhone Safari가 가로 회전 시 제목·설명문 일부만 선택적으로 확대하지 않도록 Calc의 `-webkit-text-size-adjust:100%` / `text-size-adjust:100%` 방어를 유지한다. 이 설정을 제거하거나 가로폰에서만 별도 font-size를 덧대는 방식으로 대체하지 않는다.
-- 거래유형 전환이나 responsive 변경 시 입력 패널의 정보 순서·시각적 균형·사용성을 유지하되, 해결 방법은 구조적 CSS를 우선한다.
-- 입력 요소는 가능한 한 `<label for>` 또는 `aria-labelledby`로 연결하고, 전략/리포트 탭은 `tablist/tab/tabpanel`, `aria-controls`, `aria-selected`와 키보드 이동을 유지한다. 시각 상태와 ARIA 상태가 함께 갱신되어야 한다.
-- Report 탭은 Desktop/Mobile별 중복 DOM을 만들지 않고 하나의 `tablist`/탭 집합을 viewport에서 재배치한다. 모바일 햄버거는 동일 tablist의 표시만 열고 닫으며 active/ARIA/tabindex state owner도 하나로 유지한다.
-- 동적 tooltip은 `aria-describedby` 연결을 유지하고, report 표는 caption/column header/row header의 의미 구조를 보존한다. Calc의 작은 라벨 도움말 `i`는 label/wrapper를 공통 inline-flex 중앙 정렬하고, Main `control-info-button`과 같은 방식으로 `i` glyph만 미세 광학 보정한다. 개별 label마다 `top`·`margin` 보정을 추가하지 않는다.
-- CALC 설명문·툴팁·검증문구는 기존의 짧은 명사형·단문 스타일을 유지한다.
+- `calc`와 `report`는 `add/add.css`의 공통 의미색·Corner·Spacing/Density·Heading·Button·Card/Table primitive를 재사용한다. 현재 색상·여백·폰트·radius 수치는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다. Main의 Light/Dark·모서리 선택은 동일 저장 key와 appearance 동기화 경로를 통해 Calc와 Report 모두에 반영하며, Calc가 공통 Corner 역할값을 별도 값으로 다시 덮지 않는다.
+- **Add는 선택형 대체 디자인이 없는 단일 canonical 스타일 구조다.** Calc는 Compact 정보 밀도, Report는 Dynamic 시각 언어를 각 `data-add-page` scope가 직접 소유하며 별도 theme/alt stylesheet·runtime을 다시 만들지 않는다.
+- **Responsive는 1.1의 장치 분류 contract를 따른다.** Calc의 `보유 중 추가매수`·`이전 거래 후 재매수`는 큰 Tablet 이상에서 3열을 유지하고, 실제 내용 충돌이 생기는 `761~920px`에서만 앞의 두 카드 + 다음 행 전체폭 `계산 기준`의 2+1 구조를 사용한다. `이전 거래 없음`은 Tablet에서 2열을 유지하고 Phone에서만 1열로 내려간다. 터치폰 가로 판정은 특수 Tablet 규칙보다 우선한다.
+- **Calc typography는 의미 역할별 공통 token을 사용한다.** 같은 역할의 제목·section·label·결과 title/label/value가 viewport나 table/card 표현 차이 때문에 개별 font-size/weight/line-height를 다시 소유하지 않도록 한다. 정확한 scale은 현재 CSS를 기준으로 한다.
+- **Calc 입력영역은 공통 Field/Control contract를 사용한다.** 일반 입력카드와 `계산 기준`은 같은 label/control gap·field row gap·control geometry source를 공유하고, 정렬을 위한 magic margin·padding·고정 offset을 추가하지 않는다. Web/Tablet의 빈 label slot은 같은 field track 정렬용이며 Phone에서만 제거한다. input/date/choice/step control의 공통 spacing도 하나의 source에서 파생하고 feature별 값을 복제하지 않는다.
+- Phone input은 iOS focus zoom을 막는 computed-size + optical-scale 구조를 유지하되 확대 자체를 viewport 설정으로 차단하지 않는다. optical scale 후의 시각적 padding과 control 정렬은 공통 control spacing과 일치해야 하며, `원/%` 단위 reserve나 고정 icon geometry처럼 기능상 필요한 부분만 예외로 둔다.
+- **Calc 주요 선택 버튼은 세로 geometry·typography·state를 공유하지만 가로 layout은 각 container가 소유한다.** 거래유형, 계산 기준, 매도 전략의 폭/열 구성을 하나로 강제하지 않는다. `거래 리포트`·`기본값 복원`은 선택 상태가 없는 secondary utility action으로 별도 역할을 유지한다.
+- **Calc 중간 계산 요약은 하나의 outer surface 안에서 KPI 행과 상태 행으로 나눈다.** 상단 입력·중간 요약·하단 전략 outer surface는 페이지 배경과 구분되는 같은 surface hierarchy를 사용하고, 내부 카드까지 같은 면색으로 덮어 계층을 없애지 않는다. 상태카드는 중립 surface를 기본으로 하고 semantic accent로 상태만 구분한다. 카드/패널/table cell의 surface spacing과 카드 간 gap은 공통 source를 재사용하며 subsection은 카드 외곽 padding을 중복하지 않고 divider 방향에만 필요한 간격을 둔다.
+- **Calc 결과 상세는 Desktop/Tablet table과 Phone card가 같은 semantic information role을 공유한다.** section title·label·value typography는 같은 역할 source를 사용하고, table value는 semantic control surface를 사용한다. 표현 방식이 다르다는 이유로 별도 typography 체계를 만들지 않는다.
+- **Calc 상세표는 동일 열폭 + content-driven minimum width를 사용한다.** 표 종류별 임의 `min-width` modifier를 누적하지 않고, 현재 렌더된 label/value가 잘리지 않는 최소폭을 계산해 container보다 넓을 때만 표 자체를 가로 스크롤한다. viewport 변화 시 같은 기준으로 다시 계산하며 Phone 카드 표현과 계산 로직은 이 presentation 규칙과 분리한다.
+- **Calc는 거래유형 preset만 유지하고 실제 거래일별 빠른 매수 shortcut을 누적하지 않는다.** 실제 매수·매도 이력은 Report가 소유한다. 정상 계산 뒤 입력이 invalid가 되면 직전 정상 결과를 stale 상태로 구분해 유지하고, 다시 유효해지면 즉시 새 결과로 갱신한다.
+- 입력 요소의 label 연결, 전략/Report tab의 `tablist/tab/tabpanel`·ARIA·keyboard state, tooltip의 `aria-describedby`, Report table의 caption/header semantic을 유지한다. 작은 도움말 `i`는 label과 공통 inline 정렬 구조를 사용하며 개별 위치 보정값을 누적하지 않는다. CALC 설명문·툴팁·검증문구는 짧은 명사형·단문 스타일을 유지한다.
 
 ### 1.3 현재 canonical 소스 구조
 
@@ -161,7 +157,7 @@ tests/add/
   - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
 - `tests/add/ui-contract.test.cjs`
   - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
-  - 선택 active와 ARIA 동기화, fine-pointer hover 보호, padding-driven input/date/stepper, 역할별 typography token, 가로폰 Phone UI 분류, iOS text autosizing 방지, invalid 입력 stale-result, Calc Compact·Report Dynamic canonical style처럼 폐기되면 안 되는 UI 경계를 production HTML/CSS/JS에서 직접 확인한다.
+  - production HTML/CSS/JS에서 구조·상태·responsive·접근성·single-source contract를 확인하며, 장식용 exact pixel/color/count를 snapshot처럼 고정하지 않는다.
 
 ### 1.4 CSS / JS 내부 구조 원칙
 
@@ -170,7 +166,7 @@ tests/add/
 - `add.js`의 계산 엔진은 DOM-free를 유지하고 render/event 책임과 분리한다.
 - 이벤트·툴팁·초기화는 중복 등록되지 않게 명시적으로 관리하며, Node export/browser boot guard를 유지한다.
 - 계산 또는 validation을 변경한 경우 production `add/add.js`를 대상으로 `node --test tests/add/calc.test.cjs`를 실행한다.
-- Calc/Report의 버튼 선택상태·ARIA·hover·input/date/stepper density 또는 Calc typography·가로폰 Phone UI contract를 변경한 경우 `node --test tests/add/ui-contract.test.cjs`를 함께 실행한다.
+- Calc/Report의 선택상태·ARIA·responsive·control/typography source·Phone UI 등 장기 UI contract를 변경한 경우 `node --test tests/add/ui-contract.test.cjs`를 함께 실행한다.
 - Report의 차트 label thinning, 마지막 거래일 식별, DPR/resize 처리처럼 동작 의미가 있는 로직은 관련 변경 시 회귀 확인한다.
 
 ## 2. 거래 리포트 canonical 파일명
@@ -488,12 +484,6 @@ https://tkfkd3226-cell.github.io/investment-dashboard/add/kodex-leverage-report.
 - 현재 사용하지 않는 자금 흐름/차입금 상환 후 자기자금 패널
 
 다른 개선 아이디어가 보여도 사용자가 요청하지 않았다면 현재 작업과 섞지 않는다.
-
-### Table 공통 contract
-- Calc 데스크톱 상세표와 Report 표는 `add-data-table` / `add-table-scroll` 공통 primitive를 사용한다.
-- Calc 상세표는 semantic `<table>`(`thead`/`tbody`, `th scope="col"`, 의미 정렬 class)로 렌더하며 열 수에 따른 `nth-child(Nn)` border 보정을 만들지 않는다.
-- Calc 상세표의 열은 `table-layout:fixed`로 동일 폭을 유지한다. 표 종류별 `675px`·`870px` 같은 임의 `min-width`를 두지 않고, 현재 렌더된 label/value의 자연 폭 중 가장 넓은 셀을 기준으로 `가장 넓은 셀 폭 × 열 수`를 표 최소폭으로 계산한다. 표 cell의 상하좌우 padding도 Calc surface spacing과 동일한 Desktop/Tablet/Phone 모두 6px contract를 사용한다. 이 최소폭이 container를 넘는 경우에만 `add-table-scroll`에서 가로 스크롤하며 label/value를 압축·줄바꿈해 맞추지 않는다. viewport 변화로 typography가 달라질 수 있으므로 resize 시 같은 기준으로 다시 계산한다. 계산 로직과 Phone 카드 표현은 이 table presentation과 분리한다.
-
 
 ## 14. 최종 한 문장 운영 원칙
 

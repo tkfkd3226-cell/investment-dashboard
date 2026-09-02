@@ -258,190 +258,189 @@ body{
    - 모서리 값은 위 Shared 영역의 공통 Corner 토큰 사용
    ========================================================= */
 :root:where([data-add-page="calc"]){
-      /* Compact geometry / field rhythm
-         - Compact 스타일의 정보 밀도를 canonical Calc 기준으로 사용한다.
-         - Compact 정보 밀도에 맞춰 Desktop 최대폭은 1280px을 사용하고, 입력/카드 내부 grid 비율은 기존 구조를 유지한다. */
-      --calc-control-space:6px;
-      --calc-control-pad-y:var(--calc-control-space);
-      --calc-control-border-width:1px;
-      --calc-control-box-height:calc(1rem + var(--calc-control-pad-y) + var(--calc-control-pad-y) + var(--calc-control-border-width) + var(--calc-control-border-width));
-      --calc-control-inner-height:calc(var(--calc-control-box-height) - var(--calc-control-border-width) - var(--calc-control-border-width));
-      /* Control value typography
-         - Web/Tablet은 Compact 값 크기 12px을 그대로 사용한다.
-         - Phone은 iOS focus zoom 방지를 위해 실제 input computed size만 16px로 유지하고 shell 내부에서 .75 optical scale로 12px처럼 표시한다. */
-      --calc-control-value-size:12px;
-      --calc-control-input-size:var(--calc-control-value-size);
-      --calc-control-scale:1;
-      --calc-control-inner-size:100%;
-      --calc-control-inner-pad-y:var(--calc-control-pad-y);
-      --calc-control-inner-pad-x:var(--calc-control-space);
+  /* Compact geometry / field rhythm
+     - Compact 스타일의 정보 밀도를 canonical Calc 기준으로 사용한다.
+     - Compact 정보 밀도에 맞춰 Desktop 최대폭은 1280px을 사용하고, 입력/카드 내부 grid 비율은 기존 구조를 유지한다. */
+  --calc-control-space:6px;
+  --calc-control-pad-y:var(--calc-control-space);
+  --calc-control-border-width:1px;
+  --calc-control-box-height:calc(1rem + var(--calc-control-pad-y) + var(--calc-control-pad-y) + var(--calc-control-border-width) + var(--calc-control-border-width));
+  --calc-control-inner-height:calc(var(--calc-control-box-height) - var(--calc-control-border-width) - var(--calc-control-border-width));
+  /* Control value typography
+     - Web/Tablet은 Compact 값 크기 12px을 그대로 사용한다.
+     - Phone은 iOS focus zoom 방지를 위해 실제 input computed size만 16px로 유지하고 shell 내부에서 .75 optical scale로 12px처럼 표시한다. */
+  --calc-control-value-size:12px;
+  --calc-control-input-size:var(--calc-control-value-size);
+  --calc-control-scale:1;
+  --calc-control-inner-size:100%;
+  --calc-control-inner-pad-y:var(--calc-control-pad-y);
+  --calc-control-inner-pad-x:var(--calc-control-space);
 
-      /* Calc Field Layout primitive */
-      --calc-field-label-gap:var(--density-gap-xs);
-      --calc-field-row-gap:var(--density-gap-md);
-      --calc-field-label-line-height:1.25;
+  /* Calc Field Layout primitive */
+  --calc-field-label-gap:var(--density-gap-xs);
+  --calc-field-row-gap:var(--density-gap-md);
+  --calc-field-label-line-height:1.25;
 
-      /* Calc Choice Button primitive
-         - 거래유형 / 계산 기준 / 매도 전략은 세로 geometry와 시각 상태만 공유한다.
-         - 가로폭·열 구성·그룹 전체 폭은 각 feature container가 소유한다. */
+  /* Calc Choice Button primitive
+     - 거래유형 / 계산 기준 / 매도 전략은 세로 geometry와 시각 상태만 공유한다.
+     - 가로폭·열 구성·그룹 전체 폭은 각 feature container가 소유한다. */
 
-      /* Calc compact typography hierarchy
-         - 역할 token을 단일 Source of Truth로 사용한다.
-         - Tablet/Phone은 별도 media에서 가독성과 터치 안정성을 해치지 않는 범위로 조정한다. */
-      --calc-type-page-title:22px;
-      --calc-type-section:16px;
-      --calc-type-subsection:13px;
-      --calc-type-support:11px;
-      --calc-type-label:11px;
+  /* Calc compact typography hierarchy
+     - 역할 token을 단일 Source of Truth로 사용한다.
+     - Tablet/Phone은 별도 media에서 가독성과 터치 안정성을 해치지 않는 범위로 조정한다. */
+  --calc-type-page-title:22px;
+  --calc-type-section:16px;
+  --calc-type-subsection:13px;
+  --calc-type-support:11px;
+  --calc-type-label:11px;
 
-      /* Calc result typography roles
-         - Desktop/Tablet table과 Phone card는 표현 방식만 다르고 같은 semantic role을 공유한다. */
-      --calc-result-title-size:13px;
-      --calc-result-title-weight:800;
-      --calc-result-title-line-height:1.3;
-      --calc-result-label-size:11px;
-      --calc-result-label-weight:800;
-      --calc-result-label-line-height:1.35;
-      --calc-result-value-size:12px;
-      --calc-result-value-weight:800;
-      --calc-result-value-line-height:1.35;
+  /* Calc result typography roles
+     - Desktop/Tablet table과 Phone card는 표현 방식만 다르고 같은 semantic role을 공유한다. */
+  --calc-result-title-size:13px;
+  --calc-result-title-weight:800;
+  --calc-result-title-line-height:1.3;
+  --calc-result-label-size:11px;
+  --calc-result-label-weight:800;
+  --calc-result-label-line-height:1.35;
+  --calc-result-value-size:12px;
+  --calc-result-value-weight:800;
+  --calc-result-value-line-height:1.35;
 
-      /* Compact palette / surface */
-      --bg:#edf1f5;
-      --card:#f9fbfd;
-      --muted:#647084;
-      --line:#cfd7e2;
-      --soft:#e8edf3;
-      --shadow:0 3px 10px rgba(31,48,76,.055);
-      --navy:#203a5d;
-      --surface-control:#ffffff;
-      --surface-hover-soft:#f0f4f8;
-      --surface-subtle:#f2f5f8;
-      /* Calc outer surface hierarchy
-         - page grid보다 큰 계산 surface를 한 단계 밝히고 border/shadow로 깊이만 분리한다.
-         - 내부 input/KPI/range surface 색은 기존 semantic token을 유지한다. */
-      --calc-shell-bg:#f7f9fc;
-      --calc-shell-border:#bac6d5;
-      --calc-shell-shadow:0 2px 8px rgba(31,48,76,.085),0 1px 2px rgba(31,48,76,.045);
-      --border-hover:#9fb0c8;
-      --control-border:#c4ceda;
-      --control-focus-border:#6d8fc1;
-      --control-focus-ring:rgba(73,115,174,.12);
-      --control-hover-bg:#f3f6fb;
-      --control-readonly-bg:#edf1f5;
-      --control-readonly-text:#566276;
-      --control-disabled-text:#b5bdca;
-      --active-shadow:0 5px 14px rgba(29,53,87,.16);
-      --action-shadow:0 3px 10px rgba(29,53,87,.07);
+  /* Compact palette / surface */
+  --bg:#edf1f5;
+  --card:#f9fbfd;
+  --muted:#647084;
+  --line:#cfd7e2;
+  --soft:#e8edf3;
+  --shadow:0 3px 10px rgba(31,48,76,.055);
+  --navy:#203a5d;
+  --surface-control:#ffffff;
+  --surface-hover-soft:#f0f4f8;
+  --surface-subtle:#f2f5f8;
+  /* Calc outer surface hierarchy
+     - page grid보다 큰 계산 surface를 한 단계 밝히고 border/shadow로 깊이만 분리한다.
+     - 내부 input/KPI/range surface 색은 기존 semantic token을 유지한다. */
+  --calc-shell-bg:#f7f9fc;
+  --calc-shell-border:#bac6d5;
+  --calc-shell-shadow:0 2px 8px rgba(31,48,76,.085),0 1px 2px rgba(31,48,76,.045);
+  --border-hover:#9fb0c8;
+  --control-border:#c4ceda;
+  --control-focus-border:#6d8fc1;
+  --control-focus-ring:rgba(73,115,174,.12);
+  --control-hover-bg:#f3f6fb;
+  --control-readonly-bg:#edf1f5;
+  --control-readonly-text:#566276;
+  --control-disabled-text:#b5bdca;
+  --active-shadow:0 5px 14px rgba(29,53,87,.16);
+  --action-shadow:0 3px 10px rgba(29,53,87,.07);
 
-      /* Compact density
-         - Corner role radius는 Shared/Main contract를 그대로 사용해 rounded ↔ soft-square 차이를 보존한다. */
-      --density-page-pad:10px;
-      --density-surface-lg:9px;
-      --density-surface-md:7px;
-      --density-surface-sm:6px;
-      --density-gap-lg:7px;
-      --density-gap-md:5px;
-      --density-gap-sm:4px;
-      --density-gap-xs:3px;
-      --density-gap-micro:2px;
-      --density-layout-gap:8px;
-      --density-action-pad-x:var(--calc-control-space);
-      --density-action-pad-y:var(--calc-control-space);
-      --density-field-pad-x:6px;
-      /* Calc surface/card/table spacing contract
-         - 카드·패널·표 cell의 상하좌우 여백과 카드 간 gap은 같은 responsive rhythm을 사용한다.
-         - Desktop / Tablet / Phone 6px. */
-      --calc-surface-space:6px;
-      --calc-card-gap:var(--calc-surface-space);
-      --density-table-pad-x:var(--calc-surface-space);
-      --density-table-pad-y:var(--calc-surface-space);
+  /* Compact density
+     - Corner role radius는 Shared/Main contract를 그대로 사용해 rounded ↔ soft-square 차이를 보존한다. */
+  --density-page-pad:10px;
+  --density-surface-lg:9px;
+  --density-surface-md:7px;
+  --density-surface-sm:6px;
+  --density-gap-lg:7px;
+  --density-gap-md:5px;
+  --density-gap-sm:4px;
+  --density-gap-xs:3px;
+  --density-gap-micro:2px;
+  --density-layout-gap:8px;
+  --density-action-pad-x:var(--calc-control-space);
+  --density-action-pad-y:var(--calc-control-space);
+  --density-field-pad-x:6px;
+  /* Calc surface/card/table spacing contract
+     - 카드·패널·표 cell과 카드 간 gap은 공통 spacing source를 공유한다. */
+  --calc-surface-space:6px;
+  --calc-card-gap:var(--calc-surface-space);
+  --density-table-pad-x:var(--calc-surface-space);
+  --density-table-pad-y:var(--calc-surface-space);
 
-      /* Help / tooltip */
-      --tooltip-bg:#17243a;
-      --tooltip-text:#ffffff;
-      --tooltip-shadow:0 8px 22px rgba(20,35,60,.22);
+  /* Help / tooltip */
+  --tooltip-bg:#17243a;
+  --tooltip-text:#ffffff;
+  --tooltip-shadow:0 8px 22px rgba(20,35,60,.22);
 
-      /* Validation / status */
-      --danger-border:#efb8bc;
-      --danger-bg:#fff5f5;
-      --danger-text:#9c252d;
-      --danger-strong:#d9363e;
-      --danger-control-bg:#fff7f7;
-      --danger-ring:rgba(217,54,62,.10);
-      --range-surface-bg:var(--surface-control);
-      --range-surface-border:var(--line);
-      --range-blue-accent:#7aa7e6;
-      --range-red-accent:#e78a92;
-      --range-green-accent:#72bd93;
-      --badge-bad-bg:#fff0f0;
-      --badge-bad-text:#b72b32;
-      --badge-conditional-bg:#fff7df;
-      --badge-conditional-text:#8a5b00;
-      --badge-good-bg:#eaf8ef;
-      --badge-good-text:#177343;
-      --table-head-bg:#f2f5f9;
-      --table-head-text:#5d6779;
-      --warning-text:#a5242c;
-    }
+  /* Validation / status */
+  --danger-border:#efb8bc;
+  --danger-bg:#fff5f5;
+  --danger-text:#9c252d;
+  --danger-strong:#d9363e;
+  --danger-control-bg:#fff7f7;
+  --danger-ring:rgba(217,54,62,.10);
+  --range-surface-bg:var(--surface-control);
+  --range-surface-border:var(--line);
+  --range-blue-accent:#7aa7e6;
+  --range-red-accent:#e78a92;
+  --range-green-accent:#72bd93;
+  --badge-bad-bg:#fff0f0;
+  --badge-bad-text:#b72b32;
+  --badge-conditional-bg:#fff7df;
+  --badge-conditional-text:#8a5b00;
+  --badge-good-bg:#eaf8ef;
+  --badge-good-text:#177343;
+  --table-head-bg:#f2f5f9;
+  --table-head-text:#5d6779;
+  --warning-text:#a5242c;
+}
 
-    html:where([data-add-page="calc"]).dark{
-      --bg:#0c121a;
-      --card:#121a24;
-      --muted:#8e9aae;
-      --line:#2b3746;
-      --soft:#202b38;
-      --shadow:0 3px 12px rgba(0,0,0,.22);
-      --navy:#6c91bd;
-      --surface-control:#101821;
-      --surface-hover-soft:#182330;
-      --surface-subtle:#0f1720;
-      --calc-shell-bg:#151f2b;
-      --calc-shell-border:#3a4859;
-      --calc-shell-shadow:0 3px 10px rgba(0,0,0,.30),0 1px 2px rgba(0,0,0,.22);
-      --border-hover:#526178;
-      --control-border:#344354;
-      --control-focus-border:#60a5fa;
-      --control-focus-ring:rgba(96,165,250,.18);
-      --control-hover-bg:#1e293b;
-      --control-readonly-bg:#1b2632;
-      --control-readonly-text:#b3bfce;
-      --control-disabled-text:#64748b;
-      --active-shadow:0 5px 14px rgba(0,0,0,.30);
-      --action-shadow:0 3px 10px rgba(0,0,0,.24);
-      --tooltip-bg:#020617;
-      --tooltip-text:#f8fafc;
-      --tooltip-shadow:0 8px 22px rgba(0,0,0,.42);
-      --danger-border:rgba(254,202,202,.25);
-      --danger-bg:rgba(127,29,29,.18);
-      --danger-text:#fca5a5;
-      --danger-strong:#f87171;
-      --danger-control-bg:rgba(127,29,29,.22);
-      --danger-ring:rgba(248,113,113,.18);
-      --range-surface-bg:var(--surface-control);
-      --range-surface-border:var(--line);
-      --range-blue-accent:#60a5fa;
-      --range-red-accent:#f87171;
-      --range-green-accent:#4ade80;
-      --badge-bad-bg:rgba(127,29,29,.22);
-      --badge-bad-text:#fca5a5;
-      --badge-conditional-bg:rgba(146,64,14,.22);
-      --badge-conditional-text:#fbbf24;
-      --badge-good-bg:rgba(22,101,52,.25);
-      --badge-good-text:#86efac;
-      --table-head-bg:#1a2233;
-      --table-head-text:#94a3b8;
-      --warning-text:#fca5a5;
-    }
-    :where(html[data-add-page="calc"]) body{background:linear-gradient(rgba(32,58,93,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(32,58,93,.018) 1px,transparent 1px),var(--bg);background-size:24px 24px;font-variant-numeric:tabular-nums;line-height:1.45;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
-    :where(html[data-add-page="calc"]) button, :where(html[data-add-page="calc"]) input, :where(html[data-add-page="calc"]) select{font:inherit}
+html:where([data-add-page="calc"]).dark{
+  --bg:#0c121a;
+  --card:#121a24;
+  --muted:#8e9aae;
+  --line:#2b3746;
+  --soft:#202b38;
+  --shadow:0 3px 12px rgba(0,0,0,.22);
+  --navy:#6c91bd;
+  --surface-control:#101821;
+  --surface-hover-soft:#182330;
+  --surface-subtle:#0f1720;
+  --calc-shell-bg:#151f2b;
+  --calc-shell-border:#3a4859;
+  --calc-shell-shadow:0 3px 10px rgba(0,0,0,.30),0 1px 2px rgba(0,0,0,.22);
+  --border-hover:#526178;
+  --control-border:#344354;
+  --control-focus-border:#60a5fa;
+  --control-focus-ring:rgba(96,165,250,.18);
+  --control-hover-bg:#1e293b;
+  --control-readonly-bg:#1b2632;
+  --control-readonly-text:#b3bfce;
+  --control-disabled-text:#64748b;
+  --active-shadow:0 5px 14px rgba(0,0,0,.30);
+  --action-shadow:0 3px 10px rgba(0,0,0,.24);
+  --tooltip-bg:#020617;
+  --tooltip-text:#f8fafc;
+  --tooltip-shadow:0 8px 22px rgba(0,0,0,.42);
+  --danger-border:rgba(254,202,202,.25);
+  --danger-bg:rgba(127,29,29,.18);
+  --danger-text:#fca5a5;
+  --danger-strong:#f87171;
+  --danger-control-bg:rgba(127,29,29,.22);
+  --danger-ring:rgba(248,113,113,.18);
+  --range-surface-bg:var(--surface-control);
+  --range-surface-border:var(--line);
+  --range-blue-accent:#60a5fa;
+  --range-red-accent:#f87171;
+  --range-green-accent:#4ade80;
+  --badge-bad-bg:rgba(127,29,29,.22);
+  --badge-bad-text:#fca5a5;
+  --badge-conditional-bg:rgba(146,64,14,.22);
+  --badge-conditional-text:#fbbf24;
+  --badge-good-bg:rgba(22,101,52,.25);
+  --badge-good-text:#86efac;
+  --table-head-bg:#1a2233;
+  --table-head-text:#94a3b8;
+  --warning-text:#fca5a5;
+}
+:where(html[data-add-page="calc"]) body{background:linear-gradient(rgba(32,58,93,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(32,58,93,.018) 1px,transparent 1px),var(--bg);background-size:24px 24px;font-variant-numeric:tabular-nums;line-height:1.45;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+:where(html[data-add-page="calc"]) button, :where(html[data-add-page="calc"]) input, :where(html[data-add-page="calc"]) select{font:inherit}
 
-    /* Calc 역할별 typography contract */
-    :where(html[data-add-page="calc"]) .add-heading-section{font-size:var(--calc-type-section)}
-    :where(html[data-add-page="calc"]) .add-heading-subsection{font-size:var(--calc-type-subsection)}
-    :where(html[data-add-page="calc"]) .add-heading-minor{font-size:var(--calc-type-support)}
-    :where(html[data-add-page="calc"]) .mobile-section-title{font-size:var(--calc-type-subsection)}
-    :where(html[data-add-page="calc"]) :is(.add-button-action,.add-button-toggle){font-size:var(--calc-type-label);font-weight:800}
+/* Calc 역할별 typography contract */
+:where(html[data-add-page="calc"]) .add-heading-section{font-size:var(--calc-type-section)}
+:where(html[data-add-page="calc"]) .add-heading-subsection{font-size:var(--calc-type-subsection)}
+:where(html[data-add-page="calc"]) .add-heading-minor{font-size:var(--calc-type-support)}
+:where(html[data-add-page="calc"]) .mobile-section-title{font-size:var(--calc-type-subsection)}
+:where(html[data-add-page="calc"]) :is(.add-button-action,.add-button-toggle){font-size:var(--calc-type-label);font-weight:800}
 
 /* =========================================================
    02. 상단 헤더 / 주요 액션 / 거래유형 프리셋
@@ -449,110 +448,110 @@ body{
    - 보유 중 추가매수 / 이전 거래 후 재매수 / 이전 거래 없음 선택
    ========================================================= */
 :where(html[data-add-page="calc"]) .wrap{max-width:1280px;margin:0 auto;padding:var(--density-page-pad)}
-    :where(html[data-add-page="calc"]) .hero{display:grid;gap:var(--density-gap-sm);margin-bottom:var(--density-surface-sm);padding-bottom:var(--density-surface-md);border-bottom:1px solid var(--line)}
-    :where(html[data-add-page="calc"]) .hero-head{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-lg)}
-    :where(html[data-add-page="calc"]) .hero h1{margin:0;font-size:var(--calc-type-page-title);letter-spacing:-.045em;line-height:1.18;flex:1 1 auto;min-width:0;font-weight:800}
-    :where(html[data-add-page="calc"]) .hero p{margin:0;color:var(--muted);font-size:var(--calc-type-label);line-height:1.3;max-width:1100px}
-    :where(html[data-add-page="calc"]) .actions{display:flex;gap:var(--density-gap-sm);flex-wrap:nowrap;flex:0 0 auto}
-    :where(html[data-add-page="calc"]) .calc-utility-button{gap:5px;border-color:var(--control-border);background:linear-gradient(180deg,var(--surface-control),var(--surface-subtle));color:var(--navy);font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.52),var(--action-shadow)}
-    :where(html[data-add-page="calc"]) .calc-utility-button :is(.reset-icon,.report-icon){display:block;width:14px;height:14px;flex:0 0 auto}
-    @media (hover:hover) and (pointer:fine){
-      :where(html[data-add-page="calc"]) .calc-utility-button:hover:not(:disabled){border-color:var(--border-hover);background:var(--surface-hover-soft);color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 4px 12px rgba(29,53,87,.10)}
-    }
-    html:where([data-add-page="calc"]).dark .calc-utility-button{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),var(--action-shadow)}
-    html:where([data-add-page="calc"]).dark .calc-utility-button:hover:not(:disabled){box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 4px 12px rgba(0,0,0,.24)}
-    :where(html[data-add-page="calc"]) .report-top-link{text-decoration:none}
-    :where(html[data-add-page="calc"]) .btn{line-height:1}
-    /* Calc Choice Button · 세 선택 영역이 공유하는 것은 버튼 자체의 세로 geometry / typography / state뿐이다.
-       가로폭·열 구성·그룹 전체 폭은 preset-bar / seg / tabs가 각각 소유한다. */
-    :where(html[data-add-page="calc"]) .calc-choice-button{display:flex;align-items:center;justify-content:center;height:var(--calc-control-box-height);min-height:0;padding:var(--calc-control-space);border-width:var(--calc-control-border-width);font-size:var(--calc-type-label);line-height:1;letter-spacing:-.025em}
-    :where(html[data-add-page="calc"]) .preset-bar{display:flex;align-items:center;gap:var(--density-gap-sm);flex-wrap:wrap;margin-bottom:var(--density-surface-sm)}
-    :where(html[data-add-page="calc"]) .preset-btn{flex-direction:column;gap:var(--density-gap-micro);padding-inline:var(--density-action-pad-x);box-shadow:none}
-    :where(html[data-add-page="calc"]) .preset-btn .preset-main{font:inherit}
-    :where(html[data-add-page="calc"]) .preset-btn.active{box-shadow:0 2px 7px rgba(32,58,93,.16)}
+:where(html[data-add-page="calc"]) .hero{display:grid;gap:var(--density-gap-sm);margin-bottom:var(--density-surface-sm);padding-bottom:var(--density-surface-md);border-bottom:1px solid var(--line)}
+:where(html[data-add-page="calc"]) .hero-head{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-lg)}
+:where(html[data-add-page="calc"]) .hero h1{margin:0;font-size:var(--calc-type-page-title);letter-spacing:-.045em;line-height:1.18;flex:1 1 auto;min-width:0;font-weight:800}
+:where(html[data-add-page="calc"]) .hero p{margin:0;color:var(--muted);font-size:var(--calc-type-label);line-height:1.3;max-width:1100px}
+:where(html[data-add-page="calc"]) .actions{display:flex;gap:var(--density-gap-sm);flex-wrap:nowrap;flex:0 0 auto}
+:where(html[data-add-page="calc"]) .calc-utility-button{gap:5px;border-color:var(--control-border);background:linear-gradient(180deg,var(--surface-control),var(--surface-subtle));color:var(--navy);font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.52),var(--action-shadow)}
+:where(html[data-add-page="calc"]) .calc-utility-button :is(.reset-icon,.report-icon){display:block;width:14px;height:14px;flex:0 0 auto}
+@media (hover:hover) and (pointer:fine){
+  :where(html[data-add-page="calc"]) .calc-utility-button:hover:not(:disabled){border-color:var(--border-hover);background:var(--surface-hover-soft);color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 4px 12px rgba(29,53,87,.10)}
+}
+html:where([data-add-page="calc"]).dark .calc-utility-button{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),var(--action-shadow)}
+html:where([data-add-page="calc"]).dark .calc-utility-button:hover:not(:disabled){box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 4px 12px rgba(0,0,0,.24)}
+:where(html[data-add-page="calc"]) .report-top-link{text-decoration:none}
+:where(html[data-add-page="calc"]) .btn{line-height:1}
+/* Calc Choice Button · 세 선택 영역이 공유하는 것은 버튼 자체의 세로 geometry / typography / state뿐이다.
+   가로폭·열 구성·그룹 전체 폭은 preset-bar / seg / tabs가 각각 소유한다. */
+:where(html[data-add-page="calc"]) .calc-choice-button{display:flex;align-items:center;justify-content:center;height:var(--calc-control-box-height);min-height:0;padding:var(--calc-control-space);border-width:var(--calc-control-border-width);font-size:var(--calc-type-label);line-height:1;letter-spacing:-.025em}
+:where(html[data-add-page="calc"]) .preset-bar{display:flex;align-items:center;gap:var(--density-gap-sm);flex-wrap:wrap;margin-bottom:var(--density-surface-sm)}
+:where(html[data-add-page="calc"]) .preset-btn{flex-direction:column;gap:var(--density-gap-micro);padding-inline:var(--density-action-pad-x);box-shadow:none}
+:where(html[data-add-page="calc"]) .preset-btn .preset-main{font:inherit}
+:where(html[data-add-page="calc"]) .preset-btn.active{box-shadow:0 2px 7px rgba(32,58,93,.16)}
 
 /* =========================================================
    03. 입력 패널 / 폼 컨트롤 / 도움말 툴팁
    - 입력 카드 공통 레이아웃과 숫자·수량·비율 컨트롤
    - readonly·검증 오류·툴팁·계산 기준 세그먼트 포함
    ========================================================= */
-    :where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body){padding:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-card){background:var(--calc-shell-bg);border-color:var(--calc-shell-border);box-shadow:var(--calc-shell-shadow)}
-    :where(html[data-add-page="calc"]) .input-panel{margin-bottom:var(--calc-card-gap)}
-    :where(html[data-add-page="calc"]) .input-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--calc-card-gap)}
-    :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      grid-template-areas:"current-group calculation-group";
-      gap:var(--calc-card-gap);
-      align-items:stretch
-    }
-    :where(html[data-add-page="calc"]) .input-group{padding:var(--calc-surface-space);box-shadow:none}
-    :where(html[data-add-page="calc"]) .group-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--density-gap-md);padding-bottom:var(--density-gap-md);border-bottom:1px solid var(--line);letter-spacing:-.025em}
-    :where(html[data-add-page="calc"]) .group-title small{font-size:10px;font-weight:500;color:var(--muted)}
-    :where(html[data-add-page="calc"]) .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--calc-field-row-gap)}
-    :where(html[data-add-page="calc"]) .field{display:flex;flex-direction:column;gap:var(--calc-field-label-gap)}
-    :where(html[data-add-page="calc"]) .field.full{grid-column:1/-1}
-    :where(html[data-add-page="calc"]) .field > :is(label,.field-label-slot){line-height:var(--calc-field-label-line-height);min-height:1lh}
-    :where(html[data-add-page="calc"]) .field-label-slot{display:block;visibility:hidden;pointer-events:none;user-select:none}
-    /* 계산 기준의 비어 있는 label slot은 Web/Tablet에서 나란한 카드의 첫 control 시작선을 맞춘다.
-       Phone에서만 카드가 독립 행으로 내려오므로 슬롯을 제거한다. */
-    :where(html[data-add-page="calc"]) label, :where(html[data-add-page="calc"]) .field-label-slot, :where(html[data-add-page="calc"]) .kpi .name{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
-    :where(html[data-add-page="calc"]) .kpi .sub{font-size:var(--calc-type-label)}
-    :where(html[data-add-page="calc"]) .label-with-help, :where(html[data-add-page="calc"]) .inline-help-label{display:inline-flex;align-items:center;gap:var(--density-gap-xs);width:max-content;max-width:100%;position:relative;vertical-align:middle}
-    :where(html[data-add-page="calc"]) .help-tooltip{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
-    :where(html[data-add-page="calc"]) .help-icon{display:inline-flex;align-items:center;justify-content:center;width:calc(var(--calc-type-label) + 4px);height:calc(var(--calc-type-label) + 4px);border:1px solid #9eb0c9;border-radius:50%;background:#f3f7fc;color:#315a8f;font-size:calc(var(--calc-type-label) - 1px);font-weight:900;line-height:1.12;text-align:center;padding:0;cursor:help}
-    /* Main의 control-info-button과 같은 방식으로 glyph만 미세 광학 보정한다.
-       wrapper 위치를 top/margin으로 개별 보정하지 않는다. */
-    :where(html[data-add-page="calc"]) .help-icon > span[aria-hidden="true"]{display:block;line-height:1;transform:translateY(-.2px)}
+:where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body){padding:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-card){background:var(--calc-shell-bg);border-color:var(--calc-shell-border);box-shadow:var(--calc-shell-shadow)}
+:where(html[data-add-page="calc"]) .input-panel{margin-bottom:var(--calc-card-gap)}
+:where(html[data-add-page="calc"]) .input-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--calc-card-gap)}
+:where(html[data-add-page="calc"]) .input-grid.no-prior-layout{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-areas:"current-group calculation-group";
+  gap:var(--calc-card-gap);
+  align-items:stretch
+}
+:where(html[data-add-page="calc"]) .input-group{padding:var(--calc-surface-space);box-shadow:none}
+:where(html[data-add-page="calc"]) .group-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--density-gap-md);padding-bottom:var(--density-gap-md);border-bottom:1px solid var(--line);letter-spacing:-.025em}
+:where(html[data-add-page="calc"]) .group-title small{font-size:10px;font-weight:500;color:var(--muted)}
+:where(html[data-add-page="calc"]) .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--calc-field-row-gap)}
+:where(html[data-add-page="calc"]) .field{display:flex;flex-direction:column;gap:var(--calc-field-label-gap)}
+:where(html[data-add-page="calc"]) .field.full{grid-column:1/-1}
+:where(html[data-add-page="calc"]) .field > :is(label,.field-label-slot){line-height:var(--calc-field-label-line-height);min-height:1lh}
+:where(html[data-add-page="calc"]) .field-label-slot{display:block;visibility:hidden;pointer-events:none;user-select:none}
+/* 계산 기준의 비어 있는 label slot은 Web/Tablet에서 나란한 카드의 첫 control 시작선을 맞춘다.
+   Phone에서만 카드가 독립 행으로 내려오므로 슬롯을 제거한다. */
+:where(html[data-add-page="calc"]) label, :where(html[data-add-page="calc"]) .field-label-slot, :where(html[data-add-page="calc"]) .kpi .name{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
+:where(html[data-add-page="calc"]) .kpi .sub{font-size:var(--calc-type-label)}
+:where(html[data-add-page="calc"]) .label-with-help, :where(html[data-add-page="calc"]) .inline-help-label{display:inline-flex;align-items:center;gap:var(--density-gap-xs);width:max-content;max-width:100%;position:relative;vertical-align:middle}
+:where(html[data-add-page="calc"]) .help-tooltip{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+:where(html[data-add-page="calc"]) .help-icon{display:inline-flex;align-items:center;justify-content:center;width:calc(var(--calc-type-label) + 4px);height:calc(var(--calc-type-label) + 4px);border:1px solid #9eb0c9;border-radius:50%;background:#f3f7fc;color:#315a8f;font-size:calc(var(--calc-type-label) - 1px);font-weight:900;line-height:1.12;text-align:center;padding:0;cursor:help}
+/* Main의 control-info-button과 같은 방식으로 glyph만 미세 광학 보정한다.
+   wrapper 위치를 top/margin으로 개별 보정하지 않는다. */
+:where(html[data-add-page="calc"]) .help-icon > span[aria-hidden="true"]{display:block;line-height:1;transform:translateY(-.2px)}
 html:where([data-add-page="calc"]).dark .help-icon{border-color:#526178;background:#111827;color:#93c5fd}
-    :where(html[data-add-page="calc"]) .help-icon:hover, :where(html[data-add-page="calc"]) .help-icon:focus-visible{background:#e7f0fb;border-color:#6f8fb8}
+:where(html[data-add-page="calc"]) .help-icon:hover, :where(html[data-add-page="calc"]) .help-icon:focus-visible{background:#e7f0fb;border-color:#6f8fb8}
 html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-page="calc"]).dark .help-icon:focus-visible{background:#1e293b;border-color:#60a5fa}
-    :where(html[data-add-page="calc"]) .custom-tooltip{position:fixed;z-index:1000;left:var(--tooltip-left,-9999px);top:var(--tooltip-top,-9999px);width:min(290px,calc(100vw - 24px));padding:var(--density-surface-sm);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--tooltip-bg);color:var(--tooltip-text);font-size:var(--calc-type-label);font-weight:600;line-height:1.5;letter-spacing:-.01em;box-shadow:var(--tooltip-shadow);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;pointer-events:none;text-align:left;white-space:normal;overflow-wrap:break-word;word-break:keep-all}
-    :where(html[data-add-page="calc"]) .custom-tooltip::after{content:"";position:absolute;left:var(--tooltip-arrow-x,50%);top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--tooltip-bg)}
-    :where(html[data-add-page="calc"]) .custom-tooltip.tooltip-below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--tooltip-bg)}
-    :where(html[data-add-page="calc"]) .help-tooltip:hover .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip:focus-within .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip.is-open .custom-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
-    :where(html[data-add-page="calc"]) .calc-control-shell{display:block;width:100%;min-width:0}
-    /* Wrapper 도입 전 input이 .field의 flex stretch로 채우던 가로폭을 shell 내부에서도 그대로 유지한다.
-       Phone에서는 뒤의 optical-scale 규칙이 width:133.333333%로 의도적으로 덮어쓴다. */
-    :where(html[data-add-page="calc"]) .calc-control-shell > .control{display:block;width:100%;max-width:none}
-    :where(html[data-add-page="calc"]) .control{height:var(--calc-control-box-height);min-height:0;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);padding:var(--calc-control-space);outline:none;text-align:right;font-size:var(--calc-control-input-size);font-weight:750;line-height:1;color:var(--ink);-webkit-appearance:none;appearance:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.46)}
+:where(html[data-add-page="calc"]) .custom-tooltip{position:fixed;z-index:1000;left:var(--tooltip-left,-9999px);top:var(--tooltip-top,-9999px);width:min(290px,calc(100vw - 24px));padding:var(--density-surface-sm);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--tooltip-bg);color:var(--tooltip-text);font-size:var(--calc-type-label);font-weight:600;line-height:1.5;letter-spacing:-.01em;box-shadow:var(--tooltip-shadow);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;pointer-events:none;text-align:left;white-space:normal;overflow-wrap:break-word;word-break:keep-all}
+:where(html[data-add-page="calc"]) .custom-tooltip::after{content:"";position:absolute;left:var(--tooltip-arrow-x,50%);top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--tooltip-bg)}
+:where(html[data-add-page="calc"]) .custom-tooltip.tooltip-below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--tooltip-bg)}
+:where(html[data-add-page="calc"]) .help-tooltip:hover .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip:focus-within .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip.is-open .custom-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
+:where(html[data-add-page="calc"]) .calc-control-shell{display:block;width:100%;min-width:0}
+/* Wrapper 도입 전 input이 .field의 flex stretch로 채우던 가로폭을 shell 내부에서도 그대로 유지한다.
+   Phone에서는 뒤의 optical-scale 규칙이 width:133.333333%로 의도적으로 덮어쓴다. */
+:where(html[data-add-page="calc"]) .calc-control-shell > .control{display:block;width:100%;max-width:none}
+:where(html[data-add-page="calc"]) .control{height:var(--calc-control-box-height);min-height:0;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);padding:var(--calc-control-space);outline:none;text-align:right;font-size:var(--calc-control-input-size);font-weight:750;line-height:1;color:var(--ink);-webkit-appearance:none;appearance:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.46)}
 html:where([data-add-page="calc"]).dark .control{box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
-    :where(html[data-add-page="calc"]) .control:focus, :where(html[data-add-page="calc"]) .date-control-shell:focus-within{border-color:var(--control-focus-border);box-shadow:0 0 0 2px var(--control-focus-ring)}
-    :where(html[data-add-page="calc"]) .control[readonly]{background:var(--control-readonly-bg)}
-    :where(html[data-add-page="calc"]) .control[readonly]:not(.positive):not(.negative):not(.zero){color:var(--control-readonly-text)}
-    :where(html[data-add-page="calc"]) .with-unit{position:relative}
-    :where(html[data-add-page="calc"]) .with-unit .control{padding-right:34px;width:100%}
-    :where(html[data-add-page="calc"]) .unit{position:absolute;right:var(--density-action-pad-x);top:50%;transform:translateY(-50%);color:var(--muted);font-size:var(--calc-control-value-size);font-weight:700}
-    :where(html[data-add-page="calc"]) .pct-stepper{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;gap:var(--density-gap-micro);align-items:center}
-    :where(html[data-add-page="calc"]) :is(.share-step-btn,.pct-step-btn){padding:var(--calc-control-space)}
-    :where(html[data-add-page="calc"]) .pct-step-btn{height:auto;align-self:stretch;border-color:var(--control-border)}
-    :where(html[data-add-page="calc"]) .pct-step-btn:disabled{color:var(--control-disabled-text);background:var(--control-readonly-bg)}
-    :where(html[data-add-page="calc"]) .control[type=number]::-webkit-inner-spin-button, :where(html[data-add-page="calc"]) .control[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-    :where(html[data-add-page="calc"]) .control[type=number]{appearance:none;-moz-appearance:textfield}
-    :where(html[data-add-page="calc"]) .share-stepper{display:block}
-    :where(html[data-add-page="calc"]) .share-stepper .control{width:100%}
-    :where(html[data-add-page="calc"]) .share-step-btn{display:none}
-    :where(html[data-add-page="calc"]) .desktop-only{display:inline}
-    :where(html[data-add-page="calc"]) .mobile-only{display:none}
-    /* Field Layout primitive를 계산 기준에도 그대로 적용한다.
-       calculation-flow는 field 간 row gap만 소유하고, mode 선택도 일반 .field의 label/control track을 사용한다.
-       viewport 전용 spacer·margin·padding 보정은 두지 않는다. */
-    :where(html[data-add-page="calc"]) .calculation-flow{display:grid;gap:var(--calc-field-row-gap)}
-    :where(html[data-add-page="calc"]) .seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--calc-field-row-gap);margin:0}
-    :where(html[data-add-page="calc"]) .calculation-group .seg button{padding-inline:var(--density-action-pad-x)}
-    :where(html[data-add-page="calc"]) .formula{font-size:10px;color:var(--muted);background:#f0f3f8;border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:4px 6px;margin:0;line-height:1.3}
+:where(html[data-add-page="calc"]) .control:focus, :where(html[data-add-page="calc"]) .date-control-shell:focus-within{border-color:var(--control-focus-border);box-shadow:0 0 0 2px var(--control-focus-ring)}
+:where(html[data-add-page="calc"]) .control[readonly]{background:var(--control-readonly-bg)}
+:where(html[data-add-page="calc"]) .control[readonly]:not(.positive):not(.negative):not(.zero){color:var(--control-readonly-text)}
+:where(html[data-add-page="calc"]) .with-unit{position:relative}
+:where(html[data-add-page="calc"]) .with-unit .control{padding-right:34px;width:100%}
+:where(html[data-add-page="calc"]) .unit{position:absolute;right:var(--density-action-pad-x);top:50%;transform:translateY(-50%);color:var(--muted);font-size:var(--calc-control-value-size);font-weight:700}
+:where(html[data-add-page="calc"]) .pct-stepper{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;gap:var(--density-gap-micro);align-items:center}
+:where(html[data-add-page="calc"]) :is(.share-step-btn,.pct-step-btn){padding:var(--calc-control-space)}
+:where(html[data-add-page="calc"]) .pct-step-btn{height:auto;align-self:stretch;border-color:var(--control-border)}
+:where(html[data-add-page="calc"]) .pct-step-btn:disabled{color:var(--control-disabled-text);background:var(--control-readonly-bg)}
+:where(html[data-add-page="calc"]) .control[type=number]::-webkit-inner-spin-button, :where(html[data-add-page="calc"]) .control[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+:where(html[data-add-page="calc"]) .control[type=number]{appearance:none;-moz-appearance:textfield}
+:where(html[data-add-page="calc"]) .share-stepper{display:block}
+:where(html[data-add-page="calc"]) .share-stepper .control{width:100%}
+:where(html[data-add-page="calc"]) .share-step-btn{display:none}
+:where(html[data-add-page="calc"]) .desktop-only{display:inline}
+:where(html[data-add-page="calc"]) .mobile-only{display:none}
+/* Field Layout primitive를 계산 기준에도 그대로 적용한다.
+   calculation-flow는 field 간 row gap만 소유하고, mode 선택도 일반 .field의 label/control track을 사용한다.
+   viewport 전용 spacer·margin·padding 보정은 두지 않는다. */
+:where(html[data-add-page="calc"]) .calculation-flow{display:grid;gap:var(--calc-field-row-gap)}
+:where(html[data-add-page="calc"]) .seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--calc-field-row-gap);margin:0}
+:where(html[data-add-page="calc"]) .calculation-group .seg button{padding-inline:var(--density-action-pad-x)}
+:where(html[data-add-page="calc"]) .formula{font-size:10px;color:var(--muted);background:#f0f3f8;border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:4px 6px;margin:0;line-height:1.3}
 html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
-    :where(html[data-add-page="calc"]) .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);width:100%;margin:0;color:var(--muted);text-align:left;appearance:none;-webkit-appearance:none;min-height:30px;padding:var(--calc-control-space)}
-    :where(html[data-add-page="calc"]) .actual-sale-price:active{transform:translateY(1px)}
-    :where(html[data-add-page="calc"]) .actual-sale-price strong{color:var(--navy);font-size:11px;font-weight:900;white-space:nowrap}
-    :where(html[data-add-page="calc"]) .validation-panel{display:none;margin:0 0 var(--calc-card-gap);padding:var(--calc-surface-space);border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger-text);font-size:var(--calc-type-label);font-weight:700}
-    :where(html[data-add-page="calc"]) .validation-panel.show{display:block}
-    :where(html[data-add-page="calc"]) .validation-result-note{margin-top:var(--density-gap-xs);font-weight:600}
-    :where(html[data-add-page="calc"]) .validation-panel ul{margin:7px 0 0;padding-left:20px;font-weight:600}
-    :where(html[data-add-page="calc"]) .control.invalid, :where(html[data-add-page="calc"]) .date-control-shell:has(.date-control.invalid){border-color:var(--danger-strong);background:var(--danger-control-bg);box-shadow:0 0 0 3px var(--danger-ring)}
-    /* invalid 입력 중에는 마지막 정상 결과임을 시각적으로만 구분한다.
-       결과를 제거하거나 조작을 막지 않아 입력 수정 중 레이아웃이 흔들리지 않도록 한다. */
-    html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#strategyTabs,main){opacity:.48;transition:opacity .14s ease}
+:where(html[data-add-page="calc"]) .actual-sale-price{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);width:100%;margin:0;color:var(--muted);text-align:left;appearance:none;-webkit-appearance:none;min-height:30px;padding:var(--calc-control-space)}
+:where(html[data-add-page="calc"]) .actual-sale-price:active{transform:translateY(1px)}
+:where(html[data-add-page="calc"]) .actual-sale-price strong{color:var(--navy);font-size:11px;font-weight:900;white-space:nowrap}
+:where(html[data-add-page="calc"]) .validation-panel{display:none;margin:0 0 var(--calc-card-gap);padding:var(--calc-surface-space);border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger-text);font-size:var(--calc-type-label);font-weight:700}
+:where(html[data-add-page="calc"]) .validation-panel.show{display:block}
+:where(html[data-add-page="calc"]) .validation-result-note{margin-top:var(--density-gap-xs);font-weight:600}
+:where(html[data-add-page="calc"]) .validation-panel ul{margin:7px 0 0;padding-left:20px;font-weight:600}
+:where(html[data-add-page="calc"]) .control.invalid, :where(html[data-add-page="calc"]) .date-control-shell:has(.date-control.invalid){border-color:var(--danger-strong);background:var(--danger-control-bg);box-shadow:0 0 0 3px var(--danger-ring)}
+/* invalid 입력 중에는 마지막 정상 결과임을 시각적으로만 구분한다.
+   결과를 제거하거나 조작을 막지 않아 입력 수정 중 레이아웃이 흔들리지 않도록 한다. */
+html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#strategyTabs,main){opacity:.48;transition:opacity .14s ease}
 
 /* =========================================================
    04. 거래유형별 입력 레이아웃
@@ -560,72 +559,72 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
    - 현재 보유분·계산 기준 카드의 시작선과 하단 정렬을 구조적으로 유지
    ========================================================= */
 /* 보유 중 추가매수: 기존 매수정보와 평가·회수정보 */
-    :where(html[data-add-page="calc"]) :is(
-      .existing-group.holding-layout #holdingPriorFields,
-      .additional-group.holding-layout #currentFields,
-      .additional-group.settled-layout #currentFields
-    ){
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:0;
-      align-items:start;
-    }
-    :where(html[data-add-page="calc"]) .existing-subsection,
-    :where(html[data-add-page="calc"]) .current-subsection,
-    :where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-subsection{
-      display:grid;
-      grid-template-columns:minmax(0,1fr);
-      gap:var(--calc-field-row-gap);
-      min-width:0;
-      padding:0;
-    }
-    /* subsection은 카드 외곽 여백을 다시 만들지 않는다.
-       6px은 점선 divider의 양쪽/상하 breathing room에만 둔다. */
-    :where(html[data-add-page="calc"]) .existing-purchase-section{border-right:1px dashed var(--control-border);padding-right:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .existing-evaluation-section{padding-left:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .existing-group:not(.holding-layout) .existing-subsection{display:none}
+:where(html[data-add-page="calc"]) :is(
+.existing-group.holding-layout #holdingPriorFields,
+.additional-group.holding-layout #currentFields,
+.additional-group.settled-layout #currentFields
+){
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:0;
+  align-items:start;
+}
+:where(html[data-add-page="calc"]) .existing-subsection,
+:where(html[data-add-page="calc"]) .current-subsection,
+:where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-subsection{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:var(--calc-field-row-gap);
+  min-width:0;
+  padding:0;
+}
+/* subsection은 카드 외곽 여백을 다시 만들지 않는다.
+   6px은 점선 divider의 양쪽/상하 breathing room에만 둔다. */
+:where(html[data-add-page="calc"]) .existing-purchase-section{border-right:1px dashed var(--control-border);padding-right:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .existing-evaluation-section{padding-left:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .existing-group:not(.holding-layout) .existing-subsection{display:none}
 
-    /* 추가매수 내역: 매수·보유원가·종가평가·회복결과 */
-    :where(html[data-add-page="calc"]) .current-subsection:nth-of-type(odd){border-right:1px dashed var(--control-border);padding-right:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .current-subsection:nth-of-type(even){padding-left:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .current-subsection:nth-of-type(-n+2){padding-bottom:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .current-subsection:nth-of-type(n+3){border-top:1px dashed var(--control-border);padding-top:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .additional-group.settled-layout .current-subsection{display:none}
+/* 추가매수 내역: 매수·보유원가·종가평가·회복결과 */
+:where(html[data-add-page="calc"]) .current-subsection:nth-of-type(odd){border-right:1px dashed var(--control-border);padding-right:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .current-subsection:nth-of-type(even){padding-left:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .current-subsection:nth-of-type(-n+2){padding-bottom:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .current-subsection:nth-of-type(n+3){border-top:1px dashed var(--control-border);padding-top:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .additional-group.settled-layout .current-subsection{display:none}
 
-    /* 이전 거래 후 재매수: 보유원가·종가평가·손익결과 */
-    :where(html[data-add-page="calc"]) .settled-subsection{display:none}
-    :where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-cost-section{border-right:1px dashed var(--control-border);padding-right:var(--calc-surface-space);padding-bottom:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-evaluation-section{padding-left:var(--calc-surface-space);padding-bottom:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-result-section{
-      grid-column:1 / -1;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      border-top:1px dashed var(--control-border);
-      padding-top:var(--calc-surface-space);
-    }
-    :where(html[data-add-page="calc"]) .additional-group.settled-layout.no-prior-current .settled-result-section{
-      grid-template-columns:minmax(0,1fr);
-    }
-    :where(html[data-add-page="calc"]) .additional-group.holding-layout .settled-subsection{display:none}
+/* 이전 거래 후 재매수: 보유원가·종가평가·손익결과 */
+:where(html[data-add-page="calc"]) .settled-subsection{display:none}
+:where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-cost-section{border-right:1px dashed var(--control-border);padding-right:var(--calc-surface-space);padding-bottom:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-evaluation-section{padding-left:var(--calc-surface-space);padding-bottom:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-result-section{
+  grid-column:1 / -1;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  border-top:1px dashed var(--control-border);
+  padding-top:var(--calc-surface-space);
+}
+:where(html[data-add-page="calc"]) .additional-group.settled-layout.no-prior-current .settled-result-section{
+  grid-template-columns:minmax(0,1fr);
+}
+:where(html[data-add-page="calc"]) .additional-group.holding-layout .settled-subsection{display:none}
 
-    :where(html[data-add-page="calc"]) .hidden{display:none}
-    :where(html[data-add-page="calc"]) .settled-summary{display:none}
-    :where(html[data-add-page="calc"]) .prior-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;align-items:start}
-    :where(html[data-add-page="calc"]) .prior-date-section{grid-column:1/-1;min-width:0;padding:0 0 var(--calc-surface-space);border-bottom:1px dashed var(--control-border)}
-    :where(html[data-add-page="calc"]) .prior-trade-section{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--calc-field-row-gap);min-width:0;padding-top:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .prior-buy-section{border-right:1px dashed var(--control-border);padding-right:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .prior-sell-section{padding-left:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .prior-entry-grid .field{min-width:0}
-    :where(html[data-add-page="calc"]) .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);overflow:hidden;box-sizing:border-box}
-    :where(html[data-add-page="calc"]) .date-control-shell .date-control{position:relative;display:block;width:100%;min-width:0;max-width:100%;height:var(--calc-control-inner-height);min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;outline:none;text-align:left;padding:var(--calc-control-space);box-sizing:border-box;line-height:1;-webkit-min-logical-width:0;-webkit-appearance:none;appearance:none}
-    :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-date-and-time-value{margin:0;padding:0;display:flex;align-items:center;justify-content:center;text-align:center}
-    :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-datetime-edit{padding:0;display:flex;align-items:center;justify-content:center}
-    :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-datetime-edit-fields-wrapper{display:flex;align-items:center;justify-content:center;padding:0}
-    :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
-    :where(html[data-add-page="calc"]) .prior-entry-grid .field.auto-field .control{background:var(--control-readonly-bg);color:var(--control-readonly-text)}
-    :where(html[data-add-page="calc"]) #currentPriceSlot, :where(html[data-add-page="calc"]) #currentPriceAnchor{display:none}
-    :where(html[data-add-page="calc"]) .strategy-card.no-badge .badge{display:none}
+:where(html[data-add-page="calc"]) .hidden{display:none}
+:where(html[data-add-page="calc"]) .settled-summary{display:none}
+:where(html[data-add-page="calc"]) .prior-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;align-items:start}
+:where(html[data-add-page="calc"]) .prior-date-section{grid-column:1/-1;min-width:0;padding:0 0 var(--calc-surface-space);border-bottom:1px dashed var(--control-border)}
+:where(html[data-add-page="calc"]) .prior-trade-section{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--calc-field-row-gap);min-width:0;padding-top:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .prior-buy-section{border-right:1px dashed var(--control-border);padding-right:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .prior-sell-section{padding-left:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .prior-entry-grid .field{min-width:0}
+:where(html[data-add-page="calc"]) .date-control-shell{position:relative;width:100%;min-width:0;max-width:100%;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);overflow:hidden;box-sizing:border-box}
+:where(html[data-add-page="calc"]) .date-control-shell .date-control{position:relative;display:block;width:100%;min-width:0;max-width:100%;height:var(--calc-control-inner-height);min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;outline:none;text-align:left;padding:var(--calc-control-space);box-sizing:border-box;line-height:1;-webkit-min-logical-width:0;-webkit-appearance:none;appearance:none}
+:where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-date-and-time-value{margin:0;padding:0;display:flex;align-items:center;justify-content:center;text-align:center}
+:where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-datetime-edit{padding:0;display:flex;align-items:center;justify-content:center}
+:where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-datetime-edit-fields-wrapper{display:flex;align-items:center;justify-content:center;padding:0}
+:where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
+:where(html[data-add-page="calc"]) .prior-entry-grid .field.auto-field .control{background:var(--control-readonly-bg);color:var(--control-readonly-text)}
+:where(html[data-add-page="calc"]) #currentPriceSlot, :where(html[data-add-page="calc"]) #currentPriceAnchor{display:none}
+:where(html[data-add-page="calc"]) .strategy-card.no-badge .badge{display:none}
 
-    :where(html[data-add-page="calc"]) .input-grid.no-prior-layout #currentGroup{grid-area:current-group}
-    :where(html[data-add-page="calc"]) .input-grid.no-prior-layout .calculation-group{grid-area:calculation-group;align-self:stretch}
+:where(html[data-add-page="calc"]) .input-grid.no-prior-layout #currentGroup{grid-area:current-group}
+:where(html[data-add-page="calc"]) .input-grid.no-prior-layout .calculation-group{grid-area:calculation-group;align-self:stretch}
 
 /* =========================================================
    05. 핵심 지표 / 가격 구간 요약
@@ -633,17 +632,17 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
    ========================================================= */
 :where(html[data-add-page="calc"]) .calc-summary-panel{display:grid;gap:var(--calc-card-gap);margin-bottom:var(--calc-card-gap)}
 :where(html[data-add-page="calc"]) .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--calc-card-gap)}
-    :where(html[data-add-page="calc"]) .kpi{padding:var(--calc-surface-space);box-shadow:none}
-    :where(html[data-add-page="calc"]) .kpi .value{margin-top:2px;font-size:18px;font-weight:900;letter-spacing:-.03em;line-height:1.15}
+:where(html[data-add-page="calc"]) .kpi{padding:var(--calc-surface-space);box-shadow:none}
+:where(html[data-add-page="calc"]) .kpi .value{margin-top:2px;font-size:18px;font-weight:900;letter-spacing:-.03em;line-height:1.15}
 
-    :where(html[data-add-page="calc"]) .range-panel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--calc-card-gap)}
-    :where(html[data-add-page="calc"]) .range-box{--range-accent:var(--navy);padding:var(--calc-surface-space);background:var(--range-surface-bg);border-color:var(--range-surface-border);box-shadow:inset 3px 0 0 var(--range-accent)}
-    :where(html[data-add-page="calc"]) .range-box strong{display:block;font-size:var(--calc-type-label);margin-bottom:2px;color:var(--muted)}
-    :where(html[data-add-page="calc"]) .range-box .big{font-size:18px;font-weight:900;line-height:1.15}
-    :where(html[data-add-page="calc"]) .range-box .muted{font-size:var(--calc-type-label);line-height:1.4;margin-top:var(--density-gap-micro)}
-    :where(html[data-add-page="calc"]) .range-box.blue{--range-accent:var(--range-blue-accent)}
-    :where(html[data-add-page="calc"]) .range-box.red{--range-accent:var(--range-red-accent)}
-    :where(html[data-add-page="calc"]) .range-box.green{--range-accent:var(--range-green-accent)}
+:where(html[data-add-page="calc"]) .range-panel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--calc-card-gap)}
+:where(html[data-add-page="calc"]) .range-box{--range-accent:var(--navy);padding:var(--calc-surface-space);background:var(--range-surface-bg);border-color:var(--range-surface-border);box-shadow:inset 3px 0 0 var(--range-accent)}
+:where(html[data-add-page="calc"]) .range-box strong{display:block;font-size:var(--calc-type-label);margin-bottom:2px;color:var(--muted)}
+:where(html[data-add-page="calc"]) .range-box .big{font-size:18px;font-weight:900;line-height:1.15}
+:where(html[data-add-page="calc"]) .range-box .muted{font-size:var(--calc-type-label);line-height:1.4;margin-top:var(--density-gap-micro)}
+:where(html[data-add-page="calc"]) .range-box.blue{--range-accent:var(--range-blue-accent)}
+:where(html[data-add-page="calc"]) .range-box.red{--range-accent:var(--range-red-accent)}
+:where(html[data-add-page="calc"]) .range-box.green{--range-accent:var(--range-green-accent)}
 
 /* =========================================================
    06. 전략 탭 / 계산 결과 / 상세 데이터
@@ -651,53 +650,53 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
    - 손익 색상·안내문·경고문 포함
    ========================================================= */
 :where(html[data-add-page="calc"]) .tabs{display:flex;gap:var(--density-gap-sm);margin:0 0 var(--density-surface-sm);overflow:auto;padding:0}
-    :where(html[data-add-page="calc"]) .tab{white-space:nowrap;padding-inline:var(--density-action-pad-x)}
-    :where(html[data-add-page="calc"]) .tabs.settled-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
-    :where(html[data-add-page="calc"]) .strategy{display:none}
-    :where(html[data-add-page="calc"]) .strategy.active{display:block}
-    :where(html[data-add-page="calc"]) .strategy-card{overflow:hidden}
-    :where(html[data-add-page="calc"]) .strategy-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--density-gap-lg);padding:var(--calc-surface-space);border-bottom:1px solid var(--line);background:var(--surface-subtle)}
-    :where(html[data-add-page="calc"]) .strategy-title h2{margin:0}
-    :where(html[data-add-page="calc"]) .strategy-title p{margin:var(--density-gap-xs) 0 0;color:var(--muted);font-size:var(--calc-type-label);line-height:1.3;white-space:nowrap}
-    :where(html[data-add-page="calc"]) .badge{padding:var(--density-gap-xs) var(--density-surface-sm);border-radius:var(--radius-pill);font-size:var(--calc-type-label);font-weight:900;white-space:nowrap}
-    :where(html[data-add-page="calc"]) .badge.bad{background:var(--badge-bad-bg);color:var(--badge-bad-text)}
-    :where(html[data-add-page="calc"]) .badge.conditional{background:var(--badge-conditional-bg);color:var(--badge-conditional-text)}
-    :where(html[data-add-page="calc"]) .badge.good{background:var(--badge-good-bg);color:var(--badge-good-text)}
-    :where(html[data-add-page="calc"]) .summary-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--calc-card-gap);margin-bottom:var(--calc-card-gap)}
-    :where(html[data-add-page="calc"]) .summary-card{padding:var(--calc-surface-space);box-shadow:none}
-    :where(html[data-add-page="calc"]) .summary-card .sname{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
-    :where(html[data-add-page="calc"]) .summary-card .svalue{font-size:17px;font-weight:900;margin-top:2px;line-height:1.15}
-    :where(html[data-add-page="calc"]) .section-title{margin:var(--density-surface-lg) 0 var(--density-gap-md)}
-    :where(html[data-add-page="calc"]) .table-scroll{border-radius:min(var(--surface-radius-md),var(--corner-surface-cap))}
-    :where(html[data-add-page="calc"]) .desktop-details{display:block}
-    :where(html[data-add-page="calc"]) .mobile-data{display:none}
-    :where(html[data-add-page="calc"]) .mobile-data-card{padding:var(--calc-surface-space);min-width:0}
-    :where(html[data-add-page="calc"]) .mobile-section-title{color:var(--ink);padding:var(--density-gap-md) 0 var(--density-gap-xs)}
-    :where(html[data-add-page="calc"]) .mobile-section-title:first-child{padding-top:3px}
-    :where(html[data-add-page="calc"]) .calc-result-section-title{font-size:var(--calc-result-title-size);font-weight:var(--calc-result-title-weight);line-height:var(--calc-result-title-line-height)}
-    :where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-label{font-size:var(--calc-result-label-size);font-weight:var(--calc-result-label-weight);line-height:var(--calc-result-label-line-height)}
-    :where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-value{font-size:var(--calc-result-value-size);font-weight:var(--calc-result-value-weight);line-height:var(--calc-result-value-line-height)}
-    :where(html[data-add-page="calc"]) .mobile-data-row{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--density-gap-lg);padding:var(--density-gap-md) 0;border-bottom:1px solid var(--soft)}
-    :where(html[data-add-page="calc"]) .mobile-data-row:last-child{border-bottom:0}
-    :where(html[data-add-page="calc"]) .mobile-data-label{flex:1;min-width:0;color:var(--muted)}
-    :where(html[data-add-page="calc"]) .mobile-data-value{flex:0 0 auto;max-width:55%;text-align:right;word-break:break-word}
-    /* 결과 표는 열 수별 고정 pixel 폭을 두지 않는다.
-       실제 label/value의 자연 폭 중 가장 넓은 셀을 기준으로 같은 열 폭을 보장하고,
-       컨테이너보다 넓어질 때만 add-table-scroll에서 가로 스크롤한다. */
-    :where(html[data-add-page="calc"]) .calc-data-table{table-layout:fixed;min-width:max(100%,var(--calc-table-content-min,0px));border:1px solid var(--line);border-collapse:separate;border-spacing:0;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));overflow:hidden}
-    :where(html[data-add-page="calc"]) .calc-data-table :is(th,td){padding:var(--calc-surface-space)}
-    :where(html[data-add-page="calc"]) .calc-data-table :is(th,td){border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0;text-align:center}
-    :where(html[data-add-page="calc"]) .calc-data-table tr > :last-child{border-right:0}
-    :where(html[data-add-page="calc"]) .calc-data-table tbody tr:last-child > *{border-bottom:0}
-    :where(html[data-add-page="calc"]) .calc-data-table tbody td{background:var(--surface-control)}
-    :where(html[data-add-page="calc"]) .warning-note{margin-top:var(--calc-card-gap);padding:var(--calc-surface-space);border-color:var(--danger-border);background:#fff2f2;color:var(--warning-text);font-size:var(--calc-type-label);font-weight:900;line-height:1.35}
+:where(html[data-add-page="calc"]) .tab{white-space:nowrap;padding-inline:var(--density-action-pad-x)}
+:where(html[data-add-page="calc"]) .tabs.settled-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+:where(html[data-add-page="calc"]) .strategy{display:none}
+:where(html[data-add-page="calc"]) .strategy.active{display:block}
+:where(html[data-add-page="calc"]) .strategy-card{overflow:hidden}
+:where(html[data-add-page="calc"]) .strategy-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--density-gap-lg);padding:var(--calc-surface-space);border-bottom:1px solid var(--line);background:var(--surface-subtle)}
+:where(html[data-add-page="calc"]) .strategy-title h2{margin:0}
+:where(html[data-add-page="calc"]) .strategy-title p{margin:var(--density-gap-xs) 0 0;color:var(--muted);font-size:var(--calc-type-label);line-height:1.3;white-space:nowrap}
+:where(html[data-add-page="calc"]) .badge{padding:var(--density-gap-xs) var(--density-surface-sm);border-radius:var(--radius-pill);font-size:var(--calc-type-label);font-weight:900;white-space:nowrap}
+:where(html[data-add-page="calc"]) .badge.bad{background:var(--badge-bad-bg);color:var(--badge-bad-text)}
+:where(html[data-add-page="calc"]) .badge.conditional{background:var(--badge-conditional-bg);color:var(--badge-conditional-text)}
+:where(html[data-add-page="calc"]) .badge.good{background:var(--badge-good-bg);color:var(--badge-good-text)}
+:where(html[data-add-page="calc"]) .summary-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--calc-card-gap);margin-bottom:var(--calc-card-gap)}
+:where(html[data-add-page="calc"]) .summary-card{padding:var(--calc-surface-space);box-shadow:none}
+:where(html[data-add-page="calc"]) .summary-card .sname{font-size:var(--calc-type-label);color:var(--muted);font-weight:700}
+:where(html[data-add-page="calc"]) .summary-card .svalue{font-size:17px;font-weight:900;margin-top:2px;line-height:1.15}
+:where(html[data-add-page="calc"]) .section-title{margin:var(--density-surface-lg) 0 var(--density-gap-md)}
+:where(html[data-add-page="calc"]) .table-scroll{border-radius:min(var(--surface-radius-md),var(--corner-surface-cap))}
+:where(html[data-add-page="calc"]) .desktop-details{display:block}
+:where(html[data-add-page="calc"]) .mobile-data{display:none}
+:where(html[data-add-page="calc"]) .mobile-data-card{padding:var(--calc-surface-space);min-width:0}
+:where(html[data-add-page="calc"]) .mobile-section-title{color:var(--ink);padding:var(--density-gap-md) 0 var(--density-gap-xs)}
+:where(html[data-add-page="calc"]) .mobile-section-title:first-child{padding-top:3px}
+:where(html[data-add-page="calc"]) .calc-result-section-title{font-size:var(--calc-result-title-size);font-weight:var(--calc-result-title-weight);line-height:var(--calc-result-title-line-height)}
+:where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-label{font-size:var(--calc-result-label-size);font-weight:var(--calc-result-label-weight);line-height:var(--calc-result-label-line-height)}
+:where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-value{font-size:var(--calc-result-value-size);font-weight:var(--calc-result-value-weight);line-height:var(--calc-result-value-line-height)}
+:where(html[data-add-page="calc"]) .mobile-data-row{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--density-gap-lg);padding:var(--density-gap-md) 0;border-bottom:1px solid var(--soft)}
+:where(html[data-add-page="calc"]) .mobile-data-row:last-child{border-bottom:0}
+:where(html[data-add-page="calc"]) .mobile-data-label{flex:1;min-width:0;color:var(--muted)}
+:where(html[data-add-page="calc"]) .mobile-data-value{flex:0 0 auto;max-width:55%;text-align:right;word-break:break-word}
+/* 결과 표는 열 수별 고정 pixel 폭을 두지 않는다.
+   실제 label/value의 자연 폭 중 가장 넓은 셀을 기준으로 같은 열 폭을 보장하고,
+   컨테이너보다 넓어질 때만 add-table-scroll에서 가로 스크롤한다. */
+:where(html[data-add-page="calc"]) .calc-data-table{table-layout:fixed;min-width:max(100%,var(--calc-table-content-min,0px));border:1px solid var(--line);border-collapse:separate;border-spacing:0;border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));overflow:hidden}
+:where(html[data-add-page="calc"]) .calc-data-table :is(th,td){padding:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .calc-data-table :is(th,td){border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0;text-align:center}
+:where(html[data-add-page="calc"]) .calc-data-table tr > :last-child{border-right:0}
+:where(html[data-add-page="calc"]) .calc-data-table tbody tr:last-child > *{border-bottom:0}
+:where(html[data-add-page="calc"]) .calc-data-table tbody td{background:var(--surface-control)}
+:where(html[data-add-page="calc"]) .warning-note{margin-top:var(--calc-card-gap);padding:var(--calc-surface-space);border-color:var(--danger-border);background:#fff2f2;color:var(--warning-text);font-size:var(--calc-type-label);font-weight:900;line-height:1.35}
 html:where([data-add-page="calc"]).dark .warning-note{background:rgba(127,29,29,.18)}
-    :where(html[data-add-page="calc"]) .note{margin-top:var(--calc-card-gap);padding:var(--calc-surface-space);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:#f5f7fb;color:#596478;font-size:var(--calc-type-label);line-height:1.35}
+:where(html[data-add-page="calc"]) .note{margin-top:var(--calc-card-gap);padding:var(--calc-surface-space);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:#f5f7fb;color:#596478;font-size:var(--calc-type-label);line-height:1.35}
 html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
-    :where(html[data-add-page="calc"]) .positive{color:var(--positive)}
-    :where(html[data-add-page="calc"]) .negative{color:var(--negative)}
-    :where(html[data-add-page="calc"]) .zero{color:var(--ink)}
-    :where(html[data-add-page="calc"]) .muted{color:var(--muted)}
+:where(html[data-add-page="calc"]) .positive{color:var(--positive)}
+:where(html[data-add-page="calc"]) .negative{color:var(--negative)}
+:where(html[data-add-page="calc"]) .zero{color:var(--ink)}
+:where(html[data-add-page="calc"]) .muted{color:var(--muted)}
 
 /* =========================================================
    07. 반응형 규칙
@@ -705,166 +704,166 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
    - 실제 터치폰 가로(landscape + ≤960×500 + hover:none + pointer:coarse)는 폭과 무관하게 Phone UI를 유지
    ========================================================= */
 @media(max-width:1100px){
-            :root:where([data-add-page="calc"]){
-        --density-page-pad:9px;
-        --density-surface-md:7px;
-        --density-surface-sm:6px;
-        --calc-surface-space:6px;
-        --calc-type-page-title:21px;
-        --calc-type-section:15px;
-        --calc-type-subsection:13px;
-        --calc-type-support:11px;
-        --calc-type-label:11px;
-      }
-      /* Tablet은 Web과 같은 상단 카드 열 구성/가로 비율을 유지하고 density만 compact하게 조정한다. */
-      :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,1fr)}
-    }
+  :root:where([data-add-page="calc"]){
+    --density-page-pad:9px;
+    --density-surface-md:7px;
+    --density-surface-sm:6px;
+    --calc-surface-space:6px;
+    --calc-type-page-title:21px;
+    --calc-type-section:15px;
+    --calc-type-subsection:13px;
+    --calc-type-support:11px;
+    --calc-type-label:11px;
+  }
+  /* Tablet은 Web과 같은 상단 카드 열 구성/가로 비율을 유지하고 density만 compact하게 조정한다. */
+  :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,1fr)}
+}
 
-    /* Calc 기능성 특수 Tablet · 761~920px
-       - 보유 중 추가매수 / 이전 거래 후 재매수의 3열에서 계산 기준 내부 % stepper와 label이 눌리는 구간만 2+1로 전환한다.
-       - 이전 거래 없음의 2열 구성은 그대로 유지한다. */
-    @media (min-width:761px) and (max-width:920px){
-      :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout){grid-template-columns:repeat(2,minmax(0,1fr))}
-      :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout) .calculation-group{grid-column:1 / -1}
-    }
+/* Calc 기능성 특수 Tablet · 761~920px
+   - 보유 중 추가매수 / 이전 거래 후 재매수의 3열에서 계산 기준 내부 % stepper와 label이 눌리는 구간만 2+1로 전환한다.
+   - 이전 거래 없음의 2열 구성은 그대로 유지한다. */
+@media (min-width:761px) and (max-width:920px){
+  :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout){grid-template-columns:repeat(2,minmax(0,1fr))}
+  :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout) .calculation-group{grid-column:1 / -1}
+}
 
-    /* Calc Phone UI · Main Dashboard와 같은 실제 스마트폰 판정
-       - 세로폰(≤760px)과 터치폰 가로모드(landscape + ≤960×500)를 동일한 Phone UI로 처리한다.
-       - 가로폰이 761~960px 폭이라는 이유만으로 Tablet typography/density/layout을 사용하지 않는다. */
-    @media (max-width:760px),
-           (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-            :root:where([data-add-page="calc"]){
-        /* Compact Phone density
-           - iOS 입력 16px 및 터치 조작성은 유지하고, Surface 밀도만 Phone에 맞춰 조정한다. */
-        --density-page-pad:9px;
-        --density-surface-lg:9px;
-        --density-surface-md:9px;
-        --density-surface-sm:8px;
-        --density-gap-lg:8px;
-        --density-gap-md:6px;
-        --density-gap-sm:4px;
-        --density-gap-xs:3px;
-        --density-gap-micro:2px;
-        --density-layout-gap:8px;
-        --density-action-pad-x:var(--calc-control-space);
-        --density-action-pad-y:var(--calc-control-space);
-        --density-field-pad-x:6px;
-        --calc-surface-space:6px;
-        --calc-control-pad-y:var(--calc-control-space);
-        --calc-control-input-size:16px;
-        --calc-control-scale:.75;
-        --calc-control-inner-size:133.333333%;
-        /* 8px × .75 = 6px: iOS 16px input을 optical scale해도 상하좌우 visual padding은 6px을 유지한다. */
-        --calc-control-inner-pad-y:8px;
-        --calc-control-inner-pad-x:8px;
-        --calc-type-page-title:22px;
-        --calc-type-section:15px;
-        --calc-type-subsection:13px;
-        --calc-type-support:11px;
-        --calc-type-label:10px;
-      }
-      :where(html[data-add-page="calc"]) .hero{padding-bottom:var(--density-gap-md)}
-      :where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body){padding:var(--calc-surface-space)}
-      :where(html[data-add-page="calc"]) .calculation-mode-field .field-label-slot{display:none}
+/* Calc Phone UI · Main Dashboard와 같은 실제 스마트폰 판정
+   - 세로폰(≤760px)과 터치폰 가로모드(landscape + ≤960×500)를 동일한 Phone UI로 처리한다.
+   - 가로폰이 761~960px 폭이라는 이유만으로 Tablet typography/density/layout을 사용하지 않는다. */
+@media (max-width:760px),
+       (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
+  :root:where([data-add-page="calc"]){
+    /* Compact Phone density
+       - iOS 입력 16px 및 터치 조작성은 유지하고, Surface 밀도만 Phone에 맞춰 조정한다. */
+    --density-page-pad:9px;
+    --density-surface-lg:9px;
+    --density-surface-md:9px;
+    --density-surface-sm:8px;
+    --density-gap-lg:8px;
+    --density-gap-md:6px;
+    --density-gap-sm:4px;
+    --density-gap-xs:3px;
+    --density-gap-micro:2px;
+    --density-layout-gap:8px;
+    --density-action-pad-x:var(--calc-control-space);
+    --density-action-pad-y:var(--calc-control-space);
+    --density-field-pad-x:6px;
+    --calc-surface-space:6px;
+    --calc-control-pad-y:var(--calc-control-space);
+    --calc-control-input-size:16px;
+    --calc-control-scale:.75;
+    --calc-control-inner-size:133.333333%;
+    /* optical scale 이후에도 input의 visual padding은 공통 control spacing과 같게 유지한다. */
+    --calc-control-inner-pad-y:8px;
+    --calc-control-inner-pad-x:8px;
+    --calc-type-page-title:22px;
+    --calc-type-section:15px;
+    --calc-type-subsection:13px;
+    --calc-type-support:11px;
+    --calc-type-label:10px;
+  }
+  :where(html[data-add-page="calc"]) .hero{padding-bottom:var(--density-gap-md)}
+  :where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body){padding:var(--calc-surface-space)}
+  :where(html[data-add-page="calc"]) .calculation-mode-field .field-label-slot{display:none}
 
-      :where(html[data-add-page="calc"]) .add-button-mobile-icon{
-        width:var(--button-icon-size);
-        height:var(--button-icon-size);
-        padding:0;
-      }
+  :where(html[data-add-page="calc"]) .add-button-mobile-icon{
+    width:var(--button-icon-size);
+    height:var(--button-icon-size);
+    padding:0;
+  }
 
-      :where(html[data-add-page="calc"]) #reportBtn .report-text, :where(html[data-add-page="calc"]) #resetBtn .reset-text{display:none}
-      :where(html[data-add-page="calc"]) .calc-utility-button :is(.report-icon,.reset-icon){width:18px;height:18px}
-      /* Phone horizontal composition · 버튼 시각 contract와 분리해 각 영역이 폭/열 구성을 소유한다. */
-      :where(html[data-add-page="calc"]) .preset-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs)}
-      :where(html[data-add-page="calc"]) .preset-btn{min-width:0;width:100%;padding-inline:var(--calc-control-space)}
-      :where(html[data-add-page="calc"]) .preset-btn .preset-main{letter-spacing:-.04em}
-      :where(html[data-add-page="calc"]) .calculation-group .seg button{padding-inline:var(--calc-control-space)}
-      :where(html[data-add-page="calc"]) .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible}
-      :where(html[data-add-page="calc"]) .tab{min-width:0;width:100%;padding-inline:var(--calc-control-space);white-space:normal;word-break:keep-all}
-      :where(html[data-add-page="calc"]) .input-grid, :where(html[data-add-page="calc"]) .input-group, :where(html[data-add-page="calc"]) .fields, :where(html[data-add-page="calc"]) .field, :where(html[data-add-page="calc"]) .share-stepper, :where(html[data-add-page="calc"]) .pct-stepper, :where(html[data-add-page="calc"]) .with-unit{min-width:0}
-      :where(html[data-add-page="calc"]) .input-grid{width:100%}
-      :where(html[data-add-page="calc"]) .input-group{width:100%;max-width:100%;padding:var(--calc-surface-space)}
-      :where(html[data-add-page="calc"]) .control{width:100%;min-width:0}
-      :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout), :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{grid-template-columns:minmax(0,1fr)}
-      :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-      :where(html[data-add-page="calc"]) .kpi{min-width:0;padding:var(--calc-surface-space)}
-      :where(html[data-add-page="calc"]) .kpi .name{
-        font-size:var(--calc-type-label);
-        white-space:nowrap;
-        letter-spacing:-.055em;
-        overflow:hidden;
-        text-overflow:ellipsis;
-      }
-      :where(html[data-add-page="calc"]) .kpi .name.has-help{overflow:visible;text-overflow:clip}
-      :where(html[data-add-page="calc"]) .custom-tooltip{width:min(250px,calc(100vw - 24px))}
-      :where(html[data-add-page="calc"]) .kpi .value{
-        font-size:17px;
-        white-space:nowrap;
-        letter-spacing:-.045em;
-      }
-      :where(html[data-add-page="calc"]) .kpi .sub{
-        font-size:var(--calc-type-label);
-        line-height:1.35;
-        white-space:normal;
-        letter-spacing:-.045em;
-        overflow:visible;
-        text-overflow:clip;
-        overflow-wrap:anywhere;
-        word-break:keep-all;
-      }
-      :where(html[data-add-page="calc"]) .range-panel{grid-template-columns:1fr}
-      :where(html[data-add-page="calc"]) .range-box{padding:var(--calc-surface-space)}
-      :where(html[data-add-page="calc"]) .mobile-only{display:inline}
-      :where(html[data-add-page="calc"]) .desktop-only{display:none}
-      :where(html[data-add-page="calc"]) .share-stepper{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;gap:3px;align-items:center}
-      :where(html[data-add-page="calc"]) :is(.share-step-btn,.pct-step-btn){display:block;height:auto;align-self:stretch;border-color:var(--control-border)}
-      :where(html[data-add-page="calc"]) .share-step-btn:active{background:var(--control-hover-bg)}
-      :where(html[data-add-page="calc"]) .input-group .group-title small{font-size:var(--calc-type-support)}
-      /* Mobile input optical density · Main Dashboard의 iOS zoom 회피 방식과 동일한 shell contract
-         - focus 가능한 input의 computed font-size는 16px을 유지한다.
-         - shell의 외곽 geometry는 그대로 두고 내부 input만 .75 scale하여 visual 12px로 표시한다.
-         - date input은 기존 date-control-shell을 같은 optical shell로 재사용한다. */
-      :where(html[data-add-page="calc"]) .calc-control-shell{position:relative;height:var(--calc-control-box-height);overflow:hidden;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);box-shadow:inset 0 1px 0 rgba(255,255,255,.46)}
-      html:where([data-add-page="calc"]).dark .calc-control-shell{box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
-      html:where([data-add-page="calc"]).dark .calc-control-shell > .control{box-shadow:none}
-      :where(html[data-add-page="calc"]) .calc-control-shell:focus-within{border-color:var(--control-focus-border);box-shadow:0 0 0 2px var(--control-focus-ring)}
-      :where(html[data-add-page="calc"]) .calc-control-shell:has(> .control[readonly]){background:var(--control-readonly-bg)}
-      :where(html[data-add-page="calc"]) .calc-control-shell:has(> .control.invalid){border-color:var(--danger-strong);background:var(--danger-control-bg);box-shadow:0 0 0 3px var(--danger-ring)}
-      :where(html[data-add-page="calc"]) .calc-control-shell > .control{display:block;width:var(--calc-control-inner-size);max-width:none;height:var(--calc-control-inner-size);min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;padding:var(--calc-control-inner-pad-y) var(--calc-control-inner-pad-x);font-size:var(--calc-control-input-size);line-height:1;transform:scale(var(--calc-control-scale));transform-origin:top left}
-      :where(html[data-add-page="calc"]) .calc-control-shell > .control:focus{border:0;box-shadow:none}
-      :where(html[data-add-page="calc"]) .calc-control-shell > .control:is([readonly],.invalid){background:transparent;box-shadow:none}
-      :where(html[data-add-page="calc"]) .with-unit .calc-control-shell > .control{padding-right:45.333333px}
-      :where(html[data-add-page="calc"]) .date-control-shell{height:var(--calc-control-box-height)}
-      :where(html[data-add-page="calc"]) .date-control-shell .date-control{width:var(--calc-control-inner-size);max-width:none;height:var(--calc-control-inner-size);padding:var(--calc-control-inner-pad-y) var(--calc-control-inner-pad-x);font-size:var(--calc-control-input-size);line-height:1;transform:scale(var(--calc-control-scale));transform-origin:top left}
-      :where(html[data-add-page="calc"]) .input-group :is(.share-step-btn,.pct-step-btn){font-size:16px}
-      :where(html[data-add-page="calc"]) .calculation-group .fields{grid-template-columns:minmax(0,1fr)}
-      :where(html[data-add-page="calc"]) .calculation-group .field.full{grid-column:auto}
-      :where(html[data-add-page="calc"]) .strategy-head{display:block}:where(html[data-add-page="calc"]) .badge{display:inline-block;margin-top:var(--density-gap-md)}
-      :where(html[data-add-page="calc"]) .desktop-details{display:none}
-      :where(html[data-add-page="calc"]) .desktop-data{display:none}
-      :where(html[data-add-page="calc"]) .mobile-data{display:grid;gap:var(--calc-card-gap)}
-      :where(html[data-add-page="calc"]) .strategy-title p{font-size:var(--calc-type-label);letter-spacing:-.025em}
-      :where(html[data-add-page="calc"]) .summary-row{grid-template-columns:repeat(2,1fr);gap:var(--calc-card-gap);margin-bottom:var(--calc-card-gap)}
-      :where(html[data-add-page="calc"]) .summary-card{min-width:0}
-      :where(html[data-add-page="calc"]) .summary-card .sname{font-size:var(--calc-type-label);line-height:1.25}
-      :where(html[data-add-page="calc"]) .summary-card .svalue{font-size:17px;line-height:1.2;letter-spacing:-.045em;white-space:nowrap}
-      :where(html[data-add-page="calc"]) .mobile-data-row{gap:var(--density-gap-xs);padding:var(--density-gap-sm) 0}
-      :where(html[data-add-page="calc"]) .mobile-data-value{max-width:58%;white-space:nowrap;word-break:normal;letter-spacing:-.035em}
+  :where(html[data-add-page="calc"]) #reportBtn .report-text, :where(html[data-add-page="calc"]) #resetBtn .reset-text{display:none}
+  :where(html[data-add-page="calc"]) .calc-utility-button :is(.report-icon,.reset-icon){width:18px;height:18px}
+  /* Phone horizontal composition · 버튼 시각 contract와 분리해 각 영역이 폭/열 구성을 소유한다. */
+  :where(html[data-add-page="calc"]) .preset-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs)}
+  :where(html[data-add-page="calc"]) .preset-btn{min-width:0;width:100%;padding-inline:var(--calc-control-space)}
+  :where(html[data-add-page="calc"]) .preset-btn .preset-main{letter-spacing:-.04em}
+  :where(html[data-add-page="calc"]) .calculation-group .seg button{padding-inline:var(--calc-control-space)}
+  :where(html[data-add-page="calc"]) .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible}
+  :where(html[data-add-page="calc"]) .tab{min-width:0;width:100%;padding-inline:var(--calc-control-space);white-space:normal;word-break:keep-all}
+  :where(html[data-add-page="calc"]) .input-grid, :where(html[data-add-page="calc"]) .input-group, :where(html[data-add-page="calc"]) .fields, :where(html[data-add-page="calc"]) .field, :where(html[data-add-page="calc"]) .share-stepper, :where(html[data-add-page="calc"]) .pct-stepper, :where(html[data-add-page="calc"]) .with-unit{min-width:0}
+  :where(html[data-add-page="calc"]) .input-grid{width:100%}
+  :where(html[data-add-page="calc"]) .input-group{width:100%;max-width:100%;padding:var(--calc-surface-space)}
+  :where(html[data-add-page="calc"]) .control{width:100%;min-width:0}
+  :where(html[data-add-page="calc"]) .input-grid:not(.no-prior-layout), :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{grid-template-columns:minmax(0,1fr)}
+  :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  :where(html[data-add-page="calc"]) .kpi{min-width:0;padding:var(--calc-surface-space)}
+  :where(html[data-add-page="calc"]) .kpi .name{
+    font-size:var(--calc-type-label);
+    white-space:nowrap;
+    letter-spacing:-.055em;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  :where(html[data-add-page="calc"]) .kpi .name.has-help{overflow:visible;text-overflow:clip}
+  :where(html[data-add-page="calc"]) .custom-tooltip{width:min(250px,calc(100vw - 24px))}
+  :where(html[data-add-page="calc"]) .kpi .value{
+    font-size:17px;
+    white-space:nowrap;
+    letter-spacing:-.045em;
+  }
+  :where(html[data-add-page="calc"]) .kpi .sub{
+    font-size:var(--calc-type-label);
+    line-height:1.35;
+    white-space:normal;
+    letter-spacing:-.045em;
+    overflow:visible;
+    text-overflow:clip;
+    overflow-wrap:anywhere;
+    word-break:keep-all;
+  }
+  :where(html[data-add-page="calc"]) .range-panel{grid-template-columns:1fr}
+  :where(html[data-add-page="calc"]) .range-box{padding:var(--calc-surface-space)}
+  :where(html[data-add-page="calc"]) .mobile-only{display:inline}
+  :where(html[data-add-page="calc"]) .desktop-only{display:none}
+  :where(html[data-add-page="calc"]) .share-stepper{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;gap:3px;align-items:center}
+  :where(html[data-add-page="calc"]) :is(.share-step-btn,.pct-step-btn){display:block;height:auto;align-self:stretch;border-color:var(--control-border)}
+  :where(html[data-add-page="calc"]) .share-step-btn:active{background:var(--control-hover-bg)}
+  :where(html[data-add-page="calc"]) .input-group .group-title small{font-size:var(--calc-type-support)}
+  /* Mobile input optical density · Main Dashboard의 iOS zoom 회피 방식과 동일한 shell contract
+     - focus 가능한 input의 computed font-size는 16px을 유지한다.
+     - shell의 외곽 geometry는 그대로 두고 내부 input만 .75 scale하여 visual 12px로 표시한다.
+     - date input은 기존 date-control-shell을 같은 optical shell로 재사용한다. */
+  :where(html[data-add-page="calc"]) .calc-control-shell{position:relative;height:var(--calc-control-box-height);overflow:hidden;border:var(--calc-control-border-width) solid var(--control-border);border-radius:min(var(--control-radius-md),var(--corner-control-cap));background:var(--surface-control);box-shadow:inset 0 1px 0 rgba(255,255,255,.46)}
+  html:where([data-add-page="calc"]).dark .calc-control-shell{box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+  html:where([data-add-page="calc"]).dark .calc-control-shell > .control{box-shadow:none}
+  :where(html[data-add-page="calc"]) .calc-control-shell:focus-within{border-color:var(--control-focus-border);box-shadow:0 0 0 2px var(--control-focus-ring)}
+  :where(html[data-add-page="calc"]) .calc-control-shell:has(> .control[readonly]){background:var(--control-readonly-bg)}
+  :where(html[data-add-page="calc"]) .calc-control-shell:has(> .control.invalid){border-color:var(--danger-strong);background:var(--danger-control-bg);box-shadow:0 0 0 3px var(--danger-ring)}
+  :where(html[data-add-page="calc"]) .calc-control-shell > .control{display:block;width:var(--calc-control-inner-size);max-width:none;height:var(--calc-control-inner-size);min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;padding:var(--calc-control-inner-pad-y) var(--calc-control-inner-pad-x);font-size:var(--calc-control-input-size);line-height:1;transform:scale(var(--calc-control-scale));transform-origin:top left}
+  :where(html[data-add-page="calc"]) .calc-control-shell > .control:focus{border:0;box-shadow:none}
+  :where(html[data-add-page="calc"]) .calc-control-shell > .control:is([readonly],.invalid){background:transparent;box-shadow:none}
+  :where(html[data-add-page="calc"]) .with-unit .calc-control-shell > .control{padding-right:45.333333px}
+  :where(html[data-add-page="calc"]) .date-control-shell{height:var(--calc-control-box-height)}
+  :where(html[data-add-page="calc"]) .date-control-shell .date-control{width:var(--calc-control-inner-size);max-width:none;height:var(--calc-control-inner-size);padding:var(--calc-control-inner-pad-y) var(--calc-control-inner-pad-x);font-size:var(--calc-control-input-size);line-height:1;transform:scale(var(--calc-control-scale));transform-origin:top left}
+  :where(html[data-add-page="calc"]) .input-group :is(.share-step-btn,.pct-step-btn){font-size:16px}
+  :where(html[data-add-page="calc"]) .calculation-group .fields{grid-template-columns:minmax(0,1fr)}
+  :where(html[data-add-page="calc"]) .calculation-group .field.full{grid-column:auto}
+  :where(html[data-add-page="calc"]) .strategy-head{display:block}:where(html[data-add-page="calc"]) .badge{display:inline-block;margin-top:var(--density-gap-md)}
+  :where(html[data-add-page="calc"]) .desktop-details{display:none}
+  :where(html[data-add-page="calc"]) .desktop-data{display:none}
+  :where(html[data-add-page="calc"]) .mobile-data{display:grid;gap:var(--calc-card-gap)}
+  :where(html[data-add-page="calc"]) .strategy-title p{font-size:var(--calc-type-label);letter-spacing:-.025em}
+  :where(html[data-add-page="calc"]) .summary-row{grid-template-columns:repeat(2,1fr);gap:var(--calc-card-gap);margin-bottom:var(--calc-card-gap)}
+  :where(html[data-add-page="calc"]) .summary-card{min-width:0}
+  :where(html[data-add-page="calc"]) .summary-card .sname{font-size:var(--calc-type-label);line-height:1.25}
+  :where(html[data-add-page="calc"]) .summary-card .svalue{font-size:17px;line-height:1.2;letter-spacing:-.045em;white-space:nowrap}
+  :where(html[data-add-page="calc"]) .mobile-data-row{gap:var(--density-gap-xs);padding:var(--density-gap-sm) 0}
+  :where(html[data-add-page="calc"]) .mobile-data-value{max-width:58%;white-space:nowrap;word-break:normal;letter-spacing:-.035em}
 
-      /* 거래유형별 모바일 세부 배치 */
-      :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{
-        grid-template-areas:
-          "current-group"
-          "calculation-group";
-        gap:var(--calc-card-gap)
-      }
-      :where(html[data-add-page="calc"]) .prior-entry-grid .control{min-width:0;max-width:100%}
-      :where(html[data-add-page="calc"]) .existing-group.holding-layout #holdingPriorFields{gap:0}
-      :where(html[data-add-page="calc"]) .additional-group.holding-layout #currentFields{gap:0}
-      :where(html[data-add-page="calc"]) .additional-group.settled-layout #currentFields{gap:0}
-      :where(html[data-add-page="calc"]) .additional-group.holding-layout #currentBuyGainLabel{white-space:nowrap;letter-spacing:-.055em}
-    }
+  /* 거래유형별 모바일 세부 배치 */
+  :where(html[data-add-page="calc"]) .input-grid.no-prior-layout{
+    grid-template-areas:
+    "current-group"
+    "calculation-group";
+    gap:var(--calc-card-gap)
+  }
+  :where(html[data-add-page="calc"]) .prior-entry-grid .control{min-width:0;max-width:100%}
+  :where(html[data-add-page="calc"]) .existing-group.holding-layout #holdingPriorFields{gap:0}
+  :where(html[data-add-page="calc"]) .additional-group.holding-layout #currentFields{gap:0}
+  :where(html[data-add-page="calc"]) .additional-group.settled-layout #currentFields{gap:0}
+  :where(html[data-add-page="calc"]) .additional-group.holding-layout #currentBuyGainLabel{white-space:nowrap;letter-spacing:-.055em}
+}
 
 /* ==================== 03. Report ==================== */
 /* =========================================================
