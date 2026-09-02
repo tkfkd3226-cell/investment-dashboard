@@ -14,5 +14,13 @@
     "memo": "2026년 7월 기업적립금",
     "updatedBy": "google-apps-script",
     "updatedAtKST": "2026-07-31T16:46:54+09:00"
+  },
+  {
+    "id": "contrib-2026-09-01-4e6c78da-d01e-4fe9-ad27-14677b8fe392",
+    "date": "2026-09-01",
+    "amount": 618060,
+    "memo": "2026년 8월 기업적립금",
+    "updatedBy": "google-apps-script",
+    "updatedAtKST": "2026-09-02T11:13:09+09:00"
   }
 ]
