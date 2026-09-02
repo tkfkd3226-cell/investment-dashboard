@@ -317,11 +317,14 @@ test('Calc는 iOS 가로 회전 text autosizing을 막아 CSS font-size를 그�
   assert.match(body,/text-size-adjust:100%/);
 });
 
-test('Calc 페이지 제목은 Compact canonical token을 viewport별로 재사용한다',()=>{
+test('Calc 페이지 제목은 Compact canonical token과 800 weight를 viewport별로 재사용한다',()=>{
   assert.match(css1,/--calc-type-page-title:22px/);
   assert.match(css1,/@media\(max-width:1100px\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-type-page-title:21px/);
   assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{ :root:where\(\[data-add-page="calc"\]\)\{[^}]*--calc-type-page-title:22px/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .hero h1'),/font-size:var\(--calc-type-page-title\)/);
+  const title=rule(':where(html[data-add-page="calc"]) .hero h1');
+  assert.match(title,/font-size:var\(--calc-type-page-title\)/);
+  assert.match(title,/font-weight:800/);
+  assert.doesNotMatch(title,/font-weight:900/);
 });
 
 test('Calc 3개 거래유형의 동적 문구는 inline font-size 없이 공통 typography selector를 사용한다',()=>{
@@ -395,6 +398,27 @@ test('Calc 입력영역은 viewport 공통 Field Layout primitive를 사용한�
   assert.match(rule(':where(html[data-add-page="calc"]) .prior-trade-section'),/gap:var\(--calc-field-row-gap\)/);
   assert.doesNotMatch(css1,/\.prior-trade-section\{gap:var\(--density-gap-(?:sm|md)\)/);
   assert.doesNotMatch(css1,/\.settled-subsection\{gap:var\(--density-gap-(?:sm|md)\)/);
+});
+
+test('Calc 입력 subsection은 카드 외곽에 중복 padding을 만들지 않고 divider 방향에만 6px spacing을 둔다',()=>{
+  const base=rule(':where(html[data-add-page="calc"]) .existing-subsection, :where(html[data-add-page="calc"]) .current-subsection, :where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-subsection');
+  assert.match(base,/padding:0/);
+  assert.doesNotMatch(base,/padding:0 var\(/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .existing-purchase-section'),/padding-right:var\(--calc-surface-space\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .existing-evaluation-section'),/padding-left:var\(--calc-surface-space\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .current-subsection:nth-of-type(odd)'),/padding-right:var\(--calc-surface-space\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .current-subsection:nth-of-type(even)'),/padding-left:var\(--calc-surface-space\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .current-subsection:nth-of-type(-n+2)'),/padding-bottom:var\(--calc-surface-space\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .current-subsection:nth-of-type(n+3)'),/padding-top:var\(--calc-surface-space\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .prior-date-section'),/padding:0 0 var\(--calc-surface-space\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .prior-buy-section'),/padding-right:var\(--calc-surface-space\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .prior-sell-section'),/padding-left:var\(--calc-surface-space\)/);
+  const phoneStart=css1.indexOf('@media (max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){');
+  assert.notEqual(phoneStart,-1);
+  const phone=css1.slice(phoneStart,css1.indexOf('/* ==================== 03. Report',phoneStart));
+  assert.doesNotMatch(phone,/\.existing-subsection,[^}]*padding:/);
+  assert.doesNotMatch(phone,/\.prior-date-section\{padding:/);
+  assert.doesNotMatch(phone,/\.prior-trade-section\{padding:/);
 });
 
 test('계산 기준은 전용 정렬 보정 없이 공통 field/row gap 구조를 사용한다', () => {
