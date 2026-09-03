@@ -36,7 +36,7 @@
       grid-template-columns:1fr;
     }
 
-.securities-summary-block .chart-head-actions > [data-accounts-view-toggle-wrap]:not([hidden]){display:inline-flex;order:-1}
+.securities-summary-block .chart-head-actions > [data-accounts-view-toggle-wrap]:not([hidden]){display:inline-flex}
 
   /* [M03. Asset Tabs / Data Views / Allocation · 세로폰 표↔카드와 비중 카드] */
 .asset-status-table .mobile-table-brand-prefix{display:none}

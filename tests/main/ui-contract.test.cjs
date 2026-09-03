@@ -114,7 +114,7 @@ test('Card surface와 viewport section rhythm은 semantic token 단일 contract�
   assert.doesNotMatch(common1,/:is\([^}]*#ledger-check[^}]*\)\{gap:/);
   assert.match(common1,/:is\(\.asset-detail-grid,\.securities-subsection,\.pension-chart-block\)\{margin-top:var\(--asset-band-section-gap\)\}/);
 assert.match(common1,/\.source-table-scroll\{margin-top:var\(--source-table-gap\);border-radius:0\}/);
-  assert.match(common1,/\.change-table-wrap\{margin-top:var\(--space-5xl\);border-radius:min\(var\(--surface-radius-xs\),var\(--corner-surface-cap\)\)\}/);
+  assert.match(common1,/\.change-table-wrap\{margin-top:var\(--space-5xl\);border-radius:min\(var\(--surface-radius-level-3\),var\(--corner-surface-cap\)\)\}/);
   assert.match(common1,/\.data-list-card\{[^}]*border-radius:min\(var\(--surface-radius-mini\),var\(--corner-surface-cap\)\)/);
   assert.doesNotMatch(common,/--surface-radius-data-list:/);
   assert.equal((common.match(/--surface-border-muted:/g)||[]).length,1);
@@ -146,7 +146,7 @@ test('Table summary/sticky/scroll contract는 semantic token과 sticky first-col
 
 test('6차 table component는 전역 base 없이 semantic table shell과 viewport source gap을 공유한다',()=>{
   const tablet1=compact(tablet);
-  assert.match(common1,/\.dashboard-data-table\{[^}]*border-collapse:separate;[^}]*background:var\(--card\);[^}]*border-radius:min\(var\(--surface-radius-md\),var\(--corner-surface-cap\)\)/);
+  assert.match(common1,/\.dashboard-data-table\{[^}]*border-collapse:separate;[^}]*background:var\(--card\);[^}]*border-radius:min\(var\(--surface-radius-level-3\),var\(--corner-surface-cap\)\)/);
   assert.match(common1,/\.dashboard-data-table th, \.dashboard-data-table td\{[^}]*border-right:1px solid var\(--table-column-line\);[^}]*border-bottom:1px solid var\(--line\)/);
   assert.match(common1,/\.dashboard-data-table \.num\{text-align:right;font-variant-numeric:tabular-nums\}/);
   assert.doesNotMatch(common,/^table\{/m);
@@ -322,7 +322,42 @@ test('13차 반응형·테마·Print는 semantic source와 인쇄 canonical layo
   assert.match(print1,/html, html\.dark\{ color-scheme:light;/);
   assert.match(print1,/\.hero \.hero-return-pill\{display:inline-flex\}/);
   assert.match(print1,/\.metric-grid\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)\}/);
-  assert.match(print1,/\.chart-note\.six\{grid-template-columns:repeat\(6,minmax\(0,1fr\)\)\}/);
+  assert.match(common1,/html\.print-light-theme\{ color-scheme:light; --chart-surface:#ffffff;/);
+  assert.match(charts,/document\.documentElement\.classList\.add\('print-light-theme'\)/);
+  assert.match(charts,/document\.documentElement\.classList\.remove\('print-light-theme'\)/);
+  assert.match(print1,/\.chart-note\.six\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
+  assert.match(common1,/\.positive\{color:var\(--value-positive\)\} \.negative\{color:var\(--value-negative\)\}/);
+});
+
+test('13차 실기 QA 후속은 계좌 control·Print 표·Phone 위험도·목차·PIN 계약을 유지한다',()=>{
+  const mobile1=compact(mobile),print1=compact(print);
+  assert.match(mobile1,/\[data-accounts-view-toggle-wrap\]:not\(\[hidden\]\)\{display:inline-flex\}/);
+  assert.doesNotMatch(mobile1,/\[data-accounts-view-toggle-wrap\][^{]*\{[^}]*order:/);
+  assert.match(ui1,/\$\{separateProfitControl\(x,'section-inline'\)\}<span data-accounts-view-toggle-wrap\$\{accountsMode\?'':' hidden'\}>\$\{mobileViewToggle\('accounts'\)\}<\/span>\$\{securitiesPerformanceViewSwitch\(\)\}/);
+  assert.match(print1,/#accounts-summary \.accounts-table\{ width:100%; min-width:0; max-width:100%; table-layout:fixed;/);
+  assert.match(print1,/#accounts-summary \.accounts-table :is\(th,td\):first-child\{width:17%\}/);
+  assert.match(special1,/\.pension-risk-threshold span\{top:calc\(100% \+ var\(--space-2xs\)\)\}/);
+  assert.match(common1,/\.mobile-nav-head\{[^}]*border-bottom:1px solid var\(--nav-divider\)/);
+  assert.match(common1,/\.desktop-edge-toc-title \+ \.desktop-edge-toc-group\{/);
+  for(const source of [ui,pensionEditor]){
+    assert.doesNotMatch(source,/type=["']password["']/i);
+    assert.match(source,/input[^>]+inputmode=["']numeric["'][^>]+autocomplete=["']off["']/i);
+  }
+});
+
+test('Surface radius 3계층은 Desktop·Tablet과 Phone Shared에서 같은 line contract를 사용한다',()=>{
+  const print1=compact(print);
+  assert.match(common1,/--surface-radius-level-1:18px; --surface-radius-level-2:16px; --surface-radius-level-3:14px;/);
+  assert.match(common1,/--surface-radius-outer:var\(--surface-radius-level-1\); --surface-radius-large:var\(--surface-radius-level-2\); --surface-radius-medium:var\(--surface-radius-level-3\); --surface-radius-mini:var\(--surface-radius-level-3\);/);
+  assert.match(special1,/--surface-radius-level-1:16px; --surface-radius-level-2:14px; --surface-radius-level-3:12px;/);
+  assert.doesNotMatch(special,/--surface-radius-outer:20px|--hero-radius:var\(--surface-radius-sm\)/);
+  assert.match(common1,/\.asset-workspace-tabs\{[^}]*border-radius:min\(var\(--surface-radius-level-1\),var\(--corner-surface-cap\)\)/);
+  assert.match(common1,/#summary-section :is\(\.mobile-scroll,\.combined-performance-table\)\{border-radius:min\(var\(--surface-radius-level-1\),var\(--corner-surface-cap\)\)\}/);
+  assert.match(common1,/#accounts-summary :is\(\.mobile-scroll,\.accounts-table\)\{border-radius:min\(var\(--surface-radius-level-2\),var\(--corner-surface-cap\)\)\}/);
+  assert.match(common1,/\.source-card\{[^}]*border-radius:min\(var\(--surface-radius-level-2\),var\(--corner-surface-cap\)\)/);
+  assert.match(common1,/\.asset-insight-card\{ border-radius:min\(var\(--surface-radius-level-3\),var\(--corner-surface-cap\)\)/);
+  assert.match(common1,/\.change-table-wrap\{[^}]*border-radius:min\(var\(--surface-radius-level-3\),var\(--corner-surface-cap\)\)\}/);
+  assert.match(print1,/--surface-radius-level-1:18px; --surface-radius-level-2:16px; --surface-radius-level-3:14px;/);
 });
 
 test('Chart legend는 전체선택/다중선택을 지원하되 마지막 1개는 해제하지 않는다',()=>{

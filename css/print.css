@@ -118,6 +118,9 @@
       --hero-image-opacity:.75;
       --accent-strong-bg:#2b3d59;
       --on-accent-text:#ffffff;
+      --surface-radius-level-1:18px;
+      --surface-radius-level-2:16px;
+      --surface-radius-level-3:14px;
       --page-section-gap:var(--space-9xl);
       --page-section-title-gap:var(--space-5xl);
       --surface-pad-outer:var(--space-8xl);
@@ -204,7 +207,7 @@
     .hero .hero-label-default{display:inline}
     .hero .hero-label-mobile{display:none}
     .metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-    .chart-note.six{grid-template-columns:repeat(6,minmax(0,1fr))}
+    .chart-note.six{grid-template-columns:repeat(3,minmax(0,1fr))}
     .chart-note.symbol-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 
     /* [P05. Data Views · 카드보기/scroll/sticky 상태와 무관하게 canonical 표 출력] */
@@ -231,6 +234,19 @@
       max-width:100%;
       table-layout:auto;
     }
+    #accounts-summary,
+    #accounts-table-view{
+      min-width:0;
+      max-width:100%;
+    }
+    #accounts-summary .accounts-table{
+      width:100%;
+      min-width:0;
+      max-width:100%;
+      table-layout:fixed;
+    }
+    #accounts-summary .accounts-table :is(th,td):first-child{width:17%}
+    #accounts-summary .accounts-table :is(.accounts-memo-head,.accounts-memo){width:27%}
     .dashboard-data-table thead{
       display:table-header-group;
     }

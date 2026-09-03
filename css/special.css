@@ -165,7 +165,9 @@
       --source-reclass-note-size:var(--type-size-xs);
       --chart-accent-height:2px;
       --chart-accent-opacity:.55;
-      --surface-radius-outer:20px;
+      --surface-radius-level-1:16px;
+      --surface-radius-level-2:14px;
+      --surface-radius-level-3:12px;
       --dashboard-control-height:25px;
       --dashboard-control-font-size:9.5px;
       --dashboard-control-state-font-size:9.5px;
@@ -221,7 +223,6 @@
   /* Hero Phone UI · Hero 타이포/여백은 세로·가로폰 동일 */
     .hero{
       --hero-pad:var(--space-5xl);
-      --hero-radius:var(--surface-radius-sm);
       --hero-title-size:20px;
       --hero-title-gap-y:4px;
       --hero-title-gap-x:6px;
@@ -613,6 +614,10 @@
   button:not(:disabled):active{transform:scale(.985)}
   .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,.control-icon-button-compact):not(:disabled):active,
   .switcher .date-tool-btn:not(:disabled):active{transform:scale(.985)}
+
+  /* Phone Risk Threshold · 현재 비중 badge와 겹치지 않도록 70% 위치 chip을 gauge 아래로 이동 */
+  .pension-risk-threshold span{top:calc(100% + var(--space-2xs))}
+  .pension-risk-scale{margin-top:calc(var(--info-stack-gap) + 20px)}
 
   /* Scroll To Top Phone Geometry · 세로폰과 실제 터치폰 가로 공통 */
   .mobile-top-button{
