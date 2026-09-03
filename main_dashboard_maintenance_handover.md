@@ -22,8 +22,7 @@
 
 다음 항목은 이미 검토된 설계 의도·browser/native behavior·허용된 trade-off이므로, **실제 대상 환경에서 문제가 재현되지 않는 한 감점하거나 반복 개선안으로 제시하지 않는다.**
 
-- **KRX Action PIN**: 현재 `type="password" + inputmode="numeric" + autocomplete="off"` 구현을 유지한다. Chrome 등에서 비밀번호 저장 UI가 뜰 *가능성*만으로 UX를 감점하거나 퇴직연금 PIN 방식으로 통일하라고 제안하지 않는다. 실제 대상 브라우저에서 사용자 영향이 재현된 경우에만 재검토한다.
-- **퇴직연금 Action PIN**: `type="text" + inputmode="numeric" + -webkit-text-security:disc`는 Chrome 비밀번호 저장 제안을 피하면서 PIN 마스킹을 유지하기 위한 의도된 구현이다. 비표준 CSS라는 이유만으로 감점하거나 `type="password"`로 되돌리지 않는다.
+- **KRX·퇴직연금 Action PIN**: 두 PIN은 `type="text" + inputmode="numeric" + autocomplete="off" + -webkit-text-security:disc`를 공통 사용한다. Chrome 비밀번호 저장 제안을 피하면서 숫자 PIN 마스킹을 유지하기 위한 의도된 구현이므로 credential `password` field로 되돌리지 않는다. modal을 닫거나 다시 열 때 KRX PIN 값은 비운다.
 - **개인보기 3회 gesture**: 일반 사용자에게 진입 경로를 숨기는 private gesture다. discoverability 부족이나 일반 버튼이 아니라는 이유로 감점하지 않는다.
 - **Native `<select>` option UI**: browser/OS native rendering 차이를 이유로 custom select 전환을 권하지 않는다.
 - **전체 dashboard `render()` 방식 / `Date.now()` cache bust**: 실제 측정된 병목·과도한 네트워크 사용이 없으면 감점하지 않는다.
@@ -595,9 +594,7 @@ UX는 실제 상태 혼란, 오동작 가능성, feedback 불일치, 복구 어�
 
 Native `<select>`의 펼친 option UI는 browser/OS native rendering일 수 있으므로 viewport별 native 색상 차이만으로 custom select 전환을 권하지 않는다.
 
-KRX Action PIN의 현재 `type="password" + inputmode="numeric" + autocomplete="off"`는 현재 운영 UI의 의도된 구현이다. Chrome 등에서 비밀번호 저장 UI가 개입할 *가능성*만으로 UX를 감점하거나 퇴직연금 Action PIN 방식으로 통일하라고 제안하지 않는다. 실제 대상 브라우저에서 사용자 영향이 재현된 경우에만 재검토한다.
-
-퇴직연금 Action PIN의 `type="text" + inputmode="numeric" + -webkit-text-security:disc`는 Chrome 비밀번호 저장 제안을 피하면서 PIN 마스킹을 유지하기 위한 의도된 처리다. 비표준 CSS라는 이유만으로 감점하거나 `type="password"`로 되돌리라고 제안하지 않는다. 실제 대상 브라우저에서 문제가 확인된 경우에만 재검토한다.
+KRX·퇴직연금 Action PIN의 `type="text" + inputmode="numeric" + autocomplete="off" + -webkit-text-security:disc`는 Chrome 비밀번호 저장 제안을 피하면서 PIN 마스킹을 유지하기 위한 의도된 처리다. 비표준 CSS라는 이유만으로 감점하거나 credential `password` field로 되돌리라고 제안하지 않는다. 실제 대상 브라우저에서 문제가 확인된 경우에만 재검토한다.
 
 
 ### I. 성능 / 유지보수성에서 반복 감점하지 않을 항목
@@ -851,9 +848,16 @@ node --test tests/add/calc.test.cjs
 node --test tests/add/ui-contract.test.cjs
 ```
 
-작업 완료 전에는 영향 범위와 무관하게 가능한 경우 **4종 Full QA**를 한 번 실행한다.
+작업 완료 전에는 해당 화면군의 두 테스트를 실행한다. Main과 Add를 모두 포함하는 **전체 QA**를 사용자가 명시한 경우에만 4종 Full QA를 실행한다.
 
 ```bash
+# Main 작업
+node --test tests/main/*.test.cjs
+
+# Add 작업
+node --test tests/add/*.test.cjs
+
+# Main + Add 전체 QA를 명시한 경우
 node --test tests/main/*.test.cjs tests/add/*.test.cjs
 ```
 
@@ -965,6 +969,8 @@ QA라는 이유로 디자인을 임의 변경하지 않는다. FAIL을 고치면
 **QA에서는 2.3-J의 GitHub Pages 공개 주소를 사용하지 않는다.** QA의 대상은 직전 수정이 반영된 현재 ZIP/변경 파일이며, 공개 배포본은 같은 revision이라는 보장이 없으므로 화면이 정상이어도 QA PASS 근거가 될 수 없고, 화면이 달라도 회귀 근거가 될 수 없다.
 
 QA에서 browser/runtime 검증이 필요하면 **현재 수정본 자체를 실행할 수 있는 환경**에서만 확인한다. 해당 환경에서 실행이 불가능하면 diff·syntax·import·cascade·fixture·회귀테스트 등 가능한 검증을 끝까지 수행하고, 실행하지 못한 runtime 항목은 `미실시` 또는 `검증 불가`로 명확히 표시한다. 실행하지 못한 검사를 PASS라고 쓰지 않는다.
+
+이 프로젝트에서는 자동 브라우저 캡처가 반복적으로 실패했으므로 수정·차수별 QA의 기본 절차에서 제외한다. 화면 미감과 실제 기기 동작은 사용자의 실기 QA 결과를 기준으로 하고, 자동 캡처는 사용자가 별도로 요청한 경우에만 시도한다.
 
 사용자가 공개 배포 상태 확인을 별도로 요청한 경우에는 `QA`와 섞지 않고 **`배포본 확인`**으로 구분하여 GitHub Pages를 확인한다.
 
@@ -1412,12 +1418,14 @@ input
 - 계좌1 투입원금 조정 B의 중복 제거 근거는 `레버수익 재투입 + VIP 수익 재투입 + 실현수익 투입`이며 `원천·보유 차액`은 성과기준 투입원금에는 남기되 조정 B 근거에서는 제외한다. 삼성증권2 투자 결과물 조정은 VIP 재투입액 중복 제거와 연결된다.
 - `투자원금 원천 및 검산`은 3개 source card 구조와 각 표의 `합계`를 최종값으로 사용한다. base 원천과 재투입 원천을 구분하고 `원천·보유 차액`은 중립 검산값으로 취급한다.
 - `2026-06-18` 이전 복원 구간은 현재 설명문에 맞추기 위해 과거 수치를 재계산하지 않는다. legacy 수치 의미는 데이터 기준선을 우선한다.
-- mobile의 열 축약, 메모 표시 방식, control 위치 같은 표현 세부는 실제 renderer/CSS를 Source of Truth로 하고 이 절에 반복 기록하지 않는다.
+- 세로 Phone의 계좌별 상태에서 제목행 control 순서는 `별도수익 ON/OFF → 카드 보기/표 보기 → 전체/계좌별`이다. 카드/표 전환을 가장 오른쪽으로 보내거나 ON/OFF와 분리하지 않는다. 그 밖의 mobile 열 축약과 메모 표시 방식은 실제 renderer/CSS를 Source of Truth로 한다.
 
 ### Modal / Action Form 공통 contract
 
 - 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, 상태 표시 등 공통 form/control 표현과 `dashboard-modal.js`의 dialog lifecycle을 재사용한다.
 - 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
+- KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유하고 viewport별 modal radius와 Phone 좌우 여백은 공통 contract로 관리한다. 작은 수치 차이를 feature selector에 다시 만들지 않는다.
+- Tooltip 표시 motion은 `--tooltip-motion`을 공통 source로 사용한다. Windows/macOS의 OS 모션 감소 설정으로 이 대시보드의 tooltip·toast·차트·card motion을 자동 비활성화하지 않는다.
 - 검증된 responsive/browser별 표현 예외는 feature/CSS가 소유하며, generic 공통화를 위해 제거하지 않는다.
 
 화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js` 또는 `dashboard-modal.js`로 끌어올리지 않는다.
@@ -1824,6 +1832,8 @@ JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 �
 
 테마·모서리 control은 실제 현재 상태를 잘못 암시하는 permanent active UI가 되지 않아야 하며 Light/Dark 모두 icon contrast를 유지한다. Main에서 두 appearance control을 변경할 때는 기존 localStorage key(`investmentDashboard.theme`, `investmentDashboard.cornerTheme`) 갱신과 함께 `investmentDashboard.appearance` BroadcastChannel로 현재 Light/Dark·Corner 상태를 발행한다. Add의 Calc/Report는 storage event를 fallback으로 유지하면서 이 channel을 소비해 이미 열린 탭도 실시간 동기화한다.
 
+Light/Dark는 같은 semantic 의미 체계를 공유한다. 양수·음수는 각각 `--value-positive` / `--value-negative`를 사용하고, 성공·정보·주의·오류·위험은 별도 status token으로 구분한다. 테마 공통화 과정에서 양수·음수 class를 한쪽 색으로 합치거나 status color로 대체하지 않는다. Corner는 surface/control/inner cap을 통해 같은 geometry에 적용하며 정보 위계가 다른 작은 control까지 같은 radius로 강제하지 않는다.
+
 ### Table
 
 Table의 geometry·정렬·summary contract는 **4.5 `Table 공통 contract`**를 canonical 기준으로 한다. 관련 수정 시 특히 summary 첫 셀과 나머지 셀의 배경/border, sticky first column, horizontal scroll, semantic alignment가 깨지지 않는지 확인한다.
@@ -1880,6 +1890,24 @@ Hero 기준일 영역의 **연속 3회 클릭 개인보기 ON/OFF는 의도된 �
 - discoverability 부족 자체를 감점하거나 공개 버튼 추가를 권하지 않는다.
 - 이 제스처를 보안 인증 수단으로 취급하지 않는다.
 - 3회 클릭 인식, `OFF → ON → OFF` 상태 reset, 일반 날짜/Topbar/입력 동작 간섭 여부는 실제 회귀로 검증한다.
+
+## 5.6 모바일 표 · 카드 보기
+
+- 공통 mobile view state와 renderer는 `dashboard-ui-common.js`가 소유한다. 현황·변동·계좌별 화면마다 별도 toggle state나 카드 shell을 만들지 않는다.
+- 최초 진입은 표 보기다. 세로 Phone에서 사용자가 카드 보기를 선택한 뒤 가로로 회전하면 표를 표시하고, 다시 세로로 돌아왔을 때 기존 카드 선택 상태를 복원한다.
+- 실제 터치폰 가로는 표 전용이다. 카드 보기 toggle을 숨기고 표를 canonical 표현으로 유지한다.
+- Print는 현재 mobile view state와 관계없이 표를 사용한다.
+- 모바일 data card는 공통 `data-list-card`의 title/label/value/row/total typography와 separator contract를 재사용하고 숫자에는 tabular number 정렬을 유지한다.
+
+## 5.7 Print canonical 표현
+
+- Print는 현재 Light/Dark 상태와 관계없이 Light palette로 고정한다. `beforeprint`에서 `print-light-theme`을 적용하고 모든 SVG 차트를 Light chart palette로 다시 그린 뒤 `afterprint`에서 화면 테마 차트로 복원한다.
+- Topbar·목차·modal·tooltip·toast·보기 전환·차트 조작 UI·Market AI는 인쇄에서 제외한다.
+- 비활성 자산 panel도 펼쳐 증권계좌와 퇴직연금을 연속 출력하고, Phone에서 숨긴 Hero 요약 pill도 모두 표시한다.
+- 성과 KPI는 4열, 누적손익/운용손익 차트 하단 6개 요약은 3열, 종목·상품 차트 하단 요약은 4열을 viewport와 무관한 인쇄 기준으로 사용한다.
+- 장부 검산은 결론 전체폭 + A/B 2열의 Tablet형 배치를 사용하고, `투자원금 원천 및 검산`의 source card 3개는 한 행 3열로 출력한다.
+- 계좌별 성과표는 인쇄용 고정 layout과 의미 열 폭을 사용해 `구분`·`메모`가 본문을 침범하지 않게 한다. 화면용 sticky/scroll/card 상태는 인쇄에 남기지 않는다.
+- 양수·음수 semantic color는 Light 인쇄 palette에서도 유지한다.
 
 # 6. CSS · Responsive 유지보수 규칙
 
@@ -1991,7 +2019,7 @@ special.css
 
 특수 media가 같은 조건을 공유하는 경우 media block을 불필요하게 복제하기보다 하나의 trigger block 안에서 기능별 sub-comment를 분리하고, 상단 `Scope` 주석에 포함 기능을 정확히 적는다.
 
-17차 구조 정리 이후 각 CSS 파일 상단의 Scope/Structure map과 본문의 번호 섹션은 **1:1로 대응**해야 한다. 섹션 순서는 해당 파일의 실제 source order를 Source of Truth로 보고, 문서에 별도의 고정 번호표를 중복 저장하지 않는다.
+구조 정리 이후 각 CSS 파일 상단의 Scope/Structure map과 본문의 번호 섹션은 **1:1로 대응**해야 한다. 섹션 순서는 해당 파일의 실제 source order를 Source of Truth로 보고, 문서에 별도의 고정 번호표를 중복 저장하지 않는다.
 
 새 특수 breakpoint를 단순 미관 보정용으로 추가하지 않는다. 실제 레이아웃/정보구조 문제를 해결해야 할 때만 추가하고, `special.css`에 **기능명 + 존재 이유**를 주석으로 남긴다.
 
@@ -2225,6 +2253,22 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 
 비슷한 값을 새로 하드코딩하거나 의미가 겹치는 변수를 다시 만들지 않는다.
 
+공통화 완료 영역의 대표 source는 다음과 같다.
+
+```text
+Page / Section rhythm       → --page-* / --asset-band-section-gap
+Surface padding / radius    → --surface-pad-* / --surface-radius-level-*
+Card group gap              → --card-grid-gap-*
+Title / Control             → --section-* / --dashboard-control-*
+Metric / Mini / Data List   → component typography token + 공통 renderer
+Table                       → --data-table-* + .dashboard-data-table
+Chart                       → --chart-* + CHART_FRAME
+Modal / Tooltip / Feedback  → --modal-* / --tooltip-* / --feedback-* / --status-*
+Value meaning               → --value-positive / --value-negative
+```
+
+토큰을 사용했다는 이유만으로 완료로 보지 않는다. 같은 의미를 다른 이름으로 중복 생성하거나, 1회성 literal에 이름만 붙이거나, base가 이미 소유한 값을 viewport/하위 selector에서 다시 선언하지 않는다. Desktop baseline은 `common.css`, Tablet 차이는 `tablet.css`, 세로 Phone과 실제 터치폰 가로의 공통 density는 `special.css` Phone Shared, 세로 Phone 전용 배치는 `mobile.css`, Print reset은 `print.css`가 소유한다.
+
 
 
 ## 6.12 증권·퇴직연금 KPI 모바일 2열 규칙
@@ -2236,7 +2280,7 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 ```text
 라벨 11px
 값 18px
-설명 10px
+설명 11px
 ```
 
 세 요소는 한 줄 유지한다. 모바일 전용 축약 설명이 필요한 경우 `metricCard()`의 mobile sub variant를 사용하고, 데스크톱/태블릿 설명을 CSS로 억지 축소하거나 ellipsis 처리하지 않는다.
@@ -2251,7 +2295,7 @@ Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유�
 
 ### Surface / Radius ownership
 
-카드 surface는 아래 semantic token을 canonical로 사용한다. viewport별 실제 px 값은 CSS token이 Source of Truth이며 이 문서에 중복 기록하지 않는다.
+카드 padding은 아래 semantic token을 canonical로 사용한다. viewport별 실제 px 값은 CSS token이 Source of Truth이며 이 문서에 중복 기록하지 않는다.
 
 ```text
 --surface-pad-outer
@@ -2267,9 +2311,19 @@ Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유�
 - Large: `.card`, `.note`, `.chart-card`
 - Medium: `.asset-insight-card`, `.source-card`
 - Mini: `.mini-card`
-- Data List: `.data-list-card`를 모바일 카드보기와 Market AI compact group이 공유하며 `--surface-pad-data-list`, `--surface-radius-data-list`, `--shadow-data-list-card`, `--data-list-row-separator` contract를 함께 사용한다.
+- Data List: `.data-list-card`를 모바일 카드보기와 Market AI compact group이 공유하며 `--surface-pad-data-list`, level-3 radius alias, `--shadow-data-list-card`, `--data-list-row-separator` contract를 함께 사용한다. 별도 1회성 data-list radius token을 만들지 않는다.
 - Metric/Emphasis는 `.card` 기반 variant다.
-- base selector가 semantic token을 소유하고 Tablet/Phone에서는 **token 값만 변경**한다. 같은 padding/radius를 responsive selector에 반복하지 않는다.
+- base selector가 semantic token을 소유하고 Tablet/Phone에서는 **token 값만 변경**한다. 같은 padding을 responsive selector에 반복하지 않는다.
+
+radius는 padding 분류와 별도로 화면상 같은 line/hierarchy를 기준으로 3단계 token을 사용한다.
+
+| Radius level | Desktop·Tablet·Print | Phone·실제 터치폰 가로 | 대표 화면군 |
+|---|---:|---:|---|
+| `--surface-radius-level-1` | 18px | 16px | Hero, 연금+계좌 성과 표, 자산 workspace tab, 증권·퇴직연금 outer band |
+| `--surface-radius-level-2` | 16px | 14px | 일반 card/note/chart, 성과 KPI·장부 KPI, 계좌별 성과표, source card |
+| `--surface-radius-level-3` | 14px | 12px | mini/data-list/insight, 일반 현황표·변동표, 변동 KPI, 차트 하단 요약 |
+
+기존 의미 alias인 `--surface-radius-outer/large/medium/mini`는 위 level source에 연결한다. 특정 component가 명시적으로 level을 소유하면 alias 숫자를 다시 복제하지 않는다. Corner theme에서는 각 radius와 `--corner-surface-cap`의 최소값을 사용한다. 같은 visible line의 surface를 viewport별로 따로 키우거나, 3단계 중 일부만 Phone에서 줄이지 않는다.
 
 ### Card Grid Gap ownership
 
@@ -2426,7 +2480,7 @@ style="..."
 
 ## 7.5 JS Structure Map / 책임 주석
 
-18차 구조 정리 이후 9개 `dashboard-*.js`는 파일 상단 Structure Map과 본문의 번호 섹션을 **1:1로 대응**시킨다. 번호 자체를 changelog로 사용하지 않고, 실행 흐름과 ownership 탐색을 위한 구조 표지로만 사용한다. 기능 수정 시 코드와 주석 책임이 달라지면 같은 작업에서 Structure Map도 함께 정합화한다.
+구조 정리 이후 9개 `dashboard-*.js`는 파일 상단 Structure Map과 본문의 번호 섹션을 **1:1로 대응**시킨다. 번호 자체를 changelog로 사용하지 않고, 실행 흐름과 ownership 탐색을 위한 구조 표지로만 사용한다. 기능 수정 시 코드와 주석 책임이 달라지면 같은 작업에서 Structure Map도 함께 정합화한다.
 
 코드를 그대로 읽어주는 주석은 늘리지 않고 module ownership, 예외, lifecycle 경계처럼 코드만으로 바로 알기 어려운 이유를 설명한다.
 
@@ -2584,7 +2638,18 @@ Python / Workflow 유지보수 구조:
 | CSS 기능군 정리 | component / viewport 역할과 cascade 책임 재정비 |
 | CSS viewport 재편 | 현재 6파일 `common / tablet / mobile / special / interaction / print` 구조 확립 |
 | 후속 정리 | `!important` 제거, Desktop baseline 흡수, Phone UI 역할 최소화, dead/legacy 정리 |
-| UI 시스템 통합 리팩토링 (1~18차) | 제목·카드·컨트롤·차트·모달·표·페이지·Feedback·Theme/Corner·Print·Market AI를 공통 primitive/semantic token으로 정리하고, Data List Card와 Modal lifecycle 공통화 및 CSS 6파일·JS 9파일 구조/주석 체계를 확정 |
+| Main UI 토큰화·공통화 (1~13차, 2026-09) | Topbar/Navigation, Hero/Market AI, 제목·control·tab, page/surface rhythm, KPI·mini·data-list, table, 모바일 표↔카드, asset insight, chart shell/summary, 장부·원천 검산, modal/tooltip/feedback, Light·Dark·Corner·상태색·Print를 semantic token과 공통 component contract로 정리 |
+
+Main 1~13차의 장기 결과는 다음 책임군으로만 묶어 기억한다.
+
+| 차수군 | 유지할 결과 |
+|---|---|
+| 1~3차 | Topbar·Navigation·Hero·Market AI·section title·control·tab의 공통 geometry와 viewport 책임 |
+| 4~5차 | page/section rhythm, surface padding·gap·radius, KPI·mini-card·data-list typography와 renderer |
+| 6~8차 | semantic table shell, 모바일 표↔카드 state, 증권·퇴직연금 공통 Asset Detail·insight 표현 |
+| 9~10차 | chart shell·control·legend·tooltip·확대 state 공유와 chart summary/allocation presentation helper |
+| 11~12차 | 장부·원천 검산 component, modal/form/tooltip/feedback 상태와 PIN 입력 contract |
+| 13차 | Responsive source ownership, Light·Dark·Corner·상태색 semantic 연결, Print canonical layout과 후속 실기 회귀 수정 |
 
 세부 작업일지는 Git 이력 또는 당시 작업 결과물로 확인하고, handover에 다시 누적하지 않는다.
 
@@ -2622,7 +2687,9 @@ dashboard-app.js
 
 ### add
 
-Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로직은 `tests/add/calc.test.cjs`로 회귀검증한다. Report는 canonical HTML entry를 유지하고, 공통 `add.css` / `add.js`와 add handover 기준을 따른다.
+Main 1~13차 완료 범위에는 Add 리팩토링을 포함하지 않는다. 과거에 Main 후속 14~19차로 계획했던 Add 작업은 별도 작업군으로 분리하며, Main 차수의 연속 완료 조건으로 취급하지 않는다.
+
+Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로직은 `tests/add/calc.test.cjs`로 회귀검증한다. Report는 canonical HTML entry를 유지하고, 공통 `add.css` / `add.js`와 `add/add_maintenance_handover.md`를 Source of Truth로 따른다.
 
 ## 10.4 과거 점수 기록 처리
 
@@ -2690,7 +2757,7 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 
 ```text
 [ ] diff가 요청 범위뿐인가
-[ ] 가능한 경우 Main Calc / Main UI / Add Calc / Add UI 4종 Full QA를 완료했는가
+[ ] 현재 작업 화면군의 Calc / UI 테스트를 완료했으며, Main+Add 전체 QA를 명시한 경우에만 4종 Full QA를 완료했는가
 [ ] 변경 파일만 ZIP에 들어갔는가
 [ ] line/byte 통계를 보고했는가
 [ ] GitHub 커밋용 짧은 Summary와 간단한 Description을 적었는가

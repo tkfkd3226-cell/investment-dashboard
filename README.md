@@ -344,6 +344,19 @@ Market AI UI의 CSS도 같은 역할 분리를 따릅니다. Desktop baseline과
 
 세부 CSS 수정·QA 원칙과 breakpoint/override 규칙은 `main_dashboard_maintenance_handover.md`를 Source of Truth로 따릅니다.
 
+### 4.5 Main UI presentation contract
+
+Main 화면의 1~13차 CSS 토큰화·공통화 작업은 다음 장기 기준으로 정리되어 있습니다. 실제 px 값과 selector는 최신 CSS가 Source of Truth이며, README에는 구조만 기록합니다.
+
+- 페이지 여백과 section 간격, 카드 padding·gap·radius, 제목·control, KPI·mini-card·data-list, 표, 차트, modal, tooltip, feedback 상태를 semantic token과 공통 component rule이 소유합니다.
+- surface radius는 `--surface-radius-level-1/2/3`의 3단계 위계로 관리합니다. Desktop·Tablet과 Print는 같은 기준선을 사용하고, 세로 Phone과 실제 터치폰 가로는 Phone Shared에서 함께 compact 기준으로 전환합니다.
+- Main 표는 `.dashboard-data-table`과 `--data-table-*` 계약을 사용합니다. 모바일 카드 표시는 공통 `data-list-card` renderer를 사용하며, 세로 Phone에서만 표/카드 전환을 제공하고 실제 터치폰 가로와 Print는 표를 canonical 표현으로 사용합니다.
+- 양수·음수는 각각 `--value-positive`와 `--value-negative`를 사용해 Light·Dark·Print에서 의미를 유지합니다. 성공·정보·주의·오류 색상은 별도의 status token 체계를 사용합니다.
+- Print는 현재 화면 테마와 관계없이 Light palette로 고정하고, 인쇄 직전에 모든 차트를 Light chart palette로 다시 그립니다. 화면 조작 UI와 Market AI는 제외하고, 두 자산 panel·Hero 전체 요약·표·차트·장부·원천 검산을 인쇄용 canonical layout으로 표시합니다.
+- Modal은 공통 dialog lifecycle과 form/control token을 공유하되 KRX·퇴직연금의 업무 state와 저장 흐름은 각 feature가 소유합니다. PIN 입력은 브라우저의 비밀번호 저장 대상으로 오인되지 않도록 credential password field를 사용하지 않습니다.
+
+이 완료 범위는 **Main 화면 1~13차**입니다. `add/calc.html`과 `add/kodex-leverage-report.html`은 독립 화면군이며, Main 완료 차수의 연장선으로 간주하지 않고 별도 작업에서 `add/add_maintenance_handover.md`를 기준으로 관리합니다.
+
 ---
 
 ## 5. 데이터 구조와 보호
@@ -566,6 +579,8 @@ node --test tests/add/ui-contract.test.cjs
 ```
 
 자동 테스트는 반복적인 회귀 확인을 줄이는 **QA 안전망**입니다. 실제 UI 미감, 정보 위계, 신규 UX의 적절성, 실제 기기 체감처럼 자동화가 대신할 수 없는 항목은 별도 QA가 필요합니다. 테스트 파일의 존재 여부나 테스트 개수 자체는 프로젝트 품질 점수의 가산·감점 기준이 아닙니다.
+
+Main만 수정한 작업은 `tests/main/*`, Add만 수정한 작업은 `tests/add/*`를 우선 실행합니다. Main과 Add를 모두 포함하는 전체 QA를 사용자가 명시한 경우에만 네 테스트군을 함께 실행합니다.
 
 ---
 
