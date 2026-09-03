@@ -519,10 +519,10 @@ html:where([data-add-page="calc"]).dark .control{box-shadow:inset 0 1px 0 rgba(2
 html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
 /* 실제 매도 단가는 값을 입력하는 control이 아니라 현재 실제 체결값을 목표단가로 적용하는 secondary action이다.
    label / data value typography는 Calc 공통 역할을 유지하고, surface와 명시적 적용 affordance로 일반 input과 구분한다. */
-:where(html[data-add-page="calc"]) .actual-sale-price{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:var(--density-gap-md);width:100%;margin:0;border-color:var(--border-hover);background:var(--surface-subtle);color:var(--muted);text-align:left;appearance:none;-webkit-appearance:none;min-height:30px;padding:var(--calc-control-space);line-height:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.42),var(--action-shadow)}
+:where(html[data-add-page="calc"]) .actual-sale-price{--actual-sale-apply-inset:2px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:var(--density-gap-md);width:100%;height:var(--calc-control-box-height);min-height:0;margin:0;padding:0 var(--actual-sale-apply-inset) 0 var(--calc-control-space);border-color:var(--border-hover);background:var(--surface-subtle);color:var(--muted);text-align:left;line-height:1;appearance:none;-webkit-appearance:none;box-sizing:border-box;box-shadow:inset 0 1px 0 rgba(255,255,255,.42),var(--action-shadow)}
 :where(html[data-add-page="calc"]) .actual-sale-label{font-size:var(--calc-type-data-label);font-weight:700;line-height:1;white-space:nowrap}
 :where(html[data-add-page="calc"]) .actual-sale-price strong{justify-self:end;color:var(--navy);font-size:var(--calc-type-data-value);font-weight:900;line-height:1;white-space:nowrap}
-:where(html[data-add-page="calc"]) .actual-sale-apply{display:inline-flex;align-items:center;justify-content:center;min-width:4.8em;min-height:calc(var(--calc-control-inner-height) - var(--calc-control-space));padding:0 var(--calc-control-space);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:var(--navy);color:var(--on-accent);font-size:var(--calc-type-button);font-weight:800;line-height:1;white-space:nowrap}
+:where(html[data-add-page="calc"]) .actual-sale-apply{display:inline-flex;align-self:stretch;align-items:center;justify-content:center;min-width:4.8em;min-height:0;margin-block:var(--actual-sale-apply-inset);padding:0 var(--calc-control-space);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:var(--navy);color:var(--on-accent);font-size:var(--calc-type-button);font-weight:800;line-height:1;white-space:nowrap}
 @media (hover:hover) and (pointer:fine){
   :where(html[data-add-page="calc"]) .actual-sale-price:hover:not(:disabled){border-color:var(--navy);background:var(--surface-hover-soft);color:var(--ink)}
 }
@@ -630,8 +630,7 @@ html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#s
     line-height:var(--calc-field-label-line-height)
   }
   html:where([data-add-page="calc"]).dark .actual-sale-field .formula{background:transparent}
-  :where(html[data-add-page="calc"]) .actual-sale-field .actual-sale-price{height:var(--calc-control-box-height);min-height:0}
-}
+  }
 
 /* settled 공통 vertical rhythm · 큰 Tablet/Web에서는 두 settled 모드가 같은 계산 기준 track을 사용한다.
    이전 거래 없음에서는 실제 매도 단가 action을 시각/상호작용에서 숨기되 sizing slot은 유지해 모드 전환 시 상단 panel 높이가 흔들리지 않게 한다. */
