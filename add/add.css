@@ -463,7 +463,7 @@ html:where([data-add-page="calc"]).dark .calc-utility-button:hover:not(:disabled
 :where(html[data-add-page="calc"]) .input-group{padding:var(--calc-surface-space);box-shadow:none}
 :where(html[data-add-page="calc"]) .group-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--density-gap-md);padding-bottom:var(--density-gap-md);border-bottom:1px solid var(--line);letter-spacing:-.025em}
 :where(html[data-add-page="calc"]) .group-title small{font-size:var(--calc-type-support);font-weight:500;color:var(--muted)}
-:where(html[data-add-page="calc"]) .group-title-main{display:inline-flex;align-items:center;gap:var(--density-gap-xs);min-width:0}
+:where(html[data-add-page="calc"]) .group-title-main{min-width:0}
 
 :where(html[data-add-page="calc"]) .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--calc-field-row-gap)}
 :where(html[data-add-page="calc"]) .field{display:flex;flex-direction:column;gap:var(--calc-field-label-gap)}
@@ -474,8 +474,13 @@ html:where([data-add-page="calc"]).dark .calc-utility-button:hover:not(:disabled
    Phone에서만 카드가 독립 행으로 내려오므로 슬롯을 제거한다. */
 :where(html[data-add-page="calc"]) label, :where(html[data-add-page="calc"]) .field-label-slot, :where(html[data-add-page="calc"]) .kpi .name{font-size:var(--calc-type-data-label);color:var(--muted);font-weight:700}
 :where(html[data-add-page="calc"]) .kpi .sub{font-size:var(--calc-type-support)}
-:where(html[data-add-page="calc"]) .label-with-help, :where(html[data-add-page="calc"]) .inline-help-label{display:inline-flex;align-items:center;gap:var(--density-gap-xs);width:max-content;max-width:100%;position:relative;vertical-align:middle}
-:where(html[data-add-page="calc"]) .help-tooltip{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+/* Help-label vertical primitive
+   - field label / subsection heading / KPI·range·summary·table label 모두 원래 typography role의 line-height를 그대로 상속한다.
+   - i가 있는 경우에도 label row의 높이를 키우지 않도록 help anchor만 정확히 1 line-box 높이를 소유한다.
+   - 아이콘은 그 line-box 중앙에 놓고 필요 시 미세하게 overflow하므로, 같은 역할의 i 없는 label과 geometry가 달라지지 않는다. */
+:where(html[data-add-page="calc"]) :is(.label-with-help,.inline-help-label,.group-title-main){display:inline-flex;align-items:center;gap:var(--density-gap-xs);line-height:inherit}
+:where(html[data-add-page="calc"]) :is(.label-with-help,.inline-help-label){width:max-content;max-width:100%;position:relative;vertical-align:middle}
+:where(html[data-add-page="calc"]) .help-tooltip{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;height:1lh;line-height:inherit;vertical-align:middle}
 :where(html[data-add-page="calc"]) .help-icon{display:inline-flex;align-items:center;justify-content:center;width:calc(var(--calc-type-data-label) + 4px);height:calc(var(--calc-type-data-label) + 4px);border:1px solid #9eb0c9;border-radius:50%;background:#f3f7fc;color:#315a8f;font-size:calc(var(--calc-type-data-label) - 1px);font-weight:900;line-height:1.12;text-align:center;padding:0;cursor:help}
 /* Main의 control-info-button과 같은 방식으로 glyph만 미세 광학 보정한다.
    wrapper 위치를 top/margin으로 개별 보정하지 않는다. */
