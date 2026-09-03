@@ -67,6 +67,10 @@
       border-color:var(--control-border-hover);
     }
 
+    .modal-icon-btn:not(:disabled):hover{
+      background:var(--icon-button-hover-bg);
+    }
+
   /* [I04. Generic Button Motion · 개별 component가 덮지 않는 기본 hover lift] */
     button:not(:disabled):hover{
       transform:translateY(-1px);

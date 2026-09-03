@@ -125,10 +125,11 @@
 
   /* [T06. Pension Modal · 퇴직연금 모달 태블릿 density] */
 .contrib-modal{
+      --modal-card-radius:min(20px,var(--corner-surface-cap));
       --pension-modal-title-size:var(--type-size-2xl);
       --pension-modal-label-size:var(--type-size-xs);
       --pension-modal-control-size:var(--type-size-xs);
-      --pension-modal-row-height:29px;
+      --pension-modal-row-height:28px;
       --pension-modal-control-pad:6.625px;
       --pension-modal-tab-size:var(--type-size-md);
       --pension-modal-mode-size:var(--type-size-xs);
@@ -137,6 +138,8 @@
       --pension-modal-delete-memo-size:var(--type-size-xs);
       --pension-modal-pad:var(--space-5xl);
     }
+
+    .action-modal{--modal-card-radius:min(20px,var(--corner-surface-cap))}
 
   /* [T07. Topbar / Navigation · 날짜 action과 Tablet TOC menu] */
 .topbar-label-full{display:none}

@@ -528,7 +528,7 @@ function ensureKrxActionModal(){
     <h3 id="krxActionTitle" class="modal-main-title">KRX 현재가 반영</h3>
     <p id="krxActionDescription" class="action-modal-description">최신/누락 반영은 오늘 데이터와 누락 거래일을 생성·보완하고, 재갱신은 선택된 날짜를 확인해 종가 기준이 아니면 다시 반영합니다.</p>
     <label class="action-modal-label krx-action-label" for="krxActionPin">저장/실행 PIN</label>
-    <input id="krxActionPin" class="action-modal-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="krxActionDescription krxActionEnterHelp krxActionStatus" aria-invalid="false">
+    <input id="krxActionPin" class="action-modal-input" type="text" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="krxActionDescription krxActionEnterHelp krxActionStatus" aria-invalid="false">
     <p id="krxActionEnterHelp" class="action-modal-input-help">Enter 시 재갱신됩니다.</p>
     <div id="krxActionStatus" class="action-modal-status krx-action-status" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="action-modal-buttons krx-action-buttons">
@@ -559,13 +559,19 @@ function openKrxActionModal(){
   const status=modal.querySelector('#krxActionStatus');
   const input=modal.querySelector('#krxActionPin');
   if(status){status.textContent='';status.className='action-modal-status krx-action-status'}
+  if(input)input.value='';
   input?.setAttribute('aria-invalid','false');
   openDashboardModal(modal,{initialFocus:input,fallbackSelector:'[data-dashboard-action="krx-update"]'});
 }
 
 function closeKrxActionModal(){
   const modal=document.getElementById('krxActionModal');
-  if(modal)closeDashboardModal(modal,{fallbackSelector:'[data-dashboard-action="krx-update"]'});
+  if(modal){
+    const input=modal.querySelector('#krxActionPin');
+    if(input)input.value='';
+    input?.setAttribute('aria-invalid','false');
+    closeDashboardModal(modal,{fallbackSelector:'[data-dashboard-action="krx-update"]'});
+  }
   forceMobileViewportReflow();
 }
 async function submitKrxActionModal(mode='selected'){

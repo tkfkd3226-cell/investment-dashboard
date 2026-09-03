@@ -133,7 +133,7 @@
       --modal-overlay-pad:var(--space-5xl);
       --modal-card-pad-y:var(--space-9xl);
       --modal-card-pad-x:var(--space-8xl);
-      --modal-card-radius:min(22px,var(--corner-surface-cap));
+      --modal-card-radius:min(18px,var(--corner-surface-cap));
       /* iOS Safari input zoom 방지: action modal control은 shared token으로 16px을 유지한다. */
       --modal-control-font-size:var(--type-size-2xl);
     }
@@ -158,7 +158,8 @@
   /* [M06. Pension Feature · 퇴직연금 세로폰 form / 기존항목 / batch] */
 .contrib-modal{
       align-items:flex-end;
-      --modal-card-width:min(100%, calc(100vw - 36px));
+      --modal-overlay-pad:var(--space-5xl);
+      --modal-card-width:min(100%, calc(100vw - 24px));
       --modal-card-radius:min(var(--surface-radius-lg),var(--corner-surface-cap));
     }
     .contrib-modal-head p{line-height:var(--type-line-helper)}

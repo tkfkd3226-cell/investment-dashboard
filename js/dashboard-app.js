@@ -243,6 +243,10 @@ function initializeDashboardState(){
   history.replaceState(null,'','#'+dataState.activeDate);
 }
 
+function renderDashboardLoadingState(){
+  document.getElementById('app').innerHTML=`<div class="wrap"><div class="note dashboard-loading-note" role="status" aria-live="polite" aria-atomic="true" aria-busy="true"><span class="dashboard-loading-label">데이터를 불러오는 중입니다.</span></div></div>`;
+}
+
 function bindAppEvents(){
   setupDashboardEventDelegation();
   setupUiGlobalEvents();
@@ -251,6 +255,7 @@ function bindAppEvents(){
 }
 
 async function boot(){
+  renderDashboardLoadingState();
   await loadInitialData();
   initializeDashboardState();
   bindAppEvents();

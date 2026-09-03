@@ -185,7 +185,6 @@
   --modal-control-border:var(--control-border);
   --modal-control-focus-border:var(--control-focus-border);
   --modal-control-focus-ring:var(--focus-ring-shadow);
-  --modal-control-transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
   --interaction-row-bg:var(--subtle-card);
   --nav-current-shadow:inset 3px 0 0 var(--nav-current-indicator);
   /* Interactive controls use a distinct border family; structural surfaces keep --line. */
@@ -408,9 +407,7 @@
   --tooltip-arrow-size:6px;
   --tooltip-info-anchor-gap:7px;
   --tooltip-info-offset-y:3px;
-  --tooltip-fade-fast:.08s ease;
-  --tooltip-info-motion:.12s ease;
-  --tooltip-motion:.16s ease;
+  --tooltip-motion:.12s ease;
   --table-head-bg:#f1f5f9;
   --table-column-line:#e8ebf0;
   --summary-row-bg:#f8fafc;
@@ -978,7 +975,7 @@ button svg{pointer-events:none;flex-shrink:0}
   pointer-events:none;
   opacity:0;
   transform:none;
-  transition:opacity var(--tooltip-fade-fast);
+  transition:opacity var(--tooltip-motion);
 }
 
 .dash-tooltip.visible{
@@ -1137,6 +1134,16 @@ section{
 }
 
 /* Dashboard Error State · 데이터 로딩 실패: 공통 아이콘/테마 surface와 긴 오류문구 wrapping */
+.dashboard-loading-note{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:132px;
+  color:var(--muted);
+  font-size:var(--type-size-md);
+  font-weight:var(--type-weight-strong);
+  text-align:center;
+}
 .dashboard-error-note{
   max-width:100%;
 }
@@ -1718,7 +1725,7 @@ body.chart-expanded-open .dash-tooltip{
   visibility:hidden;
   pointer-events:none;
   transform:translate(-50%,calc(-1 * var(--tooltip-info-offset-y)));
-  transition:opacity var(--tooltip-info-motion),transform var(--tooltip-info-motion),visibility var(--tooltip-info-motion);
+  transition:opacity var(--tooltip-motion),transform var(--tooltip-motion),visibility var(--tooltip-motion);
   z-index:30;
 }
 .compact-chart-ui .chart-title-info.open .chart-title-info-tooltip{
@@ -2401,19 +2408,20 @@ body.chart-expanded-open .dash-tooltip{
   color:var(--muted);
 }
 .contrib-modal :is(.contrib-field label,.contrib-field-label){font-size:var(--pension-modal-label-size)}
-/* Modal Form Control Primitive · action modal과 pension modal의 border/radius/padding/state 골격 공통화 */
-:is(.action-modal-input,.contrib-field input,.contrib-field select){
+/* Modal Form Control Primitive · 실제 외곽 control(action input / pension shell)의 surface·focus 골격을 공유한다. */
+:is(.action-modal-input,.contrib-modal .pension-control-shell){
   width:100%;
   box-sizing:border-box;
   border:1px solid var(--modal-control-border);
   border-radius:var(--modal-control-radius);
+  background:var(--modal-control-bg);
+}
+.action-modal-input{
   padding:var(--modal-control-pad-y) var(--modal-control-pad-x);
   font-family:inherit;
   font-size:var(--modal-control-font-size);
   font-weight:var(--modal-control-font-weight);
-  background:var(--modal-control-bg);
   color:var(--modal-control-text);
-  transition:var(--modal-control-transition);
 }
 .contrib-actions{
   display:flex;
@@ -2459,17 +2467,14 @@ body.chart-expanded-open .dash-tooltip{
 .contrib-status.show{display:block}
 
 .contrib-modal{
-  position:fixed;
-  inset:0;
   display:none;
-  justify-content:center;
   /* Pension Modal Semantic Tokens · 이후 breakpoint는 selector 재작성보다 이 값만 조정 */
   --pension-modal-pad:var(--space-6xl);
   --pension-modal-title-size:var(--type-size-4xl);
   --pension-modal-label-size:var(--type-size-sm);
   --pension-modal-control-size:var(--type-size-sm);
   /* Input density · row-height는 탭/입력/action 공통 높이, pad는 해당 높이에 맞춘 visual 여백이다. */
-  --pension-modal-row-height:30px;
+  --pension-modal-row-height:28px;
   --pension-modal-control-pad:6.5px;
   --pension-modal-control-line-height:var(--type-line-compact);
   --pension-modal-control-scale:1;
@@ -2511,9 +2516,9 @@ body.chart-expanded-open .dash-tooltip{
   --pension-modal-error-border:var(--status-danger-border);
   --pension-modal-batch-pad:var(--space-4xl);
   /* Shared modal contract에 현재 pension 값을 연결한다. */
-  --modal-overlay-color:var(--modal-overlay);
+  --modal-overlay-color:var(--modal-overlay-soft);
   --modal-overlay-pad:var(--space-8xl);
-  --modal-backdrop-blur:3px;
+  --modal-backdrop-blur:6px;
   --modal-card-width:min(760px,100%);
   --modal-card-radius:min(22px,var(--corner-surface-cap));
   --modal-card-pad-y:var(--pension-modal-pad);
@@ -2527,10 +2532,6 @@ body.chart-expanded-open .dash-tooltip{
   --modal-control-bg:var(--field-bg);
   --modal-control-text:var(--field-text);
   z-index:12000;
-  align-items:center;
-  padding:var(--modal-overlay-pad);
-  background:var(--modal-overlay-color);
-  backdrop-filter:blur(var(--modal-backdrop-blur));
 }
 .contrib-modal.show{
   display:flex;
@@ -2539,18 +2540,11 @@ body.dashboard-dialog-open{
   overflow:hidden;
 }
 .contrib-modal-card{
-  position:relative;
   z-index:12001;
-  width:var(--modal-card-width);
   /* Pension modal frame height · JS가 개별/작업모음 × 3개 조정 항목의 실제 최대 높이를 적용하고, 여기서는 viewport 상한만 보장한다. */
   max-height:min(calc(100vh - 36px),820px);
   max-height:min(calc(100dvh - 36px),820px);
   overflow:auto;
-  border-radius:var(--modal-card-radius);
-  background:var(--modal-surface);
-  border:1px solid var(--modal-border);
-  box-shadow:var(--shadow-high);
-  padding:var(--modal-card-pad-y) var(--modal-card-pad-x);
 }
 .contrib-modal-head{
   display:grid;
@@ -2589,7 +2583,6 @@ body.dashboard-dialog-open{
   height:18px;
   display:block;
 }
-.modal-icon-btn:hover{background:var(--icon-button-hover-bg)}
 .contrib-modal .pension-contrib-tool{
   margin-top:0;
   padding:var(--pension-modal-card-pad);
@@ -2616,19 +2609,9 @@ body.dashboard-dialog-open{
 .contrib-modal .pension-control-shell{
   position:relative;
   display:block;
-  width:100%;
   min-width:0;
   height:var(--modal-control-height);
-  box-sizing:border-box;
   overflow:hidden;
-  border:1px solid var(--modal-control-border);
-  border-radius:var(--modal-control-radius);
-  background:var(--modal-control-bg);
-  transition:var(--modal-control-transition);
-}
-.contrib-modal .pension-control-shell:focus-within{
-  border-color:var(--modal-control-focus-border);
-  box-shadow:var(--modal-control-focus-ring);
 }
 .contrib-modal .pension-control-shell > :is(input,select){
   display:block;
@@ -3086,17 +3069,32 @@ body.dashboard-dialog-open{
 
 /* [10. Modal / Control / Semantic Utilities · 모달 / control / 의미 유틸리티]
    Action modal을 시작점으로 하되 cascade 우선순위가 필요한 공통 control/semantic utility는 이 구간의 source order를 유지한다. */
-.action-modal{
+:is(.contrib-modal,.action-modal){
   position:fixed;
   inset:0;
-  display:flex;
   align-items:center;
   justify-content:center;
+  padding:var(--modal-overlay-pad);
+  background:var(--modal-overlay-color);
+  backdrop-filter:blur(var(--modal-backdrop-blur));
+  -webkit-backdrop-filter:blur(var(--modal-backdrop-blur));
+}
+:is(.contrib-modal-card,.action-modal-card){
+  position:relative;
+  width:var(--modal-card-width);
+  padding:var(--modal-card-pad-y) var(--modal-card-pad-x);
+  border:1px solid var(--modal-border);
+  border-radius:var(--modal-card-radius);
+  background:var(--modal-surface);
+  box-shadow:var(--shadow-high);
+}
+.action-modal{
+  display:flex;
   --modal-overlay-color:var(--modal-overlay-soft);
   --modal-overlay-pad:20px;
   --modal-backdrop-blur:6px;
   --modal-card-width:min(420px,100%);
-  --modal-card-radius:min(24px,var(--corner-surface-cap));
+  --modal-card-radius:min(22px,var(--corner-surface-cap));
   --modal-card-pad-y:var(--space-10xl);
   --modal-card-pad-x:var(--space-10xl);
   --modal-control-height:44px;
@@ -3107,9 +3105,6 @@ body.dashboard-dialog-open{
   --modal-control-font-weight:var(--type-weight-regular);
   --modal-control-bg:var(--action-input-bg);
   --modal-control-text:var(--action-input-text);
-  padding:var(--modal-overlay-pad);
-  background:var(--modal-overlay-color);
-  backdrop-filter:blur(var(--modal-backdrop-blur));
 }
 :is(.krx-action-modal,.chart-date-confirm-modal){
   z-index:13000;
@@ -3118,13 +3113,6 @@ body.dashboard-dialog-open{
 :is(.krx-action-modal,.chart-date-confirm-modal).show{display:flex}
 .pension-action-pin-modal{z-index:14000}
 .action-modal-card{
-  position:relative;
-  width:var(--modal-card-width);
-  padding:var(--modal-card-pad-y) var(--modal-card-pad-x);
-  border-radius:var(--modal-card-radius);
-  background:var(--modal-surface);
-  border:1px solid var(--modal-border);
-  box-shadow:var(--shadow-high);
   color:var(--ink);
 }
 .krx-action-close,
@@ -3150,8 +3138,8 @@ body.dashboard-dialog-open{
   height:var(--modal-control-height);
   outline:none;
 }
-/* Modal Form Focus · 모달 입력 포커스 공통 UI */
-.action-modal-input:focus{
+/* Modal Form Focus · action input과 pension control shell의 focus UI를 공유한다. */
+:is(.action-modal-input:focus,.contrib-modal .pension-control-shell:focus-within){
   outline:none;
   border-color:var(--modal-control-focus-border);
   box-shadow:var(--modal-control-focus-ring);
@@ -3197,33 +3185,26 @@ body.dashboard-dialog-open{
 .chart-date-confirm-buttons .action-modal-btn{min-width:76px}
 .app-toast{
   --toast-bottom:22px;
-  --toast-offset-y:16px;
   --toast-max-width:420px;
   --toast-viewport-gutter:32px;
-  --toast-pad-y:var(--space-5xl);
-  --toast-pad-x:var(--space-7xl);
-  --toast-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
-  --toast-font-size:var(--type-size-md);
-  --toast-font-weight:var(--type-weight-emphasis);
-  --toast-motion:.18s ease;
   position:fixed;
   left:50%;
   bottom:var(--toast-bottom);
-  transform:translate(-50%,var(--toast-offset-y));
+  transform:translate(-50%,16px);
   z-index:13001;
   width:max-content;
   max-width:min(var(--toast-max-width),calc(100vw - var(--toast-viewport-gutter)));
   box-sizing:border-box;
-  padding:var(--toast-pad-y) var(--toast-pad-x);
-  border-radius:var(--toast-radius);
+  padding:var(--space-5xl) var(--space-7xl);
+  border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
   background:var(--toast-bg);
   color:var(--toast-color);
-  font-size:var(--toast-font-size);
-  font-weight:var(--toast-font-weight);
+  font-size:var(--type-size-md);
+  font-weight:var(--type-weight-emphasis);
   box-shadow:var(--toast-shadow);
   opacity:0;
   pointer-events:none;
-  transition:opacity var(--toast-motion),transform var(--toast-motion);
+  transition:opacity .18s ease,transform .18s ease;
 }
 .app-toast.show{
   opacity:1;
@@ -3504,7 +3485,7 @@ button:not(:disabled):active{
 .mobile-card-view{gap:var(--card-grid-gap-medium)}
 
 /* Pension PIN · Chrome 비밀번호 저장 감지를 피하면서 PIN 마스킹/상태 표시 유지 */
-#pensionActionPinInput{-webkit-text-security:disc}
+:is(#krxActionPin,#pensionActionPinInput){-webkit-text-security:disc}
 .pension-action-pin-card .action-modal-input:disabled{opacity:.68;cursor:wait}
 
 .mobile-top-button{
@@ -3875,11 +3856,6 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
     visibility 0s linear 0s;
 }
 
-
-@media (prefers-reduced-motion:reduce){
-  .date-action-menu.mobile-combined-menu,
-  .desktop-edge-toc-panel{transition:none}
-}
 
 /* Navigation Primitives · 목차/메뉴 공통 panel·item·SVG icon */
 :is(.desktop-edge-toc-panel,.date-action-menu.mobile-combined-menu){

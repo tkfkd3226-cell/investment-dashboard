@@ -197,6 +197,10 @@
     }
 
   /* Pension Modal Phone Density · 세로/가로폰 공통. iOS는 16px computed font를 62.5% 축소해 visual 10px을 유지한다. */
+    :is(.contrib-modal,.action-modal){
+      --modal-overlay-pad:var(--space-5xl);
+      --modal-card-radius:min(18px,var(--corner-surface-cap));
+    }
     .contrib-modal{
       --pension-modal-title-size:var(--type-size-lg);
       --pension-modal-label-size:var(--type-size-2xs);
@@ -256,10 +260,10 @@
       --modal-card-radius:min(var(--surface-radius-lg),var(--corner-surface-cap));
       --modal-card-pad-y:var(--space-4xl);
       --modal-card-pad-x:var(--space-4xl);
-      --modal-backdrop-blur:3px;
-      --modal-overlay-color:var(--modal-overlay);
-      width:min(var(--market-ai-mobile-dialog-width),calc(100vw - var(--space-8xl)));
-      max-width:calc(100vw - var(--space-8xl));
+      --modal-backdrop-blur:6px;
+      --modal-overlay-color:var(--modal-overlay-soft);
+      width:min(var(--market-ai-mobile-dialog-width),calc(100vw - 24px));
+      max-width:calc(100vw - 24px);
       max-height:calc(100dvh - var(--space-8xl));
       margin:auto;
       padding:0;
