@@ -34,28 +34,15 @@
       --empty-state-font-size:var(--type-size-sm);
       --market-ai-column-min:360px;
       --market-ai-column-max:380px;
-      --market-ai-layout-gap:var(--space-5xl);
     }
 
   /* [T02. Hero / Market AI · Hero density + 좁아진 Market AI column에서 pill wrap만 보완] */
 .hero{
-      --hero-pad:var(--space-6xl);
-      --hero-radius:18px;
-      --hero-title-size:25px;
-      --hero-title-line:1.15;
-      --hero-title-gap-y:6px;
-      --hero-title-gap-x:7px;
-      --hero-basis-size:12.5px;
-      --hero-pill-margin-top:9px;
-      --hero-pill-pad-x:8px;
-      --hero-pill-size:11.5px;
-      --hero-pill-line:1.28;
       --hero-decor-size:240px;
       --hero-decor-right:-72px;
     }
 
-.hero.market-ai-mounted .hero-metric-pills{min-width:0;flex-wrap:wrap;align-content:flex-start}
-    .market-ai-desktop{justify-content:center}
+.hero.market-ai-mounted .hero-metric-pills{min-width:0;align-content:flex-start}
 
   /* [T03. Cards / Metrics · 카드·요약·핵심지표 density와 열 수] */
 .mini-card{

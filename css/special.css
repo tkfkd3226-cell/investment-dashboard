@@ -213,18 +213,16 @@
   /* Hero Phone UI · Hero 타이포/여백은 세로·가로폰 동일 */
     .hero{
       --hero-pad:var(--space-5xl);
-      --hero-radius:17px;
-      --hero-title-size:21px;
-      --hero-title-line:1.15;
+      --hero-radius:var(--surface-radius-sm);
+      --hero-title-size:20px;
       --hero-title-gap-y:4px;
       --hero-title-gap-x:6px;
-      --hero-basis-size:11.5px;
+      --hero-basis-size:var(--type-size-2xs);
       --hero-pill-margin-top:8px;
       --hero-pill-gap:4px;
       --hero-pill-pad-y:4px;
       --hero-pill-pad-x:6px;
-      --hero-pill-size:10.5px;
-      --hero-pill-line:1.25;
+      --hero-pill-size:var(--type-size-2xs);
       --hero-decor-size:210px;
       --hero-decor-right:-72px;
       --hero-decor-top:-72px;
@@ -240,15 +238,11 @@
     .hero-title-row .market-ai-mobile-trigger{
       display:inline-flex;
       align-self:center;
-      min-height:var(--market-ai-mobile-trigger-height);
-      height:var(--market-ai-mobile-trigger-height);
       margin-left:auto;
-      padding:0 var(--space-xl);
       border-color:var(--hero-pill-border);
       background:var(--hero-pill-bg);
       color:var(--hero-pill-color);
       font-size:var(--dashboard-control-font-size);
-      font-weight:var(--type-weight-strong);
       letter-spacing:-.02em;
     }
     .market-ai-mobile-dialog{
@@ -288,14 +282,8 @@
       max-width:none;
     }
     .market-ai-mobile-dialog .market-ai-panel{
-      --market-ai-status-size:var(--type-size-xs);
-      --market-ai-label-size:var(--type-size-xs);
-      --market-ai-value-size:var(--type-size-sm);
-      --market-ai-change-size:var(--type-size-xs);
-      --market-ai-metric-row-height:22px;
       box-sizing:border-box;
       width:100%;
-      max-width:none;
       padding:0;
       border:0;
       border-radius:0;
@@ -306,10 +294,6 @@
       min-height:var(--icon-button-size);
       padding-right:calc(var(--icon-button-size) + var(--space-lg));
       margin-bottom:var(--space-2xl);
-    }
-    .market-ai-mobile-dialog .market-ai-desktop{gap:var(--space-lg)}
-    .market-ai-mobile-dialog .market-ai-card-row{
-      --data-list-card-pad:var(--space-lg);
     }
     .market-ai-mobile-close{
       position:absolute;
