@@ -698,7 +698,7 @@ function renderSecuritiesSummaryCards(x,{hidden=false}={}){
 }
 function securitiesPerformanceViewSwitch(){
   const mode=uiRuntimeState.securitiesPerformanceView;
-  return `<div class="chart-compare-toggle securities-performance-toggle" role="group" aria-label="증권 성과 요약 표시 기준"><button type="button" class="${mode==='overall'?'active':''}" data-securities-performance-view="overall" data-dashboard-action="set-securities-performance-view" aria-pressed="${mode==='overall'}" aria-controls="securities-overall-summary">전체</button><button type="button" class="${mode==='accounts'?'active':''}" data-securities-performance-view="accounts" data-dashboard-action="set-securities-performance-view" aria-pressed="${mode==='accounts'}" aria-controls="accounts-summary">계좌별</button></div>`;
+  return `<div class="control-segmented securities-performance-toggle" role="group" aria-label="증권 성과 요약 표시 기준"><button type="button" class="${mode==='overall'?'active':''}" data-securities-performance-view="overall" data-dashboard-action="set-securities-performance-view" aria-pressed="${mode==='overall'}" aria-controls="securities-overall-summary">전체</button><button type="button" class="${mode==='accounts'?'active':''}" data-securities-performance-view="accounts" data-dashboard-action="set-securities-performance-view" aria-pressed="${mode==='accounts'}" aria-controls="accounts-summary">계좌별</button></div>`;
 }
 function setSecuritiesPerformanceView(mode='overall'){
   const next=mode==='accounts'?'accounts':'overall';

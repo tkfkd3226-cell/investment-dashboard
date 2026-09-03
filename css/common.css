@@ -141,6 +141,7 @@
 
   --dashboard-control-height:29px;
   --dashboard-control-font-size:10.5px;
+  --dashboard-control-line-height:1.12;
   --dashboard-control-state-font-size:var(--type-size-2xs);
   --dashboard-control-state-min-width:28px;
   --dashboard-control-pad-x:8px;
@@ -158,13 +159,12 @@
   --switch-thumb-offset:2px;
   --switch-thumb-travel:13px;
   --switch-motion:.16s ease;
-  --text-toggle-pad-x:var(--space-3xl);
   --corner-surface-cap:6px;
   --corner-control-cap:5px;
   --corner-inner-cap:4px;
   --dashboard-expand-icon-size:14px;
   --dashboard-legend-font-size:var(--type-size-sm);
-  --dashboard-control-group-gap:7px;
+  --dashboard-control-group-gap:var(--space-xl);
   --modal-section-gap:12px;
   --modal-status-gap:10px;
   --modal-action-gap:12px;
@@ -364,9 +364,10 @@
   --highlight-card-divider:rgba(255,255,255,.20);
   --highlight-value-shadow:0 1px 12px rgba(255,255,255,.08);
   --section-title-font-size:var(--type-size-4xl);
+  --section-title-line-height:1.12;
   --section-title-icon-size:18px;
-  --section-title-gap:7px;
-  --section-chip-height:28px;
+  --section-title-gap:var(--space-xl);
+  --section-chip-height:var(--dashboard-control-height);
   --tooltip-bg:rgba(15,23,42,.96);
   --tooltip-color:#fff;
   --tooltip-muted:#cbd5e1;
@@ -446,8 +447,8 @@
   --market-ai-tooltip-max-width:440px;
   --market-ai-mobile-dialog-width:360px;
 
-  --asset-tab-active-bg:#2b3d59;
-  --asset-tab-active-color:#ffffff;
+  --accent-strong-bg:#2b3d59;
+  --on-accent-text:#ffffff;
   --securities-band-bg:var(--bg);
   --pension-band-bg:var(--bg);
   --insight-bg:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
@@ -485,8 +486,8 @@ html.dark{
   --hero-bg:linear-gradient(135deg,#151d2c 0%,#1c283b 58%,#24344b 100%);
   --hero-shadow:0 18px 42px rgba(0,0,0,.24);
   --hero-image-opacity:.25;
-  --asset-tab-active-bg:#36506f;
-  --asset-tab-active-color:#ffffff;
+  --accent-strong-bg:#36506f;
+  --on-accent-text:#ffffff;
   --modal-focus-ring:rgba(54,80,111,.28);
   /* Preserve the established dark-mode elevation while Light mode uses the refined tiers above. */
   --shadow-low:0 8px 22px rgba(15,23,42,.06);
@@ -1095,11 +1096,15 @@ section{
   margin-top:var(--page-section-gap);
 }
 
-.section-title{
+.section-title,
+.chart-head{
   display:flex;
-  align-items:flex-end;
   justify-content:space-between;
   gap:var(--space-5xl);
+}
+
+.section-title{
+  align-items:flex-end;
   margin:0 0 var(--page-section-title-gap);
 }
 
@@ -1112,7 +1117,7 @@ section{
   font-size:var(--section-title-font-size);
   font-weight:var(--type-weight-strong);
   letter-spacing:-.04em;
-  line-height:1.12;
+  line-height:var(--section-title-line-height);
 }
 /* Shared SVG Title Icons · 메인/하위/차트 제목이 같은 SVG 크기·간격·정렬 규칙을 공유 */
 .section-title-icon{
@@ -1124,7 +1129,6 @@ section{
   flex:0 0 var(--section-title-icon-size);
   color:currentColor;
   font-size:0;
-  line-height:1.12;
 }
 .section-title-icon svg{display:block;width:var(--section-title-icon-size);height:var(--section-title-icon-size)}
 :is(.section-title :is(h2,h3),.chart-head h3) > .section-title-icon{margin-bottom:1px}
@@ -1332,10 +1336,7 @@ td.num{
 }
 
 .chart-head{
-  display:flex;
   align-items:center;
-  justify-content:space-between;
-  gap:var(--space-5xl);
   margin-bottom:var(--chart-content-rhythm-gap);
 }
 
@@ -1430,7 +1431,7 @@ svg.chart:focus-visible{
   height:var(--dashboard-control-height);
   min-height:var(--dashboard-control-height);
   font-size:var(--dashboard-control-font-size);
-  line-height:1.12;
+  line-height:var(--dashboard-control-line-height);
   white-space:nowrap;
   cursor:pointer;
 }
@@ -1522,7 +1523,8 @@ button.legend-item.chart-series-all.active{
 
 /* Chart Presentation / Controls · 차트 제목 / 비교 control */
 /* Chart Action Group · 차트 제목 우측 control 공통 정렬 */
-.chart-head-actions{
+.chart-head-actions,
+.section-title-actions{
   display:flex;
   align-items:center;
   justify-content:flex-end;
@@ -1531,7 +1533,7 @@ button.legend-item.chart-series-all.active{
 }
 /* Chart Control Groups · selector와 확대 utility는 공통 gap만 사용하고 별도 구분선은 두지 않는다. */
 /* Segmented Toggle · 2분할 선택형 버튼의 공통 골격 */
-.chart-compare-toggle{
+.control-segmented{
   display:inline-flex;
   align-items:center;
   height:var(--dashboard-control-height);
@@ -1541,7 +1543,7 @@ button.legend-item.chart-series-all.active{
   background:var(--segmented-bg);
   box-sizing:border-box;
 }
-.chart-compare-toggle button{
+.control-segmented button{
   min-width:var(--dashboard-switch-min-width);
   height:100%;
   padding:0;
@@ -1552,11 +1554,11 @@ button.legend-item.chart-series-all.active{
   font-family:inherit;
   font-size:var(--dashboard-control-font-size);
   font-weight:var(--type-weight-emphasis);
-  line-height:1.12;
+  line-height:var(--dashboard-control-line-height);
   white-space:nowrap;
   cursor:pointer;
 }
-.chart-compare-toggle button.active{
+.control-segmented button.active{
   background:var(--segmented-active-bg);
   color:var(--segmented-active-text);
   box-shadow:var(--segmented-active-shadow);
@@ -2050,7 +2052,7 @@ body.chart-expanded-open .dash-tooltip{
 .asset-stack-segment span{
   display:block;
   padding:0 var(--space-lg);
-  color:var(--asset-tab-active-color);
+  color:var(--on-accent-text);
   font-size:var(--type-size-xs);
   font-weight:var(--type-weight-emphasis);
   white-space:nowrap;
@@ -2925,16 +2927,10 @@ body.dashboard-dialog-open{
   cursor:pointer;
   transition:background .14s ease,color .14s ease,box-shadow .14s ease;
 }
-.control-tab:focus-visible{
-  outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
-  outline-offset:var(--control-focus-outline-offset);
-}
-
 /* Shared Asset Tabs Skin · 메인 자산 탭과 퇴직연금 조정 탭이 같은 surface/state를 공유 */
 :is(.asset-workspace-tabs,.contrib-target-tabs){background:var(--subtle-card)}
 :is(.asset-workspace-tab,.contrib-target-option){color:var(--muted)}
-:is(.asset-workspace-tab,.contrib-target-option):not(.active):hover{background:var(--nav-surface-hover);color:var(--ink)}
-:is(.asset-workspace-tab,.contrib-target-option).active{background:var(--asset-tab-active-bg);color:var(--asset-tab-active-color)}
+:is(.asset-workspace-tab,.contrib-target-option).active{background:var(--accent-strong-bg);color:var(--on-accent-text)}
 
 /* Asset Workspace Tabs · 자산 작업영역 탭: 증권 → 퇴직연금 순서, 기존 section ID 유지 */
 .asset-workspace-tabs{
@@ -3144,10 +3140,6 @@ body.dashboard-dialog-open{
 }
 
 /* [09B. Capital Source / Source Data · 투자원금 원천 / 검산 데이터] */
-.capital-source-section .source-title{
-  padding:0 var(--space-2xs);
-}
-
 .source-grid{
   gap:var(--card-grid-gap-large);
 }
@@ -3382,8 +3374,8 @@ button.control-icon-button-compact{
   cursor:pointer;
 }
 .control-action-button.ghost{background:var(--modal-surface);color:var(--text)}
-.control-action-button.primary{background:var(--asset-tab-active-bg);color:var(--asset-tab-active-color);border-color:var(--asset-tab-active-bg)}
-.control-action-button.danger{background:var(--status-danger-strong);color:var(--asset-tab-active-color);border-color:var(--status-danger-strong)}
+.control-action-button.primary{background:var(--accent-strong-bg);color:var(--on-accent-text);border-color:var(--accent-strong-bg)}
+.control-action-button.danger{background:var(--status-danger-strong);color:var(--on-accent-text);border-color:var(--status-danger-strong)}
 .control-action-button.compact{
   min-height:var(--action-button-compact-height);
   height:var(--action-button-compact-height);
@@ -3415,7 +3407,7 @@ button.control-icon-button-compact{
 /* Text / Switch Control Primitives · 텍스트 전환 버튼과 track/thumb 스위치의 공통 골격 */
 .control-text-toggle{
   flex:0 0 auto;
-  padding:0 var(--text-toggle-pad-x);
+  padding:0 var(--space-3xl);
   border:1px solid var(--control-border);
   border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
   background:var(--card);
@@ -3515,7 +3507,7 @@ button:not(:disabled):active{
   top:0;
   width:100%;
   height:3px;
-  background:var(--asset-tab-active-bg);
+  background:var(--accent-strong-bg);
   opacity:.68;
   pointer-events:none;
 }
@@ -3859,7 +3851,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 }
 .separate-profit-toggle.active strong{
   background:var(--special-profit-badge);
-  color:var(--asset-tab-active-color);
+  color:var(--on-accent-text);
 }
 .separate-profit-control-note{
   flex:0 1 auto;
@@ -3891,11 +3883,6 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 }
 /* Separate Profit Placement · 공통 control은 제목 행 유지, 모바일은 ON/OFF state 중심 */
 .section-title-actions{
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:var(--space-xl);
-  flex:0 0 auto;
   margin-left:auto;
 }
 .section-title-actions > .separate-profit-control-row,

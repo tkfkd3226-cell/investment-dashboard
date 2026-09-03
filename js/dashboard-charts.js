@@ -507,7 +507,7 @@ function syncResponsiveChartControls(){
     card.classList.toggle('compact-chart-ui',compact);
     card.classList.toggle('phone-chart-ui',phoneFlow);
     if(head&&actions){
-      const hasLeadingSwitch=!!actions.querySelector('.chart-compare-toggle');
+      const hasLeadingSwitch=!!actions.querySelector('.control-segmented');
       actions.classList.toggle('mobile-no-leading-switch',phoneFlow&&!hasLeadingSwitch);
       if(phoneFlow){
         if(actions.parentElement!==row)row.insertBefore(actions,row.querySelector('.chart-scroll-start')||null);
@@ -802,7 +802,7 @@ function chartCompareLabel(scope){
 }
 function chartCompareToggle(scope){
   const mode=chartState.compareModes[scope]||'return';
-  return `<div class="chart-compare-toggle" role="group" aria-label="선 그래프 표시 기준"><button type="button" class="${mode==='return'?'active':''}" data-chart-compare-scope="${scope}" data-chart-compare-mode="return" aria-pressed="${mode==='return'}" data-dashboard-action="set-chart-compare-mode">수익률</button><button type="button" class="${mode==='kospi'?'active':''}" data-chart-compare-scope="${scope}" data-chart-compare-mode="kospi" aria-pressed="${mode==='kospi'}" data-dashboard-action="set-chart-compare-mode">코스피</button></div>`;
+  return `<div class="control-segmented" role="group" aria-label="선 그래프 표시 기준"><button type="button" class="${mode==='return'?'active':''}" data-chart-compare-scope="${scope}" data-chart-compare-mode="return" aria-pressed="${mode==='return'}" data-dashboard-action="set-chart-compare-mode">수익률</button><button type="button" class="${mode==='kospi'?'active':''}" data-chart-compare-scope="${scope}" data-chart-compare-mode="kospi" aria-pressed="${mode==='kospi'}" data-dashboard-action="set-chart-compare-mode">코스피</button></div>`;
 }
 function setChartCompareMode(scope,mode){
   if(!['securities','pension'].includes(scope))return;
@@ -821,7 +821,7 @@ function symbolChartToggle(scope){
   const mode=chartState.symbolModes[scope]||'profit';
   const profitLabel=scope==='pension'?'운용손익':'누적손익';
   const rateLabel='수익률';
-  return `<div class="chart-compare-toggle" role="group" aria-label="상품·종목별 차트 표시 기준"><button type="button" class="${mode==='profit'?'active':''}" data-symbol-chart-scope="${scope}" data-symbol-chart-mode="profit" aria-pressed="${mode==='profit'}" data-dashboard-action="set-symbol-chart-mode">${profitLabel}</button><button type="button" class="${mode==='rate'?'active':''}" data-symbol-chart-scope="${scope}" data-symbol-chart-mode="rate" aria-pressed="${mode==='rate'}" data-dashboard-action="set-symbol-chart-mode">${rateLabel}</button></div>`;
+  return `<div class="control-segmented" role="group" aria-label="상품·종목별 차트 표시 기준"><button type="button" class="${mode==='profit'?'active':''}" data-symbol-chart-scope="${scope}" data-symbol-chart-mode="profit" aria-pressed="${mode==='profit'}" data-dashboard-action="set-symbol-chart-mode">${profitLabel}</button><button type="button" class="${mode==='rate'?'active':''}" data-symbol-chart-scope="${scope}" data-symbol-chart-mode="rate" aria-pressed="${mode==='rate'}" data-dashboard-action="set-symbol-chart-mode">${rateLabel}</button></div>`;
 }
 function setSymbolChartMode(scope,mode){
   if(!['securities','pension'].includes(scope))return;
@@ -842,7 +842,7 @@ function setSymbolChartMode(scope,mode){
 
 function securityAllocToggle(){
   const mode=chartState.securityAllocMode==='symbol'?'symbol':'type';
-  return `<div class="chart-compare-toggle" role="group" aria-label="증권계좌 평가금액 비중 표시 기준"><button type="button" class="${mode==='type'?'active':''}" data-security-alloc-mode="type" aria-pressed="${mode==='type'}" data-dashboard-action="set-security-alloc-mode">유형별</button><button type="button" class="${mode==='symbol'?'active':''}" data-security-alloc-mode="symbol" aria-pressed="${mode==='symbol'}" data-dashboard-action="set-security-alloc-mode">종목별</button></div>`;
+  return `<div class="control-segmented" role="group" aria-label="증권계좌 평가금액 비중 표시 기준"><button type="button" class="${mode==='type'?'active':''}" data-security-alloc-mode="type" aria-pressed="${mode==='type'}" data-dashboard-action="set-security-alloc-mode">유형별</button><button type="button" class="${mode==='symbol'?'active':''}" data-security-alloc-mode="symbol" aria-pressed="${mode==='symbol'}" data-dashboard-action="set-security-alloc-mode">종목별</button></div>`;
 }
 function securityAllocItems(x){
   return sortSecurityAllocationItems(securityAllocVisibleHoldings(x));

@@ -170,11 +170,10 @@
       --dashboard-control-radius:8px;
       --dashboard-expand-icon-size:13px;
       --dashboard-legend-font-size:10.5px;
-      --dashboard-control-group-gap:4px;
+      --dashboard-control-group-gap:var(--space-sm);
       --section-title-font-size:var(--type-size-xl);
       --section-title-icon-size:15px;
-      --section-title-gap:4px;
-      --section-chip-height:25px;
+      --section-title-gap:var(--space-sm);
       /* Mobile Topbar Geometry · 세로/가로폰 동일 위치·크기 관계 */
       --topbar-phone-height:40px;
       --topbar-phone-edge:var(--space-xl);
@@ -332,10 +331,11 @@
       font-size:var(--type-size-xs);
     }
     .control-tab{
-      min-height:34px;
+      min-height:28px;
       padding-inline:var(--space-sm);
       font-size:var(--type-size-sm);
     }
+    .asset-workspace-tabs{width:100%}
 
   /* Compact Chart Support · 제목은 공통 title token을 그대로 쓰고 부제/tooltip만 폰 기준으로 축소 */
     #pension-chart-cum .chart-title-sub,
@@ -425,7 +425,6 @@
     .chart-note .m-value{overflow-wrap:anywhere}
 
   /* Separate Profit Compact · 위치는 유지하고 control 자체만 compact */
-    .section-title-actions{gap:var(--space-md)}
     .section-title > .separate-profit-control-row,
     .section-title-actions > .separate-profit-control-row,
     .chart-head > .separate-profit-control-row{

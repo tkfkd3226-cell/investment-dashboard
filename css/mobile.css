@@ -37,12 +37,9 @@
     }
 
 .securities-summary-block .chart-head-actions > [data-accounts-view-toggle-wrap]:not([hidden]){display:inline-flex;order:-1}
-    .section-title > .section-control-chip,
-    .section-title > .section-title-actions,
-    .section-title > .separate-profit-control-row{position:relative;top:1px}
 
   /* [M03. Asset Tabs / Data Views / Allocation · 세로폰 표↔카드와 비중 카드] */
-.asset-workspace-tabs{width:100%;margin-bottom:var(--space-4xl)}
+.asset-workspace-tabs{margin-bottom:var(--space-4xl)}
 
 .asset-status-table .mobile-table-brand-prefix{display:none}
     .mobile-view-toggle{display:inline-flex}

@@ -50,6 +50,11 @@
     }
 
   /* [I03. Control Hover · 공통 control border feedback] */
+    :is(.asset-workspace-tab,.contrib-target-option):not(.active):hover{
+      background:var(--nav-surface-hover);
+      color:var(--ink);
+    }
+
     :is(
       button.legend-item.chart-series-all,
       .chart-y-auto-toggle,

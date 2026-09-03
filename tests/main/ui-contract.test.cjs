@@ -18,6 +18,7 @@ const core=read('js/dashboard-core.js');
 const modal=read('js/dashboard-modal.js');
 const uiCommon=read('js/dashboard-ui-common.js');
 const ui=read('js/dashboard-ui.js');
+const pensionEditor=read('js/dashboard-pension-editor.js');
 const marketAi=read('js/dashboard-market-ai.js');
 const app=read('js/dashboard-app.js');
 
@@ -77,6 +78,24 @@ test('Responsive 기본 3구간은 Desktop >=1101 / Tablet 761~1100 / Mobile <=7
   assert.match(mobile,/@media\s*\(max-width:760px\)/);
   assert.match(special,/@media\s*\(min-width:1101px\)\s*and\s*\(max-width:1279px\)/);
   assert.match(special,/@media\s*\(max-width:400px\)/);
+});
+
+test('Section title/action과 segmented control은 공통 geometry·viewport token contract를 사용한다',()=>{
+  assert.match(common1,/--dashboard-control-height:29px/);
+  assert.match(common1,/--section-chip-height:var\(--dashboard-control-height\)/);
+  assert.match(common1,/--dashboard-control-group-gap:var\(--space-xl\)/);
+  assert.match(common1,/--section-title-gap:var\(--space-xl\)/);
+  assert.match(common1,/\.section-title, \.chart-head\{ display:flex; justify-content:space-between; gap:var\(--space-5xl\); \}/);
+  assert.match(common1,/\.chart-head-actions, \.section-title-actions\{ display:flex; align-items:center; justify-content:flex-end; gap:var\(--dashboard-control-group-gap\)/);
+  assert.match(special1,/--dashboard-control-height:25px/);
+  assert.match(special1,/--dashboard-control-group-gap:var\(--space-sm\)/);
+  assert.match(special1,/--section-title-gap:var\(--space-sm\)/);
+  assert.match(special1,/\.control-tab\{ min-height:28px;[^}]*font-size:var\(--type-size-sm\)/);
+  assert.match(special1,/\.asset-workspace-tabs\{width:100%\}/);
+  for(const source of [common,charts,ui,pensionEditor]) assert.doesNotMatch(source,/chart-compare-toggle|asset-tab-active/);
+  assert.match(common1,/\.control-segmented\{/);
+  assert.match(interaction,/:is\(\.asset-workspace-tab,\.contrib-target-option\):not\(\.active\):hover/);
+  assert.doesNotMatch(mobile,/position:relative;top:1px/);
 });
 
 test('Phone Landscape는 별도 일반 breakpoint가 아니라 touch landscape 기능 media로 유지한다',()=>{
