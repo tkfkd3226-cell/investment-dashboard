@@ -630,7 +630,6 @@
     border-top:1px solid var(--nav-divider);
   }
   .date-action-menu.mobile-combined-menu .mobile-nav-group p{letter-spacing:0}
-  .date-action-menu.mobile-combined-menu .mobile-nav-item.sub{padding-left:var(--space-lg)}
   .date-action-menu.mobile-combined-menu .mobile-nav-item strong{display:block;color:inherit}
   .date-action-menu.mobile-combined-menu::-webkit-scrollbar{width:8px}
   .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{border-radius:var(--radius-pill);background:var(--nav-scrollbar)}
