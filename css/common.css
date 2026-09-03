@@ -314,6 +314,9 @@
   --nav-motion-slide-delay:.07s;
   --nav-motion-hide-delay:.31s;
   --nav-icon-size:16px;
+  --nav-item-min-height:30px;
+  --nav-item-line-height:16px;
+  --nav-item-radius:var(--control-radius-md);
   --mobile-top-bg:#111827;
   --mobile-top-hover-bg:#0b1220;
   --mobile-top-text:#ffffff;
@@ -323,6 +326,8 @@
   --mobile-top-shadow:0 10px 24px rgba(15,23,42,.28),0 3px 8px rgba(15,23,42,.16);
   --mobile-top-shadow-mobile:0 8px 20px rgba(15,23,42,.28),0 2px 7px rgba(15,23,42,.16);
   --mobile-top-shadow-hover:0 13px 28px rgba(15,23,42,.32),0 4px 10px rgba(15,23,42,.18);
+  --scroll-top-button-size:56px;
+  --scroll-top-button-icon-size:13px;
 
   /* Topbar System · 항상 어두운 상단바 공통 토큰 */
   --topbar-bg:#080c14;
@@ -3603,8 +3608,8 @@ button:not(:disabled):active{
   right:20px;
   bottom:20px;
   z-index:2400;
-  width:56px;
-  height:56px;
+  width:var(--scroll-top-button-size);
+  height:var(--scroll-top-button-size);
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -3629,9 +3634,9 @@ button:not(:disabled):active{
 }
 .mobile-top-button svg{
   display:block;
-  width:13px;
-  height:13px;
-  flex:0 0 13px;
+  width:var(--scroll-top-button-icon-size);
+  height:var(--scroll-top-button-icon-size);
+  flex:0 0 var(--scroll-top-button-icon-size);
 }
 .mobile-top-button.show{
   opacity:1;
@@ -3643,7 +3648,7 @@ button:not(:disabled):active{
   background:var(--mobile-top-hover-bg);
   box-shadow:var(--mobile-top-shadow-hover);
 }
-.mobile-top-button:active{transform:scale(.96)}
+button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 
 /* Securities Holding Markers · 증권 보유종목: 차트 색상 marker */
 .holding-name-text{
@@ -3947,10 +3952,6 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   --nav-menu-group-label-size:9.5px;
   --nav-menu-group-label-line-height:14px;
   --nav-menu-item-gap:var(--space-lg);
-  --nav-menu-item-min-height:30px;
-  --nav-menu-item-pad-y:var(--space-md);
-  --nav-menu-item-pad-x:var(--space-lg);
-  --nav-menu-item-line-height:17px;
   display:block;
   padding:var(--nav-menu-padding);
   border-radius:min(10px,var(--corner-surface-cap));
@@ -3988,13 +3989,18 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 }
 :is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item){
   width:100%;
+  min-height:var(--nav-item-min-height);
   display:flex;
   align-items:center;
+  padding:var(--space-md);
   border:0;
+  border-radius:min(var(--nav-item-radius),var(--corner-control-cap));
   background:transparent;
   color:var(--nav-text);
   text-align:left;
   font-family:inherit;
+  font-size:var(--type-size-sm);
+  line-height:var(--nav-item-line-height);
   cursor:pointer;
 }
 :is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item):hover,
@@ -4024,10 +4030,10 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:var(--nav-menu-group-gap) 0 0;padding:var(--nav-menu-group-gap) 0 0;border-top:1px solid var(--nav-divider)}
 .date-action-menu.mobile-combined-menu .mobile-nav-group:first-of-type{margin-top:0;padding-top:0;border-top:0}
 .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:var(--nav-menu-group-label-margin-y) var(--nav-menu-group-label-margin-x);color:var(--nav-muted);font-size:var(--nav-menu-group-label-size);font-weight:var(--type-weight-semibold);line-height:var(--nav-menu-group-label-line-height)}
-.date-action-menu.mobile-combined-menu .mobile-nav-item{gap:var(--nav-menu-item-gap);min-height:var(--nav-menu-item-min-height);margin:0;padding:var(--nav-menu-item-pad-y) var(--nav-menu-item-pad-x);border-radius:min(var(--control-radius-md),var(--corner-control-cap));text-decoration:none;font-size:var(--type-size-sm);font-weight:var(--type-weight-regular);line-height:var(--nav-menu-item-line-height);box-shadow:none}
+.date-action-menu.mobile-combined-menu .mobile-nav-item{gap:var(--nav-menu-item-gap);margin:0;text-decoration:none;font-weight:var(--type-weight-regular);box-shadow:none}
 .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon{flex:0 0 var(--nav-icon-size);width:var(--nav-icon-size);height:var(--nav-icon-size);margin:0;border:0;border-radius:0;background:transparent;font-size:0;box-shadow:none}
 .date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon svg{width:var(--nav-icon-size);height:var(--nav-icon-size)}
-.date-action-menu.mobile-combined-menu .mobile-nav-item strong{font-size:var(--type-size-sm);font-weight:var(--type-weight-medium);line-height:var(--nav-menu-item-line-height)}
+.date-action-menu.mobile-combined-menu .mobile-nav-item strong{font-size:var(--type-size-sm);font-weight:var(--type-weight-medium);line-height:var(--nav-item-line-height)}
 
 /* Edge TOC · 우측 목차: 웹 전용 hover·focus 목차 / Tablet·Phone은 Topbar hamburger 사용 */
 .desktop-edge-toc{display:none}
@@ -4036,7 +4042,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .switcher{
   /* Topbar Geometry Contract · viewport는 token만 바꾸고 date/action primitive는 같은 geometry를 공유 */
   --topbar-pad-y:var(--space-lg);
-  --topbar-pad-x:var(--space-5xl);
+  --topbar-pad-x:var(--topbar-pad-y);
   --topbar-content-max-width:var(--page-content-max-width);
   --topbar-layout-gap:var(--space-lg);
   --topbar-action-group-gap:var(--topbar-layout-gap);
@@ -4047,11 +4053,10 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   --topbar-date-pad-right:27px;
   --topbar-date-pad-left:var(--space-3xl);
   --topbar-action-pad-x:var(--space-4xl);
-  --topbar-action-gap:var(--space-sm);
+  --topbar-action-gap:var(--space-xl);
   --topbar-action-font-size:var(--topbar-control-font-size);
   --topbar-action-icon-size:16px;
-  --topbar-action-icon-margin-right:var(--space-xs);
-  --topbar-mode-icon-size:18px;
+  --topbar-mode-icon-size:16px;
   position:sticky;
   top:0;
   z-index:30;
@@ -4087,6 +4092,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   border:1px solid var(--topbar-control-border);
   background:var(--topbar-control-bg);
   color:var(--topbar-text);
+  font-family:inherit;
   font-weight:var(--type-weight-regular);
   box-shadow:var(--topbar-control-shadow);
 }
@@ -4142,11 +4148,10 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  margin-right:var(--topbar-action-icon-margin-right);
   font-size:0;
 }
 .date-tool-action-icon svg{display:block;width:var(--topbar-action-icon-size);height:var(--topbar-action-icon-size);vertical-align:middle}
-:is(.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size);flex-basis:var(--topbar-mode-icon-size);margin-right:0}
+:is(.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size);flex-basis:var(--topbar-mode-icon-size)}
 :is(.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon svg{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size)}
 .date-action-menu-wrap,
 .topbar-label-short{display:none}
@@ -4321,6 +4326,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       font-weight:var(--type-weight-strong);
       line-height:1.12;
       letter-spacing:-.02em;
+      font-family:inherit;
       cursor:pointer;
     }
     .desktop-edge-toc-trigger span:last-child{
@@ -4333,7 +4339,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       position:absolute;
       top:50%;
       right:44px;
-      width:300px;
+      width:220px;
       max-height:min(76vh,680px);
       overflow:auto;
       padding:var(--space-4xl);
@@ -4392,13 +4398,8 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       line-height:var(--type-line-loose);
     }
     .desktop-edge-toc-item{
-      min-height:32px;
       gap:var(--space-2xl);
-      padding:var(--space-lg) var(--space-xl);
-      border-radius:min(7px,var(--corner-control-cap));
-      font-size:var(--type-size-sm);
       font-weight:var(--type-weight-semibold);
-      line-height:var(--type-line-body);
     }
     .desktop-edge-toc-icon{
       flex:0 0 var(--nav-icon-size);

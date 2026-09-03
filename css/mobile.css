@@ -9,7 +9,6 @@
    [M05] Modal / Feedback
    [M06] Pension Feature
    [M07] Interaction
-   [M08] Navigation Utility
 
    세로폰 전용 구조만 둔다. 세로·가로폰 공통 compact density는 special.css의 Phone Shared가 소유한다.
    ========================================================= */
@@ -219,21 +218,8 @@
       transition:box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
     }
 
-.date-action-menu.mobile-combined-menu .mobile-nav-item:active,
-    .date-tool-btn:not(:disabled):active,
-    button:not(:disabled):active{
+button:not(:disabled):active{
       transform:scale(.985);
-    }
-
-  /* [M08. Navigation Utility · 모바일 맨위로 버튼] */
-.mobile-top-button{
-      right:12px;
-      bottom:max(14px,calc(env(safe-area-inset-bottom) + 9px));
-      width:48px;
-      height:48px;
-      border-radius:min(13px,var(--corner-control-cap));
-      font-size:var(--type-size-2xs);
-      box-shadow:var(--mobile-top-shadow-mobile);
     }
 
 }

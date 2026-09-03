@@ -179,6 +179,7 @@
       --topbar-phone-height:40px;
       --topbar-phone-edge:var(--space-xl);
       --topbar-phone-control-size:30px;
+      --scroll-top-button-size:48px;
       --topbar-phone-control-step:calc(var(--topbar-phone-control-size) + var(--space-sm));
       --topbar-phone-date-reserved-width:calc(
         var(--topbar-phone-control-size) + var(--topbar-phone-control-size) + var(--topbar-phone-control-size) +
@@ -560,7 +561,7 @@
 
   .switcher:is(.mobile-menu-open,.mobile-date-pinned){
     height:var(--topbar-phone-height);
-    padding:var(--space-md) var(--topbar-phone-edge);
+    padding:var(--space-md);
     background:var(--topbar-bg);
     border-bottom:1px solid var(--topbar-divider);
     box-shadow:var(--topbar-shadow);
@@ -612,16 +613,14 @@
     --nav-menu-group-gap:var(--space-2xs);
     --nav-menu-group-label-margin-y:1px;
     --nav-menu-item-gap:var(--space-md);
-    --nav-menu-item-min-height:26px;
-    --nav-menu-item-pad-y:var(--space-2xs);
-    --nav-menu-item-pad-x:var(--space-md);
+    --nav-item-min-height:26px;
     --nav-menu-phone-edge:var(--space-lg);
     position:fixed;
     top:calc(var(--topbar-phone-height) + var(--space-xs));
     right:var(--nav-menu-phone-edge);
     z-index:2600;
-    width:min(224px,calc(100vw - var(--nav-menu-phone-edge) - var(--nav-menu-phone-edge)));
-    max-height:calc(100vh - 54px);
+    width:min(200px,calc(100vw - var(--nav-menu-phone-edge) - var(--nav-menu-phone-edge)));
+    max-height:calc(100vh - var(--topbar-phone-height) - var(--space-6xl));
     overflow:auto;
   }
   /* Phone TOC boundary · 가로폰이 Tablet media에도 걸릴 때 첫 TOC 구분선을 Phone contract로 복구 */
@@ -635,6 +634,19 @@
   .date-action-menu.mobile-combined-menu .mobile-nav-item strong{display:block;color:inherit}
   .date-action-menu.mobile-combined-menu::-webkit-scrollbar{width:8px}
   .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{border-radius:var(--radius-pill);background:var(--nav-scrollbar)}
+
+  /* Phone Navigation Press · 세로폰과 실제 터치폰 가로가 같은 눌림 피드백을 공유 */
+  .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,.control-icon-button-compact):not(:disabled):active,
+  .switcher .date-tool-btn:not(:disabled):active{transform:scale(.985)}
+
+  /* Scroll To Top Phone Geometry · 세로폰과 실제 터치폰 가로 공통 */
+  .mobile-top-button{
+    right:12px;
+    bottom:max(14px,calc(env(safe-area-inset-bottom) + 9px));
+    border-radius:min(13px,var(--corner-control-cap));
+    font-size:var(--type-size-2xs);
+    box-shadow:var(--mobile-top-shadow-mobile);
+  }
 
   /* Phone Menu Extras · 공통 TOC는 유지하고 링크/관리/날짜고정만 폰에서 추가 표시 */
     .mobile-nav-group-phone-only{display:block}

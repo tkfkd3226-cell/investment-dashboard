@@ -18,6 +18,7 @@
 
   /* [T01. Density Tokens · 태블릿 밀도 token] */
 :root{
+      --page-shell-gutter:var(--space-lg);
       --surface-pad-outer:var(--space-7xl);
       --surface-pad-large:var(--space-7xl);
       --surface-pad-medium:var(--space-5xl);
@@ -174,12 +175,10 @@
     .switcher{
       overflow-x:clip;
       overflow-y:visible;
-      --topbar-pad-x:var(--space-2xl);
       --topbar-action-group-gap:var(--space-md);
-      --topbar-action-pad-x:var(--space-xl);
-      --topbar-action-gap:var(--space-2xs);
-      --topbar-action-font-size:var(--type-size-2xs);
-      --topbar-action-icon-margin-right:var(--space-2xs);
+      --topbar-action-pad-x:var(--space-lg);
+      --topbar-action-gap:var(--space-sm);
+      --topbar-action-font-size:var(--topbar-control-font-size);
     }
     .date-picker{grid-template-columns:minmax(0,1fr) auto}
     .date-picker-center{width:100%;max-width:calc(var(--topbar-date-select-width) + var(--topbar-date-select-width) + var(--topbar-layout-gap))}
@@ -198,7 +197,7 @@
       top:calc(100% + var(--space-lg));
       right:0;
       z-index:2600;
-      width:280px;
+      width:220px;
       max-height:min(72vh,620px);
       overflow:auto;
     }
