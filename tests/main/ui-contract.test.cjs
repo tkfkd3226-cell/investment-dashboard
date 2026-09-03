@@ -267,6 +267,21 @@ test('9차 chart shell은 공통 renderer·display token·정적 SVG visual sour
   assert.match(common1,/\.chart-title-sub\{ display:inline; align-self:flex-end;/);
 });
 
+test('10차 chart summary는 allocation presentation helper와 viewport meta token을 사용한다',()=>{
+  const tablet1=compact(tablet);
+  assert.match(charts,/function allocationValueCard\(/);
+  assert.match(charts,/function allocationTotalCard\(/);
+  assert.match(charts,/allocationValueCard\('ETF'/);
+  assert.match(charts,/allocationTotalCard\(won\(x\.pensionEval\)/);
+  assert.match(common1,/--allocation-ratio-meta-size:var\(--type-size-xs\); --allocation-cash-meta-size:var\(--type-size-xs\)/);
+  assert.match(common1,/\.mini-card \.alloc-ratio-meta\{font-size:var\(--allocation-ratio-meta-size\)\}/);
+  assert.match(tablet1,/--allocation-ratio-meta-size:10px; --allocation-cash-meta-size:10px/);
+  assert.match(special1,/--allocation-ratio-meta-size:9px; --allocation-cash-meta-size:9px/);
+  assert.match(special1,/--symbol-metric-value-size:10px/);
+  assert.match(common1,/\.allocation-total-card\{ display:grid; grid-template-columns:max-content minmax\(0,max-content\)/);
+  assert.doesNotMatch(tablet,/#pension-chart-alloc \.chart-note/);
+});
+
 test('Chart legend는 전체선택/다중선택을 지원하되 마지막 1개는 해제하지 않는다',()=>{
   assert.match(charts1,/if\(key==='__all__'\)\{ selection\.state\.selected=null;/);
   assert.match(charts1,/if\(next\.has\(key\)\)\{ if\(next\.size<=1\)return; next\.delete\(key\);/);

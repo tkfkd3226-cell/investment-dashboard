@@ -311,6 +311,8 @@
       --mini-label-size:10px;
       --mini-value-size:13px;
       --mini-detail-size:10px;
+      --allocation-ratio-meta-size:9px;
+      --allocation-cash-meta-size:9px;
     }
     .metric-card{
       --metric-label-size:11px;
@@ -407,13 +409,11 @@
   /* Symbol Summary · 종목/상품 카드 내부 밀도만 공통, 열 수는 방향별로 분리 */
     .chart-note.symbol-summary-grid{
       --symbol-metric-label-size:9px;
-      --symbol-metric-value-size:10.5px;
+      --symbol-metric-value-size:10px;
       --symbol-metric-gap:4px;
     }
 
   /* Allocation / Change Meta · 비중·전일대비 카드 내부 밀도 */
-    .mini-card .alloc-ratio-meta{font-size:9.5px}
-    .mini-card .alloc-cash-meta{font-size:8.5px}
     .chart-note .m-value{overflow-wrap:anywhere}
 
   /* Separate Profit Compact · 위치는 유지하고 control 자체만 compact */

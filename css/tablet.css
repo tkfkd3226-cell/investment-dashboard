@@ -54,6 +54,8 @@
       --mini-label-size:11px;
       --mini-value-size:17px;
       --mini-detail-size:11px;
+      --allocation-ratio-meta-size:10px;
+      --allocation-cash-meta-size:10px;
     }
 
 .chart-note.six{
@@ -77,19 +79,12 @@
       --symbol-metric-gap:7px;
     }
 
-    .mini-card .alloc-ratio-meta{font-size:10.5px}
-    .mini-card .alloc-cash-meta{font-size:9.5px}
-
   /* [T04. Asset / Allocation / Ledger · 자산 상세·비중·장부·원천 배치] */
 .asset-insight-head h3{
       font-size:var(--type-size-lg);
     }
 
 .asset-change-note .change-kpis{
-      grid-template-columns:repeat(4,minmax(0,1fr));
-    }
-
-#pension-chart-alloc .chart-note{
       grid-template-columns:repeat(4,minmax(0,1fr));
     }
 
