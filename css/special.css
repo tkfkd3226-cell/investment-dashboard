@@ -147,6 +147,8 @@
 
   /* Phone Control Tokens · 세로폰/가로폰 공통 compact control */
     :root{
+      --page-shell-gutter:var(--space-xl);
+      --page-section-gap:var(--space-5xl);
       --surface-pad-outer:var(--space-4xl);
       --surface-pad-large:var(--space-4xl);
       --surface-pad-medium:var(--space-4xl);
@@ -335,7 +337,7 @@
       padding-inline:var(--space-sm);
       font-size:var(--type-size-sm);
     }
-    .asset-workspace-tabs{width:100%}
+    .asset-workspace-tabs{width:100%;margin-bottom:var(--space-4xl)}
 
   /* Compact Chart Support · 제목은 공통 title token을 그대로 쓰고 부제/tooltip만 폰 기준으로 축소 */
     #pension-chart-cum .chart-title-sub,

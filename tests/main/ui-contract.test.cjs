@@ -91,12 +91,32 @@ test('Section title/action과 segmented control은 공통 geometry·viewport tok
   assert.match(special1,/--dashboard-control-group-gap:var\(--space-sm\)/);
   assert.match(special1,/--section-title-gap:var\(--space-sm\)/);
   assert.match(special1,/\.control-tab\{ min-height:28px;[^}]*font-size:var\(--type-size-sm\)/);
-  assert.match(special1,/\.asset-workspace-tabs\{width:100%\}/);
+  assert.match(special1,/\.asset-workspace-tabs\{width:100%;margin-bottom:var\(--space-4xl\)\}/);
   for(const source of [common,charts,ui,pensionEditor]) assert.doesNotMatch(source,/chart-compare-toggle|asset-tab-active/);
   assert.match(common1,/\.control-segmented\{/);
   assert.match(interaction,/:is\(\.asset-workspace-tab,\.contrib-target-option\):not\(\.active\):hover/);
   assert.doesNotMatch(mobile,/position:relative;top:1px/);
   assert.doesNotMatch(ui,/source-title/);
+});
+
+test('Card surface와 viewport section rhythm은 semantic token 단일 contract를 사용한다',()=>{
+  const tablet1=compact(tablet);
+  const mobile1=compact(mobile);
+  assert.match(common1,/--page-section-gap:var\(--space-9xl\)/);
+  assert.match(tablet1,/--page-section-gap:var\(--space-8xl\)/);
+  assert.match(special1,/--page-shell-gutter:var\(--space-xl\)/);
+  assert.match(special1,/--page-section-gap:var\(--space-5xl\)/);
+  assert.match(common1,/--asset-band-section-gap:var\(--card-grid-gap-large\)/);
+  assert.match(common1,/:is\(\.card,\.note,\.chart-card\)\{ background:var\(--card\); border-radius:min\(var\(--surface-radius-large\),var\(--corner-surface-cap\)\); padding:var\(--surface-pad-large\)/);
+  assert.match(common1,/:is\(\.chart-grid,\.asset-detail-grid,\.metric-grid,\.source-grid,#ledger-check \.ledger-overview-grid\)\{gap:var\(--card-grid-gap-large\)\}/);
+  assert.match(common1,/:is\(\.asset-detail-grid,\.securities-subsection,\.pension-chart-block\)\{margin-top:var\(--asset-band-section-gap\)\}/);
+  assert.match(common1,/:is\(\.source-table-scroll,\.change-table-wrap\)\{margin-top:var\(--space-5xl\);border-radius:min\(var\(--surface-radius-xs\),var\(--corner-surface-cap\)\)\}/);
+  assert.match(common1,/\.data-list-card\{[^}]*border-radius:min\(var\(--surface-radius-mini\),var\(--corner-surface-cap\)\)/);
+  assert.doesNotMatch(common,/--surface-radius-data-list:/);
+  assert.equal((common.match(/--surface-border-muted:/g)||[]).length,1);
+  assert.doesNotMatch(common1,/#ledger-check \.ledger-overview-grid\{[^}]*margin-top:/);
+  assert.doesNotMatch(common1,/\.change-kpis\{[^}]*margin-top:/);
+  assert.doesNotMatch(mobile1,/\.asset-workspace-tabs\{/);
 });
 
 test('Phone Landscape는 별도 일반 breakpoint가 아니라 touch landscape 기능 media로 유지한다',()=>{

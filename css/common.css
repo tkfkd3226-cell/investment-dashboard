@@ -91,7 +91,6 @@
   --surface-radius-large:var(--surface-radius-lg);
   --surface-radius-medium:var(--surface-radius-md);
   --surface-radius-mini:var(--surface-radius-sm);
-  --surface-radius-data-list:15px;
   /* Data List Card Typography · 모바일 카드보기와 compact data list surface가 공유 */
   --data-list-title-weight:var(--type-weight-strong);
   --data-list-label-weight:var(--type-weight-bold);
@@ -122,7 +121,7 @@
   --page-content-max-width:calc(var(--page-shell-max-width) - var(--page-shell-gutter) - var(--page-shell-gutter));
   --page-section-gap:var(--space-9xl);
   --page-section-title-gap:var(--space-5xl);
-  --asset-band-section-gap:var(--space-7xl);
+  --asset-band-section-gap:var(--card-grid-gap-large);
   --page-anchor-offset:76px;
 
   /* Card Grid Gap System · 카드와 카드 사이 간격의 hierarchy */
@@ -499,7 +498,6 @@ html.dark{
 
   /* Dark semantic counterparts · Dark 모드 의미 대응값 */
   --text-secondary:#94a3b8;
-  --surface-border-muted:rgba(148,163,184,.24);
   --interaction-border-accent:rgba(96,165,250,.34);
   --interaction-row-bg:rgba(255,255,255,.050);
 
@@ -837,7 +835,6 @@ button svg{pointer-events:none;flex-shrink:0}
 
 .cards{
   grid-template-columns:repeat(4,minmax(0,1fr));
-  margin-top:var(--space-8xl);
 }
 
 :is(.card,.note,.chart-card,.pension-band,.securities-band){
@@ -850,7 +847,7 @@ button svg{pointer-events:none;flex-shrink:0}
   min-width:0;
   padding:var(--data-list-card-pad,var(--surface-pad-data-list));
   border:1px solid var(--line);
-  border-radius:min(var(--surface-radius-data-list),var(--corner-surface-cap));
+  border-radius:min(var(--surface-radius-mini),var(--corner-surface-cap));
   background:var(--card);
   box-shadow:var(--shadow-data-list-card);
 }
@@ -1052,7 +1049,7 @@ button svg{pointer-events:none;flex-shrink:0}
   gap:1px;
 }
 
-.card{
+:is(.card,.note,.chart-card){
   background:var(--card);
   border-radius:min(var(--surface-radius-large),var(--corner-surface-cap));
   padding:var(--surface-pad-large);
@@ -1145,17 +1142,9 @@ section{
 }
 
 /* Large / Outer Surfaces · 계층별 padding ownership; viewport별 density는 semantic token으로 전환 */
-:is(.note,.chart-card){
-  padding:var(--surface-pad-large);
-}
 :is(.pension-band,.securities-band){
   padding:var(--surface-pad-outer);
   border-radius:min(var(--surface-radius-outer),var(--corner-surface-cap));
-}
-
-.note{
-  background:var(--card);
-  border-radius:min(var(--surface-radius-large),var(--corner-surface-cap));
 }
 
 .note strong{
@@ -1324,15 +1313,12 @@ td.num{
 /* Chart Core · 차트 공통 구조 */
 .chart-grid{
   grid-template-columns:1fr;
-  gap:var(--card-grid-gap-large);
 }
 
 .chart-card{
   position:relative;
   width:100%;
   overflow:hidden;
-  background:var(--card);
-  border-radius:min(var(--surface-radius-large),var(--corner-surface-cap));
 }
 
 .chart-head{
@@ -1924,9 +1910,7 @@ body.chart-expanded-open .dash-tooltip{
 /* [06. Asset Detail · 자산 상세] Status / Change / Insight */
 .asset-detail-grid{
   width:100%;
-  margin-top:var(--asset-band-section-gap);
   grid-template-columns:minmax(0,1.56fr) minmax(min(42%,480px),.72fr);
-  gap:var(--card-grid-gap-large);
   align-items:stretch;
 }
 
@@ -2215,7 +2199,6 @@ body.chart-expanded-open .dash-tooltip{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:var(--card-grid-gap-compact);
-  margin-top:var(--space-4xl);
 }
 
 .change-price{
@@ -2342,7 +2325,6 @@ body.chart-expanded-open .dash-tooltip{
 
 .metric-grid{
   grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:var(--card-grid-gap-large);
   margin-top:0;
 }
 
@@ -2896,7 +2878,6 @@ body.dashboard-dialog-open{
 .wrap > section,
 .grid.cards{
   width:100%;
-  box-sizing:border-box;
 }
 
 /* Asset Bands · 자산별 배경만 정의하고 geometry는 Outer Surface 공통 규칙을 사용 */
@@ -2945,13 +2926,8 @@ body.dashboard-dialog-open{
 .dark :is(.note,.chart-card,.card:not(.dark),.mini-card,.mobile-data-card){background-color:var(--card);border-color:var(--line);color:var(--ink)}
 .dark .pension-risk-scale{color:var(--muted)}
 
-.securities-subsection{
-  margin-top:var(--asset-band-section-gap);
-}
+:is(.asset-detail-grid,.securities-subsection,.pension-chart-block){margin-top:var(--asset-band-section-gap)}
 .securities-subsection:first-child{
-  margin-top:0;
-}
-.securities-subsection > .section-title{
   margin-top:0;
 }
 .asset-overview > .section-title{
@@ -2970,10 +2946,6 @@ body.dashboard-dialog-open{
   align-items:center;
   justify-content:center;
   min-height:168px;
-}
-
-.pension-chart-block{
-  margin-top:var(--asset-band-section-gap);
 }
 
 .chart-title-sub{
@@ -3140,9 +3112,7 @@ body.dashboard-dialog-open{
 }
 
 /* [09B. Capital Source / Source Data · 투자원금 원천 / 검산 데이터] */
-.source-grid{
-  gap:var(--card-grid-gap-large);
-}
+:is(.chart-grid,.asset-detail-grid,.metric-grid,.source-grid,#ledger-check .ledger-overview-grid){gap:var(--card-grid-gap-large)}
 
 .source-card{
   min-width:0;
@@ -3527,8 +3497,6 @@ button:not(:disabled):active{
 #ledger-check .ledger-overview-grid{
   grid-template-columns:repeat(3,minmax(0,1fr));
   align-items:stretch;
-  gap:var(--card-grid-gap-large);
-  margin-top:var(--space-8xl);
 }
 #ledger-check .ledger-conclusion-card{
   display:grid;
@@ -4246,14 +4214,12 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .asset-status-table .bar-box[role="progressbar"]{
   outline:none;
 }
-.source-table-scroll{margin-top:var(--space-5xl);border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
+:is(.source-table-scroll,.change-table-wrap){margin-top:var(--space-5xl);border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
 /* Source table variant · 일반 row label만 regular, summary weight는 base contract 유지 */
 .source-data-table{
   --data-table-label-weight:var(--data-table-value-weight);
   border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
 }
-.change-table-wrap{margin-top:var(--space-5xl);border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
-
 /* =========================================================
    [14. Responsive Shared · 반응형 공통]
    - Tablet + Mobile: max-width:1100px

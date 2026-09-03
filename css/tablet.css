@@ -19,6 +19,7 @@
   /* [T01. Density Tokens · 태블릿 밀도 token] */
 :root{
       --page-shell-gutter:var(--space-lg);
+      --page-section-gap:var(--space-8xl);
       --surface-pad-outer:var(--space-7xl);
       --surface-pad-large:var(--space-7xl);
       --surface-pad-medium:var(--space-5xl);
