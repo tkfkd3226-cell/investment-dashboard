@@ -297,7 +297,7 @@ test('11차 장부·원천 검산은 source row helper, wrapper gap token, 인�
   assert.doesNotMatch(tablet,/\.dashboard-data-table\{\s*--source-table-gap:/);
   assert.doesNotMatch(special,/\.dashboard-data-table\{\s*--source-table-gap:/);
   assert.match(print1,/#ledger-check \.ledger-overview-grid\{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(print1,/#capital-source-check \.source-grid\{grid-template-columns:1fr\}/);
+  assert.match(print1,/#capital-source-check \.source-grid\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
 });
 
 test('Chart legend는 전체선택/다중선택을 지원하되 마지막 1개는 해제하지 않는다',()=>{
