@@ -210,8 +210,8 @@
     const sections={
       purchaseInputSection:['addPriceField','addSharesField','actualLoanField'],
       postPurchaseSection:['out1Field','out3Field','out5Field'],
-      closeEvaluationSection:['currentPriceField','currentBuyGainField','out2Field'],
-      recoveryResultSection:['out4Field','out6Field','breakEvenInputField']
+      holdingResultSection:['currentPriceField','out4Field'],
+      holdingExtraFields:['currentBuyGainField','out2Field','out6Field','breakEvenInputField']
     };
     Object.entries(sections).forEach(([sectionId,ids])=>{
       const section=$(sectionId);
@@ -243,6 +243,9 @@
 
     $('currentPriceField').classList.remove('hidden');
     $('out3Field').classList.toggle('hidden',noPrior);
+    $('holdingExtraHelpWrap').classList.add('hidden');
+    $('holdingExtraHelpWrap').classList.remove('is-open');
+    $('holdingExtraHelpWrap').querySelector('.help-icon')?.setAttribute('aria-expanded','false');
     ['out4Field','out5Field','out6Field','breakEvenInputField'].forEach(id=>$(id).classList.add('hidden'));
     $('strategyTabs').classList.add('settled-tabs');
     $('tabS2').classList.add('hidden');
@@ -256,6 +259,7 @@
     $('priorGroup').classList.remove('hidden');
     $('inputGrid').classList.remove('no-prior-layout');
     $('currentGroup').classList.remove('no-prior-current');
+    $('holdingExtraHelpWrap').classList.remove('hidden');
     $('out3Field').classList.remove('hidden');
     $('holdingPriorFields').classList.remove('hidden');
     $('settledPriorSummary').style.display='none';
@@ -558,6 +562,10 @@
       $('out4').value=signedIntText(c.currentPositionPL);setClass($('out4'),signClass(c.currentPositionPL));
       $('out5').value=nf0.format(Math.round(c.finalCost));setClass($('out5'),'');
       $('out6').value=pct(c.currentPositionPLRate,2);setClass($('out6'),signClass(c.currentPositionPLRate));
+      setText('holdingExtraCurrentBuyGain',pct(displayedRate,2),signClass(displayedRate));
+      setText('holdingExtraCurrentValue',won(c.currentValue));
+      setText('holdingExtraPLRate',pct(c.currentPositionPLRate,2),signClass(c.currentPositionPLRate));
+      setText('holdingExtraBreakEven',won(c.positionBE));
       setText('kpi1Name','기존 보유분 원래 평단');setText('kpi1Value',won(c.priorAvg));setText('kpi1Sub','기존 보유분 투자금액 ÷ 수량');
       setText('kpi2Name','기존 보유분 손익');setText('kpi2Value',won(c.priorPL),signClass(c.priorPL));setText('kpi2Sub','추가매수 당일 종가 기준');
       setHelpText('kpi3Name','손익분기','기존 보유분과 추가매수분의 전체 투자금액 회수 가격. 회수 대상 금액 제외.');setText('kpi3Value',won(c.positionBE));setText('kpi3Sub','거래비용 제외 기준');

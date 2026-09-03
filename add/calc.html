@@ -85,13 +85,13 @@
       </div>
 
       <div class="input-group additional-group add-card-shell add-card-subtle" id="currentGroup">
-        <div class="group-title add-heading-subsection"><span id="currentGroupTitle">추가매수 내역</span><small id="currentGroupSub"><span class="desktop-only">실제 체결 기준 · 3개 전략 공통</span><span class="mobile-only">실제 체결 기준</span></small></div>
+        <div class="group-title add-heading-subsection"><span class="group-title-main"><span id="currentGroupTitle">추가매수 내역</span><span class="help-tooltip hidden" id="holdingExtraHelpWrap"><button type="button" class="help-icon add-button" aria-label="추가 계산정보 보기" aria-describedby="holdingExtraTooltip" aria-expanded="false"><span aria-hidden="true">i</span></button><span class="custom-tooltip calc-extra-tooltip" id="holdingExtraTooltip" role="tooltip"><span class="calc-extra-title">추가 계산정보</span><span class="calc-extra-list"><span class="calc-extra-row"><span>추가매수가 대비 종가 변동률</span><strong id="holdingExtraCurrentBuyGain">--</strong></span><span class="calc-extra-row"><span>최종 평가금액</span><strong id="holdingExtraCurrentValue">--</strong></span><span class="calc-extra-row"><span>추가매수 반영 총손익률</span><strong id="holdingExtraPLRate">--</strong></span><span class="calc-extra-row"><span>통합 회복 기준가격</span><strong id="holdingExtraBreakEven">--</strong></span></span></span></span></span><small id="currentGroupSub"><span class="desktop-only">실제 체결 기준 · 3개 전략 공통</span><span class="mobile-only">실제 체결 기준</span></small></div>
         <div class="fields" id="currentFields">
           <span id="currentPriceSlot"></span>
-          <div class="current-subsection" id="purchaseInputSection"></div>
-          <div class="current-subsection" id="postPurchaseSection"></div>
-          <div class="current-subsection" id="closeEvaluationSection"></div>
-          <div class="current-subsection" id="recoveryResultSection"></div>
+          <div class="current-subsection holding-top-section holding-purchase-section" id="purchaseInputSection"></div>
+          <div class="current-subsection holding-top-section holding-post-section" id="postPurchaseSection"></div>
+          <div class="current-subsection holding-result-section" id="holdingResultSection"></div>
+          <div class="holding-extra-fields" id="holdingExtraFields" aria-hidden="true"></div>
           <div class="settled-subsection settled-cost-section" id="settledCostSection"></div>
           <div class="settled-subsection settled-evaluation-section" id="settledEvaluationSection"></div>
           <div class="settled-subsection settled-result-section" id="settledResultSection"></div>

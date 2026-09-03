@@ -463,6 +463,8 @@ html:where([data-add-page="calc"]).dark .calc-utility-button:hover:not(:disabled
 :where(html[data-add-page="calc"]) .input-group{padding:var(--calc-surface-space);box-shadow:none}
 :where(html[data-add-page="calc"]) .group-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--density-gap-md);padding-bottom:var(--density-gap-md);border-bottom:1px solid var(--line);letter-spacing:-.025em}
 :where(html[data-add-page="calc"]) .group-title small{font-size:var(--calc-type-support);font-weight:500;color:var(--muted)}
+:where(html[data-add-page="calc"]) .group-title-main{display:inline-flex;align-items:center;gap:var(--density-gap-xs);min-width:0}
+
 :where(html[data-add-page="calc"]) .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--calc-field-row-gap)}
 :where(html[data-add-page="calc"]) .field{display:flex;flex-direction:column;gap:var(--calc-field-label-gap)}
 :where(html[data-add-page="calc"]) .field.full{grid-column:1/-1}
@@ -485,6 +487,13 @@ html:where([data-add-page="calc"]).dark .help-icon:hover, html:where([data-add-p
 :where(html[data-add-page="calc"]) .custom-tooltip::after{content:"";position:absolute;left:var(--tooltip-arrow-x,50%);top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--tooltip-bg)}
 :where(html[data-add-page="calc"]) .custom-tooltip.tooltip-below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--tooltip-bg)}
 :where(html[data-add-page="calc"]) .help-tooltip:hover .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip:focus-within .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip.is-open .custom-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
+:where(html[data-add-page="calc"]) .calc-extra-tooltip{width:min(320px,calc(100vw - 24px))}
+:where(html[data-add-page="calc"]) .calc-extra-title{display:block;margin-bottom:var(--density-gap-sm);font-weight:900;color:var(--on-accent)}
+:where(html[data-add-page="calc"]) .calc-extra-list{display:grid;gap:var(--density-gap-xs)}
+:where(html[data-add-page="calc"]) .calc-extra-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--density-gap-md)}
+:where(html[data-add-page="calc"]) .calc-extra-row > span{min-width:0;color:var(--tooltip-text)}
+:where(html[data-add-page="calc"]) .calc-extra-row strong{font-weight:900;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+
 :where(html[data-add-page="calc"]) .calc-control-shell{display:block;width:100%;min-width:0}
 /* Wrapper 도입 전 input이 .field의 flex stretch로 채우던 가로폭을 shell 내부에서도 그대로 유지한다.
    Phone에서는 뒤의 optical-scale 규칙이 width:133.333333%로 의도적으로 덮어쓴다. */
@@ -568,23 +577,23 @@ html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#s
 :where(html[data-add-page="calc"]) .existing-evaluation-section{padding-left:var(--calc-surface-space)}
 :where(html[data-add-page="calc"]) .existing-group:not(.holding-layout) .existing-subsection{display:none}
 
-/* 추가매수 내역: 매수·보유원가·종가평가·회복결과 */
-:where(html[data-add-page="calc"]) .current-subsection:nth-of-type(odd){border-right:1px dashed var(--control-border);padding-right:var(--calc-surface-space)}
-:where(html[data-add-page="calc"]) .current-subsection:nth-of-type(even){padding-left:var(--calc-surface-space)}
-:where(html[data-add-page="calc"]) .current-subsection:nth-of-type(-n+2){padding-bottom:var(--calc-surface-space)}
-:where(html[data-add-page="calc"]) .current-subsection:nth-of-type(n+3){border-top:1px dashed var(--control-border);padding-top:var(--calc-surface-space)}
+/* 추가매수 내역: 이전 거래 후 재매수의 현재 보유분과 같은 3+3 → divider → 2 result track을 사용한다.
+   계산은 유지하되 중복성이 높은 4개 산출값은 제목 옆 추가정보 tooltip으로 이동해 카드 높이와 divider 위치를 공통화한다. */
+:where(html[data-add-page="calc"]) .additional-group.holding-layout .holding-purchase-section{border-right:1px dashed var(--control-border);padding-right:var(--calc-surface-space);padding-bottom:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) .additional-group.holding-layout .holding-post-section{padding-left:var(--calc-surface-space);padding-bottom:var(--calc-surface-space)}
+:where(html[data-add-page="calc"]) :is(.additional-group.holding-layout .holding-result-section,.additional-group.settled-layout .settled-result-section){
+  grid-column:1 / -1;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  border-top:1px dashed var(--control-border);
+  padding-top:var(--calc-surface-space);
+}
+:where(html[data-add-page="calc"]) .holding-extra-fields{display:none}
 :where(html[data-add-page="calc"]) .additional-group.settled-layout .current-subsection{display:none}
 
 /* 이전 거래 후 재매수: 보유원가·종가평가·손익결과 */
 :where(html[data-add-page="calc"]) .settled-subsection{display:none}
 :where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-cost-section{border-right:1px dashed var(--control-border);padding-right:var(--calc-surface-space);padding-bottom:var(--calc-surface-space)}
 :where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-evaluation-section{padding-left:var(--calc-surface-space);padding-bottom:var(--calc-surface-space)}
-:where(html[data-add-page="calc"]) .additional-group.settled-layout .settled-result-section{
-  grid-column:1 / -1;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  border-top:1px dashed var(--control-border);
-  padding-top:var(--calc-surface-space);
-}
 :where(html[data-add-page="calc"]) .additional-group.settled-layout.no-prior-current .settled-result-section{
   grid-template-columns:minmax(0,1fr);
 }
