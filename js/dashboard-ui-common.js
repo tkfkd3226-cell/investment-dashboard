@@ -134,6 +134,9 @@ function renderAssetTableRows(rows=[]){
 function renderAssetTableHead(columns=[]){
   return columns.map(column=>`<th scope="col"${column.className?` class="${column.className}"`:''}>${column.label??''}</th>`).join('');
 }
+function renderDashboardDataTable({id='',wrapClass='mobile-scroll table-view',tableClass='dashboard-data-table',caption='',headHtml='',bodyHtml=''}={}){
+  return `<div${id?` id="${id}"`:''} class="${wrapClass}"><table class="${tableClass}"><caption class="visually-hidden">${caption}</caption>${headHtml?`<thead><tr>${headHtml}</tr></thead>`:''}<tbody>${bodyHtml}</tbody></table></div>`;
+}
 function renderAssetDayChangeValue({amountText='-',rateText='-',amountClass='',rateClass=''}={}){
   return `<span class="asset-change-delta-value ${amountClass}">${amountText}</span><span class="asset-change-delta-rate ${rateClass}">${rateText}</span>`;
 }
@@ -159,7 +162,8 @@ function renderAssetStatusBlock({
   const toggle=mobileViewToggle(viewStateKey);
   const tableRows=renderAssetTableRows([...rows,...summaryRows]);
   const cardHtml=renderAssetMobileCards(cards);
-  return `<div class="${sectionClass}" id="${sectionId}"${viewAttrs?` ${viewAttrs}`:''}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${title}</h2>${toggle}</div><div id="${idPrefix}-table-view" class="mobile-scroll table-view"><table class="${tableClass}"><caption class="visually-hidden">${caption}</caption><thead><tr>${renderAssetTableHead(columns)}</tr></thead><tbody>${tableRows}</tbody></table></div><div id="${idPrefix}-card-view" class="mobile-card-view">${cardHtml}</div>${afterHtml}</div>`;
+  const tableHtml=renderDashboardDataTable({id:`${idPrefix}-table-view`,tableClass,caption,headHtml:renderAssetTableHead(columns),bodyHtml:tableRows});
+  return `<div class="${sectionClass}" id="${sectionId}"${viewAttrs?` ${viewAttrs}`:''}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${title}</h2>${toggle}</div>${tableHtml}<div id="${idPrefix}-card-view" class="mobile-card-view">${cardHtml}</div>${afterHtml}</div>`;
 }
 function renderAssetDayChangeBlock({
   sectionId,
@@ -185,7 +189,7 @@ function renderAssetDayChangeBlock({
   const showDetail=hasPrev||renderWithoutPrev;
   const toggle=showDetail?mobileViewToggle(viewStateKey):'';
   const content=showDetail
-    ? `<div class="change-kpis">${summaryItems.map(item=>`<div class="mini-card"><div class="m-label">${item.label??''}</div><div class="m-value ${item.valueClass||''}">${item.value??''}</div></div>`).join('')}</div><div id="${idPrefix}-table-view" class="${tableWrapClass}"><table class="${tableClass}"><caption class="visually-hidden">${caption}</caption><thead><tr>${renderAssetTableHead(columns)}</tr></thead><tbody>${renderAssetTableRows([...rows,...summaryRows])}</tbody></table></div><div id="${idPrefix}-card-view" class="${cardClass}">${renderAssetMobileCards(cards)}</div>`
+    ? `<div class="change-kpis">${summaryItems.map(item=>`<div class="mini-card"><div class="m-label">${item.label??''}</div><div class="m-value ${item.valueClass||''}">${item.value??''}</div></div>`).join('')}</div>${renderDashboardDataTable({id:`${idPrefix}-table-view`,wrapClass:tableWrapClass,tableClass,caption,headHtml:renderAssetTableHead(columns),bodyHtml:renderAssetTableRows([...rows,...summaryRows])})}<div id="${idPrefix}-card-view" class="${cardClass}">${renderAssetMobileCards(cards)}</div>`
     : noPrevHtml;
   return `<div class="${sectionClass}" id="${sectionId}"${viewAttrs?` ${viewAttrs}`:''}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${title}</h2>${toggle}</div>${content}</div>`;
 }
@@ -466,6 +470,7 @@ export {
   renderAssetContributionCard,
   renderAssetDayChangeValue,
   renderAssetDayChangeBlock,
+  renderDashboardDataTable,
   renderAssetStatusBlock,
   renderAssetWeight,
   setupAssetVizTooltips,

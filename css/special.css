@@ -74,10 +74,6 @@
     #accounts-table-view{
       overflow:visible;
     }
-    #accounts-summary .accounts-table{
-      width:100%;
-      min-width:100%;
-    }
     #accounts-summary .accounts-table :is(.accounts-memo-head,.accounts-memo){
       width:28px;
       min-width:28px;
@@ -447,6 +443,7 @@
 
   /* Data Tables Compact · 가로폰도 표 구조는 유지하되 세로폰과 동일한 표 밀도 사용 */
     .dashboard-data-table{
+      --source-table-gap:var(--space-2xl);
       --data-table-font-size:11px;
       --data-table-cell-y:5px;
       --data-table-cell-x:5px;

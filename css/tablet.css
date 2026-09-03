@@ -189,6 +189,7 @@
 
   /* [T08. Data Tables · 태블릿 표 typography / padding] */
 .dashboard-data-table{
+      --source-table-gap:var(--space-4xl);
       --data-table-font-size:11.5px;
       --data-table-cell-y:6px;
       --data-table-cell-x:6px;

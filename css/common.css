@@ -87,6 +87,7 @@
   --surface-pad-metric:var(--space-8xl);
   --surface-pad-emphasis:var(--space-8xl);
   --surface-pad-data-list:13px;
+  --source-table-gap:var(--space-5xl);
   --surface-radius-outer:24px;
   --surface-radius-large:var(--surface-radius-lg);
   --surface-radius-medium:var(--surface-radius-md);
@@ -174,7 +175,7 @@
   --modal-control-focus-border:var(--control-focus-border);
   --modal-control-focus-ring:var(--focus-ring-shadow);
   --modal-control-transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
-  --interaction-row-bg:#f4f4f4;
+  --interaction-row-bg:var(--subtle-card);
   --nav-current-shadow:inset 3px 0 0 var(--nav-current-indicator);
   /* Interactive controls use a distinct border family; structural surfaces keep --line. */
   --control-border:#c7ced9;
@@ -1210,46 +1211,6 @@ section{
   font-weight:var(--mini-detail-weight);
   line-height:var(--type-line-compact);
   letter-spacing:-.02em;
-}
-
-/* [04. Base Tables · 기본 테이블] */
-table{
-  width:100%;
-  border-collapse:separate;
-  border-spacing:0;
-  font-size:var(--type-size-md);
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
-  overflow:hidden;
-}
-
-th, td{
-  padding:var(--space-3xl) var(--space-4xl);
-  border-right:1px solid var(--table-column-line);
-  border-bottom:1px solid var(--line);
-  vertical-align:middle;
-}
-
-th:last-child, td:last-child{
-  border-right:0;
-}
-
-tbody tr:last-child > :is(th,td){
-  border-bottom:0;
-}
-
-thead th{
-  background:var(--table-head-bg);
-  color:var(--ink);
-  font-weight:var(--type-weight-strong);
-  text-align:center;
-  white-space:nowrap;
-}
-
-td.num{
-  font-variant-numeric:tabular-nums;
-  white-space:nowrap;
 }
 
 .small{
@@ -4109,18 +4070,27 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   min-width:100%;
   max-width:none;
   margin:0;
+  border-collapse:separate;
+  border-spacing:0;
   table-layout:auto;
   overflow:visible;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));
   font-size:var(--data-table-font-size);
 }
 .dashboard-data-table th,
 .dashboard-data-table td{
   padding:var(--data-table-cell-y) var(--data-table-cell-x);
+  border-right:1px solid var(--table-column-line);
+  border-bottom:1px solid var(--line);
   font-size:inherit;
   line-height:var(--data-table-line-height);
   vertical-align:middle;
   white-space:nowrap;
 }
+.dashboard-data-table :is(th,td):last-child{border-right:0}
+.dashboard-data-table tbody tr:last-child > :is(th,td){border-bottom:0}
 .dashboard-data-table thead th{
   background:var(--data-table-head-bg);
   color:var(--data-table-head-color);
@@ -4128,7 +4098,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   text-align:center;
 }
 .dashboard-data-table tbody td{font-weight:var(--data-table-value-weight)}
-.dashboard-data-table .num{text-align:right}
+.dashboard-data-table .num{text-align:right;font-variant-numeric:tabular-nums}
 .dashboard-data-table tbody th[scope="row"]{font-weight:var(--data-table-label-weight);text-align:left}
 .dashboard-data-table tbody .summary-row > :is(th,td){
   background:var(--data-table-summary-bg);
@@ -4186,7 +4156,8 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .asset-status-table .bar-box[role="progressbar"]{
   outline:none;
 }
-:is(.source-table-scroll,.change-table-wrap){margin-top:var(--space-5xl);border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
+.source-table-scroll{margin-top:var(--source-table-gap);border-radius:0}
+.change-table-wrap{margin-top:var(--space-5xl);border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap))}
 /* Source table variant · 일반 row label만 regular, summary weight는 base contract 유지 */
 .source-data-table{
   --data-table-label-weight:var(--data-table-value-weight);

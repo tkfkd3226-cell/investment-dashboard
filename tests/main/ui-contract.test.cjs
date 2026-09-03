@@ -13,6 +13,7 @@ const tablet=read('css/tablet.css');
 const mobile=read('css/mobile.css');
 const special=read('css/special.css');
 const interaction=read('css/interaction.css');
+const print=read('css/print.css');
 const charts=read('js/dashboard-charts.js');
 const core=read('js/dashboard-core.js');
 const modal=read('js/dashboard-modal.js');
@@ -111,7 +112,8 @@ test('Card surface와 viewport section rhythm은 semantic token 단일 contract�
   assert.match(common1,/:is\(\.chart-grid,\.asset-detail-grid,\.metric-grid,\.source-grid,\.ledger-overview-grid\)\{gap:var\(--card-grid-gap-large\)\}/);
   assert.doesNotMatch(common1,/:is\([^}]*#ledger-check[^}]*\)\{gap:/);
   assert.match(common1,/:is\(\.asset-detail-grid,\.securities-subsection,\.pension-chart-block\)\{margin-top:var\(--asset-band-section-gap\)\}/);
-  assert.match(common1,/:is\(\.source-table-scroll,\.change-table-wrap\)\{margin-top:var\(--space-5xl\);border-radius:min\(var\(--surface-radius-xs\),var\(--corner-surface-cap\)\)\}/);
+assert.match(common1,/\.source-table-scroll\{margin-top:var\(--source-table-gap\);border-radius:0\}/);
+  assert.match(common1,/\.change-table-wrap\{margin-top:var\(--space-5xl\);border-radius:min\(var\(--surface-radius-xs\),var\(--corner-surface-cap\)\)\}/);
   assert.match(common1,/\.data-list-card\{[^}]*border-radius:min\(var\(--surface-radius-mini\),var\(--corner-surface-cap\)\)/);
   assert.doesNotMatch(common,/--surface-radius-data-list:/);
   assert.equal((common.match(/--surface-border-muted:/g)||[]).length,1);
@@ -139,6 +141,25 @@ test('Table summary/sticky/scroll contract는 semantic token과 sticky first-col
   assert.match(common1,/\.dashboard-data-table tbody \.summary-row > :is\(th,td\)\{ background:var\(--data-table-summary-bg\); font-weight:var\(--data-table-summary-weight\)/);
   assert.match(special1,/position:-webkit-sticky; position:sticky/);
   assert.match(special1,/tbody tr\.summary-row > :first-child\{z-index:4;background:var\(--data-table-summary-bg\)\}/);
+});
+
+test('6차 table component는 전역 base 없이 semantic table shell과 viewport source gap을 공유한다',()=>{
+  const tablet1=compact(tablet);
+  assert.match(common1,/\.dashboard-data-table\{[^}]*border-collapse:separate;[^}]*background:var\(--card\);[^}]*border-radius:min\(var\(--surface-radius-md\),var\(--corner-surface-cap\)\)/);
+  assert.match(common1,/\.dashboard-data-table th, \.dashboard-data-table td\{[^}]*border-right:1px solid var\(--table-column-line\);[^}]*border-bottom:1px solid var\(--line\)/);
+  assert.match(common1,/\.dashboard-data-table \.num\{text-align:right;font-variant-numeric:tabular-nums\}/);
+  assert.doesNotMatch(common,/^table\{/m);
+  assert.doesNotMatch(common,/^td\.num\{/m);
+  assert.doesNotMatch(print,/^\s*table\{/m);
+  assert.match(print,/\.dashboard-data-table\{\s*box-shadow:none;/);
+  assert.match(common1,/--source-table-gap:var\(--space-5xl\)/);
+  assert.match(tablet1,/--source-table-gap:var\(--space-4xl\)/);
+  assert.match(special1,/--source-table-gap:var\(--space-2xl\)/);
+  assert.match(uiCommon,/function renderDashboardDataTable\(/);
+  assert.match(ui,/renderDashboardDataTable\(\{id:'combined-table-view'/);
+  assert.match(ui,/renderDashboardDataTable\(\{id:'accounts-table-view'/);
+  assert.match(ui,/renderDashboardDataTable\(\{wrapClass:'mobile-scroll source-table-scroll'/);
+  assert.match(common1,/--interaction-row-bg:var\(--subtle-card\)/);
 });
 
 test('모바일 성과요약 KPI 4개는 Phone UI에서만 2x2 grid contract를 유지한다',()=>{
