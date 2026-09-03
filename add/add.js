@@ -151,6 +151,10 @@
   // 05. 거래유형 UI 구성 / DOM 재배치
   // 거래유형 변경 시 필드 위치·표시 여부·접근성 상태를 함께 동기화
   function setPresetActive(id){document.querySelectorAll('.preset-btn').forEach(b=>{const active=b.dataset.preset===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});}
+  function getPresetIdForCurrentCase(){
+    if(caseType==='holding')return 'buy-2026-07-29';
+    return noPriorMode?'current-only':'buy-2026-07-30';
+  }
   function getActualSellPrice(){
     if(noPriorMode)return null;
     return caseType==='settled'?91065:74580;
@@ -683,7 +687,7 @@
       showActualSellPriceAppliedFeedback();
     });
     $('priorSellDateInput').addEventListener('input',recalc);
-    $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV17');storage.remove('investmentLossRecoveryCalcV16');storage.remove('investmentLossRecoveryCalcV15');storage.remove('investmentLossRecoveryCalcV12');applyPreset(defaultPresetId);});
+    $('resetBtn').addEventListener('click',()=>{const presetId=getPresetIdForCurrentCase();storage.remove('investmentLossRecoveryCalcV17');storage.remove('investmentLossRecoveryCalcV16');storage.remove('investmentLossRecoveryCalcV15');storage.remove('investmentLossRecoveryCalcV12');applyPreset(presetId);});
     document.querySelectorAll('#strategyTabs .tab').forEach(b=>b.addEventListener('click',()=>{if(!b.classList.contains('hidden'))setStrategyActive(b.dataset.tab);}));
     $('strategyTabs').addEventListener('keydown',e=>{
       if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;

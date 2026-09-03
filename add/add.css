@@ -851,7 +851,9 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
   :where(html[data-add-page="calc"]) .calc-control-shell > .control:is([readonly],.invalid){background:transparent;box-shadow:none}
   :where(html[data-add-page="calc"]) .with-unit .calc-control-shell > .control{padding-right:45.333333px}
   :where(html[data-add-page="calc"]) .date-control-shell{height:var(--calc-control-box-height)}
-  :where(html[data-add-page="calc"]) .date-control-shell .date-control{width:var(--calc-control-inner-size);max-width:none;height:var(--calc-control-inner-size);padding:var(--calc-control-inner-pad-y) var(--calc-control-inner-pad-x);font-size:var(--calc-control-input-size);line-height:1;transform:scale(var(--calc-control-scale));transform-origin:top left}
+  :where(html[data-add-page="calc"]) .date-control-shell .date-control{width:var(--calc-control-inner-size);max-width:none;height:var(--calc-control-inner-size);padding:var(--calc-control-inner-pad-y) var(--calc-control-inner-pad-x);font-size:var(--calc-control-input-size);line-height:1;text-align:center;transform:scale(var(--calc-control-scale));transform-origin:top left}
+  :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-date-and-time-value{width:100%;text-align:center}
+  :where(html[data-add-page="calc"]) .date-control-shell .date-control::-webkit-datetime-edit{width:100%;text-align:center}
   :where(html[data-add-page="calc"]) .input-group :is(.share-step-btn,.pct-step-btn){font-size:16px}
   :where(html[data-add-page="calc"]) .calculation-group .fields{grid-template-columns:minmax(0,1fr)}
   :where(html[data-add-page="calc"]) .calculation-group .field.full{grid-column:auto}
@@ -874,7 +876,9 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
     "calculation-group";
     gap:var(--calc-card-gap)
   }
-  :where(html[data-add-page="calc"]) .prior-entry-grid .control{min-width:0;max-width:100%}
+  /* Phone optical scale에서는 control 자체가 133.333% 폭을 가진 뒤 .75 scale되어 shell과 정확히 맞는다.
+     max-width:100%로 다시 제한하면 날짜/숫자 표시 영역만 75%로 줄어 정렬이 틀어지므로 min-width 제한만 유지한다. */
+  :where(html[data-add-page="calc"]) .prior-entry-grid .control{min-width:0}
   :where(html[data-add-page="calc"]) .existing-group.holding-layout #holdingPriorFields{gap:0}
   :where(html[data-add-page="calc"]) .additional-group.holding-layout #currentFields{gap:0}
   :where(html[data-add-page="calc"]) .additional-group.settled-layout #currentFields{gap:0}
