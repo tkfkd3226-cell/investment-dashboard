@@ -67,9 +67,6 @@
 
         <div class="settled-summary" id="settledPriorSummary">
           <div class="prior-entry-grid">
-            <div class="prior-date-section">
-              <div class="field"><label for="priorSellDateInput">매도일</label><div class="date-control-shell"><input id="priorSellDateInput" class="control date-control" type="date" value="2026-07-30"></div></div>
-            </div>
             <div class="prior-trade-section prior-buy-section">
               <div class="field auto-field"><label for="priorAvgDisplay">매수단가</label><span class="calc-control-shell"><input id="priorAvgDisplay" class="control" readonly></span></div>
               <div class="field"><label for="priorSoldSharesInput">매도수량</label><div class="share-stepper"><button class="share-step-btn add-button add-button-step" type="button" data-target="priorSoldSharesInput" data-delta="-1" aria-label="매도수량 1주 감소">−</button><span class="calc-control-shell"><input id="priorSoldSharesInput" class="control" type="number" min="0" step="1" inputmode="numeric" value="642"></span><button class="share-step-btn add-button add-button-step" type="button" data-target="priorSoldSharesInput" data-delta="1" aria-label="매도수량 1주 증가">+</button></div></div>
@@ -79,6 +76,9 @@
               <div class="field auto-field"><label for="priorSellPriceDisplay">매도단가</label><span class="calc-control-shell"><input id="priorSellPriceDisplay" class="control" readonly></span></div>
               <div class="field"><label for="priorSettlementValueInput">매도금액</label><span class="calc-control-shell"><input id="priorSettlementValueInput" class="control money-input" inputmode="numeric" value="47,880,490"></span></div>
               <div class="field auto-field"><label for="priorPLDisplay">이전 거래 확정손익</label><span class="calc-control-shell"><input id="priorPLDisplay" class="control" readonly></span></div>
+            </div>
+            <div class="prior-date-section">
+              <div class="field"><label for="priorSellDateInput">매도일</label><div class="date-control-shell"><input id="priorSellDateInput" class="control date-control" type="date" value="2026-07-30"></div></div>
             </div>
           </div>
         </div>
