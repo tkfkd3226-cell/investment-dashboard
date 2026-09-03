@@ -26,7 +26,7 @@ const uiState={
   personalViewUnlocked:false,
   includeSeparateProfit:false
 };
-const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원',pct=n=>(Number(n)||0).toFixed(2)+'%',signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s,cls=n=>n<0?'negative':(n>0?'positive':''),tableCls=n=>n<0?'table-negative':(n>0?'table-positive':''),byDate=(a,b)=>a.localeCompare(b),shortDate=d=>{const [y,m,day]=d.split('-');return `${Number(m)}/${Number(day)}`},dayChangeRate=(dayChange,prevEval,inflowAmount=0)=>{
+const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원',pct=n=>(Number(n)||0).toFixed(2)+'%',signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s,cls=n=>n<0?'negative':(n>0?'positive':''),byDate=(a,b)=>a.localeCompare(b),shortDate=d=>{const [y,m,day]=d.split('-');return `${Number(m)}/${Number(day)}`},dayChangeRate=(dayChange,prevEval,inflowAmount=0)=>{
   const base=Number(prevEval||0)+Math.max(0,Number(inflowAmount)||0);
   return dayChange==null||!base?null:Number(dayChange)/base*100;
 },koreanDateLabel=d=>{
@@ -867,7 +867,6 @@ export {
   sortSecurityItems,
   sourceExternalPrincipalForDate,
   symbolHistory,
-  tableCls,
   uiState,
   won
 };

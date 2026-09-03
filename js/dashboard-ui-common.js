@@ -196,7 +196,7 @@ function renderAssetWeight({label='',weight=0,color='',fillClass=''}={}){
   const safeWeight=Math.max(0,Math.min(100,Number(weight)||0));
   const weightText=safeWeight.toFixed(1);
   const fillClasses=['bar-fill',fillClass].filter(Boolean).join(' ');
-  const fillStyle=`width:${weightText}%${color?`;background:${color}`:''}`;
+  const fillStyle=`--asset-bar-width:${weightText}%;${color?`--asset-bar-color:${color};`:''}`;
   return `<div class="bar-box" role="progressbar" aria-label="${escapeHtml(label)} 비중" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${weightText}" aria-valuetext="${weightText}%"><div class="${fillClasses}" aria-hidden="true" style="${fillStyle}"></div></div><div class="data-table-sub">${weightText}%</div>`;
 }
 function renderAssetInsightCard({idPrefix='assetInsight',title='',headExtra='',content=''}={}){

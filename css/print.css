@@ -24,6 +24,113 @@
 
 /* [P01. Document / Body · 인쇄 기본 문서 상태] */
 @media print{
+    /* Print is a paper presentation, not a screenshot of the active viewport/theme. */
+    html,
+    html.dark{
+      color-scheme:light;
+      --bg:#ffffff;
+      --card:#ffffff;
+      --ink:#172033;
+      --text:var(--ink);
+      --muted:#6b7280;
+      --line:#d7dce5;
+      --table-head-bg:#f1f5f9;
+      --table-column-line:#e8ebf0;
+      --summary-row-bg:#f8fafc;
+      --subtle-card:#f8fafc;
+      --mini-card-bg:var(--subtle-card);
+      --chart-surface:#ffffff;
+      --chart-grid:#e5e7eb;
+      --chart-axis:#cbd5e1;
+      --chart-text:#6b7280;
+      --chart-hover:#334155;
+      --chart-stack-stroke:#ffffff;
+      --chart-expanded-surface:#ffffff;
+      --chart-info-bg:var(--card);
+      --chart-info-color:var(--muted);
+      --value-positive:#e6233a;
+      --value-negative:#2972e8;
+      --highlight-card-difference:#fbbf24;
+      --control-border:#c7ced9;
+      --control-border-hover:#98a4b5;
+      --control-focus-border:#3b82f6;
+      --text-secondary:#64748b;
+      --interaction-border-accent:rgba(59,130,246,.28);
+      --interaction-row-bg:var(--subtle-card);
+      --status-success-soft-bg:#ecfdf5;
+      --status-success-soft-text:#15803d;
+      --status-success-soft-border:#bbf7d0;
+      --status-info-bg:#eff6ff;
+      --status-info-text:#1d4ed8;
+      --status-info-strong:#0369a1;
+      --status-info-soft-bg:rgba(59,130,246,.06);
+      --status-info-soft-border:rgba(59,130,246,.18);
+      --status-warning-bg:#fffbeb;
+      --status-warning-text:#b45309;
+      --status-warning-border:#f59e0b;
+      --status-warning-divider:rgba(245,158,11,.35);
+      --status-caution-bg:#fff7ed;
+      --status-caution-text:#9a3412;
+      --status-caution-border:#fed7aa;
+      --status-caution-soft-bg:#fff7ed;
+      --status-caution-soft-text:#c2410c;
+      --status-caution-soft-border:#fed7aa;
+      --status-danger-border:#fecaca;
+      --status-danger-soft-bg:#fef2f2;
+      --status-danger-soft-text:#b91c1c;
+      --status-danger-strong:#dc2626;
+      --status-danger-emphasis:#dc2626;
+      --status-danger-divider:rgba(239,68,68,.35);
+      --segmented-bg:#f8fafc;
+      --segmented-text:#64748b;
+      --segmented-active-bg:#0f172a;
+      --segmented-active-text:#ffffff;
+      --state-chip-bg:#e2e8f0;
+      --state-chip-text:#64748b;
+      --state-chip-active-bg:#dbeafe;
+      --state-chip-active-text:#1d4ed8;
+      --bar-track-bg:#eef2f7;
+      --bar-track-border:#dbe2ec;
+      --meter-track-bg:#e5edf8;
+      --meter-track-border:#dbe2ec;
+      --meter-neutral:#94a3b8;
+      --field-bg:#ffffff;
+      --field-text:var(--text);
+      --form-section-bg:#f8fafc;
+      --code-bg:#e2e8f0;
+      --code-text:var(--ink);
+      --risk-threshold:#0f172a;
+      --highlight-card-bg:#111827;
+      --highlight-card-border:#111827;
+      --highlight-card-text:#ffffff;
+      --highlight-card-muted:#cbd5e1;
+      --highlight-card-shadow:var(--shadow-low);
+      --source-highlight-bg:var(--insight-bg);
+      --source-highlight-border:rgba(37,99,235,.22);
+      --source-linked-bg:#fffaf5;
+      --special-profit-bg:#fff7f8;
+      --special-profit-border:#f3a0a7;
+      --special-profit-text:#b4232f;
+      --special-profit-badge:#ef3341;
+      --insight-bg:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+      --hero-bg:linear-gradient(135deg,#202c42 0%,#2b3d59 58%,#36506f 100%);
+      --hero-shadow:0 18px 42px rgba(15,23,42,.16);
+      --hero-image-opacity:.75;
+      --accent-strong-bg:#2b3d59;
+      --on-accent-text:#ffffff;
+      --page-section-gap:var(--space-9xl);
+      --page-section-title-gap:var(--space-5xl);
+      --surface-pad-outer:var(--space-8xl);
+      --surface-pad-large:var(--space-8xl);
+      --surface-pad-medium:var(--space-6xl);
+      --surface-pad-mini:var(--space-5xl);
+      --surface-pad-metric:var(--space-8xl);
+      --surface-pad-emphasis:var(--space-8xl);
+      --card-grid-gap-large:var(--space-7xl);
+      --card-grid-gap-medium:var(--space-5xl);
+      --card-grid-gap-compact:var(--space-4xl);
+      --section-title-font-size:var(--type-size-4xl);
+    }
     html,
     body{
       -webkit-print-color-adjust:exact;
@@ -93,6 +200,12 @@
     .asset-workspace-panel-pension{
       margin-top:var(--space-9xl);
     }
+    .hero .hero-return-pill{display:inline-flex}
+    .hero .hero-label-default{display:inline}
+    .hero .hero-label-mobile{display:none}
+    .metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .chart-note.six{grid-template-columns:repeat(6,minmax(0,1fr))}
+    .chart-note.symbol-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 
     /* [P05. Data Views · 카드보기/scroll/sticky 상태와 무관하게 canonical 표 출력] */
     [data-mobile-view] .table-view{

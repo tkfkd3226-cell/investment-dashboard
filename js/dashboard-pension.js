@@ -10,7 +10,6 @@ import {
   shortDate,
   signed,
   sortPensionItems,
-  tableCls,
   won
 } from './dashboard-core.js';
 import {
@@ -94,8 +93,8 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
       {className:'num',html:fmt(r.qty?r.cost/r.qty:0)},
       {className:'num',html:fmt(r.cost)},
       {className:'num',html:fmt(r.evalAmount)},
-      {className:`num ${tableCls(r.profit)}`,html:fmt(r.profit)},
-      {className:`num table-cell-center ${tableCls(r.returnRate)}`,html:pct(r.returnRate)},
+      {className:`num ${cls(r.profit)}`,html:fmt(r.profit)},
+      {className:`num table-cell-center ${cls(r.returnRate)}`,html:pct(r.returnRate)},
       {className:'num table-cell-center',html:renderAssetWeight({label:r.name,weight:x.pensionEval?r.evalAmount/x.pensionEval*100:0,color:pensionSeriesColor(r.name)})}
     ]
   }));
@@ -108,8 +107,8 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
         {className:'num',html:'-'},
         {className:'num',html:fmt(productCost)},
         {className:'num',html:fmt(productEval)},
-        {className:`num ${tableCls(productProfit)}`,html:fmt(productProfit)},
-        {className:`num table-cell-center ${tableCls(productReturn)}`,html:pct(productReturn)},
+        {className:`num ${cls(productProfit)}`,html:fmt(productProfit)},
+        {className:`num table-cell-center ${cls(productReturn)}`,html:pct(productReturn)},
         {className:'num table-cell-center',html:renderAssetWeight({label:'투자상품 합계',weight:productWeight,fillClass:'bar-gray'})}
       ]
     },
@@ -121,8 +120,8 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
         {className:'num',html:'-'},
         {className:'num',html:fmt(pensionCashCost)},
         {className:'num',html:fmt(x.pensionCash)},
-        {className:`num ${tableCls(cashProfit)}`,html:fmt(cashProfit)},
-        {className:`num table-cell-center ${tableCls(cashReturn)}`,html:pct(cashReturn)},
+        {className:`num ${cls(cashProfit)}`,html:fmt(cashProfit)},
+        {className:`num table-cell-center ${cls(cashReturn)}`,html:pct(cashReturn)},
         {className:'num table-cell-center',html:renderAssetWeight({label:'현금성자산',weight:cashWeight,fillClass:'bar-gray'})}
       ]
     },
@@ -134,8 +133,8 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
         {className:'num',html:'-'},
         {className:'num',html:fmt(pensionHeldCost)},
         {className:'num',html:fmt(x.pensionEval)},
-        {className:`num ${tableCls(pensionHeldProfit)}`,html:fmt(pensionHeldProfit)},
-        {className:`num table-cell-center ${tableCls(pensionHeldReturn)}`,html:pct(pensionHeldReturn)},
+        {className:`num ${cls(pensionHeldProfit)}`,html:fmt(pensionHeldProfit)},
+        {className:`num table-cell-center ${cls(pensionHeldReturn)}`,html:pct(pensionHeldReturn)},
         {className:'num table-cell-center',html:renderAssetWeight({label:'총합계',weight:100,fillClass:'bar-gray'})}
       ]
     }
@@ -201,8 +200,8 @@ function renderPensionChangeBlock(x,orderedPensionRows){
       {className:'num asset-change-delta-col',html:renderAssetDayChangeValue({
         amountText:r.dayChange==null?'-':signed(r.dayChange),
         rateText:r.dayRate==null?'-':`${r.dayRate>0?'+':''}${pct(r.dayRate)}`,
-        amountClass:tableCls(r.dayChange),
-        rateClass:tableCls(r.dayRate)
+        amountClass:cls(r.dayChange),
+        rateClass:cls(r.dayRate)
       })}
     ]
   }));
@@ -216,8 +215,8 @@ function renderPensionChangeBlock(x,orderedPensionRows){
       {className:'num asset-change-delta-col',html:renderAssetDayChangeValue({
         amountText:productDayChange==null?'-':signed(productDayChange),
         rateText:productDayRate==null?'-':`${productDayRate>0?'+':''}${pct(productDayRate)}`,
-        amountClass:tableCls(productDayChange),
-        rateClass:tableCls(productDayRate)
+        amountClass:cls(productDayChange),
+        rateClass:cls(productDayRate)
       })}
     ]
   }];

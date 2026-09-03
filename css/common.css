@@ -87,6 +87,7 @@
   --surface-pad-metric:var(--space-8xl);
   --surface-pad-emphasis:var(--space-8xl);
   --surface-pad-data-list:13px;
+  --mini-card-bg:var(--subtle-card);
   --source-table-gap:var(--space-5xl);
   --source-reclass-note-size:var(--type-size-sm);
   --asset-insight-zone-offset:var(--space-6xl);
@@ -252,7 +253,6 @@
   --modal-border:var(--line);
   --modal-panel-surface:#ffffff;
   --modal-item-surface:#f8fafc;
-  --modal-overlay:rgba(15,23,42,.62);
   --modal-overlay-soft:rgba(15,23,42,.45);
   --modal-description-color:#64748b;
   --modal-label-color:#334155;
@@ -289,10 +289,8 @@
   --source-highlight-bg:var(--insight-bg);
   --source-highlight-border:rgba(37,99,235,.22);
   --source-linked-bg:#fffaf5;
-  --special-profit-control-bg:#fff7f8;
-  --special-profit-control-border:#f3a0a7;
-  --special-profit-note-bg:#fff8f8;
-  --special-profit-note-border:#f1a7ae;
+  --special-profit-bg:#fff7f8;
+  --special-profit-border:#f3a0a7;
   --special-profit-text:#b4232f;
   --special-profit-badge:#EF3341;
   --batch-index-bg:#e2e8f0;
@@ -304,7 +302,6 @@
   --nav-surface-hover:#f6f8fa;
   --nav-current-bg:#eaf2ff;
   --nav-current-text:#0969da;
-  --nav-current-icon:#0969da;
   --nav-current-indicator:#3182F6;
   --nav-text:#24292f;
   --nav-text-strong:#111827;
@@ -477,6 +474,7 @@ html.dark{
   --line:#2b3548;
   --value-positive:#FF5964;
   --value-negative:#60A5FA;
+  --mini-card-bg:var(--card);
   --table-head-bg:#1a2233;
   --table-column-line:#232c3d;
   --summary-row-bg:#182132;
@@ -531,7 +529,7 @@ html.dark{
   --status-danger-border:rgba(254,202,202,.25);
   --status-danger-soft-bg:rgba(127,29,29,.18);
   --status-danger-soft-text:#fca5a5;
-  --status-danger-strong:#dc2626;
+  --status-danger-strong:#b4232f;
   --status-danger-emphasis:#f87171;
   --status-danger-divider:rgba(239,68,68,.35);
 
@@ -573,10 +571,8 @@ html.dark{
   --source-highlight-bg:linear-gradient(180deg,#111827 0%,#0f172a 100%);
   --source-highlight-border:rgba(96,165,250,.24);
   --source-linked-bg:rgba(194,65,12,.10);
-  --special-profit-control-bg:#30181d;
-  --special-profit-control-border:#7f3340;
-  --special-profit-note-bg:#30181d;
-  --special-profit-note-border:#7f3340;
+  --special-profit-bg:#30181d;
+  --special-profit-border:#7f3340;
   --special-profit-text:#fda4af;
   --special-profit-badge:var(--value-positive);
   --batch-index-bg:#334155;
@@ -587,7 +583,6 @@ html.dark{
   --nav-surface-hover:#161b22;
   --nav-current-bg:#17233a;
   --nav-current-text:#79c0ff;
-  --nav-current-icon:#79c0ff;
   --nav-current-indicator:#58a6ff;
   --nav-text:#c9d1d9;
   --nav-text-strong:#f0f6fc;
@@ -1198,7 +1193,7 @@ section{
   --mini-detail-weight:400;
   --allocation-ratio-meta-size:var(--type-size-xs);
   --allocation-cash-meta-size:var(--type-size-xs);
-  background:var(--subtle-card);
+  background:var(--mini-card-bg);
   border:1px solid var(--line);
   border-radius:min(var(--surface-radius-mini),var(--corner-surface-cap));
   padding:var(--surface-pad-mini);
@@ -1249,8 +1244,10 @@ section{
 }
 
 .bar-fill{
+  width:var(--asset-bar-width,0%);
   height:100%;
   border-radius:var(--radius-pill);
+  background:var(--asset-bar-color,var(--meter-neutral));
 }
 
 .bar-gray{
@@ -1450,6 +1447,7 @@ button.legend-item.chart-series-all.active{
   width:12px;
   height:12px;
   border-radius:3px;
+  background:var(--chart-legend-color,transparent);
   display:inline-block;
 }
 
@@ -2865,8 +2863,6 @@ body.dashboard-dialog-open{
 .asset-workspace-panel > section{margin-top:0}
 
 /* Dark-only Selector Overrides · semantic token만으로 해결되지 않는 selector 차이만 선언 */
-.dark :is(.note,.chart-card,.card:not(.dark),.mini-card,.mobile-data-card){background-color:var(--card);border-color:var(--line);color:var(--ink)}
-.dark .pension-risk-scale{color:var(--muted)}
 
 :is(.asset-detail-grid,.securities-subsection,.pension-chart-block){margin-top:var(--asset-band-section-gap)}
 .securities-subsection:first-child{
@@ -3472,9 +3468,8 @@ button:not(:disabled):active{
   - 이후 디자인 변경 시 충돌이 생기면 specificity/선언 순서를 먼저 정리한다.
 */
 .positive,
-.table-positive{color:var(--value-positive)}
 .negative,
-.table-negative{color:var(--value-negative)}
+.negative{color:var(--value-negative)}
 .ledger-gap-value{color:var(--highlight-card-difference)}
 .dash-tooltip .tt-pos{color:var(--tooltip-positive)}
 .dash-tooltip .tt-neg{color:var(--tooltip-negative)}
@@ -3745,8 +3740,8 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   letter-spacing:-.025em;
 }
 .separate-profit-toggle.active{
-  border-color:var(--special-profit-control-border);
-  background:var(--special-profit-control-bg);
+  border-color:var(--special-profit-border);
+  background:var(--special-profit-bg);
   color:var(--special-profit-text);
 }
 .separate-profit-toggle.active strong{
@@ -3768,9 +3763,9 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   gap:var(--space-2xs);
   margin-top:var(--space-3xl);
   padding:var(--space-2xl) var(--space-3xl);
-  border:1px dashed var(--special-profit-note-border);
+  border:1px dashed var(--special-profit-border);
   border-radius:min(10px,var(--corner-surface-cap));
-  background:var(--special-profit-note-bg);
+  background:var(--special-profit-bg);
   font-size:var(--source-reclass-note-size);
   line-height:var(--type-line-body);
 }
@@ -3886,7 +3881,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   box-shadow:var(--nav-current-shadow);
 }
 .desktop-edge-toc-item.is-current .desktop-edge-toc-icon,
-.date-action-menu.mobile-combined-menu .mobile-nav-item.is-current .nav-icon{color:var(--nav-current-icon)}
+.date-action-menu.mobile-combined-menu .mobile-nav-item.is-current .nav-icon{color:var(--nav-current-text)}
 :is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon){
   display:inline-flex;
   align-items:center;
@@ -4382,10 +4377,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
     }
 
   /* Page Shell Responsive · 1100px 이하 공통 shell / section title 간격은 token만 축소 */
-    :root{
-      --page-shell-gutter:var(--space-xl);
-      --page-section-title-gap:var(--space-xl);
-    }
+    :root{--page-section-title-gap:var(--space-xl)}
 
     .mobile-scroll.is-scrollable,
     .chart-wrap.is-scrollable{

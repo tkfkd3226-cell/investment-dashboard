@@ -263,7 +263,7 @@ test('9차 chart shell은 공통 renderer·display token·정적 SVG visual sour
   assert.match(tablet1,/--chart-svg-min-width:100%/);
   assert.doesNotMatch(charts,/has-horizontal-scroll/);
   assert.match(tablet,/\.chart-grid \.chart-wrap\{/);
-  assert.match(mobile1,/height:var\(--chart-accent-height\); opacity:var\(--chart-accent-opacity\)/);
+  assert.doesNotMatch(mobile,/\.chart-card::before/);
   assert.match(common1,/\.chart-title-sub\{ display:inline; align-self:flex-end;/);
 });
 
@@ -298,6 +298,31 @@ test('11차 장부·원천 검산은 source row helper, wrapper gap token, 인�
   assert.doesNotMatch(special,/\.dashboard-data-table\{\s*--source-table-gap:/);
   assert.match(print1,/#ledger-check \.ledger-overview-grid\{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(print1,/#capital-source-check \.source-grid\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
+});
+
+test('13차 반응형·테마·Print는 semantic source와 인쇄 canonical layout을 유지한다',()=>{
+  const tablet1=compact(tablet),mobile1=compact(mobile),print1=compact(print);
+  assert.doesNotMatch(common,/--modal-overlay:/);
+  assert.doesNotMatch(common,/table-positive|table-negative|nav-current-icon|special-profit-control|special-profit-note/);
+  assert.match(common1,/--mini-card-bg:var\(--subtle-card\)/);
+  assert.match(common1,/\.bar-fill\{ width:var\(--asset-bar-width,0%\);[^}]*background:var\(--asset-bar-color,var\(--meter-neutral\)\)/);
+  assert.match(common1,/\.swatch\{[^}]*background:var\(--chart-legend-color,transparent\)/);
+  assert.match(uiCommon,/--asset-bar-width:/);
+  assert.doesNotMatch(uiCommon,/style=\"\$\{fillStyle\}\"[^]*background:/);
+  assert.match(charts,/style=\"--chart-legend-color:\$\{item\.color\}\"/);
+  assert.doesNotMatch(charts,/style=\"background:/);
+  assert.doesNotMatch(core,/tableCls/);
+  assert.doesNotMatch(ui,/tableCls/);
+  assert.doesNotMatch(pension,/tableCls/);
+  assert.match(tablet1,/:is\(\.contrib-modal,\.action-modal\)\{--modal-card-radius:min\(20px,var\(--corner-surface-cap\)\)\}/);
+  assert.doesNotMatch(tablet,/--pension-modal-row-height:28px/);
+  assert.doesNotMatch(mobile,/--modal-overlay-pad|--modal-card-radius|\.chart-card::before/);
+  assert.doesNotMatch(special,/--modal-overlay-pad:20px|--pension-modal-row-height:28px/);
+  assert.match(special1,/\.action-modal\{--modal-control-font-size:var\(--type-size-2xl\)\}/);
+  assert.match(print1,/html, html\.dark\{ color-scheme:light;/);
+  assert.match(print1,/\.hero \.hero-return-pill\{display:inline-flex\}/);
+  assert.match(print1,/\.metric-grid\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)\}/);
+  assert.match(print1,/\.chart-note\.six\{grid-template-columns:repeat\(6,minmax\(0,1fr\)\)\}/);
 });
 
 test('Chart legend는 전체선택/다중선택을 지원하되 마지막 1개는 해제하지 않는다',()=>{

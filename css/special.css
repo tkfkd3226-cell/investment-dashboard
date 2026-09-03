@@ -163,8 +163,6 @@
       --chart-content-rhythm-gap:var(--space-lg);
       --source-table-gap:var(--space-2xl);
       --source-reclass-note-size:var(--type-size-xs);
-      --chart-svg-min-width:960px;
-      --chart-svg-height:330px;
       --chart-accent-height:2px;
       --chart-accent-opacity:.55;
       --surface-radius-outer:20px;
@@ -201,11 +199,11 @@
       --modal-overlay-pad:var(--space-5xl);
       --modal-card-radius:min(18px,var(--corner-surface-cap));
     }
+    .action-modal{--modal-control-font-size:var(--type-size-2xl)}
     .contrib-modal{
       --pension-modal-title-size:var(--type-size-lg);
       --pension-modal-label-size:var(--type-size-2xs);
       --pension-modal-control-size:var(--type-size-2xl);
-      --pension-modal-row-height:28px;
       --pension-modal-control-pad:6.75px;
       --pension-modal-control-scale:.625;
       --pension-modal-control-inner-size:160%;
@@ -402,10 +400,6 @@
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
     :is(.securities-summary-block,.pension-metric-grid) .metric-card{
-      --metric-label-size:11px;
-      --metric-value-size:18px;
-      --metric-sub-size:11px;
-      --metric-value-min-height:24px;
       min-width:0;
     }
     :is(.securities-summary-block,.pension-metric-grid) .metric-card :is(.label,.value,.sub){white-space:nowrap}
@@ -616,6 +610,7 @@
   .date-action-menu.mobile-combined-menu::-webkit-scrollbar-thumb{border-radius:var(--radius-pill);background:var(--nav-scrollbar)}
 
   /* Phone Navigation Press · 세로폰과 실제 터치폰 가로가 같은 눌림 피드백을 공유 */
+  button:not(:disabled):active{transform:scale(.985)}
   .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,.control-icon-button-compact):not(:disabled):active,
   .switcher .date-tool-btn:not(:disabled):active{transform:scale(.985)}
 
@@ -720,10 +715,8 @@
     .contrib-modal{align-items:center}
     .action-modal{
       align-items:center;
-      --modal-overlay-pad:20px;
       --modal-card-pad-y:var(--space-10xl);
       --modal-card-pad-x:var(--space-10xl);
-      --modal-control-font-size:var(--type-size-2xl);
     }
     .krx-action-buttons{gap:var(--space-2xl)}
     .krx-action-buttons .action-modal-btn{min-height:40px;height:40px;padding:0 var(--space-4xl);font-size:var(--type-size-sm)}
