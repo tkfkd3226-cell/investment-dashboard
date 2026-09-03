@@ -96,6 +96,7 @@ test('Section title/action과 segmented control은 공통 geometry·viewport tok
   assert.match(common1,/\.control-segmented\{/);
   assert.match(interaction,/:is\(\.asset-workspace-tab,\.contrib-target-option\):not\(\.active\):hover/);
   assert.doesNotMatch(mobile,/position:relative;top:1px/);
+  assert.doesNotMatch(ui,/source-title/);
 });
 
 test('Phone Landscape는 별도 일반 breakpoint가 아니라 touch landscape 기능 media로 유지한다',()=>{
