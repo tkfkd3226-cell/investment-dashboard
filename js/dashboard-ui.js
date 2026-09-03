@@ -46,6 +46,7 @@ import {
   renderAssetDayChangeValue,
   renderAssetDayChangeBlock,
   renderDashboardDataTable,
+  renderMobileCardView,
   renderAssetStatusBlock,
   renderAssetWeight,
   showAppToast,
@@ -934,7 +935,7 @@ function renderCombined(x){
   const tableHead=`<th scope="col" class="table-cell-text">구분</th><th scope="col">투자 결과물</th><th scope="col">투입원금</th><th scope="col" class="combined-profit-col">누적손익</th><th scope="col" class="table-cell-center combined-return-col">${returnLabel}</th>`;
   const tableBody=`<tr><th scope="row">퇴직연금</th><td class="num">${fmt(x.pensionEval)}</td><td class="num">${fmt(x.pensionPrincipal)}</td><td class="num combined-profit-col ${tableCls(x.pensionProfit)}">${fmt(x.pensionProfit)}<span class="combined-mobile-return ${tableCls(x.pensionReturn)}"> (${mobileReturnPct(x.pensionReturn)})</span></td><td class="num table-cell-center combined-return-col ${tableCls(x.pensionReturn)}">${pct(x.pensionReturn)}</td></tr><tr><th scope="row">증권계좌</th><td class="num">${fmt(v.totalResult)}</td><td class="num">${fmt(v.totalPrincipal)}</td><td class="num combined-profit-col ${tableCls(v.totalProfit)}">${fmt(v.totalProfit)}<span class="combined-mobile-return ${tableCls(v.totalReturn)}"> (${mobileReturnPct(v.totalReturn)})</span></td><td class="num table-cell-center combined-return-col ${tableCls(v.totalReturn)}">${pct(v.totalReturn)}</td></tr><tr class="summary-row"><th scope="row">합산</th><td class="num">${fmt(v.combinedResult)}</td><td class="num">${fmt(v.combinedPrincipal)}</td><td class="num combined-profit-col ${tableCls(v.combinedProfit)}">${fmt(v.combinedProfit)}<span class="combined-mobile-return ${tableCls(v.combinedReturn)}"> (${mobileReturnPct(v.combinedReturn)})</span></td><td class="num table-cell-center combined-return-col ${tableCls(v.combinedReturn)}">${pct(v.combinedReturn)}</td></tr>`;
   const tableHtml=renderDashboardDataTable({id:'combined-table-view',tableClass:'dashboard-data-table combined-performance-table',caption:'연금과 증권계좌 성과 비교',headHtml:tableHead,bodyHtml:tableBody});
-  return `<section id="summary-section" ${mobileViewAttrs('combined')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="home" aria-hidden="true"></span>연금+계좌 성과</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('combined')}</div></div>${tableHtml}<div id="combined-card-view" class="mobile-card-view">${cards}</div></section>`;
+  return `<section id="summary-section" ${mobileViewAttrs('combined')}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="home" aria-hidden="true"></span>연금+계좌 성과</h2><div class="section-title-actions">${separateProfitControl(x,'section-inline')}${mobileViewToggle('combined')}</div></div>${tableHtml}${renderMobileCardView({id:'combined-card-view',cards})}</section>`;
 }
 
 function accountMemoTableHtml(text,{joinFirstTwo=false,highlightSourceLink=true}={}){
@@ -1084,7 +1085,7 @@ function renderAccounts(x,{hidden=false}={}){
   const tableHead='<th scope="col" class="table-cell-text">구분</th><th scope="col">투자 결과물</th><th scope="col">투입원금</th><th scope="col" class="performance-profit-col">누적손익</th><th scope="col" class="table-cell-center performance-return-col">누적수익률</th><th scope="col" class="table-cell-text accounts-memo-head">메모</th>';
   const tableBody=`${rows.map(row=>`<tr><th scope="row">${row.name}</th><td class="num">${fmt(row.result)}${adjustmentHtml(row.resultAdjustment)}</td><td class="num">${fmt(row.principal)}${adjustmentHtml(row.principalAdjustment)}</td><td class="num performance-profit-col ${tableCls(row.profit)}">${fmt(row.profit)}${row.returnRate==null?'':`<span class="performance-inline-return ${tableCls(row.returnRate)}"> (${mobileReturnPct(row.returnRate)})</span>`}</td><td class="num table-cell-center performance-return-col ${row.returnRate==null?'':tableCls(row.returnRate)}">${row.returnRate==null?'-':pct(row.returnRate)}</td><td class="table-cell-text accounts-memo data-table-sub"><span class="accounts-memo-text">${accountMemoTableHtml(row.memo,{joinFirstTwo:!!row.memoJoinFirstTwo})}</span>${accountMemoInfoButton(row.memo,{joinFirstTwo:!!row.memoJoinFirstTwo})}</td></tr>`).join('')}${totalRow}`;
   const tableHtml=renderDashboardDataTable({id:'accounts-table-view',tableClass:'dashboard-data-table accounts-table',caption:'성과 요약 계좌별 보기',headHtml:tableHead,bodyHtml:tableBody});
-  return `<div id="accounts-summary" ${mobileViewAttrs('accounts')}${hidden?' hidden':''}>${tableHtml}<div id="accounts-card-view" class="mobile-card-view">${cards}</div>${hiddenNote}</div>`;
+  return `<div id="accounts-summary" ${mobileViewAttrs('accounts')}${hidden?' hidden':''}>${tableHtml}${renderMobileCardView({id:'accounts-card-view',cards})}${hiddenNote}</div>`;
 }
 function renderSourceDataTable({caption,rows}){
   return renderDashboardDataTable({wrapClass:'mobile-scroll source-table-scroll',tableClass:'dashboard-data-table source-data-table',caption,bodyHtml:rows});

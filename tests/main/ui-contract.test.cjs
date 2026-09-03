@@ -179,9 +179,27 @@ test('5차 KPI·mini-card·모바일 data-list는 공통 typography token과 숫
   assert.match(tablet1,/--mini-detail-size:11px/);
   assert.match(special1,/--mini-value-size:13px; --mini-detail-size:10px/);
   assert.doesNotMatch(special1,/13\.5px|9\.6px|--mini-detail-weight:500/);
-  assert.match(mobile1,/\.mobile-data-card-value\{[^}]*font-size:var\(--type-size-xs\);[^}]*font-variant-numeric:tabular-nums/);
+  assert.match(common1,/\.data-list-card-value\{[^}]*font-variant-numeric:tabular-nums/);
+  assert.doesNotMatch(mobile1,/\.mobile-data-card-value\{[^}]*font-variant-numeric/);
   assert.doesNotMatch(common,/^\.label\{/m);
   assert.doesNotMatch(common,/^\.value,/m);
+});
+
+test('7차 모바일 표↔카드 전환은 단일 config·공통 card shell·viewport별 표현 책임을 사용한다',()=>{
+  const mobile1=compact(mobile);
+  assert.match(uiCommon,/const MOBILE_VIEW_CONFIG=Object\.freeze\(/);
+  assert.doesNotMatch(uiCommon,/const MOBILE_VIEW_META=/);
+  assert.match(uiCommon,/const mobileViewModes=Object\.fromEntries\(Object\.entries\(MOBILE_VIEW_CONFIG\)/);
+  assert.match(uiCommon,/:not\(\[data-mobile-view-button\]\)/);
+  assert.match(uiCommon,/function renderMobileCardView\(/);
+  assert.equal((uiCommon.match(/renderMobileCardView\(/g)||[]).length,3);
+  assert.equal((ui.match(/renderMobileCardView\(/g)||[]).length,2);
+  assert.doesNotMatch(uiCommon,/<div id="\$\{idPrefix\}-card-view" class=/);
+  assert.doesNotMatch(ui,/<div id="(?:combined|accounts)-card-view" class="mobile-card-view"/);
+  assert.match(mobile1,/\[data-mobile-view="card"\] \.table-view\{display:none\}/);
+  assert.match(special1,/\[data-mobile-view\] \.table-view\{display:block\}/);
+  assert.match(special1,/\[data-mobile-view\] \.mobile-card-view\{display:none\}/);
+  assert.doesNotMatch(special1,/\[data-mobile-view="card"\] \.table-view/);
 });
 
 test('5차 mini summary와 source card는 presentation helper 하나를 공유하고 Main dead class를 남기지 않는다',()=>{

@@ -18,22 +18,17 @@ function phoneUi(){
   return window.matchMedia?.('(max-width:760px)').matches===true||phoneLandscapeUi();
 }
 
-const mobileViewModes={
-  combined:'table',
-  pensionProducts:'table',
-  holdings:'table',
-  securitiesChange:'table',
-  accounts:'table',
-  pensionChange:'table'
-};
-const MOBILE_VIEW_META=Object.freeze({
-  holdings:{label:'보유종목 현황',controls:'securities-holdings-table-view securities-holdings-card-view'},
-  securitiesChange:{label:'전일 대비 변동',controls:'securities-change-table-view securities-change-card-view'},
-  combined:{label:'연금+계좌 성과',controls:'combined-table-view combined-card-view'},
-  accounts:{label:'계좌별 성과 요약',controls:'accounts-table-view accounts-card-view'},
-  pensionProducts:{label:'퇴직연금 상품별 현황',controls:'pension-products-table-view pension-products-card-view'},
-  pensionChange:{label:'전일 대비 변동',controls:'pension-change-table-view pension-change-card-view'}
+const MOBILE_VIEW_CONFIG=Object.freeze({
+  holdings:{defaultMode:'table',label:'보유종목 현황',controls:'securities-holdings-table-view securities-holdings-card-view'},
+  securitiesChange:{defaultMode:'table',label:'전일 대비 변동',controls:'securities-change-table-view securities-change-card-view'},
+  combined:{defaultMode:'table',label:'연금+계좌 성과',controls:'combined-table-view combined-card-view'},
+  accounts:{defaultMode:'table',label:'계좌별 성과 요약',controls:'accounts-table-view accounts-card-view'},
+  pensionProducts:{defaultMode:'table',label:'퇴직연금 상품별 현황',controls:'pension-products-table-view pension-products-card-view'},
+  pensionChange:{defaultMode:'table',label:'전일 대비 변동',controls:'pension-change-table-view pension-change-card-view'}
 });
+const MOBILE_VIEW_FALLBACK=Object.freeze({defaultMode:'card',label:'데이터 보기',controls:''});
+const mobileViewModes=Object.fromEntries(Object.entries(MOBILE_VIEW_CONFIG).map(([key,{defaultMode}])=>[key,defaultMode]));
+function mobileViewConfig(key){return MOBILE_VIEW_CONFIG[key]||MOBILE_VIEW_FALLBACK;}
 
 function mobileTableAssetName(name=''){
   const text=String(name||'');
@@ -100,19 +95,19 @@ function escapeHtml(value){
 
 // [UICOMMON03] Shared Cards / Mobile Data View · 공통 카드 / 모바일 데이터 보기
 function metricCard(label,value,sub,dark=false,vcls='',mobileSub=''){const accessibleLabel=escapeHtml(String(label||'').replace(/<[^>]*>/g,'').trim()),subContent=mobileSub?`<span class="metric-sub-default">${sub}</span><span class="metric-sub-mobile">${mobileSub}</span>`:sub;return `<article class="card metric-card ${dark?'dark':''}" aria-label="${accessibleLabel}"><div class="label">${label}</div><div class="value ${vcls}">${value}</div><div class="sub">${subContent}</div></article>`}
-function mobileViewMode(key){return mobileViewModes[key]||'card'}
+function mobileViewMode(key){return mobileViewModes[key]||mobileViewConfig(key).defaultMode}
 function mobileViewAttrs(key){return `data-mobile-view-key="${key}" data-mobile-view="${mobileViewMode(key)}"`;}
 function mobileViewToggle(key){
   const mode=mobileViewMode(key);
   const action=mode==='card'?'표 보기':'카드 보기';
-  const meta=MOBILE_VIEW_META[key]||{label:'데이터 보기',controls:''};
+  const meta=mobileViewConfig(key);
   return `<button type="button" class="section-control-chip section-action-chip control-text-toggle mobile-view-toggle" data-mobile-view-button="${key}" data-dashboard-action="toggle-mobile-view" data-mobile-view-key="${key}" aria-label="${meta.label} ${action}"${meta.controls?` aria-controls="${meta.controls}"`:''}>${action}</button>`;
 }
 function setMobileViewMode(key,mode){
   const next=mode==='table'?'table':'card';
   mobileViewModes[key]=next;
-  document.querySelectorAll(`[data-mobile-view-key="${key}"]`).forEach(el=>el.dataset.mobileView=next);
-  const meta=MOBILE_VIEW_META[key]||{label:'데이터 보기'};
+  document.querySelectorAll(`[data-mobile-view-key="${key}"]:not([data-mobile-view-button])`).forEach(el=>el.dataset.mobileView=next);
+  const meta=mobileViewConfig(key);
   const action=next==='card'?'표 보기':'카드 보기';
   document.querySelectorAll(`[data-mobile-view-button="${key}"]`).forEach(btn=>{
     btn.textContent=action;
@@ -124,6 +119,10 @@ function toggleMobileViewMode(key){return setMobileViewMode(key,mobileViewMode(k
 function mobileInfoCard(title,items=[],extraClass='',accessibleLabel=''){
   const accessibleTitle=escapeHtml(String(accessibleLabel||title||'').replace(/<[^>]*>/g,'').replace(/■/g,'').trim());
   return `<article class="data-list-card mobile-data-card ${extraClass}" aria-label="${accessibleTitle}"><div class="data-list-card-title mobile-data-card-title">${title}</div><div class="mobile-data-card-list">${items.map(item=>{const [label,value,valueClass='',rowClass='']=item;return `<div class="mobile-data-card-row ${rowClass}"><span class="data-list-card-label mobile-data-card-label">${label}</span><span class="data-list-card-value mobile-data-card-value ${valueClass}">${value}</span></div>`}).join('')}</div></article>`;
+}
+function renderMobileCardView({id='',cards='',className='mobile-card-view'}={}){
+  const content=Array.isArray(cards)?renderAssetMobileCards(cards):cards;
+  return `<div${id?` id="${id}"`:''} class="${className}">${content}</div>`;
 }
 
 // [UICOMMON04] Asset Shared Renderers · 자산 공통 renderer
@@ -161,9 +160,9 @@ function renderAssetStatusBlock({
   const viewAttrs=mobileViewAttrs(viewStateKey);
   const toggle=mobileViewToggle(viewStateKey);
   const tableRows=renderAssetTableRows([...rows,...summaryRows]);
-  const cardHtml=renderAssetMobileCards(cards);
   const tableHtml=renderDashboardDataTable({id:`${idPrefix}-table-view`,tableClass,caption,headHtml:renderAssetTableHead(columns),bodyHtml:tableRows});
-  return `<div class="${sectionClass}" id="${sectionId}"${viewAttrs?` ${viewAttrs}`:''}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${title}</h2>${toggle}</div>${tableHtml}<div id="${idPrefix}-card-view" class="mobile-card-view">${cardHtml}</div>${afterHtml}</div>`;
+  const cardViewHtml=renderMobileCardView({id:`${idPrefix}-card-view`,cards});
+  return `<div class="${sectionClass}" id="${sectionId}"${viewAttrs?` ${viewAttrs}`:''}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${title}</h2>${toggle}</div>${tableHtml}${cardViewHtml}${afterHtml}</div>`;
 }
 function renderAssetDayChangeBlock({
   sectionId,
@@ -189,7 +188,7 @@ function renderAssetDayChangeBlock({
   const showDetail=hasPrev||renderWithoutPrev;
   const toggle=showDetail?mobileViewToggle(viewStateKey):'';
   const content=showDetail
-    ? `<div class="change-kpis">${summaryItems.map(item=>`<div class="mini-card"><div class="m-label">${item.label??''}</div><div class="m-value ${item.valueClass||''}">${item.value??''}</div></div>`).join('')}</div>${renderDashboardDataTable({id:`${idPrefix}-table-view`,wrapClass:tableWrapClass,tableClass,caption,headHtml:renderAssetTableHead(columns),bodyHtml:renderAssetTableRows([...rows,...summaryRows])})}<div id="${idPrefix}-card-view" class="${cardClass}">${renderAssetMobileCards(cards)}</div>`
+    ? `<div class="change-kpis">${summaryItems.map(item=>`<div class="mini-card"><div class="m-label">${item.label??''}</div><div class="m-value ${item.valueClass||''}">${item.value??''}</div></div>`).join('')}</div>${renderDashboardDataTable({id:`${idPrefix}-table-view`,wrapClass:tableWrapClass,tableClass,caption,headHtml:renderAssetTableHead(columns),bodyHtml:renderAssetTableRows([...rows,...summaryRows])})}${renderMobileCardView({id:`${idPrefix}-card-view`,cards,className:cardClass})}`
     : noPrevHtml;
   return `<div class="${sectionClass}" id="${sectionId}"${viewAttrs?` ${viewAttrs}`:''}><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${title}</h2>${toggle}</div>${content}</div>`;
 }
@@ -461,6 +460,7 @@ export {
   forceMobileViewportReflow,
   metricCard,
   mobileInfoCard,
+  renderMobileCardView,
   mobileViewAttrs,
   mobileViewToggle,
   mobileTableAssetName,

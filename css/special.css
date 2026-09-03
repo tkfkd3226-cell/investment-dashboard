@@ -694,11 +694,8 @@
   /* Table-only Landscape · 성과/현황/변동은 카드 전환 없이 항상 표 */
     .mobile-view-toggle,
     .securities-summary-block [data-accounts-view-toggle-wrap]{display:none}
-    [data-mobile-view="card"] .table-view,
-    [data-mobile-view="table"] .table-view{display:block}
-    [data-mobile-view="card"] .mobile-card-view,
-    [data-mobile-view="table"] .mobile-card-view,
-    .mobile-card-view{display:none}
+    [data-mobile-view] .table-view{display:block}
+    [data-mobile-view] .mobile-card-view{display:none}
     .asset-status-table .mobile-table-brand-prefix{display:inline}
 
   /* Chart Landscape · 공통 compact 제목은 유지하고 차트 폭/높이와 ←/→ 표시만 가로폰에 맞춤 */
