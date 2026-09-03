@@ -141,6 +141,19 @@
       box-shadow:none;
     }
 
+    /* Ledger / Capital Source · 인쇄는 장부 Tablet형, 원천카드는 1열 순서로 고정 */
+    #ledger-check .ledger-overview-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    #ledger-check .ledger-conclusion-card{
+      grid-column:1 / -1;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:var(--space-8xl);
+    }
+    #ledger-check .ledger-conclusion-inline-reason{display:none}
+    #ledger-check .ledger-conclusion-reason{display:block}
+    #capital-source-check .source-grid{grid-template-columns:1fr}
+
     /* [P06. Charts · 1120:330 SVG를 용지 폭에 맞춰 축소] */
     .chart-wrap,
     .chart-wrap.is-scrollable{

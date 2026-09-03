@@ -739,8 +739,8 @@ function renderResultSummary(x){
   const footnoteSup='<sup class="cash-basis-note-mark cash-basis-note-sup">(1)</sup>';
   const outsideCashFlowText=outsideCashUsed?`6/18 확인값 ${won(outsideCashBase)} - 투자 사용 ${won(outsideCashUsed)}`:`6/18 확인값 ${won(outsideCashBase)}`;
   const note=uiState.includeSeparateProfit
-    ?`<p class="section-explainer table-note cash-basis-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCashBasis)} = ${outsideCashFlowText} + 6~8월 별도손익 중 현 보유자산 미반영분 ${won(separateUnreflected)}</p>`
-    :`<p class="section-explainer table-note cash-basis-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCash)} = ${outsideCashFlowText}</p>`;
+    ?`<p class="section-explainer cash-basis-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCashBasis)} = ${outsideCashFlowText} + 6~8월 별도손익 중 현 보유자산 미반영분 ${won(separateUnreflected)}</p>`
+    :`<p class="section-explainer cash-basis-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCash)} = ${outsideCashFlowText}</p>`;
   const ledgerSourceSub='계좌1 성과 + 계좌2 실현분 + 토스 실현분 기준<br>출처: 연금+계좌 성과 &gt; 증권계좌 투자 결과물';
   const actualHoldingSub=`평가금액 합계(${won(x.allocTotal)}) +<br>실현수익 반영 현금 보유액(${won(outsideCashBasis)})${footnoteSup}`;
   const gapClass=ledgerGap!==0?'ledger-gap-value':'';
@@ -1091,6 +1091,10 @@ function renderAccounts(x,{hidden=false}={}){
 function renderSourceDataTable({caption,rows}){
   return renderDashboardDataTable({wrapClass:'mobile-scroll source-table-scroll',tableClass:'dashboard-data-table source-data-table',caption,bodyHtml:rows});
 }
+function sourceTableRow(label,value,{kind='',summary=false}={}){
+  const classes=[kind?`source-${kind}-row`:'',summary?'summary-row':''].filter(Boolean).join(' ');
+  return `<tr${classes?` class="${classes}"`:''}><th scope="row">${label}</th><td class="num">${fmt(value)}</td></tr>`;
+}
 function sourceCard(label,caption,rows,{highlight=false,afterHtml=''}={}){
   return `<div class="card source-card metric-card${highlight?' highlight':''}"><div class="label">${label}</div>${renderSourceDataTable({caption,rows})}${afterHtml}</div>`;
 }
@@ -1106,19 +1110,19 @@ function renderSourceTables(x){
     externalPrincipal=sourceExternalPrincipalForDate(x.date),
     reclassified=uiState.includeSeparateProfit?separateProfitReinvestedForDate(x.date):0,
     performancePrincipal=holdingCostPrincipal-reclassified,
-    extraRow=extraContribution?`<tr class="source-base-row"><th scope="row">추가 외부투입</th><td class="num">${fmt(extraContribution)}</td></tr>`:'',
-    excludedRow=!uiState.includeSeparateProfit&&excludedTransfer?`<tr class="source-base-row"><th scope="row">보유 자금 투입</th><td class="num">${fmt(excludedTransfer)}</td></tr>`:'',
-    realizedProfitRow=realizedProfitInput?`<tr class="source-derived-row"><th scope="row">실현수익 투입</th><td class="num">${fmt(realizedProfitInput)}</td></tr>`:'',
-    reconciliationRow=`<tr><th scope="row">원천·보유 차액</th><td class="num">${fmt(sourceHoldingGap)}</td></tr>`,
+    extraRow=extraContribution?sourceTableRow('추가 외부투입',extraContribution,{kind:'base'}):'',
+    excludedRow=!uiState.includeSeparateProfit&&excludedTransfer?sourceTableRow('보유 자금 투입',excludedTransfer,{kind:'base'}):'',
+    realizedProfitRow=realizedProfitInput?sourceTableRow('실현수익 투입',realizedProfitInput,{kind:'derived'}):'',
+    reconciliationRow=sourceTableRow('원천·보유 차액',sourceHoldingGap),
     reclassNote=uiState.includeSeparateProfit&&reclassified?`<div class="source-reclass-note"><strong>6~8월 별도수익 재투입 ${won(reclassified)}</strong><span>기존 투자수익 재투자분 · 신규 외부투입금 아님</span><span>전체 투입원금 제외 · 별도수익 ON 시 성과기준 원금 제외</span></div>`:'',
     principalLabel=uiState.includeSeparateProfit&&reclassified?'계좌1 성과기준 투자원금':'계좌1 투자원금 검산',
     principalSummaryLabel='합계';
-  const externalRows=`<tr><th scope="row">금 판매액 총액</th><td class="num">${fmt(c.goldPrincipal)}</td></tr><tr><th scope="row">근로소득 투입액</th><td class="num">${fmt(c.laborNetPrincipal)}</td></tr>${extraRow}<tr class="summary-row"><th scope="row">합계</th><td class="num">${fmt(externalPrincipal)}</td></tr>`;
+  const externalRows=`${sourceTableRow('금 판매액 총액',c.goldPrincipal)}${sourceTableRow('근로소득 투입액',c.laborNetPrincipal)}${extraRow}${sourceTableRow('합계',externalPrincipal,{summary:true})}`;
   const externalCard=sourceCard('전체 투입원금','전체 투입원금 구성',externalRows,{highlight:true,afterHtml:reclassNote});
-  const performanceRows=`<tr class="source-base-row"><th scope="row">전체 투입원금</th><td class="num">${fmt(externalPrincipal)}</td></tr>${excludedRow}<tr class="source-derived-row"><th scope="row">레버수익 재투입</th><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr class="source-derived-row"><th scope="row">VIP 수익 재투입</th><td class="num">${fmt(vipProfitReinvest)}</td></tr>${realizedProfitRow}${reconciliationRow}<tr class="summary-row"><th scope="row">${principalSummaryLabel}</th><td class="num">${fmt(performancePrincipal)}</td></tr>`;
+  const performanceRows=`${sourceTableRow('전체 투입원금',externalPrincipal,{kind:'base'})}${excludedRow}${sourceTableRow('레버수익 재투입',c.tossReinvestedToAccount1,{kind:'derived'})}${sourceTableRow('VIP 수익 재투입',vipProfitReinvest,{kind:'derived'})}${realizedProfitRow}${reconciliationRow}${sourceTableRow(principalSummaryLabel,performancePrincipal,{summary:true})}`;
   const performanceCard=sourceCard(principalLabel,'계좌1 투자원금 검산',performanceRows);
   const account1GoldSource=Number(sourceTracking.account1GoldInput)||0,account2GoldSource=Number(sourceTracking.vipGoldInput)||0,temporarySource=Number(sourceTracking.temporaryFunding)||0,principalRecovery=Number(sourceTracking.principalRecovery)||0,vipReinvestLessGold=(Number(c.account2ReinvestedToAccount1)||0)-account2GoldSource;
-  const trackedRows=`<tr class="source-base-row"><th scope="row">금 판매액 투입</th><td class="num">${fmt(account1GoldSource)}</td></tr><tr class="source-base-row"><th scope="row">VIP 금 투입분</th><td class="num">${fmt(account2GoldSource)}</td></tr><tr class="source-base-row"><th scope="row">근로소득 투입액</th><td class="num">${fmt(c.laborNetPrincipal)}</td></tr>${extraRow}${excludedRow}<tr class="source-derived-row"><th scope="row">레버수익 재투입</th><td class="num">${fmt(c.tossReinvestedToAccount1)}</td></tr><tr class="source-derived-row"><th scope="row">VIP 재투입-금</th><td class="num">${fmt(vipReinvestLessGold)}</td></tr><tr class="source-derived-row"><th scope="row">임시자금 투입</th><td class="num">${fmt(temporarySource)}</td></tr><tr class="source-derived-row"><th scope="row">원금 회수</th><td class="num">${fmt(principalRecovery)}</td></tr>${realizedProfitRow}${reconciliationRow}<tr class="summary-row"><th scope="row">합계</th><td class="num">${fmt(performancePrincipal)}</td></tr>`;
+  const trackedRows=`${sourceTableRow('금 판매액 투입',account1GoldSource,{kind:'base'})}${sourceTableRow('VIP 금 투입분',account2GoldSource,{kind:'base'})}${sourceTableRow('근로소득 투입액',c.laborNetPrincipal,{kind:'base'})}${extraRow}${excludedRow}${sourceTableRow('레버수익 재투입',c.tossReinvestedToAccount1,{kind:'derived'})}${sourceTableRow('VIP 재투입-금',vipReinvestLessGold,{kind:'derived'})}${sourceTableRow('임시자금 투입',temporarySource,{kind:'derived'})}${sourceTableRow('원금 회수',principalRecovery,{kind:'derived'})}${realizedProfitRow}${reconciliationRow}${sourceTableRow('합계',performancePrincipal,{summary:true})}`;
   const trackedCard=sourceCard('계좌1 원천별 추적','계좌1 원천별 추적',trackedRows);
   return `<section id="capital-source-check" class="capital-source-section"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="receipt" aria-hidden="true"></span>투자원금 원천 및 검산</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid three source-grid">${externalCard}${performanceCard}${trackedCard}</div></section>`;
 }

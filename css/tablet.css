@@ -35,6 +35,8 @@
       --card-text-rhythm-gap:var(--space-xs);
       --info-stack-gap:var(--space-2xl);
       --chart-content-rhythm-gap:var(--space-2xl);
+      --source-table-gap:var(--space-4xl);
+      --source-reclass-note-size:11.5px;
       --chart-svg-min-width:100%;
       --empty-state-font-size:var(--type-size-sm);
       --market-ai-column-min:360px;
@@ -171,7 +173,6 @@
 
   /* [T08. Data Tables · 태블릿 표 typography / padding] */
 .dashboard-data-table{
-      --source-table-gap:var(--space-4xl);
       --data-table-font-size:11.5px;
       --data-table-cell-y:6px;
       --data-table-cell-x:6px;

@@ -161,6 +161,8 @@
       --card-text-rhythm-gap:var(--space-2xs);
       --info-stack-gap:var(--space-lg);
       --chart-content-rhythm-gap:var(--space-lg);
+      --source-table-gap:var(--space-2xl);
+      --source-reclass-note-size:var(--type-size-xs);
       --chart-svg-min-width:960px;
       --chart-svg-height:330px;
       --chart-accent-height:2px;
@@ -443,7 +445,6 @@
 
   /* Data Tables Compact · 가로폰도 표 구조는 유지하되 세로폰과 동일한 표 밀도 사용 */
     .dashboard-data-table{
-      --source-table-gap:var(--space-2xl);
       --data-table-font-size:11px;
       --data-table-cell-y:5px;
       --data-table-cell-x:5px;

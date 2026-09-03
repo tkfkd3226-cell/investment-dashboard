@@ -282,6 +282,24 @@ test('10차 chart summary는 allocation presentation helper와 viewport meta tok
   assert.doesNotMatch(tablet,/#pension-chart-alloc \.chart-note/);
 });
 
+test('11차 장부·원천 검산은 source row helper, wrapper gap token, 인쇄 layout을 사용한다',()=>{
+  const tablet1=compact(tablet),print1=compact(print);
+  assert.match(ui,/function sourceTableRow\(/);
+  assert.match(ui,/sourceTableRow\('금 판매액 총액'/);
+  assert.match(ui,/sourceTableRow\('합계',externalPrincipal,\{summary:true\}\)/);
+  assert.doesNotMatch(ui,/section-explainer table-note cash-basis-note/);
+  assert.match(common1,/--source-reclass-note-size:var\(--type-size-sm\)/);
+  assert.match(common1,/\.source-card\{ min-width:0; padding:var\(--surface-pad-emphasis\);/);
+  assert.match(common1,/\.source-reclass-note\{[^}]*font-size:var\(--source-reclass-note-size\)/);
+  assert.match(common1,/\.source-table-scroll\{margin-top:var\(--source-table-gap\);border-radius:0\}/);
+  assert.match(tablet1,/--source-table-gap:var\(--space-4xl\); --source-reclass-note-size:11\.5px/);
+  assert.match(special1,/--source-table-gap:var\(--space-2xl\); --source-reclass-note-size:var\(--type-size-xs\)/);
+  assert.doesNotMatch(tablet,/\.dashboard-data-table\{\s*--source-table-gap:/);
+  assert.doesNotMatch(special,/\.dashboard-data-table\{\s*--source-table-gap:/);
+  assert.match(print1,/#ledger-check \.ledger-overview-grid\{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(print1,/#capital-source-check \.source-grid\{grid-template-columns:1fr\}/);
+});
+
 test('Chart legend는 전체선택/다중선택을 지원하되 마지막 1개는 해제하지 않는다',()=>{
   assert.match(charts1,/if\(key==='__all__'\)\{ selection\.state\.selected=null;/);
   assert.match(charts1,/if\(next\.has\(key\)\)\{ if\(next\.size<=1\)return; next\.delete\(key\);/);
