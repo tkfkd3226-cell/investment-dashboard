@@ -65,6 +65,16 @@ const CHART_FRAME=Object.freeze({left:70,right:70,top:20,bottom:70});
 const CHART_EDGE_PAD=24;
 const CHART_VIEWBOX_BASE=Object.freeze({width:1120,height:330});
 const CHART_EXPANDED_VISUAL_GROWTH=.5;
+const CHART_VISUAL=Object.freeze({
+  axisFontSize:11,
+  dateFontSize:10,
+  axisStrokeWidth:1,
+  hoverStrokeWidth:1.2,
+  hoverDash:'4 4',
+  lineStrokeWidth:2,
+  pointRadius:2.2,
+  pointStrokeWidth:1.1
+});
 
 function chartSvgLayoutSize(svg){
   const clientWidth=Number(svg?.clientWidth),clientHeight=Number(svg?.clientHeight);
@@ -489,9 +499,6 @@ function refreshScrollHints(){
   document.querySelectorAll('.mobile-scroll, .chart-wrap').forEach(wrap=>{
     const scrollable=wrap.scrollWidth>wrap.clientWidth+4;
     wrap.classList.toggle('is-scrollable',scrollable);
-    if(wrap.classList.contains('chart-wrap')){
-      wrap.closest('.chart-card')?.classList.toggle('has-horizontal-scroll',scrollable);
-    }
   });
 }
 
@@ -907,6 +914,10 @@ function cumulativeSummaryCards({profitLabel,returnLabel,lastProfit,lastReturn,p
   const jumpCard=(label,value,valueClass,detail,detailClass,date)=>`<div class="mini-card chart-date-jump" role="button" tabindex="0" data-dashboard-action="jump-chart-date" data-chart-date="${date}" data-chart-id="${chartId}" title="${date} 기준으로 이동"><div class="m-label">${label}</div><div class="m-value ${valueClass}">${value}</div><div class="m-detail ${detailClass}">${detail}</div></div>`;
   return `<div class="mini-card"><div class="m-label">${profitLabel}</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">${returnLabel}</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${dayReturnRate==null?'':cls(dayReturnRate)}">전일 대비 ${dayReturnRate==null?'-':`${dayReturnRate>0?'+':''}${pct(dayReturnRate)}`}</div></div>${jumpCard(`최대 ${profitLabel}(${best.날짜})`,won(best['합계 : 누적손익']),cls(best['합계 : 누적손익']),bestDetail,bestGap===0?'positive':'',best.날짜)}<div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div>${jumpCard(`Best(${bestDay.날짜})`,signed(bestDay['합계 : 전일대비손익'],'원'),'positive','전일 대비 변화','positive',bestDay.날짜)}${jumpCard(`Worst(${worstDay.날짜})`,signed(worstDay['합계 : 전일대비손익'],'원'),'negative','전일 대비 변화','negative',worstDay.날짜)}`;
 }
+function renderChartCard({id,title,icon,actions,svgId,legendId,legendHtml,noteClass='',noteId='',noteStyle='',noteHtml='',headExtra=''}){
+  const noteAttrs=`class="chart-note${noteClass?` ${noteClass}`:''}"${noteId?` id="${noteId}"`:''}${noteStyle?` style="${noteStyle}"`:''}`;
+  return `<div class="chart-card" id="${id}"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${title}</h3></div>${headExtra}<div class="chart-head-actions">${actions}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="${svgId}"></svg></div><div class="chart-legend" id="${legendId}">${legendHtml}</div><div ${noteAttrs}>${noteHtml}</div></div>`;
+}
 function renderCharts(x,separateProfitHtml=''){
   const cum=cumHistory(x.date),last=cum.at(-1),prevCum=cum.length>1?cum.at(-2):null,best=cum.reduce((a,b)=>b['합계 : 누적손익']>a['합계 : 누적손익']?b:a,cum[0]),
         bestDay=cum.reduce((a,b)=>b['합계 : 전일대비손익']>a['합계 : 전일대비손익']?b:a,cum[0]),
@@ -917,10 +928,11 @@ function renderCharts(x,separateProfitHtml=''){
         dayReturnRate=x?.securitiesAssetDetail?.change?.dayRate??null,
         bestGap=best['합계 : 누적손익']-lastProfit,
         bestDetail=bestGap===0?'금일 갱신':'금일 대비 '+signed(bestGap,'원');
+  const cumulativeNote=cumulativeSummaryCards({profitLabel:'누적손익',returnLabel:'누적수익률',lastProfit,lastReturn,profitDelta,dayReturnRate,best,bestDay,worstDay,mdd,bestGap,bestDetail,chartId:'chart-cum'});
   return `<section id="investment-analysis"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="period" aria-hidden="true"></span>투자 기간 분석</h2><p class="section-control-chip section-basis-chip">삼성증권1 기준</p></div><div class="grid chart-grid">
-  <div class="chart-card" id="chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon" data-section-title-icon="lineChart" aria-hidden="true"></span>누적손익 및 누적수익률</h3></div>${separateProfitHtml}<div class="chart-head-actions">${chartCompareToggle('securities')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartCum"></svg></div><div class="chart-legend" id="securitiesCumLegend">${chartLegendHtml('securitiesCum')}</div><div class="chart-note six">${cumulativeSummaryCards({profitLabel:'누적손익',returnLabel:'누적수익률',lastProfit,lastReturn,profitDelta,dayReturnRate,best,bestDay,worstDay,mdd,bestGap,bestDetail,chartId:'chart-cum'})}</div></div>
-  <div class="chart-card" id="chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon" data-section-title-icon="barChart" aria-hidden="true"></span>종목별 누적손익</h3></div><div class="chart-head-actions">${symbolChartToggle('securities')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartSymbol"></svg></div><div class="chart-legend" id="securitiesSymbolLegend">${chartLegendHtml('securitiesSymbol')}</div><div class="chart-note symbol-summary-grid">${orderedSymbols.map(h=>symbolCard(h,symbolTotal)).join('')}</div></div>
-  <div class="chart-card" id="chart-alloc"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon" data-section-title-icon="pie" aria-hidden="true"></span>평가금액 비중</h3></div><div class="chart-head-actions">${securityAllocToggle()}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="chartAlloc"></svg></div><div class="chart-legend" id="securityAllocLegend">${securityAllocLegendHtml(x)}</div><div class="chart-note security-alloc-card-grid" id="securityAllocCards" style="--security-alloc-card-count:${securityAllocCardCount(x)}">${securityAllocCardsHtml(x)}</div></div>
+  ${renderChartCard({id:'chart-cum',title:'누적손익 및 누적수익률',icon:'lineChart',headExtra:separateProfitHtml,actions:`${chartCompareToggle('securities')}${chartWebExpandButton()}`,svgId:'chartCum',legendId:'securitiesCumLegend',legendHtml:chartLegendHtml('securitiesCum'),noteClass:'six',noteHtml:cumulativeNote})}
+  ${renderChartCard({id:'chart-symbol',title:'종목별 누적손익',icon:'barChart',actions:`${symbolChartToggle('securities')}${chartWebExpandButton()}`,svgId:'chartSymbol',legendId:'securitiesSymbolLegend',legendHtml:chartLegendHtml('securitiesSymbol'),noteClass:'symbol-summary-grid',noteHtml:orderedSymbols.map(h=>symbolCard(h,symbolTotal)).join('')})}
+  ${renderChartCard({id:'chart-alloc',title:'평가금액 비중',icon:'pie',actions:`${securityAllocToggle()}${chartWebExpandButton()}`,svgId:'chartAlloc',legendId:'securityAllocLegend',legendHtml:securityAllocLegendHtml(x),noteClass:'security-alloc-card-grid',noteId:'securityAllocCards',noteStyle:`--security-alloc-card-count:${securityAllocCardCount(x)}`,noteHtml:securityAllocCardsHtml(x)})}
   </div></section>`;
 }
 function symbolSummaryCard(h,total,{label=h.name,swatch='' }={}){const contrib=total?h.profit/total*100:0,rr=h.cost?h.profit/h.cost*100:0;return `<div class="mini-card symbol-card"><div class="m-label">${label}${swatch}</div><div class="m-value ${cls(h.profit)}">${won(h.profit)}</div><div class="symbol-metrics"><div class="symbol-metric"><span class="symbol-metric-label">기여도</span><span class="symbol-metric-value ${cls(contrib)}">${pct(contrib)}</span></div><div class="symbol-metric"><span class="symbol-metric-label">수익률</span><span class="symbol-metric-value ${cls(rr)}">${rr>0?'+':''}${pct(rr)}</span></div></div></div>`}
@@ -994,10 +1006,12 @@ function renderPensionCharts(x){
   const productEvalTotal=x.pensionRows.reduce((a,r)=>a+r.evalAmount,0);
   const orderedAllocRows=sortPensionItems(x.pensionRows);
   const allocCards=orderedAllocRows.map(r=>`<div class="mini-card"><div class="m-label">${r.name}${pensionProductSwatch(r.name)}</div><div class="m-value">${won(r.evalAmount)} <span class="small alloc-ratio-meta">(${(r.evalAmount/productEvalTotal*100).toFixed(1)}%)</span></div></div>`).join('');
+  const cumulativeNote=cumulativeSummaryCards({profitLabel:'운용손익',returnLabel:'운용수익률',lastProfit,lastReturn,profitDelta,dayReturnRate,best,bestDay,worstDay,mdd,bestGap,bestDetail,chartId:'pension-chart-cum'});
+  const allocNote=`${allocCards}<div class="mini-card pension-alloc-total-card"><div class="m-label">평가금액 합계</div><div class="m-value">${won(x.pensionEval)}</div><div class="m-detail cash-include-detail alloc-cash-meta pension-cash-detail pension-cash-detail-full">(현금성자산 ${won(x.pensionCash)} 포함)</div><div class="m-detail cash-include-detail alloc-cash-meta pension-cash-detail pension-cash-detail-compact">(현금 ${fmt(x.pensionCash)})</div></div>`;
   return `<section id="pension-investment-analysis" class="pension-chart-block"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="period" aria-hidden="true"></span>투자 기간 분석</h2><p class="section-control-chip section-basis-chip">퇴직연금 기준</p></div><div class="grid chart-grid">
-  <div class="chart-card" id="pension-chart-cum"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon" data-section-title-icon="lineChart" aria-hidden="true"></span>운용손익 및 운용수익률 <span class="chart-title-sub">(전체 운용 기준)</span>${chartTitleInfoButton('전체 운용 기준')}</h3></div><div class="chart-head-actions">${chartCompareToggle('pension')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="pensionChartCum"></svg></div><div class="chart-legend" id="pensionCumLegend">${chartLegendHtml('pensionCum')}</div><div class="chart-note six">${cumulativeSummaryCards({profitLabel:'운용손익',returnLabel:'운용수익률',lastProfit,lastReturn,profitDelta,dayReturnRate,best,bestDay,worstDay,mdd,bestGap,bestDetail,chartId:'pension-chart-cum'})}</div></div>
-  <div class="chart-card" id="pension-chart-symbol"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon" data-section-title-icon="barChart" aria-hidden="true"></span>연금상품별 운용손익 <span class="chart-title-sub">(보유상품 재투자 기준)</span>${chartTitleInfoButton('보유상품 재투자 기준')}</h3></div><div class="chart-head-actions">${symbolChartToggle('pension')}${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="pensionChartSymbol"></svg></div><div class="chart-legend" id="pensionSymbolLegend">${chartLegendHtml('pensionSymbol')}</div><div class="chart-note symbol-summary-grid pension-symbol-summary-grid">${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>pensionProductCard(h,symbolTotal)).join('')}${pensionProductTotalCard(x,symbols)}</div></div>
-  <div class="chart-card" id="pension-chart-alloc"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon" data-section-title-icon="pie" aria-hidden="true"></span>평가금액 비중</h3></div><div class="chart-head-actions">${chartWebExpandButton()}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="pensionChartAlloc"></svg></div><div class="chart-legend" id="pensionAllocLegend">${chartLegendHtml('pensionAlloc')}</div><div class="chart-note">${allocCards}<div class="mini-card pension-alloc-total-card"><div class="m-label">평가금액 합계</div><div class="m-value">${won(x.pensionEval)}</div><div class="m-detail cash-include-detail alloc-cash-meta pension-cash-detail pension-cash-detail-full">(현금성자산 ${won(x.pensionCash)} 포함)</div><div class="m-detail cash-include-detail alloc-cash-meta pension-cash-detail pension-cash-detail-compact">(현금 ${fmt(x.pensionCash)})</div></div></div></div>
+  ${renderChartCard({id:'pension-chart-cum',title:`운용손익 및 운용수익률 <span class="chart-title-sub">(전체 운용 기준)</span>${chartTitleInfoButton('전체 운용 기준')}`,icon:'lineChart',actions:`${chartCompareToggle('pension')}${chartWebExpandButton()}`,svgId:'pensionChartCum',legendId:'pensionCumLegend',legendHtml:chartLegendHtml('pensionCum'),noteClass:'six',noteHtml:cumulativeNote})}
+  ${renderChartCard({id:'pension-chart-symbol',title:`연금상품별 운용손익 <span class="chart-title-sub">(보유상품 재투자 기준)</span>${chartTitleInfoButton('보유상품 재투자 기준')}`,icon:'barChart',actions:`${symbolChartToggle('pension')}${chartWebExpandButton()}`,svgId:'pensionChartSymbol',legendId:'pensionSymbolLegend',legendHtml:chartLegendHtml('pensionSymbol'),noteClass:'symbol-summary-grid pension-symbol-summary-grid',noteHtml:`${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>pensionProductCard(h,symbolTotal)).join('')}${pensionProductTotalCard(x,symbols)}`})}
+  ${renderChartCard({id:'pension-chart-alloc',title:'평가금액 비중',icon:'pie',actions:chartWebExpandButton(),svgId:'pensionChartAlloc',legendId:'pensionAllocLegend',legendHtml:chartLegendHtml('pensionAlloc'),noteHtml:allocNote})}
   </div></section>`;
 }
 
@@ -1157,10 +1171,10 @@ function drawAxes(svg,cfg,yTicks,y2Ticks=null){
   const{w,h,l,r,t,b}=cfg;
   const surface=cssThemeValue('--chart-surface','#fff'),grid=cssThemeValue('--chart-grid','#e5e7eb'),axis=cssThemeValue('--chart-axis','#cbd5e1'),text=cssThemeValue('--chart-text','#6b7280');
   svg.appendChild(el('rect',{x:0,y:0,width:w,height:h,fill:surface}));
-  for(const tick of yTicks){const y=cfg.y(tick);svg.appendChild(el('line',{x1:l,y1:y,x2:w-r,y2:y,stroke:grid,'stroke-width':1}));const tx=el('text',{x:l-10,y:y+4,'text-anchor':'end','font-size':chartExpandedFixedUnits(svg,11),fill:text});tx.textContent=cfg.yFormatter?cfg.yFormatter(tick):fmt(tick);svg.appendChild(tx)}
-  svg.appendChild(el('line',{x1:l,y1:t,x2:l,y2:h-b,stroke:axis}));
-  svg.appendChild(el('line',{x1:l,y1:h-b,x2:w-r,y2:h-b,stroke:axis}));
-  if(y2Ticks){for(const tick of y2Ticks){const y=cfg.y2(tick);const tx=el('text',{x:w-r+10,y:y+4,'text-anchor':'start','font-size':chartExpandedFixedUnits(svg,11),fill:text});tx.textContent=cfg.y2Formatter?cfg.y2Formatter(tick):tick.toFixed(0)+'%';svg.appendChild(tx)}svg.appendChild(el('line',{x1:w-r,y1:t,x2:w-r,y2:h-b,stroke:axis}))}
+  for(const tick of yTicks){const y=cfg.y(tick);svg.appendChild(el('line',{x1:l,y1:y,x2:w-r,y2:y,stroke:grid,'stroke-width':CHART_VISUAL.axisStrokeWidth}));const tx=el('text',{x:l-10,y:y+4,'text-anchor':'end','font-size':chartExpandedFixedUnits(svg,CHART_VISUAL.axisFontSize),fill:text});tx.textContent=cfg.yFormatter?cfg.yFormatter(tick):fmt(tick);svg.appendChild(tx)}
+  svg.appendChild(el('line',{x1:l,y1:t,x2:l,y2:h-b,stroke:axis,'stroke-width':CHART_VISUAL.axisStrokeWidth}));
+  svg.appendChild(el('line',{x1:l,y1:h-b,x2:w-r,y2:h-b,stroke:axis,'stroke-width':CHART_VISUAL.axisStrokeWidth}));
+  if(y2Ticks){for(const tick of y2Ticks){const y=cfg.y2(tick);const tx=el('text',{x:w-r+10,y:y+4,'text-anchor':'start','font-size':chartExpandedFixedUnits(svg,CHART_VISUAL.axisFontSize),fill:text});tx.textContent=cfg.y2Formatter?cfg.y2Formatter(tick):tick.toFixed(0)+'%';svg.appendChild(tx)}svg.appendChild(el('line',{x1:w-r,y1:t,x2:w-r,y2:h-b,stroke:axis,'stroke-width':CHART_VISUAL.axisStrokeWidth}))}
 }
 
 function chartX(cfg,dataLength,index){
@@ -1173,11 +1187,11 @@ function labelDates(svg,cfg,data,every=3){
   const{h,b}=cfg;
   const labelY=h-b+16;
   const interval=phoneUi()?Math.max(every,Math.ceil(data.length/24)):every;
-  data.forEach((d,i)=>{if(i%interval===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:labelY,transform:`rotate(-65 ${x} ${labelY})`,'text-anchor':'end','font-size':chartExpandedFixedUnits(svg,10),fill:cssThemeValue('--chart-text','#6b7280')});txt.textContent=d['날짜'];svg.appendChild(txt)}})
+  data.forEach((d,i)=>{if(i%interval===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:labelY,transform:`rotate(-65 ${x} ${labelY})`,'text-anchor':'end','font-size':chartExpandedFixedUnits(svg,CHART_VISUAL.dateFontSize),fill:cssThemeValue('--chart-text','#6b7280')});txt.textContent=d['날짜'];svg.appendChild(txt)}})
 }
-function polyline(svg,points,color,width=2){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':chartExpandedHalfGrowthUnits(svg,width),'stroke-linejoin':'round','stroke-linecap':'round'}))}
+function polyline(svg,points,color,width=CHART_VISUAL.lineStrokeWidth){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':chartExpandedHalfGrowthUnits(svg,width),'stroke-linejoin':'round','stroke-linecap':'round'}))}
 function circles(svg,points,color){
-  const fill=cssThemeValue('--chart-surface','#fff'),radius=chartExpandedHalfGrowthUnits(svg,2.2),strokeWidth=chartExpandedHalfGrowthUnits(svg,1.1);
+  const fill=cssThemeValue('--chart-surface','#fff'),radius=chartExpandedHalfGrowthUnits(svg,CHART_VISUAL.pointRadius),strokeWidth=chartExpandedHalfGrowthUnits(svg,CHART_VISUAL.pointStrokeWidth);
   points.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:radius,fill,stroke:color,'stroke-width':strokeWidth})));
 }
 function nearestIndex(evt,svg,cfg,data){
@@ -1189,7 +1203,7 @@ function nearestIndex(evt,svg,cfg,data){
   return Math.max(0,Math.min(data.length-1,idx));
 }
 function addHover(svg,cfg,data,renderHtml,tooltipKind=''){
-  const line=el('line',{x1:cfg.l,y1:cfg.t,x2:cfg.l,y2:cfg.h-cfg.b,stroke:cssThemeValue('--chart-hover','#334155'),'stroke-width':1.2,'stroke-dasharray':'4 4',opacity:0,class:'chart-hover-line'});
+  const line=el('line',{x1:cfg.l,y1:cfg.t,x2:cfg.l,y2:cfg.h-cfg.b,stroke:cssThemeValue('--chart-hover','#334155'),'stroke-width':CHART_VISUAL.hoverStrokeWidth,'stroke-dasharray':CHART_VISUAL.hoverDash,opacity:0,class:'chart-hover-line'});
   svg.appendChild(line);
   const hit=el('rect',{x:cfg.l,y:cfg.t,width:cfg.plotW,height:cfg.plotH,class:'svg-hitbox'});
   svg.appendChild(hit);

@@ -35,6 +35,7 @@
       --card-text-rhythm-gap:var(--space-xs);
       --info-stack-gap:var(--space-2xl);
       --chart-content-rhythm-gap:var(--space-2xl);
+      --chart-svg-min-width:100%;
       --empty-state-font-size:var(--type-size-sm);
       --market-ai-column-min:360px;
       --market-ai-column-max:380px;
@@ -117,29 +118,12 @@
       grid-template-columns:repeat(3,minmax(0,1fr));
     }
 
-  /* [T05. Charts · 태블릿 차트 scroll / 투자기간 폭] */
-.chart-card.has-horizontal-scroll .chart-head{margin-bottom:0}
-    .chart-card.has-horizontal-scroll .chart-scroll-row{
-      display:flex;
-      align-items:center;
-      justify-content:flex-end;
-      gap:var(--space-md);
-      min-height:var(--dashboard-control-height);
-      margin:var(--space-md) 0 var(--chart-content-rhythm-gap);
-    }
-    .chart-card.has-horizontal-scroll .chart-scroll-start,
-    .chart-card.has-horizontal-scroll .chart-scroll-end{
-      display:inline-flex;
-    }
-
-#pension-investment-analysis .chart-wrap,
-    #investment-analysis .chart-wrap{
+  /* [T05. Charts · 태블릿은 chart shell 전체가 폭에 맞춰 표시된다.] */
+    .chart-grid .chart-wrap{
       overflow-x:hidden;
     }
-    #pension-investment-analysis .chart-wrap svg.chart,
-    #investment-analysis .chart-wrap svg.chart{
+    .chart-grid .chart-wrap svg.chart{
       width:100%;
-      min-width:100%;
     }
 
   /* [T06. Pension Modal · 퇴직연금 모달 태블릿 density] */

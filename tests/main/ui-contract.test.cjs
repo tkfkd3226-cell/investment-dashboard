@@ -251,6 +251,22 @@ test('Chart geometry는 CHART_FRAME 단일 Source of Truth를 사용한다',()=>
   assert.match(charts1,/plotW:Math\.max\(0,normalViewW-CHART_FRAME\.left-CHART_FRAME\.right\)/);
 });
 
+test('9차 chart shell은 공통 renderer·display token·정적 SVG visual source를 사용한다',()=>{
+  const tablet1=compact(tablet),mobile1=compact(mobile);
+  assert.match(charts,/function renderChartCard\(/);
+  assert.equal((charts.match(/\$\{renderChartCard\(\{/g)||[]).length,6);
+  assert.match(charts1,/const CHART_VISUAL=Object\.freeze\(\{ axisFontSize:11, dateFontSize:10/);
+  assert.match(charts1,/font-size':chartExpandedFixedUnits\(svg,CHART_VISUAL\.axisFontSize\)/);
+  assert.match(charts1,/stroke-dasharray':CHART_VISUAL\.hoverDash/);
+  assert.match(common1,/--chart-svg-min-width:960px; --chart-svg-height:330px; --chart-svg-radius:var\(--surface-radius-xs\); --chart-accent-height:3px; --chart-accent-opacity:\.68/);
+  assert.match(common1,/svg\.chart\{[^}]*min-width:var\(--chart-svg-min-width\); height:var\(--chart-svg-height\);[^}]*border-radius:min\(var\(--chart-svg-radius\)/);
+  assert.match(tablet1,/--chart-svg-min-width:100%/);
+  assert.doesNotMatch(charts,/has-horizontal-scroll/);
+  assert.match(tablet,/\.chart-grid \.chart-wrap\{/);
+  assert.match(mobile1,/height:var\(--chart-accent-height\); opacity:var\(--chart-accent-opacity\)/);
+  assert.match(common1,/\.chart-title-sub\{ display:inline; align-self:baseline;/);
+});
+
 test('Chart legend는 전체선택/다중선택을 지원하되 마지막 1개는 해제하지 않는다',()=>{
   assert.match(charts1,/if\(key==='__all__'\)\{ selection\.state\.selected=null;/);
   assert.match(charts1,/if\(next\.has\(key\)\)\{ if\(next\.size<=1\)return; next\.delete\(key\);/);

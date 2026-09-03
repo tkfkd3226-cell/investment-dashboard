@@ -161,6 +161,10 @@
       --card-text-rhythm-gap:var(--space-2xs);
       --info-stack-gap:var(--space-lg);
       --chart-content-rhythm-gap:var(--space-lg);
+      --chart-svg-min-width:960px;
+      --chart-svg-height:330px;
+      --chart-accent-height:2px;
+      --chart-accent-opacity:.55;
       --surface-radius-outer:20px;
       --dashboard-control-height:25px;
       --dashboard-control-font-size:9.5px;
@@ -700,9 +704,9 @@
       box-shadow:none;
       border-right:0;
     }
-    svg.chart{
-      min-width:100%;
-      height:clamp(235px,64dvh,270px);
+    :root{
+      --chart-svg-min-width:100%;
+      --chart-svg-height:clamp(235px,64dvh,270px);
     }
     .chart-card .chart-scroll-start,
     .chart-card .chart-scroll-end{display:none}

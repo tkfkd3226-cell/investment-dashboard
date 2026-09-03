@@ -119,8 +119,8 @@
 
   /* [M04. Charts / Ledger · 세로폰 차트 장식과 장부 layout] */
 .chart-card::before{
-      height:2px;
-      opacity:.55;
+      height:var(--chart-accent-height);
+      opacity:var(--chart-accent-opacity);
     }
 
 #ledger-check .ledger-overview-grid{grid-template-columns:1fr}
