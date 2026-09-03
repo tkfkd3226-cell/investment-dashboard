@@ -2906,7 +2906,7 @@ body.dashboard-dialog-open{
 
 .chart-title-sub{
   display:inline;
-  align-self:baseline;
+  align-self:flex-end;
   margin-left:var(--space-sm);
   color:var(--muted);
   font-size:var(--type-size-sm);

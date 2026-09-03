@@ -264,7 +264,7 @@ test('9차 chart shell은 공통 renderer·display token·정적 SVG visual sour
   assert.doesNotMatch(charts,/has-horizontal-scroll/);
   assert.match(tablet,/\.chart-grid \.chart-wrap\{/);
   assert.match(mobile1,/height:var\(--chart-accent-height\); opacity:var\(--chart-accent-opacity\)/);
-  assert.match(common1,/\.chart-title-sub\{ display:inline; align-self:baseline;/);
+  assert.match(common1,/\.chart-title-sub\{ display:inline; align-self:flex-end;/);
 });
 
 test('Chart legend는 전체선택/다중선택을 지원하되 마지막 1개는 해제하지 않는다',()=>{
