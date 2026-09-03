@@ -71,8 +71,9 @@
     .mobile-data-card-value{
       min-width:0;
       text-align:right;
-      font-size:11.5px;
+      font-size:var(--type-size-xs);
       line-height:var(--type-line-body);
+      font-variant-numeric:tabular-nums;
     }
     .mobile-data-card.mobile-total-card .mobile-data-card-title{font-weight:var(--data-list-total-title-weight)}
     .mobile-data-card.mobile-total-card .mobile-data-card-value{font-weight:var(--data-list-total-value-weight)}

@@ -144,13 +144,13 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
       ['수량',fmt(r.qty)],['평균단가',won(r.qty?r.cost/r.qty:0)],['매수원금',won(r.cost)],['평가금액',won(r.evalAmount)],['평가손익',won(r.profit),cls(r.profit)],['수익률',pct(r.returnRate),cls(r.returnRate)],['비중',pct(x.pensionEval?r.evalAmount/x.pensionEval*100:0)]
     ]
   }));
-  cards.push({title:'투자상품 합계',extraClass:'summary-card mobile-total-card',items:[
+  cards.push({title:'투자상품 합계',extraClass:'mobile-total-card',items:[
     ['매수원금',won(productCost)],['평가금액',won(productEval)],['평가손익',won(productProfit),cls(productProfit)],['수익률',pct(productReturn),cls(productReturn)],['비중',pct(productWeight)]
   ]});
   cards.push({title:'현금성자산',items:[
     ['매수원금',won(pensionCashCost)],['평가금액',won(x.pensionCash)],['평가손익',won(cashProfit),cls(cashProfit)],['수익률',pct(cashReturn),cls(cashReturn)],['비중',pct(cashWeight)]
   ]});
-  cards.push({title:'총합계',extraClass:'summary-card mobile-total-card',items:[
+  cards.push({title:'총합계',extraClass:'mobile-total-card',items:[
     ['매수원금',won(pensionHeldCost)],['평가금액',won(x.pensionEval)],['평가손익',won(pensionHeldProfit),cls(pensionHeldProfit)],['수익률',pct(pensionHeldReturn),cls(pensionHeldReturn)],['비중',pct(100)]
   ]});
   return renderAssetStatusBlock({

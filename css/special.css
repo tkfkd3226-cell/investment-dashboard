@@ -306,16 +306,15 @@
   /* Mini / Metric Cards · 카드 밀도는 세로폰 기준 공유 */
     .mini-card{
       --mini-label-size:10px;
-      --mini-value-size:13.5px;
-      --mini-detail-size:9.6px;
-      --mini-detail-weight:500;
+      --mini-value-size:13px;
+      --mini-detail-size:10px;
     }
     .metric-card{
       --metric-label-size:11px;
-      --metric-value-size:22px;
+      --metric-value-size:18px;
       --metric-sub-size:11px;
+      --metric-value-min-height:24px;
     }
-    .metric-grid > .metric-card .value{min-height:28px}
 
   /* Account Performance · 메모 폭 확보를 위해 손익 아래 수익률 결합 */
     #accounts-summary .accounts-table .performance-return-col{display:none}
@@ -398,21 +397,16 @@
     .pension-metric-grid{
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
-    .securities-summary-block .metric-card,
-    .pension-metric-grid > .metric-card{
+    :is(.securities-summary-block,.pension-metric-grid) .metric-card{
       --metric-label-size:11px;
       --metric-value-size:18px;
-      --metric-sub-size:10px;
+      --metric-sub-size:11px;
+      --metric-value-min-height:24px;
       min-width:0;
     }
-    .securities-summary-block .metric-card :is(.label,.value,.sub),
-    .pension-metric-grid > .metric-card :is(.label,.value,.sub){white-space:nowrap}
-    .securities-summary-block .metric-card .value,
-    .pension-metric-grid > .metric-card .value{min-height:24px}
-    .securities-summary-block .metric-sub-default,
-    .pension-metric-grid .metric-sub-default{display:none}
-    .securities-summary-block .metric-sub-mobile,
-    .pension-metric-grid .metric-sub-mobile{display:inline}
+    :is(.securities-summary-block,.pension-metric-grid) .metric-card :is(.label,.value,.sub){white-space:nowrap}
+    :is(.securities-summary-block,.pension-metric-grid) .metric-sub-default{display:none}
+    :is(.securities-summary-block,.pension-metric-grid) .metric-sub-mobile{display:inline}
 
   /* Symbol Summary · 종목/상품 카드 내부 밀도만 공통, 열 수는 방향별로 분리 */
     .chart-note.symbol-summary-grid{

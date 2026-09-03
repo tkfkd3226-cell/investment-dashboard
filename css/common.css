@@ -1062,33 +1062,6 @@ button svg{pointer-events:none;flex-shrink:0}
   box-shadow:var(--highlight-card-shadow);
 }
 
-.label{
-  font-size:var(--type-size-md);
-  color:var(--muted);
-  font-weight:var(--type-weight-bold);
-  margin-bottom:var(--space-xl);
-}
-
-.dark .label{
-  color:var(--highlight-card-muted);
-}
-
-.value{
-  font-size:var(--type-size-display-md);
-  font-weight:var(--type-weight-emphasis);
-  letter-spacing:-.04em;
-}
-
-.sub{
-  font-size:var(--type-size-md);
-  color:var(--muted);
-  margin-top:var(--space-md);
-}
-
-.dark .sub{
-  color:var(--highlight-card-muted);
-}
-
 section{
   margin-top:var(--page-section-gap);
 }
@@ -1224,8 +1197,10 @@ section{
 .mini-card .m-value{
   font-size:var(--mini-value-size);
   line-height:var(--type-line-tight);
-  letter-spacing:-.025em;
+  letter-spacing:-.035em;
   font-weight:var(--type-weight-emphasis);
+  font-variant-numeric:tabular-nums;
+  text-rendering:optimizeLegibility;
   margin-top:var(--card-text-rhythm-gap);
 }
 
@@ -1847,7 +1822,7 @@ body.chart-expanded-open .dash-tooltip{
   grid-column:1 / -1;
   display:grid;
   grid-template-columns:max-content minmax(0,1fr);
-  column-gap:var(--space-lg);
+  column-gap:clamp(3px,.45vw,6px);
   align-items:baseline;
 }
 .phone-chart-ui .security-alloc-card-grid > .alloc-total-card > .m-label{
@@ -2238,7 +2213,7 @@ body.chart-expanded-open .dash-tooltip{
   display:grid;
   gap:var(--space-2xs);
   margin-top:var(--card-text-rhythm-gap);
-  padding-top:calc(var(--card-text-rhythm-gap) + 3px);
+  padding-top:var(--card-text-rhythm-gap);
   border-top:1px solid var(--line);
 }
 
@@ -2248,14 +2223,14 @@ body.chart-expanded-open .dash-tooltip{
   align-items:baseline;
   justify-content:flex-start;
   row-gap:1px;
-  column-gap:var(--symbol-metric-gap,var(--space-4xl));
+  column-gap:var(--symbol-metric-gap);
   min-width:0;
 }
 
 .symbol-metric-label{
   flex:0 0 auto;
   color:var(--muted);
-  font-size:var(--symbol-metric-label-size,11px);
+  font-size:var(--symbol-metric-label-size);
   font-weight:var(--type-weight-strong);
   line-height:1;
   white-space:nowrap;
@@ -2264,7 +2239,7 @@ body.chart-expanded-open .dash-tooltip{
 .symbol-metric-value{
   flex:0 0 auto;
   margin-left:auto;
-  font-size:var(--symbol-metric-value-size,12px);
+  font-size:var(--symbol-metric-value-size);
   font-weight:var(--type-weight-emphasis);
   line-height:1;
   white-space:nowrap;
@@ -2294,6 +2269,7 @@ body.chart-expanded-open .dash-tooltip{
   --metric-label-size:13px;
   --metric-value-size:28px;
   --metric-sub-size:13px;
+  --metric-value-min-height:35px;
   --metric-label-weight:var(--type-weight-bold);
   --metric-value-weight:var(--type-weight-strong);
   --metric-value-emphasis-weight:var(--type-weight-emphasis);
@@ -2310,10 +2286,12 @@ body.chart-expanded-open .dash-tooltip{
 .metric-card .value{
   font-size:var(--metric-value-size);
   font-weight:var(--metric-value-weight);
-  line-height:1.18;
+  line-height:var(--type-line-tight);
   font-variant-numeric:tabular-nums;
+  letter-spacing:-.035em;
+  text-rendering:optimizeLegibility;
 }
-.metric-card:is(.dark,.highlight) .value{font-weight:var(--metric-value-emphasis-weight)}
+.metric-card.dark .value{font-weight:var(--metric-value-emphasis-weight)}
 
 .metric-card .sub{
   margin-top:var(--card-text-rhythm-gap);
@@ -2333,7 +2311,7 @@ body.chart-expanded-open .dash-tooltip{
 }
 
 .metric-grid > .metric-card .value{
-  min-height:35px;
+  min-height:var(--metric-value-min-height);
   display:flex;
   align-items:center;
 }
@@ -3480,12 +3458,6 @@ button:not(:disabled):active{
   background:var(--accent-strong-bg);
   opacity:.68;
   pointer-events:none;
-}
-
-.value,
-.m-value{
-  letter-spacing:-.035em;
-  text-rendering:optimizeLegibility;
 }
 
 .card.dark .value,

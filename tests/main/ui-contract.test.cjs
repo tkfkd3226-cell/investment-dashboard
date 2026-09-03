@@ -145,6 +145,39 @@ test('모바일 성과요약 KPI 4개는 Phone UI에서만 2x2 grid contract를 
   assert.match(special1,/\.securities-summary-block \.metric-grid, \.pension-metric-grid\{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\); \}/);
 });
 
+test('5차 KPI·mini-card·모바일 data-list는 공통 typography token과 숫자 정렬 contract를 사용한다',()=>{
+  const tablet1=compact(tablet);
+  const mobile1=compact(mobile);
+  assert.match(common1,/\.metric-card\{ --metric-label-size:13px; --metric-value-size:28px; --metric-sub-size:13px; --metric-value-min-height:35px/);
+  assert.match(common1,/\.metric-card \.value\{[^}]*line-height:var\(--type-line-tight\);[^}]*font-variant-numeric:tabular-nums/);
+  assert.match(common1,/\.metric-grid > \.metric-card \.value\{ min-height:var\(--metric-value-min-height\)/);
+  assert.match(tablet1,/\.metric-card\{ --metric-label-size:12px; --metric-value-size:24px; --metric-sub-size:12px; --metric-value-min-height:30px/);
+  assert.match(special1,/\.metric-card\{ --metric-label-size:11px; --metric-value-size:18px; --metric-sub-size:11px; --metric-value-min-height:24px/);
+  assert.doesNotMatch(special1,/metric-grid > \.metric-card \.value\{min-height:/);
+  assert.match(common1,/\.mini-card \.m-value\{[^}]*font-variant-numeric:tabular-nums/);
+  assert.match(tablet1,/--mini-detail-size:11px/);
+  assert.match(special1,/--mini-value-size:13px; --mini-detail-size:10px/);
+  assert.doesNotMatch(special1,/13\.5px|9\.6px|--mini-detail-weight:500/);
+  assert.match(mobile1,/\.mobile-data-card-value\{[^}]*font-size:var\(--type-size-xs\);[^}]*font-variant-numeric:tabular-nums/);
+  assert.doesNotMatch(common,/^\.label\{/m);
+  assert.doesNotMatch(common,/^\.value,/m);
+});
+
+test('5차 mini summary와 source card는 presentation helper 하나를 공유하고 Main dead class를 남기지 않는다',()=>{
+  assert.match(charts,/function cumulativeSummaryCards\(/);
+  assert.match(charts,/cumulativeSummaryCards\(\{profitLabel:'누적손익'/);
+  assert.match(charts,/cumulativeSummaryCards\(\{profitLabel:'운용손익'/);
+  assert.match(charts,/function symbolSummaryCard\(/);
+  assert.match(charts,/function symbolCard\(h,total\)\{return symbolSummaryCard/);
+  assert.match(charts,/function pensionProductCard\(h,total\)\{return symbolSummaryCard/);
+  assert.match(ui,/function sourceCard\(/);
+  assert.match(ui,/sourceCard\('전체 투입원금'/);
+  assert.doesNotMatch(ui,/summary-card/);
+  assert.doesNotMatch(read('js/dashboard-pension.js'),/summary-card/);
+  assert.match(common1,/\.symbol-metrics\{ display:grid; gap:var\(--space-2xs\); margin-top:var\(--card-text-rhythm-gap\); padding-top:var\(--card-text-rhythm-gap\)/);
+  assert.match(common1,/\.phone-chart-ui \.security-alloc-card-grid > \.alloc-total-card\{[^}]*column-gap:clamp\(3px,\.45vw,6px\)/);
+});
+
 test('Chart geometry는 CHART_FRAME 단일 Source of Truth를 사용한다',()=>{
   assert.match(charts1,/const CHART_FRAME=Object\.freeze\(\{left:70,right:70,top:20,bottom:70\}\)/);
   assert.equal((charts.match(/const CHART_FRAME=/g)||[]).length,1);

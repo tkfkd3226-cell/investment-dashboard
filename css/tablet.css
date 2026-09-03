@@ -49,7 +49,7 @@
 .mini-card{
       --mini-label-size:11px;
       --mini-value-size:17px;
-      --mini-detail-size:10.5px;
+      --mini-detail-size:11px;
     }
 
 .chart-note.six{
@@ -60,14 +60,11 @@
       --metric-label-size:12px;
       --metric-value-size:24px;
       --metric-sub-size:12px;
+      --metric-value-min-height:30px;
     }
 
     .metric-grid{
       grid-template-columns:repeat(2,minmax(0,1fr));
-    }
-
-    .metric-grid > .metric-card .value{
-      min-height:30px;
     }
 
     .chart-note.symbol-summary-grid{
