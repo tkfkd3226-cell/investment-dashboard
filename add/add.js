@@ -266,6 +266,7 @@
     updateActualSellPriceUI();
     $('inputGrid').classList.toggle('no-prior-layout',noPrior);
     $('inputGrid').classList.toggle('holding-case',!settled);
+    $('inputGrid').classList.toggle('settled-case',settled);
     $('currentGroup').classList.toggle('no-prior-current',noPrior);
     $('priorGroup').classList.toggle('hidden',noPrior);
     moveCurrentPrice(settled);
