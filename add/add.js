@@ -155,14 +155,29 @@
     if(noPriorMode)return null;
     return caseType==='settled'?91065:74580;
   }
+  let actualSellPriceFeedbackTimer=0;
+  function resetActualSellPriceFeedback(){
+    if(actualSellPriceFeedbackTimer){clearTimeout(actualSellPriceFeedbackTimer);actualSellPriceFeedbackTimer=0;}
+    const button=$('applyActualSellPrice'),text=$('actualSellPriceActionText');
+    if(button)button.classList.remove('is-applied');
+    if(text)text.textContent='적용';
+  }
+  function showActualSellPriceAppliedFeedback(){
+    resetActualSellPriceFeedback();
+    const button=$('applyActualSellPrice'),text=$('actualSellPriceActionText');
+    button.classList.add('is-applied');
+    text.textContent='적용됨 ✓';
+    actualSellPriceFeedbackTimer=setTimeout(()=>{actualSellPriceFeedbackTimer=0;button.classList.remove('is-applied');text.textContent='적용';},900);
+  }
   function updateActualSellPriceUI(){
     const actualSellPrice=getActualSellPrice();
     const visible=Number.isFinite(actualSellPrice);
     $('applyActualSellPrice').classList.toggle('hidden',!visible);
+    resetActualSellPriceFeedback();
     if(!visible)return;
     const display=nf0.format(actualSellPrice);
-    $('actualSellPriceValue').textContent=display;
-    $('applyActualSellPrice').setAttribute('aria-label',`실제 매도 단가 ${display}를 목표 매도단가에 반영`);
+    $('actualSellPriceValue').textContent=`${display}원`;
+    $('applyActualSellPrice').setAttribute('aria-label',`실제 매도 단가 ${display}원을 목표 매도단가에 적용`);
   }
   function disableAutoBreakEven(){if(!applying&&autoBreakEvenTarget){autoBreakEvenTarget=false;setMode(mode,false);}}
 
@@ -562,6 +577,7 @@
   function getCalculationOptions(){return {caseType,noPrior:noPriorMode,mode,autoBreakEvenTarget};}
 
   function recalc(){
+    resetActualSellPriceFeedback();
     const i=getInputs();
     const options=getCalculationOptions();
     const validation=validate(i,options);
@@ -656,6 +672,7 @@
       setMode('target',false);
       $('targetPrice').value=nf0.format(actualSellPrice);
       recalc();
+      showActualSellPriceAppliedFeedback();
     });
     $('priorSellDateInput').addEventListener('input',recalc);
     $('resetBtn').addEventListener('click',()=>{storage.remove('investmentLossRecoveryCalcV17');storage.remove('investmentLossRecoveryCalcV16');storage.remove('investmentLossRecoveryCalcV15');storage.remove('investmentLossRecoveryCalcV12');applyPreset(defaultPresetId);});

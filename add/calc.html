@@ -120,8 +120,10 @@
             <div class="field"><label id="riseLabel" for="risePct">추가매수가 대비 변동률</label><div class="pct-stepper"><button class="pct-step-btn add-button add-button-step" type="button" data-target="risePct" data-delta="-0.1" aria-label="추가매수가 대비 변동률 0.1%p 감소">−</button><div class="with-unit"><span class="calc-control-shell"><input id="risePct" class="control" type="number" min="-99.999999" step="0.1" value="8.769"></span><span class="unit">%</span></div><button class="pct-step-btn add-button add-button-step" type="button" data-target="risePct" data-delta="0.1" aria-label="추가매수가 대비 변동률 0.1%p 증가">+</button></div></div>
             <div class="field full"><label for="targetPrice">목표 매도단가</label><span class="calc-control-shell"><input id="targetPrice" class="control money-input" inputmode="numeric" readonly></span></div>
           </div>
-          <div class="formula" id="formulaText"></div>
-          <button class="actual-sale-price add-button add-button-action" id="applyActualSellPrice" type="button" aria-label="실제 매도 단가를 목표 매도단가에 반영"><span>실제 매도 단가</span><strong id="actualSellPriceValue">91,065</strong></button>
+          <div class="actual-sale-field">
+            <div class="formula" id="formulaText"></div>
+            <button class="actual-sale-price add-button add-button-action" id="applyActualSellPrice" type="button" aria-label="실제 매도 단가를 목표 매도단가에 적용"><span class="actual-sale-label">실제 매도 단가</span><strong id="actualSellPriceValue">91,065원</strong><span class="actual-sale-apply" id="actualSellPriceActionText" aria-live="polite">적용</span></button>
+          </div>
         </div>
       </div>
     </div>
