@@ -46,6 +46,7 @@ import {
   renderAssetDayChangeValue,
   renderAssetDayChangeBlock,
   renderDashboardDataTable,
+  renderAssetInsightZone,
   renderMobileCardView,
   renderAssetStatusBlock,
   renderAssetWeight,
@@ -816,11 +817,11 @@ function renderHoldings(x){
     color:securityAllocationColor(item.name),
     valueText:signed(item.value)
   }));
-  const contributionHtml=`<div class="asset-insight-zone" role="group" aria-label="증권계좌 인사이트">${renderAssetContributionCard({
+  const contributionHtml=renderAssetInsightZone({label:'증권계좌 인사이트',content:renderAssetContributionCard({
     idPrefix:'securitiesContribution',
     hasPrev:detail.hasPrev,
     items:contributionItems
-  })}</div>`;
+  })});
   return renderAssetStatusBlock({
     sectionId:'securities-holdings',
     idPrefix:'securities-holdings',

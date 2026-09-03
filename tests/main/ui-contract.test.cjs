@@ -19,6 +19,7 @@ const core=read('js/dashboard-core.js');
 const modal=read('js/dashboard-modal.js');
 const uiCommon=read('js/dashboard-ui-common.js');
 const ui=read('js/dashboard-ui.js');
+const pension=read('js/dashboard-pension.js');
 const pensionEditor=read('js/dashboard-pension-editor.js');
 const marketAi=read('js/dashboard-market-ai.js');
 const app=read('js/dashboard-app.js');
@@ -200,6 +201,32 @@ test('7차 모바일 표↔카드 전환은 단일 config·공통 card shell·vi
   assert.match(special1,/\[data-mobile-view\] \.table-view\{display:block\}/);
   assert.match(special1,/\[data-mobile-view\] \.mobile-card-view\{display:none\}/);
   assert.doesNotMatch(special1,/\[data-mobile-view="card"\] \.table-view/);
+});
+
+test('8차 자산 인사이트는 viewport token·공통 shell·CSS 소유 시각값을 사용한다',()=>{
+  const tablet1=compact(tablet);
+  assert.match(common1,/--asset-insight-zone-offset:var\(--space-6xl\); --asset-insight-stack-height:20px; --asset-insight-risk-gauge-height:20px/);
+  assert.match(tablet1,/--asset-insight-zone-offset:var\(--space-5xl\); --asset-insight-stack-height:18px; --asset-insight-risk-gauge-height:18px/);
+  assert.match(special1,/--asset-insight-zone-offset:var\(--space-4xl\); --asset-insight-stack-height:16px; --asset-insight-risk-gauge-height:16px/);
+  assert.match(common1,/\.asset-insight-zone\{[^}]*margin-top:var\(--asset-insight-zone-offset\)/);
+  assert.match(common1,/\.asset-stack-bar\{[^}]*height:var\(--asset-insight-stack-height\)/);
+  assert.match(common1,/\.pension-risk-gauge\{[^}]*height:var\(--asset-insight-risk-gauge-height\)/);
+  assert.match(common1,/\.asset-stack-segment\{[^}]*width:var\(--asset-segment-share,0%\);[^}]*background:var\(--asset-segment-color,transparent\)/);
+  assert.match(common1,/\.pension-risk-fill\{[^}]*width:var\(--pension-risk-ratio,0%\)/);
+  assert.match(common1,/\.pension-risk-threshold\{[^}]*left:var\(--pension-risk-threshold-position,70%\)/);
+  assert.match(common1,/\.pension-risk-gauge \.asset-viz-tooltip\{ bottom:calc\(100% \+ var\(--tooltip-stack-anchor-gap\)\)/);
+  assert.match(common1,/\.asset-stack-segment:first-child\{ border-top-left-radius:var\(--radius-pill\);/);
+  assert.match(uiCommon,/function renderAssetInsightCard\(/);
+  assert.match(uiCommon,/function renderAssetInsightZone\(/);
+  const contributionRenderer=uiCommon.match(/function renderAssetContributionCard\([\s\S]*?\n}\r?\n\r?\n\/\/ \[UICOMMON05\]/)?.[0]||'';
+  assert.doesNotMatch(contributionRenderer,/cardClass=|headClass=|stackClass=|segmentClass=|tooltipClass=|emptyNoItemsClass=/);
+  assert.doesNotMatch(contributionRenderer,/asset-insight-head simple|asset-stack-bar compact|pension-risk-gauge compact/);
+  assert.match(uiCommon,/--asset-segment-share:/);
+  assert.match(uiCommon,/\(hover: none\), \(pointer: coarse\)/);
+  assert.match(ui,/renderAssetInsightZone\(\{label:'증권계좌 인사이트'/);
+  assert.match(pension,/renderAssetInsightCard\(\{idPrefix:'pensionRisk'/);
+  assert.match(pension,/renderAssetInsightZone\(\{label:'퇴직연금 인사이트'/);
+  assert.match(special1,/:is\(\.asset-stack-segment:first-child,\.asset-stack-segment:last-child\) \.asset-viz-tooltip/);
 });
 
 test('5차 mini summary와 source card는 presentation helper 하나를 공유하고 Main dead class를 남기지 않는다',()=>{

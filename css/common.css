@@ -88,6 +88,9 @@
   --surface-pad-emphasis:var(--space-8xl);
   --surface-pad-data-list:13px;
   --source-table-gap:var(--space-5xl);
+  --asset-insight-zone-offset:var(--space-6xl);
+  --asset-insight-stack-height:20px;
+  --asset-insight-risk-gauge-height:20px;
   --surface-radius-outer:24px;
   --surface-radius-large:var(--surface-radius-lg);
   --surface-radius-medium:var(--surface-radius-md);
@@ -1868,7 +1871,7 @@ body.chart-expanded-open .dash-tooltip{
   display:grid;
   grid-template-columns:1fr;
   gap:var(--card-grid-gap-medium);
-  margin-top:var(--space-6xl);
+  margin-top:var(--asset-insight-zone-offset);
 }
 
 :is(.asset-insight-card,.source-card){
@@ -1939,7 +1942,7 @@ body.chart-expanded-open .dash-tooltip{
   display:flex;
   position:relative;
   width:100%;
-  height:22px;
+  height:var(--asset-insight-stack-height);
   overflow:visible;
   border-radius:var(--radius-pill);
   background:var(--meter-track-bg);
@@ -1953,6 +1956,8 @@ body.chart-expanded-open .dash-tooltip{
   position:relative;
   min-width:0;
   height:100%;
+  width:var(--asset-segment-share,0%);
+  background:var(--asset-segment-color,transparent);
 }
 
 .asset-stack-segment + .asset-stack-segment{
@@ -1960,13 +1965,13 @@ body.chart-expanded-open .dash-tooltip{
 }
 
 .asset-stack-segment:first-child{
-  border-top-left-radius:999px;
-  border-bottom-left-radius:999px;
+  border-top-left-radius:var(--radius-pill);
+  border-bottom-left-radius:var(--radius-pill);
 }
 
 .asset-stack-segment:last-child{
-  border-top-right-radius:999px;
-  border-bottom-right-radius:999px;
+  border-top-right-radius:var(--radius-pill);
+  border-bottom-right-radius:var(--radius-pill);
 }
 
 .asset-stack-segment span{
@@ -2046,7 +2051,7 @@ body.chart-expanded-open .dash-tooltip{
 
 .pension-risk-gauge{
   position:relative;
-  height:16px;
+  height:var(--asset-insight-risk-gauge-height);
   border-radius:var(--radius-pill);
   background:var(--meter-track-bg);
   border:1px solid var(--meter-track-border);
@@ -2054,6 +2059,7 @@ body.chart-expanded-open .dash-tooltip{
 }
 
 .pension-risk-fill{
+  width:var(--pension-risk-ratio,0%);
   height:100%;
   border-radius:var(--radius-pill);
 }
@@ -2068,6 +2074,7 @@ body.chart-expanded-open .dash-tooltip{
 
 .pension-risk-threshold{
   position:absolute;
+  left:var(--pension-risk-threshold-position,70%);
   top:-6px;
   width:0;
   height:30px;
@@ -2089,7 +2096,7 @@ body.chart-expanded-open .dash-tooltip{
 }
 
 .pension-risk-gauge .asset-viz-tooltip{
-  bottom:calc(100% + 12px);
+  bottom:calc(100% + var(--tooltip-stack-anchor-gap));
 }
 
 .pension-risk-scale{

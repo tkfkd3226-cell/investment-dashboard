@@ -152,6 +152,9 @@
       --surface-pad-metric:var(--space-4xl);
       --surface-pad-emphasis:var(--space-4xl);
       --surface-pad-data-list:var(--space-4xl);
+      --asset-insight-zone-offset:var(--space-4xl);
+      --asset-insight-stack-height:16px;
+      --asset-insight-risk-gauge-height:16px;
       --card-grid-gap-large:var(--space-4xl);
       --card-grid-gap-medium:var(--space-2xl);
       --card-grid-gap-compact:var(--space-lg);
@@ -363,26 +366,19 @@
 
   /* Asset Insight · 인사이트 카드/스택/tooltip은 세로폰과 같은 compact 기준 */
     .asset-insight-head h3{font-size:var(--type-size-md)}
-    .asset-stack-bar{height:18px;touch-action:pan-y}
+    .asset-stack-bar{touch-action:pan-y}
     .asset-stack-segment{position:static}
     .asset-stack-segment span{font-size:var(--type-size-2xs)}
 
-    .asset-stack-segment:first-child .asset-viz-tooltip,
-    .asset-stack-segment:last-child .asset-viz-tooltip{
+    :is(.asset-stack-segment:first-child,.asset-stack-segment:last-child) .asset-viz-tooltip{
       left:50%;
       right:auto;
       transform:translateX(-50%) translateY(6px);
     }
-    .asset-stack-segment:first-child:hover .asset-viz-tooltip,
-    .asset-stack-segment:first-child:focus-within .asset-viz-tooltip,
-    .asset-stack-segment:first-child.tooltip-open .asset-viz-tooltip,
-    .asset-stack-segment:last-child:hover .asset-viz-tooltip,
-    .asset-stack-segment:last-child:focus-within .asset-viz-tooltip,
-    .asset-stack-segment:last-child.tooltip-open .asset-viz-tooltip{
+    :is(.asset-stack-segment:first-child,.asset-stack-segment:last-child):is(:hover,:focus-within,.tooltip-open) .asset-viz-tooltip{
       transform:translateX(-50%) translateY(0);
     }
-    .asset-stack-segment:first-child .asset-viz-tooltip::after,
-    .asset-stack-segment:last-child .asset-viz-tooltip::after{
+    :is(.asset-stack-segment:first-child,.asset-stack-segment:last-child) .asset-viz-tooltip::after{
       left:50%;
       right:auto;
       transform:translateX(-50%);

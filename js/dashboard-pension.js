@@ -20,6 +20,8 @@ import {
   renderAssetContributionCard,
   renderAssetDayChangeValue,
   renderAssetDayChangeBlock,
+  renderAssetInsightCard,
+  renderAssetInsightZone,
   renderAssetStatusBlock,
   renderAssetWeight
 } from './dashboard-ui-common.js';
@@ -67,8 +69,9 @@ function renderPensionProductInsights(x){
     items:items.map(item=>({...item,shortLabel:item.name.replace('KODEX ',''),valueText:signed(item.value)})),
   });
   const riskTooltip=`위험자산 ${won(risk.riskEval)} / 안전자산 ${won(risk.safeEval)} / 기준 대비 ${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p`;
-  const riskHtml=`<div class="asset-insight-card" role="group" aria-labelledby="pensionRiskInsightTitle"><div class="asset-insight-head simple"><h3 id="pensionRiskInsightTitle">위험자산 70% 룰</h3><span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}" aria-hidden="true">현재 ${risk.ratio.toFixed(1)}%</span></div><div class="pension-risk-gauge compact has-tooltip" tabindex="0" role="img" aria-label="위험자산 비중 ${risk.ratio.toFixed(1)}%, 기준 ${risk.threshold}%, 기준 대비 ${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p" aria-describedby="pensionRiskTooltip"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}" style="width:${gaugeWidth.toFixed(1)}%"></div><div class="pension-risk-threshold" aria-hidden="true" style="left:${risk.threshold}%"><span>${risk.threshold}%</span></div><div id="pensionRiskTooltip" class="asset-viz-tooltip wide" role="tooltip"><strong>위험자산 70% 룰</strong><div>${riskTooltip}</div></div></div><div class="pension-risk-scale" aria-hidden="true"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div></div>`;
-  return `<div class="asset-insight-zone" role="group" aria-label="퇴직연금 인사이트">${contributionHtml}${riskHtml}</div>`;
+  const riskContent=`<div class="pension-risk-gauge has-tooltip" tabindex="0" role="img" aria-label="위험자산 비중 ${risk.ratio.toFixed(1)}%, 기준 ${risk.threshold}%, 기준 대비 ${risk.gap>0?'+':''}${risk.gap.toFixed(1)}%p" aria-describedby="pensionRiskTooltip" style="--pension-risk-ratio:${gaugeWidth.toFixed(1)}%;--pension-risk-threshold-position:${risk.threshold}%"><div class="pension-risk-fill ${riskTone==='danger'?'danger':'safe'}"></div><div class="pension-risk-threshold" aria-hidden="true"><span>${risk.threshold}%</span></div><div id="pensionRiskTooltip" class="asset-viz-tooltip wide" role="tooltip"><strong>위험자산 70% 룰</strong><div>${riskTooltip}</div></div></div><div class="pension-risk-scale" aria-hidden="true"><span>0%</span><span>기준 ${risk.threshold}%</span><span>100%</span></div>`;
+  const riskHtml=renderAssetInsightCard({idPrefix:'pensionRisk',title:'위험자산 70% 룰',headExtra:`<span class="pension-insight-badge ${riskTone==='danger'?'danger':'safe'}" aria-hidden="true">현재 ${risk.ratio.toFixed(1)}%</span>`,content:riskContent});
+  return renderAssetInsightZone({label:'퇴직연금 인사이트',content:`${contributionHtml}${riskHtml}`});
 }
 
 // [PENSION02] Product / Change Rendering · 상품 현황 / 전일대비 렌더링

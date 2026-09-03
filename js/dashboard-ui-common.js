@@ -199,28 +199,27 @@ function renderAssetWeight({label='',weight=0,color='',fillClass=''}={}){
   const fillStyle=`width:${weightText}%${color?`;background:${color}`:''}`;
   return `<div class="bar-box" role="progressbar" aria-label="${escapeHtml(label)} 비중" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${weightText}" aria-valuetext="${weightText}%"><div class="${fillClasses}" aria-hidden="true" style="${fillStyle}"></div></div><div class="data-table-sub">${weightText}%</div>`;
 }
+function renderAssetInsightCard({idPrefix='assetInsight',title='',headExtra='',content=''}={}){
+  const titleId=`${idPrefix}InsightTitle`;
+  return `<div class="asset-insight-card" role="group" aria-labelledby="${titleId}"><div class="asset-insight-head"><h3 id="${titleId}">${title}</h3>${headExtra}</div>${content}</div>`;
+}
+function renderAssetInsightZone({label='',content=''}={}){
+  return `<div class="asset-insight-zone" role="group" aria-label="${escapeHtml(label)}">${content}</div>`;
+}
 function renderAssetContributionCard({
   idPrefix='assetContribution',
   title='오늘 상승분 기여도',
   hasPrev=false,
   items=[],
-  cardClass='asset-insight-card',
-  headClass='asset-insight-head simple',
-  stackClass='asset-stack-bar compact simple',
-  segmentClass='asset-stack-segment has-tooltip',
-  tooltipClass='asset-viz-tooltip',
-  emptyClass='asset-empty-state',
-  emptyNoItemsClass='asset-empty-state',
   noPrevMessage='전일 데이터가 없어 오늘 상승분 기여도를 표시하지 않습니다.',
   emptyMessage='상승한 자산이 없어 기여도를 표시하지 않습니다.'
 }={}){
-  const titleId=`${idPrefix}InsightTitle`;
   const content=!hasPrev
-    ? `<div class="${emptyClass}">${noPrevMessage}</div>`
+    ? `<div class="asset-empty-state">${noPrevMessage}</div>`
     : items.length
-      ? `<div class="${stackClass}" role="group" aria-label="${escapeHtml(title)} 구성">${items.map((item,index)=>{const tooltipId=`${idPrefix}Tooltip${index}`;const share=Math.max(0,Number(item.share)||0);const valueText=item.valueText??'';const ariaLabel=escapeHtml(`${item.name} 상승분 기여도 ${share.toFixed(1)}%, ${valueText}`);return `<div class="${segmentClass}" tabindex="0" role="img" aria-label="${ariaLabel}" aria-describedby="${tooltipId}" style="width:${share.toFixed(4)}%;background:${item.color}"><span>${share>=8?(item.shortLabel??item.name):''}</span><div id="${tooltipId}" class="${tooltipClass}" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${share.toFixed(1)}%</div><div>${valueText}</div></div></div>`}).join('')}</div>`
-      : `<div class="${emptyNoItemsClass||emptyClass}">${emptyMessage}</div>`;
-  return `<div class="${cardClass}" role="group" aria-labelledby="${titleId}"><div class="${headClass}"><h3 id="${titleId}">${title}</h3></div>${content}</div>`;
+      ? `<div class="asset-stack-bar" role="group" aria-label="${escapeHtml(title)} 구성">${items.map((item,index)=>{const tooltipId=`${idPrefix}Tooltip${index}`;const share=Math.max(0,Number(item.share)||0);const valueText=String(item.valueText??'');const ariaLabel=escapeHtml(`${item.name} 상승분 기여도 ${share.toFixed(1)}%, ${valueText}`);const label=share>=8?escapeHtml(item.shortLabel??item.name):'';const color=escapeHtml(String(item.color||'transparent'));return `<div class="asset-stack-segment has-tooltip" tabindex="0" role="img" aria-label="${ariaLabel}" aria-describedby="${tooltipId}" style="--asset-segment-share:${share.toFixed(4)}%;--asset-segment-color:${color}"><span>${label}</span><div id="${tooltipId}" class="asset-viz-tooltip" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${share.toFixed(1)}%</div><div>${escapeHtml(valueText)}</div></div></div>`}).join('')}</div>`
+      : `<div class="asset-empty-state">${emptyMessage}</div>`;
+  return renderAssetInsightCard({idPrefix,title,content});
 }
 
 // [UICOMMON05] Feedback / Viewport Utilities · 토스트 / 모바일 viewport 보정
@@ -267,7 +266,7 @@ function setupAssetVizTooltips(zoneSelector){
   if(assetVizTooltipTouchBound)return;
   assetVizTooltipTouchBound=true;
 
-  const isTouchLike=()=>window.matchMedia('(hover: none)').matches||window.innerWidth<=900;
+  const isTouchLike=()=>window.matchMedia('(hover: none), (pointer: coarse)').matches;
   const targetSelector=()=>[...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip`).join(',');
   const openSelector=()=>[...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip.tooltip-open`).join(',');
   const touchDragThreshold=6;
@@ -470,6 +469,8 @@ export {
   renderAssetContributionCard,
   renderAssetDayChangeValue,
   renderAssetDayChangeBlock,
+  renderAssetInsightCard,
+  renderAssetInsightZone,
   renderDashboardDataTable,
   renderAssetStatusBlock,
   renderAssetWeight,
