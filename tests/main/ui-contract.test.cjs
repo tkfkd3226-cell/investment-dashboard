@@ -108,7 +108,8 @@ test('Card surface와 viewport section rhythm은 semantic token 단일 contract�
   assert.match(special1,/--page-section-gap:var\(--space-5xl\)/);
   assert.match(common1,/--asset-band-section-gap:var\(--card-grid-gap-large\)/);
   assert.match(common1,/:is\(\.card,\.note,\.chart-card\)\{ background:var\(--card\); border-radius:min\(var\(--surface-radius-large\),var\(--corner-surface-cap\)\); padding:var\(--surface-pad-large\)/);
-  assert.match(common1,/:is\(\.chart-grid,\.asset-detail-grid,\.metric-grid,\.source-grid,#ledger-check \.ledger-overview-grid\)\{gap:var\(--card-grid-gap-large\)\}/);
+  assert.match(common1,/:is\(\.chart-grid,\.asset-detail-grid,\.metric-grid,\.source-grid,\.ledger-overview-grid\)\{gap:var\(--card-grid-gap-large\)\}/);
+  assert.doesNotMatch(common1,/:is\([^}]*#ledger-check[^}]*\)\{gap:/);
   assert.match(common1,/:is\(\.asset-detail-grid,\.securities-subsection,\.pension-chart-block\)\{margin-top:var\(--asset-band-section-gap\)\}/);
   assert.match(common1,/:is\(\.source-table-scroll,\.change-table-wrap\)\{margin-top:var\(--space-5xl\);border-radius:min\(var\(--surface-radius-xs\),var\(--corner-surface-cap\)\)\}/);
   assert.match(common1,/\.data-list-card\{[^}]*border-radius:min\(var\(--surface-radius-mini\),var\(--corner-surface-cap\)\)/);

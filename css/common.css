@@ -3112,7 +3112,7 @@ body.dashboard-dialog-open{
 }
 
 /* [09B. Capital Source / Source Data · 투자원금 원천 / 검산 데이터] */
-:is(.chart-grid,.asset-detail-grid,.metric-grid,.source-grid,#ledger-check .ledger-overview-grid){gap:var(--card-grid-gap-large)}
+:is(.chart-grid,.asset-detail-grid,.metric-grid,.source-grid,.ledger-overview-grid){gap:var(--card-grid-gap-large)}
 
 .source-card{
   min-width:0;
