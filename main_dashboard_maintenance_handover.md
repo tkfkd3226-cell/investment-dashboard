@@ -2323,7 +2323,6 @@ Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유�
 --surface-pad-large
 --surface-pad-medium
 --surface-pad-mini
---surface-pad-metric
 --surface-pad-emphasis
 --surface-pad-data-list
 ```
@@ -2333,7 +2332,7 @@ Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유�
 - Medium: `.asset-insight-card`, `.source-card`
 - Mini: `.mini-card`
 - Data List: `.data-list-card`를 모바일 카드보기와 Market AI compact group이 공유하며 `--surface-pad-data-list`, level-3 radius alias, `--shadow-data-list-card`, `--data-list-row-separator` contract를 함께 사용한다. 별도 1회성 data-list radius token을 만들지 않는다.
-- Metric/Emphasis는 `.card` 기반 variant다.
+- Metric은 `.card`의 Large surface padding을 그대로 재사용하며 별도 metric padding token을 두지 않는다. Emphasis 계열만 정보구조상 필요한 경우 `--surface-pad-emphasis`를 사용한다.
 - base selector가 semantic token을 소유하고 Tablet/Phone에서는 **token 값만 변경**한다. 같은 padding을 responsive selector에 반복하지 않는다.
 
 radius는 padding 분류와 별도로 화면상 같은 line/hierarchy를 기준으로 3단계 token을 사용한다.
