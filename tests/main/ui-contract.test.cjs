@@ -17,7 +17,6 @@ const print=read('css/print.css');
 const charts=read('js/dashboard-charts.js');
 const core=read('js/dashboard-core.js');
 const modal=read('js/dashboard-modal.js');
-const responsive=read('js/dashboard-responsive.js');
 const uiCommon=read('js/dashboard-ui-common.js');
 const ui=read('js/dashboard-ui.js');
 const pension=read('js/dashboard-pension.js');
@@ -47,7 +46,7 @@ test('Main boot contract: CSS 6개 순서와 app/Market AI 두 module entry를 �
   }
   assert.match(index,/type="module" src="js\/dashboard-app\.js\?v=/);
   assert.match(index,/type="module" src="js\/dashboard-market-ai\.js\?v=/);
-  assert.match(index,/'dashboard-responsive\.js'/);
+  assert.doesNotMatch(index,/'dashboard-responsive\.js'/);
 });
 
 
@@ -61,11 +60,11 @@ test('Main appearance 두 control은 localStorage와 BroadcastChannel을 함께 
   assert.match(ui1,/function setCornerTheme\(theme\)\{[^]*?localStorage\.setItem\(CORNER_THEME_STORAGE_KEY,rounded\?'rounded':'soft-square'\)[^]*?syncCornerThemeControls\(\); publishAppearanceChange\(\);/);
 });
 
-test('Main module boundary: core는 DOM 비의존, modal은 무의존, Market AI는 modal/responsive contract만 공유한다',()=>{
+test('Main module boundary: core는 DOM 비의존, modal은 무의존, Market AI는 modal만 공유한다',()=>{
   assert.doesNotMatch(core,/\bdocument\b/);
   assert.doesNotMatch(core,/\bwindow\b/);
   assert.deepEqual(importsOf(modal),[]);
-  assert.deepEqual(importsOf(marketAi),['./dashboard-modal.js','./dashboard-responsive.js']);
+  assert.deepEqual(importsOf(marketAi),['./dashboard-modal.js']);
 });
 
 test('Main graph entry: app은 core/ui-common/modal/charts/ui/pension/pension-editor를 orchestration한다',()=>{
@@ -125,15 +124,25 @@ assert.match(common1,/\.source-table-scroll\{margin-top:var\(--source-table-gap\
   assert.doesNotMatch(mobile1,/\.asset-workspace-tabs\{/);
 });
 
-test('Phone Landscape/Phone UI JS predicate는 feature-neutral responsive contract가 단일 source로 소유한다',()=>{
-  const query='(orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
-  assert.ok(compact(special).includes(`@media ${query}{`));
-  assert.match(responsive,/const PHONE_PORTRAIT_QUERY='\(max-width:760px\)'/);
-  assert.match(responsive,/const PHONE_LANDSCAPE_QUERY='\(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)'/);
-  assert.match(responsive,/const PHONE_UI_QUERY=`\$\{PHONE_PORTRAIT_QUERY\}, \$\{PHONE_LANDSCAPE_QUERY\}`/);
-  assert.deepEqual(importsOf(uiCommon),['./dashboard-responsive.js']);
-  assert.match(marketAi,/window\.matchMedia\(PHONE_UI_QUERY\)/);
-  assert.doesNotMatch(marketAi,/MARKET_AI_PHONE_MEDIA_QUERY|max-width:760px|max-width:960px|max-height:500px/);
+test('Phone Landscape/Phone UI contract는 Main·Market AI·CSS가 같은 predicate를 유지한다',()=>{
+  const portrait='(max-width:760px)';
+  const landscape='(orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
+  const combined=`${portrait}, ${landscape}`;
+
+  const uiLandscape=uiCommon.match(/const PHONE_LANDSCAPE_QUERY='([^']+)'/)?.[1];
+  const marketCombined=marketAi.match(/const MARKET_AI_PHONE_MEDIA_QUERY='([^']+)'/)?.[1];
+
+  assert.equal(uiLandscape,landscape,'Main Phone Landscape query drifted');
+  assert.match(uiCommon,/function phoneUi\(\)\{\s*return window\.matchMedia\?\.\('\(max-width:760px\)'\)\.matches===true\|\|phoneLandscapeUi\(\);\s*\}/);
+  assert.equal(marketCombined,combined,'Market AI Phone query drifted from Main contract');
+
+  const specialCompact=compact(special);
+  assert.ok(specialCompact.includes(`@media ${combined}{`),'Phone Shared CSS query drifted');
+  assert.ok(specialCompact.includes(`@media ${landscape}{`),'Phone Landscape CSS query drifted');
+
+  assert.deepEqual(importsOf(uiCommon),[],'ui-common must keep responsive predicate local to Main graph');
+  assert.deepEqual(importsOf(marketAi),['./dashboard-modal.js'],'Market AI must remain standalone except modal lifecycle');
+  assert.doesNotMatch(index,/dashboard-responsive\.js/);
 });
 
 test('Topbar 날짜 년월/일 select는 같은 width token을 공유한다',()=>{

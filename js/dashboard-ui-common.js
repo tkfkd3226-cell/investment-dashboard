@@ -1,5 +1,3 @@
-import { phoneLandscapeUi, phoneUi } from './dashboard-responsive.js';
-
 // Dashboard UI Common · feature-neutral DOM / markup / responsive helpers
 // Ownership: business state는 feature module이 소유하고, 이 모듈은 공통 표현과 저수준 interaction만 제공한다.
 // Structure map:
@@ -12,7 +10,13 @@ import { phoneLandscapeUi, phoneUi } from './dashboard-responsive.js';
 //   [UICOMMON07] Public API
 
 // [UICOMMON01] Responsive Predicate / Shared View State · 반응형 판정 / 공통 보기 상태
-// Viewport predicate는 dashboard-responsive.js의 feature-neutral contract를 재사용한다.
+const PHONE_LANDSCAPE_QUERY='(orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
+function phoneLandscapeUi(){
+  return window.matchMedia?.(PHONE_LANDSCAPE_QUERY).matches===true;
+}
+function phoneUi(){
+  return window.matchMedia?.('(max-width:760px)').matches===true||phoneLandscapeUi();
+}
 
 const MOBILE_VIEW_CONFIG=Object.freeze({
   holdings:{defaultMode:'table',label:'보유종목 현황',controls:'securities-holdings-table-view securities-holdings-card-view'},
