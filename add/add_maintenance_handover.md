@@ -69,14 +69,13 @@ Add 영역의 토큰화·공통화 평가는 **literal 값의 존재 자체가 �
 `add/` 영역 또는 KODEX 레버리지 거래 리포트를 수정할 때는 다음 순서로 확인한다.
 
 ```text
-1. /main_dashboard_maintenance_handover.md
-2. /add/add_maintenance_handover.md
-3. 현재 ZIP의 실제 관련 소스
-   - data/portfolio.json
-   - add/calc.html
-   - add/kodex-leverage-report.html
-   - 필요 시 add/add.css, add/add.js
-4. 사용자가 이번 작업에 제공한 최신 증권사 원본 자료
+1. /add/add_maintenance_handover.md
+2. 현재 ZIP의 실제 관련 소스
+   - Calc 작업: add/calc.html, add/add.css, add/add.js
+   - Report 작업: add/kodex-leverage-report.html, add/add.css, add/add.js
+   - 실현손익 반영: data/portfolio.json 포함
+3. 사용자가 이번 작업에 제공한 최신 증권사 원본 자료
+4. Main 연결·전역 contract에 실제 영향이 있을 때만 /main_dashboard_maintenance_handover.md
 ```
 
 현재 작업에서 사용자가 별도 요청을 주면 그 요청을 가장 우선한다.
@@ -98,7 +97,7 @@ Mobile · 모바일   ≤ 760px
 - 공통 범위 media는 위 경계값을 공유하는 범위에서 허용한다.
 - **Calc의 실제 터치 스마트폰 가로화면은 예외적으로 Tablet이 아니라 Phone UI로 분류한다.** 메인 `special.css`와 동일하게 `landscape + width≤960px + height≤500px + hover:none + pointer:coarse` 조건을 사용하며, 이 조건은 미관용 추가 breakpoint가 아니라 장치 분류 contract다.
 - 위 가로폰 조건에서는 세로폰과 동일한 Phone typography·density·control/input 배치·mobile/desktop 표시 규칙을 다시 적용한다. 폭이 761px 이상이라는 이유만으로 Tablet UI로 바꾸지 않는다.
-- **Calc에서 iPhone의 ‘데스크탑 웹사이트 요청’으로 감지되는 경우에는 `calc.html`이 viewport를 1280px로 전환한다.** 일반 모바일/가로폰 Phone UI 판정과 별개의 명시적 사용 모드이며, 이 head script를 임의로 제거하거나 3구간 breakpoint 값으로 대체하지 않는다.
+- **Calc와 Report에서 iPhone의 ‘데스크탑 웹사이트 요청’으로 감지되는 경우에는 viewport를 1280px로 전환한다.** Calc는 `calc.html`의 조기 head script, Report는 `add.js`의 page boot 전 preflight가 담당한다. 일반 모바일/가로폰 Phone UI 판정과 별개의 명시적 사용 모드이며, 이 보정을 임의로 제거하거나 3구간 breakpoint 값으로 대체하지 않는다.
 
 ### 1.2 add 영역 UI 공통 구성 원칙
 
@@ -188,7 +187,8 @@ add/kodex-leverage-report.html
 
 ```text
 data/portfolio.json
-add/kodex-leverage-report.html
+add/add.js               # REPORT_DATA 및 파생 합계·본 포지션/단타·Timeline의 Source of Truth
+add/kodex-leverage-report.html # 표시기간·증빙 이미지·정적 설명문 등 실제 변경이 필요한 부분만
 add/calc.html            # 링크/연동 확인. canonical 파일명 정착 후 보통 내용 변경 없음
 add/add_maintenance_handover.md  # 장기 contract가 실제로 변경된 경우에만
 main_dashboard_maintenance_handover.md # 메인 전역 contract가 실제로 변경된 경우에만
@@ -198,7 +198,7 @@ main_dashboard_maintenance_handover.md # 메인 전역 contract가 실제로 변
 
 > **리포트만 수정하지 않는다.**
 
-새로운 실현손익은 메인 대시보드의 별도수익 계산에도 사용되므로 `data/portfolio.json`의 `separateProfit.trades`와 거래 리포트가 서로 일치해야 한다.
+새로운 실현손익은 메인 대시보드의 별도수익 계산에도 사용되므로 `data/portfolio.json`의 `separateProfit.trades`와 `add/add.js`의 `REPORT_DATA`가 서로 일치해야 한다. Report의 Hero/KPI/표/차트/본 포지션·단타/Timeline 실현거래 숫자는 `REPORT_DATA`에서 파생한다.
 
 다음 파일은 단순히 새로운 실현거래가 생겼다는 이유만으로 수정하지 않는다.
 
@@ -418,9 +418,10 @@ separateProfit.reinvestedLimit
 1. 증권사 매도실현손익에서 확정 손익·비용·순손익 확인
 2. 상세 매매보고서에서 매수일·수량·오버나이트/포지션 연결 확인
 3. data/portfolio.json separateProfit.trades 반영
-4. canonical report의 날짜별 표·합계·본 포지션/단타 분류 반영
-5. 동일 지표가 반복되는 요약·차트·원본근거 검산 + Timeline 자동 파생/누락 여부 확인
-6. 변경 유형에 해당하는 QA 수행
+4. add/add.js의 REPORT_DATA 반영 후 날짜별·합계·본 포지션/단타 파생값 검산
+5. kodex-leverage-report.html의 표시기간·증빙 이미지·정적 설명문 중 필요한 부분만 갱신
+6. Hero/KPI/표/차트와 Timeline 자동 파생·누락 여부를 동일 REPORT_DATA 기준으로 검산
+7. 변경 유형에 해당하는 QA 수행
 ```
 
 자금 출처·대출이자 분석이나 자금 흐름 패널 복원은 위 절차에 포함하지 않는다. 문서는 이 절차를 수행했다는 이유만으로 자동 갱신하지 않는다.
@@ -487,4 +488,4 @@ https://tkfkd3226-cell.github.io/investment-dashboard/add/kodex-leverage-report.
 
 ## 14. 최종 한 문장 운영 원칙
 
-> **새 KODEX 레버리지 실현거래가 생기면 증권사 확정 순손익을 `data/portfolio.json`과 canonical report에 함께 반영하고 관련 합계·분류·시각화·근거를 동일 기준으로 검산한다. 자금 출처·대출이자 등은 추적하지 않으며 report 파일명은 고정하고, handover는 장기 contract가 바뀐 경우에만 수정한다.**
+> **새 KODEX 레버리지 실현거래가 생기면 증권사 확정 순손익을 `data/portfolio.json`과 `add/add.js`의 `REPORT_DATA`에 함께 반영하고, canonical report의 합계·분류·시각화·Timeline·근거를 동일 기준으로 검산한다. 자금 출처·대출이자 등은 추적하지 않으며 report 파일명은 고정하고, handover는 장기 contract가 바뀐 경우에만 수정한다.**

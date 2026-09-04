@@ -12,7 +12,7 @@
   const APPEARANCE_CHANNEL_NAME='investmentDashboard.appearance';
 
   // 00. Add 공통 사전 처리
-  // Main appearance 저장값을 Calc/Report가 함께 소비하고 열린 탭도 재동기화한다.
+  // Main appearance 저장값을 Calc/Report가 함께 소비하고 다른 브라우저 탭·포커스 복귀 시에도 재동기화한다.
   const syncStoredAppearance=()=>{
     try{
       root.classList.toggle('dark',localStorage.getItem(THEME_KEY)==='dark');
@@ -44,7 +44,6 @@
     if(desktopAppleUA&&touchApple&&shortSide<=500){
       const viewport=document.querySelector('meta[name="viewport"]');
       if(viewport)viewport.setAttribute('content','width=1280');
-      root.classList.add('iphone-request-desktop');
     }
   }
 })();
@@ -789,10 +788,10 @@
 (() => {
   if(typeof document==='undefined'||typeof window==='undefined'||document.documentElement.dataset.addPage!=='report')return;
   const bootReportPage=()=>{
-    // 01. 리포트 데이터 / DOM 참조
-    // 거래 원천 데이터에서 합계·표·차트를 파생하고 단일 tablist를 초기화
+    // 01. 원천 거래 데이터 / 파생 지표
+    // REPORT_DATA를 Source of Truth로 날짜별·본 포지션/단타·요약·차트용 계산값을 파생한다.
     const REPORT_DATA = Object.freeze([{"date":"2026-06-09","qty":12,"buy":164170,"sell":165515,"pnl":16140,"fee":165,"segment":"core"},{"date":"2026-06-16","qty":36,"buy":210398,"sell":210554,"pnl":5640,"fee":636,"segment":"day"},{"date":"2026-06-19","qty":15,"buy":235711,"sell":239078,"pnl":50510,"fee":295,"segment":"day"},{"date":"2026-06-23","qty":26,"buy":229138,"sell":229558,"pnl":10945,"fee":499,"segment":"day"},{"date":"2026-06-25","qty":15,"buy":198500,"sell":226985,"pnl":427275,"fee":268,"segment":"core"},{"date":"2026-07-30","qty":642,"buy":80861,"sell":74580,"pnl":-4032440,"fee":4196,"segment":"core"},{"date":"2026-07-31","qty":5946,"buy":101778,"sell":102763,"pnl":5855965,"fee":51183,"segment":"mixed","core":{"qty":576,"buy":82680,"sell":91065,"pnl":4829760,"fee":4212}},{"date":"2026-08-04","qty":371,"buy":90649,"sell":91212,"pnl":209150,"fee":2837,"segment":"day"},{"date":"2026-08-05","qty":1558,"buy":100153,"sell":103259,"pnl":4839995,"fee":13334,"segment":"mixed","core":{"qty":532,"buy":94417,"sell":104035,"pnl":5116776,"fee":4442}},{"date":"2026-08-06","qty":4002,"buy":92364,"sell":92422,"pnl":233340,"fee":31121,"segment":"day"},{"date":"2026-08-07","qty":493,"buy":90384,"sell":90723,"pnl":167090,"fee":3756,"segment":"mixed","core":{"qty":100,"buy":91767,"sell":93813,"pnl":204590,"fee":781}},{"date":"2026-08-12","qty":101,"buy":99463,"sell":100145,"pnl":68905,"fee":846,"segment":"mixed","core":{"qty":32,"buy":92580,"sell":95480,"pnl":92800,"fee":253}},{"date":"2026-08-20","qty":220,"buy":97685,"sell":102650,"pnl":1092275,"fee":1852,"segment":"core"},{"date":"2026-09-02","qty":500,"buy":100630,"sell":101125,"pnl":247500,"fee":4244,"segment":"day"}]);
-    
+
     function reportSum(rows, key){
       return rows.reduce((sum,row)=>sum+Number(row[key]||0),0);
     }
@@ -827,7 +826,7 @@
       const fee=reportSum(rows,'fee');
       return Object.freeze({qty,pnl,fee,net:pnl-fee});
     }
-    
+
     const reportDailyRows=Object.freeze(deriveReportRows(REPORT_DATA));
     const coreTradeRows=Object.freeze(deriveSplitRows(REPORT_DATA,'core'));
     const dayTradeRows=Object.freeze(deriveSplitRows(REPORT_DATA,'day'));
@@ -844,7 +843,7 @@
     const splitQty=coreMetrics.qty+dayMetrics.qty;
     const coreQtyRatio=splitQty?coreMetrics.qty/splitQty*100:0;
     const dayQtyRatio=splitQty?dayMetrics.qty/splitQty*100:0;
-    
+
     const reportMetrics=Object.freeze({
       totalPnl,totalFee,totalNet,totalQty,sellDays,winDays,
       winRate:sellDays?winDays/sellDays*100:0,
@@ -852,13 +851,13 @@
       dayQty:dayMetrics.qty,dayPnl:dayMetrics.pnl,dayFee:dayMetrics.fee,dayNet:dayMetrics.net,
       coreNetRatio,dayNetRatio,coreQtyRatio,dayQtyRatio
     });
-    
+
     const chartData=Object.freeze({
       labels:Object.freeze(reportDailyRows.map(row=>row.date.slice(5))),
       net:Object.freeze(reportDailyRows.map(row=>row.net)),
       cum:Object.freeze(reportDailyRows.map(row=>row.cumulative))
     });
-    
+
     const reportNf0=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
     function reportNumber(value){
       return reportNf0.format(Number(value||0));
@@ -879,7 +878,8 @@
       return n<0?'neg':n>0?'pos':'';
     }
 
-    // Timeline의 실현거래 숫자는 REPORT_DATA/분리 파생값을 그대로 사용한다.
+    // 02. Timeline 데이터 파생
+    // 실현거래 숫자는 REPORT_DATA/분리 파생값을 그대로 사용한다.
     // 매수만 존재해 REPORT_DATA에 없는 포지션 형성 사실만 별도 context로 둔다.
     const reportRowByDate=new Map(reportDailyRows.map(row=>[row.date,row]));
     const coreRowByDate=new Map(coreTradeRows.map(row=>[row.date,row]));
@@ -1051,6 +1051,8 @@
       });
       return events.sort((a,b)=>a.sortDate.localeCompare(b.sortDate));
     }
+    // 03. Canonical DOM 렌더
+    // 요약·표·Timeline은 위에서 파생한 동일 계산값만 사용하고 HTML에 거래 숫자를 중복 하드코딩하지 않는다.
     function timelineProfitCard(net){
       if(!Number.isFinite(net)) return '';
       const valueClass=reportValueClass(net);
@@ -1101,7 +1103,9 @@
       renderDayTradeRows();
       renderReportTimeline();
     }
-    
+
+    // 04. 패널 전환 / 접근성 상태 동기화
+    // 단일 tablist의 DOM 참조와 Phone 판정을 준비하고 active/ARIA/tabindex 상태를 viewport와 무관하게 유지한다.
     const reportTabs=[...document.querySelectorAll('.tab')];
     const reportPanels=[...document.querySelectorAll('.panel')];
     const reportNav=document.querySelector('.report-nav');
@@ -1111,9 +1115,7 @@
     // CSS와 같은 Phone 판정: 세로폰뿐 아니라 실제 터치폰 가로도 메뉴·차트 geometry를 함께 전환한다.
     const REPORT_PHONE_QUERY='(max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
     const reportMobileMedia=window.matchMedia(REPORT_PHONE_QUERY);
-    
-    // 02. 패널 전환 / 접근성 상태 동기화
-    // 단일 tablist의 active, aria-selected, tabindex를 viewport와 무관하게 유지
+
     function setTabState(panelId){
       reportTabs.forEach(btn => {
         const active = btn.dataset.panel === panelId;
@@ -1122,12 +1124,12 @@
         btn.tabIndex = active ? 0 : -1;
       });
     }
-    
+
     function closeMobileMenu(){
       reportNav?.classList.remove('open');
       mobileToggle?.setAttribute('aria-expanded','false');
     }
-    
+
     function activatePanel(panelId, label, {closeMobile=true}={}){
       reportPanels.forEach(panel => {
         const active = panel.id === panelId;
@@ -1139,7 +1141,7 @@
       if (closeMobile) closeMobileMenu();
       if (panelId === 'summary') requestAnimationFrame(drawChart);
     }
-    
+
     function bindTabKeyboard(){
       reportTablist?.addEventListener('keydown', e => {
         if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return;
@@ -1153,8 +1155,8 @@
         next.focus();
       });
     }
-    
-    // 03. 메뉴 이벤트 / 키보드 조작
+
+    // 05. 메뉴 이벤트 / 키보드 조작
     // 동일 탭의 클릭·방향키와 모바일 패널 열기·닫기, ESC·외부 클릭 처리
     function initNavigationEvents(){
       reportTabs.forEach(btn => btn.addEventListener('click', () => {
@@ -1163,7 +1165,7 @@
         if(mobile) mobileToggle?.focus();
       }));
       bindTabKeyboard();
-      
+
       if (mobileToggle) {
         mobileToggle.addEventListener('click', () => {
           const open = reportNav?.classList.toggle('open') ?? false;
@@ -1185,8 +1187,8 @@
         }
       });
     }
-    
-    // 04. 차트 표시 보조 함수
+
+    // 06. 차트 표시 보조 함수
     // Y축 금액 축약과 둥근 막대 path 생성을 담당
     function formatWon(v){
       const abs = Math.abs(v);
@@ -1204,13 +1206,13 @@
       ctx.arcTo(x,y,x+w,y,rr);
       ctx.closePath();
     }
-    
+
     const REPORT_CHART_FRAME=Object.freeze({
       desktop:Object.freeze({left:60,right:60,top:30,bottom:40}),
       mobile:Object.freeze({left:48,right:48,top:28,bottom:38})
     });
-    
-    // 05. 누적 실현손익 차트 렌더링
+
+    // 07. 누적 실현손익 차트 렌더링
     // DPR 대응, 공통 Plot Frame, 막대·누적선·라벨 충돌 회피를 한 번에 처리
     function drawChart(){
       const canvas=document.getElementById('pnlChart');
@@ -1225,7 +1227,7 @@
       const rootStyle=getComputedStyle(document.documentElement);
       const chartColorCache=Object.create(null);
       const chartColor=name=>chartColorCache[name]||(chartColorCache[name]=rootStyle.getPropertyValue(name).trim());
-    
+
       const W=rect.width,H=rect.height;
       const mobile=reportMobileMedia.matches;
       const frame=mobile?REPORT_CHART_FRAME.mobile:REPORT_CHART_FRAME.desktop;
@@ -1236,9 +1238,9 @@
       const top=rawMax+range*.13,bottom=rawMin-range*.11;
       const y=v=>frame.top+(top-v)/(top-bottom)*plotH;
       const zeroY=y(0);
-    
+
       ctx.clearRect(0,0,W,H);
-    
+
       // 차트 플롯 배경
       const bg=ctx.createLinearGradient(0,frame.top,0,H-frame.bottom);
       bg.addColorStop(0,chartColor('--chart-plot-top'));
@@ -1246,7 +1248,7 @@
       ctx.fillStyle=bg;
       roundedRect(ctx,frame.left,frame.top,plotW,plotH,14);
       ctx.fill();
-    
+
       // 가로 그리드와 Y축 금액 라벨
       ctx.font=(mobile?'9px':'10px')+' system-ui';
       ctx.textAlign='right';
@@ -1262,21 +1264,21 @@
         ctx.fillStyle=chartColor('--chart-axis-text');
         ctx.fillText(formatWon(v),frame.left-8,yy);
       }
-    
+
       // 손익 0원 기준선
       ctx.strokeStyle=chartColor('--chart-zero');
       ctx.lineWidth=1.2;
       ctx.beginPath();ctx.moveTo(frame.left,zeroY);ctx.lineTo(W-frame.right,zeroY);ctx.stroke();
-    
+
       const step=plotW/chartData.labels.length;
       const barW=Math.min(mobile?25:34,step*.38);
-    
+
       // X축 날짜: 별도 breakpoint 없이 실제 가용 폭에 따라 자동 생략
       ctx.font='10px system-ui';
       const maxXLabelWidth=Math.max(...chartData.labels.map(label=>ctx.measureText(label).width),0);
       const xLabelEvery=Math.max(1,Math.ceil((maxXLabelWidth+8)/step));
       const lastXLabelIndex=chartData.labels.length-1;
-    
+
       // 일별 실현손익 막대
       const dailyLabelBoxes=[];
       const collides=(a,b)=>!(a.right<b.left || a.left>b.right || a.bottom<b.top || a.top>b.bottom);
@@ -1294,7 +1296,7 @@
         ctx.fillStyle=grad;
         roundedRect(ctx,cx-barW/2,topY,barW,h,6);
         ctx.fill();
-    
+
         // 일별 손익 라벨: 인접 라벨과 겹치면 위·아래로 순차 이동
         const dailyText=(v>=0?'+':'')+formatWon(v);
         const dailyFontSize=mobile?9:10;
@@ -1302,7 +1304,7 @@
         ctx.textAlign='center';
         ctx.textBaseline=v>=0?'bottom':'top';
         ctx.fillStyle=v>=0?chartColor('--chart-positive-label'):chartColor('--chart-negative-label');
-    
+
         const textW=ctx.measureText(dailyText).width;
         const textH=dailyFontSize+3;
         let labelY=v>=0?topY-6:topY+h+6;
@@ -1312,7 +1314,7 @@
           top:v>=0?labelY-textH:labelY,
           bottom:v>=0?labelY:labelY+textH
         };
-    
+
         let guard=0;
         while(dailyLabelBoxes.some(prev=>collides(box,prev)) && guard<12){
           if(v>=0){
@@ -1328,7 +1330,7 @@
           };
           guard++;
         }
-    
+
         if(v>=0 && box.top<frame.top+2){
           labelY=frame.top+textH+2;
           box.top=labelY-textH;
@@ -1339,10 +1341,10 @@
           box.top=labelY;
           box.bottom=labelY+textH;
         }
-    
+
         dailyLabelBoxes.push(box);
         ctx.fillText(dailyText,cx,labelY);
-    
+
         // 날짜 라벨: 마지막 거래일은 항상 표시하고 직전 라벨과 최소 간격 확보
         const showXLabel=i===lastXLabelIndex || (i%xLabelEvery===0 && lastXLabelIndex-i>=xLabelEvery);
         if(showXLabel){
@@ -1352,7 +1354,7 @@
           ctx.fillText(chartData.labels[i],cx,H-frame.bottom+13);
         }
       });
-    
+
       // 누적손익 선 아래 영역 채움
       const points=chartData.cum.map((v,i)=>({x:frame.left+step*(i+.5),y:y(v),v}));
       const area=ctx.createLinearGradient(0,frame.top,0,H-frame.bottom);
@@ -1364,7 +1366,7 @@
       ctx.lineTo(points[0].x,H-frame.bottom);
       ctx.closePath();
       ctx.fillStyle=area;ctx.fill();
-    
+
       // 누적손익 선
       ctx.beginPath();
       points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
@@ -1373,13 +1375,13 @@
       ctx.lineJoin='round';
       ctx.lineCap='round';
       ctx.stroke();
-    
+
       // 누적손익 데이터 포인트
       points.forEach((p,i)=>{
         ctx.fillStyle=chartColor('--chart-point-bg');
         ctx.beginPath();ctx.arc(p.x,p.y,4.5,0,Math.PI*2);ctx.fill();
         ctx.strokeStyle=chartColor('--chart-line');ctx.lineWidth=2.5;ctx.stroke();
-    
+
         // 누적값은 일별 손익 라벨과의 충돌을 피하기 위해 마지막 값만 표시한다.
         if(i===points.length-1){
           ctx.font='900 '+(mobile?'9px':'10px')+' system-ui';
@@ -1388,8 +1390,8 @@
         }
       });
     }
-    
-    // 06. 차트 초기화 / resize 재렌더
+
+    // 08. 차트 초기화 / resize 재렌더
     // resize 연속 호출은 debounce 후 다시 그림
     let resizeTimer;
     function initChart(){
@@ -1399,7 +1401,7 @@
       });
       drawChart();
     }
-    
+
     // 리포트 부팅 순서: canonical data 렌더 → 메뉴 이벤트 등록 → 차트 초기 렌더 및 resize 감시
     renderCanonicalReportData();
     initNavigationEvents();
