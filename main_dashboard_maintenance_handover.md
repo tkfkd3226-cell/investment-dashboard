@@ -953,7 +953,7 @@ Main 계산 테스트는 production 순수 계산 함수를 직접 사용하고,
 
 ### Report / 운영 숫자 변경
 
-`add/add_maintenance_handover.md`의 확정 계산 기준과 체크리스트를 우선한다. 표·KPI·차트·`data/portfolio.json`의 누계가 서로 맞는지 교차검산한다.
+`add_maintenance_handover.md`의 확정 계산 기준과 체크리스트를 우선한다. 표·KPI·차트·`data/portfolio.json`의 누계가 서로 맞는지 교차검산한다.
 
 ## 3.4 QA FAIL 처리
 
@@ -1005,7 +1005,7 @@ QA에서 browser/runtime 검증이 필요하면 **현재 수정본 자체를 실
 - chart selection/tooltip/resize 및 중복 listener 생성 여부
 - breakpoint 전환 시 Mobile/Tablet/Desktop 역할 회귀
 
-UI 상세 불변조건은 5장, Calc/Report 상세 회귀는 `add/add_maintenance_handover.md`를 기준으로 한다.
+UI 상세 불변조건은 5장, Calc/Report 상세 회귀는 `add_maintenance_handover.md`를 기준으로 한다.
 
 ## 3.7 Diff 검사
 
@@ -1162,12 +1162,12 @@ investment-dashboard-main/
 ├─ .github/workflows/update-prices.yml
 ├─ .gitignore
 ├─ README.md
+├─ add_maintenance_handover.md
 ├─ add/
 │  ├─ calc.html
 │  ├─ kodex-leverage-report.html
 │  ├─ add.css
-│  ├─ add.js
-│  └─ add_maintenance_handover.md
+│  └─ add.js
 ├─ tests/
 │  ├─ main-calc.test.cjs
 │  ├─ main-ui-contract.test.cjs
@@ -1244,8 +1244,10 @@ investment-dashboard-main/
 │  ├─ calc.html
 │  ├─ kodex-leverage-report.html
 │  ├─ add.css
-│  ├─ add.js
-│  └─ add_maintenance_handover.md
+│  └─ add.js
+│
+├─ add_maintenance_handover.md
+├─ main_dashboard_maintenance_handover.md
 │
 ├─ img/
 │  └─ hero-bg.png
@@ -2509,7 +2511,7 @@ style="..."
 
 # 8. Calc · Report 유지보수 규칙
 
-`add/`는 메인 대시보드와 독립된 부가 영역이다. 상세 유지보수 기준은 **`add/add_maintenance_handover.md`를 Source of Truth**로 하고, 메인 handover에는 전역 연결 원칙만 둔다.
+`add/`는 메인 대시보드와 독립된 부가 영역이다. 상세 유지보수 기준은 **`add_maintenance_handover.md`를 Source of Truth**로 하고, 메인 handover에는 전역 연결 원칙만 둔다.
 
 ## 8.1 책임 경계
 
@@ -2522,7 +2524,7 @@ style="..."
 - 계산 로직은 DOM 표현과 분리된 production 함수를 기준으로 유지한다.
 - Calc 계산 로직 변경 시 `node --test tests/add-calc.test.cjs`로 실제 production 함수를 회귀검증한다.
 - 테스트를 위한 계산식 복제나 불필요한 파일 분리는 하지 않는다.
-- Calc 전용 responsive/표현 상세는 `add/add_maintenance_handover.md`와 실제 add CSS를 기준으로 한다.
+- Calc 전용 responsive/표현 상세는 `add_maintenance_handover.md`와 실제 add CSS를 기준으로 한다.
 
 ## 8.3 Report
 
@@ -2712,7 +2714,7 @@ dashboard-app.js
 
 Main 1~13차 완료 범위에는 Add 리팩토링을 포함하지 않는다. 과거에 Main 후속 14~19차로 계획했던 Add 작업은 별도 작업군으로 분리하며, Main 차수의 연속 완료 조건으로 취급하지 않는다.
 
-Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로직은 `tests/add-calc.test.cjs`로 회귀검증한다. Report는 canonical HTML entry를 유지하고, 공통 `add.css` / `add.js`와 `add/add_maintenance_handover.md`를 Source of Truth로 따른다.
+Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로직은 `tests/add-calc.test.cjs`로 회귀검증한다. Report는 canonical HTML entry를 유지하고, 공통 `add.css` / `add.js`와 `add_maintenance_handover.md`를 Source of Truth로 따른다.
 
 ## 10.4 과거 점수 기록 처리
 
@@ -2726,7 +2728,7 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 
 - `README.md`: 실행/사용자가 보는 프로젝트 안내
 - `main_dashboard_maintenance_handover.md`: 메인 구조·수정·평가·운영 규칙
-- `add/add_maintenance_handover.md`: Calc/Report 상세 운영 규칙
+- `add_maintenance_handover.md`: Calc/Report 상세 운영 규칙
 - Git history: 과거 차수별 세부 변경 기록
 
 같은 상세 이력을 여러 문서에 중복 저장하지 않는다.

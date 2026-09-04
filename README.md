@@ -217,8 +217,7 @@ investment-dashboard-main/
 │  ├─ calc.html
 │  ├─ kodex-leverage-report.html
 │  ├─ add.css
-│  ├─ add.js
-│  └─ add_maintenance_handover.md
+│  └─ add.js
 ├─ tests/
 │  ├─ main-calc.test.cjs
 │  ├─ main-ui-contract.test.cjs
@@ -228,6 +227,7 @@ investment-dashboard-main/
 ├─ .github/workflows/
 │  └─ update-prices.yml
 ├─ requirements.txt
+├─ add_maintenance_handover.md
 └─ main_dashboard_maintenance_handover.md
 ```
 
@@ -356,7 +356,7 @@ Main 화면의 1~13차 CSS 토큰화·공통화 작업은 다음 장기 기준�
 - Print는 현재 화면 테마와 관계없이 Light palette로 고정하고, 인쇄 직전에 모든 차트를 Light chart palette로 다시 그립니다. 화면 조작 UI와 Market AI는 제외하고, 두 자산 panel·Hero 전체 요약·표·차트·장부·원천 검산을 인쇄용 canonical layout으로 표시합니다.
 - Modal은 공통 dialog lifecycle과 form/control token을 공유하되 KRX·퇴직연금의 업무 state와 저장 흐름은 각 feature가 소유합니다. PIN 입력은 브라우저의 비밀번호 저장 대상으로 오인되지 않도록 credential password field를 사용하지 않습니다.
 
-이 완료 범위는 **Main 화면 1~13차**입니다. `add/calc.html`과 `add/kodex-leverage-report.html`은 독립 화면군이며, Main 완료 차수의 연장선으로 간주하지 않고 별도 작업에서 `add/add_maintenance_handover.md`를 기준으로 관리합니다.
+이 완료 범위는 **Main 화면 1~13차**입니다. `add/calc.html`과 `add/kodex-leverage-report.html`은 독립 화면군이며, Main 완료 차수의 연장선으로 간주하지 않고 별도 작업에서 `add_maintenance_handover.md`를 기준으로 관리합니다.
 
 ---
 
@@ -593,7 +593,7 @@ README는 저장소의 **기능, 전체 동작 구조, 프로젝트 구조, 데�
 
 ```text
 main_dashboard_maintenance_handover.md
-add/add_maintenance_handover.md
+add_maintenance_handover.md
 ```
 
 전역 유지보수·평가·QA 규칙은 main handover를, Calc/Report 세부 contract는 add handover를 기준으로 합니다. 같은 유지보수 규칙을 README와 두 문서에 중복 기재하지 않습니다.
