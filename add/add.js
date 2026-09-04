@@ -1108,7 +1108,9 @@
     const reportTablist=document.getElementById('reportTabs');
     const mobileToggle=document.querySelector('.mobile-menu-toggle');
     const mobileLabel=document.getElementById('mobileMenuLabel');
-    const reportMobileMedia=window.matchMedia('(max-width:760px)');
+    // CSS와 같은 Phone 판정: 세로폰뿐 아니라 실제 터치폰 가로도 메뉴·차트 geometry를 함께 전환한다.
+    const REPORT_PHONE_QUERY='(max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
+    const reportMobileMedia=window.matchMedia(REPORT_PHONE_QUERY);
     
     // 02. 패널 전환 / 접근성 상태 동기화
     // 단일 tablist의 active, aria-selected, tabindex를 viewport와 무관하게 유지
@@ -1146,7 +1148,7 @@
         const next = reportTabs[nextIndex];
         if(!next) return;
         e.preventDefault();
-        const keepMobileMenuOpen = window.matchMedia('(max-width:760px)').matches && reportNav?.classList.contains('open');
+        const keepMobileMenuOpen = reportMobileMedia.matches && reportNav?.classList.contains('open');
         activatePanel(next.dataset.panel, next.textContent.trim(), {closeMobile: !keepMobileMenuOpen});
         next.focus();
       });
@@ -1169,6 +1171,10 @@
           if(open) requestAnimationFrame(() => reportTabs.find(btn => btn.getAttribute('aria-selected') === 'true')?.focus());
         });
       }
+      reportMobileMedia.addEventListener('change', e => {
+        if(!e.matches) closeMobileMenu();
+        requestAnimationFrame(drawChart);
+      });
       document.addEventListener('click', e => {
         if (reportNav?.classList.contains('open') && !reportNav.contains(e.target)) closeMobileMenu();
       });
