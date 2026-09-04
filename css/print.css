@@ -24,7 +24,7 @@
 
 /* [P01. Document / Body · 인쇄 기본 문서 상태] */
 @media print{
-    /* Print is a paper presentation, not a screenshot of the active viewport/theme. */
+    /* Print Presentation · 인쇄는 현재 viewport/theme의 screenshot이 아니라 종이 문서 표현이다. */
     html,
     html.dark{
       color-scheme:light;

@@ -1562,22 +1562,33 @@ uiState
 module-private state:
 
 ```text
+dashboard-ui-common.js
+→ mobileViewModes
+→ Asset tooltip touch/binding guard state
+
 dashboard-modal.js
 → focus stack / body lock count / native dialog lifecycle state
 
 dashboard-charts.js
 → chartState
 → chartRuntimeState
+→ tooltip animation/runtime guard
+
+dashboard-ui.js
+→ appearanceChannel
+→ uiRuntimeState
 
 dashboard-pension-editor.js
 → pensionEditorState
+→ modal height scheduling state
 
-dashboard-pension.js
-→ View 전용 tooltip binding state
+dashboard-app.js
+→ heroBasisTapState
+→ chartDateJumpState
 
 dashboard-market-ai.js
 → marketAiState
-→ polling / mount / tooltip binding runtime state
+→ polling / mount / tooltip binding / refresh sequence runtime state
 ```
 
 유지 원칙:
@@ -2460,7 +2471,9 @@ style="..."
 
 새 함수를 만들기 전에 기존 helper가 있는지 확인한다.
 
-스마트폰 responsive 판정은 `dashboard-ui-common.js`의 공통 helper를 canonical로 사용한다. `phoneLandscapeUi()`는 실제 터치 스마트폰 가로(`960×500 + hover:none + pointer:coarse`) 판정만 담당하고, `phoneUi()`는 `≤760px` 세로폰과 실제 터치폰 가로를 하나의 Phone UI family로 묶는다. UI/Charts 등 Phone 표현 여부는 `phoneUi()`를 재사용하고, 각 feature에서 같은 `matchMedia` 문자열이나 동등 helper를 다시 정의하지 않는다.
+스마트폰 responsive 판정은 main graph에서 `dashboard-ui-common.js`의 공통 helper를 canonical로 사용한다. `phoneLandscapeUi()`는 실제 터치 스마트폰 가로(`960×500 + hover:none + pointer:coarse`) 판정만 담당하고, `phoneUi()`는 `≤760px` 세로폰과 실제 터치폰 가로를 하나의 Phone UI family로 묶는다. UI/Charts 등 main feature의 Phone 표현 여부는 `phoneUi()`를 재사용하고, 각 feature에서 같은 `matchMedia` 문자열이나 동등 helper를 다시 정의하지 않는다.
+
+단, main graph와 의도적으로 분리된 standalone `dashboard-market-ai.js`는 `dashboard-ui-common.js` dependency를 새로 만들지 않는다. Market AI는 동일한 Phone UI contract의 media query를 자체 소유할 수 있으며, 이 조건은 `special.css`의 Phone UI Shared 조건과 항상 동기화한다.
 
 대표적인 공통 대상:
 
@@ -2723,7 +2736,7 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 [ ] Market AI backend/런처/Bridge를 함께 변경한다면 해당 프로젝트 handover의 운영 contract를 확인했는가
 [ ] 공통 canonical CSS rule을 먼저 찾았는가
 [ ] 새 breakpoint가 정말 필요한가
-[ ] Phone Landscape 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하는가
+[ ] Main graph의 Phone Landscape 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하고, standalone Market AI 예외는 같은 Phone contract를 유지하는가
 [ ] 새 !important가 정말 필요한가
 [ ] inline event/global bridge를 만들지 않는가
 [ ] protected JSON을 건드리지 않는가

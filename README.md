@@ -241,11 +241,11 @@ main dependency graph는 **8개 ES Module**로 구성되어 있으며 `dashboard
 | 파일 | 책임 |
 |---|---|
 | `dashboard-core.js` | 공통 데이터 state, JSON 로딩, 계산, formatter, 데이터 helper |
-| `dashboard-ui-common.js` | 여러 UI 모듈이 공유하는 저수준 DOM·마크업, 공통 카드/모바일 보기 state, Toast·viewport·tooltip helper |
+| `dashboard-ui-common.js` | 여러 UI 모듈이 공유하는 저수준 DOM·마크업, 공통 카드/모바일 보기 state, Toast·viewport·Asset tooltip interaction helper |
 | `dashboard-modal.js` | custom/native modal의 focus·inert·body lock·ESC·backdrop·focus return lifecycle |
 | `dashboard-charts.js` | 차트 state, SVG 렌더링, 범례, tooltip, 확대, 반응형, 차트 action routing |
 | `dashboard-ui.js` | Topbar, Navigation, 일반 카드·표, KRX UI, UI action routing |
-| `dashboard-pension.js` | 퇴직연금 **View** — 현황, 상품 정보, 인사이트, 시각화 tooltip |
+| `dashboard-pension.js` | 퇴직연금 **View** — 현황, 상품 정보, 인사이트, 위험도 및 tooltip markup |
 | `dashboard-pension-editor.js` | 퇴직연금 **Editor** — 금액조정, PIN, batch, 저장·삭제 |
 | `dashboard-app.js` | 날짜·별도수익 등 cross-module 흐름, 전체 render orchestration, 초기화·boot |
 | `dashboard-market-ai.js` | 로컬 `:8001` 또는 원격 Tailscale Serve의 실제 Market AI API polling/state/render와 Mobile modal mount를 자체 소유하는 standalone entry; `dashboard-modal.js`만 공유 |

@@ -209,7 +209,7 @@
       --pension-modal-control-pad:6.75px;
       --pension-modal-control-scale:.625;
       --pension-modal-control-inner-size:160%;
-      /* 6.75px visual padding ÷ .625 = 10.8px inner padding. */
+      /* Optical Padding · 6.75px visual padding ÷ .625 = 10.8px inner padding */
       --pension-modal-control-inner-pad:10.8px;
       --pension-modal-control-inner-icon-pad-right:calc(var(--space-8xl) + var(--space-7xl));
       --pension-modal-tab-size:var(--type-size-sm);

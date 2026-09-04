@@ -14,18 +14,17 @@
    [03A] Data List Card Primitive
    [03B] Market AI Data List Variant
    [03C] Tooltip Primitive / Market AI Variant
-   [04] Base Tables
-   [05] Charts
-   [06] Asset Detail
-   [07] Summary / Metric Cards
-   [08] Pension Contribution / Form Controls
-   [09] Asset Workspace / Shared Asset UI
-   [09B] Capital Source / Source Data
-   [10] Modal / Control / Semantic Utilities
-   [11] Pension Modal Composition / Batch
-   [12] Topbar / Navigation
-   [13] Data Table / Mobile Card
-   [14] Responsive Shared
+   [04] Charts
+   [05] Asset Detail
+   [06] Summary / Metric Cards
+   [07] Pension Contribution / Form Controls
+   [08] Asset Workspace / Shared Asset UI
+   [08B] Capital Source / Source Data
+   [09] Modal / Control / Semantic Utilities
+   [10] Pension Modal Composition / Batch
+   [11] Topbar / Navigation
+   [12] Data Table / Mobile Card
+   [13] Responsive Shared
 
    Cascade Contract · cascade 원칙
    - index.html load order: common → tablet → mobile → special → interaction → print.
@@ -41,7 +40,7 @@
   --text:var(--ink);
   --muted:#6b7280;
   --line:#d7dce5;
-  /* Semantic value colors: shared by desktop tables and mobile card views. */
+  /* Semantic Value Colors · Desktop 표와 Mobile 카드보기가 공유하는 의미색 */
   --value-positive:#E6233A;
   --value-negative:#2972E8;
   --highlight-card-difference:#FBBF24;
@@ -63,7 +62,6 @@
   --type-size-3xl:17px;
   --type-size-4xl:18px;
   --type-size-display-sm:24px;
-  --type-size-display-md:28px;
   --type-line-tight:1.2;
   --type-line-compact:1.25;
   --type-line-body:1.35;
@@ -191,7 +189,7 @@
   --modal-control-focus-ring:var(--focus-ring-shadow);
   --interaction-row-bg:var(--subtle-card);
   --nav-current-shadow:inset 3px 0 0 var(--nav-current-indicator);
-  /* Interactive controls use a distinct border family; structural surfaces keep --line. */
+  /* Interactive Control Border · 조작 control은 전용 border 계열을 쓰고 구조 surface는 --line을 유지 */
   --control-border:#c7ced9;
   --control-border-hover:#98a4b5;
   --control-focus-border:#3b82f6;
@@ -432,7 +430,6 @@
   --hero-glow:rgba(255,255,255,.10);
   --hero-decor-bg:rgba(255,255,255,.08);
   --hero-image-opacity:.75;
-  /* 투명도를 .16에서 .45 정도로 상향 (필요시 조절) */
   --hero-pill-bg:rgba(15,23,42,.80);
   --hero-pill-hover-bg:rgba(255,255,255,.38);
   --hero-pill-border:rgba(255,255,255,.28);
@@ -498,7 +495,7 @@ html.dark{
   --accent-strong-bg:#36506f;
   --on-accent-text:#ffffff;
   --modal-focus-ring:rgba(54,80,111,.28);
-  /* Preserve the established dark-mode elevation while Light mode uses the refined tiers above. */
+  /* Dark Elevation · Light의 세분화된 단계와 별개로 기존 Dark elevation을 유지 */
   --shadow-low:0 8px 22px rgba(15,23,42,.06);
   --shadow-medium:0 16px 36px rgba(0,0,0,.28);
   --shadow-high:0 24px 70px rgba(15,23,42,.28);
@@ -611,7 +608,7 @@ html.dark{
   --insight-bg:linear-gradient(180deg,#151d2c 0%,#121826 100%);
 }
 
-/* Print SVGs are rendered as inline attributes, so chart drawing temporarily reads this Light palette. */
+/* Print SVG Palette · 인쇄 SVG는 inline attribute로 그리므로 차트 렌더가 잠시 이 Light palette를 읽는다. */
 html.print-light-theme{
   color-scheme:light;
   --chart-surface:#ffffff;
@@ -718,7 +715,7 @@ button svg{pointer-events:none;flex-shrink:0}
   background:var(--hero-decor-bg);
 }
 
-/* Hero Background Image Extension */
+/* Hero Background Image Extension · Hero 배경 이미지 확장 */
 .hero::before {
   content: "";
   position: absolute;
@@ -839,7 +836,7 @@ button svg{pointer-events:none;flex-shrink:0}
   - Large: .card / .note / .chart-card
   - Medium / Info: .asset-insight-card / .source-card variants
   - Mini: .mini-card (including symbol/allocation variants)
-  - Metric: .metric-card is a .card-based variant
+  - Metric: .metric-card는 .card 계열의 metric variant
   - Emphasis: .ledger-conclusion-card is a mixed-content conclusion surface with its own density token
   - Data List: .data-list-card is the shared compact data surface used by mobile card views and Market AI groups
   - Mobile Data: .mobile-data-card extends .data-list-card with mobile-only title/row density
@@ -1248,7 +1245,7 @@ section{
 }
 
 
-/* [05. Charts · 차트] Primitives / Controls / Expanded */
+/* [04. Charts · 차트] Primitives / Controls / Expanded */
 .bar-box{
   height:12px;
   background:var(--bar-track-bg);
@@ -1878,7 +1875,7 @@ body.chart-expanded-open .dash-tooltip{
   min-width:0;
 }
 
-/* [06. Asset Detail · 자산 상세] Status / Change / Insight */
+/* [05. Asset Detail · 자산 상세] Status / Change / Insight */
 .asset-detail-grid{
   width:100%;
   grid-template-columns:minmax(0,1.56fr) minmax(min(42%,480px),.72fr);
@@ -2246,7 +2243,7 @@ body.chart-expanded-open .dash-tooltip{
   font-variant-numeric:tabular-nums;
 }
 
-/* [07. Summary / Metric Cards · 요약 / 핵심지표 카드] */
+/* [06. Summary / Metric Cards · 요약 / 핵심지표 카드] */
 /* Cumulative Summary Cards · 연금/증권 누적 요약카드: layout만 담당하고 surface/타이포는 mini-card 공통 규칙 사용 */
 .chart-note.six{
   grid-template-columns:repeat(6,minmax(0,1fr));
@@ -2365,7 +2362,7 @@ body.chart-expanded-open .dash-tooltip{
   cursor:pointer;
 }
 
-/* [08. Pension Contribution / Form Controls · 퇴직연금 납입 / 공통 입력 control] */
+/* [07. Pension Contribution / Form Controls · 퇴직연금 납입 / 공통 입력 control] */
 .pension-contrib-tool{
   margin-top:var(--space-6xl);
   padding:var(--space-6xl);
@@ -2838,7 +2835,7 @@ body.dashboard-dialog-open{
 .pension-band{background:var(--pension-band-bg)}
 .securities-band{background:var(--securities-band-bg)}
 
-/* [09. Asset Workspace / Shared Asset UI · 자산 작업영역 / 공통 자산 UI] */
+/* [08. Asset Workspace / Shared Asset UI · 자산 작업영역 / 공통 자산 UI] */
 /* Tab Primitives · 자산/조정 항목 탭이 공유하는 geometry·typography·focus 골격 */
 .control-tab-group{
   display:grid;
@@ -2965,7 +2962,7 @@ body.dashboard-dialog-open{
 .contrib-target-tabs{
   grid-template-columns:repeat(3,minmax(0,1fr));
 }
-/* Contribution target tabs reuse the same skin/state rules as Asset Workspace tabs. */
+/* Contribution Target Tabs · 납입대상 tab은 Asset Workspace tab과 같은 skin/state 규칙을 재사용 */
 
 /* Pension ETF Trade · 퇴직연금 ETF 거래 입력/미리보기 */
 /* 상태 utility: selector 우선순위만으로 hidden 상태가 base grid/display 선언보다 우선한다. */
@@ -3061,7 +3058,7 @@ body.dashboard-dialog-open{
   color:var(--status-danger-soft-text);
 }
 
-/* [09B. Capital Source / Source Data · 투자원금 원천 / 검산 데이터] */
+/* [08B. Capital Source / Source Data · 투자원금 원천 / 검산 데이터] */
 :is(.chart-grid,.asset-detail-grid,.metric-grid,.source-grid,.ledger-overview-grid){gap:var(--card-grid-gap-large)}
 
 .source-card{
@@ -3079,7 +3076,7 @@ body.dashboard-dialog-open{
 .source-data-table .source-base-row > :is(th,td){background:var(--card)}
 .source-data-table .source-derived-row > :is(th,td){background:var(--source-linked-bg)}
 
-/* [10. Modal / Control / Semantic Utilities · 모달 / control / 의미 유틸리티]
+/* [09. Modal / Control / Semantic Utilities · 모달 / control / 의미 유틸리티]
    Action modal을 시작점으로 하되 cascade 우선순위가 필요한 공통 control/semantic utility는 이 구간의 source order를 유지한다. */
 :is(.contrib-modal,.action-modal){
   position:fixed;
@@ -3559,7 +3556,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   vertical-align:1px;
 }
 
-/* [11. Pension Modal Composition / Batch · 퇴직연금 모달 구성 / 작업 모음] Batch Controls / Panel · 작업 count / panel */
+/* [10. Pension Modal Composition / Batch · 퇴직연금 모달 구성 / 작업 모음] Batch Controls / Panel · 작업 count / panel */
 .pension-batch-panel{
   padding:var(--space-5xl);
   background:var(--card);
@@ -3822,7 +3819,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-card{
 html.iphone-request-desktop #ledger-check .ledger-conclusion-inline-reason{display:block}
 html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none}
 
-/* [12. Topbar / Navigation · 상단바 / 내비게이션] Date Action / Navigation Primitives / Edge TOC / Topbar Layout */
+/* [11. Topbar / Navigation · 상단바 / 내비게이션] Date Action / Navigation Primitives / Edge TOC / Topbar Layout */
 
 /* Date Action Menu · 날짜 action menu */
 .date-action-menu{display:none}
@@ -4041,7 +4038,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 .date-action-menu-wrap,
 .topbar-label-short{display:none}
 
-/* [13. Data Table / Mobile Card · 데이터 표 / 모바일 카드] Data Tables · 웹/태블릿 table, 폰 UI table↔card 전환 */
+/* [12. Data Table / Mobile Card · 데이터 표 / 모바일 카드] Data Tables · 웹/태블릿 table, 폰 UI table↔card 전환 */
 .mobile-scroll{
   width:100%;
   max-width:100%;
@@ -4051,7 +4048,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   -webkit-overflow-scrolling:touch;
 }
 .dashboard-data-table{
-  /* Data Table Contract · density + semantic surface/weight hooks; variants override tokens, not cell properties */
+  /* Data Table Contract · density + 의미 surface/weight hook을 공유하고 variant는 cell 속성이 아닌 token만 override */
   --data-table-font-size:12px;
   --data-table-cell-y:7px;
   --data-table-cell-x:7px;
@@ -4109,7 +4106,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   font-weight:var(--data-table-summary-weight);
 }
 .dashboard-data-table tbody .summary-row > td{border-top:var(--data-table-summary-border)}
-/* Sticky row-header separator uses inset shadow to avoid a sticky border seam while keeping the same semantic line token. */
+/* Sticky Row Header Separator · 같은 의미선 token을 유지하면서 sticky border seam은 inset shadow로 방지 */
 .dashboard-data-table tbody .summary-row > th[scope="row"]{
   border-top:0;
   box-shadow:var(--data-table-summary-sticky-shadow);
@@ -4170,7 +4167,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   border-radius:min(var(--surface-radius-xs),var(--corner-surface-cap));
 }
 /* =========================================================
-   [14. Responsive Shared · 반응형 공통]
+   [13. Responsive Shared · 반응형 공통]
    - Tablet + Mobile: max-width:1100px
    - Tablet + Desktop + Phone Landscape: min-width:761px 또는 실제 가로폰
    - 개별 viewport 파일보다 앞선 baseline 공유 규칙만 둔다.
@@ -4303,7 +4300,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
     }
     .desktop-edge-toc-icon svg{width:var(--nav-icon-size);height:var(--nav-icon-size)}
 
-    /* Edge TOC Light/Dark colors and elevation resolve through navigation tokens. */
+    /* Edge TOC Theme · Light/Dark 색상과 elevation은 navigation token으로 결정 */
 }
 
 @media (max-width:1100px){
