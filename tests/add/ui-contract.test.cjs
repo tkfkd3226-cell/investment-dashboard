@@ -62,28 +62,49 @@ test('Calc 도움말은 label과 inline-flex 정렬을 공유하고 개별 위�
   assert.match(js1,/class="help-icon add-button"[^>]*aria-describedby=/);
 });
 
-test('Calc control 높이와 내부 spacing은 공통 source를 사용한다',()=>{
+test('Calc control 높이와 visual state는 viewport 공통 shell source를 사용한다',()=>{
   assert.equal((css.match(/--calc-control-box-height:/g)||[]).length,1);
   assert.equal((css.match(/--calc-control-space:/g)||[]).length,1);
-  const height=rule(':where(html[data-add-page="calc"]) :is(.control,.calc-choice-button,.actual-sale-price)');
+  const height=rule(':where(html[data-add-page="calc"]) :is(.calc-control-shell,.date-control-shell,.calc-choice-button,.actual-sale-price)');
   assert.match(height,/height:var\(--calc-control-box-height\)/);
   assert.match(height,/min-height:0/);
-  assert.match(rule(':where(html[data-add-page="calc"]) :is(.control,.calc-choice-button)'),/padding:var\(--calc-control-space\)/);
+  const shell=rule(':where(html[data-add-page="calc"]) :is(.calc-control-shell,.date-control-shell)');
+  assert.match(shell,/border:var\(--calc-control-border-width\) solid var\(--control-border\)/);
+  assert.match(shell,/background:var\(--surface-control\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.calc-control-shell,.date-control-shell):focus-within'),/border-color:var\(--control-focus-border\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-control-shell:has(> .control[readonly])'),/background:var\(--control-readonly-bg\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.calc-control-shell,.date-control-shell):has(> .control.invalid)'),/background:var\(--danger-control-bg\)/);
+  const inner=rule(':where(html[data-add-page="calc"]) .calc-control-shell > .control');
+  assert.match(inner,/border:0/);
+  assert.match(inner,/background:transparent/);
+  assert.match(inner,/padding:var\(--calc-control-inner-pad-y\) var\(--calc-control-inner-pad-x\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-choice-button'),/padding:var\(--calc-control-space\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) :is(.share-step-btn,.pct-step-btn)'),/padding:var\(--calc-control-space\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .date-control-shell .date-control'),/padding:var\(--calc-control-space\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .date-control-shell .date-control'),/padding:var\(--calc-control-inner-pad-y\) var\(--calc-control-inner-pad-x\)/);
 });
 
-test('Phone input은 iOS focus zoom 방어와 optical scale 구조를 유지한다',()=>{
+test('Phone input은 iOS focus zoom 방어를 token override로만 적용하고 shell을 재구현하지 않는다',()=>{
   assert.match(css1,/--calc-control-input-size:16px/);
   assert.match(css1,/--calc-control-scale:\.[0-9]+/);
+  assert.match(css1,/--calc-control-unit-pad-right:45\.333333px/);
   assert.match(css1,/transform:scale\(var\(--calc-control-scale\)\)/);
   assert.match(css1,/transform-origin:top left/);
   assert.match(calc,/class="date-control-shell"><input[^>]*class="control date-control"/);
   assert.doesNotMatch(calc,/maximum-scale\s*=\s*1|user-scalable\s*=\s*no/i);
+  const phoneStart=css1.indexOf('@media (max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){',css1.indexOf('/* ==================== 02. Calc'));
+  const reportStart=css1.indexOf('/* ==================== 03. Report',phoneStart);
+  const phone=css1.slice(phoneStart,reportStart);
+  assert.doesNotMatch(phone,/\.calc-control-shell\{[^}]*border:/);
+  assert.doesNotMatch(phone,/\.calc-control-shell:focus-within/);
+  assert.doesNotMatch(phone,/\.calc-control-shell:has\(> \.control\[readonly\]\)/);
+  assert.doesNotMatch(phone,/\.calc-control-shell:has\(> \.control\.invalid\)/);
 });
 
-test('모바일 step 버튼은 input 높이에 맞춰 stretch되고 고정 높이를 강제하지 않는다',()=>{
-  assert.match(css1,/:is\(\.share-step-btn,\.pct-step-btn\)\{display:block;height:auto;align-self:stretch/);
+test('step 버튼은 container stretch를 사용하고 dead fixed-height contract를 갖지 않는다',()=>{
+  assert.doesNotMatch(css1,/--button-control-height:/);
+  assert.doesNotMatch(rule('.add-button-step'),/height:/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .pct-step-btn'),/align-self:stretch/);
+  assert.match(css1,/:is\(\.share-step-btn,\.pct-step-btn\)\{display:block;align-self:stretch/);
 });
 
 test('거래유형 preset은 active와 aria-pressed를 같은 state owner에서 갱신한다',()=>{
@@ -136,9 +157,9 @@ test('Calc iPhone 데스크탑 웹사이트 요청은 1280 viewport contract를 
 });
 
 test('Calc 중간 KPI/range는 하나의 outer summary surface를 공유한다',()=>{
-  assert.match(calc,/class="panel calc-summary-panel add-card-shell add-card-base add-card-shadow"/);
-  assert.match(calc,/class="panel calc-summary-panel[^]*<div class="kpis">[^]*<div class="range-panel">/);
-  assert.doesNotMatch(calc,/class="panel (?:kpis|range-panel) add-card-shell/);
+  assert.match(calc,/class="calc-summary-panel add-card-shell add-card-base add-card-shadow"/);
+  assert.match(calc,/class="calc-summary-panel[^]*<div class="kpis">[^]*<div class="range-panel">/);
+  assert.doesNotMatch(calc,/class="(?:kpis|range-panel) add-card-shell/);
   const shell=rule(':where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-card)');
   assert.match(shell,/background:var\(--calc-shell-bg\)/);
   assert.match(shell,/border-color:var\(--calc-shell-border\)/);
@@ -180,12 +201,29 @@ test('Calc 입력영역은 공통 Field Layout primitive를 사용하고 계산 
 test('주요 선택 버튼은 geometry/state만 공유하고 가로 layout은 각 container가 소유한다',()=>{
   const choice=rule(':where(html[data-add-page="calc"]) .calc-choice-button');
   assert.doesNotMatch(choice,/(?:^|;)width:|grid-template-columns:/);
-  assert.match(rule(':where(html[data-add-page="calc"]) :is(.control,.calc-choice-button,.actual-sale-price)'),/height:var\(--calc-control-box-height\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) :is(.control,.calc-choice-button)'),/padding:var\(--calc-control-space\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.calc-control-shell,.date-control-shell,.calc-choice-button,.actual-sale-price)'),/height:var\(--calc-control-box-height\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-choice-button'),/padding:var\(--calc-control-space\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .preset-bar'),/display:flex/);
   assert.match(rule(':where(html[data-add-page="calc"]) .seg'),/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(rule(':where(html[data-add-page="calc"],html[data-add-page="report"]) .tabs'),/overflow:auto/);
   assert.doesNotMatch(calcScope(),/\.preset-btn\{[^}]*padding-inline:|\.calculation-group \.seg button\{[^}]*padding-inline:|\.tab\{[^}]*padding-inline:/);
+});
+
+test('Calc legacy alias와 Phone counter override를 누적하지 않는다',()=>{
+  const calcClassTokens=[...calc.matchAll(/class="([^"]+)"/g)].flatMap(match=>match[1].trim().split(/\s+/));
+  assert.equal(calcClassTokens.includes('btn'),false);
+  assert.equal(calcClassTokens.includes('panel'),false);
+  assert.doesNotMatch(js1,/class="panel strategy-card/);
+  assert.doesNotMatch(calcScope(),/\.btn\{/);
+
+  const phoneStart=css1.indexOf('@media (max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){',css1.indexOf('/* ==================== 02. Calc'));
+  const reportStart=css1.indexOf('/* ==================== 03. Report',phoneStart);
+  const phone=css1.slice(phoneStart,reportStart);
+  assert.doesNotMatch(phone,/existing-group\.holding-layout #holdingPriorFields\{gap:0\}/);
+  assert.doesNotMatch(phone,/additional-group\.(?:holding|settled)-layout #currentFields\{gap:0\}/);
+  assert.doesNotMatch(phone,/\.calculation-group \.field\.full\{grid-column:auto\}/);
+  assert.doesNotMatch(calcScope(),/\.tabs\.settled-tabs\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}[^]*@media \(max-width:760px\)/);
+  assert.match(phone,/\.tabs\.settled-tabs\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/);
 });
 
 test('Calc와 Report의 공통 layout·상태 primitive는 page별 표현과 분리된다',()=>{

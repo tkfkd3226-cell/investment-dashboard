@@ -26,14 +26,14 @@
     <div class="hero-head">
       <h1>투자 계산기</h1>
       <div class="actions">
-      <a class="btn calc-utility-button add-button add-button-action add-button-mobile-icon report-top-link" id="reportBtn" href="kodex-leverage-report.html" target="_blank" rel="noopener" aria-label="거래 리포트">
+      <a class="calc-utility-button add-button add-button-action add-button-mobile-icon report-top-link" id="reportBtn" href="kodex-leverage-report.html" target="_blank" rel="noopener" aria-label="거래 리포트">
         <span class="report-text">거래 리포트</span>
         <svg class="report-icon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M6 3h9l3 3v15H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
           <path d="M15 3v4h4M9 16l2-3 2 2 3-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </a>
-      <button class="btn calc-utility-button add-button add-button-action add-button-mobile-icon" id="resetBtn" type="button" aria-label="기본값 복원"><span class="reset-text">기본값 복원</span><svg class="reset-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="calc-utility-button add-button add-button-action add-button-mobile-icon" id="resetBtn" type="button" aria-label="기본값 복원"><span class="reset-text">기본값 복원</span><svg class="reset-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
     </div>
     <p id="heroDescription">추가매수 당일 종가 또는 추가매수가 대비 변동률 기준 · 목표 매도단가와 3가지 손실 회복 방식 자동 계산</p>
@@ -45,7 +45,7 @@
     <button class="preset-btn calc-choice-button add-button add-button-toggle active" type="button" data-preset="current-only" aria-pressed="true"><span class="preset-main">이전 거래 없음</span></button>
   </div>
 
-  <section class="panel input-panel add-card-shell add-card-base add-card-shadow">
+  <section class="input-panel add-card-shell add-card-base add-card-shadow">
     <div class="input-grid" id="inputGrid">
       <div class="input-group existing-group add-card-shell add-card-subtle" id="priorGroup">
         <div class="group-title add-heading-subsection"><span id="priorGroupTitle">기존 보유분</span><small id="priorGroupSub">기본 투자 정보</small></div>
@@ -131,7 +131,7 @@
 
   <div id="validationMessage" class="validation-panel add-card-shell" role="alert" aria-live="polite"></div>
 
-  <section class="panel calc-summary-panel add-card-shell add-card-base add-card-shadow">
+  <section class="calc-summary-panel add-card-shell add-card-base add-card-shadow">
     <div class="kpis">
       <div class="kpi add-card-shell add-card-control"><div class="name" id="kpi1Name"></div><div class="value" id="kpi1Value"></div><div class="sub" id="kpi1Sub"></div></div>
       <div class="kpi add-card-shell add-card-control"><div class="name" id="kpi2Name"></div><div class="value" id="kpi2Value"></div><div class="sub" id="kpi2Sub"></div></div>
