@@ -1424,7 +1424,7 @@ input
 
 - 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, 상태 표시 등 공통 form/control 표현과 `dashboard-modal.js`의 dialog lifecycle을 재사용한다.
 - 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
-- KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유하고 viewport별 modal radius와 Phone 좌우 여백은 공통 contract로 관리한다. 작은 수치 차이를 feature selector에 다시 만들지 않는다.
+- KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유한다. 공통 modal radius는 shared modal contract에서 한 번만 소유하고 Tablet/Phone은 해당 shared token만 override한다. Phone 좌우 여백은 overlay padding을 canonical source로 사용하며 feature별 `100vw - npx` 폭 보정을 중복해서 만들지 않는다.
 - Tooltip 표시 motion은 `--tooltip-motion`을 공통 source로 사용한다. Windows/macOS의 OS 모션 감소 설정으로 이 대시보드의 tooltip·toast·차트·card motion을 자동 비활성화하지 않는다.
 - 검증된 responsive/browser별 표현 예외는 feature/CSS가 소유하며, generic 공통화를 위해 제거하지 않는다.
 
@@ -1828,7 +1828,7 @@ JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 �
 
 ### iPhone Safari 데스크탑 웹사이트 요청
 
-현재 canonical desktop-request viewport는 **`width=1280`**이다. 과거 `width=1980` 기준은 폐기되었으며 되돌리지 않는다.
+현재 canonical desktop-request viewport는 **`width=1280`**이다. 과거 `width=1980` 기준은 폐기되었으며 되돌리지 않는다. 1280px은 일반 Desktop baseline 자체를 사용하므로 `iphone-request-desktop` 같은 별도 CSS 보정 class를 만들지 않는다.
 
 
 ## 5.2 Section Title / Control 공통 불변조건
@@ -1916,7 +1916,7 @@ Hero 기준일 영역의 **연속 3회 클릭 개인보기 ON/OFF는 의도된 �
 
 ## 5.7 Print canonical 표현
 
-- Print는 현재 Light/Dark 상태와 관계없이 Light palette로 고정한다. `beforeprint`에서 `print-light-theme`을 적용하고 모든 SVG 차트를 Light chart palette로 다시 그린 뒤 `afterprint`에서 화면 테마 차트로 복원한다.
+- Print는 현재 Light/Dark 상태와 관계없이 Light palette로 고정한다. `beforeprint`에서 `print-light-theme`을 적용하고 모든 SVG 차트를 Light chart palette로 다시 그린 뒤 `afterprint`에서 화면 테마 차트로 복원한다. 인쇄 차트의 가로세로 비율은 SVG `viewBox`에서 자연스럽게 파생하며 `print.css`에 `1120/330` 같은 프레임 literal을 다시 소유하지 않는다.
 - Topbar·목차·modal·tooltip·toast·보기 전환·차트 조작 UI·Market AI는 인쇄에서 제외한다.
 - 비활성 자산 panel도 펼쳐 증권계좌와 퇴직연금을 연속 출력하고, Phone에서 숨긴 Hero 요약 pill도 모두 표시한다.
 - 성과 KPI는 4열, 누적손익/운용손익 차트 하단 6개 요약은 3열, 종목·상품 차트 하단 요약은 4열을 viewport와 무관한 인쇄 기준으로 사용한다.

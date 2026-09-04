@@ -2372,9 +2372,6 @@ body.chart-expanded-open .dash-tooltip{
   flex-direction:column;
   gap:var(--space-md);
 }
-.contrib-field.full{
-  grid-column:1/-1;
-}
 /* Pension form semantic layout · cash/date+memo, amount+cost / ETF date+product를 같은 행으로 유지 */
 .contrib-modal .pension-adjust-form.cash-mode{
   grid-template-areas:
@@ -2382,7 +2379,7 @@ body.chart-expanded-open .dash-tooltip{
     "cash-amount cash-cost";
 }
 .contrib-modal .pension-adjust-form.cash-mode .pension-cash-date-field{grid-area:cash-date}
-.contrib-modal .pension-adjust-form.cash-mode .pension-cash-memo-field{grid-area:cash-memo;grid-column:auto}
+.contrib-modal .pension-adjust-form.cash-mode .pension-cash-memo-field{grid-area:cash-memo}
 .contrib-modal .pension-adjust-form.cash-mode .pension-cash-amount-field{grid-area:cash-amount}
 .contrib-modal .pension-adjust-form.cash-mode .pension-cash-cost-field{grid-area:cash-cost}
 /* 기업적립금은 모든 viewport에서 일자/금액 1행 + 메모 전체폭 1행을 유지한다. */
@@ -2400,8 +2397,8 @@ body.chart-expanded-open .dash-tooltip{
     "trade-date trade-product"
     "trade-qty trade-amount";
 }
-.contrib-modal .pension-adjust-form.trade-mode .pension-trade-date-field{grid-area:trade-date;grid-column:auto}
-.contrib-modal .pension-adjust-form.trade-mode .pension-trade-product-field{grid-area:trade-product;grid-column:auto}
+.contrib-modal .pension-adjust-form.trade-mode .pension-trade-date-field{grid-area:trade-date}
+.contrib-modal .pension-adjust-form.trade-mode .pension-trade-product-field{grid-area:trade-product}
 .contrib-modal .pension-adjust-form.trade-mode .pension-trade-qty-field{grid-area:trade-qty}
 .contrib-modal .pension-adjust-form.trade-mode .pension-trade-amount-field{grid-area:trade-amount}
 .contrib-field label,
@@ -2523,7 +2520,6 @@ body.chart-expanded-open .dash-tooltip{
   --modal-overlay-pad:var(--space-8xl);
   --modal-backdrop-blur:6px;
   --modal-card-width:min(760px,100%);
-  --modal-card-radius:min(22px,var(--corner-surface-cap));
   --modal-card-pad-y:var(--pension-modal-pad);
   --modal-card-pad-x:var(--pension-modal-pad);
   --modal-control-height:var(--pension-modal-row-height);
@@ -3076,6 +3072,7 @@ body.dashboard-dialog-open{
   align-items:center;
   justify-content:center;
   padding:var(--modal-overlay-pad);
+  --modal-card-radius:min(22px,var(--corner-surface-cap));
   background:var(--modal-overlay-color);
   backdrop-filter:blur(var(--modal-backdrop-blur));
   -webkit-backdrop-filter:blur(var(--modal-backdrop-blur));
@@ -3095,7 +3092,6 @@ body.dashboard-dialog-open{
   --modal-overlay-pad:20px;
   --modal-backdrop-blur:6px;
   --modal-card-width:min(420px,100%);
-  --modal-card-radius:min(22px,var(--corner-surface-cap));
   --modal-card-pad-y:var(--space-10xl);
   --modal-card-pad-x:var(--space-10xl);
   --modal-control-height:44px;
@@ -3399,9 +3395,8 @@ button:not(:disabled):active{
   transition:none;
 }
 
-.contrib-modal.show button:hover,
+/* Modal Motion Policy · active motion은 common, hover motion은 interaction.css가 소유 */
 .contrib-modal.show button:active,
-.action-modal button:hover,
 .action-modal button:active{
   transform:none;
 }
@@ -3795,18 +3790,6 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 }
 
 .combined-mobile-return{display:none}
-
-/* iPhone Requested Desktop · 아이폰 데스크탑 웹사이트 요청: 장부결과는 Desktop 동일 폭 3열 강제 */
-html.iphone-request-desktop #ledger-check .ledger-overview-grid{
-  grid-template-columns:repeat(3,minmax(0,1fr));
-}
-html.iphone-request-desktop #ledger-check .ledger-conclusion-card{
-  grid-column:auto;
-  grid-template-columns:1fr;
-  gap:var(--space-4xl);
-}
-html.iphone-request-desktop #ledger-check .ledger-conclusion-inline-reason{display:block}
-html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none}
 
 /* [11. Topbar / Navigation · 상단바 / 내비게이션] Date Action / Navigation Primitives / Edge TOC / Topbar Layout */
 

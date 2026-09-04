@@ -149,7 +149,6 @@
   /* [M06. Pension Feature · 퇴직연금 세로폰 form / 기존항목 / batch] */
 .contrib-modal{
       align-items:flex-end;
-      --modal-card-width:min(100%, calc(100vw - 24px));
     }
     .contrib-modal-head p{line-height:var(--type-line-helper)}
     .contrib-modal .pension-adjust-form{

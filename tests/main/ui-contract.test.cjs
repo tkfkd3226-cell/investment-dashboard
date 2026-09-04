@@ -473,7 +473,9 @@ test('CSS 책임 분리: Desktop baseline은 common, Tablet/Mobile은 전용 파
 test('강제 웹보기 contract: 스마트폰 web 요청은 1280, tablet 요청은 961 viewport를 사용한다',()=>{
   assert.match(index1,/if\(dashboardView==='web'\)forcedViewport=1280/);
   assert.match(index1,/if\(dashboardView==='tablet'\)forcedViewport=961/);
-  assert.match(index1,/if\(forcedViewport===1280&&\(appleMobileUA\|\|desktopAppleUA\)&&touchApple&&shortSide<=500\)document\.documentElement\.classList\.add\('iphone-request-desktop'\)/);
+  assert.match(index1,/if\(desktopAppleUA&&touchApple&&shortSide<=500\)\{ if\(viewport\)viewport\.setAttribute\('content','width=1280'\); \}/);
+  assert.doesNotMatch(index1,/iphone-request-desktop/);
+  assert.doesNotMatch(common,/iphone-request-desktop/);
 });
 
 test('5차 Chart responsive ownership은 공통 Phone helper·responsive CSS 책임·generic info token·expanded geometry source를 유지한다',()=>{
@@ -501,4 +503,33 @@ test('5차 Chart responsive ownership은 공통 Phone helper·responsive CSS 책
   assert.match(special1,/\.chart-expanded-overlay\.device-landscape \.chart-expanded-stage\{ --chart-expanded-pad-inline-end:52px;/);
   assert.doesNotMatch(common,/padding:20px 68px/);
   assert.doesNotMatch(special,/padding:var\(--space-4xl\) 52px/);
+});
+
+
+test('6차 Pension/Modal/특수 UI는 shared radius·semantic form·modal motion·Phone/Print/Desktop contract를 유지한다',()=>{
+  const tablet1=compact(tablet),mobile1=compact(mobile),interaction1=compact(interaction),print1=compact(print),pensionEditor1=compact(pensionEditor);
+
+  assert.equal((common.match(/--modal-card-radius:/g)||[]).length,1);
+  assert.match(common1,/:is\(\.contrib-modal,\.action-modal\)\{[^}]*--modal-card-radius:min\(22px,var\(--corner-surface-cap\)\)/);
+  assert.equal((tablet.match(/--modal-card-radius:/g)||[]).length,1);
+  assert.match(tablet1,/:is\(\.contrib-modal,\.action-modal\)\{--modal-card-radius:min\(20px,var\(--corner-surface-cap\)\)\}/);
+
+  assert.doesNotMatch(common,/\.contrib-field\.full/);
+  assert.doesNotMatch(pensionEditor1,/contrib-field full/);
+  assert.doesNotMatch(common1,/pension-cash-memo-field\{grid-area:cash-memo;grid-column:auto\}/);
+  assert.doesNotMatch(common1,/pension-trade-(?:date|product)-field\{[^}]*grid-column:auto/);
+
+  assert.doesNotMatch(common,/\.action-modal button:hover/);
+  assert.match(interaction1,/button:not\(:disabled\):hover\{ transform:translateY\(-1px\); \} \/\* Modal Motion Guard[^]*\.contrib-modal\.show button:hover, \.action-modal button:hover\{ transform:none; \}/);
+
+  assert.doesNotMatch(mobile,/--modal-card-width/);
+  assert.match(special1,/:is\(\.contrib-modal,\.action-modal\)\{ --modal-overlay-pad:var\(--space-5xl\); --modal-card-radius:min\(18px,var\(--corner-surface-cap\)\)/);
+
+  assert.doesNotMatch(print,/aspect-ratio\s*:\s*1120\s*\/\s*330/);
+  assert.doesNotMatch(print,/1120\s*[:/]\s*330/);
+  assert.match(print1,/svg\.chart\{ width:100%; max-width:100%; min-width:0; height:auto; \}/);
+  assert.match(charts1,/if\(chartRuntimeState\.printFixedViewBox\)return \{w:CHART_VIEWBOX_BASE\.width,h\}/);
+
+  assert.doesNotMatch(index1,/iphone-request-desktop/);
+  assert.doesNotMatch(common,/iphone-request-desktop/);
 });

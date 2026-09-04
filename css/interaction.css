@@ -75,4 +75,10 @@
     button:not(:disabled):hover{
       transform:translateY(-1px);
     }
+
+    /* Modal Motion Guard · modal hover는 lift 없이 고정한다. */
+    .contrib-modal.show button:hover,
+    .action-modal button:hover{
+      transform:none;
+    }
 }

@@ -6,8 +6,7 @@
 <script>
   (function(){
     var ua=navigator.userAgent||'';
-    var appleMobileUA=/(iPhone|iPad|iPod)/.test(ua);
-    var desktopAppleUA=/Macintosh/.test(ua)&&!appleMobileUA;
+    var desktopAppleUA=/Macintosh/.test(ua)&&!/(iPhone|iPad|iPod)/.test(ua);
     var touchApple=(navigator.maxTouchPoints||0)>0;
     var shortSide=Math.min(screen.width||9999,screen.height||9999);
     var forcedViewport=0;
@@ -22,17 +21,14 @@
     var viewport=document.querySelector('meta[name="viewport"]');
     if(dashboardView==='mobile'&&shortSide<=760){
       if(viewport)viewport.setAttribute('content','width=device-width, initial-scale=1');
-      document.documentElement.classList.remove('iphone-request-desktop');
       return;
     }
     if(forcedViewport){
       if(viewport)viewport.setAttribute('content','width='+forcedViewport);
-      if(forcedViewport===1280&&(appleMobileUA||desktopAppleUA)&&touchApple&&shortSide<=500)document.documentElement.classList.add('iphone-request-desktop');
       return;
     }
     if(desktopAppleUA&&touchApple&&shortSide<=500){
       if(viewport)viewport.setAttribute('content','width=1280');
-      document.documentElement.classList.add('iphone-request-desktop');
     }
   })();
 </script>

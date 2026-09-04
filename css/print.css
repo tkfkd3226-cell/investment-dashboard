@@ -282,7 +282,7 @@
     #ledger-check .ledger-conclusion-reason{display:block}
     #capital-source-check .source-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 
-    /* [P06. Charts · 1120:330 SVG를 용지 폭에 맞춰 축소] */
+    /* [P06. Charts · SVG viewBox 비율을 그대로 사용해 용지 폭에 맞춰 축소] */
     .chart-wrap,
     .chart-wrap.is-scrollable{
       width:100%;
@@ -296,7 +296,6 @@
       max-width:100%;
       min-width:0;
       height:auto;
-      aspect-ratio:1120 / 330;
     }
 
     /* [P07. Pagination · 제목/차트/소형 surface의 부자연스러운 page split 방지] */

@@ -130,7 +130,6 @@
 
   /* [T06. Pension Modal · 퇴직연금 모달 태블릿 density] */
 .contrib-modal{
-      --modal-card-radius:min(20px,var(--corner-surface-cap));
       --pension-modal-title-size:var(--type-size-2xl);
       --pension-modal-label-size:var(--type-size-xs);
       --pension-modal-control-size:var(--type-size-xs);
