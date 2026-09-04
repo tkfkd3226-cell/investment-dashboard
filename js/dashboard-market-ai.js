@@ -3,9 +3,10 @@ import {
   closeDashboardNativeDialog,
   openDashboardNativeDialog
 } from './dashboard-modal.js';
+import { PHONE_UI_QUERY } from './dashboard-responsive.js';
 
 // Market AI Standalone Adapter · main feature graph와 분리된 독립 entry
-// Ownership: dashboard-modal.js의 저수준 dialog lifecycle만 공유하고, mount/state/fetch/render는 이 파일이 소유한다.
+// Ownership: dashboard-modal.js의 저수준 dialog lifecycle과 dashboard-responsive.js의 viewport predicate만 공유하고, mount/state/fetch/render는 이 파일이 소유한다.
 // Responsive contract: Desktop/Tablet은 Hero 우측 panel, Phone은 동일 panel을 modal로 이동 재사용하며 Tooltip을 비활성화한다.
 // View-mode contract: ?dashboard-view=web/tablet/mobile은 레이아웃만 선택하며 Market AI는 항상 실제 데이터를 사용한다.
 // Structure map:
@@ -36,8 +37,7 @@ const MARKET_AI_TOOLTIP_ID='marketAiTooltip';
 const MARKET_AI_MOBILE_DIALOG_ID='marketAiMobileDialog';
 const MARKET_AI_MOBILE_TRIGGER_ID='marketAiMobileTrigger';
 const MARKET_AI_CLOSE_ICON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"></path></svg>';
-const MARKET_AI_PHONE_MEDIA_QUERY='(max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
-const marketAiPhoneMedia=window.matchMedia(MARKET_AI_PHONE_MEDIA_QUERY);
+const marketAiPhoneMedia=window.matchMedia(PHONE_UI_QUERY);
 const MARKET_AI_SCORE_RANGE_LINES=[
   '0–34.9 강한 약세 · 35–45 약세 · 45 초과–54.9 중립',
   '55–64.9 강세 · 65–100 강한 강세'
