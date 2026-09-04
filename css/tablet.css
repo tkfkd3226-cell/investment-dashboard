@@ -121,6 +121,12 @@
     .chart-grid .chart-wrap svg.chart{
       width:100%;
     }
+    .chart-wrap.is-scrollable{
+      border-right:2px solid var(--scroll-edge-border);
+      box-shadow:var(--scroll-edge-shadow-compact);
+    }
+    #pension-chart-alloc .pension-cash-detail-full{display:none}
+    #pension-chart-alloc .pension-cash-detail-compact{display:block}
 
   /* [T06. Pension Modal · 퇴직연금 모달 태블릿 density] */
 .contrib-modal{

@@ -264,7 +264,7 @@ function toggleChartTitleInfo(event,button){
   button.setAttribute('aria-expanded',String(open));
 }
 function portraitPhoneChartFlow(){
-  return window.matchMedia?.('(max-width:760px)').matches===true&&!phoneLandscapeUi();
+  return phoneUi()&&!phoneLandscapeUi();
 }
 function chartDisplayLabel(scope,label){
   const compact=phoneUi();

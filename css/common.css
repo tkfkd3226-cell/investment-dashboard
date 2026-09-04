@@ -419,9 +419,9 @@
   --chart-series-return:#5abdf2;
   --chart-series-kospi:#7c3aed;
   --chart-expanded-surface:#ffffff;
-  --chart-info-border:#94a3b8;
-  --chart-info-bg:var(--card);
-  --chart-info-color:var(--muted);
+  --info-control-border:#94a3b8;
+  --info-control-bg:var(--card);
+  --info-control-color:var(--muted);
   --hero-bg:linear-gradient(135deg,#202c42 0%,#2b3d59 58%,#36506f 100%);
   --hero-title-color:#ffffff;
   --hero-basis-color:#d1d5db;
@@ -484,9 +484,9 @@ html.dark{
   --chart-hover:#94a3b8;
   --chart-stack-stroke:#121826;
   --chart-expanded-surface:#0b1020;
-  --chart-info-border:#64748b;
-  --chart-info-bg:#111827;
-  --chart-info-color:var(--highlight-card-muted);
+  --info-control-border:#64748b;
+  --info-control-bg:#111827;
+  --info-control-color:var(--highlight-card-muted);
   --hero-bg:linear-gradient(135deg,#151d2c 0%,#1c283b 58%,#24344b 100%);
   --hero-shadow:0 18px 42px rgba(0,0,0,.24);
   --hero-image-opacity:.25;
@@ -1603,6 +1603,10 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
 .chart-expanded-overlay.show{opacity:1}
 .chart-expanded-close{display:inline-flex}
 .chart-expanded-stage{
+  --chart-expanded-pad-block-start:20px;
+  --chart-expanded-pad-inline-end:68px;
+  --chart-expanded-pad-block-end:var(--space-7xl);
+  --chart-expanded-pad-inline-start:var(--space-10xl);
   position:absolute;
   left:0;
   top:0;
@@ -1612,7 +1616,7 @@ body.chart-expanded-open{overflow:hidden;touch-action:none}
   display:grid;
   grid-template-rows:auto minmax(0,1fr) auto;
   gap:var(--space-4xl);
-  padding:20px 68px var(--space-7xl) var(--space-10xl);
+  padding:var(--chart-expanded-pad-block-start) var(--chart-expanded-pad-inline-end) var(--chart-expanded-pad-block-end) var(--chart-expanded-pad-inline-start);
   transform-origin:top left;
   transform:none;
   background:var(--chart-expanded-surface);
@@ -3294,10 +3298,10 @@ button.control-icon-button-compact{
   flex:0 0 var(--info-button-size);
   margin:0;
   padding:0;
-  border:1px solid var(--chart-info-border);
+  border:1px solid var(--info-control-border);
   border-radius:50%;
-  background:var(--chart-info-bg);
-  color:var(--chart-info-color);
+  background:var(--info-control-bg);
+  color:var(--info-control-color);
   font-family:inherit;
   line-height:1.12;
   cursor:pointer;
@@ -4284,43 +4288,6 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
 
 @media (max-width:1100px){
 
-  /* Expanded Chart · 비웹 viewport: 세로 확대 회전형 + compact 타이포 유지 */
-    .chart-expanded-stage{
-      width:var(--chart-expanded-vh,100dvh);
-      height:var(--chart-expanded-vw,100dvw);
-      gap:var(--space-md);
-      padding:var(--space-4xl) var(--space-5xl) var(--space-2xl) var(--space-5xl);
-      transform:rotate(90deg) translateY(-100%);
-    }
-    .chart-expanded-overlay:not(.device-landscape) .chart-expanded-legend-host{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:var(--space-2xl);
-    }
-    .chart-expanded-overlay:not(.device-landscape) .chart-expanded-legend-host > .chart-options-row{
-      position:static;
-      left:auto;
-      bottom:auto;
-      flex:0 0 auto;
-      margin:0;
-      transform:none;
-    }
-    .chart-expanded-overlay:not(.device-landscape) .chart-expanded-legend-host .chart-legend{
-      flex:0 1 auto;
-      min-width:0;
-      column-gap:var(--space-4xl);
-    }
-    .chart-expanded-legend-host .chart-legend-series{
-      gap:var(--space-md) var(--space-4xl);
-    }
-
-    .chart-expanded-overlay.device-landscape .chart-expanded-stage{
-      width:100%;
-      height:100%;
-      transform:none;
-      padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
-    }
   /* Large Grid Responsive · 대형 카드 그리드 반응형: 1100px 이하에서 세로 1열 */
     .three, .two{
       grid-template-columns:1fr;
@@ -4372,12 +4339,9 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
   /* Page Shell Responsive · 1100px 이하 공통 shell / section title 간격은 token만 축소 */
     :root{--page-section-title-gap:var(--space-xl)}
 
-    .mobile-scroll.is-scrollable,
-    .chart-wrap.is-scrollable{
+    .mobile-scroll.is-scrollable{
       border-right:2px solid var(--scroll-edge-border);
       box-shadow:var(--scroll-edge-shadow-compact);
     }
 
-    #pension-chart-alloc .pension-cash-detail-full{display:none}
-    #pension-chart-alloc .pension-cash-detail-compact{display:block}
 }

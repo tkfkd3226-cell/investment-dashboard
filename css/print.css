@@ -46,8 +46,8 @@
       --chart-hover:#334155;
       --chart-stack-stroke:#ffffff;
       --chart-expanded-surface:#ffffff;
-      --chart-info-bg:var(--card);
-      --chart-info-color:var(--muted);
+      --info-control-bg:var(--card);
+      --info-control-color:var(--muted);
       --value-positive:#e6233a;
       --value-negative:#2972e8;
       --highlight-card-difference:#fbbf24;

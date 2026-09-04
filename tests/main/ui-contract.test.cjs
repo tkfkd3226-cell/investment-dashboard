@@ -475,3 +475,30 @@ test('강제 웹보기 contract: 스마트폰 web 요청은 1280, tablet 요청�
   assert.match(index1,/if\(dashboardView==='tablet'\)forcedViewport=961/);
   assert.match(index1,/if\(forcedViewport===1280&&\(appleMobileUA\|\|desktopAppleUA\)&&touchApple&&shortSide<=500\)document\.documentElement\.classList\.add\('iphone-request-desktop'\)/);
 });
+
+test('5차 Chart responsive ownership은 공통 Phone helper·responsive CSS 책임·generic info token·expanded geometry source를 유지한다',()=>{
+  const commonNarrow=common.slice(common.indexOf('@media (max-width:1100px){'));
+  const tablet1=compact(tablet),print1=compact(print);
+
+  assert.match(charts1,/function portraitPhoneChartFlow\(\)\{ return phoneUi\(\)&&!phoneLandscapeUi\(\); \}/);
+  assert.doesNotMatch(charts,/max-width:760px/);
+
+  assert.doesNotMatch(commonNarrow,/chart-expanded-stage|chart-expanded-legend-host|chart-wrap\.is-scrollable|pension-cash-detail/);
+  assert.match(special,/@media \(max-width:1100px\)\{[\s\S]*?\.chart-expanded-stage\{/);
+  assert.match(tablet1,/\.chart-wrap\.is-scrollable\{ border-right:2px solid var\(--scroll-edge-border\); box-shadow:var\(--scroll-edge-shadow-compact\); \}/);
+  assert.match(special1,/\.chart-wrap\.is-scrollable\{ border-right:2px solid var\(--scroll-edge-border\); box-shadow:var\(--scroll-edge-shadow-compact\); \}/);
+  assert.match(tablet1,/#pension-chart-alloc \.pension-cash-detail-full\{display:none\} #pension-chart-alloc \.pension-cash-detail-compact\{display:block\}/);
+  assert.match(special1,/#pension-chart-alloc \.pension-cash-detail-full\{display:none\} #pension-chart-alloc \.pension-cash-detail-compact\{display:block\}/);
+
+  assert.doesNotMatch(common,/--chart-info-/);
+  assert.doesNotMatch(print,/--chart-info-/);
+  assert.match(common1,/--info-control-border:#94a3b8; --info-control-bg:var\(--card\); --info-control-color:var\(--muted\)/);
+  assert.match(common1,/\.control-info-button\{[^}]*border:1px solid var\(--info-control-border\);[^}]*background:var\(--info-control-bg\); color:var\(--info-control-color\)/);
+  assert.match(print1,/--info-control-bg:var\(--card\); --info-control-color:var\(--muted\)/);
+
+  assert.match(common1,/\.chart-expanded-stage\{ --chart-expanded-pad-block-start:20px; --chart-expanded-pad-inline-end:68px; --chart-expanded-pad-block-end:var\(--space-7xl\); --chart-expanded-pad-inline-start:var\(--space-10xl\);/);
+  assert.match(common1,/padding:var\(--chart-expanded-pad-block-start\) var\(--chart-expanded-pad-inline-end\) var\(--chart-expanded-pad-block-end\) var\(--chart-expanded-pad-inline-start\)/);
+  assert.match(special1,/\.chart-expanded-overlay\.device-landscape \.chart-expanded-stage\{ --chart-expanded-pad-inline-end:52px;/);
+  assert.doesNotMatch(common,/padding:20px 68px/);
+  assert.doesNotMatch(special,/padding:var\(--space-4xl\) 52px/);
+});
