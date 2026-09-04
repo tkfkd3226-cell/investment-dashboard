@@ -5,7 +5,7 @@
 //   [UICOMMON02] Icon / Markup Helpers
 //   [UICOMMON03] Shared Cards / Mobile Data View
 //   [UICOMMON04] Asset Shared Renderers
-//   [UICOMMON05] Feedback / Viewport Utilities
+//   [UICOMMON05] Feedback / Viewport / Scroll Utilities
 //   [UICOMMON06] Asset Tooltip Interaction
 //   [UICOMMON07] Public API
 
@@ -222,7 +222,7 @@ function renderAssetContributionCard({
   return renderAssetInsightCard({idPrefix,title,content});
 }
 
-// [UICOMMON05] Feedback / Viewport Utilities · 토스트 / 모바일 viewport 보정
+// [UICOMMON05] Feedback / Viewport / Scroll Utilities · 토스트 / 모바일 viewport / 가로 스크롤 상태
 function ensureAppToast(){
   let toast=document.getElementById('appToast');
   if(!toast){
@@ -242,6 +242,12 @@ function showAppToast(message,type='ok',delay=3500){
   toast.textContent=message;
   clearTimeout(showAppToast._timer);
   showAppToast._timer=setTimeout(()=>toast.classList.remove('show'),delay);
+}
+function refreshScrollOverflowState(){
+  document.querySelectorAll('.mobile-scroll, .chart-wrap').forEach(wrap=>{
+    const scrollable=wrap.scrollWidth>wrap.clientWidth+4;
+    wrap.classList.toggle('is-scrollable',scrollable);
+  });
 }
 function forceMobileViewportReflow(){
   const y=window.scrollY||document.documentElement.scrollTop||0;
@@ -471,6 +477,7 @@ export {
   renderAssetDayChangeBlock,
   renderAssetInsightCard,
   renderAssetInsightZone,
+  refreshScrollOverflowState,
   renderDashboardDataTable,
   renderAssetStatusBlock,
   renderAssetWeight,

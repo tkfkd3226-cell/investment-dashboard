@@ -41,6 +41,7 @@ import {
   mobileTableAssetName,
   navIconSvg,
   phoneUi,
+  refreshScrollOverflowState,
   renderAssetContributionCard,
   renderAssetDayChangeValue,
   renderAssetDayChangeBlock,
@@ -59,7 +60,6 @@ import {
 } from './dashboard-modal.js';
 import {
   drawAllCharts,
-  refreshScrollHints,
   renderCharts
 } from './dashboard-charts.js';
 
@@ -401,7 +401,7 @@ function renderTabs(){
 }
 function toggleMobileDataView(key){
   toggleMobileViewMode(key);
-  requestAnimationFrame(refreshScrollHints);
+  requestAnimationFrame(refreshScrollOverflowState);
 }
 
 // [UI06] Mobile Top Button · 모바일 TOP 버튼

@@ -38,7 +38,8 @@ import {
   escapeHtml,
   navIconSvg,
   phoneLandscapeUi,
-  phoneUi
+  phoneUi,
+  refreshScrollOverflowState
 } from './dashboard-ui-common.js';
 import {
   activateDashboardDialogFocus,
@@ -51,7 +52,7 @@ import {
 //   [CHART01] Layout / Sizing Primitives
 //   [CHART02] Expanded View / Responsive Controls
 //   [CHART03] Responsive Controls / Entrance Motion
-//   [CHART04] Scroll State / Hints
+//   [CHART04] Responsive Control Sync
 //   [CHART05] Series State / Legend Controls
 //   [CHART06] Chart Data / Card Rendering
 //   [CHART07] SVG Core / Tooltip Infrastructure
@@ -493,15 +494,7 @@ function refreshChartOptions(scope){
   const legendId=chartLegendId(scope),legend=legendId?document.getElementById(legendId):null;
   if(card&&legend)syncChartOptions(scope,card,legend);
 }
-// [CHART04] Scroll State / Hints · 가로 스크롤 상태 / 힌트
-function refreshScrollHints(){
-  document.querySelectorAll('.scroll-hint').forEach(el=>el.remove());
-  document.querySelectorAll('.mobile-scroll, .chart-wrap').forEach(wrap=>{
-    const scrollable=wrap.scrollWidth>wrap.clientWidth+4;
-    wrap.classList.toggle('is-scrollable',scrollable);
-  });
-}
-
+// [CHART04] Responsive Control Sync · 반응형 차트 control 동기화
 function syncResponsiveChartControls(){
   const compact=phoneUi(),phoneFlow=portraitPhoneChartFlow();
   RESPONSIVE_CHART_SCOPES.forEach(({id,scope})=>{
@@ -546,7 +539,7 @@ function setupResponsiveChartControls(){
       if(chartViewBoxNeedsRedraw())drawAllCharts();
       else{
         syncResponsiveChartControls();
-        refreshScrollHints();
+        refreshScrollOverflowState();
       }
     });
   },{passive:true});
@@ -777,7 +770,7 @@ function redrawChartScope(scope){
   drawers[scope]?.();
   const svg=document.getElementById(svgIds[scope]);
   if(svg)prepareChartEntranceForSvg(svg);
-  refreshScrollHints();
+  refreshScrollOverflowState();
 }
 function toggleChartSeries(scope,key){
   const selection=chartSelection(scope);
@@ -895,7 +888,7 @@ function setSecurityAllocMode(mode){
   }
   drawStacked();
   prepareChartEntranceForSvg(document.getElementById('chartAlloc'));
-  refreshScrollHints();
+  refreshScrollOverflowState();
 }
 
 
@@ -1603,8 +1596,8 @@ function drawAllCharts(){
     prepareChartEntranceForSvg(svg);
   });
   setupChartEntranceAnimations();
-  refreshScrollHints();
-  setTimeout(refreshScrollHints,120);
+  refreshScrollOverflowState();
+  setTimeout(refreshScrollOverflowState,120);
 }
 
 function prepareChartsForPrint(){
@@ -1633,7 +1626,6 @@ function drawChartsForPrint(){
 // [CHART11] Public API
 export {
   drawAllCharts,
-  refreshScrollHints,
   handleChartDashboardAction,
   isExpandedChart,
   refreshExpandedSeparateProfitChart,

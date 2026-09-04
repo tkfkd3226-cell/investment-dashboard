@@ -1430,6 +1430,8 @@ input
 
 화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js` 또는 `dashboard-modal.js`로 끌어올리지 않는다.
 
+- 공통 가로 스크롤 overflow 상태(`.mobile-scroll`, `.chart-wrap`의 `.is-scrollable`)는 `dashboard-ui-common.js`가 소유하고, Table UI와 Chart가 같은 `refreshScrollOverflowState()`를 재사용한다. 표가 차트 모듈을 import해서 scroll 상태를 갱신하는 역방향 의존은 만들지 않는다.
+
 ## 4.6 `dashboard-charts.js` 책임
 
 차트 관련 기능은 기본적으로:
@@ -2370,6 +2372,7 @@ radius는 padding 분류와 별도로 화면상 같은 line/hierarchy를 기준�
 확정 예외만 다음과 같이 유지한다.
 
 - **Source**: Medium surface + Metric rhythm을 사용하고 `.source-card{min-width:0}`은 base property로 유지한다. value 아래 `source-table-scroll` 간격과 highlight는 별도 정보영역/상태이므로 공통 rhythm에 합치지 않는다.
+- **Table summary separator**: 일반 viewport에서는 summary row 전체가 `border-top`을 사용하고, Phone sticky 첫 열에서만 border seam 방지를 위해 첫 cell의 `border-top`을 제거하고 inset shadow로 같은 의미선을 재현한다.
 - **Ledger**: `.value{min-height:0}`, 근거 divider/padding, Tablet·실제 Phone Landscape의 2-column 및 내부 gap은 복합 정보구조 전용 예외로 유지한다.
 - **Symbol**: `symbol-metrics` divider 뒤 padding, 내부 label/value layout, allocation detail baseline 보정은 Symbol 상세영역 예외로 유지한다. Mini와 같은 관계의 간격만 공통 rhythm을 사용한다.
 - **Long content**: `.chart-note.six`의 숫자 `.m-value`는 한 줄 유지, 날짜가 포함될 수 있는 `.m-label`/`.m-detail`은 자연 줄바꿈을 허용한다. Phone KPI 2×2 및 기존 `<=400px` 계좌성과 table 예외도 유지한다.

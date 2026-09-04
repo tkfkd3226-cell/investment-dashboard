@@ -67,6 +67,14 @@ test('Main module boundary: core는 DOM 비의존, modal은 무의존, Market AI
   assert.deepEqual(importsOf(marketAi),['./dashboard-modal.js']);
 });
 
+test('공통 scroll overflow state는 ui-common이 소유하고 Table/Chart가 같은 helper를 재사용한다',()=>{
+  assert.match(uiCommon,/function refreshScrollOverflowState\(\)\{[^]*?\.mobile-scroll, \.chart-wrap[^]*?classList\.toggle\('is-scrollable',scrollable\)/);
+  assert.match(charts,/import\s*\{[^}]*refreshScrollOverflowState[^}]*\}\s*from '\.\/dashboard-ui-common\.js'/);
+  assert.doesNotMatch(charts,/function refreshScrollOverflowState\(/);
+  assert.match(ui,/import\s*\{[^}]*refreshScrollOverflowState[^}]*\}\s*from '\.\/dashboard-ui-common\.js'/);
+  assert.doesNotMatch(ui,/import\s*\{[^}]*refreshScrollOverflowState[^}]*\}\s*from '\.\/dashboard-charts\.js'/);
+});
+
 test('Main graph entry: app은 core/ui-common/modal/charts/ui/pension/pension-editor를 orchestration한다',()=>{
   const imports=importsOf(app);
   for(const dependency of [
@@ -151,12 +159,13 @@ test('Topbar 날짜 년월/일 select는 같은 width token을 공유한다',()=
   assert.match(common1,/\.day-select\{min-width:var\(--topbar-date-select-width\);flex:0 0 var\(--topbar-date-select-width\)\}/);
 });
 
-test('Table summary/sticky/scroll contract는 semantic token과 sticky first-column 규칙을 유지한다',()=>{
+test('Table summary/sticky/scroll contract는 semantic token과 Phone sticky seam 책임을 분리한다',()=>{
   assert.match(common1,/--data-table-summary-bg:var\(--summary-row-bg\)/);
   assert.match(common1,/--data-table-summary-weight:var\(--type-weight-strong\)/);
-  assert.match(common1,/\.dashboard-data-table tbody \.summary-row > :is\(th,td\)\{ background:var\(--data-table-summary-bg\); font-weight:var\(--data-table-summary-weight\)/);
+  assert.match(common1,/\.dashboard-data-table tbody \.summary-row > :is\(th,td\)\{ background:var\(--data-table-summary-bg\); font-weight:var\(--data-table-summary-weight\); border-top:var\(--data-table-summary-border\)/);
+  assert.doesNotMatch(common,/data-table-summary-sticky-shadow/);
   assert.match(special1,/position:-webkit-sticky; position:sticky/);
-  assert.match(special1,/tbody tr\.summary-row > :first-child\{z-index:4;background:var\(--data-table-summary-bg\)\}/);
+  assert.match(special1,/tbody tr\.summary-row > :first-child\{z-index:4;background:var\(--data-table-summary-bg\);border-top:0;box-shadow:inset 0 1px 0 var\(--table-column-line\)\}/);
 });
 
 test('6차 table component는 전역 base 없이 semantic table shell과 viewport source gap을 공유한다',()=>{
@@ -322,7 +331,9 @@ test('11차 장부·원천 검산은 source row helper, wrapper gap token, 인�
   assert.match(ui,/sourceTableRow\('합계',externalPrincipal,\{summary:true\}\)/);
   assert.doesNotMatch(ui,/section-explainer table-note cash-basis-note/);
   assert.match(common1,/--source-reclass-note-size:var\(--type-size-sm\)/);
-  assert.match(common1,/\.source-card\{ min-width:0; padding:var\(--surface-pad-emphasis\);/);
+  assert.match(common1,/:is\(\.asset-insight-card,\.source-card\)\{ padding:var\(--surface-pad-medium\); \}/);
+  assert.match(common1,/\.source-card\{ min-width:0; border-radius:/);
+  assert.doesNotMatch(common1,/\.source-card\{[^}]*padding:/);
   assert.match(common1,/\.source-reclass-note\{[^}]*font-size:var\(--source-reclass-note-size\)/);
   assert.match(common1,/\.source-table-scroll\{margin-top:var\(--source-table-gap\);border-radius:0\}/);
   assert.match(tablet1,/--source-table-gap:var\(--space-4xl\); --source-reclass-note-size:11\.5px/);
