@@ -820,8 +820,10 @@ tests/
 ├─ main/
 │  ├─ calc.test.cjs
 │  └─ ui-contract.test.cjs
-└─ add/
-   ├─ calc.test.cjs
+├─ add/
+│  ├─ calc.test.cjs
+│  └─ ui-contract.test.cjs
+└─ cross/
    └─ ui-contract.test.cjs
 ```
 
@@ -831,6 +833,7 @@ tests/
 - `tests/main/ui-contract.test.cjs`: Main의 module boundary, 기본 breakpoint, Phone Landscape, table/chart/modal/Market AI 등 폐기되면 안 되는 UI/CSS/HTML 구조 contract를 보호한다.
 - `tests/add/calc.test.cjs`: Calc의 `compute()` / `validate()` / `ceil5()`와 주요 계산 branch를 보호한다.
 - `tests/add/ui-contract.test.cjs`: Add의 input/button/responsive/ARIA 및 Calc Compact·Report Dynamic canonical style contract를 보호한다.
+- `tests/cross/ui-contract.test.cjs`: Main↔Add가 반드시 공유해야 하는 appearance storage/channel, Corner cap, 기본 breakpoint·Phone Landscape, iPhone desktop 1280 contract의 equality를 보호한다.
 
 수정 직후에는 **변경 영역 Fast QA**를 먼저 실행한다.
 
@@ -846,9 +849,12 @@ node --test tests/add/calc.test.cjs
 
 # Add UI/CSS/HTML
 node --test tests/add/ui-contract.test.cjs
+
+# Main↔Add 전역 contract
+node --test tests/cross/ui-contract.test.cjs
 ```
 
-작업 완료 전에는 해당 화면군의 두 테스트를 실행한다. Main과 Add를 모두 포함하는 **전체 QA**를 사용자가 명시한 경우에만 4종 Full QA를 실행한다.
+작업 완료 전에는 해당 화면군의 두 테스트를 실행한다. appearance/Corner/breakpoint/Phone Landscape/iPhone desktop request처럼 Main↔Add 공통 contract를 변경한 경우에는 cross test도 함께 실행한다. Main과 Add를 모두 포함하는 **전체 QA**에는 cross contract까지 포함한다.
 
 ```bash
 # Main 작업
@@ -858,7 +864,7 @@ node --test tests/main/*.test.cjs
 node --test tests/add/*.test.cjs
 
 # Main + Add 전체 QA를 명시한 경우
-node --test tests/main/*.test.cjs tests/add/*.test.cjs
+node --test tests/main/*.test.cjs tests/add/*.test.cjs tests/cross/*.test.cjs
 ```
 
 운영 원칙:

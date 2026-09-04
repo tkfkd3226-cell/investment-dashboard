@@ -9,6 +9,7 @@
 - `add.js`: 두 페이지가 공유하는 런타임 JS. `data-add-page`에 따라 Calc/Report만 선택 부팅
 - `/tests/add/calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
 - `/tests/add/ui-contract.test.cjs`: 선택상태/ARIA/input density/반응형 및 Calc/Report canonical style contract 회귀 테스트
+- `/tests/cross/ui-contract.test.cjs`: Main↔Add appearance/Corner/breakpoint/Phone Landscape/iPhone desktop 1280 전역 contract equality 테스트
 - `add_maintenance_handover.md`: Add 유지보수 기준
 
 > 적용 범위: `add/calc.html`, `add/add.css`, `add/add.js`, `add/kodex-leverage-report.html` 및 **KODEX 레버리지 실현손익 반영 때문에 함께 수정되는 `data/portfolio.json`**
@@ -157,6 +158,9 @@ tests/add/
 - `tests/add/ui-contract.test.cjs`
   - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
   - production HTML/CSS/JS에서 구조·상태·responsive·접근성·single-source contract를 확인하며, 장식용 exact pixel/color/count를 snapshot처럼 고정하지 않는다.
+- `tests/cross/ui-contract.test.cjs`
+  - Main/Add runtime을 서로 import시키지 않고 production source를 직접 읽어 suite-wide equality만 검증한다.
+  - appearance storage/channel, Corner cap, 기본 breakpoint·Phone Landscape, iPhone desktop 1280처럼 두 영역이 반드시 같이 움직여야 하는 contract만 포함한다.
 
 ### 1.4 CSS / JS 내부 구조 원칙
 
@@ -166,6 +170,7 @@ tests/add/
 - 이벤트·툴팁·초기화는 중복 등록되지 않게 명시적으로 관리하며, Node export/browser boot guard를 유지한다.
 - 계산 또는 validation을 변경한 경우 production `add/add.js`를 대상으로 `node --test tests/add/calc.test.cjs`를 실행한다.
 - Calc/Report의 선택상태·ARIA·responsive·control/typography source·Phone UI 등 장기 UI contract를 변경한 경우 `node --test tests/add/ui-contract.test.cjs`를 함께 실행한다.
+- appearance/Corner/breakpoint/Phone Landscape/iPhone desktop request처럼 Main과 동일해야 하는 전역 contract를 변경한 경우 `node --test tests/cross/ui-contract.test.cjs`도 실행한다.
 - Report의 차트 label thinning, 마지막 거래일 식별, DPR/resize 처리처럼 동작 의미가 있는 로직은 관련 변경 시 회귀 확인한다.
 
 ## 2. 거래 리포트 canonical 파일명
