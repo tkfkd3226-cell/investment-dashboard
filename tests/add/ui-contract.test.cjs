@@ -50,7 +50,7 @@ test('Calc/Report는 Main appearance 저장값과 BroadcastChannel을 함께 소
 });
 
 test('Calc 도움말은 label과 inline-flex 정렬을 공유하고 개별 위치 보정을 만들지 않는다',()=>{
-  const label=rule(':where(html[data-add-page="calc"]) .label-with-help, :where(html[data-add-page="calc"]) .inline-help-label');
+  const label=rule(':where(html[data-add-page="calc"]) :is(.label-with-help,.inline-help-label,.group-title-main)');
   assert.match(label,/display:inline-flex/);
   assert.match(label,/align-items:center/);
   const wrap=rule(':where(html[data-add-page="calc"]) .help-tooltip');
@@ -65,10 +65,10 @@ test('Calc 도움말은 label과 inline-flex 정렬을 공유하고 개별 위�
 test('Calc control 높이와 내부 spacing은 공통 source를 사용한다',()=>{
   assert.equal((css.match(/--calc-control-box-height:/g)||[]).length,1);
   assert.equal((css.match(/--calc-control-space:/g)||[]).length,1);
-  const control=rule(':where(html[data-add-page="calc"]) .control');
-  assert.match(control,/height:var\(--calc-control-box-height\)/);
-  assert.match(control,/padding:var\(--calc-control-space\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .calc-choice-button'),/height:var\(--calc-control-box-height\).*padding:var\(--calc-control-space\)/);
+  const height=rule(':where(html[data-add-page="calc"]) :is(.control,.calc-choice-button,.actual-sale-price)');
+  assert.match(height,/height:var\(--calc-control-box-height\)/);
+  assert.match(height,/min-height:0/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.control,.calc-choice-button)'),/padding:var\(--calc-control-space\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) :is(.share-step-btn,.pct-step-btn)'),/padding:var\(--calc-control-space\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .date-control-shell .date-control'),/padding:var\(--calc-control-space\)/);
 });
@@ -116,6 +116,18 @@ test('터치 스마트폰 가로는 Tablet이 아니라 Phone UI contract를 사
   assert.match(css1,/#reportBtn \.report-text[^}]*display:none/);
 });
 
+test('Report도 CSS·메뉴·차트가 같은 터치폰 가로 Phone 판정을 사용한다',()=>{
+  const phoneMedia='@media (max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){';
+  const reportPhoneStart=css1.lastIndexOf(phoneMedia);
+  assert.ok(reportPhoneStart>=0,'missing Report Phone media');
+  const reportPhone=css1.slice(reportPhoneStart);
+  assert.match(reportPhone,/:where\(html\[data-add-page="report"\]\) \.mobile-menu-toggle\{display:flex\}/);
+  assert.match(js1,/const REPORT_PHONE_QUERY='\(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)'/);
+  assert.match(js1,/const reportMobileMedia=window\.matchMedia\(REPORT_PHONE_QUERY\)/);
+  assert.match(js1,/const mobile=reportMobileMedia\.matches/);
+  assert.match(js1,/reportMobileMedia\.addEventListener\('change'/);
+});
+
 test('Calc iPhone 데스크탑 웹사이트 요청은 1280 viewport contract를 유지한다',()=>{
   assert.match(calc,/desktopAppleUA=\/Macintosh\//);
   assert.match(calc,/touchApple=\(navigator\.maxTouchPoints\|\|0\)>0/);
@@ -136,22 +148,13 @@ test('Calc surface/card/table spacing은 공통 surface source를 재사용한�
   assert.match(css1,/--calc-card-gap:var\(--calc-surface-space\)/);
   assert.match(css1,/--density-table-pad-x:var\(--calc-surface-space\)/);
   assert.match(css1,/--density-table-pad-y:var\(--calc-surface-space\)/);
-  for(const re of [
-    /:where\(html\[data-add-page="calc"\]\) :is\(\.input-panel,\.calc-summary-panel,\.strategy-body\)\{padding:var\(--calc-surface-space\)/,
-    /:where\(html\[data-add-page="calc"\]\) \.input-group\{padding:var\(--calc-surface-space\)/,
-    /:where\(html\[data-add-page="calc"\]\) \.kpi\{padding:var\(--calc-surface-space\)/,
-    /:where\(html\[data-add-page="calc"\]\) \.range-box\{[^}]*padding:var\(--calc-surface-space\)/,
-    /:where\(html\[data-add-page="calc"\]\) \.summary-card\{padding:var\(--calc-surface-space\)/,
-    /:where\(html\[data-add-page="calc"\]\) \.mobile-data-card\{padding:var\(--calc-surface-space\)/,
-    /:where\(html\[data-add-page="calc"\]\) \.calc-data-table :is\(th,td\)\{padding:var\(--calc-surface-space\)/
-  ]) assert.match(css1,re);
-  for(const selector of [
-    ':where(html[data-add-page="calc"]) .input-grid',
-    ':where(html[data-add-page="calc"]) .calc-summary-panel',
-    ':where(html[data-add-page="calc"]) .kpis',
-    ':where(html[data-add-page="calc"]) .range-panel',
-    ':where(html[data-add-page="calc"]) .summary-row'
-  ]) assert.match(rule(selector),/gap:var\(--calc-card-gap\)/,selector);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.input-panel,.calc-summary-panel,.strategy-body)'),/padding:var\(--calc-surface-space\)/);
+  const inner=rule(':where(html[data-add-page="calc"]) :is(.input-group,.kpi,.range-box,.summary-card,.mobile-data-card)');
+  assert.match(inner,/padding:var\(--calc-surface-space\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.input-group,.kpi,.summary-card)'),/box-shadow:none/);
+  assert.match(rule('.add-data-table :is(th,td)'),/padding:var\(--density-table-pad-y\) var\(--density-table-pad-x\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .input-grid'),/gap:var\(--calc-card-gap\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.calc-summary-panel,.kpis,.range-panel,.summary-row,.mobile-data)'),/gap:var\(--calc-card-gap\)/);
 });
 
 test('입력 subsection은 outer padding을 복제하지 않고 divider 방향 spacing만 갖는다',()=>{
@@ -159,14 +162,15 @@ test('입력 subsection은 outer padding을 복제하지 않고 divider 방향 s
   assert.match(base,/padding:0/);
   assert.match(rule(':where(html[data-add-page="calc"]) .existing-purchase-section'),/padding-right:var\(--calc-surface-space\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .existing-evaluation-section'),/padding-left:var\(--calc-surface-space\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .current-subsection:nth-of-type(n+3)'),/padding-top:var\(--calc-surface-space\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.additional-group.holding-layout .holding-result-section,.additional-group.settled-layout .settled-result-section)'),/padding-top:var\(--calc-surface-space\)/);
 });
 
 test('Calc 입력영역은 공통 Field Layout primitive를 사용하고 계산 기준에 magic offset을 두지 않는다',()=>{
   assert.equal((css.match(/--calc-field-label-gap:/g)||[]).length,1);
   assert.equal((css.match(/--calc-field-row-gap:/g)||[]).length,1);
-  assert.match(rule(':where(html[data-add-page="calc"]) .fields'),/gap:var\(--calc-field-row-gap\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .calculation-flow'),/gap:var\(--calc-field-row-gap\)/);
+  const stack=rule(':where(html[data-add-page="calc"]) :is(.fields,.calculation-flow,.actual-sale-field,.seg)');
+  assert.match(stack,/display:grid/);
+  assert.match(stack,/gap:var\(--calc-field-row-gap\)/);
   assert.match(calc,/class="field-label-slot" aria-hidden="true"/);
   const scope=calcScope();
   assert.doesNotMatch(scope,/margin-top:35px|calc\(1\.45em \+ var\(--density-gap-xs\)\)/);
@@ -175,12 +179,29 @@ test('Calc 입력영역은 공통 Field Layout primitive를 사용하고 계산 
 
 test('주요 선택 버튼은 geometry/state만 공유하고 가로 layout은 각 container가 소유한다',()=>{
   const choice=rule(':where(html[data-add-page="calc"]) .calc-choice-button');
-  assert.match(choice,/height:var\(--calc-control-box-height\)/);
-  assert.match(choice,/padding:var\(--calc-control-space\)/);
   assert.doesNotMatch(choice,/(?:^|;)width:|grid-template-columns:/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.control,.calc-choice-button,.actual-sale-price)'),/height:var\(--calc-control-box-height\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) :is(.control,.calc-choice-button)'),/padding:var\(--calc-control-space\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .preset-bar'),/display:flex/);
   assert.match(rule(':where(html[data-add-page="calc"]) .seg'),/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .tabs'),/overflow:auto/);
+  assert.match(rule(':where(html[data-add-page="calc"],html[data-add-page="report"]) .tabs'),/overflow:auto/);
+  assert.doesNotMatch(calcScope(),/\.preset-btn\{[^}]*padding-inline:|\.calculation-group \.seg button\{[^}]*padding-inline:|\.tab\{[^}]*padding-inline:/);
+});
+
+test('Calc와 Report의 공통 layout·상태 primitive는 page별 표현과 분리된다',()=>{
+  assert.match(rule(':where(html[data-add-page="calc"],html[data-add-page="report"]) .kpis'),/display:grid/);
+  const tabs=rule(':where(html[data-add-page="calc"],html[data-add-page="report"]) .tabs');
+  assert.match(tabs,/display:flex/);
+  assert.match(tabs,/overflow:auto/);
+  assert.match(rule(':where(html[data-add-page="calc"],html[data-add-page="report"]) .tab{'),/white-space:nowrap/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .strategy, :where(html[data-add-page="report"]) .panel'),/display:none/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .strategy.active, :where(html[data-add-page="report"]) .panel.active'),/display:block/);
+  assert.doesNotMatch(tabs,/gap:|grid-template-columns:/);
+});
+
+test('Calc와 Report의 손익 의미색은 공통 semantic state를 사용한다',()=>{
+  assert.match(rule(':where(html[data-add-page="calc"]) .positive, :where(html[data-add-page="report"]) .pos, :where(html[data-add-page="report"]) .timeline-profit-card.pos strong'),/color:var\(--positive\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .negative, :where(html[data-add-page="report"]) .neg, :where(html[data-add-page="report"]) .timeline-profit-card.neg strong'),/color:var\(--negative\)/);
 });
 
 test('상단 utility 버튼은 선택 버튼과 별도 secondary action class를 사용한다',()=>{
@@ -204,7 +225,7 @@ test('상태 range 카드는 neutral surface와 semantic accent를 분리한다'
 });
 
 test('Calc input/table/Phone card는 같은 data label/value typography source를 공유한다',()=>{
-  assert.match(rule(':where(html[data-add-page="calc"]) label, :where(html[data-add-page="calc"]) .field-label-slot, :where(html[data-add-page="calc"]) .kpi .name'),/font-size:var\(--calc-type-data-label\)/);
+  assert.match(rule(':where(html[data-add-page="calc"]) label, :where(html[data-add-page="calc"]) .field-label-slot, :where(html[data-add-page="calc"]) .kpi .name, :where(html[data-add-page="calc"]) .summary-card .sname'),/font-size:var\(--calc-type-data-label\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-label'),/font-size:var\(--calc-type-data-label\)/);
   assert.match(css1,/--calc-control-input-size:var\(--calc-type-data-value\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .control'),/font-size:var\(--calc-control-input-size\)/);
@@ -256,14 +277,14 @@ test('Calc typography는 위치가 아닌 역할 token을 공유하고 component
   assert.match(rule(':where(html[data-add-page="calc"]) .add-heading-section'),/font-size:var\(--calc-type-section-title\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .add-heading-subsection'),/font-size:var\(--calc-type-content-title\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .calc-result-section-title'),/font-size:var\(--calc-type-content-title\)/);
-  assert.match(rule(':where(html[data-add-page="calc"]) :is(.add-button-action,.add-button-toggle)'),/font-size:var\(--calc-type-button\)/);
+  assert.match(rule(':root:where([data-add-page="calc"])'),/--button-font-size:var\(--calc-type-button\)/);
+  assert.match(rule('.add-button-action{'),/font-size:var\(--button-font-size\)/);
+  assert.match(rule('.add-button-toggle{'),/font-size:var\(--button-font-size\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .calc-choice-button'),/font-size:var\(--calc-type-button\)/);
 
-  for(const selector of [
-    ':where(html[data-add-page="calc"]) .kpi .value',
-    ':where(html[data-add-page="calc"]) .range-box .big',
-    ':where(html[data-add-page="calc"]) .summary-card .svalue'
-  ]) assert.match(rule(selector),/font-size:var\(--calc-type-emphasis-value\)/,selector);
+  const emphasis=rule(':where(html[data-add-page="calc"]) :is(.kpi .value,.range-box .big,.summary-card .svalue)');
+  assert.match(emphasis,/font-size:var\(--calc-type-emphasis-value\)/);
+  assert.match(emphasis,/font-weight:900/);
 
   for(const selector of [
     ':where(html[data-add-page="calc"]) .hero p',
@@ -297,7 +318,15 @@ test('Report Timeline 실현손익 카드는 canonical net에서 파생되고 Ph
   assert.match(js1,/function timelineProfitCard\(net\)/);
   assert.match(js1,/reportMetricText\(net,'signedWon'\)/);
   assert.match(css1,/:where\(html\[data-add-page="report"\]\) \.timeline-card\{display:grid/);
-  assert.match(css1,/@media\(max-width:760px\)\{[^]*?\.timeline-card\{grid-column:2;grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(css1,/@media \(max-width:760px\), \(orientation:landscape\) and \(max-width:960px\) and \(max-height:500px\) and \(hover:none\) and \(pointer:coarse\)\{[^]*?\.timeline-card\{grid-column:2;grid-template-columns:minmax\(0,1fr\)/);
+});
+
+test('interaction state는 입력 방식과 ARIA 상태별 owner를 유지한다',()=>{
+  assert.match(css1,/\.preset-btn:is\(\.active,\[aria-pressed="true"\]\)/);
+  assert.match(css1,/\.report-nav \.tab:is\(\.active,\[aria-selected="true"\]\)/);
+  assert.match(css1,/\.help-icon:focus-visible, :where\(html\[data-add-page="calc"\]\) \.help-tooltip\.is-open \.help-icon/);
+  assert.match(css1,/@media \(hover:hover\) and \(pointer:fine\)\{[^]*?\.help-icon:hover/);
+  assert.match(css1,/@media\(prefers-reduced-motion:reduce\)\{[^]*?\.custom-tooltip/);
 });
 
 test('Calc와 Report HTML은 add.css + add.js 단일 canonical runtime만 사용한다',()=>{
@@ -310,8 +339,9 @@ test('Calc와 Report HTML은 add.css + add.js 단일 canonical runtime만 사용
 });
 
 test('Calc/Report canonical page scope와 기존 layout 폭 contract를 유지한다',()=>{
-  assert.match(rule(':where(html[data-add-page="calc"]) .wrap'),/max-width:1280px/);
-  assert.match(rule(':where(html[data-add-page="report"]) .wrap'),/max-width:1280px/);
+  const wrap=rule(':where(html[data-add-page="calc"],html[data-add-page="report"]) .wrap');
+  assert.match(wrap,/max-width:1280px/);
+  assert.match(wrap,/padding:var\(--density-page-pad\)/);
   assert.match(css1,/:root:where\(\[data-add-page="calc"\]\)\{/);
   assert.match(css1,/:root:where\(\[data-add-page="report"\]\)\{/);
   assert.equal((css.match(/data-add-theme/g)||[]).length,0);
@@ -323,10 +353,40 @@ test('Report Dynamic visual language는 canonical scope의 semantic energy token
   assert.match(rule(':where(html[data-add-page="report"]) .kpi:before'),/var\(--energy-violet\).*var\(--energy-cyan\).*var\(--energy-gold\)/);
   assert.match(rule(':where(html[data-add-page="report"]) .timeline:before'),/var\(--energy-violet\).*var\(--energy-cyan\)/);
   assert.match(rule(':where(html[data-add-page="report"]) .split-group-day .split-group-kicker'),/color:var\(--energy-cyan-text\)/);
+  assert.doesNotMatch(css1,/html:where\(\[data-add-page="report"\]\)\.dark \.split-group-day \.split-group-kicker/);
+  assert.doesNotMatch(css1,/html:where\(\[data-add-page="report"\]\)\.dark \.timeline:before/);
+});
+
+test('Report surface density와 보조 typography는 화면 흐름 전체에서 같은 역할 source를 사용한다',()=>{
+  assert.match(css1,/--report-type-support:11px/);
+  assert.match(css1,/--report-type-micro:10px/);
+  assert.match(rule(':where(html[data-add-page="report"]) :is(.kpi,.split-group,.split-total,.timeline-card,details,.split-total-mobile-card)'),/padding:var\(--density-surface-md\)/);
+  assert.match(rule(':where(html[data-add-page="report"]) :is(.section-title,.split-group-head) p'),/font-size:var\(--report-type-support\)/);
+  assert.match(rule(':where(html[data-add-page="report"]) :is(.split-summary-item span,.split-total>div:first-child small,.split-total-mobile-card span)'),/font-size:var\(--report-type-micro\)/);
+  assert.match(rule(':where(html[data-add-page="report"]) :is(.split-summary-item strong,.split-total-mobile-card strong)'),/font-size:15px/);
 });
 
 test('Report 표는 caption/header semantic을 유지한다',()=>{
   assert.match(report,/<caption class="sr-only">/);
   assert.match(report,/<th scope="col">/);
   assert.match(report,/<th scope="row">합계<\/th>/);
+});
+
+test('Add CSS custom property는 CSS 또는 JS runtime contract에서 실제 참조된다',()=>{
+  const definitions=[...css.matchAll(/--([\w-]+)\s*:/g)].map(match=>match[1]);
+  const references=new Set([
+    ...[...css.matchAll(/var\(\s*--([\w-]+)/g)].map(match=>match[1]),
+    ...[...js.matchAll(/(?:getPropertyValue|chartColor)\(\s*['"]--([\w-]+)/g)].map(match=>match[1])
+  ]);
+  const unused=[...new Set(definitions)].filter(name=>!references.has(name)).sort();
+  assert.deepEqual(unused,[]);
+});
+
+test('Add CSS class selector는 production HTML 또는 동적 JS markup에 근거가 있다',()=>{
+  const selectorSource=css.replace(/\/\*[^]*?\*\//g,'');
+  const productionSource=`${calc}\n${report}\n${js}`;
+  const classes=[...new Set([...selectorSource.matchAll(/\.([A-Za-z_][\w-]*)/g)].map(match=>match[1]))];
+  const escapeRegExp=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const unused=classes.filter(name=>!new RegExp(`(^|[^\\w-])${escapeRegExp(name)}([^\\w-]|$)`).test(productionSource)).sort();
+  assert.deepEqual(unused,[]);
 });
