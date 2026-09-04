@@ -300,7 +300,7 @@ test('9차 chart shell은 공통 renderer·display token·정적 SVG visual sour
   assert.match(charts1,/const CHART_VISUAL=Object\.freeze\(\{ axisFontSize:11, dateFontSize:10/);
   assert.match(charts1,/font-size':chartExpandedFixedUnits\(svg,CHART_VISUAL\.axisFontSize\)/);
   assert.match(charts1,/stroke-dasharray':CHART_VISUAL\.hoverDash/);
-  assert.match(common1,/--chart-svg-min-width:960px; --chart-svg-height:330px; --chart-svg-radius:var\(--surface-radius-xs\); --chart-accent-height:3px; --chart-accent-opacity:\.68/);
+  assert.match(common1,/--chart-svg-min-width:960px; --chart-svg-height:330px; --chart-svg-radius:var\(--surface-radius-level-4\); --chart-accent-height:3px; --chart-accent-opacity:\.68/);
   assert.match(common1,/svg\.chart\{[^}]*min-width:var\(--chart-svg-min-width\); height:var\(--chart-svg-height\);[^}]*border-radius:min\(var\(--chart-svg-radius\)/);
   assert.match(tablet1,/--chart-svg-min-width:100%/);
   assert.doesNotMatch(charts,/has-horizontal-scroll/);
@@ -342,6 +342,14 @@ test('11차 장부·원천 검산은 source row helper, wrapper gap token, 인�
   assert.doesNotMatch(special,/\.dashboard-data-table\{\s*--source-table-gap:/);
   assert.match(print1,/#ledger-check \.ledger-overview-grid\{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(print1,/#capital-source-check \.source-grid\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
+});
+
+test('2차 Hero KPI와 navigation hover는 foreground·입력장치 책임을 분리한다',()=>{
+  assert.match(common1,/\.pillbar\{ position:relative; z-index:1; display:flex;/);
+  assert.match(common1,/:is\(\.desktop-edge-toc-item,\.date-action-menu\.mobile-combined-menu \.mobile-nav-item\):focus-visible\{background:var\(--nav-surface-hover\)\}/);
+  assert.doesNotMatch(common,/:is\(\.desktop-edge-toc-item,\.date-action-menu\.mobile-combined-menu \.mobile-nav-item\):hover,/);
+  assert.match(interaction,/@media \(hover:hover\) and \(pointer:fine\)\{[^]*?:is\(\.desktop-edge-toc-item,\.date-action-menu\.mobile-combined-menu \.mobile-nav-item\):hover\{[\s\S]*?background:var\(--nav-surface-hover\)/);
+  assert.match(interaction,/@media \(hover:hover\) and \(pointer:fine\) and \(min-width:1101px\)\{[^]*?\.desktop-edge-toc:hover \.desktop-edge-toc-panel/);
 });
 
 test('13차 반응형·테마·Print는 semantic source와 인쇄 canonical layout을 유지한다',()=>{
@@ -389,12 +397,13 @@ test('13차 실기 QA 후속은 계좌 control·Print 표·Phone 위험도·목�
   }
 });
 
-test('Surface radius 3계층은 Desktop·Tablet과 Phone Shared에서 같은 line contract를 사용한다',()=>{
+test('Surface radius 4계층은 Desktop·Tablet과 Phone Shared에서 같은 line contract를 사용한다',()=>{
   const print1=compact(print);
-  assert.match(common1,/--surface-radius-level-1:18px; --surface-radius-level-2:16px; --surface-radius-level-3:14px;/);
+  assert.match(common1,/--surface-radius-level-1:18px; --surface-radius-level-2:16px; --surface-radius-level-3:14px; --surface-radius-level-4:12px;/);
   assert.match(common1,/--surface-radius-outer:var\(--surface-radius-level-1\); --surface-radius-large:var\(--surface-radius-level-2\); --surface-radius-mini:var\(--surface-radius-level-3\);/);
   assert.doesNotMatch(common1,/--surface-radius-medium:/);
-  assert.match(special1,/--surface-radius-level-1:16px; --surface-radius-level-2:14px; --surface-radius-level-3:12px;/);
+  assert.match(special1,/--surface-radius-level-1:16px; --surface-radius-level-2:14px; --surface-radius-level-3:12px; --surface-radius-level-4:12px;/);
+  assert.doesNotMatch(common1,/--surface-radius-(?:lg|md|sm|xs):/);
   assert.doesNotMatch(special,/--surface-radius-outer:20px|--hero-radius:var\(--surface-radius-sm\)/);
   assert.match(common1,/\.asset-workspace-tabs\{[^}]*border-radius:min\(var\(--surface-radius-level-1\),var\(--corner-surface-cap\)\)/);
   assert.match(common1,/#summary-section :is\(\.mobile-scroll,\.combined-performance-table\)\{border-radius:min\(var\(--surface-radius-level-1\),var\(--corner-surface-cap\)\)\}/);
@@ -402,7 +411,7 @@ test('Surface radius 3계층은 Desktop·Tablet과 Phone Shared에서 같은 lin
   assert.match(common1,/\.source-card\{[^}]*border-radius:min\(var\(--surface-radius-level-2\),var\(--corner-surface-cap\)\)/);
   assert.match(common1,/\.asset-insight-card\{ border-radius:min\(var\(--surface-radius-level-3\),var\(--corner-surface-cap\)\)/);
   assert.match(common1,/\.change-table-wrap\{[^}]*border-radius:min\(var\(--surface-radius-level-3\),var\(--corner-surface-cap\)\)\}/);
-  assert.match(print1,/--surface-radius-level-1:18px; --surface-radius-level-2:16px; --surface-radius-level-3:14px;/);
+  assert.match(print1,/--surface-radius-level-1:18px; --surface-radius-level-2:16px; --surface-radius-level-3:14px; --surface-radius-level-4:12px;/);
 });
 
 test('Chart legend는 전체선택/다중선택을 지원하되 마지막 1개는 해제하지 않는다',()=>{
