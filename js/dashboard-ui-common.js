@@ -118,7 +118,7 @@ function setMobileViewMode(key,mode){
 function toggleMobileViewMode(key){return setMobileViewMode(key,mobileViewMode(key)==='card'?'table':'card');}
 function mobileInfoCard(title,items=[],extraClass='',accessibleLabel=''){
   const accessibleTitle=escapeHtml(String(accessibleLabel||title||'').replace(/<[^>]*>/g,'').replace(/■/g,'').trim());
-  return `<article class="data-list-card mobile-data-card ${extraClass}" aria-label="${accessibleTitle}"><div class="data-list-card-title mobile-data-card-title">${title}</div><div class="mobile-data-card-list">${items.map(item=>{const [label,value,valueClass='',rowClass='']=item;return `<div class="mobile-data-card-row ${rowClass}"><span class="data-list-card-label mobile-data-card-label">${label}</span><span class="data-list-card-value mobile-data-card-value ${valueClass}">${value}</span></div>`}).join('')}</div></article>`;
+  return `<article class="data-list-card mobile-data-card ${extraClass}" aria-label="${accessibleTitle}"><div class="data-list-card-title mobile-data-card-title">${title}</div><div class="mobile-data-card-list">${items.map(item=>{const [label,value,valueClass='',rowClass='']=item,labelHtml=label==null||label===''?'':`<span class="data-list-card-label mobile-data-card-label">${label}</span>`;return `<div class="mobile-data-card-row ${rowClass}">${labelHtml}<span class="data-list-card-value mobile-data-card-value ${valueClass}">${value}</span></div>`}).join('')}</div></article>`;
 }
 function renderMobileCardView({id='',cards='',className='mobile-card-view'}={}){
   const content=Array.isArray(cards)?renderAssetMobileCards(cards):cards;

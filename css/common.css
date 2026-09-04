@@ -85,7 +85,6 @@
   --surface-pad-large:var(--space-8xl);
   --surface-pad-medium:var(--space-6xl);
   --surface-pad-mini:var(--space-5xl);
-  --surface-pad-metric:var(--space-8xl);
   --surface-pad-emphasis:var(--space-8xl);
   --surface-pad-data-list:13px;
   --mini-card-bg:var(--subtle-card);
@@ -845,10 +844,6 @@ button svg{pointer-events:none;flex-shrink:0}
 .grid{
   display:grid;
   gap:var(--space-7xl);
-}
-
-.cards{
-  grid-template-columns:repeat(4,minmax(0,1fr));
 }
 
 :is(.card,.note,.chart-card,.pension-band,.securities-band){
@@ -2302,10 +2297,6 @@ body.chart-expanded-open .dash-tooltip{
   margin-top:0;
 }
 
-.metric-grid > .metric-card{
-  padding:var(--surface-pad-metric);
-}
-
 .metric-grid > .metric-card .value{
   min-height:var(--metric-value-min-height);
   display:flex;
@@ -2825,8 +2816,7 @@ body.dashboard-dialog-open{
   word-break:break-word;
 }
 
-.wrap > section,
-.grid.cards{
+.wrap > section{
   width:100%;
 }
 
@@ -4339,7 +4329,7 @@ html.iphone-request-desktop #ledger-check .ledger-conclusion-reason{display:none
       padding:var(--space-4xl) 52px var(--space-2xl) var(--space-5xl);
     }
   /* Large Grid Responsive · 대형 카드 그리드 반응형: 1100px 이하에서 세로 1열 */
-    .cards, .three, .two{
+    .three, .two{
       grid-template-columns:1fr;
     }
 

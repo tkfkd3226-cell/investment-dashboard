@@ -78,7 +78,6 @@
     .mobile-data-card.mobile-total-card .mobile-data-card-value{font-weight:var(--data-list-total-value-weight)}
     .mobile-data-card-row.stacked{display:block}
     .mobile-data-card-row.stacked .mobile-data-card-value{margin-top:var(--space-xs);text-align:left}
-    .mobile-data-card-row.note-only .mobile-data-card-label{display:none}
     .mobile-data-card-row.note-only .mobile-data-card-value{
       display:block;
       width:100%;

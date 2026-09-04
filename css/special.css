@@ -149,7 +149,6 @@
       --surface-pad-large:var(--space-4xl);
       --surface-pad-medium:var(--space-4xl);
       --surface-pad-mini:var(--space-2xl);
-      --surface-pad-metric:var(--space-4xl);
       --surface-pad-emphasis:var(--space-4xl);
       --surface-pad-data-list:var(--space-4xl);
       --asset-insight-zone-offset:var(--space-4xl);
@@ -396,16 +395,15 @@
     }
 
   /* Securities / Pension KPI · 4개 KPI는 세로·가로폰 모두 2×2 + 동일 타이포 */
-    .securities-summary-block .metric-grid,
-    .pension-metric-grid{
+    .asset-summary-metric-grid{
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
-    :is(.securities-summary-block,.pension-metric-grid) .metric-card{
+    .asset-summary-metric-grid .metric-card{
       min-width:0;
     }
-    :is(.securities-summary-block,.pension-metric-grid) .metric-card :is(.label,.value,.sub){white-space:nowrap}
-    :is(.securities-summary-block,.pension-metric-grid) .metric-sub-default{display:none}
-    :is(.securities-summary-block,.pension-metric-grid) .metric-sub-mobile{display:inline}
+    .asset-summary-metric-grid .metric-card :is(.label,.value,.sub){white-space:nowrap}
+    .asset-summary-metric-grid .metric-sub-default{display:none}
+    .asset-summary-metric-grid .metric-sub-mobile{display:inline}
 
   /* Symbol Summary · 종목/상품 카드 내부 밀도만 공통, 열 수는 방향별로 분리 */
     .chart-note.symbol-summary-grid{

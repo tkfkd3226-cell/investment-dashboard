@@ -702,7 +702,7 @@ function renderSecuritiesSummaryCards(x,{hidden=false}={}){
   const principalNote=separateProfitOn?`전체 투입원금 + 원천·보유 차액 | 별도 수익 재투입 ${reinvestedLimitText} 제외`:`전체 투입원금 + 보유 자금 투입 ${reinvestedLimitText} + 원천·보유 차액`;
   const principalMobileNote=separateProfitOn?`보유자금 ${reinvestedLimitText} 제외`:`보유자금 ${reinvestedLimitText} 포함`;
   const returnNote='누적손익 ÷ 투입원금';
-  return `<div id="securities-overall-summary"${hidden?' hidden':''}><div class="grid cards metric-grid">${metricCard('투자 결과물',won(v.totalResult),securitiesScope,true)}${metricCard('투입원금',won(v.totalPrincipal),principalNote,false,'',principalMobileNote)}${metricCard('누적손익',won(v.totalProfit),isLedgerCheckDate(x.date)?'투자 결과물 - 투입원금':'전체 누적 성과 기준',false,cls(v.totalProfit))}${metricCard('누적수익률',pct(v.totalReturn),returnNote,false,cls(v.totalReturn))}</div></div>`;
+  return `<div id="securities-overall-summary"${hidden?' hidden':''}><div class="grid metric-grid asset-summary-metric-grid">${metricCard('투자 결과물',won(v.totalResult),securitiesScope,true)}${metricCard('투입원금',won(v.totalPrincipal),principalNote,false,'',principalMobileNote)}${metricCard('누적손익',won(v.totalProfit),isLedgerCheckDate(x.date)?'투자 결과물 - 투입원금':'전체 누적 성과 기준',false,cls(v.totalProfit))}${metricCard('누적수익률',pct(v.totalReturn),returnNote,false,cls(v.totalReturn))}</div></div>`;
 }
 function securitiesPerformanceViewSwitch(){
   const mode=uiRuntimeState.securitiesPerformanceView;
@@ -750,7 +750,7 @@ function renderResultSummary(x){
   const actualHoldingSub=`평가금액 합계(${won(x.allocTotal)}) +<br>실현수익 반영 현금 보유액(${won(outsideCashBasis)})${footnoteSup}`;
   const gapClass=ledgerGap!==0?'ledger-gap-value':'';
   const conclusion=`<article class="card metric-card ledger-conclusion-card dark" aria-label="장부결과 차액"><div class="ledger-conclusion-main"><div class="label">차액(A-B)</div><div class="value ${gapClass}">${won(ledgerGap)}</div><div class="sub">장부상 결과물과 실제 보유액의 차이<div class="ledger-conclusion-inline-reason">차액 발생 이유: ${reasonValue}</div></div></div><div class="ledger-conclusion-reason"><span>차액 발생 이유</span><strong>${reasonValue}</strong></div></article>`;
-  const overview=`<div class="grid cards metric-grid ledger-overview-grid">${conclusion}${metricCard('장부상 투자 결과물(A)',won(v.totalResult),ledgerSourceSub)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),actualHoldingSub)}</div>`;
+  const overview=`<div class="grid metric-grid ledger-overview-grid">${conclusion}${metricCard('장부상 투자 결과물(A)',won(v.totalResult),ledgerSourceSub)}${metricCard('현재 증권계좌 및 현금 보유액(B)',won(actualHoldingAndCash),actualHoldingSub)}</div>`;
   return `<section id="ledger-check"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="search" aria-hidden="true"></span>장부결과 VS 실제보유</h2>${separateProfitControl(x,'section-inline')}</div>${overview}${note}</section>`;
 }
 

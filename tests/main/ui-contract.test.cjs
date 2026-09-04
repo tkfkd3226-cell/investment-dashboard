@@ -178,8 +178,26 @@ test('6차 table component는 전역 base 없이 semantic table shell과 viewpor
   assert.match(common1,/--interaction-row-bg:var\(--subtle-card\)/);
 });
 
-test('모바일 성과요약 KPI 4개는 Phone UI에서만 2x2 grid contract를 유지한다',()=>{
-  assert.match(special1,/\.securities-summary-block \.metric-grid, \.pension-metric-grid\{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\); \}/);
+test('성과요약 KPI grid는 metric-grid 단일 base와 asset-summary role marker를 사용한다',()=>{
+  assert.doesNotMatch(common,/\.cards\b/);
+  assert.doesNotMatch(ui,/grid cards/);
+  assert.doesNotMatch(pension,/grid cards/);
+  assert.doesNotMatch(common,/--surface-pad-metric:/);
+  assert.doesNotMatch(tablet,/--surface-pad-metric:/);
+  assert.doesNotMatch(special,/--surface-pad-metric:/);
+  assert.doesNotMatch(print,/--surface-pad-metric:/);
+  assert.doesNotMatch(common1,/\.metric-grid > \.metric-card\{[^}]*padding:/);
+  assert.match(ui,/class="grid metric-grid asset-summary-metric-grid"/);
+  assert.match(pension,/class="grid metric-grid asset-summary-metric-grid"/);
+  assert.doesNotMatch(pension,/pension-metric-grid/);
+  assert.match(special1,/\.asset-summary-metric-grid\{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\); \}/);
+  assert.match(special1,/\.asset-summary-metric-grid \.metric-sub-mobile\{display:inline\}/);
+});
+
+test('모바일 data card의 빈 label row는 불필요한 label markup을 렌더링하지 않는다',()=>{
+  assert.match(uiCommon,/labelHtml=label==null\|\|label===''\?'':`<span class="data-list-card-label mobile-data-card-label">\$\{label\}<\/span>`/);
+  assert.doesNotMatch(mobile,/note-only \.mobile-data-card-label\{display:none\}/);
+  assert.match(ui,/stacked note-only/);
 });
 
 test('5차 KPI·mini-card·모바일 data-list는 공통 typography token과 숫자 정렬 contract를 사용한다',()=>{
