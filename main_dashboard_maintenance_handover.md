@@ -795,7 +795,7 @@ JS 파일을 점수 때문에 추가 분할
 → 최소 수정
 → 변경 영역 Fast QA
 → syntax / import / 계산 검증
-→ 4종 자동 테스트 Full QA
+→ Main/Add 4종 + Cross 전역 계약 1종 Full QA
 → diff 확인
 → 필요한 viewport / runtime QA
 → handover 영향 여부 판단
@@ -811,7 +811,7 @@ JS 파일을 점수 때문에 추가 분할
 
 QA는 변경범위에 비례한다. 자동 테스트의 목적은 **평가 점수 확보가 아니라 수정 QA 가속과 기능·UI 회귀 방지**다.
 
-### 자동 회귀 테스트 4종
+### 자동 회귀 테스트 Main/Add 4종 + Cross 전역 계약 1종
 
 자동 QA는 Main/Add를 같은 두 축으로 관리한다.
 
@@ -1176,8 +1176,10 @@ investment-dashboard-main/
 │  ├─ main/
 │  │  ├─ calc.test.cjs
 │  │  └─ ui-contract.test.cjs
-│  └─ add/
-│     ├─ calc.test.cjs
+│  ├─ add/
+│  │  ├─ calc.test.cjs
+│  │  └─ ui-contract.test.cjs
+│  └─ cross/
 │     └─ ui-contract.test.cjs
 ├─ css/
 │  ├─ common.css
@@ -1195,6 +1197,8 @@ investment-dashboard-main/
 │  ├─ portfolio.json
 │  └─ prices.json
 ├─ favicon.png
+├─ img/
+│  └─ hero-bg.png
 ├─ index.html
 ├─ js/
 │  ├─ dashboard-app.js
@@ -1250,12 +1254,17 @@ investment-dashboard-main/
 │  ├─ add.js
 │  └─ add_maintenance_handover.md
 │
+├─ img/
+│  └─ hero-bg.png
+│
 └─ tests/
    ├─ main/
    │  ├─ calc.test.cjs
    │  └─ ui-contract.test.cjs
-   └─ add/
-      ├─ calc.test.cjs
+   ├─ add/
+   │  ├─ calc.test.cjs
+   │  └─ ui-contract.test.cjs
+   └─ cross/
       └─ ui-contract.test.cjs
 ```
 
@@ -2781,7 +2790,7 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 
 ```text
 [ ] diff가 요청 범위뿐인가
-[ ] 현재 작업 화면군의 Calc / UI 테스트를 완료했으며, Main+Add 전체 QA를 명시한 경우에만 4종 Full QA를 완료했는가
+[ ] 현재 작업 화면군의 Calc / UI 테스트를 완료했으며, Main+Add 전체 QA를 명시한 경우에만 Main/Add 4종 + Cross 전역 계약 1종 Full QA를 완료했는가
 [ ] 변경 파일만 ZIP에 들어갔는가
 [ ] line/byte 통계를 보고했는가
 [ ] GitHub 커밋용 짧은 Summary와 간단한 Description을 적었는가

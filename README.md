@@ -209,6 +209,8 @@ investment-dashboard-main/
 │  ├─ pension_contributions.json
 │  ├─ pension_cash_snapshots.json
 │  └─ pension_trades.json
+├─ img/
+│  └─ hero-bg.png
 ├─ scripts/
 │  └─ update_prices.py
 ├─ add/
@@ -221,8 +223,10 @@ investment-dashboard-main/
 │  ├─ main/
 │  │  ├─ calc.test.cjs
 │  │  └─ ui-contract.test.cjs
-│  └─ add/
-│     ├─ calc.test.cjs
+│  ├─ add/
+│  │  ├─ calc.test.cjs
+│  │  └─ ui-contract.test.cjs
+│  └─ cross/
 │     └─ ui-contract.test.cjs
 ├─ .github/workflows/
 │  └─ update-prices.yml
