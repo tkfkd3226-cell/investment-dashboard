@@ -817,54 +817,51 @@ QA는 변경범위에 비례한다. 자동 테스트의 목적은 **평가 점�
 
 ```text
 tests/
-├─ main/
-│  ├─ calc.test.cjs
-│  └─ ui-contract.test.cjs
-├─ add/
-│  ├─ calc.test.cjs
-│  └─ ui-contract.test.cjs
-└─ cross/
-   └─ ui-contract.test.cjs
+├─ main-calc.test.cjs
+├─ main-ui-contract.test.cjs
+├─ add-calc.test.cjs
+├─ add-ui-contract.test.cjs
+└─ cross-ui-contract.test.cjs
 ```
 
 역할:
 
-- `tests/main/calc.test.cjs`: Main의 합산·원금·손익·수익률·별도수익·연금·차트용 계산 등 정답이 명확한 계산 회귀를 보호한다.
-- `tests/main/ui-contract.test.cjs`: Main의 module boundary, 기본 breakpoint, Phone Landscape, table/chart/modal/Market AI 등 폐기되면 안 되는 UI/CSS/HTML 구조 contract를 보호한다.
-- `tests/add/calc.test.cjs`: Calc의 `compute()` / `validate()` / `ceil5()`와 주요 계산 branch를 보호한다.
-- `tests/add/ui-contract.test.cjs`: Add의 input/button/responsive/ARIA 및 Calc Compact·Report Dynamic canonical style contract를 보호한다.
-- `tests/cross/ui-contract.test.cjs`: Main↔Add가 반드시 공유해야 하는 appearance storage/channel, Corner cap, 기본 breakpoint·Phone Landscape, iPhone desktop 1280 contract의 equality를 보호한다.
+- `tests/main-calc.test.cjs`: Main의 합산·원금·손익·수익률·별도수익·연금·차트용 계산 등 정답이 명확한 계산 회귀를 보호한다.
+- `tests/main-ui-contract.test.cjs`: Main의 module boundary, 기본 breakpoint, Phone Landscape, table/chart/modal/Market AI 등 폐기되면 안 되는 UI/CSS/HTML 구조 contract를 보호한다.
+- `tests/add-calc.test.cjs`: Calc의 `compute()` / `validate()` / `ceil5()`와 주요 계산 branch를 보호한다.
+- `tests/add-ui-contract.test.cjs`: Add의 input/button/responsive/ARIA 및 Calc Compact·Report Dynamic canonical style contract를 보호한다.
+- `tests/cross-ui-contract.test.cjs`: Main↔Add가 반드시 공유해야 하는 appearance storage/channel, Corner cap, 기본 breakpoint·Phone Landscape, iPhone desktop 1280 contract의 equality를 보호한다.
 
 수정 직후에는 **변경 영역 Fast QA**를 먼저 실행한다.
 
 ```bash
 # Main 계산
-node --test tests/main/calc.test.cjs
+node --test tests/main-calc.test.cjs
 
 # Main UI/CSS/HTML
-node --test tests/main/ui-contract.test.cjs
+node --test tests/main-ui-contract.test.cjs
 
 # Add 계산
-node --test tests/add/calc.test.cjs
+node --test tests/add-calc.test.cjs
 
 # Add UI/CSS/HTML
-node --test tests/add/ui-contract.test.cjs
+node --test tests/add-ui-contract.test.cjs
 
 # Main↔Add 전역 contract
-node --test tests/cross/ui-contract.test.cjs
+node --test tests/cross-ui-contract.test.cjs
 ```
 
 작업 완료 전에는 해당 화면군의 두 테스트를 실행한다. appearance/Corner/breakpoint/Phone Landscape/iPhone desktop request처럼 Main↔Add 공통 contract를 변경한 경우에는 cross test도 함께 실행한다. Main과 Add를 모두 포함하는 **전체 QA**에는 cross contract까지 포함한다.
 
 ```bash
 # Main 작업
-node --test tests/main/*.test.cjs
+node --test tests/main-*.test.cjs
 
 # Add 작업
-node --test tests/add/*.test.cjs
+node --test tests/add-*.test.cjs
 
 # Main + Add 전체 QA를 명시한 경우
-node --test tests/main/*.test.cjs tests/add/*.test.cjs tests/cross/*.test.cjs
+node --test tests/*.test.cjs
 ```
 
 운영 원칙:
@@ -926,7 +923,7 @@ listener 중복 0
 `add/add.js`의 Calc 계산/validation을 건드렸으면 일반 syntax 검사에 더해 Fast QA로 다음을 실행한다.
 
 ```bash
-node --test tests/add/calc.test.cjs
+node --test tests/add-calc.test.cjs
 ```
 
 현재 회귀테스트는 production `compute()`, `validate()`, `ceil5()`를 직접 호출한다. 테스트를 위해 계산식을 별도 복사하지 않는다.
@@ -949,7 +946,7 @@ node --test tests/add/calc.test.cjs
 `dashboard-core.js` 등 Main 계산 책임을 건드렸으면 다음 Fast QA를 우선 실행한다.
 
 ```bash
-node --test tests/main/calc.test.cjs
+node --test tests/main-calc.test.cjs
 ```
 
 Main 계산 테스트는 production 순수 계산 함수를 직접 사용하고, 테스트 전용으로 계산식을 복제하지 않는다. 원금·합산·별도수익·연금·차트 데이터 같은 계산 contract가 실제 요구사항 변경으로 바뀐 경우에만 기대값도 함께 갱신한다.
@@ -1073,7 +1070,7 @@ Calc는 UI보다 계산 결과의 정확성을 우선한다.
 계산 로직을 수정한 경우:
 
 1. `node --check add/add.js`
-2. `node --test tests/add/calc.test.cjs`
+2. `node --test tests/add-calc.test.cjs`
 3. 관련 거래유형 fixture 확인
 4. 관련 결과표 UI 확인
 5. diff 확인
@@ -1112,8 +1109,7 @@ investment-dashboard-main/
 ├─ add/
 │  └─ add.js
 ├─ tests/
-│  └─ add/
-│     └─ calc.test.cjs
+│  └─ add-calc.test.cjs
 └─ requirements.txt
 ```
 
@@ -1173,14 +1169,11 @@ investment-dashboard-main/
 │  ├─ add.js
 │  └─ add_maintenance_handover.md
 ├─ tests/
-│  ├─ main/
-│  │  ├─ calc.test.cjs
-│  │  └─ ui-contract.test.cjs
-│  ├─ add/
-│  │  ├─ calc.test.cjs
-│  │  └─ ui-contract.test.cjs
-│  └─ cross/
-│     └─ ui-contract.test.cjs
+│  ├─ main-calc.test.cjs
+│  ├─ main-ui-contract.test.cjs
+│  ├─ add-calc.test.cjs
+│  ├─ add-ui-contract.test.cjs
+│  └─ cross-ui-contract.test.cjs
 ├─ css/
 │  ├─ common.css
 │  ├─ tablet.css
@@ -1258,17 +1251,14 @@ investment-dashboard-main/
 │  └─ hero-bg.png
 │
 └─ tests/
-   ├─ main/
-   │  ├─ calc.test.cjs
-   │  └─ ui-contract.test.cjs
-   ├─ add/
-   │  ├─ calc.test.cjs
-   │  └─ ui-contract.test.cjs
-   └─ cross/
-      └─ ui-contract.test.cjs
+   ├─ main-calc.test.cjs
+   ├─ main-ui-contract.test.cjs
+   ├─ add-calc.test.cjs
+   ├─ add-ui-contract.test.cjs
+   └─ cross-ui-contract.test.cjs
 ```
 
-계산 회귀와 UI Contract 자동 QA는 `tests/main/`, `tests/add/`의 대칭 구조에서 관리한다. 운영 코드와 테스트 코드를 다시 feature 폴더 안에 섞지 않는다.
+계산 회귀와 UI Contract 자동 QA는 `tests/` 루트에서 `main-`, `add-`, `cross-` 파일명 접두사로 구분한다. 운영 코드와 테스트 코드를 다시 feature 폴더 안에 섞지 않는다.
 
 이 구조를 앞으로의 기본 구조로 취급한다.
 
@@ -2530,7 +2520,7 @@ style="..."
 ## 8.2 Calc
 
 - 계산 로직은 DOM 표현과 분리된 production 함수를 기준으로 유지한다.
-- Calc 계산 로직 변경 시 `node --test tests/add/calc.test.cjs`로 실제 production 함수를 회귀검증한다.
+- Calc 계산 로직 변경 시 `node --test tests/add-calc.test.cjs`로 실제 production 함수를 회귀검증한다.
 - 테스트를 위한 계산식 복제나 불필요한 파일 분리는 하지 않는다.
 - Calc 전용 responsive/표현 상세는 `add/add_maintenance_handover.md`와 실제 add CSS를 기준으로 한다.
 
@@ -2722,7 +2712,7 @@ dashboard-app.js
 
 Main 1~13차 완료 범위에는 Add 리팩토링을 포함하지 않는다. 과거에 Main 후속 14~19차로 계획했던 Add 작업은 별도 작업군으로 분리하며, Main 차수의 연속 완료 조건으로 취급하지 않는다.
 
-Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로직은 `tests/add/calc.test.cjs`로 회귀검증한다. Report는 canonical HTML entry를 유지하고, 공통 `add.css` / `add.js`와 `add/add_maintenance_handover.md`를 Source of Truth로 따른다.
+Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로직은 `tests/add-calc.test.cjs`로 회귀검증한다. Report는 canonical HTML entry를 유지하고, 공통 `add.css` / `add.js`와 `add/add_maintenance_handover.md`를 Source of Truth로 따른다.
 
 ## 10.4 과거 점수 기록 처리
 

@@ -220,14 +220,11 @@ investment-dashboard-main/
 │  ├─ add.js
 │  └─ add_maintenance_handover.md
 ├─ tests/
-│  ├─ main/
-│  │  ├─ calc.test.cjs
-│  │  └─ ui-contract.test.cjs
-│  ├─ add/
-│  │  ├─ calc.test.cjs
-│  │  └─ ui-contract.test.cjs
-│  └─ cross/
-│     └─ ui-contract.test.cjs
+│  ├─ main-calc.test.cjs
+│  ├─ main-ui-contract.test.cjs
+│  ├─ add-calc.test.cjs
+│  ├─ add-ui-contract.test.cjs
+│  └─ cross-ui-contract.test.cjs
 ├─ .github/workflows/
 │  └─ update-prices.yml
 ├─ requirements.txt
@@ -559,35 +556,32 @@ __pycache__/
 
 ```text
 tests/
-├─ main/
-│  ├─ calc.test.cjs          # Main 계산 결과·경계값 회귀
-│  └─ ui-contract.test.cjs   # Main UI/CSS/HTML/반응형 핵심 contract
-├─ add/
-│  ├─ calc.test.cjs          # Add Calc 계산·validation 회귀
-│  └─ ui-contract.test.cjs   # Add UI/CSS/HTML/반응형·canonical style contract
-└─ cross/
-   └─ ui-contract.test.cjs   # Main↔Add appearance/Corner/responsive 전역 contract
+├─ main-calc.test.cjs          # Main 계산 결과·경계값 회귀
+├─ main-ui-contract.test.cjs   # Main UI/CSS/HTML/반응형 핵심 contract
+├─ add-calc.test.cjs           # Add Calc 계산·validation 회귀
+├─ add-ui-contract.test.cjs    # Add UI/CSS/HTML/반응형·canonical style contract
+└─ cross-ui-contract.test.cjs  # Main↔Add appearance/Corner/responsive 전역 contract
 ```
 
 전체 자동 QA:
 
 ```bash
-node --test tests/main/*.test.cjs tests/add/*.test.cjs tests/cross/*.test.cjs
+node --test tests/*.test.cjs
 ```
 
 영역별 빠른 QA도 가능합니다.
 
 ```bash
-node --test tests/main/calc.test.cjs
-node --test tests/main/ui-contract.test.cjs
-node --test tests/add/calc.test.cjs
-node --test tests/add/ui-contract.test.cjs
-node --test tests/cross/ui-contract.test.cjs
+node --test tests/main-calc.test.cjs
+node --test tests/main-ui-contract.test.cjs
+node --test tests/add-calc.test.cjs
+node --test tests/add-ui-contract.test.cjs
+node --test tests/cross-ui-contract.test.cjs
 ```
 
 자동 테스트는 반복적인 회귀 확인을 줄이는 **QA 안전망**입니다. 실제 UI 미감, 정보 위계, 신규 UX의 적절성, 실제 기기 체감처럼 자동화가 대신할 수 없는 항목은 별도 QA가 필요합니다. 테스트 파일의 존재 여부나 테스트 개수 자체는 프로젝트 품질 점수의 가산·감점 기준이 아닙니다.
 
-Main만 수정한 작업은 `tests/main/*`, Add만 수정한 작업은 `tests/add/*`를 우선 실행합니다. appearance/Corner/breakpoint/Phone Landscape/iPhone desktop request처럼 Main↔Add가 반드시 같아야 하는 전역 contract를 변경한 경우에는 `tests/cross/*`도 실행합니다. Main과 Add를 모두 포함하는 전체 QA에는 cross contract까지 함께 포함합니다.
+Main만 수정한 작업은 `tests/main-*`, Add만 수정한 작업은 `tests/add-*`를 우선 실행합니다. appearance/Corner/breakpoint/Phone Landscape/iPhone desktop request처럼 Main↔Add가 반드시 같아야 하는 전역 contract를 변경한 경우에는 `tests/cross-*`도 실행합니다. Main과 Add를 모두 포함하는 전체 QA에는 cross contract까지 함께 포함합니다.
 
 ---
 
