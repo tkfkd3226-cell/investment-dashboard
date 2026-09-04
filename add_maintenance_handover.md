@@ -3,10 +3,10 @@
 
 ## 현재 파일 구성
 
-- `calc.html`: 계산기 entry HTML
-- `kodex-leverage-report.html`: 거래 리포트 entry HTML
-- `add.css`: 두 페이지가 공유하는 단일 런타임 CSS. 공통 primitive와 `data-add-page` 기반 Calc/Report 전용 규칙을 함께 관리하며, Calc Compact·Report Dynamic 시각 언어를 각 페이지의 canonical 스타일로 직접 소유
-- `add.js`: 두 페이지가 공유하는 런타임 JS. `data-add-page`에 따라 Calc/Report만 선택 부팅
+- `add/calc.html`: 계산기 entry HTML
+- `add/kodex-leverage-report.html`: 거래 리포트 entry HTML
+- `add/add.css`: 두 페이지가 공유하는 단일 런타임 CSS. 공통 primitive와 `data-add-page` 기반 Calc/Report 전용 규칙을 함께 관리하며, Calc Compact·Report Dynamic 시각 언어를 각 페이지의 canonical 스타일로 직접 소유
+- `add/add.js`: 두 페이지가 공유하는 런타임 JS. `data-add-page`에 따라 Calc/Report만 선택 부팅
 - `/tests/add-calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
 - `/tests/add-ui-contract.test.cjs`: 선택상태/ARIA/input density/반응형 및 Calc/Report canonical style contract 회귀 테스트
 - `/tests/cross-ui-contract.test.cjs`: Main↔Add appearance/Corner/breakpoint/Phone Landscape/iPhone desktop 1280 전역 contract equality 테스트
