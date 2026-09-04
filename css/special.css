@@ -215,6 +215,7 @@
       --surface-radius-level-1:16px;
       --surface-radius-level-2:14px;
       --surface-radius-level-3:12px;
+      --surface-radius-level-4:12px;
       --dashboard-control-height:25px;
       --dashboard-control-font-size:9.5px;
       --dashboard-control-state-font-size:9.5px;
@@ -303,7 +304,7 @@
     }
     .market-ai-mobile-dialog{
       --modal-card-width:100%;
-      --modal-card-radius:min(var(--surface-radius-lg),var(--corner-surface-cap));
+      --modal-card-radius:min(var(--surface-radius-level-1),var(--corner-surface-cap));
       --modal-card-pad-y:var(--space-4xl);
       --modal-card-pad-x:var(--space-4xl);
       --modal-backdrop-blur:6px;

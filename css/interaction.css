@@ -49,6 +49,15 @@
       transform:translateY(-1px);
     }
 
+    :is(.desktop-edge-toc-item,.date-action-menu.mobile-combined-menu .mobile-nav-item):hover{
+      background:var(--nav-surface-hover);
+    }
+
+    .date-action-menu.mobile-combined-menu .mobile-nav-head > button:hover{
+      background:var(--nav-surface-hover);
+      color:var(--nav-text);
+    }
+
   /* [I03. Control Hover · 공통 control border feedback] */
     :is(.asset-workspace-tab,.contrib-target-option):not(.active):hover{
       background:var(--nav-surface-hover);
@@ -81,4 +90,22 @@
     .action-modal button:hover{
       transform:none;
     }
+}
+
+@media (hover:hover) and (pointer:fine) and (min-width:1101px){
+  .desktop-edge-toc:hover .desktop-edge-toc-panel{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+    transform:translate(0,-50%);
+    transition:
+      opacity var(--nav-motion-fade-duration) ease 0s,
+      transform var(--nav-motion-slide-duration) ease-out var(--nav-motion-slide-delay),
+      visibility 0s linear 0s;
+  }
+  .desktop-edge-toc:hover .desktop-edge-toc-trigger{
+    border-color:var(--nav-border-hover);
+    background:var(--nav-surface-hover);
+    color:var(--nav-text-strong);
+  }
 }
