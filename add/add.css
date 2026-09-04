@@ -360,6 +360,8 @@ body{
   --tooltip-bg:#17243a;
   --tooltip-text:#ffffff;
   --tooltip-shadow:0 8px 22px rgba(20,35,60,.22);
+  --help-icon-active-bg:#e7f0fb;
+  --help-icon-active-border:#6f8fb8;
 
   /* Validation / status */
   --danger-border:#efb8bc;
@@ -410,6 +412,8 @@ html:where([data-add-page="calc"]).dark{
   --tooltip-bg:#020617;
   --tooltip-text:#f8fafc;
   --tooltip-shadow:0 8px 22px rgba(0,0,0,.42);
+  --help-icon-active-bg:#1e293b;
+  --help-icon-active-border:#60a5fa;
   --danger-border:rgba(254,202,202,.25);
   --danger-bg:rgba(127,29,29,.18);
   --danger-text:#fca5a5;
@@ -510,8 +514,7 @@ html:where([data-add-page="calc"]).dark .calc-utility-button{box-shadow:inset 0 
    wrapper 위치를 top/margin으로 개별 보정하지 않는다. */
 :where(html[data-add-page="calc"]) .help-icon > span[aria-hidden="true"]{display:block;line-height:1;transform:translateY(-.2px)}
 html:where([data-add-page="calc"]).dark .help-icon{border-color:#526178;background:#111827;color:#93c5fd}
-:where(html[data-add-page="calc"]) .help-icon:focus-visible, :where(html[data-add-page="calc"]) .help-tooltip.is-open .help-icon{background:#e7f0fb;border-color:#6f8fb8}
-html:where([data-add-page="calc"]).dark .help-icon:focus-visible, html:where([data-add-page="calc"]).dark .help-tooltip.is-open .help-icon{background:#1e293b;border-color:#60a5fa}
+:where(html[data-add-page="calc"]) .help-icon:focus-visible, :where(html[data-add-page="calc"]) .help-tooltip.is-open .help-icon{background:var(--help-icon-active-bg);border-color:var(--help-icon-active-border)}
 :where(html[data-add-page="calc"]) .custom-tooltip{position:fixed;z-index:1000;left:var(--tooltip-left,-9999px);top:var(--tooltip-top,-9999px);width:min(290px,calc(100vw - 24px));padding:var(--density-surface-sm);border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--tooltip-bg);color:var(--tooltip-text);font-size:var(--calc-type-support);font-weight:600;line-height:1.5;letter-spacing:-.01em;box-shadow:var(--tooltip-shadow);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;pointer-events:none;text-align:left;white-space:normal;overflow-wrap:break-word;word-break:keep-all}
 :where(html[data-add-page="calc"]) .custom-tooltip::after{content:"";position:absolute;left:var(--tooltip-arrow-x,50%);top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--tooltip-bg)}
 :where(html[data-add-page="calc"]) .custom-tooltip.tooltip-below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--tooltip-bg)}
@@ -562,8 +565,7 @@ html:where([data-add-page="calc"]).dark .formula{background:#1f2937}
 @media (hover:hover) and (pointer:fine){
   :where(html[data-add-page="calc"]) .calc-utility-button:hover:not(:disabled){border-color:var(--border-hover);background:var(--surface-hover-soft);color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 4px 12px rgba(29,53,87,.10)}
   html:where([data-add-page="calc"]).dark .calc-utility-button:hover:not(:disabled){box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 4px 12px rgba(0,0,0,.24)}
-  :where(html[data-add-page="calc"]) .help-icon:hover{background:#e7f0fb;border-color:#6f8fb8}
-  html:where([data-add-page="calc"]).dark .help-icon:hover{background:#1e293b;border-color:#60a5fa}
+  :where(html[data-add-page="calc"]) .help-icon:hover{background:var(--help-icon-active-bg);border-color:var(--help-icon-active-border)}
   :where(html[data-add-page="calc"]) .help-tooltip:hover .custom-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
   :where(html[data-add-page="calc"]) .actual-sale-price:hover:not(:disabled){border-color:var(--navy);background:var(--surface-hover-soft);color:var(--ink)}
 }
