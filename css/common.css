@@ -96,7 +96,6 @@
   --asset-insight-risk-gauge-height:20px;
   --surface-radius-outer:var(--surface-radius-level-1);
   --surface-radius-large:var(--surface-radius-level-2);
-  --surface-radius-medium:var(--surface-radius-level-3);
   --surface-radius-mini:var(--surface-radius-level-3);
   /* Data List Card Typography · 모바일 카드보기와 compact data list surface가 공유 */
   --data-list-title-weight:var(--type-weight-strong);
@@ -3241,11 +3240,8 @@ body.dashboard-dialog-open{
 .mini-card.transition-suppressed-once{transition:none}
 
 /* Button Primitives · 정사각 icon / square utility / modal action / info 버튼의 공통 geometry */
-button.control-icon-button{
-  width:var(--icon-button-size);
-  min-width:var(--icon-button-size);
-  height:var(--icon-button-size);
-  flex:0 0 var(--icon-button-size);
+button.control-icon-button,
+button.control-icon-button-compact{
   padding:0;
   display:inline-flex;
   align-items:center;
@@ -3253,17 +3249,17 @@ button.control-icon-button{
   box-sizing:border-box;
   cursor:pointer;
 }
+button.control-icon-button{
+  width:var(--icon-button-size);
+  min-width:var(--icon-button-size);
+  height:var(--icon-button-size);
+  flex:0 0 var(--icon-button-size);
+}
 button.control-icon-button-compact{
   width:var(--compact-icon-button-size);
   min-width:var(--compact-icon-button-size);
   height:var(--compact-icon-button-size);
   flex:0 0 var(--compact-icon-button-size);
-  padding:0;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  box-sizing:border-box;
-  cursor:pointer;
 }
 .control-square-button{
   --control-square-size:var(--dashboard-control-height);

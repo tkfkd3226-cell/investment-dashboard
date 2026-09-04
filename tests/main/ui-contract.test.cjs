@@ -348,7 +348,8 @@ test('13차 실기 QA 후속은 계좌 control·Print 표·Phone 위험도·목�
 test('Surface radius 3계층은 Desktop·Tablet과 Phone Shared에서 같은 line contract를 사용한다',()=>{
   const print1=compact(print);
   assert.match(common1,/--surface-radius-level-1:18px; --surface-radius-level-2:16px; --surface-radius-level-3:14px;/);
-  assert.match(common1,/--surface-radius-outer:var\(--surface-radius-level-1\); --surface-radius-large:var\(--surface-radius-level-2\); --surface-radius-medium:var\(--surface-radius-level-3\); --surface-radius-mini:var\(--surface-radius-level-3\);/);
+  assert.match(common1,/--surface-radius-outer:var\(--surface-radius-level-1\); --surface-radius-large:var\(--surface-radius-level-2\); --surface-radius-mini:var\(--surface-radius-level-3\);/);
+  assert.doesNotMatch(common1,/--surface-radius-medium:/);
   assert.match(special1,/--surface-radius-level-1:16px; --surface-radius-level-2:14px; --surface-radius-level-3:12px;/);
   assert.doesNotMatch(special,/--surface-radius-outer:20px|--hero-radius:var\(--surface-radius-sm\)/);
   assert.match(common1,/\.asset-workspace-tabs\{[^}]*border-radius:min\(var\(--surface-radius-level-1\),var\(--corner-surface-cap\)\)/);

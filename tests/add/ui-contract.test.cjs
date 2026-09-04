@@ -390,3 +390,12 @@ test('Add CSS class selector는 production HTML 또는 동적 JS markup에 근�
   const unused=classes.filter(name=>!new RegExp(`(^|[^\\w-])${escapeRegExp(name)}([^\\w-]|$)`).test(productionSource)).sort();
   assert.deepEqual(unused,[]);
 });
+
+test('Report chart 손익색은 Add 공통 semantic value source를 alias하고 Calc mobile icon은 Phone Shared만 소유한다',()=>{
+  assert.match(css1,/--chart-positive:var\(--positive\)/);
+  assert.match(css1,/--chart-negative:var\(--negative\)/);
+  assert.doesNotMatch(css1,/--chart-positive:#(?:EF3341|FF5964)/i);
+  assert.doesNotMatch(css1,/--chart-negative:#(?:3182F6|60A5FA)/i);
+  assert.equal((css.match(/:where\(html\[data-add-page="calc"\]\) \.add-button-mobile-icon\{/g)||[]).length,1);
+  assert.doesNotMatch(css1,/@media\(max-width:760px\)\{ \.add-button-mobile-icon\{/);
+});

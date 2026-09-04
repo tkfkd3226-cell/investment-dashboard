@@ -186,14 +186,6 @@ html.dark{
   font-weight:900;
   line-height:1;
 }
-@media(max-width:760px){
-  .add-button-mobile-icon{
-    width:var(--button-icon-size);
-    height:var(--button-icon-size);
-    padding:0;
-  }
-}
-
 /* 04. Add 공통 Card Surface primitive
    - shell은 border/radius만 소유하고, 배경·shadow는 역할 class로 조합한다.
    - feature별 class는 layout/content만 소유하며 동일 shell을 반복 정의하지 않는다. */
@@ -952,9 +944,9 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
   --chart-grid:rgba(109,93,252,.13);
   --chart-axis-text:#8587a0;
   --chart-zero:rgba(67,70,105,.38);
-  --chart-positive:#EF3341;
+  --chart-positive:var(--positive);
   --chart-positive-soft:rgba(239,51,65,.55);
-  --chart-negative:#3182F6;
+  --chart-negative:var(--negative);
   --chart-negative-soft:rgba(49,130,246,.55);
   --chart-positive-label:#d92d3a;
   --chart-negative-label:#2172d8;
@@ -993,9 +985,7 @@ html:where([data-add-page="report"]).dark{
   --chart-grid:rgba(149,140,255,.16);
   --chart-axis-text:#9ca3b8;
   --chart-zero:rgba(183,191,213,.36);
-  --chart-positive:#FF5964;
   --chart-positive-soft:rgba(255,89,100,.55);
-  --chart-negative:#60A5FA;
   --chart-negative-soft:rgba(96,165,250,.55);
   --chart-positive-label:#ff7a83;
   --chart-negative-label:#7ab4ff;
