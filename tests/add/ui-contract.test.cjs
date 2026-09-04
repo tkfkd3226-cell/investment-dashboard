@@ -410,6 +410,44 @@ test('Report 표는 caption/header semantic을 유지한다',()=>{
   assert.match(report,/<th scope="row">합계<\/th>/);
 });
 
+
+test('Report 카드 depth와 markup은 feature-owned source만 사용하고 legacy alias를 남기지 않는다',()=>{
+  const classTokens=[...report.matchAll(/class="([^"]*)"/g)].flatMap(match=>match[1].split(/\s+/).filter(Boolean));
+  for(const legacy of ['add-card-shadow','card','table-scroll']) assert.equal(classTokens.includes(legacy),false,`Report legacy class must be removed: ${legacy}`);
+  assert.ok(classTokens.includes('add-card-shell'));
+  assert.ok(classTokens.includes('add-table-scroll'));
+});
+
+test('Report Hero/KPI responsive 의미배치는 semantic role class를 사용하고 DOM 순번에 의존하지 않는다',()=>{
+  for(const role of ['hero-chip-core','hero-chip-day','hero-chip-total','report-kpi-total-net','report-kpi-total-pnl','report-kpi-total-fee','report-kpi-core-net','report-kpi-day-net','report-kpi-win-rate']){
+    assert.match(report,new RegExp(`\\b${role}\\b`));
+  }
+  assert.match(css1,/\.hero-chip-total\{grid-column:1 \/ -1\}/);
+  assert.match(css1,/#summary \.report-kpi-core-net\{order:3\}/);
+  assert.match(css1,/#summary \.report-kpi-total-net \.sub\{white-space:nowrap/);
+  assert.doesNotMatch(css1,/\.hero-summary > \.hero-chip:nth-child\([123]\)/);
+  assert.doesNotMatch(css1,/#summary \.kpi:nth-child\(/);
+});
+
+test('Report Phone split total은 숨긴 desktop stats에 dead layout declaration을 남기지 않는다',()=>{
+  const phoneStart=css1.indexOf('@media (max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){',css1.indexOf('/* ==================== 03. Report'));
+  assert.notEqual(phoneStart,-1);
+  const phone=css1.slice(phoneStart);
+  assert.match(phone,/\.split-total-stats\{display:none\}/);
+  assert.doesNotMatch(phone,/\.split-total-stats\{display:none;[^}]*?(?:justify-content|gap):/);
+});
+
+test('Report iPhone 데스크탑 웹사이트 요청은 page boot 전에 1280 viewport contract를 유지한다',()=>{
+  const start=js1.indexOf("if(page==='report'){");
+  const end=js1.indexOf('})();',start);
+  assert.ok(start>=0&&end>start);
+  const preflight=js1.slice(start,end);
+  assert.match(preflight,/desktopAppleUA=\/Macintosh\/\.test\(ua\)/);
+  assert.match(preflight,/touchApple=\(navigator\.maxTouchPoints\|\|0\)>0/);
+  assert.match(preflight,/shortSide<=500/);
+  assert.match(preflight,/viewport\.setAttribute\('content','width=1280'\)/);
+});
+
 test('Add CSS custom property는 CSS 또는 JS runtime contract에서 실제 참조된다',()=>{
   const definitions=[...css.matchAll(/--([\w-]+)\s*:/g)].map(match=>match[1]);
   const references=new Set([
