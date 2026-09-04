@@ -2335,15 +2335,16 @@ Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유�
 - Metric은 `.card`의 Large surface padding을 그대로 재사용하며 별도 metric padding token을 두지 않는다. Emphasis 계열만 정보구조상 필요한 경우 `--surface-pad-emphasis`를 사용한다.
 - base selector가 semantic token을 소유하고 Tablet/Phone에서는 **token 값만 변경**한다. 같은 padding을 responsive selector에 반복하지 않는다.
 
-radius는 padding 분류와 별도로 화면상 같은 line/hierarchy를 기준으로 3단계 token을 사용한다.
+radius는 padding 분류와 별도로 화면상 같은 line/hierarchy를 기준으로 4단계 token을 사용한다.
 
 | Radius level | Desktop·Tablet·Print | Phone·실제 터치폰 가로 | 대표 화면군 |
 |---|---:|---:|---|
 | `--surface-radius-level-1` | 18px | 16px | Hero, 연금+계좌 성과 표, 자산 workspace tab, 증권·퇴직연금 outer band |
 | `--surface-radius-level-2` | 16px | 14px | 일반 card/note/chart, 성과 KPI·장부 KPI, 계좌별 성과표, source card |
 | `--surface-radius-level-3` | 14px | 12px | mini/data-list/insight, 일반 현황표·변동표, 변동 KPI, 차트 하단 요약 |
+| `--surface-radius-level-4` | 12px | 12px | tooltip, chart plot, modal error, inner compact control |
 
-기존 의미 alias인 `--surface-radius-outer/large/medium/mini`는 위 level source에 연결한다. 특정 component가 명시적으로 level을 소유하면 alias 숫자를 다시 복제하지 않는다. Corner theme에서는 각 radius와 `--corner-surface-cap`의 최소값을 사용한다. 같은 visible line의 surface를 viewport별로 따로 키우거나, 3단계 중 일부만 Phone에서 줄이지 않는다.
+기존 의미 alias인 `--surface-radius-outer/large/medium/mini`는 위 level source에 연결한다. 특정 component가 명시적으로 level을 소유하면 alias 숫자를 다시 복제하지 않는다. Corner theme에서는 각 radius와 `--corner-surface-cap`의 최소값을 사용한다. 같은 visible line의 surface를 viewport별로 따로 키우거나, 4단계 중 일부만 Phone에서 줄이지 않는다.
 
 ### Card Grid Gap ownership
 

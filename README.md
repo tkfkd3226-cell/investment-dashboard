@@ -349,7 +349,7 @@ Market AI UI의 CSS도 같은 역할 분리를 따릅니다. Desktop baseline과
 Main 화면의 1~13차 CSS 토큰화·공통화 작업은 다음 장기 기준으로 정리되어 있습니다. 실제 px 값과 selector는 최신 CSS가 Source of Truth이며, README에는 구조만 기록합니다.
 
 - 페이지 여백과 section 간격, 카드 padding·gap·radius, 제목·control, KPI·mini-card·data-list, 표, 차트, modal, tooltip, feedback 상태를 semantic token과 공통 component rule이 소유합니다.
-- surface radius는 `--surface-radius-level-1/2/3`의 3단계 위계로 관리합니다. Desktop·Tablet과 Print는 같은 기준선을 사용하고, 세로 Phone과 실제 터치폰 가로는 Phone Shared에서 함께 compact 기준으로 전환합니다.
+- surface radius는 `--surface-radius-level-1/2/3/4`의 4단계 위계로 관리합니다. Desktop·Tablet과 Print는 같은 기준선을 사용하고, 세로 Phone과 실제 터치폰 가로는 Phone Shared에서 함께 compact 기준으로 전환합니다.
 - Main 표는 `.dashboard-data-table`과 `--data-table-*` 계약을 사용합니다. 모바일 카드 표시는 공통 `data-list-card` renderer를 사용하며, 세로 Phone에서만 표/카드 전환을 제공하고 실제 터치폰 가로와 Print는 표를 canonical 표현으로 사용합니다.
 - 양수·음수는 각각 `--value-positive`와 `--value-negative`를 사용해 Light·Dark·Print에서 의미를 유지합니다. 성공·정보·주의·오류 색상은 별도의 status token 체계를 사용합니다.
 - Print는 현재 화면 테마와 관계없이 Light palette로 고정하고, 인쇄 직전에 모든 차트를 Light chart palette로 다시 그립니다. 화면 조작 UI와 Market AI는 제외하고, 두 자산 panel·Hero 전체 요약·표·차트·장부·원천 검산을 인쇄용 canonical layout으로 표시합니다.
