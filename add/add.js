@@ -150,12 +150,19 @@
   // 05. 거래유형 UI 구성 / DOM 재배치
   // 거래유형 변경 시 필드 위치·표시 여부·접근성 상태를 함께 동기화
   function setPresetActive(id){document.querySelectorAll('.preset-btn').forEach(b=>{const active=b.dataset.preset===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});}
+  function clearPresetActive(){
+    if(!activePresetId)return;
+    activePresetId='';
+    setPresetActive('');
+    updateActualSellPriceUI();
+  }
+  function markPresetDirty(){if(!applying)clearPresetActive();}
   function getPresetIdForCurrentCase(){
     if(caseType==='holding')return 'buy-2026-07-29';
     return noPriorMode?'current-only':'buy-2026-07-30';
   }
   function getActualSellPrice(){
-    if(noPriorMode)return null;
+    if(noPriorMode||activePresetId!==getPresetIdForCurrentCase())return null;
     return caseType==='settled'?91065:74580;
   }
   let actualSellPriceFeedbackTimer=0;
@@ -357,9 +364,13 @@
 
   function renderValidation(validation){
     document.querySelectorAll('.control.invalid').forEach(n=>n.classList.remove('invalid'));
-    validation.invalidIds.forEach(id=>{const n=$(id);if(n)n.classList.add('invalid');});
+    document.querySelectorAll('.control[aria-invalid="true"]').forEach(n=>n.setAttribute('aria-invalid','false'));
+    validation.invalidIds.forEach(id=>{const n=$(id);if(n){n.classList.add('invalid');n.setAttribute('aria-invalid','true');n.setAttribute('aria-describedby','validationMessage');}});
     const b=$('validationMessage');
-    if(!validation.errors.length){b.classList.remove('show');b.innerHTML='';return;}
+    if(!validation.errors.length){
+      document.querySelectorAll('.control[aria-describedby="validationMessage"]').forEach(n=>n.removeAttribute('aria-describedby'));
+      b.classList.remove('show');b.innerHTML='';return;
+    }
     const resultNote=hasRenderedCalculation
       ? '<div class="validation-result-note">아래 결과는 마지막 정상 입력 기준입니다. 입력값을 수정하면 자동으로 다시 계산됩니다.</div>'
       : '<div class="validation-result-note">입력값을 수정하면 결과가 자동으로 계산됩니다.</div>';
@@ -663,11 +674,11 @@
   // 입력·스테퍼·프리셋·전략탭·초기화 버튼의 이벤트를 한 번만 등록
   function handleMoneyFocus(e){const inp=e.currentTarget,n=parseNum(inp.value);if(Number.isFinite(n))inp.value=String(n);}
   function handleMoneyBlur(e){const inp=e.currentTarget,n=parseNum(inp.value);if(Number.isInteger(n))inp.value=nf0.format(n);recalc();}
-  function handleMoneyInput(e){if(e.currentTarget.id==='targetPrice')disableAutoBreakEven();recalc();}
-  function handleNumberInput(e){const inp=e.currentTarget;if(inp.id==='overnightPct'||inp.id==='risePct'){delete inp.dataset.exactValue;disableAutoBreakEven();}recalc();}
-  function handleShareStep(e){const b=e.currentTarget,inp=$(b.dataset.target),cur=parseNum(inp.value);if(!Number.isFinite(cur))return;inp.value=String(Math.max(0,Math.trunc(cur)+parseNum(b.dataset.delta)));recalc();}
-  function handlePctStep(e){const b=e.currentTarget,inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;delete inp.dataset.exactValue;disableAutoBreakEven();inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);recalc();}
-  function handleModeChange(next){disableAutoBreakEven();setMode(next);}
+  function handleMoneyInput(e){markPresetDirty();if(e.currentTarget.id==='targetPrice')disableAutoBreakEven();recalc();}
+  function handleNumberInput(e){markPresetDirty();const inp=e.currentTarget;if(inp.id==='overnightPct'||inp.id==='risePct'){delete inp.dataset.exactValue;disableAutoBreakEven();}recalc();}
+  function handleShareStep(e){const b=e.currentTarget,inp=$(b.dataset.target),cur=parseNum(inp.value);if(!Number.isFinite(cur))return;markPresetDirty();inp.value=String(Math.max(0,Math.trunc(cur)+parseNum(b.dataset.delta)));recalc();}
+  function handlePctStep(e){const b=e.currentTarget,inp=$(b.dataset.target);if(inp.readOnly)return;const cur=parseNum(inp.value);if(!Number.isFinite(cur))return;markPresetDirty();delete inp.dataset.exactValue;disableAutoBreakEven();inp.value=formatPctInput(Math.round((cur+parseNum(b.dataset.delta))*1e6)/1e6);recalc();}
+  function handleModeChange(next){markPresetDirty();disableAutoBreakEven();setMode(next);}
 
   function initEventBindings(){
     document.querySelectorAll('.money-input').forEach(inp=>{inp.addEventListener('focus',handleMoneyFocus);inp.addEventListener('blur',handleMoneyBlur);inp.addEventListener('input',handleMoneyInput);});
@@ -685,7 +696,7 @@
       recalc();
       showActualSellPriceAppliedFeedback();
     });
-    $('priorSellDateInput').addEventListener('input',recalc);
+    $('priorSellDateInput').addEventListener('input',()=>{markPresetDirty();recalc();});
     $('resetBtn').addEventListener('click',()=>{const presetId=getPresetIdForCurrentCase();storage.remove('investmentLossRecoveryCalcV17');storage.remove('investmentLossRecoveryCalcV16');storage.remove('investmentLossRecoveryCalcV15');storage.remove('investmentLossRecoveryCalcV12');applyPreset(presetId);});
     document.querySelectorAll('#strategyTabs .tab').forEach(b=>b.addEventListener('click',()=>{if(!b.classList.contains('hidden'))setStrategyActive(b.dataset.tab);}));
     $('strategyTabs').addEventListener('keydown',e=>{
