@@ -84,8 +84,8 @@ test('Main graph entry: app은 core/ui-common/modal/charts/ui/pension/pension-ed
   assert.equal(imports.includes('./dashboard-market-ai.js'),false);
 });
 
-test('Dashboard 날짜 hash는 유효한 값이면 초기 선택일로 복원하고, 아니면 최신일을 사용한다',()=>{
-  assert.ok(app.includes("const requestedDate=decodeURIComponent(location.hash.replace(/^#/,''));"));
+test('Dashboard 날짜 hash는 유효한 값이면 초기 선택일로 복원하고, malformed hash도 최신일로 fallback한다',()=>{
+  assert.match(app,/let requestedDate='';\s*try\{requestedDate=decodeURIComponent\(location\.hash\.replace\(\/\^#\/,''\)\);\}catch\{\}/);
   assert.match(app,/dataState\.activeDate=dates\.includes\(requestedDate\)\?requestedDate:dates\.at\(-1\);/);
 });
 

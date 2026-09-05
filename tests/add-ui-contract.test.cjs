@@ -123,10 +123,15 @@ test('Calc 수동 편집은 적용 프리셋과 실제 매도단가 shortcut을 
   assert.match(js1,/if\(noPriorMode\|\|activePresetId!==getPresetIdForCurrentCase\(\)\)return null;/);
 });
 
+test('Calc 저장 복원은 빈 presetId를 수동 수정 상태로 유지하고, 구버전 데이터만 추정한다',()=>{
+  assert.match(js1,/const hasStoredPresetId=Object\.prototype\.hasOwnProperty\.call\(v,'presetId'\);/);
+  assert.match(js1,/activePresetId=hasStoredPresetId\s*\?\(presets\[v\.presetId\]\?v\.presetId:''\)\s*:\(v\.noPrior\?'current-only'/);
+});
+
 test('Calc 검증 오류는 해당 control의 aria-invalid와 설명 영역을 함께 갱신한다',()=>{
   assert.match(js1,/\.control\[aria-invalid="true"\][^]*?setAttribute\('aria-invalid','false'\)/);
+  assert.match(js1,/\.control\[aria-describedby="validationMessage"\][^]*?removeAttribute\('aria-describedby'\)[^]*?validation\.invalidIds/);
   assert.match(js1,/n\.setAttribute\('aria-invalid','true'\);n\.setAttribute\('aria-describedby','validationMessage'\);/);
-  assert.match(js1,/\.control\[aria-describedby="validationMessage"\][^]*?removeAttribute\('aria-describedby'\)/);
 });
 
 test('Calc는 실제 거래일별 빠른 매수 shortcut을 누적하지 않는다',()=>{
