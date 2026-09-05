@@ -112,6 +112,23 @@ test('거래유형 preset은 active와 aria-pressed를 같은 state owner에서 
   assert.match(calc,/class="preset-btn[^"]*"[^>]*aria-pressed="(?:true|false)"/);
 });
 
+test('Calc 수동 편집은 적용 프리셋과 실제 매도단가 shortcut을 함께 해제한다',()=>{
+  assert.match(js1,/function clearPresetActive\(\)\{[^]*?activePresetId=''[^]*?setPresetActive\(''\)[^]*?updateActualSellPriceUI\(\);/);
+  assert.match(js1,/function markPresetDirty\(\)\{if\(!applying\)clearPresetActive\(\);\}/);
+  for(const handler of ['handleMoneyInput','handleNumberInput','handleShareStep','handlePctStep','handleModeChange']){
+    const start=js1.indexOf(`function ${handler}`);
+    assert.ok(start>=0,`missing ${handler}`);
+    assert.ok(js1.slice(start,start+500).includes('markPresetDirty()'),`${handler} must clear preset state`);
+  }
+  assert.match(js1,/if\(noPriorMode\|\|activePresetId!==getPresetIdForCurrentCase\(\)\)return null;/);
+});
+
+test('Calc 검증 오류는 해당 control의 aria-invalid와 설명 영역을 함께 갱신한다',()=>{
+  assert.match(js1,/\.control\[aria-invalid="true"\][^]*?setAttribute\('aria-invalid','false'\)/);
+  assert.match(js1,/n\.setAttribute\('aria-invalid','true'\);n\.setAttribute\('aria-describedby','validationMessage'\);/);
+  assert.match(js1,/\.control\[aria-describedby="validationMessage"\][^]*?removeAttribute\('aria-describedby'\)/);
+});
+
 test('Calc는 실제 거래일별 빠른 매수 shortcut을 누적하지 않는다',()=>{
   for(const source of [calc,js1,css1]) assert.doesNotMatch(source,/current-purchase-preset|current-purchase-btn|applyBuy20260804|applyBuy20260806|purchase-preset|current-column/);
   const noPrior=rule(':where(html[data-add-page="calc"]) .input-grid.no-prior-layout');

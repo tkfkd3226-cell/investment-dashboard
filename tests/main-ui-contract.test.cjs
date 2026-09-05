@@ -84,6 +84,19 @@ test('Main graph entry: app은 core/ui-common/modal/charts/ui/pension/pension-ed
   assert.equal(imports.includes('./dashboard-market-ai.js'),false);
 });
 
+test('Dashboard 날짜 hash는 유효한 값이면 초기 선택일로 복원하고, 아니면 최신일을 사용한다',()=>{
+  assert.ok(app.includes("const requestedDate=decodeURIComponent(location.hash.replace(/^#/,''));"));
+  assert.match(app,/dataState\.activeDate=dates\.includes\(requestedDate\)\?requestedDate:dates\.at\(-1\);/);
+});
+
+test('KRX 성공 후 자동 닫기 timer는 재열기·수동 닫기에서 취소된다',()=>{
+  assert.match(ui,/let krxActionModalCloseTimer=0;/);
+  assert.match(ui,/function clearKrxActionModalCloseTimer\(\)\{[^]*?clearTimeout\(krxActionModalCloseTimer\)/);
+  assert.match(ui,/function openKrxActionModal\(\)\{\s*clearKrxActionModalCloseTimer\(\);/);
+  assert.match(ui,/function closeKrxActionModal\(\)\{\s*clearKrxActionModalCloseTimer\(\);/);
+  assert.match(ui,/krxActionModalCloseTimer=window\.setTimeout\(/);
+});
+
 test('Responsive 기본 3구간은 Desktop >=1101 / Tablet 761~1100 / Mobile <=760으로 유지한다',()=>{
   assert.match(tablet,/@media\s*\(min-width:761px\)\s*and\s*\(max-width:1100px\)/);
   assert.match(mobile,/@media\s*\(max-width:760px\)/);

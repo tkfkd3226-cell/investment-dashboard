@@ -76,3 +76,13 @@ test('Main↔Add suite-wide appearance/corner/responsive/desktop-request contrac
   assert.equal(reportDesktop,mainDesktop,'Report desktop-request viewport drifted from Main');
   assert.equal(mainDesktop,1280,'suite desktop-request viewport must remain 1280px');
 });
+
+test('Hero background와 favicon은 배포에 필요한 최적화 자산만 참조한다',()=>{
+  assert.match(mainCommon,/hero-bg\.webp/);
+  assert.doesNotMatch(mainCommon,/hero-bg\.png/);
+  assert.match(mainIndex,/rel="icon" href="favicon\.png"[^>]*sizes="128x128"/);
+  assert.equal(fs.existsSync(path.join(ROOT,'img/hero-bg.webp')),true);
+  assert.equal(fs.existsSync(path.join(ROOT,'img/hero-bg.png')),false);
+  assert.ok(fs.statSync(path.join(ROOT,'favicon.png')).size<100*1024,'favicon must remain lightweight');
+  assert.ok(fs.statSync(path.join(ROOT,'img/hero-bg.webp')).size<100*1024,'hero background must remain lightweight');
+});
