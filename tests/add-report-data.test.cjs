@@ -33,10 +33,10 @@ test('KODEX canonical 거래 원천은 schema·기간·날짜순·중복없음·
   for(const row of REPORT_DATA){
     assert.match(row.date,/^\d{4}-\d{2}-\d{2}$/);
     assert.ok(['core','day','mixed'].includes(row.segment),`${row.date} segment 오류`);
-    for(const key of ['qty','buy','sell','pnl','fee'])assert.ok(Number.isFinite(Number(row[key])),`${row.date} ${key} 숫자 오류`);
+    for(const key of ['qty','buy','sell','pnl','fee'])assert.ok(typeof row[key]==='number'&&Number.isInteger(row[key]),`${row.date} ${key}는 JSON 정수여야 한다`);
     if(row.segment==='mixed'){
       assert.ok(row.core&&typeof row.core==='object',`${row.date} mixed core 누락`);
-      for(const key of ['qty','buy','sell','pnl','fee'])assert.ok(Number.isFinite(Number(row.core[key])),`${row.date} core.${key} 숫자 오류`);
+      for(const key of ['qty','buy','sell','pnl','fee'])assert.ok(typeof row.core[key]==='number'&&Number.isInteger(row.core[key]),`${row.date} core.${key}는 JSON 정수여야 한다`);
       assert.ok(row.core.qty>=0&&row.core.qty<=row.qty,`${row.date} core 수량 범위 오류`);
     }
   }
@@ -59,6 +59,19 @@ test('KODEX Report canonical schema validator는 잘못된 운영 데이터를 �
   badTradeDate.trades[1].date='2026-08-00';
   assert.throws(()=>validateReportSource(badTradeDate),/date가 올바르지/);
   assert.throws(()=>validateReportSource({...reportSource,reportStartDate:'2026-02-30'}),/reportStartDate/);
+
+  for(const [label,mutate] of [
+    ['reinvestedLimit 문자열',src=>{src.reinvestedLimit=String(src.reinvestedLimit);}],
+    ['거래 qty 문자열',src=>{src.trades[0].qty=String(src.trades[0].qty);}],
+    ['거래 fee 문자열',src=>{src.trades[0].fee=String(src.trades[0].fee);}],
+    ['mixed core.qty 문자열',src=>{const row=src.trades.find(v=>v.segment==='mixed');row.core.qty=String(row.core.qty);}],
+    ['context buy 문자열',src=>{src.positionContext.legacyBuild.first.buy=String(src.positionContext.legacyBuild.first.buy);}],
+    ['context qty 문자열',src=>{src.positionContext.legacyBuild.first.qty=String(src.positionContext.legacyBuild.first.qty);}],
+  ]){
+    const badType=structuredClone(reportSource);
+    mutate(badType);
+    assert.throws(()=>validateReportSource(badType),/(JSON 정수|reinvestedLimit|context)/,`${label}은 JSON number 계약 위반으로 차단해야 한다`);
+  }
 
   const badMixed=structuredClone(reportSource);
   const mixed=badMixed.trades.find(row=>row.segment==='mixed');
@@ -117,6 +130,13 @@ test('Main separateProfit는 canonical KODEX 원천에서 날짜별 순손익과
   const badMainDate=structuredClone(reportSource);
   badMainDate.trades[1].date='2026-08-00';
   assert.throws(()=>core.deriveSeparateProfitFromKodexReport(badMainDate),/거래가 올바르지/,'Main도 존재하지 않는 달력 날짜를 거부해야 한다');
+  assert.throws(()=>core.deriveSeparateProfitFromKodexReport({...reportSource,reinvestedLimit:String(reportSource.reinvestedLimit)}),/재투입 한도/,'Main도 문자열 reinvestedLimit를 거부해야 한다');
+  const badMainPnl=structuredClone(reportSource);
+  badMainPnl.trades[0].pnl=String(badMainPnl.trades[0].pnl);
+  assert.throws(()=>core.deriveSeparateProfitFromKodexReport(badMainPnl),/거래가 올바르지/,'Main도 문자열 pnl을 거부해야 한다');
+  const badMainFee=structuredClone(reportSource);
+  badMainFee.trades[0].fee=String(badMainFee.trades[0].fee);
+  assert.throws(()=>core.deriveSeparateProfitFromKodexReport(badMainFee),/거래가 올바르지/,'Main도 문자열 fee를 거부해야 한다');
 });
 
 test('근거·산식의 혼합일 설명은 canonical 거래 데이터에서 파생되는 동적 placeholder를 모든 혼합일에 사용한다',()=>{
