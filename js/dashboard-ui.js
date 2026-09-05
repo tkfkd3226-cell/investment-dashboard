@@ -40,6 +40,7 @@ import {
   mobileViewToggle,
   mobileTableAssetName,
   navIconSvg,
+  infoIconSvg,
   phoneUi,
   refreshScrollOverflowState,
   renderAssetContributionCard,
@@ -973,7 +974,7 @@ function accountMemoTableHtml(text,{joinFirstTwo=false,highlightSourceLink=true}
 function accountMemoInfoButton(text,{joinFirstTwo=false}={}){
   const plain=escapeHtml(String(text||''));
   const formatted=accountMemoTableHtml(text,{joinFirstTwo,highlightSourceLink:false});
-  return `<button type="button" class="control-info-button accounts-memo-info-button" aria-label="${plain} 설명" aria-expanded="false" data-dashboard-action="toggle-account-memo-info"><span aria-hidden="true">i</span><span class="accounts-memo-tooltip-source" role="tooltip">${formatted}</span></button>`;
+  return `<button type="button" class="control-info-button accounts-memo-info-button" aria-label="${plain} 설명" aria-expanded="false" data-dashboard-action="toggle-account-memo-info">${infoIconSvg()}<span class="accounts-memo-tooltip-source" role="tooltip">${formatted}</span></button>`;
 }
 function removeAccountMemoFloatingTooltip(){
   document.querySelector('.accounts-memo-floating-tooltip')?.remove();

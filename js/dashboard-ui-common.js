@@ -79,6 +79,10 @@ const NAV_ICONS=Object.freeze({
 function navIconSvg(name){
   return NAV_ICONS[name]||NAV_ICONS.list;
 }
+const INFO_ICON_USE_HREF='img/ui-icons.svg#info-circle';
+function infoIconSvg(){
+  return `<svg class="info-icon-svg" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><use href="${INFO_ICON_USE_HREF}"></use></svg>`;
+}
 
 const assetColorSwatch=color=>color?`<span class="asset-color-swatch" style="--asset-swatch-color:${color}" aria-hidden="true">■</span>`:'';
 const chartSeriesSwatch=color=>assetColorSwatch(color);
@@ -479,6 +483,7 @@ export {
   mobileViewToggle,
   mobileTableAssetName,
   navIconSvg,
+  infoIconSvg,
   phoneLandscapeUi,
   phoneUi,
   renderAssetContributionCard,

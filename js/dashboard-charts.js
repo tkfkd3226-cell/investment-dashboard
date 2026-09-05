@@ -37,6 +37,7 @@ import {
   chartSeriesSwatch,
   escapeHtml,
   navIconSvg,
+  infoIconSvg,
   phoneLandscapeUi,
   phoneUi,
   refreshScrollOverflowState
@@ -245,7 +246,7 @@ function chartScrollButton(){
 }
 function chartTitleInfoButton(text){
   const safe=escapeHtml(text);
-  return `<button type="button" class="control-info-button chart-title-info" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-chart-title-info"><span aria-hidden="true">i</span><span class="chart-title-info-tooltip" role="tooltip">${safe}</span></button>`;
+  return `<button type="button" class="control-info-button chart-title-info" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-chart-title-info">${infoIconSvg()}<span class="chart-title-info-tooltip" role="tooltip">${safe}</span></button>`;
 }
 function closeChartTitleInfo(except=null){
   document.querySelectorAll('.chart-title-info.open').forEach(button=>{
