@@ -246,7 +246,13 @@ function chartScrollButton(){
 }
 function chartTitleInfoButton(text){
   const safe=escapeHtml(text);
-  return `<button type="button" class="control-info-button chart-title-info" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-chart-title-info">${infoIconSvg()}<span class="chart-title-info-tooltip" role="tooltip">${safe}</span></button>`;
+  return `<span class="chart-title-info-slot"><button type="button" class="control-info-button chart-title-info" aria-label="${safe} 설명" aria-expanded="false" data-dashboard-action="toggle-chart-title-info">${infoIconSvg()}<span class="chart-title-info-tooltip" role="tooltip">${safe}</span></button></span>`;
+}
+function chartTitleLabel(title,{sub='',info=''}={}){
+  const titleHtml=`<span class="chart-title-text">${escapeHtml(title)}</span>`;
+  const subHtml=sub?` <span class="chart-title-sub">(${escapeHtml(sub)})</span>`:'';
+  const infoHtml=info?` ${chartTitleInfoButton(info)}`:'';
+  return `<span class="chart-title-label">${titleHtml}${subHtml}${infoHtml}</span>`;
 }
 function closeChartTitleInfo(except=null){
   document.querySelectorAll('.chart-title-info.open').forEach(button=>{
@@ -914,9 +920,9 @@ function cumulativeSummaryCards({profitLabel,returnLabel,lastProfit,lastReturn,p
   const jumpCard=(label,value,valueClass,detail,detailClass,date)=>`<div class="mini-card chart-date-jump" role="button" tabindex="0" data-dashboard-action="jump-chart-date" data-chart-date="${date}" data-chart-id="${chartId}" title="${date} 기준으로 이동"><div class="m-label">${label}</div><div class="m-value ${valueClass}">${value}</div><div class="m-detail ${detailClass}">${detail}</div></div>`;
   return `<div class="mini-card"><div class="m-label">${profitLabel}</div><div class="m-value ${cls(lastProfit)}">${won(lastProfit)}</div><div class="m-detail ${cls(profitDelta)}">전일 대비 ${signed(profitDelta,'원')}</div></div><div class="mini-card"><div class="m-label">${returnLabel}</div><div class="m-value ${cls(lastReturn)}">${pct(lastReturn)}</div><div class="m-detail ${dayReturnRate==null?'':cls(dayReturnRate)}">전일 대비 ${dayReturnRate==null?'-':`${dayReturnRate>0?'+':''}${pct(dayReturnRate)}`}</div></div>${jumpCard(`최대 ${profitLabel}(${best.날짜})`,won(best['합계 : 누적손익']),cls(best['합계 : 누적손익']),bestDetail,bestGap===0?'positive':'',best.날짜)}<div class="mini-card"><div class="m-label">최대 낙폭</div><div class="m-value negative">${won(mdd.drop)}</div><div class="m-detail">${mdd.from} → ${mdd.to}</div></div>${jumpCard(`Best(${bestDay.날짜})`,signed(bestDay['합계 : 전일대비손익'],'원'),'positive','전일 대비 변화','positive',bestDay.날짜)}${jumpCard(`Worst(${worstDay.날짜})`,signed(worstDay['합계 : 전일대비손익'],'원'),'negative','전일 대비 변화','negative',worstDay.날짜)}`;
 }
-function renderChartCard({id,title,icon,actions,svgId,legendId,legendHtml,noteClass='',noteId='',noteStyle='',noteHtml='',headExtra=''}){
+function renderChartCard({id,title,titleSub='',titleInfo='',icon,actions,svgId,legendId,legendHtml,noteClass='',noteId='',noteStyle='',noteHtml='',headExtra=''}){
   const noteAttrs=`class="chart-note${noteClass?` ${noteClass}`:''}"${noteId?` id="${noteId}"`:''}${noteStyle?` style="${noteStyle}"`:''}`;
-  return `<div class="chart-card" id="${id}"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${title}</h3></div>${headExtra}<div class="chart-head-actions">${actions}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="${svgId}"></svg></div><div class="chart-legend" id="${legendId}">${legendHtml}</div><div ${noteAttrs}>${noteHtml}</div></div>`;
+  return `<div class="chart-card" id="${id}"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${chartTitleLabel(title,{sub:titleSub,info:titleInfo})}</h3></div>${headExtra}<div class="chart-head-actions">${actions}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="${svgId}"></svg></div><div class="chart-legend" id="${legendId}">${legendHtml}</div><div ${noteAttrs}>${noteHtml}</div></div>`;
 }
 function renderCharts(x,separateProfitHtml=''){
   const cum=cumHistory(x.date),last=cum.at(-1),prevCum=cum.length>1?cum.at(-2):null,best=cum.reduce((a,b)=>b['합계 : 누적손익']>a['합계 : 누적손익']?b:a,cum[0]),
@@ -1009,8 +1015,8 @@ function renderPensionCharts(x){
   const cumulativeNote=cumulativeSummaryCards({profitLabel:'운용손익',returnLabel:'운용수익률',lastProfit,lastReturn,profitDelta,dayReturnRate,best,bestDay,worstDay,mdd,bestGap,bestDetail,chartId:'pension-chart-cum'});
   const allocNote=`${allocCards}${allocationTotalCard(won(x.pensionEval),{className:'pension-alloc-total-card',detailHtml:`<div class="m-detail cash-include-detail alloc-cash-meta pension-cash-detail pension-cash-detail-full">(현금성자산 ${won(x.pensionCash)} 포함)</div><div class="m-detail cash-include-detail alloc-cash-meta pension-cash-detail pension-cash-detail-compact">(현금 ${fmt(x.pensionCash)})</div>`})}`;
   return `<section id="pension-investment-analysis" class="pension-chart-block"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="period" aria-hidden="true"></span>투자 기간 분석</h2><p class="section-control-chip section-basis-chip">퇴직연금 기준</p></div><div class="grid chart-grid">
-  ${renderChartCard({id:'pension-chart-cum',title:`운용손익 및 운용수익률 <span class="chart-title-sub">(전체 운용 기준)</span>${chartTitleInfoButton('전체 운용 기준')}`,icon:'lineChart',actions:`${chartCompareToggle('pension')}${chartWebExpandButton()}`,svgId:'pensionChartCum',legendId:'pensionCumLegend',legendHtml:chartLegendHtml('pensionCum'),noteClass:'six',noteHtml:cumulativeNote})}
-  ${renderChartCard({id:'pension-chart-symbol',title:`연금상품별 운용손익 <span class="chart-title-sub">(보유상품 재투자 기준)</span>${chartTitleInfoButton('보유상품 재투자 기준')}`,icon:'barChart',actions:`${symbolChartToggle('pension')}${chartWebExpandButton()}`,svgId:'pensionChartSymbol',legendId:'pensionSymbolLegend',legendHtml:chartLegendHtml('pensionSymbol'),noteClass:'symbol-summary-grid pension-symbol-summary-grid',noteHtml:`${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>pensionProductCard(h,symbolTotal)).join('')}${pensionProductTotalCard(x,symbols)}`})}
+  ${renderChartCard({id:'pension-chart-cum',title:'운용손익 및 운용수익률',titleSub:'전체 운용 기준',titleInfo:'전체 운용 기준',icon:'lineChart',actions:`${chartCompareToggle('pension')}${chartWebExpandButton()}`,svgId:'pensionChartCum',legendId:'pensionCumLegend',legendHtml:chartLegendHtml('pensionCum'),noteClass:'six',noteHtml:cumulativeNote})}
+  ${renderChartCard({id:'pension-chart-symbol',title:'연금상품별 운용손익',titleSub:'보유상품 재투자 기준',titleInfo:'보유상품 재투자 기준',icon:'barChart',actions:`${symbolChartToggle('pension')}${chartWebExpandButton()}`,svgId:'pensionChartSymbol',legendId:'pensionSymbolLegend',legendHtml:chartLegendHtml('pensionSymbol'),noteClass:'symbol-summary-grid pension-symbol-summary-grid',noteHtml:`${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>pensionProductCard(h,symbolTotal)).join('')}${pensionProductTotalCard(x,symbols)}`})}
   ${renderChartCard({id:'pension-chart-alloc',title:'평가금액 비중',icon:'pie',actions:chartWebExpandButton(),svgId:'pensionChartAlloc',legendId:'pensionAllocLegend',legendHtml:chartLegendHtml('pensionAlloc'),noteHtml:allocNote})}
   </div></section>`;
 }
