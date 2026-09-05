@@ -213,7 +213,8 @@ investment-dashboard-main/
 │  ├─ pension_cash_snapshots.json
 │  └─ pension_trades.json
 ├─ img/
-│  └─ hero-bg.webp
+│  ├─ hero-bg.webp
+│  └─ ui-icons.svg
 ├─ scripts/
 │  └─ update_prices.py
 ├─ add/
