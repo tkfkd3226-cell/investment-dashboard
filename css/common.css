@@ -1093,6 +1093,16 @@ section{
   letter-spacing:-.04em;
   line-height:var(--section-title-line-height);
 }
+/* Chart Title Label Primitive · 증권/퇴직연금 6개 차트 제목은 같은 label geometry를 공유하고 info는 선택 슬롯으로만 추가 */
+.chart-title-label{
+  display:inline-flex;
+  align-items:center;
+  gap:var(--section-title-gap);
+  min-width:0;
+  line-height:inherit;
+}
+.chart-title-text{min-width:0;line-height:inherit}
+
 /* Shared SVG Title Icons · 메인/하위/차트 제목이 같은 SVG 크기·간격·정렬 규칙을 공유 */
 .section-title-icon{
   display:inline-flex;
@@ -1686,10 +1696,8 @@ body.chart-expanded-open .dash-tooltip{
   overscroll-behavior:contain;
 }
 
-/* Compact Chart UI · 세로/가로폰 공통: 제목 한 줄 유지 + 부제 대신 정보 tooltip 사용 */
-.chart-title-info{
-  display:none;
-}
+/* Compact Chart UI · 세로/가로폰 공통: 차트 제목 label geometry는 유지하고 부제 대신 선택 info slot을 사용 */
+.chart-title-info-slot{display:none}
 
 .compact-chart-ui .chart-head{
   align-items:center;
@@ -1707,10 +1715,16 @@ body.chart-expanded-open .dash-tooltip{
 .compact-chart-ui .chart-title-sub{
   display:none;
 }
+.compact-chart-ui .chart-title-info-slot{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  height:1lh;
+  line-height:inherit;
+}
 .compact-chart-ui .chart-title-info{
   display:inline-flex;
-  margin-left:1px;
-  font-size:var(--type-size-sm);
   z-index:12;
 }
 .compact-chart-ui .chart-title-info-tooltip{
@@ -1739,7 +1753,7 @@ body.chart-expanded-open .dash-tooltip{
 .compact-chart-ui .chart-expanded-title .chart-title-sub{
   display:inline;
 }
-.compact-chart-ui .chart-expanded-title .chart-title-info{
+.compact-chart-ui .chart-expanded-title .chart-title-info-slot{
   display:none;
 }
 

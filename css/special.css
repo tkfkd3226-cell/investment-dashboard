@@ -394,7 +394,7 @@
     }
     .asset-workspace-tabs{width:100%;margin-bottom:var(--space-4xl)}
 
-  /* Compact Chart Support · 제목은 공통 title token을 그대로 쓰고 부제/tooltip만 폰 기준으로 축소 */
+  /* Compact Chart Support · 확대 compact에서 다시 표시되는 연금 부제만 Phone size를 유지 */
     #pension-chart-cum .chart-title-sub,
     #pension-chart-symbol .chart-title-sub{font-size:var(--type-size-xs)}
 
