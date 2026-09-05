@@ -1179,6 +1179,7 @@ investment-dashboard-main/
 │  ├─ main-ui-contract.test.cjs
 │  ├─ add-calc.test.cjs
 │  ├─ add-ui-contract.test.cjs
+│  ├─ add-report-data.test.cjs
 │  └─ cross-ui-contract.test.cjs
 ├─ css/
 │  ├─ common.css
@@ -1194,6 +1195,7 @@ investment-dashboard-main/
 │  ├─ pension_trades.json
 │  ├─ performance_snapshots.json
 │  ├─ portfolio.json
+│  ├─ kodex_leverage_trades.json
 │  └─ prices.json
 ├─ favicon.png
 ├─ img/
@@ -1257,6 +1259,16 @@ investment-dashboard-main/
 ├─ add_maintenance_handover.md
 ├─ main_dashboard_maintenance_handover.md
 │
+├─ data/
+│  ├─ account1_daily_snapshots.json
+│  ├─ kodex_leverage_trades.json
+│  ├─ pension_cash_snapshots.json
+│  ├─ pension_contributions.json
+│  ├─ pension_trades.json
+│  ├─ performance_snapshots.json
+│  ├─ portfolio.json
+│  └─ prices.json
+│
 ├─ img/
 │  └─ hero-bg.webp
 │
@@ -1265,6 +1277,7 @@ investment-dashboard-main/
    ├─ main-ui-contract.test.cjs
    ├─ add-calc.test.cjs
    ├─ add-ui-contract.test.cjs
+   ├─ add-report-data.test.cjs
    └─ cross-ui-contract.test.cjs
 ```
 
