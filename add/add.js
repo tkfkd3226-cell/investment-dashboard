@@ -798,50 +798,45 @@
 
 // ==================== Report ====================
 (() => {
-  if(typeof document==='undefined'||typeof window==='undefined'||document.documentElement.dataset.addPage!=='report')return;
-  const bootReportPage=()=>{
-    // 01. 원천 거래 데이터 / 파생 지표
-    // REPORT_DATA를 Source of Truth로 날짜별·본 포지션/단타·요약·차트용 계산값을 파생한다.
-    const REPORT_DATA = Object.freeze([{"date":"2026-06-09","qty":12,"buy":164170,"sell":165515,"pnl":16140,"fee":165,"segment":"core"},{"date":"2026-06-16","qty":36,"buy":210398,"sell":210554,"pnl":5640,"fee":636,"segment":"day"},{"date":"2026-06-19","qty":15,"buy":235711,"sell":239078,"pnl":50510,"fee":295,"segment":"day"},{"date":"2026-06-23","qty":26,"buy":229138,"sell":229558,"pnl":10945,"fee":499,"segment":"day"},{"date":"2026-06-25","qty":15,"buy":198500,"sell":226985,"pnl":427275,"fee":268,"segment":"core"},{"date":"2026-07-30","qty":642,"buy":80861,"sell":74580,"pnl":-4032440,"fee":4196,"segment":"core"},{"date":"2026-07-31","qty":5946,"buy":101778,"sell":102763,"pnl":5855965,"fee":51183,"segment":"mixed","core":{"qty":576,"buy":82680,"sell":91065,"pnl":4829760,"fee":4212}},{"date":"2026-08-04","qty":371,"buy":90649,"sell":91212,"pnl":209150,"fee":2837,"segment":"day"},{"date":"2026-08-05","qty":1558,"buy":100153,"sell":103259,"pnl":4839995,"fee":13334,"segment":"mixed","core":{"qty":532,"buy":94417,"sell":104035,"pnl":5116776,"fee":4442}},{"date":"2026-08-06","qty":4002,"buy":92364,"sell":92422,"pnl":233340,"fee":31121,"segment":"day"},{"date":"2026-08-07","qty":493,"buy":90384,"sell":90723,"pnl":167090,"fee":3756,"segment":"mixed","core":{"qty":100,"buy":91767,"sell":93813,"pnl":204590,"fee":781}},{"date":"2026-08-12","qty":101,"buy":99463,"sell":100145,"pnl":68905,"fee":846,"segment":"mixed","core":{"qty":32,"buy":92580,"sell":95480,"pnl":92800,"fee":253}},{"date":"2026-08-20","qty":220,"buy":97685,"sell":102650,"pnl":1092275,"fee":1852,"segment":"core"},{"date":"2026-09-02","qty":500,"buy":100630,"sell":101125,"pnl":247500,"fee":4244,"segment":"day"}]);
+  const isCommonJs=typeof module==='object'&&!!module.exports;
+  const isReportPage=typeof document!=='undefined'&&typeof window!=='undefined'&&document.documentElement.dataset.addPage==='report';
+  if(!isCommonJs&&!isReportPage)return;
 
-    function reportSum(rows, key){
-      return rows.reduce((sum,row)=>sum+Number(row[key]||0),0);
-    }
-    function deriveReportRows(rows){
-      let cumulative=0;
-      return rows.map(row=>{
-        const net=Number(row.pnl||0)-Number(row.fee||0);
-        cumulative+=net;
-        return Object.freeze({...row,net,cumulative});
-      });
-    }
-    function deriveSplitRows(rows, segment){
-      return rows.flatMap(row=>{
-        if(row.segment===segment){
-          return [Object.freeze({date:row.date,qty:row.qty,buy:row.buy,sell:row.sell,pnl:row.pnl,fee:row.fee})];
-        }
-        if(row.segment!=='mixed') return [];
-        if(segment==='core'){
-          return [Object.freeze({date:row.date,...row.core})];
-        }
-        return [Object.freeze({
-          date:row.date,
-          qty:row.qty-row.core.qty,
-          pnl:row.pnl-row.core.pnl,
-          fee:row.fee-row.core.fee
-        })];
-      });
-    }
-    function deriveSplitMetrics(rows){
-      const qty=reportSum(rows,'qty');
-      const pnl=reportSum(rows,'pnl');
-      const fee=reportSum(rows,'fee');
-      return Object.freeze({qty,pnl,fee,net:pnl-fee});
-    }
+  // 01. 원천 거래 데이터 / 순수 파생 모델
+  // REPORT_DATA를 Source of Truth로 두고 브라우저 DOM과 분리된 계산 모델을 Node 회귀테스트에서도 그대로 사용한다.
+  const REPORT_DATA = Object.freeze([{"date":"2026-06-09","qty":12,"buy":164170,"sell":165515,"pnl":16140,"fee":165,"segment":"core"},{"date":"2026-06-16","qty":36,"buy":210398,"sell":210554,"pnl":5640,"fee":636,"segment":"day"},{"date":"2026-06-19","qty":15,"buy":235711,"sell":239078,"pnl":50510,"fee":295,"segment":"day"},{"date":"2026-06-23","qty":26,"buy":229138,"sell":229558,"pnl":10945,"fee":499,"segment":"day"},{"date":"2026-06-25","qty":15,"buy":198500,"sell":226985,"pnl":427275,"fee":268,"segment":"core"},{"date":"2026-07-30","qty":642,"buy":80861,"sell":74580,"pnl":-4032440,"fee":4196,"segment":"core"},{"date":"2026-07-31","qty":5946,"buy":101778,"sell":102763,"pnl":5855965,"fee":51183,"segment":"mixed","core":{"qty":576,"buy":82680,"sell":91065,"pnl":4829760,"fee":4212}},{"date":"2026-08-04","qty":371,"buy":90649,"sell":91212,"pnl":209150,"fee":2837,"segment":"day"},{"date":"2026-08-05","qty":1558,"buy":100153,"sell":103259,"pnl":4839995,"fee":13334,"segment":"mixed","core":{"qty":532,"buy":94417,"sell":104035,"pnl":5116776,"fee":4442}},{"date":"2026-08-06","qty":4002,"buy":92364,"sell":92422,"pnl":233340,"fee":31121,"segment":"day"},{"date":"2026-08-07","qty":493,"buy":90384,"sell":90723,"pnl":167090,"fee":3756,"segment":"mixed","core":{"qty":100,"buy":91767,"sell":93813,"pnl":204590,"fee":781}},{"date":"2026-08-12","qty":101,"buy":99463,"sell":100145,"pnl":68905,"fee":846,"segment":"mixed","core":{"qty":32,"buy":92580,"sell":95480,"pnl":92800,"fee":253}},{"date":"2026-08-20","qty":220,"buy":97685,"sell":102650,"pnl":1092275,"fee":1852,"segment":"core"},{"date":"2026-09-02","qty":500,"buy":100630,"sell":101125,"pnl":247500,"fee":4244,"segment":"day"}]);
 
-    const reportDailyRows=Object.freeze(deriveReportRows(REPORT_DATA));
-    const coreTradeRows=Object.freeze(deriveSplitRows(REPORT_DATA,'core'));
-    const dayTradeRows=Object.freeze(deriveSplitRows(REPORT_DATA,'day'));
+  function reportSum(rows,key){
+    return rows.reduce((sum,row)=>sum+Number(row[key]||0),0);
+  }
+  function deriveReportRows(rows){
+    let cumulative=0;
+    return rows.map(row=>{
+      const net=Number(row.pnl||0)-Number(row.fee||0);
+      cumulative+=net;
+      return Object.freeze({...row,net,cumulative});
+    });
+  }
+  function deriveSplitRows(rows,segment){
+    return rows.flatMap(row=>{
+      if(row.segment===segment){
+        return [Object.freeze({date:row.date,qty:row.qty,buy:row.buy,sell:row.sell,pnl:row.pnl,fee:row.fee})];
+      }
+      if(row.segment!=='mixed')return [];
+      if(segment==='core')return [Object.freeze({date:row.date,...row.core})];
+      return [Object.freeze({date:row.date,qty:row.qty-row.core.qty,pnl:row.pnl-row.core.pnl,fee:row.fee-row.core.fee})];
+    });
+  }
+  function deriveSplitMetrics(rows){
+    const qty=reportSum(rows,'qty');
+    const pnl=reportSum(rows,'pnl');
+    const fee=reportSum(rows,'fee');
+    return Object.freeze({qty,pnl,fee,net:pnl-fee});
+  }
+  function deriveReportModel(rows=REPORT_DATA){
+    const reportDailyRows=Object.freeze(deriveReportRows(rows));
+    const coreTradeRows=Object.freeze(deriveSplitRows(rows,'core'));
+    const dayTradeRows=Object.freeze(deriveSplitRows(rows,'day'));
     const coreMetrics=deriveSplitMetrics(coreTradeRows);
     const dayMetrics=deriveSplitMetrics(dayTradeRows);
     const totalPnl=reportSum(reportDailyRows,'pnl');
@@ -855,7 +850,6 @@
     const splitQty=coreMetrics.qty+dayMetrics.qty;
     const coreQtyRatio=splitQty?coreMetrics.qty/splitQty*100:0;
     const dayQtyRatio=splitQty?dayMetrics.qty/splitQty*100:0;
-
     const reportMetrics=Object.freeze({
       totalPnl,totalFee,totalNet,totalQty,sellDays,winDays,
       winRate:sellDays?winDays/sellDays*100:0,
@@ -863,33 +857,43 @@
       dayQty:dayMetrics.qty,dayPnl:dayMetrics.pnl,dayFee:dayMetrics.fee,dayNet:dayMetrics.net,
       coreNetRatio,dayNetRatio,coreQtyRatio,dayQtyRatio
     });
-
     const chartData=Object.freeze({
       labels:Object.freeze(reportDailyRows.map(row=>row.date.slice(5))),
       net:Object.freeze(reportDailyRows.map(row=>row.net)),
       cum:Object.freeze(reportDailyRows.map(row=>row.cumulative))
     });
+    return Object.freeze({
+      reportDailyRows,coreTradeRows,dayTradeRows,coreMetrics,dayMetrics,reportMetrics,chartData,
+      coreNetRatio,dayNetRatio,coreQtyRatio,dayQtyRatio
+    });
+  }
 
-    const reportNf0=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
-    function reportNumber(value){
-      return reportNf0.format(Number(value||0));
-    }
-    function reportSigned(value){
-      const n=Number(value||0);
-      return `${n>0?'+':''}${reportNumber(n)}`;
-    }
-    function reportMetricText(value,format){
-      if(format==='qty') return `${reportNumber(value)}주`;
-      if(format==='won') return `${reportNumber(value)}원`;
-      if(format==='signedWon') return `${reportSigned(value)}원`;
-      if(format==='percent1') return `${Number(value||0).toFixed(1)}%`;
-      return reportNumber(value);
-    }
-    function reportValueClass(value){
-      const n=Number(value||0);
-      return n<0?'neg':n>0?'pos':'';
-    }
+  if(isCommonJs)Object.assign(module.exports,{REPORT_DATA,reportSum,deriveReportRows,deriveSplitRows,deriveSplitMetrics,deriveReportModel});
+  if(!isReportPage)return;
 
+  const reportNf0=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
+  function reportNumber(value){
+    return reportNf0.format(Number(value||0));
+  }
+  function reportSigned(value){
+    const n=Number(value||0);
+    return `${n>0?'+':''}${reportNumber(n)}`;
+  }
+  function reportMetricText(value,format){
+    if(format==='qty') return `${reportNumber(value)}주`;
+    if(format==='won') return `${reportNumber(value)}원`;
+    if(format==='signedWon') return `${reportSigned(value)}원`;
+    if(format==='percent1') return `${Number(value||0).toFixed(1)}%`;
+    return reportNumber(value);
+  }
+  function reportValueClass(value){
+    const n=Number(value||0);
+    return n<0?'neg':n>0?'pos':'';
+  }
+  const REPORT_PHONE_QUERY='(max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
+
+  function createReportTimelineBuilder(model){
+    const {reportDailyRows,coreTradeRows,dayTradeRows}=model;
     // 02. Timeline 데이터 파생
     // 실현거래 숫자는 REPORT_DATA/분리 파생값을 그대로 사용한다.
     // 매수만 존재해 REPORT_DATA에 없는 포지션 형성 사실만 별도 context로 둔다.
@@ -1063,6 +1067,12 @@
       });
       return events.sort((a,b)=>a.sortDate.localeCompare(b.sortDate));
     }
+    return buildTimelineEvents;
+  }
+
+  function createReportRenderer(model,buildTimelineEvents){
+    const {reportDailyRows,coreTradeRows,dayTradeRows,reportMetrics,coreNetRatio,coreQtyRatio,dayQtyRatio}=model;
+    const dayRowByDate=new Map(dayTradeRows.map(row=>[row.date,row]));
     // 03. Canonical DOM 렌더
     // 요약·표·Timeline은 위에서 파생한 동일 계산값만 사용하고 HTML에 거래 숫자를 중복 하드코딩하지 않는다.
     function timelineProfitCard(net){
@@ -1082,6 +1092,14 @@
         const key=node.dataset.reportValue;
         if(!(key in reportMetrics)) return;
         node.textContent=reportMetricText(reportMetrics[key],node.dataset.format||'integer');
+      });
+      document.querySelectorAll('[data-report-mixed-qty]').forEach(node=>{
+        const row=dayRowByDate.get(node.dataset.reportMixedQty);
+        if(row)node.textContent=reportMetricText(row.qty,'qty');
+      });
+      document.querySelectorAll('[data-report-mixed-pnl]').forEach(node=>{
+        const row=dayRowByDate.get(node.dataset.reportMixedPnl);
+        if(row)node.textContent=reportMetricText(row.pnl,'won');
       });
       document.getElementById('profitCompositionDonut')?.style.setProperty('--main-position-ratio',`${coreNetRatio}%`);
       document.getElementById('coreVolumeBar')?.style.setProperty('width',`${coreQtyRatio}%`);
@@ -1115,7 +1133,10 @@
       renderDayTradeRows();
       renderReportTimeline();
     }
+    return renderCanonicalReportData;
+  }
 
+  function createReportNavigationController(reportMobileMedia,drawChart){
     // 04. 패널 전환 / 접근성 상태 동기화
     // 단일 tablist의 DOM 참조와 Phone 판정을 준비하고 active/ARIA/tabindex 상태를 viewport와 무관하게 유지한다.
     const reportTabs=[...document.querySelectorAll('.tab')];
@@ -1125,8 +1146,6 @@
     const mobileToggle=document.querySelector('.mobile-menu-toggle');
     const mobileLabel=document.getElementById('mobileMenuLabel');
     // CSS와 같은 Phone 판정: 세로폰뿐 아니라 실제 터치폰 가로도 메뉴·차트 geometry를 함께 전환한다.
-    const REPORT_PHONE_QUERY='(max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
-    const reportMobileMedia=window.matchMedia(REPORT_PHONE_QUERY);
 
     function setTabState(panelId){
       reportTabs.forEach(btn => {
@@ -1199,7 +1218,10 @@
         }
       });
     }
+    return initNavigationEvents;
+  }
 
+  function createReportChartController(chartData,reportMobileMedia){
     // 06. 차트 표시 보조 함수
     // Y축 금액 축약과 둥근 막대 path 생성을 담당
     function formatWon(v){
@@ -1413,11 +1435,19 @@
       });
       drawChart();
     }
+    return {drawChart,initChart};
+  }
 
-    // 리포트 부팅 순서: canonical data 렌더 → 메뉴 이벤트 등록 → 차트 초기 렌더 및 resize 감시
+  const bootReportPage=()=>{
+    const model=deriveReportModel(REPORT_DATA);
+    const reportMobileMedia=window.matchMedia(REPORT_PHONE_QUERY);
+    const chart=createReportChartController(model.chartData,reportMobileMedia);
+    const buildTimelineEvents=createReportTimelineBuilder(model);
+    const renderCanonicalReportData=createReportRenderer(model,buildTimelineEvents);
+    const initNavigationEvents=createReportNavigationController(reportMobileMedia,chart.drawChart);
     renderCanonicalReportData();
     initNavigationEvents();
-    initChart();
+    chart.initChart();
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootReportPage,{once:true});
   else bootReportPage();
