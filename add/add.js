@@ -819,11 +819,13 @@
     return day<=daysInMonth[month-1];
   }
 
+  const isReportInteger=value=>typeof value==='number'&&Number.isInteger(value);
+
   function validateReportSource(source){
     if(!source||typeof source!=='object'||Array.isArray(source))throw new Error('KODEX 거래 데이터 형식이 올바르지 않습니다.');
     if(source.schemaVersion!==REPORT_SCHEMA_VERSION)throw new Error(`KODEX 거래 데이터 schemaVersion은 ${REPORT_SCHEMA_VERSION}이어야 합니다.`);
     if(!isValidReportDate(source.reportStartDate))throw new Error('KODEX 거래 데이터 reportStartDate가 올바르지 않습니다.');
-    if(!Number.isInteger(Number(source.reinvestedLimit))||Number(source.reinvestedLimit)<0)throw new Error('KODEX 거래 데이터 reinvestedLimit가 올바르지 않습니다.');
+    if(!isReportInteger(source.reinvestedLimit)||source.reinvestedLimit<0)throw new Error('KODEX 거래 데이터 reinvestedLimit가 올바르지 않습니다.');
     if(!Array.isArray(source.trades)||source.trades.length===0)throw new Error('KODEX 거래 데이터 trades가 비어 있습니다.');
     let previousDate='';
     const seen=new Set();
@@ -835,21 +837,21 @@
       seen.add(date); previousDate=date;
       if(!['core','day','mixed'].includes(row?.segment))throw new Error(`KODEX 거래 ${date}의 segment가 올바르지 않습니다.`);
       ['qty','buy','sell','pnl','fee'].forEach(key=>{
-        if(!Number.isInteger(Number(row?.[key])))throw new Error(`KODEX 거래 ${date}의 ${key}가 정수가 아닙니다.`);
+        if(!isReportInteger(row?.[key]))throw new Error(`KODEX 거래 ${date}의 ${key}가 JSON 정수가 아닙니다.`);
       });
-      if(Number(row.qty)<=0||Number(row.buy)<=0||Number(row.sell)<=0||Number(row.fee)<0)throw new Error(`KODEX 거래 ${date}의 수량·단가·비용 범위가 올바르지 않습니다.`);
+      if(row.qty<=0||row.buy<=0||row.sell<=0||row.fee<0)throw new Error(`KODEX 거래 ${date}의 수량·단가·비용 범위가 올바르지 않습니다.`);
       if(row.segment==='mixed'){
         if(!row.core||typeof row.core!=='object')throw new Error(`KODEX 혼합거래 ${date}의 core가 없습니다.`);
         ['qty','buy','sell','pnl','fee'].forEach(key=>{
-          if(!Number.isInteger(Number(row.core?.[key])))throw new Error(`KODEX 혼합거래 ${date}의 core.${key}가 정수가 아닙니다.`);
+          if(!isReportInteger(row.core?.[key]))throw new Error(`KODEX 혼합거래 ${date}의 core.${key}가 JSON 정수가 아닙니다.`);
         });
-        if(Number(row.core.qty)<=0||Number(row.core.qty)>=Number(row.qty)||Number(row.core.buy)<=0||Number(row.core.sell)<=0||Number(row.core.fee)<0||Number(row.core.fee)>Number(row.fee))throw new Error(`KODEX 혼합거래 ${date}의 core 범위가 올바르지 않습니다.`);
+        if(row.core.qty<=0||row.core.qty>=row.qty||row.core.buy<=0||row.core.sell<=0||row.core.fee<0||row.core.fee>row.fee)throw new Error(`KODEX 혼합거래 ${date}의 core 범위가 올바르지 않습니다.`);
       }
     });
     if(String(source.reportStartDate)>String(source.trades[0].date))throw new Error('reportStartDate는 첫 매도일보다 늦을 수 없습니다.');
     const context=source.positionContext;
     const validateContextPoint=(label,point,{qty=true}={})=>{
-      if(!point||!isValidReportDate(point.date)||!Number.isInteger(Number(point.buy))||Number(point.buy)<=0||qty&&(!Number.isInteger(Number(point.qty))||Number(point.qty)<=0))throw new Error(`KODEX 거래 데이터 ${label} context가 올바르지 않습니다.`);
+      if(!point||!isValidReportDate(point.date)||!isReportInteger(point.buy)||point.buy<=0||qty&&(!isReportInteger(point.qty)||point.qty<=0))throw new Error(`KODEX 거래 데이터 ${label} context가 올바르지 않습니다.`);
     };
     validateContextPoint('legacyBuild.first',context?.legacyBuild?.first);
     validateContextPoint('legacyBuild.second',context?.legacyBuild?.second);
