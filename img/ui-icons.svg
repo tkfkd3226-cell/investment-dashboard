@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="info-circle" viewBox="0 0 20 20">
+    <circle cx="10" cy="10" r="8.75" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.62"/>
+    <circle cx="10" cy="6.7" r="1" fill="currentColor"/>
+    <rect x="9" y="8.9" width="2" height="5.4" rx="1" fill="currentColor"/>
+  </symbol>
+</svg>
