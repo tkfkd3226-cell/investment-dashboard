@@ -786,16 +786,35 @@ async function loadJsonOr(url,fallback,{fallbackStatuses=[404]}={}){
   }
 }
 
+function deriveSeparateProfitFromKodexReport(source){
+  if(!source||source.schemaVersion!==1||!Array.isArray(source.trades)||source.trades.length===0)throw new Error('KODEX 별도수익 canonical 데이터 형식이 올바르지 않습니다.');
+  const reinvestedLimit=Number(source.reinvestedLimit);
+  if(!Number.isInteger(reinvestedLimit)||reinvestedLimit<0)throw new Error('KODEX 별도수익 재투입 한도가 올바르지 않습니다.');
+  const seen=new Set();
+  let previousDate='';
+  const trades=source.trades.map((row,index)=>{
+    const date=String(row?.date||'');
+    const pnl=Number(row?.pnl),fee=Number(row?.fee);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isInteger(pnl)||!Number.isInteger(fee)||fee<0)throw new Error(`KODEX 별도수익 ${index+1}번 거래가 올바르지 않습니다.`);
+    if(seen.has(date)||previousDate&&date<previousDate)throw new Error('KODEX 별도수익 거래일은 중복 없이 오름차순이어야 합니다.');
+    seen.add(date); previousDate=date;
+    return {date,profit:pnl-fee};
+  });
+  return {reinvestedLimit,trades};
+}
+
 async function loadInitialData(){
-  const [portfolio,prices,snapshots,account1Daily,pensionContributions,pensionCashSnapshots,pensionTrades]=await Promise.all([
+  const [portfolio,prices,snapshots,account1Daily,pensionContributions,pensionCashSnapshots,pensionTrades,kodexLeverageReport]=await Promise.all([
     loadJson('data/portfolio.json?ts='+Date.now()),
     loadJson('data/prices.json?ts='+Date.now()),
     loadJson('data/performance_snapshots.json?ts='+Date.now()),
     loadJsonOr('data/account1_daily_snapshots.json?ts='+Date.now(),{}),
     loadJsonOr('data/pension_contributions.json?ts='+Date.now(),{contributions:[]}),
     loadJsonOr('data/pension_cash_snapshots.json?ts='+Date.now(),{snapshots:[]}),
-    loadJsonOr('data/pension_trades.json?ts='+Date.now(),{trades:[]})
+    loadJsonOr('data/pension_trades.json?ts='+Date.now(),{trades:[]}),
+    loadJson('data/kodex_leverage_trades.json?ts='+Date.now())
   ]);
+  portfolio.separateProfit=deriveSeparateProfitFromKodexReport(kodexLeverageReport);
   Object.assign(dataState,{portfolio,prices,snapshots,account1Daily,pensionContributions,pensionCashSnapshots,pensionTrades});
 }
 
@@ -816,6 +835,7 @@ export {
   cumHistory,
   dataState,
   dayChangeRate,
+  deriveSeparateProfitFromKodexReport,
   dayOptionLabel,
   fetchWithTimeout,
   fmt,
