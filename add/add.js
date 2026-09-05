@@ -806,60 +806,7 @@
   // 거래 원천은 data/kodex_leverage_trades.json 한 곳만 사용한다.
   // 이 파일은 DOM과 무관한 파생 함수만 소유하며, 브라우저에서는 canonical JSON을 로드해 렌더링한다.
   const REPORT_DATA_URL='../data/kodex_leverage_trades.json';
-  const REPORT_SCHEMA_VERSION=1;
-  const REPORT_DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
-
-  function isValidReportDate(value){
-    const text=String(value||'');
-    if(!REPORT_DATE_RE.test(text))return false;
-    const [year,month,day]=text.split('-').map(Number);
-    if(year<1||month<1||month>12||day<1)return false;
-    const leap=year%4===0&&(year%100!==0||year%400===0);
-    const daysInMonth=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
-    return day<=daysInMonth[month-1];
-  }
-
-  const isReportInteger=value=>typeof value==='number'&&Number.isInteger(value);
-
-  function validateReportSource(source){
-    if(!source||typeof source!=='object'||Array.isArray(source))throw new Error('KODEX 거래 데이터 형식이 올바르지 않습니다.');
-    if(source.schemaVersion!==REPORT_SCHEMA_VERSION)throw new Error(`KODEX 거래 데이터 schemaVersion은 ${REPORT_SCHEMA_VERSION}이어야 합니다.`);
-    if(!isValidReportDate(source.reportStartDate))throw new Error('KODEX 거래 데이터 reportStartDate가 올바르지 않습니다.');
-    if(!isReportInteger(source.reinvestedLimit)||source.reinvestedLimit<0)throw new Error('KODEX 거래 데이터 reinvestedLimit가 올바르지 않습니다.');
-    if(!Array.isArray(source.trades)||source.trades.length===0)throw new Error('KODEX 거래 데이터 trades가 비어 있습니다.');
-    let previousDate='';
-    const seen=new Set();
-    source.trades.forEach((row,index)=>{
-      const date=String(row?.date||'');
-      if(!isValidReportDate(date))throw new Error(`KODEX 거래 ${index+1}의 date가 올바르지 않습니다.`);
-      if(seen.has(date))throw new Error(`KODEX 거래일 ${date}가 중복되었습니다.`);
-      if(previousDate&&date<previousDate)throw new Error('KODEX 거래 데이터는 날짜 오름차순이어야 합니다.');
-      seen.add(date); previousDate=date;
-      if(!['core','day','mixed'].includes(row?.segment))throw new Error(`KODEX 거래 ${date}의 segment가 올바르지 않습니다.`);
-      ['qty','buy','sell','pnl','fee'].forEach(key=>{
-        if(!isReportInteger(row?.[key]))throw new Error(`KODEX 거래 ${date}의 ${key}가 JSON 정수가 아닙니다.`);
-      });
-      if(row.qty<=0||row.buy<=0||row.sell<=0||row.fee<0)throw new Error(`KODEX 거래 ${date}의 수량·단가·비용 범위가 올바르지 않습니다.`);
-      if(row.segment==='mixed'){
-        if(!row.core||typeof row.core!=='object')throw new Error(`KODEX 혼합거래 ${date}의 core가 없습니다.`);
-        ['qty','buy','sell','pnl','fee'].forEach(key=>{
-          if(!isReportInteger(row.core?.[key]))throw new Error(`KODEX 혼합거래 ${date}의 core.${key}가 JSON 정수가 아닙니다.`);
-        });
-        if(row.core.qty<=0||row.core.qty>=row.qty||row.core.buy<=0||row.core.sell<=0||row.core.fee<0||row.core.fee>row.fee)throw new Error(`KODEX 혼합거래 ${date}의 core 범위가 올바르지 않습니다.`);
-      }
-    });
-    if(String(source.reportStartDate)>String(source.trades[0].date))throw new Error('reportStartDate는 첫 매도일보다 늦을 수 없습니다.');
-    const context=source.positionContext;
-    const validateContextPoint=(label,point,{qty=true}={})=>{
-      if(!point||!isValidReportDate(point.date)||!isReportInteger(point.buy)||point.buy<=0||qty&&(!isReportInteger(point.qty)||point.qty<=0))throw new Error(`KODEX 거래 데이터 ${label} context가 올바르지 않습니다.`);
-    };
-    validateContextPoint('legacyBuild.first',context?.legacyBuild?.first);
-    validateContextPoint('legacyBuild.second',context?.legacyBuild?.second);
-    validateContextPoint('julyAdd',context?.julyAdd,{qty:false});
-    validateContextPoint('augustFinalBuild.first',context?.augustFinalBuild?.first);
-    validateContextPoint('augustFinalBuild.second',context?.augustFinalBuild?.second,{qty:false});
-    return source;
-  }
+  const REPORT_SCHEMA_MODULE_URL='../js/kodex-leverage-schema.js';
 
   function reportSum(rows,key){
     return rows.reduce((sum,row)=>sum+Number(row[key]||0),0);
@@ -928,7 +875,7 @@
     });
   }
 
-  if(isCommonJs)Object.assign(module.exports,{REPORT_DATA_URL,REPORT_SCHEMA_VERSION,isValidReportDate,validateReportSource,reportSum,deriveReportRows,deriveSplitRows,deriveSplitMetrics,deriveReportModel});
+  if(isCommonJs)Object.assign(module.exports,{REPORT_DATA_URL,REPORT_SCHEMA_MODULE_URL,reportSum,deriveReportRows,deriveSplitRows,deriveSplitMetrics,deriveReportModel});
   if(!isReportPage)return;
 
   const reportNf0=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
@@ -1525,10 +1472,14 @@
   }
 
   async function loadReportSource(){
-    const response=await fetch(`${REPORT_DATA_URL}?ts=${Date.now()}`,{cache:'no-store'});
+    const version=Date.now();
+    const [schema,response]=await Promise.all([
+      import(`${REPORT_SCHEMA_MODULE_URL}?ts=${version}`),
+      fetch(`${REPORT_DATA_URL}?ts=${version}`,{cache:'no-store'})
+    ]);
     if(!response.ok)throw new Error(`KODEX 거래 데이터 로드 실패 (HTTP ${response.status})`);
     const source=await response.json();
-    return validateReportSource(source);
+    return schema.validateKodexLeverageSource(source);
   }
 
   function renderReportLoadError(error){
