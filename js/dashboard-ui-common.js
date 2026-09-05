@@ -267,194 +267,203 @@ function forceMobileViewportReflow(){
 // [UICOMMON06] Asset Tooltip Interaction · 자산 시각화 툴팁 상호작용
 const assetVizTooltipZoneSelectors=new Set();
 let assetVizTooltipTouchBound=false;
-function setupAssetVizTooltips(zoneSelector){
-  if(zoneSelector)assetVizTooltipZoneSelectors.add(zoneSelector);
-  if(assetVizTooltipTouchBound)return;
-  assetVizTooltipTouchBound=true;
+const ASSET_TOOLTIP_TOUCH_DRAG_THRESHOLD=6;
+const ASSET_TOOLTIP_LEAVE_MS=180;
+const ASSET_TOOLTIP_TOUCH_MS=1400;
 
-  const isTouchLike=()=>window.matchMedia('(hover: none), (pointer: coarse)').matches;
-  const targetSelector=()=>[...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip`).join(',');
-  const openSelector=()=>[...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip.tooltip-open`).join(',');
-  const touchDragThreshold=6;
-  const tooltipLeaveMs=180;
-  const touchTooltipMs=1400;
-  const tooltipLeaveTimers=new WeakMap();
-  const touchTooltipTimers=new WeakMap();
-  let touchDragState=null;
-  let suppressTouchClickTargets=[];
-  let suppressTouchClickUntil=0;
-  const cancelTooltipLeave=target=>{
-    if(!target)return;
-    const timer=tooltipLeaveTimers.get(target);
-    if(timer)clearTimeout(timer);
-    tooltipLeaveTimers.delete(target);
-    target.classList.remove('asset-tooltip-leaving');
+function assetVizTooltipTargetSelector(){
+  return [...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip`).join(',');
+}
+function assetVizTooltipOpenSelector(){
+  return [...assetVizTooltipZoneSelectors].map(selector=>`${selector} .has-tooltip.tooltip-open`).join(',');
+}
+function assetVizTooltipIsTouchLike(){
+  return window.matchMedia('(hover: none), (pointer: coarse)').matches;
+}
+function createAssetVizTooltipState(){
+  return {
+    leaveTimers:new WeakMap(),
+    touchTimers:new WeakMap(),
+    touchDragState:null,
+    suppressClickTargets:[],
+    suppressClickUntil:0
   };
-  const clearTooltipFollow=target=>{
-    if(!target)return;
-    cancelTooltipLeave(target);
-    target.classList.remove('asset-tooltip-following');
-    target.style.removeProperty('--asset-tooltip-left');
-    target.style.removeProperty('--asset-tooltip-arrow-left');
-  };
-  const leaveTooltipFollow=target=>{
-    if(!target?.classList.contains('asset-tooltip-following'))return;
-    cancelTooltipLeave(target);
-    target.classList.add('asset-tooltip-leaving');
-    const timer=setTimeout(()=>{
-      tooltipLeaveTimers.delete(target);
-      clearTooltipFollow(target);
-    },tooltipLeaveMs);
-    tooltipLeaveTimers.set(target,timer);
-  };
-  const scheduleTouchTooltipClose=target=>{
-    const previous=touchTooltipTimers.get(target);
-    if(previous)clearTimeout(previous);
-    const timer=setTimeout(()=>{
-      touchTooltipTimers.delete(target);
-      target.classList.remove('tooltip-open');
-      leaveTooltipFollow(target);
-    },touchTooltipMs);
-    touchTooltipTimers.set(target,timer);
-  };
-  const closeTooltips=except=>{
-    const selector=openSelector();
-    if(!selector)return;
-    document.querySelectorAll(selector).forEach(el=>{
-      if(el===except)return;
-      el.classList.remove('tooltip-open');
-      if(el.classList.contains('asset-stack-segment'))leaveTooltipFollow(el);
-      else clearTooltipFollow(el);
-    });
-  };
-  const positionStackTooltip=(target,event)=>{
-    if(!target?.classList.contains('asset-stack-segment')||!Number.isFinite(event?.clientX))return;
-    const tooltip=target.querySelector('.asset-viz-tooltip');
-    if(!tooltip)return;
-    cancelTooltipLeave(target);
-    const segmentRect=target.getBoundingClientRect();
-    target.classList.add('asset-tooltip-following');
-    target.style.setProperty('--asset-tooltip-left',`${event.clientX-segmentRect.left}px`);
-    requestAnimationFrame(()=>{
-      if(!target.isConnected||!target.classList.contains('asset-tooltip-following'))return;
-      const tooltipRect=tooltip.getBoundingClientRect();
-      const viewportWidth=Math.max(1,Math.min(window.innerWidth,window.visualViewport?.width||window.innerWidth));
-      const pad=14;
-      const width=Math.min(tooltipRect.width,Math.max(1,viewportWidth-pad*2));
-      const half=width/2;
-      const center=Math.max(pad+half,Math.min(event.clientX,viewportWidth-pad-half));
-      const localLeft=center-segmentRect.left;
-      const tooltipLeft=center-width/2;
-      const arrowLeft=Math.max(10,Math.min(event.clientX-tooltipLeft,width-10));
-      target.style.setProperty('--asset-tooltip-left',`${localLeft}px`);
-      target.style.setProperty('--asset-tooltip-arrow-left',`${arrowLeft}px`);
-    });
-  };
-
-  const targetAtPoint=(selector,event)=>{
-    if(!selector||!Number.isFinite(event?.clientX)||!Number.isFinite(event?.clientY))return null;
-    return document.elementFromPoint(event.clientX,event.clientY)?.closest(selector)||null;
-  };
-  const finishTouchDrag=(event,cancelled=false)=>{
-    if(!touchDragState||touchDragState.pointerId!==event.pointerId)return;
-    const {currentTarget,initialTarget,moved}=touchDragState;
-    if(cancelled)clearTooltipFollow(currentTarget);
-    else leaveTooltipFollow(currentTarget);
-    if(moved&&!cancelled){
-      suppressTouchClickTargets=[initialTarget,currentTarget].filter(Boolean);
-      suppressTouchClickUntil=performance.now()+600;
-    }
-    touchDragState=null;
-  };
-
+}
+function cancelAssetTooltipLeave(state,target){
+  if(!target)return;
+  const timer=state.leaveTimers.get(target);
+  if(timer)clearTimeout(timer);
+  state.leaveTimers.delete(target);
+  target.classList.remove('asset-tooltip-leaving');
+}
+function clearAssetTooltipFollow(state,target){
+  if(!target)return;
+  cancelAssetTooltipLeave(state,target);
+  target.classList.remove('asset-tooltip-following');
+  target.style.removeProperty('--asset-tooltip-left');
+  target.style.removeProperty('--asset-tooltip-arrow-left');
+}
+function leaveAssetTooltipFollow(state,target){
+  if(!target?.classList.contains('asset-tooltip-following'))return;
+  cancelAssetTooltipLeave(state,target);
+  target.classList.add('asset-tooltip-leaving');
+  const timer=setTimeout(()=>{
+    state.leaveTimers.delete(target);
+    clearAssetTooltipFollow(state,target);
+  },ASSET_TOOLTIP_LEAVE_MS);
+  state.leaveTimers.set(target,timer);
+}
+function scheduleAssetTouchTooltipClose(state,target){
+  const previous=state.touchTimers.get(target);
+  if(previous)clearTimeout(previous);
+  const timer=setTimeout(()=>{
+    state.touchTimers.delete(target);
+    target.classList.remove('tooltip-open');
+    leaveAssetTooltipFollow(state,target);
+  },ASSET_TOOLTIP_TOUCH_MS);
+  state.touchTimers.set(target,timer);
+}
+function closeAssetTooltips(state,except){
+  const selector=assetVizTooltipOpenSelector();
+  if(!selector)return;
+  document.querySelectorAll(selector).forEach(el=>{
+    if(el===except)return;
+    el.classList.remove('tooltip-open');
+    if(el.classList.contains('asset-stack-segment'))leaveAssetTooltipFollow(state,el);
+    else clearAssetTooltipFollow(state,el);
+  });
+}
+function positionAssetStackTooltip(state,target,event){
+  if(!target?.classList.contains('asset-stack-segment')||!Number.isFinite(event?.clientX))return;
+  const tooltip=target.querySelector('.asset-viz-tooltip');
+  if(!tooltip)return;
+  cancelAssetTooltipLeave(state,target);
+  const segmentRect=target.getBoundingClientRect();
+  target.classList.add('asset-tooltip-following');
+  target.style.setProperty('--asset-tooltip-left',`${event.clientX-segmentRect.left}px`);
+  requestAnimationFrame(()=>{
+    if(!target.isConnected||!target.classList.contains('asset-tooltip-following'))return;
+    const tooltipRect=tooltip.getBoundingClientRect();
+    const viewportWidth=Math.max(1,Math.min(window.innerWidth,window.visualViewport?.width||window.innerWidth));
+    const pad=14;
+    const width=Math.min(tooltipRect.width,Math.max(1,viewportWidth-pad*2));
+    const half=width/2;
+    const center=Math.max(pad+half,Math.min(event.clientX,viewportWidth-pad-half));
+    const localLeft=center-segmentRect.left;
+    const tooltipLeft=center-width/2;
+    const arrowLeft=Math.max(10,Math.min(event.clientX-tooltipLeft,width-10));
+    target.style.setProperty('--asset-tooltip-left',`${localLeft}px`);
+    target.style.setProperty('--asset-tooltip-arrow-left',`${arrowLeft}px`);
+  });
+}
+function assetTooltipTargetAtPoint(selector,event){
+  if(!selector||!Number.isFinite(event?.clientX)||!Number.isFinite(event?.clientY))return null;
+  return document.elementFromPoint(event.clientX,event.clientY)?.closest(selector)||null;
+}
+function finishAssetTouchDrag(state,event,cancelled=false){
+  const drag=state.touchDragState;
+  if(!drag||drag.pointerId!==event.pointerId)return;
+  const {currentTarget,initialTarget,moved}=drag;
+  if(cancelled)clearAssetTooltipFollow(state,currentTarget);
+  else leaveAssetTooltipFollow(state,currentTarget);
+  if(moved&&!cancelled){
+    state.suppressClickTargets=[initialTarget,currentTarget].filter(Boolean);
+    state.suppressClickUntil=performance.now()+600;
+  }
+  state.touchDragState=null;
+}
+function bindAssetTooltipPointerInteractions(state){
   document.addEventListener('pointerdown',event=>{
-    const selector=targetSelector();
+    const selector=assetVizTooltipTargetSelector();
     const target=selector?event.target.closest(selector):null;
     if(event.pointerType==='touch'&&target?.classList.contains('asset-stack-segment')){
-      closeTooltips(target);
-      touchDragState={
-        pointerId:event.pointerId,
-        startX:event.clientX,
-        startY:event.clientY,
-        initialTarget:target,
-        currentTarget:target,
-        moved:false
-      };
+      closeAssetTooltips(state,target);
+      state.touchDragState={pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,initialTarget:target,currentTarget:target,moved:false};
     }
-    positionStackTooltip(target,event);
+    positionAssetStackTooltip(state,target,event);
   });
   document.addEventListener('pointermove',event=>{
-    const selector=targetSelector();
-    if(event.pointerType==='touch'&&touchDragState?.pointerId===event.pointerId){
-      const dx=event.clientX-touchDragState.startX;
-      const dy=event.clientY-touchDragState.startY;
-      if(Math.hypot(dx,dy)>=touchDragThreshold)touchDragState.moved=true;
-      const target=targetAtPoint(selector,event);
+    const selector=assetVizTooltipTargetSelector();
+    const drag=state.touchDragState;
+    if(event.pointerType==='touch'&&drag?.pointerId===event.pointerId){
+      const dx=event.clientX-drag.startX;
+      const dy=event.clientY-drag.startY;
+      if(Math.hypot(dx,dy)>=ASSET_TOOLTIP_TOUCH_DRAG_THRESHOLD)drag.moved=true;
+      const target=assetTooltipTargetAtPoint(selector,event);
       if(!target?.classList.contains('asset-stack-segment')){
-        leaveTooltipFollow(touchDragState.currentTarget);
-        touchDragState.currentTarget=null;
+        leaveAssetTooltipFollow(state,drag.currentTarget);
+        drag.currentTarget=null;
         return;
       }
-      if(target!==touchDragState.currentTarget){
-        leaveTooltipFollow(touchDragState.currentTarget);
-        closeTooltips(target);
-        touchDragState.currentTarget=target;
+      if(target!==drag.currentTarget){
+        leaveAssetTooltipFollow(state,drag.currentTarget);
+        closeAssetTooltips(state,target);
+        drag.currentTarget=target;
       }
-      positionStackTooltip(target,event);
+      positionAssetStackTooltip(state,target,event);
       return;
     }
     const target=selector?event.target.closest(selector):null;
-    if(!target)return;
-    positionStackTooltip(target,event);
+    if(target)positionAssetStackTooltip(state,target,event);
   },{passive:true});
-  document.addEventListener('pointerup',event=>finishTouchDrag(event));
-  document.addEventListener('pointercancel',event=>finishTouchDrag(event,true));
+  document.addEventListener('pointerup',event=>finishAssetTouchDrag(state,event));
+  document.addEventListener('pointercancel',event=>finishAssetTouchDrag(state,event,true));
   document.addEventListener('pointerout',event=>{
-    if(event.pointerType==='touch'&&touchDragState?.pointerId===event.pointerId)return;
-    const selector=targetSelector();
+    if(event.pointerType==='touch'&&state.touchDragState?.pointerId===event.pointerId)return;
+    const selector=assetVizTooltipTargetSelector();
     const target=selector?event.target.closest(selector):null;
     if(!target||target.contains(event.relatedTarget)||target.classList.contains('tooltip-open'))return;
-    if(target.classList.contains('asset-stack-segment'))leaveTooltipFollow(target);
-    else clearTooltipFollow(target);
+    if(target.classList.contains('asset-stack-segment'))leaveAssetTooltipFollow(state,target);
+    else clearAssetTooltipFollow(state,target);
   });
+}
+function bindAssetTooltipClickInteractions(state){
   document.addEventListener('click',event=>{
-    const selector=targetSelector();
+    const selector=assetVizTooltipTargetSelector();
     const target=selector?event.target.closest(selector):null;
-    if(target&&suppressTouchClickTargets.includes(target)&&performance.now()<=suppressTouchClickUntil){
+    if(target&&state.suppressClickTargets.includes(target)&&performance.now()<=state.suppressClickUntil){
       event.preventDefault();
       event.stopPropagation();
-      suppressTouchClickTargets=[];
-      suppressTouchClickUntil=0;
+      state.suppressClickTargets=[];
+      state.suppressClickUntil=0;
       return;
     }
-    suppressTouchClickTargets=[];
-    suppressTouchClickUntil=0;
-    if(!target){closeTooltips(null);return;}
+    state.suppressClickTargets=[];
+    state.suppressClickUntil=0;
+    if(!target){closeAssetTooltips(state,null);return;}
     if(target.classList.contains('asset-stack-segment')){
       if(event.detail===0)return;
-      if(!isTouchLike()){
+      if(!assetVizTooltipIsTouchLike()){
         if(document.activeElement===target)target.blur();
         return;
       }
       event.preventDefault();
       event.stopPropagation();
-      positionStackTooltip(target,event);
-      closeTooltips(target);
+      positionAssetStackTooltip(state,target,event);
+      closeAssetTooltips(state,target);
       target.classList.add('tooltip-open');
       if(document.activeElement===target&&window.matchMedia('(hover: none)').matches)target.blur();
-      scheduleTouchTooltipClose(target);
+      scheduleAssetTouchTooltipClose(state,target);
       return;
     }
-    if(!isTouchLike())return;
+    if(!assetVizTooltipIsTouchLike())return;
     event.preventDefault();
     event.stopPropagation();
-    positionStackTooltip(target,event);
+    positionAssetStackTooltip(state,target,event);
     const shouldOpen=!target.classList.contains('tooltip-open');
-    closeTooltips(target);
+    closeAssetTooltips(state,target);
     target.classList.toggle('tooltip-open',shouldOpen);
-    if(!shouldOpen)clearTooltipFollow(target);
+    if(!shouldOpen)clearAssetTooltipFollow(state,target);
   });
-  document.addEventListener('scroll',()=>closeTooltips(null),true);
+  document.addEventListener('scroll',()=>closeAssetTooltips(state,null),true);
+}
+function setupAssetVizTooltips(zoneSelector){
+  if(zoneSelector)assetVizTooltipZoneSelectors.add(zoneSelector);
+  if(assetVizTooltipTouchBound)return;
+  assetVizTooltipTouchBound=true;
+  const state=createAssetVizTooltipState();
+  bindAssetTooltipPointerInteractions(state);
+  bindAssetTooltipClickInteractions(state);
 }
 
 // [UICOMMON07] Public API
