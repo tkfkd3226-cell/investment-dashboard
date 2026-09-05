@@ -10,7 +10,7 @@ const reportSource=JSON.parse(read('data/kodex_leverage_trades.json'));
 const REPORT_DATA=reportSource.trades;
 const addSource=read('add/add.js');
 const coreSource=read('js/dashboard-core.js');
-const {REPORT_DATA_URL,REPORT_SCHEMA_VERSION,validateReportSource,deriveReportModel}=require('../add/add.js');
+const {REPORT_DATA_URL,REPORT_SCHEMA_VERSION,isValidReportDate,validateReportSource,deriveReportModel}=require('../add/add.js');
 
 let core;
 const model=deriveReportModel(reportSource);
@@ -48,12 +48,34 @@ test('KODEX canonical 거래 원천은 schema·기간·날짜순·중복없음·
 test('KODEX Report canonical schema validator는 잘못된 운영 데이터를 화면 계산 전에 차단한다',()=>{
   assert.throws(()=>validateReportSource({...reportSource,schemaVersion:2}),/schemaVersion/);
   assert.throws(()=>validateReportSource({...reportSource,trades:[reportSource.trades[0],reportSource.trades[0]]}),/중복/);
+
+  for(const invalidDate of ['2026-08-00','2026-02-30','2026-13-01','0000-01-01']){
+    assert.equal(isValidReportDate(invalidDate),false,`${invalidDate}가 실제 달력 날짜로 통과하면 안 된다`);
+  }
+  for(const validDate of ['2024-02-29','2026-08-31','2000-02-29'])assert.equal(isValidReportDate(validDate),true);
+  assert.equal(isValidReportDate('2100-02-29'),false,'세기 윤년 규칙이 잘못됐다');
+
+  const badTradeDate=structuredClone(reportSource);
+  badTradeDate.trades[1].date='2026-08-00';
+  assert.throws(()=>validateReportSource(badTradeDate),/date가 올바르지/);
+  assert.throws(()=>validateReportSource({...reportSource,reportStartDate:'2026-02-30'}),/reportStartDate/);
+
   const badMixed=structuredClone(reportSource);
-  badMixed.trades.find(row=>row.segment==='mixed').core.qty=badMixed.trades.find(row=>row.segment==='mixed').qty;
+  const mixed=badMixed.trades.find(row=>row.segment==='mixed');
+  mixed.core.qty=mixed.qty;
   assert.throws(()=>validateReportSource(badMixed),/core 범위/);
+
+  const badMixedFee=structuredClone(reportSource);
+  const mixedFee=badMixedFee.trades.find(row=>row.segment==='mixed');
+  mixedFee.core.fee=mixedFee.fee+1;
+  assert.throws(()=>validateReportSource(badMixedFee),/core 범위/,'core fee가 전체 fee를 넘으면 단타 비용이 음수가 되므로 차단해야 한다');
+
   const badContext=structuredClone(reportSource);
   delete badContext.positionContext.augustFinalBuild.second.buy;
   assert.throws(()=>validateReportSource(badContext),/augustFinalBuild\.second context/);
+  const badContextDate=structuredClone(reportSource);
+  badContextDate.positionContext.legacyBuild.first.date='2026-02-30';
+  assert.throws(()=>validateReportSource(badContextDate),/legacyBuild\.first context/);
 });
 
 test('KODEX Report 순수 파생 모델은 전체/본 포지션/단타 합계와 표시기간을 보존한다',()=>{
@@ -92,6 +114,9 @@ test('Main separateProfit는 canonical KODEX 원천에서 날짜별 순손익과
   const mainTotal=mainSeparateProfit.trades.reduce((sum,row)=>sum+row.profit,0);
   assert.equal(mainTotal,model.reportMetrics.totalNet);
   assert.throws(()=>core.deriveSeparateProfitFromKodexReport({...reportSource,schemaVersion:2}),/canonical 데이터 형식/);
+  const badMainDate=structuredClone(reportSource);
+  badMainDate.trades[1].date='2026-08-00';
+  assert.throws(()=>core.deriveSeparateProfitFromKodexReport(badMainDate),/거래가 올바르지/,'Main도 존재하지 않는 달력 날짜를 거부해야 한다');
 });
 
 test('근거·산식의 혼합일 설명은 canonical 거래 데이터에서 파생되는 동적 placeholder를 모든 혼합일에 사용한다',()=>{
@@ -131,4 +156,8 @@ test('운영 문서는 KODEX 거래 단일 원천 규칙과 신규 거래 반영
   const addHandover=read('add_maintenance_handover.md');
   assert.match(addHandover,/`data\/kodex_leverage_trades\.json`에 실현거래를 1회 반영/);
   assert.match(addHandover,/`data\/portfolio\.json`에 `separateProfit` 거래 배열을 다시 만들거나/);
+  assert.doesNotMatch(addHandover,/실현손익 반영:\s*data\/portfolio\.json 포함/,'작업 시작 순서에 폐기된 portfolio.json 실현손익 반영 문구가 남으면 안 된다');
+  const mainHandover=read('main_dashboard_maintenance_handover.md');
+  assert.doesNotMatch(mainHandover,/표·KPI·차트·`data\/portfolio\.json`의 누계/,'Main 운영 숫자 QA가 폐기된 portfolio.json 누계를 가리키면 안 된다');
+  assert.match(mainHandover,/`data\/kodex_leverage_trades\.json`을 단일 원천으로 사용/);
 });
