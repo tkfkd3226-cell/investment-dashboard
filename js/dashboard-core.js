@@ -1,3 +1,5 @@
+import { validateKodexLeverageSource } from './kodex-leverage-schema.js';
+
 // Dashboard Core · DOM 비의존 상태 / 데이터 / 계산 / 네트워크
 // Structure map:
 //   [CORE01] State / Formatting / Semantic Helpers
@@ -786,31 +788,12 @@ async function loadJsonOr(url,fallback,{fallbackStatuses=[404]}={}){
   }
 }
 
-function isValidIsoCalendarDate(value){
-  const text=String(value||'');
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(text))return false;
-  const [year,month,day]=text.split('-').map(Number);
-  if(year<1||month<1||month>12||day<1)return false;
-  const leap=year%4===0&&(year%100!==0||year%400===0);
-  const daysInMonth=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
-  return day<=daysInMonth[month-1];
-}
-
 function deriveSeparateProfitFromKodexReport(source){
-  if(!source||source.schemaVersion!==1||!Array.isArray(source.trades)||source.trades.length===0)throw new Error('KODEX 별도수익 canonical 데이터 형식이 올바르지 않습니다.');
-  const reinvestedLimit=source.reinvestedLimit;
-  if(typeof reinvestedLimit!=='number'||!Number.isInteger(reinvestedLimit)||reinvestedLimit<0)throw new Error('KODEX 별도수익 재투입 한도가 올바르지 않습니다.');
-  const seen=new Set();
-  let previousDate='';
-  const trades=source.trades.map((row,index)=>{
-    const date=String(row?.date||'');
-    const pnl=row?.pnl,fee=row?.fee;
-    if(!isValidIsoCalendarDate(date)||typeof pnl!=='number'||!Number.isInteger(pnl)||typeof fee!=='number'||!Number.isInteger(fee)||fee<0)throw new Error(`KODEX 별도수익 ${index+1}번 거래가 올바르지 않습니다.`);
-    if(seen.has(date)||previousDate&&date<previousDate)throw new Error('KODEX 별도수익 거래일은 중복 없이 오름차순이어야 합니다.');
-    seen.add(date); previousDate=date;
-    return {date,profit:pnl-fee};
-  });
-  return {reinvestedLimit,trades};
+  const validated=validateKodexLeverageSource(source);
+  return {
+    reinvestedLimit:validated.reinvestedLimit,
+    trades:validated.trades.map(row=>({date:row.date,profit:row.pnl-row.fee}))
+  };
 }
 
 async function loadInitialData(){
