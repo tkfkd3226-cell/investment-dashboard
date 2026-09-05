@@ -203,6 +203,7 @@ investment-dashboard-main/
 │  └─ dashboard-market-ai.js
 ├─ data/
 │  ├─ portfolio.json
+│  ├─ kodex_leverage_trades.json
 │  ├─ prices.json
 │  ├─ performance_snapshots.json
 │  ├─ account1_daily_snapshots.json
@@ -367,6 +368,7 @@ Main 화면의 1~13차 CSS 토큰화·공통화 작업은 다음 장기 기준�
 | 파일 | 용도 |
 |---|---|
 | `portfolio.json` | 보유자산, 투자원금 기준, 자금 이벤트 및 기본 포트폴리오 정보 |
+| `kodex_leverage_trades.json` | KODEX 레버리지 실현거래·본 포지션/단타 분류·매수-only 포지션 문맥·Report 시작일·별도수익 재투입 한도의 단일 canonical 원천. `schemaVersion`으로 형식을 검증하며 Main 별도수익과 Add Report가 함께 소비 |
 | `prices.json` | 날짜별 종목·상품 가격 및 지수 데이터 |
 | `performance_snapshots.json` | 날짜별 성과 스냅샷 |
 | `account1_daily_snapshots.json` | 증권계좌 일별 복원 데이터 |
@@ -374,7 +376,7 @@ Main 화면의 1~13차 CSS 토큰화·공통화 작업은 다음 장기 기준�
 | `pension_cash_snapshots.json` | 퇴직연금 현금성자산 스냅샷 |
 | `pension_trades.json` | 퇴직연금 거래 이력 |
 
-대시보드는 이 데이터들을 결합하여 선택 날짜의 계좌 상태를 계산하고 화면을 렌더링합니다.
+대시보드는 이 데이터들을 결합하여 선택 날짜의 계좌 상태를 계산하고 화면을 렌더링합니다. KODEX 레버리지 별도수익은 `portfolio.json`에 거래를 복제하지 않고 `kodex_leverage_trades.json`에서 런타임 파생하며, Add Report도 같은 파일을 읽어 집계합니다. Report의 표시기간 종료일과 근거 설명의 거래 수치도 이 canonical 데이터에서 파생되어 거래 추가·정정 시 정적 문구가 따로 남지 않게 합니다.
 
 ### 5.2 운영 데이터 보호
 
@@ -559,7 +561,7 @@ tests/
 ├─ main-calc.test.cjs          # Main 계산 결과·경계값 회귀
 ├─ main-ui-contract.test.cjs   # Main UI/CSS/HTML/반응형 핵심 contract
 ├─ add-calc.test.cjs           # Add Calc 계산·validation 회귀
-├─ add-report-data.test.cjs    # Add Report 계산모델·Main 별도수익 정합성 회귀
+├─ add-report-data.test.cjs    # KODEX canonical 거래원천·Add Report 계산모델·Main 별도수익 파생 정합성 회귀
 ├─ add-ui-contract.test.cjs    # Add UI/CSS/HTML/반응형·canonical style contract
 └─ cross-ui-contract.test.cjs  # Main↔Add appearance/Corner/responsive 전역 contract
 ```

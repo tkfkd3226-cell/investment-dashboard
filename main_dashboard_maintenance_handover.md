@@ -830,7 +830,7 @@ tests/
 - `tests/main-calc.test.cjs`: Main의 합산·원금·손익·수익률·별도수익·연금·차트용 계산 등 정답이 명확한 계산 회귀를 보호한다.
 - `tests/main-ui-contract.test.cjs`: Main의 module boundary, 기본 breakpoint, Phone Landscape, table/chart/modal/Market AI 등 폐기되면 안 되는 UI/CSS/HTML 구조 contract를 보호한다.
 - `tests/add-calc.test.cjs`: Calc의 `compute()` / `validate()` / `ceil5()`와 주요 계산 branch를 보호한다.
-- `tests/add-report-data.test.cjs`: Report 순수 파생모델의 합계 보존, Main `separateProfit`과 거래일·날짜별 순손익 정합성, 혼합일 설명의 canonical data source를 보호한다.
+- `tests/add-report-data.test.cjs`: `data/kodex_leverage_trades.json` 단일 거래원천의 schema·형식·정렬·중복 방지, Report 순수 파생모델 합계·표시기간, Main `separateProfit` 런타임 파생 정합성, 혼합일/근거 설명·position context의 canonical data source를 보호한다.
 - `tests/add-ui-contract.test.cjs`: Add의 input/button/responsive/ARIA 및 Calc Compact·Report Dynamic canonical style contract를 보호한다.
 - `tests/cross-ui-contract.test.cjs`: Main↔Add가 반드시 공유해야 하는 appearance storage/channel, Corner cap, 기본 breakpoint·Phone Landscape, iPhone desktop 1280 contract의 equality를 보호한다.
 
@@ -1032,6 +1032,7 @@ dead code / 중복 rule을 새로 만들지 않았는가
 ```text
 data/prices.json
 data/performance_snapshots.json
+data/kodex_leverage_trades.json
 data/pension_contributions.json
 data/pension_cash_snapshots.json
 data/pension_trades.json
@@ -2533,7 +2534,7 @@ style="..."
 
 ## 8.3 Report
 
-Report는 `add/kodex-leverage-report.html`을 canonical HTML entry로 독립 관리하되, 표현과 실행 코드는 add 공통 `add.css` / `add.js`를 사용한다. 거래 반영, 포지션/단타 분류, 증권사 원본, 누계 검산, 차트/KPI 동기화의 상세 절차와 산식은 add handover 한 곳에서만 관리하고 메인 문서에 중복 기록하지 않는다.
+Report는 `add/kodex-leverage-report.html`을 canonical HTML entry로 독립 관리하되, 표현과 실행 코드는 add 공통 `add.css` / `add.js`를 사용한다. KODEX 레버리지 실현거래·`reinvestedLimit`·Report 시작일·매수-only 포지션 문맥의 데이터 원천은 `data/kodex_leverage_trades.json` 하나이며, Main은 이 파일에서 `portfolio.separateProfit` 표시용 구조를 런타임 파생하고 Report도 같은 원천을 집계한다. `portfolio.json`, `add.js`, Report HTML에 거래 수치나 포지션 문맥 복제본을 다시 만들지 않는다. 거래 반영, 포지션/단타 분류, 증권사 원본, 누계 검산, 차트/KPI 동기화의 상세 절차와 산식은 add handover 한 곳에서만 관리하고 메인 문서에 중복 기록하지 않는다.
 
 ## 8.4 공통화 판단
 
@@ -2564,7 +2565,7 @@ data/pension_contributions.json
 
 또한 나머지 `data/*.json`도 요청과 직접 관련 없으면 수정하지 않는다.
 
-장부·성과 계산에 쓰이는 실제 데이터성 값은 JS literal로 중복 보관하지 않는다. 현재 증권의 별도수익 거래 이력과 재투입 한도는 `data/portfolio.json`의 `separateProfit`, 6/18 확인 현금 기준값은 `constants.outsideCash`, 원천별 추적의 고정 원천값은 `securitiesSourceTracking`을 source of truth로 사용하며, `dashboard-core.js`/`dashboard-ui.js`는 이를 읽어 계산·표시한다.
+장부·성과 계산에 쓰이는 실제 데이터성 값은 JS literal로 중복 보관하지 않는다. 현재 증권의 KODEX 레버리지 별도수익 거래 이력·재투입 한도·Report 기간/포지션 문맥은 `data/kodex_leverage_trades.json`을 source of truth로 사용하고 `dashboard-core.js`가 `portfolio.separateProfit` 표시용 구조를 런타임 파생한다. 6/18 확인 현금 기준값은 `constants.outsideCash`, 원천별 추적의 고정 원천값은 `securitiesSourceTracking`을 source of truth로 사용하며, `dashboard-core.js`/`dashboard-ui.js`는 이를 읽어 계산·표시한다.
 
 주의:
 

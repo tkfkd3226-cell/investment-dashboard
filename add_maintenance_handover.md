@@ -7,13 +7,14 @@
 - `add/kodex-leverage-report.html`: 거래 리포트 entry HTML
 - `add/add.css`: 두 페이지가 공유하는 단일 런타임 CSS. 공통 primitive와 `data-add-page` 기반 Calc/Report 전용 규칙을 함께 관리하며, Calc Compact·Report Dynamic 시각 언어를 각 페이지의 canonical 스타일로 직접 소유
 - `add/add.js`: 두 페이지가 공유하는 런타임 JS. `data-add-page`에 따라 Calc/Report만 선택 부팅
+- `data/kodex_leverage_trades.json`: KODEX 레버리지 실현거래·본 포지션/단타 분류와 Main 별도수익 재투입 한도의 단일 canonical 데이터 원천
 - `/tests/add-calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
-- `/tests/add-report-data.test.cjs`: Report 순수 파생모델·Main `separateProfit` 날짜별 정합성·혼합일 설명 데이터 소스 회귀 테스트
+- `/tests/add-report-data.test.cjs`: canonical KODEX 거래원천·Report 순수 파생모델·Main `separateProfit` 파생 정합성·혼합일 설명 데이터 소스 회귀 테스트
 - `/tests/add-ui-contract.test.cjs`: 선택상태/ARIA/input density/반응형 및 Calc/Report canonical style contract 회귀 테스트
 - `/tests/cross-ui-contract.test.cjs`: Main↔Add appearance/Corner/breakpoint/Phone Landscape/iPhone desktop 1280 전역 contract equality 테스트
 - `add_maintenance_handover.md`: Add 유지보수 기준
 
-> 적용 범위: `add/calc.html`, `add/add.css`, `add/add.js`, `add/kodex-leverage-report.html` 및 **KODEX 레버리지 실현손익 반영 때문에 함께 수정되는 `data/portfolio.json`**
+> 적용 범위: `add/calc.html`, `add/add.css`, `add/add.js`, `add/kodex-leverage-report.html` 및 **KODEX 레버리지 실현손익의 단일 원천인 `data/kodex_leverage_trades.json`**
 >
 > 목적: `add/` 영역의 **CALC + KODEX 레버리지 거래 리포트**를 현재 canonical 구조 그대로 유지하고, 새 거래 반영·UI 수정·CSS/JS 유지보수 때 구조와 기준을 다시 분석하지 않고 바로 작업할 수 있게 한다.
 
@@ -155,15 +156,15 @@ tests/
 - `add/add.js`
   - Calc와 Report의 단일 런타임 script다.
   - 공통 조기 Light/Dark·Corner 처리를 수행한 뒤 `data-add-page="calc|report"`에 따라 해당 페이지의 boot만 실행한다.
-  - Calc 계산·렌더·프리셋·이벤트·툴팁과 Report 데이터·탭·차트·Timeline 파생 로직은 한 파일 안에서도 section/boot 경계를 유지하고 서로의 DOM/state를 참조하지 않는다. Report 집계·본 포지션/단타 분리는 DOM-free `deriveReportModel()` 계층에서 먼저 계산하고, browser 쪽은 Timeline builder·DOM renderer·navigation controller·chart controller로 책임을 나눈 뒤 `bootReportPage()`가 조립만 담당한다.
-  - Report Timeline의 실현거래 수량·단가·손익·비용은 `REPORT_DATA`와 본 포지션/단타 파생값을 Source of Truth로 사용한다. 매도실현 데이터에 없는 매수-only 포지션 형성 사실만 별도 context로 유지한다. 새 `REPORT_DATA` 행은 curated 설명이 없어도 Timeline에 기본 항목으로 자동 노출되어야 한다.
-  - Node 회귀검증에서는 Calc의 `compute`/`validate`/`ceil5`와 Report의 `REPORT_DATA`/`deriveReportModel` 계층을 노출하되 브라우저 boot는 실행하지 않는다.
+  - Calc 계산·렌더·프리셋·이벤트·툴팁과 Report 데이터·탭·차트·Timeline 파생 로직은 한 파일 안에서도 section/boot 경계를 유지하고 서로의 DOM/state를 참조하지 않는다. Report는 `data/kodex_leverage_trades.json`을 로드한 뒤 DOM-free `deriveReportModel()` 계층에서 집계·본 포지션/단타 분리를 먼저 계산하고, browser 쪽은 Timeline builder·DOM renderer·navigation controller·chart controller로 책임을 나눈 뒤 `bootReportPage()`가 조립만 담당한다.
+  - Report Timeline의 실현거래 수량·단가·손익·비용뿐 아니라 매도실현 데이터에 없는 매수-only 포지션 형성 문맥도 `data/kodex_leverage_trades.json`의 `positionContext`를 Source of Truth로 사용한다. 새 canonical 거래 행은 curated 설명이 없어도 Timeline에 기본 항목으로 자동 노출되어야 한다.
+  - Node 회귀검증에서는 Calc의 `compute`/`validate`/`ceil5`와 Report의 `deriveReportModel` 계층을 노출하되 브라우저 boot는 실행하지 않는다. canonical 거래 원천은 테스트가 JSON을 직접 읽는다.
 - `tests/add-calc.test.cjs`
   - Node 내장 `node:test` / `node:assert`만 사용한다.
   - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
 - `tests/add-report-data.test.cjs`
-  - production `add/add.js`의 Report 순수 파생모델을 직접 호출해 전체/본 포지션/단타 합계 보존을 검증한다.
-  - `data/portfolio.json separateProfit.trades`와 Report의 거래일·날짜별 순손익·누적합계를 자동 교차검산하고, 혼합일 설명이 하드코딩 숫자 대신 canonical 파생값을 사용하도록 보호한다.
+  - `data/kodex_leverage_trades.json`을 canonical 거래 원천으로 직접 읽고 production `add/add.js`의 schema validator와 Report 순수 파생모델을 호출해 형식·전체/본 포지션/단타 합계·표시기간 보존을 검증한다.
+  - Main의 `deriveSeparateProfitFromKodexReport()`와 Report가 같은 canonical JSON을 소비하는지, 날짜별 순손익·누적합계·재투입 한도·표시기간·혼합일/근거 설명·`positionContext`가 동일 원천에서 파생되는지 자동 검증한다. `portfolio.json`이나 `add.js`에 거래/포지션 문맥 복제본이 다시 생기는 것도 금지한다.
 - `tests/add-ui-contract.test.cjs`
   - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
   - production HTML/CSS/JS에서 구조·상태·responsive·접근성·single-source contract를 확인하며, 장식용 exact pixel/color/count를 snapshot처럼 고정하지 않는다.
@@ -200,8 +201,8 @@ add/kodex-leverage-report.html
 새로운 실현손익이 발생하면 기본적으로 아래 파일을 한 세트로 확인한다.
 
 ```text
-data/portfolio.json
-add/add.js               # REPORT_DATA 및 파생 합계·본 포지션/단타·Timeline의 Source of Truth
+data/kodex_leverage_trades.json # KODEX 레버리지 실현거래 + separateProfit 재투입 한도의 단일 canonical 원천
+add/add.js               # canonical JSON 로드 후 파생 합계·본 포지션/단타·Timeline 계산/렌더
 add/kodex-leverage-report.html # 표시기간·증빙 이미지·정적 설명문 등 실제 변경이 필요한 부분만
 add/calc.html            # 링크/연동 확인. canonical 파일명 정착 후 보통 내용 변경 없음
 add_maintenance_handover.md  # 장기 contract가 실제로 변경된 경우에만
@@ -212,7 +213,7 @@ main_dashboard_maintenance_handover.md # 메인 전역 contract가 실제로 변
 
 > **리포트만 수정하지 않는다.**
 
-새로운 실현손익은 메인 대시보드의 별도수익 계산에도 사용되므로 `data/portfolio.json`의 `separateProfit.trades`와 `add/add.js`의 `REPORT_DATA`가 서로 일치해야 한다. 이 정합성은 `tests/add-report-data.test.cjs`가 거래일·날짜별 순손익·누적합계를 자동 교차검산한다. Report의 Hero/KPI/표/차트/본 포지션·단타/Timeline·혼합일 산식 설명 숫자는 `REPORT_DATA` 파생값을 사용한다.
+새로운 실현손익은 메인 대시보드의 별도수익 계산과 KODEX Report가 함께 사용하므로 **`data/kodex_leverage_trades.json` 한 곳만 수정한다.** Main은 이 JSON에서 `separateProfit.trades`를 런타임 파생하고, Report는 같은 JSON을 `deriveReportModel()`에 전달한다. `data/portfolio.json`이나 `add/add.js`에 실현거래 배열을 별도로 복제하지 않는다. Report의 Hero/KPI/표/차트/본 포지션·단타/Timeline·혼합일 산식 설명 숫자도 모두 같은 canonical 원천의 파생값을 사용한다.
 
 다음 파일은 단순히 새로운 실현거래가 생겼다는 이유만으로 수정하지 않는다.
 
@@ -252,7 +253,7 @@ data/pension_cash_snapshots.json
 누적 합계
 ```
 
-특히 `data/portfolio.json`에 반영할 값은 **거래비용 차감 후 순손익금액**이다.
+특히 `data/kodex_leverage_trades.json`에는 **손익금액(`pnl`)과 거래비용(`fee`)을 각각 확정값으로 반영**하고, Main/Report의 순손익은 `pnl - fee`로 동일하게 파생한다.
 
 ### 4.2 상세 매매보고서 / 매매내역
 
@@ -275,49 +276,99 @@ data/pension_cash_snapshots.json
 
 ---
 
-## 5. `data/portfolio.json` 별도수익 반영 규칙
+## 5. KODEX 레버리지 canonical 거래 데이터 반영 규칙
 
-위치:
+단일 Source of Truth:
 
 ```text
-data/portfolio.json
-→ separateProfit
-→ trades
+data/kodex_leverage_trades.json
 ```
 
-각 항목은 다음 형식을 유지한다.
+이 파일 하나가 다음 두 화면의 공통 원천이다.
+
+- Main 대시보드의 `portfolio.separateProfit` 런타임 파생값
+- Add KODEX Report의 날짜별/누적/Core/Day/차트/Timeline 파생값
+
+`data/portfolio.json`에 `separateProfit` 거래 배열을 다시 만들거나, `add/add.js`에 거래 배열 literal을 다시 하드코딩하지 않는다.
+
+기본 형식:
+
+```json
+{
+  "schemaVersion": 1,
+  "reportStartDate": "YYYY-MM-DD",
+  "reinvestedLimit": 6700000,
+  "positionContext": {
+    "legacyBuild": {
+      "first": {"date": "YYYY-MM-DD", "qty": 16, "buy": 203800},
+      "second": {"date": "YYYY-MM-DD", "qty": 22, "buy": 170215}
+    }
+  },
+  "trades": [
+    {
+      "date": "YYYY-MM-DD",
+      "qty": 220,
+      "buy": 97685,
+      "sell": 102650,
+      "pnl": 1092275,
+      "fee": 1852,
+      "segment": "core"
+    }
+  ]
+}
+```
+
+- `schemaVersion`: 현재 형식은 `1`. 브라우저와 QA가 다른 버전 또는 잘못된 숫자·날짜·중복 거래를 계산 전에 차단한다.
+- `reportStartDate`: Report 상단 표시기간의 시작일. 종료일은 `trades`의 마지막 매도일에서 자동 파생한다.
+- `positionContext`: 매도실현손익만으로 복원할 수 없는 매수-only 포지션 형성 사실. Timeline과 근거 설명에 필요한 값을 JS literal로 복제하지 않는다.
+
+혼합일은 전체 거래값과 Core 귀속값을 함께 둔다.
 
 ```json
 {
   "date": "YYYY-MM-DD",
-  "profit": 1090423
+  "qty": 101,
+  "buy": 99463,
+  "sell": 100145,
+  "pnl": 68905,
+  "fee": 846,
+  "segment": "mixed",
+  "core": {
+    "qty": 32,
+    "buy": 92580,
+    "sell": 95480,
+    "pnl": 92800,
+    "fee": 253
+  }
 }
 ```
 
 ### 값의 의미
 
-- `date` = **매도실현일**
-- `profit` = 그 날짜의 **거래비용 차감 후 순손익**
-- 손실이면 음수
+- `date` = 매도실현일
+- `qty` = 해당 매도일 전체 매도수량
+- `buy` / `sell` = 증권사 기준 평균 매수/매도 단가
+- `pnl` = 거래비용 차감 전 손익금액
+- `fee` = 거래비용
+- `pnl - fee` = Main 별도수익과 Report가 공통으로 사용하는 날짜별 순손익
+- `segment` = `core` / `day` / `mixed`
+- `mixed.core` = 혼합일 중 본 포지션 귀속분. 단타분은 전체값에서 Core를 차감해 파생한다.
 
 ### 날짜별 관리
 
-- 원칙적으로 **매도일 1일당 1개 레코드**를 유지한다.
-- 같은 날짜에 거래가 여러 번 있어도 증권사 매도실현손익 화면의 **그 날짜 전체 순손익**을 사용한다.
-- 같은 날짜가 이미 존재하면 중복 레코드를 추가하지 말고 해당 날짜의 최종 확정값으로 갱신한다.
+- 매도일 1일당 1개 canonical 레코드를 유지한다.
+- 같은 날짜가 이미 있으면 중복 추가하지 않고 해당 날짜의 최종 확정값으로 갱신한다.
 - 배열은 날짜 오름차순을 유지한다.
+- Main의 `deriveSeparateProfitFromKodexReport()`는 `date`와 `pnl - fee`를 `separateProfit.trades` 형태로 런타임 파생한다.
+- Report의 `deriveReportModel()`은 같은 `trades` 배열에서 전체/Core/Day/누적/차트 값을 파생한다.
 
 ### 재투입 한도
 
 ```text
-separateProfit.reinvestedLimit
+reinvestedLimit
 ```
 
-은 사용자가 별도로 변경하라고 하지 않는 한 기존 값을 유지한다.
-
-새 실현손익이 생겼다고 재투입 한도를 자동으로 늘리지 않는다.
-
----
+은 사용자가 별도로 변경하라고 하지 않는 한 기존 값을 유지한다. 새 실현손익이 생겼다고 자동으로 늘리지 않는다.
 
 ## 6. 거래 리포트의 확정 계산 기준
 
@@ -419,7 +470,7 @@ separateProfit.reinvestedLimit
 - 본 포지션/단타 비율 같은 시각화 값은 selector 내부 숫자로 하드코딩하지 않고 계산값에서 주입한다.
 - 누적손익 차트 X축 날짜는 실제 plot 폭에 따라 생략할 수 있지만 마지막 거래일은 항상 식별 가능해야 한다.
 - `매도일 기준 승률`은 `순손익 > 0인 매도일 수 ÷ 전체 매도일 수 × 100`이며, 0원인 날은 승리로 계산하지 않는다. 현재 표시 자릿수·보조문구는 report 소스를 Source of Truth로 본다.
-- 새 거래 반영 후 Hero/KPI/표/차트/본 포지션·단타 요약은 동일 canonical 계산값을 사용해야 한다. Timeline의 실현거래 숫자는 `REPORT_DATA`에서 파생하고 HTML에 별도 숫자를 복제하지 않는다. 새 거래가 curated Timeline 설명에 없더라도 기본 항목이 자동 생성되는지 확인한다.
+- 새 거래 반영 후 Hero/KPI/표/차트/본 포지션·단타 요약은 동일 canonical 계산값을 사용해야 한다. Timeline의 실현거래 숫자는 `data/kodex_leverage_trades.json`에서 파생하고 HTML에 별도 숫자를 복제하지 않는다. 새 거래가 curated Timeline 설명에 없더라도 기본 항목이 자동 생성되는지 확인한다.
 - 과거 마지막 날짜·누계·총수량 같은 문자열이 잔존하지 않는지 마지막에 검색한다.
 
 ## 10. 증권사 원본 이미지 반영
@@ -431,11 +482,11 @@ separateProfit.reinvestedLimit
 ```text
 1. 증권사 매도실현손익에서 확정 손익·비용·순손익 확인
 2. 상세 매매보고서에서 매수일·수량·오버나이트/포지션 연결 확인
-3. data/portfolio.json separateProfit.trades 반영
-4. add/add.js의 REPORT_DATA 반영 후 날짜별·합계·본 포지션/단타 파생값 검산
+3. `data/kodex_leverage_trades.json`에 실현거래를 1회 반영
+4. 날짜별·합계·본 포지션/단타 파생값과 `reinvestedLimit` 검산
 5. kodex-leverage-report.html의 표시기간·증빙 이미지·정적 설명문 중 필요한 부분만 갱신
-6. Hero/KPI/표/차트와 Timeline 자동 파생·누락 여부를 동일 REPORT_DATA 기준으로 검산
-7. `node --test tests/add-report-data.test.cjs`로 Main↔Report 날짜별 정합성과 합계 보존 확인 후 변경 유형에 해당하는 추가 QA 수행
+6. Hero/KPI/표/차트와 Timeline 자동 파생·누락 여부를 동일 canonical JSON 기준으로 검산
+7. `node --test tests/add-report-data.test.cjs`로 canonical 원천·Main 파생·Report 파생의 날짜별 정합성과 합계 보존 확인 후 변경 유형에 해당하는 추가 QA 수행
 ```
 
 자금 출처·대출이자 분석이나 자금 흐름 패널 복원은 위 절차에 포함하지 않는다. 문서는 이 절차를 수행했다는 이유만으로 자동 갱신하지 않는다.
@@ -448,9 +499,9 @@ separateProfit.reinvestedLimit
 
 - 새 매도일의 수량·평균매수·평균매도·손익·비용·순손익이 증권사 원본과 일치한다.
 - 날짜별 `손익금액 - 거래비용 = 순손익`, 전체 합계와 날짜별 합계가 일치한다.
-- `data/portfolio.json separateProfit`과 report의 거래일 set·날짜별 순손익·누적 실현 순손익이 일치하며 같은 날짜 레코드가 중복되지 않는다. `tests/add-report-data.test.cjs`로 자동 확인한다.
+- `data/kodex_leverage_trades.json`의 거래일이 오름차순·중복 없음·필수 숫자/segment 형식을 유지하고, Main 파생 별도수익과 Report 파생 날짜별 순손익·누적 실현 순손익이 일치한다. `tests/add-report-data.test.cjs`로 자동 확인한다.
 - 본 포지션 + 단타의 수량·손익·비용·순손익 합계가 전체와 일치한다.
-- 동일 지표를 사용하는 요약·차트·표에 과거 값이 잔존하지 않으며, Timeline은 `REPORT_DATA` 파생값과 일치하고 새 매도일이 누락되지 않는다.
+- 동일 지표를 사용하는 요약·차트·표에 과거 값이 잔존하지 않으며, Timeline은 `data/kodex_leverage_trades.json` 파생값과 일치하고 새 매도일이 누락되지 않는다.
 - 원본 이미지/근거를 갱신하는 작업이라면 최신 숫자와 같은 시점인지 확인한다.
 
 ### 12.2 Calc 계산·validation 변경 시
@@ -495,11 +546,11 @@ https://tkfkd3226-cell.github.io/investment-dashboard/add/kodex-leverage-report.
 
 - 메인 대시보드·퇴직연금·가격갱신/KRX 구조
 - 요청하지 않은 Calc 계산식 또는 본 포지션/단타 분류 기준
-- `separateProfit.reinvestedLimit`
+- `data/kodex_leverage_trades.json`의 `reinvestedLimit` (별도 요청 없이 임의 변경 금지)
 - 현재 사용하지 않는 자금 흐름/차입금 상환 후 자기자금 패널
 
 다른 개선 아이디어가 보여도 사용자가 요청하지 않았다면 현재 작업과 섞지 않는다.
 
 ## 14. 최종 한 문장 운영 원칙
 
-> **새 KODEX 레버리지 실현거래가 생기면 증권사 확정 순손익을 `data/portfolio.json`과 `add/add.js`의 `REPORT_DATA`에 함께 반영하고, canonical report의 합계·분류·시각화·Timeline·근거를 동일 기준으로 검산한다. 자금 출처·대출이자 등은 추적하지 않으며 report 파일명은 고정하고, handover는 장기 contract가 바뀐 경우에만 수정한다.**
+> **새 KODEX 레버리지 실현거래가 생기면 증권사 확정 거래를 `data/kodex_leverage_trades.json` 한 곳에 반영하고, Main 별도수익과 canonical report의 합계·분류·시각화·Timeline·근거가 같은 원천에서 파생되는지 검산한다. 자금 출처·대출이자 등은 추적하지 않으며 report 파일명은 고정하고, handover는 장기 contract가 바뀐 경우에만 수정한다.**
