@@ -496,3 +496,18 @@ test('Report chart 손익색은 Add 공통 semantic value source를 alias하고 
   assert.equal((css.match(/:where\(html\[data-add-page="calc"\]\) \.add-button-mobile-icon\{/g)||[]).length,1);
   assert.doesNotMatch(css1,/@media\(max-width:760px\)\{ \.add-button-mobile-icon\{/);
 });
+
+test('Report boot는 계산·Timeline·DOM render·navigation·chart controller를 조립만 한다',()=>{
+  assert.match(js,/function deriveReportModel\(rows=REPORT_DATA\)/);
+  assert.match(js,/function createReportTimelineBuilder\(model\)/);
+  assert.match(js,/function createReportRenderer\(model,buildTimelineEvents\)/);
+  assert.match(js,/function createReportNavigationController\(reportMobileMedia,drawChart\)/);
+  assert.match(js,/function createReportChartController\(chartData,reportMobileMedia\)/);
+  const boot=js.match(/const bootReportPage=\(\)=>\{([^}]*)\};/)?.[1]||'';
+  assert.match(boot,/deriveReportModel\(REPORT_DATA\)/);
+  assert.match(boot,/createReportTimelineBuilder\(model\)/);
+  assert.match(boot,/createReportRenderer\(model,buildTimelineEvents\)/);
+  assert.match(boot,/createReportNavigationController\(reportMobileMedia,chart\.drawChart\)/);
+  assert.match(boot,/createReportChartController\(model\.chartData,reportMobileMedia\)/);
+  assert.doesNotMatch(boot,/querySelector|addEventListener|canvas|getContext/,'boot가 다시 feature 세부 구현을 직접 소유하면 안 된다');
+});

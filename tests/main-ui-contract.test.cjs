@@ -554,3 +554,15 @@ test('Pension/Modal/특수 UI는 shared radius·semantic form·modal motion·Pho
   assert.doesNotMatch(index1,/iphone-request-desktop/);
   assert.doesNotMatch(common,/iphone-request-desktop/);
 });
+
+test('자산 시각화 Tooltip은 setup·pointer binding·click binding·follow/touch lifecycle 책임을 분리한다',()=>{
+  assert.match(uiCommon,/function createAssetVizTooltipState\(\)/);
+  assert.match(uiCommon,/function positionAssetStackTooltip\(state,target,event\)/);
+  assert.match(uiCommon,/function finishAssetTouchDrag\(state,event,cancelled=false\)/);
+  assert.match(uiCommon,/function bindAssetTooltipPointerInteractions\(state\)/);
+  assert.match(uiCommon,/function bindAssetTooltipClickInteractions\(state\)/);
+  const setup=uiCommon.match(/function setupAssetVizTooltips\(zoneSelector\)\{([^}]*)\}/)?.[1]||'';
+  assert.match(setup,/bindAssetTooltipPointerInteractions\(state\)/);
+  assert.match(setup,/bindAssetTooltipClickInteractions\(state\)/);
+  assert.doesNotMatch(setup,/addEventListener/,'setup 함수가 다시 세부 listener 구현을 직접 소유하면 안 된다');
+});
