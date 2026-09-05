@@ -830,7 +830,7 @@ tests/
 - `tests/main-calc.test.cjs`: Main의 합산·원금·손익·수익률·별도수익·연금·차트용 계산 등 정답이 명확한 계산 회귀를 보호한다.
 - `tests/main-ui-contract.test.cjs`: Main의 module boundary, 기본 breakpoint, Phone Landscape, table/chart/modal/Market AI 등 폐기되면 안 되는 UI/CSS/HTML 구조 contract를 보호한다.
 - `tests/add-calc.test.cjs`: Calc의 `compute()` / `validate()` / `ceil5()`와 주요 계산 branch를 보호한다.
-- `tests/add-report-data.test.cjs`: `data/kodex_leverage_trades.json` 단일 거래원천의 schema·형식·정렬·중복 방지, Report 순수 파생모델 합계·표시기간, Main `separateProfit` 런타임 파생 정합성, 혼합일/근거 설명·position context의 canonical data source를 보호한다.
+- `tests/add-report-data.test.cjs`: `data/kodex_leverage_trades.json` 단일 거래원천의 schema·JSON number 정수 타입·실제 달력 날짜·정렬·중복 방지, Report 순수 파생모델 합계·표시기간, Main `separateProfit` 런타임 파생 정합성, 혼합일/근거 설명·position context의 canonical data source를 보호한다.
 - `tests/add-ui-contract.test.cjs`: Add의 input/button/responsive/ARIA 및 Calc Compact·Report Dynamic canonical style contract를 보호한다.
 - `tests/cross-ui-contract.test.cjs`: Main↔Add가 반드시 공유해야 하는 appearance storage/channel, Corner cap, 기본 breakpoint·Phone Landscape, iPhone desktop 1280 contract의 equality를 보호한다.
 
