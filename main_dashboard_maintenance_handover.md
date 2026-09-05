@@ -203,7 +203,7 @@ QA
 
 ### 3. JavaScript
 
-- main 8개 module graph + Market AI standalone entry (`dashboard-modal.js` lifecycle 공유)
+- main 9개 module graph + Market AI standalone entry (`dashboard-modal.js` lifecycle 공유)
 - `core` DOM 비의존
 - `ui-common` 저수준 공통 책임
 - pension View / Editor 분리
@@ -477,7 +477,7 @@ Dead CSS 판정 전에는 HTML, JS dynamic class, template literal, `classList`,
 
 ### E. JavaScript 평가 기준
 
-main graph 8개 ES Module과 `dashboard-market-ai.js` standalone entry를 실제로 읽고 다음을 확인한다.
+main graph 9개 ES Module과 `dashboard-market-ai.js` standalone entry를 실제로 읽고 다음을 확인한다.
 
 - module responsibility
 - dependency 방향 / circular dependency
@@ -830,7 +830,7 @@ tests/
 - `tests/main-calc.test.cjs`: Main의 합산·원금·손익·수익률·별도수익·연금·차트용 계산 등 정답이 명확한 계산 회귀를 보호한다.
 - `tests/main-ui-contract.test.cjs`: Main의 module boundary, 기본 breakpoint, Phone Landscape, table/chart/modal/Market AI 등 폐기되면 안 되는 UI/CSS/HTML 구조 contract를 보호한다.
 - `tests/add-calc.test.cjs`: Calc의 `compute()` / `validate()` / `ceil5()`와 주요 계산 branch를 보호한다.
-- `tests/add-report-data.test.cjs`: `data/kodex_leverage_trades.json` 단일 거래원천의 schema·JSON number 정수 타입·실제 달력 날짜·정렬·중복 방지, Report 순수 파생모델 합계·표시기간, Main `separateProfit` 런타임 파생 정합성, 혼합일/근거 설명·position context의 canonical data source를 보호한다.
+- `tests/add-report-data.test.cjs`: `data/kodex_leverage_trades.json` 단일 거래원천을 `js/kodex-leverage-schema.js` 공통 validator로 검증해 Main과 Add Report의 schema 판정이 같도록 보호한다. JSON number 정수 타입·실제 달력 날짜·정렬·중복·segment·mixed core 범위·position context, Report 순수 파생모델 합계·표시기간, Main `separateProfit` 런타임 파생 정합성을 함께 확인한다.
 - `tests/add-ui-contract.test.cjs`: Add의 input/button/responsive/ARIA 및 Calc Compact·Report Dynamic canonical style contract를 보호한다.
 - `tests/cross-ui-contract.test.cjs`: Main↔Add가 반드시 공유해야 하는 appearance storage/channel, Corner cap, 기본 breakpoint·Phone Landscape, iPhone desktop 1280 contract의 equality를 보호한다.
 
@@ -1202,6 +1202,7 @@ investment-dashboard-main/
 ├─ js/
 │  ├─ dashboard-app.js
 │  ├─ dashboard-charts.js
+│  ├─ kodex-leverage-schema.js
 │  ├─ dashboard-core.js
 │  ├─ dashboard-market-ai.js
 │  ├─ dashboard-modal.js
@@ -1236,6 +1237,7 @@ investment-dashboard-main/
 │  ├─ print.css
 │
 ├─ js/
+│  ├─ kodex-leverage-schema.js
 │  ├─ dashboard-core.js
 │  ├─ dashboard-ui-common.js
 │  ├─ dashboard-modal.js
@@ -1283,12 +1285,13 @@ inline calc JavaScript
 등의 구조가 현재도 존재한다고 가정하지 않는다.
 
 
-## 4.3 메인 dependency graph는 8파일 ES Module 구조 유지
+## 4.3 메인 dependency graph는 9파일 ES Module 구조 유지
 
 현재 main graph는 다음과 같다.
 
 ```text
 js/
+├─ kodex-leverage-schema.js
 ├─ dashboard-core.js
 ├─ dashboard-ui-common.js
 ├─ dashboard-modal.js
@@ -1302,6 +1305,7 @@ js/
 책임 경계:
 
 ```text
+kodex-schema    → KODEX canonical JSON schema 검증 · DOM-free leaf
 core            → 데이터 / 계산 / 공통 state / loading
 ui-common       → 공통 저수준 DOM / 마크업 / shared view-state / feedback·viewport helper
 modal           → custom/native dialog lifecycle / focus / inert / body lock
@@ -1318,7 +1322,7 @@ app             → cross-module orchestration / boot
 
 ## 4.4 `dashboard-core.js` 책임
 
-`dashboard-core.js`는 다음을 담당한다.
+`dashboard-core.js`는 다음을 담당한다. KODEX 레버리지 canonical 형식 검증은 자체 구현하지 않고 `kodex-leverage-schema.js`를 import해 사용한다.
 
 - 공통 데이터 상태
 - 데이터 loading
@@ -1804,14 +1808,16 @@ importmap
 
 ## 4.16 main graph 단일 entry와 Market AI standalone 분리를 유지한다
 
-현재 main dependency graph는 **8개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 두 번째 standalone entry로 main boot 책임을 공유하지 않고, 공통 저수준 `dashboard-modal.js`만 import한다.
+현재 main dependency graph는 **9개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 두 번째 standalone entry로 main boot 책임을 공유하지 않고, 공통 저수준 `dashboard-modal.js`만 import한다.
 
 ```text
 index.html
-├─ dashboard-app.js      → main graph 8모듈
+├─ dashboard-app.js      → main graph 9모듈
 └─ dashboard-market-ai.js
    └─ dashboard-modal.js → dialog lifecycle만 공유
 ```
+
+`kodex-leverage-schema.js`는 DOM-free leaf module이며 Main `dashboard-core.js`와 Add Report가 동일 validator를 사용한다. Main/Add에 별도 KODEX schema validator를 다시 만들지 않는다.
 
 실제 dependency는 named `import / export`로 표현하며 circular import와 `window/globalThis` compatibility bridge를 허용하지 않는다. classic script 다중 load, framework/bundler 도입 같은 구조 개편은 사용자가 별도로 요청한 경우에만 검토한다.
 
@@ -2704,6 +2710,7 @@ Desktop은 `common.css` baseline을 사용한다. `style.css`, `desktop.css`, �
 ### 메인 JavaScript
 
 ```text
+kodex-leverage-schema.js
 dashboard-core.js
 dashboard-ui-common.js
 dashboard-modal.js

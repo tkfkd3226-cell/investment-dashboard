@@ -7,6 +7,7 @@
 - `add/kodex-leverage-report.html`: 거래 리포트 entry HTML
 - `add/add.css`: 두 페이지가 공유하는 단일 런타임 CSS. 공통 primitive와 `data-add-page` 기반 Calc/Report 전용 규칙을 함께 관리하며, Calc Compact·Report Dynamic 시각 언어를 각 페이지의 canonical 스타일로 직접 소유
 - `add/add.js`: 두 페이지가 공유하는 런타임 JS. `data-add-page`에 따라 Calc/Report만 선택 부팅
+- `js/kodex-leverage-schema.js`: Main과 Add Report가 함께 사용하는 KODEX canonical JSON의 DOM-free 단일 schema validator
 - `data/kodex_leverage_trades.json`: KODEX 레버리지 실현거래·본 포지션/단타 분류와 Main 별도수익 재투입 한도의 단일 canonical 데이터 원천
 - `/tests/add-calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
 - `/tests/add-report-data.test.cjs`: canonical KODEX 거래원천·Report 순수 파생모델·Main `separateProfit` 파생 정합성·혼합일 설명 데이터 소스 회귀 테스트
@@ -14,7 +15,7 @@
 - `/tests/cross-ui-contract.test.cjs`: Main↔Add appearance/Corner/breakpoint/Phone Landscape/iPhone desktop 1280 전역 contract equality 테스트
 - `add_maintenance_handover.md`: Add 유지보수 기준
 
-> 적용 범위: `add/calc.html`, `add/add.css`, `add/add.js`, `add/kodex-leverage-report.html` 및 **KODEX 레버리지 실현손익의 단일 원천인 `data/kodex_leverage_trades.json`**
+> 적용 범위: `add/calc.html`, `add/add.css`, `add/add.js`, `add/kodex-leverage-report.html`, 공통 validator `js/kodex-leverage-schema.js` 및 **KODEX 레버리지 실현손익의 단일 원천인 `data/kodex_leverage_trades.json`**
 >
 > 목적: `add/` 영역의 **CALC + KODEX 레버리지 거래 리포트**를 현재 canonical 구조 그대로 유지하고, 새 거래 반영·UI 수정·CSS/JS 유지보수 때 구조와 기준을 다시 분석하지 않고 바로 작업할 수 있게 한다.
 
@@ -163,7 +164,7 @@ tests/
   - Node 내장 `node:test` / `node:assert`만 사용한다.
   - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
 - `tests/add-report-data.test.cjs`
-  - `data/kodex_leverage_trades.json`을 canonical 거래 원천으로 직접 읽고 production `add/add.js`의 schema validator와 Report 순수 파생모델을 호출해 형식·전체/본 포지션/단타 합계·표시기간 보존을 검증한다.
+  - `data/kodex_leverage_trades.json`을 canonical 거래 원천으로 직접 읽고 production 공통 `js/kodex-leverage-schema.js` validator와 Report 순수 파생모델을 호출해 형식·전체/본 포지션/단타 합계·표시기간 보존을 검증한다. Main과 Add Report가 별도 validator를 다시 만들지 않는다.
   - Main의 `deriveSeparateProfitFromKodexReport()`와 Report가 같은 canonical JSON을 소비하는지, 날짜별 순손익·누적합계·재투입 한도·표시기간·혼합일/근거 설명·`positionContext`가 동일 원천에서 파생되는지 자동 검증한다. `portfolio.json`이나 `add.js`에 거래/포지션 문맥 복제본이 다시 생기는 것도 금지한다.
 - `tests/add-ui-contract.test.cjs`
   - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
@@ -318,7 +319,7 @@ data/kodex_leverage_trades.json
 }
 ```
 
-- `schemaVersion`: 현재 형식은 `1`. 브라우저와 QA가 다른 버전 또는 잘못된 숫자·실제 달력에 존재하지 않는 날짜·중복 거래를 계산 전에 차단한다. 숫자 필드는 문자열 숫자를 허용하지 않고 JSON `number` 정수만 허용하며, 윤년 규칙까지 실제 달력 기준으로 검증한다.
+- `schemaVersion`: 현재 형식은 `1`. `js/kodex-leverage-schema.js`가 Main과 Add Report의 단일 schema validator이며, 브라우저와 QA가 다른 버전 또는 잘못된 숫자·실제 달력에 존재하지 않는 날짜·중복 거래를 계산 전에 동일하게 차단한다. 숫자 필드는 문자열 숫자를 허용하지 않고 JSON `number` 정수만 허용하며, 윤년 규칙까지 실제 달력 기준으로 검증한다.
 - `reportStartDate`: Report 상단 표시기간의 시작일. 종료일은 `trades`의 마지막 매도일에서 자동 파생한다.
 - `positionContext`: 매도실현손익만으로 복원할 수 없는 매수-only 포지션 형성 사실. Timeline과 근거 설명에 필요한 값을 JS literal로 복제하지 않는다.
 

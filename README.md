@@ -103,6 +103,7 @@ GitHub Pages / Browser
 `dashboard-app.js`가 연결하는 main graph 구성:
 
 ```text
+kodex-leverage-schema.js
 dashboard-core.js
 dashboard-ui-common.js
 dashboard-modal.js
@@ -192,6 +193,7 @@ investment-dashboard-main/
 │  ├─ interaction.css
 │  └─ print.css
 ├─ js/
+│  ├─ kodex-leverage-schema.js
 │  ├─ dashboard-core.js
 │  ├─ dashboard-ui-common.js
 │  ├─ dashboard-modal.js
@@ -238,11 +240,12 @@ investment-dashboard-main/
 
 ### 4.1 JavaScript 모듈
 
-main dependency graph는 **8개 ES Module**로 구성되어 있으며 `dashboard-app.js`가 단일 entry point입니다. `dashboard-market-ai.js`는 두 번째 standalone entry로 로드되며 main feature state와는 분리하고 `dashboard-modal.js`의 저수준 dialog lifecycle만 공유합니다.
+main dependency graph는 **9개 ES Module**로 구성되어 있으며 `dashboard-app.js`가 단일 entry point입니다. `dashboard-market-ai.js`는 두 번째 standalone entry로 로드되며 main feature state와는 분리하고 `dashboard-modal.js`의 저수준 dialog lifecycle만 공유합니다.
 
 | 파일 | 책임 |
 |---|---|
-| `dashboard-core.js` | 공통 데이터 state, JSON 로딩, 계산, formatter, 데이터 helper |
+| `kodex-leverage-schema.js` | KODEX 레버리지 canonical JSON의 schemaVersion·날짜·숫자 타입·segment·mixed core·position context를 검증하는 DOM-free 공통 validator |
+| `dashboard-core.js` | 공통 데이터 state, JSON 로딩, 계산, formatter, 데이터 helper; KODEX 별도수익 파생 전 공통 validator 사용 |
 | `dashboard-ui-common.js` | 여러 UI 모듈이 공유하는 저수준 DOM·마크업, 공통 카드/모바일 보기 state, Toast·viewport·Asset tooltip interaction helper |
 | `dashboard-modal.js` | custom/native modal의 focus·inert·body lock·ESC·backdrop·focus return lifecycle |
 | `dashboard-charts.js` | 차트 state, SVG 렌더링, 범례, tooltip, 확대, 반응형, 차트 action routing |
@@ -257,8 +260,11 @@ main dependency graph는 **8개 ES Module**로 구성되어 있으며 `dashboard
 아래 표기에서 **`A → B`는 A가 B를 import한다는 의미**입니다.
 
 ```text
+kodex-leverage-schema.js
+└─ 다른 dashboard module import 없음
+
 dashboard-core.js
-└─ 다른 메인 JS 모듈 import 없음
+└─ kodex-leverage-schema.js
 
 dashboard-ui-common.js
 └─ 다른 dashboard module import 없음
@@ -368,7 +374,7 @@ Main 화면의 1~13차 CSS 토큰화·공통화 작업은 다음 장기 기준�
 | 파일 | 용도 |
 |---|---|
 | `portfolio.json` | 보유자산, 투자원금 기준, 자금 이벤트 및 기본 포트폴리오 정보 |
-| `kodex_leverage_trades.json` | KODEX 레버리지 실현거래·본 포지션/단타 분류·매수-only 포지션 문맥·Report 시작일·별도수익 재투입 한도의 단일 canonical 원천. `schemaVersion`으로 형식을 검증하며 Main 별도수익과 Add Report가 함께 소비 |
+| `kodex_leverage_trades.json` | KODEX 레버리지 실현거래·본 포지션/단타 분류·매수-only 포지션 문맥·Report 시작일·별도수익 재투입 한도의 단일 canonical 원천. `schemaVersion` 형식은 `js/kodex-leverage-schema.js`의 공통 validator가 검증하며 Main 별도수익과 Add Report가 동일 계약으로 소비 |
 | `prices.json` | 날짜별 종목·상품 가격 및 지수 데이터 |
 | `performance_snapshots.json` | 날짜별 성과 스냅샷 |
 | `account1_daily_snapshots.json` | 증권계좌 일별 복원 데이터 |
