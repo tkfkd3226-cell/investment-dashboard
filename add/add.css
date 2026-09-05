@@ -1002,6 +1002,19 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
 :where(html[data-add-page="report"]) .hero-chip:after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#b7aaff,#5ee4ef)}
 :where(html[data-add-page="report"]) .hero-chip span{display:block;font-size:9.5px;line-height:1.2;color:#c8d8f3;font-weight:800;letter-spacing:.015em}
 :where(html[data-add-page="report"]) .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1.18;letter-spacing:-.035em;font-weight:950}
+/* Canonical report data load failure · 정상 로딩 시 hidden 상태라 기존 화면에는 영향 없음. */
+:where(html[data-add-page="report"]) .report-load-error{
+  margin:0 0 var(--density-layout-gap);
+  padding:var(--density-surface-sm) var(--density-surface-md);
+  border:1px solid var(--line);
+  border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));
+  background:var(--surface-subtle);
+  color:var(--negative);
+  font-size:var(--report-type-support);
+  font-weight:700;
+  line-height:1.45;
+}
+
 /* Dark overrides for Report hero-local colors (kept local instead of one-use tokens). */
 html:where([data-add-page="report"]).dark .hero{background:radial-gradient(circle at 82% 18%,rgba(70,198,221,.23),transparent 26%),
     radial-gradient(circle at 14% 115%,rgba(149,140,255,.30),transparent 33%),

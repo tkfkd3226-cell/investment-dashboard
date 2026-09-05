@@ -19,7 +19,7 @@
       <div>
         <div class="eyebrow">KODEX LEVERAGE · REALIZED TRADE REPORT</div>
         <h1>KODEX 레버리지 거래 종합 리포트</h1>
-        <p>2026.06.08 ~ 2026.09.02</p>
+        <p data-report-period></p>
       </div>
     </div>
     <div class="hero-summary">
@@ -28,6 +28,8 @@
       <div class="hero-chip hero-chip-total"><span>누적 실현 순손익</span><strong data-report-value="totalNet" data-format="won"></strong></div>
     </div>
   </header>
+
+  <div class="report-load-error" data-report-load-error role="alert" hidden></div>
 
   <nav class="report-nav" aria-label="리포트 메뉴">
     <button class="mobile-menu-toggle add-button add-button-action" type="button" aria-expanded="false" aria-controls="reportTabs">
@@ -198,7 +200,7 @@
         </details>
         <details class="add-card-shell add-card-control">
           <summary>2. 본 포지션·단타 분류 기준</summary>
-          <p>상세 매매보고서의 실제 매수·매도일을 기준으로 6/8→6/9 12주와 6/23→6/25 15주는 본 포지션, 6/16 36주·6/19 15주·6/23 26주는 당일 단타로 분류했다. 6/26 16주와 7/2 22주는 이후 7/29 추가매수와 합쳐진 기존 38주 포지션이다. 8/18 15주와 8/19 205주는 8/20에 220주 전량 청산되어 본 포지션으로 분류했다. 9/2 500주는 당일 매수·매도 거래로 단타로 분류했다.</p>
+          <p>상세 매매보고서의 실제 매수·매도일을 기준으로 6/8→6/9 <span data-report-row-value="2026-06-09:qty"></span>주와 6/23→6/25 <span data-report-row-value="2026-06-25:qty"></span>주는 본 포지션, 6/16 <span data-report-row-value="2026-06-16:qty"></span>주·6/19 <span data-report-row-value="2026-06-19:qty"></span>주·6/23 <span data-report-row-value="2026-06-23:qty"></span>주는 당일 단타로 분류했다. 6/26 <span data-report-context-value="legacyFirstQty"></span>주와 7/2 <span data-report-context-value="legacySecondQty"></span>주는 이후 7/29 추가매수와 합쳐진 기존 <span data-report-context-value="legacyTotalQty"></span>주 포지션이다. 8/18 <span data-report-context-value="augustFirstQty"></span>주와 8/19 <span data-report-context-value="augustSecondQty"></span>주는 8/20에 <span data-report-row-value="2026-08-20:qty"></span>주 전량 청산되어 본 포지션으로 분류했다. 9/2 <span data-report-row-value="2026-09-02:qty"></span>주는 당일 매수·매도 거래로 단타로 분류했다.</p>
         </details>
         <details class="add-card-shell add-card-control">
           <summary>3. 혼합일 단타수량 계산</summary>
@@ -210,7 +212,7 @@
         </details>
         <details class="add-card-shell add-card-control">
           <summary>5. 거래비용 배분</summary>
-          <p>증권사 화면은 날짜별 총 거래비용만 보여주므로, 7/31·8/5·8/7·8/12의 비용은 본 포지션과 단타의 추정 왕복 거래대금 비율로 나눴다. 8/20은 220주 전량이 본 포지션이므로 거래비용 1,852원 전액을 본 포지션에 반영했다. 따라서 본 포지션·단타의 순손익에는 기존 혼합일 추정값이 포함되지만 두 값의 합계는 정확히 <span data-report-value="totalNet" data-format="won"></span>이다.</p>
+          <p>증권사 화면은 날짜별 총 거래비용만 보여주므로, 7/31·8/5·8/7·8/12의 비용은 본 포지션과 단타의 추정 왕복 거래대금 비율로 나눴다. 8/20은 <span data-report-row-value="2026-08-20:qty"></span>주 전량이 본 포지션이므로 거래비용 <span data-report-row-value="2026-08-20:fee" data-format="won"></span> 전액을 본 포지션에 반영했다. 따라서 본 포지션·단타의 순손익에는 기존 혼합일 추정값이 포함되지만 두 값의 합계는 정확히 <span data-report-value="totalNet" data-format="won"></span>이다.</p>
         </details>
       </div>
     </div>

@@ -802,9 +802,52 @@
   const isReportPage=typeof document!=='undefined'&&typeof window!=='undefined'&&document.documentElement.dataset.addPage==='report';
   if(!isCommonJs&&!isReportPage)return;
 
-  // 01. 원천 거래 데이터 / 순수 파생 모델
-  // REPORT_DATA를 Source of Truth로 두고 브라우저 DOM과 분리된 계산 모델을 Node 회귀테스트에서도 그대로 사용한다.
-  const REPORT_DATA = Object.freeze([{"date":"2026-06-09","qty":12,"buy":164170,"sell":165515,"pnl":16140,"fee":165,"segment":"core"},{"date":"2026-06-16","qty":36,"buy":210398,"sell":210554,"pnl":5640,"fee":636,"segment":"day"},{"date":"2026-06-19","qty":15,"buy":235711,"sell":239078,"pnl":50510,"fee":295,"segment":"day"},{"date":"2026-06-23","qty":26,"buy":229138,"sell":229558,"pnl":10945,"fee":499,"segment":"day"},{"date":"2026-06-25","qty":15,"buy":198500,"sell":226985,"pnl":427275,"fee":268,"segment":"core"},{"date":"2026-07-30","qty":642,"buy":80861,"sell":74580,"pnl":-4032440,"fee":4196,"segment":"core"},{"date":"2026-07-31","qty":5946,"buy":101778,"sell":102763,"pnl":5855965,"fee":51183,"segment":"mixed","core":{"qty":576,"buy":82680,"sell":91065,"pnl":4829760,"fee":4212}},{"date":"2026-08-04","qty":371,"buy":90649,"sell":91212,"pnl":209150,"fee":2837,"segment":"day"},{"date":"2026-08-05","qty":1558,"buy":100153,"sell":103259,"pnl":4839995,"fee":13334,"segment":"mixed","core":{"qty":532,"buy":94417,"sell":104035,"pnl":5116776,"fee":4442}},{"date":"2026-08-06","qty":4002,"buy":92364,"sell":92422,"pnl":233340,"fee":31121,"segment":"day"},{"date":"2026-08-07","qty":493,"buy":90384,"sell":90723,"pnl":167090,"fee":3756,"segment":"mixed","core":{"qty":100,"buy":91767,"sell":93813,"pnl":204590,"fee":781}},{"date":"2026-08-12","qty":101,"buy":99463,"sell":100145,"pnl":68905,"fee":846,"segment":"mixed","core":{"qty":32,"buy":92580,"sell":95480,"pnl":92800,"fee":253}},{"date":"2026-08-20","qty":220,"buy":97685,"sell":102650,"pnl":1092275,"fee":1852,"segment":"core"},{"date":"2026-09-02","qty":500,"buy":100630,"sell":101125,"pnl":247500,"fee":4244,"segment":"day"}]);
+  // 01. canonical 거래 데이터 / 순수 파생 모델
+  // 거래 원천은 data/kodex_leverage_trades.json 한 곳만 사용한다.
+  // 이 파일은 DOM과 무관한 파생 함수만 소유하며, 브라우저에서는 canonical JSON을 로드해 렌더링한다.
+  const REPORT_DATA_URL='../data/kodex_leverage_trades.json';
+  const REPORT_SCHEMA_VERSION=1;
+  const REPORT_DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
+
+  function validateReportSource(source){
+    if(!source||typeof source!=='object'||Array.isArray(source))throw new Error('KODEX 거래 데이터 형식이 올바르지 않습니다.');
+    if(source.schemaVersion!==REPORT_SCHEMA_VERSION)throw new Error(`KODEX 거래 데이터 schemaVersion은 ${REPORT_SCHEMA_VERSION}이어야 합니다.`);
+    if(!REPORT_DATE_RE.test(String(source.reportStartDate||'')))throw new Error('KODEX 거래 데이터 reportStartDate가 올바르지 않습니다.');
+    if(!Number.isInteger(Number(source.reinvestedLimit))||Number(source.reinvestedLimit)<0)throw new Error('KODEX 거래 데이터 reinvestedLimit가 올바르지 않습니다.');
+    if(!Array.isArray(source.trades)||source.trades.length===0)throw new Error('KODEX 거래 데이터 trades가 비어 있습니다.');
+    let previousDate='';
+    const seen=new Set();
+    source.trades.forEach((row,index)=>{
+      const date=String(row?.date||'');
+      if(!REPORT_DATE_RE.test(date))throw new Error(`KODEX 거래 ${index+1}의 date가 올바르지 않습니다.`);
+      if(seen.has(date))throw new Error(`KODEX 거래일 ${date}가 중복되었습니다.`);
+      if(previousDate&&date<previousDate)throw new Error('KODEX 거래 데이터는 날짜 오름차순이어야 합니다.');
+      seen.add(date); previousDate=date;
+      if(!['core','day','mixed'].includes(row?.segment))throw new Error(`KODEX 거래 ${date}의 segment가 올바르지 않습니다.`);
+      ['qty','buy','sell','pnl','fee'].forEach(key=>{
+        if(!Number.isInteger(Number(row?.[key])))throw new Error(`KODEX 거래 ${date}의 ${key}가 정수가 아닙니다.`);
+      });
+      if(Number(row.qty)<=0||Number(row.buy)<=0||Number(row.sell)<=0||Number(row.fee)<0)throw new Error(`KODEX 거래 ${date}의 수량·단가·비용 범위가 올바르지 않습니다.`);
+      if(row.segment==='mixed'){
+        if(!row.core||typeof row.core!=='object')throw new Error(`KODEX 혼합거래 ${date}의 core가 없습니다.`);
+        ['qty','buy','sell','pnl','fee'].forEach(key=>{
+          if(!Number.isInteger(Number(row.core?.[key])))throw new Error(`KODEX 혼합거래 ${date}의 core.${key}가 정수가 아닙니다.`);
+        });
+        if(Number(row.core.qty)<=0||Number(row.core.qty)>=Number(row.qty)||Number(row.core.buy)<=0||Number(row.core.sell)<=0||Number(row.core.fee)<0)throw new Error(`KODEX 혼합거래 ${date}의 core 범위가 올바르지 않습니다.`);
+      }
+    });
+    if(String(source.reportStartDate)>String(source.trades[0].date))throw new Error('reportStartDate는 첫 매도일보다 늦을 수 없습니다.');
+    const context=source.positionContext;
+    const validateContextPoint=(label,point,{qty=true}={})=>{
+      if(!point||!REPORT_DATE_RE.test(String(point.date||''))||!Number.isInteger(Number(point.buy))||Number(point.buy)<=0||qty&&(!Number.isInteger(Number(point.qty))||Number(point.qty)<=0))throw new Error(`KODEX 거래 데이터 ${label} context가 올바르지 않습니다.`);
+    };
+    validateContextPoint('legacyBuild.first',context?.legacyBuild?.first);
+    validateContextPoint('legacyBuild.second',context?.legacyBuild?.second);
+    validateContextPoint('julyAdd',context?.julyAdd,{qty:false});
+    validateContextPoint('augustFinalBuild.first',context?.augustFinalBuild?.first);
+    validateContextPoint('augustFinalBuild.second',context?.augustFinalBuild?.second,{qty:false});
+    return source;
+  }
 
   function reportSum(rows,key){
     return rows.reduce((sum,row)=>sum+Number(row[key]||0),0);
@@ -833,7 +876,9 @@
     const fee=reportSum(rows,'fee');
     return Object.freeze({qty,pnl,fee,net:pnl-fee});
   }
-  function deriveReportModel(rows=REPORT_DATA){
+  function deriveReportModel(input=[]){
+    const source=Array.isArray(input)?{trades:input}:input||{};
+    const rows=Array.isArray(source.trades)?source.trades:[];
     const reportDailyRows=Object.freeze(deriveReportRows(rows));
     const coreTradeRows=Object.freeze(deriveSplitRows(rows,'core'));
     const dayTradeRows=Object.freeze(deriveSplitRows(rows,'day'));
@@ -862,13 +907,16 @@
       net:Object.freeze(reportDailyRows.map(row=>row.net)),
       cum:Object.freeze(reportDailyRows.map(row=>row.cumulative))
     });
+    const reportStartDate=String(source.reportStartDate||reportDailyRows[0]?.date||'');
+    const reportEndDate=String(reportDailyRows.at(-1)?.date||reportStartDate);
+    const positionContext=Object.freeze(source.positionContext||{});
     return Object.freeze({
       reportDailyRows,coreTradeRows,dayTradeRows,coreMetrics,dayMetrics,reportMetrics,chartData,
-      coreNetRatio,dayNetRatio,coreQtyRatio,dayQtyRatio
+      coreNetRatio,dayNetRatio,coreQtyRatio,dayQtyRatio,reportStartDate,reportEndDate,positionContext
     });
   }
 
-  if(isCommonJs)Object.assign(module.exports,{REPORT_DATA,reportSum,deriveReportRows,deriveSplitRows,deriveSplitMetrics,deriveReportModel});
+  if(isCommonJs)Object.assign(module.exports,{REPORT_DATA_URL,REPORT_SCHEMA_VERSION,validateReportSource,reportSum,deriveReportRows,deriveSplitRows,deriveSplitMetrics,deriveReportModel});
   if(!isReportPage)return;
 
   const reportNf0=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
@@ -895,16 +943,11 @@
   function createReportTimelineBuilder(model){
     const {reportDailyRows,coreTradeRows,dayTradeRows}=model;
     // 02. Timeline 데이터 파생
-    // 실현거래 숫자는 REPORT_DATA/분리 파생값을 그대로 사용한다.
-    // 매수만 존재해 REPORT_DATA에 없는 포지션 형성 사실만 별도 context로 둔다.
+    // 실현거래와 매수-only 포지션 context 모두 canonical JSON의 파생값만 사용한다.
     const reportRowByDate=new Map(reportDailyRows.map(row=>[row.date,row]));
     const coreRowByDate=new Map(coreTradeRows.map(row=>[row.date,row]));
     const dayRowByDate=new Map(dayTradeRows.map(row=>[row.date,row]));
-    const POSITION_CONTEXT=Object.freeze({
-      legacyBuild:Object.freeze({firstQty:16,firstBuy:203800,secondQty:22,secondBuy:170215}),
-      julyAdd:Object.freeze({extraBuy:74350}),
-      augustFinalBuild:Object.freeze({firstQty:15,firstBuy:110465,secondBuy:96750})
-    });
+    const POSITION_CONTEXT=model.positionContext||{};
 
     function timelineDateShort(date){
       const [,m,d]=date.split('-');
@@ -968,22 +1011,26 @@
       ));
 
       const legacy=POSITION_CONTEXT.legacyBuild;
-      const legacyQty=legacy.firstQty+legacy.secondQty;
-      const legacyCost=legacy.firstQty*legacy.firstBuy+legacy.secondQty*legacy.secondBuy;
-      events.push(timelineEvent(
-        '2026-07-02','2026-06-26~07-02',`기존 ${reportNumber(legacyQty)}주 고평단 포지션 형성`,
-        `${reportNumber(legacyQty)}주 · 총 취득원가 ${reportMetricText(legacyCost,'won')} · 평단 ${reportNumber(Math.round(legacyCost/legacyQty))}원`,
-        `6/26 ${reportNumber(legacy.firstQty)}주를 ${reportNumber(legacy.firstBuy)}원에 매수하고 7/2 ${reportNumber(legacy.secondQty)}주를 ${reportNumber(legacy.secondBuy)}원에 추가매수.`
-      ));
+      const legacyFirst=legacy?.first,legacySecond=legacy?.second;
+      const legacyQty=Number(legacyFirst?.qty||0)+Number(legacySecond?.qty||0);
+      const legacyCost=Number(legacyFirst?.qty||0)*Number(legacyFirst?.buy||0)+Number(legacySecond?.qty||0)*Number(legacySecond?.buy||0);
+      if(legacyFirst&&legacySecond&&legacyQty){
+        events.push(timelineEvent(
+          legacySecond.date,`${legacyFirst.date}~${legacySecond.date}`,`기존 ${reportNumber(legacyQty)}주 고평단 포지션 형성`,
+          `${reportNumber(legacyQty)}주 · 총 취득원가 ${reportMetricText(legacyCost,'won')} · 평단 ${reportNumber(Math.round(legacyCost/legacyQty))}원`,
+          `${timelineDateShort(legacyFirst.date)} ${reportNumber(legacyFirst.qty)}주를 ${reportNumber(legacyFirst.buy)}원에 매수하고 ${timelineDateShort(legacySecond.date)} ${reportNumber(legacySecond.qty)}주를 ${reportNumber(legacySecond.buy)}원에 추가매수.`
+        ));
+      }
 
       const july30=timelineRow('2026-07-30');
-      if(july30){
+      const julyAdd=POSITION_CONTEXT.julyAdd;
+      if(july30&&legacyQty&&julyAdd){
         const extraQty=july30.qty-legacyQty;
-        const totalCost=legacyCost+extraQty*POSITION_CONTEXT.julyAdd.extraBuy;
+        const totalCost=legacyCost+extraQty*Number(julyAdd.buy||0);
         events.push(timelineEvent(
-          '2026-07-29','2026-07-29','대규모 추가매수',
-          `${reportNumber(extraQty)}주 × ${reportNumber(POSITION_CONTEXT.julyAdd.extraBuy)}원 추가 → 총 ${reportNumber(july30.qty)}주`,
-          `기존 ${reportNumber(legacyQty)}주 취득원가 ${reportMetricText(legacyCost,'won')}과 ${reportNumber(extraQty)}주 추가매수 ${reportMetricText(extraQty*POSITION_CONTEXT.julyAdd.extraBuy,'won')}을 합쳐 총 ${reportNumber(july30.qty)}주 운용원가 ${reportMetricText(totalCost,'won')}.`
+          julyAdd.date,julyAdd.date,'대규모 추가매수',
+          `${reportNumber(extraQty)}주 × ${reportNumber(julyAdd.buy)}원 추가 → 총 ${reportNumber(july30.qty)}주`,
+          `기존 ${reportNumber(legacyQty)}주 취득원가 ${reportMetricText(legacyCost,'won')}과 ${reportNumber(extraQty)}주 추가매수 ${reportMetricText(extraQty*Number(julyAdd.buy||0),'won')}을 합쳐 총 ${reportNumber(july30.qty)}주 운용원가 ${reportMetricText(totalCost,'won')}.`
         ));
       }
 
@@ -1053,15 +1100,17 @@
 
       addRealized(['2026-08-20'],([row])=>{
         const build=POSITION_CONTEXT.augustFinalBuild;
-        const secondQty=row.qty-build.firstQty;
+        const first=build?.first,second=build?.second;
+        if(!first||!second)return timelineGeneric(row);
+        const secondQty=row.qty-Number(first.qty||0);
         return timelineEvent(
-          row.date,'2026-08-18~20',`${reportNumber(row.qty)}주 오버나이트 포지션 청산`,
-          `8/18 ${reportNumber(build.firstQty)}주 + 8/19 ${reportNumber(secondQty)}주 → 8/20 전량 매도`,
-          `${reportNumber(build.firstQty)}주는 ${reportNumber(build.firstBuy)}원, ${reportNumber(secondQty)}주는 ${reportNumber(build.secondBuy)}원에 매수해 가중평균 ${reportNumber(row.buy)}원. 8/20 ${reportNumber(row.sell)}원에 ${reportNumber(row.qty)}주 전량 매도해 본 포지션으로 분류.`
+          row.date,`${first.date}~${row.date}`,`${reportNumber(row.qty)}주 오버나이트 포지션 청산`,
+          `${timelineDateShort(first.date)} ${reportNumber(first.qty)}주 + ${timelineDateShort(second.date)} ${reportNumber(secondQty)}주 → ${timelineDateShort(row.date)} 전량 매도`,
+          `${reportNumber(first.qty)}주는 ${reportNumber(first.buy)}원, ${reportNumber(secondQty)}주는 ${reportNumber(second.buy)}원에 매수해 가중평균 ${reportNumber(row.buy)}원. ${timelineDateShort(row.date)} ${reportNumber(row.sell)}원에 ${reportNumber(row.qty)}주 전량 매도해 본 포지션으로 분류.`
         );
       });
 
-      // 새 REPORT_DATA 행이 curated group에 아직 정의되지 않아도 Timeline에서 누락되지 않게 자동 보완한다.
+      // 새 canonical 거래 행이 curated group에 아직 정의되지 않아도 Timeline에서 누락되지 않게 자동 보완한다.
       reportDailyRows.forEach(row=>{
         if(!coveredDates.has(row.date)) events.push(timelineGeneric(row));
       });
@@ -1071,7 +1120,8 @@
   }
 
   function createReportRenderer(model,buildTimelineEvents){
-    const {reportDailyRows,coreTradeRows,dayTradeRows,reportMetrics,coreNetRatio,coreQtyRatio,dayQtyRatio}=model;
+    const {reportDailyRows,coreTradeRows,dayTradeRows,reportMetrics,coreNetRatio,coreQtyRatio,dayQtyRatio,reportStartDate,reportEndDate,positionContext}=model;
+    const reportRowByDate=new Map(reportDailyRows.map(row=>[row.date,row]));
     const dayRowByDate=new Map(dayTradeRows.map(row=>[row.date,row]));
     // 03. Canonical DOM 렌더
     // 요약·표·Timeline은 위에서 파생한 동일 계산값만 사용하고 HTML에 거래 숫자를 중복 하드코딩하지 않는다.
@@ -1088,6 +1138,8 @@
       timeline.innerHTML=buildTimelineEvents().map(item=>`<article class="timeline-item"><div class="timeline-date">${item.range}</div><div class="timeline-dot"></div><div class="timeline-card add-card-shell add-card-control"><div class="timeline-card-main"><div class="timeline-card-date">${item.range}</div><h3 class="add-heading-subsection">${item.title}</h3><strong>${item.strong}</strong><p>${item.body}</p></div>${timelineProfitCard(item.net)}</div></article>`).join('');
     }
     function renderReportMetricValues(){
+      const period=document.querySelector('[data-report-period]');
+      if(period&&reportStartDate&&reportEndDate)period.textContent=`${reportStartDate.replaceAll('-','.')} ~ ${reportEndDate.replaceAll('-','.')}`;
       document.querySelectorAll('[data-report-value]').forEach(node=>{
         const key=node.dataset.reportValue;
         if(!(key in reportMetrics)) return;
@@ -1100,6 +1152,28 @@
       document.querySelectorAll('[data-report-mixed-pnl]').forEach(node=>{
         const row=dayRowByDate.get(node.dataset.reportMixedPnl);
         if(row)node.textContent=reportMetricText(row.pnl,'won');
+      });
+      document.querySelectorAll('[data-report-row-value]').forEach(node=>{
+        const [date,key]=String(node.dataset.reportRowValue||'').split(':');
+        const row=reportRowByDate.get(date);
+        if(row&&key in row)node.textContent=reportMetricText(row[key],node.dataset.format||'integer');
+      });
+      const legacyBuild=positionContext?.legacyBuild;
+      const augustBuild=positionContext?.augustFinalBuild;
+      const augustRow=reportRowByDate.get('2026-08-20');
+      const legacyFirstQty=Number(legacyBuild?.first?.qty);
+      const legacySecondQty=Number(legacyBuild?.second?.qty);
+      const augustFirstQty=Number(augustBuild?.first?.qty);
+      const reportContextValues={
+        legacyFirstQty,
+        legacySecondQty,
+        legacyTotalQty:Number.isFinite(legacyFirstQty)&&Number.isFinite(legacySecondQty)?legacyFirstQty+legacySecondQty:null,
+        augustFirstQty,
+        augustSecondQty:augustRow&&Number.isFinite(augustFirstQty)?augustRow.qty-augustFirstQty:null
+      };
+      document.querySelectorAll('[data-report-context-value]').forEach(node=>{
+        const value=reportContextValues[node.dataset.reportContextValue];
+        if(Number.isFinite(value))node.textContent=reportNumber(value);
       });
       document.getElementById('profitCompositionDonut')?.style.setProperty('--main-position-ratio',`${coreNetRatio}%`);
       document.getElementById('coreVolumeBar')?.style.setProperty('width',`${coreQtyRatio}%`);
@@ -1438,8 +1512,24 @@
     return {drawChart,initChart};
   }
 
-  const bootReportPage=()=>{
-    const model=deriveReportModel(REPORT_DATA);
+  async function loadReportSource(){
+    const response=await fetch(`${REPORT_DATA_URL}?ts=${Date.now()}`,{cache:'no-store'});
+    if(!response.ok)throw new Error(`KODEX 거래 데이터 로드 실패 (HTTP ${response.status})`);
+    const source=await response.json();
+    return validateReportSource(source);
+  }
+
+  function renderReportLoadError(error){
+    document.documentElement.classList.add('report-data-error');
+    const target=document.querySelector('[data-report-load-error]');
+    if(!target)return;
+    target.hidden=false;
+    target.textContent=`거래 데이터를 불러오지 못했습니다. ${String(error?.message||error)}`;
+  }
+
+  const bootReportPage=async()=>{
+    const source=await loadReportSource();
+    const model=deriveReportModel(source);
     const reportMobileMedia=window.matchMedia(REPORT_PHONE_QUERY);
     const chart=createReportChartController(model.chartData,reportMobileMedia);
     const buildTimelineEvents=createReportTimelineBuilder(model);
@@ -1449,6 +1539,7 @@
     initNavigationEvents();
     chart.initChart();
   };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootReportPage,{once:true});
-  else bootReportPage();
+  const startReportPage=()=>bootReportPage().catch(renderReportLoadError);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startReportPage,{once:true});
+  else startReportPage();
 })();
