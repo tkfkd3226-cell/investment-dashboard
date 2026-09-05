@@ -553,7 +553,14 @@ function ensureKrxActionModal(){
   });
   return modal;
 }
+let krxActionModalCloseTimer=0;
+function clearKrxActionModalCloseTimer(){
+  if(!krxActionModalCloseTimer)return;
+  clearTimeout(krxActionModalCloseTimer);
+  krxActionModalCloseTimer=0;
+}
 function openKrxActionModal(){
+  clearKrxActionModalCloseTimer();
   const modal=ensureKrxActionModal();
   const status=modal.querySelector('#krxActionStatus');
   const input=modal.querySelector('#krxActionPin');
@@ -564,6 +571,7 @@ function openKrxActionModal(){
 }
 
 function closeKrxActionModal(){
+  clearKrxActionModalCloseTimer();
   const modal=document.getElementById('krxActionModal');
   if(modal){
     const input=modal.querySelector('#krxActionPin');
@@ -610,7 +618,11 @@ async function submitKrxActionModal(mode='selected'){
       : '최신/누락 KRX 현재가 반영 요청 완료.';
     if(status){status.textContent=successMsg;status.className='action-modal-status krx-action-status ok'}
     showAppToast(updateMode==='selected'?'선택일 KRX 재갱신 요청 완료':'KRX 자동 반영 요청 완료', 'ok');
-    setTimeout(closeKrxActionModal,2000);
+    clearKrxActionModalCloseTimer();
+    krxActionModalCloseTimer=window.setTimeout(()=>{
+      krxActionModalCloseTimer=0;
+      closeKrxActionModal();
+    },2000);
   }catch(e){
     if(status){status.textContent=e.message||String(e);status.className='action-modal-status krx-action-status err'}
   }finally{

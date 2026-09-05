@@ -239,7 +239,8 @@ function render(){
 // [APP05] Initialization / Boot · 상태 초기화 / 이벤트 바인딩 / 부팅
 function initializeDashboardState(){
   const dates=allAvailableDates();
-  dataState.activeDate=dates.at(-1);
+  const requestedDate=decodeURIComponent(location.hash.replace(/^#/,''));
+  dataState.activeDate=dates.includes(requestedDate)?requestedDate:dates.at(-1);
   history.replaceState(null,'','#'+dataState.activeDate);
 }
 
@@ -266,4 +267,3 @@ boot().catch(err=>{
   const message=escapeHtml(String(err));
   document.getElementById('app').innerHTML=`<div class="wrap"><div class="note dashboard-error-note" role="alert" aria-labelledby="dashboardLoadErrorTitle"><h2 id="dashboardLoadErrorTitle"><span class="section-title-icon" data-section-title-icon="alertTriangle" aria-hidden="true">${navIconSvg('alertTriangle')}</span>데이터 로딩 오류</h2><pre class="dashboard-error-message">${message}</pre></div></div>`;
 })
-
