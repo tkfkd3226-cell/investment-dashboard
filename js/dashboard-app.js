@@ -239,7 +239,8 @@ function render(){
 // [APP05] Initialization / Boot · 상태 초기화 / 이벤트 바인딩 / 부팅
 function initializeDashboardState(){
   const dates=allAvailableDates();
-  const requestedDate=decodeURIComponent(location.hash.replace(/^#/,''));
+  let requestedDate='';
+  try{requestedDate=decodeURIComponent(location.hash.replace(/^#/,''));}catch{}
   dataState.activeDate=dates.includes(requestedDate)?requestedDate:dates.at(-1);
   history.replaceState(null,'','#'+dataState.activeDate);
 }
