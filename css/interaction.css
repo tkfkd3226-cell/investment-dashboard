@@ -70,10 +70,13 @@
       .control-action-button,
       .control-icon-button-compact,
       .control-square-button,
-      .control-info-button,
       .control-text-toggle
     ):not(:disabled):hover{
       border-color:var(--control-border-hover);
+    }
+
+    .control-info-button:not(:disabled):hover{
+      color:var(--control-border-hover);
     }
 
     .modal-icon-btn:not(:disabled):hover{

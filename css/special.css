@@ -140,8 +140,6 @@
       --info-button-size:14px;
       --info-button-hit-inset:-4px;
       display:inline-flex;
-      font-size:var(--type-size-2xs);
-      font-weight:var(--type-weight-bold);
       vertical-align:middle;
       z-index:80;
     }

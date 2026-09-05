@@ -416,7 +416,6 @@
   --chart-series-return:#5abdf2;
   --chart-series-kospi:#7c3aed;
   --chart-expanded-surface:#ffffff;
-  --info-control-border:#94a3b8;
   --info-control-bg:var(--card);
   --info-control-color:var(--muted);
   --hero-bg:linear-gradient(135deg,#202c42 0%,#2b3d59 58%,#36506f 100%);
@@ -481,7 +480,6 @@ html.dark{
   --chart-hover:#94a3b8;
   --chart-stack-stroke:#121826;
   --chart-expanded-surface:#0b1020;
-  --info-control-border:#64748b;
   --info-control-bg:#111827;
   --info-control-color:var(--highlight-card-muted);
   --hero-bg:linear-gradient(135deg,#151d2c 0%,#1c283b 58%,#24344b 100%);
@@ -1712,9 +1710,7 @@ body.chart-expanded-open .dash-tooltip{
 .compact-chart-ui .chart-title-info{
   display:inline-flex;
   margin-left:1px;
-  border-width:1.5px;
   font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-emphasis);
   z-index:12;
 }
 .compact-chart-ui .chart-title-info-tooltip{
@@ -3288,17 +3284,15 @@ button.control-icon-button-compact{
   flex:0 0 var(--info-button-size);
   margin:0;
   padding:0;
-  border:1px solid var(--info-control-border);
+  border:0;
   border-radius:50%;
   background:var(--info-control-bg);
   color:var(--info-control-color);
-  font-family:inherit;
-  line-height:1.12;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
 }
 .control-info-button::before{content:"";position:absolute;inset:var(--info-button-hit-inset)}
-.control-info-button > span[aria-hidden="true"]{transform:translateY(-.2px)}
+.control-info-button .info-icon-svg{display:block;width:100%;height:100%;overflow:visible;pointer-events:none}
 
 /* Text / Switch Control Primitives · 텍스트 전환 버튼과 track/thumb 스위치의 공통 골격 */
 .control-text-toggle{
