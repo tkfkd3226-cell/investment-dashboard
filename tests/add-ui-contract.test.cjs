@@ -499,7 +499,7 @@ test('Report chart 손익색은 Add 공통 semantic value source를 alias하고 
 
 test('Report boot는 canonical data load·계산·Timeline·DOM render·navigation·chart controller를 조립만 한다',()=>{
   assert.match(js,/const REPORT_DATA_URL='\.\.\/data\/kodex_leverage_trades\.json'/);
-  assert.match(js,/function validateReportSource\(source\)/);
+  assert.match(js,/const REPORT_SCHEMA_MODULE_URL='\.\.\/js\/kodex-leverage-schema\.js'/);
   assert.match(js,/function deriveReportModel\(input=\[\]\)/);
   assert.match(js,/async function loadReportSource\(\)/);
   assert.match(js,/function createReportTimelineBuilder\(model\)/);
@@ -513,7 +513,8 @@ test('Report boot는 canonical data load·계산·Timeline·DOM render·navigati
   assert.match(boot,/createReportRenderer\(model,buildTimelineEvents\)/);
   assert.match(boot,/createReportNavigationController\(reportMobileMedia,chart\.drawChart\)/);
   assert.match(boot,/createReportChartController\(model\.chartData,reportMobileMedia\)/);
-  assert.match(js,/return validateReportSource\(source\)/);
+  assert.match(js,/import\(`\$\{REPORT_SCHEMA_MODULE_URL\}\?ts=\$\{version\}`\)/);
+  assert.match(js,/return schema\.validateKodexLeverageSource\(source\)/);
   assert.match(report,/data-report-load-error[^>]*role=\"alert\"[^>]*hidden/);
   assert.match(css1,/\.report-load-error\{/);
   assert.doesNotMatch(boot,/querySelector|addEventListener|canvas|getContext/,'boot가 다시 feature 세부 구현을 직접 소유하면 안 된다');

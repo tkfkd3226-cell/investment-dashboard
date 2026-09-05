@@ -5,6 +5,7 @@ const path=require('node:path');
 
 const ROOT=path.resolve(__dirname,'..');
 const coreSource=fs.readFileSync(path.join(ROOT,'js/dashboard-core.js'),'utf8');
+const kodexSchemaSource=fs.readFileSync(path.join(ROOT,'js/kodex-leverage-schema.js'),'utf8');
 let core;
 
 const approx=(actual,expected,tolerance=1e-9)=>{
@@ -88,7 +89,9 @@ function setState(overrides={}){
 }
 
 test.before(async()=>{
-  const url='data:text/javascript;base64,'+Buffer.from(coreSource).toString('base64');
+  const schemaUrl='data:text/javascript;base64,'+Buffer.from(kodexSchemaSource).toString('base64');
+  const coreForNode=coreSource.replace("'./kodex-leverage-schema.js'",`'${schemaUrl}'`);
+  const url='data:text/javascript;base64,'+Buffer.from(coreForNode).toString('base64');
   core=await import(url);
 });
 

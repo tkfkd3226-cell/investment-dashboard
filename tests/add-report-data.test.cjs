@@ -10,15 +10,25 @@ const reportSource=JSON.parse(read('data/kodex_leverage_trades.json'));
 const REPORT_DATA=reportSource.trades;
 const addSource=read('add/add.js');
 const coreSource=read('js/dashboard-core.js');
-const {REPORT_DATA_URL,REPORT_SCHEMA_VERSION,isValidReportDate,validateReportSource,deriveReportModel}=require('../add/add.js');
+const schemaSource=read('js/kodex-leverage-schema.js');
+const {REPORT_DATA_URL,REPORT_SCHEMA_MODULE_URL,deriveReportModel}=require('../add/add.js');
 
 let core;
+let REPORT_SCHEMA_VERSION;
+let isValidReportDate;
+let validateReportSource;
 const model=deriveReportModel(reportSource);
 const byDate=rows=>new Map(rows.map(row=>[row.date,row]));
 
 test.before(async()=>{
-  const url='data:text/javascript;base64,'+Buffer.from(coreSource).toString('base64');
-  core=await import(url);
+  const schemaUrl='data:text/javascript;base64,'+Buffer.from(schemaSource).toString('base64');
+  const schema=await import(schemaUrl);
+  REPORT_SCHEMA_VERSION=schema.KODEX_LEVERAGE_SCHEMA_VERSION;
+  isValidReportDate=schema.isValidKodexLeverageDate;
+  validateReportSource=schema.validateKodexLeverageSource;
+  const coreForNode=coreSource.replace("'./kodex-leverage-schema.js'",`'${schemaUrl}'`);
+  const coreUrl='data:text/javascript;base64,'+Buffer.from(coreForNode).toString('base64');
+  core=await import(coreUrl);
 });
 
 test('KODEX canonical 거래 원천은 schema·기간·날짜순·중복없음·필수 숫자/segment 계약을 유지한다',()=>{
@@ -109,10 +119,16 @@ test('KODEX Report 순수 파생 모델은 전체/본 포지션/단타 합계와
 
 test('Main과 KODEX Report는 data/kodex_leverage_trades.json 하나만 canonical 거래 원천으로 사용한다',()=>{
   assert.equal(REPORT_DATA_URL,'../data/kodex_leverage_trades.json');
+  assert.equal(REPORT_SCHEMA_MODULE_URL,'../js/kodex-leverage-schema.js');
   assert.equal(Object.prototype.hasOwnProperty.call(portfolio,'separateProfit'),false,'portfolio.json에 별도수익 거래 복제본을 다시 두면 안 된다');
   assert.match(coreSource,/loadJson\('data\/kodex_leverage_trades\.json\?ts='/);
   assert.match(coreSource,/portfolio\.separateProfit=deriveSeparateProfitFromKodexReport\(kodexLeverageReport\)/);
   assert.match(addSource,/const REPORT_DATA_URL='\.\.\/data\/kodex_leverage_trades\.json'/);
+  assert.match(addSource,/const REPORT_SCHEMA_MODULE_URL='\.\.\/js\/kodex-leverage-schema\.js'/);
+  assert.match(addSource,/schema\.validateKodexLeverageSource\(source\)/);
+  assert.match(coreSource,/import \{ validateKodexLeverageSource \} from '\.\/kodex-leverage-schema\.js'/);
+  assert.match(coreSource,/const validated=validateKodexLeverageSource\(source\)/);
+  assert.doesNotMatch(coreSource,/function isValidIsoCalendarDate\(/,'Main에 별도 canonical 날짜 validator를 다시 두면 안 된다');
   assert.doesNotMatch(addSource,/const REPORT_DATA\s*=/,'add.js에 거래 원천 배열을 다시 하드코딩하면 안 된다');
   assert.doesNotMatch(addSource,/legacyBuild:Object\.freeze|firstQty:16|extraBuy:74350|secondBuy:96750/,'매수-only 포지션 context를 add.js에 다시 하드코딩하면 안 된다');
 });
@@ -126,17 +142,30 @@ test('Main separateProfit는 canonical KODEX 원천에서 날짜별 순손익과
   reportByDate.forEach((row,date)=>assert.equal(mainByDate.get(date)?.profit,row.net,`${date} Main 파생 순손익 불일치`));
   const mainTotal=mainSeparateProfit.trades.reduce((sum,row)=>sum+row.profit,0);
   assert.equal(mainTotal,model.reportMetrics.totalNet);
-  assert.throws(()=>core.deriveSeparateProfitFromKodexReport({...reportSource,schemaVersion:2}),/canonical 데이터 형식/);
+  assert.throws(()=>core.deriveSeparateProfitFromKodexReport({...reportSource,schemaVersion:2}),/schemaVersion/);
   const badMainDate=structuredClone(reportSource);
   badMainDate.trades[1].date='2026-08-00';
-  assert.throws(()=>core.deriveSeparateProfitFromKodexReport(badMainDate),/거래가 올바르지/,'Main도 존재하지 않는 달력 날짜를 거부해야 한다');
-  assert.throws(()=>core.deriveSeparateProfitFromKodexReport({...reportSource,reinvestedLimit:String(reportSource.reinvestedLimit)}),/재투입 한도/,'Main도 문자열 reinvestedLimit를 거부해야 한다');
+  assert.throws(()=>core.deriveSeparateProfitFromKodexReport(badMainDate),/date가 올바르지/,'Main도 존재하지 않는 달력 날짜를 거부해야 한다');
+  assert.throws(()=>core.deriveSeparateProfitFromKodexReport({...reportSource,reinvestedLimit:String(reportSource.reinvestedLimit)}),/reinvestedLimit/,'Main도 문자열 reinvestedLimit를 거부해야 한다');
   const badMainPnl=structuredClone(reportSource);
   badMainPnl.trades[0].pnl=String(badMainPnl.trades[0].pnl);
-  assert.throws(()=>core.deriveSeparateProfitFromKodexReport(badMainPnl),/거래가 올바르지/,'Main도 문자열 pnl을 거부해야 한다');
+  assert.throws(()=>core.deriveSeparateProfitFromKodexReport(badMainPnl),/JSON 정수/,'Main도 문자열 pnl을 거부해야 한다');
   const badMainFee=structuredClone(reportSource);
   badMainFee.trades[0].fee=String(badMainFee.trades[0].fee);
-  assert.throws(()=>core.deriveSeparateProfitFromKodexReport(badMainFee),/거래가 올바르지/,'Main도 문자열 fee를 거부해야 한다');
+  assert.throws(()=>core.deriveSeparateProfitFromKodexReport(badMainFee),/JSON 정수/,'Main도 문자열 fee를 거부해야 한다');
+
+  for(const [label,mutate] of [
+    ['qty 문자열',src=>{src.trades[0].qty=String(src.trades[0].qty);}],
+    ['buy 문자열',src=>{src.trades[0].buy=String(src.trades[0].buy);}],
+    ['sell 문자열',src=>{src.trades[0].sell=String(src.trades[0].sell);}],
+    ['잘못된 segment',src=>{src.trades[0].segment='oops';}],
+    ['context buy 문자열',src=>{src.positionContext.legacyBuild.first.buy=String(src.positionContext.legacyBuild.first.buy);}],
+    ['mixed core fee 범위',src=>{const row=src.trades.find(v=>v.segment==='mixed');row.core.fee=row.fee+1;}]
+  ]){
+    const invalid=structuredClone(reportSource);
+    mutate(invalid);
+    assert.throws(()=>core.deriveSeparateProfitFromKodexReport(invalid),Error,`Main도 Report와 동일하게 ${label} schema 오류를 거부해야 한다`);
+  }
 });
 
 test('근거·산식의 혼합일 설명은 canonical 거래 데이터에서 파생되는 동적 placeholder를 모든 혼합일에 사용한다',()=>{

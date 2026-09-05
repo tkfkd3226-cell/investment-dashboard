@@ -44,6 +44,7 @@ test('Main boot contract: CSS 6개 순서와 app/Market AI 두 module entry를 �
     assert.ok(at>last,`${file} must keep canonical CSS order`);
     last=at;
   }
+  assert.match(index,/'kodex-leverage-schema\.js'/,'공통 KODEX validator도 importmap cache-bust 대상이어야 한다');
   assert.match(index,/type="module" src="js\/dashboard-app\.js\?v=/);
   assert.match(index,/type="module" src="js\/dashboard-market-ai\.js\?v=/);
   assert.doesNotMatch(index,/'dashboard-responsive\.js'/);
@@ -65,6 +66,12 @@ test('Main module boundary: core는 DOM 비의존, modal은 무의존, Market AI
   assert.doesNotMatch(core,/\bwindow\b/);
   assert.deepEqual(importsOf(modal),[]);
   assert.deepEqual(importsOf(marketAi),['./dashboard-modal.js']);
+});
+
+test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validator 모듈을 사용한다',()=>{
+  assert.match(core,/import\s*\{\s*validateKodexLeverageSource\s*\}\s*from '\.\/kodex-leverage-schema\.js'/);
+  assert.match(core,/const validated=validateKodexLeverageSource\(source\)/);
+  assert.doesNotMatch(core,/function isValidIsoCalendarDate\(/);
 });
 
 test('공통 scroll overflow state는 ui-common이 소유하고 Table/Chart가 같은 helper를 재사용한다',()=>{
