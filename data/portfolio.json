@@ -201,24 +201,5 @@
     "vipGoldInput": 3000000,
     "temporaryFunding": 4967980,
     "principalRecovery": -6089845
-  },
-  "separateProfit": {
-    "reinvestedLimit": 6700000,
-    "trades": [
-      {"date": "2026-06-09", "profit": 15975},
-      {"date": "2026-06-16", "profit": 5004},
-      {"date": "2026-06-19", "profit": 50215},
-      {"date": "2026-06-23", "profit": 10446},
-      {"date": "2026-06-25", "profit": 427007},
-      {"date": "2026-07-30", "profit": -4036636},
-      {"date": "2026-07-31", "profit": 5804782},
-      {"date": "2026-08-04", "profit": 206313},
-      {"date": "2026-08-05", "profit": 4826661},
-      {"date": "2026-08-06", "profit": 202219},
-      {"date": "2026-08-07", "profit": 163334},
-      {"date": "2026-08-12", "profit": 68059},
-      {"date": "2026-08-20", "profit": 1090423},
-      {"date": "2026-09-02", "profit": 243256}
-    ]
   }
 }

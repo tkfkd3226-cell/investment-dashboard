@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "reportStartDate": "2026-06-08",
+  "reinvestedLimit": 6700000,
+  "positionContext": {
+    "legacyBuild": {
+      "first": {
+        "date": "2026-06-26",
+        "qty": 16,
+        "buy": 203800
+      },
+      "second": {
+        "date": "2026-07-02",
+        "qty": 22,
+        "buy": 170215
+      }
+    },
+    "julyAdd": {
+      "date": "2026-07-29",
+      "buy": 74350
+    },
+    "augustFinalBuild": {
+      "first": {
+        "date": "2026-08-18",
+        "qty": 15,
+        "buy": 110465
+      },
+      "second": {
+        "date": "2026-08-19",
+        "buy": 96750
+      }
+    }
+  },
+  "trades": [
+    {
+      "date": "2026-06-09",
+      "qty": 12,
+      "buy": 164170,
+      "sell": 165515,
+      "pnl": 16140,
+      "fee": 165,
+      "segment": "core"
+    },
+    {
+      "date": "2026-06-16",
+      "qty": 36,
+      "buy": 210398,
+      "sell": 210554,
+      "pnl": 5640,
+      "fee": 636,
+      "segment": "day"
+    },
+    {
+      "date": "2026-06-19",
+      "qty": 15,
+      "buy": 235711,
+      "sell": 239078,
+      "pnl": 50510,
+      "fee": 295,
+      "segment": "day"
+    },
+    {
+      "date": "2026-06-23",
+      "qty": 26,
+      "buy": 229138,
+      "sell": 229558,
+      "pnl": 10945,
+      "fee": 499,
+      "segment": "day"
+    },
+    {
+      "date": "2026-06-25",
+      "qty": 15,
+      "buy": 198500,
+      "sell": 226985,
+      "pnl": 427275,
+      "fee": 268,
+      "segment": "core"
+    },
+    {
+      "date": "2026-07-30",
+      "qty": 642,
+      "buy": 80861,
+      "sell": 74580,
+      "pnl": -4032440,
+      "fee": 4196,
+      "segment": "core"
+    },
+    {
+      "date": "2026-07-31",
+      "qty": 5946,
+      "buy": 101778,
+      "sell": 102763,
+      "pnl": 5855965,
+      "fee": 51183,
+      "segment": "mixed",
+      "core": {
+        "qty": 576,
+        "buy": 82680,
+        "sell": 91065,
+        "pnl": 4829760,
+        "fee": 4212
+      }
+    },
+    {
+      "date": "2026-08-04",
+      "qty": 371,
+      "buy": 90649,
+      "sell": 91212,
+      "pnl": 209150,
+      "fee": 2837,
+      "segment": "day"
+    },
+    {
+      "date": "2026-08-05",
+      "qty": 1558,
+      "buy": 100153,
+      "sell": 103259,
+      "pnl": 4839995,
+      "fee": 13334,
+      "segment": "mixed",
+      "core": {
+        "qty": 532,
+        "buy": 94417,
+        "sell": 104035,
+        "pnl": 5116776,
+        "fee": 4442
+      }
+    },
+    {
+      "date": "2026-08-06",
+      "qty": 4002,
+      "buy": 92364,
+      "sell": 92422,
+      "pnl": 233340,
+      "fee": 31121,
+      "segment": "day"
+    },
+    {
+      "date": "2026-08-07",
+      "qty": 493,
+      "buy": 90384,
+      "sell": 90723,
+      "pnl": 167090,
+      "fee": 3756,
+      "segment": "mixed",
+      "core": {
+        "qty": 100,
+        "buy": 91767,
+        "sell": 93813,
+        "pnl": 204590,
+        "fee": 781
+      }
+    },
+    {
+      "date": "2026-08-12",
+      "qty": 101,
+      "buy": 99463,
+      "sell": 100145,
+      "pnl": 68905,
+      "fee": 846,
+      "segment": "mixed",
+      "core": {
+        "qty": 32,
+        "buy": 92580,
+        "sell": 95480,
+        "pnl": 92800,
+        "fee": 253
+      }
+    },
+    {
+      "date": "2026-08-20",
+      "qty": 220,
+      "buy": 97685,
+      "sell": 102650,
+      "pnl": 1092275,
+      "fee": 1852,
+      "segment": "core"
+    },
+    {
+      "date": "2026-09-02",
+      "qty": 500,
+      "buy": 100630,
+      "sell": 101125,
+      "pnl": 247500,
+      "fee": 4244,
+      "segment": "day"
+    }
+  ]
+}
