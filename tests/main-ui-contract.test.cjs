@@ -522,8 +522,16 @@ test('Chart responsive ownership은 공통 Phone helper·responsive CSS 책임·
 
   assert.doesNotMatch(common,/--chart-info-/);
   assert.doesNotMatch(print,/--chart-info-/);
-  assert.match(common1,/--info-control-border:[^;]+; --info-control-bg:var\(--card\); --info-control-color:var\(--muted\)/);
-  assert.match(common1,/\.control-info-button\{[^}]*border:1px solid var\(--info-control-border\);[^}]*background:var\(--info-control-bg\); color:var\(--info-control-color\)/);
+  assert.doesNotMatch(common,/--info-control-border:/);
+  assert.match(common1,/--info-control-bg:var\(--card\); --info-control-color:var\(--muted\)/);
+  assert.match(common1,/\.control-info-button\{[^}]*border:0;[^}]*background:var\(--info-control-bg\); color:var\(--info-control-color\)/);
+  assert.match(common1,/\.control-info-button \.info-icon-svg\{[^}]*width:100%;height:100%/);
+  assert.doesNotMatch(common1,/\.compact-chart-ui \.chart-title-info\{[^}]*border-width:/);
+  assert.match(compact(uiCommon),/INFO_ICON_USE_HREF='img\/ui-icons\.svg#info-circle'/);
+  assert.match(charts1,/\$\{infoIconSvg\(\)\}<span class="chart-title-info-tooltip"/);
+  assert.match(ui1,/\$\{infoIconSvg\(\)\}<span class="accounts-memo-tooltip-source"/);
+  assert.doesNotMatch(charts,/aria-hidden="true">i<\/span>/);
+  assert.doesNotMatch(ui,/aria-hidden="true">i<\/span>/);
   assert.match(print1,/--info-control-bg:var\(--card\); --info-control-color:var\(--muted\)/);
 
   assert.match(common1,/\.chart-expanded-stage\{ --chart-expanded-pad-block-start:[^;]+; --chart-expanded-pad-inline-end:[^;]+; --chart-expanded-pad-block-end:var\(--space-7xl\); --chart-expanded-pad-inline-start:var\(--space-10xl\);/);

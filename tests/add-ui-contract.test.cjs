@@ -60,6 +60,15 @@ test('Calc 도움말은 label과 inline-flex 정렬을 공유하고 개별 위�
   assert.doesNotMatch(wrap,/top:|margin-top:|margin-bottom:/);
   assert.match(calc,/class="help-icon add-button"[^>]*aria-describedby=/);
   assert.match(js1,/class="help-icon add-button"[^>]*aria-describedby=/);
+  assert.match(calc,/class="info-icon-svg"[^>]*><use href="\.\.\/img\/ui-icons\.svg#info-circle"><\/use><\/svg>/);
+  assert.match(js1,/ADD_INFO_ICON_SVG='[^']*ui-icons\.svg#info-circle/);
+  assert.doesNotMatch(calc,/aria-hidden="true">i<\/span>/);
+  assert.doesNotMatch(js,/aria-hidden="true">i<\/span>/);
+  const icon=rule(':where(html[data-add-page="calc"]) .help-icon');
+  assert.match(icon,/border:0/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .help-icon .info-icon-svg'),/width:100%;height:100%/);
+  assert.match(css,/--help-icon-active-color:/);
+  assert.doesNotMatch(css,/--help-icon-active-border:/);
 });
 
 test('Calc control 높이와 visual state는 viewport 공통 shell source를 사용한다',()=>{

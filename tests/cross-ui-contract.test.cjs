@@ -86,3 +86,14 @@ test('Hero background와 favicon은 배포에 필요한 최적화 자산만 참�
   assert.ok(fs.statSync(path.join(ROOT,'favicon.png')).size<100*1024,'favicon must remain lightweight');
   assert.ok(fs.statSync(path.join(ROOT,'img/hero-bg.webp')).size<100*1024,'hero background must remain lightweight');
 });
+
+test('공통 정보 아이콘은 단일 SVG sprite를 사용하고 원/i geometry를 고정한다',()=>{
+  const iconPath=path.join(ROOT,'img/ui-icons.svg');
+  assert.equal(fs.existsSync(iconPath),true);
+  const icon=fs.readFileSync(iconPath,'utf8');
+  assert.match(icon,/<symbol id="info-circle" viewBox="0 0 20 20">/);
+  assert.match(icon,/<circle cx="10" cy="10" r="8\.75"/);
+  assert.match(icon,/<circle cx="10" cy="6\.7" r="1"/);
+  assert.match(icon,/<rect x="9" y="8\.9" width="2" height="5\.4"/);
+});
+
