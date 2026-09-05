@@ -958,7 +958,7 @@ Main 계산 테스트는 production 순수 계산 함수를 직접 사용하고,
 
 ### Report / 운영 숫자 변경
 
-`add_maintenance_handover.md`의 확정 계산 기준과 체크리스트를 우선한다. 표·KPI·차트·`data/portfolio.json`의 누계가 서로 맞는지 교차검산한다.
+`add_maintenance_handover.md`의 확정 계산 기준과 체크리스트를 우선한다. `data/kodex_leverage_trades.json`을 단일 원천으로 사용하고, 여기서 파생되는 Main 별도수익과 Report의 표·KPI·차트·누계가 서로 맞는지 교차검산한다.
 
 ## 3.4 QA FAIL 처리
 

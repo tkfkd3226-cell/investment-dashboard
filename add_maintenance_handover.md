@@ -76,7 +76,7 @@ Add 영역의 토큰화·공통화 평가는 **literal 값의 존재 자체가 �
 2. 현재 ZIP의 실제 관련 소스
    - Calc 작업: add/calc.html, add/add.css, add/add.js
    - Report 작업: add/kodex-leverage-report.html, add/add.css, add/add.js
-   - 실현손익 반영: data/portfolio.json 포함
+   - 실현손익 반영: data/kodex_leverage_trades.json 한 곳만 수정
 3. 사용자가 이번 작업에 제공한 최신 증권사 원본 자료
 4. Main 연결·전역 contract에 실제 영향이 있을 때만 /main_dashboard_maintenance_handover.md
 ```
@@ -318,7 +318,7 @@ data/kodex_leverage_trades.json
 }
 ```
 
-- `schemaVersion`: 현재 형식은 `1`. 브라우저와 QA가 다른 버전 또는 잘못된 숫자·날짜·중복 거래를 계산 전에 차단한다.
+- `schemaVersion`: 현재 형식은 `1`. 브라우저와 QA가 다른 버전 또는 잘못된 숫자·실제 달력에 존재하지 않는 날짜·중복 거래를 계산 전에 차단한다. 윤년 규칙까지 실제 달력 기준으로 검증한다.
 - `reportStartDate`: Report 상단 표시기간의 시작일. 종료일은 `trades`의 마지막 매도일에서 자동 파생한다.
 - `positionContext`: 매도실현손익만으로 복원할 수 없는 매수-only 포지션 형성 사실. Timeline과 근거 설명에 필요한 값을 JS literal로 복제하지 않는다.
 
@@ -500,7 +500,7 @@ reinvestedLimit
 - 새 매도일의 수량·평균매수·평균매도·손익·비용·순손익이 증권사 원본과 일치한다.
 - 날짜별 `손익금액 - 거래비용 = 순손익`, 전체 합계와 날짜별 합계가 일치한다.
 - `data/kodex_leverage_trades.json`의 거래일이 오름차순·중복 없음·필수 숫자/segment 형식을 유지하고, Main 파생 별도수익과 Report 파생 날짜별 순손익·누적 실현 순손익이 일치한다. `tests/add-report-data.test.cjs`로 자동 확인한다.
-- 본 포지션 + 단타의 수량·손익·비용·순손익 합계가 전체와 일치한다.
+- 본 포지션 + 단타의 수량·손익·비용·순손익 합계가 전체와 일치한다. 혼합일의 `core.fee`는 전체 `fee`를 넘을 수 없으며, 파생 단타 비용이 음수가 되면 canonical validation에서 차단한다.
 - 동일 지표를 사용하는 요약·차트·표에 과거 값이 잔존하지 않으며, Timeline은 `data/kodex_leverage_trades.json` 파생값과 일치하고 새 매도일이 누락되지 않는다.
 - 원본 이미지/근거를 갱신하는 작업이라면 최신 숫자와 같은 시점인지 확인한다.
 
