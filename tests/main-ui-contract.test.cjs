@@ -328,6 +328,24 @@ test('Chart shell은 공통 renderer·display token·정적 SVG visual source를
   assert.match(common1,/\.chart-title-sub\{ display:inline; align-self:flex-end;/);
 });
 
+test('증권·퇴직연금 6개 차트 제목은 공통 label primitive를 사용하고 info 유무가 제목 geometry를 바꾸지 않는다',()=>{
+  assert.equal((charts.match(/\$\{renderChartCard\(\{/g)||[]).length,6);
+  assert.match(charts1,/function chartTitleLabel\(title,\{sub='',info=''\}=\{\}\)\{/);
+  assert.match(charts1,/\$\{chartTitleLabel\(title,\{sub:titleSub,info:titleInfo\}\)\}/);
+  assert.match(charts1,/id:'pension-chart-cum',title:'운용손익 및 운용수익률',titleSub:'전체 운용 기준',titleInfo:'전체 운용 기준'/);
+  assert.match(charts1,/id:'pension-chart-symbol',title:'연금상품별 운용손익',titleSub:'보유상품 재투자 기준',titleInfo:'보유상품 재투자 기준'/);
+  assert.doesNotMatch(charts,/title:`[^`]*chart-title-sub/);
+  assert.match(common1,/\.chart-title-label\{ display:inline-flex; align-items:center; gap:var\(--section-title-gap\); min-width:0; line-height:inherit; \}/);
+  assert.match(common1,/\.chart-title-text\{min-width:0;line-height:inherit\}/);
+  assert.match(common1,/\.chart-title-info-slot\{display:none\}/);
+  assert.match(common1,/\.compact-chart-ui \.chart-title-info-slot\{ display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; height:1lh; line-height:inherit; \}/);
+  assert.match(common1,/\.compact-chart-ui \.chart-title-info\{ display:inline-flex; z-index:12; \}/);
+  assert.doesNotMatch(common1,/\.compact-chart-ui \.chart-title-info\{[^}]*margin-(?:top|bottom|left|right):/);
+  assert.doesNotMatch(common1,/\.chart-title-info-slot\{[^}]*transform:translateY/);
+  assert.match(compact(print),/\.compact-chart-ui \.chart-title-info-slot,/);
+  assert.doesNotMatch(print,/^[ \t]*\.chart-title-info,/m);
+});
+
 test('Chart summary는 allocation presentation helper와 viewport meta token을 사용한다',()=>{
   const tablet1=compact(tablet);
   assert.match(charts,/function allocationValueCard\(/);
