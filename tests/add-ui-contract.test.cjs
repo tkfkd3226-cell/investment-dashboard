@@ -497,17 +497,24 @@ test('Report chart 손익색은 Add 공통 semantic value source를 alias하고 
   assert.doesNotMatch(css1,/@media\(max-width:760px\)\{ \.add-button-mobile-icon\{/);
 });
 
-test('Report boot는 계산·Timeline·DOM render·navigation·chart controller를 조립만 한다',()=>{
-  assert.match(js,/function deriveReportModel\(rows=REPORT_DATA\)/);
+test('Report boot는 canonical data load·계산·Timeline·DOM render·navigation·chart controller를 조립만 한다',()=>{
+  assert.match(js,/const REPORT_DATA_URL='\.\.\/data\/kodex_leverage_trades\.json'/);
+  assert.match(js,/function validateReportSource\(source\)/);
+  assert.match(js,/function deriveReportModel\(input=\[\]\)/);
+  assert.match(js,/async function loadReportSource\(\)/);
   assert.match(js,/function createReportTimelineBuilder\(model\)/);
   assert.match(js,/function createReportRenderer\(model,buildTimelineEvents\)/);
   assert.match(js,/function createReportNavigationController\(reportMobileMedia,drawChart\)/);
   assert.match(js,/function createReportChartController\(chartData,reportMobileMedia\)/);
-  const boot=js.match(/const bootReportPage=\(\)=>\{([^}]*)\};/)?.[1]||'';
-  assert.match(boot,/deriveReportModel\(REPORT_DATA\)/);
+  const boot=js.match(/const bootReportPage=async\(\)=>\{([\s\S]*?)\n  \};/)?.[1]||'';
+  assert.match(boot,/const source=await loadReportSource\(\)/);
+  assert.match(boot,/deriveReportModel\(source\)/);
   assert.match(boot,/createReportTimelineBuilder\(model\)/);
   assert.match(boot,/createReportRenderer\(model,buildTimelineEvents\)/);
   assert.match(boot,/createReportNavigationController\(reportMobileMedia,chart\.drawChart\)/);
   assert.match(boot,/createReportChartController\(model\.chartData,reportMobileMedia\)/);
+  assert.match(js,/return validateReportSource\(source\)/);
+  assert.match(report,/data-report-load-error[^>]*role=\"alert\"[^>]*hidden/);
+  assert.match(css1,/\.report-load-error\{/);
   assert.doesNotMatch(boot,/querySelector|addEventListener|canvas|getContext/,'boot가 다시 feature 세부 구현을 직접 소유하면 안 된다');
 });

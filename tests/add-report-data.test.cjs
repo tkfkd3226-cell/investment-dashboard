@@ -6,12 +6,57 @@ const path=require('node:path');
 const ROOT=path.resolve(__dirname,'..');
 const read=rel=>fs.readFileSync(path.join(ROOT,rel),'utf8');
 const portfolio=JSON.parse(read('data/portfolio.json'));
-const {REPORT_DATA,deriveReportModel}=require('../add/add.js');
+const reportSource=JSON.parse(read('data/kodex_leverage_trades.json'));
+const REPORT_DATA=reportSource.trades;
+const addSource=read('add/add.js');
+const coreSource=read('js/dashboard-core.js');
+const {REPORT_DATA_URL,REPORT_SCHEMA_VERSION,validateReportSource,deriveReportModel}=require('../add/add.js');
 
-const model=deriveReportModel(REPORT_DATA);
+let core;
+const model=deriveReportModel(reportSource);
 const byDate=rows=>new Map(rows.map(row=>[row.date,row]));
 
-test('KODEX Report 순수 파생 모델은 전체/본 포지션/단타 합계를 보존한다',()=>{
+test.before(async()=>{
+  const url='data:text/javascript;base64,'+Buffer.from(coreSource).toString('base64');
+  core=await import(url);
+});
+
+test('KODEX canonical 거래 원천은 schema·기간·날짜순·중복없음·필수 숫자/segment 계약을 유지한다',()=>{
+  assert.equal(reportSource.schemaVersion,REPORT_SCHEMA_VERSION);
+  assert.equal(reportSource.reportStartDate,'2026-06-08');
+  assert.equal(reportSource.reinvestedLimit,6700000);
+  assert.equal(validateReportSource(reportSource),reportSource);
+  assert.ok(Array.isArray(REPORT_DATA)&&REPORT_DATA.length>0);
+  const dates=REPORT_DATA.map(row=>row.date);
+  assert.deepEqual(dates,[...dates].sort(),'거래일 정렬이 깨졌다');
+  assert.equal(new Set(dates).size,dates.length,'동일 거래일이 canonical source에 중복됐다');
+  for(const row of REPORT_DATA){
+    assert.match(row.date,/^\d{4}-\d{2}-\d{2}$/);
+    assert.ok(['core','day','mixed'].includes(row.segment),`${row.date} segment 오류`);
+    for(const key of ['qty','buy','sell','pnl','fee'])assert.ok(Number.isFinite(Number(row[key])),`${row.date} ${key} 숫자 오류`);
+    if(row.segment==='mixed'){
+      assert.ok(row.core&&typeof row.core==='object',`${row.date} mixed core 누락`);
+      for(const key of ['qty','buy','sell','pnl','fee'])assert.ok(Number.isFinite(Number(row.core[key])),`${row.date} core.${key} 숫자 오류`);
+      assert.ok(row.core.qty>=0&&row.core.qty<=row.qty,`${row.date} core 수량 범위 오류`);
+    }
+  }
+  assert.equal(reportSource.positionContext.legacyBuild.first.qty,16);
+  assert.equal(reportSource.positionContext.legacyBuild.second.qty,22);
+  assert.equal(reportSource.positionContext.augustFinalBuild.first.qty,15);
+});
+
+test('KODEX Report canonical schema validator는 잘못된 운영 데이터를 화면 계산 전에 차단한다',()=>{
+  assert.throws(()=>validateReportSource({...reportSource,schemaVersion:2}),/schemaVersion/);
+  assert.throws(()=>validateReportSource({...reportSource,trades:[reportSource.trades[0],reportSource.trades[0]]}),/중복/);
+  const badMixed=structuredClone(reportSource);
+  badMixed.trades.find(row=>row.segment==='mixed').core.qty=badMixed.trades.find(row=>row.segment==='mixed').qty;
+  assert.throws(()=>validateReportSource(badMixed),/core 범위/);
+  const badContext=structuredClone(reportSource);
+  delete badContext.positionContext.augustFinalBuild.second.buy;
+  assert.throws(()=>validateReportSource(badContext),/augustFinalBuild\.second context/);
+});
+
+test('KODEX Report 순수 파생 모델은 전체/본 포지션/단타 합계와 표시기간을 보존한다',()=>{
   assert.equal(model.reportMetrics.totalQty,13937);
   assert.equal(model.reportMetrics.totalPnl,9192290);
   assert.equal(model.reportMetrics.totalFee,115232);
@@ -22,24 +67,35 @@ test('KODEX Report 순수 파생 모델은 전체/본 포지션/단타 합계를
   assert.equal(model.reportMetrics.coreNet+model.reportMetrics.dayNet,model.reportMetrics.totalNet);
   assert.equal(model.chartData.net.at(-1),model.reportDailyRows.at(-1).net);
   assert.equal(model.chartData.cum.at(-1),model.reportMetrics.totalNet);
+  assert.equal(model.reportStartDate,reportSource.reportStartDate);
+  assert.equal(model.reportEndDate,REPORT_DATA.at(-1).date);
+  assert.equal(model.positionContext,reportSource.positionContext);
 });
 
-test('Main separateProfit와 KODEX Report는 거래일 set·날짜별 순손익·최종 합계를 동일하게 유지한다',()=>{
-  const mainTrades=portfolio.separateProfit?.trades||[];
-  const reportTrades=model.reportDailyRows;
-  const mainByDate=byDate(mainTrades);
-  const reportByDate=byDate(reportTrades);
-  assert.deepEqual([...reportByDate.keys()],[...mainByDate.keys()],'Main/Report 거래일 또는 정렬 순서가 달라졌다');
-  reportByDate.forEach((row,date)=>{
-    assert.equal(row.net,mainByDate.get(date)?.profit,`${date} Main/Report 순손익이 다르다`);
-  });
-  const mainTotal=mainTrades.reduce((sum,row)=>sum+Number(row.profit||0),0);
-  assert.equal(model.reportMetrics.totalNet,mainTotal,'Main/Report 누적 별도수익 합계가 다르다');
+test('Main과 KODEX Report는 data/kodex_leverage_trades.json 하나만 canonical 거래 원천으로 사용한다',()=>{
+  assert.equal(REPORT_DATA_URL,'../data/kodex_leverage_trades.json');
+  assert.equal(Object.prototype.hasOwnProperty.call(portfolio,'separateProfit'),false,'portfolio.json에 별도수익 거래 복제본을 다시 두면 안 된다');
+  assert.match(coreSource,/loadJson\('data\/kodex_leverage_trades\.json\?ts='/);
+  assert.match(coreSource,/portfolio\.separateProfit=deriveSeparateProfitFromKodexReport\(kodexLeverageReport\)/);
+  assert.match(addSource,/const REPORT_DATA_URL='\.\.\/data\/kodex_leverage_trades\.json'/);
+  assert.doesNotMatch(addSource,/const REPORT_DATA\s*=/,'add.js에 거래 원천 배열을 다시 하드코딩하면 안 된다');
+  assert.doesNotMatch(addSource,/legacyBuild:Object\.freeze|firstQty:16|extraBuy:74350|secondBuy:96750/,'매수-only 포지션 context를 add.js에 다시 하드코딩하면 안 된다');
 });
 
-test('근거·산식의 혼합일 설명은 REPORT_DATA에서 파생되는 동적 placeholder를 모든 혼합일에 사용한다',()=>{
+test('Main separateProfit는 canonical KODEX 원천에서 날짜별 순손익과 재투입 한도를 파생한다',()=>{
+  const mainSeparateProfit=core.deriveSeparateProfitFromKodexReport(reportSource);
+  assert.equal(mainSeparateProfit.reinvestedLimit,reportSource.reinvestedLimit);
+  const mainByDate=byDate(mainSeparateProfit.trades);
+  const reportByDate=byDate(model.reportDailyRows);
+  assert.deepEqual([...mainByDate.keys()],[...reportByDate.keys()]);
+  reportByDate.forEach((row,date)=>assert.equal(mainByDate.get(date)?.profit,row.net,`${date} Main 파생 순손익 불일치`));
+  const mainTotal=mainSeparateProfit.trades.reduce((sum,row)=>sum+row.profit,0);
+  assert.equal(mainTotal,model.reportMetrics.totalNet);
+  assert.throws(()=>core.deriveSeparateProfitFromKodexReport({...reportSource,schemaVersion:2}),/canonical 데이터 형식/);
+});
+
+test('근거·산식의 혼합일 설명은 canonical 거래 데이터에서 파생되는 동적 placeholder를 모든 혼합일에 사용한다',()=>{
   const html=read('add/kodex-leverage-report.html');
-  const addJs=read('add/add.js');
   const mixedDates=REPORT_DATA.filter(row=>row.segment==='mixed').map(row=>row.date);
   const dayByDate=byDate(model.dayTradeRows);
   for(const date of mixedDates){
@@ -47,8 +103,32 @@ test('근거·산식의 혼합일 설명은 REPORT_DATA에서 파생되는 동�
     assert.match(html,new RegExp(`data-report-mixed-pnl="${date}"`),`${date} 단타손익 placeholder 누락`);
     assert.ok(dayByDate.has(date),`${date} 단타 파생행 누락`);
   }
-  assert.match(addJs,/querySelectorAll\('\[data-report-mixed-qty\]'\)/,'혼합일 단타수량 renderer 누락');
-  assert.match(addJs,/querySelectorAll\('\[data-report-mixed-pnl\]'\)/,'혼합일 단타손익 renderer 누락');
+  assert.match(addSource,/querySelectorAll\('\[data-report-mixed-qty\]'\)/,'혼합일 단타수량 renderer 누락');
+  assert.match(addSource,/querySelectorAll\('\[data-report-mixed-pnl\]'\)/,'혼합일 단타손익 renderer 누락');
   assert.doesNotMatch(html,/7\/31은\s*5,370주/,'혼합일 단타수량을 HTML에 다시 하드코딩하면 안 된다');
   assert.doesNotMatch(html,/7\/31 단타 손익은\s*1,026,205원/,'혼합일 단타손익을 HTML에 다시 하드코딩하면 안 된다');
+});
+
+test('Report 표시기간과 근거 설명의 거래 수치는 canonical 원천에서 동적으로 렌더링한다',()=>{
+  const html=read('add/kodex-leverage-report.html');
+  assert.match(html,/data-report-period/);
+  assert.doesNotMatch(html,/2026\.06\.08\s*~\s*2026\.09\.02/,'표시기간을 HTML에 고정하면 안 된다');
+  for(const key of ['2026-06-09:qty','2026-06-25:qty','2026-08-20:qty','2026-08-20:fee','2026-09-02:qty']){
+    assert.match(html,new RegExp(`data-report-row-value=\"${key}\"`),`${key} 동적 placeholder 누락`);
+  }
+  for(const key of ['legacyFirstQty','legacySecondQty','legacyTotalQty','augustFirstQty','augustSecondQty']){
+    assert.match(html,new RegExp(`data-report-context-value=\"${key}\"`),`${key} context placeholder 누락`);
+  }
+  assert.match(addSource,/period\.textContent=`\$\{reportStartDate\.replaceAll/);
+  assert.match(addSource,/querySelectorAll\('\[data-report-row-value\]'\)/);
+  assert.match(addSource,/querySelectorAll\('\[data-report-context-value\]'\)/);
+});
+
+test('운영 문서는 KODEX 거래 단일 원천 규칙과 신규 거래 반영 절차를 canonical JSON 기준으로 유지한다',()=>{
+  const docs=[read('README.md'),read('main_dashboard_maintenance_handover.md'),read('add_maintenance_handover.md')].join('\n');
+  assert.match(docs,/data\/kodex_leverage_trades\.json/);
+  assert.doesNotMatch(docs,/add\/add\.js[^\n]*REPORT_DATA|data\/portfolio\.json[^\n]*(?:separateProfit\.trades|별도수익)[^\n]*(?:반영|source of truth)/i);
+  const addHandover=read('add_maintenance_handover.md');
+  assert.match(addHandover,/`data\/kodex_leverage_trades\.json`에 실현거래를 1회 반영/);
+  assert.match(addHandover,/`data\/portfolio\.json`에 `separateProfit` 거래 배열을 다시 만들거나/);
 });

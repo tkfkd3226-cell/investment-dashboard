@@ -134,3 +134,19 @@ test('compute: 이전 손실 포함 매도전략의 통합손익',()=>{
   approx(c.sFull.combined,2440,1e-6);
   approx(c.sPrincipal.combined,2440,1e-6);
 });
+
+test('validate: 변동률 -100% 경계와 target 소수 주문가는 차단한다',()=>{
+  const current=validate({...settledNoPrior,overnightPct:-100},{caseType:'settled',mode:'current'});
+  assert.ok(current.invalidIds.includes('overnightPct'));
+  const rise=validate({...settledNoPrior,risePct:-100},{caseType:'settled',mode:'rise'});
+  assert.ok(rise.invalidIds.includes('risePct'));
+  const target=validate({...settledNoPrior,targetPrice:90391.5},{caseType:'settled',mode:'target'});
+  assert.ok(target.invalidIds.includes('targetPrice'));
+});
+
+test('compute: DOM-free 계산은 호출자가 넘긴 입력 객체를 변경하지 않는다',()=>{
+  const input={...holding};
+  const before=structuredClone(input);
+  compute(input,{caseType:'holding',noPrior:false,mode:'current',autoBreakEvenTarget:true});
+  assert.deepEqual(input,before);
+});
