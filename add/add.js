@@ -71,6 +71,7 @@
     }
   };
   const defaultPresetId='current-only';
+  const ADD_INFO_ICON_SVG='<svg class="info-icon-svg" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><use href="../img/ui-icons.svg#info-circle"></use></svg>';
 
   // 02. 런타임 상태 / 공통 유틸리티
   // 현재 거래유형·계산모드·프리셋 상태와 숫자/문자열/저장소 공통 함수
@@ -95,7 +96,7 @@
   const setClass=(node,cls)=>{node.classList.remove('positive','negative','zero');if(cls)node.classList.add(cls);};
   const setText=(id,text,cls)=>{const n=$(id);n.classList.remove('has-help');n.textContent=text;if(cls)setClass(n,cls);};
   const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const setHelpText=(id,text,tip)=>{const n=$(id),tooltipId=`${id}Tooltip`;n.classList.add('has-help');n.innerHTML=`<span class="inline-help-label"><span>${esc(text)}</span><span class="help-tooltip"><button type="button" class="help-icon add-button" aria-label="${esc(text)} 설명" aria-describedby="${tooltipId}" aria-expanded="false"><span aria-hidden="true">i</span></button><span class="custom-tooltip" id="${tooltipId}" role="tooltip">${esc(tip)}</span></span></span>`;};
+  const setHelpText=(id,text,tip)=>{const n=$(id),tooltipId=`${id}Tooltip`;n.classList.add('has-help');n.innerHTML=`<span class="inline-help-label"><span>${esc(text)}</span><span class="help-tooltip"><button type="button" class="help-icon add-button" aria-label="${esc(text)} 설명" aria-describedby="${tooltipId}" aria-expanded="false">${ADD_INFO_ICON_SVG}</button><span class="custom-tooltip" id="${tooltipId}" role="tooltip">${esc(tip)}</span></span></span>`;};
   const formatPctInput=n=>Number(n).toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
   const readPct=id=>{const n=$(id);return n.dataset.exactValue!==undefined?parseNum(n.dataset.exactValue):parseNum(n.value);};
   const setPct=(id,n,digits=2)=>{const el=$(id);el.dataset.exactValue=String(n);el.value=Number(n).toFixed(digits).replace(/0+$/,'').replace(/\.$/,'');};
@@ -458,7 +459,7 @@
     const spec=typeof label==='string'?{text:label,tip:'',key:''}:label;
     if(!spec.tip)return esc(spec.text);
     const tooltipId=`${idPrefix}-${spec.key||'help'}-tooltip`;
-    return `<span class="inline-help-label"><span>${esc(spec.text)}</span><span class="help-tooltip"><button type="button" class="help-icon add-button" aria-label="${esc(spec.text)} 설명" aria-describedby="${tooltipId}" aria-expanded="false"><span aria-hidden="true">i</span></button><span class="custom-tooltip" id="${tooltipId}" role="tooltip">${esc(spec.tip)}</span></span></span>`;
+    return `<span class="inline-help-label"><span>${esc(spec.text)}</span><span class="help-tooltip"><button type="button" class="help-icon add-button" aria-label="${esc(spec.text)} 설명" aria-describedby="${tooltipId}" aria-expanded="false">${ADD_INFO_ICON_SVG}</button><span class="custom-tooltip" id="${tooltipId}" role="tooltip">${esc(spec.tip)}</span></span></span>`;
   };
   function metric(name,value,cls='',tip='',idPrefix='summary'){return `<div class="summary-card add-card-shell add-card-control"><div class="sname">${resultLabelHTML(resultLabel(name,tip,'metric'),idPrefix)}</div><div class="svalue ${cls}">${value}</div></div>`;}
   function desktopTable(headers,vals,idPrefix='table'){return `<div class="table-scroll add-table-scroll desktop-data"><table class="add-data-table calc-data-table"><thead><tr>${headers.map((h,k)=>`<th scope="col" class="add-table-cell-center calc-result-label">${resultLabelHTML(h,`${idPrefix}-${k}`)}</th>`).join('')}</tr></thead><tbody><tr>${vals.map(v=>`<td class="add-table-cell-center calc-result-value ${v.cls||''}">${v.text}</td>`).join('')}</tr></tbody></table></div>`;}
