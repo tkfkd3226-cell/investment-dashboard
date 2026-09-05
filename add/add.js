@@ -365,10 +365,10 @@
   function renderValidation(validation){
     document.querySelectorAll('.control.invalid').forEach(n=>n.classList.remove('invalid'));
     document.querySelectorAll('.control[aria-invalid="true"]').forEach(n=>n.setAttribute('aria-invalid','false'));
+    document.querySelectorAll('.control[aria-describedby="validationMessage"]').forEach(n=>n.removeAttribute('aria-describedby'));
     validation.invalidIds.forEach(id=>{const n=$(id);if(n){n.classList.add('invalid');n.setAttribute('aria-invalid','true');n.setAttribute('aria-describedby','validationMessage');}});
     const b=$('validationMessage');
     if(!validation.errors.length){
-      document.querySelectorAll('.control[aria-describedby="validationMessage"]').forEach(n=>n.removeAttribute('aria-describedby'));
       b.classList.remove('show');b.innerHTML='';return;
     }
     const resultNote=hasRenderedCalculation
@@ -768,8 +768,9 @@
     try{
       const v=JSON.parse(saved);
       applying=true;
-      activePresetId=v.presetId&&presets[v.presetId]
-        ?v.presetId
+      const hasStoredPresetId=Object.prototype.hasOwnProperty.call(v,'presetId');
+      activePresetId=hasStoredPresetId
+        ?(presets[v.presetId]?v.presetId:'')
         :(v.noPrior?'current-only':(v.caseType==='holding'?'buy-2026-07-29':'buy-2026-07-30'));
       setPresetActive(activePresetId);
       applyValues(v);
