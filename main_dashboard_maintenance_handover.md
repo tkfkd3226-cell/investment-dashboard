@@ -1191,7 +1191,7 @@ investment-dashboard-main/
 │  └─ prices.json
 ├─ favicon.png
 ├─ img/
-│  └─ hero-bg.png
+│  └─ hero-bg.webp
 ├─ index.html
 ├─ js/
 │  ├─ dashboard-app.js
@@ -1250,7 +1250,7 @@ investment-dashboard-main/
 ├─ main_dashboard_maintenance_handover.md
 │
 ├─ img/
-│  └─ hero-bg.png
+│  └─ hero-bg.webp
 │
 └─ tests/
    ├─ main-calc.test.cjs
