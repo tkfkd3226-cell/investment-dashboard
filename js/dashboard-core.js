@@ -798,14 +798,14 @@ function isValidIsoCalendarDate(value){
 
 function deriveSeparateProfitFromKodexReport(source){
   if(!source||source.schemaVersion!==1||!Array.isArray(source.trades)||source.trades.length===0)throw new Error('KODEX 별도수익 canonical 데이터 형식이 올바르지 않습니다.');
-  const reinvestedLimit=Number(source.reinvestedLimit);
-  if(!Number.isInteger(reinvestedLimit)||reinvestedLimit<0)throw new Error('KODEX 별도수익 재투입 한도가 올바르지 않습니다.');
+  const reinvestedLimit=source.reinvestedLimit;
+  if(typeof reinvestedLimit!=='number'||!Number.isInteger(reinvestedLimit)||reinvestedLimit<0)throw new Error('KODEX 별도수익 재투입 한도가 올바르지 않습니다.');
   const seen=new Set();
   let previousDate='';
   const trades=source.trades.map((row,index)=>{
     const date=String(row?.date||'');
-    const pnl=Number(row?.pnl),fee=Number(row?.fee);
-    if(!isValidIsoCalendarDate(date)||!Number.isInteger(pnl)||!Number.isInteger(fee)||fee<0)throw new Error(`KODEX 별도수익 ${index+1}번 거래가 올바르지 않습니다.`);
+    const pnl=row?.pnl,fee=row?.fee;
+    if(!isValidIsoCalendarDate(date)||typeof pnl!=='number'||!Number.isInteger(pnl)||typeof fee!=='number'||!Number.isInteger(fee)||fee<0)throw new Error(`KODEX 별도수익 ${index+1}번 거래가 올바르지 않습니다.`);
     if(seen.has(date)||previousDate&&date<previousDate)throw new Error('KODEX 별도수익 거래일은 중복 없이 오름차순이어야 합니다.');
     seen.add(date); previousDate=date;
     return {date,profit:pnl-fee};
