@@ -715,7 +715,7 @@ button svg{pointer-events:none;flex-shrink:0}
   content: "";
   position: absolute;
   inset: 0;
-  background: url('../img/hero-bg.png') center / cover no-repeat;
+  background: url('../img/hero-bg.webp') center / cover no-repeat;
   opacity:var(--hero-image-opacity);
   mix-blend-mode: screen;
   pointer-events: none;
@@ -2416,6 +2416,8 @@ body.chart-expanded-open .dash-tooltip{
   background:var(--modal-control-bg);
 }
 .action-modal-input{
+  height:var(--modal-control-height);
+  outline:none;
   padding:var(--modal-control-pad-y) var(--modal-control-pad-x);
   font-family:inherit;
   font-size:var(--modal-control-font-size);
@@ -3126,10 +3128,6 @@ body.dashboard-dialog-open{
   color:var(--modal-label-color);
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-regular);
-}
-.action-modal-input{
-  height:var(--modal-control-height);
-  outline:none;
 }
 /* Modal Form Focus · action input과 pension control shell의 focus UI를 공유한다. */
 :is(.action-modal-input:focus,.contrib-modal .pension-control-shell:focus-within){
