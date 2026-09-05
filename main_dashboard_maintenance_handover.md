@@ -811,7 +811,7 @@ JS 파일을 점수 때문에 추가 분할
 
 QA는 변경범위에 비례한다. 자동 테스트의 목적은 **평가 점수 확보가 아니라 수정 QA 가속과 기능·UI 회귀 방지**다.
 
-### 자동 회귀 테스트 Main/Add 4종 + Cross 전역 계약 1종
+### 자동 회귀 테스트 Main/Add 5종 + Cross 전역 계약 1종
 
 자동 QA는 Main/Add를 같은 두 축으로 관리한다.
 
@@ -820,6 +820,7 @@ tests/
 ├─ main-calc.test.cjs
 ├─ main-ui-contract.test.cjs
 ├─ add-calc.test.cjs
+├─ add-report-data.test.cjs
 ├─ add-ui-contract.test.cjs
 └─ cross-ui-contract.test.cjs
 ```
@@ -829,6 +830,7 @@ tests/
 - `tests/main-calc.test.cjs`: Main의 합산·원금·손익·수익률·별도수익·연금·차트용 계산 등 정답이 명확한 계산 회귀를 보호한다.
 - `tests/main-ui-contract.test.cjs`: Main의 module boundary, 기본 breakpoint, Phone Landscape, table/chart/modal/Market AI 등 폐기되면 안 되는 UI/CSS/HTML 구조 contract를 보호한다.
 - `tests/add-calc.test.cjs`: Calc의 `compute()` / `validate()` / `ceil5()`와 주요 계산 branch를 보호한다.
+- `tests/add-report-data.test.cjs`: Report 순수 파생모델의 합계 보존, Main `separateProfit`과 거래일·날짜별 순손익 정합성, 혼합일 설명의 canonical data source를 보호한다.
 - `tests/add-ui-contract.test.cjs`: Add의 input/button/responsive/ARIA 및 Calc Compact·Report Dynamic canonical style contract를 보호한다.
 - `tests/cross-ui-contract.test.cjs`: Main↔Add가 반드시 공유해야 하는 appearance storage/channel, Corner cap, 기본 breakpoint·Phone Landscape, iPhone desktop 1280 contract의 equality를 보호한다.
 
@@ -843,6 +845,9 @@ node --test tests/main-ui-contract.test.cjs
 
 # Add 계산
 node --test tests/add-calc.test.cjs
+
+# Add Report 데이터/정합성
+node --test tests/add-report-data.test.cjs
 
 # Add UI/CSS/HTML
 node --test tests/add-ui-contract.test.cjs

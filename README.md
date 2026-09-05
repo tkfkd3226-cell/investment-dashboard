@@ -559,6 +559,7 @@ tests/
 ├─ main-calc.test.cjs          # Main 계산 결과·경계값 회귀
 ├─ main-ui-contract.test.cjs   # Main UI/CSS/HTML/반응형 핵심 contract
 ├─ add-calc.test.cjs           # Add Calc 계산·validation 회귀
+├─ add-report-data.test.cjs    # Add Report 계산모델·Main 별도수익 정합성 회귀
 ├─ add-ui-contract.test.cjs    # Add UI/CSS/HTML/반응형·canonical style contract
 └─ cross-ui-contract.test.cjs  # Main↔Add appearance/Corner/responsive 전역 contract
 ```
@@ -575,6 +576,7 @@ node --test tests/*.test.cjs
 node --test tests/main-calc.test.cjs
 node --test tests/main-ui-contract.test.cjs
 node --test tests/add-calc.test.cjs
+node --test tests/add-report-data.test.cjs
 node --test tests/add-ui-contract.test.cjs
 node --test tests/cross-ui-contract.test.cjs
 ```

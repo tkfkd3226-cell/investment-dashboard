@@ -8,6 +8,7 @@
 - `add/add.css`: 두 페이지가 공유하는 단일 런타임 CSS. 공통 primitive와 `data-add-page` 기반 Calc/Report 전용 규칙을 함께 관리하며, Calc Compact·Report Dynamic 시각 언어를 각 페이지의 canonical 스타일로 직접 소유
 - `add/add.js`: 두 페이지가 공유하는 런타임 JS. `data-add-page`에 따라 Calc/Report만 선택 부팅
 - `/tests/add-calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
+- `/tests/add-report-data.test.cjs`: Report 순수 파생모델·Main `separateProfit` 날짜별 정합성·혼합일 설명 데이터 소스 회귀 테스트
 - `/tests/add-ui-contract.test.cjs`: 선택상태/ARIA/input density/반응형 및 Calc/Report canonical style contract 회귀 테스트
 - `/tests/cross-ui-contract.test.cjs`: Main↔Add appearance/Corner/breakpoint/Phone Landscape/iPhone desktop 1280 전역 contract equality 테스트
 - `add_maintenance_handover.md`: Add 유지보수 기준
@@ -132,6 +133,7 @@ add_maintenance_handover.md
 
 tests/
 ├─ add-calc.test.cjs
+├─ add-report-data.test.cjs
 ├─ add-ui-contract.test.cjs
 └─ cross-ui-contract.test.cjs
 ```
@@ -153,12 +155,15 @@ tests/
 - `add/add.js`
   - Calc와 Report의 단일 런타임 script다.
   - 공통 조기 Light/Dark·Corner 처리를 수행한 뒤 `data-add-page="calc|report"`에 따라 해당 페이지의 boot만 실행한다.
-  - Calc 계산·렌더·프리셋·이벤트·툴팁과 Report 데이터·탭·차트·Timeline 파생 로직은 한 파일 안에서도 section/boot 경계를 유지하고 서로의 DOM/state를 참조하지 않는다.
+  - Calc 계산·렌더·프리셋·이벤트·툴팁과 Report 데이터·탭·차트·Timeline 파생 로직은 한 파일 안에서도 section/boot 경계를 유지하고 서로의 DOM/state를 참조하지 않는다. Report 집계·본 포지션/단타 분리는 DOM-free `deriveReportModel()` 계층에서 먼저 계산하고, browser 쪽은 Timeline builder·DOM renderer·navigation controller·chart controller로 책임을 나눈 뒤 `bootReportPage()`가 조립만 담당한다.
   - Report Timeline의 실현거래 수량·단가·손익·비용은 `REPORT_DATA`와 본 포지션/단타 파생값을 Source of Truth로 사용한다. 매도실현 데이터에 없는 매수-only 포지션 형성 사실만 별도 context로 유지한다. 새 `REPORT_DATA` 행은 curated 설명이 없어도 Timeline에 기본 항목으로 자동 노출되어야 한다.
-  - Node 회귀검증에서는 `compute`, `validate`, `ceil5`만 노출하고 브라우저 boot는 실행하지 않는다.
+  - Node 회귀검증에서는 Calc의 `compute`/`validate`/`ceil5`와 Report의 `REPORT_DATA`/`deriveReportModel` 계층을 노출하되 브라우저 boot는 실행하지 않는다.
 - `tests/add-calc.test.cjs`
   - Node 내장 `node:test` / `node:assert`만 사용한다.
   - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
+- `tests/add-report-data.test.cjs`
+  - production `add/add.js`의 Report 순수 파생모델을 직접 호출해 전체/본 포지션/단타 합계 보존을 검증한다.
+  - `data/portfolio.json separateProfit.trades`와 Report의 거래일·날짜별 순손익·누적합계를 자동 교차검산하고, 혼합일 설명이 하드코딩 숫자 대신 canonical 파생값을 사용하도록 보호한다.
 - `tests/add-ui-contract.test.cjs`
   - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
   - production HTML/CSS/JS에서 구조·상태·responsive·접근성·single-source contract를 확인하며, 장식용 exact pixel/color/count를 snapshot처럼 고정하지 않는다.
@@ -172,7 +177,7 @@ tests/
 - CSS는 기본 component 규칙 뒤에 responsive 규칙을 두고, 기능과 무관한 알파벳/가나다 정렬을 목적으로 재배치하지 않는다.
 - `add.js`의 계산 엔진은 DOM-free를 유지하고 render/event 책임과 분리한다.
 - 이벤트·툴팁·초기화는 중복 등록되지 않게 명시적으로 관리하며, Node export/browser boot guard를 유지한다.
-- 계산 또는 validation을 변경한 경우 production `add/add.js`를 대상으로 `node --test tests/add-calc.test.cjs`를 실행한다.
+- 계산 또는 validation을 변경한 경우 production `add/add.js`를 대상으로 `node --test tests/add-calc.test.cjs`를 실행한다. Report 거래 데이터·분류·합계를 변경한 경우에는 `node --test tests/add-report-data.test.cjs`를 반드시 함께 실행한다.
 - Calc/Report의 선택상태·ARIA·responsive·control/typography source·Phone UI 등 장기 UI contract를 변경한 경우 `node --test tests/add-ui-contract.test.cjs`를 함께 실행한다.
 - appearance/Corner/breakpoint/Phone Landscape/iPhone desktop request처럼 Main과 동일해야 하는 전역 contract를 변경한 경우 `node --test tests/cross-ui-contract.test.cjs`도 실행한다.
 - Report의 차트 label thinning, 마지막 거래일 식별, DPR/resize 처리처럼 동작 의미가 있는 로직은 관련 변경 시 회귀 확인한다.
@@ -207,7 +212,7 @@ main_dashboard_maintenance_handover.md # 메인 전역 contract가 실제로 변
 
 > **리포트만 수정하지 않는다.**
 
-새로운 실현손익은 메인 대시보드의 별도수익 계산에도 사용되므로 `data/portfolio.json`의 `separateProfit.trades`와 `add/add.js`의 `REPORT_DATA`가 서로 일치해야 한다. Report의 Hero/KPI/표/차트/본 포지션·단타/Timeline 실현거래 숫자는 `REPORT_DATA`에서 파생한다.
+새로운 실현손익은 메인 대시보드의 별도수익 계산에도 사용되므로 `data/portfolio.json`의 `separateProfit.trades`와 `add/add.js`의 `REPORT_DATA`가 서로 일치해야 한다. 이 정합성은 `tests/add-report-data.test.cjs`가 거래일·날짜별 순손익·누적합계를 자동 교차검산한다. Report의 Hero/KPI/표/차트/본 포지션·단타/Timeline·혼합일 산식 설명 숫자는 `REPORT_DATA` 파생값을 사용한다.
 
 다음 파일은 단순히 새로운 실현거래가 생겼다는 이유만으로 수정하지 않는다.
 
@@ -430,7 +435,7 @@ separateProfit.reinvestedLimit
 4. add/add.js의 REPORT_DATA 반영 후 날짜별·합계·본 포지션/단타 파생값 검산
 5. kodex-leverage-report.html의 표시기간·증빙 이미지·정적 설명문 중 필요한 부분만 갱신
 6. Hero/KPI/표/차트와 Timeline 자동 파생·누락 여부를 동일 REPORT_DATA 기준으로 검산
-7. 변경 유형에 해당하는 QA 수행
+7. `node --test tests/add-report-data.test.cjs`로 Main↔Report 날짜별 정합성과 합계 보존 확인 후 변경 유형에 해당하는 추가 QA 수행
 ```
 
 자금 출처·대출이자 분석이나 자금 흐름 패널 복원은 위 절차에 포함하지 않는다. 문서는 이 절차를 수행했다는 이유만으로 자동 갱신하지 않는다.
@@ -443,7 +448,7 @@ separateProfit.reinvestedLimit
 
 - 새 매도일의 수량·평균매수·평균매도·손익·비용·순손익이 증권사 원본과 일치한다.
 - 날짜별 `손익금액 - 거래비용 = 순손익`, 전체 합계와 날짜별 합계가 일치한다.
-- `data/portfolio.json separateProfit`과 report의 누적 실현 순손익이 일치하고 같은 날짜 레코드가 중복되지 않는다.
+- `data/portfolio.json separateProfit`과 report의 거래일 set·날짜별 순손익·누적 실현 순손익이 일치하며 같은 날짜 레코드가 중복되지 않는다. `tests/add-report-data.test.cjs`로 자동 확인한다.
 - 본 포지션 + 단타의 수량·손익·비용·순손익 합계가 전체와 일치한다.
 - 동일 지표를 사용하는 요약·차트·표에 과거 값이 잔존하지 않으며, Timeline은 `REPORT_DATA` 파생값과 일치하고 새 매도일이 누락되지 않는다.
 - 원본 이미지/근거를 갱신하는 작업이라면 최신 숫자와 같은 시점인지 확인한다.
