@@ -369,6 +369,7 @@
   --section-title-font-size:var(--type-size-4xl);
   --section-title-line-height:1;
   --section-title-icon-optical-shift:-1.5px;
+  --control-text-optical-shift:1px;
   --section-title-icon-size:18px;
   --section-title-gap:var(--space-xl);
   --section-chip-height:var(--dashboard-control-height);
@@ -2354,6 +2355,13 @@ body.chart-expanded-open .dash-tooltip{
   margin:0;
   font-family:inherit;
   white-space:nowrap;
+}
+.control-text-optical{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+  transform:translateY(var(--control-text-optical-shift));
 }
 .section-basis-chip{
   height:var(--section-chip-height);
