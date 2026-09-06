@@ -10,12 +10,12 @@
    [M06] Pension Feature
    [M07] Interaction
 
-   세로폰 전용 구조만 둔다. 세로·가로폰 공통 compact density는 special.css의 Phone Shared가 소유한다.
+   Mobile ≤760px의 기본 배치만 둔다. 실제 터치폰 가로는 이 기본값 위에서 special.css의 Phone Shared / Phone Landscape가 최종 조정한다.
    ========================================================= */
 
 @media (max-width:760px){
 
-  /* [M01. Hero · 세로폰 Hero pill / label 구성] */
+  /* [M01. Hero · Mobile ≤760px Hero pill / label 구성] */
 .hero .hero-metric-pills{
       display:grid;
       grid-template-columns:1fr;
@@ -38,7 +38,7 @@
 
 .securities-summary-block .chart-head-actions > [data-accounts-view-toggle-wrap]:not([hidden]){display:inline-flex}
 
-  /* [M03. Asset Tabs / Data Views / Allocation · 세로폰 표↔카드와 비중 카드] */
+  /* [M03. Asset Tabs / Data Views / Allocation · Mobile ≤760px 표↔카드와 비중 카드] */
 .asset-status-table .mobile-table-brand-prefix{display:none}
     .mobile-view-toggle{display:inline-flex}
     [data-mobile-view="card"] .table-view{display:none}
@@ -116,7 +116,7 @@
       text-align:left;
     }
 
-/* [M04. Charts / Ledger · 세로폰 장부 layout] */
+/* [M04. Charts / Ledger · Mobile ≤760px 장부 layout] */
 
 #ledger-check .ledger-overview-grid{grid-template-columns:1fr}
 
@@ -146,7 +146,7 @@
       font-size:var(--type-size-sm);
     }
 
-  /* [M06. Pension Feature · 퇴직연금 세로폰 form / 기존항목 / batch] */
+  /* [M06. Pension Feature · 퇴직연금 Mobile ≤760px form / 기존항목 / batch] */
 .contrib-modal{
       align-items:flex-end;
     }
