@@ -140,7 +140,10 @@ test('기준 pill과 상태 badge 텍스트는 컨테이너를 움직이지 않�
   assert.doesNotMatch(compact(tablet+mobile+special+print),/--control-text-optical-shift:/);
   assert.match(charts1,/<p class="section-control-chip section-basis-chip"><span class="control-text-optical">삼성증권1 기준<\/span><\/p>/);
   assert.match(charts1,/<p class="section-control-chip section-basis-chip"><span class="control-text-optical">퇴직연금 기준<\/span><\/p>/);
-  assert.match(ui1,/<strong><span class="control-text-optical">\$\{uiState\.includeSeparateProfit\?'ON':'OFF'\}<\/span><\/strong>/);
+  assert.match(ui1,/<span class="separate-profit-toggle-label">별도수익<\/span><strong><span class="control-text-optical">\$\{uiState\.includeSeparateProfit\?'ON':'OFF'\}<\/span><\/strong>/);
+  assert.match(special1,/\.separate-profit-toggle-label\{display:none\}/);
+  assert.match(special1,/\.separate-profit-toggle-label\{display:inline\}/);
+  assert.doesNotMatch(special1,/\.separate-profit-toggle span\{display:(?:none|inline)\}/);
   assert.match(charts1,/<span class="chart-y-auto-state"><span class="control-text-optical">\$\{autoY\?'ON':'OFF'\}<\/span><\/span>/);
   assert.doesNotMatch(uiCommon,/mobile-view-toggle[^`]*control-text-optical/);
   assert.doesNotMatch(common1,/\.(?:section-basis-chip|separate-profit-toggle|chart-y-auto-state)[^{]*\{[^}]*transform:translateY/);
