@@ -480,7 +480,7 @@
       padding:1px var(--space-xs);
       gap:0;
     }
-    .separate-profit-toggle span{display:none}
+    .separate-profit-toggle-label{display:none}
     .separate-profit-toggle strong{
       min-width:var(--dashboard-control-state-min-width);
       height:21px;
@@ -747,7 +747,7 @@
       gap:var(--space-sm);
       padding:1px var(--space-lg);
     }
-    .separate-profit-toggle span{display:inline}
+    .separate-profit-toggle-label{display:inline}
 
   /* Table-only Landscape · 성과/현황/변동은 카드 전환 없이 항상 표 */
     .mobile-view-toggle,
