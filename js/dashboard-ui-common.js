@@ -1,4 +1,4 @@
-// Dashboard UI Common · feature-neutral DOM / markup / responsive helpers
+// Dashboard UI Common · 기능 간 공통 DOM / markup / responsive helper
 // Ownership: business state는 feature module이 소유하고, 이 모듈은 공통 표현과 저수준 interaction만 제공한다.
 // Structure map:
 //   [UICOMMON01] Responsive Predicate / Shared View State

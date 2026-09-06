@@ -1,5 +1,5 @@
-// KODEX Leverage canonical data schema · DOM-independent shared validator
-// Main dashboard and Add Report must consume this single validation contract.
+// KODEX Leverage Data Schema · DOM 비의존 공통 validator
+// Main Dashboard와 Add Report는 이 단일 검증 contract를 함께 사용한다.
 
 const KODEX_LEVERAGE_SCHEMA_VERSION=1;
 const KODEX_LEVERAGE_DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
