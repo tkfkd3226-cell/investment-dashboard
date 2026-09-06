@@ -116,6 +116,9 @@ test('Section title/action과 segmented control은 공통 geometry·viewport tok
   assert.match(common1,/--section-chip-height:var\(--dashboard-control-height\)/);
   assert.match(common1,/--dashboard-control-group-gap:var\(--space-xl\)/);
   assert.match(common1,/--section-title-gap:var\(--space-xl\)/);
+  assert.match(common1,/\.section-basis-chip\{[^}]*height:var\(--section-chip-height\);[^}]*padding:0 var\(--space-4xl\);[^}]*line-height:1;/);
+  assert.match(special1,/\.section-basis-chip\{[^}]*padding-inline:var\(--space-2xl\);[^}]*font-size:var\(--type-size-xs\);/);
+  assert.doesNotMatch(special1,/\.section-basis-chip\{[^}]*padding:var\(--space-sm\)/);
   assert.match(common1,/\.section-title, \.chart-head\{ display:flex; justify-content:space-between; gap:var\(--space-5xl\); \}/);
   assert.match(common1,/\.chart-head-actions, \.section-title-actions\{ display:flex; align-items:center; justify-content:flex-end; gap:var\(--dashboard-control-group-gap\)/);
   assert.match(special1,/--dashboard-control-height:[^;]+/);
@@ -326,15 +329,6 @@ test('Chart shell은 공통 renderer·display token·정적 SVG visual source를
   assert.match(tablet,/\.chart-grid \.chart-wrap\{/);
   assert.doesNotMatch(mobile,/\.chart-card::before/);
   assert.match(common1,/\.chart-title-sub\{ display:inline; align-self:flex-end;/);
-});
-
-test('증권·퇴직연금 기준 pill은 display-only basis primitive에서 line-height 1을 공유하고 action chip 계약은 건드리지 않는다',()=>{
-  assert.equal((charts.match(/class="section-control-chip section-basis-chip"/g)||[]).length,2);
-  assert.match(charts,/class="section-control-chip section-basis-chip">삼성증권1 기준<\/p>/);
-  assert.match(charts,/class="section-control-chip section-basis-chip">퇴직연금 기준<\/p>/);
-  assert.match(common1,/\.section-basis-chip\{[^}]*font-size:var\(--type-size-sm\);[^}]*font-weight:var\(--type-weight-regular\);[^}]*line-height:1;/);
-  assert.doesNotMatch(common1,/\.section-control-chip\{[^}]*line-height:/);
-  assert.match(common1,/:is\(\.chart-series-all,\.chart-y-auto-toggle,\.separate-profit-toggle,\.chart-scroll-start,\.chart-scroll-end,\.chart-expand-control\)\{[^}]*line-height:var\(--dashboard-control-line-height\);/);
 });
 
 test('증권·퇴직연금 6개 차트 제목은 공통 label primitive를 사용하고 info 유무가 제목 geometry를 바꾸지 않는다',()=>{
