@@ -368,6 +368,7 @@
   --highlight-value-shadow:0 1px 12px rgba(255,255,255,.08);
   --section-title-font-size:var(--type-size-4xl);
   --section-title-line-height:1;
+  --section-title-icon-optical-shift:-1.5px;
   --section-title-icon-size:18px;
   --section-title-gap:var(--space-xl);
   --section-chip-height:var(--dashboard-control-height);
@@ -1115,6 +1116,12 @@ section{
   font-size:0;
 }
 .section-title-icon svg{display:block;width:var(--section-title-icon-size);height:var(--section-title-icon-size)}
+
+/* Shared Title Optical Alignment · 한글 glyph의 시각 중심에 맞춰 좌/우 SVG를 동일 토큰으로 보정 */
+:is(.section-title :is(h2,h3),.chart-head h3) > .section-title-icon,
+.chart-head h3 .chart-title-info-slot{
+  transform:translateY(var(--section-title-icon-optical-shift));
+}
 
 .modal-main-title{
   margin:0;
