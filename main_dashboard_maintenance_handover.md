@@ -1451,6 +1451,7 @@ input
 - `투자원금 원천 및 검산`은 3개 source card 구조와 각 표의 `합계`를 최종값으로 사용한다. base 원천과 재투입 원천을 구분하고 `원천·보유 차액`은 중립 검산값으로 취급한다.
 - `2026-06-18` 이전 복원 구간은 현재 설명문에 맞추기 위해 과거 수치를 재계산하지 않는다. legacy 수치 의미는 데이터 기준선을 우선한다.
 - 세로 Phone의 계좌별 상태에서 제목행 control 순서는 `별도수익 ON/OFF → 카드 보기/표 보기 → 전체/계좌별`이다. 카드/표 전환을 가장 오른쪽으로 보내거나 ON/OFF와 분리하지 않는다. 그 밖의 mobile 열 축약과 메모 표시 방식은 실제 renderer/CSS를 Source of Truth로 한다.
+- `삼성증권1 기준` / `퇴직연금 기준`은 동일한 `.section-basis-chip` 역할을 공유한다. 이 기준 pill은 이미 시각 중심이 안정적인 action chip의 geometry 원칙을 따라 `height:var(--section-chip-height)`, 상하 padding `0`, `line-height:1`, flex center를 사용하고 viewport에서는 좌우 padding과 font-size만 조정한다. 별도수익 ON/OFF나 표/카드 전환처럼 `.section-action-chip`을 쓰는 다른 control까지 이 규칙을 확대하지 않으며, `top`/`translateY`/개별 1px 보정으로 기준 pill 텍스트를 맞추지 않는다.
 
 ### Modal / Action Form 공통 contract
 
@@ -1495,7 +1496,6 @@ js/dashboard-charts.js
 
 - 일반 차트는 `.chart-card`, `.chart-head`, 공통 control primitive, options row, legend, mini-card와 공통 vertical rhythm을 재사용한다. 기능별 차트가 동일 역할의 padding/control geometry를 별도로 만들지 않는다.
 - Main의 공통 section/chart 제목(`.section-title h2/h3`, `.chart-head h3`)은 `--section-title-line-height:1`을 사용한다. 한글 glyph는 font line-box의 수학적 중심보다 시각 중심이 위에 보일 수 있으므로, 제목 텍스트 자체는 이동하지 않고 왼쪽 `.section-title-icon`과 선택적 `.chart-title-info-slot`만 단일 `--section-title-icon-optical-shift:-1.5px` 토큰을 공유해 동일하게 광학 보정한다. 과거 `.section-title-icon{margin-bottom:1px}`처럼 한쪽 아이콘만 보정하거나 viewport별 값을 따로 만들지 않는다. Desktop/Tablet/Phone 모두 이 공통 계약을 따르며 다른 역할의 Modal/인사이트/데이터카드/Add 제목에는 전파하지 않는다.
-- `삼성증권1 기준` / `퇴직연금 기준`은 동일한 display-only `.section-basis-chip` primitive를 사용하며 `line-height:1`을 해당 역할에만 명시한다. 상위 `.section-control-chip`은 별도수익 ON/OFF·모바일 표/카드 전환 같은 action chip도 공유하므로 line-height를 전역 지정하지 않는다. 기준 pill의 폰트 baseline 정렬을 수정할 때 두 자산을 개별 보정하거나 action control의 `--dashboard-control-line-height` 계약을 덮어쓰지 않는다.
 - 증권 3개 + 퇴직연금 3개 차트 제목은 `renderChartCard()` → `.chart-title-label > .chart-title-text` 공통 primitive를 사용한다. 퇴직연금 2개 설명 아이콘만 `.chart-title-info-slot`을 선택적으로 추가하며, compact Phone에서는 이 slot이 `1lh` line-box를 소유하고 내부 버튼을 중앙 정렬한다. 개별 `top`/`margin-top`/별도 `translateY` 보정을 추가하지 말고, 광학 보정이 필요하면 반드시 공통 `--section-title-icon-optical-shift` 하나만 사용하여 info가 없는 증권/퇴직연금 차트와 동일한 제목 typography·line-height·row geometry를 유지한다.
 - 확대 차트는 별도의 독립 chart/control state를 복제하지 않는다. 기존 SVG와 controls/options/legend를 expanded overlay로 이동해 사용하고 닫을 때 placeholder 위치로 복원하며, chart state와 공개 action 흐름을 그대로 공유한다. 확대에서만 필요한 닫기/viewport 처리와 별도수익 control 보조는 expanded layer가 소유한다.
 - 확대 차트의 Desktop baseline geometry는 `common.css`가 소유하고, Tablet/Phone을 함께 가로지르는 회전형 expanded overlay 예외는 `special.css`의 `Expanded Chart Non-Web Shared ≤1100px`가 소유한다. 일반 Tablet chart width/scroll edge는 `tablet.css`, 세로·가로 Phone 공통 compact chart density/scroll edge는 `special.css` Phone Shared가 소유하며 `common.css @media(max-width:1100px)`에 Chart responsive 구현을 다시 두지 않는다.
