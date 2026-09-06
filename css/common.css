@@ -2356,7 +2356,8 @@ body.chart-expanded-open .dash-tooltip{
   white-space:nowrap;
 }
 .section-basis-chip{
-  padding:var(--space-md) var(--space-4xl);
+  height:var(--section-chip-height);
+  padding:0 var(--space-4xl);
   border:1px solid var(--line);
   border-radius:var(--radius-pill);
   background:var(--card);
