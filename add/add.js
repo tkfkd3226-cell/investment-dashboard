@@ -1,7 +1,7 @@
 // =========================================================
 // ADD unified runtime
 // - Calc / Report가 add.js 하나를 공유하고 data-add-page로 실행 경계를 분리한다.
-// - Calc의 순수 계산 함수만 CommonJS 경로로 노출해 Node 회귀테스트에 사용한다.
+// - Calc 순수 계산 함수와 Report 순수 파생 함수를 CommonJS 경로로 노출해 Node 회귀테스트에 사용한다.
 // =========================================================
 (() => {
   if(typeof document==='undefined'||typeof window==='undefined')return;
@@ -805,7 +805,7 @@
 
   // 01. canonical 거래 데이터 / 순수 파생 모델
   // 거래 원천은 data/kodex_leverage_trades.json 한 곳만 사용한다.
-  // 이 파일은 DOM과 무관한 파생 함수만 소유하며, 브라우저에서는 canonical JSON을 로드해 렌더링한다.
+  // 이 구간은 DOM과 무관한 파생 함수만 소유하며, 아래 browser 계층은 canonical JSON을 로드해 렌더링한다.
   const REPORT_DATA_URL='../data/kodex_leverage_trades.json';
   const REPORT_SCHEMA_MODULE_URL='../js/kodex-leverage-schema.js';
 
