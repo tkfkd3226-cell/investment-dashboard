@@ -795,7 +795,7 @@ JS 파일을 점수 때문에 추가 분할
 → 최소 수정
 → 변경 영역 Fast QA
 → syntax / import / 계산 검증
-→ Main/Add 4종 + Cross 전역 계약 1종 Full QA
+→ Main/Add 5종 + Cross 전역 계약 1종 Full QA
 → diff 확인
 → 필요한 viewport / runtime QA
 → handover 영향 여부 판단
@@ -856,7 +856,7 @@ node --test tests/add-ui-contract.test.cjs
 node --test tests/cross-ui-contract.test.cjs
 ```
 
-작업 완료 전에는 해당 화면군의 두 테스트를 실행한다. appearance/Corner/breakpoint/Phone Landscape/iPhone desktop request처럼 Main↔Add 공통 contract를 변경한 경우에는 cross test도 함께 실행한다. Main과 Add를 모두 포함하는 **전체 QA**에는 cross contract까지 포함한다.
+작업 완료 전에는 해당 화면군의 관련 테스트를 실행한다. appearance/Corner/breakpoint/Phone Landscape/iPhone desktop request처럼 Main↔Add 공통 contract를 변경한 경우에는 cross test도 함께 실행한다. Main과 Add를 모두 포함하는 **전체 QA**에는 cross contract까지 포함한다.
 
 ```bash
 # Main 작업
@@ -2813,7 +2813,7 @@ Calc는 HTML / CSS / 단일 JS 책임 분리를 유지하고, 핵심 계산 로�
 
 ```text
 [ ] diff가 요청 범위뿐인가
-[ ] 현재 작업 화면군의 Calc / UI 테스트를 완료했으며, Main+Add 전체 QA를 명시한 경우에만 Main/Add 4종 + Cross 전역 계약 1종 Full QA를 완료했는가
+[ ] 현재 작업 화면군의 관련 테스트를 완료했으며, Main+Add 전체 QA를 명시한 경우에만 Main/Add 5종 + Cross 전역 계약 1종 Full QA를 완료했는가
 [ ] 변경 파일만 ZIP에 들어갔는가
 [ ] line/byte 통계를 보고했는가
 [ ] GitHub 커밋용 짧은 Summary와 간단한 Description을 적었는가

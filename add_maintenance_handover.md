@@ -63,7 +63,7 @@ Add 영역의 토큰화·공통화 평가는 **literal 값의 존재 자체가 �
 - 자동 테스트가 없다는 이유만으로 B급을 만들거나 감점하지 않는다.
 - 테스트가 FAIL하면 실제 코드/계산/UI contract 결함인지, 변경된 의도에 비해 테스트가 낡은 것인지 먼저 구분한다. 실제 결함이 확인된 경우에만 그 결함 자체를 평가한다.
 - 자동 테스트 PASS는 실제 UI 미감·정보 위계·실기 UX까지 자동 PASS한다는 의미가 아니다.
-- `ui-contract.test.cjs`는 구조·상태·responsive·접근성처럼 폐기되면 실제 회귀가 생기는 경계를 보호한다. 장식용 exact px/hex/shadow/opacity, DOM 개수처럼 정상적인 디자인 수정에도 자주 바뀌는 구현값은 고정하지 않는다.
+- `tests/add-ui-contract.test.cjs`는 구조·상태·responsive·접근성처럼 폐기되면 실제 회귀가 생기는 경계를 보호한다. 장식용 exact px/hex/shadow/opacity, DOM 개수처럼 정상적인 디자인 수정에도 자주 바뀌는 구현값은 고정하지 않는다.
 - 숫자 자체가 제품 동작인 viewport 경계·명시적 데스크탑 요청 폭·브라우저 동작 회피 조건 등은 예외적으로 contract로 검증할 수 있다.
 
 ---
