@@ -2363,6 +2363,7 @@ body.chart-expanded-open .dash-tooltip{
   color:var(--muted);
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-regular);
+  line-height:1;
 }
 .section-action-chip{
   height:var(--section-chip-height);
