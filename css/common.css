@@ -367,7 +367,7 @@
   --highlight-card-divider:rgba(255,255,255,.20);
   --highlight-value-shadow:0 1px 12px rgba(255,255,255,.08);
   --section-title-font-size:var(--type-size-4xl);
-  --section-title-line-height:1.12;
+  --section-title-line-height:1;
   --section-title-icon-size:18px;
   --section-title-gap:var(--space-xl);
   --section-chip-height:var(--dashboard-control-height);
@@ -1115,7 +1115,6 @@ section{
   font-size:0;
 }
 .section-title-icon svg{display:block;width:var(--section-title-icon-size);height:var(--section-title-icon-size)}
-:is(.section-title :is(h2,h3),.chart-head h3) > .section-title-icon{margin-bottom:1px}
 
 .modal-main-title{
   margin:0;
