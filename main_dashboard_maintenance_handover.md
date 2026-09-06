@@ -1494,6 +1494,7 @@ js/dashboard-charts.js
 ### Chart UI / Expanded / SVG 공통 contract
 
 - 일반 차트는 `.chart-card`, `.chart-head`, 공통 control primitive, options row, legend, mini-card와 공통 vertical rhythm을 재사용한다. 기능별 차트가 동일 역할의 padding/control geometry를 별도로 만들지 않는다.
+- Main의 공통 section/chart 제목(`.section-title h2/h3`, `.chart-head h3`)은 `--section-title-line-height:1`을 사용한다. 제목 텍스트 line-box, 왼쪽 `.section-title-icon`, 선택적 info slot이 같은 높이 기준에서 `align-items:center`로 정렬되도록 하고, 과거 `.section-title-icon{margin-bottom:1px}` 같은 광학 보정은 두지 않는다. Desktop/Tablet/Phone 모두 이 공통 계약을 따르며 다른 역할의 Modal/인사이트/데이터카드/Add 제목에는 전파하지 않는다.
 - 증권 3개 + 퇴직연금 3개 차트 제목은 `renderChartCard()` → `.chart-title-label > .chart-title-text` 공통 primitive를 사용한다. 퇴직연금 2개 설명 아이콘만 `.chart-title-info-slot`을 선택적으로 추가하며, compact Phone에서는 이 slot이 `1lh` line-box를 소유하고 내부 버튼을 중앙 정렬한다. `top`/`margin-top`/`translateY` 같은 제목별 위치 보정을 추가하지 말고, info가 없는 증권/퇴직연금 차트와 동일한 제목 typography·line-height·row geometry를 유지한다.
 - 확대 차트는 별도의 독립 chart/control state를 복제하지 않는다. 기존 SVG와 controls/options/legend를 expanded overlay로 이동해 사용하고 닫을 때 placeholder 위치로 복원하며, chart state와 공개 action 흐름을 그대로 공유한다. 확대에서만 필요한 닫기/viewport 처리와 별도수익 control 보조는 expanded layer가 소유한다.
 - 확대 차트의 Desktop baseline geometry는 `common.css`가 소유하고, Tablet/Phone을 함께 가로지르는 회전형 expanded overlay 예외는 `special.css`의 `Expanded Chart Non-Web Shared ≤1100px`가 소유한다. 일반 Tablet chart width/scroll edge는 `tablet.css`, 세로·가로 Phone 공통 compact chart density/scroll edge는 `special.css` Phone Shared가 소유하며 `common.css @media(max-width:1100px)`에 Chart responsive 구현을 다시 두지 않는다.
