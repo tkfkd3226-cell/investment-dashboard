@@ -335,6 +335,9 @@ test('증권·퇴직연금 6개 차트 제목은 공통 label primitive를 사�
   assert.match(charts1,/id:'pension-chart-cum',title:'운용손익 및 운용수익률',titleSub:'전체 운용 기준',titleInfo:'전체 운용 기준'/);
   assert.match(charts1,/id:'pension-chart-symbol',title:'연금상품별 운용손익',titleSub:'보유상품 재투자 기준',titleInfo:'보유상품 재투자 기준'/);
   assert.doesNotMatch(charts,/title:`[^`]*chart-title-sub/);
+  assert.match(common1,/--section-title-line-height:1;/);
+  assert.match(common1,/:is\(\.section-title :is\(h2,h3\),\.chart-head h3\)\{[^}]*align-items:center;[^}]*line-height:var\(--section-title-line-height\);/);
+  assert.doesNotMatch(common1,/:is\(\.section-title :is\(h2,h3\),\.chart-head h3\) > \.section-title-icon\{[^}]*margin-bottom:/);
   assert.match(common1,/\.chart-title-label\{ display:inline-flex; align-items:center; gap:var\(--section-title-gap\); min-width:0; line-height:inherit; \}/);
   assert.match(common1,/\.chart-title-text\{min-width:0;line-height:inherit\}/);
   assert.match(common1,/\.chart-title-info-slot\{display:none\}/);
