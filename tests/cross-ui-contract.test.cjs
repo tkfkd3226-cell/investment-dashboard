@@ -102,6 +102,48 @@ test('Main↔Add motion은 OS 설정과 분리하고 웹 자체 animation/transi
   assert.match(addCss,/\.custom-tooltip\{[^}]*transition:/s);
   assert.match(addCss,/html:where\(\[data-add-page="report"\]\)\{scroll-behavior:smooth\}/);
   assert.match(addCss,/\.hamburger-icon i\{[^}]*transition:/s);
+
+  // Navigation motion tuning: 최종 좌표는 유지하고 viewport별 시작 거리/속도/페이드만 다듬는다.
+  assert.equal(cssProp(mainCommon,'--nav-motion-shift'),'40px','Desktop TOC motion shift drifted');
+  assert.equal(cssProp(mainCommon,'--nav-motion-slide-duration'),'.28s','Desktop TOC slide duration drifted');
+  assert.equal(cssProp(mainCommon,'--nav-motion-fade-duration'),'.10s','Desktop TOC fade duration drifted');
+  assert.equal(cssProp(mainCommon,'--nav-motion-slide-delay'),'.04s','Desktop TOC slide delay drifted');
+  assert.equal(cssProp(mainCommon,'--nav-motion-hide-delay'),'.38s','Desktop TOC hide delay drifted');
+  assert.equal(cssProp(mainCommon,'--nav-motion-start-opacity'),'.89','Desktop TOC start opacity drifted');
+
+  const tabletRoot=cssBlock(mainTablet,':root');
+  assert.equal(cssProp(tabletRoot,'--nav-motion-shift'),'36px','Tablet hamburger motion shift drifted');
+  assert.equal(cssProp(tabletRoot,'--nav-motion-slide-duration'),'.27s','Tablet hamburger slide duration drifted');
+  assert.equal(cssProp(tabletRoot,'--nav-motion-fade-duration'),'.10s','Tablet hamburger fade duration drifted');
+  assert.equal(cssProp(tabletRoot,'--nav-motion-slide-delay'),'.04s','Tablet hamburger slide delay drifted');
+  assert.equal(cssProp(tabletRoot,'--nav-motion-hide-delay'),'.37s','Tablet hamburger hide delay drifted');
+  assert.equal(cssProp(tabletRoot,'--nav-motion-start-opacity'),'.90','Tablet hamburger start opacity drifted');
+
+  const phoneRoot=capture(mainSpecial,/\[S03\][^]*?:root\{([^}]*)\}/,'Phone Shared root');
+  assert.equal(cssProp(phoneRoot,'--nav-motion-shift'),'32px','Phone hamburger motion shift drifted');
+  assert.equal(cssProp(phoneRoot,'--nav-motion-slide-duration'),'.26s','Phone hamburger slide duration drifted');
+  assert.equal(cssProp(phoneRoot,'--nav-motion-fade-duration'),'.09s','Phone hamburger fade duration drifted');
+  assert.equal(cssProp(phoneRoot,'--nav-motion-slide-delay'),'.03s','Phone hamburger slide delay drifted');
+  assert.equal(cssProp(phoneRoot,'--nav-motion-hide-delay'),'.35s','Phone hamburger hide delay drifted');
+  assert.equal(cssProp(phoneRoot,'--nav-motion-start-opacity'),'.91','Phone hamburger start opacity drifted');
+
+  // Motion tuning must not move each menu's final anchor/size.
+  const desktopPanel=cssBlock(mainCommon,'.desktop-edge-toc-panel');
+  assert.equal(cssProp(desktopPanel,'top'),'50%','Desktop TOC final top drifted');
+  assert.equal(cssProp(desktopPanel,'right'),'44px','Desktop TOC final right drifted');
+  assert.equal(cssProp(desktopPanel,'width'),'220px','Desktop TOC width drifted');
+  assert.match(cssBlock(mainCommon,'.desktop-edge-toc.is-open .desktop-edge-toc-panel'),/transform:translate\(0,-50%\)/);
+
+  const tabletMenu=cssBlock(mainTablet,'.date-action-menu.mobile-combined-menu');
+  assert.equal(cssProp(tabletMenu,'top'),'calc(100% + var(--space-lg))','Tablet hamburger final top drifted');
+  assert.equal(cssProp(tabletMenu,'right'),'0','Tablet hamburger final right drifted');
+  assert.equal(cssProp(tabletMenu,'width'),'220px','Tablet hamburger width drifted');
+  assert.match(cssBlock(mainCommon,'.date-action-menu.mobile-combined-menu.show'),/transform:translateX\(0\)/);
+
+  const phoneMenu=capture(mainSpecial,/\[S03\][^]*?\.date-action-menu\.mobile-combined-menu\{([^}]*)\}/,'Phone hamburger menu');
+  assert.equal(cssProp(phoneMenu,'top'),'calc(var(--topbar-phone-height) + var(--space-xs))','Phone hamburger final top drifted');
+  assert.equal(cssProp(phoneMenu,'right'),'var(--nav-menu-phone-edge)','Phone hamburger final right drifted');
+  assert.equal(cssProp(phoneMenu,'width'),'min(200px,calc(100vw - var(--nav-menu-phone-edge) - var(--nav-menu-phone-edge)))','Phone hamburger width drifted');
 });
 
 test('Hero background와 공통 favicon은 배포에 필요한 최적화 자산만 참조한다',()=>{
