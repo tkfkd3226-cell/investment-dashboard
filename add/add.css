@@ -976,7 +976,7 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
     radial-gradient(circle at 92% 14%,rgba(24,169,201,.10),transparent 27%),
     radial-gradient(circle at 76% 92%,rgba(217,154,40,.07),transparent 25%),
     var(--bg);line-height:1.55}
-:where(html[data-add-page="report"]) .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+:where(html[data-add-page="calc"],html[data-add-page="report"]) .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 :where(html[data-add-page="report"]) :is(.kpi,.split-group,.split-total,.timeline-card,details,.split-total-mobile-card){padding:var(--density-surface-md)}
 :where(html[data-add-page="report"]) :is(.section-title,.split-group-head) p{font-size:var(--report-type-support);color:var(--muted);margin:0}
 :where(html[data-add-page="report"]) :is(.split-summary-item span,.split-total>div:first-child small,.split-total-mobile-card span){display:block;color:var(--muted);font-size:var(--report-type-micro)}
