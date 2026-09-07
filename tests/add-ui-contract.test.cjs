@@ -398,6 +398,14 @@ test('interaction state는 입력 방식과 ARIA 상태별 owner를 유지한다
   assert.match(css1,/@media\(prefers-reduced-motion:reduce\)\{[^]*?\.custom-tooltip/);
 });
 
+test('Calc Desktop 결과표는 화면 제목과 같은 hidden caption으로 접근 가능한 이름을 가진다',()=>{
+  assert.match(css1,/:where\(html\[data-add-page="calc"\],html\[data-add-page="report"\]\) \.sr-only\{/);
+  assert.match(js1,/function desktopTable\(caption,headers,vals,idPrefix='table'\)\{[^]*?<caption class="sr-only">\$\{esc\(caption\)\}<\/caption>/);
+  assert.match(js1,/desktopTable\('매도 결과',saleH,saleV,/);
+  assert.match(js1,/desktopTable\('원금 회수 결과',flowH,flowV,/);
+  assert.match(js1,/desktopTable\(integrationTitle,integratedH,integratedV,/);
+});
+
 test('Calc와 Report HTML은 add.css + add.js 단일 canonical runtime만 사용한다',()=>{
   for(const html of [calc,report]){
     assert.match(html,/href="add\.css"/);

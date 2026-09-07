@@ -51,6 +51,17 @@ test('Main boot contract: CSS 6개 순서와 app/Market AI 두 module entry를 �
 });
 
 
+test('Main은 OS reduced-motion에서 entrance/transition을 제거하고 상태 의미는 유지한다',()=>{
+  const interaction1=compact(interaction);
+  assert.match(interaction1,/@media \(prefers-reduced-motion: reduce\)\{/);
+  assert.match(interaction1,/--tooltip-motion:0s;/);
+  assert.match(interaction1,/--switch-motion:0s;/);
+  assert.match(interaction1,/--nav-motion-shift:0px;/);
+  assert.match(interaction1,/\.chart-card\.chart-entrance-ready \.chart-anim-bar,[^]*?animation:none;/);
+  assert.match(interaction1,/\.chart-card\.chart-entrance-ready \.chart-anim-line\{[^}]*stroke-dashoffset:0;[^}]*animation:none;/);
+  assert.match(interaction1,/\.app-toast,[^]*?\.app-toast\.show\{transform:translate\(-50%,0\)\}/);
+});
+
 test('Main appearance 두 control은 localStorage와 BroadcastChannel을 함께 갱신한다',()=>{
   assert.match(ui1,/const THEME_STORAGE_KEY='investmentDashboard\.theme'/);
   assert.match(ui1,/const CORNER_THEME_STORAGE_KEY='investmentDashboard\.cornerTheme'/);
