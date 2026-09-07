@@ -395,7 +395,8 @@ test('interaction state는 입력 방식과 ARIA 상태별 owner를 유지한다
   assert.match(css1,/\.report-nav \.tab:is\(\.active,\[aria-selected="true"\]\)/);
   assert.match(css1,/\.help-icon:focus-visible, :where\(html\[data-add-page="calc"\]\) \.help-tooltip\.is-open \.help-icon/);
   assert.match(css1,/@media \(hover:hover\) and \(pointer:fine\)\{[^]*?\.help-icon:hover/);
-  assert.match(css1,/@media\(prefers-reduced-motion:reduce\)\{[^]*?\.custom-tooltip/);
+  assert.doesNotMatch(css,/prefers-reduced-motion/);
+  assert.match(css1,/html:where\(\[data-add-page="report"\]\)\{scroll-behavior:smooth\}/);
 });
 
 test('Calc Desktop 결과표는 화면 제목과 같은 hidden caption으로 접근 가능한 이름을 가진다',()=>{

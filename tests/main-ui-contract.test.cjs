@@ -51,15 +51,13 @@ test('Main boot contract: CSS 6개 순서와 app/Market AI 두 module entry를 �
 });
 
 
-test('Main은 OS reduced-motion에서 entrance/transition을 제거하고 상태 의미는 유지한다',()=>{
-  const interaction1=compact(interaction);
-  assert.match(interaction1,/@media \(prefers-reduced-motion: reduce\)\{/);
-  assert.match(interaction1,/--tooltip-motion:0s;/);
-  assert.match(interaction1,/--switch-motion:0s;/);
-  assert.match(interaction1,/--nav-motion-shift:0px;/);
-  assert.match(interaction1,/\.chart-card\.chart-entrance-ready \.chart-anim-bar,[^]*?animation:none;/);
-  assert.match(interaction1,/\.chart-card\.chart-entrance-ready \.chart-anim-line\{[^}]*stroke-dashoffset:0;[^}]*animation:none;/);
-  assert.match(interaction1,/\.app-toast,[^]*?\.app-toast\.show\{transform:translate\(-50%,0\)\}/);
+test('Main motion은 OS reduced-motion과 연동하지 않고 웹 자체 animation/smooth scroll을 유지한다',()=>{
+  assert.doesNotMatch(interaction,/prefers-reduced-motion/);
+  assert.match(app,/scrollIntoView\(\{\s*behavior:'smooth'/);
+  assert.match(charts,/scrollTo\(\{left:0,behavior:'smooth'\}\)/);
+  assert.match(charts,/behavior:'smooth'/);
+  assert.match(ui,/window\.scrollTo\(\{top:0,left:0,behavior:'smooth'\}\)/);
+  assert.match(ui,/scrollIntoView\(\{behavior:'smooth',block:'start'\}\)/);
 });
 
 test('Main appearance 두 control은 localStorage와 BroadcastChannel을 함께 갱신한다',()=>{
