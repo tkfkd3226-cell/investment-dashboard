@@ -24,6 +24,7 @@ const mainCommon=read('css/common.css');
 const mainTablet=read('css/tablet.css');
 const mainMobile=read('css/mobile.css');
 const mainSpecial=read('css/special.css');
+const mainInteraction=read('css/interaction.css');
 
 const addJs=read('add/add.js');
 const addCss=read('add/add.css');
@@ -76,6 +77,31 @@ test('Main↔Add suite-wide appearance/corner/responsive/desktop-request contrac
   assert.equal(calcDesktop,mainDesktop,'Calc desktop-request viewport drifted from Main');
   assert.equal(reportDesktop,mainDesktop,'Report desktop-request viewport drifted from Main');
   assert.equal(mainDesktop,1280,'suite desktop-request viewport must remain 1280px');
+});
+
+test('Main↔Add motion은 OS 설정과 분리하고 웹 자체 animation/transition/smooth scroll을 유지한다',()=>{
+  const productionMotionFiles=[
+    ...fs.readdirSync(path.join(ROOT,'css')).filter(name=>name.endsWith('.css')).map(name=>`css/${name}`),
+    ...fs.readdirSync(path.join(ROOT,'js')).filter(name=>name.endsWith('.js')).map(name=>`js/${name}`),
+    'add/add.css',
+    'add/add.js'
+  ];
+  for(const file of productionMotionFiles){
+    assert.doesNotMatch(read(file),/prefers-reduced-motion/i,`${file} must not couple web motion to OS reduced-motion`);
+  }
+
+  const mainApp=read('js/dashboard-app.js');
+  const mainCharts=read('js/dashboard-charts.js');
+  assert.match(mainCommon,/@keyframes\s+chartBarSweep/);
+  assert.match(mainCommon,/@keyframes\s+chartPointPop/);
+  assert.match(mainCommon,/@keyframes\s+chartLineDraw/);
+  assert.match(mainInteraction,/\.desktop-edge-toc:hover \.desktop-edge-toc-panel\{[^}]*transition:/s);
+  assert.match(mainApp,/scrollIntoView\(\{\s*behavior:'smooth'/);
+  assert.match(mainCharts,/scrollTo\(\{left:0,behavior:'smooth'\}\)/);
+  assert.match(mainUi,/window\.scrollTo\(\{top:0,left:0,behavior:'smooth'\}\)/);
+  assert.match(addCss,/\.custom-tooltip\{[^}]*transition:/s);
+  assert.match(addCss,/html:where\(\[data-add-page="report"\]\)\{scroll-behavior:smooth\}/);
+  assert.match(addCss,/\.hamburger-icon i\{[^}]*transition:/s);
 });
 
 test('Hero background와 공통 favicon은 배포에 필요한 최적화 자산만 참조한다',()=>{

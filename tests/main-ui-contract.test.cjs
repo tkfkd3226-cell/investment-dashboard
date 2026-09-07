@@ -51,15 +51,6 @@ test('Main boot contract: CSS 6개 순서와 app/Market AI 두 module entry를 �
 });
 
 
-test('Main motion은 OS reduced-motion과 연동하지 않고 웹 자체 animation/smooth scroll을 유지한다',()=>{
-  assert.doesNotMatch(interaction,/prefers-reduced-motion/);
-  assert.match(app,/scrollIntoView\(\{\s*behavior:'smooth'/);
-  assert.match(charts,/scrollTo\(\{left:0,behavior:'smooth'\}\)/);
-  assert.match(charts,/behavior:'smooth'/);
-  assert.match(ui,/window\.scrollTo\(\{top:0,left:0,behavior:'smooth'\}\)/);
-  assert.match(ui,/scrollIntoView\(\{behavior:'smooth',block:'start'\}\)/);
-});
-
 test('Main appearance 두 control은 localStorage와 BroadcastChannel을 함께 갱신한다',()=>{
   assert.match(ui1,/const THEME_STORAGE_KEY='investmentDashboard\.theme'/);
   assert.match(ui1,/const CORNER_THEME_STORAGE_KEY='investmentDashboard\.cornerTheme'/);
