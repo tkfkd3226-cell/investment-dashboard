@@ -190,6 +190,7 @@ Mobile · 모바일   ≤ 760px
 - 입력 요소의 label 연결, 전략/Report tab의 `tablist/tab/tabpanel`·ARIA·keyboard state, tooltip의 `aria-describedby`, Calc Desktop 결과표와 Report table의 caption/header semantic을 유지한다. Calc 결과표의 hidden caption은 바로 위 section title과 같은 의미를 사용한다.
 - 작은 도움말 정보 아이콘은 `img/ui-icons.svg#info-circle` 공통 SVG를 사용하고 label과 공통 inline 정렬 구조를 유지한다. 개별 위치 보정값을 누적하지 않는다.
 - Main·Calc·Report의 favicon은 저장소 공통 정적 자산 `img/favicon.png` 한 파일을 사용하며 Add HTML에서는 `../img/favicon.png`으로 참조한다.
+- Windows/macOS/iOS/Android 등 OS의 모션 감소·애니메이션 끄기 설정과 Calc/Report의 animation/transition/smooth scroll을 연동하지 않는다. Add의 motion도 웹 자체 기능으로 유지하며 `prefers-reduced-motion`을 production CSS/JS에 도입하지 않는다.
 - CALC 설명문·툴팁·검증문구는 짧은 명사형·단문 스타일을 유지한다.
 
 ### 1.3 CSS / JS 내부 구조 원칙

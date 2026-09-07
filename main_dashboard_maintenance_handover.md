@@ -378,7 +378,7 @@ input
 - 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, 상태 표시 등 공통 form/control 표현과 `dashboard-modal.js`의 dialog lifecycle을 재사용한다.
 - 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
 - KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유한다. 공통 modal radius는 shared modal contract에서 한 번만 소유하고 Tablet/Phone은 해당 shared token만 override한다. Phone 좌우 여백은 overlay padding을 canonical source로 사용하며 feature별 `100vw - npx` 폭 보정을 중복해서 만들지 않는다.
-- Tooltip 표시 motion은 `--tooltip-motion`을 공통 source로 사용한다. OS의 `prefers-reduced-motion: reduce`가 활성화되면 `interaction.css`가 tooltip·toast·차트 entrance·card/button/nav transition을 제거하고, 상태·가시성·switch 위치처럼 기능 의미는 그대로 유지한다.
+- Tooltip 표시 motion은 `--tooltip-motion`을 공통 source로 사용한다. Windows/macOS/iOS/Android 등 OS의 모션 감소·애니메이션 끄기 설정과 이 웹의 animation/transition/smooth scroll을 연동하지 않는다. 차트·카드·버튼·tooltip·toast·navigation motion은 웹 자체 기능으로 항상 유지한다.
 - 검증된 responsive/browser별 표현 예외는 feature/CSS가 소유하며, generic 공통화를 위해 제거하지 않는다.
 
 화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js` 또는 `dashboard-modal.js`로 끌어올리지 않는다.
@@ -1178,7 +1178,7 @@ component별 CSS 책임 위치를 명확하게 유지한다.
 - 새로운 `!important`는 원칙적으로 추가하지 않는다.
 - 단순 specificity 충돌은 canonical selector, source order, 구조 정리로 해결한다.
 - `[hidden]`, semantic color, 모바일 view state, print override처럼 정상 cascade로 해결되는 상태를 유지한다.
-- Windows/macOS 등의 OS 모션 감소 설정(`prefers-reduced-motion: reduce`)에서는 차트 entrance와 카드·버튼·tooltip·toast·navigation의 이동/transition을 제거한다. 이 예외는 접근성 contract이므로 `!important` 없이 `interaction.css`의 후순위 cascade로 유지한다.
+- Windows/macOS/iOS/Android 등의 OS 모션 감소·애니메이션 끄기 설정은 차트·카드·버튼·tooltip·toast·navigation의 animation/transition/smooth scroll을 비활성화하는 조건으로 사용하지 않는다. `prefers-reduced-motion`을 production CSS/JS에 도입해 웹 자체 motion을 끄는 변경은 회귀로 본다.
 - 향후 Safari/WebKit 등 실제 브라우저 고유 문제로 강제 우선순위가 다시 필요해 보이더라도 먼저 실기기 재현과 정상 cascade 해결 가능성을 확인한다.
 
 새 `!important`가 불가피하다고 판단되면 반드시:

@@ -760,7 +760,7 @@ Timeline은 장식 자체보다 **날짜 누락·순서 왜곡·카드 겹침·�
 - `aria-expanded`
 - `aria-live` / status
 - table caption / scope
-- `prefers-reduced-motion` 등 OS 접근성 선호와 animation/transition 대응
+- motion 정책: 이 프로젝트는 OS `prefers-reduced-motion`/애니메이션 끄기 설정과 웹의 animation·transition·smooth scroll을 의도적으로 연동하지 않는다. production CSS/JS가 OS 설정 때문에 웹 motion을 비활성화하면 회귀로 판정한다.
 - chart keyboard support
 - hover-only 정보
 - touch target
