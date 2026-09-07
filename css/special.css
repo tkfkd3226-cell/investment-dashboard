@@ -224,6 +224,12 @@
       --dashboard-expand-icon-size:13px;
       --dashboard-legend-font-size:10.5px;
       --dashboard-control-group-gap:var(--space-sm);
+      --nav-motion-shift:32px;
+      --nav-motion-slide-duration:.26s;
+      --nav-motion-fade-duration:.09s;
+      --nav-motion-slide-delay:.03s;
+      --nav-motion-hide-delay:.35s;
+      --nav-motion-start-opacity:.91;
       --section-title-font-size:var(--type-size-xl);
       --section-title-icon-size:15px;
       --section-title-gap:var(--space-sm);

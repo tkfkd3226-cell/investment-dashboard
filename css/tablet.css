@@ -40,6 +40,12 @@
       --empty-state-font-size:var(--type-size-sm);
       --market-ai-column-min:360px;
       --market-ai-column-max:380px;
+      --nav-motion-shift:36px;
+      --nav-motion-slide-duration:.27s;
+      --nav-motion-fade-duration:.10s;
+      --nav-motion-slide-delay:.04s;
+      --nav-motion-hide-delay:.37s;
+      --nav-motion-start-opacity:.90;
     }
 
   /* [T02. Hero / Market AI · Hero density + 좁아진 Market AI column에서 pill wrap만 보완] */
