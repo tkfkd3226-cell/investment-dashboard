@@ -6,6 +6,7 @@
    [I02] Topbar / Navigation Hover
    [I03] Control Hover
    [I04] Generic Button Motion
+   [I05] Desktop Edge TOC Reveal
 
    viewport가 아니라 입력장치 능력으로 분기한다.
    마우스/트랙패드에서만 hover 피드백을 활성화해 터치 기기의 sticky hover를 피한다.
@@ -95,6 +96,7 @@
     }
 }
 
+/* [I05. Desktop Edge TOC Reveal · Desktop 전용 목차 panel / trigger] */
 @media (hover:hover) and (pointer:fine) and (min-width:1101px){
   .desktop-edge-toc:hover .desktop-edge-toc-panel{
     opacity:1;
