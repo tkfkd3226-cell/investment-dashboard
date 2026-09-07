@@ -52,15 +52,16 @@ import {
 // Structure map:
 //   [CHART01] Layout / Sizing Primitives
 //   [CHART02] Expanded View / Responsive Controls
-//   [CHART03] Responsive Controls / Entrance Motion
+//   [CHART03] Chart Options Row Sync
 //   [CHART04] Responsive Control Sync
-//   [CHART05] Series State / Legend Controls
-//   [CHART06] Chart Data / Card Rendering
-//   [CHART07] SVG Core / Tooltip Infrastructure
-//   [CHART08] Global Events / Action Routing
-//   [CHART09] Tooltip Rows / Axes / Hover Geometry
-//   [CHART10] Chart Drawing / Refresh
-//   [CHART11] Public API
+//   [CHART05] Entrance Motion
+//   [CHART06] Series State / Legend Controls
+//   [CHART07] Chart Data / Card Rendering
+//   [CHART08] SVG Core / Tooltip Infrastructure
+//   [CHART09] Global Events / Action Routing
+//   [CHART10] Tooltip Rows / Axes / Hover Geometry
+//   [CHART11] Chart Drawing / Refresh
+//   [CHART12] Public API
 
 // [CHART01] Layout / Sizing Primitives · 차트 레이아웃 / 크기 primitive
 const CHART_FRAME=Object.freeze({left:70,right:70,top:20,bottom:70});
@@ -465,7 +466,7 @@ function redrawVisibleChartsForCurrentSize(){
     if(Number(rect?.width)>0&&Number(rect?.height)>0)redrawChartForCardSize(id);
   });
 }
-// [CHART03] Responsive Controls / Entrance Motion · 반응형 컨트롤 / 진입 모션
+// [CHART03] Chart Options Row Sync · 차트 옵션 행 동기화
 function syncChartOptions(scope,card,legend){
   if(!card||!legend)return;
   let options=document.querySelector(`.chart-options-row[data-chart-scope="${scope}"]`);
@@ -552,6 +553,7 @@ function setupResponsiveChartControls(){
   },{passive:true});
 }
 
+// [CHART05] Entrance Motion · 차트 진입 모션
 function activatePendingChartEntrancesForPhoneLandscape(){
   if(!phoneLandscapeUi())return;
   document.querySelectorAll('.chart-card .chart-wrap').forEach(activateChartEntrance);
@@ -650,7 +652,7 @@ function setupChartEntranceAnimations(){
   }));
 }
 
-// [CHART05] Series State / Legend Controls · 시리즈 상태 / 범례 컨트롤
+// [CHART06] Series State / Legend Controls · 시리즈 상태 / 범례 컨트롤
 const CHART_SERIES_THEME=Object.freeze({
   profit:{token:'--chart-series-profit',fallback:'#ffb84d'},
   daily:{token:'--chart-series-daily',fallback:'#a7d7a8'},
@@ -899,7 +901,7 @@ function setSecurityAllocMode(mode){
 }
 
 
-// [CHART06] Chart Data / Card Rendering · 차트 데이터 / 카드 렌더링
+// [CHART07] Chart Data / Card Rendering · 차트 데이터 / 카드 렌더링
 // Feature-owned swatch adapters: series 존재/팔레트 판단은 chart feature가 소유한다.
 const securitySymbolSwatch=name=>(!dataState.activeDate||securityChartNamesForDate(dataState.activeDate).includes(name))
   ?assetColorSwatch(securityAllocationColor(name))
@@ -1022,7 +1024,7 @@ function renderPensionCharts(x){
 }
 
 
-// [CHART07] SVG Core / Tooltip Infrastructure · SVG 기반 / 툴팁 인프라
+// [CHART08] SVG Core / Tooltip Infrastructure · SVG 기반 / 툴팁 인프라
 function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
 function el(name, attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',name);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e}
 function cssThemeValue(name,fallback){
@@ -1140,7 +1142,7 @@ function scheduleChartTooltipViewportCheck(){
     if(!chartTooltipOwnerVisible())clearChartHover();
   });
 }
-// [CHART08] Global Events / Action Routing · 전역 이벤트 / 차트 액션 라우팅
+// [CHART09] Global Events / Action Routing · 전역 이벤트 / 차트 액션 라우팅
 function setupChartGlobalEvents(){
   document.addEventListener('pointerdown',event=>{
     if(!event.target.closest('.svg-hitbox')&&!event.target.closest('#dashTooltip'))clearChartHover();
@@ -1169,7 +1171,7 @@ function handleChartDashboardAction(event,control){
   else return false;
   return true;
 }
-// [CHART09] Tooltip Rows / Axes / Hover Geometry · 툴팁 행 / 축 / hover 좌표
+// [CHART10] Tooltip Rows / Axes / Hover Geometry · 툴팁 행 / 축 / hover 좌표
 function row(name,val,clsName='',rowClass=''){return `<div class="tt-row${rowClass?' '+rowClass:''}"><span class="tt-name">${tooltipEscape(name)}</span><span class="tt-val ${clsName}">${tooltipEscape(val)}</span></div>`}
 function totalRow(name,val,clsName=''){return row(name,val,clsName,'tt-total')}
 function clsBy(n){return n<0?'tt-neg':(n>0?'tt-pos':'')}
@@ -1379,7 +1381,7 @@ function cumulativeRightAxis(scope,data,mode,leftAxis,compareSelected,autoY){
   return {info:raw,visible:true};
 }
 
-// [CHART10] Chart Drawing / Refresh · 차트 그리기 / 갱신
+// [CHART11] Chart Drawing / Refresh · 차트 그리기 / 갱신
 function drawPensionCumChart(){
   const data=pensionCumHistory(dataState.activeDate),svg=document.getElementById('pensionChartCum');if(!svg||!data.length)return;clear(svg);
   const mode=chartState.compareModes.pension||'return',selection=chartSelection('pensionCum'),selected=selection.selected,autoY=chartAutoYEnabled('pensionCum');
@@ -1630,7 +1632,7 @@ function drawChartsForPrint(){
   }
 }
 
-// [CHART11] Public API
+// [CHART12] Public API
 export {
   drawAllCharts,
   handleChartDashboardAction,
