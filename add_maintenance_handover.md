@@ -1,94 +1,130 @@
 # add 영역 유지보수 및 거래 리포트 인수인계
 
+## 0. 문서 목적 · 범위 · Source of Truth
 
-## 현재 파일 구성
+이 문서는 `add/` 영역의 **CALC + KODEX 레버리지 거래 리포트**를 현재 canonical 구조 그대로 유지하기 위한 인수인계·수정·QA 기준서다.
 
-- `add/calc.html`: 계산기 entry HTML
-- `add/kodex-leverage-report.html`: 거래 리포트 entry HTML
-- `add/add.css`: 두 페이지가 공유하는 단일 런타임 CSS. 공통 primitive와 `data-add-page` 기반 Calc/Report 전용 규칙을 함께 관리하며, Calc Compact·Report Dynamic 시각 언어를 각 페이지의 canonical 스타일로 직접 소유
-- `add/add.js`: 두 페이지가 공유하는 런타임 JS. `data-add-page`에 따라 Calc/Report만 선택 부팅
-- `js/kodex-leverage-schema.js`: Main과 Add Report가 함께 사용하는 KODEX canonical JSON의 DOM-free 단일 schema validator
-- `data/kodex_leverage_trades.json`: KODEX 레버리지 실현거래·본 포지션/단타 분류와 Main 별도수익 재투입 한도의 단일 canonical 데이터 원천
-- `img/favicon.png`: Main·Calc·Report가 공유하는 canonical favicon
-- `img/ui-icons.svg`: Main·Add 정보 아이콘의 단일 SVG sprite
-- `tests/add-calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
-- `tests/add-report-data.test.cjs`: canonical KODEX 거래원천·Report 순수 파생모델·Main `separateProfit` 파생 정합성·혼합일 설명 데이터 소스 회귀 테스트
-- `tests/add-ui-contract.test.cjs`: 선택상태/ARIA/input density/반응형 및 Calc/Report canonical style contract 회귀 테스트
-- `tests/cross-ui-contract.test.cjs`: Main↔Add appearance/Corner/breakpoint/Phone Landscape/iPhone desktop 1280 전역 contract equality 테스트
-- `add_maintenance_handover.md`: Add 유지보수 기준
+적용 범위는 다음과 같다.
 
-> 적용 범위: `add/calc.html`, `add/add.css`, `add/add.js`, `add/kodex-leverage-report.html`, 공통 validator `js/kodex-leverage-schema.js`, 공통 정적 자산 `img/favicon.png`·`img/ui-icons.svg` 및 **KODEX 레버리지 실현손익의 단일 원천인 `data/kodex_leverage_trades.json`**
->
-> 목적: `add/` 영역의 **CALC + KODEX 레버리지 거래 리포트**를 현재 canonical 구조 그대로 유지하고, 새 거래 반영·UI 수정·CSS/JS 유지보수 때 구조와 기준을 다시 분석하지 않고 바로 작업할 수 있게 한다.
+- `add/calc.html`
+- `add/kodex-leverage-report.html`
+- `add/add.css`
+- `add/add.js`
+- `js/kodex-leverage-schema.js`
+- `data/kodex_leverage_trades.json`
+- `img/favicon.png`
+- `img/ui-icons.svg`
+- 관련 `tests/*.test.cjs`
 
----
+문서별 책임은 다음처럼 분리한다.
 
-## 0. 문서 운영 원칙
+- **실제 현재 구현 상태**: 사용자가 제공한 최신 실제 HTML/CSS/JS/data와 관련 테스트가 Source of Truth다.
+- **Add 유지보수 contract**: 이 문서가 Source of Truth다.
+- **Main 유지보수 contract**: [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md)가 Source of Truth다.
+- **Main↔Add 공통 contract**: canonical 정의는 [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md)의 8장을 따르고, Add 적용 규칙은 이 문서에 기록한다. 실행 정합성은 `tests/cross-ui-contract.test.cjs`로 검증한다.
+- **평가·점수·A/B/C·감점 기준**: [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md)가 Source of Truth다.
+- **프로젝트 소개·전체 저장소 개요**: [README.md](./README.md)가 담당한다.
+- **과거 변경 이력**: Git history를 사용하며 이 문서에 차수별 작업일지를 누적하지 않는다.
 
-이 문서는 변경 이력(changelog)이 아니라 **현재 유효한 `add/` 영역 유지보수 계약**만 남기는 기준서다.
+사용자의 이번 작업 지시와 최신 실제 소스가 가장 우선한다. 과거 대화의 수치나 과거 ZIP을 최신값으로 추정하지 않는다.
 
-- `add/`의 코드·UI·데이터 파일을 수정했다는 이유만으로 이 문서를 자동으로 수정하지 않는다.
-- 수정 후 먼저 handover 영향 여부를 판단하고, **장기 유지보수 contract가 실제로 변경된 경우에만** 기존 항목을 수정·통합한다.
-- 다음에 해당할 때만 문서 반영을 검토한다.
-  - 계산식·검산 기준·데이터 contract가 변경된 경우
-  - 증권사 원본 자료의 역할·우선순위가 변경된 경우
-  - Calc/Report의 책임 경계나 공통 구조 원칙이 변경된 경우
-  - 반복적으로 잘못 수정될 가능성이 높은 의도된 동작이 새로 확인된 경우
-  - 향후 유지보수자가 반드시 알아야 하는 운영 제약이 변경된 경우
-- 다음 내용은 원칙적으로 추가하지 않는다.
-  - 단순 UI 정렬·여백·크기·색상·현재 배치 같은 미세 구현값
-  - 특정 거래 1건 추가에 따라 바뀐 현재 숫자나 단발성 결과값
-  - 단발성 버그 수정 이력이나 QA 통과 기록
-  - 현재 CSS/HTML/JS를 보면 바로 확인할 수 있는 구현 세부
-  - 이미 다른 절이나 `main_dashboard_maintenance_handover.md`에 있는 중복 내용
-- 기존 규칙과 같은 목적이면 새 항목을 누적하지 말고 **기존 문장을 수정·통합·삭제**한다.
-- 코드 변경으로 기존 문구가 더 이상 유효하지 않으면 새 규칙을 덧붙이지 말고 해당 문구를 바로잡거나 제거한다.
+### 0.1 현재 canonical 파일과 책임
 
-> **핵심: 파일을 수정할 때마다 MD를 수정하지 않는다. 장기 contract가 바뀐 경우에만 MD를 수정한다.**
-
-### 0.1 Add 평가 시 토큰화 감점 원칙
-
-Add 영역의 토큰화·공통화 평가는 **literal 값의 존재 자체가 아니라 공통화 필요성과 유지보수 위험**을 기준으로 한다.
-
-- 페이지/컴포넌트에 한 번만 쓰이는 고유 색상·표현값은 그 자체로 감점하지 않는다.
-- Light/Dark 대응이 정상이고 동일 semantic의 반복값이 아니며 유지보수상 단일 source가 필요하지 않은 값은 local literal로 유지할 수 있다.
-- 이런 one-use 값을 단지 “더 토큰화할 수 있다”는 이유로 token으로 승격하도록 요구하거나 감점하지 않는다. 불필요한 one-use token 증가는 오히려 피한다.
-- 감점은 동일 semantic 값이 여러 곳에서 반복되는데 공통 source가 없거나, literal 분산 때문에 일관성·수정성·회귀 위험이 실제로 생기는 경우에만 적용한다.
-- 따라서 `add.css`의 component-local/page-specific color literal이 위 조건을 만족하면 색상·Semantic Color 항목의 감점 사유로 보지 않는다.
-
-> **평가 기준: “더 토큰화할 수 있는가”가 아니라 “공통화해야 할 이유가 있는데도 분산되어 있는가”를 본다.**
-
-### 0.2 자동 테스트와 평가 점수 분리
-
-- Add 자동 테스트는 수정 후 계산·UI 회귀를 빠르게 확인하기 위한 QA 안전망이다.
-- 테스트 파일의 존재 여부나 테스트 개수 자체는 Add 평가의 가산·감점 기준이 아니다.
-- 자동 테스트가 없다는 이유만으로 B급을 만들거나 감점하지 않는다.
-- 테스트가 FAIL하면 실제 코드/계산/UI contract 결함인지, 변경된 의도에 비해 테스트가 낡은 것인지 먼저 구분한다. 실제 결함이 확인된 경우에만 그 결함 자체를 평가한다.
-- 자동 테스트 PASS는 실제 UI 미감·정보 위계·실기 UX까지 자동 PASS한다는 의미가 아니다.
-- `tests/add-ui-contract.test.cjs`는 구조·상태·responsive·접근성처럼 폐기되면 실제 회귀가 생기는 경계를 보호한다. 장식용 exact px/hex/shadow/opacity, DOM 개수처럼 정상적인 디자인 수정에도 자주 바뀌는 구현값은 고정하지 않는다.
-- 숫자 자체가 제품 동작인 viewport 경계·명시적 데스크탑 요청 폭·브라우저 동작 회피 조건 등은 예외적으로 contract로 검증할 수 있다.
-
----
-
-## 1. 작업 시작 시 읽기 순서
-
-`add/` 영역 또는 KODEX 레버리지 거래 리포트를 수정할 때는 다음 순서로 확인한다.
+현재 Add 영역은 아래 구조를 기준으로 유지한다.
 
 ```text
-1. main_dashboard_maintenance_handover.md
-   - 전역 수정·평가·QA·결과 전달 contract 확인
-2. add_maintenance_handover.md
-   - Calc/Report 세부 계산·UI·데이터 contract 확인
-3. 현재 ZIP의 실제 관련 소스
-   - Calc 작업: add/calc.html, add/add.css, add/add.js
-   - Report 작업: add/kodex-leverage-report.html, add/add.css, add/add.js
-   - 실현손익 반영: data/kodex_leverage_trades.json 한 곳만 수정
-4. 사용자가 이번 작업에 제공한 최신 증권사 원본 자료
+add/
+├─ calc.html
+├─ kodex-leverage-report.html
+├─ add.css
+└─ add.js
+
+add_maintenance_handover.md
+
+tests/
+├─ add-calc.test.cjs
+├─ add-report-data.test.cjs
+├─ add-ui-contract.test.cjs
+└─ cross-ui-contract.test.cjs
+
+img/
+├─ favicon.png   # Main·Calc·Report 공통 favicon
+└─ ui-icons.svg  # Main·Add 공통 정보 아이콘 sprite
 ```
 
-현재 작업에서 사용자가 별도 요청을 주면 그 요청을 가장 우선한다.
+역할은 다음과 같다.
 
-과거 대화의 수치나 과거 ZIP을 최신값으로 추정하지 않는다. 최신 실제 파일과 이번에 제공된 증권사 원본을 사용한다.
+- `add/calc.html`
+  - CALC DOM과 접근성 구조만 소유한다.
+  - 페이지 stylesheet/script는 `add.css`와 `add.js`만 로드하고, 공통 favicon은 `../img/favicon.png`을 참조한다.
+  - 기능 로직이나 대량 스타일을 HTML 안으로 다시 넣지 않는다.
+- `add/kodex-leverage-report.html`
+  - 거래 리포트 canonical HTML과 증빙/본문 DOM을 소유한다. Timeline은 렌더 대상 shell만 소유하고 실현거래 숫자를 HTML에 중복 하드코딩하지 않는다.
+  - 페이지 stylesheet/script는 Calc와 동일하게 `add.css`와 `add.js`만 로드하고, 공통 favicon은 `../img/favicon.png`을 참조한다. CSS/JS를 다시 HTML 내부 대량 `<style>` / 기능 `<script>`로 되돌리지 않는다.
+- `add/add.css`
+  - Calc와 Report의 단일 런타임 stylesheet다.
+  - 공통 의미색·Corner·Spacing/Density·Heading·Button·Card Surface primitive를 먼저 정의하고, Calc/Report 전용 규칙은 `data-add-page` scope로 서로 격리한다.
+  - Calc의 Compact 스타일과 Report의 Dynamic 시각 언어는 별도 override가 아니라 각 페이지 canonical 규칙 안에서 직접 관리한다.
+  - 페이지 scope는 `:where()`를 사용해 기존 selector specificity를 바꾸지 않는다.
+- `add/add.js`
+  - Calc와 Report의 단일 런타임 script다.
+  - 공통 조기 Light/Dark·Corner 처리를 수행한 뒤 `data-add-page="calc|report"`에 따라 해당 페이지의 boot만 실행한다.
+  - Calc 계산·렌더·프리셋·이벤트·툴팁과 Report 데이터·탭·차트·Timeline 파생 로직은 한 파일 안에서도 section/boot 경계를 유지하고 서로의 DOM/state를 참조하지 않는다. Report는 `data/kodex_leverage_trades.json`을 로드한 뒤 DOM-free `deriveReportModel()` 계층에서 집계·본 포지션/단타 분리를 먼저 계산하고, browser 쪽은 Timeline builder·DOM renderer·navigation controller·chart controller로 책임을 나눈 뒤 `bootReportPage()`가 조립만 담당한다.
+  - Report Timeline의 실현거래 수량·단가·손익·비용뿐 아니라 매도실현 데이터에 없는 매수-only 포지션 형성 문맥도 `data/kodex_leverage_trades.json`의 `positionContext`를 Source of Truth로 사용한다. 새 canonical 거래 행은 curated 설명이 없어도 Timeline에 기본 항목으로 자동 노출되어야 한다.
+  - Node 회귀검증에서는 Calc의 `compute`/`validate`/`ceil5`와 Report의 `deriveReportModel` 계층을 노출하되 브라우저 boot는 실행하지 않는다. canonical 거래 원천은 테스트가 JSON을 직접 읽는다.
+- `tests/add-calc.test.cjs`
+  - Node 내장 `node:test` / `node:assert`만 사용한다.
+  - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
+- `tests/add-report-data.test.cjs`
+  - `data/kodex_leverage_trades.json`을 canonical 거래 원천으로 직접 읽고 production 공통 `js/kodex-leverage-schema.js` validator와 Report 순수 파생모델을 호출해 형식·전체/본 포지션/단타 합계·표시기간 보존을 검증한다. Main과 Add Report가 별도 validator를 다시 만들지 않는다.
+  - Main의 `deriveSeparateProfitFromKodexReport()`와 Report가 같은 canonical JSON을 소비하는지, 날짜별 순손익·누적합계·재투입 한도·표시기간·혼합일/근거 설명·`positionContext`가 동일 원천에서 파생되는지 자동 검증한다. `portfolio.json`이나 `add.js`에 거래/포지션 문맥 복제본이 다시 생기는 것도 금지한다.
+- `tests/add-ui-contract.test.cjs`
+  - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
+  - production HTML/CSS/JS에서 구조·상태·responsive·접근성·single-source contract를 확인하며, 장식용 exact pixel/color/count를 snapshot처럼 고정하지 않는다.
+- `tests/cross-ui-contract.test.cjs`
+  - Main/Add runtime을 서로 import시키지 않고 production source를 직접 읽어 suite-wide equality만 검증한다.
+  - appearance storage/channel, Corner cap, 기본 breakpoint·Phone Landscape, iPhone desktop 1280처럼 두 영역이 반드시 같이 움직여야 하는 contract만 포함한다.
+
+### 0.2 문서 운영 원칙
+
+이 문서는 changelog가 아니라 **현재 유효한 Add 유지보수 contract**만 남긴다.
+
+- `add/`의 코드·UI·데이터 파일을 수정했다는 이유만으로 이 문서를 자동 수정하지 않는다.
+- 계산식·검산 기준·데이터 contract, Calc/Report 책임 경계, 공통 구조 원칙, 반복 회귀 방지 규칙처럼 **장기 유지보수 기준이 실제로 바뀐 경우에만** 기존 항목을 수정·통합한다.
+- 단순 UI 정렬·여백·크기·색상, 특정 거래 1건의 현재 숫자, 단발성 버그 수정 이력, QA 통과 기록은 원칙적으로 추가하지 않는다.
+- 현재 CSS/HTML/JS를 보면 바로 확인할 수 있는 구현 세부를 문서에 다시 복제하지 않는다.
+- 평가 기준은 이 문서에 추가하지 않고 `dashboard_evaluation_guide.md`에서 관리한다.
+- Main에 이미 정의된 공통 contract를 장문으로 복제하지 않는다. Add에 필요한 영향과 준수 규칙만 기록한다.
+- 기존 규칙과 같은 목적이면 새 항목을 누적하지 말고 기존 문장을 수정·통합·삭제한다.
+- 코드 변경으로 기존 문구가 더 이상 유효하지 않으면 새 규칙을 덧붙이기보다 해당 문구를 바로잡거나 제거한다.
+
+> **핵심: Add handover는 “현재 어떻게 유지보수해야 하는가”만 소유한다. 평가와 프로젝트 소개, 과거 이력은 별도 문서가 담당한다.**
+
+## 1. 작업 시작과 공통 contract
+
+Add 작업은 Main handover를 선행해서 전부 읽지 않는다. 작업 대상에 따라 다음 순서로 확인한다.
+
+```text
+1. add_maintenance_handover.md
+   - Calc/Report 계산·UI·데이터·QA contract 확인
+
+2. 최신 실제 관련 소스
+   - Calc: add/calc.html, add/add.css, add/add.js
+   - Report: add/kodex-leverage-report.html, add/add.css, add/add.js
+   - 거래 원천: data/kodex_leverage_trades.json
+   - 공통 validator: js/kodex-leverage-schema.js
+
+3. 사용자가 이번 작업에 제공한 최신 증권사 원본 자료
+   - 거래·실현손익 반영 작업일 때 확인
+
+4. 필요한 경우에만 다른 기준서 확인
+   - Main↔Add appearance/Corner/breakpoint 등 공통 contract 변경:
+     [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md)
+   - 평가 요청:
+     [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md)
+```
+
+사용자가 별도 요청을 주면 그 요청을 가장 우선한다. Add 단독 수정인데 Main handover 전체를 선행 분석 대상으로 삼지 않는다.
 
 ### 1.1 add 영역 Responsive viewport 기준
 
@@ -156,64 +192,7 @@ Mobile · 모바일   ≤ 760px
 - Main·Calc·Report의 favicon은 저장소 공통 정적 자산 `img/favicon.png` 한 파일을 사용하며 Add HTML에서는 `../img/favicon.png`으로 참조한다.
 - CALC 설명문·툴팁·검증문구는 짧은 명사형·단문 스타일을 유지한다.
 
-### 1.3 현재 canonical 소스 구조
-
-현재 `add/` 영역은 아래 구조를 기준으로 유지한다.
-
-```text
-add/
-├─ calc.html
-├─ kodex-leverage-report.html
-├─ add.css
-└─ add.js
-
-add_maintenance_handover.md
-
-tests/
-├─ add-calc.test.cjs
-├─ add-report-data.test.cjs
-├─ add-ui-contract.test.cjs
-└─ cross-ui-contract.test.cjs
-
-img/
-├─ favicon.png   # Main·Calc·Report 공통 favicon
-└─ ui-icons.svg  # Main·Add 공통 정보 아이콘 sprite
-```
-
-역할은 다음과 같다.
-
-- `add/calc.html`
-  - CALC DOM과 접근성 구조만 소유한다.
-  - 페이지 stylesheet/script는 `add.css`와 `add.js`만 로드하고, 공통 favicon은 `../img/favicon.png`을 참조한다.
-  - 기능 로직이나 대량 스타일을 HTML 안으로 다시 넣지 않는다.
-- `add/kodex-leverage-report.html`
-  - 거래 리포트 canonical HTML과 증빙/본문 DOM을 소유한다. Timeline은 렌더 대상 shell만 소유하고 실현거래 숫자를 HTML에 중복 하드코딩하지 않는다.
-  - 페이지 stylesheet/script는 Calc와 동일하게 `add.css`와 `add.js`만 로드하고, 공통 favicon은 `../img/favicon.png`을 참조한다. CSS/JS를 다시 HTML 내부 대량 `<style>` / 기능 `<script>`로 되돌리지 않는다.
-- `add/add.css`
-  - Calc와 Report의 단일 런타임 stylesheet다.
-  - 공통 의미색·Corner·Spacing/Density·Heading·Button·Card Surface primitive를 먼저 정의하고, Calc/Report 전용 규칙은 `data-add-page` scope로 서로 격리한다.
-  - Calc의 Compact 스타일과 Report의 Dynamic 시각 언어는 별도 override가 아니라 각 페이지 canonical 규칙 안에서 직접 관리한다.
-  - 페이지 scope는 `:where()`를 사용해 기존 selector specificity를 바꾸지 않는다.
-- `add/add.js`
-  - Calc와 Report의 단일 런타임 script다.
-  - 공통 조기 Light/Dark·Corner 처리를 수행한 뒤 `data-add-page="calc|report"`에 따라 해당 페이지의 boot만 실행한다.
-  - Calc 계산·렌더·프리셋·이벤트·툴팁과 Report 데이터·탭·차트·Timeline 파생 로직은 한 파일 안에서도 section/boot 경계를 유지하고 서로의 DOM/state를 참조하지 않는다. Report는 `data/kodex_leverage_trades.json`을 로드한 뒤 DOM-free `deriveReportModel()` 계층에서 집계·본 포지션/단타 분리를 먼저 계산하고, browser 쪽은 Timeline builder·DOM renderer·navigation controller·chart controller로 책임을 나눈 뒤 `bootReportPage()`가 조립만 담당한다.
-  - Report Timeline의 실현거래 수량·단가·손익·비용뿐 아니라 매도실현 데이터에 없는 매수-only 포지션 형성 문맥도 `data/kodex_leverage_trades.json`의 `positionContext`를 Source of Truth로 사용한다. 새 canonical 거래 행은 curated 설명이 없어도 Timeline에 기본 항목으로 자동 노출되어야 한다.
-  - Node 회귀검증에서는 Calc의 `compute`/`validate`/`ceil5`와 Report의 `deriveReportModel` 계층을 노출하되 브라우저 boot는 실행하지 않는다. canonical 거래 원천은 테스트가 JSON을 직접 읽는다.
-- `tests/add-calc.test.cjs`
-  - Node 내장 `node:test` / `node:assert`만 사용한다.
-  - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
-- `tests/add-report-data.test.cjs`
-  - `data/kodex_leverage_trades.json`을 canonical 거래 원천으로 직접 읽고 production 공통 `js/kodex-leverage-schema.js` validator와 Report 순수 파생모델을 호출해 형식·전체/본 포지션/단타 합계·표시기간 보존을 검증한다. Main과 Add Report가 별도 validator를 다시 만들지 않는다.
-  - Main의 `deriveSeparateProfitFromKodexReport()`와 Report가 같은 canonical JSON을 소비하는지, 날짜별 순손익·누적합계·재투입 한도·표시기간·혼합일/근거 설명·`positionContext`가 동일 원천에서 파생되는지 자동 검증한다. `portfolio.json`이나 `add.js`에 거래/포지션 문맥 복제본이 다시 생기는 것도 금지한다.
-- `tests/add-ui-contract.test.cjs`
-  - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
-  - production HTML/CSS/JS에서 구조·상태·responsive·접근성·single-source contract를 확인하며, 장식용 exact pixel/color/count를 snapshot처럼 고정하지 않는다.
-- `tests/cross-ui-contract.test.cjs`
-  - Main/Add runtime을 서로 import시키지 않고 production source를 직접 읽어 suite-wide equality만 검증한다.
-  - appearance storage/channel, Corner cap, 기본 breakpoint·Phone Landscape, iPhone desktop 1280처럼 두 영역이 반드시 같이 움직여야 하는 contract만 포함한다.
-
-### 1.4 CSS / JS 내부 구조 원칙
+### 1.3 CSS / JS 내부 구조 원칙
 
 - CSS/JS는 기능 책임과 화면 흐름 기준의 한글 section 구성을 유지하되, 이 문서가 파일 내부 목차를 중복 보관하지 않는다. 실제 section 순서와 selector/function 구성은 현재 소스를 Source of Truth로 본다.
 - CSS는 기본 component 규칙 뒤에 responsive 규칙을 두고, 기능과 무관한 알파벳/가나다 정렬을 목적으로 재배치하지 않는다.
@@ -552,29 +531,17 @@ reinvestedLimit
 
 ### 12.3 Calc/Report UI·responsive 변경 시
 
-공개 browser runtime 검증용 canonical URL은 다음으로 고정한다.
-
-```text
-Calc
-https://tkfkd3226-cell.github.io/investment-dashboard/add/calc.html
-
-KODEX 레버리지 거래 리포트
-https://tkfkd3226-cell.github.io/investment-dashboard/add/kodex-leverage-report.html
-```
-
-- `평가`, UI/UX 독립 평가 또는 사용자가 별도로 요청한 `배포본 확인`에서는 사용자가 주소를 다시 제공하지 않아도 위 URL을 사용할 수 있다.
-- **수정 직후 QA/차수별 QA/전체 QA에서는 GitHub Pages를 PASS/FAIL 근거로 사용하지 않는다.** QA 대상은 방금 수정한 현재 revision이며, 배포본은 revision이 다를 수 있다.
-- QA에서 실제 브라우저 runtime이 필요하면 현재 수정본 자체를 실행할 수 있는 환경에서 확인한다. 실행할 수 없으면 정적·자동테스트·diff 검증을 끝까지 수행하고 runtime 미실시 범위를 명시한다.
-- GitHub Pages는 배포된 revision의 runtime 검증 수단일 뿐이며 최신 ZIP 실제 소스보다 우선하지 않는다. 최신 ZIP과 배포본의 동일 revision 여부가 확인되지 않으면 결과를 `배포본 runtime`으로 구분한다.
+- 수정 직후 QA의 기준은 **방금 수정한 현재 revision**이다. 동일 revision임이 확인되지 않은 GitHub Pages 공개본을 PASS/FAIL 근거로 사용하지 않는다.
+- 사용자가 별도로 `배포본 확인`을 요청했거나 독립 평가를 수행하는 경우의 공개 runtime 사용 기준은 `dashboard_evaluation_guide.md`를 따른다.
 - Desktop/Tablet/Mobile 기준에서 관련 화면을 확인하고, 요청하지 않은 add 전용 breakpoint가 생기지 않았는지 본다.
 - tab/ARIA/tooltip/table semantic이 관련 변경으로 깨지지 않았는지 확인한다.
 - 선택상태·hover·input/date/stepper CSS contract 또는 invalid 입력의 stale-result UX 관련 변경은 `node --test tests/add-ui-contract.test.cjs` 전체 PASS를 확인한다.
 - Timeline을 건드렸다면 날짜 누락·순서 왜곡·카드 겹침을 확인한다.
-
 ### 12.4 구조 리팩터링 시
 
 - `add.css`의 Shared/Calc/Report scope와 `add.js`의 Calc/Report boot 책임 경계가 유지되는지 확인한다.
 - 계산 engine과 render/event가 다시 결합되거나 listener/boot가 중복 등록되지 않았는지 확인한다.
+- `add-ui-contract.test.cjs`는 모든 미세 px 값을 무차별 고정하지 않고, 장기적으로 폐기되면 안 되는 구조·반응형·상태·접근성 contract를 우선 보호한다. 의도된 contract 자체가 바뀐 경우에만 실제 구현·handover·관련 테스트를 함께 정합화한다.
 
 ### 12.5 canonical 경로 관련 변경 시
 
@@ -587,6 +554,8 @@ https://tkfkd3226-cell.github.io/investment-dashboard/add/kodex-leverage-report.
 
 - 메인 대시보드·퇴직연금·가격갱신/KRX 구조
 - 요청하지 않은 Calc 계산식 또는 본 포지션/단타 분류 기준
+
+사용자 요청이 Add canonical 계산·데이터 contract와 직접 충돌하거나 운영 데이터 훼손 위험을 만들면 조용히 강행하지 않는다. 최신 실제 소스를 기준으로 충돌 지점을 확인하고, 요청 목적을 최대한 유지하면서 canonical 원천과 계산 정합성을 보호하는 방향으로 처리한다.
 - `data/kodex_leverage_trades.json`의 `reinvestedLimit` (별도 요청 없이 임의 변경 금지)
 - 현재 사용하지 않는 자금 흐름/차입금 상환 후 자기자금 패널
 
