@@ -760,6 +760,7 @@ Timeline은 장식 자체보다 **날짜 누락·순서 왜곡·카드 겹침·�
 - `aria-expanded`
 - `aria-live` / status
 - table caption / scope
+- `prefers-reduced-motion` 등 OS 접근성 선호와 animation/transition 대응
 - chart keyboard support
 - hover-only 정보
 - touch target

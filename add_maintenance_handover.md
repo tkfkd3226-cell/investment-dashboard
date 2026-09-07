@@ -187,7 +187,7 @@ Mobile · 모바일   ≤ 760px
 
 #### 1.2.5 접근성·공통 자산·문구
 
-- 입력 요소의 label 연결, 전략/Report tab의 `tablist/tab/tabpanel`·ARIA·keyboard state, tooltip의 `aria-describedby`, Report table의 caption/header semantic을 유지한다.
+- 입력 요소의 label 연결, 전략/Report tab의 `tablist/tab/tabpanel`·ARIA·keyboard state, tooltip의 `aria-describedby`, Calc Desktop 결과표와 Report table의 caption/header semantic을 유지한다. Calc 결과표의 hidden caption은 바로 위 section title과 같은 의미를 사용한다.
 - 작은 도움말 정보 아이콘은 `img/ui-icons.svg#info-circle` 공통 SVG를 사용하고 label과 공통 inline 정렬 구조를 유지한다. 개별 위치 보정값을 누적하지 않는다.
 - Main·Calc·Report의 favicon은 저장소 공통 정적 자산 `img/favicon.png` 한 파일을 사용하며 Add HTML에서는 `../img/favicon.png`으로 참조한다.
 - CALC 설명문·툴팁·검증문구는 짧은 명사형·단문 스타일을 유지한다.
