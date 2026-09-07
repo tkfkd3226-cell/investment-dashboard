@@ -118,7 +118,7 @@ Mobile · 모바일   ≤ 760px
 - **Calc 결과 상세는 Desktop/Tablet table과 Phone card가 같은 semantic information role을 공유한다.** section title·label·value typography는 같은 역할 source를 사용하고, table value는 semantic control surface를 사용한다. 표현 방식이 다르다는 이유로 별도 typography 체계를 만들지 않는다.
 - **Calc 상세표는 동일 열폭 + content-driven minimum width를 사용한다.** 표 종류별 임의 `min-width` modifier를 누적하지 않고, 현재 렌더된 label/value가 잘리지 않는 최소폭을 계산해 container보다 넓을 때만 표 자체를 가로 스크롤한다. viewport 변화 시 같은 기준으로 다시 계산하며 Phone 카드 표현과 계산 로직은 이 presentation 규칙과 분리한다.
 - **Calc는 거래유형 preset만 유지하고 실제 거래일별 빠른 매수 shortcut을 누적하지 않는다.** 실제 매수·매도 이력은 Report가 소유한다. 정상 계산 뒤 입력이 invalid가 되면 직전 정상 결과를 stale 상태로 구분해 유지하고, 다시 유효해지면 즉시 새 결과로 갱신한다.
-- 입력 요소의 label 연결, 전략/Report tab의 `tablist/tab/tabpanel`·ARIA·keyboard state, tooltip의 `aria-describedby`, Report table의 caption/header semantic을 유지한다. 작은 도움말 정보 아이콘은 `img/ui-icons.svg#info-circle` 공통 SVG를 사용하고 label과 공통 inline 정렬 구조를 유지하며 개별 위치 보정값을 누적하지 않는다. CALC 설명문·툴팁·검증문구는 짧은 명사형·단문 스타일을 유지한다.
+- 입력 요소의 label 연결, 전략/Report tab의 `tablist/tab/tabpanel`·ARIA·keyboard state, tooltip의 `aria-describedby`, Report table의 caption/header semantic을 유지한다. 작은 도움말 정보 아이콘은 `img/ui-icons.svg#info-circle` 공통 SVG를 사용하고 label과 공통 inline 정렬 구조를 유지하며 개별 위치 보정값을 누적하지 않는다. Main·Calc·Report의 favicon은 저장소 공통 정적 자산 `img/favicon.png` 한 파일을 사용하며 Add HTML에서는 `../img/favicon.png`으로 참조한다. CALC 설명문·툴팁·검증문구는 짧은 명사형·단문 스타일을 유지한다.
 
 ### 1.3 현재 canonical 소스 구조
 
@@ -138,17 +138,20 @@ tests/
 ├─ add-report-data.test.cjs
 ├─ add-ui-contract.test.cjs
 └─ cross-ui-contract.test.cjs
+
+img/
+└─ favicon.png  # Main·Calc·Report 공통 favicon
 ```
 
 역할은 다음과 같다.
 
 - `add/calc.html`
   - CALC DOM과 접근성 구조만 소유한다.
-  - 런타임 asset은 `add.css`와 `add.js`만 로드한다.
+  - 페이지 stylesheet/script는 `add.css`와 `add.js`만 로드하고, 공통 favicon은 `../img/favicon.png`을 참조한다.
   - 기능 로직이나 대량 스타일을 HTML 안으로 다시 넣지 않는다.
 - `add/kodex-leverage-report.html`
   - 거래 리포트 canonical HTML과 증빙/본문 DOM을 소유한다. Timeline은 렌더 대상 shell만 소유하고 실현거래 숫자를 HTML에 중복 하드코딩하지 않는다.
-  - 런타임 asset은 Calc와 동일하게 `add.css`와 `add.js`만 로드하며, CSS/JS를 다시 HTML 내부 대량 `<style>` / 기능 `<script>`로 되돌리지 않는다.
+  - 페이지 stylesheet/script는 Calc와 동일하게 `add.css`와 `add.js`만 로드하고, 공통 favicon은 `../img/favicon.png`을 참조한다. CSS/JS를 다시 HTML 내부 대량 `<style>` / 기능 `<script>`로 되돌리지 않는다.
 - `add/add.css`
   - Calc와 Report의 단일 런타임 stylesheet다.
   - 공통 의미색·Corner·Spacing/Density·Heading·Button·Card Surface primitive를 먼저 정의하고, Calc/Report 전용 규칙은 `data-add-page` scope로 서로 격리한다.

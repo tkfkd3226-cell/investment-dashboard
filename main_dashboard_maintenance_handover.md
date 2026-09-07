@@ -1197,8 +1197,8 @@ investment-dashboard-main/
 │  ├─ portfolio.json
 │  ├─ kodex_leverage_trades.json
 │  └─ prices.json
-├─ favicon.png
 ├─ img/
+│  ├─ favicon.png
 │  ├─ hero-bg.webp
 │  └─ ui-icons.svg
 ├─ index.html
@@ -1217,6 +1217,8 @@ investment-dashboard-main/
 ├─ requirements.txt
 ├─ scripts/update_prices.py
 ```
+
+`img/favicon.png`은 Main `index.html`과 Add의 Calc·Report가 공유하는 canonical favicon이다. 저장소 루트에 `favicon.png` 복제본을 다시 만들지 않는다.
 
 메인 CSS는 6개 역할 파일로 분리되어 있으며 Desktop은 `common.css` baseline을 사용하고 `css/style.css`는 최종 구조에서 제거되었다. 파일별 줄 수와 크기는 변경 시점의 snapshot으로만 보고 고정값으로 취급하지 않는다.
 
@@ -1271,6 +1273,7 @@ investment-dashboard-main/
 │  └─ prices.json
 │
 ├─ img/
+│  ├─ favicon.png
 │  ├─ hero-bg.webp
 │  └─ ui-icons.svg
 │

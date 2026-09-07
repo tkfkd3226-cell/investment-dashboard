@@ -213,6 +213,7 @@ investment-dashboard-main/
 │  ├─ pension_cash_snapshots.json
 │  └─ pension_trades.json
 ├─ img/
+│  ├─ favicon.png
 │  ├─ hero-bg.webp
 │  └─ ui-icons.svg
 ├─ scripts/
@@ -235,6 +236,8 @@ investment-dashboard-main/
 ├─ add_maintenance_handover.md
 └─ main_dashboard_maintenance_handover.md
 ```
+
+`img/favicon.png`은 Main `index.html`과 Add의 Calc·Report가 함께 사용하는 공통 favicon이다. 저장소 루트에 favicon 복제본을 다시 두지 않는다.
 
 ---
 
