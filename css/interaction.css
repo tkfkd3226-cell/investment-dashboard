@@ -7,7 +7,6 @@
    [I03] Control Hover
    [I04] Generic Button Motion
    [I05] Desktop Edge TOC Reveal
-   [I06] Reduced Motion
 
    viewport가 아니라 입력장치 능력으로 분기한다.
    마우스/트랙패드에서만 hover 피드백을 활성화해 터치 기기의 sticky hover를 피한다.
@@ -115,75 +114,3 @@
     color:var(--nav-text-strong);
   }
 }
-
-/* [I06. Reduced Motion · OS 모션 감소 설정은 의미/상태는 유지하고 이동·전환만 제거] */
-@media (prefers-reduced-motion: reduce){
-  :root{
-    --tooltip-motion:0s;
-    --switch-motion:0s;
-    --nav-motion-shift:0px;
-    --nav-motion-slide-duration:0s;
-    --nav-motion-fade-duration:0s;
-    --nav-motion-slide-delay:0s;
-    --nav-motion-hide-delay:0s;
-  }
-
-  .chart-card.chart-entrance-ready .chart-anim-bar,
-  .chart-card.chart-entrance-ready .chart-anim-point{
-    opacity:1;
-    transform:none;
-    animation:none;
-  }
-  .chart-card.chart-entrance-ready .chart-anim-line{
-    stroke-dasharray:none;
-    stroke-dashoffset:0;
-    animation:none;
-  }
-
-  :is(
-    .chart-legend button.legend-item,
-    .chart-expanded-overlay,
-    .compact-chart-ui .chart-title-info-tooltip,
-    .asset-viz-tooltip,
-    .token-guide-chevron,
-    .asset-workspace-tab,
-    .contrib-target-option,
-    .app-toast,
-    .card,
-    .note:not(.asset-status-note):not(.asset-change-note),
-    .asset-insight-card,
-    .mini-card,
-    .control-switch-track,
-    .control-switch-thumb,
-    .date-tool-btn,
-    .date-action-menu.mobile-combined-menu .mobile-nav-item,
-    .pill,
-    button,
-    .mobile-top-button,
-    .date-action-menu.mobile-combined-menu,
-    .desktop-edge-toc-panel
-  ){
-    transition:none;
-  }
-
-  .app-toast,
-  .app-toast.show{transform:translate(-50%,0)}
-  .mobile-top-button,
-  .mobile-top-button.show{transform:translateY(0)}
-
-  .date-action-menu.mobile-combined-menu .mobile-nav-item:active,
-  .date-tool-btn:not(:disabled):active,
-  button:not(:disabled):active{transform:none}
-}
-
-@media (prefers-reduced-motion: reduce) and (hover:hover) and (pointer:fine){
-  .card:hover,
-  .note:not(.asset-status-note):not(.asset-change-note):hover,
-  .asset-insight-card:hover,
-  .mini-card:hover,
-  .pill:hover,
-  .date-tool-btn:hover,
-  .date-action-menu.mobile-combined-menu .mobile-nav-item:hover,
-  button:not(:disabled):hover{transform:none}
-}
-
