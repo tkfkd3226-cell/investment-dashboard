@@ -9,13 +9,15 @@
 - `add/add.js`: 두 페이지가 공유하는 런타임 JS. `data-add-page`에 따라 Calc/Report만 선택 부팅
 - `js/kodex-leverage-schema.js`: Main과 Add Report가 함께 사용하는 KODEX canonical JSON의 DOM-free 단일 schema validator
 - `data/kodex_leverage_trades.json`: KODEX 레버리지 실현거래·본 포지션/단타 분류와 Main 별도수익 재투입 한도의 단일 canonical 데이터 원천
-- `/tests/add-calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
-- `/tests/add-report-data.test.cjs`: canonical KODEX 거래원천·Report 순수 파생모델·Main `separateProfit` 파생 정합성·혼합일 설명 데이터 소스 회귀 테스트
-- `/tests/add-ui-contract.test.cjs`: 선택상태/ARIA/input density/반응형 및 Calc/Report canonical style contract 회귀 테스트
-- `/tests/cross-ui-contract.test.cjs`: Main↔Add appearance/Corner/breakpoint/Phone Landscape/iPhone desktop 1280 전역 contract equality 테스트
+- `img/favicon.png`: Main·Calc·Report가 공유하는 canonical favicon
+- `img/ui-icons.svg`: Main·Add 정보 아이콘의 단일 SVG sprite
+- `tests/add-calc.test.cjs`: `add.js`가 노출하는 계산 순수 함수 회귀 테스트
+- `tests/add-report-data.test.cjs`: canonical KODEX 거래원천·Report 순수 파생모델·Main `separateProfit` 파생 정합성·혼합일 설명 데이터 소스 회귀 테스트
+- `tests/add-ui-contract.test.cjs`: 선택상태/ARIA/input density/반응형 및 Calc/Report canonical style contract 회귀 테스트
+- `tests/cross-ui-contract.test.cjs`: Main↔Add appearance/Corner/breakpoint/Phone Landscape/iPhone desktop 1280 전역 contract equality 테스트
 - `add_maintenance_handover.md`: Add 유지보수 기준
 
-> 적용 범위: `add/calc.html`, `add/add.css`, `add/add.js`, `add/kodex-leverage-report.html`, 공통 validator `js/kodex-leverage-schema.js` 및 **KODEX 레버리지 실현손익의 단일 원천인 `data/kodex_leverage_trades.json`**
+> 적용 범위: `add/calc.html`, `add/add.css`, `add/add.js`, `add/kodex-leverage-report.html`, 공통 validator `js/kodex-leverage-schema.js`, 공통 정적 자산 `img/favicon.png`·`img/ui-icons.svg` 및 **KODEX 레버리지 실현손익의 단일 원천인 `data/kodex_leverage_trades.json`**
 >
 > 목적: `add/` 영역의 **CALC + KODEX 레버리지 거래 리포트**를 현재 canonical 구조 그대로 유지하고, 새 거래 반영·UI 수정·CSS/JS 유지보수 때 구조와 기준을 다시 분석하지 않고 바로 작업할 수 있게 한다.
 
@@ -73,13 +75,15 @@ Add 영역의 토큰화·공통화 평가는 **literal 값의 존재 자체가 �
 `add/` 영역 또는 KODEX 레버리지 거래 리포트를 수정할 때는 다음 순서로 확인한다.
 
 ```text
-1. /add_maintenance_handover.md
-2. 현재 ZIP의 실제 관련 소스
+1. main_dashboard_maintenance_handover.md
+   - 전역 수정·평가·QA·결과 전달 contract 확인
+2. add_maintenance_handover.md
+   - Calc/Report 세부 계산·UI·데이터 contract 확인
+3. 현재 ZIP의 실제 관련 소스
    - Calc 작업: add/calc.html, add/add.css, add/add.js
    - Report 작업: add/kodex-leverage-report.html, add/add.css, add/add.js
    - 실현손익 반영: data/kodex_leverage_trades.json 한 곳만 수정
-3. 사용자가 이번 작업에 제공한 최신 증권사 원본 자료
-4. Main 연결·전역 contract에 실제 영향이 있을 때만 /main_dashboard_maintenance_handover.md
+4. 사용자가 이번 작업에 제공한 최신 증권사 원본 자료
 ```
 
 현재 작업에서 사용자가 별도 요청을 주면 그 요청을 가장 우선한다.
@@ -140,7 +144,8 @@ tests/
 └─ cross-ui-contract.test.cjs
 
 img/
-└─ favicon.png  # Main·Calc·Report 공통 favicon
+├─ favicon.png   # Main·Calc·Report 공통 favicon
+└─ ui-icons.svg  # Main·Add 공통 정보 아이콘 sprite
 ```
 
 역할은 다음과 같다.

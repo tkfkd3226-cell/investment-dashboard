@@ -795,7 +795,9 @@ JS 파일을 점수 때문에 추가 분할
 → 최소 수정
 → 변경 영역 Fast QA
 → syntax / import / 계산 검증
-→ Main/Add 5종 + Cross 전역 계약 1종 Full QA
+→ 해당 화면군의 관련 테스트
+→ appearance/Corner/breakpoint 등 전역 contract 변경 시 Cross QA
+→ 사용자가 `전체 QA`를 명시한 경우에만 Main/Add 5종 + Cross 1종 Full QA
 → diff 확인
 → 필요한 viewport / runtime QA
 → handover 영향 여부 판단
@@ -1226,65 +1228,7 @@ investment-dashboard-main/
 
 ## 4.2 현재 디렉토리 구조를 기준선으로 사용
 
-현재 프로젝트는 개념적으로 다음 구조를 사용한다.
-
-```text
-investment-dashboard-main/
-│
-├─ index.html
-│
-├─ css/
-│  ├─ common.css
-│  ├─ tablet.css
-│  ├─ mobile.css
-│  ├─ special.css
-│  ├─ interaction.css
-│  ├─ print.css
-│
-├─ js/
-│  ├─ kodex-leverage-schema.js
-│  ├─ dashboard-core.js
-│  ├─ dashboard-ui-common.js
-│  ├─ dashboard-modal.js
-│  ├─ dashboard-charts.js
-│  ├─ dashboard-ui.js
-│  ├─ dashboard-pension.js
-│  ├─ dashboard-pension-editor.js
-│  ├─ dashboard-app.js
-│  └─ dashboard-market-ai.js  # standalone entry · dashboard-modal lifecycle만 공유
-│
-├─ add/
-│  ├─ calc.html
-│  ├─ kodex-leverage-report.html
-│  ├─ add.css
-│  └─ add.js
-│
-├─ add_maintenance_handover.md
-├─ main_dashboard_maintenance_handover.md
-│
-├─ data/
-│  ├─ account1_daily_snapshots.json
-│  ├─ kodex_leverage_trades.json
-│  ├─ pension_cash_snapshots.json
-│  ├─ pension_contributions.json
-│  ├─ pension_trades.json
-│  ├─ performance_snapshots.json
-│  ├─ portfolio.json
-│  └─ prices.json
-│
-├─ img/
-│  ├─ favicon.png
-│  ├─ hero-bg.webp
-│  └─ ui-icons.svg
-│
-└─ tests/
-   ├─ main-calc.test.cjs
-   ├─ main-ui-contract.test.cjs
-   ├─ add-calc.test.cjs
-   ├─ add-ui-contract.test.cjs
-   ├─ add-report-data.test.cjs
-   └─ cross-ui-contract.test.cjs
-```
+현재 전체 디렉토리 snapshot은 **4.1 한 곳을 canonical 구조표로 사용**한다. 이 절에 같은 파일 트리를 다시 복제하지 않는다.
 
 계산 회귀와 UI Contract 자동 QA는 `tests/` 루트에서 `main-`, `add-`, `cross-` 파일명 접두사로 구분한다. 운영 코드와 테스트 코드를 다시 feature 폴더 안에 섞지 않는다.
 
@@ -1743,6 +1687,8 @@ add 통합 JS (Calc + Report page boot)
 현재 dependency 방향은 다음과 같다.
 
 ```text
+kodex-schema    → 다른 dashboard module import 없음
+core            → kodex-schema
 ui-common       → 다른 dashboard module import 없음
 modal           → 다른 dashboard module import 없음
 charts          → core + ui-common + modal
@@ -2122,11 +2068,7 @@ New
 
 ## 6.4 반응형 기본 viewport는 3구간 고정
 
-메인 대시보드 기본 viewport는 다음과 같다.
-
-- **Desktop · 웹:** `1101px 이상`
-- **Tablet · 태블릿:** `761px ~ 1100px`
-- **Mobile · 모바일:** `760px 이하`
+메인 대시보드의 canonical viewport 경계는 **5.1 `반응형 기준과 Phone 역할`**을 따른다. CSS 파일별 소유권은 6.1~6.2를 기준으로 하고, 이 절에 같은 경계값을 반복 기록하지 않는다.
 
 새로운 UI를 추가하거나 수정할 때 기본적으로 이 세 구간 안에서 해결한다. **Phone Landscape는 이 기본 3구간을 다시 정의하는 네 번째 breakpoint가 아니라, 실제 터치 스마트폰 가로를 식별하는 기능 media 예외**로만 취급한다.
 
