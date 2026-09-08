@@ -71,12 +71,13 @@ img/
   - 공통 조기 Light/Dark·Corner 처리를 수행한 뒤 `data-add-page="calc|report"`에 따라 해당 페이지의 boot만 실행한다.
   - Calc 계산·렌더·프리셋·이벤트·툴팁과 Report 데이터·탭·차트·Timeline 파생 로직은 한 파일 안에서도 section/boot 경계를 유지하고 서로의 DOM/state를 참조하지 않는다. Report는 `data/kodex_leverage_trades.json`을 로드한 뒤 DOM-free `deriveReportModel()` 계층에서 집계·본 포지션/단타 분리를 먼저 계산하고, browser 쪽은 Timeline builder·DOM renderer·navigation controller·chart controller로 책임을 나눈 뒤 `bootReportPage()`가 조립만 담당한다.
   - Report Timeline의 실현거래 수량·단가·손익·비용뿐 아니라 매도실현 데이터에 없는 매수-only 포지션 형성 문맥도 `data/kodex_leverage_trades.json`의 `positionContext`를 Source of Truth로 사용한다. 새 canonical 거래 행은 curated 설명이 없어도 Timeline에 기본 항목으로 자동 노출되어야 한다.
-  - Node 회귀검증에서는 Calc의 `compute`/`validate`/`ceil5`와 Report의 `deriveReportModel` 계층을 노출하되 브라우저 boot는 실행하지 않는다. canonical 거래 원천은 테스트가 JSON을 직접 읽는다.
+  - Report의 손익 의미색은 HTML에 양수 클래스를 고정하지 않고 현재 파생값에서 매 렌더마다 `pos`/`neg`를 다시 결정한다. `수익 구성` 도넛은 본 포지션·단타 순손익이 모두 0 이상이고 합계가 양수일 때만 비중을 표시하며, 손익 상쇄·순손실·0원 상태에서는 구성비를 만들지 않고 상태 문구를 표시한다.
+  - Node 회귀검증에서는 Calc의 `compute`/`validate`/`ceil5`와 Report의 `deriveProfitComposition`/`deriveReportModel` 계층을 노출하되 브라우저 boot는 실행하지 않는다. canonical 거래 원천은 테스트가 JSON을 직접 읽는다.
 - `tests/add-calc.test.cjs`
   - Node 내장 `node:test` / `node:assert`만 사용한다.
   - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
 - `tests/add-report-data.test.cjs`
-  - `data/kodex_leverage_trades.json`을 canonical 거래 원천으로 직접 읽고 production 공통 `js/kodex-leverage-schema.js` validator와 Report 순수 파생모델을 호출해 형식·전체/본 포지션/단타 합계·표시기간 보존을 검증한다. Main과 Add Report가 별도 validator를 다시 만들지 않는다.
+  - `data/kodex_leverage_trades.json`을 canonical 거래 원천으로 직접 읽고 production 공통 `js/kodex-leverage-schema.js` validator와 Report 순수 파생모델을 호출해 형식·전체/본 포지션/단타 합계·표시기간 보존과 수익 구성의 손익 상쇄·순손실·0원 경계를 검증한다. Main과 Add Report가 별도 validator를 다시 만들지 않는다.
   - Main의 `deriveSeparateProfitFromKodexReport()`와 Report가 같은 canonical JSON을 소비하는지, 날짜별 순손익·누적합계·재투입 한도·표시기간·혼합일/근거 설명·`positionContext`가 동일 원천에서 파생되는지 자동 검증한다. `portfolio.json`이나 `add.js`에 거래/포지션 문맥 복제본이 다시 생기는 것도 금지한다.
 - `tests/add-ui-contract.test.cjs`
   - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
