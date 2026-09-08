@@ -11,7 +11,7 @@ const REPORT_DATA=reportSource.trades;
 const addSource=read('add/add.js');
 const coreSource=read('js/dashboard-core.js');
 const schemaSource=read('js/kodex-leverage-schema.js');
-const {REPORT_DATA_URL,REPORT_SCHEMA_MODULE_URL,deriveReportModel}=require('../add/add.js');
+const {REPORT_DATA_URL,REPORT_SCHEMA_MODULE_URL,deriveProfitComposition,deriveReportModel}=require('../add/add.js');
 
 let core;
 let REPORT_SCHEMA_VERSION;
@@ -101,6 +101,33 @@ test('KODEX Report canonical schema validator는 잘못된 운영 데이터를 �
   assert.throws(()=>validateReportSource(badContextDate),/legacyBuild\.first context/);
 });
 
+
+
+test('KODEX Report 수익 구성은 실제 수익 기여일 때만 0~100% 비중을 만들고 손익 상쇄·순손실·0원은 제외한다',()=>{
+  const profit=deriveProfitComposition(60,40);
+  assert.deepEqual(profit,{available:true,reason:'profit',total:100,coreRatio:60,dayRatio:40});
+
+  const oneSided=deriveProfitComposition(0,200);
+  assert.equal(oneSided.available,true);
+  assert.equal(oneSided.coreRatio,0);
+  assert.equal(oneSided.dayRatio,100);
+
+  const offset=deriveProfitComposition(-100,200);
+  assert.deepEqual(offset,{available:false,reason:'offset',total:100,coreRatio:0,dayRatio:0});
+
+  const exactOffset=deriveProfitComposition(-100,100);
+  assert.equal(exactOffset.available,false);
+  assert.equal(exactOffset.reason,'offset');
+  assert.equal(exactOffset.coreRatio,0);
+  assert.equal(exactOffset.dayRatio,0);
+
+  const loss=deriveProfitComposition(-100,-200);
+  assert.deepEqual(loss,{available:false,reason:'loss',total:-300,coreRatio:0,dayRatio:0});
+
+  const zero=deriveProfitComposition(0,0);
+  assert.deepEqual(zero,{available:false,reason:'zero',total:0,coreRatio:0,dayRatio:0});
+});
+
 test('KODEX Report 순수 파생 모델은 전체/본 포지션/단타 합계와 표시기간을 보존한다',()=>{
   assert.equal(model.reportMetrics.totalQty,13937);
   assert.equal(model.reportMetrics.totalPnl,9192290);
@@ -110,6 +137,12 @@ test('KODEX Report 순수 파생 모델은 전체/본 포지션/단타 합계와
   assert.equal(model.reportMetrics.corePnl+model.reportMetrics.dayPnl,model.reportMetrics.totalPnl);
   assert.equal(model.reportMetrics.coreFee+model.reportMetrics.dayFee,model.reportMetrics.totalFee);
   assert.equal(model.reportMetrics.coreNet+model.reportMetrics.dayNet,model.reportMetrics.totalNet);
+  assert.equal(model.profitComposition.available,true);
+  assert.equal(model.profitComposition.reason,'profit');
+  assert.ok(model.reportMetrics.coreNetRatio>=0&&model.reportMetrics.coreNetRatio<=100);
+  assert.ok(model.reportMetrics.dayNetRatio>=0&&model.reportMetrics.dayNetRatio<=100);
+  const ratioTotal=model.reportMetrics.coreNetRatio+model.reportMetrics.dayNetRatio;
+  assert.ok(Math.abs(ratioTotal-100)<1e-9);
   assert.equal(model.chartData.net.at(-1),model.reportDailyRows.at(-1).net);
   assert.equal(model.chartData.cum.at(-1),model.reportMetrics.totalNet);
   assert.equal(model.reportStartDate,reportSource.reportStartDate);

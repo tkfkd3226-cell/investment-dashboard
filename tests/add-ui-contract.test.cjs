@@ -149,6 +149,38 @@ test('Calc 검증 오류는 해당 control의 aria-invalid와 설명 영역을 �
   assert.match(js1,/n\.setAttribute\('aria-invalid','true'\);n\.setAttribute\('aria-describedby','validationMessage'\);/);
 });
 
+
+
+test('Calc setText는 새 의미색이 없더라도 이전 positive/negative/zero를 항상 초기화한다',()=>{
+  assert.match(js1,/const setText=\(id,text,cls=''\)=>\{[^}]*?n\.textContent=text;setClass\(n,cls\);\}/);
+  assert.doesNotMatch(js1,/const setText=\(id,text,cls[^)]*\)=>\{[^}]*?if\(cls\)setClass\(n,cls\)/);
+});
+
+test('KODEX Report 손익 의미색과 수익 구성은 현재 파생값/상태에서 동적으로 결정한다',()=>{
+  assert.match(js1,/const REPORT_SIGNED_METRIC_KEYS=new Set\(\['totalPnl','totalNet','corePnl','coreNet','dayPnl','dayNet'\]\)/);
+  assert.match(js1,/node\.hasAttribute\('data-report-sign'\)&&REPORT_SIGNED_METRIC_KEYS\.has\(key\)/);
+  assert.match(js1,/node\.classList\.remove\('pos','neg'\);[^}]*?reportValueClass\(value\)/);
+  assert.match(js1,/function deriveProfitComposition\(coreNet,dayNet\)/);
+  assert.match(js1,/const available=total>0&&core>=0&&day>=0/);
+  assert.match(js1,/profitComposition\.available\?'available':'unavailable'/);
+  assert.match(report,/data-report-sign/);
+  for(const line of report.split('\n').filter(line=>line.includes('hero-chip')&&line.includes('data-report-value')))assert.doesNotMatch(line,/data-report-sign/,'Hero chip은 기존 중립/전용 색을 유지해야 한다');
+  assert.match(report,/data-report-composition-value/);
+  assert.match(report,/data-report-composition-label/);
+  assert.match(report,/data-report-composition-note hidden/);
+  assert.match(report,/data-report-composition-share="core"/);
+  assert.match(report,/data-report-composition-share="day"/);
+  assert.match(css1,/\.donut\[data-composition-state="unavailable"\]/);
+  assert.match(css1,/\.report-sign-value\.pos\{color:var\(--positive\)\}/);
+  assert.match(css1,/\.report-sign-value\.neg\{color:var\(--negative\)\}/);
+
+  const signedKeys=['totalNet','totalPnl','coreNet','corePnl','dayNet','dayPnl'];
+  for(const tag of report.match(/<(?:div|td|strong|b)[^>]*data-report-value="[^"]+"[^>]*>/g)||[]){
+    const key=tag.match(/data-report-value="([^"]+)"/)?.[1];
+    if(signedKeys.includes(key))assert.doesNotMatch(tag,/class="[^"]*pos/ ,`${key}에 양수 class를 HTML 고정하면 안 된다`);
+  }
+});
+
 test('Calc 이미 회복 상태는 0원·-100% 대신 현재 종가와 상태 문구를 사용한다',()=>{
   assert.match(js1,/const integratedRecoverySatisfied=settled&&!noPrior&&finalCost>0&&priorPL>=finalCost;/);
   assert.match(js1,/integratedRecoverySatisfied\?input\.currentPrice:integratedBEOrder/);
