@@ -165,6 +165,46 @@ test('validate: 변동률 -100% 경계와 target 소수 주문가는 차단한�
   assert.ok(target.invalidIds.includes('targetPrice'));
 });
 
+
+test('validate: 최종 보유수량 0 오류는 원인 입력 control과 연결한다',()=>{
+  const holdingZero=validate({...holding,existingShares:0,addShares:0},{caseType:'holding',mode:'current'});
+  assert.ok(holdingZero.errors.includes('최종 보유수량 1주 이상 필요.'));
+  assert.ok(holdingZero.invalidIds.includes('existingShares'));
+  assert.ok(holdingZero.invalidIds.includes('addShares'));
+
+  const settledZero=validate({...settledNoPrior,addShares:0},{caseType:'settled',mode:'current'});
+  assert.ok(settledZero.errors.includes('보유수량 1주 이상 필요.'));
+  assert.ok(settledZero.invalidIds.includes('addShares'));
+});
+
+test('validate: 유한하지만 목표가격 계산 범위를 넘는 변동률은 차단한다',()=>{
+  const current=validate({...settledNoPrior,overnightPct:1e308},{caseType:'settled',mode:'current'});
+  assert.ok(current.invalidIds.includes('overnightPct'));
+  const rise=validate({...settledNoPrior,risePct:1e308},{caseType:'settled',mode:'rise'});
+  assert.ok(rise.invalidIds.includes('risePct'));
+});
+
+test('validate: 안전 정수 범위를 넘는 금액·수량은 차단한다',()=>{
+  const unsafe=Number.MAX_SAFE_INTEGER+1;
+  const result=validate({...holding,currentPrice:unsafe,addShares:unsafe},{caseType:'holding',mode:'current'});
+  assert.ok(result.invalidIds.includes('currentPrice'));
+  assert.ok(result.invalidIds.includes('addShares'));
+});
+
+test('validate: 개별 입력은 안전 정수여도 곱셈 결과가 안전 범위를 넘으면 차단한다',()=>{
+  const result=validate({...settledNoPrior,addPrice:Number.MAX_SAFE_INTEGER,addShares:2},{caseType:'settled',mode:'current'});
+  assert.ok(result.invalidIds.includes('addPrice'));
+  assert.ok(result.invalidIds.includes('addShares'));
+});
+
+test('compute: signed zero 입력은 계산 경계에서 0으로 정규화한다',()=>{
+  const c=compute({...holding,existingCost:-0,oldRecovery:-0,overnightPct:-0},{caseType:'holding',noPrior:false,mode:'current',autoBreakEvenTarget:false});
+  assert.equal(Object.is(c.i.existingCost,-0),false);
+  assert.equal(Object.is(c.i.oldRecovery,-0),false);
+  assert.equal(Object.is(c.i.overnightPct,-0),false);
+  assert.equal(Object.is(c.priorAvg,-0),false);
+});
+
 test('compute: DOM-free 계산은 호출자가 넘긴 입력 객체를 변경하지 않는다',()=>{
   const input={...holding};
   const before=structuredClone(input);

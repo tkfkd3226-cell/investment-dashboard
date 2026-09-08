@@ -534,6 +534,9 @@ reinvestedLimit
 
 - `node --test tests/add-calc.test.cjs` 전체 PASS.
 - 테스트는 production `compute()/validate()/ceil5()`를 직접 검증하고 계산식 복사본을 만들지 않는다.
+- 숫자 입력은 `-0`을 `0`으로 정규화하고, 원화·수량·목표단가처럼 정수 정확도가 필요한 값은 JavaScript 안전 정수 범위 안에서만 계산한다. 변동률은 값 자체가 유한한 것만으로 통과시키지 않고 실제 5원 주문단위 목표가격까지 안전하게 산출되는지 검증한다.
+- 개별 입력이 안전하더라도 `단가 × 수량`, 최종 보유수량·평가금액 등 핵심 파생 정수 계산이 안전 범위를 넘으면 관련 control을 invalid 처리한다. 계산 결과에서 `NaN`/`Infinity`가 발견되면 렌더링·localStorage 저장을 수행하지 않는다.
+- 최종 보유수량 0처럼 둘 이상의 입력 조합으로 발생하는 validation도 상단 오류문구만 표시하지 말고 원인 control의 `aria-invalid`/`aria-describedby`가 함께 연결되도록 유지한다.
 
 ### 12.3 Calc/Report UI·responsive 변경 시
 
