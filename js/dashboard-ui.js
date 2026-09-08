@@ -555,6 +555,8 @@ function ensureKrxActionModal(){
   return modal;
 }
 let krxActionModalCloseTimer=0;
+let krxActionRequestInFlight=false;
+let krxActionModalSession=0;
 function clearKrxActionModalCloseTimer(){
   if(!krxActionModalCloseTimer)return;
   clearTimeout(krxActionModalCloseTimer);
@@ -562,17 +564,24 @@ function clearKrxActionModalCloseTimer(){
 }
 function openKrxActionModal(){
   clearKrxActionModalCloseTimer();
+  krxActionModalSession++;
   const modal=ensureKrxActionModal();
   const status=modal.querySelector('#krxActionStatus');
   const input=modal.querySelector('#krxActionPin');
-  if(status){status.textContent='';status.className='action-modal-status krx-action-status'}
+  const buttons=modal.querySelectorAll('.krx-action-buttons button');
+  if(status){
+    status.textContent=krxActionRequestInFlight?'KRX 현재가 반영 요청을 처리 중입니다.':'';
+    status.className=`action-modal-status krx-action-status${krxActionRequestInFlight?' checking':''}`;
+  }
   if(input)input.value='';
   input?.setAttribute('aria-invalid','false');
+  buttons.forEach(btn=>btn.disabled=krxActionRequestInFlight);
   openDashboardModal(modal,{initialFocus:input,fallbackSelector:'[data-dashboard-action="krx-update"]'});
 }
 
 function closeKrxActionModal(){
   clearKrxActionModalCloseTimer();
+  krxActionModalSession++;
   const modal=document.getElementById('krxActionModal');
   if(modal){
     const input=modal.querySelector('#krxActionPin');
@@ -587,6 +596,10 @@ async function submitKrxActionModal(mode='selected'){
   const input=modal.querySelector('#krxActionPin');
   const status=modal.querySelector('#krxActionStatus');
   const buttons=modal.querySelectorAll('.krx-action-buttons button');
+  if(krxActionRequestInFlight){
+    if(status){status.textContent='이미 KRX 현재가 반영 요청을 처리 중입니다.';status.className='action-modal-status krx-action-status checking'}
+    return;
+  }
   const pin=String(input?.value||'').replace(/\D/g,'').slice(0,6);
   const updateMode=mode==='auto'?'auto':'selected';
   const selectedDate=dataState.activeDate || '';
@@ -596,7 +609,11 @@ async function submitKrxActionModal(mode='selected'){
     input?.focus();
     return;
   }
+  const requestSession=krxActionModalSession;
+  const currentSession=()=>requestSession===krxActionModalSession;
+  clearKrxActionModalCloseTimer();
   input?.setAttribute('aria-invalid','false');
+  krxActionRequestInFlight=true;
   try{
     buttons.forEach(btn=>btn.disabled=true);
     if(status){
@@ -609,7 +626,7 @@ async function submitKrxActionModal(mode='selected'){
 
     if(data.action === 'workflow_skipped'){
       const msg = data.message || '업데이트할 KRX 현재가 데이터가 없습니다.';
-      if(status){status.textContent=msg;status.className='action-modal-status krx-action-status ok'}
+      if(currentSession()&&status){status.textContent=msg;status.className='action-modal-status krx-action-status ok'}
       showAppToast(msg, 'ok', 6500);
       return;
     }
@@ -617,17 +634,31 @@ async function submitKrxActionModal(mode='selected'){
     const successMsg=updateMode==='selected'
       ? `${selectedDate} KRX 현재가 재갱신 요청 완료.`
       : '최신/누락 KRX 현재가 반영 요청 완료.';
-    if(status){status.textContent=successMsg;status.className='action-modal-status krx-action-status ok'}
+    if(currentSession()&&status){status.textContent=successMsg;status.className='action-modal-status krx-action-status ok'}
     showAppToast(updateMode==='selected'?'선택일 KRX 재갱신 요청 완료':'KRX 자동 반영 요청 완료', 'ok');
-    clearKrxActionModalCloseTimer();
-    krxActionModalCloseTimer=window.setTimeout(()=>{
-      krxActionModalCloseTimer=0;
-      closeKrxActionModal();
-    },2000);
+    if(currentSession()){
+      clearKrxActionModalCloseTimer();
+      krxActionModalCloseTimer=window.setTimeout(()=>{
+        krxActionModalCloseTimer=0;
+        if(currentSession())closeKrxActionModal();
+      },2000);
+    }
   }catch(e){
-    if(status){status.textContent=e.message||String(e);status.className='action-modal-status krx-action-status err'}
+    const errorMessage=e.message||String(e);
+    if(currentSession()&&status){status.textContent=errorMessage;status.className='action-modal-status krx-action-status err'}
+    showAppToast(errorMessage,'err',6500);
   }finally{
-    buttons.forEach(btn=>btn.disabled=false);
+    krxActionRequestInFlight=false;
+    if(currentSession())buttons.forEach(btn=>btn.disabled=false);
+    else{
+      const currentModal=document.getElementById('krxActionModal');
+      currentModal?.querySelectorAll('.krx-action-buttons button').forEach(btn=>btn.disabled=false);
+      const currentStatus=currentModal?.querySelector('#krxActionStatus');
+      if(currentStatus?.classList.contains('checking')){
+        currentStatus.textContent='';
+        currentStatus.className='action-modal-status krx-action-status';
+      }
+    }
   }
 }
 async function triggerKrxPriceUpdate(){

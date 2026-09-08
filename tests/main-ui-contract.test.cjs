@@ -98,6 +98,11 @@ test('Dashboard 날짜 hash는 유효한 값이면 초기 선택일로 복원하
 
 test('KRX 성공 후 자동 닫기 timer는 재열기·수동 닫기에서 취소된다',()=>{
   assert.match(ui,/let krxActionModalCloseTimer=0;/);
+  assert.match(ui,/let krxActionRequestInFlight=false;/);
+  assert.match(ui,/let krxActionModalSession=0;/);
+  assert.match(ui,/if\(krxActionRequestInFlight\)\{[^]*?return;/);
+  assert.match(ui,/const requestSession=krxActionModalSession;/);
+  assert.match(ui,/const currentSession=\(\)=>requestSession===krxActionModalSession;/);
   assert.match(ui,/function clearKrxActionModalCloseTimer\(\)\{[^]*?clearTimeout\(krxActionModalCloseTimer\)/);
   assert.match(ui,/function openKrxActionModal\(\)\{\s*clearKrxActionModalCloseTimer\(\);/);
   assert.match(ui,/function closeKrxActionModal\(\)\{\s*clearKrxActionModalCloseTimer\(\);/);
@@ -523,6 +528,8 @@ test('Market AI refresh는 3 endpoint를 독립 호출하고 최신 refresh sequ
   assert.match(market1,/const serverReachable=response!==null\|\|nextMarketSnapshot!==null\|\|nextBridgeStatus!==null/);
   assert.match(market1,/let marketAiRefreshSequence=0/);
   assert.match(market1,/if\(refreshSequence!==marketAiRefreshSequence\)return/);
+  assert.match(market1,/signal=await response\.json\(\); if\(refreshSequence!==marketAiRefreshSequence\)return;/);
+  assert.match(market1,/catch\(_\)\{ if\(refreshSequence!==marketAiRefreshSequence\)return; setMarketAiState/);
 });
 
 test('Market AI는 main dataState/uiState를 참조하지 않는 standalone state를 유지한다',()=>{

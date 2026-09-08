@@ -1144,7 +1144,9 @@ async function refreshMarketAiSignal(){
   let signal=null;
   try{
     signal=await response.json();
+    if(refreshSequence!==marketAiRefreshSequence)return;
   }catch(_){
+    if(refreshSequence!==marketAiRefreshSequence)return;
     setMarketAiState({
       signal:null,
       status:'신호 오류',

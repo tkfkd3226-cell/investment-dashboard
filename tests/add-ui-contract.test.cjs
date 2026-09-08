@@ -41,6 +41,9 @@ test('Calc/Report는 Main appearance 저장값과 BroadcastChannel을 함께 소
   assert.match(js1,/window\.addEventListener\('storage'/);
   assert.match(js1,/new BroadcastChannel\(APPEARANCE_CHANNEL_NAME\)/);
   assert.match(js1,/appearanceChannel\.addEventListener\('message',syncStoredAppearance\)/);
+  assert.match(js1,/const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange'/);
+  assert.match(js1,/window\.dispatchEvent\(new CustomEvent\(ADD_APPEARANCE_EVENT\)\)/);
+  assert.match(js1,/window\.addEventListener\(ADD_APPEARANCE_EVENT,\(\)=>requestAnimationFrame\(drawChart\)\)/);
   assert.match(js1,/pageshow|focus|visibilitychange/);
   assert.match(css1,/html\.rounded-corners\{/);
   const start=css1.indexOf(':root:where([data-add-page="calc"]){');
@@ -69,6 +72,9 @@ test('Calc 도움말은 label과 inline-flex 정렬을 공유하고 개별 위�
   assert.match(rule(':where(html[data-add-page="calc"]) .help-icon .info-icon-svg'),/width:100%;height:100%/);
   assert.match(css,/--help-icon-active-color:/);
   assert.doesNotMatch(css,/--help-icon-active-border:/);
+  assert.match(css1,/\.help-tooltip\.is-dismissed:focus-within \.custom-tooltip\{opacity:0;visibility:hidden;/);
+  assert.match(js1,/const focusedWrap=document\.activeElement\?\.closest\?\.\('\.help-tooltip'\)\|\|null;/);
+  assert.match(js1,/targets\.forEach\(w=>closeHelpTooltip\(w,\{dismissFocus:w===focusedWrap\}\)\)/);
 });
 
 test('Calc control 높이와 visual state는 viewport 공통 shell source를 사용한다',()=>{

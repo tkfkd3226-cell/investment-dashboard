@@ -3,6 +3,8 @@
 // - Calc / Report가 add.js 하나를 공유하고 data-add-page로 실행 경계를 분리한다.
 // - Calc 순수 계산 함수와 Report 순수 파생 함수를 CommonJS 경로로 노출해 Node 회귀테스트에 사용한다.
 // =========================================================
+const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
+
 (() => {
   if(typeof document==='undefined'||typeof window==='undefined')return;
   const root=document.documentElement;
@@ -15,8 +17,13 @@
   // Main appearance 저장값을 Calc/Report가 함께 소비하고 다른 브라우저 탭·포커스 복귀 시에도 재동기화한다.
   const syncStoredAppearance=()=>{
     try{
+      const wasDark=root.classList.contains('dark');
+      const wasRounded=root.classList.contains('rounded-corners');
       root.classList.toggle('dark',localStorage.getItem(THEME_KEY)==='dark');
       root.classList.toggle('rounded-corners',localStorage.getItem(CORNER_KEY)==='rounded');
+      if(wasDark!==root.classList.contains('dark')||wasRounded!==root.classList.contains('rounded-corners')){
+        window.dispatchEvent(new CustomEvent(ADD_APPEARANCE_EVENT));
+      }
     }catch{}
   };
   syncStoredAppearance();
@@ -735,11 +742,11 @@
     tip.classList.toggle('tooltip-below',useBelow);
   };
   const repositionVisibleTooltips=()=>document.querySelectorAll('.help-tooltip.is-open,.help-tooltip:hover,.help-tooltip:focus-within').forEach(positionHelpTooltip);
-  const closeHelpTooltip=wrap=>{wrap.classList.remove('is-open');const btn=wrap.querySelector('.help-icon');if(btn)btn.setAttribute('aria-expanded','false');};
+  const closeHelpTooltip=(wrap,{dismissFocus=false}={})=>{wrap.classList.remove('is-open');wrap.classList.toggle('is-dismissed',dismissFocus);const btn=wrap.querySelector('.help-icon');if(btn)btn.setAttribute('aria-expanded','false');};
 
   function initHelpTooltips(){
     document.addEventListener('pointerover',e=>{const wrap=e.target.closest('.help-tooltip');if(wrap)positionHelpTooltip(wrap);});
-    document.addEventListener('focusin',e=>{const wrap=e.target.closest('.help-tooltip');if(wrap)positionHelpTooltip(wrap);});
+    document.addEventListener('focusin',e=>{const wrap=e.target.closest('.help-tooltip');if(wrap){wrap.classList.remove('is-dismissed');positionHelpTooltip(wrap);}});
     window.addEventListener('resize',repositionVisibleTooltips,{passive:true});
     document.addEventListener('scroll',repositionVisibleTooltips,{passive:true,capture:true});
     document.addEventListener('click',e=>{
@@ -748,13 +755,17 @@
       document.querySelectorAll('.help-tooltip.is-open').forEach(w=>{if(w!==activeWrap)closeHelpTooltip(w);});
       if(!btn)return;
       e.stopPropagation();
+      activeWrap.classList.remove('is-dismissed');
       positionHelpTooltip(activeWrap);
       const open=activeWrap.classList.toggle('is-open');
       btn.setAttribute('aria-expanded',String(open));
     });
     document.addEventListener('keydown',e=>{
       if(e.key!=='Escape')return;
-      document.querySelectorAll('.help-tooltip.is-open').forEach(w=>{const btn=w.querySelector('.help-icon');closeHelpTooltip(w);if(btn)btn.blur();});
+      const focusedWrap=document.activeElement?.closest?.('.help-tooltip')||null;
+      const targets=new Set(document.querySelectorAll('.help-tooltip.is-open'));
+      if(focusedWrap)targets.add(focusedWrap);
+      targets.forEach(w=>closeHelpTooltip(w,{dismissFocus:w===focusedWrap}));
     });
   }
 
@@ -1467,6 +1478,7 @@
         clearTimeout(resizeTimer);
         resizeTimer=setTimeout(drawChart,80);
       });
+      window.addEventListener(ADD_APPEARANCE_EVENT,()=>requestAnimationFrame(drawChart));
       drawChart();
     }
     return {drawChart,initChart};
