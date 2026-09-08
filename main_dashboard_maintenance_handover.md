@@ -814,7 +814,7 @@ Table의 geometry·정렬·summary contract는 **2.4 `Table 공통 contract`**�
 
 ### 퇴직연금
 
-PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할 때 feature state와 persistence contract를 함께 검증한다. QA에서는 실제 GAS write를 하지 않는다.
+PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할 때 feature state와 persistence contract를 함께 검증한다. Action PIN은 전송 전에는 취소·닫기·ESC·backdrop dismiss를 허용하지만, 서버 요청이 시작된 뒤에는 결과가 확정될 때까지 dismiss를 잠가 호출자의 로컬 상태·완료 안내가 서버 저장 결과와 분리되지 않게 한다. 요청 실패 시에만 입력과 dismiss를 다시 활성화한다. QA에서는 실제 GAS write를 하지 않는다.
 
 ### Chart
 
@@ -1516,11 +1516,13 @@ JS ↔ GAS 계약 검증 시:
 
 ```text
 날짜 지정
-→ 실제 KRX 거래일인지 확인한 뒤 해당 날짜 갱신
-→ 비거래일 또는 종가 확인 불가 날짜면 저장하지 않고 실패 처리
+→ 실제 KRX 거래일인지 확인한 뒤 해당 거래일의 종목 가격·성과 스냅샷 갱신
+→ 지정일까지 이미 저장된 날짜의 KOSPI 값은 누락·정정 여부를 확인해 backfill 가능
+→ 비거래일 또는 종가 확인 불가 날짜면 선택일 종목 갱신은 저장하지 않고 실패 처리
 
 날짜 비움
 → 최신·누락·장중 재확정 대상 날짜를 Python이 자동 판단
+→ 한국시간 오늘까지 저장된 KOSPI 구간의 backfill도 함께 확인
 ```
 
 `비워두면 한국시간 오늘`이라는 과거 설명으로 되돌리지 않는다.

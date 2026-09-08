@@ -745,22 +745,31 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
     </div>`;
 
     let busy=false;
+    let finished=false;
     let submitTimer=null;
     const input=modal.querySelector('#pensionActionPinInput');
     const status=modal.querySelector('#pensionActionPinStatus');
     const cancel=modal.querySelector('.ghost');
     const close=modal.querySelector('.pension-action-pin-close');
 
+    const setDismissEnabled=enabled=>{
+      if(cancel)cancel.disabled=!enabled;
+      if(close)close.disabled=!enabled;
+    };
     const finish=value=>{
+      if(finished)return;
+      finished=true;
       clearTimeout(submitTimer);
       closeDashboardModal(modal,{visibleClass:'',manageAriaHidden:false,remove:true});
       resolve(value);
     };
+    const dismiss=()=>{if(!busy&&!finished)finish(null);};
     const submit=async()=>{
       const pin=String(input?.value||'').replace(/\D/g,'').slice(0,6);
       if(pin.length!==6||busy)return;
       busy=true;
       input.disabled=true;
+      setDismissEnabled(false);
       if(status){status.textContent='처리 중...';status.className='action-modal-status pension-action-pin-status checking'}
       try{
         const result=typeof execute==='function'?await execute(pin):pin;
@@ -770,6 +779,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
         input.disabled=false;
         input.value='';
         busy=false;
+        setDismissEnabled(true);
         requestAnimationFrame(()=>input.focus());
       }
     };
@@ -783,11 +793,11 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
 
     input?.addEventListener('input',onInput);
     input?.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
-    cancel?.addEventListener('click',()=>finish(null));
-    close?.addEventListener('click',()=>finish(null));
+    cancel?.addEventListener('click',dismiss);
+    close?.addEventListener('click',dismiss);
 
     document.body.appendChild(modal);
-    bindDashboardModalDismiss(modal,{onDismiss:()=>finish(null)});
+    bindDashboardModalDismiss(modal,{onDismiss:dismiss});
     openDashboardModal(modal,{visibleClass:'',manageAriaHidden:false,initialFocus:input});
   });
 }

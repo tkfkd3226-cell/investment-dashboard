@@ -23,6 +23,8 @@ const pension=read('js/dashboard-pension.js');
 const pensionEditor=read('js/dashboard-pension-editor.js');
 const marketAi=read('js/dashboard-market-ai.js');
 const app=read('js/dashboard-app.js');
+const updatePricesWorkflow=read('.github/workflows/update-prices.yml');
+const updatePricesPython=read('scripts/update_prices.py');
 
 const common1=compact(common);
 const special1=compact(special);
@@ -107,6 +109,26 @@ test('KRX 요청은 중복 전송을 막고 재진입 session에서 이전 응�
   assert.match(ui,/function openKrxActionModal\(\)\{\s*clearKrxActionModalCloseTimer\(\);/);
   assert.match(ui,/function closeKrxActionModal\(\)\{\s*clearKrxActionModalCloseTimer\(\);/);
   assert.match(ui,/krxActionModalCloseTimer=window\.setTimeout\(/);
+});
+
+test('퇴직연금 Action PIN은 서버 요청 중 dismiss를 잠그고 실패 시 다시 활성화한다',()=>{
+  assert.match(pensionEditor,/let busy=false;\s*let finished=false;/);
+  assert.match(pensionEditor,/const setDismissEnabled=enabled=>\{[^]*?cancel\.disabled=!enabled;[^]*?close\.disabled=!enabled;/);
+  assert.match(pensionEditor,/busy=true;\s*input\.disabled=true;\s*setDismissEnabled\(false\);/);
+  assert.match(pensionEditor,/busy=false;\s*setDismissEnabled\(true\);/);
+  assert.match(pensionEditor,/const dismiss=\(\)=>\{if\(!busy&&!finished\)finish\(null\);\};/);
+  assert.match(pensionEditor,/cancel\?\.addEventListener\('click',dismiss\);/);
+  assert.match(pensionEditor,/close\?\.addEventListener\('click',dismiss\);/);
+  assert.match(pensionEditor,/bindDashboardModalDismiss\(modal,\{onDismiss:dismiss\}\);/);
+});
+
+test('가격 갱신 설명은 선택일 종목 갱신과 KOSPI 과거 backfill 범위를 구분한다',()=>{
+  assert.match(updatePricesWorkflow,/date 지정:[^\n]*종목 가격\/성과[^\n]*KOSPI[^\n]*backfill/);
+  assert.match(updatePricesWorkflow,/지정일까지 저장된 KOSPI 구간의 누락·정정값을 backfill/);
+  assert.match(updatePricesPython,/이후 지정일까지 이미 저장된 날짜의 KOSPI 값은 누락·정정 여부를 확인해 backfill할 수 있다/);
+  assert.match(updatePricesPython,/help=\([^]*?지정일까지 저장된 KOSPI 구간의 [^]*?누락·정정값을 backfill/);
+  assert.doesNotMatch(updatePricesWorkflow,/date 지정:[^\n]*해당 날짜만 갱신/);
+  assert.doesNotMatch(updatePricesPython,/--date``가 있으면[^\n]*그 날짜만 처리/);
 });
 
 test('Responsive 기본 3구간은 Desktop >=1101 / Tablet 761~1100 / Mobile <=760으로 유지한다',()=>{

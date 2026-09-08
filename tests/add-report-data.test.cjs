@@ -205,6 +205,8 @@ test('운영 문서는 KODEX 거래 단일 원천 규칙과 신규 거래 반영
   const addHandover=read('add_maintenance_handover.md');
   assert.match(addHandover,/`data\/kodex_leverage_trades\.json`에 실현거래를 1회 반영/);
   assert.match(addHandover,/`data\/portfolio\.json`에 `separateProfit` 거래 배열을 다시 만들거나/);
+  for(const contextKey of ['legacyBuild','julyAdd','augustFinalBuild'])assert.match(addHandover,new RegExp(`\"${contextKey}\"`),`${contextKey} 문서 예시 누락`);
+  assert.match(addHandover,/`legacyBuild\.first\/second`, `julyAdd`, `augustFinalBuild\.first\/second`는 현재 schema validator의 필수 context/);
   assert.doesNotMatch(addHandover,/실현손익 반영:\s*data\/portfolio\.json 포함/,'작업 시작 순서에 폐기된 portfolio.json 실현손익 반영 문구가 남으면 안 된다');
   const mainHandover=read('main_dashboard_maintenance_handover.md');
   assert.doesNotMatch(mainHandover,/표·KPI·차트·`data\/portfolio\.json`의 누계/,'Main 운영 숫자 QA가 폐기된 portfolio.json 누계를 가리키면 안 된다');

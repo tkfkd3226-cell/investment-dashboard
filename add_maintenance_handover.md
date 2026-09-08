@@ -323,6 +323,11 @@ data/kodex_leverage_trades.json
     "legacyBuild": {
       "first": {"date": "YYYY-MM-DD", "qty": 16, "buy": 203800},
       "second": {"date": "YYYY-MM-DD", "qty": 22, "buy": 170215}
+    },
+    "julyAdd": {"date": "YYYY-MM-DD", "buy": 74350},
+    "augustFinalBuild": {
+      "first": {"date": "YYYY-MM-DD", "qty": 15, "buy": 110465},
+      "second": {"date": "YYYY-MM-DD", "buy": 96750}
     }
   },
   "trades": [
@@ -341,7 +346,7 @@ data/kodex_leverage_trades.json
 
 - `schemaVersion`: 현재 형식은 `1`. `js/kodex-leverage-schema.js`가 Main과 Add Report의 단일 schema validator이며, 브라우저와 QA가 다른 버전 또는 잘못된 숫자·실제 달력에 존재하지 않는 날짜·중복 거래를 계산 전에 동일하게 차단한다. 숫자 필드는 문자열 숫자를 허용하지 않고 JSON `number` 정수만 허용하며, 윤년 규칙까지 실제 달력 기준으로 검증한다.
 - `reportStartDate`: Report 상단 표시기간의 시작일. 종료일은 `trades`의 마지막 매도일에서 자동 파생한다.
-- `positionContext`: 매도실현손익만으로 복원할 수 없는 매수-only 포지션 형성 사실. Timeline과 근거 설명에 필요한 값을 JS literal로 복제하지 않는다.
+- `positionContext`: 매도실현손익만으로 복원할 수 없는 매수-only 포지션 형성 사실. `legacyBuild.first/second`, `julyAdd`, `augustFinalBuild.first/second`는 현재 schema validator의 필수 context다. `legacyBuild.first/second`와 `augustFinalBuild.first`는 `date`·`qty`·`buy`, `julyAdd`와 `augustFinalBuild.second`는 `date`·`buy`를 요구하며, 후자의 수량은 canonical 실현거래 수량과 앞선 context에서 파생한다. Timeline과 근거 설명에 필요한 값을 JS literal로 복제하지 않는다.
 
 혼합일은 전체 거래값과 Core 귀속값을 함께 둔다.
 

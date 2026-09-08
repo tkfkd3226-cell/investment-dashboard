@@ -22,7 +22,13 @@ const holding={
   priorSellPrice:0,currentPrice:79020,oldRecovery:3700000,addPrice:74350,addShares:604,overnightPct:0,risePct:0,targetPrice:0
 };
 
+const settledAlreadyRecovered={
+  caseType:'settled',noPrior:false,priorSellDate:'2026-08-01',existingShares:100,existingCost:1000000,priorSettlementValue:2000000,
+  priorSellPrice:20000,currentPrice:10000,oldRecovery:0,addPrice:10000,addShares:10,overnightPct:0,risePct:0,targetPrice:0
+};
+
 test('ceil5: 5원 주문단위 올림 경계',()=>{
+  assert.equal(ceil5(0),0);
   assert.equal(ceil5(80000),80000);
   assert.equal(ceil5(80001),80005);
   assert.equal(ceil5(79020),79020);
@@ -77,6 +83,21 @@ test('compute: 이전 손실 포함 재매수의 통합 회복가격',()=>{
   assert.equal(c.integratedBE,89681);
   assert.equal(c.integratedBEOrder,89685);
   assert.equal(c.targetPrice,89685);
+});
+
+
+test('compute: 이전 확정이익만으로 이미 회복된 재매수는 현재 종가를 자동 목표로 유지한다',()=>{
+  const c=compute(settledAlreadyRecovered,{caseType:'settled',noPrior:false,mode:'current',autoBreakEvenTarget:true});
+  assert.equal(c.priorPL,1000000);
+  assert.equal(c.finalCost,100000);
+  assert.equal(c.integratedBasis,0);
+  assert.equal(c.integratedBEOrder,0);
+  assert.equal(c.integratedRecoverySatisfied,true);
+  assert.equal(c.targetPrice,10000);
+  assert.equal(c.inputUpdates.overnightPct,0);
+  assert.equal(c.inputUpdates.risePct,0);
+  assert.equal(Object.is(c.targetPrice,-0),false);
+  assert.deepEqual(validate(c.i,{caseType:'settled',mode:'current'}),{errors:[],invalidIds:[]});
 });
 
 test('compute: 보유 중 추가매수의 최종 보유/평단/손익',()=>{

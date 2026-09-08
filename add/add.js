@@ -98,7 +98,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
   const signedIntText=n=>`${n>=0?'+':''}${nf0.format(Math.round(Number.isFinite(n)?n:0))}`;
   const pct=(n,d=2)=>`${n>=0?'+':''}${new Intl.NumberFormat('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n)}%`;
   const parseNum=v=>{const s=String(v??'').replace(/,/g,'').trim();if(s==='')return NaN;const n=Number(s);return Number.isFinite(n)?n:NaN;};
-  const ceil5=n=>Math.ceil((n-1e-9)/5)*5;
+  const ceil5=n=>{const value=Number(n);if(!Number.isFinite(value))return NaN;if(value<=0)return 0;return Math.ceil((value-1e-9)/5)*5;};
   const signClass=n=>n>0?'positive':n<0?'negative':'zero';
   const setClass=(node,cls)=>{node.classList.remove('positive','negative','zero');if(cls)node.classList.add(cls);};
   const setText=(id,text,cls)=>{const n=$(id);n.classList.remove('has-help');n.textContent=text;if(cls)setClass(n,cls);};
@@ -153,6 +153,12 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     const priorPL=priorPLFrom(v);
     if(qty<=0||v.currentPrice<=0)return 0;
     return ceil5(Math.max(principal-priorPL,0)/qty);
+  }
+  function autoIntegratedRecoveryTarget(v){
+    const qty=v.addShares||0, principal=(v.addPrice||0)*qty;
+    const priorPL=priorPLFrom(v);
+    if(qty>0&&principal>0&&priorPL>=principal)return Number(v.currentPrice)||0;
+    return integratedRecoveryOrder(v);
   }
 
   // 05. 거래유형 UI 구성 / DOM 재배치
@@ -410,11 +416,12 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     const positionBERaw=finalShares?finalCost/finalShares:0;
     const positionBE=Math.ceil(positionBERaw), positionBEOrder=ceil5(positionBERaw);
     const integratedBasis=settled?Math.max(finalCost-priorPL,0):finalCost+recoveryAmount;
+    const integratedRecoverySatisfied=settled&&!noPrior&&finalCost>0&&priorPL>=finalCost;
     const integratedBERaw=finalShares?integratedBasis/finalShares:0;
     const integratedBE=Math.ceil(integratedBERaw), integratedBEOrder=ceil5(integratedBERaw);
     let targetPrice;
     if(calculationMode==='current'&&useAutoBreakEvenTarget){
-      targetPrice=settled&&!noPrior?integratedBEOrder:positionBEOrder;
+      targetPrice=settled&&!noPrior?(integratedRecoverySatisfied?input.currentPrice:integratedBEOrder):positionBEOrder;
       input.overnightPct=input.currentPrice?(targetPrice/input.currentPrice-1)*100:0;
       input.risePct=input.addPrice?(targetPrice/input.addPrice-1)*100:0;
       inputUpdates.overnightPct=input.overnightPct;
@@ -451,7 +458,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
       const recoveryPaid=Math.min(remainAfterPrincipal,recoveryAmount), recoveryBalance=Math.max(recoveryAmount-recoveryPaid,0), cashAfter=Math.max(remainAfterPrincipal-recoveryPaid,0);
       return {saleQty,gross,sellFee,net,realizedPL,remainShares,remainCost,remainValue,remainPL,currentCombined,combined,principalRecovered,principalShortfall,recoveryPaid,recoveryBalance,cashAfter};
     }
-    return {i:input,inputUpdates,settled,noPrior,priorAvg,priorValue,priorPL,recoveryAmount,integratedBasis,addedPrincipal,finalShares,finalCost,finalAvg,r:0,buyFee:0,allInCost:finalCost,currentValue,currentPositionPL,currentPositionPLRate,integratedCurrentPL,positionBE,positionBEOrder,integratedBE,integratedBEOrder,targetPrice,targetPositionNet,targetIntegratedPL,addZeroRaw,sFull:strategy('full'),sAdd:strategy('addOnly'),sPrincipal:strategy('principal')};
+    return {i:input,inputUpdates,settled,noPrior,priorAvg,priorValue,priorPL,recoveryAmount,integratedBasis,integratedRecoverySatisfied,addedPrincipal,finalShares,finalCost,finalAvg,r:0,buyFee:0,allInCost:finalCost,currentValue,currentPositionPL,currentPositionPLRate,integratedCurrentPL,positionBE,positionBEOrder,integratedBE,integratedBEOrder,targetPrice,targetPositionNet,targetIntegratedPL,addZeroRaw,sFull:strategy('full'),sAdd:strategy('addOnly'),sPrincipal:strategy('principal')};
   }
 
   // 08. 결과 렌더링
@@ -546,8 +553,11 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     $('actualLoan').value=nf0.format(Math.round(c.addedPrincipal));
     const displayedRate=c.settled?c.currentPositionPLRate:((c.i.currentPrice/c.i.addPrice-1)*100);
     $('currentBuyGain').value=pct(displayedRate,2);setClass($('currentBuyGain'),signClass(displayedRate));
-    $('brokerBreakEven').value=nf0.format(c.settled?c.integratedBE:c.positionBE);
+    $('brokerBreakEven').value=c.settled&&c.integratedRecoverySatisfied?'이미 회복':nf0.format(c.settled?c.integratedBE:c.positionBE);
     if(!(mode==='target'&&document.activeElement===$('targetPrice')))$('targetPrice').value=nf0.format(c.targetPrice);
+    if(c.settled&&!c.noPrior&&c.integratedRecoverySatisfied&&mode==='current'&&autoBreakEvenTarget){
+      $('formulaText').textContent='이전 거래 확정이익으로 이미 통합 회복 → 현재 종가를 자동 목표단가로 사용';
+    }
 
     if(c.settled){
       $('out1').value=nf0.format(Math.round(c.currentValue));setClass($('out1'),'');
@@ -569,11 +579,13 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
       }else{
         setText('kpi1Name','현재 보유분 손익분기');setText('kpi1Value',won(c.positionBEOrder));setText('kpi1Sub',`${shareText(c.finalShares)} 거래비용 제외 기준`);
         setText('kpi2Name','이전 거래 확정손익');setText('kpi2Value',won(c.priorPL),signClass(c.priorPL));setText('kpi2Sub','이전 거래내역에서 자동 계산');
-        setHelpText('kpi3Name','통합 회복가격','현재 보유분 투자금액에 이전 거래 확정손익까지 반영한 통합 손익분기 가격.');setText('kpi3Value',won(c.integratedBEOrder));
-        $('kpi3Sub').innerHTML=c.priorPL<0?'<span class="desktop-only">현재 보유분 투자금액·이전 거래 확정손실 전부 회복</span><span class="mobile-only">투자금·이전 손실까지 회복</span>':c.priorPL>0?'<span class="desktop-only">현재 보유분 투자금액에 이전 거래 확정이익 반영</span><span class="mobile-only">투자금에 이전 이익 반영</span>':'<span class="desktop-only">현재 보유분 투자금액 회복</span><span class="mobile-only">투자금 회복</span>';
+        setHelpText('kpi3Name','통합 회복가격','현재 보유분 투자금액에 이전 거래 확정손익까지 반영한 통합 손익분기 가격. 이전 확정이익만으로 현재 투자금액까지 회복된 경우 가격 대신 이미 회복 상태로 표시한다.');setText('kpi3Value',c.integratedRecoverySatisfied?'이미 회복':won(c.integratedBEOrder),c.integratedRecoverySatisfied?'positive':'');
+        $('kpi3Sub').innerHTML=c.integratedRecoverySatisfied?'<span class="desktop-only">이전 거래 확정이익만으로 현재 보유분 투자금액까지 회복</span><span class="mobile-only">이전 이익만으로 이미 회복</span>':c.priorPL<0?'<span class="desktop-only">현재 보유분 투자금액·이전 거래 확정손실 전부 회복</span><span class="mobile-only">투자금·이전 손실까지 회복</span>':c.priorPL>0?'<span class="desktop-only">현재 보유분 투자금액에 이전 거래 확정이익 반영</span><span class="mobile-only">투자금에 이전 이익 반영</span>':'<span class="desktop-only">현재 보유분 투자금액 회복</span><span class="mobile-only">투자금 회복</span>';
         setText('kpi4Name','목표 매도단가');setText('kpi4Value',won(c.targetPrice),signClass(c.targetIntegratedPL));setText('kpi4Sub',`목표가격 통합손익 ${won(c.targetIntegratedPL)}`);
         setText('range1Title','현재 보유분 손익분기');setText('range1Value',pct((c.positionBEOrder/c.i.currentPrice-1)*100,2),signClass(c.positionBEOrder-c.i.currentPrice));setText('range1Sub',`${won(c.positionBEOrder)} · 현재 ${shareText(c.finalShares)} 자체 손익분기`);
-        setHelpText('range2Title','이전 손익 반영 통합 회복','현재 보유분 투자금액에 이전 거래 확정손익까지 반영한 통합 손익분기 가격.');setText('range2Value',pct((c.integratedBEOrder/c.i.currentPrice-1)*100,2),signClass(c.integratedBEOrder-c.i.currentPrice));setText('range2Sub',c.priorPL<0?`${won(c.integratedBEOrder)} · 이전 거래 확정손실까지 회복`:c.priorPL>0?`${won(c.integratedBEOrder)} · 이전 거래 확정이익 반영`:`${won(c.integratedBEOrder)} · 현재 보유분 자체 손익분기`);
+        setHelpText('range2Title','이전 손익 반영 통합 회복','현재 보유분 투자금액에 이전 거래 확정손익까지 반영한 통합 손익분기 가격. 이전 확정이익만으로 현재 투자금액까지 회복된 경우 가격 변동률 대신 이미 회복 상태로 표시한다.');
+        if(c.integratedRecoverySatisfied){setText('range2Value','이미 회복','positive');setText('range2Sub','이전 거래 확정이익만으로 현재 투자금액까지 회복');}
+        else{setText('range2Value',pct((c.integratedBEOrder/c.i.currentPrice-1)*100,2),signClass(c.integratedBEOrder-c.i.currentPrice));setText('range2Sub',c.priorPL<0?`${won(c.integratedBEOrder)} · 이전 거래 확정손실까지 회복`:c.priorPL>0?`${won(c.integratedBEOrder)} · 이전 거래 확정이익 반영`:`${won(c.integratedBEOrder)} · 현재 보유분 자체 손익분기`);}
         setText('range3Title','목표가격 통합 상태');setText('range3Value',c.targetIntegratedPL>=0?'통합 회복':'미회복',c.targetIntegratedPL>=0?'positive':'negative');setText('range3Sub',`${won(c.targetPrice)}에서 통합손익 ${won(c.targetIntegratedPL)}`);
       }
       $('s3').innerHTML=settledStrategyHTML('full',c.sFull,c);$('s1').innerHTML=settledStrategyHTML('principal',c.sPrincipal,c);$('s2').innerHTML='';
@@ -660,7 +672,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
       }else if(noPriorMode){
         target=(v.addShares||0)>0?ceil5(v.addPrice||0):0;
       }else{
-        target=integratedRecoveryOrder(v);
+        target=autoIntegratedRecoveryTarget(v);
       }
       overnight=v.currentPrice?(target/v.currentPrice-1)*100:0;
       rise=v.addPrice?(target/v.addPrice-1)*100:0;

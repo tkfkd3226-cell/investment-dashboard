@@ -149,6 +149,15 @@ test('Calc 검증 오류는 해당 control의 aria-invalid와 설명 영역을 �
   assert.match(js1,/n\.setAttribute\('aria-invalid','true'\);n\.setAttribute\('aria-describedby','validationMessage'\);/);
 });
 
+test('Calc 이미 회복 상태는 0원·-100% 대신 현재 종가와 상태 문구를 사용한다',()=>{
+  assert.match(js1,/const integratedRecoverySatisfied=settled&&!noPrior&&finalCost>0&&priorPL>=finalCost;/);
+  assert.match(js1,/integratedRecoverySatisfied\?input\.currentPrice:integratedBEOrder/);
+  assert.match(js1,/c\.integratedRecoverySatisfied\?'이미 회복':nf0\.format\(c\.settled\?c\.integratedBE:c\.positionBE\)/);
+  assert.match(js1,/setText\('kpi3Value',c\.integratedRecoverySatisfied\?'이미 회복':won\(c\.integratedBEOrder\)/);
+  assert.match(js1,/if\(c\.integratedRecoverySatisfied\)\{setText\('range2Value','이미 회복','positive'\)/);
+  assert.doesNotMatch(js1,/const ceil5=n=>Math\.ceil\(\(n-1e-9\)\/5\)\*5/);
+});
+
 test('Calc는 실제 거래일별 빠른 매수 shortcut을 누적하지 않는다',()=>{
   for(const source of [calc,js1,css1]) assert.doesNotMatch(source,/current-purchase-preset|current-purchase-btn|applyBuy20260804|applyBuy20260806|purchase-preset|current-column/);
   const noPrior=rule(':where(html[data-add-page="calc"]) .input-grid.no-prior-layout');
