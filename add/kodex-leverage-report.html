@@ -48,12 +48,12 @@
 
   <section class="panel active" id="summary" role="tabpanel" aria-labelledby="reportTabSummary" aria-hidden="false" tabindex="0">
     <div class="kpis">
-      <div class="add-card-shell add-card-base kpi report-kpi-total-net"><div class="label">누적 실현 순손익</div><div class="value pos" data-report-value="totalNet" data-format="won"></div><div class="sub">거래비용 차감 후 증권사 합계</div></div>
-      <div class="add-card-shell add-card-base kpi report-kpi-total-pnl"><div class="label">총 손익금액</div><div class="value pos" data-report-value="totalPnl" data-format="won"></div><div class="sub">거래비용 차감 전</div></div>
+      <div class="add-card-shell add-card-base kpi report-kpi-total-net"><div class="label">누적 실현 순손익</div><div class="value" data-report-value="totalNet" data-format="won" data-report-sign></div><div class="sub">거래비용 차감 후 증권사 합계</div></div>
+      <div class="add-card-shell add-card-base kpi report-kpi-total-pnl"><div class="label">총 손익금액</div><div class="value" data-report-value="totalPnl" data-format="won" data-report-sign></div><div class="sub">거래비용 차감 전</div></div>
       <div class="add-card-shell add-card-base kpi report-kpi-total-fee"><div class="label">총 거래비용</div><div class="value" data-report-value="totalFee" data-format="won"></div><div class="sub"><span data-report-value="sellDays" data-format="integer"></span>개 매도일 합계</div></div>
       
-      <div class="add-card-shell add-card-base kpi report-kpi-core-net"><div class="label">본 포지션 추정 순손익</div><div class="value pos" data-report-value="coreNet" data-format="won"></div><div class="sub">총 순손익의 <span data-report-value="coreNetRatio" data-format="percent1"></span></div></div>
-      <div class="add-card-shell add-card-base kpi report-kpi-day-net"><div class="label">단타 추정 순손익</div><div class="value pos" data-report-value="dayNet" data-format="won"></div><div class="sub">총 순손익의 <span data-report-value="dayNetRatio" data-format="percent1"></span></div></div>
+      <div class="add-card-shell add-card-base kpi report-kpi-core-net"><div class="label">본 포지션 추정 순손익</div><div class="value" data-report-value="coreNet" data-format="won" data-report-sign></div><div class="sub" data-report-composition-share="core">총 순손익 비중 계산 중</div></div>
+      <div class="add-card-shell add-card-base kpi report-kpi-day-net"><div class="label">단타 추정 순손익</div><div class="value" data-report-value="dayNet" data-format="won" data-report-sign></div><div class="sub" data-report-composition-share="day">총 순손익 비중 계산 중</div></div>
       <div class="add-card-shell add-card-base kpi report-kpi-win-rate"><div class="label">매도일 기준 승률</div><div class="value pos" data-report-value="winRate" data-format="percent1"></div><div class="sub">수익 <span data-report-value="winDays" data-format="integer"></span>일 / 전체 <span data-report-value="sellDays" data-format="integer"></span>일</div></div>
     </div>
 
@@ -71,13 +71,14 @@
       <div class="add-card-shell add-card-base section-card composition-card">
         <div class="section-title"><div><h2 class="add-heading-section">수익 구성</h2><p>거래대금 비율로 혼합일 비용 배분</p></div><span class="badge estimate">추정 분리</span></div>
         <div class="split-box">
-          <div class="donut" id="profitCompositionDonut"><div class="donut-center"><strong data-report-value="coreNetRatio" data-format="percent1"></strong><span>본 포지션 비중</span></div></div>
+          <div class="donut" id="profitCompositionDonut" data-composition-state="available"><div class="donut-center"><strong data-report-composition-value>계산 중</strong><span data-report-composition-label>본 포지션 비중</span></div></div>
           <div>
             <div class="legend-row"><div class="legend-name"><span class="dot dot-core"></span>본 포지션</div><strong data-report-value="coreNet" data-format="won"></strong></div>
             <div class="legend-row"><div class="legend-name"><span class="dot dot-day"></span>반복 단타</div><strong data-report-value="dayNet" data-format="won"></strong></div>
             <div class="legend-row"><div class="legend-name">합계</div><strong data-report-value="totalNet" data-format="won"></strong></div>
           </div>
         </div>
+        <p class="composition-state-note" data-report-composition-note hidden></p>
         <div class="volume-bars">
           <div class="volume-row"><span>본 포지션</span><div class="bar-track"><div class="bar-fill bar-fill-core" id="coreVolumeBar"></div></div><strong data-report-value="coreQty" data-format="qty"></strong></div>
           <div class="volume-row"><span>반복 단타</span><div class="bar-track"><div class="bar-fill bar-fill-day" id="dayVolumeBar"></div></div><strong data-report-value="dayQty" data-format="qty"></strong></div>
@@ -94,7 +95,7 @@
           <caption class="sr-only">날짜별 KODEX 레버리지 실현손익</caption>
           <thead><tr><th scope="col">매도일</th><th scope="col" class="num">매도수량</th><th scope="col" class="num">평균 매수</th><th scope="col" class="num">평균 매도</th><th scope="col" class="num">손익금액</th><th scope="col" class="num">거래비용</th><th scope="col" class="num">순손익</th><th scope="col" class="num">누적 순손익</th></tr></thead>
           <tbody id="dailyTradeRows"></tbody>
-          <tfoot><tr><th scope="row">합계</th><td class="num" data-report-value="totalQty" data-format="qty"></td><td></td><td></td><td class="num pos" data-report-value="totalPnl" data-format="won"></td><td class="num" data-report-value="totalFee" data-format="won"></td><td class="num pos" data-report-value="totalNet" data-format="won"></td><td class="num pos" data-report-value="totalNet" data-format="won"></td></tr></tfoot>
+          <tfoot><tr><th scope="row">합계</th><td class="num" data-report-value="totalQty" data-format="qty"></td><td></td><td></td><td class="num" data-report-value="totalPnl" data-format="won" data-report-sign></td><td class="num" data-report-value="totalFee" data-format="won"></td><td class="num" data-report-value="totalNet" data-format="won" data-report-sign></td><td class="num" data-report-value="totalNet" data-format="won" data-report-sign></td></tr></tfoot>
         </table>
       </div>
     </div>
@@ -112,9 +113,9 @@
 
       <div class="split-summary-grid">
         <div class="split-summary-item"><span>매도수량</span><strong data-report-value="coreQty" data-format="qty"></strong></div>
-        <div class="split-summary-item"><span>손익금액</span><strong class="pos" data-report-value="corePnl" data-format="signedWon"></strong></div>
+        <div class="split-summary-item"><span>손익금액</span><strong data-report-value="corePnl" data-format="signedWon" data-report-sign></strong></div>
         <div class="split-summary-item"><span>거래비용</span><strong data-report-value="coreFee" data-format="won"></strong></div>
-        <div class="split-summary-item"><span>순손익</span><strong class="pos" data-report-value="coreNet" data-format="signedWon"></strong></div>
+        <div class="split-summary-item"><span>순손익</span><strong data-report-value="coreNet" data-format="signedWon" data-report-sign></strong></div>
       </div>
 
       <div class="add-card-shell add-card-base table-card split-inner-card">
@@ -123,7 +124,7 @@
             <caption class="sr-only">본 포지션 거래 상세</caption>
             <thead><tr><th scope="col">매도일</th><th scope="col" class="num">수량</th><th scope="col" class="num">매수단가</th><th scope="col" class="num">실제 매도단가</th><th scope="col" class="num">손익금액</th><th scope="col" class="num">거래비용</th><th scope="col" class="num">순손익</th></tr></thead>
             <tbody id="coreTradeRows"></tbody>
-            <tfoot><tr><th scope="row">합계</th><td class="num" data-report-value="coreQty" data-format="integer"></td><td></td><td></td><td class="num pos" data-report-value="corePnl" data-format="signedWon"></td><td class="num" data-report-value="coreFee" data-format="won"></td><td class="num pos" data-report-value="coreNet" data-format="signedWon"></td></tr></tfoot>
+            <tfoot><tr><th scope="row">합계</th><td class="num" data-report-value="coreQty" data-format="integer"></td><td></td><td></td><td class="num" data-report-value="corePnl" data-format="signedWon" data-report-sign></td><td class="num" data-report-value="coreFee" data-format="won"></td><td class="num" data-report-value="coreNet" data-format="signedWon" data-report-sign></td></tr></tfoot>
           </table>
         </div>
       </div>
@@ -140,9 +141,9 @@
 
       <div class="split-summary-grid">
         <div class="split-summary-item"><span>매도수량</span><strong data-report-value="dayQty" data-format="qty"></strong></div>
-        <div class="split-summary-item"><span>손익금액</span><strong class="pos" data-report-value="dayPnl" data-format="signedWon"></strong></div>
+        <div class="split-summary-item"><span>손익금액</span><strong data-report-value="dayPnl" data-format="signedWon" data-report-sign></strong></div>
         <div class="split-summary-item"><span>거래비용</span><strong data-report-value="dayFee" data-format="won"></strong></div>
-        <div class="split-summary-item"><span>순손익</span><strong class="pos" data-report-value="dayNet" data-format="signedWon"></strong></div>
+        <div class="split-summary-item"><span>순손익</span><strong data-report-value="dayNet" data-format="signedWon" data-report-sign></strong></div>
       </div>
 
       <div class="add-card-shell add-card-base table-card split-inner-card">
@@ -151,7 +152,7 @@
             <caption class="sr-only">단타 거래 상세</caption>
             <thead><tr><th scope="col">거래일</th><th scope="col" class="num">단타 매도수량</th><th scope="col" class="num">손익금액</th><th scope="col" class="num">거래비용</th><th scope="col" class="num">순손익</th></tr></thead>
             <tbody id="dayTradeRows"></tbody>
-            <tfoot><tr><th scope="row">합계</th><td class="num" data-report-value="dayQty" data-format="integer"></td><td class="num pos" data-report-value="dayPnl" data-format="signedWon"></td><td class="num" data-report-value="dayFee" data-format="won"></td><td class="num pos" data-report-value="dayNet" data-format="signedWon"></td></tr></tfoot>
+            <tfoot><tr><th scope="row">합계</th><td class="num" data-report-value="dayQty" data-format="integer"></td><td class="num" data-report-value="dayPnl" data-format="signedWon" data-report-sign></td><td class="num" data-report-value="dayFee" data-format="won"></td><td class="num" data-report-value="dayNet" data-format="signedWon" data-report-sign></td></tr></tfoot>
           </table>
         </div>
       </div>
@@ -161,15 +162,15 @@
       <div><span>전체 결과</span><small>본 포지션 + 단타</small></div>
       <div class="split-total-stats">
         <span><b data-report-value="totalQty" data-format="qty"></b> 매도</span>
-        <span>손익금액 <b class="pos" data-report-value="totalPnl" data-format="signedWon"></b></span>
+        <span>손익금액 <b data-report-value="totalPnl" data-format="signedWon" data-report-sign></b></span>
         <span>거래비용 <b data-report-value="totalFee" data-format="won"></b></span>
-        <span>순손익 <b class="pos" data-report-value="totalNet" data-format="signedWon"></b></span>
+        <span>순손익 <b data-report-value="totalNet" data-format="signedWon" data-report-sign></b></span>
       </div>
       <div class="split-total-mobile" role="group" aria-label="전체 결과 모바일 요약">
         <div class="split-total-mobile-card add-card-shell add-card-control"><span>매도수량</span><strong data-report-value="totalQty" data-format="qty"></strong></div>
-        <div class="split-total-mobile-card add-card-shell add-card-control"><span>손익금액</span><strong class="pos" data-report-value="totalPnl" data-format="signedWon"></strong></div>
+        <div class="split-total-mobile-card add-card-shell add-card-control"><span>손익금액</span><strong data-report-value="totalPnl" data-format="signedWon" data-report-sign></strong></div>
         <div class="split-total-mobile-card add-card-shell add-card-control"><span>거래비용</span><strong data-report-value="totalFee" data-format="won"></strong></div>
-        <div class="split-total-mobile-card add-card-shell add-card-control"><span>순손익</span><strong class="pos" data-report-value="totalNet" data-format="signedWon"></strong></div>
+        <div class="split-total-mobile-card add-card-shell add-card-control"><span>순손익</span><strong data-report-value="totalNet" data-format="signedWon" data-report-sign></strong></div>
       </div>
     </div>
   </section>

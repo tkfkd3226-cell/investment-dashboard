@@ -117,7 +117,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
   };
   const signClass=n=>n>0?'positive':n<0?'negative':'zero';
   const setClass=(node,cls)=>{node.classList.remove('positive','negative','zero');if(cls)node.classList.add(cls);};
-  const setText=(id,text,cls)=>{const n=$(id);n.classList.remove('has-help');n.textContent=text;if(cls)setClass(n,cls);};
+  const setText=(id,text,cls='')=>{const n=$(id);n.classList.remove('has-help');n.textContent=text;setClass(n,cls);};
   const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const setHelpText=(id,text,tip)=>{const n=$(id),tooltipId=`${id}Tooltip`;n.classList.add('has-help');n.innerHTML=`<span class="inline-help-label"><span>${esc(text)}</span><span class="help-tooltip"><button type="button" class="help-icon add-button" aria-label="${esc(text)} 설명" aria-describedby="${tooltipId}" aria-expanded="false">${ADD_INFO_ICON_SVG}</button><span class="custom-tooltip" id="${tooltipId}" role="tooltip">${esc(tip)}</span></span></span>`;};
   const formatPctInput=n=>normalizeZero(Number(n)).toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
@@ -898,6 +898,19 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     const fee=reportSum(rows,'fee');
     return Object.freeze({qty,pnl,fee,net:pnl-fee});
   }
+  function deriveProfitComposition(coreNet,dayNet){
+    const core=Number(coreNet||0);
+    const day=Number(dayNet||0);
+    const total=core+day;
+    const hasOpposingSigns=(core<0&&day>0)||(core>0&&day<0);
+    const available=total>0&&core>=0&&day>=0;
+    const reason=available?'profit':hasOpposingSigns?'offset':total<0?'loss':'zero';
+    return Object.freeze({
+      available,reason,total,
+      coreRatio:available?core/total*100:0,
+      dayRatio:available?day/total*100:0
+    });
+  }
   function deriveReportModel(input=[]){
     const source=Array.isArray(input)?{trades:input}:input||{};
     const rows=Array.isArray(source.trades)?source.trades:[];
@@ -912,8 +925,9 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     const totalQty=reportSum(reportDailyRows,'qty');
     const sellDays=reportDailyRows.length;
     const winDays=reportDailyRows.filter(row=>row.net>0).length;
-    const coreNetRatio=totalNet?coreMetrics.net/totalNet*100:0;
-    const dayNetRatio=totalNet?dayMetrics.net/totalNet*100:0;
+    const profitComposition=deriveProfitComposition(coreMetrics.net,dayMetrics.net);
+    const coreNetRatio=profitComposition.coreRatio;
+    const dayNetRatio=profitComposition.dayRatio;
     const splitQty=coreMetrics.qty+dayMetrics.qty;
     const coreQtyRatio=splitQty?coreMetrics.qty/splitQty*100:0;
     const dayQtyRatio=splitQty?dayMetrics.qty/splitQty*100:0;
@@ -933,12 +947,12 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     const reportEndDate=String(reportDailyRows.at(-1)?.date||reportStartDate);
     const positionContext=Object.freeze(source.positionContext||{});
     return Object.freeze({
-      reportDailyRows,coreTradeRows,dayTradeRows,coreMetrics,dayMetrics,reportMetrics,chartData,
+      reportDailyRows,coreTradeRows,dayTradeRows,coreMetrics,dayMetrics,reportMetrics,chartData,profitComposition,
       coreNetRatio,dayNetRatio,coreQtyRatio,dayQtyRatio,reportStartDate,reportEndDate,positionContext
     });
   }
 
-  if(isCommonJs)Object.assign(module.exports,{REPORT_DATA_URL,REPORT_SCHEMA_MODULE_URL,reportSum,deriveReportRows,deriveSplitRows,deriveSplitMetrics,deriveReportModel});
+  if(isCommonJs)Object.assign(module.exports,{REPORT_DATA_URL,REPORT_SCHEMA_MODULE_URL,reportSum,deriveReportRows,deriveSplitRows,deriveSplitMetrics,deriveProfitComposition,deriveReportModel});
   if(!isReportPage)return;
 
   const reportNf0=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
@@ -960,6 +974,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     const n=Number(value||0);
     return n<0?'neg':n>0?'pos':'';
   }
+  const REPORT_SIGNED_METRIC_KEYS=new Set(['totalPnl','totalNet','corePnl','coreNet','dayPnl','dayNet']);
   const REPORT_PHONE_QUERY='(max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
 
   function createReportTimelineBuilder(model){
@@ -1142,7 +1157,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
   }
 
   function createReportRenderer(model,buildTimelineEvents){
-    const {reportDailyRows,coreTradeRows,dayTradeRows,reportMetrics,coreNetRatio,coreQtyRatio,dayQtyRatio,reportStartDate,reportEndDate,positionContext}=model;
+    const {reportDailyRows,coreTradeRows,dayTradeRows,reportMetrics,profitComposition,coreNetRatio,dayNetRatio,coreQtyRatio,dayQtyRatio,reportStartDate,reportEndDate,positionContext}=model;
     const reportRowByDate=new Map(reportDailyRows.map(row=>[row.date,row]));
     const dayRowByDate=new Map(dayTradeRows.map(row=>[row.date,row]));
     // 03. Canonical DOM 렌더
@@ -1165,7 +1180,14 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
       document.querySelectorAll('[data-report-value]').forEach(node=>{
         const key=node.dataset.reportValue;
         if(!(key in reportMetrics)) return;
-        node.textContent=reportMetricText(reportMetrics[key],node.dataset.format||'integer');
+        const value=reportMetrics[key];
+        node.textContent=reportMetricText(value,node.dataset.format||'integer');
+        if(node.hasAttribute('data-report-sign')&&REPORT_SIGNED_METRIC_KEYS.has(key)){
+          node.classList.add('report-sign-value');
+          node.classList.remove('pos','neg');
+          const valueClass=reportValueClass(value);
+          if(valueClass)node.classList.add(valueClass);
+        }
       });
       document.querySelectorAll('[data-report-mixed-qty]').forEach(node=>{
         const row=dayRowByDate.get(node.dataset.reportMixedQty);
@@ -1197,7 +1219,29 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
         const value=reportContextValues[node.dataset.reportContextValue];
         if(Number.isFinite(value))node.textContent=reportNumber(value);
       });
-      document.getElementById('profitCompositionDonut')?.style.setProperty('--main-position-ratio',`${coreNetRatio}%`);
+      const compositionDonut=document.getElementById('profitCompositionDonut');
+      const compositionValue=document.querySelector('[data-report-composition-value]');
+      const compositionLabel=document.querySelector('[data-report-composition-label]');
+      const compositionNote=document.querySelector('[data-report-composition-note]');
+      const coreShare=document.querySelector('[data-report-composition-share="core"]');
+      const dayShare=document.querySelector('[data-report-composition-share="day"]');
+      const compositionCopy=profitComposition.reason==='offset'
+        ?{label:'손익 상쇄',note:'본 포지션과 단타의 손익 부호가 달라 수익 구성 비중을 표시하지 않습니다.'}
+        :profitComposition.reason==='loss'
+          ?{label:'순손실 상태',note:'누적 순손익이 0원 미만인 경우 수익 구성 비중을 표시하지 않습니다.'}
+          :{label:'수익 없음',note:'누적 순손익이 0원이어서 수익 구성 비중을 표시하지 않습니다.'};
+      if(compositionDonut){
+        compositionDonut.dataset.compositionState=profitComposition.available?'available':'unavailable';
+        compositionDonut.style.setProperty('--main-position-ratio',`${profitComposition.available?coreNetRatio:0}%`);
+      }
+      if(compositionValue)compositionValue.textContent=profitComposition.available?reportMetricText(coreNetRatio,'percent1'):'구성 제외';
+      if(compositionLabel)compositionLabel.textContent=profitComposition.available?'본 포지션 비중':compositionCopy.label;
+      if(compositionNote){
+        compositionNote.hidden=profitComposition.available;
+        compositionNote.textContent=profitComposition.available?'':compositionCopy.note;
+      }
+      if(coreShare)coreShare.textContent=profitComposition.available?`총 순손익의 ${reportMetricText(coreNetRatio,'percent1')}`:'수익 구성 계산 제외';
+      if(dayShare)dayShare.textContent=profitComposition.available?`총 순손익의 ${reportMetricText(dayNetRatio,'percent1')}`:'수익 구성 계산 제외';
       document.getElementById('coreVolumeBar')?.style.setProperty('width',`${coreQtyRatio}%`);
       document.getElementById('dayVolumeBar')?.style.setProperty('width',`${dayQtyRatio}%`);
     }

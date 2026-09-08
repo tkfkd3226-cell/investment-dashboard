@@ -1047,8 +1047,14 @@ html:where([data-add-page="report"]).dark .chart-wrap{box-shadow:inset 0 1px 0 r
 :where(html[data-add-page="report"]) .split-box{display:grid;grid-template-columns:150px 1fr;gap:var(--density-layout-gap);align-items:center}
 :where(html[data-add-page="report"]) .donut{width:148px;height:148px;border-radius:50%;background:conic-gradient(var(--navy) 0 var(--main-position-ratio),var(--series-secondary) var(--main-position-ratio) 100%);position:relative;box-shadow:0 14px 30px rgba(62,57,125,.16),0 0 0 7px rgba(109,93,252,.045)}
 :where(html[data-add-page="report"]) .donut:after{content:"";position:absolute;inset:25px;border-radius:50%;background:var(--card)}
+:where(html[data-add-page="report"]) .donut[data-composition-state="unavailable"]{background:conic-gradient(var(--row-line) 0 100%)}
 :where(html[data-add-page="report"]) .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}
 :where(html[data-add-page="report"]) .donut-center strong{font-size:21px} :where(html[data-add-page="report"]) .donut-center span{font-size:var(--report-type-micro);color:var(--muted)}
+:where(html[data-add-page="report"]) .donut[data-composition-state="unavailable"] .donut-center strong{font-size:15px}
+:where(html[data-add-page="report"]) .composition-state-note{margin:0 0 var(--density-gap-md);color:var(--muted);font-size:var(--report-type-micro);font-weight:700;line-height:1.45;text-align:center}
+:where(html[data-add-page="report"]) .composition-state-note[hidden]{display:none}
+:where(html[data-add-page="report"]) .report-sign-value.pos{color:var(--positive)}
+:where(html[data-add-page="report"]) .report-sign-value.neg{color:var(--negative)}
 :where(html[data-add-page="report"]) .legend-row{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);padding:var(--density-table-pad-y) 0;border-bottom:1px solid var(--row-line)}
 :where(html[data-add-page="report"]) .legend-row:last-child{border-bottom:0}
 :where(html[data-add-page="report"]) .legend-name{display:flex;align-items:center;gap:var(--density-gap-sm);font-size:12px;font-weight:800}
