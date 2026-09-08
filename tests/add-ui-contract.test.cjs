@@ -52,7 +52,7 @@ test('Calc/Report는 Main appearance 저장값과 BroadcastChannel을 함께 소
   assert.doesNotMatch(root,/--(?:surface|control|inner)-radius-md:/);
 });
 
-test('Calc 도움말은 label과 inline-flex 정렬을 공유하고 개별 위치 보정을 만들지 않는다',()=>{
+test('Calc 도움말은 공통 label 정렬을 유지하고 keyboard focus 표시도 Esc로 dismiss한다',()=>{
   const label=rule(':where(html[data-add-page="calc"]) :is(.label-with-help,.inline-help-label,.group-title-main)');
   assert.match(label,/display:inline-flex/);
   assert.match(label,/align-items:center/);

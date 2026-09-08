@@ -149,7 +149,7 @@ Mobile · 모바일   ≤ 760px
 
 - `calc`와 `report`는 `add/add.css`의 공통 의미색·Corner·Spacing/Density·Heading·Button·Card/Table primitive를 재사용한다.
 - 현재 색상·여백·폰트·radius 수치는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다.
-- Main의 Light/Dark·모서리 선택은 동일 저장 key와 appearance 동기화 경로를 통해 Calc와 Report 모두에 반영한다. Calc가 공통 Corner 역할값을 별도 값으로 다시 덮지 않는다.
+- Main의 Light/Dark·모서리 선택은 동일 저장 key와 appearance 동기화 경로를 통해 Calc와 Report 모두에 반영한다. Report Canvas 차트는 appearance 변경 시 현재 CSS chart palette를 다시 읽어 즉시 재렌더한다. Calc가 공통 Corner 역할값을 별도 값으로 다시 덮지 않는다.
 - **Add는 선택형 대체 디자인이 없는 단일 canonical 스타일 구조다.** Calc는 Compact 정보 밀도, Report는 Dynamic 시각 언어를 각 `data-add-page` scope가 직접 소유하며 별도 theme/alt stylesheet·runtime을 다시 만들지 않는다.
 - Report의 Hero/KPI처럼 Tablet/Phone에서 순서·span이 달라지는 요소는 DOM 순번 `nth-child`가 아니라 semantic role class로 관리한다. Timeline 교차색·hamburger bar처럼 순번 자체가 표현 의미인 구조적 `nth-child`는 예외로 허용한다.
 - `add-card-shadow`는 해당 카드의 최종 shadow가 공통 `--shadow`일 때만 조합한다. Report처럼 feature가 자체 depth를 소유하거나 shadow를 제거하는 카드에 공통 shadow class를 붙인 뒤 다시 override하지 않는다.
@@ -188,7 +188,7 @@ Mobile · 모바일   ≤ 760px
 #### 1.2.5 접근성·공통 자산·문구
 
 - 입력 요소의 label 연결, 전략/Report tab의 `tablist/tab/tabpanel`·ARIA·keyboard state, tooltip의 `aria-describedby`, Calc Desktop 결과표와 Report table의 caption/header semantic을 유지한다. Calc 결과표의 hidden caption은 바로 위 section title과 같은 의미를 사용한다.
-- 작은 도움말 정보 아이콘은 `img/ui-icons.svg#info-circle` 공통 SVG를 사용하고 label과 공통 inline 정렬 구조를 유지한다. 개별 위치 보정값을 누적하지 않는다.
+- 작은 도움말 정보 아이콘은 `img/ui-icons.svg#info-circle` 공통 SVG를 사용하고 label과 공통 inline 정렬 구조를 유지한다. 개별 위치 보정값을 누적하지 않는다. 키보드 focus로 열린 도움말도 Esc로 닫을 수 있어야 하며, 이때 focus를 강제로 blur하지 않고 현재 `:focus-within` 표시만 dismiss하는 상태 제어를 유지한다.
 - Main·Calc·Report의 favicon은 저장소 공통 정적 자산 `img/favicon.png` 한 파일을 사용하며 Add HTML에서는 `../img/favicon.png`으로 참조한다.
 - OS 모션 설정과 Calc/Report의 animation/transition/smooth scroll을 연동하지 않으며 production CSS/JS에 `prefers-reduced-motion`을 도입하지 않는다.
 - CALC 설명문·툴팁·검증문구는 짧은 명사형·단문 스타일을 유지한다.

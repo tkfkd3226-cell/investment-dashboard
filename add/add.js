@@ -1470,8 +1470,8 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
       });
     }
 
-    // 08. 차트 초기화 / resize 재렌더
-    // resize 연속 호출은 debounce 후 다시 그림
+    // 08. 차트 초기화 / appearance·resize 재렌더
+    // appearance 변경은 다음 frame에 즉시 다시 그리고, resize 연속 호출은 debounce 후 다시 그림
     let resizeTimer;
     function initChart(){
       window.addEventListener('resize',()=>{

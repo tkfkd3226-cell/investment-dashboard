@@ -96,7 +96,7 @@ test('Dashboard 날짜 hash는 유효한 값이면 초기 선택일로 복원하
   assert.match(app,/dataState\.activeDate=dates\.includes\(requestedDate\)\?requestedDate:dates\.at\(-1\);/);
 });
 
-test('KRX 성공 후 자동 닫기 timer는 재열기·수동 닫기에서 취소된다',()=>{
+test('KRX 요청은 중복 전송을 막고 재진입 session에서 이전 응답·자동 닫기 timer를 격리한다',()=>{
   assert.match(ui,/let krxActionModalCloseTimer=0;/);
   assert.match(ui,/let krxActionRequestInFlight=false;/);
   assert.match(ui,/let krxActionModalSession=0;/);

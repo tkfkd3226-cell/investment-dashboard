@@ -809,7 +809,7 @@ Table의 geometry·정렬·summary contract는 **2.4 `Table 공통 contract`**�
 
 - 최신/누락 반영과 선택일 재갱신의 업무 의미를 섞지 않는다.
 - 이미 종가 기준인 날짜는 불필요한 workflow를 다시 실행하지 않는 현재 contract를 유지한다.
-- modal focus/ESC/request timeout과 같은 기본 lifecycle을 회귀검증한다.
+- modal focus/ESC/request timeout과 같은 기본 lifecycle을 회귀검증한다. 요청 중 재전송을 막고, modal 재진입 시 이전 요청의 응답·상태 문구·자동 닫기 timer가 새 session을 덮거나 닫지 않도록 request/session 경계를 함께 보호한다.
 - QA에서는 실제 외부 write를 하지 않는다.
 
 ### 퇴직연금
