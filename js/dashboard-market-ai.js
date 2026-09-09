@@ -98,8 +98,27 @@ function marketAiPhoneUi(){
 
 function fetchWithTimeout(url,options={},timeoutMs=marketAiRequestTimeoutMs()){
   const controller=new AbortController();
+  let settled=false;
   const timer=window.setTimeout(()=>controller.abort(),timeoutMs);
-  return fetch(url,{...options,signal:controller.signal}).finally(()=>window.clearTimeout(timer));
+  const finish=()=>{
+    if(settled)return;
+    settled=true;
+    window.clearTimeout(timer);
+  };
+  return fetch(url,{...options,signal:controller.signal}).then(response=>{
+    const readBody=method=>async(...args)=>{
+      try{return await response[method](...args);}
+      finally{finish();}
+    };
+    return new Proxy(response,{
+      get(target,property){
+        if(['json','text','blob','arrayBuffer','formData'].includes(property))return readBody(property);
+        if(property==='releaseTimeout')return finish;
+        const value=Reflect.get(target,property,target);
+        return typeof value==='function'?value.bind(target):value;
+      }
+    });
+  },error=>{finish();throw error;});
 }
 
 // [MARKET03] Formatting / Time / Freshness · 점수 / 시장값 / 시간 표현
@@ -1041,7 +1060,7 @@ async function refreshMarketAiMarketSnapshot(apiBase){
       headers:{Accept:'application/json'},
       cache:'no-store'
     });
-    if(!response.ok)return null;
+    if(!response.ok){response.releaseTimeout?.();return null;}
     return marketAiSnapshotMap(await response.json());
   }catch(_){
     return null;
@@ -1056,7 +1075,7 @@ async function refreshMarketAiBridgeStatus(apiBase){
       headers:{Accept:'application/json'},
       cache:'no-store'
     });
-    if(!response.ok)return null;
+    if(!response.ok){response.releaseTimeout?.();return null;}
     const payload=await response.json();
     return marketAiObject(payload);
   }catch(_){

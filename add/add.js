@@ -401,6 +401,22 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
       }
     }
     if(validationMode==='target'&&!(Number.isSafeInteger(input.targetPrice)&&input.targetPrice>0))addError('목표 매도단가 값 확인 필요.','targetPrice');
+    let targetBase;
+    if(validationMode==='current'&&options.autoBreakEvenTarget){
+      if(settled){
+        const priorPL=input.priorSettlementValue-input.existingCost;
+        const finalCost=input.addPrice*input.addShares;
+        const alreadyRecovered=!input.noPrior&&finalCost>0&&priorPL>=finalCost;
+        targetBase=alreadyRecovered?input.currentPrice:Math.max(finalCost-priorPL,0)/input.addShares;
+      }else{
+        targetBase=(input.existingCost+input.addPrice*input.addShares)/totalShares;
+      }
+    }else{
+      targetBase=validationMode==='target'?input.targetPrice:(validationMode==='rise'?input.addPrice*(1+input.risePct/100):input.currentPrice*(1+input.overnightPct/100));
+    }
+    const targetOrderPrice=ceil5(targetBase);
+    if(Number.isFinite(targetOrderPrice)&&targetOrderPrice>0&&(!Number.isSafeInteger(targetOrderPrice)||!isSafeProduct(targetOrderPrice,totalShares)))
+      addError('목표 매도금액이 계산 가능 범위를 초과합니다.',['targetPrice','currentPrice','addPrice','addShares',...(!settled?['existingShares']:[])]);
     return {errors:[...new Set(errors)],invalidIds:[...new Set(invalidIds)]};
   }
 

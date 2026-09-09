@@ -60,6 +60,14 @@ test('validate: target 모드는 양의 정수 목표단가 필요',()=>{
   assert.ok(result.invalidIds.includes('targetPrice'));
 });
 
+
+test('validate: 목표단가 × 매도수량이 안전 정수 범위를 넘으면 결과 표시 전에 차단한다',()=>{
+  const input={...settledNoPrior,addShares:101,targetPrice:100000000000005};
+  const result=validate(input,{caseType:'settled',mode:'target'});
+  assert.ok(result.invalidIds.includes('targetPrice'));
+  assert.ok(result.errors.some(message=>message.includes('목표 매도금액')));
+});
+
 test('compute: 이전 거래 없음 자동 손익분기',()=>{
   const c=compute(settledNoPrior,{caseType:'settled',noPrior:true,mode:'current',autoBreakEvenTarget:true});
   assert.equal(c.finalShares,100);

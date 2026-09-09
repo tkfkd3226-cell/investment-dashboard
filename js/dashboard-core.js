@@ -721,16 +721,46 @@ function securitySymbolAllocHistory(d,series){
 
 // [CORE08] Network / Data Loading · 네트워크 / 데이터 로딩
 const NETWORK_REQUEST_TIMEOUT_MS=20000;
+function networkTimeoutError(){
+  const error=new Error('요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.');
+  error.code='NETWORK_TIMEOUT';
+  return error;
+}
 async function fetchWithTimeout(url,options={},timeoutMs=NETWORK_REQUEST_TIMEOUT_MS){
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),timeoutMs);
+  let timedOut=false;
+  let responseReceived=false;
+  let settled=false;
+  const timer=setTimeout(()=>{timedOut=true;controller.abort();},timeoutMs);
+  const finish=()=>{
+    if(settled)return;
+    settled=true;
+    clearTimeout(timer);
+  };
   try{
-    return await fetch(url,{...options,signal:controller.signal});
+    const response=await fetch(url,{...options,signal:controller.signal});
+    responseReceived=true;
+    const readBody=method=>async(...args)=>{
+      try{return await response[method](...args);}
+      catch(error){
+        if(timedOut||error?.name==='AbortError')throw networkTimeoutError();
+        throw error;
+      }finally{finish();}
+    };
+    return new Proxy(response,{
+      get(target,property){
+        if(['json','text','blob','arrayBuffer','formData'].includes(property))return readBody(property);
+        if(property==='releaseTimeout')return finish;
+        const value=Reflect.get(target,property,target);
+        return typeof value==='function'?value.bind(target):value;
+      }
+    });
   }catch(error){
-    if(error?.name==='AbortError')throw new Error('요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.');
+    if(timedOut||error?.name==='AbortError')throw networkTimeoutError();
     throw error;
   }finally{
-    clearTimeout(timer);
+    // fetch 자체가 실패한 경우만 여기서 종료한다. 성공 응답은 body reader가 종료한다.
+    if(!responseReceived)finish();
   }
 }
 
@@ -742,6 +772,7 @@ async function readJsonResponse(response,label='요청'){
   try{
     data=await response.json();
   }catch(cause){
+    if(cause?.code==='NETWORK_TIMEOUT')throw cause;
     const message=response.ok
       ?`${label} 응답 JSON 형식이 올바르지 않습니다.`
       :`${label} 실패 (HTTP ${response.status})`;
@@ -765,6 +796,7 @@ async function readJsonResponse(response,label='요청'){
 async function loadJson(url){
   const response=await fetchWithTimeout(url);
   if(!response.ok){
+    response.releaseTimeout?.();
     const error=new Error(`${dataUrlLabel(url)} 로드 실패 (HTTP ${response.status})`);
     error.status=response.status;
     error.url=url;
@@ -773,6 +805,7 @@ async function loadJson(url){
   try{
     return await response.json();
   }catch(cause){
+    if(cause?.code==='NETWORK_TIMEOUT')throw cause;
     const error=new Error(`${dataUrlLabel(url)} JSON 형식이 올바르지 않습니다.`);
     error.cause=cause;
     error.url=url;
