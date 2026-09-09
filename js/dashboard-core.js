@@ -225,20 +225,28 @@ const pensionTradeItems=()=>rawPensionTradeItems()
 const pensionTradesBetween=(fromDate,toDate,ticker=null)=>pensionTradeItems().filter(v=>(!fromDate||v.date>fromDate)&&v.date<=toDate&&(!ticker||v.ticker===ticker));
 const pensionPositionState=(pos,d)=>{
   let qty=Number(pos.qty)||0,cost=Number(pos.cost)||0,realizedProfit=0;
+  const assertSafeAggregate=(label,value)=>{
+    if(!Number.isFinite(value)||Math.abs(value)>Number.MAX_SAFE_INTEGER)throw new RangeError(`${label} 계산값이 안전한 정수 범위를 벗어납니다.`);
+    return value;
+  };
+  assertSafeAggregate('보유 수량',qty);
+  assertSafeAggregate('취득원가',cost);
   pensionTradeItems().filter(v=>v.ticker===String(pos.ticker)&&v.date<=d).forEach(v=>{
     if(v.type==='buy'){
-      qty+=v.qty;
-      cost+=v.amount;
+      qty=assertSafeAggregate('보유 수량',qty+v.qty);
+      cost=assertSafeAggregate('취득원가',cost+v.amount);
       return;
     }
     const avgCost=qty>0?cost/qty:0;
     const costBasis=Number.isFinite(v.costBasis)?v.costBasis:avgCost*v.qty;
     qty-=v.qty;
     cost-=costBasis;
-    realizedProfit+=v.amount-costBasis;
+    realizedProfit=assertSafeAggregate('실현손익',realizedProfit+v.amount-costBasis);
     if(Math.abs(qty)<1e-9) qty=0;
     if(Math.abs(cost)<1e-6) cost=0;
   });
+  assertSafeAggregate('보유 수량',qty);
+  assertSafeAggregate('취득원가',cost);
   return {qty,cost,realizedProfit};
 };
 const pensionTradeFlow=(fromDate,toDate,ticker=null)=>pensionTradesBetween(fromDate,toDate,ticker).reduce((a,v)=>{

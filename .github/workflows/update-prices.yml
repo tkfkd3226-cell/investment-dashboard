@@ -43,6 +43,20 @@ jobs:
             python scripts/update_prices.py --date "$INPUT_DATE"
           else
             python scripts/update_prices.py
+
+      # 2-1) A stale or fallback price exits non-zero above. This guard keeps a
+      # failed update out of the commit step even if the script behavior changes.
+      - name: Verify generated prices are selectable closes only
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          prices = json.loads(Path('data/prices.json').read_text(encoding='utf-8'))
+          invalid = [date for date, row in prices.items() if row.get('display', True) and row.get('warnings')]
+          if invalid:
+              raise SystemExit('Selectable prices contain warnings: ' + ', '.join(invalid))
+          PY
           fi
 
       # 3) Persist only the data files managed by update_prices.py.

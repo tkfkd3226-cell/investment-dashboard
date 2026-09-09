@@ -122,6 +122,26 @@ test('퇴직연금 Action PIN은 서버 요청 중 dismiss를 잠그고 실패 �
   assert.match(pensionEditor,/bindDashboardModalDismiss\(modal,\{onDismiss:dismiss\}\);/);
 });
 
+test('퇴직연금 편집기는 화면 입력과 작업 모음 모두에서 수량·금액을 안전 정수로 제한한다',()=>{
+  assert.match(pensionEditor,/const isSafePensionWhole=\(value,\{positive=false\}=\{\}\)=>Number\.isSafeInteger\(value\)/);
+  assert.match(pensionEditor,/isSafePensionWhole\(draft\.qty,\{positive:true\}\)/);
+  assert.match(pensionEditor,/isSafePensionWhole\(draft\.amount,\{positive:true\}\)/);
+  assert.match(pensionEditor,/isSafePensionWhole\(Number\(item\.valuation\)\)/);
+  assert.match(pensionEditor,/isSafePensionWhole\(Number\(item\.amount\),\{positive:true\}\)/);
+  assert.doesNotMatch(pensionEditor,/!Number\.isInteger\(qty\)\|\|qty<=0\|\|!Number\.isFinite\(amount\)\|\|amount<=0/);
+});
+
+test('퇴직연금 일괄 저장은 전체 재렌더링 전에 기존 모달 잠금을 해제한다',()=>{
+  assert.match(pensionEditor,/pensionEditorState\.batchMode=true;\s*closePensionContributionModal\(\);\s*renderDashboard\?\.\(\);\s*openPensionContributionModal\(\);/);
+});
+
+test('KRX 갱신은 기준일과 다른 종가·직전값을 숨김 처리하고 자동 성공으로 끝내지 않는다',()=>{
+  assert.match(updatePricesPython,/source_dates\[f"SEC:\{ticker\}"\] = actual_date/);
+  assert.match(updatePricesPython,/if actual_date != target_date:\s*warnings\.append/);
+  assert.match(updatePricesPython,/display = not warnings/);
+  assert.match(updatePricesPython,/return 1 if all_warnings else 0/);
+});
+
 
 test('공통 fetch timeout은 응답 헤더 뒤 JSON 본문 대기까지 유지하고 timeout 오류를 보존한다',async()=>{
   const start=core.indexOf('function networkTimeoutError()');

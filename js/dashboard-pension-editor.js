@@ -333,6 +333,13 @@ function closePensionContributionModal(){
 function cleanNumberInput(v){
   return Number(String(v||'').replace(/[^\d.-]/g,''));
 }
+const isSafePensionWhole=(value,{positive=false}={})=>Number.isSafeInteger(value)&&(positive?value>0:value>=0);
+function assertSafePensionAggregate(values){
+  for(const [label,value] of Object.entries(values||{})){
+    if(!Number.isFinite(value)||Math.abs(value)>Number.MAX_SAFE_INTEGER)throw new Error(`${label} 계산값이 안전한 정수 범위를 벗어납니다.`);
+  }
+  return values;
+}
 function formatPensionMoneyInput(input){
   if(!input) return;
   const raw=String(input.value||'');
@@ -534,22 +541,27 @@ function pensionEtfTradeDraft(){
 }
 function pensionEtfTradeExpectedForMode(draft,batchMode){
   const {applyDate,product,qty,amount}=draft;
-  if(!product||!Number.isFinite(qty)||qty<=0||!Number.isFinite(amount)||amount<=0) return null;
-  const batchState=batchMode?pensionBatchCurrentState():null;
-  const state=batchState?pensionBatchPositionState(product,applyDate,batchState):pensionPositionState(product,applyDate);
-  const cashBefore=batchState?pensionBatchCashAvailable(batchState,applyDate):pensionCashBeforeNewTrade(applyDate);
-  const cashAfter=cashBefore-amount;
-  const qtyAfter=state.qty+qty;
-  const costAfter=state.cost+amount;
-  return {
-    state,
-    cashBefore,
-    cashAfter,
-    qtyAfter,
-    costAfter,
-    tradePrice:amount/qty,
-    avgAfter:qtyAfter>0?costAfter/qtyAfter:0
-  };
+  if(!product||!isSafePensionWhole(qty,{positive:true})||!isSafePensionWhole(amount,{positive:true})) return null;
+  try{
+    const batchState=batchMode?pensionBatchCurrentState():null;
+    const state=batchState?pensionBatchPositionState(product,applyDate,batchState):pensionPositionState(product,applyDate);
+    const cashBefore=batchState?pensionBatchCashAvailable(batchState,applyDate):pensionCashBeforeNewTrade(applyDate);
+    const cashAfter=cashBefore-amount;
+    const qtyAfter=state.qty+qty;
+    const costAfter=state.cost+amount;
+    assertSafePensionAggregate({현금성자산:cashBefore,'거래 후 현금성자산':cashAfter,'보유 수량':state.qty,'거래 후 보유 수량':qtyAfter,'취득원가':state.cost,'거래 후 취득원가':costAfter});
+    return {
+      state,
+      cashBefore,
+      cashAfter,
+      qtyAfter,
+      costAfter,
+      tradePrice:amount/qty,
+      avgAfter:qtyAfter>0?costAfter/qtyAfter:0
+    };
+  }catch(error){
+    return {error:error?.message||'연금 계산값을 확인할 수 없습니다.'};
+  }
 }
 function pensionEtfTradeExpected(draft=pensionEtfTradeDraft()){
   return pensionEtfTradeExpectedForMode(draft,pensionEditorState.batchMode);
@@ -557,13 +569,19 @@ function pensionEtfTradeExpected(draft=pensionEtfTradeDraft()){
 function renderPensionEtfTradePreview(box,draft,expected,{syncSaveDisabled=true}={}){
   if(!box)return;
   const setDisabled=disabled=>{if(syncSaveDisabled)setPensionContributionSaveDisabled(disabled)};
+  if(expected?.error){
+    setDisabled(true);
+    box.className='pension-etf-trade-preview warning blocked';
+    box.innerHTML=`<div class="pension-etf-trade-preview-title pension-etf-trade-blocked-title">⚠ 저장 불가</div><div class="pension-etf-trade-preview-alert">${escapeHtml(expected.error)}</div>`;
+    return;
+  }
   if(!draft.tradeDate||!draft.product||draft.qtyRaw===''||draft.amountRaw===''||!expected){
     setDisabled(false);
     box.className='pension-etf-trade-preview';
     box.innerHTML='<span class="small">상품·수량·체결금액을 입력하면 적용 후 예상값을 보여줍니다.</span>';
     return;
   }
-  if(!Number.isInteger(draft.qty)||draft.qty<=0){
+  if(!isSafePensionWhole(draft.qty,{positive:true})){
     setDisabled(false);
     box.className='pension-etf-trade-preview warning';
     box.innerHTML='<strong>체결수량은 1좌 이상의 정수로 입력해주세요.</strong>';
@@ -617,13 +635,14 @@ function buildPensionContributionItem(){
     const draft=pensionEtfTradeDraft();
     if(!draft.tradeDate) throw new Error('신청일을 입력해주세요.');
     if(!draft.product) throw new Error('ETF 상품을 선택해주세요.');
-    if(draft.qtyRaw===''||!Number.isFinite(draft.qty)||draft.qty<=0||!Number.isInteger(draft.qty)) throw new Error('체결수량을 정수로 입력해주세요.');
-    if(draft.amountRaw===''||!Number.isFinite(draft.amount)||draft.amount<=0) throw new Error('체결금액을 입력해주세요.');
+    if(draft.qtyRaw===''||!isSafePensionWhole(draft.qty,{positive:true})) throw new Error('체결수량을 안전한 정수로 입력해주세요.');
+    if(draft.amountRaw===''||!isSafePensionWhole(draft.amount,{positive:true})) throw new Error('체결금액을 안전한 정수로 입력해주세요.');
     if(draft.tradeDate>draft.applyDate) throw new Error('신청일은 앱 반영일보다 늦을 수 없습니다.');
     const expected=pensionEtfTradeExpected(draft);
+    if(expected?.error) throw new Error(expected.error);
     if(!expected) throw new Error('예상값을 계산할 수 없습니다.');
     if(expected.cashAfter<0) throw new Error('체결금액이 현금성자산보다 큽니다.');
-    const amount=Math.round(draft.amount);
+    const amount=draft.amount;
     return {
       target:'etfTrade',
       tradeDate:draft.tradeDate,
@@ -652,13 +671,13 @@ function buildPensionContributionItem(){
   const memo=memoEl.value.trim()||(target==='cashSnapshot'?'현금성자산 앱 확인':defaultPensionContributionMemo(date));
   if(!date) throw new Error('일자를 입력해주세요.');
   if(target==='cashSnapshot'){
-    if(rawAmount===''||!Number.isFinite(amount)||amount<0) throw new Error('평가금액을 입력해주세요.');
+    if(rawAmount===''||!isSafePensionWhole(amount)) throw new Error('평가금액을 안전한 정수로 입력해주세요.');
     const rawCostBasis=String(cashCostEl?.value||'').trim();
     const costBasis=cleanNumberInput(rawCostBasis);
-    if(rawCostBasis===''||!Number.isFinite(costBasis)||costBasis<0) throw new Error('매수원금을 입력해주세요.');
-    return {target,date,valuation:amount,costBasis:Math.round(costBasis),memo};
+    if(rawCostBasis===''||!isSafePensionWhole(costBasis)) throw new Error('매수원금을 안전한 정수로 입력해주세요.');
+    return {target,date,valuation:amount,costBasis,memo};
   }
-  if(rawAmount===''||!Number.isFinite(amount)||amount<=0) throw new Error('금액을 입력해주세요.');
+  if(rawAmount===''||!isSafePensionWhole(amount,{positive:true})) throw new Error('금액을 안전한 정수로 입력해주세요.');
   return {target,date,amount,memo};
 }
 // [PEDIT06] Status / Output / Form Reset · 상태 / 결과 / 폼 초기화
@@ -834,12 +853,12 @@ function pensionBatchCashAvailable(state,asOfDate){
       if(v.type==='sell')balance+=Number(v.amount)||0;
       else balance-=Number(v.amount)||0;
     });
-    return Math.max(0,balance);
+    return Math.max(0,assertSafePensionAggregate({현금성자산:balance}).현금성자산);
   }
   let balance=Number(pensionBaseCashForDate(asOfDate))||0;
   (state.contributions||[]).forEach(v=>{if(v.date<=asOfDate)balance+=Number(v.amount)||0});
   (state.trades||[]).forEach(v=>{if(v.date<=asOfDate)balance+=(v.type==='sell'?1:-1)*(Number(v.amount)||0)});
-  return Math.max(0,balance);
+  return Math.max(0,assertSafePensionAggregate({현금성자산:balance}).현금성자산);
 }
 function pensionBatchPositionState(pos,d,state){
   let qty=Number(pos.qty)||0,cost=Number(pos.cost)||0,realizedProfit=0;
@@ -857,6 +876,7 @@ function pensionBatchPositionState(pos,d,state){
     realizedProfit+=(Number(v.amount)||0)-soldCost;
     if(Math.abs(cost)<1e-6)cost=0;
   });
+  assertSafePensionAggregate({'보유 수량':qty,'취득원가':cost,'실현손익':realizedProfit});
   return {qty,cost,realizedProfit};
 }
 function pensionBatchLinkedSnapshotsForTrade(state,trade){
@@ -923,12 +943,12 @@ function pensionBatchSimulate(operations=pensionEditorState.batchQueue){
 
     const item={...(op.item||{})};
     if(op.target==='cashSnapshot'){
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(String(item.date||''))||!Number.isFinite(Number(item.valuation))||Number(item.valuation)<0||!Number.isFinite(Number(item.costBasis))||Number(item.costBasis)<0)throw new Error(`${index+1}번 현금성자산 저장값을 확인해주세요.`);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(String(item.date||''))||!isSafePensionWhole(Number(item.valuation))||!isSafePensionWhole(Number(item.costBasis)))throw new Error(`${index+1}번 현금성자산 저장값을 확인해주세요.`);
       const saved={
         ...item,
         date:String(item.date),
-        valuation:Math.round(Number(item.valuation)),
-        costBasis:Math.round(Number(item.costBasis)),
+        valuation:Number(item.valuation),
+        costBasis:Number(item.costBasis),
         afterTradeIds:state.trades.filter(v=>v.date<=item.date).map(v=>String(v.id)).filter(Boolean),
         afterContributionIds:state.contributions.filter(v=>v.date<=item.date).map(v=>String(v.id)).filter(Boolean),
         updatedAtKST:`batch-${String(index).padStart(4,'0')}`
@@ -939,8 +959,8 @@ function pensionBatchSimulate(operations=pensionEditorState.batchQueue){
       return;
     }
     if(op.target==='contribution'){
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(String(item.date||''))||!Number.isFinite(Number(item.amount))||Number(item.amount)<=0)throw new Error(`${index+1}번 기업적립금 저장값을 확인해주세요.`);
-      const saved={...item,id:item.id||op.tempId||`batch-contrib-${index}`,date:String(item.date),amount:Math.round(Number(item.amount)),updatedAtKST:`batch-${String(index).padStart(4,'0')}`};
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(String(item.date||''))||!isSafePensionWhole(Number(item.amount),{positive:true}))throw new Error(`${index+1}번 기업적립금 저장값을 확인해주세요.`);
+      const saved={...item,id:item.id||op.tempId||`batch-contrib-${index}`,date:String(item.date),amount:Number(item.amount),updatedAtKST:`batch-${String(index).padStart(4,'0')}`};
       state.contributions=state.contributions.filter(v=>String(v.id)!==String(saved.id));
       state.contributions.push(saved);
       state.contributions.sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.id).localeCompare(String(b.id)));
@@ -949,12 +969,15 @@ function pensionBatchSimulate(operations=pensionEditorState.batchQueue){
 
     const product=(dataState.portfolio?.pension||[]).find(v=>String(v.ticker)===String(item.ticker));
     if(!product)throw new Error(`${index+1}번 추가 매수 상품이 현재 목록에 없습니다.`);
-    const qty=Number(item.qty),amount=Math.round(Number(item.amount));
+    const qty=Number(item.qty),amount=Number(item.amount);
     if(!/^\d{4}-\d{2}-\d{2}$/.test(String(item.tradeDate||''))||String(item.tradeDate)>today)throw new Error(`${index+1}번 추가 매수 신청일을 확인해주세요.`);
-    if(!Number.isInteger(qty)||qty<=0||!Number.isFinite(amount)||amount<=0)throw new Error(`${index+1}번 추가 매수 수량·금액을 확인해주세요.`);
+    if(!isSafePensionWhole(qty,{positive:true})||!isSafePensionWhole(amount,{positive:true}))throw new Error(`${index+1}번 추가 매수 수량·금액을 확인해주세요.`);
     const cashBefore=pensionBatchCashAvailable(state,today);
     if(cashBefore<amount)throw new Error(`${index+1}번 추가 매수 금액이 현금성자산보다 큽니다. 작업 순서를 확인해주세요.`);
-    const saved={...item,id:item.id||op.tempId||`batch-trade-${index}`,date:today,applyDate:today,tradeDate:String(item.tradeDate),ticker:String(item.ticker),name:product.name,type:'buy',qty,price:amount/qty,amount,funding:'pension_cash',cashBefore,cashAfter:cashBefore-amount,updatedAtKST:`batch-${String(index).padStart(4,'0')}`,appliedAtKST:`batch-${String(index).padStart(4,'0')}`};
+    const position=pensionBatchPositionState(product,today,state);
+    const cashAfter=cashBefore-amount;
+    assertSafePensionAggregate({'거래 후 현금성자산':cashAfter,'거래 후 보유 수량':position.qty+qty,'거래 후 취득원가':position.cost+amount});
+    const saved={...item,id:item.id||op.tempId||`batch-trade-${index}`,date:today,applyDate:today,tradeDate:String(item.tradeDate),ticker:String(item.ticker),name:product.name,type:'buy',qty,price:amount/qty,amount,funding:'pension_cash',cashBefore,cashAfter,updatedAtKST:`batch-${String(index).padStart(4,'0')}`,appliedAtKST:`batch-${String(index).padStart(4,'0')}`};
     state.trades=state.trades.filter(v=>String(v.id)!==String(saved.id));
     state.trades.push(saved);
     state.trades.sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.appliedAtKST||'').localeCompare(String(b.appliedAtKST||''))||String(a.id).localeCompare(String(b.id)));
@@ -1148,6 +1171,7 @@ async function applyPensionBatchQueue(renderDashboard){
     pensionEditorState.batchLastAddAt=0;
     resetPensionBatchRequestId();
     pensionEditorState.batchMode=true;
+    closePensionContributionModal();
     renderDashboard?.();
     openPensionContributionModal();
     setPensionBatchMode(true);

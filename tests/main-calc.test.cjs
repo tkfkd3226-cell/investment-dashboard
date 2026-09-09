@@ -229,6 +229,18 @@ test('연금 거래: 매수 후 일부 매도는 잔여 cost와 실현손익을 
   assert.equal(state.realizedProfit,90);
 });
 
+test('연금 거래: 개별 입력이 안전해도 합산 결과가 안전 범위를 넘으면 계산을 중단한다',()=>{
+  setState({
+    pensionTrades:{trades:[
+      {id:'b1',date:'2026-06-02',ticker:'P',name:'Pension',type:'buy',qty:1,price:1,amount:1}
+    ]}
+  });
+  assert.throws(
+    ()=>core.pensionPositionState({ticker:'P',qty:Number.MAX_SAFE_INTEGER,cost:Number.MAX_SAFE_INTEGER},'2026-06-02'),
+    /안전한 정수 범위를 벗어납니다/
+  );
+});
+
 test('연금 현금: 기준 현금 + 적립금 - 매수 + 매도로 가용현금을 계산한다',()=>{
   setState({
     prices:{'2026-06-01':{pension:{cash:1000}}},

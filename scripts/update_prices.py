@@ -638,7 +638,7 @@ def update_one_date(
 ) -> list[str]:
     """Fetch one date, update prices, then rebuild its performance snapshot."""
     prev_key, prev = previous_snapshot(prices, before=target_date)
-    securities, pension, warnings, actual_dates = {}, {}, [], set()
+    securities, pension, warnings, source_dates = {}, {}, [], {}
 
     manual_valuation_used = False
     for item in portfolio["securities"]:
@@ -646,12 +646,13 @@ def update_one_date(
         valuation_override = security_valuation_override(portfolio, ticker, target_date)
         if valuation_override is not None:
             securities[ticker] = int(valuation_override)
-            actual_dates.add(target_date)
+            source_dates[f"SEC:{ticker}"] = target_date
             manual_valuation_used = True
             continue
 
         actual, close, err = fetch_close(ticker, target_date)
 
+        actual_date = str(actual or target_date)
         if close is None:
             fallback = prev.get("securities", {}).get(ticker) if prev else None
 
@@ -661,14 +662,18 @@ def update_one_date(
 
             securities[ticker] = int(fallback)
             warnings.append(f"SEC {ticker}: 조회 실패, 직전 스냅샷 {prev_key} 값 {fallback} 사용: {err}")
+            source_dates[f"SEC:{ticker}"] = str(prev.get("priceSourceDates", {}).get(f"SEC:{ticker}") or prev.get("actualMarketDate") or prev_key)
         else:
             securities[ticker] = int(close)
-            actual_dates.add(actual)
+            source_dates[f"SEC:{ticker}"] = actual_date
+            if actual_date != target_date:
+                warnings.append(f"SEC {ticker}: {target_date} 종가를 확인하지 못해 {actual_date} 종가를 보류값으로 저장했습니다.")
 
     for item in portfolio["pension"]:
         ticker = item["ticker"]
         actual, close, err = fetch_close(ticker, target_date)
 
+        actual_date = str(actual or target_date)
         if close is None:
             fallback = prev.get("pension", {}).get(ticker) if prev else None
 
@@ -678,19 +683,23 @@ def update_one_date(
 
             pension[ticker] = int(fallback)
             warnings.append(f"PEN {ticker}: 조회 실패, 직전 스냅샷 {prev_key} 값 {fallback} 사용: {err}")
+            source_dates[f"PEN:{ticker}"] = str(prev.get("priceSourceDates", {}).get(f"PEN:{ticker}") or prev.get("actualMarketDate") or prev_key)
         else:
             pension[ticker] = int(close)
-            actual_dates.add(actual)
+            source_dates[f"PEN:{ticker}"] = actual_date
+            if actual_date != target_date:
+                warnings.append(f"PEN {ticker}: {target_date} 종가를 확인하지 못해 {actual_date} 종가를 보류값으로 저장했습니다.")
 
     pension["cash"] = int(prev.get("pension", {}).get("cash", 0)) if prev else 0
-    actual_date = sorted(actual_dates)[-1] if actual_dates else target_date
+    actual_date = min(source_dates.values()) if source_dates else target_date
 
-    display = True
+    # A date with any stale/missing symbol must not become a selectable dashboard close.
+    display = not warnings
 
     if no_display:
         display = False
 
-    if force_display:
+    if force_display and not warnings:
         display = True
 
     status = market_status_for_date(target_date)
@@ -703,6 +712,7 @@ def update_one_date(
         "requestedDate": target_date,
         "actualMarketDate": actual_date,
         "updatedAtKST": updated_at,
+        "priceSourceDates": source_dates,
         "securities": securities,
         "pension": pension,
     }
@@ -819,7 +829,7 @@ def main() -> int:
         print("updated target dates: " + ", ".join(target_dates))
     if kospi_changed:
         print(f"updated KOSPI dates: {len(kospi_changed)}")
-    return 0
+    return 1 if all_warnings else 0
 
 
 if __name__ == "__main__":
