@@ -1196,9 +1196,11 @@ async function applyPensionBatchQueue(renderDashboard){
     openPensionContributionModal();
     setPensionBatchMode(true);
     clearPensionContributionStatus('pensionBatchStatus');
-    showPensionToast(duplicateWithoutState
-      ?'이미 적용된 작업입니다. 새로고침해 확인해주세요.'
-      :`작업 ${count}건을 적용했습니다.`);
+    showPensionToast(data.stale
+      ?'오래된 작업 모음 재시도는 다시 적용하지 않았습니다. 새로고침해 최신 상태를 확인해주세요.'
+      :(duplicateWithoutState
+        ?'이미 적용된 작업입니다. 새로고침해 확인해주세요.'
+        :`작업 ${count}건을 적용했습니다.`));
   }finally{
     pensionEditorState.batchApplying=false;
     renderPensionBatchQueue();
@@ -1297,9 +1299,11 @@ async function savePensionContribution(){
     }
     resetPensionSingleSaveIdentity();
     clearPensionContributionStatus('pensionContribStatus');
-    showPensionToast(data.duplicate
-      ?`${pensionContributionTargetObjectLabel(item.target)} 이미 반영된 요청을 확인했습니다.`
-      :`${pensionContributionTargetObjectLabel(item.target)} 저장했습니다.`);
+    showPensionToast(data.stale
+      ?'오래된 저장 재시도는 최신 상태 위에 다시 적용하지 않았습니다. 새로고침해 확인해주세요.'
+      :(data.duplicate
+        ?`${pensionContributionTargetObjectLabel(item.target)} 이미 반영된 요청을 확인했습니다.`
+        :`${pensionContributionTargetObjectLabel(item.target)} 저장했습니다.`));
   }catch(e){
     if(showPensionBatchDuplicateToast(e)){clearPensionContributionStatus('pensionContribStatus');return}
     if(e?.code==='PENSION_EDITOR_INTERNAL'){console.error('[Pension editor]',e);clearPensionContributionStatus('pensionContribStatus');return}

@@ -29,6 +29,8 @@ jobs:
       # 1) Repository / Python runtime
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -68,14 +70,45 @@ jobs:
       # 3) Persist only the data files managed by update_prices.py.
       #    pension_contributions.json 등 다른 운영 JSON은 이 workflow에서 건드리지 않는다.
       - name: Commit generated KRX data
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
         run: |
           if git diff --quiet data/prices.json data/performance_snapshots.json; then
             echo "No changes to commit."
             exit 0
           fi
 
+          # updater가 시작한 checkout 기준점을 기억한다. push 전 remote가 앞서가더라도
+          # pension 저장·코드 commit처럼 KRX 관리파일을 건드리지 않은 변경은 rebase 후 안전하게 재시도한다.
+          BASE_SHA="$(git rev-parse HEAD)"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/prices.json data/performance_snapshots.json
           git commit -m "Update KRX prices and performance snapshots"
-          git push
+
+          for attempt in 1 2 3; do
+            git fetch origin "$BRANCH_NAME"
+
+            # checkout 이후 remote에서 KRX 관리파일 자체가 바뀌었다면 자동 merge로 덮지 않는다.
+            # 이 경우는 실제 데이터 충돌이므로 fail-closed하고 다음 갱신에서 다시 계산한다.
+            if ! git diff --quiet "$BASE_SHA" "origin/$BRANCH_NAME" -- data/prices.json data/performance_snapshots.json; then
+              echo "KRX managed files changed on remote after checkout; aborting to avoid overwriting newer data." >&2
+              exit 1
+            fi
+
+            if ! git rebase "origin/$BRANCH_NAME"; then
+              git rebase --abort || true
+              echo "Failed to rebase KRX data commit onto latest $BRANCH_NAME." >&2
+              exit 1
+            fi
+
+            if git push origin "HEAD:$BRANCH_NAME"; then
+              exit 0
+            fi
+
+            echo "Push raced with another branch commit; retrying ($attempt/3)." >&2
+            sleep $((attempt * 2))
+          done
+
+          echo "KRX data push failed after 3 retries." >&2
+          exit 1

@@ -167,12 +167,14 @@ test('현금성자산 단건 저장은 응답 유실 재시도 동안 같은 req
   assert.match(pensionEditor,/item\?\.target==='cashSnapshot'[^]*?cashSnapshot\|\$\{String\(item\.date\|\|''\)\}/);
   assert.match(pensionEditor,/\['cashSnapshot','contribution','etfTrade'\]\.includes\(item\.target\)/);
   assert.match(pensionEditor,/item\.target==='cashSnapshot'\s*\? \{\.\.\.item,requestId:pensionEditorState\.singleSaveId\}/);
-  assert.match(pensionEditor,/resetPensionSingleSaveIdentity\(\);[^]*?showPensionToast\(data\.duplicate/);
+  assert.match(pensionEditor,/resetPensionSingleSaveIdentity\(\);[^]*?showPensionToast\(data\.stale/);
+  assert.match(pensionEditor,/오래된 저장 재시도는 최신 상태 위에 다시 적용하지 않았습니다/);
 });
 
 test('Batch 중복 응답에 state가 없으면 과거 pension state를 로컬에 다시 적용하지 않는다',()=>{
   assert.match(pensionEditor,/const duplicateWithoutState=!!data\.duplicate&&!data\.state;/);
   assert.match(pensionEditor,/if\(!duplicateWithoutState\)applyPensionBatchStateLocally\(data\.state\);/);
+  assert.match(pensionEditor,/data\.stale[^]*?오래된 작업 모음 재시도는 다시 적용하지 않았습니다/);
 });
 
 test('KRX 갱신은 기준일과 다른 종가·직전값을 숨김 처리하고 자동 성공으로 끝내지 않는다',()=>{
@@ -195,6 +197,17 @@ test('KRX workflow의 shell 조건문은 각 run step 안에서 완결되어 실
 
 test('KRX workflow는 같은 branch 생성데이터 갱신을 concurrency로 직렬화한다',()=>{
   assert.match(updatePricesWorkflow,/concurrency:\s*\n\s*group: update-krx-prices-\$\{\{ github\.ref \}\}\s*\n\s*cancel-in-progress: false/);
+});
+
+test('KRX workflow는 다른 branch commit과 push가 경합해도 최신 remote에 rebase 후 제한 재시도한다',()=>{
+  assert.match(updatePricesWorkflow,/uses: actions\/checkout@v4\s*\n\s*with:\s*\n\s*fetch-depth: 0/);
+  assert.match(updatePricesWorkflow,/BASE_SHA="\$\(git rev-parse HEAD\)"/);
+  assert.match(updatePricesWorkflow,/for attempt in 1 2 3; do/);
+  assert.match(updatePricesWorkflow,/git fetch origin "\$BRANCH_NAME"/);
+  assert.match(updatePricesWorkflow,/git diff --quiet "\$BASE_SHA" "origin\/\$BRANCH_NAME" -- data\/prices\.json data\/performance_snapshots\.json/);
+  assert.match(updatePricesWorkflow,/git rebase "origin\/\$BRANCH_NAME"/);
+  assert.match(updatePricesWorkflow,/git push origin "HEAD:\$BRANCH_NAME"/);
+  assert.match(updatePricesWorkflow,/KRX data push failed after 3 retries/);
 });
 
 test('숨김·경고 KRX 날짜는 다음 자동 실행에서 재수집 대상으로 복구한다',()=>{

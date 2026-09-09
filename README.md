@@ -293,7 +293,7 @@ data/pension_contributions.json
 
 퇴직연금 저장과 KRX 갱신 요청은 GitHub 저장소와 별도로 운영되는 Google Apps Script Web App을 사용합니다. 브라우저가 저장소에 직접 write하지 않으며, 운영 인증값과 GitHub 연동 정보도 프런트엔드 파일에 직접 두지 않습니다.
 
-쓰기 요청은 네트워크 응답 유실 뒤 재시도해도 중복 데이터나 과거 상태 재적용이 생기지 않도록 요청 identity를 유지합니다. 퇴직연금 단건 저장은 현금성자산 `requestId` 및 기업적립금·ETF의 client-generated ID를 재사용하고, Batch는 `batchRequestId` + 작업별 `operationId`, KRX 갱신은 `requestId`를 사용합니다. 단건 삭제는 이미 삭제된 상태도 성공으로 수렴하는 멱등 처리입니다.
+쓰기 요청은 네트워크 응답 유실 뒤 재시도해도 중복 데이터나 과거 상태 재적용이 생기지 않도록 요청 identity와 최근 처리 receipt/intent를 유지합니다. 퇴직연금 단건 저장은 현금성자산 `requestId` 및 기업적립금·ETF의 client-generated ID를 재사용하고, 완료된 과거 저장 요청은 이후 update/delete가 발생했더라도 다시 mutation하지 않습니다. Batch는 `batchRequestId` + 작업별 `operationId`와 최초 base commit을 함께 확인하여 최신 상태 위에 오래된 작업 모음을 재적용하지 않습니다. 단건 삭제는 이미 삭제된 상태도 성공으로 수렴하는 멱등 처리입니다. Pension receipt/intent는 request별 compact Script Property로 분리하여 단일 property에 누적하지 않고, KRX처럼 목록형 상태가 필요한 경우에도 UTF-8 byte 예산을 적용해 단일 property 크기가 커지지 않도록 관리합니다.
 
 ### 7.2 KRX 갱신
 
@@ -318,7 +318,7 @@ prices.json / performance_snapshots.json
 변경 시 commit + push
 ```
 
-GitHub Actions에서 직접 수동 실행할 때는 필요한 경우 대상 날짜를 지정할 수 있습니다. 같은 branch의 KRX workflow는 concurrency로 직렬화하여 중복 dispatch가 생겨도 동시에 같은 생성 파일을 push하지 않습니다.
+GitHub Actions에서 직접 수동 실행할 때는 필요한 경우 대상 날짜를 지정할 수 있습니다. 같은 branch의 KRX workflow는 concurrency로 직렬화합니다. 또한 checkout 이후 연금 저장·코드 commit처럼 다른 변경이 branch를 앞서가면 KRX 관리파일이 그대로인지 확인한 뒤 최신 remote에 rebase하고 제한 횟수만큼 push를 재시도합니다. `prices.json` 또는 `performance_snapshots.json` 자체가 remote에서 바뀐 경우에는 자동 덮어쓰지 않고 fail-closed합니다.
 
 ---
 

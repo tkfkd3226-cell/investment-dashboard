@@ -1501,19 +1501,20 @@ Google Apps Script는 **GitHub 프로젝트와 별도로 운영되는 백엔드*
 - GAS QA에서는 실제 운영 JSON write, delete, batch apply, KRX workflow 실행을 하지 않고 mock/stub을 우선 사용한다.
 - 공개 Web App의 PIN 실패 제한은 **잘못된 PIN 요청만** 직렬화·제한한다. 올바른 PIN 요청보다 전역 실패 lock을 먼저 검사하여 제3자의 오입력만으로 정상 사용자를 차단하는 구조로 되돌리지 않는다. 실패 상태는 Script Properties의 내부 관리값으로 유지하고 실제 PIN은 저장하지 않는다.
 - Web App router는 action allowlist를 사용하고, pension persistence는 `cashSnapshot` / `contribution` / `etfTrade` 외 target을 다른 target으로 fallback하지 않고 거부한다.
-- 단건 저장은 frontend가 같은 요청의 실패·재시도 동안 identity를 재사용한다. 기업적립금·ETF 추가매수는 client-generated ID를, 현금성자산은 `requestId`를 사용한다. GAS는 같은 identity·같은 내용이 이미 저장된 경우 GitHub write 없이 `duplicate_ignored`로 응답하고, 같은 identity에 다른 내용이 오면 거부한다. 현금성자산은 날짜 key upsert를 유지하되 동일 `requestId` 재시도에서는 최초 snapshot의 `afterTradeIds`/`afterContributionIds`를 그대로 보존하여 이후 같은 날 발생한 거래를 과거 snapshot에 소급 반영하지 않는다.
+- 단건 저장은 frontend가 같은 요청의 실패·재시도 동안 identity를 재사용한다. 기업적립금·ETF 추가매수는 client-generated ID를, 현금성자산은 `requestId`를 사용한다. GAS는 resource 내부 identity뿐 아니라 최근 완료 receipt와 진행 intent를 별도 보존한다. 따라서 최초 저장 뒤 응답이 유실되고 이후 같은 날짜 현금 snapshot이 다시 갱신되거나 기업적립금/ETF가 삭제되더라도, 과거 save retry가 최신 update/delete를 되돌리거나 삭제된 항목을 재생성하지 않는다. 같은 identity에 다른 내용이 오면 거부하며, stale retry는 `stale_retry_ignored` + `duplicate:true`로 mutation 없이 수렴한다.
 - GAS의 pension 금액·수량 입력은 frontend와 동일하게 safe integer 정수 계약을 적용한다. `valuation`/`costBasis`는 0 이상 안전 정수, 기업적립금·ETF 수량·금액은 양의 안전 정수만 허용하며, 현금흐름 합산·차감 결과도 safe integer 범위를 벗어나면 저장을 중단한다.
 - 단건 삭제는 멱등 DELETE로 취급한다. 첫 삭제가 GitHub에 반영된 뒤 응답만 유실되어 같은 항목을 다시 삭제해도 GAS는 `delete_already_absent` + `duplicate:true`로 성공 처리하고, 프런트는 로컬 항목을 정리한다.
-- Batch는 frontend의 `batchRequestId`와 각 작업의 stable `operationId`를 함께 전달한다. GAS는 commit 전에 intent를 기록하고, contribution/ETF는 이 identity에서 결정적 저장 ID를 생성한다. receipt 저장이나 응답이 commit 뒤 실패해도 같은 batch 재시도는 기존 항목을 재사용하며, 최종 파일 내용이 동일하면 추가 commit을 만들지 않는다. Cache에는 과거 전체 pension state를 저장하지 않고 receipt형 요약만 저장하여 다른 탭/기기에서 생긴 최신 상태를 재시도 응답이 덮어쓰지 않게 한다.
-- KRX 갱신은 frontend가 같은 실패·재시도 동안 `requestId`를 재사용하고 GAS가 최근 dispatch receipt를 확인한다. `.github/workflows/update-prices.yml`은 같은 branch의 KRX workflow를 `concurrency`로 직렬화하여 receipt 저장 실패나 다중 탭 같은 최후 경계에서도 checkout/push 경쟁을 만들지 않는다.
+- Batch는 frontend의 `batchRequestId`와 각 작업의 stable `operationId`를 함께 전달한다. GAS는 commit 전에 `baseCommitSha`를 포함한 intent를 기록하고, contribution/ETF는 이 identity에서 결정적 저장 ID를 생성한다. receipt 저장이 실패해도 재시도 시 현재 GitHub state가 해당 batch 결과를 이미 반영했는지 먼저 확인한다. base commit 이후 최신 update/delete가 생겨 batch 결과가 더 이상 현재 상태와 일치하지 않으면 `batch_stale_retry_ignored`로 종료하여 과거 작업을 최신 상태 위에 다시 적용하지 않는다. Cache에는 과거 전체 pension state를 저장하지 않고 receipt형 요약만 저장한다.
+- KRX 갱신은 frontend가 같은 실패·재시도 동안 `requestId`를 재사용하고 GAS가 최근 dispatch receipt를 확인한다. `.github/workflows/update-prices.yml`은 같은 branch의 KRX workflow를 `concurrency`로 직렬화하고, push 직전 remote를 다시 fetch한다. checkout 이후 다른 commit이 branch를 앞서간 경우 KRX 관리파일 변경 여부를 확인한 뒤 최신 remote에 rebase하여 최대 3회 push를 재시도한다. remote에서 KRX 관리파일 자체가 바뀌었으면 자동 병합하지 않고 fail-closed한다.
 
 JS ↔ GAS 계약 검증 시:
 
 - 프런트 JS의 요청 payload는 GitHub ZIP에서 확인한다.
 - 서버 측 handler는 최신 운영 GAS 소스가 별도로 제공된 경우에만 완전 검증한다.
 - 단건 retry QA에서는 첫 요청이 GitHub에 반영된 뒤 응답만 유실된 상황을 mock하여 contribution/etfTrade가 추가 item·추가 commit·이중 현금차감 없이 기존 결과를 반환하는지 확인한다.
-- Batch retry QA에서는 GitHub commit 성공 직후 receipt/Cache 기록 또는 HTTP 응답이 실패한 상태를 만들고, 동일 `batchRequestId` + `operationId` 재시도에서 duplicate item과 추가 commit이 생기지 않는지 확인한다.
-- KRX retry QA에서는 dispatch 성공 직후 응답 유실을 만들고 동일 `requestId` 재시도가 `workflow_duplicate_ignored`로 종료되는지, workflow 파일에는 branch 단위 concurrency가 유지되는지 확인한다.
+- 단건 stale retry QA에서는 `save A 성공 → 응답 유실 → 같은 resource의 update/delete B 성공 → A 재시도` 순서를 만들고, A가 B를 되돌리거나 삭제된 항목을 재생성하지 않는지 확인한다.
+- Batch retry QA에서는 GitHub commit 성공 직후 receipt/HTTP 응답이 실패한 상태뿐 아니라 `batch A → 최신 update/delete B → A 재시도` 순서도 만들고, A가 B를 되돌리지 않는지 확인한다. Pension receipt/intent가 request별 compact property로 분리되어 단일 9KB 누적값을 만들지 않는지 확인하고, 목록형 property는 UTF-8 byte 예산을 넘지 않는지 확인한다.
+- KRX retry QA에서는 dispatch 성공 직후 응답 유실을 만들고 동일 `requestId` 재시도가 `workflow_duplicate_ignored`로 종료되는지 확인한다. 또한 KRX checkout 뒤 pension 저장이나 일반 코드 commit이 먼저 push된 상태를 만들어 workflow가 최신 remote에 rebase 후 push 재시도하는지, KRX 관리파일 자체가 바뀐 경우에는 fail-closed하는지 확인한다.
 - Delete retry QA에서는 첫 삭제 성공 뒤 응답 유실 후 재시도 시 이미 없는 항목을 오류로 되돌리지 않고 성공 상태로 수렴하는지 확인한다.
 
 
