@@ -187,6 +187,7 @@ test('퇴직연금 Batch cash 작업은 initial snapshot precondition과 reload 
   assert.match(pensionEditor,/markPendingBatchIdentityStatus\(batchSignature,batchRequestId,'uncertain',batchPayloadOperations\)/);
   assert.match(pensionEditor,/confirmationToken=String\(confirmation\.token\)/);
   assert.match(pensionEditor,/confirmationDecision=String\(confirmation\.decision\)/);
+  assert.match(pensionEditor,/confirmationDecisions=\{\.\.\.confirmation\.decisions\}/);
   assert.match(pensionEditor,/clearPendingBatchIdentity\(batchSignature,batchRequestId\)/);
   assert.match(pensionEditor,/payloadOperations:payloadOperations\|\|prior\?\.payloadOperations\|\|null/);
   assert.doesNotMatch(pensionEditor,/function pensionBatchOperationFingerprint\(operation\)\{[^]*?const precondition=/);
@@ -205,10 +206,20 @@ test('퇴직연금 cross-device 동일 내용은 state-bound confirmation token�
   assert.match(pensionEditor,/logicalOperationId:String\(op\.logicalOperationId\|\|op\.operationId\|\|op\.tempId\|\|op\.qid\|\|''\)/);
   assert.match(pensionEditor,/requiresDuplicateConfirmation===true/);
   assert.match(pensionEditor,/confirmationToken:String\(data\.confirmationToken\|\|''\)/);
-  assert.match(pensionEditor,/confirmationDecision:decision/);
-  assert.match(pensionEditor,/decision=distinct\?'distinct':'existing'/);
+  assert.match(pensionEditor,/confirmationDecisions=\{\.\.\.confirmation\.decisions\}/);
+  assert.match(pensionEditor,/const conflicts=Array\.isArray\(data\.conflictOperations\)\?data\.conflictOperations:\[\]/);
+  assert.match(pensionEditor,/decisions\[String\(index\)\]=distinct\?'distinct':'existing'/);
+  assert.match(pensionEditor,/confirmation=\{token:data\.confirmationToken,decisions\}/);
   assert.doesNotMatch(pensionEditor,/allowDistinct:true/);
   assert.doesNotMatch(pensionEditor,/batchPendingAllowDistinct/);
+});
+
+test('퇴직연금 부분 충돌 Batch는 충돌 operation별 existing/distinct 결정을 수집하고 하나의 Batch로 재검증한다',()=>{
+  assert.match(pensionEditor,/if\(data\.fullMatch===true\)\{/);
+  assert.match(pensionEditor,/conflicts\.forEach\(conflict=>\{/);
+  assert.match(pensionEditor,/const description=pensionBatchOperationDescription\(op\)/);
+  assert.match(pensionEditor,/부분 충돌 작업 모음 확인/);
+  assert.match(pensionEditor,/savePensionBatchViaGithubPages\(batchPayloadOperations,pin,batchRequestId,confirmation\)/);
 });
 
 test('퇴직연금 단건 삭제는 모든 target에서 durable pending logicalOperationId를 유지하고 cash만 snapshot version을 추가한다',()=>{

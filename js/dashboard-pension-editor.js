@@ -1291,7 +1291,11 @@ async function savePensionBatchViaGithubPages(payloadOperations,pin,batchRequest
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
   if(!config.url||config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
   const payload={pin:String(pin||'').trim(),action:'batchPension',batchRequestId:String(batchRequestId||'').trim(),operations:serializePensionBatchOperations(payloadOperations)};
-  if(confirmation?.token&&confirmation?.decision){payload.confirmationToken=String(confirmation.token);payload.confirmationDecision=String(confirmation.decision)}
+  if(confirmation?.token){
+    payload.confirmationToken=String(confirmation.token);
+    if(confirmation?.decision)payload.confirmationDecision=String(confirmation.decision);
+    if(confirmation?.decisions&&typeof confirmation.decisions==='object')payload.confirmationDecisions={...confirmation.decisions};
+  }
   const res=await fetchWithTimeout(config.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
   const data=await readJsonResponse(res,'작업 모음 일괄 적용');
   if(!data.ok)throw new Error(data.error||'작업 모음 일괄 적용에 실패했습니다.');
@@ -1334,14 +1338,34 @@ async function applyPensionBatchQueue(renderDashboard){
     });
     if(!data){if(!batchAttempted)clearPendingBatchIdentity(batchSignature,batchRequestId);return}
     if(data.requiresDuplicateConfirmation===true){
-      const distinct=window.confirm('동일 logical operation 후보가 있습니다.\n\n확인: 실제 별도 작업 모음으로 실행\n취소: 과거 작업의 응답 유실 재시도로 보고 기존 처리 유지');
-      const decision=distinct?'distinct':'existing';
+      let confirmation;
+      let confirmTitle='작업 모음 중복 확인';
+      let confirmDescription='현재 서버 상태와 다시 대조한 뒤 선택한 operation만 하나의 원자적 Batch로 처리합니다.';
+      if(data.fullMatch===true){
+        const distinct=window.confirm('동일 작업 모음 효과가 이미 존재합니다.\n\n확인: 전체를 실제 별도 작업 모음으로 실행\n취소: 전체를 과거 작업의 응답 유실 재시도로 보고 기존 처리 유지');
+        confirmation={token:data.confirmationToken,decision:distinct?'distinct':'existing'};
+        confirmTitle=distinct?'별도 작업 모음 확인':'기존 작업 모음 확인';
+        confirmDescription=distinct?'현재 서버 상태와 다시 대조한 뒤 전체를 실제 별도 작업으로 실행합니다.':'현재 서버 상태와 다시 대조해 전체 기존 작업 효과가 여전히 존재하는지 확인합니다.';
+      }else{
+        const conflicts=Array.isArray(data.conflictOperations)?data.conflictOperations:[];
+        if(!conflicts.length)throw new Error('부분 충돌 작업 정보를 확인하지 못했습니다. 최신 상태에서 다시 시도해주세요.');
+        const decisions={};
+        conflicts.forEach(conflict=>{
+          const index=Number(conflict?.index);
+          const op=batchPayloadOperations[index]||{};
+          const description=pensionBatchOperationDescription(op)||`${index+1}번 작업`;
+          const distinct=window.confirm(`${description}\n\n기존 logical operation과 겹칩니다.\n확인: 실제 별도 작업으로 실행\n취소: 과거 작업의 응답 유실 재시도로 보고 기존 처리 유지`);
+          decisions[String(index)]=distinct?'distinct':'existing';
+        });
+        confirmation={token:data.confirmationToken,decisions};
+        confirmTitle='부분 충돌 작업 모음 확인';
+      }
       const confirmedData=await requestPensionActionPin({
-        title:distinct?'별도 작업 모음 확인':'기존 작업 모음 확인',
-        description:distinct?'현재 서버 상태와 다시 대조한 뒤 실제 별도 작업으로 실행합니다.':'현재 서버 상태와 다시 대조해 기존 작업이 여전히 존재하는지 확인합니다.',
+        title:confirmTitle,
+        description:confirmDescription,
         execute:async pin=>{
           persistPendingBatchIdentity(batchSignature,batchRequestId,pensionEditorState.batchQueue,{status:'sent',payloadOperations:batchPayloadOperations});
-          try{return await savePensionBatchViaGithubPages(batchPayloadOperations,pin,batchRequestId,{token:data.confirmationToken,decision})}
+          try{return await savePensionBatchViaGithubPages(batchPayloadOperations,pin,batchRequestId,confirmation)}
           catch(e){markPendingBatchIdentityStatus(batchSignature,batchRequestId,'uncertain',batchPayloadOperations);throw e}
         }
       });
