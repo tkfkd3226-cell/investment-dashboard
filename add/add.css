@@ -1011,6 +1011,9 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
   font-weight:700;
   line-height:1.45;
 }
+:where(html[data-add-page="report"]) .report-load-error p{margin:0}
+:where(html[data-add-page="report"]) .report-load-retry{margin-top:var(--density-gap-md)}
+html:where([data-add-page="report"]).report-data-error :is(.hero,.report-nav,.panel){display:none}
 
 /* Dark overrides for Report hero-local colors (kept local instead of one-use tokens). */
 html:where([data-add-page="report"]).dark .hero{background:radial-gradient(circle at 82% 18%,rgba(70,198,221,.23),transparent 26%),

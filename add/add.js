@@ -906,6 +906,47 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
   // 이 구간은 DOM과 무관한 파생 함수만 소유하며, 아래 browser 계층은 canonical JSON을 로드해 렌더링한다.
   const REPORT_DATA_URL='../data/kodex_leverage_trades.json';
   const REPORT_SCHEMA_MODULE_URL='../js/kodex-leverage-schema.js';
+  const REPORT_LOAD_TIMEOUT_MS=20_000;
+
+  function reportLoadTimeoutError(label='KODEX 거래 데이터'){
+    const error=new Error(`${label} 로드 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.`);
+    error.code='REPORT_LOAD_TIMEOUT';
+    return error;
+  }
+  function withReportLoadTimeout(promise,label='KODEX 거래 데이터',timeoutMs=REPORT_LOAD_TIMEOUT_MS){
+    return new Promise((resolve,reject)=>{
+      const timer=setTimeout(()=>reject(reportLoadTimeoutError(label)),timeoutMs);
+      Promise.resolve(promise).then(
+        value=>{clearTimeout(timer);resolve(value);},
+        error=>{clearTimeout(timer);reject(error);}
+      );
+    });
+  }
+  async function loadReportJsonWithTimeout(url,timeoutMs=REPORT_LOAD_TIMEOUT_MS){
+    const controller=new AbortController();
+    let timer=0;
+    const timeout=new Promise((_,reject)=>{
+      timer=setTimeout(()=>{
+        controller.abort();
+        reject(reportLoadTimeoutError());
+      },timeoutMs);
+    });
+    try{
+      return await Promise.race([
+        (async()=>{
+          const response=await fetch(url,{cache:'no-store',signal:controller.signal});
+          if(!response.ok)throw new Error(`KODEX 거래 데이터 로드 실패 (HTTP ${response.status})`);
+          return response.json();
+        })(),
+        timeout
+      ]);
+    }catch(cause){
+      if(cause?.code==='REPORT_LOAD_TIMEOUT'||cause?.name==='AbortError')throw reportLoadTimeoutError();
+      throw cause;
+    }finally{
+      clearTimeout(timer);
+    }
+  }
 
   function reportSum(rows,key){
     return rows.reduce((sum,row)=>sum+Number(row[key]||0),0);
@@ -988,7 +1029,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     });
   }
 
-  if(isCommonJs)Object.assign(module.exports,{REPORT_DATA_URL,REPORT_SCHEMA_MODULE_URL,reportSum,deriveReportRows,deriveSplitRows,deriveSplitMetrics,deriveProfitComposition,deriveReportModel});
+  if(isCommonJs)Object.assign(module.exports,{REPORT_DATA_URL,REPORT_SCHEMA_MODULE_URL,REPORT_LOAD_TIMEOUT_MS,withReportLoadTimeout,loadReportJsonWithTimeout,reportSum,deriveReportRows,deriveSplitRows,deriveSplitMetrics,deriveProfitComposition,deriveReportModel});
   if(!isReportPage)return;
 
   const reportNf0=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
@@ -1617,12 +1658,10 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
 
   async function loadReportSource(){
     const version=Date.now();
-    const [schema,response]=await Promise.all([
-      import(`${REPORT_SCHEMA_MODULE_URL}?ts=${version}`),
-      fetch(`${REPORT_DATA_URL}?ts=${version}`,{cache:'no-store'})
+    const [schema,source]=await Promise.all([
+      withReportLoadTimeout(import(`${REPORT_SCHEMA_MODULE_URL}?ts=${version}`),'KODEX schema 모듈'),
+      loadReportJsonWithTimeout(`${REPORT_DATA_URL}?ts=${version}`)
     ]);
-    if(!response.ok)throw new Error(`KODEX 거래 데이터 로드 실패 (HTTP ${response.status})`);
-    const source=await response.json();
     return schema.validateKodexLeverageSource(source);
   }
 
@@ -1631,7 +1670,19 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     const target=document.querySelector('[data-report-load-error]');
     if(!target)return;
     target.hidden=false;
-    target.textContent=`거래 데이터를 불러오지 못했습니다. ${String(error?.message||error)}`;
+    const message=document.createElement('p');
+    message.textContent=`거래 데이터를 불러오지 못했습니다. ${String(error?.message||error)}`;
+    const retry=document.createElement('button');
+    retry.type='button';
+    retry.className='add-button add-button-action report-load-retry';
+    retry.textContent='다시 시도';
+    retry.addEventListener('click',()=>{
+      retry.disabled=true;
+      document.documentElement.classList.remove('report-data-error');
+      target.hidden=true;
+      startReportPage();
+    },{once:true});
+    target.replaceChildren(message,retry);
   }
 
   const bootReportPage=async()=>{

@@ -52,6 +52,16 @@ test('Calc/Report는 Main appearance 저장값과 BroadcastChannel을 함께 소
   assert.doesNotMatch(root,/--(?:surface|control|inner)-radius-md:/);
 });
 
+test('Report 로딩 실패는 빈 리포트를 노출하지 않고 재시도할 수 있다',()=>{
+  assert.match(js1,/document\.documentElement\.classList\.add\('report-data-error'\)/);
+  assert.match(js1,/const retry=document\.createElement\('button'\);/);
+  assert.match(js1,/retry\.textContent='다시 시도';/);
+  assert.match(js1,/target\.replaceChildren\(message,retry\);/);
+  assert.match(js1,/document\.documentElement\.classList\.remove\('report-data-error'\);/);
+  assert.match(js1,/startReportPage\(\);/);
+  assert.match(css1,/html:where\(\[data-add-page="report"\]\)\.report-data-error :is\(\.hero,\.report-nav,\.panel\)\{display:none\}/);
+});
+
 test('Calc 도움말은 공통 label 정렬을 유지하고 keyboard focus 표시도 Esc로 dismiss한다',()=>{
   const label=rule(':where(html[data-add-page="calc"]) :is(.label-with-help,.inline-help-label,.group-title-main)');
   assert.match(label,/display:inline-flex/);

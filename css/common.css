@@ -3497,6 +3497,18 @@ button:not(:disabled):active{
 /* Pension PIN · Chrome 비밀번호 저장 감지를 피하면서 PIN 마스킹/상태 표시 유지 */
 :is(#krxActionPin,#pensionActionPinInput){-webkit-text-security:disc}
 .pension-action-pin-card .action-modal-input:disabled{opacity:.68;cursor:wait}
+.pension-action-pin-modal.is-danger .pension-action-pin-card{border-color:var(--status-danger-border)}
+.pension-action-pin-danger{
+  margin:calc(var(--space-lg) * -1) 0 var(--modal-section-gap);
+  padding:var(--space-md) var(--space-lg);
+  border:1px solid var(--status-danger-border);
+  border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));
+  background:var(--status-danger-soft-bg);
+  color:var(--status-danger-soft-text);
+  font-size:var(--type-size-sm);
+  line-height:var(--type-line-height-body);
+  font-weight:var(--type-weight-emphasis);
+}
 
 .mobile-top-button{
   position:fixed;

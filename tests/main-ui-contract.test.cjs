@@ -112,6 +112,10 @@ test('KRX 요청은 중복 전송을 막고 재진입 session에서 이전 응�
 });
 
 test('퇴직연금 Action PIN은 서버 요청 중 dismiss를 잠그고 실패 시 다시 활성화한다',()=>{
+  assert.match(pensionEditor,/let activePensionActionPinSession=null;/);
+  assert.match(pensionEditor,/activePensionActionPinSession\?\.finish\(null\);/);
+  assert.match(pensionEditor,/if\(old\)closeDashboardModal\(old,\{visibleClass:'',manageAriaHidden:false,remove:true\}\);/);
+  assert.doesNotMatch(pensionEditor,/if\(old\) old\.remove\(\);/);
   assert.match(pensionEditor,/let busy=false;\s*let finished=false;/);
   assert.match(pensionEditor,/const setDismissEnabled=enabled=>\{[^]*?cancel\.disabled=!enabled;[^]*?close\.disabled=!enabled;/);
   assert.match(pensionEditor,/busy=true;\s*input\.disabled=true;\s*setDismissEnabled\(false\);/);
@@ -120,6 +124,15 @@ test('퇴직연금 Action PIN은 서버 요청 중 dismiss를 잠그고 실패 �
   assert.match(pensionEditor,/cancel\?\.addEventListener\('click',dismiss\);/);
   assert.match(pensionEditor,/close\?\.addEventListener\('click',dismiss\);/);
   assert.match(pensionEditor,/bindDashboardModalDismiss\(modal,\{onDismiss:dismiss\}\);/);
+});
+
+test('퇴직연금 삭제 PIN은 위험 상태를 명시하고 교체된 요청도 완료한다',()=>{
+  assert.match(pensionEditor,/pension-action-pin-modal\$\{danger\?' is-danger':''\}/);
+  assert.match(pensionEditor,/danger\?'<p class="pension-action-pin-danger" role="alert">삭제한 기록은 되돌릴 수 없습니다\.<\/p>':''/);
+  assert.match(pensionEditor,/if\(activePensionActionPinSession\?\.modal===modal\)activePensionActionPinSession=null;/);
+  assert.match(pensionEditor,/\}catch\(e\)\{\s*if\(finished\)return;/);
+  assert.match(common,/\.pension-action-pin-modal\.is-danger \.pension-action-pin-card/);
+  assert.match(common,/\.pension-action-pin-danger\{/);
 });
 
 test('퇴직연금 편집기는 화면 입력과 작업 모음 모두에서 수량·금액을 안전 정수로 제한한다',()=>{

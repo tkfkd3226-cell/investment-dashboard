@@ -756,18 +756,23 @@ function resetPensionContributionForm(){
 }
 
 // [PEDIT07] PIN Dialog · PIN 확인
+let activePensionActionPinSession=null;
 function requestPensionActionPin({title='PIN 입력',description='작업 내용을 확인한 뒤 PIN 6자리를 입력하세요.',danger=false,execute}={}){
   return new Promise(resolve=>{
+    // PIN 확인은 한 번에 하나만 유지한다. 기존 요청은 DOM만 제거하지 않고
+    // 공통 modal lifecycle과 Promise를 함께 종료해야 body lock이 남지 않는다.
+    activePensionActionPinSession?.finish(null);
     const old=document.getElementById('pensionActionPinModal');
-    if(old) old.remove();
+    if(old)closeDashboardModal(old,{visibleClass:'',manageAriaHidden:false,remove:true});
 
     const modal=document.createElement('div');
     modal.id='pensionActionPinModal';
-    modal.className='action-modal pension-action-pin-modal';
+    modal.className=`action-modal pension-action-pin-modal${danger?' is-danger':''}`;
     modal.innerHTML=`<div class="action-modal-card pension-action-pin-card" role="dialog" aria-modal="true" aria-labelledby="pensionActionPinTitle">
       <button type="button" class="control-icon-button modal-icon-btn pension-action-pin-close" aria-label="닫기">${navIconSvg('close')}</button>
       <h3 id="pensionActionPinTitle" class="modal-main-title">${title}</h3>
       <p id="pensionActionPinDescription" class="action-modal-description">${description}</p>
+      ${danger?'<p class="pension-action-pin-danger" role="alert">삭제한 기록은 되돌릴 수 없습니다.</p>':''}
       <label class="action-modal-label" for="pensionActionPinInput">PIN</label>
       <input id="pensionActionPinInput" class="action-modal-input" type="text" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="pensionActionPinDescription pensionActionPinAutoHelp pensionActionPinStatus">
       <p id="pensionActionPinAutoHelp" class="action-modal-input-help">PIN이 확인되면 바로 적용됩니다.</p>
@@ -792,6 +797,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
       finished=true;
       clearTimeout(submitTimer);
       closeDashboardModal(modal,{visibleClass:'',manageAriaHidden:false,remove:true});
+      if(activePensionActionPinSession?.modal===modal)activePensionActionPinSession=null;
       resolve(value);
     };
     const dismiss=()=>{if(!busy&&!finished)finish(null);};
@@ -806,6 +812,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
         const result=typeof execute==='function'?await execute(pin):pin;
         finish(result);
       }catch(e){
+        if(finished)return;
         if(status){status.textContent=e.message||String(e);status.className='action-modal-status pension-action-pin-status err'}
         input.disabled=false;
         input.value='';
@@ -827,6 +834,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
     cancel?.addEventListener('click',dismiss);
     close?.addEventListener('click',dismiss);
 
+    activePensionActionPinSession={modal,finish};
     document.body.appendChild(modal);
     bindDashboardModalDismiss(modal,{onDismiss:dismiss});
     openDashboardModal(modal,{visibleClass:'',manageAriaHidden:false,initialFocus:input});
