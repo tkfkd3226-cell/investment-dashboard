@@ -160,7 +160,7 @@ test('퇴직연금 일괄 저장은 전체 재렌더링 전에 기존 모달 잠
 });
 
 test('퇴직연금 Batch는 각 작업의 stable operationId를 GAS에 전달하고 삭제 재시도 성공을 로컬에 수렴시킨다',()=>{
-  assert.match(pensionEditor,/operationId:op\.tempId\|\|op\.qid\|\|''/);
+  assert.match(pensionEditor,/operationId:op\.operationId\|\|op\.tempId\|\|op\.qid\|\|''/);
   assert.match(pensionEditor,/data\.duplicate[^]*?이미 삭제된 상태를 확인했습니다/);
 });
 
@@ -171,8 +171,8 @@ test('현금성자산 단건 저장은 화면 버전 precondition과 durable pen
   assert.match(pensionEditor,/prepared\.expectedVersion=pensionCashSnapshotVersion\(current\)/);
   assert.match(pensionEditor,/prepared\.expectedAbsent=true/);
   assert.match(pensionEditor,/\{\.\.\.prepared,requestId:pensionEditorState\.singleSaveId\}/);
-  assert.match(pensionEditor,/upsertPensionPendingSingle\(saveFingerprint,saveIdentity,\{status:'sent'\}\)/);
-  assert.match(pensionEditor,/markPensionPendingSingleStatus\(saveFingerprint,saveIdentity,'uncertain'\)/);
+  assert.match(pensionEditor,/upsertPensionPendingSingle\(saveFingerprint,saveIdentity,\{status:'sent',payload:saveItem\}\)/);
+  assert.match(pensionEditor,/markPensionPendingSingleStatus\(saveFingerprint,saveIdentity,'uncertain',saveItem\)/);
   assert.match(pensionEditor,/clearPensionPendingSingle\(saveFingerprint,saveIdentity\)/);
   assert.match(pensionEditor,/오래된 저장 재시도는 최신 상태 위에 다시 적용하지 않았습니다/);
 });
@@ -183,9 +183,18 @@ test('퇴직연금 Batch cash 작업은 initial snapshot precondition과 reload 
   assert.match(pensionEditor,/op\.expectedAbsent=true/);
   assert.match(pensionEditor,/expectedVersion:String\(op\.expectedVersion\|\|''\),expectedAbsent:op\.expectedAbsent===true/);
   assert.match(pensionEditor,/findPendingBatchIdentity\(signature\)/);
-  assert.match(pensionEditor,/persistPendingBatchIdentity\(batchSignature,batchRequestId,pensionEditorState\.batchQueue,\{status:'sent'\}\)/);
-  assert.match(pensionEditor,/markPendingBatchIdentityStatus\(batchSignature,batchRequestId,'uncertain'\)/);
+  assert.match(pensionEditor,/persistPendingBatchIdentity\(batchSignature,batchRequestId,pensionEditorState\.batchQueue,\{status:'sent',payloadOperations:batchPayloadOperations\}\)/);
+  assert.match(pensionEditor,/markPendingBatchIdentityStatus\(batchSignature,batchRequestId,'uncertain',batchPayloadOperations\)/);
   assert.match(pensionEditor,/clearPendingBatchIdentity\(batchSignature,batchRequestId\)/);
+  assert.match(pensionEditor,/payloadOperations:payloadOperations\|\|prior\?\.payloadOperations\|\|null/);
+  assert.doesNotMatch(pensionEditor,/function pensionBatchOperationFingerprint\(operation\)\{[^]*?const precondition=/);
+});
+
+ test('퇴직연금 pending logical identity는 optimistic precondition과 분리하고 최초 payload 자체를 재사용한다',()=>{
+  assert.match(pensionEditor,/if\(item\?\.target==='cashSnapshot'\)return `cashSnapshot\|\$\{String\(item\.date\|\|''\)\}\|\$\{String\(item\.valuation\?\?''\)\}\|\$\{String\(item\.costBasis\?\?''\)\}\|\$\{String\(item\.memo\|\|''\)\}`/);
+  assert.match(pensionEditor,/if\(pending\?\.id&&pending\?\.payload\)\{[^]*?return \{\.\.\.pensionEditorState\.singleSavePayload\}/);
+  assert.match(pensionEditor,/pensionEditorState\.batchPendingOperations=Array\.isArray\(pending\.payloadOperations\)/);
+  assert.match(pensionEditor,/const batchPayloadOperations=Array\.isArray\(pensionEditorState\.batchPendingOperations\)/);
 });
 
 test('현금성자산 단건 삭제는 stable deleteRequestId와 화면 snapshot 버전을 함께 전송한다',()=>{

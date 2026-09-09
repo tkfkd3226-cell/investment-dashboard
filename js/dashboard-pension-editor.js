@@ -55,8 +55,10 @@ const pensionEditorState={
   batchLastAddAt:0,
   batchApplying:false,
   batchRequestId:'',
+  batchPendingOperations:null,
   singleSaveFingerprint:'',
   singleSaveId:'',
+  singleSavePayload:null,
   singleDeleteFingerprint:'',
   singleDeleteId:''
 };
@@ -105,14 +107,15 @@ function findReusablePendingIdentity(list,fingerprint){
     return v.status==='uncertain'||now-Number(v.sentAt||v.savedAt||0)>=PENSION_PENDING_CROSS_TAB_REUSE_DELAY_MS;
   })||null;
 }
-function upsertPensionPendingSingle(fingerprint,id,{status='prepared'}={}){
+function upsertPensionPendingSingle(fingerprint,id,{status='prepared',payload=null}={}){
   const store=readPensionPendingIdentityStore();
   const now=Date.now(),sessionId=pensionClientSessionId();
+  const prior=[...(store.single||[])].reverse().find(v=>String(v?.fingerprint||'')===String(fingerprint||'')&&String(v?.id||'')===String(id||''))||null;
   store.single=store.single.filter(v=>String(v?.fingerprint||'')!==String(fingerprint||''));
-  store.single.push({fingerprint,id,ownerSessionId:sessionId,status,sentAt:status==='sent'?now:0,savedAt:now});
+  store.single.push({fingerprint,id,payload:payload||prior?.payload||null,ownerSessionId:sessionId,status,sentAt:status==='sent'?now:Number(prior?.sentAt||0),savedAt:now});
   writePensionPendingIdentityStore(store);
 }
-function markPensionPendingSingleStatus(fingerprint,id,status){
+function markPensionPendingSingleStatus(fingerprint,id,status,payload=null){
   const store=readPensionPendingIdentityStore();
   const now=Date.now();
   let found=false;
@@ -121,7 +124,7 @@ function markPensionPendingSingleStatus(fingerprint,id,status){
     found=true;
     return {...v,status,sentAt:v.sentAt||now,savedAt:now};
   });
-  if(!found)store.single.push({fingerprint,id,ownerSessionId:pensionClientSessionId(),status,sentAt:now,savedAt:now});
+  if(!found)store.single.push({fingerprint,id,payload:payload||null,ownerSessionId:pensionClientSessionId(),status,sentAt:now,savedAt:now});
   writePensionPendingIdentityStore(store);
 }
 function clearPensionPendingSingle(fingerprint,id){
@@ -136,17 +139,18 @@ function findPendingBatchIdentity(signature){
   const store=readPensionPendingIdentityStore();
   return findReusablePendingIdentity(store.batch,signature);
 }
-function persistPendingBatchIdentity(signature,batchRequestId,operations,{status='sent'}={}){
+function persistPendingBatchIdentity(signature,batchRequestId,operations,{status='sent',payloadOperations=null}={}){
   const store=readPensionPendingIdentityStore();
   const now=Date.now(),sessionId=pensionClientSessionId();
+  const prior=[...(store.batch||[])].reverse().find(v=>String(v?.fingerprint||'')===String(signature||'')&&String(v?.batchRequestId||'')===String(batchRequestId||''))||null;
   store.batch=store.batch.filter(v=>String(v?.fingerprint||'')!==String(signature||''));
-  store.batch.push({fingerprint:signature,batchRequestId,operationIds:(operations||[]).map(v=>String(v.tempId||v.qid||'')),ownerSessionId:sessionId,status,sentAt:status==='sent'?now:0,savedAt:now});
+  store.batch.push({fingerprint:signature,batchRequestId,operationIds:(operations||[]).map(v=>String(v.tempId||v.qid||v.operationId||'')),payloadOperations:payloadOperations||prior?.payloadOperations||null,ownerSessionId:sessionId,status,sentAt:status==='sent'?now:Number(prior?.sentAt||0),savedAt:now});
   writePensionPendingIdentityStore(store);
 }
-function markPendingBatchIdentityStatus(signature,batchRequestId,status){
+function markPendingBatchIdentityStatus(signature,batchRequestId,status,payloadOperations=null){
   const store=readPensionPendingIdentityStore();
   const now=Date.now();
-  store.batch=store.batch.map(v=>String(v?.fingerprint||'')===String(signature||'')&&String(v?.batchRequestId||'')===String(batchRequestId||'')?{...v,status,sentAt:v.sentAt||now,savedAt:now}:v);
+  store.batch=store.batch.map(v=>String(v?.fingerprint||'')===String(signature||'')&&String(v?.batchRequestId||'')===String(batchRequestId||'')?{...v,status,payloadOperations:payloadOperations||v.payloadOperations||null,sentAt:v.sentAt||now,savedAt:now}:v);
   writePensionPendingIdentityStore(store);
 }
 function clearPendingBatchIdentity(signature,batchRequestId){
@@ -1167,10 +1171,9 @@ function setPensionBatchMode(enabled){
 }
 function pensionBatchOperationFingerprint(operation){
   const op=operation||{};
-  const precondition=`${String(op.expectedVersion||'')}|${op.expectedAbsent===true?'absent':''}`;
-  if(op.action==='delete')return `delete|${String(op.target||'')}|${String(op.key||'')}|${precondition}`;
+  if(op.action==='delete')return `delete|${String(op.target||'')}|${String(op.key||'')}`;
   const item=op.item||{};
-  if(op.target==='cashSnapshot')return `upsert|cashSnapshot|${String(item.date||'')}|${String(item.valuation??'')}|${String(item.costBasis??'')}|${String(item.memo||'')}|${precondition}`;
+  if(op.target==='cashSnapshot')return `upsert|cashSnapshot|${String(item.date||'')}|${String(item.valuation??'')}|${String(item.costBasis??'')}|${String(item.memo||'')}`;
   if(op.target==='contribution')return `upsert|contribution|${String(item.date||'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
   if(op.target==='etfTrade')return `upsert|etfTrade|${String(item.tradeDate||'')}|${String(item.ticker||'')}|${String(item.qty??'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
   return `${String(op.action||'')}|${String(op.target||'')}|${JSON.stringify(item)}`;
@@ -1198,6 +1201,7 @@ function preparePensionBatchCashPrecondition(operation){
 }
 function resetPensionBatchRequestId(){
   pensionEditorState.batchRequestId='';
+  pensionEditorState.batchPendingOperations=null;
 }
 function getPensionBatchRequestId(){
   if(pensionEditorState.batchRequestId)return pensionEditorState.batchRequestId;
@@ -1206,6 +1210,7 @@ function getPensionBatchRequestId(){
   if(pending?.batchRequestId&&Array.isArray(pending.operationIds)&&pending.operationIds.length===pensionEditorState.batchQueue.length){
     pensionEditorState.batchQueue.forEach((op,index)=>{if(pending.operationIds[index])op.tempId=pending.operationIds[index]});
     pensionEditorState.batchRequestId=String(pending.batchRequestId);
+    pensionEditorState.batchPendingOperations=Array.isArray(pending.payloadOperations)?pending.payloadOperations.map(v=>({...v,item:v?.item?{...v.item}:v?.item})):null;
     return pensionEditorState.batchRequestId;
   }
   const uuid=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
@@ -1277,10 +1282,13 @@ function clearPensionBatchQueue(){
 function showPensionBatchStatus(message,type='err'){
   setPensionContributionStatus('pensionBatchStatus',message,type);
 }
-async function savePensionBatchViaGithubPages(operations,pin,batchRequestId){
+function serializePensionBatchOperations(operations){
+  return (operations||[]).map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null,operationId:op.operationId||op.tempId||op.qid||'',expectedVersion:String(op.expectedVersion||''),expectedAbsent:op.expectedAbsent===true}));
+}
+async function savePensionBatchViaGithubPages(payloadOperations,pin,batchRequestId){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
   if(!config.url||config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
-  const payload={pin:String(pin||'').trim(),action:'batchPension',batchRequestId:String(batchRequestId||'').trim(),operations:operations.map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null,operationId:op.tempId||op.qid||'',expectedVersion:String(op.expectedVersion||''),expectedAbsent:op.expectedAbsent===true}))};
+  const payload={pin:String(pin||'').trim(),action:'batchPension',batchRequestId:String(batchRequestId||'').trim(),operations:serializePensionBatchOperations(payloadOperations)};
   const res=await fetchWithTimeout(config.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
   const data=await readJsonResponse(res,'작업 모음 일괄 적용');
   if(!data.ok)throw new Error(data.error||'작업 모음 일괄 적용에 실패했습니다.');
@@ -1302,6 +1310,10 @@ async function applyPensionBatchQueue(renderDashboard){
   const batchRequestId=getPensionBatchRequestId();
   // restored operationId가 있으면 payload simulation에도 반영되도록 다시 계산한다.
   try{simulated=pensionBatchSimulate(pensionEditorState.batchQueue)}catch(e){showPensionBatchStatus(e.message||String(e),'err');return}
+  const batchPayloadOperations=Array.isArray(pensionEditorState.batchPendingOperations)&&pensionEditorState.batchPendingOperations.length
+    ?pensionEditorState.batchPendingOperations.map(v=>({...v,item:v?.item?{...v.item}:v?.item}))
+    :serializePensionBatchOperations(simulated.orderedOperations);
+  pensionEditorState.batchPendingOperations=batchPayloadOperations.map(v=>({...v,item:v?.item?{...v.item}:v?.item}));
   let batchAttempted=false;
   pensionEditorState.batchApplying=true;
   renderPensionBatchQueue();
@@ -1312,9 +1324,9 @@ async function applyPensionBatchQueue(renderDashboard){
       description:`저장·삭제 ${count}건을 한 번에 적용합니다. 하나라도 실패하면 전체 작업을 반영하지 않습니다.`,
       execute:async pin=>{
         batchAttempted=true;
-        persistPendingBatchIdentity(batchSignature,batchRequestId,pensionEditorState.batchQueue,{status:'sent'});
-        try{return await savePensionBatchViaGithubPages(simulated.orderedOperations,pin,batchRequestId)}
-        catch(e){markPendingBatchIdentityStatus(batchSignature,batchRequestId,'uncertain');throw e}
+        persistPendingBatchIdentity(batchSignature,batchRequestId,pensionEditorState.batchQueue,{status:'sent',payloadOperations:batchPayloadOperations});
+        try{return await savePensionBatchViaGithubPages(batchPayloadOperations,pin,batchRequestId)}
+        catch(e){markPendingBatchIdentityStatus(batchSignature,batchRequestId,'uncertain',batchPayloadOperations);throw e}
       }
     });
     if(!data){if(!batchAttempted)clearPendingBatchIdentity(batchSignature,batchRequestId);return}
@@ -1345,7 +1357,7 @@ async function applyPensionBatchQueue(renderDashboard){
 
 // [PEDIT09] Persistence / Save/Delete · 저장 / 삭제
 function pensionSingleSaveFingerprint(item){
-  if(item?.target==='cashSnapshot')return `cashSnapshot|${String(item.date||'')}|${String(item.valuation??'')}|${String(item.costBasis??'')}|${String(item.memo||'')}|${String(item.expectedVersion||'')}|${item.expectedAbsent===true?'absent':''}`;
+  if(item?.target==='cashSnapshot')return `cashSnapshot|${String(item.date||'')}|${String(item.valuation??'')}|${String(item.costBasis??'')}|${String(item.memo||'')}`;
   if(item?.target==='contribution')return `contribution|${String(item.date||'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
   if(item?.target==='etfTrade')return `etfTrade|${String(item.tradeDate||'')}|${String(item.ticker||'')}|${String(item.qty??'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
   return '';
@@ -1353,6 +1365,7 @@ function pensionSingleSaveFingerprint(item){
 function resetPensionSingleSaveIdentity(){
   pensionEditorState.singleSaveFingerprint='';
   pensionEditorState.singleSaveId='';
+  pensionEditorState.singleSavePayload=null;
 }
 function pensionCashSnapshotVersion(item){
   if(!item)return '';
@@ -1378,36 +1391,46 @@ function preparePensionSingleDeleteContext(target,key,item){
 }
 function preparePensionSingleSaveItem(item){
   if(!item||!['cashSnapshot','contribution','etfTrade'].includes(item.target))return item;
-  let prepared={...item};
-  if(item.target==='cashSnapshot'){
-    const current=pensionCashSnapshotItems().find(v=>String(v.date||'')===String(item.date||''))||null;
-    if(current){
-      prepared.expectedVersion=pensionCashSnapshotVersion(current);
-      prepared.expectedAbsent=false;
-    }else{
-      prepared.expectedVersion='';
-      prepared.expectedAbsent=true;
-    }
-  }
-  const fingerprint=pensionSingleSaveFingerprint(prepared);
-  if(!fingerprint)return prepared;
+  const fingerprint=pensionSingleSaveFingerprint(item);
+  if(!fingerprint)return item;
   if(pensionEditorState.singleSaveFingerprint!==fingerprint||!pensionEditorState.singleSaveId){
     const pending=findReusablePendingIdentity(readPensionPendingIdentityStore().single,fingerprint);
-    let id=String(pending?.id||'');
-    if(!id){
-      const uuid=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
-      const date=item.target==='etfTrade'?kstTodayText():String(item.date||kstTodayText());
-      const suffix=item.target==='etfTrade'?`-${String(item.ticker||'unknown').replace(/[^A-Za-z0-9._:-]/g,'')}`:'';
-      const prefix=item.target==='cashSnapshot'?'cash':(item.target==='contribution'?'contrib':'trade');
-      id=`${prefix}-${date}${suffix}-${uuid}`;
+    if(pending?.id&&pending?.payload){
+      pensionEditorState.singleSaveFingerprint=fingerprint;
+      pensionEditorState.singleSaveId=String(pending.id);
+      pensionEditorState.singleSavePayload={...pending.payload};
+      return {...pensionEditorState.singleSavePayload};
     }
+
+    let prepared={...item};
+    if(item.target==='cashSnapshot'){
+      const current=pensionCashSnapshotItems().find(v=>String(v.date||'')===String(item.date||''))||null;
+      if(current){
+        prepared.expectedVersion=pensionCashSnapshotVersion(current);
+        prepared.expectedAbsent=false;
+      }else{
+        prepared.expectedVersion='';
+        prepared.expectedAbsent=true;
+      }
+    }
+    const uuid=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
+    const date=item.target==='etfTrade'?kstTodayText():String(item.date||kstTodayText());
+    const suffix=item.target==='etfTrade'?`-${String(item.ticker||'unknown').replace(/[^A-Za-z0-9._:-]/g,'')}`:'';
+    const prefix=item.target==='cashSnapshot'?'cash':(item.target==='contribution'?'contrib':'trade');
+    const id=`${prefix}-${date}${suffix}-${uuid}`;
     pensionEditorState.singleSaveFingerprint=fingerprint;
     pensionEditorState.singleSaveId=id;
+    pensionEditorState.singleSavePayload=item.target==='cashSnapshot'?{...prepared,requestId:id}:{...prepared,id:id};
+    return {...pensionEditorState.singleSavePayload};
   }
-  return item.target==='cashSnapshot'
-    ? {...prepared,requestId:pensionEditorState.singleSaveId}
-    : {...prepared,id:pensionEditorState.singleSaveId};
+
+  if(pensionEditorState.singleSavePayload)return {...pensionEditorState.singleSavePayload};
+  const prepared={...item};
+  const payload=item.target==='cashSnapshot'?{...prepared,requestId:pensionEditorState.singleSaveId}:{...prepared,id:pensionEditorState.singleSaveId};
+  pensionEditorState.singleSavePayload=payload;
+  return {...payload};
 }
+
 
 async function savePensionContributionViaGithubPages(item,pin){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
@@ -1463,9 +1486,9 @@ async function savePensionContribution(){
       description:pensionSavePinDescription(item),
       execute:async pin=>{
         saveAttempted=true;
-        upsertPensionPendingSingle(saveFingerprint,saveIdentity,{status:'sent'});
+        upsertPensionPendingSingle(saveFingerprint,saveIdentity,{status:'sent',payload:saveItem});
         try{return await savePensionContributionViaGithubPages(saveItem,pin)}
-        catch(e){markPensionPendingSingleStatus(saveFingerprint,saveIdentity,'uncertain');throw e}
+        catch(e){markPensionPendingSingleStatus(saveFingerprint,saveIdentity,'uncertain',saveItem);throw e}
       }
     });
     if(!data){
