@@ -1101,10 +1101,14 @@ GAS가 제공된 경우에만 server handler까지 완전 대조한다.
 GAS가 함께 제공된 집중 평가에서는 다음 causal contract를 별도로 확인한다.
 
 - 단건 write 예외 뒤 intent가 삭제되어 과거 retry가 다시 신규 mutation으로 살아나지 않는가
+- 단건 intent의 causal ordering을 Git blob SHA만으로 판단하지 않는가. save→delete→파일 내용 원복으로 blob SHA가 ABA되어도 monotonic `PENSION_MUTATION_EPOCH` 때문에 old save retry가 살아나지 않는가
+- cashSnapshot retry 전에 contribution/ETF가 새로 생긴 경우, 과거 valuation snapshot에 최신 `afterContributionIds`/`afterTradeIds`를 재결합해 현금 계산을 왜곡하지 않는가
 - 단건 Pension과 Batch가 같은 ScriptLock mutation boundary를 사용해 cash/contribution/trade cross-file race를 막는가
 - cashSnapshot delete가 날짜만으로 동작하지 않고 stable delete request identity + 현재 snapshot version precondition을 확인하는가
 - request별 direct Script Properties가 단일 9KB뿐 아니라 전체 저장량 관점에서도 bounded GC를 가지는가
 - KRX dispatch가 `intent → workflow_dispatch → receipt` 경계를 사용하고 receipt/응답 유실 뒤 같은 requestId를 재-dispatch하지 않는가
+- KRX가 `branch + date/mode` in-flight operation을 별도로 추적하고 workflow custom run-name + queued/running 조회를 사용해 새 requestId의 동일 작업 중복 dispatch도 막는가
+- Batch pre-commit 실패 뒤 README/CSS 같은 무관 commit만 발생했을 때 branch HEAD 차이만으로 false stale 처리하지 않고 semantic dependency fingerprint가 같으면 최신 HEAD 기준 retry를 계속하는가
 - KRX workflow가 managed output뿐 아니라 `portfolio.json`·updater·requirements·workflow 같은 generation input의 checkout 이후 변경도 fail-closed하는가
 - workflow concurrency가 pending 요청을 교체 취소하지 않도록 queue contract를 명시하는가
 

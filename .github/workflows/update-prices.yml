@@ -1,4 +1,5 @@
 name: Update KRX closing prices
+run-name: KRX update ${{ inputs.date || 'auto' }} · ${{ inputs.request_id || 'manual' }}
 
 # Manual-only workflow.
 # - date 지정: 실제 KRX 거래일인지 확인한 뒤 해당 날짜의 종목 가격/성과를 갱신하고, 지정일까지 저장된 KOSPI 구간은 누락·정정값을 backfill
@@ -20,7 +21,7 @@ permissions:
   contents: write
 
 # KRX 생성 데이터 2종은 같은 branch 파일을 갱신하므로 workflow 실행을 직렬화한다.
-# GAS의 request intent/receipt가 동일 requestId 중복 dispatch를 막고, queue: max는 서로 다른 pending 요청도 취소하지 않고 순차 처리한다.
+# GAS의 request intent/receipt + branch/date operation marker가 동일/새 requestId 중복 dispatch를 막고, queue: max는 남은 pending 요청을 순차 처리한다.
 concurrency:
   group: update-krx-prices-${{ github.ref }}
   queue: max

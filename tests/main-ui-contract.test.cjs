@@ -214,6 +214,10 @@ test('KRX workflow는 같은 branch 생성데이터를 직렬화하고 pending �
   assert.match(updatePricesWorkflow,/request_id:/);
 });
 
+test('KRX workflow run-name은 date/mode와 requestId를 노출해 GAS가 queued/running 동일 작업을 식별할 수 있다',()=>{
+  assert.match(updatePricesWorkflow,/run-name: KRX update \$\{\{ inputs\.date \|\| 'auto' \}\} · \$\{\{ inputs\.request_id \|\| 'manual' \}\}/);
+});
+
 test('KRX workflow는 다른 branch commit과 push가 경합해도 최신 remote에 rebase 후 제한 재시도한다',()=>{
   assert.match(updatePricesWorkflow,/uses: actions\/checkout@v4\s*\n\s*with:\s*\n\s*fetch-depth: 0/);
   assert.match(updatePricesWorkflow,/BASE_SHA="\$\(git rev-parse HEAD\)"/);
