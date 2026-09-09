@@ -43,6 +43,7 @@ jobs:
             python scripts/update_prices.py --date "$INPUT_DATE"
           else
             python scripts/update_prices.py
+          fi
 
       # 2-1) A stale or fallback price exits non-zero above. This guard keeps a
       # failed update out of the commit step even if the script behavior changes.
@@ -57,7 +58,6 @@ jobs:
           if invalid:
               raise SystemExit('Selectable prices contain warnings: ' + ', '.join(invalid))
           PY
-          fi
 
       # 3) Persist only the data files managed by update_prices.py.
       #    pension_contributions.json 등 다른 운영 JSON은 이 workflow에서 건드리지 않는다.

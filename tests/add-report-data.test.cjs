@@ -103,6 +103,25 @@ test('KODEX Report canonical schema validator는 잘못된 운영 데이터를 �
   const unsafeInteger=structuredClone(reportSource);
   unsafeInteger.trades[0].qty=Number.MAX_SAFE_INTEGER+1;
   assert.throws(()=>validateReportSource(unsafeInteger),/JSON 정수/,'안전 정수 범위를 넘는 거래 수량은 차단해야 한다');
+  const badJulyContextQty=structuredClone(reportSource);
+  badJulyContextQty.positionContext.legacyBuild.first.qty=badJulyContextQty.trades.find(row=>row.date==='2026-07-30').qty;
+  assert.throws(()=>validateReportSource(badJulyContextQty),/julyAdd 파생 수량/,'legacyBuild 수량이 7/30 실현수량 이상이면 음수/0 추가매수 수량을 만들기 전에 차단해야 한다');
+
+  const badAugustContextQty=structuredClone(reportSource);
+  badAugustContextQty.positionContext.augustFinalBuild.first.qty=badAugustContextQty.trades.find(row=>row.date==='2026-08-20').qty;
+  assert.throws(()=>validateReportSource(badAugustContextQty),/augustFinalBuild\.second 파생 수량/,'8/18 수량이 8/20 실현수량 이상이면 음수/0 2차 매수수량을 만들기 전에 차단해야 한다');
+
+  const badContextAverage=structuredClone(reportSource);
+  badContextAverage.positionContext.julyAdd.buy+=100;
+  assert.throws(()=>validateReportSource(badContextAverage),/실제 거래 수량·평단과 일치하지/,'positionContext 가중평균이 연결된 실현거래 평단과 모순되면 차단해야 한다');
+
+  const unsafeContextCost=structuredClone(reportSource);
+  unsafeContextCost.positionContext.augustFinalBuild.first.buy=Number.MAX_SAFE_INTEGER;
+  assert.throws(()=>validateReportSource(unsafeContextCost),/파생 정수가 안전 범위를 벗어났/,'context 개별값이 안전해도 수량×단가 파생값이 안전 범위를 넘으면 차단해야 한다');
+
+  const badContextOrder=structuredClone(reportSource);
+  badContextOrder.positionContext.augustFinalBuild.second.date='2026-08-21';
+  assert.throws(()=>validateReportSource(badContextOrder),/날짜 순서/,'positionContext 매수일이 연결된 실현일보다 늦으면 차단해야 한다');
 });
 
 test('KODEX Report 파생 정수 합계·차감은 개별 값이 안전해도 결과가 안전 범위를 넘으면 차단한다',()=>{
@@ -228,6 +247,32 @@ test('Main separateProfit는 canonical KODEX 원천에서 날짜별 순손익과
   const badMainFee=structuredClone(reportSource);
   badMainFee.trades[0].fee=String(badMainFee.trades[0].fee);
   assert.throws(()=>core.deriveSeparateProfitFromKodexReport(badMainFee),/JSON 정수/,'Main도 문자열 fee를 거부해야 한다');
+
+  const mainAggregateOverflow=structuredClone(reportSource);
+  mainAggregateOverflow.trades.forEach(row=>{
+    row.pnl=0;
+    row.fee=0;
+    if(row.segment==='mixed'){
+      row.core.pnl=0;
+      row.core.fee=0;
+    }
+  });
+  mainAggregateOverflow.trades[0].pnl=Number.MAX_SAFE_INTEGER;
+  mainAggregateOverflow.trades[1].pnl=Number.MAX_SAFE_INTEGER-1;
+  assert.throws(
+    ()=>core.deriveSeparateProfitFromKodexReport(mainAggregateOverflow),
+    /누적 별도수익.*안전 정수 범위/,
+    'Main도 개별 값이 안전하더라도 누적 별도수익이 안전 정수 범위를 넘으면 파생을 중단해야 한다'
+  );
+
+  const mainSubtractOverflow=structuredClone(reportSource);
+  mainSubtractOverflow.trades[0].pnl=-Number.MAX_SAFE_INTEGER;
+  mainSubtractOverflow.trades[0].fee=1;
+  assert.throws(
+    ()=>core.deriveSeparateProfitFromKodexReport(mainSubtractOverflow),
+    /별도수익 순손익.*안전 정수 범위/,
+    'Main도 pnl-fee 차감 자체가 안전 정수 범위를 넘으면 파생을 중단해야 한다'
+  );
 
   for(const [label,mutate] of [
     ['qty 문자열',src=>{src.trades[0].qty=String(src.trades[0].qty);}],

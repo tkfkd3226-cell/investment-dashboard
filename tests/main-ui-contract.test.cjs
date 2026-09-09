@@ -155,6 +155,17 @@ test('KRX 갱신은 기준일과 다른 종가·직전값을 숨김 처리하고
   assert.match(updatePricesPython,/return 1 if all_warnings else 0/);
 });
 
+test('KRX workflow의 shell 조건문은 각 run step 안에서 완결되어 실행 단계 문법 오류를 만들지 않는다',()=>{
+  const updateStart=updatePricesWorkflow.indexOf('- name: Update KRX prices and snapshots');
+  const verifyStart=updatePricesWorkflow.indexOf('- name: Verify generated prices are selectable closes only');
+  const commitStart=updatePricesWorkflow.indexOf('- name: Commit generated KRX data');
+  assert.ok(updateStart>=0&&verifyStart>updateStart&&commitStart>verifyStart,'KRX workflow step 경계가 올바르지 않다');
+  const updateBlock=updatePricesWorkflow.slice(updateStart,verifyStart);
+  const verifyBlock=updatePricesWorkflow.slice(verifyStart,commitStart);
+  assert.match(updateBlock,/if \[ -n "\$INPUT_DATE" \]; then[^]*?else[^]*?python scripts\/update_prices\.py[^]*?\n\s*fi\s*$/m,'Update step의 if/else/fi가 같은 run block에서 닫혀야 한다');
+  assert.doesNotMatch(verifyBlock,/^\s*fi\s*$/m,'Verify step에 앞 step 조건문의 stray fi가 남으면 안 된다');
+});
+
 test('숨김·경고 KRX 날짜는 다음 자동 실행에서 재수집 대상으로 복구한다',()=>{
   assert.match(updatePricesPython,/retry_dates = \[[^]*?snapshot\.get\("display", True\) is False[^]*?snapshot\.get\("warnings"\)/);
   assert.match(updatePricesPython,/set\(refresh_dates \+ missing_dates \+ retry_dates\)/);

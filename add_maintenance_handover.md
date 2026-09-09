@@ -347,7 +347,7 @@ data/kodex_leverage_trades.json
 
 - `schemaVersion`: 현재 형식은 `1`. `js/kodex-leverage-schema.js`가 Main과 Add Report의 단일 schema validator이며, 브라우저와 QA가 다른 버전 또는 잘못된 숫자·실제 달력에 존재하지 않는 날짜·중복 거래를 계산 전에 동일하게 차단한다. 숫자 필드는 문자열 숫자를 허용하지 않고 JSON `number` 정수만 허용하며, 윤년 규칙까지 실제 달력 기준으로 검증한다.
 - `reportStartDate`: Report 상단 표시기간의 시작일. 종료일은 `trades`의 마지막 매도일에서 자동 파생한다.
-- `positionContext`: 매도실현손익만으로 복원할 수 없는 매수-only 포지션 형성 사실. `legacyBuild.first/second`, `julyAdd`, `augustFinalBuild.first/second`는 현재 schema validator의 필수 context다. `legacyBuild.first/second`와 `augustFinalBuild.first`는 `date`·`qty`·`buy`, `julyAdd`와 `augustFinalBuild.second`는 `date`·`buy`를 요구하며, 후자의 수량은 canonical 실현거래 수량과 앞선 context에서 파생한다. Timeline과 근거 설명에 필요한 값을 JS literal로 복제하지 않는다.
+- `positionContext`: 매도실현손익만으로 복원할 수 없는 매수-only 포지션 형성 사실. `legacyBuild.first/second`, `julyAdd`, `augustFinalBuild.first/second`는 현재 schema validator의 필수 context다. `legacyBuild.first/second`와 `augustFinalBuild.first`는 `date`·`qty`·`buy`, `julyAdd`와 `augustFinalBuild.second`는 `date`·`buy`를 요구하며, 후자의 수량은 canonical 실현거래 수량과 앞선 context에서 파생한다. 형식만 맞으면 통과시키지 않고 현재 schema v1의 연결 실현거래인 2026-07-30·2026-08-20과 날짜 순서·파생 수량의 양수 여부·수량×단가/취득원가 합계의 안전 정수 범위·가중평균 매수단가까지 교차 검증한다. 이 검증을 우회해 Timeline에 음수 파생수량이나 실제 거래와 모순되는 평단이 표시되어서는 안 된다. Timeline과 근거 설명에 필요한 값을 JS literal로 복제하지 않는다.
 
 혼합일은 전체 거래값과 Core 귀속값을 함께 둔다.
 
@@ -526,7 +526,7 @@ reinvestedLimit
 
 - 새 매도일의 수량·평균매수·평균매도·손익·비용·순손익이 증권사 원본과 일치한다.
 - 날짜별 `손익금액 - 거래비용 = 순손익`, 전체 합계와 날짜별 합계가 일치한다.
-- `data/kodex_leverage_trades.json`의 거래일이 오름차순·중복 없음·필수 숫자는 JavaScript 안전 정수 범위의 JSON `number`·segment 형식을 유지하고, Main 파생 별도수익과 Report 파생 날짜별 순손익·누적 실현 순손익이 일치한다. 문자열 숫자와 안전 정수 범위를 넘는 개별 정수는 허용하지 않으며, 개별 값이 모두 안전하더라도 Report의 날짜별 순손익·누적합계·전체/Core/Day 합계·혼합일 전체-Core 차감 등 파생 정수 결과가 안전 범위를 넘으면 렌더 전에 중단해야 한다. `tests/add-report-data.test.cjs`로 이 경계를 자동 확인한다.
+- `data/kodex_leverage_trades.json`의 거래일이 오름차순·중복 없음·필수 숫자는 JavaScript 안전 정수 범위의 JSON `number`·segment 형식을 유지하고, Main 파생 별도수익과 Report 파생 날짜별 순손익·누적 실현 순손익이 일치한다. 문자열 숫자와 안전 정수 범위를 넘는 개별 정수는 허용하지 않으며, 개별 값이 모두 안전하더라도 Main의 `pnl - fee`·누적 별도수익과 Report의 날짜별 순손익·누적합계·전체/Core/Day 합계·혼합일 전체-Core 차감 등 파생 정수 결과가 안전 범위를 넘으면 계산/렌더 전에 중단해야 한다. `positionContext`도 연결 실현거래와 날짜·수량·가중평균이 모순되거나 파생 취득원가가 안전 정수 범위를 넘으면 schema 단계에서 차단한다. `tests/add-report-data.test.cjs`로 이 경계를 자동 확인한다.
 - 본 포지션 + 단타의 수량·손익·비용·순손익 합계가 전체와 일치한다. 혼합일의 `core.fee`는 전체 `fee`를 넘을 수 없으며, 파생 단타 비용이 음수가 되면 canonical validation에서 차단한다.
 - 동일 지표를 사용하는 요약·차트·표에 과거 값이 잔존하지 않으며, Timeline은 `data/kodex_leverage_trades.json` 파생값과 일치하고 새 매도일이 누락되지 않는다.
 - 원본 이미지/근거를 갱신하는 작업이라면 최신 숫자와 같은 시점인지 확인한다.

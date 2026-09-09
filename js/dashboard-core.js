@@ -459,9 +459,15 @@ const account1PrincipalForDate=d=>isLedgerCheckDate(d)?securitiesHoldingCostForD
 const externalPrincipalForDate=d=>(Number(dataState.portfolio?.constants?.externalPrincipal)||0)-securityExternalPrincipalContributionAfter(d)+securityWithdrawalAfter(d);
 const sourceExternalPrincipalForDate=d=>externalPrincipalForDate(d)-securityExcludedTransferSum(d);
 const outsideCashForDate=d=>(Number(dataState.portfolio?.constants?.outsideCash)||0)-securityInternalCashTransferSum(d);
+const kodexSafeInteger=(value,label='KODEX 파생 정수')=>{
+  if(!Number.isSafeInteger(value))throw new RangeError(`${label}이 JavaScript 안전 정수 범위를 벗어났습니다.`);
+  return value;
+};
+const kodexSafeAdd=(left,right,label)=>kodexSafeInteger(kodexSafeInteger(left,`${label} 좌항`)+kodexSafeInteger(right,`${label} 우항`),label);
+const kodexSafeSubtract=(left,right,label)=>kodexSafeInteger(kodexSafeInteger(left,`${label} 좌항`)-kodexSafeInteger(right,`${label} 우항`),label);
 const separateProfitTrades=()=>Array.isArray(dataState.portfolio?.separateProfit?.trades)?dataState.portfolio.separateProfit.trades:[];
 const separateProfitReinvestedLimit=()=>Number(dataState.portfolio?.separateProfit?.reinvestedLimit)||0;
-const separateProfitCumulativeForDate=d=>separateProfitTrades().filter(v=>String(v?.date||'')<=d).reduce((a,v)=>a+(Number(v?.profit)||0),0);
+const separateProfitCumulativeForDate=d=>separateProfitTrades().filter(v=>String(v?.date||'')<=d).reduce((a,v)=>kodexSafeAdd(a,v?.profit,`${String(v?.date||'KODEX')} 누적 별도수익`),0);
 const separateProfitReinvestedForDate=d=>Math.min(separateProfitReinvestedLimit(),securityExcludedTransferSum(d),Math.max(0,separateProfitCumulativeForDate(d)));
 const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCash})=>{
   const activeRows=holdings.filter(h=>(Number(h?.qty)||0)>0);
@@ -847,9 +853,15 @@ async function loadJsonOr(url,fallback,{fallbackStatuses=[404]}={}){
 
 function deriveSeparateProfitFromKodexReport(source){
   const validated=validateKodexLeverageSource(source);
+  let cumulative=0;
+  const trades=validated.trades.map(row=>{
+    const profit=kodexSafeSubtract(row.pnl,row.fee,`${row.date} 별도수익 순손익`);
+    cumulative=kodexSafeAdd(cumulative,profit,`${row.date} 누적 별도수익`);
+    return {date:row.date,profit};
+  });
   return {
     reinvestedLimit:validated.reinvestedLimit,
-    trades:validated.trades.map(row=>({date:row.date,profit:row.pnl-row.fee}))
+    trades
   };
 }
 

@@ -1531,7 +1531,7 @@ Python / Workflow 유지보수 구조:
 
 - `scripts/update_prices.py`는 `설정·공통 helper → 시장 데이터 조회 → 대상일 판단 → 포트폴리오 계산 → 저장/CLI` 순서의 섹션 구조를 유지한다.
 - 반복되는 날짜 형식, 조회 재시도, HTTP timeout/User-Agent 같은 실행 설정은 상수로 관리하고 함수 안에 같은 magic value를 중복하지 않는다.
-- `.github/workflows/update-prices.yml`은 `trigger → permission → runtime setup → updater 실행 → 생성 데이터 commit` 흐름을 유지한다.
+- `.github/workflows/update-prices.yml`은 `trigger → permission → runtime setup → updater 실행 → 생성 데이터 검증 → commit` 흐름을 유지한다. 각 `run: |` step은 GitHub Actions에서 서로 독립된 shell script이므로 `if/else/fi` 같은 shell 제어문은 반드시 같은 step 안에서 완결해야 한다. `tests/main-ui-contract.test.cjs`가 updater step의 `fi` 누락과 다음 verify step의 stray `fi` 회귀를 자동 차단한다.
 - Workflow가 자동 commit하는 운영 데이터는 `data/prices.json`, `data/performance_snapshots.json` 두 파일로 한정하며 다른 운영 JSON을 함께 `git add`하지 않는다.
 
 
@@ -1784,7 +1784,7 @@ Main과 Add는 독립 영역이며 외형이 비슷하다는 이유로 CSS/JS를
 - `js/kodex-leverage-schema.js` KODEX 거래 schema validator
 - `data/kodex_leverage_trades.json`을 단일 원천으로 사용
 
-Main은 KODEX canonical JSON에서 필요한 `separateProfit` 표시 구조를 런타임 파생한다. Add Report의 거래 집계·분류·산식 상세는 `add_maintenance_handover.md`가 소유한다. Main 문서에 거래 수치나 Add 계산식을 복제하지 않는다.
+Main은 KODEX canonical JSON에서 필요한 `separateProfit` 표시 구조를 런타임 파생한다. `pnl - fee`와 날짜순 누적 별도수익은 개별 원천값이 안전 정수여도 파생 결과가 JavaScript 안전 정수 범위를 넘으면 즉시 중단해야 하며, Add Report와 같은 원천에 대해 서로 다른 정밀도 정책을 가져서는 안 된다. Add Report의 거래 집계·분류·산식 상세는 `add_maintenance_handover.md`가 소유한다. Main 문서에 거래 수치나 Add 계산식을 복제하지 않는다.
 
 ## 8.2 Cross QA
 
