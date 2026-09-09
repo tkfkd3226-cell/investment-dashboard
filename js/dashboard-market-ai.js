@@ -23,7 +23,7 @@ import {
 
 // [MARKET01] Configuration / Runtime State · endpoint / metric contract
 
-const MARKET_AI_POLL_MS=60_000;
+const MARKET_AI_POLL_MS=10_000;
 const MARKET_AI_TIMEOUT_MS=2_500;
 const MARKET_AI_REMOTE_TIMEOUT_MS=5_000;
 const MARKET_AI_STALE_MS=5*60_000;
