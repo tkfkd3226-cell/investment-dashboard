@@ -133,7 +133,7 @@ GitHub Pages 공개본은 평가의 runtime 보조 근거로 사용할 수 있�
 → 평가 결과에 구분하여 기록
 ```
 
-README / handover / workflow 설명이 실제 코드와 다르면 **문서 정확성 또는 semantic contract 문제**로 표시한다. 실행 품질과 직접 무관한 문서 오류를 CSS / JS / UI / UX 점수에 억지로 섞지 않되, 유지보수·운영 오판 가능성이 실제로 크면 B/A급 문서 결함으로 반영할 수 있다.
+README / handover / workflow 설명이 실제 코드와 다르면 **문서 정확성 또는 semantic contract 문제**로 표시한다. 평가 가이드는 **무엇을 반증할지**만 보존하고, GAS 함수별 구현 설명·버전별 패치 이력은 handover/Git history와 중복해서 누적하지 않는다. 실행 품질과 직접 무관한 문서 오류를 CSS / JS / UI / UX 점수에 억지로 섞지 않되, 유지보수·운영 오판 가능성이 실제로 크면 B/A급 문서 결함으로 반영할 수 있다.
 
 ---
 
@@ -1098,35 +1098,19 @@ GAS가 제공된 경우에만 server handler까지 완전 대조한다.
 
 현재 frontend가 사용하는 upsert / delete / batch 계열 request, request id / PIN / operations / response / duplicate·idempotency 처리를 실제 코드와 대조한다.
 
-GAS가 함께 제공된 집중 평가에서는 다음 causal contract를 별도로 확인한다.
+GAS가 함께 제공된 집중 평가에서는 구현 설명을 다시 문서화하지 말고 아래 **반례 계약**만 확인한다. 세부 운영 구조는 Main handover 6.2절을 Source of Truth로 사용한다.
 
-- 단건 write 예외 뒤 intent가 삭제되어 과거 retry가 다시 신규 mutation으로 살아나지 않는가
-- 단건 intent의 causal ordering을 Git blob SHA만으로 판단하지 않는가. save→delete→파일 내용 원복으로 blob SHA가 ABA되어도 monotonic `PENSION_MUTATION_EPOCH` 때문에 old save retry가 살아나지 않는가
-- cashSnapshot retry 전에 contribution/ETF가 새로 생긴 경우, 과거 valuation snapshot에 최신 `afterContributionIds`/`afterTradeIds`를 재결합해 현금 계산을 왜곡하지 않는가
-- cashSnapshot upsert/delete가 `expectedVersion`/`expectedAbsent` optimistic concurrency를 사용해 오래된 화면이 새 requestId로 들어와도 최신 같은 날짜 snapshot을 rollback/delete하지 않는가
-- Batch cash upsert/delete가 operation별 initial-state precondition을 전달·검증하며, 같은 Batch 내부의 같은 날짜 다중 수정은 정상 허용하는가
-- contribution/ETF/cash 단건과 Batch의 pending identity가 **logical fingerprint와 server precondition을 분리**하고 최초 전송 payload(requestId/operationId/expectedVersion/expectedAbsent 포함)를 TTL store에 보존하는가. `expectedAbsent → 저장 성공 → reload 후 expectedVersion`처럼 current state가 바뀌어도 같은 logical retry는 최초 payload를 그대로 재전송하는가
-- Batch receipt/cache/HTTP 응답이 모두 유실된 뒤 재시도할 때 cashSnapshot 같은 날짜의 intermediate operation이 아니라 날짜별 마지막 operation의 final-state effect로 이미 반영된 Batch를 판정하는가
-- 단건 Pension과 Batch가 같은 ScriptLock mutation boundary를 사용해 cash/contribution/trade cross-file race를 막는가
-- cashSnapshot delete가 날짜만으로 동작하지 않고 stable delete request identity + 현재 snapshot version precondition을 확인하는가
-- request별 direct Script Properties가 단일 9KB뿐 아니라 전체 저장량 관점에서도 bounded GC를 가지는가. prefix별 cap 합계만 믿지 않고 **write 전에 전체 Script Properties byte를 계산해 약 430KB 내부 budget을 확보**하며, 만료 `PENSION_CONFIRM_`은 10분 token TTL 기준으로 제거하는가. 특히 `PENSION_REQ_I_` / `PENSION_BATCH_I_` / `KRX_DISPATCH_I_` 같은 활성 intent는 prefix cap·TTL·global GC 어디에서도 임의 삭제하지 않고, 한도에 닿으면 새 intent를 fail-closed하는가. receipt/confirmation/marker는 새 write 이후 cap+1이 남지 않도록 사전에 1칸을 확보하는가
-- KRX dispatch가 `intent → workflow_dispatch → receipt` 경계를 사용하고 receipt/응답 유실 뒤 같은 requestId를 재-dispatch하지 않는가. Script Properties receipt/intent가 GC된 뒤에도 `data/krx_dispatch_ledger/<request-id-hash-prefix>.json` durable history의 exact requestId/hash를 먼저 확인해 동일 requestId를 다시 dispatch하지 않는가
-- KRX가 `branch + date/mode` in-flight operation을 별도로 추적하고 dispatch `return_run_details:true`로 받은 `workflow_run_id`를 receipt/marker에 저장해 직접 run 상태를 조회하는가. legacy/외부 dispatch fallback은 workflow runs를 pagination하여 첫 100건 밖 active run도 놓치지 않는가. Marker가 30분 이상 오래됐더라도 run ID가 있으면 직접 상태를 확인하고, marker/active-run 상태 조회 자체가 실패하면 새 dispatch를 허용하지 않고 `workflow_status_uncertain`으로 fail-closed하는가
-- KRX Actions에서 `git push`가 **remote에는 성공했지만 클라이언트 응답만 유실**된 경계를 확인한다. push 직전 `PUSH_SHA`를 저장하고 다음 `git fetch` 직후 managed-file/generation-input guard보다 먼저 `git merge-base --is-ancestor PUSH_SHA origin/<branch>`를 확인해 자신의 성공 commit을 외부 managed-file 변경으로 오인하지 않는가. 마지막 retry 뒤에도 동일 remote 확인을 한 번 더 수행하는가
-- 브라우저 pending identity를 공유하지 못하는 다른 기기/새 세션에서 응답유실 요청이 **새 requestId/batchRequestId**로 들어올 때, GAS가 동일 semantic 후보를 자동 dedupe하지 않고 `duplicate_confirmation_required`/`batch_duplicate_confirmation_required`로 반환하는가. 동일 내용의 실제 별도 ETF 거래와 같은 값의 새 cash causal anchor는 **state-bound confirmation token** 검증 후 정상 반영되고, 응답유실 재시도는 기존 처리 선택을 서버가 다시 검증한 뒤 mutation 없이 종료되는가. 확인 token은 mutation epoch·dependency fingerprint·후보에 묶여 TOCTOU 상태 변화가 있으면 `confirmation_stale`로 거부되는가. 같은 requestId+다른 내용은 semantic 후보 검사보다 receipt/intent identity conflict가 먼저 평가되는가
-
-- cashSnapshot뿐 아니라 contribution/ETF가 삭제되어 현재 item evidence가 사라진 경우까지 포함해, **모든 Pension upsert/delete logical operation**이 `data/pension_operation_ledger/<semantic-hash-prefix>.json` semantic shard와 `data/pension_operation_identity/<identity-hash-prefix>.json` exact identity shard에 target JSON과 같은 Git commit으로 원자 반영되는가. exact identity shard는 payload 내용과 무관한 `requestId`·`logicalOperationId`·`batchRequestId+operationId` key로 결정되어 `R1/content A 성공 → 삭제 → receipt/intent GC → SAME R1/content B`처럼 semantic hash가 달라져도 과거 identity를 찾아 reject하는가. exact identity가 같은 내용이면 semantic 후보보다 먼저 duplicate/existing으로 수렴하고, 다른 내용이면 confirmation 이전에 identity conflict로 거부되는가. v6 root ledger는 legacy read-only fallback으로만 사용하는가
-- confirmation TOCTOU QA에서는 두 기기가 같은 duplicate 후보를 보고 각각 token을 받은 뒤 A가 distinct mutation을 먼저 성공시켰을 때 B의 오래된 token이 `confirmation_stale`로 거부되는지 확인한다. 반대로 사용자가 기존 처리로 선택한 뒤 후보가 삭제된 경우도 로컬 synthetic success로 끝내지 않고 서버 재확인에서 stale 처리되어야 한다
-- Batch preflight에서 같은 target 안의 `logicalOperationId`가 둘 이상의 operation에 중복되지 않는지 확인한다. `operationId`는 다르지만 `logicalOperationId`가 같은 contribution/ETF 두 건을 넣어도 메모리 state/GitHub read 전에 reject되어 하나의 logical identity가 서로 다른 deterministic resource ID로 중복 생성되지 않아야 한다.
-- **부분 충돌 Batch**는 `기존 operation + 신규 operation`을 섞어 만든다. 서버가 충돌 operation index 목록을 반환하고 operation별 `existing/distinct` 결정을 state-bound token으로 재검증하는지 확인한다. `existing`은 해당 operation만 no-op이어야 하며 신규 operation은 같은 atomic commit에서 실행되어야 한다. 확정 pre-commit 실패 뒤 같은 batchRequestId가 confirmation payload 없이 재시도돼도 intent에 보존된 operation별 결정이 유지되어야 한다. 추가로 기존 동일 semantic 후보가 1건뿐인데 Batch에 동일 operation을 2건 넣어 **같은 후보 1건이 두 operation의 `existing` 근거로 재사용되지 않는지(one-to-one candidate allocation)** 확인한다. 기존 후보 수가 1개면 conflict도 1개만 할당되고 남은 operation은 신규로 실행되어야 한다. candidate one-to-one key는 contribution/ETF의 날짜/resourceKey를 사용하지 않고 logical/request/batch-operation/resource/resultVersion 같은 강한 identity만 사용해야 한다. **같은 날짜에 서로 다른 과거 ledger operation 2건**이 있으면 conflict도 2건 모두 살아 있어야 한다. 또 receipt/intent가 GC된 아주 오래된 재시도라도 ledger candidate의 `batchRequestId+batchOperationId` 또는 `logicalOperationId`가 incoming과 정확히 같다면 이는 사용자 선택 대상이 아니며 `forcedDecision: existing`으로 고정되어 `distinct`로 삭제 항목을 부활시킬 수 없어야 한다.
-- 단건 mutation이 commit 직전 dependency stale로 거부된 경우 실제 write가 없으므로 완료 receipt를 만들면 안 된다. 같은 requestId retry가 `이미 완료된 과거 저장`으로 오인되지 않는지 확인한다. 반대로 Git commit/ref 이동 성공 뒤 receipt/HTTP 응답만 유실된 경우에는 같은 commit의 operation ledger에서 request/logical identity를 찾아 **성공 반영을 증명**하고 같은 requestId retry를 `duplicate_ignored`로 복구해야 한다.
-- 다수 ledger shard Batch는 `writeGithubJsonBatch()`가 file별 `/git/blobs` POST를 만들지 않고 `git/trees`의 `content` entry로 한 번에 tree를 생성하는지, 같은 ref/path shard GET이 request-local cache에서 재사용되는지 확인한다. semantic/identity shard가 1MB를 넘으면 Contents API object 응답의 `content` 공백/`encoding:none`을 감지하고 `/git/blobs/{sha}` fallback으로 정상 읽는지 확인한다.
-- 단건 GAS와 외부 GitHub commit race에서는 같은 branch HEAD 기준 snapshot을 읽고 mutation 직전 dependency fingerprint를 재검증하며 최종 ref update를 non-force CAS로 수행하는가. `portfolio 확인 → 외부 commit에서 ETF 제거 → trade 저장`은 차단되고, 무관한 README commit만 있는 경우 dependency가 같으면 최신 HEAD를 새 base로 승격할 수 있는가
-- Batch pre-commit 실패 뒤 README/CSS 같은 무관 commit만 발생했을 때 branch HEAD 차이만으로 false stale 처리하지 않고 semantic dependency fingerprint가 같으면 최신 HEAD 기준 retry를 계속하는가. 단건/Batch가 **확정 pre-commit 실패**했고 target/dependency가 그대로인 경우 intent를 지우지 않고 retryable tombstone으로 전환하면서 예약 mutation epoch만 rollback하여 `실패 A → 실패 B → A retry`는 복구하고 `실패 A → B 성공 → A retry`는 stale로 차단하는가
-- 단건은 branch CAS 오류 뒤 target은 그대로지만 contribution/trade/portfolio/identity shard 같은 dependency가 바뀌어 retryable tombstone 전환에 실패한 경우에도 **남은 일반 active intent의 최초 dependency hash를 retry 시 다시 비교**하는가. `cash A 준비 → 외부 contribution 변경 → CAS 실패 → SAME A retry`가 최신 contribution을 새 causal anchor로 흡수해 commit되지 않고 `stale_retry_ignored`로 끝나는지 확인한다.
-- `delete_already_absent`, duplicate confirmation의 `existing`, current-item identical retry처럼 **business JSON을 바꾸지 않고 성공한 Single terminal no-op**도 exact identity ledger에 metadata-only 완료 기록을 남기는가. `D1로 없는 A 삭제 성공 → receipt/intent GC → SAME D1로 존재하는 B 삭제`가 B를 지우지 않고 identity conflict로 거부되는지 확인한다.
-- KRX workflow가 managed output뿐 아니라 `portfolio.json`·updater·requirements·workflow 같은 generation input의 checkout 이후 변경도 fail-closed하는가
-- workflow concurrency가 pending 요청을 교체 취소하지 않도록 queue contract를 명시하는가
+- **Single idempotency / stale:** commit 성공·응답 유실, save→delete→old retry, dependency drift, Git blob ABA에서 과거 요청이 최신 상태를 되돌리지 않는가. `expectedVersion`/`expectedAbsent`와 최초 pending payload가 유지되는가.
+- **Exact identity durability:** `requestId`·`logicalOperationId`·`batchRequestId+operationId`가 content-independent identity ledger에서 semantic 후보보다 먼저 검사되고, same identity+same content는 duplicate, same identity+different content는 reject되는가. 삭제/receipt GC 뒤에도 동일하다.
+- **No-op completion:** `delete_already_absent`, 기존 처리 확인, current-item identical처럼 business JSON을 바꾸지 않는 성공도 완료 identity가 남아 다른 내용 재사용을 막는가.
+- **Intent lifecycle:** active intent를 GC로 임의 삭제하지 않는 동시에, `stale_retry_ignored` 등 terminal 판정 후에는 receipt/tombstone으로 승격해 active slot을 해제하는가. 24시간 이상 abandoned intent 또는 prefix cap 경계에서도 causal evidence를 버리지 않고 terminal fail-closed로 수렴하며 신규 요청이 영구 봉쇄되지 않는가. receipt/confirmation/marker cap과 전체 Script Properties byte budget도 지켜지는가.
+- **Batch uniqueness / cardinality:** 같은 target의 `logicalOperationId` 중복은 GitHub read 전 reject되는가. 부분 충돌은 operation별 `existing/distinct`를 유지하고, 하나의 기존 candidate를 둘 이상의 operation에 재사용하지 않는가. same batch/logical identity는 `distinct`로 부활시킬 수 없는가.
+- **Batch recovery:** commit 성공 뒤 receipt/cache/HTTP 유실은 final-state effect로 duplicate에 수렴하고, pre-commit 실패 뒤 무관 commit만 생기면 dependency가 같을 때 retry되며 최신 Pension mutation이 있으면 stale로 끝나는가. terminal stale Batch intent가 active slot에 남지 않는가.
+- **Cross-device duplicate confirmation:** 새 requestId로 같은 semantic 후보가 들어오면 자동 dedupe하지 않고 state-bound confirmation token을 요구하며, token 이후 state 변경은 `confirmation_stale`로 거부되는가.
+- **Atomic Git mutation:** target JSON + semantic ledger + identity ledger가 같은 non-force CAS commit에 들어가며, dependency fingerprint를 commit 직전 재검증하는가. 1MB 초과 shard는 Blob API fallback으로 읽는가.
+- **KRX dispatch idempotency:** intent→dispatch→receipt/durable ledger 경계에서 동일 requestId 재-dispatch가 생기지 않는가. 접수 여부가 불확실한 intent는 durable/terminal fail-closed 상태로 승격되어 active slot을 영구 점유하지 않는가.
+- **KRX run/race:** `workflow_run_id` 직접 조회, active-run pagination, 상태조회 실패의 fail-closed, `queue: max`, managed/generation-input guard, rebase/push retry가 유지되는가. push는 remote 성공·로컬 응답 유실 시 `PUSH_SHA`가 이미 origin에 포함됐는지 먼저 확인하는가.
+- **100점 Counterexample:** 위 보호가 기존 테스트를 통과한다는 이유만으로 끝내지 말고, receipt/intent GC·cross-device·partial conflict·same identity/different content·precommit failure·remote race를 조합해 새 반례를 만든다.
 
 특히 PIN modal의 다음 전이를 본다.
 

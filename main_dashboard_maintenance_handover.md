@@ -1487,41 +1487,43 @@ KRX GitHub workflow 실제 실행
 
 ## 6.2 Google Apps Script(GAS) 운영 및 배포 원칙
 
-Google Apps Script는 **GitHub 프로젝트와 별도로 운영되는 백엔드**다.
+Google Apps Script는 **GitHub 프로젝트와 별도로 운영되는 write 백엔드**다. 이 절에는 현재 운영 불변조건만 남기며, 버전별 패치 이력·점수·Counterexample 목록은 누적하지 않는다. 상세 평가 시나리오는 `dashboard_evaluation_guide.md`를 사용한다.
 
-기본 원칙:
+### 소스·배포·보안
 
-- GAS 수정이 필요한 경우 사용자가 별도로 제공한 최신 운영 소스를 기준으로 작업한다.
-- 과거 대화에서 기억한 GAS 코드를 최신 운영본으로 추정하지 않는다.
-- 운영 인증값과 GitHub 연동 정보는 Apps Script의 Script Properties에서 관리하고 문서나 저장소에 실제 값을 기록하지 않는다.
-- 프런트엔드는 배포된 GAS Web App `/exec` URL을 호출한다.
-- 운영 코드를 수정한 경우 Web App 배포 버전도 함께 갱신한다.
-- 가능하면 기존 운영 배포를 갱신하여 기존 `/exec` URL을 유지한다.
-- 새 Web App URL을 사용하는 경우에는 메인 JS의 GAS API URL도 함께 맞춘다.
-- GAS QA에서는 실제 운영 JSON write, delete, batch apply, KRX workflow 실행을 하지 않고 mock/stub을 우선 사용한다.
-- 공개 Web App의 PIN 실패 제한은 **잘못된 PIN 요청만** 직렬화·제한한다. 올바른 PIN 요청보다 전역 실패 lock을 먼저 검사하여 제3자의 오입력만으로 정상 사용자를 차단하는 구조로 되돌리지 않는다. 실패 상태는 Script Properties의 내부 관리값으로 유지하고 실제 PIN은 저장하지 않는다.
-- Web App router는 action allowlist를 사용하고, pension persistence는 `cashSnapshot` / `contribution` / `etfTrade` 외 target을 다른 target으로 fallback하지 않고 거부한다.
-- 단건 저장은 frontend가 같은 요청의 실패·재시도 동안 identity를 재사용한다. 기업적립금·ETF 추가매수는 client-generated ID를, 현금성자산은 `requestId`를 사용한다. pending store는 PIN/인증값 없이 **logical fingerprint + 최초 전송 payload**를 짧은 TTL `localStorage`에 보존한다. logical fingerprint는 값·날짜·메모 같은 업무 의미만 포함하고 `expectedVersion`/`expectedAbsent`는 분리한다. 따라서 저장 성공 뒤 current precondition이 바뀌어도 reload가 같은 logical 요청을 찾고, 기존 requestId와 최초 precondition을 그대로 재전송한다. 다른 탭은 uncertain/grace 이후 local pending을 재사용하며, 다른 기기처럼 localStorage를 공유할 수 없는 경계에서는 GAS가 동일 semantic/logical operation 후보를 자동 중복 제거하지 않고 duplicate confirmation을 요구한다. confirmation은 단순 `allowDistinct` boolean이 아니라 현재 mutation epoch·dependency fingerprint·후보에 묶인 **state-bound confirmation token**을 사용한다. 기존 처리 선택도 서버에 다시 전송해 후보 존재를 재검증하고, 별도 거래 선택도 token이 여전히 유효한 경우에만 진행한다. GAS는 완료 receipt·진행 intent와 `PENSION_MUTATION_EPOCH`을 같은 ScriptLock 아래에서 관리하며 Git blob SHA는 causal version이 아니라 외부 변경 보조 guard로만 사용한다. direct receipt/intent/confirmation/KRX marker Script Properties는 prefix cap뿐 아니라 전체 약 430KB 내부 byte budget을 write 전에 확보하고, 10분 confirmation은 token TTL 기준으로 우선 제거한다. **활성 `PENSION_REQ_I_` / `PENSION_BATCH_I_` / `KRX_DISPATCH_I_`는 prefix cap·TTL·global budget GC에서 삭제하지 않으며**, 해당 prefix 한도에 도달하면 기존 causal evidence를 보존하고 새 intent 생성을 fail-closed한다. receipt/confirmation/marker는 새 write 전에 자리를 확보해 cap+1 상태를 남기지 않는다. write 오류 뒤 target/dependency가 base와 동일해 mutation이 확실히 없었던 경우에는 intent를 삭제하지 않고 retryable tombstone으로 전환하고 예약 epoch만 rollback한다. tombstone의 dependency hash·retryable epoch가 그대로면 실패 A→실패 B 뒤 A를 복구하고, 그 사이 B가 실제 성공했다면 A를 stale로 차단한다. tombstone 전환이 성립하지 않아 일반 active intent가 남은 경우도 retry 시 최초 dependency hash를 현재 dependency hash와 다시 비교해 dependency drift가 있으면 old request를 재적용하지 않는다.
-- GAS의 pension 금액·수량 입력은 frontend와 동일하게 safe integer 정수 계약을 적용한다. `valuation`/`costBasis`는 0 이상 안전 정수, 기업적립금·ETF 수량·금액은 양의 안전 정수만 허용하며, 현금흐름 합산·차감 결과도 safe integer 범위를 벗어나면 저장을 중단한다.
-- 현금성자산은 저장과 삭제 모두 optimistic concurrency precondition을 사용한다. 기존 snapshot을 수정/삭제할 때는 화면이 본 `expectedVersion`을, 해당 날짜 신규 생성은 `expectedAbsent:true`를 보내고 GAS가 현재 snapshot과 일치할 때만 mutation을 허용한다. 또한 **모든 Pension target(cashSnapshot/contribution/etfTrade)의 upsert/delete**는 `data/pension_operation_ledger/<00~ff>.json` semantic-hash shard와 `data/pension_operation_identity/<00~ff>.json` exact identity shard에 durable history를 남기며 대상 JSON과 같은 Git commit으로 원자 반영한다. semantic shard는 같은 효과 후보 확인용이고 identity shard는 `requestId`·`logicalOperationId`·`batchRequestId+operationId`를 content-independent key로 찾아, receipt/intent GC 이후 내용이 바뀌어 semantic shard가 달라져도 같은 identity 재사용을 거부한다. 800건 ring buffer는 사용하지 않고 각 hash 앞 2자리로 shard를 직접 찾아 `저장 성공/응답유실 → 정상 삭제 → 다른 기기에서 과거 저장 재시도`가 contribution/ETF까지 부활시키지 못하게 한다. v6 `data/pension_operation_ledger.json`은 cash legacy read-only fallback이다. 단건 삭제도 모든 target에서 `deleteRequestId`·`logicalOperationId`를 durable pending payload로 유지하며 cash만 추가로 `expectedVersion`을 보낸다.
-- 단건 Pension 저장/삭제와 Batch는 같은 `ScriptLock` mutation boundary 및 `PENSION_MUTATION_EPOCH`을 공유한다. Batch pending store는 queue의 **logical signature와 최초 직렬화 operations payload 전체**를 함께 보존하며, operationId와 `expectedVersion`/`expectedAbsent`를 reload 때 새 state로 다시 만들지 않는다. **같은 target 안의 `logicalOperationId`는 Batch 내부에서 반드시 고유해야 하며**, GAS는 GitHub read와 메모리 state 변경 전에 preflight로 중복을 거부한다. cashSnapshot Batch upsert/delete는 queue를 구성할 때 본 initial snapshot precondition을 사용하고 같은 Batch 내부 순차 변경만 허용한다. 다른 기기에서 응답유실 Batch가 새 `batchRequestId`/`operationId`로 재구성될 수 있으므로 GAS는 final-state semantic effect와 operation별 semantic/ledger 충돌을 확인하되 **자동 중복 제거하지 않고** `batch_duplicate_confirmation_required`로 반환한다. 전체 효과가 이미 존재하는 full-match는 Batch 전체 `existing/distinct` 결정을 허용하지만, **부분 충돌은 충돌 operation index별로 결정을 받는다.** `existing` operation만 no-op으로 건너뛰고 신규/`distinct` operation은 같은 atomic Batch commit에서 계속 처리한다. 동일 semantic 후보 배정은 one-to-one cardinality를 지켜 기존 item/ledger logical operation 하나를 여러 operation의 `existing` 근거로 재사용하지 않는다. 이때 contribution/ETF의 날짜/resourceKey는 identity로 사용하지 않고 logical/request/batch-operation/실제 resource/resultVersion 같은 강한 key만 소진한다. ledger candidate가 incoming과 동일 `batchRequestId+operationId` 또는 동일 `logicalOperationId`이면 과거 동일 요청이므로 `distinct`를 허용하지 않고 `existing`으로 강제한다. exact identity는 semantic 최신 후보보다 먼저 조회해, 같은 내용의 별도 최신 operation이 있어도 오래된 SAME logical request가 다른 후보에 가려지지 않게 한다. 서버는 state-bound confirmation token으로 operation별 결정을 재검증하고 그 결정을 Batch intent에 보존하므로 확정 pre-commit 실패 후 reload 재시도에도 같은 resolution이 유지된다. Batch의 cash/contribution/ETF upsert/delete도 각 operation semantic hash shard와 exact identity shard를 같은 atomic commit에 포함한다. 단건은 실제 resource 변경이 없는 `delete_already_absent`, 기존 처리 확인, current-item duplicate 같은 terminal no-op 성공도 metadata-only exact identity commit으로 완료 identity를 durable하게 남긴다. GAS는 commit 전에 `baseCommitSha`·mutation epoch·semantic dependency fingerprint를 intent에 기록하고 무관한 branch commit만 앞서가면 최신 HEAD를 새 base로 승격한다. Batch write 실패 후 branch HEAD/dependency가 그대로이고 해당 Batch effect도 없는 것이 확인되면 intent를 지우지 않고 retryable tombstone으로 전환하고 예약 epoch만 rollback한다. receipt/cache 저장이 실패한 commit-success 경계에서는 cashSnapshot 날짜별 마지막 operation의 최종 효과와 deterministic ID를 비교하되, intent에 보존된 operation별 confirmation decision을 적용해 `existing` no-op은 검증 대상에서 제외하고 실제 실행된 operation만 확인해 duplicate로 수렴한다. 단건 commit-success/receipt-loss는 같은 atomic commit에 남은 operation ledger의 `logicalOperationId/requestId`를 성공 증거로 사용해 `duplicate_ignored`로 복구한다.
-- KRX 갱신은 frontend가 같은 실패·재시도 동안 `requestId`를 재사용하고 GAS가 dispatch 전에 request별 intent와 `branch + date/mode` operation marker를 durable하게 저장한 뒤 성공 receipt로 승격한다. 완료 requestId는 `data/krx_dispatch_ledger/<request-id-hash-prefix>.json` GitHub shard에도 기록해 Script Properties receipt/intent GC 이후에도 exact requestId/hash로 중복 dispatch를 차단한다. receipt 저장/응답이 유실되어 intent만 남으면 동일 requestId는 `workflow_dispatch_uncertain`으로 중복 dispatch하지 않는다. 새 requestId가 와도 60초 visibility grace 동안 marker로 즉시 차단하고, dispatch `return_run_details:true` 응답의 `workflow_run_id`를 receipt/marker에 저장해 해당 run을 직접 조회한다. run ID가 없는 fallback은 workflow runs를 100건씩 최대 10페이지까지 pagination해 queued/running 상태와 custom `run-name`을 확인하고 같은 작업이면 `workflow_in_progress`로 수렴한다. Marker에 run ID가 있으면 30분 stale 시간 이후에도 해당 ID를 우선 조회하며, marker 또는 active-run 조회가 GitHub 장애로 실패하면 상태를 모른 채 새 dispatch하지 않고 `workflow_status_uncertain`으로 fail-closed한다. `.github/workflows/update-prices.yml`은 같은 branch를 `concurrency + queue: max`로 직렬화해 pending 실행도 보존하고, push 직전 remote를 다시 fetch한다. checkout 이후 다른 commit이 branch를 앞서가면 KRX 관리파일뿐 아니라 generation input(`portfolio.json`, updater, requirements, workflow) 변경 여부도 확인한다. 계산과 무관한 commit만 최신 remote에 rebase하여 최대 3회 push 재시도하며, managed file 또는 generation input이 바뀌었으면 과거 계산 결과를 올리지 않고 fail-closed한다. 각 push 직전 SHA를 기억하고 다음 fetch 직후 그 SHA가 이미 remote ancestor인지 managed-file guard보다 먼저 확인하므로 서버 수락 후 응답 유실을 외부 충돌로 오인하지 않으며, 마지막 실패 확정 전에도 remote를 한 번 더 확인한다.
+- GAS 수정은 사용자가 별도로 제공한 **최신 운영 `code.js`**만 기준으로 한다. 과거 대화의 코드를 최신본으로 추정하지 않는다.
+- 인증값·GitHub token·PIN은 Script Properties에만 두고 저장소·문서에 실제 값을 기록하지 않는다.
+- 기존 Web App `/exec` URL 유지가 기본이며 새 URL을 쓰면 frontend endpoint도 함께 갱신한다.
+- router action/target allowlist를 유지하고 unknown target을 다른 Pension target으로 fallback하지 않는다.
+- QA는 mock/stub을 우선하며 실제 운영 JSON write/delete, Batch apply, KRX dispatch를 테스트 목적으로 실행하지 않는다.
 
-JS ↔ GAS 계약 검증 시:
+### Pension mutation contract
 
-- 프런트 JS의 요청 payload는 GitHub ZIP에서 확인한다.
-- 서버 측 handler는 최신 운영 GAS 소스가 별도로 제공된 경우에만 완전 검증한다.
-- 단건 retry QA에서는 첫 요청이 GitHub에 반영된 뒤 응답만 유실된 상황을 mock하여 contribution/etfTrade가 추가 item·추가 commit·이중 현금차감 없이 기존 결과를 반환하는지 확인한다.
-- 단건 stale retry QA에서는 `save A 성공 → receipt 실패 → delete B → 파일 내용이 최초 상태로 원복 → A 재시도`의 Git blob SHA ABA와 `cashSnapshot A write 실패 → contribution/ETF B → A 재시도`를 반드시 포함한다. `PENSION_MUTATION_EPOCH`이 더 최신 B를 감지해 A를 `stale_retry_ignored`로 막고, 과거 cash snapshot에 B의 after*Ids가 재결합되지 않는지 확인한다.
-- Batch retry QA에서는 GitHub commit 성공 직후 receipt/HTTP 응답이 실패한 상태, `batch A → 최신 Pension update/delete B → A 재시도`, 그리고 `batch pre-commit 실패 → README 같은 무관 commit → 동일 batch retry`를 모두 만든다. 최신 Pension 작업은 epoch 때문에 stale이어야 하고, 무관 commit만 있는 경우에는 dependency fingerprint가 같으면 최신 HEAD로 base를 승격해 실제 retry가 계속되어야 한다. 또한 `A pre-commit 확정 실패 → B pre-commit 확정 실패 → A retry`에서는 실제 Pension state가 한 번도 바뀌지 않았으므로 예약 epoch/intent가 rollback되어 A가 정상 재시도되어야 한다. Pension/KRX receipt·intent direct property는 request별 compact property를 사용하고 180일 + prefix별 최대 건수 GC를 적용한다.
-- KRX retry QA에서는 dispatch 성공 뒤 receipt/응답 유실을 만들고 동일 `requestId`가 intent 때문에 재-dispatch되지 않는지 확인한다. 이어 같은 date/mode를 새 `requestId`로 다시 요청했을 때 operation marker 또는 queued/running workflow 조회가 `workflow_in_progress`를 반환해 dispatch 수가 늘지 않는지도 확인한다. 또한 KRX checkout 뒤 pension 저장 같은 무관 commit은 rebase 가능한지, `prices.json`/`performance_snapshots.json` 또는 `portfolio.json`/updater/requirements/workflow가 바뀐 경우에는 fail-closed하는지 확인한다. concurrency QA에서는 A 실행 중 B·C가 연속 dispatch되어도 `queue: max`로 pending 요청이 보존되는지 contract를 확인한다.
-- Delete retry QA에서는 첫 삭제 성공 뒤 응답 유실 후 재시도가 안전하게 수렴하는지와 함께, `cash delete A 시작 → 같은 날짜 snapshot B 저장 → old delete A retry`가 B를 삭제하지 않는지 `expectedVersion` 반례를 반드시 확인한다.
-- Stale-view QA에서는 `Tab A가 cash 100 버전을 봄 → Tab B가 같은 날짜 200 저장 → Tab A가 새 requestId로 100 저장`과 `A는 해당 날짜가 없다고 봄 → B가 snapshot 생성 → A가 expectedAbsent로 신규 저장`을 모두 실행해 `stale_view_rejected`로 막히는지 확인한다.
-- Pending identity QA에서는 logical fingerprint와 optimistic precondition이 분리되어 있는지, single/Batch pending record가 ID뿐 아니라 최초 전송 payload 전체를 보존하는지 확인한다. `cash 신규 expectedAbsent → commit 성공/응답 유실 → reload 후 current expectedVersion`처럼 precondition이 바뀌어도 같은 requestId와 **원래 expectedAbsent payload**를 재전송해야 한다. 다른 탭은 uncertain/grace 이후 pending을 재사용하고, 다른 기기에서는 동일 semantic item/Batch 후보가 있을 때 **자동 dedupe가 아니라 명시적 duplicate confirmation**으로 분기하는지 확인한다. 기존 처리 선택과 실제 별도 거래/작업 선택 모두 GAS 발급 confirmation token을 서버에 다시 보내 epoch·dependency·후보를 재검증해야 한다. 확인 이후 다른 mutation이 발생한 token은 `confirmation_stale`로 거부되어야 한다. 성공 응답 뒤 local pending은 즉시 정리되어 이후 의도적인 신규 거래를 장기간 막지 않아야 하며, 동일 내용의 실제 별도 거래는 메모 변경 없이도 유효한 confirmation token을 거쳐 새 logical mutation으로 만들 수 있어야 한다. 모든 target의 delete pending도 save와 동일하게 최초 `deleteRequestId`·`logicalOperationId` payload를 localStorage에 보존하고, cash delete만 `expectedVersion`을 추가로 보존한다.
+- Single/Batch는 같은 `ScriptLock`과 `PENSION_MUTATION_EPOCH`을 공유한다. Git blob SHA는 causal version이 아니라 외부 변경 보조 guard다.
+- frontend는 재시도 동안 stable request/logical identity와 **최초 전송 payload/precondition**을 재사용한다. cash는 `expectedVersion`/`expectedAbsent` optimistic concurrency를 사용하고 모든 금액·수량 계산은 safe integer 범위에서만 처리한다.
+- 모든 cashSnapshot/contribution/etfTrade upsert/delete는 semantic operation ledger와 content-independent exact identity ledger를 사용한다. 실제 mutation commit은 target JSON과 필요한 ledger shard를 같은 Git commit으로 반영한다. terminal no-op 성공도 exact identity를 남긴다.
+- 동일 semantic 후보가 보인다고 자동 중복 제거하지 않는다. 다른 기기/새 세션에서는 state-bound confirmation token으로 `existing/distinct`를 다시 검증하고, state가 바뀐 token은 stale로 거부한다.
+- Batch 안에서 같은 target의 `logicalOperationId`는 고유해야 한다. 부분 충돌은 operation별 결정을 유지하고 candidate는 one-to-one으로 소진한다. commit-success/receipt-loss는 final-state effect와 durable identity로 duplicate에 수렴한다.
+- 확정 pre-commit 실패는 dependency가 그대로일 때만 retryable tombstone으로 전환한다. dependency/epoch가 바뀐 과거 요청은 `stale_retry_ignored`로 끝내며 최신 state를 재사용해 부활시키지 않는다.
 
-- 단건 Pension GitHub race QA에서는 GAS가 하나의 branch HEAD를 기준으로 target/dependency를 읽고, mutation 직전 최신 HEAD의 dependency fingerprint를 다시 확인한 뒤 Git commit API의 non-force branch CAS로 반영하는지 확인한다. `ETF portfolio 확인 → 외부 commit에서 해당 ETF 제거 → trade commit`은 fail-closed해야 하며, README 같은 무관 commit만 앞서간 경우 dependency가 같으면 최신 HEAD로 base를 승격해 정상 진행할 수 있어야 한다. 모든 Pension upsert/delete는 target JSON과 해당 semantic operation ledger shard·exact identity shard를 같은 commit에 넣어 resource와 tombstone/history가 분리 반영되는 경계를 만들지 않는다. `writeGithubJsonBatch()`는 file별 `/git/blobs` POST 대신 `git/trees` entry의 `content`를 사용해 shard 수가 많아도 mutation REST 호출을 일정하게 유지하고, Batch dependency/conflict/실행 과정의 ledger shard GET은 request-local cache로 재사용한다. 1MB 초과 shard는 Contents API object 응답에서 `content`가 비는 경계를 감지해 Git Blob API로 fallback한다. commit 직전 dependency stale로 실제 mutation이 없었던 단건 요청은 완료 receipt를 남기지 않고 intent/예약 epoch를 정리한다.
-- Batch final-state recovery QA에서는 같은 날짜 cash를 한 Batch에서 `100 → 200`처럼 여러 번 upsert한 뒤 commit 성공 + receipt/cache/HTTP 응답 유실을 만들어, intermediate 100이 현재 state에 없더라도 날짜별 마지막 operation 200을 기준으로 `batch_duplicate_ignored`에 수렴하는지 확인한다. 추가로 동일 Batch를 다른 기기에서 새 batch/op ID로 재구성했을 때 동일 semantic final effect 또는 additive 충돌을 자동 dedupe하지 않고 duplicate confirmation으로 분기하며, 실제 별도 작업 확인 전에는 두 번째 contribution/ETF deterministic ID를 만들지 않는지 확인한다.
+### Intent / receipt lifecycle
 
+- active `PENSION_REQ_I_` / `PENSION_BATCH_I_` / `KRX_DISPATCH_I_`는 단순 TTL·prefix cap·global budget GC로 **그대로 삭제하지 않는다**.
+- stale 판정이 끝난 Single/Batch intent는 terminal receipt로 승격한 뒤 active intent를 해제한다.
+- 응답이 끊긴 abandoned intent는 **24시간**을 넘기면 fail-closed terminal receipt로 승격한다. prefix cap에 먼저 도달해도 가장 오래된 intent를 같은 방식으로 terminalize하여 causal evidence를 보존하면서 신규 요청 slot을 확보한다.
+- receipt/confirmation/marker는 새 write 전에 cap 자리를 확보하고, 전체 Script Properties는 내부 byte budget 안에서 관리한다. terminal receipt write가 실패하면 기존 intent를 유지해 fail-open하지 않는다.
+
+### KRX dispatch / GitHub Actions contract
+
+- KRX는 requestId intent/receipt + branch/date operation marker + `data/krx_dispatch_ledger/<shard>.json` durable history를 사용한다. 동일 requestId의 재-dispatch는 금지한다.
+- dispatch 접수 여부가 불확실한 requestId는 재시도 시 가능하면 durable ledger에 `dispatch_uncertain_terminal`을 기록하고 active intent를 해제한다. legacy intent처럼 raw requestId가 없더라도 direct-property hash suffix를 같은 receipt key로 승격할 수 있어야 한다. durable 기록이 실패하면 intent를 유지한다.
+- `workflow_run_id`가 있으면 직접 상태를 조회하고, fallback은 active runs를 pagination한다. 상태 조회 자체가 실패하면 새 dispatch를 보내지 않는다.
+- workflow는 같은 branch의 pending queue를 보존하고, checkout 이후 remote 변경이 계산과 무관할 때만 rebase한다. managed output 또는 generation input이 바뀌면 fail-closed한다.
+- push 응답 유실은 직전 `PUSH_SHA`가 이미 `origin/<branch>`에 포함됐는지 managed-file guard보다 먼저 확인하고, 마지막 실패 확정 전에도 재확인한다.
+
+### QA 경계
+
+GAS 집중평가의 구체적인 stale retry, cross-device duplicate, Batch cardinality, receipt/intent loss, GitHub race 반례는 `dashboard_evaluation_guide.md`의 Frontend↔Backend contract와 100점 Gate를 따른다. 이 handover에는 **현재 운영 contract와 수정 위치 판단에 필요한 내용만** 유지한다.
 
 ## 6.3 현재 Workflow 날짜 입력 의미
 
@@ -1835,7 +1837,7 @@ node --test tests/cross-ui-contract.test.cjs
 - [README.md](./README.md): 프로젝트 설명, 기능, 전체 구조, 실행·배포 개요
 - [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md): Main 수정·QA·운영 contract와 Main↔Add 공통 contract 정의
 - [add_maintenance_handover.md](./add_maintenance_handover.md): Add Calc/Report 수정·QA·운영 contract
-- [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md): Main/Add 평가·점수·등급 기준
+- [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md): Main/Add 평가·점수·등급 기준 및 adversarial Counterexample 기준(구현 설명·패치 이력은 중복 저장하지 않음)
 - Git history: 과거 변경 이력
 
 # 10. 최종 운영 체크리스트
