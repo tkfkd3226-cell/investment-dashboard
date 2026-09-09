@@ -318,7 +318,7 @@ prices.json / performance_snapshots.json
 변경 시 commit + push
 ```
 
-GitHub Actions에서 직접 수동 실행할 때는 필요한 경우 대상 날짜를 지정할 수 있습니다. 같은 branch의 KRX workflow는 concurrency로 직렬화합니다. 또한 checkout 이후 연금 저장·코드 commit처럼 다른 변경이 branch를 앞서가면 KRX 관리파일이 그대로인지 확인한 뒤 최신 remote에 rebase하고 제한 횟수만큼 push를 재시도합니다. `prices.json` 또는 `performance_snapshots.json` 자체가 remote에서 바뀐 경우에는 자동 덮어쓰지 않고 fail-closed합니다.
+GitHub Actions에서 직접 수동 실행할 때는 필요한 경우 대상 날짜를 지정할 수 있습니다. 같은 branch의 KRX workflow는 `concurrency + queue: max`로 직렬화하면서 pending 실행을 보존합니다. 또한 checkout 이후 연금 저장처럼 KRX 계산과 무관한 commit이 branch를 앞서가면 최신 remote에 rebase하고 제한 횟수만큼 push를 재시도합니다. 반대로 `prices.json`·`performance_snapshots.json` 또는 계산 입력인 `portfolio.json`·`scripts/update_prices.py`·`requirements.txt`·workflow 정의가 remote에서 바뀐 경우에는 과거 checkout 기준 결과를 최신 상태 위에 올리지 않고 fail-closed합니다. GAS는 KRX `requestId`별 dispatch intent/receipt를 보존하여 응답/receipt 유실 뒤 같은 requestId의 중복 dispatch도 막습니다.
 
 ---
 

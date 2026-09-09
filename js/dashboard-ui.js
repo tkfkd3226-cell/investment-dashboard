@@ -640,11 +640,13 @@ async function submitKrxActionModal(mode='selected'){
     }
     const data = await dispatchKrxPriceUpdate(pin, updateMode, requestId);
 
-    if(['workflow_skipped','workflow_duplicate_ignored','workflow_in_progress'].includes(data.action)){
+    if(['workflow_skipped','workflow_duplicate_ignored','workflow_dispatch_uncertain','workflow_in_progress'].includes(data.action)){
       resetKrxActionRequestIdentity();
       const msg = data.message || (data.action==='workflow_duplicate_ignored'
         ? '이미 동일한 KRX 현재가 반영 요청이 접수되었습니다.'
-        : (data.action==='workflow_in_progress'?'KRX 현재가 반영 작업이 이미 진행 중입니다.':'업데이트할 KRX 현재가 데이터가 없습니다.'));
+        : (data.action==='workflow_dispatch_uncertain'
+          ? '이전 KRX 요청의 접수 여부가 불확실해 중복 실행을 만들지 않았습니다. Actions 상태를 확인해주세요.'
+          : (data.action==='workflow_in_progress'?'KRX 현재가 반영 작업이 이미 진행 중입니다.':'업데이트할 KRX 현재가 데이터가 없습니다.')));
       if(currentSession()&&status){status.textContent=msg;status.className='action-modal-status krx-action-status ok'}
       showAppToast(msg, 'ok', 6500);
       return;

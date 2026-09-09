@@ -10,16 +10,20 @@ on:
         description: "YYYY-MM-DD. 지정하면 해당 거래일의 종목 가격/성과를 갱신하고 지정일까지 저장된 KOSPI 구간의 누락·정정값을 backfill. 비워두면 최신·누락·장중 재확정 대상 날짜를 자동 판단"
         required: false
         type: string
+      request_id:
+        description: "GAS에서 생성한 stable requestId. dispatch 추적/중복 방지용"
+        required: false
+        type: string
 
 # 이 workflow는 생성 데이터 2종을 commit/push 하므로 contents write만 허용한다.
 permissions:
   contents: write
 
 # KRX 생성 데이터 2종은 같은 branch 파일을 갱신하므로 workflow 실행을 직렬화한다.
-# 동일 요청이 네트워크 재시도로 중복 dispatch되더라도 checkout/push 경쟁을 만들지 않는다.
+# GAS의 request intent/receipt가 동일 requestId 중복 dispatch를 막고, queue: max는 서로 다른 pending 요청도 취소하지 않고 순차 처리한다.
 concurrency:
   group: update-krx-prices-${{ github.ref }}
-  cancel-in-progress: false
+  queue: max
 
 jobs:
   update-prices:
@@ -72,6 +76,7 @@ jobs:
       - name: Commit generated KRX data
         env:
           BRANCH_NAME: ${{ github.ref_name }}
+          INPUT_REQUEST_ID: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.request_id || '' }}
         run: |
           if git diff --quiet data/prices.json data/performance_snapshots.json; then
             echo "No changes to commit."
@@ -79,20 +84,34 @@ jobs:
           fi
 
           # updater가 시작한 checkout 기준점을 기억한다. push 전 remote가 앞서가더라도
-          # pension 저장·코드 commit처럼 KRX 관리파일을 건드리지 않은 변경은 rebase 후 안전하게 재시도한다.
+          # pension 저장처럼 KRX managed/generation input을 건드리지 않은 변경만 rebase 후 안전하게 재시도한다.
           BASE_SHA="$(git rev-parse HEAD)"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/prices.json data/performance_snapshots.json
-          git commit -m "Update KRX prices and performance snapshots"
+          if [ -n "$INPUT_REQUEST_ID" ]; then
+            git commit -m "Update KRX prices and performance snapshots [$INPUT_REQUEST_ID]"
+          else
+            git commit -m "Update KRX prices and performance snapshots"
+          fi
+
+          KRX_MANAGED_PATHS=(data/prices.json data/performance_snapshots.json)
+          KRX_INPUT_PATHS=(data/portfolio.json scripts/update_prices.py requirements.txt .github/workflows/update-prices.yml)
 
           for attempt in 1 2 3; do
             git fetch origin "$BRANCH_NAME"
 
             # checkout 이후 remote에서 KRX 관리파일 자체가 바뀌었다면 자동 merge로 덮지 않는다.
             # 이 경우는 실제 데이터 충돌이므로 fail-closed하고 다음 갱신에서 다시 계산한다.
-            if ! git diff --quiet "$BASE_SHA" "origin/$BRANCH_NAME" -- data/prices.json data/performance_snapshots.json; then
+            if ! git diff --quiet "$BASE_SHA" "origin/$BRANCH_NAME" -- "${KRX_MANAGED_PATHS[@]}"; then
               echo "KRX managed files changed on remote after checkout; aborting to avoid overwriting newer data." >&2
+              exit 1
+            fi
+
+            # portfolio/updater/dependency/workflow가 checkout 이후 바뀌면 과거 입력으로 만든 결과를
+            # 최신 코드 위에 rebase하지 않는다. 최신 remote 기준으로 다시 실행해야 한다.
+            if ! git diff --quiet "$BASE_SHA" "origin/$BRANCH_NAME" -- "${KRX_INPUT_PATHS[@]}"; then
+              echo "KRX generation inputs changed on remote after checkout; aborting stale generated data." >&2
               exit 1
             fi
 

@@ -111,12 +111,14 @@ test('KRX 요청은 중복 전송을 막고 재진입 session에서 이전 응�
   assert.match(ui,/krxActionModalCloseTimer=window\.setTimeout\(/);
 });
 
-test('KRX 실패 재시도는 같은 requestId를 재사용하고 성공 후에만 identity를 비운다',()=>{
+test('KRX 실패 재시도는 같은 requestId를 재사용하고 dispatch 불확실 응답도 성공 완료로 오인하지 않는다',()=>{
   assert.match(ui,/let krxActionRequestIdentity=\{key:'',id:''\};/);
   assert.match(ui,/function getKrxActionRequestId\(mode,date\)\{/);
   assert.match(ui,/requestId:String\(requestId\|\|''\)\.trim\(\)/);
   assert.match(ui,/const requestId=getKrxActionRequestId\(updateMode,selectedDate\);/);
   assert.match(ui,/dispatchKrxPriceUpdate\(pin, updateMode, requestId\)/);
+  assert.match(ui,/workflow_dispatch_uncertain/);
+  assert.match(ui,/Actions 상태를 확인해주세요/);
   assert.match(ui,/resetKrxActionRequestIdentity\(\);\s*const successMsg=/);
 });
 
@@ -171,6 +173,17 @@ test('현금성자산 단건 저장은 응답 유실 재시도 동안 같은 req
   assert.match(pensionEditor,/오래된 저장 재시도는 최신 상태 위에 다시 적용하지 않았습니다/);
 });
 
+test('현금성자산 단건 삭제는 stable deleteRequestId와 화면 snapshot 버전을 함께 전송한다',()=>{
+  assert.match(pensionEditor,/singleDeleteFingerprint:'',\s*singleDeleteId:''/);
+  assert.match(pensionEditor,/function pensionCashSnapshotVersion\(item\)\{/);
+  assert.match(pensionEditor,/function preparePensionSingleDeleteContext\(target,key,item\)\{/);
+  assert.match(pensionEditor,/deleteRequestId:pensionEditorState\.singleDeleteId,expectedVersion/);
+  assert.match(pensionEditor,/payload\.deleteRequestId=String\(deleteContext\.deleteRequestId\|\|''\)\.trim\(\)/);
+  assert.match(pensionEditor,/payload\.expectedVersion=String\(deleteContext\.expectedVersion\|\|''\)\.trim\(\)/);
+  assert.match(pensionEditor,/if\(!data\.stale\)\{\s*removePensionItemLocally\(target,key\)/);
+  assert.match(pensionEditor,/오래된 삭제 재시도는 최신 상태에 다시 적용하지 않았습니다/);
+});
+
 test('Batch 중복 응답에 state가 없으면 과거 pension state를 로컬에 다시 적용하지 않는다',()=>{
   assert.match(pensionEditor,/const duplicateWithoutState=!!data\.duplicate&&!data\.state;/);
   assert.match(pensionEditor,/if\(!duplicateWithoutState\)applyPensionBatchStateLocally\(data\.state\);/);
@@ -195,8 +208,10 @@ test('KRX workflow의 shell 조건문은 각 run step 안에서 완결되어 실
   assert.doesNotMatch(verifyBlock,/^\s*fi\s*$/m,'Verify step에 앞 step 조건문의 stray fi가 남으면 안 된다');
 });
 
-test('KRX workflow는 같은 branch 생성데이터 갱신을 concurrency로 직렬화한다',()=>{
-  assert.match(updatePricesWorkflow,/concurrency:\s*\n\s*group: update-krx-prices-\$\{\{ github\.ref \}\}\s*\n\s*cancel-in-progress: false/);
+test('KRX workflow는 같은 branch 생성데이터를 직렬화하고 pending 요청을 queue에 보존한다',()=>{
+  assert.match(updatePricesWorkflow,/concurrency:\s*\n\s*group: update-krx-prices-\$\{\{ github\.ref \}\}\s*\n\s*queue: max/);
+  assert.doesNotMatch(updatePricesWorkflow,/cancel-in-progress:\s*true/);
+  assert.match(updatePricesWorkflow,/request_id:/);
 });
 
 test('KRX workflow는 다른 branch commit과 push가 경합해도 최신 remote에 rebase 후 제한 재시도한다',()=>{
@@ -204,7 +219,11 @@ test('KRX workflow는 다른 branch commit과 push가 경합해도 최신 remote
   assert.match(updatePricesWorkflow,/BASE_SHA="\$\(git rev-parse HEAD\)"/);
   assert.match(updatePricesWorkflow,/for attempt in 1 2 3; do/);
   assert.match(updatePricesWorkflow,/git fetch origin "\$BRANCH_NAME"/);
-  assert.match(updatePricesWorkflow,/git diff --quiet "\$BASE_SHA" "origin\/\$BRANCH_NAME" -- data\/prices\.json data\/performance_snapshots\.json/);
+  assert.match(updatePricesWorkflow,/KRX_MANAGED_PATHS=\(data\/prices\.json data\/performance_snapshots\.json\)/);
+  assert.match(updatePricesWorkflow,/KRX_INPUT_PATHS=\(data\/portfolio\.json scripts\/update_prices\.py requirements\.txt \.github\/workflows\/update-prices\.yml\)/);
+  assert.match(updatePricesWorkflow,/git diff --quiet "\$BASE_SHA" "origin\/\$BRANCH_NAME" -- "\$\{KRX_MANAGED_PATHS\[@\]\}"/);
+  assert.match(updatePricesWorkflow,/git diff --quiet "\$BASE_SHA" "origin\/\$BRANCH_NAME" -- "\$\{KRX_INPUT_PATHS\[@\]\}"/);
+  assert.match(updatePricesWorkflow,/KRX generation inputs changed on remote after checkout/);
   assert.match(updatePricesWorkflow,/git rebase "origin\/\$BRANCH_NAME"/);
   assert.match(updatePricesWorkflow,/git push origin "HEAD:\$BRANCH_NAME"/);
   assert.match(updatePricesWorkflow,/KRX data push failed after 3 retries/);

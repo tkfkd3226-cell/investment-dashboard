@@ -56,7 +56,9 @@ const pensionEditorState={
   batchApplying:false,
   batchRequestId:'',
   singleSaveFingerprint:'',
-  singleSaveId:''
+  singleSaveId:'',
+  singleDeleteFingerprint:'',
+  singleDeleteId:''
 };
 
 const defaultPensionContributionDate=d=>{
@@ -1218,6 +1220,28 @@ function resetPensionSingleSaveIdentity(){
   pensionEditorState.singleSaveFingerprint='';
   pensionEditorState.singleSaveId='';
 }
+function pensionCashSnapshotVersion(item){
+  if(!item)return '';
+  if(item.requestId)return `request:${String(item.requestId)}`;
+  if(item.batchRequestId||item.batchOperationId)return `batch:${String(item.batchRequestId||'')}|${String(item.batchOperationId||'')}`;
+  return ['legacy',String(item.date||''),String(item.updatedAtKST||''),String(item.valuation??''),String(item.costBasis??''),String(item.memo||'')].join('|');
+}
+function resetPensionSingleDeleteIdentity(){
+  pensionEditorState.singleDeleteFingerprint='';
+  pensionEditorState.singleDeleteId='';
+}
+function preparePensionSingleDeleteContext(target,key,item){
+  if(target!=='cashSnapshot')return {};
+  const expectedVersion=pensionCashSnapshotVersion(item);
+  if(!expectedVersion)throw new Error('삭제 대상 현금성자산 버전을 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.');
+  const fingerprint=`cashSnapshot-delete|${String(key||'')}|${expectedVersion}`;
+  if(pensionEditorState.singleDeleteFingerprint!==fingerprint||!pensionEditorState.singleDeleteId){
+    const uuid=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
+    pensionEditorState.singleDeleteFingerprint=fingerprint;
+    pensionEditorState.singleDeleteId=`cash-delete-${String(key||kstTodayText())}-${uuid}`;
+  }
+  return {deleteRequestId:pensionEditorState.singleDeleteId,expectedVersion};
+}
 function preparePensionSingleSaveItem(item){
   if(!item||!['cashSnapshot','contribution','etfTrade'].includes(item.target))return item;
   const fingerprint=pensionSingleSaveFingerprint(item);
@@ -1311,14 +1335,19 @@ async function savePensionContribution(){
   }
 }
 
-async function deletePensionContributionViaGithubPages(target,key,pin){
+async function deletePensionContributionViaGithubPages(target,key,pin,deleteContext={}){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
   if(!config.url || config.url.includes('여기에_'))throw new Error('GitHub Pages 삭제 URL이 설정되지 않았습니다.');
   const isCash=target==='cashSnapshot';
+  const payload={pin:String(pin||'').trim(),target:target||'contribution',action:'delete',id:isCash?'':key,date:isCash?key:''};
+  if(isCash){
+    payload.deleteRequestId=String(deleteContext.deleteRequestId||'').trim();
+    payload.expectedVersion=String(deleteContext.expectedVersion||'').trim();
+  }
   const res=await fetchWithTimeout(config.url,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({pin:String(pin||'').trim(),target:target||'contribution',action:'delete',id:isCash?'':key,date:isCash?key:''})
+    body:JSON.stringify(payload)
   });
   const data=await readJsonResponse(res,'GitHub Pages 방식 삭제');
   if(!data.ok)throw new Error(data.error||'GitHub Pages 방식 삭제 실패');
@@ -1364,20 +1393,26 @@ async function deleteSelectedPensionContribution(){
     }
   }
   clearPensionContributionStatus('pensionContribDeleteStatus');
+  const deleteContext=preparePensionSingleDeleteContext(target,key,item);
   const data=await requestPensionActionPin({
     title:`${targetText} 삭제`,
     description:pensionDeletePinDescription(target,item,key),
     danger:true,
-    execute:pin=>deletePensionContributionViaGithubPages(target,key,pin)
+    execute:pin=>deletePensionContributionViaGithubPages(target,key,pin,deleteContext)
   });
   if(!data)return;
-  removePensionItemLocally(target,key);
-  syncPensionContributionDeleteCard(target);
-  if(target==='etfTrade') updatePensionEtfTradePreview();
+  if(!data.stale){
+    removePensionItemLocally(target,key);
+    syncPensionContributionDeleteCard(target);
+    if(target==='etfTrade') updatePensionEtfTradePreview();
+  }
+  resetPensionSingleDeleteIdentity();
   clearPensionContributionStatus('pensionContribDeleteStatus');
-  showPensionToast(data.duplicate
-    ?`${pensionContributionTargetObjectLabel(target)} 이미 삭제된 상태를 확인했습니다.`
-    :`${pensionContributionTargetObjectLabel(target)} 삭제했습니다.`);
+  showPensionToast(data.stale
+    ?'오래된 삭제 재시도는 최신 상태에 다시 적용하지 않았습니다. 새로고침해 확인해주세요.'
+    :(data.duplicate
+      ?`${pensionContributionTargetObjectLabel(target)} 이미 삭제된 상태를 확인했습니다.`
+      :`${pensionContributionTargetObjectLabel(target)} 삭제했습니다.`));
 }
 
 // [PEDIT10] Event Delegation / Keyboard / Native Date Picker · 이벤트 위임 / 키보드 / 네이티브 날짜 선택
