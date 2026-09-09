@@ -481,7 +481,7 @@ function setupUiGlobalEvents(){
   },{passive:true});
 }
 // [UI08] KRX Action Modal · KRX 현재가 반영 모달
-async function dispatchKrxPriceUpdate(pin, mode='selected'){
+async function dispatchKrxPriceUpdate(pin, mode='selected', requestId=''){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
   const selectedDate=dataState.activeDate || '';
   const updateMode=mode==='auto'?'auto':'selected';
@@ -492,7 +492,8 @@ async function dispatchKrxPriceUpdate(pin, mode='selected'){
 
   const body={
     pin:String(pin||'').trim(),
-    action:'updateKrxPrices'
+    action:'updateKrxPrices',
+    requestId:String(requestId||'').trim()
   };
 
   // selected 모드: 재갱신 요청으로 현재 화면 기준일을 body.date에 명시한다.
@@ -557,6 +558,20 @@ function ensureKrxActionModal(){
 let krxActionModalCloseTimer=0;
 let krxActionRequestInFlight=false;
 let krxActionModalSession=0;
+let krxActionRequestIdentity={key:'',id:''};
+function krxActionRequestKey(mode,date){
+  return `${mode==='auto'?'auto':'selected'}|${mode==='auto'?'':String(date||'')}`;
+}
+function getKrxActionRequestId(mode,date){
+  const key=krxActionRequestKey(mode,date);
+  if(krxActionRequestIdentity.key===key&&krxActionRequestIdentity.id)return krxActionRequestIdentity.id;
+  const uuid=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
+  krxActionRequestIdentity={key,id:`krx-update-${uuid}`};
+  return krxActionRequestIdentity.id;
+}
+function resetKrxActionRequestIdentity(){
+  krxActionRequestIdentity={key:'',id:''};
+}
 function clearKrxActionModalCloseTimer(){
   if(!krxActionModalCloseTimer)return;
   clearTimeout(krxActionModalCloseTimer);
@@ -611,6 +626,7 @@ async function submitKrxActionModal(mode='selected'){
   }
   const requestSession=krxActionModalSession;
   const currentSession=()=>requestSession===krxActionModalSession;
+  const requestId=getKrxActionRequestId(updateMode,selectedDate);
   clearKrxActionModalCloseTimer();
   input?.setAttribute('aria-invalid','false');
   krxActionRequestInFlight=true;
@@ -622,15 +638,19 @@ async function submitKrxActionModal(mode='selected'){
         : '최신/누락 KRX 현재가 반영 요청 중...';
       status.className='action-modal-status krx-action-status checking';
     }
-    const data = await dispatchKrxPriceUpdate(pin, updateMode);
+    const data = await dispatchKrxPriceUpdate(pin, updateMode, requestId);
 
-    if(data.action === 'workflow_skipped'){
-      const msg = data.message || '업데이트할 KRX 현재가 데이터가 없습니다.';
+    if(['workflow_skipped','workflow_duplicate_ignored','workflow_in_progress'].includes(data.action)){
+      resetKrxActionRequestIdentity();
+      const msg = data.message || (data.action==='workflow_duplicate_ignored'
+        ? '이미 동일한 KRX 현재가 반영 요청이 접수되었습니다.'
+        : (data.action==='workflow_in_progress'?'KRX 현재가 반영 작업이 이미 진행 중입니다.':'업데이트할 KRX 현재가 데이터가 없습니다.'));
       if(currentSession()&&status){status.textContent=msg;status.className='action-modal-status krx-action-status ok'}
       showAppToast(msg, 'ok', 6500);
       return;
     }
 
+    resetKrxActionRequestIdentity();
     const successMsg=updateMode==='selected'
       ? `${selectedDate} KRX 현재가 재갱신 요청 완료.`
       : '최신/누락 KRX 현재가 반영 요청 완료.';

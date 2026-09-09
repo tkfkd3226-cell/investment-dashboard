@@ -111,6 +111,15 @@ test('KRX 요청은 중복 전송을 막고 재진입 session에서 이전 응�
   assert.match(ui,/krxActionModalCloseTimer=window\.setTimeout\(/);
 });
 
+test('KRX 실패 재시도는 같은 requestId를 재사용하고 성공 후에만 identity를 비운다',()=>{
+  assert.match(ui,/let krxActionRequestIdentity=\{key:'',id:''\};/);
+  assert.match(ui,/function getKrxActionRequestId\(mode,date\)\{/);
+  assert.match(ui,/requestId:String\(requestId\|\|''\)\.trim\(\)/);
+  assert.match(ui,/const requestId=getKrxActionRequestId\(updateMode,selectedDate\);/);
+  assert.match(ui,/dispatchKrxPriceUpdate\(pin, updateMode, requestId\)/);
+  assert.match(ui,/resetKrxActionRequestIdentity\(\);\s*const successMsg=/);
+});
+
 test('퇴직연금 Action PIN은 서버 요청 중 dismiss를 잠그고 실패 시 다시 활성화한다',()=>{
   assert.match(pensionEditor,/let activePensionActionPinSession=null;/);
   assert.match(pensionEditor,/activePensionActionPinSession\?\.finish\(null\);/);
@@ -148,6 +157,11 @@ test('퇴직연금 일괄 저장은 전체 재렌더링 전에 기존 모달 잠
   assert.match(pensionEditor,/pensionEditorState\.batchMode=true;\s*closePensionContributionModal\(\);\s*renderDashboard\?\.\(\);\s*openPensionContributionModal\(\);/);
 });
 
+test('퇴직연금 Batch는 각 작업의 stable operationId를 GAS에 전달하고 삭제 재시도 성공을 로컬에 수렴시킨다',()=>{
+  assert.match(pensionEditor,/operationId:op\.tempId\|\|op\.qid\|\|''/);
+  assert.match(pensionEditor,/data\.duplicate[^]*?이미 삭제된 상태를 확인했습니다/);
+});
+
 test('KRX 갱신은 기준일과 다른 종가·직전값을 숨김 처리하고 자동 성공으로 끝내지 않는다',()=>{
   assert.match(updatePricesPython,/source_dates\[f"SEC:\{ticker\}"\] = actual_date/);
   assert.match(updatePricesPython,/if actual_date != target_date:\s*warnings\.append/);
@@ -164,6 +178,10 @@ test('KRX workflow의 shell 조건문은 각 run step 안에서 완결되어 실
   const verifyBlock=updatePricesWorkflow.slice(verifyStart,commitStart);
   assert.match(updateBlock,/if \[ -n "\$INPUT_DATE" \]; then[^]*?else[^]*?python scripts\/update_prices\.py[^]*?\n\s*fi\s*$/m,'Update step의 if/else/fi가 같은 run block에서 닫혀야 한다');
   assert.doesNotMatch(verifyBlock,/^\s*fi\s*$/m,'Verify step에 앞 step 조건문의 stray fi가 남으면 안 된다');
+});
+
+test('KRX workflow는 같은 branch 생성데이터 갱신을 concurrency로 직렬화한다',()=>{
+  assert.match(updatePricesWorkflow,/concurrency:\s*\n\s*group: update-krx-prices-\$\{\{ github\.ref \}\}\s*\n\s*cancel-in-progress: false/);
 });
 
 test('숨김·경고 KRX 날짜는 다음 자동 실행에서 재수집 대상으로 복구한다',()=>{

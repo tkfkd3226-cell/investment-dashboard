@@ -1154,7 +1154,7 @@ function showPensionBatchStatus(message,type='err'){
 async function savePensionBatchViaGithubPages(operations,pin,batchRequestId){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
   if(!config.url||config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
-  const payload={pin:String(pin||'').trim(),action:'batchPension',batchRequestId:String(batchRequestId||'').trim(),operations:operations.map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null}))};
+  const payload={pin:String(pin||'').trim(),action:'batchPension',batchRequestId:String(batchRequestId||'').trim(),operations:operations.map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null,operationId:op.tempId||op.qid||''}))};
   const res=await fetchWithTimeout(config.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
   const data=await readJsonResponse(res,'작업 모음 일괄 적용');
   if(!data.ok)throw new Error(data.error||'작업 모음 일괄 적용에 실패했습니다.');
@@ -1367,7 +1367,9 @@ async function deleteSelectedPensionContribution(){
   syncPensionContributionDeleteCard(target);
   if(target==='etfTrade') updatePensionEtfTradePreview();
   clearPensionContributionStatus('pensionContribDeleteStatus');
-  showPensionToast(`${pensionContributionTargetObjectLabel(target)} 삭제했습니다.`);
+  showPensionToast(data.duplicate
+    ?`${pensionContributionTargetObjectLabel(target)} 이미 삭제된 상태를 확인했습니다.`
+    :`${pensionContributionTargetObjectLabel(target)} 삭제했습니다.`);
 }
 
 // [PEDIT10] Event Delegation / Keyboard / Native Date Picker · 이벤트 위임 / 키보드 / 네이티브 날짜 선택
