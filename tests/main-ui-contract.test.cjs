@@ -170,7 +170,7 @@ test('현금성자산 단건 저장은 화면 버전 precondition과 durable pen
   assert.match(pensionEditor,/findReusablePendingIdentity\(readPensionPendingIdentityStore\(\)\.single,fingerprint\)/);
   assert.match(pensionEditor,/prepared\.expectedVersion=pensionCashSnapshotVersion\(current\)/);
   assert.match(pensionEditor,/prepared\.expectedAbsent=true/);
-  assert.match(pensionEditor,/\{\.\.\.prepared,requestId:pensionEditorState\.singleSaveId\}/);
+  assert.match(pensionEditor,/\{\.\.\.prepared,requestId:pensionEditorState\.singleSaveId,logicalOperationId:pensionEditorState\.singleSaveId\}/);
   assert.match(pensionEditor,/upsertPensionPendingSingle\(saveFingerprint,saveIdentity,\{status:'sent',payload:saveItem\}\)/);
   assert.match(pensionEditor,/markPensionPendingSingleStatus\(saveFingerprint,saveIdentity,'uncertain',saveItem\)/);
   assert.match(pensionEditor,/clearPensionPendingSingle\(saveFingerprint,saveIdentity\)/);
@@ -183,8 +183,8 @@ test('퇴직연금 Batch cash 작업은 initial snapshot precondition과 reload 
   assert.match(pensionEditor,/op\.expectedAbsent=true/);
   assert.match(pensionEditor,/expectedVersion:String\(op\.expectedVersion\|\|''\),expectedAbsent:op\.expectedAbsent===true/);
   assert.match(pensionEditor,/findPendingBatchIdentity\(signature\)/);
-  assert.match(pensionEditor,/persistPendingBatchIdentity\(batchSignature,batchRequestId,pensionEditorState\.batchQueue,\{status:'sent',payloadOperations:batchPayloadOperations\}\)/);
-  assert.match(pensionEditor,/markPendingBatchIdentityStatus\(batchSignature,batchRequestId,'uncertain',batchPayloadOperations\)/);
+  assert.match(pensionEditor,/persistPendingBatchIdentity\(batchSignature,batchRequestId,pensionEditorState\.batchQueue,\{status:'sent',payloadOperations:batchPayloadOperations,allowDistinct:pensionEditorState\.batchPendingAllowDistinct\}\)/);
+  assert.match(pensionEditor,/markPendingBatchIdentityStatus\(batchSignature,batchRequestId,'uncertain',batchPayloadOperations,pensionEditorState\.batchPendingAllowDistinct\)/);
   assert.match(pensionEditor,/clearPendingBatchIdentity\(batchSignature,batchRequestId\)/);
   assert.match(pensionEditor,/payloadOperations:payloadOperations\|\|prior\?\.payloadOperations\|\|null/);
   assert.doesNotMatch(pensionEditor,/function pensionBatchOperationFingerprint\(operation\)\{[^]*?const precondition=/);
@@ -195,6 +195,16 @@ test('퇴직연금 Batch cash 작업은 initial snapshot precondition과 reload 
   assert.match(pensionEditor,/if\(pending\?\.id&&pending\?\.payload\)\{[^]*?return \{\.\.\.pensionEditorState\.singleSavePayload\}/);
   assert.match(pensionEditor,/pensionEditorState\.batchPendingOperations=Array\.isArray\(pending\.payloadOperations\)/);
   assert.match(pensionEditor,/const batchPayloadOperations=Array\.isArray\(pensionEditorState\.batchPendingOperations\)/);
+});
+
+
+
+test('퇴직연금 cross-device 동일 내용은 자동 dedupe하지 않고 logical token + 명시적 별도 저장 확인으로 분기한다',()=>{
+  assert.match(pensionEditor,/logicalOperationId:String\(op\.logicalOperationId\|\|op\.operationId\|\|op\.tempId\|\|op\.qid\|\|''\)/);
+  assert.match(pensionEditor,/requiresDuplicateConfirmation===true/);
+  assert.match(pensionEditor,/allowDistinct:true/);
+  assert.match(pensionEditor,/실제 별도 .*새로 저장/);
+  assert.match(pensionEditor,/batchPendingAllowDistinct=true/);
 });
 
 test('현금성자산 단건 삭제는 stable deleteRequestId와 화면 snapshot 버전을 함께 전송한다',()=>{

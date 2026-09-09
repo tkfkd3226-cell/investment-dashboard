@@ -56,6 +56,7 @@ const pensionEditorState={
   batchApplying:false,
   batchRequestId:'',
   batchPendingOperations:null,
+  batchPendingAllowDistinct:false,
   singleSaveFingerprint:'',
   singleSaveId:'',
   singleSavePayload:null,
@@ -139,18 +140,18 @@ function findPendingBatchIdentity(signature){
   const store=readPensionPendingIdentityStore();
   return findReusablePendingIdentity(store.batch,signature);
 }
-function persistPendingBatchIdentity(signature,batchRequestId,operations,{status='sent',payloadOperations=null}={}){
+function persistPendingBatchIdentity(signature,batchRequestId,operations,{status='sent',payloadOperations=null,allowDistinct=false}={}){
   const store=readPensionPendingIdentityStore();
   const now=Date.now(),sessionId=pensionClientSessionId();
   const prior=[...(store.batch||[])].reverse().find(v=>String(v?.fingerprint||'')===String(signature||'')&&String(v?.batchRequestId||'')===String(batchRequestId||''))||null;
   store.batch=store.batch.filter(v=>String(v?.fingerprint||'')!==String(signature||''));
-  store.batch.push({fingerprint:signature,batchRequestId,operationIds:(operations||[]).map(v=>String(v.tempId||v.qid||v.operationId||'')),payloadOperations:payloadOperations||prior?.payloadOperations||null,ownerSessionId:sessionId,status,sentAt:status==='sent'?now:Number(prior?.sentAt||0),savedAt:now});
+  store.batch.push({fingerprint:signature,batchRequestId,operationIds:(operations||[]).map(v=>String(v.tempId||v.qid||v.operationId||'')),payloadOperations:payloadOperations||prior?.payloadOperations||null,allowDistinct:allowDistinct===true||prior?.allowDistinct===true,ownerSessionId:sessionId,status,sentAt:status==='sent'?now:Number(prior?.sentAt||0),savedAt:now});
   writePensionPendingIdentityStore(store);
 }
-function markPendingBatchIdentityStatus(signature,batchRequestId,status,payloadOperations=null){
+function markPendingBatchIdentityStatus(signature,batchRequestId,status,payloadOperations=null,allowDistinct=false){
   const store=readPensionPendingIdentityStore();
   const now=Date.now();
-  store.batch=store.batch.map(v=>String(v?.fingerprint||'')===String(signature||'')&&String(v?.batchRequestId||'')===String(batchRequestId||'')?{...v,status,payloadOperations:payloadOperations||v.payloadOperations||null,sentAt:v.sentAt||now,savedAt:now}:v);
+  store.batch=store.batch.map(v=>String(v?.fingerprint||'')===String(signature||'')&&String(v?.batchRequestId||'')===String(batchRequestId||'')?{...v,status,payloadOperations:payloadOperations||v.payloadOperations||null,allowDistinct:allowDistinct===true||v.allowDistinct===true,sentAt:v.sentAt||now,savedAt:now}:v);
   writePensionPendingIdentityStore(store);
 }
 function clearPendingBatchIdentity(signature,batchRequestId){
@@ -1202,6 +1203,7 @@ function preparePensionBatchCashPrecondition(operation){
 function resetPensionBatchRequestId(){
   pensionEditorState.batchRequestId='';
   pensionEditorState.batchPendingOperations=null;
+  pensionEditorState.batchPendingAllowDistinct=false;
 }
 function getPensionBatchRequestId(){
   if(pensionEditorState.batchRequestId)return pensionEditorState.batchRequestId;
@@ -1211,6 +1213,7 @@ function getPensionBatchRequestId(){
     pensionEditorState.batchQueue.forEach((op,index)=>{if(pending.operationIds[index])op.tempId=pending.operationIds[index]});
     pensionEditorState.batchRequestId=String(pending.batchRequestId);
     pensionEditorState.batchPendingOperations=Array.isArray(pending.payloadOperations)?pending.payloadOperations.map(v=>({...v,item:v?.item?{...v.item}:v?.item})):null;
+    pensionEditorState.batchPendingAllowDistinct=pending.allowDistinct===true;
     return pensionEditorState.batchRequestId;
   }
   const uuid=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
@@ -1234,7 +1237,8 @@ function addPensionBatchOperation(operation){
   const fingerprint=pensionBatchOperationFingerprint(operation);
   if(fingerprint&&fingerprint===pensionEditorState.batchLastAddFingerprint&&now-pensionEditorState.batchLastAddAt<800)throw pensionBatchDuplicateError('이미 추가된 작업입니다.','PENSION_BATCH_DUPLICATE');
   const nextSequence=pensionEditorState.batchSequence+1;
-  const op={...operation,qid:`batch-${now}-${nextSequence}`,tempId:`batch-temp-${now}-${nextSequence}`};
+  const operationUuid=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')?crypto.randomUUID():`${now}-${nextSequence}-${Math.random().toString(36).slice(2,10)}`;
+  const op={...operation,qid:`batch-${now}-${nextSequence}`,tempId:`batch-temp-${now}-${nextSequence}`,logicalOperationId:String(operation.logicalOperationId||`batch-logical-${operationUuid}`)};
   if(op.action==='delete'&&pensionEditorState.batchQueue.some(v=>v.action==='delete'&&v.target===op.target&&String(v.key)===String(op.key)))throw pensionBatchDuplicateError('이미 추가된 삭제 항목입니다.','PENSION_BATCH_DUPLICATE_DELETE');
   pensionBatchSimulate([...pensionEditorState.batchQueue,op]);
   pensionEditorState.batchSequence=nextSequence;
@@ -1283,12 +1287,12 @@ function showPensionBatchStatus(message,type='err'){
   setPensionContributionStatus('pensionBatchStatus',message,type);
 }
 function serializePensionBatchOperations(operations){
-  return (operations||[]).map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null,operationId:op.operationId||op.tempId||op.qid||'',expectedVersion:String(op.expectedVersion||''),expectedAbsent:op.expectedAbsent===true}));
+  return (operations||[]).map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null,operationId:op.operationId||op.tempId||op.qid||'',logicalOperationId:String(op.logicalOperationId||op.operationId||op.tempId||op.qid||''),expectedVersion:String(op.expectedVersion||''),expectedAbsent:op.expectedAbsent===true}));
 }
-async function savePensionBatchViaGithubPages(payloadOperations,pin,batchRequestId){
+async function savePensionBatchViaGithubPages(payloadOperations,pin,batchRequestId,allowDistinct=false){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
   if(!config.url||config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
-  const payload={pin:String(pin||'').trim(),action:'batchPension',batchRequestId:String(batchRequestId||'').trim(),operations:serializePensionBatchOperations(payloadOperations)};
+  const payload={pin:String(pin||'').trim(),action:'batchPension',batchRequestId:String(batchRequestId||'').trim(),operations:serializePensionBatchOperations(payloadOperations),allowDistinct:allowDistinct===true};
   const res=await fetchWithTimeout(config.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
   const data=await readJsonResponse(res,'작업 모음 일괄 적용');
   if(!data.ok)throw new Error(data.error||'작업 모음 일괄 적용에 실패했습니다.');
@@ -1319,17 +1323,42 @@ async function applyPensionBatchQueue(renderDashboard){
   renderPensionBatchQueue();
   try{
     clearPensionContributionStatus('pensionBatchStatus');
-    const data=await requestPensionActionPin({
+    let data=await requestPensionActionPin({
       title:'작업 모음 일괄 적용',
       description:`저장·삭제 ${count}건을 한 번에 적용합니다. 하나라도 실패하면 전체 작업을 반영하지 않습니다.`,
       execute:async pin=>{
         batchAttempted=true;
-        persistPendingBatchIdentity(batchSignature,batchRequestId,pensionEditorState.batchQueue,{status:'sent',payloadOperations:batchPayloadOperations});
-        try{return await savePensionBatchViaGithubPages(batchPayloadOperations,pin,batchRequestId)}
-        catch(e){markPendingBatchIdentityStatus(batchSignature,batchRequestId,'uncertain',batchPayloadOperations);throw e}
+        persistPendingBatchIdentity(batchSignature,batchRequestId,pensionEditorState.batchQueue,{status:'sent',payloadOperations:batchPayloadOperations,allowDistinct:pensionEditorState.batchPendingAllowDistinct});
+        try{return await savePensionBatchViaGithubPages(batchPayloadOperations,pin,batchRequestId,pensionEditorState.batchPendingAllowDistinct)}
+        catch(e){markPendingBatchIdentityStatus(batchSignature,batchRequestId,'uncertain',batchPayloadOperations,pensionEditorState.batchPendingAllowDistinct);throw e}
       }
     });
     if(!data){if(!batchAttempted)clearPendingBatchIdentity(batchSignature,batchRequestId);return}
+    if(data.requiresDuplicateConfirmation===true){
+      const distinct=window.confirm('동일한 내용의 작업 모음이 이미 반영된 것으로 보입니다.\n\n확인: 실제 별도 작업 모음으로 새로 실행\n취소: 응답 유실 재시도로 보고 기존 처리 유지');
+      if(!distinct){
+        if(data.fullMatch===false){
+          markPendingBatchIdentityStatus(batchSignature,batchRequestId,'uncertain',batchPayloadOperations,false);
+          showPensionBatchStatus('작업 모음 일부가 기존 기록과 겹칩니다. 최신 데이터를 새로고침해 확인한 뒤, 실제 별도 작업이면 다시 실행해주세요.','err');
+          return;
+        }
+        clearPendingBatchIdentity(batchSignature,batchRequestId);
+        data={ok:true,action:'batch_duplicate_user_confirmed',duplicate:true,state:null,message:'기존 작업 모음이 이미 반영된 것으로 확인했습니다.'};
+      }else{
+        pensionEditorState.batchPendingAllowDistinct=true;
+        const distinctData=await requestPensionActionPin({
+          title:'별도 작업 모음 확인',
+          description:'동일 내용의 기존 기록이 있지만 실제 별도 작업으로 실행합니다. 다시 인증해주세요.',
+          execute:async pin=>{
+            persistPendingBatchIdentity(batchSignature,batchRequestId,pensionEditorState.batchQueue,{status:'sent',payloadOperations:batchPayloadOperations,allowDistinct:true});
+            try{return await savePensionBatchViaGithubPages(batchPayloadOperations,pin,batchRequestId,true)}
+            catch(e){markPendingBatchIdentityStatus(batchSignature,batchRequestId,'uncertain',batchPayloadOperations,true);throw e}
+          }
+        });
+        if(!distinctData)return;
+        data=distinctData;
+      }
+    }
     clearPendingBatchIdentity(batchSignature,batchRequestId);
     const duplicateWithoutState=!!data.duplicate&&!data.state;
     if(!duplicateWithoutState)applyPensionBatchStateLocally(data.state);
@@ -1420,13 +1449,13 @@ function preparePensionSingleSaveItem(item){
     const id=`${prefix}-${date}${suffix}-${uuid}`;
     pensionEditorState.singleSaveFingerprint=fingerprint;
     pensionEditorState.singleSaveId=id;
-    pensionEditorState.singleSavePayload=item.target==='cashSnapshot'?{...prepared,requestId:id}:{...prepared,id:id};
+    pensionEditorState.singleSavePayload=item.target==='cashSnapshot'?{...prepared,requestId:id,logicalOperationId:id}:{...prepared,id:id,logicalOperationId:id};
     return {...pensionEditorState.singleSavePayload};
   }
 
   if(pensionEditorState.singleSavePayload)return {...pensionEditorState.singleSavePayload};
   const prepared={...item};
-  const payload=item.target==='cashSnapshot'?{...prepared,requestId:pensionEditorState.singleSaveId}:{...prepared,id:pensionEditorState.singleSaveId};
+  const payload=item.target==='cashSnapshot'?{...prepared,requestId:pensionEditorState.singleSaveId,logicalOperationId:pensionEditorState.singleSaveId}:{...prepared,id:pensionEditorState.singleSaveId,logicalOperationId:pensionEditorState.singleSaveId};
   pensionEditorState.singleSavePayload=payload;
   return {...payload};
 }
@@ -1481,7 +1510,7 @@ async function savePensionContribution(){
     let saveAttempted=false;
     clearPensionContributionStatus('pensionContribStatus');
     showPensionContributionOutput(item);
-    const data=await requestPensionActionPin({
+    let data=await requestPensionActionPin({
       title:`${targetText} 저장`,
       description:pensionSavePinDescription(item),
       execute:async pin=>{
@@ -1495,6 +1524,25 @@ async function savePensionContribution(){
       if(!saveAttempted)clearPensionPendingSingle(saveFingerprint,saveIdentity);
       clearPensionContributionOutput();
       return;
+    }
+    if(data.requiresDuplicateConfirmation===true){
+      const distinct=window.confirm(`동일한 내용의 기존 ${pensionContributionTargetObjectLabel(item.target)} 기록이 있습니다.\n\n확인: 실제 별도 ${pensionContributionTargetObjectLabel(item.target)}으로 새로 저장\n취소: 응답 유실 재시도로 보고 기존 기록 유지`);
+      if(!distinct){
+        data={ok:true,action:'duplicate_user_confirmed',duplicate:true,item:data.duplicateCandidate||null,message:'기존 기록이 이미 반영된 것으로 확인했습니다.'};
+      }else{
+        const distinctPayload={...saveItem,allowDistinct:true};
+        const distinctData=await requestPensionActionPin({
+          title:`${targetText} 별도 저장 확인`,
+          description:'동일 내용의 기존 기록과 별개의 실제 거래/적립금으로 저장합니다. 다시 인증해주세요.',
+          execute:async pin=>{
+            upsertPensionPendingSingle(saveFingerprint,saveIdentity,{status:'sent',payload:distinctPayload});
+            try{return await savePensionContributionViaGithubPages(distinctPayload,pin)}
+            catch(e){markPensionPendingSingleStatus(saveFingerprint,saveIdentity,'uncertain',distinctPayload);throw e}
+          }
+        });
+        if(!distinctData)return;
+        data=distinctData;
+      }
     }
     clearPensionPendingSingle(saveFingerprint,saveIdentity);
     if(data.item){

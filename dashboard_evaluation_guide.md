@@ -1112,8 +1112,8 @@ GAS가 함께 제공된 집중 평가에서는 다음 causal contract를 별도�
 - request별 direct Script Properties가 단일 9KB뿐 아니라 전체 저장량 관점에서도 bounded GC를 가지는가
 - KRX dispatch가 `intent → workflow_dispatch → receipt` 경계를 사용하고 receipt/응답 유실 뒤 같은 requestId를 재-dispatch하지 않는가
 - KRX가 `branch + date/mode` in-flight operation을 별도로 추적하고 workflow custom run-name + queued/running 조회를 사용해 새 requestId의 동일 작업 중복 dispatch도 막는가
-- 브라우저 pending identity를 공유하지 못하는 다른 기기/새 세션에서 응답유실 요청이 **새 requestId/batchRequestId**로 들어와도 GAS가 최근 GitHub item/Batch의 semantic effect를 짧은 보호창에서 확인해 `duplicate_recent_ignored`/`batch_duplicate_recent_ignored`로 수렴하는가. 동일 내용의 실제 별도 ETF 거래를 영구 content-dedupe하지 않고 보호창/메모 구분으로 escape path를 유지하는가
-- Batch pre-commit 실패 뒤 README/CSS 같은 무관 commit만 발생했을 때 branch HEAD 차이만으로 false stale 처리하지 않고 semantic dependency fingerprint가 같으면 최신 HEAD 기준 retry를 계속하는가. 단건/Batch가 **확정 pre-commit 실패**했고 target/dependency가 그대로인 경우 예약 mutation epoch와 intent를 rollback하여 `실패 A → 실패 B → A retry`가 false stale이 되지 않는가
+- 브라우저 pending identity를 공유하지 못하는 다른 기기/새 세션에서 응답유실 요청이 **새 requestId/batchRequestId**로 들어올 때, GAS가 동일 semantic 후보를 자동 dedupe하지 않고 `duplicate_confirmation_required`/`batch_duplicate_confirmation_required`로 반환하는가. 동일 내용의 실제 별도 ETF 거래와 같은 값의 새 cash causal anchor는 `allowDistinct=true` 확인 후 정상 반영되고, 응답유실 재시도는 기존 처리 선택으로 mutation 없이 종료되는가. 같은 requestId+다른 내용은 semantic 후보 검사보다 receipt/intent identity conflict가 먼저 평가되는가
+- Batch pre-commit 실패 뒤 README/CSS 같은 무관 commit만 발생했을 때 branch HEAD 차이만으로 false stale 처리하지 않고 semantic dependency fingerprint가 같으면 최신 HEAD 기준 retry를 계속하는가. 단건/Batch가 **확정 pre-commit 실패**했고 target/dependency가 그대로인 경우 intent를 지우지 않고 retryable tombstone으로 전환하면서 예약 mutation epoch만 rollback하여 `실패 A → 실패 B → A retry`는 복구하고 `실패 A → B 성공 → A retry`는 stale로 차단하는가
 - KRX workflow가 managed output뿐 아니라 `portfolio.json`·updater·requirements·workflow 같은 generation input의 checkout 이후 변경도 fail-closed하는가
 - workflow concurrency가 pending 요청을 교체 취소하지 않도록 queue contract를 명시하는가
 
