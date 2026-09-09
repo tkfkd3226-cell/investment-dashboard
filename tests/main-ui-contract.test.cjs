@@ -183,8 +183,10 @@ test('퇴직연금 Batch cash 작업은 initial snapshot precondition과 reload 
   assert.match(pensionEditor,/op\.expectedAbsent=true/);
   assert.match(pensionEditor,/expectedVersion:String\(op\.expectedVersion\|\|''\),expectedAbsent:op\.expectedAbsent===true/);
   assert.match(pensionEditor,/findPendingBatchIdentity\(signature\)/);
-  assert.match(pensionEditor,/persistPendingBatchIdentity\(batchSignature,batchRequestId,pensionEditorState\.batchQueue,\{status:'sent',payloadOperations:batchPayloadOperations,allowDistinct:pensionEditorState\.batchPendingAllowDistinct\}\)/);
-  assert.match(pensionEditor,/markPendingBatchIdentityStatus\(batchSignature,batchRequestId,'uncertain',batchPayloadOperations,pensionEditorState\.batchPendingAllowDistinct\)/);
+  assert.match(pensionEditor,/persistPendingBatchIdentity\(batchSignature,batchRequestId,pensionEditorState\.batchQueue,\{status:'sent',payloadOperations:batchPayloadOperations\}\)/);
+  assert.match(pensionEditor,/markPendingBatchIdentityStatus\(batchSignature,batchRequestId,'uncertain',batchPayloadOperations\)/);
+  assert.match(pensionEditor,/confirmationToken=String\(confirmation\.token\)/);
+  assert.match(pensionEditor,/confirmationDecision=String\(confirmation\.decision\)/);
   assert.match(pensionEditor,/clearPendingBatchIdentity\(batchSignature,batchRequestId\)/);
   assert.match(pensionEditor,/payloadOperations:payloadOperations\|\|prior\?\.payloadOperations\|\|null/);
   assert.doesNotMatch(pensionEditor,/function pensionBatchOperationFingerprint\(operation\)\{[^]*?const precondition=/);
@@ -199,22 +201,29 @@ test('퇴직연금 Batch cash 작업은 initial snapshot precondition과 reload 
 
 
 
-test('퇴직연금 cross-device 동일 내용은 자동 dedupe하지 않고 logical token + 명시적 별도 저장 확인으로 분기한다',()=>{
+test('퇴직연금 cross-device 동일 내용은 state-bound confirmation token으로 기존 처리/별도 mutation을 서버에서 재확인한다',()=>{
   assert.match(pensionEditor,/logicalOperationId:String\(op\.logicalOperationId\|\|op\.operationId\|\|op\.tempId\|\|op\.qid\|\|''\)/);
   assert.match(pensionEditor,/requiresDuplicateConfirmation===true/);
-  assert.match(pensionEditor,/allowDistinct:true/);
-  assert.match(pensionEditor,/실제 별도 .*새로 저장/);
-  assert.match(pensionEditor,/batchPendingAllowDistinct=true/);
+  assert.match(pensionEditor,/confirmationToken:String\(data\.confirmationToken\|\|''\)/);
+  assert.match(pensionEditor,/confirmationDecision:decision/);
+  assert.match(pensionEditor,/decision=distinct\?'distinct':'existing'/);
+  assert.doesNotMatch(pensionEditor,/allowDistinct:true/);
+  assert.doesNotMatch(pensionEditor,/batchPendingAllowDistinct/);
 });
 
-test('현금성자산 단건 삭제는 stable deleteRequestId와 화면 snapshot 버전을 함께 전송한다',()=>{
-  assert.match(pensionEditor,/singleDeleteFingerprint:'',\s*singleDeleteId:''/);
+test('퇴직연금 단건 삭제는 모든 target에서 durable pending logicalOperationId를 유지하고 cash만 snapshot version을 추가한다',()=>{
+  assert.match(pensionEditor,/singleDeleteFingerprint:'',\s*singleDeleteId:'',\s*singleDeletePayload:null/);
   assert.match(pensionEditor,/function pensionCashSnapshotVersion\(item\)\{/);
-  assert.match(pensionEditor,/function preparePensionSingleDeleteContext\(target,key,item\)\{/);
-  assert.match(pensionEditor,/deleteRequestId:pensionEditorState\.singleDeleteId,expectedVersion/);
+  assert.match(pensionEditor,/const fingerprint=`\$\{String\(target\|\|''\)\}-delete\|\$\{String\(key\|\|''\)\}`/);
+  assert.match(pensionEditor,/findReusablePendingIdentity\(readPensionPendingIdentityStore\(\)\.single,fingerprint\)/);
+  assert.match(pensionEditor,/const payload=\{deleteRequestId:id,logicalOperationId:id\}/);
+  assert.match(pensionEditor,/if\(target==='cashSnapshot'\)\{[^]*?payload\.expectedVersion=expectedVersion/);
   assert.match(pensionEditor,/payload\.deleteRequestId=String\(deleteContext\.deleteRequestId\|\|''\)\.trim\(\)/);
-  assert.match(pensionEditor,/payload\.expectedVersion=String\(deleteContext\.expectedVersion\|\|''\)\.trim\(\)/);
-  assert.match(pensionEditor,/if\(!data\.stale\)\{\s*removePensionItemLocally\(target,key\)/);
+  assert.match(pensionEditor,/payload\.logicalOperationId=String\(deleteContext\.logicalOperationId\|\|deleteContext\.deleteRequestId\|\|''\)\.trim\(\)/);
+  assert.match(pensionEditor,/upsertPensionPendingSingle\(deleteFingerprint,deleteIdentity,\{status:'sent',payload:deleteContext\}\)/);
+  assert.match(pensionEditor,/if\(data\.requiresDuplicateConfirmation===true\)\{/);
+  assert.match(pensionEditor,/confirmationToken:String\(data\.confirmationToken\|\|''\)/);
+  assert.match(pensionEditor,/clearPensionPendingSingle\(deleteFingerprint,deleteIdentity\)/);
   assert.match(pensionEditor,/오래된 삭제 재시도는 최신 상태에 다시 적용하지 않았습니다/);
 });
 
@@ -250,6 +259,12 @@ test('KRX workflow는 같은 branch 생성데이터를 직렬화하고 pending �
 
 test('KRX workflow run-name은 date/mode와 requestId를 노출해 GAS가 queued/running 동일 작업을 식별할 수 있다',()=>{
   assert.match(updatePricesWorkflow,/run-name: KRX update \$\{\{ inputs\.date \|\| 'auto' \}\} · \$\{\{ inputs\.request_id \|\| 'manual' \}\}/);
+});
+
+test('KRX workflow_dispatch는 request_id input을 받아 run-name 식별자가 서버 run ID 추적과 함께 유지될 수 있다',()=>{
+  assert.match(updatePricesWorkflow,/workflow_dispatch:[^]*?request_id:/);
+  assert.match(updatePricesWorkflow,/run-name:\s*KRX update/);
+  assert.match(updatePricesWorkflow,/inputs\.request_id/);
 });
 
 test('KRX workflow는 다른 branch commit과 push가 경합해도 최신 remote에 rebase 후 제한 재시도한다',()=>{

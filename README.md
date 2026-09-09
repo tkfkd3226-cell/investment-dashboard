@@ -196,6 +196,8 @@ investment-dashboard/
 │  ├─ account1_daily_snapshots.json
 │  ├─ pension_contributions.json
 │  ├─ pension_cash_snapshots.json
+│  ├─ pension_operation_ledger.json   # v6 cash legacy history, read-only fallback
+│  ├─ pension_operation_ledger/       # v7 semantic-hash shard, 필요 시 00~ff.json 생성
 │  └─ pension_trades.json
 │
 ├─ img/
@@ -267,6 +269,8 @@ JavaScript dependency/state ownership, CSS cascade, responsive 예외, Main UI c
 | `data/account1_daily_snapshots.json` | 증권계좌 일별 복원 데이터 |
 | `data/pension_contributions.json` | 퇴직연금 적립·조정 데이터 |
 | `data/pension_cash_snapshots.json` | 퇴직연금 현금성자산 스냅샷 |
+| `data/pension_operation_ledger.json` | v6 cash operation legacy history의 read-only fallback |
+| `data/pension_operation_ledger/*.json` | 모든 Pension upsert/delete logical operation의 durable shard history. semantic hash 앞 2자리로 직접 조회하며 800건 ring buffer를 사용하지 않음 |
 | `data/pension_trades.json` | 퇴직연금 거래 이력 |
 
 대시보드는 이 데이터를 결합해 선택 날짜의 계좌 상태와 성과를 계산합니다.
@@ -281,6 +285,7 @@ JavaScript dependency/state ownership, CSS cascade, responsive 예외, Main UI c
 data/prices.json
 data/performance_snapshots.json
 data/pension_contributions.json
+data/pension_operation_ledger/*.json  # GAS가 생성·갱신하는 operation history shard
 ```
 
 코드 수정 패치는 원칙적으로 변경된 소스만 포함하고, 운영 JSON은 필요한 작업이 아닌 경우 함께 덮어쓰지 않습니다.
@@ -293,7 +298,7 @@ data/pension_contributions.json
 
 퇴직연금 저장과 KRX 갱신 요청은 GitHub 저장소와 별도로 운영되는 Google Apps Script Web App을 사용합니다. 브라우저가 저장소에 직접 write하지 않으며, 운영 인증값과 GitHub 연동 정보도 프런트엔드 파일에 직접 두지 않습니다.
 
-쓰기 요청은 네트워크 응답 유실 뒤 재시도해도 중복 데이터나 과거 상태 재적용이 생기지 않도록 요청 identity와 최근 처리 receipt/intent를 유지합니다. 퇴직연금 단건 저장은 현금성자산 `requestId` 및 기업적립금·ETF의 client-generated ID를 재사용하고, request intent에 단조 증가 `PENSION_MUTATION_EPOCH`을 함께 저장합니다. 응답이 확정되기 전 single/batch pending store는 PIN 같은 비밀값 없이 **logical fingerprint와 최초 전송 payload 자체**를 브라우저 `localStorage`에 짧은 TTL로 보존합니다. logical fingerprint에는 `expectedVersion`/`expectedAbsent` 같은 서버 precondition을 넣지 않으므로 저장 성공 뒤 state가 바뀌어도 reload가 같은 logical 요청을 알아볼 수 있고, 재시도 시에는 최신 화면 상태로 payload를 재조립하지 않고 최초 requestId·operationId·precondition을 그대로 재전송합니다. 현금성자산 upsert/delete와 Batch cash operation은 화면이 본 `expectedVersion` 또는 신규 생성용 `expectedAbsent`를 사용해 stale-view mutation을 거부합니다. 다른 탭/기기처럼 브라우저 pending identity를 공유할 수 없는 경우에는 **동일 내용만으로 retry와 실제 별도 거래를 자동 판정하지 않습니다.** contribution/ETF 또는 동일 Batch effect 후보가 있으면 GAS가 mutation 전에 `duplicate_confirmation_required` / `batch_duplicate_confirmation_required`를 반환하고, 사용자가 **기존 처리로 볼지 / 실제 별도 거래·작업으로 실행할지** 명시적으로 선택합니다. `logicalOperationId`는 GitHub item에도 보존되어 동일 logical token은 안전한 duplicate로 수렴하고, 내용이 같아도 별도 ETF 체결은 `allowDistinct=true` 확인 후 정상 저장됩니다. cashSnapshot은 같은 평가금액이어도 새로운 `afterContributionIds`/`afterTradeIds` causal anchor가 될 수 있으므로 **같은 값이라는 이유로 자동 dedupe하지 않습니다.** 기존 같은 값 snapshot과 겹치면 duplicate confirmation을 거쳐, 기존 요청이면 mutation 없이 종료하고 새 causal anchor라면 `allowDistinct=true`로 정상 갱신합니다. Git blob SHA는 causal version으로 사용하지 않고 target 외부 변경 감지의 보조 guard로만 쓰며, 확정 pre-commit 실패로 target/dependency가 전혀 바뀌지 않은 것이 확인되면 intent를 삭제하지 않고 **retryable tombstone**으로 전환하며 예약 epoch만 되돌립니다. tombstone에는 당시 dependency hash와 rollback 후 epoch를 보존해 `A 실패 → B 실패 → A retry`는 복구하되 `A 실패 → B 성공 → A retry`는 stale로 차단합니다. Batch는 `batchRequestId` + 작업별 `operationId`·Pension epoch·semantic dependency fingerprint를 함께 사용하고, receipt/cache 유실 복구 시 cashSnapshot은 날짜별 마지막 operation의 최종 효과를 기준으로 이미 반영된 Batch인지 판단합니다.
+쓰기 요청은 네트워크 응답 유실 뒤 재시도해도 중복 데이터나 과거 상태 재적용이 생기지 않도록 요청 identity와 최근 처리 receipt/intent를 유지합니다. 퇴직연금 단건 저장은 현금성자산 `requestId` 및 기업적립금·ETF의 client-generated ID를 재사용하고, request intent에 단조 증가 `PENSION_MUTATION_EPOCH`을 함께 저장합니다. 응답이 확정되기 전 single/batch pending store는 PIN 같은 비밀값 없이 **logical fingerprint와 최초 전송 payload 자체**를 브라우저 `localStorage`에 짧은 TTL로 보존합니다. logical fingerprint에는 `expectedVersion`/`expectedAbsent` 같은 서버 precondition을 넣지 않으므로 저장 성공 뒤 state가 바뀌어도 reload가 같은 logical 요청을 알아볼 수 있고, 재시도 시에는 최신 화면 상태로 payload를 재조립하지 않고 최초 requestId·operationId·precondition을 그대로 재전송합니다. 현금성자산 upsert/delete와 Batch cash operation은 화면이 본 `expectedVersion` 또는 신규 생성용 `expectedAbsent`를 사용해 stale-view mutation을 거부합니다. 다른 탭/기기처럼 브라우저 pending identity를 공유할 수 없는 경우에는 **동일 내용만으로 retry와 실제 별도 거래를 자동 판정하지 않습니다.** contribution/ETF 또는 동일 Batch effect 후보가 있으면 GAS가 mutation 전에 `duplicate_confirmation_required` / `batch_duplicate_confirmation_required`를 반환합니다. 확인은 단순 boolean 우회가 아니라 GAS가 발급한 **state-bound confirmation token**으로 처리하며, token은 현재 Pension epoch·semantic dependency fingerprint·확인 후보에 묶입니다. 따라서 확인창을 띄운 뒤 다른 mutation이 들어오면 오래된 token은 `confirmation_stale`로 거부됩니다. 사용자의 **기존 처리** 선택도 서버에 다시 전송해 후보가 여전히 존재하는지 재확인하며, **실제 별도 거래·작업**도 같은 token 검증을 통과한 경우에만 새 mutation으로 진행합니다. `logicalOperationId`는 GitHub item에도 보존됩니다. 현재 resource가 overwrite/delete되면 과거 operation 흔적이 사라질 수 있으므로 **cashSnapshot·contribution·etfTrade의 모든 upsert/delete**를 `data/pension_operation_ledger/<semantic-hash-prefix>.json` shard에 기록하고 대상 JSON과 **같은 Git commit으로 원자 반영**합니다. shard는 semantic hash 앞 2자리(00~ff)로 바로 찾고 800건 ring buffer를 두지 않아 `저장 성공/응답유실 → 정상 삭제 → 다른 기기에서 과거 저장 재시도`와 오래된 cash rollback/delete history가 rollover로 사라지지 않습니다. v6의 `data/pension_operation_ledger.json`은 cash legacy history의 read-only fallback으로만 읽습니다. 동일 내용의 실제 별도 거래나 같은 평가금액의 새 cash causal anchor는 state-bound confirmation token을 거쳐 새 logical operation으로 정상 저장할 수 있습니다. Git blob SHA는 causal version으로 사용하지 않고 target 외부 변경 감지의 보조 guard로만 쓰며, 확정 pre-commit 실패로 target/dependency가 전혀 바뀌지 않은 것이 확인되면 intent를 삭제하지 않고 **retryable tombstone**으로 전환하며 예약 epoch만 되돌립니다. tombstone에는 당시 dependency hash와 rollback 후 epoch를 보존해 `A 실패 → B 실패 → A retry`는 복구하되 `A 실패 → B 성공 → A retry`는 stale로 차단합니다. Batch는 `batchRequestId` + 작업별 `operationId`·Pension epoch·semantic dependency fingerprint를 함께 사용하고, receipt/cache 유실 복구 시 cashSnapshot은 날짜별 마지막 operation의 최종 효과를 기준으로 이미 반영된 Batch인지 판단합니다.
 
 ### 7.2 KRX 갱신
 
