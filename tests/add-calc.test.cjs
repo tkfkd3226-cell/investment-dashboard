@@ -68,6 +68,20 @@ test('validate: 목표단가 × 매도수량이 안전 정수 범위를 넘으�
   assert.ok(result.errors.some(message=>message.includes('목표 매도금액')));
 });
 
+test('validate: 이전 확정손실을 합친 자동 통합 회복금액도 결과 계산 전에 차단한다',()=>{
+  const input={
+    ...settledWithPrior,
+    existingShares:1,existingCost:Number.MAX_SAFE_INTEGER,priorSettlementValue:0,
+    currentPrice:1,addPrice:1,addShares:1
+  };
+  const result=validate(input,{caseType:'settled',mode:'current',autoBreakEvenTarget:true});
+  assert.ok(result.invalidIds.includes('priorCostInput'));
+  assert.ok(result.invalidIds.includes('priorSettlementValueInput'));
+  assert.ok(result.invalidIds.includes('addPrice'));
+  assert.ok(result.invalidIds.includes('addShares'));
+  assert.ok(result.errors.some(message=>message.includes('통합 회복금액')));
+});
+
 test('compute: 이전 거래 없음 자동 손익분기',()=>{
   const c=compute(settledNoPrior,{caseType:'settled',noPrior:true,mode:'current',autoBreakEvenTarget:true});
   assert.equal(c.finalShares,100);

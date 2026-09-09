@@ -407,7 +407,11 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
         const priorPL=input.priorSettlementValue-input.existingCost;
         const finalCost=input.addPrice*input.addShares;
         const alreadyRecovered=!input.noPrior&&finalCost>0&&priorPL>=finalCost;
-        targetBase=alreadyRecovered?input.currentPrice:Math.max(finalCost-priorPL,0)/input.addShares;
+        const integratedBasis=finalCost-priorPL;
+        if(!Number.isSafeInteger(integratedBasis)){
+          addError('통합 회복금액이 계산 가능 범위를 초과합니다.',['priorCostInput','priorSettlementValueInput','addPrice','addShares']);
+        }
+        targetBase=alreadyRecovered?input.currentPrice:Math.max(integratedBasis,0)/input.addShares;
       }else{
         targetBase=(input.existingCost+input.addPrice*input.addShares)/totalShares;
       }
