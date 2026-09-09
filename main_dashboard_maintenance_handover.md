@@ -1501,9 +1501,10 @@ Google Apps Script는 **GitHub 프로젝트와 별도로 운영되는 백엔드*
 - GAS QA에서는 실제 운영 JSON write, delete, batch apply, KRX workflow 실행을 하지 않고 mock/stub을 우선 사용한다.
 - 공개 Web App의 PIN 실패 제한은 **잘못된 PIN 요청만** 직렬화·제한한다. 올바른 PIN 요청보다 전역 실패 lock을 먼저 검사하여 제3자의 오입력만으로 정상 사용자를 차단하는 구조로 되돌리지 않는다. 실패 상태는 Script Properties의 내부 관리값으로 유지하고 실제 PIN은 저장하지 않는다.
 - Web App router는 action allowlist를 사용하고, pension persistence는 `cashSnapshot` / `contribution` / `etfTrade` 외 target을 다른 target으로 fallback하지 않고 거부한다.
-- 기업적립금·ETF 추가매수 단건 저장은 frontend가 client-generated ID를 같은 요청의 실패·재시도 동안 재사용한다. GAS는 같은 ID·같은 내용이 이미 저장된 경우 GitHub write 없이 `duplicate_ignored`로 응답하고, 같은 ID에 다른 내용이 오면 거부한다. 현금성자산은 기존처럼 날짜 key upsert를 유지한다.
+- 단건 저장은 frontend가 같은 요청의 실패·재시도 동안 identity를 재사용한다. 기업적립금·ETF 추가매수는 client-generated ID를, 현금성자산은 `requestId`를 사용한다. GAS는 같은 identity·같은 내용이 이미 저장된 경우 GitHub write 없이 `duplicate_ignored`로 응답하고, 같은 identity에 다른 내용이 오면 거부한다. 현금성자산은 날짜 key upsert를 유지하되 동일 `requestId` 재시도에서는 최초 snapshot의 `afterTradeIds`/`afterContributionIds`를 그대로 보존하여 이후 같은 날 발생한 거래를 과거 snapshot에 소급 반영하지 않는다.
+- GAS의 pension 금액·수량 입력은 frontend와 동일하게 safe integer 정수 계약을 적용한다. `valuation`/`costBasis`는 0 이상 안전 정수, 기업적립금·ETF 수량·금액은 양의 안전 정수만 허용하며, 현금흐름 합산·차감 결과도 safe integer 범위를 벗어나면 저장을 중단한다.
 - 단건 삭제는 멱등 DELETE로 취급한다. 첫 삭제가 GitHub에 반영된 뒤 응답만 유실되어 같은 항목을 다시 삭제해도 GAS는 `delete_already_absent` + `duplicate:true`로 성공 처리하고, 프런트는 로컬 항목을 정리한다.
-- Batch는 frontend의 `batchRequestId`와 각 작업의 stable `operationId`를 함께 전달한다. GAS는 commit 전에 intent를 기록하고, contribution/ETF는 이 identity에서 결정적 저장 ID를 생성한다. receipt 저장이나 응답이 commit 뒤 실패해도 같은 batch 재시도는 기존 항목을 재사용하며, 최종 파일 내용이 동일하면 추가 commit을 만들지 않는다.
+- Batch는 frontend의 `batchRequestId`와 각 작업의 stable `operationId`를 함께 전달한다. GAS는 commit 전에 intent를 기록하고, contribution/ETF는 이 identity에서 결정적 저장 ID를 생성한다. receipt 저장이나 응답이 commit 뒤 실패해도 같은 batch 재시도는 기존 항목을 재사용하며, 최종 파일 내용이 동일하면 추가 commit을 만들지 않는다. Cache에는 과거 전체 pension state를 저장하지 않고 receipt형 요약만 저장하여 다른 탭/기기에서 생긴 최신 상태를 재시도 응답이 덮어쓰지 않게 한다.
 - KRX 갱신은 frontend가 같은 실패·재시도 동안 `requestId`를 재사용하고 GAS가 최근 dispatch receipt를 확인한다. `.github/workflows/update-prices.yml`은 같은 branch의 KRX workflow를 `concurrency`로 직렬화하여 receipt 저장 실패나 다중 탭 같은 최후 경계에서도 checkout/push 경쟁을 만들지 않는다.
 
 JS ↔ GAS 계약 검증 시:

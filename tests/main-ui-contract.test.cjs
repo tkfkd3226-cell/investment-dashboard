@@ -162,6 +162,19 @@ test('퇴직연금 Batch는 각 작업의 stable operationId를 GAS에 전달하
   assert.match(pensionEditor,/data\.duplicate[^]*?이미 삭제된 상태를 확인했습니다/);
 });
 
+
+test('현금성자산 단건 저장은 응답 유실 재시도 동안 같은 requestId를 유지한다',()=>{
+  assert.match(pensionEditor,/item\?\.target==='cashSnapshot'[^]*?cashSnapshot\|\$\{String\(item\.date\|\|''\)\}/);
+  assert.match(pensionEditor,/\['cashSnapshot','contribution','etfTrade'\]\.includes\(item\.target\)/);
+  assert.match(pensionEditor,/item\.target==='cashSnapshot'\s*\? \{\.\.\.item,requestId:pensionEditorState\.singleSaveId\}/);
+  assert.match(pensionEditor,/resetPensionSingleSaveIdentity\(\);[^]*?showPensionToast\(data\.duplicate/);
+});
+
+test('Batch 중복 응답에 state가 없으면 과거 pension state를 로컬에 다시 적용하지 않는다',()=>{
+  assert.match(pensionEditor,/const duplicateWithoutState=!!data\.duplicate&&!data\.state;/);
+  assert.match(pensionEditor,/if\(!duplicateWithoutState\)applyPensionBatchStateLocally\(data\.state\);/);
+});
+
 test('KRX 갱신은 기준일과 다른 종가·직전값을 숨김 처리하고 자동 성공으로 끝내지 않는다',()=>{
   assert.match(updatePricesPython,/source_dates\[f"SEC:\{ticker\}"\] = actual_date/);
   assert.match(updatePricesPython,/if actual_date != target_date:\s*warnings\.append/);

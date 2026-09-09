@@ -293,7 +293,7 @@ data/pension_contributions.json
 
 퇴직연금 저장과 KRX 갱신 요청은 GitHub 저장소와 별도로 운영되는 Google Apps Script Web App을 사용합니다. 브라우저가 저장소에 직접 write하지 않으며, 운영 인증값과 GitHub 연동 정보도 프런트엔드 파일에 직접 두지 않습니다.
 
-쓰기 요청은 네트워크 응답 유실 뒤 재시도해도 중복 데이터가 생기지 않도록 요청 identity를 유지합니다. 퇴직연금 Batch는 `batchRequestId` + 작업별 `operationId`, KRX 갱신은 `requestId`를 사용하며, 단건 삭제는 이미 삭제된 상태도 성공으로 수렴하는 멱등 처리입니다.
+쓰기 요청은 네트워크 응답 유실 뒤 재시도해도 중복 데이터나 과거 상태 재적용이 생기지 않도록 요청 identity를 유지합니다. 퇴직연금 단건 저장은 현금성자산 `requestId` 및 기업적립금·ETF의 client-generated ID를 재사용하고, Batch는 `batchRequestId` + 작업별 `operationId`, KRX 갱신은 `requestId`를 사용합니다. 단건 삭제는 이미 삭제된 상태도 성공으로 수렴하는 멱등 처리입니다.
 
 ### 7.2 KRX 갱신
 

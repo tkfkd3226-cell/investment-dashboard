@@ -1207,6 +1207,7 @@ async function applyPensionBatchQueue(renderDashboard){
 
 // [PEDIT09] Persistence / Save/Delete · 저장 / 삭제
 function pensionSingleSaveFingerprint(item){
+  if(item?.target==='cashSnapshot')return `cashSnapshot|${String(item.date||'')}|${String(item.valuation??'')}|${String(item.costBasis??'')}|${String(item.memo||'')}`;
   if(item?.target==='contribution')return `contribution|${String(item.date||'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
   if(item?.target==='etfTrade')return `etfTrade|${String(item.tradeDate||'')}|${String(item.ticker||'')}|${String(item.qty??'')}|${String(item.amount??'')}|${String(item.memo||'')}`;
   return '';
@@ -1216,17 +1217,20 @@ function resetPensionSingleSaveIdentity(){
   pensionEditorState.singleSaveId='';
 }
 function preparePensionSingleSaveItem(item){
-  if(!item||!['contribution','etfTrade'].includes(item.target))return item;
+  if(!item||!['cashSnapshot','contribution','etfTrade'].includes(item.target))return item;
   const fingerprint=pensionSingleSaveFingerprint(item);
   if(!fingerprint)return item;
   if(pensionEditorState.singleSaveFingerprint!==fingerprint||!pensionEditorState.singleSaveId){
     const uuid=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
-    const date=item.target==='contribution'?String(item.date||kstTodayText()):kstTodayText();
+    const date=item.target==='etfTrade'?kstTodayText():String(item.date||kstTodayText());
     const suffix=item.target==='etfTrade'?`-${String(item.ticker||'unknown').replace(/[^A-Za-z0-9._:-]/g,'')}`:'';
+    const prefix=item.target==='cashSnapshot'?'cash':(item.target==='contribution'?'contrib':'trade');
     pensionEditorState.singleSaveFingerprint=fingerprint;
-    pensionEditorState.singleSaveId=`${item.target==='contribution'?'contrib':'trade'}-${date}${suffix}-${uuid}`;
+    pensionEditorState.singleSaveId=`${prefix}-${date}${suffix}-${uuid}`;
   }
-  return {...item,id:pensionEditorState.singleSaveId};
+  return item.target==='cashSnapshot'
+    ? {...item,requestId:pensionEditorState.singleSaveId}
+    : {...item,id:pensionEditorState.singleSaveId};
 }
 async function savePensionContributionViaGithubPages(item,pin){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
