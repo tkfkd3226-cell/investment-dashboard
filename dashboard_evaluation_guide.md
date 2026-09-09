@@ -1103,6 +1103,10 @@ GAS가 함께 제공된 집중 평가에서는 다음 causal contract를 별도�
 - 단건 write 예외 뒤 intent가 삭제되어 과거 retry가 다시 신규 mutation으로 살아나지 않는가
 - 단건 intent의 causal ordering을 Git blob SHA만으로 판단하지 않는가. save→delete→파일 내용 원복으로 blob SHA가 ABA되어도 monotonic `PENSION_MUTATION_EPOCH` 때문에 old save retry가 살아나지 않는가
 - cashSnapshot retry 전에 contribution/ETF가 새로 생긴 경우, 과거 valuation snapshot에 최신 `afterContributionIds`/`afterTradeIds`를 재결합해 현금 계산을 왜곡하지 않는가
+- cashSnapshot upsert/delete가 `expectedVersion`/`expectedAbsent` optimistic concurrency를 사용해 오래된 화면이 새 requestId로 들어와도 최신 같은 날짜 snapshot을 rollback/delete하지 않는가
+- Batch cash upsert/delete가 operation별 initial-state precondition을 전달·검증하며, 같은 Batch 내부의 같은 날짜 다중 수정은 정상 허용하는가
+- contribution/ETF 단건과 Batch의 pending request identity가 응답 확정 전 TTL store에 보존되어 reload/uncertain cross-tab retry에서 새 ID로 바뀌지 않는가. 성공 확인 뒤에는 pending identity가 정리되어 의도적인 동일 내용 신규 거래를 막지 않는가
+- Batch receipt/cache/HTTP 응답이 모두 유실된 뒤 재시도할 때 cashSnapshot 같은 날짜의 intermediate operation이 아니라 날짜별 마지막 operation의 final-state effect로 이미 반영된 Batch를 판정하는가
 - 단건 Pension과 Batch가 같은 ScriptLock mutation boundary를 사용해 cash/contribution/trade cross-file race를 막는가
 - cashSnapshot delete가 날짜만으로 동작하지 않고 stable delete request identity + 현재 snapshot version precondition을 확인하는가
 - request별 direct Script Properties가 단일 9KB뿐 아니라 전체 저장량 관점에서도 bounded GC를 가지는가
