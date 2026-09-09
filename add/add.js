@@ -104,15 +104,16 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
   const ceil5=n=>{const value=normalizeZero(Number(n));if(!Number.isFinite(value))return NaN;if(value<=0)return 0;const rounded=Math.ceil((value-1e-9)/5)*5;return Number.isSafeInteger(rounded)?normalizeZero(rounded):NaN;};
   const isSafeWhole=(n,{positive=false}={})=>Number.isSafeInteger(n)&&(positive?n>0:n>=0);
   const isSafeProduct=(a,b)=>Number.isSafeInteger(a)&&Number.isSafeInteger(b)&&Number.isSafeInteger(a*b);
+  const isSafeSum=(...values)=>values.every(Number.isSafeInteger)&&Number.isSafeInteger(values.reduce((sum,value)=>sum+value,0));
   const isSafeDerivedOrderPrice=(base,changePct)=>{
     if(!Number.isSafeInteger(base)||base<=0||!Number.isFinite(changePct)||changePct<=-100)return false;
     const raw=base*(1+changePct/100);
     return Number.isFinite(raw)&&raw>0&&Number.isSafeInteger(ceil5(raw));
   };
-  const hasNonFiniteNumber=value=>{
-    if(typeof value==='number')return !Number.isFinite(value);
-    if(Array.isArray(value))return value.some(hasNonFiniteNumber);
-    if(value&&typeof value==='object')return Object.values(value).some(hasNonFiniteNumber);
+  const hasUnsafeCalculationNumber=value=>{
+    if(typeof value==='number')return !Number.isFinite(value)||(Number.isInteger(value)&&!Number.isSafeInteger(value));
+    if(Array.isArray(value))return value.some(hasUnsafeCalculationNumber);
+    if(value&&typeof value==='object')return Object.values(value).some(hasUnsafeCalculationNumber);
     return false;
   };
   const signClass=n=>n>0?'positive':n<0?'negative':'zero';
@@ -400,6 +401,18 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
         if(!(Number.isSafeInteger(input.existingShares)&&input.existingShares>0))addError('이전 거래 입력 시 매도수량 1주 이상 필요.','priorSoldSharesInput');
       }
     }
+    const finalCost=settled?addedPrincipal:input.existingCost+addedPrincipal;
+    const currentValue=input.currentPrice*totalShares;
+    const currentPositionPL=currentValue-finalCost;
+    if(settled&&Number.isSafeInteger(finalCost)&&Number.isSafeInteger(input.priorSettlementValue)&&Number.isSafeInteger(input.existingCost)){
+      const priorPL=input.priorSettlementValue-input.existingCost;
+      if(!isSafeSum(finalCost,-priorPL))
+        addError('통합 회복금액이 계산 가능 범위를 초과합니다.',['priorCostInput','priorSettlementValueInput','addPrice','addShares']);
+      if(Number.isSafeInteger(currentValue)&&Number.isSafeInteger(currentPositionPL)&&!isSafeSum(currentPositionPL,priorPL))
+        addError('현재 통합손익이 계산 가능 범위를 초과합니다.',['priorCostInput','priorSettlementValueInput','currentPrice','addPrice','addShares']);
+    }
+    if(!settled&&Number.isSafeInteger(finalCost)&&Number.isSafeInteger(input.oldRecovery)&&!isSafeSum(finalCost,input.oldRecovery))
+      addError('회수 대상 금액을 반영한 통합 회복금액이 계산 가능 범위를 초과합니다.',['existingCost','oldOverdraft','addPrice','addShares']);
     if(validationMode==='target'&&!(Number.isSafeInteger(input.targetPrice)&&input.targetPrice>0))addError('목표 매도단가 값 확인 필요.','targetPrice');
     let targetBase;
     if(validationMode==='current'&&options.autoBreakEvenTarget){
@@ -408,9 +421,6 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
         const finalCost=input.addPrice*input.addShares;
         const alreadyRecovered=!input.noPrior&&finalCost>0&&priorPL>=finalCost;
         const integratedBasis=finalCost-priorPL;
-        if(!Number.isSafeInteger(integratedBasis)){
-          addError('통합 회복금액이 계산 가능 범위를 초과합니다.',['priorCostInput','priorSettlementValueInput','addPrice','addShares']);
-        }
         targetBase=alreadyRecovered?input.currentPrice:Math.max(integratedBasis,0)/input.addShares;
       }else{
         targetBase=(input.existingCost+input.addPrice*input.addShares)/totalShares;
@@ -421,6 +431,12 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     const targetOrderPrice=ceil5(targetBase);
     if(Number.isFinite(targetOrderPrice)&&targetOrderPrice>0&&(!Number.isSafeInteger(targetOrderPrice)||!isSafeProduct(targetOrderPrice,totalShares)))
       addError('목표 매도금액이 계산 가능 범위를 초과합니다.',['targetPrice','currentPrice','addPrice','addShares',...(!settled?['existingShares']:[])]);
+    if(settled&&Number.isSafeInteger(targetOrderPrice)&&Number.isSafeInteger(totalShares)&&Number.isSafeInteger(finalCost)&&Number.isSafeInteger(input.priorSettlementValue)&&Number.isSafeInteger(input.existingCost)&&isSafeProduct(targetOrderPrice,totalShares)){
+      const targetPositionPL=targetOrderPrice*totalShares-finalCost;
+      const priorPL=input.priorSettlementValue-input.existingCost;
+      if(Number.isSafeInteger(targetPositionPL)&&!isSafeSum(targetPositionPL,priorPL))
+        addError('목표가격 통합손익이 계산 가능 범위를 초과합니다.',['priorCostInput','priorSettlementValueInput','targetPrice','currentPrice','addPrice','addShares']);
+    }
     return {errors:[...new Set(errors)],invalidIds:[...new Set(invalidIds)]};
   }
 
@@ -682,7 +698,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     }
     setCalculationResultsStale(false);
     const c=compute(i,options);
-    if(hasNonFiniteNumber(c)){
+    if(hasUnsafeCalculationNumber(c)){
       const fallbackIds=options.mode==='current'?['currentPrice','overnightPct']:options.mode==='rise'?['addPrice','risePct']:['targetPrice'];
       renderValidation({errors:['계산 가능 범위를 초과한 입력입니다. 값을 줄여주세요.'],invalidIds:fallbackIds});
       setCalculationResultsStale(hasRenderedCalculation);

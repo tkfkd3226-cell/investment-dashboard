@@ -43,10 +43,10 @@ test('KODEX canonical 거래 원천은 schema·기간·날짜순·중복없음·
   for(const row of REPORT_DATA){
     assert.match(row.date,/^\d{4}-\d{2}-\d{2}$/);
     assert.ok(['core','day','mixed'].includes(row.segment),`${row.date} segment 오류`);
-    for(const key of ['qty','buy','sell','pnl','fee'])assert.ok(typeof row[key]==='number'&&Number.isInteger(row[key]),`${row.date} ${key}는 JSON 정수여야 한다`);
+    for(const key of ['qty','buy','sell','pnl','fee'])assert.ok(typeof row[key]==='number'&&Number.isSafeInteger(row[key]),`${row.date} ${key}는 안전한 JSON 정수여야 한다`);
     if(row.segment==='mixed'){
       assert.ok(row.core&&typeof row.core==='object',`${row.date} mixed core 누락`);
-      for(const key of ['qty','buy','sell','pnl','fee'])assert.ok(typeof row.core[key]==='number'&&Number.isInteger(row.core[key]),`${row.date} core.${key}는 JSON 정수여야 한다`);
+      for(const key of ['qty','buy','sell','pnl','fee'])assert.ok(typeof row.core[key]==='number'&&Number.isSafeInteger(row.core[key]),`${row.date} core.${key}는 안전한 JSON 정수여야 한다`);
       assert.ok(row.core.qty>=0&&row.core.qty<=row.qty,`${row.date} core 수량 범위 오류`);
     }
   }
@@ -99,6 +99,10 @@ test('KODEX Report canonical schema validator는 잘못된 운영 데이터를 �
   const badContextDate=structuredClone(reportSource);
   badContextDate.positionContext.legacyBuild.first.date='2026-02-30';
   assert.throws(()=>validateReportSource(badContextDate),/legacyBuild\.first context/);
+
+  const unsafeInteger=structuredClone(reportSource);
+  unsafeInteger.trades[0].qty=Number.MAX_SAFE_INTEGER+1;
+  assert.throws(()=>validateReportSource(unsafeInteger),/JSON 정수/,'안전 정수 범위를 넘는 거래 수량은 차단해야 한다');
 });
 
 

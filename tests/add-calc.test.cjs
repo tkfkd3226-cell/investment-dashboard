@@ -219,6 +219,20 @@ test('validate: 개별 입력은 안전 정수여도 곱셈 결과가 안전 범
   assert.ok(result.invalidIds.includes('addShares'));
 });
 
+test('validate: 안전한 개별값의 이전 손익·현재 손익 합계가 안전 범위를 넘으면 차단한다',()=>{
+  const input={
+    ...settledWithPrior,
+    existingShares:1,existingCost:0,priorSettlementValue:Number.MAX_SAFE_INTEGER,
+    currentPrice:Number.MAX_SAFE_INTEGER,addPrice:1,addShares:1,targetPrice:1
+  };
+  const result=validate(input,{caseType:'settled',noPrior:false,mode:'target',autoBreakEvenTarget:false});
+  assert.ok(result.errors.some(message=>message.includes('현재 통합손익')));
+  assert.ok(result.errors.some(message=>message.includes('목표가격 통합손익')));
+  assert.ok(result.invalidIds.includes('priorSettlementValueInput'));
+  assert.ok(result.invalidIds.includes('currentPrice'));
+  assert.ok(result.invalidIds.includes('targetPrice'));
+});
+
 test('compute: signed zero 입력은 계산 경계에서 0으로 정규화한다',()=>{
   const c=compute({...holding,existingCost:-0,oldRecovery:-0,overnightPct:-0},{caseType:'holding',noPrior:false,mode:'current',autoBreakEvenTarget:false});
   assert.equal(Object.is(c.i.existingCost,-0),false);

@@ -15,7 +15,7 @@ function isValidKodexLeverageDate(value){
   return day<=daysInMonth[month-1];
 }
 
-const isKodexLeverageInteger=value=>typeof value==='number'&&Number.isInteger(value);
+const isKodexLeverageInteger=value=>typeof value==='number'&&Number.isSafeInteger(value);
 
 function validateKodexLeverageSource(source){
   if(!source||typeof source!=='object'||Array.isArray(source))throw new Error('KODEX 거래 데이터 형식이 올바르지 않습니다.');

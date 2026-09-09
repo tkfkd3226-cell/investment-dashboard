@@ -526,7 +526,7 @@ reinvestedLimit
 
 - 새 매도일의 수량·평균매수·평균매도·손익·비용·순손익이 증권사 원본과 일치한다.
 - 날짜별 `손익금액 - 거래비용 = 순손익`, 전체 합계와 날짜별 합계가 일치한다.
-- `data/kodex_leverage_trades.json`의 거래일이 오름차순·중복 없음·필수 숫자는 JSON `number` 정수·segment 형식을 유지하고, Main 파생 별도수익과 Report 파생 날짜별 순손익·누적 실현 순손익이 일치한다. 문자열 숫자는 허용하지 않으며 `tests/add-report-data.test.cjs`로 자동 확인한다.
+- `data/kodex_leverage_trades.json`의 거래일이 오름차순·중복 없음·필수 숫자는 JavaScript 안전 정수 범위의 JSON `number`·segment 형식을 유지하고, Main 파생 별도수익과 Report 파생 날짜별 순손익·누적 실현 순손익이 일치한다. 문자열 숫자와 안전 정수 범위를 넘는 정수는 허용하지 않으며 `tests/add-report-data.test.cjs`로 자동 확인한다.
 - 본 포지션 + 단타의 수량·손익·비용·순손익 합계가 전체와 일치한다. 혼합일의 `core.fee`는 전체 `fee`를 넘을 수 없으며, 파생 단타 비용이 음수가 되면 canonical validation에서 차단한다.
 - 동일 지표를 사용하는 요약·차트·표에 과거 값이 잔존하지 않으며, Timeline은 `data/kodex_leverage_trades.json` 파생값과 일치하고 새 매도일이 누락되지 않는다.
 - 원본 이미지/근거를 갱신하는 작업이라면 최신 숫자와 같은 시점인지 확인한다.
@@ -536,7 +536,7 @@ reinvestedLimit
 - `node --test tests/add-calc.test.cjs` 전체 PASS.
 - 테스트는 production `compute()/validate()/ceil5()`를 직접 검증하고 계산식 복사본을 만들지 않는다.
 - 숫자 입력은 `-0`을 `0`으로 정규화하고, 원화·수량·목표단가처럼 정수 정확도가 필요한 값은 JavaScript 안전 정수 범위 안에서만 계산한다. 변동률은 값 자체가 유한한 것만으로 통과시키지 않고 실제 5원 주문단위 목표가격까지 안전하게 산출되는지 검증한다.
-- 개별 입력이 안전하더라도 `단가 × 수량`, 최종 보유수량·평가금액 등 핵심 파생 정수 계산이 안전 범위를 넘으면 관련 control을 invalid 처리한다. 계산 결과에서 `NaN`/`Infinity`가 발견되면 렌더링·localStorage 저장을 수행하지 않는다.
+- 개별 입력이 안전하더라도 `단가 × 수량`, 최종 보유수량·평가금액, 이전 손익과 현재·목표 손익의 통합 합계, 회수 대상 금액을 반영한 회복금액 등 핵심 파생 정수 계산이 안전 범위를 넘으면 관련 control을 invalid 처리한다. 계산 결과에서 `NaN`·`Infinity`·안전 범위를 벗어난 정수가 발견되면 렌더링·localStorage 저장을 수행하지 않는다.
 - 최종 보유수량 0처럼 둘 이상의 입력 조합으로 발생하는 validation도 상단 오류문구만 표시하지 말고 원인 control의 `aria-invalid`/`aria-describedby`가 함께 연결되도록 유지한다.
 
 ### 12.3 Calc/Report UI·responsive 변경 시
