@@ -77,7 +77,7 @@ img/
   - Node 내장 `node:test` / `node:assert`만 사용한다.
   - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
 - `tests/add-report-data.test.cjs`
-  - `data/kodex_leverage_trades.json`을 canonical 거래 원천으로 직접 읽고 production 공통 `js/kodex-leverage-schema.js` validator와 Report 순수 파생모델을 호출해 형식·전체/본 포지션/단타 합계·표시기간 보존과 수익 구성의 손익 상쇄·순손실·0원 경계를 검증한다. Main과 Add Report가 별도 validator를 다시 만들지 않는다.
+  - `data/kodex_leverage_trades.json`을 canonical 거래 원천으로 직접 읽고 production 공통 `js/kodex-leverage-schema.js` validator와 Report 순수 파생모델을 호출해 형식·전체/본 포지션/단타 합계·표시기간 보존과 수익 구성의 손익 상쇄·순손실·0원 경계를 검증한다. 개별 거래값이 안전 정수여도 누적 합계나 혼합일 전체-Core 차감 결과가 JavaScript 안전 정수 범위를 넘으면 Report 파생 단계에서 즉시 차단되는 반례도 함께 검증한다. Main과 Add Report가 별도 validator를 다시 만들지 않는다.
   - Main의 `deriveSeparateProfitFromKodexReport()`와 Report가 같은 canonical JSON을 소비하는지, 날짜별 순손익·누적합계·재투입 한도·표시기간·혼합일/근거 설명·`positionContext`가 동일 원천에서 파생되는지 자동 검증한다. `portfolio.json`이나 `add.js`에 거래/포지션 문맥 복제본이 다시 생기는 것도 금지한다.
 - `tests/add-ui-contract.test.cjs`
   - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
@@ -526,7 +526,7 @@ reinvestedLimit
 
 - 새 매도일의 수량·평균매수·평균매도·손익·비용·순손익이 증권사 원본과 일치한다.
 - 날짜별 `손익금액 - 거래비용 = 순손익`, 전체 합계와 날짜별 합계가 일치한다.
-- `data/kodex_leverage_trades.json`의 거래일이 오름차순·중복 없음·필수 숫자는 JavaScript 안전 정수 범위의 JSON `number`·segment 형식을 유지하고, Main 파생 별도수익과 Report 파생 날짜별 순손익·누적 실현 순손익이 일치한다. 문자열 숫자와 안전 정수 범위를 넘는 정수는 허용하지 않으며 `tests/add-report-data.test.cjs`로 자동 확인한다.
+- `data/kodex_leverage_trades.json`의 거래일이 오름차순·중복 없음·필수 숫자는 JavaScript 안전 정수 범위의 JSON `number`·segment 형식을 유지하고, Main 파생 별도수익과 Report 파생 날짜별 순손익·누적 실현 순손익이 일치한다. 문자열 숫자와 안전 정수 범위를 넘는 개별 정수는 허용하지 않으며, 개별 값이 모두 안전하더라도 Report의 날짜별 순손익·누적합계·전체/Core/Day 합계·혼합일 전체-Core 차감 등 파생 정수 결과가 안전 범위를 넘으면 렌더 전에 중단해야 한다. `tests/add-report-data.test.cjs`로 이 경계를 자동 확인한다.
 - 본 포지션 + 단타의 수량·손익·비용·순손익 합계가 전체와 일치한다. 혼합일의 `core.fee`는 전체 `fee`를 넘을 수 없으며, 파생 단타 비용이 음수가 되면 canonical validation에서 차단한다.
 - 동일 지표를 사용하는 요약·차트·표에 과거 값이 잔존하지 않으며, Timeline은 `data/kodex_leverage_trades.json` 파생값과 일치하고 새 매도일이 누락되지 않는다.
 - 원본 이미지/근거를 갱신하는 작업이라면 최신 숫자와 같은 시점인지 확인한다.

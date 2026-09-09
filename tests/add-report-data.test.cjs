@@ -105,6 +105,44 @@ test('KODEX Report canonical schema validator는 잘못된 운영 데이터를 �
   assert.throws(()=>validateReportSource(unsafeInteger),/JSON 정수/,'안전 정수 범위를 넘는 거래 수량은 차단해야 한다');
 });
 
+test('KODEX Report 파생 정수 합계·차감은 개별 값이 안전해도 결과가 안전 범위를 넘으면 차단한다',()=>{
+  const aggregateOverflow=structuredClone(reportSource);
+  aggregateOverflow.trades.forEach(row=>{
+    row.pnl=0;
+    row.fee=0;
+    if(row.segment==='mixed'){
+      row.core.pnl=0;
+      row.core.fee=0;
+    }
+  });
+  aggregateOverflow.trades[0].pnl=Number.MAX_SAFE_INTEGER;
+  aggregateOverflow.trades[1].pnl=Number.MAX_SAFE_INTEGER-1;
+  assert.equal(validateReportSource(aggregateOverflow),aggregateOverflow,'개별 거래값은 schema 안전 정수 검증을 통과해야 한다');
+  assert.throws(
+    ()=>deriveReportModel(aggregateOverflow),
+    /누적손익.*안전 정수 범위/,
+    '개별 값이 안전해도 누적 합계가 안전 정수 범위를 넘으면 Report 파생을 중단해야 한다'
+  );
+
+  const subtractOverflow=structuredClone(reportSource);
+  subtractOverflow.trades.forEach(row=>{
+    row.pnl=0;
+    row.fee=0;
+    if(row.segment==='mixed'){
+      row.core.pnl=0;
+      row.core.fee=0;
+    }
+  });
+  const mixedOverflow=subtractOverflow.trades.find(row=>row.segment==='mixed');
+  mixedOverflow.pnl=Number.MAX_SAFE_INTEGER;
+  mixedOverflow.core.pnl=-Number.MAX_SAFE_INTEGER;
+  assert.equal(validateReportSource(subtractOverflow),subtractOverflow,'혼합일 전체/Core 개별값은 schema 안전 정수 검증을 통과해야 한다');
+  assert.throws(
+    ()=>deriveReportModel(subtractOverflow),
+    /단타 손익금액.*안전 정수 범위/,
+    '혼합일 전체-Core 차감 결과가 안전 정수 범위를 넘으면 Report 파생을 중단해야 한다'
+  );
+});
 
 
 test('KODEX Report 수익 구성은 실제 수익 기여일 때만 0~100% 비중을 만들고 손익 상쇄·순손실·0원은 제외한다',()=>{

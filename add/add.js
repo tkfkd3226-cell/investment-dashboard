@@ -948,14 +948,28 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     }
   }
 
+  function reportSafeInteger(value,label='KODEX Report 파생 정수'){
+    const numeric=value==null?0:Number(value);
+    if(!Number.isSafeInteger(numeric))throw new RangeError(`${label}이 JavaScript 안전 정수 범위를 벗어났습니다.`);
+    return numeric;
+  }
+  function reportSafeAdd(left,right,label){
+    const result=reportSafeInteger(left,`${label} 좌항`)+reportSafeInteger(right,`${label} 우항`);
+    return reportSafeInteger(result,label);
+  }
+  function reportSafeSubtract(left,right,label){
+    const result=reportSafeInteger(left,`${label} 좌항`)-reportSafeInteger(right,`${label} 우항`);
+    return reportSafeInteger(result,label);
+  }
   function reportSum(rows,key){
-    return rows.reduce((sum,row)=>sum+Number(row[key]||0),0);
+    return rows.reduce((sum,row,index)=>reportSafeAdd(sum,row[key],`${key} 합계 ${index+1}행`),0);
   }
   function deriveReportRows(rows){
     let cumulative=0;
     return rows.map(row=>{
-      const net=Number(row.pnl||0)-Number(row.fee||0);
-      cumulative+=net;
+      const label=String(row.date||'거래');
+      const net=reportSafeSubtract(row.pnl,row.fee,`${label} 순손익`);
+      cumulative=reportSafeAdd(cumulative,net,`${label} 누적손익`);
       return Object.freeze({...row,net,cumulative});
     });
   }
@@ -966,19 +980,25 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
       }
       if(row.segment!=='mixed')return [];
       if(segment==='core')return [Object.freeze({date:row.date,...row.core})];
-      return [Object.freeze({date:row.date,qty:row.qty-row.core.qty,pnl:row.pnl-row.core.pnl,fee:row.fee-row.core.fee})];
+      const label=String(row.date||'혼합거래');
+      return [Object.freeze({
+        date:row.date,
+        qty:reportSafeSubtract(row.qty,row.core.qty,`${label} 단타 수량`),
+        pnl:reportSafeSubtract(row.pnl,row.core.pnl,`${label} 단타 손익금액`),
+        fee:reportSafeSubtract(row.fee,row.core.fee,`${label} 단타 거래비용`)
+      })];
     });
   }
   function deriveSplitMetrics(rows){
     const qty=reportSum(rows,'qty');
     const pnl=reportSum(rows,'pnl');
     const fee=reportSum(rows,'fee');
-    return Object.freeze({qty,pnl,fee,net:pnl-fee});
+    return Object.freeze({qty,pnl,fee,net:reportSafeSubtract(pnl,fee,'분류 순손익')});
   }
   function deriveProfitComposition(coreNet,dayNet){
-    const core=Number(coreNet||0);
-    const day=Number(dayNet||0);
-    const total=core+day;
+    const core=reportSafeInteger(coreNet,'본 포지션 순손익');
+    const day=reportSafeInteger(dayNet,'단타 순손익');
+    const total=reportSafeAdd(core,day,'수익 구성 순손익 합계');
     const hasOpposingSigns=(core<0&&day>0)||(core>0&&day<0);
     const available=total>0&&core>=0&&day>=0;
     const reason=available?'profit':hasOpposingSigns?'offset':total<0?'loss':'zero';
@@ -1005,7 +1025,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     const profitComposition=deriveProfitComposition(coreMetrics.net,dayMetrics.net);
     const coreNetRatio=profitComposition.coreRatio;
     const dayNetRatio=profitComposition.dayRatio;
-    const splitQty=coreMetrics.qty+dayMetrics.qty;
+    const splitQty=reportSafeAdd(coreMetrics.qty,dayMetrics.qty,'본 포지션·단타 수량 합계');
     const coreQtyRatio=splitQty?coreMetrics.qty/splitQty*100:0;
     const dayQtyRatio=splitQty?dayMetrics.qty/splitQty*100:0;
     const reportMetrics=Object.freeze({
