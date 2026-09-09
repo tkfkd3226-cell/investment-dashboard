@@ -241,6 +241,19 @@ test('연금 거래: 개별 입력이 안전해도 합산 결과가 안전 범�
   );
 });
 
+test('연금 현금: 안전한 개별 적립금도 합산 결과가 범위를 넘으면 계산을 중단한다',()=>{
+  setState({
+    pensionContributions:{contributions:[
+      {id:'c1',date:'2026-06-01',amount:Number.MAX_SAFE_INTEGER},
+      {id:'c2',date:'2026-06-02',amount:1}
+    ]}
+  });
+  assert.throws(
+    ()=>core.pensionCashBeforeNewTrade('2026-06-02'),
+    /안전한 정수 범위를 벗어납니다/
+  );
+});
+
 test('연금 현금: 기준 현금 + 적립금 - 매수 + 매도로 가용현금을 계산한다',()=>{
   setState({
     prices:{'2026-06-01':{pension:{cash:1000}}},

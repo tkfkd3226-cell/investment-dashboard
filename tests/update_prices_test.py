@@ -70,6 +70,19 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         self.assertEqual(row["actualMarketDate"], "2026-09-08")
         self.assertEqual(row["priceSourceDates"], {"SEC:SEC": "2026-09-08", "PEN:PEN": "2026-09-08"})
 
+    def test_warning_hidden_date_is_automatically_retried(self):
+        self.updater.today_kst = lambda: "2026-09-09"
+        self.updater.resolve_latest_market_date = lambda *_: "2026-09-09"
+        self.updater.is_actual_trading_date = lambda *_: True
+        prices = {
+            "2026-09-08": {"display": True},
+            "2026-09-09": {"display": False, "warnings": ["network error"]},
+        }
+
+        dates = self.updater.resolve_target_dates(self.portfolio, prices, None)
+
+        self.assertEqual(dates, ["2026-09-09"])
+
 
 if __name__ == "__main__":
     unittest.main()

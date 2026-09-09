@@ -575,22 +575,34 @@ function renderPensionEtfTradePreview(box,draft,expected,{syncSaveDisabled=true}
     box.innerHTML=`<div class="pension-etf-trade-preview-title pension-etf-trade-blocked-title">⚠ 저장 불가</div><div class="pension-etf-trade-preview-alert">${escapeHtml(expected.error)}</div>`;
     return;
   }
-  if(!draft.tradeDate||!draft.product||draft.qtyRaw===''||draft.amountRaw===''||!expected){
+  if(!draft.tradeDate||!draft.product||draft.qtyRaw===''||draft.amountRaw===''){
     setDisabled(false);
     box.className='pension-etf-trade-preview';
     box.innerHTML='<span class="small">상품·수량·체결금액을 입력하면 적용 후 예상값을 보여줍니다.</span>';
     return;
   }
   if(!isSafePensionWhole(draft.qty,{positive:true})){
-    setDisabled(false);
-    box.className='pension-etf-trade-preview warning';
+    setDisabled(true);
+    box.className='pension-etf-trade-preview warning blocked';
     box.innerHTML='<strong>체결수량은 1좌 이상의 정수로 입력해주세요.</strong>';
     return;
   }
+  if(!isSafePensionWhole(draft.amount,{positive:true})){
+    setDisabled(true);
+    box.className='pension-etf-trade-preview warning blocked';
+    box.innerHTML='<strong>체결금액은 1원 이상의 안전한 정수로 입력해주세요.</strong>';
+    return;
+  }
   if(draft.tradeDate>draft.applyDate){
-    setDisabled(false);
-    box.className='pension-etf-trade-preview warning';
+    setDisabled(true);
+    box.className='pension-etf-trade-preview warning blocked';
     box.innerHTML='<strong>신청일은 앱 반영일보다 늦을 수 없습니다.</strong>';
+    return;
+  }
+  if(!expected){
+    setDisabled(true);
+    box.className='pension-etf-trade-preview warning blocked';
+    box.innerHTML='<strong>예상값을 계산할 수 없습니다.</strong>';
     return;
   }
   const insufficient=expected.cashAfter<0;

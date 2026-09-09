@@ -155,6 +155,10 @@ const pensionEvaluationBasisText=d=>{
   return `${koreanDateLabel(d)}${estimated?' 추정':''} 평가금액`;
 };
 // [CORE04] Pension Ledger / Valuation · 퇴직연금 데이터 원장 / 평가 계산 helper
+const pensionSafeAggregate=(label,value)=>{
+  if(!Number.isFinite(value)||Math.abs(value)>Number.MAX_SAFE_INTEGER)throw new RangeError(`${label} 계산값이 안전한 정수 범위를 벗어납니다.`);
+  return value;
+};
 const rawPensionContributionItems=()=>Array.isArray(dataState.pensionContributions)?dataState.pensionContributions:(dataState.pensionContributions?.contributions||[]);
 const pensionContributionItems=()=>rawPensionContributionItems()
   .filter(v=>v&&v.date)
@@ -165,8 +169,8 @@ const pensionContributionItems=()=>rawPensionContributionItems()
     amount:Number(v.amount)||0
   }))
   .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.id||'').localeCompare(String(b.id||'')));
-const pensionContributionSum=d=>pensionContributionItems().filter(v=>v.date&&v.date<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
-const pensionContributionSumAfter=(fromDate,toDate)=>pensionContributionItems().filter(v=>v.date&&v.date>fromDate&&v.date<=toDate).reduce((a,v)=>a+(Number(v.amount)||0),0);
+const pensionContributionSum=d=>pensionContributionItems().filter(v=>v.date&&v.date<=d).reduce((a,v)=>pensionSafeAggregate('기업적립금 합계',a+(Number(v.amount)||0)),0);
+const pensionContributionSumAfter=(fromDate,toDate)=>pensionContributionItems().filter(v=>v.date&&v.date>fromDate&&v.date<=toDate).reduce((a,v)=>pensionSafeAggregate('기업적립금 합계',a+(Number(v.amount)||0)),0);
 const rawPensionCashSnapshotItems=()=>Array.isArray(dataState.pensionCashSnapshots)?dataState.pensionCashSnapshots:(dataState.pensionCashSnapshots?.snapshots||[]);
 const pensionCashSnapshotItems=()=>Array.from(
   rawPensionCashSnapshotItems()
@@ -194,10 +198,10 @@ const pensionCashValuation=(d,baseCash=0)=>{
   if(snapshot){
     const flow=pensionTradeFlowAfterCashSnapshot(snapshot,d);
     const contributionFlow=pensionContributionFlowAfterCashSnapshot(snapshot,d);
-    return Math.max(0,Number(snapshot.valuation||0)+contributionFlow.amount-flow.buyAmount+flow.sellAmount);
+    return Math.max(0,pensionSafeAggregate('현금성자산',Number(snapshot.valuation||0)+contributionFlow.amount-flow.buyAmount+flow.sellAmount));
   }
   const flow=pensionTradeFlow(null,d);
-  return Math.max(0,Number(baseCash||0)+pensionContributionSum(d)-flow.buyAmount+flow.sellAmount);
+  return Math.max(0,pensionSafeAggregate('현금성자산',Number(baseCash||0)+pensionContributionSum(d)-flow.buyAmount+flow.sellAmount));
 };
 const rawPensionTradeItems=()=>Array.isArray(dataState.pensionTrades)?dataState.pensionTrades:(dataState.pensionTrades?.trades||[]);
 const pensionTradeItems=()=>rawPensionTradeItems()
@@ -250,7 +254,13 @@ const pensionPositionState=(pos,d)=>{
   return {qty,cost,realizedProfit};
 };
 const pensionTradeFlow=(fromDate,toDate,ticker=null)=>pensionTradesBetween(fromDate,toDate,ticker).reduce((a,v)=>{
-  if(v.type==='buy'){a.buyAmount+=v.amount;a.buyQty+=v.qty}else{a.sellAmount+=v.amount;a.sellQty+=v.qty}
+  if(v.type==='buy'){
+    a.buyAmount=pensionSafeAggregate('매수금액 합계',a.buyAmount+v.amount);
+    a.buyQty=pensionSafeAggregate('매수수량 합계',a.buyQty+v.qty);
+  }else{
+    a.sellAmount=pensionSafeAggregate('매도금액 합계',a.sellAmount+v.amount);
+    a.sellQty=pensionSafeAggregate('매도수량 합계',a.sellQty+v.qty);
+  }
   return a;
 },{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0});
 const pensionCashSnapshotReflectsTrade=(snapshot,trade)=>{
@@ -284,14 +294,20 @@ const pensionTradeFlowAfterCashSnapshot=(snapshot,toDate,ticker=null)=>pensionTr
   if(v.date>snapshot.date) return true;
   return !pensionCashSnapshotReflectsTrade(snapshot,v);
 }).reduce((a,v)=>{
-  if(v.type==='buy'){a.buyAmount+=v.amount;a.buyQty+=v.qty}else{a.sellAmount+=v.amount;a.sellQty+=v.qty}
+  if(v.type==='buy'){
+    a.buyAmount=pensionSafeAggregate('매수금액 합계',a.buyAmount+v.amount);
+    a.buyQty=pensionSafeAggregate('매수수량 합계',a.buyQty+v.qty);
+  }else{
+    a.sellAmount=pensionSafeAggregate('매도금액 합계',a.sellAmount+v.amount);
+    a.sellQty=pensionSafeAggregate('매도수량 합계',a.sellQty+v.qty);
+  }
   return a;
 },{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0});
 const pensionContributionFlowAfterCashSnapshot=(snapshot,toDate)=>pensionContributionItems().filter(v=>{
   if(v.date>toDate||v.date<snapshot.date) return false;
   if(v.date>snapshot.date) return true;
   return !pensionCashSnapshotReflectsContribution(snapshot,v);
-}).reduce((a,v)=>{a.amount+=Number(v.amount)||0;return a},{amount:0});
+}).reduce((a,v)=>{a.amount=pensionSafeAggregate('기업적립금 합계',a.amount+(Number(v.amount)||0));return a},{amount:0});
 const linkedPensionCashSnapshotForTrade=trade=>pensionCashSnapshotItems()
   .filter(snapshot=>snapshot.date>=String(trade?.date||'')&&pensionCashSnapshotReflectsTrade(snapshot,trade))
   .sort((a,b)=>String(a.date).localeCompare(String(b.date)))
@@ -330,8 +346,8 @@ const pensionCashLedgerEventOrder=(a,b)=>{
 };
 const pensionCashCostBasis=d=>{
   const c=dataState.portfolio?.constants||{};
-  let cashCost=Math.max(0,Number(c.pensionCashCost)||0);
-  let cashValuation=Math.max(0,Number(pensionBaseCashForDate(d))||cashCost);
+  let cashCost=Math.max(0,pensionSafeAggregate('현금 매수원금',Number(c.pensionCashCost)||0));
+  let cashValuation=Math.max(0,pensionSafeAggregate('현금성자산',Number(pensionBaseCashForDate(d))||cashCost));
 
   const events=[
     ...pensionContributionItems().filter(v=>v.date<=d).map(item=>({kind:'contribution',item})),
@@ -342,21 +358,21 @@ const pensionCashCostBasis=d=>{
   events.forEach(event=>{
     const item=event.item;
     if(event.kind==='snapshot'){
-      cashValuation=Math.max(0,Number(item.valuation)||0);
-      if(item.costBasis!=null&&Number.isFinite(Number(item.costBasis))) cashCost=Math.max(0,Number(item.costBasis));
+      cashValuation=Math.max(0,pensionSafeAggregate('현금성자산',Number(item.valuation)||0));
+      if(item.costBasis!=null&&Number.isFinite(Number(item.costBasis))) cashCost=Math.max(0,pensionSafeAggregate('현금 매수원금',Number(item.costBasis)));
       return;
     }
     if(event.kind==='contribution'){
       const amount=Math.max(0,Number(item.amount)||0);
-      cashValuation+=amount;
-      cashCost+=amount;
+      cashValuation=Math.max(0,pensionSafeAggregate('현금성자산',cashValuation+amount));
+      cashCost=Math.max(0,pensionSafeAggregate('현금 매수원금',cashCost+amount));
       return;
     }
 
     const amount=Math.max(0,Number(item.amount)||0);
     if(item.type==='sell'){
-      cashValuation+=amount;
-      cashCost+=amount;
+      cashValuation=Math.max(0,pensionSafeAggregate('현금성자산',cashValuation+amount));
+      cashCost=Math.max(0,pensionSafeAggregate('현금 매수원금',cashCost+amount));
       return;
     }
 
@@ -366,8 +382,8 @@ const pensionCashCostBasis=d=>{
     // from being converted into cash cost basis by a later partial purchase.
     const positiveGain=Math.max(0,cashValuation-cashCost);
     const principalSpent=Math.min(cashCost,Math.max(0,amount-positiveGain));
-    cashCost=Math.max(0,cashCost-principalSpent);
-    cashValuation=Math.max(0,cashValuation-amount);
+    cashCost=Math.max(0,pensionSafeAggregate('현금 매수원금',cashCost-principalSpent));
+    cashValuation=Math.max(0,pensionSafeAggregate('현금성자산',cashValuation-amount));
   });
 
   return Math.max(0,cashCost);

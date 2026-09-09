@@ -142,6 +142,22 @@ test('KRX 갱신은 기준일과 다른 종가·직전값을 숨김 처리하고
   assert.match(updatePricesPython,/return 1 if all_warnings else 0/);
 });
 
+test('숨김·경고 KRX 날짜는 다음 자동 실행에서 재수집 대상으로 복구한다',()=>{
+  assert.match(updatePricesPython,/retry_dates = \[[^]*?snapshot\.get\("display", True\) is False[^]*?snapshot\.get\("warnings"\)/);
+  assert.match(updatePricesPython,/set\(refresh_dates \+ missing_dates \+ retry_dates\)/);
+});
+
+test('퇴직연금 ETF 미리보기는 잘못된 수량·금액·일자를 저장 전에 차단한다',()=>{
+  assert.match(pensionEditor,/if\(!isSafePensionWhole\(draft\.qty,\{positive:true\}\)\)\{\s*setDisabled\(true\);/);
+  assert.match(pensionEditor,/if\(!isSafePensionWhole\(draft\.amount,\{positive:true\}\)\)\{\s*setDisabled\(true\);/);
+  assert.match(pensionEditor,/if\(draft\.tradeDate>draft\.applyDate\)\{\s*setDisabled\(true\);/);
+});
+
+test('Market AI 신호 HTTP 오류는 body timeout을 즉시 해제한다',()=>{
+  assert.match(marketAi,/if\(response\.status===404\)\{\s*response\.releaseTimeout\?\.\(\);/);
+  assert.match(marketAi,/if\(!response\.ok\)\{\s*response\.releaseTimeout\?\.\(\);/);
+});
+
 
 test('공통 fetch timeout은 응답 헤더 뒤 JSON 본문 대기까지 유지하고 timeout 오류를 보존한다',async()=>{
   const start=core.indexOf('function networkTimeoutError()');

@@ -1139,6 +1139,7 @@ async function refreshMarketAiSignal(){
   }
 
   if(response.status===404){
+    response.releaseTimeout?.();
     setMarketAiState({
       signal:null,
       status:'신호 대기',
@@ -1150,6 +1151,7 @@ async function refreshMarketAiSignal(){
   }
 
   if(!response.ok){
+    response.releaseTimeout?.();
     setMarketAiState({
       signal:null,
       status:'신호 오류',

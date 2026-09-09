@@ -446,7 +446,20 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
         if is_actual_trading_date(portfolio, date)
     ]
 
-    return sorted(set(refresh_dates + missing_dates))
+    # A prior local run can leave a hidden, warning-bearing snapshot behind.
+    # It is not selectable, so retry it automatically instead of treating the
+    # mere presence of its JSON key as a completed market-date update.
+    retry_dates = [
+        date
+        for date, snapshot in prices.items()
+        if is_valid_date_text(date)
+        and isinstance(snapshot, dict)
+        and snapshot.get("display", True) is False
+        and snapshot.get("warnings")
+        and date <= latest_market
+    ]
+
+    return sorted(set(refresh_dates + missing_dates + retry_dates))
 
 
 # ---------------------------------------------------------------------------
