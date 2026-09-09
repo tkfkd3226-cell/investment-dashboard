@@ -98,9 +98,17 @@ jobs:
 
           KRX_MANAGED_PATHS=(data/prices.json data/performance_snapshots.json)
           KRX_INPUT_PATHS=(data/portfolio.json scripts/update_prices.py requirements.txt .github/workflows/update-prices.yml)
+          LAST_PUSH_SHA=""
 
           for attempt in 1 2 3; do
             git fetch origin "$BRANCH_NAME"
+
+            # 직전 git push가 서버에서는 성공했지만 클라이언트가 응답을 받지 못한 경우를 먼저 수렴시킨다.
+            # 이 검사를 managed-file guard보다 먼저 해야 자신의 성공 commit을 외부 충돌로 오인하지 않는다.
+            if [ -n "$LAST_PUSH_SHA" ] && git merge-base --is-ancestor "$LAST_PUSH_SHA" "origin/$BRANCH_NAME"; then
+              echo "Previous KRX push already reached origin/$BRANCH_NAME ($LAST_PUSH_SHA)."
+              exit 0
+            fi
 
             # checkout 이후 remote에서 KRX 관리파일 자체가 바뀌었다면 자동 merge로 덮지 않는다.
             # 이 경우는 실제 데이터 충돌이므로 fail-closed하고 다음 갱신에서 다시 계산한다.
@@ -122,13 +130,22 @@ jobs:
               exit 1
             fi
 
+            PUSH_SHA="$(git rev-parse HEAD)"
+            LAST_PUSH_SHA="$PUSH_SHA"
             if git push origin "HEAD:$BRANCH_NAME"; then
               exit 0
             fi
 
-            echo "Push raced with another branch commit; retrying ($attempt/3)." >&2
+            echo "Push result was not confirmed; checking remote before retry ($attempt/3)." >&2
             sleep $((attempt * 2))
           done
+
+          # 마지막 push도 응답만 유실됐을 수 있으므로 실패 확정 전에 remote를 한 번 더 확인한다.
+          git fetch origin "$BRANCH_NAME"
+          if [ -n "$LAST_PUSH_SHA" ] && git merge-base --is-ancestor "$LAST_PUSH_SHA" "origin/$BRANCH_NAME"; then
+            echo "Final KRX push reached origin/$BRANCH_NAME despite an uncertain client response ($LAST_PUSH_SHA)."
+            exit 0
+          fi
 
           echo "KRX data push failed after 3 retries." >&2
           exit 1
