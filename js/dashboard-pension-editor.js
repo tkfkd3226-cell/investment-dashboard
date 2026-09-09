@@ -1352,6 +1352,10 @@ async function applyPensionBatchQueue(renderDashboard){
         const decisions={};
         conflicts.forEach(conflict=>{
           const index=Number(conflict?.index);
+          if(String(conflict?.forcedDecision||'')==='existing'){
+            decisions[String(index)]='existing';
+            return;
+          }
           const op=batchPayloadOperations[index]||{};
           const description=pensionBatchOperationDescription(op)||`${index+1}번 작업`;
           const distinct=window.confirm(`${description}\n\n기존 logical operation과 겹칩니다.\n확인: 실제 별도 작업으로 실행\n취소: 과거 작업의 응답 유실 재시도로 보고 기존 처리 유지`);

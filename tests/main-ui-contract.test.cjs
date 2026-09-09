@@ -222,6 +222,12 @@ test('퇴직연금 부분 충돌 Batch는 충돌 operation별 existing/distinct 
   assert.match(pensionEditor,/savePensionBatchViaGithubPages\(batchPayloadOperations,pin,batchRequestId,confirmation\)/);
 });
 
+
+test('퇴직연금 Batch의 동일 batch/logical identity 충돌은 사용자 distinct 선택 없이 existing으로 고정한다',()=>{
+  assert.match(pensionEditor,/if\(String\(conflict\?\.forcedDecision\|\|''\)==='existing'\)\{/);
+  assert.match(pensionEditor,/decisions\[String\(index\)\]='existing'/);
+});
+
 test('퇴직연금 단건 삭제는 모든 target에서 durable pending logicalOperationId를 유지하고 cash만 snapshot version을 추가한다',()=>{
   assert.match(pensionEditor,/singleDeleteFingerprint:'',\s*singleDeleteId:'',\s*singleDeletePayload:null/);
   assert.match(pensionEditor,/function pensionCashSnapshotVersion\(item\)\{/);
