@@ -1,0 +1,11 @@
+[
+  {
+    "requestId": "pension-batch-f7ce7596-8b85-479b-a61c-cdc59446a23e",
+    "operationsHash": "c1bab522894f2d75742748e26b2a88c7c413cbf1d6d5b6ed6d6ae0cc8e525232",
+    "status": "completed",
+    "commitSha": "",
+    "reason": "batch_applied",
+    "savedAtKST": "2026-09-11T17:45:50+09:00",
+    "savedAtMs": 1789116350504
+  }
+]
