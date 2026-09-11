@@ -1287,6 +1287,9 @@ function showPensionBatchStatus(message,type='err'){
 function serializePensionBatchOperations(operations){
   return (operations||[]).map(op=>({action:op.action,target:op.target,key:op.key||'',item:op.item||null,operationId:op.operationId||op.tempId||op.qid||'',logicalOperationId:String(op.logicalOperationId||op.operationId||op.tempId||op.qid||''),expectedVersion:String(op.expectedVersion||''),expectedAbsent:op.expectedAbsent===true}));
 }
+function logPensionTiming(data){
+  if(data?.timing)console.info('[Pension timing]',JSON.stringify(data.timing));
+}
 async function savePensionBatchViaGithubPages(payloadOperations,pin,batchRequestId,confirmation=null){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
   if(!config.url||config.url.includes('여기에_'))throw new Error('GitHub Pages 저장 URL이 설정되지 않았습니다.');
@@ -1298,6 +1301,7 @@ async function savePensionBatchViaGithubPages(payloadOperations,pin,batchRequest
   }
   const res=await fetchWithTimeout(config.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
   const data=await readJsonResponse(res,'작업 모음 일괄 적용');
+  logPensionTiming(data);
   if(!data.ok)throw new Error(data.error||'작업 모음 일괄 적용에 실패했습니다.');
   return data;
 }
@@ -1501,6 +1505,7 @@ async function savePensionContributionViaGithubPages(item,pin){
     body:JSON.stringify(payload)
   });
   const data=await readJsonResponse(res,'GitHub Pages 방식 저장');
+  logPensionTiming(data);
   if(!data.ok)throw new Error(data.error||'GitHub Pages 방식 저장 실패');
   return data;
 }
@@ -1612,6 +1617,7 @@ async function deletePensionContributionViaGithubPages(target,key,pin,deleteCont
     body:JSON.stringify(payload)
   });
   const data=await readJsonResponse(res,'GitHub Pages 방식 삭제');
+  logPensionTiming(data);
   if(!data.ok)throw new Error(data.error||'GitHub Pages 방식 삭제 실패');
   return data;
 }
