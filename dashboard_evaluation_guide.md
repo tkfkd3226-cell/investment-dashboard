@@ -55,7 +55,7 @@ UI/UX 총점
 
 ## 1.2 `평가` / `평가해줘`
 
-두 표현은 같은 평가 명령으로 처리한다.
+두 표현은 같은 **상세 평가 명령**으로 처리한다. `점수`와 달리 종합점수만 요약해서 끝내지 않는다.
 
 ```text
 최신 실제 소스 확인
@@ -65,11 +65,22 @@ UI/UX 총점
 → 상태 모델과 async boundary 식별
 → 실패 가설·반례 생성
 → CSS / JS / UI / UX 독립 평가
+→ 각 영역의 하위 평가항목별 점수·상태·근거 기록
+→ 화면 영역별 / 기능별 / 사용자 flow별 평가
 → 접근성 / 성능 / 유지보수성 / 문서 의미 확인
 → 100점 반증 평가
 → A / B / C 분류
-→ 세부 점수와 최종 결론
+→ 세부 점수표와 최종 결론
 ```
+
+`평가` / `평가해줘`의 최종 답변에는 원칙적으로 다음 네 종류의 상세표가 모두 포함되어야 한다.
+
+1. **CSS 하위 평가표** — 구조, token, cascade, responsive, theme, interaction/state, dead/legacy, 유지보수성 등
+2. **JavaScript 하위 평가표** — module/dependency, state, render, event, async/race, persistence, error, lifecycle 등
+3. **UI 화면 영역별 평가표** — 실제 화면 inventory를 먼저 만든 뒤 Topbar/KPI/Table/Card/Chart/Modal/Tooltip/Market AI/ADD 등 존재하는 영역별 평가
+4. **UX flow별 평가표** — 진입→조작→feedback→성공/실패→복구→재진입/복원의 흐름별 평가
+
+각 표에는 최소한 `평가항목 | 점수 | 상태 | 핵심 근거 | 감점 여부`를 포함한다. 100점인 항목도 단순히 `문제 없음`으로 끝내지 않고, **왜 감점하지 않았는지 확인한 실제 구조·동작 근거**를 적는다.
 
 평가에서는 파일을 수정하지 않는다.
 
@@ -231,72 +242,79 @@ README / handover / workflow 설명이 실제 코드와 다르면 **문서 정�
 
 ## 4.1 CSS
 
-기본 평가 축:
+CSS는 아래 하위 축을 각각 평가한 뒤 **CSS 총점 /100**을 산정한다. 단순히 최종 점수 하나만 제시하지 않는다.
 
-- 구조 / 파일 책임
-- Cascade / Specificity
-- Responsive
-- Theme / Token
-- Interaction CSS
-- `!important`
-- Dead / Legacy
-- Runtime state class와의 정합성
-- 유지보수성
-- **CSS 총점 /100**
+| 하위 평가축 | 기본 비중 | 핵심 질문 |
+|---|---:|---|
+| 구조 / 파일 책임 | 12 | 파일과 layer의 책임이 명확하고 중복 override를 유발하지 않는가 |
+| Token / Variable / 공통화 | 12 | 반복 값이 합리적으로 token화되고, 반대로 one-use 값을 과토큰화하지 않았는가 |
+| Cascade / Specificity | 12 | selector 우선순위가 예측 가능하고 accidental override가 없는가 |
+| Responsive | 14 | Desktop / Tablet / Mobile / orientation 경계가 실제 contract와 일치하는가 |
+| Theme / 색상 체계 | 10 | Light/Dark 및 semantic color가 runtime state와 일치하는가 |
+| Interaction / State CSS | 10 | hover/focus/active/open/disabled/runtime class가 JS 상태와 정확히 맞물리는가 |
+| Component 일관성 | 10 | table/card/modal/tooltip/control 간 typography·spacing·radius·border 규칙이 일관적인가 |
+| Dead / Legacy / fallback | 8 | 실제 dead rule은 없는가, browser fallback을 dead duplicate로 오판하지 않았는가 |
+| Print / 특수 환경 | 5 | print/special viewport 규칙이 화면 contract를 깨지 않는가 |
+| 유지보수성 / 회귀 위험 | 7 | 1px·2px 차이와 예외가 실제 이유가 있는가, 수정 영향 범위가 예측 가능한가 |
 
-파일 수나 selector 수 같은 단순 수량보다 실제 역할 분리·cascade 안정성·회귀 위험을 본다.
+비중은 평가 설명의 기준선이며, 특정 범위에 N/A가 있으면 남은 항목을 합리적으로 재배분한다. 파일 수나 selector 수 같은 단순 수량보다 실제 역할 분리·cascade 안정성·회귀 위험을 본다.
 
 ## 4.2 JavaScript
 
-기본 평가 축:
+JavaScript는 아래 하위 축을 각각 평가한 뒤 **JavaScript 총점 /100**을 산정한다.
 
-- Module responsibility
-- Dependency
-- State ownership
-- Public API
-- Events
-- Rendering
-- Async / Error / stale state
-- Lifecycle / cleanup
-- Persistence / restore
-- 유지보수성 / 확장성
-- **JavaScript 총점 /100**
+| 하위 평가축 | 기본 비중 | 핵심 질문 |
+|---|---:|---|
+| Module responsibility / API | 12 | 모듈 책임과 public surface가 명확한가 |
+| Dependency graph | 8 | 순환 의존·숨은 global bridge·역방향 결합이 없는가 |
+| State ownership | 12 | 상태 소유자와 source of truth가 명확하고 중복 상태가 충돌하지 않는가 |
+| Rendering / DOM lifecycle | 10 | 전체/부분 render가 transient UI·focus·scroll·runtime state를 깨지 않는가 |
+| Event / listener ownership | 8 | 중복 bind, 누수, stale listener, 재진입 문제가 없는가 |
+| Async / race / stale state | 14 | 응답 역전, duplicate action, stale success/error, session 혼선이 방어되는가 |
+| Error / recovery | 9 | 실패가 최신 성공을 덮지 않고 사용자가 정상 복구할 수 있는가 |
+| Persistence / restore | 9 | 저장→복원→수정→재계산 contract가 모든 진입 경로에서 일치하는가 |
+| Lifecycle / cleanup | 8 | timer/observer/request/session cleanup이 close/reopen/theme/viewport 변화에도 안전한가 |
+| 유지보수성 / 확장성 | 10 | helper 중복, 의미 중복, 과분리/과결합 없이 현재 규모에 적정한가 |
 
 파일 길이만으로 분리를 권하지 않는다. 하나의 subsystem으로 응집되어 있다면 큰 파일도 허용한다.
 
 ## 4.3 UI
 
-기본 평가 축:
+UI는 추상적인 미감 점수 하나로 평가하지 않는다. 먼저 **실제 화면 영역 inventory**를 만들고, 존재하는 영역별 평가와 아래 공통 UI 축을 교차 확인한 뒤 **UI 총점 /100**을 산정한다.
 
-- Visual hierarchy
-- Layout
-- Typography
-- Spacing
-- Table / Modal / Tooltip / Chart UI
-- Responsive
-- Theme
-- Interaction consistency
-- Runtime rerender consistency
-- **UI 총점 /100**
+| 공통 UI 축 | 기본 비중 | 핵심 질문 |
+|---|---:|---|
+| Visual hierarchy / 정보 우선순위 | 10 | 중요한 값과 행동이 자연스럽게 먼저 읽히는가 |
+| Layout / alignment | 10 | grid, 정렬, 폭, overflow가 viewport별로 안정적인가 |
+| Typography | 8 | 제목/본문/수치/보조문구 계층과 숫자 가독성이 일관적인가 |
+| Spacing / density | 8 | gap/padding/row height가 영역별 이유 없이 흔들리지 않는가 |
+| Table / Card | 12 | 정보 밀도·정렬·sticky·scroll·card 변환이 안정적인가 |
+| Chart / visual data | 10 | 범례, 축, tooltip, resize, theme, empty state가 일관적인가 |
+| Modal / Tooltip / Overlay | 10 | 위치, layering, focus visual, close affordance, clipping이 안정적인가 |
+| Control / interaction visual | 8 | toggle/button/select/input의 상태 표현과 hit area가 일관적인가 |
+| Responsive | 16 | Desktop/Tablet/Mobile 및 orientation에서 정보 손실·겹침·잘림이 없는가 |
+| Theme / runtime visual consistency | 8 | Light/Dark 전환 후 DOM뿐 아니라 Canvas/SVG/overlay까지 일치하는가 |
 
-실제 존재하지 않는 UI 영역은 `N/A`로 처리하며 감점하지 않는다.
+실제 존재하지 않는 UI 영역은 `N/A`로 처리하며 감점하지 않는다. MAIN/ADD 전체 평가에서는 공통 UI 축만 제시하지 말고 **실제 화면 영역별 표를 반드시 별도로 출력**한다.
 
 ## 4.4 UX
 
-기본 평가 축:
+UX는 화면 모양이 아니라 **사용자 flow와 상태 전이**를 기준으로 아래 하위 축을 평가한 뒤 **UX 총점 /100**을 산정한다.
 
-- 주요 사용자 flow 정확성
-- Feedback
-- Error recovery
-- 상태 이해 가능성
-- destructive action 명확성
-- 불필요 반복 여부
-- Accessibility / keyboard / touch
-- re-entry / duplicate action 안정성
-- 저장·복원·재계산 lifecycle
-- **UX 총점 /100**
+| 하위 평가축 | 기본 비중 | 핵심 질문 |
+|---|---:|---|
+| 정보 구조 / discoverability | 8 | 사용자가 다음 행동과 현재 위치를 이해할 수 있는가 |
+| 핵심 flow 정확성 | 14 | 조회·변경·계산·저장·갱신 같은 주요 목적을 오류 없이 완료할 수 있는가 |
+| Feedback / 진행상태 | 10 | loading/success/error/disabled 상태가 충분히 설명되는가 |
+| Error recovery | 10 | 실패 후 재시도·취소·재진입이 자연스럽고 상태가 잠기지 않는가 |
+| 상태 이해 / continuity | 12 | tab/theme/view/date/filter/open state가 예측 가능하게 유지·복원되는가 |
+| Re-entry / duplicate action | 12 | 연타, Enter 반복, close→reopen, 중복 요청에 안전한가 |
+| Keyboard / touch / accessibility | 10 | mouse 외 입력에서도 같은 기능과 feedback을 제공하는가 |
+| Persistence / restore / recalculation | 8 | 저장된 상태가 복원된 뒤 첫 렌더·재계산과 의미가 일치하는가 |
+| Perceived performance | 6 | 불필요 rerender, flicker, 기다림, focus loss가 체감 흐름을 깨지 않는가 |
+| Cross-view / cross-feature consistency | 10 | Table↔Card, MAIN↔ADD, Desktop↔Mobile에서 같은 개념이 같은 방식으로 동작하는가 |
 
-UX는 추상적인 취향보다 실제 사용자 영향이 있을 때 지적한다.
+UX는 추상적인 취향보다 실제 사용자 영향이 있을 때 지적한다. 전체 평가에서는 핵심 flow를 inventory하고 **flow별 상태 전이와 판정 근거를 별도 표로 출력**한다.
 
 ## 4.5 종합점수
 
@@ -1643,15 +1661,58 @@ ADD도 Desktop / Tablet / Mobile contract를 대표하는 폭을 사용하되, �
 - 일반 Markdown 제목, 문단, 표 중심
 - selector/함수 증거가 필요한 경우만 짧은 코드 블록
 - 검증 근거를 해당 평가 항목 가까이에 배치
+- **`평가` / `평가해줘`에서는 CSS·JavaScript·UI·UX 각각의 하위 평가표를 생략하지 않음**
+- **UI는 실제 화면 영역별 표, UX는 실제 사용자 flow별 표를 별도로 작성**
+- 각 상세표는 원칙적으로 `평가항목 | 점수 | 상태 | 핵심 근거 | 감점 여부` 5개 열을 사용
 - 점수표만 나열하지 않고 실제 근거 설명
+- 100점 항목도 `정상` 한 단어로 끝내지 않고 대표적인 정상 근거를 적음
+- A/B가 0건이어도 어떤 실패 가설과 반례를 확인했는지 적음
 - 과거 평가 문구를 복사하지 않음
 - 최신 실제 코드에서 확인한 사실을 설명
 - “테스트 전부 PASS”를 최종 결론의 핵심 근거처럼 쓰지 않음
 - 새 결함을 찾았다면 **재현 순서 또는 상태 전이**를 함께 적음
+- 브라우저 실기를 하지 않았다면 `실화면 확인`으로 표현하지 않고 정적/코드흐름/자동QA 기준임을 구분
+
+`평가` / `평가해줘`에서 다음과 같은 축약 답변은 허용하지 않는다.
+
+```text
+CSS 100 — 문제 없음
+JS 100 — 문제 없음
+UI 100 — 문제 없음
+UX 100 — 문제 없음
+종합 100
+```
+
+이 형식은 사용자가 명시적으로 `점수만`, `간단히`, `요약만`을 요청한 경우에만 허용한다.
 
 ## 23.2 영역별·기능별 상세 평가
 
-사용자가 화면영역별·기능별 평가를 요청하면 전체 평균점수만 먼저 내지 않고, 실제 구성 요소를 inventory한 뒤 구성요소별로 평가한다.
+`평가` / `평가해줘` 자체를 기본적으로 **영역별·기능별 상세 평가**로 본다. 사용자가 별도로 `화면영역별`, `기능별`이라고 쓰지 않아도 전체 평균점수만 먼저 내지 않고, 실제 구성 요소를 inventory한 뒤 구성요소별로 평가한다.
+
+MAIN 전체 평가에서는 실제 존재 여부를 확인한 뒤 최소한 다음 후보를 inventory한다.
+
+```text
+Topbar / navigation / 목차
+Hero / KPI / 총합계
+일변동 / 변동표
+계좌별 Table / Card
+성과 / 자산 / 손익 Chart
+퇴직연금 영역과 조정 flow
+Market AI / Live Valuation
+Modal / Tooltip / Overlay
+Theme / Responsive / Print
+```
+
+ADD가 포함된 전체 평가에서는 다음 후보도 실제 존재 여부를 확인한다.
+
+```text
+ADD shell / navigation
+Calc 입력 / 결과 / 복원 flow
+KODEX Report 입력 / 결과 / Chart
+MAIN ↔ ADD shared token / theme / viewport contract
+```
+
+존재하지 않는 항목은 `N/A`로 표시하고 감점하지 않는다.
 
 필요한 경우 다음 상태 표현을 사용할 수 있다.
 
@@ -1673,6 +1734,34 @@ ADD도 Desktop / Tablet / Mobile contract를 대표하는 폭을 사용하되, �
 - `완료에 가까움`도 실제 감점 사유가 없다면 억지로 99점을 만들지 않는다.
 
 구성요소별 100점 평가를 요청받은 경우 **각 구성요소에서도 구체적인 감점 사유가 없고 해당 범위의 adversarial/Counterexample 검토까지 완료됐으면 100점을 허용한다.**
+
+
+## 23.3 영역별 점수 보고의 최소 단위
+
+전체 평가에서 CSS / JavaScript / UI / UX는 **각각 최소 6개 이상의 실제 관련 하위 항목**으로 나눠 보고한다. 다만 범위가 매우 좁거나 N/A가 많은 경우에는 실제 관련 항목만 남긴다.
+
+각 영역의 총점은 하위 평가와 논리적으로 연결되어야 한다. 예를 들어 Responsive에 실제 B급 결함이 있는데 UI 100을 줄 수 없고, Async/race에 명확한 B급 결함이 있는데 JavaScript 100을 줄 수 없다. 반대로 모든 하위 항목에서 실제 감점 근거가 없다면 하위 점수와 총점 모두 100을 허용한다.
+
+100점 영역의 설명에는 최소 다음 세 종류의 근거가 포함되어야 한다.
+
+```text
+구조적 정상 근거 1개 이상
+실제 기능/상태 정상 근거 1개 이상
+반례/경계/회귀 검토 근거 1개 이상
+```
+
+## 23.4 최종 보고서의 상세도 규칙
+
+명령별 기본 상세도는 다음과 같다.
+
+| 사용자 명령 | 기본 출력 수준 |
+|---|---|
+| `점수`, `점수만` | 총점 중심의 간결한 결과 |
+| `평가`, `평가해줘` | **전체 상세 평가** |
+| `상세 평가`, `영역별 평가`, `기능별 평가` | 전체 상세 평가 + 요청 축을 더 세분화 |
+| `수정할 거 찾아줘` | 점수보다 실제 A/B 후보 탐색 중심 |
+
+따라서 `평가해줘`에 대해 단순 종합점수표와 A/B/C 개수만 제공하는 것은 이 문서의 출력 contract를 충족하지 못한 것으로 본다.
 
 ---
 
@@ -1759,6 +1848,10 @@ JSON 예제가 실제 필수 context를 누락하면?
 [ ] MAIN↔ADD 평가에서 의도된 runtime 분리를 통합 부족으로 오판하지 않았는가
 [ ] 주요 interactive 기능마다 새로운 adversarial scenario를 생성했는가
 [ ] 마지막에 100점을 깨는 반례를 별도로 찾아봤는가
+[ ] `평가`/`평가해줘`라면 CSS·JS·UI·UX 하위 평가표를 모두 작성했는가
+[ ] UI 실제 화면 영역 inventory와 영역별 판정을 작성했는가
+[ ] UX 주요 flow inventory와 flow별 상태 전이 판정을 작성했는가
+[ ] 100점 하위 항목에도 구조·기능·반례 검토 근거를 남겼는가
 [ ] 충분한 반증 평가 후 실제 감점 근거가 없다면 100점을 허용했는가
 ```
 
