@@ -199,6 +199,7 @@ investment-dashboard/
 │  ├─ pension_operation_ledger.json   # v6 cash legacy history, read-only fallback
 │  ├─ pension_operation_ledger/       # semantic-hash shard, 필요 시 00~ff.json 생성
 │  ├─ pension_operation_identity/     # exact identity shard, 필요 시 00~ff.json 생성
+│  ├─ pension_batch_request_identity/ # batchRequestId durable shard, 필요 시 00~ff.json 생성
 │  ├─ krx_dispatch_ledger/             # KRX requestId durable shard, 필요 시 00~ff.json 생성
 │  └─ pension_trades.json
 │
@@ -274,6 +275,7 @@ JavaScript dependency/state ownership, CSS cascade, responsive 예외, Main UI c
 | `data/pension_operation_ledger.json` | v6 cash operation legacy history의 read-only fallback |
 | `data/pension_operation_ledger/*.json` | 모든 Pension upsert/delete logical operation의 semantic durable history. semantic hash 앞 2자리로 직접 조회하며 800건 ring buffer를 사용하지 않음 |
 | `data/pension_operation_identity/*.json` | requestId/logicalOperationId/batchRequestId+operationId의 exact identity durable index. payload 내용과 무관한 identity hash 앞 2자리로 조회하여 같은 identity+다른 내용 재사용을 장기 차단 |
+| `data/pension_batch_request_identity/*.json` | batchRequestId 자체의 durable index. receipt GC 뒤 operationId를 바꿔 같은 batchRequestId를 다른 작업 묶음에 재사용하는 우회를 차단 |
 | `data/krx_dispatch_ledger/*.json` | KRX 완료 requestId/hash/workflow run ID의 durable shard history. Script Properties receipt/intent GC 이후 동일 requestId 재-dispatch를 차단 |
 | `data/pension_trades.json` | 퇴직연금 거래 이력 |
 
@@ -291,6 +293,7 @@ data/performance_snapshots.json
 data/pension_contributions.json
 data/pension_operation_ledger/*.json   # GAS가 생성·갱신하는 semantic operation history shard
 data/pension_operation_identity/*.json # GAS가 생성·갱신하는 exact identity history shard
+data/pension_batch_request_identity/*.json # GAS가 생성·갱신하는 batchRequestId durable shard
 data/krx_dispatch_ledger/*.json        # GAS가 생성·갱신하는 KRX requestId durable history shard
 ```
 
@@ -306,7 +309,7 @@ data/krx_dispatch_ledger/*.json        # GAS가 생성·갱신하는 KRX request
 
 쓰기 요청은 **stable request identity + 최초 전송 payload 보존 + optimistic concurrency + ScriptLock/PENSION_MUTATION_EPOCH**을 기본 축으로 처리합니다. Pension의 모든 upsert/delete는 semantic operation ledger와 content-independent exact identity ledger를 사용해 retry, delete 후 resurrection, same identity/different content를 차단하며, 실제 business JSON 변경이 없는 terminal no-op도 완료 identity를 남깁니다. 다른 기기에서 동일 semantic 후보가 보이는 경우에는 자동 dedupe하지 않고 state-bound confirmation token으로 기존 처리/별도 작업을 다시 확인합니다.
 
-Script Properties의 active intent는 단순 cap/TTL GC로 버리지 않습니다. **stale 판정이 끝난 intent는 receipt로 승격해 active slot을 해제**하고, 장시간 응답이 없거나 prefix cap에 도달한 abandoned intent도 fail-closed terminal receipt로 전환합니다. KRX의 접수 여부가 불확실한 requestId는 가능하면 durable dispatch ledger에 terminal tombstone을 남긴 뒤 intent를 해제합니다. receipt/confirmation/marker는 prefix cap과 전체 내부 byte budget 안에서 관리합니다.
+Script Properties의 active intent는 단순 cap/TTL GC로 버리지 않습니다. **stale 판정이 끝난 Single/Batch intent는 GitHub durable identity/tombstone을 먼저 확보한 뒤 receipt로 승격해 active slot을 해제**하고, 장시간 응답이 없는 abandoned intent는 foreground 요청당 소수만 점진적으로 정리합니다. durable ledger가 이미 성공 완료를 증명하면 stale로 바꾸지 않고 completed receipt를 복구하며, prefix cap에서는 신규 slot 확보에 필요한 가장 오래된 1건만 별도로 terminalize합니다. KRX도 같은 원칙으로 durable dispatch 상태를 우선합니다. receipt/confirmation/marker는 prefix cap과 전체 내부 byte budget 안에서 관리합니다.
 
 세부 GAS 운영 불변조건은 `main_dashboard_maintenance_handover.md` 6.2절, 평가용 반례와 점수 기준은 `dashboard_evaluation_guide.md`의 Frontend↔Backend contract 및 100점 Gate를 기준으로 합니다. README에는 구현 함수·차수별 패치 이력을 반복 기록하지 않습니다.
 

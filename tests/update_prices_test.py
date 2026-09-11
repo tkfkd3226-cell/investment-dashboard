@@ -2,6 +2,8 @@
 """Regression tests for safe KRX closing-price publication."""
 
 import importlib.util
+import copy
+import json
 import sys
 import types
 import unittest
@@ -82,6 +84,125 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         dates = self.updater.resolve_target_dates(self.portfolio, prices, None)
 
         self.assertEqual(dates, ["2026-09-09"])
+
+
+class PerformanceCausalOrderingTest(unittest.TestCase):
+    def setUp(self):
+        self.updater = load_updater()
+        self.updater.market_status_for_date = lambda _: "close"
+        self.portfolio = {
+            "securities": [
+                {
+                    "ticker": "SEC",
+                    "name": "SEC",
+                    "type": "개별주식",
+                    "qty": 1,
+                    "cost": 100,
+                }
+            ],
+            "pension": [],
+            "securitiesEvents": [],
+            "constants": {
+                "securitiesCash": 0,
+                "account1Principal": 100,
+            },
+        }
+
+    def test_historical_backfill_rebases_next_existing_daily_profit(self):
+        self.updater.fetch_close = lambda *_: ("2026-09-08", 110, None)
+        prices = {
+            "2026-09-07": {
+                "display": True,
+                "actualMarketDate": "2026-09-07",
+                "securities": {"SEC": 100},
+                "pension": {},
+            },
+            "2026-09-09": {
+                "display": True,
+                "actualMarketDate": "2026-09-09",
+                "securities": {"SEC": 120},
+                "pension": {},
+            },
+        }
+        snapshots = {
+            "2026-09-07": {"rawHoldingProfit": 0, "dailyProfit": 0, "allocation": {"현금": 0}},
+            "2026-09-09": {"rawHoldingProfit": 20, "dailyProfit": 20, "allocation": {"현금": 0}},
+        }
+
+        warnings = self.updater.update_one_date("2026-09-08", self.portfolio, prices, snapshots)
+
+        self.assertEqual(warnings, [])
+        self.assertEqual(snapshots["2026-09-08"]["rawHoldingProfit"], 10)
+        self.assertEqual(snapshots["2026-09-08"]["dailyProfit"], 10)
+        self.assertEqual(snapshots["2026-09-09"]["dailyProfit"], 10)
+
+    def test_correcting_middle_date_rebases_only_immediate_forward_dependency(self):
+        self.updater.fetch_close = lambda *_: ("2026-09-08", 115, None)
+        prices = {
+            "2026-09-07": {"display": True, "securities": {"SEC": 100}, "pension": {}},
+            "2026-09-08": {"display": True, "securities": {"SEC": 110}, "pension": {}},
+            "2026-09-09": {"display": True, "securities": {"SEC": 120}, "pension": {}},
+            "2026-09-10": {"display": True, "securities": {"SEC": 130}, "pension": {}},
+        }
+        snapshots = {
+            "2026-09-07": {"rawHoldingProfit": 0, "dailyProfit": 0, "allocation": {"현금": 0}},
+            "2026-09-08": {"rawHoldingProfit": 10, "dailyProfit": 10, "allocation": {"현금": 0}},
+            "2026-09-09": {"rawHoldingProfit": 20, "dailyProfit": 10, "allocation": {"현금": 0}},
+            "2026-09-10": {"rawHoldingProfit": 30, "dailyProfit": 10, "allocation": {"현금": 0}},
+        }
+
+        warnings = self.updater.update_one_date("2026-09-08", self.portfolio, prices, snapshots)
+
+        self.assertEqual(warnings, [])
+        self.assertEqual(snapshots["2026-09-08"]["rawHoldingProfit"], 15)
+        self.assertEqual(snapshots["2026-09-08"]["dailyProfit"], 15)
+        self.assertEqual(snapshots["2026-09-09"]["dailyProfit"], 5)
+        self.assertEqual(snapshots["2026-09-10"]["dailyProfit"], 10)
+
+    def test_multiple_historical_backfills_converge_regardless_of_execution_order(self):
+        base_prices = {
+            "2026-09-07": {"display": True, "securities": {"SEC": 100}, "pension": {}},
+            "2026-09-10": {"display": True, "securities": {"SEC": 130}, "pension": {}},
+        }
+        base_snapshots = {
+            "2026-09-07": {"rawHoldingProfit": 0, "dailyProfit": 0, "allocation": {"현금": 0}},
+            "2026-09-10": {"rawHoldingProfit": 30, "dailyProfit": 30, "allocation": {"현금": 0}},
+        }
+        closes = {"2026-09-08": 110, "2026-09-09": 120}
+
+        def run(order):
+            prices = copy.deepcopy(base_prices)
+            snapshots = copy.deepcopy(base_snapshots)
+            for target_date in order:
+                self.updater.fetch_close = lambda _, date: (date, closes[date], None)
+                self.updater.update_one_date(target_date, self.portfolio, prices, snapshots)
+            return {
+                date: (snapshot["rawHoldingProfit"], snapshot["dailyProfit"])
+                for date, snapshot in sorted(snapshots.items())
+            }
+
+        chronological = run(["2026-09-08", "2026-09-09"])
+        reverse = run(["2026-09-09", "2026-09-08"])
+
+        self.assertEqual(reverse, chronological)
+        self.assertEqual(
+            [value[1] for value in chronological.values()],
+            [0, 10, 10, 10],
+        )
+
+    def test_committed_performance_daily_profit_chain_is_consistent_after_baseline(self):
+        snapshots = json.loads((ROOT / "data" / "performance_snapshots.json").read_text(encoding="utf-8"))
+        dates = sorted(date for date, snapshot in snapshots.items() if isinstance(snapshot, dict))
+
+        for index, date in enumerate(dates[1:], start=1):
+            previous = snapshots[dates[index - 1]]
+            current = snapshots[date]
+            expected = int(current.get("rawHoldingProfit", 0) or 0) - int(previous.get("rawHoldingProfit", 0) or 0)
+            self.assertEqual(
+                int(current.get("dailyProfit", 0) or 0),
+                expected,
+                f"{date} dailyProfit must match the immediately preceding stored snapshot",
+            )
 
 
 if __name__ == "__main__":

@@ -193,7 +193,8 @@ test('KODEX Report 손익 의미색과 수익 구성은 현재 파생값/상태�
 
 test('Calc 이미 회복 상태는 0원·-100% 대신 현재 종가와 상태 문구를 사용한다',()=>{
   assert.match(js1,/const integratedRecoverySatisfied=settled&&!noPrior&&finalCost>0&&priorPL>=finalCost;/);
-  assert.match(js1,/integratedRecoverySatisfied\?input\.currentPrice:integratedBEOrder/);
+  assert.match(js1,/integratedRecoverySatisfied\?ceil5\(input\.currentPrice\):integratedBEOrder/);
+  assert.match(js1,/priorPL>=principal\)return ceil5\(Number\(v\.currentPrice\)\|\|0\);/);
   assert.match(js1,/c\.integratedRecoverySatisfied\?'이미 회복':nf0\.format\(c\.settled\?c\.integratedBE:c\.positionBE\)/);
   assert.match(js1,/setText\('kpi3Value',c\.integratedRecoverySatisfied\?'이미 회복':won\(c\.integratedBEOrder\)/);
   assert.match(js1,/if\(c\.integratedRecoverySatisfied\)\{setText\('range2Value','이미 회복','positive'\)/);

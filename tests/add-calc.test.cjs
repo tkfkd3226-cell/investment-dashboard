@@ -122,6 +122,15 @@ test('compute: 이전 확정이익만으로 이미 회복된 재매수는 현재
   assert.deepEqual(validate(c.i,{caseType:'settled',mode:'current'}),{errors:[],invalidIds:[]});
 });
 
+test('compute: 이미 회복된 자동 목표도 KRX 5원 주문단위로 올림한다',()=>{
+  const input={...settledAlreadyRecovered,currentPrice:10003};
+  const c=compute(input,{caseType:'settled',noPrior:false,mode:'current',autoBreakEvenTarget:true});
+  assert.equal(c.integratedRecoverySatisfied,true);
+  assert.equal(c.targetPrice,10005);
+  assert.equal(c.targetPrice%5,0);
+  assert.equal(c.inputUpdates.overnightPct,(10005/10003-1)*100);
+});
+
 test('compute: 보유 중 추가매수의 최종 보유/평단/손익',()=>{
   const c=compute(holding,{caseType:'holding',noPrior:false,mode:'current',autoBreakEvenTarget:true});
   assert.equal(c.finalShares,642);

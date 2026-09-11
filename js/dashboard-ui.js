@@ -640,6 +640,13 @@ async function submitKrxActionModal(mode='selected'){
     }
     const data = await dispatchKrxPriceUpdate(pin, updateMode, requestId);
 
+    if(data.action==='workflow_status_uncertain'){
+      const msg=data.message||'KRX 요청 상태를 확인하지 못했습니다. 같은 요청으로 다시 시도해주세요.';
+      if(currentSession()&&status){status.textContent=msg;status.className='action-modal-status krx-action-status checking'}
+      showAppToast(msg,'err',6500);
+      return;
+    }
+
     if(['workflow_skipped','workflow_duplicate_ignored','workflow_dispatch_uncertain','workflow_in_progress'].includes(data.action)){
       resetKrxActionRequestIdentity();
       const msg = data.message || (data.action==='workflow_duplicate_ignored'

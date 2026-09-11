@@ -637,6 +637,43 @@ def calculate_performance_snapshot(
     }
 
 
+def reconcile_next_daily_profit(target_date: str, snapshots: dict[str, Any]) -> str | None:
+    """Repair the first forward daily-profit dependency after ``target_date``.
+
+    ``dailyProfit`` is the only performance field whose value depends on the
+    immediately preceding stored performance snapshot.  When a historical date
+    is inserted or its ``rawHoldingProfit`` is corrected, the next existing
+    snapshot must therefore be rebased as well.  Later snapshots do not need a
+    cascade because their predecessor's ``rawHoldingProfit`` is unchanged.
+    """
+    current = snapshots.get(target_date)
+    if not isinstance(current, dict):
+        return None
+
+    next_dates = sorted(
+        date
+        for date, snapshot in snapshots.items()
+        if date > target_date and is_valid_date_text(date) and isinstance(snapshot, dict)
+    )
+    if not next_dates:
+        return None
+
+    next_date = next_dates[0]
+    next_snapshot = snapshots[next_date]
+    expected = int(next_snapshot.get("rawHoldingProfit", 0) or 0) - int(current.get("rawHoldingProfit", 0) or 0)
+    actual = int(next_snapshot.get("dailyProfit", 0) or 0)
+
+    if actual == expected:
+        return None
+
+    next_snapshot["dailyProfit"] = expected
+    print(
+        "reconciled forward dailyProfit dependency "
+        f"for {next_date} after {target_date}: {actual} -> {expected}"
+    )
+    return next_date
+
+
 # ---------------------------------------------------------------------------
 # Per-date update / persistence
 # ---------------------------------------------------------------------------
@@ -734,6 +771,7 @@ def update_one_date(
         prices[target_date]["warnings"] = warnings
 
     snapshots[target_date] = calculate_performance_snapshot(target_date, portfolio, prices, snapshots)
+    reconcile_next_daily_profit(target_date, snapshots)
 
     if warnings:
         print(f"WARNINGS for {target_date}:")

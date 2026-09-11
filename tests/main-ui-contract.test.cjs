@@ -119,6 +119,10 @@ test('KRX 실패 재시도는 같은 requestId를 재사용하고 dispatch 불�
   assert.match(ui,/dispatchKrxPriceUpdate\(pin, updateMode, requestId\)/);
   assert.match(ui,/workflow_dispatch_uncertain/);
   assert.match(ui,/Actions 상태를 확인해주세요/);
+  const statusUncertainStart=ui.indexOf("if(data.action==='workflow_status_uncertain')");
+  const terminalActionStart=ui.indexOf("if(['workflow_skipped','workflow_duplicate_ignored','workflow_dispatch_uncertain','workflow_in_progress'].includes(data.action))",statusUncertainStart);
+  assert.ok(statusUncertainStart>=0&&terminalActionStart>statusUncertainStart,'workflow_status_uncertain은 terminal action보다 먼저 분기해야 한다');
+  assert.doesNotMatch(ui.slice(statusUncertainStart,terminalActionStart),/resetKrxActionRequestIdentity\(\)/,'transient status uncertainty에서는 같은 requestId를 유지해야 한다');
   assert.match(ui,/resetKrxActionRequestIdentity\(\);\s*const successMsg=/);
 });
 
@@ -144,6 +148,8 @@ test('퇴직연금 삭제 PIN은 위험 상태를 명시하고 교체된 요청�
   assert.match(pensionEditor,/\}catch\(e\)\{\s*if\(finished\)return;/);
   assert.match(common,/\.pension-action-pin-modal\.is-danger \.pension-action-pin-card/);
   assert.match(common,/\.pension-action-pin-danger\{/);
+  assert.match(common,/\.pension-action-pin-danger\{[^}]*line-height:var\(--type-line-body\)/s);
+  assert.doesNotMatch(common,/--type-line-height-body/);
 });
 
 test('퇴직연금 편집기는 화면 입력과 작업 모음 모두에서 수량·금액을 안전 정수로 제한한다',()=>{
@@ -272,6 +278,20 @@ test('KRX workflow는 같은 branch 생성데이터를 직렬화하고 pending �
   assert.match(updatePricesWorkflow,/concurrency:\s*\n\s*group: update-krx-prices-\$\{\{ github\.ref \}\}\s*\n\s*queue: max/);
   assert.doesNotMatch(updatePricesWorkflow,/cancel-in-progress:\s*true/);
   assert.match(updatePricesWorkflow,/request_id:/);
+});
+
+test('queued KRX run은 실행 시작 시 최신 branch tip을 generation base로 다시 잡되 generation input 변경은 fail-closed한다',()=>{
+  const refreshStart=updatePricesWorkflow.indexOf('- name: Refresh queued run generation base');
+  const updateStart=updatePricesWorkflow.indexOf('- name: Update KRX prices and snapshots');
+  assert.ok(refreshStart>=0&&updateStart>refreshStart,'queued-run generation base refresh가 updater보다 먼저 실행돼야 한다');
+  const refreshBlock=updatePricesWorkflow.slice(refreshStart,updateStart);
+  assert.match(refreshBlock,/DISPATCH_SHA="\$\(git rev-parse HEAD\)"/);
+  assert.match(refreshBlock,/git fetch origin "\$BRANCH_NAME"/);
+  assert.match(refreshBlock,/START_SHA="\$\(git rev-parse "origin\/\$BRANCH_NAME"\)"/);
+  assert.match(refreshBlock,/KRX_INPUT_PATHS=\(data\/portfolio\.json scripts\/update_prices\.py requirements\.txt \.github\/workflows\/update-prices\.yml\)/);
+  assert.match(refreshBlock,/git diff --quiet "\$DISPATCH_SHA" "\$START_SHA" -- "\$\{KRX_INPUT_PATHS\[@\]\}"/);
+  assert.match(refreshBlock,/git checkout --detach "\$START_SHA"/);
+  assert.match(refreshBlock,/KRX generation inputs changed while this run was queued/);
 });
 
 test('KRX workflow run-name은 date/mode와 requestId를 노출해 GAS가 queued/running 동일 작업을 식별할 수 있다',()=>{

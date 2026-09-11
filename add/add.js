@@ -174,7 +174,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
   function autoIntegratedRecoveryTarget(v){
     const qty=v.addShares||0, principal=(v.addPrice||0)*qty;
     const priorPL=priorPLFrom(v);
-    if(qty>0&&principal>0&&priorPL>=principal)return Number(v.currentPrice)||0;
+    if(qty>0&&principal>0&&priorPL>=principal)return ceil5(Number(v.currentPrice)||0);
     return integratedRecoveryOrder(v);
   }
 
@@ -489,7 +489,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     const integratedBE=Math.ceil(integratedBERaw), integratedBEOrder=ceil5(integratedBERaw);
     let targetPrice;
     if(calculationMode==='current'&&useAutoBreakEvenTarget){
-      targetPrice=settled&&!noPrior?(integratedRecoverySatisfied?input.currentPrice:integratedBEOrder):positionBEOrder;
+      targetPrice=settled&&!noPrior?(integratedRecoverySatisfied?ceil5(input.currentPrice):integratedBEOrder):positionBEOrder;
       input.overnightPct=input.currentPrice?(targetPrice/input.currentPrice-1)*100:0;
       input.risePct=input.addPrice?(targetPrice/input.addPrice-1)*100:0;
       inputUpdates.overnightPct=input.overnightPct;

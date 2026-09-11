@@ -3506,7 +3506,7 @@ button:not(:disabled):active{
   background:var(--status-danger-soft-bg);
   color:var(--status-danger-soft-text);
   font-size:var(--type-size-sm);
-  line-height:var(--type-line-height-body);
+  line-height:var(--type-line-body);
   font-weight:var(--type-weight-emphasis);
 }
 
