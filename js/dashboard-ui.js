@@ -541,7 +541,7 @@ function ensureKrxActionModal(){
     <h3 id="krxActionTitle" class="modal-main-title">KRX 현재가 반영</h3>
     <p id="krxActionDescription" class="action-modal-description">최신/누락 반영은 오늘 데이터와 누락 거래일을 생성·보완하고, 재갱신은 선택된 날짜를 확인해 종가 기준이 아니면 다시 반영합니다.</p>
     <label class="action-modal-label krx-action-label" for="krxActionPin">저장/실행 PIN</label>
-    <input id="krxActionPin" class="action-modal-input" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN 12자리 입력" aria-describedby="krxActionDescription krxActionEnterHelp krxActionStatus" aria-invalid="false">
+    <input id="krxActionPin" class="action-modal-input" type="text" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="krxActionDescription krxActionEnterHelp krxActionStatus" aria-invalid="false">
     <p id="krxActionEnterHelp" class="action-modal-input-help">Enter 시 재갱신됩니다.</p>
     <div id="krxActionStatus" class="action-modal-status krx-action-status" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="action-modal-buttons krx-action-buttons">
@@ -554,7 +554,7 @@ function ensureKrxActionModal(){
   bindDashboardModalDismiss(modal,{onDismiss:closeKrxActionModal});
   const pinInput=modal.querySelector('#krxActionPin');
   pinInput?.addEventListener('input',()=>{
-    const cleaned=String(pinInput.value||'').replace(/\D/g,'').slice(0,12);
+    const cleaned=String(pinInput.value||'').replace(/\D/g,'').slice(0,6);
     if(pinInput.value!==cleaned)pinInput.value=cleaned;
     pinInput.setAttribute('aria-invalid','false');
     const pinStatus=modal.querySelector('#krxActionStatus');
@@ -627,12 +627,12 @@ async function submitKrxActionModal(mode='selected'){
     if(status){status.textContent='이미 KRX 현재가 반영 요청을 처리 중입니다.';status.className='action-modal-status krx-action-status checking'}
     return;
   }
-  const pin=String(input?.value||'').replace(/\D/g,'').slice(0,12);
+  const pin=String(input?.value||'').replace(/\D/g,'').slice(0,6);
   const updateMode=mode==='auto'?'auto':'selected';
   const selectedDate=dataState.activeDate || '';
-  if(pin.length!==12){
+  if(pin.length!==6){
     input?.setAttribute('aria-invalid','true');
-    if(status){status.textContent='PIN 12자리를 입력해 주세요.';status.className='action-modal-status krx-action-status err'}
+    if(status){status.textContent='PIN 6자리를 입력해 주세요.';status.className='action-modal-status krx-action-status err'}
     input?.focus();
     return;
   }
