@@ -5,7 +5,8 @@
     "amount": 618060,
     "memo": "2026년 6월 기업적립금",
     "updatedBy": "google-apps-script",
-    "updatedAtKST": "2026-08-05T02:12:04+09:00"
+    "updatedAtKST": "2026-08-05T02:12:04+09:00",
+    "logicalOperationId": "contrib-2026-07-01-7d22970c-821c-4a89-88fb-202be9336241"
   },
   {
     "id": "contrib-2026-07-31-29fa5f29-83d2-4b79-a756-32de1003a3c2",
@@ -13,7 +14,8 @@
     "amount": 618060,
     "memo": "2026년 7월 기업적립금",
     "updatedBy": "google-apps-script",
-    "updatedAtKST": "2026-07-31T16:46:54+09:00"
+    "updatedAtKST": "2026-07-31T16:46:54+09:00",
+    "logicalOperationId": "contrib-2026-07-31-29fa5f29-83d2-4b79-a756-32de1003a3c2"
   },
   {
     "id": "contrib-2026-09-01-4e6c78da-d01e-4fe9-ad27-14677b8fe392",
@@ -21,6 +23,16 @@
     "amount": 618060,
     "memo": "2026년 8월 기업적립금",
     "updatedBy": "google-apps-script",
-    "updatedAtKST": "2026-09-02T11:13:09+09:00"
+    "updatedAtKST": "2026-09-02T11:13:09+09:00",
+    "logicalOperationId": "contrib-2026-09-01-4e6c78da-d01e-4fe9-ad27-14677b8fe392"
+  },
+  {
+    "id": "contrib-2026-09-30-e7bca9da-b656-4bf9-9777-fb8b65d9ba57",
+    "date": "2026-09-30",
+    "amount": 618060,
+    "memo": "test",
+    "updatedBy": "google-apps-script",
+    "updatedAtKST": "2026-09-11T16:54:39+09:00",
+    "logicalOperationId": "contrib-2026-09-30-e7bca9da-b656-4bf9-9777-fb8b65d9ba57"
   }
 ]
