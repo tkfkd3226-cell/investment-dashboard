@@ -1168,7 +1168,7 @@ Market AI 백엔드는 기본 MAIN 평가 대상에서 제외한다. 다만 Dash
 - Hero 제목행에는 Live Valuation 상태 문자열을 노출하지 않고 날짜 기준만 표시하는지. `LIVE/CLOSED/STALE/WARMING/JSON` 판정은 내부 quote/fallback state와 테스트로만 유지되는지
 - Desktop/Tablet Market AI 시장 tooltip이 KOSPI·K200선물·SOX·NQ100선물 모두 `상태` 행을 제공하고, K200만 backend Bridge session 근거가 있을 때 `세션` 행을 추가하는지
 - source tooltip이 라벨 셀 hover와 keyboard focus 모두에서 열리고 기존 tooltip lifecycle/viewport clipping contract를 지키는지
-- standalone pull-to-refresh가 일반 브라우저에서 비활성이고, 최상단 단일 아래방향 터치에서만 동작하며 modal/chart expanded 중에는 시작하지 않는지
+- standalone pull-to-refresh가 일반 브라우저에서 비활성이고, 최상단 단일 아래방향 터치에서만 동작하며 `body.dashboard-dialog-open`/chart expanded 중에는 시작하지 않는지. 한 번 armed된 뒤 위로 되돌리거나 가로 제스처·멀티터치로 전환하면 stale drag state가 남지 않는지
 - endpoint별 실패 격리와 전체 Market AI 연결 실패가 기본 Dashboard 기능을 깨뜨리지 않는지
 
 Market AI 백엔드 최신 소스가 함께 제공된 **별도 backend 평가**에서는 추가로 다음을 본다.

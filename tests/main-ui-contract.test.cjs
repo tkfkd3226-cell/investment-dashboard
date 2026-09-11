@@ -1050,7 +1050,11 @@ test('Standalone Web App은 최상단 단일 터치 pull-to-refresh를 제공하
   assert.match(app,/window\.navigator\?\.standalone===true/);
   assert.match(app,/function setupStandalonePullToRefresh\(\)/);
   assert.match(app,/dashboardScrollTop\(\)>1/);
+  assert.match(app,/document\.body\.classList\.contains\('dashboard-dialog-open'\)/);
   assert.match(app,/dashboardPullRefreshBlocked\(\)/);
+  assert.match(app,/event\.touches\.length!==1\|\|dashboardScrollTop\(\)>1\|\|dashboardPullRefreshBlocked\(\)/);
+  assert.match(app,/if\(deltaY<=0\|\|Math\.abs\(deltaX\)>deltaY\)\{\s*resetStandalonePullRefresh\(indicator\)/);
+  assert.match(app,/standalonePullRefreshState\.dragY=deltaY;\s*if\(deltaY<8\)/);
   assert.match(app,/touchmove[^]*\{passive:false\}/);
   assert.match(app,/standalonePullRefreshState\.threshold:80|threshold:80/);
   assert.match(app,/window\.location\.reload\(\)/);

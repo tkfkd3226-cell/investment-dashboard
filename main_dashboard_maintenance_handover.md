@@ -390,7 +390,7 @@ input
 - 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
 - KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유한다. 공통 modal radius는 shared modal contract에서 한 번만 소유하고 Tablet/Phone은 해당 shared token만 override한다. Phone 좌우 여백은 overlay padding을 canonical source로 사용하며 feature별 `100vw - npx` 폭 보정을 중복해서 만들지 않는다.
 - Tooltip 표시 motion은 `--tooltip-motion`을 공통 source로 사용한다.
-- iPhone 홈화면 `Open as Web App`/standalone에서는 브라우저 새로고침 UI 부재를 보완하기 위해 최상단 pull-to-refresh를 제공한다. `display-mode: standalone` 또는 iOS `navigator.standalone`에서만 활성화하고, `scrollTop≈0`의 단일 아래방향 터치에서만 동작한다. chart expanded/modal/dialog 중에는 시작하지 않으며 일반 Safari/브라우저 화면에는 indicator/listener를 만들지 않는다. 임계값을 넘겨 손을 놓은 경우에만 `location.reload()`한다.
+- iPhone 홈화면 `Open as Web App`/standalone에서는 브라우저 새로고침 UI 부재를 보완하기 위해 최상단 pull-to-refresh를 제공한다. `display-mode: standalone` 또는 iOS `navigator.standalone`에서만 활성화하고, `scrollTop≈0`의 단일 아래방향 터치에서만 동작한다. `body.dashboard-dialog-open`을 공통 modal blocker로 사용하고 chart expanded/dialog 중에도 시작하지 않으며, 일반 Safari/브라우저 화면에는 indicator/listener를 만들지 않는다. 임계값을 넘겨 손을 놓은 경우에만 `location.reload()`한다.
 - 검증된 responsive/browser별 표현 예외는 feature/CSS가 소유하며, generic 공통화를 위해 제거하지 않는다.
 
 화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js` 또는 `dashboard-modal.js`로 끌어올리지 않는다.
@@ -900,7 +900,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - remote는 실제 endpoint 응답이 확인되기 전까지 Market AI signal UI를 mount하지 않고 polling으로 복구를 기다리며, local 전체 연결 실패는 panel 중앙의 `연결 확인 중` 상태를 유지한다. 어느 쪽도 일반 대시보드의 저장 데이터 기반 기능을 깨뜨리지 않는다.
 - Desktop/Tablet Hero와 Mobile dialog가 같은 signal panel DOM을 재사용하는 구조를 유지한다.
 - Phone에서는 Market AI metric tooltip을 활성화하지 않는다.
-- Desktop/Tablet의 시장 metric tooltip은 KOSPI·K200선물·SOX·NQ100선물 모두 `현재가 → 등락률 → 상태 → 데이터 → 갱신`을 기본 정보 contract로 사용한다. `상태`는 snapshot freshness 기준 `데이터 정상 / 데이터 지연 / 데이터 없음`을 공통으로 제공하고, K200선물만 KIS Bridge가 제공하는 `세션(주간/야간/장외)`을 추가 표시한다. backend가 제공하지 않는 세션을 프론트에서 임의 추정해 다른 시장에 표시하지 않는다.
+- Desktop/Tablet의 시장 metric tooltip은 KOSPI·K200선물·SOX·NQ100선물 모두 `현재가 → 등락률 → 상태 → 데이터 → 갱신/마지막 수신`을 기본 정보 contract로 사용한다. `상태`는 snapshot freshness 기준 `데이터 정상 / 데이터 지연 / 데이터 없음`을 공통으로 제공하고, K200선물만 KIS Bridge가 제공하는 `세션(주간/야간/장외)`을 추가 표시한다. backend가 제공하지 않는 세션을 프론트에서 임의 추정해 다른 시장에 표시하지 않는다.
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
 - Hero에는 Live Valuation 상태 문자열을 별도 표시하지 않는다. `LIVE / CLOSED / STALE / WARMING / JSON` 판정은 내부 quote/fallback 로직과 테스트를 위해 유지하되 화면 제목행에는 날짜 기준만 노출한다. 과거 날짜는 항상 저장 데이터 의미를 유지한다.
 - 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다.

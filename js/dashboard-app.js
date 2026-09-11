@@ -265,7 +265,8 @@ function dashboardStandaloneMode(){
 }
 
 function dashboardPullRefreshBlocked(){
-  return !!document.querySelector('.chart-expanded-overlay.show,.action-modal.show,.contrib-modal.show,dialog[open]');
+  if(document.body.classList.contains('dashboard-dialog-open'))return true;
+  return !!document.querySelector('.chart-expanded-overlay.show,dialog[open]');
 }
 
 function dashboardScrollTop(){
@@ -313,8 +314,8 @@ function setupStandalonePullToRefresh(){
   },{passive:true});
 
   document.addEventListener('touchmove',event=>{
-    if(!standalonePullRefreshState.active||event.touches.length!==1)return;
-    if(dashboardScrollTop()>1||dashboardPullRefreshBlocked()){
+    if(!standalonePullRefreshState.active)return;
+    if(event.touches.length!==1||dashboardScrollTop()>1||dashboardPullRefreshBlocked()){
       resetStandalonePullRefresh(indicator);
       return;
     }
@@ -322,12 +323,18 @@ function setupStandalonePullToRefresh(){
     const deltaX=touch.clientX-standalonePullRefreshState.startX;
     const deltaY=touch.clientY-standalonePullRefreshState.startY;
     if(deltaY<=0||Math.abs(deltaX)>deltaY){
-      if(deltaY<0)resetStandalonePullRefresh(indicator);
+      resetStandalonePullRefresh(indicator);
       return;
     }
-    if(deltaY<8)return;
-    event.preventDefault();
     standalonePullRefreshState.dragY=deltaY;
+    if(deltaY<8){
+      indicator.classList.remove('visible','armed');
+      indicator.style.setProperty('--pull-refresh-offset','0px');
+      const label=indicator.querySelector('.standalone-pull-refresh-label');
+      if(label)label.textContent='당겨서 새로고침';
+      return;
+    }
+    event.preventDefault();
     const offset=Math.min(standalonePullRefreshState.maxOffset,Math.round(deltaY*.7));
     const armed=deltaY>=standalonePullRefreshState.threshold;
     indicator.style.setProperty('--pull-refresh-offset',`${offset}px`);
