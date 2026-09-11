@@ -1,0 +1,17 @@
+[
+  {
+    "identityKey": "batch:cashSnapshot:pension-batch-f29f40f1-2c57-40f1-aea2-55f09de225a5|batch-temp-1789116781870-2",
+    "contentHash": "6c39a0424bea42a11b13f28112cd20b761825fce91b1f75b20f51fc1abecd74f",
+    "target": "cashSnapshot",
+    "action": "delete",
+    "semanticHash": "05cf9364ee4eb78b153d17e9b89644e34f5463d9c3764f5dd6dde18dd907e0e5",
+    "resourceKey": "2026-09-11",
+    "logicalOperationId": "batch-logical-dd8aa7e5-a523-43cd-a0ba-eaafdc86f741",
+    "requestId": "",
+    "batchRequestId": "pension-batch-f29f40f1-2c57-40f1-aea2-55f09de225a5",
+    "batchOperationId": "batch-temp-1789116781870-2",
+    "resultVersion": "deleted:2026-09-11",
+    "savedAtKST": "2026-09-11T17:53:23+09:00",
+    "savedAtMs": 1789116803252
+  }
+]
