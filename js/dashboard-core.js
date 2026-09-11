@@ -483,15 +483,18 @@ function applyLiveValuationSnapshot(payload,requestedTickers=[]){
   dataState.liveValuation=next;
   return previous!==serialized;
 }
-function clearLiveValuationSnapshot(reason='unavailable'){
+function clearLiveValuationSnapshot(reason='unavailable',requestedTickersOverride=null){
   const previous=dataState.liveValuation||{};
+  const requested=Array.isArray(requestedTickersOverride)
+    ? [...new Set(requestedTickersOverride.map(normalizeLiveValuationTicker).filter(Boolean))].sort()
+    : (Array.isArray(previous.requestedTickers)?[...previous.requestedTickers]:[]);
   const next={
     status:'unavailable',
     marketState:'',
     bridgeConnected:false,
     universeVersion:Number(previous.universeVersion)||0,
     generatedAt:null,
-    requestedTickers:Array.isArray(previous.requestedTickers)?[...previous.requestedTickers]:[],
+    requestedTickers:requested,
     items:{},
     reason:String(reason||'unavailable')
   };

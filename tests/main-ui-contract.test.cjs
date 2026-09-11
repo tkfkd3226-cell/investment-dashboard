@@ -108,6 +108,15 @@ test('실시간 평가 adapter는 importmap cache-bust 대상이고 boot 이후 
 });
 
 
+test('실시간 평가 empty universe도 authoritative client lease로 반납하고 로컬 requestedTickers를 비운다',()=>{
+  assert.doesNotMatch(liveValuation,/if\(!tickers\.length\)\{\s*const changed=clearLiveValuationSnapshot\('empty-universe'\);[^}]*return;/);
+  assert.match(liveValuation,/if\(!tickers\.length\)\{[^]*?clearLiveValuationSnapshot\('empty-universe',\[\]\)/);
+  assert.match(liveValuation,/tickers:tickers\.join\(','\),\s*client_id:LIVE_VALUATION_CLIENT_ID/);
+  assert.match(liveValuation,/tickers\.length\?null:\[\]/);
+  assert.match(core,/function clearLiveValuationSnapshot\(reason='unavailable',requestedTickersOverride=null\)/);
+  assert.match(core,/Array\.isArray\(requestedTickersOverride\)[^]*?requestedTickers:requested/);
+});
+
 test('실시간 평가 race 방어: client lease, universe drift, pending render를 fail-safe로 처리한다',()=>{
   assert.match(liveValuation,/LIVE_VALUATION_CLIENT_SESSION_KEY='investmentDashboard\.liveValuationClientId'/);
   assert.match(liveValuation,/client_id:LIVE_VALUATION_CLIENT_ID/);

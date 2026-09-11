@@ -110,11 +110,14 @@ async function refreshLiveValuation(){
   const tickers=liveValuationTickersForDate(today);
   const requestedUniverseKey=liveValuationUniverseKey(tickers);
   if(!tickers.length){
-    const changed=clearLiveValuationSnapshot('empty-universe');
-    liveValuationLastFingerprint='';
-    if(changed)requestLiveValuationRender();
-    else flushLiveValuationRender();
-    return;
+    const previousRequested=Array.isArray(dataState.liveValuation?.requestedTickers)?dataState.liveValuation.requestedTickers:[];
+    const hasPreviousItems=Object.keys(dataState.liveValuation?.items||{}).length>0;
+    if(previousRequested.length||hasPreviousItems){
+      const changed=clearLiveValuationSnapshot('empty-universe',[]);
+      liveValuationLastFingerprint='';
+      if(changed)requestLiveValuationRender();
+      else flushLiveValuationRender();
+    }
   }
 
   const query=new URLSearchParams({
@@ -153,7 +156,10 @@ async function refreshLiveValuation(){
     if(refreshSequence!==liveValuationRefreshSequence)return;
     response?.releaseTimeout?.();
     liveValuationLastFingerprint='';
-    const changed=clearLiveValuationSnapshot(error?.name==='AbortError'?'timeout':'request-failed');
+    const changed=clearLiveValuationSnapshot(
+      error?.name==='AbortError'?'timeout':'request-failed',
+      tickers.length?null:[]
+    );
     if(changed)requestLiveValuationRender();
     else flushLiveValuationRender();
   }
