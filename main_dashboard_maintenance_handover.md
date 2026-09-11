@@ -216,7 +216,14 @@ data/
 ├─ kodex_leverage_trades.json
 ├─ pension_contributions.json
 ├─ pension_cash_snapshots.json
+├─ pension_operation_ledger.json      # legacy read-only fallback
+├─ pension_operation_ledger/          # repository-only semantic durable shard / Pages 제외
+├─ pension_operation_identity/        # repository-only exact identity shard / Pages 제외
+├─ pension_batch_request_identity/    # repository-only batchRequestId shard / Pages 제외
+├─ krx_dispatch_ledger/               # repository-only KRX requestId shard / Pages 제외
 └─ pension_trades.json
+
+_config.yml                           # GitHub Pages(Jekyll) exclude contract
 
 tests/
 ├─ main-calc.test.cjs
@@ -1538,6 +1545,26 @@ data/pension_contributions.json
 - `pension_contributions.json`은 KRX 재갱신 대상이라고 가정하지 않는다.
 - 실제 운영 데이터가 포함된 최신 기준본을 과거 코드 패키지로 덮어쓰기 전에 먼저 확인한다.
 - Market AI 실시간 보유종목 quote는 **화면 메모리 overlay 전용**이다. `prices.json`, `performance_snapshots.json`, Pension JSON 또는 GAS write 경로에 live quote를 저장하지 않는다.
+
+### GitHub Pages 배포 제외 contract
+
+루트 `_config.yml`은 다음 repository-only durable shard 디렉터리를 Jekyll `exclude`로 GitHub Pages 산출물에서 제외한다.
+
+```text
+data/krx_dispatch_ledger/
+data/pension_operation_identity/
+data/pension_operation_ledger/
+data/pension_batch_request_identity/
+```
+
+유지보수 불변조건:
+
+- 위 디렉터리는 GAS/GitHub API가 durable idempotency·dispatch 증거를 읽고 쓰기 위해 **Git 저장소에는 남긴다**. `.gitignore` 대상으로 바꾸지 않는다.
+- Main 프런트엔드는 위 4개 디렉터리를 runtime data source로 직접 fetch하지 않는다. Pages에서 해당 경로가 404인 것이 정상이다.
+- `data/pension_operation_ledger.json` legacy fallback 파일은 디렉터리 `data/pension_operation_ledger/`와 별개이며 현재 exclude 대상이 아니다.
+- `_config.yml`을 우회하는 `.nojekyll`을 임의로 추가하지 않는다. Pages 배포 방식을 바꾸면 새 파이프라인에서도 동일한 4개 경로 제외를 보장한다.
+- Public repository에서의 GitHub/raw 접근까지 숨기는 보안 기능으로 오해하지 않는다. 목적은 **Pages 정적 산출물의 불필요한 공개 제외**다.
+- durable shard 디렉터리를 추가·이름 변경·폐기할 때는 실제 GAS contract, `_config.yml`, README, 이 handover, 평가 가이드를 한 작업에서 함께 정합화한다.
 
 QA 중 실제 운영 write 금지:
 

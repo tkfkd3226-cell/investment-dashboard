@@ -29,6 +29,7 @@
 - **평가·점수·A/B/C·감점 기준**: [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md)가 Source of Truth다.
 - **프로젝트 소개·전체 저장소 개요**: [README.md](./README.md)가 담당한다.
 - **과거 변경 이력**: Git history를 사용하며 이 문서에 차수별 작업일지를 누적하지 않는다.
+- **GitHub Pages 공통 배포 경계**: 루트 `_config.yml`이 `data/krx_dispatch_ledger/`, `data/pension_operation_identity/`, `data/pension_operation_ledger/`, `data/pension_batch_request_identity/`를 Pages 산출물에서 제외한다. Add는 이 repository-only shard들에 runtime 의존성을 만들지 않으며, 상세 contract는 Main handover와 README를 따른다.
 
 사용자의 이번 작업 지시와 최신 실제 소스가 가장 우선한다. 과거 대화의 수치나 과거 ZIP을 최신값으로 추정하지 않는다.
 

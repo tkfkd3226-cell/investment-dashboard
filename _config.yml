@@ -1,0 +1,5 @@
+exclude:
+  - data/krx_dispatch_ledger
+  - data/pension_operation_identity
+  - data/pension_operation_ledger
+  - data/pension_batch_request_identity

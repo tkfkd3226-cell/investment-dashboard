@@ -975,7 +975,28 @@ handover의 JSON 예시는 단순 샘플이 아니라 유지보수자가 실제 
 - `qty / buy / date` 같은 핵심 구조가 명확한가
 - 실제 production schema와 예제가 drift하지 않는가
 
-## 14.4 문서 오류의 등급
+## 14.4 GitHub Pages 공개 경계 문서화
+
+현재 저장소는 루트 `_config.yml`의 Jekyll `exclude`를 사용해 아래 repository-only durable shard를 Pages 산출물에서 제외한다.
+
+```text
+data/krx_dispatch_ledger/
+data/pension_operation_identity/
+data/pension_operation_ledger/
+data/pension_batch_request_identity/
+```
+
+평가 시 다음을 확인한다.
+
+- `_config.yml`과 README/Main handover의 제외 목록이 실제 durable shard 구조와 일치하는가.
+- Main/Add frontend가 제외 디렉터리를 직접 fetch하는 runtime dependency를 만들지 않았는가.
+- `data/pension_operation_ledger.json` legacy fallback 파일과 `data/pension_operation_ledger/` shard 디렉터리를 혼동하지 않는가.
+- `.nojekyll` 추가나 배포 방식 변경으로 exclude가 무력화되지 않았는가. 배포 방식을 바꿨다면 새 artifact/build 단계가 동일한 제외 경계를 보장하는가.
+- Pages URL의 404를 결함으로 오판하지 않는가. 반대로 Public repository/raw URL에서도 숨겨진다고 과장하지 않는가.
+
+이 계약의 목적은 durable 내부 이력을 Pages 정적 산출물에 불필요하게 싣지 않는 것이며, repository 자체의 접근제어를 대체하지 않는다.
+
+## 14.5 문서 오류의 등급
 
 - 단순 오탈자: 필요 시 C 또는 무감점
 - 유지보수자가 기능을 잘못 이해할 가능성: B
@@ -1745,6 +1766,8 @@ JSON 예제가 실제 필수 context를 누락하면?
 [ ] mouse 외 keyboard 경로도 확인했는가
 [ ] theme 변경 시 Canvas/SVG/runtime visual 재렌더링을 확인했는가
 [ ] README/MD가 실제 기능을 과장하거나 옛 기능을 설명하지 않는지 확인했는가
+[ ] `_config.yml`의 Pages exclude 4개 경로와 README/Main handover/실제 durable shard 구조가 일치하는가
+[ ] frontend가 Pages 제외 durable shard를 직접 fetch하지 않고, 해당 Pages URL의 404를 정상 배포 경계로 해석했는가
 [ ] workflow/Python/docstring/CLI help의 의미가 일치하는가
 [ ] schema 문서 예제가 실제 필수 context/field를 설명하는가
 [ ] 문서 오류와 실행 품질 문제를 구분했는가
