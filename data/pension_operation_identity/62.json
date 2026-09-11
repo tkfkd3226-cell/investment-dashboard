@@ -1,0 +1,17 @@
+[
+  {
+    "identityKey": "logical:cashSnapshot:pdel-cashSnapshot-342e11df-225c-4cb0-8beb-aa4885a97e36",
+    "contentHash": "8fe1bc754ff6efb955bce64fd7a2fe14313113025d89eec2ef9b7aadc0868b6a",
+    "target": "cashSnapshot",
+    "action": "delete",
+    "semanticHash": "05cf9364ee4eb78b153d17e9b89644e34f5463d9c3764f5dd6dde18dd907e0e5",
+    "resourceKey": "2026-09-11",
+    "logicalOperationId": "pdel-cashSnapshot-342e11df-225c-4cb0-8beb-aa4885a97e36",
+    "requestId": "pdel-cashSnapshot-342e11df-225c-4cb0-8beb-aa4885a97e36",
+    "batchRequestId": "",
+    "batchOperationId": "",
+    "resultVersion": "deleted:2026-09-11",
+    "savedAtKST": "2026-09-11T17:18:56+09:00",
+    "savedAtMs": 1789114736640
+  }
+]
