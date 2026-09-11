@@ -74,6 +74,7 @@ const marketAiState={
 let marketAiPollTimer=0;
 let mountFrame=0;
 let marketAiTooltipEventsBound=false;
+let marketAiActiveTooltipTarget=null;
 
 // [MARKET02] Environment / Fetch · 실행 환경 / timeout
 function marketAiUiEnabled(){
@@ -450,6 +451,7 @@ function positionMarketAiTooltip(target,event){
 }
 
 function hideMarketAiTooltip(){
+  marketAiActiveTooltipTarget=null;
   const tooltip=document.getElementById(MARKET_AI_TOOLTIP_ID);
   if(!tooltip)return;
   tooltip.classList.remove('visible');
@@ -722,6 +724,7 @@ function showMarketAiTooltip(target,event){
   if(marketAiPhoneUi())return;
   const html=marketAiTooltipHtml(target);
   if(!html)return;
+  marketAiActiveTooltipTarget=target;
   const tooltip=marketAiTooltip();
   tooltip.innerHTML=html;
   tooltip.setAttribute('aria-hidden','false');
@@ -1015,6 +1018,17 @@ function syncMarketAiSignalView(){
       item.setAttribute('aria-label',`${fullLabel} ${valueText} · ${suffix}`);
     });
   });
+
+  const activeTooltip=document.getElementById(MARKET_AI_TOOLTIP_ID);
+  if(activeTooltip?.classList.contains('visible')){
+    if(marketAiActiveTooltipTarget?.isConnected){
+      const html=marketAiTooltipHtml(marketAiActiveTooltipTarget);
+      if(html)activeTooltip.innerHTML=html;
+      else hideMarketAiTooltip();
+    }else{
+      hideMarketAiTooltip();
+    }
+  }
 
   if(!signal){
     if(status){

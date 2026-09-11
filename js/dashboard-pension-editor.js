@@ -424,11 +424,41 @@ function openPensionContributionModal(){
   schedulePensionContributionModalHeight();
   openDashboardModal(modal,{initialFocus:modal.querySelector('.contrib-modal-close'),fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
 }
-function closePensionContributionModal(){
+function closePensionContributionModal({reflow=true}={}){
   const modal=document.getElementById('pensionContribModal');
   if(!modal) return;
   closeDashboardModal(modal,{fallbackSelector:'[data-dashboard-action="open-pension-modal"]'});
-  forceMobileViewportReflow();
+  if(reflow)forceMobileViewportReflow();
+}
+function pensionContributionDraftSnapshot(){
+  const ids=['pensionContribDate','pensionContribAmount','pensionCashCostBasis','pensionContribMemo','pensionEtfTradeDate','pensionEtfTradeTicker','pensionEtfTradeQty','pensionEtfTradeAmount'];
+  return Object.fromEntries(ids.map(id=>[id,String(document.getElementById(id)?.value??'')]));
+}
+function restorePensionContributionDraft(snapshot){
+  if(!snapshot)return;
+  Object.entries(snapshot).forEach(([id,value])=>{
+    const control=document.getElementById(id);
+    if(control)control.value=value;
+  });
+  updatePensionEtfTradePreview();
+}
+function rerenderPensionEditorAfterMutation(renderDashboard,target,{batchMode=false,draft=null}={}){
+  if(typeof renderDashboard!=='function')return false;
+  const modalCard=document.querySelector('#pensionContribModal .contrib-modal-card');
+  const modalScrollTop=Math.max(0,Number(modalCard?.scrollTop)||0);
+  closePensionContributionModal({reflow:false});
+  renderDashboard();
+  openPensionContributionModal();
+  if(batchMode)setPensionBatchMode(true);
+  setPensionContributionTarget(target);
+  restorePensionContributionDraft(draft);
+  if(modalScrollTop>0){
+    requestAnimationFrame(()=>{
+      const nextCard=document.querySelector('#pensionContribModal .contrib-modal-card');
+      if(nextCard)nextCard.scrollTop=Math.min(modalScrollTop,Math.max(0,nextCard.scrollHeight-nextCard.clientHeight));
+    });
+  }
+  return true;
 }
 // [PEDIT03] Input Formatting / Target State · 입력 포맷 / 대상 상태
 function cleanNumberInput(v){
@@ -1395,10 +1425,7 @@ async function applyPensionBatchQueue(renderDashboard){
     pensionEditorState.batchLastAddAt=0;
     resetPensionBatchRequestId();
     pensionEditorState.batchMode=true;
-    closePensionContributionModal();
-    renderDashboard?.();
-    openPensionContributionModal();
-    setPensionBatchMode(true);
+    rerenderPensionEditorAfterMutation(renderDashboard,pensionContributionTarget(),{batchMode:true});
     clearPensionContributionStatus('pensionBatchStatus');
     showPensionToast(data.stale
       ?'오래된 작업 모음 재시도는 다시 적용하지 않았습니다. 새로고침해 최신 상태를 확인해주세요.'
@@ -1516,7 +1543,7 @@ async function savePensionContributionViaGithubPages(item,pin){
   return data;
 }
 
-async function savePensionContribution(){
+async function savePensionContribution(renderDashboard){
   clearPensionContributionStatus('pensionContribStatus');
   clearPensionContributionStatus('pensionContribDeleteStatus');
   clearPensionContributionOutput();
@@ -1530,6 +1557,7 @@ async function savePensionContribution(){
       }
     }
     let item=buildPensionContributionItem();
+    const saveDraft=pensionContributionDraftSnapshot();
     const targetText=pensionContributionTargetLabel(item.target);
     if(pensionEditorState.batchMode){
       addPensionBatchOperation({action:'upsert',target:item.target,item});
@@ -1583,8 +1611,14 @@ async function savePensionContribution(){
       data=confirmedData;
     }
     clearPensionPendingSingle(saveFingerprint,saveIdentity);
-    if(data.item){
-      upsertPensionItemLocally(item.target,data.item);
+    const duplicateFallbackItem=(()=>{
+      if(!data.duplicate)return null;
+      const {expectedVersion,expectedAbsent,confirmationToken,confirmationDecision,...localItem}=saveItem||{};
+      return localItem;
+    })();
+    const appliedItem=!data.stale?(data.item||duplicateFallbackItem):null;
+    if(appliedItem){
+      upsertPensionItemLocally(item.target,appliedItem);
       if(item.target==='etfTrade'){
         const qtyEl=document.getElementById('pensionEtfTradeQty');
         const amountEl=document.getElementById('pensionEtfTradeAmount');
@@ -1593,6 +1627,15 @@ async function savePensionContribution(){
         updatePensionEtfTradePreview();
       }
       syncPensionContributionDeleteCard(item.target);
+    }
+    if(!data.stale&&appliedItem){
+      const restoredDraft={...saveDraft};
+      if(item.target==='etfTrade'){
+        restoredDraft.pensionEtfTradeQty='';
+        restoredDraft.pensionEtfTradeAmount='';
+      }
+      rerenderPensionEditorAfterMutation(renderDashboard,item.target,{draft:restoredDraft});
+      showPensionContributionOutput(appliedItem);
     }
     resetPensionSingleSaveIdentity();
     clearPensionContributionStatus('pensionContribStatus');
@@ -1628,7 +1671,7 @@ async function deletePensionContributionViaGithubPages(target,key,pin,deleteCont
   return data;
 }
 
-async function deleteSelectedPensionContribution(){
+async function deleteSelectedPensionContribution(renderDashboard){
   clearPensionContributionStatus('pensionContribStatus');
   clearPensionContributionStatus('pensionContribDeleteStatus');
   const selected=document.querySelector('input[name="pensionContribDeleteTarget"]:checked');
@@ -1667,6 +1710,7 @@ async function deleteSelectedPensionContribution(){
     }
   }
   clearPensionContributionStatus('pensionContribDeleteStatus');
+  const deleteDraft=pensionContributionDraftSnapshot();
   const deleteContext=preparePensionSingleDeleteContext(target,key,item);
   const deleteFingerprint=pensionEditorState.singleDeleteFingerprint;
   const deleteIdentity=pensionEditorState.singleDeleteId;
@@ -1699,10 +1743,11 @@ async function deleteSelectedPensionContribution(){
     data=confirmedData;
   }
   clearPensionPendingSingle(deleteFingerprint,deleteIdentity);
-  if(!data.stale&&!data.duplicate){
+  if(!data.stale){
     removePensionItemLocally(target,key);
     syncPensionContributionDeleteCard(target);
     if(target==='etfTrade') updatePensionEtfTradePreview();
+    rerenderPensionEditorAfterMutation(renderDashboard,target,{draft:deleteDraft});
   }
   resetPensionSingleDeleteIdentity();
   clearPensionContributionStatus('pensionContribDeleteStatus');
@@ -1743,8 +1788,8 @@ function handlePensionAction(control,renderDashboard){
   if(action==='close-modal')return closePensionContributionModal();
   if(action==='set-batch-mode')return setPensionBatchMode(control.dataset.pensionEnabled==='true');
   if(action==='set-target')return setPensionContributionTarget(control.dataset.target||'cashSnapshot');
-  if(action==='save')return savePensionContribution();
-  if(action==='delete-selected')return deleteSelectedPensionContribution();
+  if(action==='save')return savePensionContribution(renderDashboard);
+  if(action==='delete-selected')return deleteSelectedPensionContribution(renderDashboard);
   if(action==='clear-batch')return clearPensionBatchQueue();
   if(action==='apply-batch')return applyPensionBatchQueue(renderDashboard);
   if(action==='move-batch')return movePensionBatchOperation(control.dataset.pensionQid||'',Number(control.dataset.pensionDirection||0));

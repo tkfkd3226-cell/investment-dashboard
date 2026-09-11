@@ -129,6 +129,9 @@ function liveValuationCanRender(){
   if(dataState.activeDate!==kstTodayText())return false;
   if(document.visibilityState!=='visible')return false;
   if(document.querySelector('.chart-expanded-overlay,.action-modal.show,.contrib-modal.show,dialog[open]'))return false;
+  if(document.querySelector('#app .control-info-button[aria-expanded="true"],#app .has-tooltip.tooltip-open,#assetPriceSourceTooltip.visible,#marketAiTooltip.visible'))return false;
+  const active=document.activeElement;
+  if(active?.matches?.('select,input,textarea,[contenteditable="true"]'))return false;
   return true;
 }
 

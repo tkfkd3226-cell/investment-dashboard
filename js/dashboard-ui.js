@@ -1269,6 +1269,7 @@ function handleUiDashboardKeydown(event){
 
 // [UI13] Public API
 export {
+  closeAccountMemoInfo,
   closeDateActionMenu,
   ensureDesktopEdgeToc,
   ensureMobileTopButton,

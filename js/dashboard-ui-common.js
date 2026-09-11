@@ -667,6 +667,7 @@ export {
   renderAssetSourceTooltipTarget,
   renderAssetWeight,
   setupAssetSourceTooltips,
+  hideAssetSourceTooltip,
   setupAssetVizTooltips,
   showAppToast,
   toggleMobileViewMode

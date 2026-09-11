@@ -13,6 +13,7 @@ import {
 import {
   escapeHtml,
   navIconSvg,
+  hideAssetSourceTooltip,
   setupAssetSourceTooltips,
   setupAssetVizTooltips
 } from './dashboard-ui-common.js';
@@ -31,6 +32,7 @@ import {
   suppressChartEntranceOnce
 } from './dashboard-charts.js';
 import {
+  closeAccountMemoInfo,
   closeDateActionMenu,
   ensureDesktopEdgeToc,
   ensureMobileTopButton,
@@ -229,6 +231,8 @@ function renderAssetWorkspace(x){
 
 function render(){
   const focusSnapshot=dashboardFocusSnapshot();
+  hideAssetSourceTooltip();
+  closeAccountMemoInfo();
   const x=calc(dataState.activeDate),v=separateProfitView(x);
   renderTabs();
   const pensionPills=x.hasPension?`<span class="pill hero-profit-pill"><span class="hero-label-default">퇴직연금 운용손익</span><span class="hero-label-mobile">퇴직연금 손익</span> ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
@@ -296,9 +300,27 @@ function restoreDashboardFocus(snapshot,retryFrames=2){
     requestAnimationFrame(()=>restoreDashboardFocus(snapshot,retryFrames-1));
   }
 }
+function dashboardNestedScrollSnapshot(){
+  return [...document.querySelectorAll('#app .mobile-scroll,#app .chart-wrap')].map((node,index)=>({
+    index,
+    left:Number(node.scrollLeft)||0,
+    top:Number(node.scrollTop)||0
+  })).filter(item=>item.left||item.top);
+}
+function restoreDashboardNestedScroll(snapshot=[]){
+  if(!snapshot.length)return;
+  const nodes=[...document.querySelectorAll('#app .mobile-scroll,#app .chart-wrap')];
+  snapshot.forEach(item=>{
+    const node=nodes[item.index];
+    if(!node)return;
+    node.scrollLeft=Math.min(item.left,Math.max(0,node.scrollWidth-node.clientWidth));
+    node.scrollTop=Math.min(item.top,Math.max(0,node.scrollHeight-node.clientHeight));
+  });
+}
 function renderLiveValuationRefresh(){
   if(dataState.activeDate!==kstTodayText())return;
   const scrollX=window.scrollX,scrollY=window.scrollY;
+  const nestedScrollSnapshot=dashboardNestedScrollSnapshot();
   const keepDateMenuOpen=dateActionMenuIsOpen();
   const keepDesktopTocOpen=desktopEdgeTocIsOpen();
   suppressChartEntranceOnce();
@@ -306,7 +328,10 @@ function renderLiveValuationRefresh(){
   render();
   if(keepDateMenuOpen)restoreDateActionMenuAfterRender();
   if(keepDesktopTocOpen)restoreDesktopEdgeTocAfterRender();
-  requestAnimationFrame(()=>window.scrollTo({left:scrollX,top:scrollY,behavior:'auto'}));
+  requestAnimationFrame(()=>{
+    restoreDashboardNestedScroll(nestedScrollSnapshot);
+    window.scrollTo({left:scrollX,top:scrollY,behavior:'auto'});
+  });
 }
 
 // [APP05] Standalone Pull-to-Refresh · 홈화면 Web App 새로고침 제스처

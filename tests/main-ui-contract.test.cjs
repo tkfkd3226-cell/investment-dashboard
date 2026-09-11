@@ -252,8 +252,16 @@ test('퇴직연금 편집기는 화면 입력과 작업 모음 모두에서 수�
   assert.doesNotMatch(pensionEditor,/!Number\.isInteger\(qty\)\|\|qty<=0\|\|!Number\.isFinite\(amount\)\|\|amount<=0/);
 });
 
-test('퇴직연금 일괄 저장은 전체 재렌더링 전에 기존 모달 잠금을 해제한다',()=>{
-  assert.match(pensionEditor,/pensionEditorState\.batchMode=true;\s*closePensionContributionModal\(\);\s*renderDashboard\?\.\(\);\s*openPensionContributionModal\(\);/);
+test('퇴직연금 mutation 재렌더는 모달 잠금을 해제한 뒤 Dashboard를 수렴시키고 재개방한다',()=>{
+  assert.match(pensionEditor,/function rerenderPensionEditorAfterMutation\(renderDashboard,target,\{batchMode=false,draft=null\}=\{\}\)\{/);
+  assert.match(pensionEditor,/const modalScrollTop=Math\.max\(0,Number\(modalCard\?\.scrollTop\)\|\|0\)/);
+  assert.match(pensionEditor,/closePensionContributionModal\(\{reflow:false\}\);\s*renderDashboard\(\);\s*openPensionContributionModal\(\);/);
+  assert.match(pensionEditor,/nextCard\.scrollTop=Math\.min\(modalScrollTop,Math\.max\(0,nextCard\.scrollHeight-nextCard\.clientHeight\)\)/);
+  assert.match(pensionEditor,/if\(batchMode\)setPensionBatchMode\(true\);\s*setPensionContributionTarget\(target\);\s*restorePensionContributionDraft\(draft\);/);
+  assert.match(pensionEditor,/rerenderPensionEditorAfterMutation\(renderDashboard,pensionContributionTarget\(\),\{batchMode:true\}\)/);
+  assert.match(pensionEditor,/const saveDraft=pensionContributionDraftSnapshot\(\)/);
+  assert.match(pensionEditor,/if\(!data\.stale&&appliedItem\)\{[^]*?restoredDraft\.pensionEtfTradeQty=''[^]*?rerenderPensionEditorAfterMutation\(renderDashboard,item\.target,\{draft:restoredDraft\}\)[^]*?showPensionContributionOutput\(appliedItem\)/);
+  assert.match(pensionEditor,/if\(!data\.stale\)\{[^]*?rerenderPensionEditorAfterMutation\(renderDashboard,target,\{draft:deleteDraft\}\)/);
 });
 
 test('퇴직연금 Batch는 각 작업의 stable operationId를 GAS에 전달하고 삭제 재시도 성공을 로컬에 수렴시킨다',()=>{
@@ -345,6 +353,27 @@ test('Batch 중복 응답에 state가 없으면 과거 pension state를 로컬�
   assert.match(pensionEditor,/const duplicateWithoutState=!!data\.duplicate&&!data\.state;/);
   assert.match(pensionEditor,/if\(!duplicateWithoutState\)applyPensionBatchStateLocally\(data\.state\);/);
   assert.match(pensionEditor,/data\.stale[^]*?오래된 작업 모음 재시도는 다시 적용하지 않았습니다/);
+});
+
+
+
+test('퇴직연금 단건 duplicate 성공은 서버 truth에 맞춰 local state와 Dashboard를 수렴시킨다',()=>{
+  assert.match(pensionEditor,/const duplicateFallbackItem=\(\(\)=>\{[^]*?expectedVersion,expectedAbsent,confirmationToken,confirmationDecision,[^]*?return localItem;[^]*?\}\)\(\);[^]*?const appliedItem=!data\.stale\?\(data\.item\|\|duplicateFallbackItem\):null/);
+  assert.match(pensionEditor,/if\(appliedItem\)\{\s*upsertPensionItemLocally\(item\.target,appliedItem\)/);
+  assert.match(pensionEditor,/if\(!data\.stale\)\{\s*removePensionItemLocally\(target,key\)/);
+  assert.doesNotMatch(pensionEditor,/if\(!data\.stale&&!data\.duplicate\)\{/);
+  assert.match(pensionEditor,/const deleteDraft=pensionContributionDraftSnapshot\(\)/);
+  assert.match(pensionEditor,/rerenderPensionEditorAfterMutation\(renderDashboard,target,\{draft:deleteDraft\}\)/);
+});
+
+test('Live Valuation full render는 내부 가로 스크롤과 native input interaction을 보존한다',()=>{
+  assert.match(app,/function dashboardNestedScrollSnapshot\(\)\{/);
+  assert.match(app,/querySelectorAll\('#app \.mobile-scroll,#app \.chart-wrap'\)/);
+  assert.match(app,/const nestedScrollSnapshot=dashboardNestedScrollSnapshot\(\)/);
+  assert.match(app,/restoreDashboardNestedScroll\(nestedScrollSnapshot\)/);
+  assert.match(liveValuation,/active\?\.matches\?\.\('select,input,textarea,\[contenteditable="true"\]'\)/);
+  assert.match(liveValuation,/#app \.control-info-button\[aria-expanded=\"true\"\],#app \.has-tooltip\.tooltip-open,#assetPriceSourceTooltip\.visible,#marketAiTooltip\.visible/);
+  assert.match(app,/hideAssetSourceTooltip\(\);\s*closeAccountMemoInfo\(\);/);
 });
 
 test('KRX 갱신은 기준일과 다른 종가·직전값을 숨김 처리하고 자동 성공으로 끝내지 않는다',()=>{
@@ -1227,6 +1256,15 @@ test('Market AI 시장 tooltip View Model은 fresh/stale/missing과 K200 closed/
   assert.equal(model.status,'데이터 없음');
 
   assert.equal(context.marketAiMarketDisplayModel('unknown'),null);
+});
+
+test('Market AI standalone refresh는 열린 tooltip 본문도 최신 state로 동기화한다',()=>{
+  assert.match(marketAi,/let marketAiActiveTooltipTarget=null/);
+  assert.match(marketAi,/marketAiActiveTooltipTarget=target/);
+  assert.match(marketAi,/const activeTooltip=document\.getElementById\(MARKET_AI_TOOLTIP_ID\);[^]*?if\(!signal\)\{/);
+  assert.match(marketAi,/marketAiActiveTooltipTarget\?\.isConnected/);
+  assert.match(marketAi,/activeTooltip\.innerHTML=html/);
+  assert.match(marketAi,/marketAiActiveTooltipTarget=null;\s*const tooltip=document\.getElementById\(MARKET_AI_TOOLTIP_ID\)/);
 });
 
 test('Market AI 시장 tooltip renderer는 상태와 무관하게 라벨을 고정하고 K200 세션만 선택적으로 삽입한다',()=>{
