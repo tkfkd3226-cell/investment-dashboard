@@ -13,5 +13,20 @@
     "resultVersion": "deleted:contrib-2026-09-30-d51d11a9-646f-48a7-8ed4-adbcf9c12f43",
     "savedAtKST": "2026-09-11T17:10:03+09:00",
     "savedAtMs": 1789114203831
+  },
+  {
+    "identityKey": "logical:contribution:batch-logical-e7a3b9e4-bf4c-4721-ac00-7a692910db28",
+    "contentHash": "fcacf1ee13bd1f185bd72b71319cdf50f9025b689704231756018d769eae5e88",
+    "target": "contribution",
+    "action": "upsert",
+    "semanticHash": "df74e397f78c76194ae59ae14176e75eae0d908bafc2119e8bf9c524ea385d97",
+    "resourceKey": "2026-09-30",
+    "logicalOperationId": "batch-logical-e7a3b9e4-bf4c-4721-ac00-7a692910db28",
+    "requestId": "",
+    "batchRequestId": "pension-batch-68f7f566-526b-47ab-a3c1-7ee608eacfed",
+    "batchOperationId": "batch-temp-1789115389517-1",
+    "resultVersion": "contrib-batch-1d355fcd8eaedcb44ac23edcf8ccb4c2",
+    "savedAtKST": "2026-09-11T17:30:43+09:00",
+    "savedAtMs": 1789115443748
   }
 ]
