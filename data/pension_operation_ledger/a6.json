@@ -1,0 +1,17 @@
+[
+  {
+    "target": "contribution",
+    "action": "delete",
+    "resourceKey": "contrib-2026-09-30-e7bca9da-b656-4bf9-9777-fb8b65d9ba57",
+    "date": "2026-09-30",
+    "semanticHash": "a687d1b431de2dc48d09e607bfe585ed38e044adc47700dc3a2f6efd77eee901",
+    "logicalOperationId": "pdel-contribution-1be19efb-6b38-4a73-b5f5-5552f73f0e0d",
+    "requestId": "pdel-contribution-1be19efb-6b38-4a73-b5f5-5552f73f0e0d",
+    "batchRequestId": "",
+    "batchOperationId": "",
+    "resultVersion": "deleted:contrib-2026-09-30-e7bca9da-b656-4bf9-9777-fb8b65d9ba57",
+    "expectedVersion": "",
+    "savedAtKST": "2026-09-11T16:56:43+09:00",
+    "savedAtMs": 1789113403663
+  }
+]
