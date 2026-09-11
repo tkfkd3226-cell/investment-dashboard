@@ -272,6 +272,12 @@ function toggleDesktopEdgeToc(){
   const toc=document.getElementById('desktopEdgeToc');
   setDesktopEdgeTocOpen(!toc?.classList.contains('is-open'));
 }
+function desktopEdgeTocIsOpen(){
+  return document.getElementById('desktopEdgeToc')?.classList.contains('is-open')===true;
+}
+function restoreDesktopEdgeTocAfterRender(){
+  setDesktopEdgeTocOpen(true);
+}
 function closeDesktopEdgeToc(options){setDesktopEdgeTocOpen(false,options)}
 
 function visibleSectionNavigationTargets(){
@@ -1271,10 +1277,12 @@ export {
   handleUiDashboardKeydown,
   hydrateSectionTitleIcons,
   dateActionMenuIsOpen,
+  desktopEdgeTocIsOpen,
   renderCombined,
   renderSecuritiesSection,
   renderTabs,
   restoreDateActionMenuAfterRender,
+  restoreDesktopEdgeTocAfterRender,
   setupSectionNavigationTracking,
   setupUiGlobalEvents,
   syncAssetTabs,

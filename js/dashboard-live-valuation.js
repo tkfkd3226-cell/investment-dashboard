@@ -12,9 +12,11 @@ import {
 
 // Live Valuation Adapter · current-date quote universe + screen-only valuation overlay refresh.
 // Market AI owns quotes; dashboard-core owns positions/cost basis/calculation. No live value is persisted.
-const LIVE_VALUATION_POLL_MS=30_000;
+const LIVE_VALUATION_POLL_MS=10_000;
 const LIVE_VALUATION_ENDPOINT='/api/market-data/krx-quotes';
 const LIVE_VALUATION_CLIENT_SESSION_KEY='investmentDashboard.liveValuationClientId';
+const LIVE_VALUATION_CLIENT_CHANNEL_NAME='investmentDashboard.liveValuationClients';
+const LIVE_VALUATION_CLIENT_PROBE_MS=80;
 const LIVE_VALUATION_PENDING_RENDER_RETRY_MS=250;
 
 let liveValuationPollTimer=0;
@@ -24,27 +26,91 @@ let liveValuationLastFingerprint='';
 let liveValuationRenderPending=false;
 let liveValuationSetupBound=false;
 let renderDashboardCallback=null;
+let liveValuationClientCandidate='';
+let liveValuationClientChannel=null;
+let liveValuationClientResolvePromise=null;
+const liveValuationClientProbeWaiters=new Map();
+const LIVE_VALUATION_RUNTIME_ID=randomLiveValuationClientId('runtime');
 
-function liveValuationClientId(){
+function randomLiveValuationClientId(prefix='tab'){
+  return globalThis.crypto?.randomUUID?.()||`${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,12)}`;
+}
+
+function storedLiveValuationClientId(){
+  if(liveValuationClientCandidate)return liveValuationClientCandidate;
   try{
     const saved=sessionStorage.getItem(LIVE_VALUATION_CLIENT_SESSION_KEY);
-    if(saved)return saved;
-    const generated=globalThis.crypto?.randomUUID?.()||`tab-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,12)}`;
-    sessionStorage.setItem(LIVE_VALUATION_CLIENT_SESSION_KEY,generated);
-    return generated;
+    liveValuationClientCandidate=saved||randomLiveValuationClientId();
+    if(!saved)sessionStorage.setItem(LIVE_VALUATION_CLIENT_SESSION_KEY,liveValuationClientCandidate);
   }catch{
-    return `tab-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,12)}`;
+    liveValuationClientCandidate=randomLiveValuationClientId();
   }
+  return liveValuationClientCandidate;
 }
-const LIVE_VALUATION_CLIENT_ID=liveValuationClientId();
+
+function saveLiveValuationClientId(clientId){
+  liveValuationClientCandidate=String(clientId||'');
+  try{sessionStorage.setItem(LIVE_VALUATION_CLIENT_SESSION_KEY,liveValuationClientCandidate)}catch{}
+}
+
+function ensureLiveValuationClientChannel(){
+  if(liveValuationClientChannel||typeof BroadcastChannel!=='function')return liveValuationClientChannel;
+  try{
+    liveValuationClientChannel=new BroadcastChannel(LIVE_VALUATION_CLIENT_CHANNEL_NAME);
+    liveValuationClientChannel.addEventListener('message',event=>{
+      const message=event?.data||{};
+      if(message.runtimeId===LIVE_VALUATION_RUNTIME_ID)return;
+      if(message.type==='probe'&&message.clientId===liveValuationClientCandidate){
+        liveValuationClientChannel?.postMessage({type:'occupied',probeId:message.probeId,runtimeId:LIVE_VALUATION_RUNTIME_ID});
+        return;
+      }
+      if(message.type==='occupied'&&message.probeId){
+        liveValuationClientProbeWaiters.get(message.probeId)?.();
+      }
+    });
+  }catch{
+    liveValuationClientChannel=null;
+  }
+  return liveValuationClientChannel;
+}
+
+async function resolveLiveValuationClientId(){
+  if(liveValuationClientResolvePromise)return liveValuationClientResolvePromise;
+  liveValuationClientResolvePromise=(async()=>{
+    let clientId=storedLiveValuationClientId();
+    const channel=ensureLiveValuationClientChannel();
+    if(!channel)return clientId;
+
+    const probeId=randomLiveValuationClientId('probe');
+    const occupied=await new Promise(resolve=>{
+      let settled=false;
+      const finish=value=>{
+        if(settled)return;
+        settled=true;
+        liveValuationClientProbeWaiters.delete(probeId);
+        resolve(value);
+      };
+      liveValuationClientProbeWaiters.set(probeId,()=>finish(true));
+      window.setTimeout(()=>finish(false),LIVE_VALUATION_CLIENT_PROBE_MS);
+      try{channel.postMessage({type:'probe',clientId,probeId,runtimeId:LIVE_VALUATION_RUNTIME_ID})}catch{finish(false)}
+    });
+    if(occupied){
+      clientId=randomLiveValuationClientId();
+      saveLiveValuationClientId(clientId);
+    }
+    return clientId;
+  })();
+  return liveValuationClientResolvePromise;
+}
 
 function liveValuationUniverseKey(tickers){
   return (tickers||[]).map(value=>String(value||'').trim().toUpperCase()).filter(Boolean).sort().join(',');
 }
 
-function liveValuationFingerprint(payload){
+function liveValuationFingerprint(payload,requestedTickers=[]){
   const items=Array.isArray(payload?.items)?payload.items:[];
   return JSON.stringify({
+    requestedTickers:[...new Set((requestedTickers||[]).map(value=>String(value||'').trim().toUpperCase()).filter(Boolean))].sort(),
     status:String(payload?.status||''),
     marketState:String(payload?.market_state||''),
     bridgeConnected:payload?.bridge_connected===true,
@@ -105,6 +171,7 @@ function queueUniverseReconcileRefresh(){
 }
 
 async function refreshLiveValuation(){
+  const clientId=await resolveLiveValuationClientId();
   const refreshSequence=++liveValuationRefreshSequence;
   const today=kstTodayText();
   const tickers=liveValuationTickersForDate(today);
@@ -122,7 +189,7 @@ async function refreshLiveValuation(){
 
   const query=new URLSearchParams({
     tickers:tickers.join(','),
-    client_id:LIVE_VALUATION_CLIENT_ID
+    client_id:clientId
   });
   let response=null;
   try{
@@ -146,11 +213,11 @@ async function refreshLiveValuation(){
       return;
     }
 
-    const fingerprint=liveValuationFingerprint(payload);
-    const stateChanged=applyLiveValuationSnapshot(payload,tickers);
+    const fingerprint=liveValuationFingerprint(payload,tickers);
+    applyLiveValuationSnapshot(payload,tickers);
     const payloadChanged=fingerprint!==liveValuationLastFingerprint;
     liveValuationLastFingerprint=fingerprint;
-    if(stateChanged||payloadChanged)requestLiveValuationRender();
+    if(payloadChanged)requestLiveValuationRender();
     else flushLiveValuationRender();
   }catch(error){
     if(refreshSequence!==liveValuationRefreshSequence)return;

@@ -101,8 +101,8 @@ test('실시간 평가 adapter는 importmap cache-bust 대상이고 boot 이후 
   assert.match(index,/'dashboard-market-ai-client\.js'/);
   assert.match(index,/'dashboard-live-valuation\.js'/);
   assert.match(app,/setupLiveValuation\(\{renderDashboard:renderLiveValuationRefresh\}\);/);
-  assert.match(liveValuation,/const LIVE_VALUATION_POLL_MS=30_000;/);
-  assert.match(marketAi,/const MARKET_AI_POLL_MS=30_000;/);
+  assert.match(liveValuation,/const LIVE_VALUATION_POLL_MS=10_000;/);
+  assert.match(marketAi,/const MARKET_AI_POLL_MS=10_000;/);
   assert.match(liveValuation,/\/api\/market-data\/krx-quotes/);
   assert.match(liveValuation,/document\.visibilityState==='visible'/);
 });
@@ -111,7 +111,7 @@ test('실시간 평가 adapter는 importmap cache-bust 대상이고 boot 이후 
 test('실시간 평가 empty universe도 authoritative client lease로 반납하고 로컬 requestedTickers를 비운다',()=>{
   assert.doesNotMatch(liveValuation,/if\(!tickers\.length\)\{\s*const changed=clearLiveValuationSnapshot\('empty-universe'\);[^}]*return;/);
   assert.match(liveValuation,/if\(!tickers\.length\)\{[^]*?clearLiveValuationSnapshot\('empty-universe',\[\]\)/);
-  assert.match(liveValuation,/tickers:tickers\.join\(','\),\s*client_id:LIVE_VALUATION_CLIENT_ID/);
+  assert.match(liveValuation,/tickers:tickers\.join\(','\),\s*client_id:clientId/);
   assert.match(liveValuation,/tickers\.length\?null:\[\]/);
   assert.match(core,/function clearLiveValuationSnapshot\(reason='unavailable',requestedTickersOverride=null\)/);
   assert.match(core,/Array\.isArray\(requestedTickersOverride\)[^]*?requestedTickers:requested/);
@@ -119,7 +119,12 @@ test('실시간 평가 empty universe도 authoritative client lease로 반납하
 
 test('실시간 평가 race 방어: client lease, universe drift, pending render를 fail-safe로 처리한다',()=>{
   assert.match(liveValuation,/LIVE_VALUATION_CLIENT_SESSION_KEY='investmentDashboard\.liveValuationClientId'/);
-  assert.match(liveValuation,/client_id:LIVE_VALUATION_CLIENT_ID/);
+  assert.match(liveValuation,/LIVE_VALUATION_CLIENT_CHANNEL_NAME='investmentDashboard\.liveValuationClients'/);
+  assert.match(liveValuation,/new BroadcastChannel\(LIVE_VALUATION_CLIENT_CHANNEL_NAME\)/);
+  assert.match(liveValuation,/message\.type==='probe'&&message\.clientId===liveValuationClientCandidate/);
+  assert.match(liveValuation,/if\(occupied\)\{\s*clientId=randomLiveValuationClientId\(\);\s*saveLiveValuationClientId\(clientId\);/);
+  assert.match(liveValuation,/const clientId=await resolveLiveValuationClientId\(\);/);
+  assert.match(liveValuation,/client_id:clientId/);
   assert.match(liveValuation,/const requestedUniverseKey=liveValuationUniverseKey\(tickers\)/);
   assert.match(liveValuation,/const currentUniverseKey=liveValuationUniverseKey\(liveValuationTickersForDate\(today\)\)/);
   assert.match(liveValuation,/if\(currentUniverseKey!==requestedUniverseKey\)\{[^]*?queueUniverseReconcileRefresh\(\);[^]*?return;/);
@@ -128,6 +133,25 @@ test('실시간 평가 race 방어: client lease, universe drift, pending render
   assert.match(liveValuation,/if\(!liveValuationCanRender\(\)\)\{[^]*?schedulePendingRenderCheck\(\);[^]*?return false;/);
   assert.match(liveValuation,/else flushLiveValuationRender\(\);/);
   assert.match(liveValuation,/if\(refreshSequence!==liveValuationRefreshSequence\)return;/);
+});
+
+test('실시간 평가 full render는 열린 목차와 keyboard focus를 보존하고 generated_at-only 응답으로 재렌더하지 않는다',()=>{
+  assert.match(app,/const keepDateMenuOpen=dateActionMenuIsOpen\(\);/);
+  assert.match(app,/const keepDesktopTocOpen=desktopEdgeTocIsOpen\(\);/);
+  assert.match(app,/const focusSnapshot=liveValuationFocusSnapshot\(\);/);
+  assert.match(app,/if\(keepDateMenuOpen\)restoreDateActionMenuAfterRender\(\);/);
+  assert.match(app,/if\(keepDesktopTocOpen\)restoreDesktopEdgeTocAfterRender\(\);/);
+  assert.match(app,/restoreLiveValuationFocus\(focusSnapshot\);/);
+  assert.match(ui,/function desktopEdgeTocIsOpen\(\)/);
+  assert.match(ui,/function restoreDesktopEdgeTocAfterRender\(\)/);
+  assert.match(liveValuation,/function liveValuationFingerprint\(payload,requestedTickers=\[\]\)/);
+  const fingerprintStart=liveValuation.indexOf('function liveValuationFingerprint');
+  const fingerprintEnd=liveValuation.indexOf('\nfunction liveValuationCanRender',fingerprintStart);
+  assert.ok(fingerprintStart>=0&&fingerprintEnd>fingerprintStart,'live valuation fingerprint block is missing');
+  assert.doesNotMatch(liveValuation.slice(fingerprintStart,fingerprintEnd),/generated_at|generatedAt/);
+  assert.match(liveValuation,/const fingerprint=liveValuationFingerprint\(payload,tickers\);/);
+  assert.match(liveValuation,/if\(payloadChanged\)requestLiveValuationRender\(\);/);
+  assert.doesNotMatch(liveValuation,/stateChanged\|\|payloadChanged/);
 });
 
 test('Dashboard 날짜 hash는 유효한 값이면 초기 선택일로 복원하고, malformed hash도 최신일로 fallback한다',()=>{

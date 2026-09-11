@@ -39,10 +39,12 @@ import {
   handleUiDashboardKeydown,
   hydrateSectionTitleIcons,
   dateActionMenuIsOpen,
+  desktopEdgeTocIsOpen,
   renderCombined,
   renderSecuritiesSection,
   renderTabs,
   restoreDateActionMenuAfterRender,
+  restoreDesktopEdgeTocAfterRender,
   setupSectionNavigationTracking,
   setupUiGlobalEvents,
   syncAssetTabs,
@@ -240,12 +242,48 @@ function render(){
   ensureDesktopEdgeToc();
   setupSectionNavigationTracking();
 }
+function liveValuationFocusSnapshot(){
+  const active=document.activeElement;
+  if(!active||active===document.body||active===document.documentElement)return null;
+  if(!active.closest?.('#tabs,#app,#desktopEdgeToc'))return null;
+  if(active.id)return {kind:'id',value:active.id};
+  const action=active.dataset?.dashboardAction;
+  if(action){
+    const matches=[...document.querySelectorAll('[data-dashboard-action]')].filter(node=>node.dataset.dashboardAction===action);
+    return {kind:'action',value:action,index:Math.max(0,matches.indexOf(active))};
+  }
+  const href=active.getAttribute?.('href');
+  if(href){
+    const matches=[...document.querySelectorAll('a[href]')].filter(node=>node.getAttribute('href')===href);
+    return {kind:'href',value:href,index:Math.max(0,matches.indexOf(active))};
+  }
+  return null;
+}
+function restoreLiveValuationFocus(snapshot){
+  if(!snapshot)return;
+  let target=null;
+  if(snapshot.kind==='id')target=document.getElementById(snapshot.value);
+  else if(snapshot.kind==='action'){
+    const matches=[...document.querySelectorAll('[data-dashboard-action]')].filter(node=>node.dataset.dashboardAction===snapshot.value);
+    target=matches[snapshot.index]||matches[0]||null;
+  }else if(snapshot.kind==='href'){
+    const matches=[...document.querySelectorAll('a[href]')].filter(node=>node.getAttribute('href')===snapshot.value);
+    target=matches[snapshot.index]||matches[0]||null;
+  }
+  try{target?.focus?.({preventScroll:true})}catch{target?.focus?.()}
+}
 function renderLiveValuationRefresh(){
   if(dataState.activeDate!==kstTodayText())return;
   const scrollX=window.scrollX,scrollY=window.scrollY;
+  const keepDateMenuOpen=dateActionMenuIsOpen();
+  const keepDesktopTocOpen=desktopEdgeTocIsOpen();
+  const focusSnapshot=liveValuationFocusSnapshot();
   suppressChartEntranceOnce();
   requestSecuritiesCumCardTransitionSuppression();
   render();
+  if(keepDateMenuOpen)restoreDateActionMenuAfterRender();
+  if(keepDesktopTocOpen)restoreDesktopEdgeTocAfterRender();
+  restoreLiveValuationFocus(focusSnapshot);
   requestAnimationFrame(()=>window.scrollTo({left:scrollX,top:scrollY,behavior:'auto'}));
 }
 

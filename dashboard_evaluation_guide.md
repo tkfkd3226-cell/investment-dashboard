@@ -1162,9 +1162,10 @@ Market AI 백엔드는 기본 MAIN 평가 대상에서 제외한다. 다만 Dash
 - polling이 hidden 상태에서 불필요하게 동작하지 않고 visible 복귀 시 즉시 refresh하는지
 - request sequence가 `fetch` 이후뿐 아니라 body parse/상태 적용 전에 latest-wins를 보장하는지
 - 요청 중 holdings universe가 바뀌었을 때 이전 응답을 폐기하고 새 universe로 재조회하는지
-- PC/폰/복수 탭이 서로 다른 `client_id`를 사용할 때 한 client의 요청이 다른 client의 ticker universe를 제거하지 않는지
+- PC/폰/복수 탭이 서로 다른 `client_id`를 사용할 때 한 client의 요청이 다른 client의 ticker universe를 제거하지 않는지. 특히 탭 복제/`window.open`에서 `sessionStorage`가 복사돼도 활성 tab 간 ID 충돌을 감지·분리하는지
 - client lease 만료만으로 장마감 quote/universe를 즉시 폐기해 foreground 복귀 후 영구 warming을 만들지 않는지
 - chart expanded, KRX/action modal, Pension contribution modal, native dialog 중 live state가 들어와도 전체 render가 입력/진행 UI를 교체하지 않고, 닫힌 뒤 pending render가 최신 state를 반영하는지
+- 일반 live full render가 필요한 경우 Mobile 날짜/목차 메뉴, Desktop 목차 open 상태, keyboard focus, scroll 위치를 보존하는지. `generated_at`처럼 화면 의미가 바뀌지 않는 metadata-only 응답이 주기적으로 전체 render를 유발하지 않는지
 - Hero 제목행에는 Live Valuation 상태 문자열을 노출하지 않고 날짜 기준만 표시하는지. `LIVE/CLOSED/STALE/WARMING/JSON` 판정은 내부 quote/fallback state와 테스트로만 유지되는지
 - Desktop/Tablet Market AI 시장 카드와 tooltip이 `marketAiMarketDisplayModel()` 하나를 공유해 같은 현재가·등락률·fallback 판단을 사용하는지. Tooltip은 KOSPI·SOX·NQ100에서 `현재가 → 등락률 → 상태 → 출처 → 기준 시각`, K200만 `상태` 뒤에 `세션`을 추가하는지
 - 상태 반례 `fresh / stale / missing`과 K200 `closed / bridge / source`에서 문구와 값 의미가 맞는지. 특히 K200 `closed / stale / bridge / source`는 rawRow가 있으면 마지막 수신 현재가·등락률을 유지하고 상태 행으로 신뢰도를 구분하며, 실제 row가 없는 `missing`에서만 값을 `--`로 표시하는지

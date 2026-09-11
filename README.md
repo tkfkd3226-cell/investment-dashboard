@@ -94,7 +94,7 @@ Market AI는 Main에 **현재 시점 시장·AI 신호**와 **오늘 보유종�
 주요 동작은 다음과 같습니다.
 
 - KOSPI, KOSPI200 선물, SOX, NQ100 선물 및 AI Signal 표시
-- 현재 시장·AI 신호와 오늘 보유종목 현재가를 **화면 조회 기준 30초 주기**로 갱신하고, 문서가 다시 visible 상태가 되면 즉시 refresh
+- 현재 시장·AI 신호와 오늘 보유종목 현재가를 **화면 조회 기준 10초 주기**로 갱신하고, 문서가 다시 visible 상태가 되면 즉시 refresh
 - KIS eFriend/Bridge의 실제 realtime 수신은 polling과 별개로 계속 실시간 유지
 - 오늘 날짜에서만 usable KRX quote를 평가금액·평가손익·수익률 등 **현재가 의존 파생값**에 overlay
 - 수량·원가·투입원금·매매흐름·실현손익과 과거 날짜 데이터는 변경하지 않음
@@ -251,7 +251,7 @@ investment-dashboard/
 │  └─ workflows/
 │     └─ update-prices.yml
 │
-├─ .gitignore
+├─ _config.yml                     # GitHub Pages에서 repository-only durable shard 제외
 ├─ requirements.txt
 ├─ README.md
 ├─ main_dashboard_maintenance_handover.md
@@ -379,6 +379,17 @@ Main        /
 Calc        /add/calc.html
 Report      /add/kodex-leverage-report.html
 ```
+
+루트 `_config.yml`은 아래 durable shard 디렉터리를 **GitHub repository에는 유지하되 Pages 정적 산출물에서는 제외**합니다. 이 데이터는 GAS/GitHub API의 idempotency·dispatch 이력용 repository-only 상태이며 Main/Add 브라우저 runtime이 직접 fetch하는 파일이 아닙니다.
+
+```text
+data/krx_dispatch_ledger/
+data/pension_operation_identity/
+data/pension_operation_ledger/
+data/pension_batch_request_identity/
+```
+
+새 durable shard 디렉터리를 추가하거나 이름을 바꾸면 저장 경로만 수정하지 말고 `_config.yml`의 Pages 제외 목록과 이 문서의 데이터 구조를 함께 갱신합니다.
 
 GitHub Pages는 배포가 완료된 revision을 보여줍니다. 방금 수정한 로컬/ZIP revision의 개발 QA와 공개 배포본 확인은 구분합니다.
 

@@ -532,7 +532,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 - `dashboard-core.js`가 계산한 현재 보유수량이 `0`보다 큰 증권·퇴직연금 ticker를 문자열로 수집하고 중복 제거한다. `005930`의 leading zero와 `0163Y0` 같은 영문 혼합 6자리 ticker를 보존한다.
 - 동일 ticker가 증권·퇴직연금에 동시에 있어도 quote universe에는 한 번만 요청한다.
-- 각 browser tab은 `sessionStorage` 기반 `client_id`를 사용하며 backend가 활성 client들의 ticker 합집합을 유지한다. 한 PC/폰/탭의 polling이 다른 client universe를 삭제하지 않아야 한다.
+- 각 browser tab은 `sessionStorage` 기반 `client_id`를 사용하되, 탭 복제/`window.open`에서 storage가 복사될 수 있으므로 `BroadcastChannel` probe로 같은 ID를 이미 쓰는 활성 tab이 있는지 확인한다. 충돌이 확인된 새 tab만 새 ID를 발급해 저장하고, backend는 활성 client들의 ticker 합집합을 유지한다. 한 PC/폰/탭의 polling이 다른 client universe를 삭제하지 않아야 한다.
 - 현재 보유 ticker가 0개여도 refresh를 조기 종료하지 않고 `client_id + []`를 backend에 보내 해당 client의 universe를 authoritative empty로 reconcile하며, 로컬 `requestedTickers`도 즉시 `[]`로 비운다.
 - quote는 `usable:true`인 종목에만 적용하고 `warming/stale/unavailable/error` 등 unusable 종목은 **종목별 JSON fallback**한다. 일부 실패 때문에 정상 quote까지 모두 버리지 않는다.
 - live quote는 `dataState.liveValuation`의 volatile snapshot으로만 보관하며 운영 JSON, GAS, GitHub Actions, `performance_snapshots.json`에 쓰지 않는다.
@@ -540,7 +540,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - Market AI는 ticker별 현재가와 source/health만 제공한다. 수량·원가·원금·매매흐름·실현손익의 owner는 Dashboard 장부다.
 - 현재가가 바뀌면 현재가 의존 평가금액·평가손익·수익률·일변동·계좌/통합 합계는 기존 Dashboard 계산으로 재파생하되 장부 원천값을 바꾸지 않는다.
 - polling은 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. 겹친 요청은 latest-wins sequence로 보호하며, 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다.
-- 차트 확대, KRX/action modal, 퇴직연금 `.contrib-modal`, native dialog가 열려 있으면 state는 갱신하되 전체 Dashboard render를 보류한다. overlay가 닫힌 뒤 pending render를 1회 수행해 입력/저장 UI가 실시간 재렌더에 의해 교체되지 않게 한다.
+- 차트 확대, KRX/action modal, 퇴직연금 `.contrib-modal`, native dialog가 열려 있으면 state는 갱신하되 전체 Dashboard render를 보류한다. overlay가 닫힌 뒤 pending render를 1회 수행한다. 일반 live full render가 필요한 경우에도 열린 Mobile 날짜/목차 메뉴, Desktop 목차 open 상태, 현재 keyboard focus와 scroll 위치를 캡처·복원해 실시간 재렌더가 사용자의 transient UI를 끊지 않게 한다. `generated_at`처럼 화면 의미가 바뀌지 않는 metadata-only 응답은 semantic fingerprint에서 제외해 불필요한 full render를 만들지 않는다.
 - Hero 제목행은 날짜 기준 문구만 표시하며 `LIVE / CLOSED / STALE / JSON` 같은 Live Valuation 상태 문자열은 노출하지 않는다. live overlay 동작과 fallback 판단은 내부 state로 유지하고, 종목·상품명 **라벨 셀 전체 hover** 및 라벨 focus의 기존 `.dash-tooltip`에서 Market AI/JSON 출처·관측시각/기준일을 확인한다. 새 tooltip CSS primitive를 만들지 않는다.
 
 KIS eFriend 다종목 universe, subscription health, Tailscale Serve/CORS와 backend quote store 운영은 Market AI 프로젝트의 `market_ai_project_handover.md`를 따른다.
@@ -908,7 +908,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
 - Hero에는 Live Valuation 상태 문자열을 별도 표시하지 않는다. `LIVE / CLOSED / STALE / WARMING / JSON` 판정은 내부 quote/fallback 로직과 테스트를 위해 유지하되 화면 제목행에는 날짜 기준만 노출한다. 과거 날짜는 항상 저장 데이터 의미를 유지한다.
 - 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다.
-- live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 전체 render로 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다.
+- live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 전체 render로 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다. 일반 live full render에서도 Mobile 목차·Desktop 목차 open 상태와 keyboard focus·scroll 위치가 유지되어야 하며, metadata-only 응답으로 불필요한 full render가 반복되지 않아야 한다.
 
 ## 3.4 계좌별 성과 메모 tooltip
 
@@ -1564,6 +1564,7 @@ Google Apps Script는 **GitHub 프로젝트와 별도로 운영되는 write 백�
 
 ### 소스·배포·보안
 
+- 루트 `_config.yml`은 `data/krx_dispatch_ledger/`, `data/pension_operation_identity/`, `data/pension_operation_ledger/`, `data/pension_batch_request_identity/`를 GitHub Pages 산출물에서 제외한다. 이 shard들은 repository/GitHub API/GAS가 사용하는 durable 상태이며 브라우저 runtime 의존성을 만들지 않는다. shard 경로를 추가·변경하면 `_config.yml`과 README 데이터/배포 설명을 함께 갱신한다.
 - GAS 수정은 사용자가 별도로 제공한 **최신 운영 `code.js`**만 기준으로 한다. 과거 대화의 코드를 최신본으로 추정하지 않는다.
 - GAS는 현재 **단일 `code.js` 파일을 유지**하되, router/공통 I/O·durable identity/Single/Batch/KRX·GitHub CAS처럼 책임별 top-level helper로 분리한다. 단순 파일 길이 감소를 위해 상태머신을 generic handler 하나로 합치거나 Single·Batch·KRX의 서로 다른 terminal/retry 의미를 혼합하지 않는다. `doGet`/`doPost`는 Web App 진입점으로 유지하고, 코드 내부·frontend·문서에서 사용되지 않는 legacy wrapper는 외부 운영 계약이 확인되지 않는 경우에만 제거한다.
 - 인증값·GitHub token·PIN은 Script Properties에만 두고 저장소·문서에 실제 값을 기록하지 않는다.
