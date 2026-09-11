@@ -1177,7 +1177,7 @@ Market AI 백엔드는 기본 MAIN 평가 대상에서 제외한다. 다만 Dash
 - Market AI quote가 `usable:true`일 때만 적용되고 warming/stale/unavailable/error는 **종목별 JSON fallback**하는지
 - 현재가 의존 평가값만 재계산하고 수량·원가·원금·매매흐름·실현손익 같은 장부 owner를 침범하지 않는지
 - live quote를 `prices.json`, `performance_snapshots.json`, Pension JSON 또는 GAS write에 저장하지 않는지
-- polling이 hidden 상태에서 불필요하게 동작하지 않고 visible 복귀 시 즉시 refresh하는지
+- Market AI signal과 live valuation polling이 현재 **10초**로 일치하고, hidden 상태에서 불필요하게 동작하지 않으며 visible 복귀 시 즉시 refresh하는지
 - request sequence가 `fetch` 이후뿐 아니라 body parse/상태 적용 전에 latest-wins를 보장하는지
 - 요청 중 holdings universe가 바뀌었을 때 이전 응답을 폐기하고 새 universe로 재조회하는지
 - PC/폰/복수 탭이 서로 다른 `client_id`를 사용할 때 한 client의 요청이 다른 client의 ticker universe를 제거하지 않는지. 특히 탭 복제/`window.open`에서 `sessionStorage`가 복사돼도 활성 tab 간 ID 충돌을 감지·분리하는지

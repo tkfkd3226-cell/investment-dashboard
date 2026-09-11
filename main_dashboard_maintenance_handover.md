@@ -512,7 +512,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 선택된 과거 `activeDate`와 무관하게 Market AI panel은 현재 시점 신호를 표시한다.
 - Desktop/Tablet과 Mobile이 같은 `#market-ai-section` DOM을 재사용하며 별도 Mobile render tree를 만들지 않는다.
 - metric tooltip은 Desktop/Tablet의 keyboard/pointer interaction에서만 제공하고 Phone에서는 tooltip 속성·focus target을 제거한다.
-- polling은 문서가 보이는 동안만 실제 refresh하고, 다시 visible이 되면 즉시 갱신한다. 정확한 poll/timeout/freshness 수치는 최신 JS를 따른다.
+- polling은 문서가 보이는 동안만 실제 refresh하고, 다시 visible이 되면 즉시 갱신한다. 현재 Market AI signal poll은 **10초**이며 정확한 timeout/freshness 수치는 최신 JS를 따른다.
 - `window/globalThis` state bridge, main `dataState/uiState` 직접 접근, main feature module import를 추가하지 않는다.
 - layout 비율, tooltip 위치, viewport별 density, freshness threshold 같은 현재 표현·운영 수치는 실제 CSS/JS/backend 설정을 Source of Truth로 하고 handover에 미세값을 고정하지 않는다.
 
@@ -539,7 +539,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - live overlay는 `activeDate === KST 오늘`일 때만 계산에 사용한다. 과거 날짜는 Market AI state가 존재해도 JSON/역사 snapshot 의미를 유지한다.
 - Market AI는 ticker별 현재가와 source/health만 제공한다. 수량·원가·원금·매매흐름·실현손익의 owner는 Dashboard 장부다.
 - 현재가가 바뀌면 현재가 의존 평가금액·평가손익·수익률·일변동·계좌/통합 합계는 기존 Dashboard 계산으로 재파생하되 장부 원천값을 바꾸지 않는다.
-- polling은 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. 겹친 요청은 latest-wins sequence로 보호하며, 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다.
+- polling은 **10초 주기**로 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. 겹친 요청은 latest-wins sequence로 보호하며, 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다.
 - 차트 확대, KRX/action modal, 퇴직연금 `.contrib-modal`, native dialog가 열려 있으면 state는 갱신하되 전체 Dashboard render를 보류한다. overlay가 닫힌 뒤 pending render를 1회 수행한다. keyboard focus 보존은 Live Valuation 전용 예외가 아니라 `render()` 공통 contract다. 날짜 변경·별도수익 전환·일반 live full render 등 `#tabs/#app`을 교체하는 모든 경로에서 현재 focus를 캡처·복원하고, `id`가 없는 keyboard target은 stable `data-dashboard-focus-key`와 occurrence index를 사용한다. standalone Market AI처럼 `#app` 교체 직후 다음 frame에 다시 mount되는 keyed target은 제한된 frame retry로 복원한다. live full render는 추가로 열린 Mobile 날짜/목차 메뉴, Desktop 목차 open 상태와 scroll 위치도 유지한다. `generated_at`처럼 화면 의미가 바뀌지 않는 metadata-only 응답은 semantic fingerprint에서 제외해 불필요한 full render를 만들지 않는다.
 - Hero 제목행은 날짜 기준 문구만 표시하며 `LIVE / CLOSED / STALE / JSON` 같은 Live Valuation 상태 문자열은 노출하지 않는다. live overlay 동작과 fallback 판단은 내부 state로 유지하고, 종목·상품명 **라벨 셀 전체 hover** 및 라벨 focus의 기존 `.dash-tooltip`에서 Market AI/JSON 출처·관측시각/기준일을 확인한다. source label은 `aria-describedby`로 기존 tooltip surface와 연결하고 tooltip DOM은 event binding 시 미리 확보한다. 새 tooltip CSS primitive를 만들지 않는다.
 
