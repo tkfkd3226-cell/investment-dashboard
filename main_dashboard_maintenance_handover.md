@@ -200,8 +200,10 @@ js/
 ├─ dashboard-ui.js
 ├─ dashboard-pension.js
 ├─ dashboard-pension-editor.js
+├─ dashboard-market-ai-client.js
+├─ dashboard-live-valuation.js
 ├─ dashboard-app.js
-└─ dashboard-market-ai.js   # standalone entry
+└─ dashboard-market-ai.js   # standalone signal/panel entry
 
 data/
 ├─ prices.json
@@ -220,9 +222,9 @@ tests/
 
 `img/favicon.png`은 Main과 Add가 공유하는 canonical favicon이다. 루트에 별도 `favicon.png` 복제본을 다시 만들지 않는다.
 
-## 2.2 메인 dependency graph는 9파일 ES Module 구조 유지
+## 2.2 메인 dependency graph는 11파일 ES Module 구조 유지
 
-현재 main graph는 다음과 같다.
+현재 `dashboard-app.js`에서 도달하는 main graph는 다음 **11개 모듈**이다.
 
 ```text
 js/
@@ -234,26 +236,31 @@ js/
 ├─ dashboard-ui.js
 ├─ dashboard-pension.js
 ├─ dashboard-pension-editor.js
+├─ dashboard-market-ai-client.js
+├─ dashboard-live-valuation.js
 └─ dashboard-app.js
 ```
+
+`dashboard-market-ai.js`는 두 번째 standalone entry이며, 저수준 `dashboard-modal.js`와 transport-only `dashboard-market-ai-client.js`만 공유한다.
 
 책임 경계:
 
 ```text
-kodex-schema    → KODEX canonical JSON schema 검증 · DOM-free leaf
-core            → 데이터 / 계산 / 공통 state / loading
-ui-common       → 공통 저수준 DOM / 마크업 / shared view-state / feedback·viewport helper
-modal           → custom/native dialog lifecycle / focus / inert / body lock
-charts          → 차트 state / SVG / chart action
-ui              → 일반 UI / topbar / navigation / UI action
-pension         → 퇴직연금 조회 View
-pension-editor  → 퇴직연금 변경 Editor / persistence flow
-app             → cross-module orchestration / boot
+kodex-schema       → KODEX canonical JSON schema 검증 · DOM-free leaf
+core               → 데이터 / 계산 / 공통 state / loading / volatile live-quote snapshot
+ui-common          → 공통 저수준 DOM / 마크업 / shared view-state / feedback·viewport helper
+modal              → custom/native dialog lifecycle / focus / inert / body lock
+charts             → 차트 state / SVG / chart action
+ui                 → 일반 UI / topbar / navigation / UI action
+pension            → 퇴직연금 조회 View
+pension-editor     → 퇴직연금 변경 Editor / persistence flow
+market-ai-client   → Market AI local/remote base + timeout transport only
+live-valuation     → 오늘 보유 ticker universe / polling / race guard / render defer
+app                → cross-module orchestration / boot
+market-ai          → 현재 시장·AI 신호 standalone panel / polling / render
 ```
 
-단순 수정 때문에 다시 하나의 거대한 JS 파일로 합치지 않고, 반대로 책임 경계가 없는 작은 기능마다 새 파일을 추가하지 않는다.
-
-`dashboard-market-ai.js`는 main feature state와 분리된 standalone entry다. 다만 Mobile dialog lifecycle을 위해 저수준 `dashboard-modal.js`만 공유하며, 상세 책임과 실패 격리 기준은 **2.8**에서 관리한다.
+단순 수정 때문에 다시 하나의 거대한 JS 파일로 합치지 않고, 반대로 책임 경계가 없는 작은 기능마다 새 파일을 추가하지 않는다. `dashboard-market-ai-client.js`는 backend 산식이나 Dashboard state를 소유하지 않고 transport만 공유하며, `dashboard-live-valuation.js`는 Market AI signal panel state를 직접 다루지 않는다.
 
 ## 2.3 `dashboard-core.js` 책임
 
@@ -484,14 +491,14 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 ## 2.8 `dashboard-market-ai.js` standalone 책임
 
-`dashboard-market-ai.js`는 main feature state와 분리된 **로컬·원격 실제 Market AI 조회 전용 standalone entry**다. `dashboard-modal.js`의 저수준 dialog lifecycle만 공유하며 polling/state/mount/render는 자체 소유한다.
+`dashboard-market-ai.js`는 main feature state와 분리된 **현재 시장·AI 신호 조회 전용 standalone entry**다. `dashboard-modal.js`의 저수준 dialog lifecycle과 `dashboard-market-ai-client.js`의 endpoint/timeout transport만 공유하며, signal panel의 polling/state/mount/render는 자체 소유한다.
 
 현재 책임과 불변조건:
 
 - 로컬(`localhost`, `127.0.0.1`)에서는 현재 host의 `:8001` Market AI API를 조회하고, 비로컬 GitHub Pages에서는 `https://node.tail60a98e.ts.net` Tailscale Serve를 통해 같은 실제 Market AI API를 조회한다.
 - `market-ai-preview` 예시 데이터 모드는 사용하지 않는다. `?dashboard-view=web`, `?dashboard-view=tablet`, `?dashboard-view=mobile`은 화면 형태만 바꾸며 세 모드 모두 실제 Market AI 데이터를 사용한다.
 - Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다. 세 endpoint가 모두 응답하지 않으면 로컬은 panel 중앙에 `연결 확인 중`을 표시하며 재시도하고, 비로컬 환경은 응답 확인 전부터 Market AI panel·button·dialog를 mount하지 않은 채 polling만 유지한다.
-- refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답이 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 request sequence를 state 반영 전에 확인한다.
+- refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답/parse error가 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 async boundary 뒤의 request sequence를 확인한다.
 - backend가 제공하는 signal metadata와 산식 contract를 프런트에서 임의 재해석하지 않는다. 상세 backend 계약은 Market AI 프로젝트의 `market_ai_project_handover.md`를 Source of Truth로 한다.
 - SOX 시장 metric과 Signal Engine 입력은 모두 `INDEX:SOX`를 사용하며 표시 편의를 위해 `FUTURES:SOX` 또는 `SOX-F`로 자동 전환하지 않는다.
 - KOSPI200선물은 `kis-efriend:*` 실제 소스이면서 proxy가 아닌 snapshot만 표시한다. 장 종료로 확인된 마지막 정상값은 허용하지만, 장중 stale·Bridge 단절·대체 소스는 사용 가능한 실선물 값처럼 표시하지 않는다.
@@ -501,10 +508,36 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - Desktop/Tablet과 Mobile이 같은 `#market-ai-section` DOM을 재사용하며 별도 Mobile render tree를 만들지 않는다.
 - metric tooltip은 Desktop/Tablet의 keyboard/pointer interaction에서만 제공하고 Phone에서는 tooltip 속성·focus target을 제거한다.
 - polling은 문서가 보이는 동안만 실제 refresh하고, 다시 visible이 되면 즉시 갱신한다. 정확한 poll/timeout/freshness 수치는 최신 JS를 따른다.
-- `window/globalThis` bridge, main `dataState/uiState` 직접 접근, main feature module import를 추가하지 않는다.
+- `window/globalThis` state bridge, main `dataState/uiState` 직접 접근, main feature module import를 추가하지 않는다.
 - layout 비율, tooltip 위치, viewport별 density, freshness threshold 같은 현재 표현·운영 수치는 실제 CSS/JS/backend 설정을 Source of Truth로 하고 handover에 미세값을 고정하지 않는다.
 
-eFriend, KIS Bridge, Tailscale Serve/CORS, backend 수집·신호 산식·운영 절차는 `dashboard-market-ai.js`의 책임이 아니다. 해당 상세 운영은 Market AI 프로젝트의 `market_ai_project_handover.md`를 따른다.
+### 2.8.1 `dashboard-market-ai-client.js` transport 책임
+
+`dashboard-market-ai-client.js`는 Market AI signal panel과 live valuation이 공유하는 **저수준 transport foundation**이다.
+
+- local/remote API base 선택과 timeout fetch만 소유한다.
+- signal 산식, quote 판정, Dashboard 계산, DOM, polling state를 소유하지 않는다.
+- Local은 현재 Dashboard host의 `:8001`, Remote는 canonical Tailscale endpoint를 사용한다.
+- `fetch()` 성공 뒤 body parse가 끝날 때까지 timeout lifecycle을 유지하고 body 소비 완료 후 timer를 정리한다.
+- endpoint가 바뀌면 signal panel과 live valuation에 각각 literal을 복제하지 않고 이 module을 canonical source로 수정한다.
+
+### 2.8.2 `dashboard-live-valuation.js` 현재가 overlay 책임
+
+`dashboard-live-valuation.js`는 Market AI의 KRX quote를 **오늘 보유종목 평가에만 screen-only overlay**하는 main feature adapter다.
+
+- `dashboard-core.js`가 계산한 현재 보유수량이 `0`보다 큰 증권·퇴직연금 ticker를 문자열로 수집하고 중복 제거한다. `005930`의 leading zero와 `0163Y0` 같은 영문 혼합 6자리 ticker를 보존한다.
+- 동일 ticker가 증권·퇴직연금에 동시에 있어도 quote universe에는 한 번만 요청한다.
+- 각 browser tab은 `sessionStorage` 기반 `client_id`를 사용하며 backend가 활성 client들의 ticker 합집합을 유지한다. 한 PC/폰/탭의 polling이 다른 client universe를 삭제하지 않아야 한다.
+- quote는 `usable:true`인 종목에만 적용하고 `warming/stale/unavailable/error` 등 unusable 종목은 **종목별 JSON fallback**한다. 일부 실패 때문에 정상 quote까지 모두 버리지 않는다.
+- live quote는 `dataState.liveValuation`의 volatile snapshot으로만 보관하며 운영 JSON, GAS, GitHub Actions, `performance_snapshots.json`에 쓰지 않는다.
+- live overlay는 `activeDate === KST 오늘`일 때만 계산에 사용한다. 과거 날짜는 Market AI state가 존재해도 JSON/역사 snapshot 의미를 유지한다.
+- Market AI는 ticker별 현재가와 source/health만 제공한다. 수량·원가·원금·매매흐름·실현손익의 owner는 Dashboard 장부다.
+- 현재가가 바뀌면 현재가 의존 평가금액·평가손익·수익률·일변동·계좌/통합 합계는 기존 Dashboard 계산으로 재파생하되 장부 원천값을 바꾸지 않는다.
+- polling은 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. 겹친 요청은 latest-wins sequence로 보호하며, 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다.
+- 차트 확대, KRX/action modal, 퇴직연금 `.contrib-modal`, native dialog가 열려 있으면 state는 갱신하되 전체 Dashboard render를 보류한다. overlay가 닫힌 뒤 pending render를 1회 수행해 입력/저장 UI가 실시간 재렌더에 의해 교체되지 않게 한다.
+- Hero는 전체 live 상태를 `LIVE / CLOSED / STALE / JSON` 의미로 요약하고, 종목·상품명 **라벨 셀 전체 hover** 및 라벨 focus의 기존 `.dash-tooltip`에서 Market AI/JSON 출처·관측시각/기준일을 확인한다. 새 tooltip CSS primitive를 만들지 않는다.
+
+KIS eFriend 다종목 universe, subscription health, Tailscale Serve/CORS와 backend quote store 운영은 Market AI 프로젝트의 `market_ai_project_handover.md`를 따른다.
 
 ## 2.9 JS state · initialization ownership
 
@@ -515,6 +548,7 @@ eFriend, KIS Bridge, Tailscale Serve/CORS, backend 수집·신호 산식·운영
 ```text
 dataState
 → core / 현재 데이터 · activeDate 등 앱 공통 데이터 상태
+→ `liveValuation`은 오늘 quote의 **휘발성 화면 snapshot**이며 영속 장부 state가 아님
 
 uiState
 → core / 여러 메인 모듈이 공유하는 UI 상태
@@ -547,15 +581,21 @@ dashboard-app.js
 → heroBasisTapState
 → chartDateJumpState
 
+dashboard-market-ai-client.js
+→ 영속/module state 없음 · endpoint/timeout transport only
+
+dashboard-live-valuation.js
+→ poll/pending-render timer · refresh sequence · fingerprint · tab client_id runtime state
+
 dashboard-market-ai.js
 → marketAiState
-→ polling / mount / tooltip binding / refresh sequence runtime state
+→ signal panel polling / mount / tooltip binding / refresh sequence runtime state
 ```
 
 유지 원칙:
 
 - `chartState`나 editor batch state를 core/global로 올리지 않는다.
-- Market AI state를 메인 `dataState` / `uiState`에 합치지 않는다.
+- Market AI **signal panel state**를 메인 `dataState` / `uiState`에 합치지 않는다. 단, 보유종목 평가에 실제 필요한 quote snapshot은 `dataState.liveValuation`의 휘발성 계산 입력으로만 둔다.
 - 새 global store / event bus / framework state manager / 거대한 단일 state 객체를 만들지 않는다.
 - `window` / `globalThis` state bridge로 module ownership을 우회하지 않는다.
 - 반복 render에 필요한 listener/tooltip/chart guard는 각 owner module 안에서 관리한다.
@@ -574,7 +614,9 @@ Modal/Dialog lifecycle → modal
 퇴직연금 조회 View → pension
 퇴직연금 변경/저장 → pension-editor
 앱 boot/cross-module orchestration → app
-Market AI local/remote 실제 API 조회/mount/fail isolation → market-ai standalone
+Market AI endpoint/timeout transport → market-ai-client
+오늘 보유종목 quote polling/overlay/race guard → live-valuation
+Market AI 현재 신호 조회/mount/fail isolation → market-ai standalone
 ```
 
 처럼 책임을 유지한다.
@@ -630,7 +672,13 @@ Topbar / Navigation / 일반 UI
 cross-module event routing / render orchestration / boot
 → js/dashboard-app.js
 
-Market AI 로컬 `:8001` + 원격 Tailscale 실제 현재 신호 조회 / Hero 보조 UI standalone adapter
+Market AI local/remote endpoint + timeout transport
+→ js/dashboard-market-ai-client.js
+
+오늘 보유종목 quote polling / live overlay / render defer
+→ js/dashboard-live-valuation.js
+
+Market AI 실제 현재 신호 조회 / Hero 보조 UI standalone adapter
 → js/dashboard-market-ai.js
 
 Market AI Desktop baseline / 공통 component
@@ -650,32 +698,35 @@ Market AI Phone 진입 버튼 / native dialog / mounted panel 이동
 현재 dependency 방향은 다음과 같다.
 
 ```text
-kodex-schema    → 다른 dashboard module import 없음
-core            → kodex-schema
-ui-common       → 다른 dashboard module import 없음
-modal           → 다른 dashboard module import 없음
-charts          → core + ui-common + modal
-ui              → core + ui-common + modal + charts
-pension         → core + ui-common + charts
-pension-editor  → core + ui-common + modal
-app             → core + ui-common + modal + charts + ui + pension + pension-editor
+kodex-schema       → 다른 dashboard module import 없음
+core               → kodex-schema
+ui-common          → 다른 dashboard module import 없음
+modal              → 다른 dashboard module import 없음
+market-ai-client   → 다른 dashboard module import 없음
+charts             → core + ui-common + modal
+ui                 → core + ui-common + modal + charts
+pension            → core + ui-common + charts
+pension-editor     → core + ui-common + modal
+live-valuation     → core + market-ai-client
+app                → core + ui-common + modal + charts + ui + pension + pension-editor + live-valuation
 
 standalone entry
-market-ai       → modal만 공유
+market-ai          → modal + market-ai-client
 ```
 
-`core`와 `modal`은 서로 독립된 저수준 foundation으로 유지하고 feature module을 역으로 import하지 않는다. `market-ai`도 modal lifecycle 외의 main feature module과 결합하지 않는다.
+`core`, `modal`, `market-ai-client`는 서로 독립적인 저수준 foundation을 유지한다. `dashboard-live-valuation.js`는 current-date quote overlay adapter로만 main graph에 참여하고, `dashboard-market-ai.js`는 signal panel standalone 책임을 유지한다.
 
 불변조건:
 
 ```text
 core → DOM/UI module import 금지
-ui-common / modal → 화면별 feature module import 금지
+ui-common / modal / market-ai-client → 화면별 feature module import 금지
 feature module → ui를 공통 helper 저장소처럼 직접 import하지 않음
 charts → ui 역참조 금지
 하위 module → app import 금지
 pension View ↔ pension-editor 상호 import 금지
-market-ai → modal 외 main feature import 금지
+live-valuation → UI/pension/charts import 금지
+market-ai → modal + market-ai-client 외 main feature import 금지
 circular import = 0
 ```
 
@@ -729,7 +780,7 @@ importmap
 
 중요:
 
-- 신규 module을 추가/이름 변경할 때 importmap 누락 여부 확인
+- 신규 module을 추가/이름 변경할 때 importmap 누락 여부 확인. 현재 `dashboard-market-ai-client.js`, `dashboard-live-valuation.js`도 cache-bust importmap 대상이다.
 - cache bust 정책을 기능 수정과 함께 임의 변경하지 않음
 - importmap을 단순히 불필요해 보인다는 이유로 제거하지 않음
 - static import path는 현재 `.js` 상대경로 유지
@@ -738,13 +789,17 @@ importmap
 
 ## 2.15 main graph 단일 entry와 Market AI standalone 분리를 유지한다
 
-현재 main dependency graph는 **9개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 두 번째 standalone entry로 main boot 책임을 공유하지 않고, 공통 저수준 `dashboard-modal.js`만 import한다.
+현재 `dashboard-app.js`에서 도달하는 main dependency graph는 **11개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 두 번째 standalone entry로 main boot 책임을 공유하지 않는다. 두 entry는 저수준 `dashboard-market-ai-client.js` transport를 공유하고, Market AI standalone은 dialog lifecycle을 위해 `dashboard-modal.js`도 공유한다.
 
 ```text
 index.html
-├─ dashboard-app.js      → main graph 9모듈
+├─ dashboard-app.js
+│  └─ dashboard-live-valuation.js
+│     ├─ dashboard-core.js
+│     └─ dashboard-market-ai-client.js
 └─ dashboard-market-ai.js
-   └─ dashboard-modal.js → dialog lifecycle만 공유
+   ├─ dashboard-modal.js
+   └─ dashboard-market-ai-client.js
 ```
 
 `kodex-leverage-schema.js`는 DOM-free leaf module이며 Main `dashboard-core.js`와 Add Report가 동일 validator를 사용한다. Main/Add에 별도 KODEX schema validator를 다시 만들지 않는다.
@@ -833,12 +888,16 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 
 ### Market AI
 
-- local/remote 모두 실제 API를 사용한다.
+- local/remote 모두 실제 API를 사용하고 공통 endpoint/timeout 선택은 `dashboard-market-ai-client.js`를 canonical source로 한다.
 - 예시 데이터 전용 모드를 다시 도입하지 않는다.
 - Phone의 `dashboard-view`는 화면형태만 바꾼다.
-- remote는 실제 endpoint 응답이 확인되기 전까지 Market AI UI를 mount하지 않고 polling으로 복구를 기다리며, local 전체 연결 실패는 panel 중앙의 `연결 확인 중` 상태를 유지한다. 어느 쪽도 일반 대시보드의 다른 기능을 깨뜨리지 않는다.
-- Desktop/Tablet Hero와 Mobile dialog가 같은 panel DOM을 재사용하는 구조를 유지한다.
+- remote는 실제 endpoint 응답이 확인되기 전까지 Market AI signal UI를 mount하지 않고 polling으로 복구를 기다리며, local 전체 연결 실패는 panel 중앙의 `연결 확인 중` 상태를 유지한다. 어느 쪽도 일반 대시보드의 저장 데이터 기반 기능을 깨뜨리지 않는다.
+- Desktop/Tablet Hero와 Mobile dialog가 같은 signal panel DOM을 재사용하는 구조를 유지한다.
 - Phone에서는 Market AI metric tooltip을 활성화하지 않는다.
+- 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
+- Hero의 현재가 상태는 전체 quote 사용 상태를 `LIVE / CLOSED / STALE / JSON` 의미로 요약한다. 과거 날짜는 항상 저장 데이터 의미를 유지한다.
+- 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다.
+- live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 전체 render로 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다.
 
 ## 3.4 계좌별 성과 메모 tooltip
 
@@ -1443,7 +1502,7 @@ style="..."
 
 ## 5.5 JS Structure Map / 책임 주석
 
-구조 정리 이후 9개 `dashboard-*.js`는 파일 상단 Structure Map과 본문의 번호 섹션을 **1:1로 대응**시킨다. 번호 자체를 changelog로 사용하지 않고, 실행 흐름과 ownership 탐색을 위한 구조 표지로만 사용한다. 기능 수정 시 코드와 주석 책임이 달라지면 같은 작업에서 Structure Map도 함께 정합화한다.
+현재 Structure Map을 사용하는 9개 주요 `dashboard-*.js`는 파일 상단 Structure Map과 본문의 번호 섹션을 **1:1로 대응**시킨다. `dashboard-market-ai-client.js`와 `dashboard-live-valuation.js`는 현재 단일 책임 transport/adapter라 번호형 Structure Map을 필수로 두지 않는다. 번호 자체를 changelog로 사용하지 않고, 실행 흐름과 ownership 탐색을 위한 구조 표지로만 사용한다. 기능 수정 시 코드와 주석 책임이 달라지면 같은 작업에서 해당 파일의 구조 주석도 함께 정합화한다.
 
 코드를 그대로 읽어주는 주석은 늘리지 않고 module ownership, 예외, lifecycle 경계처럼 코드만으로 바로 알기 어려운 이유를 설명한다.
 
@@ -1473,6 +1532,7 @@ data/pension_contributions.json
 - 최신 KRX 반영분과 코드 patch를 섞을 때 단순 hash 차이를 코드 회귀로 오인하지 않는다.
 - `pension_contributions.json`은 KRX 재갱신 대상이라고 가정하지 않는다.
 - 실제 운영 데이터가 포함된 최신 기준본을 과거 코드 패키지로 덮어쓰기 전에 먼저 확인한다.
+- Market AI 실시간 보유종목 quote는 **화면 메모리 overlay 전용**이다. `prices.json`, `performance_snapshots.json`, Pension JSON 또는 GAS write 경로에 live quote를 저장하지 않는다.
 
 QA 중 실제 운영 write 금지:
 
@@ -1720,6 +1780,18 @@ listener 중복 0
 
 파일 분리는 줄 수가 아니라 책임·state ownership·dependency 방향으로 판단한다.
 
+Market AI/live valuation 변경이면 추가로 다음을 확인한다.
+
+```text
+오늘 activeDate만 live overlay 적용
+종목별 usable/fallback
+client_id multi-client universe 충돌 없음
+holdings 변경 중 stale response 폐기
+modal/expanded chart 중 render defer
+visible 복귀 즉시 refresh
+source tooltip 셀 hover/focus
+```
+
 ### Main 계산
 
 `dashboard-core.js` 등 계산 책임을 변경했으면 `main-calc.test.cjs`를 우선 실행한다. 테스트 전용 계산식을 별도로 복제하지 않는다. 실제 요구사항 때문에 계산 contract가 바뀐 경우에만 기대값을 함께 갱신한다.
@@ -1900,12 +1972,13 @@ node --test tests/cross-ui-contract.test.cjs
 [ ] 실제 책임 파일과 dependency를 확인했는가
 [ ] 과거 코드 기억을 최신본으로 가정하지 않았는가
 [ ] 현재 ES Module ownership을 유지하는가
-[ ] Market AI 변경이라면 standalone 경계를 유지하는가
+[ ] Market AI 변경이라면 signal standalone / shared transport / live valuation 책임 경계를 유지하는가
 [ ] 기존 canonical CSS rule/token을 먼저 찾았는가
 [ ] 새 breakpoint가 실제 기능상 필요한가
 [ ] Phone 판정 helper/contract를 중복 정의하지 않는가
 [ ] inline event/global bridge를 만들지 않는가
 [ ] 운영 JSON을 불필요하게 건드리지 않는가
+[ ] live quote를 운영 JSON/성과 snapshot/GAS write에 영속화하지 않는가
 ```
 
 ## 10.2 수정 후

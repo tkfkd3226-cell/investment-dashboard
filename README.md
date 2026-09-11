@@ -84,16 +84,21 @@ Main의 별도수익과 Add Report는 같은 canonical 거래 원천을 사용�
 
 ### 2.4 Market AI 연동
 
-Market AI는 Main feature state와 분리된 **현재 시점의 보조 시장 신호**입니다.
+Market AI는 Main의 **현재 시점 시장 신호**와 **오늘 보유종목의 현재가 overlay**를 제공하는 선택형 실시간 subsystem입니다.
 
 - KOSPI, KOSPI200 선물, SOX, NQ100 선물과 AI 신호 표시
-- Desktop / Tablet: Hero 우측 보조 카드
-- Mobile / 실제 터치폰 가로 UI: **AI Signal** dialog
+- 오늘 보유 중인 증권·퇴직연금 종목의 KIS eFriend `SC_R` 현재가를 화면 계산에 overlay
+- 실시간 현재가는 현재가·평가금액·평가손익·수익률 등 **현재가 의존 파생값만** 다시 계산하며 수량·원가·원금·매매흐름·실현손익은 바꾸지 않음
+- 실시간 quote는 브라우저 메모리에서만 사용하고 `prices.json`, `performance_snapshots.json`, Pension 장부 JSON에는 저장하지 않음
+- 과거 날짜는 실시간 값을 적용하지 않고 저장된 JSON/스냅샷 의미를 유지
+- usable quote가 없는 종목은 종목별로 기존 JSON 값으로 fallback
+- Hero에서 `LIVE / CLOSED / STALE / JSON` 상태와 시세 기준을 표시하고, 종목·상품 셀의 커스텀 툴팁에서 Market AI/JSON 출처를 확인 가능
+- Desktop / Tablet의 Market AI 신호는 Hero 우측 보조 카드, Mobile / 실제 터치폰 가로 UI는 **AI Signal** dialog로 표시
 - Local: Market AI FastAPI 직접 조회
 - GitHub Pages: Tailscale Serve를 통해 같은 실제 데이터 조회
-- Market AI가 응답하지 않아도 Main Dashboard 기본 기능은 독립 동작
+- Market AI가 응답하지 않아도 Main Dashboard의 저장 데이터 기반 기능은 독립 동작
 
-세부 polling, stale/source 판정, UI lifecycle은 `main_dashboard_maintenance_handover.md`와 Market AI 프로젝트 문서에서 관리합니다.
+`dashboard-market-ai.js`는 현재 시장·AI 신호 panel을, `dashboard-live-valuation.js`는 오늘 보유종목 평가 overlay를 담당하며 두 기능은 `dashboard-market-ai-client.js`의 local/remote transport contract를 공유합니다. 세부 polling, stale/source 판정, multi-client quote universe와 KIS subscription health는 `main_dashboard_maintenance_handover.md`와 Market AI 프로젝트 문서에서 관리합니다.
 
 ---
 
@@ -152,13 +157,21 @@ data/performance_snapshots.json
 
 ```text
 Dashboard
-   ↓
-js/dashboard-market-ai.js
-   ↓
-Market AI API
+   ├─ dashboard-market-ai.js
+   │    → 현재 Market Snapshot / Signal / Bridge 상태
+   │
+   └─ dashboard-live-valuation.js
+        → 오늘 보유 ticker universe
+        → /api/market-data/krx-quotes
+        → usable quote만 메모리 overlay
+
+공통 transport
+   → dashboard-market-ai-client.js
+   → Local : http://127.0.0.1:8001
+   → Remote: https://node.tail60a98e.ts.net
 ```
 
-외부 GitHub Pages에서는 FastAPI 포트를 직접 인터넷에 공개하지 않고 Tailscale Serve를 통해 접근합니다.
+외부 GitHub Pages에서는 FastAPI 포트를 직접 인터넷에 공개하지 않고 Tailscale Serve를 통해 접근합니다. 보유종목 실시간 평가는 **현재 KST 날짜에서만** 화면 계산에 적용하며, 과거 날짜와 운영 JSON은 변경하지 않습니다.
 
 ---
 
@@ -185,6 +198,8 @@ investment-dashboard/
 │  ├─ dashboard-ui.js
 │  ├─ dashboard-pension.js
 │  ├─ dashboard-pension-editor.js
+│  ├─ dashboard-market-ai-client.js
+│  ├─ dashboard-live-valuation.js
 │  ├─ dashboard-app.js
 │  └─ dashboard-market-ai.js
 │
@@ -244,7 +259,7 @@ investment-dashboard/
 
 ## 5. 구현 구성 요약
 
-Main은 `index.html`에서 시작하고 `js/dashboard-app.js`가 전체 화면 흐름을 조율합니다. `js/dashboard-market-ai.js`는 Market AI 조회를 별도 entry로 담당합니다.
+Main은 `index.html`에서 시작하고 `js/dashboard-app.js`가 전체 화면 흐름을 조율합니다. 오늘 보유종목의 실시간 평가 overlay는 main graph의 `js/dashboard-live-valuation.js`가 담당하고, `js/dashboard-market-ai.js`는 현재 시장·AI 신호 조회를 별도 standalone entry로 담당합니다. 두 경로는 endpoint/timeout 선택만 `js/dashboard-market-ai-client.js`에서 공유합니다.
 
 Main CSS는 다음 역할 파일로 나뉩니다.
 

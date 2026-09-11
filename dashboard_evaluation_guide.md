@@ -1008,6 +1008,10 @@ handover의 JSON 예시는 단순 샘플이 아니라 유지보수자가 실제 
 | Cleanup Leak | listener/timer/observer가 이전 session 이후 남지 않는가 |
 | Cross-state Collision | theme/tab/viewport 변경이 진행 중 request와 충돌하지 않는가 |
 | Partial Success | 일부 endpoint 성공/실패가 다른 상태를 잘못 초기화하지 않는가 |
+| Multi-client Universe | PC/폰/복수 탭이 서로의 live quote 구독 universe를 삭제하지 않는가 |
+| Ephemeral Overlay | 실시간 화면값이 역사 JSON·snapshot·장부 write를 오염시키지 않는가 |
+| Subscription Health | Bridge 전체는 살아 있어도 특정 종목 stream만 죽었을 때 해당 종목만 fail-closed 되는가 |
+| Deferred Render | modal/chart overlay 중 보류한 live render가 닫힌 뒤 유실되거나 옛 state로 남지 않는가 |
 | Server Already Executed | UI가 닫혔어도 이미 실행된 서버 결과를 사용자에게 안전하게 전달하는가 |
 
 평가자는 Pattern Library를 체크박스처럼 끝내지 않는다.
@@ -1140,17 +1144,39 @@ server contract는 최신 GAS가 제공된 경우에만 완전 대조한다.
 
 ### Market AI
 
-Market AI 백엔드는 기본 MAIN 평가 대상에서 제외한다.
+Market AI 백엔드는 기본 MAIN 평가 대상에서 제외한다. 다만 Dashboard frontend에는 **현재 시장·AI signal panel**과 **오늘 보유종목 live valuation overlay**가 있으므로 각각의 책임과 교차 lifecycle을 필요한 범위에서 확인한다.
 
-대시보드에서는 필요한 범위에서 다음을 확인한다.
+대시보드에서는 최소 다음을 본다.
 
-- frontend adapter 구조
-- main graph와의 책임 분리
-- mount / polling / timeout / stale 처리
-- endpoint별 실패 격리
-- CSS ownership
-- request sequence가 `fetch` 이후뿐 아니라 `response.json()` 이후에도 최신성을 보장하는지
-- 이전 JSON 응답 또는 이전 parse error가 최신 상태를 덮지 않는지
+- `dashboard-market-ai-client.js`가 local/remote base와 timeout transport만 소유하고 signal/valuation state를 섞지 않는지
+- `dashboard-market-ai.js` standalone signal panel과 main graph의 `dashboard-live-valuation.js`가 책임을 분리하는지
+- live valuation이 **KST 오늘 activeDate에서만** 적용되고 과거 날짜/역사 snapshot을 현재 quote로 오염시키지 않는지
+- 보유수량 `> 0`인 증권·퇴직연금 ticker를 문자열로 중복 제거하며 leading zero/영문 혼합 ticker를 보존하는지
+- Market AI quote가 `usable:true`일 때만 적용되고 warming/stale/unavailable/error는 **종목별 JSON fallback**하는지
+- 현재가 의존 평가값만 재계산하고 수량·원가·원금·매매흐름·실현손익 같은 장부 owner를 침범하지 않는지
+- live quote를 `prices.json`, `performance_snapshots.json`, Pension JSON 또는 GAS write에 저장하지 않는지
+- polling이 hidden 상태에서 불필요하게 동작하지 않고 visible 복귀 시 즉시 refresh하는지
+- request sequence가 `fetch` 이후뿐 아니라 body parse/상태 적용 전에 latest-wins를 보장하는지
+- 요청 중 holdings universe가 바뀌었을 때 이전 응답을 폐기하고 새 universe로 재조회하는지
+- PC/폰/복수 탭이 서로 다른 `client_id`를 사용할 때 한 client의 요청이 다른 client의 ticker universe를 제거하지 않는지
+- client lease 만료만으로 장마감 quote/universe를 즉시 폐기해 foreground 복귀 후 영구 warming을 만들지 않는지
+- chart expanded, KRX/action modal, Pension contribution modal, native dialog 중 live state가 들어와도 전체 render가 입력/진행 UI를 교체하지 않고, 닫힌 뒤 pending render가 최신 state를 반영하는지
+- Hero `LIVE/CLOSED/STALE/JSON` 상태와 종목별 source tooltip이 실제 quote/fallback 의미와 일치하는지
+- source tooltip이 라벨 셀 hover와 keyboard focus 모두에서 열리고 기존 tooltip lifecycle/viewport clipping contract를 지키는지
+- endpoint별 실패 격리와 전체 Market AI 연결 실패가 기본 Dashboard 기능을 깨뜨리지 않는지
+
+Market AI 백엔드 최신 소스가 함께 제공된 **별도 backend 평가**에서는 추가로 다음을 본다.
+
+- `/api/market-data/krx-quotes`와 `/api/bridge/kis-efriend/quote-universe` schema/validation
+- active client ticker 합집합과 lease reconcile
+- universe에서 제거된 ticker의 old quote 폐기와 재편입 시 새 tick 대기
+- Bridge 전체 heartbeat와 **종목별 `SC_R` subscription health**를 분리 판정하는지
+- 특정 ticker `subscribed=false`/error이면 그 ticker만 stale/unusable이 되고 다른 ticker는 정상 유지되는지
+- subscription 장애 후 `subscribed=true`만으로 장애 전 quote를 부활시키지 않고 **새 실제 tick 이후에만 usable**로 복귀하는지
+- 반복된 이전 unhealthy heartbeat가 새 tick 이후 상태를 다시 stale로 되감지 않는지
+- 저유동 종목을 단순 `last_tick_at` age만으로 stale 처리하지 않는지
+- dynamic holdings quote는 process-memory latest snapshot으로 유지하고 기존 signal/history persistence를 불필요하게 확대하지 않는지
+- Tailscale Serve는 remote optional dependency이며 실패가 local startup 실패로 전파되지 않는지
 
 ```text
 백엔드 미첨부·미연결
@@ -1248,7 +1274,7 @@ Chart
 → legend/최소1개/전체/Y auto/mode/확대/keyboard/resize/tooltip
 
 Market AI
-→ local/remote fetch → endpoint별 상태 격리 → viewport별 UI
+→ local/remote transport → signal panel endpoint별 상태 격리 → 오늘 보유 quote overlay → 종목별 fallback → viewport/modal lifecycle
 ```
 
 각 flow는 정상 순서뿐 아니라 **중복·닫기·재진입·실패·theme/viewport 변경**을 섞어 공격한다.
