@@ -153,7 +153,7 @@ Mobile · 모바일   ≤ 760px
 #### 1.2.1 공통 외형·페이지 구조
 
 - `calc`와 `report`는 `add/add.css`의 공통 의미색·Corner·Spacing/Density·Heading·Button·Card/Table primitive를 재사용한다.
-- 현재 색상·여백·폰트·radius 수치는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다.
+- 현재 색상·여백·폰트·radius 수치는 CSS를 Source of Truth로 보고 이 문서에 중복 고정하지 않는다. 단, **Light 손익 의미색 `--positive:#EF3341`, `--negative:#3182F6`은 사용자가 시각적으로 확정한 design-locked canonical 값**이므로 예외적으로 이 contract에 명시한다. 일반 텍스트 대비 수치만을 이유로 색을 더 진하게 보정하지 않으며, 사용자의 명시적 재지시 없이 변경하지 않는다.
 - Main의 Light/Dark·모서리 선택은 동일 저장 key와 appearance 동기화 경로를 통해 Calc와 Report 모두에 반영한다. Report Canvas 차트는 appearance 변경 시 현재 CSS chart palette를 다시 읽어 즉시 재렌더한다. Calc가 공통 Corner 역할값을 별도 값으로 다시 덮지 않는다.
 - **Add는 선택형 대체 디자인이 없는 단일 canonical 스타일 구조다.** Calc는 Compact 정보 밀도, Report는 Dynamic 시각 언어를 각 `data-add-page` scope가 직접 소유하며 별도 theme/alt stylesheet·runtime을 다시 만들지 않는다.
 - Report의 Hero/KPI처럼 Tablet/Phone에서 순서·span이 달라지는 요소는 DOM 순번 `nth-child`가 아니라 semantic role class로 관리한다. Timeline 교차색·hamburger bar처럼 순번 자체가 표현 의미인 구조적 `nth-child`는 예외로 허용한다.

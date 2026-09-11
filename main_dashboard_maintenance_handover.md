@@ -856,7 +856,7 @@ JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 �
 
 테마·모서리 control은 실제 현재 상태를 잘못 암시하는 permanent active UI가 되지 않아야 하며 Light/Dark 모두 icon contrast를 유지한다. Main에서 두 appearance control을 변경할 때는 기존 localStorage key(`investmentDashboard.theme`, `investmentDashboard.cornerTheme`) 갱신과 함께 `investmentDashboard.appearance` BroadcastChannel로 현재 Light/Dark·Corner 상태를 발행한다. Add의 Calc/Report는 storage event를 fallback으로 유지하면서 이 channel을 소비해 이미 열린 탭도 실시간 동기화한다.
 
-Light/Dark는 같은 semantic 의미 체계를 공유한다. 양수·음수는 각각 `--value-positive` / `--value-negative`를 사용하고, 성공·정보·주의·오류·위험은 별도 status token으로 구분한다. 테마 공통화 과정에서 양수·음수 class를 한쪽 색으로 합치거나 status color로 대체하지 않는다. Corner는 surface/control/inner cap을 통해 같은 geometry에 적용하며 정보 위계가 다른 작은 control까지 같은 radius로 강제하지 않는다.
+Light/Dark는 같은 semantic 의미 체계를 공유한다. 양수·음수는 각각 `--value-positive` / `--value-negative`를 사용하고, 성공·정보·주의·오류·위험은 별도 status token으로 구분한다. 테마 공통화 과정에서 양수·음수 class를 한쪽 색으로 합치거나 status color로 대체하지 않는다. **Light의 `--value-positive:#E6233A`, `--value-negative:#2972E8`은 사용자가 시각적으로 확정한 design-locked canonical 색상이다. 일반 텍스트 대비 수치만을 이유로 더 진한 색으로 변경하지 않으며, 사용자의 명시적 재지시 없이 다른 색으로 보정하지 않는다.** Dark semantic 색상은 최신 CSS를 Source of Truth로 유지한다. Corner는 surface/control/inner cap을 통해 같은 geometry에 적용하며 정보 위계가 다른 작은 control까지 같은 radius로 강제하지 않는다.
 
 ### Table
 

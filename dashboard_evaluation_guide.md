@@ -1307,6 +1307,7 @@ ADD의 토큰화·공통화 평가는 **literal 값의 존재 자체가 아니�
 - 불필요한 one-use token 증가는 피한다.
 - 동일 semantic 값이 여러 곳에서 반복되는데 공통 source가 없거나 literal 분산 때문에 일관성·수정성·회귀 위험이 실제로 생기는 경우에만 감점한다.
 - component-local / page-specific color literal이 위 조건을 만족하면 Semantic Color 감점 사유로 보지 않는다.
+- **Design-locked 손익 의미색 비감점 예외:** Main Light의 `--value-positive:#E6233A` / `--value-negative:#2972E8`, Add Light의 `--positive:#EF3341` / `--negative:#3182F6`은 사용자가 직접 확정한 canonical 디자인 값이다. 흰색·연한 surface에서 일반 텍스트 WCAG 대비 수치가 4.5:1에 미달한다는 이유만으로 A/B/C 감점하거나 더 진한 색으로 변경 권고하지 않는다. 필요하면 접근성 관찰사항으로만 비감점 기록할 수 있다. 단, 색이 사라짐·양수/음수 의미 뒤바뀜·테마에서 식별 불가·원래 canonical 값의 의도치 않은 변경처럼 **기능적 semantic 회귀**가 생긴 경우에는 이 예외를 적용하지 않는다.
 
 > **평가 기준은 “더 토큰화할 수 있는가”가 아니라 “공통화해야 할 이유가 있는데도 분산되어 있는가”다.**
 
