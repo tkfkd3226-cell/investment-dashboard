@@ -449,3 +449,55 @@ test('실시간 평가: 요청 실패 clear는 live quote를 제거해 즉시 JS
   assert.equal(core.calc(today).holdings[0].price,110);
 });
 
+
+
+test('실시간 평가 상태 요약: 오늘 LIVE/CLOSED/혼합 fallback을 종목 수 기준으로 집계한다',()=>{
+  const today=core.kstTodayText();
+  const portfolio=basePortfolio({
+    securities:[
+      {name:'A',ticker:'005930',type:'개별주식',qty:1,cost:100,chart:true},
+      {name:'B',ticker:'000660',type:'개별주식',qty:1,cost:100,chart:true}
+    ],
+    pension:[]
+  });
+  setState({portfolio,prices:{[today]:{securities:{'005930':100,'000660':100}}}});
+  core.applyLiveValuationSnapshot({
+    status:'ok',market_state:'open',bridge_connected:true,generated_at:'2026-09-11T06:20:00Z',
+    items:[
+      {ticker:'005930',price:120,state:'live',usable:true,observed_at:'2026-09-11T06:19:58Z'},
+      {ticker:'000660',price:130,state:'stale',usable:false,observed_at:'2026-09-11T06:18:00Z'}
+    ]
+  },['005930','000660']);
+  const mixed=core.liveValuationStatusForDate(today);
+  assert.equal(mixed.mode,'mixed');
+  assert.equal(mixed.requestedCount,2);
+  assert.equal(mixed.usableCount,1);
+  assert.equal(mixed.fallbackCount,1);
+  assert.equal(mixed.liveCount,1);
+  assert.equal(mixed.staleCount,1);
+  assert.equal(mixed.latestObservedAt,'2026-09-11T06:19:58.000Z');
+
+  core.applyLiveValuationSnapshot({
+    status:'ok',market_state:'closed',bridge_connected:true,
+    items:[
+      {ticker:'005930',price:121,state:'closed',usable:true,observed_at:'2026-09-11T06:30:00Z'},
+      {ticker:'000660',price:131,state:'closed',usable:true,observed_at:'2026-09-11T06:30:01Z'}
+    ]
+  },['005930','000660']);
+  const closed=core.liveValuationStatusForDate(today);
+  assert.equal(closed.mode,'closed');
+  assert.equal(closed.closedCount,2);
+  assert.equal(closed.fallbackCount,0);
+});
+
+test('실시간 평가 상태 요약: 실패/과거 화면은 STALE·JSON 의미를 분리한다',()=>{
+  const today=core.kstTodayText();
+  const portfolio=basePortfolio({securities:[{name:'A',ticker:'005930',type:'개별주식',qty:1,cost:100,chart:true}],pension:[]});
+  setState({portfolio,prices:{[today]:{securities:{'005930':100}}}});
+  core.clearLiveValuationSnapshot('request-failed');
+  const stale=core.liveValuationStatusForDate(today);
+  assert.equal(stale.mode,'stale');
+  assert.equal(stale.fallbackCount,1);
+  const historical=core.liveValuationStatusForDate('2026-09-10');
+  assert.equal(historical.mode,'historical');
+});

@@ -4,6 +4,7 @@ import {
   dataState,
   koreanDateLabel,
   kstTodayText,
+  liveValuationStatusForDate,
   loadInitialData,
   pct,
   separateProfitView,
@@ -219,6 +220,32 @@ function setupDashboardEventDelegation(){
   });
 }
 // [APP04] Render Orchestration · 자산 workspace / 전체 렌더링
+function liveValuationStatusClock(value){
+  if(!value)return '';
+  const parsed=new Date(value);
+  if(Number.isNaN(parsed.getTime()))return '';
+  return new Intl.DateTimeFormat('ko-KR',{
+    timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
+  }).format(parsed);
+}
+function liveValuationStatusText(date){
+  const status=liveValuationStatusForDate(date);
+  if(status.mode==='historical')return 'JSON · 과거 저장 데이터';
+  if(!status.requestedCount)return 'JSON · 평가 대상 없음';
+  const quoteTime=liveValuationStatusClock(status.latestObservedAt);
+  const timeText=quoteTime?` · 시세 ${quoteTime}`:'';
+  if(status.mode==='closed')return `CLOSED ${status.usableCount}/${status.requestedCount}${timeText}`;
+  if(status.mode==='live')return `LIVE ${status.usableCount}/${status.requestedCount}${timeText}`;
+  if(status.mode==='mixed'){
+    const activeLabel=status.closedCount>0&&status.liveCount===0?'CLOSED':'LIVE';
+    const staleText=status.staleCount?` · STALE ${status.staleCount}`:'';
+    return `${activeLabel} ${status.usableCount}/${status.requestedCount} · JSON ${status.fallbackCount}${staleText}${timeText}`;
+  }
+  if(status.mode==='stale')return `STALE → JSON${quoteTime?` · 최종 ${quoteTime}`:''}`;
+  if(status.warmingCount)return `JSON · WARMING ${status.warmingCount}/${status.requestedCount}`;
+  if(['timeout','request-failed'].includes(status.reason))return 'JSON · Market AI 연결 실패';
+  return 'JSON · Market AI 대기';
+}
 function renderAssetWorkspace(x){
   if(!x.hasPension)return renderSecuritiesSection(x);
   return `<section id="asset-workspace" class="asset-workspace"><div class="control-tab-group asset-workspace-tabs" role="tablist" aria-label="자산 현황 선택" aria-orientation="horizontal"><button type="button" id="asset-tab-securities" class="control-tab asset-workspace-tab" data-asset-tab="securities" role="tab" aria-controls="asset-panel-securities" data-dashboard-action="set-asset-tab"><span>증권계좌</span></button><button type="button" id="asset-tab-pension" class="control-tab asset-workspace-tab" data-asset-tab="pension" role="tab" aria-controls="asset-panel-pension" data-dashboard-action="set-asset-tab"><span>퇴직연금</span></button></div><div id="asset-panel-securities" class="asset-workspace-panel asset-workspace-panel-securities" data-asset-panel="securities" role="tabpanel" aria-labelledby="asset-tab-securities">${renderSecuritiesSection(x)}</div><div id="asset-panel-pension" class="asset-workspace-panel asset-workspace-panel-pension" data-asset-panel="pension" role="tabpanel" aria-labelledby="asset-tab-pension">${renderPension(x)}</div></section>`;
@@ -228,7 +255,7 @@ function render(){
   const x=calc(dataState.activeDate),v=separateProfitView(x);
   renderTabs();
   const pensionPills=x.hasPension?`<span class="pill hero-profit-pill"><span class="hero-label-default">퇴직연금 운용손익</span><span class="hero-label-mobile">퇴직연금 손익</span> ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
-  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${dataState.portfolio.meta.title}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${koreanDateLabel(x.date)})</time></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}" role="group" aria-label="핵심 성과 요약"><span class="pill hero-profit-pill"><span class="hero-label-default">증권계좌 누적손익</span><span class="hero-label-mobile">증권계좌 손익</span> ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적수익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
+  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${dataState.portfolio.meta.title}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${koreanDateLabel(x.date)})</time><span class="hero-basis" data-live-valuation-status>${escapeHtml(liveValuationStatusText(x.date))}</span></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}" role="group" aria-label="핵심 성과 요약"><span class="pill hero-profit-pill"><span class="hero-label-default">증권계좌 누적손익</span><span class="hero-label-mobile">증권계좌 손익</span> ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적수익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
   hydrateSectionTitleIcons(document.getElementById('app'));
   syncAssetTabs();
   syncThemeControls();

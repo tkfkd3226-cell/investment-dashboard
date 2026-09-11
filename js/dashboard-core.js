@@ -507,6 +507,38 @@ function liveValuationQuoteForDate(ticker,date){
   return Number.isFinite(price)&&price>0?quote:null;
 }
 const liveValuationPriceForDate=(ticker,date)=>liveValuationQuoteForDate(ticker,date)?.price??null;
+function liveValuationStatusForDate(date){
+  const today=kstTodayText();
+  if(!date||date!==today){
+    return {
+      mode:'historical',requestedCount:0,usableCount:0,liveCount:0,closedCount:0,
+      staleCount:0,warmingCount:0,fallbackCount:0,latestObservedAt:null,generatedAt:null,reason:''
+    };
+  }
+  const state=dataState.liveValuation||{};
+  const requested=[...new Set((Array.isArray(state.requestedTickers)&&state.requestedTickers.length?state.requestedTickers:liveValuationTickersForDate(date)).map(normalizeLiveValuationTicker).filter(Boolean))].sort();
+  const items=requested.map(ticker=>state.items?.[ticker]||null);
+  const usableItems=items.filter(item=>item?.usable===true&&Number(item?.price)>0);
+  const liveCount=usableItems.filter(item=>item.state==='live').length;
+  const closedCount=usableItems.filter(item=>item.state==='closed').length;
+  const staleCount=items.filter(item=>item?.state==='stale').length;
+  const warmingCount=items.filter(item=>item?.state==='warming').length;
+  const requestedCount=requested.length,usableCount=usableItems.length,fallbackCount=Math.max(0,requestedCount-usableCount);
+  const observedTimes=items.map(item=>item?.observedAt).filter(Boolean).map(value=>Date.parse(value)).filter(Number.isFinite);
+  const latestObservedAt=observedTimes.length?new Date(Math.max(...observedTimes)).toISOString():null;
+  let mode='json';
+  if(requestedCount&&usableCount===requestedCount){
+    mode=closedCount===requestedCount?'closed':'live';
+  }else if(usableCount>0){
+    mode='mixed';
+  }else if(staleCount>0||state.bridgeConnected===false||['timeout','request-failed'].includes(String(state.reason||''))){
+    mode='stale';
+  }
+  return {
+    mode,requestedCount,usableCount,liveCount,closedCount,staleCount,warmingCount,fallbackCount,
+    latestObservedAt,generatedAt:state.generatedAt||null,reason:String(state.reason||''),marketState:String(state.marketState||''),bridgeConnected:state.bridgeConnected
+  };
+}
 const securitiesCashForDate=d=>{
   const latestPriceDate=Object.keys(dataState.prices||{}).filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&dataState.prices?.[v]?.display!==false).sort(byDate).at(-1)||'';
   const savedCash=dataState.snapshots?.[d]?.allocation?.['현금'];
@@ -1000,6 +1032,7 @@ export {
   loadInitialData,
   liveValuationPriceForDate,
   liveValuationQuoteForDate,
+  liveValuationStatusForDate,
   liveValuationTickersForDate,
   monthLabel,
   outsideCashForDate,

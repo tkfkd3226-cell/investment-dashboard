@@ -945,3 +945,15 @@ test('보유종목/연금상품 현재가 출처는 기존 dash-tooltip surface�
   assert.match(pension,/fallbackSource:'prices\.json'/);
   assert.equal((common.match(/assetPriceSourceTooltip|asset-source-tooltip|asset-source/g)||[]).length,0,'출처 tooltip 전용 CSS를 추가하면 안 된다');
 });
+
+
+test('Hero 현재가 상태는 기존 hero-basis typography로 LIVE/CLOSED/STALE/JSON 의미를 표시하고 전용 CSS를 만들지 않는다',()=>{
+  assert.match(core,/function liveValuationStatusForDate\(date\)/);
+  assert.match(app,/function liveValuationStatusText\(date\)/);
+  assert.match(app,/CLOSED \$\{status\.usableCount\}\/\$\{status\.requestedCount\}/);
+  assert.match(app,/LIVE \$\{status\.usableCount\}\/\$\{status\.requestedCount\}/);
+  assert.match(app,/STALE → JSON/);
+  assert.match(app,/JSON · 과거 저장 데이터/);
+  assert.match(app,/data-live-valuation-status/);
+  assert.equal((common.match(/live-valuation-status|live-source-status/g)||[]).length,0,'상태 표시 전용 CSS를 추가하면 안 된다');
+});
