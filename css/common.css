@@ -446,7 +446,7 @@
   --market-ai-metric-row-height:18px;
   --market-ai-metric-column-gap:var(--space-sm);
   --market-ai-market-data-gap:var(--space-2xl);
-  --market-ai-tooltip-max-width:440px;
+  --market-ai-tooltip-max-width:308px;
   --market-ai-mobile-dialog-width:360px;
 
   --accent-strong-bg:#2b3d59;
