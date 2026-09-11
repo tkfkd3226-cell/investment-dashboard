@@ -223,12 +223,14 @@ investment-dashboard/
 │  ├─ add-calc.test.cjs
 │  ├─ add-report-data.test.cjs
 │  ├─ add-ui-contract.test.cjs
-│  └─ cross-ui-contract.test.cjs
+│  ├─ cross-ui-contract.test.cjs
+│  └─ update_prices_test.py
 │
 ├─ .github/
 │  └─ workflows/
 │     └─ update-prices.yml
 │
+├─ .gitignore
 ├─ requirements.txt
 ├─ README.md
 ├─ main_dashboard_maintenance_handover.md
@@ -348,7 +350,7 @@ GAS는 KRX requestId의 intent/receipt와 durable dispatch ledger, workflow run 
 
 ```text
 Branch : main
-Folder : /root
+Folder : / (root)
 ```
 
 주요 경로:
@@ -365,7 +367,7 @@ GitHub Pages는 배포가 완료된 revision을 보여줍니다. 방금 수정�
 
 ## 9. 자동 QA
 
-Node 기반 테스트는 계산·데이터·UI contract의 반복 회귀를 확인하기 위한 개발 안전망입니다.
+Node·Python 기반 자동 테스트는 계산·데이터·UI contract와 가격 갱신 로직의 반복 회귀를 확인하기 위한 개발 안전망입니다.
 
 ```text
 tests/
@@ -374,13 +376,15 @@ tests/
 ├─ add-calc.test.cjs
 ├─ add-report-data.test.cjs
 ├─ add-ui-contract.test.cjs
-└─ cross-ui-contract.test.cjs
+├─ cross-ui-contract.test.cjs
+└─ update_prices_test.py
 ```
 
 전체 테스트:
 
 ```bash
 node --test tests/*.test.cjs
+python tests/update_prices_test.py
 ```
 
 테스트의 역할:
@@ -393,6 +397,7 @@ node --test tests/*.test.cjs
 | `add-report-data.test.cjs` | KODEX canonical 데이터와 Report/Main 파생 정합성 |
 | `add-ui-contract.test.cjs` | Add HTML/CSS/UI contract |
 | `cross-ui-contract.test.cjs` | Main↔Add 공통 UI contract |
+| `update_prices_test.py` | KRX 가격 갱신·성과 스냅샷 causal ordering 회귀 |
 
 어떤 수정에서 어떤 테스트를 우선 실행할지에 대한 상세 QA 절차는 각 handover 문서를 따릅니다.
 

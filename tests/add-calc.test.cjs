@@ -108,7 +108,7 @@ test('compute: 이전 손실 포함 재매수의 통합 회복가격',()=>{
 });
 
 
-test('compute: 이전 확정이익만으로 이미 회복된 재매수는 현재 종가를 자동 목표로 유지한다',()=>{
+test('compute: 이전 확정이익만으로 이미 회복된 재매수는 현재 종가 기준 자동 목표를 사용한다',()=>{
   const c=compute(settledAlreadyRecovered,{caseType:'settled',noPrior:false,mode:'current',autoBreakEvenTarget:true});
   assert.equal(c.priorPL,1000000);
   assert.equal(c.finalCost,100000);
