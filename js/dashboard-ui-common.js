@@ -470,6 +470,158 @@ function setupAssetVizTooltips(zoneSelector){
   bindAssetTooltipClickInteractions(state);
 }
 
+
+// [UICOMMON06B] Asset Price Source Tooltip · 현황 종목/상품 현재가 출처 툴팁
+const ASSET_SOURCE_TOOLTIP_ID='assetPriceSourceTooltip';
+let assetSourceTooltipBound=false;
+function assetSourceTooltip(){
+  let tooltip=document.getElementById(ASSET_SOURCE_TOOLTIP_ID);
+  if(tooltip)return tooltip;
+  tooltip=document.createElement('div');
+  tooltip.id=ASSET_SOURCE_TOOLTIP_ID;
+  tooltip.className='dash-tooltip';
+  tooltip.setAttribute('role','tooltip');
+  tooltip.setAttribute('aria-hidden','true');
+  document.body.appendChild(tooltip);
+  return tooltip;
+}
+function assetSourceTooltipRow(name,value){
+  if(value==null||value==='')return '';
+  return `<div class="tt-row"><span class="tt-name">${escapeHtml(name)}</span><span class="tt-val">${escapeHtml(value)}</span></div>`;
+}
+function assetSourceTooltipHtml(target){
+  const data=target?.dataset||{};
+  const rows=[
+    assetSourceTooltipRow('종목코드',data.assetTicker),
+    assetSourceTooltipRow('현재가 출처',data.assetSource),
+    assetSourceTooltipRow('상태',data.assetSourceState),
+    assetSourceTooltipRow('현재가',data.assetPrice),
+    assetSourceTooltipRow(data.assetObservedAt?'관측시각':'기준일',data.assetObservedAt||data.assetBasisDate)
+  ].filter(Boolean).join('');
+  return `<div class="tt-date">${escapeHtml(data.assetName||'현재가 출처')}</div>${rows}`;
+}
+function assetSourceTooltipViewport(){
+  const viewport=window.visualViewport;
+  return {
+    width:Math.max(1,Math.min(window.innerWidth,viewport?.width||window.innerWidth)),
+    height:Math.max(1,Math.min(window.innerHeight,viewport?.height||window.innerHeight))
+  };
+}
+function assetSourceTooltipPoint(target,event){
+  if(Number.isFinite(event?.clientX)&&Number.isFinite(event?.clientY)&&event.clientX+event.clientY>0){
+    return {x:event.clientX,y:event.clientY};
+  }
+  const rect=target.getBoundingClientRect();
+  return {x:rect.left+rect.width/2,y:rect.top+rect.height/2};
+}
+function positionAssetSourceTooltip(target,event){
+  const tooltip=assetSourceTooltip();
+  const point=assetSourceTooltipPoint(target,event);
+  tooltip.style.visibility='hidden';
+  tooltip.style.left=`${point.x}px`;
+  tooltip.style.top=`${point.y}px`;
+  tooltip.classList.add('visible');
+  tooltip.setAttribute('aria-hidden','false');
+  requestAnimationFrame(()=>{
+    if(!tooltip.classList.contains('visible'))return;
+    const viewport=assetSourceTooltipViewport();
+    const rect=tooltip.getBoundingClientRect();
+    const pad=14,gap=12;
+    const width=Math.min(rect.width,Math.max(1,viewport.width-pad*2));
+    const height=Math.min(rect.height,Math.max(1,viewport.height-pad*2));
+    let left=point.x+gap;
+    if(left+width>viewport.width-pad)left=point.x-width-gap;
+    left=Math.max(pad,Math.min(left,Math.max(pad,viewport.width-width-pad)));
+    let top=point.y-height-gap;
+    if(top<pad)top=point.y+18;
+    if(top+height>viewport.height-pad)top=Math.max(pad,viewport.height-height-pad);
+    tooltip.style.left=`${left}px`;
+    tooltip.style.top=`${top}px`;
+    tooltip.style.visibility='visible';
+  });
+}
+function showAssetSourceTooltip(target,event){
+  if(!target)return;
+  const tooltip=assetSourceTooltip();
+  tooltip.innerHTML=assetSourceTooltipHtml(target);
+  positionAssetSourceTooltip(target,event);
+}
+function hideAssetSourceTooltip(){
+  const tooltip=document.getElementById(ASSET_SOURCE_TOOLTIP_ID);
+  if(!tooltip)return;
+  tooltip.classList.remove('visible');
+  tooltip.setAttribute('aria-hidden','true');
+  tooltip.style.visibility='';
+}
+function setupAssetSourceTooltips(){
+  if(assetSourceTooltipBound)return;
+  assetSourceTooltipBound=true;
+  const selector='[data-asset-source-tooltip]';
+  document.addEventListener('pointerover',event=>{
+    if(event.pointerType==='touch')return;
+    const target=event.target.closest(selector);
+    if(!target||target.contains(event.relatedTarget))return;
+    showAssetSourceTooltip(target,event);
+  });
+  document.addEventListener('pointermove',event=>{
+    if(event.pointerType==='touch')return;
+    const target=event.target.closest(selector);
+    if(target)positionAssetSourceTooltip(target,event);
+  },{passive:true});
+  document.addEventListener('pointerout',event=>{
+    if(event.pointerType==='touch')return;
+    const target=event.target.closest(selector);
+    if(!target||target.contains(event.relatedTarget))return;
+    hideAssetSourceTooltip();
+  });
+  document.addEventListener('focusin',event=>{
+    const target=event.target.closest(selector);
+    if(target)showAssetSourceTooltip(target);
+  });
+  document.addEventListener('focusout',event=>{
+    const target=event.target.closest(selector);
+    if(target&&!target.contains(event.relatedTarget))hideAssetSourceTooltip();
+  });
+  document.addEventListener('keydown',event=>{if(event.key==='Escape')hideAssetSourceTooltip();});
+  document.addEventListener('scroll',hideAssetSourceTooltip,true);
+  window.addEventListener('resize',hideAssetSourceTooltip,{passive:true});
+}
+function formatAssetSourceObservedAt(value){
+  if(!value)return '';
+  const parsed=new Date(value);
+  if(Number.isNaN(parsed.getTime()))return String(value);
+  return new Intl.DateTimeFormat('ko-KR',{
+    timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
+  }).format(parsed);
+}
+function renderAssetPriceSourceLabel({labelHtml='',name='',ticker='',date='',priceText='',liveQuote=null,postClosePending=false,fallbackSource='prices.json'}={}){
+  let source=fallbackSource,state=fallbackSource==='account1_daily_snapshots.json'?'저장 스냅샷':'저장 데이터',observedAt='';
+  if(liveQuote){
+    source='Market AI · KIS eFriend';
+    state=String(liveQuote.state||'')==='closed'?'장 마감 시세':'실시간';
+    observedAt=formatAssetSourceObservedAt(liveQuote.observedAt);
+  }else if(postClosePending){
+    source='당일 매수원가';
+    state='종가 대기 추정값';
+  }
+  return renderAssetSourceTooltipTarget({
+    labelHtml,name,ticker,source,state,price:priceText,basisDate:date,observedAt
+  });
+}
+function renderAssetSourceTooltipTarget({labelHtml='',name='',ticker='',source='',state='',price='',basisDate='',observedAt=''}={}){
+  const attrs=[
+    ['data-asset-name',name],
+    ['data-asset-ticker',ticker],
+    ['data-asset-source',source],
+    ['data-asset-source-state',state],
+    ['data-asset-price',price],
+    ['data-asset-basis-date',basisDate],
+    ['data-asset-observed-at',observedAt]
+  ].map(([key,value])=>`${key}="${escapeHtml(value)}"`).join(' ');
+  return `<span data-asset-source-tooltip tabindex="0" ${attrs}>${labelHtml}</span>`;
+}
+
 // [UICOMMON07] Public API
 export {
   assetColorSwatch,
@@ -494,7 +646,10 @@ export {
   refreshScrollOverflowState,
   renderDashboardDataTable,
   renderAssetStatusBlock,
+  renderAssetPriceSourceLabel,
+  renderAssetSourceTooltipTarget,
   renderAssetWeight,
+  setupAssetSourceTooltips,
   setupAssetVizTooltips,
   showAppToast,
   toggleMobileViewMode

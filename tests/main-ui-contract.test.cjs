@@ -22,6 +22,8 @@ const ui=read('js/dashboard-ui.js');
 const pension=read('js/dashboard-pension.js');
 const pensionEditor=read('js/dashboard-pension-editor.js');
 const marketAi=read('js/dashboard-market-ai.js');
+const marketAiClient=read('js/dashboard-market-ai-client.js');
+const liveValuation=read('js/dashboard-live-valuation.js');
 const app=read('js/dashboard-app.js');
 const updatePricesWorkflow=read('.github/workflows/update-prices.yml');
 const updatePricesPython=read('scripts/update_prices.py');
@@ -63,11 +65,13 @@ test('Main appearance 두 control은 localStorage와 BroadcastChannel을 함께 
   assert.match(ui1,/function setCornerTheme\(theme\)\{[^]*?localStorage\.setItem\(CORNER_THEME_STORAGE_KEY,rounded\?'rounded':'soft-square'\)[^]*?syncCornerThemeControls\(\); publishAppearanceChange\(\);/);
 });
 
-test('Main module boundary: core는 DOM 비의존, modal은 무의존, Market AI는 modal만 공유한다',()=>{
+test('Main module boundary: core는 DOM 비의존, Market AI transport는 중립 client로 공유한다',()=>{
   assert.doesNotMatch(core,/\bdocument\b/);
   assert.doesNotMatch(core,/\bwindow\b/);
   assert.deepEqual(importsOf(modal),[]);
-  assert.deepEqual(importsOf(marketAi),['./dashboard-modal.js']);
+  assert.deepEqual(importsOf(marketAi),['./dashboard-modal.js','./dashboard-market-ai-client.js']);
+  assert.deepEqual(importsOf(marketAiClient),[]);
+  assert.deepEqual(importsOf(liveValuation),['./dashboard-core.js','./dashboard-market-ai-client.js']);
 });
 
 test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validator 모듈을 사용한다',()=>{
@@ -88,9 +92,18 @@ test('Main graph entry: app은 core/ui-common/modal/charts/ui/pension/pension-ed
   const imports=importsOf(app);
   for(const dependency of [
     './dashboard-core.js','./dashboard-ui-common.js','./dashboard-modal.js','./dashboard-charts.js',
-    './dashboard-ui.js','./dashboard-pension.js','./dashboard-pension-editor.js'
+    './dashboard-ui.js','./dashboard-pension.js','./dashboard-pension-editor.js','./dashboard-live-valuation.js'
   ])assert.ok(imports.includes(dependency),`missing app dependency ${dependency}`);
   assert.equal(imports.includes('./dashboard-market-ai.js'),false);
+});
+
+test('실시간 평가 adapter는 importmap cache-bust 대상이고 boot 이후 별도 lifecycle로 시작한다',()=>{
+  assert.match(index,/'dashboard-market-ai-client\.js'/);
+  assert.match(index,/'dashboard-live-valuation\.js'/);
+  assert.match(app,/setupLiveValuation\(\{renderDashboard:renderLiveValuationRefresh\}\);/);
+  assert.match(liveValuation,/const LIVE_VALUATION_POLL_MS=10_000;/);
+  assert.match(liveValuation,/\/api\/market-data\/krx-quotes/);
+  assert.match(liveValuation,/document\.visibilityState==='visible'/);
 });
 
 test('Dashboard 날짜 hash는 유효한 값이면 초기 선택일로 복원하고, malformed hash도 최신일로 fallback한다',()=>{
@@ -480,7 +493,7 @@ test('Phone Landscape/Phone UI contract는 Main·Market AI·CSS가 같은 predic
   assert.ok(specialCompact.includes(`@media ${landscape}{`),'Phone Landscape CSS query drifted');
 
   assert.deepEqual(importsOf(uiCommon),[],'ui-common must keep responsive predicate local to Main graph');
-  assert.deepEqual(importsOf(marketAi),['./dashboard-modal.js'],'Market AI must remain standalone except modal lifecycle');
+  assert.deepEqual(importsOf(marketAi),['./dashboard-modal.js','./dashboard-market-ai-client.js'],'Market AI must remain standalone from the main feature graph while sharing only modal/client infrastructure');
   assert.doesNotMatch(index,/dashboard-responsive\.js/);
 });
 
@@ -797,10 +810,10 @@ test('Market AI contract: KOSPI200 선물 / SOX 현물 / NQ100 선물 symbol을 
   assert.doesNotMatch(marketAi,/FUTURES:SOX/);
 });
 
-test('Market AI contract: local은 :8001, remote는 Tailscale Serve를 사용한다',()=>{
-  assert.match(marketAi,/LOCAL_DASHBOARD_HOSTS=new Set\(\['localhost','127\.0\.0\.1'\]\)/);
-  assert.match(marketAi,/MARKET_AI_REMOTE_BASE='https:\/\/node\.tail60a98e\.ts\.net'/);
-  assert.match(marketAi,/return `\$\{location\.protocol\}\/\/\$\{location\.hostname\}:8001`/);
+test('Market AI contract: local은 :8001, remote는 Tailscale Serve를 공통 client에서 사용한다',()=>{
+  assert.match(marketAiClient,/LOCAL_DASHBOARD_HOSTS=new Set\(\['localhost','127\.0\.0\.1'\]\)/);
+  assert.match(marketAiClient,/MARKET_AI_REMOTE_BASE='https:\/\/node\.tail60a98e\.ts\.net'/);
+  assert.match(marketAiClient,/return `\$\{location\.protocol\}\/\/\$\{location\.hostname\}:8001`/);
 });
 
 test('Market AI contract: remote 전체 실패는 UI 미노출, local 전체 실패는 연결 확인 중을 유지한다',()=>{
@@ -918,4 +931,17 @@ test('자산 시각화 Tooltip은 setup·pointer binding·click binding·follow/
   assert.match(setup,/bindAssetTooltipPointerInteractions\(state\)/);
   assert.match(setup,/bindAssetTooltipClickInteractions\(state\)/);
   assert.doesNotMatch(setup,/addEventListener/,'setup 함수가 다시 세부 listener 구현을 직접 소유하면 안 된다');
+});
+
+test('보유종목/연금상품 현재가 출처는 기존 dash-tooltip surface를 재사용하고 별도 CSS를 추가하지 않는다',()=>{
+  assert.match(uiCommon,/const ASSET_SOURCE_TOOLTIP_ID='assetPriceSourceTooltip'/);
+  assert.match(uiCommon,/tooltip\.className='dash-tooltip'/);
+  assert.match(uiCommon,/function renderAssetPriceSourceLabel\(/);
+  assert.match(uiCommon,/data-asset-source-tooltip/);
+  assert.match(app,/setupAssetSourceTooltips\(\)/);
+  assert.match(ui,/renderAssetPriceSourceLabel\(/);
+  assert.match(pension,/renderAssetPriceSourceLabel\(/);
+  assert.match(ui,/account1_daily_snapshots\.json/);
+  assert.match(pension,/fallbackSource:'prices\.json'/);
+  assert.equal((common.match(/assetPriceSourceTooltip|asset-source-tooltip|asset-source/g)||[]).length,0,'출처 tooltip 전용 CSS를 추가하면 안 된다');
 });

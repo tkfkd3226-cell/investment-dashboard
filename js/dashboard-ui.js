@@ -49,6 +49,7 @@ import {
   renderDashboardDataTable,
   renderAssetInsightZone,
   renderMobileCardView,
+  renderAssetPriceSourceLabel,
   renderAssetStatusBlock,
   renderAssetWeight,
   showAppToast,
@@ -843,8 +844,14 @@ function renderHoldings(x){
   const detail=x.securitiesAssetDetail;
   const orderedHoldings=sortSecurityItems(detail.statusRows);
   const summaryById=Object.fromEntries(detail.summaryRows.map(row=>[row.id,row]));
-  const rows=orderedHoldings.map(h=>({
+  const fallbackSource=x.daily?'account1_daily_snapshots.json':'prices.json';
+  const sourceLabel=h=>renderAssetPriceSourceLabel({
     labelHtml:`<span class="holding-name-text">${mobileTableAssetName(h.name)}</span>${securitySymbolSwatch(h.name)}`,
+    name:h.name,ticker:h.ticker,date:x.date,priceText:h.price==null?'-':won(h.price),
+    liveQuote:h.liveQuote,postClosePending:h.postClosePending,fallbackSource
+  });
+  const rows=orderedHoldings.map(h=>({
+    labelHtml:sourceLabel(h),
     cells:[
       {className:'num table-cell-center',html:fmt(h.qty)},
       {className:'num',html:fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))},
@@ -873,7 +880,11 @@ function renderHoldings(x){
     };
   });
   const cards=orderedHoldings.map(h=>({
-    title:`<span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}`,
+    title:renderAssetPriceSourceLabel({
+      labelHtml:`<span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}`,
+      name:h.name,ticker:h.ticker,date:x.date,priceText:h.price==null?'-':won(h.price),
+      liveQuote:h.liveQuote,postClosePending:h.postClosePending,fallbackSource
+    }),
     accessibleLabel:h.name,
     items:[
       ['수량',fmt(h.qty)],

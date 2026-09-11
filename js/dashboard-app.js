@@ -3,6 +3,7 @@ import {
   calc,
   dataState,
   koreanDateLabel,
+  kstTodayText,
   loadInitialData,
   pct,
   separateProfitView,
@@ -12,6 +13,7 @@ import {
 import {
   escapeHtml,
   navIconSvg,
+  setupAssetSourceTooltips,
   setupAssetVizTooltips
 } from './dashboard-ui-common.js';
 import {
@@ -48,6 +50,7 @@ import {
   syncThemeControls
 } from './dashboard-ui.js';
 import { renderPension } from './dashboard-pension.js';
+import { setupLiveValuation } from './dashboard-live-valuation.js';
 import {
   openPensionContributionModal,
   renderPensionContributionModal,
@@ -236,6 +239,15 @@ function render(){
   ensureDesktopEdgeToc();
   setupSectionNavigationTracking();
 }
+function renderLiveValuationRefresh(){
+  if(dataState.activeDate!==kstTodayText())return;
+  const scrollX=window.scrollX,scrollY=window.scrollY;
+  suppressChartEntranceOnce();
+  requestSecuritiesCumCardTransitionSuppression();
+  render();
+  requestAnimationFrame(()=>window.scrollTo({left:scrollX,top:scrollY,behavior:'auto'}));
+}
+
 // [APP05] Initialization / Boot · 상태 초기화 / 이벤트 바인딩 / 부팅
 function initializeDashboardState(){
   const dates=allAvailableDates();
@@ -252,6 +264,7 @@ function renderDashboardLoadingState(){
 function bindAppEvents(){
   setupDashboardEventDelegation();
   setupUiGlobalEvents();
+  setupAssetSourceTooltips();
   setupChartGlobalEvents();
   setupPensionEventDelegation({renderDashboard:render});
 }
@@ -262,6 +275,7 @@ async function boot(){
   initializeDashboardState();
   bindAppEvents();
   render();
+  setupLiveValuation({renderDashboard:renderLiveValuationRefresh});
 }
 
 boot().catch(err=>{

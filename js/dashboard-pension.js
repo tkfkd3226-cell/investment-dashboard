@@ -21,6 +21,7 @@ import {
   renderAssetDayChangeBlock,
   renderAssetInsightCard,
   renderAssetInsightZone,
+  renderAssetPriceSourceLabel,
   renderAssetStatusBlock,
   renderAssetWeight
 } from './dashboard-ui-common.js';
@@ -86,8 +87,13 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
         cashProfit=x.pensionCash-pensionCashCost,
         cashReturn=pensionCashCost?cashProfit/pensionCashCost*100:0,
         cashWeight=x.pensionEval?x.pensionCash/x.pensionEval*100:0;
-  const rows=orderedPensionRows.map(r=>({
+  const sourceLabel=r=>renderAssetPriceSourceLabel({
     labelHtml:`${mobileTableAssetName(r.name)}${pensionProductSwatch(r.name)}`,
+    name:r.name,ticker:r.ticker,date:x.date,priceText:r.price==null?'-':won(r.price),
+    liveQuote:r.liveQuote,fallbackSource:'prices.json'
+  });
+  const rows=orderedPensionRows.map(r=>({
+    labelHtml:sourceLabel(r),
     cells:[
       {className:'num table-cell-center',html:fmt(r.qty)},
       {className:'num',html:fmt(r.qty?r.cost/r.qty:0)},
@@ -140,7 +146,11 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
     }
   ];
   const cards=orderedPensionRows.map(r=>({
-    title:`<span class="holding-name-text">${r.name}</span>${pensionProductSwatch(r.name)}`,
+    title:renderAssetPriceSourceLabel({
+      labelHtml:`<span class="holding-name-text">${r.name}</span>${pensionProductSwatch(r.name)}`,
+      name:r.name,ticker:r.ticker,date:x.date,priceText:r.price==null?'-':won(r.price),
+      liveQuote:r.liveQuote,fallbackSource:'prices.json'
+    }),
     accessibleLabel:r.name,
     items:[
       ['수량',fmt(r.qty)],['평균단가',won(r.qty?r.cost/r.qty:0)],['매수원금',won(r.cost)],['평가금액',won(r.evalAmount)],['평가손익',won(r.profit),cls(r.profit)],['수익률',pct(r.returnRate),cls(r.returnRate)],['비중',pct(x.pensionEval?r.evalAmount/x.pensionEval*100:0)]
