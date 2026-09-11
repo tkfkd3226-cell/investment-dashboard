@@ -1062,13 +1062,128 @@ test('Standalone Web App은 최상단 단일 터치 pull-to-refresh를 제공하
   assert.match(common1,/\.standalone-pull-refresh\.refreshing \.standalone-pull-refresh-icon\{/);
 });
 
-test('Market AI 시장 툴팁은 4개 시장 모두 상태를 표시하고 K200에만 세션을 추가한다',()=>{
-  assert.match(marketAi,/function marketAiSnapshotDisplayState\(row\)/);
-  assert.match(marketAi,/'kospi-index':\{[^}]*state:marketAiSnapshotDisplayState\(kospiRow\)/);
-  assert.match(marketAi,/'sox-index':soxState/);
-  assert.match(marketAi,/'nasdaq100-futures':\{[^}]*state:marketAiSnapshotDisplayState\(nasdaqRow\)/);
-  assert.match(marketAi,/'kospi200-futures':\{[^}]*state:futuresState/);
-  assert.match(marketAi,/fresh:'데이터 정상'/);
-  assert.match(marketAi,/parts\.push\(marketAiTooltipRow\('상태',stateLabel\)\)/);
-  assert.match(marketAi,/const sessionLabel=\{day:'주간',night:'야간',closed:'장외'\}\[config\.state\.bridgeStatus\?\.expected_session\]/);
+test('Market AI 시장 툴팁은 공통 View Model과 고정 정보 순서를 사용하고 K200에만 세션을 둔다',()=>{
+  assert.match(marketAi,/function marketAiMarketTooltipModel\(key\)/);
+  assert.match(marketAi,/function marketAiMarketStatusLabel\(reason\)/);
+  assert.match(marketAi,/fresh:'정상'/);
+  assert.match(marketAi,/closed:'장마감'/);
+  assert.match(marketAi,/stale:'데이터 지연'/);
+  assert.match(marketAi,/bridge:'Bridge 지연'/);
+  assert.match(marketAi,/source:'선물 데이터 확인 필요'/);
+  assert.match(marketAi,/missing:'데이터 없음'/);
+  assert.match(marketAi,/label='K200선물'/);
+  assert.match(marketAi,/label='NQ100선물'/);
+  assert.match(marketAi,/session=\(\{day:'주간',night:'야간',closed:'장외'\}\)\[state\.bridgeStatus\?\.expected_session\]\|\|''/);
+  const tooltipBlock=marketAi.slice(marketAi.indexOf('function marketAiMarketTooltipHtml'),marketAi.indexOf('function marketAiSignalMetric'));
+  const orderedFields=["'현재가'","'등락률'","'상태'","'세션'","'출처'","'기준 시각'"];
+  let previousIndex=-1;
+  orderedFields.forEach(field=>{
+    const index=tooltipBlock.indexOf(field);
+    assert.ok(index>previousIndex,`${field}는 Market AI 시장 툴팁 고정 순서에 있어야 한다`);
+    previousIndex=index;
+  });
+  assert.doesNotMatch(marketAi,/marketAiTooltipRow\('데이터',sourceLabel\)/);
+  assert.doesNotMatch(marketAi,/\?'마지막 수신':'갱신'/);
+});
+
+
+test('Market AI 시장 tooltip View Model은 fresh/stale/missing과 K200 closed/bridge/source 의미를 구분한다',()=>{
+  const vm=require('node:vm');
+  const start=marketAi.indexOf('function marketAiMarketStatusLabel');
+  const end=marketAi.indexOf('\n// [MARKET05]',start);
+  assert.ok(start>=0&&end>start,'Market tooltip View Model block is missing');
+
+  let rows={};
+  let k200State={row:null,rawRow:null,reason:'missing',bridgeStatus:{}};
+  const context={
+    MARKET_AI_SOX_INDEX_SYMBOL:'INDEX:SOX',
+    MARKET_AI_NASDAQ100_FUTURES_SYMBOL:'FUTURES:NQ',
+    marketAiSnapshotRow:symbol=>rows[symbol]||null,
+    marketAiSnapshotDisplayState:row=>{
+      if(!row)return {reason:'missing',rawRow:null,observedAt:''};
+      return {reason:row.__fresh===false?'stale':'fresh',rawRow:row,observedAt:row.observed_at||''};
+    },
+    marketAiKisFuturesState:()=>k200State,
+    marketAiIndexText:value=>value==null?'--':String(value),
+    marketAiPriceText:value=>value==null?'--':Number(value).toFixed(2),
+    marketAiMarketSourceLabel:(row,key)=>row?.source||`source:${key}`,
+    marketAiChangeText:value=>Number.isFinite(Number(value))?`${Number(value)>=0?'+':''}${Number(value).toFixed(2)}%`:'',
+    marketAiDirectionClass:value=>Number(value)>0?'positive':(Number(value)<0?'negative':'neutral'),
+    marketAiKstTime:value=>String(value||'').replace('Z','')
+  };
+  vm.createContext(context);
+  vm.runInContext(marketAi.slice(start,end),context);
+
+  rows['INDEX:KOSPI']={price:3210.5,change_pct:0.42,source:'krx',observed_at:'10:00Z',__fresh:true};
+  let model=context.marketAiMarketTooltipModel('kospi-index');
+  assert.equal(model.status,'정상');
+  assert.equal(model.price,'3210.5');
+  assert.equal(model.session,'');
+
+  rows['FUTURES:NQ']={price:25000,change_pct:-0.31,source:'yahoo',observed_at:'09:30Z',__fresh:false};
+  model=context.marketAiMarketTooltipModel('nasdaq100-futures');
+  assert.equal(model.status,'데이터 지연');
+  assert.equal(model.price,'25000.00');
+  assert.equal(model.observedAt,'09:30');
+  assert.equal(model.session,'');
+
+  delete rows['INDEX:SOX'];
+  model=context.marketAiMarketTooltipModel('sox-index');
+  assert.equal(model.status,'데이터 없음');
+  assert.equal(model.price,'--');
+  assert.equal(model.observedAt,'');
+
+  k200State={
+    row:{price:450.25,change_pct:0.1,source:'kis-efriend:real',observed_at:'15:45Z'},
+    rawRow:{price:450.25,change_pct:0.1,source:'kis-efriend:real',observed_at:'15:45Z'},
+    reason:'closed',
+    bridgeStatus:{expected_session:'closed'}
+  };
+  model=context.marketAiMarketTooltipModel('kospi200-futures');
+  assert.equal(model.status,'장마감');
+  assert.equal(model.price,'450.25');
+  assert.equal(model.session,'장외');
+
+  for(const reason of ['bridge','source','stale']){
+    k200State={
+      row:null,
+      rawRow:{price:451.5,change_pct:0.2,source:'kis-efriend:real',observed_at:'15:50Z'},
+      reason,
+      bridgeStatus:{expected_session:'day'}
+    };
+    model=context.marketAiMarketTooltipModel('kospi200-futures');
+    assert.equal(model.price,'--',`${reason} 상태는 unusable 현재가를 노출하면 안 된다`);
+    assert.equal(model.observedAt,'15:50',`${reason} 상태에서도 raw 관측시각은 유지한다`);
+    assert.equal(model.session,'주간');
+  }
+  assert.equal(context.marketAiMarketTooltipModel('unknown'),null);
+});
+
+test('Market AI 시장 tooltip renderer는 상태와 무관하게 라벨을 고정하고 K200 세션만 선택적으로 삽입한다',()=>{
+  const vm=require('node:vm');
+  const start=marketAi.indexOf('function marketAiMarketTooltipHtml');
+  const end=marketAi.indexOf('\nfunction marketAiSignalMetric',start);
+  assert.ok(start>=0&&end>start,'Market tooltip renderer block is missing');
+
+  let model=null;
+  const escape=value=>String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const context={
+    marketAiMarketTooltipModel:()=>model,
+    marketAiEscape:escape,
+    marketAiTooltipRow:(name,value,className='')=>`<row n="${escape(name)}" v="${escape(value)}" c="${escape(className)}"></row>`,
+    marketAiTooltipDivider:()=>'<divider></divider>'
+  };
+  vm.createContext(context);
+  vm.runInContext(marketAi.slice(start,end),context);
+
+  model={label:'NQ100선물',price:'25,000.00',changePct:'-0.31%',changeClass:'tt-neg',status:'데이터 지연',session:'',source:'Yahoo Nasdaq-100 선물 (NQ=F)',observedAt:'01:28:10'};
+  let html=context.marketAiMarketTooltipHtml('nasdaq100-futures');
+  const labels=[...html.matchAll(/<row n="([^"]+)"/g)].map(match=>match[1]);
+  assert.deepEqual(labels,['현재가','등락률','상태','출처','기준 시각']);
+  assert.doesNotMatch(html,/갱신|마지막 수신|<row n="데이터"/);
+
+  model={label:'K200선물',price:'450.25',changePct:'+0.10%',changeClass:'tt-pos',status:'장마감',session:'장외',source:'KIS eFriend',observedAt:'15:45:00'};
+  html=context.marketAiMarketTooltipHtml('kospi200-futures');
+  const k200Labels=[...html.matchAll(/<row n="([^"]+)"/g)].map(match=>match[1]);
+  assert.deepEqual(k200Labels,['현재가','등락률','상태','세션','출처','기준 시각']);
 });

@@ -1166,7 +1166,10 @@ Market AI 백엔드는 기본 MAIN 평가 대상에서 제외한다. 다만 Dash
 - client lease 만료만으로 장마감 quote/universe를 즉시 폐기해 foreground 복귀 후 영구 warming을 만들지 않는지
 - chart expanded, KRX/action modal, Pension contribution modal, native dialog 중 live state가 들어와도 전체 render가 입력/진행 UI를 교체하지 않고, 닫힌 뒤 pending render가 최신 state를 반영하는지
 - Hero 제목행에는 Live Valuation 상태 문자열을 노출하지 않고 날짜 기준만 표시하는지. `LIVE/CLOSED/STALE/WARMING/JSON` 판정은 내부 quote/fallback state와 테스트로만 유지되는지
-- Desktop/Tablet Market AI 시장 tooltip이 KOSPI·K200선물·SOX·NQ100선물 모두 `상태` 행을 제공하고, K200만 backend Bridge session 근거가 있을 때 `세션` 행을 추가하는지
+- Desktop/Tablet Market AI 시장 tooltip이 공통 View Model/renderer를 사용하며 KOSPI·SOX·NQ100은 `현재가 → 등락률 → 상태 → 출처 → 기준 시각`, K200만 `상태` 뒤에 `세션`을 추가하는지
+- 상태 반례 `fresh / stale / missing`과 K200 `closed / bridge / source`에서 문구와 값 의미가 맞는지. 특히 K200 `closed`는 마지막 정상값을 유지하고 `stale / bridge / source / missing`은 unusable 현재가를 신뢰값처럼 노출하지 않는지
+- 시장 tooltip에서 `갱신 / 마지막 수신 / 데이터` 같은 혼합 라벨이 다시 생기지 않고 시각 라벨이 `기준 시각`으로 고정되는지. raw row가 있는 비정상 상태에서는 출처/관측시각 진단 정보가 유지되는지
+- `세션`은 K200 Bridge `expected_session` 근거가 있을 때만 표시하고 KOSPI·SOX·NQ100의 세션을 프론트에서 추정하지 않는지
 - source tooltip이 라벨 셀 hover와 keyboard focus 모두에서 열리고 기존 tooltip lifecycle/viewport clipping contract를 지키는지
 - standalone pull-to-refresh가 일반 브라우저에서 비활성이고, 최상단 단일 아래방향 터치에서만 동작하며 `body.dashboard-dialog-open`/chart expanded 중에는 시작하지 않는지. 한 번 armed된 뒤 위로 되돌리거나 가로 제스처·멀티터치로 전환하면 stale drag state가 남지 않는지
 - endpoint별 실패 격리와 전체 Market AI 연결 실패가 기본 Dashboard 기능을 깨뜨리지 않는지

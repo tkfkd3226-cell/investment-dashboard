@@ -258,17 +258,6 @@ function marketAiSnapshotDisplayState(row){
   };
 }
 
-function marketAiSoxDisplayState(){
-  const indexRow=marketAiSnapshotRow(MARKET_AI_SOX_INDEX_SYMBOL);
-  return {
-    row:indexRow,
-    label:'SOX',
-    price:item=>marketAiIndexText(item?.price),
-    source:'Yahoo PHLX 반도체 현물지수',
-    state:marketAiSnapshotDisplayState(indexRow)
-  };
-}
-
 function marketAiK200FallbackSessionOpen(date=new Date()){
   const {weekday,minuteOfDay}=marketAiKstClockParts(date);
   if(weekday<0||minuteOfDay<0)return true;
@@ -303,6 +292,76 @@ function marketAiKisFuturesState(){
     return {row:null,rawRow,reason:'stale',observedAt:freshness.observedAt,bridgeStatus};
   }
   return {row:rawRow,rawRow,reason:'fresh',observedAt:freshness.observedAt,bridgeStatus};
+}
+
+// 시장 metric tooltip contract
+// - 공통 순서: 현재가 → 등락률 → 상태 → [K200 세션] → 출처 → 기준 시각
+// - fresh는 현재 snapshot을 사용하고, K200 closed는 마지막 정상값을 유지한다.
+// - stale/bridge/source/missing은 사용할 수 없는 현재가를 억지로 노출하지 않되 raw source/관측시각은 가능한 범위에서 유지한다.
+// - 데이터/갱신/마지막 수신처럼 상태와 시각 의미가 섞인 라벨은 사용하지 않는다.
+function marketAiMarketStatusLabel(reason){
+  return ({
+    fresh:'정상',
+    closed:'장마감',
+    stale:'데이터 지연',
+    bridge:'Bridge 지연',
+    source:'선물 데이터 확인 필요',
+    missing:'데이터 없음'
+  })[String(reason||'')]||'상태 확인';
+}
+
+function marketAiMarketTooltipModel(key){
+  const marketKey=String(key||'');
+  let row=null;
+  let state=null;
+  let label='';
+  let priceText='--';
+  let sourceLabel='데이터 소스 확인 필요';
+  let session='';
+
+  if(marketKey==='kospi-index'){
+    row=marketAiSnapshotRow('INDEX:KOSPI');
+    state=marketAiSnapshotDisplayState(row);
+    label='KOSPI';
+    priceText=row?marketAiIndexText(row.price):'--';
+    sourceLabel=marketAiMarketSourceLabel(row,'kospi-index');
+  }else if(marketKey==='kospi200-futures'){
+    state=marketAiKisFuturesState();
+    row=state.row;
+    label='K200선물';
+    priceText=row?marketAiPriceText(row.price,2):'--';
+    sourceLabel=marketAiMarketSourceLabel(row||state.rawRow,'kospi200-futures');
+    session=({day:'주간',night:'야간',closed:'장외'})[state.bridgeStatus?.expected_session]||'';
+  }else if(marketKey==='sox-index'){
+    row=marketAiSnapshotRow(MARKET_AI_SOX_INDEX_SYMBOL);
+    state=marketAiSnapshotDisplayState(row);
+    label='SOX';
+    priceText=row?marketAiIndexText(row.price):'--';
+    sourceLabel='Yahoo PHLX 반도체 현물지수';
+  }else if(marketKey==='nasdaq100-futures'){
+    row=marketAiSnapshotRow(MARKET_AI_NASDAQ100_FUTURES_SYMBOL);
+    state=marketAiSnapshotDisplayState(row);
+    label='NQ100선물';
+    priceText=row?marketAiPriceText(row.price,2):'--';
+    sourceLabel='Yahoo Nasdaq-100 선물 (NQ=F)';
+  }else{
+    return null;
+  }
+
+  const sourceRow=row||state?.rawRow||null;
+  const changeText=row?(marketAiChangeText(row.change_pct)||'--'):'--';
+  const direction=marketAiDirectionClass(row?.change_pct);
+  return {
+    key:marketKey,
+    label,
+    price:priceText,
+    changePct:changeText,
+    changeClass:direction==='positive'?'tt-pos':(direction==='negative'?'tt-neg':''),
+    status:marketAiMarketStatusLabel(state?.reason),
+    session,
+    source:sourceLabel,
+    observedAt:marketAiKstTime(sourceRow?.observed_at)
+  };
 }
 
 // [MARKET05] Tooltip Core · markup / positioning / visibility
@@ -553,42 +612,16 @@ function marketAiSignalBasis(signal,metric){
 
 // [MARKET07] Tooltip Content / Interaction · 시장·신호 설명 / desktop interaction
 function marketAiMarketTooltipHtml(key){
-  const futuresState=marketAiKisFuturesState();
-  const soxState=marketAiSoxDisplayState();
-  const kospiRow=marketAiSnapshotRow('INDEX:KOSPI');
-  const nasdaqRow=marketAiSnapshotRow(MARKET_AI_NASDAQ100_FUTURES_SYMBOL);
-  const config={
-    'kospi-index':{label:'KOSPI',row:kospiRow,price:item=>marketAiIndexText(item?.price),source:item=>marketAiMarketSourceLabel(item,'kospi-index'),state:marketAiSnapshotDisplayState(kospiRow)},
-    'sox-index':soxState,
-    'nasdaq100-futures':{label:'NASDAQ100 선물',row:nasdaqRow,price:item=>marketAiPriceText(item?.price,2),source:'Yahoo Nasdaq-100 선물 (NQ=F)',state:marketAiSnapshotDisplayState(nasdaqRow)},
-    'kospi200-futures':{label:'KOSPI200 선물',row:futuresState.row,price:item=>marketAiPriceText(item?.price,2),source:item=>marketAiMarketSourceLabel(item,'kospi200-futures'),state:futuresState}
-  }[key];
-  if(!config)return '';
-  const row=config.row;
-  const change=marketAiChangeText(row?.change_pct)||'--';
-  const changeClass=marketAiDirectionClass(row?.change_pct)==='positive'?'tt-pos':(marketAiDirectionClass(row?.change_pct)==='negative'?'tt-neg':'');
-  const parts=[`<div class="tt-date">${marketAiEscape(config.label)}</div>`];
-
-  if(row){
-    parts.push(marketAiTooltipRow('현재가',config.price(row)));
-    parts.push(marketAiTooltipRow('등락률',change,changeClass));
-  }else{
-    parts.push(marketAiTooltipRow('현재가','--'));
-    parts.push(marketAiTooltipRow('등락률','--'));
-  }
-
-  if(config.state){
-    const stateLabel=({fresh:'데이터 정상',closed:'장 종료 · 마지막 정상값',stale:'데이터 지연',bridge:'Bridge 연결 지연',source:'실제 선물 소스 없음',missing:'데이터 없음'}[config.state.reason]||'상태 확인');
-    parts.push(marketAiTooltipRow('상태',stateLabel));
-    const sessionLabel={day:'주간',night:'야간',closed:'장외'}[config.state.bridgeStatus?.expected_session];
-    if(sessionLabel)parts.push(marketAiTooltipRow('세션',sessionLabel));
-  }
+  const model=marketAiMarketTooltipModel(key);
+  if(!model)return '';
+  const parts=[`<div class="tt-date">${marketAiEscape(model.label)}</div>`];
+  parts.push(marketAiTooltipRow('현재가',model.price));
+  parts.push(marketAiTooltipRow('등락률',model.changePct,model.changeClass));
+  parts.push(marketAiTooltipRow('상태',model.status));
+  if(model.session)parts.push(marketAiTooltipRow('세션',model.session));
   parts.push(marketAiTooltipDivider());
-  const sourceRow=row||config.state?.rawRow;
-  const sourceLabel=typeof config.source==='function'?config.source(sourceRow):config.source;
-  parts.push(marketAiTooltipRow('데이터',sourceLabel));
-  const observed=marketAiKstTime(sourceRow?.observed_at);
-  parts.push(marketAiTooltipRow(['closed','stale'].includes(config.state?.reason)?'마지막 수신':'갱신',observed?`${observed} KST`:'--'));
+  parts.push(marketAiTooltipRow('출처',model.source));
+  parts.push(marketAiTooltipRow('기준 시각',model.observedAt?`${model.observedAt} KST`:'--'));
   return parts.join('');
 }
 

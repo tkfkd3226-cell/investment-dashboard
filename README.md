@@ -101,6 +101,7 @@ Market AI는 Main에 **현재 시점 시장·AI 신호**와 **오늘 보유종�
 - live quote는 브라우저 메모리에서만 사용하고 `prices.json`, `performance_snapshots.json`, Pension JSON/GAS에는 저장하지 않음
 - 일부 종목 quote가 없거나 unusable이어도 해당 종목만 JSON 저장값으로 fallback
 - Hero 제목행은 날짜 기준만 표시하고 Live Valuation 상태 문자열은 노출하지 않으며, 종목·상품 source tooltip에서 Market AI/JSON 출처 확인
+- Desktop/Tablet Market AI 시장 tooltip은 4개 지표 모두 `현재가 / 등락률 / 상태 / 출처 / 기준 시각`을 공통 contract로 사용하며, K200선물만 KIS Bridge 근거의 `세션`을 추가 표시
 - Desktop / Tablet은 Hero 보조 카드, Mobile / 실제 터치폰 가로 UI는 **AI Signal** dialog 사용
 - Local 환경에서는 Market AI FastAPI에 직접 연결하고, GitHub Pages에서는 Tailscale Serve 경유
 - Market AI가 응답하지 않아도 저장된 JSON 기반 Main Dashboard 기능은 독립 동작
