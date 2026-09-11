@@ -900,10 +900,10 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - remote는 실제 endpoint 응답이 확인되기 전까지 Market AI signal UI를 mount하지 않고 polling으로 복구를 기다리며, local 전체 연결 실패는 panel 중앙의 `연결 확인 중` 상태를 유지한다. 어느 쪽도 일반 대시보드의 저장 데이터 기반 기능을 깨뜨리지 않는다.
 - Desktop/Tablet Hero와 Mobile dialog가 같은 signal panel DOM을 재사용하는 구조를 유지한다.
 - Phone에서는 Market AI metric tooltip을 활성화하지 않는다.
-- Desktop/Tablet의 시장 metric tooltip은 **공통 View Model + 공통 renderer**를 사용한다. KOSPI·SOX·NQ100선물은 `현재가 → 등락률 → 상태 → 출처 → 기준 시각`, K200선물만 `상태` 다음에 `세션`을 추가해 `현재가 → 등락률 → 상태 → 세션 → 출처 → 기준 시각` 순서를 사용한다.
+- Desktop/Tablet의 **시장 카드 본체와 metric tooltip은 `marketAiMarketDisplayModel()` 하나를 공통 Source of Truth로 사용**한다. 화면 카드와 tooltip이 서로 다른 row/fallback 판단을 갖지 않는다. Tooltip은 KOSPI·SOX·NQ100선물에서 `현재가 → 등락률 → 상태 → 출처 → 기준 시각`, K200선물만 `상태` 다음에 `세션`을 추가해 `현재가 → 등락률 → 상태 → 세션 → 출처 → 기준 시각` 순서를 사용한다.
 - 시장 tooltip 상태 문구는 `fresh=정상`, `stale=데이터 지연`, `missing=데이터 없음`을 공통으로 사용한다. K200 전용 상태는 `closed=장마감`, `bridge=Bridge 지연`, `source=선물 데이터 확인 필요`다.
 - `기준 시각`은 상태와 무관하게 같은 라벨을 사용한다. `갱신`, `마지막 수신`, `데이터`처럼 상태와 시각/출처 의미를 섞는 라벨을 시장 tooltip에 다시 만들지 않는다.
-- 값 표시 의미는 `fresh`에서 현재 snapshot, K200 `closed`에서 마지막 정상값을 사용한다. `stale / bridge / source / missing`처럼 현재가를 usable하다고 볼 수 없는 상태에서는 현재가·등락률을 억지로 신뢰값처럼 노출하지 않으며, raw row가 있으면 `출처`와 `기준 시각`은 진단 정보로 유지한다.
+- 값 표시 의미는 `fresh`에서 현재 snapshot을 사용하고, K200 `closed / stale / bridge / source`도 `rawRow`가 있으면 **마지막 수신 현재가·등락률을 계속 표시**한다. 값의 신뢰도는 `상태` 행으로 구분하며, 실제 row 자체가 없는 `missing`에서만 현재가·등락률을 `--`로 표시한다. raw row가 있으면 `출처`와 `기준 시각`도 함께 유지한다.
 - `세션`은 K200의 KIS Bridge `expected_session` 근거가 있을 때만 `주간 / 야간 / 장외`로 표시한다. backend가 제공하지 않는 세션을 KOSPI·SOX·NQ100에 프론트에서 임의 추정하지 않는다.
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
 - Hero에는 Live Valuation 상태 문자열을 별도 표시하지 않는다. `LIVE / CLOSED / STALE / WARMING / JSON` 판정은 내부 quote/fallback 로직과 테스트를 위해 유지하되 화면 제목행에는 날짜 기준만 노출한다. 과거 날짜는 항상 저장 데이터 의미를 유지한다.

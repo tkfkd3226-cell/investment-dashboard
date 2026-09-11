@@ -1062,8 +1062,8 @@ test('Standalone Web App은 최상단 단일 터치 pull-to-refresh를 제공하
   assert.match(common1,/\.standalone-pull-refresh\.refreshing \.standalone-pull-refresh-icon\{/);
 });
 
-test('Market AI 시장 툴팁은 공통 View Model과 고정 정보 순서를 사용하고 K200에만 세션을 둔다',()=>{
-  assert.match(marketAi,/function marketAiMarketTooltipModel\(key\)/);
+test('Market AI 시장 카드/툴팁은 공통 View Model과 고정 정보 순서를 사용하고 K200에만 세션을 둔다',()=>{
+  assert.match(marketAi,/function marketAiMarketDisplayModel\(key\)/);
   assert.match(marketAi,/function marketAiMarketStatusLabel\(reason\)/);
   assert.match(marketAi,/fresh:'정상'/);
   assert.match(marketAi,/closed:'장마감'/);
@@ -1086,6 +1086,19 @@ test('Market AI 시장 툴팁은 공통 View Model과 고정 정보 순서를 �
   assert.doesNotMatch(marketAi,/\?'마지막 수신':'갱신'/);
 });
 
+
+test('Market AI 시장 카드도 tooltip과 같은 display model을 사용해 마지막 수신값을 숨기지 않는다',()=>{
+  const start=marketAi.indexOf('function syncMarketAiMarketView');
+  const end=marketAi.indexOf('\nfunction syncMarketAiSignalView',start);
+  assert.ok(start>=0&&end>start,'Market AI market card sync block is missing');
+  const block=marketAi.slice(start,end);
+  assert.match(block,/const model=marketAiMarketDisplayModel\(key\)/);
+  assert.doesNotMatch(block,/marketAiKisFuturesState\(\)/);
+  assert.doesNotMatch(block,/futuresState\.row/);
+  assert.match(block,/value\.textContent=model\.price/);
+  assert.match(block,/change\.textContent=model\.changePct==='--'\?'':model\.changePct/);
+  assert.match(block,/const unavailable=model\.price==='--'/);
+});
 
 test('Market AI 시장 tooltip View Model은 fresh/stale/missing과 K200 closed/bridge/source 의미를 구분한다',()=>{
   const vm=require('node:vm');
@@ -1115,20 +1128,20 @@ test('Market AI 시장 tooltip View Model은 fresh/stale/missing과 K200 closed/
   vm.runInContext(marketAi.slice(start,end),context);
 
   rows['INDEX:KOSPI']={price:3210.5,change_pct:0.42,source:'krx',observed_at:'10:00Z',__fresh:true};
-  let model=context.marketAiMarketTooltipModel('kospi-index');
+  let model=context.marketAiMarketDisplayModel('kospi-index');
   assert.equal(model.status,'정상');
   assert.equal(model.price,'3210.5');
   assert.equal(model.session,'');
 
   rows['FUTURES:NQ']={price:25000,change_pct:-0.31,source:'yahoo',observed_at:'09:30Z',__fresh:false};
-  model=context.marketAiMarketTooltipModel('nasdaq100-futures');
+  model=context.marketAiMarketDisplayModel('nasdaq100-futures');
   assert.equal(model.status,'데이터 지연');
   assert.equal(model.price,'25000.00');
   assert.equal(model.observedAt,'09:30');
   assert.equal(model.session,'');
 
   delete rows['INDEX:SOX'];
-  model=context.marketAiMarketTooltipModel('sox-index');
+  model=context.marketAiMarketDisplayModel('sox-index');
   assert.equal(model.status,'데이터 없음');
   assert.equal(model.price,'--');
   assert.equal(model.observedAt,'');
@@ -1139,7 +1152,7 @@ test('Market AI 시장 tooltip View Model은 fresh/stale/missing과 K200 closed/
     reason:'closed',
     bridgeStatus:{expected_session:'closed'}
   };
-  model=context.marketAiMarketTooltipModel('kospi200-futures');
+  model=context.marketAiMarketDisplayModel('kospi200-futures');
   assert.equal(model.status,'장마감');
   assert.equal(model.price,'450.25');
   assert.equal(model.session,'장외');
@@ -1151,12 +1164,19 @@ test('Market AI 시장 tooltip View Model은 fresh/stale/missing과 K200 closed/
       reason,
       bridgeStatus:{expected_session:'day'}
     };
-    model=context.marketAiMarketTooltipModel('kospi200-futures');
-    assert.equal(model.price,'--',`${reason} 상태는 unusable 현재가를 노출하면 안 된다`);
+    model=context.marketAiMarketDisplayModel('kospi200-futures');
+    assert.equal(model.price,'451.50',`${reason} 상태에서도 마지막 수신 현재가는 표시한다`);
+    assert.equal(model.changePct,'+0.20%',`${reason} 상태에서도 마지막 수신 등락률은 표시한다`);
     assert.equal(model.observedAt,'15:50',`${reason} 상태에서도 raw 관측시각은 유지한다`);
     assert.equal(model.session,'주간');
   }
-  assert.equal(context.marketAiMarketTooltipModel('unknown'),null);
+  k200State={row:null,rawRow:null,reason:'missing',bridgeStatus:{}};
+  model=context.marketAiMarketDisplayModel('kospi200-futures');
+  assert.equal(model.price,'--');
+  assert.equal(model.changePct,'--');
+  assert.equal(model.status,'데이터 없음');
+
+  assert.equal(context.marketAiMarketDisplayModel('unknown'),null);
 });
 
 test('Market AI 시장 tooltip renderer는 상태와 무관하게 라벨을 고정하고 K200 세션만 선택적으로 삽입한다',()=>{
@@ -1168,7 +1188,7 @@ test('Market AI 시장 tooltip renderer는 상태와 무관하게 라벨을 고�
   let model=null;
   const escape=value=>String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const context={
-    marketAiMarketTooltipModel:()=>model,
+    marketAiMarketDisplayModel:()=>model,
     marketAiEscape:escape,
     marketAiTooltipRow:(name,value,className='')=>`<row n="${escape(name)}" v="${escape(value)}" c="${escape(className)}"></row>`,
     marketAiTooltipDivider:()=>'<divider></divider>'
