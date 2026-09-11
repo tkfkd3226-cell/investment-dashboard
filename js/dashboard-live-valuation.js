@@ -62,7 +62,7 @@ function liveValuationFingerprint(payload){
 function liveValuationCanRender(){
   if(dataState.activeDate!==kstTodayText())return false;
   if(document.visibilityState!=='visible')return false;
-  if(document.querySelector('.chart-expanded-overlay,.action-modal.show,dialog[open]'))return false;
+  if(document.querySelector('.chart-expanded-overlay,.action-modal.show,.contrib-modal.show,dialog[open]'))return false;
   return true;
 }
 

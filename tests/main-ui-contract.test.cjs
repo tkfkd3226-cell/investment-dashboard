@@ -960,6 +960,17 @@ test('보유종목/연금상품 현재가 출처는 기존 dash-tooltip surface�
   assert.equal((common.match(/assetPriceSourceTooltip|asset-source-tooltip|asset-source/g)||[]).length,0,'출처 tooltip 전용 CSS를 추가하면 안 된다');
 });
 
+test('현재가 출처 tooltip은 표의 라벨 텍스트뿐 아니라 라벨 셀 전체를 hover hit-area로 사용한다',()=>{
+  assert.match(uiCommon,/function assetSourceTooltipTargetFromEvent\(event,selector\)/);
+  assert.match(uiCommon,/closest\?\.\('th\[scope=\"row\"\]'\)\?\.querySelector\(selector\)/);
+  assert.match(uiCommon,/function assetSourceTooltipHitArea\(target\)/);
+  assert.match(uiCommon,/closest\?\.\('th\[scope=\"row\"\]'\)\|\|target/);
+});
+
+test('live valuation 재렌더는 퇴직연금 조정 본체와 action modal이 열려 있는 동안 모두 보류한다',()=>{
+  assert.match(liveValuation,/\.action-modal\.show,\.contrib-modal\.show,dialog\[open\]/);
+});
+
 
 test('Hero 현재가 상태는 기존 hero-basis typography로 LIVE/CLOSED/STALE/JSON 의미를 표시하고 전용 CSS를 만들지 않는다',()=>{
   assert.match(core,/function liveValuationStatusForDate\(date\)/);

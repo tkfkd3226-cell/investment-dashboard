@@ -553,25 +553,38 @@ function hideAssetSourceTooltip(){
   tooltip.setAttribute('aria-hidden','true');
   tooltip.style.visibility='';
 }
+function assetSourceTooltipTargetFromEvent(event,selector){
+  const direct=event.target.closest?.(selector);
+  if(direct)return direct;
+  // Table label cells own the same tooltip hit-area as the nested label so users
+  // do not need to point at the exact text. Keep the data on the label itself to
+  // preserve the existing keyboard focus contract and avoid duplicate metadata.
+  return event.target.closest?.('th[scope="row"]')?.querySelector(selector)||null;
+}
+function assetSourceTooltipHitArea(target){
+  return target?.closest?.('th[scope="row"]')||target;
+}
 function setupAssetSourceTooltips(){
   if(assetSourceTooltipBound)return;
   assetSourceTooltipBound=true;
   const selector='[data-asset-source-tooltip]';
   document.addEventListener('pointerover',event=>{
     if(event.pointerType==='touch')return;
-    const target=event.target.closest(selector);
-    if(!target||target.contains(event.relatedTarget))return;
+    const target=assetSourceTooltipTargetFromEvent(event,selector);
+    const hitArea=assetSourceTooltipHitArea(target);
+    if(!target||hitArea?.contains(event.relatedTarget))return;
     showAssetSourceTooltip(target,event);
   });
   document.addEventListener('pointermove',event=>{
     if(event.pointerType==='touch')return;
-    const target=event.target.closest(selector);
+    const target=assetSourceTooltipTargetFromEvent(event,selector);
     if(target)positionAssetSourceTooltip(target,event);
   },{passive:true});
   document.addEventListener('pointerout',event=>{
     if(event.pointerType==='touch')return;
-    const target=event.target.closest(selector);
-    if(!target||target.contains(event.relatedTarget))return;
+    const target=assetSourceTooltipTargetFromEvent(event,selector);
+    const hitArea=assetSourceTooltipHitArea(target);
+    if(!target||hitArea?.contains(event.relatedTarget))return;
     hideAssetSourceTooltip();
   });
   document.addEventListener('focusin',event=>{
