@@ -25,5 +25,14 @@
     "updatedBy": "google-apps-script",
     "updatedAtKST": "2026-09-02T11:13:09+09:00",
     "logicalOperationId": "contrib-2026-09-01-4e6c78da-d01e-4fe9-ad27-14677b8fe392"
+  },
+  {
+    "id": "contrib-2026-09-30-4e797b14-608b-4756-8def-3ce61f5159d6",
+    "date": "2026-09-30",
+    "amount": 618060,
+    "memo": "2026년 9월 기업적립금",
+    "updatedBy": "google-apps-script",
+    "updatedAtKST": "2026-09-11T17:16:00+09:00",
+    "logicalOperationId": "contrib-2026-09-30-4e797b14-608b-4756-8def-3ce61f5159d6"
   }
 ]
