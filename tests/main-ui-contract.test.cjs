@@ -388,9 +388,61 @@ test('퇴직연금 ETF 미리보기는 잘못된 수량·금액·일자를 저�
   assert.match(pensionEditor,/if\(draft\.tradeDate>draft\.applyDate\)\{\s*setDisabled\(true\);/);
 });
 
-test('Market AI 신호 HTTP 오류는 body timeout을 즉시 해제한다',()=>{
-  assert.match(marketAi,/if\(response\.status===404\)\{\s*response\.releaseTimeout\?\.\(\);/);
-  assert.match(marketAi,/if\(!response\.ok\)\{\s*response\.releaseTimeout\?\.\(\);/);
+test('Market AI 신호 HTTP 오류는 helper 내부에서 body timeout을 즉시 해제한다',()=>{
+  const start=marketAi.indexOf('async function refreshMarketAiSignalResponse');
+  const end=marketAi.indexOf('\nasync function refreshMarketAiMarketSnapshot',start);
+  assert.ok(start>=0&&end>start,'Market AI signal response helper is missing');
+  const helper=marketAi.slice(start,end);
+  assert.match(helper,/if\(response\.status===404\|\|!response\.ok\)\{\s*response\.releaseTimeout\?\.\(\);/);
+  assert.match(helper,/return \{response,signal:null,parseError:false\};/);
+});
+
+test('Market AI 신호 body는 느린 sibling endpoint를 기다리기 전에 소비해 독립 timeout을 종료한다',async()=>{
+  const start=marketAi.indexOf('async function refreshMarketAiSignalResponse');
+  const end=marketAi.indexOf('\nasync function refreshMarketAiMarketSnapshot',start);
+  assert.ok(start>=0&&end>start,'Market AI signal response helper is missing');
+
+  const vm=require('node:vm');
+  let aborted=false;
+  let bodyReadStarted=false;
+  let timer=0;
+  const payload={updated_at:'2026-09-11T06:00:00Z'};
+  const response={
+    status:200,
+    ok:true,
+    releaseTimeout(){clearTimeout(timer);},
+    async json(){
+      bodyReadStarted=true;
+      await new Promise(resolve=>setTimeout(resolve,1));
+      if(aborted){
+        const error=new Error('aborted');
+        error.name='AbortError';
+        throw error;
+      }
+      clearTimeout(timer);
+      return payload;
+    }
+  };
+  const context={
+    setTimeout,
+    clearTimeout,
+    fetchWithTimeout:async()=>{
+      timer=setTimeout(()=>{aborted=true;},10);
+      return response;
+    }
+  };
+  vm.createContext(context);
+  vm.runInContext(marketAi.slice(start,end),context);
+
+  const [signalResult]=await Promise.all([
+    context.refreshMarketAiSignalResponse('http://127.0.0.1:8001'),
+    new Promise(resolve=>setTimeout(resolve,20))
+  ]);
+
+  assert.equal(bodyReadStarted,true,'signal JSON body must be consumed immediately inside its helper');
+  assert.equal(aborted,false,'slow sibling endpoints must not keep the completed signal request timeout alive');
+  assert.deepEqual(JSON.parse(JSON.stringify(signalResult.signal)),payload);
+  assert.equal(signalResult.parseError,false);
 });
 
 
@@ -846,12 +898,12 @@ test('Market AI contract: remote 전체 실패는 UI 미노출, local 전체 실
 });
 
 test('Market AI refresh는 3 endpoint를 독립 호출하고 최신 refresh sequence만 state에 반영한다',()=>{
-  assert.match(market1,/const \[response,nextMarketSnapshot,nextBridgeStatus\]=await Promise\.all\(\[/);
-  assert.match(market1,/const serverReachable=response!==null\|\|nextMarketSnapshot!==null\|\|nextBridgeStatus!==null/);
+  assert.match(market1,/const \[signalResult,nextMarketSnapshot,nextBridgeStatus\]=await Promise\.all\(\[/);
+  assert.match(market1,/const serverReachable=signalResult!==null\|\|nextMarketSnapshot!==null\|\|nextBridgeStatus!==null/);
   assert.match(market1,/let marketAiRefreshSequence=0/);
   assert.match(market1,/if\(refreshSequence!==marketAiRefreshSequence\)return/);
-  assert.match(market1,/signal=await response\.json\(\); if\(refreshSequence!==marketAiRefreshSequence\)return;/);
-  assert.match(market1,/catch\(_\)\{ if\(refreshSequence!==marketAiRefreshSequence\)return; setMarketAiState/);
+  assert.match(market1,/const \{response,signal,parseError\}=signalResult/);
+  assert.match(market1,/if\(parseError\)\{ setMarketAiState/);
 });
 
 test('Market AI는 main dataState/uiState를 참조하지 않는 standalone state를 유지한다',()=>{

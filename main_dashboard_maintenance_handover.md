@@ -2,6 +2,10 @@
 
 이 문서는 투자 대시보드의 **Main 영역을 수정·유지보수·인수인계하기 위한 기준 문서**다.
 
+> **문서 성격 / 대상 환경**  
+> 이 문서는 GitHub Pages에 배포되는 **Main 프런트엔드와 그 쓰기·갱신 경계**를 수정하는 유지보수자용 contract다. 일반 사용자 실행 안내나 프로젝트 소개는 `README.md`, 점수·A/B/C 판정은 `dashboard_evaluation_guide.md`가 담당한다.  
+> 별도 `market-ai` 프로젝트의 Python/C#/PyInstaller/Tailscale runtime 빌드 절차는 이 문서의 소유 범위가 아니다. Main은 Market AI를 **외부 API provider**로 소비하며, 프런트엔드 adapter·overlay·fallback·render lifecycle만 이 문서에서 관리한다.
+
 이 문서는 평가 점수나 A/B/C급 판정 기준을 소유하지 않는다. 평가 요청은 루트의 `dashboard_evaluation_guide.md`를 기준으로 하고, Add Calc·KODEX Report의 상세 유지보수는 `add_maintenance_handover.md`를 기준으로 한다. `README.md`는 GitHub 프로젝트 소개와 실행·배포 개요를 담당한다.
 
 문서 역할은 다음처럼 분리한다.

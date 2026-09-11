@@ -1,5 +1,10 @@
 # 투자 대시보드
 
+> **문서 성격**: 이 README는 GitHub 저장소의 **프로젝트 소개 · 사용 경로 · 전체 구조 · 운영/배포 개요**를 설명합니다.  
+> selector, state ownership, GAS transaction/idempotency 내부 알고리즘, 평가 점수 기준 같은 유지보수 세부는 각각의 handover/evaluation 문서에서 관리합니다.
+>
+> **운영 환경**: 정적 화면은 GitHub Pages에서 동작하고, KRX 갱신은 GitHub Actions + Python, 브라우저 쓰기 작업은 Google Apps Script Web App, 선택형 실시간 기능은 별도 Market AI runtime을 사용합니다.
+
 삼성증권 증권계좌와 퇴직연금 계좌의 **날짜별 투자 성과를 복원·검산·분석하기 위한 정적 웹 대시보드**입니다.
 
 메인 화면은 GitHub Pages에서 제공하며, KRX 가격과 성과 스냅샷은 GitHub Actions + Python으로 갱신합니다. 퇴직연금 금액 조정과 KRX 갱신 요청처럼 브라우저에서 직접 저장소 파일을 수정할 수 없는 쓰기 작업은 별도로 배포된 Google Apps Script Web App을 통해 처리합니다.
@@ -84,28 +89,25 @@ Main의 별도수익과 Add Report는 같은 canonical 거래 원천을 사용�
 
 ### 2.4 Market AI 연동
 
-Market AI는 Main의 **현재 시점 시장 신호**와 **오늘 보유종목의 현재가 overlay**를 제공하는 선택형 실시간 subsystem입니다.
+Market AI는 Main에 **현재 시점 시장·AI 신호**와 **오늘 보유종목의 현재가 overlay**를 제공하는 선택형 실시간 subsystem입니다.
 
-- KOSPI, KOSPI200 선물, SOX, NQ100 선물과 AI 신호 표시
-- 현재 시장·AI 신호와 오늘 보유종목 현재가를 **화면 조회 기준 30초 주기**로 갱신하며, 문서가 다시 visible이 되면 즉시 refresh
-- KIS eFriend/Bridge의 `SC_R`·`JUC_R`·선물 realtime 수신 자체는 계속 실시간으로 유지하고 30초마다 재구독하지 않음
-- 오늘 보유 중인 증권·퇴직연금 종목의 KIS eFriend `SC_R` 현재가를 화면 계산에 overlay
-- 실시간 현재가는 현재가·평가금액·평가손익·수익률 등 **현재가 의존 파생값만** 다시 계산하며 수량·원가·원금·매매흐름·실현손익은 바꾸지 않음
-- 실시간 quote는 브라우저 메모리에서만 사용하고 `prices.json`, `performance_snapshots.json`, Pension 장부 JSON에는 저장하지 않음
-- 과거 날짜는 실시간 값을 적용하지 않고 저장된 JSON/스냅샷 의미를 유지
-- usable quote가 없는 종목은 종목별로 기존 JSON 값으로 fallback하고, 한 종목 장애가 다른 정상 종목까지 JSON으로 되돌리지 않음
-- 보유 ticker가 0개가 되어도 요청을 생략하지 않고 `client_id + []`를 Market AI에 보내 해당 client의 universe를 authoritative empty로 reconcile
-- Market AI/Bridge 시작 직후에는 현재 보유 10종목을 startup warm-up 대상으로 선구독할 수 있으나, 첫 Dashboard 요청부터는 실제 활성 client들의 보유 ticker 합집합이 authoritative source가 됨
-- Signal Engine용 `005930`·`000660` 물리 stream은 보유 여부와 별도로 유지될 수 있지만 Dashboard valuation cache의 특례로 사용하지 않으며, Dashboard universe에서 빠졌다 다시 편입되면 다른 종목과 동일하게 새 실제 `SC_R` tick 전까지 `WARMING`
-- Hero에서 `LIVE / CLOSED / STALE / JSON` 상태와 시세 기준을 표시하고, 종목·상품 셀의 커스텀 툴팁에서 Market AI/JSON 출처를 확인 가능
-- Desktop / Tablet의 Market AI 신호는 Hero 우측 보조 카드, Mobile / 실제 터치폰 가로 UI는 **AI Signal** dialog로 표시
-- Local: Market AI FastAPI 직접 조회
-- GitHub Pages: Tailscale Serve를 통해 같은 실제 데이터 조회
-- Market AI가 응답하지 않아도 Main Dashboard의 저장 데이터 기반 기능은 독립 동작
+주요 동작은 다음과 같습니다.
 
-`dashboard-market-ai.js`는 현재 시장·AI 신호 panel을, `dashboard-live-valuation.js`는 오늘 보유종목 평가 overlay를 담당하며 두 기능은 `dashboard-market-ai-client.js`의 local/remote transport contract를 공유합니다. 세부 polling, stale/source 판정, multi-client quote universe와 KIS subscription health는 `main_dashboard_maintenance_handover.md`와 Market AI 프로젝트 문서에서 관리합니다.
+- KOSPI, KOSPI200 선물, SOX, NQ100 선물 및 AI Signal 표시
+- 현재 시장·AI 신호와 오늘 보유종목 현재가를 **화면 조회 기준 30초 주기**로 갱신하고, 문서가 다시 visible 상태가 되면 즉시 refresh
+- KIS eFriend/Bridge의 실제 realtime 수신은 polling과 별개로 계속 실시간 유지
+- 오늘 날짜에서만 usable KRX quote를 평가금액·평가손익·수익률 등 **현재가 의존 파생값**에 overlay
+- 수량·원가·투입원금·매매흐름·실현손익과 과거 날짜 데이터는 변경하지 않음
+- live quote는 브라우저 메모리에서만 사용하고 `prices.json`, `performance_snapshots.json`, Pension JSON/GAS에는 저장하지 않음
+- 일부 종목 quote가 없거나 unusable이어도 해당 종목만 JSON 저장값으로 fallback
+- Hero에서 `LIVE / CLOSED / STALE / JSON` 상태와 시세 기준을 표시하고, 종목·상품 source tooltip에서 Market AI/JSON 출처 확인
+- Desktop / Tablet은 Hero 보조 카드, Mobile / 실제 터치폰 가로 UI는 **AI Signal** dialog 사용
+- Local 환경에서는 Market AI FastAPI에 직접 연결하고, GitHub Pages에서는 Tailscale Serve 경유
+- Market AI가 응답하지 않아도 저장된 JSON 기반 Main Dashboard 기능은 독립 동작
 
----
+프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 평가 overlay), `dashboard-market-ai-client.js`(local/remote transport)로 분리합니다.
+
+multi-client quote universe, lease, warm-up, KIS subscription health, stale/source 판정 같은 **유지보수 contract는 README에 중복하지 않고** `main_dashboard_maintenance_handover.md`와 Market AI 개발 handover를 기준으로 합니다.
 
 ## 3. 전체 동작 구조
 
@@ -166,20 +168,17 @@ Dashboard
    │    → 현재 Market Snapshot / Signal / Bridge 상태
    │
    └─ dashboard-live-valuation.js
-        → 오늘 보유 ticker universe + tab별 client_id
-        → 0종목도 []로 authoritative reconcile
+        → 오늘 보유 ticker + tab별 client_id
         → /api/market-data/krx-quotes
-        → usable quote만 메모리 overlay
+        → usable quote만 현재 화면 계산에 overlay
 
 공통 transport
    → dashboard-market-ai-client.js
-   → Local : http://127.0.0.1:8001
-   → Remote: https://node.tail60a98e.ts.net
+   → Local  : 127.0.0.1:8001
+   → Remote : Tailscale Serve
 ```
 
-외부 GitHub Pages에서는 FastAPI 포트를 직접 인터넷에 공개하지 않고 Tailscale Serve를 통해 접근합니다. 보유종목 실시간 평가는 **현재 KST 날짜에서만** 화면 계산에 적용하며, 과거 날짜와 운영 JSON은 변경하지 않습니다. 장중에는 신뢰 가능한 당일 quote만 `LIVE`, 장마감 후 같은 날 유효 quote는 `CLOSED`로 사용할 수 있고, 장마감 후 usable quote가 없으면 현재가를 억지로 실시간화하지 않고 JSON fallback과 `JSON · 장마감` 의미를 유지합니다.
-
----
+외부 GitHub Pages에서는 FastAPI 포트를 직접 인터넷에 공개하지 않고 Tailscale Serve를 통해 접근합니다. 보유종목 실시간 평가는 **현재 KST 날짜에서만** 적용하며 과거 날짜와 운영 JSON은 변경하지 않습니다. 장중·장마감 quote 상태와 종목별 fallback의 세부 판정은 Main handover와 Market AI 프로젝트 문서를 기준으로 합니다.
 
 ## 4. 프로젝트 구조
 
@@ -330,11 +329,9 @@ data/krx_dispatch_ledger/*.json        # GAS가 생성·갱신하는 KRX request
 
 퇴직연금 저장과 KRX 갱신 요청은 GitHub 저장소와 별도로 운영되는 Google Apps Script Web App을 사용합니다. 브라우저가 저장소에 직접 write하지 않으며, 운영 인증값과 GitHub 연동 정보도 프런트엔드 파일에 직접 두지 않습니다.
 
-쓰기 요청은 **stable request identity + 최초 전송 payload 보존 + optimistic concurrency + ScriptLock/PENSION_MUTATION_EPOCH**을 기본 축으로 처리합니다. Pension의 모든 upsert/delete는 semantic operation ledger와 content-independent exact identity ledger를 사용해 retry, delete 후 resurrection, same identity/different content를 차단하며, 실제 business JSON 변경이 없는 terminal no-op도 완료 identity를 남깁니다. 다른 기기에서 동일 semantic 후보가 보이는 경우에는 자동 dedupe하지 않고 state-bound confirmation token으로 기존 처리/별도 작업을 다시 확인합니다.
+현재 쓰기 경로는 **stable request identity, optimistic concurrency, durable idempotency 기록, fail-closed 복구**를 기본 원칙으로 하여 재시도·중복요청·동시성 충돌이 운영 JSON을 중복 반영하지 않도록 설계되어 있습니다.
 
-Script Properties의 active intent는 단순 cap/TTL GC로 버리지 않습니다. **stale 판정이 끝난 Single/Batch intent는 GitHub durable identity/tombstone을 먼저 확보한 뒤 receipt로 승격해 active slot을 해제**하고, 장시간 응답이 없는 abandoned intent는 foreground 요청당 소수만 점진적으로 정리합니다. durable ledger가 이미 성공 완료를 증명하면 stale로 바꾸지 않고 completed receipt를 복구하며, prefix cap에서는 신규 slot 확보에 필요한 가장 오래된 1건만 별도로 terminalize합니다. KRX도 같은 원칙으로 durable dispatch 상태를 우선합니다. receipt/confirmation/marker는 prefix cap과 전체 내부 byte budget 안에서 관리합니다.
-
-세부 GAS 운영 불변조건은 `main_dashboard_maintenance_handover.md` 6.2절, 평가용 반례와 점수 기준은 `dashboard_evaluation_guide.md`의 Frontend↔Backend contract 및 100점 Gate를 기준으로 합니다. README에는 구현 함수·차수별 패치 이력을 반복 기록하지 않습니다.
+README는 GAS 내부 intent/receipt/ledger GC나 transaction 함수 수준의 구현을 소유하지 않습니다. 세부 운영 불변조건은 `main_dashboard_maintenance_handover.md`의 GAS/Actions 영역, 평가용 반례와 점수 기준은 `dashboard_evaluation_guide.md`의 Frontend↔Backend contract 및 100점 Gate를 기준으로 합니다.
 
 ### 7.2 KRX 갱신
 

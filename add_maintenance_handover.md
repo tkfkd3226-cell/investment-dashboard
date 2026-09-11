@@ -1,5 +1,9 @@
 # add 영역 유지보수 및 거래 리포트 인수인계
 
+> **문서 성격 / 대상 환경**  
+> 이 문서는 GitHub Pages의 `add/` 정적 화면인 **Calc + KODEX 레버리지 Report 개발·유지보수용 contract**다. 운영자용 프로젝트 소개는 `README.md`, Main의 공통 규칙은 `main_dashboard_maintenance_handover.md`, 평가·점수 기준은 `dashboard_evaluation_guide.md`가 담당한다.  
+> 현재 canonical runtime은 `add.css` + `add.js` 공유 구조이며, 실제 파일이 분리되지 않은 상태에서 문서만 미래 구조로 선행 변경하지 않는다.
+
 ## 0. 문서 목적 · 범위 · Source of Truth
 
 이 문서는 `add/` 영역의 **CALC + KODEX 레버리지 거래 리포트**를 현재 canonical 구조 그대로 유지하기 위한 인수인계·수정·QA 기준서다.

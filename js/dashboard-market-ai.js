@@ -1006,11 +1006,20 @@ function setMarketAiState(next){
 
 async function refreshMarketAiSignalResponse(apiBase){
   try{
-    return await fetchWithTimeout(`${apiBase}/api/signal/latest?include_details=true`,{
+    const response=await fetchWithTimeout(`${apiBase}/api/signal/latest?include_details=true`,{
       method:'GET',
       headers:{Accept:'application/json'},
       cache:'no-store'
     });
+    if(response.status===404||!response.ok){
+      response.releaseTimeout?.();
+      return {response,signal:null,parseError:false};
+    }
+    try{
+      return {response,signal:await response.json(),parseError:false};
+    }catch(_){
+      return {response,signal:null,parseError:true};
+    }
   }catch(_){
     return null;
   }
@@ -1062,13 +1071,13 @@ async function refreshMarketAiSignal(){
   }
 
   const previousSignalAt=marketAiState.signal?.updated_at||marketAiState.lastSignalAt||null;
-  const [response,nextMarketSnapshot,nextBridgeStatus]=await Promise.all([
+  const [signalResult,nextMarketSnapshot,nextBridgeStatus]=await Promise.all([
     refreshMarketAiSignalResponse(apiBase),
     refreshMarketAiMarketSnapshot(apiBase),
     refreshMarketAiBridgeStatus(apiBase)
   ]);
   if(refreshSequence!==marketAiRefreshSequence)return;
-  const serverReachable=response!==null||nextMarketSnapshot!==null||nextBridgeStatus!==null;
+  const serverReachable=signalResult!==null||nextMarketSnapshot!==null||nextBridgeStatus!==null;
   Object.assign(marketAiState,{
     serverReachable,
     marketSnapshot:nextMarketSnapshot??{},
@@ -1090,7 +1099,7 @@ async function refreshMarketAiSignal(){
     return;
   }
 
-  if(!response){
+  if(!signalResult){
     setMarketAiState({
       signal:null,
       status:'신호 오류',
@@ -1101,8 +1110,9 @@ async function refreshMarketAiSignal(){
     return;
   }
 
+  const {response,signal,parseError}=signalResult;
+
   if(response.status===404){
-    response.releaseTimeout?.();
     setMarketAiState({
       signal:null,
       status:'신호 대기',
@@ -1114,7 +1124,6 @@ async function refreshMarketAiSignal(){
   }
 
   if(!response.ok){
-    response.releaseTimeout?.();
     setMarketAiState({
       signal:null,
       status:'신호 오류',
@@ -1125,12 +1134,7 @@ async function refreshMarketAiSignal(){
     return;
   }
 
-  let signal=null;
-  try{
-    signal=await response.json();
-    if(refreshSequence!==marketAiRefreshSequence)return;
-  }catch(_){
-    if(refreshSequence!==marketAiRefreshSequence)return;
+  if(parseError){
     setMarketAiState({
       signal:null,
       status:'신호 오류',
