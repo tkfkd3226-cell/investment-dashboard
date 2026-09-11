@@ -528,6 +528,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - `dashboard-core.js`가 계산한 현재 보유수량이 `0`보다 큰 증권·퇴직연금 ticker를 문자열로 수집하고 중복 제거한다. `005930`의 leading zero와 `0163Y0` 같은 영문 혼합 6자리 ticker를 보존한다.
 - 동일 ticker가 증권·퇴직연금에 동시에 있어도 quote universe에는 한 번만 요청한다.
 - 각 browser tab은 `sessionStorage` 기반 `client_id`를 사용하며 backend가 활성 client들의 ticker 합집합을 유지한다. 한 PC/폰/탭의 polling이 다른 client universe를 삭제하지 않아야 한다.
+- 현재 보유 ticker가 0개여도 refresh를 조기 종료하지 않고 `client_id + []`를 backend에 보내 해당 client의 universe를 authoritative empty로 reconcile하며, 로컬 `requestedTickers`도 즉시 `[]`로 비운다.
 - quote는 `usable:true`인 종목에만 적용하고 `warming/stale/unavailable/error` 등 unusable 종목은 **종목별 JSON fallback**한다. 일부 실패 때문에 정상 quote까지 모두 버리지 않는다.
 - live quote는 `dataState.liveValuation`의 volatile snapshot으로만 보관하며 운영 JSON, GAS, GitHub Actions, `performance_snapshots.json`에 쓰지 않는다.
 - live overlay는 `activeDate === KST 오늘`일 때만 계산에 사용한다. 과거 날짜는 Market AI state가 존재해도 JSON/역사 snapshot 의미를 유지한다.

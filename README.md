@@ -87,11 +87,16 @@ Main의 별도수익과 Add Report는 같은 canonical 거래 원천을 사용�
 Market AI는 Main의 **현재 시점 시장 신호**와 **오늘 보유종목의 현재가 overlay**를 제공하는 선택형 실시간 subsystem입니다.
 
 - KOSPI, KOSPI200 선물, SOX, NQ100 선물과 AI 신호 표시
+- 현재 시장·AI 신호와 오늘 보유종목 현재가를 **화면 조회 기준 30초 주기**로 갱신하며, 문서가 다시 visible이 되면 즉시 refresh
+- KIS eFriend/Bridge의 `SC_R`·`JUC_R`·선물 realtime 수신 자체는 계속 실시간으로 유지하고 30초마다 재구독하지 않음
 - 오늘 보유 중인 증권·퇴직연금 종목의 KIS eFriend `SC_R` 현재가를 화면 계산에 overlay
 - 실시간 현재가는 현재가·평가금액·평가손익·수익률 등 **현재가 의존 파생값만** 다시 계산하며 수량·원가·원금·매매흐름·실현손익은 바꾸지 않음
 - 실시간 quote는 브라우저 메모리에서만 사용하고 `prices.json`, `performance_snapshots.json`, Pension 장부 JSON에는 저장하지 않음
 - 과거 날짜는 실시간 값을 적용하지 않고 저장된 JSON/스냅샷 의미를 유지
-- usable quote가 없는 종목은 종목별로 기존 JSON 값으로 fallback
+- usable quote가 없는 종목은 종목별로 기존 JSON 값으로 fallback하고, 한 종목 장애가 다른 정상 종목까지 JSON으로 되돌리지 않음
+- 보유 ticker가 0개가 되어도 요청을 생략하지 않고 `client_id + []`를 Market AI에 보내 해당 client의 universe를 authoritative empty로 reconcile
+- Market AI/Bridge 시작 직후에는 현재 보유 10종목을 startup warm-up 대상으로 선구독할 수 있으나, 첫 Dashboard 요청부터는 실제 활성 client들의 보유 ticker 합집합이 authoritative source가 됨
+- Signal Engine용 `005930`·`000660` 물리 stream은 보유 여부와 별도로 유지될 수 있지만 Dashboard valuation cache의 특례로 사용하지 않으며, Dashboard universe에서 빠졌다 다시 편입되면 다른 종목과 동일하게 새 실제 `SC_R` tick 전까지 `WARMING`
 - Hero에서 `LIVE / CLOSED / STALE / JSON` 상태와 시세 기준을 표시하고, 종목·상품 셀의 커스텀 툴팁에서 Market AI/JSON 출처를 확인 가능
 - Desktop / Tablet의 Market AI 신호는 Hero 우측 보조 카드, Mobile / 실제 터치폰 가로 UI는 **AI Signal** dialog로 표시
 - Local: Market AI FastAPI 직접 조회
@@ -161,7 +166,8 @@ Dashboard
    │    → 현재 Market Snapshot / Signal / Bridge 상태
    │
    └─ dashboard-live-valuation.js
-        → 오늘 보유 ticker universe
+        → 오늘 보유 ticker universe + tab별 client_id
+        → 0종목도 []로 authoritative reconcile
         → /api/market-data/krx-quotes
         → usable quote만 메모리 overlay
 
@@ -171,7 +177,7 @@ Dashboard
    → Remote: https://node.tail60a98e.ts.net
 ```
 
-외부 GitHub Pages에서는 FastAPI 포트를 직접 인터넷에 공개하지 않고 Tailscale Serve를 통해 접근합니다. 보유종목 실시간 평가는 **현재 KST 날짜에서만** 화면 계산에 적용하며, 과거 날짜와 운영 JSON은 변경하지 않습니다.
+외부 GitHub Pages에서는 FastAPI 포트를 직접 인터넷에 공개하지 않고 Tailscale Serve를 통해 접근합니다. 보유종목 실시간 평가는 **현재 KST 날짜에서만** 화면 계산에 적용하며, 과거 날짜와 운영 JSON은 변경하지 않습니다. 장중에는 신뢰 가능한 당일 quote만 `LIVE`, 장마감 후 같은 날 유효 quote는 `CLOSED`로 사용할 수 있고, 장마감 후 usable quote가 없으면 현재가를 억지로 실시간화하지 않고 JSON fallback과 `JSON · 장마감` 의미를 유지합니다.
 
 ---
 
