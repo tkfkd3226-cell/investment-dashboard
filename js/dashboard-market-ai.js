@@ -1004,6 +1004,8 @@ function setMarketAiState(next){
   syncMarketAiSignalView();
 }
 
+// Consume the Signal body inside this request boundary so its timeout is cleared
+// independently of slower sibling Snapshot/Bridge requests.
 async function refreshMarketAiSignalResponse(apiBase){
   try{
     const response=await fetchWithTimeout(`${apiBase}/api/signal/latest?include_details=true`,{

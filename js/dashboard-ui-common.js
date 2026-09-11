@@ -7,6 +7,7 @@
 //   [UICOMMON04] Asset Shared Renderers
 //   [UICOMMON05] Feedback / Viewport / Scroll Utilities
 //   [UICOMMON06] Asset Tooltip Interaction
+//   [UICOMMON06B] Asset Price Source Tooltip
 //   [UICOMMON07] Public API
 
 // [UICOMMON01] Responsive Predicate / Shared View State · 반응형 판정 / 공통 보기 상태
