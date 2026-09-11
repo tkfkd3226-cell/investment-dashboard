@@ -513,6 +513,9 @@ async function dispatchKrxPriceUpdate(pin, mode='selected', requestId=''){
 
   const data=await readJsonResponse(res,'KRX 현재가 반영 요청');
 
+  // 운영 UI에는 노출하지 않고 개발자 콘솔에서만 GAS 단계별 지연을 확인한다.
+  if(data?.timing)console.info('[KRX timing]',updateMode,data.timing);
+
   if(!data.ok){
     throw new Error(data.error||'KRX 현재가 반영 요청 실패');
   }

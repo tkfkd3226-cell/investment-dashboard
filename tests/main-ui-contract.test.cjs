@@ -133,6 +133,7 @@ test('KRX write는 60초 전용 timeout을 사용하고 timeout을 미확정 상
   assert.ok(dispatchStart>=0&&modalStart>dispatchStart,'KRX dispatch 함수 범위를 찾지 못했다');
   const dispatchBlock=ui.slice(dispatchStart,modalStart);
   assert.match(dispatchBlock,/fetchWithTimeout\(config\.url,[^]*?KRX_WRITE_REQUEST_TIMEOUT_MS\);/);
+  assert.match(dispatchBlock,/if\(data\?\.timing\)console\.info\('\[KRX timing\]',updateMode,data\.timing\);/,'KRX timing은 UI를 바꾸지 않고 개발자 콘솔에만 남겨야 한다');
 
   const submitStart=ui.indexOf('async function submitKrxActionModal');
   const catchStart=ui.indexOf('}catch(e){',submitStart);
