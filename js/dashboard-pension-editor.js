@@ -1362,7 +1362,13 @@ async function applyPensionBatchQueue(renderDashboard){
           }
           const op=batchPayloadOperations[index]||{};
           const description=pensionBatchOperationDescription(op)||`${index+1}번 작업`;
-          const distinct=window.confirm(`${description}\n\n기존 logical operation과 겹칩니다.\n확인: 실제 별도 작업으로 실행\n취소: 과거 작업의 응답 유실 재시도로 보고 기존 처리 유지`);
+          const source=String(conflict?.source||'');
+          const conflictReason=source==='item'
+            ?'현재 데이터에 같은 내용이 이미 있습니다.'
+            :source==='ledger'
+              ?'같은 내용의 과거 처리 기록이 있습니다.'
+              :'같은 내용의 기존 처리 후보가 있습니다.';
+          const distinct=window.confirm(`${description}\n\n${conflictReason}\n이전 요청의 재시도인지, 실제 별도 작업인지 확인해주세요.\n\n확인: 실제 별도 작업으로 실행\n취소: 기존 처리로 보고 다시 적용하지 않음`);
           decisions[String(index)]=distinct?'distinct':'existing';
         });
         confirmation={token:data.confirmationToken,decisions};
