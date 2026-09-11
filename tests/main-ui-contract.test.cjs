@@ -101,7 +101,8 @@ test('실시간 평가 adapter는 importmap cache-bust 대상이고 boot 이후 
   assert.match(index,/'dashboard-market-ai-client\.js'/);
   assert.match(index,/'dashboard-live-valuation\.js'/);
   assert.match(app,/setupLiveValuation\(\{renderDashboard:renderLiveValuationRefresh\}\);/);
-  assert.match(liveValuation,/const LIVE_VALUATION_POLL_MS=10_000;/);
+  assert.match(liveValuation,/const LIVE_VALUATION_POLL_MS=30_000;/);
+  assert.match(marketAi,/const MARKET_AI_POLL_MS=30_000;/);
   assert.match(liveValuation,/\/api\/market-data\/krx-quotes/);
   assert.match(liveValuation,/document\.visibilityState==='visible'/);
 });
