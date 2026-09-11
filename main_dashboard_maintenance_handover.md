@@ -809,7 +809,7 @@ Table의 geometry·정렬·summary contract는 **2.4 `Table 공통 contract`**�
 
 - 최신/누락 반영과 선택일 재갱신의 업무 의미를 섞지 않는다.
 - 이미 종가 기준인 날짜는 불필요한 workflow를 다시 실행하지 않는 현재 contract를 유지한다.
-- modal focus/ESC/request timeout과 같은 기본 lifecycle을 회귀검증한다. 요청 중 재전송을 막고, modal 재진입 시 이전 요청의 응답·상태 문구·자동 닫기 timer가 새 session을 덮거나 닫지 않도록 request/session 경계를 함께 보호한다.
+- modal focus/ESC/request timeout과 같은 기본 lifecycle을 회귀검증한다. 일반 네트워크 요청은 공통 timeout을 따르되, KRX GAS write는 durable reconciliation과 GitHub API 왕복을 고려해 **60초 전용 timeout**을 사용한다. timeout은 서버 처리 실패를 뜻하지 않으므로 `NETWORK_TIMEOUT`에서는 '서버에서 계속 처리될 수 있음'을 안내하고 같은 requestId를 유지해 안전한 재시도가 가능해야 한다. 요청 중 재전송을 막고, modal 재진입 시 이전 요청의 응답·상태 문구·자동 닫기 timer가 새 session을 덮거나 닫지 않도록 request/session 경계를 함께 보호한다.
 - QA에서는 실제 외부 write를 하지 않는다.
 
 ### 퇴직연금

@@ -1090,6 +1090,8 @@ Enter/submit 중복
 - 닫기→재열기 시 이전 응답이 새 modal을 덮지 않는지
 - 이전 자동 닫기 timer가 새 session을 닫지 않는지
 - UI가 닫힌 뒤 서버에서 이미 실행된 결과를 별도 Toast 등으로 안전하게 전달하는지
+- KRX write가 일반 fetch timeout을 그대로 상속해 정상적인 durable reconciliation을 조기 abort하지 않는지. 현재 contract는 **KRX POST 60초 전용 timeout**이며, timeout은 서버 실패로 단정하지 않고 처리 계속 가능성을 안내해야 한다.
+- `NETWORK_TIMEOUT`·transient status uncertainty에서 requestId를 폐기하지 않고 같은 identity로 안전하게 재시도·reconciliation할 수 있는지
 - 선택 날짜가 화면에 존재한다는 사실과 request body의 `date` 존재 여부를 혼동하지 않는지
 
 GAS가 제공된 경우에만 server handler까지 완전 대조한다.

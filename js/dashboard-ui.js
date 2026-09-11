@@ -481,6 +481,8 @@ function setupUiGlobalEvents(){
   },{passive:true});
 }
 // [UI08] KRX Action Modal · KRX 현재가 반영 모달
+// KRX write는 durable reconciliation/GitHub API 왕복이 길어질 수 있어 공통 20초보다 긴 전용 timeout을 사용한다.
+const KRX_WRITE_REQUEST_TIMEOUT_MS=60000;
 async function dispatchKrxPriceUpdate(pin, mode='selected', requestId=''){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
   const selectedDate=dataState.activeDate || '';
@@ -507,7 +509,7 @@ async function dispatchKrxPriceUpdate(pin, mode='selected', requestId=''){
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(body)
-  });
+  },KRX_WRITE_REQUEST_TIMEOUT_MS);
 
   const data=await readJsonResponse(res,'KRX 현재가 반영 요청');
 
@@ -673,9 +675,15 @@ async function submitKrxActionModal(mode='selected'){
       },2000);
     }
   }catch(e){
-    const errorMessage=e.message||String(e);
-    if(currentSession()&&status){status.textContent=errorMessage;status.className='action-modal-status krx-action-status err'}
-    showAppToast(errorMessage,'err',6500);
+    const timedOut=e?.code==='NETWORK_TIMEOUT';
+    const errorMessage=timedOut
+      ? '응답 확인 시간이 초과되었습니다. 요청은 서버에서 계속 처리될 수 있습니다. 잠시 후 반영 상태를 확인하거나 같은 요청으로 다시 시도해주세요.'
+      : (e.message||String(e));
+    if(currentSession()&&status){
+      status.textContent=errorMessage;
+      status.className=`action-modal-status krx-action-status ${timedOut?'checking':'err'}`;
+    }
+    showAppToast(errorMessage,timedOut?'ok':'err',timedOut?8500:6500);
   }finally{
     krxActionRequestInFlight=false;
     if(currentSession())buttons.forEach(btn=>btn.disabled=false);

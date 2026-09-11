@@ -126,6 +126,26 @@ test('KRX 실패 재시도는 같은 requestId를 재사용하고 dispatch 불�
   assert.match(ui,/resetKrxActionRequestIdentity\(\);\s*const successMsg=/);
 });
 
+test('KRX write는 60초 전용 timeout을 사용하고 timeout을 미확정 상태로 안내하며 같은 requestId를 유지한다',()=>{
+  assert.match(ui,/const KRX_WRITE_REQUEST_TIMEOUT_MS=60000;/);
+  const dispatchStart=ui.indexOf('async function dispatchKrxPriceUpdate');
+  const modalStart=ui.indexOf('function ensureKrxActionModal',dispatchStart);
+  assert.ok(dispatchStart>=0&&modalStart>dispatchStart,'KRX dispatch 함수 범위를 찾지 못했다');
+  const dispatchBlock=ui.slice(dispatchStart,modalStart);
+  assert.match(dispatchBlock,/fetchWithTimeout\(config\.url,[^]*?KRX_WRITE_REQUEST_TIMEOUT_MS\);/);
+
+  const submitStart=ui.indexOf('async function submitKrxActionModal');
+  const catchStart=ui.indexOf('}catch(e){',submitStart);
+  const finallyStart=ui.indexOf('}finally{',catchStart);
+  assert.ok(submitStart>=0&&catchStart>submitStart&&finallyStart>catchStart,'KRX submit catch 범위를 찾지 못했다');
+  const catchBlock=ui.slice(catchStart,finallyStart);
+  assert.match(catchBlock,/e\?\.code==='NETWORK_TIMEOUT'/);
+  assert.match(catchBlock,/요청은 서버에서 계속 처리될 수 있습니다/);
+  assert.match(catchBlock,/timedOut\?'checking':'err'/);
+  assert.match(catchBlock,/showAppToast\(errorMessage,timedOut\?'ok':'err'/,'timeout은 실패색 Toast로 단정하지 않아야 한다');
+  assert.doesNotMatch(catchBlock,/resetKrxActionRequestIdentity\(\)/,'timeout에서는 동일 requestId를 버리면 안 된다');
+});
+
 test('퇴직연금 Action PIN은 서버 요청 중 dismiss를 잠그고 실패 시 다시 활성화한다',()=>{
   assert.match(pensionEditor,/let activePensionActionPinSession=null;/);
   assert.match(pensionEditor,/activePensionActionPinSession\?\.finish\(null\);/);
