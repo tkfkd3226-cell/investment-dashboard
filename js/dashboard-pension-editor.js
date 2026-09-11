@@ -888,7 +888,7 @@ function resetPensionContributionForm(){
 
 // [PEDIT07] PIN Dialog · PIN 확인
 let activePensionActionPinSession=null;
-function requestPensionActionPin({title='PIN 입력',description='작업 내용을 확인한 뒤 PIN 6자리를 입력하세요.',danger=false,execute}={}){
+function requestPensionActionPin({title='PIN 입력',description='작업 내용을 확인한 뒤 PIN 12자리를 입력하세요.',danger=false,execute}={}){
   return new Promise(resolve=>{
     // PIN 확인은 한 번에 하나만 유지한다. 기존 요청은 DOM만 제거하지 않고
     // 공통 modal lifecycle과 Promise를 함께 종료해야 body lock이 남지 않는다.
@@ -905,7 +905,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
       <p id="pensionActionPinDescription" class="action-modal-description">${description}</p>
       ${danger?'<p class="pension-action-pin-danger" role="alert">삭제한 기록은 되돌릴 수 없습니다.</p>':''}
       <label class="action-modal-label" for="pensionActionPinInput">PIN</label>
-      <input id="pensionActionPinInput" class="action-modal-input" type="text" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="pensionActionPinDescription pensionActionPinAutoHelp pensionActionPinStatus">
+      <input id="pensionActionPinInput" class="action-modal-input" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN 12자리 입력" aria-describedby="pensionActionPinDescription pensionActionPinAutoHelp pensionActionPinStatus">
       <p id="pensionActionPinAutoHelp" class="action-modal-input-help">PIN이 확인되면 바로 적용됩니다.</p>
       <div id="pensionActionPinStatus" class="action-modal-status pension-action-pin-status" role="status" aria-live="polite" aria-atomic="true"></div>
       <div class="action-modal-buttons pension-action-pin-buttons"><button type="button" class="control-action-button action-modal-btn ghost">취소</button></div>
@@ -933,8 +933,8 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
     };
     const dismiss=()=>{if(!busy&&!finished)finish(null);};
     const submit=async()=>{
-      const pin=String(input?.value||'').replace(/\D/g,'').slice(0,6);
-      if(pin.length!==6||busy)return;
+      const pin=String(input?.value||'').replace(/\D/g,'').slice(0,12);
+      if(pin.length!==12||busy)return;
       busy=true;
       input.disabled=true;
       setDismissEnabled(false);
@@ -953,7 +953,7 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
       }
     };
     const onInput=()=>{
-      const cleaned=String(input.value||'').replace(/\D/g,'').slice(0,6);
+      const cleaned=String(input.value||'').replace(/\D/g,'').slice(0,12);
       if(input.value!==cleaned)input.value=cleaned;
       if(status&&status.classList.contains('err')){status.textContent='';status.className='action-modal-status pension-action-pin-status'}
       clearTimeout(submitTimer);
