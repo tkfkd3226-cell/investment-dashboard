@@ -18,7 +18,29 @@
       "memo": "신청일 2026-08-07 · KODEX 삼전채권 77좌 매수 체결 · 앱 반영일 2026-08-11",
       "updatedBy": "google-apps-script",
       "updatedAtKST": "2026-08-11T11:28:21+09:00",
-      "appliedAtKST": "2026-08-11T11:28:21+09:00"
+      "appliedAtKST": "2026-08-11T11:28:21+09:00",
+      "logicalOperationId": "trade-2026-08-11-448330-6267d507-cd21-43d0-b28f-c13de6aae35d"
+    },
+    {
+      "id": "trade-2026-09-11-448330-6c227d74-5d4a-46a2-a1c1-329593a6f9aa",
+      "date": "2026-09-11",
+      "applyDate": "2026-09-11",
+      "tradeDate": "2026-09-11",
+      "ticker": "448330",
+      "name": "KODEX 삼전채권",
+      "type": "buy",
+      "qty": 40,
+      "price": 15000,
+      "amount": 600000,
+      "funding": "pension_cash",
+      "cashBeforeDate": "2026-09-11",
+      "cashBefore": 661452,
+      "cashAfter": 61452,
+      "memo": "신청일 2026-09-11 · KODEX 삼전채권 40좌 매수 체결 · 앱 반영일 2026-09-11",
+      "updatedBy": "google-apps-script",
+      "updatedAtKST": "2026-09-11T16:59:59+09:00",
+      "appliedAtKST": "2026-09-11T16:59:59+09:00",
+      "logicalOperationId": "trade-2026-09-11-448330-6c227d74-5d4a-46a2-a1c1-329593a6f9aa"
     }
   ]
 }
