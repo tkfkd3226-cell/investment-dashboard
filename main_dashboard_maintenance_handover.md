@@ -452,6 +452,8 @@ js/dashboard-charts.js
 - batch queue / simulation / apply
 - 저장 / 삭제
 - Google Apps Script persistence
+- Pension GAS 응답의 `timing`은 UI에 표시하지 않고 `[Pension timing]` JSON 한 줄로 console에만 기록한다.
+- Batch 중복 확인 문구는 충돌 source를 구분한다. 현재 item 중복과 과거 semantic ledger 이력을 모두 `logical operation`으로 단정하지 않으며, 과거 ledger가 남아 있는 정상 idempotency history를 사용자에게 설명한다.
 - editor event delegation
 
 View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다.
@@ -1506,8 +1508,48 @@ Google Apps Script는 **GitHub 프로젝트와 별도로 운영되는 write 백�
 - 동일 semantic 후보가 보인다고 자동 중복 제거하지 않는다. 다른 기기/새 세션에서는 state-bound confirmation token으로 `existing/distinct`를 다시 검증하고, state가 바뀐 token은 stale로 거부한다.
 - Batch 안에서 같은 target의 `logicalOperationId`는 고유해야 한다. 부분 충돌은 operation별 결정을 유지하고 candidate는 one-to-one으로 소진한다. `batchRequestId` 자체도 `data/pension_batch_request_identity/`에 durable하게 기록하며, commit-success/receipt-loss는 final-state effect와 durable identity로 duplicate에 수렴한다. 현재 GitHub state가 과거 Batch 결과를 이미 반영했다고 판단하는 recovery도 batchRequestId durable completed와 모든 operation exact identity를 먼저 확보한 뒤 duplicate를 확정한다. CacheService 같은 유한 cache는 Batch idempotency의 Source of Truth로 사용하지 않는다. 과거 completed/stale receipt를 복구할 때도 receipt만 믿고 끝내지 않고 batchRequestId durable identity를 먼저 확보하며, completed proof라면 모든 operation의 logical+batch exact key 누락분을 metadata-only CAS로 backfill한다. 과거 stale receipt와 durable `completed`가 충돌하면 business commit과 함께 기록된 completed durable 상태를 우선한다. 과거 버전의 stale receipt/durable residue와 operation별 exact identity가 충돌하면 **모든 operation exact identity가 같은 content로 완료됐다는 강한 proof**가 있을 때만 batch durable 상태를 completed로 CAS 승격하고, 승격 성공이 실제 확인된 뒤에만 completed 복구를 확정한다.
 - 확정 pre-commit 실패는 dependency가 그대로일 때만 retryable tombstone으로 전환한다. epoch↔intent 상태전이는 intent 기록 성공을 확인한 뒤 epoch를 되돌리고, 신규 intent는 epoch 예약 후 intent 저장이 실패하면 예약 epoch를 즉시 복구해 두 증거가 서로 어긋나지 않게 한다. epoch 예약/rollback과 direct request property write는 실제 반영 후 호출 응답만 유실될 수 있으므로 exact read-back으로 적용 여부를 확인한다. dependency/epoch가 바뀐 과거 요청은 `stale_retry_ignored`로 끝내며 최신 state를 재사용해 부활시키지 않는다.
-- Pension 성능 1차 진단은 **계측 전용**이다. Single/Batch 응답의 `timing` 객체(`version: 1`)는 `scope / action / target / outcome / totalMs / measuredMs / unattributedMs / stages / details`만 제공하며, 저장 성공 여부·중복 판정·stale 판정·epoch/CAS 순서에는 사용하지 않는다. Single은 `lockWait`, `maintenanceBoundary`, `baseHeadRead`, `targetSnapshotRead`, `semanticLedgerRead`, `exactIdentityLedgerRead`, `dependencyFingerprint`, `requestIdentityResolve`, `confirmationCheck`, `intentEpochPrepare`, 필요 시 `cashStateRead`/`cashDependencyRead`, `commitPreflight`, `githubCommit`, `failureReadback`, `localFinalize`을 기록한다. Batch는 `lockWait`, `maintenanceBoundary`, `receiptResolve`, `durableIdentityResolve`, `intentDependencyPrepare`, `batchBaseHead`, `stateSnapshotRead`, `semanticLedgerRead`, `exactIdentityLedgerRead`, `batchRequestIdentityRead`, `operationApply`, `commitPrepare`, `githubCommit`, `failureReadback`, `receiptIntentFinalize`을 기록하며 `details.stateRead`에서 cash/contribution/trade/prices/portfolio 개별 read 시간을 분해한다. 계측은 `Date.now()`만 추가하고 별도 GitHub/Properties I/O를 만들지 않는다. UI에는 표시하지 않으며, 프론트는 GAS 응답의 `timing`만 `[Pension timing]` JSON 로그로 개발자 콘솔에 출력한다. PIN·저장 payload는 로그에 포함하지 않는다. 운영 실측 후 큰 병목부터 최적화한다.
-- Pension 성능 2차 최적화(2026-09-11)는 cashSnapshot Single upsert 실측 `total 11.343s / dependencyFingerprint 1.926s / cashDependencyRead 0.802s / githubCommit 2.805s`를 기준으로 **동일 immutable base commit SHA의 중복 GitHub GET 제거**부터 적용했다. `handlePensionData()`가 요청 범위 `requestCache`를 만들고 `ref + path`로 target/semantic ledger/exact identity/dependency JSON을 재사용한다. cashSnapshot upsert에서 dependency fingerprint가 먼저 읽은 contribution/trade JSON도 뒤의 `cashDependencyRead`가 같은 base SHA에서 재사용한다. 이 cache는 요청 밖으로 공유하지 않으며 `resolvePensionSingleCommitBase()`의 최신 HEAD 확인·HEAD 변경 시 dependency 재검증·실패 readback은 cache를 사용하지 않는다. 따라서 request identity, mutation epoch, optimistic concurrency, stale 방지, response-loss 복구, state-bound confirmation, completed downgrade 방지와 Single/Batch causal ordering 계약은 그대로 유지한다.
+
+### Pension latency / request-local read contract
+
+2026-09-11 성능 최적화는 **transaction/idempotency 계약을 바꾸지 않고 동일 immutable Git commit의 중복 GET 대기만 제거**하는 방향으로 마감했다. 이 절의 cache/preflight는 성능용이며 durable identity·mutation epoch·optimistic concurrency·confirmation·CAS의 Source of Truth가 아니다.
+
+- GAS Pension 응답은 진단용 `timing` 객체(`version: 1`)를 반환한다. Single은 `scope:"single"`, Batch는 `scope:"batch"`를 사용하고 `totalMs / measuredMs / unattributedMs / stages / details`를 기록한다. 프론트는 성공·실패 판정에 timing을 사용하지 않고 `dashboard-pension-editor.js`에서 `[Pension timing] {JSON}` 한 줄만 console에 남긴다.
+- request-local GitHub read cache의 key는 **`ref(commit SHA) + path`**다. 같은 요청의 같은 immutable commit에서만 재사용하며 다른 SHA에는 절대 재사용하지 않는다. optional 404 fallback을 required read의 성공값으로 승격하지 않는다.
+- 최신 branch HEAD 확인, Single/Batch commit 직전 dependency/CAS 판단, write 실패 뒤 response-loss readback은 cache로 대체하지 않는다. 특히 Batch의 `postIntentHeadRead`는 intent/epoch evidence 저장 뒤 최신 HEAD를 확인하는 causal barrier이므로 성능 이유로 제거하지 않는다.
+- Single `cashSnapshot upsert`는 semantic ledger, legacy ledger, exact identity shard, contribution, ETF trade를 같은 base commit에서 병렬 preflight하고 이후 dependency hash와 cash dependency 계산이 request cache를 재사용한다.
+- Single `etfTrade upsert`는 cashSnapshot, contribution, prices, semantic/exact identity를 병렬 preflight하고 `portfolio.json`까지 같은 base commit cache에 연결한다. canonical 현금 계산식 자체는 바꾸지 않는다.
+- Single delete는 semantic/exact identity와, contribution/ETF 삭제에서 필요한 linked cashSnapshot dependency를 병렬 preflight한다. cashSnapshot 자체 삭제에는 불필요한 자기 dependency read를 추가하지 않는다.
+- Batch는 최초 HEAD를 읽은 뒤 dependency shard, operation identity shard, canonical state(`cashSnapshot / contribution / etfTrade / prices / portfolio`), batchRequestId durable identity를 `fetchAll` 기반 **initial batch preflight**로 채우고 durable identity resolve → conflict scan → 실제 적용이 같은 request-local cache를 재사용한다. 요청 수가 큰 경우 batch GET은 최대 50개 단위 chunk로 나눈다.
+- maintenance boundary 이후 prefix/global byte budget에 정상 여유가 있으면 Batch intent/receipt/confirmation direct property는 기존 `tryWriteDirectRequestPropertiesBatchFast()` 검증·exact readback 계약을 재사용하는 fast-path를 쓴다. fast-path가 불가능하면 기존 `setDirectRequestProperty()` GC/보존 경로로 즉시 fallback한다. fast-path 부분 반영/응답 유실은 기존 rollback/readback 계약을 유지한다.
+- semantic ledger는 **과거 같은 효과 후보**를 남기는 것이 목적이므로 business item을 삭제해도 history가 남는 것이 정상이다. Batch 충돌 popup은 source가 현재 item인지 과거 ledger인지 구분해 `현재 데이터에 같은 내용` / `같은 내용의 과거 처리 기록`처럼 설명한다. 이 확인은 안전장치이며, 사용자가 `실제 별도 작업`을 선택하면 state-bound confirmation을 포함한 두 번째 요청에서 실제 mutation을 진행한다.
+
+누적 최적화의 역할은 다음처럼 유지한다.
+
+| 단계 | 변경 요약 | 안전 경계 |
+| --- | --- | --- |
+| 1차 | Pension Single/Batch 상세 timing 계측 | UI business state 비개입, `Date.now()` 중심 관찰 |
+| 2차 | Single `ref+path` request-local read cache | 다른 commit SHA 격리, fresh HEAD/CAS 비캐시 |
+| 3차 | cashSnapshot ledger/identity/dependency 병렬 preflight | optimistic concurrency·commit preflight 유지 |
+| 4차 | ETF cash/price/portfolio/ledger preflight 통합 | canonical 현금 계산·portfolio 검증 유지 |
+| 5차 | delete ledger/identity/linked-cash preflight 통합 | linked snapshot 삭제 보호·ordering 유지 |
+| 6차 | Batch dependency/state read 병렬화·cache 공유 | confirmation/durable identity/epoch 의미 유지 |
+| 7차 | Batch initial preflight 통합 + direct-property safe fast-path | `postIntentHeadRead`, CAS, fallback/readback 유지 |
+
+2026-09-11 실제 운영 계측의 마감 baseline은 아래와 같다. GitHub 원격 I/O 편차가 크므로 절대 SLA가 아니라 **회귀 탐지용 대표값**으로만 사용한다.
+
+| 경로 | 최종 total | `githubCommit` 제외 | 비고 |
+| --- | ---: | ---: | --- |
+| cashSnapshot Single upsert | 7.420s | 4.717s | 최초 11.343s → 약 34.6% 단축 |
+| contribution Single upsert | 7.196s | 4.612s | 추가 최적화 불필요 판정 |
+| etfTrade Single upsert | 7.318s | 4.758s | 최적화 전 9.578s → 약 23.6% 단축 |
+| cashSnapshot Single delete | 7.057s | 4.378s | delete preflight 적용 |
+| contribution Single delete | 7.261s | 4.408s | 최적화 전 8.588s → 약 15.5% 단축 |
+| etfTrade Single delete | 7.244s | 4.738s | 마감 기준 충족 |
+| Batch duplicate confirmation | 3.741s | 해당 없음 | 최초 11.915s → 약 68.6% 단축 |
+| Batch apply(추가/수정 대표) | 11.467s | 7.675s | `initialBatchPreflight` 등 필수 remote read 포함 |
+| Batch apply(동시 삭제 대표) | 6.681s | 4.209s | cashSnapshot + contribution 동시 삭제 실기 PASS |
+
+마감 판단은 처음 정한 기준을 따른다. **GitHub commit/CAS 같은 필수 외부 I/O를 제외한 처리시간이 대략 4~5초 수준이고, 남은 최적화가 수백 ms~1초를 위해 mutation epoch / intent / receipt / confirmation / fresh HEAD barrier를 약화시킬 가능성이 있으면 더 최적화하지 않는다.** 따라서 위 baseline 이후 Pension 성능 작업은 새 병목·회귀가 관측되지 않는 한 종료 상태로 본다.
 
 ### Intent / receipt lifecycle
 
