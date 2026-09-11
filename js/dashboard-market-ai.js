@@ -10,7 +10,7 @@ import {
 } from './dashboard-market-ai-client.js';
 
 // Market AI Standalone Adapter · main feature graph와 분리된 독립 entry
-// Ownership: dashboard-modal.js의 저수준 dialog lifecycle만 공유하고, mount/state/fetch/render는 이 파일이 소유한다.
+// Ownership: dashboard-modal.js의 저수준 dialog lifecycle과 dashboard-market-ai-client.js의 endpoint/timeout transport만 공유하고, mount/state/polling/render/tooltip은 이 파일이 소유한다.
 // Responsive contract: Desktop/Tablet은 Hero 우측 panel, Phone은 동일 panel을 modal로 이동 재사용하며 Tooltip을 비활성화한다.
 // View-mode contract: ?dashboard-view=web/tablet/mobile은 레이아웃만 선택하며 Market AI는 항상 실제 데이터를 사용한다.
 // Structure map:

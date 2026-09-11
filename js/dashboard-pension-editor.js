@@ -64,8 +64,8 @@ const pensionEditorState={
   singleDeletePayload:null
 };
 
-// 응답 유실/새로고침 뒤 동일 logical mutation이 새 requestId로 바뀌지 않도록
-// pending identity만 localStorage에 짧게 보존한다. 성공이 확인되면 즉시 제거한다.
+// 응답 유실/새로고침 뒤 동일 logical mutation이 새 requestId나 새 precondition으로 바뀌지 않도록
+// pending identity와 최초 전송 payload/precondition snapshot을 localStorage에 짧게 보존한다. 확정 성공/종료가 확인되면 즉시 제거한다.
 const PENSION_PENDING_IDENTITY_STORAGE_KEY='investment-dashboard:pension-pending-identities:v1';
 const PENSION_PENDING_IDENTITY_TTL_MS=6*60*60*1000;
 const PENSION_PENDING_CROSS_TAB_REUSE_DELAY_MS=60*1000;
@@ -442,6 +442,7 @@ function restorePensionContributionDraft(snapshot){
   });
   updatePensionEtfTradePreview();
 }
+// Single/Batch 성공 후 local server truth를 Main 계산에 즉시 수렴시키되, 열려 있던 editor draft와 modal 내부 scroll 위치는 복원한다.
 function rerenderPensionEditorAfterMutation(renderDashboard,target,{batchMode=false,draft=null}={}){
   if(typeof renderDashboard!=='function')return false;
   const modalCard=document.querySelector('#pensionContribModal .contrib-modal-card');
@@ -1438,7 +1439,7 @@ async function applyPensionBatchQueue(renderDashboard){
   }
 }
 
-// [PEDIT09] Persistence / Save/Delete · 저장 / 삭제
+// [PEDIT09] Persistence / Save/Delete / Dashboard Convergence · 저장 / 삭제 / 메인 수렴
 function pensionSingleSaveFingerprint(item){
   if(item?.target==='cashSnapshot')return `cashSnapshot|${String(item.date||'')}|${String(item.valuation??'')}|${String(item.costBasis??'')}|${String(item.memo||'')}`;
   if(item?.target==='contribution')return `contribution|${String(item.date||'')}|${String(item.amount??'')}|${String(item.memo||'')}`;

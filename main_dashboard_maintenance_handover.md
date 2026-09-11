@@ -463,6 +463,7 @@ js/dashboard-charts.js
   - 퇴직연금 Action PIN 입력은 Chrome 비밀번호 저장 대상으로 오인되지 않도록 credential `password` field를 사용하지 않고, 숫자 입력 + CSS 마스킹을 유지한다.
 - batch queue / simulation / apply
 - 저장 / 삭제
+  - Single 재시도의 browser-side pending state는 stable request/logical identity뿐 아니라 **최초 전송 payload/precondition snapshot**까지 짧게 보존한다. 다른 탭은 즉시 같은 pending identity를 가로채지 않으며, 확정 성공/종료가 확인되면 해당 pending state를 제거한다. 이 localStorage 기록은 business state의 Source of Truth가 아니라 응답 유실 재시도 identity를 유지하기 위한 보조 evidence다.
   - Single 저장·삭제 성공은 server truth를 `dataState`에 먼저 수렴시킨 뒤 Main Dashboard를 즉시 재계산·재렌더하고 금액조정 modal을 재개방한다. duplicate 성공도 일반 성공과 같은 local convergence를 적용하며 stale 응답은 local state를 다시 덮지 않는다.
   - 재렌더 수렴 때문에 사용자가 입력 중이던 다른 target 초안이 사라지지 않도록 form draft를 복원한다. ETF 단건 저장 성공은 기존 규칙대로 체결수량/체결금액만 비우고, 저장 결과 output은 재개방 후 다시 표시한다. 삭제/Batch를 포함한 modal 재개방은 기존 modal 내부 scrollTop을 viewport 범위 안에서 복원하며, 즉시 재개방하는 내부 close에서는 지연 mobile reflow로 새 focus를 다시 blur하지 않는다.
 - Google Apps Script persistence
@@ -482,6 +483,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 별도수익처럼 여러 모듈에 영향을 주는 흐름
 - cross-module action
 - render orchestration
+  - `#tabs/#app` full render의 keyboard focus snapshot/restore를 공통 소유하고, Live Valuation 경로는 menu/TOC/window/nested-scroll transient state를 추가 보존한다.
 - 초기 state 연결
 - event delegation entry
 - boot

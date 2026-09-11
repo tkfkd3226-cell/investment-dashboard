@@ -16,7 +16,7 @@
 
 /* -------------------------------------------------------------------------
    [S00] Expanded Chart · Non-Web Shared ≤1100px
-   Why · 이유: 확대 차트는 Tablet과 Phone 모두 세로 화면에서 회전형 stage를 공유하고,
+   Why · 이유: 확대 차트는 ≤1100px non-web 범위에서 기본 회전형 stage를 공유하고,
    실제 스마트폰 가로에서만 device-landscape가 원래 방향을 복원한다.
    일반 responsive density가 아니라 expanded overlay 전용 cross-viewport 예외이므로 special.css가 소유한다.
    ------------------------------------------------------------------------- */

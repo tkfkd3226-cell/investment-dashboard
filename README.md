@@ -128,7 +128,7 @@ GitHub Pages / Browser
 
 Main의 JavaScript entry point는 `js/dashboard-app.js`입니다.
 
-Market AI는 `js/dashboard-market-ai.js`가 별도 standalone entry로 동작합니다.
+Market AI는 `js/dashboard-market-ai.js`가 별도 standalone entry로 동작합니다. 이 entry는 `dashboard-modal.js`의 dialog lifecycle과 `dashboard-market-ai-client.js`의 endpoint/timeout transport만 공유하며, 오늘 보유종목 Live Valuation은 main graph의 `dashboard-live-valuation.js`가 같은 transport foundation을 별도로 사용합니다.
 
 ### 3.2 퇴직연금 저장
 

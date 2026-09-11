@@ -11,7 +11,7 @@ import {
 } from './dashboard-market-ai-client.js';
 
 // Live Valuation Adapter · current-date quote universe + screen-only valuation overlay refresh.
-// Market AI owns quotes; dashboard-core owns positions/cost basis/calculation. No live value is persisted.
+// Market AI backend owns quote source, dashboard-market-ai-client.js owns transport, and dashboard-core owns positions/cost basis/calculation. No live value is persisted.
 const LIVE_VALUATION_POLL_MS=10_000;
 const LIVE_VALUATION_ENDPOINT='/api/market-data/krx-quotes';
 const LIVE_VALUATION_CLIENT_SESSION_KEY='investmentDashboard.liveValuationClientId';

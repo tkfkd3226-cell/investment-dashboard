@@ -503,6 +503,7 @@ Tab으로 진입 후 Esc
 - Python docstring / CLI help
 - JSON 예제와 실제 schema
 - 테스트가 주장하는 contract와 production 구현
+- CSS/JS/GAS inline 주석의 ownership·lifecycle·timeout·persistence 설명과 실제 구현
 - Main ↔ Add 파생값 / theme / viewport contract
 
 ## Pass 6 — 100점 반증 평가
@@ -963,7 +964,10 @@ ARIA 정적 검사를 통과했다고 keyboard UX가 정상인 것은 아니다.
 - 이미 제거된 기능이 남아 있지 않은가
 - “여러 추가매수 내역 관리”처럼 실제로는 단일 시나리오 입력인데 다중 관리 기능처럼 오해시키는 표현이 없는가
 
-## 14.2 Workflow / Python 설명
+## 14.2 Source Comment / Workflow / Python 설명
+
+CSS/JS/GAS의 inline 주석도 semantic documentation으로 취급한다. 특히 `only`, `전용`, `소유`, `보존`, `재사용하지 않는다`처럼 책임 경계를 단정하는 주석은 실제 import/상태/저장 경로와 대조한다. 코드가 맞고 주석만 오래된 경우에는 실행 결함으로 오인하지 말고 documentation drift로 구분한다.
+
 
 서로 다른 operation은 명확히 구분해야 한다.
 
