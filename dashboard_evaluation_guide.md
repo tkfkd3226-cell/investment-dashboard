@@ -1161,7 +1161,7 @@ Market AI 백엔드는 기본 MAIN 평가 대상에서 제외한다. 다만 Dash
 - PC/폰/복수 탭이 서로 다른 `client_id`를 사용할 때 한 client의 요청이 다른 client의 ticker universe를 제거하지 않는지
 - client lease 만료만으로 장마감 quote/universe를 즉시 폐기해 foreground 복귀 후 영구 warming을 만들지 않는지
 - chart expanded, KRX/action modal, Pension contribution modal, native dialog 중 live state가 들어와도 전체 render가 입력/진행 UI를 교체하지 않고, 닫힌 뒤 pending render가 최신 state를 반영하는지
-- Hero `LIVE/CLOSED/STALE/JSON` 상태와 종목별 source tooltip이 실제 quote/fallback 의미와 일치하는지
+- Hero `LIVE/CLOSED/STALE/JSON` 상태와 종목별 source tooltip이 실제 quote/fallback 의미와 일치하는지. 특히 `market_state=closed`인데 usable quote 없이 JSON fallback 중인 경우 `WARMING`이 아니라 `JSON · 장마감`으로 표시되는지
 - source tooltip이 라벨 셀 hover와 keyboard focus 모두에서 열리고 기존 tooltip lifecycle/viewport clipping contract를 지키는지
 - endpoint별 실패 격리와 전체 Market AI 연결 실패가 기본 Dashboard 기능을 깨뜨리지 않는지
 

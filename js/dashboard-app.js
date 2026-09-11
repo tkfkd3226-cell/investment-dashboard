@@ -242,6 +242,7 @@ function liveValuationStatusText(date){
     return `${activeLabel} ${status.usableCount}/${status.requestedCount} · JSON ${status.fallbackCount}${staleText}${timeText}`;
   }
   if(status.mode==='stale')return `STALE → JSON${quoteTime?` · 최종 ${quoteTime}`:''}`;
+  if(status.marketState==='closed')return 'JSON · 장마감';
   if(status.warmingCount)return `JSON · WARMING ${status.warmingCount}/${status.requestedCount}`;
   if(['timeout','request-failed'].includes(status.reason))return 'JSON · Market AI 연결 실패';
   return 'JSON · Market AI 대기';

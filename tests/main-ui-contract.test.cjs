@@ -978,6 +978,8 @@ test('Hero 현재가 상태는 기존 hero-basis typography로 LIVE/CLOSED/STALE
   assert.match(app,/CLOSED \$\{status\.usableCount\}\/\$\{status\.requestedCount\}/);
   assert.match(app,/LIVE \$\{status\.usableCount\}\/\$\{status\.requestedCount\}/);
   assert.match(app,/STALE → JSON/);
+  assert.match(app,/status\.marketState==='closed'\)return 'JSON · 장마감'/);
+  assert.match(app,/JSON · WARMING/);
   assert.match(app,/JSON · 과거 저장 데이터/);
   assert.match(app,/data-live-valuation-status/);
   assert.equal((common.match(/live-valuation-status|live-source-status/g)||[]).length,0,'상태 표시 전용 CSS를 추가하면 안 된다');

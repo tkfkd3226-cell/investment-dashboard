@@ -895,7 +895,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - Desktop/Tablet Hero와 Mobile dialog가 같은 signal panel DOM을 재사용하는 구조를 유지한다.
 - Phone에서는 Market AI metric tooltip을 활성화하지 않는다.
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
-- Hero의 현재가 상태는 전체 quote 사용 상태를 `LIVE / CLOSED / STALE / JSON` 의미로 요약한다. 과거 날짜는 항상 저장 데이터 의미를 유지한다.
+- Hero의 현재가 상태는 전체 quote 사용 상태를 `LIVE / CLOSED / STALE / JSON` 의미로 요약한다. 과거 날짜는 항상 저장 데이터 의미를 유지한다. `market_state=closed`에서 usable quote가 없어 JSON fallback 중이면 장중 대기처럼 `WARMING`으로 표시하지 않고 `JSON · 장마감`으로 표시한다.
 - 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다.
 - live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 전체 render로 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다.
 
