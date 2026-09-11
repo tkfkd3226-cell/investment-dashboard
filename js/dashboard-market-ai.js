@@ -762,11 +762,11 @@ function setupMarketAiTooltipEvents(){
 
 // [MARKET08] Metric Markup / Responsive Mobile UI · panel metric / trigger / dialog
 function marketAiDesktopSignalMetric(label,key){
-  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-card="${key}" data-market-ai-tooltip="signal" data-market-ai-key="${key}"><span class="data-list-card-label market-ai-desktop-label">${label}</span><strong class="data-list-card-value market-ai-desktop-signal" data-market-ai-score="${key}">--</strong></span>`;
+  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-dashboard-focus-key="market-ai:signal:${key}" data-market-ai-card="${key}" data-market-ai-tooltip="signal" data-market-ai-key="${key}"><span class="data-list-card-label market-ai-desktop-label">${label}</span><strong class="data-list-card-value market-ai-desktop-signal" data-market-ai-score="${key}">--</strong></span>`;
 }
 
 function marketAiDesktopMarketMetric(label,marketKey){
-  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-market-ai-market-card="${marketKey}" data-market-ai-tooltip="market" data-market-ai-key="${marketKey}"><span class="data-list-card-label market-ai-desktop-label">${label}</span><strong class="data-list-card-value market-ai-desktop-value" data-market-ai-market="${marketKey}">--</strong><strong class="data-list-card-value market-ai-desktop-change" data-market-ai-change="${marketKey}"></strong></span>`;
+  return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-dashboard-focus-key="market-ai:market:${marketKey}" data-market-ai-market-card="${marketKey}" data-market-ai-tooltip="market" data-market-ai-key="${marketKey}"><span class="data-list-card-label market-ai-desktop-label">${label}</span><strong class="data-list-card-value market-ai-desktop-value" data-market-ai-market="${marketKey}">--</strong><strong class="data-list-card-value market-ai-desktop-change" data-market-ai-change="${marketKey}"></strong></span>`;
 }
 
 function marketAiDesktopFuturesMetric(){
@@ -853,21 +853,30 @@ function openMarketAiMobileDialog(){
 
 function syncMarketAiResponsiveMount(row,hero){
   if(marketAiPhoneUi()){
+    const handoffToMobileTrigger=row.dataset.marketAiPlacement==='hero'&&row.contains(document.activeElement);
     const dialog=marketAiMobileDialog();
     const content=dialog.querySelector('[data-market-ai-mobile-content]');
     if(content&&row.parentElement!==content)content.appendChild(row);
     hero.classList.remove('market-ai-mounted');
-    marketAiMobileTrigger(hero);
+    const trigger=marketAiMobileTrigger(hero);
     syncMarketAiMetricInteractivity(row,true);
     row.dataset.marketAiPlacement='mobile';
+    if(handoffToMobileTrigger&&trigger){
+      requestAnimationFrame(()=>{
+        if(!marketAiPhoneUi())return;
+        try{trigger.focus({preventScroll:true})}catch{trigger.focus()}
+      });
+    }
     return;
   }
 
   syncMarketAiMetricInteractivity(row,false);
-  document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.remove();
   const dialog=document.getElementById(MARKET_AI_MOBILE_DIALOG_ID);
-  if(dialog?.open)closeDashboardNativeDialog(dialog,{fallbackSelector:`#${MARKET_AI_MOBILE_TRIGGER_ID}`});
+  // When Phone dialog crosses into Desktop/Tablet the mobile trigger intentionally disappears.
+  // Return focus to the first desktop Market AI metric instead of a removed trigger/document fallback.
+  if(dialog?.open)closeDashboardNativeDialog(dialog,{fallbackSelector:'#market-ai-section [data-market-ai-tooltip]'});
   if(row.parentElement!==hero)hero.appendChild(row);
+  document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.remove();
   hero.classList.add('market-ai-mounted');
   row.dataset.marketAiPlacement='hero';
 }

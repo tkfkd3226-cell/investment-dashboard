@@ -222,7 +222,7 @@ function renderAssetContributionCard({
   const content=!hasPrev
     ? `<div class="asset-empty-state">${noPrevMessage}</div>`
     : items.length
-      ? `<div class="asset-stack-bar" role="group" aria-label="${escapeHtml(title)} 구성">${items.map((item,index)=>{const tooltipId=`${idPrefix}Tooltip${index}`;const share=Math.max(0,Number(item.share)||0);const valueText=String(item.valueText??'');const ariaLabel=escapeHtml(`${item.name} 상승분 기여도 ${share.toFixed(1)}%, ${valueText}`);const label=share>=8?escapeHtml(item.shortLabel??item.name):'';const color=escapeHtml(String(item.color||'transparent'));return `<div class="asset-stack-segment has-tooltip" tabindex="0" role="img" aria-label="${ariaLabel}" aria-describedby="${tooltipId}" style="--asset-segment-share:${share.toFixed(4)}%;--asset-segment-color:${color}"><span>${label}</span><div id="${tooltipId}" class="asset-viz-tooltip" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${share.toFixed(1)}%</div><div>${escapeHtml(valueText)}</div></div></div>`}).join('')}</div>`
+      ? `<div class="asset-stack-bar" role="group" aria-label="${escapeHtml(title)} 구성">${items.map((item,index)=>{const tooltipId=`${idPrefix}Tooltip${index}`;const share=Math.max(0,Number(item.share)||0);const valueText=String(item.valueText??'');const ariaLabel=escapeHtml(`${item.name} 상승분 기여도 ${share.toFixed(1)}%, ${valueText}`);const label=share>=8?escapeHtml(item.shortLabel??item.name):'';const color=escapeHtml(String(item.color||'transparent'));return `<div class="asset-stack-segment has-tooltip" tabindex="0" data-dashboard-focus-key="${escapeHtml(idPrefix)}:contribution:${index}" role="img" aria-label="${ariaLabel}" aria-describedby="${tooltipId}" style="--asset-segment-share:${share.toFixed(4)}%;--asset-segment-color:${color}"><span>${label}</span><div id="${tooltipId}" class="asset-viz-tooltip" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${share.toFixed(1)}%</div><div>${escapeHtml(valueText)}</div></div></div>`}).join('')}</div>`
       : `<div class="asset-empty-state">${emptyMessage}</div>`;
   return renderAssetInsightCard({idPrefix,title,content});
 }
@@ -568,6 +568,8 @@ function assetSourceTooltipHitArea(target){
 function setupAssetSourceTooltips(){
   if(assetSourceTooltipBound)return;
   assetSourceTooltipBound=true;
+  // aria-describedby targets must exist before the first keyboard focus reaches a source label.
+  assetSourceTooltip();
   const selector='[data-asset-source-tooltip]';
   document.addEventListener('pointerover',event=>{
     if(event.pointerType==='touch')return;
@@ -633,7 +635,8 @@ function renderAssetSourceTooltipTarget({labelHtml='',name='',ticker='',source='
     ['data-asset-basis-date',basisDate],
     ['data-asset-observed-at',observedAt]
   ].map(([key,value])=>`${key}="${escapeHtml(value)}"`).join(' ');
-  return `<span data-asset-source-tooltip tabindex="0" ${attrs}>${labelHtml}</span>`;
+  const focusKey=`asset-source:${ticker||name||'unknown'}`;
+  return `<span data-asset-source-tooltip tabindex="0" data-dashboard-focus-key="${escapeHtml(focusKey)}" aria-describedby="${ASSET_SOURCE_TOOLTIP_ID}" ${attrs}>${labelHtml}</span>`;
 }
 
 // [UICOMMON07] Public API

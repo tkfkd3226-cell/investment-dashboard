@@ -228,6 +228,7 @@ function renderAssetWorkspace(x){
 }
 
 function render(){
+  const focusSnapshot=dashboardFocusSnapshot();
   const x=calc(dataState.activeDate),v=separateProfitView(x);
   renderTabs();
   const pensionPills=x.hasPension?`<span class="pill hero-profit-pill"><span class="hero-label-default">퇴직연금 운용손익</span><span class="hero-label-mobile">퇴직연금 손익</span> ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
@@ -241,12 +242,18 @@ function render(){
   ensureMobileTopButton();
   ensureDesktopEdgeToc();
   setupSectionNavigationTracking();
+  restoreDashboardFocus(focusSnapshot);
 }
-function liveValuationFocusSnapshot(){
+function dashboardFocusSnapshot(){
   const active=document.activeElement;
   if(!active||active===document.body||active===document.documentElement)return null;
   if(!active.closest?.('#tabs,#app,#desktopEdgeToc'))return null;
   if(active.id)return {kind:'id',value:active.id};
+  const focusKey=active.dataset?.dashboardFocusKey;
+  if(focusKey){
+    const matches=[...document.querySelectorAll('[data-dashboard-focus-key]')].filter(node=>node.dataset.dashboardFocusKey===focusKey);
+    return {kind:'focus-key',value:focusKey,index:Math.max(0,matches.indexOf(active))};
+  }
   const action=active.dataset?.dashboardAction;
   if(action){
     const matches=[...document.querySelectorAll('[data-dashboard-action]')].filter(node=>node.dataset.dashboardAction===action);
@@ -259,31 +266,46 @@ function liveValuationFocusSnapshot(){
   }
   return null;
 }
-function restoreLiveValuationFocus(snapshot){
-  if(!snapshot)return;
-  let target=null;
-  if(snapshot.kind==='id')target=document.getElementById(snapshot.value);
-  else if(snapshot.kind==='action'){
-    const matches=[...document.querySelectorAll('[data-dashboard-action]')].filter(node=>node.dataset.dashboardAction===snapshot.value);
-    target=matches[snapshot.index]||matches[0]||null;
-  }else if(snapshot.kind==='href'){
-    const matches=[...document.querySelectorAll('a[href]')].filter(node=>node.getAttribute('href')===snapshot.value);
-    target=matches[snapshot.index]||matches[0]||null;
+function dashboardFocusTarget(snapshot){
+  if(!snapshot)return null;
+  if(snapshot.kind==='id')return document.getElementById(snapshot.value);
+  if(snapshot.kind==='focus-key'){
+    const matches=[...document.querySelectorAll('[data-dashboard-focus-key]')].filter(node=>node.dataset.dashboardFocusKey===snapshot.value);
+    return matches[snapshot.index]||matches[0]||null;
   }
-  try{target?.focus?.({preventScroll:true})}catch{target?.focus?.()}
+  if(snapshot.kind==='action'){
+    const matches=[...document.querySelectorAll('[data-dashboard-action]')].filter(node=>node.dataset.dashboardAction===snapshot.value);
+    return matches[snapshot.index]||matches[0]||null;
+  }
+  if(snapshot.kind==='href'){
+    const matches=[...document.querySelectorAll('a[href]')].filter(node=>node.getAttribute('href')===snapshot.value);
+    return matches[snapshot.index]||matches[0]||null;
+  }
+  return null;
+}
+function restoreDashboardFocus(snapshot,retryFrames=2){
+  if(!snapshot)return;
+  const target=dashboardFocusTarget(snapshot);
+  if(target){
+    try{target.focus?.({preventScroll:true})}catch{target.focus?.()}
+    return;
+  }
+  // Standalone surfaces such as Market AI remount on the frame after #app replacement.
+  // Retry only stable keyed targets so unrelated controls never receive guessed focus.
+  if(snapshot.kind==='focus-key'&&retryFrames>0){
+    requestAnimationFrame(()=>restoreDashboardFocus(snapshot,retryFrames-1));
+  }
 }
 function renderLiveValuationRefresh(){
   if(dataState.activeDate!==kstTodayText())return;
   const scrollX=window.scrollX,scrollY=window.scrollY;
   const keepDateMenuOpen=dateActionMenuIsOpen();
   const keepDesktopTocOpen=desktopEdgeTocIsOpen();
-  const focusSnapshot=liveValuationFocusSnapshot();
   suppressChartEntranceOnce();
   requestSecuritiesCumCardTransitionSuppression();
   render();
   if(keepDateMenuOpen)restoreDateActionMenuAfterRender();
   if(keepDesktopTocOpen)restoreDesktopEdgeTocAfterRender();
-  restoreLiveValuationFocus(focusSnapshot);
   requestAnimationFrame(()=>window.scrollTo({left:scrollX,top:scrollY,behavior:'auto'}));
 }
 

@@ -135,13 +135,22 @@ test('실시간 평가 race 방어: client lease, universe drift, pending render
   assert.match(liveValuation,/if\(refreshSequence!==liveValuationRefreshSequence\)return;/);
 });
 
-test('실시간 평가 full render는 열린 목차와 keyboard focus를 보존하고 generated_at-only 응답으로 재렌더하지 않는다',()=>{
+test('공통 full render는 keyboard focus를 보존하고 live refresh는 열린 목차·scroll 및 metadata-only 무렌더 계약을 유지한다',()=>{
+  assert.match(app,/function render\(\)\{\s*const focusSnapshot=dashboardFocusSnapshot\(\);/);
+  assert.match(app,/restoreDashboardFocus\(focusSnapshot\);/);
+  assert.match(app,/active\.dataset\?\.dashboardFocusKey/);
+  assert.match(app,/snapshot\.kind==='focus-key'/);
+  assert.match(app,/return \{kind:'focus-key',value:focusKey,index:Math\.max\(0,matches\.indexOf\(active\)\)\}/);
+  assert.match(app,/requestAnimationFrame\(\(\)=>restoreDashboardFocus\(snapshot,retryFrames-1\)\)/);
+  assert.match(marketAi,/data-dashboard-focus-key="market-ai:signal:\$\{key\}"/);
+  assert.match(marketAi,/data-dashboard-focus-key="market-ai:market:\$\{marketKey\}"/);
+  assert.match(uiCommon,/data-dashboard-focus-key="\$\{escapeHtml\(idPrefix\)\}:contribution:\$\{index\}"/);
+  assert.match(uiCommon,/const focusKey=`asset-source:\$\{ticker\|\|name\|\|'unknown'\}`/);
+  assert.match(pension,/data-dashboard-focus-key="pension:risk-gauge"/);
   assert.match(app,/const keepDateMenuOpen=dateActionMenuIsOpen\(\);/);
   assert.match(app,/const keepDesktopTocOpen=desktopEdgeTocIsOpen\(\);/);
-  assert.match(app,/const focusSnapshot=liveValuationFocusSnapshot\(\);/);
   assert.match(app,/if\(keepDateMenuOpen\)restoreDateActionMenuAfterRender\(\);/);
   assert.match(app,/if\(keepDesktopTocOpen\)restoreDesktopEdgeTocAfterRender\(\);/);
-  assert.match(app,/restoreLiveValuationFocus\(focusSnapshot\);/);
   assert.match(ui,/function desktopEdgeTocIsOpen\(\)/);
   assert.match(ui,/function restoreDesktopEdgeTocAfterRender\(\)/);
   assert.match(liveValuation,/function liveValuationFingerprint\(payload,requestedTickers=\[\]\)/);
@@ -905,6 +914,21 @@ test('Modal lifecycle는 focus trap / focus return / inert / ESC를 공통 layer
   assert.match(modal1,/target\?\.focus\?\.\(\{preventScroll:true\}\)/);
 });
 
+test('Market AI responsive 전환은 Phone↔Desktop 양방향으로 keyboard focus handoff를 유지한다',()=>{
+  const start=marketAi.indexOf('function syncMarketAiResponsiveMount');
+  const end=marketAi.indexOf('\n// [MARKET09]',start);
+  assert.ok(start>=0&&end>start,'Market AI responsive mount block is missing');
+  const block=marketAi.slice(start,end);
+  assert.match(block,/const handoffToMobileTrigger=row\.dataset\.marketAiPlacement==='hero'&&row\.contains\(document\.activeElement\)/);
+  assert.match(block,/const trigger=marketAiMobileTrigger\(hero\)/);
+  assert.match(block,/if\(handoffToMobileTrigger&&trigger\)\{[^]*?trigger\.focus\(\{preventScroll:true\}\)/);
+  assert.match(block,/closeDashboardNativeDialog\(dialog,\{fallbackSelector:'#market-ai-section \[data-market-ai-tooltip\]'\}\)/);
+  const closeIndex=block.indexOf("fallbackSelector:'#market-ai-section [data-market-ai-tooltip]'");
+  const removeIndex=block.indexOf("document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.remove()");
+  const appendIndex=block.indexOf("if(row.parentElement!==hero)hero.appendChild(row)");
+  assert.ok(closeIndex>=0&&appendIndex>closeIndex&&removeIndex>appendIndex,'dialog close → desktop row mount → mobile trigger remove 순서를 유지해야 한다');
+});
+
 test('Market AI contract: KOSPI200 선물 / SOX 현물 / NQ100 선물 symbol을 고정한다',()=>{
   assert.match(marketAi,/MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200'/);
   assert.match(marketAi,/MARKET_AI_SOX_INDEX_SYMBOL='INDEX:SOX'/);
@@ -1040,6 +1064,8 @@ test('보유종목/연금상품 현재가 출처는 기존 dash-tooltip surface�
   assert.match(uiCommon,/tooltip\.className='dash-tooltip'/);
   assert.match(uiCommon,/function renderAssetPriceSourceLabel\(/);
   assert.match(uiCommon,/data-asset-source-tooltip/);
+  assert.match(uiCommon,/assetSourceTooltip\(\);\s*const selector='\[data-asset-source-tooltip\]'/);
+  assert.match(uiCommon,/data-asset-source-tooltip tabindex="0" data-dashboard-focus-key="\$\{escapeHtml\(focusKey\)\}" aria-describedby="\$\{ASSET_SOURCE_TOOLTIP_ID\}"/);
   assert.match(app,/setupAssetSourceTooltips\(\)/);
   assert.match(ui,/renderAssetPriceSourceLabel\(/);
   assert.match(pension,/renderAssetPriceSourceLabel\(/);

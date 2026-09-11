@@ -4,7 +4,7 @@
 
 > **문서 성격 / 평가 환경**  
 > 이 문서는 **현재 제공된 Dashboard snapshot을 독립 평가하는 기준서**다. 수정 방법, 운영자 실행법, Market AI runtime 빌드 순서를 설명하는 문서가 아니다.  
-> Market AI·GAS·GitHub Actions는 Dashboard와 맞닿는 **contract와 실패 격리**만 기본 평가 범위에 포함한다. **최신 GAS source가 함께 제공되면 GAS Backend를 별도 /100 범위로 평가하고, 제공되지 않으면 `GAS Backend: N/A — source not provided`로 처리해 점수와 A/B/C 산정에서 제외한다.** Market AI 등 다른 별도 프로젝트도 최신 소스가 함께 제공된 경우에만 별도 범위로 평가한다.
+> Market AI·GAS·GitHub Actions는 Dashboard와 맞닿는 **contract와 실패 격리**만 평가 범위에 포함하고, 별도 프로젝트 내부 구현의 품질 점수는 그 프로젝트 소스가 함께 제공된 경우에만 별도 범위로 평가한다.
 
 이 문서의 목적은 프로젝트를 수정하거나 인수인계하는 방법을 설명하는 것이 아니라, 사용자가 `점수`, `평가`, `평가해줘`를 요청했을 때 **무엇을 어떤 근거로 평가하고, 어떤 실패 가설을 새로 만들어 검증하며, 무엇은 감점하지 않고, 결과를 어떤 형식으로 작성할지**를 일관되게 정의하는 것이다.
 
@@ -34,7 +34,7 @@
 
 ## 1.1 `점수`
 
-`점수`는 최신 실제 소스를 필요한 범위에서 검증해 CSS / JavaScript / UI / UX 점수를 새로 산정한다. 최신 GAS source가 함께 제공되고 현재 범위에 포함되면 GAS Backend 점수도 별도 산정한다.
+`점수`는 최신 실제 소스를 필요한 범위에서 검증해 CSS / JavaScript / UI / UX 점수를 새로 산정한다.
 
 기본 출력은 점수 중심으로 간결하게 작성한다.
 
@@ -45,7 +45,6 @@ UI
 UX
 UI/UX 총점
 전체 총점
-GAS Backend   # 최신 GAS source가 제공된 경우에만 별도 표시
 ```
 
 - 상세 수정 작업은 수행하지 않는다.
@@ -66,7 +65,6 @@ GAS Backend   # 최신 GAS source가 제공된 경우에만 별도 표시
 → 상태 모델과 async boundary 식별
 → 실패 가설·반례 생성
 → CSS / JS / UI / UX 독립 평가
-→ 최신 GAS source가 제공되고 범위에 포함되면 GAS Backend 별도 평가
 → 각 영역의 하위 평가항목별 점수·상태·근거 기록
 → 화면 영역별 / 기능별 / 사용자 flow별 평가
 → 접근성 / 성능 / 유지보수성 / 문서 의미 확인
@@ -75,15 +73,12 @@ GAS Backend   # 최신 GAS source가 제공된 경우에만 별도 표시
 → 세부 점수표와 최종 결론
 ```
 
-`평가` / `평가해줘`의 최종 답변에는 원칙적으로 다음 네 종류의 Dashboard 상세표가 모두 포함되어야 하며, 최신 GAS source가 범위에 포함되면 다섯 번째 GAS Backend 상세표를 추가한다.
+`평가` / `평가해줘`의 최종 답변에는 원칙적으로 다음 네 종류의 상세표가 모두 포함되어야 한다.
 
 1. **CSS 하위 평가표** — 구조, token, cascade, responsive, theme, interaction/state, dead/legacy, 유지보수성 등
 2. **JavaScript 하위 평가표** — module/dependency, state, render, event, async/race, persistence, error, lifecycle 등
 3. **UI 화면 영역별 평가표** — 실제 화면 inventory를 먼저 만든 뒤 Topbar/KPI/Table/Card/Chart/Modal/Tooltip/Market AI/ADD 등 존재하는 영역별 평가
 4. **UX flow별 평가표** — 진입→조작→feedback→성공/실패→복구→재진입/복원의 흐름별 평가
-5. **GAS Backend 하위 평가표(조건부)** — 최신 GAS source가 제공되고 현재 평가 범위에 포함된 경우에만 구조/인증/GitHub CAS/Script Properties/Pension Single·Batch/KRX dispatch/관측성 기준으로 별도 평가
-
-GAS source가 제공되지 않은 경우 5번 표는 만들지 않고 `GAS Backend: N/A — source not provided`로만 명시한다. **N/A는 0점이 아니며 Dashboard 전체 총점의 분모에도 들어가지 않는다.**
 
 각 표에는 최소한 `평가항목 | 점수 | 상태 | 핵심 근거 | 감점 여부`를 포함한다. 100점인 항목도 단순히 `문제 없음`으로 끝내지 않고, **왜 감점하지 않았는지 확인한 실제 구조·동작 근거**를 적는다.
 
@@ -107,34 +102,10 @@ JS만 평가
 화면 영역별 평가
 기능별 평가
 MAIN ↔ ADD 통합 평가
-GAS만 평가
-GAS 포함 전체 평가
 전체 평가
 ```
 
 범위가 좁더라도 해당 기능의 판정에 필요한 dependency / shared contract / responsive rule / persistence / async lifecycle은 필요한 만큼 함께 확인한다.
-
-GAS 범위 판정은 다음을 따른다.
-
-```text
-최신 GAS source 제공 + GAS만 평가
-→ GAS Backend만 평가
-→ CSS / JavaScript / UI / UX는 N/A
-
-최신 GAS source 제공 + MAIN/전체 평가
-→ Dashboard CSS / JavaScript / UI / UX 평가
-→ GAS Backend도 별도 /100 평가
-→ Dashboard 전체 총점과 자동 합산하지 않음
-
-GAS source 미제공
-→ GAS Backend: N/A — source not provided
-→ frontend request/response contract에서 확인 가능한 범위만 평가
-→ server 내부 transaction/idempotency/security를 추정해 감점하지 않음
-
-과거 GAS 또는 문서 설명만 존재하고 현재 source 여부가 불명확
-→ 현재 GAS source 미제공으로 취급
-→ 사용자가 명시적으로 과거 버전 비교를 요청한 경우에만 별도 참고 평가
-```
 
 ## 1.4 평가와 QA는 다른 작업이다
 
@@ -345,53 +316,24 @@ UX는 화면 모양이 아니라 **사용자 flow와 상태 전이**를 기준�
 
 UX는 추상적인 취향보다 실제 사용자 영향이 있을 때 지적한다. 전체 평가에서는 핵심 flow를 inventory하고 **flow별 상태 전이와 판정 근거를 별도 표로 출력**한다.
 
-## 4.5 GAS Backend — 조건부 별도 평가
-
-GAS Backend는 **최신 GAS source가 실제로 제공된 경우에만** 평가한다. Dashboard frontend JavaScript와 섞어 채점하지 않고 **별도 /100 점수**로 산정한다.
-
-| 하위 평가축 | 기본 비중 | 핵심 질문 |
-|---|---:|---|
-| 구조 / 책임 분리 | 10 | Web App entry, 공통 helper, transaction 영역, KRX/Pension 책임이 추적 가능하게 분리되어 있는가 |
-| GitHub I/O / CAS / 원자성 | 15 | branch HEAD, Contents/Git tree commit, non-force CAS, read-back/retry가 동시 저장을 안전하게 처리하는가 |
-| Script Properties / intent / quota lifecycle | 12 | receipt/intent/confirmation/operation marker가 cap·TTL·global budget·GC에서 causal proof를 잃지 않는가 |
-| Pension Single transaction / idempotency | 17 | exact identity, semantic ledger, stale retry, optimistic concurrency, response-loss recovery가 중복·되감기를 막는가 |
-| Pension Batch atomicity / recovery | 17 | batchRequestId/operation identity, atomic commit, partial conflict, stale/duplicate recovery가 전체 작업 의미를 보존하는가 |
-| KRX dispatch / race / reconciliation | 17 | requestId, durable ledger, operation marker, workflow-run proof, 4xx/5xx/timeout uncertainty가 duplicate dispatch 없이 수렴하는가 |
-| 인증 / 입력 / 오류 방어 | 8 | secret 비노출, PIN/입력 검증, fail-closed, 오류 정보 노출, rate-limit/DoS trade-off가 실제 운영 위험을 만들지 않는가 |
-| 성능 / 관측성 / 유지보수성 | 4 | 원격 I/O 최적화와 timing 계측이 정합성을 약화하지 않고, 복잡도가 추적 가능한가 |
-
-GAS 평가에서는 특히 다음 원칙을 적용한다.
-
-- **문법 PASS만으로 고득점을 주지 않는다.** transaction/idempotency state machine을 실제 호출 순서로 추적한다.
-- **응답 유실 / partial write / stale retry / GC / cross-device / concurrent request / GitHub branch race**를 조합한 반례를 새로 만든다.
-- PIN 같은 보안 항목은 단순 lockout 유무가 아니라 **brute-force 방어와 제3자 lockout DoS의 trade-off**까지 본다.
-- normalize/filter 계층이 잘못된 durable 데이터를 조용히 폐기한 뒤 정상 write로 덮어쓸 수 있는지도 확인한다.
-- 성능 개선이 latest HEAD/CAS/read-back/durable proof를 생략해 얻어진 경우 감점한다.
-- 최신 GAS source가 없으면 이 영역은 **N/A**이며, 문서·frontend 호출 형태만으로 server 내부가 안전하다고 추정하거나 반대로 불안전하다고 감점하지 않는다.
-
-GAS 전용 `100점`도 24장의 100점 Gate와 Counterexample Pass를 적용한다. 단, CSS/UI처럼 무관한 gate는 제외하고 **server transaction/security/race에 대응되는 gate만 적용**한다.
-
-## 4.6 종합점수
+## 4.5 종합점수
 
 ```text
 UI/UX 총점 = UI와 UX 평균
-Dashboard 전체 총점 = CSS / JavaScript / UI / UX 동일가중 평균
-GAS Backend = 최신 GAS source가 제공된 경우 별도 /100
+전체 총점 = CSS / JavaScript / UI / UX 동일가중 평균
 ```
-
-**GAS Backend 점수는 기본 Dashboard 전체 총점에 자동 합산하지 않는다.** 사용자가 `전체 시스템 통합점수`, `frontend+GAS 통합점수`처럼 통합 산정을 명시적으로 요청한 경우에만 별도 통합점수를 만들며, 그때는 사용한 산식과 가중치를 답변에 명시한다.
 
 과거 점수를 baseline으로 사용하지 않고 최신 실제 상태에서 새로 산정한다.
 
 ```text
 실제 감점 근거 있음 → 감점
 실제 감점 근거 없음 → 100 가능
-N/A → 0점이 아님 / 점수 하락 근거로 사용 금지 / 평균 분모에서 제외
+N/A → 점수 하락 근거로 사용 금지
 ```
 
 단, **100점은 24장의 100점 Gate를 모두 통과한 경우에만 허용**한다.
 
-## 4.7 A — 실제 수정 권장
+## 4.6 A — 실제 수정 권장
 
 A는 데이터·기능·운영 결과에 중대한 영향을 주는 구체적 문제다.
 
@@ -420,7 +362,7 @@ A는 데이터·기능·운영 결과에 중대한 영향을 주는 구체적 �
 회귀 테스트 후보
 ```
 
-## 4.8 B — 수정 권장 또는 명확한 개선
+## 4.7 B — 수정 권장 또는 명확한 개선
 
 B는 현재 대부분 정상이어도 **특정 순서·경계·입력 경로에서 실질적인 오류·혼란·유지보수 위험이 발생하는 문제**다.
 
@@ -442,7 +384,7 @@ B급을 채우기 위해 후보를 만들지 않는다.
 - “더 현대적”, “더 짧음”, “더 토큰화 가능” 같은 이유만으로 제안하지 않는다.
 - 문제를 재현하거나 코드 흐름으로 구체화할 수 없는 잠재 가능성은 감점하지 않는다.
 
-## 4.9 C — 유지 또는 비감점 기록
+## 4.8 C — 유지 또는 비감점 기록
 
 C는 **실제 문제라기보다 현재 상태를 유지해야 할 이유가 있거나, 수정 이득이 매우 작은 항목**을 기록하는 분류다.
 
@@ -1151,27 +1093,6 @@ MAIN 상세 architecture / module ownership / CSS ownership / responsive contrac
 
 ## 16.3 Frontend ↔ Backend contract
 
-### GAS source availability / 별도 점수 규칙
-
-Frontend↔GAS contract와 GAS 내부 품질 평가는 같은 것이 아니다. 먼저 현재 요청에 **최신 GAS source가 실제 제공되었는지** 판정한다.
-
-```text
-최신 GAS source 제공
-→ frontend request/response contract를 실제 server handler와 완전 대조
-→ 현재 평가 범위가 MAIN/전체 또는 GAS 포함이면 4.5의 GAS Backend /100도 별도 산정
-
-GAS source 미제공
-→ frontend가 보내는 payload, timeout, retry, modal/session lifecycle까지만 평가
-→ server handler 내부 transaction/idempotency/auth/race는 N/A
-→ GAS 미첨부 자체는 CSS / JavaScript / UI / UX 및 A/B/C 감점 사유가 아님
-
-문서에 GAS 동작 설명만 있고 source가 없음
-→ contract 문서 정합성만 확인
-→ server 구현 품질을 확인한 것으로 쓰지 않음
-```
-
-GAS 파일이 첨부되어 있더라도 사용자가 `CSS만`, `UI만`, `ADD Calc만`처럼 명확히 좁은 범위를 지정했다면 GAS Backend 평가를 억지로 추가하지 않는다. 반대로 `전체 평가`, `MAIN 전체 평가`에서 최신 GAS가 함께 제공되었다면 GAS Backend를 **별도 점수**로 포함해 보고한다.
-
 ### KRX
 
 현재 frontend의 실제 mode와 request contract를 확인한다.
@@ -1199,7 +1120,7 @@ Enter/submit 중복
 - `NETWORK_TIMEOUT`·transient status uncertainty에서 requestId를 폐기하지 않고 같은 identity로 안전하게 재시도·reconciliation할 수 있는지
 - 선택 날짜가 화면에 존재한다는 사실과 request body의 `date` 존재 여부를 혼동하지 않는지
 
-최신 GAS source가 제공된 경우에만 server handler까지 완전 대조한다. 미제공이면 해당 server-side 항목은 N/A이며 frontend 점수에서 감점하지 않는다.
+GAS가 제공된 경우에만 server handler까지 완전 대조한다.
 
 ### Pension
 
@@ -1241,7 +1162,7 @@ GAS가 함께 제공된 집중 평가에서는 구현 설명을 다시 문서화
 
 요청 시작 후 닫기를 막아야 하는 contract라면 실제로 모든 닫기 경로가 차단되는지, 실패 시 입력·닫기가 다시 활성화되는지, 중복 종료 guard가 안전한지 확인한다.
 
-server contract는 최신 GAS source가 제공된 경우에만 완전 대조한다. 미제공이면 GAS 내부 구현을 추정하지 않고 N/A 처리한다.
+server contract는 최신 GAS가 제공된 경우에만 완전 대조한다.
 
 ### Market AI
 
@@ -1262,13 +1183,14 @@ Market AI 백엔드는 기본 MAIN 평가 대상에서 제외한다. 다만 Dash
 - PC/폰/복수 탭이 서로 다른 `client_id`를 사용할 때 한 client의 요청이 다른 client의 ticker universe를 제거하지 않는지. 특히 탭 복제/`window.open`에서 `sessionStorage`가 복사돼도 활성 tab 간 ID 충돌을 감지·분리하는지
 - client lease 만료만으로 장마감 quote/universe를 즉시 폐기해 foreground 복귀 후 영구 warming을 만들지 않는지
 - chart expanded, KRX/action modal, Pension contribution modal, native dialog 중 live state가 들어와도 전체 render가 입력/진행 UI를 교체하지 않고, 닫힌 뒤 pending render가 최신 state를 반영하는지
-- 일반 live full render가 필요한 경우 Mobile 날짜/목차 메뉴, Desktop 목차 open 상태, keyboard focus, scroll 위치를 보존하는지. `generated_at`처럼 화면 의미가 바뀌지 않는 metadata-only 응답이 주기적으로 전체 render를 유발하지 않는지
+- `render()`로 `#tabs/#app`이 교체되는 모든 경로(날짜 변경, 별도수익 전환, live refresh 등)에서 keyboard focus가 공통 snapshot/restore contract로 보존되는지. `id` 없는 focusable visual target은 stable `data-dashboard-focus-key`를 가지며 중복 key는 occurrence index까지 보존하는지. 일반 live full render에서는 추가로 Mobile 날짜/목차 메뉴, Desktop 목차 open 상태와 scroll 위치를 보존하는지. `generated_at`처럼 화면 의미가 바뀌지 않는 metadata-only 응답이 주기적으로 전체 render를 유발하지 않는지
 - Hero 제목행에는 Live Valuation 상태 문자열을 노출하지 않고 날짜 기준만 표시하는지. `LIVE/CLOSED/STALE/WARMING/JSON` 판정은 내부 quote/fallback state와 테스트로만 유지되는지
 - Desktop/Tablet Market AI 시장 카드와 tooltip이 `marketAiMarketDisplayModel()` 하나를 공유해 같은 현재가·등락률·fallback 판단을 사용하는지. Tooltip은 KOSPI·SOX·NQ100에서 `현재가 → 등락률 → 상태 → 출처 → 기준 시각`, K200만 `상태` 뒤에 `세션`을 추가하는지
 - 상태 반례 `fresh / stale / missing`과 K200 `closed / bridge / source`에서 문구와 값 의미가 맞는지. 특히 K200 `closed / stale / bridge / source`는 rawRow가 있으면 마지막 수신 현재가·등락률을 유지하고 상태 행으로 신뢰도를 구분하며, 실제 row가 없는 `missing`에서만 값을 `--`로 표시하는지
 - 시장 tooltip에서 `갱신 / 마지막 수신 / 데이터` 같은 혼합 라벨이 다시 생기지 않고 시각 라벨이 `기준 시각`으로 고정되는지. raw row가 있는 비정상 상태에서는 출처/관측시각 진단 정보가 유지되는지
 - `세션`은 K200 Bridge `expected_session` 근거가 있을 때만 표시하고 KOSPI·SOX·NQ100의 세션을 프론트에서 추정하지 않는지
-- source tooltip이 라벨 셀 hover와 keyboard focus 모두에서 열리고 기존 tooltip lifecycle/viewport clipping contract를 지키는지
+- source tooltip이 라벨 셀 hover와 keyboard focus 모두에서 열리고 기존 tooltip lifecycle/viewport clipping contract를 지키는지. source label·자산 기여도 segment·연금 위험도 gauge·Market AI metric이 full render 뒤에도 focus를 잃지 않는 stable focus key를 갖는지
+- Market AI responsive 전환에서 Phone→Desktop뿐 아니라 Desktop→Phone도 active metric/trigger 사이 keyboard focus handoff가 대칭적으로 유지되는지
 - standalone pull-to-refresh가 일반 브라우저에서 비활성이고, 최상단 단일 아래방향 터치에서만 동작하며 `body.dashboard-dialog-open`/chart expanded 중에는 시작하지 않는지. 한 번 armed된 뒤 위로 되돌리거나 가로 제스처·멀티터치로 전환하면 stale drag state가 남지 않는지
 - endpoint별 실패 격리와 전체 Market AI 연결 실패가 기본 Dashboard 기능을 깨뜨리지 않는지
 
@@ -1728,8 +1650,7 @@ ADD도 Desktop / Tablet / Mobile contract를 대표하는 폭을 사용하되, �
 - UI 총점
 - UX 총점
 - UI/UX 총점
-- Dashboard 전체 총점
-- GAS Backend 총점 또는 `N/A — source not provided`
+- 전체 총점
 - A/B/C 개수
 - 현재 구조가 기준선으로 적절한지
 - 추가 구조 리팩토링이 실제로 필요한지
@@ -1742,8 +1663,6 @@ ADD도 Desktop / Tablet / Mobile contract를 대표하는 폭을 사용하되, �
 - selector/함수 증거가 필요한 경우만 짧은 코드 블록
 - 검증 근거를 해당 평가 항목 가까이에 배치
 - **`평가` / `평가해줘`에서는 CSS·JavaScript·UI·UX 각각의 하위 평가표를 생략하지 않음**
-- 최신 GAS source가 현재 평가 범위에 포함되면 **GAS Backend 하위 평가표와 별도 /100 점수도 생략하지 않음**
-- GAS source가 없으면 `GAS Backend: N/A — source not provided`만 표시하고 server 내부 구현을 추정 평가하지 않음
 - **UI는 실제 화면 영역별 표, UX는 실제 사용자 flow별 표를 별도로 작성**
 - 각 상세표는 원칙적으로 `평가항목 | 점수 | 상태 | 핵심 근거 | 감점 여부` 5개 열을 사용
 - 점수표만 나열하지 않고 실제 근거 설명
@@ -1820,7 +1739,7 @@ MAIN ↔ ADD shared token / theme / viewport contract
 
 ## 23.3 영역별 점수 보고의 최소 단위
 
-전체 평가에서 CSS / JavaScript / UI / UX는 **각각 최소 6개 이상의 실제 관련 하위 항목**으로 나눠 보고한다. 최신 GAS source가 평가 범위에 포함된 경우 GAS Backend도 **최소 6개 이상의 실제 관련 하위 항목**으로 나눠 별도 보고한다. 다만 범위가 매우 좁거나 N/A가 많은 경우에는 실제 관련 항목만 남긴다.
+전체 평가에서 CSS / JavaScript / UI / UX는 **각각 최소 6개 이상의 실제 관련 하위 항목**으로 나눠 보고한다. 다만 범위가 매우 좁거나 N/A가 많은 경우에는 실제 관련 항목만 남긴다.
 
 각 영역의 총점은 하위 평가와 논리적으로 연결되어야 한다. 예를 들어 Responsive에 실제 B급 결함이 있는데 UI 100을 줄 수 없고, Async/race에 명확한 B급 결함이 있는데 JavaScript 100을 줄 수 없다. 반대로 모든 하위 항목에서 실제 감점 근거가 없다면 하위 점수와 총점 모두 100을 허용한다.
 
@@ -1906,8 +1825,6 @@ JSON 예제가 실제 필수 context를 누락하면?
 
 ```text
 [ ] 현재 평가 범위를 판정할 수 있는 최신 실제 소스를 확인했는가
-[ ] 최신 GAS source의 제공 여부를 판정했고, 미제공이면 GAS Backend를 N/A로 제외했는가
-[ ] GAS source가 제공되고 범위에 포함되면 GAS Backend를 Dashboard 점수와 분리해 /100으로 평가했는가
 [ ] 과거 평가 점수를 baseline으로 사용하지 않았는가
 [ ] 해당 범위의 handover에서 현재 설계 의도를 확인했는가
 [ ] 평가 보호 규칙을 먼저 확인했는가
@@ -1933,7 +1850,6 @@ JSON 예제가 실제 필수 context를 누락하면?
 [ ] 주요 interactive 기능마다 새로운 adversarial scenario를 생성했는가
 [ ] 마지막에 100점을 깨는 반례를 별도로 찾아봤는가
 [ ] `평가`/`평가해줘`라면 CSS·JS·UI·UX 하위 평가표를 모두 작성했는가
-[ ] 최신 GAS source가 범위에 포함되면 GAS 하위 평가표와 transaction/idempotency/race 반례 검토를 작성했는가
 [ ] UI 실제 화면 영역 inventory와 영역별 판정을 작성했는가
 [ ] UX 주요 flow inventory와 flow별 상태 전이 판정을 작성했는가
 [ ] 100점 하위 항목에도 구조·기능·반례 검토 근거를 남겼는가
@@ -1990,8 +1906,6 @@ Report
 11. 성능
 
 점수는 그 결과를 표현하는 보조 지표다.
-
-GAS·Market AI처럼 별도 backend source가 조건부로 제공되는 영역은 **소스가 없다는 이유로 감점하지 않고 N/A로 분리**한다. 소스가 제공되면 frontend 점수에 섞지 말고 별도 품질 범위로 평가한다.
 
 점수를 올리기 위해 정상 구조를 계속 뜯지 않는다.
 

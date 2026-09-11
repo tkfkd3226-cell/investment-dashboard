@@ -540,8 +540,8 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - Market AI는 ticker별 현재가와 source/health만 제공한다. 수량·원가·원금·매매흐름·실현손익의 owner는 Dashboard 장부다.
 - 현재가가 바뀌면 현재가 의존 평가금액·평가손익·수익률·일변동·계좌/통합 합계는 기존 Dashboard 계산으로 재파생하되 장부 원천값을 바꾸지 않는다.
 - polling은 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. 겹친 요청은 latest-wins sequence로 보호하며, 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다.
-- 차트 확대, KRX/action modal, 퇴직연금 `.contrib-modal`, native dialog가 열려 있으면 state는 갱신하되 전체 Dashboard render를 보류한다. overlay가 닫힌 뒤 pending render를 1회 수행한다. 일반 live full render가 필요한 경우에도 열린 Mobile 날짜/목차 메뉴, Desktop 목차 open 상태, 현재 keyboard focus와 scroll 위치를 캡처·복원해 실시간 재렌더가 사용자의 transient UI를 끊지 않게 한다. `generated_at`처럼 화면 의미가 바뀌지 않는 metadata-only 응답은 semantic fingerprint에서 제외해 불필요한 full render를 만들지 않는다.
-- Hero 제목행은 날짜 기준 문구만 표시하며 `LIVE / CLOSED / STALE / JSON` 같은 Live Valuation 상태 문자열은 노출하지 않는다. live overlay 동작과 fallback 판단은 내부 state로 유지하고, 종목·상품명 **라벨 셀 전체 hover** 및 라벨 focus의 기존 `.dash-tooltip`에서 Market AI/JSON 출처·관측시각/기준일을 확인한다. 새 tooltip CSS primitive를 만들지 않는다.
+- 차트 확대, KRX/action modal, 퇴직연금 `.contrib-modal`, native dialog가 열려 있으면 state는 갱신하되 전체 Dashboard render를 보류한다. overlay가 닫힌 뒤 pending render를 1회 수행한다. keyboard focus 보존은 Live Valuation 전용 예외가 아니라 `render()` 공통 contract다. 날짜 변경·별도수익 전환·일반 live full render 등 `#tabs/#app`을 교체하는 모든 경로에서 현재 focus를 캡처·복원하고, `id`가 없는 keyboard target은 stable `data-dashboard-focus-key`와 occurrence index를 사용한다. standalone Market AI처럼 `#app` 교체 직후 다음 frame에 다시 mount되는 keyed target은 제한된 frame retry로 복원한다. live full render는 추가로 열린 Mobile 날짜/목차 메뉴, Desktop 목차 open 상태와 scroll 위치도 유지한다. `generated_at`처럼 화면 의미가 바뀌지 않는 metadata-only 응답은 semantic fingerprint에서 제외해 불필요한 full render를 만들지 않는다.
+- Hero 제목행은 날짜 기준 문구만 표시하며 `LIVE / CLOSED / STALE / JSON` 같은 Live Valuation 상태 문자열은 노출하지 않는다. live overlay 동작과 fallback 판단은 내부 state로 유지하고, 종목·상품명 **라벨 셀 전체 hover** 및 라벨 focus의 기존 `.dash-tooltip`에서 Market AI/JSON 출처·관측시각/기준일을 확인한다. source label은 `aria-describedby`로 기존 tooltip surface와 연결하고 tooltip DOM은 event binding 시 미리 확보한다. 새 tooltip CSS primitive를 만들지 않는다.
 
 KIS eFriend 다종목 universe, subscription health, Tailscale Serve/CORS와 backend quote store 운영은 Market AI 프로젝트의 `market_ai_project_handover.md`를 따른다.
 
@@ -899,7 +899,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - Phone의 `dashboard-view`는 화면형태만 바꾼다.
 - remote는 실제 endpoint 응답이 확인되기 전까지 Market AI signal UI를 mount하지 않고 polling으로 복구를 기다리며, local 전체 연결 실패는 panel 중앙의 `연결 확인 중` 상태를 유지한다. 어느 쪽도 일반 대시보드의 저장 데이터 기반 기능을 깨뜨리지 않는다.
 - Desktop/Tablet Hero와 Mobile dialog가 같은 signal panel DOM을 재사용하는 구조를 유지한다.
-- Phone에서는 Market AI metric tooltip을 활성화하지 않는다.
+- Phone에서는 Market AI metric tooltip을 활성화하지 않는다. Responsive 전환의 keyboard focus handoff는 양방향 대칭으로 유지한다. Phone dialog가 열린 채 Desktop/Tablet 조건으로 전환되면 사라지는 mobile trigger 대신 Desktop Market AI metric으로 focus를 반환하고, Desktop/Tablet metric에 focus가 있는 상태에서 Phone contract로 전환되면 새 Mobile `AI Signal` trigger로 focus를 넘긴다.
 - Desktop/Tablet의 **시장 카드 본체와 metric tooltip은 `marketAiMarketDisplayModel()` 하나를 공통 Source of Truth로 사용**한다. 화면 카드와 tooltip이 서로 다른 row/fallback 판단을 갖지 않는다. Tooltip은 KOSPI·SOX·NQ100선물에서 `현재가 → 등락률 → 상태 → 출처 → 기준 시각`, K200선물만 `상태` 다음에 `세션`을 추가해 `현재가 → 등락률 → 상태 → 세션 → 출처 → 기준 시각` 순서를 사용한다.
 - 시장 tooltip 상태 문구는 `fresh=정상`, `stale=데이터 지연`, `missing=데이터 없음`을 공통으로 사용한다. K200 전용 상태는 `closed=장마감`, `bridge=Bridge 지연`, `source=선물 데이터 확인 필요`다.
 - `기준 시각`은 상태와 무관하게 같은 라벨을 사용한다. `갱신`, `마지막 수신`, `데이터`처럼 상태와 시각/출처 의미를 섞는 라벨을 시장 tooltip에 다시 만들지 않는다.
@@ -908,7 +908,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
 - Hero에는 Live Valuation 상태 문자열을 별도 표시하지 않는다. `LIVE / CLOSED / STALE / WARMING / JSON` 판정은 내부 quote/fallback 로직과 테스트를 위해 유지하되 화면 제목행에는 날짜 기준만 노출한다. 과거 날짜는 항상 저장 데이터 의미를 유지한다.
 - 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다.
-- live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 전체 render로 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다. 일반 live full render에서도 Mobile 목차·Desktop 목차 open 상태와 keyboard focus·scroll 위치가 유지되어야 하며, metadata-only 응답으로 불필요한 full render가 반복되지 않아야 한다.
+- live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 전체 render로 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다. keyboard focus는 `render()` 공통 contract로 보존하며 날짜 변경·별도수익 전환·live refresh 모두 같은 snapshot/restore 경로를 사용한다. 현재가 출처, 자산 기여도 segment, 퇴직연금 위험도 gauge, Market AI metric처럼 `id`가 없는 focusable visual target은 `data-dashboard-focus-key`를 가져야 한다. 일반 live full render에서는 Mobile 목차·Desktop 목차 open 상태와 scroll 위치도 유지되어야 하며, metadata-only 응답으로 불필요한 full render가 반복되지 않아야 한다.
 
 ## 3.4 계좌별 성과 메모 tooltip
 
