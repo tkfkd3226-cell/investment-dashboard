@@ -1,0 +1,17 @@
+[
+  {
+    "identityKey": "logical:etfTrade:trade-2026-09-11-278530-b63eeac5-c4d1-4f25-8cfb-dffcb4e5ec3f",
+    "contentHash": "cf36057cc18f86a599e1a4cad2a3b59b07a4938abdd5014cc770783a0de5d640",
+    "target": "etfTrade",
+    "action": "upsert",
+    "semanticHash": "a957b12e1eb578971433385d70fa07b6bdaee273d260376afe0c964ef8f2997b",
+    "resourceKey": "",
+    "logicalOperationId": "trade-2026-09-11-278530-b63eeac5-c4d1-4f25-8cfb-dffcb4e5ec3f",
+    "requestId": "trade-2026-09-11-278530-b63eeac5-c4d1-4f25-8cfb-dffcb4e5ec3f",
+    "batchRequestId": "",
+    "batchOperationId": "",
+    "resultVersion": "trade-2026-09-11-278530-b63eeac5-c4d1-4f25-8cfb-dffcb4e5ec3f",
+    "savedAtKST": "2026-09-11T17:05:51+09:00",
+    "savedAtMs": 1789113951120
+  }
+]
