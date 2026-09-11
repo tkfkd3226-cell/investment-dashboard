@@ -13,5 +13,20 @@
     "expectedVersion": "request:cash-2026-09-11-333f1821-84ea-4166-b77b-a5d5b495ceeb",
     "savedAtKST": "2026-09-11T17:18:56+09:00",
     "savedAtMs": 1789114736638
+  },
+  {
+    "target": "cashSnapshot",
+    "action": "delete",
+    "resourceKey": "2026-09-11",
+    "date": "2026-09-11",
+    "semanticHash": "05cf9364ee4eb78b153d17e9b89644e34f5463d9c3764f5dd6dde18dd907e0e5",
+    "logicalOperationId": "batch-logical-b20929cc-1919-4b21-8cb6-be52fe491909",
+    "requestId": "",
+    "batchRequestId": "pension-batch-8da223f0-8c1a-4544-9281-ec3bcf9b9e62",
+    "batchOperationId": "batch-temp-1789115026032-2",
+    "resultVersion": "deleted:2026-09-11",
+    "expectedVersion": "batch:pension-batch-cc8f654e-3f23-4a18-9df0-a87d6d6962c9|batch-temp-1789114850311-2",
+    "savedAtKST": "2026-09-11T17:24:29+09:00",
+    "savedAtMs": 1789115069672
   }
 ]

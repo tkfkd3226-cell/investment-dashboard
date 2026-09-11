@@ -1,0 +1,17 @@
+[
+  {
+    "identityKey": "logical:contribution:batch-logical-833fc10e-22b3-4de0-b3e6-f80f080bd4ca",
+    "contentHash": "6081aeeb58fcbaef220f3b755e4888db0180d6ce6726cc723dee5187cb2fc0a2",
+    "target": "contribution",
+    "action": "delete",
+    "semanticHash": "0df3e41bad28e74dbd3b5d61fcd54c5371bc75dc25ab5ec39583d95219770130",
+    "resourceKey": "contrib-batch-e35e1eaaf216e00ab6c79ceafe06d742",
+    "logicalOperationId": "batch-logical-833fc10e-22b3-4de0-b3e6-f80f080bd4ca",
+    "requestId": "",
+    "batchRequestId": "pension-batch-8da223f0-8c1a-4544-9281-ec3bcf9b9e62",
+    "batchOperationId": "batch-temp-1789115022336-1",
+    "resultVersion": "deleted:contrib-batch-e35e1eaaf216e00ab6c79ceafe06d742",
+    "savedAtKST": "2026-09-11T17:24:29+09:00",
+    "savedAtMs": 1789115069666
+  }
+]
