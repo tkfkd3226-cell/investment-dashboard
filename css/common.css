@@ -3510,6 +3510,65 @@ button:not(:disabled):active{
   font-weight:var(--type-weight-emphasis);
 }
 
+/* Standalone Pull-to-Refresh · iPhone 홈화면 Web App에서 native refresh UI가 없을 때만 JS가 생성한다. */
+.standalone-pull-refresh{
+  --pull-refresh-offset:0px;
+  position:fixed;
+  left:50%;
+  top:env(safe-area-inset-top,0px);
+  z-index:12500;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:var(--space-sm);
+  min-height:30px;
+  padding:0 var(--space-xl);
+  border:1px solid var(--control-border);
+  border-radius:var(--radius-pill);
+  background:var(--card);
+  color:var(--text-secondary);
+  box-shadow:var(--shadow-medium);
+  font-size:var(--type-size-xs);
+  font-weight:var(--type-weight-emphasis);
+  line-height:1;
+  white-space:nowrap;
+  pointer-events:none;
+  opacity:0;
+  visibility:hidden;
+  transform:translate(-50%,calc(-100% + var(--pull-refresh-offset)));
+  transition:opacity .12s ease,transform .16s ease,visibility .12s ease;
+}
+.standalone-pull-refresh.visible{
+  opacity:1;
+  visibility:visible;
+  transition:none;
+}
+.standalone-pull-refresh.armed{
+  color:var(--ink);
+  border-color:var(--control-border-hover);
+}
+.standalone-pull-refresh.refreshing{
+  opacity:1;
+  visibility:visible;
+  transform:translate(-50%,8px);
+  transition:transform .12s ease,opacity .12s ease;
+}
+.standalone-pull-refresh-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:14px;
+  height:14px;
+  font-size:14px;
+  line-height:1;
+}
+.standalone-pull-refresh.refreshing .standalone-pull-refresh-icon{
+  animation:standalone-pull-refresh-spin .7s linear infinite;
+}
+@keyframes standalone-pull-refresh-spin{
+  to{transform:rotate(360deg)}
+}
+
 .mobile-top-button{
   position:fixed;
   right:20px;
@@ -3775,6 +3834,8 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   background:var(--special-profit-badge);
   color:var(--on-accent-text);
 }
+/* Web/Tablet · 18px state badge에서는 ON/OFF를 geometric center에 두고 Phone compact만 기존 optical shift를 유지한다. */
+.separate-profit-toggle strong .control-text-optical{transform:none}
 .separate-profit-control-note{
   flex:0 1 auto;
   min-width:0;

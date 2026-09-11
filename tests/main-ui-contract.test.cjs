@@ -512,7 +512,7 @@ test('Section title/action과 segmented control은 공통 geometry·viewport tok
   assert.doesNotMatch(ui,/source-title/);
 });
 
-test('기준 pill과 상태 badge 텍스트는 컨테이너를 움직이지 않고 공통 optical text primitive만 사용한다',()=>{
+test('기준 pill과 상태 badge는 공통 optical primitive를 쓰되 별도수익은 viewport별 시각 중심을 보정한다',()=>{
   assert.match(common1,/--control-text-optical-shift:1px;/);
   assert.equal((common1.match(/--control-text-optical-shift/g)||[]).length,2);
   assert.match(common1,/\.control-text-optical\{[^}]*display:inline-flex;[^}]*align-items:center;[^}]*justify-content:center;[^}]*line-height:1;[^}]*transform:translateY\(var\(--control-text-optical-shift\)\);/);
@@ -522,6 +522,8 @@ test('기준 pill과 상태 badge 텍스트는 컨테이너를 움직이지 않�
   assert.match(ui1,/class="section-control-chip section-action-chip separate-profit-toggle \$\{uiState\.includeSeparateProfit\?'active':''\}" aria-label="별도수익 포함" aria-pressed="\$\{uiState\.includeSeparateProfit\}"/);
   assert.match(ui1,/<span class="separate-profit-toggle-label">별도수익<\/span><strong><span class="control-text-optical">\$\{uiState\.includeSeparateProfit\?'ON':'OFF'\}<\/span><\/strong>/);
   assert.doesNotMatch(ui1,/aria-label="\$\{uiState\.includeSeparateProfit/);
+  assert.match(common1,/\.separate-profit-toggle strong \.control-text-optical\{transform:none\}/);
+  assert.match(special1,/\.separate-profit-toggle strong \.control-text-optical\{ transform:translateY\(var\(--control-text-optical-shift\)\); \}/);
   assert.match(special1,/\.separate-profit-toggle-label\{display:none\}/);
   assert.match(special1,/\.separate-profit-toggle-label\{display:inline\}/);
   assert.doesNotMatch(special1,/\.separate-profit-toggle span\{display:(?:none|inline)\}/);
@@ -1034,15 +1036,35 @@ test('live valuation 재렌더는 퇴직연금 조정 본체와 action modal이 
 });
 
 
-test('Hero 현재가 상태는 기존 hero-basis typography로 LIVE/CLOSED/STALE/JSON 의미를 표시하고 전용 CSS를 만들지 않는다',()=>{
+test('Hero는 날짜 기준만 표시하고 Live Valuation 상태 문자열을 별도 노출하지 않는다',()=>{
   assert.match(core,/function liveValuationStatusForDate\(date\)/);
-  assert.match(app,/function liveValuationStatusText\(date\)/);
-  assert.match(app,/CLOSED \$\{status\.usableCount\}\/\$\{status\.requestedCount\}/);
-  assert.match(app,/LIVE \$\{status\.usableCount\}\/\$\{status\.requestedCount\}/);
-  assert.match(app,/STALE → JSON/);
-  assert.match(app,/status\.marketState==='closed'\)return 'JSON · 장마감'/);
-  assert.match(app,/JSON · WARMING/);
-  assert.match(app,/JSON · 과거 저장 데이터/);
-  assert.match(app,/data-live-valuation-status/);
-  assert.equal((common.match(/live-valuation-status|live-source-status/g)||[]).length,0,'상태 표시 전용 CSS를 추가하면 안 된다');
+  assert.doesNotMatch(app,/function liveValuationStatusText\(date\)/);
+  assert.doesNotMatch(app,/data-live-valuation-status/);
+  assert.doesNotMatch(app,/LIVE \$\{status\.usableCount\}/);
+  assert.match(app,/<time class="hero-basis" datetime="\$\{x\.date\}" data-dashboard-action="hero-basis-tap">\(\$\{koreanDateLabel\(x\.date\)\}\)<\/time>/);
+});
+
+test('Standalone Web App은 최상단 단일 터치 pull-to-refresh를 제공하고 일반 브라우저에는 생성하지 않는다',()=>{
+  assert.match(app,/function dashboardStandaloneMode\(\)/);
+  assert.match(app,/display-mode: standalone/);
+  assert.match(app,/window\.navigator\?\.standalone===true/);
+  assert.match(app,/function setupStandalonePullToRefresh\(\)/);
+  assert.match(app,/dashboardScrollTop\(\)>1/);
+  assert.match(app,/dashboardPullRefreshBlocked\(\)/);
+  assert.match(app,/touchmove[^]*\{passive:false\}/);
+  assert.match(app,/standalonePullRefreshState\.threshold:80|threshold:80/);
+  assert.match(app,/window\.location\.reload\(\)/);
+  assert.match(common1,/\.standalone-pull-refresh\{/);
+  assert.match(common1,/\.standalone-pull-refresh\.refreshing \.standalone-pull-refresh-icon\{/);
+});
+
+test('Market AI 시장 툴팁은 4개 시장 모두 상태를 표시하고 K200에만 세션을 추가한다',()=>{
+  assert.match(marketAi,/function marketAiSnapshotDisplayState\(row\)/);
+  assert.match(marketAi,/'kospi-index':\{[^}]*state:marketAiSnapshotDisplayState\(kospiRow\)/);
+  assert.match(marketAi,/'sox-index':soxState/);
+  assert.match(marketAi,/'nasdaq100-futures':\{[^}]*state:marketAiSnapshotDisplayState\(nasdaqRow\)/);
+  assert.match(marketAi,/'kospi200-futures':\{[^}]*state:futuresState/);
+  assert.match(marketAi,/fresh:'데이터 정상'/);
+  assert.match(marketAi,/parts\.push\(marketAiTooltipRow\('상태',stateLabel\)\)/);
+  assert.match(marketAi,/const sessionLabel=\{day:'주간',night:'야간',closed:'장외'\}\[config\.state\.bridgeStatus\?\.expected_session\]/);
 });

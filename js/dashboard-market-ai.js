@@ -249,21 +249,23 @@ function marketAiMarketSourceLabel(row,marketKey){
   return source||'데이터 소스 확인 필요';
 }
 
+function marketAiSnapshotDisplayState(row){
+  const freshness=marketAiSnapshotFreshness(row);
+  return {
+    reason:row?(freshness.fresh?'fresh':'stale'):'missing',
+    rawRow:row||null,
+    observedAt:freshness.observedAt
+  };
+}
+
 function marketAiSoxDisplayState(){
   const indexRow=marketAiSnapshotRow(MARKET_AI_SOX_INDEX_SYMBOL);
-  const indexFreshness=marketAiSnapshotFreshness(indexRow);
-  const indexFresh=indexFreshness.fresh;
-
   return {
     row:indexRow,
     label:'SOX',
     price:item=>marketAiIndexText(item?.price),
     source:'Yahoo PHLX 반도체 현물지수',
-    state:{
-      reason:indexRow?(indexFresh?'fresh':'stale'):'missing',
-      rawRow:indexRow,
-      observedAt:indexFreshness.observedAt
-    }
+    state:marketAiSnapshotDisplayState(indexRow)
   };
 }
 
@@ -553,10 +555,12 @@ function marketAiSignalBasis(signal,metric){
 function marketAiMarketTooltipHtml(key){
   const futuresState=marketAiKisFuturesState();
   const soxState=marketAiSoxDisplayState();
+  const kospiRow=marketAiSnapshotRow('INDEX:KOSPI');
+  const nasdaqRow=marketAiSnapshotRow(MARKET_AI_NASDAQ100_FUTURES_SYMBOL);
   const config={
-    'kospi-index':{label:'KOSPI',row:marketAiSnapshotRow('INDEX:KOSPI'),price:item=>marketAiIndexText(item?.price),source:item=>marketAiMarketSourceLabel(item,'kospi-index')},
+    'kospi-index':{label:'KOSPI',row:kospiRow,price:item=>marketAiIndexText(item?.price),source:item=>marketAiMarketSourceLabel(item,'kospi-index'),state:marketAiSnapshotDisplayState(kospiRow)},
     'sox-index':soxState,
-    'nasdaq100-futures':{label:'NASDAQ100 선물',row:marketAiSnapshotRow(MARKET_AI_NASDAQ100_FUTURES_SYMBOL),price:item=>marketAiPriceText(item?.price,2),source:'Yahoo Nasdaq-100 선물 (NQ=F)'},
+    'nasdaq100-futures':{label:'NASDAQ100 선물',row:nasdaqRow,price:item=>marketAiPriceText(item?.price,2),source:'Yahoo Nasdaq-100 선물 (NQ=F)',state:marketAiSnapshotDisplayState(nasdaqRow)},
     'kospi200-futures':{label:'KOSPI200 선물',row:futuresState.row,price:item=>marketAiPriceText(item?.price,2),source:item=>marketAiMarketSourceLabel(item,'kospi200-futures'),state:futuresState}
   }[key];
   if(!config)return '';
@@ -574,7 +578,7 @@ function marketAiMarketTooltipHtml(key){
   }
 
   if(config.state){
-    const stateLabel=({fresh:'거래 데이터 정상',closed:'장 종료 · 마지막 정상값',stale:'데이터 지연',bridge:'Bridge 연결 지연',source:'실제 선물 소스 없음',missing:'데이터 없음'}[config.state.reason]||'상태 확인');
+    const stateLabel=({fresh:'데이터 정상',closed:'장 종료 · 마지막 정상값',stale:'데이터 지연',bridge:'Bridge 연결 지연',source:'실제 선물 소스 없음',missing:'데이터 없음'}[config.state.reason]||'상태 확인');
     parts.push(marketAiTooltipRow('상태',stateLabel));
     const sessionLabel={day:'주간',night:'야간',closed:'장외'}[config.state.bridgeStatus?.expected_session];
     if(sessionLabel)parts.push(marketAiTooltipRow('세션',sessionLabel));

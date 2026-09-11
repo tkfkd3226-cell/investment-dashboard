@@ -492,6 +492,10 @@
       height:21px;
       padding:0 var(--space-lg);
     }
+    /* Phone · 21px badge에서는 기존 1px optical shift가 시각 중심에 맞으므로 유지 */
+    .separate-profit-toggle strong .control-text-optical{
+      transform:translateY(var(--control-text-optical-shift));
+    }
 
   /* Chart Compact Responsive · 세로/가로 Phone 공통 scroll edge + allocation detail 밀도 */
     .chart-wrap.is-scrollable{

@@ -216,14 +216,7 @@ data/
 ├─ kodex_leverage_trades.json
 ├─ pension_contributions.json
 ├─ pension_cash_snapshots.json
-├─ pension_operation_ledger.json      # legacy read-only fallback
-├─ pension_operation_ledger/          # repository-only semantic durable shard / Pages 제외
-├─ pension_operation_identity/        # repository-only exact identity shard / Pages 제외
-├─ pension_batch_request_identity/    # repository-only batchRequestId shard / Pages 제외
-├─ krx_dispatch_ledger/               # repository-only KRX requestId shard / Pages 제외
 └─ pension_trades.json
-
-_config.yml                           # GitHub Pages(Jekyll) exclude contract
 
 tests/
 ├─ main-calc.test.cjs
@@ -389,7 +382,7 @@ input
 - `투자원금 원천 및 검산`은 3개 source card 구조와 각 표의 `합계`를 최종값으로 사용한다. base 원천과 재투입 원천을 구분하고 `원천·보유 차액`은 중립 검산값으로 취급한다.
 - `2026-06-18` 이전 복원 구간은 현재 설명문에 맞추기 위해 과거 수치를 재계산하지 않는다. legacy 수치 의미는 데이터 기준선을 우선한다.
 - 세로 Phone의 계좌별 상태에서 제목행 control 순서는 `별도수익 ON/OFF → 카드 보기/표 보기 → 전체/계좌별`이다. 카드/표 전환을 가장 오른쪽으로 보내거나 ON/OFF와 분리하지 않는다. 그 밖의 mobile 열 축약과 메모 표시 방식은 실제 renderer/CSS를 Source of Truth로 한다.
-- `삼성증권1 기준` / `퇴직연금 기준`은 동일한 `.section-basis-chip` 역할을 공유한다. 기준 pill의 컨테이너는 시각 중심이 안정적인 action chip의 geometry 원칙을 따라 `height:var(--section-chip-height)`, 상하 padding `0`, `line-height:1`, flex center를 사용하고 viewport에서는 좌우 padding과 font-size만 조정한다. 한글/영문 glyph가 line-box 안에서 위로 보이는 광학 오차는 컨테이너를 움직이지 않고 내부 `.control-text-optical`만 단일 `--control-text-optical-shift:1px`로 아래 보정한다. 같은 state badge 역할인 별도수익 ON/OFF와 차트 Y축 자동 ON/OFF도 badge 배경 자체가 아니라 내부 텍스트만 이 primitive를 공유한다. 모바일 compact에서 별도수익 외부 라벨의 표시 여부는 `.separate-profit-toggle-label`만 직접 제어하며, descendant `span` 전체를 숨기는 selector는 금지한다. 따라서 내부 ON/OFF `.control-text-optical`은 viewport 라벨 숨김 규칙의 영향을 받지 않는다. 별도수익 토글은 외부 라벨이 CSS로 숨겨져도 접근성 이름이 사라지지 않도록 안정적인 `aria-label="별도수익 포함"`을 유지하고, 현재 상태는 기존 `aria-pressed`로 전달한다. 이미 실기 중심이 안정적인 카드/표 전환 같은 일반 action chip에는 이 optical shift를 확대하지 않으며, 개별 `top`/`margin-top`/별도 translate 값을 추가하지 않는다.
+- `삼성증권1 기준` / `퇴직연금 기준`은 동일한 `.section-basis-chip` 역할을 공유한다. 기준 pill의 컨테이너는 시각 중심이 안정적인 action chip의 geometry 원칙을 따라 `height:var(--section-chip-height)`, 상하 padding `0`, `line-height:1`, flex center를 사용하고 viewport에서는 좌우 padding과 font-size만 조정한다. 한글/영문 glyph가 line-box 안에서 위로 보이는 광학 오차는 컨테이너를 움직이지 않고 내부 `.control-text-optical`만 단일 `--control-text-optical-shift:1px`로 아래 보정한다. 같은 state badge 역할인 차트 Y축 자동 ON/OFF는 badge 배경 자체가 아니라 내부 텍스트만 이 primitive를 공유한다. 별도수익 ON/OFF는 웹/태블릿의 18px badge에서 텍스트가 아래로 처져 보이지 않도록 해당 내부 text transform을 `none`으로 중립화하고, Phone compact의 21px badge에서만 기존 1px optical shift를 복원한다. 모바일 compact에서 별도수익 외부 라벨의 표시 여부는 `.separate-profit-toggle-label`만 직접 제어하며, descendant `span` 전체를 숨기는 selector는 금지한다. 따라서 내부 ON/OFF `.control-text-optical`은 viewport 라벨 숨김 규칙의 영향을 받지 않는다. 별도수익 토글은 외부 라벨이 CSS로 숨겨져도 접근성 이름이 사라지지 않도록 안정적인 `aria-label="별도수익 포함"`을 유지하고, 현재 상태는 기존 `aria-pressed`로 전달한다. 이미 실기 중심이 안정적인 카드/표 전환 같은 일반 action chip에는 이 optical shift를 확대하지 않으며, 개별 `top`/`margin-top`/별도 translate 값을 추가하지 않는다.
 
 ### Modal / Action Form 공통 contract
 
@@ -397,6 +390,7 @@ input
 - 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
 - KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유한다. 공통 modal radius는 shared modal contract에서 한 번만 소유하고 Tablet/Phone은 해당 shared token만 override한다. Phone 좌우 여백은 overlay padding을 canonical source로 사용하며 feature별 `100vw - npx` 폭 보정을 중복해서 만들지 않는다.
 - Tooltip 표시 motion은 `--tooltip-motion`을 공통 source로 사용한다.
+- iPhone 홈화면 `Open as Web App`/standalone에서는 브라우저 새로고침 UI 부재를 보완하기 위해 최상단 pull-to-refresh를 제공한다. `display-mode: standalone` 또는 iOS `navigator.standalone`에서만 활성화하고, `scrollTop≈0`의 단일 아래방향 터치에서만 동작한다. chart expanded/modal/dialog 중에는 시작하지 않으며 일반 Safari/브라우저 화면에는 indicator/listener를 만들지 않는다. 임계값을 넘겨 손을 놓은 경우에만 `location.reload()`한다.
 - 검증된 responsive/browser별 표현 예외는 feature/CSS가 소유하며, generic 공통화를 위해 제거하지 않는다.
 
 화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js` 또는 `dashboard-modal.js`로 끌어올리지 않는다.
@@ -547,7 +541,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 현재가가 바뀌면 현재가 의존 평가금액·평가손익·수익률·일변동·계좌/통합 합계는 기존 Dashboard 계산으로 재파생하되 장부 원천값을 바꾸지 않는다.
 - polling은 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. 겹친 요청은 latest-wins sequence로 보호하며, 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다.
 - 차트 확대, KRX/action modal, 퇴직연금 `.contrib-modal`, native dialog가 열려 있으면 state는 갱신하되 전체 Dashboard render를 보류한다. overlay가 닫힌 뒤 pending render를 1회 수행해 입력/저장 UI가 실시간 재렌더에 의해 교체되지 않게 한다.
-- Hero는 전체 live 상태를 `LIVE / CLOSED / STALE / JSON` 의미로 요약하고, 종목·상품명 **라벨 셀 전체 hover** 및 라벨 focus의 기존 `.dash-tooltip`에서 Market AI/JSON 출처·관측시각/기준일을 확인한다. 새 tooltip CSS primitive를 만들지 않는다.
+- Hero 제목행은 날짜 기준 문구만 표시하며 `LIVE / CLOSED / STALE / JSON` 같은 Live Valuation 상태 문자열은 노출하지 않는다. live overlay 동작과 fallback 판단은 내부 state로 유지하고, 종목·상품명 **라벨 셀 전체 hover** 및 라벨 focus의 기존 `.dash-tooltip`에서 Market AI/JSON 출처·관측시각/기준일을 확인한다. 새 tooltip CSS primitive를 만들지 않는다.
 
 KIS eFriend 다종목 universe, subscription health, Tailscale Serve/CORS와 backend quote store 운영은 Market AI 프로젝트의 `market_ai_project_handover.md`를 따른다.
 
@@ -906,8 +900,9 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - remote는 실제 endpoint 응답이 확인되기 전까지 Market AI signal UI를 mount하지 않고 polling으로 복구를 기다리며, local 전체 연결 실패는 panel 중앙의 `연결 확인 중` 상태를 유지한다. 어느 쪽도 일반 대시보드의 저장 데이터 기반 기능을 깨뜨리지 않는다.
 - Desktop/Tablet Hero와 Mobile dialog가 같은 signal panel DOM을 재사용하는 구조를 유지한다.
 - Phone에서는 Market AI metric tooltip을 활성화하지 않는다.
+- Desktop/Tablet의 시장 metric tooltip은 KOSPI·K200선물·SOX·NQ100선물 모두 `현재가 → 등락률 → 상태 → 데이터 → 갱신`을 기본 정보 contract로 사용한다. `상태`는 snapshot freshness 기준 `데이터 정상 / 데이터 지연 / 데이터 없음`을 공통으로 제공하고, K200선물만 KIS Bridge가 제공하는 `세션(주간/야간/장외)`을 추가 표시한다. backend가 제공하지 않는 세션을 프론트에서 임의 추정해 다른 시장에 표시하지 않는다.
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
-- Hero의 현재가 상태는 전체 quote 사용 상태를 `LIVE / CLOSED / STALE / JSON` 의미로 요약한다. 과거 날짜는 항상 저장 데이터 의미를 유지한다. `market_state=closed`에서 usable quote가 없어 JSON fallback 중이면 장중 대기처럼 `WARMING`으로 표시하지 않고 `JSON · 장마감`으로 표시한다.
+- Hero에는 Live Valuation 상태 문자열을 별도 표시하지 않는다. `LIVE / CLOSED / STALE / WARMING / JSON` 판정은 내부 quote/fallback 로직과 테스트를 위해 유지하되 화면 제목행에는 날짜 기준만 노출한다. 과거 날짜는 항상 저장 데이터 의미를 유지한다.
 - 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다.
 - live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 전체 render로 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다.
 
@@ -1545,26 +1540,6 @@ data/pension_contributions.json
 - `pension_contributions.json`은 KRX 재갱신 대상이라고 가정하지 않는다.
 - 실제 운영 데이터가 포함된 최신 기준본을 과거 코드 패키지로 덮어쓰기 전에 먼저 확인한다.
 - Market AI 실시간 보유종목 quote는 **화면 메모리 overlay 전용**이다. `prices.json`, `performance_snapshots.json`, Pension JSON 또는 GAS write 경로에 live quote를 저장하지 않는다.
-
-### GitHub Pages 배포 제외 contract
-
-루트 `_config.yml`은 다음 repository-only durable shard 디렉터리를 Jekyll `exclude`로 GitHub Pages 산출물에서 제외한다.
-
-```text
-data/krx_dispatch_ledger/
-data/pension_operation_identity/
-data/pension_operation_ledger/
-data/pension_batch_request_identity/
-```
-
-유지보수 불변조건:
-
-- 위 디렉터리는 GAS/GitHub API가 durable idempotency·dispatch 증거를 읽고 쓰기 위해 **Git 저장소에는 남긴다**. `.gitignore` 대상으로 바꾸지 않는다.
-- Main 프런트엔드는 위 4개 디렉터리를 runtime data source로 직접 fetch하지 않는다. Pages에서 해당 경로가 404인 것이 정상이다.
-- `data/pension_operation_ledger.json` legacy fallback 파일은 디렉터리 `data/pension_operation_ledger/`와 별개이며 현재 exclude 대상이 아니다.
-- `_config.yml`을 우회하는 `.nojekyll`을 임의로 추가하지 않는다. Pages 배포 방식을 바꾸면 새 파이프라인에서도 동일한 4개 경로 제외를 보장한다.
-- Public repository에서의 GitHub/raw 접근까지 숨기는 보안 기능으로 오해하지 않는다. 목적은 **Pages 정적 산출물의 불필요한 공개 제외**다.
-- durable shard 디렉터리를 추가·이름 변경·폐기할 때는 실제 GAS contract, `_config.yml`, README, 이 handover, 평가 가이드를 한 작업에서 함께 정합화한다.
 
 QA 중 실제 운영 write 금지:
 

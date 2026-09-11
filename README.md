@@ -100,7 +100,7 @@ Market AI는 Main에 **현재 시점 시장·AI 신호**와 **오늘 보유종�
 - 수량·원가·투입원금·매매흐름·실현손익과 과거 날짜 데이터는 변경하지 않음
 - live quote는 브라우저 메모리에서만 사용하고 `prices.json`, `performance_snapshots.json`, Pension JSON/GAS에는 저장하지 않음
 - 일부 종목 quote가 없거나 unusable이어도 해당 종목만 JSON 저장값으로 fallback
-- Hero에서 `LIVE / CLOSED / STALE / JSON` 상태와 시세 기준을 표시하고, 종목·상품 source tooltip에서 Market AI/JSON 출처 확인
+- Hero 제목행은 날짜 기준만 표시하고 Live Valuation 상태 문자열은 노출하지 않으며, 종목·상품 source tooltip에서 Market AI/JSON 출처 확인
 - Desktop / Tablet은 Hero 보조 카드, Mobile / 실제 터치폰 가로 UI는 **AI Signal** dialog 사용
 - Local 환경에서는 Market AI FastAPI에 직접 연결하고, GitHub Pages에서는 Tailscale Serve 경유
 - Market AI가 응답하지 않아도 저장된 JSON 기반 Main Dashboard 기능은 독립 동작
@@ -217,10 +217,10 @@ investment-dashboard/
 │  ├─ pension_contributions.json
 │  ├─ pension_cash_snapshots.json
 │  ├─ pension_operation_ledger.json   # v6 cash legacy history, read-only fallback
-│  ├─ pension_operation_ledger/       # semantic-hash shard, repository-only / Pages 제외
-│  ├─ pension_operation_identity/     # exact identity shard, repository-only / Pages 제외
-│  ├─ pension_batch_request_identity/ # batchRequestId durable shard, repository-only / Pages 제외
-│  ├─ krx_dispatch_ledger/            # KRX requestId durable shard, repository-only / Pages 제외
+│  ├─ pension_operation_ledger/       # semantic-hash shard, 필요 시 00~ff.json 생성
+│  ├─ pension_operation_identity/     # exact identity shard, 필요 시 00~ff.json 생성
+│  ├─ pension_batch_request_identity/ # batchRequestId durable shard, 필요 시 00~ff.json 생성
+│  ├─ krx_dispatch_ledger/             # KRX requestId durable shard, 필요 시 00~ff.json 생성
 │  └─ pension_trades.json
 │
 ├─ img/
@@ -250,7 +250,6 @@ investment-dashboard/
 │  └─ workflows/
 │     └─ update-prices.yml
 │
-├─ _config.yml                       # GitHub Pages(Jekyll) 배포 제외 경로 설정
 ├─ .gitignore
 ├─ requirements.txt
 ├─ README.md
@@ -322,21 +321,6 @@ data/krx_dispatch_ledger/*.json        # GAS가 생성·갱신하는 KRX request
 
 코드 수정 패치는 원칙적으로 변경된 소스만 포함하고, 운영 JSON은 필요한 작업이 아닌 경우 함께 덮어쓰지 않습니다.
 
-### GitHub Pages 비공개 배포 경계
-
-저장소에는 durable idempotency / dispatch 이력 보존을 위해 아래 shard 디렉터리를 유지하지만, 정적 웹 화면이 직접 읽는 데이터가 아니므로 루트 `_config.yml`의 Jekyll `exclude`로 **GitHub Pages 배포 산출물에서는 제외**합니다.
-
-```text
-data/krx_dispatch_ledger/
-data/pension_operation_identity/
-data/pension_operation_ledger/
-data/pension_batch_request_identity/
-```
-
-이 설정은 `.gitignore`와 역할이 다릅니다. 파일은 Git 저장소와 GAS/GitHub API write 경로에는 그대로 존재하고, Pages 공개 경로에서만 빠집니다. 따라서 Public 저장소라면 GitHub 저장소나 raw URL을 통한 원본 접근까지 숨기는 보안 기능은 아닙니다.
-
-`data/pension_operation_ledger.json`은 위의 shard 디렉터리와 다른 **legacy read-only fallback 파일**이며 현재 Pages 제외 대상에 포함하지 않습니다. 프런트엔드는 위 4개 repository-only 디렉터리를 직접 fetch하는 의존성을 새로 만들지 않습니다. 디렉터리를 추가·이름 변경하면 `_config.yml`과 이 문서, Main handover, 평가 가이드를 같은 변경에서 함께 정합화합니다.
-
 ---
 
 ## 7. 데이터 쓰기와 갱신
@@ -385,10 +369,7 @@ GAS는 KRX requestId의 intent/receipt와 durable dispatch ledger, workflow run 
 ```text
 Branch : main
 Folder : / (root)
-Jekyll : root `_config.yml` 적용
 ```
-
-루트 `_config.yml`은 운영용 durable shard 4개 디렉터리를 Pages 산출물에서 제외합니다. 배포 후 해당 디렉터리 아래 URL이 404인 것은 정상이며, 이 동작을 없애기 위해 `.nojekyll`을 추가하지 않습니다. 배포 방식을 GitHub Actions artifact 방식 등으로 바꾸는 경우에는 동일한 제외 경계를 새 배포 파이프라인에서 다시 보장해야 합니다.
 
 주요 경로:
 
