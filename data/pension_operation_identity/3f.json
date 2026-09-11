@@ -1,0 +1,17 @@
+[
+  {
+    "identityKey": "request:etfTrade:pdel-etfTrade-625936fd-792b-46ed-b1d1-0bd850407e9b",
+    "contentHash": "a0a3fa58edd8fc5e2525f09a740708a02b5246b55aa26f7e44aab339ec350184",
+    "target": "etfTrade",
+    "action": "delete",
+    "semanticHash": "e4edcb319e2334bc6deb3bd336efce24fb51dc755465f6d61e0174814a25f067",
+    "resourceKey": "trade-2026-09-11-278530-b63eeac5-c4d1-4f25-8cfb-dffcb4e5ec3f",
+    "logicalOperationId": "pdel-etfTrade-625936fd-792b-46ed-b1d1-0bd850407e9b",
+    "requestId": "pdel-etfTrade-625936fd-792b-46ed-b1d1-0bd850407e9b",
+    "batchRequestId": "",
+    "batchOperationId": "",
+    "resultVersion": "deleted:trade-2026-09-11-278530-b63eeac5-c4d1-4f25-8cfb-dffcb4e5ec3f",
+    "savedAtKST": "2026-09-11T17:07:19+09:00",
+    "savedAtMs": 1789114039598
+  }
+]
