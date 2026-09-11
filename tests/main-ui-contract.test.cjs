@@ -106,6 +106,20 @@ test('실시간 평가 adapter는 importmap cache-bust 대상이고 boot 이후 
   assert.match(liveValuation,/document\.visibilityState==='visible'/);
 });
 
+
+test('실시간 평가 race 방어: client lease, universe drift, pending render를 fail-safe로 처리한다',()=>{
+  assert.match(liveValuation,/LIVE_VALUATION_CLIENT_SESSION_KEY='investmentDashboard\.liveValuationClientId'/);
+  assert.match(liveValuation,/client_id:LIVE_VALUATION_CLIENT_ID/);
+  assert.match(liveValuation,/const requestedUniverseKey=liveValuationUniverseKey\(tickers\)/);
+  assert.match(liveValuation,/const currentUniverseKey=liveValuationUniverseKey\(liveValuationTickersForDate\(today\)\)/);
+  assert.match(liveValuation,/if\(currentUniverseKey!==requestedUniverseKey\)\{[^]*?queueUniverseReconcileRefresh\(\);[^]*?return;/);
+  assert.match(liveValuation,/let liveValuationRenderPending=false;/);
+  assert.match(liveValuation,/function flushLiveValuationRender\(\)/);
+  assert.match(liveValuation,/if\(!liveValuationCanRender\(\)\)\{[^]*?schedulePendingRenderCheck\(\);[^]*?return false;/);
+  assert.match(liveValuation,/else flushLiveValuationRender\(\);/);
+  assert.match(liveValuation,/if\(refreshSequence!==liveValuationRefreshSequence\)return;/);
+});
+
 test('Dashboard 날짜 hash는 유효한 값이면 초기 선택일로 복원하고, malformed hash도 최신일로 fallback한다',()=>{
   assert.match(app,/let requestedDate='';\s*try\{requestedDate=decodeURIComponent\(location\.hash\.replace\(\/\^#\/,''\)\);\}catch\{\}/);
   assert.match(app,/dataState\.activeDate=dates\.includes\(requestedDate\)\?requestedDate:dates\.at\(-1\);/);
