@@ -21,7 +21,8 @@ const dataState={
   pensionContributions:null,
   pensionCashSnapshots:null,
   pensionTrades:null,
-  activeDate:null
+  activeDate:null,
+  liveValuation:{status:'idle',marketState:'',bridgeConnected:null,universeVersion:0,generatedAt:null,requestedTickers:[],items:{},reason:''}
 };
 const uiState={
   activeAssetTab:'securities',
@@ -428,6 +429,84 @@ const securityPositionState=(pos,d)=>{
   });
   return {qty:Math.max(0,qty),cost:Math.max(0,cost)};
 };
+const normalizeLiveValuationTicker=value=>String(value||'').trim().toUpperCase();
+const liveValuationTickersForDate=d=>{
+  if(!dataState.portfolio||!d)return [];
+  const tickers=new Set();
+  (dataState.portfolio.securities||[]).forEach(pos=>{
+    const ticker=normalizeLiveValuationTicker(pos?.ticker);
+    if(ticker&&Number(securityPositionState(pos,d)?.qty)>0)tickers.add(ticker);
+  });
+  (dataState.portfolio.pension||[]).forEach(pos=>{
+    const ticker=normalizeLiveValuationTicker(pos?.ticker);
+    if(ticker&&Number(pensionPositionState(pos,d)?.qty)>0)tickers.add(ticker);
+  });
+  return [...tickers].sort();
+};
+function normalizedLiveValuationItem(item,requestedSet){
+  const ticker=normalizeLiveValuationTicker(item?.ticker);
+  if(!ticker||!requestedSet.has(ticker))return null;
+  const price=Number(item?.price);
+  const usable=item?.usable===true&&Number.isFinite(price)&&price>0&&['live','closed'].includes(String(item?.state||''));
+  return {
+    ticker,
+    symbol:String(item?.symbol||`KRX:${ticker}`),
+    service:String(item?.service||'SC_R'),
+    price:Number.isFinite(price)&&price>0?price:null,
+    changePct:Number.isFinite(Number(item?.change_pct))?Number(item.change_pct):null,
+    observedAt:item?.observed_at?String(item.observed_at):null,
+    source:item?.source?String(item.source):null,
+    subscriptionState:String(item?.subscription_state||''),
+    state:String(item?.state||''),
+    usable
+  };
+}
+function applyLiveValuationSnapshot(payload,requestedTickers=[]){
+  const requested=[...new Set((requestedTickers||[]).map(normalizeLiveValuationTicker).filter(Boolean))].sort();
+  const requestedSet=new Set(requested);
+  const items={};
+  (Array.isArray(payload?.items)?payload.items:[]).forEach(item=>{
+    const normalized=normalizedLiveValuationItem(item,requestedSet);
+    if(normalized)items[normalized.ticker]=normalized;
+  });
+  const next={
+    status:String(payload?.status||'unavailable'),
+    marketState:String(payload?.market_state||''),
+    bridgeConnected:payload?.bridge_connected===true,
+    universeVersion:Number(payload?.universe_version)||0,
+    generatedAt:payload?.generated_at?String(payload.generated_at):null,
+    requestedTickers:requested,
+    items,
+    reason:''
+  };
+  const previous=JSON.stringify(dataState.liveValuation||{}),serialized=JSON.stringify(next);
+  dataState.liveValuation=next;
+  return previous!==serialized;
+}
+function clearLiveValuationSnapshot(reason='unavailable'){
+  const previous=dataState.liveValuation||{};
+  const next={
+    status:'unavailable',
+    marketState:'',
+    bridgeConnected:false,
+    universeVersion:Number(previous.universeVersion)||0,
+    generatedAt:null,
+    requestedTickers:Array.isArray(previous.requestedTickers)?[...previous.requestedTickers]:[],
+    items:{},
+    reason:String(reason||'unavailable')
+  };
+  const changed=JSON.stringify(previous)!==JSON.stringify(next);
+  dataState.liveValuation=next;
+  return changed;
+}
+function liveValuationQuoteForDate(ticker,date){
+  if(!date||date!==kstTodayText())return null;
+  const key=normalizeLiveValuationTicker(ticker),quote=dataState.liveValuation?.items?.[key];
+  if(!quote||quote.usable!==true)return null;
+  const price=Number(quote.price);
+  return Number.isFinite(price)&&price>0?quote:null;
+}
+const liveValuationPriceForDate=(ticker,date)=>liveValuationQuoteForDate(ticker,date)?.price??null;
 const securitiesCashForDate=d=>{
   const latestPriceDate=Object.keys(dataState.prices||{}).filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&dataState.prices?.[v]?.display!==false).sort(byDate).at(-1)||'';
   const savedCash=dataState.snapshots?.[d]?.allocation?.['현금'];
@@ -553,7 +632,8 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
     }
   }
   // 증권계좌 현금은 수동 장부 보정값이므로 시장 성과인 전일 대비 변동/기여도에서 제외한다.
-  const currentPerformanceProfit=daily&&Number.isFinite(Number(daily.totalProfit))
+  const hasLiveSecurityPrice=holdings.some(h=>h?.priceSource==='market-ai');
+  const currentPerformanceProfit=daily&&!hasLiveSecurityPrice&&Number.isFinite(Number(daily.totalProfit))
     ?Number(daily.totalProfit)
     :holdings.reduce((a,h)=>a+(Number(h.profit)||0),0);
   const previousPerformanceProfit=hasPrev
@@ -633,24 +713,30 @@ function calc(date){
   if(daily){
     const prevDaily=pk?dataState.account1Daily?.[pk]:null;
     holdings=daily.holdings.map(h=>{
-      const prevH=prevDaily?.holdings?.find(v=>v.name===h.name),prevProfit=prevH?prevH.profit:null,dayChange=prevH==null?null:h.profit-prevH.profit;
-      return {...h,feeAdjustedProfit:h.profit,returnRate:h.cost?h.profit/h.cost*100:0,prevPrice:prevH?.price??null,prevEval:prevH?.evalAmount??(prevH?.price!=null?prevH.price*h.qty:null),prevProfit,dayChange};
+      const prevH=prevDaily?.holdings?.find(v=>v.name===h.name),liveQuote=liveValuationQuoteForDate(h.ticker,date);
+      if(!liveQuote){
+        const prevProfit=prevH?prevH.profit:null,dayChange=prevH==null?null:h.profit-prevH.profit;
+        return {...h,feeAdjustedProfit:h.profit,returnRate:h.cost?h.profit/h.cost*100:0,prevPrice:prevH?.price??null,prevEval:prevH?.evalAmount??(prevH?.price!=null?prevH.price*h.qty:null),prevProfit,dayChange,priceSource:'json',liveQuote:null};
+      }
+      const price=liveQuote.price,evalAmount=(Number(price)||0)*(Number(h.qty)||0),profit=evalAmount-(Number(h.cost)||0),prevProfit=prevH?prevH.profit:null,dayChange=prevH==null?null:profit-prevH.profit;
+      return {...h,price,evalAmount,profit,feeAdjustedProfit:profit,returnRate:h.cost?profit/h.cost*100:0,prevPrice:prevH?.price??null,prevEval:prevH?.evalAmount??(prevH?.price!=null?prevH.price*h.qty:null),prevProfit,dayChange,priceSource:'market-ai',liveQuote};
     });
     securitiesCash=daily.cash;
-    rawHoldingProfit=daily.totalProfit;
+    const hasLiveSecurityPrice=holdings.some(h=>h.priceSource==='market-ai'),liveDailyEval=holdings.reduce((a,h)=>a+(Number(h.evalAmount)||0),0)+(Number(securitiesCash)||0);
+    rawHoldingProfit=hasLiveSecurityPrice?holdings.reduce((a,h)=>a+(Number(h.profit)||0),0):daily.totalProfit;
     account1Principal=isLedgerCheckDate(date)?account1PrincipalForDate(date):daily.totalCost;
-    account1Result=isLedgerCheckDate(date)?Number(daily.totalEval||0)-ledgerAccount1ActualGap:daily.totalCost+daily.totalProfit;
+    account1Result=isLedgerCheckDate(date)?Number(hasLiveSecurityPrice?liveDailyEval:daily.totalEval||0)-ledgerAccount1ActualGap:daily.totalCost+rawHoldingProfit;
     account1Profit=account1Result-account1Principal;
     account1Return=account1Principal?account1Profit/account1Principal*100:0;
     etfEval=holdings.filter(h=>h.type==='ETF').reduce((a,h)=>a+h.evalAmount,0);
     stockEval=holdings.filter(h=>h.type==='개별주식').reduce((a,h)=>a+h.evalAmount,0);
-    allocTotal=daily.totalEval;
+    allocTotal=hasLiveSecurityPrice?liveDailyEval:daily.totalEval;
   }else{
     holdings=p.securities.map(h=>{
-      const state=securityPositionState(h,date),prevState=pk?securityPositionState(h,pk):null,marketPrice=securityValuationOverride(h.ticker,date)??getPrice(s,'securities',h.ticker),prevPrice=pk?(securityValuationOverride(h.ticker,pk)??getPrice(prev,'securities',h.ticker)):null,tradeFlow=pk?securityTradeFlow(pk,date,h.ticker):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0};
-      const postClosePending=!!(h.chartFrom&&date<h.chartFrom&&securityEventItems().some(v=>v.type==='buy'&&String(v?.ticker||'')===String(h.ticker||'')&&String(v?.date||'')===date));
+      const state=securityPositionState(h,date),prevState=pk?securityPositionState(h,pk):null,liveQuote=liveValuationQuoteForDate(h.ticker,date),marketPrice=liveQuote?.price??securityValuationOverride(h.ticker,date)??getPrice(s,'securities',h.ticker),prevPrice=pk?(securityValuationOverride(h.ticker,pk)??getPrice(prev,'securities',h.ticker)):null,tradeFlow=pk?securityTradeFlow(pk,date,h.ticker):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0};
+      const postClosePending=!liveQuote&&!!(h.chartFrom&&date<h.chartFrom&&securityEventItems().some(v=>v.type==='buy'&&String(v?.ticker||'')===String(h.ticker||'')&&String(v?.date||'')===date));
       const price=postClosePending&&state.qty?state.cost/state.qty:marketPrice,evalAmount=postClosePending?state.cost:(price||0)*state.qty,profit=postClosePending?0:evalAmount-state.cost,feeAdjustedProfit=postClosePending?0:profit-(h.feeBuffer||0),prevEval=prevPrice==null||!prevState?null:prevPrice*prevState.qty,prevProfit=prevPrice==null||!prevState?null:prevEval-prevState.cost,dayChange=postClosePending?null:(prevEval==null?null:evalAmount-prevEval-tradeFlow.buyAmount+tradeFlow.sellAmount);
-      return {...h,qty:state.qty,cost:state.cost,avgPrice:state.qty?state.cost/state.qty:0,price,prevPrice,evalAmount,profit,feeAdjustedProfit,returnRate:state.cost?profit/state.cost*100:0,prevEval,dayChange,prevProfit,tradeFlow,postClosePending};
+      return {...h,qty:state.qty,cost:state.cost,avgPrice:state.qty?state.cost/state.qty:0,price,prevPrice,evalAmount,profit,feeAdjustedProfit,returnRate:state.cost?profit/state.cost*100:0,prevEval,dayChange,prevProfit,tradeFlow,postClosePending,priceSource:liveQuote?'market-ai':'json',liveQuote};
     });
     securitiesCash=securitiesCashForDate(date);
     rawHoldingProfit=holdings.reduce((a,h)=>a+h.profit,0);
@@ -670,14 +756,14 @@ function calc(date){
   const returnRate=totalPrincipal?totalProfit/totalPrincipal*100:0;
   const actualHolding=isLedgerCheckDate(date)?totalResult-c.livingSpent:null;
   const pensionRows=hasPension?p.pension.map(pos=>{
-    const state=pensionPositionState(pos,date),prevState=pk?pensionPositionState(pos,pk):null;
-    const price=getPrice(s,'pension',pos.ticker),prevPrice=prev?getPrice(prev,'pension',pos.ticker):null;
+    const state=pensionPositionState(pos,date),prevState=pk?pensionPositionState(pos,pk):null,liveQuote=liveValuationQuoteForDate(pos.ticker,date);
+    const price=liveQuote?.price??getPrice(s,'pension',pos.ticker),prevPrice=prev?getPrice(prev,'pension',pos.ticker):null;
     const evalAmount=(price||0)*state.qty,profit=evalAmount-state.cost,totalProfit=profit+state.realizedProfit;
     const prevEval=prevPrice==null||!prevState?null:prevPrice*prevState.qty;
     const tradeFlow=pk?pensionTradeFlow(pk,date,pos.ticker):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0};
     const dayChange=prevEval==null?null:evalAmount-prevEval-tradeFlow.buyAmount+tradeFlow.sellAmount;
     const dayRate=dayChangeRate(dayChange,prevEval,tradeFlow.buyAmount);
-    return {...pos,qty:state.qty,cost:state.cost,realizedProfit:state.realizedProfit,totalProfit,price,prevPrice,evalAmount,profit,returnRate:state.cost?profit/state.cost*100:0,dayChange,dayRate,prevEval,prevQty:prevState?.qty??null,prevCost:prevState?.cost??null,tradeFlow};
+    return {...pos,qty:state.qty,cost:state.cost,realizedProfit:state.realizedProfit,totalProfit,price,prevPrice,evalAmount,profit,returnRate:state.cost?profit/state.cost*100:0,dayChange,dayRate,prevEval,prevQty:prevState?.qty??null,prevCost:prevState?.cost??null,tradeFlow,priceSource:liveQuote?'market-ai':'json',liveQuote};
   }):[];
   const basePensionCash=hasPension?Number(s?.pension?.cash||0):0,basePrevPensionCash=Number(prev?.pension?.cash||0),pensionCash=hasPension?pensionCashValuation(date,basePensionCash):0,prevPensionCash=prev?pensionCashValuation(pk,basePrevPensionCash):0,pensionTradeDayFlow=pk?pensionTradeFlow(pk,date):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0},pensionExternalFlow=pk?pensionContributionSumAfter(pk,date):0,pensionCashDayChange=prev?pensionCash-prevPensionCash-pensionExternalFlow+pensionTradeDayFlow.buyAmount-pensionTradeDayFlow.sellAmount:null,pensionCashCost=hasPension?pensionCashCostBasis(date):0,pensionEval=hasPension?pensionRows.reduce((a,r)=>a+r.evalAmount,0)+pensionCash:0,pensionPrevEval=hasPension&&prev?pensionRows.reduce((a,r)=>a+(r.prevEval||0),0)+prevPensionCash:null,pensionDayChange=hasPension&&prev?pensionRows.reduce((a,r)=>a+(Number(r.dayChange)||0),0)+(Number(pensionCashDayChange)||0):null,pensionDayRate=pensionPrevEval==null?null:(dayChangeRate(pensionDayChange,pensionPrevEval,pensionExternalFlow)??0),pensionProfit=hasPension?pensionEval-pensionPrincipal:0,pensionReturn=hasPension&&pensionPrincipal?pensionProfit/pensionPrincipal*100:0;
   const combinedPrincipal=hasPension?totalPrincipal+pensionPrincipal:totalPrincipal,combinedResult=hasPension?totalResult+pensionEval:totalResult,combinedProfit=hasPension?totalProfit+pensionProfit:totalProfit,combinedReturn=combinedPrincipal?combinedProfit/combinedPrincipal*100:0;
@@ -889,11 +975,13 @@ export {
   account1PrincipalForDate,
   account1SourceHoldingGapForDate,
   allocHistory,
+  applyLiveValuationSnapshot,
   allAvailableDates,
   assetPriceColumnLabel,
   assetTypeColor,
   calc,
   cls,
+  clearLiveValuationSnapshot,
   cumHistory,
   dataState,
   dayChangeRate,
@@ -910,6 +998,9 @@ export {
   linkedPensionCashSnapshotForContribution,
   linkedPensionCashSnapshotForTrade,
   loadInitialData,
+  liveValuationPriceForDate,
+  liveValuationQuoteForDate,
+  liveValuationTickersForDate,
   monthLabel,
   outsideCashForDate,
   pct,

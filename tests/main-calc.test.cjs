@@ -71,7 +71,8 @@ function resetState(){
     pensionContributions:{contributions:[]},
     pensionCashSnapshots:{snapshots:[]},
     pensionTrades:{trades:[]},
-    activeDate:null
+    activeDate:null,
+    liveValuation:{status:'idle',marketState:'',bridgeConnected:null,universeVersion:0,generatedAt:null,requestedTickers:[],items:{},reason:''}
   });
   Object.assign(core.uiState,{
     activeAssetTab:'securities',
@@ -83,7 +84,7 @@ function resetState(){
 function setState(overrides={}){
   resetState();
   if(overrides.portfolio)core.dataState.portfolio=overrides.portfolio;
-  for(const key of ['prices','snapshots','account1Daily','pensionContributions','pensionCashSnapshots','pensionTrades','activeDate']){
+  for(const key of ['prices','snapshots','account1Daily','pensionContributions','pensionCashSnapshots','pensionTrades','activeDate','liveValuation']){
     if(Object.prototype.hasOwnProperty.call(overrides,key))core.dataState[key]=overrides[key];
   }
 }
@@ -382,3 +383,69 @@ test('내부 현금이체와 외부기여금은 fundingClass 의미에 따라 �
   assert.equal(core.securityExcludedTransferSum('2026-06-10'),400);
   assert.equal(core.securityExternalContributionSum('2026-06-10'),500);
 });
+
+test('실시간 평가: 오늘 날짜만 usable Market AI quote를 가격·평가손익에 overlay하고 과거 날짜는 JSON을 유지한다',()=>{
+  const today=core.kstTodayText();
+  const past='2026-09-10';
+  const portfolio=basePortfolio({
+    securities:[{name:'삼성전자',ticker:'005930',type:'개별주식',qty:10,cost:1000,chart:true}],
+    pension:[]
+  });
+  setState({
+    portfolio,
+    prices:{
+      [past]:{securities:{'005930':100}},
+      [today]:{securities:{'005930':110}}
+    }
+  });
+  assert.equal(core.applyLiveValuationSnapshot({
+    status:'ok',market_state:'open',bridge_connected:true,universe_version:2,generated_at:'2026-09-11T06:00:00Z',
+    items:[{ticker:'005930',symbol:'KRX:005930',service:'SC_R',price:125,state:'live',usable:true,observed_at:'2026-09-11T06:00:00Z'}]
+  },['005930']),true);
+  const live=core.calc(today).holdings[0];
+  assert.equal(live.price,125);
+  assert.equal(live.evalAmount,1250);
+  assert.equal(live.profit,250);
+  assert.equal(live.priceSource,'market-ai');
+  const historical=core.calc(past).holdings[0];
+  assert.equal(historical.price,100);
+  assert.equal(historical.priceSource,'json');
+});
+
+test('실시간 평가: unusable 종목은 JSON fallback하고 같은 ticker의 증권·연금은 universe에서 1회만 요청한다',()=>{
+  const today=core.kstTodayText();
+  const portfolio=basePortfolio({
+    securities:[
+      {name:'KODEX AI반도체',ticker:'395160',type:'ETF',qty:2,cost:100,chart:true},
+      {name:'매도완료',ticker:'005930',type:'개별주식',qty:0,cost:0,chart:false}
+    ],
+    pension:[
+      {name:'KODEX 200TR',ticker:'278530',qty:0,cost:0},
+      {name:'KODEX AI반도체',ticker:'395160',qty:3,cost:150},
+      {name:'KODEX 삼전채권',ticker:'448330',qty:0,cost:0}
+    ]
+  });
+  setState({portfolio,prices:{[today]:{securities:{'395160':60},pension:{'278530':1,'395160':61,'448330':1,cash:0}}}});
+  assert.deepEqual(core.liveValuationTickersForDate(today),['395160']);
+  core.applyLiveValuationSnapshot({
+    status:'unavailable',market_state:'open',bridge_connected:true,universe_version:3,
+    items:[{ticker:'395160',price:70,state:'warming',usable:false}]
+  },['395160']);
+  const x=core.calc(today);
+  assert.equal(x.holdings[0].price,60);
+  assert.equal(x.holdings[0].priceSource,'json');
+  const pensionAi=x.pensionRows.find(row=>row.ticker==='395160');
+  assert.equal(pensionAi.price,61);
+  assert.equal(pensionAi.priceSource,'json');
+});
+
+test('실시간 평가: 요청 실패 clear는 live quote를 제거해 즉시 JSON fallback 상태로 되돌린다',()=>{
+  const today=core.kstTodayText();
+  const portfolio=basePortfolio({securities:[{name:'삼성전자',ticker:'005930',type:'개별주식',qty:1,cost:100,chart:true}],pension:[]});
+  setState({portfolio,prices:{[today]:{securities:{'005930':110}}}});
+  core.applyLiveValuationSnapshot({status:'ok',market_state:'open',bridge_connected:true,items:[{ticker:'005930',price:120,state:'live',usable:true}]},['005930']);
+  assert.equal(core.calc(today).holdings[0].price,120);
+  assert.equal(core.clearLiveValuationSnapshot('request-failed'),true);
+  assert.equal(core.calc(today).holdings[0].price,110);
+});
+

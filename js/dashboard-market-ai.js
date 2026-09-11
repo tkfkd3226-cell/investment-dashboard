@@ -3,6 +3,11 @@ import {
   closeDashboardNativeDialog,
   openDashboardNativeDialog
 } from './dashboard-modal.js';
+import {
+  marketAiApiBase,
+  marketAiFetchWithTimeout as fetchWithTimeout,
+  marketAiLocalMode
+} from './dashboard-market-ai-client.js';
 
 // Market AI Standalone Adapter · main feature graph와 분리된 독립 entry
 // Ownership: dashboard-modal.js의 저수준 dialog lifecycle만 공유하고, mount/state/fetch/render는 이 파일이 소유한다.
@@ -24,11 +29,7 @@ import {
 // [MARKET01] Configuration / Runtime State · endpoint / metric contract
 
 const MARKET_AI_POLL_MS=10_000;
-const MARKET_AI_TIMEOUT_MS=2_500;
-const MARKET_AI_REMOTE_TIMEOUT_MS=5_000;
 const MARKET_AI_STALE_MS=5*60_000;
-const LOCAL_DASHBOARD_HOSTS=new Set(['localhost','127.0.0.1']);
-const MARKET_AI_REMOTE_BASE='https://node.tail60a98e.ts.net';
 const MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200';
 const MARKET_AI_SOX_INDEX_SYMBOL='INDEX:SOX';
 const MARKET_AI_NASDAQ100_FUTURES_SYMBOL='FUTURES:NQ';
@@ -75,50 +76,12 @@ let mountFrame=0;
 let marketAiTooltipEventsBound=false;
 
 // [MARKET02] Environment / Fetch · 실행 환경 / timeout
-function marketAiLocalMode(){
-  return LOCAL_DASHBOARD_HOSTS.has(location.hostname);
-}
-
-function marketAiApiBase(){
-  if(marketAiLocalMode())return `${location.protocol}//${location.hostname}:8001`;
-  return MARKET_AI_REMOTE_BASE;
-}
-
-function marketAiRequestTimeoutMs(){
-  return marketAiLocalMode()?MARKET_AI_TIMEOUT_MS:MARKET_AI_REMOTE_TIMEOUT_MS;
-}
-
 function marketAiUiEnabled(){
   return !!marketAiApiBase();
 }
 
 function marketAiPhoneUi(){
   return marketAiPhoneMedia.matches;
-}
-
-function fetchWithTimeout(url,options={},timeoutMs=marketAiRequestTimeoutMs()){
-  const controller=new AbortController();
-  let settled=false;
-  const timer=window.setTimeout(()=>controller.abort(),timeoutMs);
-  const finish=()=>{
-    if(settled)return;
-    settled=true;
-    window.clearTimeout(timer);
-  };
-  return fetch(url,{...options,signal:controller.signal}).then(response=>{
-    const readBody=method=>async(...args)=>{
-      try{return await response[method](...args);}
-      finally{finish();}
-    };
-    return new Proxy(response,{
-      get(target,property){
-        if(['json','text','blob','arrayBuffer','formData'].includes(property))return readBody(property);
-        if(property==='releaseTimeout')return finish;
-        const value=Reflect.get(target,property,target);
-        return typeof value==='function'?value.bind(target):value;
-      }
-    });
-  },error=>{finish();throw error;});
 }
 
 // [MARKET03] Formatting / Time / Freshness · 점수 / 시장값 / 시간 표현
