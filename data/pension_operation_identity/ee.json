@@ -1,0 +1,17 @@
+[
+  {
+    "identityKey": "request:contribution:contrib-2026-09-30-d51d11a9-646f-48a7-8ed4-adbcf9c12f43",
+    "contentHash": "ade5f303c8aa53b202c933a9248155f8ae8ab8760d4cfcf50a06b46f9f880fc7",
+    "target": "contribution",
+    "action": "upsert",
+    "semanticHash": "df74e397f78c76194ae59ae14176e75eae0d908bafc2119e8bf9c524ea385d97",
+    "resourceKey": "2026-09-30",
+    "logicalOperationId": "contrib-2026-09-30-d51d11a9-646f-48a7-8ed4-adbcf9c12f43",
+    "requestId": "contrib-2026-09-30-d51d11a9-646f-48a7-8ed4-adbcf9c12f43",
+    "batchRequestId": "",
+    "batchOperationId": "",
+    "resultVersion": "contrib-2026-09-30-d51d11a9-646f-48a7-8ed4-adbcf9c12f43",
+    "savedAtKST": "2026-09-11T17:08:32+09:00",
+    "savedAtMs": 1789114112919
+  }
+]
