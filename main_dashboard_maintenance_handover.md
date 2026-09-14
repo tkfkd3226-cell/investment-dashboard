@@ -541,7 +541,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 - local/remote API base 선택과 timeout fetch만 소유한다.
 - signal 산식, quote 판정, Dashboard 계산, DOM, polling state를 소유하지 않는다.
-- Local은 현재 Dashboard host의 `:8001`, Remote는 canonical Tailscale endpoint를 사용한다.
+- Local은 현재 Dashboard host의 `:8001` full API를 사용한다. Remote는 canonical Tailscale endpoint를 사용하되 실제 runtime 경로는 **Tailscale Serve → `127.0.0.1:8002` GET-only proxy → `127.0.0.1:8001`**이며 Dashboard frontend는 remote write 경로를 갖지 않는다.
 - `fetch()` 성공 뒤 body parse가 끝날 때까지 timeout lifecycle을 유지하고 body 소비 완료 후 timer를 정리한다.
 - endpoint가 바뀌면 signal panel과 live valuation에 각각 literal을 복제하지 않고 이 module을 canonical source로 수정한다.
 
@@ -555,6 +555,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 현재 보유 ticker가 0개여도 refresh를 조기 종료하지 않고 `client_id + []`를 backend에 보내 해당 client의 universe를 authoritative empty로 reconcile하며, 로컬 `requestedTickers`도 즉시 `[]`로 비운다.
 - quote는 `usable:true`인 종목에만 적용하고 `warming/stale/unavailable/error` 등 unusable 종목은 **종목별 JSON fallback**한다. 일부 실패 때문에 정상 quote까지 모두 버리지 않는다.
 - backend의 종목별 `state / usable / market_state`를 normalize 과정에서 버리지 않는다. `market_state`는 Dashboard 내부에서 `marketState`로 보존하고 `liveValuationStatusForDate()`가 `regularLiveCount(open) / extendedLiveCount(extended) / marketClosedCount(closed)`를 집계한다. top-level `market_state`만으로 개별주식 시간외와 ETF 장마감이 섞인 15:30~20:00 구간을 판정하지 않는다. `liveValuationFingerprint()`에도 종목별 `market_state`를 포함해 가격이 그대로여도 open→extended/closed 의미가 바뀌면 다음 UI 단계가 상태 변경을 관측할 수 있어야 한다.
+- 현재 consumer session contract는 **개별주식 `09:00~15:30 open / 15:30~20:00 extended / 20:00 이후 closed`, ETF `15:30 이후 closed`**다. `extended` quote는 backend가 `state=live, usable=true`로 제공하므로 오늘 평가 overlay에 계속 적용한다. Dashboard는 이 시간을 자체 계산해 backend를 덮어쓰지 않고, 응답의 ticker별 `market_state/state/usable`을 소비한다. KOSPI 15:30 종가 판정과 K200 day/night session은 Market AI backend 소유이며 live valuation adapter가 재정의하지 않는다.
 - live quote는 `dataState.liveValuation`의 volatile snapshot으로만 보관하며 운영 JSON, GAS, GitHub Actions, `performance_snapshots.json`에 쓰지 않는다.
 - live overlay는 `activeDate === KST 오늘`일 때만 계산에 사용한다. 과거 날짜는 Market AI state가 존재해도 JSON/역사 snapshot 의미를 유지한다.
 - Market AI는 ticker별 현재가와 source/health만 제공한다. 수량·원가·원금·매매흐름·실현손익의 owner는 Dashboard 장부다.
@@ -1818,6 +1819,7 @@ Market AI/live valuation 변경이면 추가로 다음을 확인한다.
 ```text
 오늘 activeDate만 live overlay 적용
 종목별 usable/fallback
+15:30~20:00 mixed session에서 개별주식 extended + ETF closed를 ticker별 market_state로 구분
 client_id multi-client universe 충돌 없음
 holdings 변경 중 stale response 폐기
 modal/expanded chart 중 render defer
