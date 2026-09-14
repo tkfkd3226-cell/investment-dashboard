@@ -117,6 +117,7 @@ GitHub 프로젝트 설명
 - Main 관련 파일이 실제로 존재하는지
 - 문서의 파일 책임과 최신 구조가 일치하는지
 - 오래된 `style.css`, `desktop.css`, classic script 구조가 재등장하지 않았는지
+- `.gitattributes`의 `* text=auto eol=lf` contract와 binary asset 제외 규칙이 유지되고, EOL-only 대량 diff가 재발하지 않았는지
 
 ### JavaScript
 
@@ -288,6 +289,8 @@ window.addEventListener(...)
 ```
 
 UI 여러 곳에서 공통으로 쓰는 저수준 DOM helper는 `dashboard-ui-common.js` 책임이다.
+
+repository/server data를 template string으로 `innerHTML`에 넣을 때는 text 값이 HTML로 해석되지 않도록 `escapeHtml()` 또는 동등한 text-safe 경계를 사용한다. `labelHtml`, swatch, icon처럼 코드가 직접 조립한 trusted markup은 별도 HTML contract로 유지하고, trusted fragment 전체를 다시 escape해 UI markup을 깨뜨리지 않는다. 즉 **text data와 trusted HTML을 호출 경계에서 명시적으로 분리**한다.
 
 계산/데이터 함수는 가능한 한:
 

@@ -1295,3 +1295,19 @@ test('Market AI 시장 tooltip renderer는 상태와 무관하게 라벨을 고�
   const k200Labels=[...html.matchAll(/<row n="([^"]+)"/g)].map(match=>match[1]);
   assert.deepEqual(k200Labels,['현재가','등락률','상태','세션','출처','기준 시각']);
 });
+
+test('Repository data text는 trusted HTML과 분리해 innerHTML 경계에서 escape한다',()=>{
+  assert.match(app,/<h1 id="dashboardTitle">\$\{escapeHtml\(dataState\.portfolio\.meta\.title\)\}<\/h1>/);
+  assert.match(ui,/labelHtml:`<span class="holding-name-text">\$\{escapeHtml\(h\.name\)\}<\/span>\$\{securitySymbolSwatch\(h\.name\)\}`/);
+  assert.match(charts,/function allocationValueCard\([\s\S]*?const safeLabel=escapeHtml\(label\);[\s\S]*?\$\{safeLabel\}\$\{swatch\}/);
+  assert.match(charts,/function symbolSummaryCard\([\s\S]*?safeLabel=escapeHtml\(label\);[\s\S]*?\$\{safeLabel\}\$\{swatch\}/);
+  assert.doesNotMatch(app,/<h1 id="dashboardTitle">\$\{dataState\.portfolio\.meta\.title\}<\/h1>/);
+  assert.doesNotMatch(ui,/labelHtml:`<span class="holding-name-text">\$\{h\.name\}<\/span>/);
+});
+
+test('Repository EOL contract는 LF를 고정하고 binary asset은 normalization에서 제외한다',()=>{
+  const attrs=read('.gitattributes');
+  assert.match(attrs,/^\* text=auto eol=lf$/m);
+  assert.match(attrs,/(^|\n)\*\.png binary$/m);
+  assert.match(attrs,/(^|\n)\*\.webp binary$/m);
+});

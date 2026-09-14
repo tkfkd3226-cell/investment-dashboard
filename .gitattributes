@@ -1,0 +1,6 @@
+# Repository text files use LF so ZIP/Windows edits do not create EOL-only diffs.
+* text=auto eol=lf
+
+# Binary assets must never receive text normalization.
+*.png binary
+*.webp binary

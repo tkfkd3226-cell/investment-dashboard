@@ -251,6 +251,7 @@ investment-dashboard/
 │  └─ workflows/
 │     └─ update-prices.yml
 │
+├─ .gitattributes                  # text LF 고정 / binary asset normalization 제외
 ├─ _config.yml                     # GitHub Pages에서 repository-only durable shard 제외
 ├─ requirements.txt
 ├─ README.md
@@ -260,6 +261,7 @@ investment-dashboard/
 ```
 
 `img/favicon.png`은 Main과 Add가 함께 사용하는 공통 favicon입니다.
+`.gitattributes`는 저장소 text 파일의 EOL을 LF로 고정하고 PNG/WebP binary asset을 text normalization에서 제외해 Windows/ZIP 왕복에서 EOL-only diff가 누적되지 않게 합니다.
 
 ---
 

@@ -418,6 +418,8 @@ A/B/C는 개수를 채우지 않는다. 실제 감점 근거가 없으면 A/B 0�
 - responsive contract
 - shared schema / canonical data
 - 문서와 실제 구조의 불일치
+- `.gitattributes` / EOL normalization 상태와 EOL-only 대량 diff 여부
+- `innerHTML`/HTML template 경계에서 repository/server text data가 escape 없이 markup으로 해석되는 경로가 있는지
 - syntax / reference / ARIA / duplicate id 등 정적 결함
 
 **Pass 1의 PASS는 평가 종료 조건이 아니다.**
@@ -547,6 +549,8 @@ Pass 1~5에서 이미 확인한 내용을 반복하는 것이 아니라, 아직 
 - tests
 - README / handover / evaluation 문서
 - 문서와 실제 구조의 불일치
+- `.gitattributes`와 실제 tracked text EOL 상태가 일치하는지, `git diff --ignore-space-at-eol`에서만 사라지는 가짜 대량 diff가 없는지
+- UI renderer가 `labelHtml` 같은 trusted markup과 repository/server text data를 분리하고 text data를 escape하는지
 
 canonical 구조의 상세 설명은 각 handover를 참고하되 **최신 실제 소스가 다르면 실제 구조를 먼저 확인**한다.
 

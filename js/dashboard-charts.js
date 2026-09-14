@@ -863,7 +863,8 @@ function securityAllocCardCount(x){
   return chartState.securityAllocMode==='symbol'?4:3;
 }
 function allocationValueCard(label,value,{ratioText='',swatch=''}={}){
-  return `<div class="mini-card"><div class="m-label">${label}${swatch}</div><div class="m-value">${value}${ratioText?` <span class="small alloc-ratio-meta">(${ratioText})</span>`:''}</div></div>`;
+  const safeLabel=escapeHtml(label);
+  return `<div class="mini-card"><div class="m-label">${safeLabel}${swatch}</div><div class="m-value">${value}${ratioText?` <span class="small alloc-ratio-meta">(${ratioText})</span>`:''}</div></div>`;
 }
 function allocationTotalCard(value,{className='',detailHtml=''}={}){
   return `<div class="mini-card allocation-total-card${className?` ${className}`:''}"><div class="m-label">평가금액 합계</div><div class="m-value">${value}</div>${detailHtml}</div>`;
@@ -943,7 +944,7 @@ function renderCharts(x,separateProfitHtml=''){
   ${renderChartCard({id:'chart-alloc',title:'평가금액 비중',icon:'pie',actions:`${securityAllocToggle()}${chartWebExpandButton()}`,svgId:'chartAlloc',legendId:'securityAllocLegend',legendHtml:securityAllocLegendHtml(x),noteClass:'security-alloc-card-grid',noteId:'securityAllocCards',noteStyle:`--security-alloc-card-count:${securityAllocCardCount(x)}`,noteHtml:securityAllocCardsHtml(x)})}
   </div></section>`;
 }
-function symbolSummaryCard(h,total,{label=h.name,swatch='' }={}){const contrib=total?h.profit/total*100:0,rr=h.cost?h.profit/h.cost*100:0;return `<div class="mini-card symbol-card"><div class="m-label">${label}${swatch}</div><div class="m-value ${cls(h.profit)}">${won(h.profit)}</div><div class="symbol-metrics"><div class="symbol-metric"><span class="symbol-metric-label">기여도</span><span class="symbol-metric-value ${cls(contrib)}">${pct(contrib)}</span></div><div class="symbol-metric"><span class="symbol-metric-label">수익률</span><span class="symbol-metric-value ${cls(rr)}">${rr>0?'+':''}${pct(rr)}</span></div></div></div>`}
+function symbolSummaryCard(h,total,{label=h.name,swatch='' }={}){const contrib=total?h.profit/total*100:0,rr=h.cost?h.profit/h.cost*100:0,safeLabel=escapeHtml(label);return `<div class="mini-card symbol-card"><div class="m-label">${safeLabel}${swatch}</div><div class="m-value ${cls(h.profit)}">${won(h.profit)}</div><div class="symbol-metrics"><div class="symbol-metric"><span class="symbol-metric-label">기여도</span><span class="symbol-metric-value ${cls(contrib)}">${pct(contrib)}</span></div><div class="symbol-metric"><span class="symbol-metric-label">수익률</span><span class="symbol-metric-value ${cls(rr)}">${rr>0?'+':''}${pct(rr)}</span></div></div></div>`}
 function symbolCard(h,total){return symbolSummaryCard(h,total,{label:h.name==='KODEX 200'?'KODEX 200':h.name,swatch:securitySymbolSwatch(h.name)})}
 
 

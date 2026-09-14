@@ -887,7 +887,7 @@ function renderHoldings(x){
   });
   const cards=orderedHoldings.map(h=>({
     title:renderAssetPriceSourceLabel({
-      labelHtml:`<span class="holding-name-text">${h.name}</span>${securitySymbolSwatch(h.name)}`,
+      labelHtml:`<span class="holding-name-text">${escapeHtml(h.name)}</span>${securitySymbolSwatch(h.name)}`,
       name:h.name,ticker:h.ticker,date:x.date,priceText:h.price==null?'-':won(h.price),
       liveQuote:h.liveQuote,postClosePending:h.postClosePending,fallbackSource
     }),
