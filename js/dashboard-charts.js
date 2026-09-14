@@ -927,19 +927,22 @@ function renderChartCard({id,title,titleSub='',titleInfo='',icon,actions,svgId,l
   const noteAttrs=`class="chart-note${noteClass?` ${noteClass}`:''}"${noteId?` id="${noteId}"`:''}${noteStyle?` style="${noteStyle}"`:''}`;
   return `<div class="chart-card" id="${id}"><div class="chart-head"><div><h3><span class="section-title-icon chart-icon" data-section-title-icon="${icon}" aria-hidden="true"></span>${chartTitleLabel(title,{sub:titleSub,info:titleInfo})}</h3></div>${headExtra}<div class="chart-head-actions">${actions}</div></div>${chartScrollButton()}<div class="chart-wrap"><svg class="chart" id="${svgId}"></svg></div><div class="chart-legend" id="${legendId}">${legendHtml}</div><div ${noteAttrs}>${noteHtml}</div></div>`;
 }
-function renderCharts(x,separateProfitHtml=''){
+function renderSecuritiesCumulativeChart(x,separateProfitHtml=''){
   const cum=cumHistory(x.date),last=cum.at(-1),prevCum=cum.length>1?cum.at(-2):null,best=cum.reduce((a,b)=>b['합계 : 누적손익']>a['합계 : 누적손익']?b:a,cum[0]),
         bestDay=cum.reduce((a,b)=>b['합계 : 전일대비손익']>a['합계 : 전일대비손익']?b:a,cum[0]),
         worstDay=cum.reduce((a,b)=>b['합계 : 전일대비손익']<a['합계 : 전일대비손익']?b:a,cum[0]),
-        mdd=calcMdd(cum),chartNames=securityChartNamesForDate(x.date),symbolCards=x.holdings.filter(h=>chartNames.includes(h.name)||h.name==='KODEX 로봇액티브'||h.name==='KoAct 코스닥액티브'),orderedSymbols=sortSecurityChartItems(symbolCards),symbolTotal=symbolCards.reduce((a,h)=>a+h.profit,0),
-        lastProfit=last['합계 : 누적손익'], lastReturn=last['합계 : 누적수익률'],
+        mdd=calcMdd(cum),lastProfit=last['합계 : 누적손익'],lastReturn=last['합계 : 누적수익률'],
         profitDelta=prevCum?lastProfit-prevCum['합계 : 누적손익']:0,
         dayReturnRate=x?.securitiesAssetDetail?.change?.dayRate??null,
         bestGap=best['합계 : 누적손익']-lastProfit,
         bestDetail=bestGap===0?'금일 갱신':'금일 대비 '+signed(bestGap,'원');
   const cumulativeNote=cumulativeSummaryCards({profitLabel:'누적손익',returnLabel:'누적수익률',lastProfit,lastReturn,profitDelta,dayReturnRate,best,bestDay,worstDay,mdd,bestGap,bestDetail,chartId:'chart-cum'});
+  return renderChartCard({id:'chart-cum',title:'누적손익 및 누적수익률',icon:'lineChart',headExtra:separateProfitHtml,actions:`${chartCompareToggle('securities')}${chartWebExpandButton()}`,svgId:'chartCum',legendId:'securitiesCumLegend',legendHtml:chartLegendHtml('securitiesCum'),noteClass:'six',noteHtml:cumulativeNote});
+}
+function renderCharts(x,separateProfitHtml=''){
+  const chartNames=securityChartNamesForDate(x.date),symbolCards=x.holdings.filter(h=>chartNames.includes(h.name)||h.name==='KODEX 로봇액티브'||h.name==='KoAct 코스닥액티브'),orderedSymbols=sortSecurityChartItems(symbolCards),symbolTotal=symbolCards.reduce((a,h)=>a+h.profit,0);
   return `<section id="investment-analysis"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="period" aria-hidden="true"></span>투자 기간 분석</h2><p class="section-control-chip section-basis-chip"><span class="control-text-optical">삼성증권1 기준</span></p></div><div class="grid chart-grid">
-  ${renderChartCard({id:'chart-cum',title:'누적손익 및 누적수익률',icon:'lineChart',headExtra:separateProfitHtml,actions:`${chartCompareToggle('securities')}${chartWebExpandButton()}`,svgId:'chartCum',legendId:'securitiesCumLegend',legendHtml:chartLegendHtml('securitiesCum'),noteClass:'six',noteHtml:cumulativeNote})}
+  ${renderSecuritiesCumulativeChart(x,separateProfitHtml)}
   ${renderChartCard({id:'chart-symbol',title:'종목별 누적손익',icon:'barChart',actions:`${symbolChartToggle('securities')}${chartWebExpandButton()}`,svgId:'chartSymbol',legendId:'securitiesSymbolLegend',legendHtml:chartLegendHtml('securitiesSymbol'),noteClass:'symbol-summary-grid',noteHtml:orderedSymbols.map(h=>symbolCard(h,symbolTotal)).join('')})}
   ${renderChartCard({id:'chart-alloc',title:'평가금액 비중',icon:'pie',actions:`${securityAllocToggle()}${chartWebExpandButton()}`,svgId:'chartAlloc',legendId:'securityAllocLegend',legendHtml:securityAllocLegendHtml(x),noteClass:'security-alloc-card-grid',noteId:'securityAllocCards',noteStyle:`--security-alloc-card-count:${securityAllocCardCount(x)}`,noteHtml:securityAllocCardsHtml(x)})}
   </div></section>`;
@@ -1580,6 +1583,22 @@ function drawStacked(){
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{const displayedTotal=series.reduce((a,key)=>a+Number(d[key]||0),0),total=selection.all?(Number(d._total)||displayedTotal):displayedTotal;let html=tooltipDate(d['날짜']);series.forEach(key=>{const value=Number(d[key]||0),share=total?value/total*100:0;html+=row(chartDisplayLabel('securitiesAlloc',key),fmt(value)+`원 (${share.toFixed(1)}%)`)});return html+tooltipDivider()+totalRow('합계',fmt(total)+'원')});
 }
+function refreshSecuritiesCumulativeChart(){
+  applySecuritiesCumCardTransitionSuppression();
+  if(uiState.activeAssetTab==='pension')return;
+  const svg=document.getElementById('chartCum');
+  if(!svg)return;
+  drawCumChart();
+  setupResponsiveChartControls();
+  const card=svg.closest('.chart-card');
+  if(card){
+    card.dataset.chartEntrancePlayed='true';
+    card.classList.remove('chart-entrance-ready');
+    card.classList.add('chart-entrance-active');
+  }
+  refreshScrollOverflowState();
+  requestAnimationFrame(refreshScrollOverflowState);
+}
 function drawAllCharts(){
   applySecuritiesCumCardTransitionSuppression();
   if(uiState.activeAssetTab==='pension'){
@@ -1639,7 +1658,9 @@ export {
   handleChartDashboardAction,
   isExpandedChart,
   refreshExpandedSeparateProfitChart,
+  refreshSecuritiesCumulativeChart,
   renderCharts,
+  renderSecuritiesCumulativeChart,
   renderPensionCharts,
   requestSecuritiesCumCardTransitionSuppression,
   setupChartGlobalEvents,

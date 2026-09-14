@@ -27,6 +27,8 @@ import {
   handleChartDashboardAction,
   isExpandedChart,
   refreshExpandedSeparateProfitChart,
+  refreshSecuritiesCumulativeChart,
+  renderSecuritiesCumulativeChart,
   requestSecuritiesCumCardTransitionSuppression,
   setupChartGlobalEvents,
   suppressChartEntranceOnce
@@ -43,8 +45,12 @@ import {
   dateActionMenuIsOpen,
   desktopEdgeTocIsOpen,
   renderCombined,
+  renderResultSummary,
+  renderSecuritiesPerformanceSummary,
   renderSecuritiesSection,
+  renderSourceTables,
   renderTabs,
+  separateProfitControl,
   restoreDateActionMenuAfterRender,
   restoreDesktopEdgeTocAfterRender,
   setupSectionNavigationTracking,
@@ -88,20 +94,16 @@ function handleHeroBasisTap(){
   togglePersonalView();
 }
 function toggleSeparateProfitMode(){
-  const scrollY=window.scrollY;
   uiState.includeSeparateProfit=!uiState.includeSeparateProfit;
-  suppressChartEntranceOnce();
   requestSecuritiesCumCardTransitionSuppression();
-  render();
-  requestAnimationFrame(()=>window.scrollTo({top:scrollY,left:0,behavior:'auto'}));
+  refreshSeparateProfitModeView();
 }
 function toggleSeparateProfitModeFromExpanded(cardId){
   if(cardId!=='chart-cum'||!isExpandedChart(cardId))return;
   uiState.includeSeparateProfit=!uiState.includeSeparateProfit;
   refreshExpandedSeparateProfitChart(()=>{
-    const scrollY=window.scrollY;
-    render();
-    requestAnimationFrame(()=>window.scrollTo({top:scrollY,left:0,behavior:'auto'}));
+    requestSecuritiesCumCardTransitionSuppression();
+    refreshSeparateProfitModeView();
   });
 }
 
@@ -224,6 +226,42 @@ function setupDashboardEventDelegation(){
   });
 }
 // [APP04] Render Orchestration · 자산 workspace / 전체 렌더링 / transient UI state 보존
+function renderHeroMetricPills(x,v=separateProfitView(x)){
+  const pensionPills=x.hasPension?`<span class="pill hero-profit-pill"><span class="hero-label-default">퇴직연금 운용손익</span><span class="hero-label-mobile">퇴직연금 손익</span> ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
+  return `<div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}" role="group" aria-label="핵심 성과 요약"><span class="pill hero-profit-pill"><span class="hero-label-default">증권계좌 누적손익</span><span class="hero-label-mobile">증권계좌 손익</span> ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적수익률 ${pct(v.totalReturn)}</span>${pensionPills}</div>`;
+}
+function replaceDashboardFragment(target,html){
+  if(!target||!html)return null;
+  const template=document.createElement('template');
+  template.innerHTML=String(html).trim();
+  const next=template.content.firstElementChild;
+  if(!next)return null;
+  target.replaceWith(next);
+  return next;
+}
+function refreshSeparateProfitModeView(){
+  const focusSnapshot=dashboardFocusSnapshot();
+  const scrollX=window.scrollX,scrollY=window.scrollY;
+  const nestedScrollSnapshot=dashboardNestedScrollSnapshot();
+  closeAccountMemoInfo();
+  const x=calc(dataState.activeDate),v=separateProfitView(x);
+
+  replaceDashboardFragment(document.querySelector('.hero-metric-pills'),renderHeroMetricPills(x,v));
+  if(x.hasPension)replaceDashboardFragment(document.getElementById('summary-section'),renderCombined(x));
+  replaceDashboardFragment(document.querySelector('#securities-section .securities-summary-block'),renderSecuritiesPerformanceSummary(x));
+  replaceDashboardFragment(document.getElementById('chart-cum'),renderSecuritiesCumulativeChart(x,separateProfitControl(x,'chart-inline')));
+  replaceDashboardFragment(document.getElementById('ledger-check'),renderResultSummary(x));
+  replaceDashboardFragment(document.getElementById('capital-source-check'),renderSourceTables(x));
+
+  hydrateSectionTitleIcons(document.getElementById('app'));
+  refreshSecuritiesCumulativeChart();
+  setupSectionNavigationTracking();
+  restoreDashboardFocus(focusSnapshot);
+  requestAnimationFrame(()=>{
+    restoreDashboardNestedScroll(nestedScrollSnapshot);
+    window.scrollTo({left:scrollX,top:scrollY,behavior:'auto'});
+  });
+}
 function renderAssetWorkspace(x){
   if(!x.hasPension)return renderSecuritiesSection(x);
   return `<section id="asset-workspace" class="asset-workspace"><div class="control-tab-group asset-workspace-tabs" role="tablist" aria-label="자산 현황 선택" aria-orientation="horizontal"><button type="button" id="asset-tab-securities" class="control-tab asset-workspace-tab" data-asset-tab="securities" role="tab" aria-controls="asset-panel-securities" data-dashboard-action="set-asset-tab"><span>증권계좌</span></button><button type="button" id="asset-tab-pension" class="control-tab asset-workspace-tab" data-asset-tab="pension" role="tab" aria-controls="asset-panel-pension" data-dashboard-action="set-asset-tab"><span>퇴직연금</span></button></div><div id="asset-panel-securities" class="asset-workspace-panel asset-workspace-panel-securities" data-asset-panel="securities" role="tabpanel" aria-labelledby="asset-tab-securities">${renderSecuritiesSection(x)}</div><div id="asset-panel-pension" class="asset-workspace-panel asset-workspace-panel-pension" data-asset-panel="pension" role="tabpanel" aria-labelledby="asset-tab-pension">${renderPension(x)}</div></section>`;
@@ -237,8 +275,7 @@ function render(){
   closeAccountMemoInfo();
   const x=calc(dataState.activeDate),v=separateProfitView(x);
   renderTabs();
-  const pensionPills=x.hasPension?`<span class="pill hero-profit-pill"><span class="hero-label-default">퇴직연금 운용손익</span><span class="hero-label-mobile">퇴직연금 손익</span> ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
-  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${escapeHtml(dataState.portfolio.meta.title)}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${koreanDateLabel(x.date)})</time></div><div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}" role="group" aria-label="핵심 성과 요약"><span class="pill hero-profit-pill"><span class="hero-label-default">증권계좌 누적손익</span><span class="hero-label-mobile">증권계좌 손익</span> ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적수익률 ${pct(v.totalReturn)}</span>${pensionPills}</div></header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
+  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${escapeHtml(dataState.portfolio.meta.title)}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${koreanDateLabel(x.date)})</time></div>${renderHeroMetricPills(x,v)}</header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
   hydrateSectionTitleIcons(document.getElementById('app'));
   syncAssetTabs();
   syncThemeControls();

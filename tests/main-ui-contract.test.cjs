@@ -135,6 +135,40 @@ test('실시간 평가 race 방어: client lease, universe drift, pending render
   assert.match(liveValuation,/if\(refreshSequence!==liveValuationRefreshSequence\)return;/);
 });
 
+test('별도수익 ON/OFF는 full render 대신 영향 영역만 부분 갱신하고 누적차트만 다시 그린다',()=>{
+  const toggleStart=app.indexOf('function toggleSeparateProfitMode(){');
+  const toggleEnd=app.indexOf('\nfunction toggleSeparateProfitModeFromExpanded',toggleStart);
+  assert.ok(toggleStart>=0&&toggleEnd>toggleStart,'별도수익 toggle 함수 범위를 찾지 못했다');
+  const toggleBlock=app.slice(toggleStart,toggleEnd);
+  assert.match(toggleBlock,/refreshSeparateProfitModeView\(\)/);
+  assert.doesNotMatch(toggleBlock,/\brender\(\)/,'일반 별도수익 토글에서 #app full render를 호출하면 안 된다');
+
+  const refreshStart=app.indexOf('function refreshSeparateProfitModeView(){');
+  const refreshEnd=app.indexOf('\nfunction renderAssetWorkspace',refreshStart);
+  assert.ok(refreshStart>=0&&refreshEnd>refreshStart,'별도수익 partial refresh 범위를 찾지 못했다');
+  const refreshBlock=app.slice(refreshStart,refreshEnd);
+  for(const marker of [
+    "document.querySelector('.hero-metric-pills')",
+    "document.getElementById('summary-section')",
+    "#securities-section .securities-summary-block",
+    "document.getElementById('chart-cum')",
+    "document.getElementById('ledger-check')",
+    "document.getElementById('capital-source-check')"
+  ])assert.ok(refreshBlock.includes(marker),`별도수익 partial refresh 누락: ${marker}`);
+  assert.match(refreshBlock,/renderSecuritiesCumulativeChart\(x,separateProfitControl\(x,'chart-inline'\)\)/);
+  assert.match(refreshBlock,/refreshSecuritiesCumulativeChart\(\)/);
+  assert.doesNotMatch(refreshBlock,/renderPension\(/);
+  assert.doesNotMatch(refreshBlock,/renderSecuritiesSection\(/);
+  assert.doesNotMatch(refreshBlock,/drawAllCharts\(/);
+
+  assert.match(charts,/function renderSecuritiesCumulativeChart\(x,separateProfitHtml=''\)/);
+  assert.match(charts,/function refreshSecuritiesCumulativeChart\(\)\{[^]*?drawCumChart\(\);/);
+  const chartRefreshStart=charts.indexOf('function refreshSecuritiesCumulativeChart(){');
+  const chartRefreshEnd=charts.indexOf('\nfunction drawAllCharts(){',chartRefreshStart);
+  const chartRefreshBlock=charts.slice(chartRefreshStart,chartRefreshEnd);
+  assert.doesNotMatch(chartRefreshBlock,/drawLineChart\(\)|drawStacked\(\)|drawPension/,'별도수익 partial chart refresh는 누적차트 외 차트를 다시 그리면 안 된다');
+});
+
 test('공통 full render는 keyboard focus를 보존하고 live refresh는 열린 목차·scroll 및 metadata-only 무렌더 계약을 유지한다',()=>{
   assert.match(app,/function render\(\)\{\s*const focusSnapshot=dashboardFocusSnapshot\(\);/);
   assert.match(app,/restoreDashboardFocus\(focusSnapshot\);/);
@@ -780,7 +814,7 @@ test('Chart geometry는 CHART_FRAME 단일 Source of Truth를 사용한다',()=>
 test('Chart shell은 공통 renderer·display token·정적 SVG visual source를 사용한다',()=>{
   const tablet1=compact(tablet),mobile1=compact(mobile);
   assert.match(charts,/function renderChartCard\(/);
-  assert.equal((charts.match(/\$\{renderChartCard\(\{/g)||[]).length,6);
+  assert.equal((charts.match(/renderChartCard\(\{id:/g)||[]).length,6);
   assert.match(charts1,/const CHART_VISUAL=Object\.freeze\(\{ axisFontSize:11, dateFontSize:10/);
   assert.match(charts1,/font-size':chartExpandedFixedUnits\(svg,CHART_VISUAL\.axisFontSize\)/);
   assert.match(charts1,/stroke-dasharray':CHART_VISUAL\.hoverDash/);
@@ -794,7 +828,7 @@ test('Chart shell은 공통 renderer·display token·정적 SVG visual source를
 });
 
 test('증권·퇴직연금 6개 차트 제목은 공통 label primitive를 사용하고 info 유무가 제목 geometry를 바꾸지 않는다',()=>{
-  assert.equal((charts.match(/\$\{renderChartCard\(\{/g)||[]).length,6);
+  assert.equal((charts.match(/renderChartCard\(\{id:/g)||[]).length,6);
   assert.match(charts1,/function chartTitleLabel\(title,\{sub='',info=''\}=\{\}\)\{/);
   assert.match(charts1,/\$\{chartTitleLabel\(title,\{sub:titleSub,info:titleInfo\}\)\}/);
   assert.match(charts1,/id:'pension-chart-cum',title:'운용손익 및 운용수익률',titleSub:'전체 운용 기준',titleInfo:'전체 운용 기준'/);
