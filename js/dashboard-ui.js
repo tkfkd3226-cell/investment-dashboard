@@ -993,7 +993,8 @@ function renderSecuritiesChangeBlock(x){
     ]
   }];
   const cards=orderedRows.map(r=>({
-    title:r.name,
+    title:mobileTableAssetName(r.name),
+    accessibleLabel:r.name,
     items:[
       [prevPriceLabel,r.prevPrice==null?'-':fmt(r.prevPrice)],
       [prevDateLabel+' 평가금액',r.prevEval==null?'-':won(r.prevEval)],

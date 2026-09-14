@@ -147,7 +147,7 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
   ];
   const cards=orderedPensionRows.map(r=>({
     title:renderAssetPriceSourceLabel({
-      labelHtml:`<span class="holding-name-text">${r.name}</span>${pensionProductSwatch(r.name)}`,
+      labelHtml:`<span class="holding-name-text">${mobileTableAssetName(r.name)}</span>${pensionProductSwatch(r.name)}`,
       name:r.name,ticker:r.ticker,date:x.date,priceText:r.price==null?'-':won(r.price),
       liveQuote:r.liveQuote,fallbackSource:'prices.json'
     }),
@@ -231,7 +231,8 @@ function renderPensionChangeBlock(x,orderedPensionRows){
     ]
   }];
   const cards=orderedPensionRows.map(r=>({
-    title:r.name,
+    title:mobileTableAssetName(r.name),
+    accessibleLabel:r.name,
     items:[
       [prevPriceLabel,r.prevPrice==null?'-':fmt(r.prevPrice)],
       [prevDateLabel+' 평가금액',r.prevEval==null?'-':won(r.prevEval)],

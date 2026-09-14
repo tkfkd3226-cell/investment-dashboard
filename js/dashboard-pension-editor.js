@@ -226,7 +226,7 @@ function renderPensionContributionList(target='cashSnapshot'){
 
   return items.map(v=>{
     const costText=v.target==='cashSnapshot'&&v.costBasis!=null&&Number.isFinite(Number(v.costBasis))?` / 매수원금 ${won(v.costBasis)}`:'';
-    return `<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${v.target}|${v.key}"><span class="contrib-existing-main"><span class="contrib-existing-title"><span class="contrib-existing-date">${v.date}</span><span class="contrib-existing-sep"> / </span><span class="contrib-existing-info">${v.label} / ${won(v.amount)}${costText}</span></span><span class="contrib-existing-memo">${escapeHtml(v.memo)}</span></span></label>`;
+    return `<label class="contrib-existing-item"><input type="radio" name="pensionContribDeleteTarget" value="${escapeHtml(`${v.target}|${v.key}`)}"><span class="contrib-existing-main"><span class="contrib-existing-title"><span class="contrib-existing-date">${escapeHtml(v.date)}</span><span class="contrib-existing-sep"> / </span><span class="contrib-existing-info">${escapeHtml(v.label)} / ${won(v.amount)}${costText}</span></span><span class="contrib-existing-memo">${escapeHtml(v.memo)}</span></span></label>`;
   }).join('');
 }
 
@@ -902,8 +902,8 @@ function requestPensionActionPin({title='PIN 입력',description='작업 내용�
     modal.className=`action-modal pension-action-pin-modal${danger?' is-danger':''}`;
     modal.innerHTML=`<div class="action-modal-card pension-action-pin-card" role="dialog" aria-modal="true" aria-labelledby="pensionActionPinTitle">
       <button type="button" class="control-icon-button modal-icon-btn pension-action-pin-close" aria-label="닫기">${navIconSvg('close')}</button>
-      <h3 id="pensionActionPinTitle" class="modal-main-title">${title}</h3>
-      <p id="pensionActionPinDescription" class="action-modal-description">${description}</p>
+      <h3 id="pensionActionPinTitle" class="modal-main-title">${escapeHtml(title)}</h3>
+      <p id="pensionActionPinDescription" class="action-modal-description">${escapeHtml(description)}</p>
       ${danger?'<p class="pension-action-pin-danger" role="alert">삭제한 기록은 되돌릴 수 없습니다.</p>':''}
       <label class="action-modal-label" for="pensionActionPinInput">PIN</label>
       <input id="pensionActionPinInput" class="action-modal-input" type="text" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="PIN 6자리 입력" aria-describedby="pensionActionPinDescription pensionActionPinAutoHelp pensionActionPinStatus">

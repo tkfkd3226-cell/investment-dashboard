@@ -1299,15 +1299,43 @@ test('Market AI 시장 tooltip renderer는 상태와 무관하게 라벨을 고�
 test('Repository data text는 trusted HTML과 분리해 innerHTML 경계에서 escape한다',()=>{
   assert.match(app,/<h1 id="dashboardTitle">\$\{escapeHtml\(dataState\.portfolio\.meta\.title\)\}<\/h1>/);
   assert.match(ui,/labelHtml:`<span class="holding-name-text">\$\{escapeHtml\(h\.name\)\}<\/span>\$\{securitySymbolSwatch\(h\.name\)\}`/);
+  assert.match(pension,/labelHtml:`<span class="holding-name-text">\$\{mobileTableAssetName\(r\.name\)\}<\/span>\$\{pensionProductSwatch\(r\.name\)\}`/);
+  assert.match(ui,/const cards=orderedRows\.map\(r=>\(\{\s*title:mobileTableAssetName\(r\.name\),\s*accessibleLabel:r\.name,/);
+  assert.match(pension,/const cards=orderedPensionRows\.map\(r=>\(\{\s*title:mobileTableAssetName\(r\.name\),\s*accessibleLabel:r\.name,/);
+  assert.match(pensionEditor,/<h3 id="pensionActionPinTitle" class="modal-main-title">\$\{escapeHtml\(title\)\}<\/h3>/);
+  assert.match(pensionEditor,/<p id="pensionActionPinDescription" class="action-modal-description">\$\{escapeHtml\(description\)\}<\/p>/);
+  assert.match(pensionEditor,/value="\$\{escapeHtml\(`\$\{v\.target\}\|\$\{v\.key\}`\)\}"/);
   assert.match(charts,/function allocationValueCard\([\s\S]*?const safeLabel=escapeHtml\(label\);[\s\S]*?\$\{safeLabel\}\$\{swatch\}/);
   assert.match(charts,/function symbolSummaryCard\([\s\S]*?safeLabel=escapeHtml\(label\);[\s\S]*?\$\{safeLabel\}\$\{swatch\}/);
   assert.doesNotMatch(app,/<h1 id="dashboardTitle">\$\{dataState\.portfolio\.meta\.title\}<\/h1>/);
-  assert.doesNotMatch(ui,/labelHtml:`<span class="holding-name-text">\$\{h\.name\}<\/span>/);
+  assert.doesNotMatch(ui,/labelHtml:`<span class="holding-name-text">\$\{h\.name\}\<\/span>/);
+  assert.doesNotMatch(pension,/labelHtml:`<span class="holding-name-text">\$\{r\.name\}<\/span>/);
+  assert.doesNotMatch(ui,/const cards=orderedRows\.map\(r=>\(\{\s*title:r\.name,/);
+  assert.doesNotMatch(pension,/const cards=orderedPensionRows\.map\(r=>\(\{\s*title:r\.name,/);
+  assert.doesNotMatch(pensionEditor,/<h3 id="pensionActionPinTitle" class="modal-main-title">\$\{title\}<\/h3>/);
+  assert.doesNotMatch(pensionEditor,/<p id="pensionActionPinDescription" class="action-modal-description">\$\{description\}<\/p>/);
 });
 
-test('Repository EOL contract는 LF를 고정하고 binary asset은 normalization에서 제외한다',()=>{
+test('Repository EOL contract는 선언뿐 아니라 실제 source/document text도 LF를 사용한다',()=>{
   const attrs=read('.gitattributes');
   assert.match(attrs,/^\* text=auto eol=lf$/m);
   assert.match(attrs,/(^|\n)\*\.png binary$/m);
   assert.match(attrs,/(^|\n)\*\.webp binary$/m);
+
+  const textExtensions=new Set(['.css','.cjs','.html','.js','.json','.md','.py','.svg','.txt','.yml','.yaml']);
+  const textBasenames=new Set(['.gitattributes']);
+  const failures=[];
+  const walk=dir=>{
+    for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
+      if(entry.name==='.git') continue;
+      const full=path.join(dir,entry.name);
+      if(entry.isDirectory()){ walk(full); continue; }
+      const ext=path.extname(entry.name).toLowerCase();
+      if(!textExtensions.has(ext)&&!textBasenames.has(entry.name)) continue;
+      const raw=fs.readFileSync(full);
+      if(raw.includes(13)) failures.push(path.relative(ROOT,full));
+    }
+  };
+  walk(ROOT);
+  assert.deepEqual(failures,[],`CR/CRLF가 남은 text 파일: ${failures.join(', ')}`);
 });
