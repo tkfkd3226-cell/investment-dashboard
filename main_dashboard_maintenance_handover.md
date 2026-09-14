@@ -179,6 +179,16 @@ GitHub 프로젝트 설명
 
 과거 변경 이력은 Git history로 확인한다. 같은 규칙을 README, Main handover, Add handover, Evaluation Guide에 장문으로 복제하지 않는다.
 
+
+문서별 책임은 겹치지 않게 유지한다.
+
+- `README.md`: 프로젝트 소개, 사용자 관점 주요 기능, 전체 구조, 실행·배포 개요
+- 이 문서: Main의 현재 책임 경계, 수정 위치, 장기 불변조건, 운영·QA 절차
+- `dashboard_evaluation_guide.md`: 점수, A/B/C, 평가 workflow, 반증·종료 기준
+- 과거 차수·점수·패치 일지: Git history
+
+README나 평가 가이드에 이 문서의 selector/state/backend 구현 세부를 다시 복제하지 않는다. 반대로 이 문서에는 평가 점수 규칙이나 GitHub 소개용 장황한 기능 목록을 누적하지 않는다.
+
 # 2. Main Architecture · 책임 경계
 
 ## 2.1 Main canonical 파일 지도
@@ -959,7 +969,7 @@ Hero 기준일 영역의 **연속 3회 클릭 개인보기 ON/OFF는 의도된 �
 
 ## 4.1 메인 CSS 6파일 구조 원칙
 
-메인 대시보드 CSS는 2026-08-21 구조정리 이후 후속 정리를 거쳐 기존 `css/style.css` 단일 파일에서 **역할별 6파일 구조**로 정착했다. Desktop 전용 파일은 제거하고 `common.css`를 Desktop baseline으로 사용한다. `css/style.css`와 `css/desktop.css`는 최종 구조에서 제거되었으며 다시 만들지 않는다.
+메인 대시보드 CSS는 **역할별 6파일 구조**를 canonical 구조로 사용한다. Desktop 전용 파일을 두지 않고 `common.css`를 Desktop baseline으로 사용한다. 폐기된 `css/style.css`와 `css/desktop.css`를 다시 만들지 않는다.
 
 현재 canonical 구조:
 
@@ -1594,7 +1604,7 @@ Google Apps Script는 **GitHub 프로젝트와 별도로 운영되는 write 백�
 
 ### Pension latency / request-local read contract
 
-2026-09-11 성능 최적화는 **transaction/idempotency 계약을 바꾸지 않고 동일 immutable Git commit의 중복 GET 대기만 제거**하는 방향으로 마감했다. 이 절의 cache/preflight는 성능용이며 durable identity·mutation epoch·optimistic concurrency·confirmation·CAS의 Source of Truth가 아니다.
+Pension 성능 최적화는 **transaction/idempotency 계약을 바꾸지 않고 동일 immutable Git commit의 중복 GET 대기를 줄이는 범위**에서만 허용한다. 이 절의 cache/preflight는 성능용이며 durable identity·mutation epoch·optimistic concurrency·confirmation·CAS의 Source of Truth가 아니다.
 
 - GAS Pension 응답은 진단용 `timing` 객체(`version: 1`)를 반환한다. Single은 `scope:"single"`, Batch는 `scope:"batch"`를 사용하고 `totalMs / measuredMs / unattributedMs / stages / details`를 기록한다. 프론트는 성공·실패 판정에 timing을 사용하지 않고 `dashboard-pension-editor.js`에서 `[Pension timing] {JSON}` 한 줄만 console에 남긴다.
 - request-local GitHub read cache의 key는 **`ref(commit SHA) + path`**다. 같은 요청의 같은 immutable commit에서만 재사용하며 다른 SHA에는 절대 재사용하지 않는다. optional 404 fallback을 required read의 성공값으로 승격하지 않는다.

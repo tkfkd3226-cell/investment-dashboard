@@ -333,8 +333,7 @@ function restoreDashboardFocus(snapshot,retryFrames=2){
     try{target.focus?.({preventScroll:true})}catch{target.focus?.()}
     return;
   }
-  // Standalone surfaces such as Market AI remount on the frame after #app replacement.
-  // Retry only stable keyed targets so unrelated controls never receive guessed focus.
+  // #app 교체 뒤 다음 frame에 재마운트되는 keyed target만 제한적으로 focus 복원한다.
   if(snapshot.kind==='focus-key'&&retryFrames>0){
     requestAnimationFrame(()=>restoreDashboardFocus(snapshot,retryFrames-1));
   }

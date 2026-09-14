@@ -557,9 +557,7 @@ function hideAssetSourceTooltip(){
 function assetSourceTooltipTargetFromEvent(event,selector){
   const direct=event.target.closest?.(selector);
   if(direct)return direct;
-  // Table label cells own the same tooltip hit-area as the nested label so users
-  // do not need to point at the exact text. Keep the data on the label itself to
-  // preserve the existing keyboard focus contract and avoid duplicate metadata.
+  // 셀 전체는 hover hit-area만 확장하고 tooltip metadata/focus contract는 label이 단일 소유한다.
   return event.target.closest?.('th[scope="row"]')?.querySelector(selector)||null;
 }
 function assetSourceTooltipHitArea(target){

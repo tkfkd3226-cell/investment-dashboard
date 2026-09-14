@@ -1209,7 +1209,6 @@ GAS가 함께 제공된 집중 평가에서는 구현 설명을 다시 문서화
 - **Pension Batch initial preflight:** 최초 HEAD 뒤 dependency/semantic ledger/exact identity/canonical state/batchRequestId identity를 `fetchAll`로 병렬 preload하고 durable identity resolve, conflict scan, state snapshot이 같은 request-local cache를 재사용하는가. 큰 작업 모음은 remote GET을 최대 50개 chunk로 제한하는가. `stateSnapshotRead / semanticLedgerRead / exactIdentityLedgerRead / batchRequestIdentityRead`가 cache hit으로 작아져도 실제 operation ordering·expectedVersion·expectedAbsent·linked snapshot 보호를 건너뛰지 않는가. intent 저장 뒤 `postIntentHeadRead` fresh barrier를 제거하거나 preflight HEAD로 대체하지 않는가.
 - **Pension local evidence fast-path:** maintenance boundary 이후 정상 여유 상태에서 Batch intent/receipt/confirmation direct property가 기존 batch-fast budget/prefix/readback 검증을 재사용하는가. fast-path 사용 불가 시 기존 GC-aware `setDirectRequestProperty()`로 fallback하며, 부분 반영/응답 유실이면 exact readback과 rollback으로 불확실 evidence를 확정 성공으로 오인하지 않는가. fast-path 때문에 mutation epoch reserve/rollback, terminal-pending, receipt/durable completed 우선순위가 바뀌지 않는가.
 - **Batch duplicate confirmation UX:** business item 삭제 뒤에도 semantic ledger history가 남는 것은 정상이다. 충돌 source가 `item`이면 현재 데이터 중복, `ledger`이면 과거 처리 기록으로 안내하고 모든 경우를 `기존 logical operation`이라고 잘못 단정하지 않는가. `확인=실제 별도 작업`, `취소=기존 처리로 보고 재적용하지 않음` 의미가 서버의 `existing/distinct` 결정과 일치하는가. 확인 후 두 번째 PIN/요청이 발생해도 같은 state-bound confirmation token과 batchRequestId/payload 계약을 유지하는가.
-- **Pension performance stop rule:** 2026-09-11 baseline에서 Single 6경로는 `githubCommit` 제외 약 4.38~4.76초, Batch 동시 삭제 대표는 total 6.681초 / `githubCommit` 제외 4.209초까지 확인됐다. GitHub commit/CAS·initial remote preflight 같은 필수 외부 I/O 편차를 로컬 병목으로 오인하지 않는가. 추가 이득이 수백 ms~1초인데 mutation epoch/intent/receipt/confirmation/fresh-HEAD barrier 복잡도나 race 위험이 증가한다면 성능 점수 때문에 해당 안전장치를 약화시키지 않는가.
 - **Atomic Git mutation:** target JSON + semantic ledger + identity ledger가 같은 non-force CAS commit에 들어가며, dependency fingerprint를 commit 직전 재검증하는가. 1MB 초과 shard는 Blob API fallback으로 읽는가.
 - **KRX dispatch idempotency:** intent→dispatch→receipt/durable ledger 경계에서 동일 requestId 재-dispatch가 생기지 않는가. `workflow_skipped` 같은 terminal no-op도 성공 응답 전에 durable completed identity를 확보해 응답 유실 뒤 같은 requestId가 상태 변화 때문에 실제 dispatch로 부활하지 않는가. 명시적 GitHub 4xx는 `dispatch_rejected` retryable evidence로 보존하고, inflight/uncertain을 explicit rejected proof로 같은 호출 안에서 reconciliation했다면 이후 분기가 **갱신된 durable status**를 사용해 정상 retry를 잘못 막지 않는가. 같은 requestId 재시도는 **durable `dispatch_retry_inflight`을 POST 전에 먼저 확보한 뒤에만** 다시 dispatch해 이후 5xx/응답 유실이 중복 재시도로 이어지지 않는가. `dispatch_retry_inflight`/terminal uncertain durable state는 재-dispatch barrier일 뿐 최종 결과로 조기 return하지 않고, 더 강한 **completed receipt → accepted intent → exact server/marker acceptance proof → explicit rejected proof → uncertain** 순서로 reconciliation하는가. completed/uncertain receipt도 유한 local evidence로 끝내지 않고 각각 durable completed/terminal identity로 승격한 뒤 확정 응답하는가. GitHub가 `workflowRunId`까지 반환한 성공은 intent에도 남아 durable ledger 실패 뒤 receipt GC가 발생해도 completed로 복구되는가. durable 복구 전 active intent와 짝인 dispatch 성공 receipt는 cap/TTL/global GC뿐 아니라 terminal receipt writer의 cap 확보에서도 보존되는가. 특히 24시간 active-intent GC가 `dispatchAccepted/workflowRunId` 또는 explicit `dispatchRejected` proof를 제거하기 전에 기존 inflight/uncertain durable entry를 각각 **completed / rejected_retryable**로 실제 승격·전환해 강한 proof를 uncertain으로 퇴화시키지 않는가. 이미 durable completed인 identity를 stale rejected/inflight residue가 약한 상태로 downgrade하지 못하는가. `dispatch_uncertain_terminal`은 기본적으로 fail-closed 의미를 유지하되, 동일 branch/date operation marker의 requestId+workflowRunId 또는 GitHub Actions의 **exact branch + workflow_dispatch + exact requestId run-name**이 성공 acceptance proof를 제공하고 durable completed identity 승격까지 성공했을 때만 completed로 확정 복구되는가. transient `workflow_status_uncertain`은 frontend에서 성공 완료로 오인하거나 requestId를 버리지 않는가. v14 이전 raw requestId 없는 intent도 property hash suffix를 durable identity로 남겨 receipt GC 뒤 재-dispatch되지 않는가. KRX durable dispatch shard의 단일-file metadata write는 Contents API의 **현재 blob SHA CAS** fast-path를 사용해 불필요한 branch HEAD→tree→commit→ref 왕복을 만들지 않는가. 409/422 경쟁과 5xx/transport response-loss에서는 최신 shard를 다시 읽어 exact identity/hash 및 requested/stronger terminal 상태가 실제 반영됐는지 확인한 뒤에만 재시도하고, 마지막 응답 유실도 read-back으로 완료를 복구하는가. 이 최적화를 Pension/Batch의 multi-file atomic mutation에 잘못 확장하지 않는가.
 - **KRX run/race:** fresh request에서 remote GET을 다시 순차화하지 않고, **durable shard + 최초 prices + active-only status(`queued / in_progress / waiting / pending / requested`) + 필요 시 marker run 직접 조회**를 한 `fetchAll()` preflight로 묶는가. 단 병렬화 때문에 active 확인보다 `prices` 재검증이 먼저 끝난 snapshot을 그대로 POST 직전 검증으로 재사용하면 안 된다. 기존 marker/run reconciliation 도중 직전 workflow가 완료될 수 있으므로 실제 intent/marker/POST 직전 `prices.json`은 preflight와 별도로 다시 읽어 TOCTOU 방어를 유지해야 한다. durable/receipt/intent/active/prices 오류의 기존 fail-closed 우선순위가 바뀌지 않는가. 누적 completed history를 정상 경로에서 다시 페이지 순회하지 않으며, active status가 1페이지(100건)를 넘어 전체 coverage를 확정하지 못하거나 병렬 조회 중 하나라도 실패하면 새 dispatch를 허용하지 않고 fail-closed하는가. exact requestId acceptance proof 복구처럼 과거 run 자체가 필요한 예외 경로만 historical search를 사용하는가. fresh 성공의 durable completed write는 preflight에서 읽은 same-shard SHA/data를 최초 CAS seed로 재사용하되, shard 경쟁 시 409/422 뒤 최신 shard를 다시 읽어 exact identity/hash를 재검증하고 병합하는가. `queue: max`에서 여러 legitimate request가 같은 dispatch SHA에 대기하더라도 뒤 run은 실행 시작 시 최신 `origin/<branch>` tip을 generation base로 다시 잡아 앞 run의 정상 managed-output commit 때문에 stale guard에서 실패하지 않는가. 단 dispatch→start 사이 generation input 변경은 fail-closed하는가. 서로 다른 날짜의 queued run 실행 순서가 뒤집히거나 자동 mode가 중간 누락 거래일을 backfill해도 `performance_snapshots.json`은 같은 최종 상태로 수렴하는가. 특히 어떤 날짜의 `rawHoldingProfit`을 삽입·정정하면 **즉시 다음 기존 snapshot의 `dailyProfit = next.rawHoldingProfit - current.rawHoldingProfit`** 의존성까지 함께 재기준화되어 stale 일손익이 남지 않는가. generation 시작 이후 managed/generation-input guard, rebase/push retry가 유지되고, push는 remote 성공·로컬 응답 유실 시 `PUSH_SHA`가 이미 origin에 포함됐는지 먼저 확인하는가.
@@ -1235,56 +1234,23 @@ server contract는 최신 GAS가 제공된 경우에만 완전 대조한다.
 
 ### Market AI
 
-Market AI 백엔드는 기본 MAIN 평가 대상에서 제외한다. 다만 Dashboard frontend에는 **현재 시장·AI signal panel**과 **오늘 보유종목 live valuation overlay**가 있으므로 각각의 책임과 교차 lifecycle을 필요한 범위에서 확인한다.
+Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend에서는 **현재 시장·AI signal panel**, **오늘 보유종목 live valuation overlay**, 그리고 두 기능이 Main render/lifecycle과 만나는 경계를 평가한다.
 
-대시보드에서는 최소 다음을 본다.
+세부 구현 수치나 함수별 운영 contract를 이 문서에 복제하지 않는다. 현재 설계 의도는 `main_dashboard_maintenance_handover.md`와 실제 소스를 Source of Truth로 하고, 평가는 아래 실패 유형을 중심으로 반증한다.
 
-- `dashboard-market-ai-client.js`가 local/remote base와 timeout transport만 소유하고 signal/valuation state를 섞지 않는지
-- `dashboard-market-ai.js` standalone signal panel과 main graph의 `dashboard-live-valuation.js`가 책임을 분리하는지
-- live valuation이 **KST 오늘 activeDate에서만** 적용되고 과거 날짜/역사 snapshot을 현재 quote로 오염시키지 않는지
-- 보유수량 `> 0`인 증권·퇴직연금 ticker를 문자열로 중복 제거하며 leading zero/영문 혼합 ticker를 보존하는지
-- Market AI quote가 `usable:true`일 때만 적용되고 warming/stale/unavailable/error는 **종목별 JSON fallback**하는지
-- 현재가 의존 평가값만 재계산하고 수량·원가·원금·매매흐름·실현손익 같은 장부 owner를 침범하지 않는지
-- live quote를 `prices.json`, `performance_snapshots.json`, Pension JSON 또는 GAS write에 저장하지 않는지
-- polling이 hidden 상태에서 불필요하게 동작하지 않고 visible 복귀 시 즉시 refresh하는지
-- request sequence가 `fetch` 이후뿐 아니라 body parse/상태 적용 전에 latest-wins를 보장하는지
-- 요청 중 holdings universe가 바뀌었을 때 이전 응답을 폐기하고 새 universe로 재조회하는지
-- PC/폰/복수 탭이 서로 다른 `client_id`를 사용할 때 한 client의 요청이 다른 client의 ticker universe를 제거하지 않는지. 특히 탭 복제/`window.open`에서 `sessionStorage`가 복사돼도 활성 tab 간 ID 충돌을 감지·분리하는지
-- client lease 만료만으로 장마감 quote/universe를 즉시 폐기해 foreground 복귀 후 영구 warming을 만들지 않는지
-- chart expanded, KRX/action modal, Pension contribution modal, native dialog 중 live state가 들어와도 전체 render가 입력/진행 UI를 교체하지 않고, 닫힌 뒤 pending render가 최신 state를 반영하는지
-- `render()`로 `#tabs/#app`이 교체되는 full-render 경로(날짜 변경, live refresh 등)에서 keyboard focus가 공통 snapshot/restore contract로 보존되는지. 별도수익 ON/OFF는 full render가 아니라 영향 영역 partial refresh를 사용하고 같은 focus/scroll 보존 원칙을 지키는지. `id` 없는 focusable visual target은 stable `data-dashboard-focus-key`를 가지며 중복 key는 occurrence index까지 보존하는지. 일반 live full render에서는 추가로 Mobile 날짜/목차 메뉴, Desktop 목차 open 상태, window scroll뿐 아니라 `.mobile-scroll`/`.chart-wrap` 내부 scroll 위치도 보존하는지. native input/select 또는 info disclosure/tooltip interaction 중에는 full render를 보류하고 종료 후 최신 pending state로 1회 수렴하는지. direct render 전 body-level floating/source tooltip이 orphan으로 남지 않게 정리되는지. `generated_at`처럼 화면 의미가 바뀌지 않는 metadata-only 응답이 주기적으로 전체 render를 유발하지 않는지
-- Hero 제목행에는 Live Valuation 상태 문자열을 노출하지 않고 날짜 기준만 표시하는지. `LIVE/CLOSED/STALE/WARMING/JSON` 판정은 내부 quote/fallback state와 테스트로만 유지되는지
-- Desktop/Tablet Market AI 시장 카드와 tooltip이 `marketAiMarketDisplayModel()` 하나를 공유해 같은 현재가·등락률·fallback 판단을 사용하는지. Tooltip은 KOSPI·SOX·NQ100에서 `현재가 → 등락률 → 상태 → 출처 → 기준 시각`, K200만 `상태` 뒤에 `세션`을 추가하는지
-- 상태 반례 `fresh / stale / missing`과 K200 `closed / bridge / source`에서 문구와 값 의미가 맞는지. 특히 K200 `closed / stale / bridge / source`는 rawRow가 있으면 마지막 수신 현재가·등락률을 유지하고 상태 행으로 신뢰도를 구분하며, 실제 row가 없는 `missing`에서만 값을 `--`로 표시하는지
-- 시장 tooltip에서 `갱신 / 마지막 수신 / 데이터` 같은 혼합 라벨이 다시 생기지 않고 시각 라벨이 `기준 시각`으로 고정되는지. raw row가 있는 비정상 상태에서는 출처/관측시각 진단 정보가 유지되는지
-- `세션`은 K200 Bridge `expected_session` 근거가 있을 때만 표시하고 KOSPI·SOX·NQ100의 세션을 프론트에서 추정하지 않는지
-- source tooltip이 라벨 셀 hover와 keyboard focus 모두에서 열리고 기존 tooltip lifecycle/viewport clipping contract를 지키는지. source label·자산 기여도 segment·연금 위험도 gauge·Market AI metric이 full render 뒤에도 focus를 잃지 않는 stable focus key를 갖는지
-- Market AI responsive 전환에서 Phone→Desktop뿐 아니라 Desktop→Phone도 active metric/trigger 사이 keyboard focus handoff가 대칭적으로 유지되는지. standalone polling으로 시장/신호 값이 바뀔 때 이미 열린 Market AI tooltip도 같은 최신 state/view model로 즉시 갱신되고 disconnected target이면 닫히는지
-- standalone pull-to-refresh가 일반 브라우저에서 비활성이고, 최상단 단일 아래방향 터치에서만 동작하며 `body.dashboard-dialog-open`/chart expanded 중에는 시작하지 않는지. 한 번 armed된 뒤 위로 되돌리거나 가로 제스처·멀티터치로 전환하면 stale drag state가 남지 않는지
-- 별도수익 ON/OFF가 `render()`/`drawAllCharts()`를 호출하지 않고 Hero 성과·합산 성과·증권 성과요약·증권 누적차트·검산 영역만 갱신하는지. Market AI/Live Valuation DOM, 보유종목, 퇴직연금, 종목별/평가비중 차트가 토글만으로 재마운트·재계산되지 않는지
-- endpoint별 실패 격리와 전체 Market AI 연결 실패가 기본 Dashboard 기능을 깨뜨리지 않는지
+- **범위 오염**: live quote가 과거 날짜, 운영 JSON, 수량·원가·원금·실현손익 같은 장부 원천을 바꾸지 않는가.
+- **fallback 의미**: `usable:true`만 적용하고 warming/stale/unavailable/error는 종목별 저장값으로 fallback하며 일부 실패가 정상 종목까지 무효화하지 않는가.
+- **상태 최신성**: 겹친 polling, 늦은 body parse, holdings universe 변경, visible↔hidden 전환에서 이전 응답/오류가 최신 상태를 덮지 않는가.
+- **multi-client 격리**: 복수 탭/기기의 client identity와 ticker universe가 서로 제거·오염되지 않는가.
+- **render lifecycle**: modal/chart/tooltip/input interaction 중 live refresh가 진행 UI를 교체하거나 focus/scroll을 잃게 하지 않는가. 별도수익 ON/OFF처럼 부분 갱신 대상은 불필요한 full render를 만들지 않는가.
+- **표시 의미**: Hero 기준문구와 자산 source tooltip이 실제 계산에 적용된 가격 상태와 일치하고 raw 내부 상태 문자열을 사용자 의미로 오해하게 노출하지 않는가.
+- **시장 session/freshness**: KOSPI, K200, SOX, NQ100선물의 장전/거래중/장마감/거래중단과 freshness를 구분해 정상적인 장외 정지를 `데이터 지연`으로 오판하지 않는가. 기준시각은 가능한 경우 실제 시장시각을 우선하는가.
+- **단일 display model**: 시장 카드와 tooltip이 서로 다른 값·상태·fallback 판정을 갖지 않는가.
+- **responsive/accessibility**: Desktop/Tablet Hero panel과 Phone dialog가 같은 의미를 유지하고, 전환 시 focus handoff·tooltip lifecycle이 안전한가.
+- **독립 실패**: Market AI endpoint 일부 또는 전체 실패가 저장 데이터 기반 Dashboard 기능을 깨뜨리지 않는가.
+- **성능**: polling이나 metadata-only 변화가 의미 없는 전체 Dashboard 재렌더를 반복하지 않는가.
 
-Market AI 백엔드 최신 소스가 함께 제공된 **별도 backend 평가**에서는 추가로 다음을 본다.
-
-- `/api/market-data/krx-quotes`와 `/api/bridge/kis-efriend/quote-universe` schema/validation
-- active client ticker 합집합과 lease reconcile
-- universe에서 제거된 ticker의 old quote 폐기와 재편입 시 새 tick 대기
-- Bridge 전체 heartbeat와 **종목별 `SC_R` subscription health**를 분리 판정하는지
-- 특정 ticker `subscribed=false`/error이면 그 ticker만 stale/unusable이 되고 다른 ticker는 정상 유지되는지
-- subscription 장애 후 `subscribed=true`만으로 장애 전 quote를 부활시키지 않고 **새 실제 tick 이후에만 usable**로 복귀하는지
-- 반복된 이전 unhealthy heartbeat가 새 tick 이후 상태를 다시 stale로 되감지 않는지
-- 저유동 종목을 단순 `last_tick_at` age만으로 stale 처리하지 않는지
-- dynamic holdings quote는 process-memory latest snapshot으로 유지하고 기존 signal/history persistence를 불필요하게 확대하지 않는지
-- Tailscale Serve는 remote optional dependency이며 실패가 local startup 실패로 전파되지 않는지
-
-```text
-백엔드 미첨부·미연결
-→ MAIN CSS / JS / UI / UX 감점 없음
-
-백엔드 최신 소스 + 별도 평가 요청
-→ Market AI backend를 별도 범위로 평가
-→ MAIN 점수와 자동 합산하지 않음
-```
+Market AI backend 최신 소스가 함께 제공되고 별도 backend 평가를 요청한 경우에만 backend 자체를 별도 범위로 평가한다. 그때는 schema/validation, client lease와 ticker 합집합, subscription health, stale→usable 복귀, old quote 폐기, persistence boundary, remote optional dependency 실패 격리를 확인한다. backend 점수는 MAIN CSS/JS/UI/UX 점수에 자동 합산하지 않는다.
 
 ## 16.4 MAIN UI
 

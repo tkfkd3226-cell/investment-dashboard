@@ -90,30 +90,24 @@ Main의 별도수익과 Add Report는 같은 canonical 거래 원천을 사용�
 
 ### 2.4 Market AI 연동
 
-Market AI는 Main에 **현재 시점 시장·AI 신호**와 **오늘 보유종목의 현재가 overlay**를 제공하는 선택형 실시간 subsystem입니다.
+Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 현재가 overlay**를 제공하는 선택형 실시간 subsystem입니다.
 
-주요 동작은 다음과 같습니다.
+- KOSPI, KOSPI200 선물, SOX, NQ100 선물과 AI Signal 표시
+- 화면 조회 기준 10초 주기 갱신 및 visible 복귀 시 즉시 refresh
+- 오늘 날짜에서만 `usable:true` KRX quote를 현재가 의존 평가값에 overlay
+- 과거 날짜와 수량·원가·원금·매매흐름·실현손익, 운영 JSON은 변경하지 않음
+- 일부 quote가 unusable이면 해당 종목만 저장 JSON 값으로 fallback
+- Hero의 `투자 성과` 기준문구는 실제 적용된 가격이 저장값인지 실시간/시간외 값인지에 맞춰 표시
+- 시장 카드 tooltip은 거래 세션과 freshness를 함께 해석해 `장전 / 정상 / 데이터 지연 / 장마감 / 거래중단` 등을 구분
+- KOSPI는 소수점 둘째 자리까지 표시하고 KIS `business_time`이 있으면 실제 시장 기준시각을 우선
+- Desktop/Tablet은 Hero 보조 카드, Phone은 동일 panel을 `AI Signal` dialog로 재사용
+- iPhone 홈화면 Web App은 설치 당시 hash 날짜에 고정되지 않고 실행 시 KST 오늘 데이터(없으면 최신 가용일)를 우선
+- Local은 Market AI FastAPI에 직접 연결하고, GitHub Pages는 Tailscale Serve를 통해 조회
+- Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
 
-- KOSPI, KOSPI200 선물, SOX, NQ100 선물 및 AI Signal 표시
-- 현재 시장·AI 신호와 오늘 보유종목 현재가를 **화면 조회 기준 10초 주기**로 갱신하고, 문서가 다시 visible 상태가 되면 즉시 refresh
-- KIS eFriend/Bridge의 실제 realtime 수신은 polling과 별개로 계속 실시간 유지
-- 오늘 날짜에서만 usable KRX quote를 평가금액·평가손익·수익률 등 **현재가 의존 파생값**에 overlay
-- 수량·원가·투입원금·매매흐름·실현손익과 과거 날짜 데이터는 변경하지 않음
-- live quote는 브라우저 메모리에서만 사용하고 `prices.json`, `performance_snapshots.json`, Pension JSON/GAS에는 저장하지 않음
-- 일부 종목 quote가 없거나 unusable이어도 해당 종목만 JSON 저장값으로 fallback
-- backend의 종목별 `state / usable / market_state`를 volatile quote snapshot에 보존하고, 내부 상태 요약은 정규장 live(`open`)·시간외 live(`extended`)·장마감(`closed`)을 구분 집계합니다. top-level 상태만으로 판단하지 않아 개별주식 시간외와 ETF 장마감이 섞인 구간도 구분합니다.
-- Hero `투자 성과` 기준문구는 **실제 계산에 적용된 usable 가격**만 기준으로 결정합니다. 과거 날짜·warming/stale/unavailable·live 0건·전 종목 closed는 기존 `종가 기준/장중 HH:MM 기준`을 유지하고, 일부만 live 적용되면 `일부 실시간 반영`, 전 종목 usable 정규장 live면 `실시간 현재가 기준`, 전 종목 usable이면서 시간외 live가 하나라도 있으면 `시간외 포함 현재가 기준`으로 표시합니다. `LIVE/CLOSED/STALE` 같은 raw 상태 문자열은 노출하지 않습니다.
-- iPhone 홈화면 Web App/standalone 실행은 설치 당시 URL의 `#YYYY-MM-DD`를 시작 날짜로 고정하지 않고 **KST 오늘 데이터가 있으면 오늘**, 아직 없으면 최신 가용일로 시작합니다. 일반 브라우저의 날짜 hash deep link는 그대로 유지하며, standalone 앱을 다음 KST 날짜에 다시 foreground로 가져오면 한 번 reload해 최신 데이터를 다시 읽습니다.
-- Desktop/Tablet Market AI 시장 tooltip은 4개 지표 모두 `현재가 / 등락률 / 상태 / 출처 / 기준 시각`을 공통 contract로 사용하며, K200선물만 KIS Bridge 근거의 `세션`을 추가 표시
-- 시장 상태는 단순 freshness만 보지 않고 시장별 거래 세션을 함께 해석합니다. KOSPI는 KST 정규장 전 `장전`, 15:30 이후 `장마감`; SOX는 New York 09:30 정규장 전 `장전`, 16:00 이후 `장마감`; NQ100선물은 Chicago 기준 CME 거래시간에는 freshness로 `정상/데이터 지연`, 일일 16:00~17:00 중단구간에는 `거래중단`, 주말 종료구간에는 `장마감`으로 표시합니다.
-- KOSPI 현재가는 소수점 둘째 자리까지 표시하고, KIS eFriend row에 유효 `business_time`이 있으면 tooltip `기준 시각`은 `observed_at`보다 실제 시장시각인 `business_time`을 우선합니다.
-- Desktop / Tablet은 Hero 보조 카드, Mobile / 실제 터치폰 가로 UI는 **AI Signal** dialog 사용
-- Local 환경에서는 Market AI FastAPI에 직접 연결하고, GitHub Pages에서는 Tailscale Serve 경유
-- Market AI가 응답하지 않아도 저장된 JSON 기반 Main Dashboard 기능은 독립 동작
+프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 현재가 overlay), `dashboard-market-ai-client.js`(local/remote transport)로 분리합니다.
 
-프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 평가 overlay), `dashboard-market-ai-client.js`(local/remote transport)로 분리합니다.
-
-multi-client quote universe, lease, warm-up, KIS subscription health, stale/source 판정 같은 **유지보수 contract는 README에 중복하지 않고** `main_dashboard_maintenance_handover.md`와 Market AI 개발 handover를 기준으로 합니다.
+세션 판정, multi-client quote universe, lease, warm-up, subscription health, stale/source 판정, partial/full render 보호 같은 **유지보수 세부 contract는 `main_dashboard_maintenance_handover.md`가 소유**합니다. Market AI backend 내부 구현은 Market AI 프로젝트 문서를 따릅니다.
 
 ## 3. 전체 동작 구조
 

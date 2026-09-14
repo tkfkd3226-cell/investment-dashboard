@@ -3414,7 +3414,7 @@ button:not(:disabled):active{
   transition:none;
 }
 
-/* Modal Motion Policy · active motion은 common, hover motion은 interaction.css가 소유 */
+/* Modal Motion Ownership · active motion은 common, hover motion은 interaction.css가 소유 */
 .contrib-modal.show button:active,
 .action-modal button:active{
   transform:none;

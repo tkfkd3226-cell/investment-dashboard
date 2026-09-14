@@ -342,12 +342,7 @@ function marketAiKisFuturesState(){
   return {row:rawRow,rawRow,reason:'fresh',observedAt:freshness.observedAt,bridgeStatus};
 }
 
-// 시장 metric display contract
-// - 카드 본체와 tooltip은 반드시 marketAiMarketDisplayModel() 하나를 공유한다.
-// - tooltip 공통 순서: 현재가 → 등락률 → 상태 → [K200 세션] → 출처 → 기준 시각
-// - fresh는 현재 snapshot을 사용하고, K200 closed/stale/bridge/source는 rawRow가 있으면 마지막 수신값을 표시한다.
-// - 값의 신뢰도는 상태 행으로 구분하며, 실제 row 자체가 없는 missing에서만 현재가·등락률을 --로 표시한다.
-// - 데이터/갱신/마지막 수신처럼 상태와 시각 의미가 섞인 라벨은 사용하지 않는다.
+// 카드와 tooltip은 같은 display model을 사용한다. 값·상태·출처·기준시각 의미를 별도 경로에서 재판정하지 않는다.
 function marketAiMarketStatusLabel(reason){
   return ({
     fresh:'정상',
@@ -1110,8 +1105,7 @@ function setMarketAiState(next){
   syncMarketAiSignalView();
 }
 
-// Consume the Signal body inside this request boundary so its timeout is cleared
-// independently of slower sibling Snapshot/Bridge requests.
+// Signal body를 이 요청 경계에서 소비해 sibling Snapshot/Bridge와 timeout lifecycle을 분리한다.
 async function refreshMarketAiSignalResponse(apiBase){
   try{
     const response=await fetchWithTimeout(`${apiBase}/api/signal/latest?include_details=true`,{
