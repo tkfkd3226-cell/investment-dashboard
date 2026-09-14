@@ -101,8 +101,8 @@ Market AI는 Main에 **현재 시점 시장·AI 신호**와 **오늘 보유종�
 - 수량·원가·투입원금·매매흐름·실현손익과 과거 날짜 데이터는 변경하지 않음
 - live quote는 브라우저 메모리에서만 사용하고 `prices.json`, `performance_snapshots.json`, Pension JSON/GAS에는 저장하지 않음
 - 일부 종목 quote가 없거나 unusable이어도 해당 종목만 JSON 저장값으로 fallback
-- backend의 종목별 `state / usable / market_state`를 volatile quote snapshot에 보존하고, 내부 상태 요약은 정규장 live(`open`)·시간외 live(`extended`)·장마감(`closed`)을 구분 집계합니다. 이 상태 contract는 이후 Hero 기준문구가 실제 적용 가격의 성격을 판단할 때 사용하며 현재 단계에서는 화면 문구를 바꾸지 않습니다.
-- Hero 제목행은 날짜 기준만 표시하고 Live Valuation 상태 문자열은 노출하지 않으며, 종목·상품 source tooltip에서 Market AI/JSON 출처 확인
+- backend의 종목별 `state / usable / market_state`를 volatile quote snapshot에 보존하고, 내부 상태 요약은 정규장 live(`open`)·시간외 live(`extended`)·장마감(`closed`)을 구분 집계합니다. top-level 상태만으로 판단하지 않아 개별주식 시간외와 ETF 장마감이 섞인 구간도 구분합니다.
+- Hero `투자 성과` 기준문구는 **실제 계산에 적용된 usable 가격**만 기준으로 결정합니다. 과거 날짜·warming/stale/unavailable·live 0건·전 종목 closed는 기존 `종가 기준/장중 HH:MM 기준`을 유지하고, 일부만 live 적용되면 `일부 실시간 반영`, 전 종목 usable 정규장 live면 `실시간 현재가 기준`, 전 종목 usable이면서 시간외 live가 하나라도 있으면 `시간외 포함 현재가 기준`으로 표시합니다. `LIVE/CLOSED/STALE` 같은 raw 상태 문자열은 노출하지 않습니다.
 - iPhone 홈화면 Web App/standalone 실행은 설치 당시 URL의 `#YYYY-MM-DD`를 시작 날짜로 고정하지 않고 **KST 오늘 데이터가 있으면 오늘**, 아직 없으면 최신 가용일로 시작합니다. 일반 브라우저의 날짜 hash deep link는 그대로 유지하며, standalone 앱을 다음 KST 날짜에 다시 foreground로 가져오면 한 번 reload해 최신 데이터를 다시 읽습니다.
 - Desktop/Tablet Market AI 시장 tooltip은 4개 지표 모두 `현재가 / 등락률 / 상태 / 출처 / 기준 시각`을 공통 contract로 사용하며, K200선물만 KIS Bridge 근거의 `세션`을 추가 표시
 - Desktop / Tablet은 Hero 보조 카드, Mobile / 실제 터치폰 가로 UI는 **AI Signal** dialog 사용

@@ -548,6 +548,18 @@ function liveValuationStatusForDate(date){
     latestObservedAt,generatedAt:state.generatedAt||null,reason:String(state.reason||''),marketState:String(state.marketState||''),bridgeConnected:state.bridgeConnected
   };
 }
+function heroPerformanceBasisLabel(date){
+  const fallback=koreanDateLabel(date);
+  const status=liveValuationStatusForDate(date);
+  if(status.mode==='historical'||!status.requestedCount)return fallback;
+  const [,month,day]=String(date||'').split('-');
+  const dateLabel=`${Number(month)}월 ${Number(day)}일`;
+  if(status.usableCount===status.requestedCount&&status.closedCount===status.requestedCount)return `${dateLabel} 종가 기준`;
+  if(status.liveCount<=0)return fallback;
+  if(status.fallbackCount>0)return `${dateLabel} 일부 실시간 반영`;
+  if(status.extendedLiveCount>0)return `${dateLabel} 시간외 포함 현재가 기준`;
+  return `${dateLabel} 실시간 현재가 기준`;
+}
 const securitiesCashForDate=d=>{
   const latestPriceDate=Object.keys(dataState.prices||{}).filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&dataState.prices?.[v]?.display!==false).sort(byDate).at(-1)||'';
   const savedCash=dataState.snapshots?.[d]?.allocation?.['현금'];
@@ -1032,6 +1044,7 @@ export {
   fmt,
   formatKospi,
   hasPensionData,
+  heroPerformanceBasisLabel,
   isLedgerCheckDate,
   koreanDateLabel,
   kospiIndexForDate,

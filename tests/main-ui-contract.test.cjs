@@ -1151,15 +1151,18 @@ test('live valuation 재렌더는 퇴직연금 조정 본체와 action modal이 
 });
 
 
-test('Hero는 날짜 기준만 표시하고 Live Valuation 상태 문자열을 별도 노출하지 않는다',()=>{
+test('Hero 기준문구는 raw 상태 대신 실제 적용 가격의 정규장·시간외·부분 반영 의미만 노출한다',()=>{
   assert.match(core,/function liveValuationStatusForDate\(date\)/);
-  assert.match(core,/marketState:String\(item\?\.market_state\|\|''\)/);
-  assert.match(core,/const regularLiveCount=usableItems\.filter\(item=>item\.state==='live'&&item\.marketState==='open'\)\.length;/);
-  assert.match(core,/const extendedLiveCount=usableItems\.filter\(item=>item\.state==='live'&&item\.marketState==='extended'\)\.length;/);
-  assert.doesNotMatch(app,/function liveValuationStatusText\(date\)/);
+  assert.match(core,/function heroPerformanceBasisLabel\(date\)/);
+  assert.match(core,/if\(status\.mode==='historical'\|\|!status\.requestedCount\)return fallback;/);
+  assert.match(core,/if\(status\.usableCount===status\.requestedCount&&status\.closedCount===status\.requestedCount\)return `\$\{dateLabel\} 종가 기준`;/);
+  assert.match(core,/if\(status\.liveCount<=0\)return fallback;/);
+  assert.match(core,/if\(status\.fallbackCount>0\)return `\$\{dateLabel\} 일부 실시간 반영`;/);
+  assert.match(core,/if\(status\.extendedLiveCount>0\)return `\$\{dateLabel\} 시간외 포함 현재가 기준`;/);
+  assert.match(core,/return `\$\{dateLabel\} 실시간 현재가 기준`;/);
   assert.doesNotMatch(app,/data-live-valuation-status/);
   assert.doesNotMatch(app,/LIVE \$\{status\.usableCount\}/);
-  assert.match(app,/<time class="hero-basis" datetime="\$\{x\.date\}" data-dashboard-action="hero-basis-tap">\(\$\{koreanDateLabel\(x\.date\)\}\)<\/time>/);
+  assert.match(app,/<time class="hero-basis" datetime="\$\{x\.date\}" data-dashboard-action="hero-basis-tap">\(\$\{heroPerformanceBasisLabel\(x\.date\)\}\)<\/time>/);
 });
 
 test('Standalone Web App은 설치 당시 hash보다 KST 오늘을 우선하고 날짜가 바뀐 foreground 복귀에서 최신 데이터를 다시 읽는다',()=>{

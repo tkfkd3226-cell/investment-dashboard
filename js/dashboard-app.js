@@ -2,7 +2,7 @@ import {
   allAvailableDates,
   calc,
   dataState,
-  koreanDateLabel,
+  heroPerformanceBasisLabel,
   kstTodayText,
   loadInitialData,
   pct,
@@ -275,7 +275,7 @@ function render(){
   closeAccountMemoInfo();
   const x=calc(dataState.activeDate),v=separateProfitView(x);
   renderTabs();
-  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${escapeHtml(dataState.portfolio.meta.title)}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${koreanDateLabel(x.date)})</time></div>${renderHeroMetricPills(x,v)}</header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
+  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${escapeHtml(dataState.portfolio.meta.title)}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${heroPerformanceBasisLabel(x.date)})</time></div>${renderHeroMetricPills(x,v)}</header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
   hydrateSectionTitleIcons(document.getElementById('app'));
   syncAssetTabs();
   syncThemeControls();

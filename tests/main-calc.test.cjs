@@ -526,6 +526,55 @@ test('실시간 평가 상태 요약: 개별 market_state를 보존하고 정규
   assert.equal(core.dataState.liveValuation.items['069500'].marketState,'closed');
 });
 
+test('Hero 투자 성과 기준문구: 실제 적용된 live 가격 성격에 따라 정규장·시간외·부분 반영만 표시한다',()=>{
+  const today=core.kstTodayText();
+  const portfolio=basePortfolio({
+    securities:[
+      {name:'주식',ticker:'005930',type:'개별주식',qty:1,cost:100,chart:true},
+      {name:'ETF',ticker:'069500',type:'ETF',qty:1,cost:100,chart:true}
+    ],
+    pension:[]
+  });
+  setState({portfolio,prices:{[today]:{marketStatus:'intraday',updatedAtKST:`${today} 14:20:00`,securities:{'005930':100,'069500':100}}}});
+  assert.match(core.heroPerformanceBasisLabel(today),/장중 14:20 기준$/);
+
+  core.applyLiveValuationSnapshot({
+    status:'ok',market_state:'open',bridge_connected:true,
+    items:[
+      {ticker:'005930',price:121,state:'live',market_state:'open',usable:true},
+      {ticker:'069500',price:100,state:'warming',market_state:'open',usable:false}
+    ]
+  },['005930','069500']);
+  assert.match(core.heroPerformanceBasisLabel(today),/일부 실시간 반영$/);
+
+  core.applyLiveValuationSnapshot({
+    status:'ok',market_state:'open',bridge_connected:true,
+    items:[
+      {ticker:'005930',price:121,state:'live',market_state:'open',usable:true},
+      {ticker:'069500',price:102,state:'live',market_state:'open',usable:true}
+    ]
+  },['005930','069500']);
+  assert.match(core.heroPerformanceBasisLabel(today),/실시간 현재가 기준$/);
+
+  core.applyLiveValuationSnapshot({
+    status:'ok',market_state:'closed',bridge_connected:true,
+    items:[
+      {ticker:'005930',price:122,state:'live',market_state:'extended',usable:true},
+      {ticker:'069500',price:103,state:'closed',market_state:'closed',usable:true}
+    ]
+  },['005930','069500']);
+  assert.match(core.heroPerformanceBasisLabel(today),/시간외 포함 현재가 기준$/);
+
+  core.applyLiveValuationSnapshot({
+    status:'ok',market_state:'closed',bridge_connected:true,
+    items:[
+      {ticker:'005930',price:123,state:'closed',market_state:'closed',usable:true},
+      {ticker:'069500',price:103,state:'closed',market_state:'closed',usable:true}
+    ]
+  },['005930','069500']);
+  assert.match(core.heroPerformanceBasisLabel(today),/종가 기준$/);
+});
+
 test('실시간 평가 상태 요약: 실패/과거 화면은 STALE·JSON 의미를 분리한다',()=>{
   const today=core.kstTodayText();
   const portfolio=basePortfolio({securities:[{name:'A',ticker:'005930',type:'개별주식',qty:1,cost:100,chart:true}],pension:[]});
