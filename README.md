@@ -105,6 +105,8 @@ Market AI는 Main에 **현재 시점 시장·AI 신호**와 **오늘 보유종�
 - Hero `투자 성과` 기준문구는 **실제 계산에 적용된 usable 가격**만 기준으로 결정합니다. 과거 날짜·warming/stale/unavailable·live 0건·전 종목 closed는 기존 `종가 기준/장중 HH:MM 기준`을 유지하고, 일부만 live 적용되면 `일부 실시간 반영`, 전 종목 usable 정규장 live면 `실시간 현재가 기준`, 전 종목 usable이면서 시간외 live가 하나라도 있으면 `시간외 포함 현재가 기준`으로 표시합니다. `LIVE/CLOSED/STALE` 같은 raw 상태 문자열은 노출하지 않습니다.
 - iPhone 홈화면 Web App/standalone 실행은 설치 당시 URL의 `#YYYY-MM-DD`를 시작 날짜로 고정하지 않고 **KST 오늘 데이터가 있으면 오늘**, 아직 없으면 최신 가용일로 시작합니다. 일반 브라우저의 날짜 hash deep link는 그대로 유지하며, standalone 앱을 다음 KST 날짜에 다시 foreground로 가져오면 한 번 reload해 최신 데이터를 다시 읽습니다.
 - Desktop/Tablet Market AI 시장 tooltip은 4개 지표 모두 `현재가 / 등락률 / 상태 / 출처 / 기준 시각`을 공통 contract로 사용하며, K200선물만 KIS Bridge 근거의 `세션`을 추가 표시
+- 시장 상태는 단순 freshness만 보지 않고 시장별 거래 세션을 함께 해석합니다. KOSPI는 KST 정규장 전 `장전`, 15:30 이후 `장마감`; SOX는 New York 09:30 정규장 전 `장전`, 16:00 이후 `장마감`; NQ100선물은 Chicago 기준 CME 거래시간에는 freshness로 `정상/데이터 지연`, 일일 16:00~17:00 중단구간에는 `거래중단`, 주말 종료구간에는 `장마감`으로 표시합니다.
+- KOSPI 현재가는 소수점 둘째 자리까지 표시하고, KIS eFriend row에 유효 `business_time`이 있으면 tooltip `기준 시각`은 `observed_at`보다 실제 시장시각인 `business_time`을 우선합니다.
 - Desktop / Tablet은 Hero 보조 카드, Mobile / 실제 터치폰 가로 UI는 **AI Signal** dialog 사용
 - Local 환경에서는 Market AI FastAPI에 직접 연결하고, GitHub Pages에서는 Tailscale Serve 경유
 - Market AI가 응답하지 않아도 저장된 JSON 기반 Main Dashboard 기능은 독립 동작

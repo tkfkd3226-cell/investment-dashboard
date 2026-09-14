@@ -1199,6 +1199,8 @@ test('Market AI 시장 카드/툴팁은 공통 View Model과 고정 정보 순�
   assert.match(marketAi,/fresh:'정상'/);
   assert.match(marketAi,/closed:'장마감'/);
   assert.match(marketAi,/stale:'데이터 지연'/);
+  assert.match(marketAi,/preopen:'장전'/);
+  assert.match(marketAi,/maintenance:'거래중단'/);
   assert.match(marketAi,/bridge:'Bridge 지연'/);
   assert.match(marketAi,/source:'선물 데이터 확인 필요'/);
   assert.match(marketAi,/missing:'데이터 없음'/);
@@ -1231,7 +1233,29 @@ test('Market AI 시장 카드도 tooltip과 같은 display model을 사용해 �
   assert.match(block,/const unavailable=model\.price==='--'/);
 });
 
-test('Market AI 시장 tooltip View Model은 fresh/stale/missing과 K200 closed/bridge/source 의미를 구분한다',()=>{
+test('Market AI 시장 세션 판정은 KRX/SOX/NQ의 휴장 시간을 stale과 분리하고 KIS business_time을 우선한다',()=>{
+  const vm=require('node:vm');
+  const start=marketAi.indexOf('function marketAiClockParts');
+  const end=marketAi.indexOf('\nfunction marketAiMarketSourceLabel',start);
+  assert.ok(start>=0&&end>start,'Market session helper block is missing');
+  const context={marketAiKstTime:value=>String(value||'').replace('Z','')};
+  vm.createContext(context);
+  vm.runInContext(marketAi.slice(start,end),context);
+
+  const koreaEvening=new Date('2026-09-14T11:05:00Z'); // 20:05 KST / 07:05 ET / 06:05 CT
+  assert.equal(context.marketAiKrxCashSessionState(koreaEvening),'closed');
+  assert.equal(context.marketAiSoxSessionState(koreaEvening),'preopen');
+  assert.equal(context.marketAiNasdaq100FuturesSessionState(koreaEvening),'open');
+  assert.equal(context.marketAiSoxSessionState(new Date('2026-09-14T14:00:00Z')),'open');
+  assert.equal(context.marketAiSoxSessionState(new Date('2026-09-14T20:30:00Z')),'closed');
+  assert.equal(context.marketAiNasdaq100FuturesSessionState(new Date('2026-09-14T21:30:00Z')),'maintenance');
+  assert.equal(context.marketAiBusinessTimeText('153000'),'15:30');
+  assert.equal(context.marketAiBusinessTimeText('888888'),'');
+  assert.equal(context.marketAiMarketReferenceTime({source:'kis-efriend:JUC_R:0001',business_time:'153000',observed_at:'20:05Z'},'kospi-index'),'15:30');
+  assert.equal(context.marketAiMarketReferenceTime({source:'yfinance:^SOX',observed_at:'19:59Z'},'sox-index'),'19:59');
+});
+
+test('Market AI 시장 tooltip View Model은 session-aware KOSPI/SOX/NQ와 K200 closed/bridge/source 의미를 구분한다',()=>{
   const vm=require('node:vm');
   const start=marketAi.indexOf('function marketAiMarketStatusLabel');
   const end=marketAi.indexOf('\n// [MARKET05]',start);
@@ -1239,30 +1263,41 @@ test('Market AI 시장 tooltip View Model은 fresh/stale/missing과 K200 closed/
 
   let rows={};
   let k200State={row:null,rawRow:null,reason:'missing',bridgeStatus:{}};
+  let sessions={krx:'closed',sox:'preopen',nq:'open'};
   const context={
     MARKET_AI_SOX_INDEX_SYMBOL:'INDEX:SOX',
     MARKET_AI_NASDAQ100_FUTURES_SYMBOL:'FUTURES:NQ',
     marketAiSnapshotRow:symbol=>rows[symbol]||null,
-    marketAiSnapshotDisplayState:row=>{
+    marketAiKrxCashSessionState:()=>sessions.krx,
+    marketAiSoxSessionState:()=>sessions.sox,
+    marketAiNasdaq100FuturesSessionState:()=>sessions.nq,
+    marketAiSnapshotDisplayState:(row,sessionState)=>{
       if(!row)return {reason:'missing',rawRow:null,observedAt:''};
+      if(sessionState==='preopen'||sessionState==='closed'||sessionState==='maintenance')return {reason:sessionState,rawRow:row,observedAt:row.observed_at||''};
       return {reason:row.__fresh===false?'stale':'fresh',rawRow:row,observedAt:row.observed_at||''};
     },
     marketAiKisFuturesState:()=>k200State,
-    marketAiIndexText:value=>value==null?'--':String(value),
+    marketAiIndexText:value=>value==null?'--':String(Math.round(Number(value))),
     marketAiPriceText:value=>value==null?'--':Number(value).toFixed(2),
     marketAiMarketSourceLabel:(row,key)=>row?.source||`source:${key}`,
     marketAiChangeText:value=>Number.isFinite(Number(value))?`${Number(value)>=0?'+':''}${Number(value).toFixed(2)}%`:'',
     marketAiDirectionClass:value=>Number(value)>0?'positive':(Number(value)<0?'negative':'neutral'),
-    marketAiKstTime:value=>String(value||'').replace('Z','')
+    marketAiMarketReferenceTime:(row,key)=>key==='kospi-index'&&row?.business_time==='153000'?'15:30':String(row?.observed_at||'').replace('Z','')
   };
   vm.createContext(context);
   vm.runInContext(marketAi.slice(start,end),context);
 
-  rows['INDEX:KOSPI']={price:3210.5,change_pct:0.42,source:'krx',observed_at:'10:00Z',__fresh:true};
+  rows['INDEX:KOSPI']={price:3210.5,change_pct:0.42,source:'kis-efriend:JUC_R:0001',observed_at:'20:05Z',business_time:'153000',__fresh:false};
   let model=context.marketAiMarketDisplayModel('kospi-index');
-  assert.equal(model.status,'정상');
-  assert.equal(model.price,'3210.5');
+  assert.equal(model.status,'장마감');
+  assert.equal(model.price,'3210.50');
+  assert.equal(model.observedAt,'15:30');
   assert.equal(model.session,'');
+
+  rows['INDEX:SOX']={price:7123.8,change_pct:-0.21,source:'yfinance:^SOX',observed_at:'20:00Z',__fresh:false};
+  model=context.marketAiMarketDisplayModel('sox-index');
+  assert.equal(model.status,'장전');
+  assert.equal(model.price,'7124');
 
   rows['FUTURES:NQ']={price:25000,change_pct:-0.31,source:'yahoo',observed_at:'09:30Z',__fresh:false};
   model=context.marketAiMarketDisplayModel('nasdaq100-futures');
@@ -1270,6 +1305,11 @@ test('Market AI 시장 tooltip View Model은 fresh/stale/missing과 K200 closed/
   assert.equal(model.price,'25000.00');
   assert.equal(model.observedAt,'09:30');
   assert.equal(model.session,'');
+
+  sessions.nq='maintenance';
+  model=context.marketAiMarketDisplayModel('nasdaq100-futures');
+  assert.equal(model.status,'거래중단');
+  sessions.nq='open';
 
   delete rows['INDEX:SOX'];
   model=context.marketAiMarketDisplayModel('sox-index');

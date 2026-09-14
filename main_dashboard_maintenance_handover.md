@@ -912,10 +912,10 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - Desktop/Tablet Hero와 Mobile dialog가 같은 signal panel DOM을 재사용하는 구조를 유지한다.
 - Phone에서는 Market AI metric tooltip을 활성화하지 않는다. Responsive 전환의 keyboard focus handoff는 양방향 대칭으로 유지한다. Phone dialog가 열린 채 Desktop/Tablet 조건으로 전환되면 사라지는 mobile trigger 대신 Desktop Market AI metric으로 focus를 반환하고, Desktop/Tablet metric에 focus가 있는 상태에서 Phone contract로 전환되면 새 Mobile `AI Signal` trigger로 focus를 넘긴다.
 - Desktop/Tablet의 **시장 카드 본체와 metric tooltip은 `marketAiMarketDisplayModel()` 하나를 공통 Source of Truth로 사용**한다. 화면 카드와 tooltip이 서로 다른 row/fallback 판단을 갖지 않는다. Tooltip은 KOSPI·SOX·NQ100선물에서 `현재가 → 등락률 → 상태 → 출처 → 기준 시각`, K200선물만 `상태` 다음에 `세션`을 추가해 `현재가 → 등락률 → 상태 → 세션 → 출처 → 기준 시각` 순서를 사용한다.
-- 시장 tooltip 상태 문구는 `fresh=정상`, `stale=데이터 지연`, `missing=데이터 없음`을 공통으로 사용한다. K200 전용 상태는 `closed=장마감`, `bridge=Bridge 지연`, `source=선물 데이터 확인 필요`다.
-- `기준 시각`은 상태와 무관하게 같은 라벨을 사용한다. `갱신`, `마지막 수신`, `데이터`처럼 상태와 시각/출처 의미를 섞는 라벨을 시장 tooltip에 다시 만들지 않는다.
+- 시장 tooltip 상태 문구는 실제 거래 세션과 freshness를 분리한다. `fresh=정상`, `stale=데이터 지연`, `missing=데이터 없음`, `preopen=장전`, `closed=장마감`, `maintenance=거래중단`을 사용한다. K200 전용 오류 상태는 `bridge=Bridge 지연`, `source=선물 데이터 확인 필요`다. `stale`은 해당 시장이 실제 거래시간일 때만 의미가 있다.
+- `기준 시각`은 상태와 무관하게 같은 라벨을 사용한다. KIS eFriend KOSPI/K200은 유효한 `business_time(HHMMSS)`이 있으면 실제 시장시각을 우선하고, 값이 없거나 유효하지 않으면 `observed_at` KST 시각으로 fallback한다. Yahoo SOX/NQ는 `observed_at`을 사용한다. `갱신`, `마지막 수신`, `데이터`처럼 상태와 시각/출처 의미를 섞는 라벨을 시장 tooltip에 다시 만들지 않는다.
 - 값 표시 의미는 `fresh`에서 현재 snapshot을 사용하고, K200 `closed / stale / bridge / source`도 `rawRow`가 있으면 **마지막 수신 현재가·등락률을 계속 표시**한다. 값의 신뢰도는 `상태` 행으로 구분하며, 실제 row 자체가 없는 `missing`에서만 현재가·등락률을 `--`로 표시한다. raw row가 있으면 `출처`와 `기준 시각`도 함께 유지한다.
-- `세션`은 K200의 KIS Bridge `expected_session` 근거가 있을 때만 `주간 / 야간 / 장외`로 표시한다. backend가 제공하지 않는 세션을 KOSPI·SOX·NQ100에 프론트에서 임의 추정하지 않는다.
+- 별도 `세션` 행은 K200의 KIS Bridge `expected_session` 근거가 있을 때만 `주간 / 야간 / 장외`로 표시한다. 다만 `상태` 판정은 KOSPI(KST 09:00~15:30), SOX(America/New_York 09:30~16:00), NQ100선물(America/Chicago CME session)의 기본 거래시간을 사용해 장전/장마감/거래중단과 실제 stale을 구분한다. timezone 판정은 `Intl.DateTimeFormat`으로 DST를 따라간다.
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
 - Hero에는 `LIVE / CLOSED / STALE / WARMING / JSON` 같은 raw 상태 문자열을 표시하지 않는다. 대신 `heroPerformanceBasisLabel()`이 현재 Hero 계산에 실제 적용된 quote만 보고 `일부 실시간 반영 / 실시간 현재가 기준 / 시간외 포함 현재가 기준` 중 필요한 의미만 노출한다. live가 실제 적용되지 않거나 전 종목 closed이면 기존 날짜 기준문구를 유지하며, 과거 날짜는 항상 저장 데이터 의미를 유지한다.
 - 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다.
