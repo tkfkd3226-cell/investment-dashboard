@@ -101,6 +101,7 @@ Market AI는 Main에 **현재 시점 시장·AI 신호**와 **오늘 보유종�
 - live quote는 브라우저 메모리에서만 사용하고 `prices.json`, `performance_snapshots.json`, Pension JSON/GAS에는 저장하지 않음
 - 일부 종목 quote가 없거나 unusable이어도 해당 종목만 JSON 저장값으로 fallback
 - Hero 제목행은 날짜 기준만 표시하고 Live Valuation 상태 문자열은 노출하지 않으며, 종목·상품 source tooltip에서 Market AI/JSON 출처 확인
+- iPhone 홈화면 Web App/standalone 실행은 설치 당시 URL의 `#YYYY-MM-DD`를 시작 날짜로 고정하지 않고 **KST 오늘 데이터가 있으면 오늘**, 아직 없으면 최신 가용일로 시작합니다. 일반 브라우저의 날짜 hash deep link는 그대로 유지하며, standalone 앱을 다음 KST 날짜에 다시 foreground로 가져오면 한 번 reload해 최신 데이터를 다시 읽습니다.
 - Desktop/Tablet Market AI 시장 tooltip은 4개 지표 모두 `현재가 / 등락률 / 상태 / 출처 / 기준 시각`을 공통 contract로 사용하며, K200선물만 KIS Bridge 근거의 `세션`을 추가 표시
 - Desktop / Tablet은 Hero 보조 카드, Mobile / 실제 터치폰 가로 UI는 **AI Signal** dialog 사용
 - Local 환경에서는 Market AI FastAPI에 직접 연결하고, GitHub Pages에서는 Tailscale Serve 경유

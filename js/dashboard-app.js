@@ -351,6 +351,23 @@ function dashboardStandaloneMode(){
   return window.matchMedia?.('(display-mode: standalone)').matches===true||window.navigator?.standalone===true;
 }
 
+let standaloneSessionKstDate='';
+function setupStandaloneTodayDateRefresh(){
+  if(!dashboardStandaloneMode())return;
+  standaloneSessionKstDate=kstTodayText();
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState!=='visible')return;
+    const today=kstTodayText();
+    if(!standaloneSessionKstDate){
+      standaloneSessionKstDate=today;
+      return;
+    }
+    if(today===standaloneSessionKstDate)return;
+    standaloneSessionKstDate=today;
+    window.location.reload();
+  });
+}
+
 function dashboardPullRefreshBlocked(){
   if(document.body.classList.contains('dashboard-dialog-open'))return true;
   return !!document.querySelector('.chart-expanded-overlay.show,dialog[open]');
@@ -454,9 +471,11 @@ function setupStandalonePullToRefresh(){
 // [APP06] Initialization / Boot · 상태 초기화 / 이벤트 바인딩 / 부팅
 function initializeDashboardState(){
   const dates=allAvailableDates();
+  const today=kstTodayText();
   let requestedDate='';
   try{requestedDate=decodeURIComponent(location.hash.replace(/^#/,''));}catch{}
-  dataState.activeDate=dates.includes(requestedDate)?requestedDate:dates.at(-1);
+  const standaloneLaunchDate=dashboardStandaloneMode()?(dates.includes(today)?today:dates.at(-1)):'';
+  dataState.activeDate=standaloneLaunchDate||(dates.includes(requestedDate)?requestedDate:dates.at(-1));
   history.replaceState(null,'','#'+dataState.activeDate);
 }
 
@@ -471,6 +490,7 @@ function bindAppEvents(){
   setupChartGlobalEvents();
   setupPensionEventDelegation({renderDashboard:render});
   setupStandalonePullToRefresh();
+  setupStandaloneTodayDateRefresh();
 }
 
 async function boot(){

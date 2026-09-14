@@ -163,9 +163,10 @@ test('공통 full render는 keyboard focus를 보존하고 live refresh는 열�
   assert.doesNotMatch(liveValuation,/stateChanged\|\|payloadChanged/);
 });
 
-test('Dashboard 날짜 hash는 유효한 값이면 초기 선택일로 복원하고, malformed hash도 최신일로 fallback한다',()=>{
+test('일반 브라우저 날짜 hash는 유효한 값이면 초기 선택일로 복원하고 malformed hash도 최신일로 fallback한다',()=>{
   assert.match(app,/let requestedDate='';\s*try\{requestedDate=decodeURIComponent\(location\.hash\.replace\(\/\^#\/,''\)\);\}catch\{\}/);
-  assert.match(app,/dataState\.activeDate=dates\.includes\(requestedDate\)\?requestedDate:dates\.at\(-1\);/);
+  assert.match(app,/const standaloneLaunchDate=dashboardStandaloneMode\(\)\?[^;]+:'';/);
+  assert.match(app,/dataState\.activeDate=standaloneLaunchDate\|\|\(dates\.includes\(requestedDate\)\?requestedDate:dates\.at\(-1\)\);/);
 });
 
 test('KRX 요청은 중복 전송을 막고 재진입 session에서 이전 응답·자동 닫기 timer를 격리한다',()=>{
@@ -1121,6 +1122,16 @@ test('Hero는 날짜 기준만 표시하고 Live Valuation 상태 문자열을 �
   assert.doesNotMatch(app,/data-live-valuation-status/);
   assert.doesNotMatch(app,/LIVE \$\{status\.usableCount\}/);
   assert.match(app,/<time class="hero-basis" datetime="\$\{x\.date\}" data-dashboard-action="hero-basis-tap">\(\$\{koreanDateLabel\(x\.date\)\}\)<\/time>/);
+});
+
+test('Standalone Web App은 설치 당시 hash보다 KST 오늘을 우선하고 날짜가 바뀐 foreground 복귀에서 최신 데이터를 다시 읽는다',()=>{
+  assert.match(app,/const today=kstTodayText\(\);[^]*const standaloneLaunchDate=dashboardStandaloneMode\(\)\?\(dates\.includes\(today\)\?today:dates\.at\(-1\)\):'';/);
+  assert.match(app,/dataState\.activeDate=standaloneLaunchDate\|\|\(dates\.includes\(requestedDate\)\?requestedDate:dates\.at\(-1\)\);/);
+  assert.match(app,/function setupStandaloneTodayDateRefresh\(\)/);
+  assert.match(app,/standaloneSessionKstDate=kstTodayText\(\);[^]*document\.addEventListener\('visibilitychange'/);
+  assert.match(app,/if\(document\.visibilityState!=='visible'\)return;/);
+  assert.match(app,/if\(today===standaloneSessionKstDate\)return;[^]*window\.location\.reload\(\);/);
+  assert.match(app,/setupStandaloneTodayDateRefresh\(\);/);
 });
 
 test('Standalone Web App은 최상단 단일 터치 pull-to-refresh를 제공하고 일반 브라우저에는 생성하지 않는다',()=>{

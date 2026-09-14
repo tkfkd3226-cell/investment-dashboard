@@ -394,6 +394,7 @@ input
 - KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유한다. 공통 modal radius는 shared modal contract에서 한 번만 소유하고 Tablet/Phone은 해당 shared token만 override한다. Phone 좌우 여백은 overlay padding을 canonical source로 사용하며 feature별 `100vw - npx` 폭 보정을 중복해서 만들지 않는다.
 - Tooltip 표시 motion은 `--tooltip-motion`을 공통 source로 사용한다.
 - iPhone 홈화면 `Open as Web App`/standalone에서는 브라우저 새로고침 UI 부재를 보완하기 위해 최상단 pull-to-refresh를 제공한다. `display-mode: standalone` 또는 iOS `navigator.standalone`에서만 활성화하고, `scrollTop≈0`의 단일 아래방향 터치에서만 동작한다. `body.dashboard-dialog-open`을 공통 modal blocker로 사용하고 chart expanded/dialog 중에도 시작하지 않으며, 일반 Safari/브라우저 화면에는 indicator/listener를 만들지 않는다. 임계값을 넘겨 손을 놓은 경우에만 `location.reload()`한다.
+- 같은 standalone 판별을 boot 날짜 초기화에도 재사용한다. 홈화면 아이콘에 설치 당시 `#YYYY-MM-DD` hash가 저장되어 있어도 standalone boot에서는 해당 hash를 무시하고 **KST 오늘이 `allAvailableDates()`에 있으면 오늘을 우선**, 아직 오늘 snapshot이 없으면 최신 가용일로 fallback한다. 일반 Safari/브라우저는 기존 hash deep link 의미를 유지한다. standalone session이 백그라운드에 머무는 동안 KST 날짜가 바뀌었다가 다시 `visible`이 되면 한 번 `location.reload()`하여 최신 JSON을 다시 읽고 새 날짜 기준으로 boot한다. 같은 날 foreground 복귀에서는 사용자가 선택한 과거 날짜를 강제로 오늘로 되돌리지 않는다.
 - 검증된 responsive/browser별 표현 예외는 feature/CSS가 소유하며, generic 공통화를 위해 제거하지 않는다.
 
 화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js` 또는 `dashboard-modal.js`로 끌어올리지 않는다.
