@@ -1044,7 +1044,7 @@ html:where([data-add-page="report"]).dark .tab{box-shadow:0 1px 2px rgba(0,0,0,.
 :where(html[data-add-page="report"]) :is(.section-card,.table-card,.timeline-card,details){border-color:rgba(88,82,152,.14);box-shadow:0 14px 34px rgba(55,48,104,.085)}
 :where(html[data-add-page="report"]) .section-title{display:flex;justify-content:space-between;align-items:flex-end;gap:var(--density-gap-md);margin-bottom:var(--density-gap-lg)}
 :where(html[data-add-page="report"]) .section-title h2{letter-spacing:-.045em}
-:where(html[data-add-page="report"]) .chart-wrap{height:350px;position:relative;border:1px solid rgba(109,93,252,.10);border-radius:10px;background:linear-gradient(180deg,rgba(109,93,252,.025),transparent);box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+:where(html[data-add-page="report"]) .chart-wrap{height:350px;position:relative;border:1px solid rgba(109,93,252,.10);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:linear-gradient(180deg,rgba(109,93,252,.025),transparent);box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
 html:where([data-add-page="report"]).dark .chart-wrap{box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
 :where(html[data-add-page="report"]) canvas{width:100%;height:100%}
 :where(html[data-add-page="report"]) .split-box{display:grid;grid-template-columns:150px 1fr;gap:var(--density-layout-gap);align-items:center}
@@ -1233,7 +1233,7 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
 
   :where(html[data-add-page="report"]) .split-box{grid-template-columns:1fr;justify-items:center}
   :where(html[data-add-page="report"]) .pnl-chart-card, :where(html[data-add-page="report"]) .composition-card{min-height:0}
-  :where(html[data-add-page="report"]) .chart-wrap{height:clamp(280px,75vw,320px);border-radius:8px}
+  :where(html[data-add-page="report"]) .chart-wrap{height:clamp(280px,75vw,320px)}
   :where(html[data-add-page="report"]) .chart-title{align-items:flex-start}
   :where(html[data-add-page="report"]) .chart-legend{gap:var(--density-gap-sm);margin-top:2px;font-size:9px}
   :where(html[data-add-page="report"]) .pnl-chart-card .section-title.chart-title{display:block;margin-bottom:var(--density-gap-sm)}
