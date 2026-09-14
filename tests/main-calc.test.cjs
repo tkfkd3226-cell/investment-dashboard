@@ -464,8 +464,8 @@ test('실시간 평가 상태 요약: 오늘 LIVE/CLOSED/혼합 fallback을 종�
   core.applyLiveValuationSnapshot({
     status:'ok',market_state:'open',bridge_connected:true,generated_at:'2026-09-11T06:20:00Z',
     items:[
-      {ticker:'005930',price:120,state:'live',usable:true,observed_at:'2026-09-11T06:19:58Z'},
-      {ticker:'000660',price:130,state:'stale',usable:false,observed_at:'2026-09-11T06:18:00Z'}
+      {ticker:'005930',price:120,state:'live',market_state:'open',usable:true,observed_at:'2026-09-11T06:19:58Z'},
+      {ticker:'000660',price:130,state:'stale',market_state:'open',usable:false,observed_at:'2026-09-11T06:18:00Z'}
     ]
   },['005930','000660']);
   const mixed=core.liveValuationStatusForDate(today);
@@ -474,20 +474,56 @@ test('실시간 평가 상태 요약: 오늘 LIVE/CLOSED/혼합 fallback을 종�
   assert.equal(mixed.usableCount,1);
   assert.equal(mixed.fallbackCount,1);
   assert.equal(mixed.liveCount,1);
+  assert.equal(mixed.regularLiveCount,1);
+  assert.equal(mixed.extendedLiveCount,0);
+  assert.equal(mixed.marketClosedCount,0);
+  assert.equal(core.dataState.liveValuation.items['005930'].marketState,'open');
   assert.equal(mixed.staleCount,1);
   assert.equal(mixed.latestObservedAt,'2026-09-11T06:19:58.000Z');
 
   core.applyLiveValuationSnapshot({
     status:'ok',market_state:'closed',bridge_connected:true,
     items:[
-      {ticker:'005930',price:121,state:'closed',usable:true,observed_at:'2026-09-11T06:30:00Z'},
-      {ticker:'000660',price:131,state:'closed',usable:true,observed_at:'2026-09-11T06:30:01Z'}
+      {ticker:'005930',price:121,state:'closed',market_state:'closed',usable:true,observed_at:'2026-09-11T06:30:00Z'},
+      {ticker:'000660',price:131,state:'closed',market_state:'closed',usable:true,observed_at:'2026-09-11T06:30:01Z'}
     ]
   },['005930','000660']);
   const closed=core.liveValuationStatusForDate(today);
   assert.equal(closed.mode,'closed');
   assert.equal(closed.closedCount,2);
+  assert.equal(closed.marketClosedCount,2);
+  assert.equal(closed.regularLiveCount,0);
+  assert.equal(closed.extendedLiveCount,0);
   assert.equal(closed.fallbackCount,0);
+});
+
+
+test('실시간 평가 상태 요약: 개별 market_state를 보존하고 정규장·시간외 live를 구분 집계한다',()=>{
+  const today=core.kstTodayText();
+  const portfolio=basePortfolio({
+    securities:[
+      {name:'주식',ticker:'005930',type:'개별주식',qty:1,cost:100,chart:true},
+      {name:'ETF',ticker:'069500',type:'ETF',qty:1,cost:100,chart:true}
+    ],
+    pension:[]
+  });
+  setState({portfolio,prices:{[today]:{securities:{'005930':100,'069500':100}}}});
+  core.applyLiveValuationSnapshot({
+    status:'ok',market_state:'closed',bridge_connected:true,
+    items:[
+      {ticker:'005930',price:121,state:'live',market_state:'extended',usable:true,observed_at:'2026-09-11T07:10:00Z'},
+      {ticker:'069500',price:101,state:'closed',market_state:'closed',usable:true,observed_at:'2026-09-11T06:30:00Z'}
+    ]
+  },['005930','069500']);
+  const status=core.liveValuationStatusForDate(today);
+  assert.equal(status.mode,'live');
+  assert.equal(status.liveCount,1);
+  assert.equal(status.closedCount,1);
+  assert.equal(status.regularLiveCount,0);
+  assert.equal(status.extendedLiveCount,1);
+  assert.equal(status.marketClosedCount,1);
+  assert.equal(core.dataState.liveValuation.items['005930'].marketState,'extended');
+  assert.equal(core.dataState.liveValuation.items['069500'].marketState,'closed');
 });
 
 test('실시간 평가 상태 요약: 실패/과거 화면은 STALE·JSON 의미를 분리한다',()=>{

@@ -457,6 +457,7 @@ function normalizedLiveValuationItem(item,requestedSet){
     observedAt:item?.observed_at?String(item.observed_at):null,
     source:item?.source?String(item.source):null,
     subscriptionState:String(item?.subscription_state||''),
+    marketState:String(item?.market_state||''),
     state:String(item?.state||''),
     usable
   };
@@ -515,6 +516,7 @@ function liveValuationStatusForDate(date){
   if(!date||date!==today){
     return {
       mode:'historical',requestedCount:0,usableCount:0,liveCount:0,closedCount:0,
+      regularLiveCount:0,extendedLiveCount:0,marketClosedCount:0,
       staleCount:0,warmingCount:0,fallbackCount:0,latestObservedAt:null,generatedAt:null,reason:''
     };
   }
@@ -524,6 +526,9 @@ function liveValuationStatusForDate(date){
   const usableItems=items.filter(item=>item?.usable===true&&Number(item?.price)>0);
   const liveCount=usableItems.filter(item=>item.state==='live').length;
   const closedCount=usableItems.filter(item=>item.state==='closed').length;
+  const regularLiveCount=usableItems.filter(item=>item.state==='live'&&item.marketState==='open').length;
+  const extendedLiveCount=usableItems.filter(item=>item.state==='live'&&item.marketState==='extended').length;
+  const marketClosedCount=usableItems.filter(item=>item.marketState==='closed').length;
   const staleCount=items.filter(item=>item?.state==='stale').length;
   const warmingCount=items.filter(item=>item?.state==='warming').length;
   const requestedCount=requested.length,usableCount=usableItems.length,fallbackCount=Math.max(0,requestedCount-usableCount);
@@ -538,7 +543,8 @@ function liveValuationStatusForDate(date){
     mode='stale';
   }
   return {
-    mode,requestedCount,usableCount,liveCount,closedCount,staleCount,warmingCount,fallbackCount,
+    mode,requestedCount,usableCount,liveCount,closedCount,regularLiveCount,extendedLiveCount,marketClosedCount,
+    staleCount,warmingCount,fallbackCount,
     latestObservedAt,generatedAt:state.generatedAt||null,reason:String(state.reason||''),marketState:String(state.marketState||''),bridgeConnected:state.bridgeConnected
   };
 }

@@ -192,6 +192,7 @@ test('공통 full render는 keyboard focus를 보존하고 live refresh는 열�
   const fingerprintEnd=liveValuation.indexOf('\nfunction liveValuationCanRender',fingerprintStart);
   assert.ok(fingerprintStart>=0&&fingerprintEnd>fingerprintStart,'live valuation fingerprint block is missing');
   assert.doesNotMatch(liveValuation.slice(fingerprintStart,fingerprintEnd),/generated_at|generatedAt/);
+  assert.match(liveValuation,/String\(item\?\.market_state\|\|''\)/);
   assert.match(liveValuation,/const fingerprint=liveValuationFingerprint\(payload,tickers\);/);
   assert.match(liveValuation,/if\(payloadChanged\)requestLiveValuationRender\(\);/);
   assert.doesNotMatch(liveValuation,/stateChanged\|\|payloadChanged/);
@@ -1152,6 +1153,9 @@ test('live valuation 재렌더는 퇴직연금 조정 본체와 action modal이 
 
 test('Hero는 날짜 기준만 표시하고 Live Valuation 상태 문자열을 별도 노출하지 않는다',()=>{
   assert.match(core,/function liveValuationStatusForDate\(date\)/);
+  assert.match(core,/marketState:String\(item\?\.market_state\|\|''\)/);
+  assert.match(core,/const regularLiveCount=usableItems\.filter\(item=>item\.state==='live'&&item\.marketState==='open'\)\.length;/);
+  assert.match(core,/const extendedLiveCount=usableItems\.filter\(item=>item\.state==='live'&&item\.marketState==='extended'\)\.length;/);
   assert.doesNotMatch(app,/function liveValuationStatusText\(date\)/);
   assert.doesNotMatch(app,/data-live-valuation-status/);
   assert.doesNotMatch(app,/LIVE \$\{status\.usableCount\}/);

@@ -120,6 +120,7 @@ function liveValuationFingerprint(payload,requestedTickers=[]){
       Number(item?.price)||0,
       item?.usable===true,
       String(item?.state||''),
+      String(item?.market_state||''),
       String(item?.observed_at||'')
     ])
   });
