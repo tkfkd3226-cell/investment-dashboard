@@ -155,7 +155,7 @@ const chartRuntimeState={
   expandedViewportBound:false,
   responsiveControlsBound:false,
   entrancePhoneLandscapeBound:false,
-  skipEntranceOnce:false,
+  preservePlayedEntranceCardIdsOnce:null,
   securitiesCumTransitionSuppressionPending:false,
   printFixedViewBox:false,
   expanded:null
@@ -175,8 +175,12 @@ const chartState={
   }
 };
 
-function suppressChartEntranceOnce(){
-  chartRuntimeState.skipEntranceOnce=true;
+function preservePlayedChartEntrancesOnce(){
+  chartRuntimeState.preservePlayedEntranceCardIdsOnce=new Set(
+    [...document.querySelectorAll('.chart-card[data-chart-entrance-played="true"]')]
+      .map(card=>String(card.id||''))
+      .filter(Boolean)
+  );
 }
 function requestSecuritiesCumCardTransitionSuppression(){
   chartRuntimeState.securitiesCumTransitionSuppressionPending=true;
@@ -1618,11 +1622,11 @@ function drawAllCharts(){
     drawStacked();
   }
   setupResponsiveChartControls();
-  const skipEntrance=chartRuntimeState.skipEntranceOnce;
-  chartRuntimeState.skipEntranceOnce=false;
+  const preservedPlayedCardIds=chartRuntimeState.preservePlayedEntranceCardIdsOnce;
+  chartRuntimeState.preservePlayedEntranceCardIdsOnce=null;
   document.querySelectorAll('svg.chart').forEach(svg=>{
-    if(skipEntrance){
-      const card=svg.closest('.chart-card');
+    const card=svg.closest('.chart-card');
+    if(card?.id&&preservedPlayedCardIds?.has(card.id)){
       if(card){
         card.dataset.chartEntrancePlayed='true';
         card.classList.remove('chart-entrance-ready');
@@ -1671,5 +1675,5 @@ export {
   renderPensionCharts,
   requestSecuritiesCumCardTransitionSuppression,
   setupChartGlobalEvents,
-  suppressChartEntranceOnce
+  preservePlayedChartEntrancesOnce
 };

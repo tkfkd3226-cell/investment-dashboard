@@ -31,7 +31,7 @@ import {
   renderSecuritiesCumulativeChart,
   requestSecuritiesCumCardTransitionSuppression,
   setupChartGlobalEvents,
-  suppressChartEntranceOnce
+  preservePlayedChartEntrancesOnce
 } from './dashboard-charts.js';
 import {
   closeAccountMemoInfo,
@@ -361,7 +361,9 @@ function renderLiveValuationRefresh(){
   const nestedScrollSnapshot=dashboardNestedScrollSnapshot();
   const keepDateMenuOpen=dateActionMenuIsOpen();
   const keepDesktopTocOpen=desktopEdgeTocIsOpen();
-  suppressChartEntranceOnce();
+  // 이미 화면에 진입해 재생된 차트만 재렌더 후 완료 상태를 유지한다.
+  // 아직 스크롤 진입 전인 차트는 entrance pending을 보존해 최초 viewport 진입 애니메이션을 잃지 않는다.
+  preservePlayedChartEntrancesOnce();
   requestSecuritiesCumCardTransitionSuppression();
   render();
   if(keepDateMenuOpen)restoreDateActionMenuAfterRender();

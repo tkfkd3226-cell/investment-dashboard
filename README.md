@@ -56,6 +56,7 @@ index.html
 - 기업적립금·현금성자산·ETF 추가매수 조정
 - PIN 기반 퇴직연금 저장·삭제
 - 누적손익·수익률·비중 변화 등 기간 차트
+  - 차트 viewport entrance animation은 최초 스크롤 진입에서 1회 재생합니다. 10초 Live Valuation full render는 이미 재생된 차트만 완료 상태를 복원하고, 아직 화면에 진입하지 않은 차트의 pending animation을 소거하지 않습니다.
 - Light / Dark 테마
 - Desktop / Tablet / Mobile 반응형 UI
 - Print 전용 출력
@@ -106,6 +107,7 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - 오늘 보유종목 quote는 ticker별 `market_state`를 보존해 판단하며, **15:30~20:00에는 개별주식 `extended`와 ETF `closed`가 동시에 존재할 수 있으므로 top-level `market_state` 하나로 전체 종목 상태를 판정하지 않음**
 - 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다.
 - Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
+- Market AI 서버 연결이 확인된 동안에만 Topbar(웹/태블릿)와 Mobile `관리` 메뉴에 **`실시간 시세`** 진입점을 노출하며, 같은 공통 명칭을 사용합니다. 진입 시 `https://node.tail60a98e.ts.net/monitor/`를 공통 modal shell 안의 최대 **1280×720** embedded monitor로 엽니다. 연결이 끊기면 진입점은 숨기고 열린 monitor modal도 닫습니다.
 
 프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 현재가 overlay), `dashboard-market-ai-client.js`(local/remote transport)로 분리합니다.
 

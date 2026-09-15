@@ -1460,6 +1460,8 @@ Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend�
 - **상태 최신성**: 겹친 polling, 늦은 body parse, holdings universe 변경, visible↔hidden 전환에서 이전 응답/오류가 최신 상태를 덮지 않는가.
 - **multi-client 격리**: 복수 탭/기기의 client identity와 ticker universe가 서로 제거·오염되지 않는가.
 - **render lifecycle**: modal/chart/tooltip/input interaction 중 live refresh가 진행 UI를 교체하거나 focus/scroll을 잃게 하지 않는가. 별도수익 ON/OFF처럼 부분 갱신 대상은 불필요한 full render를 만들지 않는가.
+- **차트 entrance 회귀**: Live Valuation full render가 이미 재생된 차트만 완료 상태를 승계하고, 아직 viewport에 진입하지 않은 차트의 최초 scroll animation은 보존하는가. 주기 갱신이 아래쪽 차트를 일괄 완료 처리해 animation을 없애지 않는가.
+- **실시간 시세 진입점**: Market AI 연결 확인 전/연결 해제에는 Web/Tablet Topbar와 Phone `관리` 메뉴의 `실시간 시세`가 모두 숨겨지고, 연결 중에는 공통 명칭/action token과 1280×720 wide modal token을 공유하는가.
 - **표시 의미**: Hero 기준문구와 자산 source tooltip이 실제 계산에 적용된 가격 상태와 일치하고 raw 내부 상태 문자열을 사용자 의미로 오해하게 노출하지 않는가.
 - **시장 session/freshness**: KOSPI, K200, SOX, NQ100선물의 장전/거래중/장마감/거래중단과 freshness를 구분해 정상적인 장외 정지를 `데이터 지연`으로 오판하지 않는가. 기준시각은 가능한 경우 실제 시장시각을 우선하는가.
 - **단일 display model**: 시장 카드와 tooltip이 서로 다른 값·상태·fallback 판정을 갖지 않는가.

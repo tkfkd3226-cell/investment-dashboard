@@ -176,6 +176,8 @@
   --modal-section-gap:12px;
   --modal-status-gap:10px;
   --modal-action-gap:12px;
+  --modal-frame-wide-width:1280px;
+  --modal-frame-wide-height:720px;
   --modal-focus-ring:rgba(43,61,89,.18);
   --focus-ring-shadow:0 0 0 3px var(--modal-focus-ring);
   /* Modal / Form Control Contract · KRX·퇴직연금 등 modal이 공유하는 구조 토큰 */
@@ -3104,7 +3106,9 @@ body.dashboard-dialog-open{
 }
 :is(.contrib-modal-card,.action-modal-card){
   position:relative;
+  box-sizing:border-box;
   width:var(--modal-card-width);
+  height:var(--modal-card-height,auto);
   padding:var(--modal-card-pad-y) var(--modal-card-pad-x);
   border:1px solid var(--modal-border);
   border-radius:var(--modal-card-radius);
@@ -3133,6 +3137,31 @@ body.dashboard-dialog-open{
   display:none;
 }
 :is(.krx-action-modal,.chart-date-confirm-modal).show{display:flex}
+.realtime-quote-modal{
+  z-index:13500;
+  display:none;
+  --modal-card-width:min(var(--modal-frame-wide-width),calc(100vw - var(--modal-overlay-pad) * 2));
+  --modal-card-height:min(var(--modal-frame-wide-height),calc(100vh - var(--modal-overlay-pad) * 2));
+  --modal-card-pad-y:0px;
+  --modal-card-pad-x:0px;
+}
+.realtime-quote-modal.show{display:flex}
+.realtime-quote-modal-card{overflow:hidden}
+.realtime-quote-close{
+  position:absolute;
+  z-index:2;
+  top:var(--space-xl);
+  right:var(--space-xl);
+  background:var(--modal-surface);
+  box-shadow:var(--shadow-low);
+}
+.realtime-quote-frame{
+  display:block;
+  width:100%;
+  height:100%;
+  border:0;
+  background:var(--modal-panel-surface);
+}
 .pension-action-pin-modal{z-index:14000}
 .action-modal-card{
   color:var(--ink);

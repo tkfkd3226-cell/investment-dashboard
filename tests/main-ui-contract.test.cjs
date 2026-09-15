@@ -1485,3 +1485,28 @@ test('차트 범례 label은 HTML 경계에서 escape하고 삭제 PIN 경고는
   assert.ok(dangerStart>=0&&dangerEnd>dangerStart,'삭제 PIN 경고 CSS block is missing');
   assert.doesNotMatch(common.slice(dangerStart,dangerEnd),/--inner-radius-md/);
 });
+
+test('Live Valuation full render는 이미 재생된 차트만 entrance 완료 상태를 승계하고 미진입 차트 animation을 보존한다',()=>{
+  assert.match(app,/preservePlayedChartEntrancesOnce\(\);/);
+  assert.doesNotMatch(app,/suppressChartEntranceOnce\(/);
+  assert.match(charts,/function preservePlayedChartEntrancesOnce\(\)\{[^]*?preservePlayedEntranceCardIdsOnce=new Set\([^]*?\.chart-card\[data-chart-entrance-played="true"\]/s);
+  assert.match(charts,/const preservedPlayedCardIds=chartRuntimeState\.preservePlayedEntranceCardIdsOnce;[^]*?preservePlayedEntranceCardIdsOnce=null;[^]*?preservedPlayedCardIds\?\.has\(card\.id\)/s);
+  assert.doesNotMatch(charts,/skipEntranceOnce/);
+});
+
+test('실시간 시세 진입점은 Market AI 연결 상태·공통 명칭·1280x720 modal contract를 공유한다',()=>{
+  assert.match(marketAiClient,/const MARKET_AI_MONITOR_URL=`\$\{MARKET_AI_REMOTE_BASE\}\/monitor\/`/);
+  assert.match(marketAiClient,/const MARKET_AI_CONNECTION_EVENT='investment-dashboard:market-ai-connection'/);
+  assert.match(marketAi,/document\.documentElement\.dataset\.marketAiConnected=next\?'true':'false'/);
+  assert.match(marketAi,/publishMarketAiConnectionState\(serverReachable\)/);
+  assert.match(ui,/const REALTIME_QUOTES_ACTION=Object\.freeze\(\{action:'open-realtime-quotes',icon:'activity',title:'실시간 시세'\}\)/);
+  assert.match(ui,/marketAiOnly:true/);
+  assert.match(ui,/data-market-ai-monitor-entry\$\{marketAiMonitorAvailable\?'':' hidden'\}/);
+  assert.match(ui,/syncRealtimeQuotesAvailability\(document\.documentElement\.dataset\.marketAiConnected==='true'\)/);
+  assert.match(ui,/MARKET_AI_MONITOR_URL/);
+  assert.match(ui,/class="realtime-quote-frame"/);
+  assert.match(common,/--modal-frame-wide-width:1280px/);
+  assert.match(common,/--modal-frame-wide-height:720px/);
+  assert.match(common,/\.realtime-quote-modal\{[^]*?--modal-card-width:min\(var\(--modal-frame-wide-width\)[^]*?--modal-card-height:min\(var\(--modal-frame-wide-height\)/s);
+  assert.match(print,/\.realtime-quote-modal/);
+});

@@ -64,6 +64,10 @@ import {
   drawAllCharts,
   renderCharts
 } from './dashboard-charts.js';
+import {
+  MARKET_AI_CONNECTION_EVENT,
+  MARKET_AI_MONITOR_URL
+} from './dashboard-market-ai-client.js';
 
 // Dashboard UI · theme / navigation / topbar / securities rendering / global UI events
 // Structure map:
@@ -74,7 +78,7 @@ import {
 //   [UI05] Date Tabs / Mobile Data View Routing
 //   [UI06] Mobile Top Button
 //   [UI07] Date Action Menu / Global UI Events
-//   [UI08] KRX Action Modal
+//   [UI08] Market Data / KRX Action Modals
 //   [UI09] Asset Workspace Navigation
 //   [UI10] Securities Rendering
 //   [UI11] Accounts / Capital Source Tables
@@ -151,6 +155,8 @@ const separateProfitControl=(x,extraClass='')=>{
   const note=uiState.includeSeparateProfit?`<span class="separate-profit-control-note">선택일 ${signed(profit,'원')}</span>`:'';
   return `<div class="separate-profit-control-row${extraClass?' '+extraClass:''}">${note}${separateProfitToggle()}</div>`;
 };
+const REALTIME_QUOTES_ACTION=Object.freeze({action:'open-realtime-quotes',icon:'activity',title:'실시간 시세'});
+let marketAiMonitorAvailable=false;
 const TOPBAR_ACTION_ICONS=Object.freeze({
   kospiNight:'activity',
   nasdaqFutures:'link',
@@ -207,7 +213,10 @@ function renderMobileNavigationGroups(groups,{indentAfterFirst=false}={}){
       const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
       const cls=`mobile-nav-item ${indentAfterFirst&&idx?'sub':''}`;
       if(type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" draggable="false" data-dashboard-action="close-date-menu">${inner}</a>`;
-      if(type==='action') return `<button type="button" class="${cls}" data-dashboard-action="${item.action}">${inner}</button>`;
+      if(type==='action'){
+        const marketAiAttrs=item.marketAiOnly?` data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}`:'';
+        return `<button type="button" class="${cls}" data-dashboard-action="${item.action}"${marketAiAttrs}>${inner}</button>`;
+      }
       return `<button type="button" class="${cls}" data-dashboard-action="jump-section" data-section-target="${item.id}" data-close-date-menu="true">${inner}</button>`;
     }).join('')}</div>`;
   }).join('');
@@ -227,6 +236,7 @@ function renderResponsiveNavigationMenuContent(){
       label:'관리',
       phoneOnly:true,
       items:[
+        {type:'action',action:REALTIME_QUOTES_ACTION.action,icon:REALTIME_QUOTES_ACTION.icon,title:REALTIME_QUOTES_ACTION.title,marketAiOnly:true},
         {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
         {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'},
         ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[])
@@ -376,6 +386,9 @@ function renderTabs(){
         <select class="date-select day-select" id="dateSelect" aria-label="일 선택" aria-controls="app">${monthDates.map(d=>`<option value="${d}" ${d===dataState.activeDate?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
       </div>
       <div class="date-picker-action" role="group" aria-label="대시보드 도구">
+        <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-market-action topbar-realtime-quotes-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
+          <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span><span class="topbar-label-full">${REALTIME_QUOTES_ACTION.title}</span><span class="topbar-label-short">${REALTIME_QUOTES_ACTION.title}</span>
+        </button>
         <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" draggable="false" title="코스피200 야간선물">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.kospiNight)}</span><span class="topbar-label-full">코스피200 야간선물</span><span class="topbar-label-short">코스피 야선</span>
         </a>
@@ -468,6 +481,8 @@ function restoreDateActionMenuAfterRender(){
   syncMobileTopbarState();
 }
 function setupUiGlobalEvents(){
+  syncRealtimeQuotesAvailability(document.documentElement.dataset.marketAiConnected==='true');
+  window.addEventListener(MARKET_AI_CONNECTION_EVENT,event=>syncRealtimeQuotesAvailability(event?.detail?.connected===true));
   document.addEventListener('click',e=>{
     if(!e.target.closest('#tabs'))closeDateActionMenu();
     if(!e.target.closest('#accounts-summary .accounts-memo-info-button'))closeAccountMemoInfo();
@@ -487,7 +502,43 @@ function setupUiGlobalEvents(){
     syncMobileTopbarState();
   },{passive:true});
 }
-// [UI08] KRX Action Modal · KRX 현재가 반영 모달
+// [UI08] Market Data / KRX Action Modals · 실시간 시세 / KRX 현재가 반영
+function syncRealtimeQuotesAvailability(available){
+  marketAiMonitorAvailable=available===true;
+  document.querySelectorAll('[data-market-ai-monitor-entry]').forEach(control=>{control.hidden=!marketAiMonitorAvailable});
+  if(!marketAiMonitorAvailable)closeRealtimeQuotesModal({resetFrame:true});
+}
+function ensureRealtimeQuotesModal(){
+  let modal=document.getElementById('realtimeQuotesModal');
+  if(modal)return modal;
+  modal=document.createElement('div');
+  modal.id='realtimeQuotesModal';
+  modal.className='action-modal realtime-quote-modal';
+  modal.setAttribute('aria-hidden','true');
+  modal.innerHTML=`<div class="action-modal-card realtime-quote-modal-card" role="dialog" aria-modal="true" aria-label="${REALTIME_QUOTES_ACTION.title}">
+    <button type="button" class="control-icon-button modal-icon-btn realtime-quote-close" data-dashboard-action="close-realtime-quotes" aria-label="${REALTIME_QUOTES_ACTION.title} 닫기">${navIconSvg('close')}</button>
+    <iframe class="realtime-quote-frame" title="${REALTIME_QUOTES_ACTION.title}" src="about:blank" referrerpolicy="no-referrer"></iframe>
+  </div>`;
+  document.body.appendChild(modal);
+  bindDashboardModalDismiss(modal,{onDismiss:()=>closeRealtimeQuotesModal({resetFrame:true})});
+  return modal;
+}
+function openRealtimeQuotesModal(returnFocus=null){
+  if(!marketAiMonitorAvailable)return;
+  closeDateActionMenu();
+  const modal=ensureRealtimeQuotesModal();
+  const frame=modal.querySelector('.realtime-quote-frame');
+  if(frame&&frame.getAttribute('src')!==MARKET_AI_MONITOR_URL)frame.setAttribute('src',MARKET_AI_MONITOR_URL);
+  const closeButton=modal.querySelector('.realtime-quote-close');
+  openDashboardModal(modal,{initialFocus:closeButton,returnFocus,fallbackSelector:'[data-dashboard-action="open-realtime-quotes"]:not([hidden])'});
+}
+function closeRealtimeQuotesModal({resetFrame=true}={}){
+  const modal=document.getElementById('realtimeQuotesModal');
+  if(!modal)return;
+  if(modal.classList.contains('show'))closeDashboardModal(modal,{fallbackSelector:'[data-dashboard-action="open-realtime-quotes"]:not([hidden])'});
+  if(resetFrame)modal.querySelector('.realtime-quote-frame')?.setAttribute('src','about:blank');
+}
+
 // KRX write는 durable reconciliation/GitHub API 왕복이 길어질 수 있어 공통 20초보다 긴 전용 timeout을 사용한다.
 const KRX_WRITE_REQUEST_TIMEOUT_MS=60000;
 async function dispatchKrxPriceUpdate(pin, mode='selected', requestId=''){
@@ -1241,6 +1292,8 @@ function handleUiDashboardAction(event,control){
   if(action==='close-date-menu')closeDateActionMenu();
   else if(action==='toggle-date-menu')toggleDateActionMenu(event);
   else if(action==='toggle-desktop-toc')toggleDesktopEdgeToc();
+  else if(action===REALTIME_QUOTES_ACTION.action)openRealtimeQuotesModal(control);
+  else if(action==='close-realtime-quotes')closeRealtimeQuotesModal({resetFrame:true});
   else if(action==='krx-update')triggerKrxPriceUpdate();
   else if(action==='toggle-theme')toggleTheme();
   else if(action==='toggle-corner-theme')toggleCornerTheme();

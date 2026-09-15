@@ -4,6 +4,7 @@ import {
   openDashboardNativeDialog
 } from './dashboard-modal.js';
 import {
+  MARKET_AI_CONNECTION_EVENT,
   marketAiApiBase,
   marketAiFetchWithTimeout as fetchWithTimeout,
   marketAiLocalMode
@@ -75,6 +76,15 @@ let marketAiPollTimer=0;
 let mountFrame=0;
 let marketAiTooltipEventsBound=false;
 let marketAiActiveTooltipTarget=null;
+let marketAiPublishedConnectionState=null;
+
+function publishMarketAiConnectionState(connected,{force=false}={}){
+  const next=connected===true;
+  if(!force&&marketAiPublishedConnectionState===next)return;
+  marketAiPublishedConnectionState=next;
+  document.documentElement.dataset.marketAiConnected=next?'true':'false';
+  window.dispatchEvent(new CustomEvent(MARKET_AI_CONNECTION_EVENT,{detail:{connected:next}}));
+}
 
 // [MARKET02] Environment / Fetch · 실행 환경 / timeout
 function marketAiUiEnabled(){
@@ -1180,6 +1190,7 @@ async function refreshMarketAiSignal(){
   ]);
   if(refreshSequence!==marketAiRefreshSequence)return;
   const serverReachable=signalResult!==null||nextMarketSnapshot!==null||nextBridgeStatus!==null;
+  publishMarketAiConnectionState(serverReachable);
   Object.assign(marketAiState,{
     serverReachable,
     marketSnapshot:nextMarketSnapshot??{},
@@ -1273,6 +1284,7 @@ function scheduleMount(){
 }
 
 function startMarketAiBridge(){
+  publishMarketAiConnectionState(false,{force:true});
   setupMarketAiTooltipEvents();
   if(typeof marketAiPhoneMedia.addEventListener==='function')marketAiPhoneMedia.addEventListener('change',scheduleMount);
   else marketAiPhoneMedia.addListener?.(scheduleMount);

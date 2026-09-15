@@ -10,6 +10,8 @@ const MARKET_AI_TIMEOUT_MS=2_500;
 const MARKET_AI_REMOTE_TIMEOUT_MS=5_000;
 const LOCAL_DASHBOARD_HOSTS=new Set(['localhost','127.0.0.1']);
 const MARKET_AI_REMOTE_BASE='https://node.tail60a98e.ts.net';
+const MARKET_AI_MONITOR_URL=`${MARKET_AI_REMOTE_BASE}/monitor/`;
+const MARKET_AI_CONNECTION_EVENT='investment-dashboard:market-ai-connection';
 
 function marketAiLocalMode(){
   return LOCAL_DASHBOARD_HOSTS.has(location.hostname);
@@ -52,6 +54,8 @@ function marketAiFetchWithTimeout(url,options={},timeoutMs=marketAiRequestTimeou
 
 // [CLIENT03] Public API
 export {
+  MARKET_AI_CONNECTION_EVENT,
+  MARKET_AI_MONITOR_URL,
   MARKET_AI_REMOTE_BASE,
   marketAiApiBase,
   marketAiFetchWithTimeout,
