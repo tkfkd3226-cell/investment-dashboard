@@ -260,7 +260,8 @@ investment-dashboard/
 ├─ README.md
 ├─ main_dashboard_maintenance_handover.md
 ├─ add_maintenance_handover.md
-└─ dashboard_evaluation_guide.md
+├─ dashboard_evaluation_guide.md
+└─ ct35_evaluation.md
 ```
 
 `img/favicon.png`은 Main과 Add가 함께 사용하는 공통 favicon입니다.
@@ -449,7 +450,8 @@ python tests/update_prices_test.py
 | [README.md](./README.md) | GitHub 프로젝트 소개, 기능, 전체 구조, 데이터·배포·실행 개요 |
 | [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md) | Main 인수인계, 수정, CSS/JS/UI contract, Main QA |
 | [add_maintenance_handover.md](./add_maintenance_handover.md) | Calc/Report 인수인계, 계산·데이터 contract, Add QA |
-| [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) | Main+Add 평가 방식, 점수, A/B/C, 감점·비감점 기준 |
+| [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) | Main+Add 전체 평가 방식, 점수, 전역 A/B/C 의미, 반례·감점·종료 기준 |
+| [ct35_evaluation.md](./ct35_evaluation.md) | 공통화·토큰화 35개 고정 Rubric, Main/Add 독립 채점, 카테고리별 점검 기준 |
 
 ### 역할별 Source of Truth
 
@@ -467,8 +469,12 @@ Main↔Add 공통 contract
 → main_dashboard_maintenance_handover.md 8장
 → 실행 정합성은 tests/cross-ui-contract.test.cjs
 
-평가·점수·A/B/C
+전체 평가·점수·전역 A/B/C·반례·종료 기준
 → dashboard_evaluation_guide.md
+
+공통화·토큰화 35개 고정 Rubric
+→ ct35_evaluation.md
+→ 전체 평가에서는 dashboard_evaluation_guide.md와 함께 적용
 
 프로젝트 소개
 → README.md

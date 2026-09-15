@@ -25,8 +25,11 @@
 | [README.md](./README.md) | GitHub 프로젝트 소개 · 전체 구조 · 실행/배포 개요 |
 | [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md) | MAIN 수정 · 유지보수 · QA · 장기 contract와 Main↔Add 공통 contract 정의 |
 | [add_maintenance_handover.md](./add_maintenance_handover.md) | ADD Calc/Report 수정 · 유지보수 · QA · 장기 contract |
-| [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) | MAIN + ADD 평가 · 점수 · A/B/C · 반례 탐색 · 감점/비감점 기준 |
+| [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) | MAIN + ADD 전체 평가 · 점수 · 전역 A/B/C · 반례 탐색 · 감점/비감점 · 종료 기준 |
+| [ct35_evaluation.md](./ct35_evaluation.md) | 공통화·토큰화 35개 고정 Rubric · Main/Add 독립 채점 · 카테고리별 평가 |
 | Git history | 과거 변경 이력 |
+
+전체 Dashboard 평가에서는 이 문서를 **상위 평가 contract**로 사용하고, 공통화·토큰화 영역은 `ct35_evaluation.md`의 35개 고정 Rubric을 함께 적용한다. A/B/C의 전역 의미와 평가 종료 기준이 두 문서에서 다르게 해석될 여지가 있으면 **이 문서의 정의를 우선**하고, CT35는 해당 결함을 고정 배점의 `PASS / MINOR / MAJOR / FAIL`에 연결해 기록한다.
 
 평가는 항상 **최신 실제 소스를 독립적으로 다시 확인**하는 작업이다. 과거 평가 결과, 과거 점수, 현재 자동 테스트 PASS 여부는 최신 정상 판정의 출발점일 뿐 최종 근거가 아니다.
 
