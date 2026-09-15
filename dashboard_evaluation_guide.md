@@ -1111,6 +1111,7 @@ handover의 JSON 예시는 단순 샘플이 아니라 유지보수자가 실제 
 | Multi-client Universe | PC/폰/복수 탭이 서로의 live quote 구독 universe를 삭제하지 않는가 |
 | Ephemeral Overlay | 실시간 화면값이 역사 JSON·snapshot·장부 write를 오염시키지 않는가 |
 | Subscription Health | Bridge 전체는 살아 있어도 특정 종목 stream만 죽었을 때 해당 종목만 fail-closed 되는가 |
+| Closed Quote Recovery | 장마감 종목의 당일 KIS durable snapshot이 backend에서 `closed + usable`로 복구돼도 live처럼 오인하지 않고 Market AI coverage로 소비하며, 전일·unhealthy·fresh-tick-required 상태는 JSON fallback을 유지하는가 |
 | Deferred Render | modal/chart overlay 중 보류한 live render가 닫힌 뒤 유실되거나 옛 state로 남지 않는가 |
 | Server Already Executed | UI가 닫혔어도 이미 실행된 서버 결과를 사용자에게 안전하게 전달하는가 |
 

@@ -90,21 +90,21 @@ Main의 별도수익과 Add Report는 같은 canonical 거래 원천을 사용�
 
 ### 2.4 Market AI 연동
 
-Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 현재가 overlay**를 제공하는 선택형 실시간 subsystem입니다.
+Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 현재가 overlay**를 제공하는 선택형 당일 시장데이터 subsystem입니다. `live / extended / closed`는 가격의 시장 상태이고, Market AI 사용 가능 여부와는 별도 의미입니다.
 
 - KOSPI, KOSPI200 선물, SOX, NQ100 선물과 AI Signal 표시
 - 화면 조회 기준 10초 주기 갱신 및 visible 복귀 시 즉시 refresh
 - 오늘 날짜에서만 `usable:true` KRX quote를 현재가 의존 평가값에 overlay
 - 과거 날짜와 수량·원가·원금·매매흐름·실현손익, 운영 JSON은 변경하지 않음
 - 일부 quote가 unusable이면 해당 종목만 저장 JSON 값으로 fallback
-- Hero의 `투자 성과` 기준문구는 실제 적용된 가격이 저장값인지 실시간/시간외 값인지에 맞춰 표시
+- Hero의 `투자 성과` 기준문구는 실제 적용된 가격이 저장 JSON인지 Market AI 실시간/시간외/장마감 값인지에 맞춰 표시
 - 시장 카드 tooltip은 거래 세션과 freshness를 함께 해석해 `장전 / 정상 / 데이터 지연 / 장마감 / 거래중단` 등을 구분
 - KOSPI는 소수점 둘째 자리까지 표시하고 KIS `business_time`이 있으면 실제 시장 기준시각을 우선
 - Desktop/Tablet은 Hero 보조 카드, Phone은 동일 panel을 `AI Signal` dialog로 재사용
 - iPhone 홈화면 Web App은 설치 당시 hash 날짜에 고정되지 않고 실행 시 KST 오늘 데이터(없으면 최신 가용일)를 우선
 - Local은 `127.0.0.1:8001` Market AI full API에 직접 연결하고, GitHub Pages는 Tailscale Serve → `127.0.0.1:8002` **GET-only proxy**를 통해 조회
 - 오늘 보유종목 quote는 ticker별 `market_state`를 보존해 판단하며, **15:30~20:00에는 개별주식 `extended`와 ETF `closed`가 동시에 존재할 수 있으므로 top-level `market_state` 하나로 전체 종목 상태를 판정하지 않음**
-- 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용하며, `extended` quote도 backend가 `state:live + usable:true`로 제공하면 오늘 평가 overlay에 반영
+- 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다.
 - Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
 
 프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 현재가 overlay), `dashboard-market-ai-client.js`(local/remote transport)로 분리합니다.
@@ -180,7 +180,7 @@ Dashboard
    → Remote : Tailscale Serve → 127.0.0.1:8002 GET-only proxy
 ```
 
-외부 GitHub Pages에서는 FastAPI full API를 직접 공개하지 않고 Tailscale Serve가 연결된 **8002 GET-only proxy**를 통해 조회합니다. 보유종목 실시간 평가는 **현재 KST 날짜에서만** 적용하며 과거 날짜와 운영 JSON은 변경하지 않습니다. 개별주식 시간외와 ETF 장마감이 공존하는 구간은 ticker별 `market_state`로 구분하며, 세부 fallback/lease/session 판정은 Main handover와 Market AI 프로젝트 문서를 기준으로 합니다.
+외부 GitHub Pages에서는 FastAPI full API를 직접 공개하지 않고 Tailscale Serve가 연결된 **8002 GET-only proxy**를 통해 조회합니다. 보유종목 당일 시장평가 overlay는 **현재 KST 날짜에서만** 적용하며 과거 날짜와 운영 JSON은 변경하지 않습니다. 개별주식 시간외와 ETF 장마감이 공존하는 구간은 ticker별 `market_state`로 구분하며, 세부 fallback/lease/session 판정은 Main handover와 Market AI 프로젝트 문서를 기준으로 합니다.
 
 ## 4. 프로젝트 구조
 

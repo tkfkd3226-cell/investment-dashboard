@@ -1,6 +1,11 @@
-// KODEX Leverage Data Schema · DOM 비의존 공통 validator
+// KODEX Leverage Data Schema · DOM 비의존 공통 validator.
 // Main Dashboard와 Add Report는 이 단일 검증 contract를 함께 사용한다.
+// Structure map:
+//   [KODEX01] Schema / Trade Validation
+//   [KODEX02] Position Context Cross-check
+//   [KODEX03] Public API
 
+// [KODEX01] Schema / Trade Validation
 const KODEX_LEVERAGE_SCHEMA_VERSION=1;
 const KODEX_LEVERAGE_DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
 const KODEX_LEVERAGE_SEGMENTS=Object.freeze(['core','day','mixed']);
@@ -51,6 +56,7 @@ function validateKodexLeverageSource(source){
 
   if(String(source.reportStartDate)>String(source.trades[0].date))throw new Error('reportStartDate는 첫 매도일보다 늦을 수 없습니다.');
 
+  // [KODEX02] Position Context Cross-check · timeline 문맥을 canonical 거래와 교차 검증
   const context=source.positionContext;
   const validateContextPoint=(label,point,{qty=true}={})=>{
     if(!point||typeof point!=='object'||Array.isArray(point)||!isValidKodexLeverageDate(point.date)||!isKodexLeverageInteger(point.buy)||point.buy<=0||qty&&(!isKodexLeverageInteger(point.qty)||point.qty<=0))throw new Error(`KODEX 거래 데이터 ${label} context가 올바르지 않습니다.`);
@@ -121,6 +127,7 @@ function validateKodexLeverageSource(source){
   return source;
 }
 
+// [KODEX03] Public API
 export {
   KODEX_LEVERAGE_SCHEMA_VERSION,
   isValidKodexLeverageDate,

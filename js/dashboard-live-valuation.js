@@ -10,8 +10,16 @@ import {
   marketAiFetchWithTimeout
 } from './dashboard-market-ai-client.js';
 
-// Live Valuation Adapter · current-date quote universe + screen-only valuation overlay refresh.
-// Market AI backend owns quote source, dashboard-market-ai-client.js owns transport, and dashboard-core owns positions/cost basis/calculation. No live value is persisted.
+// Live Valuation Adapter · 오늘 보유종목 Market AI quote를 화면 평가값에만 overlay한다.
+// Backend가 live / extended / closed 여부와 usable 판정을 소유하고, 이 모듈은 usable quote만 소비한다.
+// transport는 dashboard-market-ai-client.js, position/cost/calculation은 dashboard-core.js가 소유하며 overlay 값은 운영 JSON에 저장하지 않는다.
+// Structure map:
+//   [LIVE01] Configuration / Client Identity
+//   [LIVE02] Fingerprint / Deferred Render
+//   [LIVE03] Quote Refresh / Universe Reconcile
+//   [LIVE04] Lifecycle / Public API
+
+// [LIVE01] Configuration / Client Identity · poll 설정 / tab별 lease identity
 const LIVE_VALUATION_POLL_MS=10_000;
 const LIVE_VALUATION_ENDPOINT='/api/market-data/krx-quotes';
 const LIVE_VALUATION_CLIENT_SESSION_KEY='investmentDashboard.liveValuationClientId';
@@ -103,6 +111,7 @@ async function resolveLiveValuationClientId(){
   return liveValuationClientResolvePromise;
 }
 
+// [LIVE02] Fingerprint / Deferred Render · latest-wins fingerprint / modal·chart 보호 렌더
 function liveValuationUniverseKey(tickers){
   return (tickers||[]).map(value=>String(value||'').trim().toUpperCase()).filter(Boolean).sort().join(',');
 }
@@ -169,6 +178,7 @@ function requestLiveValuationRender(){
   flushLiveValuationRender();
 }
 
+// [LIVE03] Quote Refresh / Universe Reconcile · 오늘 ticker universe 조회 / stale response 폐기
 function queueUniverseReconcileRefresh(){
   if(document.visibilityState!=='visible')return;
   window.setTimeout(()=>refreshLiveValuation(),0);
@@ -236,6 +246,7 @@ async function refreshLiveValuation(){
   }
 }
 
+// [LIVE04] Lifecycle / Public API · visible 복귀 refresh / 10초 polling
 function setupLiveValuation({renderDashboard}={}){
   renderDashboardCallback=typeof renderDashboard==='function'?renderDashboard:null;
   if(liveValuationSetupBound){

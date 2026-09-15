@@ -1,9 +1,12 @@
 /* =========================================================
    ADD unified stylesheet
-   - Shared: Add 공통 token / primitive
-   - Calc: data-add-page="calc" 전용 규칙
-   - Report: data-add-page="report" 전용 규칙
-   - 두 HTML은 이 파일 하나만 참조하며 페이지별 규칙은 data-add-page로 격리한다.
+
+   Internal Order · 내부 순서
+   [01] Shared · Add 공통 token / primitive
+   [02] Calc · data-add-page="calc" 전용 규칙
+   [03] Report · data-add-page="report" 전용 규칙
+
+   두 HTML은 이 파일 하나만 참조하며 페이지별 규칙은 data-add-page로 격리한다.
    ========================================================= */
 
 /* ==================== 01. Shared ==================== */

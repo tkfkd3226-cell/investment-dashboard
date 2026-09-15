@@ -1,5 +1,11 @@
-// Market AI Client · endpoint / timeout transport shared by signal panel and live valuation.
-// This module owns only connection semantics. It has no dashboard state or DOM rendering responsibility.
+// Market AI Client · Signal panel과 live valuation이 공유하는 endpoint / timeout transport.
+// Dashboard state·quote 의미·DOM rendering은 소유하지 않고 local/remote 연결 semantics만 담당한다.
+// Structure map:
+//   [CLIENT01] Endpoint / Environment
+//   [CLIENT02] Timeout-safe Fetch
+//   [CLIENT03] Public API
+
+// [CLIENT01] Endpoint / Environment · local 8001 / remote Tailscale origin
 const MARKET_AI_TIMEOUT_MS=2_500;
 const MARKET_AI_REMOTE_TIMEOUT_MS=5_000;
 const LOCAL_DASHBOARD_HOSTS=new Set(['localhost','127.0.0.1']);
@@ -18,6 +24,7 @@ function marketAiRequestTimeoutMs(){
   return marketAiLocalMode()?MARKET_AI_TIMEOUT_MS:MARKET_AI_REMOTE_TIMEOUT_MS;
 }
 
+// [CLIENT02] Timeout-safe Fetch · body 소비가 끝날 때까지 timeout lifecycle 유지
 function marketAiFetchWithTimeout(url,options={},timeoutMs=marketAiRequestTimeoutMs()){
   const controller=new AbortController();
   let settled=false;
@@ -43,6 +50,7 @@ function marketAiFetchWithTimeout(url,options={},timeoutMs=marketAiRequestTimeou
   },error=>{finish();throw error;});
 }
 
+// [CLIENT03] Public API
 export {
   MARKET_AI_REMOTE_BASE,
   marketAiApiBase,

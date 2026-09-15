@@ -548,6 +548,8 @@ function liveValuationStatusForDate(date){
     latestObservedAt,generatedAt:state.generatedAt||null,reason:String(state.reason||''),marketState:String(state.marketState||''),bridgeConnected:state.bridgeConnected
   };
 }
+// Hero 기준문구의 `일부`는 live 개수가 아니라 Market AI usable coverage로 결정한다.
+// 따라서 ETF closed + 개별주식 live/extended가 모두 usable이면 `일부 실시간 반영`으로 낮추지 않는다.
 function heroPerformanceBasisLabel(date){
   const fallback=koreanDateLabel(date);
   const status=liveValuationStatusForDate(date);
