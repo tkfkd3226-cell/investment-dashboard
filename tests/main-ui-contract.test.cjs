@@ -1504,7 +1504,11 @@ test('실시간 시세는 연결 gating·공통 action·Web\/Tablet compact·Pho
   assert.match(ui,/data-market-ai-monitor-entry\$\{marketAiMonitorAvailable\?'':' hidden'\}/);
   assert.match(ui,/class="realtime-quote-frame-stage"/);
   assert.match(common,/\.realtime-quote-frame-stage\{[^]*?overflow:hidden/s);
-  assert.match(common,/\.realtime-quote-frame\{[^]*?transform:scale\(var\(--realtime-monitor-scale\)\)/s);
+  const realtimeModalCss=common.slice(common.indexOf('.realtime-quote-modal{'),common.indexOf('.pension-action-pin-modal{'));
+  assert.doesNotMatch(realtimeModalCss,/realtime-monitor-scale|transform:scale\(/);
+  assert.doesNotMatch(ui,/realtime-monitor-scale/);
+  assert.match(ui,/REALTIME_MONITOR_SIZE_MESSAGE='market-ai-monitor:content-size'/);
+  assert.match(ui,/event\.source!==frame\.contentWindow/);
   assert.match(special,/\.realtime-quote-modal\{[^]*?--modal-overlay-pad:0px;[^]*?--modal-card-width:100vw;[^]*?--modal-card-height:100vh/s);
   assert.match(print,/\.realtime-quote-modal/);
 });

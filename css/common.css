@@ -3118,10 +3118,7 @@ body.dashboard-dialog-open{
   --modal-overlay-color:var(--modal-overlay-soft);
   --modal-overlay-pad:20px;
   --modal-backdrop-blur:6px;
-  /* Embedded Content Modal · Web/Tablet은 compact design viewport를 축소해 no-scroll로 표시하고 Phone은 fullscreen을 사용한다. */
-  --modal-embedded-content-width:1101px;
-  --modal-embedded-content-height:720px;
-  --modal-embedded-compact-max-scale:.9;
+  /* Embedded Content Modal · Web/Tablet은 iframe 원본 배율을 유지하고 콘텐츠가 보고한 자연 높이에 맞춘다. */
   --modal-card-width:min(420px,100%);
   --modal-card-pad-y:var(--space-10xl);
   --modal-card-pad-x:var(--space-10xl);
@@ -3142,14 +3139,17 @@ body.dashboard-dialog-open{
 .realtime-quote-modal{
   z-index:13500;
   display:none;
-  --realtime-monitor-scale:1;
-  --realtime-monitor-display-width:var(--modal-embedded-content-width);
-  --realtime-monitor-display-height:var(--modal-embedded-content-height);
+  --realtime-monitor-natural-width:1101px;
+  --realtime-monitor-display-width:min(var(--realtime-monitor-natural-width),calc(100vw - (var(--modal-overlay-pad) * 2)));
+  --realtime-monitor-display-height:calc(100vh - (var(--modal-overlay-pad) * 2));
   --modal-card-width:var(--realtime-monitor-display-width);
   --modal-card-height:var(--realtime-monitor-display-height);
   --modal-card-pad-y:0px;
   --modal-card-pad-x:0px;
   overflow:hidden;
+}
+@supports (height:100dvh){
+  .realtime-quote-modal{--realtime-monitor-display-height:calc(100dvh - (var(--modal-overlay-pad) * 2))}
 }
 .realtime-quote-modal.show{display:flex}
 .realtime-quote-modal-card{
@@ -3175,15 +3175,11 @@ body.dashboard-dialog-open{
   background:var(--modal-panel-surface);
 }
 .realtime-quote-frame{
-  position:absolute;
-  inset:0 auto auto 0;
   display:block;
-  width:var(--modal-embedded-content-width);
-  height:var(--modal-embedded-content-height);
+  width:100%;
+  height:100%;
   border:0;
   background:var(--modal-panel-surface);
-  transform:scale(var(--realtime-monitor-scale));
-  transform-origin:top left;
 }
 .pension-action-pin-modal{z-index:14000}
 .action-modal-card{
