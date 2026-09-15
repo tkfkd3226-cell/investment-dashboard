@@ -1492,23 +1492,21 @@ test('Live Valuation full render는 미진입 차트 entrance를 일괄 완료 �
   assert.match(charts,/data-chart-entrance-played/);
 });
 
-test('실시간 시세는 연결 gating·공통 action·Web\/Tablet compact·Phone fullscreen 계약을 유지한다',()=>{
-  assert.match(marketAiClient,/const MARKET_AI_MONITOR_URL=`\$\{MARKET_AI_REMOTE_BASE\}\/monitor\/`/);
-  assert.match(marketAi,/publishMarketAiConnectionState\(serverReachable\)/);
-  assert.match(ui,/const REALTIME_QUOTES_ACTION=Object\.freeze\(\{action:'open-realtime-quotes',icon:'[^']+',title:'실시간 시세'\}\)/);
-  const realtimeIcon=/REALTIME_QUOTES_ACTION=Object\.freeze\(\{action:'open-realtime-quotes',icon:'([^']+)'/.exec(ui)?.[1]||'';
+test('실시간 시세는 연결 gating·아이콘 분리·Web\/Tablet 1:1·Phone fullscreen 계약을 유지한다',()=>{
+  assert.match(marketAiClient,/\/monitor\//);
+  assert.match(marketAi,/publishMarketAiConnectionState\(/);
+  assert.match(ui,/title:'실시간 시세'/);
+  assert.match(ui,/data-market-ai-monitor-entry/);
+
+  const realtimeIcon=/REALTIME_QUOTES_ACTION=Object\.freeze\([^\n]*icon:'([^']+)'/.exec(ui)?.[1]||'';
   const nightIcon=/kospiNight:'([^']+)'/.exec(ui)?.[1]||'';
   assert.ok(realtimeIcon&&nightIcon,'실시간 시세/야간선물 icon token is missing');
   assert.notEqual(realtimeIcon,nightIcon,'실시간 시세와 코스피200 야간선물은 서로 다른 아이콘을 사용해야 한다');
-  assert.match(ui,/marketAiOnly:true/);
-  assert.match(ui,/data-market-ai-monitor-entry\$\{marketAiMonitorAvailable\?'':' hidden'\}/);
-  assert.match(ui,/class="realtime-quote-frame-stage"/);
-  assert.match(common,/\.realtime-quote-frame-stage\{[^]*?overflow:hidden/s);
+
   const realtimeModalCss=common.slice(common.indexOf('.realtime-quote-modal{'),common.indexOf('.pension-action-pin-modal{'));
-  assert.doesNotMatch(realtimeModalCss,/realtime-monitor-scale|transform:scale\(/);
-  assert.doesNotMatch(ui,/realtime-monitor-scale/);
-  assert.match(ui,/REALTIME_MONITOR_SIZE_MESSAGE='market-ai-monitor:content-size'/);
-  assert.match(ui,/event\.source!==frame\.contentWindow/);
-  assert.match(special,/\.realtime-quote-modal\{[^]*?--modal-overlay-pad:0px;[^]*?--modal-card-width:100vw;[^]*?--modal-card-height:100vh/s);
-  assert.match(print,/\.realtime-quote-modal/);
+  assert.doesNotMatch(realtimeModalCss,/transform\s*:\s*scale\(/);
+  assert.match(common,/\.realtime-quote-frame-stage\{[^]*?overflow:hidden/s);
+  assert.match(ui,/addEventListener\('message',handleRealtimeMonitorMessage\)/);
+  assert.match(ui,/event\.origin!==realtimeMonitorExpectedOrigin\(\)/);
+  assert.match(special,/\.realtime-quote-modal-card\{[^]*?position:fixed;[^]*?inset:0;[^]*?border:0;/s);
 });

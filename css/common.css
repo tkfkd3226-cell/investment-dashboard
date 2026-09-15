@@ -3118,7 +3118,7 @@ body.dashboard-dialog-open{
   --modal-overlay-color:var(--modal-overlay-soft);
   --modal-overlay-pad:20px;
   --modal-backdrop-blur:6px;
-  /* Embedded Content Modal · Web/Tablet은 iframe 원본 배율을 유지하고 콘텐츠가 보고한 자연 높이에 맞춘다. */
+  /* Action modal defaults; feature variants override only their geometry. */
   --modal-card-width:min(420px,100%);
   --modal-card-pad-y:var(--space-10xl);
   --modal-card-pad-x:var(--space-10xl);
@@ -3139,8 +3139,7 @@ body.dashboard-dialog-open{
 .realtime-quote-modal{
   z-index:13500;
   display:none;
-  /* Embedded monitor는 action-card 양쪽 1px border를 포함해도 내부 viewport가
-     Monitor의 desktop breakpoint(>1100px)를 유지하도록 최소 outer width만 확보한다. */
+  /* Web/Tablet keeps the Monitor at 1:1 scale and above its desktop layout threshold. */
   --modal-overlay-pad:0px;
   --realtime-monitor-natural-width:1103px;
   --realtime-monitor-display-width:min(var(--realtime-monitor-natural-width),100vw);

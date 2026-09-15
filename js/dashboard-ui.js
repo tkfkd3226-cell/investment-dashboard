@@ -508,6 +508,7 @@ function setupUiGlobalEvents(){
   window.visualViewport?.addEventListener('resize',syncRealtimeQuotesModalGeometry,{passive:true});
 }
 // [UI08] Market Data / KRX Action Modals · 실시간 시세 / KRX 현재가 반영
+// Realtime Monitor · connection-gated entry, embedded lifecycle, responsive geometry
 function syncRealtimeQuotesAvailability(available){
   marketAiMonitorAvailable=available===true;
   document.querySelectorAll('[data-market-ai-monitor-entry]').forEach(control=>{control.hidden=!marketAiMonitorAvailable});
@@ -582,7 +583,7 @@ function closeRealtimeQuotesModal({resetFrame=true}={}){
   if(resetFrame){realtimeMonitorContentHeight=0;modal.querySelector('.realtime-quote-frame')?.setAttribute('src','about:blank')}
 }
 
-// KRX write는 durable reconciliation/GitHub API 왕복이 길어질 수 있어 공통 20초보다 긴 전용 timeout을 사용한다.
+// KRX Price Update · durable reconciliation/GitHub API 왕복이 길어질 수 있어 공통 20초보다 긴 전용 timeout을 사용한다.
 const KRX_WRITE_REQUEST_TIMEOUT_MS=60000;
 async function dispatchKrxPriceUpdate(pin, mode='selected', requestId=''){
   const config=DASHBOARD_WRITE_CONFIG.githubPages;
