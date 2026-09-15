@@ -3139,8 +3139,11 @@ body.dashboard-dialog-open{
 .realtime-quote-modal{
   z-index:13500;
   display:none;
-  --realtime-monitor-natural-width:1101px;
-  --realtime-monitor-display-width:min(var(--realtime-monitor-natural-width),calc(100vw - (var(--modal-overlay-pad) * 2)));
+  /* Embedded monitor는 action-card 양쪽 1px border를 포함해도 내부 viewport가
+     Monitor의 desktop breakpoint(>1100px)를 유지하도록 최소 outer width만 확보한다. */
+  --modal-overlay-pad:0px;
+  --realtime-monitor-natural-width:1103px;
+  --realtime-monitor-display-width:min(var(--realtime-monitor-natural-width),100vw);
   --realtime-monitor-display-height:calc(100vh - (var(--modal-overlay-pad) * 2));
   --modal-card-width:var(--realtime-monitor-display-width);
   --modal-card-height:var(--realtime-monitor-display-height);
