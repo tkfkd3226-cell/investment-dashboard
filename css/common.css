@@ -3502,7 +3502,7 @@ button:not(:disabled):active{
   margin:calc(var(--space-lg) * -1) 0 var(--modal-section-gap);
   padding:var(--space-md) var(--space-lg);
   border:1px solid var(--status-danger-border);
-  border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));
+  border-radius:min(var(--surface-radius-level-4),var(--corner-inner-cap));
   background:var(--status-danger-soft-bg);
   color:var(--status-danger-soft-text);
   font-size:var(--type-size-sm);

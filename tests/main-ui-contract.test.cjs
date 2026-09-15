@@ -1431,3 +1431,57 @@ test('Repository EOL contract는 선언뿐 아니라 실제 source/document text
   walk(ROOT);
   assert.deepEqual(failures,[],`CR/CRLF가 남은 text 파일: ${failures.join(', ')}`);
 });
+
+test('누적 차트 자동 Y축은 서로 반대 부호 데이터도 포함하면서 좌우 0선을 같은 위치에 맞춘다',()=>{
+  const vm=require('node:vm');
+  const start=charts.indexOf('function alignZeroTickRanges(');
+  const end=charts.indexOf('\nfunction selectedCumMoneyValues',start);
+  assert.ok(start>=0&&end>start,'alignZeroTickRanges block is missing');
+  const context={Math};
+  vm.createContext(context);
+  vm.runInContext(`${charts.slice(start,end)};this.alignZeroTickRanges=alignZeroTickRanges;`,context);
+
+  const left={min:-5_000_000,max:0,ticks:[-5_000_000,0]};
+  const right={min:0,max:140,ticks:[0,20,40,60,80,100,120,140]};
+  const [alignedLeft,alignedRight]=context.alignZeroTickRanges(left,5_000_000,right,20);
+  assert.ok(alignedLeft.min<=-5_000_000&&alignedLeft.max>=0,'왼쪽 금액축 데이터가 범위 안에 있어야 한다');
+  assert.ok(alignedRight.min<=0&&alignedRight.max>=130.73,'오른쪽 수익률축 양수 데이터가 범위 안에 있어야 한다');
+  const leftZero=(0-alignedLeft.min)/(alignedLeft.max-alignedLeft.min);
+  const rightZero=(0-alignedRight.min)/(alignedRight.max-alignedRight.min);
+  assert.ok(Math.abs(leftZero-rightZero)<1e-12,'좌우 0선 좌표가 같아야 한다');
+  assert.match(charts,/const \[alignedLeft,alignedRight\]=alignZeroTickRanges\(leftAxis\.info,leftAxis\.step,raw,step\);\s*leftAxis\.info=alignedLeft;\s*raw=alignedRight;/s);
+  assert.doesNotMatch(charts,/alignFixedAxisZeroToReference/);
+});
+
+test('차트 범례 부분 렌더는 조작 control focus를 복원하고 사라지는 전체 버튼은 첫 series로 fallback한다',()=>{
+  const vm=require('node:vm');
+  const start=charts.indexOf('function chartControlFocusSnapshot(');
+  const end=charts.indexOf('\nfunction syncChartOptions',start);
+  assert.ok(start>=0&&end>start,'chart focus helper block is missing');
+  let focused=null;
+  const firstSeries={
+    dataset:{dashboardAction:'toggle-chart-series',chartScope:'pensionCum',chartSeriesKey:'profit'},
+    focus:opts=>{focused={control:firstSeries,opts};}
+  };
+  const root={querySelectorAll:()=>[firstSeries]};
+  const legend={closest:()=>null};
+  const activeControl={dataset:{dashboardAction:'toggle-chart-series',chartScope:'pensionCum',chartSeriesKey:'__all__'}};
+  const context={document:{activeElement:{closest:()=>activeControl}}};
+  vm.createContext(context);
+  vm.runInContext(`${charts.slice(start,end)};this.chartControlFocusSnapshot=chartControlFocusSnapshot;this.restoreChartControlFocus=restoreChartControlFocus;`,context);
+  const snapshot=context.chartControlFocusSnapshot('pensionCum');
+  assert.deepEqual({...snapshot},{action:'toggle-chart-series',key:'__all__'});
+  context.restoreChartControlFocus('pensionCum',snapshot,root,legend);
+  assert.equal(focused?.control,firstSeries);
+  assert.equal(focused?.opts?.preventScroll,true);
+  assert.match(charts,/const focusSnapshot=chartControlFocusSnapshot\(scope\);\s*if\(legend\)legend\.innerHTML=chartLegendHtml\(scope\);[^]*?restoreChartControlFocus\(scope,focusSnapshot,card,legend\);/);
+});
+
+test('차트 범례 label은 HTML 경계에서 escape하고 삭제 PIN 경고는 Main radius token만 사용한다',()=>{
+  assert.match(charts,/\$\{escapeHtml\(chartDisplayLabel\(scope,item\.label\)\)\}<\/button>/);
+  assert.match(common,/\.pension-action-pin-danger\{[^}]*border-radius:min\(var\(--surface-radius-level-4\),var\(--corner-inner-cap\)\)/s);
+  const dangerStart=common.indexOf('.pension-action-pin-danger{');
+  const dangerEnd=common.indexOf('}',dangerStart);
+  assert.ok(dangerStart>=0&&dangerEnd>dangerStart,'삭제 PIN 경고 CSS block is missing');
+  assert.doesNotMatch(common.slice(dangerStart,dangerEnd),/--inner-radius-md/);
+});

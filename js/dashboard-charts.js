@@ -467,6 +467,29 @@ function redrawVisibleChartsForCurrentSize(){
   });
 }
 // [CHART03] Chart Options Row Sync · 차트 옵션 행 동기화
+function chartControlFocusSnapshot(scope){
+  const active=document.activeElement;
+  const control=active?.closest?.('[data-dashboard-action]');
+  if(!control||control.dataset.chartScope!==scope)return null;
+  const action=control.dataset.dashboardAction||'';
+  if(action==='toggle-chart-series')return {action,key:control.dataset.chartSeriesKey||''};
+  if(action==='set-chart-auto-y')return {action};
+  return null;
+}
+function restoreChartControlFocus(scope,snapshot,card,legend){
+  if(!snapshot||!legend)return;
+  const root=legend.closest('.chart-expanded-overlay')||card||document;
+  const controls=[...root.querySelectorAll(`[data-dashboard-action][data-chart-scope="${scope}"]`)];
+  let target=null;
+  if(snapshot.action==='toggle-chart-series'){
+    target=controls.find(control=>control.dataset.dashboardAction==='toggle-chart-series'&&control.dataset.chartSeriesKey===snapshot.key)||null;
+    if(!target&&snapshot.key==='__all__')target=controls.find(control=>control.dataset.dashboardAction==='toggle-chart-series'&&control.dataset.chartSeriesKey!=='__all__')||null;
+  }else if(snapshot.action==='set-chart-auto-y'){
+    target=controls.find(control=>control.dataset.dashboardAction==='set-chart-auto-y')||null;
+    if(!target)target=controls.find(control=>control.dataset.dashboardAction==='toggle-chart-series'&&control.dataset.chartSeriesKey!=='__all__')||null;
+  }
+  target?.focus?.({preventScroll:true});
+}
 function syncChartOptions(scope,card,legend){
   if(!card||!legend)return;
   let options=document.querySelector(`.chart-options-row[data-chart-scope="${scope}"]`);
@@ -528,8 +551,10 @@ function syncResponsiveChartControls(){
     }
     const legendId=chartLegendId(scope),legend=legendId?document.getElementById(legendId):null;
     if(legend){
+      const focusSnapshot=chartControlFocusSnapshot(scope);
       legend.innerHTML=chartLegendHtml(scope);
       syncChartOptions(scope,card,legend);
+      restoreChartControlFocus(scope,focusSnapshot,card,legend);
     }
   });
   if(!compact)closeChartTitleInfo();
@@ -754,15 +779,20 @@ function chartLegendHtml(scope){
   const allButton=selection.all?'':`<button type="button" class="legend-item chart-series-all" aria-pressed="false" data-dashboard-action="toggle-chart-series" data-chart-scope="${scope}" data-chart-series-key="__all__">전체</button>`;
   const itemButtons=items.map(item=>{
     const active=selection.selected.has(item.key);
-    return `<button type="button" class="legend-item chart-series-toggle${active?' active':' inactive'}" aria-pressed="${active}" data-dashboard-action="toggle-chart-series" data-chart-scope="${scope}" data-chart-series-key="${encodeURIComponent(item.key)}"><span class="swatch" aria-hidden="true" style="--chart-legend-color:${item.color}"></span>${chartDisplayLabel(scope,item.label)}</button>`;
+    return `<button type="button" class="legend-item chart-series-toggle${active?' active':' inactive'}" aria-pressed="${active}" data-dashboard-action="toggle-chart-series" data-chart-scope="${scope}" data-chart-series-key="${encodeURIComponent(item.key)}"><span class="swatch" aria-hidden="true" style="--chart-legend-color:${item.color}"></span>${escapeHtml(chartDisplayLabel(scope,item.label))}</button>`;
   }).join('');
   const autoButton=selection.all?'':`<button type="button" class="chart-y-auto-toggle${autoY?' active':''}" role="switch" aria-checked="${autoY}" data-dashboard-action="set-chart-auto-y" data-chart-scope="${scope}" data-chart-auto-y="${autoY?'false':'true'}"><span>Y축 자동 재계산</span><span class="chart-y-auto-state"><span class="control-text-optical">${autoY?'ON':'OFF'}</span></span></button>`;
   return `<span class="chart-legend-control chart-legend-control-left">${allButton}</span><span class="chart-legend-series">${itemButtons}</span><span class="chart-legend-control chart-legend-control-right">${autoButton}</span>`;
 }
 function refreshChartLegend(scope){
   const id=chartLegendId(scope),legend=id?document.getElementById(id):null;
+  const item=RESPONSIVE_CHART_SCOPES.find(entry=>entry.scope===scope);
+  const card=item?document.getElementById(item.id):null;
+  const focusSnapshot=chartControlFocusSnapshot(scope);
   if(legend)legend.innerHTML=chartLegendHtml(scope);
-  refreshChartOptions(scope);
+  if(card&&legend)syncChartOptions(scope,card,legend);
+  else refreshChartOptions(scope);
+  restoreChartControlFocus(scope,focusSnapshot,card,legend);
 }
 function redrawChartScope(scope){
   const drawers={
@@ -1320,33 +1350,6 @@ function alignZeroTickRanges(firstInfo,firstStep,secondInfo,secondStep){
   return [build(firstStep),build(secondStep)];
 }
 
-function gcdInt(a,b){
-  let x=Math.abs(Math.round(a)),y=Math.abs(Math.round(b));
-  while(y){const next=x%y;x=y;y=next;}
-  return x||1;
-}
-function alignFixedAxisZeroToReference(referenceInfo,referenceStep,targetInfo,targetStep){
-  const refBelow=Math.max(0,Math.round(-Math.min(0,referenceInfo.min)/referenceStep));
-  const refAbove=Math.max(0,Math.round(Math.max(0,referenceInfo.max)/referenceStep));
-  const needBelow=Math.max(0,Math.ceil((-Math.min(0,targetInfo.min)-targetStep*1e-9)/targetStep));
-  const needAbove=Math.max(0,Math.ceil((Math.max(0,targetInfo.max)-targetStep*1e-9)/targetStep));
-  let below=needBelow,above=needAbove;
-  if(refBelow===0&&refAbove>0){
-    below=0;
-    above=Math.max(1,needAbove);
-  }else if(refAbove===0&&refBelow>0){
-    above=0;
-    below=Math.max(1,needBelow);
-  }else if(refBelow>0&&refAbove>0){
-    const divisor=gcdInt(refBelow,refAbove),baseBelow=refBelow/divisor,baseAbove=refAbove/divisor;
-    const scale=Math.max(1,Math.ceil(needBelow/baseBelow),Math.ceil(needAbove/baseAbove));
-    below=baseBelow*scale;
-    above=baseAbove*scale;
-  }
-  const ticks=[];
-  for(let i=-below,count=0;i<=above&&count<80;i++,count++)ticks.push(i*targetStep);
-  return {min:-below*targetStep,max:above*targetStep,ticks};
-}
 function selectedCumMoneyValues(data,selection){
   const values=[];
   if(selection.has('profit'))data.forEach(d=>values.push(Number(d['합계 : 누적손익'])));
@@ -1381,7 +1384,11 @@ function cumulativeRightAxis(scope,data,mode,leftAxis,compareSelected,autoY){
   if(!autoY&&scope==='securitiesCum')raw=securitiesCumFullAxes().returns;
   else if(!autoY&&scope==='pensionCum')raw=fixedTickInfo(Math.min(0,...values),Math.max(20,...values),20,true);
   else raw=fixedTickInfo(Math.min(0,...values),Math.max(0,...values),step,true);
-  if(leftAxis.visible)raw=alignFixedAxisZeroToReference(leftAxis.info,leftAxis.step,raw,step);
+  if(leftAxis.visible){
+    const [alignedLeft,alignedRight]=alignZeroTickRanges(leftAxis.info,leftAxis.step,raw,step);
+    leftAxis.info=alignedLeft;
+    raw=alignedRight;
+  }
   return {info:raw,visible:true};
 }
 
