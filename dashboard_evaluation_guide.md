@@ -109,6 +109,17 @@ MAIN ↔ ADD 통합 평가
 
 범위가 좁더라도 해당 기능의 판정에 필요한 dependency / shared contract / responsive rule / persistence / async lifecycle은 필요한 만큼 함께 확인한다.
 
+### 1.3.1 Dashboard와 GAS `code.js`가 함께/별도로 제공될 때
+
+`code.js`는 Dashboard frontend JavaScript와 같은 점수표에 억지로 합산하지 않고 **별도 서버 코드 평가 범위**로 취급한다.
+
+- **Dashboard만 제공된 경우**: MAIN/ADD와 frontend↔backend contract만 평가한다. GAS 미첨부 자체는 감점하지 않으며 `code.js` 내부 transaction/idempotency 품질을 추정 점수로 만들지 않는다.
+- **Dashboard + `code.js`가 함께 제공된 경우**: Dashboard CSS/JavaScript/UI/UX와 GAS 서버 품질을 **별도 점수·별도 A/B/C 목록**으로 평가한다. GAS 결함이 실제 frontend contract를 깨는 경우에만 해당 Dashboard 기능 점수에도 필요한 만큼 반영한다.
+- **`code.js`만 제공된 경우**: 아래 `GAS code.js 독립 평가 모드`를 적용해 업무 저장·원자성·멱등성·복구·KRX dispatch를 중심으로 평가한다. CSS/UI/화면 점수는 만들지 않는다.
+- 사용자가 `MAIN만`, `code.js만`, `1차/2차`처럼 범위를 명시하면 그 범위를 우선한다.
+- 단순히 `code.js`가 함께 첨부됐다는 이유만으로 Dashboard 평가를 GAS 전수 stress test로 확장하지 않는다.
+- 반대로 사용자가 `code.js 전수 평가`, `최종 릴리스`, `공격적으로`, `끝까지 파줘`처럼 명시한 경우에만 기본 bounded 범위를 넘어 아래 확장 모드를 사용한다.
+
 ## 1.4 평가와 QA는 다른 작업이다
 
 ```text
@@ -1232,6 +1243,211 @@ GAS가 함께 제공된 집중 평가에서는 구현 설명을 다시 문서화
 
 server contract는 최신 GAS가 제공된 경우에만 완전 대조한다.
 
+### GAS `code.js` 독립 평가 모드
+
+이 절은 GAS `code.js`가 함께 제공되었거나 사용자가 `code.js` 평가를 별도로 요청한 경우 적용한다.
+
+기존 Pension/KRX 반례 계약은 **평가 seed library**다. 모든 bullet을 매번 독립 반례로 전수 조합하거나, 한 반례에서 또 다른 희귀 반례를 재귀적으로 파생시키는 체크리스트가 아니다. 기본 평가는 **실제 운영에서 의미 있는 실패를 합리적인 비용으로 찾는 것**을 목표로 한다.
+
+#### 평가 강도: 기본 bounded 모드와 확장 모드
+
+기본 `평가` / `평가해줘`는 **bounded 모드**다.
+
+```text
+기존 회귀·문법·정적 contract 확인
+→ 핵심 mutation/dispatch 상태 모델 확인
+→ 현재 변경 또는 고위험 경계의 대표 반례 선택
+→ 실제 재현 또는 결정적 코드 흐름으로 검증
+→ A/B/C 판정
+→ 마지막 bounded Counterexample Pass 1회
+→ 새 A/B가 없으면 종료
+```
+
+- 5장의 `고위험 기능 3~5개 반례`는 GAS에서 **각 함수·각 bullet마다 3~5개**라는 뜻이 아니다. 현재 평가의 핵심 mutation/dispatch subsystem 전체에서 정보가 겹치지 않는 대표 반례를 위험도에 맞게 선택한다.
+- 일반적인 `code.js` 재평가에서는 최근 변경 파일/함수와 직접 dependency, 기존 A/B 수정 영향, 핵심 회귀 flow를 먼저 본다.
+- 이미 안정화된 contract를 표현만 바꿔 반복 공격하지 않는다.
+- 새 A/B를 하나 찾았다고 그 branch에서 희귀 장애를 계속 덧붙여 **반례의 반례**를 무한 생성하지 않는다. 등급·공통 원인·회귀 범위를 판정하는 데 필요한 만큼만 더 확인하고 다음 독립 축으로 이동한다.
+- 마지막 bounded pass에서 새로 나오는 것이 C, 이론적 가능성, 운영 증거 없는 극저확률 조합뿐이면 평가를 종료한다.
+
+다음 요청에서만 **확장 모드**로 범위를 넓힌다.
+
+```text
+code.js 전수 평가
+공격적으로 평가
+최종 릴리스 평가
+transaction/idempotency를 끝까지 파줘
+KRX race를 집중 공격해줘
+```
+
+확장 모드에서도 무한 반례 생성은 금지한다. 동일 root cause의 변형은 하나의 결함으로 묶고, 기대 정보가 거의 늘지 않으면 종료한다.
+
+#### Fault budget — 극저확률 반례 필터
+
+GAS는 네트워크·GitHub·Script Properties·동시 실행이 얽혀 있어 이론적으로는 매우 많은 실패 조합을 만들 수 있다. 기본 평가에서는 아래 fault budget을 적용한다.
+
+**B 이상으로 적극 검토하는 기본 범위**
+
+- 정상적인 사용자 재시도, 다른 탭/기기, 동시 요청, status transition, 시간 경과
+- 한 번의 현실적인 transport/API 응답 유실·5xx·409/422·timeout
+- 한 번의 Script Properties write/readback 불확실성
+- 정상적인 GitHub branch 경쟁이나 workflow queue/run 전환
+- 지원하는 legacy/restore 데이터가 실제 코드 경로로 유입되는 경우
+- 위 항목 하나와 **통상적인 재시도·동시성·시간 경과**가 결합되는 경우
+
+위의 재시도·동시성·status transition은 별도의 희귀 장애로 세지 않는다. 실제 운영에서 자연스럽게 뒤따르는 상태 전이이기 때문이다.
+
+**원칙적으로 C 또는 비감점으로 종료하는 범위**
+
+- 서로 독립적인 희귀 저장소 장애·API 장애·데이터 손상을 **2개 이상 동시에** 가정해야만 성립하고, 그 사이에 정상 복구 기회도 여러 번 모두 실패해야 하는 경우
+- 수동으로 손상된 내부 ledger와 별도의 네트워크 응답 유실, GC 타이밍, 추가 API race까지 겹쳐야 하는 경우
+- production에서 도달 근거가 없고 mock으로만 임의 순서를 만들 수 있는 경우
+- 이미 stronger durable proof가 정상적으로 존재한다는 전제를 일부러 제거한 뒤, 별도의 local proof도 동시에 제거해야 성립하는 경우
+- 사용자 영향이 미미하고 자동 복구/다음 요청에서 자연스럽게 수렴하는 극저확률 상태
+- 수정 복잡도와 회귀 위험이 현재 운영 리스크보다 명백히 큰 경우
+
+예외적으로 **데이터 손상·중복 금전성 mutation·인증 우회처럼 영향이 A급인 영역**은 두 장애가 결합되더라도 코드가 그 조합을 명시적으로 지원·복구한다고 주장하거나 실제 운영 증거가 있으면 검토할 수 있다. 이때도 “가능하다”가 아니라 구체적 도달 경로와 실제 영향이 필요하다.
+
+#### A/B 판정에 필요한 증거 강도
+
+`code.js`에서 새 A/B를 제시하려면 다음을 모두 만족하는 것을 원칙으로 한다.
+
+1. 지원 환경에서 도달 가능한 요청/상태 전이인가.
+2. production 함수 실행, 현실적인 mock injection, 또는 결정적인 코드 흐름으로 재현 가능한가.
+3. 사용자의 저장/삭제/재시도/KRX 실행 결과에 실질적인 영향이 있는가.
+4. 단순한 방어 심화가 아니라 현재 contract를 실제로 위반하는가.
+5. 위 fault budget을 넘는 극저확률 다중 장애 조합이 아닌가.
+
+mock은 다음 조건에서만 강한 근거로 쓴다.
+
+- 실제 외부 서비스에서 가능한 응답/오류 순서를 주입한다.
+- production 함수를 그대로 실행한다.
+- mock 전용 코드나 현실에 없는 API semantics를 만들어 결함을 성립시키지 않는다.
+
+실행하지 못한 경우에는 코드 경로가 결정적이면 B/A 판정이 가능하지만, 단순 추측이면 C 또는 비감점으로 남긴다.
+
+#### GAS `code.js` 점수축
+
+`code.js`만 평가하거나 Dashboard와 별도 서버 점수를 낼 때는 아래 11개 축을 사용한다. N/A가 있으면 남은 비중을 합리적으로 재배분한다.
+
+| 평가축 | 기본 비중 | 핵심 질문 |
+|---|---:|---|
+| 구조·책임 분리 | 8 | 단일 파일 유지 계약 안에서 섹션/업무 책임/entry가 명확한가 |
+| 인증·입력·schema 검증 | 8 | PIN, action, ID, 숫자, 날짜, stored data를 fail-closed로 검증하는가 |
+| 업무 저장 정확성 | 14 | Single/Batch 저장·삭제가 정상 요청을 거부하거나 잘못된 값을 쓰지 않는가 |
+| 원자성·Git 경쟁 처리 | 12 | multi-file mutation, branch CAS, dependency drift, 응답 유실에서 부분·덮어쓰기가 없는가 |
+| Single 멱등성·stale retry | 12 | same identity retry, save→delete→old retry, no-op completion이 최신 상태를 되돌리지 않는가 |
+| Batch 적용·확인 계약 | 10 | atomicity, operation별 existing/distinct, uniqueness, cardinality, batch identity가 일치하는가 |
+| Durable identity·evidence lifecycle | 10 | receipt/intent/ledger/epoch/terminalization/GC의 proof 강도와 우선순위가 안전한가 |
+| KRX dispatch·run/race | 12 | request/operation 단위 중복 dispatch, run visibility, retry inflight, response-loss를 fail-closed로 다루는가 |
+| 실패 복구·응답 유실 | 6 | 실제 반영 후 응답만 실패한 상태를 read-back/reconciliation으로 안전하게 수렴시키는가 |
+| 정규화·legacy 호환 | 4 | 지원한다고 명시한 구형 데이터가 정규화→재검증→mutation에서 자기모순 없이 동작하는가 |
+| Properties·원격 I/O·관측성·유지보수 | 4 | quota/GC, fetch 병렬화, timing, cache가 정합성을 약화시키지 않고 현재 규모에 적절한가 |
+
+**GAS 점수는 Dashboard의 CSS/JavaScript/UI/UX 총점에 자동 합산하지 않는다.**
+
+#### `code.js` 기본 대표 반례
+
+기본 bounded 평가에서는 아래 seed에서 **현재 변경·위험도와 관련된 것만 선택**한다. 전부를 매번 조합하지 않는다.
+
+**Pension Single**
+
+- commit 성공 + HTTP/receipt 응답 유실 → 동일 identity 재시도
+- save → delete → 과거 save 재전송
+- exact identity same content / different content
+- expectedVersion/expectedAbsent stale
+- no-op 성공 후 receipt GC
+- 정상적으로 지원하는 legacy row 정규화→재검증
+
+**Pension Batch**
+
+- 후반 operation 오류가 앞선 operation을 부분 저장하지 않는가
+- 일부 semantic candidate만 존재할 때 operation별 existing/distinct
+- confirmation 이후 정상 state 변화 → token stale
+- same batch/logical identity를 distinct로 부활시키지 않는가
+- completed receipt 유실 후 durable recovery
+
+**KRX**
+
+- POST 수락 + 응답 유실 → 같은 requestId 재시도
+- 같은 branch/date에 새 requestId가 들어오는 동안 queued↔in_progress 정상 전환
+- explicit 4xx rejected → 안전한 retry
+- durable success write 실패 → local evidence fallback
+- marker/run proof가 있는 정상 경로에서 상태별 목록 race가 중복 dispatch를 열지 않는가
+
+한 평가에서 이미 같은 root cause를 충분히 검증했다면 동일 계열 seed를 추가로 모두 돌릴 필요는 없다.
+
+#### 기존 상세 Pension/KRX bullet의 해석
+
+바로 위 `Pension`, `KRX` 상세 bullet은 장기 contract를 보존하기 위한 **회귀·집중평가 seed pool**이다.
+
+- 기본 `평가해줘`에서는 모든 문장을 mandatory test case로 변환하지 않는다.
+- 최근 변경과 직접 관련된 contract, 과거 실제 A/B, 현재 데이터 mutation 위험이 큰 부분을 우선 선택한다.
+- 서로 같은 root cause를 보는 bullet은 하나의 대표 반례로 묶을 수 있다.
+- 과거 한 번 발견됐던 버그를 매번 똑같이 수동 재현할 필요는 없고, 해당 회귀 테스트/production contract가 유지되는지 확인한 뒤 주변의 새로운 대표 경계만 본다.
+- 특정 bullet을 만족시키기 위해 **강한 proof를 일부러 여러 개 동시에 제거하는 mock**을 만들지 않는다.
+- contract에 “fail-closed”가 이미 구현돼 있고 해당 실패가 사용자에게 재시도만 요구하며 데이터/중복 실행을 만들지 않으면, 단순 보수성 자체를 B로 만들지 않는다.
+
+#### `code.js` A / B / C 예시
+
+**A**
+
+- 정상 Single/Batch 핵심 저장이 항상 실패
+- 부분 commit 또는 잘못된 데이터 저장
+- stale retry가 최신 저장/삭제를 되돌림
+- 동일 operation의 중복 KRX dispatch가 현실적인 단일 장애에서 발생
+- 인증/권한 우회
+- durable identity 충돌로 다른 내용을 같은 요청으로 승인
+
+**B**
+
+- 특정하지만 현실적인 retry/concurrency 순서에서 정상 작업 전체가 불필요하게 막힘
+- 응답 유실 후 fail-closed proof가 약해져 다음 일반 재시도에서 중복 실행 가능
+- 지원 legacy 데이터가 정상 mutation을 막음
+- partial local evidence를 성공으로 오인
+- operation별 confirmation 결정이 다른 operation에 잘못 적용
+
+**C / 비감점**
+
+- 세 가지 이상의 독립적인 저장소/네트워크 장애가 모두 겹쳐야 드러나는 추가 방어
+- 실제 운영 데이터에 없고 지원 대상도 아닌 손상 JSON을 더 친절하게 복구하는 개선
+- 이미 fail-closed하여 데이터/중복 실행 영향 없이 사용자가 한 번 더 재시도하면 수렴하는 희귀 경로
+- helper를 더 짧게 만들거나 추상화할 수 있다는 구조 취향
+- timing/log 메시지의 미세한 표현 개선
+
+#### `code.js` 평가 종료 Gate
+
+기본 `code.js` 평가는 아래 조건이면 종료한다.
+
+```text
+[ ] JavaScript syntax / 실행 가능한 기존 regression이 PASS
+[ ] 현재 평가에서 확인된 A = 0
+[ ] 현재 평가에서 확인된 B = 0
+[ ] 최근 변경 또는 고위험 mutation/dispatch contract의 대표 반례를 확인
+[ ] Single/Batch/KRX 중 현재 범위에 관련된 async·idempotency 경계를 확인
+[ ] 마지막 bounded Counterexample Pass 1회에서 새 A/B 없음
+[ ] 새로 떠오른 후보가 fault budget 밖의 극저확률 조합 또는 C뿐임
+```
+
+이 조건을 충족하면 **100점을 허용하고 평가를 종료한다.** “더 복잡한 mock을 만들면 뭔가 나올 수 있다”는 이유로 99점을 남기거나 반례 생성을 계속하지 않는다.
+
+반대로 기존 테스트 PASS만으로 위 Gate를 생략하고 100점을 주지도 않는다.
+
+#### 수정 후 재평가
+
+`code.js`의 A/B를 수정한 직후에는 기본적으로:
+
+```text
+수정된 root cause 직접 회귀
+→ 직접 dependency / proof lifecycle 확인
+→ 관련 Single/Batch/KRX 대표 반례
+→ 마지막 bounded Counterexample Pass 1회
+→ A/B 0이면 종료
+```
+
+순서로 본다.
+
+**수정한 B에서 더 낮은 확률의 새로운 B를 계속 파생해 무한 patch loop를 만드는 것을 금지한다.** 새 후보가 기본 fault budget을 넘으면 C/비감점으로 분류하고, 실제 운영 증거·사용자 보고·다음 코드 변경이 생길 때 다시 연다.
+
 ### Market AI
 
 Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend에서는 **현재 시장·AI signal panel**, **오늘 보유종목 live valuation overlay**, 그리고 두 기능이 Main render/lifecycle과 만나는 경계를 평가한다.
@@ -1909,6 +2125,10 @@ JSON 예제가 실제 필수 context를 누락하면?
 [ ] 100점 하위 항목에도 구조·기능·반례 검토 근거를 남겼는가
 [ ] 충분한 범위의 반증 평가 후 실제 A/B 감점 근거가 없다면 C 존재 여부와 무관하게 100점을 허용했는가
 [ ] 미해결 A/B가 0이고 마지막 bounded Counterexample Pass에서 새 A/B가 없다면 평가를 종료했는가
+[ ] `code.js`가 평가 범위라면 Dashboard 점수와 GAS 서버 점수를 별도로 취급했는가
+[ ] `code.js` 기본 평가에서 fault budget 밖의 극저확률 다중 장애를 B로 승격하지 않았는가
+[ ] `code.js` 상세 Pension/KRX bullet을 mandatory 전수 조합 체크리스트로 오해하지 않았는가
+[ ] `code.js` 수정 후 마지막 bounded pass가 끝났다면 반례의 반례를 재귀적으로 만들어 patch loop를 다시 열지 않았는가
 ```
 
 ---
