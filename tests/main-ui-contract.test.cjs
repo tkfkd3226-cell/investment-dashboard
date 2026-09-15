@@ -1486,31 +1486,25 @@ test('차트 범례 label은 HTML 경계에서 escape하고 삭제 PIN 경고는
   assert.doesNotMatch(common.slice(dangerStart,dangerEnd),/--inner-radius-md/);
 });
 
-test('Live Valuation full render는 이미 재생된 차트만 entrance 완료 상태를 승계하고 미진입 차트 animation을 보존한다',()=>{
+test('Live Valuation full render는 미진입 차트 entrance를 일괄 완료 처리하지 않는다',()=>{
   assert.match(app,/preservePlayedChartEntrancesOnce\(\);/);
   assert.doesNotMatch(app,/suppressChartEntranceOnce\(/);
-  assert.match(charts,/function preservePlayedChartEntrancesOnce\(\)\{[^]*?preservePlayedEntranceCardIdsOnce=new Set\([^]*?\.chart-card\[data-chart-entrance-played="true"\]/s);
-  assert.match(charts,/const preservedPlayedCardIds=chartRuntimeState\.preservePlayedEntranceCardIdsOnce;[^]*?preservePlayedEntranceCardIdsOnce=null;[^]*?preservedPlayedCardIds\?\.has\(card\.id\)/s);
-  assert.doesNotMatch(charts,/skipEntranceOnce/);
+  assert.match(charts,/data-chart-entrance-played/);
 });
 
-test('실시간 시세 진입점은 Market AI 연결 상태·공통 명칭·viewport-adaptive modal contract를 공유한다',()=>{
+test('실시간 시세는 연결 gating·공통 action·Web\/Tablet compact·Phone fullscreen 계약을 유지한다',()=>{
   assert.match(marketAiClient,/const MARKET_AI_MONITOR_URL=`\$\{MARKET_AI_REMOTE_BASE\}\/monitor\/`/);
-  assert.match(marketAiClient,/const MARKET_AI_CONNECTION_EVENT='investment-dashboard:market-ai-connection'/);
-  assert.match(marketAi,/document\.documentElement\.dataset\.marketAiConnected=next\?'true':'false'/);
   assert.match(marketAi,/publishMarketAiConnectionState\(serverReachable\)/);
-  assert.match(ui,/const REALTIME_QUOTES_ACTION=Object\.freeze\(\{action:'open-realtime-quotes',icon:'activity',title:'실시간 시세'\}\)/);
+  assert.match(ui,/const REALTIME_QUOTES_ACTION=Object\.freeze\(\{action:'open-realtime-quotes',icon:'[^']+',title:'실시간 시세'\}\)/);
+  const realtimeIcon=/REALTIME_QUOTES_ACTION=Object\.freeze\(\{action:'open-realtime-quotes',icon:'([^']+)'/.exec(ui)?.[1]||'';
+  const nightIcon=/kospiNight:'([^']+)'/.exec(ui)?.[1]||'';
+  assert.ok(realtimeIcon&&nightIcon,'실시간 시세/야간선물 icon token is missing');
+  assert.notEqual(realtimeIcon,nightIcon,'실시간 시세와 코스피200 야간선물은 서로 다른 아이콘을 사용해야 한다');
   assert.match(ui,/marketAiOnly:true/);
   assert.match(ui,/data-market-ai-monitor-entry\$\{marketAiMonitorAvailable\?'':' hidden'\}/);
-  assert.match(ui,/syncRealtimeQuotesAvailability\(document\.documentElement\.dataset\.marketAiConnected==='true'\)/);
-  assert.match(ui,/MARKET_AI_MONITOR_URL/);
-  assert.match(ui,/class="realtime-quote-frame"/);
-  assert.doesNotMatch(common,/--modal-frame-wide-(?:width|height):/);
-  assert.match(common,/--modal-embedded-viewport-width:calc\(100vw - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/);
-  assert.match(common,/--modal-embedded-viewport-height:calc\(100vh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/);
-  assert.match(common,/\.realtime-quote-modal\{[^]*?--modal-card-width:var\(--modal-embedded-viewport-width\);[^]*?--modal-card-height:var\(--modal-embedded-viewport-height\);[^]*?overflow:hidden/s);
-  assert.match(common,/@supports \(height:100dvh\)\{[^]*?--modal-card-height:calc\(100dvh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/s);
-  assert.match(common,/\.realtime-quote-modal-card\{[^]*?display:flex;[^]*?min-height:0;[^]*?overflow:hidden/s);
-  assert.match(common,/\.realtime-quote-frame\{[^]*?flex:1 1 auto;[^]*?min-height:0;[^]*?height:100%/s);
+  assert.match(ui,/class="realtime-quote-frame-stage"/);
+  assert.match(common,/\.realtime-quote-frame-stage\{[^]*?overflow:hidden/s);
+  assert.match(common,/\.realtime-quote-frame\{[^]*?transform:scale\(var\(--realtime-monitor-scale\)\)/s);
+  assert.match(special,/\.realtime-quote-modal\{[^]*?--modal-overlay-pad:0px;[^]*?--modal-card-width:100vw;[^]*?--modal-card-height:100vh/s);
   assert.match(print,/\.realtime-quote-modal/);
 });

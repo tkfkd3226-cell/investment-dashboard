@@ -254,6 +254,23 @@
       --modal-card-radius:min(18px,var(--corner-surface-cap));
     }
     .action-modal{--modal-control-font-size:var(--type-size-2xl)}
+
+  /* Realtime Quotes Phone · 실제 Phone 판정에서는 embedded monitor를 화면 전체 responsive iframe으로 사용한다. */
+    .realtime-quote-modal{
+      --modal-overlay-pad:0px;
+      --modal-card-radius:0px;
+      --modal-card-width:100vw;
+      --modal-card-height:100vh;
+    }
+    .realtime-quote-frame{
+      position:static;
+      width:100%;
+      height:100%;
+      transform:none;
+    }
+    @supports (height:100dvh){
+      .realtime-quote-modal{--modal-card-height:100dvh}
+    }
     .contrib-modal{
       --pension-modal-title-size:var(--type-size-lg);
       --pension-modal-label-size:var(--type-size-2xs);

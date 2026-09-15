@@ -107,7 +107,7 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - 오늘 보유종목 quote는 ticker별 `market_state`를 보존해 판단하며, **15:30~20:00에는 개별주식 `extended`와 ETF `closed`가 동시에 존재할 수 있으므로 top-level `market_state` 하나로 전체 종목 상태를 판정하지 않음**
 - 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다.
 - Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
-- Market AI 서버 연결이 확인된 동안에만 Topbar(웹/태블릿)와 Mobile `관리` 메뉴에 **`실시간 시세`** 진입점을 노출하며, 같은 공통 명칭을 사용합니다. 진입 시 `https://node.tail60a98e.ts.net/monitor/`를 공통 modal shell 안에서 **고정 px 크기 없이 현재 viewport의 가용 영역을 채우는** embedded monitor로 엽니다. 연결이 끊기면 진입점은 숨기고 열린 monitor modal도 닫습니다.
+- Market AI 서버 연결이 확인된 동안에만 Topbar(웹/태블릿)와 Mobile `관리` 메뉴에 **`실시간 시세`** 진입점을 노출합니다. Web/Tablet은 Monitor를 **불필요하게 화면 전체를 채우지 않는 compact·no-scroll modal**로 열고, Phone은 fullscreen responsive modal을 사용합니다. 연결이 끊기면 진입점을 숨기고 열린 monitor modal도 닫습니다.
 
 프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 현재가 overlay), `dashboard-market-ai-client.js`(local/remote transport)로 분리합니다.
 

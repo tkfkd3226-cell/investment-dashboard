@@ -155,7 +155,7 @@ const separateProfitControl=(x,extraClass='')=>{
   const note=uiState.includeSeparateProfit?`<span class="separate-profit-control-note">선택일 ${signed(profit,'원')}</span>`:'';
   return `<div class="separate-profit-control-row${extraClass?' '+extraClass:''}">${note}${separateProfitToggle()}</div>`;
 };
-const REALTIME_QUOTES_ACTION=Object.freeze({action:'open-realtime-quotes',icon:'activity',title:'실시간 시세'});
+const REALTIME_QUOTES_ACTION=Object.freeze({action:'open-realtime-quotes',icon:'lineChart',title:'실시간 시세'});
 let marketAiMonitorAvailable=false;
 const TOPBAR_ACTION_ICONS=Object.freeze({
   kospiNight:'activity',
@@ -500,7 +500,9 @@ function setupUiGlobalEvents(){
   window.addEventListener('resize',()=>{
     closeAccountMemoInfo();
     syncMobileTopbarState();
+    syncRealtimeQuotesModalGeometry();
   },{passive:true});
+  window.visualViewport?.addEventListener('resize',syncRealtimeQuotesModalGeometry,{passive:true});
 }
 // [UI08] Market Data / KRX Action Modals · 실시간 시세 / KRX 현재가 반영
 function syncRealtimeQuotesAvailability(available){
@@ -517,11 +519,37 @@ function ensureRealtimeQuotesModal(){
   modal.setAttribute('aria-hidden','true');
   modal.innerHTML=`<div class="action-modal-card realtime-quote-modal-card" role="dialog" aria-modal="true" aria-label="${REALTIME_QUOTES_ACTION.title}">
     <button type="button" class="control-icon-button modal-icon-btn realtime-quote-close" data-dashboard-action="close-realtime-quotes" aria-label="${REALTIME_QUOTES_ACTION.title} 닫기">${navIconSvg('close')}</button>
-    <iframe class="realtime-quote-frame" title="${REALTIME_QUOTES_ACTION.title}" src="about:blank" referrerpolicy="no-referrer"></iframe>
+    <div class="realtime-quote-frame-stage">
+      <iframe class="realtime-quote-frame" title="${REALTIME_QUOTES_ACTION.title}" src="about:blank" referrerpolicy="no-referrer"></iframe>
+    </div>
   </div>`;
   document.body.appendChild(modal);
   bindDashboardModalDismiss(modal,{onDismiss:()=>closeRealtimeQuotesModal({resetFrame:true})});
   return modal;
+}
+function syncRealtimeQuotesModalGeometry(){
+  const modal=document.getElementById('realtimeQuotesModal');
+  if(!modal||!modal.classList.contains('show'))return;
+  if(phoneUi()){
+    modal.style.removeProperty('--realtime-monitor-scale');
+    modal.style.removeProperty('--realtime-monitor-display-width');
+    modal.style.removeProperty('--realtime-monitor-display-height');
+    return;
+  }
+
+  const style=getComputedStyle(modal);
+  const baseWidth=parseFloat(style.getPropertyValue('--modal-embedded-content-width'))||1101;
+  const baseHeight=parseFloat(style.getPropertyValue('--modal-embedded-content-height'))||720;
+  const maxScale=parseFloat(style.getPropertyValue('--modal-embedded-compact-max-scale'))||1;
+  const padX=(parseFloat(style.paddingLeft)||0)+(parseFloat(style.paddingRight)||0);
+  const padY=(parseFloat(style.paddingTop)||0)+(parseFloat(style.paddingBottom)||0);
+  const viewport=window.visualViewport;
+  const availableWidth=Math.max(1,(viewport?.width||window.innerWidth)-padX);
+  const availableHeight=Math.max(1,(viewport?.height||window.innerHeight)-padY);
+  const scale=Math.min(maxScale,availableWidth/baseWidth,availableHeight/baseHeight);
+  modal.style.setProperty('--realtime-monitor-scale',String(scale));
+  modal.style.setProperty('--realtime-monitor-display-width',`${Math.floor(baseWidth*scale)}px`);
+  modal.style.setProperty('--realtime-monitor-display-height',`${Math.floor(baseHeight*scale)}px`);
 }
 function openRealtimeQuotesModal(returnFocus=null){
   if(!marketAiMonitorAvailable)return;
@@ -531,6 +559,7 @@ function openRealtimeQuotesModal(returnFocus=null){
   if(frame&&frame.getAttribute('src')!==MARKET_AI_MONITOR_URL)frame.setAttribute('src',MARKET_AI_MONITOR_URL);
   const closeButton=modal.querySelector('.realtime-quote-close');
   openDashboardModal(modal,{initialFocus:closeButton,returnFocus,fallbackSelector:'[data-dashboard-action="open-realtime-quotes"]:not([hidden])'});
+  syncRealtimeQuotesModalGeometry();
 }
 function closeRealtimeQuotesModal({resetFrame=true}={}){
   const modal=document.getElementById('realtimeQuotesModal');
