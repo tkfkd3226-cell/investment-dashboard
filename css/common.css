@@ -176,8 +176,6 @@
   --modal-section-gap:12px;
   --modal-status-gap:10px;
   --modal-action-gap:12px;
-  --modal-frame-wide-width:1280px;
-  --modal-frame-wide-height:720px;
   --modal-focus-ring:rgba(43,61,89,.18);
   --focus-ring-shadow:0 0 0 3px var(--modal-focus-ring);
   /* Modal / Form Control Contract · KRX·퇴직연금 등 modal이 공유하는 구조 토큰 */
@@ -3120,6 +3118,9 @@ body.dashboard-dialog-open{
   --modal-overlay-color:var(--modal-overlay-soft);
   --modal-overlay-pad:20px;
   --modal-backdrop-blur:6px;
+  /* Embedded Content Modal · overlay padding을 제외한 현재 viewport 가용 영역 */
+  --modal-embedded-viewport-width:calc(100vw - var(--modal-overlay-pad) - var(--modal-overlay-pad));
+  --modal-embedded-viewport-height:calc(100vh - var(--modal-overlay-pad) - var(--modal-overlay-pad));
   --modal-card-width:min(420px,100%);
   --modal-card-pad-y:var(--space-10xl);
   --modal-card-pad-x:var(--space-10xl);
@@ -3140,13 +3141,24 @@ body.dashboard-dialog-open{
 .realtime-quote-modal{
   z-index:13500;
   display:none;
-  --modal-card-width:min(var(--modal-frame-wide-width),calc(100vw - var(--modal-overlay-pad) * 2));
-  --modal-card-height:min(var(--modal-frame-wide-height),calc(100vh - var(--modal-overlay-pad) * 2));
+  --modal-card-width:var(--modal-embedded-viewport-width);
+  --modal-card-height:var(--modal-embedded-viewport-height);
   --modal-card-pad-y:0px;
   --modal-card-pad-x:0px;
+  overflow:hidden;
+}
+@supports (height:100dvh){
+  .realtime-quote-modal{
+    --modal-card-height:calc(100dvh - var(--modal-overlay-pad) - var(--modal-overlay-pad));
+  }
 }
 .realtime-quote-modal.show{display:flex}
-.realtime-quote-modal-card{overflow:hidden}
+.realtime-quote-modal-card{
+  display:flex;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+}
 .realtime-quote-close{
   position:absolute;
   z-index:2;
@@ -3157,8 +3169,11 @@ body.dashboard-dialog-open{
 }
 .realtime-quote-frame{
   display:block;
+  flex:1 1 auto;
   width:100%;
+  min-width:0;
   height:100%;
+  min-height:0;
   border:0;
   background:var(--modal-panel-surface);
 }

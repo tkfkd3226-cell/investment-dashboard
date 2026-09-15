@@ -1494,7 +1494,7 @@ test('Live Valuation full render는 이미 재생된 차트만 entrance 완료 �
   assert.doesNotMatch(charts,/skipEntranceOnce/);
 });
 
-test('실시간 시세 진입점은 Market AI 연결 상태·공통 명칭·1280x720 modal contract를 공유한다',()=>{
+test('실시간 시세 진입점은 Market AI 연결 상태·공통 명칭·viewport-adaptive modal contract를 공유한다',()=>{
   assert.match(marketAiClient,/const MARKET_AI_MONITOR_URL=`\$\{MARKET_AI_REMOTE_BASE\}\/monitor\/`/);
   assert.match(marketAiClient,/const MARKET_AI_CONNECTION_EVENT='investment-dashboard:market-ai-connection'/);
   assert.match(marketAi,/document\.documentElement\.dataset\.marketAiConnected=next\?'true':'false'/);
@@ -1505,8 +1505,12 @@ test('실시간 시세 진입점은 Market AI 연결 상태·공통 명칭·1280
   assert.match(ui,/syncRealtimeQuotesAvailability\(document\.documentElement\.dataset\.marketAiConnected==='true'\)/);
   assert.match(ui,/MARKET_AI_MONITOR_URL/);
   assert.match(ui,/class="realtime-quote-frame"/);
-  assert.match(common,/--modal-frame-wide-width:1280px/);
-  assert.match(common,/--modal-frame-wide-height:720px/);
-  assert.match(common,/\.realtime-quote-modal\{[^]*?--modal-card-width:min\(var\(--modal-frame-wide-width\)[^]*?--modal-card-height:min\(var\(--modal-frame-wide-height\)/s);
+  assert.doesNotMatch(common,/--modal-frame-wide-(?:width|height):/);
+  assert.match(common,/--modal-embedded-viewport-width:calc\(100vw - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/);
+  assert.match(common,/--modal-embedded-viewport-height:calc\(100vh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/);
+  assert.match(common,/\.realtime-quote-modal\{[^]*?--modal-card-width:var\(--modal-embedded-viewport-width\);[^]*?--modal-card-height:var\(--modal-embedded-viewport-height\);[^]*?overflow:hidden/s);
+  assert.match(common,/@supports \(height:100dvh\)\{[^]*?--modal-card-height:calc\(100dvh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/s);
+  assert.match(common,/\.realtime-quote-modal-card\{[^]*?display:flex;[^]*?min-height:0;[^]*?overflow:hidden/s);
+  assert.match(common,/\.realtime-quote-frame\{[^]*?flex:1 1 auto;[^]*?min-height:0;[^]*?height:100%/s);
   assert.match(print,/\.realtime-quote-modal/);
 });
