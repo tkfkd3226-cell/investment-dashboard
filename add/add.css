@@ -9,7 +9,7 @@
    두 HTML은 이 파일 하나만 참조하며 페이지별 규칙은 data-add-page로 격리한다.
    ========================================================= */
 
-/* ==================== 01. Shared ==================== */
+/* ==================== 01. Shared · 공통 ==================== */
 /* =========================================================
    Add 공통 기반
    - 재사용 가치가 있는 의미 색상, Corner, Spacing/Density, Button, Card Surface, Table primitive만 둔다.
@@ -264,7 +264,7 @@ body{
 :where(html[data-add-page="calc"],html[data-add-page="report"]) .wrap{max-width:1280px;margin:0 auto;padding:var(--density-page-pad)}
 :where(html[data-add-page="calc"],html[data-add-page="report"]) :is(button,input,select){font:inherit}
 
-/* ==================== 02. Calc ==================== */
+/* ==================== 02. Calc · 계산기 ==================== */
 /* =========================================================
    01. 재사용 토큰 / 페이지 기반
    - CALC에서 여러 규칙이 공유하거나 theme/state contract가 필요한 값만 token으로 둔다.
@@ -302,7 +302,7 @@ body{
   --calc-control-inner-pad-x:var(--calc-control-space);
   --calc-control-unit-pad-right:34px;
 
-  /* Calc Field Layout primitive */
+  /* Calc Field Layout Primitive · 계산기 필드 레이아웃 primitive */
   --calc-field-label-gap:var(--density-gap-xs);
   --calc-field-row-gap:var(--density-gap-md);
   --calc-field-label-line-height:1.25;
@@ -311,7 +311,7 @@ body{
      - 거래유형 / 계산 기준 / 매도 전략은 세로 geometry와 시각 상태만 공유한다.
      - 가로폭·열 구성·그룹 전체 폭은 각 feature container가 소유한다. */
 
-  /* Compact palette / surface */
+  /* Compact Palette / Surface · compact 팔레트 / surface */
   --bg:#edf1f5;
   --card:#f9fbfd;
   --muted:#647084;
@@ -359,14 +359,14 @@ body{
   --density-table-pad-x:var(--calc-surface-space);
   --density-table-pad-y:var(--calc-surface-space);
 
-  /* Help / tooltip */
+  /* Help / Tooltip · 도움말 / 툴팁 */
   --tooltip-bg:#17243a;
   --tooltip-text:#ffffff;
   --tooltip-shadow:0 8px 22px rgba(20,35,60,.22);
   --help-icon-active-bg:#e7f0fb;
   --help-icon-active-color:#6f8fb8;
 
-  /* Validation / status */
+  /* Validation / Status · 검증 / 상태 */
   --danger-border:#efb8bc;
   --danger-bg:#fff5f5;
   --danger-text:#9c252d;
@@ -872,7 +872,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
   :where(html[data-add-page="calc"]) .additional-group.holding-layout #currentBuyGainLabel{white-space:nowrap;letter-spacing:-.055em}
 }
 
-/* ==================== 03. Report ==================== */
+/* ==================== 03. Report · 리포트 ==================== */
 /* =========================================================
    01. 페이지 기반 / 재사용 토큰
    - 리포트에서 여러 규칙이 공유하거나 JS/chart contract가 필요한 값만 token으로 둔다.
@@ -890,7 +890,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
   --navy2:#4f46a5;
   --shadow:0 16px 40px rgba(53,47,98,.11);
 
-  /* Report semantic surfaces / states */
+  /* Report Semantic Surfaces / States · 리포트 의미 surface / 상태 */
   --surface-control:#ffffff;
   --surface-soft:#f7f6ff;
   --surface-subtle:#f8f8fd;
@@ -910,7 +910,7 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
   --button-hover-bg:var(--surface-soft);
   --button-hover-text:var(--ink);
 
-  /* Report role typography shared across summary, table and timeline surfaces. */
+  /* Report Role Typography · 요약·표·타임라인 surface가 공유하는 역할별 typography. */
   --report-type-support:11px;
   --report-type-micro:10px;
 
@@ -1018,7 +1018,7 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
 :where(html[data-add-page="report"]) .report-load-retry{margin-top:var(--density-gap-md)}
 html:where([data-add-page="report"]).report-data-error :is(.hero,.report-nav,.panel){display:none}
 
-/* Dark overrides for Report hero-local colors (kept local instead of one-use tokens). */
+/* Report Dark Overrides · 1회성 token 대신 hero-local 색상을 로컬 override로 유지한다. */
 html:where([data-add-page="report"]).dark .hero{background:radial-gradient(circle at 82% 18%,rgba(70,198,221,.23),transparent 26%),
     radial-gradient(circle at 14% 115%,rgba(149,140,255,.30),transparent 33%),
     linear-gradient(120deg,#0d1327 0%,#2b245f 48%,#105163 100%);border-color:rgba(149,140,255,.20)}
