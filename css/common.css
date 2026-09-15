@@ -355,7 +355,7 @@
   --switch-track-active-bg:#3182F6;
   --switch-track-active-border:#60a5fa;
 
-  /* Interaction Elevation · hover / compact control */
+  /* Interaction Elevation · 상호작용 높이 / hover / compact control */
   --shadow-hover-surface:0 14px 34px rgba(15,23,42,.12);
   --shadow-data-list-card:0 5px 14px rgba(15,23,42,.045);
   --scroll-edge-border:rgba(148,163,184,.75);
@@ -3118,7 +3118,7 @@ body.dashboard-dialog-open{
   --modal-overlay-color:var(--modal-overlay-soft);
   --modal-overlay-pad:20px;
   --modal-backdrop-blur:6px;
-  /* Action modal defaults; feature variants override only their geometry. */
+  /* Action Modal Defaults · 액션 모달 기본값; feature variant는 geometry만 재정의한다. */
   --modal-card-width:min(420px,100%);
   --modal-card-pad-y:var(--space-10xl);
   --modal-card-pad-x:var(--space-10xl);
@@ -3139,7 +3139,7 @@ body.dashboard-dialog-open{
 .realtime-quote-modal{
   z-index:13500;
   display:none;
-  /* Web/Tablet keeps the Monitor at 1:1 scale and above its desktop layout threshold. */
+  /* Monitor Scale · Web/Tablet은 1:1 배율과 desktop layout threshold 이상을 유지한다. */
   --modal-overlay-pad:0px;
   --realtime-monitor-natural-width:1103px;
   --realtime-monitor-display-width:min(var(--realtime-monitor-natural-width),100vw);
