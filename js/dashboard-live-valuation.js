@@ -37,6 +37,7 @@ let liveValuationLastFingerprint='';
 let liveValuationRenderPending=false;
 let liveValuationSetupBound=false;
 let liveValuationMarketAiConnected=false;
+let liveValuationSettledSessionKey='';
 let renderDashboardCallback=null;
 let liveValuationClientCandidate='';
 let liveValuationClientChannel=null;
@@ -119,6 +120,41 @@ function liveValuationNetworkAllowed(){
   return marketAiEnabled()&&liveValuationMarketAiConnected;
 }
 
+function liveValuationSessionKey(date,tickers){
+  return `${String(date||'')}|${liveValuationUniverseKey(tickers)}`;
+}
+
+function clearLiveValuationSettledSession(){
+  liveValuationSettledSessionKey='';
+}
+
+function liveValuationSettledFor(date,tickers){
+  return Boolean(liveValuationSettledSessionKey)&&liveValuationSettledSessionKey===liveValuationSessionKey(date,tickers);
+}
+
+function updateLiveValuationSettledSession(date,tickers){
+  const requested=[...new Set((tickers||[]).map(value=>String(value||'').trim().toUpperCase()).filter(Boolean))].sort();
+  const sessionKey=liveValuationSessionKey(date,requested);
+  if(!requested.length){
+    liveValuationSettledSessionKey=sessionKey;
+    return true;
+  }
+  const items=dataState.liveValuation?.items||{};
+  const fullyClosed=requested.every(ticker=>{
+    const item=items[ticker];
+    return item?.usable===true
+      &&item?.state==='closed'
+      &&item?.marketState==='closed'
+      &&Number(item?.price)>0;
+  });
+  if(fullyClosed){
+    liveValuationSettledSessionKey=sessionKey;
+    return true;
+  }
+  if(liveValuationSettledSessionKey===sessionKey)liveValuationSettledSessionKey='';
+  return false;
+}
+
 function stopLiveValuationPollTimer(){
   if(!liveValuationPollTimer)return;
   window.clearInterval(liveValuationPollTimer);
@@ -135,6 +171,7 @@ function ensureLiveValuationPollTimer(){
 function clearLiveValuationForDisconnected(reason='market-ai-disconnected'){
   liveValuationRefreshSequence+=1;
   liveValuationLastFingerprint='';
+  clearLiveValuationSettledSession();
   stopLiveValuationPollTimer();
   const changed=clearLiveValuationSnapshot(reason,[]);
   if(changed)requestLiveValuationRender();
@@ -216,12 +253,16 @@ function queueUniverseReconcileRefresh(){
 
 async function refreshLiveValuation(){
   if(!liveValuationNetworkAllowed())return;
+  const today=kstTodayText();
+  const tickers=liveValuationTickersForDate(today);
+  if(liveValuationSettledFor(today,tickers)){
+    flushLiveValuationRender();
+    return;
+  }
+  const requestedUniverseKey=liveValuationUniverseKey(tickers);
   const clientId=await resolveLiveValuationClientId();
   if(!liveValuationNetworkAllowed())return;
   const refreshSequence=++liveValuationRefreshSequence;
-  const today=kstTodayText();
-  const tickers=liveValuationTickersForDate(today);
-  const requestedUniverseKey=liveValuationUniverseKey(tickers);
   if(!tickers.length){
     const previousRequested=Array.isArray(dataState.liveValuation?.requestedTickers)?dataState.liveValuation.requestedTickers:[];
     const hasPreviousItems=Object.keys(dataState.liveValuation?.items||{}).length>0;
@@ -261,6 +302,7 @@ async function refreshLiveValuation(){
 
     const fingerprint=liveValuationFingerprint(payload,tickers);
     applyLiveValuationSnapshot(payload,tickers);
+    updateLiveValuationSettledSession(today,tickers);
     const payloadChanged=fingerprint!==liveValuationLastFingerprint;
     liveValuationLastFingerprint=fingerprint;
     if(payloadChanged)requestLiveValuationRender();
@@ -278,7 +320,7 @@ async function refreshLiveValuation(){
   }
 }
 
-// [LIVE04] Lifecycle / Public API · visible 복귀 refresh / 10초 polling
+// [LIVE04] Lifecycle / Public API · visible 복귀 refresh / 10초 network polling + closed-session local sentinel
 function setupLiveValuation({renderDashboard}={}){
   renderDashboardCallback=typeof renderDashboard==='function'?renderDashboard:null;
   if(liveValuationSetupBound){

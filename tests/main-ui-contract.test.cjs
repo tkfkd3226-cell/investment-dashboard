@@ -1081,12 +1081,29 @@ test('Market AI OFFLINE circuit breaker는 최초 연결 실패 후 polling을 �
 test('Live Valuation은 Market AI ONLINE connection event를 공통 network gate로 사용하고 OFFLINE에서 KRX quote polling을 멈춘다',()=>{
   assert.match(liveValuation,/MARKET_AI_CONNECTION_EVENT/);
   assert.match(liveValuation,/function liveValuationNetworkAllowed\(\)\{\s*return marketAiEnabled\(\)&&liveValuationMarketAiConnected;\s*\}/);
-  assert.match(liveValuation,/if\(!liveValuationNetworkAllowed\(\)\)return;\s*const clientId=await resolveLiveValuationClientId\(\);\s*if\(!liveValuationNetworkAllowed\(\)\)return;/);
+  assert.match(liveValuation,/if\(!liveValuationNetworkAllowed\(\)\)return;\s*const today=kstTodayText\(\);\s*const tickers=liveValuationTickersForDate\(today\);/);
+  assert.match(liveValuation,/const clientId=await resolveLiveValuationClientId\(\);\s*if\(!liveValuationNetworkAllowed\(\)\)return;/);
   assert.match(liveValuation,/window\.addEventListener\(MARKET_AI_CONNECTION_EVENT,event=>\{/);
   assert.match(liveValuation,/if\(!connected\)\{\s*clearLiveValuationForDisconnected\('market-ai-offline'\);\s*return;\s*\}/);
   assert.match(liveValuation,/function stopLiveValuationPollTimer\(\)/);
   assert.match(liveValuation,/function ensureLiveValuationPollTimer\(\)/);
   assert.doesNotMatch(liveValuation,/document\.visibilityState==='visible'&&marketAiEnabled\(\)\)refreshLiveValuation\(\)/);
+});
+
+test('Live Valuation은 동일 날짜·동일 universe가 전부 closed+usable이면 KRX quote network polling을 쉬고 universe/date 변경만 감시한다',()=>{
+  assert.match(liveValuation,/let liveValuationSettledSessionKey='';/);
+  assert.match(liveValuation,/function liveValuationSessionKey\(date,tickers\)/);
+  assert.match(liveValuation,/function liveValuationSettledFor\(date,tickers\)/);
+  assert.match(liveValuation,/const fullyClosed=requested\.every\(ticker=>\{[^]*?item\?\.usable===true[^]*?item\?\.state==='closed'[^]*?item\?\.marketState==='closed'[^]*?Number\(item\?\.price\)>0/);
+  assert.match(liveValuation,/if\(liveValuationSettledFor\(today,tickers\)\)\{\s*flushLiveValuationRender\(\);\s*return;\s*\}\s*const requestedUniverseKey=/);
+  assert.match(liveValuation,/applyLiveValuationSnapshot\(payload,tickers\);\s*updateLiveValuationSettledSession\(today,tickers\);/);
+  assert.match(liveValuation,/clearLiveValuationSettledSession\(\);\s*stopLiveValuationPollTimer\(\);/);
+  assert.match(liveValuation,/window\.setInterval\(\(\)=>\{\s*if\(document\.visibilityState==='visible'&&liveValuationNetworkAllowed\(\)\)refreshLiveValuation\(\);/);
+  const quoteStart=core.indexOf('function liveValuationQuoteForDate(ticker,date){');
+  const quoteEnd=core.indexOf('\nconst liveValuationPriceForDate',quoteStart);
+  assert.ok(quoteStart>=0&&quoteEnd>quoteStart,'live valuation quote block is missing');
+  assert.doesNotMatch(core.slice(quoteStart,quoteEnd),/20\*60|kstMinutesAt|regular_close/,'20시 자체가 Market AI closed quote fallback 조건이 되면 안 된다');
+  assert.match(core,/\['live','closed'\]\.includes\(String\(item\?\.state\|\|''\)\)/);
 });
 
 test('Market AI는 main dataState/uiState를 참조하지 않는 standalone state를 유지한다',()=>{

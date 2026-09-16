@@ -111,7 +111,10 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - iPhone 홈화면 Web App은 설치 당시 hash 날짜에 고정되지 않고 실행 시 KST 오늘 데이터(없으면 최신 가용일)를 우선
 - Local은 `127.0.0.1:8001` Market AI full API에 직접 연결하고, GitHub Pages는 Tailscale Serve → `127.0.0.1:8002` **GET-only proxy**를 통해 조회
 - 오늘 보유종목 quote는 ticker별 `market_state`를 보존해 판단하며, **15:30~20:00에는 개별주식 `extended`와 ETF `closed`가 동시에 존재할 수 있으므로 top-level `market_state` 하나로 전체 종목 상태를 판정하지 않음**
-- 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다.
+- 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다. **20:00이라는 시각 자체로 Market AI overlay를 버리거나 KRX 저장값으로 강제 전환하지 않습니다.**
+- 현재 날짜·현재 보유 universe의 모든 ticker가 `state=closed + market_state=closed + usable=true`로 확정되면 그 closed quote를 화면 최종값으로 유지하고 `/api/market-data/krx-quotes` 네트워크 요청을 중지합니다. 10초 timer는 서버를 두드리지 않고 날짜/universe 변화만 로컬 확인하며, 날짜가 바뀌거나 보유 ticker가 달라지면 quote 조회를 자동 재개합니다. 일부 ticker가 unusable이면 해당 종목 회복을 위해 polling을 계속합니다.
+- 위 closed-session 정지는 **보유종목 Live Valuation에만 적용**합니다. KOSPI200 선물·SOX·NQ100 선물 등이 포함된 AI Signal polling은 Market AI가 ONLINE인 동안 기존 10초 주기를 유지합니다.
+- Market AI 연결 lifecycle은 `OFF → CHECKING → ONLINE / OFFLINE`으로 관리합니다. UI와 네트워크 기능은 ONLINE에서만 활성화하고, 초기 연결 실패는 OFFLINE으로 끝내 반복 재접속하지 않습니다. ONLINE 중 일시적 1회 전체 transport 실패는 유지하되 연속 실패 임계치에 도달하면 OFFLINE으로 내려가 UI와 Market AI polling을 중단합니다.
 - Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
 - Dashboard에서 Market AI 사용 여부를 켜고 끌 수 있습니다. OFF 시 signal/live polling과 volatile overlay를 중단해 저장 데이터로 fallback하며, 이 설정은 Market AI backend 프로세스 자체를 종료하지 않습니다. Web/Tablet은 Topbar icon action, Phone은 `관리` 메뉴 action을 사용합니다.
 - Dashboard가 Market AI **OFF 상태로 처음 열려도 enabled-change listener는 항상 등록**합니다. 따라서 이후 `Market AI 연결 켜기`를 누르면 새로고침 없이 즉시 mount/refresh가 시작되어야 합니다.
