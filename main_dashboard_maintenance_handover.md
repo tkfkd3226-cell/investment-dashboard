@@ -561,7 +561,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 로컬(`localhost`, `127.0.0.1`)에서는 현재 host의 `:8001` Market AI API를 조회하고, 비로컬 GitHub Pages에서는 `https://node.tail60a98e.ts.net` Tailscale Serve를 통해 같은 실제 Market AI API를 조회한다.
 - `market-ai-preview` 예시 데이터 모드는 사용하지 않는다. `?dashboard-view=web`, `?dashboard-view=tablet`, `?dashboard-view=mobile`은 화면 형태만 바꾸며 세 모드 모두 실제 Market AI 데이터를 사용한다.
 - Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다. 세 endpoint가 모두 응답하지 않으면 로컬은 panel 중앙에 `연결 확인 중`을 표시하며 재시도하고, 비로컬 환경은 응답 확인 전까지 Market AI signal panel을 mount하지 않고 polling만 유지하며, `실시간 시세` 진입점은 DOM에 있어도 hidden 상태를 유지하고 monitor modal은 생성하지 않는다.
-- Market AI server reachability는 `dashboard-market-ai.js`가 공통 connection event로 publish하고 Topbar/UI가 소비한다. 서버 연결이 검증된 동안에만 웹/태블릿 Topbar의 `실시간 시세` 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출하며, Phone `관리` 메뉴에는 중복 진입점을 두지 않는다. 두 viewport 진입점은 같은 `REALTIME_QUOTES_ACTION`과 `data-market-ai-monitor-entry` gating을 공유한다. Web/Tablet은 iframe을 먼저 load해 Monitor content height를 수신한 뒤 최종 compact·no-scroll geometry로 modal을 reveal하고, size message가 늦을 때만 제한된 compact fallback 높이를 사용한다. 최초에 `availableHeight` 전체를 표시한 뒤 줄이는 동작을 다시 도입하지 않는다. Phone은 외곽 여백 0의 fullscreen responsive iframe을 사용한다. 화면 크기 변경에도 이 구분을 유지하고, 연결 해제 시 진입점을 숨기고 열린 embedded monitor를 닫아 stale UI를 남기지 않는다.
+- Market AI server reachability는 `dashboard-market-ai.js`가 공통 connection event로 publish하고 Topbar/UI가 소비한다. 서버 연결이 검증된 동안에만 웹/태블릿 Topbar의 `실시간 시세` 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출하며, Phone `관리` 메뉴에는 중복 진입점을 두지 않는다. 두 viewport 진입점은 같은 `REALTIME_QUOTES_ACTION`과 `data-market-ai-monitor-entry` gating을 공유하고, `[data-market-ai-monitor-entry][hidden]{display:none}` 공통 author CSS가 `date-tool-btn`의 display 선언보다 우선해 연결 전/해제 시 모든 viewport에서 실제로 숨겨지는 것을 보장한다. Web/Tablet은 iframe을 먼저 load해 Monitor content height를 수신한 뒤 최종 compact·no-scroll geometry로 modal을 reveal하고, size message가 늦을 때만 제한된 compact fallback 높이를 사용한다. 최초에 `availableHeight` 전체를 표시한 뒤 줄이는 동작을 다시 도입하지 않는다. Phone은 KRX 등 action modal과 같은 `--modal-overlay-pad`·`--modal-card-radius`를 상속하고 monitor card만 남은 가용 영역을 채운다. 화면 크기 변경에도 이 구분을 유지하고, 연결 해제 시 진입점을 숨기고 열린 embedded monitor를 닫아 stale UI를 남기지 않는다.
 - refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답/parse error가 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 async boundary 뒤의 request sequence를 확인한다.
 - backend가 제공하는 signal metadata와 산식 contract를 프런트에서 임의 재해석하지 않는다. 상세 backend 계약은 Market AI 프로젝트의 `market_ai_project_handover.md`를 Source of Truth로 한다.
 - SOX 시장 metric과 Signal Engine 입력은 모두 `INDEX:SOX`를 사용하며 표시 편의를 위해 `FUTURES:SOX` 또는 `SOX-F`로 자동 전환하지 않는다.
@@ -1380,7 +1380,7 @@ Value meaning               → --value-positive / --value-negative
 
 ## 4.13 Topbar 날짜 셀렉트 폭 정합성
 
-Topbar의 `년/월`과 `일` 셀렉트는 같은 UI mode에서 동일폭을 유지한다. Desktop의 실제 기본폭과 Tablet/Phone에서의 shrink 값은 CSS가 Source of Truth다. Tablet에서는 기존 구간 안에서 날짜 그룹만 가용폭에 따라 두 셀렉트가 함께 줄고, 우측 action은 `auto` 열로 유지한다. 이 정합성 문제 때문에 새 breakpoint를 추가하지 않는다. Phone 세로/가로도 두 셀렉트가 같은 반응형 폭 체계를 사용한다.
+Topbar의 `년-월`과 `월-일 요일` 셀렉트는 같은 UI mode에서 동일폭을 유지한다. 표시 label은 `2026-9`, `9-16 수`처럼 구분자를 `-`로 통일해 Phone에서 control 아이콘이 늘어나도 텍스트와 select 화살표가 겹치지 않도록 한다. Desktop의 실제 기본폭과 Tablet/Phone에서의 shrink 값은 CSS가 Source of Truth다. Tablet에서는 기존 구간 안에서 날짜 그룹만 가용폭에 따라 두 셀렉트가 함께 줄고, 우측 action은 `auto` 열로 유지한다. 이 정합성 문제 때문에 새 breakpoint를 추가하지 않는다. Phone 세로/가로도 두 셀렉트가 같은 반응형 폭 체계를 사용한다.
 
 ## 4.14 본문 카드 공통 시스템
 
@@ -1867,7 +1867,7 @@ holdings 변경 중 stale response 폐기
 modal/expanded chart 중 render defer
 visible 복귀 즉시 refresh
 source tooltip 셀 hover/focus
-실시간 시세 connection gating · Web/Tablet 선측정 reveal · Phone topbar icon-only/fullscreen
+실시간 시세 connection gating · Web/Tablet 선측정 reveal · Phone topbar icon-only/공통 modal edge
 ```
 
 ### Main 계산

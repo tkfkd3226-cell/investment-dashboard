@@ -358,6 +358,13 @@ test('allocation 차트 데이터: ETF/개별주식/현금의 합은 _total 평�
   assert.equal(row.ETF+row['개별주식']+row['현금'],row._total);
 });
 
+test('Topbar 날짜 label은 좁은 Phone에서도 년-월 / 월-일 요일 형식을 공통 사용한다',()=>{
+  assert.equal(core.monthLabel('2026-09'),'2026-9');
+  assert.equal(core.monthLabel('2026-12'),'2026-12');
+  assert.equal(core.dayOptionLabel('2026-09-16'),'9-16 수');
+  assert.equal(core.dayOptionLabel('2026-12-31'),'12-31 목');
+});
+
 test('Main 날짜 범위: 숨김 가격일은 제외하고 daily snapshot 날짜는 포함해 정렬한다',()=>{
   setState({
     prices:{

@@ -1505,7 +1505,8 @@ Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend�
 - **multi-client 격리**: 복수 탭/기기의 client identity와 ticker universe가 서로 제거·오염되지 않는가.
 - **render lifecycle**: modal/chart/tooltip/input interaction 중 live refresh가 진행 UI를 교체하거나 focus/scroll을 잃게 하지 않는가. 별도수익 ON/OFF처럼 부분 갱신 대상은 불필요한 full render를 만들지 않는가.
 - **차트 entrance 회귀**: Live Valuation full render가 이미 재생된 차트만 완료 상태를 승계하고, 아직 viewport에 진입하지 않은 차트의 최초 scroll animation은 보존하는가. 주기 갱신이 아래쪽 차트를 일괄 완료 처리해 animation을 없애지 않는가.
-- **실시간 시세 진입점**: Market AI 연결 확인 전/연결 해제에는 Web/Tablet Topbar와 Phone Topbar icon-only `실시간 시세`가 모두 숨겨지고, Phone `관리` 메뉴에는 중복 진입점이 없는가. 연결 중에는 공통 action/gating source를 공유하고, Web/Tablet은 content height 선측정 후 처음부터 compact·no-scroll geometry로 reveal하며 size message 지연 시에도 화면 세로 전체를 먼저 채우는 fallback을 사용하지 않는가. Phone은 외곽 여백 0의 fullscreen responsive monitor 계약을 따르는가.
+- **실시간 시세 진입점**: Market AI 연결 확인 전/연결 해제에는 Web/Tablet Topbar와 Phone Topbar icon-only `실시간 시세`가 모두 숨겨지고, Phone `관리` 메뉴에는 중복 진입점이 없는가. `date-tool-btn` 같은 author `display` 규칙이 HTML `hidden`을 되살리지 않도록 `[data-market-ai-monitor-entry][hidden]` 공통 CSS 계약이 실제 표시를 보장하는가. 연결 중에는 공통 action/gating source를 공유하고, Web/Tablet은 content height 선측정 후 처음부터 compact·no-scroll geometry로 reveal하며 size message 지연 시에도 화면 세로 전체를 먼저 채우는 fallback을 사용하지 않는가. Phone은 KRX 등 action modal과 같은 외곽 여백·edge token을 상속하고 monitor만 가용 영역을 채우는가.
+- **Phone 날짜 label**: Topbar 날짜 셀렉트가 `년-월` / `월-일 요일` 공통 형식(`2026-9`, `9-16 수`)을 사용해 좁아진 Phone 폭에서도 select 화살표와 텍스트가 겹치지 않으며, viewport별 별도 label formatter를 만들지 않는가.
 - **표시 의미**: Hero 기준문구와 자산 source tooltip이 실제 계산에 적용된 가격 상태와 일치하고 raw 내부 상태 문자열을 사용자 의미로 오해하게 노출하지 않는가.
 - **시장 session/freshness**: KOSPI, K200, SOX, NQ100선물의 장전/거래중/장마감/거래중단과 freshness를 구분해 정상적인 장외 정지를 `데이터 지연`으로 오판하지 않는가. 기준시각은 가능한 경우 실제 시장시각을 우선하는가.
 - **단일 display model**: 시장 카드와 tooltip이 서로 다른 값·상태·fallback 판정을 갖지 않는가.

@@ -125,12 +125,12 @@ const kospiIndexForDate=date=>{
   return Number.isFinite(number)&&number>0?number:null;
 };
 const allAvailableDates=()=>Array.from(new Set([...(Object.keys(dataState.account1Daily||{})),...(Object.keys(dataState.prices||{}).filter(d=>dataState.prices[d].display!==false))])).sort(byDate);
-const monthLabel=m=>{const [y,mo]=m.split('-');return `${y}년 ${Number(mo)}월`};
+const monthLabel=m=>{const [y,mo]=m.split('-');return `${y}-${Number(mo)}`};
 const includeAccount2=d=>d>='2026-05-22';
 const includeToss=d=>d>='2026-03-23';
 const isLedgerCheckDate=d=>d>='2026-06-18';
 
-const dayOptionLabel=d=>{const [y,m,day]=d.split('-');const w='일월화수목금토'[new Date(d+'T00:00:00').getDay()];return `${Number(m)}/${Number(day)} ${w}`};
+const dayOptionLabel=d=>{const [y,m,day]=d.split('-');const w='일월화수목금토'[new Date(d+'T00:00:00').getDay()];return `${Number(m)}-${Number(day)} ${w}`};
 const securitiesScopeText=x=>{
   const parts=['계좌1'];
   if(x.account2Included)parts.push('계좌2');

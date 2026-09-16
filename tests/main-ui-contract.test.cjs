@@ -1492,7 +1492,7 @@ test('Live Valuation full render는 미진입 차트 entrance를 일괄 완료 �
   assert.match(charts,/data-chart-entrance-played/);
 });
 
-test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 icon-only·fullscreen 계약을 유지한다',()=>{
+test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 icon-only·공통 modal edge 계약을 유지한다',()=>{
   assert.match(marketAiClient,/\/monitor\//);
   assert.match(marketAi,/publishMarketAiConnectionState\(/);
   assert.match(ui,/title:'실시간 시세'/);
@@ -1515,6 +1515,8 @@ test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 ico
   assert.ok(phoneRealtimeButton,'Phone 실시간 시세 상단 버튼이 없다');
   assert.doesNotMatch(phoneRealtimeButton,/topbar-label-(?:full|short)/,'Phone 실시간 시세 버튼은 글자 없이 아이콘만 사용해야 한다');
   assert.match(common,/:is\(\.topbar-realtime-phone-action,\.topbar-theme-action,\.topbar-corner-action\) \.date-tool-action-icon/);
+  assert.match(common,/\[data-market-ai-monitor-entry\]\[hidden\]\{display:none\}/,'Market AI 전용 진입점의 hidden은 viewport 공통 author CSS로 보장해야 한다');
+  assert.doesNotMatch(special,/\.topbar-realtime-phone-action\[hidden\]/,'Phone 전용 hidden 보정으로 공통 gating 결함을 가리면 안 된다');
   assert.match(special,/\.topbar-realtime-phone-action\{right:calc\(var\(--topbar-phone-edge\) \+ var\(--topbar-phone-control-step\) \+ var\(--topbar-phone-control-step\) \+ var\(--topbar-phone-control-step\)\)\}/);
   assert.match(special,/\.switcher:is\(\.mobile-menu-open,\.mobile-date-pinned\) :is\(\.topbar-realtime-phone-action,\.topbar-theme-action,\.topbar-corner-action\)/);
 
@@ -1529,7 +1531,14 @@ test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 ico
   assert.match(ui,/const initialHeight=Math\.min\(fallbackHeight,availableHeight\*\.86\)/);
   assert.match(ui,/realtimeMonitorContentHeight>0\?realtimeMonitorContentHeight\+2:initialHeight/);
   assert.doesNotMatch(ui,/realtimeMonitorContentHeight>0\?realtimeMonitorContentHeight\+2:availableHeight/);
-  assert.match(special,/\.realtime-quote-modal-card\{[^]*?position:fixed;[^]*?inset:0;[^]*?border:0;/s);
+  assert.match(special,/:is\(\.contrib-modal,\.action-modal\)\{\s*--modal-overlay-pad:var\(--space-5xl\);\s*--modal-card-radius:min\(18px,var\(--corner-surface-cap\)\);/s);
+  const phoneRealtimeStart=special.indexOf('/* Realtime Quotes Phone');
+  const phoneRealtimeEnd=special.indexOf('.contrib-modal{',phoneRealtimeStart);
+  const phoneRealtimeCss=special.slice(phoneRealtimeStart,phoneRealtimeEnd);
+  assert.ok(phoneRealtimeStart>=0&&phoneRealtimeEnd>phoneRealtimeStart,'Phone 실시간 시세 CSS block is missing');
+  assert.doesNotMatch(phoneRealtimeCss,/--modal-overlay-pad\s*:\s*0|--modal-card-radius\s*:\s*0|position\s*:\s*fixed|inset\s*:\s*0|border-radius\s*:\s*0|border\s*:\s*0/,'Phone 실시간 시세는 공통 action modal 여백/edge를 우회하면 안 된다');
+  assert.match(phoneRealtimeCss,/--modal-card-width:calc\(100vw - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/);
+  assert.match(phoneRealtimeCss,/--modal-card-height:calc\(100d?vh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/);
 });
 
 test('증권 종목별 누적손익 UI는 매도 후 평가손익 0이 아니라 totalProfit·performanceCost 계약을 사용한다',()=>{
