@@ -45,6 +45,7 @@ index.html
 - 날짜별 증권계좌 성과 복원
 - 투자원금·평가금액·누적손익·수익률 조회
 - 계좌별 성과 요약과 보유 종목 현황
+- 증권 `securitiesEvents` 기반 부분/전량매도, 거래비용 반영 실현손익, 매도대금 현금화 및 재매수 원금 이동 복원
 - 장부결과 VS 실제보유 검산
 - 투자원금 원천 및 검산
 - 별도수익 ON/OFF 비교
@@ -107,7 +108,7 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - 오늘 보유종목 quote는 ticker별 `market_state`를 보존해 판단하며, **15:30~20:00에는 개별주식 `extended`와 ETF `closed`가 동시에 존재할 수 있으므로 top-level `market_state` 하나로 전체 종목 상태를 판정하지 않음**
 - 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다.
 - Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
-- Market AI 서버 연결이 확인된 동안에만 Topbar(웹/태블릿)와 Mobile `관리` 메뉴에 **`실시간 시세`** 진입점을 노출합니다. Web/Tablet은 Monitor를 **불필요하게 화면 전체를 채우지 않는 compact·no-scroll modal**로 열고, Phone은 fullscreen responsive modal을 사용합니다. 연결이 끊기면 진입점을 숨기고 열린 monitor modal도 닫습니다.
+- Market AI 서버 연결이 확인된 동안에만 Web/Tablet Topbar의 **`실시간 시세`** 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출합니다. Phone 햄버거 `관리` 메뉴에는 중복 진입점을 두지 않습니다. Web/Tablet은 Monitor의 content height를 먼저 받아 최종 compact 크기로 표시하고, 응답이 늦으면 제한된 compact fallback 높이를 사용하므로 최초에 화면 세로 전체를 채웠다가 줄어드는 동작을 만들지 않습니다. Phone은 fullscreen responsive modal을 사용합니다. 연결이 끊기면 모든 진입점을 숨기고 열린 monitor modal도 닫습니다.
 
 프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 현재가 overlay), `dashboard-market-ai-client.js`(local/remote transport)로 분리합니다.
 
@@ -183,6 +184,8 @@ Dashboard
 ```
 
 외부 GitHub Pages에서는 FastAPI full API를 직접 공개하지 않고 Tailscale Serve가 연결된 **8002 GET-only proxy**를 통해 조회합니다. 보유종목 당일 시장평가 overlay는 **현재 KST 날짜에서만** 적용하며 과거 날짜와 운영 JSON은 변경하지 않습니다. 개별주식 시간외와 ETF 장마감이 공존하는 구간은 ticker별 `market_state`로 구분하며, 세부 fallback/lease/session 판정은 Main handover와 Market AI 프로젝트 문서를 기준으로 합니다.
+
+증권 매도는 `data/portfolio.json`의 `securitiesEvents`가 거래 원장을 소유합니다. 매도 체결가는 시장가격 JSON과 분리하며, `grossAmount - transactionCost = amount(순매도대금)`, `amount - costBasis = realizedProfit` 관계를 유지합니다. 매도된 원금은 사라지지 않고 `cashPrincipalDelta`를 통해 현금화 원금으로 이동하며, 재매수 시 사용한 원금만 다시 차감합니다. `scripts/update_prices.py`는 같은 계약으로 성과 스냅샷을 생성하고 대상 날짜에 수량이 0인 매도 완료 종목은 신규 KRX 조회에서 제외하되 매도 전 과거 backfill은 유지합니다.
 
 ## 4. 프로젝트 구조
 
@@ -295,7 +298,7 @@ JavaScript dependency/state ownership, CSS cascade, responsive 예외, Main UI c
 
 | 파일 | 용도 |
 |---|---|
-| `data/portfolio.json` | 보유자산, 투자원금 기준 및 기본 포트폴리오 정보 |
+| `data/portfolio.json` | 현재 보유자산, 투자원금 기준, 증권 `securitiesEvents` 매매·현금흐름 원장 |
 | `data/kodex_leverage_trades.json` | KODEX 레버리지 거래·실현손익의 canonical 원천 |
 | `data/prices.json` | 날짜별 종목·상품 가격과 지수 |
 | `data/performance_snapshots.json` | 날짜별 성과 스냅샷 |
@@ -369,6 +372,8 @@ prices.json / performance_snapshots.json
 GitHub Actions에서 직접 수동 실행할 때는 필요한 경우 대상 날짜를 지정할 수 있습니다. 같은 branch의 KRX workflow는 queue를 보존하며 직렬화하고, checkout 이후 remote 변경이 생기면 **계산과 무관한 commit만 rebase**합니다. 관리 파일이나 generation input이 바뀐 경우에는 fail-closed하며, push 응답 유실은 `PUSH_SHA`의 remote 포함 여부를 재확인해 성공을 실패로 오인하지 않습니다.
 
 GAS는 KRX requestId의 intent/receipt와 durable dispatch ledger, workflow run ID/operation marker를 함께 사용합니다. 접수 여부를 끝내 확정하지 못한 requestId도 terminal fail-closed 상태로 수렴시켜 같은 ID의 중복 dispatch와 active intent 영구 누적을 동시에 막습니다. 세부 race/복구 시나리오는 유지보수 문서와 평가 가이드를 따릅니다.
+
+가격 생성기는 대상 날짜의 증권 position state를 먼저 복원합니다. 전량매도 완료 종목은 매도일 이후 신규 종가 조회 대상에서 빠지지만, 매도 전 날짜를 재생성하는 backfill에서는 해당 시점 보유수량에 따라 다시 조회합니다. `performance_snapshots.json`의 증권 누적손익에는 잔여 평가손익과 누적 실현손익이 함께 반영되며, JS Main 계산과 Python 생성기가 같은 원금·실현손익 계약을 사용해야 합니다.
 
 ---
 

@@ -1531,3 +1531,9 @@ test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 ico
   assert.doesNotMatch(ui,/realtimeMonitorContentHeight>0\?realtimeMonitorContentHeight\+2:availableHeight/);
   assert.match(special,/\.realtime-quote-modal-card\{[^]*?position:fixed;[^]*?inset:0;[^]*?border:0;/s);
 });
+
+test('증권 종목별 누적손익 UI는 매도 후 평가손익 0이 아니라 totalProfit·performanceCost 계약을 사용한다',()=>{
+  assert.match(core,/const securityTotalProfitValue=h=>Number\(h\?\.totalProfit\?\?h\?\.profit\)\|\|0/);
+  assert.match(charts,/symbolTotal=symbolCards\.reduce\(\(a,h\)=>a\+Number\(h\.totalProfit\?\?h\.profit\?\?0\),0\)/);
+  assert.match(charts,/const profit=Number\(h\.totalProfit\?\?h\.profit\?\?0\),performanceCost=Number\(h\.performanceCost\?\?h\.cost\?\?0\)/);
+});

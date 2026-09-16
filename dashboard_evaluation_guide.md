@@ -1178,6 +1178,22 @@ MAIN 상세 architecture / module ownership / CSS ownership / responsive contrac
 
 현재 handover가 정의하는 의도된 책임 분리를 “파일이 많다”는 이유로 합치도록 권하지 않는다.
 
+### 증권 매도 · 실현손익 · 현금화 원금
+
+`data/portfolio.json`에 `securitiesEvents` sell/rebuy가 존재하거나 관련 계산이 변경된 경우에는 단순히 현재 `qty/cost`만 대조하지 않고 날짜를 앞뒤로 이동하며 원장을 반증한다.
+
+- **체결 금액 identity:** `grossAmount - transactionCost = amount`, `amount - costBasis = realizedProfit`이 성립하고 숫자가 아닌 optional field를 JS/Python 중 한쪽만 무시하지 않는가. 체결가를 `prices.json` 시장가격으로 덮어쓰지 않는가.
+- **과거 복원:** 현재 `qty:0/cost:0`인 전량매도 종목도 매도 전 날짜에는 원래 수량·원가가 복원되는가. 부분매도는 잔여 원가와 누적 실현손익을 분리하는가.
+- **원금 보존:** 매도된 `costBasis`가 현금화 원금으로 이동해 매도만으로 계좌1 투입원금이 줄거나 수익처럼 보이지 않는가. 재매수는 실제 사용한 현금 원금만 `cashPrincipalDelta`로 차감해 원금을 이중계상하지 않는가.
+- **same-day ordering:** 같은 날 매도와 재매수가 있으면 event id 문자열 순서 때문에 일시적으로 현금화 원금이 음수가 되어 정상 원장을 거부하지 않는가. 날짜별 순변동으로 계산하고 일자 종료 시점 balance만 fail-closed하는가.
+- **성과 지속:** 전량매도 뒤 보유종목 현황에서는 빠져도 `totalProfit = 평가손익 + 실현손익`, `performanceCost = 잔여 cost + realizedCostBasis` 기준의 종목 누적손익/수익률은 유지되는가.
+- **현금 의미:** sell 현금흐름은 gross가 아니라 거래비용 차감 후 `amount`를 사용하며, 과거 cash snapshot이 매도일의 확정 원장을 덮지 않는가.
+- **가격 생성:** `update_prices.py`가 대상 날짜 position state를 사용해 매도 완료 종목의 이후 신규 KRX fetch를 제외하면서 매도 전 backfill은 정상 수행하는가. 같은 입력 재생성에서 실현손익·현금이 중복되지 않는가.
+- **JS↔Python parity:** 계좌1 원금, 현금, 종목 누적손익, `performance_snapshots.json` 파생값이 동일 의미를 사용하는가.
+- **Live Valuation:** 매도일 이후 `qty=0` ticker가 Market AI quote universe에서 빠지고, 과거 날짜/운영 JSON에는 live quote가 역으로 쓰이지 않는가.
+
+실제 운영 원장에 첫 매도 anchor가 존재하면 그 event의 확정 금액과 매도 전/후 날짜를 regression fixture로 직접 대조하되, 이후 거래가 추가되면 특정 종목 한 건만으로 일반 sell/rebuy contract 전체를 대체하지 않는다.
+
 ## 16.3 Frontend ↔ Backend contract
 
 ### KRX
@@ -1489,7 +1505,7 @@ Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend�
 - **multi-client 격리**: 복수 탭/기기의 client identity와 ticker universe가 서로 제거·오염되지 않는가.
 - **render lifecycle**: modal/chart/tooltip/input interaction 중 live refresh가 진행 UI를 교체하거나 focus/scroll을 잃게 하지 않는가. 별도수익 ON/OFF처럼 부분 갱신 대상은 불필요한 full render를 만들지 않는가.
 - **차트 entrance 회귀**: Live Valuation full render가 이미 재생된 차트만 완료 상태를 승계하고, 아직 viewport에 진입하지 않은 차트의 최초 scroll animation은 보존하는가. 주기 갱신이 아래쪽 차트를 일괄 완료 처리해 animation을 없애지 않는가.
-- **실시간 시세 진입점**: Market AI 연결 확인 전/연결 해제에는 Web/Tablet Topbar와 Phone `관리` 메뉴의 `실시간 시세`가 모두 숨겨지고, 연결 중에는 공통 명칭/action token을 공유하고, Web/Tablet은 원본 배율을 유지한 compact·no-scroll monitor, Phone은 외곽 여백 0의 fullscreen responsive monitor 계약을 따르는가.
+- **실시간 시세 진입점**: Market AI 연결 확인 전/연결 해제에는 Web/Tablet Topbar와 Phone Topbar icon-only `실시간 시세`가 모두 숨겨지고, Phone `관리` 메뉴에는 중복 진입점이 없는가. 연결 중에는 공통 action/gating source를 공유하고, Web/Tablet은 content height 선측정 후 처음부터 compact·no-scroll geometry로 reveal하며 size message 지연 시에도 화면 세로 전체를 먼저 채우는 fallback을 사용하지 않는가. Phone은 외곽 여백 0의 fullscreen responsive monitor 계약을 따르는가.
 - **표시 의미**: Hero 기준문구와 자산 source tooltip이 실제 계산에 적용된 가격 상태와 일치하고 raw 내부 상태 문자열을 사용자 의미로 오해하게 노출하지 않는가.
 - **시장 session/freshness**: KOSPI, K200, SOX, NQ100선물의 장전/거래중/장마감/거래중단과 freshness를 구분해 정상적인 장외 정지를 `데이터 지연`으로 오판하지 않는가. 기준시각은 가능한 경우 실제 시장시각을 우선하는가.
 - **단일 display model**: 시장 카드와 tooltip이 서로 다른 값·상태·fallback 판정을 갖지 않는가.
@@ -1586,7 +1602,10 @@ Chart
 → legend/최소1개/전체/Y auto/mode/확대/keyboard/resize/tooltip
 
 Market AI
-→ local/remote transport → signal panel endpoint별 상태 격리 → 오늘 보유 quote overlay → 종목별 fallback → viewport/modal lifecycle
+→ local/remote transport → signal panel endpoint별 상태 격리 → 오늘 보유 quote overlay → 종목별 fallback → connection-gated 실시간 시세 진입 → viewport/modal lifecycle
+
+증권 매도
+→ 매도 전 복원 → 순매도대금/실현손익 확정 → 현금화 원금 이동 → 종목 누적성과 유지 → KRX/Live quote universe 제외 → 재매수 원금 이동
 ```
 
 각 flow는 정상 순서뿐 아니라 **중복·닫기·재진입·실패·theme/viewport 변경**을 섞어 공격한다.

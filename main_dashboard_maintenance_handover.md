@@ -312,6 +312,45 @@ input
 
 형태를 유지한다.
 
+### 2.3.1 증권 `securitiesEvents` 매도 · 실현손익 · 현금화 원금 contract
+
+증권의 현재 `securities[]`는 **현재 포지션 상태**, `securitiesEvents`는 과거 상태를 역복원하는 **거래/자금 원장**이다. 전량매도 종목도 `securities[]` 항목 자체를 삭제하지 않고 현재 `qty:0`, `cost:0`으로 유지해야 과거 보유·차트 이력을 복원할 수 있다.
+
+매도 event의 금액 의미는 다음을 고정한다.
+
+```text
+price            실제 체결 단가
+grossAmount      거래비용 차감 전 총매도금액
+transactionCost  실제 거래비용
+amount           실제 현금으로 이동한 순매도대금
+costBasis        매도 수량에 대응하는 취득원가
+realizedProfit   amount - costBasis
+cashPrincipalDelta  주식 원금 ↔ 현금 원금 이동액
+```
+
+`grossAmount - transactionCost = amount`, `amount - costBasis = realizedProfit`이 맞지 않거나 optional numeric field가 숫자가 아니면 JS/Python 모두 fail-closed한다. `prices.json`의 시장가격과 개인 체결가를 섞지 않으며 체결가는 event에만 둔다.
+
+6/18 이후 계좌1 성과기준 투입원금은 **선택일 잔여 보유원가 + 누적 현금화 원금**이다. 전량/부분매도에서 `cashPrincipalDelta`는 매도된 `costBasis`만큼 원금을 현금 pool로 이동시키고, 그 현금 원금으로 재매수할 때 실제 재투입한 원금만 음수 delta로 차감한다. 같은 날짜에 매도와 재매수가 함께 있으면 event id 문자열 순서가 아니라 **그 날짜의 cashPrincipalDelta 순변동을 먼저 합산**한 뒤 일자 종료 시점 원금 pool을 검증한다. 날짜 종료 기준 현금화 원금이 음수가 되는 원장은 허용하지 않는다.
+
+종목 성과 의미는 다음을 유지한다.
+
+```text
+profit             현재 잔여 보유분 평가손익
+realizedProfit     선택일까지 누적 확정 실현손익
+totalProfit        profit + realizedProfit
+realizedCostBasis  이미 매도된 수량의 누적 기준원가
+performanceCost    현재 잔여 cost + realizedCostBasis
+종목 누적수익률     totalProfit / performanceCost
+```
+
+따라서 전량매도 뒤 `qty=0`인 종목은 `보유종목 현황`에서는 빠지지만 종목별 누적손익/수익률 history에서는 마지막 실현 성과가 유지된다. `securitiesCashForDate()`의 sell 현금흐름에는 `grossAmount`가 아니라 **순매도대금 `amount`**를 사용한다.
+
+`scripts/update_prices.py`는 위 JS contract를 그대로 재현한다. 대상 날짜 `security_position_state().qty <= 0`인 종목은 신규 KRX 가격 조회를 하지 않지만, 매도 전 날짜 backfill에서는 당시 보유수량을 복원해 정상 조회한다. `performance_snapshots.json`의 `rawHoldingProfit`/`symbols`는 평가손익+실현손익을 사용하고, 계좌1 원금도 JS와 같은 보유원가+현금화 원금 기준을 사용한다. 동일 입력으로 snapshot을 다시 생성해도 실현손익·현금이 중복 반영되지 않아야 한다.
+
+Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수량이 0보다 큰 ticker만 요청한다. 따라서 전량매도 종목은 매도일 이후 실시간 quote universe에서 자동 제외되며 Market AI backend에 별도 매도 상태를 추가하지 않는다.
+
+현재 첫 증권 전량매도 회귀 anchor는 `2026-09-16 / 009150 삼성전기`다. `gross 1,348,000 - transactionCost 2,772 = net 1,345,228`, `costBasis 1,345,000`, `realizedProfit +228`, 매도 후 증권현금 `1,404,018`, 매도 전후 계좌1 투입원금 `24,341,210` 유지가 자동 테스트의 실제 운영 데이터 검산 기준이다.
+
 ## 2.4 `dashboard-ui.js`와 `dashboard-ui-common.js` 책임
 
 ### `dashboard-ui.js`
@@ -522,7 +561,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 로컬(`localhost`, `127.0.0.1`)에서는 현재 host의 `:8001` Market AI API를 조회하고, 비로컬 GitHub Pages에서는 `https://node.tail60a98e.ts.net` Tailscale Serve를 통해 같은 실제 Market AI API를 조회한다.
 - `market-ai-preview` 예시 데이터 모드는 사용하지 않는다. `?dashboard-view=web`, `?dashboard-view=tablet`, `?dashboard-view=mobile`은 화면 형태만 바꾸며 세 모드 모두 실제 Market AI 데이터를 사용한다.
 - Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다. 세 endpoint가 모두 응답하지 않으면 로컬은 panel 중앙에 `연결 확인 중`을 표시하며 재시도하고, 비로컬 환경은 응답 확인 전까지 Market AI signal panel을 mount하지 않고 polling만 유지하며, `실시간 시세` 진입점은 DOM에 있어도 hidden 상태를 유지하고 monitor modal은 생성하지 않는다.
-- Market AI server reachability는 `dashboard-market-ai.js`가 공통 connection event로 publish하고 Topbar/UI가 소비한다. 서버 연결이 검증된 동안에만 웹/태블릿 Topbar의 `실시간 시세` 버튼과 Phone `관리` 메뉴의 동일 명칭 항목을 노출한다. 두 진입점은 공통 action/URL source를 공유한다. Web/Tablet은 Monitor를 원본 배율의 compact·no-scroll modal로 열고, Phone은 외곽 여백 0의 fullscreen responsive iframe을 사용한다. 화면 크기 변경에도 이 구분을 유지하고, 연결 해제 시 진입점을 숨기고 열린 embedded monitor를 닫아 stale UI를 남기지 않는다.
+- Market AI server reachability는 `dashboard-market-ai.js`가 공통 connection event로 publish하고 Topbar/UI가 소비한다. 서버 연결이 검증된 동안에만 웹/태블릿 Topbar의 `실시간 시세` 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출하며, Phone `관리` 메뉴에는 중복 진입점을 두지 않는다. 두 viewport 진입점은 같은 `REALTIME_QUOTES_ACTION`과 `data-market-ai-monitor-entry` gating을 공유한다. Web/Tablet은 iframe을 먼저 load해 Monitor content height를 수신한 뒤 최종 compact·no-scroll geometry로 modal을 reveal하고, size message가 늦을 때만 제한된 compact fallback 높이를 사용한다. 최초에 `availableHeight` 전체를 표시한 뒤 줄이는 동작을 다시 도입하지 않는다. Phone은 외곽 여백 0의 fullscreen responsive iframe을 사용한다. 화면 크기 변경에도 이 구분을 유지하고, 연결 해제 시 진입점을 숨기고 열린 embedded monitor를 닫아 stale UI를 남기지 않는다.
 - refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답/parse error가 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 async boundary 뒤의 request sequence를 확인한다.
 - backend가 제공하는 signal metadata와 산식 contract를 프런트에서 임의 재해석하지 않는다. 상세 backend 계약은 Market AI 프로젝트의 `market_ai_project_handover.md`를 Source of Truth로 한다.
 - SOX 시장 metric과 Signal Engine 입력은 모두 `INDEX:SOX`를 사용하며 표시 편의를 위해 `FUTURES:SOX` 또는 `SOX-F`로 자동 전환하지 않는다.
@@ -1559,7 +1598,7 @@ data/pension_contributions.json
 
 또한 나머지 `data/*.json`도 요청과 직접 관련 없으면 수정하지 않는다.
 
-장부·성과 계산에 쓰이는 실제 데이터성 값은 JS literal로 중복 보관하지 않는다. 현재 증권의 KODEX 레버리지 별도수익 거래 이력·재투입 한도·Report 기간/포지션 문맥은 `data/kodex_leverage_trades.json`을 source of truth로 사용하고 `dashboard-core.js`가 `portfolio.separateProfit` 표시용 구조를 런타임 파생한다. 6/18 확인 현금 기준값은 `constants.outsideCash`, 원천별 추적의 고정 원천값은 `securitiesSourceTracking`을 source of truth로 사용하며, `dashboard-core.js`/`dashboard-ui.js`는 이를 읽어 계산·표시한다.
+장부·성과 계산에 쓰이는 실제 데이터성 값은 JS literal로 중복 보관하지 않는다. 현재 증권의 KODEX 레버리지 별도수익 거래 이력·재투입 한도·Report 기간/포지션 문맥은 `data/kodex_leverage_trades.json`을 source of truth로 사용하고 `dashboard-core.js`가 `portfolio.separateProfit` 표시용 구조를 런타임 파생한다. 일반 증권 매매·자금 이동은 `data/portfolio.json`의 `securitiesEvents`가 canonical 원장이며, 매도 체결가·순매도대금·거래비용·기준원가·실현손익·현금화 원금 이동을 이 원천에서 복원한다. 6/18 확인 현금 기준값은 `constants.outsideCash`, 원천별 추적의 고정 원천값은 `securitiesSourceTracking`을 source of truth로 사용하며, `dashboard-core.js`/`dashboard-ui.js`는 이를 읽어 계산·표시한다.
 
 주의:
 
@@ -1750,7 +1789,7 @@ tests/cross-ui-contract.test.cjs
 
 역할:
 
-- `main-calc.test.cjs`: 원금·합산·손익·수익률·별도수익·연금·차트용 계산 등 정답이 명확한 계산 contract 보호
+- `main-calc.test.cjs`: 원금·합산·손익·수익률·별도수익·증권 부분/전량매도·실현손익·현금화 원금·연금·차트용 계산 등 정답이 명확한 계산 contract 보호
 - `main-ui-contract.test.cjs`: ES Module boundary, breakpoint, Phone Landscape, table/chart/modal/Market AI 등 Main UI/CSS/HTML의 장기 contract 보호
 - `cross-ui-contract.test.cjs`: Main↔Add가 반드시 같아야 하는 appearance storage/channel, Corner cap, 기본 breakpoint·Phone Landscape, iPhone desktop-request 1280 contract 보호
 
@@ -1828,11 +1867,14 @@ holdings 변경 중 stale response 폐기
 modal/expanded chart 중 render defer
 visible 복귀 즉시 refresh
 source tooltip 셀 hover/focus
+실시간 시세 connection gating · Web/Tablet 선측정 reveal · Phone topbar icon-only/fullscreen
 ```
 
 ### Main 계산
 
 `dashboard-core.js` 등 계산 책임을 변경했으면 `main-calc.test.cjs`를 우선 실행한다. 테스트 전용 계산식을 별도로 복제하지 않는다. 실제 요구사항 때문에 계산 contract가 바뀐 경우에만 기대값을 함께 갱신한다.
+
+증권 매도/재매수 변경이면 최소 `매도 전 과거 복원 → 부분/전량매도 → 순매도대금/실현손익 → 현금화 원금 → 같은 날 매도+재매수 → 이후 재매수 → 종목 history → Live Valuation universe`를 함께 확인한다. `scripts/update_prices.py`까지 변경되면 Python regression에서 매도 후 KRX fetch 제외, 매도 전 backfill, snapshot 재실행 idempotency, JS↔Python 원금/실현손익 정합성을 추가로 확인한다.
 
 ### 공통 token/helper
 

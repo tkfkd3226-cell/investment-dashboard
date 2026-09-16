@@ -586,3 +586,172 @@ test('실시간 평가 상태 요약: 실패/과거 화면은 STALE·JSON 의미
   const historical=core.liveValuationStatusForDate('2026-09-10');
   assert.equal(historical.mode,'historical');
 });
+
+test('증권 매도: 전량매도는 순매도대금·실현손익·현금화 원금을 분리하고 매도 전후 투입원금을 보존한다',()=>{
+  const portfolio=basePortfolio({
+    constants:baseConstants({account1Principal:1000,externalPrincipal:1000,securitiesCash:1600}),
+    securities:[{name:'Stock A',ticker:'A',type:'개별주식',qty:0,cost:0,chart:true}],
+    securitiesEvents:[{
+      id:'sell-a',date:'2026-06-20',type:'sell',ticker:'A',qty:10,price:110,
+      grossAmount:1100,transactionCost:0,amount:1100,costBasis:1000,realizedProfit:100,cashPrincipalDelta:1000
+    }]
+  });
+  setState({portfolio,prices:{
+    '2026-06-19':{securities:{A:90}},
+    '2026-06-20':{securities:{A:120}}
+  }});
+  const before=core.securityPositionState(portfolio.securities[0],'2026-06-19');
+  const after=core.securityPositionState(portfolio.securities[0],'2026-06-20');
+  assert.deepEqual(before,{qty:10,cost:1000,realizedProfit:0,realizedCostBasis:0});
+  assert.deepEqual(after,{qty:0,cost:0,realizedProfit:100,realizedCostBasis:1000});
+  assert.equal(core.securityCashPrincipalForDate('2026-06-19'),0);
+  assert.equal(core.securityCashPrincipalForDate('2026-06-20'),1000);
+  assert.equal(core.account1PrincipalForDate('2026-06-19'),1000);
+  assert.equal(core.account1PrincipalForDate('2026-06-20'),1000);
+  const x=core.calc('2026-06-20'),holding=x.holdings[0];
+  assert.equal(x.securitiesCash,1600);
+  assert.equal(holding.profit,0);
+  assert.equal(holding.realizedProfit,100);
+  assert.equal(holding.totalProfit,100);
+  assert.equal(holding.performanceCost,1000);
+  approx(holding.returnRate,10);
+  assert.equal(holding.dayChange,200);
+  assert.equal(x.securitiesAssetDetail.statusRows.length,0);
+  assert.equal(x.securitiesAssetDetail.change.rows[0].dayChange,200);
+  const history=core.symbolHistory('2026-06-20');
+  assert.equal(history.at(-2)['Stock A'],-100);
+  assert.equal(history.at(-1)['Stock A'],100);
+  approx(history.at(-1)._rates['Stock A'],10);
+});
+
+
+test('증권 일부매도: 잔여 평가손익과 확정 실현손익을 합산하고 누적 기준원가를 보존한다',()=>{
+  const portfolio=basePortfolio({
+    constants:baseConstants({account1Principal:1000,externalPrincipal:1000,securitiesCash:550}),
+    securities:[{name:'Stock A',ticker:'A',type:'개별주식',qty:5,cost:500,chart:true}],
+    securitiesEvents:[{id:'partial-sell',date:'2026-06-20',type:'sell',ticker:'A',qty:5,price:110,grossAmount:550,transactionCost:0,amount:550,costBasis:500,realizedProfit:50,cashPrincipalDelta:500}]
+  });
+  setState({portfolio,prices:{'2026-06-19':{securities:{A:100}},'2026-06-20':{securities:{A:120}}}});
+  const h=core.calc('2026-06-20').holdings[0];
+  assert.equal(h.qty,5);
+  assert.equal(h.cost,500);
+  assert.equal(h.profit,100);
+  assert.equal(h.realizedProfit,50);
+  assert.equal(h.totalProfit,150);
+  assert.equal(h.realizedCostBasis,500);
+  assert.equal(h.performanceCost,1000);
+  approx(h.returnRate,15);
+  assert.equal(core.account1PrincipalForDate('2026-06-20'),1000);
+});
+
+test('증권 현금화 원금: 전량매도 후 재매수는 명시적 cashPrincipalDelta로 원금을 중복 계상하지 않는다',()=>{
+  const portfolio=basePortfolio({
+    constants:baseConstants({account1Principal:1000,externalPrincipal:1000,securitiesCash:850}),
+    securities:[{name:'Stock A',ticker:'A',type:'개별주식',qty:6,cost:600,chart:true}],
+    securitiesEvents:[
+      {id:'sell-a',date:'2026-06-20',type:'sell',ticker:'A',qty:10,price:105,grossAmount:1050,transactionCost:0,amount:1050,costBasis:1000,realizedProfit:50,cashPrincipalDelta:1000},
+      {id:'buy-a',date:'2026-06-21',type:'buy',ticker:'A',qty:6,price:100,amount:600,cashPrincipalDelta:-600}
+    ]
+  });
+  setState({portfolio,prices:{
+    '2026-06-19':{securities:{A:100}},
+    '2026-06-20':{securities:{A:105}},
+    '2026-06-21':{securities:{A:120}}
+  }});
+  assert.equal(core.securityCashPrincipalForDate('2026-06-20'),1000);
+  assert.equal(core.securityCashPrincipalForDate('2026-06-21'),400);
+  assert.equal(core.account1PrincipalForDate('2026-06-20'),1000);
+  assert.equal(core.account1PrincipalForDate('2026-06-21'),1000);
+  const after=core.calc('2026-06-21').holdings[0];
+  assert.equal(after.qty,6);
+  assert.equal(after.cost,600);
+  assert.equal(after.realizedProfit,50);
+  assert.equal(after.realizedCostBasis,1000);
+  assert.equal(after.performanceCost,1600);
+  assert.equal(after.totalProfit,170);
+  approx(after.returnRate,170/1600*100);
+});
+
+test('증권 현금화 원금: 같은 날 매도→재매수는 event id 정렬과 무관하게 일별 순변동으로 계산한다',()=>{
+  const portfolio=basePortfolio({
+    constants:baseConstants({account1Principal:1000,externalPrincipal:1000,securitiesCash:450}),
+    securities:[{name:'Stock A',ticker:'A',type:'개별주식',qty:6,cost:600,chart:true}],
+    securitiesEvents:[
+      {id:'a-rebuy',date:'2026-06-20',type:'buy',ticker:'A',qty:6,price:100,amount:600,cashPrincipalDelta:-600},
+      {id:'z-sell',date:'2026-06-20',type:'sell',ticker:'A',qty:10,price:105,grossAmount:1050,transactionCost:0,amount:1050,costBasis:1000,realizedProfit:50,cashPrincipalDelta:1000}
+    ]
+  });
+  setState({portfolio,prices:{'2026-06-19':{securities:{A:100}},'2026-06-20':{securities:{A:100}}}});
+  assert.equal(core.securityCashPrincipalForDate('2026-06-19'),0);
+  assert.equal(core.securityCashPrincipalForDate('2026-06-20'),400);
+  assert.equal(core.account1PrincipalForDate('2026-06-20'),1000);
+  const before=core.securityPositionState(portfolio.securities[0],'2026-06-19');
+  assert.deepEqual(before,{qty:10,cost:1000,realizedProfit:0,realizedCostBasis:0});
+});
+
+test('증권 매도 원장: optional 숫자 필드가 숫자가 아니면 JS도 Python과 동일하게 fail-closed 한다',()=>{
+  const badSell=basePortfolio({
+    securities:[{name:'Stock A',ticker:'A',type:'개별주식',qty:0,cost:0,chart:true}],
+    securitiesEvents:[{id:'bad-realized',date:'2026-06-20',type:'sell',ticker:'A',qty:1,grossAmount:1100,transactionCost:0,amount:1100,costBasis:1000,realizedProfit:'invalid',cashPrincipalDelta:1000}]
+  });
+  setState({portfolio:badSell});
+  assert.throws(()=>core.securityPositionState(badSell.securities[0],'2026-06-20'),/realizedProfit 값이 숫자가 아닙니다/);
+});
+
+test('증권 매도 원장: gross/net/costBasis/realizedProfit 불일치와 음수 현금화 원금은 fail-closed 한다',()=>{
+  const badSell=basePortfolio({
+    securities:[{name:'Stock A',ticker:'A',type:'개별주식',qty:0,cost:0,chart:true}],
+    securitiesEvents:[{id:'bad-sell',date:'2026-06-20',type:'sell',ticker:'A',qty:1,grossAmount:1100,transactionCost:10,amount:1100,costBasis:1000,realizedProfit:100,cashPrincipalDelta:1000}]
+  });
+  setState({portfolio:badSell});
+  assert.throws(()=>core.securityPositionState(badSell.securities[0],'2026-06-20'),/순매도대금/);
+
+  const badPrincipal=basePortfolio({
+    securitiesEvents:[{id:'bad-buy',date:'2026-06-20',type:'buy',ticker:'A',qty:1,amount:100,cashPrincipalDelta:-100}]
+  });
+  setState({portfolio:badPrincipal});
+  assert.throws(()=>core.securityCashPrincipalForDate('2026-06-20'),/현금화 원금이 음수가/);
+});
+
+test('삼성전기 2026-09-16 실제 전량매도: +228원 실현손익·1,404,018원 현금·원금 보존·차트 지속을 확정한다',()=>{
+  const loadJson=relative=>JSON.parse(fs.readFileSync(path.join(ROOT,relative),'utf8'));
+  const portfolio=loadJson('data/portfolio.json');
+  setState({
+    portfolio,
+    prices:loadJson('data/prices.json'),
+    snapshots:loadJson('data/performance_snapshots.json'),
+    account1Daily:loadJson('data/account1_daily_snapshots.json'),
+    pensionContributions:loadJson('data/pension_contributions.json'),
+    pensionCashSnapshots:loadJson('data/pension_cash_snapshots.json'),
+    pensionTrades:loadJson('data/pension_trades.json')
+  });
+  const event=portfolio.securitiesEvents.find(v=>v.id==='sec-sell-20260916-009150');
+  assert.deepEqual({
+    price:event.price,grossAmount:event.grossAmount,transactionCost:event.transactionCost,amount:event.amount,costBasis:event.costBasis,realizedProfit:event.realizedProfit,cashPrincipalDelta:event.cashPrincipalDelta
+  },{
+    price:1348000,grossAmount:1348000,transactionCost:2772,amount:1345228,costBasis:1345000,realizedProfit:228,cashPrincipalDelta:1345000
+  });
+  const before=core.calc('2026-09-15'),after=core.calc('2026-09-16');
+  const beforeSamsung=before.holdings.find(h=>h.ticker==='009150'),afterSamsung=after.holdings.find(h=>h.ticker==='009150');
+  assert.equal(beforeSamsung.qty,1);
+  assert.equal(beforeSamsung.cost,1345000);
+  assert.equal(beforeSamsung.totalProfit,-15000);
+  assert.equal(afterSamsung.qty,0);
+  assert.equal(afterSamsung.cost,0);
+  assert.equal(afterSamsung.realizedProfit,228);
+  assert.equal(afterSamsung.totalProfit,228);
+  assert.equal(afterSamsung.performanceCost,1345000);
+  approx(afterSamsung.returnRate,228/1345000*100);
+  assert.equal(before.securitiesCash,58790);
+  assert.equal(after.securitiesCash,1404018);
+  assert.equal(before.account1Principal,24341210);
+  assert.equal(after.account1Principal,24341210);
+  assert.equal(core.account1SourceHoldingGapForDate('2026-09-15'),12862);
+  assert.equal(core.account1SourceHoldingGapForDate('2026-09-16'),12862);
+  assert.equal(after.securitiesAssetDetail.statusRows.some(r=>r.ticker==='009150'),false);
+  assert.equal(after.securitiesAssetDetail.change.rows.find(r=>r.ticker==='009150').dayChange,15228);
+  const last=core.symbolHistory('2026-09-16').at(-1);
+  assert.equal(last['삼성전기'],228);
+  approx(last._rates['삼성전기'],228/1345000*100);
+  assert.equal(core.liveValuationTickersForDate('2026-09-16').includes('009150'),false);
+});

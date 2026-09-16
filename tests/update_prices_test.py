@@ -35,7 +35,7 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         self.updater.calculate_performance_snapshot = lambda date, *_: {"date": date}
         self.updater.market_status_for_date = lambda _: "close"
         self.portfolio = {
-            "securities": [{"ticker": "SEC"}],
+            "securities": [{"ticker": "SEC", "qty": 1, "cost": 100}],
             "pension": [{"ticker": "PEN"}],
             "securitiesEvents": [],
         }
@@ -203,6 +203,156 @@ class PerformanceCausalOrderingTest(unittest.TestCase):
                 expected,
                 f"{date} dailyProfit must match the immediately preceding stored snapshot",
             )
+
+
+class SecuritiesSaleUpdaterTest(unittest.TestCase):
+    def setUp(self):
+        self.updater = load_updater()
+        self.updater.market_status_for_date = lambda _: "close"
+        self.portfolio = {
+            "constants": {"securitiesCash": 1100, "account1Principal": 1000},
+            "securities": [
+                {"ticker": "SEC", "name": "Stock A", "type": "개별주식", "qty": 0, "cost": 0, "chart": True}
+            ],
+            "pension": [],
+            "securitiesEvents": [
+                {
+                    "id": "sell-a", "date": "2026-06-20", "type": "sell", "ticker": "SEC", "qty": 10,
+                    "price": 110, "grossAmount": 1100, "transactionCost": 0, "amount": 1100,
+                    "costBasis": 1000, "realizedProfit": 100, "cashPrincipalDelta": 1000,
+                }
+            ],
+        }
+
+    def test_sale_date_skips_closed_position_fetch_and_keeps_realized_profit(self):
+        calls = []
+        self.updater.fetch_close = lambda ticker, date: calls.append((ticker, date)) or (date, 999, None)
+        prices, snapshots = {}, {}
+
+        warnings = self.updater.update_one_date("2026-06-20", self.portfolio, prices, snapshots)
+
+        self.assertEqual(warnings, [])
+        self.assertEqual(calls, [])
+        self.assertEqual(prices["2026-06-20"]["securities"], {})
+        snapshot = snapshots["2026-06-20"]
+        self.assertEqual(snapshot["rawHoldingProfit"], 100)
+        self.assertEqual(snapshot["symbols"]["Stock A"], 100)
+        self.assertEqual(snapshot["allocation"], {"ETF": 0, "개별주식": 0, "현금": 1100})
+        self.assertEqual(snapshot["cumulativeReturn"], 10)
+
+    def test_pre_sale_backfill_still_fetches_the_historical_position(self):
+        calls = []
+        self.updater.fetch_close = lambda ticker, date: calls.append((ticker, date)) or (date, 90, None)
+        prices, snapshots = {}, {}
+
+        warnings = self.updater.update_one_date("2026-06-19", self.portfolio, prices, snapshots)
+
+        self.assertEqual(warnings, [])
+        self.assertEqual(calls, [("SEC", "2026-06-19")])
+        self.assertEqual(prices["2026-06-19"]["securities"], {"SEC": 90})
+        self.assertEqual(snapshots["2026-06-19"]["rawHoldingProfit"], -100)
+        self.assertEqual(snapshots["2026-06-19"]["symbols"]["Stock A"], -100)
+        self.assertEqual(self.updater.account1_principal_for_date("2026-06-19", self.portfolio), 1000)
+        self.assertEqual(self.updater.account1_principal_for_date("2026-06-20", self.portfolio), 1000)
+
+    def test_historical_sale_cash_ignores_stale_saved_cash_and_is_idempotent(self):
+        stale_snapshots = {
+            "2026-06-20": {"rawHoldingProfit": 0, "allocation": {"현금": 0}},
+            "2026-06-21": {"rawHoldingProfit": 100, "allocation": {"현금": 1100}},
+        }
+        prices = {
+            "2026-06-19": {"display": True, "securities": {"SEC": 90}, "pension": {}},
+            "2026-06-20": {"display": True, "securities": {}, "pension": {}},
+        }
+
+        self.assertEqual(
+            self.updater.securities_cash_for_date("2026-06-20", self.portfolio, stale_snapshots),
+            1100,
+        )
+        first = self.updater.calculate_performance_snapshot("2026-06-20", self.portfolio, prices, stale_snapshots)
+        second = self.updater.calculate_performance_snapshot("2026-06-20", self.portfolio, prices, stale_snapshots)
+        self.assertEqual(first, second)
+        self.assertEqual(first["rawHoldingProfit"], 100)
+        self.assertEqual(first["allocation"]["현금"], 1100)
+
+    def test_rebuy_cash_principal_delta_prevents_principal_double_count(self):
+        portfolio = copy.deepcopy(self.portfolio)
+        portfolio["constants"]["securitiesCash"] = 500
+        portfolio["securities"][0].update({"qty": 6, "cost": 600})
+        portfolio["securitiesEvents"].append({
+            "id": "rebuy-a", "date": "2026-06-21", "type": "buy", "ticker": "SEC",
+            "qty": 6, "price": 100, "amount": 600, "cashPrincipalDelta": -600,
+        })
+
+        self.assertEqual(self.updater.security_cash_principal_for_date("2026-06-20", portfolio), 1000)
+        self.assertEqual(self.updater.security_cash_principal_for_date("2026-06-21", portfolio), 400)
+        self.assertEqual(self.updater.account1_principal_for_date("2026-06-20", portfolio), 1000)
+        self.assertEqual(self.updater.account1_principal_for_date("2026-06-21", portfolio), 1000)
+        state = self.updater.security_position_state(portfolio["securities"][0], "2026-06-21", portfolio)
+        self.assertEqual(state["realizedProfit"], 100)
+        self.assertEqual(state["realizedCostBasis"], 1000)
+
+    def test_same_day_sale_and_rebuy_cash_principal_uses_daily_net_delta(self):
+        portfolio = copy.deepcopy(self.portfolio)
+        portfolio["constants"]["securitiesCash"] = 450
+        portfolio["securities"][0].update({"qty": 6, "cost": 600})
+        portfolio["securitiesEvents"] = [
+            {
+                "id": "a-rebuy", "date": "2026-06-20", "type": "buy", "ticker": "SEC",
+                "qty": 6, "price": 100, "amount": 600, "cashPrincipalDelta": -600,
+            },
+            {
+                "id": "z-sell", "date": "2026-06-20", "type": "sell", "ticker": "SEC", "qty": 10,
+                "price": 105, "grossAmount": 1050, "transactionCost": 0, "amount": 1050,
+                "costBasis": 1000, "realizedProfit": 50, "cashPrincipalDelta": 1000,
+            },
+        ]
+
+        self.assertEqual(self.updater.security_cash_principal_for_date("2026-06-19", portfolio), 0)
+        self.assertEqual(self.updater.security_cash_principal_for_date("2026-06-20", portfolio), 400)
+        self.assertEqual(self.updater.account1_principal_for_date("2026-06-20", portfolio), 1000)
+        before = self.updater.security_position_state(portfolio["securities"][0], "2026-06-19", portfolio)
+        self.assertEqual((before["qty"], before["cost"]), (10, 1000))
+
+    def test_invalid_sale_contract_and_negative_cash_principal_fail_closed(self):
+        bad_sale = copy.deepcopy(self.portfolio)
+        bad_sale["securitiesEvents"][0]["transactionCost"] = 10
+        with self.assertRaisesRegex(ValueError, "순매도대금"):
+            self.updater.security_position_state(bad_sale["securities"][0], "2026-06-20", bad_sale)
+
+        bad_principal = copy.deepcopy(self.portfolio)
+        bad_principal["securitiesEvents"] = [{
+            "id": "bad-buy", "date": "2026-06-20", "type": "buy", "ticker": "SEC",
+            "qty": 1, "amount": 100, "cashPrincipalDelta": -100,
+        }]
+        with self.assertRaisesRegex(ValueError, "현금화 원금이 음수가"):
+            self.updater.security_cash_principal_for_date("2026-06-20", bad_principal)
+
+    def test_committed_samsung_electro_mechanics_sale_matches_js_contract(self):
+        portfolio = json.loads((ROOT / "data" / "portfolio.json").read_text(encoding="utf-8"))
+        prices = json.loads((ROOT / "data" / "prices.json").read_text(encoding="utf-8"))
+        snapshots = json.loads((ROOT / "data" / "performance_snapshots.json").read_text(encoding="utf-8"))
+        item = next(item for item in portfolio["securities"] if item["ticker"] == "009150")
+
+        before_state = self.updater.security_position_state(item, "2026-09-15", portfolio)
+        after_state = self.updater.security_position_state(item, "2026-09-16", portfolio)
+        self.assertEqual((before_state["qty"], before_state["cost"]), (1, 1345000))
+        self.assertEqual((after_state["qty"], after_state["cost"]), (0, 0))
+        self.assertEqual(after_state["realizedProfit"], 228)
+        self.assertEqual(after_state["realizedCostBasis"], 1345000)
+        self.assertEqual(self.updater.securities_cash_for_date("2026-09-15", portfolio, snapshots), 58790)
+        self.assertEqual(self.updater.securities_cash_for_date("2026-09-16", portfolio, snapshots), 1404018)
+        self.assertEqual(self.updater.account1_principal_for_date("2026-09-15", portfolio), 24341210)
+        self.assertEqual(self.updater.account1_principal_for_date("2026-09-16", portfolio), 24341210)
+
+        before = self.updater.calculate_performance_snapshot("2026-09-15", portfolio, prices, snapshots)
+        after = self.updater.calculate_performance_snapshot("2026-09-16", portfolio, prices, snapshots)
+        self.assertEqual(before["symbols"]["삼성전기"], -15000)
+        self.assertEqual(after["symbols"]["삼성전기"], 228)
+        self.assertEqual(after["rawHoldingProfit"], 2115078)
+        self.assertEqual(after["dailyProfit"], -24932)
+        self.assertEqual(after["allocation"]["현금"], 1404018)
+
 
 
 if __name__ == "__main__":

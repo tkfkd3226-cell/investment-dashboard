@@ -1327,11 +1327,11 @@
     "actualMarketDate": "2026-06-29",
     "updatedAtKST": "2026-06-29T15:55:33+09:00",
     "rawHoldingProfit": 7934165,
-    "cumulativeReturn": 48.72563676708254,
+    "cumulativeReturn": 48.727441226893866,
     "dailyProfit": -284395,
     "symbols": {
-      "SK하이닉스": 2542000,
       "삼성전자": 835450,
+      "SK하이닉스": 2542000,
       "현대차": -197000,
       "KODEX200": 4721420
     },
@@ -1350,11 +1350,11 @@
     "actualMarketDate": "2026-06-30",
     "updatedAtKST": "2026-06-30T16:53:23+09:00",
     "rawHoldingProfit": 8299000,
-    "cumulativeReturn": 50.966177225961154,
+    "cumulativeReturn": 50.96806465985926,
     "dailyProfit": 364835,
     "symbols": {
-      "SK하이닉스": 2586000,
       "삼성전자": 945450,
+      "SK하이닉스": 2586000,
       "현대차": -205000,
       "KODEX200": 4937920
     },
@@ -1373,11 +1373,11 @@
     "actualMarketDate": "2026-07-01",
     "updatedAtKST": "2026-07-01T20:40:59+09:00",
     "rawHoldingProfit": 7487275,
-    "cumulativeReturn": 45.981176598326094,
+    "cumulativeReturn": 45.98287942235784,
     "dailyProfit": -811725,
     "symbols": {
-      "SK하이닉스": 2406000,
       "삼성전자": 750450,
+      "SK하이닉스": 2406000,
       "현대차": -235000,
       "KODEX200": 4532420
     },
@@ -1396,11 +1396,11 @@
     "actualMarketDate": "2026-07-02",
     "updatedAtKST": "2026-07-02T20:07:09+09:00",
     "rawHoldingProfit": 5325235,
-    "cumulativeReturn": 32.70356317386326,
+    "cumulativeReturn": 32.70477428713647,
     "dailyProfit": -2162040,
     "symbols": {
-      "SK하이닉스": 1660000,
       "삼성전자": 465450,
+      "SK하이닉스": 1660000,
       "현대차": -257000,
       "KODEX200": 3432920
     },
@@ -1419,11 +1419,11 @@
     "actualMarketDate": "2026-07-03",
     "updatedAtKST": "2026-07-03T21:56:36+09:00",
     "rawHoldingProfit": 6827460,
-    "cumulativeReturn": 41.92909222354027,
+    "cumulativeReturn": 41.93064498645652,
     "dailyProfit": 1502225,
     "symbols": {
-      "SK하이닉스": 2136000,
       "삼성전자": 700450,
+      "SK하이닉스": 2136000,
       "현대차": -217000,
       "KODEX200": 4180920
     },
@@ -1442,7 +1442,7 @@
     "actualMarketDate": "2026-07-06",
     "updatedAtKST": "2026-07-08T01:51:18+09:00",
     "rawHoldingProfit": 6696990,
-    "cumulativeReturn": 41.127844224664365,
+    "cumulativeReturn": 41.129367314909125,
     "dailyProfit": -130470,
     "symbols": {
       "삼성전자": 785450,
@@ -1465,7 +1465,7 @@
     "actualMarketDate": "2026-07-07",
     "updatedAtKST": "2026-07-08T02:13:19+09:00",
     "rawHoldingProfit": 5455895,
-    "cumulativeReturn": 33.505978008945085,
+    "cumulativeReturn": 33.507218838101316,
     "dailyProfit": -1241095,
     "symbols": {
       "삼성전자": 565450,
@@ -1488,7 +1488,7 @@
     "actualMarketDate": "2026-07-08",
     "updatedAtKST": "2026-07-08T16:01:34+09:00",
     "rawHoldingProfit": 4263275,
-    "cumulativeReturn": 26.181808556815223,
+    "cumulativeReturn": 26.182778149507346,
     "dailyProfit": -1192620,
     "symbols": {
       "삼성전자": 380450,
@@ -1511,7 +1511,7 @@
     "actualMarketDate": "2026-07-09",
     "updatedAtKST": "2026-07-09T16:05:57+09:00",
     "rawHoldingProfit": 4505485,
-    "cumulativeReturn": 27.669279069636048,
+    "cumulativeReturn": 27.670303747924567,
     "dailyProfit": 242210,
     "symbols": {
       "삼성전자": 385450,
@@ -1534,7 +1534,7 @@
     "actualMarketDate": "2026-07-10",
     "updatedAtKST": "2026-07-10T17:00:56+09:00",
     "rawHoldingProfit": 4905635,
-    "cumulativeReturn": 30.126697531736102,
+    "cumulativeReturn": 30.127813215769205,
     "dailyProfit": 400150,
     "symbols": {
       "삼성전자": 455450,
@@ -1557,7 +1557,7 @@
     "actualMarketDate": "2026-07-13",
     "updatedAtKST": "2026-07-14T23:42:31+09:00",
     "rawHoldingProfit": 2688920,
-    "cumulativeReturn": 16.51331163591173,
+    "cumulativeReturn": 16.513923174501596,
     "dailyProfit": -2216715,
     "symbols": {
       "삼성전자": 150450,
@@ -1580,7 +1580,7 @@
     "actualMarketDate": "2026-07-14",
     "updatedAtKST": "2026-07-14T23:43:38+09:00",
     "rawHoldingProfit": 2922230,
-    "cumulativeReturn": 17.946125084349976,
+    "cumulativeReturn": 17.94678968441746,
     "dailyProfit": 233310,
     "symbols": {
       "삼성전자": 235450,
@@ -1603,7 +1603,7 @@
     "actualMarketDate": "2026-07-15",
     "updatedAtKST": "2026-07-15T16:20:45+09:00",
     "rawHoldingProfit": 4171425,
-    "cumulativeReturn": 25.61773536990059,
+    "cumulativeReturn": 25.618684073232124,
     "dailyProfit": 1249195,
     "symbols": {
       "삼성전자": 400450,
@@ -1626,7 +1626,7 @@
     "actualMarketDate": "2026-07-16",
     "updatedAtKST": "2026-07-16T23:03:33+09:00",
     "rawHoldingProfit": 2629970,
-    "cumulativeReturn": 16.151285349916982,
+    "cumulativeReturn": 16.151883481562844,
     "dailyProfit": -1541455,
     "symbols": {
       "삼성전자": 155450,
@@ -1649,7 +1649,7 @@
     "actualMarketDate": "2026-07-20",
     "updatedAtKST": "2026-07-20T20:37:15+09:00",
     "rawHoldingProfit": 1765865,
-    "cumulativeReturn": 10.844606404039267,
+    "cumulativeReturn": 10.845008013083788,
     "dailyProfit": -864105,
     "symbols": {
       "삼성전자": 45450,
@@ -1672,7 +1672,7 @@
     "actualMarketDate": "2026-07-21",
     "updatedAtKST": "2026-07-21T16:59:15+09:00",
     "rawHoldingProfit": 2467305,
-    "cumulativeReturn": 15.152320026569473,
+    "cumulativeReturn": 15.152881163464759,
     "dailyProfit": 701440,
     "symbols": {
       "삼성전자": 195450,
@@ -1695,7 +1695,7 @@
     "actualMarketDate": "2026-07-22",
     "updatedAtKST": "2026-07-22T17:44:13+09:00",
     "rawHoldingProfit": 2565120,
-    "cumulativeReturn": 15.753025729106815,
+    "cumulativeReturn": 15.753609111977127,
     "dailyProfit": 97815,
     "symbols": {
       "삼성전자": 210450,
@@ -1718,7 +1718,7 @@
     "actualMarketDate": "2026-07-23",
     "updatedAtKST": "2026-07-23T16:03:53+09:00",
     "rawHoldingProfit": 3388815,
-    "cumulativeReturn": 20.811537037714846,
+    "cumulativeReturn": 20.812307752777556,
     "dailyProfit": 823695,
     "symbols": {
       "삼성전자": 305450,
@@ -1741,7 +1741,7 @@
     "actualMarketDate": "2026-07-24",
     "updatedAtKST": "2026-07-27T06:26:37+09:00",
     "rawHoldingProfit": 2046420,
-    "cumulativeReturn": 12.56756288694438,
+    "cumulativeReturn": 12.568028302353195,
     "dailyProfit": -1342395,
     "symbols": {
       "삼성전자": 100450,
@@ -1764,7 +1764,7 @@
     "actualMarketDate": "2026-07-27",
     "updatedAtKST": "2026-07-27T16:35:55+09:00",
     "rawHoldingProfit": 2351220,
-    "cumulativeReturn": 14.439413810968112,
+    "cumulativeReturn": 14.439948546759162,
     "dailyProfit": 304800,
     "symbols": {
       "삼성전자": 145450,
@@ -1787,7 +1787,7 @@
     "actualMarketDate": "2026-07-28",
     "updatedAtKST": "2026-07-28T15:51:09+09:00",
     "rawHoldingProfit": 108285,
-    "cumulativeReturn": 0.6650045187267385,
+    "cumulativeReturn": 0.6650291458841859,
     "dailyProfit": -2242935,
     "symbols": {
       "삼성전자": -194550,
@@ -1810,7 +1810,7 @@
     "actualMarketDate": "2026-07-29",
     "updatedAtKST": "2026-07-29T16:34:02+09:00",
     "rawHoldingProfit": -957555,
-    "cumulativeReturn": -5.880578121894834,
+    "cumulativeReturn": -5.880795897743286,
     "dailyProfit": -1065840,
     "symbols": {
       "삼성전자": -309550,
@@ -1833,7 +1833,7 @@
     "actualMarketDate": "2026-07-30",
     "updatedAtKST": "2026-07-30T15:59:06+09:00",
     "rawHoldingProfit": -1340540,
-    "cumulativeReturn": -8.232582144654772,
+    "cumulativeReturn": -8.232887022427729,
     "dailyProfit": -382985,
     "symbols": {
       "삼성전자": -324550,
@@ -1856,7 +1856,7 @@
     "actualMarketDate": "2026-07-31",
     "updatedAtKST": "2026-07-31T16:11:09+09:00",
     "rawHoldingProfit": 2286715,
-    "cumulativeReturn": 14.04327291905817,
+    "cumulativeReturn": 14.043792984536699,
     "dailyProfit": 3627255,
     "symbols": {
       "삼성전자": 230450,
@@ -1879,7 +1879,7 @@
     "actualMarketDate": "2026-08-03",
     "updatedAtKST": "2026-08-03T15:35:22+09:00",
     "rawHoldingProfit": 801150,
-    "cumulativeReturn": 4.920056980910805,
+    "cumulativeReturn": 4.920239185714694,
     "dailyProfit": -1485565,
     "symbols": {
       "삼성전자": 450,
@@ -1902,7 +1902,7 @@
     "actualMarketDate": "2026-08-04",
     "updatedAtKST": "2026-08-17T20:51:30+09:00",
     "rawHoldingProfit": 948840,
-    "cumulativeReturn": 5.827057187502226,
+    "cumulativeReturn": 5.827272981306285,
     "dailyProfit": 147690,
     "symbols": {
       "삼성전자": 5450,
@@ -1925,7 +1925,7 @@
     "actualMarketDate": "2026-08-05",
     "updatedAtKST": "2026-08-17T21:48:14+09:00",
     "rawHoldingProfit": 1639615,
-    "cumulativeReturn": 10.06927445142117,
+    "cumulativeReturn": 10.069647347544901,
     "dailyProfit": 690775,
     "symbols": {
       "삼성전자": 65450,
@@ -1948,7 +1948,7 @@
     "actualMarketDate": "2026-08-06",
     "updatedAtKST": "2026-08-06T15:34:50+09:00",
     "rawHoldingProfit": 576260,
-    "cumulativeReturn": 3.5389528001243975,
+    "cumulativeReturn": 3.5390838584034814,
     "dailyProfit": -1063355,
     "symbols": {
       "삼성전자": -89550,
@@ -1971,7 +1971,7 @@
     "actualMarketDate": "2026-08-07",
     "updatedAtKST": "2026-08-07T22:29:42+09:00",
     "rawHoldingProfit": 335275,
-    "cumulativeReturn": 2.0590053102101606,
+    "cumulativeReturn": 2.0590815614934708,
     "dailyProfit": -240985,
     "symbols": {
       "삼성전자": -84550,
@@ -1994,7 +1994,7 @@
     "actualMarketDate": "2026-08-10",
     "updatedAtKST": "2026-08-10T15:31:32+09:00",
     "rawHoldingProfit": 340625,
-    "cumulativeReturn": 1.4820512659861391,
+    "cumulativeReturn": 1.4812223405508995,
     "dailyProfit": 5350,
     "symbols": {
       "삼성전자": -94550,
@@ -2018,7 +2018,7 @@
     "actualMarketDate": "2026-08-11",
     "updatedAtKST": "2026-08-11T16:05:03+09:00",
     "rawHoldingProfit": 595955,
-    "cumulativeReturn": 2.592986017528865,
+    "cumulativeReturn": 2.5915357356712256,
     "dailyProfit": 255330,
     "symbols": {
       "삼성전자": 450,
@@ -2042,7 +2042,7 @@
     "actualMarketDate": "2026-08-12",
     "updatedAtKST": "2026-08-12T20:10:00+09:00",
     "rawHoldingProfit": 1744670,
-    "cumulativeReturn": 7.1713459541108175,
+    "cumulativeReturn": 7.167556584081071,
     "dailyProfit": 1148715,
     "symbols": {
       "삼성전자": 160450,
@@ -2067,7 +2067,7 @@
     "actualMarketDate": "2026-08-13",
     "updatedAtKST": "2026-08-13T15:45:17+09:00",
     "rawHoldingProfit": 3141200,
-    "cumulativeReturn": 12.911686399750613,
+    "cumulativeReturn": 12.904863809153284,
     "dailyProfit": 1396530,
     "symbols": {
       "삼성전자": 285450,
@@ -2092,7 +2092,7 @@
     "actualMarketDate": "2026-08-14",
     "updatedAtKST": "2026-08-18T00:01:53+09:00",
     "rawHoldingProfit": 4025930,
-    "cumulativeReturn": 16.548308171191895,
+    "cumulativeReturn": 16.539563974017728,
     "dailyProfit": 884730,
     "symbols": {
       "삼성전자": 350450,
@@ -2117,7 +2117,7 @@
     "actualMarketDate": "2026-08-18",
     "updatedAtKST": "2026-08-18T21:25:42+09:00",
     "rawHoldingProfit": 3473915,
-    "cumulativeReturn": 14.279288507382418,
+    "cumulativeReturn": 14.27174326995248,
     "dailyProfit": -552015,
     "symbols": {
       "삼성전자": 290450,
@@ -2142,7 +2142,7 @@
     "actualMarketDate": "2026-08-19",
     "updatedAtKST": "2026-08-19T15:41:47+09:00",
     "rawHoldingProfit": 1514695,
-    "cumulativeReturn": 6.226049545164349,
+    "cumulativeReturn": 6.222759673820652,
     "dailyProfit": -1959220,
     "symbols": {
       "삼성전자": 80450,
@@ -2167,7 +2167,7 @@
     "actualMarketDate": "2026-08-20",
     "updatedAtKST": "2026-08-20T18:44:05+09:00",
     "rawHoldingProfit": 3437260,
-    "cumulativeReturn": 14.128620652746335,
+    "cumulativeReturn": 14.121155028858468,
     "dailyProfit": 1922565,
     "symbols": {
       "삼성전자": 315450,
@@ -2192,7 +2192,7 @@
     "actualMarketDate": "2026-08-21",
     "updatedAtKST": "2026-08-21T16:19:17+09:00",
     "rawHoldingProfit": 3722630,
-    "cumulativeReturn": 15.301614396505672,
+    "cumulativeReturn": 15.293528957681232,
     "dailyProfit": 285370,
     "symbols": {
       "삼성전자": 420450,
@@ -2217,7 +2217,7 @@
     "actualMarketDate": "2026-08-24",
     "updatedAtKST": "2026-08-24T20:56:30+09:00",
     "rawHoldingProfit": 2604590,
-    "cumulativeReturn": 10.705987928156897,
+    "cumulativeReturn": 10.700330838113635,
     "dailyProfit": -1118040,
     "symbols": {
       "삼성전자": 175450,
@@ -2242,7 +2242,7 @@
     "actualMarketDate": "2026-08-25",
     "updatedAtKST": "2026-08-25T15:59:19+09:00",
     "rawHoldingProfit": 2850360,
-    "cumulativeReturn": 11.716208597476491,
+    "cumulativeReturn": 11.710017702488907,
     "dailyProfit": 245770,
     "symbols": {
       "삼성전자": 175450,
@@ -2267,7 +2267,7 @@
     "actualMarketDate": "2026-08-26",
     "updatedAtKST": "2026-08-26T16:42:17+09:00",
     "rawHoldingProfit": 2875145,
-    "cumulativeReturn": 11.818085634092377,
+    "cumulativeReturn": 11.811840906840704,
     "dailyProfit": 24785,
     "symbols": {
       "삼성전자": 220450,
@@ -2292,7 +2292,7 @@
     "actualMarketDate": "2026-08-27",
     "updatedAtKST": "2026-08-27T17:19:40+09:00",
     "rawHoldingProfit": 3322150,
-    "cumulativeReturn": 13.655468920454442,
+    "cumulativeReturn": 13.648253311975864,
     "dailyProfit": 447005,
     "symbols": {
       "삼성전자": 265450,
@@ -2317,7 +2317,7 @@
     "actualMarketDate": "2026-08-28",
     "updatedAtKST": "2026-08-28T18:30:35+09:00",
     "rawHoldingProfit": 2781440,
-    "cumulativeReturn": 11.432917681052574,
+    "cumulativeReturn": 11.426876478203015,
     "dailyProfit": -540710,
     "symbols": {
       "삼성전자": 175450,
@@ -2342,7 +2342,7 @@
     "actualMarketDate": "2026-08-31",
     "updatedAtKST": "2026-08-31T21:18:32+09:00",
     "rawHoldingProfit": 3012010,
-    "cumulativeReturn": 12.38065979654681,
+    "cumulativeReturn": 12.374117802689348,
     "dailyProfit": 230570,
     "symbols": {
       "삼성전자": 205450,
@@ -2367,7 +2367,7 @@
     "actualMarketDate": "2026-09-01",
     "updatedAtKST": "2026-09-01T15:33:04+09:00",
     "rawHoldingProfit": 3103295,
-    "cumulativeReturn": 12.755880506148628,
+    "cumulativeReturn": 12.749140244055246,
     "dailyProfit": 91285,
     "symbols": {
       "삼성전자": 215450,
@@ -2392,7 +2392,7 @@
     "actualMarketDate": "2026-09-02",
     "updatedAtKST": "2026-09-02T18:24:40+09:00",
     "rawHoldingProfit": 1930090,
-    "cumulativeReturn": 7.9335021021567105,
+    "cumulativeReturn": 7.9293100055420425,
     "dailyProfit": -1173205,
     "symbols": {
       "삼성전자": 110450,
@@ -2417,7 +2417,7 @@
     "actualMarketDate": "2026-09-03",
     "updatedAtKST": "2026-09-03T15:32:59+09:00",
     "rawHoldingProfit": 1798495,
-    "cumulativeReturn": 7.392589911982515,
+    "cumulativeReturn": 7.388683635694364,
     "dailyProfit": -131595,
     "symbols": {
       "삼성전자": 105450,
@@ -2442,7 +2442,7 @@
     "actualMarketDate": "2026-09-04",
     "updatedAtKST": "2026-09-04T19:57:24+09:00",
     "rawHoldingProfit": 2492520,
-    "cumulativeReturn": 10.245331906630076,
+    "cumulativeReturn": 10.239918229208818,
     "dailyProfit": 694025,
     "symbols": {
       "삼성전자": 160450,
@@ -2467,7 +2467,7 @@
     "actualMarketDate": "2026-09-07",
     "updatedAtKST": "2026-09-07T15:53:02+09:00",
     "rawHoldingProfit": 3956275,
-    "cumulativeReturn": 16.261996087856026,
+    "cumulativeReturn": 16.253403179217468,
     "dailyProfit": 1463755,
     "symbols": {
       "삼성전자": 305450,
@@ -2492,7 +2492,7 @@
     "actualMarketDate": "2026-09-08",
     "updatedAtKST": "2026-09-08T17:26:31+09:00",
     "rawHoldingProfit": 3792385,
-    "cumulativeReturn": 15.588337522958815,
+    "cumulativeReturn": 15.580100578401812,
     "dailyProfit": -163890,
     "symbols": {
       "삼성전자": 300450,
@@ -2517,7 +2517,7 @@
     "actualMarketDate": "2026-09-09",
     "updatedAtKST": "2026-09-09T18:23:43+09:00",
     "rawHoldingProfit": 4257505,
-    "cumulativeReturn": 17.500181270014718,
+    "cumulativeReturn": 17.490934099003294,
     "dailyProfit": 465120,
     "symbols": {
       "삼성전자": 300450,
@@ -2542,7 +2542,7 @@
     "actualMarketDate": "2026-09-10",
     "updatedAtKST": "2026-09-10T22:53:37+09:00",
     "rawHoldingProfit": 4231180,
-    "cumulativeReturn": 17.39197416939284,
+    "cumulativeReturn": 17.38278417547854,
     "dailyProfit": -26325,
     "symbols": {
       "삼성전자": 295450,
@@ -2567,7 +2567,7 @@
     "actualMarketDate": "2026-09-11",
     "updatedAtKST": "2026-09-11T16:47:39+09:00",
     "rawHoldingProfit": 3543060,
-    "cumulativeReturn": 14.563504270820196,
+    "cumulativeReturn": 14.555808852559096,
     "dailyProfit": -688120,
     "symbols": {
       "삼성전자": 200450,
@@ -2592,7 +2592,7 @@
     "actualMarketDate": "2026-09-14",
     "updatedAtKST": "2026-09-14T16:07:45+09:00",
     "rawHoldingProfit": 2237180,
-    "cumulativeReturn": 9.195774410987543,
+    "cumulativeReturn": 9.190915324258736,
     "dailyProfit": -1305880,
     "symbols": {
       "삼성전자": 100450,
@@ -2617,7 +2617,7 @@
     "actualMarketDate": "2026-09-15",
     "updatedAtKST": "2026-09-15T20:22:06+09:00",
     "rawHoldingProfit": 2140010,
-    "cumulativeReturn": 8.796363813934263,
+    "cumulativeReturn": 8.791715777481892,
     "dailyProfit": -97170,
     "symbols": {
       "삼성전자": 110450,
@@ -2640,23 +2640,22 @@
     "marketStatus": "intraday",
     "requestedDate": "2026-09-16",
     "actualMarketDate": "2026-09-16",
-    "updatedAtKST": "2026-09-16T13:06:20+09:00",
-    "rawHoldingProfit": 2620270,
-    "cumulativeReturn": 10.770439488945161,
-    "dailyProfit": 480260,
+    "updatedAtKST": "2026-09-16T09:08:51+09:00",
+    "rawHoldingProfit": 2115078,
+    "cumulativeReturn": 8.689288659027222,
+    "dailyProfit": -24932,
     "symbols": {
-      "삼성전자": 142950,
-      "SK하이닉스": 772000,
+      "삼성전자": 85450,
+      "SK하이닉스": 688000,
       "현대차": -731000,
-      "KODEX200": 1715420,
-      "KODEX AI반도체": 714095,
-      "삼성전기": 10500
+      "KODEX200": 1535920,
+      "KODEX AI반도체": 540395,
+      "삼성전기": 228
     },
     "allocation": {
-      "ETF": 18128480,
-      "개별주식": 8833000,
-      "현금": 58790
-    },
-    "kospi": 6691.28
+      "ETF": 17775060,
+      "개별주식": 7336000,
+      "현금": 1404018
+    }
   }
 }

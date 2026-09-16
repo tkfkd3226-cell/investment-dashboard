@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import time
 import xml.etree.ElementTree as ET
@@ -44,6 +45,8 @@ FETCH_RETRIES = 2
 FETCH_RETRY_DELAY_SECONDS = 1.5
 HTTP_TIMEOUT_SECONDS = 20
 HTTP_USER_AGENT = "Mozilla/5.0 (compatible; investment-dashboard/1.0)"
+LEDGER_CHECK_FROM = "2026-06-18"
+JS_MAX_SAFE_INTEGER = 9_007_199_254_740_991
 
 # ---------------------------------------------------------------------------
 # Time / JSON helpers
@@ -485,7 +488,72 @@ def security_valuation_override(portfolio: dict[str, Any], ticker: str, target_d
     return None
 
 
-def security_position_state(item: dict[str, Any], target_date: str, portfolio: dict[str, Any]) -> tuple[float, int]:
+def security_safe_aggregate(label: str, value: int | float) -> int | float:
+    if not isinstance(value, (int, float)) or not math.isfinite(value) or abs(value) > JS_MAX_SAFE_INTEGER:
+        raise ValueError(f"{label} 계산값이 JavaScript 안전 정수 범위를 벗어납니다.")
+    return value
+
+
+def security_optional_number(event: dict[str, Any], key: str) -> int | None:
+    value = event.get(key)
+    if value is None:
+        return None
+    try:
+        number = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{event.get('id') or event.get('ticker') or '증권 거래'} {key} 값이 숫자가 아닙니다.") from exc
+    return number
+
+
+def security_sell_realized_profit(event: dict[str, Any]) -> int:
+    amount = max(0, int(event.get("amount", 0) or 0))
+    cost_basis = max(0, int(event.get("costBasis", 0) or 0))
+    gross = security_optional_number(event, "grossAmount")
+    transaction_cost = security_optional_number(event, "transactionCost")
+    explicit = security_optional_number(event, "realizedProfit")
+    identity = str(event.get("id") or event.get("ticker") or "증권 매도")
+
+    if gross is not None and transaction_cost is not None and gross - transaction_cost != amount:
+        raise ValueError(f"{identity} 순매도대금이 총매도금액-거래비용과 일치하지 않습니다.")
+
+    derived = int(security_safe_aggregate("실현손익", amount - cost_basis))
+    if explicit is not None and explicit != derived:
+        raise ValueError(f"{identity} 실현손익이 순매도대금-기준원가와 일치하지 않습니다.")
+    return explicit if explicit is not None else derived
+
+
+def security_cash_principal_delta(event: dict[str, Any]) -> int:
+    explicit = security_optional_number(event, "cashPrincipalDelta")
+    if explicit is not None:
+        return explicit
+    if str(event.get("type", "")) == "sell":
+        return max(0, int(event.get("costBasis", 0) or 0))
+    return 0
+
+
+def security_cash_principal_for_date(target_date: str, portfolio: dict[str, Any]) -> int:
+    daily_deltas: dict[str, int] = {}
+    for event in security_events(portfolio):
+        date = str(event.get("date", ""))
+        if date > target_date:
+            continue
+        daily_deltas[date] = int(security_safe_aggregate(
+            "증권 일별 현금화 원금 변동",
+            daily_deltas.get(date, 0) + security_cash_principal_delta(event),
+        ))
+
+    principal = 0
+    for date in sorted(daily_deltas):
+        principal = int(security_safe_aggregate(
+            "증권 현금화 원금",
+            principal + daily_deltas[date],
+        ))
+        if principal < 0:
+            raise ValueError(f"{date or '증권 거래'} 처리 후 현금화 원금이 음수가 됩니다.")
+    return principal
+
+
+def security_position_state(item: dict[str, Any], target_date: str, portfolio: dict[str, Any]) -> dict[str, int | float]:
     qty = float(item.get("qty", 0) or 0)
     cost = int(item.get("cost", 0) or 0)
     ticker = str(item.get("ticker", ""))
@@ -501,13 +569,34 @@ def security_position_state(item: dict[str, Any], target_date: str, portfolio: d
         amount = max(0, int(event.get("amount", 0) or 0))
         event_type = str(event.get("type", ""))
         if event_type == "buy":
-            qty -= event_qty
-            cost -= amount
+            qty = float(security_safe_aggregate("보유 수량", qty - event_qty))
+            cost = int(security_safe_aggregate("취득원가", cost - amount))
         elif event_type == "sell":
-            qty += event_qty
-            cost += max(0, int(event.get("costBasis", 0) or 0))
+            qty = float(security_safe_aggregate("보유 수량", qty + event_qty))
+            cost = int(security_safe_aggregate("취득원가", cost + max(0, int(event.get("costBasis", 0) or 0))))
 
-    return max(0.0, qty), max(0, cost)
+    realized_profit = 0
+    realized_cost_basis = 0
+    for event in security_events(portfolio):
+        if (
+            str(event.get("type", "")) != "sell"
+            or str(event.get("ticker", "")) != ticker
+            or str(event.get("date", "")) > target_date
+        ):
+            continue
+        realized_profit = int(security_safe_aggregate(
+            "실현손익", realized_profit + security_sell_realized_profit(event)
+        ))
+        realized_cost_basis = int(security_safe_aggregate(
+            "실현 기준원가", realized_cost_basis + max(0, int(event.get("costBasis", 0) or 0))
+        ))
+
+    return {
+        "qty": max(0.0, qty),
+        "cost": max(0, cost),
+        "realizedProfit": realized_profit,
+        "realizedCostBasis": realized_cost_basis,
+    }
 
 
 def securities_cash_for_date(
@@ -520,7 +609,11 @@ def securities_cash_for_date(
             date for date, item in snapshots.items()
             if isinstance(date, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", date) and isinstance(item, dict)
         )
-        if saved_dates and target_date < saved_dates[-1]:
+        has_sell_event = any(
+            str(event.get("type", "")) == "sell" and str(event.get("date", "")) == target_date
+            for event in security_events(portfolio)
+        )
+        if saved_dates and target_date < saved_dates[-1] and not has_sell_event:
             allocation = snapshots.get(target_date, {}).get("allocation", {})
             saved_cash = allocation.get("현금") if isinstance(allocation, dict) else None
             if saved_cash is not None:
@@ -539,7 +632,7 @@ def securities_cash_for_date(
     return cash
 
 
-def account1_principal_for_date(target_date: str, portfolio: dict[str, Any]) -> int:
+def account1_source_principal_for_date(target_date: str, portfolio: dict[str, Any]) -> int:
     principal = int(portfolio.get("constants", {}).get("account1Principal", 0) or 0)
     for event in security_events(portfolio):
         if str(event.get("date", "")) <= target_date:
@@ -551,6 +644,18 @@ def account1_principal_for_date(target_date: str, portfolio: dict[str, Any]) -> 
             principal += amount
     return principal
 
+
+def securities_holding_cost_for_date(target_date: str, portfolio: dict[str, Any]) -> int:
+    return sum(
+        int(security_position_state(item, target_date, portfolio)["cost"])
+        for item in portfolio.get("securities", [])
+    )
+
+
+def account1_principal_for_date(target_date: str, portfolio: dict[str, Any]) -> int:
+    if target_date >= LEDGER_CHECK_FROM:
+        return securities_holding_cost_for_date(target_date, portfolio) + security_cash_principal_for_date(target_date, portfolio)
+    return account1_source_principal_for_date(target_date, portfolio)
 
 def is_symbol_chart_target(item: dict[str, Any], target_date: str) -> bool:
     if item.get("chart") is False:
@@ -588,7 +693,10 @@ def calculate_performance_snapshot(
     for item in portfolio["securities"]:
         ticker = item["ticker"]
         market_price = int(securities_prices.get(ticker, 0))
-        qty, cost = security_position_state(item, target_date, portfolio)
+        state = security_position_state(item, target_date, portfolio)
+        qty = float(state["qty"])
+        cost = int(state["cost"])
+        realized_profit = int(state["realizedProfit"])
         chart_from = str(item.get("chartFrom", "") or "")
         post_close_pending = bool(
             chart_from
@@ -603,7 +711,8 @@ def calculate_performance_snapshot(
         price = int(round(cost / qty)) if post_close_pending and qty else market_price
         eval_amount = cost if post_close_pending else int(round(price * qty))
         profit = 0 if post_close_pending else eval_amount - cost
-        raw_holding_profit += profit
+        total_profit = int(security_safe_aggregate("종목 누적손익", profit + realized_profit))
+        raw_holding_profit = int(security_safe_aggregate("증권 누적손익", raw_holding_profit + total_profit))
 
         if item.get("type") == "ETF":
             allocation["ETF"] += eval_amount
@@ -613,7 +722,7 @@ def calculate_performance_snapshot(
         if is_symbol_chart_target(item, target_date):
             name = item["name"]
             key = symbol_key(str(name))
-            symbols[key] = profit
+            symbols[key] = total_profit
 
     prev_keys = [k for k in sorted(snapshots.keys()) if k < target_date]
     prev_raw = int(snapshots[prev_keys[-1]].get("rawHoldingProfit", 0)) if prev_keys else 0
@@ -698,6 +807,9 @@ def update_one_date(
             securities[ticker] = int(valuation_override)
             source_dates[f"SEC:{ticker}"] = target_date
             manual_valuation_used = True
+            continue
+
+        if float(security_position_state(item, target_date, portfolio)["qty"]) <= 0:
             continue
 
         actual, close, err = fetch_close(ticker, target_date)

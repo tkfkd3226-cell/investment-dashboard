@@ -72,8 +72,9 @@ const sortAssetItemsByEvaluation=items=>[...items].sort((a,b)=>{
 });
 const sortSecurityItems=sortAssetItemsByEvaluation;
 const sortPensionItems=sortAssetItemsByEvaluation;
+const securityTotalProfitValue=h=>Number(h?.totalProfit??h?.profit)||0;
 const sortSecurityChartItems=items=>[...items].sort((a,b)=>{
-  const profitDiff=(Number(b?.profit)||0)-(Number(a?.profit)||0);
+  const profitDiff=securityTotalProfitValue(b)-securityTotalProfitValue(a);
   if(profitDiff) return profitDiff;
   const ai=SECURITY_DISPLAY_ORDER.indexOf(a.name),bi=SECURITY_DISPLAY_ORDER.indexOf(b.name);
   return (ai<0?SECURITY_DISPLAY_ORDER.length:ai)-(bi<0?SECURITY_DISPLAY_ORDER.length:bi);
@@ -420,14 +421,53 @@ const securityFundingFlow=(fromDate,toDate)=>securityEventsBetween(fromDate,toDa
   if(v.type==='withdrawal')a.withdrawalAmount+=amount;
   return a;
 },{contributionAmount:0,withdrawalAmount:0});
+const securitySafeAggregate=(label,value)=>{
+  if(!Number.isFinite(value)||Math.abs(value)>Number.MAX_SAFE_INTEGER)throw new RangeError(`${label} 계산값이 안전한 정수 범위를 벗어납니다.`);
+  return value;
+};
+const securityOptionalNumber=(v,key)=>{
+  if(v?.[key]==null)return null;
+  const value=Number(v[key]);
+  if(!Number.isFinite(value))throw new RangeError(`${String(v?.id||v?.ticker||'증권 거래')} ${key} 값이 숫자가 아닙니다.`);
+  return value;
+};
+const securitySellRealizedProfit=v=>{
+  const amount=Math.max(0,Number(v?.amount)||0),costBasis=Math.max(0,Number(v?.costBasis)||0);
+  const gross=securityOptionalNumber(v,'grossAmount'),transactionCost=securityOptionalNumber(v,'transactionCost'),explicit=securityOptionalNumber(v,'realizedProfit');
+  if(gross!=null&&transactionCost!=null&&gross-transactionCost!==amount)throw new RangeError(`${String(v?.id||v?.ticker||'증권 매도')} 순매도대금이 총매도금액-거래비용과 일치하지 않습니다.`);
+  const derived=securitySafeAggregate('실현손익',amount-costBasis);
+  if(explicit!=null&&explicit!==derived)throw new RangeError(`${String(v?.id||v?.ticker||'증권 매도')} 실현손익이 순매도대금-기준원가와 일치하지 않습니다.`);
+  return explicit??derived;
+};
+const securityCashPrincipalDelta=v=>{
+  const explicit=securityOptionalNumber(v,'cashPrincipalDelta');
+  if(explicit!=null)return explicit;
+  return v?.type==='sell'?Math.max(0,Number(v?.costBasis)||0):0;
+};
+const securityCashPrincipalForDate=d=>{
+  const dailyDeltas=new Map();
+  securityEventItems().filter(v=>String(v?.date||'')<=String(d||'')).forEach(v=>{
+    const date=String(v?.date||''),delta=securityCashPrincipalDelta(v);
+    dailyDeltas.set(date,securitySafeAggregate('증권 일별 현금화 원금 변동',(dailyDeltas.get(date)||0)+delta));
+  });
+  return [...dailyDeltas.entries()].sort(([a],[b])=>a.localeCompare(b)).reduce((sum,[date,delta])=>{
+    const next=securitySafeAggregate('증권 현금화 원금',sum+delta);
+    if(next<0)throw new RangeError(`${date||'증권 거래'} 처리 후 현금화 원금이 음수가 됩니다.`);
+    return next;
+  },0);
+};
 const securityPositionState=(pos,d)=>{
   let qty=Number(pos?.qty)||0,cost=Number(pos?.cost)||0;
   securityEventItems().filter(v=>String(v?.ticker||'')===String(pos?.ticker||'')&&String(v?.date||'')>d).sort((a,b)=>String(b.date).localeCompare(String(a.date))).forEach(v=>{
     const eventQty=Math.max(0,Number(v.qty)||0),amount=Math.max(0,Number(v.amount)||0);
-    if(v.type==='buy'){qty-=eventQty;cost-=amount;}
-    if(v.type==='sell'){qty+=eventQty;cost+=Math.max(0,Number(v.costBasis)||0);}
+    if(v.type==='buy'){qty=securitySafeAggregate('보유 수량',qty-eventQty);cost=securitySafeAggregate('취득원가',cost-amount);}
+    if(v.type==='sell'){qty=securitySafeAggregate('보유 수량',qty+eventQty);cost=securitySafeAggregate('취득원가',cost+Math.max(0,Number(v.costBasis)||0));}
   });
-  return {qty:Math.max(0,qty),cost:Math.max(0,cost)};
+  const realized=securityEventItems().filter(v=>v?.type==='sell'&&String(v?.ticker||'')===String(pos?.ticker||'')&&String(v?.date||'')<=d).reduce((a,v)=>({
+    profit:securitySafeAggregate('실현손익',a.profit+securitySellRealizedProfit(v)),
+    costBasis:securitySafeAggregate('실현 기준원가',a.costBasis+Math.max(0,Number(v.costBasis)||0))
+  }),{profit:0,costBasis:0});
+  return {qty:Math.max(0,qty),cost:Math.max(0,cost),realizedProfit:realized.profit,realizedCostBasis:realized.costBasis};
 };
 const normalizeLiveValuationTicker=value=>String(value||'').trim().toUpperCase();
 const liveValuationTickersForDate=d=>{
@@ -565,7 +605,8 @@ function heroPerformanceBasisLabel(date){
 const securitiesCashForDate=d=>{
   const latestPriceDate=Object.keys(dataState.prices||{}).filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&dataState.prices?.[v]?.display!==false).sort(byDate).at(-1)||'';
   const savedCash=dataState.snapshots?.[d]?.allocation?.['현금'];
-  if(latestPriceDate&&d<latestPriceDate&&Number.isFinite(Number(savedCash))) return Number(savedCash);
+  const hasSellEvent=securityEventItems().some(v=>v?.type==='sell'&&String(v?.date||'')===String(d||''));
+  if(latestPriceDate&&d<latestPriceDate&&!hasSellEvent&&Number.isFinite(Number(savedCash))) return Number(savedCash);
   let cash=Number(dataState.portfolio?.constants?.securitiesCash)||0;
   securityEventItems().filter(v=>String(v?.date||'')>d).forEach(v=>{
     const amount=Math.max(0,Number(v.amount)||0);
@@ -588,8 +629,9 @@ const securitiesHoldingCostForDate=d=>{
   if(Array.isArray(daily?.holdings)) return daily.holdings.reduce((a,h)=>a+(Number(h?.cost)||0),0);
   return (dataState.portfolio?.securities||[]).reduce((a,h)=>a+(Number(securityPositionState(h,d)?.cost)||0),0);
 };
-const account1SourceHoldingGapForDate=d=>isLedgerCheckDate(d)?securitiesHoldingCostForDate(d)-account1SourcePrincipalForDate(d):0;
-const account1PrincipalForDate=d=>isLedgerCheckDate(d)?securitiesHoldingCostForDate(d):account1SourcePrincipalForDate(d);
+const account1InvestedPrincipalForDate=d=>securitiesHoldingCostForDate(d)+securityCashPrincipalForDate(d);
+const account1SourceHoldingGapForDate=d=>isLedgerCheckDate(d)?account1InvestedPrincipalForDate(d)-account1SourcePrincipalForDate(d):0;
+const account1PrincipalForDate=d=>isLedgerCheckDate(d)?account1InvestedPrincipalForDate(d):account1SourcePrincipalForDate(d);
 const externalPrincipalForDate=d=>(Number(dataState.portfolio?.constants?.externalPrincipal)||0)-securityExternalPrincipalContributionAfter(d)+securityWithdrawalAfter(d);
 const sourceExternalPrincipalForDate=d=>externalPrincipalForDate(d)-securityExcludedTransferSum(d);
 const outsideCashForDate=d=>(Number(dataState.portfolio?.constants?.outsideCash)||0)-securityInternalCashTransferSum(d);
@@ -636,7 +678,7 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
       const snapshot=prevDailyHoldings.find(v=>(h.ticker&&v?.ticker===h.ticker)||v?.name===h.name);
       const prevProfit=snapshot?.profit??h.prevProfit??null;
       const prevEval=snapshot?.evalAmount??h.prevEval??0;
-      const dayChange=hasPrev?(Number(h.profit)||0)-(Number(prevProfit)||0):null;
+      const dayChange=hasPrev?(Number(h.totalProfit??h.profit)||0)-(Number(h.prevTotalProfit??prevProfit)||0):null;
       const buyAmount=Number(h?.tradeFlow?.buyAmount)||0;
       return {
         name:h.name,
@@ -690,11 +732,11 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
   const hasLiveSecurityPrice=holdings.some(h=>h?.priceSource==='market-ai');
   const currentPerformanceProfit=daily&&!hasLiveSecurityPrice&&Number.isFinite(Number(daily.totalProfit))
     ?Number(daily.totalProfit)
-    :holdings.reduce((a,h)=>a+(Number(h.profit)||0),0);
+    :holdings.reduce((a,h)=>a+securityTotalProfitValue(h),0);
   const previousPerformanceProfit=hasPrev
     ?(prevDaily&&Number.isFinite(Number(prevDaily.totalProfit))
       ?Number(prevDaily.totalProfit)
-      :holdings.reduce((a,h)=>a+(Number(h.prevProfit)||0),0))
+      :holdings.reduce((a,h)=>a+(Number(h.prevTotalProfit??h.prevProfit)||0),0))
     :null;
   const dayChange=hasPrev?currentPerformanceProfit-Number(previousPerformanceProfit||0):null;
   const dayRate=hasPrev?dayChangeRate(dayChange,prevHoldingEval,holdingBuyAmount):null;
@@ -790,11 +832,11 @@ function calc(date){
     holdings=p.securities.map(h=>{
       const state=securityPositionState(h,date),prevState=pk?securityPositionState(h,pk):null,liveQuote=liveValuationQuoteForDate(h.ticker,date),marketPrice=liveQuote?.price??securityValuationOverride(h.ticker,date)??getPrice(s,'securities',h.ticker),prevPrice=pk?(securityValuationOverride(h.ticker,pk)??getPrice(prev,'securities',h.ticker)):null,tradeFlow=pk?securityTradeFlow(pk,date,h.ticker):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0};
       const postClosePending=!liveQuote&&!!(h.chartFrom&&date<h.chartFrom&&securityEventItems().some(v=>v.type==='buy'&&String(v?.ticker||'')===String(h.ticker||'')&&String(v?.date||'')===date));
-      const price=postClosePending&&state.qty?state.cost/state.qty:marketPrice,evalAmount=postClosePending?state.cost:(price||0)*state.qty,profit=postClosePending?0:evalAmount-state.cost,feeAdjustedProfit=postClosePending?0:profit-(h.feeBuffer||0),prevEval=prevPrice==null||!prevState?null:prevPrice*prevState.qty,prevProfit=prevPrice==null||!prevState?null:prevEval-prevState.cost,dayChange=postClosePending?null:(prevEval==null?null:evalAmount-prevEval-tradeFlow.buyAmount+tradeFlow.sellAmount);
-      return {...h,qty:state.qty,cost:state.cost,avgPrice:state.qty?state.cost/state.qty:0,price,prevPrice,evalAmount,profit,feeAdjustedProfit,returnRate:state.cost?profit/state.cost*100:0,prevEval,dayChange,prevProfit,tradeFlow,postClosePending,priceSource:liveQuote?'market-ai':'json',liveQuote};
+      const price=postClosePending&&state.qty?state.cost/state.qty:marketPrice,evalAmount=postClosePending?state.cost:(price||0)*state.qty,profit=postClosePending?0:evalAmount-state.cost,realizedProfit=Number(state.realizedProfit)||0,totalProfit=profit+realizedProfit,performanceCost=state.cost+(Number(state.realizedCostBasis)||0),feeAdjustedProfit=postClosePending?realizedProfit:realizedProfit+profit-(state.qty?(h.feeBuffer||0):0),prevEval=prevPrice==null||!prevState?null:prevPrice*prevState.qty,prevProfit=prevPrice==null||!prevState?null:prevEval-prevState.cost,prevTotalProfit=prevProfit==null?null:prevProfit+(Number(prevState?.realizedProfit)||0),dayChange=postClosePending?null:(prevEval==null?null:evalAmount-prevEval-tradeFlow.buyAmount+tradeFlow.sellAmount);
+      return {...h,qty:state.qty,cost:state.cost,avgPrice:state.qty?state.cost/state.qty:0,price,prevPrice,evalAmount,profit,realizedProfit,totalProfit,realizedCostBasis:Number(state.realizedCostBasis)||0,performanceCost,feeAdjustedProfit,returnRate:performanceCost?totalProfit/performanceCost*100:0,prevEval,dayChange,prevProfit,prevTotalProfit,tradeFlow,postClosePending,priceSource:liveQuote?'market-ai':'json',liveQuote};
     });
     securitiesCash=securitiesCashForDate(date);
-    rawHoldingProfit=holdings.reduce((a,h)=>a+h.profit,0);
+    rawHoldingProfit=holdings.reduce((a,h)=>a+securityTotalProfitValue(h),0);
     account1Principal=account1PrincipalForDate(date);
     etfEval=holdings.filter(h=>h.type==='ETF').reduce((a,h)=>a+h.evalAmount,0);
     stockEval=holdings.filter(h=>h.type==='개별주식').reduce((a,h)=>a+h.evalAmount,0);
@@ -860,8 +902,9 @@ function symbolHistory(d){
     series.forEach(name=>{
       if(!activeNames.has(name)){row[name]=null;row._rates[name]=null;return;}
       const h=v.holdings.find(h=>h.name===name);
-      row[name]=h?Number(h.profit||0):0;
-      row._rates[name]=h&&Number(h.cost)?Number(h.profit||0)/Number(h.cost)*100:0;
+      const totalProfit=h?securityTotalProfitValue(h):0,performanceCost=Number(h?.performanceCost??h?.cost)||0;
+      row[name]=h?totalProfit:0;
+      row._rates[name]=h&&performanceCost?totalProfit/performanceCost*100:0;
     });
     return row;
   });
@@ -1028,6 +1071,7 @@ export {
   DASHBOARD_WRITE_CONFIG,
   SECURITY_SYMBOL_COLORS,
   account1PrincipalForDate,
+  account1InvestedPrincipalForDate,
   account1SourceHoldingGapForDate,
   allocHistory,
   applyLiveValuationSnapshot,
@@ -1083,6 +1127,8 @@ export {
   securityExcludedTransferSum,
   securityExternalContributionSum,
   securityInternalCashTransferSum,
+  securityCashPrincipalForDate,
+  securityPositionState,
   securitySymbolAllocHistory,
   securitiesScopeText,
   separateProfitCumulativeForDate,

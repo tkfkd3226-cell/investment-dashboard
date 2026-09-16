@@ -18,7 +18,7 @@
     "tossProfit": 6351989,
     "tossRealizedAmount": 6351989,
     "tossReinvestedToAccount1": 2009374,
-    "securitiesCash": 58790,
+    "securitiesCash": 1404018,
     "outsideCash": 2035097,
     "livingSpent": 3063626,
     "pensionContributionPrincipal": 24139249,
@@ -100,8 +100,8 @@
       "name": "삼성전기",
       "ticker": "009150",
       "type": "개별주식",
-      "qty": 1,
-      "cost": 1345000,
+      "qty": 0,
+      "cost": 0,
       "feeBuffer": 41,
       "chart": true,
       "cssClass": "ticker-mini",
@@ -194,6 +194,21 @@
       "memo": "삼성전기 NXT 신규매수",
       "valuationPrice": 1348000,
       "valuationSource": "NXT 종가"
+    },
+    {
+      "id": "sec-sell-20260916-009150",
+      "date": "2026-09-16",
+      "type": "sell",
+      "ticker": "009150",
+      "qty": 1,
+      "price": 1348000,
+      "grossAmount": 1348000,
+      "transactionCost": 2772,
+      "amount": 1345228,
+      "costBasis": 1345000,
+      "realizedProfit": 228,
+      "cashPrincipalDelta": 1345000,
+      "memo": "삼성전기 전량매도 (실제 거래비용 반영)"
     }
   ],
   "securitiesSourceTracking": {
