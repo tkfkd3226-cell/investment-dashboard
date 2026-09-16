@@ -592,7 +592,7 @@
     color:var(--topbar-floating-text);
     box-shadow:var(--topbar-floating-shadow);
   }
-  .topbar-realtime-phone-action,
+  button.topbar-realtime-phone-action,
   .topbar-theme-action,
   .topbar-corner-action{
     display:inline-flex;

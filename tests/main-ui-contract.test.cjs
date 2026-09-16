@@ -1515,6 +1515,8 @@ test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 ico
   assert.ok(phoneRealtimeButton,'Phone 실시간 시세 상단 버튼이 없다');
   assert.doesNotMatch(phoneRealtimeButton,/topbar-label-(?:full|short)/,'Phone 실시간 시세 버튼은 글자 없이 아이콘만 사용해야 한다');
   assert.match(common,/:is\(\.topbar-realtime-phone-action,\.topbar-theme-action,\.topbar-corner-action\) \.date-tool-action-icon/);
+  assert.match(common,/button\.topbar-realtime-phone-action,\s*\.date-action-menu-wrap,\s*\.topbar-label-short\{display:none\}/,'Phone 전용 실시간 시세 버튼은 Web/Tablet에서 control-icon-button display 규칙보다 높은 specificity로 숨겨야 한다');
+  assert.match(special,/button\.topbar-realtime-phone-action,\s*\.topbar-theme-action,\s*\.topbar-corner-action\{\s*display:inline-flex;/,'Phone breakpoint에서만 실시간 시세 icon-only 버튼을 다시 표시해야 한다');
   assert.match(common,/\[data-market-ai-monitor-entry\]\[hidden\]\{display:none\}/,'Market AI 전용 진입점의 hidden은 viewport 공통 author CSS로 보장해야 한다');
   assert.doesNotMatch(special,/\.topbar-realtime-phone-action\[hidden\]/,'Phone 전용 hidden 보정으로 공통 gating 결함을 가리면 안 된다');
   assert.match(special,/\.topbar-realtime-phone-action\{right:calc\(var\(--topbar-phone-edge\) \+ var\(--topbar-phone-control-step\) \+ var\(--topbar-phone-control-step\) \+ var\(--topbar-phone-control-step\)\)\}/);

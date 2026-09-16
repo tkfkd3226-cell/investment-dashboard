@@ -4154,7 +4154,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 .date-tool-action-icon svg{display:block;width:var(--topbar-action-icon-size);height:var(--topbar-action-icon-size);vertical-align:middle}
 :is(.topbar-realtime-phone-action,.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size);flex-basis:var(--topbar-mode-icon-size)}
 :is(.topbar-realtime-phone-action,.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon svg{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size)}
-.topbar-realtime-phone-action,
+button.topbar-realtime-phone-action,
 .date-action-menu-wrap,
 .topbar-label-short{display:none}
 
