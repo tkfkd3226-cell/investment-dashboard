@@ -16,7 +16,7 @@
 | Main 수정·유지보수 contract | [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md) |
 | Add 수정·유지보수 contract | [add_maintenance_handover.md](./add_maintenance_handover.md) |
 | Main↔Add 공통 contract | 이 문서 8장 + `tests/cross-ui-contract.test.cjs` |
-| 평가·점수·A/B/C | [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) |
+| 평가·점수·A/B/C (전체 평가 시 root `GAS_code.js` 포함, 좁은 범위 평가는 요청 범위 우선) | [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) |
 | 프로젝트 소개·구성·사용 개요 | [README.md](./README.md) |
 | 과거 차수별 변경 이력 | Git history |
 
@@ -1584,13 +1584,13 @@ KRX GitHub workflow 실제 실행
 
 ## 6.2 Google Apps Script(GAS) 운영 및 배포 원칙
 
-Google Apps Script는 **GitHub 프로젝트와 별도로 운영되는 write 백엔드**다. 이 절에는 현재 운영 불변조건만 남기며, 버전별 패치 이력·점수·Counterexample 목록은 누적하지 않는다. 상세 평가 시나리오는 `dashboard_evaluation_guide.md`를 사용한다.
+Google Apps Script는 **배포·실행 환경이 GitHub Pages와 분리된 write 백엔드**다. 다만 유지보수용 canonical 소스는 저장소 root의 `GAS_code.js`로 함께 관리한다. 실제 Apps Script Web App 배포본과 `GAS_code.js`의 내용은 동기화되어야 하며, 이 절에는 현재 운영 불변조건만 남긴다. 버전별 패치 이력·점수·Counterexample 목록은 누적하지 않고 상세 평가 시나리오는 `dashboard_evaluation_guide.md`를 사용한다.
 
 ### 소스·배포·보안
 
-- 루트 `_config.yml`은 `data/krx_dispatch_ledger/`, `data/pension_operation_identity/`, `data/pension_operation_ledger/`, `data/pension_batch_request_identity/`를 GitHub Pages 산출물에서 제외한다. 이 shard들은 repository/GitHub API/GAS가 사용하는 durable 상태이며 브라우저 runtime 의존성을 만들지 않는다. shard 경로를 추가·변경하면 `_config.yml`과 README 데이터/배포 설명을 함께 갱신한다.
-- GAS 수정은 사용자가 별도로 제공한 **최신 운영 `code.js`**만 기준으로 한다. 과거 대화의 코드를 최신본으로 추정하지 않는다.
-- GAS는 현재 **단일 `code.js` 파일을 유지**하되, router/공통 I/O·durable identity/Single/Batch/KRX·GitHub CAS처럼 책임별 top-level helper로 분리한다. 단순 파일 길이 감소를 위해 상태머신을 generic handler 하나로 합치거나 Single·Batch·KRX의 서로 다른 terminal/retry 의미를 혼합하지 않는다. `doGet`/`doPost`는 Web App 진입점으로 유지하고, 코드 내부·frontend·문서에서 사용되지 않는 legacy wrapper는 외부 운영 계약이 확인되지 않는 경우에만 제거한다.
+- 루트 `_config.yml`은 `GAS_code.js`와 `data/krx_dispatch_ledger/`, `data/pension_operation_identity/`, `data/pension_operation_ledger/`, `data/pension_batch_request_identity/`를 GitHub Pages 산출물에서 제외한다. `GAS_code.js`는 repository에서 관리하는 backend 소스이고, shard들은 repository/GitHub API/GAS가 사용하는 durable 상태다. 어느 쪽도 브라우저 runtime 의존성을 만들지 않는다. GAS 파일명/경로나 shard 경로를 추가·변경하면 `_config.yml`과 README 데이터/배포 설명을 함께 갱신한다.
+- GAS 수정의 Source of Truth는 **현재 저장소 root의 `GAS_code.js`**다. 과거 대화의 별도 첨부본이나 이전 `code.js`를 최신본으로 추정하지 않는다. 사용자가 별도의 GAS 파일을 명시적으로 더 최신 운영본이라고 지정한 경우에만 그 파일을 우선한다.
+- GAS는 repository 기준 **단일 `GAS_code.js` 파일을 유지**하되, router/공통 I/O·durable identity/Single/Batch/KRX·GitHub CAS처럼 책임별 top-level helper로 분리한다. 단순 파일 길이 감소를 위해 상태머신을 generic handler 하나로 합치거나 Single·Batch·KRX의 서로 다른 terminal/retry 의미를 혼합하지 않는다. `doGet`/`doPost`는 Web App 진입점으로 유지하고, 코드 내부·frontend·문서에서 사용되지 않는 legacy wrapper는 외부 운영 계약이 확인되지 않는 경우에만 제거한다.
 - 인증값·GitHub token·PIN은 Script Properties에만 두고 저장소·문서에 실제 값을 기록하지 않는다.
 - 기존 Web App `/exec` URL 유지가 기본이며 새 URL을 쓰면 frontend endpoint도 함께 갱신한다.
 - router action/target allowlist를 유지하고 unknown target을 다른 Pension target으로 fallback하지 않는다.
@@ -1710,7 +1710,8 @@ Python / Workflow 유지보수 구조:
 | 구체적 수정 요청 / `1차`, `2차` | 요청 범위 실제 반영 후 영향 범위 QA |
 | `QA` | 직전 Main 변경분과 연결부 중심 검증 |
 | `전체 QA` | 사용자가 명시한 경우 전체 프로젝트 테스트까지 수행 |
-| `평가`, `점수` | `dashboard_evaluation_guide.md` 기준으로 전환 |
+| 범위 미지정 `평가`, `점수`, `전체 평가` | `dashboard_evaluation_guide.md` 기준으로 전환하고 root `GAS_code.js` 서버 평가를 함께 수행 |
+| `MAIN만`, `ADD만`, `CSS만`, `JS만`, 특정 화면·기능 평가 | 지정 범위만 평가하고 GAS 독립 평가는 자동 추가하지 않음. 해당 기능 판정에 필요한 frontend↔backend contract만 dependency로 확인 가능 |
 
 `QA`를 임의로 `전체 QA`로 확대하지 않는다. 다만 Main의 전역 appearance/Corner/breakpoint 같은 공통 contract를 수정한 경우에는 직전 변경 QA에서도 `cross-ui-contract.test.cjs`를 함께 확인한다.
 

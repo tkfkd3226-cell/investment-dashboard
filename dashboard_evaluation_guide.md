@@ -1,10 +1,10 @@
 # dashboard_evaluation_guide · 투자 대시보드 평가 기준
 
-이 문서는 투자 대시보드 **MAIN + ADD 공통 평가 전용 기준서**다.
+이 문서는 투자 대시보드 **MAIN + ADD 평가 및 전체 평가 시 root `GAS_code.js`까지 포함하는 평가 전용 기준서**다.
 
 > **문서 성격 / 평가 환경**  
 > 이 문서는 **현재 제공된 Dashboard snapshot을 독립 평가하는 기준서**다. 수정 방법, 운영자 실행법, Market AI runtime 빌드 순서를 설명하는 문서가 아니다.  
-> Market AI·GAS·GitHub Actions는 Dashboard와 맞닿는 **contract와 실패 격리**만 평가 범위에 포함하고, 별도 프로젝트 내부 구현의 품질 점수는 그 프로젝트 소스가 함께 제공된 경우에만 별도 범위로 평가한다.
+> Market AI·GitHub Actions는 Dashboard와 맞닿는 **contract와 실패 격리**를 중심으로 평가한다. 저장소 root의 `GAS_code.js`는 Dashboard repository의 canonical backend source이므로 **범위를 따로 좁히지 않은 일반 전체 평가에서는 독립 서버 코드 평가를 함께 수행**한다. 다만 사용자가 MAIN/ADD/CSS/JS/특정 화면·기능처럼 평가 범위를 명시적으로 좁히면 GAS 독립 평가는 자동으로 추가하지 않는다.
 
 이 문서의 목적은 프로젝트를 수정하거나 인수인계하는 방법을 설명하는 것이 아니라, 사용자가 `점수`, `평가`, `평가해줘`를 요청했을 때 **무엇을 어떤 근거로 평가하고, 어떤 실패 가설을 새로 만들어 검증하며, 무엇은 감점하지 않고, 결과를 어떤 형식으로 작성할지**를 일관되게 정의하는 것이다.
 
@@ -25,7 +25,7 @@
 | [README.md](./README.md) | GitHub 프로젝트 소개 · 전체 구조 · 실행/배포 개요 |
 | [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md) | MAIN 수정 · 유지보수 · QA · 장기 contract와 Main↔Add 공통 contract 정의 |
 | [add_maintenance_handover.md](./add_maintenance_handover.md) | ADD Calc/Report 수정 · 유지보수 · QA · 장기 contract |
-| [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) | MAIN + ADD 전체 평가 · 점수 · 전역 A/B/C · 반례 탐색 · 감점/비감점 · 종료 기준 |
+| [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) | MAIN + ADD 평가 · 전체 평가 시 root `GAS_code.js` 포함 · 점수 · 전역 A/B/C · 반례 탐색 · 감점/비감점 · 종료 기준 |
 | [ct35_evaluation.md](./ct35_evaluation.md) | 공통화·토큰화 35개 고정 Rubric · Main/Add 독립 채점 · 카테고리별 평가 |
 | Git history | 과거 변경 이력 |
 
@@ -41,7 +41,7 @@
 
 `점수`는 최신 실제 소스를 필요한 범위에서 검증해 CSS / JavaScript / UI / UX 점수를 새로 산정한다.
 
-기본 출력은 점수 중심으로 간결하게 작성한다.
+기본 출력은 점수 중심으로 간결하게 작성한다. **범위를 따로 좁히지 않은 전체 점수 요청**에서는 아래처럼 GAS 서버 점수까지 병렬로 표시하고, 좁은 범위 요청에서는 해당 범위의 점수만 표시한다.
 
 ```text
 CSS
@@ -49,7 +49,8 @@ JavaScript
 UI
 UX
 UI/UX 총점
-전체 총점
+Dashboard 총점
+GAS 서버 점수   # 범위 미지정 전체 평가일 때
 ```
 
 - 상세 수정 작업은 수행하지 않는다.
@@ -70,6 +71,7 @@ UI/UX 총점
 → 상태 모델과 async boundary 식별
 → 실패 가설·반례 생성
 → CSS / JS / UI / UX 독립 평가
+→ [범위 규칙상 GAS 포함 시] root `GAS_code.js` 서버 코드 독립 평가
 → 각 영역의 하위 평가항목별 점수·상태·근거 기록
 → 화면 영역별 / 기능별 / 사용자 flow별 평가
 → 접근성 / 성능 / 유지보수성 / 문서 의미 확인
@@ -78,12 +80,13 @@ UI/UX 총점
 → 세부 점수표와 최종 결론
 ```
 
-`평가` / `평가해줘`의 최종 답변에는 원칙적으로 다음 네 종류의 상세표가 모두 포함되어야 한다.
+범위를 따로 좁히지 않은 `평가` / `평가해줘`의 최종 답변에는 원칙적으로 다음 다섯 종류의 상세표를 포함한다. **좁은 범위 평가에서는 지정된 영역에 필요한 표만 작성하고 GAS 표를 자동 추가하지 않는다.**
 
 1. **CSS 하위 평가표** — 구조, token, cascade, responsive, theme, interaction/state, dead/legacy, 유지보수성 등
 2. **JavaScript 하위 평가표** — module/dependency, state, render, event, async/race, persistence, error, lifecycle 등
 3. **UI 화면 영역별 평가표** — 실제 화면 inventory를 먼저 만든 뒤 Topbar/KPI/Table/Card/Chart/Modal/Tooltip/Market AI/ADD 등 존재하는 영역별 평가
 4. **UX flow별 평가표** — 진입→조작→feedback→성공/실패→복구→재진입/복원의 흐름별 평가
+5. **GAS 서버 평가표** — root `GAS_code.js`의 transaction/idempotency, stale retry, durable evidence, GitHub CAS/dispatch race, failure recovery, validation/observability를 독립 평가
 
 각 표에는 최소한 `평가항목 | 점수 | 상태 | 핵심 근거 | 감점 여부`를 포함한다. 100점인 항목도 단순히 `문제 없음`으로 끝내지 않고, **왜 감점하지 않았는지 확인한 실제 구조·동작 근거**를 적는다.
 
@@ -112,16 +115,18 @@ MAIN ↔ ADD 통합 평가
 
 범위가 좁더라도 해당 기능의 판정에 필요한 dependency / shared contract / responsive rule / persistence / async lifecycle은 필요한 만큼 함께 확인한다.
 
-### 1.3.1 Dashboard와 GAS `code.js`가 함께/별도로 제공될 때
+### 1.3.1 Dashboard와 root GAS `GAS_code.js` 평가 범위
 
-`code.js`는 Dashboard frontend JavaScript와 같은 점수표에 억지로 합산하지 않고 **별도 서버 코드 평가 범위**로 취급한다.
+저장소 root의 `GAS_code.js`는 Dashboard ZIP에 함께 포함되는 **GAS Web App canonical 소스**다. 다만 GAS의 자동 포함 여부는 **평가 요청의 범위**로 결정한다. Frontend JavaScript와 동일 점수표에 섞지 않고, 아래 규칙으로 독립 GAS 서버 점수와 A/B/C를 산출한다.
 
-- **Dashboard만 제공된 경우**: MAIN/ADD와 frontend↔backend contract만 평가한다. GAS 미첨부 자체는 감점하지 않으며 `code.js` 내부 transaction/idempotency 품질을 추정 점수로 만들지 않는다.
-- **Dashboard + `code.js`가 함께 제공된 경우**: Dashboard CSS/JavaScript/UI/UX와 GAS 서버 품질을 **별도 점수·별도 A/B/C 목록**으로 평가한다. GAS 결함이 실제 frontend contract를 깨는 경우에만 해당 Dashboard 기능 점수에도 필요한 만큼 반영한다.
-- **`code.js`만 제공된 경우**: 아래 `GAS code.js 독립 평가 모드`를 적용해 업무 저장·원자성·멱등성·복구·KRX dispatch를 중심으로 평가한다. CSS/UI/화면 점수는 만들지 않는다.
-- 사용자가 `MAIN만`, `code.js만`, `1차/2차`처럼 범위를 명시하면 그 범위를 우선한다.
-- 단순히 `code.js`가 함께 첨부됐다는 이유만으로 Dashboard 평가를 GAS 전수 stress test로 확장하지 않는다.
-- 반대로 사용자가 `code.js 전수 평가`, `최종 릴리스`, `공격적으로`, `끝까지 파줘`처럼 명시한 경우에만 기본 bounded 범위를 넘어 아래 확장 모드를 사용한다.
+- **범위를 따로 좁히지 않은 일반 `점수` / `평가` / `평가해줘` / `전체 평가`**: Dashboard와 root `GAS_code.js`를 함께 평가한다.
+- **명시적으로 좁힌 평가**: `MAIN만`, `ADD만`, `Calc`, `KODEX Report`, `CSS만`, `JS만`, 특정 화면·기능·파일처럼 사용자가 Dashboard 범위를 지정하면 **GAS 독립 평가는 생략**한다. 이때 해당 frontend 기능 판정에 필요한 API shape/contract를 dependency로 확인할 수는 있지만, 별도 GAS 점수·A/B/C를 만들거나 GAS 내부를 전수평가하지 않는다.
+- **GAS를 명시적으로 포함한 평가**: `GAS 포함`, `GAS_code.js도`, `frontend↔GAS 통합`, `Pension/KRX backend까지`처럼 범위에 GAS가 명시되면 좁은 Dashboard 평가와 함께 GAS 평가를 수행한다.
+- **GAS 단독 평가**: `GAS_code.js만` 또는 GAS 서버 코드 평가를 요청하면 GAS만 평가하고 CSS/UI/화면 점수는 만들지 않는다.
+- GAS 평가는 아래 `GAS_code.js 독립 평가 모드`와 동일한 기준을 적용하며, **transaction/idempotency·stale retry·durable identity/evidence·GitHub branch/CAS/push 경쟁·KRX dispatch/run race·응답 유실 후 reconciliation**을 핵심축으로 본다.
+- Dashboard와 GAS를 함께 평가할 때도 **별도 점수·별도 A/B/C 목록**을 유지한다. GAS 결함이 실제 frontend↔backend contract도 깨는 경우에만 해당 Dashboard 기능 점수에도 필요한 만큼 반영한다.
+- 범위를 좁히지 않은 전체 평가에서 root `GAS_code.js`가 누락되어 있으면 **필수 평가 소스 누락**으로 표시하고 GAS 점수를 추정하지 않는다. 반대로 좁은 Dashboard 평가에서는 GAS 파일 부재를 결함이나 감점 사유로 삼지 않는다.
+- 기본 GAS 평가는 아래 대표 반례를 이용한 **bounded contract evaluation**으로 수행한다. 사용자가 `GAS_code.js 전수 평가`, `공격적으로`, `끝까지 파줘`, 특정 transaction/race 축을 집중 공격하도록 **명시한 경우에만** 조합 범위를 추가 확장한다. `전체 평가`, `최종 QA`, `최종 릴리스 확인` 같은 표현만으로는 극저확률 반례 탐색 강도를 올리지 않는다.
 
 ## 1.4 평가와 QA는 다른 작업이다
 
@@ -1247,11 +1252,28 @@ GAS가 함께 제공된 집중 평가에서는 구현 설명을 다시 문서화
 
 server contract는 최신 GAS가 제공된 경우에만 완전 대조한다.
 
-### GAS `code.js` 독립 평가 모드
+### `GAS_code.js` 독립 평가 모드
 
-이 절은 GAS `code.js`가 함께 제공되었거나 사용자가 `code.js` 평가를 별도로 요청한 경우 적용한다.
+이 절은 **평가 범위 규칙상 GAS가 포함되는 경우** 또는 사용자가 `GAS_code.js` 평가를 별도로 요청한 경우 적용한다. 단순히 ZIP 안에 파일이 존재한다는 이유만으로 좁은 Dashboard 평가에 이 절을 자동 적용하지 않는다.
 
 기존 Pension/KRX 반례 계약은 **평가 seed library**다. 모든 bullet을 매번 독립 반례로 전수 조합하거나, 한 반례에서 또 다른 희귀 반례를 재귀적으로 파생시키는 체크리스트가 아니다. 기본 평가는 **실제 운영에서 의미 있는 실패를 합리적인 비용으로 찾는 것**을 목표로 한다.
+
+#### 평가 강도 캘리브레이션 방화벽
+
+GAS 평가 강도는 **사용자가 이번 요청에서 지정한 범위와 이 문서의 명시적 평가 모드만**으로 결정한다. 소스 자체가 고도화되어 있다는 이유로 심사 강도를 자동 상승시키지 않는다.
+
+다음 요소는 **확장 평가를 유도하는 신호로 사용하지 않는다.**
+
+- `GAS_code.js`의 파일 길이, helper 수, 상태머신 복잡도
+- transaction/idempotency/race 방어 코드가 이미 많이 존재한다는 사실
+- 극저확률 장애를 다루는 주석, durable evidence, fail-closed 복구 분기
+- 과거 버그를 막기 위해 쌓인 defensive code 또는 테스트 수
+- 코드만 보고 추정한 사용자의 성향, 위험 선호도, 품질 기대치
+- “여기까지 방어했으니 더 희귀한 반례도 막아야 할 것”이라는 상대적 기준 상승
+
+평가자는 **현재 documented contract를 깨는 현실적인 결함이 있는지**를 판단한다. 이미 존재하는 방어 수준을 새로운 최소 기준으로 삼아 그보다 한 단계 더 극단적인 방어를 요구하지 않는다. 즉 **코드가 강해질수록 합격선도 같이 올라가는 arms race를 금지**한다.
+
+기본 모드에서 새 A/B 후보를 만들 때는 원칙적으로 **한 번의 현실적인 외부 장애 또는 정상적인 동시성/재시도와 그 자연스러운 후속 상태 전이** 범위에서 먼저 증명한다. 기존 stronger proof·정상 복구 경로를 일부러 제거하거나 서로 독립적인 희귀 장애를 연쇄적으로 추가해야만 성립하는 가설은 아래 Fault budget에 따라 C 또는 비감점으로 종료한다.
 
 #### 평가 강도: 기본 bounded 모드와 확장 모드
 
@@ -1268,7 +1290,7 @@ server contract는 최신 GAS가 제공된 경우에만 완전 대조한다.
 ```
 
 - 5장의 `고위험 기능 3~5개 반례`는 GAS에서 **각 함수·각 bullet마다 3~5개**라는 뜻이 아니다. 현재 평가의 핵심 mutation/dispatch subsystem 전체에서 정보가 겹치지 않는 대표 반례를 위험도에 맞게 선택한다.
-- 일반적인 `code.js` 재평가에서는 최근 변경 파일/함수와 직접 dependency, 기존 A/B 수정 영향, 핵심 회귀 flow를 먼저 본다.
+- 일반적인 `GAS_code.js` 재평가에서는 최근 변경 파일/함수와 직접 dependency, 기존 A/B 수정 영향, 핵심 회귀 flow를 먼저 본다.
 - 이미 안정화된 contract를 표현만 바꿔 반복 공격하지 않는다.
 - 새 A/B를 하나 찾았다고 그 branch에서 희귀 장애를 계속 덧붙여 **반례의 반례**를 무한 생성하지 않는다. 등급·공통 원인·회귀 범위를 판정하는 데 필요한 만큼만 더 확인하고 다음 독립 축으로 이동한다.
 - 마지막 bounded pass에서 새로 나오는 것이 C, 이론적 가능성, 운영 증거 없는 극저확률 조합뿐이면 평가를 종료한다.
@@ -1276,9 +1298,8 @@ server contract는 최신 GAS가 제공된 경우에만 완전 대조한다.
 다음 요청에서만 **확장 모드**로 범위를 넓힌다.
 
 ```text
-code.js 전수 평가
+GAS_code.js 전수 평가
 공격적으로 평가
-최종 릴리스 평가
 transaction/idempotency를 끝까지 파줘
 KRX race를 집중 공격해줘
 ```
@@ -1309,17 +1330,21 @@ GAS는 네트워크·GitHub·Script Properties·동시 실행이 얽혀 있어 �
 - 사용자 영향이 미미하고 자동 복구/다음 요청에서 자연스럽게 수렴하는 극저확률 상태
 - 수정 복잡도와 회귀 위험이 현재 운영 리스크보다 명백히 큰 경우
 
+이 범위의 가설은 단순히 "더 방어할 수 있다"는 이유만으로 C급 개선 과제까지 새로 만들지 않는다. **실제 운영 가치가 확인되지 않으면 비감점 관찰로 종료하거나 결과에서 생략**한다.
+
 예외적으로 **데이터 손상·중복 금전성 mutation·인증 우회처럼 영향이 A급인 영역**은 두 장애가 결합되더라도 코드가 그 조합을 명시적으로 지원·복구한다고 주장하거나 실제 운영 증거가 있으면 검토할 수 있다. 이때도 “가능하다”가 아니라 구체적 도달 경로와 실제 영향이 필요하다.
 
 #### A/B 판정에 필요한 증거 강도
 
-`code.js`에서 새 A/B를 제시하려면 다음을 모두 만족하는 것을 원칙으로 한다.
+`GAS_code.js`에서 새 A/B를 제시하려면 다음을 모두 만족하는 것을 원칙으로 한다.
 
 1. 지원 환경에서 도달 가능한 요청/상태 전이인가.
 2. production 함수 실행, 현실적인 mock injection, 또는 결정적인 코드 흐름으로 재현 가능한가.
 3. 사용자의 저장/삭제/재시도/KRX 실행 결과에 실질적인 영향이 있는가.
 4. 단순한 방어 심화가 아니라 현재 contract를 실제로 위반하는가.
 5. 위 fault budget을 넘는 극저확률 다중 장애 조합이 아닌가.
+6. 현재 코드의 방어 수준이 높다는 이유만으로 더 높은 방어 수준을 새 contract처럼 요구한 것은 아닌가.
+7. 기존 stronger proof나 정상 복구 경로가 실제 production에서 존재하는데, 반례 성립을 위해 그것을 임의로 제거한 것은 아닌가.
 
 mock은 다음 조건에서만 강한 근거로 쓴다.
 
@@ -1329,9 +1354,9 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 
 실행하지 못한 경우에는 코드 경로가 결정적이면 B/A 판정이 가능하지만, 단순 추측이면 C 또는 비감점으로 남긴다.
 
-#### GAS `code.js` 점수축
+#### `GAS_code.js` 점수축
 
-`code.js`만 평가하거나 Dashboard와 별도 서버 점수를 낼 때는 아래 11개 축을 사용한다. N/A가 있으면 남은 비중을 합리적으로 재배분한다.
+Dashboard 평가에 필수로 동반되는 `GAS_code.js` 서버 점수와 GAS 단독 평가에는 아래 11개 축을 사용한다. N/A가 있으면 남은 비중을 합리적으로 재배분한다.
 
 | 평가축 | 기본 비중 | 핵심 질문 |
 |---|---:|---|
@@ -1347,9 +1372,9 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 | 정규화·legacy 호환 | 4 | 지원한다고 명시한 구형 데이터가 정규화→재검증→mutation에서 자기모순 없이 동작하는가 |
 | Properties·원격 I/O·관측성·유지보수 | 4 | quota/GC, fetch 병렬화, timing, cache가 정합성을 약화시키지 않고 현재 규모에 적절한가 |
 
-**GAS 점수는 Dashboard의 CSS/JavaScript/UI/UX 총점에 자동 합산하지 않는다.**
+**GAS 점수는 평가 범위 규칙상 GAS가 포함되는 경우에만 제시하며, CSS/JavaScript/UI/UX 총점에 자동 합산하지 않는다.** 범위를 따로 좁히지 않은 전체 평가에서는 Dashboard와 GAS를 병렬 표기하고, MAIN/ADD/CSS/JS 등 좁은 평가에서는 GAS 점수 자체를 만들지 않는다.
 
-#### `code.js` 기본 대표 반례
+#### `GAS_code.js` 기본 대표 반례
 
 기본 bounded 평가에서는 아래 seed에서 **현재 변경·위험도와 관련된 것만 선택**한다. 전부를 매번 조합하지 않는다.
 
@@ -1391,7 +1416,7 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 - 특정 bullet을 만족시키기 위해 **강한 proof를 일부러 여러 개 동시에 제거하는 mock**을 만들지 않는다.
 - contract에 “fail-closed”가 이미 구현돼 있고 해당 실패가 사용자에게 재시도만 요구하며 데이터/중복 실행을 만들지 않으면, 단순 보수성 자체를 B로 만들지 않는다.
 
-#### `code.js` A / B / C 예시
+#### `GAS_code.js` A / B / C 예시
 
 **A**
 
@@ -1418,9 +1443,9 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 - helper를 더 짧게 만들거나 추상화할 수 있다는 구조 취향
 - timing/log 메시지의 미세한 표현 개선
 
-#### `code.js` 평가 종료 Gate
+#### `GAS_code.js` 평가 종료 Gate
 
-기본 `code.js` 평가는 아래 조건이면 종료한다.
+기본 `GAS_code.js` 평가는 아래 조건이면 종료한다.
 
 ```text
 [ ] JavaScript syntax / 실행 가능한 기존 regression이 PASS
@@ -1438,7 +1463,7 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 
 #### 수정 후 재평가
 
-`code.js`의 A/B를 수정한 직후에는 기본적으로:
+`GAS_code.js`의 A/B를 수정한 직후에는 기본적으로:
 
 ```text
 수정된 root cause 직접 회귀
@@ -2131,10 +2156,11 @@ JSON 예제가 실제 필수 context를 누락하면?
 [ ] 100점 하위 항목에도 구조·기능·반례 검토 근거를 남겼는가
 [ ] 충분한 범위의 반증 평가 후 실제 A/B 감점 근거가 없다면 C 존재 여부와 무관하게 100점을 허용했는가
 [ ] 미해결 A/B가 0이고 마지막 bounded Counterexample Pass에서 새 A/B가 없다면 평가를 종료했는가
-[ ] `code.js`가 평가 범위라면 Dashboard 점수와 GAS 서버 점수를 별도로 취급했는가
-[ ] `code.js` 기본 평가에서 fault budget 밖의 극저확률 다중 장애를 B로 승격하지 않았는가
-[ ] `code.js` 상세 Pension/KRX bullet을 mandatory 전수 조합 체크리스트로 오해하지 않았는가
-[ ] `code.js` 수정 후 마지막 bounded pass가 끝났다면 반례의 반례를 재귀적으로 만들어 patch loop를 다시 열지 않았는가
+[ ] Dashboard 평가라면 root `GAS_code.js`를 빠뜨리지 않고 함께 평가했는가
+[ ] Dashboard 점수와 GAS 서버 점수를 별도로 취급했는가
+[ ] `GAS_code.js` 기본 평가에서 fault budget 밖의 극저확률 다중 장애를 B로 승격하지 않았는가
+[ ] `GAS_code.js` 상세 Pension/KRX bullet을 mandatory 전수 조합 체크리스트로 오해하지 않았는가
+[ ] `GAS_code.js` 수정 후 마지막 bounded pass가 끝났다면 반례의 반례를 재귀적으로 만들어 patch loop를 다시 열지 않았는가
 ```
 
 ---

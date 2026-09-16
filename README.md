@@ -189,6 +189,7 @@ Dashboard
 ```text
 investment-dashboard/
 ├─ index.html
+├─ GAS_code.js                    # GAS Web App canonical source; Pages 배포에서는 제외
 │
 ├─ css/
 │  ├─ common.css
@@ -255,7 +256,7 @@ investment-dashboard/
 │     └─ update-prices.yml
 │
 ├─ .gitattributes                  # text LF 고정 / binary asset normalization 제외
-├─ _config.yml                     # GitHub Pages에서 repository-only durable shard 제외
+├─ _config.yml                     # Pages에서 GAS 소스와 repository-only durable shard 제외
 ├─ requirements.txt
 ├─ README.md
 ├─ main_dashboard_maintenance_handover.md
@@ -334,7 +335,9 @@ data/krx_dispatch_ledger/*.json        # GAS가 생성·갱신하는 KRX request
 
 ### 7.1 Google Apps Script
 
-퇴직연금 저장과 KRX 갱신 요청은 GitHub 저장소와 별도로 운영되는 Google Apps Script Web App을 사용합니다. 브라우저가 저장소에 직접 write하지 않으며, 운영 인증값과 GitHub 연동 정보도 프런트엔드 파일에 직접 두지 않습니다.
+퇴직연금 저장과 KRX 갱신 요청은 **배포·실행 환경이 GitHub Pages와 분리된** Google Apps Script Web App을 사용합니다. 운영 GAS의 canonical 소스는 저장소 root의 `GAS_code.js`로 함께 관리하며, 실제 Web App 배포 시 이 파일과 Apps Script 프로젝트 소스가 일치해야 합니다. 브라우저가 저장소에 직접 write하지 않으며, 운영 인증값과 GitHub 연동 정보도 프런트엔드 파일이나 `GAS_code.js`에 직접 두지 않고 Script Properties에서 관리합니다.
+
+`GAS_code.js`는 유지보수·리뷰용 저장소 소스이며 Main/Add 브라우저 runtime asset이 아닙니다. 따라서 root `_config.yml`에서 GitHub Pages 산출물에 포함되지 않도록 제외합니다.
 
 현재 쓰기 경로는 **stable request identity, optimistic concurrency, durable idempotency 기록, fail-closed 복구**를 기본 원칙으로 하여 재시도·중복요청·동시성 충돌이 운영 JSON을 중복 반영하지 않도록 설계되어 있습니다.
 
@@ -386,16 +389,17 @@ Calc        /add/calc.html
 Report      /add/kodex-leverage-report.html
 ```
 
-루트 `_config.yml`은 아래 durable shard 디렉터리를 **GitHub repository에는 유지하되 Pages 정적 산출물에서는 제외**합니다. 이 데이터는 GAS/GitHub API의 idempotency·dispatch 이력용 repository-only 상태이며 Main/Add 브라우저 runtime이 직접 fetch하는 파일이 아닙니다.
+루트 `_config.yml`은 **GAS canonical 소스와 durable shard 디렉터리**를 GitHub repository에는 유지하되 Pages 정적 산출물에서는 제외합니다. `GAS_code.js`는 Apps Script 배포 소스의 저장소 기준본이고, 아래 shard 데이터는 GAS/GitHub API의 idempotency·dispatch 이력용 repository-only 상태입니다. 둘 다 Main/Add 브라우저 runtime이 직접 fetch하는 대상이 아닙니다.
 
 ```text
+GAS_code.js
 data/krx_dispatch_ledger/
 data/pension_operation_identity/
 data/pension_operation_ledger/
 data/pension_batch_request_identity/
 ```
 
-새 durable shard 디렉터리를 추가하거나 이름을 바꾸면 저장 경로만 수정하지 말고 `_config.yml`의 Pages 제외 목록과 이 문서의 데이터 구조를 함께 갱신합니다.
+`GAS_code.js`의 경로/이름을 바꾸거나 새 durable shard 디렉터리를 추가·변경하면 저장 경로만 수정하지 말고 `_config.yml`의 Pages 제외 목록과 이 문서의 프로젝트/데이터 구조를 함께 갱신합니다.
 
 GitHub Pages는 배포가 완료된 revision을 보여줍니다. 방금 수정한 로컬/ZIP revision의 개발 QA와 공개 배포본 확인은 구분합니다.
 
@@ -450,7 +454,7 @@ python tests/update_prices_test.py
 | [README.md](./README.md) | GitHub 프로젝트 소개, 기능, 전체 구조, 데이터·배포·실행 개요 |
 | [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md) | Main 인수인계, 수정, CSS/JS/UI contract, Main QA |
 | [add_maintenance_handover.md](./add_maintenance_handover.md) | Calc/Report 인수인계, 계산·데이터 contract, Add QA |
-| [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) | Main+Add 전체 평가 방식, 점수, 전역 A/B/C 의미, 반례·감점·종료 기준 |
+| [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) | Main+Add 평가 방식, 전체 평가 시 root `GAS_code.js` 포함 기준, Dashboard/GAS 점수, 전역 A/B/C 의미, 반례·감점·종료 기준 |
 | [ct35_evaluation.md](./ct35_evaluation.md) | 공통화·토큰화 35개 고정 Rubric, Main/Add 독립 채점, 카테고리별 점검 기준 |
 
 ### 역할별 Source of Truth
@@ -471,6 +475,8 @@ Main↔Add 공통 contract
 
 전체 평가·점수·전역 A/B/C·반례·종료 기준
 → dashboard_evaluation_guide.md
+→ 범위를 좁히지 않은 일반 전체 평가에서는 root GAS_code.js 서버 평가를 함께 수행
+→ MAIN/ADD/CSS/JS/특정 기능처럼 범위를 명시적으로 좁힌 평가는 GAS 독립 평가를 자동 추가하지 않음
 
 공통화·토큰화 35개 고정 Rubric
 → ct35_evaluation.md
