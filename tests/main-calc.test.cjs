@@ -377,16 +377,22 @@ test('Main 날짜 범위: 숨김 가격일은 제외하고 daily snapshot 날짜
   assert.deepEqual(core.allAvailableDates(),['2026-03-20','2026-03-21','2026-03-23']);
 });
 
-test('내부 현금이체와 외부기여금은 fundingClass 의미에 따라 서로 다른 합계에 들어간다',()=>{
+test('내부 현금이체·내부회수와 외부기여금은 fundingClass 의미에 따라 서로 다른 합계에 들어간다',()=>{
   const portfolio=basePortfolio({
+    constants:baseConstants({outsideCash:1000,securitiesCash:50,account1Principal:1700}),
     securitiesEvents:[
       {date:'2026-06-01',type:'contribution',amount:300,fundingClass:'internalCashTransfer'},
       {date:'2026-06-02',type:'contribution',amount:400,fundingClass:'performanceExcludedTransfer'},
-      {date:'2026-06-03',type:'contribution',amount:500}
+      {date:'2026-06-03',type:'contribution',amount:500},
+      {date:'2026-06-10',type:'withdrawal',amount:350,principalAmount:300,cashPrincipalDelta:-300,fundingClass:'internalCashReturn'}
     ]
   });
   setState({portfolio});
   assert.equal(core.securityInternalCashTransferSum('2026-06-10'),300);
+  assert.equal(core.securityInternalCashReturnSum('2026-06-10'),350);
+  assert.equal(core.securityInternalCashReturnPrincipalSum('2026-06-10'),300);
+  assert.equal(core.securityInternalCashPrincipalNetForDate('2026-06-10'),0);
+  assert.equal(core.outsideCashForDate('2026-06-10'),1050);
   assert.equal(core.securityExcludedTransferSum('2026-06-10'),400);
   assert.equal(core.securityExternalContributionSum('2026-06-10'),500);
 });
@@ -720,7 +726,7 @@ test('증권 매도 원장: gross/net/costBasis/realizedProfit 불일치와 음�
   assert.throws(()=>core.securityCashPrincipalForDate('2026-06-20'),/현금화 원금이 음수가/);
 });
 
-test('삼성전기 2026-09-16 실제 전량매도: +228원 실현손익·1,404,018원 현금·원금 보존·차트 지속을 확정한다',()=>{
+test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표시·3,790원 현금·원금회수·장부 검산을 확정한다',()=>{
   const loadJson=relative=>JSON.parse(fs.readFileSync(path.join(ROOT,relative),'utf8'));
   const portfolio=loadJson('data/portfolio.json');
   setState({
@@ -732,12 +738,14 @@ test('삼성전기 2026-09-16 실제 전량매도: +228원 실현손익·1,404,0
     pensionCashSnapshots:loadJson('data/pension_cash_snapshots.json'),
     pensionTrades:loadJson('data/pension_trades.json')
   });
-  const event=portfolio.securitiesEvents.find(v=>v.id==='sec-sell-20260916-009150');
+  const sale=portfolio.securitiesEvents.find(v=>v.id==='sec-sell-20260916-009150');
+  const withdrawal=portfolio.securitiesEvents.find(v=>v.id==='sec-withdrawal-20260916-internal-cash-return');
   assert.deepEqual({
-    price:event.price,grossAmount:event.grossAmount,transactionCost:event.transactionCost,amount:event.amount,costBasis:event.costBasis,realizedProfit:event.realizedProfit,cashPrincipalDelta:event.cashPrincipalDelta
+    price:sale.price,grossAmount:sale.grossAmount,transactionCost:sale.transactionCost,amount:sale.amount,costBasis:sale.costBasis,realizedProfit:sale.realizedProfit,cashPrincipalDelta:sale.cashPrincipalDelta
   },{
     price:1348000,grossAmount:1348000,transactionCost:2772,amount:1345228,costBasis:1345000,realizedProfit:228,cashPrincipalDelta:1345000
   });
+  assert.deepEqual({amount:withdrawal.amount,principalAmount:withdrawal.principalAmount,cashPrincipalDelta:withdrawal.cashPrincipalDelta,fundingClass:withdrawal.fundingClass},{amount:1400228,principalAmount:1345000,cashPrincipalDelta:-1345000,fundingClass:'internalCashReturn'});
   const before=core.calc('2026-09-15'),after=core.calc('2026-09-16');
   const beforeSamsung=before.holdings.find(h=>h.ticker==='009150'),afterSamsung=after.holdings.find(h=>h.ticker==='009150');
   assert.equal(beforeSamsung.qty,1);
@@ -750,15 +758,26 @@ test('삼성전기 2026-09-16 실제 전량매도: +228원 실현손익·1,404,0
   assert.equal(afterSamsung.performanceCost,1345000);
   approx(afterSamsung.returnRate,228/1345000*100);
   assert.equal(before.securitiesCash,58790);
-  assert.equal(after.securitiesCash,1404018);
+  assert.equal(after.securitiesCash,3790);
   assert.equal(before.account1Principal,24341210);
-  assert.equal(after.account1Principal,24341210);
+  assert.equal(after.account1Principal,22996210);
   assert.equal(core.account1SourceHoldingGapForDate('2026-09-15'),12862);
   assert.equal(core.account1SourceHoldingGapForDate('2026-09-16'),12862);
+  assert.equal(core.outsideCashForDate('2026-09-15'),690097);
+  assert.equal(core.outsideCashForDate('2026-09-16'),2090325);
   assert.equal(after.securitiesAssetDetail.statusRows.some(r=>r.ticker==='009150'),false);
-  assert.equal(after.securitiesAssetDetail.change.rows.find(r=>r.ticker==='009150').dayChange,15228);
+  const changeRow=after.securitiesAssetDetail.change.rows.find(r=>r.ticker==='009150');
+  assert.equal(changeRow.dayChange,15228);
+  assert.equal(changeRow.sale.fullExit,true);
+  assert.equal(changeRow.sale.price,1348000);
+  assert.equal(changeRow.sale.transactionCost,2772);
+  assert.equal(changeRow.sale.amount,1345228);
+  assert.equal(changeRow.sale.realizedProfit,228);
   const last=core.symbolHistory('2026-09-16').at(-1);
   assert.equal(last['삼성전기'],228);
   approx(last._rates['삼성전기'],228/1345000*100);
+  assert.equal(core.securityChartNamesForDate('2026-09-16').includes('삼성전기'),true);
+  assert.equal(core.securityChartNamesForDate('2026-09-17').includes('삼성전기'),false);
   assert.equal(core.liveValuationTickersForDate('2026-09-16').includes('009150'),false);
+  assert.equal(after.totalResult-(after.allocTotal+core.outsideCashForDate('2026-09-16')),3063626);
 });

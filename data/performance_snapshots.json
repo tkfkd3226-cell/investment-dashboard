@@ -2642,7 +2642,7 @@
     "actualMarketDate": "2026-09-16",
     "updatedAtKST": "2026-09-16T09:08:51+09:00",
     "rawHoldingProfit": 2115078,
-    "cumulativeReturn": 8.689288659027222,
+    "cumulativeReturn": 9.197506893527239,
     "dailyProfit": -24932,
     "symbols": {
       "삼성전자": 85450,
@@ -2655,7 +2655,7 @@
     "allocation": {
       "ETF": 17775060,
       "개별주식": 7336000,
-      "현금": 1404018
+      "현금": 3790
     }
   }
 }

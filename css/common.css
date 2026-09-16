@@ -2093,6 +2093,24 @@ body.chart-expanded-open .dash-tooltip{
   transform:translateX(-50%) translateY(0);
 }
 
+/* [Asset Change · sold position marker] 전량매도 당일 종목명은 공통 tooltip primitive로 거래 상세를 노출한다. */
+.security-sale-marker{
+  display:inline-flex;
+  align-items:center;
+  max-width:100%;
+  cursor:help;
+}
+.security-sale-marker-name{
+  text-decoration-line:line-through;
+  text-decoration-thickness:1px;
+  text-decoration-color:currentColor;
+}
+.security-sale-marker:focus-visible{
+  outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
+  outline-offset:var(--control-focus-outline-offset);
+  border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
+}
+
 .pension-risk-gauge{
   position:relative;
   height:var(--asset-insight-risk-gauge-height);

@@ -408,8 +408,8 @@ test('Live Valuation full render는 내부 가로 스크롤과 native input inte
   assert.match(app,/const nestedScrollSnapshot=dashboardNestedScrollSnapshot\(\)/);
   assert.match(app,/restoreDashboardNestedScroll\(nestedScrollSnapshot\)/);
   assert.match(liveValuation,/active\?\.matches\?\.\('select,input,textarea,\[contenteditable="true"\]'\)/);
-  assert.match(liveValuation,/#app \.control-info-button\[aria-expanded=\"true\"\],#app \.has-tooltip\.tooltip-open,#assetPriceSourceTooltip\.visible,#marketAiTooltip\.visible/);
-  assert.match(app,/hideAssetSourceTooltip\(\);\s*closeAccountMemoInfo\(\);/);
+  assert.match(liveValuation,/#app \.control-info-button\[aria-expanded=\"true\"\],#app \.has-tooltip\.tooltip-open,#assetPriceSourceTooltip\.visible,#securitySaleTooltip\.visible,#marketAiTooltip\.visible/);
+  assert.match(app,/hideAssetSourceTooltip\(\);\s*hideSecuritySaleTooltip\(\);\s*closeAccountMemoInfo\(\);/);
 });
 
 test('KRX 갱신은 기준일과 다른 종가·직전값을 숨김 처리하고 자동 성공으로 끝내지 않는다',()=>{
@@ -1392,7 +1392,8 @@ test('Repository data text는 trusted HTML과 분리해 innerHTML 경계에서 e
   assert.match(app,/<h1 id="dashboardTitle">\$\{escapeHtml\(dataState\.portfolio\.meta\.title\)\}<\/h1>/);
   assert.match(ui,/labelHtml:`<span class="holding-name-text">\$\{escapeHtml\(h\.name\)\}<\/span>\$\{securitySymbolSwatch\(h\.name\)\}`/);
   assert.match(pension,/labelHtml:`<span class="holding-name-text">\$\{mobileTableAssetName\(r\.name\)\}<\/span>\$\{pensionProductSwatch\(r\.name\)\}`/);
-  assert.match(ui,/const cards=orderedRows\.map\(r=>\(\{\s*title:mobileTableAssetName\(r\.name\),\s*accessibleLabel:r\.name,/);
+  assert.match(ui,/const cards=orderedRows\.map\(r=>\(\{\s*title:securitySaleMarkerHtml\(r\),\s*accessibleLabel:r\.name,/);
+  assert.match(ui,/const title=escapeHtml\(String\(row\?\.name\|\|''\)\)/);
   assert.match(pension,/const cards=orderedPensionRows\.map\(r=>\(\{\s*title:mobileTableAssetName\(r\.name\),\s*accessibleLabel:r\.name,/);
   assert.match(pensionEditor,/<h3 id="pensionActionPinTitle" class="modal-main-title">\$\{escapeHtml\(title\)\}<\/h3>/);
   assert.match(pensionEditor,/<p id="pensionActionPinDescription" class="action-modal-description">\$\{escapeHtml\(description\)\}<\/p>/);
@@ -1547,4 +1548,23 @@ test('증권 종목별 누적손익 UI는 매도 후 평가손익 0이 아니라
   assert.match(core,/const securityTotalProfitValue=h=>Number\(h\?\.totalProfit\?\?h\?\.profit\)\|\|0/);
   assert.match(charts,/symbolTotal=symbolCards\.reduce\(\(a,h\)=>a\+Number\(h\.totalProfit\?\?h\.profit\?\?0\),0\)/);
   assert.match(charts,/const profit=Number\(h\.totalProfit\?\?h\.profit\?\?0\),performanceCost=Number\(h\.performanceCost\?\?h\.cost\?\?0\)/);
+});
+
+test('전량매도 당일 전일 대비 변동은 취소선 종목명과 공통 floating tooltip으로 거래 상세를 표시한다',()=>{
+  assert.match(ui,/function securitySaleMarkerHtml\(row\)/);
+  assert.match(ui,/class="security-sale-marker"[^>]*data-security-sale-tooltip/);
+  assert.match(ui,/data-sale-price/);
+  assert.match(ui,/data-sale-cost/);
+  assert.match(ui,/data-sale-net/);
+  assert.match(ui,/data-sale-basis/);
+  assert.match(ui,/data-sale-profit/);
+  assert.match(common,/\.security-sale-marker-name\{[^}]*text-decoration-line:line-through/s);
+  assert.match(uiCommon,/const SECURITY_SALE_TOOLTIP_ID='securitySaleTooltip'/);
+  assert.match(uiCommon,/tooltip\.className='dash-tooltip'/);
+  assert.match(uiCommon,/assetSourceTooltipRow\('매도가',data\.salePrice\)/);
+  assert.match(uiCommon,/assetSourceTooltipRow\('거래비용',data\.saleCost\)/);
+  assert.match(uiCommon,/assetSourceTooltipRow\('순매도대금',data\.saleNet\)/);
+  assert.match(uiCommon,/assetSourceTooltipRow\('실현손익',data\.saleProfit\)/);
+  assert.match(app,/setupSecuritySaleTooltips\(\)/);
+  assert.match(app,/hideSecuritySaleTooltip\(\)/);
 });

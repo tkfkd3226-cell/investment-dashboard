@@ -600,6 +600,99 @@ function setupAssetSourceTooltips(){
   document.addEventListener('scroll',hideAssetSourceTooltip,true);
   window.addEventListener('resize',hideAssetSourceTooltip,{passive:true});
 }
+// [UICOMMON06C] Security Sale Tooltip · 전량매도 당일 거래 상세 공통 floating tooltip
+const SECURITY_SALE_TOOLTIP_ID='securitySaleTooltip';
+let securitySaleTooltipBound=false;
+function securitySaleTooltip(){
+  let tooltip=document.getElementById(SECURITY_SALE_TOOLTIP_ID);
+  if(tooltip)return tooltip;
+  tooltip=document.createElement('div');
+  tooltip.id=SECURITY_SALE_TOOLTIP_ID;
+  tooltip.className='dash-tooltip';
+  tooltip.setAttribute('role','tooltip');
+  tooltip.setAttribute('aria-hidden','true');
+  document.body.appendChild(tooltip);
+  return tooltip;
+}
+function securitySaleTooltipHtml(target){
+  const data=target?.dataset||{};
+  const rows=[
+    assetSourceTooltipRow('매도가',data.salePrice),
+    assetSourceTooltipRow('거래비용',data.saleCost),
+    assetSourceTooltipRow('순매도대금',data.saleNet),
+    assetSourceTooltipRow('매수원가',data.saleBasis),
+    assetSourceTooltipRow('실현손익',data.saleProfit)
+  ].filter(Boolean).join('');
+  return `<div class="tt-date">${escapeHtml(data.saleName||'전량매도')}</div>${rows}`;
+}
+function positionSecuritySaleTooltip(target,event){
+  const tooltip=securitySaleTooltip();
+  const point=assetSourceTooltipPoint(target,event);
+  tooltip.style.visibility='hidden';
+  tooltip.style.left=`${point.x}px`;
+  tooltip.style.top=`${point.y}px`;
+  tooltip.classList.add('visible');
+  tooltip.setAttribute('aria-hidden','false');
+  requestAnimationFrame(()=>{
+    if(!tooltip.classList.contains('visible'))return;
+    const viewport=assetSourceTooltipViewport();
+    const rect=tooltip.getBoundingClientRect();
+    const pad=14,gap=12;
+    const width=Math.min(rect.width,Math.max(1,viewport.width-pad*2));
+    const height=Math.min(rect.height,Math.max(1,viewport.height-pad*2));
+    let left=point.x+gap;
+    if(left+width>viewport.width-pad)left=point.x-width-gap;
+    left=Math.max(pad,Math.min(left,Math.max(pad,viewport.width-width-pad)));
+    let top=point.y-height-gap;
+    if(top<pad)top=point.y+18;
+    if(top+height>viewport.height-pad)top=Math.max(pad,viewport.height-height-pad);
+    tooltip.style.left=`${left}px`;
+    tooltip.style.top=`${top}px`;
+    tooltip.style.visibility='visible';
+  });
+}
+function showSecuritySaleTooltip(target,event){
+  if(!target)return;
+  const tooltip=securitySaleTooltip();
+  tooltip.innerHTML=securitySaleTooltipHtml(target);
+  positionSecuritySaleTooltip(target,event);
+}
+function hideSecuritySaleTooltip(){
+  const tooltip=document.getElementById(SECURITY_SALE_TOOLTIP_ID);
+  if(!tooltip)return;
+  tooltip.classList.remove('visible');
+  tooltip.setAttribute('aria-hidden','true');
+  tooltip.style.visibility='';
+}
+function setupSecuritySaleTooltips(){
+  if(securitySaleTooltipBound)return;
+  securitySaleTooltipBound=true;
+  securitySaleTooltip();
+  const selector='[data-security-sale-tooltip]';
+  document.addEventListener('pointerover',event=>{
+    if(event.pointerType==='touch')return;
+    const target=event.target.closest?.(selector);
+    if(!target||target.contains(event.relatedTarget))return;
+    showSecuritySaleTooltip(target,event);
+  });
+  document.addEventListener('pointermove',event=>{
+    if(event.pointerType==='touch')return;
+    const target=event.target.closest?.(selector);
+    if(target)positionSecuritySaleTooltip(target,event);
+  },{passive:true});
+  document.addEventListener('pointerout',event=>{
+    if(event.pointerType==='touch')return;
+    const target=event.target.closest?.(selector);
+    if(!target||target.contains(event.relatedTarget))return;
+    hideSecuritySaleTooltip();
+  });
+  document.addEventListener('focusin',event=>{const target=event.target.closest?.(selector);if(target)showSecuritySaleTooltip(target);});
+  document.addEventListener('focusout',event=>{const target=event.target.closest?.(selector);if(target&&!target.contains(event.relatedTarget))hideSecuritySaleTooltip();});
+  document.addEventListener('keydown',event=>{if(event.key==='Escape')hideSecuritySaleTooltip();});
+  document.addEventListener('scroll',hideSecuritySaleTooltip,true);
+  window.addEventListener('resize',hideSecuritySaleTooltip,{passive:true});
+}
+
 function formatAssetSourceObservedAt(value){
   if(!value)return '';
   const parsed=new Date(value);
@@ -667,6 +760,8 @@ export {
   setupAssetSourceTooltips,
   hideAssetSourceTooltip,
   setupAssetVizTooltips,
+  setupSecuritySaleTooltips,
+  hideSecuritySaleTooltip,
   showAppToast,
   toggleMobileViewMode
 };

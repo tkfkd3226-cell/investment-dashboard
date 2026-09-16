@@ -332,6 +332,8 @@ cashPrincipalDelta  주식 원금 ↔ 현금 원금 이동액
 
 6/18 이후 계좌1 성과기준 투입원금은 **선택일 잔여 보유원가 + 누적 현금화 원금**이다. 전량/부분매도에서 `cashPrincipalDelta`는 매도된 `costBasis`만큼 원금을 현금 pool로 이동시키고, 그 현금 원금으로 재매수할 때 실제 재투입한 원금만 음수 delta로 차감한다. 같은 날짜에 매도와 재매수가 함께 있으면 event id 문자열 순서가 아니라 **그 날짜의 cashPrincipalDelta 순변동을 먼저 합산**한 뒤 일자 종료 시점 원금 pool을 검증한다. 날짜 종료 기준 현금화 원금이 음수가 되는 원장은 허용하지 않는다.
 
+증권계좌 현금을 추적 현금계좌로 되돌릴 때는 `type: withdrawal`, `fundingClass: internalCashReturn`을 사용한다. `amount`는 실제 계좌에서 빠진 전체 현금, `principalAmount`는 그중 투자원금 회수분이며 `cashPrincipalDelta`는 `-principalAmount`다. `outsideCashForDate()`는 전체 `amount`를 추적 현금에 복귀시키고, 계좌1 source principal과 투자원금 검산은 `principalAmount`만 감소시킨다. 내부이동 원금의 순액은 `internalCashTransfer - internalCashReturn principal`로 계산해 장부 결과물 중복조정을 제거하며, `amount - principalAmount` 비원금 회수분은 계좌 성과가 단순 출금 때문에 감소하지 않도록 결과물에 보존한다.
+
 종목 성과 의미는 다음을 유지한다.
 
 ```text
@@ -343,13 +345,13 @@ performanceCost    현재 잔여 cost + realizedCostBasis
 종목 누적수익률     totalProfit / performanceCost
 ```
 
-따라서 전량매도 뒤 `qty=0`인 종목은 `보유종목 현황`에서는 빠지지만 종목별 누적손익/수익률 history에서는 마지막 실현 성과가 유지된다. `securitiesCashForDate()`의 sell 현금흐름에는 `grossAmount`가 아니라 **순매도대금 `amount`**를 사용한다.
+따라서 전량매도 뒤 `qty=0`인 종목은 `보유종목 현황`에서는 빠진다. `전일 대비 변동`은 매도 당일까지 종목을 남기고 전량매도 종목명에 취소선을 표시하며 공통 `dash-tooltip`로 매도가·거래비용·순매도대금·매수원가·실현손익을 보여준다. 종목별 누적손익/수익률 차트도 **매도 당일까지 마지막 실현 성과를 표시하고 다음 날짜부터 series에서 제외**한다. 단 전체 `rawHoldingProfit`에는 확정 실현손익이 계속 포함된다. `securitiesCashForDate()`의 sell 현금흐름에는 `grossAmount`가 아니라 **순매도대금 `amount`**를 사용한다.
 
-`scripts/update_prices.py`는 위 JS contract를 그대로 재현한다. 대상 날짜 `security_position_state().qty <= 0`인 종목은 신규 KRX 가격 조회를 하지 않지만, 매도 전 날짜 backfill에서는 당시 보유수량을 복원해 정상 조회한다. `performance_snapshots.json`의 `rawHoldingProfit`/`symbols`는 평가손익+실현손익을 사용하고, 계좌1 원금도 JS와 같은 보유원가+현금화 원금 기준을 사용한다. 동일 입력으로 snapshot을 다시 생성해도 실현손익·현금이 중복 반영되지 않아야 한다.
+`scripts/update_prices.py`는 위 JS contract를 그대로 재현한다. `qty <= 0`이어도 **당일 buy/sell 이벤트가 있는 종목은 그 거래일까지 KRX 시장가격을 조회**하고, 다음 날짜부터 신규 조회에서 제외한다. 매도 전 날짜 backfill에서는 당시 보유수량을 복원해 정상 조회한다. `performance_snapshots.json`의 `rawHoldingProfit`은 평가손익+누적 실현손익을 계속 보존하지만 `symbols`는 보유 중이거나 당일 거래가 있는 종목만 포함한다. 계좌1 원금도 JS와 같은 보유원가+현금화 원금 기준을 사용하며 동일 입력 재생성에서 실현손익·현금이 중복 반영되지 않아야 한다.
 
 Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수량이 0보다 큰 ticker만 요청한다. 따라서 전량매도 종목은 매도일 이후 실시간 quote universe에서 자동 제외되며 Market AI backend에 별도 매도 상태를 추가하지 않는다.
 
-현재 첫 증권 전량매도 회귀 anchor는 `2026-09-16 / 009150 삼성전기`다. `gross 1,348,000 - transactionCost 2,772 = net 1,345,228`, `costBasis 1,345,000`, `realizedProfit +228`, 매도 후 증권현금 `1,404,018`, 매도 전후 계좌1 투입원금 `24,341,210` 유지가 자동 테스트의 실제 운영 데이터 검산 기준이다.
+현재 첫 증권 전량매도·원금회수 회귀 anchor는 `2026-09-16 / 009150 삼성전기`다. 매도는 `gross 1,348,000 - transactionCost 2,772 = net 1,345,228`, `costBasis 1,345,000`, `realizedProfit +228`이다. 같은 날짜 운영 검증을 위해 증권계좌에서 `1,400,228`을 내부 현금계좌로 회수해 `securitiesCash 3,790`을 남기며, withdrawal은 `principalAmount 1,345,000 / cashPrincipalDelta -1,345,000 / fundingClass internalCashReturn`으로 기록한다. 이에 따라 9/16 계좌1 투입원금은 `22,996,210`, 추적 현금은 `2,090,325`, 원천·보유 차액은 기존 `12,862`, 장부결과 VS 실제보유 차액은 기존 생활비 사용분 `3,063,626`을 유지한다.
 
 ## 2.4 `dashboard-ui.js`와 `dashboard-ui-common.js` 책임
 

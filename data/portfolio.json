@@ -9,7 +9,7 @@
     "externalPrincipal": 20723704,
     "goldPrincipal": 7000000,
     "laborNetPrincipal": 7023704,
-    "account1Principal": 24328348,
+    "account1Principal": 22983348,
     "account1ProfitAdjustment": -466322,
     "account2Principal": 4121865,
     "account2Profit": 1489352,
@@ -18,7 +18,7 @@
     "tossProfit": 6351989,
     "tossRealizedAmount": 6351989,
     "tossReinvestedToAccount1": 2009374,
-    "securitiesCash": 1404018,
+    "securitiesCash": 3790,
     "outsideCash": 2035097,
     "livingSpent": 3063626,
     "pensionContributionPrincipal": 24139249,
@@ -209,6 +209,16 @@
       "realizedProfit": 228,
       "cashPrincipalDelta": 1345000,
       "memo": "삼성전기 전량매도 (실제 거래비용 반영)"
+    },
+    {
+      "id": "sec-withdrawal-20260916-internal-cash-return",
+      "date": "2026-09-16",
+      "type": "withdrawal",
+      "amount": 1400228,
+      "principalAmount": 1345000,
+      "cashPrincipalDelta": -1345000,
+      "fundingClass": "internalCashReturn",
+      "memo": "삼성전기 매도 후 증권계좌 현금 내부회수 (잔액 3,790원 유지)"
     }
   ],
   "securitiesSourceTracking": {

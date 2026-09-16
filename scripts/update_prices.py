@@ -531,6 +531,31 @@ def security_cash_principal_delta(event: dict[str, Any]) -> int:
     return 0
 
 
+def is_internal_cash_return(event: dict[str, Any]) -> bool:
+    return str(event.get("type", "")) == "withdrawal" and str(event.get("fundingClass", "")) == "internalCashReturn"
+
+
+def security_withdrawal_principal_amount(event: dict[str, Any]) -> int:
+    if str(event.get("type", "")) != "withdrawal":
+        return 0
+    explicit = security_optional_number(event, "principalAmount")
+    if explicit is not None:
+        return max(0, int(explicit))
+    cash_delta = security_optional_number(event, "cashPrincipalDelta")
+    if cash_delta is not None and cash_delta < 0:
+        return abs(int(cash_delta))
+    return max(0, int(event.get("amount", 0) or 0))
+
+
+def security_has_trade_on_date(portfolio: dict[str, Any], ticker: str, target_date: str) -> bool:
+    return any(
+        str(event.get("type", "")) in {"buy", "sell"}
+        and str(event.get("ticker", "")) == str(ticker)
+        and str(event.get("date", "")) == target_date
+        for event in security_events(portfolio)
+    )
+
+
 def security_cash_principal_for_date(target_date: str, portfolio: dict[str, Any]) -> int:
     daily_deltas: dict[str, int] = {}
     for event in security_events(portfolio):
@@ -641,7 +666,7 @@ def account1_source_principal_for_date(target_date: str, portfolio: dict[str, An
         if event.get("type") == "contribution":
             principal -= amount
         elif event.get("type") == "withdrawal":
-            principal += amount
+            principal += security_withdrawal_principal_amount(event)
     return principal
 
 
@@ -657,17 +682,22 @@ def account1_principal_for_date(target_date: str, portfolio: dict[str, Any]) -> 
         return securities_holding_cost_for_date(target_date, portfolio) + security_cash_principal_for_date(target_date, portfolio)
     return account1_source_principal_for_date(target_date, portfolio)
 
-def is_symbol_chart_target(item: dict[str, Any], target_date: str) -> bool:
+def is_symbol_chart_target(item: dict[str, Any], target_date: str, portfolio: dict[str, Any] | None = None) -> bool:
     if item.get("chart") is False:
         return False
     chart_from = str(item.get("chartFrom", "") or "")
-    return not chart_from or target_date >= chart_from
+    if chart_from and target_date < chart_from:
+        return False
+    if portfolio is None:
+        return True
+    state = security_position_state(item, target_date, portfolio)
+    return float(state["qty"]) > 0 or security_has_trade_on_date(portfolio, str(item.get("ticker", "")), target_date)
 
 
 def init_security_symbols(portfolio: dict[str, Any], target_date: str) -> dict[str, int]:
     symbols: dict[str, int] = {}
     for item in portfolio.get("securities", []):
-        if not is_symbol_chart_target(item, target_date):
+        if not is_symbol_chart_target(item, target_date, portfolio):
             continue
         name = item.get("name")
         if not name:
@@ -719,7 +749,7 @@ def calculate_performance_snapshot(
         else:
             allocation["개별주식"] += eval_amount
 
-        if is_symbol_chart_target(item, target_date):
+        if is_symbol_chart_target(item, target_date, portfolio):
             name = item["name"]
             key = symbol_key(str(name))
             symbols[key] = total_profit
@@ -809,7 +839,7 @@ def update_one_date(
             manual_valuation_used = True
             continue
 
-        if float(security_position_state(item, target_date, portfolio)["qty"]) <= 0:
+        if float(security_position_state(item, target_date, portfolio)["qty"]) <= 0 and not security_has_trade_on_date(portfolio, ticker, target_date):
             continue
 
         actual, close, err = fetch_close(ticker, target_date)

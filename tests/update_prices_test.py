@@ -224,7 +224,7 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
             ],
         }
 
-    def test_sale_date_skips_closed_position_fetch_and_keeps_realized_profit(self):
+    def test_sale_date_fetches_market_close_for_sold_position_and_keeps_realized_profit(self):
         calls = []
         self.updater.fetch_close = lambda ticker, date: calls.append((ticker, date)) or (date, 999, None)
         prices, snapshots = {}, {}
@@ -232,8 +232,8 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
         warnings = self.updater.update_one_date("2026-06-20", self.portfolio, prices, snapshots)
 
         self.assertEqual(warnings, [])
-        self.assertEqual(calls, [])
-        self.assertEqual(prices["2026-06-20"]["securities"], {})
+        self.assertEqual(calls, [("SEC", "2026-06-20")])
+        self.assertEqual(prices["2026-06-20"]["securities"], {"SEC": 999})
         snapshot = snapshots["2026-06-20"]
         self.assertEqual(snapshot["rawHoldingProfit"], 100)
         self.assertEqual(snapshot["symbols"]["Stock A"], 100)
@@ -254,6 +254,19 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
         self.assertEqual(snapshots["2026-06-19"]["symbols"]["Stock A"], -100)
         self.assertEqual(self.updater.account1_principal_for_date("2026-06-19", self.portfolio), 1000)
         self.assertEqual(self.updater.account1_principal_for_date("2026-06-20", self.portfolio), 1000)
+
+    def test_post_sale_date_excludes_closed_position_from_fetch_and_symbol_snapshot(self):
+        calls = []
+        self.updater.fetch_close = lambda ticker, date: calls.append((ticker, date)) or (date, 999, None)
+        prices, snapshots = {}, {}
+
+        warnings = self.updater.update_one_date("2026-06-21", self.portfolio, prices, snapshots)
+
+        self.assertEqual(warnings, [])
+        self.assertEqual(calls, [])
+        self.assertEqual(prices["2026-06-21"]["securities"], {})
+        self.assertNotIn("Stock A", snapshots["2026-06-21"]["symbols"])
+        self.assertEqual(snapshots["2026-06-21"]["rawHoldingProfit"], 100)
 
     def test_historical_sale_cash_ignores_stale_saved_cash_and_is_idempotent(self):
         stale_snapshots = {
@@ -341,9 +354,9 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
         self.assertEqual(after_state["realizedProfit"], 228)
         self.assertEqual(after_state["realizedCostBasis"], 1345000)
         self.assertEqual(self.updater.securities_cash_for_date("2026-09-15", portfolio, snapshots), 58790)
-        self.assertEqual(self.updater.securities_cash_for_date("2026-09-16", portfolio, snapshots), 1404018)
+        self.assertEqual(self.updater.securities_cash_for_date("2026-09-16", portfolio, snapshots), 3790)
         self.assertEqual(self.updater.account1_principal_for_date("2026-09-15", portfolio), 24341210)
-        self.assertEqual(self.updater.account1_principal_for_date("2026-09-16", portfolio), 24341210)
+        self.assertEqual(self.updater.account1_principal_for_date("2026-09-16", portfolio), 22996210)
 
         before = self.updater.calculate_performance_snapshot("2026-09-15", portfolio, prices, snapshots)
         after = self.updater.calculate_performance_snapshot("2026-09-16", portfolio, prices, snapshots)
@@ -351,7 +364,17 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
         self.assertEqual(after["symbols"]["삼성전기"], 228)
         self.assertEqual(after["rawHoldingProfit"], 2115078)
         self.assertEqual(after["dailyProfit"], -24932)
-        self.assertEqual(after["allocation"]["현금"], 1404018)
+        self.assertEqual(after["allocation"]["현금"], 3790)
+        self.assertIn("삼성전기", after["symbols"])
+        post_sale = self.updater.calculate_performance_snapshot(
+            "2026-09-17",
+            portfolio,
+            {**prices, "2026-09-17": {"display": True, "marketStatus": "close", "securities": {}, "pension": {}}},
+            {**snapshots, "2026-09-16": after},
+        )
+        self.assertNotIn("삼성전기", post_sale["symbols"])
+        withdrawal = next(event for event in portfolio["securitiesEvents"] if event.get("id") == "sec-withdrawal-20260916-internal-cash-return")
+        self.assertEqual((withdrawal["amount"], withdrawal["principalAmount"], withdrawal["cashPrincipalDelta"]), (1400228, 1345000, -1345000))
 
 
 

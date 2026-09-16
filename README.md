@@ -185,7 +185,7 @@ Dashboard
 
 외부 GitHub Pages에서는 FastAPI full API를 직접 공개하지 않고 Tailscale Serve가 연결된 **8002 GET-only proxy**를 통해 조회합니다. 보유종목 당일 시장평가 overlay는 **현재 KST 날짜에서만** 적용하며 과거 날짜와 운영 JSON은 변경하지 않습니다. 개별주식 시간외와 ETF 장마감이 공존하는 구간은 ticker별 `market_state`로 구분하며, 세부 fallback/lease/session 판정은 Main handover와 Market AI 프로젝트 문서를 기준으로 합니다.
 
-증권 매도는 `data/portfolio.json`의 `securitiesEvents`가 거래 원장을 소유합니다. 매도 체결가는 시장가격 JSON과 분리하며, `grossAmount - transactionCost = amount(순매도대금)`, `amount - costBasis = realizedProfit` 관계를 유지합니다. 매도된 원금은 사라지지 않고 `cashPrincipalDelta`를 통해 현금화 원금으로 이동하며, 재매수 시 사용한 원금만 다시 차감합니다. `scripts/update_prices.py`는 같은 계약으로 성과 스냅샷을 생성하고 대상 날짜에 수량이 0인 매도 완료 종목은 신규 KRX 조회에서 제외하되 매도 전 과거 backfill은 유지합니다.
+증권 매도는 `data/portfolio.json`의 `securitiesEvents`가 거래 원장을 소유합니다. 매도 체결가는 시장가격 JSON과 분리하며, `grossAmount - transactionCost = amount(순매도대금)`, `amount - costBasis = realizedProfit` 관계를 유지합니다. 매도된 원금은 `cashPrincipalDelta`로 현금화 원금에 이동하고 재매수·원금회수 시 실제 원금만 다시 차감합니다. `fundingClass: internalCashReturn` withdrawal은 실제 계좌 출금액(`amount`)과 회수 원금(`principalAmount`)을 분리해 증권현금·추적 현금·투자원금 검산을 동시에 보존합니다. `scripts/update_prices.py`는 매도 당일까지 해당 종목의 KRX 시장가격을 조회해 체결가와 비교할 수 있게 하고, 다음 날짜부터 신규 조회에서 제외하되 매도 전 과거 backfill은 유지합니다.
 
 ## 4. 프로젝트 구조
 
@@ -373,7 +373,7 @@ GitHub Actions에서 직접 수동 실행할 때는 필요한 경우 대상 날�
 
 GAS는 KRX requestId의 intent/receipt와 durable dispatch ledger, workflow run ID/operation marker를 함께 사용합니다. 접수 여부를 끝내 확정하지 못한 requestId도 terminal fail-closed 상태로 수렴시켜 같은 ID의 중복 dispatch와 active intent 영구 누적을 동시에 막습니다. 세부 race/복구 시나리오는 유지보수 문서와 평가 가이드를 따릅니다.
 
-가격 생성기는 대상 날짜의 증권 position state를 먼저 복원합니다. 전량매도 완료 종목은 매도일 이후 신규 종가 조회 대상에서 빠지지만, 매도 전 날짜를 재생성하는 backfill에서는 해당 시점 보유수량에 따라 다시 조회합니다. `performance_snapshots.json`의 증권 누적손익에는 잔여 평가손익과 누적 실현손익이 함께 반영되며, JS Main 계산과 Python 생성기가 같은 원금·실현손익 계약을 사용해야 합니다.
+가격 생성기는 대상 날짜의 증권 position state와 당일 거래 이벤트를 함께 복원합니다. 전량매도 종목은 **매도 당일까지** KRX 시장가격을 조회하고 종목별 누적손익에도 마지막 실현성과를 남기며, 다음 날짜부터 신규 종가 조회·종목별 차트 series에서 제외합니다. 매도 전 날짜 backfill에서는 당시 보유수량에 따라 다시 조회합니다. `performance_snapshots.json`의 전체 증권 누적손익에는 매도 후에도 실현손익이 계속 포함되며, JS Main 계산과 Python 생성기가 같은 원금·실현손익·내부 현금회수 계약을 사용해야 합니다.
 
 ---
 

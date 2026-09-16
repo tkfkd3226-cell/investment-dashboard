@@ -14,8 +14,10 @@ import {
   escapeHtml,
   navIconSvg,
   hideAssetSourceTooltip,
+  hideSecuritySaleTooltip,
   setupAssetSourceTooltips,
-  setupAssetVizTooltips
+  setupAssetVizTooltips,
+  setupSecuritySaleTooltips
 } from './dashboard-ui-common.js';
 import {
   bindDashboardModalDismiss,
@@ -272,6 +274,7 @@ function renderAssetWorkspace(x){
 function render(){
   const focusSnapshot=dashboardFocusSnapshot();
   hideAssetSourceTooltip();
+  hideSecuritySaleTooltip();
   closeAccountMemoInfo();
   const x=calc(dataState.activeDate),v=separateProfitView(x);
   renderTabs();
@@ -282,6 +285,7 @@ function render(){
   syncCornerThemeControls();
   drawAllCharts();
   setupAssetVizTooltips('.asset-insight-zone');
+  setupSecuritySaleTooltips();
   ensureMobileTopButton();
   ensureDesktopEdgeToc();
   setupSectionNavigationTracking();

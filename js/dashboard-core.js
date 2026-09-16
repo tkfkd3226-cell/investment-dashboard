@@ -401,7 +401,13 @@ const hasPensionData=d=>{const pp=dataState.prices?.[d]?.pension||{};return !!(p
 function previousDate(date){return allAvailableDates().filter(d=>d<date).sort(byDate).at(-1)||null}
 function getPrice(s,section,ticker){return s?.[section]?.[ticker]??null}
 const securityEventItems=()=>Array.isArray(dataState.portfolio?.securitiesEvents)?dataState.portfolio.securitiesEvents:[];
-const securityChartItemsForDate=d=>(dataState.portfolio?.securities||[]).filter(item=>item.chart!==false&&(!item.chartFrom||d>=item.chartFrom));
+const securityTradeEventsForDate=(ticker,d)=>securityEventItems().filter(v=>['buy','sell'].includes(String(v?.type||''))&&String(v?.ticker||'')===String(ticker||'')&&String(v?.date||'')===String(d||''));
+const securityChartItemVisibleForDate=(item,d)=>{
+  if(item?.chart===false||item?.chartFrom&&d<item.chartFrom)return false;
+  const state=securityPositionState(item,d);
+  return Number(state?.qty)>0||securityTradeEventsForDate(item?.ticker,d).length>0;
+};
+const securityChartItemsForDate=d=>(dataState.portfolio?.securities||[]).filter(item=>securityChartItemVisibleForDate(item,d));
 const securityValuationOverride=(ticker,d)=>{const e=securityEventItems().find(v=>String(v?.ticker||'')===String(ticker||'')&&String(v?.date||'')===String(d||'')&&Number(v?.valuationPrice)>0);return e?Number(e.valuationPrice):null};
 const securityChartNamesForDate=d=>securityChartItemsForDate(d).map(item=>item.name);
 const securityEventsBetween=(fromDate,toDate,ticker=null)=>securityEventItems().filter(v=>{
@@ -617,13 +623,27 @@ const securitiesCashForDate=d=>{
 };
 const isPerformanceExcludedSecurityFunding=v=>v?.type==='contribution'&&v?.fundingClass==='performanceExcludedTransfer';
 const isInternalCashTransferSecurityFunding=v=>v?.type==='contribution'&&v?.fundingClass==='internalCashTransfer';
+const isInternalCashReturnSecurityFunding=v=>v?.type==='withdrawal'&&v?.fundingClass==='internalCashReturn';
+const securityWithdrawalPrincipalAmount=v=>{
+  if(v?.type!=='withdrawal')return 0;
+  const explicit=securityOptionalNumber(v,'principalAmount');
+  if(explicit!=null)return Math.max(0,explicit);
+  const cashDelta=securityOptionalNumber(v,'cashPrincipalDelta');
+  if(cashDelta!=null&&cashDelta<0)return Math.abs(cashDelta);
+  return Math.max(0,Number(v?.amount)||0);
+};
 const securityContributionAfter=d=>securityEventItems().filter(v=>v.type==='contribution'&&String(v?.date||'')>d).reduce((a,v)=>a+(Number(v.amount)||0),0);
 const securityExternalPrincipalContributionAfter=d=>securityEventItems().filter(v=>v.type==='contribution'&&!isInternalCashTransferSecurityFunding(v)&&String(v?.date||'')>d).reduce((a,v)=>a+(Number(v.amount)||0),0);
-const securityWithdrawalAfter=d=>securityEventItems().filter(v=>v.type==='withdrawal'&&String(v?.date||'')>d).reduce((a,v)=>a+(Number(v.amount)||0),0);
+const securityWithdrawalPrincipalAfter=d=>securityEventItems().filter(v=>v.type==='withdrawal'&&String(v?.date||'')>d).reduce((a,v)=>a+securityWithdrawalPrincipalAmount(v),0);
+const securityExternalWithdrawalPrincipalAfter=d=>securityEventItems().filter(v=>v.type==='withdrawal'&&!isInternalCashReturnSecurityFunding(v)&&String(v?.date||'')>d).reduce((a,v)=>a+securityWithdrawalPrincipalAmount(v),0);
 const securityExternalContributionSum=d=>securityEventItems().filter(v=>v.type==='contribution'&&!isPerformanceExcludedSecurityFunding(v)&&!isInternalCashTransferSecurityFunding(v)&&String(v?.date||'')<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
 const securityExcludedTransferSum=d=>securityEventItems().filter(v=>isPerformanceExcludedSecurityFunding(v)&&String(v?.date||'')<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
 const securityInternalCashTransferSum=d=>securityEventItems().filter(v=>isInternalCashTransferSecurityFunding(v)&&String(v?.date||'')<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
-const account1SourcePrincipalForDate=d=>(Number(dataState.portfolio?.constants?.account1Principal)||0)-securityContributionAfter(d)+securityWithdrawalAfter(d);
+const securityInternalCashReturnSum=d=>securityEventItems().filter(v=>isInternalCashReturnSecurityFunding(v)&&String(v?.date||'')<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
+const securityInternalCashReturnPrincipalSum=d=>securityEventItems().filter(v=>isInternalCashReturnSecurityFunding(v)&&String(v?.date||'')<=d).reduce((a,v)=>a+securityWithdrawalPrincipalAmount(v),0);
+const securityInternalCashReturnNonPrincipalSum=d=>securitySafeAggregate('증권 내부 현금회수 비원금',securityInternalCashReturnSum(d)-securityInternalCashReturnPrincipalSum(d));
+const securityInternalCashPrincipalNetForDate=d=>securitySafeAggregate('증권 내부이동 원금 순액',securityInternalCashTransferSum(d)-securityInternalCashReturnPrincipalSum(d));
+const account1SourcePrincipalForDate=d=>(Number(dataState.portfolio?.constants?.account1Principal)||0)-securityContributionAfter(d)+securityWithdrawalPrincipalAfter(d);
 const securitiesHoldingCostForDate=d=>{
   const daily=dataState.account1Daily?.[d];
   if(Array.isArray(daily?.holdings)) return daily.holdings.reduce((a,h)=>a+(Number(h?.cost)||0),0);
@@ -632,9 +652,9 @@ const securitiesHoldingCostForDate=d=>{
 const account1InvestedPrincipalForDate=d=>securitiesHoldingCostForDate(d)+securityCashPrincipalForDate(d);
 const account1SourceHoldingGapForDate=d=>isLedgerCheckDate(d)?account1InvestedPrincipalForDate(d)-account1SourcePrincipalForDate(d):0;
 const account1PrincipalForDate=d=>isLedgerCheckDate(d)?account1InvestedPrincipalForDate(d):account1SourcePrincipalForDate(d);
-const externalPrincipalForDate=d=>(Number(dataState.portfolio?.constants?.externalPrincipal)||0)-securityExternalPrincipalContributionAfter(d)+securityWithdrawalAfter(d);
+const externalPrincipalForDate=d=>(Number(dataState.portfolio?.constants?.externalPrincipal)||0)-securityExternalPrincipalContributionAfter(d)+securityExternalWithdrawalPrincipalAfter(d);
 const sourceExternalPrincipalForDate=d=>externalPrincipalForDate(d)-securityExcludedTransferSum(d);
-const outsideCashForDate=d=>(Number(dataState.portfolio?.constants?.outsideCash)||0)-securityInternalCashTransferSum(d);
+const outsideCashForDate=d=>(Number(dataState.portfolio?.constants?.outsideCash)||0)-securityInternalCashTransferSum(d)+securityInternalCashReturnSum(d);
 const kodexSafeInteger=(value,label='KODEX 파생 정수')=>{
   if(!Number.isSafeInteger(value))throw new RangeError(`${label}이 JavaScript 안전 정수 범위를 벗어났습니다.`);
   return value;
@@ -680,6 +700,17 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
       const prevEval=snapshot?.evalAmount??h.prevEval??0;
       const dayChange=hasPrev?(Number(h.totalProfit??h.profit)||0)-(Number(h.prevTotalProfit??prevProfit)||0):null;
       const buyAmount=Number(h?.tradeFlow?.buyAmount)||0;
+      const saleEvents=securityTradeEventsForDate(h.ticker,date).filter(v=>v.type==='sell');
+      const sale=saleEvents.length?saleEvents.reduce((a,v)=>{
+        a.qty+=Math.max(0,Number(v.qty)||0);
+        a.grossAmount+=Math.max(0,Number(v.grossAmount??v.amount)||0);
+        a.transactionCost+=Math.max(0,Number(v.transactionCost)||0);
+        a.amount+=Math.max(0,Number(v.amount)||0);
+        a.costBasis+=Math.max(0,Number(v.costBasis)||0);
+        a.realizedProfit+=securitySellRealizedProfit(v);
+        return a;
+      },{qty:0,grossAmount:0,transactionCost:0,amount:0,costBasis:0,realizedProfit:0}):null;
+      if(sale){sale.price=sale.qty?sale.grossAmount/sale.qty:null;sale.fullExit=(Number(h?.qty)||0)<=0;}
       return {
         name:h.name,
         ticker:h.ticker,
@@ -691,6 +722,7 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
         evalAmount:Number(h.evalAmount)||0,
         dayChange,
         buyAmount,
+        sale,
         dayRate:hasPrev?dayChangeRate(dayChange,prevEval,buyAmount):null
       };
     });
@@ -822,7 +854,7 @@ function calc(date){
     const hasLiveSecurityPrice=holdings.some(h=>h.priceSource==='market-ai'),liveDailyEval=holdings.reduce((a,h)=>a+(Number(h.evalAmount)||0),0)+(Number(securitiesCash)||0);
     rawHoldingProfit=hasLiveSecurityPrice?holdings.reduce((a,h)=>a+(Number(h.profit)||0),0):daily.totalProfit;
     account1Principal=isLedgerCheckDate(date)?account1PrincipalForDate(date):daily.totalCost;
-    account1Result=isLedgerCheckDate(date)?Number(hasLiveSecurityPrice?liveDailyEval:daily.totalEval||0)-ledgerAccount1ActualGap:daily.totalCost+rawHoldingProfit;
+    account1Result=isLedgerCheckDate(date)?Number(hasLiveSecurityPrice?liveDailyEval:daily.totalEval||0)-ledgerAccount1ActualGap+securityInternalCashReturnNonPrincipalSum(date):daily.totalCost+rawHoldingProfit;
     account1Profit=account1Result-account1Principal;
     account1Return=account1Principal?account1Profit/account1Principal*100:0;
     etfEval=holdings.filter(h=>h.type==='ETF').reduce((a,h)=>a+h.evalAmount,0);
@@ -841,14 +873,14 @@ function calc(date){
     etfEval=holdings.filter(h=>h.type==='ETF').reduce((a,h)=>a+h.evalAmount,0);
     stockEval=holdings.filter(h=>h.type==='개별주식').reduce((a,h)=>a+h.evalAmount,0);
     allocTotal=etfEval+stockEval+securitiesCash;
-    account1Result=isLedgerCheckDate(date)?allocTotal-ledgerAccount1ActualGap:account1Principal+rawHoldingProfit+c.account1ProfitAdjustment;
+    account1Result=isLedgerCheckDate(date)?allocTotal-ledgerAccount1ActualGap+securityInternalCashReturnNonPrincipalSum(date):account1Principal+rawHoldingProfit+c.account1ProfitAdjustment;
     account1Profit=account1Result-account1Principal;
     account1Return=account1Principal?account1Profit/account1Principal*100:0;
   }
   const account2Profit=account2Included?c.account2Profit:0,account2Principal=account2Included?c.account2Principal:0,account2RealizedAmount=account2Included?c.account2RealizedAmount:0,account2Remainder=account2Included?c.account2RealizedAmount-c.account2ReinvestedToAccount1:0;
   const tossProfit=tossIncluded?c.tossProfit:0,tossRealizedAmount=tossIncluded?c.tossRealizedAmount:0,tossRemainder=tossIncluded?c.tossRealizedAmount-c.tossReinvestedToAccount1:0;
-  const internalCashTransfer=isLedgerCheckDate(date)?securityInternalCashTransferSum(date):0;
-  const totalProfit=account1Profit+account2Profit+tossProfit,totalResult=account1Result+account2Remainder+tossRemainder-internalCashTransfer;
+  const internalCashPrincipalNet=isLedgerCheckDate(date)?securityInternalCashPrincipalNetForDate(date):0;
+  const totalProfit=account1Profit+account2Profit+tossProfit,totalResult=account1Result+account2Remainder+tossRemainder-internalCashPrincipalNet;
   const totalPrincipal=account2Included?externalPrincipalForDate(date)+account1SourceHoldingGapForDate(date):account1Principal;
   const returnRate=totalPrincipal?totalProfit/totalPrincipal*100:0;
   const actualHolding=isLedgerCheckDate(date)?totalResult-c.livingSpent:null;
@@ -1127,6 +1159,9 @@ export {
   securityExcludedTransferSum,
   securityExternalContributionSum,
   securityInternalCashTransferSum,
+  securityInternalCashReturnSum,
+  securityInternalCashReturnPrincipalSum,
+  securityInternalCashPrincipalNetForDate,
   securityCashPrincipalForDate,
   securityPositionState,
   securitySymbolAllocHistory,
