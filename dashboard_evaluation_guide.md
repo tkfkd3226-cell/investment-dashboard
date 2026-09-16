@@ -1502,6 +1502,7 @@ Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend�
 
 - **범위 오염**: live quote가 과거 날짜, 운영 JSON, 수량·원가·원금·실현손익 같은 장부 원천을 바꾸지 않는가.
 - **fallback 의미**: `usable:true`만 적용하고 warming/stale/unavailable/error는 종목별 저장값으로 fallback하며 일부 실패가 정상 종목까지 무효화하지 않는가.
+- **장마감 durable 의미**: backend가 process-memory quote 없이 `closed + usable:true`를 복원한 경우에도 Dashboard가 정상 overlay로 소비하되, frontend가 durable DB를 직접 읽거나 전일/비-KIS/open·extended snapshot을 자체 승격하지 않는가. backend 계약상 exact 당일 KIS `SC_R` + closed + Bridge/subscription 정상 + fresh-tick 재확인 불필요 조건을 벗어난 값은 unusable→종목별 JSON fallback이어야 한다.
 - **상태 최신성**: 겹친 polling, 늦은 body parse, holdings universe 변경, visible↔hidden 전환에서 이전 응답/오류가 최신 상태를 덮지 않는가.
 - **multi-client 격리**: 복수 탭/기기의 client identity와 ticker universe가 서로 제거·오염되지 않는가.
 - **render lifecycle**: modal/chart/tooltip/input interaction 중 live refresh가 진행 UI를 교체하거나 focus/scroll을 잃게 하지 않는가. 별도수익 ON/OFF처럼 부분 갱신 대상은 불필요한 full render를 만들지 않는가.
@@ -1510,6 +1511,8 @@ Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend�
 - **Phone 날짜 label**: Topbar 날짜 셀렉트가 `년-월` / `월-일 요일` 공통 형식(`2026-9`, `9-16 수`)을 사용해 좁아진 Phone 폭에서도 select 화살표와 텍스트가 겹치지 않으며, viewport별 별도 label formatter를 만들지 않는가.
 - **표시 의미**: Hero 기준문구와 자산 source tooltip이 실제 계산에 적용된 가격 상태와 일치하고 raw 내부 상태 문자열을 사용자 의미로 오해하게 노출하지 않는가.
 - **시장 session/freshness**: KOSPI, K200, SOX, NQ100선물의 장전/거래중/장마감/거래중단과 freshness를 구분해 정상적인 장외 정지를 `데이터 지연`으로 오판하지 않는가. 기준시각은 가능한 경우 실제 시장시각을 우선하는가.
+- **KIS 기준시각**: KOSPI/K200 `business_time`은 실제 `HHMMSS` 범위일 때만 기준시각으로 사용하고 `888888` 같은 invalid 값은 `observed_at` KST 시각으로 fallback하는가.
+- **Monitor/lease 경계**: embedded 실시간 시세 Monitor는 read-only 관찰면으로서 Dashboard live valuation `client_id` lease를 생성·연장하지 않는가. Monitor의 durable 표시 복원과 Dashboard valuation의 closed durable `usable` 승격을 같은 fallback으로 취급하지 않는가. `change_amount` 같은 Monitor 표시 field를 Main 평가 계산 state에 섞지 않는가.
 - **단일 display model**: 시장 카드와 tooltip이 서로 다른 값·상태·fallback 판정을 갖지 않는가.
 - **responsive/accessibility**: Desktop/Tablet Hero panel과 Phone dialog가 같은 의미를 유지하고, 전환 시 focus handoff·tooltip lifecycle이 안전한가.
 - **독립 실패**: Market AI endpoint 일부 또는 전체 실패가 저장 데이터 기반 Dashboard 기능을 깨뜨리지 않는가.
@@ -2200,6 +2203,8 @@ KRX
 
 Market AI
 → request A의 json parse가 늦게 끝나도 request B의 최신 상태를 덮지 않는다.
+→ 장마감 backend 재시작에서 exact 당일 KIS closed durable quote는 usable이면 복원되지만, 전일/비-KIS/open·extended durable 값은 JSON fallback을 유지한다.
+→ embedded Monitor 조회만으로 Dashboard client lease가 연장되지 않는다.
 
 Calc
 → 이미 회복 상태를 저장/복원/재계산해도 -100%나 invalid 상태로 돌아가지 않는다.

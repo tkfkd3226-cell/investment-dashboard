@@ -199,7 +199,7 @@ function marketAiSignalFreshness(signal){
   };
 }
 
-// [MARKET04] Snapshot / Session State · 시장 snapshot / KRX·US index·futures session 판단
+// [MARKET04] Snapshot / Session State · 시장 snapshot / KRX·US index·futures session / KIS business_time 기준시각 판단
 function marketAiSnapshotMap(payload){
   const items=Array.isArray(payload?.items)?payload.items:[];
   return Object.fromEntries(

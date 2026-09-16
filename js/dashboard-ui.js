@@ -514,7 +514,7 @@ function setupUiGlobalEvents(){
   window.visualViewport?.addEventListener('resize',syncRealtimeQuotesModalGeometry,{passive:true});
 }
 // [UI08] Market Data / KRX Action Modals · 실시간 시세 / KRX 현재가 반영
-// Realtime Monitor · connection-gated entry, embedded lifecycle, responsive geometry
+// Realtime Monitor · connection-gated read-only iframe entry / embedded lifecycle / responsive geometry. Dashboard quote client_id lease는 이 경로가 소유·갱신하지 않는다.
 function syncRealtimeQuotesAvailability(available){
   marketAiMonitorAvailable=available===true;
   document.querySelectorAll('[data-market-ai-monitor-entry]').forEach(control=>{control.hidden=!marketAiMonitorAvailable});

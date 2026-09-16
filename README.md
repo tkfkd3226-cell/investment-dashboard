@@ -107,8 +107,10 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - Local은 `127.0.0.1:8001` Market AI full API에 직접 연결하고, GitHub Pages는 Tailscale Serve → `127.0.0.1:8002` **GET-only proxy**를 통해 조회
 - 오늘 보유종목 quote는 ticker별 `market_state`를 보존해 판단하며, **15:30~20:00에는 개별주식 `extended`와 ETF `closed`가 동시에 존재할 수 있으므로 top-level `market_state` 하나로 전체 종목 상태를 판정하지 않음**
 - 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다.
+- 장마감 후 Market AI가 재시작되어 process-memory quote가 없어도 backend가 **현재 KST 날짜의 exact KIS `SC_R` durable snapshot + closed + Bridge/subscription 정상 + fresh-tick 재확인 불필요** 조건을 모두 확인해 `usable:true`로 제공한 경우에만 Dashboard가 장마감 평가값으로 소비합니다. `open/extended`, 전일 snapshot, 비-KIS source, subscription 장애/새 tick 대기 상태는 저장 `prices.json` fallback을 유지합니다. Dashboard frontend가 SQLite snapshot을 직접 읽거나 durable 여부를 추정하지 않습니다.
 - Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
 - Market AI 서버 연결이 확인된 동안에만 Web/Tablet Topbar의 **`실시간 시세`** 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출합니다. 모든 진입점은 공통 `[data-market-ai-monitor-entry][hidden]` 표시 계약을 사용하므로 연결 전/해제 시 viewport와 관계없이 숨겨집니다. Phone 햄버거 `관리` 메뉴에는 중복 진입점을 두지 않습니다. Web/Tablet은 Monitor의 content height를 먼저 받아 최종 compact 크기로 표시하고, 응답이 늦으면 제한된 compact fallback 높이를 사용하므로 최초에 화면 세로 전체를 채웠다가 줄어드는 동작을 만들지 않습니다. Phone은 KRX 등 action modal과 같은 외곽 여백·edge token을 공유하면서 가용 영역을 채우는 responsive modal을 사용하고, Monitor shell의 card padding은 세로/가로폰 모두 `--space-md`(5px)로 고정합니다. 연결이 끊기면 모든 진입점을 숨기고 열린 monitor modal도 닫습니다.
+- embedded **실시간 시세 Monitor는 read-only 운영 관찰면**입니다. `/api/bridge/kis-efriend/quote-universe`를 조회할 뿐 Dashboard live valuation의 `client_id` lease를 생성·연장하지 않으며, Monitor의 durable 표시 복원은 Dashboard 평가 overlay의 `usable` durable 승격과 별도 contract입니다. Monitor의 `change_amount` 등 표시 데이터는 iframe 내부 Market AI UI가 소유하고 Main Dashboard는 이를 평가 계산에 사용하지 않습니다.
 
 프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 현재가 overlay), `dashboard-market-ai-client.js`(local/remote transport)로 분리합니다.
 

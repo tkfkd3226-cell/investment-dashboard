@@ -19,7 +19,7 @@ import {
 //   [LIVE03] Quote Refresh / Universe Reconcile
 //   [LIVE04] Lifecycle / Public API
 
-// [LIVE01] Configuration / Client Identity · poll 설정 / tab별 lease identity
+// [LIVE01] Configuration / Client Identity · poll 설정 / tab별 client identity(backend lease key)
 const LIVE_VALUATION_POLL_MS=10_000;
 const LIVE_VALUATION_ENDPOINT='/api/market-data/krx-quotes';
 const LIVE_VALUATION_CLIENT_SESSION_KEY='investmentDashboard.liveValuationClientId';
@@ -220,7 +220,7 @@ async function refreshLiveValuation(){
     if(refreshSequence!==liveValuationRefreshSequence)return;
 
     // Holdings can change while the request is in flight (for example pension editor save).
-    // Never apply a response for an obsolete ticker universe; immediately reconcile the server lease.
+    // Never apply a response for an obsolete ticker universe; immediately reconcile 해당 client_id의 backend lease.
     const currentUniverseKey=liveValuationUniverseKey(liveValuationTickersForDate(today));
     if(currentUniverseKey!==requestedUniverseKey){
       queueUniverseReconcileRefresh();

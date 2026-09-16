@@ -1,5 +1,5 @@
-// Market AI Client · Signal panel과 live valuation이 공유하는 endpoint / timeout transport.
-// Dashboard state·quote 의미·DOM rendering은 소유하지 않고 local/remote 연결 semantics만 담당한다.
+// Market AI Client · Signal panel/live valuation이 공유하는 endpoint·timeout transport와 canonical Monitor URL/connection event 상수.
+// Dashboard state·quote 의미·DOM rendering·Monitor lease 의미는 소유하지 않고 local/remote 연결 semantics만 담당한다.
 // Structure map:
 //   [CLIENT01] Endpoint / Environment
 //   [CLIENT02] Timeout-safe Fetch
