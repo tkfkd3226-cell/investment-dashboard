@@ -350,9 +350,15 @@ function marketAiSnapshotDisplayState(row,sessionState='open'){
   if(!row){
     return {reason:'missing',rawRow:null,observedAt:null};
   }
+  const backendStatus=String(row?.input_status?.status||'');
+  const backendReason=({
+    realtime:'fresh',within_delay:'fresh',closed_latest:'closed',awaiting_session:'preopen',
+    closing_pending:'closing-pending',stale:'stale',missing_close:'missing-close',
+    calendar_unknown:'calendar-unknown',invalid_time:'invalid-time',missing:'missing'
+  })[backendStatus];
   const sessionReason=({preopen:'preopen',closed:'closed',maintenance:'maintenance'})[String(sessionState||'')];
   return {
-    reason:sessionReason||(freshness.fresh?'fresh':'stale'),
+    reason:backendReason||sessionReason||(freshness.fresh?'fresh':'stale'),
     rawRow:row,
     observedAt:freshness.observedAt
   };
@@ -402,6 +408,10 @@ function marketAiMarketStatusLabel(reason){
     stale:'데이터 지연',
     preopen:'장전',
     maintenance:'거래중단',
+    'closing-pending':'마감 데이터 수신 대기',
+    'missing-close':'최근 마감 데이터 없음',
+    'calendar-unknown':'거래 세션 확인 불가',
+    'invalid-time':'관측 시각 오류',
     bridge:'Bridge 지연',
     source:'선물 데이터 확인 필요',
     missing:'데이터 없음'

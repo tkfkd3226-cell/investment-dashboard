@@ -138,12 +138,13 @@ function chartBarWidth(svg,cfg,n,ratio,minWidth=0){
   const normal=Math.max(minWidth,baseline.plotW/count*ratio);
   return chartExpandedHalfGrowthUnits(svg,current,normal);
 }
-function chartViewBoxNeedsRedraw(){
-  if(chartRuntimeState.expanded)return false;
-  return [...document.querySelectorAll('svg.chart')].some(svg=>{
-    const current=Number(svg.viewBox?.baseVal?.width||0),next=chartViewBoxSize(svg).w;
-    return current>0&&Math.abs(current-next)>1;
-  });
+function chartSvgViewBoxNeedsRedraw(svg){
+  if(chartRuntimeState.expanded||!svg?.childElementCount)return false;
+  const current=Number(svg.viewBox?.baseVal?.width||0),next=chartViewBoxSize(svg).w;
+  return current>0&&Math.abs(current-next)>1;
+}
+function chartViewBoxNeedsRedraw(tab=uiState.activeAssetTab){
+  return assetTabChartIds(tab).some(id=>chartSvgViewBoxNeedsRedraw(document.getElementById(id)));
 }
 
 // [CHART02] Expanded View / Responsive Controls · 확대 / 반응형 컨트롤
@@ -1546,11 +1547,16 @@ function refreshSecuritiesCumulativeChart(){
   refreshScrollOverflowState();
   requestAnimationFrame(refreshScrollOverflowState);
 }
-function assetTabChartsReady(tab=uiState.activeAssetTab){
-  const ids=tab==='pension'
+function assetTabChartIds(tab=uiState.activeAssetTab){
+  return tab==='pension'
     ?['pensionChartCum','pensionChartSymbol','pensionChartAlloc']
     :['chartCum','chartSymbol','chartAlloc'];
-  return ids.every(id=>document.getElementById(id)?.childElementCount>0);
+}
+function assetTabChartsReady(tab=uiState.activeAssetTab){
+  return assetTabChartIds(tab).every(id=>{
+    const svg=document.getElementById(id);
+    return !!svg?.childElementCount&&!chartSvgViewBoxNeedsRedraw(svg);
+  });
 }
 
 function drawAllCharts(){
