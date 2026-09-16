@@ -137,20 +137,26 @@ test('거래유형 preset은 active와 aria-pressed를 같은 state owner에서 
   assert.match(calc,/class="preset-btn[^"]*"[^>]*aria-pressed="(?:true|false)"/);
 });
 
-test('Calc 수동 편집은 적용 프리셋과 실제 매도단가 shortcut을 함께 해제한다',()=>{
-  assert.match(js1,/function clearPresetActive\(\)\{[^]*?activePresetId=''[^]*?setPresetActive\(''\)[^]*?updateActualSellPriceUI\(\);/);
-  assert.match(js1,/function markPresetDirty\(\)\{if\(!applying\)clearPresetActive\(\);\}/);
+test('Calc 수동 편집은 거래유형 선택을 유지하고 presetDirty로 실제 매도단가 shortcut만 비활성화한다',()=>{
+  const start=js1.indexOf('function markPresetDirty');
+  assert.ok(start>=0,'missing markPresetDirty');
+  const dirtyFn=js1.slice(start,start+220);
+  assert.match(dirtyFn,/if\(applying\|\|presetDirty\)return;\s*presetDirty=true;\s*updateActualSellPriceUI\(\);/);
+  assert.doesNotMatch(dirtyFn,/activePresetId\s*=|setPresetActive\(/);
   for(const handler of ['handleMoneyInput','handleNumberInput','handleShareStep','handlePctStep','handleModeChange']){
-    const start=js1.indexOf(`function ${handler}`);
-    assert.ok(start>=0,`missing ${handler}`);
-    assert.ok(js1.slice(start,start+500).includes('markPresetDirty()'),`${handler} must clear preset state`);
+    const handlerStart=js1.indexOf(`function ${handler}`);
+    assert.ok(handlerStart>=0,`missing ${handler}`);
+    assert.ok(js1.slice(handlerStart,handlerStart+500).includes('markPresetDirty()'),`${handler} must mark preset dirty`);
   }
-  assert.match(js1,/if\(noPriorMode\|\|activePresetId!==getPresetIdForCurrentCase\(\)\)return null;/);
+  assert.match(js1,/if\(noPriorMode\|\|presetDirty\|\|activePresetId!==getPresetIdForCurrentCase\(\)\)return null;/);
 });
 
-test('Calc 저장 복원은 빈 presetId를 수동 수정 상태로 유지하고, 구버전 데이터만 추정한다',()=>{
+test('Calc 저장 복원은 presetId 선택과 presetDirty를 함께 보존하고 구버전·잘못된 presetId만 안전하게 추정한다',()=>{
   assert.match(js1,/const hasStoredPresetId=Object\.prototype\.hasOwnProperty\.call\(v,'presetId'\);/);
-  assert.match(js1,/activePresetId=hasStoredPresetId\s*\?\(presets\[v\.presetId\]\?v\.presetId:''\)\s*:\(v\.noPrior\?'current-only'/);
+  assert.match(js1,/const storedPresetIsValid=hasStoredPresetId&&!!presets\[v\.presetId\];/);
+  assert.match(js1,/activePresetId=storedPresetIsValid\s*\?v\.presetId\s*:\(v\.noPrior\?'current-only':\(v\.caseType==='holding'\?'buy-2026-07-29':'buy-2026-07-30'\)\);/);
+  assert.match(js1,/presetDirty=Object\.prototype\.hasOwnProperty\.call\(v,'presetDirty'\)\s*\?!!v\.presetDirty\s*:\(hasStoredPresetId&&!storedPresetIsValid\);/);
+  assert.match(js1,/setPresetActive\(activePresetId\);\s*applyValues\(v\);/);
 });
 
 test('Calc 검증 오류는 해당 control의 aria-invalid와 설명 영역을 함께 갱신한다',()=>{

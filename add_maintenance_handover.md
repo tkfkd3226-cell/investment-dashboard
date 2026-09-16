@@ -189,6 +189,7 @@ Mobile · 모바일   ≤ 760px
 - Calc 상세표는 동일 열폭 + content-driven minimum width를 사용한다. 표 종류별 임의 `min-width` modifier를 누적하지 않고, 렌더된 label/value가 잘리지 않는 최소폭을 계산해 container보다 넓을 때만 표를 가로 스크롤한다.
 - 상세표의 최소폭은 viewport 변화 시 같은 기준으로 다시 계산한다. Phone 카드 표현과 계산 로직은 이 presentation 규칙과 분리한다.
 - Calc는 거래유형 preset만 유지하고 실제 거래일별 빠른 매수 shortcut을 누적하지 않는다. 실제 매수·매도 이력은 Report가 소유한다.
+- **Calc에서 preset 적용 후 금액·수량·변동률·계산 기준을 수동 수정해도 상단 거래유형 버튼의 선택 배경(`active`/`aria-pressed`)은 유지한다.** 원본 preset과 값이 달라졌다는 상태는 `presetDirty=true`가 별도로 소유하며, dirty 상태에서는 실제 매도단가 shortcut만 비활성화한다. 저장/복원은 `presetId`와 `presetDirty`를 함께 보존하고, 구버전 저장값처럼 해당 필드가 없거나 잘못된 preset ID인 경우에만 현재 거래유형으로 안전하게 추정한다. 수동 수정 시 `activePresetId`를 비우거나 선택 배경을 미선택 상태로 되돌리는 옛 동작을 다시 도입하지 않는다.
 - 정상 계산 뒤 입력이 invalid가 되면 직전 정상 결과를 stale 상태로 유지하고, 다시 유효해지면 즉시 새 결과로 갱신한다.
 
 #### 1.2.5 접근성·공통 자산·문구
