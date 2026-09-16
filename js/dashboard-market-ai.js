@@ -1353,35 +1353,41 @@ function scheduleMount(){
   });
 }
 
+function handleMarketAiEnabledChange(event){
+  const enabled=event?.detail?.enabled===true;
+  marketAiRefreshSequence+=1;
+  if(!enabled){
+    Object.assign(marketAiState,{signal:null,marketSnapshot:{},bridgeStatus:null,serverReachable:false,status:'연결 꺼짐',statusKind:'disabled',message:'',lastSignalAt:null});
+    publishMarketAiConnectionState(false,{force:true});
+    removeMarketAiUi();
+    return;
+  }
+  scheduleMount();
+  refreshMarketAiSignal();
+}
+
 function startMarketAiBridge(){
   publishMarketAiConnectionState(false,{force:true});
   setupMarketAiTooltipEvents();
   if(typeof marketAiPhoneMedia.addEventListener==='function')marketAiPhoneMedia.addEventListener('change',scheduleMount);
   else marketAiPhoneMedia.addListener?.(scheduleMount);
-  if(!marketAiUiEnabled()){
-    removeMarketAiUi();
-    return;
-  }
+
+  // 초기 OFF여도 이후 연결 켜기 이벤트를 받을 수 있도록 lifecycle listener는 항상 등록한다.
   const app=document.getElementById('app');
   if(app)new MutationObserver(scheduleMount).observe(app,{childList:true,subtree:false});
-  window.addEventListener(MARKET_AI_ENABLED_EVENT,event=>{
-    const enabled=event?.detail?.enabled===true;
-    marketAiRefreshSequence+=1;
-    if(!enabled){
-      Object.assign(marketAiState,{signal:null,marketSnapshot:{},bridgeStatus:null,serverReachable:false,status:'연결 꺼짐',statusKind:'disabled',message:'',lastSignalAt:null});
-      publishMarketAiConnectionState(false,{force:true});
-      removeMarketAiUi();
-      return;
-    }
-    scheduleMount();
-    refreshMarketAiSignal();
-  });
+  window.addEventListener(MARKET_AI_ENABLED_EVENT,handleMarketAiEnabledChange);
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible'&&marketAiEnabled())refreshMarketAiSignal();
   });
-  scheduleMount();
-  if(marketAiEnabled())refreshMarketAiSignal();
-  else{publishMarketAiConnectionState(false,{force:true});removeMarketAiUi();}
+
+  if(marketAiUiEnabled()){
+    scheduleMount();
+    refreshMarketAiSignal();
+  }else{
+    publishMarketAiConnectionState(false,{force:true});
+    removeMarketAiUi();
+  }
+
   if(!marketAiPollTimer){
     marketAiPollTimer=window.setInterval(()=>{
       if(document.visibilityState==='visible'&&marketAiEnabled())refreshMarketAiSignal();

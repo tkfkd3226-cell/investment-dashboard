@@ -1161,11 +1161,14 @@ test('Hero 기준문구는 raw 상태 대신 실제 적용 가격의 사용자 �
   assert.match(app,/data-dashboard-action="hero-basis-tap"/);
 });
 
-test('KRX 종가 반영은 정규장 기준을 기록하고 legacy close 재확정을 허용한다',()=>{
+test('KRX 종가 반영은 인증 없는 정규장 일봉을 우선하고 raw pykrx를 failover로 유지한다',()=>{
   const updater=read('scripts/update_prices.py');
   const gas=read('GAS_code.js');
-  assert.match(updater,/\{"adjusted": False\} if market_status_for_date\(target_date\) == "close" else \{\}/);
+  assert.match(updater,/api\.stock\.naver\.com\/chart\/domestic\/item\/\{ticker\}/);
+  assert.match(updater,/"periodType": "dayCandle"/);
+  assert.match(updater,/adjusted=False/);
   assert.match(updater,/"priceBasis": price_basis/);
+  assert.match(updater,/정규장 종가를 확인하지 못했습니다/);
   assert.match(gas,/=== "regular_close"/);
   assert.match(gas,/reconfirm_regular_close/);
   assert.match(ui,/정규장 종가 기준이 아니면 다시 반영합니다\./);
@@ -1611,6 +1614,21 @@ test('Market AI 연결 toggle은 OFF fallback과 Phone 관리 메뉴 배치를 �
   assert.ok(mobileMenu.indexOf("title:'투자 계산기'")<mobileMenu.indexOf("action:'toggle-market-ai-connection'"));
   const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
   assert.match(tabsBlock,/\$\{phoneUi\(\)\?'':/,'Phone Topbar에는 Market AI toggle을 생성하지 않는다');
+});
+
+test('Market AI는 초기 OFF로 열려도 연결 켜기 lifecycle listener를 먼저 등록한다',()=>{
+  const start=marketAi.indexOf('function startMarketAiBridge(){');
+  const end=marketAi.indexOf('\nstartMarketAiBridge();',start);
+  assert.ok(start>=0&&end>start,'Market AI lifecycle block is missing');
+  const block=marketAi.slice(start,end);
+  assert.match(marketAi,/function handleMarketAiEnabledChange\(event\)/);
+  assert.match(block,/window\.addEventListener\(MARKET_AI_ENABLED_EVENT,handleMarketAiEnabledChange\)/);
+  assert.doesNotMatch(block,/if\(!marketAiUiEnabled\(\)\)\{[^]*?removeMarketAiUi\(\);[^]*?return;/);
+  assert.ok(
+    block.indexOf('window.addEventListener(MARKET_AI_ENABLED_EVENT,handleMarketAiEnabledChange)')
+      < block.indexOf('if(marketAiUiEnabled())'),
+    'enabled listener must exist before initial enabled-state branch'
+  );
 });
 
 test('개인보기 3회 입력은 Web/Tablet 기준문구와 Phone Hero 전체를 같은 click handler로 처리한다',()=>{

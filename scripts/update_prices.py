@@ -102,6 +102,100 @@ def previous_snapshot(prices: dict[str, Any], before: str | None = None):
 # Market data fetchers
 # ---------------------------------------------------------------------------
 
+def _iter_naver_chart_rows(payload: Any):
+    """Yield Naver chart rows regardless of the endpoint's wrapper shape."""
+    if isinstance(payload, dict):
+        if "localDate" in payload and "closePrice" in payload:
+            yield payload
+        for value in payload.values():
+            yield from _iter_naver_chart_rows(value)
+    elif isinstance(payload, list):
+        for value in payload:
+            yield from _iter_naver_chart_rows(value)
+
+
+def fetch_close_from_naver_chart(
+    ticker: str,
+    target_date: str,
+    lookback_days: int = DEFAULT_LOOKBACK_DAYS,
+):
+    """Fetch the latest regular-session daily close on or before ``target_date``.
+
+    Naver's domestic day-candle endpoint exposes the regular daily OHLC separately
+    from NXT over-market quote fields, so it can be used in GitHub Actions without
+    KRX login credentials.  Only rows inside the requested lookback window are
+    admitted.
+    """
+    start = datetime.strptime(target_date, DATE_FORMAT) - timedelta(days=lookback_days)
+    response = requests.get(
+        f"https://api.stock.naver.com/chart/domestic/item/{ticker}",
+        params={
+            "periodType": "dayCandle",
+            "startDateTime": start.strftime("%Y%m%d"),
+            "endDateTime": target_date.replace("-", ""),
+        },
+        headers={
+            "User-Agent": HTTP_USER_AGENT,
+            "Accept": "application/json,text/plain,*/*",
+        },
+        timeout=HTTP_TIMEOUT_SECONDS,
+    )
+    response.raise_for_status()
+    payload = response.json()
+
+    candidates: list[tuple[str, int]] = []
+    start_date = start.strftime(DATE_FORMAT)
+    for row in _iter_naver_chart_rows(payload):
+        raw_date = str(row.get("localDate", "") or "").strip()
+        raw_close = row.get("closePrice")
+        if not raw_date or raw_close in (None, ""):
+            continue
+
+        digits = re.sub(r"[^0-9]", "", raw_date)
+        if len(digits) != 8:
+            continue
+        actual_date = f"{digits[:4]}-{digits[4:6]}-{digits[6:8]}"
+        if not (start_date <= actual_date <= target_date):
+            continue
+
+        try:
+            close = int(round(float(str(raw_close).replace(",", ""))))
+        except (TypeError, ValueError):
+            continue
+        candidates.append((actual_date, close))
+
+    if not candidates:
+        raise ValueError(
+            f"Naver regular-close chart returned no rows for {ticker} "
+            f"{start_date}~{target_date}"
+        )
+
+    return max(candidates, key=lambda item: item[0])
+
+
+def _fetch_close_from_pykrx(
+    ticker: str,
+    start: datetime,
+    end: datetime,
+    *,
+    adjusted: bool | None,
+):
+    kwargs = {} if adjusted is None else {"adjusted": adjusted}
+    df = stock.get_market_ohlcv_by_date(
+        start.strftime("%Y%m%d"),
+        end.strftime("%Y%m%d"),
+        ticker,
+        **kwargs,
+    )
+    if df is None or df.empty:
+        raise ValueError("empty-dataframe")
+
+    last_idx = df.index[-1]
+    actual_date = last_idx.strftime(DATE_FORMAT) if hasattr(last_idx, "strftime") else str(last_idx)[:10]
+    close = int(df.iloc[-1]["종가"])
+    return actual_date, close
+
+
 def fetch_close(
     ticker: str,
     target_date: str,
@@ -109,32 +203,51 @@ def fetch_close(
     retries: int = FETCH_RETRIES,
     retry_delay: float = FETCH_RETRY_DELAY_SECONDS,
 ):
-    """Return the latest available close on or before ``target_date``."""
+    """Return the latest available close on or before ``target_date``.
+
+    During the regular session the existing pykrx current-price path is kept.
+    After the regular close, the unauthenticated Naver day-candle endpoint is
+    tried first so GitHub Actions can resolve the 15:30 close without KRX_ID/PW.
+    ``adjusted=False`` pykrx is retained only as a failover for environments that
+    do have a working KRX session.
+    """
     start = datetime.strptime(target_date, DATE_FORMAT) - timedelta(days=lookback_days)
     end = datetime.strptime(target_date, DATE_FORMAT)
+    closed = market_status_for_date(target_date) == "close"
     last_error = None
 
     for attempt in range(retries + 1):
-        try:
-            # pykrx adjusted=True(default)는 Naver 일봉 경로를 사용한다.
-            # 당일 장중 current-price 용도는 기존 경로를 유지하되, 장마감/과거일은
-            # KRX 원천(adjusted=False)을 명시해 15:30 정규장 종가를 확정한다.
-            kwargs = {"adjusted": False} if market_status_for_date(target_date) == "close" else {}
-            df = stock.get_market_ohlcv_by_date(
-                start.strftime("%Y%m%d"),
-                end.strftime("%Y%m%d"),
-                ticker,
-                **kwargs,
-            )
-            if df is None or df.empty:
-                last_error = "empty-dataframe"
-            else:
-                last_idx = df.index[-1]
-                actual_date = last_idx.strftime(DATE_FORMAT) if hasattr(last_idx, "strftime") else str(last_idx)[:10]
-                close = int(df.iloc[-1]["종가"])
+        if closed:
+            errors: list[str] = []
+            try:
+                actual_date, close = fetch_close_from_naver_chart(ticker, target_date, lookback_days)
                 return actual_date, close, None
-        except Exception as exc:
-            last_error = repr(exc)
+            except Exception as exc:
+                errors.append(f"naver-regular-close={exc!r}")
+
+            try:
+                actual_date, close = _fetch_close_from_pykrx(
+                    ticker,
+                    start,
+                    end,
+                    adjusted=False,
+                )
+                return actual_date, close, None
+            except Exception as exc:
+                errors.append(f"pykrx-raw={exc!r}")
+
+            last_error = "; ".join(errors)
+        else:
+            try:
+                actual_date, close = _fetch_close_from_pykrx(
+                    ticker,
+                    start,
+                    end,
+                    adjusted=None,
+                )
+                return actual_date, close, None
+            except Exception as exc:
+                last_error = f"pykrx-intraday={exc!r}"
 
         if attempt < retries:
             time.sleep(retry_delay)
@@ -373,29 +486,28 @@ def first_security_ticker(portfolio: dict[str, Any]) -> str | None:
     return None
 
 
+def probe_trading_date(portfolio: dict[str, Any], target_date: str):
+    ticker = first_security_ticker(portfolio)
+    if not ticker:
+        return None, None, "portfolio has no securities ticker"
+    return fetch_close(ticker, target_date)
+
+
 def resolve_latest_market_date(portfolio: dict[str, Any], target_date: str) -> str | None:
     ticker = first_security_ticker(portfolio)
-
-    if not ticker:
-        return None
-
-    actual, close, err = fetch_close(ticker, target_date)
+    actual, close, err = probe_trading_date(portfolio, target_date)
 
     if actual and close is not None:
         return actual
 
-    print(f"WARN latest market date lookup failed for {ticker} {target_date}: {err}")
+    print(f"WARN latest market date lookup failed for {ticker or '-'} {target_date}: {err}")
     return None
 
 
 def is_actual_trading_date(portfolio: dict[str, Any], target_date: str) -> bool:
-    ticker = first_security_ticker(portfolio)
-
-    if not ticker:
-        return False
-
-    actual, close, _ = fetch_close(ticker, target_date)
-
+    actual, close, err = probe_trading_date(portfolio, target_date)
+    if close is None and err:
+        print(f"WARN trading-date lookup failed for {target_date}: {err}")
     return actual == target_date and close is not None
 
 
@@ -910,7 +1022,7 @@ def update_one_date(
 
     prices[target_date] = {
         "display": display,
-        "source": "pykrx-github-actions+nxt-valuation" if manual_valuation_used else "pykrx-github-actions",
+        "source": "krx-github-actions+nxt-valuation" if manual_valuation_used else "krx-github-actions",
         "marketStatus": status,
         "priceBasis": price_basis,
         "requestedDate": target_date,
@@ -991,10 +1103,17 @@ def main() -> int:
 
     portfolio, prices, snapshots = load_dashboard_data()
 
-    if explicit_date and not is_actual_trading_date(portfolio, explicit_date):
-        raise ValueError(
-            f"--date {explicit_date}는 KRX 거래일이 아니거나 해당 날짜 종가를 확인할 수 없습니다."
-        )
+    if explicit_date:
+        actual_date, close, probe_error = probe_trading_date(portfolio, explicit_date)
+        if actual_date != explicit_date or close is None:
+            if actual_date and close is not None:
+                raise ValueError(
+                    f"--date {explicit_date}는 KRX 거래일이 아닙니다. "
+                    f"직전 확인 거래일은 {actual_date}입니다."
+                )
+            raise RuntimeError(
+                f"--date {explicit_date}의 정규장 종가를 확인하지 못했습니다: {probe_error}"
+            )
 
     target_dates = resolve_target_dates(portfolio, prices, explicit_date or None)
 

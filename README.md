@@ -113,6 +113,7 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다.
 - Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
 - Dashboard에서 Market AI 사용 여부를 켜고 끌 수 있습니다. OFF 시 signal/live polling과 volatile overlay를 중단해 저장 데이터로 fallback하며, 이 설정은 Market AI backend 프로세스 자체를 종료하지 않습니다. Web/Tablet은 Topbar icon action, Phone은 `관리` 메뉴 action을 사용합니다.
+- Dashboard가 Market AI **OFF 상태로 처음 열려도 enabled-change listener는 항상 등록**합니다. 따라서 이후 `Market AI 연결 켜기`를 누르면 새로고침 없이 즉시 mount/refresh가 시작되어야 합니다.
 - `실시간 시세` 진입점은 Market AI 연결이 확인된 동안에만 노출되며, viewport별 기존 modal geometry를 사용하고 연결 해제 시 닫힙니다.
 - 10초 Live Valuation 갱신은 Topbar focus/scroll 상태를 보존합니다.
 
@@ -380,6 +381,8 @@ GitHub Actions에서 직접 수동 실행할 때는 필요한 경우 대상 날�
 GAS는 KRX requestId의 intent/receipt와 durable dispatch ledger, workflow run ID/operation marker를 함께 사용합니다. 접수 여부를 끝내 확정하지 못한 requestId도 terminal fail-closed 상태로 수렴시켜 같은 ID의 중복 dispatch와 active intent 영구 누적을 동시에 막습니다. 세부 race/복구 시나리오는 유지보수 문서와 평가 가이드를 따릅니다.
 
 2026-09-14 KRX 애프터마켓 이후에도 GitHub 가격 원장은 **정규장 기준**을 유지합니다. 장중 snapshot은 `priceBasis:intraday`, 장마감/과거일은 KRX 정규장 종가와 `priceBasis:regular_close`를 저장하며, Market AI 애프터 quote는 화면 overlay로만 사용해 `prices.json`을 덮지 않습니다. legacy `close` snapshot은 정규장 종가로 한 번 재확정할 수 있습니다.
+
+장마감/과거일 종가 조회는 GitHub Actions에서 KRX 계정 secret을 요구하지 않도록 **Naver 국내종목 day-candle의 정규 일봉을 우선** 사용하고, 이 경로가 실패한 경우에만 `pykrx adjusted=False` 원천 조회를 failover로 시도합니다. 데이터 소스 장애로 종가를 못 받은 경우는 `거래일 아님`으로 오인하지 않고 `정규장 종가 조회 실패`로 fail-closed합니다.
 
 가격 생성기는 대상 날짜의 증권 position state를 먼저 복원합니다. 전량매도 완료 종목은 매도일 이후 신규 종가 조회 대상에서 빠지지만, 매도 전 날짜를 재생성하는 backfill에서는 해당 시점 보유수량에 따라 다시 조회합니다. `performance_snapshots.json`의 증권 누적손익에는 잔여 평가손익과 누적 실현손익이 함께 반영되며, JS Main 계산과 Python 생성기가 같은 원금·실현손익 계약을 사용해야 합니다.
 

@@ -1,6 +1,9 @@
+# _config.yml
 exclude:
-  - data/krx_dispatch_ledger
-  - data/pension_operation_identity
-  - data/pension_operation_ledger
-  - data/pension_batch_request_identity
+  - data/krx_dispatch_ledger/
+  - data/pension_operation_identity/
+  - data/pension_operation_ledger/
+  - data/pension_batch_request_identity/
   - GAS_code.js
+  - "*.md"
+  - tests/

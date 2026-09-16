@@ -442,6 +442,7 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 - 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, 상태 표시 등 공통 form/control 표현과 `dashboard-modal.js`의 dialog lifecycle을 재사용한다.
 - 퇴직연금 금액 조정의 `개별 처리 / 작업 모음`은 Main `.control-segmented`의 geometry/typography/중앙 정렬을 재사용한다. 긴 `작업 모음 + count` 라벨 때문에 필요한 폭·좌우 여백만 feature override하며, 연금 전용 font-size/height/line-height 체계를 별도로 만들지 않는다.
 - 개인보기 도구는 Web/Tablet에서 공통 icon-button geometry를 사용한다. Phone은 `관리` 메뉴를 사용하며 Market AI 연결 토글은 Phone Topbar에 두지 않는다.
+- Market AI lifecycle listener는 초기 preference가 OFF여도 등록한다. 초기 OFF를 이유로 `startMarketAiBridge()`가 listener 등록 전에 return하면 이후 같은 페이지에서 ON 이벤트를 받을 수 없으므로 금지한다. ON 전환은 새로고침 없이 mount/refresh를 시작해야 한다.
 - 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
 - KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유한다. 공통 modal radius는 shared modal contract에서 한 번만 소유하고 Tablet/Phone은 해당 shared token만 override한다. Phone 좌우 여백은 overlay padding을 canonical source로 사용하며 feature별 `100vw - npx` 폭 보정을 중복해서 만들지 않는다.
 - Tooltip 표시 motion은 `--tooltip-motion`을 공통 source로 사용한다.
@@ -940,7 +941,7 @@ Table의 geometry·정렬·summary contract는 **2.4 `Table 공통 contract`**�
 
 - 최신/누락 반영과 선택일 재갱신의 업무 의미를 섞지 않는다.
 - `marketStatus`는 `intraday/close`의 표시 상태이고, 정규장 종가 확정 여부는 별도 `priceBasis`가 소유한다. 저장값은 장중 `priceBasis:intraday`, 장마감/과거일 `priceBasis:regular_close`를 사용한다.
-- `scripts/update_prices.py`의 당일 장중 조회는 기존 pykrx 기본 current-price 경로를 유지하지만, `market_status_for_date(target_date)==close`인 장마감/과거일 조회는 `adjusted=False`를 명시해 KRX 원천의 15:30 정규장 종가를 사용한다. KRX 애프터마켓 16:00~20:00 가격을 GitHub `prices.json`에 종가로 저장하지 않는다.
+- `scripts/update_prices.py`의 당일 장중 조회는 기존 pykrx 기본 current-price 경로를 유지한다. `market_status_for_date(target_date)==close`인 장마감/과거일은 GitHub Actions에서 KRX 계정 secret 없이 동작하도록 Naver 국내종목 `dayCandle`의 정규 일봉을 우선 사용하고, 해당 공개 경로가 실패한 경우에만 `pykrx adjusted=False` KRX 원천 조회를 failover로 시도한다. 두 경로가 모두 실패하면 종가를 생성하지 않고 fail-closed하며, 명시 날짜 검증에서는 실제 비거래일(직전 거래일 확인 가능)과 데이터 취득 실패를 다른 오류로 구분한다. KRX 애프터마켓 16:00~20:00 가격을 GitHub `prices.json`에 종가로 저장하지 않는다.
 - GAS는 `marketStatus:close`만으로 중복 실행을 차단하지 않는다. `priceBasis:regular_close`인 경우에만 `이미 정규장 종가 기준 데이터가 반영되어 있습니다.`로 차단한다. `priceBasis`가 없는 legacy close는 당일 장마감 후 또는 선택일 재갱신에서 한 번 재확정해 `regular_close`로 승격할 수 있어야 한다. 이 변경은 기존 requestId/durable ledger idempotency를 제거하는 것이 아니며 `reconfirm_regular_close`도 durable decision reason으로 기록한다.
 - KRX modal 설명은 선택일이 **정규장 종가 기준이 아니면** 재갱신한다는 의미를 사용한다. 현황 표 종목/상품 source tooltip은 Market AI quote가 없을 때 저장 snapshot의 `priceBasis/marketStatus`를 읽어 `장중 저장 데이터` / `정규장 종가 저장 데이터` / legacy `저장 데이터`를 사용한다. `account1_daily_snapshots.json`은 기존 `저장 스냅샷`을 유지하고, Market AI quote가 적용된 경우에만 기존 `실시간` / `장 마감 시세`를 사용한다.
 - modal focus/ESC/request timeout과 같은 기본 lifecycle을 회귀검증한다. 일반 네트워크 요청은 공통 timeout을 따르되, KRX GAS write는 durable reconciliation과 GitHub API 왕복을 고려해 **60초 전용 timeout**을 사용한다. timeout은 서버 처리 실패를 뜻하지 않으므로 `NETWORK_TIMEOUT`에서는 '서버에서 계속 처리될 수 있음'을 안내하고 같은 requestId를 유지해 안전한 재시도가 가능해야 한다. 요청 중 재전송을 막고, modal 재진입 시 이전 요청의 응답·상태 문구·자동 닫기 timer가 새 session을 덮거나 닫지 않도록 request/session 경계를 함께 보호한다.
