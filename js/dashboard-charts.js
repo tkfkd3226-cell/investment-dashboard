@@ -3,7 +3,6 @@ import {
   CASH_ASSET_COLOR,
   SECURITY_SYMBOL_COLORS,
   allocHistory,
-  allAvailableDates,
   assetTypeColor,
   calc,
   cls,
@@ -11,9 +10,8 @@ import {
   dataState,
   fmt,
   formatKospi,
-  hasPensionData,
-  kospiIndexForDate,
   pct,
+  pensionChartHistoryBundle,
   pensionSeriesColor,
   securityAllocOneShareEval,
   securityAllocTypeTotals,
@@ -157,6 +155,7 @@ const chartRuntimeState={
   preservePlayedEntranceCardIdsOnce:null,
   securitiesCumTransitionSuppressionPending:false,
   printFixedViewBox:false,
+  printSvgSwaps:null,
   expanded:null
 };
 const chartState={
@@ -991,47 +990,9 @@ function symbolSummaryCard(h,total,{label=h.name,swatch='' }={}){const profit=Nu
 function symbolCard(h,total){return symbolSummaryCard(h,total,{label:h.name==='KODEX 200'?'KODEX 200':h.name,swatch:securitySymbolSwatch(h.name)})}
 
 
-function pensionSnapshotDates(d){
-  return allAvailableDates().filter(x=>x<=d&&hasPensionData(x));
-}
-function pensionCalcOn(date){
-  return calc(date);
-}
-function pensionCumHistory(d){
-  return pensionSnapshotDates(d).map(x=>{
-    const v=pensionCalcOn(x);
-    return {
-      '날짜':x,
-      '합계 : 누적손익':v.pensionProfit,
-      '합계 : 누적수익률':v.pensionReturn,
-      '코스피 지수':kospiIndexForDate(x),
-      '합계 : 전일대비손익':0
-    };
-  }).map((row,i,arr)=>{
-    row['합계 : 전일대비손익']=i===0?0:row['합계 : 누적손익']-arr[i-1]['합계 : 누적손익'];
-    return row;
-  });
-}
-function pensionSymbolHistory(d){
-  return pensionSnapshotDates(d).map(x=>{
-    const v=pensionCalcOn(x);
-    const row={'날짜':x,'_rates':{}};
-    v.pensionRows.forEach(r=>{
-      const profit=Number(r.totalProfit ?? r.profit ?? 0);
-      row[r.name]=profit;
-      row._rates[r.name]=Number(r.cost)?profit/Number(r.cost)*100:0;
-    });
-    return row;
-  });
-}
-function pensionAllocHistory(d){
-  return pensionSnapshotDates(d).map(x=>{
-    const v=pensionCalcOn(x), row={'날짜':x};
-    v.pensionRows.forEach(r=>row[r.name]=Number(r.evalAmount||0));
-    row['현금성자산']=Number(v.pensionCash||0);
-    return row;
-  });
-}
+function pensionCumHistory(d){return pensionChartHistoryBundle(d).cum;}
+function pensionSymbolHistory(d){return pensionChartHistoryBundle(d).symbol;}
+function pensionAllocHistory(d){return pensionChartHistoryBundle(d).alloc;}
 function pensionProductCard(h,total){return symbolSummaryCard(h,total,{swatch:pensionProductSwatch(h.name)})}
 function pensionProductTotalCard(x,symbols){
   const cashProfit=Number(x.pensionCash||0)-Number(x.pensionCashCost||0);
@@ -1622,14 +1583,53 @@ function drawAllCharts(){
   setTimeout(refreshScrollOverflowState,120);
 }
 
+const PRINT_CHART_SVG_IDS=Object.freeze([
+  'chartCum','chartSymbol','chartAlloc',
+  'pensionChartCum','pensionChartSymbol','pensionChartAlloc'
+]);
+function swapScreenChartsForPrint(){
+  const swaps=[];
+  PRINT_CHART_SVG_IDS.forEach(id=>{
+    const original=document.getElementById(id);
+    if(!original)return;
+    const printSvg=original.cloneNode(false);
+    const wasFocused=document.activeElement===original;
+    original.replaceWith(printSvg);
+    swaps.push({original,printSvg,wasFocused});
+  });
+  return swaps;
+}
+function restoreScreenChartsAfterPrint(){
+  const swaps=chartRuntimeState.printSvgSwaps||[];
+  chartRuntimeState.printSvgSwaps=null;
+  let focusTarget=null;
+  swaps.forEach(({original,printSvg,wasFocused})=>{
+    if(!printSvg?.isConnected)return;
+    printSvg.replaceWith(original);
+    if(wasFocused)focusTarget=original;
+  });
+  if(focusTarget){
+    try{focusTarget.focus?.({preventScroll:true})}catch{focusTarget.focus?.()}
+  }
+}
 function prepareChartsForPrint(){
+  if(chartRuntimeState.printSvgSwaps)return;
   if(chartRuntimeState.expanded)closeExpandedChart();
+  clearChartHover();
   document.documentElement.classList.add('print-light-theme');
-  drawChartsForPrint();
+  chartRuntimeState.printSvgSwaps=swapScreenChartsForPrint();
+  try{
+    drawChartsForPrint();
+  }catch(error){
+    restoreScreenChartsAfterPrint();
+    document.documentElement.classList.remove('print-light-theme');
+    throw error;
+  }
 }
 function restoreChartsAfterPrint(){
   document.documentElement.classList.remove('print-light-theme');
-  drawAllCharts();
+  restoreScreenChartsAfterPrint();
+  requestAnimationFrame(refreshScrollOverflowState);
 }
 function drawChartsForPrint(){
   chartRuntimeState.printFixedViewBox=true;

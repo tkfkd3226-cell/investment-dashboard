@@ -31,6 +31,7 @@ import {
   isExpandedChart,
   refreshExpandedSeparateProfitChart,
   refreshSecuritiesCumulativeChart,
+  renderPensionCharts,
   renderSecuritiesCumulativeChart,
   requestSecuritiesCumCardTransitionSuppression,
   setupChartGlobalEvents,
@@ -49,8 +50,12 @@ import {
   desktopEdgeTocIsOpen,
   renderCombined,
   renderResultSummary,
+  renderSecuritiesAssetDetail,
+  renderSecuritiesChartsBlock,
+  renderSecuritiesLedgerBlock,
   renderSecuritiesPerformanceSummary,
   renderSecuritiesSection,
+  renderSecuritiesSourceBlock,
   renderSourceTables,
   renderTabs,
   separateProfitControl,
@@ -63,7 +68,7 @@ import {
   syncPersonalViewControls,
   syncThemeControls
 } from './dashboard-ui.js';
-import { renderPension } from './dashboard-pension.js';
+import { renderPension, renderPensionAssetDetail, renderPensionOverview } from './dashboard-pension.js';
 import { setupLiveValuation } from './dashboard-live-valuation.js';
 import {
   openPensionContributionModal,
@@ -380,15 +385,42 @@ function restoreDashboardNestedScroll(snapshot=[]){
 }
 function renderLiveValuationRefresh(){
   if(dataState.activeDate!==kstTodayText())return;
+  const focusSnapshot=dashboardFocusSnapshot();
   const scrollX=window.scrollX,scrollY=window.scrollY;
   const nestedScrollSnapshot=dashboardNestedScrollSnapshot();
   const keepDateMenuOpen=dateActionMenuIsOpen();
   const keepDesktopTocOpen=desktopEdgeTocIsOpen();
-  // 이미 화면에 진입해 재생된 차트만 재렌더 후 완료 상태를 유지한다.
-  // 아직 스크롤 진입 전인 차트는 entrance pending을 보존해 최초 viewport 진입 애니메이션을 잃지 않는다.
+  const x=calc(dataState.activeDate),v=separateProfitView(x);
+
+  hideAssetSourceTooltip();
+  hideSecuritySaleTooltip();
+  closeAccountMemoInfo();
+
+  // Live Valuation은 #app 전체를 교체하지 않는다. 가격에 직접 의존하는 fragment만 갱신하고,
+  // 활성 자산 탭의 SVG만 다시 그린다. 비활성 탭 SVG는 새 card markup과 함께 비워 두었다가
+  // 사용자가 해당 탭으로 이동한 뒤 기존 lazy chart 경로가 paint 이후 그린다.
+  replaceDashboardFragment(document.querySelector('.hero-metric-pills'),renderHeroMetricPills(x,v));
+  if(x.hasPension){
+    replaceDashboardFragment(document.getElementById('summary-section'),renderCombined(x));
+    replaceDashboardFragment(document.querySelector('#pension-section .pension-overview'),renderPensionOverview(x));
+    replaceDashboardFragment(document.querySelector('#pension-section .pension-asset-detail-grid'),renderPensionAssetDetail(x));
+    replaceDashboardFragment(document.getElementById('pension-investment-analysis'),renderPensionCharts(x));
+  }
+  replaceDashboardFragment(document.querySelector('#securities-section .securities-summary-block'),renderSecuritiesPerformanceSummary(x));
+  replaceDashboardFragment(document.querySelector('#securities-section .asset-detail-grid'),renderSecuritiesAssetDetail(x));
+  replaceDashboardFragment(document.getElementById('investment-analysis'),renderSecuritiesChartsBlock(x));
+  replaceDashboardFragment(document.getElementById('ledger-check'),renderSecuritiesLedgerBlock(x));
+  replaceDashboardFragment(document.getElementById('capital-source-check'),renderSecuritiesSourceBlock(x));
+
+  hydrateSectionTitleIcons(document.getElementById('app'));
+  syncPersonalViewControls();
   preservePlayedChartEntrancesOnce();
   requestSecuritiesCumCardTransitionSuppression();
-  render({renderTopbar:false});
+  drawAllCharts();
+  setupAssetVizTooltips('.asset-insight-zone');
+  setupSecuritySaleTooltips();
+  setupSectionNavigationTracking();
+  restoreDashboardFocus(focusSnapshot);
   if(keepDateMenuOpen)restoreDateActionMenuAfterRender();
   if(keepDesktopTocOpen)restoreDesktopEdgeTocAfterRender();
   requestAnimationFrame(()=>{

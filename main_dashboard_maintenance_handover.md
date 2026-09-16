@@ -540,7 +540,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 별도수익처럼 여러 모듈에 영향을 주는 흐름
 - cross-module action
 - render orchestration
-  - 일반 `#tabs/#app` full render의 keyboard focus snapshot/restore를 공통 소유한다. Live Valuation 10초 갱신은 **`#tabs` Topbar DOM을 보존하고 `#app`만 교체**하면서 menu/TOC/window/nested-scroll transient state를 보존한다. focus target이 이미 `document.activeElement`이면 불필요하게 다시 focus하지 않는다.
+  - 일반 `#tabs/#app` full render의 keyboard focus snapshot/restore를 공통 소유한다. Live Valuation 10초 갱신은 **`#tabs`와 `#app` shell을 유지한 채 현재가 의존 fragment만 부분 교체**하고 활성 자산 탭 차트만 즉시 다시 그린다. 비활성 탭은 다음 탭 전환 후 lazy draw하며 menu/TOC/window/nested-scroll transient state를 보존한다. focus target이 이미 `document.activeElement`이면 불필요하게 다시 focus하지 않는다.
 - 초기 state 연결
 - event delegation entry
 - boot
@@ -607,7 +607,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - Market AI는 ticker별 현재가와 source/health만 제공한다. 수량·원가·원금·매매흐름·실현손익의 owner는 Dashboard 장부다.
 - 현재가가 바뀌면 현재가 의존 평가금액·평가손익·수익률·일변동·계좌/통합 합계는 기존 Dashboard 계산으로 재파생하되 장부 원천값을 바꾸지 않는다.
 - polling은 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. 겹친 요청은 latest-wins sequence로 보호하며, 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다.
-- 차트 확대, KRX/action modal, 퇴직연금 `.contrib-modal`, native dialog가 열려 있으면 state는 갱신하되 Dashboard render를 보류한다. overlay가 닫힌 뒤 pending render를 1회 수행한다. 날짜 변경 같은 일반 full render는 `#tabs/#app`의 현재 focus를 캡처·복원하고, `id`가 없는 keyboard target은 stable `data-dashboard-focus-key`와 occurrence index를 사용한다. 반면 **10초 Live Valuation refresh는 `render({renderTopbar:false})`로 `#tabs` Topbar DOM을 유지하고 `#app`만 교체**한다. 실시간 시세 modal close 후 Topbar trigger로 focus가 복귀해도 주기 갱신마다 Topbar 버튼을 재생성·재focus하여 window scroll이 조금씩 위로 이동하는 회귀를 허용하지 않는다. focus target이 이미 `document.activeElement`이면 restore 단계에서 다시 focus하지 않는다. standalone Market AI처럼 `#app` 교체 직후 다음 frame에 다시 mount되는 keyed target은 제한된 frame retry로 복원한다. live refresh는 열린 Mobile 날짜/목차 메뉴, Desktop 목차 open 상태, window scroll과 `#app` 안 `.mobile-scroll` / `.chart-wrap`의 내부 scroll 위치를 유지한다. 별도수익 ON/OFF는 Hero 성과, 연금+계좌 성과, 증권 성과요약, 증권 누적차트, 장부결과/투자원금 검산만 교체하는 partial refresh를 사용하며, Market AI·보유종목·퇴직연금·종목별/평가비중 차트 DOM은 유지한다. partial refresh도 keyboard focus와 window/nested scroll 위치를 보존한다. native input/select가 focus 중이거나 info disclosure·asset/source/Market AI tooltip을 사용자가 열어 읽는 동안은 render를 보류하고, 닫힌 뒤 최신 pending state를 1회 반영한다. 직접 render가 발생할 때 body-level source/account tooltip은 먼저 정리해 orphan surface를 남기지 않는다. `generated_at`처럼 화면 의미가 바뀌지 않는 metadata-only 응답은 semantic fingerprint에서 제외해 불필요한 render를 만들지 않는다.
+- 차트 확대, KRX/action modal, 퇴직연금 `.contrib-modal`, native dialog가 열려 있으면 state는 갱신하되 Dashboard render를 보류한다. overlay가 닫힌 뒤 pending render를 1회 수행한다. 날짜 변경 같은 일반 full render는 `#tabs/#app`의 현재 focus를 캡처·복원하고, `id`가 없는 keyboard target은 stable `data-dashboard-focus-key`와 occurrence index를 사용한다. 반면 **10초 Live Valuation refresh는 `#tabs`와 `#app` shell을 유지하고 현재가 의존 fragment만 부분 교체**한다. Hero 성과, 연금+계좌 성과, 증권/연금 자산상세, 각 자산의 차트 block, 증권 장부결과/투자원금 검산만 최신 live snapshot으로 갱신하며 `drawAllCharts()`는 현재 활성 자산 탭만 다시 그린다. 비활성 탭의 새 SVG는 비워 두었다가 기존 `setAssetTab()` lazy draw 경로에서 화면 전환 paint 후 그리므로 10초 갱신이 보이지 않는 차트까지 동기 렌더하지 않는다. 실시간 시세 modal close 후 Topbar trigger로 focus가 복귀해도 주기 갱신마다 Topbar 버튼을 재생성·재focus하여 window scroll이 조금씩 위로 이동하는 회귀를 허용하지 않는다. focus target이 이미 `document.activeElement`이면 restore 단계에서 다시 focus하지 않는다. live refresh는 열린 Mobile 날짜/목차 메뉴, Desktop 목차 open 상태, window scroll과 `#app` 안 `.mobile-scroll` / `.chart-wrap`의 내부 scroll 위치를 유지한다. 별도수익 ON/OFF는 Hero 성과, 연금+계좌 성과, 증권 성과요약, 증권 누적차트, 장부결과/투자원금 검산만 교체하는 partial refresh를 사용하며, Market AI·보유종목·퇴직연금·종목별/평가비중 차트 DOM은 유지한다. partial refresh도 keyboard focus와 window/nested scroll 위치를 보존한다. native input/select가 focus 중이거나 info disclosure·asset/source/Market AI tooltip을 사용자가 열어 읽는 동안은 render를 보류하고, 닫힌 뒤 최신 pending state를 1회 반영한다. 직접 render가 발생할 때 body-level source/account tooltip은 먼저 정리해 orphan surface를 남기지 않는다. `generated_at`처럼 화면 의미가 바뀌지 않는 metadata-only 응답은 semantic fingerprint에서 제외해 불필요한 render를 만들지 않는다. 증권/연금 기간 차트는 동일 날짜의 `calc()`를 차트마다 반복하지 않도록 자산별 history bundle을 공유하며, live snapshot·원천 data object·activeDate가 바뀌면 cache를 무효화한다.
 - 차트 entrance animation은 card별 최초 viewport 진입 1회가 contract다. 주기 갱신은 이미 재생된 card만 완료 상태를 승계하고 미진입·hidden/0-size card의 최초 animation을 선소비하지 않는다.
 - Hero `투자 성과` 기준문구와 자산 source tooltip은 **실제 계산에 적용된 가격 기준**을 사용자 의미로 표시한다. 저장 JSON은 `priceBasis`에 따라 장중/정규장 종가 의미를, Market AI는 usable coverage에 따라 실시간/시간외/애프터 종가 의미를 표시한다. legacy 저장값은 기존 fallback을 유지하고 raw 내부 상태 문자열은 노출하지 않는다. 출처 tooltip은 기존 `.dash-tooltip` surface를 재사용한다.
 - Market AI standalone polling이 card 값을 갱신할 때 이미 열려 있는 Market AI tooltip도 같은 최신 state/view model로 즉시 다시 그린다. tooltip target이 DOM에서 사라졌다면 tooltip을 닫아 stale body-level surface를 남기지 않는다.
@@ -980,7 +980,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
 - Hero에는 `LIVE / CLOSED / STALE / WARMING / JSON` 같은 raw 상태 문자열을 표시하지 않는다. 대신 `heroPerformanceBasisLabel()`이 현재 Hero 계산에 실제 적용된 quote만 보고 `일부 실시간 반영 / 실시간 현재가 기준 / 시간외 포함 현재가 기준` 중 필요한 의미만 노출한다. live가 실제 적용되지 않거나 전 종목 closed이면 기존 날짜 기준문구를 유지하며, 과거 날짜는 항상 저장 데이터 의미를 유지한다.
 - 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다. 저장값은 snapshot metadata 기준으로 `장중 저장 데이터` / `정규장 종가 저장 데이터` / legacy `저장 데이터`를 구분하고, Market AI quote가 적용된 경우에만 `실시간` / `장 마감 시세`를 사용한다.
-- live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다. 날짜 변경 같은 일반 full render는 `#tabs/#app` focus snapshot/restore를 사용하지만, **10초 Live Valuation refresh는 Topbar DOM을 유지하고 `#app`만 갱신**한다. 실시간 시세 modal close 후 Topbar trigger로 focus가 복귀한 상태에서도 주기 갱신이 해당 버튼을 재생성·재focus하여 window scroll을 위로 끌어올리지 않아야 한다. focus target이 이미 activeElement면 다시 focus하지 않는다. 별도수익 전환은 `refreshSeparateProfitModeView()`의 partial refresh에서 동일한 focus snapshot/restore 원칙과 window/nested scroll 보존을 적용한다. 현재가 출처, 자산 기여도 segment, 퇴직연금 위험도 gauge, Market AI metric처럼 `id`가 없는 focusable visual target은 `data-dashboard-focus-key`를 가져야 한다. live refresh에서도 Mobile 목차·Desktop 목차 open 상태와 scroll 위치를 유지하고, metadata-only 응답으로 불필요한 render가 반복되지 않아야 한다.
+- live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다. 날짜 변경 같은 일반 full render는 `#tabs/#app` focus snapshot/restore를 사용하지만, **10초 Live Valuation refresh는 Topbar와 `#app` shell을 유지한 채 live 의존 fragment만 부분 갱신**한다. 활성 자산 탭 차트만 즉시 redraw하고 비활성 탭은 다음 탭 전환 paint 뒤 lazy draw해야 하며, 실시간 시세 modal close 후 Topbar trigger로 focus가 복귀한 상태에서도 주기 갱신이 해당 버튼을 재생성·재focus하여 window scroll을 위로 끌어올리지 않아야 한다. focus target이 이미 activeElement면 다시 focus하지 않는다. 별도수익 전환은 `refreshSeparateProfitModeView()`의 partial refresh에서 동일한 focus snapshot/restore 원칙과 window/nested scroll 보존을 적용한다. 현재가 출처, 자산 기여도 segment, 퇴직연금 위험도 gauge, Market AI metric처럼 `id`가 없는 focusable visual target은 `data-dashboard-focus-key`를 가져야 한다. live refresh에서도 Mobile 목차·Desktop 목차 open 상태와 scroll 위치를 유지하고, metadata-only 응답으로 불필요한 render가 반복되지 않아야 한다.
 - 실시간 시세 iframe은 Dashboard와 `postMessage`로 Light/Dark 테마를 양방향 동기화한다. Monitor가 준비되면 Dashboard 테마를 우선 전달하고, Monitor에서 테마를 바꾸면 Dashboard도 같은 테마를 저장·적용한다. Phone modal의 5px shell은 Light `#f5f7fa`, Dark는 Monitor 기본 배경 `#11161d`를 사용한다.
 
 ## 3.4 계좌별 성과 메모 tooltip
@@ -1010,7 +1010,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 
 ## 3.7 Print canonical 표현
 
-- Print는 현재 Light/Dark 상태와 관계없이 Light palette로 고정한다. `beforeprint`에서 `print-light-theme`을 적용하고 모든 SVG 차트를 Light chart palette로 다시 그린 뒤 `afterprint`에서 화면 테마 차트로 복원한다. 인쇄 차트의 가로세로 비율은 SVG `viewBox`에서 자연스럽게 파생하며 `print.css`에 `1120/330` 같은 프레임 literal을 다시 소유하지 않는다.
+- Print는 현재 Light/Dark 상태와 관계없이 Light palette로 고정한다. `beforeprint`에서 `print-light-theme`을 적용한 뒤 화면용 6개 chart SVG DOM node를 그대로 보존하고 같은 속성의 빈 clone을 인쇄 자리로 교체해 clone에만 Light chart를 그린다. `afterprint`에서는 clone을 버리고 보존한 화면 SVG node를 그대로 되돌리며 **화면 차트를 다시 계산하거나 `drawAllCharts()` 하지 않는다**. 따라서 화면 SVG의 child node·event listener·현재 화면 상태를 유지하면서 인쇄용 fixed-viewBox 렌더와 화면 복원을 분리한다. 인쇄 차트의 가로세로 비율은 SVG `viewBox`에서 자연스럽게 파생하며 `print.css`에 `1120/330` 같은 프레임 literal을 다시 소유하지 않는다.
 - Topbar·목차·modal·tooltip·toast·보기 전환·차트 조작 UI·Market AI는 인쇄에서 제외한다.
 - 비활성 자산 panel도 펼쳐 증권계좌와 퇴직연금을 연속 출력하고, Phone에서 숨긴 Hero 요약 pill도 모두 표시한다.
 - 성과 KPI는 4열, 누적손익/운용손익 차트 하단 6개 요약은 3열, 종목·상품 차트 하단 요약은 4열을 viewport와 무관한 인쇄 기준으로 사용한다.
@@ -1877,7 +1877,7 @@ Market AI/live valuation 변경이면 추가로 다음을 확인한다.
 client_id multi-client universe 충돌 없음
 holdings 변경 중 stale response 폐기
 modal/expanded chart 중 render defer
-실시간 시세 modal close 후 10초 refresh에서 Topbar DOM 유지 · scroll creep 없음
+실시간 시세 modal close 후 10초 partial refresh에서 Topbar/#app shell 유지 · 활성 탭만 redraw · scroll creep 없음
 visible 복귀 즉시 refresh
 Dashboard-side Market AI OFF/ON · OFF 시 polling/volatile overlay 제거 · ON 시 즉시 retry
 source tooltip 셀 hover/focus
@@ -2067,7 +2067,7 @@ node --test tests/cross-ui-contract.test.cjs
 [ ] 과거 코드 기억을 최신본으로 가정하지 않았는가
 [ ] 현재 ES Module ownership을 유지하는가
 [ ] Market AI 변경이라면 signal standalone / shared transport+enabled preference / live valuation 책임 경계를 유지하는가
-[ ] Live Valuation 변경이라면 실시간 시세 modal close 후 10초 갱신에서도 Topbar가 재생성되지 않고 scroll/focus가 안정적인가
+[ ] Live Valuation 변경이라면 실시간 시세 modal close 후 10초 partial 갱신에서도 Topbar/#app shell이 재생성되지 않고 활성 탭만 redraw하며 scroll/focus가 안정적인가
 [ ] 기존 canonical CSS rule/token을 먼저 찾았는가
 [ ] 새 breakpoint가 실제 기능상 필요한가
 [ ] Phone 판정 helper/contract를 중복 정의하지 않는가

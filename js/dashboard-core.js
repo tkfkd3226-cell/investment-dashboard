@@ -1065,6 +1065,74 @@ function securitySymbolAllocHistory(d,series){
   });
 }
 
+const pensionHistoryCalcCache={
+  date:null,
+  portfolio:null,
+  prices:null,
+  snapshots:null,
+  account1Daily:null,
+  pensionContributions:null,
+  pensionCashSnapshots:null,
+  pensionTrades:null,
+  liveValuation:null,
+  bundle:null
+};
+function pensionHistoryCalcCacheMatches(d){
+  return pensionHistoryCalcCache.bundle
+    &&pensionHistoryCalcCache.date===d
+    &&pensionHistoryCalcCache.portfolio===dataState.portfolio
+    &&pensionHistoryCalcCache.prices===dataState.prices
+    &&pensionHistoryCalcCache.snapshots===dataState.snapshots
+    &&pensionHistoryCalcCache.account1Daily===dataState.account1Daily
+    &&pensionHistoryCalcCache.pensionContributions===dataState.pensionContributions
+    &&pensionHistoryCalcCache.pensionCashSnapshots===dataState.pensionCashSnapshots
+    &&pensionHistoryCalcCache.pensionTrades===dataState.pensionTrades
+    &&pensionHistoryCalcCache.liveValuation===dataState.liveValuation;
+}
+function pensionChartHistoryBundle(d){
+  if(pensionHistoryCalcCacheMatches(d))return pensionHistoryCalcCache.bundle;
+  const calcRows=allAvailableDates().filter(date=>date<=d&&hasPensionData(date)).map(date=>({date,value:calc(date)}));
+  const cum=calcRows.map(({date,value})=>({
+    '날짜':date,
+    '합계 : 누적손익':value.pensionProfit,
+    '합계 : 누적수익률':value.pensionReturn,
+    '코스피 지수':kospiIndexForDate(date),
+    '합계 : 전일대비손익':0
+  }));
+  cum.forEach((row,index)=>{
+    row['합계 : 전일대비손익']=index===0?0:row['합계 : 누적손익']-cum[index-1]['합계 : 누적손익'];
+  });
+  const symbol=calcRows.map(({date,value})=>{
+    const row={'날짜':date,'_rates':{}};
+    value.pensionRows.forEach(item=>{
+      const profit=Number(item.totalProfit??item.profit??0);
+      row[item.name]=profit;
+      row._rates[item.name]=Number(item.cost)?profit/Number(item.cost)*100:0;
+    });
+    return row;
+  });
+  const alloc=calcRows.map(({date,value})=>{
+    const row={'날짜':date};
+    value.pensionRows.forEach(item=>row[item.name]=Number(item.evalAmount||0));
+    row['현금성자산']=Number(value.pensionCash||0);
+    return row;
+  });
+  const bundle={cum,symbol,alloc};
+  Object.assign(pensionHistoryCalcCache,{
+    date:d,
+    portfolio:dataState.portfolio,
+    prices:dataState.prices,
+    snapshots:dataState.snapshots,
+    account1Daily:dataState.account1Daily,
+    pensionContributions:dataState.pensionContributions,
+    pensionCashSnapshots:dataState.pensionCashSnapshots,
+    pensionTrades:dataState.pensionTrades,
+    liveValuation:dataState.liveValuation,
+    bundle
+  });
+  return bundle;
+}
+
 // [CORE08] Network / Data Loading · 네트워크 / 데이터 로딩
 const NETWORK_REQUEST_TIMEOUT_MS=20000;
 function networkTimeoutError(){
@@ -1244,6 +1312,7 @@ export {
   pensionCashSnapshotReflectsContribution,
   pensionCashSnapshotReflectsTrade,
   pensionContributionItems,
+  pensionChartHistoryBundle,
   pensionEvaluationBasisText,
   pensionPositionState,
   pensionSeriesColor,

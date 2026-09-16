@@ -63,6 +63,7 @@ index.html
 - 개인보기 해제 후 Web/Tablet 투자 계산기는 테마 버튼과 같은 icon-only action geometry를 사용하고, Phone은 기존 `관리` 메뉴의 텍스트 항목을 유지
 - 개인보기 3회 입력은 Web/Tablet에서는 Hero 기준문구, Phone에서는 Hero 카드 전체의 비대화형 영역을 사용합니다.
 - Print 전용 출력
+  - `beforeprint`에서는 화면용 SVG를 보존한 채 인쇄용 clone에만 Light chart를 그리고, `afterprint`에서는 보존한 화면 SVG를 그대로 복원해 화면 차트를 다시 계산하지 않습니다.
 
 ### 2.2 투자 계산기
 
@@ -115,7 +116,7 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - Dashboard에서 Market AI 사용 여부를 켜고 끌 수 있습니다. OFF 시 signal/live polling과 volatile overlay를 중단해 저장 데이터로 fallback하며, 이 설정은 Market AI backend 프로세스 자체를 종료하지 않습니다. Web/Tablet은 Topbar icon action, Phone은 `관리` 메뉴 action을 사용합니다.
 - Dashboard가 Market AI **OFF 상태로 처음 열려도 enabled-change listener는 항상 등록**합니다. 따라서 이후 `Market AI 연결 켜기`를 누르면 새로고침 없이 즉시 mount/refresh가 시작되어야 합니다.
 - `실시간 시세` 진입점은 Market AI 연결이 확인된 동안에만 노출되며, viewport별 기존 modal geometry를 사용하고 연결 해제 시 닫힙니다.
-- 10초 Live Valuation 갱신은 Topbar focus/scroll 상태를 보존합니다.
+- 10초 Live Valuation 갱신은 `#app` 전체를 다시 만들지 않고 현재가 의존 Hero/합산/자산상세/차트·검산 fragment만 부분 갱신합니다. 활성 자산 탭 차트만 즉시 다시 그리고 비활성 탭은 다음 탭 전환 뒤 lazy draw하며, Topbar·focus·메뉴·window/nested scroll 상태를 보존합니다.
 
 프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 현재가 overlay), `dashboard-market-ai-client.js`(local/remote transport + Dashboard-side Market AI 사용 preference)로 분리합니다.
 

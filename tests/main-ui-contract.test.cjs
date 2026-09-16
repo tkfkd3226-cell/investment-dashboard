@@ -172,10 +172,16 @@ test('별도수익 ON/OFF는 full render 대신 영향 영역만 부분 갱신�
   assert.doesNotMatch(chartRefreshBlock,/drawLineChart\(\)|drawStacked\(\)|drawPension/,'별도수익 partial chart refresh는 누적차트 외 차트를 다시 그리면 안 된다');
 });
 
-test('공통 full render는 keyboard focus를 보존하고 live refresh는 열린 목차·scroll 및 metadata-only 무렌더 계약을 유지한다',()=>{
+test('공통 full render는 keyboard focus를 보존하고 live partial refresh는 열린 목차·scroll 및 metadata-only 무렌더 계약을 유지한다',()=>{
   assert.match(app,/function render\(\{renderTopbar=true\}=\{\}\)\{\s*const focusSnapshot=dashboardFocusSnapshot\(\);/);
   assert.match(app,/if\(renderTopbar\)renderTabs\(\);/);
-  assert.match(app,/function renderLiveValuationRefresh\(\)[^]*?render\(\{renderTopbar:false\}\);/);
+  const liveRefreshStart=app.indexOf('function renderLiveValuationRefresh(){');
+  const liveRefreshEnd=app.indexOf('\n// [APP05]',liveRefreshStart);
+  const liveRefreshBlock=app.slice(liveRefreshStart,liveRefreshEnd);
+  assert.ok(liveRefreshStart>=0&&liveRefreshEnd>liveRefreshStart,'live partial refresh block is missing');
+  assert.doesNotMatch(liveRefreshBlock,/render\(\{renderTopbar:false\}\)|document\.getElementById\('app'\)\.innerHTML/);
+  for(const marker of ['renderHeroMetricPills(x,v)','renderCombined(x)','renderPensionOverview(x)','renderPensionAssetDetail(x)','renderPensionCharts(x)','renderSecuritiesPerformanceSummary(x)','renderSecuritiesAssetDetail(x)','renderSecuritiesChartsBlock(x)','renderSecuritiesLedgerBlock(x)','renderSecuritiesSourceBlock(x)'])assert.ok(liveRefreshBlock.includes(marker),`live partial refresh 누락: ${marker}`);
+  assert.match(liveRefreshBlock,/drawAllCharts\(\);/);
   assert.match(app,/if\(target===document\.activeElement\)return;/);
   assert.match(app,/restoreDashboardFocus\(focusSnapshot\);/);
   assert.match(app,/active\.dataset\?\.dashboardFocusKey/);
@@ -408,7 +414,7 @@ test('퇴직연금 단건 duplicate 성공은 서버 truth에 맞춰 local state
   assert.match(pensionEditor,/rerenderPensionEditorAfterMutation\(renderDashboard,target,\{draft:deleteDraft\}\)/);
 });
 
-test('Live Valuation full render는 내부 가로 스크롤과 native input interaction을 보존한다',()=>{
+test('Live Valuation partial refresh는 내부 가로 스크롤과 native input interaction을 보존한다',()=>{
   assert.match(app,/function dashboardNestedScrollSnapshot\(\)\{/);
   assert.match(app,/querySelectorAll\('#app \.mobile-scroll,#app \.chart-wrap'\)/);
   assert.match(app,/const nestedScrollSnapshot=dashboardNestedScrollSnapshot\(\)/);
@@ -927,6 +933,13 @@ test('반응형·테마·Print는 semantic source와 인쇄 canonical layout을 
   assert.match(common1,/html\.print-light-theme\{ color-scheme:light; --chart-surface:#ffffff;/);
   assert.match(charts,/document\.documentElement\.classList\.add\('print-light-theme'\)/);
   assert.match(charts,/document\.documentElement\.classList\.remove\('print-light-theme'\)/);
+  assert.match(charts,/const PRINT_CHART_SVG_IDS=Object\.freeze\(\[/);
+  assert.match(charts,/const printSvg=original\.cloneNode\(false\);[^]*?original\.replaceWith\(printSvg\)/);
+  const afterPrintStart=charts.indexOf('function restoreChartsAfterPrint(){');
+  const afterPrintEnd=charts.indexOf('\nfunction drawChartsForPrint(){',afterPrintStart);
+  const afterPrintBlock=charts.slice(afterPrintStart,afterPrintEnd);
+  assert.match(afterPrintBlock,/restoreScreenChartsAfterPrint\(\)/);
+  assert.doesNotMatch(afterPrintBlock,/drawAllCharts\(\)|drawCumChart\(\)|drawPension/,'afterprint는 화면 SVG를 재계산하지 않고 원본 node를 복원해야 한다');
   assert.match(print1,/\.chart-note\.six\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
   assert.match(common1,/\.positive\{color:var\(--value-positive\)\} \.negative\{color:var\(--value-negative\)\}/);
 });
@@ -1526,7 +1539,19 @@ test('차트 범례 label은 HTML 경계에서 escape하고 삭제 PIN 경고는
   assert.doesNotMatch(common.slice(dangerStart,dangerEnd),/--inner-radius-md/);
 });
 
-test('Live Valuation full render는 미진입 차트 entrance를 일괄 완료 처리하지 않는다',()=>{
+test('퇴직연금 차트 이력은 live/print 반복 렌더에서 날짜별 calc를 공유한다',()=>{
+  assert.match(core,/const pensionHistoryCalcCache=\{/);
+  assert.match(core,/function pensionChartHistoryBundle\(d\)\{/);
+  assert.match(core,/pensionContributions===dataState\.pensionContributions/);
+  assert.match(core,/pensionCashSnapshots===dataState\.pensionCashSnapshots/);
+  assert.match(core,/pensionTrades===dataState\.pensionTrades/);
+  assert.match(core,/liveValuation===dataState\.liveValuation/);
+  assert.match(charts,/function pensionCumHistory\(d\)\{return pensionChartHistoryBundle\(d\)\.cum;\}/);
+  assert.match(charts,/function pensionSymbolHistory\(d\)\{return pensionChartHistoryBundle\(d\)\.symbol;\}/);
+  assert.match(charts,/function pensionAllocHistory\(d\)\{return pensionChartHistoryBundle\(d\)\.alloc;\}/);
+});
+
+test('Live Valuation partial refresh는 미진입 차트 entrance를 일괄 완료 처리하지 않는다',()=>{
   assert.match(app,/preservePlayedChartEntrancesOnce\(\);/);
   assert.doesNotMatch(app,/suppressChartEntranceOnce\(/);
   assert.match(charts,/data-chart-entrance-played/);
