@@ -66,8 +66,8 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
   // 거래유형별 기본 입력값만 관리하고 실제 거래일 shortcut은 Report에 맡긴다.
   const presets = {
     'buy-2026-07-29': {
-      caseType:'holding', noPrior:false, existingShares:38, existingCost:7005530, priorSettlementValue:0, priorSellPrice:0,
-      currentPrice:79020, oldRecovery:3700000, addPrice:74350, addShares:604, autoBreakEvenTarget:true, mode:'current'
+      caseType:'holding', noPrior:false, existingShares:36, existingCost:3993480, priorSettlementValue:0, priorSellPrice:0,
+      currentPrice:103580, oldRecovery:0, addPrice:103580, addShares:470, autoBreakEvenTarget:true, mode:'current'
     },
     'buy-2026-07-30': {
       caseType:'settled', noPrior:false, priorSellDate:'2026-07-30', existingShares:642, existingCost:51912930, priorSettlementValue:47880490, priorSellPrice:74580,
