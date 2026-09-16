@@ -280,8 +280,7 @@ function renderResponsiveNavigationMenuContent(){
       items:[
         {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
         {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'},
-        ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[]),
-        (()=>{const model=marketAiConnectionToggleModel();return {type:'action',action:'toggle-market-ai-connection',icon:model.icon,title:model.label,marketAiToggle:true}})()
+        ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[])
       ]
     },
     ...tocGroups

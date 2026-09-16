@@ -61,7 +61,7 @@ index.html
 - Light / Dark 테마
 - Desktop / Tablet / Mobile 반응형 UI
 - 개인보기 해제 후 Web/Tablet 투자 계산기는 테마 버튼과 같은 icon-only action geometry를 사용하고, Phone은 기존 `관리` 메뉴의 텍스트 항목을 유지
-- Phone 개인보기 3회 터치는 Hero의 비대화형 영역 전체를 인식 대상으로 사용하고, Web/Tablet은 기존 Hero 기준문구 3회 클릭 계약을 유지
+- Phone 개인보기 3회 터치는 Hero 자체를 명시적 action target으로 사용하고 실제 touch pointer의 이동량을 검사해 Hero의 비대화형 영역 전체에서 안정적으로 인식한다. Web/Tablet은 기존 Hero 기준문구 3회 클릭 계약을 유지
 - Print 전용 출력
 
 ### 2.2 투자 계산기
@@ -111,7 +111,7 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - 오늘 보유종목 quote는 ticker별 `market_state`를 보존해 판단하며, **15:30~20:00에는 개별주식 `extended`와 ETF `closed`가 동시에 존재할 수 있으므로 top-level `market_state` 하나로 전체 종목 상태를 판정하지 않음**
 - 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다.
 - Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
-- Dashboard에서 Market AI 사용 여부를 직접 켜고 끌 수 있습니다. Web/Tablet은 **투자 계산기와 밝기 테마 버튼 사이의 icon-only action**, Phone은 `관리` 메뉴의 **투자 계산기 바로 아래**에 같은 기능을 둡니다. 연결된 상태에서는 끄기 의미 아이콘, 수동 OFF 또는 미연결 상태에서는 켜기 의미 아이콘을 사용합니다. 이 설정은 `localStorage`에 유지되며 OFF 시 signal/live polling을 중단하고 volatile live overlay를 제거해 저장 JSON 값으로 즉시 fallback합니다. **Market AI backend 프로세스 자체를 종료하는 기능은 아닙니다.**
+- Dashboard에서 Market AI 사용 여부를 직접 켜고 끌 수 있습니다. 이 control은 **Web/Tablet 전용**이며 투자 계산기와 밝기 테마 버튼 사이의 icon-only action으로 둡니다. Phone Topbar/관리 메뉴에는 노출하지 않습니다. 연결된 상태에서는 끄기 의미 아이콘, 수동 OFF 또는 미연결 상태에서는 켜기 의미 아이콘을 사용합니다. 이 설정은 `localStorage`에 유지되며 OFF 시 signal/live polling을 중단하고 volatile live overlay를 제거해 저장 JSON 값으로 즉시 fallback합니다. **Market AI backend 프로세스 자체를 종료하는 기능은 아닙니다.**
 - Market AI 서버 연결이 확인된 동안에만 Web/Tablet Topbar의 **`실시간 시세`** 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출합니다. 모든 진입점은 공통 `[data-market-ai-monitor-entry][hidden]` 표시 계약을 사용하므로 연결 전/해제 시 viewport와 관계없이 숨겨집니다. Phone 햄버거 `관리` 메뉴에는 중복 진입점을 두지 않습니다. Web/Tablet은 Monitor의 content height를 먼저 받아 최종 compact 크기로 표시하고, 응답이 늦으면 제한된 compact fallback 높이를 사용하므로 최초에 화면 세로 전체를 채웠다가 줄어드는 동작을 만들지 않습니다. Phone은 KRX 등 action modal과 같은 외곽 여백·edge token을 공유하면서 가용 영역을 채우는 responsive modal을 사용합니다. 연결이 끊기면 모든 진입점을 숨기고 열린 monitor modal도 닫습니다.
 - 10초 Live Valuation 갱신은 `#tabs` Topbar를 재생성하지 않고 `#app`만 갱신합니다. 따라서 실시간 시세 modal 종료 후 Topbar 버튼으로 focus가 복귀해도 주기 갱신마다 해당 버튼을 다시 생성·focus해 화면 scroll을 위로 끌어올리지 않습니다.
 

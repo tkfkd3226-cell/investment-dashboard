@@ -440,8 +440,8 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 ### Modal / Action Form 공통 contract
 
 - 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, 상태 표시 등 공통 form/control 표현과 `dashboard-modal.js`의 dialog lifecycle을 재사용한다.
-- 퇴직연금 금액 조정의 `개별 처리 / 작업 모음`은 Main의 `전체 / 계좌별`, `수익률 / 코스피` 등과 같은 `.control-segmented` canonical geometry/typography를 사용한다. 연금 전용 font-size/height/padding optical override를 다시 만들지 않는다.
-- Web/Tablet에서 개인보기 해제 후 나타나는 투자 계산기와 Market AI 연결 토글은 밝기 테마 버튼과 같은 icon-only control geometry/token을 사용한다. Phone 투자 계산기는 기존 `관리` 메뉴 텍스트 항목을 유지한다.
+- 퇴직연금 금액 조정의 `개별 처리 / 작업 모음`은 Main의 `전체 / 계좌별`, `수익률 / 코스피` 등과 같은 `.control-segmented` canonical geometry/typography와 flex center 정렬을 사용한다. 다만 `작업 모음 + count`의 긴 라벨 때문에 각 segment의 `min-width:72px`와 최소 좌우 padding만 feature override하며, 다음 `조정 항목` 탭과의 context gap은 `--space-xs`로 유지한다. 연금 전용 font-size/height/line-height optical override를 다시 만들지 않는다.
+- Web/Tablet에서 개인보기 해제 후 나타나는 투자 계산기와 Market AI 연결 토글은 밝기 테마 버튼과 같은 icon-only control geometry/token을 사용한다. Phone 투자 계산기는 기존 `관리` 메뉴 텍스트 항목을 유지하되 **Market AI 연결 토글은 Phone Topbar/관리 메뉴에 노출하지 않는다.**
 - 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
 - KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유한다. 공통 modal radius는 shared modal contract에서 한 번만 소유하고 Tablet/Phone은 해당 shared token만 override한다. Phone 좌우 여백은 overlay padding을 canonical source로 사용하며 feature별 `100vw - npx` 폭 보정을 중복해서 만들지 않는다.
 - Tooltip 표시 motion은 `--tooltip-motion`을 공통 source로 사용한다.
@@ -564,7 +564,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - `market-ai-preview` 예시 데이터 모드는 사용하지 않는다. `?dashboard-view=web`, `?dashboard-view=tablet`, `?dashboard-view=mobile`은 화면 형태만 바꾸며 세 모드 모두 실제 Market AI 데이터를 사용한다.
 - Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다. 세 endpoint가 모두 응답하지 않으면 로컬은 panel 중앙에 `연결 확인 중`을 표시하며 재시도하고, 비로컬 환경은 응답 확인 전까지 Market AI signal panel을 mount하지 않고 polling만 유지하며, `실시간 시세` 진입점은 DOM에 있어도 hidden 상태를 유지하고 monitor modal은 생성하지 않는다.
 - Market AI server reachability는 `dashboard-market-ai.js`가 공통 connection event로 publish하고 Topbar/UI가 소비한다. 서버 연결이 검증된 동안에만 웹/태블릿 Topbar의 `실시간 시세` 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출하며, Phone `관리` 메뉴에는 중복 진입점을 두지 않는다. 두 viewport 진입점은 같은 `REALTIME_QUOTES_ACTION`과 `data-market-ai-monitor-entry` gating을 공유하고, `[data-market-ai-monitor-entry][hidden]{display:none}` 공통 author CSS가 `date-tool-btn`의 display 선언보다 우선해 연결 전/해제 시 모든 viewport에서 실제로 숨겨지는 것을 보장한다. Web/Tablet은 iframe을 먼저 load해 Monitor content height를 수신한 뒤 최종 compact·no-scroll geometry로 modal을 reveal하고, size message가 늦을 때만 제한된 compact fallback 높이를 사용한다. 최초에 `availableHeight` 전체를 표시한 뒤 줄이는 동작을 다시 도입하지 않는다. Phone은 KRX 등 action modal과 같은 `--modal-overlay-pad`·`--modal-card-radius`를 상속하고 monitor card만 남은 가용 영역을 채운다. 화면 크기 변경에도 이 구분을 유지하고, 연결 해제 시 진입점을 숨기고 열린 embedded monitor를 닫아 stale UI를 남기지 않는다.
-- Dashboard-side Market AI 사용 preference는 `dashboard-market-ai-client.js`가 canonical source로 소유한다. 기본은 ON이며 `localStorage`에 저장하고 cross-tab `storage` event와 `MARKET_AI_ENABLED_EVENT`로 동기화한다. OFF 시 `dashboard-market-ai.js`와 `dashboard-live-valuation.js`가 in-flight sequence를 무효화하고 주기 polling을 멈추며, signal UI/volatile live quote를 제거해 저장 JSON 값으로 fallback한다. ON 전환은 즉시 refresh를 시도한다. 이 토글은 **Market AI backend runtime을 시작/종료하지 않는다.** Web/Tablet에서는 투자 계산기와 밝기 테마 사이의 icon-only control로, Phone에서는 `관리` 메뉴의 투자 계산기 바로 아래에 둔다. 실제 server reachability와 사용자 preference를 혼동하지 않으며, 미연결 상태의 켜기 action은 enabled 상태를 강제로 재발행해 즉시 재시도를 유도한다.
+- Dashboard-side Market AI 사용 preference는 `dashboard-market-ai-client.js`가 canonical source로 소유한다. 기본은 ON이며 `localStorage`에 저장하고 cross-tab `storage` event와 `MARKET_AI_ENABLED_EVENT`로 동기화한다. OFF 시 `dashboard-market-ai.js`와 `dashboard-live-valuation.js`가 in-flight sequence를 무효화하고 주기 polling을 멈추며, signal UI/volatile live quote를 제거해 저장 JSON 값으로 fallback한다. ON 전환은 즉시 refresh를 시도한다. 이 토글은 **Market AI backend runtime을 시작/종료하지 않는다.** Web/Tablet에서는 투자 계산기와 밝기 테마 사이의 icon-only control로 둔다. **Phone에는 이 연결 토글을 노출하지 않는다.** 실제 server reachability와 사용자 preference를 혼동하지 않으며, 미연결 상태의 켜기 action은 enabled 상태를 강제로 재발행해 즉시 재시도를 유도한다.
 - refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답/parse error가 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 async boundary 뒤의 request sequence를 확인한다.
 - backend가 제공하는 signal metadata와 산식 contract를 프런트에서 임의 재해석하지 않는다. 상세 backend 계약은 Market AI 프로젝트의 `market_ai_project_handover.md`를 Source of Truth로 한다.
 - SOX 시장 metric과 Signal Engine 입력은 모두 `INDEX:SOX`를 사용하며 표시 편의를 위해 `FUTURES:SOX` 또는 `SOX-F`로 자동 전환하지 않는다.
@@ -990,7 +990,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 개인보기 ON/OFF의 **연속 3회 입력은 의도된 비공개 진입 UX**다.
 
 - Web/Tablet은 기존 Hero 기준문구(`.hero-basis`)를 3회 클릭하는 계약을 유지한다.
-- Phone은 터치 성공률을 위해 **Hero 카드의 비대화형 영역 전체**를 3회 터치 영역으로 사용하며 `a/button/input/select/textarea/[role="button"]/[role="link"]` 등 실제 interactive target은 제외한다. Hero에는 `touch-action:manipulation`을 적용하되 레이아웃/크기는 변경하지 않는다.
+- Phone은 터치 성공률을 위해 **Hero 자체를 `data-dashboard-action="hero-card-tap"` target으로 두고**, 비대화형 영역 전체를 3회 입력 영역으로 사용한다. 실제 touch는 synthetic click에 의존하지 않고 `pointerdown → pointerup`으로 판정하며 14px 초과 이동은 scroll gesture로 보고 제외한다. `a/button/input/select/textarea/[role="button"]/[role="link"]` 등 interactive target도 제외한다. 3회 입력 간격은 900ms 기준을 사용하고 Hero에는 `touch-action:manipulation`을 적용한다.
 - discoverability 부족 자체를 감점하거나 공개 버튼 추가를 권하지 않는다.
 - 이 제스처를 보안 인증 수단으로 취급하지 않는다.
 - 3회 입력 인식, `OFF → ON → OFF` 상태 reset, 일반 날짜/Topbar/입력 동작 간섭 여부는 실제 회귀로 검증한다.

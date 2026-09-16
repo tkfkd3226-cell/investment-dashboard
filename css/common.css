@@ -1504,6 +1504,9 @@ button.legend-item.chart-series-all.active{
   box-sizing:border-box;
 }
 .control-segmented button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   min-width:var(--dashboard-switch-min-width);
   height:100%;
   padding:0;
@@ -2542,7 +2545,7 @@ body.chart-expanded-open .dash-tooltip{
   --pension-modal-delete-memo-weight:var(--type-weight-regular);
   --pension-modal-head-gap:var(--space-2xl);
   --pension-modal-head-action-gap:var(--space-sm);
-  --pension-modal-context-gap:var(--space-md);
+  --pension-modal-context-gap:var(--space-xs);
   --pension-modal-section-gap:var(--space-2xl);
   --pension-modal-card-pad:var(--space-4xl);
   --pension-modal-form-gap:var(--space-lg);
@@ -3819,6 +3822,10 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   min-width:0;
 }
 .pension-contrib-context .pension-work-mode{flex:0 0 auto}
+.pension-contrib-context .pension-work-mode button{
+  min-width:72px;
+  padding-inline:var(--space-md);
+}
 .pension-contrib-context .contrib-target-tabs{
   width:100%;
   min-width:0;

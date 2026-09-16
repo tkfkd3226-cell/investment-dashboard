@@ -80,6 +80,10 @@ import {
 
 // [APP01] Personal View / Separate Profit · 개인 보기 / 별도수익
 const heroBasisTapState={count:0,lastTap:0};
+const heroTouchPointerState={pointerId:null,startX:0,startY:0};
+let suppressHeroSyntheticClickUntil=0;
+const HERO_MULTI_TAP_WINDOW_MS=900;
+const HERO_TOUCH_MOVE_TOLERANCE_PX=14;
 
 function togglePersonalView(){
   uiState.personalViewUnlocked=!uiState.personalViewUnlocked;
@@ -88,12 +92,35 @@ function togglePersonalView(){
 }
 function handleHeroBasisTap(){
   const now=Date.now();
-  heroBasisTapState.count=now-heroBasisTapState.lastTap<=700?heroBasisTapState.count+1:1;
+  heroBasisTapState.count=now-heroBasisTapState.lastTap<=HERO_MULTI_TAP_WINDOW_MS?heroBasisTapState.count+1:1;
   heroBasisTapState.lastTap=now;
   if(heroBasisTapState.count<3)return;
   heroBasisTapState.count=0;
   heroBasisTapState.lastTap=0;
   togglePersonalView();
+}
+function heroTapInteractiveTarget(target){
+  return !!target?.closest?.('a,button,input,select,textarea,[role="button"],[role="link"]');
+}
+function heroCardTarget(target){
+  return target?.closest?.('#app > .wrap > .hero')||null;
+}
+function beginHeroTouchPointer(event){
+  if(event.pointerType!=='touch'||!phoneUi()||!heroCardTarget(event.target)||heroTapInteractiveTarget(event.target))return;
+  heroTouchPointerState.pointerId=event.pointerId;
+  heroTouchPointerState.startX=event.clientX;
+  heroTouchPointerState.startY=event.clientY;
+}
+function finishHeroTouchPointer(event){
+  if(event.pointerType!=='touch'||heroTouchPointerState.pointerId!==event.pointerId)return;
+  const moved=Math.hypot(event.clientX-heroTouchPointerState.startX,event.clientY-heroTouchPointerState.startY);
+  heroTouchPointerState.pointerId=null;
+  if(!phoneUi()||moved>HERO_TOUCH_MOVE_TOLERANCE_PX||!heroCardTarget(event.target)||heroTapInteractiveTarget(event.target))return;
+  suppressHeroSyntheticClickUntil=Date.now()+500;
+  handleHeroBasisTap();
+}
+function cancelHeroTouchPointer(event){
+  if(heroTouchPointerState.pointerId===event.pointerId)heroTouchPointerState.pointerId=null;
 }
 function toggleSeparateProfitMode(){
   uiState.includeSeparateProfit=!uiState.includeSeparateProfit;
@@ -201,7 +228,14 @@ function handleDashboardAction(event,control){
     closeDateActionMenu();
     return;
   }
-  if(action==='hero-basis-tap')return handleHeroBasisTap();
+  if(action==='hero-basis-tap'){
+    if(phoneUi()&&Date.now()<suppressHeroSyntheticClickUntil)return;
+    return handleHeroBasisTap();
+  }
+  if(action==='hero-card-tap'){
+    if(!phoneUi()||Date.now()<suppressHeroSyntheticClickUntil)return;
+    return handleHeroBasisTap();
+  }
   if(action==='jump-chart-date')return requestChartDateJump(control.dataset.chartDate||'',control.dataset.chartId||'',control);
   if(action==='close-chart-date-confirm')return closeChartDateConfirmModal();
   if(action==='confirm-chart-date-jump')return confirmChartDateJump();
@@ -209,10 +243,12 @@ function handleDashboardAction(event,control){
   handleUiDashboardAction(event,control);
 }
 function setupDashboardEventDelegation(){
+  document.addEventListener('pointerdown',beginHeroTouchPointer,{passive:true});
+  document.addEventListener('pointerup',finishHeroTouchPointer,{passive:true});
+  document.addEventListener('pointercancel',cancelHeroTouchPointer,{passive:true});
   document.addEventListener('click',event=>{
     const control=event.target.closest?.('[data-dashboard-action]');
     if(control){handleDashboardAction(event,control);return;}
-    if(phoneUi()&&event.target.closest?.('#app > .wrap > .hero')&&!event.target.closest?.('a,button,input,select,textarea,[role="button"],[role="link"]'))handleHeroBasisTap();
   });
   document.addEventListener('change',event=>{
     const target=event.target;
@@ -279,7 +315,7 @@ function render({renderTopbar=true}={}){
   closeAccountMemoInfo();
   const x=calc(dataState.activeDate),v=separateProfitView(x);
   if(renderTopbar)renderTabs();
-  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${escapeHtml(dataState.portfolio.meta.title)}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${heroPerformanceBasisLabel(x.date)})</time></div>${renderHeroMetricPills(x,v)}</header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
+  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle" data-dashboard-action="hero-card-tap"><div class="hero-title-row"><h1 id="dashboardTitle">${escapeHtml(dataState.portfolio.meta.title)}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${heroPerformanceBasisLabel(x.date)})</time></div>${renderHeroMetricPills(x,v)}</header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
   hydrateSectionTitleIcons(document.getElementById('app'));
   syncAssetTabs();
   syncThemeControls();

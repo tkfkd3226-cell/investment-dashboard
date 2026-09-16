@@ -1582,10 +1582,12 @@ test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 ico
   assert.match(landscapeModalCss,/\.action-modal\.realtime-quote-modal\{\s*--modal-card-pad-y:var\(--space-md\);\s*--modal-card-pad-x:var\(--space-md\);\s*\}/s,'Phone Landscape에서도 실시간 시세 card padding은 generic action-modal 24px보다 뒤에서 5px로 재고정해야 한다');
 });
 
-test('퇴직연금 개별 처리/작업 모음은 메인 control-segmented geometry를 그대로 공유한다',()=>{
+test('퇴직연금 개별 처리/작업 모음은 메인 control-segmented 정렬을 공유하고 긴 라벨 폭·하단 간격만 feature override한다',()=>{
   assert.match(pensionEditor,/class="control-segmented pension-work-mode"/);
-  assert.match(common,/\.control-segmented button\{[^]*?font-size:var\(--dashboard-control-font-size\);[^]*?line-height:var\(--dashboard-control-line-height\);/s);
+  assert.match(common,/\.control-segmented button\{[^]*?display:inline-flex;[^]*?align-items:center;[^]*?justify-content:center;[^]*?font-size:var\(--dashboard-control-font-size\);[^]*?line-height:var\(--dashboard-control-line-height\);/s);
   assert.match(common,/\.pension-contrib-context \.pension-work-mode\{flex:0 0 auto\}/);
+  assert.match(common,/\.pension-contrib-context \.pension-work-mode button\{[^]*?min-width:72px;[^]*?padding-inline:var\(--space-md\);/s);
+  assert.match(common,/--pension-modal-context-gap:var\(--space-xs\);/);
   assert.doesNotMatch(common,/--pension-modal-mode-(?:size|height)/);
   assert.doesNotMatch(common,/\.pension-work-mode-btn\{[^]*?(?:font-size|padding-inline|height):/s);
 });
@@ -1607,7 +1609,7 @@ test('개인 보기 도구는 Web/Tablet 계산기를 icon-only 공통 control�
   assert.match(uiCommon,/signalOff:/);
 });
 
-test('Market AI 연결 toggle은 Dashboard-side polling/overlay를 함께 끄고 Phone 관리 메뉴의 투자 계산기 아래에서 재연결할 수 있다',()=>{
+test('Market AI 연결 toggle은 Dashboard-side polling/overlay를 함께 끄되 Phone 메뉴에는 노출하지 않는다',()=>{
   assert.match(marketAiClient,/MARKET_AI_ENABLED_STORAGE_KEY='investmentDashboard\.marketAiEnabled'/);
   assert.match(marketAiClient,/MARKET_AI_ENABLED_EVENT='investment-dashboard:market-ai-enabled'/);
   assert.match(marketAiClient,/function setMarketAiEnabled\(enabled,\{force=false\}=\{\}\)/);
@@ -1619,16 +1621,22 @@ test('Market AI 연결 toggle은 Dashboard-side polling/overlay를 함께 끄고
   const mobileMenuStart=ui.indexOf('function renderResponsiveNavigationMenuContent()');
   const mobileMenuEnd=ui.indexOf('function renderDesktopTocContent()',mobileMenuStart);
   const mobileMenu=ui.slice(mobileMenuStart,mobileMenuEnd);
-  const calcIndex=mobileMenu.indexOf("title:'투자 계산기'");
-  const toggleIndex=mobileMenu.indexOf("action:'toggle-market-ai-connection'");
-  assert.ok(toggleIndex>calcIndex,'Phone 관리 메뉴에서 Market AI toggle은 투자 계산기 아래에 있어야 한다');
-  assert.match(mobileMenu,/marketAiToggle:true/);
+  assert.match(mobileMenu,/title:'투자 계산기'/);
+  assert.doesNotMatch(mobileMenu,/action:'toggle-market-ai-connection'/);
+  assert.doesNotMatch(mobileMenu,/marketAiToggle:true/);
 });
 
-test('Phone 개인 보기 3회 터치는 작은 기준문구가 아니라 Hero 전체 non-interactive 영역을 hit-area로 사용한다',()=>{
-  assert.match(app,/phoneUi\(\)&&event\.target\.closest\?\.\('#app > \.wrap > \.hero'\)/);
-  assert.match(app,/!event\.target\.closest\?\.\('a,button,input,select,textarea,\[role="button"\],\[role="link"\]'\)/);
-  assert.match(app,/handleHeroBasisTap\(\);/);
+test('Phone 개인 보기 3회 터치는 Hero 자체 action + touch pointer 판정으로 전체 non-interactive 영역에서 안정적으로 동작한다',()=>{
+  assert.match(app,/<header class="hero" id="top-section" aria-labelledby="dashboardTitle" data-dashboard-action="hero-card-tap">/);
+  assert.match(app,/const HERO_MULTI_TAP_WINDOW_MS=900;/);
+  assert.match(app,/const HERO_TOUCH_MOVE_TOLERANCE_PX=14;/);
+  assert.match(app,/function beginHeroTouchPointer\(event\)/);
+  assert.match(app,/function finishHeroTouchPointer\(event\)/);
+  assert.match(app,/event\.pointerType!=='touch'/);
+  assert.match(app,/moved>HERO_TOUCH_MOVE_TOLERANCE_PX/);
+  assert.match(app,/document\.addEventListener\('pointerdown',beginHeroTouchPointer,\{passive:true\}\)/);
+  assert.match(app,/document\.addEventListener\('pointerup',finishHeroTouchPointer,\{passive:true\}\)/);
+  assert.match(app,/if\(action==='hero-card-tap'\)\{[^]*?if\(!phoneUi\(\)\|\|Date\.now\(\)<suppressHeroSyntheticClickUntil\)return;[^]*?handleHeroBasisTap\(\);/s);
   assert.match(special,/\.hero\{touch-action:manipulation\}/);
   assert.match(app,/<time class="hero-basis" datetime="\$\{x\.date\}" data-dashboard-action="hero-basis-tap">/);
 });
