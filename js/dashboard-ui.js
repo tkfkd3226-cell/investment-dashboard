@@ -119,12 +119,13 @@ function syncThemeControls(){
 function publishAppearanceChange(){
   try{appearanceChannel?.postMessage({theme:currentTheme(),cornerTheme:currentCornerTheme()})}catch(_){}
 }
-function setTheme(theme,{redraw=true}={}){
+function setTheme(theme,{redraw=true,syncMonitor=true}={}){
   const dark=theme==='dark';
   document.documentElement.classList.toggle('dark',dark);
   try{localStorage.setItem(THEME_STORAGE_KEY,dark?'dark':'light')}catch(_){}
   syncThemeControls();
   publishAppearanceChange();
+  if(syncMonitor)publishRealtimeMonitorTheme(dark?'dark':'light');
   if(redraw&&dataState.portfolio)drawAllCharts();
 }
 function toggleTheme(){setTheme(currentTheme()==='dark'?'light':'dark')}
@@ -161,6 +162,9 @@ const separateProfitControl=(x,extraClass='')=>{
 };
 const REALTIME_QUOTES_ACTION=Object.freeze({action:'open-realtime-quotes',icon:'lineChart',title:'실시간 시세'});
 const REALTIME_MONITOR_SIZE_MESSAGE='market-ai-monitor:content-size';
+const REALTIME_MONITOR_THEME_READY_MESSAGE='market-ai-monitor:theme-ready';
+const REALTIME_MONITOR_THEME_STATE_MESSAGE='market-ai-monitor:theme-state';
+const REALTIME_MONITOR_THEME_CHANGE_MESSAGE='market-ai-monitor:theme-change';
 const REALTIME_MONITOR_PREPARE_TIMEOUT_MS=900;
 let realtimeMonitorContentHeight=0;
 let realtimeMonitorPrepareTimer=0;
@@ -584,12 +588,29 @@ function ensureRealtimeQuotesModal(){
 function realtimeMonitorExpectedOrigin(){
   try{return new URL(MARKET_AI_MONITOR_URL,window.location.href).origin}catch{return ''}
 }
+function publishRealtimeMonitorTheme(theme=currentTheme()){
+  const modal=document.getElementById('realtimeQuotesModal');
+  const frame=modal?.querySelector('.realtime-quote-frame');
+  const origin=realtimeMonitorExpectedOrigin();
+  if(!frame?.contentWindow||!origin||frame.getAttribute('src')==='about:blank')return;
+  try{frame.contentWindow.postMessage({type:REALTIME_MONITOR_THEME_STATE_MESSAGE,theme:theme==='dark'?'dark':'light'},origin)}catch(_){}
+}
 function handleRealtimeMonitorMessage(event){
   const modal=document.getElementById('realtimeQuotesModal');
   const frame=modal?.querySelector('.realtime-quote-frame');
   if(!frame||event.source!==frame.contentWindow||event.origin!==realtimeMonitorExpectedOrigin())return;
   const payload=event.data;
-  if(!payload||payload.type!==REALTIME_MONITOR_SIZE_MESSAGE)return;
+  if(!payload)return;
+  if(payload.type===REALTIME_MONITOR_THEME_READY_MESSAGE){
+    publishRealtimeMonitorTheme();
+    return;
+  }
+  if(payload.type===REALTIME_MONITOR_THEME_CHANGE_MESSAGE){
+    const theme=payload.theme==='dark'?'dark':(payload.theme==='light'?'light':'');
+    if(theme&&theme!==currentTheme())setTheme(theme,{syncMonitor:false});
+    return;
+  }
+  if(payload.type!==REALTIME_MONITOR_SIZE_MESSAGE)return;
   const height=Math.ceil(Number(payload.height));
   if(!Number.isFinite(height)||height<=0)return;
   realtimeMonitorContentHeight=height;

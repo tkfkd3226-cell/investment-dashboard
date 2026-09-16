@@ -3172,7 +3172,11 @@ body.dashboard-dialog-open{
   --modal-card-height:var(--realtime-monitor-display-height);
   --modal-card-pad-y:0px;
   --modal-card-pad-x:0px;
+  --realtime-quote-shell-bg:#f5f7fa;
   overflow:hidden;
+}
+html.dark .realtime-quote-modal{
+  --realtime-quote-shell-bg:#11161d;
 }
 @supports (height:100dvh){
   .realtime-quote-modal{--realtime-monitor-display-height:min(var(--realtime-monitor-fallback-height),86dvh)}
@@ -3185,6 +3189,7 @@ body.dashboard-dialog-open{
 .realtime-quote-modal.show{display:flex}
 .realtime-quote-modal-card{
   display:flex;
+  background:var(--realtime-quote-shell-bg);
   min-width:0;
   min-height:0;
   overflow:hidden;

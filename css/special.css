@@ -262,12 +262,8 @@
       --modal-card-height:calc(100vh - var(--modal-overlay-pad) - var(--modal-overlay-pad));
       --modal-card-pad-y:var(--space-md);
       --modal-card-pad-x:var(--space-md);
-      --realtime-quote-shell-bg:#f5f7fa;
     }
 
-    .realtime-quote-modal-card{
-      background:var(--realtime-quote-shell-bg);
-    }
     .realtime-quote-frame-stage,
     .realtime-quote-frame{
       width:100%;

@@ -61,7 +61,7 @@ test('Main appearance 두 control은 localStorage와 BroadcastChannel을 함께 
   assert.match(ui1,/const APPEARANCE_CHANNEL_NAME='investmentDashboard\.appearance'/);
   assert.match(ui1,/appearanceChannel=new BroadcastChannel\(APPEARANCE_CHANNEL_NAME\)/);
   assert.match(ui1,/function publishAppearanceChange\(\)\{ try\{appearanceChannel\?\.postMessage\(\{theme:currentTheme\(\),cornerTheme:currentCornerTheme\(\)\}\)\}catch\(_\)\{\} \}/);
-  assert.match(ui1,/function setTheme\(theme,\{redraw=true\}=\{\}\)\{[^]*?localStorage\.setItem\(THEME_STORAGE_KEY,dark\?'dark':'light'\)[^]*?syncThemeControls\(\); publishAppearanceChange\(\);/);
+  assert.match(ui1,/function setTheme\(theme,\{redraw=true,syncMonitor=true\}=\{\}\)\{[^]*?localStorage\.setItem\(THEME_STORAGE_KEY,dark\?'dark':'light'\)[^]*?syncThemeControls\(\); publishAppearanceChange\(\);[^]*?if\(syncMonitor\)publishRealtimeMonitorTheme\(dark\?'dark':'light'\);/);
   assert.match(ui1,/function setCornerTheme\(theme\)\{[^]*?localStorage\.setItem\(CORNER_THEME_STORAGE_KEY,rounded\?'rounded':'soft-square'\)[^]*?syncCornerThemeControls\(\); publishAppearanceChange\(\);/);
 });
 
@@ -1568,6 +1568,14 @@ test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 ico
   assert.match(common,/\.realtime-quote-frame-stage\{[^]*?overflow:hidden/s);
   assert.match(ui,/addEventListener\('message',handleRealtimeMonitorMessage\)/);
   assert.match(ui,/event\.origin!==realtimeMonitorExpectedOrigin\(\)/);
+  assert.match(ui,/REALTIME_MONITOR_THEME_READY_MESSAGE='market-ai-monitor:theme-ready'/);
+  assert.match(ui,/REALTIME_MONITOR_THEME_STATE_MESSAGE='market-ai-monitor:theme-state'/);
+  assert.match(ui,/REALTIME_MONITOR_THEME_CHANGE_MESSAGE='market-ai-monitor:theme-change'/);
+  assert.match(ui,/payload\.type===REALTIME_MONITOR_THEME_READY_MESSAGE[^]*?publishRealtimeMonitorTheme\(\)/s);
+  assert.match(ui,/payload\.type===REALTIME_MONITOR_THEME_CHANGE_MESSAGE[^]*?setTheme\(theme,\{syncMonitor:false\}\)/s);
+  assert.match(realtimeModalCss,/--realtime-quote-shell-bg:#f5f7fa/);
+  assert.match(realtimeModalCss,/html\.dark \.realtime-quote-modal\{[^]*?--realtime-quote-shell-bg:#11161d/s);
+  assert.match(realtimeModalCss,/\.realtime-quote-modal-card\{[^]*?background:var\(--realtime-quote-shell-bg\)/s);
   assert.match(ui,/modal\.classList\.add\('realtime-quote-preparing'\);\s*syncRealtimeQuotesModalGeometry\(\);\s*realtimeMonitorPrepareTimer=window\.setTimeout\(revealPreparedRealtimeQuotesModal,REALTIME_MONITOR_PREPARE_TIMEOUT_MS\);/);
   assert.match(ui,/const initialHeight=Math\.min\(fallbackHeight,availableHeight\*\.86\)/);
   assert.match(ui,/realtimeMonitorContentHeight>0\?realtimeMonitorContentHeight\+2:initialHeight/);
@@ -1582,6 +1590,7 @@ test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 ico
   assert.match(phoneRealtimeCss,/--modal-card-height:calc\(100d?vh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/);
   assert.match(common,/--space-md:5px;/,'실시간 시세 Phone shell padding 기준 토큰은 5px이어야 한다');
   assert.match(phoneRealtimeCss,/--modal-card-pad-y:var\(--space-md\);[\s\S]*?--modal-card-pad-x:var\(--space-md\);/,'Phone 세로 실시간 시세 card padding은 5px 공통 토큰을 사용해야 한다');
+  assert.doesNotMatch(phoneRealtimeCss,/--realtime-quote-shell-bg/,'Phone CSS가 실시간 시세 shell 색을 고정하면 테마 동기화가 깨진다');
   const landscapeModalStart=special.indexOf('/* Modal Landscape');
   const landscapeModalCss=special.slice(landscapeModalStart);
   assert.ok(landscapeModalStart>=0,'Phone Landscape modal CSS block is missing');
