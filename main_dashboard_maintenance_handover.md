@@ -332,8 +332,6 @@ cashPrincipalDelta  주식 원금 ↔ 현금 원금 이동액
 
 6/18 이후 계좌1 성과기준 투입원금은 **선택일 잔여 보유원가 + 누적 현금화 원금**이다. 전량/부분매도에서 `cashPrincipalDelta`는 매도된 `costBasis`만큼 원금을 현금 pool로 이동시키고, 그 현금 원금으로 재매수할 때 실제 재투입한 원금만 음수 delta로 차감한다. 같은 날짜에 매도와 재매수가 함께 있으면 event id 문자열 순서가 아니라 **그 날짜의 cashPrincipalDelta 순변동을 먼저 합산**한 뒤 일자 종료 시점 원금 pool을 검증한다. 날짜 종료 기준 현금화 원금이 음수가 되는 원장은 허용하지 않는다.
 
-증권계좌 현금을 추적 현금계좌로 되돌릴 때는 `type: withdrawal`, `fundingClass: internalCashReturn`을 사용한다. `amount`는 실제 계좌에서 빠진 전체 현금, `principalAmount`는 그중 투자원금 회수분이며 `cashPrincipalDelta`는 `-principalAmount`다. `outsideCashForDate()`는 전체 `amount`를 추적 현금에 복귀시키고, 계좌1 source principal과 투자원금 검산은 `principalAmount`만 감소시킨다. 내부이동 원금의 순액은 `internalCashTransfer - internalCashReturn principal`로 계산해 장부 결과물 중복조정을 제거하며, `amount - principalAmount` 비원금 회수분은 계좌 성과가 단순 출금 때문에 감소하지 않도록 결과물에 보존한다. 추적 현금은 `outsideCashSnapshots`의 **가장 최근 확인값**을 기준점으로 삼고 그 확인일 이후의 내부이동만 증감한다. 따라서 새 실기 확인값이 생기면 과거 `기준값 - 투자 사용 + 회수 + ...` 문구를 계속 늘리지 않고 snapshot을 추가해 기준점을 갱신한다. 현재 최신 확인값은 `2026-09-16 / 2,090,325원`이다.
-
 종목 성과 의미는 다음을 유지한다.
 
 ```text
@@ -345,13 +343,13 @@ performanceCost    현재 잔여 cost + realizedCostBasis
 종목 누적수익률     totalProfit / performanceCost
 ```
 
-따라서 전량매도 뒤 `qty=0`인 종목은 `보유종목 현황`에서는 빠진다. `전일 대비 변동`은 매도 당일까지 종목을 남기고 전량매도 종목명에 취소선을 표시한다. 거래 tooltip의 hover/focus target은 종목명 span이 아니라 **종목 셀 전체**이며 공통 `dash-tooltip`로 매도가·거래비용·순매도대금·매수원가·실현손익을 보여준다. 종목별 누적손익/수익률 차트도 **매도 당일까지 마지막 실현 성과를 표시하고 다음 날짜부터 series에서 제외**한다. 단 전체 `rawHoldingProfit`에는 확정 실현손익이 계속 포함된다. `securitiesCashForDate()`의 sell 현금흐름에는 `grossAmount`가 아니라 **순매도대금 `amount`**를 사용한다.
+따라서 전량매도 뒤 `qty=0`인 종목은 `보유종목 현황`에서는 빠지지만 종목별 누적손익/수익률 history에서는 마지막 실현 성과가 유지된다. `securitiesCashForDate()`의 sell 현금흐름에는 `grossAmount`가 아니라 **순매도대금 `amount`**를 사용한다.
 
-`scripts/update_prices.py`는 위 JS contract를 그대로 재현한다. `qty <= 0`이어도 **당일 buy/sell 이벤트가 있는 종목은 그 거래일까지 KRX 시장가격을 조회**하고, 다음 날짜부터 신규 조회에서 제외한다. 매도 전 날짜 backfill에서는 당시 보유수량을 복원해 정상 조회한다. `performance_snapshots.json`의 `rawHoldingProfit`은 평가손익+누적 실현손익을 계속 보존하지만 `symbols`는 보유 중이거나 당일 거래가 있는 종목만 포함한다. 계좌1 원금도 JS와 같은 보유원가+현금화 원금 기준을 사용하며 동일 입력 재생성에서 실현손익·현금이 중복 반영되지 않아야 한다.
+`scripts/update_prices.py`는 위 JS contract를 그대로 재현한다. 대상 날짜 `security_position_state().qty <= 0`인 종목은 신규 KRX 가격 조회를 하지 않지만, 매도 전 날짜 backfill에서는 당시 보유수량을 복원해 정상 조회한다. `performance_snapshots.json`의 `rawHoldingProfit`/`symbols`는 평가손익+실현손익을 사용하고, 계좌1 원금도 JS와 같은 보유원가+현금화 원금 기준을 사용한다. 동일 입력으로 snapshot을 다시 생성해도 실현손익·현금이 중복 반영되지 않아야 한다.
 
 Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수량이 0보다 큰 ticker만 요청한다. 따라서 전량매도 종목은 매도일 이후 실시간 quote universe에서 자동 제외되며 Market AI backend에 별도 매도 상태를 추가하지 않는다.
 
-현재 첫 증권 전량매도·원금회수 회귀 anchor는 `2026-09-16 / 009150 삼성전기`다. 매도는 `gross 1,348,000 - transactionCost 2,772 = net 1,345,228`, `costBasis 1,345,000`, `realizedProfit +228`이다. 같은 날짜 운영 검증을 위해 증권계좌에서 `1,400,228`을 내부 현금계좌로 회수해 `securitiesCash 3,790`을 남기며, withdrawal은 `principalAmount 1,345,000 / cashPrincipalDelta -1,345,000 / fundingClass internalCashReturn`으로 기록한다. 이에 따라 9/16 계좌1 투입원금은 `22,996,210`, 추적 현금은 `2,090,325`, 원천·보유 차액은 기존 `12,862`, 장부결과 VS 실제보유 차액은 기존 생활비 사용분 `3,063,626`을 유지한다. `outsideCashSnapshots`에는 이 `2,090,325`를 9/16 확인값으로 고정하며, 9/16의 `계좌1 투자원금 검산`과 `계좌1 원천별 추적`에서는 내부 현금 투입/회수가 순액 0이므로 별도 `실현수익 투입`·`증권계좌 원금 회수` 두 행을 누적 표시하지 않는다. 과거처럼 내부 현금 순이동이 실제로 남아 있는 날짜만 단일 `내부 현금 순이동` 행으로 검산한다.
+현재 첫 증권 전량매도 회귀 anchor는 `2026-09-16 / 009150 삼성전기`다. `gross 1,348,000 - transactionCost 2,772 = net 1,345,228`, `costBasis 1,345,000`, `realizedProfit +228`, 매도 후 증권현금 `1,404,018`, 매도 전후 계좌1 투입원금 `24,341,210` 유지가 자동 테스트의 실제 운영 데이터 검산 기준이다.
 
 ## 2.4 `dashboard-ui.js`와 `dashboard-ui-common.js` 책임
 
@@ -433,7 +431,7 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 - 각 계좌의 `투입원금`·`투자 결과물`은 성과 기준값(A)과 장부 조정값(B)의 관계를 유지하고, 합계는 각 계좌 최종 장부값과 전체 성과 카드가 일치해야 한다.
 - 별도수익 상태는 기존 `separateProfitView()`의 재분류 기준을 따른다. 개인 기능 비활성 상태에서는 개인 기능의 존재를 직접 드러내는 표현을 사용하지 않는다.
 - 별도수익 ON/OFF 성능 contract는 `toggleSeparateProfitMode()` → `refreshSeparateProfitModeView()` partial refresh다. 토글만으로 `render()`/`#app` 전체 교체, 퇴직연금 재렌더, Market AI 재마운트, 종목별·평가비중 차트 재계산을 다시 도입하지 않는다. 누적차트만 `refreshSecuritiesCumulativeChart()`로 다시 그린다.
-- 계좌1 투입원금 조정 B의 기본 중복 제거 근거는 `레버수익 재투입 + VIP 수익 재투입`이며, 내부 현금 순이동이 남아 있는 과거 날짜만 해당 순액을 계산상 추가한다. `원천·보유 차액`은 성과기준 투입원금에는 남기되 조정 B 근거에서는 제외한다. 삼성증권2 투자 결과물 조정은 VIP 재투입액 중복 제거와 연결된다.
+- 계좌1 투입원금 조정 B의 중복 제거 근거는 `레버수익 재투입 + VIP 수익 재투입 + 실현수익 투입`이며 `원천·보유 차액`은 성과기준 투입원금에는 남기되 조정 B 근거에서는 제외한다. 삼성증권2 투자 결과물 조정은 VIP 재투입액 중복 제거와 연결된다.
 - `투자원금 원천 및 검산`은 3개 source card 구조와 각 표의 `합계`를 최종값으로 사용한다. base 원천과 재투입 원천을 구분하고 `원천·보유 차액`은 중립 검산값으로 취급한다.
 - `2026-06-18` 이전 복원 구간은 현재 설명문에 맞추기 위해 과거 수치를 재계산하지 않는다. legacy 수치 의미는 데이터 기준선을 우선한다.
 - 세로 Phone의 계좌별 상태에서 제목행 control 순서는 `별도수익 ON/OFF → 카드 보기/표 보기 → 전체/계좌별`이다. 카드/표 전환을 가장 오른쪽으로 보내거나 ON/OFF와 분리하지 않는다. 그 밖의 mobile 열 축약과 메모 표시 방식은 실제 renderer/CSS를 Source of Truth로 한다.
@@ -563,18 +561,18 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 로컬(`localhost`, `127.0.0.1`)에서는 현재 host의 `:8001` Market AI API를 조회하고, 비로컬 GitHub Pages에서는 `https://node.tail60a98e.ts.net` Tailscale Serve를 통해 같은 실제 Market AI API를 조회한다.
 - `market-ai-preview` 예시 데이터 모드는 사용하지 않는다. `?dashboard-view=web`, `?dashboard-view=tablet`, `?dashboard-view=mobile`은 화면 형태만 바꾸며 세 모드 모두 실제 Market AI 데이터를 사용한다.
 - Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다. 세 endpoint가 모두 응답하지 않으면 로컬은 panel 중앙에 `연결 확인 중`을 표시하며 재시도하고, 비로컬 환경은 응답 확인 전까지 Market AI signal panel을 mount하지 않고 polling만 유지하며, `실시간 시세` 진입점은 DOM에 있어도 hidden 상태를 유지하고 monitor modal은 생성하지 않는다.
-- Market AI server reachability는 `dashboard-market-ai.js`가 공통 connection event로 publish하고 Topbar/UI가 소비한다. 서버 연결이 검증된 동안에만 웹/태블릿 Topbar의 `실시간 시세` 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출하며, Phone `관리` 메뉴에는 중복 진입점을 두지 않는다. 두 viewport 진입점은 같은 `REALTIME_QUOTES_ACTION`과 `data-market-ai-monitor-entry` gating을 공유하고, `[data-market-ai-monitor-entry][hidden]{display:none}` 공통 author CSS가 `date-tool-btn`의 display 선언보다 우선해 연결 전/해제 시 모든 viewport에서 실제로 숨겨지는 것을 보장한다. Web/Tablet은 iframe을 먼저 load해 Monitor content height를 수신한 뒤 최종 compact·no-scroll geometry로 modal을 reveal하고, size message가 늦을 때만 제한된 compact fallback 높이를 사용한다. 최초에 `availableHeight` 전체를 표시한 뒤 줄이는 동작을 다시 도입하지 않는다. Phone은 KRX 등 action modal과 같은 `--modal-overlay-pad`·`--modal-card-radius`를 상속하고 monitor card만 남은 가용 영역을 채운다. 단 Monitor shell의 card padding은 일반 action modal density와 분리해 세로/가로폰 모두 `--space-md`(5px)로 고정하며, Landscape의 일반 `.action-modal` 24px 규칙이 이를 덮지 않도록 `.action-modal.realtime-quote-modal`에서 5px 계약을 재확정한다. 화면 크기 변경에도 이 구분을 유지하고, 연결 해제 시 진입점을 숨기고 열린 embedded monitor를 닫아 stale UI를 남기지 않는다.
+- Market AI server reachability는 `dashboard-market-ai.js`가 공통 connection event로 publish하고 Topbar/UI가 소비한다. 서버 연결이 검증된 동안에만 웹/태블릿 Topbar의 `실시간 시세` 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출하며, Phone `관리` 메뉴에는 중복 진입점을 두지 않는다. 두 viewport 진입점은 같은 `REALTIME_QUOTES_ACTION`과 `data-market-ai-monitor-entry` gating을 공유하고, `[data-market-ai-monitor-entry][hidden]{display:none}` 공통 author CSS가 `date-tool-btn`의 display 선언보다 우선해 연결 전/해제 시 모든 viewport에서 실제로 숨겨지는 것을 보장한다. Web/Tablet은 iframe을 먼저 load해 Monitor content height를 수신한 뒤 최종 compact·no-scroll geometry로 modal을 reveal하고, size message가 늦을 때만 제한된 compact fallback 높이를 사용한다. 최초에 `availableHeight` 전체를 표시한 뒤 줄이는 동작을 다시 도입하지 않는다. Phone은 KRX 등 action modal과 같은 `--modal-overlay-pad`·`--modal-card-radius`를 상속하고 monitor card만 남은 가용 영역을 채운다. 화면 크기 변경에도 이 구분을 유지하고, 연결 해제 시 진입점을 숨기고 열린 embedded monitor를 닫아 stale UI를 남기지 않는다.
 - refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답/parse error가 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 async boundary 뒤의 request sequence를 확인한다.
 - backend가 제공하는 signal metadata와 산식 contract를 프런트에서 임의 재해석하지 않는다. 상세 backend 계약은 Market AI 프로젝트의 `market_ai_project_handover.md`를 Source of Truth로 한다.
 - SOX 시장 metric과 Signal Engine 입력은 모두 `INDEX:SOX`를 사용하며 표시 편의를 위해 `FUTURES:SOX` 또는 `SOX-F`로 자동 전환하지 않는다.
 - KOSPI200선물은 `kis-efriend:*` 실제 소스이면서 proxy가 아닌 snapshot만 표시한다. 장 종료로 확인된 마지막 정상값은 허용하지만, 장중 stale·Bridge 단절·대체 소스는 사용 가능한 실선물 값처럼 표시하지 않는다.
 - signal state가 `actual_close`이면 상승마감 metric을 예측값으로 계속 표시하지 않고 실제 KOSPI 종가 결과와 확정 상태로 전환한다. `available:false`는 유효 신호 없음으로 처리한다.
-- 신호 상세의 판단 근거는 backend `effective_weight`를 우선 표시하고, 해당 metadata가 없는 호환 응답에서만 configured/legacy weight를 fallback한다. 이 normalization은 표시 호환용이며 프런트가 signal 산식을 다시 계산한다는 뜻이 아니다.
+- v8 신호 상세는 `details.signal_inputs[target]`를 우선 Source of Truth로 사용한다. `input_coverage`는 **신호별 입력 충족률**이며 legacy checkpoint의 `null`을 0% 또는 100%로 추정하지 않고 `--`로 둔다. `basis[].normalized_weight`는 현재 실제 계산에 반영된 구성비이며, 화면은 사용 가능한 항목만 정수 %로 배분하되 반올림 잔여를 결정적으로 분배해 **표시 합계를 항상 100%**로 맞춘다. 누락 항목은 `missing_inputs`와 각 input `status/reason`을 사용자 의미로 표시한다.
+- DB/API 호환을 위해 남아 있는 `confidence`와 `data_completeness`는 Dashboard 신호 UI에서 사용하지 않는다. 코드에 방어 로직이 많다는 이유로 별도 신뢰도 수치를 다시 합성하거나, `effective_weight` 합계를 그대로 퍼센트처럼 노출해 100% 미만으로 보이게 하지 않는다. metadata가 없는 구버전 응답에서는 available weight를 표시용으로만 재정규화하며 프런트가 signal score 자체를 다시 계산하지 않는다.
 - 선택된 과거 `activeDate`와 무관하게 Market AI panel은 현재 시점 신호를 표시한다.
 - Desktop/Tablet과 Mobile이 같은 `#market-ai-section` DOM을 재사용하며 별도 Mobile render tree를 만들지 않는다.
 - metric tooltip은 Desktop/Tablet의 keyboard/pointer interaction에서만 제공하고 Phone에서는 tooltip 속성·focus target을 제거한다.
 - polling은 문서가 보이는 동안만 실제 refresh하고, 다시 visible이 되면 즉시 갱신한다. 정확한 poll/timeout/freshness 수치는 최신 JS를 따른다.
-- 현재 frontend timing anchor는 Market AI panel/live valuation **10초 polling**, transport timeout **Local 2.5초 / Remote 5초**다. backend의 **120초 client lease**와 **동적 KRX durable snapshot 최대 30초 write throttle**은 서로 다른 lifecycle이며 frontend polling/timeout 값으로 재사용하지 않는다. 값 변경 시 frontend 수치는 실제 JS, backend 수치는 Market AI 프로젝트 소스를 각각 Source of Truth로 한다.
 - `window/globalThis` state bridge, main `dataState/uiState` 직접 접근, main feature module import를 추가하지 않는다.
 - layout 비율, tooltip 위치, viewport별 density, freshness threshold 같은 현재 표현·운영 수치는 실제 CSS/JS/backend 설정을 Source of Truth로 하고 handover에 미세값을 고정하지 않는다.
 
@@ -599,7 +597,6 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - quote는 `usable:true`인 종목에만 적용하고 `warming/stale/unavailable/error` 등 unusable 종목은 **종목별 JSON fallback**한다. `usable`은 현재 tick이 계속 움직인다는 뜻이 아니라, 현재 시장 상태에서 Dashboard 평가에 사용할 수 있는 신뢰 가능한 당일 가격이라는 뜻이다. 따라서 backend가 `state=closed, usable=true`로 제공하는 당일 장마감 quote도 overlay 대상이며 일부 실패 때문에 정상 quote까지 모두 버리지 않는다.
 - backend의 종목별 `state / usable / market_state`를 normalize 과정에서 버리지 않는다. `market_state`는 Dashboard 내부에서 `marketState`로 보존하고 `liveValuationStatusForDate()`가 `regularLiveCount(open) / extendedLiveCount(extended) / marketClosedCount(closed)`를 집계한다. top-level `market_state`만으로 개별주식 시간외와 ETF 장마감이 섞인 15:30~20:00 구간을 판정하지 않는다. `liveValuationFingerprint()`에도 종목별 `market_state`를 포함해 가격이 그대로여도 open→extended/closed 의미가 바뀌면 다음 UI 단계가 상태 변경을 관측할 수 있어야 한다.
 - 현재 consumer session contract는 **개별주식 `09:00~15:30 open / 15:30~20:00 extended / 20:00 이후 closed`, ETF `15:30 이후 closed`**다. `extended` quote는 backend가 `state=live, usable=true`로 제공하고, 신뢰 가능한 당일 장마감 가격은 `state=closed, usable=true`로 제공할 수 있으므로 둘 다 오늘 평가 overlay에 적용한다. Dashboard는 process-memory인지 durable KIS snapshot 복구인지 자체 판정하지 않고 backend의 ticker별 `market_state/state/usable/source`를 소비한다. KOSPI 15:30 종가 판정과 K200 day/night session은 Market AI backend 소유이며 live valuation adapter가 재정의하지 않는다.
-- 장마감 durable recovery의 backend contract는 **현재 KST 날짜 exact `kis-efriend:SC_R:<ticker>` + `market_state=closed` + Bridge connected + 해당 subscription 정상 + fresh-tick 재확인 요구 없음**을 모두 만족할 때만 `closed + usable=true` 승격을 허용한다. `open/extended`, 전일 snapshot, yfinance/proxy source, subscription 오류/미구독, 장애 복구 후 새 tick 대기 상태는 durable 값이 있어도 unusable이어야 하며 Dashboard는 종목별 `prices.json` fallback을 유지한다. 이 조건을 frontend에서 복제 계산하지 말고 backend `usable/state/source`를 그대로 소비한다.
 - live quote는 `dataState.liveValuation`의 volatile snapshot으로만 보관하며 운영 JSON, GAS, GitHub Actions, `performance_snapshots.json`에 쓰지 않는다.
 - live overlay는 `activeDate === KST 오늘`일 때만 계산에 사용한다. 과거 날짜는 Market AI state가 존재해도 JSON/역사 snapshot 의미를 유지한다.
 - Market AI는 ticker별 현재가와 source/health만 제공한다. 수량·원가·원금·매매흐름·실현손익의 owner는 Dashboard 장부다.
@@ -609,8 +606,6 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 차트 entrance animation은 card별 최초 viewport 진입 1회가 contract다. Live Valuation full render가 10초마다 발생해도 **이미 `chartEntrancePlayed=true`인 card ID만** 완료 상태를 다음 render에 승계하고, 아직 스크롤 진입 전인 card는 pending 상태를 유지한다. 전체 차트를 일괄 완료 처리해 아래쪽 차트의 최초 진입 animation을 소거하는 회귀를 허용하지 않는다.
 - Hero 제목행의 `투자 성과` 기준문구는 `heroPerformanceBasisLabel(date)`가 **실제 계산에 적용된 usable quote coverage**를 기준으로 결정한다. 과거 날짜·warming/stale/unavailable·usable 0건·전 종목 closed는 `koreanDateLabel()`의 기존 `종가 기준/장중 HH:MM 기준`을 유지한다. 요청 종목 일부만 usable이면 `일부 실시간 반영`, 요청 종목이 모두 usable이고 `extended` live가 하나라도 적용되면 `시간외 포함 현재가 기준`, 모두 usable이며 정규장 live가 적용되면 `실시간 현재가 기준`으로 표시한다. **ETF closed + 개별주식 live/extended가 섞여 있어도 모든 요청 종목이 Market AI usable이면 `일부`로 낮추지 않는다.** `LIVE / CLOSED / STALE / JSON` 같은 raw 상태 문자열은 노출하지 않는다. 종목·상품명 **라벨 셀 전체 hover** 및 라벨 focus의 기존 `.dash-tooltip`에서 Market AI/JSON 출처·관측시각/기준일을 확인한다. source label은 `aria-describedby`로 기존 tooltip surface와 연결하고 tooltip DOM은 event binding 시 미리 확보한다. 새 tooltip CSS primitive를 만들지 않는다.
 - Market AI standalone polling이 card 값을 갱신할 때 이미 열려 있는 Market AI tooltip도 같은 최신 state/view model로 즉시 다시 그린다. tooltip target이 DOM에서 사라졌다면 tooltip을 닫아 stale body-level surface를 남기지 않는다.
-
-embedded `실시간 시세` Monitor는 Main이 iframe lifecycle만 소유하는 **read-only 운영 관찰면**이다. Monitor의 `/api/bridge/kis-efriend/quote-universe` polling은 `dashboard-live-valuation.js`의 `client_id`를 사용하지 않고 backend Dashboard lease를 생성·연장하지 않는다. Monitor가 최근 완료 KRX 거래일 durable snapshot으로 표시를 복원하는 contract와, Dashboard valuation이 현재 KST 날짜 exact KIS `SC_R`를 `closed + usable=true`로 승격하는 contract를 혼동하지 않는다. `change_amount` 등 Monitor 전용 표시 field는 iframe 내부 Market AI UI가 소유하며 Main 계산 state로 가져오지 않는다.
 
 KIS eFriend 다종목 universe, subscription health, Tailscale Serve/CORS와 backend quote store 운영은 Market AI 프로젝트의 `market_ai_project_handover.md`를 따른다.
 
@@ -975,8 +970,6 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - 값 표시 의미는 `fresh`에서 현재 snapshot을 사용하고, K200 `closed / stale / bridge / source`도 `rawRow`가 있으면 **마지막 수신 현재가·등락률을 계속 표시**한다. 값의 신뢰도는 `상태` 행으로 구분하며, 실제 row 자체가 없는 `missing`에서만 현재가·등락률을 `--`로 표시한다. raw row가 있으면 `출처`와 `기준 시각`도 함께 유지한다.
 - 별도 `세션` 행은 K200의 KIS Bridge `expected_session` 근거가 있을 때만 `주간 / 야간 / 장외`로 표시한다. 다만 `상태` 판정은 KOSPI(KST 09:00~15:30), SOX(America/New_York 09:30~16:00), NQ100선물(America/Chicago CME session)의 기본 거래시간을 사용해 장전/장마감/거래중단과 실제 stale을 구분한다. timezone 판정은 `Intl.DateTimeFormat`으로 DST를 따라간다.
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
-- backend 재시작/장마감 durable recovery에서도 frontend는 `usable/state/source`만 소비한다. 현재 날짜 exact KIS `SC_R`가 아닌 전일/비-KIS snapshot, `open/extended` durable 값, subscription unhealthy 또는 fresh-tick 재확인 대기 상태가 `usable:true`로 잘못 들어오면 backend contract 위반으로 분류하고 Dashboard가 임의로 이를 정상화하지 않는다.
-- embedded Monitor의 read-only `quote-universe` 조회가 Dashboard live valuation lease를 갱신하는 경로로 합쳐지지 않는지 확인한다. Monitor durable 표시 복원과 Dashboard valuation durable fallback은 날짜·health·용도가 다르다.
 - Hero에는 `LIVE / CLOSED / STALE / WARMING / JSON` 같은 raw 상태 문자열을 표시하지 않는다. 대신 `heroPerformanceBasisLabel()`이 현재 Hero 계산에 실제 적용된 quote만 보고 `일부 실시간 반영 / 실시간 현재가 기준 / 시간외 포함 현재가 기준` 중 필요한 의미만 노출한다. live가 실제 적용되지 않거나 전 종목 closed이면 기존 날짜 기준문구를 유지하며, 과거 날짜는 항상 저장 데이터 의미를 유지한다.
 - 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다.
 - live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 전체 render로 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다. keyboard focus는 `render()` 공통 contract로 보존하며 날짜 변경·live refresh의 full render가 같은 snapshot/restore 경로를 사용한다. 별도수익 전환은 `refreshSeparateProfitModeView()`의 partial refresh에서 동일한 focus snapshot/restore 원칙과 window/nested scroll 보존을 적용한다. 현재가 출처, 자산 기여도 segment, 퇴직연금 위험도 gauge, Market AI metric처럼 `id`가 없는 focusable visual target은 `data-dashboard-focus-key`를 가져야 한다. 일반 live full render에서는 Mobile 목차·Desktop 목차 open 상태와 scroll 위치도 유지되어야 하며, metadata-only 응답으로 불필요한 full render가 반복되지 않아야 한다.
@@ -1606,11 +1599,11 @@ data/pension_contributions.json
 
 또한 나머지 `data/*.json`도 요청과 직접 관련 없으면 수정하지 않는다.
 
-장부·성과 계산에 쓰이는 실제 데이터성 값은 JS literal로 중복 보관하지 않는다. 현재 증권의 KODEX 레버리지 별도수익 거래 이력·재투입 한도·Report 기간/포지션 문맥은 `data/kodex_leverage_trades.json`을 source of truth로 사용하고 `dashboard-core.js`가 `portfolio.separateProfit` 표시용 구조를 런타임 파생한다. 일반 증권 매매·자금 이동은 `data/portfolio.json`의 `securitiesEvents`가 canonical 원장이며, 매도 체결가·순매도대금·거래비용·기준원가·실현손익·현금화 원금 이동을 이 원천에서 복원한다. 추적 현금 확인 이력은 `outsideCashSnapshots`을 source of truth로 사용하고 `constants.outsideCash`는 snapshot 이전 호환 기준값으로만 유지한다. 원천별 추적의 고정 원천값은 `securitiesSourceTracking`을 source of truth로 사용하며, `dashboard-core.js`/`dashboard-ui.js`는 이를 읽어 계산·표시한다.
+장부·성과 계산에 쓰이는 실제 데이터성 값은 JS literal로 중복 보관하지 않는다. 현재 증권의 KODEX 레버리지 별도수익 거래 이력·재투입 한도·Report 기간/포지션 문맥은 `data/kodex_leverage_trades.json`을 source of truth로 사용하고 `dashboard-core.js`가 `portfolio.separateProfit` 표시용 구조를 런타임 파생한다. 일반 증권 매매·자금 이동은 `data/portfolio.json`의 `securitiesEvents`가 canonical 원장이며, 매도 체결가·순매도대금·거래비용·기준원가·실현손익·현금화 원금 이동을 이 원천에서 복원한다. 6/18 확인 현금 기준값은 `constants.outsideCash`, 원천별 추적의 고정 원천값은 `securitiesSourceTracking`을 source of truth로 사용하며, `dashboard-core.js`/`dashboard-ui.js`는 이를 읽어 계산·표시한다.
 
 주의:
 
-- `prices.json`, `performance_snapshots.json`은 KRX 현재가 반영/워크플로우 때문에 정상적으로 바뀔 수 있다. 두 파일은 같은 생성 run의 pair이므로 동일 날짜의 `updatedAtKST`와 현재 price input 기준 `rawHoldingProfit`·`dailyProfit`이 서로 맞아야 한다. 특히 장중 가격에 종속되는 성과값을 테스트 상수로 고정하지 말고 committed price↔snapshot 재계산 parity로 검증한다.
+- `prices.json`, `performance_snapshots.json`은 KRX 현재가 반영/워크플로우 때문에 정상적으로 바뀔 수 있다.
 - 최신 KRX 반영분과 코드 patch를 섞을 때 단순 hash 차이를 코드 회귀로 오인하지 않는다.
 - `pension_contributions.json`은 KRX 재갱신 대상이라고 가정하지 않는다.
 - 실제 운영 데이터가 포함된 최신 기준본을 과거 코드 패키지로 덮어쓰기 전에 먼저 확인한다.

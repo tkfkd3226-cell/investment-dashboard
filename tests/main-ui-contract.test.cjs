@@ -1357,6 +1357,28 @@ test('Market AI 시장 tooltip View Model은 session-aware KOSPI/SOX/NQ와 K200 
   assert.equal(context.marketAiMarketDisplayModel('unknown'),null);
 });
 
+test('Market AI 신호 상세는 신뢰도 휴리스틱 대신 신호별 입력 충족률·100% 반영비중·누락 사유를 표시한다',()=>{
+  assert.match(marketAi,/signal_inputs|signalInputs/,'signal_inputs 계약을 소비해야 한다');
+  assert.match(marketAi,/input_coverage|inputCoverage/,'신호별 입력 충족률을 소비해야 한다');
+  assert.match(marketAi,/normalized_weight|normalizedWeight/,'backend normalized weight를 우선 소비해야 한다');
+  const start=marketAi.indexOf('function marketAiSignalTooltipHtml');
+  const end=marketAi.indexOf('function marketAiTooltipHtml',start);
+  const tooltip=marketAi.slice(start,end);
+  assert.ok(start>=0&&end>start,'Market AI signal tooltip renderer is missing');
+  assert.match(tooltip,/입력 충족률/);
+  assert.match(tooltip,/실제 반영 비중/);
+  assert.match(tooltip,/누락 입력/);
+  assert.doesNotMatch(tooltip,/신뢰도|데이터 완성도|signal\.confidence|signal\.data_completeness/,'deprecated confidence/completeness must not return to signal UI');
+  const weightStart=marketAi.indexOf('function marketAiDisplayedWeights');
+  const weightEnd=marketAi.indexOf('// [MARKET07]',weightStart);
+  const weightBlock=marketAi.slice(weightStart,weightEnd);
+  assert.match(weightBlock,/100-rows\.reduce/,'표시 비중은 정수 반올림 후 잔여를 100%까지 배분해야 한다');
+  assert.match(weightBlock,/remaining-=1/,'반올림 잔여 배분이 누락되면 안 된다');
+  assert.match(marketAi,/stale:'현재 세션 입력 지연'/);
+  assert.match(marketAi,/missing_close:'최근 마감 데이터 없음'/);
+  assert.match(marketAi,/calendar_unknown:'거래 세션 확인 불가'/);
+});
+
 test('Market AI standalone refresh는 열린 tooltip 본문도 최신 state로 동기화한다',()=>{
   assert.match(marketAi,/let marketAiActiveTooltipTarget=null/);
   assert.match(marketAi,/marketAiActiveTooltipTarget=target/);

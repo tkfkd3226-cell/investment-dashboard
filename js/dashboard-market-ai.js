@@ -60,6 +60,11 @@ const MARKET_AI_COMPONENT_LABELS={
   wti:'WTI',brent:'Brent',oil:'유가',news:'뉴스',news_score:'뉴스',ai_news:'AI 뉴스',
   geopolitics:'지정학',fed_rates:'Fed·금리',us_policy:'미국 정책',korea_market:'국내 시장'
 };
+const MARKET_AI_INPUT_STATUS_LABELS={
+  realtime:'실시간',within_delay:'허용 지연 범위',closed_latest:'최근 마감값',awaiting_session:'새 세션 수신 대기',
+  closing_pending:'마감 데이터 수신 대기',stale:'현재 세션 입력 지연',missing_close:'최근 마감 데이터 없음',
+  calendar_unknown:'거래 세션 확인 불가',invalid_time:'관측 시각 오류',missing:'데이터 또는 등락률 없음',invalid_value:'값 오류'
+};
 
 const marketAiState={
   signal:null,
@@ -561,13 +566,6 @@ function marketAiComponentLabel(key){
     .replace(/\b\w/g,char=>char.toUpperCase());
 }
 
-function marketAiWeightText(value){
-  const n=Number(value);
-  if(!Number.isFinite(n))return '';
-  const pct=Math.abs(n)<=1.000001?n*100:n;
-  return `${pct.toFixed(Math.abs(pct)>=10?0:1)}%`;
-}
-
 function marketAiSignalState(signal,metric){
   if(!metric?.stateKey)return null;
   const state=signal?.details?.signal_state?.[metric.stateKey];
@@ -593,28 +591,67 @@ function marketAiSessionDateText(value){
   return `${Number(match[2])}/${Number(match[3])}`;
 }
 
+function marketAiSignalInputSummary(signal,metric){
+  const targets=[metric?.stateKey,...(metric?.detailKeys||[])].filter(Boolean);
+  return marketAiTargetBucket(signal,['signal_inputs','signalInputs'],targets);
+}
+
+function marketAiSignalCoverage(signal,metric){
+  const summary=marketAiSignalInputSummary(signal,metric);
+  const raw=summary?.input_coverage??summary?.inputCoverage;
+  if(raw==null||raw==='')return null;
+  const value=Number(raw);
+  return Number.isFinite(value)?Math.max(0,Math.min(1,value)):null;
+}
+
+function marketAiMissingReason(item){
+  const inputs=Array.isArray(item?.inputs)?item.inputs:[];
+  const statusLabels=[];
+  inputs.forEach(input=>{
+    if(input?.available!==false)return;
+    const label=MARKET_AI_INPUT_STATUS_LABELS[String(input?.status||'')];
+    if(label&&!statusLabels.includes(label))statusLabels.push(label);
+  });
+  if(statusLabels.length)return statusLabels.join(' · ');
+  const reason=String(item?.reason||'').trim();
+  if(/proxy/i.test(reason))return '선물 proxy 제외';
+  if(/missing snapshot|change_pct/i.test(reason))return '데이터 또는 등락률 없음';
+  return reason||'사용 가능한 입력 없음';
+}
+
+function marketAiSignalMissingInputs(signal,metric){
+  const summary=marketAiSignalInputSummary(signal,metric);
+  const source=Array.isArray(summary?.missing_inputs)?summary.missing_inputs:(Array.isArray(summary?.basis)?summary.basis.filter(item=>item?.available===false):[]);
+  return source.map(item=>({
+    key:String(item?.key||''),
+    label:marketAiComponentLabel(item?.key),
+    reason:marketAiMissingReason(item)
+  })).filter(item=>item.key);
+}
+
 function marketAiSignalBasis(signal,metric){
-  const state=marketAiSignalState(signal,metric);
-  if(Array.isArray(state?.basis)&&state.basis.length){
-    return state.basis
+  const summary=marketAiSignalInputSummary(signal,metric);
+  if(Array.isArray(summary?.basis)&&summary.basis.length){
+    return summary.basis
       .map(item=>{
         const key=String(item?.key||'');
+        const normalizedWeight=Number(item?.normalized_weight??item?.normalizedWeight);
         const effectiveWeight=Number(item?.effective_weight??item?.effectiveWeight);
         const configuredWeight=Number(item?.configured_weight??item?.configuredWeight??item?.weight);
-        const usesEffectiveWeight=Number.isFinite(effectiveWeight);
-        const weight=usesEffectiveWeight?effectiveWeight:configuredWeight;
         const quality=item?.quality==null?NaN:Number(item.quality);
+        const weight=Number.isFinite(normalizedWeight)?normalizedWeight:(Number.isFinite(effectiveWeight)?effectiveWeight:configuredWeight);
         return {
           key,
           label:marketAiComponentLabel(key),
           weight:Number.isFinite(weight)?weight:null,
-          effective:usesEffectiveWeight,
+          available:item?.available!==false,
           quality:Number.isFinite(quality)?quality:null
         };
       })
-      .filter(item=>item.key&&(item.weight!=null||item.quality!=null))
-      .sort((a,b)=>Math.abs(Number(b.weight)||0)-Math.abs(Number(a.weight)||0));
+      .filter(item=>item.key&&item.available&&item.weight!=null&&item.weight>0)
+      .sort((a,b)=>Number(b.weight)-Number(a.weight));
   }
+
   const targets=metric.detailKeys||[];
   const effective=marketAiTargetBucket(signal,['effective_weights','effectiveWeights','effective_weight'],targets);
   const weights=marketAiTargetBucket(signal,['weights','base_weights','raw_weights'],targets);
@@ -622,21 +659,23 @@ function marketAiSignalBasis(signal,metric){
   const qualityBucket=marketAiGlobalBucket(signal,['qualities','quality']);
   const weightSource=effective||weights;
   const entries=[];
-  const usesEffectiveWeights=!!effective;
 
   if(weightSource){
     Object.entries(weightSource).forEach(([key,value])=>{
       const inline=marketAiObject(value);
-      const n=Number(inline?.effective_weight??inline?.effectiveWeight??inline?.weight??value);
-      if(!Number.isFinite(n)||Math.abs(n)<1e-9)return;
+      if(inline?.available===false)return;
+      const normalized=Number(inline?.normalized_weight??inline?.normalizedWeight);
+      const fallback=Number(inline?.effective_weight??inline?.effectiveWeight??inline?.weight??value);
+      const weight=Number.isFinite(normalized)?normalized:fallback;
+      if(!Number.isFinite(weight)||weight<=0)return;
       const record=marketAiComponentRecord(signal,key);
-      if(inline?.available===false||record?.available===false)return;
+      if(record?.available===false)return;
       const quality=Number(inline?.quality??record?.quality??qualityBucket?.[key]);
       entries.push({
         key,
         label:marketAiComponentLabel(key),
-        weight:n,
-        effective:usesEffectiveWeights||inline?.effective_weight!=null||inline?.effectiveWeight!=null,
+        weight,
+        available:true,
         quality:Number.isFinite(quality)?quality:null
       });
     });
@@ -644,21 +683,40 @@ function marketAiSignalBasis(signal,metric){
     Object.entries(components).forEach(([key,value])=>{
       const record=marketAiObject(value);
       if(record?.available===false)return;
-      const weight=Number(record?.effective_weight??record?.effectiveWeight??record?.weight);
+      const normalized=Number(record?.normalized_weight??record?.normalizedWeight);
+      const fallback=Number(record?.effective_weight??record?.effectiveWeight??record?.weight);
+      const weight=Number.isFinite(normalized)?normalized:fallback;
       const quality=Number(record?.quality);
+      if(!Number.isFinite(weight)||weight<=0)return;
       entries.push({
         key,
         label:marketAiComponentLabel(key),
-        weight:Number.isFinite(weight)?weight:null,
-        effective:record?.effective_weight!=null||record?.effectiveWeight!=null,
+        weight,
+        available:true,
         quality:Number.isFinite(quality)?quality:null
       });
     });
   }
 
-  return entries
-    .filter(item=>item.weight!=null||item.quality!=null)
-    .sort((a,b)=>Math.abs(Number(b.weight)||0)-Math.abs(Number(a.weight)||0));
+  return entries.sort((a,b)=>Number(b.weight)-Number(a.weight));
+}
+
+function marketAiDisplayedWeights(items){
+  const usable=items.filter(item=>Number.isFinite(Number(item?.weight))&&Number(item.weight)>0);
+  const total=usable.reduce((sum,item)=>sum+Number(item.weight),0);
+  if(!usable.length||!Number.isFinite(total)||total<=0)return [];
+  const rows=usable.map((item,index)=>{
+    const raw=Number(item.weight)/total*100;
+    const base=Math.floor(raw);
+    return {...item,index,displayWeight:base,remainder:raw-base};
+  });
+  let remaining=100-rows.reduce((sum,item)=>sum+item.displayWeight,0);
+  [...rows].sort((a,b)=>b.remainder-a.remainder||a.index-b.index).forEach(item=>{
+    if(remaining<=0)return;
+    item.displayWeight+=1;
+    remaining-=1;
+  });
+  return rows.map(({index,remainder,...item})=>item);
 }
 
 // [MARKET07] Tooltip Content / Interaction · 시장·신호 설명 / desktop interaction
@@ -685,6 +743,8 @@ function marketAiSignalTooltipHtml(key){
   const metric=marketAiSignalMetric(key);
   if(!signal||!metric)return '';
   const state=marketAiSignalState(signal,metric);
+  const coverage=marketAiSignalCoverage(signal,metric);
+  const missingInputs=marketAiSignalMissingInputs(signal,metric);
   const calibration=signal.calibration||{};
   const calibratedTargets=new Set(Array.isArray(calibration.available_targets)?calibration.available_targets:[]);
   const probability=Number(calibration.probabilities?.[metric.target]);
@@ -706,7 +766,6 @@ function marketAiSignalTooltipHtml(key){
     if(actualAt)parts.push(marketAiTooltipRow('확정 시각',`${actualAt} KST`));
     parts.push(marketAiTooltipDivider());
     parts.push(marketAiTooltipRow('산출 방식','실제 KOSPI 종가 결과'));
-    parts.push(marketAiTooltipRow('신뢰도','확정값'));
     return parts.join('');
   }
 
@@ -714,6 +773,12 @@ function marketAiSignalTooltipHtml(key){
     const parts=[`<div class="tt-date">${marketAiEscape(`${metric.fullSignalLabel} · --`)}</div>`];
     parts.push(marketAiTooltipRow('상태',stateLabel||'신호 없음'));
     if(state.target_session_date)parts.push(marketAiTooltipRow('대상 장',marketAiSessionDateText(state.target_session_date)));
+    parts.push(marketAiTooltipRow('입력 충족률',marketAiPercentText(coverage)));
+    if(missingInputs.length){
+      parts.push(marketAiTooltipDivider());
+      parts.push(marketAiTooltipSection('누락 입력'));
+      missingInputs.forEach(item=>parts.push(marketAiTooltipRow(item.label,item.reason)));
+    }
     parts.push(marketAiTooltipDivider());
     parts.push(marketAiTooltipNote(state.note||'현재 시점에 유효한 신호가 없습니다.'));
     const updated=marketAiKstTime(signal.updated_at);
@@ -734,30 +799,30 @@ function marketAiSignalTooltipHtml(key){
   const forecastAt=marketAiKstTime(state?.forecast_at);
   if(forecastAt)parts.push(marketAiTooltipRow(state?.mode==='locked_preopen'?'장전 기준':'기준 시각',`${forecastAt} KST`));
   parts.push(marketAiTooltipRow('산출 방식',calibrated?'통계 보정 상승확률':'룰 기반 100점 점수'));
+  parts.push(marketAiTooltipRow('입력 충족률',marketAiPercentText(coverage)));
   if(calibrated&&Number.isFinite(rawScore))parts.push(marketAiTooltipRow('원신호',`${rawScore.toFixed(1)}점`));
   if(calibrated&&Number.isFinite(sampleCount))parts.push(marketAiTooltipRow('보정 표본',`n=${sampleCount}`));
   parts.push(marketAiTooltipDivider());
   parts.push(marketAiTooltipSection(calibrated?'확률 구간':'점수 구간'));
   parts.push(marketAiScoreRangeHtml(calibrated));
 
-  const basis=marketAiSignalBasis(signal,metric);
+  const basis=marketAiDisplayedWeights(marketAiSignalBasis(signal,metric));
   parts.push(marketAiTooltipDivider());
-  parts.push(marketAiTooltipSection('주요 판단 근거'));
+  parts.push(marketAiTooltipSection('실제 반영 비중'));
   if(basis.length){
-    basis.forEach(item=>{
-      let meta='사용';
-      if(item.weight!=null)meta=`${item.effective?'유효가중치':'가중치'} ${marketAiWeightText(item.weight)}`;
-      if(item.quality!=null&&item.quality<0.999)meta+=` · 품질 ${Math.round(item.quality*100)}%`;
-      parts.push(marketAiTooltipRow(item.label,meta));
-    });
+    basis.forEach(item=>parts.push(marketAiTooltipRow(item.label,`${item.displayWeight}%`)));
   }else{
-    parts.push(marketAiTooltipNote('세부 구성정보가 응답에 없어 엔진 입력 항목을 표시할 수 없습니다.'));
+    parts.push(marketAiTooltipNote('현재 신호에 반영된 입력 비중을 확인할 수 없습니다.'));
   }
 
-  parts.push(marketAiTooltipDivider());
-  parts.push(marketAiTooltipRow('신뢰도',marketAiPercentText(signal.confidence)));
-  parts.push(marketAiTooltipRow('데이터 완성도',marketAiPercentText(signal.data_completeness)));
+  if(missingInputs.length){
+    parts.push(marketAiTooltipDivider());
+    parts.push(marketAiTooltipSection('누락 입력'));
+    missingInputs.forEach(item=>parts.push(marketAiTooltipRow(item.label,item.reason)));
+  }
+
   const updated=marketAiKstTime(signal.updated_at);
+  parts.push(marketAiTooltipDivider());
   parts.push(marketAiTooltipRow('갱신',updated?`${updated} KST`:'--'));
   return parts.join('');
 }
@@ -1091,10 +1156,14 @@ function syncMarketAiSignalView(){
   }
 
   const updated=marketAiKstTime(signal.updated_at);
+  const coverageMeta=MARKET_AI_SIGNAL_METRICS.map(metric=>{
+    const coverage=marketAiSignalCoverage(signal,metric);
+    const label=metric.key==='semiconductors'?'반도체':(metric.key==='up-close'?'상승마감':(metric.key==='gap'?'갭상':'코스피'));
+    return `${label} ${marketAiPercentText(coverage)}`;
+  }).join(' / ');
   const meta=[
     '현재 시장',
-    `신뢰도 ${marketAiPercentText(signal.confidence)}`,
-    `데이터 완성도 ${marketAiPercentText(signal.data_completeness)}`,
+    `입력 충족률 ${coverageMeta}`,
     calibratedTargets.size?`확률 보정 ${calibratedTargets.size}/4`:'비보정 룰 기반 신호'
   ];
   if(updated)meta.push(`${updated} KST`);

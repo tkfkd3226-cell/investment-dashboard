@@ -101,16 +101,15 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - 일부 quote가 unusable이면 해당 종목만 저장 JSON 값으로 fallback
 - Hero의 `투자 성과` 기준문구는 실제 적용된 가격이 저장 JSON인지 Market AI 실시간/시간외/장마감 값인지에 맞춰 표시
 - 시장 카드 tooltip은 거래 세션과 freshness를 함께 해석해 `장전 / 정상 / 데이터 지연 / 장마감 / 거래중단` 등을 구분
+- AI 신호 상세는 공통 `신뢰도`/`데이터 완성도` 휴리스틱을 표시하지 않고, 신호별 `입력 충족률`, 현재 사용 가능한 입력의 **실제 반영 비중(표시 합계 100%)**, 누락 입력과 사유를 backend `details.signal_inputs` 기준으로 표시
 - KOSPI는 소수점 둘째 자리까지 표시하고 KIS `business_time`이 있으면 실제 시장 기준시각을 우선
 - Desktop/Tablet은 Hero 보조 카드, Phone은 동일 panel을 `AI Signal` dialog로 재사용
 - iPhone 홈화면 Web App은 설치 당시 hash 날짜에 고정되지 않고 실행 시 KST 오늘 데이터(없으면 최신 가용일)를 우선
 - Local은 `127.0.0.1:8001` Market AI full API에 직접 연결하고, GitHub Pages는 Tailscale Serve → `127.0.0.1:8002` **GET-only proxy**를 통해 조회
 - 오늘 보유종목 quote는 ticker별 `market_state`를 보존해 판단하며, **15:30~20:00에는 개별주식 `extended`와 ETF `closed`가 동시에 존재할 수 있으므로 top-level `market_state` 하나로 전체 종목 상태를 판정하지 않음**
 - 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다.
-- 장마감 후 Market AI가 재시작되어 process-memory quote가 없어도 backend가 **현재 KST 날짜의 exact KIS `SC_R` durable snapshot + closed + Bridge/subscription 정상 + fresh-tick 재확인 불필요** 조건을 모두 확인해 `usable:true`로 제공한 경우에만 Dashboard가 장마감 평가값으로 소비합니다. `open/extended`, 전일 snapshot, 비-KIS source, subscription 장애/새 tick 대기 상태는 저장 `prices.json` fallback을 유지합니다. Dashboard frontend가 SQLite snapshot을 직접 읽거나 durable 여부를 추정하지 않습니다.
 - Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
-- Market AI 서버 연결이 확인된 동안에만 Web/Tablet Topbar의 **`실시간 시세`** 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출합니다. 모든 진입점은 공통 `[data-market-ai-monitor-entry][hidden]` 표시 계약을 사용하므로 연결 전/해제 시 viewport와 관계없이 숨겨집니다. Phone 햄버거 `관리` 메뉴에는 중복 진입점을 두지 않습니다. Web/Tablet은 Monitor의 content height를 먼저 받아 최종 compact 크기로 표시하고, 응답이 늦으면 제한된 compact fallback 높이를 사용하므로 최초에 화면 세로 전체를 채웠다가 줄어드는 동작을 만들지 않습니다. Phone은 KRX 등 action modal과 같은 외곽 여백·edge token을 공유하면서 가용 영역을 채우는 responsive modal을 사용하고, Monitor shell의 card padding은 세로/가로폰 모두 `--space-md`(5px)로 고정합니다. 연결이 끊기면 모든 진입점을 숨기고 열린 monitor modal도 닫습니다.
-- embedded **실시간 시세 Monitor는 read-only 운영 관찰면**입니다. `/api/bridge/kis-efriend/quote-universe`를 조회할 뿐 Dashboard live valuation의 `client_id` lease를 생성·연장하지 않으며, Monitor의 durable 표시 복원은 Dashboard 평가 overlay의 `usable` durable 승격과 별도 contract입니다. Monitor의 `change_amount` 등 표시 데이터는 iframe 내부 Market AI UI가 소유하고 Main Dashboard는 이를 평가 계산에 사용하지 않습니다.
+- Market AI 서버 연결이 확인된 동안에만 Web/Tablet Topbar의 **`실시간 시세`** 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출합니다. 모든 진입점은 공통 `[data-market-ai-monitor-entry][hidden]` 표시 계약을 사용하므로 연결 전/해제 시 viewport와 관계없이 숨겨집니다. Phone 햄버거 `관리` 메뉴에는 중복 진입점을 두지 않습니다. Web/Tablet은 Monitor의 content height를 먼저 받아 최종 compact 크기로 표시하고, 응답이 늦으면 제한된 compact fallback 높이를 사용하므로 최초에 화면 세로 전체를 채웠다가 줄어드는 동작을 만들지 않습니다. Phone은 KRX 등 action modal과 같은 외곽 여백·edge token을 공유하면서 가용 영역을 채우는 responsive modal을 사용합니다. 연결이 끊기면 모든 진입점을 숨기고 열린 monitor modal도 닫습니다.
 
 프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 현재가 overlay), `dashboard-market-ai-client.js`(local/remote transport)로 분리합니다.
 
@@ -187,7 +186,7 @@ Dashboard
 
 외부 GitHub Pages에서는 FastAPI full API를 직접 공개하지 않고 Tailscale Serve가 연결된 **8002 GET-only proxy**를 통해 조회합니다. 보유종목 당일 시장평가 overlay는 **현재 KST 날짜에서만** 적용하며 과거 날짜와 운영 JSON은 변경하지 않습니다. 개별주식 시간외와 ETF 장마감이 공존하는 구간은 ticker별 `market_state`로 구분하며, 세부 fallback/lease/session 판정은 Main handover와 Market AI 프로젝트 문서를 기준으로 합니다.
 
-증권 매도는 `data/portfolio.json`의 `securitiesEvents`가 거래 원장을 소유합니다. 매도 체결가는 시장가격 JSON과 분리하며, `grossAmount - transactionCost = amount(순매도대금)`, `amount - costBasis = realizedProfit` 관계를 유지합니다. 매도된 원금은 `cashPrincipalDelta`로 현금화 원금에 이동하고 재매수·원금회수 시 실제 원금만 다시 차감합니다. `fundingClass: internalCashReturn` withdrawal은 실제 계좌 출금액(`amount`)과 회수 원금(`principalAmount`)을 분리해 증권현금·추적 현금·투자원금 검산을 동시에 보존합니다. `scripts/update_prices.py`는 매도 당일까지 해당 종목의 KRX 시장가격을 조회해 체결가와 비교할 수 있게 하고, 다음 날짜부터 신규 조회에서 제외하되 매도 전 과거 backfill은 유지합니다. 추적 현금은 `outsideCashSnapshots`의 최신 확인값을 새 기준점으로 사용해 과거 이동식을 화면에 계속 누적하지 않으며, 현재 기준점은 `2026-09-16 / 2,090,325원`입니다. 전량매도 당일 거래 tooltip은 종목명만이 아니라 **종목 셀 전체**를 hover/focus target으로 사용합니다.
+증권 매도는 `data/portfolio.json`의 `securitiesEvents`가 거래 원장을 소유합니다. 매도 체결가는 시장가격 JSON과 분리하며, `grossAmount - transactionCost = amount(순매도대금)`, `amount - costBasis = realizedProfit` 관계를 유지합니다. 매도된 원금은 사라지지 않고 `cashPrincipalDelta`를 통해 현금화 원금으로 이동하며, 재매수 시 사용한 원금만 다시 차감합니다. `scripts/update_prices.py`는 같은 계약으로 성과 스냅샷을 생성하고 대상 날짜에 수량이 0인 매도 완료 종목은 신규 KRX 조회에서 제외하되 매도 전 과거 backfill은 유지합니다.
 
 ## 4. 프로젝트 구조
 
@@ -375,7 +374,7 @@ GitHub Actions에서 직접 수동 실행할 때는 필요한 경우 대상 날�
 
 GAS는 KRX requestId의 intent/receipt와 durable dispatch ledger, workflow run ID/operation marker를 함께 사용합니다. 접수 여부를 끝내 확정하지 못한 requestId도 terminal fail-closed 상태로 수렴시켜 같은 ID의 중복 dispatch와 active intent 영구 누적을 동시에 막습니다. 세부 race/복구 시나리오는 유지보수 문서와 평가 가이드를 따릅니다.
 
-가격 생성기는 대상 날짜의 증권 position state와 당일 거래 이벤트를 함께 복원합니다. 전량매도 종목은 **매도 당일까지** KRX 시장가격을 조회하고 종목별 누적손익에도 마지막 실현성과를 남기며, 다음 날짜부터 신규 종가 조회·종목별 차트 series에서 제외합니다. 매도 전 날짜 backfill에서는 당시 보유수량에 따라 다시 조회합니다. `performance_snapshots.json`의 전체 증권 누적손익에는 매도 후에도 실현손익이 계속 포함되며, JS Main 계산과 Python 생성기가 같은 원금·실현손익·내부 현금회수 계약을 사용해야 합니다.
+가격 생성기는 대상 날짜의 증권 position state를 먼저 복원합니다. 전량매도 완료 종목은 매도일 이후 신규 종가 조회 대상에서 빠지지만, 매도 전 날짜를 재생성하는 backfill에서는 해당 시점 보유수량에 따라 다시 조회합니다. `performance_snapshots.json`의 증권 누적손익에는 잔여 평가손익과 누적 실현손익이 함께 반영되며, JS Main 계산과 Python 생성기가 같은 원금·실현손익 계약을 사용해야 합니다.
 
 ---
 
