@@ -1190,7 +1190,7 @@ MAIN 상세 architecture / module ownership / CSS ownership / responsive contrac
 - **현금 의미:** sell 현금흐름은 gross가 아니라 거래비용 차감 후 `amount`를 사용하며, 과거 cash snapshot이 매도일의 확정 원장을 덮지 않는가.
 - **내부 현금회수:** `internalCashReturn` withdrawal은 실제 출금액 `amount`와 회수 원금 `principalAmount`를 분리하는가. 증권현금은 전체 amount만큼 감소하고 추적 현금은 동일액 증가하며, 계좌1 투자원금/source principal은 principalAmount만 감소하는가. 원천·보유 차액과 장부결과 VS 실제보유 차액이 내부이동만으로 새로 발생하지 않는가. 추적 현금 표시가 과거 이동식을 계속 누적하지 않고 `outsideCashSnapshots`의 최신 확인값으로 재기준화되는가. 내부 현금 투입/회수 순액이 0인 현재 검산에서는 `실현수익 투입`·`증권계좌 원금 회수` 두 행이 사라지고, 순이동이 남은 과거 날짜만 단일 순이동 행으로 합계가 보존되는가.
 - **가격 생성:** `update_prices.py`가 position state와 당일 거래 이벤트를 함께 사용해 전량매도 종목도 **매도 당일까지 KRX 시장가격을 조회**하고 다음 날짜부터 신규 fetch를 제외하는가. 매도 전 backfill은 정상 수행하며 같은 입력 재생성에서 실현손익·현금이 중복되지 않는가.
-- **JS↔Python parity:** 계좌1 원금, 현금, 종목 누적손익, `performance_snapshots.json` 파생값이 동일 의미를 사용하는가.
+- **JS↔Python parity:** 계좌1 원금, 현금, 종목 누적손익, `performance_snapshots.json` 파생값이 동일 의미를 사용하는가. 같은 날짜의 committed `prices.json`과 `performance_snapshots.json`은 `updatedAtKST`가 일치하고 현재 price input으로 재계산한 `rawHoldingProfit`·`dailyProfit`과 snapshot이 일치하는가. 장중 가격처럼 변하는 값을 회귀테스트의 고정 기대값으로 박아 stale snapshot을 정상으로 오인하지 않는가.
 - **Live Valuation:** 매도일 이후 `qty=0` ticker가 Market AI quote universe에서 빠지고, 과거 날짜/운영 JSON에는 live quote가 역으로 쓰이지 않는가.
 
 실제 운영 원장에 첫 매도 anchor가 존재하면 그 event의 확정 금액과 매도 전/후 날짜를 regression fixture로 직접 대조하되, 이후 거래가 추가되면 특정 종목 한 건만으로 일반 sell/rebuy contract 전체를 대체하지 않는다.
@@ -1506,7 +1506,7 @@ Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend�
 - **multi-client 격리**: 복수 탭/기기의 client identity와 ticker universe가 서로 제거·오염되지 않는가.
 - **render lifecycle**: modal/chart/tooltip/input interaction 중 live refresh가 진행 UI를 교체하거나 focus/scroll을 잃게 하지 않는가. 별도수익 ON/OFF처럼 부분 갱신 대상은 불필요한 full render를 만들지 않는가.
 - **차트 entrance 회귀**: Live Valuation full render가 이미 재생된 차트만 완료 상태를 승계하고, 아직 viewport에 진입하지 않은 차트의 최초 scroll animation은 보존하는가. 주기 갱신이 아래쪽 차트를 일괄 완료 처리해 animation을 없애지 않는가.
-- **실시간 시세 진입점**: Market AI 연결 확인 전/연결 해제에는 Web/Tablet Topbar와 Phone Topbar icon-only `실시간 시세`가 모두 숨겨지고, Phone `관리` 메뉴에는 중복 진입점이 없는가. `date-tool-btn` 같은 author `display` 규칙이 HTML `hidden`을 되살리지 않도록 `[data-market-ai-monitor-entry][hidden]` 공통 CSS 계약이 실제 표시를 보장하는가. 연결 중에는 공통 action/gating source를 공유하고, Web/Tablet은 content height 선측정 후 처음부터 compact·no-scroll geometry로 reveal하며 size message 지연 시에도 화면 세로 전체를 먼저 채우는 fallback을 사용하지 않는가. Phone은 KRX 등 action modal과 같은 외곽 여백·edge token을 상속하고 monitor만 가용 영역을 채우는가.
+- **실시간 시세 진입점**: Market AI 연결 확인 전/연결 해제에는 Web/Tablet Topbar와 Phone Topbar icon-only `실시간 시세`가 모두 숨겨지고, Phone `관리` 메뉴에는 중복 진입점이 없는가. `date-tool-btn` 같은 author `display` 규칙이 HTML `hidden`을 되살리지 않도록 `[data-market-ai-monitor-entry][hidden]` 공통 CSS 계약이 실제 표시를 보장하는가. 연결 중에는 공통 action/gating source를 공유하고, Web/Tablet은 content height 선측정 후 처음부터 compact·no-scroll geometry로 reveal하며 size message 지연 시에도 화면 세로 전체를 먼저 채우는 fallback을 사용하지 않는가. Phone은 KRX 등 action modal과 같은 외곽 여백·edge token을 상속하고 monitor만 가용 영역을 채우되, Monitor shell card padding은 세로/가로폰 모두 `--space-md`(5px)로 유지되어 Landscape 일반 action modal 24px 규칙에 덮이지 않는가.
 - **Phone 날짜 label**: Topbar 날짜 셀렉트가 `년-월` / `월-일 요일` 공통 형식(`2026-9`, `9-16 수`)을 사용해 좁아진 Phone 폭에서도 select 화살표와 텍스트가 겹치지 않으며, viewport별 별도 label formatter를 만들지 않는가.
 - **표시 의미**: Hero 기준문구와 자산 source tooltip이 실제 계산에 적용된 가격 상태와 일치하고 raw 내부 상태 문자열을 사용자 의미로 오해하게 노출하지 않는가.
 - **시장 session/freshness**: KOSPI, K200, SOX, NQ100선물의 장전/거래중/장마감/거래중단과 freshness를 구분해 정상적인 장외 정지를 `데이터 지연`으로 오판하지 않는가. 기준시각은 가능한 경우 실제 시장시각을 우선하는가.

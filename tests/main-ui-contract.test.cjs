@@ -1542,6 +1542,12 @@ test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 ico
   assert.doesNotMatch(phoneRealtimeCss,/--modal-overlay-pad\s*:\s*0|--modal-card-radius\s*:\s*0|position\s*:\s*fixed|inset\s*:\s*0|border-radius\s*:\s*0|border\s*:\s*0/,'Phone 실시간 시세는 공통 action modal 여백/edge를 우회하면 안 된다');
   assert.match(phoneRealtimeCss,/--modal-card-width:calc\(100vw - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/);
   assert.match(phoneRealtimeCss,/--modal-card-height:calc\(100d?vh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/);
+  assert.match(common,/--space-md:5px;/,'실시간 시세 Phone shell padding 기준 토큰은 5px이어야 한다');
+  assert.match(phoneRealtimeCss,/--modal-card-pad-y:var\(--space-md\);[\s\S]*?--modal-card-pad-x:var\(--space-md\);/,'Phone 세로 실시간 시세 card padding은 5px 공통 토큰을 사용해야 한다');
+  const landscapeModalStart=special.indexOf('/* Modal Landscape');
+  const landscapeModalCss=special.slice(landscapeModalStart);
+  assert.ok(landscapeModalStart>=0,'Phone Landscape modal CSS block is missing');
+  assert.match(landscapeModalCss,/\.action-modal\.realtime-quote-modal\{\s*--modal-card-pad-y:var\(--space-md\);\s*--modal-card-pad-x:var\(--space-md\);\s*\}/s,'Phone Landscape에서도 실시간 시세 card padding은 generic action-modal 24px보다 뒤에서 5px로 재고정해야 한다');
 });
 
 test('증권 종목별 누적손익 UI는 매도 후 평가손익 0이 아니라 totalProfit·performanceCost 계약을 사용한다',()=>{

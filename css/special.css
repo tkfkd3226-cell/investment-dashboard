@@ -255,7 +255,7 @@
     }
     .action-modal{--modal-control-font-size:var(--type-size-2xl)}
 
-    /* Realtime Quotes Phone · Pension modal과 같은 card padding을 사용하고
+    /* Realtime Quotes Phone · 세로/가로폰 모두 5px shell padding을 고정하고
        외부 Monitor 배경과 shell 색상을 일치시킨다. */
     .realtime-quote-modal{
       --modal-card-width:calc(100vw - var(--modal-overlay-pad) - var(--modal-overlay-pad));
@@ -811,6 +811,10 @@
       align-items:center;
       --modal-card-pad-y:var(--space-10xl);
       --modal-card-pad-x:var(--space-10xl);
+    }
+    .action-modal.realtime-quote-modal{
+      --modal-card-pad-y:var(--space-md);
+      --modal-card-pad-x:var(--space-md);
     }
     .krx-action-buttons{gap:var(--space-2xl)}
     .krx-action-buttons .action-modal-btn{min-height:40px;height:40px;padding:0 var(--space-4xl);font-size:var(--type-size-sm)}
