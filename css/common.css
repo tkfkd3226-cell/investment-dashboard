@@ -4184,6 +4184,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   cursor:pointer;
 }
 [data-market-ai-monitor-entry][hidden]{display:none}
+[data-personal-view-control][hidden]{display:none}
 :is(.date-select,.date-tool-btn):focus-visible{
   border-color:var(--topbar-control-border-focus);
   outline:var(--control-focus-outline-width) solid var(--topbar-control-border-focus);
