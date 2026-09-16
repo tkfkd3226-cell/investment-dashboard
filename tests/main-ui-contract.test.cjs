@@ -1532,6 +1532,43 @@ test('Live Valuation full render는 미진입 차트 entrance를 일괄 완료 �
   assert.match(charts,/data-chart-entrance-played/);
 });
 
+test('숨겨진 자산 탭의 0-size 차트는 entrance 재생 완료로 오인하지 않는다',()=>{
+  const vm=require('node:vm');
+  const start=charts.indexOf('function chartWrapEntranceEligible(wrap){');
+  const end=charts.indexOf('function setupChartEntranceAnimations(){',start);
+  assert.ok(start>=0&&end>start,'chart entrance visibility helper block is missing');
+  const context={
+    window:{innerHeight:800},
+    requestAnimationFrame:fn=>fn(),
+    chartRuntimeState:{entranceObserver:null}
+  };
+  vm.createContext(context);
+  vm.runInContext(`${charts.slice(start,end)};this.chartWrapEntranceEligible=chartWrapEntranceEligible;this.chartWrapFullyVisible=chartWrapFullyVisible;this.activateChartEntrance=activateChartEntrance;`,context);
+
+  const hiddenCard={dataset:{},classList:{add(){}}};
+  const hiddenWrap={
+    closest:selector=>selector==='[hidden]'?{}:(selector==='.chart-card'?hiddenCard:null),
+    getBoundingClientRect:()=>({top:0,bottom:0,width:0,height:0})
+  };
+  assert.equal(context.chartWrapEntranceEligible(hiddenWrap),false);
+  assert.equal(context.chartWrapFullyVisible(hiddenWrap),false);
+  context.activateChartEntrance(hiddenWrap);
+  assert.equal(hiddenCard.dataset.chartEntrancePlayed,undefined);
+
+  const zeroWrap={closest:()=>null,getBoundingClientRect:()=>({top:0,bottom:0,width:0,height:0})};
+  assert.equal(context.chartWrapEntranceEligible(zeroWrap),false);
+
+  const visibleCard={dataset:{},classList:{add(){}}};
+  const visibleWrap={
+    closest:selector=>selector==='.chart-card'?visibleCard:null,
+    getBoundingClientRect:()=>({top:100,bottom:400,width:600,height:300})
+  };
+  assert.equal(context.chartWrapEntranceEligible(visibleWrap),true);
+  assert.equal(context.chartWrapFullyVisible(visibleWrap),true);
+  context.activateChartEntrance(visibleWrap);
+  assert.equal(visibleCard.dataset.chartEntrancePlayed,'true');
+});
+
 test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 icon-only·공통 modal edge 계약을 유지한다',()=>{
   assert.match(marketAiClient,/\/monitor\//);
   assert.match(marketAi,/publishMarketAiConnectionState\(/);

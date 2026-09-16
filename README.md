@@ -57,7 +57,7 @@ index.html
 - 기업적립금·현금성자산·ETF 추가매수 조정
 - PIN 기반 퇴직연금 저장·삭제
 - 누적손익·수익률·비중 변화 등 기간 차트
-  - 차트 viewport entrance animation은 최초 스크롤 진입에서 1회 재생합니다. 10초 Live Valuation 갱신은 Topbar DOM을 보존한 채 `#app`만 갱신하며, 이미 재생된 차트만 완료 상태를 복원하고 아직 화면에 진입하지 않은 차트의 pending animation을 소거하지 않습니다.
+  - 차트 viewport entrance animation은 최초 스크롤 진입에서 1회 재생합니다. `hidden` 자산 탭이나 0-size 차트는 진입 완료로 판정하지 않으며, 탭을 실제로 연 뒤 최초 viewport 진입에서 애니메이션을 재생합니다. 10초 Live Valuation 갱신은 Topbar DOM을 보존한 채 `#app`만 갱신하며, 이미 재생된 차트만 완료 상태를 복원하고 아직 화면에 진입하지 않은 차트의 pending animation을 소거하지 않습니다.
 - Light / Dark 테마
 - Desktop / Tablet / Mobile 반응형 UI
 - 개인보기 해제 후 Web/Tablet 투자 계산기는 테마 버튼과 같은 icon-only action geometry를 사용하고, Phone은 기존 `관리` 메뉴의 텍스트 항목을 유지

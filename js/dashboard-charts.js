@@ -638,14 +638,21 @@ function prepareChartEntranceForSvg(svg){
   card.classList.remove('chart-entrance-active');
   card.classList.add('chart-entrance-ready');
 }
+function chartWrapEntranceEligible(wrap){
+  if(!wrap||wrap.closest?.('[hidden]'))return false;
+  const rect=wrap.getBoundingClientRect?.();
+  return !!rect&&rect.width>0&&rect.height>0;
+}
 function activateChartEntrance(wrap){
-  const card=wrap?.closest('.chart-card');
+  if(!chartWrapEntranceEligible(wrap))return;
+  const card=wrap.closest('.chart-card');
   if(!card||card.dataset.chartEntrancePlayed==='true')return;
   card.dataset.chartEntrancePlayed='true';
   requestAnimationFrame(()=>card.classList.add('chart-entrance-active'));
   chartRuntimeState.entranceObserver?.unobserve(wrap);
 }
 function chartWrapFullyVisible(wrap){
+  if(!chartWrapEntranceEligible(wrap))return false;
   const rect=wrap.getBoundingClientRect();
   return rect.top>=-1&&rect.bottom<=window.innerHeight+1;
 }
