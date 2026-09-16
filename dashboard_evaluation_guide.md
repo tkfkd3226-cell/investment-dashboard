@@ -1495,11 +1495,9 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 
 ### KRX 정규장 종가 확정
 
-- 장중 snapshot은 `marketStatus:intraday + priceBasis:intraday`, 장마감/과거일 snapshot은 `marketStatus:close + priceBasis:regular_close` 의미가 분리되는가.
-- `scripts/update_prices.py`가 장마감/과거일에는 pykrx `adjusted=False` KRX 원천을 명시하고, 16:00~20:00 애프터 가격을 `prices.json` 정규장 종가로 혼입하지 않는가.
-- GAS가 단순 `marketStatus:close`만 보고 당일 재확정을 막지 않고, `priceBasis:regular_close`일 때만 중복 workflow를 차단하는가. legacy close는 정확히 한 번 재확정 가능하고 이후에는 다시 차단되는가.
-- `reconfirm_regular_close`가 durable dispatch decision reason에 포함되어 requestId/idempotency/재시도 인과관계를 우회하지 않는가.
-- KRX modal과 완료/중복 메시지가 `정규장 종가` 의미를 사용하는가. 현황표 source tooltip은 Market AI quote가 없을 때 `priceBasis/marketStatus`에 따라 `장중 저장 데이터` / `정규장 종가 저장 데이터` / legacy `저장 데이터`를 구분하고, Market AI quote가 적용된 경우에만 `실시간` / `장 마감 시세`를 사용하는가.
+- 장중과 정규장 종가 snapshot이 `priceBasis`로 구분되고, 애프터 가격이 GitHub 가격 원장에 혼입되지 않는가.
+- GAS 중복 판별이 `regular_close` 확정 여부를 사용하면서 legacy close 재확정과 기존 requestId/idempotency 보호를 함께 유지하는가.
+- KRX modal·Hero·source tooltip의 사용자 문구가 실제 저장 기준과 일치하는가.
 
 ### Market AI
 
@@ -1516,12 +1514,12 @@ Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend�
 - **실시간 시세 진입점**: Market AI 연결 확인 전/연결 해제에는 Web/Tablet Topbar와 Phone Topbar icon-only `실시간 시세`가 모두 숨겨지고, Phone `관리` 메뉴에는 중복 진입점이 없는가. `date-tool-btn` 같은 author `display` 규칙이 HTML `hidden`을 되살리지 않도록 `[data-market-ai-monitor-entry][hidden]` 공통 CSS 계약이 실제 표시를 보장하는가. 연결 중에는 공통 action/gating source를 공유하고, Web/Tablet은 content height 선측정 후 처음부터 compact·no-scroll geometry로 reveal하며 size message 지연 시에도 화면 세로 전체를 먼저 채우는 fallback을 사용하지 않는가. Phone은 KRX 등 action modal과 같은 외곽 여백·edge token을 상속하고 monitor만 가용 영역을 채우는가.
 - **Dashboard-side Market AI ON/OFF**: 사용자 preference와 server reachability를 분리하는가. OFF 시 signal/live polling과 volatile live overlay를 중단·제거해 저장 JSON으로 fallback하고, in-flight 이전 응답이 OFF 이후 state를 되살리지 않는가. ON 시 즉시 refresh를 재시도하는가. 이 기능이 backend 프로세스를 종료한다고 오해해 구현하지 않는가. Web/Tablet은 투자 계산기와 밝기 테마 사이의 icon-only 공통 action geometry를 유지하고, **Phone Topbar에는 이 toggle이 없으며 `관리` 메뉴의 투자 계산기 바로 아래에만 연결 켜기/끄기 action이 존재하는가.**
 - **Phone 날짜 label**: Topbar 날짜 셀렉트가 `년-월` / `월-일 요일` 공통 형식(`2026-9`, `9-16 수`)을 사용해 좁아진 Phone 폭에서도 select 화살표와 텍스트가 겹치지 않으며, viewport별 별도 label formatter를 만들지 않는가.
-- **표시 의미**: Hero 기준문구와 자산 source tooltip이 실제 계산에 적용된 가격 상태와 일치하고 raw 내부 상태 문자열을 사용자 의미로 오해하게 노출하지 않는가. 저장 JSON `priceBasis:regular_close`는 Hero에서 `정규장 종가 기준`, source tooltip에서 `정규장 종가 저장 데이터`가 되고, `priceBasis/marketStatus:intraday`는 `장중 저장 데이터`가 되는가. legacy 저장값은 `저장 데이터` fallback을 유지하는가. 오늘 20:00 이후 개별주식 애프터 종료 quote까지 Market AI universe 전체가 closed+usable이면 Hero는 `애프터 종가 기준`이 되고, Market AI quote가 적용된 source tooltip은 기존 `실시간` / `장 마감 시세` 의미를 유지하는가.
+- **표시 의미**: Hero 기준문구와 자산 source tooltip이 실제 적용 가격의 저장/실시간/시간외/마감 의미와 일치하고, legacy fallback과 raw 내부 상태 비노출 계약을 유지하는가.
 - **시장 session/freshness**: KOSPI, K200, SOX, NQ100선물의 장전/거래중/장마감/거래중단과 freshness를 구분해 정상적인 장외 정지를 `데이터 지연`으로 오판하지 않는가. 기준시각은 가능한 경우 실제 시장시각을 우선하는가.
 - **단일 display model**: 시장 카드와 tooltip이 서로 다른 값·상태·fallback 판정을 갖지 않는가.
 - **AI 신호 설명 의미**: `confidence`/공통 `data_completeness` 같은 deprecated 휴리스틱을 사용자 신뢰도로 노출하지 않고, 각 신호의 `input_coverage`를 별도로 표시하는가. 실제 반영 비중은 available input의 `normalized_weight` 의미를 따르고 정수 표시 합계가 100%가 되며, 누락 입력과 사유를 숨기지 않는가. legacy coverage `null`을 임의의 0%/100%로 바꾸지 않는가.
 - **responsive/accessibility**: Desktop/Tablet Hero panel과 Phone dialog가 같은 의미를 유지하고, 전환 시 focus handoff·tooltip lifecycle이 안전한가.
-- **공통 control 재사용**: 퇴직연금 `개별 처리 / 작업 모음`이 Main `.control-segmented` geometry/typography와 flex center 정렬을 그대로 사용하고, 긴 라벨 때문에 필요한 segment min-width/padding 및 context gap 외의 feature 전용 font-size/height/line-height 보정으로 다시 갈라지지 않는가. Web/Tablet 개인보기 계산기·Market AI 토글은 theme icon-button geometry를 재사용하며 Phone 계산기 UI는 기존 관리 메뉴 계약을 유지하는가.
+- **공통 control 재사용**: 퇴직연금 작업 방식 switch와 Web/Tablet 개인보기 도구가 공통 control primitive를 재사용하고, 긴 라벨·viewport 차이 때문에 필요한 최소 feature override만 두는가.
 - **독립 실패**: Market AI endpoint 일부 또는 전체 실패가 저장 데이터 기반 Dashboard 기능을 깨뜨리지 않는가.
 - **성능**: polling이나 metadata-only 변화가 의미 없는 전체 Dashboard 재렌더를 반복하지 않는가.
 

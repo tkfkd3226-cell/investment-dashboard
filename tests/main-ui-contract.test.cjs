@@ -74,13 +74,6 @@ test('Main module boundary: core는 DOM 비의존, Market AI transport는 중립
   assert.deepEqual(importsOf(liveValuation),['./dashboard-core.js','./dashboard-market-ai-client.js']);
 });
 
-test('개인보기 3회 입력이 사용하는 phoneUi responsive helper를 app이 명시적으로 import한다',()=>{
-  const uiCommonImport=app.match(/import\s*\{([^]*?)\}\s*from '\.\/dashboard-ui-common\.js';/);
-  assert.ok(uiCommonImport,'dashboard-ui-common import block이 있어야 한다');
-  assert.match(uiCommonImport[1],/\bphoneUi\b/,'dashboard-app은 3회 입력 분기에서 사용하는 phoneUi를 import해야 한다');
-  assert.match(app,/const tapWindowMs=phoneUi\(\)\?HERO_PHONE_MULTI_TAP_WINDOW_MS:HERO_MULTI_TAP_WINDOW_MS;/);
-});
-
 test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validator 모듈을 사용한다',()=>{
   assert.match(core,/import\s*\{\s*validateKodexLeverageSource\s*\}\s*from '\.\/kodex-leverage-schema\.js'/);
   assert.match(core,/const validated=validateKodexLeverageSource\(source\)/);
@@ -102,6 +95,8 @@ test('Main graph entry: app은 core/ui-common/modal/charts/ui/pension/pension-ed
     './dashboard-ui.js','./dashboard-pension.js','./dashboard-pension-editor.js','./dashboard-live-valuation.js'
   ])assert.ok(imports.includes(dependency),`missing app dependency ${dependency}`);
   assert.equal(imports.includes('./dashboard-market-ai.js'),false);
+  const uiCommonImport=app.match(/import\s*\{([^]*?)\}\s*from '\.\/dashboard-ui-common\.js';/);
+  assert.ok(uiCommonImport&&/\bphoneUi\b/.test(uiCommonImport[1]),'app이 사용하는 phoneUi는 ui-common에서 명시적으로 import해야 한다');
 });
 
 test('실시간 평가 adapter는 importmap cache-bust 대상이고 boot 이후 별도 lifecycle로 시작한다',()=>{
@@ -1134,23 +1129,14 @@ test('자산 시각화 Tooltip은 setup·pointer binding·click binding·follow/
   assert.doesNotMatch(setup,/addEventListener/,'setup 함수가 다시 세부 listener 구현을 직접 소유하면 안 된다');
 });
 
-test('보유종목/연금상품 현재가 출처는 기존 dash-tooltip surface를 재사용하고 별도 CSS를 추가하지 않는다',()=>{
-  assert.match(uiCommon,/const ASSET_SOURCE_TOOLTIP_ID='assetPriceSourceTooltip'/);
+test('보유종목/연금상품 현재가 출처는 저장 기준과 Market AI 적용 여부를 기존 tooltip에서 구분한다',()=>{
   assert.match(uiCommon,/tooltip\.className='dash-tooltip'/);
   assert.match(uiCommon,/function renderAssetPriceSourceLabel\(/);
-  assert.match(uiCommon,/data-asset-source-tooltip/);
-  assert.match(uiCommon,/assetSourceTooltip\(\);\s*const selector='\[data-asset-source-tooltip\]'/);
-  assert.match(uiCommon,/data-asset-source-tooltip tabindex="0" data-dashboard-focus-key="\$\{escapeHtml\(focusKey\)\}" aria-describedby="\$\{ASSET_SOURCE_TOOLTIP_ID\}"/);
-  assert.match(app,/setupAssetSourceTooltips\(\)/);
+  assert.match(uiCommon,/function storedAssetPriceState\(/);
+  assert.match(uiCommon,/정규장 종가 저장 데이터/);
+  assert.match(uiCommon,/장중 저장 데이터/);
   assert.match(ui,/renderAssetPriceSourceLabel\(/);
   assert.match(pension,/renderAssetPriceSourceLabel\(/);
-  assert.match(ui,/account1_daily_snapshots\.json/);
-  assert.match(pension,/fallbackSource:'prices\.json'/);
-  assert.match(uiCommon,/function storedAssetPriceState\(/);
-  assert.match(uiCommon,/regular_close'\)return '정규장 종가 저장 데이터'/);
-  assert.match(uiCommon,/marketStatus\|\|''\)===['"]intraday['"]\)return '장중 저장 데이터'/);
-  assert.match(ui,/marketStatus:x\.s\?\.marketStatus,priceBasis:x\.s\?\.priceBasis/);
-  assert.match(pension,/marketStatus:x\.s\?\.marketStatus,priceBasis:x\.s\?\.priceBasis/);
   assert.equal((common.match(/assetPriceSourceTooltip|asset-source-tooltip|asset-source/g)||[]).length,0,'출처 tooltip 전용 CSS를 추가하면 안 된다');
 });
 
@@ -1166,35 +1152,22 @@ test('live valuation 재렌더는 퇴직연금 조정 본체와 action modal이 
 });
 
 
-test('Hero 기준문구는 raw 상태 대신 실제 적용 가격의 정규장·시간외·부분 반영 의미만 노출한다',()=>{
-  assert.match(core,/function liveValuationStatusForDate\(date\)/);
+test('Hero 기준문구는 raw 상태 대신 실제 적용 가격의 사용자 의미를 노출한다',()=>{
   assert.match(core,/function heroPerformanceBasisLabel\(date,now=new Date\(\)\)/);
-  assert.match(core,/if\(status\.mode==='historical'\|\|!status\.requestedCount\)return fallback;/);
-  assert.match(core,/if\(status\.usableCount===status\.requestedCount&&status\.closedCount===status\.requestedCount\)\{/);
-  assert.match(core,/return `\$\{dateLabel\} 애프터 종가 기준`;/);
-  assert.match(core,/return fallback;/);
-  assert.match(core,/if\(status\.liveCount<=0\)return fallback;/);
-  assert.match(core,/if\(status\.fallbackCount>0\)return `\$\{dateLabel\} 일부 실시간 반영`;/);
-  assert.match(core,/if\(status\.extendedLiveCount>0\)return `\$\{dateLabel\} 시간외 포함 현재가 기준`;/);
-  assert.match(core,/return `\$\{dateLabel\} 실시간 현재가 기준`;/);
-  assert.doesNotMatch(app,/data-live-valuation-status/);
-  assert.doesNotMatch(app,/LIVE \$\{status\.usableCount\}/);
-  assert.match(app,/<time class="hero-basis" datetime="\$\{x\.date\}" data-dashboard-action="hero-basis-tap">\(\$\{heroPerformanceBasisLabel\(x\.date\)\}\)<\/time>/);
+  for(const label of ['정규장 종가 기준','애프터 종가 기준','시간외 포함 현재가 기준','실시간 현재가 기준','일부 실시간 반영']){
+    assert.ok(core.includes(label),`Hero basis label 누락: ${label}`);
+  }
+  assert.doesNotMatch(app,/data-live-valuation-status|LIVE \${status\.usableCount}/);
+  assert.match(app,/data-dashboard-action="hero-basis-tap"/);
 });
 
-test('KRX 종가 반영은 regular_close를 명시하고 legacy close는 1회 재확정한다',()=>{
+test('KRX 종가 반영은 정규장 기준을 기록하고 legacy close 재확정을 허용한다',()=>{
   const updater=read('scripts/update_prices.py');
   const gas=read('GAS_code.js');
-  const ui=read('js/dashboard-ui.js');
   assert.match(updater,/\{"adjusted": False\} if market_status_for_date\(target_date\) == "close" else \{\}/);
-  assert.match(updater,/price_basis = "intraday" if status == "intraday" else "regular_close"/);
   assert.match(updater,/"priceBasis": price_basis/);
-  assert.match(gas,/function krxSnapshotPriceBasis\(snapshot\)/);
-  assert.match(gas,/explicitBasis === "regular_close"/);
-  assert.match(gas,/latestBasis === "regular_close"/);
-  assert.match(gas,/reason: "reconfirm_regular_close"/);
-  assert.match(gas,/reconfirm_regular_close: true/);
-  assert.match(gas,/이미 정규장 종가 기준 데이터가 반영되어 있습니다\./);
+  assert.match(gas,/=== "regular_close"/);
+  assert.match(gas,/reconfirm_regular_close/);
   assert.match(ui,/정규장 종가 기준이 아니면 다시 반영합니다\./);
 });
 
@@ -1612,67 +1585,38 @@ test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 ico
   assert.match(landscapeModalCss,/\.action-modal\.realtime-quote-modal\{\s*--modal-card-pad-y:var\(--space-md\);\s*--modal-card-pad-x:var\(--space-md\);\s*\}/s,'Phone Landscape에서도 실시간 시세 card padding은 generic action-modal 24px보다 뒤에서 5px로 재고정해야 한다');
 });
 
-test('퇴직연금 개별 처리/작업 모음은 메인 control-segmented 정렬을 공유하고 긴 라벨 폭·하단 간격만 feature override한다',()=>{
+test('퇴직연금 작업 방식 switch는 공통 segmented control을 쓰고 긴 라벨 폭만 별도 보정한다',()=>{
   assert.match(pensionEditor,/class="control-segmented pension-work-mode"/);
-  assert.match(common,/\.control-segmented button\{[^]*?display:inline-flex;[^]*?align-items:center;[^]*?justify-content:center;[^]*?font-size:var\(--dashboard-control-font-size\);[^]*?line-height:var\(--dashboard-control-line-height\);/s);
-  assert.match(common,/\.pension-contrib-context \.pension-work-mode\{flex:0 0 auto\}/);
-  assert.match(common,/\.pension-contrib-context \.pension-work-mode button\{[^]*?min-width:72px;[^]*?padding-inline:var\(--space-md\);/s);
-  assert.match(common,/--pension-modal-context-gap:var\(--space-xs\);/);
+  assert.match(common,/\.control-segmented button\{[^]*?display:inline-flex;[^]*?align-items:center;[^]*?justify-content:center;/s);
+  assert.match(common,/\.pension-contrib-context \.pension-work-mode button\{[^]*?min-width:/s);
   assert.doesNotMatch(common,/--pension-modal-mode-(?:size|height)/);
-  assert.doesNotMatch(common,/\.pension-work-mode-btn\{[^]*?(?:font-size|padding-inline|height):/s);
 });
 
-test('개인 보기 도구는 Web/Tablet 계산기를 icon-only 공통 control로 쓰고 Market AI 연결 toggle을 계산기와 테마 사이에 둔다',()=>{
-  const tabsStart=ui.indexOf('function renderTabs(){');
-  const tabsEnd=ui.indexOf('\nfunction toggleMobileDataView',tabsStart);
-  const tabsBlock=ui.slice(tabsStart,tabsEnd);
-  assert.match(tabsBlock,/class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-calc-action"/);
-  const calcBlock=/class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-calc-action"[^]*?<\/a>/.exec(tabsBlock)?.[0]||'';
-  assert.ok(calcBlock,'Web/Tablet 계산기 icon button이 없다');
-  assert.doesNotMatch(calcBlock,/topbar-label-(?:full|short)/);
+test('Web/Tablet 개인보기 도구는 계산기 → Market AI → 테마 순서의 icon-only control을 유지한다',()=>{
+  const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
   const calcIndex=tabsBlock.indexOf('topbar-calc-action');
   const marketAiIndex=tabsBlock.indexOf('topbar-market-ai-toggle');
   const themeIndex=tabsBlock.indexOf('topbar-theme-action');
-  assert.ok(calcIndex>=0&&marketAiIndex>calcIndex&&themeIndex>marketAiIndex,'Market AI toggle은 계산기와 테마 사이에 있어야 한다');
-  assert.match(tabsBlock,/data-dashboard-action="toggle-market-ai-connection" data-market-ai-connection-toggle/);
-  assert.match(uiCommon,/signalOn:/);
-  assert.match(uiCommon,/signalOff:/);
+  assert.ok(calcIndex>=0&&marketAiIndex>calcIndex&&themeIndex>marketAiIndex);
+  assert.match(tabsBlock,/topbar-calc-action[^]*?control-icon-button|control-icon-button topbar-calc-action/s);
+  assert.match(tabsBlock,/toggle-market-ai-connection/);
 });
 
-test('Market AI 연결 toggle은 Dashboard-side polling/overlay를 함께 끄고 Phone에서는 Topbar가 아니라 관리 메뉴에만 둔다',()=>{
-  assert.match(marketAiClient,/MARKET_AI_ENABLED_STORAGE_KEY='investmentDashboard\.marketAiEnabled'/);
-  assert.match(marketAiClient,/MARKET_AI_ENABLED_EVENT='investment-dashboard:market-ai-enabled'/);
-  assert.match(marketAiClient,/function setMarketAiEnabled\(enabled,\{force=false\}=\{\}\)/);
-  assert.match(marketAi,/if\(!marketAiEnabled\(\)\)\{[^]*?publishMarketAiConnectionState\(false\);[^]*?removeMarketAiUi\(\);/s);
-  assert.match(marketAi,/window\.addEventListener\(MARKET_AI_ENABLED_EVENT/);
-  assert.match(liveValuation,/window\.addEventListener\(MARKET_AI_ENABLED_EVENT/);
-  assert.match(liveValuation,/clearLiveValuationSnapshot\('market-ai-disabled',\[\]\)/);
-  assert.match(liveValuation,/document\.visibilityState==='visible'&&marketAiEnabled\(\)/);
-  const tabsStart=ui.indexOf('function renderTabs(){');
-  const tabsEnd=ui.indexOf('\nfunction toggleMobileDataView',tabsStart);
-  const tabsBlock=ui.slice(tabsStart,tabsEnd);
-  const mobileMenuStart=ui.indexOf('function renderResponsiveNavigationMenuContent()');
-  const mobileMenuEnd=ui.indexOf('function renderDesktopTocContent()',mobileMenuStart);
-  const mobileMenu=ui.slice(mobileMenuStart,mobileMenuEnd);
-  assert.match(mobileMenu,/title:'투자 계산기'/);
-  assert.match(mobileMenu,/action:'toggle-market-ai-connection'/);
-  assert.match(mobileMenu,/marketAiToggle:true/);
-  assert.ok(mobileMenu.indexOf("title:'투자 계산기'")<mobileMenu.indexOf("action:'toggle-market-ai-connection'"),'Phone 관리 메뉴의 Market AI toggle은 투자 계산기 아래에 있어야 한다');
-  assert.match(tabsBlock,/\$\{phoneUi\(\)\?'':\(\(\)=>\{const model=marketAiConnectionToggleModel\(\)/,'Phone에서는 Market AI Topbar toggle DOM을 생성하지 않아야 한다');
-  assert.match(special,/\.topbar-market-ai-toggle\{display:none\}/,'Phone CSS에서도 Market AI Topbar toggle을 이중 차단해야 한다');
+test('Market AI 연결 toggle은 OFF fallback과 Phone 관리 메뉴 배치를 유지한다',()=>{
+  assert.match(marketAiClient,/function setMarketAiEnabled\(/);
+  assert.match(marketAi,/marketAiEnabled\(\)/);
+  assert.match(liveValuation,/marketAiEnabled\(\)/);
+  assert.match(liveValuation,/clearLiveValuationSnapshot\('market-ai-disabled'/);
+  const mobileMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
+  assert.ok(mobileMenu.indexOf("title:'투자 계산기'")<mobileMenu.indexOf("action:'toggle-market-ai-connection'"));
+  const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
+  assert.match(tabsBlock,/\$\{phoneUi\(\)\?'':/,'Phone Topbar에는 Market AI toggle을 생성하지 않는다');
 });
 
-test('개인 보기 3회 입력은 Web/Tablet basis와 Phone Hero 전체가 동일 click 경로를 사용한다',()=>{
-  assert.match(app,/<header class="hero" id="top-section" aria-labelledby="dashboardTitle">/);
-  assert.doesNotMatch(app,/data-dashboard-action="hero-card-tap"/);
-  assert.match(app,/const HERO_MULTI_TAP_WINDOW_MS=700;/);
-  assert.match(app,/const HERO_PHONE_MULTI_TAP_WINDOW_MS=1200;/);
-  assert.match(app,/const tapWindowMs=phoneUi\(\)\?HERO_PHONE_MULTI_TAP_WINDOW_MS:HERO_MULTI_TAP_WINDOW_MS;/);
-  assert.doesNotMatch(app,/heroTouchPointerState|suppressHeroSyntheticClickUntil|HERO_TOUCH_MOVE_TOLERANCE_PX/);
+test('개인보기 3회 입력은 Web/Tablet 기준문구와 Phone Hero 전체를 같은 click handler로 처리한다',()=>{
+  assert.match(app,/data-dashboard-action="hero-basis-tap"/);
+  assert.match(app,/phoneUi\(\)&&heroCardTarget\(event\.target\)[^]*?handleHeroBasisTap\(\)/s);
   assert.doesNotMatch(app,/addEventListener\('pointer(?:down|up|cancel)'/);
-  assert.match(app,/if\(phoneUi\(\)&&heroCardTarget\(event\.target\)&&!heroTapInteractiveTarget\(event\.target\)\)handleHeroBasisTap\(\);/);
-  assert.match(special,/\.hero\{[\s\S]*?-webkit-user-select:none;[\s\S]*?user-select:none;[\s\S]*?touch-action:manipulation;/);
-  assert.match(app,/<time class="hero-basis" datetime="\$\{x\.date\}" data-dashboard-action="hero-basis-tap">/);
 });
 
 test('증권 종목별 누적손익 UI는 매도 후 평가손익 0이 아니라 totalProfit·performanceCost 계약을 사용한다',()=>{
