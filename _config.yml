@@ -5,5 +5,5 @@ exclude:
   - data/pension_operation_ledger/
   - data/pension_batch_request_identity/
   - GAS_code.js
-  - "*.md"
+  - "**/*.md"
   - tests/
