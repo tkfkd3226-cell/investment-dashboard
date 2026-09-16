@@ -13,6 +13,7 @@ import {
 import {
   escapeHtml,
   navIconSvg,
+  phoneUi,
   hideAssetSourceTooltip,
   hideSecuritySaleTooltip,
   setupAssetSourceTooltips,
@@ -80,11 +81,8 @@ import {
 
 // [APP01] Personal View / Separate Profit · 개인 보기 / 별도수익
 const heroBasisTapState={count:0,lastTap:0};
-const heroTouchPointerState={pointerId:null,startX:0,startY:0};
-let suppressHeroSyntheticClickUntil=0;
 const HERO_MULTI_TAP_WINDOW_MS=700;
-const HERO_PHONE_MULTI_TAP_WINDOW_MS=900;
-const HERO_TOUCH_MOVE_TOLERANCE_PX=14;
+const HERO_PHONE_MULTI_TAP_WINDOW_MS=1200;
 
 function togglePersonalView(){
   uiState.personalViewUnlocked=!uiState.personalViewUnlocked;
@@ -106,23 +104,6 @@ function heroTapInteractiveTarget(target){
 }
 function heroCardTarget(target){
   return target?.closest?.('#app > .wrap > .hero')||null;
-}
-function beginHeroTouchPointer(event){
-  if(event.pointerType!=='touch'||!phoneUi()||!heroCardTarget(event.target)||heroTapInteractiveTarget(event.target))return;
-  heroTouchPointerState.pointerId=event.pointerId;
-  heroTouchPointerState.startX=event.clientX;
-  heroTouchPointerState.startY=event.clientY;
-}
-function finishHeroTouchPointer(event){
-  if(event.pointerType!=='touch'||heroTouchPointerState.pointerId!==event.pointerId)return;
-  const moved=Math.hypot(event.clientX-heroTouchPointerState.startX,event.clientY-heroTouchPointerState.startY);
-  heroTouchPointerState.pointerId=null;
-  if(!phoneUi()||moved>HERO_TOUCH_MOVE_TOLERANCE_PX||!heroCardTarget(event.target)||heroTapInteractiveTarget(event.target))return;
-  suppressHeroSyntheticClickUntil=Date.now()+500;
-  handleHeroBasisTap();
-}
-function cancelHeroTouchPointer(event){
-  if(heroTouchPointerState.pointerId===event.pointerId)heroTouchPointerState.pointerId=null;
 }
 function toggleSeparateProfitMode(){
   uiState.includeSeparateProfit=!uiState.includeSeparateProfit;
@@ -230,10 +211,7 @@ function handleDashboardAction(event,control){
     closeDateActionMenu();
     return;
   }
-  if(action==='hero-basis-tap'){
-    if(phoneUi()&&Date.now()<suppressHeroSyntheticClickUntil)return;
-    return handleHeroBasisTap();
-  }
+  if(action==='hero-basis-tap')return handleHeroBasisTap();
   if(action==='jump-chart-date')return requestChartDateJump(control.dataset.chartDate||'',control.dataset.chartId||'',control);
   if(action==='close-chart-date-confirm')return closeChartDateConfirmModal();
   if(action==='confirm-chart-date-jump')return confirmChartDateJump();
@@ -241,13 +219,10 @@ function handleDashboardAction(event,control){
   handleUiDashboardAction(event,control);
 }
 function setupDashboardEventDelegation(){
-  document.addEventListener('pointerdown',beginHeroTouchPointer,{passive:true});
-  document.addEventListener('pointerup',finishHeroTouchPointer,{passive:true});
-  document.addEventListener('pointercancel',cancelHeroTouchPointer,{passive:true});
   document.addEventListener('click',event=>{
     const control=event.target.closest?.('[data-dashboard-action]');
     if(control){handleDashboardAction(event,control);return;}
-    if(phoneUi()&&Date.now()>=suppressHeroSyntheticClickUntil&&heroCardTarget(event.target)&&!heroTapInteractiveTarget(event.target))handleHeroBasisTap();
+    if(phoneUi()&&heroCardTarget(event.target)&&!heroTapInteractiveTarget(event.target))handleHeroBasisTap();
   });
   document.addEventListener('change',event=>{
     const target=event.target;

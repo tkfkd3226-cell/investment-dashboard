@@ -519,7 +519,11 @@
     }
 
   /* Hero Touch Target · Phone에서는 개인 보기 3회 터치 hit-area를 Hero 전체로 확장 */
-    .hero{touch-action:manipulation}
+    .hero{
+      -webkit-user-select:none;
+      user-select:none;
+      touch-action:manipulation;
+    }
 
   /* Chart Compact Responsive · 세로/가로 Phone 공통 scroll edge + allocation detail 밀도 */
     .chart-wrap.is-scrollable{

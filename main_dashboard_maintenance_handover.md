@@ -990,7 +990,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 개인보기 ON/OFF의 **연속 3회 입력은 의도된 비공개 진입 UX**다.
 
 - Web/Tablet은 기존 Hero 기준문구(`.hero-basis`)를 700ms 안에 3회 클릭하는 계약을 그대로 유지한다.
-- Phone은 Hero 자체에 공통 `data-dashboard-action`을 부여하지 않는다. 대신 비대화형 Hero 영역 전체를 `pointerdown → pointerup`으로 직접 판정하고, F12/마우스 Phone viewport에서는 document click fallback을 사용한다. 14px 초과 이동은 scroll gesture로 제외하고 `a/button/input/select/textarea/[role="button"]/[role="link"]` 등 interactive target도 제외한다. Phone 3회 입력 간격은 900ms이며 touch 이후 synthetic click은 중복 카운트하지 않는다. Hero에는 `touch-action:manipulation`을 적용한다.
+- Phone은 Hero 자체에 공통 `data-dashboard-action`을 부여하지 않는다. 대신 비대화형 Hero 영역 전체의 일반 `click`을 document delegation에서 직접 세며, 실폰과 F12가 동일한 이벤트 경로를 사용한다. `a/button/input/select/textarea/[role="button"]/[role="link"]` 등 interactive target은 제외한다. Phone 3회 입력 간격은 1200ms이며 Hero에는 `touch-action:manipulation`, `user-select:none`, `-webkit-user-select:none`을 적용해 iOS 연속 탭이 zoom/text-selection 제스처로 빠지는 가능성을 줄인다.
 - discoverability 부족 자체를 감점하거나 공개 버튼 추가를 권하지 않는다.
 - 이 제스처를 보안 인증 수단으로 취급하지 않는다.
 - 3회 입력 인식, `OFF → ON → OFF` 상태 reset, 일반 날짜/Topbar/입력 동작 간섭 여부는 실제 회귀로 검증한다.

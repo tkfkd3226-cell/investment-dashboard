@@ -74,6 +74,13 @@ test('Main module boundary: core는 DOM 비의존, Market AI transport는 중립
   assert.deepEqual(importsOf(liveValuation),['./dashboard-core.js','./dashboard-market-ai-client.js']);
 });
 
+test('개인보기 3회 입력이 사용하는 phoneUi responsive helper를 app이 명시적으로 import한다',()=>{
+  const uiCommonImport=app.match(/import\s*\{([^]*?)\}\s*from '\.\/dashboard-ui-common\.js';/);
+  assert.ok(uiCommonImport,'dashboard-ui-common import block이 있어야 한다');
+  assert.match(uiCommonImport[1],/\bphoneUi\b/,'dashboard-app은 3회 입력 분기에서 사용하는 phoneUi를 import해야 한다');
+  assert.match(app,/const tapWindowMs=phoneUi\(\)\?HERO_PHONE_MULTI_TAP_WINDOW_MS:HERO_MULTI_TAP_WINDOW_MS;/);
+});
+
 test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validator 모듈을 사용한다',()=>{
   assert.match(core,/import\s*\{\s*validateKodexLeverageSource\s*\}\s*from '\.\/kodex-leverage-schema\.js'/);
   assert.match(core,/const validated=validateKodexLeverageSource\(source\)/);
@@ -1632,21 +1639,16 @@ test('Market AI 연결 toggle은 Dashboard-side polling/overlay를 함께 끄고
   assert.match(special,/\.topbar-market-ai-toggle\{display:none\}/,'Phone CSS에서도 Market AI Topbar toggle을 이중 차단해야 한다');
 });
 
-test('개인 보기 3회 입력은 Web/Tablet 기존 basis click을 보존하고 Phone만 Hero 전체 pointer/click fallback을 확장한다',()=>{
+test('개인 보기 3회 입력은 Web/Tablet basis와 Phone Hero 전체가 동일 click 경로를 사용한다',()=>{
   assert.match(app,/<header class="hero" id="top-section" aria-labelledby="dashboardTitle">/);
   assert.doesNotMatch(app,/data-dashboard-action="hero-card-tap"/);
   assert.match(app,/const HERO_MULTI_TAP_WINDOW_MS=700;/);
-  assert.match(app,/const HERO_PHONE_MULTI_TAP_WINDOW_MS=900;/);
+  assert.match(app,/const HERO_PHONE_MULTI_TAP_WINDOW_MS=1200;/);
   assert.match(app,/const tapWindowMs=phoneUi\(\)\?HERO_PHONE_MULTI_TAP_WINDOW_MS:HERO_MULTI_TAP_WINDOW_MS;/);
-  assert.match(app,/const HERO_TOUCH_MOVE_TOLERANCE_PX=14;/);
-  assert.match(app,/function beginHeroTouchPointer\(event\)/);
-  assert.match(app,/function finishHeroTouchPointer\(event\)/);
-  assert.match(app,/event\.pointerType!=='touch'/);
-  assert.match(app,/moved>HERO_TOUCH_MOVE_TOLERANCE_PX/);
-  assert.match(app,/document\.addEventListener\('pointerdown',beginHeroTouchPointer,\{passive:true\}\)/);
-  assert.match(app,/document\.addEventListener\('pointerup',finishHeroTouchPointer,\{passive:true\}\)/);
-  assert.match(app,/if\(phoneUi\(\)&&Date\.now\(\)>=suppressHeroSyntheticClickUntil&&heroCardTarget\(event\.target\)&&!heroTapInteractiveTarget\(event\.target\)\)handleHeroBasisTap\(\);/);
-  assert.match(special,/\.hero\{touch-action:manipulation\}/);
+  assert.doesNotMatch(app,/heroTouchPointerState|suppressHeroSyntheticClickUntil|HERO_TOUCH_MOVE_TOLERANCE_PX/);
+  assert.doesNotMatch(app,/addEventListener\('pointer(?:down|up|cancel)'/);
+  assert.match(app,/if\(phoneUi\(\)&&heroCardTarget\(event\.target\)&&!heroTapInteractiveTarget\(event\.target\)\)handleHeroBasisTap\(\);/);
+  assert.match(special,/\.hero\{[\s\S]*?-webkit-user-select:none;[\s\S]*?user-select:none;[\s\S]*?touch-action:manipulation;/);
   assert.match(app,/<time class="hero-basis" datetime="\$\{x\.date\}" data-dashboard-action="hero-basis-tap">/);
 });
 
