@@ -928,7 +928,7 @@ test('반응형·테마·Print는 semantic source와 인쇄 canonical layout을 
   assert.doesNotMatch(special,/--modal-overlay-pad:20px|--pension-modal-row-height:28px/);
   assert.match(special1,/\.action-modal\{--modal-control-font-size:var\(--type-size-2xl\)\}/);
   assert.match(print1,/html, html\.dark\{ color-scheme:light;/);
-  assert.match(print1,/\.hero \.hero-return-pill\{display:inline-flex\}/);
+  assert.match(print1,/\.hero \.hero-return-pill\{ display:inline-flex; align-items:center; justify-content:center; text-align:center; \}/);
   assert.match(print1,/\.metric-grid\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)\}/);
   assert.match(common1,/html\.print-light-theme\{ color-scheme:light; --chart-surface:#ffffff;/);
   assert.match(charts,/document\.documentElement\.classList\.add\('print-light-theme'\)/);
@@ -941,6 +941,10 @@ test('반응형·테마·Print는 semantic source와 인쇄 canonical layout을 
   assert.match(afterPrintBlock,/restoreScreenChartsAfterPrint\(\)/);
   assert.doesNotMatch(afterPrintBlock,/drawAllCharts\(\)|drawCumChart\(\)|drawPension/,'afterprint는 화면 SVG를 재계산하지 않고 원본 node를 복원해야 한다');
   assert.match(print1,/\.chart-note\.six\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
+  assert.match(print1,/\.asset-insight-zone\{ display:block; \}/,'Print에서는 insight grid fragmentation을 피해야 한다');
+  assert.match(print1,/\.asset-insight-card \+ \.asset-insight-card\{ margin-top:var\(--card-grid-gap-medium\); \}/);
+  assert.match(print1,/\.pension-risk-threshold span\{ top:-18px; \}/,'Phone용 하단 threshold chip이 Print에 새면 안 된다');
+  assert.match(print1,/\.pension-risk-scale\{ margin-top:var\(--info-stack-gap\); \}/);
   assert.match(common1,/\.positive\{color:var\(--value-positive\)\} \.negative\{color:var\(--value-negative\)\}/);
 });
 

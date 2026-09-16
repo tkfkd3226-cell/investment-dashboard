@@ -204,9 +204,30 @@
     .asset-workspace-panel-pension{
       margin-top:var(--space-9xl);
     }
-    .hero .hero-return-pill{display:inline-flex}
+    /* Print Hero Alignment · 좁은 인쇄 page width가 Phone media와 겹쳐도 return pill을 중앙 정렬한다. */
+    .hero .hero-return-pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+    }
     .hero .hero-label-default{display:inline}
     .hero .hero-label-mobile{display:none}
+
+    /* Pension Insight Print Geometry · paged media에서 Phone용 threshold 하단 chip 규칙이 새는 것을 차단한다.
+       Grid fragmentation도 피하도록 insight zone을 block flow로 고정한다. */
+    .asset-insight-zone{
+      display:block;
+    }
+    .asset-insight-card + .asset-insight-card{
+      margin-top:var(--card-grid-gap-medium);
+    }
+    .pension-risk-threshold span{
+      top:-18px;
+    }
+    .pension-risk-scale{
+      margin-top:var(--info-stack-gap);
+    }
     .metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
     .chart-note.six{grid-template-columns:repeat(3,minmax(0,1fr))}
     .chart-note.symbol-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
