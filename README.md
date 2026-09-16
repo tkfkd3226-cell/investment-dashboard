@@ -61,7 +61,7 @@ index.html
 - Light / Dark 테마
 - Desktop / Tablet / Mobile 반응형 UI
 - 개인보기 해제 후 Web/Tablet 투자 계산기는 테마 버튼과 같은 icon-only action geometry를 사용하고, Phone은 기존 `관리` 메뉴의 텍스트 항목을 유지
-- Phone 개인보기 3회 터치는 Hero 자체를 명시적 action target으로 사용하고 실제 touch pointer의 이동량을 검사해 Hero의 비대화형 영역 전체에서 안정적으로 인식한다. Web/Tablet은 기존 Hero 기준문구 3회 클릭 계약을 유지
+- 개인보기 3회 입력은 Web/Tablet의 기존 Hero 기준문구 3회 클릭(700ms)을 그대로 유지하고, Phone에서만 Hero 비대화형 영역 전체를 실제 touch pointer(900ms)와 click fallback으로 확장한다. Hero 자체에는 공통 action을 부여하지 않아 Phone 확장이 Web/Tablet 경로를 가로채지 않는다
 - Print 전용 출력
 
 ### 2.2 투자 계산기

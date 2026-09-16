@@ -1632,9 +1632,12 @@ test('Market AI 연결 toggle은 Dashboard-side polling/overlay를 함께 끄고
   assert.match(special,/\.topbar-market-ai-toggle\{display:none\}/,'Phone CSS에서도 Market AI Topbar toggle을 이중 차단해야 한다');
 });
 
-test('Phone 개인 보기 3회 터치는 Hero 자체 action + touch pointer 판정으로 전체 non-interactive 영역에서 안정적으로 동작한다',()=>{
-  assert.match(app,/<header class="hero" id="top-section" aria-labelledby="dashboardTitle" data-dashboard-action="hero-card-tap">/);
-  assert.match(app,/const HERO_MULTI_TAP_WINDOW_MS=900;/);
+test('개인 보기 3회 입력은 Web/Tablet 기존 basis click을 보존하고 Phone만 Hero 전체 pointer/click fallback을 확장한다',()=>{
+  assert.match(app,/<header class="hero" id="top-section" aria-labelledby="dashboardTitle">/);
+  assert.doesNotMatch(app,/data-dashboard-action="hero-card-tap"/);
+  assert.match(app,/const HERO_MULTI_TAP_WINDOW_MS=700;/);
+  assert.match(app,/const HERO_PHONE_MULTI_TAP_WINDOW_MS=900;/);
+  assert.match(app,/const tapWindowMs=phoneUi\(\)\?HERO_PHONE_MULTI_TAP_WINDOW_MS:HERO_MULTI_TAP_WINDOW_MS;/);
   assert.match(app,/const HERO_TOUCH_MOVE_TOLERANCE_PX=14;/);
   assert.match(app,/function beginHeroTouchPointer\(event\)/);
   assert.match(app,/function finishHeroTouchPointer\(event\)/);
@@ -1642,7 +1645,7 @@ test('Phone 개인 보기 3회 터치는 Hero 자체 action + touch pointer 판�
   assert.match(app,/moved>HERO_TOUCH_MOVE_TOLERANCE_PX/);
   assert.match(app,/document\.addEventListener\('pointerdown',beginHeroTouchPointer,\{passive:true\}\)/);
   assert.match(app,/document\.addEventListener\('pointerup',finishHeroTouchPointer,\{passive:true\}\)/);
-  assert.match(app,/if\(action==='hero-card-tap'\)\{[^]*?if\(!phoneUi\(\)\|\|Date\.now\(\)<suppressHeroSyntheticClickUntil\)return;[^]*?handleHeroBasisTap\(\);/s);
+  assert.match(app,/if\(phoneUi\(\)&&Date\.now\(\)>=suppressHeroSyntheticClickUntil&&heroCardTarget\(event\.target\)&&!heroTapInteractiveTarget\(event\.target\)\)handleHeroBasisTap\(\);/);
   assert.match(special,/\.hero\{touch-action:manipulation\}/);
   assert.match(app,/<time class="hero-basis" datetime="\$\{x\.date\}" data-dashboard-action="hero-basis-tap">/);
 });
