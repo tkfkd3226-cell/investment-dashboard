@@ -265,6 +265,7 @@ function renderMobileNavigationGroups(groups,{indentAfterFirst=false}={}){
 }
 function renderResponsiveNavigationMenuContent(){
   const tocGroups=dashboardTocGroups().map((group,idx)=>({...group,tocFirst:idx===0}));
+  const marketAiToggle=marketAiConnectionToggleModel();
   const groups=[
     {
       label:'링크',
@@ -280,7 +281,8 @@ function renderResponsiveNavigationMenuContent(){
       items:[
         {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
         {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'},
-        ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[])
+        ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[]),
+        {type:'action',action:'toggle-market-ai-connection',icon:marketAiToggle.icon,title:marketAiToggle.label,marketAiToggle:true}
       ]
     },
     ...tocGroups
@@ -445,7 +447,7 @@ function renderTabs(){
         ${uiState.personalViewUnlocked?`<a class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" draggable="false" title="투자 계산기" aria-label="투자 계산기">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span>
         </a>`:''}
-        ${(()=>{const model=marketAiConnectionToggleModel();return `<button type="button" class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-market-ai-toggle" title="${model.label}" aria-label="${model.label}" aria-pressed="${model.connected}" data-dashboard-action="toggle-market-ai-connection" data-market-ai-connection-toggle>
+        ${phoneUi()?'':(()=>{const model=marketAiConnectionToggleModel();return `<button type="button" class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-market-ai-toggle" title="${model.label}" aria-label="${model.label}" aria-pressed="${model.connected}" data-dashboard-action="toggle-market-ai-connection" data-market-ai-connection-toggle>
           <span class="date-tool-action-icon" data-market-ai-connection-toggle-icon>${navIconSvg(model.icon)}</span>
         </button>`})()}
         <button type="button" class="date-tool-btn control-icon-button topbar-realtime-phone-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>

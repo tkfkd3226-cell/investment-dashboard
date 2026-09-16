@@ -1609,7 +1609,7 @@ test('개인 보기 도구는 Web/Tablet 계산기를 icon-only 공통 control�
   assert.match(uiCommon,/signalOff:/);
 });
 
-test('Market AI 연결 toggle은 Dashboard-side polling/overlay를 함께 끄되 Phone 메뉴에는 노출하지 않는다',()=>{
+test('Market AI 연결 toggle은 Dashboard-side polling/overlay를 함께 끄고 Phone에서는 Topbar가 아니라 관리 메뉴에만 둔다',()=>{
   assert.match(marketAiClient,/MARKET_AI_ENABLED_STORAGE_KEY='investmentDashboard\.marketAiEnabled'/);
   assert.match(marketAiClient,/MARKET_AI_ENABLED_EVENT='investment-dashboard:market-ai-enabled'/);
   assert.match(marketAiClient,/function setMarketAiEnabled\(enabled,\{force=false\}=\{\}\)/);
@@ -1618,12 +1618,18 @@ test('Market AI 연결 toggle은 Dashboard-side polling/overlay를 함께 끄되
   assert.match(liveValuation,/window\.addEventListener\(MARKET_AI_ENABLED_EVENT/);
   assert.match(liveValuation,/clearLiveValuationSnapshot\('market-ai-disabled',\[\]\)/);
   assert.match(liveValuation,/document\.visibilityState==='visible'&&marketAiEnabled\(\)/);
+  const tabsStart=ui.indexOf('function renderTabs(){');
+  const tabsEnd=ui.indexOf('\nfunction toggleMobileDataView',tabsStart);
+  const tabsBlock=ui.slice(tabsStart,tabsEnd);
   const mobileMenuStart=ui.indexOf('function renderResponsiveNavigationMenuContent()');
   const mobileMenuEnd=ui.indexOf('function renderDesktopTocContent()',mobileMenuStart);
   const mobileMenu=ui.slice(mobileMenuStart,mobileMenuEnd);
   assert.match(mobileMenu,/title:'투자 계산기'/);
-  assert.doesNotMatch(mobileMenu,/action:'toggle-market-ai-connection'/);
-  assert.doesNotMatch(mobileMenu,/marketAiToggle:true/);
+  assert.match(mobileMenu,/action:'toggle-market-ai-connection'/);
+  assert.match(mobileMenu,/marketAiToggle:true/);
+  assert.ok(mobileMenu.indexOf("title:'투자 계산기'")<mobileMenu.indexOf("action:'toggle-market-ai-connection'"),'Phone 관리 메뉴의 Market AI toggle은 투자 계산기 아래에 있어야 한다');
+  assert.match(tabsBlock,/\$\{phoneUi\(\)\?'':\(\(\)=>\{const model=marketAiConnectionToggleModel\(\)/,'Phone에서는 Market AI Topbar toggle DOM을 생성하지 않아야 한다');
+  assert.match(special,/\.topbar-market-ai-toggle\{display:none\}/,'Phone CSS에서도 Market AI Topbar toggle을 이중 차단해야 한다');
 });
 
 test('Phone 개인 보기 3회 터치는 Hero 자체 action + touch pointer 판정으로 전체 non-interactive 영역에서 안정적으로 동작한다',()=>{
