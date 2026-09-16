@@ -476,6 +476,35 @@ test('실시간 평가: 오늘 날짜만 usable Market AI quote를 가격·평�
   assert.equal(historical.priceSource,'json');
 });
 
+test('실시간 평가: 자정 이후 장전에는 직전 완료 세션의 closed quote를 유지하고 장 시작 시점에는 재검증한다',()=>{
+  const sessionDate='2026-09-16';
+  const portfolio=basePortfolio({
+    securities:[{name:'삼성전자',ticker:'005930',type:'개별주식',qty:1,cost:100,chart:true}],
+    pension:[]
+  });
+  setState({portfolio,prices:{[sessionDate]:{securities:{'005930':110}}}});
+  core.applyLiveValuationSnapshot({
+    status:'ok',market_state:'closed',bridge_connected:true,generated_at:'2026-09-16T11:00:00Z',
+    items:[{ticker:'005930',price:125,state:'closed',market_state:'closed',usable:true,observed_at:'2026-09-16T10:59:00Z'}]
+  },['005930']);
+
+  const preopen=new Date('2026-09-16T23:30:00Z'); // 2026-09-17 08:30 KST
+  assert.equal(core.liveValuationQuoteForDate('005930',sessionDate,preopen)?.price,125);
+  assert.equal(core.liveValuationStatusForDate(sessionDate,preopen).mode,'closed');
+  assert.match(core.heroPerformanceBasisLabel(sessionDate,preopen),/애프터 종가 기준$/);
+
+  const afterOpen=new Date('2026-09-17T00:01:00Z'); // 2026-09-17 09:01 KST
+  assert.equal(core.liveValuationQuoteForDate('005930',sessionDate,afterOpen),null);
+  assert.equal(core.liveValuationStatusForDate(sessionDate,afterOpen).mode,'historical');
+
+  // 휴장일처럼 09:00 이후 backend가 당일 생성시각으로 closed를 재확인하면 직전 완료 세션을 계속 쓸 수 있다.
+  core.applyLiveValuationSnapshot({
+    status:'ok',market_state:'closed',bridge_connected:true,generated_at:'2026-09-17T00:01:30Z',
+    items:[{ticker:'005930',price:125,state:'closed',market_state:'closed',usable:true,observed_at:'2026-09-16T10:59:00Z'}]
+  },['005930']);
+  assert.equal(core.liveValuationQuoteForDate('005930',sessionDate,afterOpen)?.price,125);
+});
+
 test('실시간 평가: unusable 종목은 JSON fallback하고 같은 ticker의 증권·연금은 universe에서 1회만 요청한다',()=>{
   const today=core.kstTodayText();
   const portfolio=basePortfolio({

@@ -2,6 +2,7 @@ import {
   applyLiveValuationSnapshot,
   clearLiveValuationSnapshot,
   dataState,
+  liveValuationRenderDateEligible,
   liveValuationTickersForDate,
   kstTodayText
 } from './dashboard-core.js';
@@ -13,7 +14,7 @@ import {
   marketAiFetchWithTimeout
 } from './dashboard-market-ai-client.js';
 
-// Live Valuation Adapter · 오늘 보유종목 Market AI quote를 화면 평가값에만 overlay한다.
+// Live Valuation Adapter · 현재 KRX 세션과 직전 완료 세션의 Market AI quote를 화면 평가값에만 overlay한다.
 // Backend가 live / extended / closed 여부와 usable 판정을 소유하고, 이 모듈은 usable quote만 소비한다.
 // transport는 dashboard-market-ai-client.js, position/cost/calculation은 dashboard-core.js가 소유하며 overlay 값은 운영 JSON에 저장하지 않는다.
 // Structure map:
@@ -38,6 +39,7 @@ let liveValuationRenderPending=false;
 let liveValuationSetupBound=false;
 let liveValuationMarketAiConnected=false;
 let liveValuationSettledSessionKey='';
+let liveValuationSettledPhase='';
 let renderDashboardCallback=null;
 let liveValuationClientCandidate='';
 let liveValuationClientChannel=null;
@@ -124,12 +126,27 @@ function liveValuationSessionKey(date,tickers){
   return `${String(date||'')}|${liveValuationUniverseKey(tickers)}`;
 }
 
+function liveValuationMarketPhase(now=new Date()){
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now);
+  const get=type=>parts.find(value=>value.type===type)?.value||'';
+  const weekdays={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+  const weekday=weekdays[get('weekday')]??-1;
+  const minuteOfDay=(Number(get('hour'))||0)*60+(Number(get('minute'))||0);
+  if(weekday===0||weekday===6)return 'closed';
+  if(minuteOfDay<9*60)return 'preopen';
+  if(minuteOfDay<15*60+30)return 'open';
+  return 'closed';
+}
+
 function clearLiveValuationSettledSession(){
   liveValuationSettledSessionKey='';
+  liveValuationSettledPhase='';
 }
 
 function liveValuationSettledFor(date,tickers){
-  return Boolean(liveValuationSettledSessionKey)&&liveValuationSettledSessionKey===liveValuationSessionKey(date,tickers);
+  return Boolean(liveValuationSettledSessionKey)
+    &&liveValuationSettledSessionKey===liveValuationSessionKey(date,tickers)
+    &&liveValuationSettledPhase===liveValuationMarketPhase();
 }
 
 function updateLiveValuationSettledSession(date,tickers){
@@ -137,6 +154,7 @@ function updateLiveValuationSettledSession(date,tickers){
   const sessionKey=liveValuationSessionKey(date,requested);
   if(!requested.length){
     liveValuationSettledSessionKey=sessionKey;
+    liveValuationSettledPhase=liveValuationMarketPhase();
     return true;
   }
   const items=dataState.liveValuation?.items||{};
@@ -149,9 +167,13 @@ function updateLiveValuationSettledSession(date,tickers){
   });
   if(fullyClosed){
     liveValuationSettledSessionKey=sessionKey;
+    liveValuationSettledPhase=liveValuationMarketPhase();
     return true;
   }
-  if(liveValuationSettledSessionKey===sessionKey)liveValuationSettledSessionKey='';
+  if(liveValuationSettledSessionKey===sessionKey){
+    liveValuationSettledSessionKey='';
+    liveValuationSettledPhase='';
+  }
   return false;
 }
 
@@ -203,7 +225,7 @@ function liveValuationFingerprint(payload,requestedTickers=[]){
 }
 
 function liveValuationCanRender(){
-  if(dataState.activeDate!==kstTodayText())return false;
+  if(!liveValuationRenderDateEligible(dataState.activeDate))return false;
   if(document.visibilityState!=='visible')return false;
   if(document.querySelector('.chart-expanded-overlay,.action-modal.show,.contrib-modal.show,dialog[open]'))return false;
   if(document.querySelector('#app .control-info-button[aria-expanded="true"],#app .has-tooltip.tooltip-open,#assetPriceSourceTooltip.visible,#securitySaleTooltip.visible,#marketAiTooltip.visible'))return false;
@@ -220,7 +242,7 @@ function clearPendingRenderTimer(){
 
 function schedulePendingRenderCheck(){
   if(!liveValuationRenderPending||liveValuationPendingRenderTimer)return;
-  if(dataState.activeDate!==kstTodayText()||document.visibilityState!=='visible')return;
+  if(!liveValuationRenderDateEligible(dataState.activeDate)||document.visibilityState!=='visible')return;
   liveValuationPendingRenderTimer=window.setTimeout(()=>{
     liveValuationPendingRenderTimer=0;
     flushLiveValuationRender();
@@ -245,7 +267,7 @@ function requestLiveValuationRender(){
   flushLiveValuationRender();
 }
 
-// [LIVE03] Quote Refresh / Universe Reconcile · 오늘 ticker universe 조회 / stale response 폐기
+// [LIVE03] Quote Refresh / Universe Reconcile · 현재 보유 ticker universe 조회 / stale response 폐기
 function queueUniverseReconcileRefresh(){
   if(document.visibilityState!=='visible')return;
   window.setTimeout(()=>refreshLiveValuation(),0);

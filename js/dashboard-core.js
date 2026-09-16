@@ -138,11 +138,19 @@ const securitiesScopeText=x=>{
   if(x.tossIncluded)parts.push('토스');
   return parts.join(' + ');
 };
-const kstTodayText=()=>{
-  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+const kstDateParts=value=>{
+  const date=value instanceof Date?value:new Date(value);
+  if(!Number.isFinite(date.getTime()))return null;
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(date);
   const get=type=>parts.find(v=>v.type===type)?.value||'';
-  return `${get('year')}-${get('month')}-${get('day')}`;
+  const weekdays={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+  return {
+    date:`${get('year')}-${get('month')}-${get('day')}`,
+    weekday:weekdays[get('weekday')]??-1,
+    minuteOfDay:(Number(get('hour'))||0)*60+(Number(get('minute'))||0)
+  };
 };
+const kstTodayText=()=>kstDateParts(new Date())?.date||'';
 
 const assetPriceColumnLabel=(date,{current=false}={})=>{
   if(!date)return current?'당일 종가':'전일 종가';
@@ -502,6 +510,7 @@ function normalizedLiveValuationItem(item,requestedSet){
     price:Number.isFinite(price)&&price>0?price:null,
     changePct:Number.isFinite(Number(item?.change_pct))?Number(item.change_pct):null,
     observedAt:item?.observed_at?String(item.observed_at):null,
+    observedDate:item?.observed_at?(kstDateParts(item.observed_at)?.date||null):null,
     source:item?.source?String(item.source):null,
     subscriptionState:String(item?.subscription_state||''),
     marketState:String(item?.market_state||''),
@@ -550,27 +559,57 @@ function clearLiveValuationSnapshot(reason='unavailable',requestedTickersOverrid
   dataState.liveValuation=next;
   return changed;
 }
-function liveValuationQuoteForDate(ticker,date){
-  if(!date||date!==kstTodayText())return null;
+function liveValuationQuoteDate(quote){
+  return String(quote?.observedDate||'')||kstDateParts(quote?.observedAt)?.date||'';
+}
+function liveValuationCarryConfirmed(now=new Date()){
+  const nowParts=kstDateParts(now);
+  if(!nowParts)return false;
+  if(nowParts.weekday===0||nowParts.weekday===6)return true;
+  if(nowParts.minuteOfDay<9*60)return true;
+  const state=dataState.liveValuation||{};
+  if(String(state.marketState||'')!=='closed')return false;
+  const generated=kstDateParts(state.generatedAt);
+  if(!generated||generated.date!==nowParts.date)return false;
+  const requiredMinute=nowParts.minuteOfDay<15*60+30?9*60:15*60+30;
+  return generated.minuteOfDay>=requiredMinute;
+}
+function liveValuationQuoteForDate(ticker,date,now=new Date()){
+  if(!date)return null;
   const key=normalizeLiveValuationTicker(ticker),quote=dataState.liveValuation?.items?.[key];
   if(!quote||quote.usable!==true)return null;
   const price=Number(quote.price);
-  return Number.isFinite(price)&&price>0?quote:null;
+  if(!Number.isFinite(price)||price<=0)return null;
+  const today=kstDateParts(now)?.date||kstTodayText();
+  if(date===today)return quote;
+  const quoteDate=liveValuationQuoteDate(quote);
+  if(date>today||quote.state!=='closed'||quote.marketState!=='closed'||quoteDate!==date)return null;
+  return liveValuationCarryConfirmed(now)?quote:null;
 }
 const liveValuationPriceForDate=(ticker,date)=>liveValuationQuoteForDate(ticker,date)?.price??null;
-function liveValuationStatusForDate(date){
+function liveValuationLatestStoredDate(){
   const today=kstTodayText();
-  if(!date||date!==today){
+  return allAvailableDates().filter(date=>date<=today).at(-1)||'';
+}
+function liveValuationRenderDateEligible(date){
+  if(!date)return false;
+  return date===kstTodayText()||date===liveValuationLatestStoredDate();
+}
+function liveValuationStatusForDate(date,now=new Date()){
+  const today=kstTodayText();
+  const quoteNow=date===today?new Date():now;
+  const state=dataState.liveValuation||{};
+  const requested=[...new Set((Array.isArray(state.requestedTickers)&&state.requestedTickers.length?state.requestedTickers:liveValuationTickersForDate(date)).map(normalizeLiveValuationTicker).filter(Boolean))].sort();
+  const dateIsCurrent=date===today||requested.some(ticker=>Boolean(liveValuationQuoteForDate(ticker,date,quoteNow)));
+  if(!date||!dateIsCurrent){
     return {
       mode:'historical',requestedCount:0,usableCount:0,liveCount:0,closedCount:0,
       regularLiveCount:0,extendedLiveCount:0,marketClosedCount:0,
       staleCount:0,warmingCount:0,fallbackCount:0,latestObservedAt:null,generatedAt:null,reason:''
     };
   }
-  const state=dataState.liveValuation||{};
-  const requested=[...new Set((Array.isArray(state.requestedTickers)&&state.requestedTickers.length?state.requestedTickers:liveValuationTickersForDate(date)).map(normalizeLiveValuationTicker).filter(Boolean))].sort();
   const items=requested.map(ticker=>state.items?.[ticker]||null);
-  const usableItems=items.filter(item=>item?.usable===true&&Number(item?.price)>0);
+  const usableItems=items.filter(item=>Boolean(liveValuationQuoteForDate(item?.ticker,date,quoteNow)));
   const liveCount=usableItems.filter(item=>item.state==='live').length;
   const closedCount=usableItems.filter(item=>item.state==='closed').length;
   const regularLiveCount=usableItems.filter(item=>item.state==='live'&&item.marketState==='open').length;
@@ -611,12 +650,12 @@ function hasExtendedSessionHoldingForDate(date){
 // 따라서 ETF closed + 개별주식 live/extended가 모두 usable이면 `일부 실시간 반영`으로 낮추지 않는다.
 function heroPerformanceBasisLabel(date,now=new Date()){
   const fallback=koreanDateLabel(date);
-  const status=liveValuationStatusForDate(date);
+  const status=liveValuationStatusForDate(date,now);
   if(status.mode==='historical'||!status.requestedCount)return fallback;
   const [,month,day]=String(date||'').split('-');
   const dateLabel=`${Number(month)}월 ${Number(day)}일`;
   if(status.usableCount===status.requestedCount&&status.closedCount===status.requestedCount){
-    if(status.marketState==='closed'&&kstMinutesAt(now)>=20*60&&hasExtendedSessionHoldingForDate(date))return `${dateLabel} 애프터 종가 기준`;
+    if(status.marketState==='closed'&&hasExtendedSessionHoldingForDate(date)&&(date<kstTodayText()||kstMinutesAt(now)>=20*60))return `${dateLabel} 애프터 종가 기준`;
     return fallback;
   }
   if(status.liveCount<=0)return fallback;
@@ -1300,6 +1339,7 @@ export {
   loadInitialData,
   liveValuationPriceForDate,
   liveValuationQuoteForDate,
+  liveValuationRenderDateEligible,
   liveValuationStatusForDate,
   liveValuationTickersForDate,
   monthLabel,

@@ -112,7 +112,7 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - Local은 `127.0.0.1:8001` Market AI full API에 직접 연결하고, GitHub Pages는 Tailscale Serve → `127.0.0.1:8002` **GET-only proxy**를 통해 조회
 - 오늘 보유종목 quote는 ticker별 `market_state`를 보존해 판단하며, **15:30~20:00에는 개별주식 `extended`와 ETF `closed`가 동시에 존재할 수 있으므로 top-level `market_state` 하나로 전체 종목 상태를 판정하지 않음**
 - 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다. **20:00이라는 시각 자체로 Market AI overlay를 버리거나 KRX 저장값으로 강제 전환하지 않습니다.**
-- 현재 날짜·현재 보유 universe의 모든 ticker가 `state=closed + market_state=closed + usable=true`로 확정되면 그 closed quote를 화면 최종값으로 유지하고 `/api/market-data/krx-quotes` 네트워크 요청을 중지합니다. 10초 timer는 서버를 두드리지 않고 날짜/universe 변화만 로컬 확인하며, 날짜가 바뀌거나 보유 ticker가 달라지면 quote 조회를 자동 재개합니다. 일부 ticker가 unusable이면 해당 종목 회복을 위해 polling을 계속합니다.
+- 현재 보유 universe의 모든 ticker가 `state=closed + market_state=closed + usable=true`로 확정되면 그 closed quote를 화면 최종값으로 유지하고 `/api/market-data/krx-quotes` 네트워크 요청을 쉽니다. 자정이 지나도 직전 완료 거래일의 `observed_at`과 화면 기준일이 일치하면 **다음 KRX 정규장 시작 전까지** 그 closed quote를 계속 overlay합니다. 10초 timer는 같은 세션 구간에서는 서버를 두드리지 않고 날짜/universe/시장 phase 변화만 로컬 확인하며, `preopen → open`처럼 phase가 바뀌면 1회 재검증합니다. 휴장일처럼 backend가 새 시각으로 `closed`를 다시 확인하면 직전 완료 세션을 계속 사용하고, 일부 ticker가 unusable이면 해당 종목 회복을 위해 polling을 계속합니다.
 - 위 closed-session 정지는 **보유종목 Live Valuation에만 적용**합니다. KOSPI200 선물·SOX·NQ100 선물 등이 포함된 AI Signal polling은 Market AI가 ONLINE인 동안 기존 10초 주기를 유지합니다.
 - Market AI 연결 lifecycle은 `OFF → CHECKING → ONLINE / OFFLINE`으로 관리합니다. UI와 네트워크 기능은 ONLINE에서만 활성화하고, 초기 연결 실패는 OFFLINE으로 끝내 반복 재접속하지 않습니다. ONLINE 중 일시적 1회 전체 transport 실패는 유지하되 연속 실패 임계치에 도달하면 OFFLINE으로 내려가 UI와 Market AI polling을 중단합니다.
 - Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
@@ -194,7 +194,7 @@ Dashboard
    → Remote : Tailscale Serve → 127.0.0.1:8002 GET-only proxy
 ```
 
-외부 GitHub Pages에서는 FastAPI full API를 직접 공개하지 않고 Tailscale Serve가 연결된 **8002 GET-only proxy**를 통해 조회합니다. 보유종목 당일 시장평가 overlay는 **현재 KST 날짜에서만** 적용하며 과거 날짜와 운영 JSON은 변경하지 않습니다. 개별주식 시간외와 ETF 장마감이 공존하는 구간은 ticker별 `market_state`로 구분하며, 세부 fallback/lease/session 판정은 Main handover와 Market AI 프로젝트 문서를 기준으로 합니다.
+외부 GitHub Pages에서는 FastAPI full API를 직접 공개하지 않고 Tailscale Serve가 연결된 **8002 GET-only proxy**를 통해 조회합니다. 보유종목 시장평가 overlay는 원칙적으로 현재 KST 날짜에 적용하되, 자정 이후 다음 KRX 정규장 시작 전에는 `closed + usable` quote의 `observed_at`이 직전 완료 거래일과 일치하는 경우 그 직전 거래일 화면까지 이어서 적용합니다. 더 오래된 과거 날짜와 운영 JSON은 변경하지 않습니다. 개별주식 시간외와 ETF 장마감이 공존하는 구간은 ticker별 `market_state`로 구분하며, 세부 fallback/lease/session 판정은 Main handover와 Market AI 프로젝트 문서를 기준으로 합니다.
 
 증권 매도는 `data/portfolio.json`의 `securitiesEvents`가 거래 원장을 소유합니다. 매도 체결가는 시장가격 JSON과 분리하며, `grossAmount - transactionCost = amount(순매도대금)`, `amount - costBasis = realizedProfit` 관계를 유지합니다. 매도된 원금은 사라지지 않고 `cashPrincipalDelta`를 통해 현금화 원금으로 이동하며, 재매수 시 사용한 원금만 다시 차감합니다. `scripts/update_prices.py`는 같은 계약으로 성과 스냅샷을 생성하고 대상 날짜에 수량이 0인 매도 완료 종목은 신규 KRX 조회에서 제외하되 매도 전 과거 backfill은 유지합니다.
 
