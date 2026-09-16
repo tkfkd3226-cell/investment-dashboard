@@ -12,13 +12,11 @@ import {
   isLedgerCheckDate,
   monthLabel,
   outsideCashForDate,
+  outsideCashSnapshotForDate,
   pct,
   readJsonResponse,
   securityExcludedTransferSum,
   securityExternalContributionSum,
-  securityInternalCashTransferSum,
-  securityInternalCashReturnSum,
-  securityInternalCashReturnPrincipalSum,
   securityInternalCashPrincipalNetForDate,
   securityAllocationColor,
   securityChartNamesForDate,
@@ -961,7 +959,7 @@ function renderSecuritiesSection(x){
 
 function renderResultSummary(x){
   const c=dataState.portfolio.constants,v=separateProfitView(x);
-  const outsideCashBase=Number(c.outsideCash)||0,outsideCash=outsideCashForDate(x.date),outsideCashUsed=securityInternalCashTransferSum(x.date),outsideCashReturned=securityInternalCashReturnSum(x.date);
+  const outsideCash=outsideCashForDate(x.date),outsideCashSnapshot=outsideCashSnapshotForDate(x.date);
   const separateUnreflected=v.unreflectedSeparateProfit;
   const outsideCashBasis=outsideCash+(uiState.includeSeparateProfit?separateUnreflected:0);
   const actualHoldingAndCash=x.allocTotal+outsideCashBasis;
@@ -970,7 +968,9 @@ function renderResultSummary(x){
   const reasonValue='수익실현분 카드대금 사용';
   const footnoteMark='<span class="cash-basis-note-mark">(1)</span>';
   const footnoteSup='<sup class="cash-basis-note-mark cash-basis-note-sup">(1)</sup>';
-  const outsideCashFlowText=`6/18 확인값 ${won(outsideCashBase)}${outsideCashUsed?` - 투자 사용 ${won(outsideCashUsed)}`:''}${outsideCashReturned?` + 증권계좌 회수 ${won(outsideCashReturned)}`:''}`;
+  const outsideCashFlowText=outsideCashSnapshot&&Number(outsideCashSnapshot.amount)===outsideCash
+    ? `${outsideCashSnapshot.date} 확인값 ${won(outsideCash)}`
+    : `${outsideCashSnapshot?`${outsideCashSnapshot.date} 확인값 ${won(outsideCashSnapshot.amount)}`:'추적 현금 기준값'} → 현재 ${won(outsideCash)}`;
   const note=uiState.includeSeparateProfit
     ?`<p class="section-explainer cash-basis-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCashBasis)} = ${outsideCashFlowText} + 6~8월 별도손익 중 현 보유자산 미반영분 ${won(separateUnreflected)}</p>`
     :`<p class="section-explainer cash-basis-note">${footnoteMark} 실현수익 반영 현금 보유액 ${won(outsideCash)} = ${outsideCashFlowText}</p>`;
@@ -1092,11 +1092,10 @@ function renderHoldings(x){
 }
 
 
-function securitySaleMarkerHtml(row){
+function securitySaleTooltipAttrs(row){
   const sale=row?.sale;
-  if(!sale?.fullExit)return mobileTableAssetName(row?.name||'');
+  if(!sale?.fullExit)return '';
   const salePrice=Number(sale.price);
-  const title=escapeHtml(String(row?.name||''));
   const attrs=[
     ['data-sale-name',`${row?.name||''} · 전량매도`],
     ['data-sale-price',salePrice?won(salePrice):'-'],
@@ -1105,7 +1104,14 @@ function securitySaleMarkerHtml(row){
     ['data-sale-basis',won(sale.costBasis)],
     ['data-sale-profit',signed(sale.realizedProfit,'원')]
   ].map(([key,value])=>`${key}="${escapeHtml(value)}"`).join(' ');
-  return `<span class="security-sale-marker" tabindex="0" data-dashboard-focus-key="security-sale:${escapeHtml(String(row?.ticker||row?.name||''))}" data-security-sale-tooltip aria-label="${escapeHtml(`${row?.name||'종목'} 전량매도 상세`)}" aria-describedby="securitySaleTooltip" ${attrs}><span class="security-sale-marker-name">${title}</span></span>`;
+  return `tabindex="0" data-dashboard-focus-key="security-sale:${escapeHtml(String(row?.ticker||row?.name||''))}" data-security-sale-tooltip aria-label="${escapeHtml(`${row?.name||'종목'} 전량매도 상세`)}" aria-describedby="securitySaleTooltip" ${attrs}`;
+}
+function securitySaleMarkerHtml(row,{interactive=true}={}){
+  const sale=row?.sale;
+  if(!sale?.fullExit)return mobileTableAssetName(row?.name||'');
+  const title=`<span class="security-sale-marker-name">${escapeHtml(String(row?.name||''))}</span>`;
+  if(!interactive)return title;
+  return `<span class="security-sale-marker" ${securitySaleTooltipAttrs(row)}>${title}</span>`;
 }
 
 function renderSecuritiesChangeBlock(x){
@@ -1115,10 +1121,13 @@ function renderSecuritiesChangeBlock(x){
   const prevPriceLabel=assetPriceColumnLabel(detail.prevDate);
   const currentPriceLabel=assetPriceColumnLabel(detail.date,{current:true});
   const orderedRows=sortSecurityItems(change.rows);
-  const rows=orderedRows.map(r=>({
+  const rows=orderedRows.map(r=>{
+    const saleTooltipAttrs=securitySaleTooltipAttrs(r);
+    return {
     className:'asset-change-row',
-    labelClass:'asset-change-asset-col',
-    labelHtml:`${securitySaleMarkerHtml(r)}${securitySymbolSwatch(r.name)}`,
+    labelClass:`asset-change-asset-col${saleTooltipAttrs?' security-sale-cell':''}`,
+    labelAttrs:saleTooltipAttrs,
+    labelHtml:`${securitySaleMarkerHtml(r,{interactive:false})}${securitySymbolSwatch(r.name)}`,
     cells:[
       {className:'num asset-change-prev-col',html:`<span class="change-price">${r.prevPrice==null?'-':fmt(r.prevPrice)}</span><span class="change-eval data-table-sub">${r.prevEval==null?'-':fmt(r.prevEval)}</span>`},
       {className:'num asset-change-current-col',html:`<span class="change-price">${r.price==null?'-':fmt(r.price)}</span><span class="change-eval data-table-sub">${fmt(r.evalAmount)}</span>`},
@@ -1129,7 +1138,8 @@ function renderSecuritiesChangeBlock(x){
         rateClass:cls(r.dayRate)
       })}
     ]
-  }));
+  };
+  });
   const summaryRows=[{
     className:'summary-row asset-change-row',
     labelClass:'asset-change-asset-col',
@@ -1204,7 +1214,7 @@ function accountMemoTableHtml(text,{joinFirstTwo=false,highlightSourceLink=true}
   if(joinFirstTwo&&parts.length>1){
     parts.splice(0,2,`${parts[0].trim()} ${parts[1].trim()}`);
   }
-  const sourceLinkPattern=/([+-]?[\d,]+원은 계좌1 투자원금 검산의 레버수익 재투입·VIP 수익 재투입·실현수익 투입)/;
+  const sourceLinkPattern=/([+-]?[\d,]+원은 계좌1 투자원금 검산의 레버수익 재투입·VIP 수익 재투입)/;
   return parts.map(part=>{
     const safe=escapeHtml(part.trim());
     const content=highlightSourceLink
@@ -1288,7 +1298,7 @@ function renderAccounts(x,{hidden=false}={}){
   const account1DerivedAdjustmentBasis=(Number(c.tossReinvestedToAccount1)||0)+vipProfitReinvest+(Number(internalCashPrincipalNet)||0);
   const account1PrincipalAdjustmentMemo=account1PrincipalAdjustment
     ? (Math.abs(account1PrincipalAdjustment+account1DerivedAdjustmentBasis)<0.5
-      ? ` 투입원금 조정 ${signed(account1PrincipalAdjustment)}원은 계좌1 투자원금 검산의 레버수익 재투입·VIP 수익 재투입·실현수익 투입을 전체 투입원금 기준으로 조정한 값.`
+      ? ` 투입원금 조정 ${signed(account1PrincipalAdjustment)}원은 계좌1 투자원금 검산의 레버수익 재투입·VIP 수익 재투입을 전체 투입원금 기준으로 조정한 값.`
       : ` 투입원금 조정 ${signed(account1PrincipalAdjustment)}원은 전체 투입원금과 계좌1 투자원금 간 장부 차이를 반영한 조정값.`)
     : '';
   const rows=[
@@ -1364,8 +1374,7 @@ function renderSourceTables(x){
     vipProfitReinvest=c.account2ReinvestedToAccount1-c.account2Principal,
     extraContribution=securityExternalContributionSum(x.date),
     excludedTransfer=securityExcludedTransferSum(x.date),
-    realizedProfitInput=securityInternalCashTransferSum(x.date),
-    internalCashReturnPrincipal=securityInternalCashReturnPrincipalSum(x.date),
+    internalCashPrincipalNet=securityInternalCashPrincipalNetForDate(x.date),
     sourceHoldingGap=account1SourceHoldingGapForDate(x.date),
     holdingCostPrincipal=account1PrincipalForDate(x.date),
     externalPrincipal=sourceExternalPrincipalForDate(x.date),
@@ -1373,18 +1382,17 @@ function renderSourceTables(x){
     performancePrincipal=holdingCostPrincipal-reclassified,
     extraRow=extraContribution?sourceTableRow('추가 외부투입',extraContribution,{kind:'base'}):'',
     excludedRow=!uiState.includeSeparateProfit&&excludedTransfer?sourceTableRow('보유 자금 투입',excludedTransfer,{kind:'base'}):'',
-    realizedProfitRow=realizedProfitInput?sourceTableRow('실현수익 투입',realizedProfitInput,{kind:'derived'}):'',
-    internalCashReturnRow=internalCashReturnPrincipal?sourceTableRow('증권계좌 원금 회수',-internalCashReturnPrincipal,{kind:'derived'}):'',
+    internalCashNetRow=internalCashPrincipalNet?sourceTableRow('내부 현금 순이동',internalCashPrincipalNet,{kind:'derived'}):'',
     reconciliationRow=sourceTableRow('원천·보유 차액',sourceHoldingGap),
     reclassNote=uiState.includeSeparateProfit&&reclassified?`<div class="source-reclass-note"><strong>6~8월 별도수익 재투입 ${won(reclassified)}</strong><span>기존 투자수익 재투자분 · 신규 외부투입금 아님</span><span>전체 투입원금 제외 · 별도수익 ON 시 성과기준 원금 제외</span></div>`:'',
     principalLabel=uiState.includeSeparateProfit&&reclassified?'계좌1 성과기준 투자원금':'계좌1 투자원금 검산',
     principalSummaryLabel='합계';
   const externalRows=`${sourceTableRow('금 판매액 총액',c.goldPrincipal)}${sourceTableRow('근로소득 투입액',c.laborNetPrincipal)}${extraRow}${sourceTableRow('합계',externalPrincipal,{summary:true})}`;
   const externalCard=sourceCard('전체 투입원금','전체 투입원금 구성',externalRows,{highlight:true,afterHtml:reclassNote});
-  const performanceRows=`${sourceTableRow('전체 투입원금',externalPrincipal,{kind:'base'})}${excludedRow}${sourceTableRow('레버수익 재투입',c.tossReinvestedToAccount1,{kind:'derived'})}${sourceTableRow('VIP 수익 재투입',vipProfitReinvest,{kind:'derived'})}${realizedProfitRow}${internalCashReturnRow}${reconciliationRow}${sourceTableRow(principalSummaryLabel,performancePrincipal,{summary:true})}`;
+  const performanceRows=`${sourceTableRow('전체 투입원금',externalPrincipal,{kind:'base'})}${excludedRow}${sourceTableRow('레버수익 재투입',c.tossReinvestedToAccount1,{kind:'derived'})}${sourceTableRow('VIP 수익 재투입',vipProfitReinvest,{kind:'derived'})}${internalCashNetRow}${reconciliationRow}${sourceTableRow(principalSummaryLabel,performancePrincipal,{summary:true})}`;
   const performanceCard=sourceCard(principalLabel,'계좌1 투자원금 검산',performanceRows);
   const account1GoldSource=Number(sourceTracking.account1GoldInput)||0,account2GoldSource=Number(sourceTracking.vipGoldInput)||0,temporarySource=Number(sourceTracking.temporaryFunding)||0,principalRecovery=Number(sourceTracking.principalRecovery)||0,vipReinvestLessGold=(Number(c.account2ReinvestedToAccount1)||0)-account2GoldSource;
-  const trackedRows=`${sourceTableRow('금 판매액 투입',account1GoldSource,{kind:'base'})}${sourceTableRow('VIP 금 투입분',account2GoldSource,{kind:'base'})}${sourceTableRow('근로소득 투입액',c.laborNetPrincipal,{kind:'base'})}${extraRow}${excludedRow}${sourceTableRow('레버수익 재투입',c.tossReinvestedToAccount1,{kind:'derived'})}${sourceTableRow('VIP 재투입-금',vipReinvestLessGold,{kind:'derived'})}${sourceTableRow('임시자금 투입',temporarySource,{kind:'derived'})}${sourceTableRow('원금 회수',principalRecovery,{kind:'derived'})}${realizedProfitRow}${internalCashReturnRow}${reconciliationRow}${sourceTableRow('합계',performancePrincipal,{summary:true})}`;
+  const trackedRows=`${sourceTableRow('금 판매액 투입',account1GoldSource,{kind:'base'})}${sourceTableRow('VIP 금 투입분',account2GoldSource,{kind:'base'})}${sourceTableRow('근로소득 투입액',c.laborNetPrincipal,{kind:'base'})}${extraRow}${excludedRow}${sourceTableRow('레버수익 재투입',c.tossReinvestedToAccount1,{kind:'derived'})}${sourceTableRow('VIP 재투입-금',vipReinvestLessGold,{kind:'derived'})}${sourceTableRow('임시자금 투입',temporarySource,{kind:'derived'})}${sourceTableRow('원금 회수',principalRecovery,{kind:'derived'})}${internalCashNetRow}${reconciliationRow}${sourceTableRow('합계',performancePrincipal,{summary:true})}`;
   const trackedCard=sourceCard('계좌1 원천별 추적','계좌1 원천별 추적',trackedRows);
   return `<section id="capital-source-check" class="capital-source-section"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="receipt" aria-hidden="true"></span>투자원금 원천 및 검산</h2>${separateProfitControl(x,'section-inline')}</div><div class="grid three source-grid">${externalCard}${performanceCard}${trackedCard}</div></section>`;
 }

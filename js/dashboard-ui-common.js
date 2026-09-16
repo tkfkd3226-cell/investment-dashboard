@@ -133,7 +133,7 @@ function renderMobileCardView({id='',cards='',className='mobile-card-view'}={}){
 // [UICOMMON04] Asset Shared Renderers · 자산 공통 renderer
 // 자산별 계산은 adapter가 소유하고, 이 레이어는 표현 contract만 담당한다.
 function renderAssetTableRows(rows=[]){
-  return rows.map(row=>`<tr${row.className?` class="${row.className}"`:''}><th scope="row"${row.labelClass?` class="${row.labelClass}"`:''}>${row.labelHtml??''}</th>${(row.cells||[]).map(cell=>`<td${cell.className?` class="${cell.className}"`:''}>${cell.html??''}</td>`).join('')}</tr>`).join('');
+  return rows.map(row=>`<tr${row.className?` class="${row.className}"`:''}><th scope="row"${row.labelClass?` class="${row.labelClass}"`:''}${row.labelAttrs?` ${row.labelAttrs}`:''}>${row.labelHtml??''}</th>${(row.cells||[]).map(cell=>`<td${cell.className?` class="${cell.className}"`:''}>${cell.html??''}</td>`).join('')}</tr>`).join('');
 }
 function renderAssetTableHead(columns=[]){
   return columns.map(column=>`<th scope="col"${column.className?` class="${column.className}"`:''}>${column.label??''}</th>`).join('');

@@ -654,7 +654,16 @@ const account1SourceHoldingGapForDate=d=>isLedgerCheckDate(d)?account1InvestedPr
 const account1PrincipalForDate=d=>isLedgerCheckDate(d)?account1InvestedPrincipalForDate(d):account1SourcePrincipalForDate(d);
 const externalPrincipalForDate=d=>(Number(dataState.portfolio?.constants?.externalPrincipal)||0)-securityExternalPrincipalContributionAfter(d)+securityExternalWithdrawalPrincipalAfter(d);
 const sourceExternalPrincipalForDate=d=>externalPrincipalForDate(d)-securityExcludedTransferSum(d);
-const outsideCashForDate=d=>(Number(dataState.portfolio?.constants?.outsideCash)||0)-securityInternalCashTransferSum(d)+securityInternalCashReturnSum(d);
+const outsideCashSnapshotItems=()=>Array.isArray(dataState.portfolio?.outsideCashSnapshots)?dataState.portfolio.outsideCashSnapshots.filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v?.date||''))&&Number.isFinite(Number(v?.amount))).slice().sort((a,b)=>byDate(a.date,b.date)):[];
+const outsideCashSnapshotForDate=d=>outsideCashSnapshotItems().filter(v=>String(v.date)<=String(d||'')).at(-1)||null;
+const outsideCashForDate=d=>{
+  const snapshot=outsideCashSnapshotForDate(d);
+  if(!snapshot)return (Number(dataState.portfolio?.constants?.outsideCash)||0)-securityInternalCashTransferSum(d)+securityInternalCashReturnSum(d);
+  const baseDate=String(snapshot.date),baseAmount=Number(snapshot.amount)||0;
+  const transfers=securityEventItems().filter(v=>isInternalCashTransferSecurityFunding(v)&&String(v?.date||'')>baseDate&&String(v?.date||'')<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
+  const returns=securityEventItems().filter(v=>isInternalCashReturnSecurityFunding(v)&&String(v?.date||'')>baseDate&&String(v?.date||'')<=d).reduce((a,v)=>a+(Number(v.amount)||0),0);
+  return securitySafeAggregate('추적 현금 확인값 이후 변동',baseAmount-transfers+returns);
+};
 const kodexSafeInteger=(value,label='KODEX 파생 정수')=>{
   if(!Number.isSafeInteger(value))throw new RangeError(`${label}이 JavaScript 안전 정수 범위를 벗어났습니다.`);
   return value;
@@ -1136,6 +1145,7 @@ export {
   liveValuationTickersForDate,
   monthLabel,
   outsideCashForDate,
+  outsideCashSnapshotForDate,
   pct,
   pensionBaseCashForDate,
   pensionCashBeforeNewTrade,

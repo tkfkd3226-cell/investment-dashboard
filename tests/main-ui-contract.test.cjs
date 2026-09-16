@@ -1393,7 +1393,7 @@ test('Repository data text는 trusted HTML과 분리해 innerHTML 경계에서 e
   assert.match(ui,/labelHtml:`<span class="holding-name-text">\$\{escapeHtml\(h\.name\)\}<\/span>\$\{securitySymbolSwatch\(h\.name\)\}`/);
   assert.match(pension,/labelHtml:`<span class="holding-name-text">\$\{mobileTableAssetName\(r\.name\)\}<\/span>\$\{pensionProductSwatch\(r\.name\)\}`/);
   assert.match(ui,/const cards=orderedRows\.map\(r=>\(\{\s*title:securitySaleMarkerHtml\(r\),\s*accessibleLabel:r\.name,/);
-  assert.match(ui,/const title=escapeHtml\(String\(row\?\.name\|\|''\)\)/);
+  assert.match(ui,/const title=`<span class="security-sale-marker-name">\$\{escapeHtml\(String\(row\?\.name\|\|''\)\)\}<\/span>`/);
   assert.match(pension,/const cards=orderedPensionRows\.map\(r=>\(\{\s*title:mobileTableAssetName\(r\.name\),\s*accessibleLabel:r\.name,/);
   assert.match(pensionEditor,/<h3 id="pensionActionPinTitle" class="modal-main-title">\$\{escapeHtml\(title\)\}<\/h3>/);
   assert.match(pensionEditor,/<p id="pensionActionPinDescription" class="action-modal-description">\$\{escapeHtml\(description\)\}<\/p>/);
@@ -1550,15 +1550,20 @@ test('증권 종목별 누적손익 UI는 매도 후 평가손익 0이 아니라
   assert.match(charts,/const profit=Number\(h\.totalProfit\?\?h\.profit\?\?0\),performanceCost=Number\(h\.performanceCost\?\?h\.cost\?\?0\)/);
 });
 
-test('전량매도 당일 전일 대비 변동은 취소선 종목명과 공통 floating tooltip으로 거래 상세를 표시한다',()=>{
-  assert.match(ui,/function securitySaleMarkerHtml\(row\)/);
-  assert.match(ui,/class="security-sale-marker"[^>]*data-security-sale-tooltip/);
+test('전량매도 당일 전일 대비 변동은 종목 셀 전체를 tooltip target으로 쓰고 종목명만 취소선 처리한다',()=>{
+  assert.match(ui,/function securitySaleTooltipAttrs\(row\)/);
+  assert.match(ui,/function securitySaleMarkerHtml\(row,\{interactive=true\}=\{\}\)/);
+  assert.match(ui,/labelClass:`asset-change-asset-col\$\{saleTooltipAttrs\?' security-sale-cell':''\}`/);
+  assert.match(ui,/labelAttrs:saleTooltipAttrs/);
+  assert.match(ui,/securitySaleMarkerHtml\(r,\{interactive:false\}\)/);
+  assert.match(uiCommon,/row\.labelAttrs\?` \$\{row\.labelAttrs\}`:''/);
   assert.match(ui,/data-sale-price/);
   assert.match(ui,/data-sale-cost/);
   assert.match(ui,/data-sale-net/);
   assert.match(ui,/data-sale-basis/);
   assert.match(ui,/data-sale-profit/);
   assert.match(common,/\.security-sale-marker-name\{[^}]*text-decoration-line:line-through/s);
+  assert.match(common,/\.security-sale-cell\{\s*cursor:help;/s);
   assert.match(uiCommon,/const SECURITY_SALE_TOOLTIP_ID='securitySaleTooltip'/);
   assert.match(uiCommon,/tooltip\.className='dash-tooltip'/);
   assert.match(uiCommon,/assetSourceTooltipRow\('매도가',data\.salePrice\)/);
@@ -1567,4 +1572,16 @@ test('전량매도 당일 전일 대비 변동은 취소선 종목명과 공통 
   assert.match(uiCommon,/assetSourceTooltipRow\('실현손익',data\.saleProfit\)/);
   assert.match(app,/setupSecuritySaleTooltips\(\)/);
   assert.match(app,/hideSecuritySaleTooltip\(\)/);
+});
+
+test('추적 현금은 최신 확인값을 기준으로 표시하고 계좌1 검산/원천 추적에서 내부 현금 왕복 행을 노출하지 않는다',()=>{
+  assert.match(ui,/outsideCashSnapshot=outsideCashSnapshotForDate\(x\.date\)/);
+  assert.match(ui,/`\$\{outsideCashSnapshot\.date\} 확인값 \$\{won\(outsideCash\)\}`/);
+  const sourceStart=ui.indexOf('function renderSourceTables(x)');
+  const sourceEnd=ui.indexOf('// [UI12]',sourceStart);
+  const sourceBlock=ui.slice(sourceStart,sourceEnd);
+  assert.doesNotMatch(sourceBlock,/sourceTableRow\('실현수익 투입'/);
+  assert.doesNotMatch(sourceBlock,/sourceTableRow\('증권계좌 원금 회수'/);
+  assert.doesNotMatch(sourceBlock,/realizedProfitRow|internalCashReturnRow/);
+  assert.match(sourceBlock,/internalCashNetRow=internalCashPrincipalNet\?sourceTableRow\('내부 현금 순이동'/);
 });

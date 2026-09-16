@@ -185,7 +185,7 @@ Dashboard
 
 외부 GitHub Pages에서는 FastAPI full API를 직접 공개하지 않고 Tailscale Serve가 연결된 **8002 GET-only proxy**를 통해 조회합니다. 보유종목 당일 시장평가 overlay는 **현재 KST 날짜에서만** 적용하며 과거 날짜와 운영 JSON은 변경하지 않습니다. 개별주식 시간외와 ETF 장마감이 공존하는 구간은 ticker별 `market_state`로 구분하며, 세부 fallback/lease/session 판정은 Main handover와 Market AI 프로젝트 문서를 기준으로 합니다.
 
-증권 매도는 `data/portfolio.json`의 `securitiesEvents`가 거래 원장을 소유합니다. 매도 체결가는 시장가격 JSON과 분리하며, `grossAmount - transactionCost = amount(순매도대금)`, `amount - costBasis = realizedProfit` 관계를 유지합니다. 매도된 원금은 `cashPrincipalDelta`로 현금화 원금에 이동하고 재매수·원금회수 시 실제 원금만 다시 차감합니다. `fundingClass: internalCashReturn` withdrawal은 실제 계좌 출금액(`amount`)과 회수 원금(`principalAmount`)을 분리해 증권현금·추적 현금·투자원금 검산을 동시에 보존합니다. `scripts/update_prices.py`는 매도 당일까지 해당 종목의 KRX 시장가격을 조회해 체결가와 비교할 수 있게 하고, 다음 날짜부터 신규 조회에서 제외하되 매도 전 과거 backfill은 유지합니다.
+증권 매도는 `data/portfolio.json`의 `securitiesEvents`가 거래 원장을 소유합니다. 매도 체결가는 시장가격 JSON과 분리하며, `grossAmount - transactionCost = amount(순매도대금)`, `amount - costBasis = realizedProfit` 관계를 유지합니다. 매도된 원금은 `cashPrincipalDelta`로 현금화 원금에 이동하고 재매수·원금회수 시 실제 원금만 다시 차감합니다. `fundingClass: internalCashReturn` withdrawal은 실제 계좌 출금액(`amount`)과 회수 원금(`principalAmount`)을 분리해 증권현금·추적 현금·투자원금 검산을 동시에 보존합니다. `scripts/update_prices.py`는 매도 당일까지 해당 종목의 KRX 시장가격을 조회해 체결가와 비교할 수 있게 하고, 다음 날짜부터 신규 조회에서 제외하되 매도 전 과거 backfill은 유지합니다. 추적 현금은 `outsideCashSnapshots`의 최신 확인값을 새 기준점으로 사용해 과거 이동식을 화면에 계속 누적하지 않으며, 현재 기준점은 `2026-09-16 / 2,090,325원`입니다. 전량매도 당일 거래 tooltip은 종목명만이 아니라 **종목 셀 전체**를 hover/focus target으로 사용합니다.
 
 ## 4. 프로젝트 구조
 

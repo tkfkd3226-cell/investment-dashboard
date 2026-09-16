@@ -226,5 +226,17 @@
     "vipGoldInput": 3000000,
     "temporaryFunding": 4967980,
     "principalRecovery": -6089845
-  }
+  },
+  "outsideCashSnapshots": [
+    {
+      "date": "2026-06-18",
+      "amount": 2035097,
+      "memo": "추적 현금 확인값"
+    },
+    {
+      "date": "2026-09-16",
+      "amount": 2090325,
+      "memo": "삼성전기 매도대금 회수 후 추적 현금 확인값"
+    }
+  ]
 }

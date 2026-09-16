@@ -397,6 +397,26 @@ test('내부 현금이체·내부회수와 외부기여금은 fundingClass 의�
   assert.equal(core.securityExternalContributionSum('2026-06-10'),500);
 });
 
+test('추적 현금 확인값: 새 확인일을 기준점으로 재설정하고 이후 내부이동만 증감한다',()=>{
+  const portfolio=basePortfolio({
+    constants:baseConstants({outsideCash:1000}),
+    outsideCashSnapshots:[
+      {date:'2026-06-18',amount:1000},
+      {date:'2026-06-25',amount:750}
+    ],
+    securitiesEvents:[
+      {date:'2026-06-20',type:'contribution',amount:300,fundingClass:'internalCashTransfer'},
+      {date:'2026-06-26',type:'withdrawal',amount:50,principalAmount:0,cashPrincipalDelta:0,fundingClass:'internalCashReturn'}
+    ]
+  });
+  setState({portfolio});
+  assert.equal(core.outsideCashForDate('2026-06-20'),700);
+  assert.deepEqual(core.outsideCashSnapshotForDate('2026-06-20'),portfolio.outsideCashSnapshots[0]);
+  assert.equal(core.outsideCashForDate('2026-06-25'),750);
+  assert.deepEqual(core.outsideCashSnapshotForDate('2026-06-25'),portfolio.outsideCashSnapshots[1]);
+  assert.equal(core.outsideCashForDate('2026-06-26'),800);
+});
+
 test('실시간 평가: 오늘 날짜만 usable Market AI quote를 가격·평가손익에 overlay하고 과거 날짜는 JSON을 유지한다',()=>{
   const today=core.kstTodayText();
   const past='2026-09-10';
@@ -764,7 +784,10 @@ test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표�
   assert.equal(core.account1SourceHoldingGapForDate('2026-09-15'),12862);
   assert.equal(core.account1SourceHoldingGapForDate('2026-09-16'),12862);
   assert.equal(core.outsideCashForDate('2026-09-15'),690097);
+  assert.equal(core.securityInternalCashPrincipalNetForDate('2026-09-15'),1345000);
   assert.equal(core.outsideCashForDate('2026-09-16'),2090325);
+  assert.equal(core.securityInternalCashPrincipalNetForDate('2026-09-16'),0);
+  assert.deepEqual(core.outsideCashSnapshotForDate('2026-09-16'),portfolio.outsideCashSnapshots.find(v=>v.date==='2026-09-16'));
   assert.equal(after.securitiesAssetDetail.statusRows.some(r=>r.ticker==='009150'),false);
   const changeRow=after.securitiesAssetDetail.change.rows.find(r=>r.ticker==='009150');
   assert.equal(changeRow.dayChange,15228);

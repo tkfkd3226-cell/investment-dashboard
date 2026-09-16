@@ -1186,9 +1186,9 @@ MAIN 상세 architecture / module ownership / CSS ownership / responsive contrac
 - **과거 복원:** 현재 `qty:0/cost:0`인 전량매도 종목도 매도 전 날짜에는 원래 수량·원가가 복원되는가. 부분매도는 잔여 원가와 누적 실현손익을 분리하는가.
 - **원금 보존:** 매도된 `costBasis`가 현금화 원금으로 이동해 매도만으로 계좌1 투입원금이 줄거나 수익처럼 보이지 않는가. 재매수는 실제 사용한 현금 원금만 `cashPrincipalDelta`로 차감해 원금을 이중계상하지 않는가.
 - **same-day ordering:** 같은 날 매도와 재매수가 있으면 event id 문자열 순서 때문에 일시적으로 현금화 원금이 음수가 되어 정상 원장을 거부하지 않는가. 날짜별 순변동으로 계산하고 일자 종료 시점 balance만 fail-closed하는가.
-- **성과/표시 경계:** 전량매도 뒤 보유종목 현황에서는 빠지되 매도 당일 `전일 대비 변동`과 종목별 누적손익에는 마지막 실현성과가 남는가. 다음 날짜부터 종목별 series에서는 제외하면서도 전체 `rawHoldingProfit`에는 확정 실현손익이 계속 포함되는가. 매도 당일 종목명은 취소선 + 공통 `dash-tooltip`으로 매도가·거래비용 등 거래 상세를 구분하는가.
+- **성과/표시 경계:** 전량매도 뒤 보유종목 현황에서는 빠지되 매도 당일 `전일 대비 변동`과 종목별 누적손익에는 마지막 실현성과가 남는가. 다음 날짜부터 종목별 series에서는 제외하면서도 전체 `rawHoldingProfit`에는 확정 실현손익이 계속 포함되는가. 매도 당일 종목명은 취소선 처리하고 **종목 셀 전체** hover/focus가 공통 `dash-tooltip`으로 매도가·거래비용 등 거래 상세를 여는가.
 - **현금 의미:** sell 현금흐름은 gross가 아니라 거래비용 차감 후 `amount`를 사용하며, 과거 cash snapshot이 매도일의 확정 원장을 덮지 않는가.
-- **내부 현금회수:** `internalCashReturn` withdrawal은 실제 출금액 `amount`와 회수 원금 `principalAmount`를 분리하는가. 증권현금은 전체 amount만큼 감소하고 추적 현금은 동일액 증가하며, 계좌1 투자원금/source principal은 principalAmount만 감소하는가. 원천·보유 차액과 장부결과 VS 실제보유 차액이 내부이동만으로 새로 발생하지 않는가.
+- **내부 현금회수:** `internalCashReturn` withdrawal은 실제 출금액 `amount`와 회수 원금 `principalAmount`를 분리하는가. 증권현금은 전체 amount만큼 감소하고 추적 현금은 동일액 증가하며, 계좌1 투자원금/source principal은 principalAmount만 감소하는가. 원천·보유 차액과 장부결과 VS 실제보유 차액이 내부이동만으로 새로 발생하지 않는가. 추적 현금 표시가 과거 이동식을 계속 누적하지 않고 `outsideCashSnapshots`의 최신 확인값으로 재기준화되는가. 내부 현금 투입/회수 순액이 0인 현재 검산에서는 `실현수익 투입`·`증권계좌 원금 회수` 두 행이 사라지고, 순이동이 남은 과거 날짜만 단일 순이동 행으로 합계가 보존되는가.
 - **가격 생성:** `update_prices.py`가 position state와 당일 거래 이벤트를 함께 사용해 전량매도 종목도 **매도 당일까지 KRX 시장가격을 조회**하고 다음 날짜부터 신규 fetch를 제외하는가. 매도 전 backfill은 정상 수행하며 같은 입력 재생성에서 실현손익·현금이 중복되지 않는가.
 - **JS↔Python parity:** 계좌1 원금, 현금, 종목 누적손익, `performance_snapshots.json` 파생값이 동일 의미를 사용하는가.
 - **Live Valuation:** 매도일 이후 `qty=0` ticker가 Market AI quote universe에서 빠지고, 과거 날짜/운영 JSON에는 live quote가 역으로 쓰이지 않는가.

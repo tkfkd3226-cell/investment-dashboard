@@ -2105,6 +2105,10 @@ body.chart-expanded-open .dash-tooltip{
   text-decoration-thickness:1px;
   text-decoration-color:currentColor;
 }
+.security-sale-cell{
+  cursor:help;
+}
+.security-sale-cell:focus-visible,
 .security-sale-marker:focus-visible{
   outline:var(--control-focus-outline-width) solid var(--control-focus-outline);
   outline-offset:var(--control-focus-outline-offset);
