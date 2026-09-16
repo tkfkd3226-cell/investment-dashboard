@@ -62,6 +62,7 @@ import {
   openDashboardModal
 } from './dashboard-modal.js';
 import {
+  assetTabChartsReady,
   drawAllCharts,
   renderCharts
 } from './dashboard-charts.js';
@@ -119,7 +120,7 @@ function syncThemeControls(){
 function publishAppearanceChange(){
   try{appearanceChannel?.postMessage({theme:currentTheme(),cornerTheme:currentCornerTheme()})}catch(_){}
 }
-function setTheme(theme,{redraw=true,syncMonitor=true}={}){
+function setTheme(theme,{redraw=false,syncMonitor=true}={}){
   const dark=theme==='dark';
   document.documentElement.classList.toggle('dark',dark);
   try{localStorage.setItem(THEME_STORAGE_KEY,dark?'dark':'light')}catch(_){}
@@ -155,11 +156,14 @@ function toggleCornerTheme(){setCornerTheme(currentCornerTheme()==='rounded'?'so
 // [UI02] Section Controls / Title Icons · 섹션 컨트롤 / 제목 아이콘
 const separateProfitToggle=()=>`<button type="button" class="section-control-chip section-action-chip separate-profit-toggle ${uiState.includeSeparateProfit?'active':''}" aria-label="별도수익 포함" aria-pressed="${uiState.includeSeparateProfit}" data-dashboard-action="toggle-separate-profit"><span class="separate-profit-toggle-label">별도수익</span><strong><span class="control-text-optical">${uiState.includeSeparateProfit?'ON':'OFF'}</span></strong></button>`;
 const separateProfitControl=(x,extraClass='')=>{
-  if(!uiState.personalViewUnlocked)return '';
   const profit=separateProfitCumulativeForDate(x.date);
   const note=uiState.includeSeparateProfit?`<span class="separate-profit-control-note">선택일 ${signed(profit,'원')}</span>`:'';
-  return `<div class="separate-profit-control-row${extraClass?' '+extraClass:''}">${note}${separateProfitToggle()}</div>`;
+  return `<div class="separate-profit-control-row${extraClass?' '+extraClass:''}" data-personal-view-control${uiState.personalViewUnlocked?'':' hidden'}>${note}${separateProfitToggle()}</div>`;
 };
+function syncPersonalViewControls(){
+  const visible=uiState.personalViewUnlocked;
+  document.querySelectorAll('[data-personal-view-control]').forEach(control=>{control.hidden=!visible});
+}
 const REALTIME_QUOTES_ACTION=Object.freeze({action:'open-realtime-quotes',icon:'lineChart',title:'실시간 시세'});
 const REALTIME_MONITOR_SIZE_MESSAGE='market-ai-monitor:content-size';
 const REALTIME_MONITOR_THEME_READY_MESSAGE='market-ai-monitor:theme-ready';
@@ -255,14 +259,15 @@ function renderMobileNavigationGroups(groups,{indentAfterFirst=false}={}){
     return `<div class="${groupClass}"><p>${group.label}</p>${group.items.map((item,idx)=>{
       const type=item.type||(item.id?'section':'');
       const toggleAttrs=item.marketAiToggle?' data-market-ai-connection-toggle':'';
+      const personalViewAttrs=item.personalViewOnly?` data-personal-view-control${uiState.personalViewUnlocked?'':' hidden'}`:'';
       const iconAttrs=item.marketAiToggle?' data-market-ai-connection-toggle-icon':'';
       const labelAttrs=item.marketAiToggle?' data-market-ai-connection-toggle-label':'';
       const inner=`<span class="nav-icon"${iconAttrs}>${navIconSvg(item.icon)}</span><span><strong${labelAttrs}>${item.title}</strong></span>`;
       const cls=`mobile-nav-item ${indentAfterFirst&&idx?'sub':''}`;
-      if(type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" draggable="false" data-dashboard-action="close-date-menu">${inner}</a>`;
+      if(type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" draggable="false" data-dashboard-action="close-date-menu"${personalViewAttrs}>${inner}</a>`;
       if(type==='action'){
         const marketAiAttrs=item.marketAiOnly?` data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}`:'';
-        return `<button type="button" class="${cls}" data-dashboard-action="${item.action}"${marketAiAttrs}${toggleAttrs}>${inner}</button>`;
+        return `<button type="button" class="${cls}" data-dashboard-action="${item.action}"${marketAiAttrs}${toggleAttrs}${personalViewAttrs}>${inner}</button>`;
       }
       return `<button type="button" class="${cls}" data-dashboard-action="jump-section" data-section-target="${item.id}" data-close-date-menu="true">${inner}</button>`;
     }).join('')}</div>`;
@@ -286,7 +291,7 @@ function renderResponsiveNavigationMenuContent(){
       items:[
         {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
         {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'},
-        ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[]),
+        {type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기',personalViewOnly:true},
         {type:'action',action:'toggle-market-ai-connection',icon:marketAiToggle.icon,title:marketAiToggle.label,marketAiToggle:true}
       ]
     },
@@ -449,9 +454,9 @@ function renderTabs(){
         <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-pension-action" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" data-dashboard-action="open-pension-modal">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.pensionAdjust)}</span><span class="topbar-label-full">퇴직연금 금액 조정</span><span class="topbar-label-short">연금 조정</span>
         </button>
-        ${uiState.personalViewUnlocked?`<a class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" draggable="false" title="투자 계산기" aria-label="투자 계산기">
+        <a class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" draggable="false" title="투자 계산기" aria-label="투자 계산기" data-personal-view-control${uiState.personalViewUnlocked?'':' hidden'}>
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span>
-        </a>`:''}
+        </a>
         ${phoneUi()?'':(()=>{const model=marketAiConnectionToggleModel();return `<button type="button" class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-market-ai-toggle" title="${model.label}" aria-label="${model.label}" aria-pressed="${model.connected}" data-dashboard-action="toggle-market-ai-connection" data-market-ai-connection-toggle>
           <span class="date-tool-action-icon" data-market-ai-connection-toggle-icon>${navIconSvg(model.icon)}</span>
         </button>`})()}
@@ -980,10 +985,14 @@ function setAssetTab(tab,{scroll=false}={}){
   if(!['securities','pension'].includes(tab))return;
   uiState.activeAssetTab=tab;
   syncAssetTabs();
+  const needsChartDraw=!assetTabChartsReady(tab);
   requestAnimationFrame(()=>{
-    drawAllCharts();
     syncSectionNavigationState();
     if(scroll)document.getElementById('asset-workspace')?.scrollIntoView({behavior:'smooth',block:'start'});
+    if(!needsChartDraw)return;
+    requestAnimationFrame(()=>{
+      if(uiState.activeAssetTab===tab&&!assetTabChartsReady(tab))drawAllCharts();
+    });
   });
 }
 function handleAssetTabKeydown(event,currentTab){
@@ -1575,5 +1584,6 @@ export {
   setupUiGlobalEvents,
   syncAssetTabs,
   syncCornerThemeControls,
+  syncPersonalViewControls,
   syncThemeControls
 };

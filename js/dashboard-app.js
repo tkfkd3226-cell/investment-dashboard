@@ -60,6 +60,7 @@ import {
   setupUiGlobalEvents,
   syncAssetTabs,
   syncCornerThemeControls,
+  syncPersonalViewControls,
   syncThemeControls
 } from './dashboard-ui.js';
 import { renderPension } from './dashboard-pension.js';
@@ -85,9 +86,15 @@ const HERO_MULTI_TAP_WINDOW_MS=700;
 const HERO_PHONE_MULTI_TAP_WINDOW_MS=1200;
 
 function togglePersonalView(){
-  uiState.personalViewUnlocked=!uiState.personalViewUnlocked;
-  if(!uiState.personalViewUnlocked)uiState.includeSeparateProfit=false;
-  render();
+  const nextUnlocked=!uiState.personalViewUnlocked;
+  const disableSeparateProfit=!nextUnlocked&&uiState.includeSeparateProfit;
+  uiState.personalViewUnlocked=nextUnlocked;
+  if(disableSeparateProfit){
+    uiState.includeSeparateProfit=false;
+    requestSecuritiesCumCardTransitionSuppression();
+    refreshSeparateProfitModeView();
+  }
+  syncPersonalViewControls();
 }
 function handleHeroBasisTap(){
   const now=Date.now();

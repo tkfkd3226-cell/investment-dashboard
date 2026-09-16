@@ -697,7 +697,7 @@ const CHART_SERIES_THEME=Object.freeze({
 });
 function chartSeriesColor(key){
   const item=CHART_SERIES_THEME[key];
-  return item?cssThemeValue(item.token,item.fallback):'';
+  return item?cssThemePaint(item.token,item.fallback):'';
 }
 function chartSeriesLegendColor(key){
   const item=CHART_SERIES_THEME[key];
@@ -1072,9 +1072,8 @@ function renderPensionCharts(x){
 // [CHART08] SVG Core / Tooltip Infrastructure · SVG 기반 / 툴팁 인프라
 function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
 function el(name, attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',name);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e}
-function cssThemeValue(name,fallback){
-  const value=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return value||fallback;
+function cssThemePaint(name,fallback){
+  return `var(${name},${fallback})`;
 }
 function tooltip(){
   const tt=document.getElementById('dashTooltip');
@@ -1222,7 +1221,7 @@ function totalRow(name,val,clsName=''){return row(name,val,clsName,'tt-total')}
 function clsBy(n){return n<0?'tt-neg':(n>0?'tt-pos':'')}
 function drawAxes(svg,cfg,yTicks,y2Ticks=null){
   const{w,h,l,r,t,b}=cfg;
-  const surface=cssThemeValue('--chart-surface','#fff'),grid=cssThemeValue('--chart-grid','#e5e7eb'),axis=cssThemeValue('--chart-axis','#cbd5e1'),text=cssThemeValue('--chart-text','#6b7280');
+  const surface=cssThemePaint('--chart-surface','#fff'),grid=cssThemePaint('--chart-grid','#e5e7eb'),axis=cssThemePaint('--chart-axis','#cbd5e1'),text=cssThemePaint('--chart-text','#6b7280');
   svg.appendChild(el('rect',{x:0,y:0,width:w,height:h,fill:surface}));
   for(const tick of yTicks){const y=cfg.y(tick);svg.appendChild(el('line',{x1:l,y1:y,x2:w-r,y2:y,stroke:grid,'stroke-width':CHART_VISUAL.axisStrokeWidth}));const tx=el('text',{x:l-10,y:y+4,'text-anchor':'end','font-size':chartExpandedFixedUnits(svg,CHART_VISUAL.axisFontSize),fill:text});tx.textContent=cfg.yFormatter?cfg.yFormatter(tick):fmt(tick);svg.appendChild(tx)}
   svg.appendChild(el('line',{x1:l,y1:t,x2:l,y2:h-b,stroke:axis,'stroke-width':CHART_VISUAL.axisStrokeWidth}));
@@ -1240,11 +1239,11 @@ function labelDates(svg,cfg,data,every=3){
   const{h,b}=cfg;
   const labelY=h-b+16;
   const interval=phoneUi()?Math.max(every,Math.ceil(data.length/24)):every;
-  data.forEach((d,i)=>{if(i%interval===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:labelY,transform:`rotate(-65 ${x} ${labelY})`,'text-anchor':'end','font-size':chartExpandedFixedUnits(svg,CHART_VISUAL.dateFontSize),fill:cssThemeValue('--chart-text','#6b7280')});txt.textContent=d['날짜'];svg.appendChild(txt)}})
+  data.forEach((d,i)=>{if(i%interval===0||i===data.length-1){const x=chartX(cfg,data.length,i);const txt=el('text',{x:x,y:labelY,transform:`rotate(-65 ${x} ${labelY})`,'text-anchor':'end','font-size':chartExpandedFixedUnits(svg,CHART_VISUAL.dateFontSize),fill:cssThemePaint('--chart-text','#6b7280')});txt.textContent=d['날짜'];svg.appendChild(txt)}})
 }
 function polyline(svg,points,color,width=CHART_VISUAL.lineStrokeWidth){svg.appendChild(el('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':chartExpandedHalfGrowthUnits(svg,width),'stroke-linejoin':'round','stroke-linecap':'round'}))}
 function circles(svg,points,color){
-  const fill=cssThemeValue('--chart-surface','#fff'),radius=chartExpandedHalfGrowthUnits(svg,CHART_VISUAL.pointRadius),strokeWidth=chartExpandedHalfGrowthUnits(svg,CHART_VISUAL.pointStrokeWidth);
+  const fill=cssThemePaint('--chart-surface','#fff'),radius=chartExpandedHalfGrowthUnits(svg,CHART_VISUAL.pointRadius),strokeWidth=chartExpandedHalfGrowthUnits(svg,CHART_VISUAL.pointStrokeWidth);
   points.forEach(p=>svg.appendChild(el('circle',{cx:p[0],cy:p[1],r:radius,fill,stroke:color,'stroke-width':strokeWidth})));
 }
 function nearestIndex(evt,svg,cfg,data){
@@ -1256,7 +1255,7 @@ function nearestIndex(evt,svg,cfg,data){
   return Math.max(0,Math.min(data.length-1,idx));
 }
 function addHover(svg,cfg,data,renderHtml,tooltipKind=''){
-  const line=el('line',{x1:cfg.l,y1:cfg.t,x2:cfg.l,y2:cfg.h-cfg.b,stroke:cssThemeValue('--chart-hover','#334155'),'stroke-width':CHART_VISUAL.hoverStrokeWidth,'stroke-dasharray':CHART_VISUAL.hoverDash,opacity:0,class:'chart-hover-line'});
+  const line=el('line',{x1:cfg.l,y1:cfg.t,x2:cfg.l,y2:cfg.h-cfg.b,stroke:cssThemePaint('--chart-hover','#334155'),'stroke-width':CHART_VISUAL.hoverStrokeWidth,'stroke-dasharray':CHART_VISUAL.hoverDash,opacity:0,class:'chart-hover-line'});
   svg.appendChild(line);
   const hit=el('rect',{x:cfg.l,y:cfg.t,width:cfg.plotW,height:cfg.plotH,class:'svg-hitbox'});
   svg.appendChild(hit);
@@ -1597,7 +1596,7 @@ function drawStacked(){
   const n=data.length,bw=chartBarWidth(svg,cfg,n,.72);
   cfg.edgePad=Math.max(CHART_EDGE_PAD,bw*.62);
   cfg.y=v=>chartY(cfg,minY,maxY,v);drawAxes(svg,cfg,ticks);
-  data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;series.forEach(key=>{const value=Number(d[key]||0),yTop=cfg.y(base+value),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:colors[key],opacity:.75,stroke:cssThemeValue('--chart-stack-stroke','#fff'),'stroke-width':chartExpandedHalfGrowthUnits(svg,.4)}));base+=value})});
+  data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;series.forEach(key=>{const value=Number(d[key]||0),yTop=cfg.y(base+value),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:colors[key],opacity:.75,stroke:cssThemePaint('--chart-stack-stroke','#fff'),'stroke-width':chartExpandedHalfGrowthUnits(svg,.4)}));base+=value})});
   labelDates(svg,cfg,data,3);
   addHover(svg,cfg,data,d=>{const displayedTotal=series.reduce((a,key)=>a+Number(d[key]||0),0),total=selection.all?(Number(d._total)||displayedTotal):displayedTotal;let html=tooltipDate(d['날짜']);series.forEach(key=>{const value=Number(d[key]||0),share=total?value/total*100:0;html+=row(chartDisplayLabel('securitiesAlloc',key),fmt(value)+`원 (${share.toFixed(1)}%)`)});return html+tooltipDivider()+totalRow('합계',fmt(total)+'원')});
 }
@@ -1617,6 +1616,13 @@ function refreshSecuritiesCumulativeChart(){
   refreshScrollOverflowState();
   requestAnimationFrame(refreshScrollOverflowState);
 }
+function assetTabChartsReady(tab=uiState.activeAssetTab){
+  const ids=tab==='pension'
+    ?['pensionChartCum','pensionChartSymbol','pensionChartAlloc']
+    :['chartCum','chartSymbol','chartAlloc'];
+  return ids.every(id=>document.getElementById(id)?.childElementCount>0);
+}
+
 function drawAllCharts(){
   applySecuritiesCumCardTransitionSuppression();
   if(uiState.activeAssetTab==='pension'){
@@ -1672,6 +1678,7 @@ function drawChartsForPrint(){
 
 // [CHART12] Public API
 export {
+  assetTabChartsReady,
   drawAllCharts,
   handleChartDashboardAction,
   isExpandedChart,

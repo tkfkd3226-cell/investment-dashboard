@@ -61,7 +61,8 @@ test('Main appearance 두 control은 localStorage와 BroadcastChannel을 함께 
   assert.match(ui1,/const APPEARANCE_CHANNEL_NAME='investmentDashboard\.appearance'/);
   assert.match(ui1,/appearanceChannel=new BroadcastChannel\(APPEARANCE_CHANNEL_NAME\)/);
   assert.match(ui1,/function publishAppearanceChange\(\)\{ try\{appearanceChannel\?\.postMessage\(\{theme:currentTheme\(\),cornerTheme:currentCornerTheme\(\)\}\)\}catch\(_\)\{\} \}/);
-  assert.match(ui1,/function setTheme\(theme,\{redraw=true,syncMonitor=true\}=\{\}\)\{[^]*?localStorage\.setItem\(THEME_STORAGE_KEY,dark\?'dark':'light'\)[^]*?syncThemeControls\(\); publishAppearanceChange\(\);[^]*?if\(syncMonitor\)publishRealtimeMonitorTheme\(dark\?'dark':'light'\);/);
+  assert.match(ui1,/function setTheme\(theme,\{redraw=false,syncMonitor=true\}=\{\}\)\{[^]*?localStorage\.setItem\(THEME_STORAGE_KEY,dark\?'dark':'light'\)[^]*?syncThemeControls\(\); publishAppearanceChange\(\);[^]*?if\(syncMonitor\)publishRealtimeMonitorTheme\(dark\?'dark':'light'\);/);
+  assert.match(charts,/function cssThemePaint\(name,fallback\)\{\s*return `var\(\$\{name\},\$\{fallback\}\)`;\s*\}/,'차트 theme paint는 CSS 변수 참조를 유지해 theme 전환에 redraw가 필요 없어야 한다');
   assert.match(ui1,/function setCornerTheme\(theme\)\{[^]*?localStorage\.setItem\(CORNER_THEME_STORAGE_KEY,rounded\?'rounded':'soft-square'\)[^]*?syncCornerThemeControls\(\); publishAppearanceChange\(\);/);
 });
 
@@ -1644,6 +1645,21 @@ test('개인보기 3회 입력은 Web/Tablet 기준문구와 Phone Hero 전체�
   assert.match(app,/data-dashboard-action="hero-basis-tap"/);
   assert.match(app,/phoneUi\(\)&&heroCardTarget\(event\.target\)[^]*?handleHeroBasisTap\(\)/s);
   assert.doesNotMatch(app,/addEventListener\('pointer(?:down|up|cancel)'/);
+  const toggleStart=app.indexOf('function togglePersonalView(){');
+  const toggleEnd=app.indexOf('\nfunction handleHeroBasisTap',toggleStart);
+  const toggleBlock=app.slice(toggleStart,toggleEnd);
+  assert.match(toggleBlock,/syncPersonalViewControls\(\)/,'개인보기 unlock/lock은 full render 대신 mount된 control visibility만 동기화해야 한다');
+  assert.doesNotMatch(toggleBlock,/\brender\(\)/,'개인보기 3회 입력에서 #app full render를 호출하면 안 된다');
+  assert.match(ui,/data-personal-view-control/,'개인보기 control은 최초 render부터 mount되어 있어야 한다');
+});
+
+test('자산 탭 전환은 이미 그린 차트를 재사용하고 최초 차트만 다음 paint 이후 lazy draw한다',()=>{
+  assert.match(charts,/function assetTabChartsReady\(tab=uiState\.activeAssetTab\)/);
+  const start=ui.indexOf('function setAssetTab(tab,{scroll=false}={}){');
+  const end=ui.indexOf('\nfunction handleAssetTabKeydown',start);
+  const block=ui.slice(start,end);
+  assert.match(block,/const needsChartDraw=!assetTabChartsReady\(tab\)/);
+  assert.match(block,/requestAnimationFrame\(\(\)=>\{[^]*?if\(!needsChartDraw\)return;[^]*?requestAnimationFrame\(\(\)=>\{[^]*?drawAllCharts\(\)/s);
 });
 
 test('증권 종목별 누적손익 UI는 매도 후 평가손익 0이 아니라 totalProfit·performanceCost 계약을 사용한다',()=>{
