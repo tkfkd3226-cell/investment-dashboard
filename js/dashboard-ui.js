@@ -99,6 +99,7 @@ try{if('BroadcastChannel' in window)appearanceChannel=new BroadcastChannel(APPEA
 const currentTheme=()=>document.documentElement.classList.contains('dark')?'dark':'light';
 const uiRuntimeState={
   mobileTopScrollBound:false,
+  topScrollAnimationFrame:0,
   sectionNavigationBound:false,
   sectionNavigationFrame:0,
   securitiesPerformanceView:'overall'
@@ -486,7 +487,26 @@ function toggleMobileDataView(key){
 
 // [UI06] Mobile Top Button · 모바일 TOP 버튼
 function scrollToDashboardTop(){
-  window.scrollTo({top:0,left:0,behavior:'smooth'});
+  const startTop=Math.max(0,Number(window.scrollY||document.documentElement?.scrollTop||document.body?.scrollTop||0));
+  if(startTop<=0)return;
+  if(uiRuntimeState.topScrollAnimationFrame)cancelAnimationFrame(uiRuntimeState.topScrollAnimationFrame);
+  if(typeof requestAnimationFrame!=='function'||typeof performance?.now!=='function'){
+    window.scrollTo({top:0,left:0,behavior:'smooth'});
+    return;
+  }
+  const durationMs=420;
+  const startedAt=performance.now();
+  const step=now=>{
+    const progress=Math.min(1,Math.max(0,(now-startedAt)/durationMs));
+    const eased=1-Math.pow(1-progress,3);
+    window.scrollTo({top:Math.round(startTop*(1-eased)),left:0,behavior:'auto'});
+    if(progress<1){
+      uiRuntimeState.topScrollAnimationFrame=requestAnimationFrame(step);
+      return;
+    }
+    uiRuntimeState.topScrollAnimationFrame=0;
+  };
+  uiRuntimeState.topScrollAnimationFrame=requestAnimationFrame(step);
 }
 function ensureMobileTopButton(){
   let button=document.getElementById('mobileTopButton');

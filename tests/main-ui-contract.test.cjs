@@ -1755,7 +1755,18 @@ test('개인보기 3회 입력은 Web/Tablet 기준문구와 Phone Hero 전체�
   assert.match(toggleBlock,/syncPersonalViewControls\(\)/,'개인보기 unlock/lock은 full render 대신 mount된 control visibility만 동기화해야 한다');
   assert.doesNotMatch(toggleBlock,/\brender\(\)/,'개인보기 3회 입력에서 #app full render를 호출하면 안 된다');
   assert.match(ui,/data-personal-view-control/,'개인보기 control은 최초 render부터 mount되어 있어야 한다');
-  assert.match(common,/\[data-personal-view-control\]\[hidden\]\{display:none\}/,'최초 잠금 상태의 개인보기 control은 author display 규칙보다 hidden이 우선해야 한다');
+  assert.match(common,/\[data-personal-view-control\]\[hidden\],\s*\.date-action-menu\.mobile-combined-menu \[data-personal-view-control\]\[hidden\]\{display:none\}/,'Phone 관리 메뉴에서도 개인보기 hidden이 nav item display 규칙보다 높은 specificity를 가져야 한다');
+});
+
+test('TOP 버튼은 browser native smooth 의존 대신 고정 duration animation으로 이동한다',()=>{
+  const start=ui.indexOf('function scrollToDashboardTop(){');
+  const end=ui.indexOf('\nfunction ensureMobileTopButton()',start);
+  const block=ui.slice(start,end);
+  assert.ok(start>=0&&end>start,'TOP scroll handler is missing');
+  assert.match(block,/const durationMs=420/);
+  assert.match(block,/const eased=1-Math\.pow\(1-progress,3\)/);
+  assert.match(block,/window\.scrollTo\(\{top:Math\.round\(startTop\*\(1-eased\)\),left:0,behavior:'auto'\}\)/);
+  assert.match(block,/window\.scrollTo\(\{top:0,left:0,behavior:'smooth'\}\)/,'requestAnimationFrame 미지원 환경은 native smooth fallback을 유지해야 한다');
 });
 
 test('자산 탭 전환은 이미 그린 차트를 재사용하고 최초 차트만 다음 paint 이후 lazy draw한다',()=>{
