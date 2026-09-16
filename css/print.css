@@ -204,7 +204,17 @@
     .asset-workspace-panel-pension{
       margin-top:var(--space-9xl);
     }
-    /* Print Hero Alignment · 좁은 인쇄 page width가 Phone media와 겹쳐도 return pill을 중앙 정렬한다. */
+    /* Print Hero Alignment · 인쇄도 Web/Tablet과 동일하게 내용폭 pill + wrap을 사용한다.
+       인쇄 page width가 Phone media와 겹쳐도 grid 열폭으로 늘어나지 않는다. */
+    .hero .hero-metric-pills{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .hero .hero-metric-pills .pill{
+      flex:0 0 auto;
+      width:auto;
+    }
     .hero .hero-return-pill{
       display:inline-flex;
       align-items:center;
@@ -214,18 +224,41 @@
     .hero .hero-label-default{display:inline}
     .hero .hero-label-mobile{display:none}
 
+    /* Pension Asset Print Flow · 화면의 2열 grid/height:100% 계약을 paged media에 가져오지 않는다.
+       상품현황 note가 여러 페이지로 분할될 때 다음 전일대비 note가 앞 content와 겹치지 않도록
+       인쇄에서는 자산 상세를 순수 block 흐름으로 고정한다. */
+    .asset-detail-grid{
+      display:block;
+    }
+    .asset-detail-grid > .note{
+      height:auto;
+      min-height:0;
+      overflow:visible;
+    }
+    .asset-detail-grid > .note + .note{
+      margin-top:var(--card-grid-gap-large);
+    }
+
     /* Pension Insight Print Geometry · paged media에서 Phone용 threshold 하단 chip 규칙이 새는 것을 차단한다.
-       Grid fragmentation도 피하도록 insight zone을 block flow로 고정한다. */
+       insight 자체도 grid fragmentation을 피하도록 block flow로 고정한다. */
     .asset-insight-zone{
       display:block;
     }
+    .asset-insight-card{
+      overflow:visible;
+    }
     .asset-insight-card + .asset-insight-card{
       margin-top:var(--card-grid-gap-medium);
+    }
+    .pension-risk-threshold{
+      top:0;
+      height:100%;
     }
     .pension-risk-threshold span{
       top:-18px;
     }
     .pension-risk-scale{
+      display:flex;
       margin-top:var(--info-stack-gap);
     }
     .metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))}

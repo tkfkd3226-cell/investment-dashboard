@@ -942,9 +942,15 @@ test('반응형·테마·Print는 semantic source와 인쇄 canonical layout을 
   assert.doesNotMatch(afterPrintBlock,/drawAllCharts\(\)|drawCumChart\(\)|drawPension/,'afterprint는 화면 SVG를 재계산하지 않고 원본 node를 복원해야 한다');
   assert.match(print1,/\.chart-note\.six\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
   assert.match(print1,/\.asset-insight-zone\{ display:block; \}/,'Print에서는 insight grid fragmentation을 피해야 한다');
+  assert.match(print1,/\.asset-detail-grid\{ display:block; \}/,'Print 자산 상세는 paged media에서 grid fragmentation을 사용하지 않아야 한다');
+  assert.match(print1,/\.asset-detail-grid > \.note\{[^}]*height:auto;[^}]*overflow:visible;/,'Print 자산 상세 note는 화면용 height:100%를 해제해야 한다');
+  assert.match(print1,/\.asset-detail-grid > \.note \+ \.note\{ margin-top:var\(--card-grid-gap-large\); \}/,'Print 자산 상세 block 사이 간격을 명시해야 한다');
+  assert.match(print1,/\.pension-risk-threshold\{ top:0; height:100%; \}/,'Print 위험자산 threshold line은 gauge 바깥으로 내려오지 않아야 한다');
+  assert.match(print1,/\.hero \.hero-metric-pills\{[^}]*display:flex;[^}]*flex-wrap:wrap;/,'Print Hero pill은 내용폭 flex 흐름을 사용해야 한다');
+  assert.match(mobile1,/\.hero \.hero-metric-pills\{[^}]*display:flex;[^}]*flex-wrap:wrap;/,'Mobile Hero pill은 Web/Tablet처럼 내용폭 flex 흐름을 사용해야 한다');
   assert.match(print1,/\.asset-insight-card \+ \.asset-insight-card\{ margin-top:var\(--card-grid-gap-medium\); \}/);
   assert.match(print1,/\.pension-risk-threshold span\{ top:-18px; \}/,'Phone용 하단 threshold chip이 Print에 새면 안 된다');
-  assert.match(print1,/\.pension-risk-scale\{ margin-top:var\(--info-stack-gap\); \}/);
+  assert.match(print1,/\.pension-risk-scale\{[^}]*display:flex;[^}]*margin-top:var\(--info-stack-gap\);/);
   assert.match(common1,/\.positive\{color:var\(--value-positive\)\} \.negative\{color:var\(--value-negative\)\}/);
 });
 

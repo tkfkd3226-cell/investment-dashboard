@@ -15,13 +15,16 @@
 
 @media (max-width:760px){
 
-  /* [M01. Hero · Mobile ≤760px Hero pill / label 구성] */
+  /* [M01. Hero · Mobile ≤760px Hero pill / label 구성]
+     정보용 pill은 버튼처럼 열 전체를 채우지 않고 Web/Tablet과 동일하게 내용폭 + padding만 사용한다. */
 .hero .hero-metric-pills{
-      display:grid;
-      grid-template-columns:1fr;
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
     }
-    .hero .hero-metric-pills.has-pension{
-      grid-template-columns:repeat(2,minmax(0,1fr));
+    .hero .hero-metric-pills .pill{
+      flex:0 0 auto;
+      width:auto;
     }
     .hero .hero-return-pill{display:none}
     .hero .hero-label-default{display:none}
