@@ -605,7 +605,11 @@ test('Hero 투자 성과 기준문구: 실제 적용된 live 가격 성격에 �
       {ticker:'069500',price:103,state:'closed',market_state:'closed',usable:true}
     ]
   },['005930','069500']);
-  assert.match(core.heroPerformanceBasisLabel(today),/종가 기준$/);
+  assert.match(core.heroPerformanceBasisLabel(today,new Date('2026-09-16T11:05:00Z')),/애프터 종가 기준$/);
+
+  core.clearLiveValuationSnapshot('disabled');
+  setState({prices:{[today]:{marketStatus:'close',priceBasis:'regular_close',securities:{'005930':123,'069500':103}}}});
+  assert.match(core.heroPerformanceBasisLabel(today),/정규장 종가 기준$/);
 });
 
 test('실시간 평가 상태 요약: 실패/과거 화면은 STALE·JSON 의미를 분리한다',()=>{

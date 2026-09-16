@@ -1493,6 +1493,14 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 
 **수정한 B에서 더 낮은 확률의 새로운 B를 계속 파생해 무한 patch loop를 만드는 것을 금지한다.** 새 후보가 기본 fault budget을 넘으면 C/비감점으로 분류하고, 실제 운영 증거·사용자 보고·다음 코드 변경이 생길 때 다시 연다.
 
+### KRX 정규장 종가 확정
+
+- 장중 snapshot은 `marketStatus:intraday + priceBasis:intraday`, 장마감/과거일 snapshot은 `marketStatus:close + priceBasis:regular_close` 의미가 분리되는가.
+- `scripts/update_prices.py`가 장마감/과거일에는 pykrx `adjusted=False` KRX 원천을 명시하고, 16:00~20:00 애프터 가격을 `prices.json` 정규장 종가로 혼입하지 않는가.
+- GAS가 단순 `marketStatus:close`만 보고 당일 재확정을 막지 않고, `priceBasis:regular_close`일 때만 중복 workflow를 차단하는가. legacy close는 정확히 한 번 재확정 가능하고 이후에는 다시 차단되는가.
+- `reconfirm_regular_close`가 durable dispatch decision reason에 포함되어 requestId/idempotency/재시도 인과관계를 우회하지 않는가.
+- KRX modal과 완료/중복 메시지가 `정규장 종가` 의미를 사용하며, 기존 현황표 tooltip의 `장 마감 시세` 계약을 불필요하게 바꾸지 않는가.
+
 ### Market AI
 
 Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend에서는 **현재 시장·AI signal panel**, **오늘 보유종목 live valuation overlay**, 그리고 두 기능이 Main render/lifecycle과 만나는 경계를 평가한다.
@@ -1504,11 +1512,11 @@ Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend�
 - **상태 최신성**: 겹친 polling, 늦은 body parse, holdings universe 변경, visible↔hidden 전환에서 이전 응답/오류가 최신 상태를 덮지 않는가.
 - **multi-client 격리**: 복수 탭/기기의 client identity와 ticker universe가 서로 제거·오염되지 않는가.
 - **render lifecycle**: modal/chart/tooltip/input interaction 중 live refresh가 진행 UI를 교체하거나 focus/scroll을 잃게 하지 않는가. 특히 실시간 시세 modal을 닫아 Topbar trigger에 focus가 돌아온 뒤에도 10초 Live Valuation 갱신이 `#tabs`를 재생성·재focus하지 않고 `#app`만 갱신해 window scroll이 조금씩 위로 이동하지 않는가. 이미 active인 focus target을 불필요하게 다시 focus하지 않는가. 별도수익 ON/OFF처럼 부분 갱신 대상은 불필요한 full render를 만들지 않는가.
-- **차트 entrance 회귀**: `hidden` 자산 panel 또는 0-size chart-wrap을 viewport 진입 완료로 오인하지 않는가. 초기 비활성 퇴직연금 차트도 실제 탭 전환 후 최초 viewport 진입에서 animation을 재생하는가. Live Valuation의 `#app` 갱신은 이미 재생된 차트만 완료 상태를 승계하고, 아직 viewport에 진입하지 않은 차트의 최초 scroll animation을 보존하는가. 주기 갱신이 아래쪽 차트를 일괄 완료 처리해 animation을 없애지 않는가.
+- **차트 entrance 회귀**: Live Valuation의 `#app` 갱신이 이미 재생된 차트만 완료 상태를 승계하고, 아직 viewport에 진입하지 않은 차트의 최초 scroll animation은 보존하는가. 주기 갱신이 아래쪽 차트를 일괄 완료 처리해 animation을 없애지 않는가.
 - **실시간 시세 진입점**: Market AI 연결 확인 전/연결 해제에는 Web/Tablet Topbar와 Phone Topbar icon-only `실시간 시세`가 모두 숨겨지고, Phone `관리` 메뉴에는 중복 진입점이 없는가. `date-tool-btn` 같은 author `display` 규칙이 HTML `hidden`을 되살리지 않도록 `[data-market-ai-monitor-entry][hidden]` 공통 CSS 계약이 실제 표시를 보장하는가. 연결 중에는 공통 action/gating source를 공유하고, Web/Tablet은 content height 선측정 후 처음부터 compact·no-scroll geometry로 reveal하며 size message 지연 시에도 화면 세로 전체를 먼저 채우는 fallback을 사용하지 않는가. Phone은 KRX 등 action modal과 같은 외곽 여백·edge token을 상속하고 monitor만 가용 영역을 채우는가.
 - **Dashboard-side Market AI ON/OFF**: 사용자 preference와 server reachability를 분리하는가. OFF 시 signal/live polling과 volatile live overlay를 중단·제거해 저장 JSON으로 fallback하고, in-flight 이전 응답이 OFF 이후 state를 되살리지 않는가. ON 시 즉시 refresh를 재시도하는가. 이 기능이 backend 프로세스를 종료한다고 오해해 구현하지 않는가. Web/Tablet은 투자 계산기와 밝기 테마 사이의 icon-only 공통 action geometry를 유지하고, **Phone Topbar에는 이 toggle이 없으며 `관리` 메뉴의 투자 계산기 바로 아래에만 연결 켜기/끄기 action이 존재하는가.**
 - **Phone 날짜 label**: Topbar 날짜 셀렉트가 `년-월` / `월-일 요일` 공통 형식(`2026-9`, `9-16 수`)을 사용해 좁아진 Phone 폭에서도 select 화살표와 텍스트가 겹치지 않으며, viewport별 별도 label formatter를 만들지 않는가.
-- **표시 의미**: Hero 기준문구와 자산 source tooltip이 실제 계산에 적용된 가격 상태와 일치하고 raw 내부 상태 문자열을 사용자 의미로 오해하게 노출하지 않는가.
+- **표시 의미**: Hero 기준문구와 자산 source tooltip이 실제 계산에 적용된 가격 상태와 일치하고 raw 내부 상태 문자열을 사용자 의미로 오해하게 노출하지 않는가. 저장 JSON `priceBasis:regular_close`는 `정규장 종가 기준`, 오늘 20:00 이후 개별주식 애프터 종료 quote까지 Market AI universe 전체가 closed+usable이면 `애프터 종가 기준`이 되는가. 현황표 tooltip의 기존 `장 마감 시세` 문구는 불필요하게 정규장/애프터로 분기하지 않는가.
 - **시장 session/freshness**: KOSPI, K200, SOX, NQ100선물의 장전/거래중/장마감/거래중단과 freshness를 구분해 정상적인 장외 정지를 `데이터 지연`으로 오판하지 않는가. 기준시각은 가능한 경우 실제 시장시각을 우선하는가.
 - **단일 display model**: 시장 카드와 tooltip이 서로 다른 값·상태·fallback 판정을 갖지 않는가.
 - **AI 신호 설명 의미**: `confidence`/공통 `data_completeness` 같은 deprecated 휴리스틱을 사용자 신뢰도로 노출하지 않고, 각 신호의 `input_coverage`를 별도로 표시하는가. 실제 반영 비중은 available input의 `normalized_weight` 의미를 따르고 정수 표시 합계가 100%가 되며, 누락 입력과 사유를 숨기지 않는가. legacy coverage `null`을 임의의 0%/100%로 바꾸지 않는가.

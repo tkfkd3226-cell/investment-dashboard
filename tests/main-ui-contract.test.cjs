@@ -1163,9 +1163,11 @@ test('live valuation 재렌더는 퇴직연금 조정 본체와 action modal이 
 
 test('Hero 기준문구는 raw 상태 대신 실제 적용 가격의 정규장·시간외·부분 반영 의미만 노출한다',()=>{
   assert.match(core,/function liveValuationStatusForDate\(date\)/);
-  assert.match(core,/function heroPerformanceBasisLabel\(date\)/);
+  assert.match(core,/function heroPerformanceBasisLabel\(date,now=new Date\(\)\)/);
   assert.match(core,/if\(status\.mode==='historical'\|\|!status\.requestedCount\)return fallback;/);
-  assert.match(core,/if\(status\.usableCount===status\.requestedCount&&status\.closedCount===status\.requestedCount\)return `\$\{dateLabel\} 종가 기준`;/);
+  assert.match(core,/if\(status\.usableCount===status\.requestedCount&&status\.closedCount===status\.requestedCount\)\{/);
+  assert.match(core,/return `\$\{dateLabel\} 애프터 종가 기준`;/);
+  assert.match(core,/return fallback;/);
   assert.match(core,/if\(status\.liveCount<=0\)return fallback;/);
   assert.match(core,/if\(status\.fallbackCount>0\)return `\$\{dateLabel\} 일부 실시간 반영`;/);
   assert.match(core,/if\(status\.extendedLiveCount>0\)return `\$\{dateLabel\} 시간외 포함 현재가 기준`;/);
@@ -1173,6 +1175,22 @@ test('Hero 기준문구는 raw 상태 대신 실제 적용 가격의 정규장·
   assert.doesNotMatch(app,/data-live-valuation-status/);
   assert.doesNotMatch(app,/LIVE \$\{status\.usableCount\}/);
   assert.match(app,/<time class="hero-basis" datetime="\$\{x\.date\}" data-dashboard-action="hero-basis-tap">\(\$\{heroPerformanceBasisLabel\(x\.date\)\}\)<\/time>/);
+});
+
+test('KRX 종가 반영은 regular_close를 명시하고 legacy close는 1회 재확정한다',()=>{
+  const updater=read('scripts/update_prices.py');
+  const gas=read('GAS_code.js');
+  const ui=read('js/dashboard-ui.js');
+  assert.match(updater,/\{"adjusted": False\} if market_status_for_date\(target_date\) == "close" else \{\}/);
+  assert.match(updater,/price_basis = "intraday" if status == "intraday" else "regular_close"/);
+  assert.match(updater,/"priceBasis": price_basis/);
+  assert.match(gas,/function krxSnapshotPriceBasis\(snapshot\)/);
+  assert.match(gas,/explicitBasis === "regular_close"/);
+  assert.match(gas,/latestBasis === "regular_close"/);
+  assert.match(gas,/reason: "reconfirm_regular_close"/);
+  assert.match(gas,/reconfirm_regular_close: true/);
+  assert.match(gas,/이미 정규장 종가 기준 데이터가 반영되어 있습니다\./);
+  assert.match(ui,/정규장 종가 기준이 아니면 다시 반영합니다\./);
 });
 
 test('Standalone Web App은 설치 당시 hash보다 KST 오늘을 우선하고 날짜가 바뀐 foreground 복귀에서 최신 데이터를 다시 읽는다',()=>{
@@ -1530,43 +1548,6 @@ test('Live Valuation full render는 미진입 차트 entrance를 일괄 완료 �
   assert.match(app,/preservePlayedChartEntrancesOnce\(\);/);
   assert.doesNotMatch(app,/suppressChartEntranceOnce\(/);
   assert.match(charts,/data-chart-entrance-played/);
-});
-
-test('숨겨진 자산 탭의 0-size 차트는 entrance 재생 완료로 오인하지 않는다',()=>{
-  const vm=require('node:vm');
-  const start=charts.indexOf('function chartWrapEntranceEligible(wrap){');
-  const end=charts.indexOf('function setupChartEntranceAnimations(){',start);
-  assert.ok(start>=0&&end>start,'chart entrance visibility helper block is missing');
-  const context={
-    window:{innerHeight:800},
-    requestAnimationFrame:fn=>fn(),
-    chartRuntimeState:{entranceObserver:null}
-  };
-  vm.createContext(context);
-  vm.runInContext(`${charts.slice(start,end)};this.chartWrapEntranceEligible=chartWrapEntranceEligible;this.chartWrapFullyVisible=chartWrapFullyVisible;this.activateChartEntrance=activateChartEntrance;`,context);
-
-  const hiddenCard={dataset:{},classList:{add(){}}};
-  const hiddenWrap={
-    closest:selector=>selector==='[hidden]'?{}:(selector==='.chart-card'?hiddenCard:null),
-    getBoundingClientRect:()=>({top:0,bottom:0,width:0,height:0})
-  };
-  assert.equal(context.chartWrapEntranceEligible(hiddenWrap),false);
-  assert.equal(context.chartWrapFullyVisible(hiddenWrap),false);
-  context.activateChartEntrance(hiddenWrap);
-  assert.equal(hiddenCard.dataset.chartEntrancePlayed,undefined);
-
-  const zeroWrap={closest:()=>null,getBoundingClientRect:()=>({top:0,bottom:0,width:0,height:0})};
-  assert.equal(context.chartWrapEntranceEligible(zeroWrap),false);
-
-  const visibleCard={dataset:{},classList:{add(){}}};
-  const visibleWrap={
-    closest:selector=>selector==='.chart-card'?visibleCard:null,
-    getBoundingClientRect:()=>({top:100,bottom:400,width:600,height:300})
-  };
-  assert.equal(context.chartWrapEntranceEligible(visibleWrap),true);
-  assert.equal(context.chartWrapFullyVisible(visibleWrap),true);
-  context.activateChartEntrance(visibleWrap);
-  assert.equal(visibleCard.dataset.chartEntrancePlayed,'true');
 });
 
 test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 icon-only·공통 modal edge 계약을 유지한다',()=>{

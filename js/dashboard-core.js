@@ -40,6 +40,7 @@ const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'),won=n=>fmt(n)+'원
     const time=snap.updatedAtKST?snap.updatedAtKST.slice(11,16):'';
     return `${Number(m)}월 ${Number(day)}일 장중 ${time} 기준`;
   }
+  if(String(snap.priceBasis||'')==='regular_close')return `${Number(m)}월 ${Number(day)}일 정규장 종가 기준`;
   return `${Number(m)}월 ${Number(day)}일 종가 기준`;
 };
 
@@ -594,15 +595,30 @@ function liveValuationStatusForDate(date){
     latestObservedAt,generatedAt:state.generatedAt||null,reason:String(state.reason||''),marketState:String(state.marketState||''),bridgeConnected:state.bridgeConnected
   };
 }
+function kstMinutesAt(value=new Date()){
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(value);
+  const hour=Number(parts.find(part=>part.type==='hour')?.value||0);
+  const minute=Number(parts.find(part=>part.type==='minute')?.value||0);
+  return hour*60+minute;
+}
+function hasExtendedSessionHoldingForDate(date){
+  return (dataState.portfolio?.securities||[]).some(pos=>{
+    const ticker=normalizeLiveValuationTicker(pos?.ticker);
+    return ticker&&String(pos?.type||'')!=='ETF'&&Number(securityPositionState(pos,date)?.qty)>0;
+  });
+}
 // Hero 기준문구의 `일부`는 live 개수가 아니라 Market AI usable coverage로 결정한다.
 // 따라서 ETF closed + 개별주식 live/extended가 모두 usable이면 `일부 실시간 반영`으로 낮추지 않는다.
-function heroPerformanceBasisLabel(date){
+function heroPerformanceBasisLabel(date,now=new Date()){
   const fallback=koreanDateLabel(date);
   const status=liveValuationStatusForDate(date);
   if(status.mode==='historical'||!status.requestedCount)return fallback;
   const [,month,day]=String(date||'').split('-');
   const dateLabel=`${Number(month)}월 ${Number(day)}일`;
-  if(status.usableCount===status.requestedCount&&status.closedCount===status.requestedCount)return `${dateLabel} 종가 기준`;
+  if(status.usableCount===status.requestedCount&&status.closedCount===status.requestedCount){
+    if(status.marketState==='closed'&&kstMinutesAt(now)>=20*60&&hasExtendedSessionHoldingForDate(date))return `${dateLabel} 애프터 종가 기준`;
+    return fallback;
+  }
   if(status.liveCount<=0)return fallback;
   if(status.fallbackCount>0)return `${dateLabel} 일부 실시간 반영`;
   if(status.extendedLiveCount>0)return `${dateLabel} 시간외 포함 현재가 기준`;

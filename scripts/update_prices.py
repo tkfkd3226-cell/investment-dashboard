@@ -116,7 +116,16 @@ def fetch_close(
 
     for attempt in range(retries + 1):
         try:
-            df = stock.get_market_ohlcv_by_date(start.strftime("%Y%m%d"), end.strftime("%Y%m%d"), ticker)
+            # pykrx adjusted=True(default)는 Naver 일봉 경로를 사용한다.
+            # 당일 장중 current-price 용도는 기존 경로를 유지하되, 장마감/과거일은
+            # KRX 원천(adjusted=False)을 명시해 15:30 정규장 종가를 확정한다.
+            kwargs = {"adjusted": False} if market_status_for_date(target_date) == "close" else {}
+            df = stock.get_market_ohlcv_by_date(
+                start.strftime("%Y%m%d"),
+                end.strftime("%Y%m%d"),
+                ticker,
+                **kwargs,
+            )
             if df is None or df.empty:
                 last_error = "empty-dataframe"
             else:
@@ -765,6 +774,7 @@ def calculate_performance_snapshot(
         "display": price_snapshot.get("display", True),
         "source": "calculated-current-portfolio",
         "marketStatus": price_snapshot.get("marketStatus", "close"),
+        "priceBasis": price_snapshot.get("priceBasis"),
         "requestedDate": price_snapshot.get("requestedDate", target_date),
         "actualMarketDate": price_snapshot.get("actualMarketDate", target_date),
         "updatedAtKST": price_snapshot.get("updatedAtKST"),
@@ -895,12 +905,14 @@ def update_one_date(
         display = True
 
     status = market_status_for_date(target_date)
+    price_basis = "intraday" if status == "intraday" else "regular_close"
     updated_at = datetime.now(KST).isoformat(timespec="seconds")
 
     prices[target_date] = {
         "display": display,
         "source": "pykrx-github-actions+nxt-valuation" if manual_valuation_used else "pykrx-github-actions",
         "marketStatus": status,
+        "priceBasis": price_basis,
         "requestedDate": target_date,
         "actualMarketDate": actual_date,
         "updatedAtKST": updated_at,

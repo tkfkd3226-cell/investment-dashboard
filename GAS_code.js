@@ -6344,6 +6344,14 @@ function latestVisiblePriceSnapshot(prices) {
   };
 }
 
+
+function krxSnapshotPriceBasis(snapshot) {
+  if (!snapshot || typeof snapshot !== "object") return "";
+  const explicit = String(snapshot.priceBasis || "").trim();
+  if (explicit) return explicit;
+  return String(snapshot.marketStatus || "close") === "intraday" ? "intraday" : "legacy_close";
+}
+
 // 현재 시각·최신 데이터 상태에 따라 KRX workflow 실행 필요성을 판단한다.
 function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
   const explicitDate = String(body.date || "").trim();
@@ -6352,18 +6360,17 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     : ((readGithubJson("data/prices.json").data) || {});
 
   // 재갱신 요청은 해당 날짜의 현재 저장 상태를 먼저 확인한다.
-  // 이미 종가 기준이면 workflow를 다시 실행하지 않고, 장중/미존재 데이터만 재갱신한다.
+  // `marketStatus=close`만으로 정규장 종가 확정을 가정하지 않는다.
+  // legacy close(priceBasis 없음)는 한 번 재확정해 regular_close로 승격시킨다.
   if (explicitDate) {
     const explicitSnapshot = prices[explicitDate] || null;
-    const explicitStatus = explicitSnapshot
-      ? String(explicitSnapshot.marketStatus || "close")
-      : "";
+    const explicitBasis = krxSnapshotPriceBasis(explicitSnapshot);
 
-    if (explicitSnapshot && explicitSnapshot.display !== false && explicitStatus === "close") {
+    if (explicitSnapshot && explicitSnapshot.display !== false && explicitBasis === "regular_close") {
       return {
         shouldDispatch: false,
         reason: "explicit_date_already_closed",
-        message: "이미 종가 기준 데이터가 반영되어 있습니다."
+        message: "이미 정규장 종가 기준 데이터가 반영되어 있습니다."
       };
     }
 
@@ -6384,6 +6391,7 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
   }
 
   const latestStatus = String(latest.snapshot.marketStatus || "close");
+  const latestBasis = krxSnapshotPriceBasis(latest.snapshot);
   const previousBusinessDate = previousBusinessDateText(now.dateText, now.day);
 
   // 장중에는 같은 날짜라도 현재가 갱신을 계속 허용
@@ -6394,20 +6402,29 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     };
   }
 
-  // 오늘 데이터가 이미 종가 기준이면 추가 실행 불필요
-  if (latest.date === now.dateText && latestStatus === "close") {
+  // 오늘 데이터가 정규장 종가로 명시적으로 확정된 경우에만 추가 실행을 막는다.
+  if (latest.date === now.dateText && latestBasis === "regular_close") {
     return {
       shouldDispatch: false,
       reason: "already_closed_today",
-      message: "이미 종가 기준 데이터가 반영되어 있습니다."
+      message: "이미 정규장 종가 기준 데이터가 반영되어 있습니다."
     };
   }
 
-  // 오늘 장중 데이터가 있고, 장 마감 후라면 종가 확정용 실행 허용
+  // 오늘 장중 데이터가 있고, 장 마감 후라면 정규장 종가 확정용 실행 허용
   if (latest.date === now.dateText && latestStatus === "intraday" && now.isAfterClose) {
     return {
       shouldDispatch: true,
       reason: "finalize_intraday_after_close"
+    };
+  }
+
+  // 과거 구현이 close만 저장했거나 잘못된 close를 만든 당일 데이터는
+  // 정규장 종가 source로 한 번 재확정한다.
+  if (latest.date === now.dateText && latestStatus === "close" && latestBasis !== "regular_close" && now.isAfterClose) {
+    return {
+      shouldDispatch: true,
+      reason: "reconfirm_regular_close"
     };
   }
 
@@ -6416,7 +6433,7 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     return {
       shouldDispatch: false,
       reason: "before_open_already_closed",
-      message: "장 시작 전이며 최신 종가 데이터가 이미 반영되어 있습니다."
+      message: "장 시작 전이며 최신 정규장 종가 데이터가 이미 반영되어 있습니다."
     };
   }
 
@@ -6425,7 +6442,7 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     return {
       shouldDispatch: false,
       reason: "weekend_already_closed",
-      message: "장중 시간이 아니며 최신 종가 데이터가 이미 반영되어 있습니다."
+      message: "장중 시간이 아니며 최신 정규장 종가 데이터가 이미 반영되어 있습니다."
     };
   }
 
@@ -6460,6 +6477,7 @@ const KRX_DURABLE_DECISION_REASONS = Object.freeze({
   market_time_refresh: true,
   already_closed_today: true,
   finalize_intraday_after_close: true,
+  reconfirm_regular_close: true,
   before_open_already_closed: true,
   weekend_already_closed: true,
   possible_missing_dates: true,

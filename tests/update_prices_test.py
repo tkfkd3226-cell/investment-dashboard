@@ -85,6 +85,78 @@ class UpdatePricesSafetyTest(unittest.TestCase):
 
         self.assertEqual(dates, ["2026-09-09"])
 
+    def test_close_snapshot_is_tagged_as_regular_close(self):
+        self.updater.fetch_close = lambda ticker, date: (date, 100 if ticker == "SEC" else 200, None)
+        prices, snapshots = {}, {}
+
+        self.updater.update_one_date("2026-09-09", self.portfolio, prices, snapshots)
+
+        self.assertEqual(prices["2026-09-09"]["marketStatus"], "close")
+        self.assertEqual(prices["2026-09-09"]["priceBasis"], "regular_close")
+
+    def test_intraday_snapshot_is_tagged_as_intraday(self):
+        self.updater.market_status_for_date = lambda _: "intraday"
+        self.updater.fetch_close = lambda ticker, date: (date, 100 if ticker == "SEC" else 200, None)
+        prices, snapshots = {}, {}
+
+        self.updater.update_one_date("2026-09-09", self.portfolio, prices, snapshots)
+
+        self.assertEqual(prices["2026-09-09"]["marketStatus"], "intraday")
+        self.assertEqual(prices["2026-09-09"]["priceBasis"], "intraday")
+
+    def test_fetch_close_uses_krx_source_after_regular_close(self):
+        calls = []
+
+        class FakeRow:
+            def __getitem__(self, key):
+                return 1759000 if key == "종가" else None
+
+        class FakeILoc:
+            def __getitem__(self, _):
+                return FakeRow()
+
+        class FakeFrame:
+            empty = False
+            index = [__import__("datetime").datetime(2026, 9, 16)]
+            iloc = FakeILoc()
+
+        def fake_getter(*args, **kwargs):
+            calls.append((args, kwargs))
+            return FakeFrame()
+
+        self.updater.stock.get_market_ohlcv_by_date = fake_getter
+        self.updater.market_status_for_date = lambda _: "close"
+        actual, close, error = self.updater.fetch_close("000660", "2026-09-16", retries=0)
+
+        self.assertEqual((actual, close, error), ("2026-09-16", 1759000, None))
+        self.assertEqual(calls[0][1], {"adjusted": False})
+
+    def test_fetch_close_keeps_intraday_default_source_during_regular_session(self):
+        calls = []
+
+        class FakeRow:
+            def __getitem__(self, key):
+                return 1750000 if key == "종가" else None
+
+        class FakeILoc:
+            def __getitem__(self, _):
+                return FakeRow()
+
+        class FakeFrame:
+            empty = False
+            index = [__import__("datetime").datetime(2026, 9, 16)]
+            iloc = FakeILoc()
+
+        def fake_getter(*args, **kwargs):
+            calls.append((args, kwargs))
+            return FakeFrame()
+
+        self.updater.stock.get_market_ohlcv_by_date = fake_getter
+        self.updater.market_status_for_date = lambda _: "intraday"
+        self.updater.fetch_close("000660", "2026-09-16", retries=0)
+
+        self.assertEqual(calls[0][1], {})
+
 
 class PerformanceCausalOrderingTest(unittest.TestCase):
     def setUp(self):

@@ -57,7 +57,7 @@ index.html
 - 기업적립금·현금성자산·ETF 추가매수 조정
 - PIN 기반 퇴직연금 저장·삭제
 - 누적손익·수익률·비중 변화 등 기간 차트
-  - 차트 viewport entrance animation은 최초 스크롤 진입에서 1회 재생합니다. `hidden` 자산 탭이나 0-size 차트는 진입 완료로 판정하지 않으며, 탭을 실제로 연 뒤 최초 viewport 진입에서 애니메이션을 재생합니다. 10초 Live Valuation 갱신은 Topbar DOM을 보존한 채 `#app`만 갱신하며, 이미 재생된 차트만 완료 상태를 복원하고 아직 화면에 진입하지 않은 차트의 pending animation을 소거하지 않습니다.
+  - 차트 viewport entrance animation은 최초 스크롤 진입에서 1회 재생합니다. 10초 Live Valuation 갱신은 Topbar DOM을 보존한 채 `#app`만 갱신하며, 이미 재생된 차트만 완료 상태를 복원하고 아직 화면에 진입하지 않은 차트의 pending animation을 소거하지 않습니다.
 - Light / Dark 테마
 - Desktop / Tablet / Mobile 반응형 UI
 - 개인보기 해제 후 Web/Tablet 투자 계산기는 테마 버튼과 같은 icon-only action geometry를 사용하고, Phone은 기존 `관리` 메뉴의 텍스트 항목을 유지
@@ -101,7 +101,7 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - 오늘 날짜에서만 `usable:true` KRX quote를 현재가 의존 평가값에 overlay
 - 과거 날짜와 수량·원가·원금·매매흐름·실현손익, 운영 JSON은 변경하지 않음
 - 일부 quote가 unusable이면 해당 종목만 저장 JSON 값으로 fallback
-- Hero의 `투자 성과` 기준문구는 실제 적용된 가격이 저장 JSON인지 Market AI 실시간/시간외/장마감 값인지에 맞춰 표시
+- Hero의 `투자 성과` 기준문구는 실제 적용된 가격이 저장 JSON인지 Market AI 실시간/시간외/장마감 값인지에 맞춰 표시합니다. `prices.json`이 `priceBasis:regular_close`이면 `정규장 종가 기준`, Market AI가 오늘 20:00 이후 개별주식 애프터 종료 가격까지 모두 usable closed로 제공하면 `애프터 종가 기준`을 표시합니다.
 - 시장 카드 tooltip은 거래 세션과 freshness를 함께 해석해 `장전 / 정상 / 데이터 지연 / 장마감 / 거래중단` 등을 구분
 - AI 신호 상세는 공통 `신뢰도`/`데이터 완성도` 휴리스틱을 표시하지 않고, 신호별 `입력 충족률`, 현재 사용 가능한 입력의 **실제 반영 비중(표시 합계 100%)**, 누락 입력과 사유를 backend `details.signal_inputs` 기준으로 표시
 - KOSPI는 소수점 둘째 자리까지 표시하고 KIS `business_time`이 있으면 실제 시장 기준시각을 우선
@@ -356,7 +356,7 @@ README는 GAS 내부 intent/receipt/ledger GC나 transaction 함수 수준의 �
 대시보드에서는 두 흐름을 사용합니다.
 
 - **최신/누락 반영**: 최신 거래일, 누락 거래일, 장중 저장값의 종가 확정 등 필요한 갱신을 판단
-- **선택 날짜 재갱신**: 현재 선택된 날짜를 대상으로 확인하고, 이미 종가 확정된 경우 불필요한 workflow 실행을 생략
+- **선택 날짜 재갱신**: 현재 선택된 날짜를 대상으로 확인하고, `priceBasis: regular_close`로 정규장 종가가 명시적으로 확정된 경우에만 불필요한 workflow 실행을 생략
 
 처리 구조:
 
@@ -377,6 +377,8 @@ prices.json / performance_snapshots.json
 GitHub Actions에서 직접 수동 실행할 때는 필요한 경우 대상 날짜를 지정할 수 있습니다. 같은 branch의 KRX workflow는 queue를 보존하며 직렬화하고, checkout 이후 remote 변경이 생기면 **계산과 무관한 commit만 rebase**합니다. 관리 파일이나 generation input이 바뀐 경우에는 fail-closed하며, push 응답 유실은 `PUSH_SHA`의 remote 포함 여부를 재확인해 성공을 실패로 오인하지 않습니다.
 
 GAS는 KRX requestId의 intent/receipt와 durable dispatch ledger, workflow run ID/operation marker를 함께 사용합니다. 접수 여부를 끝내 확정하지 못한 requestId도 terminal fail-closed 상태로 수렴시켜 같은 ID의 중복 dispatch와 active intent 영구 누적을 동시에 막습니다. 세부 race/복구 시나리오는 유지보수 문서와 평가 가이드를 따릅니다.
+
+2026-09-14 KRX 애프터마켓 이후에도 GitHub 가격 원장은 **정규장 기준**을 유지합니다. 당일 장중에는 기존 pykrx 기본 current-price 경로를 사용하고, 장마감/과거일 갱신은 `adjusted=False` KRX 원천으로 15:30 정규장 종가를 조회합니다. 저장 스냅샷은 `marketStatus`와 별도로 `priceBasis: intraday | regular_close`를 기록합니다. 과거 구현의 `marketStatus: close`만 있는 legacy 스냅샷은 정규장 종가 확정으로 간주하지 않으므로 한 번 재갱신할 수 있고, `regular_close`가 기록된 뒤에는 기존 중복 dispatch 차단이 다시 적용됩니다. Market AI의 15:30~20:00 개별주식 애프터 quote는 화면 메모리 overlay 전용이며 `prices.json`을 덮지 않습니다.
 
 가격 생성기는 대상 날짜의 증권 position state를 먼저 복원합니다. 전량매도 완료 종목은 매도일 이후 신규 종가 조회 대상에서 빠지지만, 매도 전 날짜를 재생성하는 backfill에서는 해당 시점 보유수량에 따라 다시 조회합니다. `performance_snapshots.json`의 증권 누적손익에는 잔여 평가손익과 누적 실현손익이 함께 반영되며, JS Main 계산과 Python 생성기가 같은 원금·실현손익 계약을 사용해야 합니다.
 
