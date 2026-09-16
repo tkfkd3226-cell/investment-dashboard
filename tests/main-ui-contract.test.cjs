@@ -179,6 +179,8 @@ test('공통 full render는 keyboard focus를 보존하고 live partial refresh�
   const liveRefreshEnd=app.indexOf('\n// [APP05]',liveRefreshStart);
   const liveRefreshBlock=app.slice(liveRefreshStart,liveRefreshEnd);
   assert.ok(liveRefreshStart>=0&&liveRefreshEnd>liveRefreshStart,'live partial refresh block is missing');
+  assert.match(liveRefreshBlock,/if\(!liveValuationRenderDateEligible\(dataState\.activeDate\)\)return;/,'live partial refresh must render eligible pre-open carry dates, not only KST today');
+  assert.doesNotMatch(liveRefreshBlock,/activeDate!==kstTodayText\(\)/,'live partial refresh must not hard-block the previous completed session before market open');
   assert.doesNotMatch(liveRefreshBlock,/render\(\{renderTopbar:false\}\)|document\.getElementById\('app'\)\.innerHTML/);
   for(const marker of ['renderHeroMetricPills(x,v)','renderCombined(x)','renderPensionOverview(x)','renderPensionAssetDetail(x)','renderPensionCharts(x)','renderSecuritiesPerformanceSummary(x)','renderSecuritiesAssetDetail(x)','renderSecuritiesChartsBlock(x)','renderSecuritiesLedgerBlock(x)','renderSecuritiesSourceBlock(x)'])assert.ok(liveRefreshBlock.includes(marker),`live partial refresh 누락: ${marker}`);
   assert.match(liveRefreshBlock,/drawAllCharts\(\);/);

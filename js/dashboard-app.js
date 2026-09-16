@@ -4,6 +4,7 @@ import {
   dataState,
   heroPerformanceBasisLabel,
   kstTodayText,
+  liveValuationRenderDateEligible,
   loadInitialData,
   pct,
   separateProfitView,
@@ -384,7 +385,7 @@ function restoreDashboardNestedScroll(snapshot=[]){
   });
 }
 function renderLiveValuationRefresh(){
-  if(dataState.activeDate!==kstTodayText())return;
+  if(!liveValuationRenderDateEligible(dataState.activeDate))return;
   const focusSnapshot=dashboardFocusSnapshot();
   const scrollX=window.scrollX,scrollY=window.scrollY;
   const nestedScrollSnapshot=dashboardNestedScrollSnapshot();
