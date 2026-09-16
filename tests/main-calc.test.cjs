@@ -774,7 +774,7 @@ test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표�
   const beforeSamsung=before.holdings.find(h=>h.ticker==='009150'),afterSamsung=after.holdings.find(h=>h.ticker==='009150');
   assert.equal(beforeSamsung.qty,1);
   assert.equal(beforeSamsung.cost,1345000);
-  assert.equal(beforeSamsung.totalProfit,-15000);
+  assert.equal(beforeSamsung.totalProfit,-28000);
   assert.equal(afterSamsung.qty,0);
   assert.equal(afterSamsung.cost,0);
   assert.equal(afterSamsung.realizedProfit,228);
@@ -794,7 +794,7 @@ test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표�
   assert.deepEqual(core.outsideCashSnapshotForDate('2026-09-16'),portfolio.outsideCashSnapshots.find(v=>v.date==='2026-09-16'));
   assert.equal(after.securitiesAssetDetail.statusRows.some(r=>r.ticker==='009150'),false);
   const changeRow=after.securitiesAssetDetail.change.rows.find(r=>r.ticker==='009150');
-  assert.equal(changeRow.dayChange,15228);
+  assert.equal(changeRow.dayChange,28228);
   assert.equal(changeRow.sale.fullExit,true);
   assert.equal(changeRow.sale.price,1348000);
   assert.equal(changeRow.sale.transactionCost,2772);

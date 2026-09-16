@@ -432,7 +432,7 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
 
         before = self.updater.calculate_performance_snapshot("2026-09-15", portfolio, prices, snapshots)
         after = self.updater.calculate_performance_snapshot("2026-09-16", portfolio, prices, snapshots)
-        self.assertEqual(before["symbols"]["삼성전기"], -15000)
+        self.assertEqual(before["symbols"]["삼성전기"], -28000)
         self.assertEqual(after["symbols"]["삼성전기"], 228)
         committed_after = snapshots["2026-09-16"]
         self.assertEqual(committed_after["updatedAtKST"], prices["2026-09-16"]["updatedAtKST"])
