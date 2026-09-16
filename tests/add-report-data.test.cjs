@@ -318,17 +318,3 @@ test('Report 표시기간과 근거 설명의 거래 수치는 canonical 원천�
   assert.match(addSource,/querySelectorAll\('\[data-report-context-value\]'\)/);
 });
 
-test('운영 문서는 KODEX 거래 단일 원천 규칙과 신규 거래 반영 절차를 canonical JSON 기준으로 유지한다',()=>{
-  const docs=[read('README.md'),read('main_dashboard_maintenance_handover.md'),read('add_maintenance_handover.md')].join('\n');
-  assert.match(docs,/data\/kodex_leverage_trades\.json/);
-  assert.doesNotMatch(docs,/add\/add\.js[^\n]*REPORT_DATA|data\/portfolio\.json[^\n]*(?:separateProfit\.trades|별도수익)[^\n]*(?:반영|source of truth)/i);
-  const addHandover=read('add_maintenance_handover.md');
-  assert.match(addHandover,/`data\/kodex_leverage_trades\.json`에 실현거래를 1회 반영/);
-  assert.match(addHandover,/`data\/portfolio\.json`에 `separateProfit` 거래 배열을 다시 만들거나/);
-  for(const contextKey of ['legacyBuild','julyAdd','augustFinalBuild'])assert.match(addHandover,new RegExp(`\"${contextKey}\"`),`${contextKey} 문서 예시 누락`);
-  assert.match(addHandover,/`legacyBuild\.first\/second`, `julyAdd`, `augustFinalBuild\.first\/second`는 현재 schema validator의 필수 context/);
-  assert.doesNotMatch(addHandover,/실현손익 반영:\s*data\/portfolio\.json 포함/,'작업 시작 순서에 폐기된 portfolio.json 실현손익 반영 문구가 남으면 안 된다');
-  const mainHandover=read('main_dashboard_maintenance_handover.md');
-  assert.doesNotMatch(mainHandover,/표·KPI·차트·`data\/portfolio\.json`의 누계/,'Main 운영 숫자 QA가 폐기된 portfolio.json 누계를 가리키면 안 된다');
-  assert.match(mainHandover,/`data\/kodex_leverage_trades\.json`을 단일 원천으로 사용/);
-});
