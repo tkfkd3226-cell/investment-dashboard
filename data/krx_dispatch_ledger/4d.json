@@ -1,0 +1,15 @@
+[
+  {
+    "requestId": "krx-update-6cc50a63-e586-4f26-8031-ac5c5f6b8ba0",
+    "requestIdHash": "4d42c60b3b5304c9154ec5cbb0152bc2",
+    "hash": "3d5d63b56b17492d93026446a5b93c7f66f3f1be49b67fcc80bf6e4ef4622eff",
+    "branch": "main",
+    "date": "",
+    "workflowRunId": "35038701063",
+    "runUrl": "https://api.github.com/repos/tkfkd3226-cell/investment-dashboard/actions/runs/35038701063",
+    "htmlUrl": "https://github.com/tkfkd3226-cell/investment-dashboard/actions/runs/35038701063",
+    "reason": "market_time_refresh",
+    "savedAtKST": "2026-09-16T09:08:12+09:00",
+    "savedAtMs": 1789517292493
+  }
+]
