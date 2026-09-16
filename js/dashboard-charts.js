@@ -20,11 +20,10 @@ import {
   securityAllocVisibleHoldings,
   securityAllocationColor,
   securityChartNamesForDate,
+  securitiesCumHistoryBundle,
   securitySymbolAllocHistory,
   separateProfitCumulativeForDate,
-  separateProfitReinvestedForDate,
   signed,
-  snapshotDates,
   sortPensionItems,
   sortSecurityAllocationItems,
   sortSecurityChartItems,
@@ -1373,25 +1372,25 @@ function pensionCumFullMoneyAxis(data){
   const rate=fixedTickInfo(Math.min(0,...returns),Math.max(20,...returns),20,true);
   return alignZeroTickRanges(money,5000000,rate,20)[0];
 }
-function securitiesCumFullMoneyAxis(){
-  return securitiesCumFullAxes().money;
+function securitiesCumFullMoneyAxis(fullAxes=null){
+  return (fullAxes||securitiesCumFullAxes()).money;
 }
-function cumulativeMoneyAxis(scope,data,selection,autoY){
+function cumulativeMoneyAxis(scope,data,selection,autoY,fullAxes=null){
   const step=scope==='pensionCum'?5000000:2000000;
-  const full=scope==='pensionCum'?pensionCumFullMoneyAxis(data):securitiesCumFullMoneyAxis();
+  const full=scope==='pensionCum'?pensionCumFullMoneyAxis(data):securitiesCumFullMoneyAxis(fullAxes);
   const hasMoney=selection.has('profit')||selection.has('daily');
   if(!hasMoney||!autoY)return {info:full,step,visible:hasMoney};
   const values=selectedCumMoneyValues(data,selection);
   if(!values.length)return {info:full,step,visible:hasMoney};
   return {info:fixedTickInfo(Math.min(...values),Math.max(...values),step,true),step,visible:true};
 }
-function cumulativeRightAxis(scope,data,mode,leftAxis,compareSelected,autoY){
+function cumulativeRightAxis(scope,data,mode,leftAxis,compareSelected,autoY,fullAxes=null){
   if(!compareSelected)return {info:null,visible:false};
   const values=data.map(d=>mode==='kospi'?d['코스피 지수']:d['합계 : 누적수익률']).filter(Number.isFinite);
   if(mode==='kospi')return {info:values.length?niceTickInfo(Math.min(...values),Math.max(...values),6,false):{min:0,max:1,ticks:[0,1]},visible:true};
   const step=scope==='pensionCum'?20:(!autoY&&scope==='securitiesCum'?10:20);
   let raw;
-  if(!autoY&&scope==='securitiesCum')raw=securitiesCumFullAxes().returns;
+  if(!autoY&&scope==='securitiesCum')raw=(fullAxes||securitiesCumFullAxes()).returns;
   else if(!autoY&&scope==='pensionCum')raw=fixedTickInfo(Math.min(0,...values),Math.max(20,...values),20,true);
   else raw=fixedTickInfo(Math.min(0,...values),Math.max(0,...values),step,true);
   if(leftAxis.visible){
@@ -1466,48 +1465,18 @@ function drawPensionStacked(){
   addHover(svg,cfg,data,d=>{let html=tooltipDate(d['날짜']);const total=series.reduce((a,s)=>a+Number(d[s]||0),0);series.forEach(s=>html+=row(chartDisplayLabel('pensionAlloc',s),won(d[s]||0),''));return html+tooltipDivider()+totalRow('평가금액 합계',won(total),'')});
 }
 
-function securitiesCumAxisValues(d){
-  const rows=snapshotDates(d).map(x=>{
-    const value=calc(x);
-    const baseProfit=value.rawHoldingProfit;
-    const separateProfit=separateProfitCumulativeForDate(x);
-    const reinvested=separateProfitReinvestedForDate(x);
-    const offPrincipal=Math.max(0,value.account1Principal)||1;
-    const onPrincipal=Math.max(0,value.account1Principal-reinvested)||1;
-    return {
-      off:baseProfit,
-      on:baseProfit+separateProfit,
-      offReturn:baseProfit/offPrincipal*100,
-      onReturn:(baseProfit+separateProfit)/onPrincipal*100
-    };
-  });
-  const money=[];
-  rows.forEach((row,i)=>{
-    const prev=i>0?rows[i-1]:null;
-    money.push(
-      row.off,
-      row.on,
-      prev?row.off-prev.off:row.off,
-      prev?row.on-prev.on:row.on
-    );
-  });
-  return {
-    money:money.filter(Number.isFinite),
-    returns:rows.flatMap(row=>[row.offReturn,row.onReturn]).filter(Number.isFinite)
-  };
-}
 // 별도수익 OFF/ON 양쪽 범위를 함께 사용해 토글 시 축을 고정하고 좌우 0선을 같은 높이에 유지한다.
-function securitiesCumFullAxes(){
-  const values=securitiesCumAxisValues(dataState.activeDate);
+function securitiesCumFullAxes(bundle=securitiesCumHistoryBundle(dataState.activeDate)){
+  const values=bundle.axisValues;
   const money=fixedTickInfo(Math.min(0,...values.money),Math.max(0,...values.money),2000000,true);
   const returns=fixedTickInfo(Math.min(0,...values.returns),Math.max(0,...values.returns),10,true);
   const aligned=alignZeroTickRanges(money,2000000,returns,10);
   return {money:aligned[0],returns:aligned[1]};
 }
 function drawCumChart(){
-  const data=cumHistory(dataState.activeDate),svg=document.getElementById('chartCum');if(!svg||!data.length)return;clear(svg);
-  const mode=chartState.compareModes.securities||'return',selection=chartSelection('securitiesCum'),selected=selection.selected,autoY=chartAutoYEnabled('securitiesCum');
-  const leftAxis=cumulativeMoneyAxis('securitiesCum',data,selected,autoY),rightAxis=cumulativeRightAxis('securitiesCum',data,mode,leftAxis,selected.has('compare'),autoY);
+  const bundle=securitiesCumHistoryBundle(dataState.activeDate),data=uiState.includeSeparateProfit?bundle.on:bundle.off,svg=document.getElementById('chartCum');if(!svg||!data.length)return;clear(svg);
+  const mode=chartState.compareModes.securities||'return',selection=chartSelection('securitiesCum'),selected=selection.selected,autoY=chartAutoYEnabled('securitiesCum'),fullAxes=securitiesCumFullAxes(bundle);
+  const leftAxis=cumulativeMoneyAxis('securitiesCum',data,selected,autoY,fullAxes),rightAxis=cumulativeRightAxis('securitiesCum',data,mode,leftAxis,selected.has('compare'),autoY,fullAxes);
   const yInfo=leftAxis.info,rInfo=rightAxis.info||{min:0,max:1,ticks:[]};
   const cfg=chartConfig(svg),n=data.length,bw=chartBarWidth(svg,cfg,n,.28);
   cfg.edgePad=Math.max(CHART_EDGE_PAD,bw*2.1);

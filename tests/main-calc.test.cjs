@@ -323,6 +323,37 @@ test('누적 차트 데이터: 첫 행 변화는 누적손익, 이후 행은 직
   assert.equal(rows[1]['코스피 지수'],2610);
 });
 
+test('증권 누적 차트 bundle은 별도수익 OFF/ON을 한 계산원천에서 만들고 데이터 reference 변경 시 갱신한다',()=>{
+  const portfolio=basePortfolio({
+    separateProfit:{reinvestedLimit:50,trades:[{date:'2026-03-20',profit:100}]},
+    securitiesEvents:[{date:'2026-03-20',type:'contribution',amount:50,fundingClass:'performanceExcludedTransfer'}]
+  });
+  setState({
+    portfolio,
+    prices:{'2026-03-20':{indices:{KOSPI:2600}},'2026-03-21':{indices:{KOSPI:2610}}},
+    account1Daily:{
+      '2026-03-20':dailySnapshot({profit:100}),
+      '2026-03-21':dailySnapshot({profit:160})
+    }
+  });
+  const first=core.securitiesCumHistoryBundle('2026-03-21');
+  assert.equal(first.off.at(-1)['합계 : 누적손익'],160);
+  assert.equal(first.on.at(-1)['합계 : 누적손익'],260);
+  core.uiState.includeSeparateProfit=false;
+  assert.deepEqual(core.cumHistory('2026-03-21'),first.off);
+  core.uiState.includeSeparateProfit=true;
+  assert.deepEqual(core.cumHistory('2026-03-21'),first.on);
+
+  core.dataState.account1Daily={
+    ...core.dataState.account1Daily,
+    '2026-03-21':dailySnapshot({profit:220})
+  };
+  const refreshed=core.securitiesCumHistoryBundle('2026-03-21');
+  assert.notEqual(refreshed,first);
+  assert.equal(refreshed.off.at(-1)['합계 : 누적손익'],220);
+  assert.equal(refreshed.on.at(-1)['합계 : 누적손익'],320);
+});
+
 test('종목 차트 데이터: chartFrom 이전 종목은 null, 활성화 이후는 손익/수익률을 계산한다',()=>{
   const portfolio=basePortfolio({
     securities:[

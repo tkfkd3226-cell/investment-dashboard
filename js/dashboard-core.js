@@ -928,33 +928,108 @@ function calc(date){
 function snapshotDates(d){
   return allAvailableDates().filter(x=>x<=d);
 }
-function cumHistory(d){
-  return snapshotDates(d).map(x=>{
-    const v=calc(x);
-    const baseProfit=v.rawHoldingProfit;
-    const separateProfit=uiState.includeSeparateProfit?separateProfitCumulativeForDate(x):0;
-    const reclassifiedReinvestment=uiState.includeSeparateProfit?separateProfitReinvestedForDate(x):0;
-    const principal=Math.max(0,v.account1Principal-reclassifiedReinvestment)||1;
-    const totalProfit=baseProfit+separateProfit;
+const securitiesHistoryCalcCache={
+  date:null,
+  portfolio:null,
+  prices:null,
+  snapshots:null,
+  account1Daily:null,
+  liveValuation:null,
+  rows:null,
+  cumBundle:null
+};
+function securitiesHistoryCalcCacheMatches(d){
+  return securitiesHistoryCalcCache.rows
+    &&securitiesHistoryCalcCache.date===d
+    &&securitiesHistoryCalcCache.portfolio===dataState.portfolio
+    &&securitiesHistoryCalcCache.prices===dataState.prices
+    &&securitiesHistoryCalcCache.snapshots===dataState.snapshots
+    &&securitiesHistoryCalcCache.account1Daily===dataState.account1Daily
+    &&securitiesHistoryCalcCache.liveValuation===dataState.liveValuation;
+}
+function securitiesHistoryCalcRows(d){
+  if(securitiesHistoryCalcCacheMatches(d))return securitiesHistoryCalcCache.rows;
+  const rows=snapshotDates(d).map(date=>({date,value:calc(date)}));
+  Object.assign(securitiesHistoryCalcCache,{
+    date:d,
+    portfolio:dataState.portfolio,
+    prices:dataState.prices,
+    snapshots:dataState.snapshots,
+    account1Daily:dataState.account1Daily,
+    liveValuation:dataState.liveValuation,
+    rows,
+    cumBundle:null
+  });
+  return rows;
+}
+function securitiesCumHistoryBundle(d){
+  const calcRows=securitiesHistoryCalcRows(d);
+  if(securitiesHistoryCalcCache.cumBundle)return securitiesHistoryCalcCache.cumBundle;
+  const baseRows=calcRows.map(({date,value})=>{
+    const baseProfit=value.rawHoldingProfit;
+    const separateProfit=separateProfitCumulativeForDate(date);
+    const reinvested=separateProfitReinvestedForDate(date);
+    const offPrincipal=Math.max(0,value.account1Principal)||1;
+    const onPrincipal=Math.max(0,value.account1Principal-reinvested)||1;
     return {
-      '날짜':x,
-      '합계 : 누적손익':totalProfit,
-      '합계 : 누적수익률':principal?totalProfit/principal*100:0,
-      '코스피 지수':kospiIndexForDate(x),
-      '합계 : 전일대비손익':0,
-      '_기존포트누적손익':baseProfit,
+      date,
+      kospi:kospiIndexForDate(date),
+      baseProfit,
+      separateProfit,
+      reinvested,
+      offPrincipal,
+      onPrincipal,
+      offProfit:baseProfit,
+      onProfit:baseProfit+separateProfit,
+      offReturn:offPrincipal?baseProfit/offPrincipal*100:0,
+      onReturn:onPrincipal?(baseProfit+separateProfit)/onPrincipal*100:0
+    };
+  });
+  const toRows=enabled=>baseRows.map((item,i)=>{
+    const profit=enabled?item.onProfit:item.offProfit;
+    const prev=i>0?(enabled?baseRows[i-1].onProfit:baseRows[i-1].offProfit):0;
+    const principal=enabled?item.onPrincipal:item.offPrincipal;
+    const separateProfit=enabled?item.separateProfit:0;
+    return {
+      '날짜':item.date,
+      '합계 : 누적손익':profit,
+      '합계 : 누적수익률':enabled?item.onReturn:item.offReturn,
+      '코스피 지수':item.kospi,
+      '합계 : 전일대비손익':i===0?profit:profit-prev,
+      '_기존포트누적손익':item.baseProfit,
       '_별도수익누적':separateProfit,
       '_성과기준투입원금':principal
     };
-  }).map((row,i,arr)=>{
-    row['합계 : 전일대비손익']=i===0?row['합계 : 누적손익']:row['합계 : 누적손익']-arr[i-1]['합계 : 누적손익'];
-    return row;
   });
+  const money=[];
+  baseRows.forEach((item,i)=>{
+    const prev=i>0?baseRows[i-1]:null;
+    money.push(
+      item.offProfit,
+      item.onProfit,
+      prev?item.offProfit-prev.offProfit:item.offProfit,
+      prev?item.onProfit-prev.onProfit:item.onProfit
+    );
+  });
+  const bundle={
+    off:toRows(false),
+    on:toRows(true),
+    axisValues:{
+      money:money.filter(Number.isFinite),
+      returns:baseRows.flatMap(item=>[item.offReturn,item.onReturn]).filter(Number.isFinite)
+    }
+  };
+  securitiesHistoryCalcCache.cumBundle=bundle;
+  return bundle;
+}
+function cumHistory(d){
+  const rows=uiState.includeSeparateProfit?securitiesCumHistoryBundle(d).on:securitiesCumHistoryBundle(d).off;
+  return rows.map(row=>({...row}));
 }
 function symbolHistory(d){
   const series=securityChartNamesForDate(d);
-  return snapshotDates(d).map(x=>{
-    const v=calc(x),activeNames=new Set(securityChartNamesForDate(x));
+  return securitiesHistoryCalcRows(d).map(({date:x,value:v})=>{
+    const activeNames=new Set(securityChartNamesForDate(x));
     const row={'날짜':x,'_rates':{}};
     series.forEach(name=>{
       if(!activeNames.has(name)){row[name]=null;row._rates[name]=null;return;}
@@ -967,8 +1042,8 @@ function symbolHistory(d){
   });
 }
 function allocHistory(d){
-  return snapshotDates(d).map(x=>{
-    const v=calc(x),typeTotals=securityAllocTypeTotals(v);
+  return securitiesHistoryCalcRows(d).map(({date:x,value:v})=>{
+    const typeTotals=securityAllocTypeTotals(v);
     return {
       '날짜':x,
       ETF:typeTotals.etf,
@@ -979,8 +1054,8 @@ function allocHistory(d){
   });
 }
 function securitySymbolAllocHistory(d,series){
-  return snapshotDates(d).map(x=>{
-    const v=calc(x),row={'날짜':x,'_total':Number(v.allocTotal||0)};
+  return securitiesHistoryCalcRows(d).map(({date:x,value:v})=>{
+    const row={'날짜':x,'_total':Number(v.allocTotal||0)};
     series.forEach(name=>{
       const h=v.holdings.find(item=>item.name===name);
       row[name]=h&&securityAllocHoldingVisible(h,x)?Number(h?.evalAmount||0):0;
@@ -1182,6 +1257,7 @@ export {
   securityAllocVisibleHoldings,
   securityAllocationColor,
   securityChartNamesForDate,
+  securitiesCumHistoryBundle,
   securityExcludedTransferSum,
   securityExternalContributionSum,
   securityInternalCashTransferSum,
