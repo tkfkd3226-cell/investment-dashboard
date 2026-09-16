@@ -1247,6 +1247,12 @@ test('Hero 기준문구는 raw 상태 대신 실제 적용 가격의 사용자 �
   assert.match(app,/data-dashboard-action="hero-basis-tap"/);
 });
 
+test('Live Valuation 부분 갱신은 Hero 기준문구도 실제 Market AI 가격 기준으로 동기화한다',()=>{
+  assert.match(app,/const heroBasis=document\.querySelector\('\.hero-basis'\);/);
+  assert.match(app,/heroBasis\.setAttribute\('datetime',x\.date\);/);
+  assert.match(app,/heroBasis\.textContent=`\(\$\{heroPerformanceBasisLabel\(x\.date\)\}\)`;/);
+});
+
 test('KRX 종가 반영은 인증 없는 정규장 일봉을 우선하고 raw pykrx를 failover로 유지한다',()=>{
   const updater=read('scripts/update_prices.py');
   const gas=read('GAS_code.js');

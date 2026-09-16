@@ -400,6 +400,13 @@ function renderLiveValuationRefresh(){
   // Live Valuation은 #app 전체를 교체하지 않는다. 가격에 직접 의존하는 fragment만 갱신하고,
   // 활성 자산 탭의 SVG만 다시 그린다. 비활성 탭 SVG는 새 card markup과 함께 비워 두었다가
   // 사용자가 해당 탭으로 이동한 뒤 기존 lazy chart 경로가 paint 이후 그린다.
+  // Hero 기준문구도 같은 live snapshot을 따라가야 한다. 초기 JSON 렌더 문구를 남겨 두면
+  // 실제 평가는 Market AI closed quote인데도 '(정규장 종가 기준)'으로 보이는 상태 불일치가 생긴다.
+  const heroBasis=document.querySelector('.hero-basis');
+  if(heroBasis){
+    heroBasis.setAttribute('datetime',x.date);
+    heroBasis.textContent=`(${heroPerformanceBasisLabel(x.date)})`;
+  }
   replaceDashboardFragment(document.querySelector('.hero-metric-pills'),renderHeroMetricPills(x,v));
   if(x.hasPension){
     replaceDashboardFragment(document.getElementById('summary-section'),renderCombined(x));
