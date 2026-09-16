@@ -211,7 +211,8 @@ function handleDashboardAction(event,control){
 function setupDashboardEventDelegation(){
   document.addEventListener('click',event=>{
     const control=event.target.closest?.('[data-dashboard-action]');
-    if(control)handleDashboardAction(event,control);
+    if(control){handleDashboardAction(event,control);return;}
+    if(phoneUi()&&event.target.closest?.('#app > .wrap > .hero')&&!event.target.closest?.('a,button,input,select,textarea,[role="button"],[role="link"]'))handleHeroBasisTap();
   });
   document.addEventListener('change',event=>{
     const target=event.target;
@@ -271,13 +272,13 @@ function renderAssetWorkspace(x){
 
 // #tabs/#app 교체를 수행하는 모든 full render는 keyboard focus 복원을 공통 contract로 가진다.
 // Live Valuation 경로는 이 공통 contract 위에 menu/TOC/window/nested-scroll 상태를 추가 보존한다.
-function render(){
+function render({renderTopbar=true}={}){
   const focusSnapshot=dashboardFocusSnapshot();
   hideAssetSourceTooltip();
   hideSecuritySaleTooltip();
   closeAccountMemoInfo();
   const x=calc(dataState.activeDate),v=separateProfitView(x);
-  renderTabs();
+  if(renderTopbar)renderTabs();
   document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${escapeHtml(dataState.portfolio.meta.title)}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${heroPerformanceBasisLabel(x.date)})</time></div>${renderHeroMetricPills(x,v)}</header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
   hydrateSectionTitleIcons(document.getElementById('app'));
   syncAssetTabs();
@@ -334,6 +335,7 @@ function restoreDashboardFocus(snapshot,retryFrames=2){
   if(!snapshot)return;
   const target=dashboardFocusTarget(snapshot);
   if(target){
+    if(target===document.activeElement)return;
     try{target.focus?.({preventScroll:true})}catch{target.focus?.()}
     return;
   }
@@ -369,7 +371,7 @@ function renderLiveValuationRefresh(){
   // 아직 스크롤 진입 전인 차트는 entrance pending을 보존해 최초 viewport 진입 애니메이션을 잃지 않는다.
   preservePlayedChartEntrancesOnce();
   requestSecuritiesCumCardTransitionSuppression();
-  render();
+  render({renderTopbar:false});
   if(keepDateMenuOpen)restoreDateActionMenuAfterRender();
   if(keepDesktopTocOpen)restoreDesktopEdgeTocAfterRender();
   requestAnimationFrame(()=>{

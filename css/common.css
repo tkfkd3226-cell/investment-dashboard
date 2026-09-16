@@ -2535,8 +2535,6 @@ body.chart-expanded-open .dash-tooltip{
   --pension-modal-control-inner-icon-pad-right:calc(var(--space-md) + var(--space-5xl) + var(--space-sm));
   --pension-modal-tab-size:var(--type-size-lg);
   --pension-modal-tab-pad-x:var(--space-3xl);
-  --pension-modal-mode-size:var(--type-size-sm);
-  --pension-modal-mode-height:var(--dashboard-control-height);
   --pension-modal-action-size:var(--type-size-sm);
   --pension-modal-delete-title-size:var(--type-size-sm);
   --pension-modal-delete-title-weight:var(--type-weight-regular);
@@ -3820,15 +3818,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   gap:var(--space-5xl);
   min-width:0;
 }
-.pension-contrib-context .pension-work-mode{
-  flex:0 0 auto;
-  height:var(--pension-modal-mode-height);
-}
-.pension-contrib-context .pension-work-mode .pension-work-mode-btn{
-  min-width:0;
-  padding-inline:var(--space-lg);
-  font-size:var(--pension-modal-mode-size);
-}
+.pension-contrib-context .pension-work-mode{flex:0 0 auto}
 .pension-contrib-context .contrib-target-tabs{
   width:100%;
   min-width:0;
@@ -4174,8 +4164,8 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   font-size:0;
 }
 .date-tool-action-icon svg{display:block;width:var(--topbar-action-icon-size);height:var(--topbar-action-icon-size);vertical-align:middle}
-:is(.topbar-realtime-phone-action,.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size);flex-basis:var(--topbar-mode-icon-size)}
-:is(.topbar-realtime-phone-action,.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon svg{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size)}
+:is(.topbar-calc-action,.topbar-market-ai-toggle,.topbar-realtime-phone-action,.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size);flex-basis:var(--topbar-mode-icon-size)}
+:is(.topbar-calc-action,.topbar-market-ai-toggle,.topbar-realtime-phone-action,.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon svg{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size)}
 button.topbar-realtime-phone-action,
 .date-action-menu-wrap,
 .topbar-label-short{display:none}

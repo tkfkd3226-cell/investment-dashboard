@@ -48,6 +48,8 @@ const NAV_ICONS=Object.freeze({
     cornerRounded:`<svg ${NAV_ICON_ATTRS}><rect x="4" y="4" width="16" height="16" rx="5"></rect></svg>`,
     link:`<svg ${NAV_ICON_ATTRS}><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"></path><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"></path></svg>`,
     activity:`<svg ${NAV_ICON_ATTRS}><path d="M22 12h-4l-3 8-6-16-3 8H2"></path></svg>`,
+    signalOn:`<svg ${NAV_ICON_ATTRS}><path d="M5.6 8.6a9 9 0 0 1 12.8 0"></path><path d="M8.5 11.5a5 5 0 0 1 7 0"></path><path d="M11 14.5a1.5 1.5 0 0 1 2 0"></path><path d="M12 16v5"></path></svg>`,
+    signalOff:`<svg ${NAV_ICON_ATTRS}><path d="M5.6 8.6a9 9 0 0 1 12.8 0"></path><path d="M8.5 11.5a5 5 0 0 1 7 0"></path><path d="M12 16v5"></path><path d="m3 3 18 18"></path></svg>`,
     refresh:`<svg ${NAV_ICON_ATTRS}><path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><path d="M18 2v4h4"></path><path d="M6 22v-4H2"></path></svg>`,
     menu:`<svg ${NAV_ICON_ATTRS}><path d="M4 6h16M4 12h16M4 18h16"></path></svg>`,
     close:`<svg ${NAV_ICON_ATTRS}><path d="M18 6 6 18M6 6l12 12"></path></svg>`,

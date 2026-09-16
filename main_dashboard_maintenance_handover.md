@@ -269,13 +269,13 @@ charts             → 차트 state / SVG / chart action
 ui                 → 일반 UI / topbar / navigation / UI action
 pension            → 퇴직연금 조회 View
 pension-editor     → 퇴직연금 변경 Editor / persistence flow
-market-ai-client   → Market AI local/remote base + timeout transport only
+market-ai-client   → Market AI local/remote base + timeout transport + Dashboard-side 연결 사용 preference
 live-valuation     → 오늘 보유 ticker universe / polling / race guard / render defer
 app                → cross-module orchestration / boot
 market-ai          → 현재 시장·AI 신호 standalone panel / polling / render
 ```
 
-단순 수정 때문에 다시 하나의 거대한 JS 파일로 합치지 않고, 반대로 책임 경계가 없는 작은 기능마다 새 파일을 추가하지 않는다. `dashboard-market-ai-client.js`는 backend 산식이나 Dashboard state를 소유하지 않고 transport만 공유하며, `dashboard-live-valuation.js`는 Market AI signal panel state를 직접 다루지 않는다.
+단순 수정 때문에 다시 하나의 거대한 JS 파일로 합치지 않고, 반대로 책임 경계가 없는 작은 기능마다 새 파일을 추가하지 않는다. `dashboard-market-ai-client.js`는 backend 산식·quote 의미·DOM state를 소유하지 않고 transport와 Dashboard-side Market AI 사용 preference/event만 공유하며, `dashboard-live-valuation.js`는 Market AI signal panel state를 직접 다루지 않는다.
 
 ## 2.3 `dashboard-core.js` 책임
 
@@ -440,6 +440,8 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 ### Modal / Action Form 공통 contract
 
 - 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, 상태 표시 등 공통 form/control 표현과 `dashboard-modal.js`의 dialog lifecycle을 재사용한다.
+- 퇴직연금 금액 조정의 `개별 처리 / 작업 모음`은 Main의 `전체 / 계좌별`, `수익률 / 코스피` 등과 같은 `.control-segmented` canonical geometry/typography를 사용한다. 연금 전용 font-size/height/padding optical override를 다시 만들지 않는다.
+- Web/Tablet에서 개인보기 해제 후 나타나는 투자 계산기와 Market AI 연결 토글은 밝기 테마 버튼과 같은 icon-only control geometry/token을 사용한다. Phone 투자 계산기는 기존 `관리` 메뉴 텍스트 항목을 유지한다.
 - 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
 - KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유한다. 공통 modal radius는 shared modal contract에서 한 번만 소유하고 Tablet/Phone은 해당 shared token만 override한다. Phone 좌우 여백은 overlay padding을 canonical source로 사용하며 feature별 `100vw - npx` 폭 보정을 중복해서 만들지 않는다.
 - Tooltip 표시 motion은 `--tooltip-motion`을 공통 source로 사용한다.
@@ -537,7 +539,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 별도수익처럼 여러 모듈에 영향을 주는 흐름
 - cross-module action
 - render orchestration
-  - `#tabs/#app` full render의 keyboard focus snapshot/restore를 공통 소유하고, Live Valuation 경로는 menu/TOC/window/nested-scroll transient state를 추가 보존한다.
+  - 일반 `#tabs/#app` full render의 keyboard focus snapshot/restore를 공통 소유한다. Live Valuation 10초 갱신은 **`#tabs` Topbar DOM을 보존하고 `#app`만 교체**하면서 menu/TOC/window/nested-scroll transient state를 보존한다. focus target이 이미 `document.activeElement`이면 불필요하게 다시 focus하지 않는다.
 - 초기 state 연결
 - event delegation entry
 - boot
@@ -554,7 +556,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 ## 2.8 `dashboard-market-ai.js` standalone 책임
 
-`dashboard-market-ai.js`는 main feature state와 분리된 **현재 시장·AI 신호 조회 전용 standalone entry**다. `dashboard-modal.js`의 저수준 dialog lifecycle과 `dashboard-market-ai-client.js`의 endpoint/timeout transport만 공유하며, signal panel의 polling/state/mount/render는 자체 소유한다.
+`dashboard-market-ai.js`는 main feature state와 분리된 **현재 시장·AI 신호 조회 전용 standalone entry**다. `dashboard-modal.js`의 저수준 dialog lifecycle과 `dashboard-market-ai-client.js`의 endpoint/timeout transport·Dashboard-side 사용 preference만 공유하며, signal panel의 polling/state/mount/render는 자체 소유한다.
 
 현재 책임과 불변조건:
 
@@ -562,6 +564,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - `market-ai-preview` 예시 데이터 모드는 사용하지 않는다. `?dashboard-view=web`, `?dashboard-view=tablet`, `?dashboard-view=mobile`은 화면 형태만 바꾸며 세 모드 모두 실제 Market AI 데이터를 사용한다.
 - Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다. 세 endpoint가 모두 응답하지 않으면 로컬은 panel 중앙에 `연결 확인 중`을 표시하며 재시도하고, 비로컬 환경은 응답 확인 전까지 Market AI signal panel을 mount하지 않고 polling만 유지하며, `실시간 시세` 진입점은 DOM에 있어도 hidden 상태를 유지하고 monitor modal은 생성하지 않는다.
 - Market AI server reachability는 `dashboard-market-ai.js`가 공통 connection event로 publish하고 Topbar/UI가 소비한다. 서버 연결이 검증된 동안에만 웹/태블릿 Topbar의 `실시간 시세` 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출하며, Phone `관리` 메뉴에는 중복 진입점을 두지 않는다. 두 viewport 진입점은 같은 `REALTIME_QUOTES_ACTION`과 `data-market-ai-monitor-entry` gating을 공유하고, `[data-market-ai-monitor-entry][hidden]{display:none}` 공통 author CSS가 `date-tool-btn`의 display 선언보다 우선해 연결 전/해제 시 모든 viewport에서 실제로 숨겨지는 것을 보장한다. Web/Tablet은 iframe을 먼저 load해 Monitor content height를 수신한 뒤 최종 compact·no-scroll geometry로 modal을 reveal하고, size message가 늦을 때만 제한된 compact fallback 높이를 사용한다. 최초에 `availableHeight` 전체를 표시한 뒤 줄이는 동작을 다시 도입하지 않는다. Phone은 KRX 등 action modal과 같은 `--modal-overlay-pad`·`--modal-card-radius`를 상속하고 monitor card만 남은 가용 영역을 채운다. 화면 크기 변경에도 이 구분을 유지하고, 연결 해제 시 진입점을 숨기고 열린 embedded monitor를 닫아 stale UI를 남기지 않는다.
+- Dashboard-side Market AI 사용 preference는 `dashboard-market-ai-client.js`가 canonical source로 소유한다. 기본은 ON이며 `localStorage`에 저장하고 cross-tab `storage` event와 `MARKET_AI_ENABLED_EVENT`로 동기화한다. OFF 시 `dashboard-market-ai.js`와 `dashboard-live-valuation.js`가 in-flight sequence를 무효화하고 주기 polling을 멈추며, signal UI/volatile live quote를 제거해 저장 JSON 값으로 fallback한다. ON 전환은 즉시 refresh를 시도한다. 이 토글은 **Market AI backend runtime을 시작/종료하지 않는다.** Web/Tablet에서는 투자 계산기와 밝기 테마 사이의 icon-only control로, Phone에서는 `관리` 메뉴의 투자 계산기 바로 아래에 둔다. 실제 server reachability와 사용자 preference를 혼동하지 않으며, 미연결 상태의 켜기 action은 enabled 상태를 강제로 재발행해 즉시 재시도를 유도한다.
 - refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답/parse error가 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 async boundary 뒤의 request sequence를 확인한다.
 - backend가 제공하는 signal metadata와 산식 contract를 프런트에서 임의 재해석하지 않는다. 상세 backend 계약은 Market AI 프로젝트의 `market_ai_project_handover.md`를 Source of Truth로 한다.
 - SOX 시장 metric과 Signal Engine 입력은 모두 `INDEX:SOX`를 사용하며 표시 편의를 위해 `FUTURES:SOX` 또는 `SOX-F`로 자동 전환하지 않는다.
@@ -576,11 +579,12 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - `window/globalThis` state bridge, main `dataState/uiState` 직접 접근, main feature module import를 추가하지 않는다.
 - layout 비율, tooltip 위치, viewport별 density, freshness threshold 같은 현재 표현·운영 수치는 실제 CSS/JS/backend 설정을 Source of Truth로 하고 handover에 미세값을 고정하지 않는다.
 
-### 2.8.1 `dashboard-market-ai-client.js` transport 책임
+### 2.8.1 `dashboard-market-ai-client.js` transport · 사용 preference 책임
 
-`dashboard-market-ai-client.js`는 Market AI signal panel과 live valuation이 공유하는 **저수준 transport foundation**이다.
+`dashboard-market-ai-client.js`는 Market AI signal panel과 live valuation이 공유하는 **저수준 transport foundation과 Dashboard-side 연결 사용 preference**를 소유한다.
 
-- local/remote API base 선택과 timeout fetch만 소유한다.
+- local/remote API base 선택과 timeout fetch를 소유한다.
+- `investmentDashboard.marketAiEnabled` localStorage key와 `MARKET_AI_ENABLED_EVENT`를 canonical source로 사용한다. cross-tab `storage` event도 같은 의미를 전달한다.
 - signal 산식, quote 판정, Dashboard 계산, DOM, polling state를 소유하지 않는다.
 - Local은 현재 Dashboard host의 `:8001` full API를 사용한다. Remote는 canonical Tailscale endpoint를 사용하되 실제 runtime 경로는 **Tailscale Serve → `127.0.0.1:8002` GET-only proxy → `127.0.0.1:8001`**이며 Dashboard frontend는 remote write 경로를 갖지 않는다.
 - `fetch()` 성공 뒤 body parse가 끝날 때까지 timeout lifecycle을 유지하고 body 소비 완료 후 timer를 정리한다.
@@ -602,8 +606,8 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - Market AI는 ticker별 현재가와 source/health만 제공한다. 수량·원가·원금·매매흐름·실현손익의 owner는 Dashboard 장부다.
 - 현재가가 바뀌면 현재가 의존 평가금액·평가손익·수익률·일변동·계좌/통합 합계는 기존 Dashboard 계산으로 재파생하되 장부 원천값을 바꾸지 않는다.
 - polling은 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. 겹친 요청은 latest-wins sequence로 보호하며, 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다.
-- 차트 확대, KRX/action modal, 퇴직연금 `.contrib-modal`, native dialog가 열려 있으면 state는 갱신하되 전체 Dashboard render를 보류한다. overlay가 닫힌 뒤 pending render를 1회 수행한다. keyboard focus 보존은 Live Valuation 전용 예외가 아니라 `render()` 공통 contract다. 날짜 변경·일반 live full render 등 `#tabs/#app`을 교체하는 모든 경로에서 현재 focus를 캡처·복원하고, `id`가 없는 keyboard target은 stable `data-dashboard-focus-key`와 occurrence index를 사용한다. standalone Market AI처럼 `#app` 교체 직후 다음 frame에 다시 mount되는 keyed target은 제한된 frame retry로 복원한다. live full render는 추가로 열린 Mobile 날짜/목차 메뉴, Desktop 목차 open 상태, window scroll과 `#app` 안 `.mobile-scroll` / `.chart-wrap`의 내부 scroll 위치를 유지한다. 별도수익 ON/OFF는 full render 경로가 아니라 Hero 성과, 연금+계좌 성과, 증권 성과요약, 증권 누적차트, 장부결과/투자원금 검산만 교체하는 partial refresh를 사용하며, Market AI·보유종목·퇴직연금·종목별/평가비중 차트 DOM은 유지한다. partial refresh도 keyboard focus와 window/nested scroll 위치를 보존한다. native input/select가 focus 중이거나 info disclosure·asset/source/Market AI tooltip을 사용자가 열어 읽는 동안은 full render를 보류하고, 닫힌 뒤 최신 pending state를 1회 반영한다. 직접 render가 발생할 때 body-level source/account tooltip은 먼저 정리해 orphan surface를 남기지 않는다. `generated_at`처럼 화면 의미가 바뀌지 않는 metadata-only 응답은 semantic fingerprint에서 제외해 불필요한 full render를 만들지 않는다.
-- 차트 entrance animation은 card별 최초 viewport 진입 1회가 contract다. Live Valuation full render가 10초마다 발생해도 **이미 `chartEntrancePlayed=true`인 card ID만** 완료 상태를 다음 render에 승계하고, 아직 스크롤 진입 전인 card는 pending 상태를 유지한다. 전체 차트를 일괄 완료 처리해 아래쪽 차트의 최초 진입 animation을 소거하는 회귀를 허용하지 않는다.
+- 차트 확대, KRX/action modal, 퇴직연금 `.contrib-modal`, native dialog가 열려 있으면 state는 갱신하되 Dashboard render를 보류한다. overlay가 닫힌 뒤 pending render를 1회 수행한다. 날짜 변경 같은 일반 full render는 `#tabs/#app`의 현재 focus를 캡처·복원하고, `id`가 없는 keyboard target은 stable `data-dashboard-focus-key`와 occurrence index를 사용한다. 반면 **10초 Live Valuation refresh는 `render({renderTopbar:false})`로 `#tabs` Topbar DOM을 유지하고 `#app`만 교체**한다. 실시간 시세 modal close 후 Topbar trigger로 focus가 복귀해도 주기 갱신마다 Topbar 버튼을 재생성·재focus하여 window scroll이 조금씩 위로 이동하는 회귀를 허용하지 않는다. focus target이 이미 `document.activeElement`이면 restore 단계에서 다시 focus하지 않는다. standalone Market AI처럼 `#app` 교체 직후 다음 frame에 다시 mount되는 keyed target은 제한된 frame retry로 복원한다. live refresh는 열린 Mobile 날짜/목차 메뉴, Desktop 목차 open 상태, window scroll과 `#app` 안 `.mobile-scroll` / `.chart-wrap`의 내부 scroll 위치를 유지한다. 별도수익 ON/OFF는 Hero 성과, 연금+계좌 성과, 증권 성과요약, 증권 누적차트, 장부결과/투자원금 검산만 교체하는 partial refresh를 사용하며, Market AI·보유종목·퇴직연금·종목별/평가비중 차트 DOM은 유지한다. partial refresh도 keyboard focus와 window/nested scroll 위치를 보존한다. native input/select가 focus 중이거나 info disclosure·asset/source/Market AI tooltip을 사용자가 열어 읽는 동안은 render를 보류하고, 닫힌 뒤 최신 pending state를 1회 반영한다. 직접 render가 발생할 때 body-level source/account tooltip은 먼저 정리해 orphan surface를 남기지 않는다. `generated_at`처럼 화면 의미가 바뀌지 않는 metadata-only 응답은 semantic fingerprint에서 제외해 불필요한 render를 만들지 않는다.
+- 차트 entrance animation은 card별 최초 viewport 진입 1회가 contract다. Live Valuation의 10초 `#app` 갱신에서도 **이미 `chartEntrancePlayed=true`인 card ID만** 완료 상태를 다음 render에 승계하고, 아직 스크롤 진입 전인 card는 pending 상태를 유지한다. 전체 차트를 일괄 완료 처리해 아래쪽 차트의 최초 진입 animation을 소거하는 회귀를 허용하지 않는다.
 - Hero 제목행의 `투자 성과` 기준문구는 `heroPerformanceBasisLabel(date)`가 **실제 계산에 적용된 usable quote coverage**를 기준으로 결정한다. 과거 날짜·warming/stale/unavailable·usable 0건·전 종목 closed는 `koreanDateLabel()`의 기존 `종가 기준/장중 HH:MM 기준`을 유지한다. 요청 종목 일부만 usable이면 `일부 실시간 반영`, 요청 종목이 모두 usable이고 `extended` live가 하나라도 적용되면 `시간외 포함 현재가 기준`, 모두 usable이며 정규장 live가 적용되면 `실시간 현재가 기준`으로 표시한다. **ETF closed + 개별주식 live/extended가 섞여 있어도 모든 요청 종목이 Market AI usable이면 `일부`로 낮추지 않는다.** `LIVE / CLOSED / STALE / JSON` 같은 raw 상태 문자열은 노출하지 않는다. 종목·상품명 **라벨 셀 전체 hover** 및 라벨 focus의 기존 `.dash-tooltip`에서 Market AI/JSON 출처·관측시각/기준일을 확인한다. source label은 `aria-describedby`로 기존 tooltip surface와 연결하고 tooltip DOM은 event binding 시 미리 확보한다. 새 tooltip CSS primitive를 만들지 않는다.
 - Market AI standalone polling이 card 값을 갱신할 때 이미 열려 있는 Market AI tooltip도 같은 최신 state/view model로 즉시 다시 그린다. tooltip target이 DOM에서 사라졌다면 tooltip을 닫아 stale body-level surface를 남기지 않는다.
 
@@ -652,7 +656,7 @@ dashboard-app.js
 → chartDateJumpState
 
 dashboard-market-ai-client.js
-→ 영속/module state 없음 · endpoint/timeout transport only
+→ `localStorage` Market AI enabled preference · endpoint/timeout transport · connection/enabled event constants
 
 dashboard-live-valuation.js
 → poll/pending-render timer · refresh sequence · fingerprint · tab client_id runtime state
@@ -684,7 +688,7 @@ Modal/Dialog lifecycle → modal
 퇴직연금 조회 View → pension
 퇴직연금 변경/저장 → pension-editor
 앱 boot/cross-module orchestration → app
-Market AI endpoint/timeout transport → market-ai-client
+Market AI endpoint/timeout transport + Dashboard-side enabled preference → market-ai-client
 오늘 보유종목 quote polling/overlay/race guard → live-valuation
 Market AI 현재 신호 조회/mount/fail isolation → market-ai standalone
 ```
@@ -972,7 +976,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
 - Hero에는 `LIVE / CLOSED / STALE / WARMING / JSON` 같은 raw 상태 문자열을 표시하지 않는다. 대신 `heroPerformanceBasisLabel()`이 현재 Hero 계산에 실제 적용된 quote만 보고 `일부 실시간 반영 / 실시간 현재가 기준 / 시간외 포함 현재가 기준` 중 필요한 의미만 노출한다. live가 실제 적용되지 않거나 전 종목 closed이면 기존 날짜 기준문구를 유지하며, 과거 날짜는 항상 저장 데이터 의미를 유지한다.
 - 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다.
-- live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 전체 render로 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다. keyboard focus는 `render()` 공통 contract로 보존하며 날짜 변경·live refresh의 full render가 같은 snapshot/restore 경로를 사용한다. 별도수익 전환은 `refreshSeparateProfitModeView()`의 partial refresh에서 동일한 focus snapshot/restore 원칙과 window/nested scroll 보존을 적용한다. 현재가 출처, 자산 기여도 segment, 퇴직연금 위험도 gauge, Market AI metric처럼 `id`가 없는 focusable visual target은 `data-dashboard-focus-key`를 가져야 한다. 일반 live full render에서는 Mobile 목차·Desktop 목차 open 상태와 scroll 위치도 유지되어야 하며, metadata-only 응답으로 불필요한 full render가 반복되지 않아야 한다.
+- live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다. 날짜 변경 같은 일반 full render는 `#tabs/#app` focus snapshot/restore를 사용하지만, **10초 Live Valuation refresh는 Topbar DOM을 유지하고 `#app`만 갱신**한다. 실시간 시세 modal close 후 Topbar trigger로 focus가 복귀한 상태에서도 주기 갱신이 해당 버튼을 재생성·재focus하여 window scroll을 위로 끌어올리지 않아야 한다. focus target이 이미 activeElement면 다시 focus하지 않는다. 별도수익 전환은 `refreshSeparateProfitModeView()`의 partial refresh에서 동일한 focus snapshot/restore 원칙과 window/nested scroll 보존을 적용한다. 현재가 출처, 자산 기여도 segment, 퇴직연금 위험도 gauge, Market AI metric처럼 `id`가 없는 focusable visual target은 `data-dashboard-focus-key`를 가져야 한다. live refresh에서도 Mobile 목차·Desktop 목차 open 상태와 scroll 위치를 유지하고, metadata-only 응답으로 불필요한 render가 반복되지 않아야 한다.
 
 ## 3.4 계좌별 성과 메모 tooltip
 
@@ -983,11 +987,13 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 
 ## 3.5 개인보기 3회 클릭 제스처
 
-Hero 기준일 영역의 **연속 3회 클릭 개인보기 ON/OFF는 의도된 비공개 진입 UX**다.
+개인보기 ON/OFF의 **연속 3회 입력은 의도된 비공개 진입 UX**다.
 
+- Web/Tablet은 기존 Hero 기준문구(`.hero-basis`)를 3회 클릭하는 계약을 유지한다.
+- Phone은 터치 성공률을 위해 **Hero 카드의 비대화형 영역 전체**를 3회 터치 영역으로 사용하며 `a/button/input/select/textarea/[role="button"]/[role="link"]` 등 실제 interactive target은 제외한다. Hero에는 `touch-action:manipulation`을 적용하되 레이아웃/크기는 변경하지 않는다.
 - discoverability 부족 자체를 감점하거나 공개 버튼 추가를 권하지 않는다.
 - 이 제스처를 보안 인증 수단으로 취급하지 않는다.
-- 3회 클릭 인식, `OFF → ON → OFF` 상태 reset, 일반 날짜/Topbar/입력 동작 간섭 여부는 실제 회귀로 검증한다.
+- 3회 입력 인식, `OFF → ON → OFF` 상태 reset, 일반 날짜/Topbar/입력 동작 간섭 여부는 실제 회귀로 검증한다.
 
 ## 3.6 모바일 표 · 카드 보기
 
@@ -1866,7 +1872,9 @@ Market AI/live valuation 변경이면 추가로 다음을 확인한다.
 client_id multi-client universe 충돌 없음
 holdings 변경 중 stale response 폐기
 modal/expanded chart 중 render defer
+실시간 시세 modal close 후 10초 refresh에서 Topbar DOM 유지 · scroll creep 없음
 visible 복귀 즉시 refresh
+Dashboard-side Market AI OFF/ON · OFF 시 polling/volatile overlay 제거 · ON 시 즉시 retry
 source tooltip 셀 hover/focus
 실시간 시세 connection gating · Web/Tablet 선측정 reveal · Phone topbar icon-only/공통 modal edge
 ```
@@ -2053,7 +2061,8 @@ node --test tests/cross-ui-contract.test.cjs
 [ ] 실제 책임 파일과 dependency를 확인했는가
 [ ] 과거 코드 기억을 최신본으로 가정하지 않았는가
 [ ] 현재 ES Module ownership을 유지하는가
-[ ] Market AI 변경이라면 signal standalone / shared transport / live valuation 책임 경계를 유지하는가
+[ ] Market AI 변경이라면 signal standalone / shared transport+enabled preference / live valuation 책임 경계를 유지하는가
+[ ] Live Valuation 변경이라면 실시간 시세 modal close 후 10초 갱신에서도 Topbar가 재생성되지 않고 scroll/focus가 안정적인가
 [ ] 기존 canonical CSS rule/token을 먼저 찾았는가
 [ ] 새 breakpoint가 실제 기능상 필요한가
 [ ] Phone 판정 helper/contract를 중복 정의하지 않는가

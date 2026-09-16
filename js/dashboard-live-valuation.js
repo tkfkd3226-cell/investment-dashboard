@@ -6,7 +6,9 @@ import {
   kstTodayText
 } from './dashboard-core.js';
 import {
+  MARKET_AI_ENABLED_EVENT,
   marketAiApiBase,
+  marketAiEnabled,
   marketAiFetchWithTimeout
 } from './dashboard-market-ai-client.js';
 
@@ -185,6 +187,7 @@ function queueUniverseReconcileRefresh(){
 }
 
 async function refreshLiveValuation(){
+  if(!marketAiEnabled())return;
   const clientId=await resolveLiveValuationClientId();
   const refreshSequence=++liveValuationRefreshSequence;
   const today=kstTodayText();
@@ -254,16 +257,29 @@ function setupLiveValuation({renderDashboard}={}){
     return;
   }
   liveValuationSetupBound=true;
+  window.addEventListener(MARKET_AI_ENABLED_EVENT,event=>{
+    const enabled=event?.detail?.enabled===true;
+    liveValuationRefreshSequence+=1;
+    if(!enabled){
+      liveValuationLastFingerprint='';
+      const changed=clearLiveValuationSnapshot('market-ai-disabled',[]);
+      if(changed)requestLiveValuationRender();
+      else flushLiveValuationRender();
+      return;
+    }
+    refreshLiveValuation();
+  });
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible'){
       flushLiveValuationRender();
-      refreshLiveValuation();
+      if(marketAiEnabled())refreshLiveValuation();
     }
   });
-  refreshLiveValuation();
+  if(marketAiEnabled())refreshLiveValuation();
+  else clearLiveValuationSnapshot('market-ai-disabled',[]);
   if(!liveValuationPollTimer){
     liveValuationPollTimer=window.setInterval(()=>{
-      if(document.visibilityState==='visible')refreshLiveValuation();
+      if(document.visibilityState==='visible'&&marketAiEnabled())refreshLiveValuation();
     },LIVE_VALUATION_POLL_MS);
   }
 }

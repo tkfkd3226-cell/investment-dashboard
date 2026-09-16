@@ -67,7 +67,10 @@ import {
 } from './dashboard-charts.js';
 import {
   MARKET_AI_CONNECTION_EVENT,
-  MARKET_AI_MONITOR_URL
+  MARKET_AI_ENABLED_EVENT,
+  MARKET_AI_MONITOR_URL,
+  marketAiEnabled,
+  setMarketAiEnabled
 } from './dashboard-market-ai-client.js';
 
 // Dashboard UI · theme / navigation / topbar / securities rendering / global UI events
@@ -168,8 +171,38 @@ const TOPBAR_ACTION_ICONS=Object.freeze({
   nasdaqFutures:'link',
   krxUpdate:'refresh',
   pensionAdjust:'wallet',
-  calculator:'calculator'
+  calculator:'calculator',
+  marketAiOn:'signalOn',
+  marketAiOff:'signalOff'
 });
+function marketAiConnectionToggleModel(){
+  const connected=marketAiEnabled()&&marketAiMonitorAvailable;
+  return {
+    connected,
+    icon:connected?TOPBAR_ACTION_ICONS.marketAiOff:TOPBAR_ACTION_ICONS.marketAiOn,
+    label:connected?'Market AI 연결 끄기':'Market AI 연결 켜기'
+  };
+}
+function syncMarketAiConnectionToggleControls(){
+  const model=marketAiConnectionToggleModel();
+  document.querySelectorAll('[data-market-ai-connection-toggle]').forEach(control=>{
+    control.dataset.marketAiConnectionState=model.connected?'connected':'disconnected';
+    control.setAttribute('title',model.label);
+    control.setAttribute('aria-label',model.label);
+    control.setAttribute('aria-pressed',String(model.connected));
+    const icon=control.querySelector('[data-market-ai-connection-toggle-icon]');
+    if(icon)icon.innerHTML=navIconSvg(model.icon);
+    const label=control.querySelector('[data-market-ai-connection-toggle-label]');
+    if(label)label.textContent=model.label;
+  });
+}
+function toggleMarketAiConnection(){
+  const currentlyConnected=marketAiEnabled()&&marketAiMonitorAvailable;
+  setMarketAiEnabled(!currentlyConnected,{force:true});
+  syncMarketAiConnectionToggleControls();
+  showAppToast(currentlyConnected?'Market AI 연결을 껐습니다.':'Market AI 연결을 시도합니다.');
+  closeDateActionMenu();
+}
 function hydrateSectionTitleIcons(root=document){
   root?.querySelectorAll?.('[data-section-title-icon]').forEach(el=>{
     el.innerHTML=navIconSvg(el.dataset.sectionTitleIcon||'list');
@@ -216,12 +249,15 @@ function renderMobileNavigationGroups(groups,{indentAfterFirst=false}={}){
     const groupClass=`mobile-nav-group${group.phoneOnly?' mobile-nav-group-phone-only':''}${group.tocFirst?' mobile-nav-group-toc-first':''}`;
     return `<div class="${groupClass}"><p>${group.label}</p>${group.items.map((item,idx)=>{
       const type=item.type||(item.id?'section':'');
-      const inner=`<span class="nav-icon">${navIconSvg(item.icon)}</span><span><strong>${item.title}</strong></span>`;
+      const toggleAttrs=item.marketAiToggle?' data-market-ai-connection-toggle':'';
+      const iconAttrs=item.marketAiToggle?' data-market-ai-connection-toggle-icon':'';
+      const labelAttrs=item.marketAiToggle?' data-market-ai-connection-toggle-label':'';
+      const inner=`<span class="nav-icon"${iconAttrs}>${navIconSvg(item.icon)}</span><span><strong${labelAttrs}>${item.title}</strong></span>`;
       const cls=`mobile-nav-item ${indentAfterFirst&&idx?'sub':''}`;
       if(type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" draggable="false" data-dashboard-action="close-date-menu">${inner}</a>`;
       if(type==='action'){
         const marketAiAttrs=item.marketAiOnly?` data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}`:'';
-        return `<button type="button" class="${cls}" data-dashboard-action="${item.action}"${marketAiAttrs}>${inner}</button>`;
+        return `<button type="button" class="${cls}" data-dashboard-action="${item.action}"${marketAiAttrs}${toggleAttrs}>${inner}</button>`;
       }
       return `<button type="button" class="${cls}" data-dashboard-action="jump-section" data-section-target="${item.id}" data-close-date-menu="true">${inner}</button>`;
     }).join('')}</div>`;
@@ -244,7 +280,8 @@ function renderResponsiveNavigationMenuContent(){
       items:[
         {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
         {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'},
-        ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[])
+        ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[]),
+        (()=>{const model=marketAiConnectionToggleModel();return {type:'action',action:'toggle-market-ai-connection',icon:model.icon,title:model.label,marketAiToggle:true}})()
       ]
     },
     ...tocGroups
@@ -406,9 +443,12 @@ function renderTabs(){
         <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-pension-action" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" data-dashboard-action="open-pension-modal">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.pensionAdjust)}</span><span class="topbar-label-full">퇴직연금 금액 조정</span><span class="topbar-label-short">연금 조정</span>
         </button>
-        ${uiState.personalViewUnlocked?`<a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" draggable="false" title="투자 계산기" aria-label="투자 계산기">
-          <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
+        ${uiState.personalViewUnlocked?`<a class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" draggable="false" title="투자 계산기" aria-label="투자 계산기">
+          <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span>
         </a>`:''}
+        ${(()=>{const model=marketAiConnectionToggleModel();return `<button type="button" class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-market-ai-toggle" title="${model.label}" aria-label="${model.label}" aria-pressed="${model.connected}" data-dashboard-action="toggle-market-ai-connection" data-market-ai-connection-toggle>
+          <span class="date-tool-action-icon" data-market-ai-connection-toggle-icon>${navIconSvg(model.icon)}</span>
+        </button>`})()}
         <button type="button" class="date-tool-btn control-icon-button topbar-realtime-phone-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
           <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span>
         </button>
@@ -490,7 +530,9 @@ function restoreDateActionMenuAfterRender(){
 }
 function setupUiGlobalEvents(){
   syncRealtimeQuotesAvailability(document.documentElement.dataset.marketAiConnected==='true');
-  window.addEventListener(MARKET_AI_CONNECTION_EVENT,event=>syncRealtimeQuotesAvailability(event?.detail?.connected===true));
+  syncMarketAiConnectionToggleControls();
+  window.addEventListener(MARKET_AI_CONNECTION_EVENT,event=>{syncRealtimeQuotesAvailability(event?.detail?.connected===true);syncMarketAiConnectionToggleControls();});
+  window.addEventListener(MARKET_AI_ENABLED_EVENT,()=>syncMarketAiConnectionToggleControls());
   window.addEventListener('message',handleRealtimeMonitorMessage);
   document.addEventListener('click',e=>{
     if(!e.target.closest('#tabs'))closeDateActionMenu();
@@ -518,6 +560,7 @@ function setupUiGlobalEvents(){
 function syncRealtimeQuotesAvailability(available){
   marketAiMonitorAvailable=available===true;
   document.querySelectorAll('[data-market-ai-monitor-entry]').forEach(control=>{control.hidden=!marketAiMonitorAvailable});
+  syncMarketAiConnectionToggleControls();
   if(!marketAiMonitorAvailable)closeRealtimeQuotesModal({resetFrame:true});
 }
 function ensureRealtimeQuotesModal(){
@@ -1408,6 +1451,7 @@ function handleUiDashboardAction(event,control){
   else if(action==='close-realtime-quotes')closeRealtimeQuotesModal({resetFrame:true});
   else if(action==='krx-update')triggerKrxPriceUpdate();
   else if(action==='toggle-theme')toggleTheme();
+  else if(action==='toggle-market-ai-connection')toggleMarketAiConnection();
   else if(action==='toggle-corner-theme')toggleCornerTheme();
   else if(action==='jump-section'){
     jumpToSection(control.dataset.sectionTarget||'');

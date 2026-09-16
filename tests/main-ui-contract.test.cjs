@@ -170,7 +170,10 @@ test('별도수익 ON/OFF는 full render 대신 영향 영역만 부분 갱신�
 });
 
 test('공통 full render는 keyboard focus를 보존하고 live refresh는 열린 목차·scroll 및 metadata-only 무렌더 계약을 유지한다',()=>{
-  assert.match(app,/function render\(\)\{\s*const focusSnapshot=dashboardFocusSnapshot\(\);/);
+  assert.match(app,/function render\(\{renderTopbar=true\}=\{\}\)\{\s*const focusSnapshot=dashboardFocusSnapshot\(\);/);
+  assert.match(app,/if\(renderTopbar\)renderTabs\(\);/);
+  assert.match(app,/function renderLiveValuationRefresh\(\)[^]*?render\(\{renderTopbar:false\}\);/);
+  assert.match(app,/if\(target===document\.activeElement\)return;/);
   assert.match(app,/restoreDashboardFocus\(focusSnapshot\);/);
   assert.match(app,/active\.dataset\?\.dashboardFocusKey/);
   assert.match(app,/snapshot\.kind==='focus-key'/);
@@ -1527,7 +1530,7 @@ test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 ico
   assert.match(marketAi,/publishMarketAiConnectionState\(/);
   assert.match(ui,/title:'실시간 시세'/);
   assert.match(ui,/data-market-ai-monitor-entry/);
-  assert.match(ui,/window\.addEventListener\(MARKET_AI_CONNECTION_EVENT,event=>syncRealtimeQuotesAvailability\(event\?\.detail\?\.connected===true\)\)/);
+  assert.match(ui,/window\.addEventListener\(MARKET_AI_CONNECTION_EVENT,event=>\{syncRealtimeQuotesAvailability\(event\?\.detail\?\.connected===true\);syncMarketAiConnectionToggleControls\(\);\}\)/);
   assert.match(ui,/document\.querySelectorAll\('\[data-market-ai-monitor-entry\]'\)\.forEach\(control=>\{control\.hidden=!marketAiMonitorAvailable\}\)/);
 
   const realtimeIcon=/REALTIME_QUOTES_ACTION=Object\.freeze\([^\n]*icon:'([^']+)'/.exec(ui)?.[1]||'';
@@ -1544,7 +1547,7 @@ test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 ico
   const phoneRealtimeButton=/class="date-tool-btn control-icon-button topbar-realtime-phone-action"[^>]*>[\s\S]*?<\/button>/.exec(ui)?.[0]||'';
   assert.ok(phoneRealtimeButton,'Phone 실시간 시세 상단 버튼이 없다');
   assert.doesNotMatch(phoneRealtimeButton,/topbar-label-(?:full|short)/,'Phone 실시간 시세 버튼은 글자 없이 아이콘만 사용해야 한다');
-  assert.match(common,/:is\(\.topbar-realtime-phone-action,\.topbar-theme-action,\.topbar-corner-action\) \.date-tool-action-icon/);
+  assert.match(common,/:is\(\.topbar-calc-action,\.topbar-market-ai-toggle,\.topbar-realtime-phone-action,\.topbar-theme-action,\.topbar-corner-action\) \.date-tool-action-icon/);
   assert.match(common,/button\.topbar-realtime-phone-action,\s*\.date-action-menu-wrap,\s*\.topbar-label-short\{display:none\}/,'Phone 전용 실시간 시세 버튼은 Web/Tablet에서 control-icon-button display 규칙보다 높은 specificity로 숨겨야 한다');
   assert.match(special,/button\.topbar-realtime-phone-action,\s*\.topbar-theme-action,\s*\.topbar-corner-action\{\s*display:inline-flex;/,'Phone breakpoint에서만 실시간 시세 icon-only 버튼을 다시 표시해야 한다');
   assert.match(common,/\[data-market-ai-monitor-entry\]\[hidden\]\{display:none\}/,'Market AI 전용 진입점의 hidden은 viewport 공통 author CSS로 보장해야 한다');
@@ -1577,6 +1580,57 @@ test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 ico
   const landscapeModalCss=special.slice(landscapeModalStart);
   assert.ok(landscapeModalStart>=0,'Phone Landscape modal CSS block is missing');
   assert.match(landscapeModalCss,/\.action-modal\.realtime-quote-modal\{\s*--modal-card-pad-y:var\(--space-md\);\s*--modal-card-pad-x:var\(--space-md\);\s*\}/s,'Phone Landscape에서도 실시간 시세 card padding은 generic action-modal 24px보다 뒤에서 5px로 재고정해야 한다');
+});
+
+test('퇴직연금 개별 처리/작업 모음은 메인 control-segmented geometry를 그대로 공유한다',()=>{
+  assert.match(pensionEditor,/class="control-segmented pension-work-mode"/);
+  assert.match(common,/\.control-segmented button\{[^]*?font-size:var\(--dashboard-control-font-size\);[^]*?line-height:var\(--dashboard-control-line-height\);/s);
+  assert.match(common,/\.pension-contrib-context \.pension-work-mode\{flex:0 0 auto\}/);
+  assert.doesNotMatch(common,/--pension-modal-mode-(?:size|height)/);
+  assert.doesNotMatch(common,/\.pension-work-mode-btn\{[^]*?(?:font-size|padding-inline|height):/s);
+});
+
+test('개인 보기 도구는 Web/Tablet 계산기를 icon-only 공통 control로 쓰고 Market AI 연결 toggle을 계산기와 테마 사이에 둔다',()=>{
+  const tabsStart=ui.indexOf('function renderTabs(){');
+  const tabsEnd=ui.indexOf('\nfunction toggleMobileDataView',tabsStart);
+  const tabsBlock=ui.slice(tabsStart,tabsEnd);
+  assert.match(tabsBlock,/class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-calc-action"/);
+  const calcBlock=/class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-calc-action"[^]*?<\/a>/.exec(tabsBlock)?.[0]||'';
+  assert.ok(calcBlock,'Web/Tablet 계산기 icon button이 없다');
+  assert.doesNotMatch(calcBlock,/topbar-label-(?:full|short)/);
+  const calcIndex=tabsBlock.indexOf('topbar-calc-action');
+  const marketAiIndex=tabsBlock.indexOf('topbar-market-ai-toggle');
+  const themeIndex=tabsBlock.indexOf('topbar-theme-action');
+  assert.ok(calcIndex>=0&&marketAiIndex>calcIndex&&themeIndex>marketAiIndex,'Market AI toggle은 계산기와 테마 사이에 있어야 한다');
+  assert.match(tabsBlock,/data-dashboard-action="toggle-market-ai-connection" data-market-ai-connection-toggle/);
+  assert.match(uiCommon,/signalOn:/);
+  assert.match(uiCommon,/signalOff:/);
+});
+
+test('Market AI 연결 toggle은 Dashboard-side polling/overlay를 함께 끄고 Phone 관리 메뉴의 투자 계산기 아래에서 재연결할 수 있다',()=>{
+  assert.match(marketAiClient,/MARKET_AI_ENABLED_STORAGE_KEY='investmentDashboard\.marketAiEnabled'/);
+  assert.match(marketAiClient,/MARKET_AI_ENABLED_EVENT='investment-dashboard:market-ai-enabled'/);
+  assert.match(marketAiClient,/function setMarketAiEnabled\(enabled,\{force=false\}=\{\}\)/);
+  assert.match(marketAi,/if\(!marketAiEnabled\(\)\)\{[^]*?publishMarketAiConnectionState\(false\);[^]*?removeMarketAiUi\(\);/s);
+  assert.match(marketAi,/window\.addEventListener\(MARKET_AI_ENABLED_EVENT/);
+  assert.match(liveValuation,/window\.addEventListener\(MARKET_AI_ENABLED_EVENT/);
+  assert.match(liveValuation,/clearLiveValuationSnapshot\('market-ai-disabled',\[\]\)/);
+  assert.match(liveValuation,/document\.visibilityState==='visible'&&marketAiEnabled\(\)/);
+  const mobileMenuStart=ui.indexOf('function renderResponsiveNavigationMenuContent()');
+  const mobileMenuEnd=ui.indexOf('function renderDesktopTocContent()',mobileMenuStart);
+  const mobileMenu=ui.slice(mobileMenuStart,mobileMenuEnd);
+  const calcIndex=mobileMenu.indexOf("title:'투자 계산기'");
+  const toggleIndex=mobileMenu.indexOf("action:'toggle-market-ai-connection'");
+  assert.ok(toggleIndex>calcIndex,'Phone 관리 메뉴에서 Market AI toggle은 투자 계산기 아래에 있어야 한다');
+  assert.match(mobileMenu,/marketAiToggle:true/);
+});
+
+test('Phone 개인 보기 3회 터치는 작은 기준문구가 아니라 Hero 전체 non-interactive 영역을 hit-area로 사용한다',()=>{
+  assert.match(app,/phoneUi\(\)&&event\.target\.closest\?\.\('#app > \.wrap > \.hero'\)/);
+  assert.match(app,/!event\.target\.closest\?\.\('a,button,input,select,textarea,\[role="button"\],\[role="link"\]'\)/);
+  assert.match(app,/handleHeroBasisTap\(\);/);
+  assert.match(special,/\.hero\{touch-action:manipulation\}/);
+  assert.match(app,/<time class="hero-basis" datetime="\$\{x\.date\}" data-dashboard-action="hero-basis-tap">/);
 });
 
 test('증권 종목별 누적손익 UI는 매도 후 평가손익 0이 아니라 totalProfit·performanceCost 계약을 사용한다',()=>{

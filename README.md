@@ -57,9 +57,11 @@ index.html
 - 기업적립금·현금성자산·ETF 추가매수 조정
 - PIN 기반 퇴직연금 저장·삭제
 - 누적손익·수익률·비중 변화 등 기간 차트
-  - 차트 viewport entrance animation은 최초 스크롤 진입에서 1회 재생합니다. 10초 Live Valuation full render는 이미 재생된 차트만 완료 상태를 복원하고, 아직 화면에 진입하지 않은 차트의 pending animation을 소거하지 않습니다.
+  - 차트 viewport entrance animation은 최초 스크롤 진입에서 1회 재생합니다. 10초 Live Valuation 갱신은 Topbar DOM을 보존한 채 `#app`만 갱신하며, 이미 재생된 차트만 완료 상태를 복원하고 아직 화면에 진입하지 않은 차트의 pending animation을 소거하지 않습니다.
 - Light / Dark 테마
 - Desktop / Tablet / Mobile 반응형 UI
+- 개인보기 해제 후 Web/Tablet 투자 계산기는 테마 버튼과 같은 icon-only action geometry를 사용하고, Phone은 기존 `관리` 메뉴의 텍스트 항목을 유지
+- Phone 개인보기 3회 터치는 Hero의 비대화형 영역 전체를 인식 대상으로 사용하고, Web/Tablet은 기존 Hero 기준문구 3회 클릭 계약을 유지
 - Print 전용 출력
 
 ### 2.2 투자 계산기
@@ -109,9 +111,11 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - 오늘 보유종목 quote는 ticker별 `market_state`를 보존해 판단하며, **15:30~20:00에는 개별주식 `extended`와 ETF `closed`가 동시에 존재할 수 있으므로 top-level `market_state` 하나로 전체 종목 상태를 판정하지 않음**
 - 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다.
 - Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
+- Dashboard에서 Market AI 사용 여부를 직접 켜고 끌 수 있습니다. Web/Tablet은 **투자 계산기와 밝기 테마 버튼 사이의 icon-only action**, Phone은 `관리` 메뉴의 **투자 계산기 바로 아래**에 같은 기능을 둡니다. 연결된 상태에서는 끄기 의미 아이콘, 수동 OFF 또는 미연결 상태에서는 켜기 의미 아이콘을 사용합니다. 이 설정은 `localStorage`에 유지되며 OFF 시 signal/live polling을 중단하고 volatile live overlay를 제거해 저장 JSON 값으로 즉시 fallback합니다. **Market AI backend 프로세스 자체를 종료하는 기능은 아닙니다.**
 - Market AI 서버 연결이 확인된 동안에만 Web/Tablet Topbar의 **`실시간 시세`** 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출합니다. 모든 진입점은 공통 `[data-market-ai-monitor-entry][hidden]` 표시 계약을 사용하므로 연결 전/해제 시 viewport와 관계없이 숨겨집니다. Phone 햄버거 `관리` 메뉴에는 중복 진입점을 두지 않습니다. Web/Tablet은 Monitor의 content height를 먼저 받아 최종 compact 크기로 표시하고, 응답이 늦으면 제한된 compact fallback 높이를 사용하므로 최초에 화면 세로 전체를 채웠다가 줄어드는 동작을 만들지 않습니다. Phone은 KRX 등 action modal과 같은 외곽 여백·edge token을 공유하면서 가용 영역을 채우는 responsive modal을 사용합니다. 연결이 끊기면 모든 진입점을 숨기고 열린 monitor modal도 닫습니다.
+- 10초 Live Valuation 갱신은 `#tabs` Topbar를 재생성하지 않고 `#app`만 갱신합니다. 따라서 실시간 시세 modal 종료 후 Topbar 버튼으로 focus가 복귀해도 주기 갱신마다 해당 버튼을 다시 생성·focus해 화면 scroll을 위로 끌어올리지 않습니다.
 
-프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 현재가 overlay), `dashboard-market-ai-client.js`(local/remote transport)로 분리합니다.
+프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 현재가 overlay), `dashboard-market-ai-client.js`(local/remote transport + Dashboard-side Market AI 사용 preference)로 분리합니다.
 
 세션 판정, multi-client quote universe, lease, warm-up, subscription health, stale/source 판정, partial/full render 보호 같은 **유지보수 세부 contract는 `main_dashboard_maintenance_handover.md`가 소유**합니다. Market AI backend 내부 구현은 Market AI 프로젝트 문서를 따릅니다.
 
@@ -133,7 +137,7 @@ GitHub Pages / Browser
 
 Main의 JavaScript entry point는 `js/dashboard-app.js`입니다.
 
-Market AI는 `js/dashboard-market-ai.js`가 별도 standalone entry로 동작합니다. 이 entry는 `dashboard-modal.js`의 dialog lifecycle과 `dashboard-market-ai-client.js`의 endpoint/timeout transport만 공유하며, 오늘 보유종목 Live Valuation은 main graph의 `dashboard-live-valuation.js`가 같은 transport foundation을 별도로 사용합니다.
+Market AI는 `js/dashboard-market-ai.js`가 별도 standalone entry로 동작합니다. 이 entry는 `dashboard-modal.js`의 dialog lifecycle과 `dashboard-market-ai-client.js`의 endpoint/timeout transport·Dashboard-side 사용 preference를 공유하며, 오늘 보유종목 Live Valuation은 main graph의 `dashboard-live-valuation.js`가 같은 transport/preference foundation을 별도로 사용합니다.
 
 ### 3.2 퇴직연금 저장
 

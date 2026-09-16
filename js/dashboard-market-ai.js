@@ -5,7 +5,9 @@ import {
 } from './dashboard-modal.js';
 import {
   MARKET_AI_CONNECTION_EVENT,
+  MARKET_AI_ENABLED_EVENT,
   marketAiApiBase,
+  marketAiEnabled,
   marketAiFetchWithTimeout as fetchWithTimeout,
   marketAiLocalMode
 } from './dashboard-market-ai-client.js';
@@ -93,7 +95,7 @@ function publishMarketAiConnectionState(connected,{force=false}={}){
 
 // [MARKET02] Environment / Fetch · 실행 환경 / timeout
 function marketAiUiEnabled(){
-  return !!marketAiApiBase();
+  return marketAiEnabled()&&!!marketAiApiBase();
 }
 
 function marketAiPhoneUi(){
@@ -1235,6 +1237,11 @@ let marketAiRefreshSequence=0;
 
 async function refreshMarketAiSignal(){
   const refreshSequence=++marketAiRefreshSequence;
+  if(!marketAiEnabled()){
+    publishMarketAiConnectionState(false);
+    removeMarketAiUi();
+    return;
+  }
   const apiBase=marketAiApiBase();
   if(!apiBase){
     removeMarketAiUi();
@@ -1357,14 +1364,27 @@ function startMarketAiBridge(){
   }
   const app=document.getElementById('app');
   if(app)new MutationObserver(scheduleMount).observe(app,{childList:true,subtree:false});
+  window.addEventListener(MARKET_AI_ENABLED_EVENT,event=>{
+    const enabled=event?.detail?.enabled===true;
+    marketAiRefreshSequence+=1;
+    if(!enabled){
+      Object.assign(marketAiState,{signal:null,marketSnapshot:{},bridgeStatus:null,serverReachable:false,status:'연결 꺼짐',statusKind:'disabled',message:'',lastSignalAt:null});
+      publishMarketAiConnectionState(false,{force:true});
+      removeMarketAiUi();
+      return;
+    }
+    scheduleMount();
+    refreshMarketAiSignal();
+  });
   document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='visible')refreshMarketAiSignal();
+    if(document.visibilityState==='visible'&&marketAiEnabled())refreshMarketAiSignal();
   });
   scheduleMount();
-  refreshMarketAiSignal();
+  if(marketAiEnabled())refreshMarketAiSignal();
+  else{publishMarketAiConnectionState(false,{force:true});removeMarketAiUi();}
   if(!marketAiPollTimer){
     marketAiPollTimer=window.setInterval(()=>{
-      if(document.visibilityState==='visible')refreshMarketAiSignal();
+      if(document.visibilityState==='visible'&&marketAiEnabled())refreshMarketAiSignal();
     },MARKET_AI_POLL_MS);
   }
 }

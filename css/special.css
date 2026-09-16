@@ -287,7 +287,6 @@
       --pension-modal-control-inner-pad:10.8px;
       --pension-modal-control-inner-icon-pad-right:calc(var(--space-8xl) + var(--space-7xl));
       --pension-modal-tab-size:var(--type-size-sm);
-      --pension-modal-mode-size:var(--type-size-2xs);
       --pension-modal-action-size:var(--type-size-2xs);
       --pension-modal-delete-title-size:var(--type-size-2xs);
       --pension-modal-delete-memo-size:var(--type-size-2xs);
@@ -518,6 +517,9 @@
     .separate-profit-toggle strong .control-text-optical{
       transform:translateY(var(--control-text-optical-shift));
     }
+
+  /* Hero Touch Target · Phone에서는 개인 보기 3회 터치 hit-area를 Hero 전체로 확장 */
+    .hero{touch-action:manipulation}
 
   /* Chart Compact Responsive · 세로/가로 Phone 공통 scroll edge + allocation detail 밀도 */
     .chart-wrap.is-scrollable{
