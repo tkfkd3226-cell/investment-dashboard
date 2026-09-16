@@ -1356,7 +1356,7 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 
 #### `GAS_code.js` 점수축
 
-Dashboard 평가에 필수로 동반되는 `GAS_code.js` 서버 점수와 GAS 단독 평가에는 아래 11개 축을 사용한다. N/A가 있으면 남은 비중을 합리적으로 재배분한다.
+평가 범위 규칙상 GAS가 포함되는 경우의 `GAS_code.js` 서버 점수와 GAS 단독 평가에는 아래 11개 축을 사용한다. N/A가 있으면 남은 비중을 합리적으로 재배분한다.
 
 | 평가축 | 기본 비중 | 핵심 질문 |
 |---|---:|---|
@@ -2156,8 +2156,8 @@ JSON 예제가 실제 필수 context를 누락하면?
 [ ] 100점 하위 항목에도 구조·기능·반례 검토 근거를 남겼는가
 [ ] 충분한 범위의 반증 평가 후 실제 A/B 감점 근거가 없다면 C 존재 여부와 무관하게 100점을 허용했는가
 [ ] 미해결 A/B가 0이고 마지막 bounded Counterexample Pass에서 새 A/B가 없다면 평가를 종료했는가
-[ ] Dashboard 평가라면 root `GAS_code.js`를 빠뜨리지 않고 함께 평가했는가
-[ ] Dashboard 점수와 GAS 서버 점수를 별도로 취급했는가
+[ ] 평가 범위 규칙상 GAS가 포함되는 요청이라면 root `GAS_code.js`를 함께 평가했는가
+[ ] GAS가 평가 범위에 포함된 경우 Dashboard 점수와 GAS 서버 점수를 별도로 취급했는가
 [ ] `GAS_code.js` 기본 평가에서 fault budget 밖의 극저확률 다중 장애를 B로 승격하지 않았는가
 [ ] `GAS_code.js` 상세 Pension/KRX bullet을 mandatory 전수 조합 체크리스트로 오해하지 않았는가
 [ ] `GAS_code.js` 수정 후 마지막 bounded pass가 끝났다면 반례의 반례를 재귀적으로 만들어 patch loop를 다시 열지 않았는가
