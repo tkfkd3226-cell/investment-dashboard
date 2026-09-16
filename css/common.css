@@ -771,7 +771,7 @@ button svg{pointer-events:none;flex-shrink:0}
 .hero.market-ai-mounted .hero-metric-pills{grid-area:pills}
 .hero-title-row .market-ai-mobile-trigger{display:none}
 
-/* Market AI Panel / Surface · 공통 surface/color token을 소비하고 전용 geometry만 소유 */
+/* Market AI Layout Wrapper · 바깥 DOM은 mount/lifecycle용으로 유지하되 시각적 패널 chrome은 두지 않는다. */
 #market-ai-section{
   grid-area:market;
   position:relative;
@@ -783,14 +783,14 @@ button svg{pointer-events:none;flex-shrink:0}
 }
 .market-ai-panel{
   width:100%;
-  padding:var(--space-2xs);
-  border:1px solid var(--line);
-  border-radius:min(var(--surface-radius-level-2),var(--corner-surface-cap));
-  background:var(--card);
-  box-shadow:var(--shadow-low);
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
   color:var(--ink);
 }
-/* Market AI Heading / Status · 제목과 연결 상태 */
+/* Market AI Heading / Status · 제목과 연결 상태. 상태 문구는 panel 없이도 읽히는 compact chip으로 표시 */
 .market-ai-heading{
   display:flex;
   align-items:center;
@@ -805,23 +805,47 @@ button svg{pointer-events:none;flex-shrink:0}
 }
 #market-ai-section[data-market-ai-placement="hero"] .market-ai-title{display:none}
 #market-ai-section[data-market-ai-placement="hero"] .market-ai-heading{justify-content:flex-end}
+#market-ai-section[data-market-ai-placement="hero"] .market-ai-status{margin-bottom:var(--space-xs)}
 .market-ai-status{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  max-width:100%;
   min-width:0;
+  min-height:20px;
+  padding:2px var(--space-md);
   overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--card);
   color:var(--muted);
   font-size:var(--market-ai-status-size);
   font-weight:var(--type-weight-bold);
+  line-height:1.2;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-.market-ai-status[data-market-ai-state="checking"]{color:var(--feedback-active-text)}
+.market-ai-status[hidden]{display:none}
+.market-ai-status[data-market-ai-state="checking"]{
+  border-color:var(--status-info-soft-border);
+  background:var(--status-info-bg);
+  color:var(--feedback-active-text);
+}
 .market-ai-status[data-market-ai-state="waiting"],
-.market-ai-status[data-market-ai-state="stale"]{color:var(--status-warning-text)}
-.market-ai-status[data-market-ai-state="signal-error"]{color:var(--feedback-error-text)}
+.market-ai-status[data-market-ai-state="stale"]{
+  border-color:var(--status-warning-border);
+  background:var(--status-warning-bg);
+  color:var(--status-warning-text);
+}
+.market-ai-status[data-market-ai-state="signal-error"]{
+  border-color:var(--status-danger-border);
+  background:var(--status-danger-soft-bg);
+  color:var(--feedback-error-text);
+}
 #market-ai-section[data-market-ai-state="checking"] .market-ai-heading{justify-content:center}
 #market-ai-section[data-market-ai-state="checking"] .market-ai-title{display:none}
 #market-ai-section[data-market-ai-state="checking"] .market-ai-status{
-  width:100%;
+  width:auto;
   text-align:center;
 }
 

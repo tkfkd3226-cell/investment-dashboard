@@ -1008,6 +1008,13 @@ test('Modal lifecycle는 focus trap / focus return / inert / ESC를 공통 layer
   assert.match(modal1,/target\?\.focus\?\.\(\{preventScroll:true\}\)/);
 });
 
+test('Market AI outer wrapper는 chromeless이고 상태 문구는 compact chip으로 유지한다',()=>{
+  assert.match(common,/\.market-ai-panel\{[^}]*padding:0;[^}]*border:0;[^}]*background:transparent;[^}]*box-shadow:none;/,'Market AI outer wrapper must stay chromeless');
+  assert.match(common,/\.market-ai-status\{[^}]*display:inline-flex;[^}]*border-radius:999px;/,'Market AI status must render as a content-width chip');
+  assert.match(common,/\.market-ai-status\[hidden\]\{display:none\}/,'Market AI status hidden contract must survive author display rules');
+  assert.match(common,/\.market-ai-status\[data-market-ai-state="waiting"\],[\s\S]*?\.market-ai-status\[data-market-ai-state="stale"\]\{[^}]*background:var\(--status-warning-bg\)/,'stale signal status must use warning chip surface');
+});
+
 test('Market AI responsive 전환은 Phone↔Desktop 양방향으로 keyboard focus handoff를 유지한다',()=>{
   const start=marketAi.indexOf('function syncMarketAiResponsiveMount');
   const end=marketAi.indexOf('\n// [MARKET09]',start);
