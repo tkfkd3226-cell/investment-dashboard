@@ -563,7 +563,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 - 로컬(`localhost`, `127.0.0.1`)에서는 현재 host의 `:8001` Market AI API를 조회하고, 비로컬 GitHub Pages에서는 `https://node.tail60a98e.ts.net` Tailscale Serve를 통해 같은 실제 Market AI API를 조회한다.
 - `market-ai-preview` 예시 데이터 모드는 사용하지 않는다. `?dashboard-view=web`, `?dashboard-view=tablet`, `?dashboard-view=mobile`은 화면 형태만 바꾸며 세 모드 모두 실제 Market AI 데이터를 사용한다.
-- Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다. 세 endpoint가 모두 응답하지 않으면 로컬은 panel 중앙에 `연결 확인 중`을 표시하며 재시도하고, 비로컬 환경은 응답 확인 전까지 Market AI signal panel을 mount하지 않고 polling만 유지하며, `실시간 시세` 진입점은 DOM에 있어도 hidden 상태를 유지하고 monitor modal은 생성하지 않는다.
+- Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다. 최초 확인 중에는 환경과 무관하게 signal panel과 `실시간 시세` 진입점을 노출하지 않는다. 세 endpoint가 모두 응답하지 않으면 `OFFLINE`으로 종료해 자동 polling을 시작하지 않고, 사용자가 다시 연결을 시도할 때만 새 확인 세션을 시작한다.
 - Market AI server reachability는 `dashboard-market-ai.js`가 공통 connection event로 publish하고 Topbar/UI가 소비한다. 서버 연결이 검증된 동안에만 웹/태블릿 Topbar의 `실시간 시세` 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출하며, Phone `관리` 메뉴에는 중복 진입점을 두지 않는다. 두 viewport 진입점은 같은 `REALTIME_QUOTES_ACTION`과 `data-market-ai-monitor-entry` gating을 공유하고, `[data-market-ai-monitor-entry][hidden]{display:none}` 공통 author CSS가 `date-tool-btn`의 display 선언보다 우선해 연결 전/해제 시 모든 viewport에서 실제로 숨겨지는 것을 보장한다. Web/Tablet은 iframe을 먼저 load해 Monitor content height를 수신한 뒤 최종 compact·no-scroll geometry로 modal을 reveal하고, size message가 늦을 때만 제한된 compact fallback 높이를 사용한다. 최초에 `availableHeight` 전체를 표시한 뒤 줄이는 동작을 다시 도입하지 않는다. Phone은 KRX 등 action modal과 같은 `--modal-overlay-pad`·`--modal-card-radius`를 상속하고 monitor card만 남은 가용 영역을 채운다. 화면 크기 변경에도 이 구분을 유지하고, 연결 해제 시 진입점을 숨기고 열린 embedded monitor를 닫아 stale UI를 남기지 않는다.
 - Dashboard-side Market AI 사용 preference는 `dashboard-market-ai-client.js`가 소유한다. OFF 시 signal/live polling과 in-flight 적용을 중단하고 volatile quote를 제거해 저장 JSON으로 fallback하며, ON 시 즉시 refresh를 시도한다. preference와 server reachability는 별도 상태다. Web/Tablet은 계산기와 테마 사이의 icon action, Phone은 `관리` 메뉴 action을 사용하며 이 토글은 backend runtime을 시작·종료하지 않는다.
 - refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답/parse error가 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 async boundary 뒤의 request sequence를 확인한다.
@@ -595,7 +595,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 ### 2.8.2 `dashboard-live-valuation.js` 현재가 overlay 책임
 
-`dashboard-live-valuation.js`는 Market AI의 KRX quote를 **오늘 보유종목 평가에만 screen-only overlay**하는 main feature adapter다.
+`dashboard-live-valuation.js`는 Market AI의 KRX quote를 **현재 평가 대상 거래일에만 screen-only overlay**하는 main feature adapter다. 기본 대상은 KST 오늘이며, 다음 KRX 정규장 시작 전의 직전 완료 거래일 carry는 아래 명시된 제한 조건에서만 허용한다.
 
 - `dashboard-core.js`가 계산한 현재 보유수량이 `0`보다 큰 증권·퇴직연금 ticker를 문자열로 수집하고 중복 제거한다. `005930`의 leading zero와 `0163Y0` 같은 영문 혼합 6자리 ticker를 보존한다.
 - 동일 ticker가 증권·퇴직연금에 동시에 있어도 quote universe에는 한 번만 요청한다.
@@ -982,7 +982,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - 값 표시 의미는 `fresh`에서 현재 snapshot을 사용하고, K200 `closed / stale / bridge / source`도 `rawRow`가 있으면 **마지막 수신 현재가·등락률을 계속 표시**한다. 값의 신뢰도는 `상태` 행으로 구분하며, 실제 row 자체가 없는 `missing`에서만 현재가·등락률을 `--`로 표시한다. raw row가 있으면 `출처`와 `기준 시각`도 함께 유지한다.
 - 별도 `세션` 행은 K200의 KIS Bridge `expected_session` 근거가 있을 때만 `주간 / 야간 / 장외`로 표시한다. 다만 `상태` 판정은 KOSPI(KST 09:00~15:30), SOX(America/New_York 09:30~16:00), NQ100선물(America/Chicago CME session)의 기본 거래시간을 사용해 장전/장마감/거래중단과 실제 stale을 구분한다. timezone 판정은 `Intl.DateTimeFormat`으로 DST를 따라간다.
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
-- Hero에는 `LIVE / CLOSED / STALE / WARMING / JSON` 같은 raw 상태 문자열을 표시하지 않는다. 대신 `heroPerformanceBasisLabel()`이 현재 Hero 계산에 실제 적용된 quote만 보고 `일부 실시간 반영 / 실시간 현재가 기준 / 시간외 포함 현재가 기준` 중 필요한 의미만 노출한다. live가 실제 적용되지 않거나 전 종목 closed이면 기존 날짜 기준문구를 유지하며, 과거 날짜는 항상 저장 데이터 의미를 유지한다.
+- Hero에는 `LIVE / CLOSED / STALE / WARMING / JSON` 같은 raw 상태 문자열을 표시하지 않는다. 대신 `heroPerformanceBasisLabel()`이 현재 Hero 계산에 실제 적용된 quote만 보고 `일부 실시간 반영 / 실시간 현재가 기준 / 시간외 포함 현재가 기준` 중 필요한 의미만 노출한다. live가 실제 적용되지 않거나 전 종목 closed이면 기존 날짜 기준문구를 유지한다. 단, 다음 정규장 시작 전 직전 완료 거래일 화면에 허용된 closed carry는 Market AI 장마감 시세이며, 그보다 오래된 과거 날짜만 항상 저장 데이터 의미를 유지한다.
 - 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다. 저장값은 snapshot metadata 기준으로 `장중 저장 데이터` / `정규장 종가 저장 데이터` / legacy `저장 데이터`를 구분하고, Market AI quote가 적용된 경우에만 `실시간` / `장 마감 시세`를 사용한다.
 - Live refresh 회귀 QA는 2.7의 canonical partial-render contract를 기준으로 한다. overlay를 교체하지 않고, Topbar/`#app` shell·focus·window/nested scroll을 보존하며, 활성 탭만 필요한 만큼 redraw하고 비활성 탭은 기존 lazy draw 경로를 유지해야 한다.
 - 실시간 시세 iframe은 Dashboard와 `postMessage`로 Light/Dark 테마를 양방향 동기화한다. Monitor가 준비되면 Dashboard 테마를 우선 전달하고, Monitor에서 테마를 바꾸면 Dashboard도 같은 테마를 저장·적용한다. Phone modal의 5px shell은 Light `#f5f7fa`, Dark는 Monitor 기본 배경 `#11161d`를 사용한다.
@@ -1875,7 +1875,7 @@ listener 중복 0
 Market AI/live valuation 변경이면 추가로 다음을 확인한다.
 
 ```text
-오늘 activeDate만 usable quote overlay 적용
+KST 오늘 또는 다음 정규장 시작 전 직전 완료 거래일 activeDate에만 허용 조건을 만족한 usable quote overlay 적용
 종목별 usable/fallback · closed+usable도 Market AI coverage로 인정
 15:30~20:00 mixed session에서 개별주식 extended + ETF closed를 ticker별 market_state로 구분
 client_id multi-client universe 충돌 없음

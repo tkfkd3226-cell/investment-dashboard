@@ -1564,11 +1564,11 @@ QA
 
 ### 평가 기준
 - 메인 card/modal/tooltip primitive를 재사용하는가
-- 현재 시장·AI Signal panel의 polling/state/snapshot/signal render는 `dashboard-market-ai.js` standalone이 소유하고, 오늘 보유종목 평가 overlay는 `dashboard-live-valuation.js`가 별도 소유하는가
+- 현재 시장·AI Signal panel의 polling/state/snapshot/signal render는 `dashboard-market-ai.js` standalone이 소유하고, KST 오늘 및 제한된 직전 완료 거래일 보유종목 평가 overlay는 `dashboard-live-valuation.js`가 별도 소유하는가
 - standalone Signal panel이 main `dataState/uiState`에 직접 결합하지 않으며, live valuation만 `dataState.liveValuation`의 휘발성 계산 입력을 사용하는 책임 경계를 지키는가
 - Snapshot / Signal / KIS Bridge 실패를 격리하는가
 - 비로컬 환경은 실제 endpoint 응답이 확인되기 전 Market AI UI를 mount하지 않고, 전체 연결 실패 시 panel·button·dialog를 제거한 채 polling으로 복구를 기다리는가
-- 로컬 전체 연결 실패는 panel 중앙의 `연결 확인 중` 상태를 유지하는가
+- 전체 연결 실패는 `OFFLINE`으로 종료해 panel을 제거하고 자동 polling을 멈추며, 사용자 재시도 전까지 서버 요청을 반복하지 않는가
 - display logic과 Signal 계산 책임이 분리되어 있는가
 - live valuation은 backend `usable/state/market_state/source`를 소비할 뿐 durable DB 복구 조건을 frontend에서 재계산하지 않는가. 장마감 `closed + usable`은 허용하되 unusable 종목은 개별 JSON fallback하는가
 - embedded `실시간 시세` Monitor는 read-only iframe 관찰면으로 유지되어 Dashboard live valuation `client_id` lease를 생성·연장하지 않는가
@@ -1594,8 +1594,8 @@ QA
 - standalone Market AI의 main dataState/uiState 직접 참조 검색; `dataState.liveValuation`은 live valuation adapter의 휘발성 입력 예외인지 확인
 - modal/tooltip/card primitive 사용 확인
 - polling endpoint별 error handling과 latest-wins 확인
-- 비로컬 초기 미연결·전체 연결 실패·재연결 시 UI mount/remove/polling 흐름 확인
-- 로컬 전체 연결 실패 시 `checking` 상태와 중앙 정렬 selector 확인
+- 초기 미연결·전체 연결 실패·사용자 재연결 시 UI mount/remove/polling 흐름 확인
+- 전체 연결 실패 시 `OFFLINE` 종료·UI 제거·자동 polling 중단 확인
 - Preview/sample 실행 경로가 재도입되지 않았는지 확인
 - live valuation의 `usable:true` 소비·종목별 JSON fallback·closed durable 소비가 backend 판정을 그대로 따르는지 확인
 - embedded Monitor 경로가 `quote-universe` read-only 관찰면이며 Dashboard client lease와 분리되는지 확인

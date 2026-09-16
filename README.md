@@ -99,12 +99,13 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 
 - KOSPI, KOSPI200 선물, SOX, NQ100 선물과 AI Signal 표시
 - 화면 조회 기준 10초 주기 갱신 및 visible 복귀 시 즉시 refresh
-- 오늘 날짜에서만 `usable:true` KRX quote를 현재가 의존 평가값에 overlay
-- 과거 날짜와 수량·원가·원금·매매흐름·실현손익, 운영 JSON은 변경하지 않음
+- 원칙적으로 KST 오늘에 `usable:true` KRX quote를 overlay하며, 자정 이후 다음 KRX 정규장 시작 전에는 직전 완료 거래일의 확정 `closed + usable` quote를 그 거래일 화면에만 이어서 적용
+- 그보다 오래된 과거 날짜와 수량·원가·원금·매매흐름·실현손익, 운영 JSON은 변경하지 않음
 - 일부 quote가 unusable이면 해당 종목만 저장 JSON 값으로 fallback
 - Hero의 `투자 성과` 기준문구는 실제 적용 가격에 따라 장중·정규장 종가·실시간·시간외·애프터 종가 의미를 표시합니다.
 - 보유 종목/상품 출처 tooltip은 저장 snapshot의 기준과 Market AI 적용 여부를 구분해 표시합니다.
 - 시장 카드 tooltip은 거래 세션과 freshness를 함께 해석해 `장전 / 정상 / 데이터 지연 / 장마감 / 거래중단` 등을 구분
+- 시장 카드는 `/api/market-data/snapshot`의 거래소 캘린더 기반 `input_status`를 우선하고, 해당 metadata가 없는 구버전 응답에서만 브라우저의 요일·시간 판정을 fallback으로 사용
 - AI 신호 상세는 공통 `신뢰도`/`데이터 완성도` 휴리스틱을 표시하지 않고, 신호별 `입력 충족률`, 현재 사용 가능한 입력의 **실제 반영 비중(표시 합계 100%)**, 누락 입력과 사유를 backend `details.signal_inputs` 기준으로 표시
 - KOSPI는 소수점 둘째 자리까지 표시하고 KIS `business_time`이 있으면 실제 시장 기준시각을 우선
 - Desktop/Tablet은 Hero 보조 카드, Phone은 동일 panel을 `AI Signal` dialog로 재사용

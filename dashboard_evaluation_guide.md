@@ -1119,7 +1119,7 @@ handover의 JSON 예시는 단순 샘플이 아니라 유지보수자가 실제 
 | Multi-client Universe | PC/폰/복수 탭이 서로의 live quote 구독 universe를 삭제하지 않는가 |
 | Ephemeral Overlay | 실시간 화면값이 역사 JSON·snapshot·장부 write를 오염시키지 않는가 |
 | Subscription Health | Bridge 전체는 살아 있어도 특정 종목 stream만 죽었을 때 해당 종목만 fail-closed 되는가 |
-| Closed Quote Recovery | 장마감 종목의 당일 KIS durable snapshot이 backend에서 `closed + usable`로 복구돼도 live처럼 오인하지 않고 Market AI coverage로 소비하며, 전일·unhealthy·fresh-tick-required 상태는 JSON fallback을 유지하는가 |
+| Closed Quote Recovery | 장마감 종목의 최근 완료 KRX 거래일 KIS durable snapshot이 backend에서 `closed + usable`로 복구돼도 live처럼 오인하지 않고 Market AI coverage로 소비하며, 다음 정규장 시작 뒤의 전일 값·더 오래된 값·unhealthy·fresh-tick-required 상태는 JSON fallback을 유지하는가 |
 | Deferred Render | modal/chart overlay 중 보류한 live render가 닫힌 뒤 유실되거나 옛 state로 남지 않는가 |
 | Server Already Executed | UI가 닫혔어도 이미 실행된 서버 결과를 사용자에게 안전하게 전달하는가 |
 
@@ -1501,11 +1501,11 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 
 ### Market AI
 
-Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend에서는 **현재 시장·AI signal panel**, **오늘 보유종목 live valuation overlay**, 그리고 두 기능이 Main render/lifecycle과 만나는 경계를 평가한다.
+Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend에서는 **현재 시장·AI signal panel**, **허용된 평가일의 보유종목 live valuation overlay**, 그리고 두 기능이 Main render/lifecycle과 만나는 경계를 평가한다.
 
 세부 구현 수치나 함수별 운영 contract를 이 문서에 복제하지 않는다. 현재 설계 의도는 `main_dashboard_maintenance_handover.md`와 실제 소스를 Source of Truth로 하고, 평가는 아래 실패 유형을 중심으로 반증한다.
 
-- **범위 오염**: live quote가 과거 날짜, 운영 JSON, 수량·원가·원금·실현손익 같은 장부 원천을 바꾸지 않는가.
+- **범위 오염**: live quote가 KST 오늘과 다음 정규장 전 직전 완료 거래일 carry 범위를 넘어선 과거 날짜, 운영 JSON, 수량·원가·원금·실현손익 같은 장부 원천을 바꾸지 않는가.
 - **fallback 의미**: `usable:true`만 적용하고 warming/stale/unavailable/error는 종목별 저장값으로 fallback하며 일부 실패가 정상 종목까지 무효화하지 않는가.
 - **상태 최신성**: 겹친 polling, 늦은 body parse, holdings universe 변경, visible↔hidden 전환에서 이전 응답/오류가 최신 상태를 덮지 않는가.
 - **multi-client 격리**: 복수 탭/기기의 client identity와 ticker universe가 서로 제거·오염되지 않는가.
