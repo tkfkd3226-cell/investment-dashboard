@@ -169,6 +169,7 @@ const REALTIME_MONITOR_PREPARE_TIMEOUT_MS=900;
 let realtimeMonitorContentHeight=0;
 let realtimeMonitorPrepareTimer=0;
 let realtimeMonitorPendingReturnFocus=null;
+let realtimeMonitorDragState=null;
 let marketAiMonitorAvailable=false;
 const TOPBAR_ACTION_ICONS=Object.freeze({
   kospiNight:'activity',
@@ -576,6 +577,7 @@ function ensureRealtimeQuotesModal(){
   modal.className='action-modal realtime-quote-modal';
   modal.setAttribute('aria-hidden','true');
   modal.innerHTML=`<div class="action-modal-card realtime-quote-modal-card" role="dialog" aria-modal="true" aria-label="${REALTIME_QUOTES_ACTION.title}">
+    <div class="realtime-quote-drag-handle" data-realtime-quote-drag-handle aria-hidden="true"></div>
     <button type="button" class="control-icon-button modal-icon-btn realtime-quote-close" data-dashboard-action="close-realtime-quotes" aria-label="${REALTIME_QUOTES_ACTION.title} 닫기">${navIconSvg('close')}</button>
     <div class="realtime-quote-frame-stage">
       <iframe class="realtime-quote-frame" title="${REALTIME_QUOTES_ACTION.title}" src="about:blank" referrerpolicy="no-referrer"></iframe>
@@ -583,7 +585,51 @@ function ensureRealtimeQuotesModal(){
   </div>`;
   document.body.appendChild(modal);
   bindDashboardModalDismiss(modal,{onDismiss:()=>closeRealtimeQuotesModal({resetFrame:true})});
+  bindRealtimeQuotesDrag(modal);
   return modal;
+}
+function resetRealtimeQuotesDrag(){
+  realtimeMonitorDragState=null;
+  const card=document.querySelector('#realtimeQuotesModal .realtime-quote-modal-card');
+  if(!card)return;
+  card.style.removeProperty('--realtime-quote-drag-x');
+  card.style.removeProperty('--realtime-quote-drag-y');
+}
+function bindRealtimeQuotesDrag(modal){
+  const handle=modal?.querySelector('[data-realtime-quote-drag-handle]');
+  const card=modal?.querySelector('.realtime-quote-modal-card');
+  if(!handle||!card||handle.dataset.dragBound==='true')return;
+  handle.dataset.dragBound='true';
+  handle.addEventListener('pointerdown',event=>{
+    if(phoneUi()||event.button!==0)return;
+    event.preventDefault();
+    const rect=card.getBoundingClientRect();
+    const currentX=parseFloat(card.style.getPropertyValue('--realtime-quote-drag-x'))||0;
+    const currentY=parseFloat(card.style.getPropertyValue('--realtime-quote-drag-y'))||0;
+    realtimeMonitorDragState={
+      pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,currentX,currentY,
+      minDx:-rect.left,maxDx:window.innerWidth-rect.right,
+      minDy:-rect.top,maxDy:window.innerHeight-rect.bottom
+    };
+    try{handle.setPointerCapture(event.pointerId)}catch(_){}
+    handle.classList.add('is-dragging');
+  });
+  handle.addEventListener('pointermove',event=>{
+    const state=realtimeMonitorDragState;
+    if(!state||state.pointerId!==event.pointerId)return;
+    const dx=Math.min(state.maxDx,Math.max(state.minDx,event.clientX-state.startX));
+    const dy=Math.min(state.maxDy,Math.max(state.minDy,event.clientY-state.startY));
+    card.style.setProperty('--realtime-quote-drag-x',`${Math.round(state.currentX+dx)}px`);
+    card.style.setProperty('--realtime-quote-drag-y',`${Math.round(state.currentY+dy)}px`);
+  });
+  const finish=event=>{
+    if(!realtimeMonitorDragState||realtimeMonitorDragState.pointerId!==event.pointerId)return;
+    realtimeMonitorDragState=null;
+    handle.classList.remove('is-dragging');
+    try{handle.releasePointerCapture(event.pointerId)}catch(_){}
+  };
+  handle.addEventListener('pointerup',finish);
+  handle.addEventListener('pointercancel',finish);
 }
 function realtimeMonitorExpectedOrigin(){
   try{return new URL(MARKET_AI_MONITOR_URL,window.location.href).origin}catch{return ''}
@@ -621,6 +667,7 @@ function syncRealtimeQuotesModalGeometry(){
   const modal=document.getElementById('realtimeQuotesModal');
   if(!modal||(!modal.classList.contains('show')&&!modal.classList.contains('realtime-quote-preparing')))return;
   if(phoneUi()){
+    resetRealtimeQuotesDrag();
     modal.style.removeProperty('--realtime-monitor-display-width');
     modal.style.removeProperty('--realtime-monitor-display-height');
     return;
@@ -659,6 +706,7 @@ function openRealtimeQuotesModal(returnFocus=null){
   if(!marketAiMonitorAvailable)return;
   closeDateActionMenu();
   const modal=ensureRealtimeQuotesModal();
+  resetRealtimeQuotesDrag();
   const frame=modal.querySelector('.realtime-quote-frame');
   const needsLoad=frame&&frame.getAttribute('src')!==MARKET_AI_MONITOR_URL;
   if(needsLoad)realtimeMonitorContentHeight=0;
@@ -684,6 +732,7 @@ function closeRealtimeQuotesModal({resetFrame=true}={}){
   if(!modal)return;
   clearRealtimeQuotesPreparation();
   realtimeMonitorPendingReturnFocus=null;
+  resetRealtimeQuotesDrag();
   if(modal.classList.contains('show'))closeDashboardModal(modal,{fallbackSelector:'[data-dashboard-action="open-realtime-quotes"]:not([hidden])'});
   if(resetFrame){realtimeMonitorContentHeight=0;modal.querySelector('.realtime-quote-frame')?.setAttribute('src','about:blank')}
 }

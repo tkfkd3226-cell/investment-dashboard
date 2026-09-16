@@ -264,6 +264,7 @@
       --modal-card-pad-x:var(--space-md);
     }
 
+    .realtime-quote-drag-handle{display:none}
     .realtime-quote-frame-stage,
     .realtime-quote-frame{
       width:100%;

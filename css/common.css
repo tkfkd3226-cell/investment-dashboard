@@ -872,7 +872,7 @@ button svg{pointer-events:none;flex-shrink:0}
 }
 
 /* [03B. Market AI Data List Variant · 공통 Data List Card 위에 Market AI compact geometry만 확장] */
-/* Market AI Rows / Metrics · 시장/AI 신호를 2개 compact list card로 나란히 배치 */
+/* Market AI Rows / Metrics · 현재 시장 지표와 신호 metric을 2개 compact list card로 나란히 배치 */
 .market-ai-desktop{
   display:grid;
   width:100%;
@@ -888,11 +888,6 @@ button svg{pointer-events:none;flex-shrink:0}
   display:grid;
   grid-template-columns:1fr;
   align-content:start;
-}
-.market-ai-desktop-group-label{
-  font-size:var(--market-ai-label-size);
-  line-height:1.1;
-  white-space:nowrap;
 }
 .market-ai-desktop-metric{
   position:relative;
@@ -3162,6 +3157,9 @@ body.dashboard-dialog-open{
 .realtime-quote-modal{
   z-index:13500;
   display:none;
+  /* 실시간 시세는 부모 Dashboard를 흐리거나 어둡게 덮지 않는다. */
+  --modal-overlay-color:transparent;
+  --modal-backdrop-blur:0px;
   /* Monitor Scale · Web/Tablet은 1:1 배율과 desktop layout threshold 이상을 유지한다. */
   --modal-overlay-pad:0px;
   --realtime-monitor-natural-width:1103px;
@@ -3188,12 +3186,40 @@ html.dark .realtime-quote-modal{
 }
 .realtime-quote-modal.show{display:flex}
 .realtime-quote-modal-card{
+  --realtime-quote-drag-x:0px;
+  --realtime-quote-drag-y:0px;
   display:flex;
   background:var(--realtime-quote-shell-bg);
   min-width:0;
   min-height:0;
   overflow:hidden;
+  transform:translate(var(--realtime-quote-drag-x),var(--realtime-quote-drag-y));
 }
+.realtime-quote-drag-handle{
+  position:absolute;
+  z-index:3;
+  top:4px;
+  left:50%;
+  width:96px;
+  height:18px;
+  transform:translateX(-50%);
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+}
+.realtime-quote-drag-handle::before{
+  content:"";
+  position:absolute;
+  top:5px;
+  left:50%;
+  width:42px;
+  height:4px;
+  border-radius:var(--radius-pill);
+  background:var(--muted);
+  opacity:.45;
+  transform:translateX(-50%);
+}
+.realtime-quote-drag-handle.is-dragging{cursor:grabbing}
 .realtime-quote-close{
   position:absolute;
   z-index:2;
