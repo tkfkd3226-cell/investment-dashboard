@@ -1146,6 +1146,11 @@ test('보유종목/연금상품 현재가 출처는 기존 dash-tooltip surface�
   assert.match(pension,/renderAssetPriceSourceLabel\(/);
   assert.match(ui,/account1_daily_snapshots\.json/);
   assert.match(pension,/fallbackSource:'prices\.json'/);
+  assert.match(uiCommon,/function storedAssetPriceState\(/);
+  assert.match(uiCommon,/regular_close'\)return '정규장 종가 저장 데이터'/);
+  assert.match(uiCommon,/marketStatus\|\|''\)===['"]intraday['"]\)return '장중 저장 데이터'/);
+  assert.match(ui,/marketStatus:x\.s\?\.marketStatus,priceBasis:x\.s\?\.priceBasis/);
+  assert.match(pension,/marketStatus:x\.s\?\.marketStatus,priceBasis:x\.s\?\.priceBasis/);
   assert.equal((common.match(/assetPriceSourceTooltip|asset-source-tooltip|asset-source/g)||[]).length,0,'출처 tooltip 전용 CSS를 추가하면 안 된다');
 });
 

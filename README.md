@@ -102,6 +102,7 @@ Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 �
 - 과거 날짜와 수량·원가·원금·매매흐름·실현손익, 운영 JSON은 변경하지 않음
 - 일부 quote가 unusable이면 해당 종목만 저장 JSON 값으로 fallback
 - Hero의 `투자 성과` 기준문구는 실제 적용된 가격이 저장 JSON인지 Market AI 실시간/시간외/장마감 값인지에 맞춰 표시합니다. `prices.json`이 `priceBasis:regular_close`이면 `정규장 종가 기준`, Market AI가 오늘 20:00 이후 개별주식 애프터 종료 가격까지 모두 usable closed로 제공하면 `애프터 종가 기준`을 표시합니다.
+- 보유 종목/상품 출처 tooltip은 Market AI quote가 없을 때 저장 snapshot 메타데이터를 사용해 `장중 저장 데이터` / `정규장 종가 저장 데이터` / legacy `저장 데이터`를 구분합니다. `account1_daily_snapshots.json` 경로는 기존 `저장 스냅샷`을 유지하고, Market AI quote가 적용될 때만 기존 `실시간` / `장 마감 시세` 상태를 사용합니다.
 - 시장 카드 tooltip은 거래 세션과 freshness를 함께 해석해 `장전 / 정상 / 데이터 지연 / 장마감 / 거래중단` 등을 구분
 - AI 신호 상세는 공통 `신뢰도`/`데이터 완성도` 휴리스틱을 표시하지 않고, 신호별 `입력 충족률`, 현재 사용 가능한 입력의 **실제 반영 비중(표시 합계 100%)**, 누락 입력과 사유를 backend `details.signal_inputs` 기준으로 표시
 - KOSPI는 소수점 둘째 자리까지 표시하고 KIS `business_time`이 있으면 실제 시장 기준시각을 우선

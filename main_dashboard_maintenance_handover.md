@@ -942,7 +942,7 @@ Table의 geometry·정렬·summary contract는 **2.4 `Table 공통 contract`**�
 - `marketStatus`는 `intraday/close`의 표시 상태이고, 정규장 종가 확정 여부는 별도 `priceBasis`가 소유한다. 저장값은 장중 `priceBasis:intraday`, 장마감/과거일 `priceBasis:regular_close`를 사용한다.
 - `scripts/update_prices.py`의 당일 장중 조회는 기존 pykrx 기본 current-price 경로를 유지하지만, `market_status_for_date(target_date)==close`인 장마감/과거일 조회는 `adjusted=False`를 명시해 KRX 원천의 15:30 정규장 종가를 사용한다. KRX 애프터마켓 16:00~20:00 가격을 GitHub `prices.json`에 종가로 저장하지 않는다.
 - GAS는 `marketStatus:close`만으로 중복 실행을 차단하지 않는다. `priceBasis:regular_close`인 경우에만 `이미 정규장 종가 기준 데이터가 반영되어 있습니다.`로 차단한다. `priceBasis`가 없는 legacy close는 당일 장마감 후 또는 선택일 재갱신에서 한 번 재확정해 `regular_close`로 승격할 수 있어야 한다. 이 변경은 기존 requestId/durable ledger idempotency를 제거하는 것이 아니며 `reconfirm_regular_close`도 durable decision reason으로 기록한다.
-- KRX modal 설명은 선택일이 **정규장 종가 기준이 아니면** 재갱신한다는 의미를 사용한다. 현황 표 종목/상품 tooltip의 기존 `장 마감 시세` 문구는 별도 세분화하지 않는다.
+- KRX modal 설명은 선택일이 **정규장 종가 기준이 아니면** 재갱신한다는 의미를 사용한다. 현황 표 종목/상품 source tooltip은 Market AI quote가 없을 때 저장 snapshot의 `priceBasis/marketStatus`를 읽어 `장중 저장 데이터` / `정규장 종가 저장 데이터` / legacy `저장 데이터`를 사용한다. `account1_daily_snapshots.json`은 기존 `저장 스냅샷`을 유지하고, Market AI quote가 적용된 경우에만 기존 `실시간` / `장 마감 시세`를 사용한다.
 - modal focus/ESC/request timeout과 같은 기본 lifecycle을 회귀검증한다. 일반 네트워크 요청은 공통 timeout을 따르되, KRX GAS write는 durable reconciliation과 GitHub API 왕복을 고려해 **60초 전용 timeout**을 사용한다. timeout은 서버 처리 실패를 뜻하지 않으므로 `NETWORK_TIMEOUT`에서는 '서버에서 계속 처리될 수 있음'을 안내하고 같은 requestId를 유지해 안전한 재시도가 가능해야 한다. 요청 중 재전송을 막고, modal 재진입 시 이전 요청의 응답·상태 문구·자동 닫기 timer가 새 session을 덮거나 닫지 않도록 request/session 경계를 함께 보호한다.
 - QA에서는 실제 외부 write를 하지 않는다.
 
@@ -978,7 +978,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - 별도 `세션` 행은 K200의 KIS Bridge `expected_session` 근거가 있을 때만 `주간 / 야간 / 장외`로 표시한다. 다만 `상태` 판정은 KOSPI(KST 09:00~15:30), SOX(America/New_York 09:30~16:00), NQ100선물(America/Chicago CME session)의 기본 거래시간을 사용해 장전/장마감/거래중단과 실제 stale을 구분한다. timezone 판정은 `Intl.DateTimeFormat`으로 DST를 따라간다.
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
 - Hero에는 `LIVE / CLOSED / STALE / WARMING / JSON` 같은 raw 상태 문자열을 표시하지 않는다. 대신 `heroPerformanceBasisLabel()`이 현재 Hero 계산에 실제 적용된 quote만 보고 `일부 실시간 반영 / 실시간 현재가 기준 / 시간외 포함 현재가 기준` 중 필요한 의미만 노출한다. live가 실제 적용되지 않거나 전 종목 closed이면 기존 날짜 기준문구를 유지하며, 과거 날짜는 항상 저장 데이터 의미를 유지한다.
-- 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다.
+- 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다. 저장값은 snapshot metadata 기준으로 `장중 저장 데이터` / `정규장 종가 저장 데이터` / legacy `저장 데이터`를 구분하고, Market AI quote가 적용된 경우에만 `실시간` / `장 마감 시세`를 사용한다.
 - live refresh 중 차트 확대/KRX modal/퇴직연금 금액조정 modal/native dialog를 교체하지 않는다. modal 종료 후 보류된 render가 최신 state를 1회 반영해야 한다. 날짜 변경 같은 일반 full render는 `#tabs/#app` focus snapshot/restore를 사용하지만, **10초 Live Valuation refresh는 Topbar DOM을 유지하고 `#app`만 갱신**한다. 실시간 시세 modal close 후 Topbar trigger로 focus가 복귀한 상태에서도 주기 갱신이 해당 버튼을 재생성·재focus하여 window scroll을 위로 끌어올리지 않아야 한다. focus target이 이미 activeElement면 다시 focus하지 않는다. 별도수익 전환은 `refreshSeparateProfitModeView()`의 partial refresh에서 동일한 focus snapshot/restore 원칙과 window/nested scroll 보존을 적용한다. 현재가 출처, 자산 기여도 segment, 퇴직연금 위험도 gauge, Market AI metric처럼 `id`가 없는 focusable visual target은 `data-dashboard-focus-key`를 가져야 한다. live refresh에서도 Mobile 목차·Desktop 목차 open 상태와 scroll 위치를 유지하고, metadata-only 응답으로 불필요한 render가 반복되지 않아야 한다.
 
 ## 3.4 계좌별 성과 메모 tooltip

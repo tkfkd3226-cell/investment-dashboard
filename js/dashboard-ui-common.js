@@ -704,8 +704,14 @@ function formatAssetSourceObservedAt(value){
     hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
   }).format(parsed);
 }
-function renderAssetPriceSourceLabel({labelHtml='',name='',ticker='',date='',priceText='',liveQuote=null,postClosePending=false,fallbackSource='prices.json'}={}){
-  let source=fallbackSource,state=fallbackSource==='account1_daily_snapshots.json'?'저장 스냅샷':'저장 데이터',observedAt='';
+function storedAssetPriceState({fallbackSource='prices.json',marketStatus='',priceBasis=''}={}){
+  if(fallbackSource==='account1_daily_snapshots.json')return '저장 스냅샷';
+  if(String(priceBasis||'')==='regular_close')return '정규장 종가 저장 데이터';
+  if(String(priceBasis||'')==='intraday'||String(marketStatus||'')==='intraday')return '장중 저장 데이터';
+  return '저장 데이터';
+}
+function renderAssetPriceSourceLabel({labelHtml='',name='',ticker='',date='',priceText='',liveQuote=null,postClosePending=false,fallbackSource='prices.json',marketStatus='',priceBasis=''}={}){
+  let source=fallbackSource,state=storedAssetPriceState({fallbackSource,marketStatus,priceBasis}),observedAt='';
   if(liveQuote){
     source='Market AI · KIS eFriend';
     state=String(liveQuote.state||'')==='closed'?'장 마감 시세':'실시간';

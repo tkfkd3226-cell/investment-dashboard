@@ -1035,7 +1035,8 @@ function renderHoldings(x){
   const sourceLabel=h=>renderAssetPriceSourceLabel({
     labelHtml:`<span class="holding-name-text">${mobileTableAssetName(h.name)}</span>${securitySymbolSwatch(h.name)}`,
     name:h.name,ticker:h.ticker,date:x.date,priceText:h.price==null?'-':won(h.price),
-    liveQuote:h.liveQuote,postClosePending:h.postClosePending,fallbackSource
+    liveQuote:h.liveQuote,postClosePending:h.postClosePending,fallbackSource,
+    marketStatus:x.s?.marketStatus,priceBasis:x.s?.priceBasis
   });
   const rows=orderedHoldings.map(h=>({
     labelHtml:sourceLabel(h),
@@ -1070,7 +1071,8 @@ function renderHoldings(x){
     title:renderAssetPriceSourceLabel({
       labelHtml:`<span class="holding-name-text">${escapeHtml(h.name)}</span>${securitySymbolSwatch(h.name)}`,
       name:h.name,ticker:h.ticker,date:x.date,priceText:h.price==null?'-':won(h.price),
-      liveQuote:h.liveQuote,postClosePending:h.postClosePending,fallbackSource
+      liveQuote:h.liveQuote,postClosePending:h.postClosePending,fallbackSource,
+      marketStatus:x.s?.marketStatus,priceBasis:x.s?.priceBasis
     }),
     accessibleLabel:h.name,
     items:[
