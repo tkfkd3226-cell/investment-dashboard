@@ -1055,7 +1055,8 @@ test('Market AI lifecycle은 OFF/CHECKING/OFFLINE에서 UI를 숨기고 ONLINE�
 
 test('Market AI refresh는 같은 lifecycle의 중복 호출을 single-flight로 합치고 이전 세션 응답을 폐기한다',()=>{
   assert.match(market1,/const \[signalResult,nextMarketSnapshot,nextBridgeStatus\]=await Promise\.all\(\[/);
-  assert.match(market1,/const serverReachable=signalResult!==null\|\|nextMarketSnapshot!==null\|\|nextBridgeStatus!==null/);
+  assert.match(market1,/const signalTransportReachable=signalResult!==null&&Number\(signalResult\.response\?\.status\|\|0\)<500/);
+  assert.match(market1,/const serverReachable=signalTransportReachable\|\|nextMarketSnapshot!==null\|\|nextBridgeStatus!==null/);
   assert.match(market1,/let marketAiRefreshSequence=0/);
   assert.match(market1,/let marketAiLifecycleGeneration=0/);
   assert.match(market1,/let marketAiRefreshInFlight=null/);
@@ -1064,6 +1065,28 @@ test('Market AI refresh는 같은 lifecycle의 중복 호출을 single-flight로
   assert.match(market1,/if\(enabled&&marketAiState\.lifecycle==='checking'\)return/);
   assert.match(market1,/const \{response,signal,parseError\}=signalResult/);
   assert.match(market1,/if\(parseError\)\{ setMarketAiState/);
+});
+
+test('Market AI OFFLINE circuit breaker는 최초 연결 실패 후 polling을 시작하지 않고 ONLINE 연속 실패만 2회까지 허용한다',()=>{
+  assert.match(marketAi,/const MARKET_AI_OFFLINE_FAILURE_LIMIT=2/);
+  assert.match(market1,/function marketAiPollingAllowed\(\)\{ return marketAiEnabled\(\)&&marketAiState\.lifecycle==='online'; \}/);
+  assert.match(market1,/function stopMarketAiPollTimer\(\)\{ if\(!marketAiPollTimer\)return; window\.clearInterval\(marketAiPollTimer\); marketAiPollTimer=0; \}/);
+  assert.match(market1,/function ensureMarketAiPollTimer\(\)\{ if\(marketAiPollTimer\|\|!marketAiPollingAllowed\(\)\)return;/);
+  assert.match(market1,/if\(startedOnline\)\{ marketAiConsecutiveUnavailableRefreshes\+=1; if\(marketAiConsecutiveUnavailableRefreshes<MARKET_AI_OFFLINE_FAILURE_LIMIT\)return; \}/);
+  assert.match(market1,/publishMarketAiConnectionState\(true\); ensureMarketAiPollTimer\(\)/);
+  const bootBlock=market1.slice(market1.indexOf('function startMarketAiBridge(){'),market1.indexOf('startMarketAiBridge();'));
+  assert.doesNotMatch(bootBlock,/marketAiPollTimer=window\.setInterval/,'OFF/CHECKING boot에서 polling timer를 선기동하면 안 된다');
+});
+
+test('Live Valuation은 Market AI ONLINE connection event를 공통 network gate로 사용하고 OFFLINE에서 KRX quote polling을 멈춘다',()=>{
+  assert.match(liveValuation,/MARKET_AI_CONNECTION_EVENT/);
+  assert.match(liveValuation,/function liveValuationNetworkAllowed\(\)\{\s*return marketAiEnabled\(\)&&liveValuationMarketAiConnected;\s*\}/);
+  assert.match(liveValuation,/if\(!liveValuationNetworkAllowed\(\)\)return;\s*const clientId=await resolveLiveValuationClientId\(\);\s*if\(!liveValuationNetworkAllowed\(\)\)return;/);
+  assert.match(liveValuation,/window\.addEventListener\(MARKET_AI_CONNECTION_EVENT,event=>\{/);
+  assert.match(liveValuation,/if\(!connected\)\{\s*clearLiveValuationForDisconnected\('market-ai-offline'\);\s*return;\s*\}/);
+  assert.match(liveValuation,/function stopLiveValuationPollTimer\(\)/);
+  assert.match(liveValuation,/function ensureLiveValuationPollTimer\(\)/);
+  assert.doesNotMatch(liveValuation,/document\.visibilityState==='visible'&&marketAiEnabled\(\)\)refreshLiveValuation\(\)/);
 });
 
 test('Market AI는 main dataState/uiState를 참조하지 않는 standalone state를 유지한다',()=>{
@@ -1670,7 +1693,8 @@ test('Market AI 연결 toggle은 OFF fallback과 Phone 관리 메뉴 배치를 �
   assert.match(marketAiClient,/function setMarketAiEnabled\(/);
   assert.match(marketAi,/marketAiEnabled\(\)/);
   assert.match(liveValuation,/marketAiEnabled\(\)/);
-  assert.match(liveValuation,/clearLiveValuationSnapshot\('market-ai-disabled'/);
+  assert.match(liveValuation,/clearLiveValuationForDisconnected\('market-ai-disabled'\)/);
+  assert.match(liveValuation,/clearLiveValuationForDisconnected\('market-ai-offline'\)/);
   const mobileMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
   assert.ok(mobileMenu.indexOf("title:'투자 계산기'")<mobileMenu.indexOf("action:'toggle-market-ai-connection'"));
   const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));

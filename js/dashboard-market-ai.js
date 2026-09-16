@@ -31,6 +31,7 @@ import {
 // [MARKET01] Configuration / Runtime State · endpoint / metric contract
 
 const MARKET_AI_POLL_MS=10_000;
+const MARKET_AI_OFFLINE_FAILURE_LIMIT=2;
 const MARKET_AI_STALE_MS=5*60_000;
 const MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200';
 const MARKET_AI_SOX_INDEX_SYMBOL='INDEX:SOX';
@@ -86,6 +87,7 @@ let marketAiActiveTooltipTarget=null;
 let marketAiPublishedConnectionState=null;
 let marketAiLifecycleGeneration=0;
 let marketAiRefreshInFlight=null;
+let marketAiConsecutiveUnavailableRefreshes=0;
 
 function publishMarketAiConnectionState(connected,{force=false}={}){
   const next=connected===true;
@@ -99,6 +101,8 @@ function setMarketAiLifecycleState(lifecycle,{resetData=false}={}){
   marketAiState.lifecycle=lifecycle;
   document.documentElement.dataset.marketAiLifecycle=lifecycle;
   if(lifecycle==='online')return;
+  stopMarketAiPollTimer();
+  marketAiConsecutiveUnavailableRefreshes=0;
   marketAiState.serverReachable=false;
   if(resetData){
     Object.assign(marketAiState,{signal:null,marketSnapshot:{},bridgeStatus:null,lastSignalAt:null});
@@ -111,6 +115,23 @@ function marketAiLifecycleIsCurrent(generation,refreshSequence){
   return marketAiEnabled()
     &&generation===marketAiLifecycleGeneration
     &&refreshSequence===marketAiRefreshSequence;
+}
+
+function marketAiPollingAllowed(){
+  return marketAiEnabled()&&marketAiState.lifecycle==='online';
+}
+
+function stopMarketAiPollTimer(){
+  if(!marketAiPollTimer)return;
+  window.clearInterval(marketAiPollTimer);
+  marketAiPollTimer=0;
+}
+
+function ensureMarketAiPollTimer(){
+  if(marketAiPollTimer||!marketAiPollingAllowed())return;
+  marketAiPollTimer=window.setInterval(()=>{
+    if(document.visibilityState==='visible'&&marketAiPollingAllowed())refreshMarketAiSignal();
+  },MARKET_AI_POLL_MS);
 }
 
 // [MARKET02] Environment / Fetch · 실행 환경 / timeout
@@ -1249,6 +1270,7 @@ let marketAiRefreshSequence=0;
 
 async function runMarketAiSignalRefresh(generation){
   const refreshSequence=++marketAiRefreshSequence;
+  const startedOnline=marketAiState.lifecycle==='online';
   if(!marketAiEnabled()){
     setMarketAiLifecycleState('off',{resetData:true});
     return;
@@ -1259,7 +1281,7 @@ async function runMarketAiSignalRefresh(generation){
     return;
   }
 
-  if(marketAiState.lifecycle!=='online'){
+  if(!startedOnline){
     Object.assign(marketAiState,{status:'연결 확인 중',statusKind:'checking',message:'Market AI 서버에 연결하고 있습니다.'});
     setMarketAiLifecycleState('checking');
   }
@@ -1272,8 +1294,13 @@ async function runMarketAiSignalRefresh(generation){
   ]);
   if(!marketAiLifecycleIsCurrent(generation,refreshSequence))return;
 
-  const serverReachable=signalResult!==null||nextMarketSnapshot!==null||nextBridgeStatus!==null;
+  const signalTransportReachable=signalResult!==null&&Number(signalResult.response?.status||0)<500;
+  const serverReachable=signalTransportReachable||nextMarketSnapshot!==null||nextBridgeStatus!==null;
   if(!serverReachable){
+    if(startedOnline){
+      marketAiConsecutiveUnavailableRefreshes+=1;
+      if(marketAiConsecutiveUnavailableRefreshes<MARKET_AI_OFFLINE_FAILURE_LIMIT)return;
+    }
     Object.assign(marketAiState,{
       signal:null,marketSnapshot:{},bridgeStatus:null,serverReachable:false,
       status:'연결 실패',statusKind:'offline',message:'Market AI 서버에 연결할 수 없습니다.',lastSignalAt:null
@@ -1282,6 +1309,7 @@ async function runMarketAiSignalRefresh(generation){
     return;
   }
 
+  marketAiConsecutiveUnavailableRefreshes=0;
   Object.assign(marketAiState,{
     lifecycle:'online',
     serverReachable:true,
@@ -1290,6 +1318,7 @@ async function runMarketAiSignalRefresh(generation){
   });
   document.documentElement.dataset.marketAiLifecycle='online';
   publishMarketAiConnectionState(true);
+  ensureMarketAiPollTimer();
 
   if(!signalResult){
     setMarketAiState({
@@ -1405,7 +1434,7 @@ function startMarketAiBridge(){
   if(app)new MutationObserver(scheduleMount).observe(app,{childList:true,subtree:false});
   window.addEventListener(MARKET_AI_ENABLED_EVENT,handleMarketAiEnabledChange);
   document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='visible'&&marketAiEnabled())refreshMarketAiSignal();
+    if(document.visibilityState==='visible'&&marketAiPollingAllowed())refreshMarketAiSignal();
   });
 
   if(marketAiUiEnabled()){
@@ -1418,11 +1447,6 @@ function startMarketAiBridge(){
     publishMarketAiConnectionState(false,{force:true});
   }
 
-  if(!marketAiPollTimer){
-    marketAiPollTimer=window.setInterval(()=>{
-      if(document.visibilityState==='visible'&&marketAiEnabled())refreshMarketAiSignal();
-    },MARKET_AI_POLL_MS);
-  }
 }
 
 startMarketAiBridge();
