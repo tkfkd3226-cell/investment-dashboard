@@ -7018,11 +7018,25 @@ function krxWorkflowInProgressResult(branch, date, run) {
   };
 }
 
-// workflow_skipped도 해당 requestId가 terminal no-op으로 완료됐다는 의미다.
-// 응답 유실 뒤 동일 requestId가 외부 상태 변화 때문에 실제 dispatch로 부활하지 않도록
-// 성공 응답 전에 GitHub durable ledger에 exact identity를 completed 상태로 확정한다.
+// workflow_skipped는 원칙적으로 해당 requestId의 terminal no-op 완료를 durable ledger에 남긴다.
+// 다만 explicit_date_already_closed는 이미 저장된 특정 날짜의 regular_close를 확인한 순수 read-only no-op이다.
+// 이 경우 ledger commit 자체가 GitHub Pages 재배포를 유발하므로 remote durable write 없이 그대로 성공 응답한다.
+// 같은 requestId 재요청도 prices.json을 다시 확인해 동일 no-op으로 수렴하며 실제 workflow side effect는 없다.
 function finalizeKrxWorkflowSkipped(requestId, requestHash, branch, date, decision) {
-  const skipReason = "workflow_skipped:" + String(decision && decision.reason || "no_dispatch_needed");
+  const decisionReason = String(decision && decision.reason || "no_dispatch_needed");
+
+  if (decisionReason === "explicit_date_already_closed") {
+    try { clearKrxDispatchIntent(requestId); } catch (_) {}
+    return {
+      ok: true,
+      action: "workflow_skipped",
+      reason: decisionReason,
+      message: String(decision && decision.message || "이미 정규장 종가 기준 데이터가 반영되어 있습니다."),
+      date: date || ""
+    };
+  }
+
+  const skipReason = "workflow_skipped:" + decisionReason;
   const skippedState = setKrxDispatchLedgerEntryState(requestId, requestHash, {
     branch: branch, date: date, reason: skipReason
   });
@@ -7033,7 +7047,7 @@ function finalizeKrxWorkflowSkipped(requestId, requestHash, branch, date, decisi
   return {
     ok: true,
     action: "workflow_skipped",
-    reason: String(decision && decision.reason || "no_dispatch_needed"),
+    reason: decisionReason,
     message: String(decision && decision.message || "업데이트할 KRX 현재가 데이터가 없습니다."),
     date: date || ""
   };
