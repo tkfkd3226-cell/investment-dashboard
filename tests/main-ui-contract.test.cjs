@@ -888,6 +888,21 @@ test('Market AI 시장 세션 판정은 KRX/SOX/NQ의 휴장 시간을 stale과 
   assert.equal(context.marketAiMarketReferenceTime({source:'yfinance:^SOX',observed_at:'19:59Z'},'sox-index'),'19:59');
 });
 
+test('Market AI 시장 카드는 backend 거래소 캘린더 상태를 로컬 요일·시간 추정보다 우선한다',()=>{
+  const vm=require('node:vm');
+  const start=marketAi.indexOf('function marketAiSnapshotDisplayState');
+  const end=marketAi.indexOf('\nfunction marketAiK200FallbackSessionOpen',start);
+  const context={marketAiSnapshotFreshness:row=>({fresh:false,observedAt:row.observed_at})};
+  vm.createContext(context);
+  vm.runInContext(marketAi.slice(start,end),context);
+  const laborDayRow={
+    observed_at:'2026-09-04T20:00:00Z',
+    input_status:{available:true,status:'closed_latest'}
+  };
+  assert.equal(context.marketAiSnapshotDisplayState(laborDayRow,'open').reason,'closed');
+  assert.equal(context.marketAiSnapshotDisplayState({observed_at:'2026-09-07T18:00:00Z'},'open').reason,'stale');
+});
+
 test('Market AI 시장 tooltip View Model은 session-aware KOSPI/SOX/NQ와 K200 closed/bridge/source 의미를 구분한다',()=>{
   const vm=require('node:vm');
   const start=marketAi.indexOf('function marketAiMarketStatusLabel');
@@ -1308,6 +1323,35 @@ test('자산 탭 전환은 이미 그린 차트를 재사용하고 최초 차트
   const block=ui.slice(start,end);
   assert.match(block,/const needsChartDraw=!assetTabChartsReady\(tab\)/);
   assert.match(block,/requestAnimationFrame\(\(\)=>\{[^]*?if\(!needsChartDraw\)return;[^]*?requestAnimationFrame\(\(\)=>\{[^]*?drawAllCharts\(\)/s);
+});
+
+test('자산 탭 차트 cache는 현재 표시 크기와 viewBox가 다르면 무효화한다',()=>{
+  const vm=require('node:vm');
+  const chartIds=['pensionChartCum','pensionChartSymbol','pensionChartAlloc'];
+  const svgs=Object.fromEntries(chartIds.map(id=>[id,{
+    childElementCount:1,
+    clientWidth:520,
+    clientHeight:330,
+    viewBox:{baseVal:{width:1120}}
+  }]));
+  const context={
+    chartRuntimeState:{expanded:null},
+    chartViewBoxSize:svg=>({w:Math.round(330*svg.clientWidth/svg.clientHeight)}),
+    uiState:{activeAssetTab:'pension'},
+    document:{getElementById:id=>svgs[id]||null},
+    Math
+  };
+  vm.createContext(context);
+  const redrawStart=charts.indexOf('function chartSvgViewBoxNeedsRedraw');
+  const redrawEnd=charts.indexOf('\n// [CHART02]',redrawStart);
+  const readyStart=charts.indexOf('function assetTabChartIds');
+  const readyEnd=charts.indexOf('\nfunction drawAllCharts',readyStart);
+  assert.ok(redrawStart>=0&&redrawEnd>redrawStart&&readyStart>=0&&readyEnd>readyStart);
+  vm.runInContext(charts.slice(redrawStart,redrawEnd),context);
+  vm.runInContext(charts.slice(readyStart,readyEnd),context);
+  assert.equal(context.assetTabChartsReady('pension'),false);
+  Object.values(svgs).forEach(svg=>{svg.viewBox.baseVal.width=520;});
+  assert.equal(context.assetTabChartsReady('pension'),true);
 });
 
 test('증권 종목별 누적손익 UI는 매도 후 평가손익 0이 아니라 totalProfit·performanceCost 계약을 사용한다',()=>{
