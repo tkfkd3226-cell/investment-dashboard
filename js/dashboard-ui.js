@@ -157,7 +157,10 @@ const separateProfitControl=(x,extraClass='')=>{
 };
 const REALTIME_QUOTES_ACTION=Object.freeze({action:'open-realtime-quotes',icon:'lineChart',title:'실시간 시세'});
 const REALTIME_MONITOR_SIZE_MESSAGE='market-ai-monitor:content-size';
+const REALTIME_MONITOR_PREPARE_TIMEOUT_MS=900;
 let realtimeMonitorContentHeight=0;
+let realtimeMonitorPrepareTimer=0;
+let realtimeMonitorPendingReturnFocus=null;
 let marketAiMonitorAvailable=false;
 const TOPBAR_ACTION_ICONS=Object.freeze({
   kospiNight:'activity',
@@ -238,7 +241,6 @@ function renderResponsiveNavigationMenuContent(){
       label:'관리',
       phoneOnly:true,
       items:[
-        {type:'action',action:REALTIME_QUOTES_ACTION.action,icon:REALTIME_QUOTES_ACTION.icon,title:REALTIME_QUOTES_ACTION.title,marketAiOnly:true},
         {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
         {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'},
         ...(uiState.personalViewUnlocked?[{type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기'}]:[])
@@ -406,6 +408,9 @@ function renderTabs(){
         ${uiState.personalViewUnlocked?`<a class="date-tool-btn date-tool-btn-desktop topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" draggable="false" title="투자 계산기" aria-label="투자 계산기">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span><span class="topbar-label-full">투자 계산기</span><span class="topbar-label-short">계산기</span>
         </a>`:''}
+        <button type="button" class="date-tool-btn control-icon-button topbar-realtime-phone-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
+          <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span>
+        </button>
         <button type="button" class="date-tool-btn control-icon-button topbar-theme-action" data-theme-toggle title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" data-dashboard-action="toggle-theme">
           <span class="date-tool-action-icon" data-theme-toggle-icon>${themeToggleIconMarkup(currentTheme()==='dark')}</span>
         </button>
@@ -544,10 +549,11 @@ function handleRealtimeMonitorMessage(event){
   if(!Number.isFinite(height)||height<=0)return;
   realtimeMonitorContentHeight=height;
   syncRealtimeQuotesModalGeometry();
+  if(modal.classList.contains('realtime-quote-preparing'))revealPreparedRealtimeQuotesModal();
 }
 function syncRealtimeQuotesModalGeometry(){
   const modal=document.getElementById('realtimeQuotesModal');
-  if(!modal||!modal.classList.contains('show'))return;
+  if(!modal||(!modal.classList.contains('show')&&!modal.classList.contains('realtime-quote-preparing')))return;
   if(phoneUi()){
     modal.style.removeProperty('--realtime-monitor-display-width');
     modal.style.removeProperty('--realtime-monitor-display-height');
@@ -561,24 +567,57 @@ function syncRealtimeQuotesModalGeometry(){
   const availableWidth=Math.max(1,(viewport?.width||window.innerWidth)-padX);
   const availableHeight=Math.max(1,(viewport?.height||window.innerHeight)-padY);
   const naturalWidth=parseFloat(style.getPropertyValue('--realtime-monitor-natural-width'))||availableWidth;
+  const fallbackHeight=parseFloat(style.getPropertyValue('--realtime-monitor-fallback-height'))||availableHeight;
   const width=Math.min(naturalWidth,availableWidth);
-  const height=Math.min(realtimeMonitorContentHeight>0?realtimeMonitorContentHeight+2:availableHeight,availableHeight);
+  const initialHeight=Math.min(fallbackHeight,availableHeight*.86);
+  const height=Math.min(realtimeMonitorContentHeight>0?realtimeMonitorContentHeight+2:initialHeight,availableHeight);
   modal.style.setProperty('--realtime-monitor-display-width',`${Math.floor(width)}px`);
   modal.style.setProperty('--realtime-monitor-display-height',`${Math.floor(height)}px`);
+}
+function clearRealtimeQuotesPreparation(){
+  if(realtimeMonitorPrepareTimer){window.clearTimeout(realtimeMonitorPrepareTimer);realtimeMonitorPrepareTimer=0}
+  document.getElementById('realtimeQuotesModal')?.classList.remove('realtime-quote-preparing');
+}
+function revealPreparedRealtimeQuotesModal(){
+  const modal=document.getElementById('realtimeQuotesModal');
+  if(!modal||!modal.classList.contains('realtime-quote-preparing')||!marketAiMonitorAvailable)return;
+  const returnFocus=realtimeMonitorPendingReturnFocus;
+  realtimeMonitorPendingReturnFocus=null;
+  clearRealtimeQuotesPreparation();
+  syncRealtimeQuotesModalGeometry();
+  const closeButton=modal.querySelector('.realtime-quote-close');
+  openDashboardModal(modal,{initialFocus:closeButton,returnFocus,fallbackSelector:'[data-dashboard-action="open-realtime-quotes"]:not([hidden])'});
+  syncRealtimeQuotesModalGeometry();
 }
 function openRealtimeQuotesModal(returnFocus=null){
   if(!marketAiMonitorAvailable)return;
   closeDateActionMenu();
   const modal=ensureRealtimeQuotesModal();
   const frame=modal.querySelector('.realtime-quote-frame');
-  if(frame&&frame.getAttribute('src')!==MARKET_AI_MONITOR_URL){realtimeMonitorContentHeight=0;frame.setAttribute('src',MARKET_AI_MONITOR_URL)}
-  const closeButton=modal.querySelector('.realtime-quote-close');
-  openDashboardModal(modal,{initialFocus:closeButton,returnFocus,fallbackSelector:'[data-dashboard-action="open-realtime-quotes"]:not([hidden])'});
+  const needsLoad=frame&&frame.getAttribute('src')!==MARKET_AI_MONITOR_URL;
+  if(needsLoad)realtimeMonitorContentHeight=0;
+  if(phoneUi()||realtimeMonitorContentHeight>0){
+    clearRealtimeQuotesPreparation();
+    realtimeMonitorPendingReturnFocus=null;
+    if(needsLoad)frame.setAttribute('src',MARKET_AI_MONITOR_URL);
+    const closeButton=modal.querySelector('.realtime-quote-close');
+    openDashboardModal(modal,{initialFocus:closeButton,returnFocus,fallbackSelector:'[data-dashboard-action="open-realtime-quotes"]:not([hidden])'});
+    syncRealtimeQuotesModalGeometry();
+    return;
+  }
+
+  realtimeMonitorPendingReturnFocus=returnFocus;
+  clearRealtimeQuotesPreparation();
+  modal.classList.add('realtime-quote-preparing');
   syncRealtimeQuotesModalGeometry();
+  realtimeMonitorPrepareTimer=window.setTimeout(revealPreparedRealtimeQuotesModal,REALTIME_MONITOR_PREPARE_TIMEOUT_MS);
+  if(needsLoad)frame.setAttribute('src',MARKET_AI_MONITOR_URL);
 }
 function closeRealtimeQuotesModal({resetFrame=true}={}){
   const modal=document.getElementById('realtimeQuotesModal');
   if(!modal)return;
+  clearRealtimeQuotesPreparation();
+  realtimeMonitorPendingReturnFocus=null;
   if(modal.classList.contains('show'))closeDashboardModal(modal,{fallbackSelector:'[data-dashboard-action="open-realtime-quotes"]:not([hidden])'});
   if(resetFrame){realtimeMonitorContentHeight=0;modal.querySelector('.realtime-quote-frame')?.setAttribute('src','about:blank')}
 }

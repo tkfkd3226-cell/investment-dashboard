@@ -1492,21 +1492,42 @@ test('Live Valuation full render는 미진입 차트 entrance를 일괄 완료 �
   assert.match(charts,/data-chart-entrance-played/);
 });
 
-test('실시간 시세는 연결 gating·아이콘 분리·Web\/Tablet 1:1·Phone fullscreen 계약을 유지한다',()=>{
+test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 icon-only·fullscreen 계약을 유지한다',()=>{
   assert.match(marketAiClient,/\/monitor\//);
   assert.match(marketAi,/publishMarketAiConnectionState\(/);
   assert.match(ui,/title:'실시간 시세'/);
   assert.match(ui,/data-market-ai-monitor-entry/);
+  assert.match(ui,/window\.addEventListener\(MARKET_AI_CONNECTION_EVENT,event=>syncRealtimeQuotesAvailability\(event\?\.detail\?\.connected===true\)\)/);
+  assert.match(ui,/document\.querySelectorAll\('\[data-market-ai-monitor-entry\]'\)\.forEach\(control=>\{control\.hidden=!marketAiMonitorAvailable\}\)/);
 
   const realtimeIcon=/REALTIME_QUOTES_ACTION=Object\.freeze\([^\n]*icon:'([^']+)'/.exec(ui)?.[1]||'';
   const nightIcon=/kospiNight:'([^']+)'/.exec(ui)?.[1]||'';
   assert.ok(realtimeIcon&&nightIcon,'실시간 시세/야간선물 icon token is missing');
   assert.notEqual(realtimeIcon,nightIcon,'실시간 시세와 코스피200 야간선물은 서로 다른 아이콘을 사용해야 한다');
 
+  const mobileMenuStart=ui.indexOf('function renderResponsiveNavigationMenuContent()');
+  const mobileMenuEnd=ui.indexOf('function renderDesktopTocContent()',mobileMenuStart);
+  const mobileMenuSource=ui.slice(mobileMenuStart,mobileMenuEnd);
+  assert.ok(mobileMenuStart>=0&&mobileMenuEnd>mobileMenuStart,'responsive navigation source is missing');
+  assert.doesNotMatch(mobileMenuSource,/REALTIME_QUOTES_ACTION/,'Phone hamburger 관리 메뉴에는 실시간 시세 진입점을 두지 않는다');
+  assert.match(ui,/class="date-tool-btn control-icon-button topbar-realtime-phone-action"[^>]*title="\$\{REALTIME_QUOTES_ACTION\.title\}"[^>]*aria-label="\$\{REALTIME_QUOTES_ACTION\.title\}"[^>]*data-dashboard-action="\$\{REALTIME_QUOTES_ACTION\.action\}"[^>]*data-market-ai-monitor-entry/);
+  const phoneRealtimeButton=/class="date-tool-btn control-icon-button topbar-realtime-phone-action"[^>]*>[\s\S]*?<\/button>/.exec(ui)?.[0]||'';
+  assert.ok(phoneRealtimeButton,'Phone 실시간 시세 상단 버튼이 없다');
+  assert.doesNotMatch(phoneRealtimeButton,/topbar-label-(?:full|short)/,'Phone 실시간 시세 버튼은 글자 없이 아이콘만 사용해야 한다');
+  assert.match(common,/:is\(\.topbar-realtime-phone-action,\.topbar-theme-action,\.topbar-corner-action\) \.date-tool-action-icon/);
+  assert.match(special,/\.topbar-realtime-phone-action\{right:calc\(var\(--topbar-phone-edge\) \+ var\(--topbar-phone-control-step\) \+ var\(--topbar-phone-control-step\) \+ var\(--topbar-phone-control-step\)\)\}/);
+  assert.match(special,/\.switcher:is\(\.mobile-menu-open,\.mobile-date-pinned\) :is\(\.topbar-realtime-phone-action,\.topbar-theme-action,\.topbar-corner-action\)/);
+
   const realtimeModalCss=common.slice(common.indexOf('.realtime-quote-modal{'),common.indexOf('.pension-action-pin-modal{'));
   assert.doesNotMatch(realtimeModalCss,/transform\s*:\s*scale\(/);
+  assert.match(realtimeModalCss,/--realtime-monitor-fallback-height:640px/);
+  assert.match(realtimeModalCss,/\.realtime-quote-modal\.realtime-quote-preparing\{[^]*?display:flex;[^]*?opacity:0;[^]*?pointer-events:none;/s);
   assert.match(common,/\.realtime-quote-frame-stage\{[^]*?overflow:hidden/s);
   assert.match(ui,/addEventListener\('message',handleRealtimeMonitorMessage\)/);
   assert.match(ui,/event\.origin!==realtimeMonitorExpectedOrigin\(\)/);
+  assert.match(ui,/modal\.classList\.add\('realtime-quote-preparing'\);\s*syncRealtimeQuotesModalGeometry\(\);\s*realtimeMonitorPrepareTimer=window\.setTimeout\(revealPreparedRealtimeQuotesModal,REALTIME_MONITOR_PREPARE_TIMEOUT_MS\);/);
+  assert.match(ui,/const initialHeight=Math\.min\(fallbackHeight,availableHeight\*\.86\)/);
+  assert.match(ui,/realtimeMonitorContentHeight>0\?realtimeMonitorContentHeight\+2:initialHeight/);
+  assert.doesNotMatch(ui,/realtimeMonitorContentHeight>0\?realtimeMonitorContentHeight\+2:availableHeight/);
   assert.match(special,/\.realtime-quote-modal-card\{[^]*?position:fixed;[^]*?inset:0;[^]*?border:0;/s);
 });

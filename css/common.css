@@ -3142,8 +3142,9 @@ body.dashboard-dialog-open{
   /* Monitor Scale · Web/Tablet은 1:1 배율과 desktop layout threshold 이상을 유지한다. */
   --modal-overlay-pad:0px;
   --realtime-monitor-natural-width:1103px;
+  --realtime-monitor-fallback-height:640px;
   --realtime-monitor-display-width:min(var(--realtime-monitor-natural-width),100vw);
-  --realtime-monitor-display-height:calc(100vh - (var(--modal-overlay-pad) * 2));
+  --realtime-monitor-display-height:min(var(--realtime-monitor-fallback-height),86vh);
   --modal-card-width:var(--realtime-monitor-display-width);
   --modal-card-height:var(--realtime-monitor-display-height);
   --modal-card-pad-y:0px;
@@ -3151,7 +3152,12 @@ body.dashboard-dialog-open{
   overflow:hidden;
 }
 @supports (height:100dvh){
-  .realtime-quote-modal{--realtime-monitor-display-height:calc(100dvh - (var(--modal-overlay-pad) * 2))}
+  .realtime-quote-modal{--realtime-monitor-display-height:min(var(--realtime-monitor-fallback-height),86dvh)}
+}
+.realtime-quote-modal.realtime-quote-preparing{
+  display:flex;
+  opacity:0;
+  pointer-events:none;
 }
 .realtime-quote-modal.show{display:flex}
 .realtime-quote-modal-card{
@@ -4145,8 +4151,9 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   font-size:0;
 }
 .date-tool-action-icon svg{display:block;width:var(--topbar-action-icon-size);height:var(--topbar-action-icon-size);vertical-align:middle}
-:is(.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size);flex-basis:var(--topbar-mode-icon-size)}
-:is(.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon svg{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size)}
+:is(.topbar-realtime-phone-action,.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size);flex-basis:var(--topbar-mode-icon-size)}
+:is(.topbar-realtime-phone-action,.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon svg{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size)}
+.topbar-realtime-phone-action,
 .date-action-menu-wrap,
 .topbar-label-short{display:none}
 

@@ -240,8 +240,8 @@
       --scroll-top-button-size:48px;
       --topbar-phone-control-step:calc(var(--topbar-phone-control-size) + var(--space-sm));
       --topbar-phone-date-reserved-width:calc(
-        var(--topbar-phone-control-size) + var(--topbar-phone-control-size) + var(--topbar-phone-control-size) +
-        var(--space-sm) + var(--space-sm) + var(--space-sm) + var(--space-sm) + var(--space-sm) +
+        var(--topbar-phone-control-size) + var(--topbar-phone-control-size) + var(--topbar-phone-control-size) + var(--topbar-phone-control-size) +
+        var(--space-sm) + var(--space-sm) + var(--space-sm) + var(--space-sm) + var(--space-sm) + var(--space-sm) +
         var(--topbar-phone-edge) + var(--topbar-phone-edge)
       );
       --page-anchor-offset:calc(var(--topbar-phone-height) + var(--space-5xl));
@@ -605,12 +605,16 @@
     color:var(--topbar-floating-text);
     box-shadow:var(--topbar-floating-shadow);
   }
+  .topbar-realtime-phone-action,
   .topbar-theme-action,
   .topbar-corner-action{
+    display:inline-flex;
     position:fixed;
     top:max(var(--space-md),env(safe-area-inset-top));
     z-index:2400;
   }
+  .topbar-realtime-phone-action[hidden]{display:none}
+  .topbar-realtime-phone-action{right:calc(var(--topbar-phone-edge) + var(--topbar-phone-control-step) + var(--topbar-phone-control-step) + var(--topbar-phone-control-step))}
   .topbar-theme-action{right:calc(var(--topbar-phone-edge) + var(--topbar-phone-control-step) + var(--topbar-phone-control-step))}
   .topbar-corner-action{right:calc(var(--topbar-phone-edge) + var(--topbar-phone-control-step))}
   .date-action-menu-wrap{
@@ -637,7 +641,7 @@
     display:grid;
     width:100%;
     height:auto;
-    grid-template-columns:auto auto minmax(0,1fr) var(--topbar-phone-control-size) var(--topbar-phone-control-size) var(--topbar-phone-control-size);
+    grid-template-columns:auto auto minmax(0,1fr) var(--topbar-phone-control-size) var(--topbar-phone-control-size) var(--topbar-phone-control-size) var(--topbar-phone-control-size);
     gap:var(--space-sm);
   }
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.date-picker-center,.date-picker-action){display:contents}
@@ -649,21 +653,22 @@
     color:var(--topbar-text);
     box-shadow:var(--topbar-control-shadow);
   }
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-theme-action,.topbar-corner-action){
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-realtime-phone-action,.topbar-theme-action,.topbar-corner-action){
     position:relative;
     top:auto;
     right:auto;
     z-index:auto;
     justify-self:end;
   }
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-theme-action{grid-column:4}
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-corner-action{grid-column:5}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-realtime-phone-action{grid-column:4}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-theme-action{grid-column:5}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-corner-action{grid-column:6}
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) .date-action-menu-wrap{
     position:relative;
     top:auto;
     right:auto;
     z-index:auto;
-    grid-column:6;
+    grid-column:7;
     justify-self:end;
   }
 
