@@ -8,8 +8,7 @@ import {
   MARKET_AI_ENABLED_EVENT,
   marketAiApiBase,
   marketAiEnabled,
-  marketAiFetchWithTimeout as fetchWithTimeout,
-  marketAiLocalMode
+  marketAiFetchWithTimeout as fetchWithTimeout
 } from './dashboard-market-ai-client.js';
 
 // Market AI Standalone Adapter · main feature graph와 분리된 독립 entry
@@ -72,7 +71,8 @@ const marketAiState={
   signal:null,
   marketSnapshot:{},
   bridgeStatus:null,
-  serverReachable:marketAiLocalMode(),
+  serverReachable:false,
+  lifecycle:'off',
   status:'연결 확인 중',
   statusKind:'checking',
   message:'선택일과 무관한 현재 Market AI 신호를 확인하고 있습니다.',
@@ -84,6 +84,8 @@ let mountFrame=0;
 let marketAiTooltipEventsBound=false;
 let marketAiActiveTooltipTarget=null;
 let marketAiPublishedConnectionState=null;
+let marketAiLifecycleGeneration=0;
+let marketAiRefreshInFlight=null;
 
 function publishMarketAiConnectionState(connected,{force=false}={}){
   const next=connected===true;
@@ -91,6 +93,24 @@ function publishMarketAiConnectionState(connected,{force=false}={}){
   marketAiPublishedConnectionState=next;
   document.documentElement.dataset.marketAiConnected=next?'true':'false';
   window.dispatchEvent(new CustomEvent(MARKET_AI_CONNECTION_EVENT,{detail:{connected:next}}));
+}
+
+function setMarketAiLifecycleState(lifecycle,{resetData=false}={}){
+  marketAiState.lifecycle=lifecycle;
+  document.documentElement.dataset.marketAiLifecycle=lifecycle;
+  if(lifecycle==='online')return;
+  marketAiState.serverReachable=false;
+  if(resetData){
+    Object.assign(marketAiState,{signal:null,marketSnapshot:{},bridgeStatus:null,lastSignalAt:null});
+  }
+  publishMarketAiConnectionState(false);
+  removeMarketAiUi();
+}
+
+function marketAiLifecycleIsCurrent(generation,refreshSequence){
+  return marketAiEnabled()
+    &&generation===marketAiLifecycleGeneration
+    &&refreshSequence===marketAiRefreshSequence;
 }
 
 // [MARKET02] Environment / Fetch · 실행 환경 / timeout
@@ -1006,7 +1026,7 @@ function createMarketAiSection(){
 }
 
 function mountMarketAiSection(){
-  if(!marketAiUiEnabled())return null;
+  if(!marketAiUiEnabled()||marketAiState.lifecycle!=='online')return null;
   const hero=document.querySelector('#app > .wrap > .hero');
   if(!hero)return null;
   let row=document.getElementById('market-ai-section');
@@ -1064,11 +1084,7 @@ function syncMarketAiMarketView(row){
 }
 
 function syncMarketAiSignalView(){
-  if(!marketAiUiEnabled()){
-    removeMarketAiUi();
-    return;
-  }
-  if(!marketAiLocalMode()&&marketAiState.serverReachable!==true){
+  if(!marketAiUiEnabled()||marketAiState.lifecycle!=='online'||marketAiState.serverReachable!==true){
     removeMarketAiUi();
     return;
   }
@@ -1228,24 +1244,24 @@ async function refreshMarketAiBridgeStatus(apiBase){
   }
 }
 
-// 겹친 refresh에서는 최신 요청만 state를 반영해 늦게 도착한 이전 응답의 역덮어쓰기를 막는다.
+// 동일 lifecycle 세션의 refresh는 single-flight로 합치고, 이전 세션 응답은 generation/sequence로 폐기한다.
 let marketAiRefreshSequence=0;
 
-async function refreshMarketAiSignal(){
+async function runMarketAiSignalRefresh(generation){
   const refreshSequence=++marketAiRefreshSequence;
   if(!marketAiEnabled()){
-    publishMarketAiConnectionState(false);
-    removeMarketAiUi();
+    setMarketAiLifecycleState('off',{resetData:true});
     return;
   }
   const apiBase=marketAiApiBase();
   if(!apiBase){
-    removeMarketAiUi();
+    setMarketAiLifecycleState('offline',{resetData:true});
     return;
   }
 
-  if(!marketAiState.signal){
-    setMarketAiState({status:'연결 확인 중',statusKind:'checking',message:'Market AI 서버에 연결하고 있습니다.'});
+  if(marketAiState.lifecycle!=='online'){
+    Object.assign(marketAiState,{status:'연결 확인 중',statusKind:'checking',message:'Market AI 서버에 연결하고 있습니다.'});
+    setMarketAiLifecycleState('checking');
   }
 
   const previousSignalAt=marketAiState.signal?.updated_at||marketAiState.lastSignalAt||null;
@@ -1254,29 +1270,26 @@ async function refreshMarketAiSignal(){
     refreshMarketAiMarketSnapshot(apiBase),
     refreshMarketAiBridgeStatus(apiBase)
   ]);
-  if(refreshSequence!==marketAiRefreshSequence)return;
+  if(!marketAiLifecycleIsCurrent(generation,refreshSequence))return;
+
   const serverReachable=signalResult!==null||nextMarketSnapshot!==null||nextBridgeStatus!==null;
-  publishMarketAiConnectionState(serverReachable);
+  if(!serverReachable){
+    Object.assign(marketAiState,{
+      signal:null,marketSnapshot:{},bridgeStatus:null,serverReachable:false,
+      status:'연결 실패',statusKind:'offline',message:'Market AI 서버에 연결할 수 없습니다.',lastSignalAt:null
+    });
+    setMarketAiLifecycleState('offline');
+    return;
+  }
+
   Object.assign(marketAiState,{
-    serverReachable,
+    lifecycle:'online',
+    serverReachable:true,
     marketSnapshot:nextMarketSnapshot??{},
     bridgeStatus:nextBridgeStatus
   });
-
-  if(!serverReachable){
-    if(!marketAiLocalMode()){
-      removeMarketAiUi();
-      return;
-    }
-    setMarketAiState({
-      signal:null,
-      status:'연결 확인 중',
-      statusKind:'checking',
-      message:'Market AI 서버에 연결하고 있습니다.',
-      lastSignalAt:null
-    });
-    return;
-  }
+  document.documentElement.dataset.marketAiLifecycle='online';
+  publishMarketAiConnectionState(true);
 
   if(!signalResult){
     setMarketAiState({
@@ -1340,6 +1353,21 @@ async function refreshMarketAiSignal(){
   setMarketAiState({signal,status:'연결됨',statusKind:'connected',message:'',lastSignalAt:null});
 }
 
+function refreshMarketAiSignal(){
+  if(!marketAiEnabled()){
+    setMarketAiLifecycleState('off',{resetData:true});
+    return Promise.resolve();
+  }
+  const generation=marketAiLifecycleGeneration;
+  if(marketAiRefreshInFlight?.generation===generation)return marketAiRefreshInFlight.promise;
+  const promise=runMarketAiSignalRefresh(generation);
+  marketAiRefreshInFlight={generation,promise};
+  promise.finally(()=>{
+    if(marketAiRefreshInFlight?.promise===promise)marketAiRefreshInFlight=null;
+  });
+  return promise;
+}
+
 // [MARKET11] Lifecycle / Polling · render 교체 감시 / polling boot
 function scheduleMount(){
   if(mountFrame)return;
@@ -1351,18 +1379,22 @@ function scheduleMount(){
 
 function handleMarketAiEnabledChange(event){
   const enabled=event?.detail?.enabled===true;
+  if(enabled&&marketAiState.lifecycle==='checking')return;
+  marketAiLifecycleGeneration+=1;
   marketAiRefreshSequence+=1;
   if(!enabled){
-    Object.assign(marketAiState,{signal:null,marketSnapshot:{},bridgeStatus:null,serverReachable:false,status:'연결 꺼짐',statusKind:'disabled',message:'',lastSignalAt:null});
+    Object.assign(marketAiState,{status:'연결 꺼짐',statusKind:'disabled',message:''});
+    setMarketAiLifecycleState('off',{resetData:true});
     publishMarketAiConnectionState(false,{force:true});
-    removeMarketAiUi();
     return;
   }
-  scheduleMount();
+  Object.assign(marketAiState,{status:'연결 확인 중',statusKind:'checking',message:'Market AI 서버에 연결하고 있습니다.'});
+  setMarketAiLifecycleState('checking',{resetData:true});
   refreshMarketAiSignal();
 }
 
 function startMarketAiBridge(){
+  document.documentElement.dataset.marketAiLifecycle='off';
   publishMarketAiConnectionState(false,{force:true});
   setupMarketAiTooltipEvents();
   if(typeof marketAiPhoneMedia.addEventListener==='function')marketAiPhoneMedia.addEventListener('change',scheduleMount);
@@ -1377,11 +1409,13 @@ function startMarketAiBridge(){
   });
 
   if(marketAiUiEnabled()){
-    scheduleMount();
+    marketAiLifecycleGeneration+=1;
+    Object.assign(marketAiState,{status:'연결 확인 중',statusKind:'checking',message:'Market AI 서버에 연결하고 있습니다.'});
+    setMarketAiLifecycleState('checking',{resetData:true});
     refreshMarketAiSignal();
   }else{
+    setMarketAiLifecycleState('off',{resetData:true});
     publishMarketAiConnectionState(false,{force:true});
-    removeMarketAiUi();
   }
 
   if(!marketAiPollTimer){

@@ -1043,16 +1043,25 @@ test('Market AI contract: local은 :8001, remote는 Tailscale Serve를 공통 cl
   assert.match(marketAiClient,/return `\$\{location\.protocol\}\/\/\$\{location\.hostname\}:8001`/);
 });
 
-test('Market AI contract: remote 전체 실패는 UI 미노출, local 전체 실패는 연결 확인 중을 유지한다',()=>{
-  assert.match(market1,/if\(!marketAiLocalMode\(\)&&marketAiState\.serverReachable!==true\)\{ removeMarketAiUi\(\); return;/);
-  assert.match(market1,/if\(!serverReachable\)\{ if\(!marketAiLocalMode\(\)\)\{ removeMarketAiUi\(\); return; \} setMarketAiState\(\{ signal:null, status:'연결 확인 중'/);
+test('Market AI lifecycle은 OFF/CHECKING/OFFLINE에서 UI를 숨기고 ONLINE에서만 mount한다',()=>{
+  assert.match(marketAi,/lifecycle:'off'/);
+  assert.match(market1,/if\(!marketAiUiEnabled\(\)\|\|marketAiState\.lifecycle!=='online'\)return null/);
+  assert.match(market1,/if\(!marketAiUiEnabled\(\)\|\|marketAiState\.lifecycle!=='online'\|\|marketAiState\.serverReachable!==true\)\{ removeMarketAiUi\(\); return;/);
+  assert.match(market1,/setMarketAiLifecycleState\('checking'/);
+  assert.match(market1,/setMarketAiLifecycleState\('offline'/);
+  assert.match(market1,/lifecycle:'online'/);
+  assert.doesNotMatch(marketAi,/if\(!marketAiLocalMode\(\)&&marketAiState\.serverReachable!==true\)/);
 });
 
-test('Market AI refresh는 3 endpoint를 독립 호출하고 최신 refresh sequence만 state에 반영한다',()=>{
+test('Market AI refresh는 같은 lifecycle의 중복 호출을 single-flight로 합치고 이전 세션 응답을 폐기한다',()=>{
   assert.match(market1,/const \[signalResult,nextMarketSnapshot,nextBridgeStatus\]=await Promise\.all\(\[/);
   assert.match(market1,/const serverReachable=signalResult!==null\|\|nextMarketSnapshot!==null\|\|nextBridgeStatus!==null/);
   assert.match(market1,/let marketAiRefreshSequence=0/);
-  assert.match(market1,/if\(refreshSequence!==marketAiRefreshSequence\)return/);
+  assert.match(market1,/let marketAiLifecycleGeneration=0/);
+  assert.match(market1,/let marketAiRefreshInFlight=null/);
+  assert.match(market1,/if\(!marketAiLifecycleIsCurrent\(generation,refreshSequence\)\)return/);
+  assert.match(market1,/if\(marketAiRefreshInFlight\?\.generation===generation\)return marketAiRefreshInFlight\.promise/);
+  assert.match(market1,/if\(enabled&&marketAiState\.lifecycle==='checking'\)return/);
   assert.match(market1,/const \{response,signal,parseError\}=signalResult/);
   assert.match(market1,/if\(parseError\)\{ setMarketAiState/);
 });
