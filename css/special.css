@@ -255,10 +255,18 @@
     }
     .action-modal{--modal-control-font-size:var(--type-size-2xl)}
 
-  /* Realtime Quotes Phone · KRX 등 action modal과 같은 overlay pad/radius를 공유하고 monitor만 가용 영역을 채운다. */
+    /* Realtime Quotes Phone · Pension modal과 같은 card padding을 사용하고
+       외부 Monitor 배경과 shell 색상을 일치시킨다. */
     .realtime-quote-modal{
       --modal-card-width:calc(100vw - var(--modal-overlay-pad) - var(--modal-overlay-pad));
       --modal-card-height:calc(100vh - var(--modal-overlay-pad) - var(--modal-overlay-pad));
+      --modal-card-pad-y:var(--space-md);
+      --modal-card-pad-x:var(--space-md);
+      --realtime-quote-shell-bg:#f5f7fa;
+    }
+
+    .realtime-quote-modal-card{
+      background:var(--realtime-quote-shell-bg);
     }
     .realtime-quote-frame-stage,
     .realtime-quote-frame{
