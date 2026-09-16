@@ -86,8 +86,8 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
   // 계산에 직접 영향을 주는 상태
   let caseType='settled', noPriorMode=true, mode='current', autoBreakEvenTarget=false;
 
-  // 화면 선택 상태와 프리셋 적용 중 여부
-  let activePresetId=defaultPresetId, applying=false;
+  // 화면 선택 상태와 프리셋 원본값 수정 여부, 프리셋 적용 중 여부
+  let activePresetId=defaultPresetId, presetDirty=false, applying=false;
 
   // 마지막 정상 계산결과가 존재하는지 추적해 invalid 입력 중 stale 결과임을 명확히 표시
   let hasRenderedCalculation=false;
@@ -182,19 +182,17 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
   // 05. 거래유형 UI 구성 / DOM 재배치
   // 거래유형 변경 시 필드 위치·표시 여부·접근성 상태를 함께 동기화
   function setPresetActive(id){document.querySelectorAll('.preset-btn').forEach(b=>{const active=b.dataset.preset===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});}
-  function clearPresetActive(){
-    if(!activePresetId)return;
-    activePresetId='';
-    setPresetActive('');
+  function markPresetDirty(){
+    if(applying||presetDirty)return;
+    presetDirty=true;
     updateActualSellPriceUI();
   }
-  function markPresetDirty(){if(!applying)clearPresetActive();}
   function getPresetIdForCurrentCase(){
     if(caseType==='holding')return 'buy-2026-07-29';
     return noPriorMode?'current-only':'buy-2026-07-30';
   }
   function getActualSellPrice(){
-    if(noPriorMode||activePresetId!==getPresetIdForCurrentCase())return null;
+    if(noPriorMode||presetDirty||activePresetId!==getPresetIdForCurrentCase())return null;
     return caseType==='settled'?91065:74580;
   }
   let actualSellPriceFeedbackTimer=0;
@@ -708,7 +706,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     renderCalculationInputs(c);
     render(c);
     hasRenderedCalculation=true;
-    storage.set('investmentLossRecoveryCalcV17',JSON.stringify({...c.i,targetPrice:c.targetPrice,...options,presetId:activePresetId}));
+    storage.set('investmentLossRecoveryCalcV17',JSON.stringify({...c.i,targetPrice:c.targetPrice,...options,presetId:activePresetId,presetDirty}));
   }
 
   function getModeFormula(activeMode){
@@ -764,7 +762,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
     document.querySelectorAll('.strategy').forEach(panel=>{const active=panel.id===strategyId;panel.classList.toggle('active',active);panel.setAttribute('aria-hidden',String(!active));});
     if(focus)tabs.find(b=>b.dataset.tab===strategyId)?.focus();
   }
-  function applyPreset(id){if(!presets[id])return;applying=true;activePresetId=id;setPresetActive(id);applyValues({...presets[id]});setStrategyActive('s3');applying=false;}
+  function applyPreset(id){if(!presets[id])return;applying=true;activePresetId=id;presetDirty=false;setPresetActive(id);applyValues({...presets[id]});setStrategyActive('s3');applying=false;}
 
   // 11. 사용자 이벤트
   // 입력·스테퍼·프리셋·전략탭·초기화 버튼의 이벤트를 한 번만 등록
@@ -869,9 +867,13 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
       const v=JSON.parse(saved);
       applying=true;
       const hasStoredPresetId=Object.prototype.hasOwnProperty.call(v,'presetId');
-      activePresetId=hasStoredPresetId
-        ?(presets[v.presetId]?v.presetId:'')
+      const storedPresetIsValid=hasStoredPresetId&&!!presets[v.presetId];
+      activePresetId=storedPresetIsValid
+        ?v.presetId
         :(v.noPrior?'current-only':(v.caseType==='holding'?'buy-2026-07-29':'buy-2026-07-30'));
+      presetDirty=Object.prototype.hasOwnProperty.call(v,'presetDirty')
+        ?!!v.presetDirty
+        :(hasStoredPresetId&&!storedPresetIsValid);
       setPresetActive(activePresetId);
       applyValues(v);
       applying=false;
