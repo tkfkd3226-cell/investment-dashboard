@@ -140,12 +140,6 @@ function marketAiProbabilityText(value){
   return Number.isFinite(n)?`${(n*100).toFixed(1)}%`:'--';
 }
 
-function marketAiIndexText(value){
-  if(value==null||value==='')return '--';
-  const n=Number(value);
-  return Number.isFinite(n)?Math.round(n).toLocaleString('ko-KR'):'--';
-}
-
 function marketAiPriceText(value,digits=2){
   if(value==null||value==='')return '--';
   const n=Number(value);
@@ -392,7 +386,7 @@ function marketAiMarketDisplayModel(key){
     row=marketAiSnapshotRow(MARKET_AI_SOX_INDEX_SYMBOL);
     state=marketAiSnapshotDisplayState(row,marketAiSoxSessionState());
     label='SOX';
-    priceText=row?marketAiIndexText(row.price):'--';
+    priceText=row?marketAiPriceText(row.price,2):'--';
     sourceLabel='Yahoo PHLX 반도체 현물지수';
   }else if(marketKey==='nasdaq100-futures'){
     row=marketAiSnapshotRow(MARKET_AI_NASDAQ100_FUTURES_SYMBOL);
@@ -989,7 +983,7 @@ function syncMarketAiMarketView(row){
       if(directionClass)value.classList.add(directionClass);
     });
     changes.forEach(change=>{
-      change.textContent=model.changePct==='--'?'':model.changePct;
+      change.textContent=model.changePct;
       change.classList.remove('positive','negative');
       if(directionClass)change.classList.add(directionClass);
     });

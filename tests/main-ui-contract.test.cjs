@@ -1229,7 +1229,7 @@ test('Market AI 시장 카드도 tooltip과 같은 display model을 사용해 �
   assert.doesNotMatch(block,/marketAiKisFuturesState\(\)/);
   assert.doesNotMatch(block,/futuresState\.row/);
   assert.match(block,/value\.textContent=model\.price/);
-  assert.match(block,/change\.textContent=model\.changePct==='--'\?'':model\.changePct/);
+  assert.match(block,/change\.textContent=model\.changePct;/);
   assert.match(block,/const unavailable=model\.price==='--'/);
 });
 
@@ -1277,14 +1277,15 @@ test('Market AI 시장 tooltip View Model은 session-aware KOSPI/SOX/NQ와 K200 
       return {reason:row.__fresh===false?'stale':'fresh',rawRow:row,observedAt:row.observed_at||''};
     },
     marketAiKisFuturesState:()=>k200State,
-    marketAiIndexText:value=>value==null?'--':String(Math.round(Number(value))),
     marketAiPriceText:value=>value==null?'--':Number(value).toFixed(2),
     marketAiMarketSourceLabel:(row,key)=>row?.source||`source:${key}`,
-    marketAiChangeText:value=>Number.isFinite(Number(value))?`${Number(value)>=0?'+':''}${Number(value).toFixed(2)}%`:'',
     marketAiDirectionClass:value=>Number(value)>0?'positive':(Number(value)<0?'negative':'neutral'),
     marketAiMarketReferenceTime:(row,key)=>key==='kospi-index'&&row?.business_time==='153000'?'15:30':String(row?.observed_at||'').replace('Z','')
   };
   vm.createContext(context);
+  const changeStart=marketAi.indexOf('function marketAiChangeText');
+  const changeEnd=marketAi.indexOf('\nfunction kstDateParts',changeStart);
+  vm.runInContext(marketAi.slice(changeStart,changeEnd),context);
   vm.runInContext(marketAi.slice(start,end),context);
 
   rows['INDEX:KOSPI']={price:3210.5,change_pct:0.42,source:'kis-efriend:JUC_R:0001',observed_at:'20:05Z',business_time:'153000',__fresh:false};
@@ -1297,7 +1298,7 @@ test('Market AI 시장 tooltip View Model은 session-aware KOSPI/SOX/NQ와 K200 
   rows['INDEX:SOX']={price:7123.8,change_pct:-0.21,source:'yfinance:^SOX',observed_at:'20:00Z',__fresh:false};
   model=context.marketAiMarketDisplayModel('sox-index');
   assert.equal(model.status,'장전');
-  assert.equal(model.price,'7124');
+  assert.equal(model.price,'7123.80');
 
   rows['FUTURES:NQ']={price:25000,change_pct:-0.31,source:'yahoo',observed_at:'09:30Z',__fresh:false};
   model=context.marketAiMarketDisplayModel('nasdaq100-futures');
@@ -1305,6 +1306,12 @@ test('Market AI 시장 tooltip View Model은 session-aware KOSPI/SOX/NQ와 K200 
   assert.equal(model.price,'25000.00');
   assert.equal(model.observedAt,'09:30');
   assert.equal(model.session,'');
+
+  rows['FUTURES:NQ'].change_pct=null;
+  model=context.marketAiMarketDisplayModel('nasdaq100-futures');
+  assert.equal(model.price,'25000.00');
+  assert.equal(model.changePct,'--','기준가 누락은 0%로 표시하지 않는다');
+  assert.equal(model.changeClass,'');
 
   sessions.nq='maintenance';
   model=context.marketAiMarketDisplayModel('nasdaq100-futures');
