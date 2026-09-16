@@ -1737,7 +1737,7 @@
   },
   "2026-09-14": {
     "display": true,
-    "source": "pykrx-github-actions",
+    "source": "pykrx-github-actions+regular-close-audit",
     "marketStatus": "close",
     "requestedDate": "2026-09-14",
     "actualMarketDate": "2026-09-14",
@@ -1756,14 +1756,14 @@
       "PEN:448330": "2026-09-14"
     },
     "securities": {
-      "005930": 249500,
+      "005930": 249000,
       "000660": 1697000,
-      "005380": 370500,
+      "005380": 371500,
       "069500": 105410,
       "0163Y0": 8825,
       "395160": 37810,
       "445290": 30235,
-      "009150": 1330000
+      "009150": 1337000
     },
     "pension": {
       "278530": 38260,
@@ -1773,11 +1773,12 @@
     },
     "indices": {
       "KOSPI": 6684.37
-    }
+    },
+    "priceBasis": "regular_close"
   },
   "2026-09-15": {
     "display": true,
-    "source": "pykrx-github-actions",
+    "source": "pykrx-github-actions+regular-close-audit",
     "marketStatus": "close",
     "requestedDate": "2026-09-15",
     "actualMarketDate": "2026-09-15",
@@ -1796,14 +1797,14 @@
       "PEN:448330": "2026-09-15"
     },
     "securities": {
-      "005930": 250500,
-      "000660": 1712000,
-      "005380": 369500,
+      "005930": 248500,
+      "000660": 1690000,
+      "005380": 367000,
       "069500": 104275,
       "0163Y0": 8900,
       "395160": 37705,
       "445290": 30755,
-      "009150": 1330000
+      "009150": 1317000
     },
     "pension": {
       "278530": 37820,
@@ -1813,11 +1814,12 @@
     },
     "indices": {
       "KOSPI": 6627.26
-    }
+    },
+    "priceBasis": "regular_close"
   },
   "2026-09-16": {
     "display": true,
-    "source": "pykrx-github-actions",
+    "source": "pykrx-github-actions+regular-close-audit",
     "marketStatus": "close",
     "requestedDate": "2026-09-16",
     "actualMarketDate": "2026-09-16",
@@ -1836,14 +1838,14 @@
       "PEN:448330": "2026-09-16"
     },
     "securities": {
-      "005930": 253000,
-      "000660": 1750000,
+      "005930": 253500,
+      "000660": 1759000,
       "005380": 362000,
       "069500": 106365,
       "0163Y0": 9060,
       "395160": 38915,
       "445290": 30145,
-      "009150": 1371000
+      "009150": 1381000
     },
     "pension": {
       "278530": 38510,
@@ -1853,6 +1855,7 @@
     },
     "indices": {
       "KOSPI": 6717.97
-    }
+    },
+    "priceBasis": "regular_close"
   }
 }
