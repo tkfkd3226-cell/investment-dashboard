@@ -66,14 +66,18 @@ function validateKodexLeverageSource(source){
   validateContextPoint('julyAdd',context?.julyAdd,{qty:false});
   validateContextPoint('augustFinalBuild.first',context?.augustFinalBuild?.first);
   validateContextPoint('augustFinalBuild.second',context?.augustFinalBuild?.second,{qty:false});
+  validateContextPoint('septemberFinalBuild.first',context?.septemberFinalBuild?.first);
+  validateContextPoint('septemberFinalBuild.second',context?.septemberFinalBuild?.second);
 
   // positionContext는 Timeline 설명용 임의 메모가 아니라 실제 canonical 거래의 매수 형성 문맥이다.
   // 따라서 개별 숫자 형식뿐 아니라 연결된 실현거래와의 수량·가중평균·날짜 관계도 함께 검증한다.
   const tradeByDate=new Map(source.trades.map(row=>[row.date,row]));
   const julyClose=tradeByDate.get('2026-07-30');
   const augustClose=tradeByDate.get('2026-08-20');
+  const septemberClose=tradeByDate.get('2026-09-17');
   if(!julyClose||julyClose.segment!=='core')throw new Error('KODEX 거래 데이터 positionContext 기준 거래 2026-07-30이 올바르지 않습니다.');
   if(!augustClose||augustClose.segment!=='core')throw new Error('KODEX 거래 데이터 positionContext 기준 거래 2026-08-20이 올바르지 않습니다.');
+  if(!septemberClose||septemberClose.segment!=='core')throw new Error('KODEX 거래 데이터 positionContext 기준 거래 2026-09-17이 올바르지 않습니다.');
 
   const contextSafeAdd=(left,right,label)=>{
     const value=left+right;
@@ -124,6 +128,18 @@ function validateKodexLeverageSource(source){
     '2026-08-20 취득원가 합계'
   );
   assertRoundedAverage(augustCost,augustClose.qty,augustClose.buy,'augustFinalBuild');
+
+  const septemberFirst=context.septemberFinalBuild.first;
+  const septemberSecond=context.septemberFinalBuild.second;
+  if(!(septemberFirst.date<septemberSecond.date&&septemberSecond.date<septemberClose.date))throw new Error('KODEX 거래 데이터 septemberFinalBuild 날짜 순서가 실제 거래 흐름과 일치하지 않습니다.');
+  const septemberQty=contextSafeAdd(septemberFirst.qty,septemberSecond.qty,'septemberFinalBuild 수량 합계');
+  if(septemberQty!==septemberClose.qty)throw new Error('KODEX 거래 데이터 septemberFinalBuild 수량 합계가 2026-09-17 실현수량과 일치하지 않습니다.');
+  const septemberCost=contextSafeAdd(
+    contextSafeMultiply(septemberFirst.qty,septemberFirst.buy,'septemberFinalBuild.first 취득원가'),
+    contextSafeMultiply(septemberSecond.qty,septemberSecond.buy,'septemberFinalBuild.second 취득원가'),
+    '2026-09-17 취득원가 합계'
+  );
+  assertRoundedAverage(septemberCost,septemberClose.qty,septemberClose.buy,'septemberFinalBuild');
   return source;
 }
 

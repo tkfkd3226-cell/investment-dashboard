@@ -75,6 +75,7 @@ test('KODEX Report canonical schema validator는 잘못된 운영 데이터를 �
     ['mixed core.qty 문자열',src=>{const row=src.trades.find(v=>v.segment==='mixed');row.core.qty=String(row.core.qty);}],
     ['context buy 문자열',src=>{src.positionContext.legacyBuild.first.buy=String(src.positionContext.legacyBuild.first.buy);}],
     ['context qty 문자열',src=>{src.positionContext.legacyBuild.first.qty=String(src.positionContext.legacyBuild.first.qty);}],
+    ['9월 context qty 문자열',src=>{src.positionContext.septemberFinalBuild.second.qty=String(src.positionContext.septemberFinalBuild.second.qty);}],
   ]){
     const badType=structuredClone(reportSource);
     mutate(badType);
@@ -120,6 +121,13 @@ test('KODEX Report canonical schema validator는 잘못된 운영 데이터를 �
   const badContextOrder=structuredClone(reportSource);
   badContextOrder.positionContext.augustFinalBuild.second.date='2026-08-21';
   assert.throws(()=>validateReportSource(badContextOrder),/날짜 순서/,'positionContext 매수일이 연결된 실현일보다 늦으면 차단해야 한다');
+
+  const badSeptemberQty=structuredClone(reportSource);
+  badSeptemberQty.positionContext.septemberFinalBuild.second.qty-=1;
+  assert.throws(()=>validateReportSource(badSeptemberQty),/septemberFinalBuild 수량 합계/,'9월 포지션 형성 수량은 9/17 전량매도 수량과 일치해야 한다');
+  const badSeptemberAverage=structuredClone(reportSource);
+  badSeptemberAverage.positionContext.septemberFinalBuild.second.buy+=100;
+  assert.throws(()=>validateReportSource(badSeptemberAverage),/실제 거래 수량·평단과 일치하지/,'9월 포지션 형성 가중평균은 9/17 실현거래 평단과 일치해야 한다');
 });
 
 test('KODEX Report 파생 정수 합계·차감은 개별 값이 안전해도 결과가 안전 범위를 넘으면 차단한다',()=>{
@@ -185,6 +193,21 @@ test('KODEX Report 수익 구성은 실제 수익 기여일 때만 0~100% 비중
 
   const zero=deriveProfitComposition(0,0);
   assert.deepEqual(zero,{available:false,reason:'zero',total:0,coreRatio:0,dayRatio:0});
+});
+
+test('2026-09-17 추가 거래는 원천 내역과 매매보고서의 포지션 형성 흐름을 그대로 반영한다',()=>{
+  const row=REPORT_DATA.find(v=>v.date==='2026-09-17');
+  assert.deepEqual(row,{date:'2026-09-17',qty:506,buy:104103,sell:106005,pnl:962450,fee:4471,segment:'core'});
+  const build=reportSource.positionContext.septemberFinalBuild;
+  assert.deepEqual(build,{first:{date:'2026-09-11',qty:36,buy:110930},second:{date:'2026-09-16',qty:470,buy:103580}});
+  assert.equal(build.first.qty+build.second.qty,row.qty);
+  assert.equal(Math.round((build.first.qty*build.first.buy+build.second.qty*build.second.buy)/row.qty),row.buy);
+  assert.equal(row.pnl-row.fee,957979);
+  assert.equal(model.reportMetrics.totalPnl,10154740);
+  assert.equal(model.reportMetrics.totalFee,119703);
+  assert.equal(model.reportMetrics.totalNet,10035037);
+  assert.equal(model.reportMetrics.totalQty,14443);
+  assert.equal(model.reportEndDate,'2026-09-17');
 });
 
 test('KODEX Report 순수 파생 모델은 전체/본 포지션/단타 합계와 표시기간을 보존한다',()=>{
@@ -308,10 +331,10 @@ test('Report 표시기간과 근거 설명의 거래 수치는 canonical 원천�
   const html=read('add/kodex-leverage-report.html');
   assert.match(html,/data-report-period/);
   assert.doesNotMatch(html,/2026\.06\.08\s*~\s*2026\.09\.02/,'표시기간을 HTML에 고정하면 안 된다');
-  for(const key of ['2026-06-09:qty','2026-06-25:qty','2026-08-20:qty','2026-08-20:fee','2026-09-02:qty']){
+  for(const key of ['2026-06-09:qty','2026-06-25:qty','2026-08-20:qty','2026-08-20:fee','2026-09-02:qty','2026-09-17:qty']){
     assert.match(html,new RegExp(`data-report-row-value=\"${key}\"`),`${key} 동적 placeholder 누락`);
   }
-  for(const key of ['legacyFirstQty','legacySecondQty','legacyTotalQty','augustFirstQty','augustSecondQty']){
+  for(const key of ['legacyFirstQty','legacySecondQty','legacyTotalQty','augustFirstQty','augustSecondQty','septemberFirstQty','septemberSecondQty']){
     assert.match(html,new RegExp(`data-report-context-value=\"${key}\"`),`${key} context placeholder 누락`);
   }
   assert.match(addSource,/period\.textContent=`\$\{reportStartDate\.replaceAll/);

@@ -1247,6 +1247,17 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
         );
       });
 
+      addRealized(['2026-09-17'],([row])=>{
+        const build=POSITION_CONTEXT.septemberFinalBuild;
+        const first=build?.first,second=build?.second;
+        if(!first||!second)return timelineGeneric(row);
+        return timelineEvent(
+          row.date,`${first.date}~${row.date}`,`${reportNumber(row.qty)}주 보유 포지션 청산`,
+          `${timelineDateShort(first.date)} ${reportNumber(first.qty)}주 + ${timelineDateShort(second.date)} ${reportNumber(second.qty)}주 → ${timelineDateShort(row.date)} 전량 매도`,
+          `${reportNumber(first.qty)}주는 ${reportNumber(first.buy)}원, ${reportNumber(second.qty)}주는 ${reportNumber(second.buy)}원에 매수해 가중평균 ${reportNumber(row.buy)}원. ${timelineDateShort(row.date)} ${reportNumber(row.sell)}원에 ${reportNumber(row.qty)}주 전량 매도해 본 포지션으로 분류.`
+        );
+      });
+
       // 새 canonical 거래 행이 curated group에 아직 정의되지 않아도 Timeline에서 누락되지 않게 자동 보완한다.
       reportDailyRows.forEach(row=>{
         if(!coveredDates.has(row.date)) events.push(timelineGeneric(row));
@@ -1304,16 +1315,21 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
       });
       const legacyBuild=positionContext?.legacyBuild;
       const augustBuild=positionContext?.augustFinalBuild;
+      const septemberBuild=positionContext?.septemberFinalBuild;
       const augustRow=reportRowByDate.get('2026-08-20');
       const legacyFirstQty=Number(legacyBuild?.first?.qty);
       const legacySecondQty=Number(legacyBuild?.second?.qty);
       const augustFirstQty=Number(augustBuild?.first?.qty);
+      const septemberFirstQty=Number(septemberBuild?.first?.qty);
+      const septemberSecondQty=Number(septemberBuild?.second?.qty);
       const reportContextValues={
         legacyFirstQty,
         legacySecondQty,
         legacyTotalQty:Number.isFinite(legacyFirstQty)&&Number.isFinite(legacySecondQty)?legacyFirstQty+legacySecondQty:null,
         augustFirstQty,
-        augustSecondQty:augustRow&&Number.isFinite(augustFirstQty)?augustRow.qty-augustFirstQty:null
+        augustSecondQty:augustRow&&Number.isFinite(augustFirstQty)?augustRow.qty-augustFirstQty:null,
+        septemberFirstQty,
+        septemberSecondQty
       };
       document.querySelectorAll('[data-report-context-value]').forEach(node=>{
         const value=reportContextValues[node.dataset.reportContextValue];
