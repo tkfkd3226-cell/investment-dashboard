@@ -20,6 +20,27 @@
       "updatedAtKST": "2026-08-11T11:28:21+09:00",
       "appliedAtKST": "2026-08-11T11:28:21+09:00",
       "logicalOperationId": "trade-2026-08-11-448330-6267d507-cd21-43d0-b28f-c13de6aae35d"
+    },
+    {
+      "id": "trade-2026-09-17-448330-760d8874-69b0-4c28-a543-3a4e09cb6530",
+      "date": "2026-09-17",
+      "applyDate": "2026-09-17",
+      "tradeDate": "2026-09-15",
+      "ticker": "448330",
+      "name": "KODEX 삼전채권",
+      "type": "buy",
+      "qty": 38,
+      "price": 17105,
+      "amount": 649990,
+      "funding": "pension_cash",
+      "cashBeforeDate": "2026-09-17",
+      "cashBefore": 661703,
+      "cashAfter": 11713,
+      "memo": "신청일 2026-09-15 · KODEX 삼전채권 38좌 매수 체결 · 앱 반영일 2026-09-17",
+      "updatedBy": "google-apps-script",
+      "updatedAtKST": "2026-09-17T11:56:32+09:00",
+      "appliedAtKST": "2026-09-17T11:56:32+09:00",
+      "logicalOperationId": "trade-2026-09-17-448330-760d8874-69b0-4c28-a543-3a4e09cb6530"
     }
   ]
 }
