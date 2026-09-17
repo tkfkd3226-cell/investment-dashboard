@@ -6352,6 +6352,16 @@ function krxSnapshotPriceBasis(snapshot) {
   return String(snapshot.marketStatus || "close") === "intraday" ? "intraday" : "legacy_close";
 }
 
+function krxSnapshotHasVerifiedRegularClose(snapshot) {
+  if (!snapshot || typeof snapshot !== "object" || snapshot.display === false) return false;
+  if (krxSnapshotPriceBasis(snapshot) !== "regular_close") return false;
+  // 2026-09-17 source-policy revision: regular_close is trusted only when the
+  // updater explicitly attests that the value came from raw KRX pykrx data.
+  // Older regular_close rows without this attestation are re-confirmed once.
+  const source = String(snapshot.regularCloseSource || "").trim();
+  return source === "pykrx_raw" || source.indexOf("pykrx_raw+") === 0;
+}
+
 // 현재 시각·최신 데이터 상태에 따라 KRX workflow 실행 필요성을 판단한다.
 function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
   const explicitDate = String(body.date || "").trim();
@@ -6360,13 +6370,11 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     : ((readGithubJson("data/prices.json").data) || {});
 
   // 재갱신 요청은 해당 날짜의 현재 저장 상태를 먼저 확인한다.
-  // `marketStatus=close`만으로 정규장 종가 확정을 가정하지 않는다.
-  // legacy close(priceBasis 없음)는 한 번 재확정해 regular_close로 승격시킨다.
+  // `marketStatus=close`/`priceBasis=regular_close`만으로 정규장 종가 확정을 가정하지 않는다.
+  // raw pykrx source attestation이 없는 기존 close는 한 번 재확정한다.
   if (explicitDate) {
     const explicitSnapshot = prices[explicitDate] || null;
-    const explicitBasis = krxSnapshotPriceBasis(explicitSnapshot);
-
-    if (explicitSnapshot && explicitSnapshot.display !== false && explicitBasis === "regular_close") {
+    if (explicitSnapshot && krxSnapshotHasVerifiedRegularClose(explicitSnapshot)) {
       return {
         shouldDispatch: false,
         reason: "explicit_date_already_closed",
@@ -6391,7 +6399,6 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
   }
 
   const latestStatus = String(latest.snapshot.marketStatus || "close");
-  const latestBasis = krxSnapshotPriceBasis(latest.snapshot);
   const previousBusinessDate = previousBusinessDateText(now.dateText, now.day);
 
   // 장중에는 같은 날짜라도 현재가 갱신을 계속 허용
@@ -6402,8 +6409,8 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     };
   }
 
-  // 오늘 데이터가 정규장 종가로 명시적으로 확정된 경우에만 추가 실행을 막는다.
-  if (latest.date === now.dateText && latestBasis === "regular_close") {
+  // 오늘 데이터가 raw pykrx 정규장 종가로 검증된 경우에만 추가 실행을 막는다.
+  if (latest.date === now.dateText && krxSnapshotHasVerifiedRegularClose(latest.snapshot)) {
     return {
       shouldDispatch: false,
       reason: "already_closed_today",
@@ -6419,18 +6426,17 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     };
   }
 
-  // 과거 구현이 close만 저장했거나 잘못된 close를 만든 당일 데이터는
-  // 정규장 종가 source로 한 번 재확정한다.
-  if (latest.date === now.dateText && latestStatus === "close" && latestBasis !== "regular_close" && now.isAfterClose) {
+  // 과거 구현이 close/regular_close만 저장했거나 source attestation 없는 당일 데이터는
+  // raw pykrx 정규장 종가 source로 한 번 재확정한다.
+  if (latest.date === now.dateText && latestStatus === "close" && !krxSnapshotHasVerifiedRegularClose(latest.snapshot) && now.isAfterClose) {
     return {
       shouldDispatch: true,
       reason: "reconfirm_regular_close"
     };
   }
 
-  // 장 시작 전에는 직전 영업일 데이터가 regular_close로 확정된 경우에만 실행하지 않는다.
-  // legacy close는 정규장 종가 여부를 증명하지 못하므로 재확정을 허용한다.
-  if (now.isBeforeOpen && latestBasis === "regular_close" && latest.date >= previousBusinessDate) {
+  // 장 시작 전에는 직전 영업일 데이터가 raw pykrx regular_close로 검증된 경우에만 실행하지 않는다.
+  if (now.isBeforeOpen && krxSnapshotHasVerifiedRegularClose(latest.snapshot) && latest.date >= previousBusinessDate) {
     return {
       shouldDispatch: false,
       reason: "before_open_already_closed",
@@ -6438,9 +6444,8 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     };
   }
 
-  // 주말에도 직전 영업일 데이터가 regular_close로 확정된 경우에만 실행하지 않는다.
-  // legacy close는 정규장 종가 여부를 증명하지 못하므로 재확정을 허용한다.
-  if (!now.isWeekday && latestBasis === "regular_close" && latest.date >= previousBusinessDate) {
+  // 주말에도 직전 영업일 데이터가 raw pykrx regular_close로 검증된 경우에만 실행하지 않는다.
+  if (!now.isWeekday && krxSnapshotHasVerifiedRegularClose(latest.snapshot) && latest.date >= previousBusinessDate) {
     return {
       shouldDispatch: false,
       reason: "weekend_already_closed",

@@ -787,15 +787,16 @@ test('Live Valuation 부분 갱신은 Hero 기준문구도 실제 Market AI 가�
   assert.match(app,/heroBasis\.textContent=`\(\$\{heroPerformanceBasisLabel\(x\.date\)\}\)`;/);
 });
 
-test('KRX 종가 반영은 인증 없는 정규장 일봉을 우선하고 raw pykrx를 failover로 유지한다',()=>{
+test('KRX 장마감 종가는 raw pykrx KRX 원천만 신뢰하고 source attestation 없는 기존 종가는 재확정한다',()=>{
   const updater=read('scripts/update_prices.py');
   const gas=read('GAS_code.js');
-  assert.match(updater,/api\.stock\.naver\.com\/chart\/domestic\/item\/\{ticker\}/);
-  assert.match(updater,/"periodType": "dayCandle"/);
-  assert.match(updater,/adjusted=False/);
-  assert.match(updater,/"priceBasis": price_basis/);
+  assert.match(updater,/adjusted=False if closed else None/);
+  assert.doesNotMatch(updater,/api\.stock\.naver\.com\/chart\/domestic\/item\/\{ticker\}/);
+  assert.doesNotMatch(updater,/"periodType": "dayCandle"/);
+  assert.match(updater,/"regularCloseSource": "pykrx_raw/);
   assert.match(updater,/정규장 종가를 확인하지 못했습니다/);
-  assert.match(gas,/=== "regular_close"/);
+  assert.match(gas,/function krxSnapshotHasVerifiedRegularClose\(snapshot\)/);
+  assert.match(gas,/snapshot\.regularCloseSource/);
   assert.match(gas,/reconfirm_regular_close/);
   assert.match(ui,/정규장 종가 기준이 아니면 다시 반영합니다\./);
 });

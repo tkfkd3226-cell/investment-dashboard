@@ -289,7 +289,7 @@ stable request identity, optimistic concurrency, durable idempotency, fail-close
 ### 6.2 KRX 갱신
 
 - 최신/누락 거래일과 정규장 종가 확정이 필요한 날짜를 갱신합니다.
-- 선택 날짜 재갱신은 `priceBasis: regular_close`로 이미 확정된 경우 불필요한 실행을 생략할 수 있습니다.
+- 선택 날짜 재갱신은 `priceBasis: regular_close`와 `regularCloseSource: pykrx_raw...`가 함께 확인된 경우에만 불필요한 실행을 생략합니다. 과거에 source attestation 없이 저장된 `regular_close`는 한 번 재확정합니다.
 - workflow는 `prices.json`과 `performance_snapshots.json`만 자동 commit 대상으로 취급합니다.
 - branch 경쟁·push 응답 유실·generation input drift는 fail-closed 또는 검증 후 재시도로 처리합니다.
 - 매도 완료 종목은 해당 날짜 이후 신규 KRX 조회 대상에서 제외하되 매도 전 과거 backfill에서는 다시 조회합니다.

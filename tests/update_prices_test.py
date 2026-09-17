@@ -51,6 +51,7 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         self.assertFalse(row["display"])
         self.assertEqual(row["actualMarketDate"], "2026-09-08")
         self.assertEqual(row["priceSourceDates"], {"SEC:SEC": "2026-09-08", "PEN:PEN": "2026-09-08"})
+        self.assertNotIn("regularCloseSource", row)
 
     def test_fetch_fallback_is_hidden_and_keeps_previous_source_date(self):
         self.updater.fetch_close = lambda *_: (None, None, "network error")
@@ -71,6 +72,7 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         self.assertFalse(row["display"])
         self.assertEqual(row["actualMarketDate"], "2026-09-08")
         self.assertEqual(row["priceSourceDates"], {"SEC:SEC": "2026-09-08", "PEN:PEN": "2026-09-08"})
+        self.assertNotIn("regularCloseSource", row)
 
     def test_warning_hidden_date_is_automatically_retried(self):
         self.updater.today_kst = lambda: "2026-09-09"
@@ -93,6 +95,7 @@ class UpdatePricesSafetyTest(unittest.TestCase):
 
         self.assertEqual(prices["2026-09-09"]["marketStatus"], "close")
         self.assertEqual(prices["2026-09-09"]["priceBasis"], "regular_close")
+        self.assertEqual(prices["2026-09-09"]["regularCloseSource"], "pykrx_raw")
 
     def test_intraday_snapshot_is_tagged_as_intraday(self):
         self.updater.market_status_for_date = lambda _: "intraday"
@@ -104,52 +107,12 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         self.assertEqual(prices["2026-09-09"]["marketStatus"], "intraday")
         self.assertEqual(prices["2026-09-09"]["priceBasis"], "intraday")
 
-    def test_fetch_close_uses_naver_regular_close_after_regular_close(self):
-        calls = []
-
-        class FakeResponse:
-            def raise_for_status(self):
-                return None
-
-            def json(self):
-                return {
-                    "result": {
-                        "priceInfos": [
-                            {"localDate": "20260915", "closePrice": 1740000},
-                            {"localDate": "20260916", "closePrice": "1,759,000"},
-                            {"localDate": "20260917", "closePrice": 1800000},
-                        ]
-                    }
-                }
-
-        def fake_get(url, **kwargs):
-            calls.append((url, kwargs))
-            return FakeResponse()
-
-        self.updater.requests.get = fake_get
-        self.updater.stock.get_market_ohlcv_by_date = lambda *_args, **_kwargs: self.fail(
-            "closed-session Naver success must not fall through to pykrx"
-        )
-        self.updater.market_status_for_date = lambda _: "close"
-        actual, close, error = self.updater.fetch_close("000660", "2026-09-16", retries=0)
-
-        self.assertEqual((actual, close, error), ("2026-09-16", 1759000, None))
-        self.assertEqual(calls[0][0], "https://api.stock.naver.com/chart/domestic/item/000660")
-        self.assertEqual(
-            calls[0][1]["params"],
-            {
-                "periodType": "dayCandle",
-                "startDateTime": "20260909",
-                "endDateTime": "20260916",
-            },
-        )
-
-    def test_fetch_close_falls_back_to_raw_pykrx_if_naver_regular_close_fails(self):
+    def test_fetch_close_uses_raw_pykrx_after_regular_close(self):
         calls = []
 
         class FakeRow:
             def __getitem__(self, key):
-                return 1759000 if key == "종가" else None
+                return 1745000 if key == "종가" else None
 
         class FakeILoc:
             def __getitem__(self, _):
@@ -157,22 +120,38 @@ class UpdatePricesSafetyTest(unittest.TestCase):
 
         class FakeFrame:
             empty = False
-            index = [__import__("datetime").datetime(2026, 9, 16)]
+            index = [__import__("datetime").datetime(2026, 9, 17)]
             iloc = FakeILoc()
 
         def fake_getter(*args, **kwargs):
             calls.append((args, kwargs))
             return FakeFrame()
 
-        self.updater.requests.get = lambda *_args, **_kwargs: (_ for _ in ()).throw(
-            RuntimeError("naver unavailable")
+        self.updater.requests.get = lambda *_args, **_kwargs: self.fail(
+            "closed-session stock close must not use a public Naver quote/day-candle endpoint"
         )
         self.updater.stock.get_market_ohlcv_by_date = fake_getter
         self.updater.market_status_for_date = lambda _: "close"
-        actual, close, error = self.updater.fetch_close("000660", "2026-09-16", retries=0)
+        actual, close, error = self.updater.fetch_close("000660", "2026-09-17", retries=0)
 
-        self.assertEqual((actual, close, error), ("2026-09-16", 1759000, None))
+        self.assertEqual((actual, close, error), ("2026-09-17", 1745000, None))
         self.assertEqual(calls[0][1], {"adjusted": False})
+
+    def test_fetch_close_fails_closed_if_raw_pykrx_regular_close_is_unavailable(self):
+        self.updater.requests.get = lambda *_args, **_kwargs: self.fail(
+            "closed-session stock close must not fall back to Naver"
+        )
+        self.updater.stock.get_market_ohlcv_by_date = lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            RuntimeError("pykrx unavailable")
+        )
+        self.updater.market_status_for_date = lambda _: "close"
+
+        actual, close, error = self.updater.fetch_close("000660", "2026-09-17", retries=0)
+
+        self.assertIsNone(actual)
+        self.assertIsNone(close)
+        self.assertIn("pykrx-raw=", error)
+        self.assertIn("pykrx unavailable", error)
 
     def test_fetch_close_keeps_intraday_default_source_during_regular_session(self):
         calls = []

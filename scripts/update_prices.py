@@ -102,77 +102,6 @@ def previous_snapshot(prices: dict[str, Any], before: str | None = None):
 # Market data fetchers
 # ---------------------------------------------------------------------------
 
-def _iter_naver_chart_rows(payload: Any):
-    """Yield Naver chart rows regardless of the endpoint's wrapper shape."""
-    if isinstance(payload, dict):
-        if "localDate" in payload and "closePrice" in payload:
-            yield payload
-        for value in payload.values():
-            yield from _iter_naver_chart_rows(value)
-    elif isinstance(payload, list):
-        for value in payload:
-            yield from _iter_naver_chart_rows(value)
-
-
-def fetch_close_from_naver_chart(
-    ticker: str,
-    target_date: str,
-    lookback_days: int = DEFAULT_LOOKBACK_DAYS,
-):
-    """Fetch the latest regular-session daily close on or before ``target_date``.
-
-    Naver's domestic day-candle endpoint exposes the regular daily OHLC separately
-    from NXT over-market quote fields, so it can be used in GitHub Actions without
-    KRX login credentials.  Only rows inside the requested lookback window are
-    admitted.
-    """
-    start = datetime.strptime(target_date, DATE_FORMAT) - timedelta(days=lookback_days)
-    response = requests.get(
-        f"https://api.stock.naver.com/chart/domestic/item/{ticker}",
-        params={
-            "periodType": "dayCandle",
-            "startDateTime": start.strftime("%Y%m%d"),
-            "endDateTime": target_date.replace("-", ""),
-        },
-        headers={
-            "User-Agent": HTTP_USER_AGENT,
-            "Accept": "application/json,text/plain,*/*",
-        },
-        timeout=HTTP_TIMEOUT_SECONDS,
-    )
-    response.raise_for_status()
-    payload = response.json()
-
-    candidates: list[tuple[str, int]] = []
-    start_date = start.strftime(DATE_FORMAT)
-    for row in _iter_naver_chart_rows(payload):
-        raw_date = str(row.get("localDate", "") or "").strip()
-        raw_close = row.get("closePrice")
-        if not raw_date or raw_close in (None, ""):
-            continue
-
-        digits = re.sub(r"[^0-9]", "", raw_date)
-        if len(digits) != 8:
-            continue
-        actual_date = f"{digits[:4]}-{digits[4:6]}-{digits[6:8]}"
-        if not (start_date <= actual_date <= target_date):
-            continue
-
-        try:
-            close = int(round(float(str(raw_close).replace(",", ""))))
-        except (TypeError, ValueError):
-            continue
-        candidates.append((actual_date, close))
-
-    if not candidates:
-        raise ValueError(
-            f"Naver regular-close chart returned no rows for {ticker} "
-            f"{start_date}~{target_date}"
-        )
-
-    return max(candidates, key=lambda item: item[0])
-
-
 def _fetch_close_from_pykrx(
     ticker: str,
     start: datetime,
@@ -203,13 +132,15 @@ def fetch_close(
     retries: int = FETCH_RETRIES,
     retry_delay: float = FETCH_RETRY_DELAY_SECONDS,
 ):
-    """Return the latest available close on or before ``target_date``.
+    """Return the latest available KRX price on or before ``target_date``.
 
-    During the regular session the existing pykrx current-price path is kept.
-    After the regular close, the unauthenticated Naver day-candle endpoint is
-    tried first so GitHub Actions can resolve the 15:30 close without KRX_ID/PW.
-    ``adjusted=False`` pykrx is retained only as a failover for environments that
-    do have a working KRX session.
+    During the regular session the existing pykrx default path is kept.
+    After the regular close (and for historical dates), only the raw KRX daily
+    close from ``pykrx adjusted=False`` is accepted.  Public quote/day-candle
+    endpoints are intentionally not used as a fallback because they can expose
+    NXT/after-market values while looking like a daily close.  If raw pykrx
+    cannot confirm the KRX close, the update fails closed instead of publishing
+    an unverified value as ``regular_close``.
     """
     start = datetime.strptime(target_date, DATE_FORMAT) - timedelta(days=lookback_days)
     end = datetime.strptime(target_date, DATE_FORMAT)
@@ -217,37 +148,17 @@ def fetch_close(
     last_error = None
 
     for attempt in range(retries + 1):
-        if closed:
-            errors: list[str] = []
-            try:
-                actual_date, close = fetch_close_from_naver_chart(ticker, target_date, lookback_days)
-                return actual_date, close, None
-            except Exception as exc:
-                errors.append(f"naver-regular-close={exc!r}")
-
-            try:
-                actual_date, close = _fetch_close_from_pykrx(
-                    ticker,
-                    start,
-                    end,
-                    adjusted=False,
-                )
-                return actual_date, close, None
-            except Exception as exc:
-                errors.append(f"pykrx-raw={exc!r}")
-
-            last_error = "; ".join(errors)
-        else:
-            try:
-                actual_date, close = _fetch_close_from_pykrx(
-                    ticker,
-                    start,
-                    end,
-                    adjusted=None,
-                )
-                return actual_date, close, None
-            except Exception as exc:
-                last_error = f"pykrx-intraday={exc!r}"
+        try:
+            actual_date, close = _fetch_close_from_pykrx(
+                ticker,
+                start,
+                end,
+                adjusted=False if closed else None,
+            )
+            return actual_date, close, None
+        except Exception as exc:
+            label = "pykrx-raw" if closed else "pykrx-intraday"
+            last_error = f"{label}={exc!r}"
 
         if attempt < retries:
             time.sleep(retry_delay)
@@ -1026,6 +937,9 @@ def update_one_date(
         "source": "krx-github-actions+nxt-valuation" if manual_valuation_used else "krx-github-actions",
         "marketStatus": status,
         "priceBasis": price_basis,
+        **({
+            "regularCloseSource": "pykrx_raw+nxt_valuation_override" if manual_valuation_used else "pykrx_raw",
+        } if status == "close" and not warnings else {}),
         "requestedDate": target_date,
         "actualMarketDate": actual_date,
         "updatedAtKST": updated_at,
