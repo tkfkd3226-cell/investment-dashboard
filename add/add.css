@@ -902,8 +902,6 @@ html:where([data-add-page="calc"]).dark .note{background:#1f2937;color:#cbd5e1}
   --energy-cyan:#18a9c9;
   --energy-cyan-text:#167c9a;
   --energy-gold:#d99a28;
-  --badge-exact-bg:#eaf8f1;
-  --badge-exact-text:#147252;
   --badge-estimate-bg:#fff5df;
   --badge-estimate-text:#8d5b00;
   --button-hover-border:var(--navy2);
@@ -952,8 +950,6 @@ html:where([data-add-page="report"]).dark{
   --energy-cyan:#4bc5dd;
   --energy-cyan-text:#4bc5dd;
   --energy-gold:#f2b94b;
-  --badge-exact-bg:rgba(22,101,52,.25);
-  --badge-exact-text:#86efac;
   --badge-estimate-bg:rgba(146,64,14,.22);
   --badge-estimate-text:#fbbf24;
   --chart-plot-top:rgba(67,33,19,.72);
@@ -1097,7 +1093,6 @@ html:where([data-add-page="report"]).dark .chart-wrap{box-shadow:inset 0 1px 0 r
 :where(html[data-add-page="report"]) .add-data-table tbody th[scope="row"]{font-weight:400;background:transparent;position:static}
 :where(html[data-add-page="report"]) .add-data-table tfoot :is(td,th){font-weight:950;background:linear-gradient(90deg,rgba(249,115,22,.065),rgba(24,169,201,.035));position:static}
 :where(html[data-add-page="report"]) .badge{display:inline-flex;align-items:center;padding:var(--density-gap-xs) var(--density-gap-md);font-size:var(--report-type-micro)}
-:where(html[data-add-page="report"]) .badge.exact{background:var(--badge-exact-bg);color:var(--badge-exact-text)}
 :where(html[data-add-page="report"]) .badge.estimate{background:var(--badge-estimate-bg);color:var(--badge-estimate-text)}
 :where(html[data-add-page="report"]) .volume-bars{display:grid;gap:var(--density-gap-md);margin-top:var(--density-gap-lg)}
 :where(html[data-add-page="report"]) .volume-row{display:grid;grid-template-columns:105px 1fr 90px;gap:var(--density-gap-md);align-items:center;font-size:12px}
@@ -1134,8 +1129,8 @@ html:where([data-add-page="report"]).dark .split-summary-item{border-color:#3341
 html:where([data-add-page="report"]).dark .split-total{border-color:#3b4c66}
 
 /* =========================================================
-   06. 거래 흐름 Timeline / 근거·산식
-   - 웹·태블릿 좌측 날짜축, 모바일 카드 내부 날짜, 원본 이미지·details
+   06. 거래 흐름 Timeline / 분류·산식
+   - 웹·태블릿 좌측 날짜축, 모바일 카드 내부 날짜, 분류·산식 details
    ========================================================= */
 :where(html[data-add-page="report"]) .timeline{position:relative;margin-top:4px}
 :where(html[data-add-page="report"]) .timeline:before{content:"";position:absolute;left:142px;top:10px;bottom:10px;width:2px;background:linear-gradient(var(--energy-violet),var(--energy-cyan))}
@@ -1154,8 +1149,9 @@ html:where([data-add-page="report"]).dark .split-total{border-color:#3b4c66}
 :where(html[data-add-page="report"]) .timeline-profit-card.neg:before{background:var(--negative)}
 :where(html[data-add-page="report"]) .timeline-profit-card span{display:block;font-size:9px;font-weight:800;line-height:1.2;color:var(--muted)}
 :where(html[data-add-page="report"]) .timeline-profit-card strong{display:block;margin-top:2px;font-size:13px;font-weight:900;line-height:1.15;white-space:nowrap;color:var(--ink)}
-:where(html[data-add-page="report"]) .source-img{width:100%;display:block}
-:where(html[data-add-page="report"]) details{margin-top:var(--density-gap-md)}
+:where(html[data-add-page="report"]) .report-formula-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--density-gap-md);align-items:start}
+:where(html[data-add-page="report"]) .report-formula-grid details{margin-top:0}
+:where(html[data-add-page="report"]) .report-formula-grid details:first-child{grid-column:1 / -1}
 :where(html[data-add-page="report"]) summary{cursor:pointer;font-weight:900;font-size:13px}
 :where(html[data-add-page="report"]) details p, :where(html[data-add-page="report"]) details li{font-size:12px;color:var(--muted)}
 html:where([data-add-page="report"]).dark .timeline-dot{box-shadow:0 0 0 5px rgba(251,146,60,.13),0 0 20px rgba(251,146,60,.22)}
@@ -1209,6 +1205,8 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
   :where(html[data-add-page="report"]) #summary .report-kpi-total-fee{order:5}
   :where(html[data-add-page="report"]) #summary .report-kpi-win-rate{order:6}
   :where(html[data-add-page="report"]) .grid-2{grid-template-columns:1fr}
+  :where(html[data-add-page="report"]) .report-formula-grid{grid-template-columns:1fr}
+  :where(html[data-add-page="report"]) .report-formula-grid details:first-child{grid-column:auto}
 }
 
 @media (max-width:760px),
