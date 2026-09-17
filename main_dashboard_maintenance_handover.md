@@ -1761,7 +1761,7 @@ Python / Workflow 유지보수 구조:
 - 반복되는 날짜 형식, 조회 재시도, HTTP timeout/User-Agent 같은 실행 설정은 상수로 관리하고 함수 안에 같은 magic value를 중복하지 않는다.
 - `.github/workflows/update-prices.yml`은 `trigger → permission → checkout/queued-base refresh → runtime setup → updater 실행 → 생성 데이터 검증 → commit` 흐름을 유지한다. 각 `run: |` step은 GitHub Actions에서 서로 독립된 shell script이므로 `if/else/fi` 같은 shell 제어문은 반드시 같은 step 안에서 완결해야 한다. `tests/main-ui-contract.test.cjs`가 updater step의 `fi` 누락과 다음 verify step의 stray `fi` 회귀를 자동 차단한다.
 - Workflow가 자동 commit하는 운영 데이터는 `data/prices.json`, `data/performance_snapshots.json` 두 파일로 한정하며 다른 운영 JSON을 함께 `git add`하지 않는다.
-- KRX 로그인에는 repository Actions Secrets `KRX_ID`, `KRX_PW`가 필요하며 updater step의 동일 이름 환경변수로 전달한다. 인증값이 없으면 조회 전에 구체적인 설정 오류로 중단한다. 종가 조회 실패 또는 일부 종목 경고가 있으면 두 JSON을 저장하지 않고 non-zero로 끝낸다. 자동 모드의 최신 거래일 조회 실패도 정상 no-op으로 숨기지 않는다.
+- KRX 로그인에는 repository Actions Secrets `KRX_ID`, `KRX_PW`가 필요하며 updater step의 동일 이름 환경변수로 전달한다. 인증값이 없으면 조회 전에 구체적인 설정 오류로 중단한다. 종가 조회 실패 또는 일부 종목 경고가 있으면 두 JSON을 저장하지 않고 non-zero로 끝낸다. 자동 모드의 최신 거래일 조회 실패도 정상 no-op으로 숨기지 않는다. 저장 구간 내부의 누락 평일은 보관기간이 짧은 15:30 분봉으로 거래일 여부를 판정하지 않고 KOSPI 일별 날짜 존재 여부로 일괄 판정한다. KOSPI 달력 조회가 실패하거나 이미 확인된 최신 거래일까지 커버하지 못하면 실제 거래일 누락을 휴장으로 오인하지 않도록 fail-closed 한다.
 - `pages.yml`은 main push/수동 실행 외에 `Update KRX closing prices`의 성공 완료 `workflow_run`을 받아 배포한다. 같은 저장소·main branch·success를 확인하고 checkout은 저장 전 `head_sha`가 아닌 최신 main으로 한다. 이는 `GITHUB_TOKEN` push가 후속 push workflow를 만들지 않는 GitHub 동작을 보완한다. Pages Source는 GitHub Actions를 유지한다.
 - 선택일 재갱신/시간 경계 관련 GAS 변경은 기존 Web App 배포를 새 버전으로 업데이트해야 효력이 있다. 단순 저장소 파일 교체로 운영 GAS가 바뀌지는 않는다.
 

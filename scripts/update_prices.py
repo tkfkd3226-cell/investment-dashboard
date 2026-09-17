@@ -591,11 +591,28 @@ def resolve_latest_market_date(portfolio: dict[str, Any], target_date: str) -> s
     return None
 
 
-def is_actual_trading_date(portfolio: dict[str, Any], target_date: str) -> bool:
-    actual, close, err = probe_trading_date(portfolio, target_date)
-    if close is None and err:
-        print(f"WARN trading-date lookup failed for {target_date}: {err}")
-    return actual == target_date and close is not None
+def resolve_missing_trading_dates(candidates: list[str], latest_market: str) -> list[str]:
+    """Resolve missing weekdays from KOSPI date presence, not retained minute bars.
+
+    A missing historical stock close may no longer have a retrievable 15:30 minute
+    bar.  Treating that lookup failure as "not a trading day" can silently turn a
+    real gap into a successful no-op.  KOSPI history is used only as a market
+    calendar here: if the calendar source itself is unavailable or does not cover
+    the already-proven latest market date, fail closed.  Actual price publication
+    still goes through ``fetch_close`` and therefore keeps the exact-15:30 rule.
+    """
+    if not candidates:
+        return []
+
+    history, error = fetch_index_history(candidates[0], latest_market)
+    if not history or latest_market not in history:
+        detail = error or f"latest market date {latest_market} missing from KOSPI history"
+        raise RuntimeError(
+            "KRX 누락 거래일 달력 조회 실패: 실제 거래일 누락을 휴장일로 오인하지 않도록 "
+            f"가격 갱신 없이 중단합니다. ({detail})"
+        )
+
+    return [date for date in candidates if date in history]
 
 
 def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], explicit_date: str | None) -> list[str]:
@@ -651,11 +668,7 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
         if date not in prices
         and datetime.strptime(date, DATE_FORMAT).weekday() < 5
     ]
-    missing_dates = [
-        date
-        for date in candidates
-        if is_actual_trading_date(portfolio, date)
-    ]
+    missing_dates = resolve_missing_trading_dates(candidates, latest_market)
 
     # A prior local run can leave a hidden, warning-bearing snapshot behind.
     # It is not selectable, so retry it automatically instead of treating the

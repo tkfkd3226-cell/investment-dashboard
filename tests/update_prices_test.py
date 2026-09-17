@@ -79,7 +79,6 @@ class UpdatePricesSafetyTest(unittest.TestCase):
     def test_warning_hidden_date_is_automatically_retried(self):
         self.updater.today_kst = lambda: "2026-09-09"
         self.updater.resolve_latest_market_date = lambda *_, **_kw: "2026-09-09"
-        self.updater.is_actual_trading_date = lambda *_, **_kw: True
         prices = {
             "2026-09-08": {"display": True},
             "2026-09-09": {"display": False, "warnings": ["network error"]},
@@ -243,6 +242,11 @@ class UpdatePricesSafetyTest(unittest.TestCase):
 class KrxRefreshBoundaryTest(unittest.TestCase):
     def setUp(self):
         self.updater = load_updater()
+        self.portfolio = {
+            "securities": [{"ticker": "000660", "qty": 1, "cost": 1}],
+            "pension": [],
+            "securitiesEvents": [],
+        }
 
     def frame(self, date, close):
         return types.SimpleNamespace(
@@ -355,6 +359,78 @@ class KrxRefreshBoundaryTest(unittest.TestCase):
         self.updater.resolve_latest_market_date = lambda *_: None
         with self.assertRaisesRegex(RuntimeError, "최신 거래일 조회 실패"):
             self.updater.resolve_target_dates({}, {}, None)
+
+    def test_missing_historical_trading_day_is_selected_even_if_1530_bar_expired(self):
+        self.updater.today_kst = lambda: "2026-09-18"
+        self.updater.resolve_latest_market_date = lambda *_: "2026-09-17"
+        self.updater.fetch_index_history = lambda *_: ({
+            "2026-09-15": 6700.0,
+            "2026-09-16": 6717.97,
+            "2026-09-17": 6715.41,
+        }, None)
+        self.updater.probe_trading_date = lambda *_: (None, None, "missing-exact-1530-minute-bar")
+        prices = {
+            "2026-09-14": {"display": True, "marketStatus": "close"},
+            "2026-09-16": {"display": True, "marketStatus": "close"},
+            "2026-09-17": {"display": True, "marketStatus": "close"},
+        }
+
+        dates = self.updater.resolve_target_dates(self.portfolio, prices, None)
+
+        self.assertEqual(dates, ["2026-09-15"])
+
+    def test_missing_weekday_absent_from_kospi_calendar_is_treated_as_non_trading(self):
+        self.updater.today_kst = lambda: "2026-09-18"
+        self.updater.resolve_latest_market_date = lambda *_: "2026-09-17"
+        self.updater.fetch_index_history = lambda *_: ({
+            "2026-09-16": 6717.97,
+            "2026-09-17": 6715.41,
+        }, None)
+        prices = {
+            "2026-09-14": {"display": True, "marketStatus": "close"},
+            "2026-09-16": {"display": True, "marketStatus": "close"},
+            "2026-09-17": {"display": True, "marketStatus": "close"},
+        }
+
+        dates = self.updater.resolve_target_dates(self.portfolio, prices, None)
+
+        self.assertEqual(dates, [])
+
+    def test_missing_date_calendar_lookup_failure_fails_closed(self):
+        self.updater.today_kst = lambda: "2026-09-18"
+        self.updater.resolve_latest_market_date = lambda *_: "2026-09-17"
+        self.updater.fetch_index_history = lambda *_: ({}, "all calendar sources unavailable")
+        prices = {
+            "2026-09-14": {"display": True, "marketStatus": "close"},
+            "2026-09-16": {"display": True, "marketStatus": "close"},
+            "2026-09-17": {"display": True, "marketStatus": "close"},
+        }
+
+        with self.assertRaisesRegex(RuntimeError, "누락 거래일 달력 조회 실패"):
+            self.updater.resolve_target_dates(self.portfolio, prices, None)
+
+    def test_auto_missing_trading_date_close_failure_returns_nonzero_without_save(self):
+        self.updater.parse_args = lambda: types.SimpleNamespace(date="", force_display=False, no_display=False)
+        self.updater.today_kst = lambda: "2026-09-18"
+        self.updater.resolve_latest_market_date = lambda *_: "2026-09-17"
+        self.updater.fetch_index_history = lambda *_: ({
+            "2026-09-15": 6700.0,
+            "2026-09-16": 6717.97,
+            "2026-09-17": 6715.41,
+        }, None)
+        prices = {
+            "2026-09-14": {"display": True, "marketStatus": "close"},
+            "2026-09-16": {"display": True, "marketStatus": "close"},
+            "2026-09-17": {"display": True, "marketStatus": "close"},
+        }
+        self.updater.load_dashboard_data = lambda: (self.portfolio, prices, {})
+        self.updater.update_one_date = lambda date, *_a, **_kw: (
+            ["missing exact 15:30 minute bar"] if date == "2026-09-15" else []
+        )
+        self.updater.save_dashboard_data = lambda *_: self.fail("failed auto refresh must not save partial files")
+        self.updater.backfill_kospi_index = lambda *_: self.fail("warning must stop before KOSPI backfill")
+
+        self.assertEqual(self.updater.main(), 1)
 
 
 class PerformanceCausalOrderingTest(unittest.TestCase):

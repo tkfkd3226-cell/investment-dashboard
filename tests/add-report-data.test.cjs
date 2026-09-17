@@ -53,7 +53,7 @@ test('KODEX canonical 거래 원천은 schema·기간·날짜순·중복없음·
   assert.ok(reportSource.positionContext&&typeof reportSource.positionContext==='object','positionContext가 필요하다');
   const septemberTrade=REPORT_DATA.find(row=>row.date==='2026-09-17');
   assert.deepEqual(septemberTrade,{date:'2026-09-17',qty:506,buy:104103,sell:106005,pnl:962450,fee:4471,segment:'core'},'9/17 KODEX 레버리지 실현거래가 증권사 내역과 일치해야 한다');
-  assert.deepEqual(reportSource.positionContext.septemberFinalBuild,{first:{date:'2026-09-11',qty:36,buy:110930},second:{date:'2026-09-16',buy:103580}},'9/17 포지션 형성 문맥이 매매보고서와 일치해야 한다');
+  assert.deepEqual(reportSource.positionContext.septemberFinalBuild,{first:{date:'2026-09-11',qty:36,buy:110930},second:{date:'2026-09-16',qty:470,buy:103580}},'9/17 포지션 형성 문맥이 매매보고서와 일치해야 한다');
 });
 
 test('KODEX Report canonical schema validator는 잘못된 운영 데이터를 화면 계산 전에 차단한다',()=>{
