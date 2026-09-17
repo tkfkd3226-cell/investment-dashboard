@@ -102,6 +102,55 @@ def previous_snapshot(prices: dict[str, Any], before: str | None = None):
 # Market data fetchers
 # ---------------------------------------------------------------------------
 
+_REGULAR_CLOSE_MAP_CACHE: dict[str, dict[str, int]] = {}
+
+
+def _fetch_regular_close_map_from_pykrx(target_date: str) -> dict[str, int]:
+    """Return the exact-date raw KRX close map from pykrx's all-market endpoint.
+
+    This uses a different KRX endpoint from ``get_market_ohlcv_by_date`` and is
+    cached per date so one workflow run does not download the whole market for
+    every holding.  It is a regular-session KRX source, not a Naver/NXT quote.
+    """
+    cached = _REGULAR_CLOSE_MAP_CACHE.get(target_date)
+    if cached is not None:
+        return cached
+
+    getter = getattr(stock, "get_market_ohlcv_by_ticker", None)
+    if getter is None:
+        raise AttributeError("pykrx all-market OHLCV function is unavailable")
+
+    date_text = target_date.replace("-", "")
+    df = getter(date_text, market="ALL", alternative=False)
+    if df is None or df.empty:
+        raise ValueError("empty-all-market-dataframe")
+    if "종가" not in df.columns:
+        raise ValueError("missing-close-column")
+
+    closes: dict[str, int] = {}
+    for raw_ticker, raw_close in df["종가"].items():
+        try:
+            close = int(raw_close)
+        except (TypeError, ValueError):
+            continue
+        if close > 0:
+            closes[str(raw_ticker).zfill(6)] = close
+
+    if not closes:
+        raise ValueError("empty-all-market-close-map")
+
+    _REGULAR_CLOSE_MAP_CACHE[target_date] = closes
+    return closes
+
+
+def _fetch_exact_close_from_pykrx_all_market(ticker: str, target_date: str):
+    closes = _fetch_regular_close_map_from_pykrx(target_date)
+    key = str(ticker).zfill(6)
+    if key not in closes:
+        raise KeyError(f"ticker-not-in-all-market:{key}")
+    return target_date, closes[key]
+
+
 def _fetch_close_from_pykrx(
     ticker: str,
     start: datetime,
@@ -135,12 +184,11 @@ def fetch_close(
     """Return the latest available KRX price on or before ``target_date``.
 
     During the regular session the existing pykrx default path is kept.
-    After the regular close (and for historical dates), only the raw KRX daily
-    close from ``pykrx adjusted=False`` is accepted.  Public quote/day-candle
-    endpoints are intentionally not used as a fallback because they can expose
-    NXT/after-market values while looking like a daily close.  If raw pykrx
-    cannot confirm the KRX close, the update fails closed instead of publishing
-    an unverified value as ``regular_close``.
+    After the regular close (and for historical dates), only raw KRX data is
+    accepted.  The exact-date all-market KRX endpoint is tried first because it
+    is independent of pykrx's per-ticker period endpoint; the raw per-ticker
+    endpoint is the second KRX-only path.  Naver/NXT/public quote endpoints are
+    deliberately excluded from regular-close fallback.
     """
     start = datetime.strptime(target_date, DATE_FORMAT) - timedelta(days=lookback_days)
     end = datetime.strptime(target_date, DATE_FORMAT)
@@ -148,6 +196,15 @@ def fetch_close(
     last_error = None
 
     for attempt in range(retries + 1):
+        errors: list[str] = []
+
+        if closed:
+            try:
+                actual_date, close = _fetch_exact_close_from_pykrx_all_market(ticker, target_date)
+                return actual_date, close, None
+            except Exception as exc:
+                errors.append(f"pykrx-raw-all-market={exc!r}")
+
         try:
             actual_date, close = _fetch_close_from_pykrx(
                 ticker,
@@ -157,9 +214,10 @@ def fetch_close(
             )
             return actual_date, close, None
         except Exception as exc:
-            label = "pykrx-raw" if closed else "pykrx-intraday"
-            last_error = f"{label}={exc!r}"
+            label = "pykrx-raw-by-date" if closed else "pykrx-intraday"
+            errors.append(f"{label}={exc!r}")
 
+        last_error = "; ".join(errors)
         if attempt < retries:
             time.sleep(retry_delay)
 

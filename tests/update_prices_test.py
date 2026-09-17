@@ -107,7 +107,39 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         self.assertEqual(prices["2026-09-09"]["marketStatus"], "intraday")
         self.assertEqual(prices["2026-09-09"]["priceBasis"], "intraday")
 
-    def test_fetch_close_uses_raw_pykrx_after_regular_close(self):
+    def test_fetch_close_uses_exact_date_all_market_raw_krx_after_regular_close(self):
+        class FakeSeries:
+            def items(self):
+                return [("005930", 252500), ("000660", 1745000)]
+
+        class FakeFrame:
+            empty = False
+            columns = ["종가"]
+            def __getitem__(self, key):
+                if key != "종가":
+                    raise KeyError(key)
+                return FakeSeries()
+
+        calls = []
+        def fake_bulk(*args, **kwargs):
+            calls.append((args, kwargs))
+            return FakeFrame()
+
+        self.updater.requests.get = lambda *_args, **_kwargs: self.fail(
+            "closed-session stock close must not use a public Naver quote/day-candle endpoint"
+        )
+        self.updater.stock.get_market_ohlcv_by_ticker = fake_bulk
+        self.updater.stock.get_market_ohlcv_by_date = lambda *_args, **_kwargs: self.fail(
+            "per-ticker raw path should not run when all-market KRX succeeds"
+        )
+        self.updater.market_status_for_date = lambda _: "close"
+
+        actual, close, error = self.updater.fetch_close("000660", "2026-09-17", retries=0)
+
+        self.assertEqual((actual, close, error), ("2026-09-17", 1745000, None))
+        self.assertEqual(calls, [(("20260917",), {"market": "ALL", "alternative": False})])
+
+    def test_fetch_close_falls_back_to_raw_by_date_when_all_market_krx_endpoint_fails(self):
         calls = []
 
         class FakeRow:
@@ -123,26 +155,29 @@ class UpdatePricesSafetyTest(unittest.TestCase):
             index = [__import__("datetime").datetime(2026, 9, 17)]
             iloc = FakeILoc()
 
+        self.updater.stock.get_market_ohlcv_by_ticker = lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            RuntimeError("all-market KRX unavailable")
+        )
         def fake_getter(*args, **kwargs):
             calls.append((args, kwargs))
             return FakeFrame()
-
-        self.updater.requests.get = lambda *_args, **_kwargs: self.fail(
-            "closed-session stock close must not use a public Naver quote/day-candle endpoint"
-        )
         self.updater.stock.get_market_ohlcv_by_date = fake_getter
         self.updater.market_status_for_date = lambda _: "close"
+
         actual, close, error = self.updater.fetch_close("000660", "2026-09-17", retries=0)
 
         self.assertEqual((actual, close, error), ("2026-09-17", 1745000, None))
         self.assertEqual(calls[0][1], {"adjusted": False})
 
-    def test_fetch_close_fails_closed_if_raw_pykrx_regular_close_is_unavailable(self):
+    def test_fetch_close_fails_closed_if_both_raw_krx_regular_close_paths_are_unavailable(self):
         self.updater.requests.get = lambda *_args, **_kwargs: self.fail(
             "closed-session stock close must not fall back to Naver"
         )
+        self.updater.stock.get_market_ohlcv_by_ticker = lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            RuntimeError("all-market pykrx unavailable")
+        )
         self.updater.stock.get_market_ohlcv_by_date = lambda *_args, **_kwargs: (_ for _ in ()).throw(
-            RuntimeError("pykrx unavailable")
+            RuntimeError("per-ticker pykrx unavailable")
         )
         self.updater.market_status_for_date = lambda _: "close"
 
@@ -150,8 +185,10 @@ class UpdatePricesSafetyTest(unittest.TestCase):
 
         self.assertIsNone(actual)
         self.assertIsNone(close)
-        self.assertIn("pykrx-raw=", error)
-        self.assertIn("pykrx unavailable", error)
+        self.assertIn("pykrx-raw-all-market=", error)
+        self.assertIn("pykrx-raw-by-date=", error)
+        self.assertIn("all-market pykrx unavailable", error)
+        self.assertIn("per-ticker pykrx unavailable", error)
 
     def test_fetch_close_keeps_intraday_default_source_during_regular_session(self):
         calls = []
