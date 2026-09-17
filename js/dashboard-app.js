@@ -276,8 +276,8 @@ function refreshSeparateProfitModeView(){
   if(x.hasPension)replaceDashboardFragment(document.getElementById('summary-section'),renderCombined(x));
   replaceDashboardFragment(document.querySelector('#securities-section .securities-summary-block'),renderSecuritiesPerformanceSummary(x));
   replaceDashboardFragment(document.getElementById('chart-cum'),renderSecuritiesCumulativeChart(x,separateProfitControl(x,'chart-inline')));
-  replaceDashboardFragment(document.getElementById('ledger-check'),renderResultSummary(x));
-  replaceDashboardFragment(document.getElementById('capital-source-check'),renderSourceTables(x));
+  replaceDashboardFragment(document.getElementById('ledger-check'),renderSecuritiesLedgerBlock(x));
+  replaceDashboardFragment(document.getElementById('capital-source-check'),renderSecuritiesSourceBlock(x));
 
   hydrateSectionTitleIcons(document.getElementById('app'));
   refreshSecuritiesCumulativeChart();
@@ -393,6 +393,10 @@ function renderLiveValuationRefresh(){
   const keepDesktopTocOpen=desktopEdgeTocIsOpen();
   const x=calc(dataState.activeDate),v=separateProfitView(x);
 
+  // 교체 전 기존 카드의 재생 완료 상태를 수집해야 새 차트에 그대로 이어진다.
+  // 아직 진입하지 않은 카드는 목록에 넣지 않아 최초 scroll animation을 보존한다.
+  preservePlayedChartEntrancesOnce();
+
   hideAssetSourceTooltip();
   hideSecuritySaleTooltip();
   closeAccountMemoInfo();
@@ -422,7 +426,6 @@ function renderLiveValuationRefresh(){
 
   hydrateSectionTitleIcons(document.getElementById('app'));
   syncPersonalViewControls();
-  preservePlayedChartEntrancesOnce();
   requestSecuritiesCumCardTransitionSuppression();
   drawAllCharts();
   setupAssetVizTooltips('.asset-insight-zone');

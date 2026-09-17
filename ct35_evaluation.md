@@ -1567,7 +1567,7 @@ QA
 - 현재 시장·AI Signal panel의 polling/state/snapshot/signal render는 `dashboard-market-ai.js` standalone이 소유하고, KST 오늘 및 제한된 직전 완료 거래일 보유종목 평가 overlay는 `dashboard-live-valuation.js`가 별도 소유하는가
 - standalone Signal panel이 main `dataState/uiState`에 직접 결합하지 않으며, live valuation만 `dataState.liveValuation`의 휘발성 계산 입력을 사용하는 책임 경계를 지키는가
 - Snapshot / Signal / KIS Bridge 실패를 격리하는가
-- 비로컬 환경은 실제 endpoint 응답이 확인되기 전 Market AI UI를 mount하지 않고, 전체 연결 실패 시 panel·button·dialog를 제거한 채 polling으로 복구를 기다리는가
+- 환경과 무관하게 실제 endpoint 응답이 확인되기 전 Market AI UI를 mount하지 않고, 전체 연결 실패 시 panel·button·dialog를 제거한 채 `OFFLINE`으로 종료하는가
 - 전체 연결 실패는 `OFFLINE`으로 종료해 panel을 제거하고 자동 polling을 멈추며, 사용자 재시도 전까지 서버 요청을 반복하지 않는가
 - display logic과 Signal 계산 책임이 분리되어 있는가
 - live valuation은 backend `usable/state/market_state/source`를 소비할 뿐 durable DB 복구 조건을 frontend에서 재계산하지 않는가. 장마감 `closed + usable`은 허용하되 unusable 종목은 개별 JSON fallback하는가
@@ -1604,7 +1604,7 @@ QA
 **정량 판정 / 점수 상한:**
 - main feature state 직접 결합 시 비결합 FAIL
 - Signal 계산 또는 durable quote 승격 조건을 frontend display 로직이 재해석하면 책임 분리 FAIL
-- 비로컬 미연결 상태에서 빈 Market AI UI를 노출하거나 전체 실패 후 polling 복구를 중단하면 실패 격리 항목 MAJOR
+- 연결 확인 전 빈 Market AI UI를 노출하거나 전체 실패 후에도 자동 polling을 계속하면 실패 격리 항목 MAJOR
 - Preview/sample 실행 경로 또는 SOX-F 자동 전환이 재도입되면 display/Signal 책임 분리 항목 MAJOR
 
 **허용 예외 — 감점하지 않음:**

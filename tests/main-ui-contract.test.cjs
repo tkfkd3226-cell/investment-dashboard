@@ -159,6 +159,10 @@ test('별도수익 ON/OFF는 full render 대신 영향 영역만 부분 갱신�
     "document.getElementById('capital-source-check')"
   ])assert.ok(refreshBlock.includes(marker),`별도수익 partial refresh 누락: ${marker}`);
   assert.match(refreshBlock,/renderSecuritiesCumulativeChart\(x,separateProfitControl\(x,'chart-inline'\)\)/);
+  assert.match(refreshBlock,/getElementById\('ledger-check'\),renderSecuritiesLedgerBlock\(x\)/,'부분 갱신 뒤에도 증권 band 공통 wrapper를 유지해야 한다');
+  assert.match(refreshBlock,/getElementById\('capital-source-check'\),renderSecuritiesSourceBlock\(x\)/,'원천 검산도 공통 wrapper를 유지해야 한다');
+  assert.doesNotMatch(refreshBlock,/getElementById\('ledger-check'\),renderResultSummary\(x\)/);
+  assert.doesNotMatch(refreshBlock,/getElementById\('capital-source-check'\),renderSourceTables\(x\)/);
   assert.match(refreshBlock,/refreshSecuritiesCumulativeChart\(\)/);
   assert.doesNotMatch(refreshBlock,/renderPension\(/);
   assert.doesNotMatch(refreshBlock,/renderSecuritiesSection\(/);
@@ -184,6 +188,9 @@ test('공통 full render는 keyboard focus를 보존하고 live partial refresh�
   assert.doesNotMatch(liveRefreshBlock,/render\(\{renderTopbar:false\}\)|document\.getElementById\('app'\)\.innerHTML/);
   for(const marker of ['renderHeroMetricPills(x,v)','renderCombined(x)','renderPensionOverview(x)','renderPensionAssetDetail(x)','renderPensionCharts(x)','renderSecuritiesPerformanceSummary(x)','renderSecuritiesAssetDetail(x)','renderSecuritiesChartsBlock(x)','renderSecuritiesLedgerBlock(x)','renderSecuritiesSourceBlock(x)'])assert.ok(liveRefreshBlock.includes(marker),`live partial refresh 누락: ${marker}`);
   assert.match(liveRefreshBlock,/drawAllCharts\(\);/);
+  const preserveEntranceAt=liveRefreshBlock.indexOf('preservePlayedChartEntrancesOnce();');
+  const replaceChartsAt=liveRefreshBlock.indexOf("replaceDashboardFragment(document.getElementById('investment-analysis')");
+  assert.ok(preserveEntranceAt>=0&&replaceChartsAt>=0&&preserveEntranceAt<replaceChartsAt,'재생 완료 차트 상태는 기존 차트 DOM을 교체하기 전에 수집해야 한다');
   assert.match(app,/if\(target===document\.activeElement\)return;/);
   assert.match(app,/restoreDashboardFocus\(focusSnapshot\);/);
   assert.match(app,/active\.dataset\?\.dashboardFocusKey/);
