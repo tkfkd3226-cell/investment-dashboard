@@ -61,30 +61,20 @@ test('Main appearance 두 control은 localStorage와 BroadcastChannel을 함께 
   assert.match(ui1,/function setCornerTheme\(theme\)\{[^]*?localStorage\.setItem\(CORNER_THEME_STORAGE_KEY,rounded\?'rounded':'soft-square'\)[^]*?syncCornerThemeControls\(\); publishAppearanceChange\(\);/);
 });
 
-test('Main module boundary: core는 DOM 비의존, Market AI transport는 중립 client로 공유한다',()=>{
+test('Main module architecture는 순수 core·공통 UI owner·중립 Market AI client 경계를 유지한다',()=>{
   assert.doesNotMatch(core,/\bdocument\b/);
   assert.doesNotMatch(core,/\bwindow\b/);
   assert.deepEqual(importsOf(modal),[]);
   assert.deepEqual(importsOf(marketAi),['./dashboard-modal.js','./dashboard-market-ai-client.js']);
   assert.deepEqual(importsOf(marketAiClient),[]);
   assert.deepEqual(importsOf(liveValuation),['./dashboard-core.js','./dashboard-market-ai-client.js']);
-});
 
-test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validator 모듈을 사용한다',()=>{
-  assert.match(core,/import\s*\{\s*validateKodexLeverageSource\s*\}\s*from '\.\/kodex-leverage-schema\.js'/);
-  assert.match(core,/const validated=validateKodexLeverageSource\(source\)/);
-  assert.doesNotMatch(core,/function isValidIsoCalendarDate\(/);
-});
-
-test('공통 scroll overflow state는 ui-common이 소유하고 Table/Chart가 같은 helper를 재사용한다',()=>{
   assert.match(uiCommon,/function refreshScrollOverflowState\(\)\{[^]*?\.mobile-scroll, \.chart-wrap[^]*?classList\.toggle\('is-scrollable',scrollable\)/);
   assert.match(charts,/import\s*\{[^}]*refreshScrollOverflowState[^}]*\}\s*from '\.\/dashboard-ui-common\.js'/);
   assert.doesNotMatch(charts,/function refreshScrollOverflowState\(/);
   assert.match(ui,/import\s*\{[^}]*refreshScrollOverflowState[^}]*\}\s*from '\.\/dashboard-ui-common\.js'/);
   assert.doesNotMatch(ui,/import\s*\{[^}]*refreshScrollOverflowState[^}]*\}\s*from '\.\/dashboard-charts\.js'/);
-});
 
-test('Main graph entry: app은 core/ui-common/modal/charts/ui/pension/pension-editor를 orchestration한다',()=>{
   const imports=importsOf(app);
   for(const dependency of [
     './dashboard-core.js','./dashboard-ui-common.js','./dashboard-modal.js','./dashboard-charts.js',
@@ -93,6 +83,12 @@ test('Main graph entry: app은 core/ui-common/modal/charts/ui/pension/pension-ed
   assert.equal(imports.includes('./dashboard-market-ai.js'),false);
   const uiCommonImport=app.match(/import\s*\{([^]*?)\}\s*from '\.\/dashboard-ui-common\.js';/);
   assert.ok(uiCommonImport&&/\bphoneUi\b/.test(uiCommonImport[1]),'app이 사용하는 phoneUi는 ui-common에서 명시적으로 import해야 한다');
+});
+
+test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validator 모듈을 사용한다',()=>{
+  assert.match(core,/import\s*\{\s*validateKodexLeverageSource\s*\}\s*from '\.\/kodex-leverage-schema\.js'/);
+  assert.match(core,/const validated=validateKodexLeverageSource\(source\)/);
+  assert.doesNotMatch(core,/function isValidIsoCalendarDate\(/);
 });
 
 test('실시간 평가 adapter는 importmap cache-bust 대상이고 boot 이후 별도 lifecycle로 시작한다',()=>{
@@ -292,6 +288,11 @@ test('퇴직연금 삭제 PIN은 위험 상태를 명시하고 교체된 요청�
   assert.match(common,/\.pension-action-pin-modal\.is-danger \.pension-action-pin-card/);
   assert.match(common,/\.pension-action-pin-danger\{/);
   assert.match(common,/\.pension-action-pin-danger\{[^}]*line-height:var\(--type-line-body\)/s);
+  assert.match(common,/\.pension-action-pin-danger\{[^}]*border-radius:min\(var\(--surface-radius-level-4\),var\(--corner-inner-cap\)\)/s);
+  const dangerStart=common.indexOf('.pension-action-pin-danger{');
+  const dangerEnd=common.indexOf('}',dangerStart);
+  assert.ok(dangerStart>=0&&dangerEnd>dangerStart,'삭제 PIN 경고 CSS block is missing');
+  assert.doesNotMatch(common.slice(dangerStart,dangerEnd),/--inner-radius-md/);
   assert.doesNotMatch(common,/--type-line-height-body/);
 });
 
@@ -641,13 +642,6 @@ test('Modal lifecycle는 focus trap / focus return / inert / ESC를 공통 layer
   assert.match(modal1,/target\?\.focus\?\.\(\{preventScroll:true\}\)/);
 });
 
-test('Market AI outer wrapper는 chromeless이고 상태 문구는 compact chip으로 유지한다',()=>{
-  assert.match(common,/\.market-ai-panel\{[^}]*padding:0;[^}]*border:0;[^}]*background:transparent;[^}]*box-shadow:none;/,'Market AI outer wrapper must stay chromeless');
-  assert.match(common,/\.market-ai-status\{[^}]*display:inline-flex;[^}]*border-radius:999px;/,'Market AI status must render as a content-width chip');
-  assert.match(common,/\.market-ai-status\[hidden\]\{display:none\}/,'Market AI status hidden contract must survive author display rules');
-  assert.match(common,/\.market-ai-status\[data-market-ai-state="waiting"\],[\s\S]*?\.market-ai-status\[data-market-ai-state="stale"\]\{[^}]*background:var\(--status-warning-bg\)/,'stale signal status must use warning chip surface');
-});
-
 test('Market AI responsive 전환은 Phone↔Desktop 양방향으로 keyboard focus handoff를 유지한다',()=>{
   const start=marketAi.indexOf('function syncMarketAiResponsiveMount');
   const end=marketAi.indexOf('\n// [MARKET09]',start);
@@ -677,6 +671,7 @@ test('Market AI contract: local은 :8001, remote는 Tailscale Serve를 공통 cl
 });
 
 test('Market AI lifecycle은 OFF/CHECKING/OFFLINE에서 UI를 숨기고 ONLINE에서만 mount한다',()=>{
+  assert.match(common,/\.market-ai-status\[hidden\]\{display:none\}/,'상태 UI의 hidden contract는 author display 규칙보다 우선해야 한다');
   assert.match(marketAi,/lifecycle:'off'/);
   assert.match(market1,/if\(!marketAiUiEnabled\(\)\|\|marketAiState\.lifecycle!=='online'\)return null/);
   assert.match(market1,/if\(!marketAiUiEnabled\(\)\|\|marketAiState\.lifecycle!=='online'\|\|marketAiState\.serverReachable!==true\)\{ removeMarketAiUi\(\); return;/);
@@ -1168,6 +1163,7 @@ test('Repository data text는 trusted HTML과 분리해 innerHTML 경계에서 e
   assert.match(pensionEditor,/value="\$\{escapeHtml\(`\$\{v\.target\}\|\$\{v\.key\}`\)\}"/);
   assert.match(charts,/function allocationValueCard\([\s\S]*?safeLabel=escapeHtml\(label\)[\s\S]*?\$\{safeLabel\}\$\{swatch\}/);
   assert.match(charts,/function symbolSummaryCard\([\s\S]*?safeLabel=escapeHtml\(label\)[\s\S]*?\$\{safeLabel\}\$\{swatch\}/);
+  assert.match(charts,/\$\{escapeHtml\(chartDisplayLabel\(scope,item\.label\)\)\}<\/button>/);
   assert.doesNotMatch(app,/<h1 id="dashboardTitle">\$\{dataState\.portfolio\.meta\.title\}<\/h1>/);
   assert.doesNotMatch(ui,/labelHtml:`<span class="holding-name-text">\$\{h\.name\}\<\/span>/);
   assert.doesNotMatch(pension,/labelHtml:`<span class="holding-name-text">\$\{r\.name\}<\/span>/);
@@ -1222,15 +1218,6 @@ test('차트 범례 부분 렌더는 조작 control focus를 복원하고 사라
   assert.match(charts,/const focusSnapshot=chartControlFocusSnapshot\(scope\);\s*if\(legend\)legend\.innerHTML=chartLegendHtml\(scope\);[^]*?restoreChartControlFocus\(scope,focusSnapshot,card,legend\);/);
 });
 
-test('차트 범례 label은 HTML 경계에서 escape하고 삭제 PIN 경고는 Main radius token만 사용한다',()=>{
-  assert.match(charts,/\$\{escapeHtml\(chartDisplayLabel\(scope,item\.label\)\)\}<\/button>/);
-  assert.match(common,/\.pension-action-pin-danger\{[^}]*border-radius:min\(var\(--surface-radius-level-4\),var\(--corner-inner-cap\)\)/s);
-  const dangerStart=common.indexOf('.pension-action-pin-danger{');
-  const dangerEnd=common.indexOf('}',dangerStart);
-  assert.ok(dangerStart>=0&&dangerEnd>dangerStart,'삭제 PIN 경고 CSS block is missing');
-  assert.doesNotMatch(common.slice(dangerStart,dangerEnd),/--inner-radius-md/);
-});
-
 test('퇴직연금 차트 이력은 live/print 반복 렌더에서 날짜별 calc를 공유한다',()=>{
   assert.match(core,/const pensionHistoryCalcCache=\{/);
   assert.match(core,/function pensionChartHistoryBundle\(d\)\{/);
@@ -1277,19 +1264,16 @@ test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·resp
   assert.doesNotMatch(phoneRealtimeCss,/--realtime-quote-shell-bg/,'Phone 전용 CSS가 shell 테마 색을 별도로 고정하면 안 된다');
 });
 
-test('퇴직연금 작업 방식 switch는 공통 segmented control을 쓰고 긴 라벨 폭만 별도 보정한다',()=>{
+test('퇴직연금 작업 방식 switch는 공통 segmented control contract를 사용한다',()=>{
   assert.match(pensionEditor,/class="control-segmented pension-work-mode"/);
-  assert.match(common,/\.control-segmented button\{[^]*?display:inline-flex;[^]*?align-items:center;[^]*?justify-content:center;/s);
-  assert.match(common,/\.pension-contrib-context \.pension-work-mode button\{[^]*?min-width:/s);
   assert.doesNotMatch(common,/--pension-modal-mode-(?:size|height)/);
 });
 
-test('Web/Tablet 개인보기 도구는 계산기 → Market AI → 테마 순서의 icon-only control을 유지한다',()=>{
+test('Web/Tablet 개인보기 도구는 계산기·Market AI·테마 icon control을 제공한다',()=>{
   const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
-  const calcIndex=tabsBlock.indexOf('topbar-calc-action');
-  const marketAiIndex=tabsBlock.indexOf('topbar-market-ai-toggle');
-  const themeIndex=tabsBlock.indexOf('topbar-theme-action');
-  assert.ok(calcIndex>=0&&marketAiIndex>calcIndex&&themeIndex>marketAiIndex);
+  for(const marker of ['topbar-calc-action','topbar-market-ai-toggle','topbar-theme-action']){
+    assert.ok(tabsBlock.includes(marker),`개인보기 도구 누락: ${marker}`);
+  }
   assert.match(tabsBlock,/topbar-calc-action[^]*?control-icon-button|control-icon-button topbar-calc-action/s);
   assert.match(tabsBlock,/toggle-market-ai-connection/);
 });

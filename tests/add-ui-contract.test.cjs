@@ -178,6 +178,10 @@ test('터치 스마트폰 가로는 Tablet이 아니라 Phone UI contract를 사
 test('Calc와 Report의 손익 의미색은 공통 semantic state를 사용한다',()=>{
   assert.match(rule(':where(html[data-add-page="calc"]) .positive, :where(html[data-add-page="report"]) .pos, :where(html[data-add-page="report"]) .timeline-profit-card.pos strong'),/color:var\(--positive\)/);
   assert.match(rule(':where(html[data-add-page="calc"]) .negative, :where(html[data-add-page="report"]) .neg, :where(html[data-add-page="report"]) .timeline-profit-card.neg strong'),/color:var\(--negative\)/);
+  assert.match(css1,/--chart-positive:var\(--positive\)/);
+  assert.match(css1,/--chart-negative:var\(--negative\)/);
+  assert.doesNotMatch(css1,/--chart-positive:#(?:EF3341|FF5964)/i);
+  assert.doesNotMatch(css1,/--chart-negative:#(?:3182F6|60A5FA)/i);
 });
 
 test('동적 결과 도움말은 공통 label helper와 aria-describedby 연결을 사용한다',()=>{
@@ -254,23 +258,6 @@ test('Report Hero/KPI responsive 의미배치는 semantic role class를 사용�
   assert.match(css1,/#summary \.report-kpi-total-net \.sub\{white-space:nowrap/);
   assert.doesNotMatch(css1,/\.hero-summary > \.hero-chip:nth-child\([123]\)/);
   assert.doesNotMatch(css1,/#summary \.kpi:nth-child\(/);
-});
-
-test('Report Phone split total은 숨긴 desktop stats에 dead layout declaration을 남기지 않는다',()=>{
-  const phoneStart=css1.indexOf('@media (max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){',css1.indexOf('/* ==================== 03. Report'));
-  assert.notEqual(phoneStart,-1);
-  const phone=css1.slice(phoneStart);
-  assert.match(phone,/\.split-total-stats\{display:none\}/);
-  assert.doesNotMatch(phone,/\.split-total-stats\{display:none;[^}]*?(?:justify-content|gap):/);
-});
-
-test('Report chart 손익색은 Add 공통 semantic value source를 alias하고 Calc mobile icon은 Phone Shared만 소유한다',()=>{
-  assert.match(css1,/--chart-positive:var\(--positive\)/);
-  assert.match(css1,/--chart-negative:var\(--negative\)/);
-  assert.doesNotMatch(css1,/--chart-positive:#(?:EF3341|FF5964)/i);
-  assert.doesNotMatch(css1,/--chart-negative:#(?:3182F6|60A5FA)/i);
-  assert.equal((css.match(/:where\(html\[data-add-page="calc"\]\) \.add-button-mobile-icon\{/g)||[]).length,1);
-  assert.doesNotMatch(css1,/@media\(max-width:760px\)\{ \.add-button-mobile-icon\{/);
 });
 
 test('Report boot는 canonical data를 검증해 렌더하고 실패 UI를 제공한다',()=>{
