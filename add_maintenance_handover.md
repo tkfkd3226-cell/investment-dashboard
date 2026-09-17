@@ -26,7 +26,8 @@
 - **Add 유지보수 contract**: 이 문서가 Source of Truth다.
 - **Main 유지보수 contract**: [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md)가 Source of Truth다.
 - **Main↔Add 공통 contract**: canonical 정의는 [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md)의 8장을 따르고, Add 적용 규칙은 이 문서에 기록한다. 실행 정합성은 `tests/cross-ui-contract.test.cjs`로 검증한다.
-- **평가·점수·A/B/C·감점 기준**: [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md)가 Source of Truth다.
+- **평가 방법·점수·A/B/C·종료 기준**: [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md)가 Source of Truth다.
+- **공통화·토큰화 35개 고정 Rubric**: [ct35_evaluation.md](./ct35_evaluation.md)가 Source of Truth다.
 - **프로젝트 소개·전체 저장소 개요**: [README.md](./README.md)가 담당한다.
 - **과거 변경 이력**: Git history를 사용하며 이 문서에 차수별 작업일지를 누적하지 않는다.
 - **GitHub Pages 공통 배포 경계**: 루트 `_config.yml`이 backend canonical 소스 `GAS_code.js`와 `data/krx_dispatch_ledger/`, `data/pension_operation_identity/`, `data/pension_operation_ledger/`, `data/pension_batch_request_identity/`를 Pages 산출물에서 제외한다. Add는 이 repository-only 파일/상태에 runtime 의존성을 만들지 않으며, 상세 contract는 Main handover와 README를 따른다.
@@ -99,7 +100,7 @@ img/
 - 계산식·검산 기준·데이터 contract, Calc/Report 책임 경계, 공통 구조 원칙, 반복 회귀 방지 규칙처럼 **장기 유지보수 기준이 실제로 바뀐 경우에만** 기존 항목을 수정·통합한다.
 - 단순 UI 정렬·여백·크기·색상, 특정 거래 1건의 현재 숫자, 단발성 버그 수정 이력, QA 통과 기록은 원칙적으로 추가하지 않는다.
 - 현재 CSS/HTML/JS를 보면 바로 확인할 수 있는 구현 세부를 문서에 다시 복제하지 않는다.
-- 평가 기준은 이 문서에 추가하지 않고 `dashboard_evaluation_guide.md`에서 관리한다.
+- 전역 평가 기준은 이 문서에 추가하지 않고 `dashboard_evaluation_guide.md`, 공통화·토큰화 35개 Rubric은 `ct35_evaluation.md`에서 관리한다.
 - Main에 이미 정의된 공통 contract를 장문으로 복제하지 않는다. Add에 필요한 영향과 준수 규칙만 기록한다.
 - 기존 규칙과 같은 목적이면 새 항목을 누적하지 말고 기존 문장을 수정·통합·삭제한다.
 - 코드 변경으로 기존 문구가 더 이상 유효하지 않으면 새 규칙을 덧붙이기보다 해당 문구를 바로잡거나 제거한다.

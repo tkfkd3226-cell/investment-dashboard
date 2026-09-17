@@ -1,287 +1,90 @@
 # dashboard_evaluation_guide · 투자 대시보드 평가 기준
 
-이 문서는 투자 대시보드 **MAIN + ADD 평가 및 전체 평가 시 root `GAS_code.js`까지 포함하는 평가 전용 기준서**다.
+> **문서 성격**: 이 문서는 Dashboard의 **평가 방법**만 정의합니다. 실제 Main/Add 기능·selector·state ownership·responsive 수치·GAS 운영 구현은 각 handover와 최신 소스가 소유합니다. 이 문서에는 평가에 필요한 점수축, A/B/C 의미, 반례 탐색, GAS 평가 강도, 출력 형식과 종료 기준만 둡니다.
 
-> **문서 성격 / 평가 환경**  
-> 이 문서는 **현재 제공된 Dashboard snapshot을 독립 평가하는 기준서**다. 수정 방법, 운영자 실행법, Market AI runtime 빌드 순서를 설명하는 문서가 아니다.  
-> Market AI·GitHub Actions는 Dashboard와 맞닿는 **contract와 실패 격리**를 중심으로 평가한다. 저장소 root의 `GAS_code.js`는 Dashboard repository의 canonical backend source이므로 **범위를 따로 좁히지 않은 일반 전체 평가에서는 독립 서버 코드 평가를 함께 수행**한다. 다만 사용자가 MAIN/ADD/CSS/JS/특정 화면·기능처럼 평가 범위를 명시적으로 좁히면 GAS 독립 평가는 자동으로 추가하지 않는다.
+평가의 목표는 기존 테스트를 다시 읽는 것이 아니라 **최신 실제 소스에서 현실적인 실패 가설을 만들고 반증하는 것**입니다. 반대로 이론적으로 가능한 모든 희귀 조합을 끝없이 생성하거나, 코드가 정교하다는 이유로 합격선을 계속 높이지 않습니다.
 
-이 문서의 목적은 프로젝트를 수정하거나 인수인계하는 방법을 설명하는 것이 아니라, 사용자가 `점수`, `평가`, `평가해줘`를 요청했을 때 **무엇을 어떤 근거로 평가하고, 어떤 실패 가설을 새로 만들어 검증하며, 무엇은 감점하지 않고, 결과를 어떤 형식으로 작성할지**를 일관되게 정의하는 것이다.
+## 1. 평가 명령과 범위
 
-평가의 목표는 기존 요구사항과 테스트의 준수 여부 확인에 그치지 않는다.
+### `점수`
 
-> **평가자는 새로운 실패 시나리오와 반례를 능동적으로 생성하여, 기존 테스트·설계·문서가 아직 인지하지 못한 결함까지 탐색해야 한다.**
+최신 실제 소스를 필요한 범위에서 확인해 CSS / JavaScript / UI / UX 점수를 새로 산정합니다. 사용자가 범위를 좁히지 않은 전체 점수 요청에서는 root `GAS_code.js`가 제공되어 있으면 **GAS 서버 점수도 별도로** 표시합니다.
 
-다만 평가의 목적은 **현실적인 결함을 찾고 안정성을 확인하는 것**이지, 이론적으로 가능한 모든 조합을 무한히 생성해 정상 구조를 계속 수정하는 것이 아니다. 안정화 단계에서는 변경 범위와 위험도에 비례해 대표 반례를 검토하고, **미해결 A/B가 없고 마지막 회귀 중심 반증 평가에서 새로운 A/B가 나오지 않으면 평가를 종료**한다. C급 또는 비감점 관찰사항은 종료를 막지 않는다.
+`점수`는 파일을 수정하지 않으며, 과거 점수를 복사하지 않습니다. 100점은 이 문서의 적용 가능한 100점 Gate와 bounded Counterexample Pass를 통과했을 때만 허용합니다.
 
-평가의 기본 질문은 다음과 같다.
+### `평가` / `평가해줘`
 
-> **“현재 문제가 보이는가?”가 아니라, “현실적인 사용자 행동 순서·비동기 실행 순서·경계값·상태 복원 조합 중 무엇이 이 기능을 깨뜨릴 수 있는가?”를 먼저 묻는다.**
-
-문서 역할은 다음처럼 분리한다.
-
-| 문서/기록 | 역할 |
-|---|---|
-| [README.md](./README.md) | GitHub 프로젝트 소개 · 전체 구조 · 실행/배포 개요 |
-| [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md) | MAIN 수정 · 유지보수 · QA · 장기 contract와 Main↔Add 공통 contract 정의 |
-| [add_maintenance_handover.md](./add_maintenance_handover.md) | ADD Calc/Report 수정 · 유지보수 · QA · 장기 contract |
-| [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) | MAIN + ADD 평가 · 전체 평가 시 root `GAS_code.js` 포함 · 점수 · 전역 A/B/C · 반례 탐색 · 감점/비감점 · 종료 기준 |
-| [ct35_evaluation.md](./ct35_evaluation.md) | 공통화·토큰화 35개 고정 Rubric · Main/Add 독립 채점 · 카테고리별 평가 |
-| Git history | 과거 변경 이력 |
-
-전체 Dashboard 평가에서는 이 문서를 **상위 평가 contract**로 사용하고, 공통화·토큰화 영역은 `ct35_evaluation.md`의 35개 고정 Rubric을 함께 적용한다. A/B/C의 전역 의미와 평가 종료 기준이 두 문서에서 다르게 해석될 여지가 있으면 **이 문서의 정의를 우선**하고, CT35는 해당 결함을 고정 배점의 `PASS / MINOR / MAJOR / FAIL`에 연결해 기록한다.
-
-평가는 항상 **최신 실제 소스를 독립적으로 다시 확인**하는 작업이다. 과거 평가 결과, 과거 점수, 현재 자동 테스트 PASS 여부는 최신 정상 판정의 출발점일 뿐 최종 근거가 아니다.
-
----
-
-# 1. 평가 명령과 범위
-
-## 1.1 `점수`
-
-`점수`는 최신 실제 소스를 필요한 범위에서 검증해 CSS / JavaScript / UI / UX 점수를 새로 산정한다.
-
-기본 출력은 점수 중심으로 간결하게 작성한다. **범위를 따로 좁히지 않은 전체 점수 요청**에서는 아래처럼 GAS 서버 점수까지 병렬로 표시하고, 좁은 범위 요청에서는 해당 범위의 점수만 표시한다.
-
-```text
-CSS
-JavaScript
-UI
-UX
-UI/UX 총점
-Dashboard 총점
-GAS 서버 점수   # 범위 미지정 전체 평가일 때
-```
-
-- 상세 수정 작업은 수행하지 않는다.
-- 파일을 수정하거나 ZIP을 만들지 않는다.
-- 과거 점수를 복사하지 않는다.
-- `모든 점수`는 단독 사용 시 `점수`와 같은 의미로 처리한다.
-- 간단한 점수 요청이라도 100점을 부여하려면 이 문서의 **적용 가능한 100점 Gate**와 **위험도에 맞는 Counterexample Pass**를 내부적으로 충족해야 한다.
-
-## 1.2 `평가` / `평가해줘`
-
-두 표현은 같은 **상세 평가 명령**으로 처리한다. `점수`와 달리 종합점수만 요약해서 끝내지 않는다.
+상세 평가로 처리합니다.
 
 ```text
 최신 실제 소스 확인
-→ 평가 보호 규칙 선확인
-→ 프로젝트 구조와 현재 구현 inventory
-→ 기존 contract / 테스트 확인
-→ 상태 모델과 async boundary 식별
-→ 실패 가설·반례 생성
+→ 범위와 Source of Truth 확인
+→ 구조 / 상태 / async boundary inventory
+→ 기존 테스트가 보호하는 계약과 보호하지 않는 상태공간 구분
+→ 현실적인 실패 가설 생성
 → CSS / JS / UI / UX 독립 평가
-→ [범위 규칙상 GAS 포함 시] root `GAS_code.js` 서버 코드 독립 평가
-→ 각 영역의 하위 평가항목별 점수·상태·근거 기록
-→ 화면 영역별 / 기능별 / 사용자 flow별 평가
-→ 접근성 / 성능 / 유지보수성 / 문서 의미 확인
-→ 100점 반증 평가
-→ A / B / C 분류
-→ 세부 점수표와 최종 결론
+→ [범위상 포함 시] GAS 서버 독립 평가
+→ 문서 semantic 정합성 확인
+→ bounded Counterexample Pass
+→ A / B / C 판정 및 점수 확정
 ```
 
-범위를 따로 좁히지 않은 `평가` / `평가해줘`의 최종 답변에는 원칙적으로 다음 다섯 종류의 상세표를 포함한다. **좁은 범위 평가에서는 지정된 영역에 필요한 표만 작성하고 GAS 표를 자동 추가하지 않는다.**
+### 범위 규칙
 
-1. **CSS 하위 평가표** — 구조, token, cascade, responsive, theme, interaction/state, dead/legacy, 유지보수성 등
-2. **JavaScript 하위 평가표** — module/dependency, state, render, event, async/race, persistence, error, lifecycle 등
-3. **UI 화면 영역별 평가표** — 실제 화면 inventory를 먼저 만든 뒤 Topbar/KPI/Table/Card/Chart/Modal/Tooltip/Market AI/ADD 등 존재하는 영역별 평가
-4. **UX flow별 평가표** — 진입→조작→feedback→성공/실패→복구→재진입/복원의 흐름별 평가
-5. **GAS 서버 평가표** — root `GAS_code.js`의 transaction/idempotency, stale retry, durable evidence, GitHub CAS/dispatch race, failure recovery, validation/observability를 독립 평가
+- `MAIN만`, `ADD만`, `Calc`, `Report`, `CSS만`, `JS만`, 특정 화면·기능처럼 범위를 명시하면 그 범위만 평가합니다.
+- 범위가 좁아도 판정에 필요한 dependency/shared contract는 필요한 만큼 확인합니다.
+- 범위를 좁히지 않은 `점수` / `평가` / `평가해줘` / `전체 평가`에서는 root `GAS_code.js`가 있으면 GAS를 별도 서버 평가축으로 포함합니다.
+- 좁은 Dashboard 평가에서는 GAS 내부를 자동 전수평가하지 않습니다. frontend 기능 판정에 필요한 API shape만 dependency로 확인할 수 있습니다.
+- `GAS 포함`, `GAS_code.js도`, `frontend↔GAS 통합`처럼 명시되면 좁은 평가와 함께 GAS 평가를 수행합니다.
+- 전체 평가인데 `GAS_code.js`가 누락되면 GAS 점수를 추정하지 않고 `필수 평가 소스 누락`으로 표시합니다.
 
-각 표에는 최소한 `평가항목 | 점수 | 상태 | 핵심 근거 | 감점 여부`를 포함한다. 100점인 항목도 단순히 `문제 없음`으로 끝내지 않고, **왜 감점하지 않았는지 확인한 실제 구조·동작 근거**를 적는다.
-
-평가에서는 파일을 수정하지 않는다.
-
-전체 프로젝트 평가에서 현재 전체 구조를 확인할 수 있는 최신 기준본(전체 ZIP 또는 동등한 저장소 snapshot)이 없으면 과거 자료나 기억만으로 전체 평가를 확정하지 않는다.
-
-## 1.3 평가 범위 지정
-
-사용자가 범위를 지정하면 해당 범위를 중심으로 평가한다.
-
-예:
-
-```text
-MAIN만 평가
-ADD만 평가
-Calc 평가
-KODEX Report 평가
-CSS만 평가
-JS만 평가
-화면 영역별 평가
-기능별 평가
-MAIN ↔ ADD 통합 평가
-전체 평가
-```
-
-범위가 좁더라도 해당 기능의 판정에 필요한 dependency / shared contract / responsive rule / persistence / async lifecycle은 필요한 만큼 함께 확인한다.
-
-### 1.3.1 Dashboard와 root GAS `GAS_code.js` 평가 범위
-
-저장소 root의 `GAS_code.js`는 Dashboard ZIP에 함께 포함되는 **GAS Web App canonical 소스**다. 다만 GAS의 자동 포함 여부는 **평가 요청의 범위**로 결정한다. Frontend JavaScript와 동일 점수표에 섞지 않고, 아래 규칙으로 독립 GAS 서버 점수와 A/B/C를 산출한다.
-
-- **범위를 따로 좁히지 않은 일반 `점수` / `평가` / `평가해줘` / `전체 평가`**: Dashboard와 root `GAS_code.js`를 함께 평가한다.
-- **명시적으로 좁힌 평가**: `MAIN만`, `ADD만`, `Calc`, `KODEX Report`, `CSS만`, `JS만`, 특정 화면·기능·파일처럼 사용자가 Dashboard 범위를 지정하면 **GAS 독립 평가는 생략**한다. 이때 해당 frontend 기능 판정에 필요한 API shape/contract를 dependency로 확인할 수는 있지만, 별도 GAS 점수·A/B/C를 만들거나 GAS 내부를 전수평가하지 않는다.
-- **GAS를 명시적으로 포함한 평가**: `GAS 포함`, `GAS_code.js도`, `frontend↔GAS 통합`, `Pension/KRX backend까지`처럼 범위에 GAS가 명시되면 좁은 Dashboard 평가와 함께 GAS 평가를 수행한다.
-- **GAS 단독 평가**: `GAS_code.js만` 또는 GAS 서버 코드 평가를 요청하면 GAS만 평가하고 CSS/UI/화면 점수는 만들지 않는다.
-- GAS 평가는 아래 `GAS_code.js 독립 평가 모드`와 동일한 기준을 적용하며, **transaction/idempotency·stale retry·durable identity/evidence·GitHub branch/CAS/push 경쟁·KRX dispatch/run race·응답 유실 후 reconciliation**을 핵심축으로 본다.
-- Dashboard와 GAS를 함께 평가할 때도 **별도 점수·별도 A/B/C 목록**을 유지한다. GAS 결함이 실제 frontend↔backend contract도 깨는 경우에만 해당 Dashboard 기능 점수에도 필요한 만큼 반영한다.
-- 범위를 좁히지 않은 전체 평가에서 root `GAS_code.js`가 누락되어 있으면 **필수 평가 소스 누락**으로 표시하고 GAS 점수를 추정하지 않는다. 반대로 좁은 Dashboard 평가에서는 GAS 파일 부재를 결함이나 감점 사유로 삼지 않는다.
-- 기본 GAS 평가는 아래 대표 반례를 이용한 **bounded contract evaluation**으로 수행한다. 사용자가 `GAS_code.js 전수 평가`, `공격적으로`, `끝까지 파줘`, 특정 transaction/race 축을 집중 공격하도록 **명시한 경우에만** 조합 범위를 추가 확장한다. `전체 평가`, `최종 QA`, `최종 릴리스 확인` 같은 표현만으로는 극저확률 반례 탐색 강도를 올리지 않는다.
-
-## 1.4 평가와 QA는 다른 작업이다
+### 평가와 QA의 구분
 
 ```text
 평가
-→ 현재 품질을 독립적으로 판정
-→ 기존 요구사항 밖의 실패 시나리오도 새로 생성
-→ 점수 / A·B·C / 구조·UI·UX 평가
+→ 현재 snapshot의 품질을 독립 판정
+→ 기존 요구사항 밖의 현실적인 실패 시나리오도 생성
+→ 점수 / A·B·C / 구조·UI·UX 판정
 
 QA
 → 방금 수정한 current revision의 회귀 여부 확인
-→ handover의 수정·QA 절차를 따름
+→ 각 handover의 변경 유형별 QA 절차를 따름
 ```
 
-GitHub Pages 공개본은 평가의 runtime 보조 근거로 사용할 수 있지만 **수정 직후 QA의 PASS/FAIL 근거로 사용하지 않는다.**
+GitHub Pages 공개본은 동일 revision이 확인되지 않으면 수정 직후 QA의 PASS/FAIL 근거로 사용하지 않습니다.
 
-## 1.5 `수정해` / 재평가 종료 원칙
-
-사용자가 평가 결과를 바탕으로 `수정해`라고 요청하면 기본 의미는 다음과 같다.
-
-```text
-미해결 A/B 수정
-→ 변경 영향 범위 회귀 QA
-→ 위험도에 맞는 대표 반례 재검토
-→ 새로운 A/B가 있으면 추가 수정
-→ A/B = 0 + 회귀 QA PASS + 마지막 반증 평가에서 새 A/B 없음
-→ 종료
-```
-
-- **A는 반드시 수정 대상**, **B는 원칙적으로 수정 대상**으로 본다.
-- **C는 기본 수정 대상이 아니다.** C는 비감점 관찰사항·trade-off·수정 이득이 작은 개선 후보로 남길 수 있으며, C가 존재해도 수정 작업과 100점 판정을 종료할 수 있다.
-- 사용자가 `C까지 수정해`, `C급도 정리해`처럼 명시한 경우에만 C를 수정 범위에 포함한다.
-- C를 수정하는 과정에서 복잡도·회귀 위험이 커지거나 새 A/B 가능성이 생기면 **유지하는 것이 더 나은 선택**일 수 있다.
-- 일반 수정 후에는 전체 프로젝트를 매번 처음부터 무제한 재평가하지 않는다. **변경 파일 + 직접 dependency + 영향받는 contract + 핵심 회귀 flow**를 우선 검증하고, 고위험 영역 또는 구조 변경일 때만 전체 adversarial 범위를 확장한다.
-- 마지막 반증 평가에서 새로 발견된 것이 C 또는 이론적 가능성뿐이면 수정 루프를 다시 시작하지 않는다.
-
----
-
-# 2. 평가 Source of Truth
-
-평가 시 확인하려는 정보의 Source of Truth는 역할별로 구분한다.
+## 2. Source of Truth와 문서 역할
 
 | 확인 대상 | Source of Truth |
-| --- | --- |
-| 실제 현재 구현 | 사용자가 제공한 최신 실제 HTML / CSS / JS / data / scripts / workflows / tests |
-| MAIN의 장기 설계 의도·유지보수 contract | [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md) |
-| ADD의 장기 설계 의도·계산·유지보수 contract | [add_maintenance_handover.md](./add_maintenance_handover.md) |
-| Main↔Add 공통 contract | Main handover 8장 + Add handover 관련 적용 규칙 + `tests/cross-ui-contract.test.cjs` |
-| 평가·점수·A/B/C·감점 보호·반례 탐색 규칙 | [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) |
-| GitHub 프로젝트 설명·전체 구성 | [README.md](./README.md) |
+|---|---|
+| 실제 현재 동작 | 최신 HTML / CSS / JS / data / scripts / workflows / tests |
+| Main 유지보수 contract | `main_dashboard_maintenance_handover.md` |
+| Add 유지보수 contract | `add_maintenance_handover.md` |
+| Main↔Add 공통 contract | Main handover 8장 + 관련 Cross test |
+| 공통화·토큰화 35개 Rubric | `ct35_evaluation.md` |
+| 전체 평가 방법·점수·A/B/C·종료 기준 | 이 문서 |
+| 프로젝트 소개·전체 구조 | `README.md` |
 | 과거 변경 이력 | Git history |
 
-실제 코드와 문서가 다르면 문서를 근거로 코드를 자동으로 되돌리지 않는다.
+실제 코드와 문서가 다르면 문서를 근거로 코드를 자동으로 되돌리지 않습니다. **코드 회귀인지 문서 semantic drift인지 먼저 구분**합니다.
 
-```text
-실제 구현 확인
-→ 해당 handover의 장기 contract 확인
-→ 회귀인지 문서 노후화인지 판단
-→ 코드 결함인지 문서 semantic drift인지 구분
-→ 평가 결과에 구분하여 기록
-```
+## 3. 평가 보호 원칙
 
-README / handover / workflow 설명이 실제 코드와 다르면 **문서 정확성 또는 semantic contract 문제**로 표시한다. 평가 가이드는 **무엇을 반증할지**만 보존하고, GAS 함수별 구현 설명·버전별 패치 이력은 handover/Git history와 중복해서 누적하지 않는다. 실행 품질과 직접 무관한 문서 오류를 CSS / JS / UI / UX 점수에 억지로 섞지 않되, 유지보수·운영 오판 가능성이 실제로 크면 B/A급 문서 결함으로 반영할 수 있다.
+평가자는 문제를 만들기 위해 평가하지 않습니다. 다음은 실제 재현 문제나 사용자 영향이 없는 한 그 자체로 감점하지 않습니다.
 
----
+- Vanilla JS / framework·state library 미사용
+- CSS/JS/MD 파일 수·길이·byte 크기
+- 자동 테스트 파일 수·case 수·coverage 수치
+- Playwright/Jest/ESLint/Stylelint 같은 대형 인프라 부재
+- browser/native fallback, 이유 있는 `!important`, 기능성 media query
+- native `<select>`의 OS/browser rendering 차이
+- 개인보기 3회 private gesture의 discoverability
+- PIN의 의도된 numeric text + masking 구현
+- 전체 render 방식이나 cache bust가 실제 병목을 만들지 않는 경우
+- one-use literal을 더 token화할 수 있다는 가능성
+- 의도적으로 분리된 Main/Add 또는 feature별 계산/state/persistence 책임
 
-# 3. 평가 철학과 최우선 보호 규칙
-
-## 3.1 평가 철학
-
-평가자는 단순 체크리스트 수행자가 아니라 **실패 가설을 세우고 코드·상태·문서에서 반례를 검증하는 역할**을 한다.
-
-평가의 기본 사고 순서는 다음과 같다.
-
-```text
-정상 contract 확인
-→ 상태와 경계 식별
-→ “어떻게 깨질 수 있는가?” 가설 생성
-→ 실제 코드 흐름 추적
-→ 재현 가능성/영향 판단
-→ 기존 테스트가 보호하는지 확인
-→ 감점 또는 비감점 판정
-```
-
-다음 방식은 충분한 평가로 보지 않는다.
-
-```text
-문법 오류 없음 → 정상
-자동 테스트 전부 PASS → 정상
-기존 체크리스트 전부 PASS → 100
-과거 평가에서 100 → 이번에도 100
-```
-
-자동 테스트와 정적 검증을 통과한 뒤부터 **테스트 밖 상태공간 탐색이 시작**된다고 본다.
-
-## 3.2 평가 보호 규칙
-
-평가자는 점수 산정 전에 아래 보호 항목을 먼저 확인한다.
-
-```text
-보호 항목 선확인
-→ 실제 재현 문제 / 사용자 영향 / 구체적 코드 오류가 있는지 확인
-→ 실제 근거가 없으면 감점하지 않음
-→ 실제 장점이 분명하지 않으면 B급 개선안으로도 만들지 않음
-→ 충분한 적대적 평가 후에도 문제가 없으면 100 가능
-```
-
-다음은 이미 검토된 설계 의도·browser/native behavior·허용된 trade-off다. **실제 대상 환경에서 문제가 재현되지 않는 한 감점하거나 반복 개선안으로 제시하지 않는다.**
-
-- **KRX·퇴직연금 Action PIN**: `type="text" + inputmode="numeric" + autocomplete="off" + -webkit-text-security:disc` 조합은 Chrome 비밀번호 저장 제안을 피하면서 숫자 PIN 마스킹을 유지하기 위한 의도된 구현이다. 비표준 CSS라는 이유만으로 credential `password` field로 되돌리지 않는다. 다만 PIN 요청의 **진행 중 닫기·중복 제출·재진입·실패 후 복구 lifecycle**은 별도로 평가한다.
-- **개인보기 3회 gesture**: 일반 사용자에게 진입 경로를 숨기는 private gesture다. discoverability 부족이나 일반 버튼이 아니라는 이유로 감점하지 않는다.
-- **Native `<select>` option UI**: browser / OS native rendering 차이를 이유로 custom select 전환을 권하지 않는다.
-- **전체 dashboard `render()` 방식 / `Date.now()` cache bust**: 실제 측정된 병목·과도한 네트워크 사용이 없으면 감점하지 않는다.
-- **Vanilla JS / framework·state library 미사용** 자체를 감점하지 않는다.
-- **CSS 파일 개수, CSS/JS/MD 길이·줄 수·byte 크기 자체**를 감점하지 않는다.
-- **Playwright / Jest / ESLint / Stylelint 등 대형 테스트·lint 인프라 부재 자체**를 감점하지 않는다.
-- **자동 테스트 파일 존재 여부나 테스트 개수 자체**를 감점·가산하지 않는다.
-- 특정 기능에 자동 테스트가 없다는 이유만으로 A/B급을 만들거나 점수를 깎지 않는다.
-- 테스트가 많다는 이유만으로 점수를 올리지 않는다.
-- 테스트 FAIL이 실제 계산·기능·UI contract 결함을 확인해 준 경우에만 **그 실제 결함 자체**를 평가한다.
-- **Market AI 백엔드 또는 GAS 미첨부·미연결 자체**를 MAIN CSS / JS / UI / UX 감점 사유로 사용하지 않는다.
-- browser/native 대응을 위해 이유가 있는 `!important`, 기능성 media query, 긴 selector, fallback duplicate declaration은 **개수·형태만으로** 감점하지 않는다.
-- `100vh → 100dvh`, `position:-webkit-sticky → position:sticky` 같은 명확한 progressive/browser fallback을 dead duplicate로 오판하지 않는다.
-
-평가자가 새 문제를 제시하려면 최소 하나의 실제 근거가 있어야 한다.
-
-```text
-재현 가능한 bug
-구체적 기능 불일치
-실제 cascade / responsive 회귀
-접근성 오류
-실제 사용자 혼란 / 복구 어려움
-비동기 race / stale state 경로
-경계값·복원·재계산 오류
-측정된 성능 병목
-운영을 잘못 유도하는 문서 / contract 오류
-```
-
-다음과 같은 평가는 금지한다.
-
-```text
-"완벽한 소프트웨어는 없으니 99"
-"가능성이 있으니 99"
-"더 깔끔하게 만들 수 있으니 B급"
-"파일이 길어서 감점"
-"테스트가 적어서 감점"
-"테스트가 많으니 100"
-"이전 버전에서 고쳤으니 이번에도 정상"
-"이론적으로 조합 가능하니 계속 반례를 추가 생성"
-"C가 하나라도 있으니 수정 루프를 계속 진행"
-```
-
-실제 지원 환경에서 도달 경로가 지나치게 비현실적이거나, 여러 독립 장애가 동시에 발생해야만 성립하며, 사용자 영향도 미미한 가설은 **B로 승격하지 않는다.** 유지 가치가 있으면 C 또는 비감점 관찰사항으로 기록하고 종료할 수 있다.
-
----
+자동 테스트는 **증거 중 하나**입니다. PASS만으로 100점을 주지 않고, FAIL도 실제 기능/계산/UI contract 결함인지 낡거나 과도한 테스트인지 확인한 뒤 판정합니다.
 
 # 4. 점수 및 A / B / C 판정
 
@@ -376,7 +179,7 @@ UI/UX 총점 = UI와 UX 평균
 N/A → 점수 하락 근거로 사용 금지
 ```
 
-단, **100점은 24장의 100점 Gate를 모두 통과한 경우에만 허용**한다.
+단, **100점은 9장의 100점 Gate를 모두 통과한 경우에만 허용**한다.
 
 ## 4.6 A — 실제 수정 권장
 
@@ -452,829 +255,80 @@ A/B/C는 개수를 채우지 않는다. 실제 감점 근거가 없으면 A/B 0�
 
 ---
 
-# 5. 평가 Workflow — 위험도·변경 영향 기반 Pass
+# 5. 평가 Workflow
 
-평가 강도는 **요청 범위, 변경 규모, 데이터 손상 가능성, 비동기 복잡도**에 비례한다.
+## 5.1 Pass 1 — 구조와 책임
 
-다음 경우에는 6 Pass를 전체 수행한다.
+- 실제 파일 inventory, entry/import graph, state owner, persistence owner를 확인합니다.
+- handover에 적힌 현재 장기 contract와 최신 소스를 대조합니다.
+- 파일 수·줄 수가 아니라 책임 방향과 실제 결합을 평가합니다.
 
-- 새 기준본의 최초 전체 평가
-- 대규모 구조 변경 또는 shared contract 변경
-- GAS / KRX / Pension처럼 중복 실행·데이터 손상 위험이 큰 영역의 핵심 로직 변경
-- 사용자가 `전체 전수 평가`, `최종 릴리스 평가`처럼 명시적으로 전체 범위를 요청한 경우
+## 5.2 Pass 2 — 상태와 사용자 flow
 
-반면 방금 전체 평가를 마친 뒤 제한된 파일만 수정한 **일반 재평가**에서는 변경 영향 기반으로 범위를 줄일 수 있다.
-
-```text
-변경 파일 확인
-→ 직접 dependency / shared contract 확인
-→ 영향받는 state / async / persistence flow 확인
-→ 대표 반례 검토
-→ 관련 문서·테스트 정합성 확인
-→ 마지막 bounded Counterexample Pass 1회
-```
-
-변경되지 않은 안정 영역은 syntax/static contract와 필요한 smoke/regression만 확인하며, 매번 모든 상태공간을 처음부터 다시 공격하지 않는다. 단, 변경이 실제로 그 영역에 전파되는 경우에는 필요한 만큼 범위를 다시 확장한다.
-
-전체 6 Pass는 다음과 같다.
-
-## Pass 1 — 구조 분석
-
-목표: 현재 저장소가 무엇으로 구성되고 어떤 contract를 가지는지 파악한다.
-
-확인:
-
-- HTML / CSS / JS / Python / workflow / data / tests / MD inventory
-- 실제 entry와 dependency graph
-- CSS responsibility와 source order
-- responsive contract
-- shared schema / canonical data
-- 문서와 실제 구조의 불일치
-- `.gitattributes` / EOL normalization 상태와 EOL-only 대량 diff 여부
-- `innerHTML`/HTML template 경계에서 repository/server text data가 escape 없이 markup으로 해석되는 경로가 있는지
-- syntax / reference / ARIA / duplicate id 등 정적 결함
-
-**Pass 1의 PASS는 평가 종료 조건이 아니다.**
-
-## Pass 2 — 기능 및 상태 모델 분석
-
-목표: 각 주요 기능을 화면이 아니라 **state machine**으로 이해한다.
-
-각 기능에 대해 가능한 경우 다음을 적어본다.
+각 주요 기능을 다음 형태로 봅니다.
 
 ```text
-idle
-opening
-ready
-submitting/loading
-success
-error
-closing
-closed
-re-opened
-restored
+초기 상태
+→ 사용자 입력
+→ in-flight
+→ 성공 / 실패
+→ close / reopen / retry
+→ restore / recalculation
 ```
 
-그리고 다음을 식별한다.
+같은 기능을 mouse, keyboard, 반복 입력, viewport/theme 변화에서 확인할 필요가 있는지 위험도에 따라 판단합니다.
 
-- state owner
-- session identity
-- in-flight request
-- timer
-- listener / observer
-- modal open/close
-- 저장 상태
-- theme / viewport / tab 같은 외부 상태
-- 성공/실패 이후 cleanup
+## 5.3 Pass 3 — Async / Race / Session
 
-## Pass 3 — 적대적 시나리오 생성
+최소 다음 질문을 적용합니다.
 
-목표: 정상 사용 순서가 아닌 **실패 가설**을 새로 만든다.
+- 이전 응답이 최신 상태를 덮을 수 있는가?
+- stale error가 최신 성공 뒤에 도착할 수 있는가?
+- close→reopen 후 이전 timer/listener/request가 새 session에 개입하는가?
+- 중복 submit/Enter/연타가 같은 mutation을 두 번 실행하는가?
+- await/fetch/json parse 사이에서 session identity가 바뀌어도 최신성 guard가 유효한가?
 
-반례 개수는 기능 위험도에 비례한다. 숫자를 채우는 것이 목적이 아니다.
+## 5.4 Pass 4 — Boundary / Restore / Runtime
 
-- **저위험 / 단순 상태 기능:** 대표 반례 1개 이상
-- **중간 위험 / 일반 interactive 기능:** 대표 반례 2~3개
-- **고위험 / 데이터 mutation·중복 실행·복잡 async 기능:** 대표 반례 3~5개
+- `0`, `-0`, 정확한 threshold, 이미 달성된 상태, 빈 데이터, 일부 실패를 확인합니다.
+- 저장→복원→수정→재계산 의미가 최초 입력 경로와 같은지 봅니다.
+- theme/viewport/tab 변경이 Canvas/SVG/modal/tooltip 같은 runtime surface를 놓치지 않는지 확인합니다.
 
-`fetch`, modal, timer, localStorage, keyboard interaction이 있으면 관련 lifecycle을 최소 1개 이상 검토하되, 이미 충분히 검증된 동일 패턴을 기능마다 기계적으로 5개씩 반복하지 않는다. 새로운 반례를 추가할수록 기대 정보가 거의 늘지 않고 A/B 가능성이 낮아지는 시점에는 종료한다.
+## 5.5 Pass 5 — 코드 ↔ 테스트 ↔ 문서 의미
 
-예:
+- 테스트는 사용자/운영 contract를 보호하는지, 특정 함수명·문자열·px·구현 순서를 불필요하게 고정하는지 구분합니다.
+- README에는 프로젝트 개요만, handover에는 유지보수 contract만, 이 문서에는 평가 방법만 있는지 확인합니다.
+- 문서가 실제 없는 기능을 설명하거나, 실제 contract를 다른 의미로 설명하면 semantic documentation 결함으로 기록합니다.
 
-```text
-연타
-중복 submit
-작업 시작 직후 닫기
-닫자마자 재열기
-이전 요청보다 새 요청이 먼저 완료
-실패 직후 재시도
-처리 중 theme 변경
-처리 중 viewport 변경
-Tab으로 진입 후 Esc
-저장된 예전 값을 복원 후 즉시 계산
-```
+## 5.6 Pass 6 — bounded Counterexample
 
-## Pass 4 — 경계값 / 비동기 / 복원 집중 분석
+점수를 확정하기 직전 현재 위험도가 높은 기능 몇 개를 골라 **기존 테스트에 직접 적혀 있지 않은 현실적인 반례**를 한 번 더 생성합니다. 같은 root cause의 변형을 무한히 늘리지 않습니다.
 
-목표: 단일 기능을 값과 시간축에서 공격한다.
+# 6. 프로젝트별 평가 범위 지도
 
-필수 영역:
+이 절은 **무엇을 평가할지 찾기 위한 지도**이며 기능 세부 contract의 Source of Truth가 아닙니다.
 
-- Async / race
-- stale response / stale error
-- timer / cleanup
-- numerical boundary
-- persistence / restore
-- runtime rerender
-- keyboard state
+| 영역 | 평가 초점 | 실제 contract |
+|---|---|---|
+| Main 계산 | 원금·손익·실현손익·별도수익·연금 계산 parity | Main handover + production core |
+| Main UI | Table/Card/Chart/Modal/Tooltip/Theme/Responsive/Print | Main handover |
+| Market AI frontend | standalone Signal, live valuation overlay, 연결/실패 격리, partial render | Main handover + Market AI 문서 |
+| Pension/KRX frontend↔GAS | 요청 identity, 진행중 UI, retry, response loss, stale state | Main handover + GAS source |
+| Add Calc | production 계산/validation, restore, stale-result UX | Add handover |
+| Add Report | canonical trade source, 파생 합계, chart/timeline 표현 | Add handover |
+| Main↔Add | appearance/breakpoint/canonical KODEX source 등 실제 공동 contract | Main handover 8장 |
 
-각 boundary에서 **“이전 상태가 최신 상태를 덮는가?”**, **“다른 진입 경로에서도 같은 규칙인가?”**를 확인한다.
+공통화·토큰화의 35개 고정 Rubric은 `ct35_evaluation.md`를 사용합니다. 이 문서에 35개 항목의 selector/token 세부를 다시 복제하지 않습니다.
 
-## Pass 5 — 코드 ↔ UI ↔ 테스트 ↔ 문서 의미 일치
+# 7. GAS 평가 모드
 
-목표: 문자열이나 파일 경로 수준을 넘어 실제 의미를 대조한다.
-
-확인:
-
-- 코드가 실제 제공하는 기능과 UI label
-- README 기능 설명
-- handover contract
-- workflow input 설명
-- Python docstring / CLI help
-- JSON 예제와 실제 schema
-- 테스트가 주장하는 contract와 production 구현
-- CSS/JS/GAS inline 주석의 ownership·lifecycle·timeout·persistence 설명과 실제 구현
-- Main ↔ Add 파생값 / theme / viewport contract
-
-## Pass 6 — 100점 반증 평가
-
-모든 평가가 끝난 뒤 **점수를 확정하기 전에 별도의 bounded 공격 평가를 한 번 더 수행**한다.
-
-반드시 다음 질문을 한다.
-
-> **“이 프로젝트에 100점을 주면 틀렸다고 반박할 수 있는 현실적이고 구체적인 A/B급 반례가 무엇인가?”**
-
-Pass 1~5에서 이미 확인한 내용을 기계적으로 반복하지 않고, 변경 범위와 위험도에 맞춰 아직 안 본 대표 조합을 찾는다.
-
-예:
-
-- 두 개의 정상 기능을 동시에 조작했을 때 충돌하는가
-- 첫 `await` 뒤 최신성 guard가 있지만 두 번째 `await` 뒤에는 없는가
-- 이전 session의 timer가 새 session을 건드리는가
-- 실패 상태에서 닫기/재시도를 섞으면 guard가 영구적으로 잠기는가
-- localStorage restore 직후 첫 렌더와 재계산 결과가 다른가
-- CSS theme은 바뀌지만 Canvas/SVG 내부 픽셀은 남는가
-- 문서의 기능 설명이 실제 UI에 존재하지 않는가
-
-**Pass 6에서 새로운 A/B급 감점 사유를 찾지 못하면 평가를 종료하고 100점을 허용할 수 있다.** C 또는 이론적 가능성만 새로 나온 경우에는 반례 탐색을 계속 확장하지 않는다.
-
----
-
-# 6. Static / Structural QA
-
-## 6.1 실제 프로젝트 inventory
-
-평가 시작 시 사용자가 제공한 최신 기준 소스의 실제 디렉토리·파일 목록을 확인한다.
-
-최소 확인:
-
-- main entry
-- CSS 파일과 역할
-- JS module / entry
-- Python / Workflow
-- data
-- ADD Calc / Report
-- tests
-- README / handover / evaluation 문서
-- 문서와 실제 구조의 불일치
-- `.gitattributes`와 실제 tracked text EOL 상태가 일치하는지, `git diff --ignore-space-at-eol`에서만 사라지는 가짜 대량 diff가 없는지
-- UI renderer가 `labelHtml` 같은 trusted markup과 repository/server text data를 분리하고 text data를 escape하는지
-
-canonical 구조의 상세 설명은 각 handover를 참고하되 **최신 실제 소스가 다르면 실제 구조를 먼저 확인**한다.
-
-## 6.2 CSS 정적 검증
-
-가능한 환경에서는 다음을 확인한다.
-
-- parse
-- rule / declaration 구조
-- `!important`
-- media query inventory
-- exact duplicate selector / 동일 context
-- override / specificity outlier
-- CSS variable 정의/사용
-- hard-coded color 후보
-- dead / legacy 후보
-- theme counterpart
-- dynamic state class 사용처
-- fallback declaration인지 실수성 duplicate인지 구분
-
-도구가 특정 문법을 해석하지 못한 경우 도구 한계와 실제 코드 오류를 구분한다.
-
-Dead CSS 판정 전에는 HTML뿐 아니라 JavaScript dynamic class, template literal, `classList`, state class, pseudo/media/print, chart SVG 생성 등 실제 사용 경로를 확인한다.
-
-## 6.3 JavaScript 정적 검증
-
-가능한 환경에서는 다음을 확인한다.
-
-- ES Module syntax
-- 실제 import graph
-- circular dependency
-- export 소비처
-- 의도치 않은 global bridge
-- helper 중복 후보
-- listener ownership
-- state ownership
-- render / DOM insertion
-- escape / ARIA reference
-- fetch / timeout / response.ok / parse handling
-- duplicate request / race / operation id / idempotency
-- timer / observer / listener cleanup
-- localStorage / restore entry
-- theme/viewport runtime hooks
-
-단순 함수 길이·파일 길이만으로 감점하지 않는다.
-
-## 6.4 HTML / ARIA 정적 검증
-
-가능하면 다음을 대조한다.
-
-- duplicate `id`
-- `aria-controls`
-- `aria-describedby`
-- `aria-labelledby`
-- `aria-expanded`
-- dialog role / `aria-modal`
-- inline event handler
-- inline style
-- button `type`
-- label / input 연결
-- table caption / scope
-
-정적 ARIA 검증이 PASS해도 실제 keyboard lifecycle은 별도 평가한다.
-
-## 6.5 Python / Workflow
-
-평가 범위에 포함될 때 다음을 확인한다.
-
-- Python syntax
-- workflow YAML parse
-- workflow input 설명과 Python 실제 동작 정합성
-- Python docstring / CLI help와 실제 분기
-- 선택일 종목 가격·성과 갱신과 지수 historical backfill처럼 의미가 다른 operation의 구분
-- 운영 data 보호
-
-사용자가 별도 범위를 지정하지 않았다면 Python / Workflow 코드 품질을 MAIN frontend 점수에 과도하게 합산하지 않는다.
-
----
-
-# 7. Contract QA와 자동 테스트 사용법
-
-자동 테스트는 평가 점수 자체가 아니라 **현재 명시된 contract가 유지되는지 확인하는 증거**다.
-
-```text
-테스트 PASS
-→ 현재 테스트가 알고 있는 contract는 만족
-→ 평가 종료 아님
-→ 테스트 밖 상태공간 탐색 시작
-
-테스트 FAIL
-→ 실제 코드/계산/UI contract 결함인지 확인
-→ 낡은 테스트인지 확인
-→ 실제 결함이 확인된 경우 그 결함을 평가
-```
-
-평가자는 가능하면 다음을 확인한다.
-
-- 테스트가 production 함수 자체를 검증하는지
-- 계산식 복사본을 따로 만들어 가짜 parity를 만들지 않는지
-- responsive 숫자가 제품 contract인지 단순 장식값인지
-- async / modal / restore의 상태 전이를 실제로 검증하는지
-- stale response / timer / re-entry 같은 경로가 빠져 있는지
-
-새로운 결함 가능성을 발견하면 다음 순서로 처리한다.
-
-1. 실제 발생 가능한지 코드 흐름으로 검증
-2. 기존 테스트가 왜 놓쳤는지 설명
-3. 실제 결함이면 등급·점수에 반영
-4. 가능하면 **regression test 후보**를 제안
-
-현재 저장소의 자동 테스트 수나 파일 개수는 점수 기준이 아니다.
-
----
-
-# 8. State Transition QA
-
-상태가 있는 기능은 단순 기능 호출이 아니라 **전이 조합**을 평가한다.
-
-## 8.1 공통 전이 패턴
-
-반드시 가능한 범위에서 다음을 검토한다.
-
-```text
-열기 → 닫기
-열기 → 작업 시작 → 닫기
-작업 진행 중 → X
-작업 진행 중 → Esc
-작업 진행 중 → backdrop
-닫기 → 즉시 재열기
-성공 → 자동 닫기
-실패 → 재시도
-실패 → 닫기 → 재열기
-활성 → 비활성 → 재활성
-Tab focus → Esc → 재진입
-저장 → 새로고침 → 복원 → 재계산
-```
-
-## 8.2 Session identity
-
-modal, request, timer가 있는 기능에서는 다음을 확인한다.
-
-- 새로 연 modal이 이전 modal과 같은 상태 객체를 공유하는가
-- 이전 요청의 응답이 새 session을 덮을 수 있는가
-- 이전 요청의 auto-close timer가 새 session을 닫을 수 있는가
-- UI는 닫혔지만 서버 작업은 이미 실행된 경우 결과를 어떻게 전달하는가
-- operation id / sequence / session token이 적절히 분리되는가
-
-## 8.3 In-flight control
-
-요청이 시작된 뒤 사용 가능한 interaction을 점검한다.
-
-- submit/Enter 연타 차단
-- X/Esc/backdrop 허용 여부
-- 취소가 실제 서버 취소인지 단지 UI dismiss인지
-- 진행 중 닫기 금지가 필요한 작업인지
-- 실패 시 입력/닫기/재시도가 정상적으로 다시 활성화되는지
-- 중복 종료 guard가 정상 성공/실패 모두에서 해제되는지
-
----
-
-# 9. Async / Race Condition QA
-
-비동기 코드는 `fetch()` 호출만 보지 않는다. 다음을 모두 **async boundary**로 간주한다.
-
-- `fetch`
-- 모든 `await`
-- `response.json()`
-- timer / timeout
-- debounce / throttle
-- animation completion
-- event queue
-- modal session
-- external API
-- server response
-- request retry
-
-## 9.1 최신성 guard 위치
-
-각 `await` 전후를 추적한다.
-
-```js
-const response = await fetch(...)
-if (seq !== currentSeq) return
-const data = await response.json()
-```
-
-위와 같은 코드가 있어도 `response.json()` 뒤에 새 요청이 시작될 수 있으므로 **두 번째 async boundary 뒤의 최신성 검사 필요 여부**를 다시 본다.
-
-검사 질문:
-
-- 이전 응답이 최신 응답을 덮는가
-- 이전 JSON parse 완료가 최신 상태를 덮는가
-- 이전 JSON parse error가 최신 성공 상태를 오류로 되돌리는가
-- request sequence가 success뿐 아니라 error/finally에서도 보호되는가
-
-## 9.2 Stale timer / callback
-
-- 이전 session의 `setTimeout`이 새 modal을 닫는가
-- timer clear가 모든 exit path에서 실행되는가
-- callback이 대상 element/session이 아직 동일한지 확인하는가
-- debounce된 이전 입력이 최신 입력 결과를 덮는가
-
-## 9.3 Duplicate action / idempotency
-
-- Enter 연타
-- double click
-- submit + keyboard 중복
-- 동일 request가 서버에 2회 전달되는지
-- 서버가 idempotency/request id를 지원하는 경우 frontend가 올바르게 사용하는지
-- UI에서 중복을 막아도 server execution이 이미 시작된 결과를 놓치지 않는지
-
-## 9.4 Error race
-
-성공 race뿐 아니라 **오류 race**를 별도로 본다.
-
-```text
-요청 A 시작
-→ 요청 B 시작
-→ B 성공
-→ A parse/error 발생
-→ A 오류가 최신 B 성공 UI를 덮는가?
-```
-
-`catch` / `finally`도 sequence/session guard 범위에 포함되는지 확인한다.
-
----
-
-# 10. Boundary / Numerical QA
-
-계산·입력 기능은 정상값만으로 평가하지 않는다.
-
-최소 검토 후보:
-
-- `0`
-- `-0`
-- 빈 값
-- 최소값
-- 최대값
-- 정확히 경계값
-- 경계보다 1 작은 값 / 1 큰 값
-- 음수
-- 매우 큰 값
-- 이미 목표 달성
-- 이미 회복 완료
-- 분모 0 가능성
-- rounding 전후 역전
-- `NaN`
-- `Infinity`
-- 날짜 경계 / 월말 / 연말
-
-## 10.1 계산값뿐 아니라 상태 의미까지 검증
-
-숫자가 수학적으로 계산 가능하더라도 **UI 의미가 잘못되면 결함**일 수 있다.
-
-예:
-
-```text
-이전 확정이익만으로 현재 투자금액까지 이미 회복됨
-→ 자동 목표단가가 음수/0 기반 비정상값이 되지 않는가
-→ 변동률이 -100%처럼 잘못된 의미를 표시하지 않는가
-→ “이미 회복” 같은 별도 상태가 필요한가
-```
-
-## 10.2 Rounding / step
-
-- `ceil5(0)`이 `-0`을 만들지 않는가
-- 5원/10원 step 전후 경계
-- rounding 후 validation 범위가 바뀌지 않는가
-- 표시값과 내부 계산값이 모순되지 않는가
-- 목표값이 현재가보다 낮아지는 특수 상태가 의미상 허용되는지
-
-## 10.3 다음 계산까지 이어서 본다
-
-경계값은 한 번 계산하고 끝내지 않는다.
-
-```text
-입력
-→ 계산
-→ 표시
-→ validation
-→ 저장
-→ 복원
-→ 수정
-→ 재계산
-```
-
-어느 단계에서라도 의미가 깨지면 실제 결함으로 판단한다.
-
----
-
-# 11. Persistence / Restore QA
-
-저장 기능이 있는 경우 다음 lifecycle을 하나의 평가 단위로 본다.
-
-```text
-입력 → 계산 → 저장 → 새로고침 → 복원 → 수정 → 재계산
-```
-
-확인 대상:
-
-- localStorage
-- session state
-- URL / hash
-- 사용자 설정
-- theme
-- 선택 tab
-- 계산 결과/입력값
-- 이전 버전에서 저장된 데이터
-
-필수 질문:
-
-- 최초 입력 경로와 restore 경로가 같은 validation을 거치는가
-- restore된 특수 상태가 다시 계산 가능 상태인가
-- stale result가 복원되어 최신 입력과 섞이지 않는가
-- schema 변경 시 예전 데이터가 안전하게 무시/보정되는가
-- 복원 후 theme/chart/modal 상태가 일관되는가
-
----
-
-# 12. Runtime / Theme / Canvas / Visual Lifecycle QA
-
-CSS만 바뀐다고 모든 시각 요소가 갱신되는 것은 아니다.
-
-다음 요소가 있으면 runtime rerender를 확인한다.
-
-- Canvas
-- SVG
-- Chart.js 또는 custom chart
-- inline calculated style
-- dynamically measured modal
-- tooltip position
-- expanded chart
-- print chart clone/render
-
-## 12.1 Theme lifecycle
-
-Light ↔ Dark 전환 시 다음을 구분한다.
-
-```text
-CSS variable 기반 DOM
-→ CSS 변경만으로 갱신 가능
-
-Canvas / JS로 그린 SVG / cached style
-→ theme 변경 이벤트 후 재그리기 필요 가능
-```
-
-MAIN theme이 ADD에 동기화되는 것만 확인하지 말고, **ADD의 Canvas 차트가 실제로 즉시 새 theme으로 다시 그려지는지**까지 본다.
-
-## 12.2 Viewport / mode lifecycle
-
-- Desktop ↔ Tablet ↔ Mobile
-- 세로 ↔ 가로
-- card ↔ table
-- tab 전환
-- chart expanded open/close
-- modal open 중 viewport change
-
-상태 변경 후 계산된 크기·tooltip 좌표·chart geometry가 stale하지 않은지 확인한다.
-
----
-
-# 13. Keyboard / Accessibility Interaction QA
-
-ARIA 정적 검사를 통과했다고 keyboard UX가 정상인 것은 아니다.
-
-필수 interaction 후보:
-
-- Tab
-- Shift+Tab
-- Enter
-- Space
-- Esc
-- focus return
-- focus 유지
-- modal focus trap
-- tooltip keyboard open/close
-- keyboard와 mouse state 충돌
-- touch와 keyboard 경로의 의미 일치
-
-## 13.1 Tooltip / 도움말
-
-- hover뿐 아니라 focus로 열리는가
-- Tab focus로 열린 상태에서 Esc로 닫을 수 있는가
-- Esc가 tooltip만 dismiss해야 하는데 실제 input/button focus까지 강제로 날리지 않는가
-- `is-dismissed` 같은 state가 필요해 focus를 유지하면서 재오픈을 제어하는가
-- blur 후 다시 focus하면 정상적으로 열리는가
-
-## 13.2 Modal
-
-- open 시 초기 focus
-- Tab / Shift+Tab trap
-- Esc 정책
-- backdrop 정책
-- close 후 focus return
-- in-flight request 동안 닫기 정책
-- 실패 후 focus/interaction 복구
-
-## 13.3 Motion 정책
-
-현재 프로젝트 contract상 OS 모션 설정과 웹 motion을 연동하지 않는다. production CSS/JS의 `prefers-reduced-motion` 도입은 장기 contract와 충돌 여부를 먼저 확인한다.
-
----
-
-# 14. Semantic Documentation QA
-
-문서는 링크와 경로가 맞는지만 검사하지 않는다. **실제 제품이 무엇을 하는지 정확히 설명하는가**를 평가한다.
-
-## 14.1 README 기능 설명
-
-확인:
-
-- 문서에 적힌 기능이 실제 존재하는가
-- 기능명이 실제 UI와 같은가
-- 실제보다 기능을 과장하지 않는가
-- 이미 제거된 기능이 남아 있지 않은가
-- “여러 추가매수 내역 관리”처럼 실제로는 단일 시나리오 입력인데 다중 관리 기능처럼 오해시키는 표현이 없는가
-
-## 14.2 Source Comment / Workflow / Python 설명
-
-CSS/JS/GAS의 inline 주석도 semantic documentation으로 취급한다. 특히 `only`, `전용`, `소유`, `보존`, `재사용하지 않는다`처럼 책임 경계를 단정하는 주석은 실제 import/상태/저장 경로와 대조한다. 코드가 맞고 주석만 오래된 경우에는 실행 결함으로 오인하지 말고 documentation drift로 구분한다.
-
-
-서로 다른 operation은 명확히 구분해야 한다.
-
-예:
-
-- 선택일 종목 가격·성과 갱신
-- 지정일까지의 KOSPI historical backfill
-
-다음을 서로 대조한다.
-
-- Workflow 주석
-- workflow input description
-- Python docstring
-- CLI help
-- Main handover
-- README 설명
-
-## 14.3 Schema / JSON 예시
-
-handover의 JSON 예시는 단순 샘플이 아니라 유지보수자가 실제 구조를 이해하는 근거다.
-
-확인:
-
-- 실제 필수 context가 모두 설명되는가
-- `julyAdd`, `augustFinalBuild.first`, `augustFinalBuild.second`처럼 production에서 실제 사용하는 context가 예시에서 빠지지 않는가
-- 각 context의 필수 field가 빠지지 않는가
-- `qty / buy / date` 같은 핵심 구조가 명확한가
-- 실제 production schema와 예제가 drift하지 않는가
-
-## 14.4 문서 오류의 등급
-
-- 단순 오탈자: 필요 시 C 또는 무감점
-- 유지보수자가 기능을 잘못 이해할 가능성: B
-- 운영/데이터 처리 방향을 잘못 안내할 위험: B~A
-
-문서 문제를 CSS/JS/UI 점수에 억지로 넣지 않되 전체 유지보수성/평가 총점에는 실제 영향에 맞게 반영할 수 있다.
-
----
-
-# 15. Adversarial Pattern Library
-
-아래는 과거 결함을 외우기 위한 목록이 아니라 **같은 종류의 아직 발견되지 않은 결함을 찾기 위한 seed**다.
-
-| 패턴 | 평가 질문 |
-|---|---|
-| Duplicate Action | Enter 연타, 더블클릭, submit 중복은 안전한가 |
-| Stale Response | 이전 응답이 최신 상태를 덮을 수 있는가 |
-| Multi-await Race | 첫 `await` 뒤 검사했어도 다음 `await` 뒤 다시 검사해야 하지 않는가 |
-| Stale Error | 이전 요청 오류가 최신 성공 상태를 덮을 수 있는가 |
-| Modal Session | 닫기→재열기 시 이전 작업과 새 작업이 분리되는가 |
-| Stale Timer | 이전 timer가 새 UI session을 건드리는가 |
-| In-flight Close | 서버 요청 시작 후 X/Esc/backdrop이 허용돼도 되는가 |
-| Re-entry | 처리 도중 같은 기능에 다시 진입해도 안전한가 |
-| Theme Render | CSS 변경 외 Canvas/SVG 재렌더링이 필요한가 |
-| Keyboard State | mouse와 keyboard 경로에서 state가 동일한가 |
-| Focus Dismiss | Esc가 overlay만 닫아야 하는데 focus까지 제거하지 않는가 |
-| Boundary State | 0/-0/이미 달성/정확한 경계에서 의미가 깨지지 않는가 |
-| Rounding Drift | rounding 전후 validation/표시 의미가 달라지지 않는가 |
-| Persistence Drift | 최초 입력과 restore 이후 결과가 같은가 |
-| Old Schema Restore | 이전 버전 저장 데이터가 최신 계산을 오염시키지 않는가 |
-| Documentation Drift | 문서가 실제 없는 기능 또는 옛 기능을 설명하지 않는가 |
-| Schema Drift | 문서 예제가 실제 필수 schema를 모두 설명하는가 |
-| Workflow Semantic Drift | 서로 다른 작업을 같은 동작처럼 설명하지 않는가 |
-| Cleanup Leak | listener/timer/observer가 이전 session 이후 남지 않는가 |
-| Cross-state Collision | theme/tab/viewport 변경이 진행 중 request와 충돌하지 않는가 |
-| Partial Success | 일부 endpoint 성공/실패가 다른 상태를 잘못 초기화하지 않는가 |
-| Multi-client Universe | PC/폰/복수 탭이 서로의 live quote 구독 universe를 삭제하지 않는가 |
-| Ephemeral Overlay | 실시간 화면값이 역사 JSON·snapshot·장부 write를 오염시키지 않는가 |
-| Subscription Health | Bridge 전체는 살아 있어도 특정 종목 stream만 죽었을 때 해당 종목만 fail-closed 되는가 |
-| Closed Quote Recovery | 장마감 종목의 최근 완료 KRX 거래일 KIS durable snapshot이 backend에서 `closed + usable`로 복구돼도 live처럼 오인하지 않고 Market AI coverage로 소비하며, 다음 정규장 시작 뒤의 전일 값·더 오래된 값·unhealthy·fresh-tick-required 상태는 JSON fallback을 유지하는가 |
-| Deferred Render | modal/chart overlay 중 보류한 live render가 닫힌 뒤 유실되거나 옛 state로 남지 않는가 |
-| Server Already Executed | UI가 닫혔어도 이미 실행된 서버 결과를 사용자에게 안전하게 전달하는가 |
-
-평가자는 Pattern Library를 체크박스처럼 끝내지 않는다.
-
-```text
-패턴 선택
-→ 현재 코드에 맞는 새로운 실패 가설 생성
-→ 실제 함수/상태/DOM 흐름 추적
-→ 재현 가능성 판정
-→ 테스트 보호 여부 확인
-```
-
----
-
-# 16. MAIN 평가 기준
-
-MAIN 상세 architecture / module ownership / CSS ownership / responsive contract의 현재 canonical 내용은 `main_dashboard_maintenance_handover.md`를 참고한다. 평가 문서는 구조를 복제하지 않고 **평가 관점**만 정의한다.
-
-## 16.1 MAIN CSS
-
-확인:
-
-- 현재 CSS 파일들의 responsibility가 실제 기능과 맞는지
-- 관련 rule의 응집도와 탐색성
-- 이유 없는 override chain / 높은 specificity
-- source-order 의존성이 명확한지
-- Desktop / Tablet / Mobile 기본 contract 준수
-- 기능성 exception의 실제 필요성
-- theme / semantic token / spacing / radius / typography
-- light / dark counterpart
-- dead / legacy CSS의 실제 사용처
-- state class가 JS lifecycle과 일치하는지
-
-`continuation`, cross-cutting rule, selector 길이, 기능성 media query는 실제 이유와 영향을 보고 판단한다.
-
-`!important`는 개수만으로 감점하지 않는다.
-
-## 16.2 MAIN JavaScript
-
-현재 실제 main graph 및 standalone entry를 읽고 다음을 본다.
-
-- module responsibility
-- dependency 방향
-- circular dependency
-- core / UI / chart / pension / app 책임 경계
-- standalone subsystem의 격리
-- state ownership
-- public export 실제 소비처
-- delegated/direct event와 listener guard
-- rendering / DOM insertion
-- async / error / stale / timeout 처리
-- modal/session identity
-- timer cleanup
-- restore/re-entry
-
-현재 handover가 정의하는 의도된 책임 분리를 “파일이 많다”는 이유로 합치도록 권하지 않는다.
-
-### 증권 매도 · 실현손익 · 현금화 원금
-
-`data/portfolio.json`에 `securitiesEvents` sell/rebuy가 존재하거나 관련 계산이 변경된 경우에는 단순히 현재 `qty/cost`만 대조하지 않고 날짜를 앞뒤로 이동하며 원장을 반증한다.
-
-- **체결 금액 identity:** `grossAmount - transactionCost = amount`, `amount - costBasis = realizedProfit`이 성립하고 숫자가 아닌 optional field를 JS/Python 중 한쪽만 무시하지 않는가. 체결가를 `prices.json` 시장가격으로 덮어쓰지 않는가.
-- **과거 복원:** 현재 `qty:0/cost:0`인 전량매도 종목도 매도 전 날짜에는 원래 수량·원가가 복원되는가. 부분매도는 잔여 원가와 누적 실현손익을 분리하는가.
-- **원금 보존:** 매도된 `costBasis`가 현금화 원금으로 이동해 매도만으로 계좌1 투입원금이 줄거나 수익처럼 보이지 않는가. 재매수는 실제 사용한 현금 원금만 `cashPrincipalDelta`로 차감해 원금을 이중계상하지 않는가.
-- **same-day ordering:** 같은 날 매도와 재매수가 있으면 event id 문자열 순서 때문에 일시적으로 현금화 원금이 음수가 되어 정상 원장을 거부하지 않는가. 날짜별 순변동으로 계산하고 일자 종료 시점 balance만 fail-closed하는가.
-- **성과 지속:** 전량매도 뒤 보유종목 현황에서는 빠져도 `totalProfit = 평가손익 + 실현손익`, `performanceCost = 잔여 cost + realizedCostBasis` 기준의 종목 누적손익/수익률은 유지되는가.
-- **현금 의미:** sell 현금흐름은 gross가 아니라 거래비용 차감 후 `amount`를 사용하며, 과거 cash snapshot이 매도일의 확정 원장을 덮지 않는가.
-- **가격 생성:** `update_prices.py`가 대상 날짜 position state를 사용해 매도 완료 종목의 이후 신규 KRX fetch를 제외하면서 매도 전 backfill은 정상 수행하는가. 같은 입력 재생성에서 실현손익·현금이 중복되지 않는가.
-- **JS↔Python parity:** 계좌1 원금, 현금, 종목 누적손익, `performance_snapshots.json` 파생값이 동일 의미를 사용하는가.
-- **Live Valuation:** 매도일 이후 `qty=0` ticker가 Market AI quote universe에서 빠지고, 과거 날짜/운영 JSON에는 live quote가 역으로 쓰이지 않는가.
-
-실제 운영 원장에 첫 매도 anchor가 존재하면 그 event의 확정 금액과 매도 전/후 날짜를 regression fixture로 직접 대조하되, 이후 거래가 추가되면 특정 종목 한 건만으로 일반 sell/rebuy contract 전체를 대체하지 않는다.
-
-## 16.3 Frontend ↔ Backend contract
-
-### KRX
-
-현재 frontend의 실제 mode와 request contract를 확인한다.
-
-특히 다음 lifecycle을 반드시 본다.
-
-```text
-Enter/submit 중복
-→ request 시작
-→ modal 닫기 시도
-→ 재열기
-→ 이전 response 도착
-→ success/skip/error feedback
-→ auto-close timer
-```
-
-확인:
-
-- 중복 요청 방지
-- request/session sequence
-- 닫기→재열기 시 이전 응답이 새 modal을 덮지 않는지
-- 이전 자동 닫기 timer가 새 session을 닫지 않는지
-- UI가 닫힌 뒤 서버에서 이미 실행된 결과를 별도 Toast 등으로 안전하게 전달하는지
-- KRX write가 일반 fetch timeout을 그대로 상속해 정상적인 durable reconciliation을 조기 abort하지 않는지. 현재 contract는 **KRX POST 60초 전용 timeout**이며, timeout은 서버 실패로 단정하지 않고 처리 계속 가능성을 안내해야 한다.
-- `NETWORK_TIMEOUT`·transient status uncertainty에서 requestId를 폐기하지 않고 같은 identity로 안전하게 재시도·reconciliation할 수 있는지
-- 선택 날짜가 화면에 존재한다는 사실과 request body의 `date` 존재 여부를 혼동하지 않는지
-
-GAS가 제공된 경우에만 server handler까지 완전 대조한다.
-
-### Pension
-
-현재 frontend가 사용하는 upsert / delete / batch 계열 request, request id / PIN / operations / response / duplicate·idempotency 처리를 실제 코드와 대조한다.
-
-- **Frontend mutation convergence:** Single 저장·삭제의 success / duplicate / stale를 각각 분리해 본다. success와 duplicate는 server truth를 local `dataState`와 Main 계산 DOM에 즉시 수렴시키고, stale는 local state를 다시 적용하지 않아야 한다. Main 재렌더 후 editor modal을 재개방할 때 현재 target, 다른 target의 미저장 form draft, 저장 성공 output, modal 내부 scroll 위치를 보존하고 ETF 저장 성공에서만 체결수량/금액을 비우는지 확인한다. 내부 close→즉시 reopen에서는 지연 mobile reflow가 새 focus를 다시 blur하지 않아야 한다.
-
-GAS가 함께 제공된 집중 평가에서는 구현 설명을 다시 문서화하지 말고 아래 **반례 계약**만 확인한다. 세부 운영 구조는 Main handover 6.2절을 Source of Truth로 사용한다.
-
-- **Single idempotency / stale:** commit 성공·응답 유실, save→delete→old retry, dependency drift, Git blob ABA에서 과거 요청이 최신 상태를 되돌리지 않는가. `expectedVersion`/`expectedAbsent`와 최초 pending payload가 유지되는가.
-- **Exact identity durability:** `requestId`·`logicalOperationId`·`batchRequestId+operationId`가 content-independent identity ledger에서 semantic 후보보다 먼저 검사되고, same identity+same content는 duplicate, same identity+different content는 reject되는가. Single에서 request/logical key 일부만 같은 content로 존재하면 duplicate/stale 응답 전에 누락 exact key를 durable backfill하고, legacy operation ledger proof는 같은 2자리 shard가 아니라 **full semanticHash + exact ID**까지 일치해야 한다. cashSnapshot active-intent 복구에서도 legacy ledger를 같은 full semanticHash + exact ID 기준으로 확인하며, receipt proof도 durable exact identity로 승격하는가. terminal stale와 삭제/receipt GC 뒤에도 동일하다.
-- **No-op completion:** `delete_already_absent`, 기존 처리 확인, current-item identical처럼 business JSON을 바꾸지 않는 성공도 완료 identity가 남아 다른 내용 재사용을 막는가.
-- **Intent lifecycle:** 응답 유실·부분 저장·GC가 있어도 active intent가 임의 소실되거나 terminal stale/duplicate identity가 mutation 경로로 부활하지 않는가. terminal 결과는 local/durable evidence가 실제 저장된 뒤에만 확정하고, evidence가 불확실하면 fail-closed하는가. 신규/retryable 전환, epoch, cleanup은 같은 인과관계를 유지하는가.
-- **Batch uniqueness / cardinality:** 같은 target의 `logicalOperationId` 중복은 GitHub read 전 reject되는가. 부분 충돌은 operation별 `existing/distinct`를 유지하고, 하나의 기존 candidate를 둘 이상의 operation에 재사용하지 않는가. same batch/logical identity는 `distinct`로 부활시킬 수 없는가.
-- **Batch recovery:** `batchRequestId` 자체가 durable하게 보존되어 receipt GC 뒤 operationId를 전부 바꿔도 다른 작업 묶음으로 재사용할 수 없는가. completed/stale receipt를 사용할 때도 batchRequestId durable identity를 먼저 실제 확보하고, completed proof라면 모든 operation의 logical+batch exact key 누락분까지 durable backfill하는가. 현재 GitHub state가 과거 Batch 결과를 이미 반영했다고 복구 판단하는 경로도 **batchRequestId durable completed + 모든 operation exact identity**를 확보한 뒤에만 duplicate를 확정하는가. CacheService 같은 유한 cache는 idempotency Source of Truth로 사용하지 않는가. commit 성공 뒤 receipt/HTTP 유실은 duplicate에 수렴하고, pre-commit 실패 뒤 dependency가 같을 때만 retry되며 terminal stale 판정은 Batch intent를 먼저 terminal-pending으로 고정해 durable tombstone write가 실패해도 이후 상태 회귀로 mutation 경로에 복귀하지 않는가. local terminal marker와 durable tombstone이 모두 실패하면 stale 확정 응답을 하지 않는가. 과거 stale receipt와 durable `completed`가 충돌하면 business commit과 함께 기록된 completed durable 상태를 우선하고, stale receipt/durable residue를 operation identity로 복구할 때는 모든 operation exact identity가 같은 content로 완료됐다는 강한 proof를 요구하며 durable completed 승격이 실제 확인된 뒤에만 복구 완료로 응답하는가.
-- **Cross-device duplicate confirmation:** 새 requestId로 같은 semantic 후보가 들어오면 자동 dedupe하지 않고 state-bound confirmation token을 요구하며, token 이후 state 변경은 `confirmation_stale`로 거부되는가.
-- **Pension latency instrumentation:** timing은 business 결과와 분리된 진단 정보여야 하며 성공/실패·중복 판정에 사용하지 않는가. 예외 경로에서도 가능한 timing을 남기되 계측 때문에 원격 I/O·mutation·상태 전이가 추가되지 않는가.
-- **Pension request-local read cache:** immutable commit/path 범위에서만 read cache를 재사용하고 HEAD/dependency/CAS/failure readback 같은 fresh barrier를 cache로 대체하지 않는가. 병렬 preflight가 business 판단 순서를 바꾸지 않는가.
-- **Pension Batch initial preflight:** 동일 base snapshot에서 필요한 dependency/identity/state를 병렬 preload하되 large batch의 remote read를 bounded chunk로 제한하고, 이후 fresh barrier와 operation ordering·precondition 검증을 생략하지 않는가.
-- **Pension local evidence fast-path:** local evidence batching/fast-path가 실패하거나 부분 반영될 때 exact readback·rollback으로 불확실 성공을 막고, 기존 GC-aware fallback과 epoch/terminal/durable 우선순위를 보존하는가.
-- **Batch duplicate confirmation UX:** business item 삭제 뒤에도 semantic ledger history가 남는 것은 정상이다. 충돌 source가 `item`이면 현재 데이터 중복, `ledger`이면 과거 처리 기록으로 안내하고 모든 경우를 `기존 logical operation`이라고 잘못 단정하지 않는가. `확인=실제 별도 작업`, `취소=기존 처리로 보고 재적용하지 않음` 의미가 서버의 `existing/distinct` 결정과 일치하는가. 확인 후 두 번째 PIN/요청이 발생해도 같은 state-bound confirmation token과 batchRequestId/payload 계약을 유지하는가.
-- **Atomic Git mutation:** target JSON + semantic ledger + identity ledger가 같은 non-force CAS commit에 들어가며, dependency fingerprint를 commit 직전 재검증하는가. 1MB 초과 shard는 Blob API fallback으로 읽는가.
-- **KRX dispatch idempotency:** intent→dispatch→durable completion 경계에서 같은 requestId가 중복 dispatch되지 않는가. 명시적 reject, accepted-but-response-lost, uncertain 상태를 강한 server/durable proof 순서로 reconciliation하고, 불확실하면 fail-closed하는가. terminal/no-op도 durable identity를 확보한 뒤 확정하며 stale local residue가 stronger durable state를 downgrade하지 않는가.
-- **KRX run/race:** active workflow·durable identity·prices/input 상태를 병렬 조회해도 POST 직전 fresh generation-input 검증과 branch CAS/push 경쟁 방어를 유지하는가. queued run은 실행 시작 시 최신 branch tip을 기준으로 하되 dispatch 이후 generation input drift는 fail-closed하고, remote push 성공·응답 유실도 ancestry/readback으로 복구하는가.
-- **KRX local evidence write batching:** pre-dispatch intent/marker와 success fallback evidence를 batching하더라도 부분 반영·응답 유실 시 exact readback/rollback이 가능하고, durable completion보다 약한 local evidence가 우선하지 않는가. batching이 retry causality나 visibility barrier를 재배열하지 않는가.
-- **KRX latency instrumentation:** timing은 정상·skip·duplicate·fail-closed·예외 경로를 진단할 수 있어야 하지만 business 판정이나 UI 의미에 관여하지 않는가. stage/detail 합산이 중복되지 않고 계측 자체가 원격 호출·mutation을 추가하지 않는가.
-- **100점 Counterexample:** 위 보호가 기존 테스트를 통과한다는 이유만으로 끝내지 말고, receipt/intent GC·cross-device·partial conflict·same identity/different content·precommit failure·remote race를 조합해 새 반례를 만든다.
-
-특히 PIN modal의 다음 전이를 본다.
-
-```text
-입력
-→ request 시작
-→ X/Esc/backdrop
-→ 성공
-→ 실패
-→ 재시도
-→ 중복 종료
-```
-
-요청 시작 후 닫기를 막아야 하는 contract라면 실제로 모든 닫기 경로가 차단되는지, 실패 시 입력·닫기가 다시 활성화되는지, 중복 종료 guard가 안전한지 확인한다.
-
-server contract는 최신 GAS가 제공된 경우에만 완전 대조한다.
-
-### `GAS_code.js` 독립 평가 모드
+## 7.1 `GAS_code.js` 독립 평가 모드
 
 이 절은 **평가 범위 규칙상 GAS가 포함되는 경우** 또는 사용자가 `GAS_code.js` 평가를 별도로 요청한 경우 적용한다. 단순히 ZIP 안에 파일이 존재한다는 이유만으로 좁은 Dashboard 평가에 이 절을 자동 적용하지 않는다.
 
 기존 Pension/KRX 반례 계약은 **평가 seed library**다. 모든 bullet을 매번 독립 반례로 전수 조합하거나, 한 반례에서 또 다른 희귀 반례를 재귀적으로 파생시키는 체크리스트가 아니다. 기본 평가는 **실제 운영에서 의미 있는 실패를 합리적인 비용으로 찾는 것**을 목표로 한다.
 
-#### 평가 강도 캘리브레이션 방화벽
+### 평가 강도 캘리브레이션 방화벽
 
 GAS 평가 강도는 **사용자가 이번 요청에서 지정한 범위와 이 문서의 명시적 평가 모드만**으로 결정한다. 소스 자체가 고도화되어 있다는 이유로 심사 강도를 자동 상승시키지 않는다.
 
@@ -1291,7 +345,7 @@ GAS 평가 강도는 **사용자가 이번 요청에서 지정한 범위와 이 
 
 기본 모드에서 새 A/B 후보를 만들 때는 원칙적으로 **한 번의 현실적인 외부 장애 또는 정상적인 동시성/재시도와 그 자연스러운 후속 상태 전이** 범위에서 먼저 증명한다. 기존 stronger proof·정상 복구 경로를 일부러 제거하거나 서로 독립적인 희귀 장애를 연쇄적으로 추가해야만 성립하는 가설은 아래 Fault budget에 따라 C 또는 비감점으로 종료한다.
 
-#### 평가 강도: 기본 bounded 모드와 확장 모드
+### 평가 강도: 기본 bounded 모드와 확장 모드
 
 기본 `평가` / `평가해줘`는 **bounded 모드**다.
 
@@ -1322,7 +376,7 @@ KRX race를 집중 공격해줘
 
 확장 모드에서도 무한 반례 생성은 금지한다. 동일 root cause의 변형은 하나의 결함으로 묶고, 기대 정보가 거의 늘지 않으면 종료한다.
 
-#### Fault budget — 극저확률 반례 필터
+### Fault budget — 극저확률 반례 필터
 
 GAS는 네트워크·GitHub·Script Properties·동시 실행이 얽혀 있어 이론적으로는 매우 많은 실패 조합을 만들 수 있다. 기본 평가에서는 아래 fault budget을 적용한다.
 
@@ -1350,7 +404,7 @@ GAS는 네트워크·GitHub·Script Properties·동시 실행이 얽혀 있어 �
 
 예외적으로 **데이터 손상·중복 금전성 mutation·인증 우회처럼 영향이 A급인 영역**은 두 장애가 결합되더라도 코드가 그 조합을 명시적으로 지원·복구한다고 주장하거나 실제 운영 증거가 있으면 검토할 수 있다. 이때도 “가능하다”가 아니라 구체적 도달 경로와 실제 영향이 필요하다.
 
-#### A/B 판정에 필요한 증거 강도
+### A/B 판정에 필요한 증거 강도
 
 `GAS_code.js`에서 새 A/B를 제시하려면 다음을 모두 만족하는 것을 원칙으로 한다.
 
@@ -1370,7 +424,7 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 
 실행하지 못한 경우에는 코드 경로가 결정적이면 B/A 판정이 가능하지만, 단순 추측이면 C 또는 비감점으로 남긴다.
 
-#### `GAS_code.js` 점수축
+### `GAS_code.js` 점수축
 
 평가 범위 규칙상 GAS가 포함되는 경우의 `GAS_code.js` 서버 점수와 GAS 단독 평가에는 아래 11개 축을 사용한다. N/A가 있으면 남은 비중을 합리적으로 재배분한다.
 
@@ -1390,7 +444,7 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 
 **GAS 점수는 평가 범위 규칙상 GAS가 포함되는 경우에만 제시하며, CSS/JavaScript/UI/UX 총점에 자동 합산하지 않는다.** 범위를 따로 좁히지 않은 전체 평가에서는 Dashboard와 GAS를 병렬 표기하고, MAIN/ADD/CSS/JS 등 좁은 평가에서는 GAS 점수 자체를 만들지 않는다.
 
-#### `GAS_code.js` 기본 대표 반례
+### `GAS_code.js` 기본 대표 반례
 
 기본 bounded 평가에서는 아래 seed에서 **현재 변경·위험도와 관련된 것만 선택**한다. 전부를 매번 조합하지 않는다.
 
@@ -1421,7 +475,7 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 
 한 평가에서 이미 같은 root cause를 충분히 검증했다면 동일 계열 seed를 추가로 모두 돌릴 필요는 없다.
 
-#### 기존 상세 Pension/KRX bullet의 해석
+### 기존 상세 Pension/KRX bullet의 해석
 
 바로 위 `Pension`, `KRX` 상세 bullet은 장기 contract를 보존하기 위한 **회귀·집중평가 seed pool**이다.
 
@@ -1432,7 +486,7 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 - 특정 bullet을 만족시키기 위해 **강한 proof를 일부러 여러 개 동시에 제거하는 mock**을 만들지 않는다.
 - contract에 “fail-closed”가 이미 구현돼 있고 해당 실패가 사용자에게 재시도만 요구하며 데이터/중복 실행을 만들지 않으면, 단순 보수성 자체를 B로 만들지 않는다.
 
-#### `GAS_code.js` A / B / C 예시
+### `GAS_code.js` A / B / C 예시
 
 **A**
 
@@ -1459,7 +513,7 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 - helper를 더 짧게 만들거나 추상화할 수 있다는 구조 취향
 - timing/log 메시지의 미세한 표현 개선
 
-#### `GAS_code.js` 평가 종료 Gate
+### `GAS_code.js` 평가 종료 Gate
 
 기본 `GAS_code.js` 평가는 아래 조건이면 종료한다.
 
@@ -1477,7 +531,7 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 
 반대로 기존 테스트 PASS만으로 위 Gate를 생략하고 100점을 주지도 않는다.
 
-#### 수정 후 재평가
+### 수정 후 재평가
 
 `GAS_code.js`의 A/B를 수정한 직후에는 기본적으로:
 
@@ -1493,445 +547,7 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 
 **수정한 B에서 더 낮은 확률의 새로운 B를 계속 파생해 무한 patch loop를 만드는 것을 금지한다.** 새 후보가 기본 fault budget을 넘으면 C/비감점으로 분류하고, 실제 운영 증거·사용자 보고·다음 코드 변경이 생길 때 다시 연다.
 
-### KRX 정규장 종가 확정
-
-- 장중과 정규장 종가 snapshot이 `priceBasis`로 구분되고, 애프터 가격이 GitHub 가격 원장에 혼입되지 않는가.
-- GAS 중복 판별이 `regular_close` 확정 여부를 사용하면서 legacy close 재확정과 기존 requestId/idempotency 보호를 함께 유지하는가.
-- KRX modal·Hero·source tooltip의 사용자 문구가 실제 저장 기준과 일치하는가.
-
-### Market AI
-
-Market AI backend는 기본 MAIN 평가 대상이 아니다. Dashboard frontend에서는 **현재 시장·AI signal panel**, **허용된 평가일의 보유종목 live valuation overlay**, 그리고 두 기능이 Main render/lifecycle과 만나는 경계를 평가한다.
-
-세부 구현 수치나 함수별 운영 contract를 이 문서에 복제하지 않는다. 현재 설계 의도는 `main_dashboard_maintenance_handover.md`와 실제 소스를 Source of Truth로 하고, 평가는 아래 실패 유형을 중심으로 반증한다.
-
-- **범위 오염**: live quote가 KST 오늘과 다음 정규장 전 직전 완료 거래일 carry 범위를 넘어선 과거 날짜, 운영 JSON, 수량·원가·원금·실현손익 같은 장부 원천을 바꾸지 않는가.
-- **fallback 의미**: `usable:true`만 적용하고 warming/stale/unavailable/error는 종목별 저장값으로 fallback하며 일부 실패가 정상 종목까지 무효화하지 않는가.
-- **상태 최신성**: 겹친 polling, 늦은 body parse, holdings universe 변경, visible↔hidden 전환에서 이전 응답/오류가 최신 상태를 덮지 않는가.
-- **multi-client 격리**: 복수 탭/기기의 client identity와 ticker universe가 서로 제거·오염되지 않는가.
-- **render lifecycle**: modal/chart/tooltip/input interaction 중 live refresh가 진행 UI를 교체하거나 focus/scroll을 잃게 하지 않는가. 10초 Live Valuation은 `#tabs`와 `#app` shell을 유지한 채 live-dependent fragment만 부분 교체하고, active focus target을 불필요하게 다시 focus하지 않으며, 별도수익 ON/OFF 같은 부분 갱신이 full render로 회귀하지 않는가.
-- **차트 entrance 회귀**: Live Valuation 부분 갱신이 이미 재생된 차트 상태는 유지하면서 아직 viewport에 진입하지 않은 차트의 최초 scroll animation을 보존하는가. 주기 갱신이 비활성/미노출 차트를 일괄 완료 처리하지 않는가.
-- **실시간 시세 진입점**: Market AI 연결 확인 전/연결 해제에는 Web/Tablet Topbar와 Phone Topbar icon-only `실시간 시세`가 모두 숨겨지고, Phone `관리` 메뉴에는 중복 진입점이 없는가. `date-tool-btn` 같은 author `display` 규칙이 HTML `hidden`을 되살리지 않도록 `[data-market-ai-monitor-entry][hidden]` 공통 CSS 계약이 실제 표시를 보장하는가. 연결 중에는 공통 action/gating source를 공유하고, Web/Tablet은 content height 선측정 후 처음부터 compact·no-scroll geometry로 reveal하며 size message 지연 시에도 화면 세로 전체를 먼저 채우는 fallback을 사용하지 않는가. Phone은 KRX 등 action modal과 같은 외곽 여백·edge token을 상속하고 monitor만 가용 영역을 채우는가.
-- **Dashboard-side Market AI ON/OFF**: 사용자 preference와 server reachability를 분리하는가. OFF 시 signal/live polling과 volatile live overlay를 중단·제거해 저장 JSON으로 fallback하고, in-flight 이전 응답이 OFF 이후 state를 되살리지 않는가. ON 시 즉시 refresh를 재시도하는가. 이 기능이 backend 프로세스를 종료한다고 오해해 구현하지 않는가. Web/Tablet은 투자 계산기와 밝기 테마 사이의 icon-only 공통 action geometry를 유지하고, **Phone Topbar에는 이 toggle이 없으며 `관리` 메뉴의 투자 계산기 바로 아래에만 연결 켜기/끄기 action이 존재하는가.**
-- **Phone 날짜 label**: Topbar 날짜 셀렉트가 `년-월` / `월-일 요일` 공통 형식(`2026-9`, `9-16 수`)을 사용해 좁아진 Phone 폭에서도 select 화살표와 텍스트가 겹치지 않으며, viewport별 별도 label formatter를 만들지 않는가.
-- **표시 의미**: Hero 기준문구와 자산 source tooltip이 실제 적용 가격의 저장/실시간/시간외/마감 의미와 일치하고, legacy fallback과 raw 내부 상태 비노출 계약을 유지하는가.
-- **시장 session/freshness**: KOSPI, K200, SOX, NQ100선물의 장전/거래중/장마감/거래중단과 freshness를 구분해 정상적인 장외 정지를 `데이터 지연`으로 오판하지 않는가. 기준시각은 가능한 경우 실제 시장시각을 우선하는가.
-- **단일 display model**: 시장 카드와 tooltip이 서로 다른 값·상태·fallback 판정을 갖지 않는가.
-- **AI 신호 설명 의미**: `confidence`/공통 `data_completeness` 같은 deprecated 휴리스틱을 사용자 신뢰도로 노출하지 않고, 각 신호의 `input_coverage`를 별도로 표시하는가. 실제 반영 비중은 available input의 `normalized_weight` 의미를 따르고 정수 표시 합계가 100%가 되며, 누락 입력과 사유를 숨기지 않는가. legacy coverage `null`을 임의의 0%/100%로 바꾸지 않는가.
-- **responsive/accessibility**: Desktop/Tablet Hero panel과 Phone dialog가 같은 의미를 유지하고, 전환 시 focus handoff·tooltip lifecycle이 안전한가.
-- **공통 control 재사용**: 퇴직연금 작업 방식 switch와 Web/Tablet 개인보기 도구가 공통 control primitive를 재사용하고, 긴 라벨·viewport 차이 때문에 필요한 최소 feature override만 두는가.
-- **독립 실패**: Market AI endpoint 일부 또는 전체 실패가 저장 데이터 기반 Dashboard 기능을 깨뜨리지 않는가.
-- **성능**: polling이나 metadata-only 변화가 의미 없는 전체 Dashboard 재렌더를 반복하지 않는가.
-
-Market AI backend 최신 소스가 함께 제공되고 별도 backend 평가를 요청한 경우에만 backend 자체를 별도 범위로 평가한다. 그때는 schema/validation, client lease와 ticker 합집합, subscription health, stale→usable 복귀, old quote 폐기, persistence boundary, remote optional dependency 실패 격리를 확인한다. backend 점수는 MAIN CSS/JS/UI/UX 점수에 자동 합산하지 않는다.
-
-## 16.4 MAIN UI
-
-현재 실제 화면에서 존재하는 영역을 inventory한다.
-
-대표 영역:
-
-- Topbar / Hero / date controls
-- action buttons / external links
-- 연금+계좌 성과
-- 증권계좌 성과·보유분
-- 퇴직연금 성과·보유분
-- Chart / 확대
-- 장부결과 VS 실제보유
-- 투자원금 원천 및 검산
-- Table / Modal / Tooltip
-- Navigation / TOC / Mobile hamburger
-- 실제 존재하는 Footer
-
-공통 평가 요소:
-
-```text
-정보 위계
-alignment
-spacing / density
-typography
-label clarity
-interaction consistency
-hover / active / focus / touch
-responsive
-light / dark
-overflow / z-index
-readability
-runtime visual refresh
-```
-
-## 16.5 MAIN Table
-
-현재 존재하는 table variant를 실제 DOM/CSS에서 inventory하여 본다.
-
-- header/body alignment
-- sticky first column
-- summary
-- source table 예외
-- hover
-- mobile table/card
-- phone landscape behavior
-- narrow-width exception
-- tooltip clipping
-
-과거 특정 표 수정사항을 체크리스트로 외워 평가하지 않는다.
-
-## 16.6 MAIN Tooltip / Overlay / Modal
-
-- trigger semantic
-- open / close
-- outside click
-- ESC
-- focus trap / focus return
-- ARIA
-- viewport overflow
-- stacking
-- light / dark
-- in-flight request 상태
-- close→re-open session separation
-- stale timer / listener cleanup
-
-## 16.7 MAIN 주요 UX flow
-
-현재 실제 구현을 기준으로 다음 flow를 확인한다.
-
-```text
-날짜
-→ year/month → day → activeDate → render
-
-KRX
-→ modal → PIN → action → loading → success/skip/error → feedback
-
-개인보기
-→ Web/Tablet Hero 기준문구 3-click · Phone Hero 비대화형 영역 3-touch → OFF/ON state/reset/layout → interactive target 비간섭
-
-퇴직연금
-→ 조정/적립/추가매수/삭제/PIN/batch/save/render
-
-Chart
-→ legend/최소1개/전체/Y auto/mode/확대/keyboard/resize/tooltip
-
-Market AI
-→ local/remote transport + 사용자 ON/OFF preference → signal panel endpoint별 상태 격리 → 오늘 보유 quote overlay → 종목별 fallback → connection-gated 실시간 시세 진입 → Topbar-preserving 10초 refresh → viewport/modal lifecycle
-
-증권 매도
-→ 매도 전 복원 → 순매도대금/실현손익 확정 → 현금화 원금 이동 → 종목 누적성과 유지 → KRX/Live quote universe 제외 → 재매수 원금 이동
-```
-
-각 flow는 정상 순서뿐 아니라 **중복·닫기·재진입·실패·theme/viewport 변경**을 섞어 공격한다.
-
-## 16.8 MAIN Print
-
-Print 관련 CSS를 dead로 판단하기 전에 실제 print lifecycle과 chart render 경로를 확인한다.
-
-평가 시 실제 인쇄 contract가 현재 handover와 코드에 맞는지 보고, 비활성 상태 때문에 빈 차트·누락 카드·레이아웃 침범 등이 발생하는 실제 회귀가 있을 때만 감점한다.
-
----
-
-# 17. ADD 공통 평가 기준
-
-ADD 상세 계산·UI·responsive contract의 Source of Truth는 `add_maintenance_handover.md`다.
-
-평가 시 `calc.html`, `kodex-leverage-report.html`, `add/add.css`, `add/add.js` 및 관련 canonical data / validator / tests를 실제로 확인한다.
-
-## 17.1 ADD 토큰화·공통화 감점 원칙
-
-ADD의 토큰화·공통화 평가는 **literal 값의 존재 자체가 아니라 공통화 필요성과 유지보수 위험**을 기준으로 한다.
-
-- 페이지/컴포넌트에 한 번만 쓰이는 고유 색상·표현값은 그 자체로 감점하지 않는다.
-- Light/Dark 대응이 정상이고 동일 semantic의 반복값이 아니며 유지보수상 단일 source가 필요하지 않은 값은 local literal로 유지할 수 있다.
-- one-use 값을 단지 “더 토큰화할 수 있다”는 이유로 token으로 승격하도록 요구하거나 감점하지 않는다.
-- 불필요한 one-use token 증가는 피한다.
-- 동일 semantic 값이 여러 곳에서 반복되는데 공통 source가 없거나 literal 분산 때문에 일관성·수정성·회귀 위험이 실제로 생기는 경우에만 감점한다.
-- component-local / page-specific color literal이 위 조건을 만족하면 Semantic Color 감점 사유로 보지 않는다.
-- **Design-locked 손익 의미색 비감점 예외:** Main Light의 `--value-positive:#E6233A` / `--value-negative:#2972E8`, Add Light의 `--positive:#EF3341` / `--negative:#3182F6`은 사용자가 직접 확정한 canonical 디자인 값이다. 흰색·연한 surface에서 일반 텍스트 WCAG 대비 수치가 4.5:1에 미달한다는 이유만으로 A/B/C 감점하거나 더 진한 색으로 변경 권고하지 않는다. 필요하면 접근성 관찰사항으로만 비감점 기록할 수 있다. 단, 색이 사라짐·양수/음수 의미 뒤바뀜·테마에서 식별 불가·원래 canonical 값의 의도치 않은 변경처럼 **기능적 semantic 회귀**가 생긴 경우에는 이 예외를 적용하지 않는다.
-
-> **평가 기준은 “더 토큰화할 수 있는가”가 아니라 “공통화해야 할 이유가 있는데도 분산되어 있는가”다.**
-
-## 17.2 ADD 자동 테스트와 평가 점수 분리
-
-- Add 자동 테스트는 계산·UI 회귀를 확인하는 QA 안전망이다.
-- 테스트 파일의 존재 여부나 테스트 개수 자체는 Add 평가 가산·감점 기준이 아니다.
-- 자동 테스트가 없다는 이유만으로 B급을 만들거나 감점하지 않는다.
-- 테스트 FAIL은 실제 결함인지 변경된 의도에 비해 테스트가 낡은 것인지 구분한다.
-- 실제 결함이 확인된 경우에만 그 결함 자체를 평가한다.
-- 자동 테스트 PASS는 UI 미감·정보 위계·실기 UX·async lifecycle까지 자동 PASS한다는 뜻이 아니다.
-- UI contract 테스트는 폐기 시 실제 회귀가 생기는 구조·상태·responsive·접근성 경계를 보호하는지 본다.
-- 장식용 exact px/hex/shadow/opacity나 DOM 개수처럼 정상적인 디자인 수정에도 자주 바뀌는 구현값을 과도하게 contract로 고정했다고 판단되는 경우 실제 유지보수 영향을 확인한다.
-- viewport 경계처럼 숫자 자체가 제품 동작인 값은 contract 검증이 가능하다.
-
-## 17.3 ADD 공통 UI / Responsive
-
-평가 시 다음을 본다.
-
-- MAIN과 공유하는 전역 viewport contract 준수
-- 요청되지 않은 Add 전용 breakpoint의 불필요한 증가 여부
-- Calc / Report 공통 primitive와 page-specific rule의 책임 분리
-- typography / field / control / selected state / surface / result 표현
-- Light / Dark
-- keyboard / focus / touch
-- ARIA / tooltip / table semantic
-- overflow / narrow-width
-- Timeline 등 페이지별 responsive exception의 실제 필요성
-- MAIN에서 동기화된 theme이 runtime chart에도 적용되는지
-
-MAIN과 모양이 비슷하다는 이유만으로 CSS/JS runtime을 억지로 합치도록 권하지 않는다. 실제 공통화 이득과 coupling 위험을 함께 본다.
-
----
-
-# 18. ADD Calc 평가 기준
-
-Calc 평가는 단순 UI뿐 아니라 **계산식·validation·경계값·stale-result·persistence·keyboard UX**까지 포함한다.
-
-## 18.1 계산 정확성
-
-`add_maintenance_handover.md`가 정의하는 현재 계산 contract와 production `compute() / validate() / ceil5()` 등 실제 구현을 대조한다.
-
-확인:
-
-- 입력값 validation
-- 계산식 일관성
-- 단위 / 반올림 / step
-- 목표값 / 결과값 관계
-- invalid 입력 후 이전 결과가 stale 상태로 남아 사용자를 오도하지 않는지
-- 기본값 복원과 관련 state reset
-- production 계산식과 테스트가 서로 다른 복사본으로 분기되지 않는지
-- `0 / -0 / 이미 회복 / 이미 목표 달성` 상태
-- localStorage 복원 후 동일 validation/계산 contract 유지
-
-실제 계산 오류가 확인되면 UI 점수에만 묻지 않고 기능 정확성 문제로 명확히 기록한다.
-
-## 18.2 Calc 경계값 필수 시나리오
-
-최소 다음을 별도로 검토한다.
-
-```text
-ceil5(0)
-목표단가가 현재 종가와 정확히 같은 경우
-이전 확정이익만으로 이미 투자금액을 회복한 경우
-분모가 0에 가까운 경우
-수량/단가 최소·최대
-step 직전/직후
-localStorage에서 복원된 특수 상태
-```
-
-“이미 회복”처럼 계산 결과가 숫자보다 **상태 의미**로 표현되어야 하는 경우를 식별한다.
-
-## 18.3 Calc UI
-
-- 입력 필드와 label 관계
-- stepper / button selected state
-- 계산 기준 카드와 결과 카드 정보 위계
-- Desktop / Tablet / Mobile 배치
-- 좁은 폭의 줄바꿈·겹침·overflow
-- hover / active / focus
-- tooltip / info icon alignment와 semantic
-- Light / Dark
-- 결과값 강조가 계산 의미와 일치하는지
-
-단순 exact px 차이는 실제 시각 불균형·일관성 문제로 이어질 때만 감점한다.
-
-## 18.4 Calc UX
-
-- 입력 → 검증 → 계산 → 결과 흐름
-- invalid / edge case feedback
-- 기본값 복원
-- stepper 조작
-- 모바일 입력 편의
-- stale result 제거
-- 잘못된 결과를 확정값처럼 보이게 하지 않는지
-- 도움말을 hover/focus로 열었을 때 Esc 처리
-- Esc가 focus를 강제로 날리지 않는지
-- dismiss state와 재진입 일관성
-
----
-
-# 19. ADD KODEX Leverage Report 평가 기준
-
-Report 평가는 **canonical 거래 data → 계산 파생 → 요약/차트/표/Timeline 표현 → theme/runtime lifecycle**의 정합성을 중심으로 본다.
-
-## 19.1 canonical data
-
-현재 `add_maintenance_handover.md`와 실제 data/validator를 기준으로 다음을 확인한다.
-
-- canonical 거래 파일 경로
-- 거래일 정렬 / 중복
-- 필수 numeric type
-- segment 구조
-- validation
-- Main 파생값과 Report 파생값의 공통 원천 일치
-- handover JSON 예제가 `julyAdd`, `augustFinalBuild.first`, `augustFinalBuild.second` 등 실제 context와 `qty / buy / date` 필수 field를 빠뜨리지 않는지
-
-문서와 실제 canonical 경로가 다르면 문서/contract 오류로 구분한다.
-
-## 19.2 손익 계산 정합성
-
-실제 거래가 포함된 평가에서는 가능한 범위에서 다음을 대조한다.
-
-```text
-손익금액 - 거래비용 = 순손익
-날짜별 합계 = 전체 합계
-본 포지션 + 단타 = 전체
-혼합일 비용 배분 contract 준수
-Timeline / 요약 / 차트 / 표 파생값 일치
-```
-
-원본 증권사 자료가 함께 제공된 경우에만 원본 수치까지 직접 대조한다.
-
-원본 자료가 없다는 사실 자체를 UI/CSS/JS 점수 감점 사유로 쓰지 않는다.
-
-## 19.3 Report UI / Runtime
-
-- 요약 KPI
-- 차트
-- 날짜별 거래 표
-- 본 포지션 / 단타 표현
-- Timeline
-- tooltip / source / 근거 표현
-- Desktop / Tablet / Mobile
-- Light / Dark
-- 긴 숫자·라벨·날짜의 overflow
-- table semantic
-- MAIN theme 동기화 후 Canvas chart 즉시 redraw
-
-Timeline은 장식 자체보다 **날짜 누락·순서 왜곡·카드 겹침·파생값 불일치**처럼 실제 정보 전달 문제를 본다.
-
----
-
-# 20. MAIN ↔ ADD 통합 평가
-
-통합 평가는 MAIN과 ADD가 같은 repository 안에서 공유하는 **전역 contract와 canonical 원천**을 확인하는 작업이다.
-
-확인 예:
-
-- 공통 viewport 분류
-- Appearance / Theme contract
-- Corner / surface 등 의도된 공통 UI contract
-- 공통 asset 경로
-- favicon
-- KODEX leverage canonical 거래 data
-- shared validator / schema
-- Main 파생 별도수익과 Report 파생 실현손익의 원천 일치
-- 서로 독립이어야 하는 runtime 책임을 불필요하게 결합하지 않았는지
-- 문서 경로 / tests 경로 / README 안내 정합성
-- MAIN theme 변경이 ADD DOM뿐 아니라 Canvas 등 runtime visual에도 전달되는지
-
-통합 평가의 목적은 “모든 것을 한 파일로 합치는 것”이 아니다.
-
-```text
-같은 semantic / 같은 contract
-→ 공통화 가치 확인
-
-서로 다른 page/runtime responsibility
-→ 의도된 분리 인정
-```
-
-공통화 가능성만으로 감점하지 않고 실제 중복 관리 위험이나 contract drift가 있는지 본다.
-
----
-
-# 21. 성능 / 유지보수성 평가
-
-성능과 유지보수성은 실제 근거를 기준으로 본다.
-
-다음은 실제 문제가 확인되지 않는 한 감점하거나 반복 개선안으로 제시하지 않는다.
-
-```text
-전체 dashboard render 방식
-Date.now() 기반 cache bust
-Vanilla JS
-framework / state library 미사용
-CSS 파일 개수
-CSS / JS / MD의 길이·줄 수·byte 크기
-대형 test/lint framework 부재
-```
-
-잠재적 가능성만으로 감점하지 않는다.
-
-다음과 같은 실제 근거가 있을 때 재검토한다.
-
-- 체감 지연
-- profiling 병목
-- 과도한 네트워크 요청
-- 재현성 장애
-- 반복 회귀와 직접 연결된 구조
-- 변경 하나에 여러 파일이 불필요하게 동기 수정되는 실제 비용
-- 문서/코드가 서로 다른 contract를 지속적으로 주장하는 문제
-- cleanup 누락 때문에 event/timer가 누적되는 실제 경로
-- stale request가 반복적으로 최신 상태를 덮는 구조
-
----
-
-# 22. Runtime 평가 원칙
-
-가능한 환경에서는 정적 분석에 더해 runtime smoke를 수행한다.
-
-## 22.1 canonical 공개 평가 URL
-
-```text
-MAIN
-https://tkfkd3226-cell.github.io/investment-dashboard
-
-ADD Calc
-https://tkfkd3226-cell.github.io/investment-dashboard/add/calc.html
-
-ADD KODEX Leverage Report
-https://tkfkd3226-cell.github.io/investment-dashboard/add/kodex-leverage-report.html
-```
-
-`평가`, `평가해줘`, `점수`, UI/UX 독립 평가에서는 사용자가 주소를 다시 제공하지 않아도 위 URL을 runtime 보조 검증에 사용할 수 있다.
-
-단, GitHub Pages는 **배포된 revision의 runtime 보조 수단**이며 사용자가 제공한 최신 실제 소스의 Source of Truth를 대체하지 않는다.
-
-- 최신 실제 소스와 배포본이 동일 revision인지 확인되지 않으면 결과를 `배포본 runtime`으로 구분한다.
-- 공개 화면과 최신 실제 소스가 충돌하면 배포 지연·revision 차이 가능성을 먼저 확인한다.
-- 공개 페이지를 근거로 최신 실제 소스를 되돌리지 않는다.
-- 미배포 변경사항을 공개 페이지 화면만 보고 `최신 수정본 pixel/render PASS`라고 하지 않는다.
-- QA에서는 공개 Pages를 PASS/FAIL 근거로 사용하지 않는다.
-- Market AI가 tailnet 조건 때문에 연결되지 않는 사실만으로 frontend를 감점하지 않는다.
-
-## 22.2 대표 viewport
-
-MAIN 평가의 기본 대표 폭:
-
-```text
-1440
-1024
-900
-768
-430
-390
-```
-
-현재 CSS에 기능성 exception이 있으면 필요한 폭을 추가한다.
-
-ADD도 Desktop / Tablet / Mobile contract를 대표하는 폭을 사용하되, 평가 대상의 실제 responsive exception이 있으면 해당 폭을 추가한다.
-
-이 viewport 숫자는 특정 screenshot pixel matching 목표가 아니라 **responsive contract 검증용 대표 폭**이다.
-
-## 22.3 runtime smoke 예
-
-- runtime exception
-- duplicate id
-- broken ARIA reference
-- overflow / hidden collision
-- modal focus
-- table / tooltip clipping
-- chart SVG/Canvas size
-- mobile layout
-- light / dark
-- 주요 interaction flow
-- double click / Enter 연타
-- modal close→re-open
-- stale timer
-- theme 변경 후 chart rerender
-- localStorage restore 후 재계산
-
-브라우저 실행 환경이 없으면 실제 pixel/render를 확인했다고 하지 않고 `정적 코드 기준` 또는 `runtime smoke 미실시`라고 명시한다.
-
----
-
-# 23. 평가 결과 작성 순서
+# 8. 평가 결과 작성 순서
 
 전체 평가의 기본 순서는 다음과 같다.
 
@@ -1969,7 +585,7 @@ ADD도 Desktop / Tablet / Mobile contract를 대표하는 폭을 사용하되, �
 - 자동 테스트 밖에서 새로 검토한 실패 시나리오가 무엇인지
 - 100점이라면 Counterexample Pass까지 통과했는지
 
-## 23.1 답변 형식
+## 8.1 답변 형식
 
 - 일반 Markdown 제목, 문단, 표 중심
 - selector/함수 증거가 필요한 경우만 짧은 코드 블록
@@ -1998,7 +614,7 @@ UX 100 — 문제 없음
 
 이 형식은 사용자가 명시적으로 `점수만`, `간단히`, `요약만`을 요청한 경우에만 허용한다.
 
-## 23.2 영역별·기능별 상세 평가
+## 8.2 영역별·기능별 상세 평가
 
 `평가` / `평가해줘` 자체를 기본적으로 **영역별·기능별 상세 평가**로 본다. 사용자가 별도로 `화면영역별`, `기능별`이라고 쓰지 않아도 전체 평균점수만 먼저 내지 않고, 실제 구성 요소를 inventory한 뒤 구성요소별로 평가한다.
 
@@ -2049,7 +665,7 @@ MAIN ↔ ADD shared token / theme / viewport contract
 구성요소별 100점 평가를 요청받은 경우 **각 구성요소에서도 구체적인 감점 사유가 없고 해당 범위의 adversarial/Counterexample 검토까지 완료됐으면 100점을 허용한다.**
 
 
-## 23.3 영역별 점수 보고의 최소 단위
+## 8.3 영역별 점수 보고의 최소 단위
 
 전체 평가에서 CSS / JavaScript / UI / UX는 **각각 최소 6개 이상의 실제 관련 하위 항목**으로 나눠 보고한다. 다만 범위가 매우 좁거나 N/A가 많은 경우에는 실제 관련 항목만 남긴다.
 
@@ -2063,7 +679,7 @@ MAIN ↔ ADD shared token / theme / viewport contract
 반례/경계/회귀 검토 근거 1개 이상
 ```
 
-## 23.4 최종 보고서의 상세도 규칙
+## 8.4 최종 보고서의 상세도 규칙
 
 명령별 기본 상세도는 다음과 같다.
 
@@ -2079,13 +695,13 @@ MAIN ↔ ADD shared token / theme / viewport contract
 
 ---
 
-# 24. 100점 Gate와 Counterexample Pass
+# 9. 100점 Gate와 Counterexample Pass
 
 기존 원칙인 **“구체적인 A/B급 감점 사유가 없으면 100점”**은 유지한다. C는 비감점 관찰사항이므로 100점을 막지 않는다.
 
 아래 Gate는 **현재 평가 범위와 위험도에 적용되는 항목**을 확인한다. 제한된 수정의 재평가에서 영향이 없는 전체 프로젝트 영역을 매번 처음부터 다시 검증할 필요는 없다.
 
-## 24.1 100점 Gate
+## 9.1 100점 Gate
 
 ```text
 [ ] 전체 자동 QA가 실행 가능한 범위에서 PASS했는가
@@ -2105,7 +721,7 @@ MAIN ↔ ADD shared token / theme / viewport contract
 
 환경상 일부 runtime 검증이 불가능하면 그 사실을 명확히 쓰고, 가능한 정적·코드 흐름 분석으로 대체한다. 단, 실제 화면을 보지 않았으면서 pixel/runtime까지 100이라고 단정하지 않는다.
 
-## 24.2 Counterexample Pass 질문
+## 9.2 Counterexample Pass 질문
 
 점수를 확정하기 직전 최소 다음을 다시 묻는다.
 
@@ -2126,14 +742,14 @@ JSON 예제가 실제 필수 context를 누락하면?
 
 이 질문들은 예시다. 평가자는 현재 코드와 변경 범위에 맞는 대표 반례를 추가한다. 단, 같은 위험 패턴을 표현만 바꿔 무한히 늘리지 않는다.
 
-## 24.3 100점과 99점의 사용
+## 9.3 100점과 99점의 사용
 
 - 현재 범위에 필요한 Pass + 적용 가능한 100점 Gate + bounded Counterexample Pass 후에도 **구체적인 A/B급 문제를 찾지 못했다면 100점**을 부여한다.
 - C 비감점 관찰사항이 남아 있다는 이유만으로 99/99.5를 남겨두지 않는다.
 - “아마 뭔가 있을 것 같아서”, “완벽한 소프트웨어는 없어서” 같은 이유로 99/99.5를 남겨두지 않는다.
 - 반대로 필요한 Gate를 수행하지 않았는데 기존 테스트와 정적 검사만 통과했다는 이유로 100점을 주지 않는다.
 
-## 24.4 평가·수정 종료 조건
+## 9.4 평가·수정 종료 조건
 
 다음 조건을 모두 만족하면 평가 또는 `수정해` 반복을 종료한다.
 
@@ -2149,7 +765,7 @@ JSON 예제가 실제 필수 context를 누락하면?
 
 ---
 
-# 25. 평가 전 최종 체크리스트
+# 10. 평가 전 최종 체크리스트
 
 `점수` / `평가` / `평가해줘` 전에는 내부적으로 다음을 확인한다.
 
@@ -2194,7 +810,7 @@ JSON 예제가 실제 필수 context를 누락하면?
 
 ---
 
-# 26. Regression Test 제안 원칙
+# 11. Regression Test 제안 원칙
 
 평가 중 기존 테스트가 놓친 실제 결함을 발견하면, 수정 작업을 수행하지 않더라도 가능한 경우 회귀 테스트 후보를 함께 제시한다.
 
@@ -2226,7 +842,7 @@ Report
 
 ---
 
-# 27. 최종 운영 원칙
+# 12. 문서 유지관리와 최종 원칙
 
 평가의 우선순위는 다음과 같다.
 

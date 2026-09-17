@@ -1,30 +1,21 @@
 # 투자 대시보드
 
-> **문서 성격**: 이 README는 GitHub 저장소의 **프로젝트 소개 · 사용 경로 · 전체 구조 · 운영/배포 개요**를 설명합니다.  
-> selector, state ownership, GAS transaction/idempotency 내부 알고리즘, 평가 점수 기준 같은 유지보수 세부는 각각의 handover/evaluation 문서에서 관리합니다.
->
-> **운영 환경**: 정적 화면은 GitHub Pages에서 동작하고, KRX 갱신은 GitHub Actions + Python, 브라우저 쓰기 작업은 Google Apps Script Web App, 선택형 실시간 기능은 별도 Market AI runtime을 사용합니다.
+> **문서 성격**: GitHub 저장소의 **프로젝트 소개 · 주요 기능 · 실행 경로 · 전체 구조 · 운영/배포 개요**를 설명합니다.  
+> selector, state ownership, responsive 세부 수치, GAS transaction/idempotency 내부 알고리즘, 평가 점수 기준은 각각의 handover/evaluation 문서가 소유합니다.
 
 삼성증권 증권계좌와 퇴직연금 계좌의 **날짜별 투자 성과를 복원·검산·분석하기 위한 정적 웹 대시보드**입니다.
 
-메인 화면은 GitHub Pages에서 제공하며, KRX 가격과 성과 스냅샷은 GitHub Actions + Python으로 갱신합니다. 퇴직연금 금액 조정과 KRX 갱신 요청처럼 브라우저에서 직접 저장소 파일을 수정할 수 없는 쓰기 작업은 별도로 배포된 Google Apps Script Web App을 통해 처리합니다.
-
-별도 `market-ai` 프로젝트가 실행 중이면 현재 시장·AI 신호를 대시보드에 함께 표시할 수 있습니다. 로컬에서는 Market AI FastAPI에 직접 연결하고, 외부 GitHub Pages에서는 Tailscale Serve를 통해 같은 실제 데이터를 조회합니다.
+정적 화면은 GitHub Pages에서 동작합니다. KRX 가격과 성과 스냅샷은 GitHub Actions + Python으로 갱신하고, 브라우저 쓰기 작업은 별도 Google Apps Script Web App을 사용합니다. 선택적으로 `market-ai` runtime에 연결해 현재 시장·AI Signal과 보유종목 현재가를 화면에 overlay할 수 있습니다.
 
 ---
 
 ## 1. 프로젝트 목적
 
-이 저장소는 단순 시세 조회 화면이 아니라 다음 세 가지를 함께 관리하는 것을 목표로 합니다.
+이 저장소는 다음 세 가지를 함께 관리합니다.
 
-1. **현재 보유 현황**
-   - 증권계좌와 퇴직연금의 자산·손익·비중 확인
-
-2. **날짜별 복원**
-   - 과거 특정 날짜의 계좌 상태와 성과 재구성
-
-3. **장부 검산**
-   - 실제 보유액, 투자원금, 실현손익, 현금 흐름의 일관성 확인
+1. **현재 보유 현황** — 증권계좌와 퇴직연금의 자산·손익·비중 확인
+2. **날짜별 복원** — 과거 특정 날짜의 계좌 상태와 성과 재구성
+3. **장부 검산** — 실제 보유액, 투자원금, 실현손익, 현금 흐름의 일관성 확인
 
 프런트엔드는 별도 프레임워크나 번들러 없이 **HTML + CSS + Vanilla JavaScript ES Module**로 구성합니다.
 
@@ -34,36 +25,25 @@
 
 ### 2.1 Main Dashboard
 
-메인 화면:
-
 ```text
 index.html
 ```
 
 주요 기능:
 
-- 날짜별 증권계좌 성과 복원
+- 날짜별 증권계좌·퇴직연금 성과 복원
 - 투자원금·평가금액·누적손익·수익률 조회
-- 계좌별 성과 요약과 보유 종목 현황
-- 증권 `securitiesEvents` 기반 부분/전량매도, 거래비용 반영 실현손익, 매도대금 현금화 및 재매수 원금 이동 복원
+- 계좌별 성과 요약과 보유 종목/상품 현황
+- 증권 `securitiesEvents` 기반 매도·실현손익·현금화 원금·재매수 원금 이동 복원
 - 장부결과 VS 실제보유 검산
-- 투자원금 원천 및 검산
 - 별도수익 ON/OFF 비교
-  - 토글은 전체 `#app` 재렌더 대신 Hero/합산/증권 성과요약/누적차트/검산 영역만 부분 갱신해 Market AI·보유종목·연금·비관련 차트를 재마운트하지 않음
-- KOSPI 대비 초과성과 확인
-- 퇴직연금 날짜별 성과 및 상품 현황
-- 퇴직연금 상품별 손익·비중·인사이트
-- 위험자산 비중 관리
+- KOSPI 대비 초과성과 및 기간 차트
+- 퇴직연금 상품별 손익·비중·위험자산 관리
 - 기업적립금·현금성자산·ETF 추가매수 조정
 - PIN 기반 퇴직연금 저장·삭제
-- 누적손익·수익률·비중 변화 등 기간 차트
-  - 차트는 최초 viewport 진입 시 1회 애니메이션을 재생하며 주기 갱신에서도 미진입 차트의 최초 애니메이션을 보존합니다.
-- Light / Dark 테마
-- Desktop / Tablet / Mobile 반응형 UI
-- 개인보기 해제 후 Web/Tablet 투자 계산기는 테마 버튼과 같은 icon-only action geometry를 사용하고, Phone은 기존 `관리` 메뉴의 텍스트 항목을 유지
-- 개인보기 3회 입력은 Web/Tablet에서는 Hero 기준문구, Phone에서는 Hero 카드 전체의 비대화형 영역을 사용합니다.
-- Print 전용 출력
-  - `beforeprint`에서는 화면용 SVG를 보존한 채 인쇄용 clone에만 Light chart를 그리고, `afterprint`에서는 보존한 화면 SVG를 그대로 복원해 화면 차트를 다시 계산하지 않습니다.
+- Light / Dark, Desktop / Tablet / Mobile, Print 지원
+
+세부 UI lifecycle·partial render·모달·차트·반응형 contract는 `main_dashboard_maintenance_handover.md`가 소유합니다.
 
 ### 2.2 투자 계산기
 
@@ -71,15 +51,13 @@ index.html
 add/calc.html
 ```
 
-KODEX 레버리지 보유분과 추가매수 시나리오를 계산하기 위한 보조 화면입니다.
-
-주요 기능:
+KODEX 레버리지 보유분과 추가매수 시나리오를 계산합니다.
 
 - 기존 보유분 기준 계산
-- 추가매수 시 평균단가 계산
-- 목표 매도단가 계산
-- 회수 대상 금액 및 잔여현금 계산
-- 추가매수 단가·수량 입력 및 시나리오 계산
+- 추가매수 평균단가
+- 목표 매도단가
+- 회수 대상 금액·잔여현금
+- 추가매수 단가·수량 시나리오
 - 기본값 복원
 - Desktop / Tablet / Mobile 반응형 UI
 
@@ -89,42 +67,34 @@ KODEX 레버리지 보유분과 추가매수 시나리오를 계산하기 위한
 add/kodex-leverage-report.html
 ```
 
-`data/kodex_leverage_trades.json`을 기준으로 KODEX 레버리지 거래와 실현손익을 집계하는 리포트 화면입니다.
+`data/kodex_leverage_trades.json`을 canonical 거래 원천으로 사용해 실현거래·손익·본 포지션/단타 분류·차트·Timeline을 파생합니다. Main의 별도수익과 Add Report는 같은 거래 원천을 사용합니다.
 
-Main의 별도수익과 Add Report는 같은 canonical 거래 원천을 사용합니다.
+Calc/Report의 계산·데이터·UI contract는 `add_maintenance_handover.md`가 소유합니다.
 
 ### 2.4 Market AI 연동
 
-Market AI는 Main에 **현재 시장·AI 신호**와 **오늘 보유종목의 현재가 overlay**를 제공하는 선택형 당일 시장데이터 subsystem입니다. `live / extended / closed`는 가격의 시장 상태이고, Market AI 사용 가능 여부와는 별도 의미입니다.
+Market AI는 Main에 다음 두 기능을 제공하는 **선택형 화면 overlay subsystem**입니다.
 
-- KOSPI, KOSPI200 선물, SOX, NQ100 선물과 AI Signal 표시
-- 화면 조회 기준 10초 주기 갱신 및 visible 복귀 시 즉시 refresh
-- 원칙적으로 KST 오늘에 `usable:true` KRX quote를 overlay하며, 자정 이후 다음 KRX 정규장 시작 전에는 직전 완료 거래일의 확정 `closed + usable` quote를 그 거래일 화면에만 이어서 적용
-- 그보다 오래된 과거 날짜와 수량·원가·원금·매매흐름·실현손익, 운영 JSON은 변경하지 않음
-- 일부 quote가 unusable이면 해당 종목만 저장 JSON 값으로 fallback
-- Hero의 `투자 성과` 기준문구는 실제 적용 가격에 따라 장중·정규장 종가·실시간·시간외·애프터 종가 의미를 표시합니다.
-- 보유 종목/상품 출처 tooltip은 저장 snapshot의 기준과 Market AI 적용 여부를 구분해 표시합니다.
-- 시장 카드 tooltip은 거래 세션과 freshness를 함께 해석해 `장전 / 정상 / 데이터 지연 / 장마감 / 거래중단` 등을 구분
-- 시장 카드는 `/api/market-data/snapshot`의 거래소 캘린더 기반 `input_status`를 우선하고, 해당 metadata가 없는 구버전 응답에서만 브라우저의 요일·시간 판정을 fallback으로 사용
-- AI 신호 상세는 공통 `신뢰도`/`데이터 완성도` 휴리스틱을 표시하지 않고, 신호별 `입력 충족률`, 현재 사용 가능한 입력의 **실제 반영 비중(표시 합계 100%)**, 누락 입력과 사유를 backend `details.signal_inputs` 기준으로 표시
-- KOSPI는 소수점 둘째 자리까지 표시하고 KIS `business_time`이 있으면 실제 시장 기준시각을 우선
-- Desktop/Tablet은 Hero 보조 카드, Phone은 동일 panel을 `AI Signal` dialog로 재사용
-- iPhone 홈화면 Web App은 설치 당시 hash 날짜에 고정되지 않고 실행 시 KST 오늘 데이터(없으면 최신 가용일)를 우선
-- Local은 `127.0.0.1:8001` Market AI full API에 직접 연결하고, GitHub Pages는 Tailscale Serve → `127.0.0.1:8002` **GET-only proxy**를 통해 조회
-- 오늘 보유종목 quote는 ticker별 `market_state`를 보존해 판단하며, **15:30~20:00에는 개별주식 `extended`와 ETF `closed`가 동시에 존재할 수 있으므로 top-level `market_state` 하나로 전체 종목 상태를 판정하지 않음**
-- 개별주식은 `09:00~15:30 open → 15:30~20:00 extended → 20:00 이후 closed`, ETF는 `15:30 이후 closed`를 소비 contract로 사용합니다. backend가 `usable:true`로 제공하면 `state:live`뿐 아니라 신뢰 가능한 당일 `state:closed` quote도 오늘 평가 overlay에 반영하며, 사용할 수 없는 종목만 `prices.json`으로 fallback합니다. **20:00이라는 시각 자체로 Market AI overlay를 버리거나 KRX 저장값으로 강제 전환하지 않습니다.**
-- 현재 보유 universe의 모든 ticker가 `state=closed + market_state=closed + usable=true`로 확정되면 그 closed quote를 화면 최종값으로 유지하고 `/api/market-data/krx-quotes` 네트워크 요청을 쉽니다. 자정이 지나도 직전 완료 거래일의 `observed_at`과 화면 기준일이 일치하면 **다음 KRX 정규장 시작 전까지** 그 closed quote를 계속 overlay합니다. 10초 timer는 같은 세션 구간에서는 서버를 두드리지 않고 날짜/universe/시장 phase 변화만 로컬 확인하며, `preopen → open`처럼 phase가 바뀌면 1회 재검증합니다. 휴장일처럼 backend가 새 시각으로 `closed`를 다시 확인하면 직전 완료 세션을 계속 사용하고, 일부 ticker가 unusable이면 해당 종목 회복을 위해 polling을 계속합니다. `dashboard-app.js`의 Live Valuation 부분 렌더도 동일한 `liveValuationRenderDateEligible()` 계약을 사용하므로, 직전 거래일 carry가 허용된 상태에서는 새 quote 수신 후 화면 fragment가 실제로 다시 계산·갱신되어야 합니다.
-- 위 closed-session 정지는 **보유종목 Live Valuation에만 적용**합니다. KOSPI200 선물·SOX·NQ100 선물 등이 포함된 AI Signal polling은 Market AI가 ONLINE인 동안 기존 10초 주기를 유지합니다.
-- Market AI 연결 lifecycle은 `OFF → CHECKING → ONLINE / OFFLINE`으로 관리합니다. UI와 네트워크 기능은 ONLINE에서만 활성화하고, 초기 연결 실패는 OFFLINE으로 끝내 반복 재접속하지 않습니다. ONLINE 중 일시적 1회 전체 transport 실패는 유지하되 연속 실패 임계치에 도달하면 OFFLINE으로 내려가 UI와 Market AI polling을 중단합니다.
-- Market AI가 응답하지 않아도 저장 JSON 기반 Dashboard는 독립 동작
-- Dashboard에서 Market AI 사용 여부를 켜고 끌 수 있습니다. OFF 시 signal/live polling과 volatile overlay를 중단해 저장 데이터로 fallback하며, 이 설정은 Market AI backend 프로세스 자체를 종료하지 않습니다. Web/Tablet은 Topbar icon action, Phone은 `관리` 메뉴 action을 사용합니다.
-- Dashboard가 Market AI **OFF 상태로 처음 열려도 enabled-change listener는 항상 등록**합니다. 따라서 이후 `Market AI 연결 켜기`를 누르면 새로고침 없이 즉시 mount/refresh가 시작되어야 합니다.
-- `실시간 시세` 진입점은 Market AI 연결이 확인된 동안에만 노출되며, viewport별 기존 modal geometry를 사용하고 연결 해제 시 닫힙니다.
-- 10초 Live Valuation 갱신은 `#app` 전체를 다시 만들지 않고 현재가 의존 Hero/합산/자산상세/차트·검산 fragment만 부분 갱신합니다. 활성 자산 탭 차트만 즉시 다시 그리고 비활성 탭은 다음 탭 전환 뒤 lazy draw하며, Topbar·focus·메뉴·window/nested scroll 상태를 보존합니다.
+1. 현재 시장·AI Signal
+2. 현재 평가 대상 거래일 보유종목의 현재가 overlay
 
-프런트엔드 책임은 `dashboard-market-ai.js`(시장·AI Signal), `dashboard-live-valuation.js`(오늘 보유종목 현재가 overlay), `dashboard-market-ai-client.js`(local/remote transport + Dashboard-side Market AI 사용 preference)로 분리합니다.
+핵심 경계:
 
-세션 판정, multi-client quote universe, lease, warm-up, subscription health, stale/source 판정, partial/full render 보호 같은 **유지보수 세부 contract는 `main_dashboard_maintenance_handover.md`가 소유**합니다. Market AI backend 내부 구현은 Market AI 프로젝트 문서를 따릅니다.
+- Dashboard가 수량·원가·원금·매매흐름·실현손익·historical snapshot을 소유합니다.
+- Market AI는 현재 시장 데이터와 ticker별 현재가/source/session/usable 상태를 제공합니다.
+- 원칙적으로 KST 오늘에 usable quote를 적용하고, 자정 이후 다음 KRX 정규장 시작 전에는 **직전 완료 거래일의 확정 closed quote**를 그 거래일 화면에 제한적으로 이어서 사용할 수 있습니다.
+- 그보다 오래된 과거 날짜와 운영 JSON에는 Market AI 값을 적용하지 않습니다.
+- 일부 ticker가 unusable이면 해당 ticker만 저장 JSON 값으로 fallback합니다.
+- 개별주식 시간외와 ETF 장마감이 공존할 수 있으므로 보유종목 상태는 ticker별 market state를 사용합니다.
+- Market AI overlay는 `prices.json`, 성과 snapshot, Pension JSON, GAS에 저장하지 않습니다.
+- Dashboard에서 Market AI 사용 여부를 켜고 끌 수 있으며, 연결 실패 시 저장 JSON 기반 Dashboard는 독립 동작합니다.
+- AI Signal polling과 보유종목 Live Valuation은 서로 다른 책임으로 유지합니다.
+
+Local은 `127.0.0.1:8001` full API에 직접 연결하고, GitHub Pages에서는 Tailscale Serve → `127.0.0.1:8002` GET-only proxy를 사용합니다.
+
+Market AI frontend 세션·polling·partial render·fallback의 세부 contract는 Main handover가, backend 내부 계약은 Market AI 프로젝트 문서가 소유합니다.
+
+---
 
 ## 3. 전체 동작 구조
 
@@ -142,9 +112,7 @@ GitHub Pages / Browser
    계산 / 화면 렌더링
 ```
 
-Main의 JavaScript entry point는 `js/dashboard-app.js`입니다.
-
-Market AI는 `js/dashboard-market-ai.js`가 별도 standalone entry로 동작합니다. 이 entry는 `dashboard-modal.js`의 dialog lifecycle과 `dashboard-market-ai-client.js`의 endpoint/timeout transport·Dashboard-side 사용 preference를 공유하며, 오늘 보유종목 Live Valuation은 main graph의 `dashboard-live-valuation.js`가 같은 transport/preference foundation을 별도로 사용합니다.
+Main entry는 `js/dashboard-app.js`입니다. 현재 시장·AI Signal은 `js/dashboard-market-ai.js`, 보유종목 현재가 overlay는 main graph의 `js/dashboard-live-valuation.js`가 담당하며 transport/preference는 `js/dashboard-market-ai-client.js`를 공유합니다.
 
 ### 3.2 퇴직연금 저장
 
@@ -160,7 +128,7 @@ pension 관련 JSON
 GitHub commit
 ```
 
-브라우저가 GitHub 저장소에 직접 write하지 않습니다.
+브라우저는 GitHub 저장소에 직접 write하지 않습니다.
 
 ### 3.3 KRX 가격 갱신
 
@@ -177,17 +145,16 @@ data/prices.json
 data/performance_snapshots.json
 ```
 
+가격 원장은 KRX **정규장 기준**을 유지합니다. 장중 snapshot은 intraday, 장마감/과거일은 regular close로 구분하며 Market AI 애프터 quote는 화면 overlay로만 사용합니다.
+
 ### 3.4 Market AI 조회
 
 ```text
 Dashboard
    ├─ dashboard-market-ai.js
-   │    → 현재 Market Snapshot / Signal / Bridge 상태
-   │
+   │    → Market Snapshot / Signal / Bridge 상태
    └─ dashboard-live-valuation.js
-        → 오늘 보유 ticker + tab별 client_id
-        → /api/market-data/krx-quotes
-        → usable quote만 현재 화면 계산에 overlay
+        → 보유 ticker 현재가 overlay
 
 공통 transport
    → dashboard-market-ai-client.js
@@ -195,17 +162,14 @@ Dashboard
    → Remote : Tailscale Serve → 127.0.0.1:8002 GET-only proxy
 ```
 
-외부 GitHub Pages에서는 FastAPI full API를 직접 공개하지 않고 Tailscale Serve가 연결된 **8002 GET-only proxy**를 통해 조회합니다. 보유종목 시장평가 overlay는 원칙적으로 현재 KST 날짜에 적용하되, 자정 이후 다음 KRX 정규장 시작 전에는 `closed + usable` quote의 `observed_at`이 직전 완료 거래일과 일치하는 경우 그 직전 거래일 화면까지 이어서 적용합니다. 더 오래된 과거 날짜와 운영 JSON은 변경하지 않습니다. 개별주식 시간외와 ETF 장마감이 공존하는 구간은 ticker별 `market_state`로 구분하며, 세부 fallback/lease/session 판정은 Main handover와 Market AI 프로젝트 문서를 기준으로 합니다.
-
-증권 매도는 `data/portfolio.json`의 `securitiesEvents`가 거래 원장을 소유합니다. 매도 체결가는 시장가격 JSON과 분리하며, `grossAmount - transactionCost = amount(순매도대금)`, `amount - costBasis = realizedProfit` 관계를 유지합니다. 매도된 원금은 사라지지 않고 `cashPrincipalDelta`를 통해 현금화 원금으로 이동하며, 재매수 시 사용한 원금만 다시 차감합니다. `scripts/update_prices.py`는 같은 계약으로 성과 스냅샷을 생성하고 대상 날짜에 수량이 0인 매도 완료 종목은 신규 KRX 조회에서 제외하되 매도 전 과거 backfill은 유지합니다.
+---
 
 ## 4. 프로젝트 구조
 
 ```text
 investment-dashboard/
 ├─ index.html
-├─ GAS_code.js                    # GAS Web App canonical source; Pages 배포에서는 제외
-│
+├─ GAS_code.js                    # GAS Web App canonical source; Pages 배포 제외
 ├─ css/
 │  ├─ common.css
 │  ├─ tablet.css
@@ -213,7 +177,6 @@ investment-dashboard/
 │  ├─ special.css
 │  ├─ interaction.css
 │  └─ print.css
-│
 ├─ js/
 │  ├─ kodex-leverage-schema.js
 │  ├─ dashboard-core.js
@@ -227,7 +190,6 @@ investment-dashboard/
 │  ├─ dashboard-live-valuation.js
 │  ├─ dashboard-app.js
 │  └─ dashboard-market-ai.js
-│
 ├─ data/
 │  ├─ portfolio.json
 │  ├─ kodex_leverage_trades.json
@@ -236,27 +198,23 @@ investment-dashboard/
 │  ├─ account1_daily_snapshots.json
 │  ├─ pension_contributions.json
 │  ├─ pension_cash_snapshots.json
-│  ├─ pension_operation_ledger.json   # v6 cash legacy history, read-only fallback
-│  ├─ pension_operation_ledger/       # semantic-hash shard, 필요 시 00~ff.json 생성
-│  ├─ pension_operation_identity/     # exact identity shard, 필요 시 00~ff.json 생성
-│  ├─ pension_batch_request_identity/ # batchRequestId durable shard, 필요 시 00~ff.json 생성
-│  ├─ krx_dispatch_ledger/             # KRX requestId durable shard, 필요 시 00~ff.json 생성
+│  ├─ pension_operation_ledger.json
+│  ├─ pension_operation_ledger/
+│  ├─ pension_operation_identity/
+│  ├─ pension_batch_request_identity/
+│  ├─ krx_dispatch_ledger/
 │  └─ pension_trades.json
-│
 ├─ img/
 │  ├─ favicon.png
 │  ├─ hero-bg.webp
 │  └─ ui-icons.svg
-│
 ├─ add/
 │  ├─ calc.html
 │  ├─ kodex-leverage-report.html
 │  ├─ add.css
 │  └─ add.js
-│
 ├─ scripts/
 │  └─ update_prices.py
-│
 ├─ tests/
 │  ├─ main-calc.test.cjs
 │  ├─ main-ui-contract.test.cjs
@@ -265,14 +223,11 @@ investment-dashboard/
 │  ├─ add-ui-contract.test.cjs
 │  ├─ cross-ui-contract.test.cjs
 │  └─ update_prices_test.py
-│
-├─ .github/
-│  └─ workflows/
-│     ├─ pages.yml
-│     └─ update-prices.yml
-│
-├─ .gitattributes                  # text LF 고정 / binary asset normalization 제외
-├─ _config.yml                     # Pages에서 GAS 소스와 repository-only durable shard 제외
+├─ .github/workflows/
+│  ├─ pages.yml
+│  └─ update-prices.yml
+├─ .gitattributes
+├─ _config.yml
 ├─ requirements.txt
 ├─ README.md
 ├─ main_dashboard_maintenance_handover.md
@@ -281,137 +236,79 @@ investment-dashboard/
 └─ ct35_evaluation.md
 ```
 
-`img/favicon.png`은 Main과 Add가 함께 사용하는 공통 favicon입니다.
-`.gitattributes`는 저장소 text 파일의 EOL을 LF로 고정하고 PNG/WebP binary asset을 text normalization에서 제외해 Windows/ZIP 왕복에서 EOL-only diff가 누적되지 않게 합니다.
+`img/favicon.png`과 `img/ui-icons.svg`는 Main/Add가 공유하는 canonical asset입니다. JavaScript dependency/state ownership과 CSS/Responsive 세부는 handover 문서에서 관리합니다.
 
 ---
 
-## 5. 구현 구성 요약
-
-Main은 `index.html`에서 시작하고 `js/dashboard-app.js`가 전체 화면 흐름을 조율합니다. 오늘 보유종목의 실시간 평가 overlay는 main graph의 `js/dashboard-live-valuation.js`가 담당하고, `js/dashboard-market-ai.js`는 현재 시장·AI 신호 조회를 별도 standalone entry로 담당합니다. 두 경로는 endpoint/timeout 선택만 `js/dashboard-market-ai-client.js`에서 공유합니다.
-
-Main CSS는 다음 역할 파일로 나뉩니다.
-
-```text
-common.css       공통 / Desktop baseline
-tablet.css       Tablet
-mobile.css       Mobile
-special.css      기능상 필요한 특수 viewport
-interaction.css  hover / pointer
-print.css        Print
-```
-
-Add는 `add/calc.html`과 `add/kodex-leverage-report.html`이 `add/add.css`, `add/add.js`를 공유합니다.
-
-JavaScript dependency/state ownership, CSS cascade, responsive 예외, Main UI contract는 `main_dashboard_maintenance_handover.md`에서 관리하고, Calc/Report의 계산·UI contract는 `add_maintenance_handover.md`에서 관리합니다.
-
----
-
-## 6. 데이터 구조
+## 5. 주요 데이터
 
 | 파일 | 용도 |
 |---|---|
-| `data/portfolio.json` | 현재 보유자산, 투자원금 기준, 증권 `securitiesEvents` 매매·현금흐름 원장 |
-| `data/kodex_leverage_trades.json` | KODEX 레버리지 거래·실현손익의 canonical 원천 |
+| `data/portfolio.json` | 현재 보유자산, 투자원금 기준, 증권 `securitiesEvents` 거래·현금흐름 원장 |
+| `data/kodex_leverage_trades.json` | KODEX 레버리지 거래·실현손익 canonical 원천 |
 | `data/prices.json` | 날짜별 종목·상품 가격과 지수 |
 | `data/performance_snapshots.json` | 날짜별 성과 스냅샷 |
 | `data/account1_daily_snapshots.json` | 증권계좌 일별 복원 데이터 |
 | `data/pension_contributions.json` | 퇴직연금 적립·조정 데이터 |
 | `data/pension_cash_snapshots.json` | 퇴직연금 현금성자산 스냅샷 |
-| `data/pension_operation_ledger.json` | v6 cash operation legacy history의 read-only fallback |
-| `data/pension_operation_ledger/*.json` | 모든 Pension upsert/delete logical operation의 semantic durable history. semantic hash 앞 2자리로 직접 조회하며 800건 ring buffer를 사용하지 않음 |
-| `data/pension_operation_identity/*.json` | requestId/logicalOperationId/batchRequestId+operationId의 exact identity durable index. payload 내용과 무관한 identity hash 앞 2자리로 조회하여 같은 identity+다른 내용 재사용을 장기 차단 |
-| `data/pension_batch_request_identity/*.json` | batchRequestId 자체의 durable index. receipt GC 뒤 operationId를 바꿔 같은 batchRequestId를 다른 작업 묶음에 재사용하는 우회를 차단 |
-| `data/krx_dispatch_ledger/*.json` | KRX 완료 requestId/hash/workflow run ID의 durable shard history. Script Properties receipt/intent GC 이후 동일 requestId 재-dispatch를 차단 |
+| `data/pension_operation_ledger.json` | legacy cash operation read-only fallback |
+| `data/pension_operation_ledger/*.json` | Pension semantic durable operation history |
+| `data/pension_operation_identity/*.json` | Pension exact identity durable index |
+| `data/pension_batch_request_identity/*.json` | batchRequestId durable index |
+| `data/krx_dispatch_ledger/*.json` | KRX requestId durable dispatch history |
 | `data/pension_trades.json` | 퇴직연금 거래 이력 |
 
-대시보드는 이 데이터를 결합해 선택 날짜의 계좌 상태와 성과를 계산합니다.
-
-`data/kodex_leverage_trades.json`은 Main 별도수익과 Add KODEX Report가 함께 사용하는 단일 거래 원천이며, schema는 `js/kodex-leverage-schema.js`에서 검증합니다.
+`data/kodex_leverage_trades.json`은 Main 별도수익과 Add Report가 함께 사용하는 단일 거래 원천이며 `js/kodex-leverage-schema.js`로 검증합니다.
 
 ### 운영 데이터 주의
 
-특히 다음 파일은 실제 운영 데이터이므로 소스 수정 패치에 과거 복사본이 섞이지 않도록 주의합니다.
+다음 데이터는 실제 운영 상태이므로 일반 소스 패치에 과거 복사본을 함께 넣지 않습니다.
 
 ```text
 data/prices.json
 data/performance_snapshots.json
 data/pension_contributions.json
-data/pension_operation_ledger/*.json   # GAS가 생성·갱신하는 semantic operation history shard
-data/pension_operation_identity/*.json # GAS가 생성·갱신하는 exact identity history shard
-data/pension_batch_request_identity/*.json # GAS가 생성·갱신하는 batchRequestId durable shard
-data/krx_dispatch_ledger/*.json        # GAS가 생성·갱신하는 KRX requestId durable history shard
+data/pension_operation_ledger/*.json
+data/pension_operation_identity/*.json
+data/pension_batch_request_identity/*.json
+data/krx_dispatch_ledger/*.json
 ```
-
-코드 수정 패치는 원칙적으로 변경된 소스만 포함하고, 운영 JSON은 필요한 작업이 아닌 경우 함께 덮어쓰지 않습니다.
 
 ---
 
-## 7. 데이터 쓰기와 갱신
+## 6. 데이터 쓰기와 갱신
 
-### 7.1 Google Apps Script
+### 6.1 Google Apps Script
 
-퇴직연금 저장과 KRX 갱신 요청은 **배포·실행 환경이 GitHub Pages와 분리된** Google Apps Script Web App을 사용합니다. 운영 GAS의 canonical 소스는 저장소 root의 `GAS_code.js`로 함께 관리하며, 실제 Web App 배포 시 이 파일과 Apps Script 프로젝트 소스가 일치해야 합니다. 브라우저가 저장소에 직접 write하지 않으며, 운영 인증값과 GitHub 연동 정보도 프런트엔드 파일이나 `GAS_code.js`에 직접 두지 않고 Script Properties에서 관리합니다.
+퇴직연금 저장과 KRX 갱신 요청은 별도 Google Apps Script Web App을 사용합니다. 저장소 root `GAS_code.js`가 canonical backend source이며 실제 Apps Script 배포본과 일치해야 합니다.
 
-`GAS_code.js`는 유지보수·리뷰용 저장소 소스이며 Main/Add 브라우저 runtime asset이 아닙니다. 따라서 root `_config.yml`에서 GitHub Pages 산출물에 포함되지 않도록 제외합니다.
+운영 인증값과 GitHub 연동 정보는 프런트엔드/GAS 소스에 직접 넣지 않고 Script Properties에서 관리합니다. `GAS_code.js`는 Pages runtime asset이 아니므로 `_config.yml`에서 배포 산출물에서 제외합니다.
 
-현재 쓰기 경로는 **stable request identity, optimistic concurrency, durable idempotency 기록, fail-closed 복구**를 기본 원칙으로 하여 재시도·중복요청·동시성 충돌이 운영 JSON을 중복 반영하지 않도록 설계되어 있습니다.
+stable request identity, optimistic concurrency, durable idempotency, fail-closed 복구의 구체 구현은 Main handover와 `GAS_code.js`가 소유합니다.
 
-README는 GAS 내부 intent/receipt/ledger GC나 transaction 함수 수준의 구현을 소유하지 않습니다. 세부 운영 불변조건은 `main_dashboard_maintenance_handover.md`의 GAS/Actions 영역, 평가용 반례와 점수 기준은 `dashboard_evaluation_guide.md`의 Frontend↔Backend contract 및 100점 Gate를 기준으로 합니다.
+### 6.2 KRX 갱신
 
-### 7.2 KRX 갱신
+- 최신/누락 거래일과 정규장 종가 확정이 필요한 날짜를 갱신합니다.
+- 선택 날짜 재갱신은 `priceBasis: regular_close`로 이미 확정된 경우 불필요한 실행을 생략할 수 있습니다.
+- workflow는 `prices.json`과 `performance_snapshots.json`만 자동 commit 대상으로 취급합니다.
+- branch 경쟁·push 응답 유실·generation input drift는 fail-closed 또는 검증 후 재시도로 처리합니다.
+- 매도 완료 종목은 해당 날짜 이후 신규 KRX 조회 대상에서 제외하되 매도 전 과거 backfill에서는 다시 조회합니다.
 
-대시보드에서는 두 흐름을 사용합니다.
-
-- **최신/누락 반영**: 최신 거래일, 누락 거래일, 장중 저장값의 종가 확정 등 필요한 갱신을 판단
-- **선택 날짜 재갱신**: 현재 선택된 날짜를 대상으로 확인하고, `priceBasis: regular_close`로 정규장 종가가 명시적으로 확정된 경우에만 불필요한 workflow 실행을 생략
-
-처리 구조:
-
-```text
-갱신 요청
-   ↓
-Google Apps Script / workflow_dispatch
-   ↓
-.github/workflows/update-prices.yml
-   ↓
-scripts/update_prices.py
-   ↓
-prices.json / performance_snapshots.json
-   ↓
-변경 시 commit + push
-```
-
-GitHub Actions에서 직접 수동 실행할 때는 필요한 경우 대상 날짜를 지정할 수 있습니다. 같은 branch의 KRX workflow는 queue를 보존하며 직렬화하고, checkout 이후 remote 변경이 생기면 **계산과 무관한 commit만 rebase**합니다. 관리 파일이나 generation input이 바뀐 경우에는 fail-closed하며, push 응답 유실은 `PUSH_SHA`의 remote 포함 여부를 재확인해 성공을 실패로 오인하지 않습니다.
-
-GAS는 KRX requestId의 intent/receipt와 durable dispatch ledger, workflow run ID/operation marker를 함께 사용합니다. 접수 여부를 끝내 확정하지 못한 requestId도 terminal fail-closed 상태로 수렴시켜 같은 ID의 중복 dispatch와 active intent 영구 누적을 동시에 막습니다. 세부 race/복구 시나리오는 유지보수 문서와 평가 가이드를 따릅니다.
-
-2026-09-14 KRX 애프터마켓 이후에도 GitHub 가격 원장은 **정규장 기준**을 유지합니다. 장중 snapshot은 `priceBasis:intraday`, 장마감/과거일은 KRX 정규장 종가와 `priceBasis:regular_close`를 저장하며, Market AI 애프터 quote는 화면 overlay로만 사용해 `prices.json`을 덮지 않습니다. legacy `close` snapshot은 정규장 종가로 한 번 재확정할 수 있습니다.
-
-장마감/과거일 종가 조회는 GitHub Actions에서 KRX 계정 secret을 요구하지 않도록 **Naver 국내종목 day-candle의 정규 일봉을 우선** 사용하고, 이 경로가 실패한 경우에만 `pykrx adjusted=False` 원천 조회를 failover로 시도합니다. 데이터 소스 장애로 종가를 못 받은 경우는 `거래일 아님`으로 오인하지 않고 `정규장 종가 조회 실패`로 fail-closed합니다.
-
-가격 생성기는 대상 날짜의 증권 position state를 먼저 복원합니다. 전량매도 완료 종목은 매도일 이후 신규 종가 조회 대상에서 빠지지만, 매도 전 날짜를 재생성하는 backfill에서는 해당 시점 보유수량에 따라 다시 조회합니다. `performance_snapshots.json`의 증권 누적손익에는 잔여 평가손익과 누적 실현손익이 함께 반영되며, JS Main 계산과 Python 생성기가 같은 원금·실현손익 계약을 사용해야 합니다.
+세부 GitHub Actions/GAS race contract는 Main handover에서 관리합니다.
 
 ---
 
-## 8. GitHub Pages
+## 7. GitHub Pages
 
-배포 기준:
-
-```text
-Branch : main
-Folder : / (root)
-```
-
-주요 경로:
+기본 배포 경로:
 
 ```text
-Main        /
-Calc        /add/calc.html
-Report      /add/kodex-leverage-report.html
+Main   /
+Calc   /add/calc.html
+Report /add/kodex-leverage-report.html
 ```
 
-루트 `_config.yml`은 **GAS canonical 소스와 durable shard 디렉터리**를 GitHub repository에는 유지하되 Pages 정적 산출물에서는 제외합니다. `GAS_code.js`는 Apps Script 배포 소스의 저장소 기준본이고, 아래 shard 데이터는 GAS/GitHub API의 idempotency·dispatch 이력용 repository-only 상태입니다. 둘 다 Main/Add 브라우저 runtime이 직접 fetch하는 대상이 아닙니다.
+루트 `_config.yml`은 repository에는 유지하되 브라우저가 직접 사용할 필요가 없는 backend/durable state를 Pages 산출물에서 제외합니다.
 
 ```text
 GAS_code.js
@@ -421,69 +318,51 @@ data/pension_operation_ledger/
 data/pension_batch_request_identity/
 ```
 
-`GAS_code.js`의 경로/이름을 바꾸거나 새 durable shard 디렉터리를 추가·변경하면 저장 경로만 수정하지 말고 `_config.yml`의 Pages 제외 목록과 이 문서의 프로젝트/데이터 구조를 함께 갱신합니다.
-
-GitHub Pages는 배포가 완료된 revision을 보여줍니다. 방금 수정한 로컬/ZIP revision의 개발 QA와 공개 배포본 확인은 구분합니다.
+새 repository-only durable 디렉터리를 추가하거나 경로를 바꾸면 `_config.yml`과 이 README의 구조 설명을 함께 갱신합니다.
 
 ---
 
-## 9. 자동 QA
+## 8. 자동 QA
 
-Node·Python 기반 자동 테스트는 계산·데이터·UI contract와 가격 갱신 로직의 반복 회귀를 확인하기 위한 개발 안전망입니다.
+현재 기본 테스트:
 
 ```text
-tests/
-├─ main-calc.test.cjs
-├─ main-ui-contract.test.cjs
-├─ add-calc.test.cjs
-├─ add-report-data.test.cjs
-├─ add-ui-contract.test.cjs
-├─ cross-ui-contract.test.cjs
-└─ update_prices_test.py
+tests/main-calc.test.cjs
+tests/main-ui-contract.test.cjs
+tests/add-calc.test.cjs
+tests/add-report-data.test.cjs
+tests/add-ui-contract.test.cjs
+tests/cross-ui-contract.test.cjs
+tests/update_prices_test.py
 ```
 
-전체 테스트:
+전체 실행 예:
 
 ```bash
 node --test tests/*.test.cjs
 python tests/update_prices_test.py
 ```
 
-테스트의 역할:
-
-| 파일 | 대상 |
-|---|---|
-| `main-calc.test.cjs` | Main 계산 회귀 |
-| `main-ui-contract.test.cjs` | Main HTML/CSS/UI contract |
-| `add-calc.test.cjs` | Add Calc 계산·validation |
-| `add-report-data.test.cjs` | KODEX canonical 데이터와 Report/Main 파생 정합성 |
-| `add-ui-contract.test.cjs` | Add HTML/CSS/UI contract |
-| `cross-ui-contract.test.cjs` | Main↔Add 공통 UI contract |
-| `update_prices_test.py` | KRX 가격 갱신·성과 스냅샷 causal ordering 회귀 |
-
-어떤 수정에서 어떤 테스트를 우선 실행할지에 대한 상세 QA 절차는 각 handover 문서를 따릅니다.
-
-자동 테스트 개수나 PASS 자체를 프로젝트 품질 점수로 해석하는 기준은 README가 담당하지 않습니다.
+테스트는 계산·데이터·UI contract·가격 생성 회귀를 빠르게 찾는 개발 안전망입니다. **테스트 개수나 PASS 숫자 자체를 품질 점수로 해석하지 않습니다.** 변경 유형별 최소 QA와 과도한 구현 고정 테스트의 판단 기준은 handover/evaluation 문서를 따릅니다.
 
 ---
 
-## 10. 유지보수 문서
-
-프로젝트 문서는 역할별로 분리합니다.
+## 9. 문서 역할
 
 | 문서 | 역할 |
 |---|---|
-| [README.md](./README.md) | GitHub 프로젝트 소개, 기능, 전체 구조, 데이터·배포·실행 개요 |
-| [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md) | Main 인수인계, 수정, CSS/JS/UI contract, Main QA |
-| [add_maintenance_handover.md](./add_maintenance_handover.md) | Calc/Report 인수인계, 계산·데이터 contract, Add QA |
-| [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) | Main+Add 평가 방식, 전체 평가 시 root `GAS_code.js` 포함 기준, Dashboard/GAS 점수, 전역 A/B/C 의미, 반례·감점·종료 기준 |
-| [ct35_evaluation.md](./ct35_evaluation.md) | 공통화·토큰화 35개 고정 Rubric, Main/Add 독립 채점, 카테고리별 점검 기준 |
+| `README.md` | 프로젝트 소개, 주요 기능, 전체 구조, 데이터·배포 개요 |
+| `main_dashboard_maintenance_handover.md` | Main 장기 유지보수 contract, 수정·QA, Main↔Add 공통 contract |
+| `add_maintenance_handover.md` | Calc/Report 계산·데이터·UI 유지보수 contract와 Add QA |
+| `dashboard_evaluation_guide.md` | 평가 방법, CSS/JS/UI/UX 점수, 전역 A/B/C, GAS 평가 모드, Counterexample/종료 기준 |
+| `ct35_evaluation.md` | 공통화·토큰화 35개 관찰 항목과 고정 배점 |
+| Git history | 과거 변경 이력 |
 
 ### 역할별 Source of Truth
 
 ```text
 실제 현재 구현
-→ repository의 실제 HTML / CSS / JS / data / scripts / workflows / tests
+→ 최신 repository 소스
 
 Main 유지보수 contract
 → main_dashboard_maintenance_handover.md
@@ -491,37 +370,27 @@ Main 유지보수 contract
 Add 유지보수 contract
 → add_maintenance_handover.md
 
-Main↔Add 공통 contract
-→ main_dashboard_maintenance_handover.md 8장
-→ 실행 정합성은 tests/cross-ui-contract.test.cjs
-
-전체 평가·점수·전역 A/B/C·반례·종료 기준
+전체 평가 방법
 → dashboard_evaluation_guide.md
-→ 범위를 좁히지 않은 일반 전체 평가에서는 root GAS_code.js 서버 평가를 함께 수행
-→ MAIN/ADD/CSS/JS/특정 기능처럼 범위를 명시적으로 좁힌 평가는 GAS 독립 평가를 자동 추가하지 않음
 
-공통화·토큰화 35개 고정 Rubric
+공통화·토큰화 35개 Rubric
 → ct35_evaluation.md
-→ 전체 평가에서는 dashboard_evaluation_guide.md와 함께 적용
 
 프로젝트 소개
 → README.md
-
-과거 변경 이력
-→ Git history
 ```
 
-README에는 세부 selector, px 값, JavaScript state ownership, 평가 규칙, 차수별 리팩토링 이력을 중복해서 기록하지 않습니다.
+README에는 selector, px 값, 함수 내부 순서, JavaScript state ownership, GAS transaction 세부, 평가 점수 규칙, 차수별 작업 이력을 중복 기록하지 않습니다.
 
 ---
 
-## 11. 저장소 관리 원칙
+## 10. 저장소 관리 원칙
 
-Python 실행 중 생성되는 cache 등은 저장소에 포함하지 않습니다.
+Python cache 등 생성물은 저장소에 포함하지 않습니다.
 
 ```gitignore
 __pycache__/
 *.pyc
 ```
 
-현재 구현의 세부 유지보수 규칙은 README에 누적하지 않고 해당 handover 문서에서 관리합니다. 프로젝트의 기능·파일 구성·배포 구조가 바뀌었을 때만 README를 함께 갱신합니다.
+문서는 **해당 문서가 소유한 장기 contract가 바뀔 때만** 갱신합니다. 단순 버그 수정·QA PASS·현재 수치·과거 차수 기록을 README나 handover에 누적하지 않습니다.

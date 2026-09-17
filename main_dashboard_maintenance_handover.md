@@ -16,7 +16,8 @@
 | Main 수정·유지보수 contract | [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md) |
 | Add 수정·유지보수 contract | [add_maintenance_handover.md](./add_maintenance_handover.md) |
 | Main↔Add 공통 contract | 이 문서 8장 + `tests/cross-ui-contract.test.cjs` |
-| 평가·점수·A/B/C (전체 평가 시 root `GAS_code.js` 포함, 좁은 범위 평가는 요청 범위 우선) | [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) |
+| 평가 방법·점수·A/B/C·Counterexample/종료 기준 | [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) |
+| 공통화·토큰화 35개 고정 Rubric | [ct35_evaluation.md](./ct35_evaluation.md) |
 | 프로젝트 소개·구성·사용 개요 | [README.md](./README.md) |
 | 과거 차수별 변경 이력 | Git history |
 
@@ -31,7 +32,7 @@
 4. CSS · Responsive 유지보수 규칙
 5. JavaScript 구현 규칙
 6. 운영 데이터 · GitHub Actions · GAS
-7. Main 수정 · QA · Diff · 결과 전달
+7. Main 수정 · QA · Diff
 8. Main ↔ Add 공통 contract
 9. Legacy guard · 문서 유지관리
 10. 최종 운영 체크리스트
@@ -65,9 +66,7 @@ Main 작업을 시작할 때는 다음 순서를 기본으로 한다.
 → 수정 또는 인수인계 수행
 ```
 
-`인수인계`라고만 요청한 경우에는 파일을 수정하거나 평가하지 않는다. 현재 구조, 핵심 책임, 유지보수 제약을 파악한 뒤 인수인계 완료 여부만 보고한다.
-
-평가 요청이면 이 문서를 평가기준으로 사용하지 않고 `dashboard_evaluation_guide.md`를 먼저 적용한다. 다만 설계 의도와 Main contract 확인을 위해 이 문서를 함께 참고할 수 있다.
+평가 자체의 점수·등급·출력 규칙은 이 문서가 아니라 `dashboard_evaluation_guide.md`를 사용한다. 이 문서는 평가 시에도 Main의 설계 의도와 장기 contract를 확인하는 근거로만 사용한다.
 
 ## 1.3 최신 파일 우선 원칙
 
@@ -96,8 +95,11 @@ Main↔Add 공통 contract
 → 이 문서 8장
 → 실행 정합성은 tests/cross-ui-contract.test.cjs
 
-평가 방식
+평가 방식·점수·A/B/C·종료 기준
 → dashboard_evaluation_guide.md
+
+공통화·토큰화 35개 Rubric
+→ ct35_evaluation.md
 
 GitHub 프로젝트 설명
 → README.md
@@ -1755,22 +1757,11 @@ Python / Workflow 유지보수 구조:
 
 `requirements.txt`의 직접 dependency는 호환 확인된 버전으로 pin한다. 현재 기준은 `pykrx==1.2.8`, `pandas==2.3.3`, `requests==2.34.2`다. `pykrx`를 다시 올릴 때는 Python 3.11 지원 여부와 `scripts/update_prices.py`가 사용하는 종목/지수 OHLCV API의 호환성을 먼저 확인한다. 하위 transitive dependency까지 `pip freeze` 전체를 저장하는 방식은 기본 운영으로 사용하지 않는다.
 
-# 7. Main 수정 · QA · Diff · 결과 전달
+# 7. Main 수정 · QA · Diff
 
-## 7.1 실행 모드
+이 장은 Main 변경 시 필요한 **수정 순서·회귀 QA·diff 확인**만 정의한다. 평가 명령의 의미와 점수/등급은 `dashboard_evaluation_guide.md`, 결과 파일 포장·전달 형식은 작업 요청 자체를 따른다.
 
-| 사용자 요청 | Main 문서에서의 처리 |
-|---|---|
-| `인수인계` | 구조·contract 확인, 파일 수정 안 함 |
-| 구체적 수정 요청 / `1차`, `2차` | 요청 범위 실제 반영 후 영향 범위 QA |
-| `QA` | 직전 Main 변경분과 연결부 중심 검증 |
-| `전체 QA` | 사용자가 명시한 경우 전체 프로젝트 테스트까지 수행 |
-| 범위 미지정 `평가`, `점수`, `전체 평가` | `dashboard_evaluation_guide.md` 기준으로 전환하고 root `GAS_code.js` 서버 평가를 함께 수행 |
-| `MAIN만`, `ADD만`, `CSS만`, `JS만`, 특정 화면·기능 평가 | 지정 범위만 평가하고 GAS 독립 평가는 자동 추가하지 않음. 해당 기능 판정에 필요한 frontend↔backend contract만 dependency로 확인 가능 |
-
-`QA`를 임의로 `전체 QA`로 확대하지 않는다. 다만 Main의 전역 appearance/Corner/breakpoint 같은 공통 contract를 수정한 경우에는 직전 변경 QA에서도 `cross-ui-contract.test.cjs`를 함께 확인한다.
-
-## 7.2 Main 수정 기본 순서
+## 7.1 Main 수정 기본 순서
 
 ```text
 최신 실제 소스 확인
@@ -1788,7 +1779,7 @@ Python / Workflow 유지보수 구조:
 
 요청 범위와 무관한 리팩토링을 섞지 않는다. 현재 요청을 안전하게 구현하기 위해 공통 수정이 반드시 필요한 경우에는 이유와 영향 범위를 명확히 한다.
 
-## 7.3 Main 자동 회귀 테스트
+## 7.2 Main 자동 회귀 테스트
 
 Main 유지보수의 직접 테스트는 다음 두 개다.
 
@@ -1832,7 +1823,7 @@ node --test tests/*.test.cjs
 
 Add 테스트의 상세 의미와 실패 처리 기준은 `add_maintenance_handover.md`가 소유한다.
 
-## 7.4 변경 유형별 최소 검사
+## 7.3 변경 유형별 최소 검사
 
 ### 공통
 
@@ -1898,7 +1889,7 @@ source tooltip 셀 hover/focus
 
 공통 helper, shared renderer, token을 수정하면 단일 화면만 보고 끝내지 않는다. 그 코드를 사용하는 대표 화면을 함께 확인한다. 반대로 단순히 비슷해 보인다는 이유로 독립 영역을 강제 공통화하지 않는다.
 
-## 7.5 QA runtime 원칙
+## 7.4 QA runtime 원칙
 
 수정 직후 QA의 대상은 **현재 수정본 자체**다. GitHub Pages 공개본은 같은 revision이라는 보장이 없으므로 QA PASS/FAIL 근거로 사용하지 않는다.
 
@@ -1908,7 +1899,7 @@ source tooltip 셀 hover/focus
 
 공개 배포 상태를 확인해 달라는 요청은 `QA`와 분리해 **배포본 확인**으로 취급한다.
 
-## 7.6 QA FAIL 처리
+## 7.5 QA FAIL 처리
 
 ```text
 FAIL 원인 특정
@@ -1921,7 +1912,7 @@ FAIL 원인 특정
 
 테스트 FAIL이라는 이유만으로 운영 코드를 무조건 바꾸지 않는다. 반대로 실제 계산·기능·UI contract 결함이면 테스트를 우회해서 PASS 처리하지 않는다.
 
-## 7.7 누적 기준본과 baseline parity
+## 7.6 누적 기준본과 baseline parity
 
 여러 차수 작업은 직전 PASS본을 다음 차수의 기준으로 사용한다.
 
@@ -1944,7 +1935,7 @@ FAIL 원인 특정
 - chart selection/tooltip/resize/listener 중복
 - breakpoint 전환 시 Phone/Tablet/Desktop 역할
 
-## 7.8 Diff 검사
+## 7.7 Diff 검사
 
 전달 전 최소 확인:
 
@@ -1967,43 +1958,6 @@ data/pension_contributions.json
 data/pension_cash_snapshots.json
 data/pension_trades.json
 ```
-
-## 7.9 CSS / JS 수정 보고
-
-CSS를 수정했으면 필요 범위에서 다음을 확인·보고한다.
-
-- 수정 전/후 줄 수·파일 크기
-- 새 breakpoint 여부
-- `!important` 증감
-- 예상 외 diff
-- 주석만 수정한 경우 rule/property/value 불변 여부
-
-JS를 수정했으면:
-
-- syntax
-- import/export
-- dependency 방향
-- top-level side effect
-- listener 중복
-- boot 횟수
-- 예상 외 diff
-
-를 확인한다.
-
-## 7.10 결과 파일 전달
-
-기본은 **실제로 변경된 파일만 원래 폴더 구조를 유지해 ZIP으로 전달**한다. 전체 프로젝트 ZIP은 사용자가 명시적으로 요청한 경우에만 만든다.
-
-여러 차수 작업의 마지막 QA가 끝나면 해당 작업 묶음의 1차부터 최종 차수까지 실제로 수정된 파일의 최종본을 누적해 한 ZIP으로 전달한다.
-
-결과 보고에는 필요 범위에서 다음을 포함한다.
-
-- 변경 내용
-- QA 결과
-- 변경 파일 목록
-- 예상 외 diff 여부
-- CSS 통계가 필요한 경우 해당 통계
-- GitHub commit용 `Summary` / `Description`
 
 # 8. Main ↔ Add 공통 contract
 
@@ -2057,7 +2011,8 @@ node --test tests/cross-ui-contract.test.cjs
 - [README.md](./README.md): 프로젝트 설명, 기능, 전체 구조, 실행·배포 개요
 - [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md): Main 수정·QA·운영 contract와 Main↔Add 공통 contract 정의
 - [add_maintenance_handover.md](./add_maintenance_handover.md): Add Calc/Report 수정·QA·운영 contract
-- [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md): Main/Add 평가·점수·등급 기준 및 adversarial Counterexample 기준(구현 설명·패치 이력은 중복 저장하지 않음)
+- [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md): Main/Add 평가 방법·점수·전역 A/B/C·Counterexample·종료 기준
+- [ct35_evaluation.md](./ct35_evaluation.md): 공통화·토큰화 35개 관찰 항목과 고정 배점
 - Git history: 과거 변경 이력
 
 # 10. 최종 운영 체크리스트
