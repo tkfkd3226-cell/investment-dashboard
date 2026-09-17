@@ -703,6 +703,8 @@ test('증권 매도: 전량매도는 순매도대금·실현손익·현금화 �
   assert.deepEqual(after,{qty:0,cost:0,realizedProfit:100,realizedCostBasis:1000});
   assert.equal(core.securityFullExitForDate('A','2026-06-19'),false);
   assert.equal(core.securityFullExitForDate('A','2026-06-20'),true);
+  assert.deepEqual(core.securityFullExitSaleForDate('A','2026-06-20'),{date:'2026-06-20',qty:10,grossAmount:1100,transactionCost:0,amount:1100,costBasis:1000,realizedProfit:100,fullExit:true,price:110});
+  assert.deepEqual(core.securityFullExitSaleForDate('A','2026-06-21'),{date:'2026-06-20',qty:10,grossAmount:1100,transactionCost:0,amount:1100,costBasis:1000,realizedProfit:100,fullExit:true,price:110});
   assert.equal(core.securityCashPrincipalForDate('2026-06-19'),0);
   assert.equal(core.securityCashPrincipalForDate('2026-06-20'),1000);
   assert.equal(core.account1PrincipalForDate('2026-06-19'),1000);
@@ -743,6 +745,7 @@ test('증권 일부매도: 잔여 평가손익과 확정 실현손익을 합산�
   assert.equal(h.performanceCost,1000);
   approx(h.returnRate,15);
   assert.equal(core.securityFullExitForDate('A','2026-06-20'),false);
+  assert.equal(core.securityFullExitSaleForDate('A','2026-06-20'),null);
   assert.equal(core.account1PrincipalForDate('2026-06-20'),1000);
 });
 
@@ -765,7 +768,9 @@ test('증권 현금화 원금: 전량매도 후 재매수는 명시적 cashPrinc
   assert.equal(core.account1PrincipalForDate('2026-06-20'),1000);
   assert.equal(core.account1PrincipalForDate('2026-06-21'),1000);
   assert.equal(core.securityFullExitForDate('A','2026-06-20'),true);
+  assert.ok(core.securityFullExitSaleForDate('A','2026-06-20'));
   assert.equal(core.securityFullExitForDate('A','2026-06-21'),false);
+  assert.equal(core.securityFullExitSaleForDate('A','2026-06-21'),null);
   const after=core.calc('2026-06-21').holdings[0];
   assert.equal(after.qty,6);
   assert.equal(after.cost,600);
@@ -866,6 +871,7 @@ test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표�
   assert.equal(core.securityFullExitForDate('009150','2026-09-15'),false);
   assert.equal(core.securityFullExitForDate('009150','2026-09-16'),true);
   assert.equal(core.securityFullExitForDate('009150','2026-09-17'),true);
+  assert.deepEqual(core.securityFullExitSaleForDate('009150','2026-09-17'),{date:'2026-09-16',qty:1,grossAmount:1348000,transactionCost:2772,amount:1345228,costBasis:1345000,realizedProfit:228,fullExit:true,price:1348000});
   assert.equal(after.securitiesAssetDetail.summaryRows.find(r=>r.id==='holdings').profit,after.rawHoldingProfit);
   const changeRow=after.securitiesAssetDetail.change.rows.find(r=>r.ticker==='009150');
   assert.equal(changeRow.dayChange,28228);

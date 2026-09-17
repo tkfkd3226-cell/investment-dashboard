@@ -1,3 +1,5 @@
+import { signed, won } from './dashboard-core.js';
+
 // Dashboard UI Common · 기능 간 공통 DOM / markup / responsive helper
 // Ownership: business state는 feature module이 소유하고, 이 모듈은 공통 표현과 저수준 interaction만 제공한다.
 // Structure map:
@@ -8,6 +10,7 @@
 //   [UICOMMON05] Feedback / Viewport / Scroll Utilities
 //   [UICOMMON06] Asset Tooltip Interaction
 //   [UICOMMON06B] Asset Price Source Tooltip
+//   [UICOMMON06C] Security Sale Tooltip
 //   [UICOMMON07] Public API
 
 // [UICOMMON01] Responsive Predicate / Shared View State · 반응형 판정 / 공통 보기 상태
@@ -602,8 +605,23 @@ function setupAssetSourceTooltips(){
   document.addEventListener('scroll',hideAssetSourceTooltip,true);
   window.addEventListener('resize',hideAssetSourceTooltip,{passive:true});
 }
-// [UICOMMON06C] Security Sale Tooltip · 전량매도 당일 거래 상세 공통 floating tooltip
+// [UICOMMON06C] Security Sale Tooltip · 전량매도 거래 상세 공통 floating tooltip
 const SECURITY_SALE_TOOLTIP_ID='securitySaleTooltip';
+function securitySaleTooltipAttrs(row,{focusScope=''}={}){
+  const sale=row?.sale;
+  if(!sale?.fullExit)return '';
+  const salePrice=Number(sale.price);
+  const attrs=[
+    ['data-sale-name',`${row?.name||''} · 전량매도`],
+    ['data-sale-price',salePrice?won(salePrice):'-'],
+    ['data-sale-cost',won(sale.transactionCost)],
+    ['data-sale-net',won(sale.amount)],
+    ['data-sale-basis',won(sale.costBasis)],
+    ['data-sale-profit',signed(sale.realizedProfit,'원')]
+  ].map(([key,value])=>`${key}="${escapeHtml(value)}"`).join(' ');
+  const suffix=focusScope?`:${focusScope}`:'';
+  return `tabindex="0" data-dashboard-focus-key="security-sale:${escapeHtml(String(row?.ticker||row?.name||''))}${escapeHtml(suffix)}" data-security-sale-tooltip aria-label="${escapeHtml(`${row?.name||'종목'} 전량매도 상세`)}" aria-describedby="${SECURITY_SALE_TOOLTIP_ID}" ${attrs}`;
+}
 let securitySaleTooltipBound=false;
 function securitySaleTooltip(){
   let tooltip=document.getElementById(SECURITY_SALE_TOOLTIP_ID);
@@ -768,6 +786,7 @@ export {
   setupAssetSourceTooltips,
   hideAssetSourceTooltip,
   setupAssetVizTooltips,
+  securitySaleTooltipAttrs,
   setupSecuritySaleTooltips,
   hideSecuritySaleTooltip,
   showAppToast,

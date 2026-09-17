@@ -464,6 +464,24 @@ const securitySellRealizedProfit=v=>{
   if(explicit!=null&&explicit!==derived)throw new RangeError(`${String(v?.id||v?.ticker||'증권 매도')} 실현손익이 순매도대금-기준원가와 일치하지 않습니다.`);
   return explicit??derived;
 };
+const securityFullExitSaleForDate=(ticker,d)=>{
+  if(!securityFullExitForDate(ticker,d))return null;
+  const saleDate=securityEventItems().filter(v=>v?.type==='sell'&&String(v?.ticker||'')===String(ticker||'')&&String(v?.date||'')<=String(d||'')).reduce((latest,v)=>String(v.date)>latest?String(v.date):latest,'');
+  if(!saleDate)return null;
+  const saleEvents=securityTradeEventsForDate(ticker,saleDate).filter(v=>v.type==='sell');
+  if(!saleEvents.length)return null;
+  const sale=saleEvents.reduce((a,v)=>{
+    a.qty+=Math.max(0,Number(v.qty)||0);
+    a.grossAmount+=Math.max(0,Number(v.grossAmount??v.amount)||0);
+    a.transactionCost+=Math.max(0,Number(v.transactionCost)||0);
+    a.amount+=Math.max(0,Number(v.amount)||0);
+    a.costBasis+=Math.max(0,Number(v.costBasis)||0);
+    a.realizedProfit=securitySafeAggregate('전량매도 실현손익',a.realizedProfit+securitySellRealizedProfit(v));
+    return a;
+  },{date:saleDate,qty:0,grossAmount:0,transactionCost:0,amount:0,costBasis:0,realizedProfit:0,fullExit:true});
+  sale.price=sale.qty?sale.grossAmount/sale.qty:null;
+  return sale;
+};
 const securityCashPrincipalDelta=v=>{
   const explicit=securityOptionalNumber(v,'cashPrincipalDelta');
   if(explicit!=null)return explicit;
@@ -748,9 +766,9 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
   const evaluationTotal=holdingEval+cash;
   const weightPct=value=>evaluationTotal?Number(value||0)/evaluationTotal*100:0;
   const statusRows=displayRows.map(h=>{
-    const fullExit=securityFullExitForDate(h?.ticker,date);
+    const sale=securityFullExitSaleForDate(h?.ticker,date),fullExit=!!sale;
     const displayProfit=fullExit?securityTotalProfitValue(h):(Number(h?.profit)||0);
-    return {...h,profit:displayProfit,fullExit,weightPct:weightPct(h.evalAmount)};
+    return {...h,profit:displayProfit,fullExit,sale,weightPct:weightPct(h.evalAmount)};
   });
   const holdingProfit=statusRows.reduce((a,h)=>a+(Number(h?.profit)||0),0);
   const totalCost=holdingCost+cash;
@@ -779,17 +797,7 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
       const prevEval=snapshot?.evalAmount??h.prevEval??0;
       const dayChange=hasPrev?(Number(h.totalProfit??h.profit)||0)-(Number(h.prevTotalProfit??prevProfit)||0):null;
       const buyAmount=Number(h?.tradeFlow?.buyAmount)||0;
-      const saleEvents=securityTradeEventsForDate(h.ticker,date).filter(v=>v.type==='sell');
-      const sale=saleEvents.length?saleEvents.reduce((a,v)=>{
-        a.qty+=Math.max(0,Number(v.qty)||0);
-        a.grossAmount+=Math.max(0,Number(v.grossAmount??v.amount)||0);
-        a.transactionCost+=Math.max(0,Number(v.transactionCost)||0);
-        a.amount+=Math.max(0,Number(v.amount)||0);
-        a.costBasis+=Math.max(0,Number(v.costBasis)||0);
-        a.realizedProfit+=securitySellRealizedProfit(v);
-        return a;
-      },{qty:0,grossAmount:0,transactionCost:0,amount:0,costBasis:0,realizedProfit:0}):null;
-      if(sale){sale.price=sale.qty?sale.grossAmount/sale.qty:null;sale.fullExit=securityFullExitForDate(h?.ticker,date);}
+      const sale=securityFullExitSaleForDate(h.ticker,date);
       return {
         name:h.name,
         ticker:h.ticker,
@@ -1410,6 +1418,7 @@ export {
   securityExcludedTransferSum,
   securityExternalContributionSum,
   securityFullExitForDate,
+  securityFullExitSaleForDate,
   securityInternalCashTransferSum,
   securityInternalCashReturnSum,
   securityInternalCashReturnPrincipalSum,

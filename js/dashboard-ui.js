@@ -53,6 +53,7 @@ import {
   renderAssetPriceSourceLabel,
   renderAssetStatusBlock,
   renderAssetWeight,
+  securitySaleTooltipAttrs,
   showAppToast,
   toggleMobileViewMode
 } from './dashboard-ui-common.js';
@@ -1146,8 +1147,12 @@ function renderHoldings(x){
     liveQuote:h.liveQuote,postClosePending:h.postClosePending,fallbackSource,
     marketStatus:x.s?.marketStatus,priceBasis:x.s?.priceBasis
   });
-  const rows=orderedHoldings.map(h=>({
-    labelHtml:sourceLabel(h),
+  const rows=orderedHoldings.map(h=>{
+    const saleTooltipAttrs=securitySaleTooltipAttrs(h,{focusScope:'holdings'});
+    return {
+    labelClass:saleTooltipAttrs?'security-sale-cell':'',
+    labelAttrs:saleTooltipAttrs,
+    labelHtml:saleTooltipAttrs?`<span class="holding-name-text security-sale-marker-name">${mobileTableAssetName(h.name)}</span>${securitySymbolSwatch(h.name)}`:sourceLabel(h),
     cells:[
       {className:'num table-cell-center',html:fmt(h.qty)},
       {className:'num',html:fmt(h.avgPrice ?? (h.qty?h.cost/h.qty:0))},
@@ -1157,7 +1162,8 @@ function renderHoldings(x){
       {className:`num table-cell-center ${cls(h.returnRate)}`,html:pct(h.returnRate)},
       {className:'num table-cell-center',html:renderAssetWeight({label:h.name,weight:h.weightPct,color:securityAllocationColor(h.name)})}
     ]
-  }));
+  };
+  });
   const summaryRows=['holdings','cash','total'].map(id=>{
     const row=summaryById[id];
     return {
@@ -1246,20 +1252,6 @@ function renderHoldings(x){
 }
 
 
-function securitySaleTooltipAttrs(row){
-  const sale=row?.sale;
-  if(!sale?.fullExit)return '';
-  const salePrice=Number(sale.price);
-  const attrs=[
-    ['data-sale-name',`${row?.name||''} · 전량매도`],
-    ['data-sale-price',salePrice?won(salePrice):'-'],
-    ['data-sale-cost',won(sale.transactionCost)],
-    ['data-sale-net',won(sale.amount)],
-    ['data-sale-basis',won(sale.costBasis)],
-    ['data-sale-profit',signed(sale.realizedProfit,'원')]
-  ].map(([key,value])=>`${key}="${escapeHtml(value)}"`).join(' ');
-  return `tabindex="0" data-dashboard-focus-key="security-sale:${escapeHtml(String(row?.ticker||row?.name||''))}" data-security-sale-tooltip aria-label="${escapeHtml(`${row?.name||'종목'} 전량매도 상세`)}" aria-describedby="securitySaleTooltip" ${attrs}`;
-}
 function securitySaleMarkerHtml(row,{interactive=true}={}){
   const sale=row?.sale;
   if(!sale?.fullExit)return mobileTableAssetName(row?.name||'');

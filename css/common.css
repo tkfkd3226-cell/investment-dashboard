@@ -2115,7 +2115,7 @@ body.chart-expanded-open .dash-tooltip{
   transform:translateX(-50%) translateY(0);
 }
 
-/* [Securities · full-exit marker] 전량매도 상태의 종목명은 공통 취소선 스타일을 사용하고, 거래 당일 변동표에서는 tooltip을 함께 노출한다. */
+/* [Securities · full-exit marker] 전량매도 상태의 종목명은 공통 취소선 스타일을 사용하고, 동일 상태의 표 셀·historical 카드에서는 거래 상세 tooltip을 함께 노출한다. */
 .security-sale-marker{
   display:inline-flex;
   align-items:center;
