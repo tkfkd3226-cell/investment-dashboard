@@ -45,6 +45,9 @@ FETCH_RETRIES = 2
 FETCH_RETRY_DELAY_SECONDS = 1.5
 HTTP_TIMEOUT_SECONDS = 20
 HTTP_USER_AGENT = "Mozilla/5.0 (compatible; investment-dashboard/1.0)"
+KRX_AFTERMARKET_START_DATE = "2026-09-14"
+NAVER_MINUTE_CHART_URL = "https://api.stock.naver.com/chart/domestic/item/{ticker}/minute"
+REGULAR_CLOSE_HHMM = "1530"
 LEDGER_CHECK_FROM = "2026-06-18"
 JS_MAX_SAFE_INTEGER = 9_007_199_254_740_991
 
@@ -103,6 +106,71 @@ def previous_snapshot(prices: dict[str, Any], before: str | None = None):
 # ---------------------------------------------------------------------------
 
 _REGULAR_CLOSE_MAP_CACHE: dict[tuple[str, bool], dict[str, int]] = {}
+
+
+def _coerce_positive_price(value: Any) -> int:
+    """Parse a Naver/pykrx price token and require a positive integer value."""
+    if isinstance(value, str):
+        value = value.replace(",", "").strip()
+    try:
+        price = int(float(value))
+    except (TypeError, ValueError):
+        raise ValueError(f"invalid-price:{value!r}") from None
+    if price <= 0:
+        raise ValueError(f"invalid-price:{value!r}")
+    return price
+
+
+def _fetch_exact_regular_close_from_naver_minute(ticker: str, target_date: str):
+    """Return the exact KRX 15:30 one-minute close for ``target_date``.
+
+    Since the KRX after-market launch, end-of-day/day-candle feeds can contain
+    trades after the 15:30 regular-session close.  The Naver minute endpoint
+    still exposes the regular KRX session by timestamp, so only the exact
+    ``YYYYMMDD153000`` row is accepted.  Missing/ambiguous rows fail closed.
+    """
+    date_text = target_date.replace("-", "")
+    expected_timestamp = f"{date_text}{REGULAR_CLOSE_HHMM}00"
+    response = requests.get(
+        NAVER_MINUTE_CHART_URL.format(ticker=ticker),
+        params={
+            "startDateTime": f"{date_text}{REGULAR_CLOSE_HHMM}",
+            "endDateTime": f"{date_text}{REGULAR_CLOSE_HHMM}",
+        },
+        headers={
+            "User-Agent": HTTP_USER_AGENT,
+            "Accept": "application/json,text/plain,*/*",
+            "Referer": "https://m.stock.naver.com/",
+        },
+        timeout=HTTP_TIMEOUT_SECONDS,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, list):
+        raise ValueError("invalid-minute-payload")
+
+    matches: list[int] = []
+    for row in payload:
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("localDateTime") or "") != expected_timestamp:
+            continue
+        matches.append(_coerce_positive_price(row.get("currentPrice")))
+
+    if not matches:
+        raise ValueError("missing-exact-1530-minute-bar")
+    if len(set(matches)) != 1:
+        raise ValueError("conflicting-exact-1530-minute-bars")
+    return target_date, matches[0]
+
+
+def verified_regular_close_source(target_date: str, manual_valuation_used: bool = False) -> str:
+    """Return the attested source label for a successful regular-close row."""
+    if target_date >= KRX_AFTERMARKET_START_DATE:
+        base = "naver_krx_1530_minute"
+    else:
+        base = "pykrx_pre_aftermarket"
+    return f"{base}+nxt_valuation_override" if manual_valuation_used else base
 
 
 def _fetch_regular_close_map_from_pykrx(target_date: str, is_etf: bool = False) -> dict[str, int]:
@@ -193,14 +261,17 @@ def fetch_close(
     *,
     is_etf: bool = False,
 ):
-    """Return the latest available KRX price on or before ``target_date``.
+    """Return a KRX price for ``target_date`` without mixing after-market trades.
 
-    During the regular session the existing pykrx default path is kept.
-    After the regular close (and for historical dates), only raw KRX data is
-    accepted.  The exact-date all-market KRX endpoint is tried first because it
-    is independent of pykrx's per-ticker period endpoint; the raw per-ticker
-    endpoint is the second KRX-only path.  Naver/NXT/public quote endpoints are
-    deliberately excluded from regular-close fallback.
+    - During today's regular session, keep the existing pykrx intraday path.
+    - For closes on/after 2026-09-14 (KRX after-market launch), accept only the
+      exact 15:30 Naver KRX one-minute bar.  pykrx/day-candle values are not a
+      fallback because they can contain later after-market trades.
+    - For older dates, the legacy raw pykrx close paths remain valid because the
+      new KRX after-market did not yet exist.
+
+    A post-cutover close that cannot be proven from the exact 15:30 minute row
+    fails closed instead of silently publishing a stale or after-market price.
     """
     start = datetime.strptime(target_date, DATE_FORMAT) - timedelta(days=lookback_days)
     end = datetime.strptime(target_date, DATE_FORMAT)
@@ -210,25 +281,42 @@ def fetch_close(
     for attempt in range(retries + 1):
         errors: list[str] = []
 
-        if closed:
+        if closed and target_date >= KRX_AFTERMARKET_START_DATE:
+            try:
+                actual_date, close = _fetch_exact_regular_close_from_naver_minute(ticker, target_date)
+                return actual_date, close, None
+            except Exception as exc:
+                errors.append(f"naver-krx-1530-minute={exc!r}")
+        elif closed:
             try:
                 actual_date, close = _fetch_exact_close_from_pykrx_all_market(ticker, target_date, is_etf)
                 return actual_date, close, None
             except Exception as exc:
-                errors.append(f"pykrx-raw-all-market={exc!r}")
+                errors.append(f"pykrx-pre-aftermarket-all-market={exc!r}")
 
-        try:
-            actual_date, close = _fetch_close_from_pykrx(
-                ticker,
-                start,
-                end,
-                adjusted=False if closed else None,
-                is_etf=is_etf,
-            )
-            return actual_date, close, None
-        except Exception as exc:
-            label = "pykrx-raw-by-date" if closed else "pykrx-intraday"
-            errors.append(f"{label}={exc!r}")
+            try:
+                actual_date, close = _fetch_close_from_pykrx(
+                    ticker,
+                    start,
+                    end,
+                    adjusted=False,
+                    is_etf=is_etf,
+                )
+                return actual_date, close, None
+            except Exception as exc:
+                errors.append(f"pykrx-pre-aftermarket-by-date={exc!r}")
+        else:
+            try:
+                actual_date, close = _fetch_close_from_pykrx(
+                    ticker,
+                    start,
+                    end,
+                    adjusted=None,
+                    is_etf=is_etf,
+                )
+                return actual_date, close, None
+            except Exception as exc:
+                errors.append(f"pykrx-intraday={exc!r}")
 
         last_error = "; ".join(errors)
         if attempt < retries:
@@ -477,13 +565,29 @@ def probe_trading_date(portfolio: dict[str, Any], target_date: str):
 
 
 def resolve_latest_market_date(portfolio: dict[str, Any], target_date: str) -> str | None:
+    """Resolve the latest available trading date without publishing a stale close.
+
+    Post-aftermarket close lookup is exact-date/fail-closed, so weekends, holidays
+    and pre-open runs probe backward one calendar day at a time instead of asking a
+    price source to silently substitute the previous session.
+    """
     ticker = first_security_ticker(portfolio)
-    actual, close, err = probe_trading_date(portfolio, target_date)
+    target = datetime.strptime(target_date, DATE_FORMAT)
+    errors: list[str] = []
 
-    if actual and close is not None:
-        return actual
+    for offset in range(DEFAULT_LOOKBACK_DAYS + 1):
+        candidate_dt = target - timedelta(days=offset)
+        if candidate_dt.weekday() >= 5:
+            continue
+        candidate = candidate_dt.strftime(DATE_FORMAT)
+        actual, close, err = probe_trading_date(portfolio, candidate)
+        if actual == candidate and close is not None:
+            return candidate
+        if err:
+            errors.append(f"{candidate}:{err}")
 
-    print(f"WARN latest market date lookup failed for {ticker or '-'} {target_date}: {err}")
+    detail = " | ".join(errors[-3:]) if errors else "no candidate returned a price"
+    print(f"WARN latest market date lookup failed for {ticker or '-'} {target_date}: {detail}")
     return None
 
 
@@ -1017,7 +1121,7 @@ def update_one_date(
         "marketStatus": status,
         "priceBasis": price_basis,
         **({
-            "regularCloseSource": "pykrx_raw+nxt_valuation_override" if manual_valuation_used else "pykrx_raw",
+            "regularCloseSource": verified_regular_close_source(target_date, manual_valuation_used),
         } if status == "close" and not warnings else {}),
         "requestedDate": target_date,
         "actualMarketDate": actual_date,

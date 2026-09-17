@@ -787,21 +787,22 @@ test('Live Valuation 부분 갱신은 Hero 기준문구도 실제 Market AI 가�
   assert.match(app,/heroBasis\.textContent=`\(\$\{heroPerformanceBasisLabel\(x\.date\)\}\)`;/);
 });
 
-test('KRX 장마감 종가는 raw KRX all-market을 우선하고 raw by-date를 failover로 사용하며 Naver/NXT를 배제한다',()=>{
+test('KRX 애프터마켓 이후 종가는 정확한 15:30 분봉만 검증하고 pykrx로 되돌아가지 않는다',()=>{
   const updater=read('scripts/update_prices.py');
   const gas=read('GAS_code.js');
-  assert.match(updater,/get_market_ohlcv_by_ticker/);
-  assert.match(updater,/market="ALL"/);
-  assert.match(updater,/alternative=False/);
-  assert.match(updater,/adjusted=False if closed else None/);
-  assert.match(updater,/pykrx-raw-all-market/);
-  assert.match(updater,/pykrx-raw-by-date/);
-  assert.doesNotMatch(updater,/api\.stock\.naver\.com\/chart\/domestic\/item\/\{ticker\}/);
-  assert.doesNotMatch(updater,/"periodType": "dayCandle"/);
-  assert.match(updater,/"regularCloseSource": "pykrx_raw/);
-  assert.match(updater,/정규장 종가를 확인하지 못했습니다/);
+  assert.match(updater,/KRX_AFTERMARKET_START_DATE = "2026-09-14"/);
+  assert.match(updater,/api\.stock\.naver\.com\/chart\/domestic\/item\/\{ticker\}\/minute/);
+  assert.match(updater,/"startDateTime": f"\{date_text\}\{REGULAR_CLOSE_HHMM\}"/);
+  assert.match(updater,/"endDateTime": f"\{date_text\}\{REGULAR_CLOSE_HHMM\}"/);
+  assert.match(updater,/expected_timestamp = f"\{date_text\}\{REGULAR_CLOSE_HHMM\}00"/);
+  assert.match(updater,/missing-exact-1530-minute-bar/);
+  assert.match(updater,/naver-krx-1530-minute=/);
+  assert.match(updater,/pykrx_pre_aftermarket/);
+  assert.match(updater,/naver_krx_1530_minute/);
   assert.match(gas,/function krxSnapshotHasVerifiedRegularClose\(snapshot\)/);
-  assert.match(gas,/snapshot\.regularCloseSource/);
+  assert.match(gas,/naver_krx_1530_minute/);
+  assert.match(gas,/pykrx_pre_aftermarket/);
+  assert.doesNotMatch(gas,/source === "pykrx_raw"/);
   assert.match(gas,/reconfirm_regular_close/);
   assert.match(ui,/15:30 전 장중 가격, 15:30부터 정규장 종가/);
 });

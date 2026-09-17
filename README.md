@@ -291,7 +291,7 @@ stable request identity, optimistic concurrency, durable idempotency, fail-close
 - 최신/누락 거래일과 정규장 종가 확정이 필요한 날짜를 갱신합니다.
 - 선택 날짜 **재갱신은 기존 종가 라벨과 관계없이 실제로 다시 조회**합니다. 같은 요청의 재전송·진행 중 중복 실행 방지는 유지합니다.
 - 오늘은 한국시간 `09:00 ≤ 시각 < 15:30`에 장중 가격, **15:30 정각부터 KRX 정규장 종가**를 사용합니다. 과거 거래일은 실행 시간과 무관하게 정규장 종가를 사용합니다. 기준은 Actions에서 실제 가격을 조회하는 시각이며, 조회 도중 마감되면 전체 종목을 종가 경로로 다시 조회합니다.
-- 장중은 기존 pykrx 기본 시세 경로(Naver)를 사용합니다. 장 마감 후에는 주식용 raw KRX API와 ETF 전용 KRX API를 구분하며 Naver/NXT/애프터마켓 현재가로 종가를 대체하지 않습니다. 종가 제공이 지연되거나 인증·조회가 실패하면 기존 JSON을 유지하고 실패를 알립니다.
+- 장중은 기존 pykrx 기본 시세 경로를 유지합니다. **2026-09-14 KRX 애프터마켓 개설 이후 날짜의 장마감/과거일은 네이버 KRX 1분봉에서 해당 날짜의 정확한 `15:30:00` 행(`currentPrice`)만 정규장 종가로 인정**합니다. `15:30` 행이 없으면 pykrx·일봉·애프터마켓 현재가로 대체하지 않고 기존 JSON을 유지한 채 실패합니다. 2026-09-14 이전 날짜만 기존 raw pykrx 종가 경로를 허용합니다.
 - **필수 설정:** GitHub 저장소 `Settings → Secrets and variables → Actions → New repository secret`에 `KRX_ID`, `KRX_PW`를 등록합니다. 값은 KRX 정보데이터시스템의 로그인 ID/비밀번호입니다. workflow가 이 Secrets를 pykrx 환경변수로 전달합니다. 누락 시 설정 안내와 함께 중단합니다.
 - `GAS_code.js` 수정은 GitHub 업로드만으로 운영 Web App에 적용되지 않습니다. Apps Script 소스를 교체한 뒤 기존 Web App 배포를 **새 버전으로 업데이트**해야 합니다.
 - workflow는 `prices.json`과 `performance_snapshots.json`만 자동 commit 대상으로 취급합니다.

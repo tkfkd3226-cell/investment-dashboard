@@ -97,7 +97,7 @@ class UpdatePricesSafetyTest(unittest.TestCase):
 
         self.assertEqual(prices["2026-09-09"]["marketStatus"], "close")
         self.assertEqual(prices["2026-09-09"]["priceBasis"], "regular_close")
-        self.assertEqual(prices["2026-09-09"]["regularCloseSource"], "pykrx_raw")
+        self.assertEqual(prices["2026-09-09"]["regularCloseSource"], "pykrx_pre_aftermarket")
 
     def test_intraday_snapshot_is_tagged_as_intraday(self):
         self.updater.market_status_for_date = lambda _: "intraday"
@@ -109,44 +109,70 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         self.assertEqual(prices["2026-09-09"]["marketStatus"], "intraday")
         self.assertEqual(prices["2026-09-09"]["priceBasis"], "intraday")
 
-    def test_fetch_close_uses_exact_date_all_market_raw_krx_after_regular_close(self):
-        class FakeSeries:
-            def items(self):
-                return [("005930", 252500), ("000660", 1745000)]
-
-        class FakeFrame:
-            empty = False
-            columns = ["종가"]
-            def __getitem__(self, key):
-                if key != "종가":
-                    raise KeyError(key)
-                return FakeSeries()
+    def test_fetch_close_uses_exact_1530_minute_after_aftermarket_start(self):
+        class FakeResponse:
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return [
+                    {"localDateTime": "20260917153000", "currentPrice": 1745000},
+                    {"localDateTime": "20260917160000", "currentPrice": 1764000},
+                ]
 
         calls = []
-        def fake_bulk(*args, **kwargs):
-            calls.append((args, kwargs))
-            return FakeFrame()
+        def fake_get(url, **kwargs):
+            calls.append((url, kwargs))
+            return FakeResponse()
 
-        self.updater.requests.get = lambda *_args, **_kwargs: self.fail(
-            "closed-session stock close must not use a public Naver quote/day-candle endpoint"
+        self.updater.requests.get = fake_get
+        self.updater.stock.get_market_ohlcv_by_ticker = lambda *_a, **_k: self.fail(
+            "post-cutover close must not use pykrx all-market data"
         )
-        self.updater.stock.get_market_ohlcv_by_ticker = fake_bulk
-        self.updater.stock.get_market_ohlcv_by_date = lambda *_args, **_kwargs: self.fail(
-            "per-ticker raw path should not run when all-market KRX succeeds"
+        self.updater.stock.get_market_ohlcv_by_date = lambda *_a, **_k: self.fail(
+            "post-cutover close must not use pykrx by-date data"
         )
         self.updater.market_status_for_date = lambda _: "close"
 
         actual, close, error = self.updater.fetch_close("000660", "2026-09-17", retries=0)
 
         self.assertEqual((actual, close, error), ("2026-09-17", 1745000, None))
-        self.assertEqual(calls, [(("20260917",), {"market": "ALL", "alternative": False})])
+        self.assertEqual(len(calls), 1)
+        url, kwargs = calls[0]
+        self.assertEqual(url, "https://api.stock.naver.com/chart/domestic/item/000660/minute")
+        self.assertEqual(kwargs["params"], {
+            "startDateTime": "202609171530",
+            "endDateTime": "202609171530",
+        })
 
-    def test_fetch_close_falls_back_to_raw_by_date_when_all_market_krx_endpoint_fails(self):
+    def test_post_aftermarket_close_fails_closed_without_exact_1530_bar(self):
+        class FakeResponse:
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return [{"localDateTime": "20260917160000", "currentPrice": 1764000}]
+
+        self.updater.requests.get = lambda *_a, **_k: FakeResponse()
+        self.updater.stock.get_market_ohlcv_by_ticker = lambda *_a, **_k: self.fail(
+            "post-cutover close must not fall back to pykrx"
+        )
+        self.updater.stock.get_market_ohlcv_by_date = lambda *_a, **_k: self.fail(
+            "post-cutover close must not fall back to pykrx"
+        )
+        self.updater.market_status_for_date = lambda _: "close"
+
+        actual, close, error = self.updater.fetch_close("000660", "2026-09-17", retries=0)
+
+        self.assertIsNone(actual)
+        self.assertIsNone(close)
+        self.assertIn("naver-krx-1530-minute=", error)
+        self.assertIn("missing-exact-1530-minute-bar", error)
+
+    def test_pre_aftermarket_close_falls_back_to_raw_by_date(self):
         calls = []
 
         class FakeRow:
             def __getitem__(self, key):
-                return 1745000 if key == "종가" else None
+                return 1812000 if key == "종가" else None
 
         class FakeILoc:
             def __getitem__(self, _):
@@ -154,7 +180,7 @@ class UpdatePricesSafetyTest(unittest.TestCase):
 
         class FakeFrame:
             empty = False
-            index = [__import__("datetime").datetime(2026, 9, 17)]
+            index = [__import__("datetime").datetime(2026, 9, 11)]
             iloc = FakeILoc()
 
         self.updater.stock.get_market_ohlcv_by_ticker = lambda *_args, **_kwargs: (_ for _ in ()).throw(
@@ -164,33 +190,25 @@ class UpdatePricesSafetyTest(unittest.TestCase):
             calls.append((args, kwargs))
             return FakeFrame()
         self.updater.stock.get_market_ohlcv_by_date = fake_getter
+        self.updater.requests.get = lambda *_a, **_k: self.fail(
+            "pre-aftermarket close should not require Naver minute data"
+        )
         self.updater.market_status_for_date = lambda _: "close"
 
-        actual, close, error = self.updater.fetch_close("000660", "2026-09-17", retries=0)
+        actual, close, error = self.updater.fetch_close("000660", "2026-09-11", retries=0)
 
-        self.assertEqual((actual, close, error), ("2026-09-17", 1745000, None))
+        self.assertEqual((actual, close, error), ("2026-09-11", 1812000, None))
         self.assertEqual(calls[0][1], {"adjusted": False})
 
-    def test_fetch_close_fails_closed_if_both_raw_krx_regular_close_paths_are_unavailable(self):
-        self.updater.requests.get = lambda *_args, **_kwargs: self.fail(
-            "closed-session stock close must not fall back to Naver"
+    def test_verified_close_source_does_not_trust_legacy_pykrx_label(self):
+        self.assertEqual(
+            self.updater.verified_regular_close_source("2026-09-17"),
+            "naver_krx_1530_minute",
         )
-        self.updater.stock.get_market_ohlcv_by_ticker = lambda *_args, **_kwargs: (_ for _ in ()).throw(
-            RuntimeError("all-market pykrx unavailable")
+        self.assertEqual(
+            self.updater.verified_regular_close_source("2026-09-11"),
+            "pykrx_pre_aftermarket",
         )
-        self.updater.stock.get_market_ohlcv_by_date = lambda *_args, **_kwargs: (_ for _ in ()).throw(
-            RuntimeError("per-ticker pykrx unavailable")
-        )
-        self.updater.market_status_for_date = lambda _: "close"
-
-        actual, close, error = self.updater.fetch_close("000660", "2026-09-17", retries=0)
-
-        self.assertIsNone(actual)
-        self.assertIsNone(close)
-        self.assertIn("pykrx-raw-all-market=", error)
-        self.assertIn("pykrx-raw-by-date=", error)
-        self.assertIn("all-market pykrx unavailable", error)
-        self.assertIn("per-ticker pykrx unavailable", error)
 
     def test_fetch_close_keeps_intraday_default_source_during_regular_session(self):
         calls = []
@@ -248,34 +266,60 @@ class KrxRefreshBoundaryTest(unittest.TestCase):
         self.assertEqual(self.updater.market_status_for_date("2026-09-16"), "close")
         self.assertEqual(self.updater.market_status_for_date("2026-09-17"), "intraday")
 
-    def test_etf_bulk_is_separate_from_stock_map_and_cached(self):
-        class Frame:
-            empty = False
-            columns = ["종가"]
-            def __getitem__(self, _):
-                return {"0163Y0": 12345, "395160": 35100}
-        self.updater.market_status_for_date = lambda _: "close"
-        self.updater._REGULAR_CLOSE_MAP_CACHE[("2026-09-17", False)] = {"005930": 250000}
-        with patch.object(self.updater.stock, "get_etf_ohlcv_by_ticker", create=True, return_value=Frame()) as getter:
-            for ticker, expected in [("0163Y0", 12345), ("395160", 35100)]:
-                self.assertEqual(self.updater.fetch_close(ticker, "2026-09-17", retries=0, is_etf=True),
-                                 ("2026-09-17", expected, None))
-            getter.assert_called_once_with("20260917")
+    def test_latest_market_date_probes_backward_when_exact_close_is_missing(self):
+        calls = []
+        self.updater.first_security_ticker = lambda _portfolio: "000660"
+        def probe(_portfolio, date):
+            calls.append(date)
+            if date == "2026-09-17":
+                return date, 1745000, None
+            return None, None, "missing-exact-1530-minute-bar"
+        self.updater.probe_trading_date = probe
 
-    def test_etf_history_fallback_does_not_call_stock_history(self):
+        latest = self.updater.resolve_latest_market_date({}, "2026-09-19")
+
+        self.assertEqual(latest, "2026-09-17")
+        self.assertEqual(calls, ["2026-09-18", "2026-09-17"])
+
+    def test_etf_post_aftermarket_uses_exact_1530_minute_source(self):
+        class FakeResponse:
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return [{"localDateTime": "20260917153000", "currentPrice": 38485}]
+
+        calls = []
+        def fake_get(url, **kwargs):
+            calls.append((url, kwargs))
+            return FakeResponse()
+
+        self.updater.market_status_for_date = lambda _: "close"
+        self.updater.requests.get = fake_get
+        with patch.object(self.updater.stock, "get_etf_ohlcv_by_ticker", create=True) as getter:
+            self.assertEqual(
+                self.updater.fetch_close("395160", "2026-09-17", retries=0, is_etf=True),
+                ("2026-09-17", 38485, None),
+            )
+            getter.assert_not_called()
+        self.assertIn("/395160/minute", calls[0][0])
+
+    def test_etf_pre_aftermarket_history_fallback_does_not_call_stock_history(self):
         self.updater.market_status_for_date = lambda _: "close"
         self.updater.stock.get_market_ohlcv_by_date = lambda *a, **k: self.fail("ETF must not use stock raw endpoint")
-        with patch.object(self.updater.stock, "get_etf_ohlcv_by_date", create=True,
-                          return_value=self.frame("2026-09-17", 35000)) as getter:
-            self.assertEqual(self.updater.fetch_close("395160", "2026-09-17", retries=0, is_etf=True),
-                             ("2026-09-17", 35000, None))
-            getter.assert_called_once_with("20260910", "20260917", "395160")
+        with patch.object(self.updater.stock, "get_etf_ohlcv_by_ticker", create=True,
+                          side_effect=RuntimeError("bulk unavailable")):
+            with patch.object(self.updater.stock, "get_etf_ohlcv_by_date", create=True,
+                              return_value=self.frame("2026-09-11", 40130)) as getter:
+                self.assertEqual(self.updater.fetch_close("395160", "2026-09-11", retries=0, is_etf=True),
+                                 ("2026-09-11", 40130, None))
+                getter.assert_called_once_with("20260904", "20260911", "395160")
 
-    def test_invalid_and_future_raw_quotes_are_rejected(self):
+    def test_invalid_and_future_raw_quotes_are_rejected_before_aftermarket_cutover(self):
         self.updater.market_status_for_date = lambda _: "close"
-        for date, value in [("2026-09-17", 0), ("2026-09-17", -1), ("2026-09-18", 100)]:
+        for date, value in [("2026-09-11", 0), ("2026-09-11", -1), ("2026-09-12", 100)]:
+            self.updater.stock.get_market_ohlcv_by_ticker = lambda *a, **k: (_ for _ in ()).throw(RuntimeError("bulk unavailable"))
             self.updater.stock.get_market_ohlcv_by_date = lambda *a, **k: self.frame(date, value)
-            actual, close, err = self.updater.fetch_close("000660", "2026-09-17", retries=0)
+            actual, close, err = self.updater.fetch_close("000660", "2026-09-11", retries=0)
             self.assertIsNone(close)
             self.assertIn("invalid-price-or-source-date", err)
 
