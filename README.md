@@ -268,7 +268,6 @@ investment-dashboard/
 │
 ├─ .github/
 │  └─ workflows/
-│     ├─ pages.yml
 │     └─ update-prices.yml
 │
 ├─ .gitattributes                  # text LF 고정 / binary asset normalization 제외
