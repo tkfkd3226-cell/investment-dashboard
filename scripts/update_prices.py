@@ -61,7 +61,7 @@ def market_status_kst() -> str:
     current_minutes = now.hour * 60 + now.minute
     market_open = 9 * 60
     market_close = 15 * 60 + 30
-    if market_open <= current_minutes <= market_close:
+    if now.weekday() < 5 and market_open <= current_minutes < market_close:
         return "intraday"
     return "close"
 
@@ -102,26 +102,28 @@ def previous_snapshot(prices: dict[str, Any], before: str | None = None):
 # Market data fetchers
 # ---------------------------------------------------------------------------
 
-_REGULAR_CLOSE_MAP_CACHE: dict[str, dict[str, int]] = {}
+_REGULAR_CLOSE_MAP_CACHE: dict[tuple[str, bool], dict[str, int]] = {}
 
 
-def _fetch_regular_close_map_from_pykrx(target_date: str) -> dict[str, int]:
+def _fetch_regular_close_map_from_pykrx(target_date: str, is_etf: bool = False) -> dict[str, int]:
     """Return the exact-date raw KRX close map from pykrx's all-market endpoint.
 
     This uses a different KRX endpoint from ``get_market_ohlcv_by_date`` and is
-    cached per date so one workflow run does not download the whole market for
-    every holding.  It is a regular-session KRX source, not a Naver/NXT quote.
+    cached per date and asset class so one workflow run does not download the
+    whole market for every holding. ETFs use their own KRX endpoint.
     """
-    cached = _REGULAR_CLOSE_MAP_CACHE.get(target_date)
+    cache_key = (target_date, is_etf)
+    cached = _REGULAR_CLOSE_MAP_CACHE.get(cache_key)
     if cached is not None:
         return cached
 
-    getter = getattr(stock, "get_market_ohlcv_by_ticker", None)
+    getter = getattr(stock, "get_etf_ohlcv_by_ticker" if is_etf else "get_market_ohlcv_by_ticker", None)
     if getter is None:
         raise AttributeError("pykrx all-market OHLCV function is unavailable")
 
     date_text = target_date.replace("-", "")
-    df = getter(date_text, market="ALL", alternative=False)
+    # 주식 ALL에는 ETF가 포함되지 않는다. ETF는 별도 KRX 시장 API를 쓴다.
+    df = getter(date_text) if is_etf else getter(date_text, market="ALL", alternative=False)
     if df is None or df.empty:
         raise ValueError("empty-all-market-dataframe")
     if "종가" not in df.columns:
@@ -139,12 +141,12 @@ def _fetch_regular_close_map_from_pykrx(target_date: str) -> dict[str, int]:
     if not closes:
         raise ValueError("empty-all-market-close-map")
 
-    _REGULAR_CLOSE_MAP_CACHE[target_date] = closes
+    _REGULAR_CLOSE_MAP_CACHE[cache_key] = closes
     return closes
 
 
-def _fetch_exact_close_from_pykrx_all_market(ticker: str, target_date: str):
-    closes = _fetch_regular_close_map_from_pykrx(target_date)
+def _fetch_exact_close_from_pykrx_all_market(ticker: str, target_date: str, is_etf: bool = False):
+    closes = _fetch_regular_close_map_from_pykrx(target_date, is_etf)
     key = str(ticker).zfill(6)
     if key not in closes:
         raise KeyError(f"ticker-not-in-all-market:{key}")
@@ -157,9 +159,15 @@ def _fetch_close_from_pykrx(
     end: datetime,
     *,
     adjusted: bool | None,
+    is_etf: bool = False,
 ):
     kwargs = {} if adjusted is None else {"adjusted": adjusted}
-    df = stock.get_market_ohlcv_by_date(
+    # 장중 기본 경로는 Naver이고, 장후 ETF는 주식용 raw API로 조회할 수 없다.
+    getter = stock.get_market_ohlcv_by_date
+    if is_etf and adjusted is False:
+        getter = stock.get_etf_ohlcv_by_date
+        kwargs = {}
+    df = getter(
         start.strftime("%Y%m%d"),
         end.strftime("%Y%m%d"),
         ticker,
@@ -171,6 +179,8 @@ def _fetch_close_from_pykrx(
     last_idx = df.index[-1]
     actual_date = last_idx.strftime(DATE_FORMAT) if hasattr(last_idx, "strftime") else str(last_idx)[:10]
     close = int(df.iloc[-1]["종가"])
+    if close <= 0 or not start.strftime(DATE_FORMAT) <= actual_date <= end.strftime(DATE_FORMAT):
+        raise ValueError("invalid-price-or-source-date")
     return actual_date, close
 
 
@@ -180,6 +190,8 @@ def fetch_close(
     lookback_days: int = DEFAULT_LOOKBACK_DAYS,
     retries: int = FETCH_RETRIES,
     retry_delay: float = FETCH_RETRY_DELAY_SECONDS,
+    *,
+    is_etf: bool = False,
 ):
     """Return the latest available KRX price on or before ``target_date``.
 
@@ -200,7 +212,7 @@ def fetch_close(
 
         if closed:
             try:
-                actual_date, close = _fetch_exact_close_from_pykrx_all_market(ticker, target_date)
+                actual_date, close = _fetch_exact_close_from_pykrx_all_market(ticker, target_date, is_etf)
                 return actual_date, close, None
             except Exception as exc:
                 errors.append(f"pykrx-raw-all-market={exc!r}")
@@ -211,6 +223,7 @@ def fetch_close(
                 start,
                 end,
                 adjusted=False if closed else None,
+                is_etf=is_etf,
             )
             return actual_date, close, None
         except Exception as exc:
@@ -459,7 +472,8 @@ def probe_trading_date(portfolio: dict[str, Any], target_date: str):
     ticker = first_security_ticker(portfolio)
     if not ticker:
         return None, None, "portfolio has no securities ticker"
-    return fetch_close(ticker, target_date)
+    item = next(item for item in portfolio["securities"] if str(item.get("ticker")) == ticker)
+    return fetch_close(ticker, target_date, is_etf=item.get("type") == "ETF")
 
 
 def resolve_latest_market_date(portfolio: dict[str, Any], target_date: str) -> str | None:
@@ -493,7 +507,7 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
     latest_market = resolve_latest_market_date(portfolio, today_kst())
 
     if not latest_market:
-        return []
+        raise RuntimeError("KRX 최신 거래일 조회 실패: 가격 갱신 없이 성공 처리하지 않습니다.")
 
     if not latest_saved:
         return [latest_market]
@@ -832,8 +846,8 @@ def calculate_performance_snapshot(
         eval_amount = cost if post_close_pending else int(round(price * qty))
         profit = 0 if post_close_pending else eval_amount - cost
         total_profit = int(security_safe_aggregate("종목 누적손익", profit + realized_profit))
-        if qty > 0 or security_has_trade_on_date(portfolio, str(ticker), target_date):
-            raw_holding_profit = int(security_safe_aggregate("증권 누적손익", raw_holding_profit + total_profit))
+        # 가격 조회/차트에서 제외된 전량매도 종목도 확정 실현손익은 계좌 성과에 남는다.
+        raw_holding_profit = int(security_safe_aggregate("증권 누적손익", raw_holding_profit + total_profit))
 
         if item.get("type") == "ETF":
             allocation["ETF"] += eval_amount
@@ -916,10 +930,12 @@ def update_one_date(
     snapshots: dict[str, Any],
     force_display: bool = False,
     no_display: bool = False,
+    _session_retry: bool = False,
 ) -> list[str]:
     """Fetch one date, update prices, then rebuild its performance snapshot."""
     prev_key, prev = previous_snapshot(prices, before=target_date)
     securities, pension, warnings, source_dates = {}, {}, [], {}
+    status = market_status_for_date(target_date)
 
     manual_valuation_used = False
     for item in portfolio["securities"]:
@@ -934,7 +950,7 @@ def update_one_date(
         if float(security_position_state(item, target_date, portfolio)["qty"]) <= 0 and not security_has_trade_on_date(portfolio, ticker, target_date):
             continue
 
-        actual, close, err = fetch_close(ticker, target_date)
+        actual, close, err = fetch_close(ticker, target_date, is_etf=item.get("type") == "ETF")
 
         actual_date = str(actual or target_date)
         if close is None:
@@ -955,7 +971,7 @@ def update_one_date(
 
     for item in portfolio["pension"]:
         ticker = item["ticker"]
-        actual, close, err = fetch_close(ticker, target_date)
+        actual, close, err = fetch_close(ticker, target_date, is_etf=True)
 
         actual_date = str(actual or target_date)
         if close is None:
@@ -986,7 +1002,12 @@ def update_one_date(
     if force_display and not warnings:
         display = True
 
-    status = market_status_for_date(target_date)
+    # 여러 종목을 읽는 중 15:30을 넘으면 장중 값을 종가로 표시하지 않고 전부 재조회한다.
+    if status != market_status_for_date(target_date):
+        if _session_retry:
+            raise RuntimeError("KRX 조회 중 거래 세션이 다시 변경되었습니다. 재갱신이 필요합니다.")
+        return update_one_date(target_date, portfolio, prices, snapshots,
+                               force_display, no_display, _session_retry=True)
     price_basis = "intraday" if status == "intraday" else "regular_close"
     updated_at = datetime.now(KST).isoformat(timespec="seconds")
 
@@ -1085,7 +1106,7 @@ def main() -> int:
                     f"직전 확인 거래일은 {actual_date}입니다."
                 )
             raise RuntimeError(
-                f"--date {explicit_date}의 정규장 종가를 확인하지 못했습니다: {probe_error}"
+                f"--date {explicit_date}의 KRX 가격/정규장 종가를 확인하지 못했습니다: {probe_error}"
             )
 
     target_dates = resolve_target_dates(portfolio, prices, explicit_date or None)
@@ -1108,6 +1129,11 @@ def main() -> int:
         )
         all_warnings.extend(warnings)
 
+    # 일부 종목만 성공한 결과로 기존 정상 파일을 덮어쓰지 않는다.
+    if all_warnings:
+        print("KRX 갱신 실패: 원본 prices/performance 파일을 유지합니다.")
+        return 1
+
     kospi_through = explicit_date or today_kst()
     kospi_changed = backfill_kospi_index(prices, snapshots, kospi_through)
 
@@ -1117,16 +1143,11 @@ def main() -> int:
 
     save_dashboard_data(prices, snapshots)
 
-    if all_warnings:
-        print("WARNINGS:")
-        for warning in all_warnings:
-            print("-", warning)
-
     if target_dates:
         print("updated target dates: " + ", ".join(target_dates))
     if kospi_changed:
         print(f"updated KOSPI dates: {len(kospi_changed)}")
-    return 1 if all_warnings else 0
+    return 0
 
 
 if __name__ == "__main__":

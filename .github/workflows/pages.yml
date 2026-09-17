@@ -15,6 +15,12 @@ on:
 
   workflow_dispatch:
 
+  # GITHUB_TOKEN의 데이터 push는 push workflow를 다시 실행하지 않는다.
+  workflow_run:
+    workflows: ["Update KRX closing prices"]
+    types: [completed]
+    branches: [main]
+
 permissions:
   contents: read
   pages: write
@@ -26,11 +32,20 @@ concurrency:
 
 jobs:
   build:
+    if: >-
+      (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # workflow_run.head_sha는 가격 저장 전 SHA다. 실행 시점 main의 저장 결과를 배포한다.
+          ref: main
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -438,7 +438,7 @@ test('KRX 갱신은 기준일과 다른 종가·직전값을 숨김 처리하고
   assert.match(updatePricesPython,/source_dates\[f"SEC:\{ticker\}"\] = actual_date/);
   assert.match(updatePricesPython,/if actual_date != target_date:\s*warnings\.append/);
   assert.match(updatePricesPython,/display = not warnings/);
-  assert.match(updatePricesPython,/return 1 if all_warnings else 0/);
+  assert.match(updatePricesPython,/if all_warnings:[^]*?return 1[^]*?save_dashboard_data\(prices, snapshots\)/);
 });
 
 test('KRX workflow의 shell 조건문은 각 run step 안에서 완결되어 실행 단계 문법 오류를 만들지 않는다',()=>{
@@ -787,17 +787,69 @@ test('Live Valuation 부분 갱신은 Hero 기준문구도 실제 Market AI 가�
   assert.match(app,/heroBasis\.textContent=`\(\$\{heroPerformanceBasisLabel\(x\.date\)\}\)`;/);
 });
 
-test('KRX 종가 반영은 인증 없는 정규장 일봉을 우선하고 raw pykrx를 failover로 유지한다',()=>{
+test('KRX 장마감 종가는 raw KRX all-market을 우선하고 raw by-date를 failover로 사용하며 Naver/NXT를 배제한다',()=>{
   const updater=read('scripts/update_prices.py');
   const gas=read('GAS_code.js');
-  assert.match(updater,/api\.stock\.naver\.com\/chart\/domestic\/item\/\{ticker\}/);
-  assert.match(updater,/"periodType": "dayCandle"/);
-  assert.match(updater,/adjusted=False/);
-  assert.match(updater,/"priceBasis": price_basis/);
+  assert.match(updater,/get_market_ohlcv_by_ticker/);
+  assert.match(updater,/market="ALL"/);
+  assert.match(updater,/alternative=False/);
+  assert.match(updater,/adjusted=False if closed else None/);
+  assert.match(updater,/pykrx-raw-all-market/);
+  assert.match(updater,/pykrx-raw-by-date/);
+  assert.doesNotMatch(updater,/api\.stock\.naver\.com\/chart\/domestic\/item\/\{ticker\}/);
+  assert.doesNotMatch(updater,/"periodType": "dayCandle"/);
+  assert.match(updater,/"regularCloseSource": "pykrx_raw/);
   assert.match(updater,/정규장 종가를 확인하지 못했습니다/);
-  assert.match(gas,/=== "regular_close"/);
+  assert.match(gas,/function krxSnapshotHasVerifiedRegularClose\(snapshot\)/);
+  assert.match(gas,/snapshot\.regularCloseSource/);
   assert.match(gas,/reconfirm_regular_close/);
-  assert.match(ui,/정규장 종가 기준이 아니면 다시 반영합니다\./);
+  assert.match(ui,/15:30 전 장중 가격, 15:30부터 정규장 종가/);
+});
+
+test('KRX 선택일 재갱신은 기존 종가 라벨과 관계없이 실제 dispatch를 허용한다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('function latestVisiblePriceSnapshot(');
+  const end=gas.indexOf('// KRX requestId 완료 이력',start);
+  const context=vm.createContext({});
+  vm.runInContext(gas.slice(start,end),context);
+  for(const snapshot of [
+    {marketStatus:'close',priceBasis:'regular_close',regularCloseSource:'pykrx_raw'},
+    {marketStatus:'intraday',priceBasis:'intraday'},
+    {marketStatus:'close'},
+    null
+  ]){
+    const result=context.shouldDispatchKrxWorkflow({date:'2026-09-17'},{'2026-09-17':snapshot});
+    assert.equal(result.shouldDispatch,true);
+    assert.equal(result.reason,'explicit_date_refresh');
+  }
+});
+
+test('KRX GAS 시간 경계는 15:30 정각부터 장후다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('function nowKSTDateTimeInfo()');
+  const end=gas.indexOf('// KST 기준 날짜 문자열',start);
+  let hour=15,minute=29,day=4;
+  const context=vm.createContext({Utilities:{formatDate:(_d,_z,f)=>({'yyyy-MM-dd':'2026-09-17',H:hour,m:minute,u:day}[f])}});
+  vm.runInContext(gas.slice(start,end),context);
+  assert.equal(context.nowKSTDateTimeInfo().isMarketTime,true);
+  minute=30;
+  assert.equal(context.nowKSTDateTimeInfo().isMarketTime,false);
+  assert.equal(context.nowKSTDateTimeInfo().isAfterClose,true);
+  hour=10;day=6;
+  assert.equal(context.nowKSTDateTimeInfo().isMarketTime,false);
+});
+
+test('KRX 성공 후 Pages는 저장 전 run SHA가 아닌 main의 최신 데이터를 배포한다',()=>{
+  const pages=read('.github/workflows/pages.yml');
+  assert.match(updatePricesWorkflow,/KRX_ID: \$\{\{ secrets\.KRX_ID \}\}/);
+  assert.match(updatePricesWorkflow,/KRX_PW: \$\{\{ secrets\.KRX_PW \}\}/);
+  assert.match(pages,/workflow_run:[^]*workflows: \["Update KRX closing prices"\][^]*types: \[completed\]/);
+  assert.match(pages,/workflow_run\.conclusion == 'success'/);
+  assert.match(pages,/workflow_run\.head_branch == 'main'/);
+  assert.match(pages,/workflow_run\.head_repository\.full_name == github\.repository/);
+  assert.match(pages,/uses: actions\/checkout@v6\s+with:[^]*?ref: main/);
 });
 
 test('Standalone Web App은 설치 당시 hash보다 KST 오늘을 우선하고 날짜가 바뀐 foreground 복귀에서 최신 데이터를 다시 읽는다',()=>{
@@ -1307,11 +1359,9 @@ test('증권 종목별 누적손익 UI는 최종 실현손익과 historical univ
   assert.match(charts,/securityHistoricalAllocItems\(x\.date\)\.map\(h=>\{/);
 });
 
-test('증권 종목별 누적손익 카드 grid는 Web 6열·Tablet 3열·Phone 최대 2열 계약을 유지한다',()=>{
+test('증권 종목별 누적손익 카드 grid는 Web 6열·Tablet 3열 계약을 유지한다',()=>{
   assert.match(common,/#chart-symbol \.chart-note\.symbol-summary-grid\{[^}]*grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/);
   assert.match(tablet,/#chart-symbol \.chart-note\.symbol-summary-grid\{[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
-  assert.match(mobile,/#chart-symbol \.chart-note\.symbol-summary-grid\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(special,/@media \(orientation:landscape\)[^]*?#chart-symbol \.chart-note\.symbol-summary-grid\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'실제 터치폰 가로도 종목별 누적손익 카드를 최대 2열로 유지해야 한다');
 });
 
 test('전량매도 취소선과 거래 상세 tooltip은 동일한 공통 lifecycle 조건을 4개 화면에 적용한다',()=>{

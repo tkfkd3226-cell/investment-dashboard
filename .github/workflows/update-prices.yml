@@ -73,7 +73,13 @@ jobs:
       - name: Update KRX prices and snapshots
         env:
           INPUT_DATE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.date || '' }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
         run: |
+          if [ -z "$KRX_ID" ] || [ -z "$KRX_PW" ]; then
+            echo "::error::Repository Settings > Secrets and variables > Actions에 KRX_ID / KRX_PW (KRX 정보데이터시스템 로그인)를 등록하세요."
+            exit 1
+          fi
           if [ -n "$INPUT_DATE" ]; then
             python scripts/update_prices.py --date "$INPUT_DATE"
           else

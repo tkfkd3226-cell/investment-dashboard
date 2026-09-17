@@ -7,6 +7,8 @@ import json
 import sys
 import types
 import unittest
+from datetime import datetime
+from unittest.mock import patch
 from pathlib import Path
 
 
@@ -18,10 +20,10 @@ def load_updater():
     # update_one_date with a mocked fetcher, so a tiny import stub is sufficient.
     pykrx = types.ModuleType("pykrx")
     pykrx.stock = types.SimpleNamespace()
-    sys.modules.setdefault("pykrx", pykrx)
+    sys.modules["pykrx"] = pykrx
     requests = types.ModuleType("requests")
     requests.get = lambda *_, **__: None
-    sys.modules.setdefault("requests", requests)
+    sys.modules["requests"] = requests
     spec = importlib.util.spec_from_file_location("update_prices_under_test", ROOT / "scripts" / "update_prices.py")
     module = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
@@ -41,7 +43,7 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         }
 
     def test_stale_close_is_hidden_and_records_each_symbol_source_date(self):
-        self.updater.fetch_close = lambda ticker, _: ("2026-09-08", 100 if ticker == "SEC" else 200, None)
+        self.updater.fetch_close = lambda ticker, _, **_kw: ("2026-09-08", 100 if ticker == "SEC" else 200, None)
         prices, snapshots = {}, {}
 
         warnings = self.updater.update_one_date("2026-09-09", self.portfolio, prices, snapshots)
@@ -54,7 +56,7 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         self.assertNotIn("regularCloseSource", row)
 
     def test_fetch_fallback_is_hidden_and_keeps_previous_source_date(self):
-        self.updater.fetch_close = lambda *_: (None, None, "network error")
+        self.updater.fetch_close = lambda *_, **_kw: (None, None, "network error")
         prices = {
             "2026-09-08": {
                 "actualMarketDate": "2026-09-08",
@@ -76,8 +78,8 @@ class UpdatePricesSafetyTest(unittest.TestCase):
 
     def test_warning_hidden_date_is_automatically_retried(self):
         self.updater.today_kst = lambda: "2026-09-09"
-        self.updater.resolve_latest_market_date = lambda *_: "2026-09-09"
-        self.updater.is_actual_trading_date = lambda *_: True
+        self.updater.resolve_latest_market_date = lambda *_, **_kw: "2026-09-09"
+        self.updater.is_actual_trading_date = lambda *_, **_kw: True
         prices = {
             "2026-09-08": {"display": True},
             "2026-09-09": {"display": False, "warnings": ["network error"]},
@@ -88,7 +90,7 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         self.assertEqual(dates, ["2026-09-09"])
 
     def test_close_snapshot_is_tagged_as_regular_close(self):
-        self.updater.fetch_close = lambda ticker, date: (date, 100 if ticker == "SEC" else 200, None)
+        self.updater.fetch_close = lambda ticker, date, **_kw: (date, 100 if ticker == "SEC" else 200, None)
         prices, snapshots = {}, {}
 
         self.updater.update_one_date("2026-09-09", self.portfolio, prices, snapshots)
@@ -99,7 +101,7 @@ class UpdatePricesSafetyTest(unittest.TestCase):
 
     def test_intraday_snapshot_is_tagged_as_intraday(self):
         self.updater.market_status_for_date = lambda _: "intraday"
-        self.updater.fetch_close = lambda ticker, date: (date, 100 if ticker == "SEC" else 200, None)
+        self.updater.fetch_close = lambda ticker, date, **_kw: (date, 100 if ticker == "SEC" else 200, None)
         prices, snapshots = {}, {}
 
         self.updater.update_one_date("2026-09-09", self.portfolio, prices, snapshots)
@@ -220,6 +222,97 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         self.assertEqual(calls[0][1], {})
 
 
+class KrxRefreshBoundaryTest(unittest.TestCase):
+    def setUp(self):
+        self.updater = load_updater()
+
+    def frame(self, date, close):
+        return types.SimpleNamespace(
+            empty=False, index=[datetime.fromisoformat(date)],
+            iloc=[{"종가": close}],
+        )
+
+    def test_1530_is_close_weekend_is_not_intraday(self):
+        for stamp, status in [("2026-09-17T15:29:59", "intraday"),
+                              ("2026-09-17T15:30:00", "close"),
+                              ("2026-09-17T15:30:59", "close"),
+                              ("2026-09-17T18:00:00", "close"),
+                              ("2026-09-19T10:00:00", "close")]:
+            with self.subTest(stamp=stamp), patch.object(self.updater, "datetime") as clock:
+                clock.now.return_value = datetime.fromisoformat(stamp)
+                self.assertEqual(self.updater.market_status_kst(), status)
+
+    def test_historical_date_uses_close_even_during_todays_session(self):
+        self.updater.today_kst = lambda: "2026-09-17"
+        self.updater.market_status_kst = lambda: "intraday"
+        self.assertEqual(self.updater.market_status_for_date("2026-09-16"), "close")
+        self.assertEqual(self.updater.market_status_for_date("2026-09-17"), "intraday")
+
+    def test_etf_bulk_is_separate_from_stock_map_and_cached(self):
+        class Frame:
+            empty = False
+            columns = ["종가"]
+            def __getitem__(self, _):
+                return {"0163Y0": 12345, "395160": 35100}
+        self.updater.market_status_for_date = lambda _: "close"
+        self.updater._REGULAR_CLOSE_MAP_CACHE[("2026-09-17", False)] = {"005930": 250000}
+        with patch.object(self.updater.stock, "get_etf_ohlcv_by_ticker", create=True, return_value=Frame()) as getter:
+            for ticker, expected in [("0163Y0", 12345), ("395160", 35100)]:
+                self.assertEqual(self.updater.fetch_close(ticker, "2026-09-17", retries=0, is_etf=True),
+                                 ("2026-09-17", expected, None))
+            getter.assert_called_once_with("20260917")
+
+    def test_etf_history_fallback_does_not_call_stock_history(self):
+        self.updater.market_status_for_date = lambda _: "close"
+        self.updater.stock.get_market_ohlcv_by_date = lambda *a, **k: self.fail("ETF must not use stock raw endpoint")
+        with patch.object(self.updater.stock, "get_etf_ohlcv_by_date", create=True,
+                          return_value=self.frame("2026-09-17", 35000)) as getter:
+            self.assertEqual(self.updater.fetch_close("395160", "2026-09-17", retries=0, is_etf=True),
+                             ("2026-09-17", 35000, None))
+            getter.assert_called_once_with("20260910", "20260917", "395160")
+
+    def test_invalid_and_future_raw_quotes_are_rejected(self):
+        self.updater.market_status_for_date = lambda _: "close"
+        for date, value in [("2026-09-17", 0), ("2026-09-17", -1), ("2026-09-18", 100)]:
+            self.updater.stock.get_market_ohlcv_by_date = lambda *a, **k: self.frame(date, value)
+            actual, close, err = self.updater.fetch_close("000660", "2026-09-17", retries=0)
+            self.assertIsNone(close)
+            self.assertIn("invalid-price-or-source-date", err)
+
+    def test_entire_snapshot_is_refetched_if_1530_is_crossed(self):
+        phase = {"value": "intraday"}
+        calls = []
+        self.updater.market_status_for_date = lambda _: phase["value"]
+        self.updater.calculate_performance_snapshot = lambda date, *_: {"date": date}
+        portfolio = {"securities": [{"ticker": "000660", "qty": 1, "cost": 1}],
+                     "pension": [{"ticker": "395160"}], "securitiesEvents": []}
+        def fetch(ticker, date, **kwargs):
+            calls.append((ticker, kwargs["is_etf"]))
+            value = 1755000 if phase["value"] == "intraday" else 1745000
+            phase["value"] = "close"
+            return date, value, None
+        self.updater.fetch_close = fetch
+        prices, snapshots = {}, {}
+        self.updater.update_one_date("2026-09-17", portfolio, prices, snapshots)
+        self.assertEqual(calls, [("000660", False), ("395160", True)] * 2)
+        self.assertEqual(prices["2026-09-17"]["securities"]["000660"], 1745000)
+        self.assertEqual(prices["2026-09-17"]["priceBasis"], "regular_close")
+
+    def test_failed_partial_refresh_does_not_save_either_file(self):
+        self.updater.parse_args = lambda: types.SimpleNamespace(date="2026-09-17", force_display=False, no_display=False)
+        self.updater.load_dashboard_data = lambda: ({}, {"original": True}, {"original": True})
+        self.updater.probe_trading_date = lambda *_: ("2026-09-17", 100, None)
+        self.updater.update_one_date = lambda *a, **k: ["ETF lookup failed"]
+        self.updater.save_dashboard_data = lambda *_: self.fail("failed refresh must preserve original files")
+        self.updater.backfill_kospi_index = lambda *_: self.fail("no further data mutation on failure")
+        self.assertEqual(self.updater.main(), 1)
+
+    def test_auto_probe_failure_does_not_report_successful_noop(self):
+        self.updater.resolve_latest_market_date = lambda *_: None
+        with self.assertRaisesRegex(RuntimeError, "최신 거래일 조회 실패"):
+            self.updater.resolve_target_dates({}, {}, None)
+
+
 class PerformanceCausalOrderingTest(unittest.TestCase):
     def setUp(self):
         self.updater = load_updater()
@@ -243,7 +336,7 @@ class PerformanceCausalOrderingTest(unittest.TestCase):
         }
 
     def test_historical_backfill_rebases_next_existing_daily_profit(self):
-        self.updater.fetch_close = lambda *_: ("2026-09-08", 110, None)
+        self.updater.fetch_close = lambda *_, **_kw: ("2026-09-08", 110, None)
         prices = {
             "2026-09-07": {
                 "display": True,
@@ -271,7 +364,7 @@ class PerformanceCausalOrderingTest(unittest.TestCase):
         self.assertEqual(snapshots["2026-09-09"]["dailyProfit"], 10)
 
     def test_correcting_middle_date_rebases_only_immediate_forward_dependency(self):
-        self.updater.fetch_close = lambda *_: ("2026-09-08", 115, None)
+        self.updater.fetch_close = lambda *_, **_kw: ("2026-09-08", 115, None)
         prices = {
             "2026-09-07": {"display": True, "securities": {"SEC": 100}, "pension": {}},
             "2026-09-08": {"display": True, "securities": {"SEC": 110}, "pension": {}},
@@ -308,7 +401,7 @@ class PerformanceCausalOrderingTest(unittest.TestCase):
             prices = copy.deepcopy(base_prices)
             snapshots = copy.deepcopy(base_snapshots)
             for target_date in order:
-                self.updater.fetch_close = lambda _, date: (date, closes[date], None)
+                self.updater.fetch_close = lambda _, date, **_kw: (date, closes[date], None)
                 self.updater.update_one_date(target_date, self.portfolio, prices, snapshots)
             return {
                 date: (snapshot["rawHoldingProfit"], snapshot["dailyProfit"])
@@ -360,7 +453,7 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
 
     def test_sale_date_fetches_market_close_for_sold_position_and_keeps_realized_profit(self):
         calls = []
-        self.updater.fetch_close = lambda ticker, date: calls.append((ticker, date)) or (date, 999, None)
+        self.updater.fetch_close = lambda ticker, date, **_kw: calls.append((ticker, date)) or (date, 999, None)
         prices, snapshots = {}, {}
 
         warnings = self.updater.update_one_date("2026-06-20", self.portfolio, prices, snapshots)
@@ -376,7 +469,7 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
 
     def test_pre_sale_backfill_still_fetches_the_historical_position(self):
         calls = []
-        self.updater.fetch_close = lambda ticker, date: calls.append((ticker, date)) or (date, 90, None)
+        self.updater.fetch_close = lambda ticker, date, **_kw: calls.append((ticker, date)) or (date, 90, None)
         prices, snapshots = {}, {}
 
         warnings = self.updater.update_one_date("2026-06-19", self.portfolio, prices, snapshots)
@@ -391,7 +484,7 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
 
     def test_post_sale_date_excludes_closed_position_from_fetch_and_symbol_snapshot(self):
         calls = []
-        self.updater.fetch_close = lambda ticker, date: calls.append((ticker, date)) or (date, 999, None)
+        self.updater.fetch_close = lambda ticker, date, **_kw: calls.append((ticker, date)) or (date, 999, None)
         prices, snapshots = {}, {}
 
         warnings = self.updater.update_one_date("2026-06-21", self.portfolio, prices, snapshots)
@@ -516,6 +609,12 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
             price = int(prices["2026-09-17"]["securities"].get(security["ticker"], 0))
             post_unrealized_profit += int(round(price * float(state["qty"]))) - int(state["cost"])
         self.assertEqual(post_sale["rawHoldingProfit"] - post_unrealized_profit, 228)
+        # 운영 JSON에는 과거 오류가 남아 있을 수 있다. 재갱신이 이를 정정하는지 검증한다.
+        saved_row = copy.deepcopy(prices["2026-09-17"])
+        self.updater.fetch_close = lambda ticker, date, **kw: (
+            date, saved_row["pension" if kw.get("is_etf") and ticker not in saved_row["securities"] else "securities"][ticker], None
+        )
+        self.updater.update_one_date("2026-09-17", portfolio, prices, snapshots)
         self.assertEqual(snapshots["2026-09-17"]["rawHoldingProfit"], post_sale["rawHoldingProfit"])
         self.assertNotIn("삼성전기", snapshots["2026-09-17"]["symbols"])
         withdrawal = next(event for event in portfolio["securitiesEvents"] if event.get("id") == "sec-withdrawal-20260916-internal-cash-return")

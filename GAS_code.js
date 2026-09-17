@@ -1007,8 +1007,8 @@ function nowKSTDateTimeInfo() {
     minutes: minutes,
     isWeekday: day >= 1 && day <= 5,
     isBeforeOpen: day >= 1 && day <= 5 && minutes < 9 * 60,
-    isMarketTime: day >= 1 && day <= 5 && minutes >= 9 * 60 && minutes <= 15 * 60 + 30,
-    isAfterClose: day >= 1 && day <= 5 && minutes > 15 * 60 + 30
+    isMarketTime: day >= 1 && day <= 5 && minutes >= 9 * 60 && minutes < 15 * 60 + 30,
+    isAfterClose: day >= 1 && day <= 5 && minutes >= 15 * 60 + 30
   };
 }
 
@@ -6369,19 +6369,9 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     ? (prefetchedPrices || {})
     : ((readGithubJson("data/prices.json").data) || {});
 
-  // 재갱신 요청은 해당 날짜의 현재 저장 상태를 먼저 확인한다.
-  // `marketStatus=close`/`priceBasis=regular_close`만으로 정규장 종가 확정을 가정하지 않는다.
-  // raw pykrx source attestation이 없는 기존 close는 한 번 재확정한다.
+  // 사용자가 누른 선택일 재갱신은 저장 라벨과 무관하게 실제로 다시 조회한다.
+  // 같은 requestId의 재시도/진행 중 중복 실행 방지는 바깥 durable dispatch 경계가 담당한다.
   if (explicitDate) {
-    const explicitSnapshot = prices[explicitDate] || null;
-    if (explicitSnapshot && krxSnapshotHasVerifiedRegularClose(explicitSnapshot)) {
-      return {
-        shouldDispatch: false,
-        reason: "explicit_date_already_closed",
-        message: "이미 정규장 종가 기준 데이터가 반영되어 있습니다."
-      };
-    }
-
     return {
       shouldDispatch: true,
       reason: "explicit_date_refresh"
