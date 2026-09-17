@@ -2377,6 +2377,11 @@ body.chart-expanded-open .dash-tooltip{
   width:100%;
 }
 
+/* Securities Symbol Summary · 증권 종목별 누적손익 카드는 Web에서 6개를 한 행에 유지 */
+#chart-symbol .chart-note.symbol-summary-grid{
+  grid-template-columns:repeat(6,minmax(0,1fr));
+}
+
 .table-note{margin:var(--space-4xl) var(--space-2xs) 0;color:var(--muted);font-size:var(--type-size-sm);line-height:var(--type-line-note)}
 .table-note strong{color:var(--text)}
 

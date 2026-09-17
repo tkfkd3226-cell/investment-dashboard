@@ -86,6 +86,11 @@
       --symbol-metric-gap:7px;
     }
 
+    /* Securities Symbol Summary · Tablet은 종목별 누적손익 6카드를 3×2로 유지 */
+    #chart-symbol .chart-note.symbol-summary-grid{
+      grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+
   /* [T04. Asset / Allocation / Ledger · 자산 상세·비중·장부·원천 배치] */
 .asset-insight-head h3{
       font-size:var(--type-size-lg);

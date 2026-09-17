@@ -1307,6 +1307,11 @@ test('증권 종목별 누적손익 UI는 최종 실현손익과 historical univ
   assert.match(charts,/securityHistoricalAllocItems\(x\.date\)\.map\(h=>\{/);
 });
 
+test('증권 종목별 누적손익 카드 grid는 Web 6열·Tablet 3열 계약을 유지한다',()=>{
+  assert.match(common,/#chart-symbol \.chart-note\.symbol-summary-grid\{[^}]*grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/);
+  assert.match(tablet,/#chart-symbol \.chart-note\.symbol-summary-grid\{[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+});
+
 test('전량매도 취소선과 거래 상세 tooltip은 동일한 공통 lifecycle 조건을 4개 화면에 적용한다',()=>{
   assert.match(core,/const securityFullExitForDate=\(ticker,d\)=>/);
   assert.match(core,/const securityFullExitSaleForDate=\(ticker,d\)=>/);
