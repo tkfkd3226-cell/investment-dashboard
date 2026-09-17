@@ -877,6 +877,8 @@ test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표�
   const postSamsungAlloc=postAllocItems.find(h=>h.name==='삼성전기');
   assert.ok(postSamsungAlloc);
   assert.equal(postSamsungAlloc.evalAmount,0);
+  assert.equal(postAllocItems.some(h=>h.name==='후성'),false);
+  assert.equal(core.securityHistoricalChartNamesForDate('2026-09-17').includes('후성'),false);
   const postAllocHistory=core.securitySymbolAllocHistory('2026-09-17',['삼성전기']);
   assert.ok(postAllocHistory.find(r=>r['날짜']==='2026-09-15')['삼성전기']>0);
   assert.equal(postAllocHistory.find(r=>r['날짜']==='2026-09-16')['삼성전기'],0);

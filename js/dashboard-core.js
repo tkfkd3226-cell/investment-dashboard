@@ -1016,13 +1016,13 @@ function securityHistoricalChartItems(d){
 }
 const securityHistoricalChartNamesForDate=d=>securityHistoricalChartItems(d).map(item=>item.name);
 function securityHistoricalAllocItems(d){
-  const rows=securitiesHistoryCalcRows(d),names=new Set(),lastSeen=new Map();
+  const rows=securitiesHistoryCalcRows(d),managedNames=new Set((dataState.portfolio?.securities||[]).map(h=>h.name)),names=new Set(),lastSeen=new Map();
   rows.forEach(({value})=>{
     const holdings=value?.holdings||[];
-    holdings.forEach(h=>lastSeen.set(h.name,h));
-    sortSecurityAllocationItems(securityAllocVisibleHoldings(value)).forEach(h=>names.add(h.name));
+    holdings.forEach(h=>{if(managedNames.has(h.name))lastSeen.set(h.name,h)});
+    sortSecurityAllocationItems(securityAllocVisibleHoldings(value)).forEach(h=>{if(managedNames.has(h.name))names.add(h.name)});
   });
-  const currentByName=new Map((rows.at(-1)?.value?.holdings||[]).map(h=>[h.name,h]));
+  const currentByName=new Map((rows.at(-1)?.value?.holdings||[]).filter(h=>managedNames.has(h.name)).map(h=>[h.name,h]));
   return [...names].map(name=>currentByName.get(name)||lastSeen.get(name)).filter(Boolean).sort((a,b)=>{
     const evalDiff=(Number(b?.evalAmount)||0)-(Number(a?.evalAmount)||0);
     return evalDiff||String(a?.name||'').localeCompare(String(b?.name||''),'ko');
