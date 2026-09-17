@@ -608,10 +608,10 @@
   {
     "date": "2026-09-17",
     "valuation": 39981,
-    "memo": "ETF 분배금 28,268 입금",
+    "memo": "현금성자산 앱 확인",
     "updatedBy": "google-apps-script",
-    "updatedAtKST": "2026-09-17T19:10:39+09:00",
-    "costBasis": 11713,
+    "updatedAtKST": "2026-09-17T19:16:30+09:00",
+    "costBasis": 1171300,
     "afterTradeIds": [
       "trade-2026-08-11-448330-6267d507-cd21-43d0-b28f-c13de6aae35d",
       "trade-2026-09-17-448330-760d8874-69b0-4c28-a543-3a4e09cb6530"
@@ -621,7 +621,7 @@
       "contrib-2026-07-31-29fa5f29-83d2-4b79-a756-32de1003a3c2",
       "contrib-2026-09-01-4e6c78da-d01e-4fe9-ad27-14677b8fe392"
     ],
-    "requestId": "cash-2026-09-17-2158e303-d63c-4f54-8966-03f21317ed05",
-    "logicalOperationId": "cash-2026-09-17-2158e303-d63c-4f54-8966-03f21317ed05"
+    "requestId": "cash-2026-09-17-3d468ea3-b045-4a50-80b3-71ef05b59f93",
+    "logicalOperationId": "cash-2026-09-17-3d468ea3-b045-4a50-80b3-71ef05b59f93"
   }
 ]
