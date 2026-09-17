@@ -6428,8 +6428,9 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     };
   }
 
-  // 장 시작 전에는 직전 영업일 종가가 이미 있으면 실행하지 않음
-  if (now.isBeforeOpen && latestStatus === "close" && latest.date >= previousBusinessDate) {
+  // 장 시작 전에는 직전 영업일 데이터가 regular_close로 확정된 경우에만 실행하지 않는다.
+  // legacy close는 정규장 종가 여부를 증명하지 못하므로 재확정을 허용한다.
+  if (now.isBeforeOpen && latestBasis === "regular_close" && latest.date >= previousBusinessDate) {
     return {
       shouldDispatch: false,
       reason: "before_open_already_closed",
@@ -6437,8 +6438,9 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     };
   }
 
-  // 주말에는 직전 영업일 종가가 이미 있으면 실행하지 않음
-  if (!now.isWeekday && latestStatus === "close" && latest.date >= previousBusinessDate) {
+  // 주말에도 직전 영업일 데이터가 regular_close로 확정된 경우에만 실행하지 않는다.
+  // legacy close는 정규장 종가 여부를 증명하지 못하므로 재확정을 허용한다.
+  if (!now.isWeekday && latestBasis === "regular_close" && latest.date >= previousBusinessDate) {
     return {
       shouldDispatch: false,
       reason: "weekend_already_closed",
@@ -7018,23 +7020,11 @@ function krxWorkflowInProgressResult(branch, date, run) {
   };
 }
 
-// workflow_skipped는 원칙적으로 해당 requestId의 terminal no-op 완료를 durable ledger에 남긴다.
-// 다만 explicit_date_already_closed는 이미 저장된 특정 날짜의 regular_close를 확인한 순수 read-only no-op이다.
-// 이 경우 ledger commit 자체가 GitHub Pages 재배포를 유발하므로 remote durable write 없이 그대로 성공 응답한다.
-// 같은 requestId 재요청도 prices.json을 다시 확인해 동일 no-op으로 수렴하며 실제 workflow side effect는 없다.
+// workflow_skipped는 해당 requestId의 terminal no-op 완료를 durable ledger에 남긴 뒤 성공 응답한다.
+// skip 응답이 유실된 뒤 외부 상태가 바뀌더라도 같은 requestId가 실제 dispatch로 부활하지 않아야 한다.
+// krx_dispatch_ledger 경로는 Pages paths-ignore 대상이므로 이 durable write가 Pages 재배포를 유발하지 않는다.
 function finalizeKrxWorkflowSkipped(requestId, requestHash, branch, date, decision) {
   const decisionReason = String(decision && decision.reason || "no_dispatch_needed");
-
-  if (decisionReason === "explicit_date_already_closed") {
-    try { clearKrxDispatchIntent(requestId); } catch (_) {}
-    return {
-      ok: true,
-      action: "workflow_skipped",
-      reason: decisionReason,
-      message: String(decision && decision.message || "이미 정규장 종가 기준 데이터가 반영되어 있습니다."),
-      date: date || ""
-    };
-  }
 
   const skipReason = "workflow_skipped:" + decisionReason;
   const skippedState = setKrxDispatchLedgerEntryState(requestId, requestHash, {
