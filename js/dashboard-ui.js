@@ -101,6 +101,7 @@ const currentTheme=()=>document.documentElement.classList.contains('dark')?'dark
 const uiRuntimeState={
   mobileTopScrollBound:false,
   topScrollAnimationFrame:0,
+  sectionScrollAnimationFrame:0,
   sectionNavigationBound:false,
   sectionNavigationFrame:0,
   securitiesPerformanceView:'overall'
@@ -490,6 +491,10 @@ function toggleMobileDataView(key){
 function scrollToDashboardTop(){
   const startTop=Math.max(0,Number(window.scrollY||document.documentElement?.scrollTop||document.body?.scrollTop||0));
   if(startTop<=0)return;
+  if(uiRuntimeState.sectionScrollAnimationFrame){
+    cancelAnimationFrame(uiRuntimeState.sectionScrollAnimationFrame);
+    uiRuntimeState.sectionScrollAnimationFrame=0;
+  }
   if(uiRuntimeState.topScrollAnimationFrame)cancelAnimationFrame(uiRuntimeState.topScrollAnimationFrame);
   if(typeof requestAnimationFrame!=='function'||typeof performance?.now!=='function'){
     window.scrollTo({top:0,left:0,behavior:'smooth'});
@@ -1037,13 +1042,47 @@ function assetTabForTarget(id){
   const el=document.getElementById(id);
   return el?.closest?.('[data-asset-panel]')?.dataset?.assetPanel||null;
 }
+function scrollDashboardSectionIntoView(el){
+  if(!el)return;
+  if(uiRuntimeState.topScrollAnimationFrame){
+    cancelAnimationFrame(uiRuntimeState.topScrollAnimationFrame);
+    uiRuntimeState.topScrollAnimationFrame=0;
+  }
+  if(uiRuntimeState.sectionScrollAnimationFrame)cancelAnimationFrame(uiRuntimeState.sectionScrollAnimationFrame);
+  const startTop=Math.max(0,Number(window.scrollY||document.documentElement?.scrollTop||document.body?.scrollTop||0));
+  const marginTop=Math.max(0,parseFloat(getComputedStyle(el).scrollMarginTop)||0);
+  const maxTop=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+  const targetTop=Math.min(maxTop,Math.max(0,startTop+el.getBoundingClientRect().top-marginTop));
+  const distance=targetTop-startTop;
+  if(Math.abs(distance)<1){
+    window.scrollTo({top:targetTop,left:0,behavior:'auto'});
+    uiRuntimeState.sectionScrollAnimationFrame=0;
+    return;
+  }
+  if(typeof requestAnimationFrame!=='function'||typeof performance?.now!=='function'){
+    window.scrollTo({top:targetTop,left:0,behavior:'smooth'});
+    return;
+  }
+  const durationMs=Math.min(560,Math.max(360,360+Math.abs(distance)*.035));
+  const startedAt=performance.now();
+  const step=now=>{
+    const progress=Math.min(1,Math.max(0,(now-startedAt)/durationMs));
+    const eased=progress<.5?4*progress*progress*progress:1-Math.pow(-2*progress+2,3)/2;
+    window.scrollTo({top:Math.round(startTop+distance*eased),left:0,behavior:'auto'});
+    if(progress<1){
+      uiRuntimeState.sectionScrollAnimationFrame=requestAnimationFrame(step);
+      return;
+    }
+    uiRuntimeState.sectionScrollAnimationFrame=0;
+  };
+  uiRuntimeState.sectionScrollAnimationFrame=requestAnimationFrame(step);
+}
 function jumpToSection(id){
   const targetTab=assetTabForTarget(id);
   if(targetTab&&targetTab!==uiState.activeAssetTab)setAssetTab(targetTab);
   setSectionNavigationCurrent(id);
   requestAnimationFrame(()=>{
-    const el=document.getElementById(id);
-    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+    scrollDashboardSectionIntoView(document.getElementById(id));
   });
 }
 

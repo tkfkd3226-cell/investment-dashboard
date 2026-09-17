@@ -316,6 +316,10 @@
   --nav-motion-fade-duration:.10s;
   --nav-motion-slide-delay:.04s;
   --nav-motion-hide-delay:.38s;
+  --nav-motion-close-slide-duration:.36s;
+  --nav-motion-close-fade-duration:.24s;
+  --nav-motion-close-fade-delay:.10s;
+  --nav-motion-close-hide-delay:.36s;
   --nav-motion-start-opacity:.89;
   --nav-icon-size:16px;
   --nav-item-min-height:30px;
@@ -4026,7 +4030,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 .responsive-nav-menu-layout{display:block}
 .mobile-date-pin-control,.mobile-nav-group-phone-only{display:none}
 
-/* Navigation Motion · 열림은 짧은 fade 후 우→좌 slide, 닫힘은 좌→우 slide 후 fade */
+/* Navigation Motion · 우측 화면 바깥에서 진입하고 닫힐 때도 화면 바깥까지 이동하며 자연스럽게 fade-out */
 .date-action-menu.mobile-combined-menu{
   /* Hamburger Menu Contract · Tablet/Phone은 위치·폭과 density token만 바꾸고 내부 구조는 공유 */
   --nav-menu-padding:var(--space-lg);
@@ -4042,14 +4046,14 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   padding:var(--nav-menu-padding);
   border-radius:min(10px,var(--corner-surface-cap));
   box-shadow:var(--nav-shadow-mobile);
-  opacity:var(--nav-motion-start-opacity);
+  opacity:0;
   visibility:hidden;
   pointer-events:none;
-  transform:translateX(var(--nav-motion-shift));
+  transform:translateX(calc(100% + var(--nav-motion-shift) + 32px));
   transition:
-    transform var(--nav-motion-slide-duration) ease-in 0s,
-    opacity var(--nav-motion-fade-duration) ease var(--nav-motion-slide-duration),
-    visibility 0s linear var(--nav-motion-hide-delay);
+    transform var(--nav-motion-close-slide-duration) ease-in 0s,
+    opacity var(--nav-motion-close-fade-duration) ease var(--nav-motion-close-fade-delay),
+    visibility 0s linear var(--nav-motion-close-hide-delay);
 }
 .date-action-menu.mobile-combined-menu.show{
   opacity:1;
@@ -4432,14 +4436,14 @@ button.topbar-realtime-phone-action,
       padding:var(--space-4xl);
       border-radius:min(var(--surface-radius-level-4),var(--corner-surface-cap));
       box-shadow:var(--nav-shadow-panel);
-      opacity:var(--nav-motion-start-opacity);
+      opacity:0;
       visibility:hidden;
       pointer-events:none;
-      transform:translate(var(--nav-motion-shift),-50%);
+      transform:translate(calc(100% + var(--nav-motion-shift) + 32px),-50%);
       transition:
-        transform var(--nav-motion-slide-duration) ease-in 0s,
-        opacity var(--nav-motion-fade-duration) ease var(--nav-motion-slide-duration),
-        visibility 0s linear var(--nav-motion-hide-delay);
+        transform var(--nav-motion-close-slide-duration) ease-in 0s,
+        opacity var(--nav-motion-close-fade-duration) ease var(--nav-motion-close-fade-delay),
+        visibility 0s linear var(--nav-motion-close-hide-delay);
     }
     .desktop-edge-toc.is-open .desktop-edge-toc-panel{
       opacity:1;
