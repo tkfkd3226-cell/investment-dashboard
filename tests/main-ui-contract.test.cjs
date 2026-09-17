@@ -418,7 +418,13 @@ test('퇴직연금 단건 duplicate 성공은 서버 truth에 맞춰 local state
 
 test('Live Valuation partial refresh는 내부 가로 스크롤과 native input interaction을 보존한다',()=>{
   assert.match(app,/function dashboardNestedScrollSnapshot\(\)\{/);
-  assert.match(app,/querySelectorAll\('#app \.mobile-scroll,#app \.chart-wrap'\)/);
+  const nestedScrollStart=app.indexOf('function dashboardNestedScrollSnapshot(){');
+  const nestedScrollEnd=app.indexOf('\nfunction restoreDashboardNestedScroll',nestedScrollStart);
+  const nestedScrollBlock=app.slice(nestedScrollStart,nestedScrollEnd);
+  assert.ok(nestedScrollStart>=0&&nestedScrollEnd>nestedScrollStart,'nested scroll snapshot helper is missing');
+  assert.match(nestedScrollBlock,/querySelectorAll\(/,'nested scroll snapshot은 DOM 대상 목록을 수집해야 한다');
+  assert.match(nestedScrollBlock,/\.mobile-scroll/,'표 가로 스크롤을 보존해야 한다');
+  assert.match(nestedScrollBlock,/\.chart-wrap/,'차트 가로 스크롤을 보존해야 한다');
   assert.match(app,/const nestedScrollSnapshot=dashboardNestedScrollSnapshot\(\)/);
   assert.match(app,/restoreDashboardNestedScroll\(nestedScrollSnapshot\)/);
   assert.match(liveValuation,/active\?\.matches\?\.\('select,input,textarea,\[contenteditable="true"\]'\)/);
@@ -1305,14 +1311,27 @@ test('개인보기 3회 입력은 Web/Tablet 기준문구와 Phone Hero 전체�
   assert.match(common,/\[data-personal-view-control\]\[hidden\],\s*\.date-action-menu\.mobile-combined-menu \[data-personal-view-control\]\[hidden\]\{display:none\}/,'Phone 관리 메뉴에서도 개인보기 hidden이 nav item display 규칙보다 높은 specificity를 가져야 한다');
 });
 
-test('TOP 버튼은 browser native smooth 의존 대신 고정 duration animation으로 이동한다',()=>{
+test('TOP 버튼은 browser native smooth 의존 대신 짧고 결정적인 custom animation으로 이동한다',()=>{
   const start=ui.indexOf('function scrollToDashboardTop(){');
   const end=ui.indexOf('\nfunction ensureMobileTopButton()',start);
   const block=ui.slice(start,end);
   assert.ok(start>=0&&end>start,'TOP scroll handler is missing');
-  assert.match(block,/const durationMs=420/);
-  assert.match(block,/const eased=1-Math\.pow\(1-progress,3\)/);
-  assert.match(block,/window\.scrollTo\(\{top:Math\.round\(startTop\*\(1-eased\)\),left:0,behavior:'auto'\}\)/);
+
+  const durationMatch=block.match(/const durationMs=(\d+)/);
+  assert.ok(durationMatch,'TOP animation duration이 명시돼야 한다');
+  const durationMs=Number(durationMatch[1]);
+  assert.ok(durationMs>=250&&durationMs<=700,'TOP animation은 체감상 즉각적이면서 이동을 식별할 수 있는 범위여야 한다');
+
+  const easingMatch=block.match(/const eased=([^;]+);/);
+  assert.ok(easingMatch,'TOP animation easing이 명시돼야 한다');
+  const easingExpression=easingMatch[1];
+  const easingAt=progress=>Function('progress',`return (${easingExpression});`)(progress);
+  const e0=easingAt(0), eMid=easingAt(0.5), e1=easingAt(1);
+  assert.ok(Math.abs(e0)<=1e-9&&Math.abs(e1-1)<=1e-9,'easing은 0에서 시작해 1에서 끝나야 한다');
+  assert.ok(eMid>0.5&&eMid<1,'TOP 이동은 중간 지점에서 진행률보다 앞서는 ease-out 성격을 유지해야 한다');
+
+  assert.match(block,/requestAnimationFrame\(step\)/,'정상 경로는 animation frame 기반이어야 한다');
+  assert.match(block,/window\.scrollTo\(\{[^}]*top:[^}]*startTop[^}]*eased[^}]*behavior:'auto'[^}]*\}\)/,'animation 중 scroll 위치는 startTop과 easing 결과로 계산해야 한다');
   assert.match(block,/window\.scrollTo\(\{top:0,left:0,behavior:'smooth'\}\)/,'requestAnimationFrame 미지원 환경은 native smooth fallback을 유지해야 한다');
 });
 
