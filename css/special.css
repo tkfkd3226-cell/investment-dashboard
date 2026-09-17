@@ -753,6 +753,8 @@
       grid-template-columns:repeat(3,minmax(0,1fr));
     }
     .chart-note.symbol-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+    /* Securities Symbol Summary · 실제 터치폰 가로도 Mobile과 동일하게 최대 2열 */
+    #chart-symbol .chart-note.symbol-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     .asset-change-note .change-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
 
   /* Allocation Cards · 비중 카드 열 수는 Tablet과 동일하게 가로폭 활용 */

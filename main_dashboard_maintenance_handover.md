@@ -997,7 +997,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - Live refresh 회귀 QA는 2.7의 canonical partial-render contract를 기준으로 한다. overlay를 교체하지 않고, Topbar/`#app` shell·focus·window/nested scroll을 보존하며, 활성 탭만 필요한 만큼 redraw하고 비활성 탭은 기존 lazy draw 경로를 유지해야 한다.
 - 실시간 시세 iframe은 Dashboard와 `postMessage`로 Light/Dark 테마를 양방향 동기화한다. Monitor가 준비되면 Dashboard 테마를 우선 전달하고, Monitor에서 테마를 바꾸면 Dashboard도 같은 테마를 저장·적용한다. Phone modal의 5px shell은 Light `#f5f7fa`, Dark는 Monitor 기본 배경 `#11161d`를 사용한다.
 
-증권 `종목별 누적손익` 하단 카드 grid는 일반 `symbol-summary-grid`와 별도로 **Web 6열(6×1), Tablet 3열(3×2)**을 유지한다. 퇴직연금 상품 카드와 Mobile의 별도 열 수 계약에는 이 규칙을 확장하지 않는다.
+증권 `종목별 누적손익` 하단 카드 grid는 일반 `symbol-summary-grid`와 별도로 **Web 6열(6×1), Tablet 3열(3×2), Phone은 방향과 무관하게 최대 2열**을 유지한다. 이 열 수 계약은 증권 `#chart-symbol`에만 적용하고 퇴직연금 상품 카드에는 확장하지 않는다.
 
 ## 3.4 계좌별 성과 메모 tooltip
 

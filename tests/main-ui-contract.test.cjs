@@ -787,21 +787,15 @@ test('Live Valuation 부분 갱신은 Hero 기준문구도 실제 Market AI 가�
   assert.match(app,/heroBasis\.textContent=`\(\$\{heroPerformanceBasisLabel\(x\.date\)\}\)`;/);
 });
 
-test('KRX 장마감 종가는 raw KRX all-market을 우선하고 raw by-date를 failover로 사용하며 Naver/NXT를 배제한다',()=>{
+test('KRX 종가 반영은 인증 없는 정규장 일봉을 우선하고 raw pykrx를 failover로 유지한다',()=>{
   const updater=read('scripts/update_prices.py');
   const gas=read('GAS_code.js');
-  assert.match(updater,/get_market_ohlcv_by_ticker/);
-  assert.match(updater,/market="ALL"/);
-  assert.match(updater,/alternative=False/);
-  assert.match(updater,/adjusted=False if closed else None/);
-  assert.match(updater,/pykrx-raw-all-market/);
-  assert.match(updater,/pykrx-raw-by-date/);
-  assert.doesNotMatch(updater,/api\.stock\.naver\.com\/chart\/domestic\/item\/\{ticker\}/);
-  assert.doesNotMatch(updater,/"periodType": "dayCandle"/);
-  assert.match(updater,/"regularCloseSource": "pykrx_raw/);
+  assert.match(updater,/api\.stock\.naver\.com\/chart\/domestic\/item\/\{ticker\}/);
+  assert.match(updater,/"periodType": "dayCandle"/);
+  assert.match(updater,/adjusted=False/);
+  assert.match(updater,/"priceBasis": price_basis/);
   assert.match(updater,/정규장 종가를 확인하지 못했습니다/);
-  assert.match(gas,/function krxSnapshotHasVerifiedRegularClose\(snapshot\)/);
-  assert.match(gas,/snapshot\.regularCloseSource/);
+  assert.match(gas,/=== "regular_close"/);
   assert.match(gas,/reconfirm_regular_close/);
   assert.match(ui,/정규장 종가 기준이 아니면 다시 반영합니다\./);
 });
@@ -1313,9 +1307,11 @@ test('증권 종목별 누적손익 UI는 최종 실현손익과 historical univ
   assert.match(charts,/securityHistoricalAllocItems\(x\.date\)\.map\(h=>\{/);
 });
 
-test('증권 종목별 누적손익 카드 grid는 Web 6열·Tablet 3열 계약을 유지한다',()=>{
+test('증권 종목별 누적손익 카드 grid는 Web 6열·Tablet 3열·Phone 최대 2열 계약을 유지한다',()=>{
   assert.match(common,/#chart-symbol \.chart-note\.symbol-summary-grid\{[^}]*grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/);
   assert.match(tablet,/#chart-symbol \.chart-note\.symbol-summary-grid\{[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(mobile,/#chart-symbol \.chart-note\.symbol-summary-grid\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(special,/@media \(orientation:landscape\)[^]*?#chart-symbol \.chart-note\.symbol-summary-grid\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'실제 터치폰 가로도 종목별 누적손익 카드를 최대 2열로 유지해야 한다');
 });
 
 test('전량매도 취소선과 거래 상세 tooltip은 동일한 공통 lifecycle 조건을 4개 화면에 적용한다',()=>{

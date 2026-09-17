@@ -92,7 +92,8 @@
       line-height:var(--type-line-relaxed);
     }
 
-.chart-note.symbol-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* Securities Symbol Summary · Mobile은 종목별 누적손익 카드를 최대 2열로 제한 */
+#chart-symbol .chart-note.symbol-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 
     #pension-chart-alloc .chart-note{
       grid-template-columns:repeat(2,minmax(0,1fr));
