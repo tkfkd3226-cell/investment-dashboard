@@ -695,8 +695,7 @@ test('증권 매도: 전량매도는 순매도대금·실현손익·현금화 �
   });
   setState({portfolio,prices:{
     '2026-06-19':{securities:{A:90}},
-    '2026-06-20':{securities:{A:120}},
-    '2026-06-21':{securities:{A:130}}
+    '2026-06-20':{securities:{A:120}}
   }});
   const before=core.securityPositionState(portfolio.securities[0],'2026-06-19');
   const after=core.securityPositionState(portfolio.securities[0],'2026-06-20');
@@ -717,17 +716,11 @@ test('증권 매도: 전량매도는 순매도대금·실현손익·현금화 �
   assert.equal(x.securitiesAssetDetail.statusRows.length,1);
   assert.equal(x.securitiesAssetDetail.statusRows[0].profit,100);
   assert.equal(x.securitiesAssetDetail.summaryRows.find(r=>r.id==='holdings').profit,100);
-  assert.deepEqual(core.securityAllocVisibleHoldings(x).map(v=>v.name),['Stock A']);
   assert.equal(x.securitiesAssetDetail.change.rows[0].dayChange,200);
   const history=core.symbolHistory('2026-06-20');
   assert.equal(history.at(-2)['Stock A'],-100);
   assert.equal(history.at(-1)['Stock A'],100);
   approx(history.at(-1)._rates['Stock A'],10);
-  const post=core.calc('2026-06-21');
-  assert.equal(post.securitiesAssetDetail.statusRows.length,0);
-  assert.equal(core.securityAllocVisibleHoldings(post).some(v=>v.name==='Stock A'),false);
-  assert.equal(post.rawHoldingProfit,0);
-  assert.equal(post.ledgerHoldingProfit,100);
 });
 
 
@@ -876,13 +869,31 @@ test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표�
   approx(last._rates['삼성전기'],228/1345000*100);
   assert.equal(core.securityChartNamesForDate('2026-09-16').includes('삼성전기'),true);
   assert.equal(core.securityChartNamesForDate('2026-09-17').includes('삼성전기'),false);
+  assert.equal(core.securityHistoricalChartNamesForDate('2026-09-17').includes('삼성전기'),true);
+  const postSymbolHistory=core.symbolHistory('2026-09-17');
+  assert.equal(postSymbolHistory.find(r=>r['날짜']==='2026-09-16')['삼성전기'],228);
+  assert.equal(postSymbolHistory.find(r=>r['날짜']==='2026-09-17')['삼성전기'],null);
+  const postAllocItems=core.securityHistoricalAllocItems('2026-09-17');
+  const postSamsungAlloc=postAllocItems.find(h=>h.name==='삼성전기');
+  assert.ok(postSamsungAlloc);
+  assert.equal(postSamsungAlloc.evalAmount,0);
+  const postAllocHistory=core.securitySymbolAllocHistory('2026-09-17',['삼성전기']);
+  assert.ok(postAllocHistory.find(r=>r['날짜']==='2026-09-15')['삼성전기']>0);
+  assert.equal(postAllocHistory.find(r=>r['날짜']==='2026-09-16')['삼성전기'],0);
+  assert.equal(postAllocHistory.find(r=>r['날짜']==='2026-09-17')['삼성전기'],0);
   assert.equal(core.liveValuationTickersForDate('2026-09-16').includes('009150'),false);
   const post=core.calc('2026-09-17');
   assert.equal(post.securitiesAssetDetail.statusRows.some(r=>r.ticker==='009150'),false);
   assert.equal(post.securitiesAssetDetail.change.rows.some(r=>r.ticker==='009150'),false);
-  assert.equal(core.securityAllocVisibleHoldings(after).some(r=>r.ticker==='009150'),true);
-  assert.equal(core.securityAllocVisibleHoldings(post).some(r=>r.ticker==='009150'),false);
-  assert.equal(after.rawHoldingProfit,after.ledgerHoldingProfit);
-  assert.equal(post.ledgerHoldingProfit-post.rawHoldingProfit,228);
+  const postSamsung=post.holdings.find(h=>h.ticker==='009150');
+  assert.equal(postSamsung.qty,0);
+  assert.equal(postSamsung.profit,0);
+  assert.equal(postSamsung.realizedProfit,228);
+  assert.equal(postSamsung.totalProfit,228);
+  const postUnrealizedProfit=post.holdings.reduce((sum,h)=>sum+(Number(h.profit)||0),0);
+  assert.equal(post.rawHoldingProfit-postUnrealizedProfit,228);
+  const postCumRow=core.securitiesCumHistoryBundle('2026-09-17').off.at(-1);
+  assert.equal(postCumRow['합계 : 누적손익'],post.rawHoldingProfit);
+  approx(postCumRow['합계 : 누적수익률'],post.rawHoldingProfit/post.account1Principal*100);
   assert.equal(after.totalResult-(after.allocTotal+core.outsideCashForDate('2026-09-16')),3063626);
 });

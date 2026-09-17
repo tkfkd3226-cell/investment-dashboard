@@ -1297,10 +1297,14 @@ test('자산 탭 차트 cache는 현재 표시 크기와 viewBox가 다르면 �
   assert.equal(context.assetTabChartsReady('pension'),true);
 });
 
-test('증권 종목별 누적손익 UI는 매도 후 평가손익 0이 아니라 totalProfit·performanceCost 계약을 사용한다',()=>{
+test('증권 종목별 누적손익 UI는 최종 실현손익과 historical universe를 범례·카드에 유지한다',()=>{
   assert.match(core,/const securityTotalProfitValue=h=>Number\(h\?\.totalProfit\?\?h\?\.profit\)\|\|0/);
   assert.match(charts,/symbolTotal=symbolCards\.reduce\(\(a,h\)=>a\+Number\(h\.totalProfit\?\?h\.profit\?\?0\),0\)/);
   assert.match(charts,/const profit=Number\(h\.totalProfit\?\?h\.profit\?\?0\),performanceCost=Number\(h\.performanceCost\?\?h\.cost\?\?0\)/);
+  assert.match(charts,/securityHistoricalChartNamesForDate\(dataState\.activeDate\)/);
+  assert.match(charts,/const symbolCards=securityHistoricalChartItems\(x\.date\)/);
+  assert.match(charts,/const items=dataState\.activeDate\?securityHistoricalAllocItems\(dataState\.activeDate\):\[\]/);
+  assert.match(charts,/securityHistoricalAllocItems\(x\.date\)\.map\(h=>allocationValueCard/);
 });
 
 test('전량매도 당일 전일 대비 변동은 종목 셀 전체를 tooltip target으로 쓰고 종목명만 취소선 처리한다',()=>{

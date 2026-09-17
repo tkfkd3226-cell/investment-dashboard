@@ -345,15 +345,13 @@ performanceCost    현재 잔여 cost + realizedCostBasis
 종목 누적수익률     totalProfit / performanceCost
 ```
 
-전량매도 종목의 **화면 표시 lifecycle**과 **장부 누적 lifecycle**은 분리한다. 보유 중에는 현재 평가손익을 사용하고, 전량매도 당일은 해당 종목의 마지막 표시일로 유지해 `보유종목 현황`·3개 투자기간 차트·`전일 대비 변동`에서 최종 `totalProfit`을 확인할 수 있게 한다. 전량매도 다음 거래일부터는 해당 종목을 이 화면들에서 제외한다. 따라서 전량매도 당일 `qty=0`이어도 마지막 실현손익은 화면에 남지만, 다음 거래일부터는 종목별 표시와 화면용 `rawHoldingProfit`에서 빠진다. `securitiesCashForDate()`의 sell 현금흐름에는 `grossAmount`가 아니라 **순매도대금 `amount`**를 사용한다.
+따라서 전량매도 종목은 **매도 당일까지 `보유종목 현황`의 마지막 이력 행으로 유지**하고, 해당 행의 손익은 최종 실현손익을 사용한다. 다음 거래일부터는 `qty=0`인 종목을 현황과 `전일 대비 변동`에서 제외한다. 종목별 누적손익/수익률 history의 장기 표시 규칙은 차트 contract를 따른다. `securitiesCashForDate()`의 sell 현금흐름에는 `grossAmount`가 아니라 **순매도대금 `amount`**를 사용한다.
 
-반대로 계좌 전체 장부 성과는 전량매도 다음날 이후에도 이미 확정된 `realizedProfit`을 계속 누적한다. JS의 `ledgerHoldingProfit`과 현금/원금 장부가 이 누적 의미를 소유하며, 계좌·합산 성과와 장부 검산에서 확정 실현손익이 사라지면 안 된다. 즉 **화면에서 종목이 사라지는 시점과 계좌 성과에서 실현손익이 사라지는 시점은 같지 않다.** 후자는 사라지지 않는다.
+`scripts/update_prices.py`는 위 JS contract를 그대로 재현한다. 대상 날짜 `security_position_state().qty <= 0`인 종목은 신규 KRX 가격 조회를 하지 않지만, 매도 전 날짜 backfill에서는 당시 보유수량을 복원해 정상 조회한다. `performance_snapshots.json`의 `rawHoldingProfit`은 **전체 증권 원장의 `totalProfit = 평가손익 + 누적 실현손익` 합계**이므로 전량매도 다음 거래일부터 해당 종목이 현황/종목별 series에서 빠져도 확정 실현손익은 계좌 누적성과에 계속 남는다. 반면 `symbols`는 해당 날짜의 종목별 chart-visible universe만 저장하므로 전량매도 당일에는 최종 실현손익을 담고 다음 거래일부터 해당 종목 key를 제거한다. 계좌1 원금은 JS와 같은 보유원가+현금화 원금 기준을 사용한다. 동일 입력으로 snapshot을 다시 생성해도 실현손익·현금이 중복 반영되지 않아야 한다.
 
-`scripts/update_prices.py`는 위 화면용 lifecycle을 그대로 재현한다. 대상 날짜 `security_position_state().qty <= 0`인 종목은 신규 KRX 가격 조회를 하지 않지만, 매도 전 날짜 backfill에서는 당시 보유수량을 복원해 정상 조회한다. `performance_snapshots.json`의 `rawHoldingProfit`은 **해당 날짜에 보유 중이거나 그날 매매가 있었던 종목의 화면용 손익 합계**, `symbols`는 그중 종목 차트 대상의 손익이다. 전량매도 당일까지 마지막 실현손익을 포함하고 다음 거래일부터 제외한다. 계좌1 장부 누적성과 자체는 snapshot의 이 화면용 `rawHoldingProfit`에 의존해 실현손익을 소거하지 않는다. 동일 입력으로 snapshot을 다시 생성해도 실현손익·현금이 중복 반영되지 않아야 한다.
+Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수량이 0보다 큰 ticker만 요청한다. 따라서 전량매도 종목은 매도일 이후 실시간 quote universe에서 자동 제외되며 Market AI backend에 별도 매도 상태를 추가하지 않는다.
 
-Market AI Live Valuation universe는 `securityPositionState()`의 선택일 수량이 0보다 큰 ticker만 요청한다. 전량매도 당일에는 화면 이력은 유지하더라도 실시간 quote는 필요하지 않으므로 매도 완료 ticker를 요청하지 않으며, Market AI backend에 별도 매도 상태를 추가하지 않는다.
-
-현재 첫 증권 전량매도 회귀 anchor는 `2026-09-16 / 009150 삼성전기`다. `gross 1,348,000 - transactionCost 2,772 = net 1,345,228`, `costBasis 1,345,000`, `realizedProfit +228`을 기준으로 **9/16에는 현황표·3개 차트·전일 대비 변동에 삼성전기가 마지막 표시되고, 9/17부터는 이 화면들에서 제외**된다. 반면 +228원은 이후에도 계좌 장부 누적성과에 유지된다. 9/16 내부 현금회수 반영 뒤 증권현금은 `3,790`, 계좌1 성과기준 투입원금은 `22,996,210`이다.
+현재 첫 증권 전량매도 회귀 anchor는 `2026-09-16 / 009150 삼성전기`다. `gross 1,348,000 - transactionCost 2,772 = net 1,345,228`, `costBasis 1,345,000`, `realizedProfit +228`이며, 매도 직후 증권현금은 `1,404,018`이지만 같은 날 내부회수 `1,400,228` 후 일자 종료 현금은 `3,790`이다. 계좌1 성과기준 투입원금은 `24,341,210 → 22,996,210`으로 줄어든다. 이 실현손익 `+228`은 9/17부터 현황/전일 대비 변동/종목별 point에서는 제외되지만 **계좌 누적손익·누적수익률과 장부 성과에는 계속 누적**되는 것이 자동 테스트의 운영 데이터 검산 기준이다.
 
 ## 2.4 `dashboard-ui.js`와 `dashboard-ui-common.js` 책임
 
@@ -971,6 +969,10 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - listener 중복 또는 chart 이중 생성 없음
 
 표시 기준 스위치는 선/Y축 표시 기준만 바꾸며 tooltip 정보 contract를 불필요하게 축소하지 않는다. 사용자가 범례에서 숨긴 series는 tooltip 대상에서도 제외한다.
+
+증권의 **종목별 historical 차트 universe는 현재 선택일 보유종목으로 재구성하지 않는다.** 선택일까지의 표시기간 중 실제 chart/allocation 대상이었던 종목을 범례·카드에 계속 유지해, 이후 전량매도 때문에 과거 차트 이력이 소급 삭제되지 않게 한다. `종목별 누적손익`은 전량매도 당일의 최종 `totalProfit`/수익률을 마지막 유효 point로 두고 다음 거래일부터 해당 종목 값을 `null`로 끝낸다. `평가금액 비중 > 종목별`은 과거 평가금액을 당시 값 그대로 유지하고 전량매도일부터 이후 값은 `0`으로 둔다. 현황표와 전일 대비 변동의 현재 날짜 표시 lifecycle과 historical chart universe를 같은 필터로 합치지 않는다.
+
+`누적손익 및 누적수익률`은 위 종목별 series lifecycle과 별개의 **계좌 원장 누적성과**다. `rawHoldingProfit`을 기준으로 하며, 전량매도 당일의 실현손익은 그날 포함되고 다음 거래일부터 해당 종목이 현황/종목별 차트에서 사라져도 이미 확정된 실현손익은 계속 누적된다. 따라서 삼성전기 `+228`은 9/16부터 계좌 누적손익·누적수익률에 반영되고 9/17 이후에도 유지된다. 현재 보유종목 필터를 이 누적성과 계산에 재사용해 과거 확정손익을 제거하지 않는다.
 
 ### Market AI
 
