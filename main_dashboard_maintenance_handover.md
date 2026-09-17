@@ -913,7 +913,7 @@ JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 �
 
 ### iPhone Safari 데스크탑 웹사이트 요청
 
-현재 canonical desktop-request viewport는 **`width=1280`**이다. 과거 `width=1980` 기준은 폐기되었으며 되돌리지 않는다. 1280px은 일반 Desktop baseline 자체를 사용하므로 `iphone-request-desktop` 같은 별도 CSS 보정 class를 만들지 않는다.
+현재 canonical desktop-request viewport는 **`width=1280`**이다. 1280px은 일반 Desktop baseline 자체를 사용하므로 `iphone-request-desktop` 같은 별도 CSS 보정 class를 만들지 않는다.
 
 
 ## 3.2 Section Title / Control 공통 불변조건
@@ -1396,15 +1396,7 @@ Value meaning               → --value-positive / --value-negative
 
 증권·퇴직연금의 `성과 요약` 4개 KPI 카드는 모바일(`<=760px` 및 실제 스마트폰 가로모드)에서만 `2 × 2` grid를 유지한다. 다른 `.metric-grid`에는 이 규칙을 확대 적용하지 않는다.
 
-모바일 KPI 타이포 기준:
-
-```text
-라벨 11px
-값 18px
-설명 11px
-```
-
-세 요소는 한 줄 유지한다. 모바일 전용 축약 설명이 필요한 경우 `metricCard()`의 mobile sub variant를 사용하고, 데스크톱/태블릿 설명을 CSS로 억지 축소하거나 ellipsis 처리하지 않는다.
+모바일 KPI는 label/value/sub의 시각적 위계를 유지하되, 실제 font-size는 CSS의 metric typography token을 Source of Truth로 한다. 세 요소는 한 줄 유지한다. 모바일 전용 축약 설명이 필요한 경우 `metricCard()`의 mobile sub variant를 사용하고, 데스크톱/태블릿 설명을 CSS로 억지 축소하거나 ellipsis 처리하지 않는다.
 
 ## 4.13 Topbar 날짜 셀렉트 폭 정합성
 
@@ -1435,16 +1427,16 @@ Topbar의 `년-월`과 `월-일 요일` 셀렉트는 같은 UI mode에서 동일
 - Metric은 `.card`의 Large surface padding을 그대로 재사용하며 별도 metric padding token을 두지 않는다. Emphasis 계열만 정보구조상 필요한 경우 `--surface-pad-emphasis`를 사용한다.
 - base selector가 semantic token을 소유하고 Tablet/Phone에서는 **token 값만 변경**한다. 같은 padding을 responsive selector에 반복하지 않는다.
 
-radius는 padding 분류와 별도로 화면상 같은 line/hierarchy를 기준으로 4단계 token을 사용한다.
+radius는 padding 분류와 별도로 화면상 같은 line/hierarchy를 기준으로 4단계 token을 사용하며, viewport별 실제 값은 CSS를 Source of Truth로 한다.
 
-| Radius level | Desktop·Tablet·Print | Phone·실제 터치폰 가로 | 대표 화면군 |
-|---|---:|---:|---|
-| `--surface-radius-level-1` | 18px | 16px | Hero, 연금+계좌 성과 표, 자산 workspace tab, 증권·퇴직연금 outer band |
-| `--surface-radius-level-2` | 16px | 14px | 일반 card/note/chart, 성과 KPI·장부 KPI, 계좌별 성과표, source card |
-| `--surface-radius-level-3` | 14px | 12px | mini/data-list/insight, 일반 현황표·변동표, 변동 KPI, 차트 하단 요약 |
-| `--surface-radius-level-4` | 12px | 12px | tooltip, chart plot, modal error, inner compact control |
+| Radius level | 대표 화면군 |
+|---|---|
+| `--surface-radius-level-1` | Hero, 연금+계좌 성과 표, 자산 workspace tab, 증권·퇴직연금 outer band |
+| `--surface-radius-level-2` | 일반 card/note/chart, 성과 KPI·장부 KPI, 계좌별 성과표, source card |
+| `--surface-radius-level-3` | mini/data-list/insight, 일반 현황표·변동표, 변동 KPI, 차트 하단 요약 |
+| `--surface-radius-level-4` | tooltip, chart plot, modal error, inner compact control |
 
-기존 의미 alias인 `--surface-radius-outer/large/medium/mini`는 위 level source에 연결한다. 특정 component가 명시적으로 level을 소유하면 alias 숫자를 다시 복제하지 않는다. Corner theme에서는 각 radius와 `--corner-surface-cap`의 최소값을 사용한다. 같은 visible line의 surface를 viewport별로 따로 키우거나, 4단계 중 일부만 Phone에서 줄이지 않는다.
+기존 의미 alias인 `--surface-radius-outer/large/medium/mini`는 위 level source에 연결한다. 특정 component가 명시적으로 level을 소유하면 값을 문서나 component에 다시 복제하지 않는다. Corner theme에서는 각 radius와 `--corner-surface-cap`의 최소값을 사용한다. 같은 visible line의 surface를 viewport별로 임의 변경하지 않는다.
 
 ### Card Grid Gap ownership
 
@@ -2018,15 +2010,6 @@ node --test tests/cross-ui-contract.test.cjs
 1~13차 같은 과거 작업 차수와 세부 selector 변화는 Git history에서 확인한다. 이 문서는 현재 완료 상태와 장기 계약만 유지한다.
 
 과거 변경 이유 중 현재도 필요한 내용은 "왜 이 contract를 유지해야 하는가" 형태로 해당 현재 규칙 옆에 남긴다. 단순 작업일지나 과거 점수·줄 수는 누적하지 않는다.
-
-## 9.3 문서 역할 재확인
-
-- [README.md](./README.md): 프로젝트 설명, 기능, 전체 구조, 실행·배포 개요
-- [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md): Main 수정·QA·운영 contract와 Main↔Add 공통 contract 정의
-- [add_maintenance_handover.md](./add_maintenance_handover.md): Add Calc/Report 수정·QA·운영 contract
-- [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md): Main/Add 평가 방법·점수·전역 A/B/C·Counterexample·종료 기준
-- [ct35_evaluation.md](./ct35_evaluation.md): 공통화·토큰화 35개 관찰 항목과 고정 배점
-- Git history: 과거 변경 이력
 
 # 10. 최종 운영 체크리스트
 
