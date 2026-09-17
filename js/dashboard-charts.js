@@ -18,6 +18,7 @@ import {
   securityAllocVisibleHoldings,
   securityAllocationColor,
   securityChartNamesForDate,
+  securityFullExitForDate,
   securityHistoricalAllocItems,
   securityHistoricalChartItems,
   securityHistoricalChartNamesForDate,
@@ -904,9 +905,9 @@ function securityAllocLegendHtml(x){
 function securityAllocCardCount(x){
   return chartState.securityAllocMode==='symbol'?4:3;
 }
-function allocationValueCard(label,value,{ratioText='',swatch=''}={}){
-  const safeLabel=escapeHtml(label);
-  return `<div class="mini-card"><div class="m-label">${safeLabel}${swatch}</div><div class="m-value">${value}${ratioText?` <span class="small alloc-ratio-meta">(${ratioText})</span>`:''}</div></div>`;
+function allocationValueCard(label,value,{ratioText='',swatch='',labelClass=''}={}){
+  const safeLabel=escapeHtml(label),labelClasses=`m-label${labelClass?` ${labelClass}`:''}`;
+  return `<div class="mini-card"><div class="${labelClasses}">${safeLabel}${swatch}</div><div class="m-value">${value}${ratioText?` <span class="small alloc-ratio-meta">(${ratioText})</span>`:''}</div></div>`;
 }
 function allocationTotalCard(value,{className='',detailHtml=''}={}){
   return `<div class="mini-card allocation-total-card${className?` ${className}`:''}"><div class="m-label">평가금액 합계</div><div class="m-value">${value}</div>${detailHtml}</div>`;
@@ -919,7 +920,7 @@ function securityAllocCardsHtml(x){
     const typeTotals=securityAllocTypeTotals(x);
     return `${allocationValueCard('ETF',won(typeTotals.etf),{ratioText:`${ratio(typeTotals.etf).toFixed(1)}%`,swatch:chartSeriesSwatch(assetTypeColor('ETF'))})}${allocationValueCard('개별주식',won(typeTotals.stock),{ratioText:`${ratio(typeTotals.stock).toFixed(1)}%`,swatch:chartSeriesSwatch(assetTypeColor('개별주식'))})}${totalCard}`;
   }
-  const itemCards=securityHistoricalAllocItems(x.date).map(h=>allocationValueCard(h.name,won(h.evalAmount),{ratioText:`${ratio(h.evalAmount).toFixed(1)}%`,swatch:chartSeriesSwatch(securityAllocationColor(h.name))})).join('');
+  const itemCards=securityHistoricalAllocItems(x.date).map(h=>allocationValueCard(h.name,won(h.evalAmount),{ratioText:`${ratio(h.evalAmount).toFixed(1)}%`,swatch:chartSeriesSwatch(securityAllocationColor(h.name)),labelClass:securityFullExitForDate(h.ticker,x.date)?'security-sale-marker-name':''})).join('');
   return itemCards+totalCard;
 }
 function setSecurityAllocMode(mode){
@@ -989,8 +990,8 @@ function renderCharts(x,separateProfitHtml=''){
   ${renderChartCard({id:'chart-alloc',title:'평가금액 비중',icon:'pie',actions:`${securityAllocToggle()}${chartWebExpandButton()}`,svgId:'chartAlloc',legendId:'securityAllocLegend',legendHtml:securityAllocLegendHtml(x),noteClass:'security-alloc-card-grid',noteId:'securityAllocCards',noteStyle:`--security-alloc-card-count:${securityAllocCardCount(x)}`,noteHtml:securityAllocCardsHtml(x)})}
   </div></section>`;
 }
-function symbolSummaryCard(h,total,{label=h.name,swatch='' }={}){const profit=Number(h.totalProfit??h.profit??0),performanceCost=Number(h.performanceCost??h.cost??0),contrib=total?profit/total*100:0,rr=performanceCost?profit/performanceCost*100:0,safeLabel=escapeHtml(label);return `<div class="mini-card symbol-card"><div class="m-label">${safeLabel}${swatch}</div><div class="m-value ${cls(profit)}">${won(profit)}</div><div class="symbol-metrics"><div class="symbol-metric"><span class="symbol-metric-label">기여도</span><span class="symbol-metric-value ${cls(contrib)}">${pct(contrib)}</span></div><div class="symbol-metric"><span class="symbol-metric-label">수익률</span><span class="symbol-metric-value ${cls(rr)}">${rr>0?'+':''}${pct(rr)}</span></div></div></div>`}
-function symbolCard(h,total){return symbolSummaryCard(h,total,{label:h.name==='KODEX 200'?'KODEX 200':h.name,swatch:securitySymbolSwatch(h.name)})}
+function symbolSummaryCard(h,total,{label=h.name,swatch='',labelClass='' }={}){const profit=Number(h.totalProfit??h.profit??0),performanceCost=Number(h.performanceCost??h.cost??0),contrib=total?profit/total*100:0,rr=performanceCost?profit/performanceCost*100:0,safeLabel=escapeHtml(label),labelClasses=`m-label${labelClass?` ${labelClass}`:''}`;return `<div class="mini-card symbol-card"><div class="${labelClasses}">${safeLabel}${swatch}</div><div class="m-value ${cls(profit)}">${won(profit)}</div><div class="symbol-metrics"><div class="symbol-metric"><span class="symbol-metric-label">기여도</span><span class="symbol-metric-value ${cls(contrib)}">${pct(contrib)}</span></div><div class="symbol-metric"><span class="symbol-metric-label">수익률</span><span class="symbol-metric-value ${cls(rr)}">${rr>0?'+':''}${pct(rr)}</span></div></div></div>`}
+function symbolCard(h,total){return symbolSummaryCard(h,total,{label:h.name==='KODEX 200'?'KODEX 200':h.name,swatch:securitySymbolSwatch(h.name),labelClass:dataState.activeDate&&securityFullExitForDate(h.ticker,dataState.activeDate)?'security-sale-marker-name':''})}
 
 
 function pensionCumHistory(d){return pensionChartHistoryBundle(d).cum;}

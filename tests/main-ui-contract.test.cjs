@@ -1069,7 +1069,7 @@ test('Market AI 시장 tooltip renderer는 상태와 무관하게 라벨을 고�
 
 test('Repository data text는 trusted HTML과 분리해 innerHTML 경계에서 escape한다',()=>{
   assert.match(app,/<h1 id="dashboardTitle">\$\{escapeHtml\(dataState\.portfolio\.meta\.title\)\}<\/h1>/);
-  assert.match(ui,/labelHtml:`<span class="holding-name-text">\$\{escapeHtml\(h\.name\)\}<\/span>\$\{securitySymbolSwatch\(h\.name\)\}`/);
+  assert.match(ui,/labelHtml:`<span class="holding-name-text\$\{h\.fullExit\?' security-sale-marker-name':''\}">\$\{escapeHtml\(h\.name\)\}<\/span>\$\{securitySymbolSwatch\(h\.name\)\}`/);
   assert.match(pension,/labelHtml:`<span class="holding-name-text">\$\{mobileTableAssetName\(r\.name\)\}<\/span>\$\{pensionProductSwatch\(r\.name\)\}`/);
   assert.match(ui,/const cards=orderedRows\.map\(r=>\(\{\s*title:securitySaleMarkerHtml\(r\),\s*accessibleLabel:r\.name,/);
   assert.match(ui,/const title=`<span class="security-sale-marker-name">\$\{escapeHtml\(String\(row\?\.name\|\|''\)\)\}<\/span>`/);
@@ -1077,8 +1077,8 @@ test('Repository data text는 trusted HTML과 분리해 innerHTML 경계에서 e
   assert.match(pensionEditor,/<h3 id="pensionActionPinTitle" class="modal-main-title">\$\{escapeHtml\(title\)\}<\/h3>/);
   assert.match(pensionEditor,/<p id="pensionActionPinDescription" class="action-modal-description">\$\{escapeHtml\(description\)\}<\/p>/);
   assert.match(pensionEditor,/value="\$\{escapeHtml\(`\$\{v\.target\}\|\$\{v\.key\}`\)\}"/);
-  assert.match(charts,/function allocationValueCard\([\s\S]*?const safeLabel=escapeHtml\(label\);[\s\S]*?\$\{safeLabel\}\$\{swatch\}/);
-  assert.match(charts,/function symbolSummaryCard\([\s\S]*?safeLabel=escapeHtml\(label\);[\s\S]*?\$\{safeLabel\}\$\{swatch\}/);
+  assert.match(charts,/function allocationValueCard\([\s\S]*?safeLabel=escapeHtml\(label\)[\s\S]*?\$\{safeLabel\}\$\{swatch\}/);
+  assert.match(charts,/function symbolSummaryCard\([\s\S]*?safeLabel=escapeHtml\(label\)[\s\S]*?\$\{safeLabel\}\$\{swatch\}/);
   assert.doesNotMatch(app,/<h1 id="dashboardTitle">\$\{dataState\.portfolio\.meta\.title\}<\/h1>/);
   assert.doesNotMatch(ui,/labelHtml:`<span class="holding-name-text">\$\{h\.name\}\<\/span>/);
   assert.doesNotMatch(pension,/labelHtml:`<span class="holding-name-text">\$\{r\.name\}<\/span>/);
@@ -1307,7 +1307,12 @@ test('증권 종목별 누적손익 UI는 최종 실현손익과 historical univ
   assert.match(charts,/securityHistoricalAllocItems\(x\.date\)\.map\(h=>allocationValueCard/);
 });
 
-test('전량매도 당일 전일 대비 변동은 종목 셀 전체를 tooltip target으로 쓰고 종목명만 취소선 처리한다',()=>{
+test('전량매도 취소선은 공통 상태 조건으로 현황·전일변동·historical 카드에 적용한다',()=>{
+  assert.match(core,/const securityFullExitForDate=\(ticker,d\)=>/);
+  assert.match(core,/sale\.fullExit=securityFullExitForDate\(h\?\.ticker,date\)/);
+  assert.match(ui,/holding-name-text\$\{h\.fullExit\?' security-sale-marker-name':''\}/);
+  assert.match(charts,/securityFullExitForDate\(h\.ticker,x\.date\)\?'security-sale-marker-name':''/);
+  assert.match(charts,/securityFullExitForDate\(h\.ticker,dataState\.activeDate\)\?'security-sale-marker-name':''/);
   assert.match(ui,/function securitySaleTooltipAttrs\(row\)/);
   assert.match(ui,/function securitySaleMarkerHtml\(row,\{interactive=true\}=\{\}\)/);
   assert.match(ui,/labelClass:`asset-change-asset-col\$\{saleTooltipAttrs\?' security-sale-cell':''\}`/);

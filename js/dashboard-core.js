@@ -411,6 +411,16 @@ function previousDate(date){return allAvailableDates().filter(d=>d<date).sort(by
 function getPrice(s,section,ticker){return s?.[section]?.[ticker]??null}
 const securityEventItems=()=>Array.isArray(dataState.portfolio?.securitiesEvents)?dataState.portfolio.securitiesEvents:[];
 const securityTradeEventsForDate=(ticker,d)=>securityEventItems().filter(v=>['buy','sell'].includes(String(v?.type||''))&&String(v?.ticker||'')===String(ticker||'')&&String(v?.date||'')===String(d||''));
+const securityPortfolioItem=ticker=>(dataState.portfolio?.securities||[]).find(item=>String(item?.ticker||'')===String(ticker||''))||null;
+const securityFullExitForDate=(ticker,d)=>{
+  const item=securityPortfolioItem(ticker);
+  if(!item||!d||Number(securityPositionState(item,d)?.qty)>0)return false;
+  const trades=securityEventItems().filter(v=>['buy','sell'].includes(String(v?.type||''))&&String(v?.ticker||'')===String(ticker||'')&&String(v?.date||'')<=String(d));
+  if(!trades.length)return false;
+  const lastSellDate=trades.filter(v=>v.type==='sell').reduce((latest,v)=>String(v.date)>latest?String(v.date):latest,'');
+  const lastBuyDate=trades.filter(v=>v.type==='buy').reduce((latest,v)=>String(v.date)>latest?String(v.date):latest,'');
+  return !!lastSellDate&&lastSellDate>=lastBuyDate;
+};
 const securityChartItemVisibleForDate=(item,d)=>{
   if(item?.chart===false||item?.chartFrom&&d<item.chartFrom)return false;
   const state=securityPositionState(item,d);
@@ -738,9 +748,9 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
   const evaluationTotal=holdingEval+cash;
   const weightPct=value=>evaluationTotal?Number(value||0)/evaluationTotal*100:0;
   const statusRows=displayRows.map(h=>{
-    const terminalExit=(Number(h?.qty)||0)<=0&&securityTradeEventsForDate(h?.ticker,date).some(v=>v.type==='sell');
-    const displayProfit=terminalExit?securityTotalProfitValue(h):(Number(h?.profit)||0);
-    return {...h,profit:displayProfit,weightPct:weightPct(h.evalAmount)};
+    const fullExit=securityFullExitForDate(h?.ticker,date);
+    const displayProfit=fullExit?securityTotalProfitValue(h):(Number(h?.profit)||0);
+    return {...h,profit:displayProfit,fullExit,weightPct:weightPct(h.evalAmount)};
   });
   const holdingProfit=statusRows.reduce((a,h)=>a+(Number(h?.profit)||0),0);
   const totalCost=holdingCost+cash;
@@ -779,7 +789,7 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
         a.realizedProfit+=securitySellRealizedProfit(v);
         return a;
       },{qty:0,grossAmount:0,transactionCost:0,amount:0,costBasis:0,realizedProfit:0}):null;
-      if(sale){sale.price=sale.qty?sale.grossAmount/sale.qty:null;sale.fullExit=(Number(h?.qty)||0)<=0;}
+      if(sale){sale.price=sale.qty?sale.grossAmount/sale.qty:null;sale.fullExit=securityFullExitForDate(h?.ticker,date);}
       return {
         name:h.name,
         ticker:h.ticker,
@@ -1399,6 +1409,7 @@ export {
   securitiesCumHistoryBundle,
   securityExcludedTransferSum,
   securityExternalContributionSum,
+  securityFullExitForDate,
   securityInternalCashTransferSum,
   securityInternalCashReturnSum,
   securityInternalCashReturnPrincipalSum,
