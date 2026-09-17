@@ -70,7 +70,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
       currentPrice:103580, oldRecovery:0, addPrice:103580, addShares:470, autoBreakEvenTarget:true, mode:'current'
     },
     'buy-2026-07-30': {
-      caseType:'settled', noPrior:false, priorSellDate:'2026-07-30', existingShares:642, existingCost:51912930, priorSettlementValue:47880490, priorSellPrice:74580,
+      caseType:'settled', noPrior:false, priorSellDate:'2026-07-30', existingShares:642, existingCost:51912930, priorSettlementValue:47880490, priorSellPrice:106005,
       currentPrice:75595, oldRecovery:0, addPrice:82680, addShares:576, autoBreakEvenTarget:true, mode:'current'
     },
     'current-only': {
@@ -193,7 +193,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
   }
   function getActualSellPrice(){
     if(noPriorMode||presetDirty||activePresetId!==getPresetIdForCurrentCase())return null;
-    return caseType==='settled'?91065:74580;
+    return caseType==='settled'?91065:106005;
   }
   let actualSellPriceFeedbackTimer=0;
   function resetActualSellPriceFeedback(){
