@@ -173,6 +173,22 @@ def verified_regular_close_source(target_date: str, manual_valuation_used: bool 
     return f"{base}+nxt_valuation_override" if manual_valuation_used else base
 
 
+def snapshot_has_verified_regular_close(target_date: str, snapshot: Any) -> bool:
+    """Return whether a stored close carries the source attestation required for its date."""
+    if not isinstance(snapshot, dict) or snapshot.get("display", True) is False:
+        return False
+    if snapshot.get("priceBasis") != "regular_close":
+        return False
+
+    source = str(snapshot.get("regularCloseSource") or "").strip()
+    expected = (
+        "naver_krx_1530_minute"
+        if target_date >= KRX_AFTERMARKET_START_DATE
+        else "pykrx_pre_aftermarket"
+    )
+    return source == expected or source.startswith(expected + "+")
+
+
 def _fetch_regular_close_map_from_pykrx(target_date: str, is_etf: bool = False) -> dict[str, int]:
     """Return the exact-date raw KRX close map from pykrx's all-market endpoint.
 
@@ -683,7 +699,22 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
         and date <= latest_market
     ]
 
-    return sorted(set(refresh_dates + missing_dates + retry_dates))
+    # KRX after-market 도입 이후에는 priceBasis 라벨만으로 정규장 종가를
+    # 신뢰하지 않는다. 과거 버전이 남긴 regular_close 행 중 exact 15:30
+    # source attestation이 없는 날짜를 자동 대상에 포함해 한 번 재확정한다.
+    # 검증 source가 기록된 뒤에는 이 목록에서 빠지므로 자동 실행이 수렴한다.
+    reconfirm_dates = [
+        date
+        for date, snapshot in prices.items()
+        if is_valid_date_text(date)
+        and KRX_AFTERMARKET_START_DATE <= date <= latest_market
+        and isinstance(snapshot, dict)
+        and snapshot.get("display", True) is not False
+        and snapshot.get("priceBasis") == "regular_close"
+        and not snapshot_has_verified_regular_close(date, snapshot)
+    ]
+
+    return sorted(set(refresh_dates + missing_dates + retry_dates + reconfirm_dates))
 
 
 # ---------------------------------------------------------------------------

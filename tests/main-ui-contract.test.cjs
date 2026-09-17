@@ -499,7 +499,7 @@ test('KRX workflow는 다른 branch commit과 push가 경합해도 최신 remote
 
 test('숨김·경고 KRX 날짜는 다음 자동 실행에서 재수집 대상으로 복구한다',()=>{
   assert.match(updatePricesPython,/retry_dates = \[[^]*?snapshot\.get\("display", True\) is False[^]*?snapshot\.get\("warnings"\)/);
-  assert.match(updatePricesPython,/set\(refresh_dates \+ missing_dates \+ retry_dates\)/);
+  assert.match(updatePricesPython,/set\(refresh_dates \+ missing_dates \+ retry_dates \+ reconfirm_dates\)/);
 });
 
 test('퇴직연금 ETF 미리보기는 잘못된 수량·금액·일자를 저장 전에 차단한다',()=>{
@@ -799,7 +799,7 @@ test('KRX 애프터마켓 이후 종가는 정확한 15:30 분봉만 검증하�
   assert.match(updater,/naver-krx-1530-minute=/);
   assert.match(updater,/pykrx_pre_aftermarket/);
   assert.match(updater,/naver_krx_1530_minute/);
-  assert.match(gas,/function krxSnapshotHasVerifiedRegularClose\(snapshot\)/);
+  assert.match(gas,/function krxSnapshotHasVerifiedRegularClose\(snapshot, dateText\)/);
   assert.match(gas,/naver_krx_1530_minute/);
   assert.match(gas,/pykrx_pre_aftermarket/);
   assert.doesNotMatch(gas,/source === "pykrx_raw"/);
@@ -824,6 +824,42 @@ test('KRX 선택일 재갱신은 기존 종가 라벨과 관계없이 실제 dis
     assert.equal(result.shouldDispatch,true);
     assert.equal(result.reason,'explicit_date_refresh');
   }
+});
+
+test('KRX 자동 재갱신은 최신일이 검증돼도 애프터마켓 이후 미검증 과거 종가를 먼저 재확정하고 이후 수렴한다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('function latestVisiblePriceSnapshot(');
+  const end=gas.indexOf('// KRX requestId 완료 이력',start);
+  const context=vm.createContext({
+    nowKSTDateTimeInfo:()=>({
+      dateText:'2026-09-17',day:4,isWeekday:true,isBeforeOpen:false,isMarketTime:false,isAfterClose:true
+    }),
+    previousBusinessDateText:()=> '2026-09-16'
+  });
+  vm.runInContext(gas.slice(start,end),context);
+  const verified={marketStatus:'close',priceBasis:'regular_close',regularCloseSource:'naver_krx_1530_minute'};
+  const prices={
+    '2026-09-14':{marketStatus:'close',priceBasis:'regular_close'},
+    '2026-09-15':{marketStatus:'close',priceBasis:'regular_close',regularCloseSource:'pykrx_raw'},
+    '2026-09-16':{marketStatus:'close',priceBasis:'regular_close',regularCloseSource:'pykrx_pre_aftermarket'},
+    '2026-09-17':verified
+  };
+  let result=context.shouldDispatchKrxWorkflow({},prices);
+  assert.equal(result.shouldDispatch,true);
+  assert.equal(result.reason,'reconfirm_unverified_regular_close_history');
+
+  for(const date of ['2026-09-14','2026-09-15','2026-09-16']) prices[date]={...verified};
+  result=context.shouldDispatchKrxWorkflow({},prices);
+  assert.equal(result.shouldDispatch,false);
+  assert.equal(result.reason,'already_closed_today');
+});
+
+test('저장 가격 tooltip은 애프터마켓 이후 source 미검증 regular_close를 확정 종가로 단정하지 않는다',()=>{
+  assert.match(uiCommon,/regularCloseSource='',date=''/);
+  assert.match(uiCommon,/String\(date\|\|''\)>='2026-09-14'&&!verifiedAftermarket\)return '저장 데이터'/);
+  assert.match(ui,/regularCloseSource:x\.s\?\.regularCloseSource/);
+  assert.match(pension,/regularCloseSource:x\.s\?\.regularCloseSource/);
 });
 
 test('KRX GAS 시간 경계는 15:30 정각부터 장후다',()=>{

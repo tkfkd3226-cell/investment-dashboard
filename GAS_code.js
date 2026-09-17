@@ -6345,6 +6345,8 @@ function latestVisiblePriceSnapshot(prices) {
 }
 
 
+const KRX_AFTERMARKET_START_DATE_TEXT = "2026-09-14";
+
 function krxSnapshotPriceBasis(snapshot) {
   if (!snapshot || typeof snapshot !== "object") return "";
   const explicit = String(snapshot.priceBasis || "").trim();
@@ -6352,17 +6354,37 @@ function krxSnapshotPriceBasis(snapshot) {
   return String(snapshot.marketStatus || "close") === "intraday" ? "intraday" : "legacy_close";
 }
 
-function krxSnapshotHasVerifiedRegularClose(snapshot) {
+function krxSnapshotHasVerifiedRegularClose(snapshot, dateText) {
   if (!snapshot || typeof snapshot !== "object" || snapshot.display === false) return false;
   if (krxSnapshotPriceBasis(snapshot) !== "regular_close") return false;
-  // 2026-09-17 source-policy revision: pykrx_raw is no longer a verified-close
-  // attestation because post-2026-09-14 day/close feeds can include KRX after-market
-  // trades. Trust only updater versions that explicitly prove the regular close.
+  // 2026-09-17 source-policy revision: post-aftermarket rows must prove the exact
+  // 15:30 regular close. Earlier dates use the pre-aftermarket pykrx attestation.
   const source = String(snapshot.regularCloseSource || "").trim();
+  const date = String(dateText || "").trim();
+  if (date && date >= KRX_AFTERMARKET_START_DATE_TEXT) {
+    return source === "naver_krx_1530_minute" || source.indexOf("naver_krx_1530_minute+") === 0;
+  }
+  if (date) {
+    return source === "pykrx_pre_aftermarket" || source.indexOf("pykrx_pre_aftermarket+") === 0;
+  }
   return source === "naver_krx_1530_minute"
     || source.indexOf("naver_krx_1530_minute+") === 0
     || source === "pykrx_pre_aftermarket"
     || source.indexOf("pykrx_pre_aftermarket+") === 0;
+}
+
+function krxUnverifiedAftermarketRegularCloseDates(prices, throughDate) {
+  const upper = String(throughDate || "").trim();
+  return Object.keys(prices || {}).filter(function(date) {
+    const snapshot = prices[date];
+    return /^\d{4}-\d{2}-\d{2}$/.test(date)
+      && date >= KRX_AFTERMARKET_START_DATE_TEXT
+      && (!upper || date <= upper)
+      && snapshot
+      && snapshot.display !== false
+      && krxSnapshotPriceBasis(snapshot) === "regular_close"
+      && !krxSnapshotHasVerifiedRegularClose(snapshot, date);
+  }).sort();
 }
 
 // 현재 시각·최신 데이터 상태에 따라 KRX workflow 실행 필요성을 판단한다.
@@ -6402,8 +6424,19 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     };
   }
 
+  // 최신 행이 이미 검증되었더라도 2026-09-14 이후 과거 regular_close 중
+  // source attestation이 비어 있거나 잘못된 행이 남아 있으면 Python 자동 대상
+  // 계산까지 workflow를 통과시켜 한 번 재확정한다. 재확정 후에는 이 목록이 비어 수렴한다.
+  const unverifiedHistory = krxUnverifiedAftermarketRegularCloseDates(prices, now.dateText);
+  if (unverifiedHistory.length) {
+    return {
+      shouldDispatch: true,
+      reason: "reconfirm_unverified_regular_close_history"
+    };
+  }
+
   // 오늘 데이터가 새 검증 정책으로 정규장 종가가 확인된 경우에만 추가 실행을 막는다.
-  if (latest.date === now.dateText && krxSnapshotHasVerifiedRegularClose(latest.snapshot)) {
+  if (latest.date === now.dateText && krxSnapshotHasVerifiedRegularClose(latest.snapshot, latest.date)) {
     return {
       shouldDispatch: false,
       reason: "already_closed_today",
@@ -6421,7 +6454,7 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
 
   // 과거 pykrx_raw 또는 source attestation 없는 당일 데이터는
   // exact 15:30 regular-close 정책으로 한 번 재확정한다.
-  if (latest.date === now.dateText && latestStatus === "close" && !krxSnapshotHasVerifiedRegularClose(latest.snapshot) && now.isAfterClose) {
+  if (latest.date === now.dateText && latestStatus === "close" && !krxSnapshotHasVerifiedRegularClose(latest.snapshot, latest.date) && now.isAfterClose) {
     return {
       shouldDispatch: true,
       reason: "reconfirm_regular_close"
@@ -6429,7 +6462,7 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
   }
 
   // 장 시작 전에는 직전 영업일 데이터가 새 regular-close source로 검증된 경우에만 실행하지 않는다.
-  if (now.isBeforeOpen && krxSnapshotHasVerifiedRegularClose(latest.snapshot) && latest.date >= previousBusinessDate) {
+  if (now.isBeforeOpen && krxSnapshotHasVerifiedRegularClose(latest.snapshot, latest.date) && latest.date >= previousBusinessDate) {
     return {
       shouldDispatch: false,
       reason: "before_open_already_closed",
@@ -6438,7 +6471,7 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
   }
 
   // 주말에도 직전 영업일 데이터가 새 regular-close source로 검증된 경우에만 실행하지 않는다.
-  if (!now.isWeekday && krxSnapshotHasVerifiedRegularClose(latest.snapshot) && latest.date >= previousBusinessDate) {
+  if (!now.isWeekday && krxSnapshotHasVerifiedRegularClose(latest.snapshot, latest.date) && latest.date >= previousBusinessDate) {
     return {
       shouldDispatch: false,
       reason: "weekend_already_closed",
@@ -6478,6 +6511,7 @@ const KRX_DURABLE_DECISION_REASONS = Object.freeze({
   already_closed_today: true,
   finalize_intraday_after_close: true,
   reconfirm_regular_close: true,
+  reconfirm_unverified_regular_close_history: true,
   before_open_already_closed: true,
   weekend_already_closed: true,
   possible_missing_dates: true,

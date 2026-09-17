@@ -88,6 +88,37 @@ class UpdatePricesSafetyTest(unittest.TestCase):
 
         self.assertEqual(dates, ["2026-09-09"])
 
+    def test_unverified_aftermarket_regular_close_history_is_reconfirmed_even_if_latest_is_verified(self):
+        self.updater.today_kst = lambda: "2026-09-18"
+        self.updater.resolve_latest_market_date = lambda *_: "2026-09-17"
+        prices = {
+            "2026-09-14": {"display": True, "marketStatus": "close", "priceBasis": "regular_close"},
+            "2026-09-15": {"display": True, "marketStatus": "close", "priceBasis": "regular_close", "regularCloseSource": "pykrx_raw"},
+            "2026-09-16": {"display": True, "marketStatus": "close", "priceBasis": "regular_close", "regularCloseSource": "pykrx_pre_aftermarket"},
+            "2026-09-17": {"display": True, "marketStatus": "close", "priceBasis": "regular_close", "regularCloseSource": "naver_krx_1530_minute"},
+        }
+
+        dates = self.updater.resolve_target_dates(self.portfolio, prices, None)
+
+        self.assertEqual(dates, ["2026-09-14", "2026-09-15", "2026-09-16"])
+
+    def test_aftermarket_regular_close_reconfirmation_converges_after_attestation(self):
+        self.updater.today_kst = lambda: "2026-09-18"
+        self.updater.resolve_latest_market_date = lambda *_: "2026-09-17"
+        prices = {
+            date: {
+                "display": True,
+                "marketStatus": "close",
+                "priceBasis": "regular_close",
+                "regularCloseSource": "naver_krx_1530_minute",
+            }
+            for date in ["2026-09-14", "2026-09-15", "2026-09-16", "2026-09-17"]
+        }
+
+        dates = self.updater.resolve_target_dates(self.portfolio, prices, None)
+
+        self.assertEqual(dates, [])
+
     def test_close_snapshot_is_tagged_as_regular_close(self):
         self.updater.fetch_close = lambda ticker, date, **_kw: (date, 100 if ticker == "SEC" else 200, None)
         prices, snapshots = {}, {}

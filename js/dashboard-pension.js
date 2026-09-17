@@ -91,7 +91,7 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
     labelHtml:`${mobileTableAssetName(r.name)}${pensionProductSwatch(r.name)}`,
     name:r.name,ticker:r.ticker,date:x.date,priceText:r.price==null?'-':won(r.price),
     liveQuote:r.liveQuote,fallbackSource:'prices.json',
-    marketStatus:x.s?.marketStatus,priceBasis:x.s?.priceBasis
+    marketStatus:x.s?.marketStatus,priceBasis:x.s?.priceBasis,regularCloseSource:x.s?.regularCloseSource
   });
   const rows=orderedPensionRows.map(r=>({
     labelHtml:sourceLabel(r),
@@ -151,7 +151,7 @@ function renderPensionProductsBlock(x,pensionCashCost,pensionHeldCost,pensionHel
       labelHtml:`<span class="holding-name-text">${mobileTableAssetName(r.name)}</span>${pensionProductSwatch(r.name)}`,
       name:r.name,ticker:r.ticker,date:x.date,priceText:r.price==null?'-':won(r.price),
       liveQuote:r.liveQuote,fallbackSource:'prices.json',
-      marketStatus:x.s?.marketStatus,priceBasis:x.s?.priceBasis
+      marketStatus:x.s?.marketStatus,priceBasis:x.s?.priceBasis,regularCloseSource:x.s?.regularCloseSource
     }),
     accessibleLabel:r.name,
     items:[

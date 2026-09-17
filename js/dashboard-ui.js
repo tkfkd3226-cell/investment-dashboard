@@ -1145,7 +1145,7 @@ function renderHoldings(x){
     labelHtml:`<span class="holding-name-text${h.fullExit?' security-sale-marker-name':''}">${mobileTableAssetName(h.name)}</span>${securitySymbolSwatch(h.name)}`,
     name:h.name,ticker:h.ticker,date:x.date,priceText:h.price==null?'-':won(h.price),
     liveQuote:h.liveQuote,postClosePending:h.postClosePending,fallbackSource,
-    marketStatus:x.s?.marketStatus,priceBasis:x.s?.priceBasis
+    marketStatus:x.s?.marketStatus,priceBasis:x.s?.priceBasis,regularCloseSource:x.s?.regularCloseSource
   });
   const rows=orderedHoldings.map(h=>{
     const saleTooltipAttrs=securitySaleTooltipAttrs(h,{focusScope:'holdings'});
@@ -1186,7 +1186,7 @@ function renderHoldings(x){
       labelHtml:`<span class="holding-name-text${h.fullExit?' security-sale-marker-name':''}">${escapeHtml(h.name)}</span>${securitySymbolSwatch(h.name)}`,
       name:h.name,ticker:h.ticker,date:x.date,priceText:h.price==null?'-':won(h.price),
       liveQuote:h.liveQuote,postClosePending:h.postClosePending,fallbackSource,
-      marketStatus:x.s?.marketStatus,priceBasis:x.s?.priceBasis
+      marketStatus:x.s?.marketStatus,priceBasis:x.s?.priceBasis,regularCloseSource:x.s?.regularCloseSource
     }),
     accessibleLabel:h.name,
     items:[
