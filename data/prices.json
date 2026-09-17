@@ -1863,10 +1863,10 @@
     "source": "krx-github-actions",
     "marketStatus": "close",
     "priceBasis": "regular_close",
-    "regularCloseSource": "pykrx_raw",
+    "regularCloseSource": "naver_krx_1530_minute",
     "requestedDate": "2026-09-17",
     "actualMarketDate": "2026-09-17",
-    "updatedAtKST": "2026-09-17T18:35:48+09:00",
+    "updatedAtKST": "2026-09-17T19:50:05+09:00",
     "priceSourceDates": {
       "SEC:005930": "2026-09-17",
       "SEC:000660": "2026-09-17",
@@ -1880,9 +1880,9 @@
       "PEN:448330": "2026-09-17"
     },
     "securities": {
-      "005930": 254500,
-      "000660": 1764000,
-      "005380": 363500,
+      "005930": 252500,
+      "000660": 1745000,
+      "005380": 363000,
       "069500": 106280,
       "0163Y0": 9195,
       "395160": 38485,
