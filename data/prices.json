@@ -1737,11 +1737,13 @@
   },
   "2026-09-14": {
     "display": true,
-    "source": "pykrx-github-actions+regular-close-audit",
+    "source": "krx-github-actions",
     "marketStatus": "close",
+    "priceBasis": "regular_close",
+    "regularCloseSource": "naver_krx_1530_minute",
     "requestedDate": "2026-09-14",
     "actualMarketDate": "2026-09-14",
-    "updatedAtKST": "2026-09-14T16:07:45+09:00",
+    "updatedAtKST": "2026-09-17T20:39:42+09:00",
     "priceSourceDates": {
       "SEC:005930": "2026-09-14",
       "SEC:000660": "2026-09-14",
@@ -1773,16 +1775,17 @@
     },
     "indices": {
       "KOSPI": 6684.37
-    },
-    "priceBasis": "regular_close"
+    }
   },
   "2026-09-15": {
     "display": true,
-    "source": "pykrx-github-actions+regular-close-audit",
+    "source": "krx-github-actions",
     "marketStatus": "close",
+    "priceBasis": "regular_close",
+    "regularCloseSource": "naver_krx_1530_minute",
     "requestedDate": "2026-09-15",
     "actualMarketDate": "2026-09-15",
-    "updatedAtKST": "2026-09-15T20:22:06+09:00",
+    "updatedAtKST": "2026-09-17T20:39:49+09:00",
     "priceSourceDates": {
       "SEC:005930": "2026-09-15",
       "SEC:000660": "2026-09-15",
@@ -1814,16 +1817,17 @@
     },
     "indices": {
       "KOSPI": 6627.26
-    },
-    "priceBasis": "regular_close"
+    }
   },
   "2026-09-16": {
     "display": true,
-    "source": "pykrx-github-actions+regular-close-audit",
+    "source": "krx-github-actions",
     "marketStatus": "close",
+    "priceBasis": "regular_close",
+    "regularCloseSource": "naver_krx_1530_minute",
     "requestedDate": "2026-09-16",
     "actualMarketDate": "2026-09-16",
-    "updatedAtKST": "2026-09-16T16:21:03+09:00",
+    "updatedAtKST": "2026-09-17T20:39:55+09:00",
     "priceSourceDates": {
       "SEC:005930": "2026-09-16",
       "SEC:000660": "2026-09-16",
@@ -1855,8 +1859,7 @@
     },
     "indices": {
       "KOSPI": 6717.97
-    },
-    "priceBasis": "regular_close"
+    }
   },
   "2026-09-17": {
     "display": true,
@@ -1866,7 +1869,7 @@
     "regularCloseSource": "naver_krx_1530_minute",
     "requestedDate": "2026-09-17",
     "actualMarketDate": "2026-09-17",
-    "updatedAtKST": "2026-09-17T20:37:22+09:00",
+    "updatedAtKST": "2026-09-17T20:40:01+09:00",
     "priceSourceDates": {
       "SEC:005930": "2026-09-17",
       "SEC:000660": "2026-09-17",
