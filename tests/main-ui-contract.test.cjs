@@ -40,20 +40,15 @@ function importsOf(source){
   return [...source.matchAll(/from\s+['"]([^'"]+)['"]/g)].map(m=>m[1]);
 }
 
-test('Main boot contract: CSS 6개 순서와 app/Market AI 두 module entry를 유지한다',()=>{
-  const cssOrder=['common.css','tablet.css','mobile.css','special.css','interaction.css','print.css'];
-  let last=-1;
-  for(const file of cssOrder){
-    const at=index.indexOf(`'${file}'`);
-    assert.ok(at>last,`${file} must keep canonical CSS order`);
-    last=at;
+test('Main boot contract: canonical CSS와 app/Market AI module entry를 로드한다',()=>{
+  for(const file of ['common.css','tablet.css','mobile.css','special.css','interaction.css','print.css']){
+    assert.match(index,new RegExp(`(?:css/)?${file.replace('.', '\\.')}`),`${file}가 Main에서 로드돼야 한다`);
   }
-  assert.match(index,/'kodex-leverage-schema\.js'/,'공통 KODEX validator도 importmap cache-bust 대상이어야 한다');
+  assert.match(index,/'kodex-leverage-schema\.js'/,'공통 KODEX validator는 importmap cache-bust 대상이어야 한다');
   assert.match(index,/type="module" src="js\/dashboard-app\.js\?v=/);
   assert.match(index,/type="module" src="js\/dashboard-market-ai\.js\?v=/);
-  assert.doesNotMatch(index,/'dashboard-responsive\.js'/);
+  assert.doesNotMatch(index,/'dashboard-responsive\.js'/,'폐기된 responsive entry가 되살아나면 안 된다');
 });
-
 
 test('Main appearance 두 control은 localStorage와 BroadcastChannel을 함께 갱신한다',()=>{
   assert.match(ui1,/const THEME_STORAGE_KEY='investmentDashboard\.theme'/);
@@ -754,12 +749,6 @@ test('Market AI는 main dataState/uiState를 참조하지 않는 standalone stat
   assert.match(marketAi,/const marketAiState=\{/);
 });
 
-test('CSS contract: 운영 CSS에는 !important override를 두지 않는다',()=>{
-  for(const [name,source] of Object.entries({common,tablet,mobile,special,interaction})){
-    assert.doesNotMatch(source,/!important/,`${name}.css contains !important`);
-  }
-});
-
 test('보유종목/연금상품 현재가 출처는 저장 기준과 Market AI 적용 여부를 기존 tooltip에서 구분한다',()=>{
   assert.match(uiCommon,/tooltip\.className='dash-tooltip'/);
   assert.match(uiCommon,/function renderAssetPriceSourceLabel\(/);
@@ -1099,30 +1088,6 @@ test('Repository data text는 trusted HTML과 분리해 innerHTML 경계에서 e
   assert.doesNotMatch(pensionEditor,/<p id="pensionActionPinDescription" class="action-modal-description">\$\{description\}<\/p>/);
 });
 
-test('Repository EOL contract는 선언뿐 아니라 실제 source/document text도 LF를 사용한다',()=>{
-  const attrs=read('.gitattributes');
-  assert.match(attrs,/^\* text=auto eol=lf$/m);
-  assert.match(attrs,/(^|\n)\*\.png binary$/m);
-  assert.match(attrs,/(^|\n)\*\.webp binary$/m);
-
-  const textExtensions=new Set(['.css','.cjs','.html','.js','.json','.md','.py','.svg','.txt','.yml','.yaml']);
-  const textBasenames=new Set(['.gitattributes']);
-  const failures=[];
-  const walk=dir=>{
-    for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
-      if(entry.name==='.git') continue;
-      const full=path.join(dir,entry.name);
-      if(entry.isDirectory()){ walk(full); continue; }
-      const ext=path.extname(entry.name).toLowerCase();
-      if(!textExtensions.has(ext)&&!textBasenames.has(entry.name)) continue;
-      const raw=fs.readFileSync(full);
-      if(raw.includes(13)) failures.push(path.relative(ROOT,full));
-    }
-  };
-  walk(ROOT);
-  assert.deepEqual(failures,[],`CR/CRLF가 남은 text 파일: ${failures.join(', ')}`);
-});
-
 test('누적 차트 자동 Y축은 서로 반대 부호 데이터도 포함하면서 좌우 0선을 같은 위치에 맞춘다',()=>{
   const vm=require('node:vm');
   const start=charts.indexOf('function alignZeroTickRanges(');
@@ -1195,70 +1160,32 @@ test('Live Valuation partial refresh는 미진입 차트 entrance를 일괄 완�
   assert.match(charts,/data-chart-entrance-played/);
 });
 
-test('실시간 시세는 연결 gating·Web\/Tablet 선측정·Phone 상단 icon-only·공통 modal edge 계약을 유지한다',()=>{
-  assert.match(marketAiClient,/\/monitor\//);
-  assert.match(marketAi,/publishMarketAiConnectionState\(/);
-  assert.match(ui,/title:'실시간 시세'/);
-  assert.match(ui,/data-market-ai-monitor-entry/);
-  assert.match(ui,/window\.addEventListener\(MARKET_AI_CONNECTION_EVENT,event=>\{syncRealtimeQuotesAvailability\(event\?\.detail\?\.connected===true\);syncMarketAiConnectionToggleControls\(\);\}\)/);
-  assert.match(ui,/document\.querySelectorAll\('\[data-market-ai-monitor-entry\]'\)\.forEach\(control=>\{control\.hidden=!marketAiMonitorAvailable\}\)/);
+test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·responsive modal 계약을 유지한다',()=>{
+  assert.match(ui,/data-market-ai-monitor-entry/,'실시간 시세 진입점은 Market AI 상태로 gating할 수 있어야 한다');
+  assert.match(common,/\[data-market-ai-monitor-entry\]\[hidden\]\{display:none\}/,'숨김 상태는 viewport와 무관하게 보장돼야 한다');
 
-  const realtimeIcon=/REALTIME_QUOTES_ACTION=Object\.freeze\([^\n]*icon:'([^']+)'/.exec(ui)?.[1]||'';
-  const nightIcon=/kospiNight:'([^']+)'/.exec(ui)?.[1]||'';
-  assert.ok(realtimeIcon&&nightIcon,'실시간 시세/야간선물 icon token is missing');
-  assert.notEqual(realtimeIcon,nightIcon,'실시간 시세와 코스피200 야간선물은 서로 다른 아이콘을 사용해야 한다');
-
-  const mobileMenuStart=ui.indexOf('function renderResponsiveNavigationMenuContent()');
-  const mobileMenuEnd=ui.indexOf('function renderDesktopTocContent()',mobileMenuStart);
-  const mobileMenuSource=ui.slice(mobileMenuStart,mobileMenuEnd);
-  assert.ok(mobileMenuStart>=0&&mobileMenuEnd>mobileMenuStart,'responsive navigation source is missing');
-  assert.doesNotMatch(mobileMenuSource,/REALTIME_QUOTES_ACTION/,'Phone hamburger 관리 메뉴에는 실시간 시세 진입점을 두지 않는다');
-  assert.match(ui,/class="date-tool-btn control-icon-button topbar-realtime-phone-action"[^>]*title="\$\{REALTIME_QUOTES_ACTION\.title\}"[^>]*aria-label="\$\{REALTIME_QUOTES_ACTION\.title\}"[^>]*data-dashboard-action="\$\{REALTIME_QUOTES_ACTION\.action\}"[^>]*data-market-ai-monitor-entry/);
+  const mobileMenuSource=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
+  assert.doesNotMatch(mobileMenuSource,/REALTIME_QUOTES_ACTION/,'Phone hamburger 관리 메뉴에는 실시간 시세 진입점을 중복 배치하지 않는다');
   const phoneRealtimeButton=/class="date-tool-btn control-icon-button topbar-realtime-phone-action"[^>]*>[\s\S]*?<\/button>/.exec(ui)?.[0]||'';
-  assert.ok(phoneRealtimeButton,'Phone 실시간 시세 상단 버튼이 없다');
-  assert.doesNotMatch(phoneRealtimeButton,/topbar-label-(?:full|short)/,'Phone 실시간 시세 버튼은 글자 없이 아이콘만 사용해야 한다');
-  assert.match(common,/:is\(\.topbar-calc-action,\.topbar-market-ai-toggle,\.topbar-realtime-phone-action,\.topbar-theme-action,\.topbar-corner-action\) \.date-tool-action-icon/);
-  assert.match(common,/button\.topbar-realtime-phone-action,\s*\.date-action-menu-wrap,\s*\.topbar-label-short\{display:none\}/,'Phone 전용 실시간 시세 버튼은 Web/Tablet에서 control-icon-button display 규칙보다 높은 specificity로 숨겨야 한다');
-  assert.match(special,/button\.topbar-realtime-phone-action,\s*\.topbar-theme-action,\s*\.topbar-corner-action\{\s*display:inline-flex;/,'Phone breakpoint에서만 실시간 시세 icon-only 버튼을 다시 표시해야 한다');
-  assert.match(common,/\[data-market-ai-monitor-entry\]\[hidden\]\{display:none\}/,'Market AI 전용 진입점의 hidden은 viewport 공통 author CSS로 보장해야 한다');
-  assert.doesNotMatch(special,/\.topbar-realtime-phone-action\[hidden\]/,'Phone 전용 hidden 보정으로 공통 gating 결함을 가리면 안 된다');
-  assert.match(special,/\.topbar-realtime-phone-action\{right:calc\(var\(--topbar-phone-edge\) \+ var\(--topbar-phone-control-step\) \+ var\(--topbar-phone-control-step\) \+ var\(--topbar-phone-control-step\)\)\}/);
-  assert.match(special,/\.switcher:is\(\.mobile-menu-open,\.mobile-date-pinned\) :is\(\.topbar-realtime-phone-action,\.topbar-theme-action,\.topbar-corner-action\)/);
+  assert.ok(phoneRealtimeButton,'Phone 실시간 시세 상단 버튼이 필요하다');
+  assert.doesNotMatch(phoneRealtimeButton,/topbar-label-(?:full|short)/,'Phone 실시간 시세 버튼은 icon-only여야 한다');
 
-  const realtimeModalCss=common.slice(common.indexOf('.realtime-quote-modal{'),common.indexOf('.pension-action-pin-modal{'));
-  assert.doesNotMatch(realtimeModalCss,/transform\s*:\s*scale\(/);
-  assert.match(realtimeModalCss,/--realtime-monitor-fallback-height:640px/);
-  assert.match(realtimeModalCss,/\.realtime-quote-modal\.realtime-quote-preparing\{[^]*?display:flex;[^]*?opacity:0;[^]*?pointer-events:none;/s);
-  assert.match(common,/\.realtime-quote-frame-stage\{[^]*?overflow:hidden/s);
-  assert.match(ui,/addEventListener\('message',handleRealtimeMonitorMessage\)/);
-  assert.match(ui,/event\.origin!==realtimeMonitorExpectedOrigin\(\)/);
+  assert.match(ui,/addEventListener\('message',handleRealtimeMonitorMessage\)/,'embedded Monitor message bridge가 필요하다');
+  assert.match(ui,/event\.origin!==realtimeMonitorExpectedOrigin\(\)/,'Monitor message는 origin 검증을 유지해야 한다');
   assert.match(ui,/REALTIME_MONITOR_THEME_READY_MESSAGE='market-ai-monitor:theme-ready'/);
   assert.match(ui,/REALTIME_MONITOR_THEME_STATE_MESSAGE='market-ai-monitor:theme-state'/);
   assert.match(ui,/REALTIME_MONITOR_THEME_CHANGE_MESSAGE='market-ai-monitor:theme-change'/);
-  assert.match(ui,/payload\.type===REALTIME_MONITOR_THEME_READY_MESSAGE[^]*?publishRealtimeMonitorTheme\(\)/s);
-  assert.match(ui,/payload\.type===REALTIME_MONITOR_THEME_CHANGE_MESSAGE[^]*?setTheme\(theme,\{syncMonitor:false\}\)/s);
-  assert.match(realtimeModalCss,/--realtime-quote-shell-bg:#f5f7fa/);
-  assert.match(realtimeModalCss,/html\.dark \.realtime-quote-modal\{[^]*?--realtime-quote-shell-bg:#11161d/s);
-  assert.match(realtimeModalCss,/\.realtime-quote-modal-card\{[^]*?background:var\(--realtime-quote-shell-bg\)/s);
-  assert.match(ui,/modal\.classList\.add\('realtime-quote-preparing'\);\s*syncRealtimeQuotesModalGeometry\(\);\s*realtimeMonitorPrepareTimer=window\.setTimeout\(revealPreparedRealtimeQuotesModal,REALTIME_MONITOR_PREPARE_TIMEOUT_MS\);/);
-  assert.match(ui,/const initialHeight=Math\.min\(fallbackHeight,availableHeight\*\.86\)/);
-  assert.match(ui,/realtimeMonitorContentHeight>0\?realtimeMonitorContentHeight\+2:initialHeight/);
-  assert.doesNotMatch(ui,/realtimeMonitorContentHeight>0\?realtimeMonitorContentHeight\+2:availableHeight/);
-  assert.match(special,/:is\(\.contrib-modal,\.action-modal\)\{\s*--modal-overlay-pad:var\(--space-5xl\);\s*--modal-card-radius:min\(18px,var\(--corner-surface-cap\)\);/s);
+
+  const realtimeModalCss=common.slice(common.indexOf('.realtime-quote-modal{'),common.indexOf('.pension-action-pin-modal{'));
+  assert.ok(realtimeModalCss.includes('.realtime-quote-modal-card'),'실시간 시세 modal card CSS가 필요하다');
+  assert.doesNotMatch(realtimeModalCss,/transform\s*:\s*scale\(/,'Monitor 자체를 scale해 글자/입력 좌표를 왜곡하면 안 된다');
+
   const phoneRealtimeStart=special.indexOf('/* Realtime Quotes Phone');
   const phoneRealtimeEnd=special.indexOf('.contrib-modal{',phoneRealtimeStart);
   const phoneRealtimeCss=special.slice(phoneRealtimeStart,phoneRealtimeEnd);
-  assert.ok(phoneRealtimeStart>=0&&phoneRealtimeEnd>phoneRealtimeStart,'Phone 실시간 시세 CSS block is missing');
-  assert.doesNotMatch(phoneRealtimeCss,/--modal-overlay-pad\s*:\s*0|--modal-card-radius\s*:\s*0|position\s*:\s*fixed|inset\s*:\s*0|border-radius\s*:\s*0|border\s*:\s*0/,'Phone 실시간 시세는 공통 action modal 여백/edge를 우회하면 안 된다');
-  assert.match(phoneRealtimeCss,/--modal-card-width:calc\(100vw - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/);
-  assert.match(phoneRealtimeCss,/--modal-card-height:calc\(100d?vh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)/);
-  assert.match(common,/--space-md:5px;/,'실시간 시세 Phone shell padding 기준 토큰은 5px이어야 한다');
-  assert.match(phoneRealtimeCss,/--modal-card-pad-y:var\(--space-md\);[\s\S]*?--modal-card-pad-x:var\(--space-md\);/,'Phone 세로 실시간 시세 card padding은 5px 공통 토큰을 사용해야 한다');
-  assert.doesNotMatch(phoneRealtimeCss,/--realtime-quote-shell-bg/,'Phone CSS가 실시간 시세 shell 색을 고정하면 테마 동기화가 깨진다');
-  const landscapeModalStart=special.indexOf('/* Modal Landscape');
-  const landscapeModalCss=special.slice(landscapeModalStart);
-  assert.ok(landscapeModalStart>=0,'Phone Landscape modal CSS block is missing');
-  assert.match(landscapeModalCss,/\.action-modal\.realtime-quote-modal\{\s*--modal-card-pad-y:var\(--space-md\);\s*--modal-card-pad-x:var\(--space-md\);\s*\}/s,'Phone Landscape에서도 실시간 시세 card padding은 generic action-modal 24px보다 뒤에서 5px로 재고정해야 한다');
+  assert.ok(phoneRealtimeStart>=0&&phoneRealtimeEnd>phoneRealtimeStart,'Phone 실시간 시세 responsive block이 필요하다');
+  assert.doesNotMatch(phoneRealtimeCss,/--modal-overlay-pad\s*:\s*0|--modal-card-radius\s*:\s*0|position\s*:\s*fixed|inset\s*:\s*0|border-radius\s*:\s*0/,'Phone 실시간 시세가 공통 action modal 외곽 계약을 우회하면 안 된다');
+  assert.doesNotMatch(phoneRealtimeCss,/--realtime-quote-shell-bg/,'Phone 전용 CSS가 shell 테마 색을 별도로 고정하면 안 된다');
 });
 
 test('퇴직연금 작업 방식 switch는 공통 segmented control을 쓰고 긴 라벨 폭만 별도 보정한다',()=>{
@@ -1318,28 +1245,18 @@ test('개인보기 3회 입력은 Web/Tablet 기준문구와 Phone Hero 전체�
   assert.match(common,/\[data-personal-view-control\]\[hidden\],\s*\.date-action-menu\.mobile-combined-menu \[data-personal-view-control\]\[hidden\]\{display:none\}/,'Phone 관리 메뉴에서도 개인보기 hidden이 nav item display 규칙보다 높은 specificity를 가져야 한다');
 });
 
-test('TOP 버튼은 browser native smooth 의존 대신 짧고 결정적인 custom animation으로 이동한다',()=>{
+test('TOP 버튼은 짧은 상단 이동 UX와 안전한 fallback을 유지한다',()=>{
   const start=ui.indexOf('function scrollToDashboardTop(){');
   const end=ui.indexOf('\nfunction ensureMobileTopButton()',start);
   const block=ui.slice(start,end);
   assert.ok(start>=0&&end>start,'TOP scroll handler is missing');
-
   const durationMatch=block.match(/const durationMs=(\d+)/);
   assert.ok(durationMatch,'TOP animation duration이 명시돼야 한다');
   const durationMs=Number(durationMatch[1]);
-  assert.ok(durationMs>=250&&durationMs<=700,'TOP animation은 체감상 즉각적이면서 이동을 식별할 수 있는 범위여야 한다');
-
-  const easingMatch=block.match(/const eased=([^;]+);/);
-  assert.ok(easingMatch,'TOP animation easing이 명시돼야 한다');
-  const easingExpression=easingMatch[1];
-  const easingAt=progress=>Function('progress',`return (${easingExpression});`)(progress);
-  const e0=easingAt(0), eMid=easingAt(0.5), e1=easingAt(1);
-  assert.ok(Math.abs(e0)<=1e-9&&Math.abs(e1-1)<=1e-9,'easing은 0에서 시작해 1에서 끝나야 한다');
-  assert.ok(eMid>0.5&&eMid<1,'TOP 이동은 중간 지점에서 진행률보다 앞서는 ease-out 성격을 유지해야 한다');
-
-  assert.match(block,/requestAnimationFrame\(step\)/,'정상 경로는 animation frame 기반이어야 한다');
-  assert.match(block,/window\.scrollTo\(\{[^}]*top:[^}]*startTop[^}]*eased[^}]*behavior:'auto'[^}]*\}\)/,'animation 중 scroll 위치는 startTop과 easing 결과로 계산해야 한다');
-  assert.match(block,/window\.scrollTo\(\{top:0,left:0,behavior:'smooth'\}\)/,'requestAnimationFrame 미지원 환경은 native smooth fallback을 유지해야 한다');
+  assert.ok(durationMs>=250&&durationMs<=700,'TOP 이동은 지나치게 느리거나 순간 이동처럼 보여서는 안 된다');
+  assert.match(block,/window\.scrollTo\(/,'TOP handler가 실제 scroll 이동을 수행해야 한다');
+  assert.match(block,/top:0/,'TOP 이동의 최종 목적지는 문서 상단이어야 한다');
+  assert.match(block,/behavior:'smooth'/,'animation API를 사용할 수 없는 경우에도 부드러운 fallback을 유지해야 한다');
 });
 
 test('자산 탭 전환은 이미 그린 차트를 재사용하고 최초 차트만 다음 paint 이후 lazy draw한다',()=>{

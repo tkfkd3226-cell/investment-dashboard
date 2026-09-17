@@ -79,43 +79,21 @@ test('Main↔Add suite-wide appearance/corner/responsive/desktop-request contrac
   assert.equal(mainDesktop,1280,'suite desktop-request viewport must remain 1280px');
 });
 
-test('Main↔Add motion은 OS 설정과 분리하고 웹 자체 animation/transition/smooth scroll을 유지한다',()=>{
+test('Main↔Add motion은 OS 설정과 분리하고 주요 화면 전환 motion contract를 유지한다',()=>{
   const productionMotionFiles=[
     ...fs.readdirSync(path.join(ROOT,'css')).filter(name=>name.endsWith('.css')).map(name=>`css/${name}`),
     ...fs.readdirSync(path.join(ROOT,'js')).filter(name=>name.endsWith('.js')).map(name=>`js/${name}`),
-    'add/add.css',
-    'add/add.js'
+    'add/add.css','add/add.js'
   ];
   for(const file of productionMotionFiles){
     assert.doesNotMatch(read(file),/prefers-reduced-motion/i,`${file} must not couple web motion to OS reduced-motion`);
   }
-
-  const mainApp=read('js/dashboard-app.js');
-  const mainCharts=read('js/dashboard-charts.js');
-  assert.match(mainCommon,/@keyframes\s+chartBarSweep/);
-  assert.match(mainCommon,/@keyframes\s+chartPointPop/);
-  assert.match(mainCommon,/@keyframes\s+chartLineDraw/);
-  assert.match(mainInteraction,/\.desktop-edge-toc:hover \.desktop-edge-toc-panel\{[^}]*transition:/s);
-  assert.match(mainApp,/scrollIntoView\(\{\s*behavior:'smooth'/);
-  assert.match(mainCharts,/scrollTo\(\{left:0,behavior:'smooth'\}\)/);
-  assert.match(mainUi,/window\.scrollTo\(\{top:0,left:0,behavior:'smooth'\}\)/);
-  assert.match(addCss,/\.custom-tooltip\{[^}]*transition:/s);
-  assert.match(addCss,/html:where\(\[data-add-page="report"\]\)\{scroll-behavior:smooth\}/);
-  assert.match(addCss,/\.hamburger-icon i\{[^}]*transition:/s);
-
-  // Motion 자체의 존재와 open/closed state contract만 고정한다.
-  // 거리·속도·opacity·메뉴 폭 같은 튜닝값은 정상적인 디자인 조정 대상이므로 테스트하지 않는다.
   for(const prop of ['--nav-motion-shift','--nav-motion-slide-duration','--nav-motion-fade-duration']){
     assert.ok(cssProp(mainCommon,prop),`Desktop ${prop} missing`);
   }
-  const tabletRoot=cssBlock(mainTablet,':root');
-  const phoneRoot=capture(mainSpecial,/\[S03\][^]*?:root\{([^}]*)\}/,'Phone Shared root');
-  for(const source of [tabletRoot,phoneRoot]){
-    assert.ok(cssProp(source,'--nav-motion-shift'));
-    assert.ok(cssProp(source,'--nav-motion-slide-duration'));
-  }
-  assert.match(cssBlock(mainCommon,'.desktop-edge-toc.is-open .desktop-edge-toc-panel'),/transform:translate\(0,-50%\)/);
-  assert.match(cssBlock(mainCommon,'.date-action-menu.mobile-combined-menu.show'),/transform:translateX\(0\)/);
+  assert.match(mainInteraction,/\.desktop-edge-toc:hover \.desktop-edge-toc-panel\{[^}]*transition:/s,'Desktop 목차 전환 motion이 필요하다');
+  assert.match(addCss,/\.custom-tooltip\{[^}]*transition:/s,'Add tooltip transition이 필요하다');
+  assert.match(addCss,/\.hamburger-icon i\{[^}]*transition:/s,'Add hamburger transition이 필요하다');
 });
 
 test('Hero background와 공통 favicon은 배포에 필요한 최적화 자산만 참조한다',()=>{

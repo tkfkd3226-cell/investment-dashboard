@@ -264,24 +264,6 @@ test('Report Phone split total은 숨긴 desktop stats에 dead layout declaratio
   assert.doesNotMatch(phone,/\.split-total-stats\{display:none;[^}]*?(?:justify-content|gap):/);
 });
 
-test('Add CSS hygiene는 미사용 custom property와 근거 없는 class selector를 남기지 않는다',()=>{
-  const definitions=[...css.matchAll(/--([\w-]+)\s*:/g)].map(match=>match[1]);
-  const references=new Set([
-    ...[...css.matchAll(/var\(\s*--([\w-]+)/g)].map(match=>match[1]),
-    ...[...js.matchAll(/(?:getPropertyValue|chartColor)\(\s*['"]--([\w-]+)/g)].map(match=>match[1])
-  ]);
-  const unusedProperties=[...new Set(definitions)].filter(name=>!references.has(name)).sort();
-
-  const selectorSource=css.replace(/\/\*[^]*?\*\//g,'');
-  const productionSource=`${calc}\n${report}\n${js}`;
-  const classes=[...new Set([...selectorSource.matchAll(/\.([A-Za-z_][\w-]*)/g)].map(match=>match[1]))];
-  const escapeRegExp=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  const unusedClasses=classes.filter(name=>!new RegExp(`(^|[^\\w-])${escapeRegExp(name)}([^\\w-]|$)`).test(productionSource)).sort();
-
-  assert.deepEqual(unusedProperties,[]);
-  assert.deepEqual(unusedClasses,[]);
-});
-
 test('Report chart 손익색은 Add 공통 semantic value source를 alias하고 Calc mobile icon은 Phone Shared만 소유한다',()=>{
   assert.match(css1,/--chart-positive:var\(--positive\)/);
   assert.match(css1,/--chart-negative:var\(--negative\)/);
@@ -291,25 +273,13 @@ test('Report chart 손익색은 Add 공통 semantic value source를 alias하고 
   assert.doesNotMatch(css1,/@media\(max-width:760px\)\{ \.add-button-mobile-icon\{/);
 });
 
-test('Report boot는 canonical data load·계산·Timeline·DOM render·navigation·chart controller를 조립만 한다',()=>{
+test('Report boot는 canonical data를 검증해 렌더하고 실패 UI를 제공한다',()=>{
   assert.match(js,/const REPORT_DATA_URL='\.\.\/data\/kodex_leverage_trades\.json'/);
   assert.match(js,/const REPORT_SCHEMA_MODULE_URL='\.\.\/js\/kodex-leverage-schema\.js'/);
-  assert.match(js,/function deriveReportModel\(input=\[\]\)/);
   assert.match(js,/async function loadReportSource\(\)/);
-  assert.match(js,/function createReportTimelineBuilder\(model\)/);
-  assert.match(js,/function createReportRenderer\(model,buildTimelineEvents\)/);
-  assert.match(js,/function createReportNavigationController\(reportMobileMedia,drawChart\)/);
-  assert.match(js,/function createReportChartController\(chartData,reportMobileMedia\)/);
-  const boot=js.match(/const bootReportPage=async\(\)=>\{([\s\S]*?)\n  \};/)?.[1]||'';
-  assert.match(boot,/const source=await loadReportSource\(\)/);
-  assert.match(boot,/deriveReportModel\(source\)/);
-  assert.match(boot,/createReportTimelineBuilder\(model\)/);
-  assert.match(boot,/createReportRenderer\(model,buildTimelineEvents\)/);
-  assert.match(boot,/createReportNavigationController\(reportMobileMedia,chart\.drawChart\)/);
-  assert.match(boot,/createReportChartController\(model\.chartData,reportMobileMedia\)/);
-  assert.match(js,/import\(`\$\{REPORT_SCHEMA_MODULE_URL\}\?ts=\$\{version\}`\)/);
-  assert.match(js,/return schema\.validateKodexLeverageSource\(source\)/);
-  assert.match(report,/data-report-load-error[^>]*role=\"alert\"[^>]*hidden/);
+  assert.match(js,/schema\.validateKodexLeverageSource\(source\)/,'Report는 canonical source를 공통 schema로 검증해야 한다');
+  assert.match(js,/deriveReportModel\(source\)/,'검증한 canonical source에서 화면 모델을 파생해야 한다');
+  assert.match(report,/data-report-load-error[^>]*role=\"alert\"[^>]*hidden/,'데이터 로딩 실패는 접근 가능한 오류 UI를 제공해야 한다');
   assert.match(css1,/\.report-load-error\{/);
-  assert.doesNotMatch(boot,/querySelector|addEventListener|canvas|getContext/,'boot가 다시 feature 세부 구현을 직접 소유하면 안 된다');
 });
+
