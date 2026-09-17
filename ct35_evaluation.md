@@ -1235,7 +1235,6 @@
 - canonical 외 병렬 report가 운영본으로 존재하면 canonical MAJOR
 
 ### 허용 예외
-- 증권사 원본 이미지의 고정 과거 수치
 - 설명용 caption
 
 # 33. JavaScript Common Helper

@@ -65,7 +65,7 @@ img/
   - 페이지 stylesheet/script는 `add.css`와 `add.js`만 로드하고, 공통 favicon은 `../img/favicon.png`을 참조한다.
   - 기능 로직이나 대량 스타일을 HTML 안으로 다시 넣지 않는다.
 - `add/kodex-leverage-report.html`
-  - 거래 리포트 canonical HTML과 증빙/본문 DOM을 소유한다. Timeline은 렌더 대상 shell만 소유하고 실현거래 숫자를 HTML에 중복 하드코딩하지 않는다.
+  - 거래 리포트 canonical HTML과 본문/분류·산식 DOM을 소유한다. 증권사 원본 이미지는 Report에 내장하지 않는다. Timeline은 렌더 대상 shell만 소유하고 실현거래 숫자를 HTML에 중복 하드코딩하지 않는다.
   - 페이지 stylesheet/script는 Calc와 동일하게 `add.css`와 `add.js`만 로드하고, 공통 favicon은 `../img/favicon.png`을 참조한다. CSS/JS를 다시 HTML 내부 대량 `<style>` / 기능 `<script>`로 되돌리지 않는다.
 - `add/add.css`
   - Calc와 Report의 단일 런타임 stylesheet다.
@@ -84,7 +84,7 @@ img/
   - production `add/add.js`의 계산 함수를 직접 호출하며 계산식을 테스트 파일에 복사하지 않는다.
 - `tests/add-report-data.test.cjs`
   - `data/kodex_leverage_trades.json`을 canonical 거래 원천으로 직접 읽고 production 공통 `js/kodex-leverage-schema.js` validator와 Report 순수 파생모델을 호출해 형식·전체/본 포지션/단타 합계·표시기간 보존과 수익 구성의 손익 상쇄·순손실·0원 경계를 검증한다. 개별 거래값이 안전 정수여도 누적 합계나 혼합일 전체-Core 차감 결과가 JavaScript 안전 정수 범위를 넘으면 Report 파생 단계에서 즉시 차단되는 반례도 함께 검증한다. Main과 Add Report가 별도 validator를 다시 만들지 않는다.
-  - Main의 `deriveSeparateProfitFromKodexReport()`와 Report가 같은 canonical JSON을 소비하는지, 날짜별 순손익·누적합계·재투입 한도·표시기간·혼합일/근거 설명·`positionContext`가 동일 원천에서 파생되는지 자동 검증한다. `portfolio.json`이나 `add.js`에 거래/포지션 문맥 복제본이 다시 생기는 것도 금지한다.
+  - Main의 `deriveSeparateProfitFromKodexReport()`와 Report가 같은 canonical JSON을 소비하는지, 날짜별 순손익·누적합계·재투입 한도·표시기간·혼합일/분류·산식 설명·`positionContext`가 동일 원천에서 파생되는지 자동 검증한다. `portfolio.json`이나 `add.js`에 거래/포지션 문맥 복제본이 다시 생기는 것도 금지한다.
 - `tests/add-ui-contract.test.cjs`
   - 외부 DOM/test framework 없이 Node 내장 기능만 사용한다.
   - production HTML/CSS/JS에서 구조·상태·responsive·접근성·single-source contract를 확인하며, 장식용 exact pixel/color/count를 snapshot처럼 고정하지 않는다.
@@ -232,7 +232,7 @@ add/kodex-leverage-report.html
 ```text
 data/kodex_leverage_trades.json # KODEX 레버리지 실현거래 + separateProfit 재투입 한도의 단일 canonical 원천
 add/add.js               # canonical JSON 로드 후 파생 합계·본 포지션/단타·Timeline 계산/렌더
-add/kodex-leverage-report.html # 표시기간·증빙 이미지·정적 설명문 등 실제 변경이 필요한 부분만
+add/kodex-leverage-report.html # 표시기간·분류·산식 정적 설명문 등 실제 변경이 필요한 부분만
 add/calc.html            # 링크/연동 확인. canonical 파일명 정착 후 보통 내용 변경 없음
 add_maintenance_handover.md  # 장기 contract가 실제로 변경된 경우에만
 main_dashboard_maintenance_handover.md # 메인 전역 contract가 실제로 변경된 경우에만
@@ -263,7 +263,7 @@ data/pension_cash_snapshots.json
 
 새 거래를 반영할 때 자료의 역할을 다음과 같이 고정한다.
 
-### 4.1 매도실현손익 화면
+### 4.1 매도실현손익 원본 / 내역
 
 날짜별 최종 확정값의 1차 기준이다.
 
@@ -299,7 +299,7 @@ data/pension_cash_snapshots.json
 
 ### 4.3 자료가 서로 다르게 보일 때
 
-- 날짜별 전체 손익·거래비용·순손익은 매도실현손익 화면을 우선한다.
+- 날짜별 전체 손익·거래비용·순손익은 매도실현손익 원본/내역을 우선한다.
 - 매수일·보유기간·포지션 연결은 상세 매매보고서를 사용한다.
 - 자료 간 불일치가 실제로 존재하면 임의로 숫자를 맞추지 말고 사용자에게 그 차이만 알린다.
 
@@ -336,6 +336,10 @@ data/kodex_leverage_trades.json
     "augustFinalBuild": {
       "first": {"date": "YYYY-MM-DD", "qty": 15, "buy": 110465},
       "second": {"date": "YYYY-MM-DD", "buy": 96750}
+    },
+    "septemberFinalBuild": {
+      "first": {"date": "YYYY-MM-DD", "qty": 36, "buy": 110930},
+      "second": {"date": "YYYY-MM-DD", "buy": 103580}
     }
   },
   "trades": [
@@ -354,7 +358,7 @@ data/kodex_leverage_trades.json
 
 - `schemaVersion`: 현재 형식은 `1`. `js/kodex-leverage-schema.js`가 Main과 Add Report의 단일 schema validator이며, 브라우저와 QA가 다른 버전 또는 잘못된 숫자·실제 달력에 존재하지 않는 날짜·중복 거래를 계산 전에 동일하게 차단한다. 숫자 필드는 문자열 숫자를 허용하지 않고 JSON `number` 정수만 허용하며, 윤년 규칙까지 실제 달력 기준으로 검증한다.
 - `reportStartDate`: Report 상단 표시기간의 시작일. 종료일은 `trades`의 마지막 매도일에서 자동 파생한다.
-- `positionContext`: 매도실현손익만으로 복원할 수 없는 매수-only 포지션 형성 사실. `legacyBuild.first/second`, `julyAdd`, `augustFinalBuild.first/second`는 현재 schema validator의 필수 context다. `legacyBuild.first/second`와 `augustFinalBuild.first`는 `date`·`qty`·`buy`, `julyAdd`와 `augustFinalBuild.second`는 `date`·`buy`를 요구하며, 후자의 수량은 canonical 실현거래 수량과 앞선 context에서 파생한다. 형식만 맞으면 통과시키지 않고 현재 schema v1의 연결 실현거래인 2026-07-30·2026-08-20과 날짜 순서·파생 수량의 양수 여부·수량×단가/취득원가 합계의 안전 정수 범위·가중평균 매수단가까지 교차 검증한다. 이 검증을 우회해 Timeline에 음수 파생수량이나 실제 거래와 모순되는 평단이 표시되어서는 안 된다. Timeline과 근거 설명에 필요한 값을 JS literal로 복제하지 않는다.
+- `positionContext`: 매도실현손익만으로 복원할 수 없는 매수-only 포지션 형성 사실. `legacyBuild.first/second`, `julyAdd`, `augustFinalBuild.first/second`, `septemberFinalBuild.first/second`는 현재 schema validator의 필수 context다. `legacyBuild.first/second`, `augustFinalBuild.first`, `septemberFinalBuild.first`는 `date`·`qty`·`buy`, `julyAdd`, `augustFinalBuild.second`, `septemberFinalBuild.second`는 `date`·`buy`를 요구하며, 후자의 수량은 canonical 실현거래 수량과 앞선 context에서 파생한다. 형식만 맞으면 통과시키지 않고 현재 schema v1의 연결 실현거래인 2026-07-30·2026-08-20·2026-09-17과 날짜 순서·파생 수량의 양수 여부·수량×단가/취득원가 합계의 안전 정수 범위·가중평균 매수단가까지 교차 검증한다. 이 검증을 우회해 Timeline에 음수 파생수량이나 실제 거래와 모순되는 평단이 표시되어서는 안 된다. Timeline과 분류·산식 설명에 필요한 값을 JS literal로 복제하지 않는다.
 
 혼합일은 전체 거래값과 Core 귀속값을 함께 둔다.
 
@@ -408,7 +412,7 @@ reinvestedLimit
 
 ### 6.1 날짜별 전체 실현손익
 
-증권사 매도실현손익 화면의 날짜별 값을 그대로 사용한다.
+증권사 매도실현손익 원본/내역의 날짜별 확정값을 사용한다.
 
 기본 검산:
 
@@ -458,7 +462,7 @@ reinvestedLimit
 
 ### 6.5 혼합일 거래비용 배분
 
-증권사 화면이 날짜별 총 거래비용만 제공하고 본 포지션/단타별 비용을 따로 제공하지 않는 경우, 기존 리포트와 동일하게 **추정 왕복 거래대금 비율**로 비용을 배분한다.
+증권사 원본 자료가 날짜별 총 거래비용만 제공하고 본 포지션/단타별 비용을 따로 제공하지 않는 경우, 기존 리포트와 동일하게 **추정 왕복 거래대금 비율**로 비용을 배분한다.
 
 따라서:
 
@@ -507,9 +511,14 @@ reinvestedLimit
 - 새 거래 반영 후 Hero/KPI/표/차트/본 포지션·단타 요약은 동일 canonical 계산값을 사용해야 한다. Timeline의 실현거래 숫자는 `data/kodex_leverage_trades.json`에서 파생하고 HTML에 별도 숫자를 복제하지 않는다. 새 거래가 curated Timeline 설명에 없더라도 기본 항목이 자동 생성되는지 확인한다.
 - 과거 마지막 날짜·누계·총수량 같은 문자열이 잔존하지 않는지 마지막에 검색한다.
 
-## 10. 증권사 원본 이미지 반영
+## 10. 증권사 원본 자료의 역할과 Report 비내장 원칙
 
-리포트에 증권사 실현손익 원본 이미지가 내장되어 있고 사용자가 최신 원본을 제공한 경우, 현재 숫자와 근거가 서로 다른 시점이 되지 않도록 관련 이미지·업데이트 표기·대체텍스트를 함께 갱신한다. 오래된 캡처와 최신 숫자를 한 리포트에 혼재시키지 않는다.
+사용자가 제공하는 XLSX/PDF/화면 자료는 `data/kodex_leverage_trades.json`의 거래값·`positionContext`를 확인하고 갱신하기 위한 입력·검산 자료다.
+
+- 증권사 원본 이미지를 `add/kodex-leverage-report.html`에 base64 또는 별도 증빙 카드로 내장하지 않는다.
+- 원본 이미지 전용 DOM·CSS·JS·badge·업데이트 캡처 문구를 다시 만들지 않는다.
+- Report 런타임에서 표시할 숫자와 분류·산식 설명은 canonical JSON과 `deriveReportModel()`의 파생값을 사용한다.
+- 최신 원본 자료가 새로 제공되어도 파일 자체를 Report에 보관하지 않고, 확정 거래값과 필요한 매수-only 문맥만 canonical 데이터에 구조화한다.
 
 ## 11. 새 거래 반영 시 빠른 작업 절차
 
@@ -518,7 +527,7 @@ reinvestedLimit
 2. 상세 매매보고서에서 매수일·수량·오버나이트/포지션 연결 확인
 3. `data/kodex_leverage_trades.json`에 실현거래를 1회 반영
 4. 날짜별·합계·본 포지션/단타 파생값과 `reinvestedLimit` 검산
-5. kodex-leverage-report.html의 표시기간·증빙 이미지·정적 설명문 중 필요한 부분만 갱신
+5. kodex-leverage-report.html의 표시기간·분류·산식 정적 설명문 중 필요한 부분만 갱신
 6. Hero/KPI/표/차트와 Timeline 자동 파생·누락 여부를 동일 canonical JSON 기준으로 검산
 7. `node --test tests/add-report-data.test.cjs`로 canonical 원천·Main 파생·Report 파생의 날짜별 정합성과 합계 보존 확인 후 변경 유형에 해당하는 추가 QA 수행
 ```
@@ -536,7 +545,7 @@ reinvestedLimit
 - `data/kodex_leverage_trades.json`의 거래일이 오름차순·중복 없음·필수 숫자는 JavaScript 안전 정수 범위의 JSON `number`·segment 형식을 유지하고, Main 파생 별도수익과 Report 파생 날짜별 순손익·누적 실현 순손익이 일치한다. 문자열 숫자와 안전 정수 범위를 넘는 개별 정수는 허용하지 않으며, 개별 값이 모두 안전하더라도 Main의 `pnl - fee`·누적 별도수익과 Report의 날짜별 순손익·누적합계·전체/Core/Day 합계·혼합일 전체-Core 차감 등 파생 정수 결과가 안전 범위를 넘으면 계산/렌더 전에 중단해야 한다. `positionContext`도 연결 실현거래와 날짜·수량·가중평균이 모순되거나 파생 취득원가가 안전 정수 범위를 넘으면 schema 단계에서 차단한다. `tests/add-report-data.test.cjs`로 이 경계를 자동 확인한다.
 - 본 포지션 + 단타의 수량·손익·비용·순손익 합계가 전체와 일치한다. 혼합일의 `core.fee`는 전체 `fee`를 넘을 수 없으며, 파생 단타 비용이 음수가 되면 canonical validation에서 차단한다.
 - 동일 지표를 사용하는 요약·차트·표에 과거 값이 잔존하지 않으며, Timeline은 `data/kodex_leverage_trades.json` 파생값과 일치하고 새 매도일이 누락되지 않는다.
-- 원본 이미지/근거를 갱신하는 작업이라면 최신 숫자와 같은 시점인지 확인한다.
+- 사용자 제공 원본 자료와 canonical JSON의 거래값·포지션 문맥이 같은 거래 이력을 가리키는지 확인한다.
 
 ### 12.2 Calc 계산·validation 변경 시
 
@@ -580,4 +589,4 @@ reinvestedLimit
 
 ## 14. 최종 한 문장 운영 원칙
 
-> **새 KODEX 레버리지 실현거래가 생기면 증권사 확정 거래를 `data/kodex_leverage_trades.json` 한 곳에 반영하고, Main 별도수익과 canonical report의 합계·분류·시각화·Timeline·근거가 같은 원천에서 파생되는지 검산한다. 자금 출처·대출이자 등은 추적하지 않으며 report 파일명은 고정하고, handover는 장기 contract가 바뀐 경우에만 수정한다.**
+> **새 KODEX 레버리지 실현거래가 생기면 증권사 확정 거래를 `data/kodex_leverage_trades.json` 한 곳에 반영하고, Main 별도수익과 canonical report의 합계·분류·시각화·Timeline·분류·산식이 같은 원천에서 파생되는지 검산한다. 증권사 원본 자료는 입력·검산 자료로만 사용하고 Report에 이미지로 내장하지 않는다. 자금 출처·대출이자 등은 추적하지 않으며 report 파일명은 고정하고, handover는 장기 contract가 바뀐 경우에만 수정한다.**

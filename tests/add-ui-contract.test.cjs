@@ -283,3 +283,24 @@ test('Report boot는 canonical data를 검증해 렌더하고 실패 UI를 제�
   assert.match(css1,/\.report-load-error\{/);
 });
 
+test('Report 분류·산식은 원본 이미지 없이 canonical 데이터 설명만 소유한다',()=>{
+  assert.match(report,/id="reportTabMethod"[^>]*data-panel="method"[^>]*aria-controls="method"[^>]*>분류·산식<\/button>/);
+  assert.match(report,/<section class="panel" id="method"[^>]*aria-labelledby="reportTabMethod"/);
+  assert.match(report,/<h2 class="add-heading-section">분류 기준과 산식<\/h2>/);
+  assert.match(report,/class="report-formula-grid"/);
+  assert.match(css1,/\.report-formula-grid\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css1,/@media\(max-width:1100px\)\{[^]*?\.report-formula-grid\{grid-template-columns:1fr\}/);
+
+  for(const legacy of [
+    /증권사 실현손익 원본/,
+    /원본 근거/,
+    /업데이트 캡처/,
+    /class="[^"]*\bsource-img\b/,
+    /data:image\/png;base64/i
+  ]) assert.doesNotMatch(report,legacy,'원본 이미지/캡처 UI 계약이 Report에 다시 들어오면 안 된다');
+
+  assert.doesNotMatch(css,/\.source-img\b/);
+  assert.doesNotMatch(css,/\.badge\.exact\b/);
+  assert.doesNotMatch(css,/--badge-exact-(?:bg|text)\s*:/);
+});
+
