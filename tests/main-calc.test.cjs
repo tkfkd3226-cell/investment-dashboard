@@ -695,7 +695,8 @@ test('증권 매도: 전량매도는 순매도대금·실현손익·현금화 �
   });
   setState({portfolio,prices:{
     '2026-06-19':{securities:{A:90}},
-    '2026-06-20':{securities:{A:120}}
+    '2026-06-20':{securities:{A:120}},
+    '2026-06-21':{securities:{A:130}}
   }});
   const before=core.securityPositionState(portfolio.securities[0],'2026-06-19');
   const after=core.securityPositionState(portfolio.securities[0],'2026-06-20');
@@ -713,12 +714,20 @@ test('증권 매도: 전량매도는 순매도대금·실현손익·현금화 �
   assert.equal(holding.performanceCost,1000);
   approx(holding.returnRate,10);
   assert.equal(holding.dayChange,200);
-  assert.equal(x.securitiesAssetDetail.statusRows.length,0);
+  assert.equal(x.securitiesAssetDetail.statusRows.length,1);
+  assert.equal(x.securitiesAssetDetail.statusRows[0].profit,100);
+  assert.equal(x.securitiesAssetDetail.summaryRows.find(r=>r.id==='holdings').profit,100);
+  assert.deepEqual(core.securityAllocVisibleHoldings(x).map(v=>v.name),['Stock A']);
   assert.equal(x.securitiesAssetDetail.change.rows[0].dayChange,200);
   const history=core.symbolHistory('2026-06-20');
   assert.equal(history.at(-2)['Stock A'],-100);
   assert.equal(history.at(-1)['Stock A'],100);
   approx(history.at(-1)._rates['Stock A'],10);
+  const post=core.calc('2026-06-21');
+  assert.equal(post.securitiesAssetDetail.statusRows.length,0);
+  assert.equal(core.securityAllocVisibleHoldings(post).some(v=>v.name==='Stock A'),false);
+  assert.equal(post.rawHoldingProfit,0);
+  assert.equal(post.ledgerHoldingProfit,100);
 });
 
 
@@ -852,7 +861,9 @@ test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표�
   assert.equal(core.outsideCashForDate('2026-09-16'),2090325);
   assert.equal(core.securityInternalCashPrincipalNetForDate('2026-09-16'),0);
   assert.deepEqual(core.outsideCashSnapshotForDate('2026-09-16'),portfolio.outsideCashSnapshots.find(v=>v.date==='2026-09-16'));
-  assert.equal(after.securitiesAssetDetail.statusRows.some(r=>r.ticker==='009150'),false);
+  assert.equal(after.securitiesAssetDetail.statusRows.some(r=>r.ticker==='009150'),true);
+  assert.equal(after.securitiesAssetDetail.statusRows.find(r=>r.ticker==='009150').profit,228);
+  assert.equal(after.securitiesAssetDetail.summaryRows.find(r=>r.id==='holdings').profit,after.rawHoldingProfit);
   const changeRow=after.securitiesAssetDetail.change.rows.find(r=>r.ticker==='009150');
   assert.equal(changeRow.dayChange,28228);
   assert.equal(changeRow.sale.fullExit,true);
@@ -866,5 +877,12 @@ test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표�
   assert.equal(core.securityChartNamesForDate('2026-09-16').includes('삼성전기'),true);
   assert.equal(core.securityChartNamesForDate('2026-09-17').includes('삼성전기'),false);
   assert.equal(core.liveValuationTickersForDate('2026-09-16').includes('009150'),false);
+  const post=core.calc('2026-09-17');
+  assert.equal(post.securitiesAssetDetail.statusRows.some(r=>r.ticker==='009150'),false);
+  assert.equal(post.securitiesAssetDetail.change.rows.some(r=>r.ticker==='009150'),false);
+  assert.equal(core.securityAllocVisibleHoldings(after).some(r=>r.ticker==='009150'),true);
+  assert.equal(core.securityAllocVisibleHoldings(post).some(r=>r.ticker==='009150'),false);
+  assert.equal(after.rawHoldingProfit,after.ledgerHoldingProfit);
+  assert.equal(post.ledgerHoldingProfit-post.rawHoldingProfit,228);
   assert.equal(after.totalResult-(after.allocTotal+core.outsideCashForDate('2026-09-16')),3063626);
 });

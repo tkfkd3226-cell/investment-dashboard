@@ -863,7 +863,8 @@ def calculate_performance_snapshot(
         eval_amount = cost if post_close_pending else int(round(price * qty))
         profit = 0 if post_close_pending else eval_amount - cost
         total_profit = int(security_safe_aggregate("종목 누적손익", profit + realized_profit))
-        raw_holding_profit = int(security_safe_aggregate("증권 누적손익", raw_holding_profit + total_profit))
+        if qty > 0 or security_has_trade_on_date(portfolio, str(ticker), target_date):
+            raw_holding_profit = int(security_safe_aggregate("증권 누적손익", raw_holding_profit + total_profit))
 
         if item.get("type") == "ETF":
             allocation["ETF"] += eval_amount

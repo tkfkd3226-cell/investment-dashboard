@@ -80,7 +80,7 @@ const sortSecurityChartItems=items=>[...items].sort((a,b)=>{
   const ai=SECURITY_DISPLAY_ORDER.indexOf(a.name),bi=SECURITY_DISPLAY_ORDER.indexOf(b.name);
   return (ai<0?SECURITY_DISPLAY_ORDER.length:ai)-(bi<0?SECURITY_DISPLAY_ORDER.length:bi);
 });
-const sortSecurityAllocationItems=items=>[...items].filter(h=>(Number(h?.qty)||0)>0||(Number(h?.evalAmount)||0)>0).sort((a,b)=>{
+const sortSecurityAllocationItems=items=>[...items].sort((a,b)=>{
   const evalDiff=(Number(b?.evalAmount)||0)-(Number(a?.evalAmount)||0);
   return evalDiff||String(a?.name||'').localeCompare(String(b?.name||''),'ko');
 });
@@ -97,7 +97,7 @@ function securityAllocHoldingVisible(h,date){
   return !oneShare||explicitChart;
 }
 function securityAllocVisibleHoldings(x){
-  return (x?.holdings||[]).filter(h=>securityAllocHoldingVisible(h,x?.date));
+  return (x?.holdings||[]).filter(h=>securityHoldingDisplayVisibleForDate(h,x?.date)&&securityAllocHoldingVisible(h,x?.date));
 }
 function securityAllocOneShareEval(x){
   return (x?.holdings||[]).filter(h=>Number(h?.qty)===1&&!securityAllocHoldingVisible(h,x?.date)).reduce((sum,h)=>sum+Number(h?.evalAmount||0),0);
@@ -416,6 +416,7 @@ const securityChartItemVisibleForDate=(item,d)=>{
   const state=securityPositionState(item,d);
   return Number(state?.qty)>0||securityTradeEventsForDate(item?.ticker,d).length>0;
 };
+const securityHoldingDisplayVisibleForDate=(holding,d)=>Number(holding?.qty)>0||securityTradeEventsForDate(holding?.ticker,d).length>0;
 const securityChartItemsForDate=d=>(dataState.portfolio?.securities||[]).filter(item=>securityChartItemVisibleForDate(item,d));
 const securityValuationOverride=(ticker,d)=>{const e=securityEventItems().find(v=>String(v?.ticker||'')===String(ticker||'')&&String(v?.date||'')===String(d||'')&&Number(v?.valuationPrice)>0);return e?Number(e.valuationPrice):null};
 const securityChartNamesForDate=d=>securityChartItemsForDate(d).map(item=>item.name);
@@ -731,13 +732,18 @@ const separateProfitCumulativeForDate=d=>separateProfitTrades().filter(v=>String
 const separateProfitReinvestedForDate=d=>Math.min(separateProfitReinvestedLimit(),securityExcludedTransferSum(d),Math.max(0,separateProfitCumulativeForDate(d)));
 const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCash})=>{
   const activeRows=holdings.filter(h=>(Number(h?.qty)||0)>0);
+  const displayRows=holdings.filter(h=>securityHoldingDisplayVisibleForDate(h,date));
   const holdingCost=activeRows.reduce((a,h)=>a+(Number(h?.cost)||0),0);
   const holdingEval=activeRows.reduce((a,h)=>a+(Number(h?.evalAmount)||0),0);
-  const holdingProfit=holdingEval-holdingCost;
   const cash=Number(securitiesCash)||0;
   const evaluationTotal=holdingEval+cash;
   const weightPct=value=>evaluationTotal?Number(value||0)/evaluationTotal*100:0;
-  const statusRows=activeRows.map(h=>({...h,weightPct:weightPct(h.evalAmount)}));
+  const statusRows=displayRows.map(h=>{
+    const terminalExit=(Number(h?.qty)||0)<=0&&securityTradeEventsForDate(h?.ticker,date).some(v=>v.type==='sell');
+    const displayProfit=terminalExit?securityTotalProfitValue(h):(Number(h?.profit)||0);
+    return {...h,profit:displayProfit,weightPct:weightPct(h.evalAmount)};
+  });
+  const holdingProfit=statusRows.reduce((a,h)=>a+(Number(h?.profit)||0),0);
   const totalCost=holdingCost+cash;
   const summaryRows=[
     {id:'holdings',label:'보유종목 합계',cost:holdingCost,evalAmount:holdingEval,profit:holdingProfit,returnRate:holdingCost?holdingProfit/holdingCost*100:0,weightPct:weightPct(holdingEval)},
@@ -902,7 +908,7 @@ function calc(date){
   const p=dataState.portfolio,c=p.constants,s=dataState.prices[date]||{},pk=previousDate(date),prev=pk?dataState.prices[pk]:null,daily=dataState.account1Daily?.[date]||null,extraPensionContrib=pensionContributionSum(date),prevExtraPensionContrib=pk?pensionContributionSum(pk):0,pensionPrincipal=(Number(c.pensionContributionPrincipal)||0)+extraPensionContrib;
   const account2Included=includeAccount2(date),tossIncluded=includeToss(date),hasPension=hasPensionData(date);
   const ledgerAccount1ActualGap=(Number(c.account2RealizedAmount)||0)-(Number(c.account2ReinvestedToAccount1)||0)+(Number(c.tossRealizedAmount)||0)-(Number(c.tossReinvestedToAccount1)||0)-(Number(c.outsideCash)||0)-(Number(c.livingSpent)||0);
-  let holdings,rawHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,etfEval,stockEval,allocTotal,securitiesCash;
+  let holdings,rawHoldingProfit,ledgerHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,etfEval,stockEval,allocTotal,securitiesCash;
   if(daily){
     const prevDaily=pk?dataState.account1Daily?.[pk]:null;
     holdings=daily.holdings.map(h=>{
@@ -917,8 +923,9 @@ function calc(date){
     securitiesCash=daily.cash;
     const hasLiveSecurityPrice=holdings.some(h=>h.priceSource==='market-ai'),liveDailyEval=holdings.reduce((a,h)=>a+(Number(h.evalAmount)||0),0)+(Number(securitiesCash)||0);
     rawHoldingProfit=hasLiveSecurityPrice?holdings.reduce((a,h)=>a+(Number(h.profit)||0),0):daily.totalProfit;
+    ledgerHoldingProfit=rawHoldingProfit;
     account1Principal=isLedgerCheckDate(date)?account1PrincipalForDate(date):daily.totalCost;
-    account1Result=isLedgerCheckDate(date)?Number(hasLiveSecurityPrice?liveDailyEval:daily.totalEval||0)-ledgerAccount1ActualGap+securityInternalCashReturnNonPrincipalSum(date):daily.totalCost+rawHoldingProfit;
+    account1Result=isLedgerCheckDate(date)?Number(hasLiveSecurityPrice?liveDailyEval:daily.totalEval||0)-ledgerAccount1ActualGap+securityInternalCashReturnNonPrincipalSum(date):daily.totalCost+ledgerHoldingProfit;
     account1Profit=account1Result-account1Principal;
     account1Return=account1Principal?account1Profit/account1Principal*100:0;
     etfEval=holdings.filter(h=>h.type==='ETF').reduce((a,h)=>a+h.evalAmount,0);
@@ -932,12 +939,13 @@ function calc(date){
       return {...h,qty:state.qty,cost:state.cost,avgPrice:state.qty?state.cost/state.qty:0,price,prevPrice,evalAmount,profit,realizedProfit,totalProfit,realizedCostBasis:Number(state.realizedCostBasis)||0,performanceCost,feeAdjustedProfit,returnRate:performanceCost?totalProfit/performanceCost*100:0,prevEval,dayChange,prevProfit,prevTotalProfit,tradeFlow,postClosePending,priceSource:liveQuote?'market-ai':'json',liveQuote};
     });
     securitiesCash=securitiesCashForDate(date);
-    rawHoldingProfit=holdings.reduce((a,h)=>a+securityTotalProfitValue(h),0);
+    ledgerHoldingProfit=holdings.reduce((a,h)=>a+securityTotalProfitValue(h),0);
+    rawHoldingProfit=holdings.reduce((a,h)=>a+(securityHoldingDisplayVisibleForDate(h,date)?securityTotalProfitValue(h):0),0);
     account1Principal=account1PrincipalForDate(date);
     etfEval=holdings.filter(h=>h.type==='ETF').reduce((a,h)=>a+h.evalAmount,0);
     stockEval=holdings.filter(h=>h.type==='개별주식').reduce((a,h)=>a+h.evalAmount,0);
     allocTotal=etfEval+stockEval+securitiesCash;
-    account1Result=isLedgerCheckDate(date)?allocTotal-ledgerAccount1ActualGap+securityInternalCashReturnNonPrincipalSum(date):account1Principal+rawHoldingProfit+c.account1ProfitAdjustment;
+    account1Result=isLedgerCheckDate(date)?allocTotal-ledgerAccount1ActualGap+securityInternalCashReturnNonPrincipalSum(date):account1Principal+ledgerHoldingProfit+c.account1ProfitAdjustment;
     account1Profit=account1Result-account1Principal;
     account1Return=account1Principal?account1Profit/account1Principal*100:0;
   }
@@ -961,7 +969,7 @@ function calc(date){
   const basePensionCash=hasPension?Number(s?.pension?.cash||0):0,basePrevPensionCash=Number(prev?.pension?.cash||0),pensionCash=hasPension?pensionCashValuation(date,basePensionCash):0,prevPensionCash=prev?pensionCashValuation(pk,basePrevPensionCash):0,pensionTradeDayFlow=pk?pensionTradeFlow(pk,date):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0},pensionExternalFlow=pk?pensionContributionSumAfter(pk,date):0,pensionCashDayChange=prev?pensionCash-prevPensionCash-pensionExternalFlow+pensionTradeDayFlow.buyAmount-pensionTradeDayFlow.sellAmount:null,pensionCashCost=hasPension?pensionCashCostBasis(date):0,pensionEval=hasPension?pensionRows.reduce((a,r)=>a+r.evalAmount,0)+pensionCash:0,pensionPrevEval=hasPension&&prev?pensionRows.reduce((a,r)=>a+(r.prevEval||0),0)+prevPensionCash:null,pensionDayChange=hasPension&&prev?pensionRows.reduce((a,r)=>a+(Number(r.dayChange)||0),0)+(Number(pensionCashDayChange)||0):null,pensionDayRate=pensionPrevEval==null?null:(dayChangeRate(pensionDayChange,pensionPrevEval,pensionExternalFlow)??0),pensionProfit=hasPension?pensionEval-pensionPrincipal:0,pensionReturn=hasPension&&pensionPrincipal?pensionProfit/pensionPrincipal*100:0;
   const combinedPrincipal=hasPension?totalPrincipal+pensionPrincipal:totalPrincipal,combinedResult=hasPension?totalResult+pensionEval:totalResult,combinedProfit=hasPension?totalProfit+pensionProfit:totalProfit,combinedReturn=combinedPrincipal?combinedProfit/combinedPrincipal*100:0;
   const securitiesAssetDetail=securitiesAssetDetailViewModel({date,prevKey:pk,daily,holdings,securitiesCash});
-  return {date,s,prevKey:pk,prev,daily,hasDaily:!!daily,account2Included,tossIncluded,hasPension,holdings,securitiesCash,securitiesAssetDetail,rawHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,account2Profit,account2Principal,account2RealizedAmount,account2Remainder,tossProfit,tossRealizedAmount,tossRemainder,totalPrincipal,totalProfit,totalResult,returnRate,actualHolding,pensionRows,pensionCash,prevPensionCash,pensionCashCost,pensionCashDayChange,pensionTradeDayFlow,pensionExternalFlow,pensionEval,pensionPrevEval,pensionDayChange,pensionDayRate,pensionProfit,pensionReturn,extraPensionContrib,prevExtraPensionContrib,basePensionCash,basePrevPensionCash,pensionPrincipal,combinedPrincipal,combinedResult,combinedProfit,combinedReturn,etfEval,stockEval,allocTotal}
+  return {date,s,prevKey:pk,prev,daily,hasDaily:!!daily,account2Included,tossIncluded,hasPension,holdings,securitiesCash,securitiesAssetDetail,rawHoldingProfit,ledgerHoldingProfit,account1Principal,account1Profit,account1Result,account1Return,account2Profit,account2Principal,account2RealizedAmount,account2Remainder,tossProfit,tossRealizedAmount,tossRemainder,totalPrincipal,totalProfit,totalResult,returnRate,actualHolding,pensionRows,pensionCash,prevPensionCash,pensionCashCost,pensionCashDayChange,pensionTradeDayFlow,pensionExternalFlow,pensionEval,pensionPrevEval,pensionDayChange,pensionDayRate,pensionProfit,pensionReturn,extraPensionContrib,prevExtraPensionContrib,basePensionCash,basePrevPensionCash,pensionPrincipal,combinedPrincipal,combinedResult,combinedProfit,combinedReturn,etfEval,stockEval,allocTotal}
 }
 // [CORE07] Chart History Data · 차트 이력 데이터
 function snapshotDates(d){

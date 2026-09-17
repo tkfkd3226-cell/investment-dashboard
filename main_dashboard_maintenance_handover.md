@@ -345,13 +345,15 @@ performanceCost    현재 잔여 cost + realizedCostBasis
 종목 누적수익률     totalProfit / performanceCost
 ```
 
-따라서 전량매도 뒤 `qty=0`인 종목은 `보유종목 현황`에서는 빠지지만 종목별 누적손익/수익률 history에서는 마지막 실현 성과가 유지된다. `securitiesCashForDate()`의 sell 현금흐름에는 `grossAmount`가 아니라 **순매도대금 `amount`**를 사용한다.
+전량매도 종목의 **화면 표시 lifecycle**과 **장부 누적 lifecycle**은 분리한다. 보유 중에는 현재 평가손익을 사용하고, 전량매도 당일은 해당 종목의 마지막 표시일로 유지해 `보유종목 현황`·3개 투자기간 차트·`전일 대비 변동`에서 최종 `totalProfit`을 확인할 수 있게 한다. 전량매도 다음 거래일부터는 해당 종목을 이 화면들에서 제외한다. 따라서 전량매도 당일 `qty=0`이어도 마지막 실현손익은 화면에 남지만, 다음 거래일부터는 종목별 표시와 화면용 `rawHoldingProfit`에서 빠진다. `securitiesCashForDate()`의 sell 현금흐름에는 `grossAmount`가 아니라 **순매도대금 `amount`**를 사용한다.
 
-`scripts/update_prices.py`는 위 JS contract를 그대로 재현한다. 대상 날짜 `security_position_state().qty <= 0`인 종목은 신규 KRX 가격 조회를 하지 않지만, 매도 전 날짜 backfill에서는 당시 보유수량을 복원해 정상 조회한다. `performance_snapshots.json`의 `rawHoldingProfit`/`symbols`는 평가손익+실현손익을 사용하고, 계좌1 원금도 JS와 같은 보유원가+현금화 원금 기준을 사용한다. 동일 입력으로 snapshot을 다시 생성해도 실현손익·현금이 중복 반영되지 않아야 한다.
+반대로 계좌 전체 장부 성과는 전량매도 다음날 이후에도 이미 확정된 `realizedProfit`을 계속 누적한다. JS의 `ledgerHoldingProfit`과 현금/원금 장부가 이 누적 의미를 소유하며, 계좌·합산 성과와 장부 검산에서 확정 실현손익이 사라지면 안 된다. 즉 **화면에서 종목이 사라지는 시점과 계좌 성과에서 실현손익이 사라지는 시점은 같지 않다.** 후자는 사라지지 않는다.
 
-Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수량이 0보다 큰 ticker만 요청한다. 따라서 전량매도 종목은 매도일 이후 실시간 quote universe에서 자동 제외되며 Market AI backend에 별도 매도 상태를 추가하지 않는다.
+`scripts/update_prices.py`는 위 화면용 lifecycle을 그대로 재현한다. 대상 날짜 `security_position_state().qty <= 0`인 종목은 신규 KRX 가격 조회를 하지 않지만, 매도 전 날짜 backfill에서는 당시 보유수량을 복원해 정상 조회한다. `performance_snapshots.json`의 `rawHoldingProfit`은 **해당 날짜에 보유 중이거나 그날 매매가 있었던 종목의 화면용 손익 합계**, `symbols`는 그중 종목 차트 대상의 손익이다. 전량매도 당일까지 마지막 실현손익을 포함하고 다음 거래일부터 제외한다. 계좌1 장부 누적성과 자체는 snapshot의 이 화면용 `rawHoldingProfit`에 의존해 실현손익을 소거하지 않는다. 동일 입력으로 snapshot을 다시 생성해도 실현손익·현금이 중복 반영되지 않아야 한다.
 
-현재 첫 증권 전량매도 회귀 anchor는 `2026-09-16 / 009150 삼성전기`다. `gross 1,348,000 - transactionCost 2,772 = net 1,345,228`, `costBasis 1,345,000`, `realizedProfit +228`, 매도 후 증권현금 `1,404,018`, 매도 전후 계좌1 투입원금 `24,341,210` 유지가 자동 테스트의 실제 운영 데이터 검산 기준이다.
+Market AI Live Valuation universe는 `securityPositionState()`의 선택일 수량이 0보다 큰 ticker만 요청한다. 전량매도 당일에는 화면 이력은 유지하더라도 실시간 quote는 필요하지 않으므로 매도 완료 ticker를 요청하지 않으며, Market AI backend에 별도 매도 상태를 추가하지 않는다.
+
+현재 첫 증권 전량매도 회귀 anchor는 `2026-09-16 / 009150 삼성전기`다. `gross 1,348,000 - transactionCost 2,772 = net 1,345,228`, `costBasis 1,345,000`, `realizedProfit +228`을 기준으로 **9/16에는 현황표·3개 차트·전일 대비 변동에 삼성전기가 마지막 표시되고, 9/17부터는 이 화면들에서 제외**된다. 반면 +228원은 이후에도 계좌 장부 누적성과에 유지된다. 9/16 내부 현금회수 반영 뒤 증권현금은 `3,790`, 계좌1 성과기준 투입원금은 `22,996,210`이다.
 
 ## 2.4 `dashboard-ui.js`와 `dashboard-ui-common.js` 책임
 

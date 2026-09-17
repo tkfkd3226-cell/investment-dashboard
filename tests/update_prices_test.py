@@ -384,7 +384,7 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
         self.assertEqual(calls, [])
         self.assertEqual(prices["2026-06-21"]["securities"], {})
         self.assertNotIn("Stock A", snapshots["2026-06-21"]["symbols"])
-        self.assertEqual(snapshots["2026-06-21"]["rawHoldingProfit"], 100)
+        self.assertEqual(snapshots["2026-06-21"]["rawHoldingProfit"], 0)
 
     def test_historical_sale_cash_ignores_stale_saved_cash_and_is_idempotent(self):
         stale_snapshots = {
@@ -494,6 +494,14 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
             {**snapshots, "2026-09-16": after},
         )
         self.assertNotIn("삼성전기", post_sale["symbols"])
+        legacy_total = 0
+        for security in portfolio["securities"]:
+            state = self.updater.security_position_state(security, "2026-09-17", portfolio)
+            price = 0
+            profit = int(round(price * float(state["qty"]))) - int(state["cost"])
+            legacy_total += profit + int(state["realizedProfit"])
+        self.assertEqual(legacy_total - post_sale["rawHoldingProfit"], 228)
+        self.assertEqual(after["rawHoldingProfit"] - sum(after["symbols"].values()), -3810)
         withdrawal = next(event for event in portfolio["securitiesEvents"] if event.get("id") == "sec-withdrawal-20260916-internal-cash-return")
         self.assertEqual((withdrawal["amount"], withdrawal["principalAmount"], withdrawal["cashPrincipalDelta"]), (1400228, 1345000, -1345000))
 

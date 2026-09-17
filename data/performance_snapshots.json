@@ -2670,9 +2670,9 @@
     "requestedDate": "2026-09-17",
     "actualMarketDate": "2026-09-17",
     "updatedAtKST": "2026-09-17T10:22:49+09:00",
-    "rawHoldingProfit": 2825698,
-    "cumulativeReturn": 12.287668272293564,
-    "dailyProfit": 134380,
+    "rawHoldingProfit": 2825470,
+    "cumulativeReturn": 12.286676804569101,
+    "dailyProfit": 134152,
     "symbols": {
       "삼성전자": 160450,
       "SK하이닉스": 808000,
