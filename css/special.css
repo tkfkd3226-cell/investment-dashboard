@@ -732,12 +732,6 @@
     z-index:2600;
     width:min(200px,calc(100vw - var(--nav-menu-phone-edge) - var(--nav-menu-phone-edge)));
   }
-  /* Phone TOC boundary · 가로폰이 Tablet media에도 걸릴 때 첫 TOC 구분선을 Phone contract로 복구 */
-  .date-action-menu.mobile-combined-menu .mobile-nav-group-toc-first{
-    margin:var(--nav-menu-group-gap) 0 0;
-    padding:var(--nav-menu-group-gap) 0 0;
-    border-top:1px solid var(--nav-divider);
-  }
   .date-action-menu.mobile-combined-menu .mobile-nav-group p{letter-spacing:0}
   .date-action-menu.mobile-combined-menu .mobile-nav-item strong{display:block;color:inherit}
   .date-action-menu.mobile-combined-menu::-webkit-scrollbar{width:8px}

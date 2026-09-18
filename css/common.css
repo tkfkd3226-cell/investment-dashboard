@@ -4163,14 +4163,13 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 .date-action-menu.show{display:block}
 .responsive-nav-menu-layout{display:block}
 .mobile-date-pin-control{display:none}
-.switcher.tablet-topbar-ui :is(.mobile-nav-group-tablet-topbar-duplicate,.mobile-nav-item-tablet-topbar-duplicate){display:none}
+.switcher.tablet-topbar-ui .date-action-menu.mobile-combined-menu :is(.mobile-nav-group-tablet-topbar-duplicate,.mobile-nav-item-tablet-topbar-duplicate){display:none}
 
 /* Navigation Motion · 우측 화면 바깥에서 진입하고 닫힐 때도 화면 바깥까지 이동하며 자연스럽게 fade-out */
 .date-action-menu.mobile-combined-menu{
   /* Hamburger Menu Contract · Tablet/Phone은 위치·폭과 density token만 바꾸고 내부 구조는 공유 */
   --nav-menu-padding:var(--space-lg);
   --nav-menu-head-gap:var(--space-2xl);
-  --nav-menu-head-line-height:25px;
   --nav-menu-group-gap:var(--space-sm);
   --nav-menu-group-label-margin-y:var(--space-2xs);
   --nav-menu-group-label-margin-x:var(--space-lg);
@@ -4244,9 +4243,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 :is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon) svg{display:block}
 
 /* Hamburger Menu Structure · Tablet/Phone 공통 내부 구조; viewport는 위 density token만 변경 */
-.date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:var(--nav-menu-head-gap);margin:0;padding:0 1px var(--space-2xs);border-bottom:1px solid var(--nav-divider);background:transparent}
-.date-action-menu.mobile-combined-menu .mobile-nav-head-title{display:flex;align-items:center;gap:var(--space-2xs);min-width:0}
-.date-action-menu.mobile-combined-menu .mobile-nav-head-title > span{margin:0 0 0 1px;color:var(--nav-muted);font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);line-height:var(--nav-menu-head-line-height)}
+.date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:flex-end;gap:var(--nav-menu-head-gap);margin:0;padding:0 1px var(--space-2xs);border-bottom:1px solid var(--nav-divider);background:transparent}
 .date-action-menu.mobile-combined-menu .mobile-nav-head > button{border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);line-height:1.12}
 .date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:var(--nav-icon-size);height:var(--nav-icon-size);margin:auto}
 .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:var(--nav-menu-group-gap) 0 0;padding:var(--nav-menu-group-gap) 0 0;border-top:1px solid var(--nav-divider)}
