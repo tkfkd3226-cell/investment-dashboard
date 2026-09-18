@@ -3207,11 +3207,20 @@ body.dashboard-dialog-open{
 }
 .monthly-calendar-modal.show{display:flex}
 .monthly-calendar-card{
+  display:flex;
+  flex-direction:column;
   max-height:min(90vh,780px);
-  overflow:auto;
+  overflow:hidden;
 }
 @supports (height:100dvh){
   .monthly-calendar-card{max-height:min(90dvh,780px)}
+}
+/* Monthly Calendar Scroll Shell · head/switch는 고정하고 설명·달력·요약만 작은 viewport에서 스크롤 */
+.monthly-calendar-scroll{
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
 }
 .monthly-calendar-close{
   position:absolute;
@@ -3227,6 +3236,8 @@ body.dashboard-dialog-open{
   margin:0 auto;
 }
 .monthly-calendar-head .modal-main-title{text-align:center}
+.monthly-calendar-head,
+.monthly-calendar-mode-tabs{flex-shrink:0}
 /* Monthly Calendar Range Switch · control-tab primitive를 재사용하고 이곳은 3열 배치만 소유 */
 .monthly-calendar-mode-tabs{
   grid-template-columns:repeat(3,minmax(0,1fr));

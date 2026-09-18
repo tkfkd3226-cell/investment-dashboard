@@ -288,9 +288,9 @@
       --monthly-calendar-day-size:var(--type-size-sm);
       --monthly-calendar-profit-size:var(--type-size-2xs);
     }
-    .monthly-calendar-card{max-height:calc(100vh - var(--space-2xl))}
+    .monthly-calendar-card{max-height:calc(100vh - var(--modal-overlay-pad) - var(--modal-overlay-pad))}
     @supports (height:100dvh){
-      .monthly-calendar-card{max-height:calc(100dvh - var(--space-2xl))}
+      .monthly-calendar-card{max-height:calc(100dvh - var(--modal-overlay-pad) - var(--modal-overlay-pad))}
     }
     .monthly-calendar-close{top:var(--space-4xl);right:var(--space-4xl)}
     .monthly-calendar-head{
