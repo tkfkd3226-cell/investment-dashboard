@@ -441,7 +441,7 @@ function renderTabs(){
         <select class="date-select day-select" id="dateSelect" aria-label="일 선택" aria-controls="app">${monthDates.map(d=>`<option value="${d}" ${d===dataState.activeDate?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
       </div>
       <div class="date-picker-action" role="group" aria-label="대시보드 도구">
-        <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-calendar-action" title="월간 손익" aria-label="월간 손익" data-dashboard-action="open-monthly-calendar">
+        <button type="button" class="date-tool-btn date-tool-btn-desktop" title="월간 손익" aria-label="월간 손익" data-dashboard-action="open-monthly-calendar">
           <span class="date-tool-action-icon">${navIconSvg('period')}</span><span class="topbar-label-full">월간 손익</span><span class="topbar-label-short">월간</span>
         </button>
         <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-market-action topbar-realtime-quotes-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
