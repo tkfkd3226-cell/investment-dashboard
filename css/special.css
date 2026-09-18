@@ -583,7 +583,6 @@
     pointer-events:none;
   }
   .date-tool-btn-desktop{display:none}
-  .switcher button.topbar-market-ai-toggle{display:none}
   .switcher button.topbar-corner-action{display:none}
   .month-select,
   .day-select{
@@ -625,6 +624,7 @@
   }
   button.topbar-monthly-action,
   button.topbar-realtime-action,
+  button.topbar-market-ai-toggle,
   .topbar-theme-action{
     display:inline-flex;
   }

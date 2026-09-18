@@ -1372,11 +1372,15 @@ test('퇴직연금 작업 방식 switch는 공통 segmented control contract를 
   assert.doesNotMatch(common,/--pension-modal-mode-(?:size|height)/);
 });
 
-test('Web/Tablet 개인보기 도구는 계산기·Market AI·테마 icon control을 제공한다',()=>{
+test('Topbar 개인보기 도구는 Market AI → 계산기 → 테마 순서를 유지한다',()=>{
   const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
   for(const marker of ['topbar-calc-action','topbar-market-ai-toggle','topbar-theme-action']){
     assert.ok(tabsBlock.includes(marker),`개인보기 도구 누락: ${marker}`);
   }
+  const marketAiIndex=tabsBlock.indexOf('topbar-market-ai-toggle');
+  const calculatorIndex=tabsBlock.indexOf('topbar-calc-action');
+  const themeIndex=tabsBlock.indexOf('topbar-theme-action');
+  assert.ok(marketAiIndex>=0&&marketAiIndex<calculatorIndex&&calculatorIndex<themeIndex,'Topbar 개인보기 도구는 Market AI → 투자 계산기 → 테마 순서를 유지해야 한다');
   assert.match(tabsBlock,/topbar-calc-action[^]*?control-icon-button|control-icon-button topbar-calc-action/s);
   assert.match(tabsBlock,/toggle-market-ai-connection/);
 });
@@ -1391,8 +1395,9 @@ test('Market AI 연결 toggle은 OFF fallback과 viewport별 진입점 계약을
   assert.match(mobileMenu,/label:'관리'[^]*?action:'toggle-market-ai-connection'/,'Phone hamburger 관리 그룹에는 Market AI 연결 action이 있어야 한다');
   const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
   assert.doesNotMatch(tabsBlock,/\$\{phoneUi\(\)\?'':/,'Market AI toggle 생성 여부를 최초 viewport에 고정하면 크기 변경 후 새로고침이 필요해진다');
-  assert.match(tabsBlock,/control-icon-button topbar-market-ai-toggle/,'Market AI toggle은 Web/Tablet Topbar용으로 항상 생성해야 한다');
-  assert.match(special,/\.switcher button\.topbar-market-ai-toggle\{display:none\}/,'Phone에서는 Topbar Market AI toggle을 숨기고 hamburger 관리 action을 사용해야 한다');
+  assert.match(tabsBlock,/class="date-tool-btn control-icon-button topbar-market-ai-toggle"/,'Market AI toggle은 Web/Tablet/Phone Topbar에서 같은 control을 재사용해야 한다');
+  assert.doesNotMatch(special,/\.switcher button\.topbar-market-ai-toggle\{display:none\}/,'Phone에서 Topbar Market AI toggle을 숨기면 안 된다');
+  assert.match(special,/button\.topbar-market-ai-toggle,[^]*?\.topbar-theme-action\{[^]*?display:inline-flex/,'Phone Topbar에서도 Market AI toggle을 테마 control 앞에 노출해야 한다');
 });
 
 test('Market AI는 초기 OFF로 열려도 연결 켜기 lifecycle listener를 먼저 등록한다',()=>{
