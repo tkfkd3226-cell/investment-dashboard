@@ -684,7 +684,27 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
         if date not in prices
         and datetime.strptime(date, DATE_FORMAT).weekday() < 5
     ]
-    missing_dates = resolve_missing_trading_dates(candidates, latest_market)
+    if latest_market == today_kst() and current_market_status == "intraday":
+        # 종목 현재가로 이미 확인된 오늘 거래일은 KOSPI 일봉 게시를 기다리지 않는다.
+        # 장초반에는 종목 조회가 오늘을 반환해도 지수 일봉은 전 거래일까지일 수 있다.
+        missing_dates = [latest_market] if latest_market in candidates else []
+        historical_candidates = [date for date in candidates if date < latest_market]
+        if historical_candidates:
+            previous_day = (
+                datetime.strptime(latest_market, DATE_FORMAT) - timedelta(days=1)
+            ).strftime(DATE_FORMAT)
+            previous_market = resolve_latest_market_date(portfolio, previous_day)
+            if not previous_market:
+                raise RuntimeError(
+                    "KRX 누락 거래일 달력 조회 실패: 직전 거래일을 확인하지 못해 "
+                    "가격 갱신 없이 중단합니다."
+                )
+            # 과거 누락은 별도로 검증한다. 단순히 오늘을 history에 추가하면
+            # 오래된/불완전한 달력까지 정상으로 간주할 수 있으므로 하지 않는다.
+            historical_candidates = [date for date in historical_candidates if date <= previous_market]
+            missing_dates.extend(resolve_missing_trading_dates(historical_candidates, previous_market))
+    else:
+        missing_dates = resolve_missing_trading_dates(candidates, latest_market)
 
     # A prior local run can leave a hidden, warning-bearing snapshot behind.
     # It is not selectable, so retry it automatically instead of treating the
