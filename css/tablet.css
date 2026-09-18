@@ -47,13 +47,15 @@
       --nav-motion-start-opacity:.90;
     }
 
-  /* [T02. Hero / Market AI · Hero density + Market AI 자연 폭의 Tablet 최대 cap만 조정] */
+  /* [T02. Hero / Market AI · Hero density + Market AI 자연 폭의 Tablet 최대 cap만 조정
+     Tablet Hero 요약은 Market AI와 한 줄을 유지하도록 손익 pill 2개만 노출한다. */
 .hero{
       --hero-decor-size:240px;
       --hero-decor-right:-72px;
     }
 
 .hero.market-ai-mounted .hero-metric-pills{min-width:0}
+    .hero .hero-return-pill{display:none}
 
   /* [T03. Cards / Metrics · 카드·요약·핵심지표 density와 열 수] */
 .mini-card{

@@ -1140,6 +1140,8 @@ Tablet · 태블릿: 761px ~ 1100px
 Mobile · 모바일: 760px 이하
 ```
 
+Hero 성과 pill은 퇴직연금이 있는 현재 구성 기준으로 **Desktop은 손익+수익률 4개, Tablet은 Market AI와 한 줄을 유지하기 위해 손익 2개, Phone 세로는 손익 2개, 실제 Phone Landscape는 넓은 가로폭을 활용해 손익+수익률 4개**를 표시한다. Tablet과 Phone 세로에서는 `.hero-return-pill`을 숨기고, Phone Landscape 특수 viewport에서만 다시 노출한다.
+
 특수 viewport는 일반 viewport 섹션에 섞지 않고 **왜 필요한지 기능 기준으로 추적 가능하게 관리**한다. 대표적인 현재 예외는 다음과 같다.
 
 ```text

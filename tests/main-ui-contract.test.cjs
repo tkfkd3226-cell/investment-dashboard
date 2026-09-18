@@ -758,6 +758,8 @@ test('Market AI responsive 전환은 focus handoff와 content-driven card layout
   assert.match(common,/\.market-ai-desktop\{[^}]*width:max-content;[^}]*max-width:100%;/,'공통 Market AI card group은 내용 기반 폭을 사용해야 한다');
   assert.match(common,/\.market-ai-desktop-metric\{[^}]*grid-template-columns:subgrid;/,'카드 내부 label/value/change는 공통 세로 열을 공유해야 한다');
   assert.match(special,/\.market-ai-mobile-dialog \.market-ai-desktop\{[^}]*width:100%;[^}]*\}[^]*\.market-ai-mobile-dialog \.market-ai-card-row\{[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content;/,'Phone Market AI는 dialog 폭을 채우면서 label 좌측 / value·change 우측 열을 유지해야 한다');
+  assert.match(tablet,/\.hero \.hero-return-pill\{display:none\}/,'Tablet Hero는 Market AI와 한 줄을 유지하도록 수익률 pill을 숨겨 손익 pill 2개만 유지해야 한다');
+  assert.match(special,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/,'Phone Landscape는 넓은 가로폭을 활용해 수익률 pill을 복원하고 4개를 유지해야 한다');
 });
 
 test('Market AI contract: KOSPI200 선물 / SOX 현물 / NQ100 선물 symbol을 고정한다',()=>{

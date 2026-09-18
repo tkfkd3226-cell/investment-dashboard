@@ -781,7 +781,7 @@
    Scope · 범위: Hero/요약 카드 열 수, 표 고정, 차트 flow, 원천/검산 배치, 모달 input zoom 방지.
    ------------------------------------------------------------------------- */
 @media (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  /* Hero Metrics · 세로 Phone과 동일하게 내용폭 pill을 유지하고 필요한 경우 자연스럽게 wrap */
+  /* Hero Metrics · 실제 터치폰 가로는 넓은 가로폭을 활용해 손익+수익률 pill 4개를 유지 */
     .hero .hero-metric-pills{
       display:flex;
       flex-wrap:wrap;
