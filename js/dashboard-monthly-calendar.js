@@ -72,7 +72,7 @@ function monthlyCalendarCompactProfit(value){
   }
   if(absolute>=10_000){
     const scaled=absolute/10_000;
-    return `${sign}${scaled>=100?Math.round(scaled):scaled.toFixed(1)}만`.replace(/\.0(?=만$)/,'');
+    return `${sign}${scaled.toFixed(1)}만`;
   }
   return `${sign}${fmt(absolute)}`;
 }
