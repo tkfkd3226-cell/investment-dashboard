@@ -1365,7 +1365,15 @@ test('Market AI 연결 toggle은 OFF fallback과 Phone 관리 메뉴 배치를 �
   const mobileMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
   assert.ok(mobileMenu.indexOf("title:'투자 계산기'")<mobileMenu.indexOf("action:'toggle-market-ai-connection'"));
   const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
-  assert.match(tabsBlock,/\$\{phoneUi\(\)\?'':/,'Phone Topbar에는 Market AI toggle을 생성하지 않는다');
+  assert.doesNotMatch(tabsBlock,/\$\{phoneUi\(\)\?'':/,'Market AI toggle 생성 여부를 최초 viewport에 고정하면 크기 변경 후 새로고침이 필요해진다');
+  assert.match(tabsBlock,/control-icon-button topbar-market-ai-toggle/,'Market AI toggle은 viewport 변경에 대비해 항상 생성해야 한다');
+  const phoneRealtimeIndex=tabsBlock.indexOf('topbar-realtime-phone-action');
+  const marketAiToggleIndex=tabsBlock.indexOf('topbar-market-ai-toggle');
+  const themeToggleIndex=tabsBlock.indexOf('topbar-theme-action');
+  assert.ok(phoneRealtimeIndex>=0&&phoneRealtimeIndex<marketAiToggleIndex&&marketAiToggleIndex<themeToggleIndex,'숨김을 해제해도 Market AI toggle은 실시간 시세와 밝기 테마 사이 DOM 순서를 유지해야 한다');
+  assert.match(special,/\.switcher button\.topbar-market-ai-toggle\{display:none\}/,'Phone에서는 공통 icon button 표시 규칙보다 강한 selector로 Market AI toggle을 숨겨야 한다');
+  assert.match(special,/\.date-picker-action\{[^}]*display:flex[^}]*position:fixed[^}]*right:var\(--topbar-phone-edge\)[^}]*gap:var\(--space-sm\)/,'Phone 우측 버튼은 표시 중인 control만 자동 정렬하는 flex group이어야 한다');
+  assert.doesNotMatch(special,/\.topbar-(?:realtime-phone|theme)-action\{right:/,'Phone 버튼마다 개별 right 좌표를 부여하면 버튼 추가 시 순서가 꼬인다');
 });
 
 test('Market AI는 초기 OFF로 열려도 연결 켜기 lifecycle listener를 먼저 등록한다',()=>{

@@ -460,15 +460,15 @@ function renderTabs(){
         <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-market-action topbar-realtime-quotes-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
           <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span><span class="topbar-label-full">${REALTIME_QUOTES_ACTION.title}</span><span class="topbar-label-short">${REALTIME_QUOTES_ACTION.title}</span>
         </button>
-        ${phoneUi()?'':(()=>{const model=marketAiConnectionToggleModel();return `<button type="button" class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-market-ai-toggle" title="${model.label}" aria-label="${model.label}" aria-pressed="${model.connected}" data-dashboard-action="toggle-market-ai-connection" data-market-ai-connection-toggle>
+        <button type="button" class="date-tool-btn control-icon-button topbar-realtime-phone-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
+          <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span>
+        </button>
+        ${(()=>{const model=marketAiConnectionToggleModel();return `<button type="button" class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-market-ai-toggle" title="${model.label}" aria-label="${model.label}" aria-pressed="${model.connected}" data-dashboard-action="toggle-market-ai-connection" data-market-ai-connection-toggle>
           <span class="date-tool-action-icon" data-market-ai-connection-toggle-icon>${navIconSvg(model.icon)}</span>
         </button>`})()}
         <a class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" draggable="false" title="투자 계산기" aria-label="투자 계산기" data-personal-view-control${uiState.personalViewUnlocked?'':' hidden'}>
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span>
         </a>
-        <button type="button" class="date-tool-btn control-icon-button topbar-realtime-phone-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
-          <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span>
-        </button>
         <button type="button" class="date-tool-btn control-icon-button topbar-theme-action" data-theme-toggle title="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" aria-label="${currentTheme()==='dark'?'밝은 모드로 전환':'다크 모드로 전환'}" data-dashboard-action="toggle-theme">
           <span class="date-tool-action-icon" data-theme-toggle-icon>${themeToggleIconMarkup(currentTheme()==='dark')}</span>
         </button>
