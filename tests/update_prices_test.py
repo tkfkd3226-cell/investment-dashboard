@@ -427,6 +427,25 @@ class KrxRefreshBoundaryTest(unittest.TestCase):
 
         self.assertEqual(dates, [])
 
+    def test_calendar_does_not_restore_holiday_from_saved_rows_inside_kospi_range(self):
+        self.updater.KRX_TRADING_CALENDAR_PATH = ROOT / "data" / "__calendar_test_not_found__.json"
+        history = {
+            "2026-07-16": 3210.0,
+            "2026-07-20": 3220.0,
+        }
+        prices = {
+            "2026-07-17": {"display": True},  # 잘못 남은 휴장일 행
+            "2026-07-21": {"display": True},  # KOSPI 일봉 게시 전 확인된 다음 거래일
+        }
+        snapshots = {"2026-07-17": {"date": "2026-07-17"}}
+
+        calendar = self.updater.build_krx_trading_calendar(prices, snapshots, history)
+
+        self.assertEqual(
+            calendar["tradingDates"],
+            ["2026-07-16", "2026-07-20", "2026-07-21"],
+        )
+
     def test_missing_date_calendar_lookup_failure_fails_closed(self):
         self.updater.today_kst = lambda: "2026-09-18"
         self.updater.resolve_latest_market_date = lambda *_: "2026-09-17"

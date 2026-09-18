@@ -135,8 +135,16 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(ui,/topbar-monthly-action[^>]*data-dashboard-action="open-monthly-calendar"/,'Web\/Tablet\/Phone이 공유하는 월간 손익 Topbar 진입점이 있어야 한다');
   const responsiveMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
   assert.doesNotMatch(responsiveMenu,/action:'open-monthly-calendar'/,'TOPbar에 표시되는 월간 손익을 hamburger에 중복 배치하면 안 된다');
-  assert.match(monthlyCalendar,/combinedDailyProfitChange\(date\)/,'일손익 계산 의미는 DOM feature가 아니라 core의 공통 일성과 helper를 재사용해야 한다');
+  assert.match(monthlyCalendar,/combinedDailyProfitChange\(date\)/,'합산 일손익 계산 의미는 DOM feature가 아니라 core helper를 재사용해야 한다');
+  assert.match(monthlyCalendar,/securitiesDailyProfitChange\(date\)/,'증권 단독 범위도 core의 flow-neutral helper를 재사용해야 한다');
+  assert.match(monthlyCalendar,/pensionDailyProfitChange\(date\)/,'퇴직연금 단독 범위도 core의 비교 가능한 일성과 helper를 재사용해야 한다');
+  assert.match(core,/function securitiesDailyProfitChange\(date\)/);
+  assert.match(core,/function pensionDailyProfitChange\(date\)/);
   assert.match(core,/function combinedDailyProfitChange\(date\)/,'flow-neutral 월간 일손익 계산은 core가 소유해야 한다');
+  assert.match(monthlyCalendar,/combined:\{label:'합산'[^]*?securities:\{label:'증권'[^]*?pension:\{label:'퇴직연금'/,'월간 손익 범위는 합산·증권·퇴직연금 3개만 유지해야 한다');
+  assert.match(monthlyCalendar,/class="control-tab monthly-calendar-mode-tab/,'범위 switch는 새 control 디자인 대신 공통 control-tab primitive를 재사용해야 한다');
+  assert.match(common,/:is\(\.asset-workspace-tabs,\.contrib-target-tabs,\.monthly-calendar-mode-tabs\)\{background:var\(--subtle-card\)\}/,'월간 범위 switch는 기존 segmented tab skin을 공유해야 한다');
+  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.setMode[^]*?setMonthlyCalendarMode\(control\.dataset\.calendarMode\|\|''\)/,'범위 전환은 app action router를 거쳐 calendar state owner에 위임해야 한다');
   assert.match(monthlyCalendar,/modal\.className='action-modal monthly-calendar-modal'/,'월간 캘린더는 공통 action modal shell을 재사용해야 한다');
   assert.match(monthlyCalendar,/openDashboardModal\(modal,/);
   assert.match(monthlyCalendar,/closeDashboardModal\(modal,/);
@@ -150,8 +158,8 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(monthlyCalendar,/class=\"control-icon-button modal-icon-btn monthly-calendar-nav\"/,'월 이동 control은 공통 modal icon button primitive를 재사용해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-(?:previous|next)[^>]* disabled/,'월 경계에서 native disabled로 focus를 잃으면 안 된다');
   assert.match(monthlyCalendar,/today:date===today/,'KST 오늘 날짜를 active date와 별도 상태로 계산해야 한다');
-  assert.match(monthlyCalendar,/today:date===today[^]*?if\(!available\|\|!item\)\{[^]*?todayClass=isToday\?' is-today':''[^]*?screenReaderText=isToday\?`<span class=\"visually-hidden\">오늘, \${day}일, 데이터 없음<\/span>`/,'오늘 데이터가 아직 없어도 unavailable cell은 today 상태와 실제 screen-reader text를 유지해야 한다');
-  assert.match(monthlyCalendar,/visibleDayAccessibility=isToday\?' aria-hidden=\"true\"':''/,'오늘 unavailable cell의 보이는 날짜 숫자는 screen-reader text와 중복 낭독되지 않아야 한다');
+  assert.match(monthlyCalendar,/today:date===today[^]*?if\(!available\|\|!item\)\{[^]*?todayClass=isToday\?' is-today':''[^]*?todayPrefix=isToday\?'오늘, ':''[^]*?screenReaderText=needsAccessibility\?`<span class=\"visually-hidden\">\${todayPrefix}\${day}일, \${accessibleText}<\/span>`/,'오늘 데이터가 아직 없어도 unavailable cell은 today 상태와 실제 screen-reader text를 유지해야 한다');
+  assert.match(monthlyCalendar,/visibleDayAccessibility=needsAccessibility\?' aria-hidden=\"true\"':''/,'오늘·휴장·누락 unavailable cell의 보이는 날짜 숫자는 screen-reader text와 중복 낭독되지 않아야 한다');
   assert.doesNotMatch(monthlyCalendar,/isToday\?` aria-label=\"오늘, \${day}일, 데이터 없음\"`/,'오늘 unavailable cell 접근성 이름을 generic div의 aria-label에만 의존하면 안 된다');
   assert.match(common,/\.visually-hidden\{[^}]*position:absolute[^}]*clip-path:inset\(50%\)/,'오늘 unavailable cell의 접근성 설명은 canonical visually-hidden utility를 재사용해야 한다');
   assert.match(common,/\.monthly-calendar-day\.is-today:not\(\.is-active\)/,'오늘 날짜는 선택일과 별도 시각 상태가 있어야 한다');
@@ -577,7 +585,7 @@ test('KRX workflow는 다른 branch commit과 push가 경합해도 최신 remote
   assert.match(updatePricesWorkflow,/BASE_SHA="\$\(git rev-parse HEAD\)"/);
   assert.match(updatePricesWorkflow,/for attempt in 1 2 3; do/);
   assert.match(updatePricesWorkflow,/git fetch origin "\$BRANCH_NAME"/);
-  assert.match(updatePricesWorkflow,/KRX_MANAGED_PATHS=\(data\/prices\.json data\/performance_snapshots\.json\)/);
+  assert.match(updatePricesWorkflow,/KRX_MANAGED_PATHS=\(data\/prices\.json data\/performance_snapshots\.json data\/krx_trading_calendar\.json\)/);
   assert.match(updatePricesWorkflow,/KRX_INPUT_PATHS=\(data\/portfolio\.json scripts\/update_prices\.py requirements\.txt \.github\/workflows\/update-prices\.yml\)/);
   assert.match(updatePricesWorkflow,/git diff --quiet "\$BASE_SHA" "origin\/\$BRANCH_NAME" -- "\$\{KRX_MANAGED_PATHS\[@\]\}"/);
   assert.match(updatePricesWorkflow,/git diff --quiet "\$BASE_SHA" "origin\/\$BRANCH_NAME" -- "\$\{KRX_INPUT_PATHS\[@\]\}"/);

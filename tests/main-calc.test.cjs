@@ -348,8 +348,12 @@ test('월간 일손익: 연금 첫 관측일의 기존 누적손익은 baseline�
   });
   assert.equal(core.calc('2026-06-04').pensionProfit,500);
   assert.equal(core.calc('2026-06-04').pensionDayChange,300,'원시 연금 dayChange가 첫 snapshot 현금을 변화로 볼 수 있어도 baseline 편입일에는 합산하지 않는다');
+  assert.equal(core.securitiesDailyProfitChange('2026-06-04'),0);
+  assert.equal(core.pensionDailyProfitChange('2026-06-04'),null,'퇴직연금 첫 관측일은 기존 누적손익을 일손익으로 만들지 않는다');
   assert.equal(core.combinedDailyProfitChange('2026-06-04'),0,'첫 연금 snapshot의 기존 누적손익·현금 baseline은 당일 수익이 아니다');
   assert.equal(core.calc('2026-06-05').pensionDayChange,10);
+  assert.equal(core.securitiesDailyProfitChange('2026-06-05'),60);
+  assert.equal(core.pensionDailyProfitChange('2026-06-05'),10);
   assert.equal(core.combinedDailyProfitChange('2026-06-05'),70,'증권 60 + 연금 10의 실제 일성과만 합산한다');
 });
 
@@ -367,8 +371,10 @@ test('월간 일손익: 별도수익 ON은 당일 증가분만 더하고 월 첫
   });
   assert.deepEqual(core.allAvailableDates(),['2026-05-29','2026-06-01'],'주말 공백은 가용 날짜에 끼어들지 않아야 한다');
   core.uiState.includeSeparateProfit=false;
+  assert.equal(core.securitiesDailyProfitChange('2026-06-01'),30);
   assert.equal(core.combinedDailyProfitChange('2026-06-01'),30);
   core.uiState.includeSeparateProfit=true;
+  assert.equal(core.securitiesDailyProfitChange('2026-06-01'),30,'증권 단독 범위에는 별도수익을 섞지 않는다');
   assert.equal(core.combinedDailyProfitChange('2026-06-01'),230);
 });
 
