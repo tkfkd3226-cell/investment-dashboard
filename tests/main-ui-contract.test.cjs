@@ -154,7 +154,7 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
 });
 
 test('Topbar action 라벨은 Web full/short와 Tablet 축약명·icon 조합을 사용한다',()=>{
-  assert.match(common,/button\.topbar-realtime-phone-action,[^]*?\.topbar-label-short\{display:none\}/,'Desktop baseline은 short label을 숨기고 full label을 유지해야 한다');
+  assert.match(common,/\.topbar-label-short\{display:none\}/,'Desktop baseline은 short label을 숨기고 full label을 유지해야 한다');
   assert.match(special,/@media \(min-width:1101px\) and \(max-width:1279px\)\{[^]*?\.date-picker-action \.topbar-label-full\{display:none\}[^]*?\.date-picker-action \.topbar-label-short\{display:inline\}/,'1101~1279px compact Web은 모든 text action을 short label로 축약해야 한다');
   assert.match(tablet,/\.date-picker-action \.market-link-btn-desktop\{display:none\}/,'Tablet Topbar에서는 선물 링크를 숨겨야 한다');
   assert.match(tablet,/\.date-picker-action \.date-tool-btn-desktop\.control-icon-button\{[^}]*width:var\(--topbar-control-height\)[^}]*min-width:var\(--topbar-control-height\)[^}]*padding-inline:0[^}]*gap:0/,'Tablet의 보조 action은 정사각 icon control이어야 한다');
@@ -1320,9 +1320,9 @@ test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·resp
 
   const mobileMenuSource=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
   assert.doesNotMatch(mobileMenuSource,/REALTIME_QUOTES_ACTION/,'Tablet/Phone hamburger 관리 메뉴에는 실시간 시세 진입점을 중복 배치하지 않는다');
-  const phoneRealtimeButton=/class="date-tool-btn control-icon-button topbar-realtime-phone-action"[^>]*>[\s\S]*?<\/button>/.exec(ui)?.[0]||'';
-  assert.ok(phoneRealtimeButton,'Phone 실시간 시세 상단 버튼이 필요하다');
-  assert.doesNotMatch(phoneRealtimeButton,/topbar-label-(?:full|short)/,'Phone 실시간 시세 버튼은 icon-only여야 한다');
+  const realtimeTopbarButtons=ui.match(/class="[^"]*topbar-realtime-action[^"]*"/g)||[];
+  assert.equal(realtimeTopbarButtons.length,1,'실시간 시세는 viewport 경계에서 교체되지 않는 단일 Topbar 버튼이어야 한다');
+  assert.match(special,/\.topbar-realtime-action :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Phone 실시간 시세 버튼은 같은 DOM의 label만 숨겨 icon-only로 전환해야 한다');
 
   assert.match(ui,/addEventListener\('message',handleRealtimeMonitorMessage\)/,'embedded Monitor message bridge가 필요하다');
   assert.match(ui,/event\.origin!==realtimeMonitorExpectedOrigin\(\)/,'Monitor message는 origin 검증을 유지해야 한다');
@@ -1367,7 +1367,7 @@ test('Market AI 연결 toggle은 OFF fallback과 Phone 관리 메뉴 배치를 �
   const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
   assert.doesNotMatch(tabsBlock,/\$\{phoneUi\(\)\?'':/,'Market AI toggle 생성 여부를 최초 viewport에 고정하면 크기 변경 후 새로고침이 필요해진다');
   assert.match(tabsBlock,/control-icon-button topbar-market-ai-toggle/,'Market AI toggle은 viewport 변경에 대비해 항상 생성해야 한다');
-  const phoneRealtimeIndex=tabsBlock.indexOf('topbar-realtime-phone-action');
+  const phoneRealtimeIndex=tabsBlock.indexOf('topbar-realtime-action');
   const marketAiToggleIndex=tabsBlock.indexOf('topbar-market-ai-toggle');
   const themeToggleIndex=tabsBlock.indexOf('topbar-theme-action');
   assert.ok(phoneRealtimeIndex>=0&&phoneRealtimeIndex<marketAiToggleIndex&&marketAiToggleIndex<themeToggleIndex,'숨김을 해제해도 Market AI toggle은 실시간 시세와 밝기 테마 사이 DOM 순서를 유지해야 한다');

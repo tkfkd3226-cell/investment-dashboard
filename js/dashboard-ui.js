@@ -457,11 +457,8 @@ function renderTabs(){
         <button type="button" class="date-tool-btn date-tool-btn-desktop" title="월간 손익" aria-label="월간 손익" data-dashboard-action="open-monthly-calendar">
           <span class="date-tool-action-icon">${navIconSvg('period')}</span><span class="topbar-label-full">월간 손익</span><span class="topbar-label-short">월간</span>
         </button>
-        <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-market-action topbar-realtime-quotes-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
+        <button type="button" class="date-tool-btn topbar-market-action topbar-realtime-quotes-action topbar-realtime-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
           <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span><span class="topbar-label-full">${REALTIME_QUOTES_ACTION.title}</span><span class="topbar-label-short">${REALTIME_QUOTES_ACTION.title}</span>
-        </button>
-        <button type="button" class="date-tool-btn control-icon-button topbar-realtime-phone-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
-          <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span>
         </button>
         ${(()=>{const model=marketAiConnectionToggleModel();return `<button type="button" class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-market-ai-toggle" title="${model.label}" aria-label="${model.label}" aria-pressed="${model.connected}" data-dashboard-action="toggle-market-ai-connection" data-market-ai-connection-toggle>
           <span class="date-tool-action-icon" data-market-ai-connection-toggle-icon>${navIconSvg(model.icon)}</span>

@@ -642,15 +642,27 @@
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
   }
+  .switcher button.topbar-realtime-action{
+    width:var(--topbar-phone-control-size);
+    min-width:var(--topbar-phone-control-size);
+    max-width:var(--topbar-phone-control-size);
+    padding-inline:0;
+    gap:0;
+    border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
+    pointer-events:auto;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .topbar-realtime-action :is(.topbar-label-full,.topbar-label-short){display:none}
   /* Light Floating Controls · 밝은 테마의 floating control은 Mobile Topbar가 고정/열림 상태가 아닐 때만 사용한다.
      고정/열림 상태에서는 두 테마 모두 같은 dark topbar control system을 재사용한다. */
-  html:not(.dark) .switcher:not(.mobile-menu-open):not(.mobile-date-pinned) .control-icon-button{
+  html:not(.dark) .switcher:not(.mobile-menu-open):not(.mobile-date-pinned) :is(.control-icon-button,.topbar-realtime-action){
     background:var(--topbar-floating-bg);
     border-color:var(--topbar-floating-border);
     color:var(--topbar-floating-text);
     box-shadow:var(--topbar-floating-shadow);
   }
-  button.topbar-realtime-phone-action,
+  button.topbar-realtime-action,
   .topbar-theme-action{
     display:inline-flex;
   }
@@ -692,7 +704,7 @@
     grid-column:2;
     justify-self:end;
   }
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .control-icon-button{
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.control-icon-button,.topbar-realtime-action){
     background:var(--topbar-control-bg);
     border-color:var(--topbar-control-border);
     color:var(--topbar-text);
