@@ -414,12 +414,16 @@ const MOBILE_DATE_PIN_STORAGE_KEY='investmentDashboard.mobileDatePinned';
 function mobileDatePinned(){
   try{return localStorage.getItem(MOBILE_DATE_PIN_STORAGE_KEY)==='1'}catch(_){return false}
 }
+function tabletTopbarUi(){
+  return !phoneUi()&&window.matchMedia?.('(min-width:761px) and (max-width:1100px)').matches===true;
+}
 function syncMobileTopbarState(){
   const tabs=document.getElementById('tabs');
   const toggle=document.getElementById('mobileDatePinToggle');
   const mobile=phoneUi();
   const pinned=mobileDatePinned();
   if(tabs)tabs.classList.toggle('mobile-date-pinned',mobile&&pinned);
+  if(tabs)tabs.classList.toggle('tablet-topbar-ui',tabletTopbarUi());
   if(toggle){
     toggle.checked=pinned;
     toggle.setAttribute('aria-checked',String(pinned));
@@ -589,7 +593,10 @@ function setupUiGlobalEvents(){
     syncMobileTopbarState();
     syncRealtimeQuotesModalGeometry();
   },{passive:true});
-  window.visualViewport?.addEventListener('resize',syncRealtimeQuotesModalGeometry,{passive:true});
+  window.visualViewport?.addEventListener('resize',()=>{
+    syncMobileTopbarState();
+    syncRealtimeQuotesModalGeometry();
+  },{passive:true});
 }
 // [UI08] Market Data / KRX Action Modals · 실시간 시세 / KRX 현재가 반영
 // Realtime Monitor · connection-gated read-only iframe entry / embedded lifecycle / responsive geometry. Dashboard quote client_id lease는 이 경로가 소유·갱신하지 않는다.
