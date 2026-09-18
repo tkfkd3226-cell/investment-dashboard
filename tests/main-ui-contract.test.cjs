@@ -1392,7 +1392,7 @@ test('Market AI 연결 toggle은 OFF fallback과 viewport별 진입점 계약을
   assert.match(liveValuation,/clearLiveValuationForDisconnected\('market-ai-disabled'\)/);
   assert.match(liveValuation,/clearLiveValuationForDisconnected\('market-ai-offline'\)/);
   const mobileMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
-  assert.match(mobileMenu,/label:'관리'[^]*?action:'toggle-market-ai-connection'/,'Phone hamburger 관리 그룹에는 Market AI 연결 action이 있어야 한다');
+  assert.doesNotMatch(mobileMenu,/action:'toggle-market-ai-connection'/,'Phone hamburger에는 Topbar와 중복되는 Market AI 연결 action을 두면 안 된다');
   const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
   assert.doesNotMatch(tabsBlock,/\$\{phoneUi\(\)\?'':/,'Market AI toggle 생성 여부를 최초 viewport에 고정하면 크기 변경 후 새로고침이 필요해진다');
   assert.match(tabsBlock,/class="date-tool-btn control-icon-button topbar-market-ai-toggle"/,'Market AI toggle은 Web/Tablet/Phone Topbar에서 같은 control을 재사용해야 한다');

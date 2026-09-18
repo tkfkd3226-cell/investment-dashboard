@@ -278,7 +278,6 @@ function renderResponsiveNavigationGroups(groups,{indentAfterFirst=false}={}){
 }
 function renderResponsiveNavigationMenuContent(){
   const tocGroups=dashboardTocGroups();
-  const marketAiToggle=marketAiConnectionToggleModel();
   const groups=[
     {
       label:'링크',
@@ -293,8 +292,7 @@ function renderResponsiveNavigationMenuContent(){
       tabletTopbarDuplicate:true,
       items:[
         {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
-        {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'},
-        {type:'action',action:'toggle-market-ai-connection',icon:marketAiToggle.icon,title:marketAiToggle.label,marketAiToggle:true}
+        {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'}
       ]
     },
     ...tocGroups
