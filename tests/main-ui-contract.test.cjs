@@ -751,6 +751,9 @@ test('Market AI responsive 전환은 focus handoff와 content-driven card layout
   assert.ok(heroPlacementStart>=0&&heroPlacementEnd>heroPlacementStart,'Desktop/Tablet Market AI Hero placement block이 필요하다');
   assert.match(heroPlacement,/position:absolute;[^}]*top:50%;[^}]*transform:translateY\(-50%\)/,'Desktop/Tablet Market AI는 Hero 높이 계산에서 분리된 자연 크기로 세로 중앙 배치되어야 한다');
   assert.doesNotMatch(heroPlacement,/bottom:|height:100%/,'Market AI 카드 높이를 Hero 가용 높이에 맞춰 stretch하면 안 된다');
+  assert.match(common,/var\(--market-ai-reserved-width,0px\)/,'Hero title/pill은 Market AI 최대폭이 아니라 실측 예약폭을 사용해야 한다');
+  assert.match(marketAi,/new ResizeObserver\(\(\)=>syncMarketAiHeroReservedWidth\(row,hero\)\)/,'Market AI 자연 폭 변화는 ResizeObserver로 Hero 예약폭에 반영해야 한다');
+  assert.doesNotMatch(common,/max-width:calc\(100% - var\(--market-ai-column-max\) - var\(--market-ai-layout-gap\)\)/,'Hero 왼쪽 영역이 Market AI 최대폭 전체를 고정 예약하면 안 된다');
   assert.doesNotMatch(common,/--market-ai-group-columns|minmax\(0,13fr\).*minmax\(0,7fr\)/,'Market AI card 폭을 고정 비율로 되돌리면 안 된다');
   assert.match(common,/\.market-ai-desktop\{[^}]*width:max-content;[^}]*max-width:100%;/,'공통 Market AI card group은 내용 기반 폭을 사용해야 한다');
   assert.match(common,/\.market-ai-desktop-metric\{[^}]*grid-template-columns:subgrid;/,'카드 내부 label/value/change는 공통 세로 열을 공유해야 한다');

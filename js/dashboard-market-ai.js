@@ -88,6 +88,8 @@ let marketAiPublishedConnectionState=null;
 let marketAiLifecycleGeneration=0;
 let marketAiRefreshInFlight=null;
 let marketAiConsecutiveUnavailableRefreshes=0;
+let marketAiHeroResizeObserver=null;
+let marketAiHeroObservedRow=null;
 
 function publishMarketAiConnectionState(connected,{force=false}={}){
   const next=connected===true;
@@ -141,6 +143,30 @@ function marketAiUiEnabled(){
 
 function marketAiPhoneUi(){
   return marketAiPhoneMedia.matches;
+}
+
+// Hero Reservation Width · absolute Market AI의 실제 자연 폭만큼만 title/pill 영역을 예약한다.
+function syncMarketAiHeroReservedWidth(row,hero){
+  if(!row||!hero||marketAiPhoneUi()||row.dataset.marketAiPlacement!=='hero')return;
+  const width=Math.ceil(row.getBoundingClientRect().width);
+  if(width>0)hero.style.setProperty('--market-ai-reserved-width',`${width}px`);
+}
+
+function stopMarketAiHeroWidthObserver(hero){
+  marketAiHeroResizeObserver?.disconnect();
+  marketAiHeroResizeObserver=null;
+  marketAiHeroObservedRow=null;
+  hero?.style.removeProperty('--market-ai-reserved-width');
+}
+
+function observeMarketAiHeroWidth(row,hero){
+  syncMarketAiHeroReservedWidth(row,hero);
+  if(typeof ResizeObserver!=='function')return;
+  if(marketAiHeroResizeObserver&&marketAiHeroObservedRow===row)return;
+  marketAiHeroResizeObserver?.disconnect();
+  marketAiHeroObservedRow=row;
+  marketAiHeroResizeObserver=new ResizeObserver(()=>syncMarketAiHeroReservedWidth(row,hero));
+  marketAiHeroResizeObserver.observe(row);
 }
 
 // [MARKET03] Formatting / Time / Freshness · 점수 / 시장값 / 시간 표현
@@ -1022,6 +1048,7 @@ function syncMarketAiResponsiveMount(row,hero){
     const dialog=marketAiMobileDialog();
     const content=dialog.querySelector('[data-market-ai-mobile-content]');
     if(content&&row.parentElement!==content)content.appendChild(row);
+    stopMarketAiHeroWidthObserver(hero);
     hero.classList.remove('market-ai-mounted');
     const trigger=marketAiMobileTrigger(hero);
     syncMarketAiMetricInteractivity(row,true);
@@ -1042,8 +1069,9 @@ function syncMarketAiResponsiveMount(row,hero){
   if(dialog?.open)closeDashboardNativeDialog(dialog,{fallbackSelector:'#market-ai-section [data-market-ai-tooltip]'});
   if(row.parentElement!==hero)hero.appendChild(row);
   document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.remove();
-  hero.classList.add('market-ai-mounted');
   row.dataset.marketAiPlacement='hero';
+  observeMarketAiHeroWidth(row,hero);
+  hero.classList.add('market-ai-mounted');
 }
 
 // [MARKET09] Mount / Render · 하나의 canonical panel을 Hero ↔ Mobile dialog 사이에서 재사용
@@ -1075,6 +1103,7 @@ function removeMarketAiUi(){
   row?.remove();
   dialog?.remove();
   document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.remove();
+  stopMarketAiHeroWidthObserver(hero);
   hero?.classList.remove('market-ai-mounted');
   document.querySelectorAll('[data-section-target="market-ai-section"]').forEach(item=>item.remove());
 }

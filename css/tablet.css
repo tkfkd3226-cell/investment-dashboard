@@ -47,7 +47,7 @@
       --nav-motion-start-opacity:.90;
     }
 
-  /* [T02. Hero / Market AI · Hero density + 우측 Market AI 예약 영역의 Tablet 폭만 조정] */
+  /* [T02. Hero / Market AI · Hero density + Market AI 자연 폭의 Tablet 최대 cap만 조정] */
 .hero{
       --hero-decor-size:240px;
       --hero-decor-right:-72px;

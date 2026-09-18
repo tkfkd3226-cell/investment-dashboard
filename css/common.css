@@ -761,10 +761,11 @@ button svg{pointer-events:none;flex-shrink:0}
    Data List/Tooltip variant는 공통 primitive 선언 뒤 [03B]/[03C]에서 확장한다. */
 /* Market AI Mount Layout · Desktop/Tablet에서는 Market AI를 Hero normal flow에서 분리해
    Hero 높이와 기존 padding은 그대로 유지한다. Market AI 카드는 자연 크기를 유지한 채 세로 중앙에 두고,
-   Hero 경계와 카드 사이 간격만 별도 compact inset을 사용한다. 왼쪽 title/pill은 우측 영역만 예약한다. */
+   Hero 경계와 카드 사이 간격만 별도 compact inset을 사용한다. 왼쪽 title/pill은 JS가 실측한
+   Market AI 자연 폭(--market-ai-reserved-width) + layout gap만 예약해 최대폭 전체를 선점하지 않는다. */
 .hero.market-ai-mounted .hero-title-row,
 .hero.market-ai-mounted .hero-metric-pills{
-  max-width:calc(100% - var(--market-ai-column-max) - var(--market-ai-layout-gap));
+  max-width:calc(100% - var(--market-ai-reserved-width,0px) - var(--market-ai-layout-gap));
 }
 .hero-title-row .market-ai-mobile-trigger{display:none}
 
