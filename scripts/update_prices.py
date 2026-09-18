@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""KRX 가격과 성과 스냅샷을 갱신하는 GitHub Actions용 스크립트.
+"""KRX 가격·성과 스냅샷·거래일 캘린더를 갱신하는 GitHub Actions용 스크립트.
 
 운영 원칙:
-- ``prices.json``과 ``performance_snapshots.json``만 갱신한다.
+- ``prices.json``·``performance_snapshots.json``·``krx_trading_calendar.json``만 갱신한다.
 - ``--date``가 있으면 해당 날짜가 실제 KRX 거래일인지 확인한 뒤 그 거래일의 종목 가격·성과 스냅샷을 갱신한다.
 - 이후 지정일까지 이미 저장된 날짜의 KOSPI 값은 누락·정정 여부를 확인해 backfill할 수 있다.
 - ``--date``가 없으면 최신·누락·장중 재확정 대상을 자동 계산한다.
@@ -36,6 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PORTFOLIO_PATH = ROOT / "data" / "portfolio.json"
 PRICES_PATH = ROOT / "data" / "prices.json"
 SNAPSHOTS_PATH = ROOT / "data" / "performance_snapshots.json"
+KRX_TRADING_CALENDAR_PATH = ROOT / "data" / "krx_trading_calendar.json"
 
 KST = timezone(timedelta(hours=9))
 DATE_FORMAT = "%Y-%m-%d"
@@ -499,18 +500,35 @@ def fetch_index_history(start_date: str, end_date: str, ticker: str = KOSPI_INDE
 # KOSPI backfill
 # ---------------------------------------------------------------------------
 
-def backfill_kospi_index(prices: dict[str, Any], snapshots: dict[str, Any], through_date: str) -> list[str]:
+def dashboard_history_start_date(prices: dict[str, Any], snapshots: dict[str, Any], through_date: str) -> str | None:
     stored_dates = sorted({
         date for date in [*prices.keys(), *snapshots.keys()]
         if is_valid_date_text(date) and date <= through_date
     })
     if not stored_dates:
-        return []
+        return None
+    return stored_dates[0]
 
-    history, error = fetch_index_history(stored_dates[0], through_date)
+
+def fetch_dashboard_kospi_history(
+    prices: dict[str, Any], snapshots: dict[str, Any], through_date: str
+) -> dict[str, float]:
+    start_date = dashboard_history_start_date(prices, snapshots, through_date)
+    if not start_date:
+        return {}
+
+    history, error = fetch_index_history(start_date, through_date)
     if not history:
         # Do not silently report a successful workflow when the chart data was not written.
         raise RuntimeError(f"KOSPI index backfill failed: {error}")
+    return history
+
+
+def backfill_kospi_index(
+    prices: dict[str, Any], snapshots: dict[str, Any], history: dict[str, float]
+) -> list[str]:
+    if not history:
+        return []
 
     changed: list[str] = []
     for date, close in history.items():
@@ -529,6 +547,89 @@ def backfill_kospi_index(prices: dict[str, Any], snapshots: dict[str, Any], thro
     if changed:
         print(f"updated KOSPI index for {len(changed)} stored dates ({changed[0]} ~ {changed[-1]})")
     return changed
+
+
+def build_krx_trading_calendar(
+    prices: dict[str, Any], snapshots: dict[str, Any], history: dict[str, float]
+) -> dict[str, Any]:
+    """Build the dashboard market calendar from proven KOSPI/price trading dates.
+
+    KOSPI history is the canonical historical calendar.  A visible current-day
+    price row is also accepted because the stock quote can prove today's session
+    before the KOSPI daily series is published.  ``through`` stops at the latest
+    proven trading date, so a pre-open weekday is never mislabelled as a holiday.
+    """
+    history_dates = {
+        date for date in history
+        if is_valid_date_text(date)
+    }
+    known_dates = set(history_dates)
+
+    # KRX 거래일 캘린더의 확정 구간과 범위 밖 보완 데이터를 분리한다.
+    # KOSPI 이력이 제공된 구간은 그 날짜 집합 자체가 확정 캘린더다.
+    # prices/snapshots의 잘못된 과거 행이 휴장일을 거래일로 되살리지 못하게 하고,
+    # KOSPI 일봉이 아직 게시되지 않은 오늘처럼 이력 범위 밖의 날짜만 보완한다.
+    if history_dates:
+        history_first, history_last = min(history_dates), max(history_dates)
+
+        def outside_history_range(date: str) -> bool:
+            return date < history_first or date > history_last
+
+        known_dates.update(
+            date for date, row in prices.items()
+            if is_valid_date_text(date)
+            and isinstance(row, dict)
+            and row.get("display", True) is not False
+            and outside_history_range(date)
+        )
+        known_dates.update(
+            date for date in snapshots
+            if is_valid_date_text(date)
+            and outside_history_range(date)
+        )
+
+        if KRX_TRADING_CALENDAR_PATH.exists():
+            try:
+                existing_calendar = load_json(KRX_TRADING_CALENDAR_PATH)
+            except (OSError, ValueError, TypeError, json.JSONDecodeError):
+                existing_calendar = {}
+            known_dates.update(
+                str(date) for date in existing_calendar.get("tradingDates", [])
+                if is_valid_date_text(str(date))
+                and outside_history_range(str(date))
+            )
+    else:
+        # 저장 데이터만 있는 초기/격리 호출에서는 기존 동작을 보존한다.
+        known_dates.update(
+            date for date, row in prices.items()
+            if is_valid_date_text(date)
+            and isinstance(row, dict)
+            and row.get("display", True) is not False
+        )
+        known_dates.update(
+            date for date in snapshots
+            if is_valid_date_text(date)
+        )
+    trading_dates = sorted(known_dates)
+    return {
+        "from": trading_dates[0] if trading_dates else "",
+        "through": trading_dates[-1] if trading_dates else "",
+        "generatedAtKST": datetime.now(KST).isoformat(timespec="seconds"),
+        "tradingDates": trading_dates,
+    }
+
+
+def trading_calendar_changed(calendar: dict[str, Any]) -> bool:
+    if not KRX_TRADING_CALENDAR_PATH.exists():
+        return True
+    try:
+        current = load_json(KRX_TRADING_CALENDAR_PATH)
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return True
+    # generatedAtKST is provenance metadata, not a reason to create a commit by itself.
+    comparable = {key: value for key, value in calendar.items() if key != "generatedAtKST"}
+    current_comparable = {key: value for key, value in current.items() if key != "generatedAtKST"}
+    return current_comparable != comparable
 
 
 # ---------------------------------------------------------------------------
@@ -1303,18 +1404,28 @@ def main() -> int:
         return 1
 
     kospi_through = explicit_date or today_kst()
-    kospi_changed = backfill_kospi_index(prices, snapshots, kospi_through)
+    kospi_history = fetch_dashboard_kospi_history(prices, snapshots, kospi_through)
+    kospi_changed = backfill_kospi_index(prices, snapshots, kospi_history)
+    trading_calendar = build_krx_trading_calendar(prices, snapshots, kospi_history)
+    calendar_changed = trading_calendar_changed(trading_calendar)
 
-    if not target_dates and not kospi_changed:
-        print("No price, snapshot, or KOSPI index changes to save.")
+    if not target_dates and not kospi_changed and not calendar_changed:
+        print("No price, snapshot, KOSPI index, or trading-calendar changes to save.")
         return 0
 
     save_dashboard_data(prices, snapshots)
+    if calendar_changed:
+        save_json(KRX_TRADING_CALENDAR_PATH, trading_calendar)
 
     if target_dates:
         print("updated target dates: " + ", ".join(target_dates))
     if kospi_changed:
         print(f"updated KOSPI dates: {len(kospi_changed)}")
+    if calendar_changed:
+        print(
+            "updated KRX trading calendar: "
+            f"{trading_calendar.get('from') or '-'} ~ {trading_calendar.get('through') or '-'}"
+        )
     return 0
 
 
