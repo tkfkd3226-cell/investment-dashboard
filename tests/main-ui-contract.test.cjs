@@ -424,13 +424,13 @@ test('퇴직연금 mutation 재렌더는 모달 잠금을 해제한 뒤 Dashboar
   assert.match(pensionEditor,/if\(batchMode\)setPensionBatchMode\(true\);\s*setPensionContributionTarget\(target\);\s*restorePensionContributionDraft\(draft\);/);
   assert.match(pensionEditor,/rerenderPensionEditorAfterMutation\(renderDashboard,pensionContributionTarget\(\),\{batchMode:true\}\)/);
   assert.match(pensionEditor,/const saveDraft=pensionContributionDraftSnapshot\(\)/);
-  assert.match(pensionEditor,/if\(!data\.stale&&appliedItem\)\{[^]*?restoredDraft\.pensionEtfTradeQty=''[^]*?rerenderPensionEditorAfterMutation\(renderDashboard,item\.target,\{draft:restoredDraft\}\)[^]*?showPensionContributionOutput\(appliedItem\)/);
-  assert.match(pensionEditor,/if\(!data\.stale\)\{[^]*?rerenderPensionEditorAfterMutation\(renderDashboard,target,\{draft:deleteDraft\}\)/);
+  assert.match(pensionEditor,/if\(localConverged\)\{[^]*?restoredDraft\.pensionEtfTradeQty=''[^]*?rerenderPensionEditorAfterMutation\(renderDashboard,item\.target,\{draft:restoredDraft\}\)[^]*?if\(appliedItem\)showPensionContributionOutput\(appliedItem\)/);
+  assert.match(pensionEditor,/if\(!data\.stale\)\{[^]*?if\(localConverged\)\{[^]*?rerenderPensionEditorAfterMutation\(renderDashboard,target,\{draft:deleteDraft\}\)/);
 });
 
 test('퇴직연금 Batch는 각 작업의 stable operationId를 GAS에 전달하고 삭제 재시도 성공을 로컬에 수렴시킨다',()=>{
   assert.match(pensionEditor,/operationId:op\.operationId\|\|op\.tempId\|\|op\.qid\|\|''/);
-  assert.match(pensionEditor,/data\.duplicate[^]*?이미 삭제된 상태를 확인했습니다/);
+  assert.match(pensionEditor,/data\.duplicate[^]*?중복 삭제 요청의 최신 삭제 상태를 반영했습니다/);
 });
 
 
@@ -521,13 +521,75 @@ test('Batch 중복 응답에 state가 없으면 과거 pension state를 로컬�
 
 
 
-test('퇴직연금 단건 duplicate 성공은 서버 truth에 맞춰 local state와 Dashboard를 수렴시킨다',()=>{
-  assert.match(pensionEditor,/const duplicateFallbackItem=\(\(\)=>\{[^]*?expectedVersion,expectedAbsent,confirmationToken,confirmationDecision,[^]*?return localItem;[^]*?\}\)\(\);[^]*?const appliedItem=!data\.stale\?\(data\.item\|\|duplicateFallbackItem\):null/);
-  assert.match(pensionEditor,/if\(appliedItem\)\{\s*upsertPensionItemLocally\(item\.target,appliedItem\)/);
-  assert.match(pensionEditor,/if\(!data\.stale\)\{\s*removePensionItemLocally\(target,key\)/);
-  assert.doesNotMatch(pensionEditor,/if\(!data\.stale&&!data\.duplicate\)\{/);
+test('퇴직연금 단건 duplicate 성공은 과거 요청 payload fallback 없이 최신 서버 resource로 수렴한다',()=>{
+  assert.doesNotMatch(pensionEditor,/duplicateFallbackItem/);
+  assert.match(pensionEditor,/function reconcilePensionDuplicateResource\(target,fallbackKey,data\)\{/);
+  assert.match(pensionEditor,/resource=data\.currentResource/);
+  assert.match(pensionEditor,/resource\.known!==true/);
+  assert.match(pensionEditor,/upsertPensionItemLocally\(target,resource\.item\)/);
+  assert.match(pensionEditor,/if\(key\)removePensionItemLocally\(target,key\)/);
+  assert.match(pensionEditor,/const reconciled=reconcilePensionDuplicateResource\(item\.target,saveResourceKey,data\)/);
+  assert.match(pensionEditor,/const reconciled=reconcilePensionDuplicateResource\(target,key,data\)/);
+  assert.match(pensionEditor,/중복 저장 요청은 확인했지만 최신 서버 상태를 확인하지 못했습니다/);
+  assert.match(pensionEditor,/중복 삭제 요청 이후의 최신 서버 기록을 반영했습니다/);
   assert.match(pensionEditor,/const deleteDraft=pensionContributionDraftSnapshot\(\)/);
   assert.match(pensionEditor,/rerenderPensionEditorAfterMutation\(renderDashboard,target,\{draft:deleteDraft\}\)/);
+});
+
+test('퇴직연금 duplicate local convergence는 최신 item upsert·최신 absent remove·구 GAS fail-closed를 구분한다',()=>{
+  const vm=require('node:vm');
+  const start=pensionEditor.indexOf('function reconcilePensionDuplicateResource(');
+  const end=pensionEditor.indexOf('\nfunction setPensionContributionTarget',start);
+  assert.ok(start>=0&&end>start,'duplicate resource helper가 존재해야 한다');
+  const applied=[];
+  const removed=[];
+  const context=vm.createContext({
+    upsertPensionItemLocally:(target,item)=>applied.push([target,item]),
+    removePensionItemLocally:(target,key)=>removed.push([target,key])
+  });
+  vm.runInContext(pensionEditor.slice(start,end),context);
+
+  let result=context.reconcilePensionDuplicateResource('cashSnapshot','2026-09-18',{duplicate:true,stale:false,currentResource:{known:true,key:'2026-09-18',exists:true,item:{date:'2026-09-18',valuation:2000000}}});
+  assert.equal(result.handled,true);
+  assert.equal(result.item.valuation,2000000);
+  assert.equal(applied.length,1);
+  assert.equal(removed.length,0);
+
+  result=context.reconcilePensionDuplicateResource('cashSnapshot','2026-09-18',{duplicate:true,stale:false,currentResource:{known:true,key:'2026-09-18',exists:false,item:null}});
+  assert.equal(result.handled,true);
+  assert.equal(result.item,null);
+  assert.deepEqual(removed,[['cashSnapshot','2026-09-18']]);
+
+  result=context.reconcilePensionDuplicateResource('cashSnapshot','2026-09-18',{duplicate:true,stale:false});
+  assert.equal(result.handled,false);
+  assert.equal(applied.length,1);
+  assert.equal(removed.length,1);
+});
+
+test('GAS Single duplicate는 최신 branch HEAD의 현재 resource 상태를 응답에 첨부한다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('function pensionSingleDurableResourceKey(');
+  const end=gas.indexOf('function pensionSingleDurableIdentityResult(',start);
+  assert.ok(start>=0&&end>start,'GAS duplicate current-resource helper가 존재해야 한다');
+  const context=vm.createContext({
+    getGithubBranchHeadSha:()=> 'latest-head',
+    readPensionTarget:(target,ref)=>({items:target==='cashSnapshot'
+      ?[{date:'2026-09-18',valuation:2000000}]
+      :[{id:'contrib-new',date:'2026-09-18',amount:2000000}]})
+  });
+  vm.runInContext(gas.slice(start,end),context);
+  const cash=context.pensionSingleLatestResourceState('cashSnapshot',{action:'upsert',resourceKey:'2026-09-18',requestId:'cash-request'});
+  assert.equal(cash.known,true);
+  assert.equal(cash.exists,true);
+  assert.equal(cash.item.valuation,2000000);
+
+  const contribution=context.pensionSingleLatestResourceState('contribution',{action:'upsert',resourceKey:'2026-09-18',requestId:'contrib-new'});
+  assert.equal(contribution.key,'contrib-new','contribution upsert는 date가 아니라 requestId/id를 resource key로 사용해야 한다');
+  assert.equal(contribution.item.amount,2000000);
+
+  const deleted=context.pensionSingleDurableResourceKey('contribution',{action:'delete',resourceKey:'contrib-old',requestId:'delete-request'});
+  assert.equal(deleted,'contrib-old','delete duplicate는 delete requestId가 아니라 삭제 대상 resourceKey를 사용해야 한다');
 });
 
 test('Live Valuation partial refresh는 내부 가로 스크롤과 native input interaction을 보존한다',()=>{
@@ -600,6 +662,8 @@ test('KRX workflow는 다른 branch commit과 push가 경합해도 최신 remote
   assert.match(updatePricesWorkflow,/for attempt in 1 2 3; do/);
   assert.match(updatePricesWorkflow,/git fetch origin "\$BRANCH_NAME"/);
   assert.match(updatePricesWorkflow,/KRX_MANAGED_PATHS=\(data\/prices\.json data\/performance_snapshots\.json data\/krx_trading_calendar\.json\)/);
+  assert.match(updatePricesWorkflow,/git diff --quiet data\/prices\.json data\/performance_snapshots\.json data\/krx_trading_calendar\.json/);
+  assert.match(updatePricesWorkflow,/git add data\/prices\.json data\/performance_snapshots\.json data\/krx_trading_calendar\.json/);
   assert.match(updatePricesWorkflow,/KRX_INPUT_PATHS=\(data\/portfolio\.json scripts\/update_prices\.py requirements\.txt \.github\/workflows\/update-prices\.yml\)/);
   assert.match(updatePricesWorkflow,/git diff --quiet "\$BASE_SHA" "origin\/\$BRANCH_NAME" -- "\$\{KRX_MANAGED_PATHS\[@\]\}"/);
   assert.match(updatePricesWorkflow,/git diff --quiet "\$BASE_SHA" "origin\/\$BRANCH_NAME" -- "\$\{KRX_INPUT_PATHS\[@\]\}"/);
