@@ -761,8 +761,7 @@
     box-shadow:var(--mobile-top-shadow-mobile);
   }
 
-  /* Phone Menu Extras · 공통 TOC는 유지하고 링크/관리/날짜고정만 폰에서 추가 표시 */
-    .mobile-nav-group-phone-only{display:block}
+  /* Phone Menu Header Extra · 링크/관리/TOC는 Tablet·Phone 공통이며 날짜고정 control만 Phone에서 추가 표시 */
 }
 
 /* -------------------------------------------------------------------------

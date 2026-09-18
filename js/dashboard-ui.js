@@ -256,9 +256,9 @@ function dashboardTocGroups(){
     }
   ];
 }
-function renderMobileNavigationGroups(groups,{indentAfterFirst=false}={}){
+function renderResponsiveNavigationGroups(groups,{indentAfterFirst=false}={}){
   return groups.map(group=>{
-    const groupClass=`mobile-nav-group${group.phoneOnly?' mobile-nav-group-phone-only':''}${group.tocFirst?' mobile-nav-group-toc-first':''}`;
+    const groupClass=`mobile-nav-group${group.tocFirst?' mobile-nav-group-toc-first':''}`;
     return `<div class="${groupClass}"><p>${group.label}</p>${group.items.map((item,idx)=>{
       const type=item.type||(item.id?'section':'');
       const toggleAttrs=item.marketAiToggle?' data-market-ai-connection-toggle':'';
@@ -282,7 +282,6 @@ function renderResponsiveNavigationMenuContent(){
   const groups=[
     {
       label:'링크',
-      phoneOnly:true,
       items:[
         {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:TOPBAR_ACTION_ICONS.kospiNight,title:'코스피200 야간선물'},
         {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:TOPBAR_ACTION_ICONS.nasdaqFutures,title:'나스닥100 선물'}
@@ -290,7 +289,6 @@ function renderResponsiveNavigationMenuContent(){
     },
     {
       label:'관리',
-      phoneOnly:true,
       items:[
         {type:'action',action:'open-monthly-calendar',icon:'period',title:'월간 손익'},
         {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
@@ -301,7 +299,7 @@ function renderResponsiveNavigationMenuContent(){
     },
     ...tocGroups
   ];
-  return renderMobileNavigationGroups(groups,{indentAfterFirst:true});
+  return renderResponsiveNavigationGroups(groups,{indentAfterFirst:true});
 }
 function renderDesktopTocContent(){
   return dashboardTocGroups().map(group=>`<div class="desktop-edge-toc-group"><p>${group.label}</p>${group.items.map(item=>`<button type="button" class="desktop-edge-toc-item" data-toc-target="${item.id}" data-dashboard-action="jump-section" data-section-target="${item.id}"><span class="desktop-edge-toc-icon">${navIconSvg(item.icon)}</span><span>${item.title}</span></button>`).join('')}</div>`).join('');

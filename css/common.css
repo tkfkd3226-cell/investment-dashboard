@@ -4162,7 +4162,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 .date-action-menu{display:none}
 .date-action-menu.show{display:block}
 .responsive-nav-menu-layout{display:block}
-.mobile-date-pin-control,.mobile-nav-group-phone-only{display:none}
+.mobile-date-pin-control{display:none}
 
 /* Navigation Motion · 우측 화면 바깥에서 진입하고 닫힐 때도 화면 바깥까지 이동하며 자연스럽게 fade-out */
 .date-action-menu.mobile-combined-menu{

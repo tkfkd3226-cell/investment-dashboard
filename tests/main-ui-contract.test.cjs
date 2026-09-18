@@ -92,18 +92,30 @@ test('월간 손익 캘린더 ES module은 브라우저와 같은 module 문법�
   assert.equal(parsed.status,0,parsed.stderr||parsed.stdout||'dashboard-monthly-calendar.js module syntax error');
 });
 
+test('Tablet/Phone hamburger는 링크·관리·목차 메뉴 집합을 viewport 분기 없이 공유한다',()=>{
+  const responsiveMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
+  assert.match(responsiveMenu,/label:'링크'/);
+  assert.match(responsiveMenu,/label:'관리'/);
+  assert.doesNotMatch(responsiveMenu,/phoneOnly\s*:/,'hamburger menu membership을 Phone 전용 flag로 분기하면 안 된다');
+  assert.doesNotMatch(ui,/mobile-nav-group-phone-only/,'menu group DOM에 Phone 전용 class를 만들면 안 된다');
+  assert.doesNotMatch(common,/mobile-nav-group-phone-only/,'공통 CSS에서 Tablet menu group을 숨기면 안 된다');
+  assert.doesNotMatch(special,/mobile-nav-group-phone-only/,'Phone media에서 menu group을 다시 살리는 예외를 만들면 안 된다');
+  assert.match(common,/\.mobile-date-pin-control\{display:none\}/,'날짜 선택 고정은 Phone 전용 header control이라 공통 기본에서는 숨겨야 한다');
+  assert.match(special,/\.mobile-date-pin-control\{display:inline-flex/,'Phone 전용 날짜 선택 고정 control은 Phone Shared에서만 표시해야 한다');
+});
+
 test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를 재사용한다',()=>{
   assert.match(index,/'dashboard-monthly-calendar\.js'/,'월간 캘린더 module은 importmap cache-bust 대상이어야 한다');
   assert.match(ui,/data-dashboard-action="open-monthly-calendar"/,'Web\/Tablet Topbar에 월간 손익 진입점이 있어야 한다');
-  assert.match(ui,/action:'open-monthly-calendar',icon:'period',title:'월간 손익'/,'Phone 관리 메뉴도 같은 action을 사용해야 한다');
+  assert.match(ui,/action:'open-monthly-calendar',icon:'period',title:'월간 손익'/,'Tablet/Phone 관리 메뉴도 같은 action을 사용해야 한다');
   assert.match(monthlyCalendar,/combinedDailyProfitChange\(date\)/,'일손익 계산 의미는 DOM feature가 아니라 core의 공통 일성과 helper를 재사용해야 한다');
   assert.match(core,/function combinedDailyProfitChange\(date\)/,'flow-neutral 월간 일손익 계산은 core가 소유해야 한다');
   assert.match(monthlyCalendar,/modal\.className='action-modal monthly-calendar-modal'/,'월간 캘린더는 공통 action modal shell을 재사용해야 한다');
   assert.match(monthlyCalendar,/openDashboardModal\(modal,/);
   assert.match(monthlyCalendar,/closeDashboardModal\(modal,/);
-  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.open[^]*?closest\?\.\('#dateActionMenu'\)[^]*?dateActionMenuButton[^]*?closeDateActionMenu\(\);[^]*?openMonthlyCalendar\(returnFocus\)/,'Phone 관리 메뉴 진입은 닫힌 menu item이 아니라 hamburger trigger로 focus를 반환해야 한다');
+  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.open[^]*?closest\?\.\('#dateActionMenu'\)[^]*?dateActionMenuButton[^]*?closeDateActionMenu\(\);[^]*?openMonthlyCalendar\(returnFocus\)/,'Tablet/Phone 관리 메뉴 진입은 닫힌 menu item이 아니라 hamburger trigger로 focus를 반환해야 한다');
   assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.selectDate[^]*?closeMonthlyCalendar\(\);[^]*?setActiveDashboardDate\(date\)/,'날짜 선택은 app의 canonical activeDate 이동 경로로 위임해야 한다');
-  assert.match(monthlyCalendar,/MONTHLY_CALENDAR_FOCUS_FALLBACK=[^;]*dateActionMenuButton[^;]*open-monthly-calendar/,'날짜 선택 full render 뒤에도 Phone hamburger 또는 visible opener로 focus를 복원해야 한다');
+  assert.match(monthlyCalendar,/MONTHLY_CALENDAR_FOCUS_FALLBACK=[^;]*dateActionMenuButton[^;]*open-monthly-calendar/,'날짜 선택 full render 뒤에도 Tablet/Phone hamburger 또는 visible opener로 focus를 복원해야 한다');
   assert.match(monthlyCalendar,/closeDashboardModal\(modal,\{[^}]*fallbackSelector:MONTHLY_CALENDAR_FOCUS_FALLBACK[^}]*\}\)/,'월간 캘린더 close는 stale opener DOM 대신 stable selector fallback을 사용해야 한다');
   assert.match(monthlyCalendar,/monthIndex<=0\?'true':'false'/,'첫 월 이전 control은 경계 상태를 계산해야 한다');
   assert.match(monthlyCalendar,/monthIndex>=months\.length-1\?'true':'false'/,'마지막 월 다음 control은 경계 상태를 계산해야 한다');
@@ -1286,7 +1298,7 @@ test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·resp
   assert.match(common,/\[data-market-ai-monitor-entry\]\[hidden\]\{display:none\}/,'숨김 상태는 viewport와 무관하게 보장돼야 한다');
 
   const mobileMenuSource=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
-  assert.doesNotMatch(mobileMenuSource,/REALTIME_QUOTES_ACTION/,'Phone hamburger 관리 메뉴에는 실시간 시세 진입점을 중복 배치하지 않는다');
+  assert.doesNotMatch(mobileMenuSource,/REALTIME_QUOTES_ACTION/,'Tablet/Phone hamburger 관리 메뉴에는 실시간 시세 진입점을 중복 배치하지 않는다');
   const phoneRealtimeButton=/class="date-tool-btn control-icon-button topbar-realtime-phone-action"[^>]*>[\s\S]*?<\/button>/.exec(ui)?.[0]||'';
   assert.ok(phoneRealtimeButton,'Phone 실시간 시세 상단 버튼이 필요하다');
   assert.doesNotMatch(phoneRealtimeButton,/topbar-label-(?:full|short)/,'Phone 실시간 시세 버튼은 icon-only여야 한다');
@@ -1323,7 +1335,7 @@ test('Web/Tablet 개인보기 도구는 계산기·Market AI·테마 icon contro
   assert.match(tabsBlock,/toggle-market-ai-connection/);
 });
 
-test('Market AI 연결 toggle은 OFF fallback과 Phone 관리 메뉴 배치를 유지한다',()=>{
+test('Market AI 연결 toggle은 OFF fallback과 Tablet/Phone 공통 관리 메뉴 배치를 유지한다',()=>{
   assert.match(marketAiClient,/function setMarketAiEnabled\(/);
   assert.match(marketAi,/marketAiEnabled\(\)/);
   assert.match(liveValuation,/marketAiEnabled\(\)/);
@@ -1360,7 +1372,7 @@ test('개인보기 3회 입력은 Web/Tablet 기준문구와 Phone Hero 전체�
   assert.match(toggleBlock,/syncPersonalViewControls\(\)/,'개인보기 unlock/lock은 full render 대신 mount된 control visibility만 동기화해야 한다');
   assert.doesNotMatch(toggleBlock,/\brender\(\)/,'개인보기 3회 입력에서 #app full render를 호출하면 안 된다');
   assert.match(ui,/data-personal-view-control/,'개인보기 control은 최초 render부터 mount되어 있어야 한다');
-  assert.match(common,/\[data-personal-view-control\]\[hidden\],\s*\.date-action-menu\.mobile-combined-menu \[data-personal-view-control\]\[hidden\]\{display:none\}/,'Phone 관리 메뉴에서도 개인보기 hidden이 nav item display 규칙보다 높은 specificity를 가져야 한다');
+  assert.match(common,/\[data-personal-view-control\]\[hidden\],\s*\.date-action-menu\.mobile-combined-menu \[data-personal-view-control\]\[hidden\]\{display:none\}/,'Tablet/Phone 관리 메뉴에서도 개인보기 hidden이 nav item display 규칙보다 높은 specificity를 가져야 한다');
 });
 
 test('TOP 버튼은 짧은 상단 이동 UX와 안전한 fallback을 유지한다',()=>{
