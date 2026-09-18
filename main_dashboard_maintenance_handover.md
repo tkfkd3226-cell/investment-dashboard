@@ -410,13 +410,14 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 
 월간 손익 캘린더는 새 운영 JSON이나 별도 성과 산식을 만들지 않는다. `dashboard-core.js`의 기존 전일 대비 성과 의미를 재사용해 **증권의 flow-neutral `dayChange` + 비교 가능한 연금 `pensionDayChange` + 선택 시 별도수익의 당일 증가분**을 합산한다. 따라서 계좌2·토스의 기존 누적 실현손익이 합산 범위에 처음 들어오는 날이나 연금 데이터가 처음 관측되는 날의 과거 누적손익을 그날 수익으로 오인하지 않는다.
 
-- Web/Tablet Topbar와 Phone Topbar에서 동일한 `월간 손익` action으로 진입한다. 진입점의 viewport별 표현은 이 문서의 공통 Topbar/Navigation responsive contract를 따른다.
+- Web/Tablet Topbar와 Tablet/Phone 공통 `관리` 메뉴에서 동일한 `월간 손익` action으로 진입한다. 진입점의 viewport별 표현과 hamburger 구성·높이·scroll은 이 문서의 공통 Topbar/Navigation responsive contract를 따른다.
 - 월 이동은 실제 가용 데이터가 존재하는 월 목록 안에서만 이동한다.
 - 날짜 cell은 `allAvailableDates()`에 존재하는 날짜만 선택 가능하다. 주말·휴장처럼 source에 없는 날짜는 unavailable로 표시하고 월 합계·상승/하락·최고/최저 계산에서 제외한다. 월 첫 비교 가능일은 `previousDate()`가 전월 마지막 가용일을 이어서 사용하며, 전체 데이터의 최초 날짜처럼 비교 기준이 없는 날은 `0원`이 아니라 **기준일**로 표시한다.
 - 일손익 `0원`은 월 합계에는 0으로 반영하되 상승일·하락일 어느 쪽에도 포함하지 않는다.
 - 날짜 cell 선택은 캘린더 모듈이 `activeDate`를 직접 바꾸지 않고 `dashboard-app.js`의 `setActiveDashboardDate()`로 위임한다.
-- overlay/focus/inert/Escape/backdrop 처리는 `dashboard-modal.js` lifecycle을 재사용한다. 전체 render 뒤 opener DOM이 교체돼도 현재 viewport의 월간 손익 Topbar 진입점으로 focus를 복원한다.
+- overlay/focus/inert/Escape/backdrop 처리는 `dashboard-modal.js` lifecycle을 재사용한다. Tablet/Phone 공통 관리 메뉴에서 진입한 경우 modal 종료 focus는 숨겨진 메뉴 item이 아니라 hamburger trigger로 돌아간다.
 - 월 이동 양 끝의 이전/다음 control은 `aria-disabled` 상태로 focusability를 유지해 keyboard focus가 DOM 재렌더 중 유실되지 않게 한다. 선택일(`aria-current`)과 KST 오늘 날짜(`is-today`)는 서로 다른 시각 상태로 구분하며, **오늘의 가용 데이터가 아직 없더라도** unavailable cell에 `is-today`와 `오늘, n일, 데이터 없음` 접근성 설명을 유지한다.
+- Phone에서는 월 이동 header 폭이 닫기 control 영역을 침범하지 않도록 별도 여유를 확보한다.
 - calendar geometry와 손익 의미색은 새 독립 디자인 체계를 만들지 않고 기존 spacing/type/surface/value token을 재사용한다.
 
 ### Asset Detail 공통 불변조건
@@ -459,7 +460,7 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 
 - 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, 상태 표시 등 공통 form/control 표현과 `dashboard-modal.js`의 dialog lifecycle을 재사용한다.
 - 퇴직연금 금액 조정의 `개별 처리 / 작업 모음`은 Main `.control-segmented`의 geometry/typography/중앙 정렬을 재사용한다. 긴 `작업 모음 + count` 라벨 때문에 필요한 폭·좌우 여백만 feature override하며, 연금 전용 font-size/height/line-height 체계를 별도로 만들지 않는다.
-- 개인보기 도구는 Web/Tablet에서 공통 icon-button geometry를 사용한다. Tablet/Phone hamburger는 공통 메뉴 집합을 사용하며 Market AI 연결·엣지 테마는 hamburger `관리`에 두고 Phone Topbar에는 중복 배치하지 않는다.
+- 개인보기 도구는 Web/Tablet에서 공통 icon-button geometry를 사용한다. Tablet/Phone hamburger는 공통 `관리` 메뉴를 사용하며 Market AI 연결 토글은 Phone Topbar에 두지 않는다.
 - Market AI lifecycle listener는 초기 preference가 OFF여도 등록한다. 초기 OFF를 이유로 `startMarketAiBridge()`가 listener 등록 전에 return하면 이후 같은 페이지에서 ON 이벤트를 받을 수 없으므로 금지한다. ON 전환은 새로고침 없이 mount/refresh를 시작해야 한다.
 - 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
 - KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유한다. 공통 modal radius는 shared modal contract에서 한 번만 소유하고 Tablet/Phone은 해당 shared token만 override한다. Phone 좌우 여백은 overlay padding을 canonical source로 사용하며 feature별 `100vw - npx` 폭 보정을 중복해서 만들지 않는다.
@@ -583,7 +584,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - `market-ai-preview` 예시 데이터 모드는 사용하지 않는다. `?dashboard-view=web`, `?dashboard-view=tablet`, `?dashboard-view=mobile`은 화면 형태만 바꾸며 세 모드 모두 실제 Market AI 데이터를 사용한다.
 - Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다. 최초 확인 중에는 환경과 무관하게 signal panel과 `실시간 시세` 진입점을 노출하지 않는다. 세 endpoint가 모두 응답하지 않으면 `OFFLINE`으로 종료해 자동 polling을 시작하지 않고, 사용자가 다시 연결을 시도할 때만 새 확인 세션을 시작한다.
 - Market AI server reachability는 `dashboard-market-ai.js`가 공통 connection event로 publish하고 Topbar/UI가 소비한다. 서버 연결이 검증된 동안에만 웹/태블릿 Topbar의 `실시간 시세` 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출하며, Tablet/Phone 공통 `관리` 메뉴에는 중복 진입점을 두지 않는다. 두 viewport 진입점은 같은 `REALTIME_QUOTES_ACTION`과 `data-market-ai-monitor-entry` gating을 공유하고, `[data-market-ai-monitor-entry][hidden]{display:none}` 공통 author CSS가 `date-tool-btn`의 display 선언보다 우선해 연결 전/해제 시 모든 viewport에서 실제로 숨겨지는 것을 보장한다. Web/Tablet은 iframe을 먼저 load해 Monitor content height를 수신한 뒤 최종 compact·no-scroll geometry로 modal을 reveal하고, size message가 늦을 때만 제한된 compact fallback 높이를 사용한다. 최초에 `availableHeight` 전체를 표시한 뒤 줄이는 동작을 다시 도입하지 않는다. Phone은 KRX 등 action modal과 같은 `--modal-overlay-pad`·`--modal-card-radius`를 상속하고 monitor card만 남은 가용 영역을 채운다. 화면 크기 변경에도 이 구분을 유지하고, 연결 해제 시 진입점을 숨기고 열린 embedded monitor를 닫아 stale UI를 남기지 않는다.
-- Dashboard-side Market AI 사용 preference는 `dashboard-market-ai-client.js`가 소유한다. OFF 시 signal/live polling과 in-flight 적용을 중단하고 volatile quote를 제거해 저장 JSON으로 fallback하며, ON 시 즉시 refresh를 시도한다. preference와 server reachability는 별도 상태다. Web/Tablet은 실시간 시세와 투자 계산기 사이의 icon action을 사용하고, Tablet/Phone 공통 `관리` 메뉴에도 같은 Market AI 연결 action을 제공한다. 이 토글은 backend runtime을 시작·종료하지 않는다.
+- Dashboard-side Market AI 사용 preference는 `dashboard-market-ai-client.js`가 소유한다. OFF 시 signal/live polling과 in-flight 적용을 중단하고 volatile quote를 제거해 저장 JSON으로 fallback하며, ON 시 즉시 refresh를 시도한다. preference와 server reachability는 별도 상태다. Web/Tablet은 계산기와 테마 사이의 icon action을 사용하고, Tablet/Phone 공통 `관리` 메뉴에도 같은 Market AI 연결 action을 제공한다. 이 토글은 backend runtime을 시작·종료하지 않는다.
 - refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답/parse error가 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 async boundary 뒤의 request sequence를 확인한다.
 - backend가 제공하는 signal metadata와 산식 contract를 프런트에서 임의 재해석하지 않는다. 상세 backend 계약은 Market AI 프로젝트의 `market_ai_project_handover.md`를 Source of Truth로 한다.
 - SOX 시장 metric과 Signal Engine 입력은 모두 `INDEX:SOX`를 사용하며 표시 편의를 위해 `FUTURES:SOX` 또는 `SOX-F`로 자동 전환하지 않는다.
@@ -929,11 +930,11 @@ Mobile  ≤ 760px
 
 Navigation 책임은 다음 의미를 유지한다.
 
-- Desktop/Tablet Topbar action 순서는 `코스피200 야간선물 → 나스닥100 선물 → KRX 현재가 반영 → 퇴직연금 금액 조정 → 월간 손익 → 실시간 시세 → Market AI 연결 → 투자 계산기 → 밝기 테마 → 엣지 테마`다. 1280px 이상 full label, 1101~1279px short label, Tablet은 같은 순서를 icon-only로 유지한다.
-- Phone 세로/가로 Topbar는 `월간 손익 → 실시간 시세 → 밝기 테마 → hamburger` 순서다. 날짜 선택 고정/메뉴-open 상태에서도 날짜 selector 2열 + action 4열의 단일 행을 유지하며, 고정 해제 시에는 같은 4개 action을 우측 floating control로 유지한다. 엣지 테마는 Phone Topbar에 중복 배치하지 않는다.
-- Tablet/Phone hamburger는 같은 메뉴 집합을 사용한다. `링크`는 `코스피200 야간선물 → 나스닥100 선물 → 투자 계산기`, `관리`는 `KRX 현재가 반영 → 퇴직연금 금액 조정 → Market AI 연결 → 엣지 테마` 순서이며, 이어서 공통 목차를 표시한다. viewport별 menu item 숨김/복원 분기를 두지 않는다. 단, `날짜 선택 고정`은 fixed Phone Topbar 전용 control이라 Phone에서만 표시한다.
+- Phone 세로/가로: Mobile hamburger 중심
+- Tablet: 상단 action 전체 icon-only + Phone과 동일한 `링크`·`관리`·목차 hamburger 메뉴
+- Hamburger membership: Tablet/Phone 공통. viewport별 menu item 숨김/복원 분기를 두지 않는다. 단, `날짜 선택 고정`은 fixed Phone Topbar 전용 control이라 Phone에서만 표시
 - Hamburger panel height/scroll: `common.css`가 Tablet/Phone 공통 owner다. Tablet/Phone media에 별도 `max-height` cap을 두지 않고, viewport 높이가 실제로 부족한 경우에만 공통 `overflow:auto`가 작동한다.
-- Desktop은 우측 edge TOC를 추가로 사용한다.
+- Desktop: 기존 action + 우측 edge TOC
 
 JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하고 같은 `matchMedia` 조건을 기능 모듈마다 복제하지 않는다.
 
