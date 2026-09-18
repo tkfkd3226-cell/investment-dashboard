@@ -399,6 +399,13 @@ test('퇴직연금 삭제 PIN은 위험 상태를 명시하고 교체된 요청�
   assert.doesNotMatch(common,/--type-line-height-body/);
 });
 
+test('퇴직연금 조정 modal은 Phone에서 본문 높이를 쓰고 큰 화면에서만 모드 높이를 균등화한다',()=>{
+  const uiCommonImport=pensionEditor.match(/import\s*\{([^]*?)\}\s*from '\.\/dashboard-ui-common\.js';/);
+  assert.ok(uiCommonImport&&/\bphoneUi\b/.test(uiCommonImport[1]),'Phone 판정은 공통 phoneUi helper를 재사용해야 한다');
+  assert.match(pensionEditor,/if\(phoneUi\(\)\)\{\s*card\.style\.removeProperty\('height'\);\s*return;\s*\}/,'Phone에서는 inline fixed height를 제거하고 본문 auto 높이를 사용해야 한다');
+  assert.match(common,/Phone은 본문 auto 높이 \+ viewport 상한만 사용한다/,'공통 CSS 주석도 Phone auto-height contract와 맞아야 한다');
+});
+
 test('퇴직연금 편집기는 화면 입력과 작업 모음 모두에서 수량·금액을 안전 정수로 제한한다',()=>{
   assert.match(pensionEditor,/const isSafePensionWhole=\(value,\{positive=false\}=\{\}\)=>Number\.isSafeInteger\(value\)/);
   assert.match(pensionEditor,/isSafePensionWhole\(draft\.qty,\{positive:true\}\)/);
