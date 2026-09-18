@@ -7,7 +7,7 @@ import { validateKodexLeverageSource } from './kodex-leverage-schema.js';
 //   [CORE03] Date / Scope / Write Configuration
 //   [CORE04] Pension Ledger / Valuation
 //   [CORE05] Securities Ledger / Price Lookup
-//   [CORE06] Main Calculation
+//   [CORE06] Main Calculation / Daily Performance
 //   [CORE07] Chart History Data
 //   [CORE08] Network / Data Loading
 //   [CORE09] Public API
@@ -21,6 +21,7 @@ const dataState={
   pensionContributions:null,
   pensionCashSnapshots:null,
   pensionTrades:null,
+  krxTradingCalendar:null,
   activeDate:null,
   liveValuation:{status:'idle',marketState:'',bridgeConnected:null,universeVersion:0,generatedAt:null,requestedTickers:[],items:{},reason:''}
 };
@@ -126,6 +127,16 @@ const kospiIndexForDate=date=>{
   return Number.isFinite(number)&&number>0?number:null;
 };
 const allAvailableDates=()=>Array.from(new Set([...(Object.keys(dataState.account1Daily||{})),...(Object.keys(dataState.prices||{}).filter(d=>dataState.prices[d].display!==false))])).sort(byDate);
+const krxTradingCalendarStatus=date=>{
+  const value=String(date||'');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return 'unknown';
+  const calendar=dataState.krxTradingCalendar;
+  const from=String(calendar?.from||''),through=String(calendar?.through||'');
+  if(!from||!through||value<from||value>through)return 'unknown';
+  const weekday=new Date(`${value}T00:00:00Z`).getUTCDay();
+  if(weekday===0||weekday===6)return 'weekend';
+  return Array.isArray(calendar?.tradingDates)&&calendar.tradingDates.includes(value)?'trading':'closed';
+};
 const monthLabel=m=>{const [y,mo]=m.split('-');return `${y}-${Number(mo)}`};
 const includeAccount2=d=>d>='2026-05-22';
 const includeToss=d=>d>='2026-03-23';
@@ -921,25 +932,35 @@ const separateProfitView=x=>{
 };
 
 
-function combinedDailyProfitChange(date){
+// [CORE06] Main Calculation / Daily Performance · 메인 계산 / 일성과
+// Calendar range views share these flow-neutral components instead of duplicating performance formulas.
+function dailyProfitChangeParts(date){
   const current=calc(date);
-  if(!current?.prevKey)return null;
+  if(!current?.prevKey)return {current,previous:null,securities:null,pension:null};
   const previous=calc(current.prevKey);
-  const securitiesDayChange=current?.securitiesAssetDetail?.change?.dayChange;
-  if(securitiesDayChange==null||!Number.isFinite(Number(securitiesDayChange)))return null;
+  const rawSecurities=current?.securitiesAssetDetail?.change?.dayChange;
+  const securities=rawSecurities!=null&&Number.isFinite(Number(rawSecurities))?Number(rawSecurities):null;
+  const rawPension=current.hasPension&&previous.hasPension?current.pensionDayChange:null;
+  const pension=rawPension!=null&&Number.isFinite(Number(rawPension))?Number(rawPension):null;
+  return {current,previous,securities,pension};
+}
+function securitiesDailyProfitChange(date){
+  return dailyProfitChangeParts(date).securities;
+}
+function pensionDailyProfitChange(date){
+  return dailyProfitChangeParts(date).pension;
+}
+function combinedDailyProfitChange(date){
+  const {current,previous,securities,pension}=dailyProfitChangeParts(date);
+  if(!current?.prevKey||securities==null)return null;
   if(previous.hasPension&&!current.hasPension)return null;
-  let pensionDayChange=0;
-  if(current.hasPension&&previous.hasPension){
-    if(current.pensionDayChange==null||!Number.isFinite(Number(current.pensionDayChange)))return null;
-    pensionDayChange=Number(current.pensionDayChange);
-  }
+  if(current.hasPension&&previous.hasPension&&pension==null)return null;
   const separateDayChange=uiState.includeSeparateProfit
     ?separateProfitCumulativeForDate(date)-separateProfitCumulativeForDate(current.prevKey)
     :0;
-  return Number(securitiesDayChange)+pensionDayChange+separateDayChange;
+  return securities+(pension??0)+separateDayChange;
 }
 
-// [CORE06] Main Calculation · 메인 계산
 function calc(date){
   const p=dataState.portfolio,c=p.constants,s=dataState.prices[date]||{},pk=previousDate(date),prev=pk?dataState.prices[pk]:null,daily=dataState.account1Daily?.[date]||null,extraPensionContrib=pensionContributionSum(date),prevExtraPensionContrib=pk?pensionContributionSum(pk):0,pensionPrincipal=(Number(c.pensionContributionPrincipal)||0)+extraPensionContrib;
   const account2Included=includeAccount2(date),tossIncluded=includeToss(date),hasPension=hasPensionData(date);
@@ -1371,7 +1392,7 @@ function deriveSeparateProfitFromKodexReport(source){
 }
 
 async function loadInitialData(){
-  const [portfolio,prices,snapshots,account1Daily,pensionContributions,pensionCashSnapshots,pensionTrades,kodexLeverageReport]=await Promise.all([
+  const [portfolio,prices,snapshots,account1Daily,pensionContributions,pensionCashSnapshots,pensionTrades,krxTradingCalendar,kodexLeverageReport]=await Promise.all([
     loadJson('data/portfolio.json?ts='+Date.now()),
     loadJson('data/prices.json?ts='+Date.now()),
     loadJson('data/performance_snapshots.json?ts='+Date.now()),
@@ -1379,10 +1400,11 @@ async function loadInitialData(){
     loadJsonOr('data/pension_contributions.json?ts='+Date.now(),{contributions:[]}),
     loadJsonOr('data/pension_cash_snapshots.json?ts='+Date.now(),{snapshots:[]}),
     loadJsonOr('data/pension_trades.json?ts='+Date.now(),{trades:[]}),
+    loadJsonOr('data/krx_trading_calendar.json?ts='+Date.now(),null),
     loadJson('data/kodex_leverage_trades.json?ts='+Date.now())
   ]);
   portfolio.separateProfit=deriveSeparateProfitFromKodexReport(kodexLeverageReport);
-  Object.assign(dataState,{portfolio,prices,snapshots,account1Daily,pensionContributions,pensionCashSnapshots,pensionTrades});
+  Object.assign(dataState,{portfolio,prices,snapshots,account1Daily,pensionContributions,pensionCashSnapshots,pensionTrades,krxTradingCalendar});
 }
 
 // [CORE09] Public API
@@ -1401,6 +1423,8 @@ export {
   assetTypeColor,
   calc,
   combinedDailyProfitChange,
+  securitiesDailyProfitChange,
+  pensionDailyProfitChange,
   cls,
   clearLiveValuationSnapshot,
   cumHistory,
@@ -1416,6 +1440,7 @@ export {
   isLedgerCheckDate,
   koreanDateLabel,
   kospiIndexForDate,
+  krxTradingCalendarStatus,
   kstTodayText,
   linkedPensionCashSnapshotForContribution,
   linkedPensionCashSnapshotForTrade,

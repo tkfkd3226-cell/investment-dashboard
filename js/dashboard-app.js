@@ -30,6 +30,7 @@ import {
   MONTHLY_CALENDAR_ACTION,
   closeMonthlyCalendar,
   openMonthlyCalendar,
+  setMonthlyCalendarMode,
   shiftMonthlyCalendarMonth
 } from './dashboard-monthly-calendar.js';
 import {
@@ -232,6 +233,7 @@ function handleDashboardAction(event,control){
   if(action===MONTHLY_CALENDAR_ACTION.close)return closeMonthlyCalendar();
   if(action===MONTHLY_CALENDAR_ACTION.previous)return shiftMonthlyCalendarMonth(-1);
   if(action===MONTHLY_CALENDAR_ACTION.next)return shiftMonthlyCalendarMonth(1);
+  if(action===MONTHLY_CALENDAR_ACTION.setMode)return setMonthlyCalendarMode(control.dataset.calendarMode||'');
   if(action===MONTHLY_CALENDAR_ACTION.selectDate){
     const date=control.dataset.calendarDate||'';
     closeMonthlyCalendar();

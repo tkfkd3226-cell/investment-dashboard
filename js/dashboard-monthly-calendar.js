@@ -3,7 +3,11 @@ import {
   combinedDailyProfitChange,
   dataState,
   fmt,
+  hasPensionData,
+  krxTradingCalendarStatus,
   kstTodayText,
+  pensionDailyProfitChange,
+  securitiesDailyProfitChange,
   uiState
 } from './dashboard-core.js';
 import { escapeHtml, navIconSvg, phoneUi } from './dashboard-ui-common.js';
@@ -23,23 +27,29 @@ import {
 //   [CAL04] Modal Lifecycle
 //   [CAL05] Public API
 
-// [CAL01] Constants / State · action / weekday / 현재 탐색 월
+// [CAL01] Constants / State · action / weekday / 현재 탐색 월·손익 범위
 const MONTHLY_CALENDAR_ACTION={
   open:'open-monthly-calendar',
   close:'close-monthly-calendar',
   previous:'monthly-calendar-previous',
   next:'monthly-calendar-next',
-  selectDate:'select-monthly-calendar-date'
+  selectDate:'select-monthly-calendar-date',
+  setMode:'set-monthly-calendar-mode'
 };
 const MONTHLY_CALENDAR_WEEKDAYS=['월','화','수','목','금','토','일'];
 const MONTHLY_CALENDAR_BUSINESS_WEEKDAYS=MONTHLY_CALENDAR_WEEKDAYS.slice(0,5);
 const MONTHLY_CALENDAR_DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
+const MONTHLY_CALENDAR_MODES={
+  combined:{label:'합산',description:'증권·연금의 전일 대비 성과를 합산해 일손익으로 표시합니다.'},
+  securities:{label:'증권',description:'증권계좌의 flow-neutral 전일 대비 성과만 표시합니다.'},
+  pension:{label:'퇴직연금',description:'퇴직연금의 비교 가능한 전일 대비 성과만 표시합니다.'}
+};
 function monthlyCalendarFocusFallbackSelector(){
   return '.topbar-monthly-action,#dateActionMenuButton';
 }
-const monthlyCalendarState={month:''};
+const monthlyCalendarState={month:'',mode:'combined'};
 
-// [CAL02] Monthly Performance View Model · 기존 flow-neutral 일성과 helper를 재사용
+// [CAL02] Monthly Performance View Model · 합산/증권/퇴직연금 모두 core의 flow-neutral 일성과 helper를 재사용
 function monthlyCalendarMonths(){
   return [...new Set(allAvailableDates().map(String).filter(date=>MONTHLY_CALENDAR_DATE_RE.test(date)).map(date=>date.slice(0,7)))].sort();
 }
@@ -67,53 +77,74 @@ function monthlyCalendarCompactProfit(value){
   }
   return `${sign}${fmt(absolute)}`;
 }
-function monthlyCalendarDailyProfit(date){
+function monthlyCalendarDailyProfit(date,mode=monthlyCalendarState.mode){
+  if(mode==='securities')return securitiesDailyProfitChange(date);
+  if(mode==='pension')return pensionDailyProfitChange(date);
   return combinedDailyProfitChange(date);
 }
-function monthlyCalendarDayModel(date,today){
-  const profit=monthlyCalendarDailyProfit(date);
+function monthlyCalendarDayModel(date,today,mode){
+  const profit=monthlyCalendarDailyProfit(date,mode);
+  const pensionAvailable=mode!=='pension'||hasPensionData(date);
   return {
     date,
     day:Number(String(date).slice(8,10)),
     profit,
+    profitState:profit!=null?'value':pensionAvailable?'baseline':'inactive',
     active:date===dataState.activeDate,
     today:date===today
   };
 }
-function monthlyCalendarMonthModel(month){
+function monthlyCalendarMonthModel(month,mode=monthlyCalendarState.mode){
   const availableSet=new Set(allAvailableDates());
   const monthDates=[...availableSet].filter(date=>date.startsWith(`${month}-`)).sort();
   const today=kstTodayText();
-  const dayModels=monthDates.map(date=>monthlyCalendarDayModel(date,today));
+  const dayModels=monthDates.map(date=>monthlyCalendarDayModel(date,today,mode));
+  const [year,monthNumber]=month.split('-').map(Number);
+  const daysInMonth=new Date(Date.UTC(year,monthNumber,0)).getUTCDate();
+  const missingDates=[];
+  for(let day=1;day<=daysInMonth;day++){
+    const date=`${month}-${String(day).padStart(2,'0')}`;
+    if(krxTradingCalendarStatus(date)==='trading'&&!availableSet.has(date))missingDates.push(date);
+  }
   const comparable=dayModels.filter(item=>Number.isFinite(item.profit));
   const total=comparable.reduce((sum,item)=>sum+item.profit,0);
   const positive=comparable.filter(item=>item.profit>0);
   const negative=comparable.filter(item=>item.profit<0);
   const best=comparable.length?comparable.reduce((winner,item)=>item.profit>winner.profit?item:winner):null;
   const worst=comparable.length?comparable.reduce((winner,item)=>item.profit<winner.profit?item:winner):null;
-  return {availableSet,dayModels,total,positiveCount:positive.length,negativeCount:negative.length,best,worst};
+  return {availableSet,dayModels,total,comparableCount:comparable.length,missingDates,positiveCount:positive.length,negativeCount:negative.length,best,worst};
 }
 
-// [CAL03] Calendar Rendering · Web/Tablet 7일 / Phone 5영업일 calendar / 월간 요약
+// [CAL03] Calendar Rendering · 손익 범위 switch / Web·Tablet 7일 / Phone 5영업일 / 월간 요약
 function monthlyCalendarCellAria(item){
   const prefix=item.today?'오늘, ':'';
+  if(item.profitState==='inactive')return `${prefix}${item.day}일, 퇴직연금 데이터 없음`;
   if(item.profit==null)return `${prefix}${item.day}일, 성과 비교 기준일`;
   return `${prefix}${item.day}일, 일손익 ${monthlyCalendarExactProfitLabel(item.profit)}`;
 }
-function renderMonthlyCalendarDayCell({day,date='',available=false,item=null,weekdayIndex=0,today:isToday=false}){
+function renderMonthlyCalendarDayCell({day,date='',available=false,item=null,weekdayIndex=0,today:isToday=false,marketStatus='unknown'}){
   const weekend=weekdayIndex>=5?' is-weekend':'';
   if(!available||!item){
     const todayClass=isToday?' is-today':'';
-    const cellAccessibility=isToday?'':' aria-hidden="true"';
-    const visibleDayAccessibility=isToday?' aria-hidden="true"':'';
-    const screenReaderText=isToday?`<span class="visually-hidden">오늘, ${day}일, 데이터 없음</span>`:'';
-    return `<div class="monthly-calendar-day is-unavailable${weekend}${todayClass}"${cellAccessibility}><span class="monthly-calendar-day-number"${visibleDayAccessibility}>${day}</span>${screenReaderText}</div>`;
+    const missing=marketStatus==='trading';
+    const closed=marketStatus==='closed';
+    const statusClass=missing?' is-data-missing':closed?' is-market-closed':'';
+    const statusText=missing?'누락':closed?'휴장':'';
+    const accessibleText=missing?'KRX 거래일, 대시보드 데이터 누락':closed?'KRX 휴장일':'데이터 없음';
+    const needsAccessibility=isToday||missing||closed;
+    const cellAccessibility=needsAccessibility?'':' aria-hidden="true"';
+    const visibleDayAccessibility=needsAccessibility?' aria-hidden="true"':'';
+    const todayPrefix=isToday?'오늘, ':'';
+    const screenReaderText=needsAccessibility?`<span class="visually-hidden">${todayPrefix}${day}일, ${accessibleText}</span>`:'';
+    const statusMarkup=statusText?`<span class="monthly-calendar-day-profit" aria-hidden="true">${statusText}</span>`:'';
+    const title=missing?' title="KRX 거래일이지만 대시보드 데이터가 없습니다."':closed?' title="KRX 휴장일"':'';
+    return `<div class="monthly-calendar-day is-unavailable${weekend}${todayClass}${statusClass}"${cellAccessibility}${title}><span class="monthly-calendar-day-number"${visibleDayAccessibility}>${day}</span>${statusMarkup}${screenReaderText}</div>`;
   }
   const profitClass=item.profit==null?'':(item.profit>0?' positive':item.profit<0?' negative':'');
-  const profitText=item.profit==null?'기준':monthlyCalendarCompactProfit(item.profit);
+  const profitText=item.profitState==='inactive'?'—':item.profit==null?'기준':monthlyCalendarCompactProfit(item.profit);
   const active=item.active?' is-active':'';
   const availableTodayClass=item.today?' is-today':'';
-  return `<button type="button" class="monthly-calendar-day is-available${weekend}${availableTodayClass}${active}" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.selectDate}" data-calendar-date="${escapeHtml(date)}" aria-label="${escapeHtml(monthlyCalendarCellAria(item))}"${item.active?' aria-current="date"':''} title="${escapeHtml(item.profit==null?'성과 비교 기준일':monthlyCalendarExactProfitLabel(item.profit))}"><span class="monthly-calendar-day-number">${day}</span><span class="monthly-calendar-day-profit${profitClass}">${profitText}</span></button>`;
+  return `<button type="button" class="monthly-calendar-day is-available${weekend}${availableTodayClass}${active}" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.selectDate}" data-calendar-date="${escapeHtml(date)}" aria-label="${escapeHtml(monthlyCalendarCellAria(item))}"${item.active?' aria-current="date"':''} title="${escapeHtml(item.profitState==='inactive'?'퇴직연금 데이터 없음':item.profit==null?'성과 비교 기준일':monthlyCalendarExactProfitLabel(item.profit))}"><span class="monthly-calendar-day-number">${day}</span><span class="monthly-calendar-day-profit${profitClass}">${profitText}</span></button>`;
 }
 function renderMonthlyCalendarGrid(month,model,{businessDaysOnly=false}={}){
   const [year,monthNumber]=month.split('-').map(Number);
@@ -128,7 +159,7 @@ function renderMonthlyCalendarGrid(month,model,{businessDaysOnly=false}={}){
     const date=`${month}-${String(day).padStart(2,'0')}`;
     const weekdayIndex=(firstWeekday+day-1)%7;
     if(businessDaysOnly&&weekdayIndex>=5)continue;
-    cells.push(renderMonthlyCalendarDayCell({day,date,available:model.availableSet.has(date),item:itemByDate.get(date)||null,weekdayIndex,today:date===today}));
+    cells.push(renderMonthlyCalendarDayCell({day,date,available:model.availableSet.has(date),item:itemByDate.get(date)||null,weekdayIndex,today:date===today,marketStatus:krxTradingCalendarStatus(date)}));
   }
   return cells.join('');
 }
@@ -140,12 +171,22 @@ function renderMonthlyCalendarSummary(model){
   const totalClass=model.total>0?' positive':model.total<0?' negative':'';
   const bestClass=model.best?.profit>0?' positive':model.best?.profit<0?' negative':'';
   const worstClass=model.worst?.profit>0?' positive':model.worst?.profit<0?' negative':'';
+  const totalLabel=model.comparableCount?monthlyCalendarExactProfitLabel(model.total):'-';
+  const monthlyDetail=model.missingDates.length
+    ?`비교 가능 ${model.comparableCount}일 · 데이터 누락 ${model.missingDates.length}일`
+    :model.comparableCount?'비교 가능한 거래일 합계':'비교 가능한 거래일 없음';
   return `<div class="monthly-calendar-summary" aria-label="월간 손익 요약">
-    <div class="mini-card monthly-calendar-summary-card"><div class="m-label">월 손익</div><div class="m-value${totalClass}">${monthlyCalendarExactProfitLabel(model.total)}</div><div class="m-detail">비교 가능한 거래일 합계</div></div>
+    <div class="mini-card monthly-calendar-summary-card"><div class="m-label">월 손익</div><div class="m-value${totalClass}">${totalLabel}</div><div class="m-detail">${monthlyDetail}</div></div>
     <div class="mini-card monthly-calendar-summary-card"><div class="m-label">상승 · 하락</div><div class="m-value">${model.positiveCount} · ${model.negativeCount}</div><div class="m-detail">상승 ${model.positiveCount}일 · 하락 ${model.negativeCount}일</div></div>
     <div class="mini-card monthly-calendar-summary-card"><div class="m-label">최고일</div><div class="m-value${bestClass}">${model.best?`${model.best.day}일`:'-'}</div><div class="m-detail${bestClass}">${monthlyCalendarSummaryDetail(model.best)}</div></div>
     <div class="mini-card monthly-calendar-summary-card"><div class="m-label">최저일</div><div class="m-value${worstClass}">${model.worst?`${model.worst.day}일`:'-'}</div><div class="m-detail${worstClass}">${monthlyCalendarSummaryDetail(model.worst)}</div></div>
   </div>`;
+}
+function renderMonthlyCalendarModeSelector(){
+  return `<div class="control-tab-group monthly-calendar-mode-tabs" role="group" aria-label="월간 손익 범위 선택">${Object.entries(MONTHLY_CALENDAR_MODES).map(([mode,meta])=>{
+    const active=mode===monthlyCalendarState.mode;
+    return `<button type="button" class="control-tab monthly-calendar-mode-tab${active?' active':''}" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.setMode}" data-calendar-mode="${mode}" aria-pressed="${active?'true':'false'}">${meta.label}</button>`;
+  }).join('')}</div>`;
 }
 function renderMonthlyCalendarModal(){
   const modal=document.getElementById('monthlyCalendarModal');
@@ -155,10 +196,11 @@ function renderMonthlyCalendarModal(){
   const month=months.includes(monthlyCalendarState.month)?monthlyCalendarState.month:months.at(-1);
   monthlyCalendarState.month=month;
   const monthIndex=months.indexOf(month);
-  const model=monthlyCalendarMonthModel(month);
+  const model=monthlyCalendarMonthModel(month,monthlyCalendarState.mode);
   const businessDaysOnly=phoneUi();
   const weekdays=businessDaysOnly?MONTHLY_CALENDAR_BUSINESS_WEEKDAYS:MONTHLY_CALENDAR_WEEKDAYS;
-  const modeNote=uiState.includeSeparateProfit?' · 별도수익 포함':'';
+  const modeMeta=MONTHLY_CALENDAR_MODES[monthlyCalendarState.mode]||MONTHLY_CALENDAR_MODES.combined;
+  const modeNote=monthlyCalendarState.mode==='combined'&&uiState.includeSeparateProfit?' 별도수익의 당일 증가분도 포함합니다.':'';
   modal.innerHTML=`<div class="action-modal-card monthly-calendar-card" role="dialog" aria-modal="true" aria-labelledby="monthlyCalendarTitle" aria-describedby="monthlyCalendarDescription">
     <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-close" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.close}" aria-label="월간 손익 닫기">${navIconSvg('close')}</button>
     <div class="monthly-calendar-head">
@@ -166,7 +208,8 @@ function renderMonthlyCalendarModal(){
       <h3 id="monthlyCalendarTitle" class="modal-main-title">${escapeHtml(monthlyCalendarMonthLabel(month))}</h3>
       <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-nav" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.next}" aria-label="다음 월" aria-disabled="${monthIndex>=months.length-1?'true':'false'}">${navIconSvg('arrowRight')}</button>
     </div>
-    <p id="monthlyCalendarDescription" class="monthly-calendar-description">증권·연금의 전일 대비 성과를 합산해 일손익으로 표시합니다${modeNote}.</p>
+    ${renderMonthlyCalendarModeSelector()}
+    <p id="monthlyCalendarDescription" class="monthly-calendar-description">${escapeHtml(modeMeta.description+modeNote)}</p>
     <div class="monthly-calendar-weekdays" aria-hidden="true">${weekdays.map((label,index)=>`<span${!businessDaysOnly&&index>=5?' class="is-weekend"':''}>${label}</span>`).join('')}</div>
     <div class="monthly-calendar-grid" role="group" aria-label="${escapeHtml(monthlyCalendarMonthLabel(month))} 손익 캘린더">${renderMonthlyCalendarGrid(month,model,{businessDaysOnly})}</div>
     ${renderMonthlyCalendarSummary(model)}
@@ -215,11 +258,20 @@ function shiftMonthlyCalendarMonth(delta){
     document.querySelector(`#monthlyCalendarModal [data-dashboard-action="${action}"]`)?.focus?.({preventScroll:true});
   });
 }
+function setMonthlyCalendarMode(mode){
+  if(!MONTHLY_CALENDAR_MODES[mode]||monthlyCalendarState.mode===mode)return;
+  monthlyCalendarState.mode=mode;
+  renderMonthlyCalendarModal();
+  requestAnimationFrame(()=>{
+    document.querySelector(`#monthlyCalendarModal [data-calendar-mode="${mode}"]`)?.focus?.({preventScroll:true});
+  });
+}
 
 // [CAL05] Public API
 export {
   MONTHLY_CALENDAR_ACTION,
   closeMonthlyCalendar,
   openMonthlyCalendar,
+  setMonthlyCalendarMode,
   shiftMonthlyCalendarMonth
 };
