@@ -38,7 +38,6 @@
       --source-reclass-note-size:11.5px;
       --chart-svg-min-width:100%;
       --empty-state-font-size:var(--type-size-sm);
-      --market-ai-column-min:360px;
       --market-ai-column-max:380px;
       --nav-motion-shift:36px;
       --nav-motion-slide-duration:.27s;
@@ -48,13 +47,13 @@
       --nav-motion-start-opacity:.90;
     }
 
-  /* [T02. Hero / Market AI · Hero density + 좁아진 Market AI column에서 pill wrap만 보완] */
+  /* [T02. Hero / Market AI · Hero density + 우측 Market AI 예약 영역의 Tablet 폭만 조정] */
 .hero{
       --hero-decor-size:240px;
       --hero-decor-right:-72px;
     }
 
-.hero.market-ai-mounted .hero-metric-pills{min-width:0;align-content:flex-start}
+.hero.market-ai-mounted .hero-metric-pills{min-width:0}
 
   /* [T03. Cards / Metrics · 카드·요약·핵심지표 density와 열 수] */
 .mini-card{
