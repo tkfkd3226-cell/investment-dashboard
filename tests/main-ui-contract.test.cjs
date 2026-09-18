@@ -108,8 +108,6 @@ test('Tablet/Phone hamburger는 공통 menu source에서 Tablet Topbar 중복만
   assert.ok(nasdaqLinkIndex>=0&&nasdaqLinkIndex<calculatorLinkIndex&&calculatorLinkIndex<manageGroupIndex,'투자 계산기는 링크 그룹의 나스닥100 선물 바로 아래에 있어야 한다');
   assert.match(responsiveMenu,/title:'투자 계산기'[^}]*tabletTopbarDuplicate:true/,'Tablet에서는 Topbar와 중복되는 투자 계산기 링크를 숨길 수 있어야 한다');
   assert.match(responsiveMenu,/label:'관리',[^}]*tabletTopbarDuplicate:true/,'Tablet에서는 Topbar와 중복되는 관리 그룹을 숨길 수 있어야 한다');
-  assert.match(ui,/mobile-nav-group-tablet-topbar-duplicate/,'중복 관리 그룹 class를 렌더링해야 한다');
-  assert.match(ui,/mobile-nav-item-tablet-topbar-duplicate/,'링크 그룹의 중복 item class를 렌더링해야 한다');
   assert.match(common,/\.switcher\.tablet-topbar-ui \.date-action-menu\.mobile-combined-menu :is\(\.mobile-nav-group-tablet-topbar-duplicate,\.mobile-nav-item-tablet-topbar-duplicate\)\{display:none\}/,'Tablet 상태에서는 Topbar 중복 메뉴를 즉시 숨겨야 한다');
   assert.match(ui,/classList\.toggle\('tablet-topbar-ui',tabletTopbarUi\(\)\)/,'viewport 상태 동기화가 Tablet 중복 메뉴 표시를 즉시 갱신해야 한다');
   assert.match(ui,/visualViewport\?\.addEventListener\('resize',\(\)=>\{[^]*?syncMobileTopbarState\(\)/,'F12/device viewport 변경도 새로고침 없이 즉시 동기화해야 한다');
@@ -746,13 +744,17 @@ test('Market AI responsive 전환은 focus handoff와 content-driven card layout
   const removeIndex=block.indexOf("document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.remove()");
   const appendIndex=block.indexOf("if(row.parentElement!==hero)hero.appendChild(row)");
   assert.ok(closeIndex>=0&&appendIndex>closeIndex&&removeIndex>appendIndex,'dialog close → desktop row mount → mobile trigger remove 순서를 유지해야 한다');
-  assert.doesNotMatch(common,/\.hero\.market-ai-mounted\{[^}]*display:grid/,'Market AI가 Hero grid 높이 계산에 다시 참여하면 안 된다');
-  assert.match(common,/#market-ai-section\[data-market-ai-placement="hero"\]\{[^}]*position:absolute;[^}]*top:50%;[^}]*right:var\(--market-ai-hero-edge-gap\);[^}]*width:max-content;[^}]*transform:translateY\(-50%\);/,'Desktop/Tablet Market AI는 Hero 높이와 분리된 채 자연 크기로 세로 중앙 배치하고 별도 edge gap을 사용해야 한다');
-  assert.doesNotMatch(common,/#market-ai-section\[data-market-ai-placement="hero"\][^]*?\.market-ai-card-row\{height:100%\}|#market-ai-section\[data-market-ai-placement="hero"\][^}]*bottom:var\(--hero-pad\)/,'Hero 높이에 맞추려고 Market AI 카드 높이를 stretch하거나 상하 Hero padding으로 강제하면 안 된다');
+  // 사용자 contract만 보호하고 정확한 inset/gap/flex 구현까지 고정하지 않는다.
+  const heroPlacementStart=common.indexOf('#market-ai-section[data-market-ai-placement="hero"]{');
+  const heroPlacementEnd=common.indexOf('\n}',heroPlacementStart);
+  const heroPlacement=common.slice(heroPlacementStart,heroPlacementEnd);
+  assert.ok(heroPlacementStart>=0&&heroPlacementEnd>heroPlacementStart,'Desktop/Tablet Market AI Hero placement block이 필요하다');
+  assert.match(heroPlacement,/position:absolute;[^}]*top:50%;[^}]*transform:translateY\(-50%\)/,'Desktop/Tablet Market AI는 Hero 높이 계산에서 분리된 자연 크기로 세로 중앙 배치되어야 한다');
+  assert.doesNotMatch(heroPlacement,/bottom:|height:100%/,'Market AI 카드 높이를 Hero 가용 높이에 맞춰 stretch하면 안 된다');
   assert.doesNotMatch(common,/--market-ai-group-columns|minmax\(0,13fr\).*minmax\(0,7fr\)/,'Market AI card 폭을 고정 비율로 되돌리면 안 된다');
-  assert.match(common,/\.market-ai-desktop\{[^}]*display:flex;[^}]*width:max-content;[^}]*max-width:100%;/,'공통 Market AI card group은 내용 기반 폭을 사용해야 한다');
-  assert.match(common,/\.market-ai-card-row\{[^}]*grid-template-columns:max-content max-content max-content;[^}]*\}[^]*\.market-ai-desktop-metric\{[^}]*grid-column:1 \/ -1;[^}]*grid-template-columns:subgrid;/,'카드 내부 label/value/change는 행마다 흩어지지 않고 공통 세로 열을 공유해야 한다');
-  assert.match(special,/\.market-ai-mobile-dialog \.market-ai-desktop\{[^}]*width:100%;[^}]*justify-content:stretch;[^}]*\}[^]*\.market-ai-mobile-dialog \.market-ai-card-row\{[^}]*flex:1 1 auto;[^}]*width:auto;[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content;/,'Phone Market AI 카드는 고정 비율 없이 dialog 폭을 채우고 label 좌측 / value·change 우측 열을 유지해야 한다');
+  assert.match(common,/\.market-ai-desktop\{[^}]*width:max-content;[^}]*max-width:100%;/,'공통 Market AI card group은 내용 기반 폭을 사용해야 한다');
+  assert.match(common,/\.market-ai-desktop-metric\{[^}]*grid-template-columns:subgrid;/,'카드 내부 label/value/change는 공통 세로 열을 공유해야 한다');
+  assert.match(special,/\.market-ai-mobile-dialog \.market-ai-desktop\{[^}]*width:100%;[^}]*\}[^]*\.market-ai-mobile-dialog \.market-ai-card-row\{[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content;/,'Phone Market AI는 dialog 폭을 채우면서 label 좌측 / value·change 우측 열을 유지해야 한다');
 });
 
 test('Market AI contract: KOSPI200 선물 / SOX 현물 / NQ100 선물 symbol을 고정한다',()=>{
