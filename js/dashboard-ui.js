@@ -266,7 +266,7 @@ function renderResponsiveNavigationGroups(groups,{indentAfterFirst=false}={}){
       const iconAttrs=item.marketAiToggle?' data-market-ai-connection-toggle-icon':'';
       const labelAttrs=item.marketAiToggle?' data-market-ai-connection-toggle-label':'';
       const inner=`<span class="nav-icon"${iconAttrs}>${navIconSvg(item.icon)}</span><span><strong${labelAttrs}>${item.title}</strong></span>`;
-      const cls=`mobile-nav-item ${indentAfterFirst&&idx?'sub':''}`;
+      const cls=`mobile-nav-item${indentAfterFirst&&idx?' sub':''}${item.tabletTopbarDuplicate?' mobile-nav-item-tablet-topbar-duplicate':''}`;
       if(type==='link') return `<a class="${cls}" href="${item.url}" target="_blank" rel="noopener noreferrer" draggable="false" data-dashboard-action="close-date-menu"${personalViewAttrs}>${inner}</a>`;
       if(type==='action'){
         const marketAiAttrs=item.marketAiOnly?` data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}`:'';
@@ -284,17 +284,16 @@ function renderResponsiveNavigationMenuContent(){
       label:'링크',
       items:[
         {type:'link',url:'https://esignal.co.kr/kospi200-futures-night/',icon:TOPBAR_ACTION_ICONS.kospiNight,title:'코스피200 야간선물'},
-        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:TOPBAR_ACTION_ICONS.nasdaqFutures,title:'나스닥100 선물'}
+        {type:'link',url:'https://esignal.co.kr/nasdaq100-futures/',icon:TOPBAR_ACTION_ICONS.nasdaqFutures,title:'나스닥100 선물'},
+        {type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기',personalViewOnly:true,tabletTopbarDuplicate:true}
       ]
     },
     {
       label:'관리',
       tabletTopbarDuplicate:true,
       items:[
-        {type:'action',action:'open-monthly-calendar',icon:'period',title:'월간 손익'},
         {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},
         {type:'action',action:'open-pension-modal',icon:TOPBAR_ACTION_ICONS.pensionAdjust,title:'퇴직연금 금액 조정'},
-        {type:'link',url:'add/calc.html',icon:TOPBAR_ACTION_ICONS.calculator,title:'투자 계산기',personalViewOnly:true},
         {type:'action',action:'toggle-market-ai-connection',icon:marketAiToggle.icon,title:marketAiToggle.label,marketAiToggle:true}
       ]
     },

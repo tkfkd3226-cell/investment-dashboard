@@ -102,7 +102,8 @@ test('Tablet hamburger는 TOPbar 중복 관리 메뉴를 제외하고 Phone은 �
   assert.match(responsiveMenu,/label:'관리'/);
   assert.match(responsiveMenu,/tabletTopbarDuplicate:true/,'TOPbar와 중복되는 관리 그룹을 식별해야 한다');
   assert.match(ui,/mobile-nav-group-tablet-topbar-duplicate/,'중복 그룹 class를 렌더링해야 한다');
-  assert.match(tablet,/\.mobile-nav-group-tablet-topbar-duplicate\{display:none\}/,'Tablet에서는 중복 관리 그룹을 숨겨야 한다');
+  assert.match(ui,/mobile-nav-item-tablet-topbar-duplicate/,'링크 그룹 안의 TOPbar 중복 항목도 식별해야 한다');
+  assert.match(tablet,/:is\(\.mobile-nav-group-tablet-topbar-duplicate,\.mobile-nav-item-tablet-topbar-duplicate\)\{display:none\}/,'Tablet에서는 중복 관리 그룹과 링크 항목을 숨겨야 한다');
   assert.doesNotMatch(common,/\.mobile-nav-group-tablet-topbar-duplicate\{display:none\}/,'공통 메뉴에서 관리 그룹을 숨기면 Phone에서도 사라진다');
   assert.doesNotMatch(special,/\.mobile-nav-group-tablet-topbar-duplicate\{display:none\}/,'Phone에서는 관리 그룹을 유지해야 한다');
   assert.match(common,/\.mobile-date-pin-control\{display:none\}/,'날짜 선택 고정은 Phone 전용 header control이라 공통 기본에서는 숨겨야 한다');
@@ -125,13 +126,14 @@ test('Tablet/Phone hamburger panel은 공통 viewport 높이 contract를 공유�
 test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를 재사용한다',()=>{
   assert.match(index,/'dashboard-monthly-calendar\.js'/,'월간 캘린더 module은 importmap cache-bust 대상이어야 한다');
   assert.match(ui,/topbar-monthly-action[^>]*data-dashboard-action="open-monthly-calendar"/,'Web\/Tablet\/Phone이 공유하는 월간 손익 Topbar 진입점이 있어야 한다');
-  assert.match(ui,/action:'open-monthly-calendar',icon:'period',title:'월간 손익'/,'Phone 관리 메뉴도 같은 action을 사용해야 한다');
+  const responsiveMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
+  assert.doesNotMatch(responsiveMenu,/action:'open-monthly-calendar'/,'TOPbar에 표시되는 월간 손익을 hamburger에 중복 배치하면 안 된다');
   assert.match(monthlyCalendar,/combinedDailyProfitChange\(date\)/,'일손익 계산 의미는 DOM feature가 아니라 core의 공통 일성과 helper를 재사용해야 한다');
   assert.match(core,/function combinedDailyProfitChange\(date\)/,'flow-neutral 월간 일손익 계산은 core가 소유해야 한다');
   assert.match(monthlyCalendar,/modal\.className='action-modal monthly-calendar-modal'/,'월간 캘린더는 공통 action modal shell을 재사용해야 한다');
   assert.match(monthlyCalendar,/openDashboardModal\(modal,/);
   assert.match(monthlyCalendar,/closeDashboardModal\(modal,/);
-  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.open[^]*?closest\?\.\('#dateActionMenu'\)[^]*?dateActionMenuButton[^]*?closeDateActionMenu\(\);[^]*?openMonthlyCalendar\(returnFocus\)/,'Tablet/Phone 관리 메뉴 진입은 닫힌 menu item이 아니라 hamburger trigger로 focus를 반환해야 한다');
+  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.open[^]*?returnFocus=[^;]*:control[^]*?openMonthlyCalendar\(returnFocus\)/,'월간 손익 공통 Topbar 버튼은 자신을 focus 복원 대상으로 전달해야 한다');
   assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.selectDate[^]*?closeMonthlyCalendar\(\);[^]*?setActiveDashboardDate\(date\)/,'날짜 선택은 app의 canonical activeDate 이동 경로로 위임해야 한다');
   assert.match(monthlyCalendar,/function monthlyCalendarFocusFallbackSelector\(\)[^]*?topbar-monthly-action[^]*?dateActionMenuButton/,'날짜 선택 full render 뒤에도 공통 월간 손익 버튼 또는 hamburger로 focus를 복원해야 한다');
   assert.match(monthlyCalendar,/closeDashboardModal\(modal,\{[^}]*fallbackSelector:monthlyCalendarFocusFallbackSelector\(\)[^}]*\}\)/,'월간 캘린더 close는 stale opener DOM 대신 stable selector fallback을 사용해야 한다');
@@ -1363,7 +1365,10 @@ test('Market AI 연결 toggle은 OFF fallback과 Phone 관리 메뉴 배치를 �
   assert.match(liveValuation,/clearLiveValuationForDisconnected\('market-ai-disabled'\)/);
   assert.match(liveValuation,/clearLiveValuationForDisconnected\('market-ai-offline'\)/);
   const mobileMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
-  assert.ok(mobileMenu.indexOf("title:'투자 계산기'")<mobileMenu.indexOf("action:'toggle-market-ai-connection'"));
+  const nasdaqLinkIndex=mobileMenu.indexOf("title:'나스닥100 선물'");
+  const calculatorLinkIndex=mobileMenu.indexOf("title:'투자 계산기'");
+  const manageGroupIndex=mobileMenu.indexOf("label:'관리'");
+  assert.ok(nasdaqLinkIndex>=0&&nasdaqLinkIndex<calculatorLinkIndex&&calculatorLinkIndex<manageGroupIndex,'투자 계산기는 공통 링크 그룹의 나스닥100 선물 바로 아래에 있어야 한다');
   const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
   assert.doesNotMatch(tabsBlock,/\$\{phoneUi\(\)\?'':/,'Market AI toggle 생성 여부를 최초 viewport에 고정하면 크기 변경 후 새로고침이 필요해진다');
   assert.match(tabsBlock,/control-icon-button topbar-market-ai-toggle/,'Market AI toggle은 viewport 변경에 대비해 항상 생성해야 한다');
