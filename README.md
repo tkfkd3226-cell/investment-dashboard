@@ -37,7 +37,7 @@ index.html
 - 증권 `securitiesEvents` 기반 매도·실현손익·현금화 원금·재매수 원금 이동 복원
 - 장부결과 VS 실제보유 검산
 - 별도수익 ON/OFF 비교
-- 월간 손익 캘린더 — 기존 flow-neutral 전일 대비 성과를 월별로 합산·탐색하고 날짜 선택 시 해당 일자 Dashboard로 이동
+- 월간 손익 캘린더 — 합산/증권/퇴직연금별 flow-neutral 일손익을 전환해 보고, KRX 휴장·데이터 누락을 구분하며 날짜 선택 시 해당 일자 Dashboard로 이동
 - KOSPI 대비 초과성과 및 기간 차트
 - 퇴직연금 상품별 손익·비중·위험자산 관리
 - 기업적립금·현금성자산·ETF 추가매수 조정
@@ -201,6 +201,7 @@ investment-dashboard/
 │  ├─ pension_contributions.json
 │  ├─ pension_cash_snapshots.json
 │  ├─ pension_operation_ledger.json
+│  ├─ krx_trading_calendar.json
 │  ├─ pension_operation_ledger/
 │  ├─ pension_operation_identity/
 │  ├─ pension_batch_request_identity/
@@ -296,7 +297,7 @@ stable request identity, optimistic concurrency, durable idempotency, fail-close
 - 장중은 기존 pykrx 기본 시세 경로를 유지합니다. **2026-09-14 KRX 애프터마켓 개설 이후 날짜의 장마감/과거일은 네이버 KRX 1분봉에서 해당 날짜의 정확한 `15:30:00` 행(`currentPrice`)만 정규장 종가로 인정**합니다. `15:30` 행이 없으면 pykrx·일봉·애프터마켓 현재가로 대체하지 않고 기존 JSON을 유지한 채 실패합니다. 2026-09-14 이전 날짜만 기존 raw pykrx 종가 경로를 허용합니다.
 - **필수 설정:** GitHub 저장소 `Settings → Secrets and variables → Actions → New repository secret`에 `KRX_ID`, `KRX_PW`를 등록합니다. 값은 KRX 정보데이터시스템의 로그인 ID/비밀번호입니다. workflow가 이 Secrets를 pykrx 환경변수로 전달합니다. 누락 시 설정 안내와 함께 중단합니다.
 - `GAS_code.js` 수정은 GitHub 업로드만으로 운영 Web App에 적용되지 않습니다. Apps Script 소스를 교체한 뒤 기존 Web App 배포를 **새 버전으로 업데이트**해야 합니다.
-- workflow는 `prices.json`과 `performance_snapshots.json`만 자동 commit 대상으로 취급합니다.
+- workflow는 updater가 생성하는 `prices.json`, `performance_snapshots.json`, `krx_trading_calendar.json`만 자동 commit 대상으로 취급합니다.
 - branch 경쟁·push 응답 유실·generation input drift는 fail-closed 또는 검증 후 재시도로 처리합니다.
 - 매도 완료 종목은 해당 날짜 이후 신규 KRX 조회 대상에서 제외하되 매도 전 과거 backfill에서는 다시 조회합니다.
 

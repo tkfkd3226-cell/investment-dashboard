@@ -230,6 +230,7 @@ data/
 ├─ kodex_leverage_trades.json
 ├─ pension_contributions.json
 ├─ pension_cash_snapshots.json
+├─ krx_trading_calendar.json
 └─ pension_trades.json
 
 tests/
@@ -409,11 +410,12 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 
 ### `dashboard-monthly-calendar.js`
 
-월간 손익 캘린더는 새 운영 JSON이나 별도 성과 산식을 만들지 않는다. `dashboard-core.js`의 기존 전일 대비 성과 의미를 재사용해 **증권의 flow-neutral `dayChange` + 비교 가능한 연금 `pensionDayChange` + 선택 시 별도수익의 당일 증가분**을 합산한다. 따라서 계좌2·토스의 기존 누적 실현손익이 합산 범위에 처음 들어오는 날이나 연금 데이터가 처음 관측되는 날의 과거 누적손익을 그날 수익으로 오인하지 않는다.
+월간 손익 캘린더는 별도 성과 산식을 만들지 않는다. `dashboard-core.js`의 flow-neutral 일성과 helper를 재사용하며, **합산 / 증권 / 퇴직연금** 범위를 전환한다. 합산은 증권 `dayChange` + 비교 가능한 연금 `pensionDayChange` + 별도수익 ON 시 당일 증가분이고, 증권·퇴직연금 단독 범위에는 서로의 성과나 별도수익을 섞지 않는다. 연금 첫 관측일은 기준일로 취급해 기존 누적손익을 당일 수익으로 오인하지 않는다. 휴장/데이터 누락 판정은 updater가 생성하는 `data/krx_trading_calendar.json`을 사용하며 성과값 자체는 이 JSON에서 만들지 않는다.
 
 - `월간 손익`은 Web/Tablet/Phone이 공유하는 Topbar action으로만 진입하고 hamburger에는 중복 배치하지 않는다. Web/Tablet은 텍스트 action, Phone은 같은 DOM의 label을 숨긴 icon-only 표현을 사용하며 hamburger 구성·높이·scroll은 이 문서의 공통 Topbar/Navigation responsive contract를 따른다.
+- `합산 / 증권 / 퇴직연금` 범위 switch는 공통 `control-tab` primitive/skin을 재사용한다. 선택 범위는 modal을 닫았다 다시 열어도 현재 페이지 세션 동안 유지되며, 범위를 바꾸면 날짜별 금액과 월 손익·상승/하락·최고/최저가 같은 기준으로 함께 재계산된다.
 - 월 이동은 실제 가용 데이터가 존재하는 월 목록 안에서만 이동한다.
-- 날짜 cell은 `allAvailableDates()`에 존재하는 날짜만 선택 가능하다. Web/Tablet은 월~일 7열 달력을 유지하고, Phone은 화면 밀도를 위해 **월~금 5영업일만 렌더링해 토·일 cell과 요일 header를 표시하지 않는다.** Phone의 월 시작 placeholder도 첫 표시 평일의 월~금 위치를 기준으로 계산하므로 월이 토·일에 시작해도 월요일 정렬이 틀어지지 않는다. 휴장처럼 source에 없는 평일은 unavailable로 표시하고 월 합계·상승/하락·최고/최저 계산에서 제외한다. 표시에서 제외된 주말 때문에 성과 계산 의미를 바꾸지 않으며, 월 첫 비교 가능일은 `previousDate()`가 전월 마지막 가용일을 이어서 사용한다. 전체 데이터의 최초 날짜처럼 비교 기준이 없는 날은 `0원`이 아니라 **기준일**로 표시한다.
+- 날짜 cell은 `allAvailableDates()`에 존재하는 날짜만 선택 가능하다. Web/Tablet은 월~일 7열 달력을 유지하고, Phone은 화면 밀도를 위해 **월~금 5영업일만 렌더링해 토·일 cell과 요일 header를 표시하지 않는다.** Phone의 월 시작 placeholder도 첫 표시 평일의 월~금 위치를 기준으로 계산하므로 월이 토·일에 시작해도 월요일 정렬이 틀어지지 않는다. `krx_trading_calendar.json` 범위 안에서 KRX 거래일인데 Dashboard 데이터가 없으면 **누락**, 실제 비거래 평일은 **휴장**으로 구분하고 둘 다 성과 통계에서는 제외한다. 캘린더 확정 범위 이후 날짜는 휴장/누락으로 단정하지 않는다. 월 첫 비교 가능일은 `previousDate()`가 전월 마지막 가용일을 이어서 사용하며, 전체 데이터의 최초 날짜나 퇴직연금 첫 관측일처럼 비교 기준이 없는 날은 `0원`이 아니라 **기준일**로 표시한다. 퇴직연금 데이터가 아직 존재하지 않는 과거 날짜는 단독 범위에서 `—`로 표시하고 월 통계에서 제외한다.
 - 일손익 `0원`은 월 합계에는 0으로 반영하되 상승일·하락일 어느 쪽에도 포함하지 않는다.
 - 날짜 cell 선택은 캘린더 모듈이 `activeDate`를 직접 바꾸지 않고 `dashboard-app.js`의 `setActiveDashboardDate()`로 위임한다.
 - overlay/focus/inert/Escape/backdrop 처리는 `dashboard-modal.js` lifecycle을 재사용한다. Topbar opener를 우선 focus 복원 대상으로 사용하고, full render 등으로 기존 opener DOM이 사라진 경우에는 `.topbar-monthly-action`과 hamburger trigger를 stable fallback selector로 사용한다.
@@ -1784,8 +1786,8 @@ Python / Workflow 유지보수 구조:
 - historical price/performance 갱신은 대상 날짜 자체만 맞추고 끝내지 않는다. `rawHoldingProfit`을 삽입·정정한 날짜의 **즉시 다음 기존 performance snapshot `dailyProfit`**까지 함께 맞춰 causal ordering을 보존한다. 여러 누락일의 정순/역순 실행 결과가 동일해야 하며 이 계약은 `tests/update_prices_test.py`에서 회귀 검증한다.
 - 반복되는 날짜 형식, 조회 재시도, HTTP timeout/User-Agent 같은 실행 설정은 상수로 관리하고 함수 안에 같은 magic value를 중복하지 않는다.
 - `.github/workflows/update-prices.yml`은 `trigger → permission → checkout/queued-base refresh → runtime setup → updater 실행 → 생성 데이터 검증 → commit` 흐름을 유지한다. 각 `run: |` step은 GitHub Actions에서 서로 독립된 shell script이므로 `if/else/fi` 같은 shell 제어문은 반드시 같은 step 안에서 완결해야 한다. `tests/main-ui-contract.test.cjs`가 updater step의 `fi` 누락과 다음 verify step의 stray `fi` 회귀를 자동 차단한다.
-- Workflow가 자동 commit하는 운영 데이터는 `data/prices.json`, `data/performance_snapshots.json` 두 파일로 한정하며 다른 운영 JSON을 함께 `git add`하지 않는다.
-- KRX 로그인에는 repository Actions Secrets `KRX_ID`, `KRX_PW`가 필요하며 updater step의 동일 이름 환경변수로 전달한다. 인증값이 없으면 조회 전에 구체적인 설정 오류로 중단한다. 종가 조회 실패 또는 일부 종목 경고가 있으면 두 JSON을 저장하지 않고 non-zero로 끝낸다. 자동 모드의 최신 거래일 조회 실패도 정상 no-op으로 숨기지 않는다. 저장 구간 내부의 누락 평일은 보관기간이 짧은 15:30 분봉으로 거래일 여부를 판정하지 않고 KOSPI 일별 날짜 존재 여부로 일괄 판정한다. KOSPI 달력 조회가 실패하거나 이미 확인된 최신 거래일까지 커버하지 못하면 실제 거래일 누락을 휴장으로 오인하지 않도록 fail-closed 한다.
+- Workflow가 자동 commit하는 운영 데이터는 `data/prices.json`, `data/performance_snapshots.json`, `data/krx_trading_calendar.json` 세 파일로 한정하며 다른 운영 JSON을 함께 `git add`하지 않는다.
+- KRX 로그인에는 repository Actions Secrets `KRX_ID`, `KRX_PW`가 필요하며 updater step의 동일 이름 환경변수로 전달한다. 인증값이 없으면 조회 전에 구체적인 설정 오류로 중단한다. 종가 조회 실패 또는 일부 종목 경고가 있으면 가격·성과 JSON을 저장하지 않고 non-zero로 끝낸다. 자동 모드의 최신 거래일 조회 실패도 정상 no-op으로 숨기지 않는다. 저장 구간 내부의 누락 평일은 보관기간이 짧은 15:30 분봉으로 거래일 여부를 판정하지 않고 KOSPI 일별 날짜 존재 여부로 일괄 판정한다. 같은 판정 결과로 `krx_trading_calendar.json`을 생성하며, KOSPI 달력 조회가 실패하거나 이미 확인된 최신 거래일까지 커버하지 못하면 실제 거래일 누락을 휴장으로 오인하지 않도록 fail-closed 한다.
 - `pages.yml`은 main push/수동 실행 외에 `Update KRX closing prices`의 성공 완료 `workflow_run`을 받아 배포한다. 같은 저장소·main branch·success를 확인하고 checkout은 저장 전 `head_sha`가 아닌 최신 main으로 한다. 이는 `GITHUB_TOKEN` push가 후속 push workflow를 만들지 않는 GitHub 동작을 보완한다. Pages Source는 GitHub Actions를 유지한다.
 - 선택일 재갱신/시간 경계 관련 GAS 변경은 기존 Web App 배포를 새 버전으로 업데이트해야 효력이 있다. 단순 저장소 파일 교체로 운영 GAS가 바뀌지는 않는다.
 
