@@ -168,6 +168,13 @@
     .date-picker{grid-template-columns:minmax(0,1fr) auto}
     .date-picker-center{width:100%;max-width:calc(var(--topbar-date-select-width) + var(--topbar-date-select-width) + var(--topbar-layout-gap))}
     .date-picker-action{grid-column:2}
+    .topbar-calendar-action{
+      width:var(--topbar-control-height);
+      min-width:var(--topbar-control-height);
+      padding-inline:0;
+      gap:0;
+    }
+    .topbar-calendar-action :is(.topbar-label-full,.topbar-label-short){display:none}
     .month-select,
     .day-select{
       min-width:0;

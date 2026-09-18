@@ -410,10 +410,11 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 
 월간 손익 캘린더는 새 운영 JSON이나 별도 성과 산식을 만들지 않는다. `dashboard-core.js`의 기존 전일 대비 성과 의미를 재사용해 **증권의 flow-neutral `dayChange` + 비교 가능한 연금 `pensionDayChange` + 선택 시 별도수익의 당일 증가분**을 합산한다. 따라서 계좌2·토스의 기존 누적 실현손익이 합산 범위에 처음 들어오는 날이나 연금 데이터가 처음 관측되는 날의 과거 누적손익을 그날 수익으로 오인하지 않는다.
 
-- Web/Tablet은 Topbar `월간 손익` action, Phone은 `관리` 메뉴에서 같은 action으로 연다.
+- Web/Tablet은 Topbar `월간 손익` action, Phone은 `관리` 메뉴에서 같은 action으로 연다. Tablet은 Topbar 폭을 침범하지 않도록 같은 action을 icon-only control로 표시하고, 1101~1279px compact Web은 짧은 `월간` 라벨을 사용한다.
 - 월 이동은 실제 가용 데이터가 존재하는 월 목록 안에서만 이동한다.
 - 날짜 cell 선택은 캘린더 모듈이 `activeDate`를 직접 바꾸지 않고 `dashboard-app.js`의 `setActiveDashboardDate()`로 위임한다.
-- overlay/focus/inert/Escape/backdrop 처리는 `dashboard-modal.js` lifecycle을 재사용한다.
+- overlay/focus/inert/Escape/backdrop 처리는 `dashboard-modal.js` lifecycle을 재사용한다. Phone 관리 메뉴에서 진입한 경우 modal 종료 focus는 숨겨진 메뉴 item이 아니라 hamburger trigger로 돌아간다.
+- 월 이동 양 끝의 이전/다음 control은 `aria-disabled` 상태로 focusability를 유지해 keyboard focus가 DOM 재렌더 중 유실되지 않게 한다. 선택일(`aria-current`)과 KST 오늘 날짜(`is-today`)는 서로 다른 시각 상태로 구분한다.
 - calendar geometry와 손익 의미색은 새 독립 디자인 체계를 만들지 않고 기존 spacing/type/surface/value token을 재사용한다.
 
 ### Asset Detail 공통 불변조건

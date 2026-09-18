@@ -165,13 +165,17 @@
 /* -------------------------------------------------------------------------
    [S02] Compact Desktop · 중간폭 웹 — 1101~1279px
    Why · 이유: Desktop baseline은 유지하되 이 구간에서 폭이 빠듯해지는 기능만 보정한다.
-   Scope · 범위: Asset Detail grid에만 적용한다.
+   Scope · 범위: Asset Detail grid와 신규 Topbar action의 폭 보정에만 적용한다.
    ------------------------------------------------------------------------- */
 @media (min-width:1101px) and (max-width:1279px){
   /* Asset Detail Compact · 현황 + 전일대비 2열의 내부 스크롤을 피하도록 상세 grid를 1열로 전환 */
     .asset-detail-grid{
       grid-template-columns:1fr;
     }
+    /* Monthly Calendar Entry · 신규 action이 중간폭 Web Topbar를 밀지 않도록 짧은 라벨과 기존 compact spacing을 사용 */
+    .topbar-calendar-action{padding-inline:var(--space-lg);gap:var(--space-sm)}
+    .topbar-calendar-action .topbar-label-full{display:none}
+    .topbar-calendar-action .topbar-label-short{display:inline}
 }
 
 /* -------------------------------------------------------------------------
@@ -254,6 +258,43 @@
       --modal-card-radius:min(18px,var(--corner-surface-cap));
     }
     .action-modal{--modal-control-font-size:var(--type-size-2xl)}
+
+    /* Monthly Calendar Phone · 세로/가로폰 동일 7열 density / 2열 요약 */
+    .monthly-calendar-modal{
+      --modal-overlay-pad:var(--space-lg);
+      --modal-card-width:100%;
+      --modal-card-pad-y:var(--space-6xl);
+      --modal-card-pad-x:var(--space-lg);
+      --monthly-calendar-grid-gap:var(--space-2xs);
+      --monthly-calendar-cell-min-height:56px;
+      --monthly-calendar-day-size:var(--type-size-sm);
+      --monthly-calendar-profit-size:var(--type-size-2xs);
+    }
+    .monthly-calendar-card{max-height:calc(100vh - var(--space-2xl))}
+    @supports (height:100dvh){
+      .monthly-calendar-card{max-height:calc(100dvh - var(--space-2xl))}
+    }
+    .monthly-calendar-close{top:var(--space-4xl);right:var(--space-4xl)}
+    .monthly-calendar-head{
+      width:calc(100% - var(--icon-button-size) - var(--space-lg));
+      gap:var(--space-lg);
+    }
+    .monthly-calendar-description{
+      margin:var(--space-md) 0 var(--space-4xl);
+      font-size:var(--type-size-xs);
+    }
+    button.monthly-calendar-day,
+    .monthly-calendar-day.is-unavailable{padding:var(--space-md)}
+    .monthly-calendar-summary{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:var(--space-sm);
+      margin-top:var(--space-4xl);
+    }
+    .monthly-calendar-summary-card{
+      --mini-value-size:var(--type-size-lg);
+      --mini-detail-size:var(--type-size-2xs);
+      padding:var(--space-lg);
+    }
 
     /* Realtime Quotes Phone · 세로/가로폰 모두 5px shell padding을 고정하고
        외부 Monitor 배경과 shell 색상을 일치시킨다. */

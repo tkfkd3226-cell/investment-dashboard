@@ -27,6 +27,12 @@ import {
   openDashboardModal
 } from './dashboard-modal.js';
 import {
+  MONTHLY_CALENDAR_ACTION,
+  closeMonthlyCalendar,
+  openMonthlyCalendar,
+  shiftMonthlyCalendarMonth
+} from './dashboard-monthly-calendar.js';
+import {
   drawAllCharts,
   handleChartDashboardAction,
   isExpandedChart,
@@ -217,6 +223,20 @@ function handleDashboardDateChange(target){
 // [APP03] Dashboard Action Routing · 대시보드 액션 라우팅
 function handleDashboardAction(event,control){
   const action=control.dataset.dashboardAction;
+  if(action===MONTHLY_CALENDAR_ACTION.open){
+    const returnFocus=control.closest?.('#dateActionMenu')?document.getElementById('dateActionMenuButton'):control;
+    closeDateActionMenu();
+    openMonthlyCalendar(returnFocus);
+    return;
+  }
+  if(action===MONTHLY_CALENDAR_ACTION.close)return closeMonthlyCalendar();
+  if(action===MONTHLY_CALENDAR_ACTION.previous)return shiftMonthlyCalendarMonth(-1);
+  if(action===MONTHLY_CALENDAR_ACTION.next)return shiftMonthlyCalendarMonth(1);
+  if(action===MONTHLY_CALENDAR_ACTION.selectDate){
+    const date=control.dataset.calendarDate||'';
+    closeMonthlyCalendar();
+    return setActiveDashboardDate(date);
+  }
   if(action==='toggle-separate-profit')return toggleSeparateProfitMode();
   if(action==='toggle-separate-profit-expanded')return toggleSeparateProfitModeFromExpanded(control.dataset.expandedChartId||'');
   if(action==='open-pension-modal'){

@@ -96,8 +96,15 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(monthlyCalendar,/modal\.className='action-modal monthly-calendar-modal'/,'월간 캘린더는 공통 action modal shell을 재사용해야 한다');
   assert.match(monthlyCalendar,/openDashboardModal\(modal,/);
   assert.match(monthlyCalendar,/closeDashboardModal\(modal,/);
+  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.open[^]*?closest\?\.\('#dateActionMenu'\)[^]*?dateActionMenuButton[^]*?closeDateActionMenu\(\);[^]*?openMonthlyCalendar\(returnFocus\)/,'Phone 관리 메뉴 진입은 닫힌 menu item이 아니라 hamburger trigger로 focus를 반환해야 한다');
   assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.selectDate[^]*?closeMonthlyCalendar\(\);[^]*?setActiveDashboardDate\(date\)/,'날짜 선택은 app의 canonical activeDate 이동 경로로 위임해야 한다');
+  assert.match(monthlyCalendar,/aria-disabled=\"\$\{monthIndex<=0\?'true':'false'\}\"/,'월 이동 경계 control은 focusable aria-disabled 상태를 유지해야 한다');
+  assert.doesNotMatch(monthlyCalendar,/monthly-calendar-(?:previous|next)[^>]* disabled/,'월 경계에서 native disabled로 focus를 잃으면 안 된다');
+  assert.match(monthlyCalendar,/today:date===today/,'KST 오늘 날짜를 active date와 별도 상태로 계산해야 한다');
+  assert.match(common,/\.monthly-calendar-day\.is-today:not\(\.is-active\)/,'오늘 날짜는 선택일과 별도 시각 상태가 있어야 한다');
   assert.match(common,/\.monthly-calendar-grid\{[^}]*grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/,'calendar는 의미상 7열 grid를 유지해야 한다');
+  assert.match(tablet,/\.topbar-calendar-action\{[^}]*width:var\(--topbar-control-height\)[^}]*padding-inline:0/,'Tablet 월간 손익 진입점은 Topbar 폭을 밀지 않는 icon-only control이어야 한다');
+  assert.match(special,/1101px\) and \(max-width:1279px\)[^]*?\.topbar-calendar-action \.topbar-label-short\{display:inline\}/,'compact Web은 월간 손익 짧은 라벨을 사용해야 한다');
   assert.match(special,/\.monthly-calendar-summary\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Phone 세로\/가로 공통 요약은 2열로 밀도를 낮춰야 한다');
 });
 
