@@ -96,21 +96,23 @@ test('Main ES modules는 브라우저와 같은 module 문법으로 parse된다'
   }
 });
 
-test('Tablet hamburger는 TOPbar 중복 관리 메뉴를 제외하고 Phone은 유지한다',()=>{
+test('Tablet/Phone hamburger는 공통 menu source에서 Tablet Topbar 중복만 즉시 숨긴다',()=>{
   const responsiveMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
-  assert.match(responsiveMenu,/label:'링크'/);
-  assert.match(responsiveMenu,/label:'관리'/);
-  assert.match(responsiveMenu,/tabletTopbarDuplicate:true/,'TOPbar와 중복되는 관리 그룹을 식별해야 한다');
-  assert.match(ui,/mobile-nav-group-tablet-topbar-duplicate/,'중복 그룹 class를 렌더링해야 한다');
-  assert.match(ui,/mobile-nav-item-tablet-topbar-duplicate/,'링크 그룹 안의 TOPbar 중복 항목도 식별해야 한다');
-  assert.match(common,/\.switcher\.tablet-topbar-ui \.date-action-menu\.mobile-combined-menu :is\(\.mobile-nav-group-tablet-topbar-duplicate,\.mobile-nav-item-tablet-topbar-duplicate\)\{display:none\}/,'동기화된 Tablet 상태의 숨김 규칙은 공통 nav item display 규칙보다 높은 우선순위여야 한다');
-  assert.doesNotMatch(tablet,/mobile-nav-(?:group|item)-tablet-topbar-duplicate[^}]*display:none/,'media query만으로 숨김을 소유하면 F12 viewport 전환에서 상태가 늦게 맞을 수 있다');
-  assert.doesNotMatch(special,/\.mobile-nav-group-tablet-topbar-duplicate\{display:none\}/,'Phone에서는 관리 그룹을 유지해야 한다');
-  assert.match(ui,/function tabletTopbarUi\(\)[^]*?!phoneUi\(\)[^]*?min-width:761px[^]*?max-width:1100px/,'Tablet 판정은 Phone 가로 조건과 겹치지 않아야 한다');
-  assert.match(ui,/classList\.toggle\('tablet-topbar-ui',tabletTopbarUi\(\)\)/,'viewport 상태 동기화가 menu 중복 class를 즉시 갱신해야 한다');
-  assert.match(ui,/visualViewport\?\.addEventListener\('resize',\(\)=>\{[^]*?syncMobileTopbarState\(\)/,'F12/device viewport 변경도 즉시 동기화해야 한다');
-  assert.match(common,/\.mobile-date-pin-control\{display:none\}/,'날짜 선택 고정은 Phone 전용 header control이라 공통 기본에서는 숨겨야 한다');
-  assert.match(special,/\.mobile-date-pin-control\{display:inline-flex/,'Phone 전용 날짜 선택 고정 control은 Phone Shared에서만 표시해야 한다');
+  const linkGroupIndex=responsiveMenu.indexOf("label:'링크'");
+  const manageGroupIndex=responsiveMenu.indexOf("label:'관리'");
+  const tocGroupIndex=responsiveMenu.indexOf('...tocGroups');
+  assert.ok(linkGroupIndex>=0&&linkGroupIndex<manageGroupIndex&&manageGroupIndex<tocGroupIndex,'hamburger source는 링크 → 관리 → section 목차 순서를 유지해야 한다');
+  assert.doesNotMatch(responsiveMenu,/label:'목차'/,'Tablet/Phone hamburger에는 별도 목차 header group을 다시 만들면 안 된다');
+  const nasdaqLinkIndex=responsiveMenu.indexOf("title:'나스닥100 선물'");
+  const calculatorLinkIndex=responsiveMenu.indexOf("title:'투자 계산기'");
+  assert.ok(nasdaqLinkIndex>=0&&nasdaqLinkIndex<calculatorLinkIndex&&calculatorLinkIndex<manageGroupIndex,'투자 계산기는 링크 그룹의 나스닥100 선물 바로 아래에 있어야 한다');
+  assert.match(responsiveMenu,/title:'투자 계산기'[^}]*tabletTopbarDuplicate:true/,'Tablet에서는 Topbar와 중복되는 투자 계산기 링크를 숨길 수 있어야 한다');
+  assert.match(responsiveMenu,/label:'관리',[^}]*tabletTopbarDuplicate:true/,'Tablet에서는 Topbar와 중복되는 관리 그룹을 숨길 수 있어야 한다');
+  assert.match(ui,/mobile-nav-group-tablet-topbar-duplicate/,'중복 관리 그룹 class를 렌더링해야 한다');
+  assert.match(ui,/mobile-nav-item-tablet-topbar-duplicate/,'링크 그룹의 중복 item class를 렌더링해야 한다');
+  assert.match(common,/\.switcher\.tablet-topbar-ui \.date-action-menu\.mobile-combined-menu :is\(\.mobile-nav-group-tablet-topbar-duplicate,\.mobile-nav-item-tablet-topbar-duplicate\)\{display:none\}/,'Tablet 상태에서는 Topbar 중복 메뉴를 즉시 숨겨야 한다');
+  assert.match(ui,/classList\.toggle\('tablet-topbar-ui',tabletTopbarUi\(\)\)/,'viewport 상태 동기화가 Tablet 중복 메뉴 표시를 즉시 갱신해야 한다');
+  assert.match(ui,/visualViewport\?\.addEventListener\('resize',\(\)=>\{[^]*?syncMobileTopbarState\(\)/,'F12/device viewport 변경도 새로고침 없이 즉시 동기화해야 한다');
 });
 
 test('Tablet/Phone hamburger panel은 공통 viewport 높이 contract를 공유한다',()=>{
@@ -160,12 +162,11 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
 
 test('Topbar action 라벨은 Web full/short와 Tablet 축약명·icon 조합을 사용한다',()=>{
   assert.match(common,/\.topbar-label-short\{display:none\}/,'Desktop baseline은 short label을 숨기고 full label을 유지해야 한다');
-  assert.match(special,/@media \(min-width:1101px\) and \(max-width:1279px\)\{[^]*?\.date-picker-action \.topbar-label-full\{display:none\}[^]*?\.date-picker-action \.topbar-label-short\{display:inline\}/,'1101~1279px compact Web은 모든 text action을 short label로 축약해야 한다');
-  assert.match(tablet,/\.date-picker-action \.market-link-btn-desktop\{display:none\}/,'Tablet Topbar에서는 선물 링크를 숨겨야 한다');
-  assert.match(tablet,/\.date-picker-action \.date-tool-btn-desktop\.control-icon-button\{[^}]*width:var\(--topbar-control-height\)[^}]*min-width:var\(--topbar-control-height\)[^}]*padding-inline:0[^}]*gap:0/,'Tablet의 보조 action은 정사각 icon control이어야 한다');
+  assert.match(special,/@media \(min-width:1101px\) and \(max-width:1279px\)\{[^]*?\.date-picker-action \.topbar-label-full\{display:none\}[^]*?\.date-picker-action \.topbar-label-short\{display:inline\}/,'1101~1279px compact Web은 text action을 short label로 축약해야 한다');
+  assert.match(tablet,/\.date-picker-action \.market-link-btn-desktop\{display:none\}/,'Tablet Topbar에서는 선물 링크를 숨겨 hamburger 링크 영역과 역할을 나눠야 한다');
   assert.match(tablet,/\.date-picker-action \.topbar-label-full\{display:none\}/,'Tablet에서는 full label을 숨겨야 한다');
   assert.match(tablet,/\.date-picker-action \.topbar-label-short\{display:inline\}/,'Tablet 주요 action은 축약명을 표시해야 한다');
-  assert.match(special,/\.date-tool-btn-desktop\{display:none\}/,'Phone Shared는 기존처럼 Desktop action 자체를 숨겨 별도 모바일 Topbar 계약을 유지해야 한다');
+  assert.match(special,/\.date-tool-btn-desktop\{display:none\}/,'Phone Shared는 Desktop 전용 action을 숨겨 모바일 Topbar 계약을 유지해야 한다');
 });
 
 test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validator 모듈을 사용한다',()=>{
@@ -1361,30 +1362,18 @@ test('Web/Tablet 개인보기 도구는 계산기·Market AI·테마 icon contro
   assert.match(tabsBlock,/toggle-market-ai-connection/);
 });
 
-test('Market AI 연결 toggle은 OFF fallback과 Phone 관리 메뉴 배치를 유지한다',()=>{
+test('Market AI 연결 toggle은 OFF fallback과 viewport별 진입점 계약을 유지한다',()=>{
   assert.match(marketAiClient,/function setMarketAiEnabled\(/);
   assert.match(marketAi,/marketAiEnabled\(\)/);
   assert.match(liveValuation,/marketAiEnabled\(\)/);
   assert.match(liveValuation,/clearLiveValuationForDisconnected\('market-ai-disabled'\)/);
   assert.match(liveValuation,/clearLiveValuationForDisconnected\('market-ai-offline'\)/);
   const mobileMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
-  const nasdaqLinkIndex=mobileMenu.indexOf("title:'나스닥100 선물'");
-  const calculatorLinkIndex=mobileMenu.indexOf("title:'투자 계산기'");
-  const manageGroupIndex=mobileMenu.indexOf("label:'관리'");
-  assert.ok(nasdaqLinkIndex>=0&&nasdaqLinkIndex<calculatorLinkIndex&&calculatorLinkIndex<manageGroupIndex,'투자 계산기는 공통 링크 그룹의 나스닥100 선물 바로 아래에 있어야 한다');
+  assert.match(mobileMenu,/label:'관리'[^]*?action:'toggle-market-ai-connection'/,'Phone hamburger 관리 그룹에는 Market AI 연결 action이 있어야 한다');
   const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
   assert.doesNotMatch(tabsBlock,/\$\{phoneUi\(\)\?'':/,'Market AI toggle 생성 여부를 최초 viewport에 고정하면 크기 변경 후 새로고침이 필요해진다');
-  assert.match(tabsBlock,/control-icon-button topbar-market-ai-toggle/,'Market AI toggle은 viewport 변경에 대비해 항상 생성해야 한다');
-  const phoneRealtimeIndex=tabsBlock.indexOf('topbar-realtime-action');
-  const monthlyIndex=tabsBlock.indexOf('topbar-monthly-action');
-  const marketAiToggleIndex=tabsBlock.indexOf('topbar-market-ai-toggle');
-  const themeToggleIndex=tabsBlock.indexOf('topbar-theme-action');
-  assert.ok(monthlyIndex>=0&&monthlyIndex<phoneRealtimeIndex,'Phone 월간 손익은 실시간 시세 바로 왼쪽 DOM 순서를 유지해야 한다');
-  assert.ok(phoneRealtimeIndex>=0&&phoneRealtimeIndex<marketAiToggleIndex&&marketAiToggleIndex<themeToggleIndex,'숨김을 해제해도 Market AI toggle은 실시간 시세와 밝기 테마 사이 DOM 순서를 유지해야 한다');
-  assert.match(special,/\.switcher button\.topbar-market-ai-toggle\{display:none\}/,'Phone에서는 공통 icon button 표시 규칙보다 강한 selector로 Market AI toggle을 숨겨야 한다');
-  assert.match(special,/\.date-picker-action\{[^}]*display:flex[^}]*position:fixed[^}]*right:var\(--topbar-phone-edge\)[^}]*gap:var\(--space-sm\)/,'Phone 우측 버튼은 표시 중인 control만 자동 정렬하는 flex group이어야 한다');
-  assert.doesNotMatch(special,/\.topbar-(?:realtime-phone|theme)-action\{right:/,'Phone 버튼마다 개별 right 좌표를 부여하면 버튼 추가 시 순서가 꼬인다');
-  assert.match(special,/:is\(\.topbar-monthly-action,\.topbar-realtime-action\) :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Phone에서는 월간 손익과 실시간 시세가 같은 icon-only 전환 규칙을 사용해야 한다');
+  assert.match(tabsBlock,/control-icon-button topbar-market-ai-toggle/,'Market AI toggle은 Web/Tablet Topbar용으로 항상 생성해야 한다');
+  assert.match(special,/\.switcher button\.topbar-market-ai-toggle\{display:none\}/,'Phone에서는 Topbar Market AI toggle을 숨기고 hamburger 관리 action을 사용해야 한다');
 });
 
 test('Market AI는 초기 OFF로 열려도 연결 켜기 lifecycle listener를 먼저 등록한다',()=>{

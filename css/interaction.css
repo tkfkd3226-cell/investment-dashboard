@@ -32,7 +32,7 @@
       background:var(--interaction-row-bg);
     }
 
-  /* [I02. Topbar / Navigation Hover · 날짜 control / 모바일 menu] */
+  /* [I02. Topbar / Navigation Hover · 날짜 control / Tablet·Phone hamburger menu] */
     :is(.date-select,.date-tool-btn):hover{
       border-color:var(--topbar-control-border-hover);
     }

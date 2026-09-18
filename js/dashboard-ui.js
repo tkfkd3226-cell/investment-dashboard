@@ -220,8 +220,8 @@ function hydrateSectionTitleIcons(root=document){
     el.innerHTML=navIconSvg(el.dataset.sectionTitleIcon||'list');
   });
 }
-// [UI03] Navigation / TOC · 모바일 메뉴 / 데스크톱 목차 / 섹션 이동
-// Canonical navigation source shared by Desktop Edge TOC, Tablet TOC, and Phone section menu.
+// [UI03] Navigation / TOC · Tablet/Phone 통합 메뉴 / Desktop Edge TOC / 섹션 이동
+// Canonical navigation source shared by Desktop Edge TOC and the Tablet/Phone hamburger section menu.
 function dashboardTocGroups(){
   return [
     {
@@ -435,7 +435,7 @@ function setMobileDatePinned(pinned){
   try{localStorage.setItem(MOBILE_DATE_PIN_STORAGE_KEY,pinned?'1':'0')}catch(_){}
   syncMobileTopbarState();
 }
-// [UI05] Date Tabs / Mobile Data View Routing · 날짜 탭 / 모바일 데이터 보기 라우팅
+// [UI05] Topbar / Date & Responsive Navigation Rendering · 날짜 선택 / Topbar / 반응형 메뉴 렌더링
 function renderTabs(){
   const dates=allAvailableDates(),months=[...new Set(dates.map(d=>d.slice(0,7)))],activeMonth=dataState.activeDate.slice(0,7),monthDates=dates.filter(d=>d.startsWith(activeMonth));
   document.getElementById('tabs').innerHTML=`

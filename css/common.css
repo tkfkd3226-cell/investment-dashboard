@@ -292,7 +292,7 @@
   --batch-index-bg:#e2e8f0;
   --batch-index-text:#334155;
 
-  /* Navigation System · desktop TOC / mobile menu 공통 */
+  /* Navigation System · Desktop Edge TOC / Tablet·Phone hamburger 공통 */
   --nav-surface:#ffffff;
   --nav-surface-translucent:rgba(255,255,255,.97);
   --nav-surface-hover:#f6f8fa;
@@ -4257,7 +4257,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 /* Edge TOC · 우측 목차: 웹 전용 hover·focus 목차 / Tablet·Phone은 Topbar hamburger 사용 */
 .desktop-edge-toc{display:none}
 
-/* Topbar Layout · 웹 기본 / Tablet action+TOC hamburger / Phone 세로·가로 동일 Mobile Topbar */
+/* Topbar Layout · Web 기본 / Tablet 축약 action+hamburger / Phone compact Topbar+hamburger */
 .switcher{
   /* Topbar Geometry Contract · viewport는 token만 바꾸고 date/action primitive는 같은 geometry를 공유 */
   --topbar-pad-y:var(--space-lg);

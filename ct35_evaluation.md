@@ -1051,7 +1051,7 @@
 
 ### 허용 예외
 - 접근성상 필요한 duplicate label
-- desktop-only TOC vs mobile hamburger
+- desktop-only Edge TOC vs Tablet/Phone hamburger
 
 # 27. Source / Ledger / Symbol 예외
 

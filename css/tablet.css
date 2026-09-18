@@ -154,7 +154,7 @@
 
     :is(.contrib-modal,.action-modal){--modal-card-radius:min(20px,var(--corner-surface-cap))}
 
-  /* [T07. Topbar / Navigation · Tablet은 주요 action을 축약명, 보조 action을 icon-only로 표시하고 TOC는 hamburger로 유지] */
+  /* [T07. Topbar / Navigation · Tablet은 주요 action을 축약명, 보조 action을 icon-only로 표시하고 통합 navigation은 hamburger로 유지] */
     .switcher{
       overflow-x:clip;
       overflow-y:visible;
