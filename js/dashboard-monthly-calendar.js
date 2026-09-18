@@ -97,10 +97,12 @@ function monthlyCalendarCellAria(item){
   if(item.profit==null)return `${prefix}${item.day}일, 성과 비교 기준일`;
   return `${prefix}${item.day}일, 일손익 ${monthlyCalendarExactProfitLabel(item.profit)}`;
 }
-function renderMonthlyCalendarDayCell({day,date='',available=false,item=null,weekdayIndex=0}){
+function renderMonthlyCalendarDayCell({day,date='',available=false,item=null,weekdayIndex=0,today=false}){
   const weekend=weekdayIndex>=5?' is-weekend':'';
   if(!available||!item){
-    return `<div class="monthly-calendar-day is-unavailable${weekend}" aria-hidden="true"><span class="monthly-calendar-day-number">${day}</span></div>`;
+    const todayClass=today?' is-today':'';
+    const accessibility=today?` aria-label="오늘, ${day}일, 데이터 없음"`:' aria-hidden="true"';
+    return `<div class="monthly-calendar-day is-unavailable${weekend}${todayClass}"${accessibility}><span class="monthly-calendar-day-number">${day}</span></div>`;
   }
   const profitClass=item.profit==null?'':(item.profit>0?' positive':item.profit<0?' negative':'');
   const profitText=item.profit==null?'기준':monthlyCalendarCompactProfit(item.profit);
@@ -113,12 +115,13 @@ function renderMonthlyCalendarGrid(month,model){
   const firstWeekday=(new Date(Date.UTC(year,monthNumber-1,1)).getUTCDay()+6)%7;
   const daysInMonth=new Date(Date.UTC(year,monthNumber,0)).getUTCDate();
   const itemByDate=new Map(model.dayModels.map(item=>[item.date,item]));
+  const today=kstTodayText();
   const cells=[];
   for(let i=0;i<firstWeekday;i++)cells.push('<div class="monthly-calendar-day is-placeholder" aria-hidden="true"></div>');
   for(let day=1;day<=daysInMonth;day++){
     const date=`${month}-${String(day).padStart(2,'0')}`;
     const weekdayIndex=(firstWeekday+day-1)%7;
-    cells.push(renderMonthlyCalendarDayCell({day,date,available:model.availableSet.has(date),item:itemByDate.get(date)||null,weekdayIndex}));
+    cells.push(renderMonthlyCalendarDayCell({day,date,available:model.availableSet.has(date),item:itemByDate.get(date)||null,weekdayIndex,today:date===today}));
   }
   return cells.join('');
 }

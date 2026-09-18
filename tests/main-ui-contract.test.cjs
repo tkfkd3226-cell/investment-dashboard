@@ -105,6 +105,7 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(monthlyCalendar,/class=\"control-icon-button modal-icon-btn monthly-calendar-nav\"/,'월 이동 control은 공통 modal icon button primitive를 재사용해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-(?:previous|next)[^>]* disabled/,'월 경계에서 native disabled로 focus를 잃으면 안 된다');
   assert.match(monthlyCalendar,/today:date===today/,'KST 오늘 날짜를 active date와 별도 상태로 계산해야 한다');
+  assert.match(monthlyCalendar,/today:date===today[^]*?if\(!available\|\|!item\)\{[^]*?todayClass=today\?' is-today':''[^]*?오늘, \${day}일, 데이터 없음/,'오늘 데이터가 아직 없어도 unavailable cell은 today 상태와 접근성 설명을 유지해야 한다');
   assert.match(common,/\.monthly-calendar-day\.is-today:not\(\.is-active\)/,'오늘 날짜는 선택일과 별도 시각 상태가 있어야 한다');
   assert.match(common,/\.monthly-calendar-grid\{[^}]*grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/,'calendar는 의미상 7열 grid를 유지해야 한다');
   assert.match(monthlyCalendar,/is-unavailable[^]*?aria-hidden=\"true\"/,'가용 데이터가 없는 날짜는 선택 control이 아니라 unavailable cell이어야 한다');

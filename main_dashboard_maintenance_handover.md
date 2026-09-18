@@ -416,7 +416,7 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 - 일손익 `0원`은 월 합계에는 0으로 반영하되 상승일·하락일 어느 쪽에도 포함하지 않는다.
 - 날짜 cell 선택은 캘린더 모듈이 `activeDate`를 직접 바꾸지 않고 `dashboard-app.js`의 `setActiveDashboardDate()`로 위임한다.
 - overlay/focus/inert/Escape/backdrop 처리는 `dashboard-modal.js` lifecycle을 재사용한다. Phone 관리 메뉴에서 진입한 경우 modal 종료 focus는 숨겨진 메뉴 item이 아니라 hamburger trigger로 돌아간다.
-- 월 이동 양 끝의 이전/다음 control은 `aria-disabled` 상태로 focusability를 유지해 keyboard focus가 DOM 재렌더 중 유실되지 않게 한다. 선택일(`aria-current`)과 KST 오늘 날짜(`is-today`)는 서로 다른 시각 상태로 구분한다.
+- 월 이동 양 끝의 이전/다음 control은 `aria-disabled` 상태로 focusability를 유지해 keyboard focus가 DOM 재렌더 중 유실되지 않게 한다. 선택일(`aria-current`)과 KST 오늘 날짜(`is-today`)는 서로 다른 시각 상태로 구분하며, **오늘의 가용 데이터가 아직 없더라도** unavailable cell에 `is-today`와 `오늘, n일, 데이터 없음` 접근성 설명을 유지한다.
 - calendar geometry와 손익 의미색은 새 독립 디자인 체계를 만들지 않고 기존 spacing/type/surface/value token을 재사용한다.
 
 ### Asset Detail 공통 불변조건
