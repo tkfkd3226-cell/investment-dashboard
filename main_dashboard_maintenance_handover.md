@@ -1656,7 +1656,7 @@ data/pension_contributions.json
 
 주의:
 
-- `prices.json`, `performance_snapshots.json`은 KRX 현재가 반영/워크플로우 때문에 정상적으로 바뀔 수 있다.
+- `prices.json`, `performance_snapshots.json`, `krx_trading_calendar.json`은 KRX 현재가 반영/워크플로우 때문에 정상적으로 바뀔 수 있다.
 - 최신 KRX 반영분과 코드 patch를 섞을 때 단순 hash 차이를 코드 회귀로 오인하지 않는다.
 - `pension_contributions.json`은 KRX 재갱신 대상이라고 가정하지 않는다.
 - 실제 운영 데이터가 포함된 최신 기준본을 과거 코드 패키지로 덮어쓰기 전에 먼저 확인한다.
