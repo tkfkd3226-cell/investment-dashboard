@@ -6,7 +6,7 @@ import {
   kstTodayText,
   uiState
 } from './dashboard-core.js';
-import { escapeHtml, navIconSvg, phoneUi } from './dashboard-ui-common.js';
+import { escapeHtml, navIconSvg } from './dashboard-ui-common.js';
 import {
   bindDashboardModalDismiss,
   closeDashboardModal,
@@ -34,9 +34,7 @@ const MONTHLY_CALENDAR_ACTION={
 const MONTHLY_CALENDAR_WEEKDAYS=['월','화','수','목','금','토','일'];
 const MONTHLY_CALENDAR_DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
 function monthlyCalendarFocusFallbackSelector(){
-  return phoneUi()
-    ? '.topbar-calendar-phone-action,#dateActionMenuButton'
-    : '.date-tool-btn-desktop[data-dashboard-action="open-monthly-calendar"],#dateActionMenuButton';
+  return '.topbar-monthly-action,#dateActionMenuButton';
 }
 const monthlyCalendarState={month:''};
 

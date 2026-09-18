@@ -124,7 +124,7 @@ test('Tablet/Phone hamburger panel은 공통 viewport 높이 contract를 공유�
 
 test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를 재사용한다',()=>{
   assert.match(index,/'dashboard-monthly-calendar\.js'/,'월간 캘린더 module은 importmap cache-bust 대상이어야 한다');
-  assert.match(ui,/data-dashboard-action="open-monthly-calendar"/,'Web\/Tablet Topbar에 월간 손익 진입점이 있어야 한다');
+  assert.match(ui,/topbar-monthly-action[^>]*data-dashboard-action="open-monthly-calendar"/,'Web\/Tablet\/Phone이 공유하는 월간 손익 Topbar 진입점이 있어야 한다');
   assert.match(ui,/action:'open-monthly-calendar',icon:'period',title:'월간 손익'/,'Phone 관리 메뉴도 같은 action을 사용해야 한다');
   assert.match(monthlyCalendar,/combinedDailyProfitChange\(date\)/,'일손익 계산 의미는 DOM feature가 아니라 core의 공통 일성과 helper를 재사용해야 한다');
   assert.match(core,/function combinedDailyProfitChange\(date\)/,'flow-neutral 월간 일손익 계산은 core가 소유해야 한다');
@@ -133,7 +133,7 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(monthlyCalendar,/closeDashboardModal\(modal,/);
   assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.open[^]*?closest\?\.\('#dateActionMenu'\)[^]*?dateActionMenuButton[^]*?closeDateActionMenu\(\);[^]*?openMonthlyCalendar\(returnFocus\)/,'Tablet/Phone 관리 메뉴 진입은 닫힌 menu item이 아니라 hamburger trigger로 focus를 반환해야 한다');
   assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.selectDate[^]*?closeMonthlyCalendar\(\);[^]*?setActiveDashboardDate\(date\)/,'날짜 선택은 app의 canonical activeDate 이동 경로로 위임해야 한다');
-  assert.match(monthlyCalendar,/function monthlyCalendarFocusFallbackSelector\(\)[^]*?dateActionMenuButton[^]*?open-monthly-calendar/,'날짜 선택 full render 뒤에도 Phone hamburger 또는 visible Topbar opener로 focus를 복원해야 한다');
+  assert.match(monthlyCalendar,/function monthlyCalendarFocusFallbackSelector\(\)[^]*?topbar-monthly-action[^]*?dateActionMenuButton/,'날짜 선택 full render 뒤에도 공통 월간 손익 버튼 또는 hamburger로 focus를 복원해야 한다');
   assert.match(monthlyCalendar,/closeDashboardModal\(modal,\{[^}]*fallbackSelector:monthlyCalendarFocusFallbackSelector\(\)[^}]*\}\)/,'월간 캘린더 close는 stale opener DOM 대신 stable selector fallback을 사용해야 한다');
   assert.match(monthlyCalendar,/monthIndex<=0\?'true':'false'/,'첫 월 이전 control은 경계 상태를 계산해야 한다');
   assert.match(monthlyCalendar,/monthIndex>=months\.length-1\?'true':'false'/,'마지막 월 다음 control은 경계 상태를 계산해야 한다');
@@ -1322,7 +1322,7 @@ test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·resp
   assert.doesNotMatch(mobileMenuSource,/REALTIME_QUOTES_ACTION/,'Tablet/Phone hamburger 관리 메뉴에는 실시간 시세 진입점을 중복 배치하지 않는다');
   const realtimeTopbarButtons=ui.match(/class="[^"]*topbar-realtime-action[^"]*"/g)||[];
   assert.equal(realtimeTopbarButtons.length,1,'실시간 시세는 viewport 경계에서 교체되지 않는 단일 Topbar 버튼이어야 한다');
-  assert.match(special,/\.topbar-realtime-action :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Phone 실시간 시세 버튼은 같은 DOM의 label만 숨겨 icon-only로 전환해야 한다');
+  assert.match(special,/:is\(\.topbar-monthly-action,\.topbar-realtime-action\) :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Phone 월간 손익과 실시간 시세 버튼은 같은 DOM의 label만 숨겨 icon-only로 전환해야 한다');
 
   assert.match(ui,/addEventListener\('message',handleRealtimeMonitorMessage\)/,'embedded Monitor message bridge가 필요하다');
   assert.match(ui,/event\.origin!==realtimeMonitorExpectedOrigin\(\)/,'Monitor message는 origin 검증을 유지해야 한다');
@@ -1368,12 +1368,15 @@ test('Market AI 연결 toggle은 OFF fallback과 Phone 관리 메뉴 배치를 �
   assert.doesNotMatch(tabsBlock,/\$\{phoneUi\(\)\?'':/,'Market AI toggle 생성 여부를 최초 viewport에 고정하면 크기 변경 후 새로고침이 필요해진다');
   assert.match(tabsBlock,/control-icon-button topbar-market-ai-toggle/,'Market AI toggle은 viewport 변경에 대비해 항상 생성해야 한다');
   const phoneRealtimeIndex=tabsBlock.indexOf('topbar-realtime-action');
+  const monthlyIndex=tabsBlock.indexOf('topbar-monthly-action');
   const marketAiToggleIndex=tabsBlock.indexOf('topbar-market-ai-toggle');
   const themeToggleIndex=tabsBlock.indexOf('topbar-theme-action');
+  assert.ok(monthlyIndex>=0&&monthlyIndex<phoneRealtimeIndex,'Phone 월간 손익은 실시간 시세 바로 왼쪽 DOM 순서를 유지해야 한다');
   assert.ok(phoneRealtimeIndex>=0&&phoneRealtimeIndex<marketAiToggleIndex&&marketAiToggleIndex<themeToggleIndex,'숨김을 해제해도 Market AI toggle은 실시간 시세와 밝기 테마 사이 DOM 순서를 유지해야 한다');
   assert.match(special,/\.switcher button\.topbar-market-ai-toggle\{display:none\}/,'Phone에서는 공통 icon button 표시 규칙보다 강한 selector로 Market AI toggle을 숨겨야 한다');
   assert.match(special,/\.date-picker-action\{[^}]*display:flex[^}]*position:fixed[^}]*right:var\(--topbar-phone-edge\)[^}]*gap:var\(--space-sm\)/,'Phone 우측 버튼은 표시 중인 control만 자동 정렬하는 flex group이어야 한다');
   assert.doesNotMatch(special,/\.topbar-(?:realtime-phone|theme)-action\{right:/,'Phone 버튼마다 개별 right 좌표를 부여하면 버튼 추가 시 순서가 꼬인다');
+  assert.match(special,/:is\(\.topbar-monthly-action,\.topbar-realtime-action\) :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Phone에서는 월간 손익과 실시간 시세가 같은 icon-only 전환 규칙을 사용해야 한다');
 });
 
 test('Market AI는 초기 OFF로 열려도 연결 켜기 lifecycle listener를 먼저 등록한다',()=>{
