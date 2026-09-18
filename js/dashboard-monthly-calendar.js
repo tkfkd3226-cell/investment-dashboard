@@ -150,9 +150,9 @@ function renderMonthlyCalendarModal(){
   modal.innerHTML=`<div class="action-modal-card monthly-calendar-card" role="dialog" aria-modal="true" aria-labelledby="monthlyCalendarTitle" aria-describedby="monthlyCalendarDescription">
     <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-close" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.close}" aria-label="월간 손익 닫기">${navIconSvg('close')}</button>
     <div class="monthly-calendar-head">
-      <button type="button" class="control-icon-button monthly-calendar-nav" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.previous}" aria-label="이전 월" aria-disabled="${monthIndex<=0?'true':'false'}">${navIconSvg('arrowLeft')}</button>
+      <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-nav" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.previous}" aria-label="이전 월" aria-disabled="${monthIndex<=0?'true':'false'}">${navIconSvg('arrowLeft')}</button>
       <h3 id="monthlyCalendarTitle" class="modal-main-title">${escapeHtml(monthlyCalendarMonthLabel(month))}</h3>
-      <button type="button" class="control-icon-button monthly-calendar-nav" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.next}" aria-label="다음 월" aria-disabled="${monthIndex>=months.length-1?'true':'false'}">${navIconSvg('arrowRight')}</button>
+      <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-nav" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.next}" aria-label="다음 월" aria-disabled="${monthIndex>=months.length-1?'true':'false'}">${navIconSvg('arrowRight')}</button>
     </div>
     <p id="monthlyCalendarDescription" class="monthly-calendar-description">증권·연금의 전일 대비 성과를 합산해 일손익으로 표시합니다${modeNote}.</p>
     <div class="monthly-calendar-weekdays" aria-hidden="true">${MONTHLY_CALENDAR_WEEKDAYS.map((label,index)=>`<span${index>=5?' class="is-weekend"':''}>${label}</span>`).join('')}</div>

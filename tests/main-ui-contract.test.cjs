@@ -102,6 +102,7 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(monthlyCalendar,/monthIndex<=0\?'true':'false'/,'첫 월 이전 control은 경계 상태를 계산해야 한다');
   assert.match(monthlyCalendar,/monthIndex>=months\.length-1\?'true':'false'/,'마지막 월 다음 control은 경계 상태를 계산해야 한다');
   assert.match(monthlyCalendar,/aria-disabled=/,'월 경계 control은 native disabled 대신 focusable aria-disabled 상태를 사용해야 한다');
+  assert.match(monthlyCalendar,/class=\"control-icon-button modal-icon-btn monthly-calendar-nav\"/,'월 이동 control은 공통 modal icon button primitive를 재사용해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-(?:previous|next)[^>]* disabled/,'월 경계에서 native disabled로 focus를 잃으면 안 된다');
   assert.match(monthlyCalendar,/today:date===today/,'KST 오늘 날짜를 active date와 별도 상태로 계산해야 한다');
   assert.match(common,/\.monthly-calendar-day\.is-today:not\(\.is-active\)/,'오늘 날짜는 선택일과 별도 시각 상태가 있어야 한다');
