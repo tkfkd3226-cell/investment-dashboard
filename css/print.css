@@ -173,8 +173,6 @@
     .chart-options-row,
     .compact-chart-ui .chart-title-info-slot,
     .accounts-memo-info-button,
-    .market-ai-mobile-trigger,
-    .market-ai-mobile-dialog,
     .realtime-quote-modal{
       display:none;
     }

@@ -1,9 +1,4 @@
 import {
-  bindDashboardNativeDialogDismiss,
-  closeDashboardNativeDialog,
-  openDashboardNativeDialog
-} from './dashboard-modal.js';
-import {
   MARKET_AI_CONNECTION_EVENT,
   MARKET_AI_ENABLED_EVENT,
   marketAiApiBase,
@@ -12,8 +7,8 @@ import {
 } from './dashboard-market-ai-client.js';
 
 // Market AI Standalone Adapter · main feature graph와 분리된 독립 entry
-// Ownership: dashboard-modal.js의 저수준 dialog lifecycle과 dashboard-market-ai-client.js의 endpoint/timeout transport만 공유하고, mount/state/polling/render/tooltip은 이 파일이 소유한다.
-// Responsive contract: Desktop/Tablet은 Hero 우측 panel, Phone은 동일 panel을 modal로 이동 재사용하며 Tooltip을 비활성화한다.
+// Ownership: dashboard-market-ai-client.js의 endpoint/timeout transport만 공유하고, mount/state/polling/render/tooltip은 이 파일이 소유한다.
+// Responsive contract: Desktop/Tablet은 Hero 우측 panel, Phone은 동일 panel을 Hero 바로 아래 inline slot로 이동 재사용하며 Tooltip을 비활성화한다.
 // View-mode contract: ?dashboard-view=web/tablet/mobile은 레이아웃만 선택하며 Market AI는 항상 실제 데이터를 사용한다.
 // Structure map:
 //   [MARKET01] Configuration / Runtime State
@@ -23,7 +18,7 @@ import {
 //   [MARKET05] Tooltip Core
 //   [MARKET06] Signal Detail Normalization
 //   [MARKET07] Tooltip Content / Interaction
-//   [MARKET08] Metric Markup / Responsive Mobile UI
+//   [MARKET08] Metric Markup / Responsive Phone UI
 //   [MARKET09] Mount / Render
 //   [MARKET10] State Update / Data Refresh
 //   [MARKET11] Lifecycle / Polling
@@ -37,9 +32,7 @@ const MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200';
 const MARKET_AI_SOX_INDEX_SYMBOL='INDEX:SOX';
 const MARKET_AI_NASDAQ100_FUTURES_SYMBOL='FUTURES:NQ';
 const MARKET_AI_TOOLTIP_ID='marketAiTooltip';
-const MARKET_AI_MOBILE_DIALOG_ID='marketAiMobileDialog';
-const MARKET_AI_MOBILE_TRIGGER_ID='marketAiMobileTrigger';
-const MARKET_AI_CLOSE_ICON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"></path></svg>';
+const MARKET_AI_PHONE_INLINE_SLOT_ID='marketAiPhoneInlineSlot';
 const MARKET_AI_PHONE_MEDIA_QUERY='(max-width:760px), (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse)';
 const marketAiPhoneMedia=window.matchMedia(MARKET_AI_PHONE_MEDIA_QUERY);
 const MARKET_AI_SCORE_RANGE_LINES=[
@@ -955,7 +948,7 @@ function setupMarketAiTooltipEvents(){
   window.visualViewport?.addEventListener('resize',hideMarketAiTooltip,{passive:true});
 }
 
-// [MARKET08] Metric Markup / Responsive Mobile UI · panel metric / trigger / dialog
+// [MARKET08] Metric Markup / Responsive Phone UI · panel metric / Phone inline owner
 function marketAiDesktopSignalMetric(label,key){
   return `<span class="market-ai-desktop-metric" tabindex="0" aria-describedby="${MARKET_AI_TOOLTIP_ID}" data-dashboard-focus-key="market-ai:signal:${key}" data-market-ai-card="${key}" data-market-ai-tooltip="signal" data-market-ai-key="${key}"><span class="data-list-card-label market-ai-desktop-label">${label}</span><strong class="data-list-card-value market-ai-desktop-signal" data-market-ai-score="${key}">--</strong></span>`;
 }
@@ -983,7 +976,6 @@ function syncMarketAiMetricInteractivity(row,phoneUi){
     metric.setAttribute('tabindex','0');
     metric.setAttribute('aria-describedby',MARKET_AI_TOOLTIP_ID);
   });
-  row?.querySelector('.market-ai-title')?.classList.toggle('modal-main-title',phoneUi);
   if(phoneUi){
     hideMarketAiTooltip();
     document.getElementById(MARKET_AI_TOOLTIP_ID)?.remove();
@@ -992,89 +984,41 @@ function syncMarketAiMetricInteractivity(row,phoneUi){
   }
 }
 
-function marketAiMobileTrigger(hero){
-  const titleRow=hero?.querySelector('.hero-title-row');
-  if(!titleRow)return null;
-  let trigger=document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID);
-  if(!trigger){
-    trigger=document.createElement('button');
-    trigger.id=MARKET_AI_MOBILE_TRIGGER_ID;
-    trigger.type='button';
-    trigger.className='control-action-button compact market-ai-mobile-trigger';
-    trigger.textContent='AI Signal';
-    trigger.setAttribute('aria-label','AI Market Signal 열기');
-    trigger.setAttribute('aria-haspopup','dialog');
-    trigger.setAttribute('aria-controls',MARKET_AI_MOBILE_DIALOG_ID);
-    trigger.setAttribute('aria-expanded','false');
-    trigger.addEventListener('click',openMarketAiMobileDialog);
+
+function marketAiPhoneInlineSlot(hero){
+  if(!hero)return null;
+  let slot=document.getElementById(MARKET_AI_PHONE_INLINE_SLOT_ID);
+  if(!slot){
+    slot=document.createElement('div');
+    slot.id=MARKET_AI_PHONE_INLINE_SLOT_ID;
+    slot.className='market-ai-phone-inline-slot';
+    slot.setAttribute('data-market-ai-phone-inline-slot','');
   }
-  if(trigger.parentElement!==titleRow)titleRow.appendChild(trigger);
-  return trigger;
+  if(hero.nextElementSibling!==slot)hero.insertAdjacentElement('afterend',slot);
+  return slot;
 }
 
-function marketAiMobileDialog(){
-  let dialog=document.getElementById(MARKET_AI_MOBILE_DIALOG_ID);
-  if(dialog)return dialog;
-  dialog=document.createElement('dialog');
-  dialog.id=MARKET_AI_MOBILE_DIALOG_ID;
-  dialog.className='market-ai-mobile-dialog';
-  dialog.tabIndex=-1;
-  dialog.setAttribute('aria-labelledby','marketAiTitle');
-  dialog.innerHTML=`<div class="action-modal-card market-ai-mobile-dialog-card"><button type="button" class="control-icon-button modal-icon-btn market-ai-mobile-close" aria-label="AI Market Signal 닫기">${MARKET_AI_CLOSE_ICON}</button><div class="market-ai-mobile-dialog-content" data-market-ai-mobile-content></div></div>`;
-  const closeDialog=()=>closeDashboardNativeDialog(dialog,{fallbackSelector:`#${MARKET_AI_MOBILE_TRIGGER_ID}`});
-  dialog.querySelector('.market-ai-mobile-close')?.addEventListener('click',closeDialog);
-  bindDashboardNativeDialogDismiss(dialog,{onDismiss:closeDialog});
-  dialog.addEventListener('close',()=>{
-    hideMarketAiTooltip();
-    document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.setAttribute('aria-expanded','false');
-  });
-  document.body.appendChild(dialog);
-  return dialog;
-}
-
-function openMarketAiMobileDialog(){
-  if(!marketAiPhoneUi()||!marketAiUiEnabled())return;
-  const row=mountMarketAiSection();
-  if(!row)return;
-  const dialog=marketAiMobileDialog();
-  const trigger=document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID);
-  openDashboardNativeDialog(dialog,{initialFocus:dialog,returnFocus:trigger,fallbackSelector:`#${MARKET_AI_MOBILE_TRIGGER_ID}`});
-  trigger?.setAttribute('aria-expanded','true');
-}
 
 function syncMarketAiResponsiveMount(row,hero){
   if(marketAiPhoneUi()){
-    const handoffToMobileTrigger=row.dataset.marketAiPlacement==='hero'&&row.contains(document.activeElement);
-    const dialog=marketAiMobileDialog();
-    const content=dialog.querySelector('[data-market-ai-mobile-content]');
-    if(content&&row.parentElement!==content)content.appendChild(row);
+    const inlineSlot=marketAiPhoneInlineSlot(hero);
+    if(inlineSlot&&row.parentElement!==inlineSlot)inlineSlot.appendChild(row);
     stopMarketAiHeroWidthObserver(hero);
     hero.classList.remove('market-ai-mounted');
-    const trigger=marketAiMobileTrigger(hero);
     syncMarketAiMetricInteractivity(row,true);
-    row.dataset.marketAiPlacement='mobile';
-    if(handoffToMobileTrigger&&trigger){
-      requestAnimationFrame(()=>{
-        if(!marketAiPhoneUi())return;
-        try{trigger.focus({preventScroll:true})}catch{trigger.focus()}
-      });
-    }
+    row.dataset.marketAiPlacement='phone-inline';
     return;
   }
 
   syncMarketAiMetricInteractivity(row,false);
-  const dialog=document.getElementById(MARKET_AI_MOBILE_DIALOG_ID);
-  // When Phone dialog crosses into Desktop/Tablet the mobile trigger intentionally disappears.
-  // Return focus to the first desktop Market AI metric instead of a removed trigger/document fallback.
-  if(dialog?.open)closeDashboardNativeDialog(dialog,{fallbackSelector:'#market-ai-section [data-market-ai-tooltip]'});
   if(row.parentElement!==hero)hero.appendChild(row);
-  document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.remove();
+  document.getElementById(MARKET_AI_PHONE_INLINE_SLOT_ID)?.remove();
   row.dataset.marketAiPlacement='hero';
   observeMarketAiHeroWidth(row,hero);
   hero.classList.add('market-ai-mounted');
 }
 
-// [MARKET09] Mount / Render · 하나의 canonical panel을 Hero ↔ Mobile dialog 사이에서 재사용
+// [MARKET09] Mount / Render · 하나의 canonical panel을 Hero ↔ Phone inline slot 사이에서 재사용
 function createMarketAiSection(){
   const row=document.createElement('aside');
   row.id='market-ai-section';
@@ -1098,11 +1042,8 @@ function removeMarketAiUi(){
   hideMarketAiTooltip();
   const row=document.getElementById('market-ai-section');
   const hero=document.querySelector('#app > .wrap > .hero');
-  const dialog=document.getElementById(MARKET_AI_MOBILE_DIALOG_ID);
-  if(dialog?.open)closeDashboardNativeDialog(dialog,{fallbackSelector:`#${MARKET_AI_MOBILE_TRIGGER_ID}`});
   row?.remove();
-  dialog?.remove();
-  document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.remove();
+  document.getElementById(MARKET_AI_PHONE_INLINE_SLOT_ID)?.remove();
   stopMarketAiHeroWidthObserver(hero);
   hero?.classList.remove('market-ai-mounted');
   document.querySelectorAll('[data-section-target="market-ai-section"]').forEach(item=>item.remove());

@@ -67,7 +67,7 @@ test('Main module architecture는 순수 core·공통 UI owner·중립 Market AI
   assert.doesNotMatch(core,/\bdocument\b/);
   assert.doesNotMatch(core,/\bwindow\b/);
   assert.deepEqual(importsOf(modal),[]);
-  assert.deepEqual(importsOf(marketAi),['./dashboard-modal.js','./dashboard-market-ai-client.js']);
+  assert.deepEqual(importsOf(marketAi),['./dashboard-market-ai-client.js']);
   assert.deepEqual(importsOf(marketAiClient),[]);
   assert.deepEqual(importsOf(liveValuation),['./dashboard-core.js','./dashboard-market-ai-client.js']);
 
@@ -731,36 +731,34 @@ test('Modal lifecycle는 focus trap / focus return / inert / ESC를 공통 layer
   assert.match(modal1,/target\?\.focus\?\.\(\{preventScroll:true\}\)/);
 });
 
-test('Market AI responsive 전환은 focus handoff와 content-driven card layout을 유지한다',()=>{
+test('Market AI responsive 전환은 Phone inline owner와 content-driven card layout을 유지한다',()=>{
   const start=marketAi.indexOf('function syncMarketAiResponsiveMount');
   const end=marketAi.indexOf('\n// [MARKET09]',start);
   assert.ok(start>=0&&end>start,'Market AI responsive mount block is missing');
   const block=marketAi.slice(start,end);
-  assert.match(block,/const handoffToMobileTrigger=row\.dataset\.marketAiPlacement==='hero'&&row\.contains\(document\.activeElement\)/);
-  assert.match(block,/const trigger=marketAiMobileTrigger\(hero\)/);
-  assert.match(block,/if\(handoffToMobileTrigger&&trigger\)\{[^]*?trigger\.focus\(\{preventScroll:true\}\)/);
-  assert.match(block,/closeDashboardNativeDialog\(dialog,\{fallbackSelector:'#market-ai-section \[data-market-ai-tooltip\]'\}\)/);
-  const closeIndex=block.indexOf("fallbackSelector:'#market-ai-section [data-market-ai-tooltip]'");
-  const removeIndex=block.indexOf("document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.remove()");
-  const appendIndex=block.indexOf("if(row.parentElement!==hero)hero.appendChild(row)");
-  assert.ok(closeIndex>=0&&appendIndex>closeIndex&&removeIndex>appendIndex,'dialog close → desktop row mount → mobile trigger remove 순서를 유지해야 한다');
-  // 사용자 contract만 보호하고 정확한 inset/gap/flex 구현까지 고정하지 않는다.
+
+  // owner/viewport contract만 보호하고 appendChild/remove 같은 구현 순서는 고정하지 않는다.
+  assert.match(block,/marketAiPhoneInlineSlot\(hero\)[^]*marketAiPlacement='phone-inline'[^]*marketAiPlacement='hero'/,'Phone inline ↔ Web/Tablet Hero owner 전환 계약을 유지해야 한다');
+  assert.match(marketAi,/marketAiPhoneMedia\.addEventListener\('change',scheduleMount\)/,'Phone 경계 변경은 새로고침 없이 owner를 재동기화해야 한다');
+  assert.doesNotMatch(`${marketAi}\n${special}`,/MARKET_AI_MOBILE_TRIGGER_ID|marketAiMobileTrigger|openMarketAiMobileDialog|market-ai-mobile-trigger|MARKET_AI_MOBILE_DIALOG_ID|marketAiMobileDialog|market-ai-mobile-dialog|market-ai-mobile-close|modal-main-title/,'폐기된 Phone trigger/dialog 표현을 다시 도입하면 안 된다');
+
   const heroPlacementStart=common.indexOf('#market-ai-section[data-market-ai-placement="hero"]{');
   const heroPlacementEnd=common.indexOf('\n}',heroPlacementStart);
   const heroPlacement=common.slice(heroPlacementStart,heroPlacementEnd);
   assert.ok(heroPlacementStart>=0&&heroPlacementEnd>heroPlacementStart,'Desktop/Tablet Market AI Hero placement block이 필요하다');
-  assert.match(heroPlacement,/position:absolute;[^}]*top:50%;[^}]*transform:translateY\(-50%\)/,'Desktop/Tablet Market AI는 Hero 높이 계산에서 분리된 자연 크기로 세로 중앙 배치되어야 한다');
-  assert.doesNotMatch(heroPlacement,/bottom:|height:100%/,'Market AI 카드 높이를 Hero 가용 높이에 맞춰 stretch하면 안 된다');
-  assert.match(common,/var\(--market-ai-reserved-width,0px\)/,'Hero title/pill은 Market AI 최대폭이 아니라 실측 예약폭을 사용해야 한다');
-  assert.match(marketAi,/new ResizeObserver\(\(\)=>syncMarketAiHeroReservedWidth\(row,hero\)\)/,'Market AI 자연 폭 변화는 ResizeObserver로 Hero 예약폭에 반영해야 한다');
-  assert.doesNotMatch(common,/max-width:calc\(100% - var\(--market-ai-column-max\) - var\(--market-ai-layout-gap\)\)/,'Hero 왼쪽 영역이 Market AI 최대폭 전체를 고정 예약하면 안 된다');
+  assert.match(heroPlacement,/position:absolute;[^}]*top:50%;[^}]*transform:translateY\(-50%\)/,'Desktop/Tablet Market AI는 Hero 높이 계산에서 분리된 자연 크기로 중앙 배치되어야 한다');
+  assert.doesNotMatch(heroPlacement,/bottom:|height:100%/,'Market AI 카드를 Hero 가용 높이에 맞춰 stretch하면 안 된다');
+
+  // 폭/열 contract는 사용자에게 보이는 결과만 보호한다. 정확한 gap·observer helper 구현은 고정하지 않는다.
+  assert.match(common,/var\(--market-ai-reserved-width,0px\)/,'Hero title/pill은 Market AI 실측 예약폭을 사용해야 한다');
   assert.doesNotMatch(common,/--market-ai-group-columns|minmax\(0,13fr\).*minmax\(0,7fr\)/,'Market AI card 폭을 고정 비율로 되돌리면 안 된다');
-  assert.match(common,/\.market-ai-desktop\{[^}]*width:max-content;[^}]*max-width:100%;/,'공통 Market AI card group은 내용 기반 폭을 사용해야 한다');
-  assert.match(common,/\.market-ai-desktop-metric\{[^}]*grid-template-columns:subgrid;/,'카드 내부 label/value/change는 공통 세로 열을 공유해야 한다');
-  assert.match(special,/\.market-ai-mobile-dialog \.market-ai-desktop\{[^}]*width:100%;[^}]*\}[^]*\.market-ai-mobile-dialog \.market-ai-card-row\{[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content;/,'Phone Market AI는 dialog 폭을 채우면서 label 좌측 / value·change 우측 열을 유지해야 한다');
-  assert.match(tablet,/\.hero \.hero-return-pill\{display:none\}/,'Tablet Hero는 Market AI와 한 줄을 유지하도록 수익률 pill을 숨겨 손익 pill 2개만 유지해야 한다');
-  assert.match(special,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/,'Phone Landscape는 넓은 가로폭을 활용해 수익률 pill을 복원하고 4개를 유지해야 한다');
+  assert.match(common,/\.market-ai-desktop\{[^}]*width:max-content;[^}]*max-width:100%;[^]*\.market-ai-desktop-metric\{[^}]*grid-template-columns:subgrid;/,'공통 Market AI는 내용 기반 폭과 공통 label/value/change 열 정렬을 유지해야 한다');
+  assert.match(special,/#market-ai-section\[data-market-ai-placement="phone-inline"\][^]*\.market-ai-card-row\{[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content;/,'Phone inline은 가용폭을 채우며 label 좌측 / value·change 우측 정렬을 유지해야 한다');
+
+  assert.match(tablet,/\.hero \.hero-return-pill\{display:none\}/,'Tablet Hero는 Market AI와 한 줄을 유지하도록 pill 2개를 유지해야 한다');
+  assert.match(special,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/,'Phone Landscape는 pill 4개를 유지해야 한다');
 });
+
 
 test('Market AI contract: KOSPI200 선물 / SOX 현물 / NQ100 선물 symbol을 고정한다',()=>{
   assert.match(marketAi,/MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200'/);

@@ -182,12 +182,37 @@
    Trigger · 조건: Mobile ≤760px 또는 실제 터치폰 가로모드(landscape + width≤960 + height≤500)
    Why · 이유: 일반 세로폰과 대형 스마트폰 가로화면은 입력 방식과 낮은 세로 공간이 같으므로,
    타이포·여백·control·표 밀도는 동일한 compact 기준을 공유한다.
-   Scope · 범위: Market AI 모바일 진입/Modal, 폰용 토큰, 퇴직연금 모달 density, Mobile Topbar, Hero, 차트 compact UI, KPI, 성과 요약, 인사이트, 데이터 표 밀도.
+   Scope · 범위: Market AI Phone inline 배치, 폰용 토큰, 퇴직연금 모달 density, Mobile Topbar, Hero, 차트 compact UI, KPI, 성과 요약, 인사이트, 데이터 표 밀도.
    ------------------------------------------------------------------------- */
 @media (max-width:760px),
        (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  /* Market AI Phone · Hero의 Desktop 절대배치 panel은 숨기고 실제 panel DOM은 dialog로 이동 재사용 */
+  /* Market AI Phone Inline · slot은 Hero 바로 아래 normal-flow 간격만 소유하고, panel 표현은 placement state로 제어한다. */
     .hero > #market-ai-section{display:none}
+    .market-ai-phone-inline-slot{
+      width:100%;
+      margin-top:var(--space-2xl);
+    }
+    .market-ai-phone-inline-slot:empty{display:none}
+    #market-ai-section[data-market-ai-placement="phone-inline"]{
+      display:block;
+      width:100%;
+      max-width:none;
+    }
+    #market-ai-section[data-market-ai-placement="phone-inline"] .market-ai-title{display:none}
+    #market-ai-section[data-market-ai-placement="phone-inline"] .market-ai-heading{justify-content:flex-end}
+    /* Phone Market AI Width · 고정 비율 없이 inline 가용폭을 채우고, label은 좌측 / value·change는 우측 열에 정렬한다. */
+    #market-ai-section[data-market-ai-placement="phone-inline"] .market-ai-desktop{
+      width:100%;
+      max-width:none;
+      margin-left:0;
+      justify-content:stretch;
+    }
+    #market-ai-section[data-market-ai-placement="phone-inline"] .market-ai-card-row{
+      flex:1 1 auto;
+      width:auto;
+      max-width:none;
+      grid-template-columns:minmax(0,1fr) max-content max-content;
+    }
 
   /* Phone Control Tokens · 세로폰/가로폰 공통 compact control */
     :root{
@@ -351,86 +376,6 @@
       letter-spacing:-.02em;
     }
 
-  /* Market AI Phone Entry · Hero 제목 우측 compact 버튼 + 동일 panel을 이동 재사용하는 native dialog */
-    .hero-title-row .market-ai-mobile-trigger{
-      display:inline-flex;
-      align-self:center;
-      margin-left:auto;
-      border-color:var(--hero-pill-border);
-      background:var(--hero-pill-bg);
-      color:var(--hero-pill-color);
-      font-size:var(--dashboard-control-font-size);
-      letter-spacing:-.02em;
-    }
-    .market-ai-mobile-dialog{
-      --modal-card-width:100%;
-      --modal-card-radius:min(var(--surface-radius-level-1),var(--corner-surface-cap));
-      --modal-card-pad-y:var(--space-4xl);
-      --modal-card-pad-x:var(--space-4xl);
-      --modal-backdrop-blur:6px;
-      --modal-overlay-color:var(--modal-overlay-soft);
-      width:min(var(--market-ai-mobile-dialog-width),calc(100vw - 24px));
-      max-width:calc(100vw - 24px);
-      max-height:calc(100dvh - var(--space-8xl));
-      margin:auto;
-      padding:0;
-      border:0;
-      background:transparent;
-      color:var(--ink);
-      overflow:visible;
-    }
-    .market-ai-mobile-dialog:not([open]){display:none}
-    .market-ai-mobile-dialog:focus{outline:none}
-    .market-ai-mobile-dialog::backdrop{
-      background:var(--modal-overlay-color);
-      backdrop-filter:blur(var(--modal-backdrop-blur));
-      -webkit-backdrop-filter:blur(var(--modal-backdrop-blur));
-    }
-    .market-ai-mobile-dialog-card{
-      box-sizing:border-box;
-      width:100%;
-      max-height:calc(100dvh - var(--space-8xl));
-      overflow:auto;
-    }
-    .market-ai-mobile-dialog-content{width:100%}
-    .market-ai-mobile-dialog #market-ai-section{
-      display:block;
-      width:100%;
-      max-width:none;
-    }
-    .market-ai-mobile-dialog .market-ai-panel{
-      box-sizing:border-box;
-      width:100%;
-      padding:0;
-      border:0;
-      border-radius:0;
-      background:transparent;
-      box-shadow:none;
-    }
-    /* Phone Market AI Width · 고정 비율 없이 dialog 폭을 채우고, label은 좌측 / value·change는 우측 열에 정렬한다. */
-    .market-ai-mobile-dialog .market-ai-desktop{
-      width:100%;
-      max-width:none;
-      margin-left:0;
-      justify-content:stretch;
-    }
-    .market-ai-mobile-dialog .market-ai-card-row{
-      flex:1 1 auto;
-      width:auto;
-      max-width:none;
-      grid-template-columns:minmax(0,1fr) max-content max-content;
-    }
-    .market-ai-mobile-dialog .market-ai-heading{
-      min-height:var(--icon-button-size);
-      padding-right:calc(var(--icon-button-size) + var(--space-lg));
-      margin-bottom:var(--space-2xl);
-    }
-    .market-ai-mobile-close{
-      position:absolute;
-      top:var(--space-3xl);
-      right:var(--space-3xl);
-      z-index:2;
-    }
 
   /* Mini / Metric Cards · 카드 밀도는 세로폰 기준 공유 */
     .mini-card{

@@ -450,7 +450,6 @@
   --market-ai-metric-column-gap:30px;
   --market-ai-market-data-gap:var(--space-5xl);
   --market-ai-tooltip-max-width:308px;
-  --market-ai-mobile-dialog-width:360px;
 
   --accent-strong-bg:#2b3d59;
   --on-accent-text:#ffffff;
@@ -767,7 +766,6 @@ button svg{pointer-events:none;flex-shrink:0}
 .hero.market-ai-mounted .hero-metric-pills{
   max-width:calc(100% - var(--market-ai-reserved-width,0px) - var(--market-ai-layout-gap));
 }
-.hero-title-row .market-ai-mobile-trigger{display:none}
 
 /* Market AI Layout Wrapper · 바깥 DOM은 mount/lifecycle용으로 유지하되 시각적 패널 chrome은 두지 않는다. */
 #market-ai-section{

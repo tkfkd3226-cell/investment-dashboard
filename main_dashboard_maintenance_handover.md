@@ -260,7 +260,7 @@ js/
 └─ dashboard-app.js
 ```
 
-`dashboard-market-ai.js`는 두 번째 standalone entry이며, 저수준 `dashboard-modal.js`와 transport-only `dashboard-market-ai-client.js`만 공유한다.
+`dashboard-market-ai.js`는 두 번째 standalone entry이며, transport-only `dashboard-market-ai-client.js`만 공유한다.
 
 책임 경계:
 
@@ -576,7 +576,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 ## 2.8 `dashboard-market-ai.js` standalone 책임
 
-`dashboard-market-ai.js`는 main feature state와 분리된 **현재 시장·AI 신호 조회 전용 standalone entry**다. `dashboard-modal.js`의 저수준 dialog lifecycle과 `dashboard-market-ai-client.js`의 endpoint/timeout transport·Dashboard-side 사용 preference만 공유하며, signal panel의 polling/state/mount/render는 자체 소유한다.
+`dashboard-market-ai.js`는 main feature state와 분리된 **현재 시장·AI 신호 조회 전용 standalone entry**다. `dashboard-market-ai-client.js`의 endpoint/timeout transport·Dashboard-side 사용 preference만 공유하며, signal panel의 polling/state/mount/render는 자체 소유한다.
 
 현재 책임과 불변조건:
 
@@ -789,8 +789,8 @@ Market AI Desktop baseline / 공통 component
 Market AI Tablet 배치
 → css/tablet.css의 Hero 인접 영역
 
-Market AI Phone 진입 버튼 / native dialog / mounted panel 이동
-→ css/special.css의 Phone UI Shared 기능 viewport
+Market AI Phone inline 배치 / mounted panel 이동
+→ css/special.css의 Phone UI Shared 기능 viewport (`slot`은 바깥 간격, `data-market-ai-placement="phone-inline"`은 panel 표현 소유)
 ```
 
 단, 기능의 실제 책임을 확인한 뒤 판단하며 파일명만 보고 무조건 수정하지 않는다.
@@ -813,7 +813,7 @@ live-valuation     → core + market-ai-client
 app                → core + ui-common + modal + charts + ui + pension + pension-editor + live-valuation
 
 standalone entry
-market-ai          → modal + market-ai-client
+market-ai          → market-ai-client
 ```
 
 `core`, `modal`, `market-ai-client`는 서로 독립적인 저수준 foundation을 유지한다. `dashboard-live-valuation.js`는 current-date quote overlay adapter로만 main graph에 참여하고, `dashboard-market-ai.js`는 signal panel standalone 책임을 유지한다.
@@ -828,7 +828,7 @@ charts → ui 역참조 금지
 하위 module → app import 금지
 pension View ↔ pension-editor 상호 import 금지
 live-valuation → UI/pension/charts import 금지
-market-ai → modal + market-ai-client 외 main feature import 금지
+market-ai → market-ai-client 외 main feature import 금지
 circular import = 0
 ```
 
@@ -891,7 +891,7 @@ importmap
 
 ## 2.15 main graph 단일 entry와 Market AI standalone 분리를 유지한다
 
-현재 `dashboard-app.js`에서 도달하는 main dependency graph는 **12개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 두 번째 standalone entry로 main boot 책임을 공유하지 않는다. 두 entry는 저수준 `dashboard-market-ai-client.js` transport를 공유하고, Market AI standalone은 dialog lifecycle을 위해 `dashboard-modal.js`도 공유한다.
+현재 `dashboard-app.js`에서 도달하는 main dependency graph는 **12개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 두 번째 standalone entry로 main boot 책임을 공유하지 않는다. 두 entry는 저수준 `dashboard-market-ai-client.js` transport만 공유한다.
 
 ```text
 index.html
@@ -1010,11 +1010,11 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - local/remote 모두 실제 API를 사용하고 공통 endpoint/timeout 선택은 `dashboard-market-ai-client.js`를 canonical source로 한다.
 - 예시 데이터 전용 모드를 다시 도입하지 않는다.
 - Phone의 `dashboard-view`는 화면형태만 바꾼다.
-- local/remote 모두 실제 endpoint 응답이 확인되기 전까지 Market AI signal UI를 mount하지 않는다. 세 endpoint가 모두 실패하면 `OFFLINE`으로 종료해 panel·button·dialog와 자동 polling을 제거하고, 사용자가 `Market AI 연결 켜기`를 다시 실행할 때 새 확인 세션을 시작한다. 이 과정은 일반 대시보드의 저장 데이터 기반 기능을 깨뜨리지 않는다.
-- Desktop/Tablet Hero와 Mobile dialog가 같은 signal panel DOM을 재사용하는 구조를 유지한다.
-- Desktop/Tablet에서 Market AI panel은 Hero의 normal flow/grid 높이 계산에서 분리해 우측에 절대배치한다. Hero 자체 `--hero-pad`와 기존 자연 높이는 바꾸지 않고, Market AI 카드도 자체 높이·내부 padding·row geometry를 축소하거나 stretch하지 않는다. 카드는 `top:50%` 기준으로 세로 중앙에 원래 크기 그대로 배치하며, Hero 우측 경계와 Market AI 사이에는 `--market-ai-hero-edge-gap`의 별도 compact inset만 사용한다. 따라서 Market AI가 없을 때의 Hero geometry를 유지하면서 카드와 Hero 경계 사이 여백만 기존 Hero 내부 padding보다 작게 허용한다. 왼쪽 title/pill은 `ResizeObserver`로 실측한 Market AI의 현재 자연 폭(`--market-ai-reserved-width`)과 layout gap만큼만 우측 영역을 예약하며, `--market-ai-column-max` 전체를 선점하지 않는다. 카드 내용·폰트·Tablet max-width 변화로 실제 폭이 달라지면 예약폭도 즉시 따라가고, 좁은 Tablet에서 왼쪽 내용이 실제로 wrap될 때만 그 자연 높이가 Hero 높이에 반영된다. Phone 전환 시 observer와 예약폭을 정리하고 같은 panel DOM을 dialog로 이동한다.
-- Market AI의 시장/신호 두 카드는 Web·Tablet·Phone 모두 `13:7` 같은 고정 비율을 사용하지 않는다. 카드 바깥 폭은 공통 `content-driven` 방식으로 시작하고, **각 카드 내부에서는 label / 값 / 등락률 열의 세로 기준선을 행 전체가 공유**한다. label→값 간격은 30px, 값→등락률 간격은 12px이며 시장 카드는 지수값과 등락률을 독립된 열로 정렬한다. Phone은 Market AI 카드 묶음이 dialog 가로폭을 채우도록 확장하되, 각 카드 안에서는 **label 열만 좌측에 두고 값·등락률 열은 우측에 붙여** 좁은 화면의 가로 공간을 활용한다. 이때도 `13:7`이나 `1:1` 같은 고정 비율 contract는 두지 않는다.
-- Phone에서는 Market AI metric tooltip을 활성화하지 않는다. Responsive 전환의 keyboard focus handoff는 양방향 대칭으로 유지한다. Phone dialog가 열린 채 Desktop/Tablet 조건으로 전환되면 사라지는 mobile trigger 대신 Desktop Market AI metric으로 focus를 반환하고, Desktop/Tablet metric에 focus가 있는 상태에서 Phone contract로 전환되면 새 Mobile `AI Signal` trigger로 focus를 넘긴다.
+- local/remote 모두 실제 endpoint 응답이 확인되기 전까지 Market AI signal UI를 mount하지 않는다. 세 endpoint가 모두 실패하면 `OFFLINE`으로 종료해 signal panel과 자동 polling을 제거하고, 사용자가 `Market AI 연결 켜기`를 다시 실행할 때 새 확인 세션을 시작한다. 이 과정은 일반 대시보드의 저장 데이터 기반 기능을 깨뜨리지 않는다.
+- Desktop/Tablet Hero와 Phone Hero 바로 아래 inline slot이 같은 signal panel DOM을 재사용하는 구조를 유지한다.
+- Desktop/Tablet에서 Market AI panel은 Hero의 normal flow/grid 높이 계산에서 분리해 우측에 절대배치한다. Hero 자체 `--hero-pad`와 기존 자연 높이는 바꾸지 않고, Market AI 카드도 자체 높이·내부 padding·row geometry를 축소하거나 stretch하지 않는다. 카드는 `top:50%` 기준으로 세로 중앙에 원래 크기 그대로 배치하며, Hero 우측 경계와 Market AI 사이에는 `--market-ai-hero-edge-gap`의 별도 compact inset만 사용한다. 따라서 Market AI가 없을 때의 Hero geometry를 유지하면서 카드와 Hero 경계 사이 여백만 기존 Hero 내부 padding보다 작게 허용한다. 왼쪽 title/pill은 `ResizeObserver`로 실측한 Market AI의 현재 자연 폭(`--market-ai-reserved-width`)과 layout gap만큼만 우측 영역을 예약하며, `--market-ai-column-max` 전체를 선점하지 않는다. 카드 내용·폰트·Tablet max-width 변화로 실제 폭이 달라지면 예약폭도 즉시 따라가고, 좁은 Tablet에서 왼쪽 내용이 실제로 wrap될 때만 그 자연 높이가 Hero 높이에 반영된다. Phone 전환 시 observer와 예약폭을 정리하고 같은 panel DOM을 Hero 바로 아래 inline slot로 이동한다.
+- Market AI의 시장/신호 두 카드는 Web·Tablet·Phone 모두 `13:7` 같은 고정 비율을 사용하지 않는다. 카드 바깥 폭은 공통 `content-driven` 방식으로 시작하고, **각 카드 내부에서는 label / 값 / 등락률 열의 세로 기준선을 행 전체가 공유**한다. label→값 간격은 30px, 값→등락률 간격은 12px이며 시장 카드는 지수값과 등락률을 독립된 열로 정렬한다. Phone은 Market AI 카드 묶음이 inline 가용폭을 채우도록 확장하되, 각 카드 안에서는 **label 열만 좌측에 두고 값·등락률 열은 우측에 붙여** 좁은 화면의 가로 공간을 활용한다. 이때도 `13:7`이나 `1:1` 같은 고정 비율 contract는 두지 않는다.
+- Phone에서는 Market AI metric tooltip을 활성화하지 않는다. Responsive 전환 시 동일 panel DOM만 `Hero 우측 ↔ Hero 바로 아래 inline slot` 사이에서 이동하며, viewport 전환 때문에 별도 trigger나 modal/dialog를 생성하지 않는다.
 - Desktop/Tablet의 **시장 카드 본체와 metric tooltip은 `marketAiMarketDisplayModel()` 하나를 공통 Source of Truth로 사용**한다. 화면 카드와 tooltip이 서로 다른 row/fallback 판단을 갖지 않는다. Tooltip은 KOSPI·SOX·NQ100선물에서 `현재가 → 등락률 → 상태 → 출처 → 기준 시각`, K200선물만 `상태` 다음에 `세션`을 추가해 `현재가 → 등락률 → 상태 → 세션 → 출처 → 기준 시각` 순서를 사용한다.
 - 시장 tooltip 상태 문구는 실제 거래 세션과 freshness를 분리한다. `fresh=정상`, `stale=데이터 지연`, `missing=데이터 없음`, `preopen=장전`, `closed=장마감`, `maintenance=거래중단`을 사용한다. K200 전용 오류 상태는 `bridge=Bridge 지연`, `source=선물 데이터 확인 필요`다. `stale`은 해당 시장이 실제 거래시간일 때만 의미가 있다.
 - `기준 시각`은 상태와 무관하게 같은 라벨을 사용한다. KIS eFriend KOSPI/K200은 유효한 `business_time(HHMMSS)`이 있으면 실제 시장시각을 우선하고, 값이 없거나 유효하지 않으면 `observed_at` KST 시각으로 fallback한다. Yahoo SOX/NQ는 `observed_at`을 사용한다. `갱신`, `마지막 수신`, `데이터`처럼 상태와 시각/출처 의미를 섞는 라벨을 시장 tooltip에 다시 만들지 않는다.
@@ -1170,7 +1170,7 @@ tablet.css
 
 special.css
 → Market AI용 Compact Desktop override는 두지 않는다.
-→ Phone UI Shared에서 Hero의 Desktop panel을 숨기고 AI Signal trigger + native dialog로 같은 panel을 이동·재사용
+→ Phone UI Shared에서 Hero의 Desktop panel을 숨기고 같은 panel을 Hero 바로 아래 inline slot로 이동·재사용
 ```
 
 특수 media가 같은 조건을 공유하는 경우 media block을 불필요하게 복제하기보다 하나의 trigger block 안에서 기능별 sub-comment를 분리하고, 상단 `Scope` 주석에 포함 기능을 정확히 적는다.
