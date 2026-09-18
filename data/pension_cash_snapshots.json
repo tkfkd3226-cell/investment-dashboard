@@ -626,10 +626,10 @@
   },
   {
     "date": "2026-09-18",
-    "valuation": 39993,
+    "valuation": 39987,
     "memo": "현금성자산 앱 확인",
     "updatedBy": "google-apps-script",
-    "updatedAtKST": "2026-09-19T07:37:58+09:00",
+    "updatedAtKST": "2026-09-19T07:40:01+09:00",
     "costBasis": 11713,
     "afterTradeIds": [
       "trade-2026-08-11-448330-6267d507-cd21-43d0-b28f-c13de6aae35d",
@@ -640,7 +640,7 @@
       "contrib-2026-07-31-29fa5f29-83d2-4b79-a756-32de1003a3c2",
       "contrib-2026-09-01-4e6c78da-d01e-4fe9-ad27-14677b8fe392"
     ],
-    "requestId": "cash-2026-09-18-b627ae26-c89a-4cbf-8f43-5e2d81216484",
-    "logicalOperationId": "cash-2026-09-18-b627ae26-c89a-4cbf-8f43-5e2d81216484"
+    "requestId": "cash-2026-09-18-8e3e0d95-013a-4af1-9ac8-1bfd3193015e",
+    "logicalOperationId": "cash-2026-09-18-8e3e0d95-013a-4af1-9ac8-1bfd3193015e"
   }
 ]
