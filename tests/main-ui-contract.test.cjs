@@ -103,7 +103,7 @@ test('Tablet hamburger는 TOPbar 중복 관리 메뉴를 제외하고 Phone은 �
   assert.match(responsiveMenu,/tabletTopbarDuplicate:true/,'TOPbar와 중복되는 관리 그룹을 식별해야 한다');
   assert.match(ui,/mobile-nav-group-tablet-topbar-duplicate/,'중복 그룹 class를 렌더링해야 한다');
   assert.match(ui,/mobile-nav-item-tablet-topbar-duplicate/,'링크 그룹 안의 TOPbar 중복 항목도 식별해야 한다');
-  assert.match(common,/\.switcher\.tablet-topbar-ui :is\(\.mobile-nav-group-tablet-topbar-duplicate,\.mobile-nav-item-tablet-topbar-duplicate\)\{display:none\}/,'동기화된 Tablet 상태에서 중복 관리 그룹과 링크 항목을 숨겨야 한다');
+  assert.match(common,/\.switcher\.tablet-topbar-ui \.date-action-menu\.mobile-combined-menu :is\(\.mobile-nav-group-tablet-topbar-duplicate,\.mobile-nav-item-tablet-topbar-duplicate\)\{display:none\}/,'동기화된 Tablet 상태의 숨김 규칙은 공통 nav item display 규칙보다 높은 우선순위여야 한다');
   assert.doesNotMatch(tablet,/mobile-nav-(?:group|item)-tablet-topbar-duplicate[^}]*display:none/,'media query만으로 숨김을 소유하면 F12 viewport 전환에서 상태가 늦게 맞을 수 있다');
   assert.doesNotMatch(special,/\.mobile-nav-group-tablet-topbar-duplicate\{display:none\}/,'Phone에서는 관리 그룹을 유지해야 한다');
   assert.match(ui,/function tabletTopbarUi\(\)[^]*?!phoneUi\(\)[^]*?min-width:761px[^]*?max-width:1100px/,'Tablet 판정은 Phone 가로 조건과 겹치지 않아야 한다');
