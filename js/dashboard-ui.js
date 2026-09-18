@@ -441,12 +441,6 @@ function renderTabs(){
         <select class="date-select day-select" id="dateSelect" aria-label="일 선택" aria-controls="app">${monthDates.map(d=>`<option value="${d}" ${d===dataState.activeDate?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
       </div>
       <div class="date-picker-action" role="group" aria-label="대시보드 도구">
-        <button type="button" class="date-tool-btn date-tool-btn-desktop" title="월간 손익" aria-label="월간 손익" data-dashboard-action="open-monthly-calendar">
-          <span class="date-tool-action-icon">${navIconSvg('period')}</span><span class="topbar-label-full">월간 손익</span><span class="topbar-label-short">월간</span>
-        </button>
-        <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-market-action topbar-realtime-quotes-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
-          <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span><span class="topbar-label-full">${REALTIME_QUOTES_ACTION.title}</span><span class="topbar-label-short">${REALTIME_QUOTES_ACTION.title}</span>
-        </button>
         <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" draggable="false" title="코스피200 야간선물">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.kospiNight)}</span><span class="topbar-label-full">코스피200 야간선물</span><span class="topbar-label-short">코스피 야선</span>
         </a>
@@ -459,12 +453,18 @@ function renderTabs(){
         <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-pension-action" title="퇴직연금 금액 조정" aria-label="퇴직연금 금액 조정" data-dashboard-action="open-pension-modal">
           <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.pensionAdjust)}</span><span class="topbar-label-full">퇴직연금 금액 조정</span><span class="topbar-label-short">연금 조정</span>
         </button>
-        <a class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" draggable="false" title="투자 계산기" aria-label="투자 계산기" data-personal-view-control${uiState.personalViewUnlocked?'':' hidden'}>
-          <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span>
-        </a>
+        <button type="button" class="date-tool-btn date-tool-btn-desktop" title="월간 손익" aria-label="월간 손익" data-dashboard-action="open-monthly-calendar">
+          <span class="date-tool-action-icon">${navIconSvg('period')}</span><span class="topbar-label-full">월간 손익</span><span class="topbar-label-short">월간</span>
+        </button>
+        <button type="button" class="date-tool-btn date-tool-btn-desktop topbar-market-action topbar-realtime-quotes-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
+          <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span><span class="topbar-label-full">${REALTIME_QUOTES_ACTION.title}</span><span class="topbar-label-short">${REALTIME_QUOTES_ACTION.title}</span>
+        </button>
         ${phoneUi()?'':(()=>{const model=marketAiConnectionToggleModel();return `<button type="button" class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-market-ai-toggle" title="${model.label}" aria-label="${model.label}" aria-pressed="${model.connected}" data-dashboard-action="toggle-market-ai-connection" data-market-ai-connection-toggle>
           <span class="date-tool-action-icon" data-market-ai-connection-toggle-icon>${navIconSvg(model.icon)}</span>
         </button>`})()}
+        <a class="date-tool-btn date-tool-btn-desktop control-icon-button topbar-calc-action" href="add/calc.html" target="_blank" rel="noopener noreferrer" draggable="false" title="투자 계산기" aria-label="투자 계산기" data-personal-view-control${uiState.personalViewUnlocked?'':' hidden'}>
+          <span class="date-tool-action-icon">${navIconSvg(TOPBAR_ACTION_ICONS.calculator)}</span>
+        </a>
         <button type="button" class="date-tool-btn control-icon-button topbar-realtime-phone-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
           <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span>
         </button>
