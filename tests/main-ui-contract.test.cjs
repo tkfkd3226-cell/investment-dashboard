@@ -169,6 +169,10 @@ test('Topbar는 viewport별 라벨 규칙을 유지하면서 지정된 action �
   assert.match(tablet,/\.date-picker-action \.date-tool-btn-desktop :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Tablet 761~1100px에서는 모든 Desktop action 라벨을 숨겨야 한다');
   assert.match(special,/\.date-tool-btn-desktop\{display:none\}/,'Phone Shared는 Desktop action 자체를 숨겨 별도 모바일 Topbar 계약을 유지해야 한다');
 
+  assert.match(special,/\.switcher:is\(\.mobile-menu-open,\.mobile-date-pinned\) \.date-picker\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\) repeat\(4,var\(--topbar-phone-control-size\)\)/,'Phone 고정/메뉴-open Topbar는 날짜 2열 + action 4열의 단일 행 grid를 유지해야 한다');
+  assert.match(special,/\.switcher:is\(\.mobile-menu-open,\.mobile-date-pinned\) :is\(\.month-select,\.day-select\)\{[^}]*width:100%[^}]*min-width:0[^}]*max-width:none/,'Phone 고정/메뉴-open 날짜 selector는 남는 폭을 2등분하며 action 영역을 밀어내면 안 된다');
+  assert.match(special,/\.topbar-calendar-phone-action\{grid-column:3\}[^]*?\.topbar-realtime-phone-action\{grid-column:4\}[^]*?\.topbar-theme-action\{grid-column:5\}[^]*?\.date-action-menu-wrap\{[^}]*grid-column:6/,'Phone 고정/메뉴-open action은 월간 → 실시간 → 밝기 → hamburger를 한 행 3~6열에 유지해야 한다');
+
   const topbar=ui.slice(ui.indexOf('<div class="date-picker-action"'),ui.indexOf('<div class="date-action-menu-wrap">',ui.indexOf('<div class="date-picker-action"')));
   const desktopOrder=['코스피200 야간선물','나스닥100 선물','topbar-krx-action','topbar-pension-action','data-dashboard-action="open-monthly-calendar"','topbar-realtime-quotes-action','topbar-market-ai-toggle','topbar-calc-action','topbar-theme-action','topbar-corner-action'].map(marker=>topbar.indexOf(marker));
   assert.ok(desktopOrder.every(index=>index>=0)&&desktopOrder.every((index,i)=>i===0||desktopOrder[i-1]<index),'Web/Tablet Topbar는 야간선물 → 나스닥 → KRX → 연금 → 월간 → 실시간 → Market AI → 계산기 → 밝기 → 엣지 순서여야 한다');

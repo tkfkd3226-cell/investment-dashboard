@@ -930,7 +930,7 @@ Mobile  ≤ 760px
 Navigation 책임은 다음 의미를 유지한다.
 
 - Desktop/Tablet Topbar action 순서는 `코스피200 야간선물 → 나스닥100 선물 → KRX 현재가 반영 → 퇴직연금 금액 조정 → 월간 손익 → 실시간 시세 → Market AI 연결 → 투자 계산기 → 밝기 테마 → 엣지 테마`다. 1280px 이상 full label, 1101~1279px short label, Tablet은 같은 순서를 icon-only로 유지한다.
-- Phone 세로/가로 Topbar는 `월간 손익 → 실시간 시세 → 밝기 테마 → hamburger` 순서다. 엣지 테마는 Phone Topbar에 중복 배치하지 않는다.
+- Phone 세로/가로 Topbar는 `월간 손익 → 실시간 시세 → 밝기 테마 → hamburger` 순서다. 날짜 선택 고정/메뉴-open 상태에서도 날짜 selector 2열 + action 4열의 단일 행을 유지하며, 고정 해제 시에는 같은 4개 action을 우측 floating control로 유지한다. 엣지 테마는 Phone Topbar에 중복 배치하지 않는다.
 - Tablet/Phone hamburger는 같은 메뉴 집합을 사용한다. `링크`는 `코스피200 야간선물 → 나스닥100 선물 → 투자 계산기`, `관리`는 `KRX 현재가 반영 → 퇴직연금 금액 조정 → Market AI 연결 → 엣지 테마` 순서이며, 이어서 공통 목차를 표시한다. viewport별 menu item 숨김/복원 분기를 두지 않는다. 단, `날짜 선택 고정`은 fixed Phone Topbar 전용 control이라 Phone에서만 표시한다.
 - Hamburger panel height/scroll: `common.css`가 Tablet/Phone 공통 owner다. Tablet/Phone media에 별도 `max-height` cap을 두지 않고, viewport 높이가 실제로 부족한 경우에만 공통 `overflow:auto`가 작동한다.
 - Desktop은 우측 edge TOC를 추가로 사용한다.

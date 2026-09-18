@@ -680,10 +680,11 @@
     display:grid;
     width:100%;
     height:auto;
-    grid-template-columns:auto auto minmax(0,1fr) var(--topbar-phone-control-size) var(--topbar-phone-control-size) var(--topbar-phone-control-size) var(--topbar-phone-control-size);
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) repeat(4,var(--topbar-phone-control-size));
     gap:var(--space-sm);
   }
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.date-picker-center,.date-picker-action){display:contents}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.month-select,.day-select){width:100%;min-width:0;max-width:none}
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) .month-select{grid-column:1}
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) .day-select{grid-column:2}
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) .control-icon-button{
@@ -699,15 +700,15 @@
     z-index:auto;
     justify-self:end;
   }
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-calendar-phone-action{grid-column:4}
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-realtime-phone-action{grid-column:5}
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-theme-action{grid-column:6}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-calendar-phone-action{grid-column:3}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-realtime-phone-action{grid-column:4}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-theme-action{grid-column:5}
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) .date-action-menu-wrap{
     position:relative;
     top:auto;
     right:auto;
     z-index:auto;
-    grid-column:7;
+    grid-column:6;
     justify-self:end;
   }
 
