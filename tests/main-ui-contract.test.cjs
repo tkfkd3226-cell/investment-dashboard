@@ -175,6 +175,7 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(monthlyCalendar,/leadingPlaceholderCount=businessDaysOnly&&firstWeekday>=5\?0:firstWeekday/,'Phone 월 시작 offset은 토·일 시작 월을 월요일 첫 칸으로 정렬하고 평일 시작 월은 해당 요일 위치를 유지해야 한다');
   assert.match(monthlyCalendar,/is-unavailable[^]*?aria-hidden=\"true\"/,'가용 데이터가 없는 날짜는 선택 control이 아니라 unavailable cell이어야 한다');
   assert.match(monthlyCalendar,/item\.profit==null\?'기준'/,'이전 비교값이 없는 최초 날짜는 0원이 아니라 기준일로 표시해야 한다');
+  assert.match(monthlyCalendar,/absolute>=10_000[^]*?scaled=absolute\/10_000[^]*?scaled\.toFixed\(1\)[^]*?만/,'달력 셀의 만 단위 손익은 100만 이상도 소수점 첫째 자리까지 표시해야 한다');
   assert.match(special,/\.monthly-calendar-summary\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Phone 세로\/가로 공통 요약은 2열로 밀도를 낮춰야 한다');
   assert.match(special,/\.monthly-calendar-head\{[^}]*width:min\(360px,calc\(100% - var\(--icon-button-size\) - var\(--icon-button-size\) - var\(--space-4xl\)\)\)/,'Phone 월 이동 버튼은 닫기 버튼 영역을 침범하지 않도록 안쪽 여백을 확보해야 한다');
 });
