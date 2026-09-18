@@ -920,6 +920,25 @@ const separateProfitView=x=>{
   };
 };
 
+
+function combinedDailyProfitChange(date){
+  const current=calc(date);
+  if(!current?.prevKey)return null;
+  const previous=calc(current.prevKey);
+  const securitiesDayChange=current?.securitiesAssetDetail?.change?.dayChange;
+  if(securitiesDayChange==null||!Number.isFinite(Number(securitiesDayChange)))return null;
+  if(previous.hasPension&&!current.hasPension)return null;
+  let pensionDayChange=0;
+  if(current.hasPension&&previous.hasPension){
+    if(current.pensionDayChange==null||!Number.isFinite(Number(current.pensionDayChange)))return null;
+    pensionDayChange=Number(current.pensionDayChange);
+  }
+  const separateDayChange=uiState.includeSeparateProfit
+    ?separateProfitCumulativeForDate(date)-separateProfitCumulativeForDate(current.prevKey)
+    :0;
+  return Number(securitiesDayChange)+pensionDayChange+separateDayChange;
+}
+
 // [CORE06] Main Calculation · 메인 계산
 function calc(date){
   const p=dataState.portfolio,c=p.constants,s=dataState.prices[date]||{},pk=previousDate(date),prev=pk?dataState.prices[pk]:null,daily=dataState.account1Daily?.[date]||null,extraPensionContrib=pensionContributionSum(date),prevExtraPensionContrib=pk?pensionContributionSum(pk):0,pensionPrincipal=(Number(c.pensionContributionPrincipal)||0)+extraPensionContrib;
@@ -1363,6 +1382,7 @@ export {
   assetPriceColumnLabel,
   assetTypeColor,
   calc,
+  combinedDailyProfitChange,
   cls,
   clearLiveValuationSnapshot,
   cumHistory,

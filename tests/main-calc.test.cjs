@@ -303,6 +303,74 @@ test('Main calc: 연금 데이터가 있으면 증권 + 연금을 combined princ
   approx(x.combinedReturn,800/3000*100);
 });
 
+test('월간 일손익: 계좌2가 합산 범위에 처음 들어오는 날 기존 누적 실현손익을 당일 수익으로 세지 않는다',()=>{
+  setState({
+    prices:{'2026-05-21':{},'2026-05-22':{}},
+    account1Daily:{
+      '2026-05-21':dailySnapshot({profit:250}),
+      '2026-05-22':dailySnapshot({profit:300})
+    }
+  });
+  const current=core.calc('2026-05-22');
+  const previous=core.calc('2026-05-21');
+  assert.equal(current.totalProfit-previous.totalProfit,450,'단순 누적손익 차이는 계좌2 과거수익 400을 포함한다');
+  assert.equal(core.combinedDailyProfitChange('2026-05-22'),50);
+});
+
+test('월간 일손익: 원금 증감은 성과로 잡지 않고 증권의 flow-neutral 전일대비손익만 반영한다',()=>{
+  const previous={...dailySnapshot({profit:100}),totalCost:2000,totalEval:2100,cash:500};
+  const current={...dailySnapshot({profit:100}),totalCost:3000,totalEval:3100,cash:1500};
+  setState({
+    prices:{'2026-05-20':{},'2026-05-21':{}},
+    account1Daily:{'2026-05-20':previous,'2026-05-21':current}
+  });
+  assert.equal(core.calc('2026-05-21').securitiesAssetDetail.change.dayChange,0);
+  assert.equal(core.combinedDailyProfitChange('2026-05-21'),0);
+});
+
+test('월간 일손익: 연금 첫 관측일의 기존 누적손익은 baseline으로 두고 이후부터 전일대비 성과만 합산한다',()=>{
+  const portfolio=basePortfolio({
+    pension:[{name:'연금 ETF',ticker:'278530',qty:10,cost:1000}],
+    constants:baseConstants({pensionContributionPrincipal:1000,pensionCashCost:0})
+  });
+  setState({
+    portfolio,
+    prices:{
+      '2026-06-02':{},
+      '2026-06-04':{pension:{'278530':120,'395160':1,'448330':1,cash:300}},
+      '2026-06-05':{pension:{'278530':121,'395160':1,'448330':1,cash:300}}
+    },
+    account1Daily:{
+      '2026-06-02':dailySnapshot({profit:100}),
+      '2026-06-04':dailySnapshot({profit:100}),
+      '2026-06-05':dailySnapshot({profit:160})
+    }
+  });
+  assert.equal(core.calc('2026-06-04').pensionProfit,500);
+  assert.equal(core.calc('2026-06-04').pensionDayChange,300,'원시 연금 dayChange가 첫 snapshot 현금을 변화로 볼 수 있어도 baseline 편입일에는 합산하지 않는다');
+  assert.equal(core.combinedDailyProfitChange('2026-06-04'),0,'첫 연금 snapshot의 기존 누적손익·현금 baseline은 당일 수익이 아니다');
+  assert.equal(core.calc('2026-06-05').pensionDayChange,10);
+  assert.equal(core.combinedDailyProfitChange('2026-06-05'),70,'증권 60 + 연금 10의 실제 일성과만 합산한다');
+});
+
+test('월간 일손익: 별도수익 ON은 당일 증가분만 더하고 월 첫 거래일도 전월 마지막 가용일과 비교한다',()=>{
+  const portfolio=basePortfolio({
+    separateProfit:{reinvestedLimit:0,trades:[{date:'2026-06-01',profit:200}]}
+  });
+  setState({
+    portfolio,
+    prices:{'2026-05-29':{},'2026-06-01':{}},
+    account1Daily:{
+      '2026-05-29':dailySnapshot({profit:100}),
+      '2026-06-01':dailySnapshot({profit:130})
+    }
+  });
+  core.uiState.includeSeparateProfit=false;
+  assert.equal(core.combinedDailyProfitChange('2026-06-01'),30);
+  core.uiState.includeSeparateProfit=true;
+  assert.equal(core.combinedDailyProfitChange('2026-06-01'),230);
+});
+
 test('누적 차트 데이터: 첫 행 변화는 누적손익, 이후 행은 직전 누적손익과의 차이로 계산한다',()=>{
   setState({
     prices:{

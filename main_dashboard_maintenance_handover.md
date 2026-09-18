@@ -213,6 +213,7 @@ js/
 ├─ dashboard-core.js
 ├─ dashboard-ui-common.js
 ├─ dashboard-modal.js
+├─ dashboard-monthly-calendar.js
 ├─ dashboard-charts.js
 ├─ dashboard-ui.js
 ├─ dashboard-pension.js
@@ -239,9 +240,9 @@ tests/
 
 `img/favicon.png`은 Main과 Add가 공유하는 canonical favicon이다. 루트에 별도 `favicon.png` 복제본을 다시 만들지 않는다.
 
-## 2.2 메인 dependency graph는 11파일 ES Module 구조 유지
+## 2.2 메인 dependency graph는 12파일 ES Module 구조 유지
 
-현재 `dashboard-app.js`에서 도달하는 main graph는 다음 **11개 모듈**이다.
+현재 `dashboard-app.js`에서 도달하는 main graph는 다음 **12개 모듈**이다.
 
 ```text
 js/
@@ -249,6 +250,7 @@ js/
 ├─ dashboard-core.js
 ├─ dashboard-ui-common.js
 ├─ dashboard-modal.js
+├─ dashboard-monthly-calendar.js
 ├─ dashboard-charts.js
 ├─ dashboard-ui.js
 ├─ dashboard-pension.js
@@ -267,6 +269,7 @@ kodex-schema       → KODEX canonical JSON schema 검증 · DOM-free leaf
 core               → 데이터 / 계산 / 공통 state / loading / volatile live-quote snapshot
 ui-common          → 공통 저수준 DOM / 마크업 / shared view-state / feedback·viewport helper
 modal              → custom/native dialog lifecycle / focus / inert / body lock
+monthly-calendar   → 기존 flow-neutral 일손익 기반 월간 calendar / 월 탐색 modal content
 charts             → 차트 state / SVG / chart action
 ui                 → 일반 UI / topbar / navigation / UI action
 pension            → 퇴직연금 조회 View
@@ -402,6 +405,16 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 - background inert / body scroll lock / nested modal count
 
 각 feature는 modal 안의 데이터·저장·API·렌더링을 계속 직접 소유한다. Modal markup 전체를 범용 factory로 합치지 않는다.
+
+### `dashboard-monthly-calendar.js`
+
+월간 손익 캘린더는 새 운영 JSON이나 별도 성과 산식을 만들지 않는다. `dashboard-core.js`의 기존 전일 대비 성과 의미를 재사용해 **증권의 flow-neutral `dayChange` + 비교 가능한 연금 `pensionDayChange` + 선택 시 별도수익의 당일 증가분**을 합산한다. 따라서 계좌2·토스의 기존 누적 실현손익이 합산 범위에 처음 들어오는 날이나 연금 데이터가 처음 관측되는 날의 과거 누적손익을 그날 수익으로 오인하지 않는다.
+
+- Web/Tablet은 Topbar `월간 손익` action, Phone은 `관리` 메뉴에서 같은 action으로 연다.
+- 월 이동은 실제 가용 데이터가 존재하는 월 목록 안에서만 이동한다.
+- 날짜 cell 선택은 캘린더 모듈이 `activeDate`를 직접 바꾸지 않고 `dashboard-app.js`의 `setActiveDashboardDate()`로 위임한다.
+- overlay/focus/inert/Escape/backdrop 처리는 `dashboard-modal.js` lifecycle을 재사용한다.
+- calendar geometry와 손익 의미색은 새 독립 디자인 체계를 만들지 않고 기존 spacing/type/surface/value token을 재사용한다.
 
 ### Asset Detail 공통 불변조건
 
@@ -645,6 +658,9 @@ dashboard-ui-common.js
 dashboard-modal.js
 → focus stack / body lock count / native dialog lifecycle state
 
+dashboard-monthly-calendar.js
+→ monthlyCalendarState / 현재 탐색 월
+
 dashboard-charts.js
 → chartState
 → chartRuntimeState
@@ -690,6 +706,7 @@ dashboard-market-ai.js
 ```text
 차트 계산/DOM/action → charts
 Topbar/Navigation/UI action → ui
+월간 손익 calendar view/model → monthly-calendar
 공통 저수준 UI helper → ui-common
 Modal/Dialog lifecycle → modal
 퇴직연금 조회 View → pension
@@ -870,11 +887,15 @@ importmap
 
 ## 2.15 main graph 단일 entry와 Market AI standalone 분리를 유지한다
 
-현재 `dashboard-app.js`에서 도달하는 main dependency graph는 **11개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 두 번째 standalone entry로 main boot 책임을 공유하지 않는다. 두 entry는 저수준 `dashboard-market-ai-client.js` transport를 공유하고, Market AI standalone은 dialog lifecycle을 위해 `dashboard-modal.js`도 공유한다.
+현재 `dashboard-app.js`에서 도달하는 main dependency graph는 **12개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 두 번째 standalone entry로 main boot 책임을 공유하지 않는다. 두 entry는 저수준 `dashboard-market-ai-client.js` transport를 공유하고, Market AI standalone은 dialog lifecycle을 위해 `dashboard-modal.js`도 공유한다.
 
 ```text
 index.html
 ├─ dashboard-app.js
+│  ├─ dashboard-monthly-calendar.js
+│  │  ├─ dashboard-core.js
+│  │  ├─ dashboard-ui-common.js
+│  │  └─ dashboard-modal.js
 │  └─ dashboard-live-valuation.js
 │     ├─ dashboard-core.js
 │     └─ dashboard-market-ai-client.js
@@ -1596,7 +1617,7 @@ style="..."
 
 ## 5.5 JS Structure Map / 책임 주석
 
-현재 Main graph 11개 모듈과 standalone `dashboard-market-ai.js`까지 **총 12개 JS 모듈 모두** 파일 상단 Structure Map과 본문의 번호 섹션을 1:1로 대응시킨다. `dashboard-market-ai-client.js`는 `CLIENT01~03`, `dashboard-live-valuation.js`는 `LIVE01~04` Structure Map을 사용하며, transport/adapter라는 단일 책임 성격도 이 구조 주석 안에서 명시한다. 번호 자체를 changelog로 사용하지 않고, 실행 흐름과 ownership 탐색을 위한 구조 표지로만 사용한다. 기능 수정 시 코드와 주석 책임이 달라지면 같은 작업에서 해당 파일의 구조 주석도 함께 정합화한다.
+현재 Main graph 12개 모듈과 standalone `dashboard-market-ai.js`까지 **총 13개 JS 모듈 모두** 파일 상단 Structure Map과 본문의 번호 섹션을 1:1로 대응시킨다. `dashboard-monthly-calendar.js`는 `CAL01~05`, `dashboard-market-ai-client.js`는 `CLIENT01~03`, `dashboard-live-valuation.js`는 `LIVE01~04` Structure Map을 사용하며, feature/transport/adapter의 단일 책임 성격도 이 구조 주석 안에서 명시한다. 번호 자체를 changelog로 사용하지 않고, 실행 흐름과 ownership 탐색을 위한 구조 표지로만 사용한다. 기능 수정 시 코드와 주석 책임이 달라지면 같은 작업에서 해당 파일의 구조 주석도 함께 정합화한다.
 
 코드를 그대로 읽어주는 주석은 늘리지 않고 module ownership, 예외, lifecycle 경계처럼 코드만으로 바로 알기 어려운 이유를 설명한다.
 

@@ -17,6 +17,7 @@ const print=read('css/print.css');
 const charts=read('js/dashboard-charts.js');
 const core=read('js/dashboard-core.js');
 const modal=read('js/dashboard-modal.js');
+const monthlyCalendar=read('js/dashboard-monthly-calendar.js');
 const uiCommon=read('js/dashboard-ui-common.js');
 const ui=read('js/dashboard-ui.js');
 const pension=read('js/dashboard-pension.js');
@@ -32,6 +33,7 @@ const common1=compact(common);
 const special1=compact(special);
 const charts1=compact(charts);
 const modal1=compact(modal);
+const monthlyCalendar1=compact(monthlyCalendar);
 const ui1=compact(ui);
 const market1=compact(marketAi);
 const index1=compact(index);
@@ -78,11 +80,25 @@ test('Main module architecture는 순수 core·공통 UI owner·중립 Market AI
   const imports=importsOf(app);
   for(const dependency of [
     './dashboard-core.js','./dashboard-ui-common.js','./dashboard-modal.js','./dashboard-charts.js',
-    './dashboard-ui.js','./dashboard-pension.js','./dashboard-pension-editor.js','./dashboard-live-valuation.js'
+    './dashboard-monthly-calendar.js','./dashboard-ui.js','./dashboard-pension.js','./dashboard-pension-editor.js','./dashboard-live-valuation.js'
   ])assert.ok(imports.includes(dependency),`missing app dependency ${dependency}`);
   assert.equal(imports.includes('./dashboard-market-ai.js'),false);
   const uiCommonImport=app.match(/import\s*\{([^]*?)\}\s*from '\.\/dashboard-ui-common\.js';/);
   assert.ok(uiCommonImport&&/\bphoneUi\b/.test(uiCommonImport[1]),'app이 사용하는 phoneUi는 ui-common에서 명시적으로 import해야 한다');
+});
+
+test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를 재사용한다',()=>{
+  assert.match(index,/'dashboard-monthly-calendar\.js'/,'월간 캘린더 module은 importmap cache-bust 대상이어야 한다');
+  assert.match(ui,/data-dashboard-action="open-monthly-calendar"/,'Web\/Tablet Topbar에 월간 손익 진입점이 있어야 한다');
+  assert.match(ui,/action:'open-monthly-calendar',icon:'period',title:'월간 손익'/,'Phone 관리 메뉴도 같은 action을 사용해야 한다');
+  assert.match(monthlyCalendar1,/function monthlyCalendarDailyProfit\(date\)\{ return combinedDailyProfitChange\(date\); \}/,'일손익 계산 의미는 DOM feature가 아니라 core의 공통 일성과 helper를 재사용해야 한다');
+  assert.match(core,/function combinedDailyProfitChange\(date\)/,'flow-neutral 월간 일손익 계산은 core가 소유해야 한다');
+  assert.match(monthlyCalendar,/modal\.className='action-modal monthly-calendar-modal'/,'월간 캘린더는 공통 action modal shell을 재사용해야 한다');
+  assert.match(monthlyCalendar,/openDashboardModal\(modal,/);
+  assert.match(monthlyCalendar,/closeDashboardModal\(modal,/);
+  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.selectDate[^]*?closeMonthlyCalendar\(\);[^]*?setActiveDashboardDate\(date\)/,'날짜 선택은 app의 canonical activeDate 이동 경로로 위임해야 한다');
+  assert.match(common,/\.monthly-calendar-grid\{[^}]*grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/,'calendar는 의미상 7열 grid를 유지해야 한다');
+  assert.match(special,/\.monthly-calendar-summary\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Phone 세로\/가로 공통 요약은 2열로 밀도를 낮춰야 한다');
 });
 
 test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validator 모듈을 사용한다',()=>{
