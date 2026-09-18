@@ -464,6 +464,95 @@ class KrxRefreshBoundaryTest(unittest.TestCase):
         self.assertEqual(self.updater.main(), 1)
 
 
+class IntradayMissingCalendarTest(unittest.TestCase):
+    """The price feed can publish today's row before the KOSPI daily feed."""
+
+    def setUp(self):
+        self.updater = load_updater()
+        self.updater.today_kst = lambda: "2026-09-18"
+        self.updater.market_status_kst = lambda: "intraday"
+        self.updater.probe_trading_date = lambda _, date: (date, 100, None)
+        self.portfolio = {"securities": [{"ticker": "SEC"}], "pension": []}
+        self.prices = {
+            date: {"display": True, "marketStatus": "close"}
+            for date in ["2026-09-14", "2026-09-16", "2026-09-17"]
+        }
+        self.history = {"2026-09-16": 100.0, "2026-09-17": 101.0}
+        self.calendar_calls = []
+
+        def fetch_history(start, end):
+            self.calendar_calls.append((start, end))
+            return self.history, None
+
+        self.updater.fetch_index_history = fetch_history
+
+    def test_today_is_selected_when_kospi_daily_row_is_not_published(self):
+        self.assertEqual(
+            self.updater.resolve_target_dates(self.portfolio, self.prices, None),
+            ["2026-09-18"],
+        )
+        self.assertEqual(self.calendar_calls, [("2026-09-15", "2026-09-17")])
+
+    def test_real_historical_gap_and_today_are_both_selected(self):
+        self.history["2026-09-15"] = 99.0
+        self.assertEqual(
+            self.updater.resolve_target_dates(self.portfolio, self.prices, None),
+            ["2026-09-15", "2026-09-18"],
+        )
+
+    def test_only_today_missing_does_not_require_calendar(self):
+        self.prices["2026-09-15"] = {"display": True, "marketStatus": "close"}
+        self.assertEqual(
+            self.updater.resolve_target_dates(self.portfolio, self.prices, None),
+            ["2026-09-18"],
+        )
+        self.assertEqual(self.calendar_calls, [])
+
+    def test_empty_or_stale_historical_calendar_still_fails_closed(self):
+        for history in [{}, {"2026-09-16": 100.0}]:
+            with self.subTest(history=history):
+                self.history = history
+                with self.assertRaisesRegex(RuntimeError, "누락 거래일 달력 조회 실패"):
+                    self.updater.resolve_target_dates(self.portfolio, self.prices, None)
+
+    def test_unavailable_previous_market_still_fails_closed(self):
+        self.updater.probe_trading_date = lambda _, date: (
+            (date, 100, None) if date == "2026-09-18" else (None, None, "unavailable")
+        )
+        with self.assertRaisesRegex(RuntimeError, "직전 거래일을 확인하지 못해"):
+            self.updater.resolve_target_dates(self.portfolio, self.prices, None)
+
+    def test_preopen_uses_previous_trading_day_without_adding_today(self):
+        self.updater.market_status_kst = lambda: "close"
+        self.updater.probe_trading_date = lambda _, date: (
+            (None, None, "no current session") if date == "2026-09-18" else (date, 100, None)
+        )
+        self.assertEqual(self.updater.resolve_target_dates(self.portfolio, self.prices, None), [])
+
+    def test_after_close_still_requires_latest_calendar_row(self):
+        self.updater.market_status_kst = lambda: "close"
+        with self.assertRaisesRegex(RuntimeError, "latest market date 2026-09-18 missing"):
+            self.updater.resolve_target_dates(self.portfolio, self.prices, None)
+
+    def test_attached_data_auto_refresh_reaches_save_with_lagging_index(self):
+        portfolio, prices, snapshots = self.updater.load_dashboard_data()
+        self.history = {
+            date: 100.0 for date in prices if date <= "2026-09-17"
+        }
+        self.updater.parse_args = lambda: types.SimpleNamespace(date="", force_display=False, no_display=False)
+        self.updater.load_dashboard_data = lambda: (portfolio, prices, snapshots)
+        self.updater.market_status_for_date = lambda date: "intraday" if date == "2026-09-18" else "close"
+        self.updater.fetch_close = lambda _, date, **kw: (date, 100, None)
+        saved = []
+        self.updater.save_dashboard_data = lambda p, s: saved.append((p, s))
+
+        self.assertEqual(self.updater.main(), 0)
+        self.assertEqual(len(saved), 1)
+        self.assertEqual(saved[0][0]["2026-09-18"]["marketStatus"], "intraday")
+        self.assertTrue(saved[0][0]["2026-09-18"]["display"])
+        self.assertNotIn("warnings", saved[0][0]["2026-09-18"])
+
+
 class PerformanceCausalOrderingTest(unittest.TestCase):
     def setUp(self):
         self.updater = load_updater()
