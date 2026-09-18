@@ -686,7 +686,7 @@ button svg{pointer-events:none;flex-shrink:0}
   --hero-pill-gap:6px;
   --hero-pill-pad-y:5px;
   --hero-pill-pad-x:var(--space-2xl);
-  --hero-pill-size:var(--type-size-sm);
+  --hero-pill-size:var(--type-size-xs);
   --hero-pill-line:var(--type-line-tight);
   --hero-pill-weight:var(--type-weight-regular);
   --hero-decor-size:270px;
