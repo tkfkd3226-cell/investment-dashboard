@@ -3231,7 +3231,7 @@ body.dashboard-dialog-open{
 .monthly-calendar-mode-tabs{
   grid-template-columns:repeat(3,minmax(0,1fr));
   width:min(360px,100%);
-  margin:var(--space-4xl) auto 0;
+  margin:var(--space-4xl) auto var(--space-5xl);
 }
 .monthly-calendar-nav{
   border:1px solid var(--control-border);
@@ -3245,13 +3245,6 @@ body.dashboard-dialog-open{
   pointer-events:none;
 }
 .monthly-calendar-nav svg{display:block;width:15px;height:15px}
-.monthly-calendar-description{
-  margin:var(--space-4xl) 0 var(--space-5xl);
-  color:var(--text-secondary);
-  font-size:var(--type-size-sm);
-  line-height:var(--type-line-helper);
-  text-align:center;
-}
 .monthly-calendar-weekdays,
 .monthly-calendar-grid{
   display:grid;

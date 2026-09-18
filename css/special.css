@@ -277,32 +277,32 @@
     }
     .action-modal{--modal-control-font-size:var(--type-size-2xl)}
 
-    /* Monthly Calendar Phone · 상단 배치 / 5px 균등 card padding / 월~금 5영업일 grid / 2열 요약 */
-    .monthly-calendar-modal{
+    /* Phone Primary Modal Frame · 달력/실시간 시세/퇴직연금 조정은 5px 외부·내부 여백과 상단 정렬을 공유 */
+    :is(.monthly-calendar-modal,.realtime-quote-modal,.contrib-modal){
       align-items:flex-start;
-      --modal-overlay-pad:var(--space-5xl);
-      --modal-card-width:100%;
+      --modal-overlay-pad:var(--space-md);
       --modal-card-pad-y:var(--space-md);
       --modal-card-pad-x:var(--space-md);
+    }
+
+    /* Monthly Calendar Phone · 상단 배치 / 5px 균등 card padding / 월~금 5영업일 grid / 2열 요약 */
+    .monthly-calendar-modal{
+      --modal-card-width:100%;
       --monthly-calendar-grid-gap:var(--space-2xs);
       --monthly-calendar-cell-min-height:56px;
       --monthly-calendar-day-size:var(--type-size-sm);
       --monthly-calendar-profit-size:var(--type-size-2xs);
     }
-    .monthly-calendar-card{max-height:calc(100vh - var(--modal-overlay-pad) - var(--modal-overlay-pad))}
+    :is(.monthly-calendar-card,.contrib-modal-card){max-height:calc(100vh - var(--modal-overlay-pad) - var(--modal-overlay-pad))}
     @supports (height:100dvh){
-      .monthly-calendar-card{max-height:calc(100dvh - var(--modal-overlay-pad) - var(--modal-overlay-pad))}
+      :is(.monthly-calendar-card,.contrib-modal-card){max-height:calc(100dvh - var(--modal-overlay-pad) - var(--modal-overlay-pad))}
     }
     .monthly-calendar-close{top:var(--space-md);right:var(--space-md)}
     .monthly-calendar-head{
       width:min(360px,calc(100% - var(--icon-button-size) - var(--icon-button-size) - var(--space-4xl)));
       gap:var(--space-lg);
     }
-    .monthly-calendar-mode-tabs{margin-top:var(--space-md)}
-    .monthly-calendar-description{
-      margin:var(--space-md) 0 var(--space-4xl);
-      font-size:var(--type-size-xs);
-    }
+    .monthly-calendar-mode-tabs{margin:var(--space-md) auto var(--space-4xl)}
     .monthly-calendar-weekdays,
     .monthly-calendar-grid{
       grid-template-columns:repeat(5,minmax(0,1fr));
@@ -325,10 +325,9 @@
     .realtime-quote-modal{
       --modal-card-width:calc(100vw - var(--modal-overlay-pad) - var(--modal-overlay-pad));
       --modal-card-height:calc(100vh - var(--modal-overlay-pad) - var(--modal-overlay-pad));
-      --modal-card-pad-y:var(--space-md);
-      --modal-card-pad-x:var(--space-md);
     }
 
+    .realtime-quote-close{top:var(--space-md);right:var(--space-md)}
     .realtime-quote-drag-handle{display:none}
     .realtime-quote-frame-stage,
     .realtime-quote-frame{
@@ -352,7 +351,6 @@
       --pension-modal-action-size:var(--type-size-2xs);
       --pension-modal-delete-title-size:var(--type-size-2xs);
       --pension-modal-delete-memo-size:var(--type-size-2xs);
-      --pension-modal-pad:var(--space-4xl);
     }
 
   /* Hero Phone UI · Hero 타이포/여백은 세로·가로폰 동일 */
@@ -811,16 +809,11 @@
     .chart-card .chart-scroll-start,
     .chart-card .chart-scroll-end{display:none}
 
-  /* Modal Landscape · 중앙형 구조 복원 + iPhone Safari 확대 방지 입력 폰트 */
-    .contrib-modal{align-items:center}
-    .action-modal{
+  /* Modal Landscape · 일반 action modal만 중앙형으로 복원하고 3개 주요 Phone modal은 세로폰과 같은 5px frame 계약 유지 */
+    .action-modal:not(.monthly-calendar-modal):not(.realtime-quote-modal){
       align-items:center;
       --modal-card-pad-y:var(--space-10xl);
       --modal-card-pad-x:var(--space-10xl);
-    }
-    .action-modal.realtime-quote-modal{
-      --modal-card-pad-y:var(--space-md);
-      --modal-card-pad-x:var(--space-md);
     }
     .krx-action-buttons{gap:var(--space-2xl)}
     .krx-action-buttons .action-modal-btn{min-height:40px;height:40px;padding:0 var(--space-4xl);font-size:var(--type-size-sm)}
