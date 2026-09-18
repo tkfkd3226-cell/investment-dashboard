@@ -899,7 +899,7 @@ button svg{pointer-events:none;flex-shrink:0}
 }
 
 /* [03B. Market AI Data List Variant · 공통 Data List Card 위에 Market AI compact geometry만 확장] */
-/* Market AI Rows / Metrics · 두 compact card는 고정 비율 없이 실제 label/value 길이만큼 폭을 만들고 우측에 배치 */
+/* Market AI Rows / Metrics · 카드 폭은 고정 비율 없이 내용 기반으로 정하되, 카드 내부 label/value/change 열은 행 전체가 같은 세로 기준선을 공유 */
 .market-ai-desktop{
   display:flex;
   width:max-content;
@@ -917,13 +917,16 @@ button svg{pointer-events:none;flex-shrink:0}
   width:max-content;
   max-width:100%;
   min-width:0;
-  grid-template-columns:1fr;
+  grid-template-columns:max-content max-content max-content;
+  column-gap:0;
   align-content:start;
+  justify-content:start;
 }
 .market-ai-desktop-metric{
   position:relative;
   display:grid;
-  grid-template-columns:max-content max-content max-content;
+  grid-column:1 / -1;
+  grid-template-columns:subgrid;
   column-gap:0;
   justify-content:start;
   align-items:center;

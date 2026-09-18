@@ -748,6 +748,7 @@ test('Market AI responsive 전환은 focus handoff와 content-driven card layout
   assert.ok(closeIndex>=0&&appendIndex>closeIndex&&removeIndex>appendIndex,'dialog close → desktop row mount → mobile trigger remove 순서를 유지해야 한다');
   assert.doesNotMatch(common,/--market-ai-group-columns|minmax\(0,13fr\).*minmax\(0,7fr\)/,'Market AI card 폭을 고정 비율로 되돌리면 안 된다');
   assert.match(common,/\.market-ai-desktop\{[^}]*display:flex;[^}]*width:max-content;[^}]*max-width:100%;/,'공통 Market AI card group은 내용 기반 폭을 사용해야 한다');
+  assert.match(common,/\.market-ai-card-row\{[^}]*grid-template-columns:max-content max-content max-content;[^}]*\}[^]*\.market-ai-desktop-metric\{[^}]*grid-column:1 \/ -1;[^}]*grid-template-columns:subgrid;/,'카드 내부 label/value/change는 행마다 흩어지지 않고 공통 세로 열을 공유해야 한다');
 });
 
 test('Market AI contract: KOSPI200 선물 / SOX 현물 / NQ100 선물 symbol을 고정한다',()=>{
