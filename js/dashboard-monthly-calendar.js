@@ -6,7 +6,7 @@ import {
   kstTodayText,
   uiState
 } from './dashboard-core.js';
-import { escapeHtml, navIconSvg } from './dashboard-ui-common.js';
+import { escapeHtml, navIconSvg, phoneUi } from './dashboard-ui-common.js';
 import {
   bindDashboardModalDismiss,
   closeDashboardModal,
@@ -32,6 +32,7 @@ const MONTHLY_CALENDAR_ACTION={
   selectDate:'select-monthly-calendar-date'
 };
 const MONTHLY_CALENDAR_WEEKDAYS=['월','화','수','목','금','토','일'];
+const MONTHLY_CALENDAR_BUSINESS_WEEKDAYS=MONTHLY_CALENDAR_WEEKDAYS.slice(0,5);
 const MONTHLY_CALENDAR_DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
 function monthlyCalendarFocusFallbackSelector(){
   return '.topbar-monthly-action,#dateActionMenuButton';
@@ -93,7 +94,7 @@ function monthlyCalendarMonthModel(month){
   return {availableSet,dayModels,total,positiveCount:positive.length,negativeCount:negative.length,best,worst};
 }
 
-// [CAL03] Calendar Rendering · 7열 calendar / 월간 요약
+// [CAL03] Calendar Rendering · Web/Tablet 7일 / Phone 5영업일 calendar / 월간 요약
 function monthlyCalendarCellAria(item){
   const prefix=item.today?'오늘, ':'';
   if(item.profit==null)return `${prefix}${item.day}일, 성과 비교 기준일`;
@@ -114,17 +115,19 @@ function renderMonthlyCalendarDayCell({day,date='',available=false,item=null,wee
   const availableTodayClass=item.today?' is-today':'';
   return `<button type="button" class="monthly-calendar-day is-available${weekend}${availableTodayClass}${active}" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.selectDate}" data-calendar-date="${escapeHtml(date)}" aria-label="${escapeHtml(monthlyCalendarCellAria(item))}"${item.active?' aria-current="date"':''} title="${escapeHtml(item.profit==null?'성과 비교 기준일':monthlyCalendarExactProfitLabel(item.profit))}"><span class="monthly-calendar-day-number">${day}</span><span class="monthly-calendar-day-profit${profitClass}">${profitText}</span></button>`;
 }
-function renderMonthlyCalendarGrid(month,model){
+function renderMonthlyCalendarGrid(month,model,{businessDaysOnly=false}={}){
   const [year,monthNumber]=month.split('-').map(Number);
   const firstWeekday=(new Date(Date.UTC(year,monthNumber-1,1)).getUTCDay()+6)%7;
   const daysInMonth=new Date(Date.UTC(year,monthNumber,0)).getUTCDate();
   const itemByDate=new Map(model.dayModels.map(item=>[item.date,item]));
   const today=kstTodayText();
   const cells=[];
-  for(let i=0;i<firstWeekday;i++)cells.push('<div class="monthly-calendar-day is-placeholder" aria-hidden="true"></div>');
+  const leadingPlaceholderCount=businessDaysOnly&&firstWeekday>=5?0:firstWeekday;
+  for(let i=0;i<leadingPlaceholderCount;i++)cells.push('<div class="monthly-calendar-day is-placeholder" aria-hidden="true"></div>');
   for(let day=1;day<=daysInMonth;day++){
     const date=`${month}-${String(day).padStart(2,'0')}`;
     const weekdayIndex=(firstWeekday+day-1)%7;
+    if(businessDaysOnly&&weekdayIndex>=5)continue;
     cells.push(renderMonthlyCalendarDayCell({day,date,available:model.availableSet.has(date),item:itemByDate.get(date)||null,weekdayIndex,today:date===today}));
   }
   return cells.join('');
@@ -153,6 +156,8 @@ function renderMonthlyCalendarModal(){
   monthlyCalendarState.month=month;
   const monthIndex=months.indexOf(month);
   const model=monthlyCalendarMonthModel(month);
+  const businessDaysOnly=phoneUi();
+  const weekdays=businessDaysOnly?MONTHLY_CALENDAR_BUSINESS_WEEKDAYS:MONTHLY_CALENDAR_WEEKDAYS;
   const modeNote=uiState.includeSeparateProfit?' · 별도수익 포함':'';
   modal.innerHTML=`<div class="action-modal-card monthly-calendar-card" role="dialog" aria-modal="true" aria-labelledby="monthlyCalendarTitle" aria-describedby="monthlyCalendarDescription">
     <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-close" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.close}" aria-label="월간 손익 닫기">${navIconSvg('close')}</button>
@@ -162,8 +167,8 @@ function renderMonthlyCalendarModal(){
       <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-nav" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.next}" aria-label="다음 월" aria-disabled="${monthIndex>=months.length-1?'true':'false'}">${navIconSvg('arrowRight')}</button>
     </div>
     <p id="monthlyCalendarDescription" class="monthly-calendar-description">증권·연금의 전일 대비 성과를 합산해 일손익으로 표시합니다${modeNote}.</p>
-    <div class="monthly-calendar-weekdays" aria-hidden="true">${MONTHLY_CALENDAR_WEEKDAYS.map((label,index)=>`<span${index>=5?' class="is-weekend"':''}>${label}</span>`).join('')}</div>
-    <div class="monthly-calendar-grid" role="group" aria-label="${escapeHtml(monthlyCalendarMonthLabel(month))} 손익 캘린더">${renderMonthlyCalendarGrid(month,model)}</div>
+    <div class="monthly-calendar-weekdays" aria-hidden="true">${weekdays.map((label,index)=>`<span${!businessDaysOnly&&index>=5?' class="is-weekend"':''}>${label}</span>`).join('')}</div>
+    <div class="monthly-calendar-grid" role="group" aria-label="${escapeHtml(monthlyCalendarMonthLabel(month))} 손익 캘린더">${renderMonthlyCalendarGrid(month,model,{businessDaysOnly})}</div>
     ${renderMonthlyCalendarSummary(model)}
   </div>`;
 }

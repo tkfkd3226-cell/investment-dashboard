@@ -157,7 +157,10 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.doesNotMatch(monthlyCalendar,/isToday\?` aria-label=\"오늘, \${day}일, 데이터 없음\"`/,'오늘 unavailable cell 접근성 이름을 generic div의 aria-label에만 의존하면 안 된다');
   assert.match(common,/\.visually-hidden\{[^}]*position:absolute[^}]*clip-path:inset\(50%\)/,'오늘 unavailable cell의 접근성 설명은 canonical visually-hidden utility를 재사용해야 한다');
   assert.match(common,/\.monthly-calendar-day\.is-today:not\(\.is-active\)/,'오늘 날짜는 선택일과 별도 시각 상태가 있어야 한다');
-  assert.match(common,/\.monthly-calendar-grid\{[^}]*grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/,'calendar는 의미상 7열 grid를 유지해야 한다');
+  assert.match(common,/\.monthly-calendar-grid\{[^}]*grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/,'Web/Tablet calendar baseline은 7열 grid를 유지해야 한다');
+  assert.match(special,/\.monthly-calendar-weekdays,[^}]*\.monthly-calendar-grid\{[^}]*grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,'Phone calendar는 월~금 5열 grid를 사용해야 한다');
+  assert.match(monthlyCalendar,/businessDaysOnly&&weekdayIndex>=5\)continue/,'Phone 5영업일 렌더는 토·일 날짜 cell을 생성하지 않아야 한다');
+  assert.match(monthlyCalendar,/leadingPlaceholderCount=businessDaysOnly&&firstWeekday>=5\?0:firstWeekday/,'Phone 월 시작 offset은 토·일 시작 월을 월요일 첫 칸으로 정렬하고 평일 시작 월은 해당 요일 위치를 유지해야 한다');
   assert.match(monthlyCalendar,/is-unavailable[^]*?aria-hidden=\"true\"/,'가용 데이터가 없는 날짜는 선택 control이 아니라 unavailable cell이어야 한다');
   assert.match(monthlyCalendar,/item\.profit==null\?'기준'/,'이전 비교값이 없는 최초 날짜는 0원이 아니라 기준일로 표시해야 한다');
   assert.match(special,/\.monthly-calendar-summary\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Phone 세로\/가로 공통 요약은 2열로 밀도를 낮춰야 한다');

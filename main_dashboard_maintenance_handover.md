@@ -412,7 +412,7 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 
 - `월간 손익`은 Web/Tablet/Phone이 공유하는 Topbar action으로만 진입하고 hamburger에는 중복 배치하지 않는다. Web/Tablet은 텍스트 action, Phone은 같은 DOM의 label을 숨긴 icon-only 표현을 사용하며 hamburger 구성·높이·scroll은 이 문서의 공통 Topbar/Navigation responsive contract를 따른다.
 - 월 이동은 실제 가용 데이터가 존재하는 월 목록 안에서만 이동한다.
-- 날짜 cell은 `allAvailableDates()`에 존재하는 날짜만 선택 가능하다. 주말·휴장처럼 source에 없는 날짜는 unavailable로 표시하고 월 합계·상승/하락·최고/최저 계산에서 제외한다. 월 첫 비교 가능일은 `previousDate()`가 전월 마지막 가용일을 이어서 사용하며, 전체 데이터의 최초 날짜처럼 비교 기준이 없는 날은 `0원`이 아니라 **기준일**로 표시한다.
+- 날짜 cell은 `allAvailableDates()`에 존재하는 날짜만 선택 가능하다. Web/Tablet은 월~일 7열 달력을 유지하고, Phone은 화면 밀도를 위해 **월~금 5영업일만 렌더링해 토·일 cell과 요일 header를 표시하지 않는다.** Phone의 월 시작 placeholder도 첫 표시 평일의 월~금 위치를 기준으로 계산하므로 월이 토·일에 시작해도 월요일 정렬이 틀어지지 않는다. 휴장처럼 source에 없는 평일은 unavailable로 표시하고 월 합계·상승/하락·최고/최저 계산에서 제외한다. 표시에서 제외된 주말 때문에 성과 계산 의미를 바꾸지 않으며, 월 첫 비교 가능일은 `previousDate()`가 전월 마지막 가용일을 이어서 사용한다. 전체 데이터의 최초 날짜처럼 비교 기준이 없는 날은 `0원`이 아니라 **기준일**로 표시한다.
 - 일손익 `0원`은 월 합계에는 0으로 반영하되 상승일·하락일 어느 쪽에도 포함하지 않는다.
 - 날짜 cell 선택은 캘린더 모듈이 `activeDate`를 직접 바꾸지 않고 `dashboard-app.js`의 `setActiveDashboardDate()`로 위임한다.
 - overlay/focus/inert/Escape/backdrop 처리는 `dashboard-modal.js` lifecycle을 재사용한다. Topbar opener를 우선 focus 복원 대상으로 사용하고, full render 등으로 기존 opener DOM이 사라진 경우에는 `.topbar-monthly-action`과 hamburger trigger를 stable fallback selector로 사용한다.

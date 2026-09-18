@@ -253,7 +253,7 @@
     }
     .action-modal{--modal-control-font-size:var(--type-size-2xl)}
 
-    /* Monthly Calendar Phone · 세로/가로폰 동일 7열 density / 2열 요약 */
+    /* Monthly Calendar Phone · 세로/가로폰 동일 월~금 5영업일 grid / 2열 요약 */
     .monthly-calendar-modal{
       --modal-overlay-pad:var(--space-lg);
       --modal-card-width:100%;
@@ -276,6 +276,10 @@
     .monthly-calendar-description{
       margin:var(--space-md) 0 var(--space-4xl);
       font-size:var(--type-size-xs);
+    }
+    .monthly-calendar-weekdays,
+    .monthly-calendar-grid{
+      grid-template-columns:repeat(5,minmax(0,1fr));
     }
     button.monthly-calendar-day,
     .monthly-calendar-day.is-unavailable{padding:var(--space-md)}
