@@ -97,20 +97,20 @@ function monthlyCalendarCellAria(item){
   if(item.profit==null)return `${prefix}${item.day}일, 성과 비교 기준일`;
   return `${prefix}${item.day}일, 일손익 ${monthlyCalendarExactProfitLabel(item.profit)}`;
 }
-function renderMonthlyCalendarDayCell({day,date='',available=false,item=null,weekdayIndex=0,today=false}){
+function renderMonthlyCalendarDayCell({day,date='',available=false,item=null,weekdayIndex=0,today:isToday=false}){
   const weekend=weekdayIndex>=5?' is-weekend':'';
   if(!available||!item){
-    const todayClass=today?' is-today':'';
-    const cellAccessibility=today?'':' aria-hidden="true"';
-    const visibleDayAccessibility=today?' aria-hidden="true"':'';
-    const screenReaderText=today?`<span class="visually-hidden">오늘, ${day}일, 데이터 없음</span>`:'';
+    const todayClass=isToday?' is-today':'';
+    const cellAccessibility=isToday?'':' aria-hidden="true"';
+    const visibleDayAccessibility=isToday?' aria-hidden="true"':'';
+    const screenReaderText=isToday?`<span class="visually-hidden">오늘, ${day}일, 데이터 없음</span>`:'';
     return `<div class="monthly-calendar-day is-unavailable${weekend}${todayClass}"${cellAccessibility}><span class="monthly-calendar-day-number"${visibleDayAccessibility}>${day}</span>${screenReaderText}</div>`;
   }
   const profitClass=item.profit==null?'':(item.profit>0?' positive':item.profit<0?' negative':'');
   const profitText=item.profit==null?'기준':monthlyCalendarCompactProfit(item.profit);
   const active=item.active?' is-active':'';
-  const today=item.today?' is-today':'';
-  return `<button type="button" class="monthly-calendar-day is-available${weekend}${today}${active}" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.selectDate}" data-calendar-date="${escapeHtml(date)}" aria-label="${escapeHtml(monthlyCalendarCellAria(item))}"${item.active?' aria-current="date"':''} title="${escapeHtml(item.profit==null?'성과 비교 기준일':monthlyCalendarExactProfitLabel(item.profit))}"><span class="monthly-calendar-day-number">${day}</span><span class="monthly-calendar-day-profit${profitClass}">${profitText}</span></button>`;
+  const availableTodayClass=item.today?' is-today':'';
+  return `<button type="button" class="monthly-calendar-day is-available${weekend}${availableTodayClass}${active}" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.selectDate}" data-calendar-date="${escapeHtml(date)}" aria-label="${escapeHtml(monthlyCalendarCellAria(item))}"${item.active?' aria-current="date"':''} title="${escapeHtml(item.profit==null?'성과 비교 기준일':monthlyCalendarExactProfitLabel(item.profit))}"><span class="monthly-calendar-day-number">${day}</span><span class="monthly-calendar-day-profit${profitClass}">${profitText}</span></button>`;
 }
 function renderMonthlyCalendarGrid(month,model){
   const [year,monthNumber]=month.split('-').map(Number);

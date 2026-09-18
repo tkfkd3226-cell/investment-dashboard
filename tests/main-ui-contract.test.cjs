@@ -2,6 +2,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
+const {spawnSync}=require('node:child_process');
 
 const ROOT=path.resolve(__dirname,'..');
 const read=rel=>fs.readFileSync(path.join(ROOT,rel),'utf8');
@@ -86,6 +87,11 @@ test('Main module architecture는 순수 core·공통 UI owner·중립 Market AI
   assert.ok(uiCommonImport&&/\bphoneUi\b/.test(uiCommonImport[1]),'app이 사용하는 phoneUi는 ui-common에서 명시적으로 import해야 한다');
 });
 
+test('월간 손익 캘린더 ES module은 브라우저와 같은 module 문법으로 parse된다',()=>{
+  const parsed=spawnSync(process.execPath,['--input-type=module','--check'],{input:monthlyCalendar,encoding:'utf8'});
+  assert.equal(parsed.status,0,parsed.stderr||parsed.stdout||'dashboard-monthly-calendar.js module syntax error');
+});
+
 test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를 재사용한다',()=>{
   assert.match(index,/'dashboard-monthly-calendar\.js'/,'월간 캘린더 module은 importmap cache-bust 대상이어야 한다');
   assert.match(ui,/data-dashboard-action="open-monthly-calendar"/,'Web\/Tablet Topbar에 월간 손익 진입점이 있어야 한다');
@@ -105,9 +111,9 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(monthlyCalendar,/class=\"control-icon-button modal-icon-btn monthly-calendar-nav\"/,'월 이동 control은 공통 modal icon button primitive를 재사용해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-(?:previous|next)[^>]* disabled/,'월 경계에서 native disabled로 focus를 잃으면 안 된다');
   assert.match(monthlyCalendar,/today:date===today/,'KST 오늘 날짜를 active date와 별도 상태로 계산해야 한다');
-  assert.match(monthlyCalendar,/today:date===today[^]*?if\(!available\|\|!item\)\{[^]*?todayClass=today\?' is-today':''[^]*?screenReaderText=today\?`<span class=\"visually-hidden\">오늘, \${day}일, 데이터 없음<\/span>`/,'오늘 데이터가 아직 없어도 unavailable cell은 today 상태와 실제 screen-reader text를 유지해야 한다');
-  assert.match(monthlyCalendar,/visibleDayAccessibility=today\?' aria-hidden=\"true\"':''/,'오늘 unavailable cell의 보이는 날짜 숫자는 screen-reader text와 중복 낭독되지 않아야 한다');
-  assert.doesNotMatch(monthlyCalendar,/today\?` aria-label=\"오늘, \${day}일, 데이터 없음\"`/,'오늘 unavailable cell 접근성 이름을 generic div의 aria-label에만 의존하면 안 된다');
+  assert.match(monthlyCalendar,/today:date===today[^]*?if\(!available\|\|!item\)\{[^]*?todayClass=isToday\?' is-today':''[^]*?screenReaderText=isToday\?`<span class=\"visually-hidden\">오늘, \${day}일, 데이터 없음<\/span>`/,'오늘 데이터가 아직 없어도 unavailable cell은 today 상태와 실제 screen-reader text를 유지해야 한다');
+  assert.match(monthlyCalendar,/visibleDayAccessibility=isToday\?' aria-hidden=\"true\"':''/,'오늘 unavailable cell의 보이는 날짜 숫자는 screen-reader text와 중복 낭독되지 않아야 한다');
+  assert.doesNotMatch(monthlyCalendar,/isToday\?` aria-label=\"오늘, \${day}일, 데이터 없음\"`/,'오늘 unavailable cell 접근성 이름을 generic div의 aria-label에만 의존하면 안 된다');
   assert.match(common,/\.visually-hidden\{[^}]*position:absolute[^}]*clip-path:inset\(50%\)/,'오늘 unavailable cell의 접근성 설명은 canonical visually-hidden utility를 재사용해야 한다');
   assert.match(common,/\.monthly-calendar-day\.is-today:not\(\.is-active\)/,'오늘 날짜는 선택일과 별도 시각 상태가 있어야 한다');
   assert.match(common,/\.monthly-calendar-grid\{[^}]*grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/,'calendar는 의미상 7열 grid를 유지해야 한다');
