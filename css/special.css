@@ -408,13 +408,18 @@
       background:transparent;
       box-shadow:none;
     }
-    /* Phone도 카드 비율은 두지 않고 공통 content-driven 폭을 사용한다. dialog 가용 폭 안에서 중앙 정렬한다. */
+    /* Phone Market AI Width · 고정 비율 없이 dialog 폭을 채우고, label은 좌측 / value·change는 우측 열에 정렬한다. */
     .market-ai-mobile-dialog .market-ai-desktop{
       width:100%;
-      max-width:100%;
+      max-width:none;
       margin-left:0;
-      justify-content:center;
-      gap:var(--space-xs);
+      justify-content:stretch;
+    }
+    .market-ai-mobile-dialog .market-ai-card-row{
+      flex:1 1 auto;
+      width:auto;
+      max-width:none;
+      grid-template-columns:minmax(0,1fr) max-content max-content;
     }
     .market-ai-mobile-dialog .market-ai-heading{
       min-height:var(--icon-button-size);
