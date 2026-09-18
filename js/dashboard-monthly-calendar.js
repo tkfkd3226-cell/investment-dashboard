@@ -7,8 +7,7 @@ import {
   krxTradingCalendarStatus,
   kstTodayText,
   pensionDailyProfitChange,
-  securitiesDailyProfitChange,
-  uiState
+  securitiesDailyProfitChange
 } from './dashboard-core.js';
 import { escapeHtml, navIconSvg, phoneUi } from './dashboard-ui-common.js';
 import {
@@ -40,9 +39,9 @@ const MONTHLY_CALENDAR_WEEKDAYS=['월','화','수','목','금','토','일'];
 const MONTHLY_CALENDAR_BUSINESS_WEEKDAYS=MONTHLY_CALENDAR_WEEKDAYS.slice(0,5);
 const MONTHLY_CALENDAR_DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
 const MONTHLY_CALENDAR_MODES={
-  combined:{label:'합산',description:'증권·연금의 전일 대비 성과를 합산해 일손익으로 표시합니다.'},
-  securities:{label:'증권',description:'증권계좌의 flow-neutral 전일 대비 성과만 표시합니다.'},
-  pension:{label:'퇴직연금',description:'퇴직연금의 비교 가능한 전일 대비 성과만 표시합니다.'}
+  combined:{label:'합산'},
+  securities:{label:'증권'},
+  pension:{label:'퇴직연금'}
 };
 function monthlyCalendarFocusFallbackSelector(){
   return '.topbar-monthly-action,#dateActionMenuButton';
@@ -199,9 +198,7 @@ function renderMonthlyCalendarModal(){
   const model=monthlyCalendarMonthModel(month,monthlyCalendarState.mode);
   const businessDaysOnly=phoneUi();
   const weekdays=businessDaysOnly?MONTHLY_CALENDAR_BUSINESS_WEEKDAYS:MONTHLY_CALENDAR_WEEKDAYS;
-  const modeMeta=MONTHLY_CALENDAR_MODES[monthlyCalendarState.mode]||MONTHLY_CALENDAR_MODES.combined;
-  const modeNote=monthlyCalendarState.mode==='combined'&&uiState.includeSeparateProfit?' 별도수익의 당일 증가분도 포함합니다.':'';
-  modal.innerHTML=`<div class="action-modal-card monthly-calendar-card" role="dialog" aria-modal="true" aria-labelledby="monthlyCalendarTitle" aria-describedby="monthlyCalendarDescription">
+  modal.innerHTML=`<div class="action-modal-card monthly-calendar-card" role="dialog" aria-modal="true" aria-labelledby="monthlyCalendarTitle">
     <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-close" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.close}" aria-label="월간 손익 닫기">${navIconSvg('close')}</button>
     <div class="monthly-calendar-head">
       <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-nav" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.previous}" aria-label="이전 월" aria-disabled="${monthIndex<=0?'true':'false'}">${navIconSvg('arrowLeft')}</button>
@@ -209,7 +206,6 @@ function renderMonthlyCalendarModal(){
       <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-nav" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.next}" aria-label="다음 월" aria-disabled="${monthIndex>=months.length-1?'true':'false'}">${navIconSvg('arrowRight')}</button>
     </div>
     ${renderMonthlyCalendarModeSelector()}
-    <p id="monthlyCalendarDescription" class="monthly-calendar-description">${escapeHtml(modeMeta.description+modeNote)}</p>
     <div class="monthly-calendar-weekdays" aria-hidden="true">${weekdays.map((label,index)=>`<span${!businessDaysOnly&&index>=5?' class="is-weekend"':''}>${label}</span>`).join('')}</div>
     <div class="monthly-calendar-grid" role="group" aria-label="${escapeHtml(monthlyCalendarMonthLabel(month))} 손익 캘린더">${renderMonthlyCalendarGrid(month,model,{businessDaysOnly})}</div>
     ${renderMonthlyCalendarSummary(model)}
