@@ -2934,10 +2934,10 @@ body.dashboard-dialog-open{
   cursor:pointer;
   transition:background .14s ease,color .14s ease,box-shadow .14s ease;
 }
-/* Shared Asset Tabs Skin · 메인 자산 탭과 퇴직연금 조정 탭이 같은 surface/state를 공유 */
-:is(.asset-workspace-tabs,.contrib-target-tabs){background:var(--subtle-card)}
-:is(.asset-workspace-tab,.contrib-target-option){color:var(--muted)}
-:is(.asset-workspace-tab,.contrib-target-option).active{background:var(--accent-strong-bg);color:var(--on-accent-text)}
+/* Shared Segmented Tabs Skin · 자산/퇴직연금 조정/월간 손익 switch가 같은 surface/state를 공유 */
+:is(.asset-workspace-tabs,.contrib-target-tabs,.monthly-calendar-mode-tabs){background:var(--subtle-card)}
+:is(.asset-workspace-tab,.contrib-target-option,.monthly-calendar-mode-tab){color:var(--muted)}
+:is(.asset-workspace-tab,.contrib-target-option,.monthly-calendar-mode-tab).active{background:var(--accent-strong-bg);color:var(--on-accent-text)}
 
 /* Asset Workspace Tabs · 자산 작업영역 탭: 증권 → 퇴직연금 순서, 기존 section ID 유지 */
 .asset-workspace-tabs{
@@ -3227,6 +3227,12 @@ body.dashboard-dialog-open{
   margin:0 auto;
 }
 .monthly-calendar-head .modal-main-title{text-align:center}
+/* Monthly Calendar Range Switch · control-tab primitive를 재사용하고 이곳은 3열 배치만 소유 */
+.monthly-calendar-mode-tabs{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  width:min(360px,100%);
+  margin:var(--space-4xl) auto 0;
+}
 .monthly-calendar-nav{
   border:1px solid var(--control-border);
   border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
@@ -3285,10 +3291,21 @@ button.monthly-calendar-day{
   background:transparent;
 }
 .monthly-calendar-day.is-unavailable{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:var(--space-md);
   padding:var(--space-2xl);
   background:transparent;
   color:var(--muted);
   opacity:.68;
+}
+.monthly-calendar-day.is-data-missing{
+  border-color:var(--status-warning-border);
+  background:var(--status-warning-bg);
+  color:var(--status-warning-text);
+  opacity:1;
 }
 .monthly-calendar-day.is-weekend:not(.is-active){background:var(--subtle-card)}
 .monthly-calendar-day.is-today:not(.is-active){

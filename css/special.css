@@ -297,6 +297,7 @@
       width:min(360px,calc(100% - var(--icon-button-size) - var(--icon-button-size) - var(--space-4xl)));
       gap:var(--space-lg);
     }
+    .monthly-calendar-mode-tabs{margin-top:var(--space-md)}
     .monthly-calendar-description{
       margin:var(--space-md) 0 var(--space-4xl);
       font-size:var(--type-size-xs);
