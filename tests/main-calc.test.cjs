@@ -365,10 +365,20 @@ test('월간 일손익: 별도수익 ON은 당일 증가분만 더하고 월 첫
       '2026-06-01':dailySnapshot({profit:130})
     }
   });
+  assert.deepEqual(core.allAvailableDates(),['2026-05-29','2026-06-01'],'주말 공백은 가용 날짜에 끼어들지 않아야 한다');
   core.uiState.includeSeparateProfit=false;
   assert.equal(core.combinedDailyProfitChange('2026-06-01'),30);
   core.uiState.includeSeparateProfit=true;
   assert.equal(core.combinedDailyProfitChange('2026-06-01'),230);
+});
+
+test('월간 일손익: 전체 데이터 최초 날짜는 비교 기준일이며 0원 손익으로 만들지 않는다',()=>{
+  setState({
+    prices:{'2026-06-01':{}},
+    account1Daily:{'2026-06-01':dailySnapshot({profit:130})}
+  });
+  assert.equal(core.calc('2026-06-01').prevKey,null);
+  assert.equal(core.combinedDailyProfitChange('2026-06-01'),null);
 });
 
 test('누적 차트 데이터: 첫 행 변화는 누적손익, 이후 행은 직전 누적손익과의 차이로 계산한다',()=>{

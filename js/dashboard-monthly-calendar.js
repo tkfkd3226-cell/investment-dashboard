@@ -36,7 +36,7 @@ const MONTHLY_CALENDAR_DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
 const MONTHLY_CALENDAR_FOCUS_FALLBACK='#dateActionMenuButton,[data-dashboard-action="open-monthly-calendar"]';
 const monthlyCalendarState={month:''};
 
-// [CAL02] Monthly Performance View Model · 기존 누적손익 계산을 일손익으로 파생
+// [CAL02] Monthly Performance View Model · 기존 flow-neutral 일성과 helper를 재사용
 function monthlyCalendarMonths(){
   return [...new Set(allAvailableDates().map(String).filter(date=>MONTHLY_CALENDAR_DATE_RE.test(date)).map(date=>date.slice(0,7)))].sort();
 }

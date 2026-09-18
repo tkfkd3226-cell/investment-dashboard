@@ -37,6 +37,7 @@ index.html
 - 증권 `securitiesEvents` 기반 매도·실현손익·현금화 원금·재매수 원금 이동 복원
 - 장부결과 VS 실제보유 검산
 - 별도수익 ON/OFF 비교
+- 월간 손익 캘린더 — 기존 flow-neutral 전일 대비 성과를 월별로 합산·탐색하고 날짜 선택 시 해당 일자 Dashboard로 이동
 - KOSPI 대비 초과성과 및 기간 차트
 - 퇴직연금 상품별 손익·비중·위험자산 관리
 - 기업적립금·현금성자산·ETF 추가매수 조정
@@ -182,6 +183,7 @@ investment-dashboard/
 │  ├─ dashboard-core.js
 │  ├─ dashboard-ui-common.js
 │  ├─ dashboard-modal.js
+│  ├─ dashboard-monthly-calendar.js
 │  ├─ dashboard-charts.js
 │  ├─ dashboard-ui.js
 │  ├─ dashboard-pension.js
