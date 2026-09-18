@@ -98,6 +98,8 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(monthlyCalendar,/closeDashboardModal\(modal,/);
   assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.open[^]*?closest\?\.\('#dateActionMenu'\)[^]*?dateActionMenuButton[^]*?closeDateActionMenu\(\);[^]*?openMonthlyCalendar\(returnFocus\)/,'Phone 관리 메뉴 진입은 닫힌 menu item이 아니라 hamburger trigger로 focus를 반환해야 한다');
   assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.selectDate[^]*?closeMonthlyCalendar\(\);[^]*?setActiveDashboardDate\(date\)/,'날짜 선택은 app의 canonical activeDate 이동 경로로 위임해야 한다');
+  assert.match(monthlyCalendar,/const MONTHLY_CALENDAR_FOCUS_FALLBACK='#dateActionMenuButton,\[data-dashboard-action=\"open-monthly-calendar\"\]';/,'날짜 선택 full render 뒤에도 Phone hamburger 또는 visible opener로 focus를 복원해야 한다');
+  assert.match(monthlyCalendar,/closeDashboardModal\(modal,\{fallbackSelector:MONTHLY_CALENDAR_FOCUS_FALLBACK\}\)/,'월간 캘린더 close는 stale opener DOM 대신 stable selector fallback을 사용해야 한다');
   assert.match(monthlyCalendar,/aria-disabled=\"\$\{monthIndex<=0\?'true':'false'\}\"/,'월 이동 경계 control은 focusable aria-disabled 상태를 유지해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-(?:previous|next)[^>]* disabled/,'월 경계에서 native disabled로 focus를 잃으면 안 된다');
   assert.match(monthlyCalendar,/today:date===today/,'KST 오늘 날짜를 active date와 별도 상태로 계산해야 한다');

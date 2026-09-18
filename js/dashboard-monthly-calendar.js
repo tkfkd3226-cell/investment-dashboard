@@ -33,6 +33,7 @@ const MONTHLY_CALENDAR_ACTION={
 };
 const MONTHLY_CALENDAR_WEEKDAYS=['월','화','수','목','금','토','일'];
 const MONTHLY_CALENDAR_DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
+const MONTHLY_CALENDAR_FOCUS_FALLBACK='#dateActionMenuButton,[data-dashboard-action="open-monthly-calendar"]';
 const monthlyCalendarState={month:''};
 
 // [CAL02] Monthly Performance View Model · 기존 누적손익 계산을 일손익으로 파생
@@ -181,13 +182,13 @@ function openMonthlyCalendar(returnFocus=null){
   openDashboardModal(modal,{
     initialFocus:modal.querySelector('[aria-current="date"]')||modal.querySelector('[data-dashboard-action="monthly-calendar-previous"]')||modal.querySelector('[data-dashboard-action="monthly-calendar-next"]')||modal.querySelector('[data-dashboard-action="close-monthly-calendar"]'),
     returnFocus,
-    fallbackSelector:'[data-dashboard-action="open-monthly-calendar"]'
+    fallbackSelector:MONTHLY_CALENDAR_FOCUS_FALLBACK
   });
 }
 function closeMonthlyCalendar(){
   const modal=document.getElementById('monthlyCalendarModal');
   if(!modal)return;
-  closeDashboardModal(modal,{fallbackSelector:'[data-dashboard-action="open-monthly-calendar"]'});
+  closeDashboardModal(modal,{fallbackSelector:MONTHLY_CALENDAR_FOCUS_FALLBACK});
 }
 function shiftMonthlyCalendarMonth(delta){
   const months=monthlyCalendarMonths();
