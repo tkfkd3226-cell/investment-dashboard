@@ -617,8 +617,8 @@
   .date-picker-center{display:none}
   .date-picker-action{display:block;width:0;height:0}
   .date-tool-btn-desktop{display:none}
-  .topbar-market-ai-toggle,
-  .topbar-corner-action{display:none}
+  .topbar-market-ai-toggle{display:none}
+  .switcher button.topbar-corner-action{display:none}
   .month-select,
   .day-select{
     min-width:0;

@@ -258,7 +258,7 @@ function dashboardTocGroups(){
 }
 function renderResponsiveNavigationGroups(groups,{indentAfterFirst=false}={}){
   return groups.map(group=>{
-    const groupClass=`mobile-nav-group${group.tocFirst?' mobile-nav-group-toc-first':''}`;
+    const groupClass=`mobile-nav-group${group.tocFirst?' mobile-nav-group-toc-first':''}${group.tabletTopbarDuplicate?' mobile-nav-group-tablet-topbar-duplicate':''}`;
     return `<div class="${groupClass}"><p>${group.label}</p>${group.items.map((item,idx)=>{
       const type=item.type||(item.id?'section':'');
       const toggleAttrs=item.marketAiToggle?' data-market-ai-connection-toggle':'';
@@ -289,6 +289,7 @@ function renderResponsiveNavigationMenuContent(){
     },
     {
       label:'관리',
+      tabletTopbarDuplicate:true,
       items:[
         {type:'action',action:'open-monthly-calendar',icon:'period',title:'월간 손익'},
         {type:'action',action:'krx-update',icon:TOPBAR_ACTION_ICONS.krxUpdate,title:'KRX 현재가 반영'},

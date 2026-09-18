@@ -96,14 +96,15 @@ test('Main ES modules는 브라우저와 같은 module 문법으로 parse된다'
   }
 });
 
-test('Tablet/Phone hamburger는 링크·관리·목차 메뉴 집합을 viewport 분기 없이 공유한다',()=>{
+test('Tablet hamburger는 TOPbar 중복 관리 메뉴를 제외하고 Phone은 유지한다',()=>{
   const responsiveMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
   assert.match(responsiveMenu,/label:'링크'/);
   assert.match(responsiveMenu,/label:'관리'/);
-  assert.doesNotMatch(responsiveMenu,/phoneOnly\s*:/,'hamburger menu membership을 Phone 전용 flag로 분기하면 안 된다');
-  assert.doesNotMatch(ui,/mobile-nav-group-phone-only/,'menu group DOM에 Phone 전용 class를 만들면 안 된다');
-  assert.doesNotMatch(common,/mobile-nav-group-phone-only/,'공통 CSS에서 Tablet menu group을 숨기면 안 된다');
-  assert.doesNotMatch(special,/mobile-nav-group-phone-only/,'Phone media에서 menu group을 다시 살리는 예외를 만들면 안 된다');
+  assert.match(responsiveMenu,/tabletTopbarDuplicate:true/,'TOPbar와 중복되는 관리 그룹을 식별해야 한다');
+  assert.match(ui,/mobile-nav-group-tablet-topbar-duplicate/,'중복 그룹 class를 렌더링해야 한다');
+  assert.match(tablet,/\.mobile-nav-group-tablet-topbar-duplicate\{display:none\}/,'Tablet에서는 중복 관리 그룹을 숨겨야 한다');
+  assert.doesNotMatch(common,/\.mobile-nav-group-tablet-topbar-duplicate\{display:none\}/,'공통 메뉴에서 관리 그룹을 숨기면 Phone에서도 사라진다');
+  assert.doesNotMatch(special,/\.mobile-nav-group-tablet-topbar-duplicate\{display:none\}/,'Phone에서는 관리 그룹을 유지해야 한다');
   assert.match(common,/\.mobile-date-pin-control\{display:none\}/,'날짜 선택 고정은 Phone 전용 header control이라 공통 기본에서는 숨겨야 한다');
   assert.match(special,/\.mobile-date-pin-control\{display:inline-flex/,'Phone 전용 날짜 선택 고정 control은 Phone Shared에서만 표시해야 한다');
 });
@@ -124,7 +125,7 @@ test('Tablet/Phone hamburger panel은 공통 viewport 높이 contract를 공유�
 test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를 재사용한다',()=>{
   assert.match(index,/'dashboard-monthly-calendar\.js'/,'월간 캘린더 module은 importmap cache-bust 대상이어야 한다');
   assert.match(ui,/data-dashboard-action="open-monthly-calendar"/,'Web\/Tablet Topbar에 월간 손익 진입점이 있어야 한다');
-  assert.match(ui,/action:'open-monthly-calendar',icon:'period',title:'월간 손익'/,'Tablet/Phone 관리 메뉴도 같은 action을 사용해야 한다');
+  assert.match(ui,/action:'open-monthly-calendar',icon:'period',title:'월간 손익'/,'Phone 관리 메뉴도 같은 action을 사용해야 한다');
   assert.match(monthlyCalendar,/combinedDailyProfitChange\(date\)/,'일손익 계산 의미는 DOM feature가 아니라 core의 공통 일성과 helper를 재사용해야 한다');
   assert.match(core,/function combinedDailyProfitChange\(date\)/,'flow-neutral 월간 일손익 계산은 core가 소유해야 한다');
   assert.match(monthlyCalendar,/modal\.className='action-modal monthly-calendar-modal'/,'월간 캘린더는 공통 action modal shell을 재사용해야 한다');
@@ -132,8 +133,8 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(monthlyCalendar,/closeDashboardModal\(modal,/);
   assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.open[^]*?closest\?\.\('#dateActionMenu'\)[^]*?dateActionMenuButton[^]*?closeDateActionMenu\(\);[^]*?openMonthlyCalendar\(returnFocus\)/,'Tablet/Phone 관리 메뉴 진입은 닫힌 menu item이 아니라 hamburger trigger로 focus를 반환해야 한다');
   assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.selectDate[^]*?closeMonthlyCalendar\(\);[^]*?setActiveDashboardDate\(date\)/,'날짜 선택은 app의 canonical activeDate 이동 경로로 위임해야 한다');
-  assert.match(monthlyCalendar,/MONTHLY_CALENDAR_FOCUS_FALLBACK=[^;]*dateActionMenuButton[^;]*open-monthly-calendar/,'날짜 선택 full render 뒤에도 Tablet/Phone hamburger 또는 visible opener로 focus를 복원해야 한다');
-  assert.match(monthlyCalendar,/closeDashboardModal\(modal,\{[^}]*fallbackSelector:MONTHLY_CALENDAR_FOCUS_FALLBACK[^}]*\}\)/,'월간 캘린더 close는 stale opener DOM 대신 stable selector fallback을 사용해야 한다');
+  assert.match(monthlyCalendar,/function monthlyCalendarFocusFallbackSelector\(\)[^]*?dateActionMenuButton[^]*?open-monthly-calendar/,'날짜 선택 full render 뒤에도 Phone hamburger 또는 visible Topbar opener로 focus를 복원해야 한다');
+  assert.match(monthlyCalendar,/closeDashboardModal\(modal,\{[^}]*fallbackSelector:monthlyCalendarFocusFallbackSelector\(\)[^}]*\}\)/,'월간 캘린더 close는 stale opener DOM 대신 stable selector fallback을 사용해야 한다');
   assert.match(monthlyCalendar,/monthIndex<=0\?'true':'false'/,'첫 월 이전 control은 경계 상태를 계산해야 한다');
   assert.match(monthlyCalendar,/monthIndex>=months\.length-1\?'true':'false'/,'마지막 월 다음 control은 경계 상태를 계산해야 한다');
   assert.match(monthlyCalendar,/aria-disabled=/,'월 경계 control은 native disabled 대신 focusable aria-disabled 상태를 사용해야 한다');
@@ -152,11 +153,13 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(special,/\.monthly-calendar-head\{[^}]*width:min\(360px,calc\(100% - var\(--icon-button-size\) - var\(--icon-button-size\) - var\(--space-4xl\)\)\)/,'Phone 월 이동 버튼은 닫기 버튼 영역을 침범하지 않도록 안쪽 여백을 확보해야 한다');
 });
 
-test('Topbar action 라벨은 1280 기준으로 full → short → Tablet icon-only 단계만 사용한다',()=>{
+test('Topbar action 라벨은 Web full/short와 Tablet 축약명·icon 조합을 사용한다',()=>{
   assert.match(common,/button\.topbar-realtime-phone-action,[^]*?\.topbar-label-short\{display:none\}/,'Desktop baseline은 short label을 숨기고 full label을 유지해야 한다');
   assert.match(special,/@media \(min-width:1101px\) and \(max-width:1279px\)\{[^]*?\.date-picker-action \.topbar-label-full\{display:none\}[^]*?\.date-picker-action \.topbar-label-short\{display:inline\}/,'1101~1279px compact Web은 모든 text action을 short label로 축약해야 한다');
-  assert.match(tablet,/\.date-picker-action \.date-tool-btn-desktop\{[^}]*width:var\(--topbar-control-height\)[^}]*min-width:var\(--topbar-control-height\)[^}]*padding-inline:0[^}]*gap:0/,'Tablet의 Desktop action은 글씨 공간 없이 정사각 icon control이어야 한다');
-  assert.match(tablet,/\.date-picker-action \.date-tool-btn-desktop :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Tablet 761~1100px에서는 모든 Desktop action 라벨을 숨겨야 한다');
+  assert.match(tablet,/\.date-picker-action \.market-link-btn-desktop\{display:none\}/,'Tablet Topbar에서는 선물 링크를 숨겨야 한다');
+  assert.match(tablet,/\.date-picker-action \.date-tool-btn-desktop\.control-icon-button\{[^}]*width:var\(--topbar-control-height\)[^}]*min-width:var\(--topbar-control-height\)[^}]*padding-inline:0[^}]*gap:0/,'Tablet의 보조 action은 정사각 icon control이어야 한다');
+  assert.match(tablet,/\.date-picker-action \.topbar-label-full\{display:none\}/,'Tablet에서는 full label을 숨겨야 한다');
+  assert.match(tablet,/\.date-picker-action \.topbar-label-short\{display:inline\}/,'Tablet 주요 action은 축약명을 표시해야 한다');
   assert.match(special,/\.date-tool-btn-desktop\{display:none\}/,'Phone Shared는 기존처럼 Desktop action 자체를 숨겨 별도 모바일 Topbar 계약을 유지해야 한다');
 });
 
@@ -1353,7 +1356,7 @@ test('Web/Tablet 개인보기 도구는 계산기·Market AI·테마 icon contro
   assert.match(tabsBlock,/toggle-market-ai-connection/);
 });
 
-test('Market AI 연결 toggle은 OFF fallback과 Tablet/Phone 공통 관리 메뉴 배치를 유지한다',()=>{
+test('Market AI 연결 toggle은 OFF fallback과 Phone 관리 메뉴 배치를 유지한다',()=>{
   assert.match(marketAiClient,/function setMarketAiEnabled\(/);
   assert.match(marketAi,/marketAiEnabled\(\)/);
   assert.match(liveValuation,/marketAiEnabled\(\)/);
