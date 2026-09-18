@@ -165,17 +165,16 @@
 /* -------------------------------------------------------------------------
    [S02] Compact Desktop · 중간폭 웹 — 1101~1279px
    Why · 이유: Desktop baseline은 유지하되 이 구간에서 폭이 빠듯해지는 기능만 보정한다.
-   Scope · 범위: Asset Detail grid와 신규 Topbar action의 폭 보정에만 적용한다.
+   Scope · 범위: Asset Detail grid와 Topbar action 라벨 축약에만 적용한다.
    ------------------------------------------------------------------------- */
 @media (min-width:1101px) and (max-width:1279px){
   /* Asset Detail Compact · 현황 + 전일대비 2열의 내부 스크롤을 피하도록 상세 grid를 1열로 전환 */
     .asset-detail-grid{
       grid-template-columns:1fr;
     }
-    /* Monthly Calendar Entry · 신규 action이 중간폭 Web Topbar를 밀지 않도록 짧은 라벨과 기존 compact spacing을 사용 */
-    .topbar-calendar-action{padding-inline:var(--space-lg);gap:var(--space-sm)}
-    .topbar-calendar-action .topbar-label-full{display:none}
-    .topbar-calendar-action .topbar-label-short{display:inline}
+    /* Topbar Action Labels · 1280px 미만의 compact Web은 모든 text action을 동일한 short label로 축약 */
+    .date-picker-action .topbar-label-full{display:none}
+    .date-picker-action .topbar-label-short{display:inline}
 }
 
 /* -------------------------------------------------------------------------

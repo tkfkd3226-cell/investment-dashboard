@@ -119,9 +119,15 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(common,/\.monthly-calendar-grid\{[^}]*grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/,'calendar는 의미상 7열 grid를 유지해야 한다');
   assert.match(monthlyCalendar,/is-unavailable[^]*?aria-hidden=\"true\"/,'가용 데이터가 없는 날짜는 선택 control이 아니라 unavailable cell이어야 한다');
   assert.match(monthlyCalendar,/item\.profit==null\?'기준'/,'이전 비교값이 없는 최초 날짜는 0원이 아니라 기준일로 표시해야 한다');
-  assert.match(tablet,/\.topbar-calendar-action :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Tablet 월간 손익 진입점은 라벨을 숨긴 icon-only control이어야 한다');
-  assert.match(special,/1101px\) and \(max-width:1279px\)[^]*?\.topbar-calendar-action \.topbar-label-full\{display:none\}[^]*?\.topbar-calendar-action \.topbar-label-short\{display:inline\}/,'compact Web은 full 라벨 대신 월간 짧은 라벨을 사용해야 한다');
   assert.match(special,/\.monthly-calendar-summary\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Phone 세로\/가로 공통 요약은 2열로 밀도를 낮춰야 한다');
+});
+
+test('Topbar action 라벨은 1280 기준으로 full → short → Tablet icon-only 단계만 사용한다',()=>{
+  assert.match(common,/button\.topbar-realtime-phone-action,[^]*?\.topbar-label-short\{display:none\}/,'Desktop baseline은 short label을 숨기고 full label을 유지해야 한다');
+  assert.match(special,/@media \(min-width:1101px\) and \(max-width:1279px\)\{[^]*?\.date-picker-action \.topbar-label-full\{display:none\}[^]*?\.date-picker-action \.topbar-label-short\{display:inline\}/,'1101~1279px compact Web은 모든 text action을 short label로 축약해야 한다');
+  assert.match(tablet,/\.date-picker-action \.date-tool-btn-desktop\{[^}]*width:var\(--topbar-control-height\)[^}]*min-width:var\(--topbar-control-height\)[^}]*padding-inline:0[^}]*gap:0/,'Tablet의 Desktop action은 글씨 공간 없이 정사각 icon control이어야 한다');
+  assert.match(tablet,/\.date-picker-action \.date-tool-btn-desktop :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Tablet 761~1100px에서는 모든 Desktop action 라벨을 숨겨야 한다');
+  assert.match(special,/\.date-tool-btn-desktop\{display:none\}/,'Phone Shared는 기존처럼 Desktop action 자체를 숨겨 별도 모바일 Topbar 계약을 유지해야 한다');
 });
 
 test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validator 모듈을 사용한다',()=>{

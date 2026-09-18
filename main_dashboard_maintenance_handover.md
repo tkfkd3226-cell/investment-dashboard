@@ -410,7 +410,7 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 
 월간 손익 캘린더는 새 운영 JSON이나 별도 성과 산식을 만들지 않는다. `dashboard-core.js`의 기존 전일 대비 성과 의미를 재사용해 **증권의 flow-neutral `dayChange` + 비교 가능한 연금 `pensionDayChange` + 선택 시 별도수익의 당일 증가분**을 합산한다. 따라서 계좌2·토스의 기존 누적 실현손익이 합산 범위에 처음 들어오는 날이나 연금 데이터가 처음 관측되는 날의 과거 누적손익을 그날 수익으로 오인하지 않는다.
 
-- Web/Tablet은 Topbar `월간 손익` action, Phone은 `관리` 메뉴에서 같은 action으로 연다. Tablet은 Topbar 폭을 침범하지 않도록 같은 action을 icon-only control로 표시하고, 1101~1279px compact Web은 짧은 `월간` 라벨을 사용한다.
+- Web/Tablet은 Topbar `월간 손익` action, Phone은 `관리` 메뉴에서 같은 action으로 연다. Topbar의 text action은 개별 기능 예외를 만들지 않고 공통 responsive contract를 따른다. **1280px 이상은 full label, 1101~1279px compact Web은 short label, Tablet 761~1100px은 모든 Desktop action을 icon-only control**로 표시한다. Phone Topbar/관리 메뉴는 기존 Mobile contract를 그대로 사용한다.
 - 월 이동은 실제 가용 데이터가 존재하는 월 목록 안에서만 이동한다.
 - 날짜 cell은 `allAvailableDates()`에 존재하는 날짜만 선택 가능하다. 주말·휴장처럼 source에 없는 날짜는 unavailable로 표시하고 월 합계·상승/하락·최고/최저 계산에서 제외한다. 월 첫 비교 가능일은 `previousDate()`가 전월 마지막 가용일을 이어서 사용하며, 전체 데이터의 최초 날짜처럼 비교 기준이 없는 날은 `0원`이 아니라 **기준일**로 표시한다.
 - 일손익 `0원`은 월 합계에는 0으로 반영하되 상승일·하락일 어느 쪽에도 포함하지 않는다.
@@ -930,7 +930,7 @@ Mobile  ≤ 760px
 Navigation 책임은 다음 의미를 유지한다.
 
 - Phone 세로/가로: Mobile hamburger 중심
-- Tablet: 축약 action + hamburger 목차
+- Tablet: 상단 action 전체 icon-only + hamburger 목차
 - Desktop: 기존 action + 우측 edge TOC
 
 JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하고 같은 `matchMedia` 조건을 기능 모듈마다 복제하지 않는다.
@@ -1093,7 +1093,7 @@ common.css
 - `common.css`: viewport와 무관한 기본 component, theme/token, 공통 layout, **Desktop baseline**, `max-width:1100px` / `min-width:761px` 같은 Responsive Shared
 - `tablet.css`: `761px ~ 1100px`에서 common의 Desktop baseline을 태블릿 표현으로 변경하는 전용 규칙
 - `mobile.css`: `max-width:760px` 모바일 전용 규칙
-- `special.css`: `≤400px`, `1101~1279px Compact Desktop(Asset Detail)`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
+- `special.css`: `≤400px`, `1101~1279px Compact Desktop(Asset Detail + Topbar short label)`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
 - `interaction.css`: `hover:hover + pointer:fine`처럼 viewport가 아닌 입력장치 조건
 - `print.css`: 인쇄 전용 최종 override
 
@@ -1142,7 +1142,7 @@ Mobile · 모바일: 760px 이하
 → 초소형 화면에서 계좌별 성과 정보 구조 보정
 
 1101~1279px
-→ Compact Desktop 예외: Asset Detail 2-column 가용폭 보정. 1280px은 일반 Desktop 2-column을 유지하며 모바일의 `?dashboard-view=web` 1280 viewport도 이 기준을 따른다.
+→ Compact Desktop 예외: Asset Detail 2-column 가용폭 보정 + Topbar text action short label. 1280px부터는 일반 Desktop full label/2-column을 유지하며 모바일의 `?dashboard-view=web` 1280 viewport도 이 기준을 따른다.
 
 Phone Landscape
 → iPhone 13 844×390부터 956×440급 대형 스마트폰까지 width만 보면 Tablet으로 오판되는 실제 터치폰 가로모드 대응
@@ -1245,7 +1245,7 @@ New
 
 현재 허용된 대표 기능 예외는 다음 두 가지다.
 
-- `1101~1279px`: Compact Desktop 기능 예외다. `.asset-detail-grid`만 1열로 전환한다. `1280px`은 의도적으로 제외해 일반 Desktop 2-column을 유지하고, 모바일의 `?dashboard-view=web`이 강제하는 1280 viewport에서도 변동 카드가 내려가지 않게 한다. `1100px 이하`는 기존 Tablet/Mobile/Phone 규칙이 담당하며 이 조건을 다른 영역의 일반 breakpoint로 확대하지 않는다.
+- `1101~1279px`: Compact Desktop 기능 예외다. `.asset-detail-grid`는 1열로 전환하고 Topbar의 text action은 full label 대신 short label을 사용한다. `1280px`은 의도적으로 제외해 일반 Desktop 2-column/full label을 유지하고, 모바일의 `?dashboard-view=web`이 강제하는 1280 viewport에서도 같은 Desktop baseline을 사용한다. `761~1100px` Tablet은 Topbar Desktop action을 전부 icon-only로 표시하며, `760px 이하` 및 실제 Phone Landscape는 기존 Mobile Topbar 규칙을 그대로 사용한다.
 - `landscape + width≤960 + height≤500 + hover:none + pointer:coarse`: 실제 스마트폰 가로 판정에만 사용한다. `960px`을 일반 breakpoint로 재사용하지 않는다.
 
 공통 Asset Detail CSS는 기존 generic class/token을 우선 재사용하고, 실제로 양쪽 자산이 공유하는 의미에만 최소 `.asset-*` semantic class를 사용한다. 현황/전일변동/상승분기여도에서 공통화된 selector는 neutral `.asset-*`가 canonical이며, 같은 역할의 `.pension-*` legacy alias를 병렬로 유지하지 않는다. 위험자산 70% 룰·퇴직연금 조정/PIN/납입 등 연금 전용 UI는 계속 `.pension-*`를 사용한다.

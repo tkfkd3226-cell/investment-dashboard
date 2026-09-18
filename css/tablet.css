@@ -154,9 +154,7 @@
 
     :is(.contrib-modal,.action-modal){--modal-card-radius:min(20px,var(--corner-surface-cap))}
 
-  /* [T07. Topbar / Navigation · 날짜 action과 Tablet TOC menu] */
-.topbar-label-full{display:none}
-    .topbar-label-short{display:inline}
+  /* [T07. Topbar / Navigation · Tablet은 상단 action을 전부 icon-only로 통일하고 TOC는 hamburger로 유지] */
     .switcher{
       overflow-x:clip;
       overflow-y:visible;
@@ -168,13 +166,13 @@
     .date-picker{grid-template-columns:minmax(0,1fr) auto}
     .date-picker-center{width:100%;max-width:calc(var(--topbar-date-select-width) + var(--topbar-date-select-width) + var(--topbar-layout-gap))}
     .date-picker-action{grid-column:2}
-    .topbar-calendar-action{
+    .date-picker-action .date-tool-btn-desktop{
       width:var(--topbar-control-height);
       min-width:var(--topbar-control-height);
       padding-inline:0;
       gap:0;
     }
-    .topbar-calendar-action :is(.topbar-label-full,.topbar-label-short){display:none}
+    .date-picker-action .date-tool-btn-desktop :is(.topbar-label-full,.topbar-label-short){display:none}
     .month-select,
     .day-select{
       min-width:0;
