@@ -536,9 +536,10 @@ class IntradayMissingCalendarTest(unittest.TestCase):
 
     def test_attached_data_auto_refresh_reaches_save_with_lagging_index(self):
         portfolio, prices, snapshots = self.updater.load_dashboard_data()
-        self.history = {
-            date: 100.0 for date in prices if date <= "2026-09-17"
-        }
+        # 이 시나리오는 9/18 장중 직전 상태를 검증하므로 이후 운영 데이터와 분리한다.
+        prices = {date: row for date, row in prices.items() if date <= "2026-09-17"}
+        snapshots = {date: row for date, row in snapshots.items() if date <= "2026-09-17"}
+        self.history = {date: 100.0 for date in prices}
         self.updater.parse_args = lambda: types.SimpleNamespace(date="", force_display=False, no_display=False)
         self.updater.load_dashboard_data = lambda: (portfolio, prices, snapshots)
         self.updater.market_status_for_date = lambda date: "intraday" if date == "2026-09-18" else "close"
