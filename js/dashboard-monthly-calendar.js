@@ -6,7 +6,7 @@ import {
   kstTodayText,
   uiState
 } from './dashboard-core.js';
-import { escapeHtml, navIconSvg } from './dashboard-ui-common.js';
+import { escapeHtml, navIconSvg, phoneUi } from './dashboard-ui-common.js';
 import {
   bindDashboardModalDismiss,
   closeDashboardModal,
@@ -33,7 +33,11 @@ const MONTHLY_CALENDAR_ACTION={
 };
 const MONTHLY_CALENDAR_WEEKDAYS=['월','화','수','목','금','토','일'];
 const MONTHLY_CALENDAR_DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
-const MONTHLY_CALENDAR_FOCUS_FALLBACK='#dateActionMenuButton,[data-dashboard-action="open-monthly-calendar"]';
+function monthlyCalendarFocusFallbackSelector(){
+  return phoneUi()
+    ? '.topbar-calendar-phone-action,#dateActionMenuButton'
+    : '.date-tool-btn-desktop[data-dashboard-action="open-monthly-calendar"],#dateActionMenuButton';
+}
 const monthlyCalendarState={month:''};
 
 // [CAL02] Monthly Performance View Model · 기존 flow-neutral 일성과 helper를 재사용
@@ -187,13 +191,13 @@ function openMonthlyCalendar(returnFocus=null){
   openDashboardModal(modal,{
     initialFocus:modal.querySelector('[aria-current="date"]')||modal.querySelector('[data-dashboard-action="monthly-calendar-previous"]')||modal.querySelector('[data-dashboard-action="monthly-calendar-next"]')||modal.querySelector('[data-dashboard-action="close-monthly-calendar"]'),
     returnFocus,
-    fallbackSelector:MONTHLY_CALENDAR_FOCUS_FALLBACK
+    fallbackSelector:monthlyCalendarFocusFallbackSelector()
   });
 }
 function closeMonthlyCalendar(){
   const modal=document.getElementById('monthlyCalendarModal');
   if(!modal)return;
-  closeDashboardModal(modal,{fallbackSelector:MONTHLY_CALENDAR_FOCUS_FALLBACK});
+  closeDashboardModal(modal,{fallbackSelector:monthlyCalendarFocusFallbackSelector()});
 }
 function shiftMonthlyCalendarMonth(delta){
   const months=monthlyCalendarMonths();

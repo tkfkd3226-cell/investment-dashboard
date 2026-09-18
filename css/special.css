@@ -275,7 +275,7 @@
     }
     .monthly-calendar-close{top:var(--space-4xl);right:var(--space-4xl)}
     .monthly-calendar-head{
-      width:calc(100% - var(--icon-button-size) - var(--space-lg));
+      width:min(260px,calc(100% - var(--icon-button-size) - var(--icon-button-size) - var(--space-9xl) - var(--space-9xl)));
       gap:var(--space-lg);
     }
     .monthly-calendar-description{
@@ -644,17 +644,18 @@
     color:var(--topbar-floating-text);
     box-shadow:var(--topbar-floating-shadow);
   }
+  .topbar-calendar-phone-action,
   button.topbar-realtime-phone-action,
-  .topbar-theme-action,
-  .topbar-corner-action{
+  .topbar-theme-action{
     display:inline-flex;
     position:fixed;
     top:max(var(--space-md),env(safe-area-inset-top));
     z-index:2400;
   }
-  .topbar-realtime-phone-action{right:calc(var(--topbar-phone-edge) + var(--topbar-phone-control-step) + var(--topbar-phone-control-step) + var(--topbar-phone-control-step))}
-  .topbar-theme-action{right:calc(var(--topbar-phone-edge) + var(--topbar-phone-control-step) + var(--topbar-phone-control-step))}
-  .topbar-corner-action{right:calc(var(--topbar-phone-edge) + var(--topbar-phone-control-step))}
+  .topbar-calendar-phone-action{right:calc(var(--topbar-phone-edge) + var(--topbar-phone-control-step) + var(--topbar-phone-control-step) + var(--topbar-phone-control-step))}
+  .topbar-realtime-phone-action{right:calc(var(--topbar-phone-edge) + var(--topbar-phone-control-step) + var(--topbar-phone-control-step))}
+  .topbar-theme-action{right:calc(var(--topbar-phone-edge) + var(--topbar-phone-control-step))}
+  .topbar-corner-action{display:none}
   .date-action-menu-wrap{
     display:block;
     position:fixed;
@@ -691,16 +692,16 @@
     color:var(--topbar-text);
     box-shadow:var(--topbar-control-shadow);
   }
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-realtime-phone-action,.topbar-theme-action,.topbar-corner-action){
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.topbar-calendar-phone-action,.topbar-realtime-phone-action,.topbar-theme-action){
     position:relative;
     top:auto;
     right:auto;
     z-index:auto;
     justify-self:end;
   }
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-realtime-phone-action{grid-column:4}
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-theme-action{grid-column:5}
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-corner-action{grid-column:6}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-calendar-phone-action{grid-column:4}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-realtime-phone-action{grid-column:5}
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) .topbar-theme-action{grid-column:6}
   .switcher:is(.mobile-menu-open,.mobile-date-pinned) .date-action-menu-wrap{
     position:relative;
     top:auto;

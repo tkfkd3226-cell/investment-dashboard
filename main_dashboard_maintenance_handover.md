@@ -410,12 +410,12 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 
 월간 손익 캘린더는 새 운영 JSON이나 별도 성과 산식을 만들지 않는다. `dashboard-core.js`의 기존 전일 대비 성과 의미를 재사용해 **증권의 flow-neutral `dayChange` + 비교 가능한 연금 `pensionDayChange` + 선택 시 별도수익의 당일 증가분**을 합산한다. 따라서 계좌2·토스의 기존 누적 실현손익이 합산 범위에 처음 들어오는 날이나 연금 데이터가 처음 관측되는 날의 과거 누적손익을 그날 수익으로 오인하지 않는다.
 
-- Web/Tablet Topbar와 Tablet/Phone 공통 `관리` 메뉴에서 동일한 `월간 손익` action으로 진입한다. 진입점의 viewport별 표현과 hamburger 구성·높이·scroll은 이 문서의 공통 Topbar/Navigation responsive contract를 따른다.
+- Web/Tablet Topbar와 Phone Topbar에서 동일한 `월간 손익` action으로 진입한다. 진입점의 viewport별 표현은 이 문서의 공통 Topbar/Navigation responsive contract를 따른다.
 - 월 이동은 실제 가용 데이터가 존재하는 월 목록 안에서만 이동한다.
 - 날짜 cell은 `allAvailableDates()`에 존재하는 날짜만 선택 가능하다. 주말·휴장처럼 source에 없는 날짜는 unavailable로 표시하고 월 합계·상승/하락·최고/최저 계산에서 제외한다. 월 첫 비교 가능일은 `previousDate()`가 전월 마지막 가용일을 이어서 사용하며, 전체 데이터의 최초 날짜처럼 비교 기준이 없는 날은 `0원`이 아니라 **기준일**로 표시한다.
 - 일손익 `0원`은 월 합계에는 0으로 반영하되 상승일·하락일 어느 쪽에도 포함하지 않는다.
 - 날짜 cell 선택은 캘린더 모듈이 `activeDate`를 직접 바꾸지 않고 `dashboard-app.js`의 `setActiveDashboardDate()`로 위임한다.
-- overlay/focus/inert/Escape/backdrop 처리는 `dashboard-modal.js` lifecycle을 재사용한다. Tablet/Phone 공통 관리 메뉴에서 진입한 경우 modal 종료 focus는 숨겨진 메뉴 item이 아니라 hamburger trigger로 돌아간다.
+- overlay/focus/inert/Escape/backdrop 처리는 `dashboard-modal.js` lifecycle을 재사용한다. 전체 render 뒤 opener DOM이 교체돼도 현재 viewport의 월간 손익 Topbar 진입점으로 focus를 복원한다.
 - 월 이동 양 끝의 이전/다음 control은 `aria-disabled` 상태로 focusability를 유지해 keyboard focus가 DOM 재렌더 중 유실되지 않게 한다. 선택일(`aria-current`)과 KST 오늘 날짜(`is-today`)는 서로 다른 시각 상태로 구분하며, **오늘의 가용 데이터가 아직 없더라도** unavailable cell에 `is-today`와 `오늘, n일, 데이터 없음` 접근성 설명을 유지한다.
 - calendar geometry와 손익 의미색은 새 독립 디자인 체계를 만들지 않고 기존 spacing/type/surface/value token을 재사용한다.
 
@@ -459,7 +459,7 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 
 - 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, 상태 표시 등 공통 form/control 표현과 `dashboard-modal.js`의 dialog lifecycle을 재사용한다.
 - 퇴직연금 금액 조정의 `개별 처리 / 작업 모음`은 Main `.control-segmented`의 geometry/typography/중앙 정렬을 재사용한다. 긴 `작업 모음 + count` 라벨 때문에 필요한 폭·좌우 여백만 feature override하며, 연금 전용 font-size/height/line-height 체계를 별도로 만들지 않는다.
-- 개인보기 도구는 Web/Tablet에서 공통 icon-button geometry를 사용한다. Tablet/Phone hamburger는 공통 `관리` 메뉴를 사용하며 Market AI 연결 토글은 Phone Topbar에 두지 않는다.
+- 개인보기 도구는 Web/Tablet에서 공통 icon-button geometry를 사용한다. Tablet/Phone hamburger는 공통 메뉴 집합을 사용하며 Market AI 연결·엣지 테마는 hamburger `관리`에 두고 Phone Topbar에는 중복 배치하지 않는다.
 - Market AI lifecycle listener는 초기 preference가 OFF여도 등록한다. 초기 OFF를 이유로 `startMarketAiBridge()`가 listener 등록 전에 return하면 이후 같은 페이지에서 ON 이벤트를 받을 수 없으므로 금지한다. ON 전환은 새로고침 없이 mount/refresh를 시작해야 한다.
 - 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
 - KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유한다. 공통 modal radius는 shared modal contract에서 한 번만 소유하고 Tablet/Phone은 해당 shared token만 override한다. Phone 좌우 여백은 overlay padding을 canonical source로 사용하며 feature별 `100vw - npx` 폭 보정을 중복해서 만들지 않는다.
@@ -929,11 +929,11 @@ Mobile  ≤ 760px
 
 Navigation 책임은 다음 의미를 유지한다.
 
-- Phone 세로/가로: Mobile hamburger 중심
-- Tablet: 상단 action 전체 icon-only + Phone과 동일한 `링크`·`관리`·목차 hamburger 메뉴
-- Hamburger membership: Tablet/Phone 공통. viewport별 menu item 숨김/복원 분기를 두지 않는다. 단, `날짜 선택 고정`은 fixed Phone Topbar 전용 control이라 Phone에서만 표시
+- Desktop/Tablet Topbar action 순서는 `코스피200 야간선물 → 나스닥100 선물 → KRX 현재가 반영 → 퇴직연금 금액 조정 → 월간 손익 → 실시간 시세 → 투자 계산기 → Market AI 연결 → 밝기 테마 → 엣지 테마`다. 1280px 이상 full label, 1101~1279px short label, Tablet은 같은 순서를 icon-only로 유지한다.
+- Phone 세로/가로 Topbar는 `월간 손익 → 실시간 시세 → 밝기 테마 → hamburger` 순서다. 엣지 테마는 Phone Topbar에 중복 배치하지 않는다.
+- Tablet/Phone hamburger는 같은 메뉴 집합을 사용한다. `링크`는 `코스피200 야간선물 → 나스닥100 선물 → 투자 계산기`, `관리`는 `KRX 현재가 반영 → 퇴직연금 금액 조정 → Market AI 연결 → 엣지 테마` 순서이며, 이어서 공통 목차를 표시한다. viewport별 menu item 숨김/복원 분기를 두지 않는다. 단, `날짜 선택 고정`은 fixed Phone Topbar 전용 control이라 Phone에서만 표시한다.
 - Hamburger panel height/scroll: `common.css`가 Tablet/Phone 공통 owner다. Tablet/Phone media에 별도 `max-height` cap을 두지 않고, viewport 높이가 실제로 부족한 경우에만 공통 `overflow:auto`가 작동한다.
-- Desktop: 기존 action + 우측 edge TOC
+- Desktop은 우측 edge TOC를 추가로 사용한다.
 
 JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하고 같은 `matchMedia` 조건을 기능 모듈마다 복제하지 않는다.
 
