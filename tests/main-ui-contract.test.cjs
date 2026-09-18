@@ -684,6 +684,41 @@ test('공통 fetch timeout은 응답 헤더 뒤 JSON 본문 대기까지 유지�
   assert.equal(signal.aborted,true);
 });
 
+
+test('초기 JSON 로더는 일시적 fetch 연결 실패만 짧게 재시도한다',async()=>{
+  const start=core.indexOf('const DATA_READ_RETRY_DELAYS_MS=');
+  const end=core.indexOf('\nfunction deriveSeparateProfitFromKodexReport',start);
+  assert.ok(start>=0&&end>start,'core data-read retry implementation is missing');
+  const vm=require('node:vm');
+  const delays=[];
+  let attempts=0;
+  const context={
+    setTimeout:(fn,delay)=>{delays.push(delay);fn();return 0;},
+    dataUrlLabel:url=>url,
+    fetchWithTimeout:async()=>{
+      attempts+=1;
+      if(attempts<3)throw new TypeError('Failed to fetch');
+      return {ok:true,json:async()=>({ok:true})};
+    }
+  };
+  vm.createContext(context);
+  vm.runInContext(core.slice(start,end),context);
+  const result=await context.loadJson('data/mock.json');
+  assert.deepEqual(JSON.parse(JSON.stringify(result)),{ok:true});
+  assert.equal(attempts,3);
+  assert.deepEqual(delays,[250,750]);
+
+  attempts=0;
+  delays.length=0;
+  context.fetchWithTimeout=async()=>{
+    attempts+=1;
+    return {ok:false,status:500,releaseTimeout(){}};
+  };
+  await assert.rejects(context.loadJson('data/mock.json'),/HTTP 500/);
+  assert.equal(attempts,1,'HTTP 오류는 retry 대상이 아니어야 한다');
+  assert.deepEqual(delays,[]);
+});
+
 test('가격 갱신 설명은 선택일 종목 갱신과 KOSPI 과거 backfill 범위를 구분한다',()=>{
   assert.match(updatePricesWorkflow,/date 지정:[^\n]*종목 가격\/성과[^\n]*KOSPI[^\n]*backfill/);
   assert.match(updatePricesWorkflow,/지정일까지 저장된 KOSPI 구간의 누락·정정값을 backfill/);

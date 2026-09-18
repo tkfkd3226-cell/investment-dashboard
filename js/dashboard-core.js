@@ -1310,23 +1310,41 @@ async function readJsonResponse(response,label='요청'){
   }
   return data;
 }
+// Initial data retry · 새로고침 직후 local server가 잠깐 준비되지 않은 transport 실패만 짧게 흡수한다.
+const DATA_READ_RETRY_DELAYS_MS=Object.freeze([250,750,1500]);
+function isTransientDataFetchError(error){
+  return error?.name==='TypeError'&&!error?.status&&!error?.code;
+}
+function waitForDataRetry(delayMs){
+  return new Promise(resolve=>setTimeout(resolve,delayMs));
+}
 async function loadJson(url){
-  const response=await fetchWithTimeout(url);
-  if(!response.ok){
-    response.releaseTimeout?.();
-    const error=new Error(`${dataUrlLabel(url)} 로드 실패 (HTTP ${response.status})`);
-    error.status=response.status;
-    error.url=url;
-    throw error;
-  }
-  try{
-    return await response.json();
-  }catch(cause){
-    if(cause?.code==='NETWORK_TIMEOUT')throw cause;
-    const error=new Error(`${dataUrlLabel(url)} JSON 형식이 올바르지 않습니다.`);
-    error.cause=cause;
-    error.url=url;
-    throw error;
+  let retryIndex=0;
+  while(true){
+    try{
+      const response=await fetchWithTimeout(url);
+      if(!response.ok){
+        response.releaseTimeout?.();
+        const error=new Error(`${dataUrlLabel(url)} 로드 실패 (HTTP ${response.status})`);
+        error.status=response.status;
+        error.url=url;
+        throw error;
+      }
+      try{
+        return await response.json();
+      }catch(cause){
+        if(cause?.code==='NETWORK_TIMEOUT')throw cause;
+        const error=new Error(`${dataUrlLabel(url)} JSON 형식이 올바르지 않습니다.`);
+        error.cause=cause;
+        error.url=url;
+        throw error;
+      }
+    }catch(error){
+      const retryDelay=DATA_READ_RETRY_DELAYS_MS[retryIndex];
+      if(retryDelay===undefined||!isTransientDataFetchError(error))throw error;
+      retryIndex+=1;
+      await waitForDataRetry(retryDelay);
+    }
   }
 }
 async function loadJsonOr(url,fallback,{fallbackStatuses=[404]}={}){

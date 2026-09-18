@@ -288,6 +288,7 @@ market-ai          → 현재 시장·AI 신호 standalone panel / polling / ren
 
 - 공통 데이터 상태
 - 데이터 loading
+  - 초기 repository JSON 조회는 새로고침 직후 local server 준비 race를 흡수하기 위해 **transport-level `TypeError`만 250ms → 750ms → 1500ms로 재시도**한다. HTTP 오류·JSON 형식 오류·`NETWORK_TIMEOUT`은 실제 장애 신호를 유지하기 위해 재시도하지 않는다.
 - 계산
 - formatter
 - 증권/퇴직연금 공통 계산 helper
