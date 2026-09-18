@@ -101,8 +101,10 @@ function renderMonthlyCalendarDayCell({day,date='',available=false,item=null,wee
   const weekend=weekdayIndex>=5?' is-weekend':'';
   if(!available||!item){
     const todayClass=today?' is-today':'';
-    const accessibility=today?` aria-label="오늘, ${day}일, 데이터 없음"`:' aria-hidden="true"';
-    return `<div class="monthly-calendar-day is-unavailable${weekend}${todayClass}"${accessibility}><span class="monthly-calendar-day-number">${day}</span></div>`;
+    const cellAccessibility=today?'':' aria-hidden="true"';
+    const visibleDayAccessibility=today?' aria-hidden="true"':'';
+    const screenReaderText=today?`<span class="visually-hidden">오늘, ${day}일, 데이터 없음</span>`:'';
+    return `<div class="monthly-calendar-day is-unavailable${weekend}${todayClass}"${cellAccessibility}><span class="monthly-calendar-day-number"${visibleDayAccessibility}>${day}</span>${screenReaderText}</div>`;
   }
   const profitClass=item.profit==null?'':(item.profit>0?' positive':item.profit<0?' negative':'');
   const profitText=item.profit==null?'기준':monthlyCalendarCompactProfit(item.profit);
