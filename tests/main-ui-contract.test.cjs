@@ -146,9 +146,10 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(common,/:is\(\.asset-workspace-tabs,\.contrib-target-tabs,\.monthly-calendar-mode-tabs\)\{background:var\(--subtle-card\)\}/,'월간 범위 switch는 기존 segmented tab skin을 공유해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-scroll/,'달력은 별도 body scroll wrapper 없이 card 하나만 scroll owner로 유지해야 한다');
   assert.match(common,/\.monthly-calendar-card\{[^}]*overflow:auto/,'작은 viewport에서는 기존처럼 달력 card 전체가 스크롤되어야 한다');
-  assert.match(special,/\.monthly-calendar-modal\{[^}]*align-items:flex-start;[^}]*--modal-overlay-pad:var\(--space-5xl\);[^}]*--modal-card-pad-y:var\(--space-md\);[^}]*--modal-card-pad-x:var\(--space-md\)/,'Phone 달력은 상단 배치하고 card 내부 padding을 5px token으로 균등화해야 한다');
-  assert.match(special,/\.monthly-calendar-card\{max-height:calc\(100vh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)\}/,'Phone card 전체 스크롤 상한은 실제 overlay 상하 padding을 제외해야 한다');
-  assert.match(special,/@supports \(height:100dvh\)\{[^]*?\.monthly-calendar-card\{max-height:calc\(100dvh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)\}/,'Phone은 iOS 동적 viewport 높이를 우선 사용해야 한다');
+  assert.match(special,/:is\(\.monthly-calendar-modal,\.realtime-quote-modal,\.contrib-modal\)\{[^}]*align-items:flex-start;[^}]*--modal-overlay-pad:var\(--space-md\);[^}]*--modal-card-pad-y:var\(--space-md\);[^}]*--modal-card-pad-x:var\(--space-md\)/,'Phone 주요 3개 modal은 외부·내부 5px과 상단 배치를 공통 계약으로 사용해야 한다');
+  assert.doesNotMatch(monthlyCalendar,/monthlyCalendarDescription|monthly-calendar-description|modeMeta\.description/,'월간 범위 탭 아래 보조 설명문과 관련 dead code를 남기면 안 된다');
+  assert.match(special,/:is\(\.monthly-calendar-card,\.contrib-modal-card\)\{max-height:calc\(100vh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)\}/,'Phone 달력·퇴직연금 card 스크롤 상한은 실제 overlay 상하 5px을 제외해야 한다');
+  assert.match(special,/@supports \(height:100dvh\)\{[^]*?:is\(\.monthly-calendar-card,\.contrib-modal-card\)\{max-height:calc\(100dvh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)\}/,'Phone 달력·퇴직연금은 iOS 동적 viewport 높이를 우선 사용해야 한다');
   assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.setMode[^]*?setMonthlyCalendarMode\(control\.dataset\.calendarMode\|\|''\)/,'범위 전환은 app action router를 거쳐 calendar state owner에 위임해야 한다');
   assert.match(monthlyCalendar,/modal\.className='action-modal monthly-calendar-modal'/,'월간 캘린더는 공통 action modal shell을 재사용해야 한다');
   assert.match(monthlyCalendar,/openDashboardModal\(modal,/);
@@ -1413,6 +1414,7 @@ test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·resp
   assert.ok(phoneRealtimeStart>=0&&phoneRealtimeEnd>phoneRealtimeStart,'Phone 실시간 시세 responsive block이 필요하다');
   assert.doesNotMatch(phoneRealtimeCss,/--modal-overlay-pad\s*:\s*0|--modal-card-radius\s*:\s*0|position\s*:\s*fixed|inset\s*:\s*0|border-radius\s*:\s*0/,'Phone 실시간 시세가 공통 action modal 외곽 계약을 우회하면 안 된다');
   assert.doesNotMatch(phoneRealtimeCss,/--realtime-quote-shell-bg/,'Phone 전용 CSS가 shell 테마 색을 별도로 고정하면 안 된다');
+  assert.match(special,/:is\(\.monthly-calendar-modal,\.realtime-quote-modal,\.contrib-modal\)\{[^}]*--modal-overlay-pad:var\(--space-md\);[^}]*--modal-card-pad-y:var\(--space-md\);[^}]*--modal-card-pad-x:var\(--space-md\)/,'실시간 시세도 달력·퇴직연금과 같은 5px phone modal frame을 공유해야 한다');
 });
 
 test('퇴직연금 작업 방식 switch는 공통 segmented control contract를 사용한다',()=>{
