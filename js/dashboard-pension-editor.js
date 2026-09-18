@@ -24,6 +24,7 @@ import {
   escapeHtml,
   forceMobileViewportReflow,
   navIconSvg,
+  phoneUi,
   showAppToast
 } from './dashboard-ui-common.js';
 import {
@@ -363,6 +364,10 @@ function measurePensionContributionModalHeight(){
   const modal=document.getElementById('pensionContribModal');
   const card=modal?.querySelector('.contrib-modal-card');
   if(!modal?.classList.contains('show')||!card)return;
+  if(phoneUi()){
+    card.style.removeProperty('height');
+    return;
+  }
   const width=card.getBoundingClientRect().width;
   if(!(width>0))return;
   const tradeDraft=pensionEtfTradeDraft();
