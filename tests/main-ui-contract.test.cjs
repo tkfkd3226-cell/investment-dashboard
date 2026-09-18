@@ -747,7 +747,8 @@ test('Market AI responsive 전환은 focus handoff와 content-driven card layout
   const appendIndex=block.indexOf("if(row.parentElement!==hero)hero.appendChild(row)");
   assert.ok(closeIndex>=0&&appendIndex>closeIndex&&removeIndex>appendIndex,'dialog close → desktop row mount → mobile trigger remove 순서를 유지해야 한다');
   assert.doesNotMatch(common,/\.hero\.market-ai-mounted\{[^}]*display:grid/,'Market AI가 Hero grid 높이 계산에 다시 참여하면 안 된다');
-  assert.match(common,/#market-ai-section\[data-market-ai-placement="hero"\]\{[^}]*position:absolute;[^}]*top:var\(--hero-pad\);[^}]*right:var\(--hero-pad\);[^}]*bottom:var\(--hero-pad\);/,'Desktop/Tablet Market AI는 Hero 높이와 분리되고 상/우/하 Hero padding을 동일하게 사용해야 한다');
+  assert.match(common,/#market-ai-section\[data-market-ai-placement="hero"\]\{[^}]*position:absolute;[^}]*top:50%;[^}]*right:var\(--market-ai-hero-edge-gap\);[^}]*width:max-content;[^}]*transform:translateY\(-50%\);/,'Desktop/Tablet Market AI는 Hero 높이와 분리된 채 자연 크기로 세로 중앙 배치하고 별도 edge gap을 사용해야 한다');
+  assert.doesNotMatch(common,/#market-ai-section\[data-market-ai-placement="hero"\][^]*?\.market-ai-card-row\{height:100%\}|#market-ai-section\[data-market-ai-placement="hero"\][^}]*bottom:var\(--hero-pad\)/,'Hero 높이에 맞추려고 Market AI 카드 높이를 stretch하거나 상하 Hero padding으로 강제하면 안 된다');
   assert.doesNotMatch(common,/--market-ai-group-columns|minmax\(0,13fr\).*minmax\(0,7fr\)/,'Market AI card 폭을 고정 비율로 되돌리면 안 된다');
   assert.match(common,/\.market-ai-desktop\{[^}]*display:flex;[^}]*width:max-content;[^}]*max-width:100%;/,'공통 Market AI card group은 내용 기반 폭을 사용해야 한다');
   assert.match(common,/\.market-ai-card-row\{[^}]*grid-template-columns:max-content max-content max-content;[^}]*\}[^]*\.market-ai-desktop-metric\{[^}]*grid-column:1 \/ -1;[^}]*grid-template-columns:subgrid;/,'카드 내부 label/value/change는 행마다 흩어지지 않고 공통 세로 열을 공유해야 한다');
