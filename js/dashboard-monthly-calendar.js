@@ -209,12 +209,10 @@ function renderMonthlyCalendarModal(){
       <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-nav" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.next}" aria-label="다음 월" aria-disabled="${monthIndex>=months.length-1?'true':'false'}">${navIconSvg('arrowRight')}</button>
     </div>
     ${renderMonthlyCalendarModeSelector()}
-    <div class="monthly-calendar-scroll">
-      <p id="monthlyCalendarDescription" class="monthly-calendar-description">${escapeHtml(modeMeta.description+modeNote)}</p>
-      <div class="monthly-calendar-weekdays" aria-hidden="true">${weekdays.map((label,index)=>`<span${!businessDaysOnly&&index>=5?' class="is-weekend"':''}>${label}</span>`).join('')}</div>
-      <div class="monthly-calendar-grid" role="group" aria-label="${escapeHtml(monthlyCalendarMonthLabel(month))} 손익 캘린더">${renderMonthlyCalendarGrid(month,model,{businessDaysOnly})}</div>
-      ${renderMonthlyCalendarSummary(model)}
-    </div>
+    <p id="monthlyCalendarDescription" class="monthly-calendar-description">${escapeHtml(modeMeta.description+modeNote)}</p>
+    <div class="monthly-calendar-weekdays" aria-hidden="true">${weekdays.map((label,index)=>`<span${!businessDaysOnly&&index>=5?' class="is-weekend"':''}>${label}</span>`).join('')}</div>
+    <div class="monthly-calendar-grid" role="group" aria-label="${escapeHtml(monthlyCalendarMonthLabel(month))} 손익 캘린더">${renderMonthlyCalendarGrid(month,model,{businessDaysOnly})}</div>
+    ${renderMonthlyCalendarSummary(model)}
   </div>`;
 }
 
