@@ -2893,6 +2893,46 @@ function rememberPensionBatchRequestTerminalIdentityState(requestId, operationsH
 }
 
 
+// 완료된 Single duplicate는 과거 요청 payload가 아니라 응답 시점 최신 branch 상태를 함께 반환한다.
+// cashSnapshot은 date가 resource key이고 contribution/ETF upsert는 requestId가 실제 저장 id다.
+function pensionSingleDurableResourceKey(target, match) {
+  const value = match || {};
+  const action = String(value.action || "");
+  if (String(target || "") === "cashSnapshot") {
+    return String(value.resourceKey || value.date || "");
+  }
+  if (action === "delete") {
+    return String(value.resourceKey || "");
+  }
+  return String(value.requestId || value.resourceKey || "");
+}
+
+function pensionSingleLatestResourceState(target, match) {
+  const resourceKey = pensionSingleDurableResourceKey(target, match);
+  if (!resourceKey) {
+    return { known: false, key: "", exists: false, item: null };
+  }
+  const head = getGithubBranchHeadSha();
+  if (!head) throw new Error("Pension duplicate 최신 서버 상태의 branch HEAD를 확인하지 못했습니다.");
+  const current = readPensionTarget(target, head, null);
+  const item = String(target || "") === "cashSnapshot"
+    ? current.items.find(function(row) { return String(row && row.date || "") === resourceKey; }) || null
+    : current.items.find(function(row) { return String(row && row.id || "") === resourceKey; }) || null;
+  return {
+    known: true,
+    key: resourceKey,
+    exists: !!item,
+    item: item ? Object.assign({}, item) : null
+  };
+}
+
+function pensionSingleAttachLatestResource(result, target, match) {
+  const response = Object.assign({}, result || {});
+  if (response.stale === true) return response;
+  response.currentResource = pensionSingleLatestResourceState(target, match);
+  return response;
+}
+
 function pensionSingleDurableIdentityResult(requestKey, requestHash, target, match, identityMeta) {
   if (identityMeta && (String(identityMeta.requestId || "") || String(identityMeta.logicalOperationId || ""))) {
     const completedIdentity = ensurePensionSingleDurableIdentityComplete(target, identityMeta, requestHash);
@@ -2907,7 +2947,7 @@ function pensionSingleDurableIdentityResult(requestKey, requestHash, target, mat
   } else {
     finishPensionSingleRequest(requestKey, requestHash, target);
   }
-  return {
+  return pensionSingleAttachLatestResource({
     ok: true,
     target: target,
     action: terminalStale ? "stale_retry_ignored" : "duplicate_ignored",
@@ -2918,7 +2958,7 @@ function pensionSingleDurableIdentityResult(requestKey, requestHash, target, mat
     message: terminalStale
       ? "GitHub identity ledger에서 terminal stale로 종료된 동일 요청을 확인했습니다. 과거 mutation은 다시 적용하지 않았습니다."
       : "GitHub identity ledger에서 이미 완료된 동일 요청을 확인했습니다. 중복 mutation은 만들지 않았습니다."
-  };
+  }, target, match);
 }
 
 // cash 전용 legacy helper 이름은 테스트/문서 호환을 위해 generic ledger wrapper로 유지한다.
@@ -3133,7 +3173,7 @@ function completePensionSingleNoMutationIdentity(args, successResult) {
       throw new Error("Pension no-op exact identity의 누락 key를 안전하게 backfill하지 못했습니다.");
     }
     finishPensionSingleRequest(requestKey, requestHash, target);
-    return successResult;
+    return pensionSingleAttachLatestResource(successResult, target, completedIdentity.match);
   }
 
   const hadIdentity = context.identityCheck && context.identityCheck.hasIdentity === true;
@@ -3186,7 +3226,7 @@ function completePensionSingleNoMutationIdentity(args, successResult) {
   }
 
   finishPensionSingleRequest(requestKey, requestHash, target);
-  return successResult;
+  return pensionSingleAttachLatestResource(successResult, target, identityEntry);
 }
 
 function assertPensionLogicalOperationId(id) {
@@ -3769,7 +3809,7 @@ function handlePensionSingleUpsert(body, context) {
   const ledgerEntryFields = target === "cashSnapshot"
     ? { date: itemDate, valuation: Number(newItem.valuation), costBasis: Number(newItem.costBasis), memo: String(newItem.memo || ""), logicalOperationId: logicalOperationId, requestId: String(newItem.requestId || ""), resultVersion: pensionCashSnapshotVersion(newItem) }
     : (target === "contribution"
-      ? { date: String(newItem.date || ""), amount: Number(newItem.amount), memo: String(newItem.memo || ""), logicalOperationId: logicalOperationId, requestId: String(newItem.id || ""), resultVersion: String(newItem.id || "") }
+      ? { resourceKey: String(newItem.id || ""), date: String(newItem.date || ""), amount: Number(newItem.amount), memo: String(newItem.memo || ""), logicalOperationId: logicalOperationId, requestId: String(newItem.id || ""), resultVersion: String(newItem.id || "") }
       : { resourceKey: String(newItem.id || ""), date: String(newItem.date || ""), tradeDate: String(newItem.tradeDate || ""), ticker: String(newItem.ticker || ""), qty: Number(newItem.qty), amount: Number(newItem.amount), memo: memo, logicalOperationId: logicalOperationId, requestId: String(newItem.id || ""), resultVersion: String(newItem.id || "") });
   const ledgerEntry = makePensionOperationLedgerEntry(target, "upsert", ledgerEntryFields);
   const ledgerNext = appendPensionOperationLedgerEntry(ledgerContext.items, ledgerEntry);
@@ -4893,11 +4933,9 @@ function inspectPensionSingleRequestIdentity(requestKey, requestHash, target, cu
     if (!durableProof || durableProof.stored !== true) {
       throw new Error("Pension operation ledger 성공 proof를 exact identity로 안전하게 backfill하지 못했습니다.");
     }
-    finishPensionSingleRequest(requestKey, requestHash, target);
-    return { hasIdentity: true, result: {
-      ok: true, target: target, action: "duplicate_ignored", duplicate: true, stale: false, completed: true,
-      message: "GitHub operation ledger에서 이 요청의 성공 반영을 확인하고 exact identity를 복구했습니다. 중복 mutation은 만들지 않았습니다."
-    }};
+    return { hasIdentity: true, result: pensionSingleDurableIdentityResult(
+      requestKey, requestHash, target, durableProof.match, proofIdentity
+    ) };
   }
 
   const identityProof = successProofContext && successProofContext.identityContext
