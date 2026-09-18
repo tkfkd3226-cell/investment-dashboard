@@ -588,6 +588,20 @@ function removePensionItemLocally(target,key){
   const next=rawPensionContributionItems().filter(v=>String(v?.id||'')!==String(key));
   dataState.pensionContributions=Array.isArray(dataState.pensionContributions)?next:{...(dataState.pensionContributions||{}),contributions:next};
 }
+// Single duplicate 응답은 과거 요청값을 재사용하지 않고 GAS가 확인한 최신 resource 상태만 적용한다.
+function reconcilePensionDuplicateResource(target,fallbackKey,data){
+  if(!data?.duplicate||data.stale)return {handled:false,item:null};
+  const resource=data.currentResource;
+  if(!resource||resource.known!==true||typeof resource.exists!=='boolean')return {handled:false,item:null};
+  const key=String(resource.key||fallbackKey||'');
+  if(resource.exists===true){
+    if(!resource.item||typeof resource.item!=='object')return {handled:false,item:null};
+    upsertPensionItemLocally(target,resource.item);
+    return {handled:true,item:resource.item};
+  }
+  if(key)removePensionItemLocally(target,key);
+  return {handled:true,item:null};
+}
 function setPensionContributionTarget(target){
   const normalized=['cashSnapshot','contribution','etfTrade'].includes(target)?target:'cashSnapshot';
   const el=document.getElementById('pensionContribTarget');
@@ -1617,38 +1631,44 @@ async function savePensionContribution(renderDashboard){
       data=confirmedData;
     }
     clearPensionPendingSingle(saveFingerprint,saveIdentity);
-    const duplicateFallbackItem=(()=>{
-      if(!data.duplicate)return null;
-      const {expectedVersion,expectedAbsent,confirmationToken,confirmationDecision,...localItem}=saveItem||{};
-      return localItem;
-    })();
-    const appliedItem=!data.stale?(data.item||duplicateFallbackItem):null;
-    if(appliedItem){
-      upsertPensionItemLocally(item.target,appliedItem);
-      if(item.target==='etfTrade'){
-        const qtyEl=document.getElementById('pensionEtfTradeQty');
-        const amountEl=document.getElementById('pensionEtfTradeAmount');
-        if(qtyEl) qtyEl.value='';
-        if(amountEl) amountEl.value='';
-        updatePensionEtfTradePreview();
+    let appliedItem=null;
+    let localConverged=false;
+    if(!data.stale){
+      if(data.duplicate){
+        const saveResourceKey=item.target==='cashSnapshot'?String(saveItem?.date||''):String(saveItem?.id||'');
+        const reconciled=reconcilePensionDuplicateResource(item.target,saveResourceKey,data);
+        localConverged=reconciled.handled;
+        appliedItem=reconciled.item;
+      }else if(data.item){
+        upsertPensionItemLocally(item.target,data.item);
+        localConverged=true;
+        appliedItem=data.item;
       }
-      syncPensionContributionDeleteCard(item.target);
-    }
-    if(!data.stale&&appliedItem){
-      const restoredDraft={...saveDraft};
-      if(item.target==='etfTrade'){
-        restoredDraft.pensionEtfTradeQty='';
-        restoredDraft.pensionEtfTradeAmount='';
+      if(localConverged){
+        if(item.target==='etfTrade'&&appliedItem){
+          const qtyEl=document.getElementById('pensionEtfTradeQty');
+          const amountEl=document.getElementById('pensionEtfTradeAmount');
+          if(qtyEl) qtyEl.value='';
+          if(amountEl) amountEl.value='';
+          updatePensionEtfTradePreview();
+        }
+        syncPensionContributionDeleteCard(item.target);
+        const restoredDraft={...saveDraft};
+        if(item.target==='etfTrade'&&appliedItem){
+          restoredDraft.pensionEtfTradeQty='';
+          restoredDraft.pensionEtfTradeAmount='';
+        }
+        rerenderPensionEditorAfterMutation(renderDashboard,item.target,{draft:restoredDraft});
+        if(appliedItem)showPensionContributionOutput(appliedItem);
+        else clearPensionContributionOutput();
       }
-      rerenderPensionEditorAfterMutation(renderDashboard,item.target,{draft:restoredDraft});
-      showPensionContributionOutput(appliedItem);
     }
     resetPensionSingleSaveIdentity();
     clearPensionContributionStatus('pensionContribStatus');
     showPensionToast(data.stale
       ?'오래된 저장 재시도는 최신 상태 위에 다시 적용하지 않았습니다. 새로고침해 확인해주세요.'
       :(data.duplicate
-        ?`${pensionContributionTargetObjectLabel(item.target)} 이미 반영된 요청을 확인했습니다.`
+        ?(localConverged?'중복 저장 요청의 최신 서버 상태를 반영했습니다.':'중복 저장 요청은 확인했지만 최신 서버 상태를 확인하지 못했습니다. 새로고침해 확인해주세요.')
         :`${pensionContributionTargetObjectLabel(item.target)} 저장했습니다.`));
   }catch(e){
     if(showPensionBatchDuplicateToast(e)){clearPensionContributionStatus('pensionContribStatus');return}
@@ -1749,18 +1769,31 @@ async function deleteSelectedPensionContribution(renderDashboard){
     data=confirmedData;
   }
   clearPensionPendingSingle(deleteFingerprint,deleteIdentity);
+  let localConverged=false;
+  let duplicateCurrentItem=null;
   if(!data.stale){
-    removePensionItemLocally(target,key);
-    syncPensionContributionDeleteCard(target);
-    if(target==='etfTrade') updatePensionEtfTradePreview();
-    rerenderPensionEditorAfterMutation(renderDashboard,target,{draft:deleteDraft});
+    if(data.duplicate){
+      const reconciled=reconcilePensionDuplicateResource(target,key,data);
+      localConverged=reconciled.handled;
+      duplicateCurrentItem=reconciled.item;
+    }else{
+      removePensionItemLocally(target,key);
+      localConverged=true;
+    }
+    if(localConverged){
+      syncPensionContributionDeleteCard(target);
+      if(target==='etfTrade') updatePensionEtfTradePreview();
+      rerenderPensionEditorAfterMutation(renderDashboard,target,{draft:deleteDraft});
+    }
   }
   resetPensionSingleDeleteIdentity();
   clearPensionContributionStatus('pensionContribDeleteStatus');
   showPensionToast(data.stale
     ?'오래된 삭제 재시도는 최신 상태에 다시 적용하지 않았습니다. 새로고침해 확인해주세요.'
     :(data.duplicate
-      ?`${pensionContributionTargetObjectLabel(target)} 이미 삭제된 상태를 확인했습니다.`
+      ?(localConverged
+        ?(duplicateCurrentItem?'중복 삭제 요청 이후의 최신 서버 기록을 반영했습니다.':'중복 삭제 요청의 최신 삭제 상태를 반영했습니다.')
+        :'중복 삭제 요청은 확인했지만 최신 서버 상태를 확인하지 못했습니다. 새로고침해 확인해주세요.')
       :`${pensionContributionTargetObjectLabel(target)} 삭제했습니다.`));
 }
 
