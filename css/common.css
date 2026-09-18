@@ -4176,7 +4176,11 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   --nav-menu-group-label-size:9.5px;
   --nav-menu-group-label-line-height:14px;
   --nav-menu-item-gap:var(--space-lg);
+  --nav-menu-viewport-clearance:calc(var(--topbar-control-height) + var(--space-6xl) + var(--space-2xl));
   display:block;
+  max-height:calc(100vh - var(--nav-menu-viewport-clearance));
+  max-height:calc(100dvh - var(--nav-menu-viewport-clearance));
+  overflow:auto;
   padding:var(--nav-menu-padding);
   border-radius:min(10px,var(--corner-surface-cap));
   box-shadow:var(--nav-shadow-mobile);

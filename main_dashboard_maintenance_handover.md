@@ -410,7 +410,7 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 
 월간 손익 캘린더는 새 운영 JSON이나 별도 성과 산식을 만들지 않는다. `dashboard-core.js`의 기존 전일 대비 성과 의미를 재사용해 **증권의 flow-neutral `dayChange` + 비교 가능한 연금 `pensionDayChange` + 선택 시 별도수익의 당일 증가분**을 합산한다. 따라서 계좌2·토스의 기존 누적 실현손익이 합산 범위에 처음 들어오는 날이나 연금 데이터가 처음 관측되는 날의 과거 누적손익을 그날 수익으로 오인하지 않는다.
 
-- Web/Tablet은 Topbar `월간 손익` action을 사용하고, Tablet/Phone hamburger의 공통 `관리` 메뉴에서도 같은 action을 제공한다. Topbar의 text action은 개별 기능 예외를 만들지 않고 공통 responsive contract를 따른다. **1280px 이상은 full label, 1101~1279px compact Web은 short label, Tablet 761~1100px은 모든 Desktop action을 icon-only control**로 표시한다. Tablet에서 icon 의미를 외우지 않아도 되도록 hamburger의 `링크`·`관리`·목차 메뉴 집합은 Phone과 동일하며 viewport별 `phoneOnly` membership 분기를 두지 않는다. Phone Topbar 자체 배치는 기존 Mobile contract를 유지한다.
+- Web/Tablet은 Topbar `월간 손익` action을 사용하고, Tablet/Phone hamburger의 공통 `관리` 메뉴에서도 같은 action을 제공한다. Topbar의 text action은 개별 기능 예외를 만들지 않고 공통 responsive contract를 따른다. **1280px 이상은 full label, 1101~1279px compact Web은 short label, Tablet 761~1100px은 모든 Desktop action을 icon-only control**로 표시한다. Tablet에서 icon 의미를 외우지 않아도 되도록 hamburger의 `링크`·`관리`·목차 메뉴 집합은 Phone과 동일하며 viewport별 `phoneOnly` membership 분기를 두지 않는다. hamburger panel의 `max-height`/scroll ownership도 `common.css` 한 곳에서 Tablet/Phone이 공유하며, Tablet/Phone media에 별도 높이 cap을 두지 않는다. 화면 높이가 실제로 부족한 경우에만 공통 `overflow:auto`가 작동한다. Phone Topbar 자체 배치는 기존 Mobile contract를 유지한다.
 - 월 이동은 실제 가용 데이터가 존재하는 월 목록 안에서만 이동한다.
 - 날짜 cell은 `allAvailableDates()`에 존재하는 날짜만 선택 가능하다. 주말·휴장처럼 source에 없는 날짜는 unavailable로 표시하고 월 합계·상승/하락·최고/최저 계산에서 제외한다. 월 첫 비교 가능일은 `previousDate()`가 전월 마지막 가용일을 이어서 사용하며, 전체 데이터의 최초 날짜처럼 비교 기준이 없는 날은 `0원`이 아니라 **기준일**로 표시한다.
 - 일손익 `0원`은 월 합계에는 0으로 반영하되 상승일·하락일 어느 쪽에도 포함하지 않는다.

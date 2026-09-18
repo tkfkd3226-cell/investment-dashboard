@@ -729,8 +729,6 @@
     right:var(--nav-menu-phone-edge);
     z-index:2600;
     width:min(200px,calc(100vw - var(--nav-menu-phone-edge) - var(--nav-menu-phone-edge)));
-    max-height:calc(100vh - var(--topbar-phone-height) - var(--space-6xl));
-    overflow:auto;
   }
   /* Phone TOC boundary · 가로폰이 Tablet media에도 걸릴 때 첫 TOC 구분선을 Phone contract로 복구 */
   .date-action-menu.mobile-combined-menu .mobile-nav-group-toc-first{

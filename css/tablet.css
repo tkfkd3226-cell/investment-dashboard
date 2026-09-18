@@ -188,8 +188,6 @@
       right:0;
       z-index:2600;
       width:220px;
-      max-height:min(72vh,620px);
-      overflow:auto;
     }
 
   /* [T08. Data Tables · 태블릿 표 typography / padding] */

@@ -104,6 +104,19 @@ test('Tablet/Phone hamburger는 링크·관리·목차 메뉴 집합을 viewport
   assert.match(special,/\.mobile-date-pin-control\{display:inline-flex/,'Phone 전용 날짜 선택 고정 control은 Phone Shared에서만 표시해야 한다');
 });
 
+test('Tablet/Phone hamburger panel은 공통 viewport 높이 contract를 공유한다',()=>{
+  const menuStart=common.indexOf('.date-action-menu.mobile-combined-menu{');
+  const menuEnd=common.indexOf('\n}',menuStart);
+  const menuBlock=common.slice(menuStart,menuEnd);
+  assert.match(menuBlock,/--nav-menu-viewport-clearance:calc\(var\(--topbar-control-height\) \+ var\(--space-6xl\) \+ var\(--space-2xl\)\)/,'hamburger viewport clearance는 공통 owner가 가져야 한다');
+  assert.match(menuBlock,/max-height:calc\(100vh - var\(--nav-menu-viewport-clearance\)\)/,'vh fallback을 공통으로 가져야 한다');
+  assert.match(menuBlock,/max-height:calc\(100dvh - var\(--nav-menu-viewport-clearance\)\)/,'동적 viewport 높이도 공통으로 사용해야 한다');
+  assert.match(menuBlock,/overflow:auto/,'작은 높이에서만 공통 panel이 스크롤 owner가 되어야 한다');
+  assert.doesNotMatch(tablet,/\.date-action-menu\.mobile-combined-menu\{[^}]*max-height:/,'Tablet이 별도 max-height cap을 가지면 Phone보다 먼저 스크롤이 생길 수 있다');
+  assert.doesNotMatch(special,/\.date-action-menu\.mobile-combined-menu\{[^}]*max-height:/,'Phone도 공통 menu height contract를 우회하면 안 된다');
+});
+
+
 test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를 재사용한다',()=>{
   assert.match(index,/'dashboard-monthly-calendar\.js'/,'월간 캘린더 module은 importmap cache-bust 대상이어야 한다');
   assert.match(ui,/data-dashboard-action="open-monthly-calendar"/,'Web\/Tablet Topbar에 월간 손익 진입점이 있어야 한다');
