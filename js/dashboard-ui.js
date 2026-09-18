@@ -258,7 +258,7 @@ function dashboardTocGroups(){
 }
 function renderResponsiveNavigationGroups(groups,{indentAfterFirst=false}={}){
   return groups.map(group=>{
-    const groupClass=`mobile-nav-group${group.tocFirst?' mobile-nav-group-toc-first':''}${group.tabletTopbarDuplicate?' mobile-nav-group-tablet-topbar-duplicate':''}`;
+    const groupClass=`mobile-nav-group${group.tabletTopbarDuplicate?' mobile-nav-group-tablet-topbar-duplicate':''}`;
     return `<div class="${groupClass}"><p>${group.label}</p>${group.items.map((item,idx)=>{
       const type=item.type||(item.id?'section':'');
       const toggleAttrs=item.marketAiToggle?' data-market-ai-connection-toggle':'';
@@ -277,7 +277,7 @@ function renderResponsiveNavigationGroups(groups,{indentAfterFirst=false}={}){
   }).join('');
 }
 function renderResponsiveNavigationMenuContent(){
-  const tocGroups=dashboardTocGroups().map((group,idx)=>({...group,tocFirst:idx===0}));
+  const tocGroups=dashboardTocGroups();
   const marketAiToggle=marketAiConnectionToggleModel();
   const groups=[
     {
@@ -478,7 +478,7 @@ function renderTabs(){
         <div class="date-action-menu-wrap">
           <button type="button" id="dateActionMenuButton" class="date-tool-btn control-icon-button date-tool-menu-btn" title="목차" aria-label="목차" aria-haspopup="true" aria-controls="dateActionMenu" aria-expanded="false" data-dashboard-action="toggle-date-menu"><span class="date-tool-icon">${navIconSvg('menu')}</span><span class="date-tool-menu-label">목차</span></button>
           <div id="dateActionMenu" class="date-action-menu mobile-combined-menu" aria-label="화면 목차">
-            <div class="responsive-nav-menu-layout"><div class="mobile-nav-head"><div class="mobile-nav-head-title"><span>목차</span></div><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" class="control-switch-input" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="control-switch-track" aria-hidden="true"><span class="control-switch-thumb"></span></span></label><button type="button" class="control-icon-button-compact" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderResponsiveNavigationMenuContent()}</div>
+            <div class="responsive-nav-menu-layout"><div class="mobile-nav-head"><label class="mobile-date-pin-control" for="mobileDatePinToggle"><span>날짜 선택 고정</span><input type="checkbox" class="control-switch-input" id="mobileDatePinToggle" role="switch" ${mobileDatePinned()?'checked':''} data-dashboard-change="mobile-date-pin"><span class="control-switch-track" aria-hidden="true"><span class="control-switch-thumb"></span></span></label><button type="button" class="control-icon-button-compact" data-dashboard-action="close-date-menu" aria-label="목차 닫기">${navIconSvg('close')}</button></div>${renderResponsiveNavigationMenuContent()}</div>
           </div>
         </div>
       </div>
