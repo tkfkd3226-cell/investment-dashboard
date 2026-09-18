@@ -113,6 +113,10 @@ test('Tablet/Phone hamburger는 공통 menu source에서 Tablet Topbar 중복만
   assert.match(common,/\.switcher\.tablet-topbar-ui \.date-action-menu\.mobile-combined-menu :is\(\.mobile-nav-group-tablet-topbar-duplicate,\.mobile-nav-item-tablet-topbar-duplicate\)\{display:none\}/,'Tablet 상태에서는 Topbar 중복 메뉴를 즉시 숨겨야 한다');
   assert.match(ui,/classList\.toggle\('tablet-topbar-ui',tabletTopbarUi\(\)\)/,'viewport 상태 동기화가 Tablet 중복 메뉴 표시를 즉시 갱신해야 한다');
   assert.match(ui,/visualViewport\?\.addEventListener\('resize',\(\)=>\{[^]*?syncMobileTopbarState\(\)/,'F12/device viewport 변경도 새로고침 없이 즉시 동기화해야 한다');
+  const menuHead=ui.slice(ui.indexOf('<div class="mobile-nav-head">'),ui.indexOf('</div>${renderResponsiveNavigationMenuContent()}'));
+  assert.match(menuHead,/mobile-date-pin-control[^]*?mobile-nav-head-actions[^]*?mobile-nav-corner-action[^]*?close-date-menu/,'Phone hamburger header는 날짜 고정을 왼쪽에 두고 모서리 변경·닫기를 오른쪽 action으로 묶어야 한다');
+  assert.match(common,/\.date-action-menu\.mobile-combined-menu \.mobile-nav-corner-action\{display:none\}/,'Tablet hamburger에는 모서리 변경 action을 중복 노출하지 않아야 한다');
+  assert.match(special,/\.date-action-menu\.mobile-combined-menu \.mobile-nav-corner-action\{display:inline-flex\}/,'Phone hamburger에서만 모서리 변경 action을 제공해야 한다');
 });
 
 test('Tablet/Phone hamburger panel은 공통 viewport 높이 contract를 공유한다',()=>{

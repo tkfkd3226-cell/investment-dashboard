@@ -712,9 +712,10 @@
     box-shadow:var(--topbar-control-shadow);
   }
 
-  /* Date Pin · 날짜 고정 toggle: 모바일 hamburger header 내부 */
-  .mobile-date-pin-control{display:inline-flex;align-items:center;height:var(--dashboard-control-height);gap:var(--space-md);margin-left:auto;color:var(--nav-muted);cursor:pointer;user-select:none}
+  /* Hamburger Header · 날짜 고정은 왼쪽 utility, 모서리 변경·닫기는 오른쪽 action */
+  .mobile-date-pin-control{display:inline-flex;align-items:center;height:var(--dashboard-control-height);gap:var(--space-md);color:var(--nav-muted);cursor:pointer;user-select:none}
   .mobile-date-pin-control > span:first-child{display:flex;align-items:center;height:var(--switch-track-height);font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);letter-spacing:-.02em;line-height:var(--switch-track-height);white-space:nowrap}
+  .date-action-menu.mobile-combined-menu .mobile-nav-corner-action{display:inline-flex}
   .date-action-menu.mobile-combined-menu .control-switch-input:not(:checked) + .control-switch-track{border-color:var(--nav-border-hover);background:var(--nav-surface-hover)}
 
   /* Hamburger Panel · 공통 menu structure는 common.css가 소유하고 Phone은 위치·density token만 조정 */

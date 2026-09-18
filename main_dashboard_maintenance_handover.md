@@ -930,9 +930,9 @@ Mobile  ≤ 760px
 
 Navigation 책임은 다음 의미를 유지한다.
 
-- Phone 세로/가로: compact Topbar + hamburger 중심. hamburger의 표시 순서는 `링크 → 관리 → 전체 → 증권계좌 → 퇴직연금`이며 별도 `목차` 헤더 문구는 두지 않는다. `투자 계산기`는 개인보기 해제 상태에서 `링크` 그룹의 `나스닥100 선물` 바로 아래에 둔다.
-- Tablet: 주요 action은 축약명, 보조 action은 icon-only로 표시한다. hamburger는 Phone과 같은 menu source를 재사용하되 `.tablet-topbar-ui` 상태에서 Topbar와 중복되는 `관리` 그룹과 `투자 계산기` 링크를 즉시 숨긴다.
-- Hamburger membership source는 Tablet/Phone 공통으로 유지하고 viewport별 별도 markup을 만들지 않는다. 다만 Topbar와의 중복 제거를 위한 runtime 표시/숨김은 허용한다. `날짜 선택 고정`은 fixed Phone Topbar 전용 control이라 Phone에서만 표시한다.
+- Phone 세로/가로: compact Topbar + hamburger 중심. hamburger의 표시 순서는 `링크 → 관리 → 전체 → 증권계좌 → 퇴직연금`이며 별도 `목차` 헤더 문구는 두지 않는다. header는 왼쪽 `날짜 선택 고정` switch, 오른쪽 `모서리 변경`·닫기 action으로 구성한다. `투자 계산기`는 개인보기 해제 상태에서 `링크` 그룹의 `나스닥100 선물` 바로 아래에 둔다.
+- Tablet: 주요 action은 축약명, 보조 action은 icon-only로 표시한다. hamburger는 Phone과 같은 menu source를 재사용하되 `.tablet-topbar-ui` 상태에서 Topbar와 중복되는 `관리` 그룹과 `투자 계산기` 링크를 즉시 숨긴다. 모서리 변경은 기존 Topbar action을 사용하며 hamburger에는 중복 노출하지 않는다.
+- Hamburger membership source는 Tablet/Phone 공통으로 유지하고 viewport별 별도 markup을 만들지 않는다. 다만 Topbar와의 중복 제거를 위한 runtime 표시/숨김은 허용한다. `날짜 선택 고정`은 fixed Phone Topbar 전용 control이라 Phone에서만 표시하고, 모서리 변경은 기존 `toggleCornerTheme()` 상태·storage/channel을 재사용한다.
 - Hamburger panel height/scroll: `common.css`가 Tablet/Phone 공통 owner다. Tablet/Phone media에 별도 `max-height` cap을 두지 않고, viewport 높이가 실제로 부족한 경우에만 공통 `overflow:auto`가 작동한다.
 - Desktop: 기존 action + 우측 edge TOC
 

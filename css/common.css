@@ -4242,10 +4242,12 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 }
 :is(.desktop-edge-toc-icon,.date-action-menu.mobile-combined-menu .mobile-nav-item .nav-icon) svg{display:block}
 
-/* Hamburger Menu Structure · Tablet/Phone 공통 내부 구조; viewport는 위 density token만 변경 */
-.date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:flex-end;gap:var(--nav-menu-head-gap);margin:0;padding:0 1px var(--space-2xs);border-bottom:1px solid var(--nav-divider);background:transparent}
-.date-action-menu.mobile-combined-menu .mobile-nav-head > button{border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);line-height:1.12}
-.date-action-menu.mobile-combined-menu .mobile-nav-head > button svg{display:block;width:var(--nav-icon-size);height:var(--nav-icon-size);margin:auto}
+/* Hamburger Menu Structure · 왼쪽 utility / 오른쪽 action 구조를 Tablet/Phone이 공유하고 viewport는 density·노출만 변경 */
+.date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:var(--nav-menu-head-gap);margin:0;padding:0 1px var(--space-2xs);border-bottom:1px solid var(--nav-divider);background:transparent}
+.date-action-menu.mobile-combined-menu .mobile-nav-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--nav-menu-head-gap);margin-left:auto}
+.date-action-menu.mobile-combined-menu .mobile-nav-corner-action{display:none}
+.date-action-menu.mobile-combined-menu .mobile-nav-head-actions > button{border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);line-height:1.12}
+.date-action-menu.mobile-combined-menu .mobile-nav-head-actions > button svg{display:block;width:var(--nav-icon-size);height:var(--nav-icon-size);margin:auto}
 .date-action-menu.mobile-combined-menu .mobile-nav-group{margin:var(--nav-menu-group-gap) 0 0;padding:var(--nav-menu-group-gap) 0 0;border-top:1px solid var(--nav-divider)}
 .date-action-menu.mobile-combined-menu .mobile-nav-head + .mobile-nav-group{margin-top:0;padding-top:0;border-top:0}
 .date-action-menu.mobile-combined-menu .mobile-nav-group p{margin:var(--nav-menu-group-label-margin-y) var(--nav-menu-group-label-margin-x);color:var(--nav-muted);font-size:var(--nav-menu-group-label-size);font-weight:var(--type-weight-semibold);line-height:var(--nav-menu-group-label-line-height)}
