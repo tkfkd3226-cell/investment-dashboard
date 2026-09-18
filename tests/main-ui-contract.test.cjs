@@ -733,7 +733,7 @@ test('Modal lifecycle는 focus trap / focus return / inert / ESC를 공통 layer
   assert.match(modal1,/target\?\.focus\?\.\(\{preventScroll:true\}\)/);
 });
 
-test('Market AI responsive 전환은 Phone↔Desktop 양방향으로 keyboard focus handoff를 유지한다',()=>{
+test('Market AI responsive 전환은 focus handoff와 content-driven card layout을 유지한다',()=>{
   const start=marketAi.indexOf('function syncMarketAiResponsiveMount');
   const end=marketAi.indexOf('\n// [MARKET09]',start);
   assert.ok(start>=0&&end>start,'Market AI responsive mount block is missing');
@@ -746,6 +746,8 @@ test('Market AI responsive 전환은 Phone↔Desktop 양방향으로 keyboard fo
   const removeIndex=block.indexOf("document.getElementById(MARKET_AI_MOBILE_TRIGGER_ID)?.remove()");
   const appendIndex=block.indexOf("if(row.parentElement!==hero)hero.appendChild(row)");
   assert.ok(closeIndex>=0&&appendIndex>closeIndex&&removeIndex>appendIndex,'dialog close → desktop row mount → mobile trigger remove 순서를 유지해야 한다');
+  assert.doesNotMatch(common,/--market-ai-group-columns|minmax\(0,13fr\).*minmax\(0,7fr\)/,'Market AI card 폭을 고정 비율로 되돌리면 안 된다');
+  assert.match(common,/\.market-ai-desktop\{[^}]*display:flex;[^}]*width:max-content;[^}]*max-width:100%;/,'공통 Market AI card group은 내용 기반 폭을 사용해야 한다');
 });
 
 test('Market AI contract: KOSPI200 선물 / SOX 현물 / NQ100 선물 symbol을 고정한다',()=>{

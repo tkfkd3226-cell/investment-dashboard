@@ -408,6 +408,14 @@
       background:transparent;
       box-shadow:none;
     }
+    /* Phone도 카드 비율은 두지 않고 공통 content-driven 폭을 사용한다. dialog 가용 폭 안에서 중앙 정렬한다. */
+    .market-ai-mobile-dialog .market-ai-desktop{
+      width:100%;
+      max-width:100%;
+      margin-left:0;
+      justify-content:center;
+      gap:var(--space-xs);
+    }
     .market-ai-mobile-dialog .market-ai-heading{
       min-height:var(--icon-button-size);
       padding-right:calc(var(--icon-button-size) + var(--space-lg));

@@ -441,7 +441,6 @@
   --market-ai-column-min:390px;
   --market-ai-column-max:410px;
   --market-ai-layout-gap:var(--space-3xl);
-  --market-ai-group-columns:minmax(0,13fr) minmax(0,7fr);
   --market-ai-title-size:var(--type-size-sm);
   --market-ai-status-size:var(--type-size-2xs);
   --market-ai-label-size:var(--type-size-2xs);
@@ -900,28 +899,33 @@ button svg{pointer-events:none;flex-shrink:0}
 }
 
 /* [03B. Market AI Data List Variant · 공통 Data List Card 위에 Market AI compact geometry만 확장] */
-/* Market AI Rows / Metrics · 현재 시장 지표와 신호 metric을 2개 compact list card로 나란히 배치 */
+/* Market AI Rows / Metrics · 두 compact card는 고정 비율 없이 실제 label/value 길이만큼 폭을 만들고 우측에 배치 */
 .market-ai-desktop{
-  display:grid;
-  width:100%;
+  display:flex;
+  width:max-content;
   max-width:100%;
-  grid-template-columns:var(--market-ai-group-columns);
+  margin-left:auto;
   gap:var(--space-sm);
   align-items:stretch;
-  justify-content:start;
+  justify-content:flex-end;
 }
 .market-ai-desktop[hidden]{display:none}
 .market-ai-card-row{
   --data-list-card-pad:var(--space-md);
   display:grid;
+  flex:0 1 auto;
+  width:max-content;
+  max-width:100%;
+  min-width:0;
   grid-template-columns:1fr;
   align-content:start;
 }
 .market-ai-desktop-metric{
   position:relative;
   display:grid;
-  grid-template-columns:minmax(0,1fr) auto auto;
+  grid-template-columns:max-content max-content max-content;
   column-gap:0;
+  justify-content:start;
   align-items:center;
   min-width:0;
   min-height:var(--market-ai-metric-row-height);
@@ -943,8 +947,7 @@ button svg{pointer-events:none;flex-shrink:0}
   align-content:center;
   align-items:baseline;
 }
-.market-ai-desktop-value{grid-column:2}
-.market-ai-desktop-signal{grid-column:3}
+.market-ai-desktop-value,.market-ai-desktop-signal{grid-column:2}
 .market-ai-desktop-label{
   min-width:0;
   padding-right:var(--market-ai-metric-column-gap);
