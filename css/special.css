@@ -297,7 +297,7 @@
     @supports (height:100dvh){
       :is(.monthly-calendar-card,.contrib-modal-card){max-height:calc(100dvh - var(--modal-overlay-pad) - var(--modal-overlay-pad))}
     }
-    .monthly-calendar-close{top:var(--space-md);right:var(--space-md)}
+    .monthly-calendar-close{top:var(--modal-card-pad-y);right:var(--modal-card-pad-x)}
     .monthly-calendar-head{
       width:min(360px,calc(100% - var(--icon-button-size) - var(--icon-button-size) - var(--space-4xl)));
       gap:var(--space-lg);

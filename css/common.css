@@ -3215,7 +3215,8 @@ body.dashboard-dialog-open{
 }
 .monthly-calendar-close{
   position:absolute;
-  top:var(--space-5xl);
+  /* Header Alignment · 닫기 버튼 중심을 월 이동/제목 32px 행의 중심과 정확히 맞춘다. */
+  top:var(--modal-card-pad-y);
   right:var(--space-5xl);
 }
 .monthly-calendar-head{

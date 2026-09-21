@@ -146,7 +146,9 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(common,/:is\(\.asset-workspace-tabs,\.contrib-target-tabs,\.monthly-calendar-mode-tabs\)\{background:var\(--subtle-card\)\}/,'월간 범위 switch는 기존 segmented tab skin을 공유해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-scroll/,'달력은 별도 body scroll wrapper 없이 card 하나만 scroll owner로 유지해야 한다');
   assert.match(common,/\.monthly-calendar-card\{[^}]*overflow:auto/,'작은 viewport에서는 기존처럼 달력 card 전체가 스크롤되어야 한다');
+  assert.match(common,/\.monthly-calendar-close\{[^}]*top:var\(--modal-card-pad-y\)/,'Web/Tablet 달력 닫기 버튼은 card 상단 padding을 기준으로 월 이동/제목 행과 수직 중심을 맞춰야 한다');
   assert.match(special,/:is\(\.monthly-calendar-modal,\.realtime-quote-modal,\.contrib-modal\)\{[^}]*align-items:flex-start;[^}]*--modal-overlay-pad:var\(--space-md\);[^}]*--modal-card-pad-y:var\(--space-md\);[^}]*--modal-card-pad-x:var\(--space-md\)/,'Phone 주요 3개 modal은 외부·내부 5px과 상단 배치를 공통 계약으로 사용해야 한다');
+  assert.match(special,/\.monthly-calendar-close\{top:var\(--modal-card-pad-y\);right:var\(--modal-card-pad-x\)\}/,'Phone 달력 닫기 버튼은 동일 5px card padding을 직접 재사용해 월 이동/제목 행과 정확히 정렬되어야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthlyCalendarDescription|monthly-calendar-description|modeMeta\.description/,'월간 범위 탭 아래 보조 설명문과 관련 dead code를 남기면 안 된다');
   assert.match(special,/:is\(\.monthly-calendar-card,\.contrib-modal-card\)\{max-height:calc\(100vh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)\}/,'Phone 달력·퇴직연금 card 스크롤 상한은 실제 overlay 상하 5px을 제외해야 한다');
   assert.match(special,/@supports \(height:100dvh\)\{[^]*?:is\(\.monthly-calendar-card,\.contrib-modal-card\)\{max-height:calc\(100dvh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)\}/,'Phone 달력·퇴직연금은 iOS 동적 viewport 높이를 우선 사용해야 한다');
