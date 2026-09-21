@@ -8,7 +8,7 @@ import {
 
 // Market AI Standalone Adapter · main feature graph와 분리된 독립 entry
 // Ownership: dashboard-market-ai-client.js의 endpoint/timeout transport만 공유하고, mount/state/polling/render/tooltip은 이 파일이 소유한다.
-// Responsive contract: Desktop/Tablet은 Hero 우측 panel, Phone은 동일 panel을 Hero 바로 아래 inline slot로 이동 재사용하며 Tooltip을 비활성화한다.
+// Responsive contract: Desktop/Tablet은 Hero 우측 panel, Phone은 동일 panel을 Hero 바로 아래 inline slot로 이동 재사용하며 metric tap으로 동일 Tooltip을 연다.
 // View-mode contract: ?dashboard-view=web/tablet/mobile은 레이아웃만 선택하며 Market AI는 항상 실제 데이터를 사용한다.
 // Structure map:
 //   [MARKET01] Configuration / Runtime State
@@ -914,7 +914,6 @@ function marketAiTooltipHtml(target){
 }
 
 function showMarketAiTooltip(target,event){
-  if(marketAiPhoneUi())return;
   const html=marketAiTooltipHtml(target);
   if(!html)return;
   marketAiActiveTooltipTarget=target;
@@ -927,21 +926,39 @@ function showMarketAiTooltip(target,event){
 function setupMarketAiTooltipEvents(){
   if(marketAiTooltipEventsBound)return;
   marketAiTooltipEventsBound=true;
-  const targetFromEvent=event=>marketAiPhoneUi()?null:(event.target.closest?.('#market-ai-section [data-market-ai-tooltip]')||null);
+  const targetFromEvent=event=>event.target.closest?.('#market-ai-section [data-market-ai-tooltip]')||null;
   document.addEventListener('pointerover',event=>{
+    if(event.pointerType==='touch')return;
     const target=targetFromEvent(event);
     if(!target||target.contains(event.relatedTarget))return;
     showMarketAiTooltip(target,event);
   });
   document.addEventListener('pointermove',event=>{
+    if(event.pointerType==='touch')return;
     const target=targetFromEvent(event);
     if(target&&document.getElementById(MARKET_AI_TOOLTIP_ID)?.classList.contains('visible'))positionMarketAiTooltip(target,event);
   });
   document.addEventListener('pointerout',event=>{
+    if(event.pointerType==='touch')return;
     const target=targetFromEvent(event);
     if(target&&!target.contains(event.relatedTarget))hideMarketAiTooltip();
   });
+  document.addEventListener('click',event=>{
+    if(!marketAiPhoneUi())return;
+    const target=targetFromEvent(event);
+    if(!target){
+      hideMarketAiTooltip();
+      return;
+    }
+    const tooltip=document.getElementById(MARKET_AI_TOOLTIP_ID);
+    if(marketAiActiveTooltipTarget===target&&tooltip?.classList.contains('visible')){
+      hideMarketAiTooltip();
+      return;
+    }
+    showMarketAiTooltip(target,null);
+  });
   document.addEventListener('focusin',event=>{
+    if(marketAiPhoneUi())return;
     const target=targetFromEvent(event);
     if(target)showMarketAiTooltip(target,null);
   });
@@ -969,27 +986,15 @@ function marketAiDesktopFuturesMetric(){
   return marketAiDesktopMarketMetric('K200선물','kospi200-futures');
 }
 
-function syncMarketAiMetricInteractivity(row,phoneUi){
+function syncMarketAiMetricInteractivity(row){
   row?.querySelectorAll('[data-market-ai-tooltip],[data-market-ai-tooltip-type]').forEach(metric=>{
     const tooltipType=metric.dataset.marketAiTooltip||metric.dataset.marketAiTooltipType||'';
-    if(phoneUi){
-      if(tooltipType)metric.dataset.marketAiTooltipType=tooltipType;
-      metric.removeAttribute('data-market-ai-tooltip');
-      metric.removeAttribute('tabindex');
-      metric.removeAttribute('aria-describedby');
-      return;
-    }
     if(tooltipType)metric.dataset.marketAiTooltip=tooltipType;
     metric.removeAttribute('data-market-ai-tooltip-type');
     metric.setAttribute('tabindex','0');
     metric.setAttribute('aria-describedby',MARKET_AI_TOOLTIP_ID);
   });
-  if(phoneUi){
-    hideMarketAiTooltip();
-    document.getElementById(MARKET_AI_TOOLTIP_ID)?.remove();
-  }else{
-    marketAiTooltip();
-  }
+  marketAiTooltip();
 }
 
 
@@ -1013,12 +1018,12 @@ function syncMarketAiResponsiveMount(row,hero){
     if(inlineSlot&&row.parentElement!==inlineSlot)inlineSlot.appendChild(row);
     stopMarketAiHeroWidthObserver(hero);
     hero.classList.remove('market-ai-mounted');
-    syncMarketAiMetricInteractivity(row,true);
+    syncMarketAiMetricInteractivity(row);
     row.dataset.marketAiPlacement='phone-inline';
     return;
   }
 
-  syncMarketAiMetricInteractivity(row,false);
+  syncMarketAiMetricInteractivity(row);
   if(row.parentElement!==hero)hero.appendChild(row);
   document.getElementById(MARKET_AI_PHONE_INLINE_SLOT_ID)?.remove();
   row.dataset.marketAiPlacement='hero';
