@@ -23,6 +23,7 @@
 → 기존 테스트가 보호하는 계약과 보호하지 않는 상태공간 구분
 → 현실적인 실패 가설 생성
 → CSS / JS / UI / UX 독립 평가
+→ `ct35_evaluation.md` 1~35 전수 평가 + 별도 CT35 표 출력
 → [범위상 포함 시] GAS 서버 독립 평가
 → 문서 semantic 정합성 확인
 → bounded Counterexample Pass
@@ -33,6 +34,8 @@
 
 - `MAIN만`, `ADD만`, `Calc`, `Report`, `CSS만`, `JS만`, 특정 화면·기능처럼 범위를 명시하면 그 범위만 평가합니다.
 - 범위가 좁아도 판정에 필요한 dependency/shared contract는 필요한 만큼 확인합니다.
+- `평가` / `평가해줘` / `전체 평가` / `상세 평가` / `영역별 평가` / `기능별 평가`에서는 **반드시 `ct35_evaluation.md`를 읽고 1~35 전 항목을 별도 섹션으로 출력**합니다. 전체 평가에서는 Main/Add 독립 점수와 판정을 35개 모두 기록하고, 특정 기능·화면처럼 범위가 좁으면 CT35의 집중평가 규칙대로 각 항목을 `적용 / 간접 적용 / N/A`로 먼저 분류한 뒤 **1~35 행 자체는 생략하지 않습니다**.
+- `점수` / `점수만`은 간결 출력 계약을 유지하므로 CT35 판단을 CSS 점수에 반영하되, 사용자가 별도로 요구하지 않으면 35개 전수 표 출력은 생략할 수 있습니다.
 - 범위를 좁히지 않은 `점수` / `평가` / `평가해줘` / `전체 평가`에서는 root `GAS_code.js`가 있으면 GAS를 별도 서버 평가축으로 포함합니다.
 - 좁은 Dashboard 평가에서는 GAS 내부를 자동 전수평가하지 않습니다. frontend 기능 판정에 필요한 API shape만 dependency로 확인할 수 있습니다.
 - `GAS 포함`, `GAS_code.js도`, `frontend↔GAS 통합`처럼 명시되면 좁은 평가와 함께 GAS 평가를 수행합니다.
@@ -320,6 +323,8 @@ A/B/C는 개수를 채우지 않는다. 실제 감점 근거가 없으면 A/B 0�
 
 공통화·토큰화의 35개 고정 Rubric은 `ct35_evaluation.md`를 사용합니다. 이 문서에 35개 항목의 selector/token 세부를 다시 복제하지 않습니다.
 
+`평가` / `평가해줘` 계열 상세 평가에서는 이 Rubric을 단순 참고만 하지 않고 **1~35 전 항목을 실제 최신 소스에 대입해 별도 CT35 표로 전수 기록**합니다. 전체 평가에서는 `ct35_evaluation.md`의 `항목 | Main | Add | 판정 | 핵심 근거` 형식을 따르고, 특정 기능 집중평가에서는 같은 문서의 `항목 | 적용 범위 | 점수 | 판정 | 핵심 근거` 형식을 사용합니다. 다른 CSS 상세표에 근거가 이미 있더라도 CT35 행을 생략하거나 “CSS 100에 포함”처럼 축약하지 않습니다.
+
 # 7. GAS 평가 모드
 
 ## 7.1 `GAS_code.js` 독립 평가 모드
@@ -556,18 +561,19 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 3. 검증 방법과 가능/불가 범위
 4. **이번 평가에서 새로 생성한 주요 실패 가설 / 적대적 시나리오 요약**
 5. CSS 상세 평가
-6. JavaScript 상세 평가 + dependency / state / async 확인
-7. Frontend ↔ backend / workflow contract
-8. UI 영역별 평가
-9. UX flow별 평가
-10. Boundary / Persistence / Keyboard / Runtime lifecycle
-11. Semantic Documentation QA
-12. Accessibility / Interaction
-13. 성능 / 유지보수성
-14. **100점 Counterexample Pass 결과**
-15. A / B 목록 + 필요한 경우 C 비감점 관찰사항
-16. 세부 점수표
-17. 최종 결론
+6. **CT35 공통화·토큰화 1~35 전수 평가**
+7. JavaScript 상세 평가 + dependency / state / async 확인
+8. Frontend ↔ backend / workflow contract
+9. UI 영역별 평가
+10. UX flow별 평가
+11. Boundary / Persistence / Keyboard / Runtime lifecycle
+12. Semantic Documentation QA
+13. Accessibility / Interaction
+14. 성능 / 유지보수성
+15. **100점 Counterexample Pass 결과**
+16. A / B 목록 + 필요한 경우 C 비감점 관찰사항
+17. 세부 점수표
+18. 최종 결론
 
 평가 범위가 ADD Calc나 특정 화면처럼 좁으면 해당 범위에 맞게 불필요한 장은 줄인다.
 
@@ -591,6 +597,7 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 - selector/함수 증거가 필요한 경우만 짧은 코드 블록
 - 검증 근거를 해당 평가 항목 가까이에 배치
 - **`평가` / `평가해줘`에서는 CSS·JavaScript·UI·UX 각각의 하위 평가표를 생략하지 않음**
+- **`ct35_evaluation.md`를 반드시 읽고 CT35 1~35 전 항목을 별도 표로 모두 출력함.** 전체 평가에서는 Main/Add를 독립 채점하고, 좁은 기능 평가에서도 35개 행을 유지한 채 `적용 / 간접 적용 / N/A`를 표시함
 - **UI는 실제 화면 영역별 표, UX는 실제 사용자 flow별 표를 별도로 작성**
 - 각 상세표는 원칙적으로 `평가항목 | 점수 | 상태 | 핵심 근거 | 감점 여부` 5개 열을 사용
 - 점수표만 나열하지 않고 실제 근거 설명
@@ -613,6 +620,17 @@ UX 100 — 문제 없음
 ```
 
 이 형식은 사용자가 명시적으로 `점수만`, `간단히`, `요약만`을 요청한 경우에만 허용한다.
+
+### CT35 전수 출력 계약
+
+`평가` / `평가해줘` 계열 상세 평가에서는 CT35를 CSS 총점의 내부 근거로만 흡수하지 않습니다. **독립 섹션에서 1번부터 35번까지 모든 항목을 순서대로 기록**합니다.
+
+- 전체 Dashboard 평가: `ct35_evaluation.md`의 전체 평가 최소 형식대로 `항목 | Main | Add | 판정 | 핵심 근거`를 35행 모두 작성
+- MAIN만 / ADD만 평가: 관련 프로젝트는 실제 점수를 기록하고 반대쪽은 CT35 범위 규칙에 따라 `N/A` 처리하되 35행을 유지
+- 특정 기능·화면 평가: 1~35를 먼저 `적용 / 간접 적용 / N/A`로 분류하고 집중평가 최소 형식대로 35행을 모두 작성
+- 동일 root cause를 여러 CT35 항목에서 중복 감점하지 않으며, `N/A`를 억지로 적용 대상으로 만들지 않음
+- CT35의 Main/Add 점수는 서로 평균내지 않으며, Dashboard CSS/전체 점수와의 관계는 근거를 설명하되 별도 점수축을 임의로 새로 만들지 않음
+- 35행 전수 출력은 **가시성 contract**이며, 각 항목을 이유 없이 장문으로 반복하는 것은 요구하지 않음. 근거는 실제 token/selector/shared owner 중심으로 간결하게 작성
 
 ## 8.2 영역별·기능별 상세 평가
 
@@ -686,8 +704,8 @@ MAIN ↔ ADD shared token / theme / viewport contract
 | 사용자 명령 | 기본 출력 수준 |
 |---|---|
 | `점수`, `점수만` | 총점 중심의 간결한 결과 |
-| `평가`, `평가해줘` | **전체 상세 평가** |
-| `상세 평가`, `영역별 평가`, `기능별 평가` | 전체 상세 평가 + 요청 축을 더 세분화 |
+| `평가`, `평가해줘` | **전체 상세 평가 + CT35 1~35 전수 표** |
+| `상세 평가`, `영역별 평가`, `기능별 평가` | 전체 상세 평가 + CT35 1~35 전수 표 + 요청 축을 더 세분화 |
 | `수정할 거 찾아줘` | 점수보다 실제 A/B 후보 탐색 중심 |
 | `수정해` | A/B를 수정하고 영향 범위 QA·대표 반증 평가를 반복해 A/B=0에서 종료. C는 명시 요청 시에만 수정 |
 
@@ -714,6 +732,7 @@ MAIN ↔ ADD shared token / theme / viewport contract
 [ ] keyboard/accessibility interaction을 분석했는가
 [ ] theme/runtime Canvas/SVG lifecycle을 분석했는가
 [ ] README/handover/workflow/schema semantic QA를 수행했는가
+[ ] `평가` / `평가해줘` 계열이면 `ct35_evaluation.md`를 읽고 1~35 전 항목을 별도 표로 기록했는가
 [ ] 위험도에 맞는 대표 interactive adversarial scenario를 생성·검토했는가
 [ ] 기존 테스트가 놓칠 수 있는 관련 상태공간을 합리적인 범위에서 탐색했는가
 [ ] 마지막 bounded Counterexample Pass에서도 새로운 A/B급 감점 사유가 없었는가
@@ -773,6 +792,7 @@ JSON 예제가 실제 필수 context를 누락하면?
 [ ] 현재 평가 범위를 판정할 수 있는 최신 실제 소스를 확인했는가
 [ ] 과거 평가 점수를 baseline으로 사용하지 않았는가
 [ ] 해당 범위의 handover에서 현재 설계 의도를 확인했는가
+[ ] `평가` / `평가해줘` 계열이면 `ct35_evaluation.md`를 실제로 읽었는가
 [ ] 평가 보호 규칙을 먼저 확인했는가
 [ ] KRX/Pension PIN, 개인보기 gesture, native select, render/cache bust 등 보호 항목을 잠재적 가능성만으로 감점하지 않았는가
 [ ] 실제 재현·사용자 영향·구체적 오류가 없는 항목을 B급으로 억지 제시하지 않았는가
@@ -796,6 +816,8 @@ JSON 예제가 실제 필수 context를 누락하면?
 [ ] 위험도에 맞는 대표 adversarial scenario를 생성했는가
 [ ] 마지막에 100점을 깨는 현실적 A/B급 반례를 bounded pass로 별도 검토했는가
 [ ] `평가`/`평가해줘`라면 CSS·JS·UI·UX 하위 평가표를 모두 작성했는가
+[ ] `평가`/`평가해줘`라면 CT35 1~35 전 항목을 별도 섹션에 모두 출력했는가
+[ ] 좁은 기능 평가라면 CT35 35개 행을 `적용 / 간접 적용 / N/A`로 빠짐없이 분류했는가
 [ ] UI 실제 화면 영역 inventory와 영역별 판정을 작성했는가
 [ ] UX 주요 flow inventory와 flow별 상태 전이 판정을 작성했는가
 [ ] 100점 하위 항목에도 구조·기능·반례 검토 근거를 남겼는가
