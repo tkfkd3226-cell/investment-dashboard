@@ -199,6 +199,20 @@
     .pension-batch-head{align-items:center}
     .pension-contrib-context{padding:0}
 
+  /* Market AI Tooltip · 모바일은 metric tap으로 열며 긴 설명은 viewport 안에서 줄바꿈한다. */
+.market-ai-desktop-metric[data-market-ai-tooltip]{
+      cursor:pointer;
+      touch-action:manipulation;
+    }
+    .dash-tooltip.market-ai-tooltip .tt-row,
+    .market-ai-tooltip-note,
+    .market-ai-tooltip-score-line{
+      white-space:normal;
+    }
+    .dash-tooltip.market-ai-tooltip .tt-val{
+      overflow-wrap:anywhere;
+    }
+
   /* [M07. Interaction · 터치 press와 카드 transition] */
 .card,
     .note:not(.asset-status-note):not(.asset-change-note),
