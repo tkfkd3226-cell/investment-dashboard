@@ -364,17 +364,21 @@ function marketAiMarketSourceLabel(row,marketKey){
   return source||'데이터 소스 확인 필요';
 }
 
+function marketAiBackendInputReason(row){
+  const backendStatus=String(row?.input_status?.status||'');
+  return ({
+    realtime:'fresh',within_delay:'fresh',closed_latest:'closed',awaiting_session:'preopen',
+    closing_pending:'closing-pending',stale:'stale',missing_close:'missing-close',
+    calendar_unknown:'calendar-unknown',invalid_time:'invalid-time',missing:'missing'
+  })[backendStatus]||'';
+}
+
 function marketAiSnapshotDisplayState(row,sessionState='open'){
   const freshness=marketAiSnapshotFreshness(row);
   if(!row){
     return {reason:'missing',rawRow:null,observedAt:null};
   }
-  const backendStatus=String(row?.input_status?.status||'');
-  const backendReason=({
-    realtime:'fresh',within_delay:'fresh',closed_latest:'closed',awaiting_session:'preopen',
-    closing_pending:'closing-pending',stale:'stale',missing_close:'missing-close',
-    calendar_unknown:'calendar-unknown',invalid_time:'invalid-time',missing:'missing'
-  })[backendStatus];
+  const backendReason=marketAiBackendInputReason(row);
   const sessionReason=({preopen:'preopen',closed:'closed',maintenance:'maintenance'})[String(sessionState||'')];
   return {
     reason:backendReason||sessionReason||(freshness.fresh?'fresh':'stale'),
@@ -406,6 +410,10 @@ function marketAiKisFuturesState(){
     return {row:null,rawRow,reason:'source',bridgeStatus};
   }
   const freshness=marketAiSnapshotFreshness(rawRow);
+  const backendReason=marketAiBackendInputReason(rawRow);
+  if(backendReason){
+    return {row:rawRow,rawRow,reason:backendReason,observedAt:freshness.observedAt,bridgeStatus};
+  }
   if(!freshness.fresh){
     const backendMarketOpen=typeof bridgeStatus?.market_open==='boolean'?bridgeStatus.market_open:null;
     if(backendMarketOpen===false||(backendMarketOpen==null&&!marketAiK200FallbackSessionOpen())){

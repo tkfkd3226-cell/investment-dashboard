@@ -1200,7 +1200,7 @@ test('Market AI 시장 세션 판정은 KRX/SOX/NQ의 휴장 시간을 stale과 
 
 test('Market AI 시장 카드는 backend 거래소 캘린더 상태를 로컬 요일·시간 추정보다 우선한다',()=>{
   const vm=require('node:vm');
-  const start=marketAi.indexOf('function marketAiSnapshotDisplayState');
+  const start=marketAi.indexOf('function marketAiBackendInputReason');
   const end=marketAi.indexOf('\nfunction marketAiK200FallbackSessionOpen',start);
   const context={marketAiSnapshotFreshness:row=>({fresh:false,observedAt:row.observed_at})};
   vm.createContext(context);
@@ -1211,6 +1211,45 @@ test('Market AI 시장 카드는 backend 거래소 캘린더 상태를 로컬 �
   };
   assert.equal(context.marketAiSnapshotDisplayState(laborDayRow,'open').reason,'closed');
   assert.equal(context.marketAiSnapshotDisplayState({observed_at:'2026-09-07T18:00:00Z'},'open').reason,'stale');
+});
+
+test('Market AI K200 시장 카드는 backend input_status를 Bridge/5분 freshness보다 우선한다',()=>{
+  const vm=require('node:vm');
+  const reasonStart=marketAi.indexOf('function marketAiBackendInputReason');
+  const reasonEnd=marketAi.indexOf('\nfunction marketAiSnapshotDisplayState',reasonStart);
+  const stateStart=marketAi.indexOf('function marketAiKisFuturesState');
+  const stateEnd=marketAi.indexOf('\n// 카드와 tooltip',stateStart);
+  assert.ok(reasonStart>=0&&reasonEnd>reasonStart&&stateStart>=0&&stateEnd>stateStart,'K200 input-status helper block is missing');
+  let rawRow={
+    source:'kis-efriend:night:CMEC_R:A01612',
+    observed_at:'2026-09-18T20:57:00Z',
+    input_status:{available:false,status:'missing_close'}
+  };
+  let bridgeStatus={market_open:false,connected:true,expected_session:'closed'};
+  const context={
+    MARKET_AI_KIS_FUTURES_SYMBOL:'FUTURES:KOSPI200',
+    marketAiState:{bridgeStatus},
+    marketAiSnapshotRow:()=>rawRow,
+    marketAiObject:value=>value&&typeof value==='object'&&!Array.isArray(value)?value:null,
+    marketAiSnapshotFreshness:row=>({fresh:true,observedAt:row.observed_at}),
+    marketAiK200FallbackSessionOpen:()=>false
+  };
+  vm.createContext(context);
+  vm.runInContext(marketAi.slice(reasonStart,reasonEnd),context);
+  vm.runInContext(marketAi.slice(stateStart,stateEnd),context);
+
+  let state=context.marketAiKisFuturesState();
+  assert.equal(state.reason,'missing-close','backend missing_close는 장마감 fallback보다 우선해야 한다');
+  assert.equal(state.row,rawRow,'backend 상태가 unavailable이어도 마지막 KIS 값은 카드에 유지한다');
+
+  rawRow={...rawRow,input_status:{available:false,status:'stale'}};
+  state=context.marketAiKisFuturesState();
+  assert.equal(state.reason,'stale','backend stale은 5분 freshness가 fresh여도 우선해야 한다');
+
+  rawRow={...rawRow,input_status:null};
+  context.marketAiSnapshotFreshness=()=>({fresh:false,observedAt:rawRow.observed_at});
+  state=context.marketAiKisFuturesState();
+  assert.equal(state.reason,'closed','backend 상태가 없는 구버전 응답에서만 기존 Bridge/session fallback을 사용한다');
 });
 
 test('Market AI 시장 tooltip View Model은 session-aware KOSPI/SOX/NQ와 K200 closed/bridge/source 의미를 구분한다',()=>{
