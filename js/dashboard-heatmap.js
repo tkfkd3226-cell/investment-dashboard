@@ -307,7 +307,7 @@ function portfolioHeatmapTileDensity(rect={}){
   const width=Math.max(0,finiteHeatmapNumber(rect.width,0));
   const height=Math.max(0,finiteHeatmapNumber(rect.height,0));
   const area=width*height;
-  if(width>=170&&height>=88&&area>=18000)return 'large';
+  if(width>=300&&height>=88&&area>=26400)return 'large';
   if(width>=92&&height>=50&&area>=6000)return 'medium';
   if(width>=46&&height>=27&&area>=1500)return 'small';
   return 'tiny';

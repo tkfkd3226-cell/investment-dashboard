@@ -241,8 +241,10 @@ test('히트맵 재설계 2차: 비중 색상은 고정 구간 5단계 농도를
   assert.equal(heatmap.portfolioHeatmapWeightIntensity(null),null);
 });
 
-test('히트맵 3차: tile 정보 밀도는 실제 rect px 크기로 Large/Medium/Small/Tiny를 판정한다',()=>{
-  assert.equal(heatmap.portfolioHeatmapTileDensity({width:220,height:120}),'large');
+test('히트맵 2차 보정: 계산식 보조문구는 충분한 폭의 Large tile에서만 노출한다',()=>{
+  assert.equal(heatmap.portfolioHeatmapTileDensity({width:320,height:120}),'large');
+  assert.equal(heatmap.portfolioHeatmapTileDensity({width:299,height:120}),'medium');
+  assert.equal(heatmap.portfolioHeatmapTileDensity({width:220,height:120}),'medium');
   assert.equal(heatmap.portfolioHeatmapTileDensity({width:120,height:60}),'medium');
   assert.equal(heatmap.portfolioHeatmapTileDensity({width:60,height:32}),'small');
   assert.equal(heatmap.portfolioHeatmapTileDensity({width:30,height:20}),'tiny');
