@@ -116,6 +116,9 @@ test('히트맵 3차: Large/Medium/Small/Tiny 정보량과 mode별 핵심값 역
   assert.match(heatmap,/if\(density==='small'\)return name/);
   assert.match(heatmap,/if\(density==='medium'\)return `\$\{name\}\$\{primary\}`/);
   assert.match(heatmap,/portfolio-heatmap__secondary/,'Large tile에만 보조값 line을 제공해야 한다');
+  assert.match(heatmap,/function syncPortfolioHeatmapSecondaryVisibility\(canvas\)/,'Large 판정과 별개로 보조문구 실제 너비를 검사해야 한다');
+  assert.match(heatmap,/secondary\.hidden=secondary\.scrollWidth>secondary\.clientWidth\+1/,'보조문구가 실제 타일 폭을 넘을 때만 숨겨야 한다');
+  assert.match(heatmap,/canvas\.innerHTML=portfolioHeatmapState\.layoutRows\.map\(renderPortfolioHeatmapTile\)\.join\(''\);\s*syncPortfolioHeatmapSecondaryVisibility\(canvas\)/,'타일 DOM 생성 후 실제 너비를 측정해야 한다');
   assert.match(heatmap,/if\(mode==='cumulative'\)return heatmapAmountText\(row\.cumulativePnl,\{signedValue:true\}\)/,'누적손익 Large tile은 누적손익 금액만 보조 표시해야 한다');
   assert.match(heatmap,/`\$\{total\} · \$\{heatmapAmountText\(unit,\{signedValue:true\}\)\} × \$\{fmt\(qty\)\}주`/,'전일 대비 Large tile은 변동총액 · 주당변동액 × 수량을 표시해야 한다');
   assert.match(heatmap,/`\$\{amount\} · \$\{fmt\(qty\)\}주 × \$\{won\(price\)\}`/,'비중 Large tile은 평가금액 · 수량 × 적용가격을 표시해야 한다');
