@@ -699,6 +699,7 @@ function handleRealtimeMonitorMessage(event){
   const height=Math.ceil(Number(payload.height));
   if(!Number.isFinite(height)||height<=0)return;
   realtimeMonitorContentHeight=height;
+  modal.style.setProperty('--realtime-monitor-content-height',`${height}px`);
   syncRealtimeQuotesModalGeometry();
   if(modal.classList.contains('realtime-quote-preparing'))revealPreparedRealtimeQuotesModal();
 }
@@ -748,7 +749,10 @@ function openRealtimeQuotesModal(returnFocus=null){
   resetRealtimeQuotesDrag();
   const frame=modal.querySelector('.realtime-quote-frame');
   const needsLoad=frame&&frame.getAttribute('src')!==MARKET_AI_MONITOR_URL;
-  if(needsLoad)realtimeMonitorContentHeight=0;
+  if(needsLoad){
+    realtimeMonitorContentHeight=0;
+    modal.style.removeProperty('--realtime-monitor-content-height');
+  }
   if(phoneUi()||realtimeMonitorContentHeight>0){
     clearRealtimeQuotesPreparation();
     realtimeMonitorPendingReturnFocus=null;
@@ -773,7 +777,11 @@ function closeRealtimeQuotesModal({resetFrame=true}={}){
   realtimeMonitorPendingReturnFocus=null;
   resetRealtimeQuotesDrag();
   if(modal.classList.contains('show'))closeDashboardModal(modal,{fallbackSelector:'[data-dashboard-action="open-realtime-quotes"]:not([hidden])'});
-  if(resetFrame){realtimeMonitorContentHeight=0;modal.querySelector('.realtime-quote-frame')?.setAttribute('src','about:blank')}
+  if(resetFrame){
+    realtimeMonitorContentHeight=0;
+    modal.style.removeProperty('--realtime-monitor-content-height');
+    modal.querySelector('.realtime-quote-frame')?.setAttribute('src','about:blank');
+  }
 }
 
 // KRX Price Update · durable reconciliation/GitHub API 왕복이 길어질 수 있어 공통 20초보다 긴 전용 timeout을 사용한다.

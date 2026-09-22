@@ -49,6 +49,10 @@
       --chart-expanded-surface:#ffffff;
       --info-control-bg:var(--card);
       --info-control-color:var(--muted);
+      --modal-surface:#ffffff;
+      --modal-border:#d7dce5;
+      --modal-panel-surface:#ffffff;
+      --realtime-quote-shell-bg:#ffffff;
       --value-positive:#e6233a;
       --value-negative:#2972e8;
       --highlight-card-difference:#fbbf24;
@@ -259,27 +263,51 @@
       grid-template-columns:repeat(7,minmax(0,1fr));
     }
     body.dashboard-dialog-open .portfolio-heatmap-date-controls{
-      display:block;
-      width:112px;
-      max-width:112px;
-      margin-top:var(--space-md);
+      display:flex;
+      justify-content:center;
+      width:auto;
+      max-width:none;
+      margin:var(--space-md) auto 0;
     }
     body.dashboard-dialog-open .portfolio-heatmap-date-select{
       display:block;
-      width:112px;
-      min-width:112px;
-      max-width:112px;
+      width:10ch;
+      min-width:10ch;
+      max-width:10ch;
+      height:auto;
+      padding:0;
+      border:0;
+      border-radius:0;
+      appearance:none;
+      -webkit-appearance:none;
+      background:transparent;
+      box-shadow:none;
+      color:var(--text);
+      line-height:1.2;
       white-space:nowrap;
+      text-align:center;
+      cursor:default;
+      pointer-events:none;
+    }
+    body.dashboard-dialog-open .realtime-quote-modal,
+    body.dashboard-dialog-open .realtime-quote-modal-card,
+    body.dashboard-dialog-open .realtime-quote-frame-stage,
+    body.dashboard-dialog-open .realtime-quote-frame{
+      background:#ffffff;
     }
     body.dashboard-dialog-open .realtime-quote-modal-card{
-      height:var(--realtime-monitor-fallback-height);
-      min-height:var(--realtime-monitor-fallback-height);
-      max-height:var(--realtime-monitor-fallback-height);
+      height:var(--realtime-monitor-content-height,100vh);
+      min-height:var(--realtime-monitor-content-height,100vh);
+      max-height:none;
+      border-color:var(--modal-border);
+      break-inside:auto;
+      page-break-inside:auto;
     }
     body.dashboard-dialog-open .realtime-quote-frame-stage,
     body.dashboard-dialog-open .realtime-quote-frame{
       height:100%;
-      min-height:var(--realtime-monitor-fallback-height);
+      min-height:100%;
+      max-height:none;
     }
 
     /* [P03. Surface / Page Width · elevation 제거 + 용지 폭] */
