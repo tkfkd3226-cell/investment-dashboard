@@ -339,7 +339,6 @@
   --nav-motion-slide-duration:.28s;
   --nav-motion-fade-duration:.10s;
   --nav-motion-slide-delay:.04s;
-  --nav-motion-hide-delay:.38s;
   --nav-motion-close-slide-duration:.36s;
   --nav-motion-close-fade-duration:.24s;
   --nav-motion-close-fade-delay:.10s;
@@ -3561,8 +3560,7 @@ html.dark .portfolio-heatmap-modal{
   font-weight:var(--type-weight-semibold);
   font-variant-numeric:tabular-nums;
 }
-.portfolio-heatmap__legend-item,
-.portfolio-heatmap__legend-note{
+.portfolio-heatmap__legend-item{
   display:inline-flex;
   align-items:center;
   gap:var(--space-sm);

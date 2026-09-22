@@ -121,6 +121,7 @@ GitHub 프로젝트 설명
 - 문서의 파일 책임과 최신 구조가 일치하는지
 - 오래된 `style.css`, `desktop.css`, classic script 구조가 재등장하지 않았는지
 - `.gitattributes`의 `* text=auto eol=lf` contract와 binary asset 제외 규칙이 유지되고, EOL-only 대량 diff가 재발하지 않았는지
+- 루트 `.gitignore`가 Python/test cache·local virtual environment·OS metadata만 제외하고 실제 소스·운영 데이터를 숨기지 않는지
 
 ### JavaScript
 
@@ -1764,33 +1765,9 @@ Pension 성능 최적화는 **transaction/idempotency 계약을 바꾸지 않고
 - maintenance boundary 이후 prefix/global byte budget에 정상 여유가 있으면 Batch intent/receipt/confirmation direct property는 기존 `tryWriteDirectRequestPropertiesBatchFast()` 검증·exact readback 계약을 재사용하는 fast-path를 쓴다. fast-path가 불가능하면 기존 `setDirectRequestProperty()` GC/보존 경로로 즉시 fallback한다. fast-path 부분 반영/응답 유실은 기존 rollback/readback 계약을 유지한다.
 - semantic ledger는 **과거 같은 효과 후보**를 남기는 것이 목적이므로 business item을 삭제해도 history가 남는 것이 정상이다. Batch 충돌 popup은 source가 현재 item인지 과거 ledger인지 구분해 `현재 데이터에 같은 내용` / `같은 내용의 과거 처리 기록`처럼 설명한다. 이 확인은 안전장치이며, 사용자가 `실제 별도 작업`을 선택하면 state-bound confirmation을 포함한 두 번째 요청에서 실제 mutation을 진행한다.
 
-누적 최적화의 역할은 다음처럼 유지한다.
+성능 최적화의 현재 계약은 위 request-local cache/preflight/fast-path 규칙이 전부다. 차수별 최적화 이력과 날짜별 latency 수치는 이 문서에 누적하지 않고 Git history와 운영 timing log에서 확인한다. 회귀 판단은 절대 시간보다 같은 경로의 stage 구성과 불필요한 원격 read 증가 여부를 우선 본다.
 
-| 단계 | 변경 요약 | 안전 경계 |
-| --- | --- | --- |
-| 1차 | Pension Single/Batch 상세 timing 계측 | UI business state 비개입, `Date.now()` 중심 관찰 |
-| 2차 | Single `ref+path` request-local read cache | 다른 commit SHA 격리, fresh HEAD/CAS 비캐시 |
-| 3차 | cashSnapshot ledger/identity/dependency 병렬 preflight | optimistic concurrency·commit preflight 유지 |
-| 4차 | ETF cash/price/portfolio/ledger preflight 통합 | canonical 현금 계산·portfolio 검증 유지 |
-| 5차 | delete ledger/identity/linked-cash preflight 통합 | linked snapshot 삭제 보호·ordering 유지 |
-| 6차 | Batch dependency/state read 병렬화·cache 공유 | confirmation/durable identity/epoch 의미 유지 |
-| 7차 | Batch initial preflight 통합 + direct-property safe fast-path | `postIntentHeadRead`, CAS, fallback/readback 유지 |
-
-2026-09-11 실제 운영 계측의 마감 baseline은 아래와 같다. GitHub 원격 I/O 편차가 크므로 절대 SLA가 아니라 **회귀 탐지용 대표값**으로만 사용한다.
-
-| 경로 | 최종 total | `githubCommit` 제외 | 비고 |
-| --- | ---: | ---: | --- |
-| cashSnapshot Single upsert | 7.420s | 4.717s | 최초 11.343s → 약 34.6% 단축 |
-| contribution Single upsert | 7.196s | 4.612s | 추가 최적화 불필요 판정 |
-| etfTrade Single upsert | 7.318s | 4.758s | 최적화 전 9.578s → 약 23.6% 단축 |
-| cashSnapshot Single delete | 7.057s | 4.378s | delete preflight 적용 |
-| contribution Single delete | 7.261s | 4.408s | 최적화 전 8.588s → 약 15.5% 단축 |
-| etfTrade Single delete | 7.244s | 4.738s | 마감 기준 충족 |
-| Batch duplicate confirmation | 3.741s | 해당 없음 | 최초 11.915s → 약 68.6% 단축 |
-| Batch apply(추가/수정 대표) | 11.467s | 7.675s | `initialBatchPreflight` 등 필수 remote read 포함 |
-| Batch apply(동시 삭제 대표) | 6.681s | 4.209s | cashSnapshot + contribution 동시 삭제 실기 PASS |
-
-마감 판단은 처음 정한 기준을 따른다. **GitHub commit/CAS 같은 필수 외부 I/O를 제외한 처리시간이 대략 4~5초 수준이고, 남은 최적화가 수백 ms~1초를 위해 mutation epoch / intent / receipt / confirmation / fresh HEAD barrier를 약화시킬 가능성이 있으면 더 최적화하지 않는다.** 따라서 위 baseline 이후 Pension 성능 작업은 새 병목·회귀가 관측되지 않는 한 종료 상태로 본다.
+성능 최적화의 종료 기준은 유지한다. **GitHub commit/CAS 같은 필수 외부 I/O를 제외한 처리시간이 대략 4~5초 수준이고, 남은 최적화가 수백 ms~1초를 위해 mutation epoch / intent / receipt / confirmation / fresh HEAD barrier를 약화시킬 가능성이 있으면 더 최적화하지 않는다.** Pension 성능 작업은 새 병목·회귀가 관측되지 않는 한 종료 상태로 본다.
 
 ### Intent / receipt lifecycle
 

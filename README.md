@@ -236,6 +236,7 @@ investment-dashboard/
 │     ├─ pages.yml
 │     └─ update-prices.yml
 ├─ .gitattributes
+├─ .gitignore
 ├─ _config.yml
 ├─ requirements.txt
 ├─ README.md
@@ -405,11 +406,6 @@ README에는 selector, px 값, 함수 내부 순서, JavaScript state ownership,
 
 ## 10. 저장소 관리 원칙
 
-Python cache 등 생성물은 저장소에 포함하지 않습니다.
-
-```gitignore
-__pycache__/
-*.pyc
-```
+루트 `.gitignore`에서 Python/test cache, local virtual environment, OS metadata를 제외합니다. 운영 데이터와 소스 파일을 넓은 wildcard로 숨기지 않습니다.
 
 문서는 **해당 문서가 소유한 장기 contract가 바뀔 때만** 갱신합니다. 단순 버그 수정·QA PASS·현재 수치·과거 차수 기록을 README나 handover에 누적하지 않습니다.

@@ -6,6 +6,8 @@ on:
       - main
     paths-ignore:
       - '**/*.md'
+      - '.gitattributes'
+      - '.gitignore'
       - 'tests/**'
       - 'data/krx_dispatch_ledger/**'
       - 'data/pension_operation_identity/**'

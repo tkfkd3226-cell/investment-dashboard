@@ -897,9 +897,6 @@ function securityAllocToggle(){
   const mode=chartState.securityAllocMode==='symbol'?'symbol':'type';
   return `<div class="control-segmented" role="group" aria-label="증권계좌 평가금액 비중 표시 기준"><button type="button" class="${mode==='type'?'active':''}" data-security-alloc-mode="type" aria-pressed="${mode==='type'}" data-dashboard-action="set-security-alloc-mode">유형별</button><button type="button" class="${mode==='symbol'?'active':''}" data-security-alloc-mode="symbol" aria-pressed="${mode==='symbol'}" data-dashboard-action="set-security-alloc-mode">종목별</button></div>`;
 }
-function securityAllocItems(x){
-  return sortSecurityAllocationItems(securityAllocVisibleHoldings(x));
-}
 function securityAllocLegendHtml(x){
   return chartLegendHtml('securitiesAlloc');
 }

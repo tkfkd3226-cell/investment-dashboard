@@ -256,7 +256,6 @@
       --nav-motion-slide-duration:.26s;
       --nav-motion-fade-duration:.09s;
       --nav-motion-slide-delay:.03s;
-      --nav-motion-hide-delay:.35s;
       --nav-motion-start-opacity:.91;
       --section-title-font-size:var(--type-size-xl);
       --section-title-icon-size:15px;
@@ -266,7 +265,6 @@
       --topbar-phone-edge:var(--space-xl);
       --topbar-phone-control-size:30px;
       --scroll-top-button-size:48px;
-      --topbar-phone-control-step:calc(var(--topbar-phone-control-size) + var(--space-sm));
       --page-anchor-offset:calc(var(--topbar-phone-height) + var(--space-5xl));
       --empty-state-font-size:var(--type-size-xs);
       --modal-segment-font-size:11px;

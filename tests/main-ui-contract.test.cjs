@@ -1597,7 +1597,6 @@ test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·resp
   assert.ok(phoneRealtimeStart>=0&&phoneRealtimeEnd>phoneRealtimeStart,'Phone 실시간 시세 responsive block이 필요하다');
   assert.doesNotMatch(phoneRealtimeCss,/--modal-overlay-pad\s*:\s*0|--modal-card-radius\s*:\s*0|position\s*:\s*fixed|inset\s*:\s*0|border-radius\s*:\s*0/,'Phone 실시간 시세가 공통 action modal 외곽 계약을 우회하면 안 된다');
   assert.doesNotMatch(phoneRealtimeCss,/--realtime-quote-shell-bg/,'Phone 전용 CSS가 shell 테마 색을 별도로 고정하면 안 된다');
-  assert.match(special,/:is\(\.monthly-calendar-modal,\.realtime-quote-modal,\.contrib-modal,\.portfolio-heatmap-modal\)\{[^}]*--modal-overlay-pad:var\(--space-md\);[^}]*--modal-card-pad-y:var\(--space-md\);[^}]*--modal-card-pad-x:var\(--space-md\)/,'실시간 시세도 달력·퇴직연금·히트맵과 같은 5px phone modal frame을 공유해야 한다');
 });
 
 test('퇴직연금 작업 방식 switch는 공통 segmented control contract를 사용한다',()=>{

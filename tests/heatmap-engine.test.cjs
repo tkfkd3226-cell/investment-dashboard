@@ -45,7 +45,7 @@ test.before(async()=>{
   heatmap=await import(url);
 });
 
-test('히트맵 2차: canonical holdings/change rows를 합쳐 양수 평가금액 보유종목만 View Model로 만든다',()=>{
+test('canonical holdings/change rows는 양수 평가금액 보유종목 View Model로 정규화된다',()=>{
   const input=canonicalFixture();
   const before=structuredClone(input);
   const rows=heatmap.createPortfolioHeatmapViewModelFromCalc(input);
@@ -65,7 +65,7 @@ test('히트맵 2차: canonical holdings/change rows를 합쳐 양수 평가금�
   approx(rows[1].weight,32);
 });
 
-test('히트맵 2차: 동일 평가금액은 ticker/name stable tie-break로 결정한다',()=>{
+test('동일 평가금액은 ticker/name stable tie-break로 결정한다',()=>{
   const rows=heatmap.createPortfolioHeatmapViewModel({holdings:[
     {ticker:'B',name:'둘',evalAmount:100},
     {ticker:'A',name:'하나',evalAmount:100},
@@ -74,7 +74,7 @@ test('히트맵 2차: 동일 평가금액은 ticker/name stable tie-break로 결
   assert.deepEqual(rows.map(row=>row.ticker),['C','A','B']);
 });
 
-test('히트맵 2차: 비정상 optional 숫자는 View Model 경계에서 null/0으로 정규화한다',()=>{
+test('비정상 optional 숫자는 View Model 경계에서 null/0으로 정규화한다',()=>{
   const rows=heatmap.createPortfolioHeatmapViewModel({holdings:[{
     ticker:'A',name:'A',evalAmount:100,qty:Infinity,cost:undefined,avgPrice:'x',price:NaN,totalProfit:Infinity,profit:25,returnRate:'bad'
   }],changeRows:[{ticker:'A',dayChange:Infinity,dayRate:'bad'}]});
@@ -96,14 +96,14 @@ test('히트맵 2차: 비정상 optional 숫자는 View Model 경계에서 null/
   assert.deepEqual(noCash.map(row=>row.ticker),['A'],'현금 row는 pure View Model 경계에서도 제외해야 한다');
 });
 
-test('히트맵 2차: treemap geometry는 동일 입력에서 deterministic하다',()=>{
+test('treemap geometry는 동일 입력에서 deterministic하다',()=>{
   const rows=heatmap.createPortfolioHeatmapViewModelFromCalc(canonicalFixture());
   const first=heatmap.layoutPortfolioHeatmap(rows,1000,600);
   const second=heatmap.layoutPortfolioHeatmap(rows,1000,600);
   assert.deepEqual(first,second);
 });
 
-test('히트맵 2차: 모든 rect는 container 내부이며 overlap 없이 평가금액 면적비를 보존한다',()=>{
+test('모든 rect는 container 내부에서 overlap 없이 평가금액 면적비를 보존한다',()=>{
   const rows=heatmap.createPortfolioHeatmapViewModel({holdings:[
     {ticker:'A',name:'A',evalAmount:50},
     {ticker:'B',name:'B',evalAmount:30},
@@ -122,7 +122,7 @@ test('히트맵 2차: 모든 rect는 container 내부이며 overlap 없이 평�
   approx(laid.reduce((sum,row)=>sum+rectArea(row.rect),0),width*height,1e-5);
 });
 
-test('히트맵 2차: 평가금액이 큰 종목은 더 큰 tile area를 가진다',()=>{
+test('평가금액이 큰 종목은 더 큰 tile area를 가진다',()=>{
   const rows=heatmap.createPortfolioHeatmapViewModel({holdings:[
     {ticker:'BIG',evalAmount:700},
     {ticker:'MID',evalAmount:200},
@@ -133,7 +133,7 @@ test('히트맵 2차: 평가금액이 큰 종목은 더 큰 tile area를 가진�
   assert.ok(rectArea(laid[1].rect)>rectArea(laid[2].rect));
 });
 
-test('히트맵 재설계 1차: 전일 대비 주당 변동액은 실제 가격차이며 총액과 산식이 맞을 때만 표시 가능하다',()=>{
+test('전일 대비 주당 변동액은 실제 가격차이며 총액과 산식이 맞을 때만 표시 가능하다',()=>{
   const normal=heatmap.createPortfolioHeatmapViewModel({
     holdings:[{ticker:'NORMAL',name:'일반',qty:10,price:109000,evalAmount:1090000,totalProfit:90000}],
     changeRows:[{ticker:'NORMAL',prevPrice:100000,price:109000,dayChange:90000,dayRate:9}]
@@ -151,7 +151,7 @@ test('히트맵 재설계 1차: 전일 대비 주당 변동액은 실제 가격�
   assert.equal(heatmap.portfolioHeatmapModeMetric(traded,'day').tertiaryValue,null);
 });
 
-test('히트맵 재설계 1차: mode metric은 모드별 면적 기준과 표시용 raw 값을 제공한다',()=>{
+test('mode metric은 모드별 면적 기준과 표시용 raw 값을 제공한다',()=>{
   const row={dayRate:1.25,dayChange:-4320000,dayUnitChange:-9000,dayUnitFormulaAvailable:true,cumulativeRate:18.4,cumulativePnl:-22100000,weight:24.8,evalAmount:142300000,qty:480,price:296458};
   assert.deepEqual(heatmap.portfolioHeatmapModeMetric(row,'day'),{
     mode:'day',primaryValue:1.25,secondaryValue:-4320000,tertiaryValue:-9000,areaValue:4320000,colorValue:1.25,colorKind:'performance'
@@ -164,7 +164,7 @@ test('히트맵 재설계 1차: mode metric은 모드별 면적 기준과 표시
   });
 });
 
-test('히트맵 재설계 1차: 당일손익 면적은 dayChange 절댓값이며 0/null 종목은 geometry에서 제외한다',()=>{
+test('당일손익 면적은 dayChange 절댓값이며 0/null 종목은 geometry에서 제외한다',()=>{
   const rows=[
     {ticker:'POS',evalAmount:100,dayChange:100},
     {ticker:'NEG',evalAmount:1000,dayChange:-300},
@@ -179,7 +179,7 @@ test('히트맵 재설계 1차: 당일손익 면적은 dayChange 절댓값이며
   approx(laid.reduce((sum,row)=>sum+rectArea(row.rect),0),800*400,1e-5);
 });
 
-test('히트맵 재설계 1차: 누적손익은 손익 절댓값, 비중은 평가금액으로 서로 다른 geometry를 만든다',()=>{
+test('누적손익은 손익 절댓값, 비중은 평가금액으로 서로 다른 geometry를 만든다',()=>{
   const rows=[
     {ticker:'A',evalAmount:900,cumulativePnl:100},
     {ticker:'B',evalAmount:100,cumulativePnl:-400}
@@ -192,19 +192,19 @@ test('히트맵 재설계 1차: 누적손익은 손익 절댓값, 비중은 평�
   approx(rectArea(weight[0].rect)/rectArea(weight[1].rect),9,1e-8);
 });
 
-test('히트맵 재설계 1차: 모든 면적값이 0이면 빈 geometry로 안전 종료한다',()=>{
+test('모든 면적값이 0이면 빈 geometry로 안전 종료한다',()=>{
   const rows=[{ticker:'A',evalAmount:100,dayChange:0},{ticker:'B',evalAmount:200,dayChange:null}];
   assert.deepEqual(heatmap.layoutPortfolioHeatmap(rows,500,300,'day'),[]);
 });
 
-test('히트맵 2차: 잘못된 canvas 크기나 layout 불가 입력은 빈 결과로 안전 종료한다',()=>{
+test('잘못된 canvas 크기나 layout 불가 입력은 빈 결과로 안전 종료한다',()=>{
   const rows=heatmap.createPortfolioHeatmapViewModel({holdings:[{ticker:'A',evalAmount:100}]});
   assert.deepEqual(heatmap.layoutPortfolioHeatmap(rows,0,500),[]);
   assert.deepEqual(heatmap.layoutPortfolioHeatmap(rows,500,NaN),[]);
   assert.deepEqual(heatmap.layoutPortfolioHeatmap([],500,500),[]);
 });
 
-test('히트맵 3차: 당일 ±3% / 누적 ±30% 고정 scale은 방향과 intensity만 계산한다',()=>{
+test('당일 ±3% / 누적 ±30% 고정 scale은 방향과 intensity만 계산한다',()=>{
   assert.deepEqual(heatmap.portfolioHeatmapColorState({dayRate:1.5},'day'),{kind:'performance',direction:'positive',intensity:50,value:1.5});
   assert.deepEqual(heatmap.portfolioHeatmapColorState({dayRate:-4},'day'),{kind:'performance',direction:'negative',intensity:100,value:-4});
   assert.deepEqual(heatmap.portfolioHeatmapColorState({dayRate:0},'day'),{kind:'neutral',direction:'neutral',intensity:0,value:0});
@@ -218,7 +218,7 @@ test('히트맵 3차: 당일 ±3% / 누적 ±30% 고정 scale은 방향과 inten
 });
 
 
-test('히트맵 재설계 2차: 모드별 Large tile 보조 문구는 사용자 계약대로 구성한다',()=>{
+test('모드별 Large tile 보조 문구는 사용자 contract대로 구성한다',()=>{
   const row={
     dayChange:90000,dayUnitChange:9000,dayUnitFormulaAvailable:true,
     cumulativePnl:8420000,evalAmount:15000000,qty:10,price:1500000
@@ -231,7 +231,7 @@ test('히트맵 재설계 2차: 모드별 Large tile 보조 문구는 사용자 
   assert.equal(heatmap.portfolioHeatmapSecondaryText(traded,'day'),'+150원','거래일 산식 불일치 시 총액만 표시해야 한다');
 });
 
-test('히트맵 재설계 2차: 비중 색상은 고정 구간 5단계 농도를 사용한다',()=>{
+test('비중 색상은 고정 구간 5단계 농도를 사용한다',()=>{
   assert.equal(heatmap.portfolioHeatmapWeightIntensity(0),20);
   assert.equal(heatmap.portfolioHeatmapWeightIntensity(5),20);
   assert.equal(heatmap.portfolioHeatmapWeightIntensity(5.01),40);
@@ -241,7 +241,7 @@ test('히트맵 재설계 2차: 비중 색상은 고정 구간 5단계 농도를
   assert.equal(heatmap.portfolioHeatmapWeightIntensity(null),null);
 });
 
-test('히트맵 2차 보정: Large 판정은 기존 정보 밀도를 유지하고 보조문구 너비는 렌더 후 별도 판정한다',()=>{
+test('Large 판정과 보조문구 overflow 판정은 서로 독립적으로 유지한다',()=>{
   assert.equal(heatmap.portfolioHeatmapTileDensity({width:320,height:120}),'large');
   assert.equal(heatmap.portfolioHeatmapTileDensity({width:220,height:120}),'large');
   assert.equal(heatmap.portfolioHeatmapTileDensity({width:170,height:110}),'large');
