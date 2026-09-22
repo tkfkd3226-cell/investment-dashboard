@@ -154,15 +154,15 @@
   --dashboard-control-state-font-size:var(--type-size-2xs);
   --dashboard-control-state-min-width:28px;
   --dashboard-control-pad-x:8px;
-  /* Monthly Separate Profit Toggle · Web/Tablet/Phone skin 단일 원천. 뷰포트별 CSS는 위치만 소유 */
-  --monthly-separate-profit-height:29px;
-  --monthly-separate-profit-font-size:10.5px;
-  --monthly-separate-profit-state-font-size:10px;
-  --monthly-separate-profit-state-min-width:28px;
-  --monthly-separate-profit-pad-x:8px;
-  --monthly-separate-profit-gap:var(--space-md);
-  --monthly-separate-profit-state-height:18px;
-  --monthly-separate-profit-state-pad-x:var(--space-md);
+  /* Separate Profit Toggle · 기본형은 Web/Tablet/월간 모달 전 viewport가 공유하고 Phone 메인만 feature scope에서 compact override */
+  --separate-profit-height:29px;
+  --separate-profit-font-size:10.5px;
+  --separate-profit-state-font-size:10px;
+  --separate-profit-state-min-width:28px;
+  --separate-profit-pad-x:8px;
+  --separate-profit-gap:var(--space-md);
+  --separate-profit-state-height:18px;
+  --separate-profit-state-pad-x:var(--space-md);
   --dashboard-switch-min-width:52px;
   --dashboard-control-radius:9px;
   --icon-button-size:32px;
@@ -3272,25 +3272,6 @@ body.dashboard-dialog-open{
   margin:0;
 }
 .monthly-calendar-separate-profit{grid-column:3;justify-self:end}
-/* Monthly Separate Profit Toggle Skin · 모든 viewport 동일, 위치만 responsive CSS에서 변경 */
-.monthly-calendar-separate-profit.separate-profit-toggle{
-  --dashboard-control-height:var(--monthly-separate-profit-height);
-  --dashboard-control-font-size:var(--monthly-separate-profit-font-size);
-  --dashboard-control-state-font-size:var(--monthly-separate-profit-state-font-size);
-  --dashboard-control-state-min-width:var(--monthly-separate-profit-state-min-width);
-  --dashboard-control-pad-x:var(--monthly-separate-profit-pad-x);
-  height:var(--monthly-separate-profit-height);
-  min-height:var(--monthly-separate-profit-height);
-  gap:var(--monthly-separate-profit-gap);
-  padding:0 var(--monthly-separate-profit-pad-x);
-}
-.monthly-calendar-separate-profit.separate-profit-toggle strong{
-  min-width:var(--monthly-separate-profit-state-min-width);
-  height:var(--monthly-separate-profit-state-height);
-  padding:0 var(--monthly-separate-profit-state-pad-x);
-}
-.monthly-calendar-separate-profit .separate-profit-toggle-label{display:inline}
-.monthly-calendar-separate-profit.separate-profit-toggle strong .control-text-optical{transform:none}
 .monthly-calendar-nav{
   border:1px solid var(--control-border);
   border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
@@ -4366,8 +4347,20 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   white-space:nowrap;
 }
 .separate-profit-toggle{
+  --dashboard-control-height:var(--separate-profit-height);
+  --dashboard-control-font-size:var(--separate-profit-font-size);
+  --dashboard-control-state-font-size:var(--separate-profit-state-font-size);
+  --dashboard-control-state-min-width:var(--separate-profit-state-min-width);
+  --dashboard-control-pad-x:var(--separate-profit-pad-x);
+  gap:var(--separate-profit-gap);
+  padding:0 var(--separate-profit-pad-x);
   background:var(--card);
   letter-spacing:-.025em;
+}
+.separate-profit-toggle strong{
+  min-width:var(--separate-profit-state-min-width);
+  height:var(--separate-profit-state-height);
+  padding:0 var(--separate-profit-state-pad-x);
 }
 .separate-profit-toggle.active{
   border-color:var(--special-profit-border);

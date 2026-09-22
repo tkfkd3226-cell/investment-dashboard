@@ -552,18 +552,20 @@
     .section-title > .separate-profit-control-row,
     .chart-head > .separate-profit-control-row{margin-left:auto}
     .separate-profit-control-note{display:none}
-    .separate-profit-toggle{
-      padding:1px var(--space-xs);
-      gap:0;
+    .separate-profit-control-row .separate-profit-toggle{
+      --separate-profit-height:25px;
+      --separate-profit-font-size:9.5px;
+      --separate-profit-state-font-size:9.5px;
+      --separate-profit-state-min-width:34px;
+      --separate-profit-pad-x:var(--space-xs);
+      --separate-profit-gap:0;
+      --separate-profit-state-height:21px;
+      --separate-profit-state-pad-x:var(--space-lg);
+      padding:1px var(--separate-profit-pad-x);
     }
-    .separate-profit-toggle-label{display:none}
-    .separate-profit-toggle strong{
-      min-width:var(--dashboard-control-state-min-width);
-      height:21px;
-      padding:0 var(--space-lg);
-    }
-    /* Phone ON/OFF badge는 공통 optical shift를 유지 */
-    .separate-profit-toggle strong .control-text-optical{
+    .separate-profit-control-row .separate-profit-toggle-label{display:none}
+    /* Phone 메인 ON/OFF badge만 compact optical shift를 유지 */
+    .separate-profit-control-row .separate-profit-toggle strong .control-text-optical{
       transform:translateY(var(--control-text-optical-shift));
     }
 
@@ -839,13 +841,14 @@
       border-top:0;
     }
 
-  /* Separate Profit · 가로폰은 compact control에 설명/라벨을 다시 표시 */
+  /* Separate Profit · 가로폰 메인 control은 compact geometry를 유지하고 설명/라벨만 복원 */
     .separate-profit-control-note{display:inline}
-    .separate-profit-toggle{
-      gap:var(--space-sm);
-      padding:1px var(--space-lg);
+    .separate-profit-control-row .separate-profit-toggle{
+      --separate-profit-gap:var(--space-sm);
+      --separate-profit-pad-x:var(--space-lg);
+      padding:1px var(--separate-profit-pad-x);
     }
-    .separate-profit-toggle-label{display:inline}
+    .separate-profit-control-row .separate-profit-toggle-label{display:inline}
 
   /* Monthly Calendar Controls · 가로폰은 넓은 폭을 활용해 mode tabs와 별도수익 toggle을 같은 행에 배치 */
     .monthly-calendar-controls{
