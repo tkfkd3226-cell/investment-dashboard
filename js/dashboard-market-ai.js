@@ -1409,8 +1409,9 @@ function handleMarketAiEnabledChange(event){
   marketAiRefreshSequence+=1;
   if(!enabled){
     Object.assign(marketAiState,{status:'연결 꺼짐',statusKind:'disabled',message:''});
+    // setMarketAiLifecycleState()가 connection=false를 한 번만 publish한다.
+    // OFF preference와 connection event 양쪽에서 같은 live valuation 정리를 중복 실행하지 않는다.
     setMarketAiLifecycleState('off',{resetData:true});
-    publishMarketAiConnectionState(false,{force:true});
     return;
   }
   Object.assign(marketAiState,{status:'연결 확인 중',statusKind:'checking',message:'Market AI 서버에 연결하고 있습니다.'});

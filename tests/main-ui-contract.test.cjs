@@ -1010,6 +1010,11 @@ test('Live Valuation은 Market AI ONLINE connection event를 공통 network gate
   assert.match(liveValuation,/const clientId=await resolveLiveValuationClientId\(\);\s*if\(!liveValuationNetworkAllowed\(\)\)return;/);
   assert.match(liveValuation,/window\.addEventListener\(MARKET_AI_CONNECTION_EVENT,event=>\{/);
   assert.match(liveValuation,/if\(!connected\)\{\s*clearLiveValuationForDisconnected\('market-ai-offline'\);\s*return;\s*\}/);
+  assert.doesNotMatch(liveValuation,/window\.addEventListener\(MARKET_AI_ENABLED_EVENT/,'OFF cleanup은 connection event 한 곳에서만 소유해야 한다');
+  const enabledChangeStart=market1.indexOf('function handleMarketAiEnabledChange(event){');
+  const enabledChangeEnd=market1.indexOf('function startMarketAiBridge(){',enabledChangeStart);
+  const enabledChangeBlock=market1.slice(enabledChangeStart,enabledChangeEnd);
+  assert.doesNotMatch(enabledChangeBlock,/publishMarketAiConnectionState\(false,\{force:true\}\)/,'OFF 전환에서 disconnect event를 중복 강제 발행하면 안 된다');
   assert.match(liveValuation,/function stopLiveValuationPollTimer\(\)/);
   assert.match(liveValuation,/function ensureLiveValuationPollTimer\(\)/);
   assert.doesNotMatch(liveValuation,/document\.visibilityState==='visible'&&marketAiEnabled\(\)\)refreshLiveValuation\(\)/);
@@ -1630,7 +1635,6 @@ test('Market AI 연결 toggle은 OFF fallback과 viewport별 진입점 계약을
   assert.match(marketAiClient,/function setMarketAiEnabled\(/);
   assert.match(marketAi,/marketAiEnabled\(\)/);
   assert.match(liveValuation,/marketAiEnabled\(\)/);
-  assert.match(liveValuation,/clearLiveValuationForDisconnected\('market-ai-disabled'\)/);
   assert.match(liveValuation,/clearLiveValuationForDisconnected\('market-ai-offline'\)/);
   const mobileMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
   assert.doesNotMatch(mobileMenu,/action:'toggle-market-ai-connection'/,'Phone hamburger에는 Topbar와 중복되는 Market AI 연결 action을 두면 안 된다');

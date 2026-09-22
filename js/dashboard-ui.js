@@ -70,7 +70,6 @@ import {
 } from './dashboard-charts.js';
 import {
   MARKET_AI_CONNECTION_EVENT,
-  MARKET_AI_ENABLED_EVENT,
   MARKET_AI_MONITOR_URL,
   marketAiEnabled,
   setMarketAiEnabled
@@ -211,8 +210,9 @@ function syncMarketAiConnectionToggleControls(){
 }
 function toggleMarketAiConnection(){
   const currentlyConnected=marketAiEnabled()&&marketAiMonitorAvailable;
-  setMarketAiEnabled(!currentlyConnected,{force:true});
-  syncMarketAiConnectionToggleControls();
+  // OFF는 실제 preference 변경으로 event가 발생하므로 force가 필요 없다.
+  // ON은 preference가 이미 true인 OFFLINE 상태에서도 재시도를 허용해야 하므로 force한다.
+  setMarketAiEnabled(!currentlyConnected,{force:!currentlyConnected});
   showAppToast(currentlyConnected?'Market AI 연결을 껐습니다.':'Market AI 연결을 시도합니다.');
   closeDateActionMenu();
 }
@@ -574,7 +574,6 @@ function setupUiGlobalEvents(){
   syncRealtimeQuotesAvailability(document.documentElement.dataset.marketAiConnected==='true');
   syncMarketAiConnectionToggleControls();
   window.addEventListener(MARKET_AI_CONNECTION_EVENT,event=>{syncRealtimeQuotesAvailability(event?.detail?.connected===true);syncMarketAiConnectionToggleControls();});
-  window.addEventListener(MARKET_AI_ENABLED_EVENT,()=>syncMarketAiConnectionToggleControls());
   window.addEventListener('message',handleRealtimeMonitorMessage);
   document.addEventListener('click',e=>{
     if(!e.target.closest('#tabs'))closeDateActionMenu();

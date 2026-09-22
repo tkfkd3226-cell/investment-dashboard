@@ -10,7 +10,6 @@ import {
 } from './dashboard-core.js';
 import {
   MARKET_AI_CONNECTION_EVENT,
-  MARKET_AI_ENABLED_EVENT,
   MARKET_AI_KOSPI_SNAPSHOT_EVENT,
   marketAiApiBase,
   marketAiEnabled,
@@ -405,20 +404,6 @@ function setupLiveValuation({renderDashboard,renderOpenOverlay}={}){
     syncLiveKospiSnapshot();
     ensureLiveValuationPollTimer();
     if(document.visibilityState==='visible')refreshLiveValuation();
-  });
-  window.addEventListener(MARKET_AI_ENABLED_EVENT,event=>{
-    const enabled=event?.detail?.enabled===true;
-    if(!enabled){
-      liveValuationMarketAiConnected=false;
-      clearLiveValuationForDisconnected('market-ai-disabled');
-      return;
-    }
-    liveValuationMarketAiConnected=document.documentElement.dataset.marketAiConnected==='true';
-    if(liveValuationMarketAiConnected){
-      syncLiveKospiSnapshot();
-      ensureLiveValuationPollTimer();
-      if(document.visibilityState==='visible')refreshLiveValuation();
-    }
   });
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible'){
