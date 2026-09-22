@@ -52,9 +52,11 @@ test('히트맵 2차: canonical holdings/change rows를 합쳐 양수 평가금�
   assert.deepEqual(rows.map(row=>row.ticker),['000660','005930']);
   assert.equal(rows[0].dayRate,-1);
   assert.equal(rows[0].dayChange,-170000);
+  assert.equal(rows[0].dayUnitChange,-17000);
   assert.equal(rows[0].cumulativePnl,2500000);
   assert.equal(rows[0].cumulativeRate,15.4);
   assert.equal(rows[1].cumulativePnl,1200000);
+  assert.equal(rows[1].dayUnitChange,2400);
   approx(rows.reduce((sum,row)=>sum+row.weight,0),100);
   approx(rows[0].weight,68);
   approx(rows[1].weight,32);
@@ -128,17 +130,50 @@ test('히트맵 2차: 평가금액이 큰 종목은 더 큰 tile area를 가진�
   assert.ok(rectArea(laid[1].rect)>rectArea(laid[2].rect));
 });
 
-test('히트맵 2차: mode metric은 geometry와 분리되어 raw number/color input만 제공한다',()=>{
-  const row={dayRate:1.25,cumulativeRate:18.4,cumulativePnl:22100000,weight:24.8,evalAmount:142300000};
+test('히트맵 재설계 1차: mode metric은 모드별 면적 기준과 표시용 raw 값을 제공한다',()=>{
+  const row={dayRate:1.25,dayChange:-4320000,dayUnitChange:-9000,cumulativeRate:18.4,cumulativePnl:-22100000,weight:24.8,evalAmount:142300000};
   assert.deepEqual(heatmap.portfolioHeatmapModeMetric(row,'day'),{
-    mode:'day',primaryValue:1.25,secondaryValue:142300000,tertiaryValue:24.8,colorValue:1.25,colorKind:'performance'
+    mode:'day',primaryValue:1.25,secondaryValue:-4320000,tertiaryValue:-9000,areaValue:4320000,colorValue:1.25,colorKind:'performance'
   });
   assert.deepEqual(heatmap.portfolioHeatmapModeMetric(row,'cumulative'),{
-    mode:'cumulative',primaryValue:18.4,secondaryValue:22100000,tertiaryValue:24.8,colorValue:18.4,colorKind:'performance'
+    mode:'cumulative',primaryValue:18.4,secondaryValue:-22100000,tertiaryValue:null,areaValue:22100000,colorValue:18.4,colorKind:'performance'
   });
   assert.deepEqual(heatmap.portfolioHeatmapModeMetric(row,'weight'),{
-    mode:'weight',primaryValue:24.8,secondaryValue:142300000,tertiaryValue:null,colorValue:null,colorKind:'neutral'
+    mode:'weight',primaryValue:24.8,secondaryValue:142300000,tertiaryValue:null,areaValue:142300000,colorValue:null,colorKind:'neutral'
   });
+});
+
+test('히트맵 재설계 1차: 전일 대비 면적은 dayChange 절댓값이며 0/null 종목은 geometry에서 제외한다',()=>{
+  const rows=[
+    {ticker:'POS',evalAmount:100,dayChange:100},
+    {ticker:'NEG',evalAmount:1000,dayChange:-300},
+    {ticker:'ZERO',evalAmount:5000,dayChange:0},
+    {ticker:'NULL',evalAmount:9000,dayChange:null}
+  ];
+  assert.equal(heatmap.portfolioHeatmapAreaValue(rows[0],'day'),100);
+  assert.equal(heatmap.portfolioHeatmapAreaValue(rows[1],'day'),300);
+  const laid=heatmap.layoutPortfolioHeatmap(rows,800,400,'day');
+  assert.deepEqual(laid.map(row=>row.ticker),['NEG','POS']);
+  approx(rectArea(laid[0].rect)/rectArea(laid[1].rect),3,1e-8);
+  approx(laid.reduce((sum,row)=>sum+rectArea(row.rect),0),800*400,1e-5);
+});
+
+test('히트맵 재설계 1차: 누적손익은 손익 절댓값, 비중은 평가금액으로 서로 다른 geometry를 만든다',()=>{
+  const rows=[
+    {ticker:'A',evalAmount:900,cumulativePnl:100},
+    {ticker:'B',evalAmount:100,cumulativePnl:-400}
+  ];
+  const cumulative=heatmap.layoutPortfolioHeatmap(rows,1000,500,'cumulative');
+  const weight=heatmap.layoutPortfolioHeatmap(rows,1000,500,'weight');
+  assert.deepEqual(cumulative.map(row=>row.ticker),['B','A']);
+  assert.deepEqual(weight.map(row=>row.ticker),['A','B']);
+  approx(rectArea(cumulative[0].rect)/rectArea(cumulative[1].rect),4,1e-8);
+  approx(rectArea(weight[0].rect)/rectArea(weight[1].rect),9,1e-8);
+});
+
+test('히트맵 재설계 1차: 모든 면적값이 0이면 빈 geometry로 안전 종료한다',()=>{
+  const rows=[{ticker:'A',evalAmount:100,dayChange:0},{ticker:'B',evalAmount:200,dayChange:null}];
+  assert.deepEqual(heatmap.layoutPortfolioHeatmap(rows,500,300,'day'),[]);
 });
 
 test('히트맵 2차: 잘못된 canvas 크기나 layout 불가 입력은 빈 결과로 안전 종료한다',()=>{

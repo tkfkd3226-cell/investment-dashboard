@@ -28,7 +28,7 @@ const PORTFOLIO_HEATMAP_ACTION=Object.freeze({
   setMode:'set-portfolio-heatmap-mode'
 });
 const PORTFOLIO_HEATMAP_MODES=Object.freeze({
-  day:'당일',
+  day:'전일 대비',
   cumulative:'누적손익',
   weight:'비중'
 });
@@ -42,7 +42,9 @@ const portfolioHeatmapState={
   layoutWidth:0,
   layoutHeight:0,
   pinnedIndex:null,
-  resizeFrame:0
+  resizeFrame:0,
+  layoutMode:null,
+  layoutSourceCount:0
 };
 let portfolioHeatmapInteractionsBound=false;
 
@@ -112,6 +114,7 @@ function createPortfolioHeatmapViewModel({holdings=[],changeRows=[]}={}){
       weight:0,
       dayChange:firstFiniteHeatmapNumber([change?.dayChange,holding?.dayChange],null),
       dayRate:finiteHeatmapNumber(change?.dayRate,null),
+      dayUnitChange:null,
       cumulativePnl,
       cumulativeRate,
       liveQuote:holding?.liveQuote??null,
@@ -121,7 +124,12 @@ function createPortfolioHeatmapViewModel({holdings=[],changeRows=[]}={}){
   },[]).sort(comparePortfolioHeatmapRows);
   const totalEval=rows.reduce((sum,row)=>sum+row.evalAmount,0);
   if(!(totalEval>0))return [];
-  return rows.map(row=>({...row,weight:row.evalAmount/totalEval*100}));
+  return rows.map(row=>{
+    const qty=finiteHeatmapNumber(row.qty,null);
+    const dayChange=finiteHeatmapNumber(row.dayChange,null);
+    const dayUnitChange=dayChange!==null&&qty!==null&&qty>0?dayChange/qty:null;
+    return {...row,weight:row.evalAmount/totalEval*100,dayUnitChange};
+  });
 }
 function createPortfolioHeatmapViewModelFromCalc(calcResult){
   return createPortfolioHeatmapViewModel({
@@ -139,7 +147,27 @@ function portfolioHeatmapContextFromCalc(calcResult){
   };
 }
 
-// [HEATMAP03] Pure Treemap Engine · mode와 무관하게 evalAmount만 geometry에 사용한다.
+// [HEATMAP03] Pure Treemap Engine · mode별 금액 영향도의 절댓값을 geometry에 사용한다.
+function portfolioHeatmapAreaValue(row,mode='weight'){
+  if(mode==='day'){
+    const value=finiteHeatmapNumber(row?.dayChange,null);
+    return value===null?0:Math.abs(value);
+  }
+  if(mode==='cumulative'){
+    const value=finiteHeatmapNumber(row?.cumulativePnl,null);
+    return value===null?0:Math.abs(value);
+  }
+  const value=finiteHeatmapNumber(row?.evalAmount,0);
+  return value>0?value:0;
+}
+function comparePortfolioHeatmapLayoutRows(a,b,mode='weight'){
+  const areaDiff=portfolioHeatmapAreaValue(b,mode)-portfolioHeatmapAreaValue(a,mode);
+  if(areaDiff!==0)return areaDiff;
+  const aKey=heatmapStableKey(a),bKey=heatmapStableKey(b);
+  if(aKey<bKey)return -1;
+  if(aKey>bKey)return 1;
+  return 0;
+}
 function portfolioHeatmapWorstAspect(row,shortSide){
   if(!row.length||!(shortSide>0))return Infinity;
   const sum=row.reduce((total,item)=>total+item.area,0);
@@ -179,16 +207,19 @@ function portfolioHeatmapLayoutRow(row,frame,placements){
   });
   return {x,y:y+rowHeight,width,height:Math.max(0,height-rowHeight)};
 }
-function layoutPortfolioHeatmap(rows,width,height){
+function layoutPortfolioHeatmap(rows,width,height,mode='weight'){
   const canvasWidth=finiteHeatmapNumber(width,0);
   const canvasHeight=finiteHeatmapNumber(height,0);
   if(!(canvasWidth>0&&canvasHeight>0)||!Array.isArray(rows)||!rows.length)return [];
-  const values=rows.map(row=>finiteHeatmapNumber(row?.evalAmount,0));
-  const total=values.reduce((sum,value)=>sum+(value>0?value:0),0);
+  const sortedRows=[...rows].sort((a,b)=>comparePortfolioHeatmapLayoutRows(a,b,mode));
+  const drawableRows=sortedRows.filter(row=>portfolioHeatmapAreaValue(row,mode)>0);
+  if(!drawableRows.length)return [];
+  const values=drawableRows.map(row=>portfolioHeatmapAreaValue(row,mode));
+  const total=values.reduce((sum,value)=>sum+value,0);
   if(!(total>0))return [];
   const scale=canvasWidth*canvasHeight/total;
-  const pending=values.map((value,index)=>({index,area:Math.max(0,value)*scale})).filter(item=>item.area>0);
-  const placements=Array(rows.length).fill(null);
+  const pending=values.map((value,index)=>({index,area:value*scale}));
+  const placements=Array(drawableRows.length).fill(null);
   let frame={x:0,y:0,width:canvasWidth,height:canvasHeight};
   let current=[];
   while(pending.length){
@@ -202,16 +233,17 @@ function layoutPortfolioHeatmap(rows,width,height){
     current=[];
   }
   if(current.length)portfolioHeatmapLayoutRow(current,frame,placements);
-  return rows.map((row,index)=>({...row,rect:placements[index]||{x:0,y:0,width:0,height:0}}));
+  return drawableRows.map((row,index)=>({...row,rect:placements[index]||{x:0,y:0,width:0,height:0}}));
 }
 
-// [HEATMAP04] Pure Mode / Color / Density · geometry를 변경하지 않는 표시 계약.
+// [HEATMAP04] Pure Mode / Color / Density · mode별 geometry 입력과 표시값을 분리한다.
 function portfolioHeatmapModeMetric(row,mode='day'){
   if(mode==='cumulative')return {
     mode,
     primaryValue:row?.cumulativeRate??null,
     secondaryValue:row?.cumulativePnl??null,
-    tertiaryValue:row?.weight??null,
+    tertiaryValue:null,
+    areaValue:portfolioHeatmapAreaValue(row,mode),
     colorValue:row?.cumulativeRate??null,
     colorKind:'performance'
   };
@@ -220,14 +252,16 @@ function portfolioHeatmapModeMetric(row,mode='day'){
     primaryValue:row?.weight??null,
     secondaryValue:row?.evalAmount??null,
     tertiaryValue:null,
+    areaValue:portfolioHeatmapAreaValue(row,mode),
     colorValue:null,
     colorKind:'neutral'
   };
   return {
     mode:'day',
     primaryValue:row?.dayRate??null,
-    secondaryValue:row?.evalAmount??null,
-    tertiaryValue:row?.weight??null,
+    secondaryValue:row?.dayChange??null,
+    tertiaryValue:row?.dayUnitChange??null,
+    areaValue:portfolioHeatmapAreaValue(row,'day'),
     colorValue:row?.dayRate??null,
     colorKind:'performance'
   };
@@ -381,6 +415,12 @@ function renderPortfolioHeatmapLegend(){
   const values=mode==='cumulative'?[-30,-20,-10,0,10,20,30]:[-3,-2,-1,0,1,2,3];
   return values.map(value=>`<span class="portfolio-heatmap__legend-item"><span class="portfolio-heatmap__legend-swatch" style="${portfolioHeatmapLegendColor(value,mode)}" aria-hidden="true"></span><span>${value>0?'+':''}${value}%</span></span>`).join('');
 }
+function portfolioHeatmapEmptyText(){
+  if(!portfolioHeatmapState.rows.length)return '표시할 보유종목이 없습니다.';
+  if(portfolioHeatmapState.mode==='day')return '전일 대비 변동이 없습니다.';
+  if(portfolioHeatmapState.mode==='cumulative')return '누적손익이 없습니다.';
+  return '표시할 보유종목이 없습니다.';
+}
 function renderPortfolioHeatmapVisualization({forceLayout=false}={}){
   const modal=document.getElementById('portfolioHeatmapModal');
   const canvas=modal?.querySelector('.portfolio-heatmap__canvas');
@@ -388,13 +428,15 @@ function renderPortfolioHeatmapVisualization({forceLayout=false}={}){
   if(!canvas||!legend)return;
   const width=canvas.clientWidth,height=canvas.clientHeight;
   if(!(width>0&&height>0))return;
-  if(forceLayout||width!==portfolioHeatmapState.layoutWidth||height!==portfolioHeatmapState.layoutHeight||portfolioHeatmapState.layoutRows.length!==portfolioHeatmapState.rows.length){
-    portfolioHeatmapState.layoutRows=layoutPortfolioHeatmap(portfolioHeatmapState.rows,width,height);
+  if(forceLayout||width!==portfolioHeatmapState.layoutWidth||height!==portfolioHeatmapState.layoutHeight||portfolioHeatmapState.layoutMode!==portfolioHeatmapState.mode||portfolioHeatmapState.layoutSourceCount!==portfolioHeatmapState.rows.length){
+    portfolioHeatmapState.layoutRows=layoutPortfolioHeatmap(portfolioHeatmapState.rows,width,height,portfolioHeatmapState.mode);
     portfolioHeatmapState.layoutWidth=width;
     portfolioHeatmapState.layoutHeight=height;
+    portfolioHeatmapState.layoutMode=portfolioHeatmapState.mode;
+    portfolioHeatmapState.layoutSourceCount=portfolioHeatmapState.rows.length;
   }
   if(!portfolioHeatmapState.layoutRows.length){
-    canvas.innerHTML='<div class="portfolio-heatmap__empty">표시할 보유종목이 없습니다.</div>';
+    canvas.innerHTML=`<div class="portfolio-heatmap__empty">${escapeHtml(portfolioHeatmapEmptyText())}</div>`;
   }else{
     canvas.innerHTML=portfolioHeatmapState.layoutRows.map(renderPortfolioHeatmapTile).join('');
   }
@@ -548,6 +590,8 @@ function openPortfolioHeatmap(returnFocus=null,calcResult=null){
   portfolioHeatmapState.layoutRows=[];
   portfolioHeatmapState.layoutWidth=0;
   portfolioHeatmapState.layoutHeight=0;
+  portfolioHeatmapState.layoutMode=null;
+  portfolioHeatmapState.layoutSourceCount=0;
   portfolioHeatmapState.pinnedIndex=null;
   renderPortfolioHeatmapModal();
   ensurePortfolioHeatmapTooltip();
@@ -587,6 +631,8 @@ function refreshPortfolioHeatmap(calcResult){
   portfolioHeatmapState.layoutRows=[];
   portfolioHeatmapState.layoutWidth=0;
   portfolioHeatmapState.layoutHeight=0;
+  portfolioHeatmapState.layoutMode=null;
+  portfolioHeatmapState.layoutSourceCount=0;
   renderPortfolioHeatmapVisualization({forceLayout:true});
 
   if(activeTile){
@@ -611,7 +657,7 @@ function setPortfolioHeatmapMode(mode){
   portfolioHeatmapState.mode=mode;
   hidePortfolioHeatmapTooltip();
   syncPortfolioHeatmapModeControls();
-  renderPortfolioHeatmapVisualization();
+  renderPortfolioHeatmapVisualization({forceLayout:true});
 }
 
 // [HEATMAP09] Public API
@@ -624,6 +670,7 @@ export {
   createPortfolioHeatmapViewModelFromCalc,
   layoutPortfolioHeatmap,
   openPortfolioHeatmap,
+  portfolioHeatmapAreaValue,
   portfolioHeatmapColorState,
   portfolioHeatmapIsOpen,
   portfolioHeatmapModeMetric,

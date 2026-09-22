@@ -73,10 +73,10 @@ test('히트맵 1차: 공통 modal lifecycle과 3개 segmented mode shell을 재
   assert.match(heatmap,/bindDashboardModalDismiss\(modal,\{onDismiss:closePortfolioHeatmap/);
   assert.match(heatmap,/openDashboardModal\(modal,/);
   assert.match(heatmap,/closeDashboardModal\(modal,/);
-  assert.match(heatmap,/day:'당일'/);
+  assert.match(heatmap,/day:'전일 대비'/);
   assert.match(heatmap,/cumulative:'누적손익'/);
   assert.match(heatmap,/weight:'비중'/);
-  assert.match(heatmap,/const portfolioHeatmapState=\{[^}]*mode:'day'/,'기본 mode는 당일이어야 한다');
+  assert.match(heatmap,/const portfolioHeatmapState=\{[^}]*mode:'day'/,'기본 mode는 전일 대비여야 한다');
   assert.match(heatmap,/class="control-tab-group portfolio-heatmap-mode-tabs"/,'기존 control-tab primitive를 재사용해야 한다');
   assert.match(common,/:is\(\.asset-workspace-tabs,\.contrib-target-tabs,\.monthly-calendar-mode-tabs,\.portfolio-heatmap-mode-tabs\)/,'segmented skin은 기존 공통 selector에 합류해야 한다');
   assert.match(common,/\.portfolio-heatmap-modal\{[^}]*--modal-card-width:min\(1160px,100%\)/,'Web heatmap modal은 넓은 shell을 가져야 한다');
@@ -94,12 +94,17 @@ test('히트맵 1차: app action router가 open/close/mode를 feature owner에 �
 });
 
 test('히트맵 3차: Finviz형 dense tile과 고정 color scale을 renderer에 연결한다',()=>{
-  assert.match(heatmap,/PORTFOLIO_HEATMAP_SCALE=Object\.freeze\(\{day:3,cumulative:30\}\)/,'당일 ±3%, 누적 ±30% 고정 scale이어야 한다');
+  assert.match(heatmap,/PORTFOLIO_HEATMAP_SCALE=Object\.freeze\(\{day:3,cumulative:30\}\)/,'전일 대비 ±3%, 누적 ±30% 고정 scale이어야 한다');
   assert.match(heatmap,/portfolio-heatmap__tile is-\$\{density\}/,'각 보유종목은 treemap tile button으로 렌더되어야 한다');
   assert.match(heatmap,/portfolioHeatmapTileDensity\(row\.rect\)/,'정보 밀도는 실제 geometry px 크기를 사용해야 한다');
-  assert.match(heatmap,/portfolioHeatmapState\.layoutRows=layoutPortfolioHeatmap/,'geometry는 evalAmount 기반 engine 결과를 사용해야 한다');
-  assert.match(heatmap,/renderPortfolioHeatmapVisualization\(\);/,'mode 변경은 기존 layout을 재사용해 표시만 갱신해야 한다');
+  assert.match(heatmap,/portfolioHeatmapState\.layoutRows=layoutPortfolioHeatmap\(portfolioHeatmapState\.rows,width,height,portfolioHeatmapState\.mode\)/,'geometry는 현재 mode의 면적 기준을 사용해야 한다');
+  assert.match(heatmap,/function portfolioHeatmapAreaValue\(row,mode='weight'\)/,'mode별 area helper가 있어야 한다');
+  assert.match(heatmap,/if\(mode==='day'\)[^]*?Math\.abs\(value\)/,'전일 대비 면적은 dayChange 절댓값이어야 한다');
+  assert.match(heatmap,/if\(mode==='cumulative'\)[^]*?Math\.abs\(value\)/,'누적손익 면적은 cumulativePnl 절댓값이어야 한다');
+  assert.match(heatmap,/function setPortfolioHeatmapMode[^]*?renderPortfolioHeatmapVisualization\(\{forceLayout:true\}\)/,'mode 변경 시 geometry를 다시 계산해야 한다');
   assert.doesNotMatch(heatmap,/function setPortfolioHeatmapMode[^]*?renderPortfolioHeatmapModal\(\)/,'mode 변경 때 modal shell 전체를 다시 만들어 geometry를 흔들면 안 된다');
+  assert.match(heatmap,/if\(portfolioHeatmapState\.mode==='day'\)return '전일 대비 변동이 없습니다\.'/,'전일 대비 면적 합이 0이면 보유종목 없음으로 오인하지 않아야 한다');
+  assert.match(heatmap,/if\(portfolioHeatmapState\.mode==='cumulative'\)return '누적손익이 없습니다\.'/,'누적손익 면적 합이 0이면 모드 의미에 맞는 empty state를 사용해야 한다');
   assert.match(common,/--heatmap-neg-base:/);
   assert.match(common,/--heatmap-neutral-base:/);
   assert.match(common,/--heatmap-pos-base:/);
@@ -133,7 +138,7 @@ test('히트맵 3차: tooltip은 pointer/focus/touch를 지원하고 기존 sour
 });
 
 test('히트맵 3차: 범례와 4 viewport modal density를 제공한다',()=>{
-  assert.match(heatmap,/\[-3,-2,-1,0,1,2,3\]/,'당일 범례는 -3~+3이어야 한다');
+  assert.match(heatmap,/\[-3,-2,-1,0,1,2,3\]/,'전일 대비 범례는 -3~+3이어야 한다');
   assert.match(heatmap,/\[-30,-20,-10,0,10,20,30\]/,'누적 범례는 -30~+30이어야 한다');
   assert.match(heatmap,/면적 = 평가금액 비중/,'비중 모드는 neutral 범례 문구를 제공해야 한다');
   assert.match(common,/\.portfolio-heatmap__legend\{/);
