@@ -9,8 +9,8 @@ let heatmap;
 
 function moduleForNode(text){
   return text
-    .replace(/import \{ dataState, shortDate \} from '\.\/dashboard-core\.js';/,"const dataState={activeDate:''}; const shortDate=value=>String(value);")
-    .replace(/import \{ escapeHtml, navIconSvg \} from '\.\/dashboard-ui-common\.js';/,"const escapeHtml=value=>String(value); const navIconSvg=()=>'';")
+    .replace(/import \{[^}]+\} from '\.\/dashboard-core\.js';/,"const dataState={activeDate:''}; const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'); const won=n=>fmt(n)+'원'; const pct=n=>(Number(n)||0).toFixed(2)+'%'; const signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s; const shortDate=value=>String(value);")
+    .replace(/import \{[^}]+\} from '\.\/dashboard-ui-common\.js';/,"const assetPriceSourceInfo=()=>({source:'',state:'',observedAt:''}); const escapeHtml=value=>String(value); const navIconSvg=()=>'';")
     .replace(/import \{[\s\S]*?\} from '\.\/dashboard-modal\.js';/,"const bindDashboardModalDismiss=()=>{}; const closeDashboardModal=()=>{}; const openDashboardModal=()=>{};");
 }
 
@@ -86,6 +86,9 @@ test('히트맵 2차: 비정상 optional 숫자는 View Model 경계에서 null/
   const missing=heatmap.createPortfolioHeatmapViewModel({holdings:[{ticker:'B',name:'B',evalAmount:50,returnRate:null}],changeRows:[{ticker:'B',dayRate:null}]});
   assert.equal(missing[0].dayRate,null,'데이터 없음은 0% 보합으로 바꾸면 안 된다');
   assert.equal(missing[0].cumulativeRate,null,'누적수익률 없음도 0%로 바꾸면 안 된다');
+  assert.equal(missing[0].cumulativePnl,null,'누적손익 없음도 임의 0원으로 채우면 안 된다');
+  const noCash=heatmap.createPortfolioHeatmapViewModel({holdings:[{ticker:'CASH',name:'현금',type:'현금',evalAmount:999},{ticker:'A',name:'A',type:'개별주식',evalAmount:1}]});
+  assert.deepEqual(noCash.map(row=>row.ticker),['A'],'현금 row는 pure View Model 경계에서도 제외해야 한다');
 });
 
 test('히트맵 2차: treemap geometry는 동일 입력에서 deterministic하다',()=>{
@@ -144,3 +147,20 @@ test('히트맵 2차: 잘못된 canvas 크기나 layout 불가 입력은 빈 결
   assert.deepEqual(heatmap.layoutPortfolioHeatmap(rows,500,NaN),[]);
   assert.deepEqual(heatmap.layoutPortfolioHeatmap([],500,500),[]);
 });
+
+test('히트맵 3차: 당일 ±3% / 누적 ±30% 고정 scale은 방향과 intensity만 계산한다',()=>{
+  assert.deepEqual(heatmap.portfolioHeatmapColorState({dayRate:1.5},'day'),{kind:'performance',direction:'positive',intensity:50,value:1.5});
+  assert.deepEqual(heatmap.portfolioHeatmapColorState({dayRate:-4},'day'),{kind:'performance',direction:'negative',intensity:100,value:-4});
+  assert.deepEqual(heatmap.portfolioHeatmapColorState({dayRate:0},'day'),{kind:'neutral',direction:'neutral',intensity:0,value:0});
+  assert.deepEqual(heatmap.portfolioHeatmapColorState({dayRate:null},'day'),{kind:'unavailable',direction:'neutral',intensity:0,value:null});
+  assert.deepEqual(heatmap.portfolioHeatmapColorState({cumulativeRate:15},'cumulative'),{kind:'performance',direction:'positive',intensity:50,value:15});
+  assert.deepEqual(heatmap.portfolioHeatmapColorState({weight:25},'weight'),{kind:'neutral',direction:'weight',intensity:100,value:null});
+});
+
+test('히트맵 3차: tile 정보 밀도는 실제 rect px 크기로 Large/Medium/Small/Tiny를 판정한다',()=>{
+  assert.equal(heatmap.portfolioHeatmapTileDensity({width:220,height:120}),'large');
+  assert.equal(heatmap.portfolioHeatmapTileDensity({width:120,height:60}),'medium');
+  assert.equal(heatmap.portfolioHeatmapTileDensity({width:60,height:32}),'small');
+  assert.equal(heatmap.portfolioHeatmapTileDensity({width:30,height:20}),'tiny');
+});
+

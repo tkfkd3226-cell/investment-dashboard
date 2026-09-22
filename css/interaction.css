@@ -13,6 +13,8 @@
    ========================================================= */
 
 @media (hover:hover) and (pointer:fine){
+  .portfolio-heatmap__tile:hover{filter:brightness(1.08)}
+
   /* [I01. Surface Hover · 카드 / pill / 표 row] */
     .card:hover,
     .note:not(.asset-status-note):not(.asset-change-note):hover,

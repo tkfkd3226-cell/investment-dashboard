@@ -31,7 +31,8 @@ test('히트맵 1차: importmap과 전용 ES module 경계를 추가한다',()=>
   assert.doesNotMatch(heatmap,/\bwindow\s*\./,'히트맵 module은 window 전역 bridge를 만들면 안 된다');
   assert.doesNotMatch(heatmap,/\bfetch\s*\(/,'1차 히트맵은 network fetch를 추가하면 안 된다');
   assert.doesNotMatch(heatmap,/\bsetInterval\s*\(|\bsetTimeout\s*\(/,'1차 히트맵은 polling/timer를 추가하면 안 된다');
-  assert.doesNotMatch(heatmap,/market-ai|Market AI endpoint|prices\.json/i,'1차 shell이 가격/Market AI source를 직접 소유하면 안 된다');
+  assert.doesNotMatch(heatmap,/Market AI endpoint/i,'히트맵은 Market AI endpoint를 직접 소유하면 안 된다');
+  assert.match(heatmap,/assetPriceSourceInfo/,'가격기준 표시는 기존 공통 source helper를 재사용해야 한다');
 });
 
 test('히트맵 1차: Topbar는 월간 손익과 실시간 시세 사이에 단일 진입점을 둔다',()=>{
@@ -75,7 +76,7 @@ test('히트맵 1차: 공통 modal lifecycle과 3개 segmented mode shell을 재
   assert.match(heatmap,/day:'당일'/);
   assert.match(heatmap,/cumulative:'누적손익'/);
   assert.match(heatmap,/weight:'비중'/);
-  assert.match(heatmap,/const portfolioHeatmapState=\{mode:'day'\}/,'기본 mode는 당일이어야 한다');
+  assert.match(heatmap,/const portfolioHeatmapState=\{[^}]*mode:'day'/,'기본 mode는 당일이어야 한다');
   assert.match(heatmap,/class="control-tab-group portfolio-heatmap-mode-tabs"/,'기존 control-tab primitive를 재사용해야 한다');
   assert.match(common,/:is\(\.asset-workspace-tabs,\.contrib-target-tabs,\.monthly-calendar-mode-tabs,\.portfolio-heatmap-mode-tabs\)/,'segmented skin은 기존 공통 selector에 합류해야 한다');
   assert.match(common,/\.portfolio-heatmap-modal\{[^}]*--modal-card-width:min\(1160px,100%\)/,'Web heatmap modal은 넓은 shell을 가져야 한다');
@@ -85,8 +86,56 @@ test('히트맵 1차: 공통 modal lifecycle과 3개 segmented mode shell을 재
 });
 
 test('히트맵 1차: app action router가 open/close/mode를 feature owner에 위임한다',()=>{
-  assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.open[^]*?closeDateActionMenu\(\); return openPortfolioHeatmap\(control\)/);
+  assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.open[^]*?openPortfolioHeatmap\(control,latestDashboardCalcResult\?\.date===dataState\.activeDate\?latestDashboardCalcResult:/,'open 시 마지막 dashboard canonical calc 결과를 우선 재사용해야 한다');
+  assert.match(app1,/const x=latestDashboardCalcResult=calc\(dataState\.activeDate\)/,'dashboard render 결과를 heatmap용 canonical cache로 보존해야 한다');
   assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.close\)return closePortfolioHeatmap\(\)/);
   assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.setMode\)return setPortfolioHeatmapMode\(control\.dataset\.heatmapMode\|\|''\)/);
   assert.match(heatmap1,/fallbackSelector:portfolioHeatmapFocusFallbackSelector\(\)/,'공통 modal focus return fallback을 제공해야 한다');
 });
+
+test('히트맵 3차: Finviz형 dense tile과 고정 color scale을 renderer에 연결한다',()=>{
+  assert.match(heatmap,/PORTFOLIO_HEATMAP_SCALE=Object\.freeze\(\{day:3,cumulative:30\}\)/,'당일 ±3%, 누적 ±30% 고정 scale이어야 한다');
+  assert.match(heatmap,/portfolio-heatmap__tile is-\$\{density\}/,'각 보유종목은 treemap tile button으로 렌더되어야 한다');
+  assert.match(heatmap,/portfolioHeatmapTileDensity\(row\.rect\)/,'정보 밀도는 실제 geometry px 크기를 사용해야 한다');
+  assert.match(heatmap,/portfolioHeatmapState\.layoutRows=layoutPortfolioHeatmap/,'geometry는 evalAmount 기반 engine 결과를 사용해야 한다');
+  assert.match(heatmap,/renderPortfolioHeatmapVisualization\(\);/,'mode 변경은 기존 layout을 재사용해 표시만 갱신해야 한다');
+  assert.doesNotMatch(heatmap,/function setPortfolioHeatmapMode[^]*?renderPortfolioHeatmapModal\(\)/,'mode 변경 때 modal shell 전체를 다시 만들어 geometry를 흔들면 안 된다');
+  assert.match(common,/--heatmap-neg-base:/);
+  assert.match(common,/--heatmap-neutral-base:/);
+  assert.match(common,/--heatmap-pos-base:/);
+  assert.match(common,/color-mix\(in srgb,var\(--heatmap-neutral-base\),var\(--heatmap-tone\) var\(--heatmap-intensity\)\)/);
+});
+
+test('히트맵 3차: Large/Medium/Small/Tiny 정보량과 mode별 핵심값 역할을 분리한다',()=>{
+  assert.match(heatmap,/if\(density==='tiny'\)return ''/);
+  assert.match(heatmap,/if\(density==='small'\)return name/);
+  assert.match(heatmap,/if\(density==='medium'\)return `\$\{name\}\$\{primary\}`/);
+  assert.match(heatmap,/portfolio-heatmap__secondary/,'Large tile에만 보조값 line을 제공해야 한다');
+  assert.match(common,/\.portfolio-heatmap__tile\.is-large/);
+  assert.match(common,/\.portfolio-heatmap__tile\.is-medium/);
+  assert.match(common,/\.portfolio-heatmap__tile\.is-small/);
+  assert.match(common,/\.portfolio-heatmap__tile\.is-tiny/);
+});
+
+test('히트맵 3차: tooltip은 pointer/focus/touch를 지원하고 기존 source helper를 재사용한다',()=>{
+  assert.match(heatmap,/className='dash-tooltip portfolio-heatmap-tooltip'/,'공통 dash-tooltip primitive를 재사용해야 한다');
+  assert.match(heatmap,/document\.addEventListener\('pointerover'/);
+  assert.match(heatmap,/document\.addEventListener\('focusin'/);
+  assert.match(heatmap,/event\.pointerType!=='touch'&&event\.pointerType!=='pen'/,'touch/pen tap interaction이 있어야 한다');
+  assert.match(heatmap,/portfolioHeatmapState\.pinnedIndex===index[^]*?hidePortfolioHeatmapTooltip/,'같은 tile 재탭은 닫혀야 한다');
+  assert.match(heatmap,/document\.addEventListener\('scroll',\(\)=>hidePortfolioHeatmapTooltip\(\),true\)/,'scroll 시 tooltip을 닫아야 한다');
+  assert.match(heatmap,/globalThis\.addEventListener\?\.\('resize',schedulePortfolioHeatmapResize/,'resize 시 tooltip을 닫고 geometry를 갱신해야 한다');
+  assert.match(heatmap,/assetPriceSourceInfo\(\{/,'가격 source는 공통 helper를 사용해야 한다');
+  assert.doesNotMatch(heatmap,/liveQuote\.state[^]*?'정규장|marketStatus[^]*?'장중 저장 데이터'/,'히트맵 자체에서 가격 source 문구를 재판정하면 안 된다');
+});
+
+test('히트맵 3차: 범례와 4 viewport modal density를 제공한다',()=>{
+  assert.match(heatmap,/\[-3,-2,-1,0,1,2,3\]/,'당일 범례는 -3~+3이어야 한다');
+  assert.match(heatmap,/\[-30,-20,-10,0,10,20,30\]/,'누적 범례는 -30~+30이어야 한다');
+  assert.match(heatmap,/면적 = 평가금액 비중/,'비중 모드는 neutral 범례 문구를 제공해야 한다');
+  assert.match(common,/\.portfolio-heatmap__legend\{/);
+  assert.match(tablet,/\.portfolio-heatmap__canvas\{height:clamp\(380px,54vh,540px\)\}/,'Tablet 전용 treemap 높이 계약을 유지해야 한다');
+  assert.match(special,/\.portfolio-heatmap__canvas\{[^}]*height:clamp\(240px,58dvh,490px\)/,'Phone portrait treemap 높이를 확보해야 한다');
+  assert.match(special,/Heatmap Landscape[^]*height:clamp\(180px,calc\(100dvh - 118px\),250px\)/,'Phone landscape는 세로 공간을 compact하게 사용해야 한다');
+});
+

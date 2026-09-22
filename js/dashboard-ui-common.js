@@ -734,7 +734,7 @@ function storedAssetPriceState({fallbackSource='prices.json',marketStatus='',pri
   if(String(priceBasis||'')==='intraday'||String(marketStatus||'')==='intraday')return '장중 저장 데이터';
   return '저장 데이터';
 }
-function renderAssetPriceSourceLabel({labelHtml='',name='',ticker='',date='',priceText='',liveQuote=null,postClosePending=false,fallbackSource='prices.json',marketStatus='',priceBasis='',regularCloseSource=''}={}){
+function assetPriceSourceInfo({date='',liveQuote=null,postClosePending=false,fallbackSource='prices.json',marketStatus='',priceBasis='',regularCloseSource=''}={}){
   let source=fallbackSource,state=storedAssetPriceState({fallbackSource,marketStatus,priceBasis,regularCloseSource,date}),observedAt='';
   if(liveQuote){
     source='Market AI · KIS eFriend';
@@ -744,6 +744,10 @@ function renderAssetPriceSourceLabel({labelHtml='',name='',ticker='',date='',pri
     source='당일 매수원가';
     state='종가 대기 추정값';
   }
+  return {source,state,observedAt};
+}
+function renderAssetPriceSourceLabel({labelHtml='',name='',ticker='',date='',priceText='',liveQuote=null,postClosePending=false,fallbackSource='prices.json',marketStatus='',priceBasis='',regularCloseSource=''}={}){
+  const {source,state,observedAt}=assetPriceSourceInfo({date,liveQuote,postClosePending,fallbackSource,marketStatus,priceBasis,regularCloseSource});
   return renderAssetSourceTooltipTarget({
     labelHtml,name,ticker,source,state,price:priceText,basisDate:date,observedAt
   });
@@ -764,6 +768,7 @@ function renderAssetSourceTooltipTarget({labelHtml='',name='',ticker='',source='
 
 // [UICOMMON07] Public API
 export {
+  assetPriceSourceInfo,
   assetColorSwatch,
   chartSeriesSwatch,
   escapeHtml,

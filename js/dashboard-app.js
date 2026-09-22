@@ -101,6 +101,7 @@ import {
 
 // [APP01] Personal View / Separate Profit · 개인 보기 / 별도수익
 const heroBasisTapState={count:0,lastTap:0};
+let latestDashboardCalcResult=null;
 const HERO_MULTI_TAP_WINDOW_MS=700;
 const HERO_PHONE_MULTI_TAP_WINDOW_MS=1200;
 
@@ -247,7 +248,7 @@ function handleDashboardAction(event,control){
   }
   if(action===PORTFOLIO_HEATMAP_ACTION.open){
     closeDateActionMenu();
-    return openPortfolioHeatmap(control);
+    return openPortfolioHeatmap(control,latestDashboardCalcResult?.date===dataState.activeDate?latestDashboardCalcResult:(latestDashboardCalcResult=calc(dataState.activeDate)));
   }
   if(action===PORTFOLIO_HEATMAP_ACTION.close)return closePortfolioHeatmap();
   if(action===PORTFOLIO_HEATMAP_ACTION.setMode)return setPortfolioHeatmapMode(control.dataset.heatmapMode||'');
@@ -304,7 +305,7 @@ function refreshSeparateProfitModeView(){
   const scrollX=window.scrollX,scrollY=window.scrollY;
   const nestedScrollSnapshot=dashboardNestedScrollSnapshot();
   closeAccountMemoInfo();
-  const x=calc(dataState.activeDate),v=separateProfitView(x);
+  const x=latestDashboardCalcResult=calc(dataState.activeDate),v=separateProfitView(x);
 
   replaceDashboardFragment(document.querySelector('.hero-metric-pills'),renderHeroMetricPills(x,v));
   if(x.hasPension)replaceDashboardFragment(document.getElementById('summary-section'),renderCombined(x));
@@ -334,7 +335,7 @@ function render({renderTopbar=true}={}){
   hideAssetSourceTooltip();
   hideSecuritySaleTooltip();
   closeAccountMemoInfo();
-  const x=calc(dataState.activeDate),v=separateProfitView(x);
+  const x=latestDashboardCalcResult=calc(dataState.activeDate),v=separateProfitView(x);
   if(renderTopbar)renderTabs();
   document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${escapeHtml(dataState.portfolio.meta.title)}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${heroPerformanceBasisLabel(x.date)})</time></div>${renderHeroMetricPills(x,v)}</header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
   hydrateSectionTitleIcons(document.getElementById('app'));
@@ -425,7 +426,7 @@ function renderLiveValuationRefresh(){
   const nestedScrollSnapshot=dashboardNestedScrollSnapshot();
   const keepDateMenuOpen=dateActionMenuIsOpen();
   const keepDesktopTocOpen=desktopEdgeTocIsOpen();
-  const x=calc(dataState.activeDate),v=separateProfitView(x);
+  const x=latestDashboardCalcResult=calc(dataState.activeDate),v=separateProfitView(x);
 
   // 교체 전 기존 카드의 재생 완료 상태를 수집해야 새 차트에 그대로 이어진다.
   // 아직 진입하지 않은 카드는 목록에 넣지 않아 최초 scroll animation을 보존한다.
