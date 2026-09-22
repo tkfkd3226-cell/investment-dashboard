@@ -300,11 +300,17 @@
     }
     /* Realtime Monitor Print · 공통 modal card의 height:auto보다 ID/state selector가 우선한다.
        iframe은 percentage height chain에 의존하지 않고 Monitor가 보고한 실제 document height를 직접 사용한다. */
+    /* Realtime Monitor는 iframe이 print page보다 큰 100vh 최소높이를 가지면 Chromium이
+       첫 페이지에서 통째로 다음 페이지로 밀 수 있다. 실제 Monitor document height만 사용한다. */
+    body.dashboard-dialog-open:has(> #realtimeQuotesModal[aria-hidden="false"]) > #app{
+      display:none;
+    }
     body.dashboard-dialog-open > #realtimeQuotesModal[aria-hidden="false"] > .realtime-quote-modal-card{
       display:block;
       height:auto;
-      min-height:100vh;
+      min-height:0;
       max-height:none;
+      margin:0;
       border-color:var(--modal-border);
       overflow:visible;
       break-inside:auto;
@@ -314,9 +320,10 @@
     body.dashboard-dialog-open > #realtimeQuotesModal[aria-hidden="false"] > .realtime-quote-modal-card > .realtime-quote-frame-stage > .realtime-quote-frame{
       display:block;
       width:100%;
-      height:max(100vh,var(--realtime-monitor-content-height,100vh));
-      min-height:100vh;
+      height:var(--realtime-monitor-content-height,640px);
+      min-height:0;
       max-height:none;
+      margin:0;
       overflow:visible;
     }
 
