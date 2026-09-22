@@ -313,10 +313,23 @@
       grid-column:1;
       grid-row:2;
       justify-self:end;
-      gap:var(--space-sm);
-      padding:1px var(--space-lg);
+    }
+    /* Monthly Calendar Separate Profit · 위치만 Phone 배치를 따르고 control skin은 Web/Tablet과 동일하게 유지 */
+    .monthly-calendar-separate-profit.separate-profit-toggle{
+      --dashboard-control-height:29px;
+      --dashboard-control-font-size:10.5px;
+      --dashboard-control-state-min-width:28px;
+      --dashboard-control-pad-x:8px;
+      gap:var(--space-md);
+      padding:0 var(--dashboard-control-pad-x);
+    }
+    .monthly-calendar-separate-profit.separate-profit-toggle strong{
+      min-width:var(--dashboard-control-state-min-width);
+      height:18px;
+      padding:0 var(--space-md);
     }
     .monthly-calendar-separate-profit .separate-profit-toggle-label{display:inline}
+    .monthly-calendar-separate-profit.separate-profit-toggle strong .control-text-optical{transform:none}
     .portfolio-heatmap-modal{--modal-card-width:100%}
     .portfolio-heatmap-close{top:var(--modal-card-pad-y);right:var(--modal-card-pad-x)}
     .portfolio-heatmap-head{

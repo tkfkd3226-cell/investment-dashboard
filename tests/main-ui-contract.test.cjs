@@ -136,7 +136,8 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   const responsiveMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
   assert.doesNotMatch(responsiveMenu,/action:'open-monthly-calendar'/,'TOPbar에 표시되는 월간 손익을 hamburger에 중복 배치하면 안 된다');
   assert.match(monthlyCalendar,/combinedDailyProfitChange\(date\)/,'합산 일손익 계산 의미는 DOM feature가 아니라 core helper를 재사용해야 한다');
-  assert.match(monthlyCalendar,/securitiesDailyProfitChange\(date\)/,'증권 단독 범위도 core의 flow-neutral helper를 재사용해야 한다');
+  assert.match(monthlyCalendar,/const securities=securitiesDailyProfitChange\(date\)/,'증권 단독 범위도 core의 flow-neutral helper를 재사용해야 한다');
+  assert.match(monthlyCalendar,/if\(securities==null\|\|!uiState\.includeSeparateProfit\)return securities;[^]*?const current=calc\(date\);[^]*?separateProfitCumulativeForDate\(date\)-separateProfitCumulativeForDate\(current\.prevKey\)[^]*?return securities\+separateDayChange;/,'개인보기 별도수익 ON일 때 증권 달력은 별도수익 당일 증가분을 증권 손익에 더해야 한다');
   assert.match(monthlyCalendar,/pensionDailyProfitChange\(date\)/,'퇴직연금 단독 범위도 core의 비교 가능한 일성과 helper를 재사용해야 한다');
   assert.match(core,/function securitiesDailyProfitChange\(date\)/);
   assert.match(core,/function pensionDailyProfitChange\(date\)/);
@@ -154,6 +155,9 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(special,/\.monthly-calendar-controls\{[^}]*grid-template-columns:1fr[^}]*margin:var\(--space-md\) 0 var\(--space-4xl\)/,'Phone 세로 월간 control은 탭과 toggle을 세로 배치해야 한다');
   assert.match(special,/\.monthly-calendar-separate-profit\{[^}]*grid-column:1[^}]*grid-row:2[^}]*justify-self:end/,'Phone 세로 별도수익 toggle은 탭 바로 아래 우측에 있어야 한다');
   assert.match(special,/\.monthly-calendar-separate-profit \.separate-profit-toggle-label\{display:inline\}/,'Phone 월간 toggle도 별도수익 라벨을 유지해야 한다');
+  assert.match(special,/\.monthly-calendar-separate-profit\.separate-profit-toggle\{[^}]*--dashboard-control-height:29px;[^}]*--dashboard-control-font-size:10\.5px;[^}]*--dashboard-control-state-min-width:28px;[^}]*--dashboard-control-pad-x:8px;[^}]*gap:var\(--space-md\);[^}]*padding:0 var\(--dashboard-control-pad-x\)/,'Phone 월간 별도수익 toggle은 위치만 Phone 배치를 따르고 Web/Tablet control 크기와 간격을 그대로 사용해야 한다');
+  assert.match(special,/\.monthly-calendar-separate-profit\.separate-profit-toggle strong\{[^}]*height:18px;[^}]*padding:0 var\(--space-md\)/,'Phone 월간 ON/OFF badge도 Web/Tablet과 동일한 높이와 padding을 유지해야 한다');
+  assert.match(special,/\.monthly-calendar-separate-profit\.separate-profit-toggle strong \.control-text-optical\{transform:none\}/,'Phone 월간 ON/OFF 텍스트 optical shift도 Web/Tablet과 동일해야 한다');
   assert.match(special,/Monthly Calendar Controls · 가로폰[^]*?\.monthly-calendar-controls\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,360px\) minmax\(0,1fr\)[^}]*\}[^]*?\.monthly-calendar-separate-profit\{grid-column:3;grid-row:1;justify-self:end\}/,'Phone Landscape는 탭과 별도수익 toggle을 같은 행으로 복원해야 한다');
   assert.match(common,/:is\(\.asset-workspace-tabs,\.contrib-target-tabs,\.monthly-calendar-mode-tabs,\.portfolio-heatmap-mode-tabs\)\{background:var\(--subtle-card\)\}/,'월간 범위 switch는 히트맵을 포함한 공통 segmented tab skin을 공유해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-scroll/,'달력은 별도 body scroll wrapper 없이 card 하나만 scroll owner로 유지해야 한다');
