@@ -4889,12 +4889,14 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
       padding:var(--space-4xl);
       border-radius:min(var(--surface-radius-level-4),var(--corner-surface-cap));
       box-shadow:var(--nav-shadow-panel);
-      opacity:0;
+      opacity:var(--nav-motion-start-opacity);
       visibility:hidden;
       pointer-events:none;
-      transform:translate(calc(100% + var(--nav-motion-shift) + 32px),-50%);
+      transform:translate(0,-50%);
+      transform-origin:right center;
+      clip-path:inset(0 0 0 calc(100% - 1px));
       transition:
-        transform var(--nav-motion-close-slide-duration) ease-in 0s,
+        clip-path var(--nav-motion-close-slide-duration) ease-in 0s,
         opacity var(--nav-motion-close-fade-duration) ease var(--nav-motion-close-fade-delay),
         visibility 0s linear var(--nav-motion-close-hide-delay);
     }
@@ -4903,9 +4905,10 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
       visibility:visible;
       pointer-events:auto;
       transform:translate(0,-50%);
+      clip-path:inset(0);
       transition:
         opacity var(--nav-motion-fade-duration) ease 0s,
-        transform var(--nav-motion-slide-duration) ease-out var(--nav-motion-slide-delay),
+        clip-path var(--nav-motion-slide-duration) ease-out var(--nav-motion-slide-delay),
         visibility 0s linear 0s;
     }
     .desktop-edge-toc.is-open .desktop-edge-toc-trigger{

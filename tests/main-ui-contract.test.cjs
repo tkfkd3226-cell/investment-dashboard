@@ -217,6 +217,7 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
 test('Topbar action 라벨은 Web full/short와 Tablet 축약명·icon 조합을 사용한다',()=>{
   assert.match(common,/\.topbar-label-short\{display:none\}/,'Desktop baseline은 short label을 숨기고 full label을 유지해야 한다');
   assert.match(special,/@media \(min-width:1101px\) and \(max-width:1279px\)\{[^]*?\.date-picker-action \.topbar-label-full\{display:none\}[^]*?\.date-picker-action \.topbar-label-short\{display:inline\}/,'1101~1279px compact Web은 text action을 short label로 축약해야 한다');
+  assert.match(special,/@media \(min-width:1101px\) and \(max-width:1279px\)\{[^]*?\.date-picker\{grid-template-columns:minmax\(0,1fr\) auto\}[^]*?\.date-picker-center\{[^}]*width:100%[^}]*max-width:calc\(var\(--topbar-date-select-width\) \+ var\(--topbar-date-select-width\) \+ var\(--topbar-layout-gap\)\)[^}]*\}[^]*?\.month-select,[^]*?\.day-select\{[^}]*min-width:0[^}]*max-width:var\(--topbar-date-select-width\)[^}]*flex:1 1 var\(--topbar-date-select-width\)/,'1101~1279px compact Web은 Tablet처럼 두 날짜 selector가 action 영역을 침범하기 전에 가로 수축해야 한다');
   assert.match(tablet,/\.date-picker-action \.market-link-btn-desktop\{display:none\}/,'Tablet Topbar에서는 선물 링크를 숨겨 hamburger 링크 영역과 역할을 나눠야 한다');
   assert.match(tablet,/\.date-picker-action \.topbar-label-full\{display:none\}/,'Tablet에서는 full label을 숨겨야 한다');
   assert.match(tablet,/\.date-picker-action \.topbar-label-short\{display:inline\}/,'Tablet 주요 action은 축약명을 표시해야 한다');

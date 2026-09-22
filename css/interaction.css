@@ -112,9 +112,10 @@
     visibility:visible;
     pointer-events:auto;
     transform:translate(0,-50%);
+    clip-path:inset(0);
     transition:
       opacity var(--nav-motion-fade-duration) ease 0s,
-      transform var(--nav-motion-slide-duration) ease-out var(--nav-motion-slide-delay),
+      clip-path var(--nav-motion-slide-duration) ease-out var(--nav-motion-slide-delay),
       visibility 0s linear 0s;
   }
   .desktop-edge-toc:hover .desktop-edge-toc-trigger{
