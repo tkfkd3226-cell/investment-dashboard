@@ -238,8 +238,8 @@ function setupDashboardDateSwipeNavigation(){
     const deltaX=touch.clientX-startX,deltaY=touch.clientY-startY;
     const absX=Math.abs(deltaX),absY=Math.abs(deltaY);
     if(absX<DASHBOARD_DATE_SWIPE_MIN_DISTANCE||absX<=absY*DASHBOARD_DATE_SWIPE_AXIS_RATIO)return;
-    // 사용자 계약: 좌→우는 다음 날짜, 우→좌는 이전 날짜.
-    shiftActiveDashboardDate(deltaX>0?1:-1,{announce:true});
+    // 실사용 제스처 계약: 좌→우는 이전 날짜, 우→좌는 다음 날짜.
+    shiftActiveDashboardDate(deltaX>0?-1:1,{announce:true});
   },{passive:true});
   document.addEventListener('touchcancel',resetDashboardDateSwipe,{passive:true});
 }

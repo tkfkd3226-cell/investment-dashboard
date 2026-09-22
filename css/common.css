@@ -4628,6 +4628,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 .dashboard-date-navigation{display:none}
 @media (min-width:1101px){
   .dashboard-date-navigation{
+    display:block;
     --dashboard-date-nav-size:40px;
     --dashboard-date-nav-height:72px;
     --dashboard-date-nav-edge:60px;
