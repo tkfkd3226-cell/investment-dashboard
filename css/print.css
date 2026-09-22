@@ -15,7 +15,8 @@
 /*
   인쇄 전용 최종 override
   - 화면용 Web/Tablet/Mobile 규칙보다 뒤에서 적용되어 A4 인쇄 구조를 일관되게 만든다.
-  - 화면용 Topbar/Navigation/Modal/Tooltip 등 상호작용 UI는 제외한다.
+  - 일반 인쇄에서는 화면용 Topbar/Navigation/Modal/Tooltip 등 상호작용 UI를 제외한다.
+  - modal이 열린 상태의 인쇄는 배경 대시보드를 제외하고 현재 modal card만 출력한다.
   - 자산 탭은 숨기고 증권계좌 → 퇴직연금 순서로 두 panel을 모두 펼친다.
   - 모바일 카드보기 상태와 무관하게 데이터 표를 canonical 인쇄 표현으로 사용한다.
   - 브라우저가 카드/밴드 배경색을 생략하지 않도록 print-color-adjust를 요청한다.
@@ -176,6 +177,58 @@
     .accounts-memo-info-button,
     .realtime-quote-modal{
       display:none;
+    }
+
+    /* Modal-only Print · 공통 modal lifecycle의 body lock을 print mode switch로 재사용한다.
+       modal이 열려 있으면 배경 dashboard는 출력하지 않고 현재 열린 modal만 page flow에 올린다. */
+    body.dashboard-dialog-open > #app{
+      display:none !important;
+    }
+    body.dashboard-dialog-open > :is(
+      .action-modal[aria-hidden="false"],
+      .contrib-modal[aria-hidden="false"],
+      .chart-expanded-overlay.show,
+      dialog[open],
+      #pensionActionPinModal
+    ){
+      display:block !important;
+      position:static !important;
+      inset:auto !important;
+      width:auto !important;
+      height:auto !important;
+      min-height:0 !important;
+      margin:0 !important;
+      padding:0 !important;
+      overflow:visible !important;
+      background:#ffffff !important;
+      backdrop-filter:none !important;
+      -webkit-backdrop-filter:none !important;
+    }
+    body.dashboard-dialog-open > :is(
+      .action-modal[aria-hidden="false"],
+      .contrib-modal[aria-hidden="false"],
+      .chart-expanded-overlay.show,
+      dialog[open],
+      #pensionActionPinModal
+    ) > :is(.action-modal-card,.contrib-modal-card,.chart-expanded-stage){
+      box-sizing:border-box;
+      width:100% !important;
+      max-width:100% !important;
+      height:auto !important;
+      max-height:none !important;
+      margin:0 auto !important;
+      overflow:visible !important;
+      box-shadow:none !important;
+      transform:none !important;
+      break-inside:avoid-page;
+      page-break-inside:avoid;
+    }
+    body.dashboard-dialog-open :is(
+      .modal-icon-btn,
+      .chart-expanded-close,
+      .realtime-quote-close
+    ){
+      display:none !important;
     }
 
     /* [P03. Surface / Page Width · elevation 제거 + 용지 폭] */

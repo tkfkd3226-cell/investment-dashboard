@@ -1112,7 +1112,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 ## 3.7 Print canonical 표현
 
 - Print는 현재 Light/Dark 상태와 관계없이 Light palette로 고정한다. `beforeprint`에서 `print-light-theme`을 적용한 뒤 화면용 6개 chart SVG DOM node를 그대로 보존하고 같은 속성의 빈 clone을 인쇄 자리로 교체해 clone에만 Light chart를 그린다. `afterprint`에서는 clone을 버리고 보존한 화면 SVG node를 그대로 되돌리며 **화면 차트를 다시 계산하거나 `drawAllCharts()` 하지 않는다**. 따라서 화면 SVG의 child node·event listener·현재 화면 상태를 유지하면서 인쇄용 fixed-viewBox 렌더와 화면 복원을 분리한다. 인쇄 차트의 가로세로 비율은 SVG `viewBox`에서 자연스럽게 파생하며 `print.css`에 `1120/330` 같은 프레임 literal을 다시 소유하지 않는다.
-- Topbar·목차·modal·tooltip·toast·보기 전환·차트 조작 UI·Market AI는 인쇄에서 제외한다. Market AI가 Hero에 mount된 상태여도 예약 폭은 인쇄에서 반환해 Hero 요약 pill이 한 행에 유지되어야 한다.
+- 일반 Print에서는 Topbar·목차·modal·tooltip·toast·보기 전환·차트 조작 UI·Market AI를 제외한다. 단, 공통 modal lifecycle으로 modal이 열린 상태(`body.dashboard-dialog-open`)에서 인쇄하면 배경 `#app`은 제외하고 현재 열린 modal card만 page flow로 출력한다. 닫기 버튼 등 화면 조작 UI는 숨기고 overlay의 fixed/max-height/overflow를 해제해 modal 내용만 한 페이지 인쇄 대상으로 사용한다. Market AI가 Hero에 mount된 일반 Print에서는 예약 폭을 반환해 Hero 요약 pill이 한 행에 유지되어야 한다.
 - 비활성 자산 panel도 펼쳐 증권계좌와 퇴직연금을 연속 출력하고, Phone에서 숨긴 Hero 요약 pill과 개인보기의 별도수익 설명/라벨도 Web형 표현으로 복원한다.
 - 성과 KPI는 4열, 누적손익/운용손익 차트 하단 6개 요약은 3열을 사용한다. 증권 `종목별 누적손익`은 Tablet과 같은 3열(6개면 3×2), `연금상품별 운용손익`과 퇴직연금 `평가금액 비중`은 Web 기본과 같은 4열을 유지한다. 증권 `평가금액 비중`은 Web의 `--security-alloc-card-count`를 그대로 사용하며 종목별 7카드에서는 4개 + 2개 + 전체폭 2칸 합계 카드 구조를 유지한다.
 - 장부 검산은 결론 전체폭 + A/B 2열의 Tablet형 배치를 사용하고, `투자원금 원천 및 검산`의 source card 3개는 한 행 3열로 출력한다.
