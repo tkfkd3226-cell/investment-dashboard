@@ -109,12 +109,14 @@ function createPortfolioHeatmapViewModel({holdings=[],changeRows=[]}={}){
       qty:finiteHeatmapNumber(holding?.qty,null),
       cost:finiteHeatmapNumber(holding?.cost,null),
       avgPrice:finiteHeatmapNumber(holding?.avgPrice,null),
-      price:finiteHeatmapNumber(holding?.price,null),
+      price:firstFiniteHeatmapNumber([change?.price,holding?.price],null),
+      prevPrice:firstFiniteHeatmapNumber([change?.prevPrice,holding?.prevPrice],null),
       evalAmount,
       weight:0,
       dayChange:firstFiniteHeatmapNumber([change?.dayChange,holding?.dayChange],null),
       dayRate:finiteHeatmapNumber(change?.dayRate,null),
       dayUnitChange:null,
+      dayUnitFormulaAvailable:false,
       cumulativePnl,
       cumulativeRate,
       liveQuote:holding?.liveQuote??null,
@@ -127,8 +129,13 @@ function createPortfolioHeatmapViewModel({holdings=[],changeRows=[]}={}){
   return rows.map(row=>{
     const qty=finiteHeatmapNumber(row.qty,null);
     const dayChange=finiteHeatmapNumber(row.dayChange,null);
-    const dayUnitChange=dayChange!==null&&qty!==null&&qty>0?dayChange/qty:null;
-    return {...row,weight:row.evalAmount/totalEval*100,dayUnitChange};
+    const price=finiteHeatmapNumber(row.price,null);
+    const prevPrice=finiteHeatmapNumber(row.prevPrice,null);
+    const dayUnitChange=price!==null&&prevPrice!==null?price-prevPrice:null;
+    const formulaTotal=dayUnitChange!==null&&qty!==null&&qty>0?dayUnitChange*qty:null;
+    const tolerance=dayChange===null?0:Math.max(1e-6,Math.abs(dayChange)*1e-9);
+    const dayUnitFormulaAvailable=dayChange!==null&&formulaTotal!==null&&Math.abs(formulaTotal-dayChange)<=tolerance;
+    return {...row,weight:row.evalAmount/totalEval*100,dayUnitChange,dayUnitFormulaAvailable};
   });
 }
 function createPortfolioHeatmapViewModelFromCalc(calcResult){
@@ -260,7 +267,7 @@ function portfolioHeatmapModeMetric(row,mode='day'){
     mode:'day',
     primaryValue:row?.dayRate??null,
     secondaryValue:row?.dayChange??null,
-    tertiaryValue:row?.dayUnitChange??null,
+    tertiaryValue:row?.dayUnitFormulaAvailable===true?(row?.dayUnitChange??null):null,
     areaValue:portfolioHeatmapAreaValue(row,'day'),
     colorValue:row?.dayRate??null,
     colorKind:'performance'

@@ -33,8 +33,8 @@ function canonicalFixture(){
       {name:'제외NaN',ticker:'NAN',qty:1,evalAmount:'not-a-number',profit:0,returnRate:0}
     ],
     securitiesAssetDetail:{change:{rows:[
-      {name:'삼성전자',ticker:'005930',dayChange:240000,dayRate:3.1},
-      {name:'SK하이닉스',ticker:'000660',dayChange:-170000,dayRate:-1.0}
+      {name:'삼성전자',ticker:'005930',prevPrice:77600,price:80000,dayChange:240000,dayRate:3.1},
+      {name:'SK하이닉스',ticker:'000660',prevPrice:1717000,price:1700000,dayChange:-170000,dayRate:-1.0}
     ]}}
   };
 }
@@ -53,10 +53,12 @@ test('히트맵 2차: canonical holdings/change rows를 합쳐 양수 평가금�
   assert.equal(rows[0].dayRate,-1);
   assert.equal(rows[0].dayChange,-170000);
   assert.equal(rows[0].dayUnitChange,-17000);
+  assert.equal(rows[0].dayUnitFormulaAvailable,true);
   assert.equal(rows[0].cumulativePnl,2500000);
   assert.equal(rows[0].cumulativeRate,15.4);
   assert.equal(rows[1].cumulativePnl,1200000);
   assert.equal(rows[1].dayUnitChange,2400);
+  assert.equal(rows[1].dayUnitFormulaAvailable,true);
   approx(rows.reduce((sum,row)=>sum+row.weight,0),100);
   approx(rows[0].weight,68);
   approx(rows[1].weight,32);
@@ -130,8 +132,26 @@ test('히트맵 2차: 평가금액이 큰 종목은 더 큰 tile area를 가진�
   assert.ok(rectArea(laid[1].rect)>rectArea(laid[2].rect));
 });
 
+test('히트맵 재설계 1차: 전일 대비 주당 변동액은 실제 가격차이며 총액과 산식이 맞을 때만 표시 가능하다',()=>{
+  const normal=heatmap.createPortfolioHeatmapViewModel({
+    holdings:[{ticker:'NORMAL',name:'일반',qty:10,price:109000,evalAmount:1090000,totalProfit:90000}],
+    changeRows:[{ticker:'NORMAL',prevPrice:100000,price:109000,dayChange:90000,dayRate:9}]
+  })[0];
+  assert.equal(normal.dayUnitChange,9000);
+  assert.equal(normal.dayUnitFormulaAvailable,true);
+  assert.equal(heatmap.portfolioHeatmapModeMetric(normal,'day').tertiaryValue,9000);
+
+  const traded=heatmap.createPortfolioHeatmapViewModel({
+    holdings:[{ticker:'TRADE',name:'거래일',qty:5,price:120,evalAmount:600,totalProfit:150}],
+    changeRows:[{ticker:'TRADE',prevPrice:100,price:120,dayChange:150,dayRate:15}]
+  })[0];
+  assert.equal(traded.dayUnitChange,20,'주당 변동액은 dayChange/qty가 아니라 현재가-전일가여야 한다');
+  assert.equal(traded.dayUnitFormulaAvailable,false,'실현손익 등으로 총액과 산식이 다르면 계산식을 표시하면 안 된다');
+  assert.equal(heatmap.portfolioHeatmapModeMetric(traded,'day').tertiaryValue,null);
+});
+
 test('히트맵 재설계 1차: mode metric은 모드별 면적 기준과 표시용 raw 값을 제공한다',()=>{
-  const row={dayRate:1.25,dayChange:-4320000,dayUnitChange:-9000,cumulativeRate:18.4,cumulativePnl:-22100000,weight:24.8,evalAmount:142300000};
+  const row={dayRate:1.25,dayChange:-4320000,dayUnitChange:-9000,dayUnitFormulaAvailable:true,cumulativeRate:18.4,cumulativePnl:-22100000,weight:24.8,evalAmount:142300000};
   assert.deepEqual(heatmap.portfolioHeatmapModeMetric(row,'day'),{
     mode:'day',primaryValue:1.25,secondaryValue:-4320000,tertiaryValue:-9000,areaValue:4320000,colorValue:1.25,colorKind:'performance'
   });
