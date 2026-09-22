@@ -130,6 +130,20 @@ test('Tablet/Phone hamburger panel은 공통 viewport 높이 contract를 공유�
 });
 
 
+test('Dashboard 날짜 이동은 Web 좌우 버튼과 Tablet/Phone swipe가 canonical activeDate 경로를 공유한다',()=>{
+  assert.match(app,/function dashboardDateNeighbor\(delta\)\{[^]*?allAvailableDates\(\)[^]*?dates\.indexOf\(dataState\.activeDate\)[^]*?nextIndex=index\+\(delta<0\?-1:1\)/,'이전/다음 날짜는 정렬된 canonical available dates에서 계산해야 한다');
+  assert.match(app,/function shiftActiveDashboardDate\(delta,\{announce=false\}=\{\}\)\{[^]*?dashboardDateNeighbor\(delta\)[^]*?setActiveDashboardDate\(nextDate\)[^]*?showAppToast\(`\$\{dashboardDateLabel\(nextDate\)\}로 이동했습니다\.`,'ok',1800\)/,'버튼과 swipe는 canonical setActiveDashboardDate를 재사용하고 touch 이동은 자동 종료 toast를 보여야 한다');
+  assert.match(app,/data-dashboard-action="previous-dashboard-date"[^]*?navIconSvg\('arrowLeft'\)[^]*?data-dashboard-action="next-dashboard-date"[^]*?navIconSvg\('arrowRight'\)/,'Web 날짜 이동은 좌/우 arrow action을 제공해야 한다');
+  assert.match(app,/if\(action==='previous-dashboard-date'\)return shiftActiveDashboardDate\(-1\);[^]*?if\(action==='next-dashboard-date'\)return shiftActiveDashboardDate\(1\);/,'Web 좌측은 전날짜, 우측은 다음날짜로 이동해야 한다');
+  assert.match(app,/DASHBOARD_DATE_SWIPE_MIN_DISTANCE=72/,'touch swipe는 짧은 수평 이동을 날짜 전환으로 오인하면 안 된다');
+  assert.match(app,/DASHBOARD_DATE_SWIPE_AXIS_RATIO=1\.25/,'touch swipe는 세로 scroll보다 수평 의도가 충분히 강해야 한다');
+  assert.match(app,/dashboardDateSwipeBlockedTarget\(target\)[^]*?a,button,input,select,textarea,label[^]*?\.mobile-scroll,\.chart-wrap,svg,canvas/,'interactive/control/chart/horizontal scroll 시작점은 날짜 swipe에서 제외해야 한다');
+  assert.match(app,/shiftActiveDashboardDate\(deltaX>0\?1:-1,\{announce:true\}\)/,'사용자 계약대로 좌→우 touch는 다음 날짜, 우→좌 touch는 이전 날짜여야 한다');
+  assert.match(common,/@media \(min-width:1101px\)\{[^]*?\.dashboard-date-navigation\{[^]*?position:fixed[^]*?\.dashboard-date-nav-btn\{[^]*?top:50%/,'날짜 좌우 버튼은 Web에서만 화면 세로 중앙 fixed control로 노출해야 한다');
+  assert.match(common,/--dashboard-date-nav-edge:60px;[^]*?\.dashboard-date-nav-prev\{left:var\(--dashboard-date-nav-edge\)\}[^]*?\.dashboard-date-nav-next\{right:var\(--dashboard-date-nav-edge\)\}/,'Web 좌우 날짜 버튼은 TOC trigger를 피하면서 대칭 위치를 사용해야 한다');
+  assert.match(print,/\.dashboard-date-navigation/,'인쇄에서는 화면 날짜 이동 control을 숨겨야 한다');
+});
+
 test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를 재사용한다',()=>{
   assert.match(index,/'dashboard-monthly-calendar\.js'/,'월간 캘린더 module은 importmap cache-bust 대상이어야 한다');
   assert.match(ui,/topbar-monthly-action[^>]*data-dashboard-action="open-monthly-calendar"/,'Web\/Tablet\/Phone이 공유하는 월간 손익 Topbar 진입점이 있어야 한다');

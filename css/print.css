@@ -158,6 +158,7 @@
     /* [P02. Interaction Exclusions · 화면 조작 UI와 일시 상태 제외] */
     .switcher,
     .desktop-edge-toc,
+    .dashboard-date-navigation,
     .mobile-top-button,
     #market-ai-section,
     .app-toast,

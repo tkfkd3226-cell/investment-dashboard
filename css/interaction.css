@@ -91,6 +91,13 @@
       transform:translateY(-1px);
     }
 
+    .dashboard-date-nav-btn:not(:disabled):hover{
+      transform:translateY(-50%);
+      border-color:var(--nav-border-hover);
+      background:var(--nav-surface-hover);
+      color:var(--nav-text-strong);
+    }
+
     /* Modal Motion Guard · modal hover는 lift 없이 고정한다. */
     .contrib-modal.show button:hover,
     .action-modal button:hover{

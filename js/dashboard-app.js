@@ -19,7 +19,8 @@ import {
   hideSecuritySaleTooltip,
   setupAssetSourceTooltips,
   setupAssetVizTooltips,
-  setupSecuritySaleTooltips
+  setupSecuritySaleTooltips,
+  showAppToast
 } from './dashboard-ui-common.js';
 import {
   bindDashboardModalDismiss,
@@ -152,6 +153,45 @@ function toggleSeparateProfitModeFromExpanded(cardId){
 }
 
 // [APP02] Date Navigation / Chart Date Confirm · 날짜 이동 / 차트 날짜 확인
+const DASHBOARD_DATE_SWIPE_MIN_DISTANCE=72;
+const DASHBOARD_DATE_SWIPE_AXIS_RATIO=1.25;
+const dashboardDateSwipeState={active:false,startX:0,startY:0};
+function dashboardDateLabel(date){
+  const [,month,day]=String(date||'').split('-').map(Number);
+  return month&&day?`${month}월 ${day}일`:String(date||'');
+}
+function dashboardDateNeighbor(delta){
+  const dates=allAvailableDates();
+  const index=dates.indexOf(dataState.activeDate);
+  if(index<0)return null;
+  const nextIndex=index+(delta<0?-1:1);
+  return nextIndex>=0&&nextIndex<dates.length?dates[nextIndex]:null;
+}
+function ensureDesktopDateNavigation(){
+  let nav=document.getElementById('dashboardDateNavigation');
+  if(!nav){
+    nav=document.createElement('div');
+    nav.id='dashboardDateNavigation';
+    nav.className='dashboard-date-navigation';
+    nav.setAttribute('aria-label','날짜 이동');
+    nav.innerHTML=`<button type="button" class="dashboard-date-nav-btn dashboard-date-nav-prev" data-dashboard-action="previous-dashboard-date"><span class="dashboard-date-nav-icon" aria-hidden="true">${navIconSvg('arrowLeft')}</span></button><button type="button" class="dashboard-date-nav-btn dashboard-date-nav-next" data-dashboard-action="next-dashboard-date"><span class="dashboard-date-nav-icon" aria-hidden="true">${navIconSvg('arrowRight')}</span></button>`;
+    document.body.appendChild(nav);
+  }
+  const prev=dashboardDateNeighbor(-1),next=dashboardDateNeighbor(1);
+  const prevButton=nav.querySelector('[data-dashboard-action="previous-dashboard-date"]');
+  const nextButton=nav.querySelector('[data-dashboard-action="next-dashboard-date"]');
+  if(prevButton){
+    prevButton.disabled=!prev;
+    prevButton.setAttribute('aria-label',prev?`전날짜 ${dashboardDateLabel(prev)}로 이동`:'이동 가능한 전날짜 없음');
+    prevButton.setAttribute('title',prev?`전날짜 · ${dashboardDateLabel(prev)}`:'이동 가능한 전날짜 없음');
+  }
+  if(nextButton){
+    nextButton.disabled=!next;
+    nextButton.setAttribute('aria-label',next?`다음날짜 ${dashboardDateLabel(next)}로 이동`:'이동 가능한 다음날짜 없음');
+    nextButton.setAttribute('title',next?`다음날짜 · ${dashboardDateLabel(next)}`:'이동 가능한 다음날짜 없음');
+  }
+  return nav;
+}
 function setActiveDashboardDate(date,{keepDateMenuOpen=false}={}){
   if(!allAvailableDates().includes(date))return false;
   dataState.activeDate=date;
@@ -159,6 +199,49 @@ function setActiveDashboardDate(date,{keepDateMenuOpen=false}={}){
   render();
   if(keepDateMenuOpen)restoreDateActionMenuAfterRender();
   return true;
+}
+function shiftActiveDashboardDate(delta,{announce=false}={}){
+  const nextDate=dashboardDateNeighbor(delta);
+  if(!nextDate||!setActiveDashboardDate(nextDate))return false;
+  if(announce)showAppToast(`${dashboardDateLabel(nextDate)}로 이동했습니다.`,'ok',1800);
+  return true;
+}
+function dashboardTouchDateNavigationUi(){
+  return window.matchMedia?.('(max-width:1100px)').matches===true||phoneUi();
+}
+function dashboardDateSwipeBlocked(){
+  return document.body.classList.contains('dashboard-dialog-open')||!!document.querySelector('.action-modal.show,.contrib-modal.show,.chart-expanded-overlay.show,dialog[open]');
+}
+function dashboardDateSwipeBlockedTarget(target){
+  return !!target?.closest?.('a,button,input,select,textarea,label,[contenteditable="true"],[role="button"],[role="link"],[role="slider"],.mobile-scroll,.chart-wrap,svg,canvas,.action-modal,.contrib-modal,dialog,.chart-expanded-overlay,.date-action-menu');
+}
+function resetDashboardDateSwipe(){
+  dashboardDateSwipeState.active=false;
+  dashboardDateSwipeState.startX=0;
+  dashboardDateSwipeState.startY=0;
+}
+function setupDashboardDateSwipeNavigation(){
+  document.addEventListener('touchstart',event=>{
+    resetDashboardDateSwipe();
+    if(!dashboardTouchDateNavigationUi()||event.touches.length!==1||dashboardDateSwipeBlocked()||dashboardDateSwipeBlockedTarget(event.target))return;
+    const touch=event.touches[0];
+    dashboardDateSwipeState.active=true;
+    dashboardDateSwipeState.startX=touch.clientX;
+    dashboardDateSwipeState.startY=touch.clientY;
+  },{passive:true});
+  document.addEventListener('touchend',event=>{
+    if(!dashboardDateSwipeState.active)return;
+    const startX=dashboardDateSwipeState.startX,startY=dashboardDateSwipeState.startY;
+    resetDashboardDateSwipe();
+    if(!dashboardTouchDateNavigationUi()||dashboardDateSwipeBlocked()||event.changedTouches.length!==1)return;
+    const touch=event.changedTouches[0];
+    const deltaX=touch.clientX-startX,deltaY=touch.clientY-startY;
+    const absX=Math.abs(deltaX),absY=Math.abs(deltaY);
+    if(absX<DASHBOARD_DATE_SWIPE_MIN_DISTANCE||absX<=absY*DASHBOARD_DATE_SWIPE_AXIS_RATIO)return;
+    // 사용자 계약: 좌→우는 다음 날짜, 우→좌는 이전 날짜.
+    shiftActiveDashboardDate(deltaX>0?1:-1,{announce:true});
+  },{passive:true});
+  document.addEventListener('touchcancel',resetDashboardDateSwipe,{passive:true});
 }
 const chartDateJumpState={date:'',chartId:''};
 function chartDateDialogLabel(date){
@@ -236,6 +319,8 @@ function handleDashboardDateChange(target){
 // [APP03] Dashboard Action Routing · 대시보드 액션 라우팅
 function handleDashboardAction(event,control){
   const action=control.dataset.dashboardAction;
+  if(action==='previous-dashboard-date')return shiftActiveDashboardDate(-1);
+  if(action==='next-dashboard-date')return shiftActiveDashboardDate(1);
   if(action===MONTHLY_CALENDAR_ACTION.open){
     const returnFocus=control.closest?.('#dateActionMenu')?document.getElementById('dateActionMenuButton'):control;
     closeDateActionMenu();
@@ -353,6 +438,7 @@ function render({renderTopbar=true}={}){
   setupSecuritySaleTooltips();
   ensureMobileTopButton();
   ensureDesktopEdgeToc();
+  ensureDesktopDateNavigation();
   setupSectionNavigationTracking();
   restoreDashboardFocus(focusSnapshot);
 }
@@ -639,6 +725,7 @@ function bindAppEvents(){
   setupAssetSourceTooltips();
   setupChartGlobalEvents();
   setupPensionEventDelegation({renderDashboard:render});
+  setupDashboardDateSwipeNavigation();
   setupStandalonePullToRefresh();
   setupStandaloneTodayDateRefresh();
 }

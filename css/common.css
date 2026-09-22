@@ -4624,6 +4624,56 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 .date-action-menu-wrap,
 .topbar-label-short{display:none}
 
+/* Desktop Date Navigation · 웹 화면 중앙 좌우 날짜 이동 */
+.dashboard-date-navigation{display:none}
+@media (min-width:1101px){
+  .dashboard-date-navigation{
+    --dashboard-date-nav-size:40px;
+    --dashboard-date-nav-height:72px;
+    --dashboard-date-nav-edge:60px;
+    position:fixed;
+    inset:0;
+    z-index:7100;
+    pointer-events:none;
+  }
+  .dashboard-date-nav-btn{
+    position:fixed;
+    top:50%;
+    width:var(--dashboard-date-nav-size);
+    height:var(--dashboard-date-nav-height);
+    transform:translateY(-50%);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    border:1px solid var(--nav-border);
+    border-radius:min(var(--control-radius-md),var(--corner-control-cap));
+    background:var(--nav-surface-translucent);
+    color:var(--nav-icon);
+    box-shadow:var(--nav-shadow-trigger);
+    cursor:pointer;
+    pointer-events:auto;
+  }
+  .dashboard-date-nav-prev{left:var(--dashboard-date-nav-edge)}
+  .dashboard-date-nav-next{right:var(--dashboard-date-nav-edge)}
+  .dashboard-date-nav-btn:disabled{
+    opacity:.28;
+    cursor:default;
+    pointer-events:none;
+  }
+  .dashboard-date-nav-btn:focus-visible{
+    border-color:var(--topbar-control-border-focus);
+    outline:var(--control-focus-outline-width) solid var(--topbar-control-border-focus);
+    outline-offset:var(--control-focus-outline-offset);
+  }
+  .dashboard-date-nav-icon,
+  .dashboard-date-nav-icon svg{
+    display:block;
+    width:18px;
+    height:18px;
+  }
+}
+
 /* [12. Data Table / Mobile Card · 데이터 표 / 모바일 카드] Data Tables · 웹/태블릿 table, 폰 UI table↔card 전환 */
 .mobile-scroll{
   width:100%;
