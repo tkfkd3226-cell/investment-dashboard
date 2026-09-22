@@ -4558,7 +4558,8 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 }
 .date-picker{
   display:grid;
-  grid-template-columns:auto minmax(0,1fr) auto;
+  /* Web Date Auto-Shrink · viewport breakpoint가 아니라 실제 남는 공간에 따라 날짜 영역이 먼저 수축한다. */
+  grid-template-columns:minmax(0,calc(var(--topbar-date-select-width) + var(--topbar-date-select-width) + var(--topbar-layout-gap))) minmax(0,1fr) auto;
   align-items:center;
   gap:var(--topbar-layout-gap);
   width:min(var(--topbar-content-max-width),100%);
@@ -4571,7 +4572,13 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   flex-wrap:nowrap;
   min-width:0;
 }
-.date-picker-center{grid-column:1;justify-self:start;gap:var(--topbar-layout-gap)}
+.date-picker-center{
+  grid-column:1;
+  justify-self:start;
+  width:100%;
+  max-width:calc(var(--topbar-date-select-width) + var(--topbar-date-select-width) + var(--topbar-layout-gap));
+  gap:var(--topbar-layout-gap);
+}
 .date-picker-action{grid-column:3;justify-self:end;gap:var(--topbar-action-group-gap)}
 .date-select,
 .date-tool-btn{
@@ -4600,8 +4607,12 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   cursor:pointer;
 }
 .date-select option{color:var(--ink);background:var(--card)}
-.month-select{min-width:var(--topbar-date-select-width);flex:0 0 var(--topbar-date-select-width)}
-.day-select{min-width:var(--topbar-date-select-width);flex:0 0 var(--topbar-date-select-width)}
+.month-select,
+.day-select{
+  min-width:0;
+  max-width:var(--topbar-date-select-width);
+  flex:1 1 var(--topbar-date-select-width);
+}
 .date-tool-btn{
   width:auto;
   min-width:0;

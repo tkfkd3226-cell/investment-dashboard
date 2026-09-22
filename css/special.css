@@ -164,26 +164,10 @@
 
 /* -------------------------------------------------------------------------
    [S02] Compact Desktop · 중간폭 웹
-   Why · 이유: Web action이 많아지는 1440px 미만부터 날짜 selector가 먼저 수축해야 하며,
+   Why · 이유: 날짜 selector의 수축은 common의 content-driven grid가 담당하고,
    1280px 미만에서만 기존 계약대로 action label을 short 형태로 전환한다.
-   Scope · 범위: 1101~1439px Topbar 날짜 selector 수축 + 1101~1279px Asset Detail/action label 보정.
+   Scope · 범위: 1101~1279px Asset Detail/action label 보정.
    ------------------------------------------------------------------------- */
-@media (min-width:1101px) and (max-width:1439px){
-  /* Topbar Shrink Layout · full label Web(1280~1439)에서도 날짜 selector가 남는 폭에 맞춰 먼저 수축한다. */
-    .date-picker{grid-template-columns:minmax(0,1fr) auto}
-    .date-picker-center{
-      width:100%;
-      max-width:calc(var(--topbar-date-select-width) + var(--topbar-date-select-width) + var(--topbar-layout-gap));
-    }
-    .date-picker-action{grid-column:2}
-    .month-select,
-    .day-select{
-      min-width:0;
-      max-width:var(--topbar-date-select-width);
-      flex:1 1 var(--topbar-date-select-width);
-    }
-}
-
 @media (min-width:1101px) and (max-width:1279px){
   /* Asset Detail Compact · 현황 + 전일대비 2열의 내부 스크롤을 피하도록 상세 grid를 1열로 전환 */
     .asset-detail-grid{
