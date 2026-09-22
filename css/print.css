@@ -180,7 +180,7 @@
     }
 
     /* Modal-only Print · body에 붙는 action modal과 #app 내부의 연금 조정 modal을 모두 같은 인쇄 계약으로 정규화한다.
-       열린 modal/확대 차트가 있으면 배경 dashboard를 제외하고 현재 surface만 page flow에 올린다. */
+       열린 modal이 있으면 배경 dashboard를 제외하고 현재 surface만 page flow에 올린다. */
     body.dashboard-dialog-open > #app{
       display:block !important;
       padding-top:0 !important;
@@ -193,13 +193,9 @@
     body.dashboard-dialog-open > #app > .wrap > :not(.contrib-modal){
       display:none !important;
     }
-    body.chart-expanded-open > #app{
-      display:none !important;
-    }
-    body:is(.dashboard-dialog-open,.chart-expanded-open) > :is(
+    body.dashboard-dialog-open > :is(
       .action-modal[aria-hidden="false"],
       .contrib-modal[aria-hidden="false"],
-      .chart-expanded-overlay.show,
       dialog[open]
     ),
     body.dashboard-dialog-open > #pensionActionPinModal,
@@ -217,12 +213,11 @@
       backdrop-filter:none !important;
       -webkit-backdrop-filter:none !important;
     }
-    body:is(.dashboard-dialog-open,.chart-expanded-open) > :is(
+    body.dashboard-dialog-open > :is(
       .action-modal[aria-hidden="false"],
       .contrib-modal[aria-hidden="false"],
-      .chart-expanded-overlay.show,
       dialog[open]
-    ) > :is(.action-modal-card,.contrib-modal-card,.chart-expanded-stage),
+    ) > :is(.action-modal-card,.contrib-modal-card),
     body.dashboard-dialog-open > #pensionActionPinModal > .action-modal-card,
     body.dashboard-dialog-open > #app #pensionContribModal.show > .contrib-modal-card{
       box-sizing:border-box;
@@ -237,9 +232,8 @@
       break-inside:avoid-page;
       page-break-inside:avoid;
     }
-    body:is(.dashboard-dialog-open,.chart-expanded-open) :is(
+    body.dashboard-dialog-open :is(
       .modal-icon-btn,
-      .chart-expanded-close,
       .realtime-quote-close
     ){
       display:none !important;
@@ -266,109 +260,26 @@
     }
     body.dashboard-dialog-open .portfolio-heatmap-date-controls{
       display:block !important;
-      width:auto !important;
-      max-width:none !important;
+      width:112px !important;
+      max-width:112px !important;
       margin-top:var(--space-md) !important;
-      text-align:center !important;
     }
-    /* Heatmap Date Print · 선택 상태는 유지하되 control chrome을 제거해 날짜 텍스트처럼 출력한다. */
     body.dashboard-dialog-open .portfolio-heatmap-date-select{
-      display:inline-block !important;
-      width:auto !important;
-      min-width:0 !important;
-      max-width:none !important;
-      height:auto !important;
-      padding:0 !important;
-      border:0 !important;
-      border-radius:0 !important;
-      outline:0 !important;
-      box-shadow:none !important;
-      background:transparent !important;
-      background-image:none !important;
-      color:var(--text) !important;
-      white-space:nowrap !important;
-      text-align:center !important;
-      text-align-last:center !important;
-      -webkit-appearance:none !important;
-      appearance:none !important;
-    }
-
-    /* Realtime Quote Print · iframe modal은 page 높이를 전부 사용한다.
-       generic modal의 height:auto보다 높은 direct-child specificity로 화면용 축소를 확실히 해제한다. */
-    body.dashboard-dialog-open > .realtime-quote-modal.show{
-      width:100% !important;
-      height:100vh !important;
-      min-height:100vh !important;
-      max-height:none !important;
-    }
-    body.dashboard-dialog-open > .realtime-quote-modal.show > .realtime-quote-modal-card{
-      width:100% !important;
-      height:100% !important;
-      min-height:100% !important;
-      max-height:none !important;
-    }
-    body.dashboard-dialog-open > .realtime-quote-modal.show > .realtime-quote-modal-card > .realtime-quote-frame-stage,
-    body.dashboard-dialog-open > .realtime-quote-modal.show > .realtime-quote-modal-card > .realtime-quote-frame-stage > .realtime-quote-frame{
-      width:100% !important;
-      height:100% !important;
-      min-height:100% !important;
-      max-height:none !important;
-    }
-
-    /* Expanded Chart Print · chart-expanded-open은 다른 modal body-lock과 동시에 존재한다.
-       이 상태에서는 body의 다른 surface를 모두 제외하고 실제 확대 overlay 하나만 출력한다. */
-    body.dashboard-dialog-open.chart-expanded-open > #app,
-    body.chart-expanded-open > #app{
-      display:none !important;
-    }
-    body.chart-expanded-open > :not(#app):not(.chart-expanded-overlay){
-      display:none !important;
-    }
-    body.chart-expanded-open > .chart-expanded-overlay{
       display:block !important;
-      position:static !important;
-      inset:auto !important;
-      width:100% !important;
-      height:auto !important;
-      overflow:visible !important;
-      opacity:1 !important;
-      visibility:visible !important;
-      background:#ffffff !important;
+      width:112px !important;
+      min-width:112px !important;
+      max-width:112px !important;
+      white-space:nowrap !important;
     }
-    body.chart-expanded-open > .chart-expanded-overlay > .chart-expanded-stage{
-      position:relative !important;
-      inset:auto !important;
-      width:100% !important;
-      height:165mm !important;
-      min-height:165mm !important;
-      max-height:165mm !important;
-      margin:0 !important;
-      padding:5mm !important;
-      display:grid !important;
-      grid-template-rows:auto minmax(0,1fr) auto !important;
-      gap:var(--space-4xl) !important;
-      overflow:hidden !important;
-      transform:none !important;
-      box-sizing:border-box !important;
-      break-inside:avoid-page;
-      page-break-inside:avoid;
+    body.dashboard-dialog-open .realtime-quote-modal-card{
+      height:var(--realtime-monitor-fallback-height) !important;
+      min-height:var(--realtime-monitor-fallback-height) !important;
+      max-height:var(--realtime-monitor-fallback-height) !important;
     }
-    body.chart-expanded-open .chart-expanded-chart-host{
-      min-width:0 !important;
-      min-height:0 !important;
-      height:auto !important;
-      overflow:hidden !important;
-      display:flex !important;
-      align-items:stretch !important;
-    }
-    body.chart-expanded-open .chart-expanded-chart-host svg.chart{
-      width:100% !important;
-      max-width:100% !important;
-      min-width:0 !important;
+    body.dashboard-dialog-open .realtime-quote-frame-stage,
+    body.dashboard-dialog-open .realtime-quote-frame{
       height:100% !important;
-      min-height:0 !important;
-      max-height:none !important;
-      flex:1 1 auto !important;
+      min-height:var(--realtime-monitor-fallback-height) !important;
     }
 
     /* [P03. Surface / Page Width · elevation 제거 + 용지 폭] */
