@@ -179,12 +179,12 @@
       display:none;
     }
 
-    /* Modal-only Print · 공통 modal lifecycle의 body lock을 print mode switch로 재사용한다.
-       modal이 열려 있으면 배경 dashboard는 출력하지 않고 현재 열린 modal만 page flow에 올린다. */
-    body.dashboard-dialog-open > #app{
+    /* Modal-only Print · modal body lock 또는 확대 차트 상태를 print mode switch로 재사용한다.
+       열린 modal/확대 차트가 있으면 배경 dashboard를 제외하고 현재 overlay만 page flow에 올린다. */
+    body:is(.dashboard-dialog-open,.chart-expanded-open) > #app{
       display:none !important;
     }
-    body.dashboard-dialog-open > :is(
+    body:is(.dashboard-dialog-open,.chart-expanded-open) > :is(
       .action-modal[aria-hidden="false"],
       .contrib-modal[aria-hidden="false"],
       .chart-expanded-overlay.show,
@@ -204,7 +204,7 @@
       backdrop-filter:none !important;
       -webkit-backdrop-filter:none !important;
     }
-    body.dashboard-dialog-open > :is(
+    body:is(.dashboard-dialog-open,.chart-expanded-open) > :is(
       .action-modal[aria-hidden="false"],
       .contrib-modal[aria-hidden="false"],
       .chart-expanded-overlay.show,
@@ -223,7 +223,7 @@
       break-inside:avoid-page;
       page-break-inside:avoid;
     }
-    body.dashboard-dialog-open :is(
+    body:is(.dashboard-dialog-open,.chart-expanded-open) :is(
       .modal-icon-btn,
       .chart-expanded-close,
       .realtime-quote-close
@@ -343,6 +343,7 @@
     .chart-note.six{grid-template-columns:repeat(3,minmax(0,1fr))}
 
     /* Print Summary Grids · Web/Tablet과 같은 component를 쓰되 print canonical 열 수만 복원한다. */
+    .asset-change-note .change-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
     #chart-symbol .chart-note.symbol-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
     #pension-chart-symbol .chart-note.symbol-summary-grid,
     #pension-chart-alloc .chart-note{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -403,6 +404,13 @@
     #accounts-summary .accounts-table .performance-return-col{display:table-cell}
     #accounts-summary .accounts-table .performance-profit-col{text-align:right}
     #accounts-summary .accounts-table .performance-inline-return{display:none}
+    /* Performance Tables · `구분` 열은 Web/Tablet처럼 단어 단위로 유지해 과도한 줄바꿈을 막는다. */
+    #summary-section .combined-performance-table :is(th,td):first-child,
+    #accounts-summary .accounts-table :is(th,td):first-child{
+      white-space:nowrap;
+      overflow-wrap:normal;
+      word-break:keep-all;
+    }
     .dashboard-data-table thead{
       display:table-header-group;
     }
