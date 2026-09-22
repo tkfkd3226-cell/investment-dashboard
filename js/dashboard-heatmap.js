@@ -415,8 +415,8 @@ function portfolioHeatmapTooltipHtml(row){
     ${portfolioHeatmapTooltipRow('평균단가',row.avgPrice==null?null:won(row.avgPrice))}
     ${portfolioHeatmapTooltipRow('매수원금',row.cost==null?null:won(row.cost))}
     ${portfolioHeatmapTooltipRow('평가금액',row.evalAmount==null?null:won(row.evalAmount),{current:mode==='weight'})}
-    ${portfolioHeatmapTooltipRow('포트폴리오 비중',row.weight==null?null:heatmapRateText(row.weight,{signedValue:false}),{current:mode==='weight'})}
     ${portfolioHeatmapTooltipRow('평가 계산',weightFormula,{current:mode==='weight'})}
+    ${portfolioHeatmapTooltipRow('포트폴리오 비중',row.weight==null?null:heatmapRateText(row.weight,{signedValue:false}),{current:mode==='weight'})}
     <div class="tt-divider"></div>
     ${portfolioHeatmapTooltipRow('당일 등락률',row.dayRate==null?null:heatmapRateText(row.dayRate),{current:mode==='day'})}
     ${portfolioHeatmapTooltipRow('당일손익',row.dayChange==null?null:heatmapAmountText(row.dayChange,{signedValue:true}),{current:mode==='day'})}
