@@ -72,6 +72,7 @@ const NAV_ICONS=Object.freeze({
     trending:`<svg ${NAV_ICON_ATTRS}><path d="m3 17 6-6 4 4 8-8"></path><path d="M14 7h7v7"></path></svg>`,
     chart:`<svg ${NAV_ICON_ATTRS}><path d="M3 3v18h18"></path><path d="M7 15v2"></path><path d="M12 11v6"></path><path d="M17 7v10"></path></svg>`,
     period:`<svg ${NAV_ICON_ATTRS}><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 10h18"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"></path></svg>`,
+    treemap:`<svg ${NAV_ICON_ATTRS}><rect x="3" y="3" width="10" height="11" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="11" width="7" height="10" rx="1"></rect><rect x="3" y="15" width="10" height="6" rx="1"></rect></svg>`,
     lineChart:`<svg ${NAV_ICON_ATTRS}><path d="M3 3v18h18"></path><path d="m7 16 4-5 3 3 5-7"></path></svg>`,
     barChart:`<svg ${NAV_ICON_ATTRS}><path d="M4 20V11h4v9M10 20V5h4v15M16 20v-7h4v7"></path></svg>`,
     pie:`<svg ${NAV_ICON_ATTRS}><path d="M21 12a9 9 0 1 1-9-9v9h9Z"></path><path d="M12 3a9 9 0 0 1 9 9"></path></svg>`,

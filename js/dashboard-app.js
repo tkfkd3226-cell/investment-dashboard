@@ -34,6 +34,12 @@ import {
   shiftMonthlyCalendarMonth
 } from './dashboard-monthly-calendar.js';
 import {
+  PORTFOLIO_HEATMAP_ACTION,
+  closePortfolioHeatmap,
+  openPortfolioHeatmap,
+  setPortfolioHeatmapMode
+} from './dashboard-heatmap.js';
+import {
   drawAllCharts,
   handleChartDashboardAction,
   isExpandedChart,
@@ -239,6 +245,12 @@ function handleDashboardAction(event,control){
     closeMonthlyCalendar();
     return setActiveDashboardDate(date);
   }
+  if(action===PORTFOLIO_HEATMAP_ACTION.open){
+    closeDateActionMenu();
+    return openPortfolioHeatmap(control);
+  }
+  if(action===PORTFOLIO_HEATMAP_ACTION.close)return closePortfolioHeatmap();
+  if(action===PORTFOLIO_HEATMAP_ACTION.setMode)return setPortfolioHeatmapMode(control.dataset.heatmapMode||'');
   if(action==='toggle-separate-profit')return toggleSeparateProfitMode();
   if(action==='toggle-separate-profit-expanded')return toggleSeparateProfitModeFromExpanded(control.dataset.expandedChartId||'');
   if(action==='open-pension-modal'){

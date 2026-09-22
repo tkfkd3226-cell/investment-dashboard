@@ -176,6 +176,23 @@
     }
     .date-picker-action .topbar-label-full{display:none}
     .date-picker-action .topbar-label-short{display:inline}
+    .date-picker-action .topbar-heatmap-action{
+      width:var(--topbar-control-height);
+      min-width:var(--topbar-control-height);
+      padding-inline:0;
+      gap:0;
+    }
+    .date-picker-action .topbar-heatmap-action :is(.topbar-label-full,.topbar-label-short){display:none}
+    .portfolio-heatmap-head{
+      display:grid;
+      grid-template-columns:1fr;
+      align-items:start;
+      gap:var(--space-4xl);
+      padding-right:0;
+    }
+    .portfolio-heatmap-title-block{padding-right:calc(var(--icon-button-size) + var(--space-5xl))}
+    .portfolio-heatmap-mode-tabs{width:min(360px,100%)}
+    .portfolio-heatmap__canvas{height:clamp(380px,54vh,540px)}
     .month-select,
     .day-select{
       min-width:0;

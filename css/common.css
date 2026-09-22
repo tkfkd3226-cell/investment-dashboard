@@ -2935,9 +2935,9 @@ body.dashboard-dialog-open{
   transition:background .14s ease,color .14s ease,box-shadow .14s ease;
 }
 /* Shared Segmented Tabs Skin · 자산/퇴직연금 조정/월간 손익 switch가 같은 surface/state를 공유 */
-:is(.asset-workspace-tabs,.contrib-target-tabs,.monthly-calendar-mode-tabs){background:var(--subtle-card)}
-:is(.asset-workspace-tab,.contrib-target-option,.monthly-calendar-mode-tab){color:var(--muted)}
-:is(.asset-workspace-tab,.contrib-target-option,.monthly-calendar-mode-tab).active{background:var(--accent-strong-bg);color:var(--on-accent-text)}
+:is(.asset-workspace-tabs,.contrib-target-tabs,.monthly-calendar-mode-tabs,.portfolio-heatmap-mode-tabs){background:var(--subtle-card)}
+:is(.asset-workspace-tab,.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab){color:var(--muted)}
+:is(.asset-workspace-tab,.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab).active{background:var(--accent-strong-bg);color:var(--on-accent-text)}
 
 /* Asset Workspace Tabs · 자산 작업영역 탭: 증권 → 퇴직연금 순서, 기존 section ID 유지 */
 .asset-workspace-tabs{
@@ -3339,6 +3339,69 @@ button.monthly-calendar-day{
   padding:var(--space-4xl);
 }
 .monthly-calendar-summary-card .m-detail{color:var(--text-secondary)}
+/* Portfolio Heatmap Shell · 1차는 공통 modal/tab primitive 위에 shell geometry만 추가 */
+.portfolio-heatmap-modal{
+  z-index:13300;
+  display:none;
+  --modal-card-width:min(1160px,100%);
+  --modal-card-pad-y:var(--space-8xl);
+  --modal-card-pad-x:var(--space-8xl);
+}
+.portfolio-heatmap-modal.show{display:flex}
+.portfolio-heatmap-card{
+  max-height:min(90vh,820px);
+  overflow:hidden;
+}
+@supports (height:100dvh){
+  .portfolio-heatmap-card{max-height:min(90dvh,820px)}
+}
+.portfolio-heatmap-close{
+  position:absolute;
+  top:var(--modal-card-pad-y);
+  right:var(--modal-card-pad-x);
+}
+.portfolio-heatmap-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:var(--space-6xl);
+  padding-right:calc(var(--icon-button-size) + var(--space-5xl));
+}
+.portfolio-heatmap-title-block{min-width:0}
+.portfolio-heatmap-date{
+  margin:var(--space-md) 0 0;
+  color:var(--text-secondary);
+  font-size:var(--type-size-sm);
+  font-weight:var(--type-weight-emphasis);
+  line-height:var(--type-line-compact);
+  font-variant-numeric:tabular-nums;
+}
+.portfolio-heatmap-mode-tabs{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  width:min(360px,100%);
+  flex:0 0 auto;
+}
+.portfolio-heatmap__canvas{
+  width:100%;
+  height:clamp(420px,58vh,620px);
+  margin-top:var(--space-5xl);
+  box-sizing:border-box;
+  border:1px solid var(--surface-border-muted);
+  border-radius:min(var(--surface-radius-level-3),var(--corner-surface-cap));
+  background:var(--subtle-card);
+}
+.portfolio-heatmap__placeholder{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:var(--space-lg);
+  padding:var(--space-6xl);
+  color:var(--muted);
+  text-align:center;
+}
+.portfolio-heatmap__placeholder strong{color:var(--ink);font-size:var(--type-size-lg)}
+.portfolio-heatmap__placeholder span{font-size:var(--type-size-sm);line-height:var(--type-line-note)}
 .realtime-quote-modal{
   z-index:13500;
   display:none;
@@ -4263,6 +4326,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 /* Hamburger Menu Structure · 왼쪽 utility / 오른쪽 action 구조를 Tablet/Phone이 공유하고 viewport는 density·노출만 변경 */
 .date-action-menu.mobile-combined-menu .mobile-nav-head{display:flex;align-items:center;justify-content:space-between;gap:var(--nav-menu-head-gap);margin:0;padding:0 1px var(--space-2xs);border-bottom:1px solid var(--nav-divider);background:transparent}
 .date-action-menu.mobile-combined-menu .mobile-nav-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--nav-menu-head-gap);margin-left:auto}
+.date-action-menu.mobile-combined-menu .mobile-nav-theme-action{display:none}
 .date-action-menu.mobile-combined-menu .mobile-nav-corner-action{display:none}
 .date-action-menu.mobile-combined-menu .mobile-nav-head-actions > button{border:0;border-radius:min(var(--control-radius-sm),var(--corner-control-cap));background:transparent;color:var(--nav-muted);line-height:1.12}
 .date-action-menu.mobile-combined-menu .mobile-nav-head-actions > button svg{display:block;width:var(--nav-icon-size);height:var(--nav-icon-size);margin:auto}
@@ -4393,8 +4457,8 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   font-size:0;
 }
 .date-tool-action-icon svg{display:block;width:var(--topbar-action-icon-size);height:var(--topbar-action-icon-size);vertical-align:middle}
-:is(.topbar-calc-action,.topbar-market-ai-toggle,.topbar-monthly-action,.topbar-realtime-action,.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size);flex-basis:var(--topbar-mode-icon-size)}
-:is(.topbar-calc-action,.topbar-market-ai-toggle,.topbar-monthly-action,.topbar-realtime-action,.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon svg{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size)}
+:is(.topbar-calc-action,.topbar-market-ai-toggle,.topbar-monthly-action,.topbar-heatmap-action,.topbar-realtime-action,.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size);flex-basis:var(--topbar-mode-icon-size)}
+:is(.topbar-calc-action,.topbar-market-ai-toggle,.topbar-monthly-action,.topbar-heatmap-action,.topbar-realtime-action,.topbar-theme-action,.topbar-corner-action) .date-tool-action-icon svg{width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size)}
 .date-action-menu-wrap,
 .topbar-label-short{display:none}
 

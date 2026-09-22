@@ -143,15 +143,15 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(core,/function combinedDailyProfitChange\(date\)/,'flow-neutral 월간 일손익 계산은 core가 소유해야 한다');
   assert.match(monthlyCalendar,/combined:\{label:'합산'[^]*?securities:\{label:'증권'[^]*?pension:\{label:'퇴직연금'/,'월간 손익 범위는 합산·증권·퇴직연금 3개만 유지해야 한다');
   assert.match(monthlyCalendar,/class="control-tab monthly-calendar-mode-tab/,'범위 switch는 새 control 디자인 대신 공통 control-tab primitive를 재사용해야 한다');
-  assert.match(common,/:is\(\.asset-workspace-tabs,\.contrib-target-tabs,\.monthly-calendar-mode-tabs\)\{background:var\(--subtle-card\)\}/,'월간 범위 switch는 기존 segmented tab skin을 공유해야 한다');
+  assert.match(common,/:is\(\.asset-workspace-tabs,\.contrib-target-tabs,\.monthly-calendar-mode-tabs,\.portfolio-heatmap-mode-tabs\)\{background:var\(--subtle-card\)\}/,'월간 범위 switch는 히트맵을 포함한 공통 segmented tab skin을 공유해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-scroll/,'달력은 별도 body scroll wrapper 없이 card 하나만 scroll owner로 유지해야 한다');
   assert.match(common,/\.monthly-calendar-card\{[^}]*overflow:auto/,'작은 viewport에서는 기존처럼 달력 card 전체가 스크롤되어야 한다');
   assert.match(common,/\.monthly-calendar-close\{[^}]*top:var\(--modal-card-pad-y\)/,'Web/Tablet 달력 닫기 버튼은 card 상단 padding을 기준으로 월 이동/제목 행과 수직 중심을 맞춰야 한다');
-  assert.match(special,/:is\(\.monthly-calendar-modal,\.realtime-quote-modal,\.contrib-modal\)\{[^}]*align-items:flex-start;[^}]*--modal-overlay-pad:var\(--space-md\);[^}]*--modal-card-pad-y:var\(--space-md\);[^}]*--modal-card-pad-x:var\(--space-md\)/,'Phone 주요 3개 modal은 외부·내부 5px과 상단 배치를 공통 계약으로 사용해야 한다');
+  assert.match(special,/:is\(\.monthly-calendar-modal,\.realtime-quote-modal,\.contrib-modal,\.portfolio-heatmap-modal\)\{[^}]*align-items:flex-start;[^}]*--modal-overlay-pad:var\(--space-md\);[^}]*--modal-card-pad-y:var\(--space-md\);[^}]*--modal-card-pad-x:var\(--space-md\)/,'Phone 주요 4개 modal은 외부·내부 5px과 상단 배치를 공통 계약으로 사용해야 한다');
   assert.match(special,/\.monthly-calendar-close\{top:var\(--modal-card-pad-y\);right:var\(--modal-card-pad-x\)\}/,'Phone 달력 닫기 버튼은 동일 5px card padding을 직접 재사용해 월 이동/제목 행과 정확히 정렬되어야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthlyCalendarDescription|monthly-calendar-description|modeMeta\.description/,'월간 범위 탭 아래 보조 설명문과 관련 dead code를 남기면 안 된다');
-  assert.match(special,/:is\(\.monthly-calendar-card,\.contrib-modal-card\)\{max-height:calc\(100vh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)\}/,'Phone 달력·퇴직연금 card 스크롤 상한은 실제 overlay 상하 5px을 제외해야 한다');
-  assert.match(special,/@supports \(height:100dvh\)\{[^]*?:is\(\.monthly-calendar-card,\.contrib-modal-card\)\{max-height:calc\(100dvh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)\}/,'Phone 달력·퇴직연금은 iOS 동적 viewport 높이를 우선 사용해야 한다');
+  assert.match(special,/:is\(\.monthly-calendar-card,\.contrib-modal-card,\.portfolio-heatmap-card\)\{max-height:calc\(100vh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)\}/,'Phone 달력·퇴직연금·히트맵 card 스크롤 상한은 실제 overlay 상하 5px을 제외해야 한다');
+  assert.match(special,/@supports \(height:100dvh\)\{[^]*?:is\(\.monthly-calendar-card,\.contrib-modal-card,\.portfolio-heatmap-card\)\{max-height:calc\(100dvh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)\}/,'Phone 달력·퇴직연금·히트맵은 iOS 동적 viewport 높이를 우선 사용해야 한다');
   assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.setMode[^]*?setMonthlyCalendarMode\(control\.dataset\.calendarMode\|\|''\)/,'범위 전환은 app action router를 거쳐 calendar state owner에 위임해야 한다');
   assert.match(monthlyCalendar,/modal\.className='action-modal monthly-calendar-modal'/,'월간 캘린더는 공통 action modal shell을 재사용해야 한다');
   assert.match(monthlyCalendar,/openDashboardModal\(modal,/);
@@ -1517,7 +1517,7 @@ test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·resp
   assert.doesNotMatch(mobileMenuSource,/REALTIME_QUOTES_ACTION/,'Tablet/Phone hamburger 관리 메뉴에는 실시간 시세 진입점을 중복 배치하지 않는다');
   const realtimeTopbarButtons=ui.match(/class="[^"]*topbar-realtime-action[^"]*"/g)||[];
   assert.equal(realtimeTopbarButtons.length,1,'실시간 시세는 viewport 경계에서 교체되지 않는 단일 Topbar 버튼이어야 한다');
-  assert.match(special,/:is\(\.topbar-monthly-action,\.topbar-realtime-action\) :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Phone 월간 손익과 실시간 시세 버튼은 같은 DOM의 label만 숨겨 icon-only로 전환해야 한다');
+  assert.match(special,/:is\(\.topbar-monthly-action,\.topbar-heatmap-action,\.topbar-realtime-action\) :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Phone 월간 손익·히트맵·실시간 시세 버튼은 같은 DOM의 label만 숨겨 icon-only로 전환해야 한다');
 
   assert.match(ui,/addEventListener\('message',handleRealtimeMonitorMessage\)/,'embedded Monitor message bridge가 필요하다');
   assert.match(ui,/event\.origin!==realtimeMonitorExpectedOrigin\(\)/,'Monitor message는 origin 검증을 유지해야 한다');
@@ -1535,7 +1535,7 @@ test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·resp
   assert.ok(phoneRealtimeStart>=0&&phoneRealtimeEnd>phoneRealtimeStart,'Phone 실시간 시세 responsive block이 필요하다');
   assert.doesNotMatch(phoneRealtimeCss,/--modal-overlay-pad\s*:\s*0|--modal-card-radius\s*:\s*0|position\s*:\s*fixed|inset\s*:\s*0|border-radius\s*:\s*0/,'Phone 실시간 시세가 공통 action modal 외곽 계약을 우회하면 안 된다');
   assert.doesNotMatch(phoneRealtimeCss,/--realtime-quote-shell-bg/,'Phone 전용 CSS가 shell 테마 색을 별도로 고정하면 안 된다');
-  assert.match(special,/:is\(\.monthly-calendar-modal,\.realtime-quote-modal,\.contrib-modal\)\{[^}]*--modal-overlay-pad:var\(--space-md\);[^}]*--modal-card-pad-y:var\(--space-md\);[^}]*--modal-card-pad-x:var\(--space-md\)/,'실시간 시세도 달력·퇴직연금과 같은 5px phone modal frame을 공유해야 한다');
+  assert.match(special,/:is\(\.monthly-calendar-modal,\.realtime-quote-modal,\.contrib-modal,\.portfolio-heatmap-modal\)\{[^}]*--modal-overlay-pad:var\(--space-md\);[^}]*--modal-card-pad-y:var\(--space-md\);[^}]*--modal-card-pad-x:var\(--space-md\)/,'실시간 시세도 달력·퇴직연금·히트맵과 같은 5px phone modal frame을 공유해야 한다');
 });
 
 test('퇴직연금 작업 방식 switch는 공통 segmented control contract를 사용한다',()=>{
@@ -1567,8 +1567,8 @@ test('Market AI 연결 toggle은 OFF fallback과 viewport별 진입점 계약을
   const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
   assert.doesNotMatch(tabsBlock,/\$\{phoneUi\(\)\?'':/,'Market AI toggle 생성 여부를 최초 viewport에 고정하면 크기 변경 후 새로고침이 필요해진다');
   assert.match(tabsBlock,/class="date-tool-btn control-icon-button topbar-market-ai-toggle"/,'Market AI toggle은 Web/Tablet/Phone Topbar에서 같은 control을 재사용해야 한다');
-  assert.doesNotMatch(special,/\.switcher button\.topbar-market-ai-toggle\{display:none\}/,'Phone에서 Topbar Market AI toggle을 숨기면 안 된다');
-  assert.match(special,/button\.topbar-market-ai-toggle,[^]*?\.topbar-theme-action\{[^]*?display:inline-flex/,'Phone Topbar에서도 Market AI toggle을 테마 control 앞에 노출해야 한다');
+  assert.match(special,/\.switcher button\.topbar-market-ai-toggle,[^]*?\.switcher button\.topbar-theme-action\{display:none\}/,'Phone Topbar은 최종 4-action 계약을 위해 Market AI toggle과 테마 control을 숨겨야 한다');
+  assert.match(special,/\.date-action-menu\.mobile-combined-menu \.mobile-nav-theme-action\{display:inline-flex\}/,'Phone 테마 control은 hamburger 상단에서 제공해야 한다');
 });
 
 test('Market AI는 초기 OFF로 열려도 연결 켜기 lifecycle listener를 먼저 등록한다',()=>{

@@ -277,8 +277,8 @@
     }
     .action-modal{--modal-control-font-size:var(--type-size-2xl)}
 
-    /* Phone Primary Modal Frame · 달력/실시간 시세/퇴직연금 조정은 5px 외부·내부 여백과 상단 정렬을 공유 */
-    :is(.monthly-calendar-modal,.realtime-quote-modal,.contrib-modal){
+    /* Phone Primary Modal Frame · 달력/실시간 시세/퇴직연금 조정/히트맵은 5px 외부·내부 여백과 상단 정렬을 공유 */
+    :is(.monthly-calendar-modal,.realtime-quote-modal,.contrib-modal,.portfolio-heatmap-modal){
       align-items:flex-start;
       --modal-overlay-pad:var(--space-md);
       --modal-card-pad-y:var(--space-md);
@@ -293,9 +293,9 @@
       --monthly-calendar-day-size:var(--type-size-sm);
       --monthly-calendar-profit-size:var(--type-size-2xs);
     }
-    :is(.monthly-calendar-card,.contrib-modal-card){max-height:calc(100vh - var(--modal-overlay-pad) - var(--modal-overlay-pad))}
+    :is(.monthly-calendar-card,.contrib-modal-card,.portfolio-heatmap-card){max-height:calc(100vh - var(--modal-overlay-pad) - var(--modal-overlay-pad))}
     @supports (height:100dvh){
-      :is(.monthly-calendar-card,.contrib-modal-card){max-height:calc(100dvh - var(--modal-overlay-pad) - var(--modal-overlay-pad))}
+      :is(.monthly-calendar-card,.contrib-modal-card,.portfolio-heatmap-card){max-height:calc(100dvh - var(--modal-overlay-pad) - var(--modal-overlay-pad))}
     }
     .monthly-calendar-close{top:var(--modal-card-pad-y);right:var(--modal-card-pad-x)}
     .monthly-calendar-head{
@@ -303,6 +303,21 @@
       gap:var(--space-lg);
     }
     .monthly-calendar-mode-tabs{margin:var(--space-md) auto var(--space-4xl)}
+    .portfolio-heatmap-modal{--modal-card-width:100%}
+    .portfolio-heatmap-close{top:var(--modal-card-pad-y);right:var(--modal-card-pad-x)}
+    .portfolio-heatmap-head{
+      display:grid;
+      grid-template-columns:1fr;
+      align-items:start;
+      gap:var(--space-3xl);
+      padding-right:0;
+    }
+    .portfolio-heatmap-title-block{padding-right:calc(var(--icon-button-size) + var(--space-3xl))}
+    .portfolio-heatmap-mode-tabs{width:100%}
+    .portfolio-heatmap__canvas{
+      height:clamp(240px,58dvh,490px);
+      margin-top:var(--space-4xl);
+    }
     .monthly-calendar-weekdays,
     .monthly-calendar-grid{
       grid-template-columns:repeat(5,minmax(0,1fr));
@@ -602,7 +617,7 @@
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
   }
-  .switcher button:is(.topbar-monthly-action,.topbar-realtime-action){
+  .switcher button:is(.topbar-monthly-action,.topbar-heatmap-action,.topbar-realtime-action){
     width:var(--topbar-phone-control-size);
     min-width:var(--topbar-phone-control-size);
     max-width:var(--topbar-phone-control-size);
@@ -613,21 +628,22 @@
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
   }
-  :is(.topbar-monthly-action,.topbar-realtime-action) :is(.topbar-label-full,.topbar-label-short){display:none}
+  :is(.topbar-monthly-action,.topbar-heatmap-action,.topbar-realtime-action) :is(.topbar-label-full,.topbar-label-short){display:none}
   /* Light Floating Controls · 밝은 테마의 floating control은 Mobile Topbar가 고정/열림 상태가 아닐 때만 사용한다.
      고정/열림 상태에서는 두 테마 모두 같은 dark topbar control system을 재사용한다. */
-  html:not(.dark) .switcher:not(.mobile-menu-open):not(.mobile-date-pinned) :is(.control-icon-button,.topbar-monthly-action,.topbar-realtime-action){
+  html:not(.dark) .switcher:not(.mobile-menu-open):not(.mobile-date-pinned) :is(.control-icon-button,.topbar-monthly-action,.topbar-heatmap-action,.topbar-realtime-action){
     background:var(--topbar-floating-bg);
     border-color:var(--topbar-floating-border);
     color:var(--topbar-floating-text);
     box-shadow:var(--topbar-floating-shadow);
   }
   button.topbar-monthly-action,
-  button.topbar-realtime-action,
-  button.topbar-market-ai-toggle,
-  .topbar-theme-action{
+  button.topbar-heatmap-action,
+  button.topbar-realtime-action{
     display:inline-flex;
   }
+  .switcher button.topbar-market-ai-toggle,
+  .switcher button.topbar-theme-action{display:none}
   .date-action-menu-wrap{
     display:block;
     position:relative;
@@ -666,16 +682,17 @@
     grid-column:2;
     justify-self:end;
   }
-  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.control-icon-button,.topbar-monthly-action,.topbar-realtime-action){
+  .switcher:is(.mobile-menu-open,.mobile-date-pinned) :is(.control-icon-button,.topbar-monthly-action,.topbar-heatmap-action,.topbar-realtime-action){
     background:var(--topbar-control-bg);
     border-color:var(--topbar-control-border);
     color:var(--topbar-text);
     box-shadow:var(--topbar-control-shadow);
   }
 
-  /* Hamburger Header · 날짜 고정은 왼쪽 utility, 모서리 변경·닫기는 오른쪽 action */
+  /* Hamburger Header · 날짜 고정은 왼쪽 utility, 테마·모서리 변경·닫기는 오른쪽 action */
   .mobile-date-pin-control{display:inline-flex;align-items:center;height:var(--dashboard-control-height);gap:var(--space-md);color:var(--nav-muted);cursor:pointer;user-select:none}
   .mobile-date-pin-control > span:first-child{display:flex;align-items:center;height:var(--switch-track-height);font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);letter-spacing:-.02em;line-height:var(--switch-track-height);white-space:nowrap}
+  .date-action-menu.mobile-combined-menu .mobile-nav-theme-action{display:inline-flex}
   .date-action-menu.mobile-combined-menu .mobile-nav-corner-action{display:inline-flex}
   .date-action-menu.mobile-combined-menu .control-switch-input:not(:checked) + .control-switch-track{border-color:var(--nav-border-hover);background:var(--nav-surface-hover)}
 
@@ -809,8 +826,8 @@
     .chart-card .chart-scroll-start,
     .chart-card .chart-scroll-end{display:none}
 
-  /* Modal Landscape · 일반 action modal만 중앙형으로 복원하고 3개 주요 Phone modal은 세로폰과 같은 5px frame 계약 유지 */
-    .action-modal:not(.monthly-calendar-modal):not(.realtime-quote-modal){
+  /* Modal Landscape · 일반 action modal만 중앙형으로 복원하고 주요 Phone modal은 세로폰과 같은 5px frame 계약 유지 */
+    .action-modal:not(.monthly-calendar-modal):not(.realtime-quote-modal):not(.portfolio-heatmap-modal){
       align-items:center;
       --modal-card-pad-y:var(--space-10xl);
       --modal-card-pad-x:var(--space-10xl);
