@@ -189,6 +189,9 @@ test('Topbar action 라벨은 Web full/short와 Tablet 축약명·icon 조합을
   assert.match(tablet,/\.date-picker-action \.topbar-label-full\{display:none\}/,'Tablet에서는 full label을 숨겨야 한다');
   assert.match(tablet,/\.date-picker-action \.topbar-label-short\{display:inline\}/,'Tablet 주요 action은 축약명을 표시해야 한다');
   assert.match(special,/\.date-tool-btn-desktop\{display:none\}/,'Phone Shared는 Desktop 전용 action을 숨겨 모바일 Topbar 계약을 유지해야 한다');
+  assert.match(ui,/<span class="topbar-label-full">포트폴리오 히트맵<\/span><span class="topbar-label-short">히트맵<\/span>/,'히트맵은 Web full label과 1280 미만 short label을 분리해야 한다');
+  assert.match(ui,/REALTIME_QUOTES_ACTION=Object\.freeze\(\{action:'open-realtime-quotes',icon:'lineChart',title:'보유종목 실시간 시세',shortTitle:'실시간 시세'\}\)/,'실시간 시세는 full/short label metadata를 분리해야 한다');
+  assert.match(ui,/topbar-realtime-action[^]*?title="\$\{REALTIME_QUOTES_ACTION\.title\}" aria-label="\$\{REALTIME_QUOTES_ACTION\.title\}"[^]*?topbar-label-full">\$\{REALTIME_QUOTES_ACTION\.title\}<[^]*?topbar-label-short">\$\{REALTIME_QUOTES_ACTION\.shortTitle\}</,'실시간 시세 title/aria-label은 full 명칭을 유지하고 화면 label만 축약해야 한다');
 });
 
 test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validator 모듈을 사용한다',()=>{

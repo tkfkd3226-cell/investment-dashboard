@@ -168,7 +168,7 @@ function syncPersonalViewControls(){
   const visible=uiState.personalViewUnlocked;
   document.querySelectorAll('[data-personal-view-control]').forEach(control=>{control.hidden=!visible});
 }
-const REALTIME_QUOTES_ACTION=Object.freeze({action:'open-realtime-quotes',icon:'lineChart',title:'실시간 시세'});
+const REALTIME_QUOTES_ACTION=Object.freeze({action:'open-realtime-quotes',icon:'lineChart',title:'보유종목 실시간 시세',shortTitle:'실시간 시세'});
 const REALTIME_MONITOR_SIZE_MESSAGE='market-ai-monitor:content-size';
 const REALTIME_MONITOR_THEME_READY_MESSAGE='market-ai-monitor:theme-ready';
 const REALTIME_MONITOR_THEME_STATE_MESSAGE='market-ai-monitor:theme-state';
@@ -460,10 +460,10 @@ function renderTabs(){
           <span class="date-tool-action-icon">${navIconSvg('period')}</span><span class="topbar-label-full">월간 손익</span><span class="topbar-label-short">월간</span>
         </button>
         <button type="button" class="date-tool-btn topbar-heatmap-action" title="포트폴리오 히트맵" aria-label="포트폴리오 히트맵" data-dashboard-action="open-portfolio-heatmap">
-          <span class="date-tool-action-icon">${navIconSvg('treemap')}</span><span class="topbar-label-full">히트맵</span><span class="topbar-label-short">히트맵</span>
+          <span class="date-tool-action-icon">${navIconSvg('treemap')}</span><span class="topbar-label-full">포트폴리오 히트맵</span><span class="topbar-label-short">히트맵</span>
         </button>
         <button type="button" class="date-tool-btn topbar-market-action topbar-realtime-quotes-action topbar-realtime-action" title="${REALTIME_QUOTES_ACTION.title}" aria-label="${REALTIME_QUOTES_ACTION.title}" data-dashboard-action="${REALTIME_QUOTES_ACTION.action}" data-market-ai-monitor-entry${marketAiMonitorAvailable?'':' hidden'}>
-          <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span><span class="topbar-label-full">${REALTIME_QUOTES_ACTION.title}</span><span class="topbar-label-short">${REALTIME_QUOTES_ACTION.title}</span>
+          <span class="date-tool-action-icon">${navIconSvg(REALTIME_QUOTES_ACTION.icon)}</span><span class="topbar-label-full">${REALTIME_QUOTES_ACTION.title}</span><span class="topbar-label-short">${REALTIME_QUOTES_ACTION.shortTitle}</span>
         </button>
         ${(()=>{const model=marketAiConnectionToggleModel();return `<button type="button" class="date-tool-btn control-icon-button topbar-market-ai-toggle" title="${model.label}" aria-label="${model.label}" aria-pressed="${model.connected}" data-dashboard-action="toggle-market-ai-connection" data-market-ai-connection-toggle>
           <span class="date-tool-action-icon" data-market-ai-connection-toggle-icon>${navIconSvg(model.icon)}</span>

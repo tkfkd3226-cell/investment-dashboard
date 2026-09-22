@@ -268,6 +268,7 @@
       --topbar-phone-control-step:calc(var(--topbar-phone-control-size) + var(--space-sm));
       --page-anchor-offset:calc(var(--topbar-phone-height) + var(--space-5xl));
       --empty-state-font-size:var(--type-size-xs);
+      --modal-segment-font-size:var(--type-size-sm);
     }
 
   /* Pension Modal Phone Density · 세로/가로폰 공통. iOS는 16px computed font를 62.5% 축소해 visual 10px을 유지한다. */
@@ -312,11 +313,26 @@
       gap:var(--space-3xl);
       padding-right:0;
     }
-    .portfolio-heatmap-title-block{padding-right:calc(var(--icon-button-size) + var(--space-3xl))}
-    .portfolio-heatmap-mode-tabs{width:100%}
+    .portfolio-heatmap-title-block{grid-column:1;padding-right:calc(var(--icon-button-size) + var(--space-3xl))}
+    .portfolio-heatmap-mode-tabs{grid-column:1;justify-self:stretch;width:100%}
     .portfolio-heatmap__canvas{
       height:clamp(240px,58dvh,490px);
       margin-top:var(--space-4xl);
+    }
+    /* Heatmap Phone Tile Density · Large 보조문구는 폭 부족 시 숨기지 않고 compact 2줄까지 사용 */
+    .portfolio-heatmap__tile.is-large{padding:var(--space-lg);gap:var(--space-xs)}
+    .portfolio-heatmap__tile.is-large .portfolio-heatmap__name{font-size:var(--type-size-sm);-webkit-line-clamp:1}
+    .portfolio-heatmap__tile.is-large .portfolio-heatmap__primary{font-size:20px}
+    .portfolio-heatmap__tile.is-large .portfolio-heatmap__secondary{
+      display:-webkit-box;
+      overflow:hidden;
+      font-size:9px;
+      line-height:1.08;
+      letter-spacing:-.03em;
+      white-space:normal;
+      text-overflow:clip;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
     }
     .portfolio-heatmap__legend{
       gap:var(--space-sm) var(--space-lg);
@@ -373,7 +389,6 @@
       /* Optical Padding · 광학 패딩: 6.75px visual padding ÷ .625 = 10.8px inner padding */
       --pension-modal-control-inner-pad:10.8px;
       --pension-modal-control-inner-icon-pad-right:calc(var(--space-8xl) + var(--space-7xl));
-      --pension-modal-tab-size:var(--type-size-sm);
       --pension-modal-action-size:var(--type-size-2xs);
       --pension-modal-delete-title-size:var(--type-size-2xs);
       --pension-modal-delete-memo-size:var(--type-size-2xs);
@@ -437,6 +452,11 @@
       min-height:28px;
       padding-inline:var(--space-sm);
       font-size:var(--type-size-sm);
+    }
+    :is(.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab){
+      min-height:var(--modal-segment-height);
+      padding-inline:var(--modal-segment-pad-x);
+      font-size:var(--modal-segment-font-size);
     }
     .asset-workspace-tabs{width:100%;margin-bottom:var(--space-4xl)}
 

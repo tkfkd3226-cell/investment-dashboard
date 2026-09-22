@@ -140,6 +140,13 @@
   --control-disabled-opacity:.45;
   --control-placeholder:var(--muted);
 
+  /* Modal Segmented Control · 퇴직연금 조정/월간 손익/히트맵의 3분할 탭 density 단일 원천 */
+  --modal-segment-height:28px;
+  --modal-segment-pad-x:var(--space-3xl);
+  --modal-segment-font-size:var(--type-size-lg);
+  --modal-segment-gap:var(--space-sm);
+  --modal-segment-group-pad:var(--space-2xs);
+
   --dashboard-control-height:29px;
   --dashboard-control-font-size:10.5px;
   --dashboard-control-line-height:1.12;
@@ -2562,7 +2569,7 @@ body.chart-expanded-open .dash-tooltip{
   --pension-modal-label-size:var(--type-size-sm);
   --pension-modal-control-size:var(--type-size-sm);
   /* Input density · row-height는 탭/입력/action 공통 높이, pad는 해당 높이에 맞춘 visual 여백이다. */
-  --pension-modal-row-height:28px;
+  --pension-modal-row-height:var(--modal-segment-height);
   --pension-modal-control-pad:6.5px;
   --pension-modal-control-line-height:var(--type-line-compact);
   --pension-modal-control-scale:1;
@@ -2571,8 +2578,8 @@ body.chart-expanded-open .dash-tooltip{
   --pension-modal-control-icon-inset:var(--space-md);
   --pension-modal-control-icon-size:var(--space-5xl);
   --pension-modal-control-inner-icon-pad-right:calc(var(--space-md) + var(--space-5xl) + var(--space-sm));
-  --pension-modal-tab-size:var(--type-size-lg);
-  --pension-modal-tab-pad-x:var(--space-3xl);
+  --pension-modal-tab-size:var(--modal-segment-font-size);
+  --pension-modal-tab-pad-x:var(--modal-segment-pad-x);
   --pension-modal-action-size:var(--type-size-sm);
   --pension-modal-delete-title-size:var(--type-size-sm);
   --pension-modal-delete-title-weight:var(--type-weight-regular);
@@ -2933,6 +2940,16 @@ body.dashboard-dialog-open{
   white-space:nowrap;
   cursor:pointer;
   transition:background .14s ease,color .14s ease,box-shadow .14s ease;
+}
+/* Modal Segmented Geometry · 세 모달의 탭 높이/폰트/내부 여백을 같은 viewport token으로 고정 */
+:is(.contrib-target-tabs,.monthly-calendar-mode-tabs,.portfolio-heatmap-mode-tabs){
+  gap:var(--modal-segment-gap);
+  padding:var(--modal-segment-group-pad);
+}
+:is(.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab){
+  min-height:var(--modal-segment-height);
+  padding-inline:var(--modal-segment-pad-x);
+  font-size:var(--modal-segment-font-size);
 }
 /* Shared Segmented Tabs Skin · 자산/퇴직연금 조정/월간 손익 switch가 같은 surface/state를 공유 */
 :is(.asset-workspace-tabs,.contrib-target-tabs,.monthly-calendar-mode-tabs,.portfolio-heatmap-mode-tabs){background:var(--subtle-card)}
@@ -3378,13 +3395,12 @@ html.dark .portfolio-heatmap-modal{
   right:var(--modal-card-pad-x);
 }
 .portfolio-heatmap-head{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:end;
   gap:var(--space-6xl);
-  padding-right:calc(var(--icon-button-size) + var(--space-5xl));
 }
-.portfolio-heatmap-title-block{min-width:0}
+.portfolio-heatmap-title-block{grid-column:1;min-width:0}
 .portfolio-heatmap-date{
   margin:var(--space-md) 0 0;
   color:var(--text-secondary);
@@ -3394,9 +3410,10 @@ html.dark .portfolio-heatmap-modal{
   font-variant-numeric:tabular-nums;
 }
 .portfolio-heatmap-mode-tabs{
+  grid-column:2;
   grid-template-columns:repeat(3,minmax(0,1fr));
   width:min(360px,100%);
-  flex:0 0 auto;
+  justify-self:center;
 }
 .portfolio-heatmap-stage{min-width:0}
 .portfolio-heatmap__canvas{
@@ -4246,11 +4263,11 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 /* Pension Contribution Modal Compact Rhythm · 실제 수치는 .contrib-modal semantic token에서 단일 관리 */
 
 /* 조정 항목 탭은 메인 자산 탭의 skin/state를 공유하고 geometry만 pension semantic token으로 분리한다. */
-.contrib-modal .contrib-target-tabs{gap:var(--space-sm);padding:var(--space-2xs)}
+.contrib-modal .contrib-target-tabs{gap:var(--modal-segment-gap);padding:var(--modal-segment-group-pad)}
 .contrib-modal .contrib-target-option{
-  min-height:var(--pension-modal-row-height);
-  padding-inline:var(--pension-modal-tab-pad-x);
-  font-size:var(--pension-modal-tab-size);
+  min-height:var(--modal-segment-height);
+  padding-inline:var(--modal-segment-pad-x);
+  font-size:var(--modal-segment-font-size);
 }
 .contrib-modal .contrib-btn{font-size:var(--pension-modal-action-size)}
 .contrib-modal .control-action-button.compact{min-height:var(--pension-modal-row-height);height:var(--pension-modal-row-height)}

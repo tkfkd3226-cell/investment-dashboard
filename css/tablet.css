@@ -45,6 +45,7 @@
       --nav-motion-slide-delay:.04s;
       --nav-motion-hide-delay:.37s;
       --nav-motion-start-opacity:.90;
+      --modal-segment-font-size:var(--type-size-md);
     }
 
   /* [T02. Hero / Market AI · Hero density + Market AI 자연 폭의 Tablet 최대 cap만 조정
@@ -146,7 +147,6 @@
       --pension-modal-label-size:var(--type-size-xs);
       --pension-modal-control-size:var(--type-size-xs);
       --pension-modal-control-pad:6.625px;
-      --pension-modal-tab-size:var(--type-size-md);
       --pension-modal-action-size:var(--type-size-xs);
       --pension-modal-delete-title-size:var(--type-size-xs);
       --pension-modal-delete-memo-size:var(--type-size-xs);
@@ -176,15 +176,6 @@
     }
     .date-picker-action .topbar-label-full{display:none}
     .date-picker-action .topbar-label-short{display:inline}
-    .portfolio-heatmap-head{
-      display:grid;
-      grid-template-columns:1fr;
-      align-items:start;
-      gap:var(--space-4xl);
-      padding-right:0;
-    }
-    .portfolio-heatmap-title-block{padding-right:calc(var(--icon-button-size) + var(--space-5xl))}
-    .portfolio-heatmap-mode-tabs{width:min(360px,100%)}
     .portfolio-heatmap__canvas{height:clamp(380px,54vh,540px)}
     .month-select,
     .day-select{

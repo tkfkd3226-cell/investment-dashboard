@@ -28,7 +28,7 @@ const PORTFOLIO_HEATMAP_ACTION=Object.freeze({
   setMode:'set-portfolio-heatmap-mode'
 });
 const PORTFOLIO_HEATMAP_MODES=Object.freeze({
-  day:'전일 대비',
+  day:'당일손익',
   cumulative:'누적손익',
   weight:'비중'
 });
