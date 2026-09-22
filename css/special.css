@@ -163,16 +163,13 @@
 }
 
 /* -------------------------------------------------------------------------
-   [S02] Compact Desktop · 중간폭 웹 — 1101~1279px
-   Why · 이유: Desktop baseline은 유지하되 이 구간에서 폭이 빠듯해지는 기능만 보정한다.
-   Scope · 범위: Asset Detail grid와 Topbar 날짜 selector 수축·action 라벨 축약에만 적용한다.
+   [S02] Compact Desktop · 중간폭 웹
+   Why · 이유: Web action이 많아지는 1440px 미만부터 날짜 selector가 먼저 수축해야 하며,
+   1280px 미만에서만 기존 계약대로 action label을 short 형태로 전환한다.
+   Scope · 범위: 1101~1439px Topbar 날짜 selector 수축 + 1101~1279px Asset Detail/action label 보정.
    ------------------------------------------------------------------------- */
-@media (min-width:1101px) and (max-width:1279px){
-  /* Asset Detail Compact · 현황 + 전일대비 2열의 내부 스크롤을 피하도록 상세 grid를 1열로 전환 */
-    .asset-detail-grid{
-      grid-template-columns:1fr;
-    }
-    /* Topbar Compact Layout · Tablet처럼 날짜 selector가 남는 폭에 맞춰 먼저 수축하고 action은 short label을 사용한다. */
+@media (min-width:1101px) and (max-width:1439px){
+  /* Topbar Shrink Layout · full label Web(1280~1439)에서도 날짜 selector가 남는 폭에 맞춰 먼저 수축한다. */
     .date-picker{grid-template-columns:minmax(0,1fr) auto}
     .date-picker-center{
       width:100%;
@@ -184,6 +181,13 @@
       min-width:0;
       max-width:var(--topbar-date-select-width);
       flex:1 1 var(--topbar-date-select-width);
+    }
+}
+
+@media (min-width:1101px) and (max-width:1279px){
+  /* Asset Detail Compact · 현황 + 전일대비 2열의 내부 스크롤을 피하도록 상세 grid를 1열로 전환 */
+    .asset-detail-grid{
+      grid-template-columns:1fr;
     }
     /* Topbar Action Labels · 1280px 미만의 compact Web은 모든 text action을 동일한 short label로 축약 */
     .date-picker-action .topbar-label-full{display:none}
