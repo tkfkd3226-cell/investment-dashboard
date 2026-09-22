@@ -1733,7 +1733,7 @@ Google Apps Script는 **배포·실행 환경이 GitHub Pages와 분리된 write
 
 ### 소스·배포·보안
 
-- 루트 `_config.yml`은 `GAS_code.js`와 `data/krx_dispatch_ledger/`, `data/pension_operation_identity/`, `data/pension_operation_ledger/`, `data/pension_batch_request_identity/`를 GitHub Pages 산출물에서 제외한다. `GAS_code.js`는 repository에서 관리하는 backend 소스이고, shard들은 repository/GitHub API/GAS가 사용하는 durable 상태다. 어느 쪽도 브라우저 runtime 의존성을 만들지 않는다. GAS 파일명/경로나 shard 경로를 추가·변경하면 `_config.yml`과 README 데이터/배포 설명을 함께 갱신한다.
+- 루트 `_config.yml`의 실제 Pages 제외 규칙은 `data/krx_dispatch_ledger/`, `data/pension_operation_identity/`, `data/pension_operation_ledger/`, `data/pension_batch_request_identity/`, `GAS_code.js`, `**/*.md`, `tests/`다. `GAS_code.js`는 repository에서 관리하는 backend 소스이고, shard들은 repository/GitHub API/GAS가 사용하는 durable 상태이며, Markdown 문서와 QA 테스트도 Pages runtime asset이 아니다. GAS 파일명/경로나 shard 경로, 문서/QA 배포 정책을 추가·변경하면 `_config.yml`과 README 데이터/배포 설명을 함께 갱신한다.
 - GAS 수정의 Source of Truth는 **현재 저장소 root의 `GAS_code.js`**다. 과거 대화의 별도 첨부본이나 이전 `code.js`를 최신본으로 추정하지 않는다. 사용자가 별도의 GAS 파일을 명시적으로 더 최신 운영본이라고 지정한 경우에만 그 파일을 우선한다.
 - GAS는 repository 기준 **단일 `GAS_code.js` 파일을 유지**하되, router/공통 I/O·durable identity/Single/Batch/KRX·GitHub CAS처럼 책임별 top-level helper로 분리한다. 단순 파일 길이 감소를 위해 상태머신을 generic handler 하나로 합치거나 Single·Batch·KRX의 서로 다른 terminal/retry 의미를 혼합하지 않는다. `doGet`/`doPost`는 Web App 진입점으로 유지하고, 코드 내부·frontend·문서에서 사용되지 않는 legacy wrapper는 외부 운영 계약이 확인되지 않는 경우에만 제거한다.
 - 인증값·GitHub token·PIN은 Script Properties에만 두고 저장소·문서에 실제 값을 기록하지 않는다.

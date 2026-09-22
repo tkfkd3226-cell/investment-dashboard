@@ -323,17 +323,19 @@ Calc   /add/calc.html
 Report /add/kodex-leverage-report.html
 ```
 
-루트 `_config.yml`은 repository에는 유지하되 브라우저가 직접 사용할 필요가 없는 backend/durable state를 Pages 산출물에서 제외합니다.
+루트 `_config.yml`은 repository에는 유지하되 Pages runtime에 필요 없는 backend/durable state, 유지보수 문서, QA 테스트를 배포 산출물에서 제외합니다. 현재 실제 제외 규칙은 다음과 같습니다.
 
 ```text
-GAS_code.js
 data/krx_dispatch_ledger/
 data/pension_operation_identity/
 data/pension_operation_ledger/
 data/pension_batch_request_identity/
+GAS_code.js
+**/*.md
+tests/
 ```
 
-새 repository-only durable 디렉터리를 추가하거나 경로를 바꾸면 `_config.yml`과 이 README의 구조 설명을 함께 갱신합니다.
+새 repository-only durable 디렉터리·파일을 추가하거나 경로를 바꾸거나, 문서/QA의 Pages 배포 정책을 변경하면 `_config.yml`과 이 README의 구조 설명을 함께 갱신합니다.
 
 ---
 
