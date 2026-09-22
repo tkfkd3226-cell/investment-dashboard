@@ -37,6 +37,8 @@ import {
   PORTFOLIO_HEATMAP_ACTION,
   closePortfolioHeatmap,
   openPortfolioHeatmap,
+  portfolioHeatmapIsOpen,
+  refreshPortfolioHeatmap,
   setPortfolioHeatmapMode
 } from './dashboard-heatmap.js';
 import {
@@ -419,6 +421,11 @@ function restoreDashboardNestedScroll(snapshot=[]){
     node.scrollTop=Math.min(item.top,Math.max(0,node.scrollHeight-node.clientHeight));
   });
 }
+function refreshOpenPortfolioHeatmapLive(){
+  if(!portfolioHeatmapIsOpen()||!liveValuationRenderDateEligible(dataState.activeDate))return false;
+  const x=latestDashboardCalcResult=calc(dataState.activeDate);
+  return refreshPortfolioHeatmap(x);
+}
 function renderLiveValuationRefresh(){
   if(!liveValuationRenderDateEligible(dataState.activeDate))return;
   const focusSnapshot=dashboardFocusSnapshot();
@@ -638,7 +645,7 @@ async function boot(){
   initializeDashboardState();
   bindAppEvents();
   render();
-  setupLiveValuation({renderDashboard:renderLiveValuationRefresh});
+  setupLiveValuation({renderDashboard:renderLiveValuationRefresh,renderOpenOverlay:refreshOpenPortfolioHeatmapLive});
 }
 
 boot().catch(err=>{

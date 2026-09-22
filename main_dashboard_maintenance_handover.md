@@ -214,6 +214,7 @@ js/
 ├─ dashboard-ui-common.js
 ├─ dashboard-modal.js
 ├─ dashboard-monthly-calendar.js
+├─ dashboard-heatmap.js
 ├─ dashboard-charts.js
 ├─ dashboard-ui.js
 ├─ dashboard-pension.js
@@ -236,14 +237,16 @@ data/
 tests/
 ├─ main-calc.test.cjs
 ├─ main-ui-contract.test.cjs
+├─ heatmap-engine.test.cjs
+├─ heatmap-shell.test.cjs
 └─ cross-ui-contract.test.cjs
 ```
 
 `img/favicon.png`은 Main과 Add가 공유하는 canonical favicon이다. 루트에 별도 `favicon.png` 복제본을 다시 만들지 않는다.
 
-## 2.2 메인 dependency graph는 12파일 ES Module 구조 유지
+## 2.2 메인 dependency graph는 13파일 ES Module 구조 유지
 
-현재 `dashboard-app.js`에서 도달하는 main graph는 다음 **12개 모듈**이다.
+현재 `dashboard-app.js`에서 도달하는 main graph는 다음 **13개 모듈**이다.
 
 ```text
 js/
@@ -252,6 +255,7 @@ js/
 ├─ dashboard-ui-common.js
 ├─ dashboard-modal.js
 ├─ dashboard-monthly-calendar.js
+├─ dashboard-heatmap.js
 ├─ dashboard-charts.js
 ├─ dashboard-ui.js
 ├─ dashboard-pension.js
@@ -271,6 +275,7 @@ core               → 데이터 / 계산 / 공통 state / loading / volatile li
 ui-common          → 공통 저수준 DOM / 마크업 / shared view-state / feedback·viewport helper
 modal              → custom/native dialog lifecycle / focus / inert / body lock
 monthly-calendar   → 기존 flow-neutral 일손익 기반 월간 calendar / 월 탐색 modal content
+heatmap            → canonical 증권 보유종목 View Model / deterministic treemap / modal-local interaction·live refresh
 charts             → 차트 state / SVG / chart action
 ui                 → 일반 UI / topbar / navigation / UI action
 pension            → 퇴직연금 조회 View
@@ -422,6 +427,20 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 - 월 이동 양 끝의 이전/다음 control은 `aria-disabled` 상태로 focusability를 유지해 keyboard focus가 DOM 재렌더 중 유실되지 않게 한다. 선택일(`aria-current`)과 KST 오늘 날짜(`is-today`)는 서로 다른 시각 상태로 구분하며, **오늘의 가용 데이터가 아직 없더라도** unavailable cell에 `is-today`와 `오늘, n일, 데이터 없음` 접근성 설명을 유지한다.
 - Phone에서는 월 이동 header 폭이 닫기 control 영역을 침범하지 않도록 별도 여유를 확보한다.
 - calendar geometry와 손익 의미색은 새 독립 디자인 체계를 만들지 않고 기존 spacing/type/surface/value token을 재사용한다.
+
+### `dashboard-heatmap.js`
+
+포트폴리오 히트맵은 **메인 증권 보유종목의 기존 canonical 계산 결과를 새 방식으로 표현하는 View Layer**다. 가격 fetch, Market AI 요청, 별도 polling, 평가금액·손익 재계산을 소유하지 않는다.
+
+- 대상은 메인 증권 보유종목이며 현금과 평가금액 `<= 0` 항목은 제외한다. `calc()`의 `holdings`와 `securitiesAssetDetail.change.rows`를 읽어 View Model을 만들고 원본 rows는 mutate하지 않는다.
+- 타일 면적은 선택일 평가금액 비중이며 deterministic treemap을 사용한다. `당일 / 누적손익 / 비중` mode를 바꿔도 같은 데이터에서는 geometry를 다시 정렬하지 않고 표시값·색상만 바꾼다.
+- 손익 mode 색상은 히트맵 내부에서만 `하락=적색 / 상승=녹색 / 보합=중성`을 사용하며 당일은 ±3%, 누적손익은 ±30% 고정 scale을 사용한다. 비중 mode는 neutral 계열을 사용한다.
+- tile 정보량은 실제 px geometry로 Large/Medium/Small/Tiny를 판정하며 작은 tile의 면적을 읽기 편하게 만들기 위해 왜곡하지 않는다. 상세 가격·수량·평단·원금·손익·가격기준은 기존 `.dash-tooltip`과 `assetPriceSourceInfo()`를 재사용한다.
+- 진입점은 모든 viewport에서 Topbar 하나만 사용하며 hamburger에는 중복하지 않는다. Web/Tablet은 `월간 → 히트맵 → 실시간`의 텍스트 흐름을 유지하고, Phone은 compact icon 표현을 사용한다. Phone에서는 테마 action을 hamburger 상단으로 이동하되 Market AI 연결 toggle은 Topbar에 유지한다.
+- modal lifecycle은 `dashboard-modal.js`를 재사용한다. tooltip은 modal 내부 자식으로 두어 background `inert`의 대상이 되지 않게 하고, hover/focus/touch tap에서 같은 상세정보에 접근할 수 있어야 한다.
+- Live Valuation snapshot이 바뀌면 `dashboard-live-valuation.js`의 open-overlay callback을 통해 **modal이 열려 있을 때만** 새 canonical `calc()` 결과로 rows/context/geometry를 갱신한다. 히트맵이 닫혀 있으면 추가 calc/layout/render를 하지 않는다.
+- 히트맵 modal이 열린 동안 메인 Dashboard partial render를 허용하기 위해 `liveValuationCanRender()`의 modal defer를 풀지 않는다. 메인 화면은 기존대로 modal close 뒤 pending partial render로 수렴하며, 히트맵만 열린 상태에서 즉시 최신값을 반영한다.
+- Heatmap 도입 전후 Market AI network polling 수는 같아야 한다. `dashboard-heatmap.js`에 `fetch`, `setInterval`, 별도 timer를 추가하지 않는다.
 
 ### Asset Detail 공통 불변조건
 
@@ -895,12 +914,16 @@ importmap
 
 ## 2.15 main graph 단일 entry와 Market AI standalone 분리를 유지한다
 
-현재 `dashboard-app.js`에서 도달하는 main dependency graph는 **12개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 두 번째 standalone entry로 main boot 책임을 공유하지 않는다. 두 entry는 저수준 `dashboard-market-ai-client.js` transport만 공유한다.
+현재 `dashboard-app.js`에서 도달하는 main dependency graph는 **13개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 두 번째 standalone entry로 main boot 책임을 공유하지 않는다. 두 entry는 저수준 `dashboard-market-ai-client.js` transport만 공유한다.
 
 ```text
 index.html
 ├─ dashboard-app.js
 │  ├─ dashboard-monthly-calendar.js
+│  │  ├─ dashboard-core.js
+│  │  ├─ dashboard-ui-common.js
+│  │  └─ dashboard-modal.js
+│  ├─ dashboard-heatmap.js
 │  │  ├─ dashboard-core.js
 │  │  ├─ dashboard-ui-common.js
 │  │  └─ dashboard-modal.js
@@ -1027,7 +1050,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
 - Hero에는 `LIVE / CLOSED / STALE / WARMING / JSON` 같은 raw 상태 문자열을 표시하지 않는다. 대신 `heroPerformanceBasisLabel()`이 현재 Hero 계산에 실제 적용된 quote만 보고 `일부 실시간 반영 / 실시간 현재가 기준 / 시간외 포함 현재가 기준` 중 필요한 의미만 노출한다. live가 실제 적용되지 않으면 기존 날짜 기준문구를 유지한다. 전 종목 closed여도 개별주식 애프터 시세가 실제 적용된 조건에서는 `애프터 종가 기준`을 표시한다. 단, 다음 정규장 시작 전 직전 완료 거래일 화면에 허용된 closed carry는 Market AI 장마감 시세이며, 그보다 오래된 과거 날짜만 항상 저장 데이터 의미를 유지한다.
 - 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다. 저장값은 snapshot metadata 기준으로 `장중 저장 데이터` / `정규장 종가 저장 데이터` / legacy `저장 데이터`를 구분하고, Market AI quote가 적용된 경우에만 `실시간` / `장 마감 시세`를 사용한다.
-- Live refresh 회귀 QA는 2.7의 canonical partial-render contract를 기준으로 한다. overlay를 교체하지 않고, Topbar/`#app` shell·focus·window/nested scroll을 보존하며, 활성 탭만 필요한 만큼 redraw하고 비활성 탭은 기존 lazy draw 경로를 유지해야 한다.
+- Live refresh 회귀 QA는 2.7의 canonical partial-render contract를 기준으로 한다. overlay를 교체하지 않고, Topbar/`#app` shell·focus·window/nested scroll을 보존하며, 활성 탭만 필요한 만큼 redraw하고 비활성 탭은 기존 lazy draw 경로를 유지해야 한다. 포트폴리오 히트맵이 열려 있으면 snapshot 변경 즉시 히트맵만 최신 canonical 값으로 refresh하고, 메인 partial render는 기존 modal defer를 유지해 닫힌 뒤 수렴한다.
 - 실시간 시세 iframe은 Dashboard와 `postMessage`로 Light/Dark 테마를 양방향 동기화한다. Monitor가 준비되면 Dashboard 테마를 우선 전달하고, Monitor에서 테마를 바꾸면 Dashboard도 같은 테마를 저장·적용한다. Phone modal의 5px shell은 Light `#f5f7fa`, Dark는 Monitor 기본 배경 `#11161d`를 사용한다.
 
 증권 `종목별 누적손익` 하단 카드 grid는 일반 `symbol-summary-grid`와 별도로 **Web 6열(6×1), Tablet 3열(3×2)**을 유지한다. 퇴직연금 상품 카드와 Mobile의 별도 열 수 계약에는 이 규칙을 확장하지 않는다.
@@ -1631,7 +1654,7 @@ style="..."
 
 ## 5.5 JS Structure Map / 책임 주석
 
-현재 Main graph 12개 모듈과 standalone `dashboard-market-ai.js`까지 **총 13개 JS 모듈 모두** 파일 상단 Structure Map과 본문의 번호 섹션을 1:1로 대응시킨다. `dashboard-monthly-calendar.js`는 `CAL01~05`, `dashboard-market-ai-client.js`는 `CLIENT01~03`, `dashboard-live-valuation.js`는 `LIVE01~04` Structure Map을 사용하며, feature/transport/adapter의 단일 책임 성격도 이 구조 주석 안에서 명시한다. 번호 자체를 changelog로 사용하지 않고, 실행 흐름과 ownership 탐색을 위한 구조 표지로만 사용한다. 기능 수정 시 코드와 주석 책임이 달라지면 같은 작업에서 해당 파일의 구조 주석도 함께 정합화한다.
+현재 Main graph 13개 모듈과 standalone `dashboard-market-ai.js`까지 **총 14개 JS 모듈 모두** 파일 상단 Structure Map과 본문의 번호 섹션을 1:1로 대응시킨다. `dashboard-monthly-calendar.js`는 `CAL01~05`, `dashboard-heatmap.js`는 `HEATMAP01~09`, `dashboard-market-ai-client.js`는 `CLIENT01~03`, `dashboard-live-valuation.js`는 `LIVE01~05` Structure Map을 사용하며, feature/transport/adapter의 단일 책임 성격도 이 구조 주석 안에서 명시한다. 번호 자체를 changelog로 사용하지 않고, 실행 흐름과 ownership 탐색을 위한 구조 표지로만 사용한다. 기능 수정 시 코드와 주석 책임이 달라지면 같은 작업에서 해당 파일의 구조 주석도 함께 정합화한다.
 
 코드를 그대로 읽어주는 주석은 늘리지 않고 module ownership, 예외, lifecycle 경계처럼 코드만으로 바로 알기 어려운 이유를 설명한다.
 
@@ -1912,7 +1935,7 @@ KOSPI 비교선 · KIS realtime/closed_latest만 runtime overlay · unusable/연
 15:30~20:00 mixed session에서 개별주식 extended + ETF closed를 ticker별 market_state로 구분
 client_id multi-client universe 충돌 없음
 holdings 변경 중 stale response 폐기
-modal/expanded chart 중 render defer
+modal/expanded chart 중 main render defer · 열린 히트맵은 별도 open-overlay callback으로 즉시 refresh
 실시간 시세 modal close 후 10초 partial refresh에서 Topbar/#app shell 유지 · 활성 탭만 redraw · scroll creep 없음
 visible 복귀 즉시 refresh
 Dashboard-side Market AI OFF/ON · OFF 시 polling/volatile overlay 제거 · ON 시 즉시 retry

@@ -38,6 +38,7 @@ index.html
 - 장부결과 VS 실제보유 검산
 - 별도수익 ON/OFF 비교
 - 월간 손익 캘린더 — 합산/증권/퇴직연금별 flow-neutral 일손익을 전환해 보고, KRX 휴장·데이터 누락을 구분하며 날짜 선택 시 해당 일자 Dashboard로 이동
+- 포트폴리오 히트맵 — 메인 증권 보유종목을 평가금액 비중의 treemap으로 표시하고 당일·누적손익·비중 모드를 전환해 구성과 손익 분포를 확인
 - KOSPI 대비 초과성과 및 기간 차트
 - 퇴직연금 상품별 손익·비중·위험자산 관리
 - 기업적립금·현금성자산·ETF 추가매수 조정
@@ -184,6 +185,7 @@ investment-dashboard/
 │  ├─ dashboard-ui-common.js
 │  ├─ dashboard-modal.js
 │  ├─ dashboard-monthly-calendar.js
+│  ├─ dashboard-heatmap.js
 │  ├─ dashboard-charts.js
 │  ├─ dashboard-ui.js
 │  ├─ dashboard-pension.js
@@ -221,6 +223,8 @@ investment-dashboard/
 ├─ tests/
 │  ├─ main-calc.test.cjs
 │  ├─ main-ui-contract.test.cjs
+│  ├─ heatmap-engine.test.cjs
+│  ├─ heatmap-shell.test.cjs
 │  ├─ add-calc.test.cjs
 │  ├─ add-report-data.test.cjs
 │  ├─ add-ui-contract.test.cjs

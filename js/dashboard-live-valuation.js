@@ -46,6 +46,7 @@ let liveValuationMarketAiConnected=false;
 let liveValuationSettledSessionKey='';
 let liveValuationSettledPhase='';
 let renderDashboardCallback=null;
+let renderOpenOverlayCallback=null;
 let liveValuationClientCandidate='';
 let liveValuationClientChannel=null;
 let liveValuationClientResolvePromise=null;
@@ -202,7 +203,7 @@ function clearLiveValuationForDisconnected(reason='market-ai-disconnected'){
   stopLiveValuationPollTimer();
   const valuationChanged=clearLiveValuationSnapshot(reason,[]);
   const kospiChanged=clearLiveKospiSnapshot();
-  if(valuationChanged||kospiChanged)requestLiveValuationRender();
+  if(valuationChanged||kospiChanged)requestLiveValuationRender({refreshOpenOverlay:valuationChanged});
   else flushLiveValuationRender();
 }
 
@@ -267,7 +268,10 @@ function flushLiveValuationRender(){
   return true;
 }
 
-function requestLiveValuationRender(){
+function requestLiveValuationRender({refreshOpenOverlay=true}={}){
+  if(refreshOpenOverlay&&renderOpenOverlayCallback){
+    try{renderOpenOverlayCallback()}catch(error){console.error('Live valuation overlay refresh failed',error)}
+  }
   if(!renderDashboardCallback)return;
   liveValuationRenderPending=true;
   flushLiveValuationRender();
@@ -297,7 +301,7 @@ function normalizedLiveKospiSnapshot(row){
 
 function syncLiveKospiSnapshot(row=marketAiKospiSnapshot()){
   const changed=applyLiveKospiSnapshot(normalizedLiveKospiSnapshot(row));
-  if(changed)requestLiveValuationRender();
+  if(changed)requestLiveValuationRender({refreshOpenOverlay:false});
   else flushLiveValuationRender();
   return changed;
 }
@@ -378,8 +382,9 @@ async function refreshLiveValuation(){
 }
 
 // [LIVE05] Lifecycle / Public API · visible 복귀 refresh / 10초 network polling + closed-session local sentinel
-function setupLiveValuation({renderDashboard}={}){
+function setupLiveValuation({renderDashboard,renderOpenOverlay}={}){
   renderDashboardCallback=typeof renderDashboard==='function'?renderDashboard:null;
+  renderOpenOverlayCallback=typeof renderOpenOverlay==='function'?renderOpenOverlay:null;
   if(liveValuationSetupBound){
     flushLiveValuationRender();
     return;

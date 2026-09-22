@@ -142,3 +142,15 @@ test('히트맵 3차: 범례와 4 viewport modal density를 제공한다',()=>{
   assert.match(special,/Heatmap Landscape[^]*height:clamp\(180px,calc\(100dvh - 118px\),250px\)/,'Phone landscape는 세로 공간을 compact하게 사용해야 한다');
 });
 
+test('히트맵 4차: live refresh는 열린 modal에서만 canonical rows/context를 교체하고 polling을 소유하지 않는다',()=>{
+  assert.match(heatmap,/function portfolioHeatmapIsOpen\(\)\{\s*return document\.getElementById\('portfolioHeatmapModal'\)\?\.classList\.contains\('show'\)===true;/);
+  assert.match(heatmap,/function refreshPortfolioHeatmap\(calcResult\)\{\s*if\(!portfolioHeatmapIsOpen\(\)\)return false;/,'닫힌 modal에서는 refresh 작업을 하지 않아야 한다');
+  assert.match(heatmap,/portfolioHeatmapState\.rows=createPortfolioHeatmapViewModelFromCalc\(calcResult\|\|\{\}\)/);
+  assert.match(heatmap,/portfolioHeatmapState\.context=portfolioHeatmapContextFromCalc\(calcResult\|\|\{\}\)/);
+  assert.match(heatmap,/portfolioHeatmapState\.layoutRows=\[\];[^]*?renderPortfolioHeatmapVisualization\(\{forceLayout:true\}\)/,'live 평가금액 변경 시 geometry는 새 canonical rows 기준으로 다시 계산해야 한다');
+  assert.match(heatmap,/const activeKey=heatmapStableKey\(portfolioHeatmapRowForTile\(activeTile\)\)/,'live refresh 전 keyboard tile focus의 stable key를 보존해야 한다');
+  assert.match(heatmap,/nextFocus\?\.focus\?\.\(\{preventScroll:true\}\)/,'live refresh 후 focus를 동일 종목 또는 mode control로 복원해야 한다');
+  assert.doesNotMatch(heatmap,/\bsetInterval\s*\(|\bfetch\s*\(/,'Heatmap 자체는 polling/network를 소유하면 안 된다');
+  assert.doesNotMatch(heatmap,/priceSource:holding\?\.priceSource/,'사용하지 않는 중복 priceSource View Model field를 남기지 않는다');
+});
+

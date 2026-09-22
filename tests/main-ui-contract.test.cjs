@@ -200,13 +200,24 @@ test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validat
 test('실시간 평가 adapter는 importmap cache-bust 대상이고 boot 이후 별도 lifecycle로 시작한다',()=>{
   assert.match(index,/'dashboard-market-ai-client\.js'/);
   assert.match(index,/'dashboard-live-valuation\.js'/);
-  assert.match(app,/setupLiveValuation\(\{renderDashboard:renderLiveValuationRefresh\}\);/);
+  assert.match(app,/setupLiveValuation\(\{renderDashboard:renderLiveValuationRefresh,renderOpenOverlay:refreshOpenPortfolioHeatmapLive\}\);/);
   assert.match(liveValuation,/const LIVE_VALUATION_POLL_MS=10_000;/);
   assert.match(marketAi,/const MARKET_AI_POLL_MS=10_000;/);
   assert.match(liveValuation,/\/api\/market-data\/krx-quotes/);
   assert.match(liveValuation,/document\.visibilityState==='visible'/);
 });
 
+
+test('실시간 평가 변경은 열린 overlay를 즉시 갱신하되 main partial render defer 계약은 유지한다',()=>{
+  assert.match(liveValuation,/let renderOpenOverlayCallback=null;/);
+  assert.match(liveValuation,/function requestLiveValuationRender\(\{refreshOpenOverlay=true\}=\{\}\)\{[^]*?refreshOpenOverlay&&renderOpenOverlayCallback[^]*?liveValuationRenderPending=true;[^]*?flushLiveValuationRender\(\);/,'보유종목 snapshot 변경 시 열린 overlay callback을 먼저 호출한 뒤 기존 main render 경로를 유지해야 한다');
+  assert.match(liveValuation,/if\(changed\)requestLiveValuationRender\(\{refreshOpenOverlay:false\}\);[^]*?return changed;[^]*?\/\/ \[LIVE04\]/,'KOSPI benchmark-only 변경은 히트맵을 불필요하게 다시 그리면 안 된다');
+  assert.match(liveValuation,/function setupLiveValuation\(\{renderDashboard,renderOpenOverlay\}=\{\}\)/);
+  assert.match(liveValuation,/renderOpenOverlayCallback=typeof renderOpenOverlay==='function'\?renderOpenOverlay:null/);
+  assert.match(app,/function refreshOpenPortfolioHeatmapLive\(\)\{[^]*?if\(!portfolioHeatmapIsOpen\(\)\|\|!liveValuationRenderDateEligible\(dataState\.activeDate\)\)return false;[^]*?latestDashboardCalcResult=calc\(dataState\.activeDate\)[^]*?refreshPortfolioHeatmap\(x\)/,'열린 히트맵만 canonical calc 결과로 갱신해야 한다');
+  assert.match(liveValuation,/if\(document\.querySelector\('\.chart-expanded-overlay,\.action-modal\.show,\.contrib-modal\.show,dialog\[open\]'\)\)return false;/,'modal open 중 main partial render defer 보호는 그대로 유지해야 한다');
+  assert.equal((liveValuation.match(/setInterval\(/g)||[]).length,1,'히트맵 live refresh 때문에 polling timer가 늘어나면 안 된다');
+});
 
 test('실시간 평가 empty universe도 authoritative client lease로 반납하고 로컬 requestedTickers를 비운다',()=>{
   assert.doesNotMatch(liveValuation,/if\(!tickers\.length\)\{\s*const changed=clearLiveValuationSnapshot\('empty-universe'\);[^}]*return;/);
