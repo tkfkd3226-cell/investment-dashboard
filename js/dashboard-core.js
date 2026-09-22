@@ -23,7 +23,8 @@ const dataState={
   pensionTrades:null,
   krxTradingCalendar:null,
   activeDate:null,
-  liveValuation:{status:'idle',marketState:'',bridgeConnected:null,universeVersion:0,generatedAt:null,requestedTickers:[],items:{},reason:''}
+  liveValuation:{status:'idle',marketState:'',bridgeConnected:null,universeVersion:0,generatedAt:null,requestedTickers:[],items:{},reason:''},
+  liveKospi:null
 };
 const uiState={
   activeAssetTab:'securities',
@@ -122,6 +123,8 @@ const DASHBOARD_WRITE_CONFIG = {
 };
 const formatKospi=n=>Number(n).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const kospiIndexForDate=date=>{
+  const liveValue=liveKospiIndexForDate(date);
+  if(liveValue!=null)return liveValue;
   const value=dataState.snapshots?.[date]?.kospi ?? dataState.prices?.[date]?.indices?.KOSPI;
   const number=Number(value);
   return Number.isFinite(number)&&number>0?number:null;
@@ -162,6 +165,47 @@ const kstDateParts=value=>{
   };
 };
 const kstTodayText=()=>kstDateParts(new Date())?.date||'';
+
+function normalizeLiveKospiSnapshot(snapshot){
+  if(!snapshot||snapshot.usable!==true)return null;
+  const price=Number(snapshot.price);
+  if(!Number.isFinite(price)||price<=0)return null;
+  const observedAt=snapshot.observedAt?String(snapshot.observedAt):null;
+  return {
+    price,
+    observedAt,
+    observedDate:String(snapshot.observedDate||'')||(observedAt?(kstDateParts(observedAt)?.date||''):''),
+    source:String(snapshot.source||''),
+    status:String(snapshot.status||''),
+    usable:true
+  };
+}
+function applyLiveKospiSnapshot(snapshot){
+  const next=normalizeLiveKospiSnapshot(snapshot);
+  const previous=JSON.stringify(dataState.liveKospi),serialized=JSON.stringify(next);
+  dataState.liveKospi=next;
+  return previous!==serialized;
+}
+function clearLiveKospiSnapshot(){
+  if(dataState.liveKospi==null)return false;
+  dataState.liveKospi=null;
+  return true;
+}
+function liveKospiIndexForDate(date,now=new Date()){
+  if(!date)return null;
+  const quote=dataState.liveKospi;
+  if(!quote||quote.usable!==true)return null;
+  const price=Number(quote.price);
+  if(!Number.isFinite(price)||price<=0)return null;
+  const today=kstDateParts(now)?.date||kstTodayText();
+  const quoteDate=String(quote.observedDate||'')||(quote.observedAt?(kstDateParts(quote.observedAt)?.date||''):'');
+  if(date===today){
+    if(quoteDate!==today||!['realtime','closed_latest'].includes(String(quote.status||'')))return null;
+    return price;
+  }
+  if(date>today||quoteDate!==date||quote.status!=='closed_latest')return null;
+  return price;
+}
 
 const assetPriceColumnLabel=(date,{current=false}={})=>{
   if(!date)return current?'당일 종가':'전일 종가';
@@ -1037,6 +1081,7 @@ const securitiesHistoryCalcCache={
   snapshots:null,
   account1Daily:null,
   liveValuation:null,
+  liveKospi:null,
   rows:null,
   cumBundle:null
 };
@@ -1047,7 +1092,8 @@ function securitiesHistoryCalcCacheMatches(d){
     &&securitiesHistoryCalcCache.prices===dataState.prices
     &&securitiesHistoryCalcCache.snapshots===dataState.snapshots
     &&securitiesHistoryCalcCache.account1Daily===dataState.account1Daily
-    &&securitiesHistoryCalcCache.liveValuation===dataState.liveValuation;
+    &&securitiesHistoryCalcCache.liveValuation===dataState.liveValuation
+    &&securitiesHistoryCalcCache.liveKospi===dataState.liveKospi;
 }
 function securitiesHistoryCalcRows(d){
   if(securitiesHistoryCalcCacheMatches(d))return securitiesHistoryCalcCache.rows;
@@ -1059,6 +1105,7 @@ function securitiesHistoryCalcRows(d){
     snapshots:dataState.snapshots,
     account1Daily:dataState.account1Daily,
     liveValuation:dataState.liveValuation,
+    liveKospi:dataState.liveKospi,
     rows,
     cumBundle:null
   });
@@ -1199,6 +1246,7 @@ const pensionHistoryCalcCache={
   pensionCashSnapshots:null,
   pensionTrades:null,
   liveValuation:null,
+  liveKospi:null,
   bundle:null
 };
 function pensionHistoryCalcCacheMatches(d){
@@ -1211,7 +1259,8 @@ function pensionHistoryCalcCacheMatches(d){
     &&pensionHistoryCalcCache.pensionContributions===dataState.pensionContributions
     &&pensionHistoryCalcCache.pensionCashSnapshots===dataState.pensionCashSnapshots
     &&pensionHistoryCalcCache.pensionTrades===dataState.pensionTrades
-    &&pensionHistoryCalcCache.liveValuation===dataState.liveValuation;
+    &&pensionHistoryCalcCache.liveValuation===dataState.liveValuation
+    &&pensionHistoryCalcCache.liveKospi===dataState.liveKospi;
 }
 function pensionChartHistoryBundle(d){
   if(pensionHistoryCalcCacheMatches(d))return pensionHistoryCalcCache.bundle;
@@ -1252,6 +1301,7 @@ function pensionChartHistoryBundle(d){
     pensionCashSnapshots:dataState.pensionCashSnapshots,
     pensionTrades:dataState.pensionTrades,
     liveValuation:dataState.liveValuation,
+    liveKospi:dataState.liveKospi,
     bundle
   });
   return bundle;
@@ -1417,6 +1467,7 @@ export {
   account1InvestedPrincipalForDate,
   account1SourceHoldingGapForDate,
   allocHistory,
+  applyLiveKospiSnapshot,
   applyLiveValuationSnapshot,
   allAvailableDates,
   assetPriceColumnLabel,
@@ -1426,6 +1477,7 @@ export {
   securitiesDailyProfitChange,
   pensionDailyProfitChange,
   cls,
+  clearLiveKospiSnapshot,
   clearLiveValuationSnapshot,
   cumHistory,
   dataState,
@@ -1445,6 +1497,7 @@ export {
   linkedPensionCashSnapshotForContribution,
   linkedPensionCashSnapshotForTrade,
   loadInitialData,
+  liveKospiIndexForDate,
   liveValuationPriceForDate,
   liveValuationQuoteForDate,
   liveValuationRenderDateEligible,

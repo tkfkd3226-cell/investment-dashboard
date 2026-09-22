@@ -1,10 +1,11 @@
 // Market AI Client · Signal panel/live valuation이 공유하는 endpoint·timeout transport, canonical Monitor URL/connection event, Dashboard-side 연결 사용 preference를 소유한다.
-// quote 의미·DOM rendering·Monitor lease 의미는 소유하지 않고 local/remote 연결 semantics와 사용자 연결 사용 여부만 담당한다.
+// quote 의미·DOM rendering·Monitor lease 의미는 소유하지 않고 local/remote 연결 semantics와 사용자 연결 사용 여부, 현재 KOSPI snapshot의 휘발성 handoff만 담당한다.
 // Structure map:
 //   [CLIENT01] Endpoint / Environment
 //   [CLIENT02] User Connection Preference
-//   [CLIENT03] Timeout-safe Fetch
-//   [CLIENT04] Public API
+//   [CLIENT03] Volatile KOSPI Snapshot Handoff
+//   [CLIENT04] Timeout-safe Fetch
+//   [CLIENT05] Public API
 
 // [CLIENT01] Endpoint / Environment · local 8001 / remote Tailscale origin
 const MARKET_AI_TIMEOUT_MS=2_500;
@@ -14,7 +15,10 @@ const MARKET_AI_REMOTE_BASE='https://node.tail60a98e.ts.net';
 const MARKET_AI_MONITOR_URL=`${MARKET_AI_REMOTE_BASE}/monitor/`;
 const MARKET_AI_CONNECTION_EVENT='investment-dashboard:market-ai-connection';
 const MARKET_AI_ENABLED_EVENT='investment-dashboard:market-ai-enabled';
+const MARKET_AI_KOSPI_SNAPSHOT_EVENT='investment-dashboard:market-ai-kospi-snapshot';
 const MARKET_AI_ENABLED_STORAGE_KEY='investmentDashboard.marketAiEnabled';
+
+let latestMarketAiKospiSnapshot=null;
 
 function marketAiLocalMode(){
   return LOCAL_DASHBOARD_HOSTS.has(location.hostname);
@@ -51,7 +55,18 @@ window.addEventListener?.('storage',event=>{
   window.dispatchEvent(new CustomEvent(MARKET_AI_ENABLED_EVENT,{detail:{enabled}}));
 });
 
-// [CLIENT03] Timeout-safe Fetch · body 소비가 끝날 때까지 timeout lifecycle 유지
+// [CLIENT03] Volatile KOSPI Snapshot Handoff · standalone snapshot을 main live valuation에 저장 없이 전달
+function marketAiKospiSnapshot(){
+  return latestMarketAiKospiSnapshot;
+}
+
+function publishMarketAiKospiSnapshot(row){
+  latestMarketAiKospiSnapshot=row&&typeof row==='object'?row:null;
+  window.dispatchEvent(new CustomEvent(MARKET_AI_KOSPI_SNAPSHOT_EVENT,{detail:{row:latestMarketAiKospiSnapshot}}));
+  return latestMarketAiKospiSnapshot;
+}
+
+// [CLIENT04] Timeout-safe Fetch · body 소비가 끝날 때까지 timeout lifecycle 유지
 function marketAiFetchWithTimeout(url,options={},timeoutMs=marketAiRequestTimeoutMs()){
   const controller=new AbortController();
   let settled=false;
@@ -77,16 +92,19 @@ function marketAiFetchWithTimeout(url,options={},timeoutMs=marketAiRequestTimeou
   },error=>{finish();throw error;});
 }
 
-// [CLIENT04] Public API
+// [CLIENT05] Public API
 export {
   MARKET_AI_CONNECTION_EVENT,
   MARKET_AI_ENABLED_EVENT,
+  MARKET_AI_KOSPI_SNAPSHOT_EVENT,
   MARKET_AI_MONITOR_URL,
   MARKET_AI_REMOTE_BASE,
   marketAiApiBase,
   marketAiEnabled,
   marketAiFetchWithTimeout,
+  marketAiKospiSnapshot,
   marketAiLocalMode,
   marketAiRequestTimeoutMs,
+  publishMarketAiKospiSnapshot,
   setMarketAiEnabled
 };

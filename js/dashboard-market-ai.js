@@ -3,7 +3,8 @@ import {
   MARKET_AI_ENABLED_EVENT,
   marketAiApiBase,
   marketAiEnabled,
-  marketAiFetchWithTimeout as fetchWithTimeout
+  marketAiFetchWithTimeout as fetchWithTimeout,
+  publishMarketAiKospiSnapshot
 } from './dashboard-market-ai-client.js';
 
 // Market AI Standalone Adapter · main feature graph와 분리된 독립 entry
@@ -102,6 +103,7 @@ function setMarketAiLifecycleState(lifecycle,{resetData=false}={}){
   if(resetData){
     Object.assign(marketAiState,{signal:null,marketSnapshot:{},bridgeStatus:null,lastSignalAt:null});
   }
+  publishMarketAiKospiSnapshot(null);
   publishMarketAiConnectionState(false);
   removeMarketAiUi();
 }
@@ -1309,6 +1311,7 @@ async function runMarketAiSignalRefresh(generation){
     marketSnapshot:nextMarketSnapshot??{},
     bridgeStatus:nextBridgeStatus
   });
+  publishMarketAiKospiSnapshot(marketAiState.marketSnapshot?.['INDEX:KOSPI']||null);
   document.documentElement.dataset.marketAiLifecycle='online';
   publishMarketAiConnectionState(true);
   ensureMarketAiPollTimer();

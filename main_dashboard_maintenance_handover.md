@@ -275,13 +275,13 @@ charts             → 차트 state / SVG / chart action
 ui                 → 일반 UI / topbar / navigation / UI action
 pension            → 퇴직연금 조회 View
 pension-editor     → 퇴직연금 변경 Editor / persistence flow
-market-ai-client   → Market AI local/remote base + timeout transport + Dashboard-side 연결 사용 preference
-live-valuation     → 오늘 보유 ticker universe / polling / race guard / render defer
+market-ai-client   → Market AI local/remote base + timeout transport + Dashboard-side 연결 사용 preference + KOSPI snapshot handoff
+live-valuation     → 오늘 보유 ticker universe / KOSPI benchmark overlay / polling / race guard / render defer
 app                → cross-module orchestration / boot
 market-ai          → 현재 시장·AI 신호 standalone panel / polling / render
 ```
 
-단순 수정 때문에 다시 하나의 거대한 JS 파일로 합치지 않고, 반대로 책임 경계가 없는 작은 기능마다 새 파일을 추가하지 않는다. `dashboard-market-ai-client.js`는 backend 산식·quote 의미·DOM state를 소유하지 않고 transport와 Dashboard-side Market AI 사용 preference/event만 공유하며, `dashboard-live-valuation.js`는 Market AI signal panel state를 직접 다루지 않는다.
+단순 수정 때문에 다시 하나의 거대한 JS 파일로 합치지 않고, 반대로 책임 경계가 없는 작은 기능마다 새 파일을 추가하지 않는다. `dashboard-market-ai-client.js`는 backend 산식·quote 의미·DOM state를 소유하지 않고 transport와 Dashboard-side Market AI 사용 preference/event, 현재 KOSPI snapshot의 휘발성 handoff만 공유하며, `dashboard-live-valuation.js`는 Market AI signal panel state를 직접 다루지 않는다.
 
 ## 2.3 `dashboard-core.js` 책임
 
@@ -606,18 +606,18 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 
 ### 2.8.1 `dashboard-market-ai-client.js` transport · 사용 preference 책임
 
-`dashboard-market-ai-client.js`는 Market AI signal panel과 live valuation이 공유하는 **저수준 transport foundation과 Dashboard-side 연결 사용 preference**를 소유한다.
+`dashboard-market-ai-client.js`는 Market AI signal panel과 live valuation이 공유하는 **저수준 transport foundation, Dashboard-side 연결 사용 preference, 현재 KOSPI snapshot의 휘발성 handoff**를 소유한다.
 
 - local/remote API base 선택과 timeout fetch를 소유한다.
 - `investmentDashboard.marketAiEnabled` localStorage key와 `MARKET_AI_ENABLED_EVENT`를 canonical source로 사용한다. cross-tab `storage` event도 같은 의미를 전달한다.
-- signal 산식, quote 판정, Dashboard 계산, DOM, polling state를 소유하지 않는다.
+- signal 산식, quote 판정, Dashboard 계산, DOM, polling state를 소유하지 않는다. `dashboard-market-ai.js`가 이미 조회한 `INDEX:KOSPI` raw row를 메모리에 잠시 보관하고 event로 전달할 뿐, usable 여부는 backend `input_status`를 소비하는 live valuation 쪽에서 판정한다.
 - Local은 현재 Dashboard host의 `:8001` full API를 사용한다. Remote는 canonical Tailscale endpoint를 사용하되 실제 runtime 경로는 **Tailscale Serve → `127.0.0.1:8002` GET-only proxy → `127.0.0.1:8001`**이며 Dashboard frontend는 remote write 경로를 갖지 않는다.
 - `fetch()` 성공 뒤 body parse가 끝날 때까지 timeout lifecycle을 유지하고 body 소비 완료 후 timer를 정리한다.
 - endpoint가 바뀌면 signal panel과 live valuation에 각각 literal을 복제하지 않고 이 module을 canonical source로 수정한다.
 
 ### 2.8.2 `dashboard-live-valuation.js` 현재가 overlay 책임
 
-`dashboard-live-valuation.js`는 Market AI의 KRX quote를 **현재 평가 대상 거래일에만 screen-only overlay**하는 main feature adapter다. 기본 대상은 KST 오늘이며, 다음 KRX 정규장 시작 전의 직전 완료 거래일 carry는 아래 명시된 제한 조건에서만 허용한다.
+`dashboard-live-valuation.js`는 Market AI의 KRX quote와 `INDEX:KOSPI` benchmark를 **현재 평가 대상 거래일에만 screen-only overlay**하는 main feature adapter다. 기본 대상은 KST 오늘이며, 다음 KRX 정규장 시작 전의 직전 완료 거래일 carry는 아래 명시된 제한 조건에서만 허용한다.
 
 - `dashboard-core.js`가 계산한 현재 보유수량이 `0`보다 큰 증권·퇴직연금 ticker를 문자열로 수집하고 중복 제거한다. `005930`의 leading zero와 `0163Y0` 같은 영문 혼합 6자리 ticker를 보존한다.
 - 동일 ticker가 증권·퇴직연금에 동시에 있어도 quote universe에는 한 번만 요청한다.
@@ -628,9 +628,10 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 현재 consumer session contract는 **개별주식 `09:00~15:30 open / 15:30~20:00 extended / 20:00 이후 closed`, ETF `15:30 이후 closed`**다. `extended` quote는 backend가 `state=live, usable=true`로 제공하고, 신뢰 가능한 당일 장마감 가격은 `state=closed, usable=true`로 제공할 수 있으므로 둘 다 오늘 평가 overlay에 적용한다. Dashboard는 process-memory인지 durable KIS snapshot 복구인지 자체 판정하지 않고 backend의 ticker별 `market_state/state/usable/source`를 소비한다. **20:00 자체는 fallback 조건이 아니며**, KOSPI 15:30 종가 판정과 K200 day/night session은 Market AI backend 소유라 live valuation adapter가 재정의하지 않는다.
 - 동일 보유 ticker universe에서 모든 ticker가 `state=closed + market_state=closed + usable=true + price>0`로 확정되면 그 closed snapshot을 Market AI 최종 overlay로 유지한다. 자정이 지나더라도 각 quote의 `observed_at` KST 날짜가 직전 완료 거래일 화면과 일치하면 **다음 KRX 정규장 시작 전까지** 그 화면에 closed quote를 이어서 적용한다. settled 상태는 날짜/universe뿐 아니라 KRX local market phase(`preopen/open/closed`)도 함께 기억하므로 `preopen → open` 전환에서 반드시 1회 network 재검증한다. 이때 정상 거래일이면 새 session quote/warming 상태로 넘어가 직전일 overlay를 제거하고, 휴장일처럼 backend가 당일 생성시각으로 `market_state=closed`를 재확인하면 직전 완료 세션을 계속 유지한다. 현재 ticker가 0개인 경우에도 authoritative empty lease를 1회 성공적으로 전달한 뒤 같은 방식으로 network polling을 쉰다. 일부 ticker가 unusable이면 fully-closed로 보지 않아 polling을 계속하고 해당 ticker만 JSON fallback한다.
 - closed-session network 정지는 Live Valuation 전용이다. Market AI Signal은 KOSPI200 선물·SOX·NQ100 선물 등 국내 현물 장마감 이후에도 의미가 있는 입력을 포함하므로 ONLINE 동안 기존 signal polling을 계속한다.
-- live quote는 `dataState.liveValuation`의 volatile snapshot으로만 보관하며 운영 JSON, GAS, GitHub Actions, `performance_snapshots.json`에 쓰지 않는다.
+- KOSPI 비교선은 standalone Market AI가 이미 조회한 `/api/market-data/snapshot`의 `INDEX:KOSPI`를 추가 fetch 없이 공유한다. `kis-efriend:JUC_R:*` source + backend `input_status.available=true` + `realtime` 또는 `closed_latest` + 양의 가격을 모두 만족할 때만 `dataState.liveKospi`에 volatile overlay로 보관한다. 오늘 row에서는 같은 KST 날짜의 실시간/당일 마감값만 사용하고, 다음 정규장 시작 전 직전 완료 거래일 화면에는 같은 날짜의 `closed_latest`만 허용한다. 조건을 벗어나거나 snapshot API가 비면 즉시 `performance_snapshots.json` / `prices.json` KOSPI 값으로 fallback한다.
+- live quote는 `dataState.liveValuation`, KOSPI benchmark는 `dataState.liveKospi`의 volatile snapshot으로만 보관하며 운영 JSON, GAS, GitHub Actions, `performance_snapshots.json`에 쓰지 않는다.
 - live overlay는 기본적으로 `activeDate === KST 오늘`에 적용한다. 예외적으로 자정 이후 다음 KRX 정규장 시작 전에는 `closed + usable` quote의 `observed_at` KST 날짜가 직전 완료 거래일 `activeDate`와 정확히 일치할 때만 그 직전 거래일에도 overlay를 허용한다. 다음 session이 시작되거나 backend가 새 session 상태를 확인하면 직전 거래일은 다시 JSON/역사 snapshot 의미로 돌아가며, 그보다 오래된 과거 날짜에는 Market AI state를 적용하지 않는다. 이 예외는 `dashboard-core.js`의 quote 판정뿐 아니라 `dashboard-app.js`의 Live Valuation partial render gate에도 동일하게 적용해야 하며, `activeDate !== kstTodayText()` 같은 별도 today-only guard를 두면 장전 carry quote가 메모리에 들어와도 화면은 JSON 상태로 남는 회귀가 발생한다.
-- Market AI는 ticker별 현재가와 source/health만 제공한다. 수량·원가·원금·매매흐름·실현손익의 owner는 Dashboard 장부다.
+- Market AI는 ticker별 현재가/source/health와 KOSPI benchmark를 제공한다. 수량·원가·원금·매매흐름·실현손익의 owner는 Dashboard 장부다. KOSPI runtime 값은 누적 손익/누적 수익률 차트의 비교선에만 사용하며 저장 원천을 바꾸지 않는다.
 - 현재가가 바뀌면 현재가 의존 평가금액·평가손익·수익률·일변동·계좌/통합 합계는 기존 Dashboard 계산으로 재파생하되 장부 원천값을 바꾸지 않는다.
 - polling은 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. 겹친 요청은 latest-wins sequence로 보호하며, 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다.
 - Live Valuation/render lifecycle의 canonical contract는 **2.7 `dashboard-app.js` 책임**을 따른다. overlay·input·tooltip interaction 중에는 render를 보류하고 종료 후 최신 pending state를 1회 반영한다. 10초 Live Valuation과 별도수익 전환은 `#tabs`/`#app` shell과 focus/scroll transient state를 보존하는 부분 갱신을 사용하며, 구체 fragment 목록과 redraw 범위는 실제 `dashboard-app.js`를 Source of Truth로 한다.
@@ -699,7 +700,7 @@ dashboard-market-ai.js
 유지 원칙:
 
 - `chartState`나 editor batch state를 core/global로 올리지 않는다.
-- Market AI **signal panel state**를 메인 `dataState` / `uiState`에 합치지 않는다. 단, 보유종목 평가에 실제 필요한 quote snapshot은 `dataState.liveValuation`의 휘발성 계산 입력으로만 둔다.
+- Market AI **signal panel state**를 메인 `dataState` / `uiState`에 합치지 않는다. 단, 보유종목 평가에 실제 필요한 quote snapshot은 `dataState.liveValuation`, 차트 비교선에 필요한 현재 KOSPI는 `dataState.liveKospi`의 휘발성 계산 입력으로만 둔다.
 - 새 global store / event bus / framework state manager / 거대한 단일 state 객체를 만들지 않는다.
 - `window` / `globalThis` state bridge로 module ownership을 우회하지 않는다.
 - 반복 render에 필요한 listener/tooltip/chart guard는 각 owner module 안에서 관리한다.
@@ -1660,7 +1661,7 @@ data/pension_contributions.json
 - 최신 KRX 반영분과 코드 patch를 섞을 때 단순 hash 차이를 코드 회귀로 오인하지 않는다.
 - `pension_contributions.json`은 KRX 재갱신 대상이라고 가정하지 않는다.
 - 실제 운영 데이터가 포함된 최신 기준본을 과거 코드 패키지로 덮어쓰기 전에 먼저 확인한다.
-- Market AI 실시간 보유종목 quote는 **화면 메모리 overlay 전용**이다. `prices.json`, `performance_snapshots.json`, Pension JSON 또는 GAS write 경로에 live quote를 저장하지 않는다.
+- Market AI 실시간 보유종목 quote와 KOSPI benchmark는 **화면 메모리 overlay 전용**이다. `prices.json`, `performance_snapshots.json`, Pension JSON 또는 GAS write 경로에 live 값을 저장하지 않는다.
 
 QA 중 실제 운영 write 금지:
 
@@ -1907,6 +1908,7 @@ Market AI/live valuation 변경이면 추가로 다음을 확인한다.
 ```text
 KST 오늘 또는 다음 정규장 시작 전 직전 완료 거래일 activeDate에만 허용 조건을 만족한 usable quote overlay 적용
 종목별 usable/fallback · closed+usable도 Market AI coverage로 인정
+KOSPI 비교선 · KIS realtime/closed_latest만 runtime overlay · unusable/연결해제 시 JSON fallback
 15:30~20:00 mixed session에서 개별주식 extended + ETF closed를 ticker별 market_state로 구분
 client_id multi-client universe 충돌 없음
 holdings 변경 중 stale response 폐기

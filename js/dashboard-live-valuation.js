@@ -1,5 +1,7 @@
 import {
+  applyLiveKospiSnapshot,
   applyLiveValuationSnapshot,
+  clearLiveKospiSnapshot,
   clearLiveValuationSnapshot,
   dataState,
   liveValuationRenderDateEligible,
@@ -9,19 +11,22 @@ import {
 import {
   MARKET_AI_CONNECTION_EVENT,
   MARKET_AI_ENABLED_EVENT,
+  MARKET_AI_KOSPI_SNAPSHOT_EVENT,
   marketAiApiBase,
   marketAiEnabled,
+  marketAiKospiSnapshot,
   marketAiFetchWithTimeout
 } from './dashboard-market-ai-client.js';
 
-// Live Valuation Adapter · 현재 KRX 세션과 직전 완료 세션의 Market AI quote를 화면 평가값에만 overlay한다.
-// Backend가 live / extended / closed 여부와 usable 판정을 소유하고, 이 모듈은 usable quote만 소비한다.
+// Live Valuation Adapter · 현재 KRX 세션과 직전 완료 세션의 Market AI quote와 KOSPI benchmark를 화면 평가값/차트에만 overlay한다.
+// Backend가 quote usable 및 KOSPI input_status 판정을 소유하고, 이 모듈은 검증된 현재값만 소비한다.
 // transport는 dashboard-market-ai-client.js, position/cost/calculation은 dashboard-core.js가 소유하며 overlay 값은 운영 JSON에 저장하지 않는다.
 // Structure map:
 //   [LIVE01] Configuration / Client Identity
 //   [LIVE02] Fingerprint / Deferred Render
-//   [LIVE03] Quote Refresh / Universe Reconcile
-//   [LIVE04] Lifecycle / Public API
+//   [LIVE03] KOSPI Benchmark Handoff
+//   [LIVE04] Quote Refresh / Universe Reconcile
+//   [LIVE05] Lifecycle / Public API
 
 // [LIVE01] Configuration / Client Identity · poll 설정 / tab별 client identity(backend lease key)
 const LIVE_VALUATION_POLL_MS=10_000;
@@ -195,8 +200,9 @@ function clearLiveValuationForDisconnected(reason='market-ai-disconnected'){
   liveValuationLastFingerprint='';
   clearLiveValuationSettledSession();
   stopLiveValuationPollTimer();
-  const changed=clearLiveValuationSnapshot(reason,[]);
-  if(changed)requestLiveValuationRender();
+  const valuationChanged=clearLiveValuationSnapshot(reason,[]);
+  const kospiChanged=clearLiveKospiSnapshot();
+  if(valuationChanged||kospiChanged)requestLiveValuationRender();
   else flushLiveValuationRender();
 }
 
@@ -267,7 +273,36 @@ function requestLiveValuationRender(){
   flushLiveValuationRender();
 }
 
-// [LIVE03] Quote Refresh / Universe Reconcile · 현재 보유 ticker universe 조회 / stale response 폐기
+// [LIVE03] KOSPI Benchmark Handoff · standalone snapshot의 backend 판정을 그대로 소비하고 저장 JSON에는 쓰지 않는다.
+function normalizedLiveKospiSnapshot(row){
+  const price=Number(row?.price);
+  const source=String(row?.source||'');
+  const inputStatus=row?.input_status||{};
+  const status=String(inputStatus?.status||'');
+  const usable=source.startsWith('kis-efriend:JUC_R:')
+    &&inputStatus?.available===true
+    &&['realtime','closed_latest'].includes(status)
+    &&Number.isFinite(price)
+    &&price>0;
+  if(!usable)return null;
+  const observedAt=row?.observed_at?String(row.observed_at):null;
+  return {
+    price,
+    observedAt,
+    source,
+    status,
+    usable:true
+  };
+}
+
+function syncLiveKospiSnapshot(row=marketAiKospiSnapshot()){
+  const changed=applyLiveKospiSnapshot(normalizedLiveKospiSnapshot(row));
+  if(changed)requestLiveValuationRender();
+  else flushLiveValuationRender();
+  return changed;
+}
+
+// [LIVE04] Quote Refresh / Universe Reconcile · 현재 보유 ticker universe 조회 / stale response 폐기
 function queueUniverseReconcileRefresh(){
   if(document.visibilityState!=='visible')return;
   window.setTimeout(()=>refreshLiveValuation(),0);
@@ -342,7 +377,7 @@ async function refreshLiveValuation(){
   }
 }
 
-// [LIVE04] Lifecycle / Public API · visible 복귀 refresh / 10초 network polling + closed-session local sentinel
+// [LIVE05] Lifecycle / Public API · visible 복귀 refresh / 10초 network polling + closed-session local sentinel
 function setupLiveValuation({renderDashboard}={}){
   renderDashboardCallback=typeof renderDashboard==='function'?renderDashboard:null;
   if(liveValuationSetupBound){
@@ -351,6 +386,10 @@ function setupLiveValuation({renderDashboard}={}){
   }
   liveValuationSetupBound=true;
   liveValuationMarketAiConnected=document.documentElement.dataset.marketAiConnected==='true';
+  window.addEventListener(MARKET_AI_KOSPI_SNAPSHOT_EVENT,event=>{
+    if(!marketAiEnabled())return;
+    syncLiveKospiSnapshot(event?.detail?.row??null);
+  });
   window.addEventListener(MARKET_AI_CONNECTION_EVENT,event=>{
     const connected=event?.detail?.connected===true;
     liveValuationMarketAiConnected=connected;
@@ -358,6 +397,7 @@ function setupLiveValuation({renderDashboard}={}){
       clearLiveValuationForDisconnected('market-ai-offline');
       return;
     }
+    syncLiveKospiSnapshot();
     ensureLiveValuationPollTimer();
     if(document.visibilityState==='visible')refreshLiveValuation();
   });
@@ -370,6 +410,7 @@ function setupLiveValuation({renderDashboard}={}){
     }
     liveValuationMarketAiConnected=document.documentElement.dataset.marketAiConnected==='true';
     if(liveValuationMarketAiConnected){
+      syncLiveKospiSnapshot();
       ensureLiveValuationPollTimer();
       if(document.visibilityState==='visible')refreshLiveValuation();
     }
@@ -381,10 +422,12 @@ function setupLiveValuation({renderDashboard}={}){
     }
   });
   if(liveValuationNetworkAllowed()){
+    syncLiveKospiSnapshot();
     ensureLiveValuationPollTimer();
     refreshLiveValuation();
   }else{
     clearLiveValuationSnapshot(marketAiEnabled()?'market-ai-offline':'market-ai-disabled',[]);
+    clearLiveKospiSnapshot();
   }
 }
 
