@@ -39,6 +39,7 @@ import {
   PORTFOLIO_HEATMAP_ACTION,
   closePortfolioHeatmap,
   openPortfolioHeatmap,
+  portfolioHeatmapDate,
   portfolioHeatmapIsOpen,
   refreshPortfolioHeatmap,
   setPortfolioHeatmapMode
@@ -512,8 +513,9 @@ function restoreDashboardNestedScroll(snapshot=[]){
   });
 }
 function refreshOpenPortfolioHeatmapLive(){
-  if(!portfolioHeatmapIsOpen()||!liveValuationRenderDateEligible(dataState.activeDate))return false;
-  const x=latestDashboardCalcResult=calc(dataState.activeDate);
+  const heatmapDate=portfolioHeatmapDate();
+  if(!portfolioHeatmapIsOpen()||!heatmapDate||heatmapDate!==dataState.activeDate||!liveValuationRenderDateEligible(heatmapDate))return false;
+  const x=latestDashboardCalcResult=calc(heatmapDate);
   return refreshPortfolioHeatmap(x);
 }
 function renderLiveValuationRefresh(){

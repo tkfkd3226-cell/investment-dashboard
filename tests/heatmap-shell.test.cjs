@@ -185,12 +185,15 @@ test('히트맵 3차: 범례와 4 viewport modal density를 제공한다',()=>{
   assert.match(special,/Heatmap Landscape[^]*height:clamp\(180px,calc\(100dvh - 118px\),250px\)/,'Phone landscape는 세로 공간을 compact하게 사용해야 한다');
 });
 
-test('히트맵 4차: live refresh는 열린 modal에서만 canonical rows/context를 교체하고 polling을 소유하지 않는다',()=>{
+test('히트맵 4차: live refresh와 모달 날짜 상태는 canonical 날짜 경계를 지킨다',()=>{
+  assert.match(heatmap,/date:null,/,'모달 날짜는 부모 activeDate와 분리된 local state여야 한다');
+  assert.match(heatmap,/function portfolioHeatmapContextFromCalc\(calcResult\)\{[^]*?date:String\(calcResult\?\.date\|\|''\)/,'히트맵 context가 부모 activeDate를 fallback으로 읽으면 안 된다');
   assert.match(heatmap,/function portfolioHeatmapIsOpen\(\)\{\s*return document\.getElementById\('portfolioHeatmapModal'\)\?\.classList\.contains\('show'\)===true;/);
-  assert.match(heatmap,/function refreshPortfolioHeatmap\(calcResult\)\{\s*if\(!portfolioHeatmapIsOpen\(\)\)return false;/,'닫힌 modal에서는 refresh 작업을 하지 않아야 한다');
-  assert.match(heatmap,/portfolioHeatmapState\.rows=createPortfolioHeatmapViewModelFromCalc\(calcResult\|\|\{\}\)/);
-  assert.match(heatmap,/portfolioHeatmapState\.context=portfolioHeatmapContextFromCalc\(calcResult\|\|\{\}\)/);
-  assert.match(heatmap,/portfolioHeatmapState\.layoutRows=\[\];[^]*?renderPortfolioHeatmapVisualization\(\{forceLayout:true\}\)/,'live 평가금액 변경 시 geometry는 새 canonical rows 기준으로 다시 계산해야 한다');
+  assert.match(heatmap,/function refreshPortfolioHeatmap\(calcResult\)\{\s*if\(!portfolioHeatmapIsOpen\(\)\)return false;\s*if\(portfolioHeatmapCalcDate\(calcResult\)!==portfolioHeatmapState\.date\)return false;/,'현재 모달 날짜와 다른 live 결과가 모달을 덮으면 안 된다');
+  assert.match(heatmap,/applyPortfolioHeatmapCalcResult\(calcResult,\{date:portfolioHeatmapState\.date\}\)/,'live refresh도 공통 canonical 적용 경로를 재사용해야 한다');
+  assert.match(heatmap,/function setPortfolioHeatmapDate\(date,calcResult\)[^]*?portfolioHeatmapCalcDate\(calcResult\)!==nextDate[^]*?applyPortfolioHeatmapCalcResult\(calcResult,\{date:nextDate\}\)/,'모달 날짜 변경은 요청 날짜와 같은 calc 결과만 수용해야 한다');
+  assert.match(heatmap,/closeDashboardModal\(modal,[^]*?portfolioHeatmapState\.date=null/,'모달을 닫으면 local 날짜를 폐기해야 한다');
+  assert.match(app,/const heatmapDate=portfolioHeatmapDate\(\);[^]*?heatmapDate!==dataState\.activeDate[^]*?calc\(heatmapDate\)/,'부모 날짜의 live refresh가 다른 모달 날짜를 덮지 않도록 app에서도 차단해야 한다');
   assert.match(heatmap,/const activeKey=heatmapStableKey\(portfolioHeatmapRowForTile\(activeTile\)\)/,'live refresh 전 keyboard tile focus의 stable key를 보존해야 한다');
   assert.match(heatmap,/const pinnedRow=Number\.isInteger\(portfolioHeatmapState\.pinnedIndex\)[^]*?const pinnedKey=heatmapStableKey\(pinnedRow\)/,'live refresh 전 touch pinned tile도 index가 아니라 stable key로 보존해야 한다');
   assert.match(heatmap,/hidePortfolioHeatmapTooltip\(\{clearPinned:false\}\)/,'live refresh 시작 시 pinned 선택 상태를 즉시 지우면 안 된다');

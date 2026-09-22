@@ -1,4 +1,4 @@
-import { dataState, fmt, pct, shortDate, signed, won } from './dashboard-core.js';
+import { fmt, pct, shortDate, signed, won } from './dashboard-core.js';
 import { assetPriceSourceInfo, escapeHtml, navIconSvg, phoneUi } from './dashboard-ui-common.js';
 import {
   bindDashboardModalDismiss,
@@ -8,7 +8,7 @@ import {
 
 // Portfolio Heatmap · canonical portfolio view + deterministic treemap visualization
 // Ownership: canonical securities 결과를 읽는 View Model, deterministic treemap geometry, mode metric,
-// dense tile renderer, legend, tooltip/tap interaction, modal-local responsive/live refresh.
+// dense tile renderer, legend, tooltip/tap interaction, modal-local date/responsive/live refresh.
 // 가격 fetch/평가 재계산/Market AI 요청/polling/main render orchestration은 소유하지 않는다.
 // Structure map:
 //   [HEATMAP01] Constants / State
@@ -43,6 +43,7 @@ const PORTFOLIO_HEATMAP_WEIGHT_STEPS=Object.freeze([
 const PORTFOLIO_HEATMAP_TOOLTIP_ID='portfolioHeatmapTooltip';
 const portfolioHeatmapState={
   mode:'day',
+  date:null,
   rows:[],
   context:null,
   layoutRows:[],
@@ -153,12 +154,31 @@ function createPortfolioHeatmapViewModelFromCalc(calcResult){
 }
 function portfolioHeatmapContextFromCalc(calcResult){
   return {
-    date:String(calcResult?.date||dataState.activeDate||''),
+    date:String(calcResult?.date||''),
     fallbackSource:calcResult?.daily?'account1_daily_snapshots.json':'prices.json',
     marketStatus:String(calcResult?.s?.marketStatus||''),
     priceBasis:String(calcResult?.s?.priceBasis||''),
     regularCloseSource:String(calcResult?.s?.regularCloseSource||'')
   };
+}
+function portfolioHeatmapCalcDate(calcResult){
+  return String(calcResult?.date||'');
+}
+function resetPortfolioHeatmapLayout(){
+  portfolioHeatmapState.layoutRows=[];
+  portfolioHeatmapState.layoutWidth=0;
+  portfolioHeatmapState.layoutHeight=0;
+  portfolioHeatmapState.layoutMode=null;
+  portfolioHeatmapState.layoutSourceCount=0;
+}
+function applyPortfolioHeatmapCalcResult(calcResult,{date=portfolioHeatmapCalcDate(calcResult)}={}){
+  const resultDate=portfolioHeatmapCalcDate(calcResult);
+  if(!date||resultDate!==date)return false;
+  portfolioHeatmapState.date=date;
+  portfolioHeatmapState.rows=createPortfolioHeatmapViewModelFromCalc(calcResult||{});
+  portfolioHeatmapState.context=portfolioHeatmapContextFromCalc(calcResult||{});
+  resetPortfolioHeatmapLayout();
+  return true;
 }
 
 // [HEATMAP03] Pure Treemap Engine · mode별 금액 영향도의 절댓값을 geometry에 사용한다.
@@ -416,7 +436,7 @@ function renderPortfolioHeatmapModeSelector(){
 function renderPortfolioHeatmapModal(){
   const modal=document.getElementById('portfolioHeatmapModal');
   if(!modal)return;
-  const activeDate=String(portfolioHeatmapState.context?.date||dataState.activeDate||'');
+  const activeDate=String(portfolioHeatmapState.date||'');
   const dateLabel=/^\d{4}-\d{2}-\d{2}$/.test(activeDate)?shortDate(activeDate):activeDate;
   modal.innerHTML=`<div class="action-modal-card portfolio-heatmap-card" role="dialog" aria-modal="true" aria-labelledby="portfolioHeatmapTitle">
     <button type="button" class="control-icon-button modal-icon-btn portfolio-heatmap-close" data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.close}" aria-label="포트폴리오 히트맵 닫기">${navIconSvg('close')}</button>
@@ -432,6 +452,12 @@ function renderPortfolioHeatmapModal(){
       <div class="portfolio-heatmap__legend" aria-label="히트맵 색상 범례"></div>
     </div>
   </div>`;
+}
+function syncPortfolioHeatmapDateLabel(){
+  const label=document.querySelector('#portfolioHeatmapModal .portfolio-heatmap-date');
+  if(!label)return;
+  const activeDate=String(portfolioHeatmapState.date||'');
+  label.textContent=/^\d{4}-\d{2}-\d{2}$/.test(activeDate)?shortDate(activeDate):activeDate;
 }
 function portfolioHeatmapToneVariable(direction){
   if(direction==='positive')return 'var(--heatmap-pos-base)';
@@ -644,13 +670,9 @@ function ensurePortfolioHeatmapModal(){
 }
 function openPortfolioHeatmap(returnFocus=null,calcResult=null){
   const modal=ensurePortfolioHeatmapModal();
-  portfolioHeatmapState.rows=createPortfolioHeatmapViewModelFromCalc(calcResult||{});
-  portfolioHeatmapState.context=portfolioHeatmapContextFromCalc(calcResult||{});
-  portfolioHeatmapState.layoutRows=[];
-  portfolioHeatmapState.layoutWidth=0;
-  portfolioHeatmapState.layoutHeight=0;
-  portfolioHeatmapState.layoutMode=null;
-  portfolioHeatmapState.layoutSourceCount=0;
+  const canonicalResult=calcResult||{};
+  const canonicalDate=portfolioHeatmapCalcDate(canonicalResult);
+  if(!applyPortfolioHeatmapCalcResult(canonicalResult,{date:canonicalDate}))return false;
   portfolioHeatmapState.pinnedIndex=null;
   renderPortfolioHeatmapModal();
   ensurePortfolioHeatmapTooltip();
@@ -660,6 +682,7 @@ function openPortfolioHeatmap(returnFocus=null,calcResult=null){
     fallbackSelector:portfolioHeatmapFocusFallbackSelector()
   });
   requestAnimationFrame(()=>renderPortfolioHeatmapVisualization({forceLayout:true}));
+  return true;
 }
 function closePortfolioHeatmap(){
   const modal=document.getElementById('portfolioHeatmapModal');
@@ -670,12 +693,17 @@ function closePortfolioHeatmap(){
     portfolioHeatmapState.resizeFrame=0;
   }
   closeDashboardModal(modal,{fallbackSelector:portfolioHeatmapFocusFallbackSelector()});
+  portfolioHeatmapState.date=null;
 }
 function portfolioHeatmapIsOpen(){
   return document.getElementById('portfolioHeatmapModal')?.classList.contains('show')===true;
 }
+function portfolioHeatmapDate(){
+  return portfolioHeatmapState.date;
+}
 function refreshPortfolioHeatmap(calcResult){
   if(!portfolioHeatmapIsOpen())return false;
+  if(portfolioHeatmapCalcDate(calcResult)!==portfolioHeatmapState.date)return false;
   const modal=document.getElementById('portfolioHeatmapModal');
   const activeTile=document.activeElement?.closest?.('#portfolioHeatmapModal [data-heatmap-tile]')||null;
   const activeKey=heatmapStableKey(portfolioHeatmapRowForTile(activeTile));
@@ -685,13 +713,7 @@ function refreshPortfolioHeatmap(calcResult){
   const pinnedKey=heatmapStableKey(pinnedRow);
 
   hidePortfolioHeatmapTooltip({clearPinned:false});
-  portfolioHeatmapState.rows=createPortfolioHeatmapViewModelFromCalc(calcResult||{});
-  portfolioHeatmapState.context=portfolioHeatmapContextFromCalc(calcResult||{});
-  portfolioHeatmapState.layoutRows=[];
-  portfolioHeatmapState.layoutWidth=0;
-  portfolioHeatmapState.layoutHeight=0;
-  portfolioHeatmapState.layoutMode=null;
-  portfolioHeatmapState.layoutSourceCount=0;
+  if(!applyPortfolioHeatmapCalcResult(calcResult,{date:portfolioHeatmapState.date}))return false;
   renderPortfolioHeatmapVisualization({forceLayout:true});
 
   if(activeTile){
@@ -709,6 +731,17 @@ function refreshPortfolioHeatmap(calcResult){
   }else{
     portfolioHeatmapState.pinnedIndex=null;
   }
+  return true;
+}
+function setPortfolioHeatmapDate(date,calcResult){
+  if(!portfolioHeatmapIsOpen())return false;
+  const nextDate=String(date||'');
+  if(!nextDate||portfolioHeatmapCalcDate(calcResult)!==nextDate)return false;
+  if(nextDate===portfolioHeatmapState.date)return true;
+  hidePortfolioHeatmapTooltip();
+  if(!applyPortfolioHeatmapCalcResult(calcResult,{date:nextDate}))return false;
+  syncPortfolioHeatmapDateLabel();
+  renderPortfolioHeatmapVisualization({forceLayout:true});
   return true;
 }
 function setPortfolioHeatmapMode(mode){
@@ -731,9 +764,11 @@ export {
   openPortfolioHeatmap,
   portfolioHeatmapAreaValue,
   portfolioHeatmapColorState,
+  portfolioHeatmapDate,
   portfolioHeatmapIsOpen,
   portfolioHeatmapModeMetric,
   portfolioHeatmapTileDensity,
   refreshPortfolioHeatmap,
+  setPortfolioHeatmapDate,
   setPortfolioHeatmapMode
 };
