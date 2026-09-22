@@ -130,6 +130,13 @@ test('Tablet/Phone hamburger panel은 공통 viewport 높이 contract를 공유�
 });
 
 
+
+test('Web TOC hover panel은 trigger와 맞닿아 pointer dead zone을 만들지 않는다',()=>{
+  assert.match(common,/\.desktop-edge-toc\{[^}]*--desktop-edge-toc-trigger-width:36px;/,'TOC trigger 폭은 panel 연결에도 재사용할 공통 component token이어야 한다');
+  assert.match(common,/\.desktop-edge-toc-trigger\{[^}]*width:var\(--desktop-edge-toc-trigger-width\);[^}]*min-width:var\(--desktop-edge-toc-trigger-width\);/,'TOC trigger는 공통 폭 token을 사용해야 한다');
+  assert.match(common,/\.desktop-edge-toc-panel\{[^}]*right:var\(--desktop-edge-toc-trigger-width\);/,'TOC panel 우측 edge는 trigger 좌측 edge와 맞닿아 hover 이동 dead zone이 없어야 한다');
+});
+
 test('Dashboard 날짜 이동은 Web 좌우 버튼과 Tablet/Phone swipe가 canonical activeDate 경로를 공유한다',()=>{
   assert.match(app,/function dashboardDateNeighbor\(delta\)\{[^]*?allAvailableDates\(\)[^]*?dates\.indexOf\(dataState\.activeDate\)[^]*?nextIndex=index\+\(delta<0\?-1:1\)/,'이전/다음 날짜는 정렬된 canonical available dates에서 계산해야 한다');
   assert.match(app,/function shiftActiveDashboardDate\(delta,\{announce=false\}=\{\}\)\{[^]*?dashboardDateNeighbor\(delta\)[^]*?setActiveDashboardDate\(nextDate\)[^]*?showAppToast\(`\$\{dashboardDateLabel\(nextDate\)\}로 이동했습니다\.`,'ok',1800\)/,'버튼과 swipe는 canonical setActiveDashboardDate를 재사용하고 touch 이동은 자동 종료 toast를 보여야 한다');

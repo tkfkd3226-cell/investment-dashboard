@@ -92,7 +92,8 @@ test('Main↔Add motion은 OS 설정과 분리하고 주요 화면 전환 motion
     assert.ok(cssProp(mainCommon,prop),`Desktop ${prop} missing`);
   }
   assert.match(mainInteraction,/\.desktop-edge-toc:hover \.desktop-edge-toc-panel\{[^}]*transition:/s,'Desktop 목차 전환 motion이 필요하다');
-  assert.match(mainCommon,/\.desktop-edge-toc-panel\{[^}]*right:44px[^}]*transform:translate\(0,-50%\)[^}]*transform-origin:right center[^}]*clip-path:inset\(0 0 0 calc\(100% - 1px\)\)[^}]*transition:[^}]*clip-path/s,'Desktop 목차는 화면 밖 translate가 아니라 패널 우측 세로선에 고정된 clip reveal로 닫혀야 한다');
+  assert.match(mainCommon,/\.desktop-edge-toc\{[^}]*--desktop-edge-toc-trigger-width:36px;/,'Desktop 목차 trigger/panel 연결은 공통 폭 token을 소유해야 한다');
+  assert.match(mainCommon,/\.desktop-edge-toc-panel\{[^}]*right:var\(--desktop-edge-toc-trigger-width\)[^}]*transform:translate\(0,-50%\)[^}]*transform-origin:right center[^}]*clip-path:inset\(0 0 0 calc\(100% - 1px\)\)[^}]*transition:[^}]*clip-path/s,'Desktop 목차는 trigger에 맞닿은 우측 세로선에서 clip reveal로 닫혀야 한다');
   assert.match(mainInteraction,/\.desktop-edge-toc:hover \.desktop-edge-toc-panel\{[^}]*clip-path:inset\(0\)[^}]*transition:[^}]*clip-path/s,'Desktop 목차 hover는 같은 우측 세로선 기준으로 펼쳐져야 한다');
   assert.doesNotMatch(mainCommon,/\.desktop-edge-toc-panel\{[^}]*translate\(calc\(100%/s,'Desktop 목차 panel을 다시 화면 우측 밖에서 slide-in 시키면 안 된다');
   assert.match(addCss,/\.custom-tooltip\{[^}]*transition:/s,'Add tooltip transition이 필요하다');

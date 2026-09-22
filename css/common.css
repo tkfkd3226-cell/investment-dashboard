@@ -4861,6 +4861,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 @media (min-width:1101px){
   /* Edge TOC Desktop · 웹(≥1101px) 우측 hover/focus 목차 */
     .desktop-edge-toc{
+      --desktop-edge-toc-trigger-width:36px;
       position:fixed;
       top:50%;
       right:12px;
@@ -4874,8 +4875,8 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
     .desktop-edge-toc-trigger{
       position:relative;
       z-index:2;
-      width:36px;
-      min-width:36px;
+      width:var(--desktop-edge-toc-trigger-width);
+      min-width:var(--desktop-edge-toc-trigger-width);
       height:72px;
       display:flex;
       flex-direction:column;
@@ -4904,7 +4905,8 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
     .desktop-edge-toc-panel{
       position:absolute;
       top:50%;
-      right:44px;
+      /* trigger와 panel을 맞붙여 hover 이동 중 dead zone을 만들지 않는다. */
+      right:var(--desktop-edge-toc-trigger-width);
       width:220px;
       max-height:min(76vh,680px);
       overflow:auto;
