@@ -463,9 +463,9 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 - Tooltip은 기존 `.dash-tooltip`과 `assetPriceSourceInfo()`를 재사용하며 전체 상세값을 계속 제공한다. 현재 mode에서는 `당일손익: 당일 등락률·당일손익·변동 계산`, `누적손익: 누적수익률·누적손익`, `비중: 평가금액·포트폴리오 비중·평가 계산` 행을 함께 강조한다. tooltip은 modal 내부 자식으로 두어 background `inert`의 대상이 되지 않게 하고 hover/focus/touch tap에서 동일 정보에 접근할 수 있어야 한다.
 - 진입점은 모든 viewport에서 Topbar 하나만 사용하며 hamburger에는 중복하지 않는다. Desktop `>=1280px`은 `포트폴리오 히트맵` / `보유종목 실시간 시세`, 1101–1279px 및 Tablet은 `히트맵` / `실시간 시세` 축약 label을 사용하고, 실시간 시세의 `title`/`aria-label`은 항상 `보유종목 실시간 시세`를 유지한다. Phone은 compact icon 표현을 사용하며 테마 action을 hamburger 상단으로 이동하되 Market AI 연결 toggle은 Topbar에 유지한다.
 - 히트맵 mode segmented control은 퇴직연금 금액 조정·월간 손익과 같은 `--modal-segment-*` 공통 token을 사용한다. Web/Tablet에서는 modal 중앙 열에 배치하고 Phone에서는 제목 아래 full-width 3등분 배치를 유지한다.
-- modal lifecycle은 `dashboard-modal.js`를 재사용한다. 히트맵을 여는 순간 `calc(activeDate)`를 1회 fresh 계산해 다른 modal에서 main render가 deferred된 직후에도 stale canonical cache를 재사용하지 않는다.
-- Live Valuation snapshot이 바뀌면 `dashboard-live-valuation.js`의 open-overlay callback을 통해 **modal이 열려 있을 때만** 새 canonical `calc()` 결과로 rows/context와 **현재 mode geometry까지 다시 계산**한다. 히트맵이 닫혀 있으면 추가 calc/layout/render를 하지 않는다. live refresh 전 keyboard focus와 touch pinned 종목은 ticker/name stable key로 보존하고 새 layout에서 같은 종목으로 복원한다.
-- 히트맵 modal이 열린 동안 메인 Dashboard partial render를 허용하기 위해 `liveValuationCanRender()`의 modal defer를 풀지 않는다. 메인 화면은 기존대로 modal close 뒤 pending partial render로 수렴하며, 히트맵만 열린 상태에서 즉시 최신값을 반영한다.
+- modal lifecycle은 `dashboard-modal.js`를 재사용한다. 열 때 `calc(activeDate)`를 1회 fresh 계산하고 그 날짜를 modal-local state로 복사한다. 이후 날짜 selector와 이전/다음 탐색은 `allAvailableDates()`의 가용 날짜만 사용하며 `calc(selectedDate)` 결과는 히트맵에만 적용해 부모 `activeDate`와 `latestDashboardCalcResult`를 바꾸지 않는다. 닫으면 modal-local 날짜를 폐기한다.
+- Live Valuation snapshot이 바뀌면 `dashboard-live-valuation.js`의 open-overlay callback을 사용하되 **modal 날짜가 부모 `activeDate`와 같을 때만** 새 canonical `calc()` 결과로 rows/context와 현재 mode geometry를 다시 계산한다. 과거 날짜를 탐색 중이면 부모의 live refresh가 모달을 덮지 않으며, 히트맵이 닫혀 있으면 추가 calc/layout/render를 하지 않는다. refresh 전 keyboard focus와 touch pinned 종목은 ticker/name stable key로 보존하고 새 layout에서 같은 종목으로 복원한다.
+- 히트맵 modal이 열린 동안 메인 Dashboard partial render를 허용하기 위해 `liveValuationCanRender()`의 modal defer를 풀지 않는다. 메인 화면은 기존대로 modal close 뒤 pending partial render로 수렴하며, 히트맵은 modal 날짜가 부모 `activeDate`와 같은 경우에만 open-overlay callback으로 최신값을 반영한다.
 - Heatmap 도입 전후 Market AI network polling 수는 같아야 한다. `dashboard-heatmap.js`에 `fetch`, `setInterval`, 별도 timer를 추가하지 않는다.
 
 ### Asset Detail 공통 불변조건
@@ -1078,7 +1078,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
 - Hero에는 `LIVE / CLOSED / STALE / WARMING / JSON` 같은 raw 상태 문자열을 표시하지 않는다. 대신 `heroPerformanceBasisLabel()`이 현재 Hero 계산에 실제 적용된 quote만 보고 `일부 실시간 반영 / 실시간 현재가 기준 / 시간외 포함 현재가 기준` 중 필요한 의미만 노출한다. live가 실제 적용되지 않으면 기존 날짜 기준문구를 유지한다. 전 종목 closed여도 개별주식 애프터 시세가 실제 적용된 조건에서는 `애프터 종가 기준`을 표시한다. 단, 다음 정규장 시작 전 직전 완료 거래일 화면에 허용된 closed carry는 Market AI 장마감 시세이며, 그보다 오래된 과거 날짜만 항상 저장 데이터 의미를 유지한다.
 - 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다. 저장값은 snapshot metadata 기준으로 `장중 저장 데이터` / `정규장 종가 저장 데이터` / legacy `저장 데이터`를 구분하고, Market AI quote가 적용된 경우에만 `실시간` / `장 마감 시세`를 사용한다.
-- Live refresh 회귀 QA는 2.7의 canonical partial-render contract를 기준으로 한다. overlay를 교체하지 않고, Topbar/`#app` shell·focus·window/nested scroll을 보존하며, 활성 탭만 필요한 만큼 redraw하고 비활성 탭은 기존 lazy draw 경로를 유지해야 한다. 포트폴리오 히트맵이 열려 있으면 snapshot 변경 즉시 히트맵만 최신 canonical 값으로 refresh하고, 메인 partial render는 기존 modal defer를 유지해 닫힌 뒤 수렴한다.
+- Live refresh 회귀 QA는 2.7의 canonical partial-render contract를 기준으로 한다. overlay를 교체하지 않고, Topbar/`#app` shell·focus·window/nested scroll을 보존하며, 활성 탭만 필요한 만큼 redraw하고 비활성 탭은 기존 lazy draw 경로를 유지해야 한다. 포트폴리오 히트맵은 열린 상태에서도 modal 날짜가 부모 `activeDate`와 같을 때만 snapshot 변경을 즉시 refresh하고, 과거 날짜 탐색 중에는 그대로 유지한다. 메인 partial render는 기존 modal defer를 유지해 닫힌 뒤 수렴한다.
 - 실시간 시세 iframe은 Dashboard와 `postMessage`로 Light/Dark 테마를 양방향 동기화한다. Monitor가 준비되면 Dashboard 테마를 우선 전달하고, Monitor에서 테마를 바꾸면 Dashboard도 같은 테마를 저장·적용한다. Phone modal의 5px shell은 Light `#f5f7fa`, Dark는 Monitor 기본 배경 `#11161d`를 사용한다.
 
 증권 `종목별 누적손익` 하단 카드 grid는 일반 `symbol-summary-grid`와 별도로 **Web 6열(6×1), Tablet 3열(3×2)**을 유지한다. 퇴직연금 상품 카드와 Mobile의 별도 열 수 계약에는 이 규칙을 확장하지 않는다.
@@ -1963,7 +1963,7 @@ KOSPI 비교선 · KIS realtime/closed_latest만 runtime overlay · unusable/연
 15:30~20:00 mixed session에서 개별주식 extended + ETF closed를 ticker별 market_state로 구분
 client_id multi-client universe 충돌 없음
 holdings 변경 중 stale response 폐기
-modal/expanded chart 중 main render defer · 열린 히트맵은 별도 open-overlay callback으로 즉시 refresh
+modal/expanded chart 중 main render defer · 열린 히트맵은 modal 날짜=부모 activeDate일 때만 open-overlay callback으로 즉시 refresh
 실시간 시세 modal close 후 10초 partial refresh에서 Topbar/#app shell 유지 · 활성 탭만 redraw · scroll creep 없음
 visible 복귀 즉시 refresh
 Dashboard-side Market AI OFF/ON · OFF 시 polling/volatile overlay 제거 · ON 시 즉시 retry

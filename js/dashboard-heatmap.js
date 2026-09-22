@@ -450,9 +450,9 @@ function renderPortfolioHeatmapDateControls(){
   const previous=portfolioHeatmapDateNeighbor(-1);
   const next=portfolioHeatmapDateNeighbor(1);
   return `<div class="portfolio-heatmap-date-controls" role="group" aria-label="히트맵 날짜 선택">
-    <button type="button" class="control-icon-button modal-icon-btn portfolio-heatmap-date-nav" data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.previousDate}" aria-label="${escapeHtml(portfolioHeatmapDateNavLabel(previous,'이전 날짜'))}"${previous?'':' disabled'}>${navIconSvg('arrowLeft')}</button>
+    <button type="button" class="control-icon-button modal-icon-btn" data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.previousDate}" aria-label="${escapeHtml(portfolioHeatmapDateNavLabel(previous,'이전 날짜'))}"${previous?'':' disabled'}>${navIconSvg('arrowLeft')}</button>
     <select class="action-modal-input portfolio-heatmap-date-select" data-dashboard-change="portfolio-heatmap-date" aria-label="히트맵 날짜 선택">${dates.map(date=>`<option value="${escapeHtml(date)}"${date===portfolioHeatmapState.date?' selected':''}>${escapeHtml(date)}</option>`).join('')}</select>
-    <button type="button" class="control-icon-button modal-icon-btn portfolio-heatmap-date-nav" data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.nextDate}" aria-label="${escapeHtml(portfolioHeatmapDateNavLabel(next,'다음 날짜'))}"${next?'':' disabled'}>${navIconSvg('arrowRight')}</button>
+    <button type="button" class="control-icon-button modal-icon-btn" data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.nextDate}" aria-label="${escapeHtml(portfolioHeatmapDateNavLabel(next,'다음 날짜'))}"${next?'':' disabled'}>${navIconSvg('arrowRight')}</button>
   </div>`;
 }
 function renderPortfolioHeatmapModal(){

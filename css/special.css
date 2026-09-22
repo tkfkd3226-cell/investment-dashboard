@@ -325,7 +325,7 @@
       padding-right:0;
     }
     .portfolio-heatmap-title-block{grid-column:1;padding-right:calc(var(--icon-button-size) + var(--space-3xl))}
-    .portfolio-heatmap-date-controls{width:100%;padding-right:0}
+    .portfolio-heatmap-date-controls{width:100%}
     .portfolio-heatmap-mode-tabs{grid-column:1;justify-self:stretch;width:100%}
     .portfolio-heatmap__canvas{
       height:clamp(240px,58dvh,490px);

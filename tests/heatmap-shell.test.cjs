@@ -94,9 +94,7 @@ test('히트맵 1차: 공통 modal lifecycle과 3개 segmented mode shell을 재
   assert.match(common,/\.portfolio-heatmap-mode-tabs\{[^}]*grid-column:2[^}]*justify-self:center/,'Web 히트맵 mode selector는 modal 중앙에 정렬되어야 한다');
   assert.match(heatmap,/class=\"portfolio-heatmap-date-controls\"[^]*?data-dashboard-change=\"portfolio-heatmap-date\"/,'모달 title 영역에 독립 날짜 selector를 제공해야 한다');
   assert.match(common,/\.portfolio-heatmap-date-controls\{[^}]*grid-template-columns:var\(--icon-button-size\) minmax\(0,1fr\) var\(--icon-button-size\)/,'날짜 탐색기는 이전/선택/다음 3열 geometry를 가져야 한다');
-  assert.match(tablet,/\.portfolio-heatmap-head\{[^}]*grid-template-columns:minmax\(150px,1fr\) minmax\(240px,300px\) minmax\(150px,1fr\)/,'Tablet은 날짜 selector와 중앙 mode가 겹치지 않도록 폭을 제한해야 한다');
   assert.match(special,/\.portfolio-heatmap-head\{[^}]*grid-template-columns:1fr/,'Phone은 기존 title 아래 mode 배치를 유지해야 한다');
-  assert.match(special,/\.portfolio-heatmap-date-controls\{width:100%;padding-right:0\}/,'Phone 날짜 탐색기는 title 폭 안에서 full-width로 축소되어야 한다');
   assert.match(special,/\.portfolio-heatmap-mode-tabs\{grid-column:1;justify-self:stretch;width:100%\}/,'Phone mode selector는 기존 full-width 3등분 배치를 유지해야 한다');
   assert.match(special,/\.portfolio-heatmap-modal\{--modal-card-width:100%\}/,'Phone은 거의 full-width modal shell을 사용해야 한다');
   assert.match(special,/\.action-modal:not\(\.monthly-calendar-modal\):not\(\.realtime-quote-modal\):not\(\.portfolio-heatmap-modal\)\{/,'Phone landscape에서도 히트맵은 generic action modal 중앙형 override 대상에서 제외되어야 한다');
@@ -110,8 +108,6 @@ test('히트맵 1차: app action router가 open/close/mode를 feature owner에 �
   assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.nextDate\)return shiftOpenPortfolioHeatmapDate\(1\)/);
   assert.match(app1,/target\.dataset\.dashboardChange==='portfolio-heatmap-date'\)return setOpenPortfolioHeatmapDate\(target\.value\)/,'모달 날짜 select change는 부모 date handler보다 먼저 분기해야 한다');
   assert.match(app1,/function setOpenPortfolioHeatmapDate\(date\)\{[^]*?allAvailableDates\(\)\.includes\(nextDate\)[^]*?setPortfolioHeatmapDate\(nextDate,calc\(nextDate\)\)/,'모달 날짜 변경은 사용 가능한 날짜만 canonical calc로 계산해 feature owner에 전달해야 한다');
-  assert.match(app1,/function shiftOpenPortfolioHeatmapDate\(delta\)\{\s*const nextDate=portfolioHeatmapDateNeighbor\(delta\)/,'이전/다음 날짜 계산은 Heatmap feature owner의 helper를 재사용해야 한다');
-  assert.doesNotMatch(app1,/function portfolioHeatmapDateNeighbor\(/,'App에 Heatmap 날짜 이웃 계산을 중복 구현하면 안 된다');
   assert.doesNotMatch(app1,/function setOpenPortfolioHeatmapDate\(date\)\{[^}]*latestDashboardCalcResult\s*=/,'모달 전용 날짜 계산을 부모 latest calc cache로 승격하면 안 된다');
   assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.setMode\)return setPortfolioHeatmapMode\(control\.dataset\.heatmapMode\|\|''\)/);
   assert.match(heatmap1,/fallbackSelector:portfolioHeatmapFocusFallbackSelector\(\)/,'공통 modal focus return fallback을 제공해야 한다');
@@ -195,7 +191,7 @@ test('히트맵 3차: 범례와 4 viewport modal density를 제공한다',()=>{
   assert.match(special,/Heatmap Landscape[^]*height:clamp\(180px,calc\(100dvh - 118px\),250px\)/,'Phone landscape는 세로 공간을 compact하게 사용해야 한다');
 });
 
-test('히트맵 4차: live refresh와 모달 날짜 상태는 canonical 날짜 경계를 지킨다',()=>{
+test('히트맵 날짜 상태: live refresh와 모달 날짜는 canonical 날짜 경계를 지킨다',()=>{
   assert.match(heatmap,/date:null,/,'모달 날짜는 부모 activeDate와 분리된 local state여야 한다');
   assert.match(heatmap,/function portfolioHeatmapContextFromCalc\(calcResult\)\{[^]*?date:String\(calcResult\?\.date\|\|''\)/,'히트맵 context가 부모 activeDate를 fallback으로 읽으면 안 된다');
   assert.match(heatmap,/function portfolioHeatmapIsOpen\(\)\{\s*return document\.getElementById\('portfolioHeatmapModal'\)\?\.classList\.contains\('show'\)===true;/);

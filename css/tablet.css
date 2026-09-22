@@ -181,7 +181,6 @@
       gap:var(--space-3xl);
     }
     .portfolio-heatmap-date-controls{width:min(190px,100%)}
-    .portfolio-heatmap-mode-tabs{width:100%}
     .portfolio-heatmap__canvas{height:clamp(380px,54vh,540px)}
     .month-select,
     .day-select{
