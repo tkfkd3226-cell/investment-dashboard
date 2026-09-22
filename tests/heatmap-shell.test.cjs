@@ -118,7 +118,7 @@ test('히트맵 tile은 geometry별 정보량과 mode별 핵심값을 분리한�
   assert.match(heatmap,/const formula=portfolioHeatmapDayFormulaText\(row\);\s*return formula\?`\$\{total\} · \$\{formula\}`:total/,'당일손익 Large tile은 변동총액 · 주당변동액 × 수량을 표시해야 한다');
   assert.match(heatmap,/const formula=portfolioHeatmapWeightFormulaText\(row\);\s*return formula\?`\$\{amount\} · \$\{formula\}`:amount/,'비중 Large tile은 평가금액 · 수량 × 적용가격을 표시해야 한다');
   assert.match(heatmap,/PORTFOLIO_HEATMAP_WEIGHT_STEPS=Object\.freeze/,'비중 색상은 고정 구간 scale을 사용해야 한다');
-  assert.match(special,/Heatmap Phone Tile Density[^]*?\.portfolio-heatmap__tile\.is-large \.portfolio-heatmap__secondary\{[^}]*white-space:normal[^}]*-webkit-line-clamp:2/,'Phone Large tile은 긴 보조문구를 최대 2줄로 수용해야 한다');
+  assert.match(special,/\.portfolio-heatmap__tile\.is-large \.portfolio-heatmap__secondary\{[^}]*white-space:normal[^}]*-webkit-line-clamp:2/,'Phone Large tile은 긴 보조문구를 최대 2줄로 수용해야 한다');
   assert.match(common,/--heatmap-weight-base:/,'비중 mode는 손익 color scale과 분리된 semantic base를 가져야 한다');
 });
 

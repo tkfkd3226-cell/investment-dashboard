@@ -46,7 +46,6 @@
       --chart-text:#6b7280;
       --chart-hover:#334155;
       --chart-stack-stroke:#ffffff;
-      --chart-expanded-surface:#ffffff;
       --info-control-bg:var(--card);
       --info-control-color:var(--muted);
       --modal-surface:#ffffff;
@@ -146,8 +145,7 @@
     }
 
     body,
-    body.dashboard-dialog-open,
-    body.chart-expanded-open{
+    body.dashboard-dialog-open{
       overflow:visible;
       touch-action:auto;
     }

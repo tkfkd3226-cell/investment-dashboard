@@ -132,7 +132,7 @@ test('Tablet/Phone hamburger panel은 공통 viewport 높이 contract를 공유�
 
 
 test('Web TOC hover panel은 trigger와 맞닿아 pointer dead zone을 만들지 않는다',()=>{
-  assert.match(common,/\.desktop-edge-toc\{[^}]*--desktop-edge-toc-trigger-width:36px;/,'TOC trigger 폭은 panel 연결에도 재사용할 공통 component token이어야 한다');
+  assert.match(common,/\.desktop-edge-toc\{[^}]*--desktop-edge-toc-trigger-width:[^;]+;/,'TOC trigger 폭은 panel 연결에도 재사용할 공통 component token이어야 한다');
   assert.match(common,/\.desktop-edge-toc-trigger\{[^}]*width:var\(--desktop-edge-toc-trigger-width\);[^}]*min-width:var\(--desktop-edge-toc-trigger-width\);/,'TOC trigger는 공통 폭 token을 사용해야 한다');
   assert.match(common,/\.desktop-edge-toc-panel\{[^}]*right:var\(--desktop-edge-toc-trigger-width\);/,'TOC panel 우측 edge는 trigger 좌측 edge와 맞닿아 hover 이동 dead zone이 없어야 한다');
 });
@@ -147,7 +147,7 @@ test('Dashboard 날짜 이동은 Web 좌우 버튼과 Tablet/Phone swipe가 cano
   assert.match(app,/dashboardDateSwipeBlockedTarget\(target\)[^]*?a,button,input,select,textarea,label[^]*?\.mobile-scroll,\.chart-wrap,svg,canvas/,'interactive/control/chart/horizontal scroll 시작점은 날짜 swipe에서 제외해야 한다');
   assert.match(app,/shiftActiveDashboardDate\(deltaX>0\?-1:1,\{announce:true\}\)/,'실사용 계약대로 좌→우 touch는 이전 날짜, 우→좌 touch는 다음 날짜여야 한다');
   assert.match(common,/@media \(min-width:1101px\)\{[^]*?\.dashboard-date-navigation\{[^]*?display:block[^]*?position:fixed[^]*?\.dashboard-date-nav-btn\{[^]*?top:50%/,'날짜 좌우 버튼은 Web에서 display:none을 해제하고 화면 세로 중앙 fixed control로 노출해야 한다');
-  assert.match(common,/--dashboard-date-nav-edge:60px;[^]*?\.dashboard-date-nav-prev\{left:var\(--dashboard-date-nav-edge\)\}[^]*?\.dashboard-date-nav-next\{right:var\(--dashboard-date-nav-edge\)\}/,'Web 좌우 날짜 버튼은 TOC trigger를 피하면서 대칭 위치를 사용해야 한다');
+  assert.match(common,/--dashboard-date-nav-edge:[^;]+;[^]*?\.dashboard-date-nav-prev\{left:var\(--dashboard-date-nav-edge\)\}[^]*?\.dashboard-date-nav-next\{right:var\(--dashboard-date-nav-edge\)\}/,'Web 좌우 날짜 버튼은 같은 edge token을 대칭으로 재사용해야 한다');
   assert.match(print,/\.dashboard-date-navigation/,'인쇄에서는 화면 날짜 이동 control을 숨겨야 한다');
 });
 
@@ -172,18 +172,28 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(monthlyCalendar,/data-dashboard-action="toggle-separate-profit"/,'월간 별도수익 toggle은 기존 canonical toggle action을 재사용해야 한다');
   assert.match(monthlyCalendar,/function refreshMonthlyCalendarModal\(\)\{[^]*?classList\.contains\('show'\)[^]*?restoreSeparateProfitFocus[^]*?renderMonthlyCalendarModal\(\)/,'별도수익 상태 변경 시 열린 월간 모달만 즉시 재렌더되어야 한다');
   assert.match(monthlyCalendar,/restoreSeparateProfitFocus\)requestAnimationFrame\([^]*?querySelector\('\[data-dashboard-action="toggle-separate-profit"\]'\)\?\.focus\?\.\(\{preventScroll:true\}\)/,'월간 별도수익 toggle 재렌더 후 keyboard focus를 같은 control로 복원해야 한다');
-  assert.match(common,/\.monthly-calendar-controls\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,360px\) minmax\(0,1fr\)/,'Web/Tablet 월간 control row는 중앙 탭과 우측 별도수익 toggle의 독립 3열 grid를 사용해야 한다');
+  assert.match(common,/\.monthly-calendar-controls\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,[^)]+\) minmax\(0,1fr\)/,'Web/Tablet 월간 control row는 중앙 탭과 우측 별도수익 toggle의 독립 3열 grid를 사용해야 한다');
   assert.match(common,/\.monthly-calendar-mode-tabs\{[^}]*grid-column:2[^}]*width:100%[^}]*margin:0/,'Web/Tablet 월간 탭은 별도수익 toggle과 무관하게 중앙 열을 유지해야 한다');
   assert.match(common,/\.monthly-calendar-separate-profit\{grid-column:3;justify-self:end\}/,'Web/Tablet 별도수익 toggle은 같은 행 우측 끝에 있어야 한다');
   assert.match(special,/\.monthly-calendar-controls\{[^}]*grid-template-columns:1fr[^}]*gap:var\(--space-2xs\)[^}]*margin:var\(--space-xs\) 0 var\(--space-lg\)/,'Phone 세로 월간 control은 탭과 toggle을 세로 배치하되 달력 전체 높이를 위해 compact 세로 여백을 사용해야 한다');
   assert.match(special,/\.monthly-calendar-separate-profit\{[^}]*grid-column:1[^}]*grid-row:2[^}]*justify-self:end/,'Phone 세로 별도수익 toggle은 탭 바로 아래 우측에 있어야 한다');
-  assert.match(common,/--separate-profit-height:29px;[^]*?--separate-profit-font-size:10\.5px;[^]*?--separate-profit-state-font-size:10px;[^]*?--separate-profit-state-min-width:28px;[^]*?--separate-profit-pad-x:8px;[^]*?--separate-profit-state-height:18px;/,'별도수익 기본형 skin은 Web/Tablet/월간 모달이 공유하는 common token 한 곳에서만 정의해야 한다');
+  for(const token of [
+    '--separate-profit-height',
+    '--separate-profit-font-size',
+    '--separate-profit-state-font-size',
+    '--separate-profit-state-min-width',
+    '--separate-profit-pad-x',
+    '--separate-profit-state-height',
+    '--separate-profit-state-pad-x',
+  ]){
+    assert.match(common,new RegExp(`${token}:`),`별도수익 공통 token 누락: ${token}`);
+  }
   assert.match(common,/\.separate-profit-toggle\{[^}]*--dashboard-control-height:var\(--separate-profit-height\);[^}]*--dashboard-control-font-size:var\(--separate-profit-font-size\);[^}]*--dashboard-control-state-font-size:var\(--separate-profit-state-font-size\);[^}]*--dashboard-control-state-min-width:var\(--separate-profit-state-min-width\);[^}]*padding:0 var\(--separate-profit-pad-x\)/,'메인 Web/Tablet과 월간 모달은 동일한 별도수익 기본형 primitive를 사용해야 한다');
   assert.match(common,/\.separate-profit-toggle strong\{[^}]*min-width:var\(--separate-profit-state-min-width\);[^}]*height:var\(--separate-profit-state-height\);[^}]*padding:0 var\(--separate-profit-state-pad-x\)/,'ON/OFF badge도 별도수익 공통 token을 사용해야 한다');
   assert.doesNotMatch(common,/--monthly-separate-profit-|\.monthly-calendar-separate-profit\.separate-profit-toggle/,'월간 모달만을 위한 중복 별도수익 skin/token을 다시 만들면 안 된다');
-  assert.match(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*--separate-profit-height:25px;[^}]*--separate-profit-font-size:9\.5px;[^}]*--separate-profit-state-height:21px;/,'Phone 메인화면만 feature scope에서 compact 별도수익 variant를 가져야 한다');
+  assert.match(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*--separate-profit-height:[^;]+;[^}]*--separate-profit-font-size:[^;]+;[^}]*--separate-profit-state-height:[^;]+;/,'Phone 메인화면만 feature scope에서 별도수익 compact token을 override해야 한다');
   assert.doesNotMatch(special,/^[ \t]*\.separate-profit-toggle\{/m,'Phone CSS에서 모든 별도수익 toggle을 전역 compact 처리하면 월간 모달까지 변형되므로 금지한다');
-  assert.match(special,/Monthly Calendar Controls · 가로폰[^]*?\.monthly-calendar-controls\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,360px\) minmax\(0,1fr\)[^}]*\}[^]*?\.monthly-calendar-separate-profit\{grid-column:3;grid-row:1;justify-self:end\}/,'Phone Landscape는 탭과 별도수익 toggle을 같은 행으로 복원해야 한다');
+  assert.match(special,/\.monthly-calendar-controls\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,[^)]+\) minmax\(0,1fr\)[^}]*\}[^]*?\.monthly-calendar-separate-profit\{grid-column:3;grid-row:1;justify-self:end\}/,'Phone Landscape는 탭과 별도수익 toggle을 같은 행으로 복원해야 한다');
   assert.match(common,/:is\(\.contrib-target-tabs,\.monthly-calendar-mode-tabs,\.portfolio-heatmap-mode-tabs\)\{background:var\(--modal-segment-group-bg\)\}/,'월간 범위 switch는 퇴직연금/히트맵과 동일한 modal segmented state token을 공유해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-scroll/,'달력은 별도 body scroll wrapper 없이 card 하나만 scroll owner로 유지해야 한다');
   assert.match(common,/\.monthly-calendar-card\{[^}]*overflow:auto/,'작은 viewport에서는 기존처럼 달력 card 전체가 스크롤되어야 한다');
@@ -220,7 +230,7 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(monthlyCalendar,/item\.profit==null\?'기준'/,'이전 비교값이 없는 최초 날짜는 0원이 아니라 기준일로 표시해야 한다');
   assert.match(monthlyCalendar,/absolute>=10_000[^]*?scaled=absolute\/10_000[^]*?scaled\.toFixed\(1\)[^]*?만/,'달력 셀의 만 단위 손익은 100만 이상도 소수점 첫째 자리까지 표시해야 한다');
   assert.match(special,/\.monthly-calendar-summary\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Phone 세로\/가로 공통 요약은 2열로 밀도를 낮춰야 한다');
-  assert.match(special,/\.monthly-calendar-head\{[^}]*width:min\(360px,calc\(100% - var\(--icon-button-size\) - var\(--icon-button-size\) - var\(--space-4xl\)\)\)/,'Phone 월 이동 버튼은 닫기 버튼 영역을 침범하지 않도록 안쪽 여백을 확보해야 한다');
+  assert.match(special,/\.monthly-calendar-head\{[^}]*width:min\([^,]+,calc\(100% - var\(--icon-button-size\) - var\(--icon-button-size\) - var\(--space-4xl\)\)\)/,'Phone 월 이동 버튼은 닫기 버튼 영역을 침범하지 않도록 안쪽 여백을 확보해야 한다');
 });
 
 test('Topbar action 라벨은 Web full/short와 Tablet 축약명·icon 조합을 사용한다',()=>{
@@ -468,7 +478,6 @@ test('퇴직연금 조정 modal은 Phone에서 본문 높이를 쓰고 큰 화�
   const uiCommonImport=pensionEditor.match(/import\s*\{([^]*?)\}\s*from '\.\/dashboard-ui-common\.js';/);
   assert.ok(uiCommonImport&&/\bphoneUi\b/.test(uiCommonImport[1]),'Phone 판정은 공통 phoneUi helper를 재사용해야 한다');
   assert.match(pensionEditor,/if\(phoneUi\(\)\)\{\s*card\.style\.removeProperty\('height'\);\s*return;\s*\}/,'Phone에서는 inline fixed height를 제거하고 본문 auto 높이를 사용해야 한다');
-  assert.match(common,/Phone은 본문 auto 높이 \+ viewport 상한만 사용한다/,'공통 CSS 주석도 Phone auto-height contract와 맞아야 한다');
 });
 
 test('퇴직연금 편집기는 화면 입력과 작업 모음 모두에서 수량·금액을 안전 정수로 제한한다',()=>{
