@@ -415,7 +415,7 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 
 ### `dashboard-monthly-calendar.js`
 
-월간 손익 캘린더는 별도 성과 산식을 만들지 않는다. `dashboard-core.js`의 flow-neutral 일성과 helper를 재사용하며, **합산 / 증권 / 퇴직연금** 범위를 전환한다. 합산은 증권 `dayChange` + 비교 가능한 연금 `pensionDayChange` + 별도수익 ON 시 당일 증가분이고, 증권·퇴직연금 단독 범위에는 서로의 성과나 별도수익을 섞지 않는다. 연금 첫 관측일은 기준일로 취급해 기존 누적손익을 당일 수익으로 오인하지 않는다. 휴장/데이터 누락 판정은 updater가 생성하는 `data/krx_trading_calendar.json`을 사용하며 성과값 자체는 이 JSON에서 만들지 않는다.
+월간 손익 캘린더는 별도 성과 산식을 만들지 않는다. `dashboard-core.js`의 flow-neutral 일성과 helper를 재사용하며, **합산 / 증권 / 퇴직연금** 범위를 전환한다. 합산은 증권 `dayChange` + 비교 가능한 연금 `pensionDayChange` + 별도수익 ON 시 당일 증가분이며, 증권 단독 범위도 개인보기의 별도수익 ON 상태에서는 같은 당일 증가분을 더한다. 퇴직연금 단독 범위에는 증권 성과나 별도수익을 섞지 않는다. 별도수익 당일 증가분은 core의 `separateProfitDailyChangeForDate()`를 공통 재사용해 달력 모듈이 날짜별 `calc()`를 중복 호출하지 않는다. 연금 첫 관측일은 기준일로 취급해 기존 누적손익을 당일 수익으로 오인하지 않는다. 휴장/데이터 누락 판정은 updater가 생성하는 `data/krx_trading_calendar.json`을 사용하며 성과값 자체는 이 JSON에서 만들지 않는다.
 
 - `월간 손익`은 Web/Tablet/Phone이 공유하는 Topbar action으로만 진입하고 hamburger에는 중복 배치하지 않는다. Web/Tablet은 텍스트 action, Phone은 같은 DOM의 label을 숨긴 icon-only 표현을 사용하며 hamburger 구성·높이·scroll은 이 문서의 공통 Topbar/Navigation responsive contract를 따른다.
 - `합산 / 증권 / 퇴직연금` 범위 switch는 공통 `control-tab` primitive/skin을 재사용한다. 선택 범위는 modal을 닫았다 다시 열어도 현재 페이지 세션 동안 유지되며, 범위를 바꾸면 날짜별 금액과 월 손익·상승/하락·최고/최저가 같은 기준으로 함께 재계산된다.
@@ -960,11 +960,12 @@ Mobile  ≤ 760px
 
 Navigation 책임은 다음 의미를 유지한다.
 
-- Phone 세로/가로: compact Topbar + hamburger 중심. hamburger의 표시 순서는 `링크 → 관리 → 전체 → 증권계좌 → 퇴직연금`이며 별도 `목차` 헤더 문구는 두지 않는다. header는 왼쪽 `날짜 선택 고정` switch, 오른쪽 `모서리 변경`·닫기 action으로 구성한다. `투자 계산기`는 개인보기 해제 상태에서 `링크` 그룹의 `나스닥100 선물` 바로 아래에 둔다.
+- Phone 세로/가로: compact Topbar + hamburger 중심. hamburger의 표시 순서는 `링크 → 관리 → 전체 → 증권계좌 → 퇴직연금`이며 별도 `목차` 헤더 문구는 두지 않는다. header는 왼쪽 `Top바 고정` switch, 오른쪽 `모서리 변경`·닫기 action으로 구성한다. `투자 계산기`는 개인보기 해제 상태에서 `링크` 그룹의 `나스닥100 선물` 바로 아래에 둔다.
 - Tablet: 주요 action은 축약명, 보조 action은 icon-only로 표시한다. hamburger는 Phone과 같은 menu source를 재사용하되 `.tablet-topbar-ui` 상태에서 Topbar와 중복되는 `관리` 그룹과 `투자 계산기` 링크를 즉시 숨긴다. 모서리 변경은 기존 Topbar action을 사용하며 hamburger에는 중복 노출하지 않는다.
-- Hamburger membership source는 Tablet/Phone 공통으로 유지하고 viewport별 별도 markup을 만들지 않는다. 다만 Topbar와의 중복 제거를 위한 runtime 표시/숨김은 허용한다. `날짜 선택 고정`은 fixed Phone Topbar 전용 control이라 Phone에서만 표시하고, 모서리 변경은 기존 `toggleCornerTheme()` 상태·storage/channel을 재사용한다.
+- Hamburger membership source는 Tablet/Phone 공통으로 유지하고 viewport별 별도 markup을 만들지 않는다. 다만 Topbar와의 중복 제거를 위한 runtime 표시/숨김은 허용한다. `Top바 고정`은 fixed Phone Topbar 전용 control이라 Phone에서만 표시하고, 모서리 변경은 기존 `toggleCornerTheme()` 상태·storage/channel을 재사용한다.
 - Hamburger panel height/scroll: `common.css`가 Tablet/Phone 공통 owner다. Tablet/Phone media에 별도 `max-height` cap을 두지 않고, viewport 높이가 실제로 부족한 경우에만 공통 `overflow:auto`가 작동한다.
-- Desktop: 기존 action + 우측 edge TOC
+- Desktop: 기존 action + 우측 edge TOC. TOC panel은 화면 바깥에서 slide-in하지 않고 **panel 우측 세로선을 기준으로 `clip-path` reveal/close**하며, trigger/rail 위치는 고정한다.
+- 날짜 이동은 기존 `setActiveDashboardDate()` 하나로 수렴한다. Web은 화면 좌우 세로 중앙의 이전/다음 날짜 button을 사용하고, Tablet/Phone은 수평 swipe를 사용한다. 최종 touch 계약은 **좌→우=이전 날짜, 우→좌=다음 날짜**이며 control/chart/가로스크롤/modal에서 시작한 gesture는 제외한다. touch 전환 후에는 기존 toast로 이동 날짜를 안내하고 자동 종료한다.
 
 JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하고 같은 `matchMedia` 조건을 기능 모듈마다 복제하지 않는다.
 
@@ -980,6 +981,7 @@ JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 �
 - ON/OFF 또는 상태 control의 표시 여부 때문에 section title row의 기본 geometry가 흔들리지 않아야 한다.
 - 이 문제를 해결하기 위해 hidden placeholder나 임시 margin 보정처럼 공간을 억지로 예약하지 않는다.
 - 실제 높이·아이콘 크기·gap·control px 값은 CSS token을 Source of Truth로 한다.
+- 퇴직연금 금액 조정의 `현금성자산 / 기업적립금 / 추가 매수`, 월간 손익의 `합산 / 증권 / 퇴직연금`, 히트맵의 `당일손익 / 누적손익 / 비중`은 `--modal-segment-*` token을 공유한다. geometry·typography뿐 아니라 normal/hover/focus/active 색상도 공통 state token을 사용하고, 기능별 selector가 같은 skin을 다시 선언하지 않는다.
 
 ## 3.3 반복 회귀 이력이 있는 UI/기능
 
@@ -1461,7 +1463,7 @@ Value meaning               → --value-positive / --value-negative
 
 ## 4.13 Topbar 날짜 셀렉트 폭 정합성
 
-Topbar의 `년-월`과 `월-일 요일` 셀렉트는 같은 UI mode에서 동일폭을 유지한다. 표시 label은 `2026-9`, `9-16 수`처럼 구분자를 `-`로 통일해 Phone에서 control 아이콘이 늘어나도 텍스트와 select 화살표가 겹치지 않도록 한다. Desktop의 실제 기본폭과 Tablet/Phone에서의 shrink 값은 CSS가 Source of Truth다. Tablet에서는 기존 구간 안에서 날짜 그룹만 가용폭에 따라 두 셀렉트가 함께 줄고, 우측 action은 `auto` 열로 유지한다. 이 정합성 문제 때문에 새 breakpoint를 추가하지 않는다. Phone 세로/가로도 두 셀렉트가 같은 반응형 폭 체계를 사용한다.
+Topbar의 `년-월`과 `월-일 요일` 셀렉트는 같은 UI mode에서 동일폭을 유지한다. 표시 label은 `2026-9`, `9-16 수`처럼 구분자를 `-`로 통일한다. **Web에서도 별도 폭 breakpoint를 만들지 않고** action group이 실제 `max-content` 폭을 먼저 예약한 뒤 날짜 group만 남는 공간에서 함께 shrink한다. `1280px`은 `포트폴리오 히트맵 → 히트맵`, `보유종목 실시간 시세 → 실시간 시세` 같은 label 축약 전환용일 뿐 날짜폭 breakpoint가 아니다. Tablet도 날짜 group만 가용폭에 따라 줄고 우측 action은 `auto` 열을 유지한다. Phone 세로/가로도 두 셀렉트가 같은 반응형 폭 체계를 사용한다.
 
 ## 4.14 본문 카드 공통 시스템
 

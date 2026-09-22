@@ -1,7 +1,6 @@
 import {
   allAvailableDates,
   combinedDailyProfitChange,
-  calc,
   dataState,
   fmt,
   hasPensionData,
@@ -9,7 +8,7 @@ import {
   kstTodayText,
   pensionDailyProfitChange,
   securitiesDailyProfitChange,
-  separateProfitCumulativeForDate,
+  separateProfitDailyChangeForDate,
   uiState
 } from './dashboard-core.js';
 import { escapeHtml, navIconSvg, phoneUi } from './dashboard-ui-common.js';
@@ -83,10 +82,7 @@ function monthlyCalendarDailyProfit(date,mode=monthlyCalendarState.mode){
   if(mode==='securities'){
     const securities=securitiesDailyProfitChange(date);
     if(securities==null||!uiState.includeSeparateProfit)return securities;
-    const current=calc(date);
-    if(!current?.prevKey)return securities;
-    const separateDayChange=separateProfitCumulativeForDate(date)-separateProfitCumulativeForDate(current.prevKey);
-    return securities+separateDayChange;
+    return securities+separateProfitDailyChangeForDate(date);
   }
   if(mode==='pension')return pensionDailyProfitChange(date);
   return combinedDailyProfitChange(date);

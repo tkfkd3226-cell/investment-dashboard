@@ -1026,14 +1026,16 @@ function securitiesDailyProfitChange(date){
 function pensionDailyProfitChange(date){
   return dailyProfitChangeParts(date).pension;
 }
+function separateProfitDailyChangeForDate(date){
+  const prevKey=previousDate(date);
+  return prevKey?separateProfitCumulativeForDate(date)-separateProfitCumulativeForDate(prevKey):0;
+}
 function combinedDailyProfitChange(date){
   const {current,previous,securities,pension}=dailyProfitChangeParts(date);
   if(!current?.prevKey||securities==null)return null;
   if(previous.hasPension&&!current.hasPension)return null;
   if(current.hasPension&&previous.hasPension&&pension==null)return null;
-  const separateDayChange=uiState.includeSeparateProfit
-    ?separateProfitCumulativeForDate(date)-separateProfitCumulativeForDate(current.prevKey)
-    :0;
+  const separateDayChange=uiState.includeSeparateProfit?separateProfitDailyChangeForDate(date):0;
   return securities+(pension??0)+separateDayChange;
 }
 
@@ -1577,6 +1579,7 @@ export {
   securitySymbolAllocHistory,
   securitiesScopeText,
   separateProfitCumulativeForDate,
+  separateProfitDailyChangeForDate,
   separateProfitReinvestedForDate,
   separateProfitView,
   shortDate,

@@ -372,9 +372,10 @@ test('월간 일손익: 별도수익 ON은 당일 증가분만 더하고 월 첫
   assert.deepEqual(core.allAvailableDates(),['2026-05-29','2026-06-01'],'주말 공백은 가용 날짜에 끼어들지 않아야 한다');
   core.uiState.includeSeparateProfit=false;
   assert.equal(core.securitiesDailyProfitChange('2026-06-01'),30);
+  assert.equal(core.separateProfitDailyChangeForDate('2026-06-01'),200,'별도수익 일변동은 전월 마지막 가용일 대비 누적 증가분이어야 한다');
   assert.equal(core.combinedDailyProfitChange('2026-06-01'),30);
   core.uiState.includeSeparateProfit=true;
-  assert.equal(core.securitiesDailyProfitChange('2026-06-01'),30,'증권 단독 범위에는 별도수익을 섞지 않는다');
+  assert.equal(core.securitiesDailyProfitChange('2026-06-01'),30,'순수 증권 helper에는 별도수익을 섞지 않는다');
   assert.equal(core.combinedDailyProfitChange('2026-06-01'),230);
 });
 

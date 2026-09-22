@@ -151,10 +151,12 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.doesNotMatch(responsiveMenu,/action:'open-monthly-calendar'/,'TOPbar에 표시되는 월간 손익을 hamburger에 중복 배치하면 안 된다');
   assert.match(monthlyCalendar,/combinedDailyProfitChange\(date\)/,'합산 일손익 계산 의미는 DOM feature가 아니라 core helper를 재사용해야 한다');
   assert.match(monthlyCalendar,/const securities=securitiesDailyProfitChange\(date\)/,'증권 단독 범위도 core의 flow-neutral helper를 재사용해야 한다');
-  assert.match(monthlyCalendar,/if\(securities==null\|\|!uiState\.includeSeparateProfit\)return securities;[^]*?const current=calc\(date\);[^]*?separateProfitCumulativeForDate\(date\)-separateProfitCumulativeForDate\(current\.prevKey\)[^]*?return securities\+separateDayChange;/,'개인보기 별도수익 ON일 때 증권 달력은 별도수익 당일 증가분을 증권 손익에 더해야 한다');
+  assert.match(monthlyCalendar,/if\(securities==null\|\|!uiState\.includeSeparateProfit\)return securities;[^]*?return securities\+separateProfitDailyChangeForDate\(date\);/,'개인보기 별도수익 ON일 때 증권 달력은 core의 별도수익 당일 증가분 helper만 더해야 한다');
+  assert.doesNotMatch(monthlyCalendar,/\bcalc\(date\)|separateProfitCumulativeForDate\(date\)/,'월간 달력이 별도수익 반영을 위해 날짜별 calc/누적차를 중복 계산하면 안 된다');
   assert.match(monthlyCalendar,/pensionDailyProfitChange\(date\)/,'퇴직연금 단독 범위도 core의 비교 가능한 일성과 helper를 재사용해야 한다');
   assert.match(core,/function securitiesDailyProfitChange\(date\)/);
   assert.match(core,/function pensionDailyProfitChange\(date\)/);
+  assert.match(core,/function separateProfitDailyChangeForDate\(date\)/,'별도수익 당일 증가분도 core helper가 소유해야 한다');
   assert.match(core,/function combinedDailyProfitChange\(date\)/,'flow-neutral 월간 일손익 계산은 core가 소유해야 한다');
   assert.match(monthlyCalendar,/combined:\{label:'합산'[^]*?securities:\{label:'증권'[^]*?pension:\{label:'퇴직연금'/,'월간 손익 범위는 합산·증권·퇴직연금 3개만 유지해야 한다');
   assert.match(monthlyCalendar,/class="control-tab monthly-calendar-mode-tab/,'범위 switch는 새 control 디자인 대신 공통 control-tab primitive를 재사용해야 한다');

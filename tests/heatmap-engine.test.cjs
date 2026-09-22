@@ -164,7 +164,7 @@ test('히트맵 재설계 1차: mode metric은 모드별 면적 기준과 표시
   });
 });
 
-test('히트맵 재설계 1차: 전일 대비 면적은 dayChange 절댓값이며 0/null 종목은 geometry에서 제외한다',()=>{
+test('히트맵 재설계 1차: 당일손익 면적은 dayChange 절댓값이며 0/null 종목은 geometry에서 제외한다',()=>{
   const rows=[
     {ticker:'POS',evalAmount:100,dayChange:100},
     {ticker:'NEG',evalAmount:1000,dayChange:-300},
