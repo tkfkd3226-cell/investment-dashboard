@@ -200,9 +200,9 @@
       .action-modal[aria-hidden="false"],
       .contrib-modal[aria-hidden="false"],
       .chart-expanded-overlay.show,
-      dialog[open],
-      #pensionActionPinModal
+      dialog[open]
     ),
+    body.dashboard-dialog-open > #pensionActionPinModal,
     body.dashboard-dialog-open > #app #pensionContribModal.show{
       display:block !important;
       position:static !important;
@@ -221,9 +221,9 @@
       .action-modal[aria-hidden="false"],
       .contrib-modal[aria-hidden="false"],
       .chart-expanded-overlay.show,
-      dialog[open],
-      #pensionActionPinModal
+      dialog[open]
     ) > :is(.action-modal-card,.contrib-modal-card,.chart-expanded-stage),
+    body.dashboard-dialog-open > #pensionActionPinModal > .action-modal-card,
     body.dashboard-dialog-open > #app #pensionContribModal.show > .contrib-modal-card{
       box-sizing:border-box;
       width:100% !important;
@@ -286,6 +286,54 @@
     body.dashboard-dialog-open .realtime-quote-frame{
       height:100% !important;
       min-height:var(--realtime-monitor-fallback-height) !important;
+    }
+
+    /* Expanded Chart Print · 화면의 absolute/full-viewport geometry를 종이 흐름으로 되돌리고
+       차트 host 높이를 확보해 확대 상태의 현재 차트만 한 페이지에 출력한다. */
+    body.chart-expanded-open > .chart-expanded-overlay.show{
+      display:block !important;
+      position:static !important;
+      inset:auto !important;
+      width:100% !important;
+      height:auto !important;
+      overflow:visible !important;
+      opacity:1 !important;
+      background:#ffffff !important;
+    }
+    body.chart-expanded-open > .chart-expanded-overlay.show > .chart-expanded-stage{
+      position:relative !important;
+      inset:auto !important;
+      width:100% !important;
+      height:165mm !important;
+      min-height:165mm !important;
+      max-height:165mm !important;
+      margin:0 !important;
+      padding:5mm !important;
+      display:grid !important;
+      grid-template-rows:auto minmax(0,1fr) auto !important;
+      gap:var(--space-4xl) !important;
+      overflow:hidden !important;
+      transform:none !important;
+      box-sizing:border-box !important;
+      break-inside:avoid-page;
+      page-break-inside:avoid;
+    }
+    body.chart-expanded-open .chart-expanded-chart-host{
+      min-width:0 !important;
+      min-height:0 !important;
+      height:auto !important;
+      overflow:hidden !important;
+      display:flex !important;
+      align-items:stretch !important;
+    }
+    body.chart-expanded-open .chart-expanded-chart-host svg.chart{
+      width:100% !important;
+      max-width:100% !important;
+      min-width:0 !important;
+      height:100% !important;
+      min-height:0 !important;
+      max-height:none !important;
+      flex:1 1 auto !important;
     }
 
     /* [P03. Surface / Page Width · elevation 제거 + 용지 폭] */
@@ -406,6 +454,11 @@
     #pension-chart-alloc .chart-note{grid-template-columns:repeat(4,minmax(0,1fr))}
     #chart-alloc .security-alloc-card-grid{
       grid-template-columns:repeat(var(--security-alloc-card-count,4),minmax(0,1fr));
+    }
+    /* 유형별 3카드는 Phone의 합계카드 전체폭 규칙을 해제해 3×1로 복원한다.
+       종목별 wide 합계카드는 기존 4열 + 2칸 span 계약을 유지한다. */
+    #chart-alloc .security-alloc-card-grid > .alloc-total-card:not(.alloc-total-card-wide){
+      grid-column:auto !important;
     }
     #chart-alloc .security-alloc-card-grid > .alloc-total-card-wide{
       grid-column:span 2;
