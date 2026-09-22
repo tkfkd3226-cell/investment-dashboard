@@ -176,6 +176,12 @@
     }
     .date-picker-action .topbar-label-full{display:none}
     .date-picker-action .topbar-label-short{display:inline}
+    .portfolio-heatmap-head{
+      grid-template-columns:minmax(150px,1fr) minmax(240px,300px) minmax(150px,1fr);
+      gap:var(--space-3xl);
+    }
+    .portfolio-heatmap-date-controls{width:min(190px,100%)}
+    .portfolio-heatmap-mode-tabs{width:100%}
     .portfolio-heatmap__canvas{height:clamp(380px,54vh,540px)}
     .month-select,
     .day-select{

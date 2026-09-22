@@ -3434,13 +3434,24 @@ html.dark .portfolio-heatmap-modal{
   gap:var(--space-6xl);
 }
 .portfolio-heatmap-title-block{grid-column:1;min-width:0}
-.portfolio-heatmap-date{
-  margin:var(--space-md) 0 0;
-  color:var(--text-secondary);
+.portfolio-heatmap-date-controls{
+  display:grid;
+  grid-template-columns:var(--icon-button-size) minmax(0,1fr) var(--icon-button-size);
+  align-items:center;
+  gap:var(--space-sm);
+  width:min(220px,100%);
+  margin-top:var(--space-md);
+}
+.portfolio-heatmap-date-select{
+  height:var(--icon-button-size);
+  min-width:0;
+  padding:0 var(--space-lg);
+  border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
   font-size:var(--type-size-sm);
   font-weight:var(--type-weight-emphasis);
-  line-height:var(--type-line-compact);
   font-variant-numeric:tabular-nums;
+  text-align:center;
+  cursor:pointer;
 }
 .portfolio-heatmap-mode-tabs{
   grid-column:2;

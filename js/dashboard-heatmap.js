@@ -1,4 +1,4 @@
-import { fmt, pct, shortDate, signed, won } from './dashboard-core.js';
+import { allAvailableDates, fmt, pct, shortDate, signed, won } from './dashboard-core.js';
 import { assetPriceSourceInfo, escapeHtml, navIconSvg, phoneUi } from './dashboard-ui-common.js';
 import {
   bindDashboardModalDismiss,
@@ -25,7 +25,9 @@ import {
 const PORTFOLIO_HEATMAP_ACTION=Object.freeze({
   open:'open-portfolio-heatmap',
   close:'close-portfolio-heatmap',
-  setMode:'set-portfolio-heatmap-mode'
+  setMode:'set-portfolio-heatmap-mode',
+  previousDate:'previous-portfolio-heatmap-date',
+  nextDate:'next-portfolio-heatmap-date'
 });
 const PORTFOLIO_HEATMAP_MODES=Object.freeze({
   day:'당일손익',
@@ -433,17 +435,35 @@ function renderPortfolioHeatmapModeSelector(){
     return `<button type="button" class="control-tab portfolio-heatmap-mode-tab${active?' active':''}" data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.setMode}" data-heatmap-mode="${mode}" aria-pressed="${active?'true':'false'}">${label}</button>`;
   }).join('')}</div>`;
 }
+function portfolioHeatmapDateNeighbor(delta){
+  const dates=allAvailableDates();
+  const index=dates.indexOf(portfolioHeatmapState.date);
+  if(index<0)return null;
+  const nextIndex=index+(delta<0?-1:1);
+  return nextIndex>=0&&nextIndex<dates.length?dates[nextIndex]:null;
+}
+function portfolioHeatmapDateNavLabel(date,prefix){
+  return date?`${prefix} ${shortDate(date)}로 이동`:`이동 가능한 ${prefix} 없음`;
+}
+function renderPortfolioHeatmapDateControls(){
+  const dates=allAvailableDates();
+  const previous=portfolioHeatmapDateNeighbor(-1);
+  const next=portfolioHeatmapDateNeighbor(1);
+  return `<div class="portfolio-heatmap-date-controls" role="group" aria-label="히트맵 날짜 선택">
+    <button type="button" class="control-icon-button modal-icon-btn portfolio-heatmap-date-nav" data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.previousDate}" aria-label="${escapeHtml(portfolioHeatmapDateNavLabel(previous,'이전 날짜'))}"${previous?'':' disabled'}>${navIconSvg('arrowLeft')}</button>
+    <select class="action-modal-input portfolio-heatmap-date-select" data-dashboard-change="portfolio-heatmap-date" aria-label="히트맵 날짜 선택">${dates.map(date=>`<option value="${escapeHtml(date)}"${date===portfolioHeatmapState.date?' selected':''}>${escapeHtml(date)}</option>`).join('')}</select>
+    <button type="button" class="control-icon-button modal-icon-btn portfolio-heatmap-date-nav" data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.nextDate}" aria-label="${escapeHtml(portfolioHeatmapDateNavLabel(next,'다음 날짜'))}"${next?'':' disabled'}>${navIconSvg('arrowRight')}</button>
+  </div>`;
+}
 function renderPortfolioHeatmapModal(){
   const modal=document.getElementById('portfolioHeatmapModal');
   if(!modal)return;
-  const activeDate=String(portfolioHeatmapState.date||'');
-  const dateLabel=/^\d{4}-\d{2}-\d{2}$/.test(activeDate)?shortDate(activeDate):activeDate;
   modal.innerHTML=`<div class="action-modal-card portfolio-heatmap-card" role="dialog" aria-modal="true" aria-labelledby="portfolioHeatmapTitle">
     <button type="button" class="control-icon-button modal-icon-btn portfolio-heatmap-close" data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.close}" aria-label="포트폴리오 히트맵 닫기">${navIconSvg('close')}</button>
     <div class="portfolio-heatmap-head">
       <div class="portfolio-heatmap-title-block">
         <h3 id="portfolioHeatmapTitle" class="modal-main-title">포트폴리오 히트맵</h3>
-        <p class="portfolio-heatmap-date">${escapeHtml(dateLabel)}</p>
+        ${renderPortfolioHeatmapDateControls()}
       </div>
       ${renderPortfolioHeatmapModeSelector()}
     </div>
@@ -453,11 +473,23 @@ function renderPortfolioHeatmapModal(){
     </div>
   </div>`;
 }
-function syncPortfolioHeatmapDateLabel(){
-  const label=document.querySelector('#portfolioHeatmapModal .portfolio-heatmap-date');
-  if(!label)return;
-  const activeDate=String(portfolioHeatmapState.date||'');
-  label.textContent=/^\d{4}-\d{2}-\d{2}$/.test(activeDate)?shortDate(activeDate):activeDate;
+function syncPortfolioHeatmapDateControls(){
+  const modal=document.getElementById('portfolioHeatmapModal');
+  if(!modal)return;
+  const select=modal.querySelector('[data-dashboard-change="portfolio-heatmap-date"]');
+  if(select)select.value=portfolioHeatmapState.date||'';
+  const previous=portfolioHeatmapDateNeighbor(-1);
+  const next=portfolioHeatmapDateNeighbor(1);
+  const previousButton=modal.querySelector(`[data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.previousDate}"]`);
+  const nextButton=modal.querySelector(`[data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.nextDate}"]`);
+  if(previousButton){
+    previousButton.disabled=!previous;
+    previousButton.setAttribute('aria-label',portfolioHeatmapDateNavLabel(previous,'이전 날짜'));
+  }
+  if(nextButton){
+    nextButton.disabled=!next;
+    nextButton.setAttribute('aria-label',portfolioHeatmapDateNavLabel(next,'다음 날짜'));
+  }
 }
 function portfolioHeatmapToneVariable(direction){
   if(direction==='positive')return 'var(--heatmap-pos-base)';
@@ -740,7 +772,7 @@ function setPortfolioHeatmapDate(date,calcResult){
   if(nextDate===portfolioHeatmapState.date)return true;
   hidePortfolioHeatmapTooltip();
   if(!applyPortfolioHeatmapCalcResult(calcResult,{date:nextDate}))return false;
-  syncPortfolioHeatmapDateLabel();
+  syncPortfolioHeatmapDateControls();
   renderPortfolioHeatmapVisualization({forceLayout:true});
   return true;
 }
@@ -765,6 +797,7 @@ export {
   portfolioHeatmapAreaValue,
   portfolioHeatmapColorState,
   portfolioHeatmapDate,
+  portfolioHeatmapDateNeighbor,
   portfolioHeatmapIsOpen,
   portfolioHeatmapModeMetric,
   portfolioHeatmapTileDensity,

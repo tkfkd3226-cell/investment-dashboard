@@ -325,6 +325,7 @@
       padding-right:0;
     }
     .portfolio-heatmap-title-block{grid-column:1;padding-right:calc(var(--icon-button-size) + var(--space-3xl))}
+    .portfolio-heatmap-date-controls{width:100%;padding-right:0}
     .portfolio-heatmap-mode-tabs{grid-column:1;justify-self:stretch;width:100%}
     .portfolio-heatmap__canvas{
       height:clamp(240px,58dvh,490px);
@@ -883,7 +884,7 @@
 
   /* Heatmap Landscape · Phone family를 유지하면서 세로 공간만 compact하게 사용 */
     .portfolio-heatmap-head{gap:var(--space-lg)}
-    .portfolio-heatmap-date{margin-top:var(--space-2xs)}
+    .portfolio-heatmap-date-controls{margin-top:var(--space-2xs)}
     .portfolio-heatmap__canvas{
       height:clamp(180px,calc(100dvh - 118px),250px);
       margin-top:var(--space-lg);

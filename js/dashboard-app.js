@@ -40,8 +40,10 @@ import {
   closePortfolioHeatmap,
   openPortfolioHeatmap,
   portfolioHeatmapDate,
+  portfolioHeatmapDateNeighbor,
   portfolioHeatmapIsOpen,
   refreshPortfolioHeatmap,
+  setPortfolioHeatmapDate,
   setPortfolioHeatmapMode
 } from './dashboard-heatmap.js';
 import {
@@ -207,6 +209,16 @@ function shiftActiveDashboardDate(delta,{announce=false}={}){
   if(announce)showAppToast(`${dashboardDateLabel(nextDate)}로 이동했습니다.`,'ok',1800);
   return true;
 }
+function setOpenPortfolioHeatmapDate(date){
+  const nextDate=String(date||'');
+  if(!portfolioHeatmapIsOpen()||!allAvailableDates().includes(nextDate))return false;
+  if(nextDate===portfolioHeatmapDate())return true;
+  return setPortfolioHeatmapDate(nextDate,calc(nextDate));
+}
+function shiftOpenPortfolioHeatmapDate(delta){
+  const nextDate=portfolioHeatmapDateNeighbor(delta);
+  return nextDate?setOpenPortfolioHeatmapDate(nextDate):false;
+}
 function dashboardTouchDateNavigationUi(){
   return window.matchMedia?.('(max-width:1100px)').matches===true||phoneUi();
 }
@@ -304,6 +316,7 @@ function confirmChartDateJump(){
   if(date&&chartId)performChartDateJump(date,chartId);
 }
 function handleDashboardDateChange(target){
+  if(target.dataset.dashboardChange==='portfolio-heatmap-date')return setOpenPortfolioHeatmapDate(target.value);
   const keepDateMenuOpen=dateActionMenuIsOpen();
   if(target.id==='monthSelect'){
     const dates=allAvailableDates().filter(date=>date.startsWith(target.value));
@@ -343,6 +356,8 @@ function handleDashboardAction(event,control){
     return openPortfolioHeatmap(control,x);
   }
   if(action===PORTFOLIO_HEATMAP_ACTION.close)return closePortfolioHeatmap();
+  if(action===PORTFOLIO_HEATMAP_ACTION.previousDate)return shiftOpenPortfolioHeatmapDate(-1);
+  if(action===PORTFOLIO_HEATMAP_ACTION.nextDate)return shiftOpenPortfolioHeatmapDate(1);
   if(action===PORTFOLIO_HEATMAP_ACTION.setMode)return setPortfolioHeatmapMode(control.dataset.heatmapMode||'');
   if(action==='toggle-separate-profit')return toggleSeparateProfitMode();
   if(action==='toggle-separate-profit-expanded')return toggleSeparateProfitModeFromExpanded(control.dataset.expandedChartId||'');
