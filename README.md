@@ -231,9 +231,10 @@ investment-dashboard/
 │  ├─ add-ui-contract.test.cjs
 │  ├─ cross-ui-contract.test.cjs
 │  └─ update_prices_test.py
-├─ .github/workflows/
-│  ├─ pages.yml
-│  └─ update-prices.yml
+├─ .github/
+│  └─ workflows/
+│     ├─ pages.yml
+│     └─ update-prices.yml
 ├─ .gitattributes
 ├─ _config.yml
 ├─ requirements.txt
@@ -343,6 +344,8 @@ data/pension_batch_request_identity/
 ```text
 tests/main-calc.test.cjs
 tests/main-ui-contract.test.cjs
+tests/heatmap-engine.test.cjs
+tests/heatmap-shell.test.cjs
 tests/add-calc.test.cjs
 tests/add-report-data.test.cjs
 tests/add-ui-contract.test.cjs

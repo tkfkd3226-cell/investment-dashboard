@@ -45,11 +45,12 @@
 이 문서는 Main 영역의 다음 책임을 다룬다.
 
 - `index.html`
-- `css/common.css`, `tablet.css`, `mobile.css`, `special.css`, `interaction.css`, `print.css`
+- `css/common.css`, `css/tablet.css`, `css/mobile.css`, `css/special.css`, `css/interaction.css`, `css/print.css`
 - `js/dashboard-*.js`, `js/kodex-leverage-schema.js`
-- Main이 사용하는 `data/*.json`
-- `.github/workflows/update-prices.yml`, `scripts/update_prices.py`, `requirements.txt`
-- `tests/main-*.test.cjs`
+- Main이 사용하는 `data/*.json`과 GAS durable state용 `data/*/`
+- `img/favicon.png`, `img/hero-bg.webp`, `img/ui-icons.svg`
+- `.github/workflows/pages.yml`, `.github/workflows/update-prices.yml`, `scripts/update_prices.py`, `requirements.txt`
+- `tests/main-*.test.cjs`, `tests/heatmap-*.test.cjs`, `tests/update_prices_test.py`
 - Main과 Add가 반드시 동일하게 유지해야 하는 제한적 공통 contract와 `tests/cross-ui-contract.test.cjs`
 
 Add의 계산식, 거래분류, Report 집계, Add 전용 CSS/JS/반응형 상세는 이 문서에서 중복 설명하지 않는다.
@@ -228,21 +229,43 @@ data/
 ├─ prices.json
 ├─ performance_snapshots.json
 ├─ portfolio.json
+├─ account1_daily_snapshots.json
 ├─ kodex_leverage_trades.json
 ├─ pension_contributions.json
 ├─ pension_cash_snapshots.json
+├─ pension_operation_ledger.json
 ├─ krx_trading_calendar.json
-└─ pension_trades.json
+├─ pension_trades.json
+├─ pension_operation_ledger/
+├─ pension_operation_identity/
+├─ pension_batch_request_identity/
+└─ krx_dispatch_ledger/
+
+img/
+├─ favicon.png
+├─ hero-bg.webp
+└─ ui-icons.svg
+
+scripts/
+└─ update_prices.py
+
+.github/
+└─ workflows/
+   ├─ pages.yml
+   └─ update-prices.yml
 
 tests/
 ├─ main-calc.test.cjs
 ├─ main-ui-contract.test.cjs
 ├─ heatmap-engine.test.cjs
 ├─ heatmap-shell.test.cjs
-└─ cross-ui-contract.test.cjs
+├─ cross-ui-contract.test.cjs
+└─ update_prices_test.py
 ```
 
-`img/favicon.png`은 Main과 Add가 공유하는 canonical favicon이다. 루트에 별도 `favicon.png` 복제본을 다시 만들지 않는다.
+`data/pension_operation_ledger/`, `data/pension_operation_identity/`, `data/pension_batch_request_identity/`, `data/krx_dispatch_ledger/`는 브라우저가 읽는 화면 데이터가 아니라 GAS가 GitHub API를 통해 사용하는 repository-only durable state다.
+
+`img/favicon.png`은 Main과 Add가 공유하는 canonical favicon이다. `img/hero-bg.webp`와 `img/ui-icons.svg`도 Main의 실제 asset이며, 루트에 별도 `favicon.png` 복제본을 다시 만들지 않는다.
 
 ## 2.2 메인 dependency graph는 13파일 ES Module 구조 유지
 
