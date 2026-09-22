@@ -92,10 +92,11 @@ test('히트맵 1차: 공통 modal lifecycle과 3개 segmented mode shell을 재
   assert.match(common,/\.portfolio-heatmap-modal\{[^}]*--modal-card-width:min\(1160px,100%\)/,'Web heatmap modal은 넓은 shell을 가져야 한다');
   assert.match(common,/\.portfolio-heatmap-head\{[^}]*display:grid[^}]*grid-template-columns:minmax\(0,1fr\) auto minmax\(0,1fr\)/,'Web 히트맵 mode는 좌우 대칭 grid의 중앙 열을 사용해야 한다');
   assert.match(common,/\.portfolio-heatmap-mode-tabs\{[^}]*grid-column:2[^}]*justify-self:center/,'Web 히트맵 mode selector는 modal 중앙에 정렬되어야 한다');
-  assert.match(heatmap,/class=\"portfolio-heatmap-date-controls\"[^]*?data-dashboard-change=\"portfolio-heatmap-date\"/,'모달 title 영역에 독립 날짜 selector를 제공해야 한다');
-  assert.match(common,/\.portfolio-heatmap-date-controls\{[^}]*grid-template-columns:var\(--icon-button-size\) minmax\(0,1fr\) var\(--icon-button-size\)/,'날짜 탐색기는 이전/선택/다음 3열 geometry를 가져야 한다');
-  assert.match(special,/\.portfolio-heatmap-head\{[^}]*grid-template-columns:1fr/,'Phone은 기존 title 아래 mode 배치를 유지해야 한다');
-  assert.match(special,/\.portfolio-heatmap-mode-tabs\{grid-column:1;justify-self:stretch;width:100%\}/,'Phone mode selector는 기존 full-width 3등분 배치를 유지해야 한다');
+  assert.match(heatmap,/class=\"portfolio-heatmap-date-controls\"[^]*?data-dashboard-change=\"portfolio-heatmap-date\"/,'모달 header에 독립 날짜 selector를 제공해야 한다');
+  assert.match(common,/\.portfolio-heatmap-date-controls\{[^}]*grid-template-columns:var\(--icon-button-size\) minmax\(0,1fr\) var\(--icon-button-size\)/,'기본 날짜 탐색기는 이전/선택/다음 3열 geometry를 가져야 한다');
+  assert.match(special,/\.portfolio-heatmap-head\{[^}]*grid-template-columns:max-content minmax\(0,1fr\) var\(--icon-button-size\)/,'Phone header는 제목·날짜·닫기 버튼 자리를 한 줄에 배치해야 한다');
+  assert.match(special,/\.portfolio-heatmap-date-controls\{[^}]*grid-column:2;[^}]*width:max-content;[^}]*margin-top:0/,'Phone 날짜 탐색기는 제목과 닫기 버튼 사이에서 내용 폭만 사용해야 한다');
+  assert.match(special,/\.portfolio-heatmap-mode-tabs\{grid-column:1\/-1;grid-row:2;justify-self:stretch;width:100%\}/,'Phone mode selector는 둘째 줄의 full-width 3등분 배치를 유지해야 한다');
   assert.match(special,/\.portfolio-heatmap-modal\{--modal-card-width:100%\}/,'Phone은 거의 full-width modal shell을 사용해야 한다');
   assert.match(special,/\.action-modal:not\(\.monthly-calendar-modal\):not\(\.realtime-quote-modal\):not\(\.portfolio-heatmap-modal\)\{/,'Phone landscape에서도 히트맵은 generic action modal 중앙형 override 대상에서 제외되어야 한다');
 });

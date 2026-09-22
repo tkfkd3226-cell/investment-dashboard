@@ -462,7 +462,7 @@ function renderPortfolioHeatmapModal(){
     <button type="button" class="control-icon-button modal-icon-btn portfolio-heatmap-close" data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.close}" aria-label="포트폴리오 히트맵 닫기">${navIconSvg('close')}</button>
     <div class="portfolio-heatmap-head">
       <div class="portfolio-heatmap-title-block">
-        <h3 id="portfolioHeatmapTitle" class="modal-main-title">포트폴리오 히트맵</h3>
+        <h3 id="portfolioHeatmapTitle" class="modal-main-title portfolio-heatmap-title"><span class="portfolio-heatmap-title-full">포트폴리오 히트맵</span><span class="portfolio-heatmap-title-compact">히트맵</span></h3>
         ${renderPortfolioHeatmapDateControls()}
       </div>
       ${renderPortfolioHeatmapModeSelector()}

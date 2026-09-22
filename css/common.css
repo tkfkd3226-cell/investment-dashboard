@@ -3434,6 +3434,7 @@ html.dark .portfolio-heatmap-modal{
   gap:var(--space-6xl);
 }
 .portfolio-heatmap-title-block{grid-column:1;min-width:0}
+.portfolio-heatmap-title-compact{display:none}
 .portfolio-heatmap-date-controls{
   display:grid;
   grid-template-columns:var(--icon-button-size) minmax(0,1fr) var(--icon-button-size);
