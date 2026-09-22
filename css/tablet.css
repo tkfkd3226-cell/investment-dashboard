@@ -176,13 +176,6 @@
     }
     .date-picker-action .topbar-label-full{display:none}
     .date-picker-action .topbar-label-short{display:inline}
-    .date-picker-action .topbar-heatmap-action{
-      width:var(--topbar-control-height);
-      min-width:var(--topbar-control-height);
-      padding-inline:0;
-      gap:0;
-    }
-    .date-picker-action .topbar-heatmap-action :is(.topbar-label-full,.topbar-label-short){display:none}
     .portfolio-heatmap-head{
       display:grid;
       grid-template-columns:1fr;

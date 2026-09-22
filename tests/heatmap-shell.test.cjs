@@ -58,8 +58,11 @@ test('히트맵 1차: Phone은 밝기 버튼을 Topbar에서 숨기고 hamburger
 });
 
 test('히트맵 1차: Web/Tablet/Phone 표시 계약을 CSS만으로 전환한다',()=>{
-  assert.match(tablet,/\.date-picker-action \.topbar-heatmap-action\{[^}]*width:var\(--topbar-control-height\)[^}]*padding-inline:0/,'Tablet 히트맵은 icon-only geometry여야 한다');
-  assert.match(tablet,/\.topbar-heatmap-action :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Tablet 히트맵 label은 숨겨야 한다');
+  assert.match(tablet,/\.date-picker-action \.topbar-label-full\{display:none\}/,'Tablet은 주요 action의 full label을 숨겨야 한다');
+  assert.match(tablet,/\.date-picker-action \.topbar-label-short\{display:inline\}/,'Tablet은 주요 action의 축약 label을 표시해야 한다');
+  assert.doesNotMatch(tablet,/\.date-picker-action \.topbar-heatmap-action\{[^}]*width:var\(--topbar-control-height\)/,'Tablet 히트맵만 icon-only geometry로 축소하면 안 된다');
+  assert.doesNotMatch(tablet,/\.topbar-heatmap-action :is\(\.topbar-label-full,\.topbar-label-short\)\{display:none\}/,'Tablet 히트맵 label을 별도로 숨기면 안 된다');
+  assert.match(ui,/<span class="topbar-label-short">히트맵<\/span>/,'Tablet에서 히트맵 축약 label이 보여야 한다');
   assert.match(special,/\.switcher button:is\(\.topbar-monthly-action,\.topbar-heatmap-action,\.topbar-realtime-action\)/,'Phone 히트맵은 월간/실시간과 같은 compact button geometry를 써야 한다');
   assert.doesNotMatch(ui,/appendChild\([^)]*topbar-heatmap|insertBefore\([^)]*topbar-heatmap/,'viewport 전환을 위해 히트맵 DOM을 JS로 재배치하면 안 된다');
 });
