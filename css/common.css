@@ -147,6 +147,13 @@
   --modal-segment-font-weight:700;
   --modal-segment-gap:var(--space-sm);
   --modal-segment-group-pad:var(--space-2xs);
+  /* Modal segmented state · 퇴직연금 조정/월간 손익/히트맵의 normal/hover/active 색상 단일 원천 */
+  --modal-segment-group-bg:var(--subtle-card);
+  --modal-segment-text:var(--muted);
+  --modal-segment-hover-bg:var(--nav-surface-hover);
+  --modal-segment-hover-text:var(--ink);
+  --modal-segment-active-bg:var(--accent-strong-bg);
+  --modal-segment-active-text:var(--on-accent-text);
 
   --dashboard-control-height:29px;
   --dashboard-control-font-size:10.5px;
@@ -2962,10 +2969,17 @@ body.dashboard-dialog-open{
   font-size:var(--modal-segment-font-size);
   font-weight:var(--modal-segment-font-weight);
 }
-/* Shared Segmented Tabs Skin · 자산/퇴직연금 조정/월간 손익 switch가 같은 surface/state를 공유 */
-:is(.asset-workspace-tabs,.contrib-target-tabs,.monthly-calendar-mode-tabs,.portfolio-heatmap-mode-tabs){background:var(--subtle-card)}
-:is(.asset-workspace-tab,.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab){color:var(--muted)}
-:is(.asset-workspace-tab,.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab).active{background:var(--accent-strong-bg);color:var(--on-accent-text)}
+/* Shared Segmented Tabs Skin · modal 3종은 동일 state token을 쓰고 자산 탭은 같은 semantic surface를 유지 */
+.asset-workspace-tabs{background:var(--subtle-card)}
+.asset-workspace-tab{color:var(--muted)}
+.asset-workspace-tab.active{background:var(--accent-strong-bg);color:var(--on-accent-text)}
+:is(.contrib-target-tabs,.monthly-calendar-mode-tabs,.portfolio-heatmap-mode-tabs){background:var(--modal-segment-group-bg)}
+:is(.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab){color:var(--modal-segment-text)}
+:is(.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab).active{background:var(--modal-segment-active-bg);color:var(--modal-segment-active-text)}
+:is(.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab):not(.active):focus-visible{
+  background:var(--modal-segment-hover-bg);
+  color:var(--modal-segment-hover-text);
+}
 
 /* Asset Workspace Tabs · 자산 작업영역 탭: 증권 → 퇴직연금 순서, 기존 section ID 유지 */
 .asset-workspace-tabs{

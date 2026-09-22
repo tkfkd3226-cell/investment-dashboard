@@ -175,7 +175,7 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*--separate-profit-height:25px;[^}]*--separate-profit-font-size:9\.5px;[^}]*--separate-profit-state-height:21px;/,'Phone 메인화면만 feature scope에서 compact 별도수익 variant를 가져야 한다');
   assert.doesNotMatch(special,/^[ \t]*\.separate-profit-toggle\{/m,'Phone CSS에서 모든 별도수익 toggle을 전역 compact 처리하면 월간 모달까지 변형되므로 금지한다');
   assert.match(special,/Monthly Calendar Controls · 가로폰[^]*?\.monthly-calendar-controls\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,360px\) minmax\(0,1fr\)[^}]*\}[^]*?\.monthly-calendar-separate-profit\{grid-column:3;grid-row:1;justify-self:end\}/,'Phone Landscape는 탭과 별도수익 toggle을 같은 행으로 복원해야 한다');
-  assert.match(common,/:is\(\.asset-workspace-tabs,\.contrib-target-tabs,\.monthly-calendar-mode-tabs,\.portfolio-heatmap-mode-tabs\)\{background:var\(--subtle-card\)\}/,'월간 범위 switch는 히트맵을 포함한 공통 segmented tab skin을 공유해야 한다');
+  assert.match(common,/:is\(\.contrib-target-tabs,\.monthly-calendar-mode-tabs,\.portfolio-heatmap-mode-tabs\)\{background:var\(--modal-segment-group-bg\)\}/,'월간 범위 switch는 퇴직연금/히트맵과 동일한 modal segmented state token을 공유해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-scroll/,'달력은 별도 body scroll wrapper 없이 card 하나만 scroll owner로 유지해야 한다');
   assert.match(common,/\.monthly-calendar-card\{[^}]*overflow:auto/,'작은 viewport에서는 기존처럼 달력 card 전체가 스크롤되어야 한다');
   assert.match(common,/\.monthly-calendar-close\{[^}]*top:var\(--modal-card-pad-y\)/,'Web/Tablet 달력 닫기 버튼은 card 상단 padding을 기준으로 월 이동/제목 행과 수직 중심을 맞춰야 한다');

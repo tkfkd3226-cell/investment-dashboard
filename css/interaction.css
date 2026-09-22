@@ -62,9 +62,14 @@
     }
 
   /* [I03. Control Hover · 공통 control border feedback] */
-    :is(.asset-workspace-tab,.contrib-target-option):not(.active):hover{
+    .asset-workspace-tab:not(.active):hover{
       background:var(--nav-surface-hover);
       color:var(--ink);
+    }
+
+    :is(.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab):not(.active):hover{
+      background:var(--modal-segment-hover-bg);
+      color:var(--modal-segment-hover-text);
     }
 
     :is(
