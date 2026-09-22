@@ -250,7 +250,8 @@ function handleDashboardAction(event,control){
   }
   if(action===PORTFOLIO_HEATMAP_ACTION.open){
     closeDateActionMenu();
-    return openPortfolioHeatmap(control,latestDashboardCalcResult?.date===dataState.activeDate?latestDashboardCalcResult:(latestDashboardCalcResult=calc(dataState.activeDate)));
+    const x=latestDashboardCalcResult=calc(dataState.activeDate);
+    return openPortfolioHeatmap(control,x);
   }
   if(action===PORTFOLIO_HEATMAP_ACTION.close)return closePortfolioHeatmap();
   if(action===PORTFOLIO_HEATMAP_ACTION.setMode)return setPortfolioHeatmapMode(control.dataset.heatmapMode||'');

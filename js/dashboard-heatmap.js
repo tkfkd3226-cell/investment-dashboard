@@ -576,8 +576,12 @@ function refreshPortfolioHeatmap(calcResult){
   const modal=document.getElementById('portfolioHeatmapModal');
   const activeTile=document.activeElement?.closest?.('#portfolioHeatmapModal [data-heatmap-tile]')||null;
   const activeKey=heatmapStableKey(portfolioHeatmapRowForTile(activeTile));
+  const pinnedRow=Number.isInteger(portfolioHeatmapState.pinnedIndex)
+    ?portfolioHeatmapState.layoutRows[portfolioHeatmapState.pinnedIndex]||null
+    :null;
+  const pinnedKey=heatmapStableKey(pinnedRow);
 
-  hidePortfolioHeatmapTooltip();
+  hidePortfolioHeatmapTooltip({clearPinned:false});
   portfolioHeatmapState.rows=createPortfolioHeatmapViewModelFromCalc(calcResult||{});
   portfolioHeatmapState.context=portfolioHeatmapContextFromCalc(calcResult||{});
   portfolioHeatmapState.layoutRows=[];
@@ -591,6 +595,14 @@ function refreshPortfolioHeatmap(calcResult){
       ?modal?.querySelector(`[data-heatmap-index="${nextIndex}"]`)
       :modal?.querySelector(`[data-heatmap-mode="${portfolioHeatmapState.mode}"]`);
     nextFocus?.focus?.({preventScroll:true});
+  }
+  if(pinnedKey){
+    const nextPinnedIndex=portfolioHeatmapState.layoutRows.findIndex(row=>heatmapStableKey(row)===pinnedKey);
+    const nextPinnedTile=nextPinnedIndex>=0?modal?.querySelector(`[data-heatmap-index="${nextPinnedIndex}"]`):null;
+    if(nextPinnedTile)showPortfolioHeatmapTooltip(nextPinnedTile,null,{pinned:true});
+    else portfolioHeatmapState.pinnedIndex=null;
+  }else{
+    portfolioHeatmapState.pinnedIndex=null;
   }
   return true;
 }

@@ -215,6 +215,7 @@ test('실시간 평가 변경은 열린 overlay를 즉시 갱신하되 main part
   assert.match(liveValuation,/function setupLiveValuation\(\{renderDashboard,renderOpenOverlay\}=\{\}\)/);
   assert.match(liveValuation,/renderOpenOverlayCallback=typeof renderOpenOverlay==='function'\?renderOpenOverlay:null/);
   assert.match(app,/function refreshOpenPortfolioHeatmapLive\(\)\{[^]*?if\(!portfolioHeatmapIsOpen\(\)\|\|!liveValuationRenderDateEligible\(dataState\.activeDate\)\)return false;[^]*?latestDashboardCalcResult=calc\(dataState\.activeDate\)[^]*?refreshPortfolioHeatmap\(x\)/,'열린 히트맵만 canonical calc 결과로 갱신해야 한다');
+  assert.match(app,/action===PORTFOLIO_HEATMAP_ACTION\.open[^]*?const x=latestDashboardCalcResult=calc\(dataState\.activeDate\);[^]*?openPortfolioHeatmap\(control,x\)/,'deferred main render 직후 open해도 stale cache가 아니라 현재 live state를 다시 calc해야 한다');
   assert.match(liveValuation,/if\(document\.querySelector\('\.chart-expanded-overlay,\.action-modal\.show,\.contrib-modal\.show,dialog\[open\]'\)\)return false;/,'modal open 중 main partial render defer 보호는 그대로 유지해야 한다');
   assert.equal((liveValuation.match(/setInterval\(/g)||[]).length,1,'히트맵 live refresh 때문에 polling timer가 늘어나면 안 된다');
 });

@@ -86,8 +86,8 @@ test('히트맵 1차: 공통 modal lifecycle과 3개 segmented mode shell을 재
 });
 
 test('히트맵 1차: app action router가 open/close/mode를 feature owner에 위임한다',()=>{
-  assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.open[^]*?openPortfolioHeatmap\(control,latestDashboardCalcResult\?\.date===dataState\.activeDate\?latestDashboardCalcResult:/,'open 시 마지막 dashboard canonical calc 결과를 우선 재사용해야 한다');
-  assert.match(app1,/const x=latestDashboardCalcResult=calc\(dataState\.activeDate\)/,'dashboard render 결과를 heatmap용 canonical cache로 보존해야 한다');
+  assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.open[^]*?const x=latestDashboardCalcResult=calc\(dataState\.activeDate\);[^]*?openPortfolioHeatmap\(control,x\)/,'open 시 deferred live state까지 반영하도록 현재 activeDate를 1회 fresh calc해야 한다');
+  assert.doesNotMatch(app1,/PORTFOLIO_HEATMAP_ACTION\.open[^]*?latestDashboardCalcResult\?\.date===dataState\.activeDate\?latestDashboardCalcResult:/,'같은 날짜라는 이유만으로 stale canonical cache를 재사용하면 안 된다');
   assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.close\)return closePortfolioHeatmap\(\)/);
   assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.setMode\)return setPortfolioHeatmapMode\(control\.dataset\.heatmapMode\|\|''\)/);
   assert.match(heatmap1,/fallbackSelector:portfolioHeatmapFocusFallbackSelector\(\)/,'공통 modal focus return fallback을 제공해야 한다');
@@ -149,7 +149,10 @@ test('히트맵 4차: live refresh는 열린 modal에서만 canonical rows/conte
   assert.match(heatmap,/portfolioHeatmapState\.context=portfolioHeatmapContextFromCalc\(calcResult\|\|\{\}\)/);
   assert.match(heatmap,/portfolioHeatmapState\.layoutRows=\[\];[^]*?renderPortfolioHeatmapVisualization\(\{forceLayout:true\}\)/,'live 평가금액 변경 시 geometry는 새 canonical rows 기준으로 다시 계산해야 한다');
   assert.match(heatmap,/const activeKey=heatmapStableKey\(portfolioHeatmapRowForTile\(activeTile\)\)/,'live refresh 전 keyboard tile focus의 stable key를 보존해야 한다');
+  assert.match(heatmap,/const pinnedRow=Number\.isInteger\(portfolioHeatmapState\.pinnedIndex\)[^]*?const pinnedKey=heatmapStableKey\(pinnedRow\)/,'live refresh 전 touch pinned tile도 index가 아니라 stable key로 보존해야 한다');
+  assert.match(heatmap,/hidePortfolioHeatmapTooltip\(\{clearPinned:false\}\)/,'live refresh 시작 시 pinned 선택 상태를 즉시 지우면 안 된다');
   assert.match(heatmap,/nextFocus\?\.focus\?\.\(\{preventScroll:true\}\)/,'live refresh 후 focus를 동일 종목 또는 mode control로 복원해야 한다');
+  assert.match(heatmap,/if\(nextPinnedTile\)showPortfolioHeatmapTooltip\(nextPinnedTile,null,\{pinned:true\}\)/,'live refresh 후 동일 종목 tooltip을 최신 내용으로 다시 pin해야 한다');
   assert.doesNotMatch(heatmap,/\bsetInterval\s*\(|\bfetch\s*\(/,'Heatmap 자체는 polling/network를 소유하면 안 된다');
   assert.doesNotMatch(heatmap,/priceSource:holding\?\.priceSource/,'사용하지 않는 중복 priceSource View Model field를 남기지 않는다');
 });
