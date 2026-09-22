@@ -213,6 +213,35 @@ const assetPriceColumnLabel=(date,{current=false}={})=>{
   const valueLabel=current&&date===kstTodayText()&&(snap.marketStatus||'close')==='intraday'?'현재가':'종가';
   return `${shortDate(date)} ${valueLabel}`;
 };
+function assetAppliedPriceKindForRow(row,date){
+  if(!date||date!==kstTodayText())return 'close';
+  const price=Number(row?.price);
+  if(!Number.isFinite(price)||price<=0)return null;
+  if(row?.postClosePending===true)return 'unknown';
+  const liveQuote=row?.priceSource==='market-ai'?row?.liveQuote:null;
+  if(liveQuote){
+    const state=String(liveQuote.state||''),marketState=String(liveQuote.marketState||'');
+    if(state==='closed'||marketState==='closed')return 'close';
+    if(state==='live')return 'current';
+    return 'unknown';
+  }
+  const snap=dataState.prices?.[date]||{};
+  if(String(snap.priceBasis||'')==='regular_close')return 'close';
+  if(String(snap.priceBasis||'')==='intraday'||String(snap.marketStatus||'')==='intraday')return 'current';
+  if(String(snap.marketStatus||'')==='close')return 'close';
+  return 'unknown';
+}
+const assetCurrentPriceColumnLabel=(date,rows=[])=>{
+  if(!date)return '당일 종가';
+  if(date!==kstTodayText())return `${shortDate(date)} 종가`;
+  const kinds=(Array.isArray(rows)?rows:[]).map(row=>assetAppliedPriceKindForRow(row,date)).filter(Boolean);
+  if(!kinds.length)return assetPriceColumnLabel(date,{current:true});
+  const unique=new Set(kinds);
+  let valueLabel='가격';
+  if(unique.size===1&&unique.has('current'))valueLabel='현재가';
+  else if(unique.size===1&&unique.has('close'))valueLabel='종가';
+  return `${shortDate(date)} ${valueLabel}`;
+};
 
 const pensionEvaluationBasisText=d=>{
   const snap=dataState.prices?.[d]||{};
@@ -865,6 +894,9 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
         dayChange,
         buyAmount,
         sale,
+        priceSource:h.priceSource,
+        liveQuote:h.liveQuote,
+        postClosePending:h.postClosePending===true,
         dayRate:hasPrev?dayChangeRate(dayChange,prevEval,buyAmount):null
       };
     });
@@ -1470,6 +1502,7 @@ export {
   applyLiveKospiSnapshot,
   applyLiveValuationSnapshot,
   allAvailableDates,
+  assetCurrentPriceColumnLabel,
   assetPriceColumnLabel,
   assetTypeColor,
   calc,

@@ -981,6 +981,14 @@ test('보유종목/연금상품 현재가 출처는 저장 기준과 Market AI �
   assert.equal((common.match(/assetPriceSourceTooltip|asset-source-tooltip|asset-source/g)||[]).length,0,'출처 tooltip 전용 CSS를 추가하면 안 된다');
 });
 
+test('전일 대비 변동 현재 열은 증권/연금별 실제 가격 상태 집계 helper를 독립 사용한다',()=>{
+  assert.match(core,/function assetAppliedPriceKindForRow\(row,date\)/);
+  assert.match(core,/const assetCurrentPriceColumnLabel=\(date,rows=\[\]\)=>/);
+  assert.match(core,/priceSource:h\.priceSource,\s*liveQuote:h\.liveQuote,\s*postClosePending:h\.postClosePending===true/);
+  assert.match(ui,/const currentPriceLabel=assetCurrentPriceColumnLabel\(detail\.date,orderedRows\);/);
+  assert.match(pension,/currentPriceLabel=assetCurrentPriceColumnLabel\(x\.date,orderedPensionRows\)/);
+});
+
 test('현재가 출처 tooltip은 표의 라벨 텍스트뿐 아니라 라벨 셀 전체를 hover hit-area로 사용한다',()=>{
   assert.match(uiCommon,/function assetSourceTooltipTargetFromEvent\(event,selector\)/);
   assert.match(uiCommon,/closest\?\.\('th\[scope=\"row\"\]'\)\?\.querySelector\(selector\)/);

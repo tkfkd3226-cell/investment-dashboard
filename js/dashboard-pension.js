@@ -1,5 +1,6 @@
 import {
   CASH_ASSET_COLOR,
+  assetCurrentPriceColumnLabel,
   assetPriceColumnLabel,
   cls,
   dayChangeRate,
@@ -196,7 +197,7 @@ function renderPensionChangeBlock(x,orderedPensionRows){
         prevDateLabel=x.prevKey?shortDate(x.prevKey):'-',
         currentDateLabel=shortDate(x.date),
         prevPriceLabel=assetPriceColumnLabel(x.prevKey),
-        currentPriceLabel=assetPriceColumnLabel(x.date,{current:true}),
+        currentPriceLabel=assetCurrentPriceColumnLabel(x.date,orderedPensionRows),
         productPrevEval=hasPrev?orderedPensionRows.reduce((a,r)=>a+(Number(r.prevEval)||0),0):null,
         productEval=orderedPensionRows.reduce((a,r)=>a+(Number(r.evalAmount)||0),0),
         productDayChange=hasPrev?orderedPensionRows.reduce((a,r)=>a+(Number(r.dayChange)||0),0):null,

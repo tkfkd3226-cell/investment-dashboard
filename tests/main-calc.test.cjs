@@ -756,6 +756,26 @@ test('Hero 투자 성과 기준문구: 실제 적용된 live 가격 성격에 �
   assert.match(core.heroPerformanceBasisLabel(today),/정규장 종가 기준$/);
 });
 
+test('전일 대비 변동 가격 헤더: 실제 적용 행이 현재가/종가/혼합인지 독립 집계한다',()=>{
+  const today=core.kstTodayText();
+  setState({prices:{[today]:{marketStatus:'close',priceBasis:'regular_close'}}});
+  const liveOpen={price:120,priceSource:'market-ai',liveQuote:{usable:true,state:'live',marketState:'open'}};
+  const liveExtended={price:121,priceSource:'market-ai',liveQuote:{usable:true,state:'live',marketState:'extended'}};
+  const closed={price:100,priceSource:'market-ai',liveQuote:{usable:true,state:'closed',marketState:'closed'}};
+
+  assert.match(core.assetCurrentPriceColumnLabel(today,[liveOpen,liveExtended]),/현재가$/);
+  assert.match(core.assetCurrentPriceColumnLabel(today,[closed,{...closed,price:101}]),/종가$/);
+  assert.match(core.assetCurrentPriceColumnLabel(today,[liveExtended,closed]),/가격$/);
+
+  core.dataState.prices[today]={marketStatus:'intraday',priceBasis:'intraday'};
+  assert.match(core.assetCurrentPriceColumnLabel(today,[{price:110,priceSource:'json'}]),/현재가$/);
+  core.dataState.prices[today]={marketStatus:'close',priceBasis:'regular_close'};
+  assert.match(core.assetCurrentPriceColumnLabel(today,[{price:110,priceSource:'json'}]),/종가$/);
+  assert.match(core.assetCurrentPriceColumnLabel(today,[liveOpen,{price:110,priceSource:'json'}]),/가격$/);
+  assert.match(core.assetCurrentPriceColumnLabel(today,[{price:110,priceSource:'json',postClosePending:true}]),/가격$/);
+  assert.equal(core.assetCurrentPriceColumnLabel('2026-09-01',[liveOpen]),'9/1 종가');
+});
+
 test('실시간 평가 상태 요약: 실패/과거 화면은 STALE·JSON 의미를 분리한다',()=>{
   const today=core.kstTodayText();
   const portfolio=basePortfolio({securities:[{name:'A',ticker:'005930',type:'개별주식',qty:1,cost:100,chart:true}],pension:[]});

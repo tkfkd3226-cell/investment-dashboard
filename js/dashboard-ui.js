@@ -2,6 +2,7 @@ import {
   DASHBOARD_WRITE_CONFIG,
   account1PrincipalForDate,
   account1SourceHoldingGapForDate,
+  assetCurrentPriceColumnLabel,
   assetPriceColumnLabel,
   allAvailableDates,
   cls,
@@ -1308,8 +1309,8 @@ function renderSecuritiesChangeBlock(x){
   const prevDateLabel=detail.prevDate?shortDate(detail.prevDate):'전일';
   const currentDateLabel=shortDate(detail.date);
   const prevPriceLabel=assetPriceColumnLabel(detail.prevDate);
-  const currentPriceLabel=assetPriceColumnLabel(detail.date,{current:true});
   const orderedRows=sortSecurityItems(change.rows);
+  const currentPriceLabel=assetCurrentPriceColumnLabel(detail.date,orderedRows);
   const rows=orderedRows.map(r=>{
     const saleTooltipAttrs=securitySaleTooltipAttrs(r);
     return {
