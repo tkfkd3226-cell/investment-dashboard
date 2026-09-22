@@ -33,6 +33,13 @@ const PORTFOLIO_HEATMAP_MODES=Object.freeze({
   weight:'비중'
 });
 const PORTFOLIO_HEATMAP_SCALE=Object.freeze({day:3,cumulative:30});
+const PORTFOLIO_HEATMAP_WEIGHT_STEPS=Object.freeze([
+  {max:5,intensity:20,label:'0–5%',sample:2.5},
+  {max:10,intensity:40,label:'5–10%',sample:7.5},
+  {max:20,intensity:60,label:'10–20%',sample:15},
+  {max:30,intensity:80,label:'20–30%',sample:25},
+  {max:Infinity,intensity:100,label:'30%+',sample:35}
+]);
 const PORTFOLIO_HEATMAP_TOOLTIP_ID='portfolioHeatmapTooltip';
 const portfolioHeatmapState={
   mode:'day',
@@ -258,10 +265,10 @@ function portfolioHeatmapModeMetric(row,mode='day'){
     mode,
     primaryValue:row?.weight??null,
     secondaryValue:row?.evalAmount??null,
-    tertiaryValue:null,
+    tertiaryValue:row?.price??null,
     areaValue:portfolioHeatmapAreaValue(row,mode),
-    colorValue:null,
-    colorKind:'neutral'
+    colorValue:row?.weight??null,
+    colorKind:'weight'
   };
   return {
     mode:'day',
@@ -273,9 +280,19 @@ function portfolioHeatmapModeMetric(row,mode='day'){
     colorKind:'performance'
   };
 }
+function portfolioHeatmapWeightIntensity(value){
+  const weight=finiteHeatmapNumber(value,null);
+  if(weight===null||weight<0)return null;
+  return PORTFOLIO_HEATMAP_WEIGHT_STEPS.find(step=>weight<=step.max)?.intensity??100;
+}
 function portfolioHeatmapColorState(row,mode='day'){
   const metric=portfolioHeatmapModeMetric(row,mode);
-  if(metric.colorKind==='neutral')return {kind:'neutral',direction:'weight',intensity:100,value:null};
+  if(metric.colorKind==='weight'){
+    const value=finiteHeatmapNumber(metric.colorValue,null);
+    const intensity=portfolioHeatmapWeightIntensity(value);
+    if(value===null||intensity===null)return {kind:'unavailable',direction:'neutral',intensity:0,value:null};
+    return {kind:'weight',direction:'weight',intensity,value};
+  }
   const value=finiteHeatmapNumber(metric.colorValue,null);
   if(value===null||value===0)return {kind:value===null?'unavailable':'neutral',direction:'neutral',intensity:0,value};
   const scale=PORTFOLIO_HEATMAP_SCALE[mode]||PORTFOLIO_HEATMAP_SCALE.day;
@@ -313,14 +330,31 @@ function portfolioHeatmapPrimaryText(row,mode){
   return heatmapRateText(metric.primaryValue);
 }
 function portfolioHeatmapSecondaryText(row,mode){
-  if(mode==='cumulative')return `${heatmapAmountText(row.cumulativePnl,{signedValue:true})} · ${heatmapRateText(row.weight,{signedValue:false})}`;
-  if(mode==='weight')return heatmapAmountText(row.evalAmount);
-  return `${heatmapAmountText(row.evalAmount)} · ${heatmapRateText(row.weight,{signedValue:false})}`;
+  if(mode==='cumulative')return heatmapAmountText(row.cumulativePnl,{signedValue:true});
+  if(mode==='weight'){
+    const amount=heatmapAmountText(row.evalAmount);
+    const qty=finiteHeatmapNumber(row.qty,null);
+    const price=finiteHeatmapNumber(row.price,null);
+    if(qty===null||price===null)return amount;
+    return `${amount} · ${fmt(qty)}주 × ${won(price)}`;
+  }
+  const total=heatmapAmountText(row.dayChange,{signedValue:true});
+  const qty=finiteHeatmapNumber(row.qty,null);
+  const unit=finiteHeatmapNumber(row.dayUnitChange,null);
+  if(row.dayUnitFormulaAvailable!==true||qty===null||unit===null)return total;
+  return `${total} · ${heatmapAmountText(unit,{signedValue:true})} × ${fmt(qty)}주`;
 }
 function portfolioHeatmapTileAriaLabel(row,mode){
   const parts=[row.name||row.ticker||'종목',PORTFOLIO_HEATMAP_MODES[mode]||PORTFOLIO_HEATMAP_MODES.day,portfolioHeatmapPrimaryText(row,mode)];
-  if(row.evalAmount!=null)parts.push(`평가금액 ${won(row.evalAmount)}`);
-  if(row.weight!=null)parts.push(`비중 ${heatmapRateText(row.weight,{signedValue:false})}`);
+  if(mode==='day'){
+    if(row.dayChange!=null)parts.push(`전일 대비 변동 총액 ${heatmapAmountText(row.dayChange,{signedValue:true})}`);
+    if(row.dayUnitFormulaAvailable===true&&row.dayUnitChange!=null&&row.qty!=null)parts.push(`주당 변동 ${heatmapAmountText(row.dayUnitChange,{signedValue:true})} 곱하기 ${fmt(row.qty)}주`);
+  }else if(mode==='cumulative'){
+    if(row.cumulativePnl!=null)parts.push(`누적손익 ${heatmapAmountText(row.cumulativePnl,{signedValue:true})}`);
+  }else{
+    if(row.evalAmount!=null)parts.push(`평가금액 ${won(row.evalAmount)}`);
+    if(row.qty!=null&&row.price!=null)parts.push(`${fmt(row.qty)}주 곱하기 ${won(row.price)}`);
+  }
   return parts.join(', ');
 }
 function portfolioHeatmapPriceSource(row){
@@ -418,7 +452,7 @@ function portfolioHeatmapLegendColor(value,mode){
 }
 function renderPortfolioHeatmapLegend(){
   const mode=portfolioHeatmapState.mode;
-  if(mode==='weight')return `<span class="portfolio-heatmap__legend-note"><span class="portfolio-heatmap__legend-neutral" aria-hidden="true"></span>면적 = 평가금액 비중</span>`;
+  if(mode==='weight')return PORTFOLIO_HEATMAP_WEIGHT_STEPS.map(step=>`<span class="portfolio-heatmap__legend-item"><span class="portfolio-heatmap__legend-swatch" style="${portfolioHeatmapColorStyle(portfolioHeatmapColorState({weight:step.sample},'weight'))}" aria-hidden="true"></span><span>${step.label}</span></span>`).join('');
   const values=mode==='cumulative'?[-30,-20,-10,0,10,20,30]:[-3,-2,-1,0,1,2,3];
   return values.map(value=>`<span class="portfolio-heatmap__legend-item"><span class="portfolio-heatmap__legend-swatch" style="${portfolioHeatmapLegendColor(value,mode)}" aria-hidden="true"></span><span>${value>0?'+':''}${value}%</span></span>`).join('');
 }

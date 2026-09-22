@@ -11,7 +11,8 @@ function moduleForNode(text){
   return text
     .replace(/import \{[^}]+\} from '\.\/dashboard-core\.js';/,"const dataState={activeDate:''}; const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR'); const won=n=>fmt(n)+'원'; const pct=n=>(Number(n)||0).toFixed(2)+'%'; const signed=(n,s='')=>(n>0?'+':'')+fmt(n)+s; const shortDate=value=>String(value);")
     .replace(/import \{[^}]+\} from '\.\/dashboard-ui-common\.js';/,"const assetPriceSourceInfo=()=>({source:'',state:'',observedAt:''}); const escapeHtml=value=>String(value); const navIconSvg=()=>'';")
-    .replace(/import \{[\s\S]*?\} from '\.\/dashboard-modal\.js';/,"const bindDashboardModalDismiss=()=>{}; const closeDashboardModal=()=>{}; const openDashboardModal=()=>{};");
+    .replace(/import \{[\s\S]*?\} from '\.\/dashboard-modal\.js';/,"const bindDashboardModalDismiss=()=>{}; const closeDashboardModal=()=>{}; const openDashboardModal=()=>{};")
+    .replace(/export \{([\s\S]*?)\};\s*$/, 'export {$1, portfolioHeatmapSecondaryText, portfolioHeatmapWeightIntensity};');
 }
 
 const approx=(actual,expected,tolerance=1e-8)=>{
@@ -151,7 +152,7 @@ test('히트맵 재설계 1차: 전일 대비 주당 변동액은 실제 가격�
 });
 
 test('히트맵 재설계 1차: mode metric은 모드별 면적 기준과 표시용 raw 값을 제공한다',()=>{
-  const row={dayRate:1.25,dayChange:-4320000,dayUnitChange:-9000,dayUnitFormulaAvailable:true,cumulativeRate:18.4,cumulativePnl:-22100000,weight:24.8,evalAmount:142300000};
+  const row={dayRate:1.25,dayChange:-4320000,dayUnitChange:-9000,dayUnitFormulaAvailable:true,cumulativeRate:18.4,cumulativePnl:-22100000,weight:24.8,evalAmount:142300000,qty:480,price:296458};
   assert.deepEqual(heatmap.portfolioHeatmapModeMetric(row,'day'),{
     mode:'day',primaryValue:1.25,secondaryValue:-4320000,tertiaryValue:-9000,areaValue:4320000,colorValue:1.25,colorKind:'performance'
   });
@@ -159,7 +160,7 @@ test('히트맵 재설계 1차: mode metric은 모드별 면적 기준과 표시
     mode:'cumulative',primaryValue:18.4,secondaryValue:-22100000,tertiaryValue:null,areaValue:22100000,colorValue:18.4,colorKind:'performance'
   });
   assert.deepEqual(heatmap.portfolioHeatmapModeMetric(row,'weight'),{
-    mode:'weight',primaryValue:24.8,secondaryValue:142300000,tertiaryValue:null,areaValue:142300000,colorValue:null,colorKind:'neutral'
+    mode:'weight',primaryValue:24.8,secondaryValue:142300000,tertiaryValue:296458,areaValue:142300000,colorValue:24.8,colorKind:'weight'
   });
 });
 
@@ -209,7 +210,35 @@ test('히트맵 3차: 당일 ±3% / 누적 ±30% 고정 scale은 방향과 inten
   assert.deepEqual(heatmap.portfolioHeatmapColorState({dayRate:0},'day'),{kind:'neutral',direction:'neutral',intensity:0,value:0});
   assert.deepEqual(heatmap.portfolioHeatmapColorState({dayRate:null},'day'),{kind:'unavailable',direction:'neutral',intensity:0,value:null});
   assert.deepEqual(heatmap.portfolioHeatmapColorState({cumulativeRate:15},'cumulative'),{kind:'performance',direction:'positive',intensity:50,value:15});
-  assert.deepEqual(heatmap.portfolioHeatmapColorState({weight:25},'weight'),{kind:'neutral',direction:'weight',intensity:100,value:null});
+  assert.deepEqual(heatmap.portfolioHeatmapColorState({weight:2.5},'weight'),{kind:'weight',direction:'weight',intensity:20,value:2.5});
+  assert.deepEqual(heatmap.portfolioHeatmapColorState({weight:7.5},'weight'),{kind:'weight',direction:'weight',intensity:40,value:7.5});
+  assert.deepEqual(heatmap.portfolioHeatmapColorState({weight:15},'weight'),{kind:'weight',direction:'weight',intensity:60,value:15});
+  assert.deepEqual(heatmap.portfolioHeatmapColorState({weight:25},'weight'),{kind:'weight',direction:'weight',intensity:80,value:25});
+  assert.deepEqual(heatmap.portfolioHeatmapColorState({weight:35},'weight'),{kind:'weight',direction:'weight',intensity:100,value:35});
+});
+
+
+test('히트맵 재설계 2차: 모드별 Large tile 보조 문구는 사용자 계약대로 구성한다',()=>{
+  const row={
+    dayChange:90000,dayUnitChange:9000,dayUnitFormulaAvailable:true,
+    cumulativePnl:8420000,evalAmount:15000000,qty:10,price:1500000
+  };
+  assert.equal(heatmap.portfolioHeatmapSecondaryText(row,'day'),'+90,000원 · +9,000원 × 10주');
+  assert.equal(heatmap.portfolioHeatmapSecondaryText(row,'cumulative'),'+8,420,000원');
+  assert.equal(heatmap.portfolioHeatmapSecondaryText(row,'weight'),'15,000,000원 · 10주 × 1,500,000원');
+
+  const traded={...row,dayChange:150,dayUnitChange:20,qty:5,dayUnitFormulaAvailable:false};
+  assert.equal(heatmap.portfolioHeatmapSecondaryText(traded,'day'),'+150원','거래일 산식 불일치 시 총액만 표시해야 한다');
+});
+
+test('히트맵 재설계 2차: 비중 색상은 고정 구간 5단계 농도를 사용한다',()=>{
+  assert.equal(heatmap.portfolioHeatmapWeightIntensity(0),20);
+  assert.equal(heatmap.portfolioHeatmapWeightIntensity(5),20);
+  assert.equal(heatmap.portfolioHeatmapWeightIntensity(5.01),40);
+  assert.equal(heatmap.portfolioHeatmapWeightIntensity(10.01),60);
+  assert.equal(heatmap.portfolioHeatmapWeightIntensity(20.01),80);
+  assert.equal(heatmap.portfolioHeatmapWeightIntensity(30.01),100);
+  assert.equal(heatmap.portfolioHeatmapWeightIntensity(null),null);
 });
 
 test('히트맵 3차: tile 정보 밀도는 실제 rect px 크기로 Large/Medium/Small/Tiny를 판정한다',()=>{

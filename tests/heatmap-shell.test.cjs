@@ -116,6 +116,11 @@ test('히트맵 3차: Large/Medium/Small/Tiny 정보량과 mode별 핵심값 역
   assert.match(heatmap,/if\(density==='small'\)return name/);
   assert.match(heatmap,/if\(density==='medium'\)return `\$\{name\}\$\{primary\}`/);
   assert.match(heatmap,/portfolio-heatmap__secondary/,'Large tile에만 보조값 line을 제공해야 한다');
+  assert.match(heatmap,/if\(mode==='cumulative'\)return heatmapAmountText\(row\.cumulativePnl,\{signedValue:true\}\)/,'누적손익 Large tile은 누적손익 금액만 보조 표시해야 한다');
+  assert.match(heatmap,/`\$\{total\} · \$\{heatmapAmountText\(unit,\{signedValue:true\}\)\} × \$\{fmt\(qty\)\}주`/,'전일 대비 Large tile은 변동총액 · 주당변동액 × 수량을 표시해야 한다');
+  assert.match(heatmap,/`\$\{amount\} · \$\{fmt\(qty\)\}주 × \$\{won\(price\)\}`/,'비중 Large tile은 평가금액 · 수량 × 적용가격을 표시해야 한다');
+  assert.match(heatmap,/PORTFOLIO_HEATMAP_WEIGHT_STEPS=Object\.freeze/,'비중 색상은 고정 구간 scale을 사용해야 한다');
+  assert.match(common,/--heatmap-weight-base:#0f6074/,'Light 비중 색상은 손익과 구분되는 청록-슬레이트 계열이어야 한다');
   assert.match(common,/\.portfolio-heatmap__tile\.is-large/);
   assert.match(common,/\.portfolio-heatmap__tile\.is-medium/);
   assert.match(common,/\.portfolio-heatmap__tile\.is-small/);
@@ -140,7 +145,9 @@ test('히트맵 3차: tooltip은 pointer/focus/touch를 지원하고 기존 sour
 test('히트맵 3차: 범례와 4 viewport modal density를 제공한다',()=>{
   assert.match(heatmap,/\[-3,-2,-1,0,1,2,3\]/,'전일 대비 범례는 -3~+3이어야 한다');
   assert.match(heatmap,/\[-30,-20,-10,0,10,20,30\]/,'누적 범례는 -30~+30이어야 한다');
-  assert.match(heatmap,/면적 = 평가금액 비중/,'비중 모드는 neutral 범례 문구를 제공해야 한다');
+  assert.match(heatmap,/label:'0–5%'/,'비중 범례는 고정 5단계 구간을 제공해야 한다');
+  assert.match(heatmap,/label:'30%\+'/,'비중 범례는 30% 이상 구간을 제공해야 한다');
+  assert.match(heatmap,/portfolioHeatmapColorState\(\{weight:step\.sample\},'weight'\)/,'비중 범례 swatch도 실제 weight color scale을 재사용해야 한다');
   assert.match(common,/\.portfolio-heatmap__legend\{/);
   assert.match(tablet,/\.portfolio-heatmap__canvas\{height:clamp\(380px,54vh,540px\)\}/,'Tablet 전용 treemap 높이 계약을 유지해야 한다');
   assert.match(special,/\.portfolio-heatmap__canvas\{[^}]*height:clamp\(240px,58dvh,490px\)/,'Phone portrait treemap 높이를 확보해야 한다');

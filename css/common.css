@@ -3349,7 +3349,7 @@ button.monthly-calendar-day{
   --heatmap-neg-base:#b4232d;
   --heatmap-neutral-base:#4b5563;
   --heatmap-pos-base:#15803d;
-  --heatmap-weight-base:#334155;
+  --heatmap-weight-base:#0f6074;
   --heatmap-tile-separator:rgba(255,255,255,.42);
   --heatmap-tile-text:#ffffff;
   --heatmap-tile-shadow:0 1px 2px rgba(15,23,42,.18);
@@ -3360,7 +3360,7 @@ html.dark .portfolio-heatmap-modal{
   --heatmap-neg-base:#c43b45;
   --heatmap-neutral-base:#364152;
   --heatmap-pos-base:#1e8e4a;
-  --heatmap-weight-base:#3f4d61;
+  --heatmap-weight-base:#21758a;
   --heatmap-tile-separator:rgba(11,16,32,.72);
   --heatmap-tile-shadow:0 1px 2px rgba(0,0,0,.34);
 }
@@ -3506,8 +3506,7 @@ html.dark .portfolio-heatmap-modal{
   gap:var(--space-sm);
   white-space:nowrap;
 }
-.portfolio-heatmap__legend-swatch,
-.portfolio-heatmap__legend-neutral{
+.portfolio-heatmap__legend-swatch{
   width:12px;
   height:12px;
   flex:0 0 12px;
@@ -3519,7 +3518,6 @@ html.dark .portfolio-heatmap-modal{
 .portfolio-heatmap__legend-swatch{
   background:color-mix(in srgb,var(--heatmap-neutral-base),var(--heatmap-tone) var(--heatmap-intensity));
 }
-.portfolio-heatmap__legend-neutral{background:var(--heatmap-weight-base)}
 .dash-tooltip.portfolio-heatmap-tooltip{
   z-index:13420;
   width:min(330px,calc(100vw - var(--tooltip-viewport-gutter)));
