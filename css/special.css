@@ -318,6 +318,7 @@
     .monthly-calendar-separate-profit.separate-profit-toggle{
       --dashboard-control-height:29px;
       --dashboard-control-font-size:10.5px;
+      --dashboard-control-state-font-size:10px;
       --dashboard-control-state-min-width:28px;
       --dashboard-control-pad-x:8px;
       gap:var(--space-md);
