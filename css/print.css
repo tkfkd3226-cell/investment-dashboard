@@ -266,31 +266,65 @@
     }
     body.dashboard-dialog-open .portfolio-heatmap-date-controls{
       display:block !important;
-      width:112px !important;
-      max-width:112px !important;
+      width:auto !important;
+      max-width:none !important;
       margin-top:var(--space-md) !important;
+      text-align:center !important;
     }
+    /* Heatmap Date Print · 선택 상태는 유지하되 control chrome을 제거해 날짜 텍스트처럼 출력한다. */
     body.dashboard-dialog-open .portfolio-heatmap-date-select{
-      display:block !important;
-      width:112px !important;
-      min-width:112px !important;
-      max-width:112px !important;
+      display:inline-block !important;
+      width:auto !important;
+      min-width:0 !important;
+      max-width:none !important;
+      height:auto !important;
+      padding:0 !important;
+      border:0 !important;
+      border-radius:0 !important;
+      outline:0 !important;
+      box-shadow:none !important;
+      background:transparent !important;
+      background-image:none !important;
+      color:var(--text) !important;
       white-space:nowrap !important;
-    }
-    body.dashboard-dialog-open .realtime-quote-modal-card{
-      height:var(--realtime-monitor-fallback-height) !important;
-      min-height:var(--realtime-monitor-fallback-height) !important;
-      max-height:var(--realtime-monitor-fallback-height) !important;
-    }
-    body.dashboard-dialog-open .realtime-quote-frame-stage,
-    body.dashboard-dialog-open .realtime-quote-frame{
-      height:100% !important;
-      min-height:var(--realtime-monitor-fallback-height) !important;
+      text-align:center !important;
+      text-align-last:center !important;
+      -webkit-appearance:none !important;
+      appearance:none !important;
     }
 
-    /* Expanded Chart Print · 화면의 absolute/full-viewport geometry를 종이 흐름으로 되돌리고
-       차트 host 높이를 확보해 확대 상태의 현재 차트만 한 페이지에 출력한다. */
-    body.chart-expanded-open > .chart-expanded-overlay.show{
+    /* Realtime Quote Print · iframe modal은 page 높이를 전부 사용한다.
+       generic modal의 height:auto보다 높은 direct-child specificity로 화면용 축소를 확실히 해제한다. */
+    body.dashboard-dialog-open > .realtime-quote-modal.show{
+      width:100% !important;
+      height:100vh !important;
+      min-height:100vh !important;
+      max-height:none !important;
+    }
+    body.dashboard-dialog-open > .realtime-quote-modal.show > .realtime-quote-modal-card{
+      width:100% !important;
+      height:100% !important;
+      min-height:100% !important;
+      max-height:none !important;
+    }
+    body.dashboard-dialog-open > .realtime-quote-modal.show > .realtime-quote-modal-card > .realtime-quote-frame-stage,
+    body.dashboard-dialog-open > .realtime-quote-modal.show > .realtime-quote-modal-card > .realtime-quote-frame-stage > .realtime-quote-frame{
+      width:100% !important;
+      height:100% !important;
+      min-height:100% !important;
+      max-height:none !important;
+    }
+
+    /* Expanded Chart Print · chart-expanded-open은 다른 modal body-lock과 동시에 존재한다.
+       이 상태에서는 body의 다른 surface를 모두 제외하고 실제 확대 overlay 하나만 출력한다. */
+    body.dashboard-dialog-open.chart-expanded-open > #app,
+    body.chart-expanded-open > #app{
+      display:none !important;
+    }
+    body.chart-expanded-open > :not(#app):not(.chart-expanded-overlay){
+      display:none !important;
+    }
+    body.chart-expanded-open > .chart-expanded-overlay{
       display:block !important;
       position:static !important;
       inset:auto !important;
@@ -298,9 +332,10 @@
       height:auto !important;
       overflow:visible !important;
       opacity:1 !important;
+      visibility:visible !important;
       background:#ffffff !important;
     }
-    body.chart-expanded-open > .chart-expanded-overlay.show > .chart-expanded-stage{
+    body.chart-expanded-open > .chart-expanded-overlay > .chart-expanded-stage{
       position:relative !important;
       inset:auto !important;
       width:100% !important;
