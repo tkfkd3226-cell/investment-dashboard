@@ -330,31 +330,41 @@ function portfolioHeatmapPrimaryText(row,mode){
   if(mode==='weight')return heatmapRateText(metric.primaryValue,{signedValue:false});
   return heatmapRateText(metric.primaryValue);
 }
+function portfolioHeatmapDayFormulaText(row){
+  const qty=finiteHeatmapNumber(row?.qty,null);
+  const unit=finiteHeatmapNumber(row?.dayUnitChange,null);
+  if(row?.dayUnitFormulaAvailable!==true||qty===null||unit===null)return null;
+  return `${heatmapAmountText(unit,{signedValue:true})} × ${fmt(qty)}주`;
+}
+function portfolioHeatmapWeightFormulaText(row){
+  const qty=finiteHeatmapNumber(row?.qty,null);
+  const price=finiteHeatmapNumber(row?.price,null);
+  if(qty===null||price===null)return null;
+  return `${fmt(qty)}주 × ${won(price)}`;
+}
 function portfolioHeatmapSecondaryText(row,mode){
   if(mode==='cumulative')return heatmapAmountText(row.cumulativePnl,{signedValue:true});
   if(mode==='weight'){
     const amount=heatmapAmountText(row.evalAmount);
-    const qty=finiteHeatmapNumber(row.qty,null);
-    const price=finiteHeatmapNumber(row.price,null);
-    if(qty===null||price===null)return amount;
-    return `${amount} · ${fmt(qty)}주 × ${won(price)}`;
+    const formula=portfolioHeatmapWeightFormulaText(row);
+    return formula?`${amount} · ${formula}`:amount;
   }
   const total=heatmapAmountText(row.dayChange,{signedValue:true});
-  const qty=finiteHeatmapNumber(row.qty,null);
-  const unit=finiteHeatmapNumber(row.dayUnitChange,null);
-  if(row.dayUnitFormulaAvailable!==true||qty===null||unit===null)return total;
-  return `${total} · ${heatmapAmountText(unit,{signedValue:true})} × ${fmt(qty)}주`;
+  const formula=portfolioHeatmapDayFormulaText(row);
+  return formula?`${total} · ${formula}`:total;
 }
 function portfolioHeatmapTileAriaLabel(row,mode){
   const parts=[row.name||row.ticker||'종목',PORTFOLIO_HEATMAP_MODES[mode]||PORTFOLIO_HEATMAP_MODES.day,portfolioHeatmapPrimaryText(row,mode)];
   if(mode==='day'){
-    if(row.dayChange!=null)parts.push(`전일 대비 변동 총액 ${heatmapAmountText(row.dayChange,{signedValue:true})}`);
-    if(row.dayUnitFormulaAvailable===true&&row.dayUnitChange!=null&&row.qty!=null)parts.push(`주당 변동 ${heatmapAmountText(row.dayUnitChange,{signedValue:true})} 곱하기 ${fmt(row.qty)}주`);
+    if(row.dayChange!=null)parts.push(`당일손익 ${heatmapAmountText(row.dayChange,{signedValue:true})}`);
+    const formula=portfolioHeatmapDayFormulaText(row);
+    if(formula)parts.push(`변동 계산 ${formula.replace('×','곱하기')}`);
   }else if(mode==='cumulative'){
     if(row.cumulativePnl!=null)parts.push(`누적손익 ${heatmapAmountText(row.cumulativePnl,{signedValue:true})}`);
   }else{
     if(row.evalAmount!=null)parts.push(`평가금액 ${won(row.evalAmount)}`);
-    if(row.qty!=null&&row.price!=null)parts.push(`${fmt(row.qty)}주 곱하기 ${won(row.price)}`);
+    const formula=portfolioHeatmapWeightFormulaText(row);
+    if(formula)parts.push(`평가 계산 ${formula.replace('×','곱하기')}`);
   }
   return parts.join(', ');
 }
@@ -374,23 +384,23 @@ function portfolioHeatmapTooltipHtml(row){
   if(!row)return '';
   const mode=portfolioHeatmapState.mode;
   const sourceInfo=portfolioHeatmapPriceSource(row);
-  const dayText=row.dayChange!=null||row.dayRate!=null
-    ?`${row.dayChange==null?'-':heatmapAmountText(row.dayChange,{signedValue:true})} (${heatmapRateText(row.dayRate)})`
-    :null;
-  const cumulativeText=row.cumulativePnl!=null||row.cumulativeRate!=null
-    ?`${row.cumulativePnl==null?'-':heatmapAmountText(row.cumulativePnl,{signedValue:true})} (${heatmapRateText(row.cumulativeRate)})`
-    :null;
+  const dayFormula=portfolioHeatmapDayFormulaText(row);
+  const weightFormula=portfolioHeatmapWeightFormulaText(row);
   const sourceText=[sourceInfo.state,sourceInfo.source].filter(Boolean).join(' / ');
   return `<div class="tt-date">${escapeHtml(row.name||row.ticker||'종목')}${row.ticker?` · ${escapeHtml(row.ticker)}`:''}</div>
     ${portfolioHeatmapTooltipRow('현재가',row.price==null?null:won(row.price))}
     ${portfolioHeatmapTooltipRow('보유수량',row.qty==null?null:`${fmt(row.qty)}주`)}
     ${portfolioHeatmapTooltipRow('평균단가',row.avgPrice==null?null:won(row.avgPrice))}
     ${portfolioHeatmapTooltipRow('매수원금',row.cost==null?null:won(row.cost))}
-    ${portfolioHeatmapTooltipRow('평가금액',row.evalAmount==null?null:won(row.evalAmount))}
-    ${portfolioHeatmapTooltipRow('포트폴리오',row.weight==null?null:heatmapRateText(row.weight,{signedValue:false}),{current:mode==='weight'})}
+    ${portfolioHeatmapTooltipRow('평가금액',row.evalAmount==null?null:won(row.evalAmount),{current:mode==='weight'})}
+    ${portfolioHeatmapTooltipRow('포트폴리오 비중',row.weight==null?null:heatmapRateText(row.weight,{signedValue:false}),{current:mode==='weight'})}
+    ${portfolioHeatmapTooltipRow('평가 계산',weightFormula,{current:mode==='weight'})}
     <div class="tt-divider"></div>
-    ${portfolioHeatmapTooltipRow('당일손익',dayText,{current:mode==='day'})}
-    ${portfolioHeatmapTooltipRow('누적손익',cumulativeText,{current:mode==='cumulative'})}
+    ${portfolioHeatmapTooltipRow('당일 등락률',row.dayRate==null?null:heatmapRateText(row.dayRate),{current:mode==='day'})}
+    ${portfolioHeatmapTooltipRow('당일손익',row.dayChange==null?null:heatmapAmountText(row.dayChange,{signedValue:true}),{current:mode==='day'})}
+    ${portfolioHeatmapTooltipRow('변동 계산',dayFormula,{current:mode==='day'})}
+    ${portfolioHeatmapTooltipRow('누적수익률',row.cumulativeRate==null?null:heatmapRateText(row.cumulativeRate),{current:mode==='cumulative'})}
+    ${portfolioHeatmapTooltipRow('누적손익',row.cumulativePnl==null?null:heatmapAmountText(row.cumulativePnl,{signedValue:true}),{current:mode==='cumulative'})}
     ${sourceText?'<div class="tt-divider"></div>':''}
     ${portfolioHeatmapTooltipRow('가격기준',sourceText)}
     ${portfolioHeatmapTooltipRow('시세시각',sourceInfo.observedAt||'')}`;
@@ -465,7 +475,7 @@ function renderPortfolioHeatmapLegend(){
 }
 function portfolioHeatmapEmptyText(){
   if(!portfolioHeatmapState.rows.length)return '표시할 보유종목이 없습니다.';
-  if(portfolioHeatmapState.mode==='day')return '전일 대비 변동이 없습니다.';
+  if(portfolioHeatmapState.mode==='day')return '당일손익이 없습니다.';
   if(portfolioHeatmapState.mode==='cumulative')return '누적손익이 없습니다.';
   return '표시할 보유종목이 없습니다.';
 }

@@ -111,7 +111,7 @@ test('히트맵 3차: Finviz형 dense tile과 고정 color scale을 renderer에 
   assert.match(heatmap,/if\(mode==='cumulative'\)[^]*?Math\.abs\(value\)/,'누적손익 면적은 cumulativePnl 절댓값이어야 한다');
   assert.match(heatmap,/function setPortfolioHeatmapMode[^]*?renderPortfolioHeatmapVisualization\(\{forceLayout:true\}\)/,'mode 변경 시 geometry를 다시 계산해야 한다');
   assert.doesNotMatch(heatmap,/function setPortfolioHeatmapMode[^]*?renderPortfolioHeatmapModal\(\)/,'mode 변경 때 modal shell 전체를 다시 만들어 geometry를 흔들면 안 된다');
-  assert.match(heatmap,/if\(portfolioHeatmapState\.mode==='day'\)return '전일 대비 변동이 없습니다\.'/,'전일 대비 면적 합이 0이면 보유종목 없음으로 오인하지 않아야 한다');
+  assert.match(heatmap,/if\(portfolioHeatmapState\.mode==='day'\)return '당일손익이 없습니다\.'/,'당일손익 면적 합이 0이면 보유종목 없음으로 오인하지 않아야 한다');
   assert.match(heatmap,/if\(portfolioHeatmapState\.mode==='cumulative'\)return '누적손익이 없습니다\.'/,'누적손익 면적 합이 0이면 모드 의미에 맞는 empty state를 사용해야 한다');
   assert.match(common,/--heatmap-neg-base:/);
   assert.match(common,/--heatmap-neutral-base:/);
@@ -128,8 +128,8 @@ test('히트맵 3차: Large/Medium/Small/Tiny 정보량과 mode별 핵심값 역
   assert.match(heatmap,/secondary\.hidden=secondary\.scrollWidth>secondary\.clientWidth\+1/,'보조문구가 실제 타일 폭을 넘을 때만 숨겨야 한다');
   assert.match(heatmap,/canvas\.innerHTML=portfolioHeatmapState\.layoutRows\.map\(renderPortfolioHeatmapTile\)\.join\(''\);\s*syncPortfolioHeatmapSecondaryVisibility\(canvas\)/,'타일 DOM 생성 후 실제 너비를 측정해야 한다');
   assert.match(heatmap,/if\(mode==='cumulative'\)return heatmapAmountText\(row\.cumulativePnl,\{signedValue:true\}\)/,'누적손익 Large tile은 누적손익 금액만 보조 표시해야 한다');
-  assert.match(heatmap,/`\$\{total\} · \$\{heatmapAmountText\(unit,\{signedValue:true\}\)\} × \$\{fmt\(qty\)\}주`/,'전일 대비 Large tile은 변동총액 · 주당변동액 × 수량을 표시해야 한다');
-  assert.match(heatmap,/`\$\{amount\} · \$\{fmt\(qty\)\}주 × \$\{won\(price\)\}`/,'비중 Large tile은 평가금액 · 수량 × 적용가격을 표시해야 한다');
+  assert.match(heatmap,/const formula=portfolioHeatmapDayFormulaText\(row\);\s*return formula\?`\$\{total\} · \$\{formula\}`:total/,'당일손익 Large tile은 변동총액 · 주당변동액 × 수량을 표시해야 한다');
+  assert.match(heatmap,/const formula=portfolioHeatmapWeightFormulaText\(row\);\s*return formula\?`\$\{amount\} · \$\{formula\}`:amount/,'비중 Large tile은 평가금액 · 수량 × 적용가격을 표시해야 한다');
   assert.match(heatmap,/PORTFOLIO_HEATMAP_WEIGHT_STEPS=Object\.freeze/,'비중 색상은 고정 구간 scale을 사용해야 한다');
   assert.match(special,/Heatmap Phone Tile Density[^]*?\.portfolio-heatmap__tile\.is-large \.portfolio-heatmap__secondary\{[^}]*font-size:9px[^}]*white-space:normal[^}]*-webkit-line-clamp:2/,'Phone Large tile은 충분한 면적에서 긴 보조문구를 compact 2줄로 유지해야 한다');
   assert.match(common,/--heatmap-weight-base:#0f6074/,'Light 비중 색상은 손익과 구분되는 청록-슬레이트 계열이어야 한다');
@@ -137,6 +137,19 @@ test('히트맵 3차: Large/Medium/Small/Tiny 정보량과 mode별 핵심값 역
   assert.match(common,/\.portfolio-heatmap__tile\.is-medium/);
   assert.match(common,/\.portfolio-heatmap__tile\.is-small/);
   assert.match(common,/\.portfolio-heatmap__tile\.is-tiny/);
+});
+
+test('히트맵 재설계 3차: tooltip은 모든 상세값을 유지하면서 현재 mode 핵심 행을 함께 강조한다',()=>{
+  assert.match(heatmap,/portfolioHeatmapTooltipRow\('당일 등락률',[^]*?current:mode==='day'/,'당일손익 mode는 등락률을 핵심행으로 강조해야 한다');
+  assert.match(heatmap,/portfolioHeatmapTooltipRow\('당일손익',[^]*?current:mode==='day'/,'당일손익 mode는 손익금액을 핵심행으로 강조해야 한다');
+  assert.match(heatmap,/portfolioHeatmapTooltipRow\('변동 계산',dayFormula,\{current:mode==='day'\}\)/,'산식이 유효한 날은 주당변동×수량을 상세에서 확인할 수 있어야 한다');
+  assert.match(heatmap,/portfolioHeatmapTooltipRow\('누적수익률',[^]*?current:mode==='cumulative'/,'누적손익 mode는 누적수익률을 강조해야 한다');
+  assert.match(heatmap,/portfolioHeatmapTooltipRow\('누적손익',[^]*?current:mode==='cumulative'/,'누적손익 mode는 누적손익 금액을 강조해야 한다');
+  assert.match(heatmap,/portfolioHeatmapTooltipRow\('평가금액',[^]*?current:mode==='weight'/,'비중 mode는 평가금액을 함께 강조해야 한다');
+  assert.match(heatmap,/portfolioHeatmapTooltipRow\('포트폴리오 비중',[^]*?current:mode==='weight'/,'비중 mode는 포트폴리오 비중을 강조해야 한다');
+  assert.match(heatmap,/portfolioHeatmapTooltipRow\('평가 계산',weightFormula,\{current:mode==='weight'\}\)/,'비중 mode는 수량×적용가격 계산식을 상세에서 확인할 수 있어야 한다');
+  assert.doesNotMatch(heatmap,/const dayText=/,'당일손익 금액과 등락률을 한 문자열로 뭉쳐 mode 의미를 흐리면 안 된다');
+  assert.doesNotMatch(heatmap,/const cumulativeText=/,'누적손익 금액과 수익률을 한 문자열로 뭉쳐 mode 의미를 흐리면 안 된다');
 });
 
 test('히트맵 3차: tooltip은 pointer/focus/touch를 지원하고 기존 source helper를 재사용한다',()=>{

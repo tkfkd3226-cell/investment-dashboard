@@ -433,12 +433,15 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 포트폴리오 히트맵은 **메인 증권 보유종목의 기존 canonical 계산 결과를 새 방식으로 표현하는 View Layer**다. 가격 fetch, Market AI 요청, 별도 polling, 평가금액·손익 재계산을 소유하지 않는다.
 
 - 대상은 메인 증권 보유종목이며 현금과 평가금액 `<= 0` 항목은 제외한다. `calc()`의 `holdings`와 `securitiesAssetDetail.change.rows`를 읽어 View Model을 만들고 원본 rows는 mutate하지 않는다.
-- 타일 면적은 선택일 평가금액 비중이며 deterministic treemap을 사용한다. `당일 / 누적손익 / 비중` mode를 바꿔도 같은 데이터에서는 geometry를 다시 정렬하지 않고 표시값·색상만 바꾼다.
-- 손익 mode 색상은 히트맵 내부에서만 `하락=적색 / 상승=녹색 / 보합=중성`을 사용하며 당일은 ±3%, 누적손익은 ±30% 고정 scale을 사용한다. 비중 mode는 neutral 계열을 사용한다.
-- tile 정보량은 실제 px geometry로 Large/Medium/Small/Tiny를 판정하며 작은 tile의 면적을 읽기 편하게 만들기 위해 왜곡하지 않는다. 상세 가격·수량·평단·원금·손익·가격기준은 기존 `.dash-tooltip`과 `assetPriceSourceInfo()`를 재사용한다.
-- 진입점은 모든 viewport에서 Topbar 하나만 사용하며 hamburger에는 중복하지 않는다. Web/Tablet은 `월간 → 히트맵 → 실시간`의 텍스트 흐름을 유지하고, Phone은 compact icon 표현을 사용한다. Phone에서는 테마 action을 hamburger 상단으로 이동하되 Market AI 연결 toggle은 Topbar에 유지한다.
-- modal lifecycle은 `dashboard-modal.js`를 재사용한다. tooltip은 modal 내부 자식으로 두어 background `inert`의 대상이 되지 않게 하고, hover/focus/touch tap에서 같은 상세정보에 접근할 수 있어야 한다.
-- Live Valuation snapshot이 바뀌면 `dashboard-live-valuation.js`의 open-overlay callback을 통해 **modal이 열려 있을 때만** 새 canonical `calc()` 결과로 rows/context/geometry를 갱신한다. 히트맵이 닫혀 있으면 추가 calc/layout/render를 하지 않는다.
+- mode는 `당일손익 / 누적손익 / 비중` 3개다. **면적 기준도 mode별로 다르므로 mode 전환 시 geometry를 다시 계산하는 것이 정상 계약**이다. `당일손익`은 canonical `dayChange`의 절댓값, `누적손익`은 canonical `cumulativePnl`의 절댓값, `비중`은 평가금액을 treemap area 값으로 사용한다. 음수 방향은 면적이 아니라 색상으로 표현하며, area 값이 0/null인 종목은 해당 mode layout에서 제외한다.
+- `당일손익` 색상은 전일 대비 등락률을 ±3% 고정 scale로, `누적손익`은 누적수익률을 ±30% 고정 scale로 표현한다. 두 손익 mode는 히트맵 내부에서만 `하락=적색 / 상승=녹색 / 보합=중성`을 사용한다. `비중`은 손익색을 사용하지 않고 `0–5 / 5–10 / 10–20 / 20–30 / 30%+` 고정 구간의 청록-슬레이트 농도를 사용한다.
+- Large tile의 기본 표시는 `당일손익: 등락률 / 당일손익 · 주당변동 × 수량`, `누적손익: 누적수익률 / 누적손익`, `비중: 비중 / 평가금액 · 수량 × 적용가격`이다. `주당변동 × 수량`은 실제 `현재가-전일가`와 canonical `dayChange`가 일치하는 경우에만 보여 거래·실현손익이 섞인 날의 오해를 막는다. Medium/Small/Tiny는 실제 px geometry에 따라 정보량을 줄이며 면적 자체는 읽기 편하게 만들기 위해 왜곡하지 않는다.
+- Phone family는 세로형 타일을 과도하게 Medium으로 강등하지 않도록 Large 최소폭만 112px로 완화하고, 높이·면적 기준은 유지한다. Phone Large secondary는 최대 2줄을 허용한다. Web/Tablet은 170px 기준을 유지하며, 모든 viewport에서 secondary는 DOM 렌더 뒤 실제 `scrollWidth/clientWidth`를 확인해 넘치는 경우에만 숨긴다.
+- Tooltip은 기존 `.dash-tooltip`과 `assetPriceSourceInfo()`를 재사용하며 전체 상세값을 계속 제공한다. 현재 mode에서는 `당일손익: 당일 등락률·당일손익·변동 계산`, `누적손익: 누적수익률·누적손익`, `비중: 평가금액·포트폴리오 비중·평가 계산` 행을 함께 강조한다. tooltip은 modal 내부 자식으로 두어 background `inert`의 대상이 되지 않게 하고 hover/focus/touch tap에서 동일 정보에 접근할 수 있어야 한다.
+- 진입점은 모든 viewport에서 Topbar 하나만 사용하며 hamburger에는 중복하지 않는다. Desktop `>=1280px`은 `포트폴리오 히트맵` / `보유종목 실시간 시세`, 1101–1279px 및 Tablet은 `히트맵` / `실시간 시세` 축약 label을 사용하고, 실시간 시세의 `title`/`aria-label`은 항상 `보유종목 실시간 시세`를 유지한다. Phone은 compact icon 표현을 사용하며 테마 action을 hamburger 상단으로 이동하되 Market AI 연결 toggle은 Topbar에 유지한다.
+- 히트맵 mode segmented control은 퇴직연금 금액 조정·월간 손익과 같은 `--modal-segment-*` 공통 token을 사용한다. Web/Tablet에서는 modal 중앙 열에 배치하고 Phone에서는 제목 아래 full-width 3등분 배치를 유지한다.
+- modal lifecycle은 `dashboard-modal.js`를 재사용한다. 히트맵을 여는 순간 `calc(activeDate)`를 1회 fresh 계산해 다른 modal에서 main render가 deferred된 직후에도 stale canonical cache를 재사용하지 않는다.
+- Live Valuation snapshot이 바뀌면 `dashboard-live-valuation.js`의 open-overlay callback을 통해 **modal이 열려 있을 때만** 새 canonical `calc()` 결과로 rows/context와 **현재 mode geometry까지 다시 계산**한다. 히트맵이 닫혀 있으면 추가 calc/layout/render를 하지 않는다. live refresh 전 keyboard focus와 touch pinned 종목은 ticker/name stable key로 보존하고 새 layout에서 같은 종목으로 복원한다.
 - 히트맵 modal이 열린 동안 메인 Dashboard partial render를 허용하기 위해 `liveValuationCanRender()`의 modal defer를 풀지 않는다. 메인 화면은 기존대로 modal close 뒤 pending partial render로 수렴하며, 히트맵만 열린 상태에서 즉시 최신값을 반영한다.
 - Heatmap 도입 전후 Market AI network polling 수는 같아야 한다. `dashboard-heatmap.js`에 `fetch`, `setInterval`, 별도 timer를 추가하지 않는다.
 
