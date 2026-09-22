@@ -179,9 +179,21 @@
       display:none;
     }
 
-    /* Modal-only Print · modal body lock 또는 확대 차트 상태를 print mode switch로 재사용한다.
-       열린 modal/확대 차트가 있으면 배경 dashboard를 제외하고 현재 overlay만 page flow에 올린다. */
-    body:is(.dashboard-dialog-open,.chart-expanded-open) > #app{
+    /* Modal-only Print · body에 붙는 action modal과 #app 내부의 연금 조정 modal을 모두 같은 인쇄 계약으로 정규화한다.
+       열린 modal/확대 차트가 있으면 배경 dashboard를 제외하고 현재 surface만 page flow에 올린다. */
+    body.dashboard-dialog-open > #app{
+      display:block !important;
+      padding-top:0 !important;
+    }
+    body.dashboard-dialog-open > #app > .wrap{
+      max-width:none !important;
+      margin:0 !important;
+      padding:0 !important;
+    }
+    body.dashboard-dialog-open > #app > .wrap > :not(.contrib-modal){
+      display:none !important;
+    }
+    body.chart-expanded-open > #app{
       display:none !important;
     }
     body:is(.dashboard-dialog-open,.chart-expanded-open) > :is(
@@ -190,7 +202,8 @@
       .chart-expanded-overlay.show,
       dialog[open],
       #pensionActionPinModal
-    ){
+    ),
+    body.dashboard-dialog-open > #app #pensionContribModal.show{
       display:block !important;
       position:static !important;
       inset:auto !important;
@@ -210,7 +223,8 @@
       .chart-expanded-overlay.show,
       dialog[open],
       #pensionActionPinModal
-    ) > :is(.action-modal-card,.contrib-modal-card,.chart-expanded-stage){
+    ) > :is(.action-modal-card,.contrib-modal-card,.chart-expanded-stage),
+    body.dashboard-dialog-open > #app #pensionContribModal.show > .contrib-modal-card{
       box-sizing:border-box;
       width:100% !important;
       max-width:100% !important;
@@ -229,6 +243,49 @@
       .realtime-quote-close
     ){
       display:none !important;
+    }
+
+    /* Modal Print Geometry · screen viewport 전용 compact 규칙이 print preview 폭에 재적용되지 않도록 필요한 축만 복원한다. */
+    body.dashboard-dialog-open .monthly-calendar-head{
+      grid-template-columns:1fr !important;
+      width:100% !important;
+      max-width:none !important;
+      gap:0 !important;
+      margin:0 auto !important;
+    }
+    body.dashboard-dialog-open .monthly-calendar-head .modal-main-title{
+      grid-column:1 !important;
+      white-space:nowrap !important;
+      overflow-wrap:normal !important;
+      word-break:keep-all !important;
+      text-align:center !important;
+    }
+    body.dashboard-dialog-open .monthly-calendar-weekdays:has(> :nth-child(6)),
+    body.dashboard-dialog-open .monthly-calendar-weekdays:has(> :nth-child(6)) + .monthly-calendar-grid{
+      grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+    }
+    body.dashboard-dialog-open .portfolio-heatmap-date-controls{
+      display:block !important;
+      width:112px !important;
+      max-width:112px !important;
+      margin-top:var(--space-md) !important;
+    }
+    body.dashboard-dialog-open .portfolio-heatmap-date-select{
+      display:block !important;
+      width:112px !important;
+      min-width:112px !important;
+      max-width:112px !important;
+      white-space:nowrap !important;
+    }
+    body.dashboard-dialog-open .realtime-quote-modal-card{
+      height:var(--realtime-monitor-fallback-height) !important;
+      min-height:var(--realtime-monitor-fallback-height) !important;
+      max-height:var(--realtime-monitor-fallback-height) !important;
+    }
+    body.dashboard-dialog-open .realtime-quote-frame-stage,
+    body.dashboard-dialog-open .realtime-quote-frame{
+      height:100% !important;
+      min-height:var(--realtime-monitor-fallback-height) !important;
     }
 
     /* [P03. Surface / Page Width · elevation 제거 + 용지 폭] */
