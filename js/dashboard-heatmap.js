@@ -413,14 +413,19 @@ function syncPortfolioHeatmapModeControls(){
 
 // [HEATMAP07] Tooltip / Interaction
 function ensurePortfolioHeatmapTooltip(){
+  const modal=document.getElementById('portfolioHeatmapModal');
+  if(!modal)return null;
   let tooltip=document.getElementById(PORTFOLIO_HEATMAP_TOOLTIP_ID);
-  if(tooltip)return tooltip;
+  if(tooltip){
+    if(tooltip.parentElement!==modal)modal.appendChild(tooltip);
+    return tooltip;
+  }
   tooltip=document.createElement('div');
   tooltip.id=PORTFOLIO_HEATMAP_TOOLTIP_ID;
   tooltip.className='dash-tooltip portfolio-heatmap-tooltip';
   tooltip.setAttribute('role','tooltip');
   tooltip.setAttribute('aria-hidden','true');
-  document.body.appendChild(tooltip);
+  modal.appendChild(tooltip);
   return tooltip;
 }
 function portfolioHeatmapTileFromEvent(event){
@@ -432,6 +437,7 @@ function portfolioHeatmapRowForTile(tile){
 }
 function positionPortfolioHeatmapTooltip(tile,event=null){
   const tooltip=ensurePortfolioHeatmapTooltip();
+  if(!tooltip)return;
   const rect=tooltip.getBoundingClientRect();
   const tileRect=tile?.getBoundingClientRect?.();
   const viewportWidth=globalThis.innerWidth||document.documentElement.clientWidth||0;
@@ -449,6 +455,7 @@ function showPortfolioHeatmapTooltip(tile,event=null,{pinned=false}={}){
   const row=portfolioHeatmapRowForTile(tile);
   if(!row)return;
   const tooltip=ensurePortfolioHeatmapTooltip();
+  if(!tooltip)return;
   tooltip.innerHTML=portfolioHeatmapTooltipHtml(row);
   tooltip.setAttribute('aria-hidden','false');
   tooltip.classList.add('visible');
@@ -476,7 +483,6 @@ function schedulePortfolioHeatmapResize(){
 function bindPortfolioHeatmapInteractions(){
   if(portfolioHeatmapInteractionsBound)return;
   portfolioHeatmapInteractionsBound=true;
-  ensurePortfolioHeatmapTooltip();
   document.addEventListener('pointerover',event=>{
     if(event.pointerType==='touch')return;
     const tile=portfolioHeatmapTileFromEvent(event);
@@ -545,6 +551,7 @@ function openPortfolioHeatmap(returnFocus=null,calcResult=null){
   portfolioHeatmapState.layoutHeight=0;
   portfolioHeatmapState.pinnedIndex=null;
   renderPortfolioHeatmapModal();
+  ensurePortfolioHeatmapTooltip();
   openDashboardModal(modal,{
     initialFocus:modal.querySelector(`[data-heatmap-mode="${portfolioHeatmapState.mode}"]`)||modal.querySelector('[data-dashboard-action="close-portfolio-heatmap"]'),
     returnFocus,

@@ -119,6 +119,9 @@ test('히트맵 3차: Large/Medium/Small/Tiny 정보량과 mode별 핵심값 역
 
 test('히트맵 3차: tooltip은 pointer/focus/touch를 지원하고 기존 source helper를 재사용한다',()=>{
   assert.match(heatmap,/className='dash-tooltip portfolio-heatmap-tooltip'/,'공통 dash-tooltip primitive를 재사용해야 한다');
+  assert.match(heatmap,/const modal=document\.getElementById\('portfolioHeatmapModal'\)[^]*?modal\.appendChild\(tooltip\)/,'tooltip은 modal 내부에 있어 공통 inert 처리에서 제외되어야 한다');
+  assert.doesNotMatch(heatmap,/document\.body\.appendChild\(tooltip\)/,'tooltip을 body sibling으로 두면 modal open 시 inert 대상이 된다');
+  assert.match(heatmap,/renderPortfolioHeatmapModal\(\);\s*ensurePortfolioHeatmapTooltip\(\);\s*openDashboardModal/,'modal 내용을 렌더한 뒤 tooltip을 생성해 innerHTML 교체로 제거되지 않아야 한다');
   assert.match(heatmap,/document\.addEventListener\('pointerover'/);
   assert.match(heatmap,/document\.addEventListener\('focusin'/);
   assert.match(heatmap,/event\.pointerType!=='touch'&&event\.pointerType!=='pen'/,'touch/pen tap interaction이 있어야 한다');
