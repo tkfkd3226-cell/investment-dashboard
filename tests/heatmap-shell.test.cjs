@@ -80,9 +80,11 @@ test('히트맵 1차: 공통 modal lifecycle과 3개 segmented mode shell을 재
   assert.match(heatmap,/class="control-tab-group portfolio-heatmap-mode-tabs"/,'기존 control-tab primitive를 재사용해야 한다');
   assert.match(common,/:is\(\.asset-workspace-tabs,\.contrib-target-tabs,\.monthly-calendar-mode-tabs,\.portfolio-heatmap-mode-tabs\)/,'segmented skin은 기존 공통 selector에 합류해야 한다');
   assert.match(common,/--modal-segment-height:28px/,'퇴직연금/월간/히트맵 modal segmented 높이는 공통 token을 사용해야 한다');
-  assert.match(common,/:is\(\.contrib-target-option,\.monthly-calendar-mode-tab,\.portfolio-heatmap-mode-tab\)\{[^}]*min-height:var\(--modal-segment-height\)[^}]*padding-inline:var\(--modal-segment-pad-x\)[^}]*font-size:var\(--modal-segment-font-size\)/,'세 modal의 segmented button geometry가 같은 token을 사용해야 한다');
-  assert.match(tablet,/--modal-segment-font-size:var\(--type-size-md\)/,'Tablet modal segmented typography는 viewport token으로 조정해야 한다');
-  assert.match(special,/--modal-segment-font-size:var\(--type-size-sm\)/,'Phone modal segmented typography는 viewport token으로 조정해야 한다');
+  assert.match(common,/--modal-segment-font-size:13px/,'Web modal segmented font-size는 기존 14px에서 1px 줄인 13px이어야 한다');
+  assert.match(common,/--modal-segment-font-weight:700/,'세 modal segmented font-weight는 700 공통 token이어야 한다');
+  assert.match(common,/:is\(\.contrib-target-option,\.monthly-calendar-mode-tab,\.portfolio-heatmap-mode-tab\)\{[^}]*min-height:var\(--modal-segment-height\)[^}]*padding-inline:var\(--modal-segment-pad-x\)[^}]*font-size:var\(--modal-segment-font-size\)[^}]*font-weight:var\(--modal-segment-font-weight\)/,'세 modal의 segmented button geometry/typography가 같은 token을 사용해야 한다');
+  assert.match(tablet,/--modal-segment-font-size:12px/,'Tablet modal segmented font-size는 기존 13px에서 1px 줄인 12px이어야 한다');
+  assert.match(special,/--modal-segment-font-size:11px/,'Phone modal segmented font-size는 기존 12px에서 1px 줄인 11px이어야 한다');
   assert.match(common,/\.portfolio-heatmap-modal\{[^}]*--modal-card-width:min\(1160px,100%\)/,'Web heatmap modal은 넓은 shell을 가져야 한다');
   assert.match(common,/\.portfolio-heatmap-head\{[^}]*display:grid[^}]*grid-template-columns:minmax\(0,1fr\) auto minmax\(0,1fr\)/,'Web 히트맵 mode는 좌우 대칭 grid의 중앙 열을 사용해야 한다');
   assert.match(common,/\.portfolio-heatmap-mode-tabs\{[^}]*grid-column:2[^}]*justify-self:center/,'Web/Tablet 히트맵 mode selector는 modal 중앙에 정렬되어야 한다');

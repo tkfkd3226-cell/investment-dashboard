@@ -268,7 +268,7 @@
       --topbar-phone-control-step:calc(var(--topbar-phone-control-size) + var(--space-sm));
       --page-anchor-offset:calc(var(--topbar-phone-height) + var(--space-5xl));
       --empty-state-font-size:var(--type-size-xs);
-      --modal-segment-font-size:var(--type-size-sm);
+      --modal-segment-font-size:11px;
     }
 
   /* Pension Modal Phone Density · 세로/가로폰 공통. iOS는 16px computed font를 62.5% 축소해 visual 10px을 유지한다. */
@@ -303,7 +303,20 @@
       width:min(360px,calc(100% - var(--icon-button-size) - var(--icon-button-size) - var(--space-4xl)));
       gap:var(--space-lg);
     }
-    .monthly-calendar-mode-tabs{margin:var(--space-md) auto var(--space-4xl)}
+    .monthly-calendar-controls{
+      grid-template-columns:1fr;
+      gap:var(--space-md);
+      margin:var(--space-md) 0 var(--space-4xl);
+    }
+    .monthly-calendar-mode-tabs{grid-column:1;grid-row:1;width:100%;margin:0}
+    .monthly-calendar-separate-profit{
+      grid-column:1;
+      grid-row:2;
+      justify-self:end;
+      gap:var(--space-sm);
+      padding:1px var(--space-lg);
+    }
+    .monthly-calendar-separate-profit .separate-profit-toggle-label{display:inline}
     .portfolio-heatmap-modal{--modal-card-width:100%}
     .portfolio-heatmap-close{top:var(--modal-card-pad-y);right:var(--modal-card-pad-x)}
     .portfolio-heatmap-head{
@@ -836,6 +849,16 @@
       padding:1px var(--space-lg);
     }
     .separate-profit-toggle-label{display:inline}
+
+  /* Monthly Calendar Controls · 가로폰은 넓은 폭을 활용해 mode tabs와 별도수익 toggle을 같은 행에 배치 */
+    .monthly-calendar-controls{
+      grid-template-columns:minmax(0,1fr) minmax(0,360px) minmax(0,1fr);
+      align-items:center;
+      gap:var(--space-3xl);
+      margin:var(--space-md) 0 var(--space-4xl);
+    }
+    .monthly-calendar-mode-tabs{grid-column:2;grid-row:1;width:100%;margin:0}
+    .monthly-calendar-separate-profit{grid-column:3;grid-row:1;justify-self:end}
 
   /* Table-only Landscape · 성과/현황/변동은 카드 전환 없이 항상 표 */
     .mobile-view-toggle,

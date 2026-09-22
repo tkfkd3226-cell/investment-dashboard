@@ -143,7 +143,8 @@
   /* Modal Segmented Control · 퇴직연금 조정/월간 손익/히트맵의 3분할 탭 density 단일 원천 */
   --modal-segment-height:28px;
   --modal-segment-pad-x:var(--space-3xl);
-  --modal-segment-font-size:var(--type-size-lg);
+  --modal-segment-font-size:13px;
+  --modal-segment-font-weight:700;
   --modal-segment-gap:var(--space-sm);
   --modal-segment-group-pad:var(--space-2xs);
 
@@ -2950,6 +2951,7 @@ body.dashboard-dialog-open{
   min-height:var(--modal-segment-height);
   padding-inline:var(--modal-segment-pad-x);
   font-size:var(--modal-segment-font-size);
+  font-weight:var(--modal-segment-font-weight);
 }
 /* Shared Segmented Tabs Skin · 자산/퇴직연금 조정/월간 손익 switch가 같은 surface/state를 공유 */
 :is(.asset-workspace-tabs,.contrib-target-tabs,.monthly-calendar-mode-tabs,.portfolio-heatmap-mode-tabs){background:var(--subtle-card)}
@@ -3245,12 +3247,22 @@ body.dashboard-dialog-open{
   margin:0 auto;
 }
 .monthly-calendar-head .modal-main-title{text-align:center}
+/* Monthly Calendar Controls · mode tabs는 중앙축을 유지하고 개인보기 별도수익 toggle은 우측 끝에 독립 배치 */
+.monthly-calendar-controls{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,360px) minmax(0,1fr);
+  align-items:center;
+  gap:var(--space-4xl);
+  margin:var(--space-4xl) 0 var(--space-5xl);
+}
 /* Monthly Calendar Range Switch · control-tab primitive를 재사용하고 이곳은 3열 배치만 소유 */
 .monthly-calendar-mode-tabs{
+  grid-column:2;
   grid-template-columns:repeat(3,minmax(0,1fr));
-  width:min(360px,100%);
-  margin:var(--space-4xl) auto var(--space-5xl);
+  width:100%;
+  margin:0;
 }
+.monthly-calendar-separate-profit{grid-column:3;justify-self:end}
 .monthly-calendar-nav{
   border:1px solid var(--control-border);
   border-radius:min(var(--control-radius-sm),var(--corner-control-cap));

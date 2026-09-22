@@ -45,7 +45,7 @@
       --nav-motion-slide-delay:.04s;
       --nav-motion-hide-delay:.37s;
       --nav-motion-start-opacity:.90;
-      --modal-segment-font-size:var(--type-size-md);
+      --modal-segment-font-size:12px;
     }
 
   /* [T02. Hero / Market AI · Hero density + Market AI 자연 폭의 Tablet 최대 cap만 조정

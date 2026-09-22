@@ -30,6 +30,7 @@ import {
   MONTHLY_CALENDAR_ACTION,
   closeMonthlyCalendar,
   openMonthlyCalendar,
+  refreshMonthlyCalendarModal,
   setMonthlyCalendarMode,
   shiftMonthlyCalendarMonth
 } from './dashboard-monthly-calendar.js';
@@ -138,6 +139,7 @@ function toggleSeparateProfitMode(){
   uiState.includeSeparateProfit=!uiState.includeSeparateProfit;
   requestSecuritiesCumCardTransitionSuppression();
   refreshSeparateProfitModeView();
+  refreshMonthlyCalendarModal();
 }
 function toggleSeparateProfitModeFromExpanded(cardId){
   if(cardId!=='chart-cum'||!isExpandedChart(cardId))return;
@@ -145,6 +147,7 @@ function toggleSeparateProfitModeFromExpanded(cardId){
   refreshExpandedSeparateProfitChart(()=>{
     requestSecuritiesCumCardTransitionSuppression();
     refreshSeparateProfitModeView();
+    refreshMonthlyCalendarModal();
   });
 }
 

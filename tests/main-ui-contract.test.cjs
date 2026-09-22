@@ -143,6 +143,18 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(core,/function combinedDailyProfitChange\(date\)/,'flow-neutral 월간 일손익 계산은 core가 소유해야 한다');
   assert.match(monthlyCalendar,/combined:\{label:'합산'[^]*?securities:\{label:'증권'[^]*?pension:\{label:'퇴직연금'/,'월간 손익 범위는 합산·증권·퇴직연금 3개만 유지해야 한다');
   assert.match(monthlyCalendar,/class="control-tab monthly-calendar-mode-tab/,'범위 switch는 새 control 디자인 대신 공통 control-tab primitive를 재사용해야 한다');
+  assert.match(monthlyCalendar,/if\(!uiState\.personalViewUnlocked\)return '';/,'월간 별도수익 toggle은 개인보기에서만 렌더되어야 한다');
+  assert.match(monthlyCalendar,/class="section-control-chip section-action-chip separate-profit-toggle monthly-calendar-separate-profit/,'월간 별도수익 toggle은 기존 별도수익 control skin과 action을 재사용해야 한다');
+  assert.match(monthlyCalendar,/data-dashboard-action="toggle-separate-profit"/,'월간 별도수익 toggle은 기존 canonical toggle action을 재사용해야 한다');
+  assert.match(monthlyCalendar,/function refreshMonthlyCalendarModal\(\)\{[^]*?classList\.contains\('show'\)[^]*?restoreSeparateProfitFocus[^]*?renderMonthlyCalendarModal\(\)/,'별도수익 상태 변경 시 열린 월간 모달만 즉시 재렌더되어야 한다');
+  assert.match(monthlyCalendar,/restoreSeparateProfitFocus\)requestAnimationFrame\([^]*?querySelector\('\[data-dashboard-action="toggle-separate-profit"\]'\)\?\.focus\?\.\(\{preventScroll:true\}\)/,'월간 별도수익 toggle 재렌더 후 keyboard focus를 같은 control로 복원해야 한다');
+  assert.match(common,/\.monthly-calendar-controls\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,360px\) minmax\(0,1fr\)/,'Web/Tablet 월간 control row는 중앙 탭과 우측 별도수익 toggle의 독립 3열 grid를 사용해야 한다');
+  assert.match(common,/\.monthly-calendar-mode-tabs\{[^}]*grid-column:2[^}]*width:100%[^}]*margin:0/,'Web/Tablet 월간 탭은 별도수익 toggle과 무관하게 중앙 열을 유지해야 한다');
+  assert.match(common,/\.monthly-calendar-separate-profit\{grid-column:3;justify-self:end\}/,'Web/Tablet 별도수익 toggle은 같은 행 우측 끝에 있어야 한다');
+  assert.match(special,/\.monthly-calendar-controls\{[^}]*grid-template-columns:1fr[^}]*margin:var\(--space-md\) 0 var\(--space-4xl\)/,'Phone 세로 월간 control은 탭과 toggle을 세로 배치해야 한다');
+  assert.match(special,/\.monthly-calendar-separate-profit\{[^}]*grid-column:1[^}]*grid-row:2[^}]*justify-self:end/,'Phone 세로 별도수익 toggle은 탭 바로 아래 우측에 있어야 한다');
+  assert.match(special,/\.monthly-calendar-separate-profit \.separate-profit-toggle-label\{display:inline\}/,'Phone 월간 toggle도 별도수익 라벨을 유지해야 한다');
+  assert.match(special,/Monthly Calendar Controls · 가로폰[^]*?\.monthly-calendar-controls\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,360px\) minmax\(0,1fr\)[^}]*\}[^]*?\.monthly-calendar-separate-profit\{grid-column:3;grid-row:1;justify-self:end\}/,'Phone Landscape는 탭과 별도수익 toggle을 같은 행으로 복원해야 한다');
   assert.match(common,/:is\(\.asset-workspace-tabs,\.contrib-target-tabs,\.monthly-calendar-mode-tabs,\.portfolio-heatmap-mode-tabs\)\{background:var\(--subtle-card\)\}/,'월간 범위 switch는 히트맵을 포함한 공통 segmented tab skin을 공유해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-scroll/,'달력은 별도 body scroll wrapper 없이 card 하나만 scroll owner로 유지해야 한다');
   assert.match(common,/\.monthly-calendar-card\{[^}]*overflow:auto/,'작은 viewport에서는 기존처럼 달력 card 전체가 스크롤되어야 한다');
@@ -256,6 +268,7 @@ test('별도수익 ON/OFF는 full render 대신 영향 영역만 부분 갱신�
   assert.ok(toggleStart>=0&&toggleEnd>toggleStart,'별도수익 toggle 함수 범위를 찾지 못했다');
   const toggleBlock=app.slice(toggleStart,toggleEnd);
   assert.match(toggleBlock,/refreshSeparateProfitModeView\(\)/);
+  assert.match(toggleBlock,/refreshMonthlyCalendarModal\(\)/,'열린 월간 손익 모달도 같은 별도수익 상태로 즉시 갱신되어야 한다');
   assert.doesNotMatch(toggleBlock,/\brender\(\)/,'일반 별도수익 토글에서 #app full render를 호출하면 안 된다');
 
   const refreshStart=app.indexOf('function refreshSeparateProfitModeView(){');

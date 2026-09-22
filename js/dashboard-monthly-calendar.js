@@ -7,7 +7,8 @@ import {
   krxTradingCalendarStatus,
   kstTodayText,
   pensionDailyProfitChange,
-  securitiesDailyProfitChange
+  securitiesDailyProfitChange,
+  uiState
 } from './dashboard-core.js';
 import { escapeHtml, navIconSvg, phoneUi } from './dashboard-ui-common.js';
 import {
@@ -187,6 +188,14 @@ function renderMonthlyCalendarModeSelector(){
     return `<button type="button" class="control-tab monthly-calendar-mode-tab${active?' active':''}" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.setMode}" data-calendar-mode="${mode}" aria-pressed="${active?'true':'false'}">${meta.label}</button>`;
   }).join('')}</div>`;
 }
+function renderMonthlyCalendarSeparateProfitToggle(){
+  if(!uiState.personalViewUnlocked)return '';
+  const active=uiState.includeSeparateProfit;
+  return `<button type="button" class="section-control-chip section-action-chip separate-profit-toggle monthly-calendar-separate-profit${active?' active':''}" aria-label="별도수익 포함" aria-pressed="${active}" data-dashboard-action="toggle-separate-profit"><span class="separate-profit-toggle-label">별도수익</span><strong><span class="control-text-optical">${active?'ON':'OFF'}</span></strong></button>`;
+}
+function renderMonthlyCalendarControls(){
+  return `<div class="monthly-calendar-controls">${renderMonthlyCalendarModeSelector()}${renderMonthlyCalendarSeparateProfitToggle()}</div>`;
+}
 function renderMonthlyCalendarModal(){
   const modal=document.getElementById('monthlyCalendarModal');
   if(!modal)return;
@@ -205,11 +214,21 @@ function renderMonthlyCalendarModal(){
       <h3 id="monthlyCalendarTitle" class="modal-main-title">${escapeHtml(monthlyCalendarMonthLabel(month))}</h3>
       <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-nav" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.next}" aria-label="다음 월" aria-disabled="${monthIndex>=months.length-1?'true':'false'}">${navIconSvg('arrowRight')}</button>
     </div>
-    ${renderMonthlyCalendarModeSelector()}
+    ${renderMonthlyCalendarControls()}
     <div class="monthly-calendar-weekdays" aria-hidden="true">${weekdays.map((label,index)=>`<span${!businessDaysOnly&&index>=5?' class="is-weekend"':''}>${label}</span>`).join('')}</div>
     <div class="monthly-calendar-grid" role="group" aria-label="${escapeHtml(monthlyCalendarMonthLabel(month))} 손익 캘린더">${renderMonthlyCalendarGrid(month,model,{businessDaysOnly})}</div>
     ${renderMonthlyCalendarSummary(model)}
   </div>`;
+}
+function refreshMonthlyCalendarModal(){
+  const modal=document.getElementById('monthlyCalendarModal');
+  if(!modal?.classList.contains('show'))return false;
+  const restoreSeparateProfitFocus=modal.contains(document.activeElement)&&document.activeElement?.matches?.('[data-dashboard-action="toggle-separate-profit"]');
+  renderMonthlyCalendarModal();
+  if(restoreSeparateProfitFocus)requestAnimationFrame(()=>{
+    modal.querySelector('[data-dashboard-action="toggle-separate-profit"]')?.focus?.({preventScroll:true});
+  });
+  return true;
 }
 
 // [CAL04] Modal Lifecycle · 공통 dashboard-modal lifecycle 재사용
@@ -268,6 +287,7 @@ export {
   MONTHLY_CALENDAR_ACTION,
   closeMonthlyCalendar,
   openMonthlyCalendar,
+  refreshMonthlyCalendarModal,
   setMonthlyCalendarMode,
   shiftMonthlyCalendarMonth
 };
