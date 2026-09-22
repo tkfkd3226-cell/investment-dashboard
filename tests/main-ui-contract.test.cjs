@@ -1567,8 +1567,10 @@ test('Market AI 연결 toggle은 OFF fallback과 viewport별 진입점 계약을
   const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
   assert.doesNotMatch(tabsBlock,/\$\{phoneUi\(\)\?'':/,'Market AI toggle 생성 여부를 최초 viewport에 고정하면 크기 변경 후 새로고침이 필요해진다');
   assert.match(tabsBlock,/class="date-tool-btn control-icon-button topbar-market-ai-toggle"/,'Market AI toggle은 Web/Tablet/Phone Topbar에서 같은 control을 재사용해야 한다');
-  assert.match(special,/\.switcher button\.topbar-market-ai-toggle,[^]*?\.switcher button\.topbar-theme-action\{display:none\}/,'Phone Topbar은 최종 4-action 계약을 위해 Market AI toggle과 테마 control을 숨겨야 한다');
+  assert.match(special,/button\.topbar-market-ai-toggle\{[^}]*display:inline-flex/,'Phone Topbar에서도 Market AI 연결 toggle을 유지해야 한다');
+  assert.match(special,/\.switcher button\.topbar-theme-action\{display:none\}/,'Phone Topbar에서는 theme control만 숨겨야 한다');
   assert.match(special,/\.date-action-menu\.mobile-combined-menu \.mobile-nav-theme-action\{display:inline-flex\}/,'Phone 테마 control은 hamburger 상단에서 제공해야 한다');
+  assert.match(tabsBlock,/<span>Top바 고정<\/span>/,'Phone hamburger 고정 스위치는 Top바 고정 문구를 사용해야 한다');
 });
 
 test('Market AI는 초기 OFF로 열려도 연결 켜기 lifecycle listener를 먼저 등록한다',()=>{

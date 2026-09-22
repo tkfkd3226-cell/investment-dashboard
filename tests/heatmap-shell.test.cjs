@@ -52,8 +52,9 @@ test('히트맵 1차: Phone은 밝기 버튼을 Topbar에서 숨기고 hamburger
   assert.match(tabs,/mobile-nav-theme-action[^>]*data-theme-toggle[^>]*data-dashboard-action="toggle-theme"/,'Phone hamburger header에 theme action이 있어야 한다');
   assert.match(common,/\.date-action-menu\.mobile-combined-menu \.mobile-nav-theme-action\{display:none\}/,'Tablet에서는 hamburger theme action이 중복 노출되지 않아야 한다');
   assert.match(special,/\.date-action-menu\.mobile-combined-menu \.mobile-nav-theme-action\{display:inline-flex\}/,'Phone에서 hamburger theme action이 보여야 한다');
-  assert.match(special,/\.switcher button\.topbar-market-ai-toggle,[^]*?\.switcher button\.topbar-theme-action\{display:none\}/,'Phone Topbar은 Market AI 연결과 기존 theme action을 숨겨 4-action 계약을 유지해야 한다');
-  assert.match(special,/button\.topbar-monthly-action,[^]*button\.topbar-heatmap-action,[^]*button\.topbar-realtime-action/,'Phone Topbar은 월간·히트맵·실시간 진입점을 함께 유지해야 한다');
+  assert.match(special,/button\.topbar-monthly-action,[^]*button\.topbar-heatmap-action,[^]*button\.topbar-realtime-action,[^]*button\.topbar-market-ai-toggle\{[^}]*display:inline-flex/,'Phone Topbar은 월간·히트맵·실시간·Market AI 연결 진입점을 함께 유지해야 한다');
+  assert.match(special,/\.switcher button\.topbar-theme-action\{display:none\}/,'Phone Topbar에서는 theme action만 숨겨 hamburger 상단으로 이동해야 한다');
+  assert.match(tabs,/<span>Top바 고정<\/span>/,'Phone hamburger의 고정 스위치 문구는 Top바 고정이어야 한다');
 });
 
 test('히트맵 1차: Web/Tablet/Phone 표시 계약을 CSS만으로 전환한다',()=>{

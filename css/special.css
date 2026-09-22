@@ -639,10 +639,10 @@
   }
   button.topbar-monthly-action,
   button.topbar-heatmap-action,
-  button.topbar-realtime-action{
+  button.topbar-realtime-action,
+  button.topbar-market-ai-toggle{
     display:inline-flex;
   }
-  .switcher button.topbar-market-ai-toggle,
   .switcher button.topbar-theme-action{display:none}
   .date-action-menu-wrap{
     display:block;
@@ -689,7 +689,7 @@
     box-shadow:var(--topbar-control-shadow);
   }
 
-  /* Hamburger Header · 날짜 고정은 왼쪽 utility, 테마·모서리 변경·닫기는 오른쪽 action */
+  /* Hamburger Header · Topbar 고정은 왼쪽 utility, 테마·모서리 변경·닫기는 오른쪽 action */
   .mobile-date-pin-control{display:inline-flex;align-items:center;height:var(--dashboard-control-height);gap:var(--space-md);color:var(--nav-muted);cursor:pointer;user-select:none}
   .mobile-date-pin-control > span:first-child{display:flex;align-items:center;height:var(--switch-track-height);font-size:var(--type-size-xs);font-weight:var(--type-weight-strong);letter-spacing:-.02em;line-height:var(--switch-track-height);white-space:nowrap}
   .date-action-menu.mobile-combined-menu .mobile-nav-theme-action{display:inline-flex}
