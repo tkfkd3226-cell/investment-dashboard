@@ -1,5 +1,5 @@
 import { dataState, fmt, pct, shortDate, signed, won } from './dashboard-core.js';
-import { assetPriceSourceInfo, escapeHtml, navIconSvg } from './dashboard-ui-common.js';
+import { assetPriceSourceInfo, escapeHtml, navIconSvg, phoneUi } from './dashboard-ui-common.js';
 import {
   bindDashboardModalDismiss,
   closeDashboardModal,
@@ -303,11 +303,12 @@ function portfolioHeatmapColorState(row,mode='day'){
     value
   };
 }
-function portfolioHeatmapTileDensity(rect={}){
+function portfolioHeatmapTileDensity(rect={},{phoneFamily=false}={}){
   const width=Math.max(0,finiteHeatmapNumber(rect.width,0));
   const height=Math.max(0,finiteHeatmapNumber(rect.height,0));
   const area=width*height;
-  if(width>=170&&height>=88&&area>=18000)return 'large';
+  const largeMinWidth=phoneFamily?112:170;
+  if(width>=largeMinWidth&&height>=88&&area>=18000)return 'large';
   if(width>=92&&height>=50&&area>=6000)return 'medium';
   if(width>=46&&height>=27&&area>=1500)return 'small';
   return 'tiny';
@@ -447,7 +448,7 @@ function syncPortfolioHeatmapSecondaryVisibility(canvas){
 }
 function renderPortfolioHeatmapTile(row,index){
   const mode=portfolioHeatmapState.mode;
-  const density=portfolioHeatmapTileDensity(row.rect);
+  const density=portfolioHeatmapTileDensity(row.rect,{phoneFamily:phoneUi()});
   const color=portfolioHeatmapColorState(row,mode);
   const rect=row.rect;
   return `<button type="button" class="portfolio-heatmap__tile is-${density} is-${color.direction}${color.kind==='unavailable'?' is-unavailable':''}" data-heatmap-tile data-heatmap-index="${index}" aria-describedby="${PORTFOLIO_HEATMAP_TOOLTIP_ID}" aria-label="${escapeHtml(portfolioHeatmapTileAriaLabel(row,mode))}" style="left:${rect.x.toFixed(3)}px;top:${rect.y.toFixed(3)}px;width:${rect.width.toFixed(3)}px;height:${rect.height.toFixed(3)}px;${portfolioHeatmapColorStyle(color)}">${portfolioHeatmapTileContent(row,density,mode)}</button>`;

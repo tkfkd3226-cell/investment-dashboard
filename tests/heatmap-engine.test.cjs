@@ -246,6 +246,10 @@ test('히트맵 2차 보정: Large 판정은 기존 정보 밀도를 유지하�
   assert.equal(heatmap.portfolioHeatmapTileDensity({width:220,height:120}),'large');
   assert.equal(heatmap.portfolioHeatmapTileDensity({width:170,height:110}),'large');
   assert.equal(heatmap.portfolioHeatmapTileDensity({width:169,height:120}),'medium');
+  assert.equal(heatmap.portfolioHeatmapTileDensity({width:135.8,height:152.9},{phoneFamily:true}),'large');
+  assert.equal(heatmap.portfolioHeatmapTileDensity({width:117.2,height:195.8},{phoneFamily:true}),'large');
+  assert.equal(heatmap.portfolioHeatmapTileDensity({width:111,height:195.8},{phoneFamily:true}),'medium');
+  assert.equal(heatmap.portfolioHeatmapTileDensity({width:116.2,height:98.5},{phoneFamily:true}),'medium');
   assert.equal(heatmap.portfolioHeatmapTileDensity({width:120,height:60}),'medium');
   assert.equal(heatmap.portfolioHeatmapTileDensity({width:60,height:32}),'small');
   assert.equal(heatmap.portfolioHeatmapTileDensity({width:30,height:20}),'tiny');

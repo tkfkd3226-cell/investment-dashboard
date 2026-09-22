@@ -104,7 +104,7 @@ test('히트맵 1차: app action router가 open/close/mode를 feature owner에 �
 test('히트맵 3차: Finviz형 dense tile과 고정 color scale을 renderer에 연결한다',()=>{
   assert.match(heatmap,/PORTFOLIO_HEATMAP_SCALE=Object\.freeze\(\{day:3,cumulative:30\}\)/,'전일 대비 ±3%, 누적 ±30% 고정 scale이어야 한다');
   assert.match(heatmap,/portfolio-heatmap__tile is-\$\{density\}/,'각 보유종목은 treemap tile button으로 렌더되어야 한다');
-  assert.match(heatmap,/portfolioHeatmapTileDensity\(row\.rect\)/,'정보 밀도는 실제 geometry px 크기를 사용해야 한다');
+  assert.match(heatmap,/portfolioHeatmapTileDensity\(row\.rect,\{phoneFamily:phoneUi\(\)\}\)/,'정보 밀도는 실제 geometry px 크기와 Phone family 판정을 함께 사용해야 한다');
   assert.match(heatmap,/portfolioHeatmapState\.layoutRows=layoutPortfolioHeatmap\(portfolioHeatmapState\.rows,width,height,portfolioHeatmapState\.mode\)/,'geometry는 현재 mode의 면적 기준을 사용해야 한다');
   assert.match(heatmap,/function portfolioHeatmapAreaValue\(row,mode='weight'\)/,'mode별 area helper가 있어야 한다');
   assert.match(heatmap,/if\(mode==='day'\)[^]*?Math\.abs\(value\)/,'전일 대비 면적은 dayChange 절댓값이어야 한다');
