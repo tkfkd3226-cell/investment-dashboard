@@ -1,0 +1,15 @@
+[
+  {
+    "requestId": "krx-auto:2026-09-23:close",
+    "requestIdHash": "57f491ccd90fd1750fdf7452c6175c0d",
+    "hash": "3d5d63b56b17492d93026446a5b93c7f66f3f1be49b67fcc80bf6e4ef4622eff",
+    "branch": "main",
+    "date": "",
+    "workflowRunId": "",
+    "runUrl": "",
+    "htmlUrl": "",
+    "reason": "workflow_skipped:already_closed_today",
+    "savedAtKST": "2026-09-23T15:56:10+09:00",
+    "savedAtMs": 1790146570238
+  }
+]
