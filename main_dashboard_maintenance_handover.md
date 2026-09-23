@@ -441,6 +441,11 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 
 월간 손익 캘린더는 별도 성과 산식을 만들지 않는다. `dashboard-core.js`의 flow-neutral 일성과 helper를 재사용하며, **합산 / 증권 / 퇴직연금** 범위를 전환한다. 합산은 증권 `dayChange` + 비교 가능한 연금 `pensionDayChange` + 별도수익 ON 시 당일 증가분이며, 증권 단독 범위도 개인보기의 별도수익 ON 상태에서는 같은 당일 증가분을 더한다. 퇴직연금 단독 범위에는 증권 성과나 별도수익을 섞지 않는다. 별도수익 당일 증가분은 core의 `separateProfitDailyChangeForDate()`를 공통 재사용해 달력 모듈이 날짜별 `calc()`를 중복 호출하지 않는다. 연금 첫 관측일은 기준일로 취급해 기존 누적손익을 당일 수익으로 오인하지 않는다. 휴장/데이터 누락 판정은 updater가 생성하는 `data/krx_trading_calendar.json`을 사용하며 성과값 자체는 이 JSON에서 만들지 않는다.
 
+- 시세 변경·연결 해제로 평가 상태가 바뀌면 app의 `refreshOpenLiveModals()`가 히트맵과 월간손익을 함께 통지한다. 기존 시세 polling/모달 뒤 main render 보류 경로를 공유한다.
+- `refreshMonthlyCalendarLive()`는 열린 모달의 `monthlyCalendarState.month/mode`를 기준으로 계산한다. 부모 `activeDate`가 과거일이어도 탐색 중인 월의 유효한 실시간 시세는 반영한다.
+- 실시간 갱신은 기존 grid/summary renderer를 detached template에 사용해 날짜 손익 text/class, 날짜 button의 정확한 금액 title/aria-label, 월 요약 text/class만 비교·수정한다. 같은 값은 쓰지 않으며 기존 button/card DOM과 탐색 월·범위·별도수익 설정·포커스·스크롤을 유지한다. 월 이동·범위 전환은 기존 전체 모달 렌더 경로를 사용한다.
+- 테스트는 `tests/monthly-calendar-live.test.cjs`의 모달 알림·갱신 보류·닫힌 모달·동일 값 쓰기 생략 계약을 포함한다.
+
 - `월간 손익`은 Web/Tablet/Phone이 공유하는 Topbar action으로만 진입하고 hamburger에는 중복 배치하지 않는다. Web/Tablet은 텍스트 action, Phone은 같은 DOM의 label을 숨긴 icon-only 표현을 사용하며 hamburger 구성·높이·scroll은 이 문서의 공통 Topbar/Navigation responsive contract를 따른다.
 - `합산 / 증권 / 퇴직연금` 범위 switch는 공통 `control-tab` primitive/skin을 재사용한다. 선택 범위는 modal을 닫았다 다시 열어도 현재 페이지 세션 동안 유지되며, 범위를 바꾸면 날짜별 금액과 월 손익·상승/하락·최고/최저가 같은 기준으로 함께 재계산된다.
 - 월 이동은 실제 가용 데이터가 존재하는 월 목록 안에서만 이동한다.

@@ -236,6 +236,46 @@ function refreshMonthlyCalendarModal(){
   return true;
 }
 
+// 시세 갱신은 기존 renderer로 표시값을 만든 뒤 leaf text/속성만 동기화한다.
+// 날짜 button·월/범위 control·card DOM을 유지해 focus와 scroll이 바뀌지 않게 한다.
+function syncMonthlyCalendarLiveValue(current,next,{text=true,attributes=['class']}={}){
+  if(!current||!next)return false;
+  let changed=false;
+  if(text&&current.textContent!==next.textContent){
+    current.textContent=next.textContent;
+    changed=true;
+  }
+  attributes.forEach(name=>{
+    const value=next.getAttribute(name);
+    if(current.getAttribute(name)===value)return;
+    if(value==null)current.removeAttribute(name);
+    else current.setAttribute(name,value);
+    changed=true;
+  });
+  return changed;
+}
+function refreshMonthlyCalendarLive(){
+  const modal=document.getElementById('monthlyCalendarModal');
+  if(!modal?.classList.contains('show')||!monthlyCalendarState.month)return false;
+  const month=monthlyCalendarState.month;
+  const model=monthlyCalendarMonthModel(month,monthlyCalendarState.mode);
+  const template=document.createElement('template');
+  template.innerHTML=renderMonthlyCalendarGrid(month,model,{businessDaysOnly:phoneUi()})+renderMonthlyCalendarSummary(model);
+  let changed=false;
+  template.content.querySelectorAll('[data-calendar-date]').forEach(next=>{
+    const current=modal.querySelector(`[data-calendar-date="${next.dataset.calendarDate}"]`);
+    if(!current)return;
+    if(syncMonthlyCalendarLiveValue(current,next,{text:false,attributes:['aria-label','title']}))changed=true;
+    if(syncMonthlyCalendarLiveValue(current.querySelector('.monthly-calendar-day-profit'),next.querySelector('.monthly-calendar-day-profit')))changed=true;
+  });
+  const selector='.monthly-calendar-summary .m-value,.monthly-calendar-summary .m-detail';
+  const currentSummary=modal.querySelectorAll(selector);
+  template.content.querySelectorAll(selector).forEach((next,index)=>{
+    if(syncMonthlyCalendarLiveValue(currentSummary[index],next))changed=true;
+  });
+  return changed;
+}
+
 // [CAL04] Modal Lifecycle · 공통 dashboard-modal lifecycle 재사용
 function ensureMonthlyCalendarModal(){
   let modal=document.getElementById('monthlyCalendarModal');
@@ -292,6 +332,7 @@ export {
   MONTHLY_CALENDAR_ACTION,
   closeMonthlyCalendar,
   openMonthlyCalendar,
+  refreshMonthlyCalendarLive,
   refreshMonthlyCalendarModal,
   setMonthlyCalendarMode,
   shiftMonthlyCalendarMonth

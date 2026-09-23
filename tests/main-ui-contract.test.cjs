@@ -259,7 +259,7 @@ test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validat
 test('실시간 평가 adapter는 importmap cache-bust 대상이고 boot 이후 별도 lifecycle로 시작한다',()=>{
   assert.match(index,/'dashboard-market-ai-client\.js'/);
   assert.match(index,/'dashboard-live-valuation\.js'/);
-  assert.match(app,/setupLiveValuation\(\{renderDashboard:renderLiveValuationRefresh,renderOpenOverlay:refreshOpenPortfolioHeatmapLive\}\);/);
+  assert.match(app,/setupLiveValuation\(\{renderDashboard:renderLiveValuationRefresh,renderOpenOverlay:refreshOpenLiveModals\}\);/);
   assert.match(liveValuation,/const LIVE_VALUATION_POLL_MS=10_000;/);
   assert.match(marketAi,/const MARKET_AI_POLL_MS=10_000;/);
   assert.match(liveValuation,/\/api\/market-data\/krx-quotes/);

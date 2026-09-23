@@ -31,6 +31,7 @@ import {
   MONTHLY_CALENDAR_ACTION,
   closeMonthlyCalendar,
   openMonthlyCalendar,
+  refreshMonthlyCalendarLive,
   refreshMonthlyCalendarModal,
   setMonthlyCalendarMode,
   shiftMonthlyCalendarMonth
@@ -533,6 +534,12 @@ function refreshOpenPortfolioHeatmapLive(){
   const x=latestDashboardCalcResult=calc(heatmapDate);
   return refreshPortfolioHeatmap(x);
 }
+function refreshOpenLiveModals(){
+  const heatmapChanged=refreshOpenPortfolioHeatmapLive();
+  // 월간 손익은 부모 activeDate가 아니라 모달에서 탐색 중인 월을 기준으로 갱신한다.
+  const calendarChanged=refreshMonthlyCalendarLive();
+  return heatmapChanged||calendarChanged;
+}
 function renderLiveValuationRefresh(){
   if(!liveValuationRenderDateEligible(dataState.activeDate))return;
   const focusSnapshot=dashboardFocusSnapshot();
@@ -753,7 +760,7 @@ async function boot(){
   initializeDashboardState();
   bindAppEvents();
   render();
-  setupLiveValuation({renderDashboard:renderLiveValuationRefresh,renderOpenOverlay:refreshOpenPortfolioHeatmapLive});
+  setupLiveValuation({renderDashboard:renderLiveValuationRefresh,renderOpenOverlay:refreshOpenLiveModals});
 }
 
 boot().catch(err=>{
