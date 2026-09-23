@@ -38,6 +38,7 @@ index.html
 - 증권 `securitiesEvents` 기반 매도·실현손익·현금화 원금·재매수 원금 이동 복원
 - 장부결과 VS 실제보유 검산
 - 별도수익 ON/OFF 비교
+- Market AI 시장·신호 및 보유종목 평가 시세를 5초 주기로 조회하며, 이전 요청 처리 중에는 중복 조회를 생략
 - 월간 손익 캘린더 — 합산/증권/퇴직연금별 flow-neutral 일손익을 전환해 보고, KRX 휴장·데이터 누락을 구분하며 날짜 선택 시 해당 일자 Dashboard로 이동. Market AI 시세 갱신 시 열린 모달의 날짜별 손익·월 요약을 자동 반영하며 탐색 월·범위·포커스·스크롤을 유지
 - 포트폴리오 히트맵 — 메인 증권 보유종목을 `당일손익=|당일손익 금액|`, `누적손익=|누적손익 금액|`, `비중=평가금액` 기준의 treemap으로 전환하고, 모달 안에서 부모 Dashboard 기준일을 바꾸지 않은 채 가용 날짜를 이동해 변화를 비교
 - KOSPI 대비 초과성과 및 기간 차트
@@ -225,6 +226,7 @@ investment-dashboard/
 │  ├─ main-calc.test.cjs
 │  ├─ main-ui-contract.test.cjs
 │  ├─ monthly-calendar-live.test.cjs
+│  ├─ live-valuation-polling.test.cjs
 │  ├─ heatmap-engine.test.cjs
 │  ├─ heatmap-shell.test.cjs
 │  ├─ add-calc.test.cjs
@@ -360,6 +362,7 @@ tests/
 tests/main-calc.test.cjs
 tests/main-ui-contract.test.cjs
 tests/monthly-calendar-live.test.cjs
+tests/live-valuation-polling.test.cjs
 tests/heatmap-engine.test.cjs
 tests/heatmap-shell.test.cjs
 tests/add-calc.test.cjs

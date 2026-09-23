@@ -26,7 +26,7 @@ import {
 
 // [MARKET01] Configuration / Runtime State · endpoint / metric contract
 
-const MARKET_AI_POLL_MS=10_000;
+const MARKET_AI_POLL_MS=5_000;
 const MARKET_AI_OFFLINE_FAILURE_LIMIT=2;
 const MARKET_AI_STALE_MS=5*60_000;
 const MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200';

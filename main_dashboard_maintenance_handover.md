@@ -613,7 +613,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - 별도수익처럼 여러 모듈에 영향을 주는 흐름
 - cross-module action
 - render orchestration
-  - 일반 `#tabs/#app` full render의 keyboard focus snapshot/restore를 공통 소유한다. Live Valuation 10초 갱신은 **`#tabs`와 `#app` shell을 유지한 채 현재가 의존 fragment만 부분 교체**하고 활성 자산 탭 차트만 즉시 다시 그린다. 비활성 탭은 다음 탭 전환 후 lazy draw하며 menu/TOC/window/nested-scroll transient state를 보존한다. focus target이 이미 `document.activeElement`이면 불필요하게 다시 focus하지 않는다.
+  - 일반 `#tabs/#app` full render의 keyboard focus snapshot/restore를 공통 소유한다. Live Valuation 5초 갱신은 **`#tabs`와 `#app` shell을 유지한 채 현재가 의존 fragment만 부분 교체**하고 활성 자산 탭 차트만 즉시 다시 그린다. 비활성 탭은 다음 탭 전환 후 lazy draw하며 menu/TOC/window/nested-scroll transient state를 보존한다. focus target이 이미 `document.activeElement`이면 불필요하게 다시 focus하지 않는다.
 - 초기 state 연결
 - event delegation entry
 - boot
@@ -684,8 +684,8 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - live overlay는 기본적으로 `activeDate === KST 오늘`에 적용한다. 예외적으로 자정 이후 다음 KRX 정규장 시작 전에는 `closed + usable` quote의 `observed_at` KST 날짜가 직전 완료 거래일 `activeDate`와 정확히 일치할 때만 그 직전 거래일에도 overlay를 허용한다. 다음 session이 시작되거나 backend가 새 session 상태를 확인하면 직전 거래일은 다시 JSON/역사 snapshot 의미로 돌아가며, 그보다 오래된 과거 날짜에는 Market AI state를 적용하지 않는다. 이 예외는 `dashboard-core.js`의 quote 판정뿐 아니라 `dashboard-app.js`의 Live Valuation partial render gate에도 동일하게 적용해야 하며, `activeDate !== kstTodayText()` 같은 별도 today-only guard를 두면 장전 carry quote가 메모리에 들어와도 화면은 JSON 상태로 남는 회귀가 발생한다.
 - Market AI는 ticker별 현재가/source/health와 KOSPI benchmark를 제공한다. 수량·원가·원금·매매흐름·실현손익의 owner는 Dashboard 장부다. KOSPI runtime 값은 누적 손익/누적 수익률 차트의 비교선에만 사용하며 저장 원천을 바꾸지 않는다.
 - 현재가가 바뀌면 현재가 의존 평가금액·평가손익·수익률·일변동·계좌/통합 합계는 기존 Dashboard 계산으로 재파생하되 장부 원천값을 바꾸지 않는다.
-- polling은 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. 겹친 요청은 latest-wins sequence로 보호하며, 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다.
-- Live Valuation/render lifecycle의 canonical contract는 **2.7 `dashboard-app.js` 책임**을 따른다. overlay·input·tooltip interaction 중에는 render를 보류하고 종료 후 최신 pending state를 1회 반영한다. 10초 Live Valuation과 별도수익 전환은 `#tabs`/`#app` shell과 focus/scroll transient state를 보존하는 부분 갱신을 사용하며, 구체 fragment 목록과 redraw 범위는 실제 `dashboard-app.js`를 Source of Truth로 한다.
+- polling은 5초 간격으로 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. client identity 확인부터 응답 body 소비까지 진행 중인 Promise를 공유해 중복 요청을 만들지 않는다. 연결 해제는 sequence를 무효화하고, 이전 요청이 끝났을 때 재연결되어 있으면 즉시 새 요청을 예약한다. 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다. 관련 실행 테스트는 `tests/live-valuation-polling.test.cjs`가 소유한다.
+- Live Valuation/render lifecycle의 canonical contract는 **2.7 `dashboard-app.js` 책임**을 따른다. overlay·input·tooltip interaction 중에는 render를 보류하고 종료 후 최신 pending state를 1회 반영한다. 5초 Live Valuation과 별도수익 전환은 `#tabs`/`#app` shell과 focus/scroll transient state를 보존하는 부분 갱신을 사용하며, 구체 fragment 목록과 redraw 범위는 실제 `dashboard-app.js`를 Source of Truth로 한다.
 - 차트 entrance animation은 card별 최초 viewport 진입 1회가 contract다. 주기 갱신은 이미 재생된 card만 완료 상태를 승계하고 미진입·hidden/0-size card의 최초 animation을 선소비하지 않는다.
 - Hero `투자 성과` 기준문구와 자산 source tooltip은 **실제 계산에 적용된 가격 기준**을 사용자 의미로 표시한다. 저장 JSON은 `priceBasis`에 따라 장중/정규장 종가 의미를, Market AI는 usable coverage에 따라 실시간/시간외/애프터 종가 의미를 표시한다. legacy 저장값은 기존 fallback을 유지하고 raw 내부 상태 문자열은 노출하지 않는다. 출처 tooltip은 기존 `.dash-tooltip` surface를 재사용한다.
 - Market AI standalone polling이 card 값을 갱신할 때 이미 열려 있는 Market AI tooltip도 같은 최신 state/view model로 즉시 다시 그린다. tooltip target이 DOM에서 사라졌다면 tooltip을 닫아 stale body-level surface를 남기지 않는다.
@@ -1958,7 +1958,7 @@ KOSPI 비교선 · KIS realtime/closed_latest만 runtime overlay · unusable/연
 client_id multi-client universe 충돌 없음
 holdings 변경 중 stale response 폐기
 modal/expanded chart 중 main render defer · 열린 히트맵은 modal 날짜=부모 activeDate일 때만 open-overlay callback으로 즉시 refresh
-실시간 시세 modal close 후 10초 partial refresh에서 Topbar/#app shell 유지 · 활성 탭만 redraw · scroll creep 없음
+실시간 시세 modal close 후 5초 partial refresh에서 Topbar/#app shell 유지 · 활성 탭만 redraw · scroll creep 없음
 visible 복귀 즉시 refresh
 Dashboard-side Market AI OFF/ON · OFF 시 polling/volatile overlay 제거 · ON 시 즉시 retry
 source tooltip 셀 hover/focus
@@ -2103,7 +2103,7 @@ node --test tests/cross-ui-contract.test.cjs
 [ ] 과거 코드 기억을 최신본으로 가정하지 않았는가
 [ ] 현재 ES Module ownership을 유지하는가
 [ ] Market AI 변경이라면 signal standalone / shared transport+enabled preference / live valuation 책임 경계를 유지하는가
-[ ] Live Valuation 변경이라면 실시간 시세 modal close 후 10초 partial 갱신에서도 Topbar/#app shell이 재생성되지 않고 활성 탭만 redraw하며 scroll/focus가 안정적인가
+[ ] Live Valuation 변경이라면 실시간 시세 modal close 후 5초 partial 갱신에서도 Topbar/#app shell이 재생성되지 않고 활성 탭만 redraw하며 scroll/focus가 안정적인가
 [ ] 기존 canonical CSS rule/token을 먼저 찾았는가
 [ ] 새 breakpoint가 실제 기능상 필요한가
 [ ] Phone 판정 helper/contract를 중복 정의하지 않는가

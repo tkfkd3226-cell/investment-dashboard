@@ -28,7 +28,7 @@ import {
 //   [LIVE05] Lifecycle / Public API
 
 // [LIVE01] Configuration / Client Identity · poll 설정 / tab별 client identity(backend lease key)
-const LIVE_VALUATION_POLL_MS=10_000;
+const LIVE_VALUATION_POLL_MS=5_000;
 const LIVE_VALUATION_ENDPOINT='/api/market-data/krx-quotes';
 const LIVE_VALUATION_CLIENT_SESSION_KEY='investmentDashboard.liveValuationClientId';
 const LIVE_VALUATION_CLIENT_CHANNEL_NAME='investmentDashboard.liveValuationClients';
@@ -38,6 +38,7 @@ const LIVE_VALUATION_PENDING_RENDER_RETRY_MS=250;
 let liveValuationPollTimer=0;
 let liveValuationPendingRenderTimer=0;
 let liveValuationRefreshSequence=0;
+let liveValuationRefreshInFlight=null;
 let liveValuationLastFingerprint='';
 let liveValuationRenderPending=false;
 let liveValuationSetupBound=false;
@@ -311,7 +312,21 @@ function queueUniverseReconcileRefresh(){
   window.setTimeout(()=>refreshLiveValuation(),0);
 }
 
-async function refreshLiveValuation(){
+// Polling·visible 복귀·종목 재조정이 겹쳐도 client identity 확인부터 body 소비까지
+// 한 요청만 유지한다. 재연결은 이전 요청 종료 후 새 세션으로 즉시 다시 조회한다.
+function refreshLiveValuation(){
+  if(!liveValuationNetworkAllowed())return Promise.resolve();
+  if(liveValuationRefreshInFlight)return liveValuationRefreshInFlight.promise;
+  const flight={sequence:++liveValuationRefreshSequence,promise:null};
+  liveValuationRefreshInFlight=flight;
+  flight.promise=runLiveValuationRefresh(flight.sequence).finally(()=>{
+    if(liveValuationRefreshInFlight===flight)liveValuationRefreshInFlight=null;
+    if(flight.sequence!==liveValuationRefreshSequence&&liveValuationNetworkAllowed())queueUniverseReconcileRefresh();
+  });
+  return flight.promise;
+}
+
+async function runLiveValuationRefresh(refreshSequence){
   if(!liveValuationNetworkAllowed())return;
   const today=kstTodayText();
   const tickers=liveValuationTickersForDate(today);
@@ -322,7 +337,7 @@ async function refreshLiveValuation(){
   const requestedUniverseKey=liveValuationUniverseKey(tickers);
   const clientId=await resolveLiveValuationClientId();
   if(!liveValuationNetworkAllowed())return;
-  const refreshSequence=++liveValuationRefreshSequence;
+  if(refreshSequence!==liveValuationRefreshSequence)return;
   if(!tickers.length){
     const previousRequested=Array.isArray(dataState.liveValuation?.requestedTickers)?dataState.liveValuation.requestedTickers:[];
     const hasPreviousItems=Object.keys(dataState.liveValuation?.items||{}).length>0;
@@ -380,7 +395,7 @@ async function refreshLiveValuation(){
   }
 }
 
-// [LIVE05] Lifecycle / Public API · visible 복귀 refresh / 10초 network polling + closed-session local sentinel
+// [LIVE05] Lifecycle / Public API · visible 복귀 refresh / 5초 network polling + closed-session local sentinel
 function setupLiveValuation({renderDashboard,renderOpenOverlay}={}){
   renderDashboardCallback=typeof renderDashboard==='function'?renderDashboard:null;
   renderOpenOverlayCallback=typeof renderOpenOverlay==='function'?renderOpenOverlay:null;
