@@ -445,7 +445,7 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 | KRX dispatch·run/race | 12 | request/operation 단위 중복 dispatch, run visibility, retry inflight, response-loss를 fail-closed로 다루는가 |
 | 실패 복구·응답 유실 | 6 | 실제 반영 후 응답만 실패한 상태를 read-back/reconciliation으로 안전하게 수렴시키는가 |
 | 정규화·legacy 호환 | 4 | 지원한다고 명시한 구형 데이터가 정규화→재검증→mutation에서 자기모순 없이 동작하는가 |
-| Properties·원격 I/O·관측성·유지보수 | 4 | quota/GC, fetch 병렬화, timing, cache가 정합성을 약화시키지 않고 현재 규모에 적절한가 |
+| Properties·원격 I/O·관측성·유지보수 | 4 | quota/GC, fetch 병렬화, timing, cache가 정합성을 약화시키지 않고 현재 규모에 적절한가. KRX 자동 scheduler/retry가 정상 수동·자동 hot path에 중복 GitHub/Properties I/O를 넣지 않는가 |
 
 **GAS 점수는 평가 범위 규칙상 GAS가 포함되는 경우에만 제시하며, CSS/JavaScript/UI/UX 총점에 자동 합산하지 않는다.** 범위를 따로 좁히지 않은 전체 평가에서는 Dashboard와 GAS를 병렬 표기하고, MAIN/ADD/CSS/JS 등 좁은 평가에서는 GAS 점수 자체를 만들지 않는다.
 
@@ -477,6 +477,10 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 - explicit 4xx rejected → 안전한 retry
 - durable success write 실패 → local evidence fallback
 - marker/run proof가 있는 정상 경로에서 상태별 목록 race가 중복 dispatch를 열지 않는가
+- 자동 morning/close가 같은 날짜에서 서로 다른 안정 identity를 쓰고, 같은 phase retry는 동일 identity를 유지하는가
+- 자동 scheduler의 중복/stale trigger 정리가 다른 project trigger 또는 기존 KRX durable evidence를 건드리지 않는가
+- 자동 retry가 transient 상태에만 bounded하게 열리고, 전날 retry·metadata 손상·terminal 4xx가 새 dispatch로 변질되지 않는가
+- 정상 자동 성공 경로가 기존 수동 KRX hot path 앞에 GitHub/Properties 선조회나 별도 dispatch를 추가하지 않는가
 
 한 평가에서 이미 같은 root cause를 충분히 검증했다면 동일 계열 seed를 추가로 모두 돌릴 필요는 없다.
 

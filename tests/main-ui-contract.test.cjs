@@ -1183,6 +1183,392 @@ test('KRX GAS 시간 경계는 15:30 정각부터 장후다',()=>{
   assert.equal(context.nowKSTDateTimeInfo().isMarketTime,false);
 });
 
+test('KRX 자동 1차 wrapper는 날짜+phase 고정 identity만 만들고 기존 dispatch core에 그대로 위임한다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('/* --- 10H. KRX Automatic Invocation Wrapper');
+  const end=gas.indexOf('/* --- 10I. KRX Automatic Trigger Scheduler',start);
+  assert.ok(start>=0&&end>start,'KRX 자동 wrapper 섹션을 찾지 못했다');
+  const autoBlock=gas.slice(start,end);
+  const calls=[];
+  const managed=[];
+  const context=vm.createContext({
+    nowKSTText:()=>"2026-09-28T09:01:00+09:00",
+    isValidDateText:(value)=>{ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||'')); if(!m)return false; const d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3])); return d.getUTCFullYear()===+m[1]&&d.getUTCMonth()===+m[2]-1&&d.getUTCDate()===+m[3]; },
+    dispatchKrxPriceWorkflow:(body)=>{ calls.push(body); return {ok:true,body}; },
+    runKrxAutoManagedPhase_:(phase)=>{ managed.push(phase); return {ok:true,phase}; }
+  });
+  vm.runInContext(autoBlock,context);
+
+  assert.equal(context.buildKrxAutoRequestId_('morning','2026-09-28'),'krx-auto:2026-09-28:morning');
+  assert.equal(context.buildKrxAutoRequestId_('morning','2026-09-28'),context.buildKrxAutoRequestId_('morning','2026-09-28'),'같은 날짜/phase는 같은 requestId여야 한다');
+  assert.notEqual(context.buildKrxAutoRequestId_('morning','2026-09-28'),context.buildKrxAutoRequestId_('close','2026-09-28'),'morning/close identity는 분리되어야 한다');
+  assert.notEqual(context.buildKrxAutoRequestId_('morning','2026-09-28'),context.buildKrxAutoRequestId_('morning','2026-09-29'),'날짜가 바뀌면 identity도 바뀌어야 한다');
+
+  const directMorning=context.runKrxAutoPhase_('morning','2026-09-28');
+  const directClose=context.runKrxAutoPhase_('close','2026-09-28');
+  assert.equal(directMorning.body.requestId,'krx-auto:2026-09-28:morning');
+  assert.equal(directClose.body.requestId,'krx-auto:2026-09-28:close');
+  assert.equal(calls.length,2);
+  for(const body of calls){
+    assert.deepEqual(Object.keys(body),['requestId'],'자동 wrapper core는 date나 별도 상태를 주입하지 않고 requestId만 전달해야 한다');
+  }
+  context.runKrxAutoMorning();
+  context.runKrxAutoClose();
+  assert.deepEqual(managed,['morning','close'],'공개 handler는 3차 outer recovery 계층에 phase만 위임해야 한다');
+  assert.throws(()=>context.buildKrxAutoRequestId_('retry','2026-09-28'),/지원하지 않는 KRX 자동 실행 phase/);
+  assert.throws(()=>context.buildKrxAutoRequestId_('morning','2026-09-31'),/기준일/);
+
+  assert.doesNotMatch(autoBlock,/UrlFetchApp|PropertiesService|getGithubBranchHeadSha|githubRequest|readGithubJson|findActiveKrxWorkflowRun|LockService/,'자동 wrapper가 기존 core 앞에서 원격 I/O나 lock을 중복 수행하면 안 된다');
+  assert.match(autoBlock,/return dispatchKrxPriceWorkflow\(\{ requestId: requestId \}\);/);
+});
+
+test('KRX 자동 2차 scheduler는 one-shot trigger를 중복 없이 관리하고 기존 dispatch hot path와 격리된다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('/* --- 10I. KRX Automatic Trigger Scheduler');
+  const end=gas.indexOf('/* --- 10J. KRX Automatic Bounded Retry / Recovery',start);
+  assert.ok(start>=0&&end>start,'KRX 자동 scheduler 섹션을 찾지 못했다');
+  const block=gas.slice(start,end);
+
+  let uidSeq=0;
+  const triggers=[];
+  const deleted=[];
+  const created=[];
+  function makeTrigger(handler,meta={}){
+    const uid='t'+(++uidSeq);
+    const trigger={
+      _handler:handler,_uid:uid,_meta:meta,
+      getHandlerFunction(){return this._handler;},
+      getUniqueId(){return this._uid;}
+    };
+    triggers.push(trigger);
+    return trigger;
+  }
+  function builder(handler){
+    const meta={};
+    const api={
+      timeBased(){return api;},
+      at(value){meta.at=value;return api;},
+      atHour(value){meta.atHour=value;return api;},
+      everyDays(value){meta.everyDays=value;return api;},
+      inTimezone(value){meta.timezone=value;return api;},
+      create(){const trigger=makeTrigger(handler,{...meta});created.push(trigger);return trigger;}
+    };
+    return api;
+  }
+  const ScriptApp={
+    getProjectTriggers(){return triggers.slice();},
+    deleteTrigger(trigger){const i=triggers.indexOf(trigger);if(i>=0)triggers.splice(i,1);deleted.push(trigger);},
+    newTrigger(handler){return builder(handler);}
+  };
+  const Utilities={
+    formatDate(date,_timezone,format){
+      const shifted=new Date(date.getTime()+9*60*60*1000);
+      if(format==='yyyy-MM-dd') return `${shifted.getUTCFullYear()}-${String(shifted.getUTCMonth()+1).padStart(2,'0')}-${String(shifted.getUTCDate()).padStart(2,'0')}`;
+      if(format==='u'){const d=shifted.getUTCDay();return String(d===0?7:d);}
+      throw new Error('unexpected format '+format);
+    }
+  };
+  const lock={tryLock:()=>true,releaseLock:()=>{}};
+  const NativeDate=Date;
+  class FixedDate extends NativeDate{
+    constructor(...args){super(...(args.length?args:['2026-09-27T23:00:00.000Z']));}
+    static UTC(...args){return NativeDate.UTC(...args);}
+  }
+  const context=vm.createContext({
+    ScriptApp,Utilities,LockService:{getScriptLock:()=>lock},console,Date:FixedDate,
+    isValidDateText:(value)=>{ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||'')); if(!m)return false; const d=new NativeDate(NativeDate.UTC(+m[1],+m[2]-1,+m[3])); return d.getUTCFullYear()===+m[1]&&d.getUTCMonth()===+m[2]-1&&d.getUTCDate()===+m[3]; }
+  });
+  vm.runInContext(block,context);
+
+  assert.equal(context.buildKrxAutoTargetDate_('2026-09-28','morning').toISOString(),'2026-09-28T00:01:00.000Z');
+  assert.equal(context.buildKrxAutoTargetDate_('2026-09-28','close').toISOString(),'2026-09-28T06:31:00.000Z');
+
+  const beforeOpen=new Date('2026-09-27T23:00:00.000Z'); // KST 09/28 08:00
+  let result=context.reconcileKrxAutoTriggersUnlocked_(beforeOpen);
+  assert.equal(result.date,'2026-09-28');
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorning').length,1);
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoClose').length,1);
+  assert.equal(created.find(t=>t._handler==='runKrxAutoMorning')._meta.at.toISOString(),'2026-09-28T00:01:00.000Z');
+  assert.equal(created.find(t=>t._handler==='runKrxAutoClose')._meta.at.toISOString(),'2026-09-28T06:31:00.000Z');
+
+  const createdCount=created.length;
+  context.reconcileKrxAutoTriggersUnlocked_(beforeOpen);
+  assert.equal(created.length,createdCount,'정상 trigger가 하나씩 있으면 재생성하면 안 된다');
+
+  makeTrigger('runKrxAutoMorning');
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorning').length,2);
+  context.reconcileKrxAutoTriggersUnlocked_(beforeOpen);
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorning').length,1,'중복 morning trigger는 하나로 수렴해야 한다');
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoClose').length,1);
+
+  const afterMorning=new Date('2026-09-28T01:00:00.000Z'); // KST 10:00
+  context.reconcileKrxAutoTriggersUnlocked_(afterMorning);
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorning').length,0,'지난 morning trigger는 제거해야 한다');
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoClose').length,1,'미래 close trigger는 유지해야 한다');
+
+  const afterClose=new Date('2026-09-28T07:00:00.000Z'); // KST 16:00
+  context.reconcileKrxAutoTriggersUnlocked_(afterClose);
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoClose').length,0,'지난 close trigger는 제거해야 한다');
+
+  const saturday=new Date('2026-10-02T23:00:00.000Z'); // KST 10/03 08:00 토요일
+  context.reconcileKrxAutoTriggersUnlocked_(saturday);
+  assert.equal(triggers.filter(t=>/^runKrxAuto(?:Morning|Close)$/.test(t._handler)).length,0,'주말에는 phase trigger를 만들지 않아야 한다');
+
+  const unrelated=makeTrigger('someOtherProjectTrigger');
+  const installed=context.installKrxAutoScheduler();
+  assert.equal(installed.ok,true);
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoTriggers').length,1,'reconciler는 정확히 하나여야 한다');
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorning').length,1);
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoClose').length,1);
+  assert.equal(triggers.includes(unrelated),true,'다른 프로젝트 trigger는 install이 건드리면 안 된다');
+  const recurring=created.filter(t=>t._handler==='reconcileKrxAutoTriggers').at(-1);
+  assert.deepEqual(recurring._meta,{atHour:0,everyDays:1,timezone:'Asia/Seoul'});
+
+  const status=context.showKrxAutoSchedulerStatus();
+  assert.equal(status.reconcilerInstalled,true);
+  assert.equal(status.morningInstalled,true);
+  assert.equal(status.closeInstalled,true);
+  assert.equal(status.counts.reconcileKrxAutoTriggers,1);
+
+  const removed=context.removeKrxAutoScheduler();
+  assert.equal(removed.ok,true);
+  assert.equal(removed.removed,3);
+  assert.equal(triggers.length,1,'remove 후 scheduler 외 trigger만 남아야 한다');
+  assert.equal(triggers[0],unrelated);
+
+  assert.match(block,/\.timeBased\(\)\s*\.at\(targetDate\)\s*\.create\(\)/,'phase는 at(Date) one-shot trigger여야 한다');
+  assert.match(block,/\.atHour\(0\)\s*\.everyDays\(1\)\s*\.inTimezone\(KRX_AUTO_TIMEZONE\)/,'reconciler만 매일 00시대 KST 반복 trigger여야 한다');
+  assert.doesNotMatch(block,/PropertiesService|UrlFetchApp|getGithubBranchHeadSha|githubRequest|readGithubJson|dispatchKrxPriceWorkflow/,'scheduler 관리 계층이 기존 dispatch/GitHub/Properties hot path를 침범하면 안 된다');
+});
+
+test('KRX 자동 2차 install/remove/status는 scheduler 전용 trigger만 관리한다',()=>{
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('/* --- 10I. KRX Automatic Trigger Scheduler');
+  const end=gas.indexOf('/* --- 10J. KRX Automatic Bounded Retry / Recovery',start);
+  const block=gas.slice(start,end);
+  assert.match(block,/function installKrxAutoScheduler\(\)/);
+  assert.match(block,/function removeKrxAutoScheduler\(\)/);
+  assert.match(block,/function showKrxAutoSchedulerStatus\(\)/);
+  assert.match(block,/function getKrxAutoSchedulerTriggers_\(\)[^]*KRX_AUTO_SCHEDULER_HANDLERS\.indexOf/);
+  assert.match(block,/function withKrxAutoSchedulerLock_\(callback\)[^]*tryLock\(10000\)[^]*releaseLock\(\)/);
+  assert.doesNotMatch(block,/setProperty|setProperties|deleteProperty|deleteAllProperties/,'scheduler는 기존 durable Properties namespace에 상태를 저장하지 않아야 한다');
+});
+
+test('KRX 자동 3차 정상 성공 경로는 retry용 ScriptApp/Properties I/O를 전혀 실행하지 않는다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('/* --- 10J. KRX Automatic Bounded Retry / Recovery');
+  const end=gas.indexOf('/* =========================================================\n * 11. Web App Entry / Router',start);
+  assert.ok(start>=0&&end>start,'KRX 자동 retry 섹션을 찾지 못했다');
+  const block=gas.slice(start,end);
+  let propertyCalls=0,scriptCalls=0,phaseCalls=0;
+  const context=vm.createContext({
+    PropertiesService:{getScriptProperties(){propertyCalls++;throw new Error('normal path must not touch properties');}},
+    ScriptApp:{getProjectTriggers(){scriptCalls++;throw new Error('normal path must not touch triggers');}},
+    Utilities:{formatDate(){throw new Error('normal path must not format retry date');}},
+    KRX_AUTO_TIMEZONE:'Asia/Seoul',
+    KRX_AUTO_RETRY_HANDLERS:{morning:'runKrxAutoMorningRetry',close:'runKrxAutoCloseRetry'},
+    withKrxAutoSchedulerLock_:(cb)=>cb(),
+    isValidDateText:(v)=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')),
+    nowKSTText:()=>"2026-09-28T09:01:00+09:00",
+    runKrxAutoPhase_:(phase,date)=>{phaseCalls++;return {ok:true,action:'workflow_dispatched',phase,date};},
+    console,Date
+  });
+  vm.runInContext(block,context);
+  const result=context.runKrxAutoManagedPhase_('morning','2026-09-28',0);
+  assert.equal(result.action,'workflow_dispatched');
+  assert.equal(phaseCalls,1);
+  assert.equal(propertyCalls,0,'정상 성공 hot path에서 retry metadata I/O가 생기면 안 된다');
+  assert.equal(scriptCalls,0,'정상 성공 hot path에서 trigger 조회/생성이 생기면 안 된다');
+  assert.doesNotMatch(block,/UrlFetchApp|githubRequest|readGithubJson|getGithubBranchHeadSha|dispatchKrxPriceWorkflow/,'retry 외곽 계층이 GitHub/기존 dispatch를 직접 호출하면 안 된다');
+  assert.match(block,/const result = runKrxAutoPhase_\(normalizedPhase, targetDate\);/,'retry도 반드시 1차 wrapper를 통해 기존 코어로 위임해야 한다');
+  assert.equal((block.match(/PropertiesService\.getScriptProperties\(\)/g)||[]).length,1,'retry Properties 진입점은 단일 helper로 제한한다');
+});
+
+test('KRX 자동 3차는 transient만 같은 날짜로 bounded retry하고 terminal/4xx는 재시도하지 않는다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('/* --- 10J. KRX Automatic Bounded Retry / Recovery');
+  const end=gas.indexOf('/* =========================================================\n * 11. Web App Entry / Router',start);
+  const block=gas.slice(start,end);
+  let nowMs=Date.parse('2026-09-28T00:01:00.000Z'); // KST 09:01
+  let uidSeq=0;
+  const triggers=[];
+  const store={};
+  const phaseCalls=[];
+  let phaseResult={ok:true,action:'workflow_in_progress',timing:{outcome:'workflow_in_progress'}};
+  function makeTrigger(handler,meta={}){
+    const trigger={_handler:handler,_uid:'r'+(++uidSeq),_meta:meta,getHandlerFunction(){return this._handler;},getUniqueId(){return this._uid;}};
+    triggers.push(trigger);return trigger;
+  }
+  const ScriptApp={
+    getProjectTriggers(){return triggers.slice();},
+    deleteTrigger(trigger){const i=triggers.indexOf(trigger);if(i>=0)triggers.splice(i,1);},
+    newTrigger(handler){const meta={};const api={timeBased(){return api;},at(v){meta.at=v;return api;},create(){return makeTrigger(handler,{...meta});}};return api;}
+  };
+  const props={
+    getProperty(k){return Object.prototype.hasOwnProperty.call(store,k)?store[k]:null;},
+    setProperty(k,v){store[k]=String(v);return props;},
+    deleteProperty(k){delete store[k];return props;},
+    getProperties(){return {...store};}
+  };
+  const Utilities={formatDate(date,_tz,format){
+    const shifted=new Date(date.getTime()+9*60*60*1000);
+    if(format==='yyyy-MM-dd')return `${shifted.getUTCFullYear()}-${String(shifted.getUTCMonth()+1).padStart(2,'0')}-${String(shifted.getUTCDate()).padStart(2,'0')}`;
+    throw new Error('unexpected format '+format);
+  }};
+  const NativeDate=Date;
+  class FixedDate extends NativeDate{constructor(...args){super(...(args.length?args:[nowMs]));}static UTC(...args){return NativeDate.UTC(...args);}}
+  const context=vm.createContext({
+    PropertiesService:{getScriptProperties:()=>props},ScriptApp,Utilities,
+    KRX_AUTO_TIMEZONE:'Asia/Seoul',KRX_AUTO_RETRY_HANDLERS:{morning:'runKrxAutoMorningRetry',close:'runKrxAutoCloseRetry'},
+    withKrxAutoSchedulerLock_:(cb)=>cb(),Date:FixedDate,console,
+    isValidDateText:(value)=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||''));if(!m)return false;const d=new NativeDate(NativeDate.UTC(+m[1],+m[2]-1,+m[3]));return d.getUTCFullYear()===+m[1]&&d.getUTCMonth()===+m[2]-1&&d.getUTCDate()===+m[3];},
+    nowKSTText:()=>"2026-09-28T09:01:00+09:00",
+    runKrxAutoPhase_:(phase,date)=>{phaseCalls.push({phase,date});if(phaseResult instanceof Error)throw phaseResult;return {...phaseResult};}
+  });
+  vm.runInContext(block,context);
+
+  const first=context.runKrxAutoManagedPhase_('morning','2026-09-28',0);
+  assert.equal(first.autoRetry.scheduled,true);
+  assert.equal(first.autoRetry.attempt,1);
+  assert.equal(first.autoRetry.targetAt,'2026-09-28T00:02:00.000Z');
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorningRetry').length,1);
+  const retryTrigger=triggers.find(t=>t._handler==='runKrxAutoMorningRetry');
+  const metadata=JSON.parse(store['KRX_AUTO_RETRY_'+retryTrigger._uid]);
+  assert.deepEqual({phase:metadata.phase,date:metadata.date,attempt:metadata.attempt},{phase:'morning',date:'2026-09-28',attempt:1});
+
+  nowMs=Date.parse('2026-09-28T00:02:00.000Z');
+  phaseResult={ok:true,action:'workflow_dispatched',timing:{outcome:'workflow_dispatched'}};
+  const retried=context.runKrxAutoMorningRetry({triggerUid:retryTrigger._uid});
+  assert.equal(retried.action,'workflow_dispatched');
+  assert.equal(phaseCalls.at(-1).date,'2026-09-28','retry가 현재시각으로 request date를 다시 만들면 안 된다');
+  assert.equal(store['KRX_AUTO_RETRY_'+retryTrigger._uid],undefined,'실행한 retry metadata는 정리되어야 한다');
+
+  assert.equal(context.classifyKrxAutoRetryError_({githubHttpStatus:500,message:'x'}),'github_http_500');
+  assert.equal(context.classifyKrxAutoRetryError_({githubHttpStatus:409,message:'x'}),'github_http_409');
+  assert.equal(context.classifyKrxAutoRetryError_({githubHttpStatus:429,message:'x'}),'github_http_429');
+  assert.equal(context.classifyKrxAutoRetryError_({githubHttpStatus:401,message:'x'}),'','401 인증 실패는 자동 retry하면 안 된다');
+  assert.equal(context.classifyKrxAutoRetryError_({githubHttpStatus:403,message:'x'}),'','403 설정/권한 실패는 자동 retry하면 안 된다');
+  assert.equal(context.classifyKrxAutoRetryError_({githubHttpStatus:422,message:'x'}),'','422 입력 실패는 자동 retry하면 안 된다');
+  assert.equal(context.classifyKrxAutoRetryError_(new Error('socket connection reset')),'network_transient');
+
+  const beforeCount=triggers.length;
+  assert.equal(context.scheduleKrxAutoRetry_('morning','2026-09-28',4,'x',new NativeDate('2026-09-28T00:02:00Z')).reason,'attempt_limit');
+  assert.equal(triggers.length,beforeCount,'최대 시도 횟수를 넘으면 trigger를 만들면 안 된다');
+  assert.equal(context.scheduleKrxAutoRetry_('morning','2026-09-28',1,'x',new NativeDate('2026-09-28T00:10:00Z')).reason,'retry_window_closed');
+});
+
+test('KRX 자동 3차 stale retry는 다음날 request로 변질되지 않고 metadata 부재/손상도 fail-closed 한다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('/* --- 10J. KRX Automatic Bounded Retry / Recovery');
+  const end=gas.indexOf('/* =========================================================\n * 11. Web App Entry / Router',start);
+  const block=gas.slice(start,end);
+  const store={};
+  let phaseCalls=0;
+  const props={getProperty:k=>store[k]??null,setProperty(k,v){store[k]=String(v);return props;},deleteProperty(k){delete store[k];return props;},getProperties(){return {...store};}};
+  const NativeDate=Date;
+  class FixedDate extends NativeDate{constructor(...args){super(...(args.length?args:['2026-09-29T00:02:00.000Z']));}static UTC(...args){return NativeDate.UTC(...args);}}
+  const context=vm.createContext({
+    PropertiesService:{getScriptProperties:()=>props},
+    ScriptApp:{getProjectTriggers:()=>[],deleteTrigger(){},newTrigger(){throw new Error('stale path must not create trigger');}},
+    Utilities:{formatDate(){return '2026-09-29';}},
+    KRX_AUTO_TIMEZONE:'Asia/Seoul',KRX_AUTO_RETRY_HANDLERS:{morning:'runKrxAutoMorningRetry',close:'runKrxAutoCloseRetry'},
+    withKrxAutoSchedulerLock_:(cb)=>cb(),Date:FixedDate,console,
+    isValidDateText:(v)=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')),nowKSTText:()=>"2026-09-29T09:02:00+09:00",
+    runKrxAutoPhase_:()=>{phaseCalls++;return {ok:true,action:'workflow_dispatched'};}
+  });
+  vm.runInContext(block,context);
+  store.KRX_AUTO_RETRY_old=JSON.stringify({version:1,phase:'morning',date:'2026-09-28',attempt:1,scheduledAtMs:Date.parse('2026-09-28T00:02:00Z'),reason:'lock_busy'});
+  const stale=context.runKrxAutoMorningRetry({triggerUid:'old'});
+  assert.equal(stale.action,'auto_retry_stale_ignored');
+  assert.equal(stale.reason,'stale_date');
+  assert.equal(phaseCalls,0,'전날 retry가 오늘 requestId로 바뀌어 dispatch되면 안 된다');
+  assert.equal(store.KRX_AUTO_RETRY_old,undefined);
+  const missing=context.runKrxAutoMorningRetry({triggerUid:'missing'});
+  assert.equal(missing.action,'auto_retry_ignored');
+  assert.equal(missing.reason,'missing_retry_metadata');
+  store.KRX_AUTO_RETRY_bad=JSON.stringify({version:1,phase:'morning',date:'2026-09-29',attempt:99,scheduledAtMs:1});
+  const bad=context.runKrxAutoMorningRetry({triggerUid:'bad'});
+  assert.equal(bad.action,'auto_retry_ignored');
+  assert.equal(bad.reason,'invalid_retry_metadata');
+  assert.equal(phaseCalls,0);
+});
+
+test('KRX 자동 3차 retry chain은 1→2→3분 지연 후 종료하고 phase당 pending trigger를 하나만 유지한다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('/* --- 10J. KRX Automatic Bounded Retry / Recovery');
+  const end=gas.indexOf('/* =========================================================\n * 11. Web App Entry / Router',start);
+  const block=gas.slice(start,end);
+  let nowMs=Date.parse('2026-09-28T00:01:00.000Z');
+  let uidSeq=0;
+  const triggers=[];
+  const store={};
+  function makeTrigger(handler,meta={}){const t={_handler:handler,_uid:'chain'+(++uidSeq),_meta:meta,getHandlerFunction(){return this._handler;},getUniqueId(){return this._uid;}};triggers.push(t);return t;}
+  const ScriptApp={getProjectTriggers(){return triggers.slice();},deleteTrigger(t){const i=triggers.indexOf(t);if(i>=0)triggers.splice(i,1);},newTrigger(handler){const meta={};const api={timeBased(){return api;},at(v){meta.at=v;return api;},create(){return makeTrigger(handler,{...meta});}};return api;}};
+  const props={getProperty:k=>store[k]??null,setProperty(k,v){store[k]=String(v);return props;},deleteProperty(k){delete store[k];return props;},getProperties(){return {...store};}};
+  const Utilities={formatDate(date){const d=new Date(date.getTime()+9*60*60*1000);return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;}};
+  const NativeDate=Date;
+  class FixedDate extends NativeDate{constructor(...args){super(...(args.length?args:[nowMs]));}static UTC(...args){return NativeDate.UTC(...args);}}
+  const context=vm.createContext({PropertiesService:{getScriptProperties:()=>props},ScriptApp,Utilities,KRX_AUTO_TIMEZONE:'Asia/Seoul',KRX_AUTO_RETRY_HANDLERS:{morning:'runKrxAutoMorningRetry',close:'runKrxAutoCloseRetry'},withKrxAutoSchedulerLock_:(cb)=>cb(),Date:FixedDate,console,isValidDateText:v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')),nowKSTText:()=>"2026-09-28T09:01:00+09:00",runKrxAutoPhase_:()=>({ok:true,action:'workflow_in_progress',timing:{outcome:'workflow_in_progress'}})});
+  vm.runInContext(block,context);
+
+  let result=context.runKrxAutoManagedPhase_('morning','2026-09-28',0);
+  assert.equal(result.autoRetry.attempt,1);
+  assert.equal(result.autoRetry.targetAt,'2026-09-28T00:02:00.000Z');
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorningRetry').length,1);
+
+  let trigger=triggers.find(t=>t._handler==='runKrxAutoMorningRetry');
+  nowMs=Date.parse('2026-09-28T00:02:00.000Z');
+  result=context.runKrxAutoMorningRetry({triggerUid:trigger._uid});
+  assert.equal(result.autoRetry.attempt,2);
+  assert.equal(result.autoRetry.targetAt,'2026-09-28T00:04:00.000Z');
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorningRetry').length,1,'retry2 예약 시 이전 retry trigger는 무효화되어야 한다');
+
+  trigger=triggers.find(t=>t._handler==='runKrxAutoMorningRetry');
+  nowMs=Date.parse('2026-09-28T00:04:00.000Z');
+  result=context.runKrxAutoMorningRetry({triggerUid:trigger._uid});
+  assert.equal(result.autoRetry.attempt,3);
+  assert.equal(result.autoRetry.targetAt,'2026-09-28T00:07:00.000Z');
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorningRetry').length,1);
+
+  trigger=triggers.find(t=>t._handler==='runKrxAutoMorningRetry');
+  nowMs=Date.parse('2026-09-28T00:07:00.000Z');
+  result=context.runKrxAutoMorningRetry({triggerUid:trigger._uid});
+  assert.equal(result.autoRetry.scheduled,false);
+  assert.equal(result.autoRetry.reason,'attempt_limit');
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorningRetry').length,0,'최종 retry 실행 후 trigger까지 정리되어야 한다');
+  assert.equal(Object.keys(store).filter(k=>k.startsWith('KRX_AUTO_RETRY_')).length,0,'최종 retry metadata는 남기면 안 된다');
+});
+
+test('KRX 자동 3차 reconciler cleanup은 현재 날짜의 유효 retry는 보존하고 전날/orphan retry만 제거한다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('/* --- 10J. KRX Automatic Bounded Retry / Recovery');
+  const end=gas.indexOf('/* =========================================================\n * 11. Web App Entry / Router',start);
+  const block=gas.slice(start,end);
+  const triggers=[];const store={};
+  function makeTrigger(handler,uid){const t={_handler:handler,_uid:uid,getHandlerFunction(){return this._handler;},getUniqueId(){return this._uid;}};triggers.push(t);return t;}
+  const today=makeTrigger('runKrxAutoMorningRetry','today');
+  const old=makeTrigger('runKrxAutoMorningRetry','old');
+  store.KRX_AUTO_RETRY_today=JSON.stringify({version:1,phase:'morning',date:'2026-09-28',attempt:1,scheduledAtMs:Date.parse('2026-09-28T00:03:00Z'),reason:'lock_busy'});
+  store.KRX_AUTO_RETRY_old=JSON.stringify({version:1,phase:'morning',date:'2026-09-27',attempt:1,scheduledAtMs:Date.parse('2026-09-27T00:03:00Z'),reason:'lock_busy'});
+  store.KRX_AUTO_RETRY_orphan=JSON.stringify({version:1,phase:'close',date:'2026-09-27',attempt:1,scheduledAtMs:Date.parse('2026-09-27T06:32:00Z'),reason:'x'});
+  const props={getProperty:k=>store[k]??null,setProperty(k,v){store[k]=String(v);return props;},deleteProperty(k){delete store[k];return props;},getProperties(){return {...store};}};
+  const context=vm.createContext({PropertiesService:{getScriptProperties:()=>props},ScriptApp:{getProjectTriggers:()=>triggers.slice(),deleteTrigger(t){const i=triggers.indexOf(t);if(i>=0)triggers.splice(i,1);}},KRX_AUTO_RETRY_HANDLERS:{morning:'runKrxAutoMorningRetry',close:'runKrxAutoCloseRetry'},Date,console,isValidDateText:v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')),KRX_AUTO_TIMEZONE:'Asia/Seoul',Utilities:{formatDate(){return '2026-09-28';}},withKrxAutoSchedulerLock_:(cb)=>cb(),nowKSTText:()=>"2026-09-28T09:03:00+09:00",runKrxAutoPhase_:()=>({ok:true})});
+  vm.runInContext(block,context);
+  context.clearStaleKrxAutoRetryStateUnlocked_('2026-09-28',new Date('2026-09-28T00:03:00Z'));
+  assert.equal(triggers.includes(today),true,'현재 날짜 retry를 reconciler가 지우면 안 된다');
+  assert.equal(triggers.includes(old),false,'전날 retry trigger는 제거해야 한다');
+  assert.ok(store.KRX_AUTO_RETRY_today,'현재 날짜 retry metadata는 보존해야 한다');
+  assert.equal(store.KRX_AUTO_RETRY_old,undefined);
+  assert.equal(store.KRX_AUTO_RETRY_orphan,undefined,'trigger 없는 orphan metadata는 정리해야 한다');
+});
+
 test('KRX 성공 후 Pages는 저장 전 run SHA가 아닌 main의 최신 데이터를 배포한다',()=>{
   const pages=read('.github/workflows/pages.yml');
   assert.match(updatePricesWorkflow,/KRX_ID: \$\{\{ secrets\.KRX_ID \}\}/);

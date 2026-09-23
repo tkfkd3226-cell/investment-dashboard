@@ -7965,6 +7965,504 @@ function dispatchKrxPriceWorkflow(body) {
   }
 }
 
+/* --- 10H. KRX Automatic Invocation Wrapper ------------------------------ */
+
+// 자동 실행은 기존 KRX dispatch 코어의 바깥에서 requestId만 안정적으로 만든 뒤 그대로 위임한다.
+// GitHub/Properties 상태를 여기서 선조회하지 않아 수동 KRX hot path의 I/O·반례 방어 계약을 재사용한다.
+function buildKrxAutoRequestId_(phase, dateText) {
+  const normalizedPhase = String(phase || "").trim().toLowerCase();
+  if (normalizedPhase !== "morning" && normalizedPhase !== "close") {
+    throw new Error("지원하지 않는 KRX 자동 실행 phase입니다: " + (normalizedPhase || "(empty)"));
+  }
+
+  const targetDate = String(dateText || nowKSTText().slice(0, 10)).trim();
+  if (!isValidDateText(targetDate)) {
+    throw new Error("KRX 자동 실행 기준일은 YYYY-MM-DD 형식이어야 합니다.");
+  }
+
+  return "krx-auto:" + targetDate + ":" + normalizedPhase;
+}
+
+function runKrxAutoPhase_(phase, dateText) {
+  const requestId = buildKrxAutoRequestId_(phase, dateText);
+  return dispatchKrxPriceWorkflow({ requestId: requestId });
+}
+
+// Apps Script 편집기/향후 installable trigger에서 직접 호출할 공개 handler.
+function runKrxAutoMorning() {
+  return runKrxAutoManagedPhase_("morning");
+}
+
+function runKrxAutoClose() {
+  return runKrxAutoManagedPhase_("close");
+}
+
+/* --- 10I. KRX Automatic Trigger Scheduler ------------------------------ */
+
+const KRX_AUTO_TIMEZONE = "Asia/Seoul";
+const KRX_AUTO_RECONCILER_HANDLER = "reconcileKrxAutoTriggers";
+const KRX_AUTO_PHASE_HANDLERS = Object.freeze({
+  morning: "runKrxAutoMorning",
+  close: "runKrxAutoClose"
+});
+const KRX_AUTO_RETRY_HANDLERS = Object.freeze({
+  morning: "runKrxAutoMorningRetry",
+  close: "runKrxAutoCloseRetry"
+});
+const KRX_AUTO_PHASE_TIMES = Object.freeze({
+  morning: Object.freeze({ hour: 9, minute: 1 }),
+  close: Object.freeze({ hour: 15, minute: 31 })
+});
+const KRX_AUTO_SCHEDULER_HANDLERS = Object.freeze([
+  KRX_AUTO_RECONCILER_HANDLER,
+  KRX_AUTO_PHASE_HANDLERS.morning,
+  KRX_AUTO_PHASE_HANDLERS.close,
+  KRX_AUTO_RETRY_HANDLERS.morning,
+  KRX_AUTO_RETRY_HANDLERS.close
+]);
+
+// KST 날짜/phase를 절대시각 Date로 변환한다. Apps Script 프로젝트 timezone 설정과 무관하게 동작한다.
+function buildKrxAutoTargetDate_(dateText, phase) {
+  const normalizedDate = String(dateText || "").trim();
+  if (!isValidDateText(normalizedDate)) {
+    throw new Error("KRX 자동 Trigger 기준일은 YYYY-MM-DD 형식이어야 합니다.");
+  }
+  const normalizedPhase = String(phase || "").trim().toLowerCase();
+  const time = KRX_AUTO_PHASE_TIMES[normalizedPhase];
+  if (!time) {
+    throw new Error("지원하지 않는 KRX 자동 Trigger phase입니다: " + (normalizedPhase || "(empty)"));
+  }
+
+  const parts = normalizedDate.split("-").map(Number);
+  return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], time.hour - 9, time.minute, 0, 0));
+}
+
+function getKrxAutoSchedulerTriggers_() {
+  return ScriptApp.getProjectTriggers().filter(function(trigger) {
+    return KRX_AUTO_SCHEDULER_HANDLERS.indexOf(String(trigger.getHandlerFunction() || "")) >= 0;
+  });
+}
+
+function deleteKrxAutoTriggers_(triggers) {
+  (triggers || []).forEach(function(trigger) {
+    ScriptApp.deleteTrigger(trigger);
+  });
+}
+
+function isKrxAutoWeekday_(date) {
+  const day = Number(Utilities.formatDate(date, KRX_AUTO_TIMEZONE, "u"));
+  return day >= 1 && day <= 5;
+}
+
+function createKrxAutoPhaseTrigger_(phase, targetDate) {
+  const handler = KRX_AUTO_PHASE_HANDLERS[phase];
+  if (!handler) throw new Error("지원하지 않는 KRX 자동 Trigger phase입니다: " + phase);
+  return ScriptApp.newTrigger(handler).timeBased().at(targetDate).create();
+}
+
+// 동일 phase trigger가 0개면 만들고, 1개면 유지하며, 중복이면 모두 지운 뒤 하나만 재생성한다.
+// target 시각이 이미 지났거나 주말이면 해당 phase trigger는 제거한다.
+function reconcileKrxAutoPhaseTrigger_(phase, dateText, nowDate, schedulerTriggers) {
+  const handler = KRX_AUTO_PHASE_HANDLERS[phase];
+  const matching = (schedulerTriggers || []).filter(function(trigger) {
+    return String(trigger.getHandlerFunction() || "") === handler;
+  });
+  const targetDate = buildKrxAutoTargetDate_(dateText, phase);
+  const shouldExist = isKrxAutoWeekday_(targetDate) && targetDate.getTime() > nowDate.getTime();
+
+  if (!shouldExist) {
+    deleteKrxAutoTriggers_(matching);
+    return { phase: phase, targetAt: targetDate.toISOString(), installed: false, deleted: matching.length };
+  }
+
+  if (matching.length === 1) {
+    return { phase: phase, targetAt: targetDate.toISOString(), installed: true, created: false, duplicateCount: 0 };
+  }
+
+  deleteKrxAutoTriggers_(matching);
+  const created = createKrxAutoPhaseTrigger_(phase, targetDate);
+  return {
+    phase: phase,
+    targetAt: targetDate.toISOString(),
+    installed: true,
+    created: true,
+    duplicateCount: Math.max(0, matching.length - 1),
+    triggerUid: typeof created.getUniqueId === "function" ? String(created.getUniqueId() || "") : ""
+  };
+}
+
+function reconcileKrxAutoTriggersUnlocked_(nowDate) {
+  const now = nowDate && typeof nowDate.getTime === "function" ? new Date(nowDate.getTime()) : new Date();
+  const dateText = Utilities.formatDate(now, KRX_AUTO_TIMEZONE, "yyyy-MM-dd");
+  if (typeof clearStaleKrxAutoRetryStateUnlocked_ === "function") clearStaleKrxAutoRetryStateUnlocked_(dateText, now);
+  const triggers = getKrxAutoSchedulerTriggers_();
+  const result = {
+    ok: true,
+    date: dateText,
+    morning: reconcileKrxAutoPhaseTrigger_("morning", dateText, now, triggers),
+    close: null
+  };
+  // morning reconcile에서 trigger 목록이 바뀔 수 있으므로 close는 최신 목록을 다시 읽는다.
+  result.close = reconcileKrxAutoPhaseTrigger_("close", dateText, now, getKrxAutoSchedulerTriggers_());
+  return result;
+}
+
+function withKrxAutoSchedulerLock_(callback) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return { ok: false, busy: true, error: "KRX 자동 Scheduler가 이미 작업 중입니다." };
+  }
+  try {
+    return callback();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// 매일 자정대 reconciler가 그날의 09:01/15:31 one-shot trigger를 준비한다.
+// recurring trigger 자체는 정확한 시각이 필요하지 않아 00시대의 randomized minute를 허용한다.
+function reconcileKrxAutoTriggers() {
+  return withKrxAutoSchedulerLock_(function() {
+    return reconcileKrxAutoTriggersUnlocked_(new Date());
+  });
+}
+
+function installKrxAutoScheduler() {
+  return withKrxAutoSchedulerLock_(function() {
+    if (typeof clearAllKrxAutoRetryStateUnlocked_ === "function") clearAllKrxAutoRetryStateUnlocked_();
+    deleteKrxAutoTriggers_(getKrxAutoSchedulerTriggers_());
+    const recurring = ScriptApp.newTrigger(KRX_AUTO_RECONCILER_HANDLER)
+      .timeBased()
+      .atHour(0)
+      .everyDays(1)
+      .inTimezone(KRX_AUTO_TIMEZONE)
+      .create();
+    const reconciled = reconcileKrxAutoTriggersUnlocked_(new Date());
+    reconciled.schedulerInstalled = true;
+    reconciled.reconcilerTriggerUid = typeof recurring.getUniqueId === "function" ? String(recurring.getUniqueId() || "") : "";
+    return reconciled;
+  });
+}
+
+function removeKrxAutoScheduler() {
+  return withKrxAutoSchedulerLock_(function() {
+    if (typeof clearAllKrxAutoRetryStateUnlocked_ === "function") clearAllKrxAutoRetryStateUnlocked_();
+    const triggers = getKrxAutoSchedulerTriggers_();
+    deleteKrxAutoTriggers_(triggers);
+    return { ok: true, removed: triggers.length };
+  });
+}
+
+function showKrxAutoSchedulerStatus() {
+  const now = new Date();
+  const dateText = Utilities.formatDate(now, KRX_AUTO_TIMEZONE, "yyyy-MM-dd");
+  const triggers = getKrxAutoSchedulerTriggers_();
+  const counts = {};
+  KRX_AUTO_SCHEDULER_HANDLERS.forEach(function(handler) { counts[handler] = 0; });
+  const triggerUids = [];
+  triggers.forEach(function(trigger) {
+    const handler = String(trigger.getHandlerFunction() || "");
+    if (Object.prototype.hasOwnProperty.call(counts, handler)) counts[handler] += 1;
+    triggerUids.push({
+      handler: handler,
+      uid: typeof trigger.getUniqueId === "function" ? String(trigger.getUniqueId() || "") : ""
+    });
+  });
+  const status = {
+    ok: true,
+    date: dateText,
+    timezone: KRX_AUTO_TIMEZONE,
+    reconcilerInstalled: counts[KRX_AUTO_RECONCILER_HANDLER] === 1,
+    morningInstalled: counts[KRX_AUTO_PHASE_HANDLERS.morning] === 1,
+    closeInstalled: counts[KRX_AUTO_PHASE_HANDLERS.close] === 1,
+    morningRetryPending: counts[KRX_AUTO_RETRY_HANDLERS.morning] > 0,
+    closeRetryPending: counts[KRX_AUTO_RETRY_HANDLERS.close] > 0,
+    counts: counts,
+    triggerUids: triggerUids,
+    desiredMorningAt: buildKrxAutoTargetDate_(dateText, "morning").toISOString(),
+    desiredCloseAt: buildKrxAutoTargetDate_(dateText, "close").toISOString()
+  };
+  console.log(JSON.stringify(status));
+  return status;
+}
+
+/* --- 10J. KRX Automatic Bounded Retry / Recovery ------------------------ */
+
+// 자동 재시도는 기존 dispatch 코어를 수정하거나 GitHub를 직접 재호출하지 않는다.
+// 일시 상태에서만 같은 날짜/phase requestId로 runKrxAutoPhase_를 다시 호출한다.
+const KRX_AUTO_RETRY_PROPERTY_PREFIX = "KRX_AUTO_RETRY_";
+const KRX_AUTO_RETRY_DELAYS_MINUTES = Object.freeze([1, 2, 3]);
+const KRX_AUTO_RETRY_DEADLINES = Object.freeze({
+  morning: Object.freeze({ hour: 9, minute: 10 }),
+  close: Object.freeze({ hour: 15, minute: 45 })
+});
+const KRX_AUTO_RETRYABLE_ACTIONS = Object.freeze([
+  "workflow_in_progress",
+  "workflow_status_uncertain",
+  "workflow_dispatch_uncertain"
+]);
+
+function getKrxAutoRetryProperties_() {
+  return PropertiesService.getScriptProperties();
+}
+
+function krxAutoRetryPropertyKey_(triggerUid) {
+  const uid = String(triggerUid || "").trim();
+  if (!uid) throw new Error("KRX 자동 retry triggerUid가 없습니다.");
+  return KRX_AUTO_RETRY_PROPERTY_PREFIX + uid;
+}
+
+function buildKrxAutoRetryDeadline_(dateText, phase) {
+  const normalizedDate = String(dateText || "").trim();
+  if (!isValidDateText(normalizedDate)) throw new Error("KRX 자동 retry 기준일은 YYYY-MM-DD 형식이어야 합니다.");
+  const normalizedPhase = String(phase || "").trim().toLowerCase();
+  const deadline = KRX_AUTO_RETRY_DEADLINES[normalizedPhase];
+  if (!deadline) throw new Error("지원하지 않는 KRX 자동 retry phase입니다: " + (normalizedPhase || "(empty)"));
+  const parts = normalizedDate.split("-").map(Number);
+  return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], deadline.hour - 9, deadline.minute, 0, 0));
+}
+
+function getKrxAutoRetryTriggersForPhase_(phase) {
+  const handler = KRX_AUTO_RETRY_HANDLERS[String(phase || "").trim().toLowerCase()];
+  if (!handler) return [];
+  return ScriptApp.getProjectTriggers().filter(function(trigger) {
+    return String(trigger.getHandlerFunction() || "") === handler;
+  });
+}
+
+// metadata를 먼저 지운 뒤 trigger를 삭제한다. trigger 삭제가 실패해도 stale handler는 metadata 부재로 no-op 된다.
+function deleteKrxAutoRetryTriggerUnlocked_(trigger, properties) {
+  const props = properties || getKrxAutoRetryProperties_();
+  const uid = trigger && typeof trigger.getUniqueId === "function" ? String(trigger.getUniqueId() || "") : "";
+  if (uid) {
+    try { props.deleteProperty(krxAutoRetryPropertyKey_(uid)); } catch (_) {}
+  }
+  try { ScriptApp.deleteTrigger(trigger); } catch (_) {}
+}
+
+function clearKrxAutoRetryPhaseStateUnlocked_(phase) {
+  const props = getKrxAutoRetryProperties_();
+  getKrxAutoRetryTriggersForPhase_(phase).forEach(function(trigger) {
+    deleteKrxAutoRetryTriggerUnlocked_(trigger, props);
+  });
+}
+
+function clearAllKrxAutoRetryStateUnlocked_() {
+  const props = getKrxAutoRetryProperties_();
+  const retryHandlers = [KRX_AUTO_RETRY_HANDLERS.morning, KRX_AUTO_RETRY_HANDLERS.close];
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if (retryHandlers.indexOf(String(trigger.getHandlerFunction() || "")) >= 0) {
+      deleteKrxAutoRetryTriggerUnlocked_(trigger, props);
+    }
+  });
+  // 수동 trigger 삭제 등으로 orphan metadata가 남아도 다음 reconciler/install에서 정리한다.
+  const all = props.getProperties();
+  Object.keys(all || {}).forEach(function(key) {
+    if (String(key).indexOf(KRX_AUTO_RETRY_PROPERTY_PREFIX) === 0) {
+      try { props.deleteProperty(key); } catch (_) {}
+    }
+  });
+}
+
+// 일일 reconciler는 현재 날짜의 유효 retry를 지우지 않는다. 전날/손상/orphan retry만 정리한다.
+function clearStaleKrxAutoRetryStateUnlocked_(dateText, nowDate) {
+  const currentDate = String(dateText || "").trim();
+  const now = nowDate && typeof nowDate.getTime === "function" ? new Date(nowDate.getTime()) : new Date();
+  const props = getKrxAutoRetryProperties_();
+  const liveKeys = {};
+  const retryHandlers = [KRX_AUTO_RETRY_HANDLERS.morning, KRX_AUTO_RETRY_HANDLERS.close];
+
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    const handler = String(trigger.getHandlerFunction() || "");
+    if (retryHandlers.indexOf(handler) < 0) return;
+    const uid = typeof trigger.getUniqueId === "function" ? String(trigger.getUniqueId() || "") : "";
+    if (!uid) {
+      try { ScriptApp.deleteTrigger(trigger); } catch (_) {}
+      return;
+    }
+    const key = krxAutoRetryPropertyKey_(uid);
+    liveKeys[key] = true;
+    const raw = props.getProperty(key);
+    let meta = null;
+    try { meta = raw ? JSON.parse(raw) : null; } catch (_) { meta = null; }
+    const phase = handler === KRX_AUTO_RETRY_HANDLERS.morning ? "morning" : "close";
+    let stale = !meta || Number(meta.version) !== 1 || String(meta.phase || "") !== phase || String(meta.date || "") !== currentDate;
+    if (!stale) {
+      try { stale = now.getTime() > buildKrxAutoRetryDeadline_(currentDate, phase).getTime(); } catch (_) { stale = true; }
+    }
+    if (stale) deleteKrxAutoRetryTriggerUnlocked_(trigger, props);
+  });
+
+  const all = props.getProperties();
+  Object.keys(all || {}).forEach(function(key) {
+    if (String(key).indexOf(KRX_AUTO_RETRY_PROPERTY_PREFIX) === 0 && !liveKeys[key]) {
+      try { props.deleteProperty(key); } catch (_) {}
+    }
+  });
+}
+
+function classifyKrxAutoRetryResult_(result) {
+  if (!result || typeof result !== "object") return "";
+  const action = String(result.action || "");
+  const outcome = String(result.timing && result.timing.outcome || "");
+  if (outcome === "lock_busy") return "lock_busy";
+  if (KRX_AUTO_RETRYABLE_ACTIONS.indexOf(action) >= 0) return action;
+  return "";
+}
+
+function classifyKrxAutoRetryError_(err) {
+  const status = Number(err && err.githubHttpStatus || 0);
+  if (status === 408 || status === 409 || status === 429 || status >= 500) return "github_http_" + status;
+  if (status > 0) return "";
+  const message = String(err && err.message || err || "");
+  if (/(?:time(?:d)?\s*out|timeout|socket|connection\s+(?:reset|closed|timed\s*out)|network\s+error|dns\s+error|address\s+unavailable|temporar(?:y|ily)\s+unavailable|service\s+unavailable)/i.test(message)) {
+    return "network_transient";
+  }
+  return "";
+}
+
+function scheduleKrxAutoRetry_(phase, dateText, nextAttempt, reason, nowDate) {
+  const normalizedPhase = String(phase || "").trim().toLowerCase();
+  const normalizedDate = String(dateText || "").trim();
+  const attempt = Number(nextAttempt || 0);
+  const handler = KRX_AUTO_RETRY_HANDLERS[normalizedPhase];
+  if (!handler || !isValidDateText(normalizedDate)) return { scheduled: false, reason: "invalid_retry_identity" };
+  if (!Number.isInteger(attempt) || attempt < 1 || attempt > KRX_AUTO_RETRY_DELAYS_MINUTES.length) {
+    return { scheduled: false, reason: "attempt_limit" };
+  }
+
+  const now = nowDate && typeof nowDate.getTime === "function" ? new Date(nowDate.getTime()) : new Date();
+  const todayKst = Utilities.formatDate(now, KRX_AUTO_TIMEZONE, "yyyy-MM-dd");
+  if (todayKst !== normalizedDate) return { scheduled: false, reason: "stale_date" };
+
+  const target = new Date(now.getTime() + KRX_AUTO_RETRY_DELAYS_MINUTES[attempt - 1] * 60 * 1000);
+  const deadline = buildKrxAutoRetryDeadline_(normalizedDate, normalizedPhase);
+  if (target.getTime() > deadline.getTime()) return { scheduled: false, reason: "retry_window_closed" };
+
+  const scheduled = withKrxAutoSchedulerLock_(function() {
+    clearKrxAutoRetryPhaseStateUnlocked_(normalizedPhase);
+    const trigger = ScriptApp.newTrigger(handler).timeBased().at(target).create();
+    const uid = trigger && typeof trigger.getUniqueId === "function" ? String(trigger.getUniqueId() || "") : "";
+    if (!uid) {
+      try { ScriptApp.deleteTrigger(trigger); } catch (_) {}
+      return { scheduled: false, reason: "missing_trigger_uid" };
+    }
+
+    const metadata = {
+      version: 1,
+      phase: normalizedPhase,
+      date: normalizedDate,
+      attempt: attempt,
+      scheduledAtMs: target.getTime(),
+      reason: String(reason || "transient")
+    };
+    const props = getKrxAutoRetryProperties_();
+    try {
+      props.setProperty(krxAutoRetryPropertyKey_(uid), JSON.stringify(metadata));
+    } catch (err) {
+      try { ScriptApp.deleteTrigger(trigger); } catch (_) {}
+      throw err;
+    }
+    return {
+      scheduled: true,
+      phase: normalizedPhase,
+      date: normalizedDate,
+      attempt: attempt,
+      triggerUid: uid,
+      targetAt: target.toISOString(),
+      reason: metadata.reason
+    };
+  });
+  if (scheduled && scheduled.ok === false && scheduled.busy === true) {
+    return { scheduled: false, reason: "scheduler_busy" };
+  }
+  return scheduled;
+}
+
+function attachKrxAutoRetryInfo_(result, retryInfo) {
+  if (result && typeof result === "object") result.autoRetry = retryInfo;
+  return result;
+}
+
+function runKrxAutoManagedPhase_(phase, dateText, attempt) {
+  const normalizedPhase = String(phase || "").trim().toLowerCase();
+  const targetDate = String(dateText || nowKSTText().slice(0, 10)).trim();
+  const currentAttempt = Number(attempt || 0);
+  try {
+    const result = runKrxAutoPhase_(normalizedPhase, targetDate);
+    const retryReason = classifyKrxAutoRetryResult_(result);
+    if (!retryReason) return result;
+    let retryInfo = null;
+    try {
+      retryInfo = scheduleKrxAutoRetry_(normalizedPhase, targetDate, currentAttempt + 1, retryReason, new Date());
+    } catch (scheduleErr) {
+      retryInfo = { scheduled: false, reason: "retry_schedule_failed", error: String(scheduleErr && scheduleErr.message || scheduleErr || "") };
+    }
+    return attachKrxAutoRetryInfo_(result, retryInfo);
+  } catch (err) {
+    const retryReason = classifyKrxAutoRetryError_(err);
+    if (retryReason) {
+      try {
+        err.krxAutoRetry = scheduleKrxAutoRetry_(normalizedPhase, targetDate, currentAttempt + 1, retryReason, new Date());
+      } catch (scheduleErr) {
+        err.krxAutoRetry = { scheduled: false, reason: "retry_schedule_failed", error: String(scheduleErr && scheduleErr.message || scheduleErr || "") };
+      }
+    }
+    throw err;
+  }
+}
+
+function readKrxAutoRetryMetadata_(phase, event) {
+  const uid = String(event && event.triggerUid || "").trim();
+  if (!uid) return { ok: false, reason: "missing_trigger_uid" };
+  const props = getKrxAutoRetryProperties_();
+  const key = krxAutoRetryPropertyKey_(uid);
+  const raw = props.getProperty(key);
+  if (!raw) return { ok: false, reason: "missing_retry_metadata", triggerUid: uid };
+  let value = null;
+  try { value = JSON.parse(raw); } catch (_) { value = null; }
+  const normalizedPhase = String(phase || "").trim().toLowerCase();
+  const attempt = Number(value && value.attempt);
+  const scheduledAtMs = Number(value && value.scheduledAtMs);
+  if (!value || Number(value.version) !== 1 || String(value.phase || "") !== normalizedPhase || !isValidDateText(String(value.date || "")) ||
+      !Number.isInteger(attempt) || attempt < 1 || attempt > KRX_AUTO_RETRY_DELAYS_MINUTES.length || !Number.isFinite(scheduledAtMs) || scheduledAtMs <= 0) {
+    try { props.deleteProperty(key); } catch (_) {}
+    return { ok: false, reason: "invalid_retry_metadata", triggerUid: uid };
+  }
+  return { ok: true, triggerUid: uid, key: key, properties: props, metadata: value };
+}
+
+function runKrxAutoRetryHandler_(phase, event) {
+  const state = readKrxAutoRetryMetadata_(phase, event);
+  if (!state.ok) return { ok: true, action: "auto_retry_ignored", reason: state.reason };
+  const meta = state.metadata;
+  const now = new Date();
+  const todayKst = Utilities.formatDate(now, KRX_AUTO_TIMEZONE, "yyyy-MM-dd");
+  const deadline = buildKrxAutoRetryDeadline_(meta.date, phase);
+  try {
+    if (todayKst !== meta.date || now.getTime() > deadline.getTime()) {
+      return { ok: true, action: "auto_retry_stale_ignored", reason: todayKst !== meta.date ? "stale_date" : "retry_window_closed" };
+    }
+    return runKrxAutoManagedPhase_(phase, meta.date, Number(meta.attempt));
+  } finally {
+    try { state.properties.deleteProperty(state.key); } catch (_) {}
+    try {
+      ScriptApp.getProjectTriggers().forEach(function(trigger) {
+        const uid = typeof trigger.getUniqueId === "function" ? String(trigger.getUniqueId() || "") : "";
+        if (uid === state.triggerUid) ScriptApp.deleteTrigger(trigger);
+      });
+    } catch (_) {}
+  }
+}
+
+function runKrxAutoMorningRetry(event) {
+  return runKrxAutoRetryHandler_("morning", event);
+}
+
+function runKrxAutoCloseRetry(event) {
+  return runKrxAutoRetryHandler_("close", event);
+}
+
 /* =========================================================
  * 11. Web App Entry / Router
  * ========================================================= */

@@ -1788,6 +1788,18 @@ Pension 성능 최적화는 **transaction/idempotency 계약을 바꾸지 않고
 - `performance_snapshots.json`의 `dailyProfit`은 해당 날짜의 `rawHoldingProfit - 직전 저장 snapshot의 rawHoldingProfit`이라는 **1-step causal dependency**다. 따라서 과거 거래일을 backfill하거나 기존 과거 날짜의 `rawHoldingProfit`을 정정하면 대상 snapshot을 다시 만든 직후 **바로 다음 기존 snapshot의 `dailyProfit`도 재기준화**한다. 이 규칙으로 서로 다른 날짜의 queued run 실행 순서가 뒤집히거나 여러 누락일이 순차 삽입돼도 최종 성과 시계열이 같은 값으로 수렴해야 한다. 그 이후 snapshot은 predecessor의 `rawHoldingProfit`이 바뀌지 않으므로 전체 역사 구간을 불필요하게 재계산하지 않는다.
 - push 응답 유실은 직전 `PUSH_SHA`가 이미 `origin/<branch>`에 포함됐는지 managed-file guard보다 먼저 확인하고, 마지막 실패 확정 전에도 재확인한다.
 
+### KRX 자동 Scheduler / bounded retry contract
+
+- 자동 실행 코드는 `10H. KRX Automatic Invocation Wrapper → 10I. KRX Automatic Trigger Scheduler → 10J. KRX Automatic Bounded Retry / Recovery`의 **기존 dispatch 코어 바깥 계층**으로 유지한다. 자동화를 이유로 `dispatchKrxPriceWorkflow`, durable receipt/intent/ledger, operation marker, active-run proof, CAS, GC, timing hot path를 공통화·리팩터링하거나 scheduler 쪽으로 이동하지 않는다. 자동 계층이 기존 코어에 맞춰야 하며 반대 방향의 변경은 금지한다.
+- `runKrxAutoPhase_`는 날짜+phase에서 `krx-auto:YYYY-MM-DD:morning|close` requestId만 만들고 `dispatchKrxPriceWorkflow({ requestId })`로 위임한다. `date` input, GitHub 선조회, Script Properties 선조회, 별도 active-run 판정, 별도 dispatch POST를 추가하지 않는다. 같은 날짜/phase retry는 같은 identity를 유지하고 morning/close는 서로 다른 identity를 사용한다.
+- `installKrxAutoScheduler()`는 KST 00시대 daily reconciler 하나와, 현재 시각 기준 아직 지나지 않은 평일의 09:01 morning / 15:31 close one-shot을 준비한다. `reconcileKrxAutoTriggers()`는 우리 scheduler handler만 관리하고 프로젝트의 다른 trigger를 삭제하지 않는다. 정상 scheduler 상태의 source of truth는 `ScriptApp.getProjectTriggers()`이며 별도 `KRX_AUTO_*` 상태 복제본을 Script Properties에 만들지 않는다.
+- scheduler는 미래 KRX 휴장일 calendar를 자체 소유하지 않는다. 주말만 trigger 생성에서 제외하며 평일 휴장일은 실행될 수 있다. 이때 `date` 없는 기존 updater가 실제 최신 거래일/누락/장중/종가 대상을 판단해야 하며, GAS에 별도 공휴일·임시휴장일 하드코딩을 추가하지 않는다.
+- `runKrxAutoManagedPhase_`의 **정상 성공 경로는 retry용 ScriptApp/Properties/GitHub I/O를 추가하지 않는다.** retry 계층은 GitHub를 직접 조회하거나 dispatch하지 않고 기존 `runKrxAutoPhase_`만 다시 호출한다. 따라서 수동 KRX hot path의 `fetchAll` preflight, request-local cache, branch/CAS, timing 계측 구조와 원격 I/O 수를 자동화 때문에 늘리지 않는다.
+- 자동 retry 대상은 `lock_busy`, `workflow_in_progress`, `workflow_status_uncertain`, `workflow_dispatch_uncertain`, GitHub HTTP 408/409/429/5xx, 명백한 timeout/socket/network 일시 오류로 제한한다. 401/403/404/422, validation/설정/데이터 오류처럼 재시도로 해결되지 않는 상태는 자동 반복하지 않는다. retry는 1분→2분→3분의 최대 3회 one-shot이며 새 retry 예약 시 morning 09:10 / close 15:45 deadline을 넘기지 않는다.
+- pending retry는 phase당 최대 하나만 유지하고 metadata는 `KRX_AUTO_RETRY_<triggerUid>`에 최소 범위로 저장한다. handler는 event의 `triggerUid`와 metadata의 phase/date/attempt를 검증하며, metadata 부재·손상·전날 retry·deadline 초과는 fail-closed no-op한다. daily reconciler는 오늘의 유효 retry를 보존하되 전날/orphan metadata와 trigger를 정리한다. `installKrxAutoScheduler()` / `removeKrxAutoScheduler()`는 retry state도 함께 정리한다.
+- 운영 적용 순서는 `GAS_code.js` 교체 → Web App 새 버전 배포 → Apps Script 편집기에서 `installKrxAutoScheduler()` 1회 실행 → 권한 승인 → `showKrxAutoSchedulerStatus()` 확인이다. 자동화를 중지할 때는 `removeKrxAutoScheduler()`를 사용한다. handler 이름/시각/retry contract를 바꾸면 배포 후 installer를 다시 실행해 기존 trigger를 재구성한다.
+- 이 자동화 관련 변경의 성능 회귀 기준은 **기존 dispatch 코어 diff 0을 우선 목표**로 하고, 수동 KRX hot path의 `UrlFetchApp.fetch/fetchAll`, GitHub read/head, Properties batch-write/cache 구조를 증가시키지 않는 것이다. retry가 실제 발생한 실행에서만 scheduler/retry용 ScriptApp·Properties 비용을 허용한다.
+
 ### QA 경계
 
 GAS 집중평가의 구체적인 stale retry, cross-device duplicate, Batch cardinality, receipt/intent loss, GitHub race 반례는 `dashboard_evaluation_guide.md`의 Frontend↔Backend contract와 100점 Gate를 따른다. 이 handover에는 **현재 운영 contract와 수정 위치 판단에 필요한 내용만** 유지한다.
