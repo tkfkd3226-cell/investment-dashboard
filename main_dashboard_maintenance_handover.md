@@ -1688,7 +1688,7 @@ style="..."
 
 ## 5.5 JS Structure Map / 책임 주석
 
-현재 Main graph 13개 모듈과 standalone `dashboard-market-ai.js`까지 **총 14개 JS 모듈 모두** 파일 상단 Structure Map과 본문의 번호 섹션을 1:1로 대응시킨다. `dashboard-monthly-calendar.js`는 `CAL01~05`, `dashboard-heatmap.js`는 `HEATMAP01~09`, `dashboard-market-ai-client.js`는 `CLIENT01~03`, `dashboard-live-valuation.js`는 `LIVE01~05` Structure Map을 사용하며, feature/transport/adapter의 단일 책임 성격도 이 구조 주석 안에서 명시한다. 번호 자체를 changelog로 사용하지 않고, 실행 흐름과 ownership 탐색을 위한 구조 표지로만 사용한다. 기능 수정 시 코드와 주석 책임이 달라지면 같은 작업에서 해당 파일의 구조 주석도 함께 정합화한다.
+현재 Main graph 13개 모듈과 standalone `dashboard-market-ai.js`까지 **총 14개 JS 모듈 모두** 파일 상단 Structure Map과 본문의 번호 섹션을 1:1로 대응시킨다. `dashboard-monthly-calendar.js`는 `CAL01~05`, `dashboard-heatmap.js`는 `HEATMAP01~09`, `dashboard-market-ai-client.js`는 `CLIENT01~05`, `dashboard-live-valuation.js`는 `LIVE01~05` Structure Map을 사용하며, feature/transport/adapter의 단일 책임 성격도 이 구조 주석 안에서 명시한다. 번호 자체를 changelog로 사용하지 않고, 실행 흐름과 ownership 탐색을 위한 구조 표지로만 사용한다. 기능 수정 시 코드와 주석 책임이 달라지면 같은 작업에서 해당 파일의 구조 주석도 함께 정합화한다.
 
 코드를 그대로 읽어주는 주석은 늘리지 않고 module ownership, 예외, lifecycle 경계처럼 코드만으로 바로 알기 어려운 이유를 설명한다.
 

@@ -850,7 +850,7 @@ KRX
 
 Market AI
 → request A의 json parse가 늦게 끝나도 request B의 최신 상태를 덮지 않는다.
-→ 실시간 시세 modal close 후 Topbar trigger에 focus가 있어도 10초 갱신마다 화면 scroll이 위로 이동하지 않는다.
+→ 실시간 시세 modal close 후 Topbar trigger에 focus가 있어도 5초 갱신마다 화면 scroll이 위로 이동하지 않는다.
 
 Calc
 → 이미 회복 상태를 저장/복원/재계산해도 -100%나 invalid 상태로 돌아가지 않는다.
