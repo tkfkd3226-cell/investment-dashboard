@@ -105,6 +105,19 @@ function monthlyCalendarMonthModel(month,mode=monthlyCalendarState.mode){
   const monthDates=[...availableSet].filter(date=>date.startsWith(`${month}-`)).sort();
   const today=kstTodayText();
   const dayModels=monthDates.map(date=>monthlyCalendarDayModel(date,today,mode));
+  
+  // [추가] 3연속 하락 시 멘탈 케어 플래그
+  let lossCount=0;
+  dayModels.forEach(item=>{
+    if(item.profit!=null){
+      if(item.profit<0){
+        lossCount++;
+        if(lossCount>=3) item.isGloomy=true;
+      }else{
+        lossCount=0;
+      }
+    }
+  });
   const [year,monthNumber]=month.split('-').map(Number);
   const daysInMonth=new Date(Date.UTC(year,monthNumber,0)).getUTCDate();
   const missingDates=[];
@@ -148,9 +161,10 @@ function renderMonthlyCalendarDayCell({day,date='',available=false,item=null,wee
   }
   const profitClass=item.profit==null?'':(item.profit>0?' positive':item.profit<0?' negative':'');
   const profitText=item.profitState==='inactive'?'—':item.profit==null?'기준':monthlyCalendarCompactProfit(item.profit);
+  const gloomyClass=item.isGloomy?' is-gloomy':'';
   const active=item.active?' is-active':'';
   const availableTodayClass=item.today?' is-today':'';
-  return `<button type="button" class="monthly-calendar-day is-available${weekend}${availableTodayClass}${active}" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.selectDate}" data-calendar-date="${escapeHtml(date)}" aria-label="${escapeHtml(monthlyCalendarCellAria(item))}"${item.active?' aria-current="date"':''} title="${escapeHtml(item.profitState==='inactive'?'퇴직연금 데이터 없음':item.profit==null?'성과 비교 기준일':monthlyCalendarExactProfitLabel(item.profit))}"><span class="monthly-calendar-day-number">${day}</span><span class="monthly-calendar-day-profit${profitClass}">${profitText}</span></button>`;
+  return `<button type="button" class="monthly-calendar-day is-available${weekend}${availableTodayClass}${active}${gloomyClass}" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.selectDate}" data-calendar-date="${escapeHtml(date)}" aria-label="${escapeHtml(monthlyCalendarCellAria(item))}"${item.active?' aria-current="date"':''} title="${escapeHtml(item.profitState==='inactive'?'퇴직연금 데이터 없음':item.profit==null?'성과 비교 기준일':monthlyCalendarExactProfitLabel(item.profit))}"><span class="monthly-calendar-day-number">${day}</span><span class="monthly-calendar-day-profit${profitClass}">${profitText}</span></button>`;
 }
 function renderMonthlyCalendarGrid(month,model,{businessDaysOnly=false}={}){
   const [year,monthNumber]=month.split('-').map(Number);

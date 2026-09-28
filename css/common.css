@@ -3359,6 +3359,27 @@ button.monthly-calendar-day{
   border-color:var(--control-focus-border);
   box-shadow:0 0 0 1px var(--control-focus-border);
 }
+/* [추가] 멘탈 케어 모드 (3연속 하락) */
+button.monthly-calendar-day.is-gloomy {
+  position: relative;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(148, 163, 184, 0.05) 10px, rgba(148, 163, 184, 0.05) 20px);
+  border-style: dashed;
+  border-color: var(--muted);
+}
+button.monthly-calendar-day.is-gloomy::before {
+  content: "☔️ 심호흡";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 800;
+  pointer-events: none;
+  opacity: 0.7;
+}
+html.dark button.monthly-calendar-day.is-gloomy {
+  background-color: var(--subtle-card);
+}
 .monthly-calendar-day-number{
   font-size:var(--monthly-calendar-day-size);
   font-weight:var(--type-weight-strong);
