@@ -835,7 +835,15 @@ def resolve_target_dates(portfolio: dict[str, Any], prices: dict[str, Any], expl
         and not snapshot_has_verified_regular_close(date, snapshot)
     ]
 
-    return sorted(set(refresh_dates + missing_dates + retry_dates + reconfirm_dates))
+    # 최신 거래일 스냅샷이 이미 존재하더라도 전량매도 종목의 가상추적
+    # 가격이 없거나 직전 거래일 값이면 한 번 더 조회한다. 오래된 모든 날짜를
+    # 일괄 backfill하지 않고 최신 거래일만 보완해서 자동 실행 비용을 제한한다.
+    hypothetical_refresh_dates: list[str] = []
+    latest_market_snapshot = prices.get(latest_market)
+    if missing_hypothetical_quote_tickers(portfolio, latest_market, latest_market_snapshot):
+        hypothetical_refresh_dates.append(latest_market)
+
+    return sorted(set(refresh_dates + missing_dates + retry_dates + reconfirm_dates + hypothetical_refresh_dates))
 
 
 # ---------------------------------------------------------------------------
@@ -935,6 +943,15 @@ def security_has_trade_on_date(portfolio: dict[str, Any], ticker: str, target_da
     )
 
 
+def security_has_sale_on_or_before(portfolio: dict[str, Any], ticker: str, target_date: str) -> bool:
+    return any(
+        str(event.get("type", "")) == "sell"
+        and str(event.get("ticker", "")) == str(ticker)
+        and str(event.get("date", "")) <= target_date
+        for event in security_events(portfolio)
+    )
+
+
 def security_cash_principal_for_date(target_date: str, portfolio: dict[str, Any]) -> int:
     daily_deltas: dict[str, int] = {}
     for event in security_events(portfolio):
@@ -1003,6 +1020,51 @@ def security_position_state(item: dict[str, Any], target_date: str, portfolio: d
         "realizedProfit": realized_profit,
         "realizedCostBasis": realized_cost_basis,
     }
+
+
+def security_price_role(item: dict[str, Any], target_date: str, portfolio: dict[str, Any]) -> str:
+    """Return the KRX quote role for a security on ``target_date``.
+
+    ``portfolio`` prices are required by the actual account/sale-date calculation.
+    ``hypothetical`` prices belong to a fully exited historical position and are
+    collected only so a later UI can answer "what if I had kept holding it?".
+    The latter must never turn the retired position back into an account asset.
+    """
+    ticker = str(item.get("ticker", ""))
+    state = security_position_state(item, target_date, portfolio)
+    if float(state["qty"]) > 0 or security_has_trade_on_date(portfolio, ticker, target_date):
+        return "portfolio"
+    if security_has_sale_on_or_before(portfolio, ticker, target_date):
+        return "hypothetical"
+    return ""
+
+
+def hypothetical_quote_tickers_for_date(portfolio: dict[str, Any], target_date: str) -> list[str]:
+    return [
+        str(item.get("ticker", ""))
+        for item in portfolio.get("securities", [])
+        if item.get("ticker") and security_price_role(item, target_date, portfolio) == "hypothetical"
+    ]
+
+
+def missing_hypothetical_quote_tickers(
+    portfolio: dict[str, Any],
+    target_date: str,
+    price_snapshot: dict[str, Any] | None,
+) -> list[str]:
+    if not isinstance(price_snapshot, dict):
+        return []
+    securities = price_snapshot.get("securities", {})
+    source_dates = price_snapshot.get("priceSourceDates", {})
+    if not isinstance(securities, dict):
+        securities = {}
+    if not isinstance(source_dates, dict):
+        source_dates = {}
+    return [
+        ticker
+        for ticker in hypothetical_quote_tickers_for_date(portfolio, target_date)
+        if ticker not in securities or str(source_dates.get(f"SEC:{ticker}", "")) != target_date
+    ]
 
 
 def securities_cash_for_date(
@@ -1214,21 +1276,26 @@ def update_one_date(
     """Fetch one date, update prices, then rebuild its performance snapshot."""
     prev_key, prev = previous_snapshot(prices, before=target_date)
     securities, pension, warnings, source_dates = {}, {}, [], {}
+    required_source_dates: dict[str, str] = {}
+    tracking_warnings: list[str] = []
     status = market_status_for_date(target_date)
 
     manual_valuation_used = False
     for item in portfolio["securities"]:
         ticker = item["ticker"]
+        role = security_price_role(item, target_date, portfolio)
         valuation_override = security_valuation_override(portfolio, ticker, target_date)
         if valuation_override is not None:
             securities[ticker] = int(valuation_override)
             source_dates[f"SEC:{ticker}"] = target_date
+            required_source_dates[f"SEC:{ticker}"] = target_date
             manual_valuation_used = True
             continue
 
-        if float(security_position_state(item, target_date, portfolio)["qty"]) <= 0 and not security_has_trade_on_date(portfolio, ticker, target_date):
+        if not role:
             continue
 
+        hypothetical_only = role == "hypothetical"
         actual, close, err = fetch_close(ticker, target_date, is_etf=item.get("type") == "ETF")
 
         actual_date = str(actual or target_date)
@@ -1236,17 +1303,27 @@ def update_one_date(
             fallback = prev.get("securities", {}).get(ticker) if prev else None
 
             if fallback is None:
-                warnings.append(f"SEC {ticker}: 조회 실패 및 직전값 없음: {err}")
+                message = f"SEC {ticker}: 조회 실패 및 직전값 없음: {err}"
+                (tracking_warnings if hypothetical_only else warnings).append(message)
                 continue
 
             securities[ticker] = int(fallback)
-            warnings.append(f"SEC {ticker}: 조회 실패, 직전 스냅샷 {prev_key} 값 {fallback} 사용: {err}")
-            source_dates[f"SEC:{ticker}"] = str(prev.get("priceSourceDates", {}).get(f"SEC:{ticker}") or prev.get("actualMarketDate") or prev_key)
+            source_date = str(prev.get("priceSourceDates", {}).get(f"SEC:{ticker}") or prev.get("actualMarketDate") or prev_key)
+            source_dates[f"SEC:{ticker}"] = source_date
+            message = f"SEC {ticker}: 조회 실패, 직전 스냅샷 {prev_key} 값 {fallback} 사용: {err}"
+            if hypothetical_only:
+                tracking_warnings.append(message)
+            else:
+                warnings.append(message)
+                required_source_dates[f"SEC:{ticker}"] = source_date
         else:
             securities[ticker] = int(close)
             source_dates[f"SEC:{ticker}"] = actual_date
+            if not hypothetical_only:
+                required_source_dates[f"SEC:{ticker}"] = actual_date
             if actual_date != target_date:
-                warnings.append(f"SEC {ticker}: {target_date} 종가를 확인하지 못해 {actual_date} 종가를 보류값으로 저장했습니다.")
+                message = f"SEC {ticker}: {target_date} 종가를 확인하지 못해 {actual_date} 종가를 보류값으로 저장했습니다."
+                (tracking_warnings if hypothetical_only else warnings).append(message)
 
     for item in portfolio["pension"]:
         ticker = item["ticker"]
@@ -1263,14 +1340,16 @@ def update_one_date(
             pension[ticker] = int(fallback)
             warnings.append(f"PEN {ticker}: 조회 실패, 직전 스냅샷 {prev_key} 값 {fallback} 사용: {err}")
             source_dates[f"PEN:{ticker}"] = str(prev.get("priceSourceDates", {}).get(f"PEN:{ticker}") or prev.get("actualMarketDate") or prev_key)
+            required_source_dates[f"PEN:{ticker}"] = source_dates[f"PEN:{ticker}"]
         else:
             pension[ticker] = int(close)
             source_dates[f"PEN:{ticker}"] = actual_date
+            required_source_dates[f"PEN:{ticker}"] = actual_date
             if actual_date != target_date:
                 warnings.append(f"PEN {ticker}: {target_date} 종가를 확인하지 못해 {actual_date} 종가를 보류값으로 저장했습니다.")
 
     pension["cash"] = int(prev.get("pension", {}).get("cash", 0)) if prev else 0
-    actual_date = min(source_dates.values()) if source_dates else target_date
+    actual_date = min(required_source_dates.values()) if required_source_dates else target_date
 
     # A date with any stale/missing symbol must not become a selectable dashboard close.
     display = not warnings
@@ -1308,6 +1387,8 @@ def update_one_date(
 
     if warnings:
         prices[target_date]["warnings"] = warnings
+    if tracking_warnings:
+        prices[target_date]["trackingWarnings"] = tracking_warnings
 
     snapshots[target_date] = calculate_performance_snapshot(target_date, portfolio, prices, snapshots)
     reconcile_next_daily_profit(target_date, snapshots)
@@ -1315,6 +1396,10 @@ def update_one_date(
     if warnings:
         print(f"WARNINGS for {target_date}:")
         for warning in warnings:
+            print("-", warning)
+    if tracking_warnings:
+        print(f"TRACKING WARNINGS for {target_date}:")
+        for warning in tracking_warnings:
             print("-", warning)
 
     print(

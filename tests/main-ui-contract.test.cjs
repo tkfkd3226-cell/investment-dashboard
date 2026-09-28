@@ -758,9 +758,10 @@ test('KRX workflow는 다른 branch commit과 push가 경합해도 최신 remote
   assert.match(updatePricesWorkflow,/KRX data push failed after 3 retries/);
 });
 
-test('숨김·경고 KRX 날짜는 다음 자동 실행에서 재수집 대상으로 복구한다',()=>{
+test('숨김·경고 날짜와 최신 가상추적 시세 누락은 다음 KRX 자동 실행에서 재수집한다',()=>{
   assert.match(updatePricesPython,/retry_dates = \[[^]*?snapshot\.get\("display", True\) is False[^]*?snapshot\.get\("warnings"\)/);
-  assert.match(updatePricesPython,/set\(refresh_dates \+ missing_dates \+ retry_dates \+ reconfirm_dates\)/);
+  assert.match(updatePricesPython,/missing_hypothetical_quote_tickers\(portfolio, latest_market, latest_market_snapshot\)/);
+  assert.match(updatePricesPython,/set\(refresh_dates \+ missing_dates \+ retry_dates \+ reconfirm_dates \+ hypothetical_refresh_dates\)/);
 });
 
 test('퇴직연금 ETF 미리보기는 잘못된 수량·금액·일자를 저장 전에 차단한다',()=>{

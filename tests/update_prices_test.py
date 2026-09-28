@@ -742,7 +742,7 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
         self.assertEqual(self.updater.account1_principal_for_date("2026-06-19", self.portfolio), 1000)
         self.assertEqual(self.updater.account1_principal_for_date("2026-06-20", self.portfolio), 1000)
 
-    def test_post_sale_date_excludes_closed_position_from_fetch_and_symbol_snapshot(self):
+    def test_post_sale_date_fetches_hypothetical_quote_without_restoring_asset_or_symbol(self):
         calls = []
         self.updater.fetch_close = lambda ticker, date, **_kw: calls.append((ticker, date)) or (date, 999, None)
         prices, snapshots = {}, {}
@@ -750,10 +750,48 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
         warnings = self.updater.update_one_date("2026-06-21", self.portfolio, prices, snapshots)
 
         self.assertEqual(warnings, [])
-        self.assertEqual(calls, [])
-        self.assertEqual(prices["2026-06-21"]["securities"], {})
+        self.assertEqual(calls, [("SEC", "2026-06-21")])
+        self.assertEqual(prices["2026-06-21"]["securities"], {"SEC": 999})
+        self.assertEqual(prices["2026-06-21"]["priceSourceDates"], {"SEC:SEC": "2026-06-21"})
         self.assertNotIn("Stock A", snapshots["2026-06-21"]["symbols"])
         self.assertEqual(snapshots["2026-06-21"]["rawHoldingProfit"], 100)
+        self.assertEqual(snapshots["2026-06-21"]["allocation"], {"ETF": 0, "개별주식": 0, "현금": 1100})
+
+    def test_auto_mode_refreshes_latest_saved_date_when_hypothetical_quote_is_missing(self):
+        self.updater.today_kst = lambda: "2026-06-23"
+        self.updater.market_status_kst = lambda: "close"
+        self.updater.resolve_latest_market_date = lambda *_: "2026-06-22"
+        prices = {
+            "2026-06-22": {
+                "display": True,
+                "marketStatus": "close",
+                "priceBasis": "regular_close",
+                "regularCloseSource": "pykrx_pre_aftermarket",
+                "securities": {},
+                "priceSourceDates": {},
+            }
+        }
+
+        self.assertEqual(self.updater.resolve_target_dates(self.portfolio, prices, None), ["2026-06-22"])
+
+        prices["2026-06-22"]["securities"]["SEC"] = 120
+        prices["2026-06-22"]["priceSourceDates"]["SEC:SEC"] = "2026-06-22"
+        self.assertEqual(self.updater.resolve_target_dates(self.portfolio, prices, None), [])
+
+    def test_hypothetical_quote_failure_does_not_hide_or_fail_portfolio_snapshot(self):
+        self.updater.fetch_close = lambda *_a, **_kw: (None, None, "tracking network error")
+        prices, snapshots = {}, {}
+
+        warnings = self.updater.update_one_date("2026-06-21", self.portfolio, prices, snapshots)
+
+        row = prices["2026-06-21"]
+        self.assertEqual(warnings, [])
+        self.assertTrue(row["display"])
+        self.assertEqual(row["securities"], {})
+        self.assertIn("trackingWarnings", row)
+        self.assertNotIn("warnings", row)
+        self.assertEqual(snapshots["2026-06-21"]["rawHoldingProfit"], 100)
+        self.assertEqual(snapshots["2026-06-21"]["allocation"], {"ETF": 0, "개별주식": 0, "현금": 1100})
 
     def test_historical_sale_cash_ignores_stale_saved_cash_and_is_idempotent(self):
         stale_snapshots = {
@@ -899,10 +937,16 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
         self.assertEqual(post_sale["rawHoldingProfit"] - post_unrealized_profit, 228)
         # 운영 JSON에는 과거 오류가 남아 있을 수 있다. 재갱신이 이를 정정하는지 검증한다.
         saved_row = copy.deepcopy(prices["2026-09-17"])
-        self.updater.fetch_close = lambda ticker, date, **kw: (
-            date, saved_row["pension" if kw.get("is_etf") and ticker not in saved_row["securities"] else "securities"][ticker], None
-        )
+        hypothetical_samsung_price = 1400000
+        hypothetical_prices = {"009150": hypothetical_samsung_price, "093370": 13100}
+        def fake_fetch_close(ticker, date, **kw):
+            if ticker in hypothetical_prices:
+                return date, hypothetical_prices[ticker], None
+            bucket = "pension" if kw.get("is_etf") and ticker not in saved_row["securities"] else "securities"
+            return date, saved_row[bucket][ticker], None
+        self.updater.fetch_close = fake_fetch_close
         self.updater.update_one_date("2026-09-17", portfolio, prices, snapshots)
+        self.assertEqual(prices["2026-09-17"]["securities"]["009150"], hypothetical_samsung_price)
         self.assertEqual(snapshots["2026-09-17"]["rawHoldingProfit"], post_sale["rawHoldingProfit"])
         self.assertNotIn("삼성전기", snapshots["2026-09-17"]["symbols"])
         withdrawal = next(event for event in portfolio["securitiesEvents"] if event.get("id") == "sec-withdrawal-20260916-internal-cash-return")
