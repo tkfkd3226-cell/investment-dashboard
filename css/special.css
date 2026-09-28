@@ -165,6 +165,7 @@
 /* Hero Compact Labels · 1280px 미만에서는 칭호 추가 후 Market AI 예약폭과 충돌하지 않도록
    기존 성과 pill의 의미는 유지한 채 label만 short 형태로 축약한다. */
 @media (max-width:1279px){
+    .hero{--hero-pill-gap:1px}
     .hero .hero-label-default{display:none}
     .hero .hero-label-mobile{display:inline}
 }
@@ -431,7 +432,7 @@
       --hero-title-gap-x:6px;
       --hero-basis-size:var(--type-size-2xs);
       --hero-pill-margin-top:8px;
-      --hero-pill-gap:4px;
+      --hero-pill-gap:1px;
       --hero-pill-pad-y:4px;
       --hero-pill-pad-x:6px;
       --hero-pill-size:var(--type-size-2xs);

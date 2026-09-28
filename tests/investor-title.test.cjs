@@ -94,10 +94,11 @@ test('실제 현재 데이터에서 단타 업적은 2026-08-06부터 최근 업
   assert.equal(core.investorTitleViewModel(after,core.separateProfitView(after)).achievement,'⚔️ 단타 깎는 노인');
 });
 
-test('Hero 정보 계층은 Web은 한 행, Tablet/Phone은 칭호 행과 성과 pill 행을 분리한다',()=>{
+test('Hero 정보 계층은 Web/Phone 기존 구조를 유지하고 Tablet은 제목 행 우측에 칭호를 정렬한다',()=>{
   assert.match(app,/function renderHeroPerformanceRow\(x,v=separateProfitView\(x\)\)\{[^]*?class="hero-performance-row"[^]*?renderHeroTitleBadges\(x,v\)[^]*?renderHeroMetricPills\(x,v\)/);
-  assert.match(app,/hero-title-row[^]*?renderHeroPerformanceRow\(x,v\)/);
-  assert.match(app,/class="hero-title-badges" role="group" aria-label="투자 칭호"/);
+  assert.match(app,/hero-title-row[^]*?renderHeroTitleBadges\(x,v,'tablet'\)[^]*?renderHeroPerformanceRow\(x,v\)/);
+  assert.match(app,/hero-title-badges-tablet/);
+  assert.match(app,/hero-title-badges-performance/);
   assert.match(app,/hero-title-badge-status/);
   assert.match(app,/hero-title-badge-achievement/);
 
@@ -108,9 +109,12 @@ test('Hero 정보 계층은 Web은 한 행, Tablet/Phone은 칭호 행과 성과
   assert.equal((metricBlock.match(/hero-profit-pill/g)||[]).length,2);
   assert.equal((metricBlock.match(/hero-return-pill/g)||[]).length,2);
 
+  assert.match(common,/\.hero-title-badges-tablet\{display:none\}/);
   assert.match(common,/\.hero-performance-row\{[^}]*display:flex;[^}]*flex-wrap:nowrap;/s);
   assert.match(common,/\.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:nowrap;/s);
-  assert.match(tablet,/Tablet Hero는 칭호 행 아래에 기존 성과 pill 4개를 모두 한 줄로 노출[^]*?\.hero \.hero-performance-row\{[^}]*display:block;/s);
+  assert.match(tablet,/Tablet Hero는 제목\/기준문구 우측 끝에 칭호를 두고[^]*?\.hero \.hero-title-row\{[^}]*flex-wrap:nowrap;[^}]*align-items:center;/s);
+  assert.match(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*display:flex;[^}]*margin-left:auto;/s);
+  assert.match(tablet,/\.hero \.hero-performance-row \.hero-title-badges-performance\{[^}]*display:none;/s);
   assert.match(tablet,/\.hero \.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:nowrap;[^}]*margin-top:var\(--space-sm\);/s);
   assert.match(tablet,/\.hero \.hero-return-pill\{display:inline-flex\}/);
   assert.match(special,/Phone은 칭호 전용 행과 기존 성과 pill 행을 분리[^]*?\.hero \.hero-performance-row\{[^}]*display:block;/s);
@@ -126,9 +130,10 @@ test('Phone은 기존 세로 2개·가로 4개 성과 pill contract를 복원하
 });
 
 test('칭호/성과 행은 Market AI 예약 폭과 partial refresh에 참여해 상태 변화와 화면 표시가 어긋나지 않는다',()=>{
+  assert.match(common,/\.hero\.market-ai-mounted \.hero-title-row,/);
   assert.match(common,/\.hero\.market-ai-mounted \.hero-performance-row/);
   assert.match(common,/\.hero-title-badges\{[^}]*display:flex;[^}]*flex-wrap:nowrap;/);
-
-  const refreshCalls=[...app.matchAll(/replaceDashboardFragment\(document\.querySelector\('\.hero-title-badges'\),renderHeroTitleBadges\(x,v\)\);/g)];
-  assert.equal(refreshCalls.length,2,'별도수익 전환과 live valuation 두 경로 모두 칭호를 갱신해야 한다');
+  assert.match(app,/function refreshHeroTitleBadges\(x,v=separateProfitView\(x\)\)\{[^]*?hero-title-badges-tablet[^]*?hero-title-badges-performance/s);
+  const refreshCalls=[...app.matchAll(/refreshHeroTitleBadges\(x,v\);/g)];
+  assert.equal(refreshCalls.length,2,'별도수익 전환과 live valuation 두 경로 모두 Tablet/Performance 칭호 슬롯을 함께 갱신해야 한다');
 });

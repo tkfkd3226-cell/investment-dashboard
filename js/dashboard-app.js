@@ -396,10 +396,15 @@ function setupDashboardEventDelegation(){
   });
 }
 // [APP04] Render Orchestration · 자산 workspace / 전체 렌더링 / transient UI state 보존
-function renderHeroTitleBadges(x,v=separateProfitView(x)){
+function renderHeroTitleBadges(x,v=separateProfitView(x),slot='performance'){
   const {status,achievement}=investorTitleViewModel(x,v);
+  const slotClass=slot==='tablet'?' hero-title-badges-tablet':' hero-title-badges-performance';
   const achievementBadge=achievement?`<span class="pill hero-title-badge hero-title-badge-achievement" title="최근 획득 업적 칭호">${escapeHtml(achievement)}</span>`:'';
-  return `<div class="hero-title-badges" role="group" aria-label="투자 칭호"><span class="pill hero-title-badge hero-title-badge-status" title="현재 상태 칭호">${escapeHtml(status)}</span>${achievementBadge}</div>`;
+  return `<div class="hero-title-badges${slotClass}" role="group" aria-label="투자 칭호"><span class="pill hero-title-badge hero-title-badge-status" title="현재 상태 칭호">${escapeHtml(status)}</span>${achievementBadge}</div>`;
+}
+function refreshHeroTitleBadges(x,v=separateProfitView(x)){
+  replaceDashboardFragment(document.querySelector('.hero-title-badges-tablet'),renderHeroTitleBadges(x,v,'tablet'));
+  replaceDashboardFragment(document.querySelector('.hero-title-badges-performance'),renderHeroTitleBadges(x,v,'performance'));
 }
 function renderHeroMetricPills(x,v=separateProfitView(x)){
   const pensionPills=x.hasPension?`<span class="pill hero-profit-pill"><span class="hero-label-default">퇴직연금 운용손익</span><span class="hero-label-mobile">퇴직연금 손익</span> ${won(x.pensionProfit)}</span><span class="pill hero-return-pill"><span class="hero-label-default">퇴직연금 운용수익률</span><span class="hero-label-mobile">퇴직연금 수익률</span> ${pct(x.pensionReturn)}</span>`:'';
@@ -425,7 +430,7 @@ function refreshSeparateProfitModeView(){
   closeAccountMemoInfo();
   const x=latestDashboardCalcResult=calc(dataState.activeDate),v=separateProfitView(x);
 
-  replaceDashboardFragment(document.querySelector('.hero-title-badges'),renderHeroTitleBadges(x,v));
+  refreshHeroTitleBadges(x,v);
   replaceDashboardFragment(document.querySelector('.hero-metric-pills'),renderHeroMetricPills(x,v));
   if(x.hasPension)replaceDashboardFragment(document.getElementById('summary-section'),renderCombined(x));
   replaceDashboardFragment(document.querySelector('#securities-section .securities-summary-block'),renderSecuritiesPerformanceSummary(x));
@@ -456,7 +461,7 @@ function render({renderTopbar=true}={}){
   closeAccountMemoInfo();
   const x=latestDashboardCalcResult=calc(dataState.activeDate),v=separateProfitView(x);
   if(renderTopbar)renderTabs();
-  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${escapeHtml(dataState.portfolio.meta.title)}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${heroPerformanceBasisLabel(x.date)})</time></div>${renderHeroPerformanceRow(x,v)}</header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
+  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${escapeHtml(dataState.portfolio.meta.title)}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${heroPerformanceBasisLabel(x.date)})</time>${renderHeroTitleBadges(x,v,'tablet')}</div>${renderHeroPerformanceRow(x,v)}</header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
   hydrateSectionTitleIcons(document.getElementById('app'));
   syncAssetTabs();
   syncThemeControls();
@@ -578,7 +583,7 @@ function renderLiveValuationRefresh(){
     heroBasis.setAttribute('datetime',x.date);
     heroBasis.textContent=`(${heroPerformanceBasisLabel(x.date)})`;
   }
-  replaceDashboardFragment(document.querySelector('.hero-title-badges'),renderHeroTitleBadges(x,v));
+  refreshHeroTitleBadges(x,v);
   replaceDashboardFragment(document.querySelector('.hero-metric-pills'),renderHeroMetricPills(x,v));
   if(x.hasPension){
     replaceDashboardFragment(document.getElementById('summary-section'),renderCombined(x));

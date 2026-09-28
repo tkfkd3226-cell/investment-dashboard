@@ -2151,3 +2151,6 @@ node --test tests/cross-ui-contract.test.cjs
 모든 Main 작업의 운영 원칙은 다음 한 문장으로 요약한다.
 
 > **최신 실제 소스를 기준으로 현재 책임 경계 안에서 최소 수정하고, 검증 범위는 변경 위험에 비례시키며, 장기 contract만 문서에 남긴다.**
+
+- **Hero 1280px 미만 compact gap**: 칭호/성과 pill 간 gap은 `1px`로 축소한다.
+- **Tablet Hero title alignment**: 칭호는 `투자 성과 (기준문구)`와 같은 title row의 우측 끝에 두고, 아래 성과 4칩의 우측 끝과 같은 Market AI 예약선에 맞춘다. Phone 배치는 기존 칭호 행/성과 행 분리를 유지한다.

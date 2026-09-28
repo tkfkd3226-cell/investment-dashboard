@@ -944,6 +944,15 @@ test('1280px 미만 Hero 성과 pill은 4개 label을 short 형태로 축약한�
   assert.match(common,/\.hero-label-mobile\{display:none\}/,'1280px 이상 Desktop baseline은 full label을 유지해야 한다');
 });
 
+test('1280px 미만 Hero pill gap은 기존 대비 70% 이상 축소하고 Phone도 같은 compact gap을 유지한다',()=>{
+  assert.match(special,/@media \(max-width:1279px\)\{[^]*?\.hero\{--hero-pill-gap:1px\}/,'1280px 미만은 1px compact gap을 사용해야 한다');
+  const phoneStart=special.indexOf('[S03] Phone UI Shared · 폰 공통 UI');
+  const phoneEnd=special.indexOf('[S04] Phone Landscape · 실제 스마트폰 가로모드');
+  const phoneBlock=special.slice(phoneStart,phoneEnd);
+  assert.match(phoneBlock,/--hero-pill-gap:1px;/,'Phone 공통 Hero도 1px gap을 유지해야 한다');
+  assert.match(common,/--hero-pill-gap:6px;/,'1280px 이상 Desktop baseline gap은 유지해야 한다');
+});
+
 test('Market AI responsive 전환은 Phone inline owner와 content-driven card layout을 유지한다',()=>{
   const start=marketAi.indexOf('function syncMarketAiResponsiveMount');
   const end=marketAi.indexOf('\n// [MARKET09]',start);
@@ -968,7 +977,7 @@ test('Market AI responsive 전환은 Phone inline owner와 content-driven card l
   assert.match(common,/\.market-ai-desktop\{[^}]*width:max-content;[^}]*max-width:100%;[^]*\.market-ai-desktop-metric\{[^}]*grid-template-columns:subgrid;/,'공통 Market AI는 내용 기반 폭과 공통 label/value/change 열 정렬을 유지해야 한다');
   assert.match(special,/#market-ai-section\[data-market-ai-placement="phone-inline"\][^]*\.market-ai-card-row\{[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content;/,'Phone inline은 가용폭을 채우며 label 좌측 / value·change 우측 정렬을 유지해야 한다');
 
-  assert.match(tablet,/\.hero \.hero-performance-row\{[^}]*display:block;[^]*?\.hero \.hero-return-pill\{display:inline-flex\}/s,'Tablet Hero는 칭호 아래 기존 성과 pill 4개를 모두 표시해야 한다');
+  assert.match(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*display:flex;[^}]*margin-left:auto;[^]*?\.hero \.hero-performance-row \.hero-title-badges-performance\{[^}]*display:none;[^]*?\.hero \.hero-return-pill\{display:inline-flex\}/s,'Tablet Hero는 제목 행 우측 칭호 + 아래 성과 pill 4개 구조를 유지해야 한다');
   assert.match(special,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/,'Phone Landscape는 pill 4개를 유지해야 한다');
 });
 
