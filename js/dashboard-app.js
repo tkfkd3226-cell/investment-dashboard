@@ -1,6 +1,7 @@
 import {
   allAvailableDates,
   calc,
+  cumHistory,
   dataState,
   heroPerformanceBasisLabel,
   kstTodayText,
@@ -395,9 +396,46 @@ function setupDashboardEventDelegation(){
   });
 }
 // [APP04] Render Orchestration · 자산 workspace / 전체 렌더링 / transient UI state 보존
+function getInvestorTitle(x, v){
+  const cum = cumHistory(x.date);
+  if(!cum || cum.length === 0) return '🌱 투자 새내기';
+
+  // 1. 불기둥 탑승자: 5거래일 연속 수익 발생
+  let consecutiveWins = 0;
+  for(let i = cum.length - 1; i >= 0; i--){
+    if(cum[i]['합계 : 전일대비손익'] > 0) consecutiveWins++;
+    else break;
+  }
+  if(consecutiveWins >= 5) return '🔥 불기둥 탑승자';
+
+  // 2. 인내의 화신: MDD(최대 낙폭) -200만 원 이상 겪은 뒤 누적손익 양전 성공
+  let peak = cum[0]['합계 : 누적손익'], maxDrop = 0;
+  for(const r of cum){
+    if(r['합계 : 누적손익'] > peak) peak = r['합계 : 누적손익'];
+    const drop = r['합계 : 누적손익'] - peak;
+    if(drop < maxDrop) maxDrop = drop;
+  }
+  if(maxDrop <= -2000000 && v.totalProfit > 0) return '🧘 인내의 화신';
+
+  // 3. 단타 깎는 노인: KODEX 레버리지 단타(별도수익) 거래 10회 이상
+  const spCount = (dataState.portfolio?.separateProfit?.trades || []).filter(t => t.date <= x.date).length;
+  if(spCount >= 10) return '⚔️ 단타 깎는 노인';
+
+  // 4. 관망의 달인: 하락장을 대비해 현금 비중 40% 이상 확보
+  if(x.allocTotal > 0 && (x.securitiesCash / x.allocTotal) >= 0.4) return '👀 관망의 달인';
+
+  // 5. 기본 칭호
+  if(v.totalProfit > 10000000) return '👑 평온한 투자자';
+  return '🏃 꾸준한 투자자';
+}
+
 function renderHeroMetricPills(x,v=separateProfitView(x)){
+  const title = getInvestorTitle(x, v);
+  // 기존 pill CSS를 재사용하되 인라인 변수로 색상만 골드로 오버라이드합니다.
+  const titleBadge = `<span class="pill" title="나의 투자 칭호" style="--hero-pill-bg: rgba(245,158,11,0.15); --hero-pill-border: rgba(245,158,11,0.3); --hero-pill-color: #f59e0b; font-weight: 900; margin-right: 4px;">${title}</span>`;
+  
   const pensionPills=x.hasPension?`<span class="pill hero-profit-pill"><span class="hero-label-default">퇴직연금 운용손익</span><span class="hero-label-mobile">퇴직연금 손익</span> ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
-  return `<div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}" role="group" aria-label="핵심 성과 요약"><span class="pill hero-profit-pill"><span class="hero-label-default">증권계좌 누적손익</span><span class="hero-label-mobile">증권계좌 손익</span> ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적수익률 ${pct(v.totalReturn)}</span>${pensionPills}</div>`;
+  return `<div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}" role="group" aria-label="핵심 성과 요약">${titleBadge}<span class="pill hero-profit-pill"><span class="hero-label-default">증권계좌 누적손익</span><span class="hero-label-mobile">증권계좌 손익</span> ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적수익률 ${pct(v.totalReturn)}</span>${pensionPills}</div>`;
 }
 function replaceDashboardFragment(target,html){
   if(!target||!html)return null;
