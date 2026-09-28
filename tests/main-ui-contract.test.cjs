@@ -931,6 +931,19 @@ test('Modal lifecycle는 focus trap / focus return / inert / ESC를 공통 layer
   assert.match(modal1,/target\?\.focus\?\.\(\{preventScroll:true\}\)/);
 });
 
+test('1280px 미만 Hero 성과 pill은 4개 label을 short 형태로 축약한다',()=>{
+  for(const [full,short] of [
+    ['증권계좌 누적손익','증권계좌 손익'],
+    ['증권계좌 누적수익률','증권계좌 수익률'],
+    ['퇴직연금 운용손익','퇴직연금 손익'],
+    ['퇴직연금 운용수익률','퇴직연금 수익률'],
+  ]){
+    assert.match(app,new RegExp(`<span class=\"hero-label-default\">${full}</span><span class=\"hero-label-mobile\">${short}</span>`),`${full}은 short label과 함께 렌더되어야 한다`);
+  }
+  assert.match(special,/@media \(max-width:1279px\)\{[^]*?\.hero \.hero-label-default\{display:none\}[^]*?\.hero \.hero-label-mobile\{display:inline\}/,'1280px 미만에서는 Hero short label을 표시해야 한다');
+  assert.match(common,/\.hero-label-mobile\{display:none\}/,'1280px 이상 Desktop baseline은 full label을 유지해야 한다');
+});
+
 test('Market AI responsive 전환은 Phone inline owner와 content-driven card layout을 유지한다',()=>{
   const start=marketAi.indexOf('function syncMarketAiResponsiveMount');
   const end=marketAi.indexOf('\n// [MARKET09]',start);

@@ -402,8 +402,8 @@ function renderHeroTitleBadges(x,v=separateProfitView(x)){
   return `<div class="hero-title-badges" role="group" aria-label="투자 칭호"><span class="pill hero-title-badge hero-title-badge-status" title="현재 상태 칭호">${escapeHtml(status)}</span>${achievementBadge}</div>`;
 }
 function renderHeroMetricPills(x,v=separateProfitView(x)){
-  const pensionPills=x.hasPension?`<span class="pill hero-profit-pill"><span class="hero-label-default">퇴직연금 운용손익</span><span class="hero-label-mobile">퇴직연금 손익</span> ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
-  return `<div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}" role="group" aria-label="핵심 성과 요약"><span class="pill hero-profit-pill"><span class="hero-label-default">증권계좌 누적손익</span><span class="hero-label-mobile">증권계좌 손익</span> ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적수익률 ${pct(v.totalReturn)}</span>${pensionPills}</div>`;
+  const pensionPills=x.hasPension?`<span class="pill hero-profit-pill"><span class="hero-label-default">퇴직연금 운용손익</span><span class="hero-label-mobile">퇴직연금 손익</span> ${won(x.pensionProfit)}</span><span class="pill hero-return-pill"><span class="hero-label-default">퇴직연금 운용수익률</span><span class="hero-label-mobile">퇴직연금 수익률</span> ${pct(x.pensionReturn)}</span>`:'';
+  return `<div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}" role="group" aria-label="핵심 성과 요약"><span class="pill hero-profit-pill"><span class="hero-label-default">증권계좌 누적손익</span><span class="hero-label-mobile">증권계좌 손익</span> ${won(v.totalProfit)}</span><span class="pill hero-return-pill"><span class="hero-label-default">증권계좌 누적수익률</span><span class="hero-label-mobile">증권계좌 수익률</span> ${pct(v.totalReturn)}</span>${pensionPills}</div>`;
 }
 function renderHeroPerformanceRow(x,v=separateProfitView(x)){
   return `<div class="hero-performance-row">${renderHeroTitleBadges(x,v)}${renderHeroMetricPills(x,v)}</div>`;

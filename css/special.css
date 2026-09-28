@@ -162,6 +162,13 @@
     }
 }
 
+/* Hero Compact Labels · 1280px 미만에서는 칭호 추가 후 Market AI 예약폭과 충돌하지 않도록
+   기존 성과 pill의 의미는 유지한 채 label만 short 형태로 축약한다. */
+@media (max-width:1279px){
+    .hero .hero-label-default{display:none}
+    .hero .hero-label-mobile{display:inline}
+}
+
 /* -------------------------------------------------------------------------
    [S02] Compact Desktop · 중간폭 웹
    Why · 이유: 날짜 selector의 수축은 common의 content-driven grid가 담당하고,
