@@ -995,6 +995,8 @@ test('Market AI responsive 전환은 Phone inline owner와 content-driven card l
   const tabletHero=tablet.slice(tabletHeroStart,tabletHeroEnd);
   assert.match(tabletHero,/--hero-pad:var\(--space-[^)]+\);/,'Tablet Hero padding은 spacing token으로 소유해야 한다');
   assert.match(tabletHero,/--market-ai-hero-edge-gap:var\(--space-[^)]+\);/,'Tablet Market AI edge gap은 raw px가 아니라 spacing token으로 소유해야 한다');
+  assert.match(common,/--market-ai-hero-edge-gap:var\(--space-xl\);/,'Web Market AI 우측 여백은 7px spacing token을 사용해야 한다');
+  assert.match(tabletHero,/--market-ai-hero-edge-gap:var\(--space-sm\);/,'Tablet Market AI 우측 여백은 4px token을 유지해야 한다');
   assert.match(tabletHero,/--hero-title-size:var\(--type-size-[^)]+\);[^]*--hero-basis-size:var\(--type-size-[^)]+\);[^]*--hero-pill-size:var\(--type-size-[^)]+\);/s,'Tablet Hero typography는 type scale token을 사용해야 한다');
   assert.doesNotMatch(tabletHero,/--(?:hero-pad|market-ai-hero-edge-gap|hero-title-size|hero-basis-size|hero-pill-size):[^;]*\d+(?:\.\d+)?px/,'Tablet Hero 핵심 geometry/typography에 raw px를 다시 넣으면 안 된다');
   assert.match(tablet,/\.hero \.hero-title-row\{[^}]*align-items:baseline;/s,'Tablet Hero 기준문구는 Web/Phone처럼 제목 baseline에 맞아야 한다');
@@ -1209,6 +1211,50 @@ test('KRX 자동 재갱신은 최신일이 검증돼도 애프터마켓 이후 �
   result=context.shouldDispatchKrxWorkflow({},prices);
   assert.equal(result.shouldDispatch,false);
   assert.equal(result.reason,'already_closed_today');
+});
+
+test('KRX 최신/누락은 장 시작 전이라도 전량매도 가상추적 최신가가 비면 dispatch하고 저장 후 수렴한다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('function latestVisiblePriceSnapshot(');
+  const end=gas.indexOf('// KRX requestId 완료 이력',start);
+  const context=vm.createContext({
+    nowKSTDateTimeInfo:()=>({
+      dateText:'2026-09-29',day:2,isWeekday:true,isBeforeOpen:true,isMarketTime:false,isAfterClose:false
+    }),
+    previousBusinessDateText:()=> '2026-09-28'
+  });
+  vm.runInContext(gas.slice(start,end),context);
+  const portfolio={
+    securities:[
+      {ticker:'000660',qty:2},
+      {ticker:'009150',qty:0},
+      {ticker:'093370',qty:0}
+    ],
+    securitiesEvents:[
+      {type:'sell',ticker:'009150',date:'2026-09-16'},
+      {type:'sell',ticker:'093370',date:'2026-05-22'}
+    ]
+  };
+  const verified={
+    display:true,marketStatus:'close',priceBasis:'regular_close',regularCloseSource:'naver_krx_1530_minute',
+    securities:{'000660':1768000},
+    priceSourceDates:{'SEC:000660':'2026-09-28'}
+  };
+  const prices={'2026-09-28':verified};
+  let result=context.shouldDispatchKrxWorkflow({},prices,portfolio);
+  assert.equal(result.shouldDispatch,true);
+  assert.equal(result.reason,'missing_hypothetical_quotes');
+  assert.deepEqual(Array.from(result.missingHypotheticalTickers).sort(),['009150','093370']);
+
+  prices['2026-09-28']={
+    ...verified,
+    securities:{...verified.securities,'009150':1400000,'093370':15000},
+    priceSourceDates:{...verified.priceSourceDates,'SEC:009150':'2026-09-28','SEC:093370':'2026-09-28'}
+  };
+  result=context.shouldDispatchKrxWorkflow({},prices,portfolio);
+  assert.equal(result.shouldDispatch,false);
+  assert.equal(result.reason,'before_open_already_closed');
 });
 
 test('저장 가격 tooltip은 애프터마켓 이후 source 미검증 regular_close를 확정 종가로 단정하지 않는다',()=>{

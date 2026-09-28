@@ -6425,12 +6425,39 @@ function krxUnverifiedAftermarketRegularCloseDates(prices, throughDate) {
   }).sort();
 }
 
+// 최신 거래일의 전량매도 종목 가상추적 시세가 비어 있으면 Python 자동 대상 계산까지
+// workflow를 통과시킨다. 실제 보유종목 여부는 portfolio의 현재 qty와 sell event로만 판단하고,
+// 가격 존재 여부는 prices snapshot의 securities + priceSourceDates를 함께 확인한다.
+function krxMissingHypotheticalQuoteTickers(prices, portfolio) {
+  const latest = latestVisiblePriceSnapshot(prices || {});
+  if (!latest || !latest.date || !latest.snapshot) return [];
+  const securities = Array.isArray(portfolio && portfolio.securities) ? portfolio.securities : [];
+  const events = Array.isArray(portfolio && portfolio.securitiesEvents) ? portfolio.securitiesEvents : [];
+  const snapshotSecurities = latest.snapshot.securities && typeof latest.snapshot.securities === "object"
+    ? latest.snapshot.securities
+    : {};
+  const sourceDates = latest.snapshot.priceSourceDates && typeof latest.snapshot.priceSourceDates === "object"
+    ? latest.snapshot.priceSourceDates
+    : {};
+  const latestDate = String(latest.date);
+
+  return securities.filter(function(item) {
+    const ticker = String(item && item.ticker || "").trim();
+    if (!ticker || Number(item && item.qty || 0) !== 0) return false;
+    const hasSale = events.some(function(event) {
+      return String(event && event.type || "") === "sell"
+        && String(event && event.ticker || "") === ticker
+        && String(event && event.date || "") <= latestDate;
+    });
+    if (!hasSale) return false;
+    return !Object.prototype.hasOwnProperty.call(snapshotSecurities, ticker)
+      || String(sourceDates["SEC:" + ticker] || "") !== latestDate;
+  }).map(function(item) { return String(item.ticker || ""); });
+}
+
 // 현재 시각·최신 데이터 상태에 따라 KRX workflow 실행 필요성을 판단한다.
-function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
+function shouldDispatchKrxWorkflow(body, prefetchedPrices, prefetchedPortfolio) {
   const explicitDate = String(body.date || "").trim();
-  const prices = arguments.length >= 2
-    ? (prefetchedPrices || {})
-    : ((readGithubJson("data/prices.json").data) || {});
 
   // 사용자가 누른 선택일 재갱신은 저장 라벨과 무관하게 실제로 다시 조회한다.
   // 같은 requestId의 재시도/진행 중 중복 실행 방지는 바깥 durable dispatch 경계가 담당한다.
@@ -6440,6 +6467,15 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
       reason: "explicit_date_refresh"
     };
   }
+
+  const prices = arguments.length >= 2
+    ? (prefetchedPrices || {})
+    : ((readGithubJson("data/prices.json").data) || {});
+  // 단위 테스트처럼 prices만 주입한 호출은 기존 시간/종가 판정만 검증하도록 빈 portfolio를 사용한다.
+  // 실제 dispatch preflight는 prices+portfolio를 함께 넘기고, 최종 TOCTOU 재검증은 둘 다 최신 remote에서 읽는다.
+  const portfolio = arguments.length >= 3
+    ? (prefetchedPortfolio || {})
+    : (arguments.length >= 2 ? {} : ((readGithubJson("data/portfolio.json").data) || {}));
 
   const latest = latestVisiblePriceSnapshot(prices);
   const now = nowKSTDateTimeInfo();
@@ -6470,6 +6506,17 @@ function shouldDispatchKrxWorkflow(body, prefetchedPrices) {
     return {
       shouldDispatch: true,
       reason: "reconfirm_unverified_regular_close_history"
+    };
+  }
+
+  // 최신 정규장 종가 자체가 이미 확정되어 있어도 전량매도 가상추적 종목의 최신 가격이
+  // 비어 있으면 updater의 hypothetical 자동 보완 로직까지 workflow를 통과시킨다.
+  const missingHypotheticalTickers = krxMissingHypotheticalQuoteTickers(prices, portfolio);
+  if (missingHypotheticalTickers.length) {
+    return {
+      shouldDispatch: true,
+      reason: "missing_hypothetical_quotes",
+      missingHypotheticalTickers: missingHypotheticalTickers
     };
   }
 
@@ -6550,6 +6597,7 @@ const KRX_DURABLE_DECISION_REASONS = Object.freeze({
   finalize_intraday_after_close: true,
   reconfirm_regular_close: true,
   reconfirm_unverified_regular_close_history: true,
+  missing_hypothetical_quotes: true,
   before_open_already_closed: true,
   weekend_already_closed: true,
   possible_missing_dates: true,
@@ -7125,7 +7173,8 @@ function loadKrxInitialRemotePreflight(branch, date, requestId, requestHash, ope
   const marker = findKrxOperationMarker(operationHash);
   const requests = [
     { key: "durable", path: githubContentsApiPath(ledgerPath, branch), allow404: true },
-    { key: "prices", path: githubContentsApiPath("data/prices.json", branch), allow404: false }
+    { key: "prices", path: githubContentsApiPath("data/prices.json", branch), allow404: false },
+    { key: "portfolio", path: githubContentsApiPath("data/portfolio.json", branch), allow404: false }
   ].concat(krxActiveWorkflowQueryPaths(branch).map(function(path, index) {
     return { key: "active:" + index, path: path, allow404: false };
   }));
@@ -7142,6 +7191,7 @@ function loadKrxInitialRemotePreflight(branch, date, requestId, requestHash, ope
   const results = githubRequestManyGetSettled(requests);
   const durableResponse = results.find(function(item) { return item.key === "durable"; }) || null;
   const pricesResponse = results.find(function(item) { return item.key === "prices"; }) || null;
+  const portfolioResponse = results.find(function(item) { return item.key === "portfolio"; }) || null;
   const activeResponses = results.filter(function(item) { return String(item.key || "").indexOf("active:") === 0; });
 
   let durable = { loaded: true, value: null, current: null, error: null };
@@ -7162,6 +7212,12 @@ function loadKrxInitialRemotePreflight(branch, date, requestId, requestHash, ope
   const pricesCurrent = pricesError
     ? null
     : decodeGithubJsonContentsResult(pricesResponse.data, "data/prices.json", branch, {}, false);
+  const portfolioError = !portfolioResponse || portfolioResponse.ok !== true
+    ? (portfolioResponse && portfolioResponse.error ? portfolioResponse.error : new Error("KRX portfolio.json을 확인하지 못했습니다."))
+    : null;
+  const portfolioCurrent = portfolioError
+    ? null
+    : decodeGithubJsonContentsResult(portfolioResponse.data, "data/portfolio.json", branch, {}, false);
 
   const activeErrorResponse = activeResponses.find(function(item) { return item.ok !== true; }) || null;
   let activeRun = null;
@@ -7185,6 +7241,8 @@ function loadKrxInitialRemotePreflight(branch, date, requestId, requestHash, ope
     durable: durable,
     prices: pricesCurrent ? (pricesCurrent.data || {}) : null,
     pricesError: pricesError,
+    portfolio: portfolioCurrent ? (portfolioCurrent.data || {}) : null,
+    portfolioError: portfolioError,
     active: {
       loaded: true,
       run: activeRun,
@@ -7909,8 +7967,9 @@ function dispatchKrxPriceWorkflow(body) {
     retryRejectedDispatch = intentState.retryRejectedDispatch === true;
 
     if (initialPreflight.pricesError) throw initialPreflight.pricesError;
+    if (initialPreflight.portfolioError) throw initialPreflight.portfolioError;
     stageStartedAtMs = Date.now();
-    let decision = shouldDispatchKrxWorkflow(body, initialPreflight.prices);
+    let decision = shouldDispatchKrxWorkflow(body, initialPreflight.prices, initialPreflight.portfolio);
     recordKrxTimingStage(timing, "initialDecision", stageStartedAtMs);
     if (!decision.shouldDispatch) {
       stageStartedAtMs = Date.now();
