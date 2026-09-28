@@ -1291,7 +1291,7 @@ section{
   --hero-pill-color:#fbbf24;
 }
 .hero-title-badge-achievement{
-  --hero-pill-bg:rgba(244,63,94,.18);
+  --hero-pill-bg:rgba(244,63,94,.28);
   --hero-pill-border:rgba(251,113,133,.38);
   --hero-pill-color:#fecdd3;
 }
