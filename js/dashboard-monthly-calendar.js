@@ -49,6 +49,7 @@ function monthlyCalendarFocusFallbackSelector(){
   return '.topbar-monthly-action,#dateActionMenuButton';
 }
 const monthlyCalendarState={month:'',mode:'combined'};
+let monthlyCalendarBusinessDaysOnly=null;
 
 // [CAL02] Monthly Performance View Model · 합산/증권/퇴직연금 모두 core의 flow-neutral 일성과 helper를 재사용
 function monthlyCalendarMonths(){
@@ -211,6 +212,7 @@ function renderMonthlyCalendarModal(){
   const monthIndex=months.indexOf(month);
   const model=monthlyCalendarMonthModel(month,monthlyCalendarState.mode);
   const businessDaysOnly=phoneUi();
+  monthlyCalendarBusinessDaysOnly=businessDaysOnly;
   const weekdays=businessDaysOnly?MONTHLY_CALENDAR_BUSINESS_WEEKDAYS:MONTHLY_CALENDAR_WEEKDAYS;
   modal.innerHTML=`<div class="action-modal-card monthly-calendar-card" role="dialog" aria-modal="true" aria-labelledby="monthlyCalendarTitle">
     <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-close" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.close}" aria-label="월간 손익 닫기">${navIconSvg('close')}</button>
@@ -277,6 +279,29 @@ function refreshMonthlyCalendarLive(){
 }
 
 // [CAL04] Modal Lifecycle · 공통 dashboard-modal lifecycle 재사용
+// 열린 달력의 Phone/Web 구성이 바뀔 때만 재구성한다. 같은 구간의 resize와
+// 5초 시세 갱신은 기존 DOM을 유지하고, 월·조회 범위는 현재 탐색 상태를 따른다.
+function syncMonthlyCalendarViewport(){
+  const modal=document.getElementById('monthlyCalendarModal');
+  if(!modal?.classList.contains('show')||monthlyCalendarBusinessDaysOnly===phoneUi())return;
+  const active=document.activeElement;
+  const hadFocus=modal.contains(active);
+  const focusAttributes=['data-calendar-date','data-calendar-mode','data-dashboard-action'];
+  const focusAttribute=hadFocus?focusAttributes.find(name=>active.hasAttribute(name)):null;
+  const focusValue=focusAttribute?active.getAttribute(focusAttribute):null;
+  const card=modal.querySelector('.monthly-calendar-card');
+  const scrollTop=card?.scrollTop||0;
+  renderMonthlyCalendarModal();
+  if(hadFocus){
+    const target=(focusAttribute?[...modal.querySelectorAll(`[${focusAttribute}]`)].find(node=>node.getAttribute(focusAttribute)===focusValue):null)
+      ||modal.querySelector('[aria-current="date"]')
+      ||modal.querySelector('.monthly-calendar-mode-tab.active')
+      ||modal.querySelector('[data-dashboard-action="close-monthly-calendar"]');
+    target?.focus?.({preventScroll:true});
+  }
+  const nextCard=modal.querySelector('.monthly-calendar-card');
+  if(nextCard)nextCard.scrollTop=scrollTop;
+}
 function ensureMonthlyCalendarModal(){
   let modal=document.getElementById('monthlyCalendarModal');
   if(modal)return modal;
@@ -294,6 +319,7 @@ function openMonthlyCalendar(returnFocus=null){
   const months=monthlyCalendarMonths();
   monthlyCalendarState.month=months.includes(activeMonth)?activeMonth:months.at(-1)||'';
   renderMonthlyCalendarModal();
+  window.addEventListener('resize',syncMonthlyCalendarViewport,{passive:true});
   openDashboardModal(modal,{
     initialFocus:modal.querySelector('[aria-current="date"]')||modal.querySelector('[data-dashboard-action="monthly-calendar-previous"]')||modal.querySelector('[data-dashboard-action="monthly-calendar-next"]')||modal.querySelector('[data-dashboard-action="close-monthly-calendar"]'),
     returnFocus,
@@ -301,6 +327,7 @@ function openMonthlyCalendar(returnFocus=null){
   });
 }
 function closeMonthlyCalendar(){
+  window.removeEventListener('resize',syncMonthlyCalendarViewport);
   const modal=document.getElementById('monthlyCalendarModal');
   if(!modal)return;
   closeDashboardModal(modal,{fallbackSelector:monthlyCalendarFocusFallbackSelector()});
