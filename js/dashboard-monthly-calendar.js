@@ -127,9 +127,11 @@ function monthlyCalendarMonthModel(month,mode=monthlyCalendarState.mode){
   const total=comparable.reduce((sum,item)=>sum+item.profit,0);
   const positive=comparable.filter(item=>item.profit>0);
   const negative=comparable.filter(item=>item.profit<0);
+  const positiveTotal=positive.reduce((sum,item)=>sum+item.profit,0);
+  const negativeTotal=negative.reduce((sum,item)=>sum+item.profit,0);
   const best=comparable.length?comparable.reduce((winner,item)=>item.profit>winner.profit?item:winner):null;
   const worst=comparable.length?comparable.reduce((winner,item)=>item.profit<winner.profit?item:winner):null;
-  return {availableSet,dayModels,total,comparableCount:comparable.length,missingDates,positiveCount:positive.length,negativeCount:negative.length,best,worst};
+  return {availableSet,dayModels,total,comparableCount:comparable.length,missingDates,positiveCount:positive.length,negativeCount:negative.length,positiveTotal,negativeTotal,best,worst};
 }
 
 // [CAL03] Calendar Rendering · 손익 범위 switch / 전 viewport 월~금 5영업일 / 월간 요약
@@ -195,7 +197,7 @@ function renderMonthlyCalendarSummary(model){
     :model.comparableCount?'비교 가능한 거래일 합계':'비교 가능한 거래일 없음';
   return `<div class="monthly-calendar-summary" aria-label="월간 손익 요약">
     <div class="mini-card monthly-calendar-summary-card"><div class="m-label">월 손익</div><div class="m-value${totalClass}">${totalLabel}</div><div class="m-detail">${monthlyDetail}</div></div>
-    <div class="mini-card monthly-calendar-summary-card"><div class="m-label">상승 · 하락</div><div class="m-value">${model.positiveCount} · ${model.negativeCount}</div><div class="m-detail">상승 ${model.positiveCount}일 · 하락 ${model.negativeCount}일</div></div>
+    <div class="mini-card monthly-calendar-summary-card"><div class="m-label">상승 · 하락</div><div class="m-value">${model.positiveCount} · ${model.negativeCount}</div><div class="m-detail">상승 ${monthlyCalendarExactProfitLabel(model.positiveTotal)} · 하락 ${monthlyCalendarExactProfitLabel(model.negativeTotal)}</div></div>
     <div class="mini-card monthly-calendar-summary-card"><div class="m-label">최고일</div><div class="m-value${bestClass}">${model.best?`${model.best.day}일`:'-'}</div><div class="m-detail${bestClass}">${monthlyCalendarSummaryDetail(model.best)}</div></div>
     <div class="mini-card monthly-calendar-summary-card"><div class="m-label">최저일</div><div class="m-value${worstClass}">${model.worst?`${model.worst.day}일`:'-'}</div><div class="m-detail${worstClass}">${monthlyCalendarSummaryDetail(model.worst)}</div></div>
   </div>`;
