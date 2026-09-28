@@ -2249,6 +2249,7 @@ test('전량매도 취소선과 거래 상세 tooltip은 동일한 공통 lifecy
   assert.match(uiCommon,/data-sale-hypo-eval/);
   assert.match(uiCommon,/data-sale-hypo-profit/);
   assert.match(uiCommon,/지금까지 안 팔았다면\?/);
+  assert.match(uiCommon,/diff>0\?'\(팔길 잘했네요!\)':diff<0\?'\(존버가 승리\.\.\.\)':''/);
   assert.match(uiCommon,/현재 시세 없음/);
   assert.match(core,/const securityHypotheticalLatestQuote=ticker=>/);
   assert.match(core,/const hypotheticalQuote=securityHypotheticalLatestQuote\(ticker\)/);

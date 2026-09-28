@@ -656,13 +656,13 @@ function securitySaleTooltipHtml(target){
   if(data.saleHypoAvailable==='true'){
     const diff=Number(data.saleDiff);
     const diffValue=signed(diff,'원');
-    const diffText=diff>=0?'실제 매도 우위':'계속 보유 우위';
+    const diffText=diff>0?'(팔길 잘했네요!)':diff<0?'(존버가 승리...)':'';
     const basisDate=data.saleHypoDate?`${data.saleHypoDate} 기준`:'';
     hypoRows=[
       assetSourceTooltipRow('현재 기준가',`${data.saleHypoPrice}${basisDate?` · ${basisDate}`:''}`),
       assetSourceTooltipRow('가상 평가금액',data.saleHypoEval),
       assetSourceTooltipRow('지금까지 안 팔았다면?',data.saleHypoProfit),
-      `<div class="tt-row"><span class="tt-name">실제 매도와 차이</span><span class="tt-val ${diff>=0?'tt-pos':'tt-neg'}">${escapeHtml(diffValue)} <span>${escapeHtml(diffText)}</span></span></div>`
+      `<div class="tt-row"><span class="tt-name">실제 매도와 차이</span><span class="tt-val ${diff>0?'tt-pos':diff<0?'tt-neg':''}">${escapeHtml(diffValue)}${diffText?` <span>${escapeHtml(diffText)}</span>`:''}</span></div>`
     ].filter(Boolean).join('');
   }else{
     hypoRows=assetSourceTooltipRow('지금까지 안 팔았다면?','현재 시세 없음');
