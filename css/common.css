@@ -3458,6 +3458,7 @@ html.dark button.monthly-calendar-day.is-gloomy {
   padding:var(--space-4xl);
 }
 .monthly-calendar-summary-card .m-detail{color:var(--text-secondary)}
+.monthly-calendar-summary-rise-fall-compact{display:none}
 /* Portfolio Heatmap · dense treemap visualization. 공통 modal/tab/tooltip primitive 위에 시각화 geometry만 소유 */
 .portfolio-heatmap-modal{
   z-index:13300;

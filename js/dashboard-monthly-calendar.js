@@ -185,7 +185,7 @@ function renderMonthlyCalendarGrid(month,model){
 }
 function monthlyCalendarSummaryDetail(item){
   if(!item)return '비교 가능한 거래일 없음';
-  return `${item.day}일 · ${monthlyCalendarExactProfitLabel(item.profit)}`;
+  return monthlyCalendarExactProfitLabel(item.profit);
 }
 function renderMonthlyCalendarSummary(model){
   const totalClass=model.total>0?' positive':model.total<0?' negative':'';
@@ -197,7 +197,7 @@ function renderMonthlyCalendarSummary(model){
     :model.comparableCount?'비교 가능한 거래일 합계':'비교 가능한 거래일 없음';
   return `<div class="monthly-calendar-summary" aria-label="월간 손익 요약">
     <div class="mini-card monthly-calendar-summary-card"><div class="m-label">월 손익</div><div class="m-value${totalClass}">${totalLabel}</div><div class="m-detail">${monthlyDetail}</div></div>
-    <div class="mini-card monthly-calendar-summary-card"><div class="m-label">상승 · 하락</div><div class="m-value">${model.positiveCount} · ${model.negativeCount}</div><div class="m-detail">상승 ${monthlyCalendarExactProfitLabel(model.positiveTotal)} · 하락 ${monthlyCalendarExactProfitLabel(model.negativeTotal)}</div></div>
+    <div class="mini-card monthly-calendar-summary-card"><div class="m-label">상승 · 하락</div><div class="m-value">${model.positiveCount} · ${model.negativeCount}</div><div class="m-detail"><span class="monthly-calendar-summary-rise-fall-full">상승 ${monthlyCalendarExactProfitLabel(model.positiveTotal)} · 하락 ${monthlyCalendarExactProfitLabel(model.negativeTotal)}</span><span class="monthly-calendar-summary-rise-fall-compact">${monthlyCalendarExactProfitLabel(model.positiveTotal)}·${monthlyCalendarExactProfitLabel(model.negativeTotal)}</span></div></div>
     <div class="mini-card monthly-calendar-summary-card"><div class="m-label">최고일</div><div class="m-value${bestClass}">${model.best?`${model.best.day}일`:'-'}</div><div class="m-detail${bestClass}">${monthlyCalendarSummaryDetail(model.best)}</div></div>
     <div class="mini-card monthly-calendar-summary-card"><div class="m-label">최저일</div><div class="m-value${worstClass}">${model.worst?`${model.worst.day}일`:'-'}</div><div class="m-detail${worstClass}">${monthlyCalendarSummaryDetail(model.worst)}</div></div>
   </div>`;

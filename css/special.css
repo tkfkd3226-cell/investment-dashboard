@@ -398,6 +398,15 @@
       --mini-detail-size:var(--type-size-2xs);
       padding:var(--space-lg);
     }
+    /* Monthly Calendar Phone · 심호흡은 날짜 아래로 내리고 상승/하락 합계는 compact 표기만 사용 */
+    button.monthly-calendar-day.is-gloomy::before{
+      top:calc(var(--space-md) + var(--monthly-calendar-day-size) + var(--space-2xs));
+      right:auto;
+      left:var(--space-md);
+      font-size:var(--type-size-2xs);
+    }
+    .monthly-calendar-summary-rise-fall-full{display:none}
+    .monthly-calendar-summary-rise-fall-compact{display:inline}
 
     /* Realtime Quotes Phone · 세로/가로폰 모두 5px shell padding을 고정하고
        외부 Monitor 배경과 shell 색상을 일치시킨다. */
