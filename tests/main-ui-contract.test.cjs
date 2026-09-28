@@ -995,7 +995,7 @@ test('Market AI responsive 전환은 Phone inline owner와 content-driven card l
   const tabletHero=tablet.slice(tabletHeroStart,tabletHeroEnd);
   assert.match(tabletHero,/--hero-pad:var\(--space-[^)]+\);/,'Tablet Hero padding은 spacing token으로 소유해야 한다');
   assert.match(tabletHero,/--market-ai-hero-edge-gap:var\(--space-[^)]+\);/,'Tablet Market AI edge gap은 raw px가 아니라 spacing token으로 소유해야 한다');
-  assert.match(common,/--market-ai-hero-edge-gap:var\(--space-xl\);/,'Web Market AI 우측 여백은 7px spacing token을 사용해야 한다');
+  assert.match(common,/--market-ai-hero-edge-gap:var\(--space-lg\);/,'Web Market AI 우측 여백은 6px spacing token을 사용해야 한다');
   assert.match(tabletHero,/--market-ai-hero-edge-gap:var\(--space-sm\);/,'Tablet Market AI 우측 여백은 4px token을 유지해야 한다');
   assert.match(tabletHero,/--hero-title-size:var\(--type-size-[^)]+\);[^]*--hero-basis-size:var\(--type-size-[^)]+\);[^]*--hero-pill-size:var\(--type-size-[^)]+\);/s,'Tablet Hero typography는 type scale token을 사용해야 한다');
   assert.doesNotMatch(tabletHero,/--(?:hero-pad|market-ai-hero-edge-gap|hero-title-size|hero-basis-size|hero-pill-size):[^;]*\d+(?:\.\d+)?px/,'Tablet Hero 핵심 geometry/typography에 raw px를 다시 넣으면 안 된다');

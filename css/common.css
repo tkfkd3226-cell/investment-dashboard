@@ -473,7 +473,7 @@
   /* Market AI Component Contract · 고유 geometry만 보유하고 surface/type/color는 메인 primitive를 재사용 */
   --market-ai-column-max:410px;
   --market-ai-layout-gap:var(--space-3xl);
-  --market-ai-hero-edge-gap:var(--space-xl);
+  --market-ai-hero-edge-gap:var(--space-lg);
   --market-ai-title-size:var(--type-size-sm);
   --market-ai-status-size:var(--type-size-2xs);
   --market-ai-label-size:var(--type-size-2xs);
