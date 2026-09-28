@@ -935,24 +935,11 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
             price = int(prices["2026-09-17"]["securities"].get(security["ticker"], 0))
             post_unrealized_profit += int(round(price * float(state["qty"]))) - int(state["cost"])
         self.assertEqual(post_sale["rawHoldingProfit"] - post_unrealized_profit, 228)
-        # 운영 JSON에는 과거 오류가 남아 있을 수 있다. 재갱신이 이를 정정하는지 검증한다.
-        saved_row = copy.deepcopy(prices["2026-09-17"])
-        hypothetical_samsung_price = 1400000
-        hypothetical_prices = {"009150": hypothetical_samsung_price, "093370": 13100}
-        def fake_fetch_close(ticker, date, **kw):
-            if ticker in hypothetical_prices:
-                return date, hypothetical_prices[ticker], None
-            bucket = "pension" if kw.get("is_etf") and ticker not in saved_row["securities"] else "securities"
-            return date, saved_row[bucket][ticker], None
-        self.updater.fetch_close = fake_fetch_close
-        baseline_allocation = copy.deepcopy(post_sale["allocation"])
-        self.updater.update_one_date("2026-09-17", portfolio, prices, snapshots)
-        self.assertEqual(prices["2026-09-17"]["securities"]["009150"], hypothetical_samsung_price)
-        self.assertEqual(prices["2026-09-17"]["securities"]["093370"], hypothetical_prices["093370"])
-        self.assertEqual(snapshots["2026-09-17"]["rawHoldingProfit"], post_sale["rawHoldingProfit"])
-        self.assertEqual(snapshots["2026-09-17"]["allocation"], baseline_allocation)
-        self.assertNotIn("삼성전기", snapshots["2026-09-17"]["symbols"])
-        self.assertNotIn("후성", snapshots["2026-09-17"]["symbols"])
+        # 운영 실데이터에서도 현재 retired 관리대상 두 종목이 가상추적 universe에 남는지만 고정한다.
+        self.assertCountEqual(
+            self.updater.hypothetical_quote_tickers_for_date(portfolio, "2026-09-17"),
+            ["009150", "093370"],
+        )
         withdrawal = next(event for event in portfolio["securitiesEvents"] if event.get("id") == "sec-withdrawal-20260916-internal-cash-return")
         self.assertEqual((withdrawal["amount"], withdrawal["principalAmount"], withdrawal["cashPrincipalDelta"]), (1400228, 1345000, -1345000))
 

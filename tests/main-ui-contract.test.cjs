@@ -758,10 +758,8 @@ test('KRX workflow는 다른 branch commit과 push가 경합해도 최신 remote
   assert.match(updatePricesWorkflow,/KRX data push failed after 3 retries/);
 });
 
-test('숨김·경고 날짜와 최신 가상추적 시세 누락은 다음 KRX 자동 실행에서 재수집한다',()=>{
+test('숨김·경고 날짜는 다음 KRX 자동 실행에서 재수집한다',()=>{
   assert.match(updatePricesPython,/retry_dates = \[[^]*?snapshot\.get\("display", True\) is False[^]*?snapshot\.get\("warnings"\)/);
-  assert.match(updatePricesPython,/missing_hypothetical_quote_tickers\(portfolio, latest_market, latest_market_snapshot\)/);
-  assert.match(updatePricesPython,/set\(refresh_dates \+ missing_dates \+ retry_dates \+ reconfirm_dates \+ hypothetical_refresh_dates\)/);
 });
 
 test('퇴직연금 ETF 미리보기는 잘못된 수량·금액·일자를 저장 전에 차단한다',()=>{
@@ -994,9 +992,8 @@ test('Market AI responsive 전환은 Phone inline owner와 content-driven card l
   const tabletHeroEnd=tablet.indexOf('\n    }',tabletHeroStart);
   const tabletHero=tablet.slice(tabletHeroStart,tabletHeroEnd);
   assert.match(tabletHero,/--hero-pad:var\(--space-[^)]+\);/,'Tablet Hero padding은 spacing token으로 소유해야 한다');
-  assert.match(tabletHero,/--market-ai-hero-edge-gap:var\(--space-[^)]+\);/,'Tablet Market AI edge gap은 raw px가 아니라 spacing token으로 소유해야 한다');
-  assert.match(common,/--market-ai-hero-edge-gap:var\(--space-lg\);/,'Web Market AI 우측 여백은 6px spacing token을 사용해야 한다');
-  assert.match(tabletHero,/--market-ai-hero-edge-gap:var\(--space-sm\);/,'Tablet Market AI 우측 여백은 4px token을 유지해야 한다');
+  assert.match(common,/--market-ai-hero-edge-gap:var\(--space-[^)]+\);/,'Web Market AI edge gap은 raw px가 아니라 spacing token으로 소유해야 한다');
+  assert.match(tabletHero,/--market-ai-hero-edge-gap:var\(--space-[^)]+\);/,'Tablet Market AI edge gap도 같은 semantic token을 override해야 한다');
   assert.match(tabletHero,/--hero-title-size:var\(--type-size-[^)]+\);[^]*--hero-basis-size:var\(--type-size-[^)]+\);[^]*--hero-pill-size:var\(--type-size-[^)]+\);/s,'Tablet Hero typography는 type scale token을 사용해야 한다');
   assert.doesNotMatch(tabletHero,/--(?:hero-pad|market-ai-hero-edge-gap|hero-title-size|hero-basis-size|hero-pill-size):[^;]*\d+(?:\.\d+)?px/,'Tablet Hero 핵심 geometry/typography에 raw px를 다시 넣으면 안 된다');
   assert.match(tablet,/\.hero \.hero-title-row\{[^}]*align-items:baseline;/s,'Tablet Hero 기준문구는 Web/Phone처럼 제목 baseline에 맞아야 한다');

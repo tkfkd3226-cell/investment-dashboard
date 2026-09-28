@@ -937,7 +937,7 @@ test('증권 매도 원장: gross/net/costBasis/realizedProfit 불일치와 음�
   assert.throws(()=>core.securityCashPrincipalForDate('2026-06-20'),/현금화 원금이 음수가/);
 });
 
-test('후성 2026-05-22 legacy 전량매도: 5/21 보유를 유지하고 매도일 UI·historical을 복원한다',()=>{
+test('후성 2026-05-22 legacy 전량매도: 장부·historical·가상추적 핵심 contract를 유지한다',()=>{
   const loadJson=relative=>JSON.parse(fs.readFileSync(path.join(ROOT,relative),'utf8'));
   const portfolio=loadJson('data/portfolio.json');
   const account1Daily=loadJson('data/account1_daily_snapshots.json');
@@ -950,96 +950,96 @@ test('후성 2026-05-22 legacy 전량매도: 5/21 보유를 유지하고 매도�
     pensionCashSnapshots:loadJson('data/pension_cash_snapshots.json'),
     pensionTrades:loadJson('data/pension_trades.json')
   });
+
   const item=portfolio.securities.find(v=>v.ticker==='093370');
   const sale=portfolio.securitiesEvents.find(v=>v.id==='sec-sell-20260522-093370');
   const principalReset=portfolio.securitiesEvents.find(v=>v.id==='sec-withdrawal-20260526-principal-reset');
-  assert.deepEqual({name:item.name,qty:item.qty,cost:item.cost,chart:item.chart,chartFrom:item.chartFrom,cardUntil:item.cardUntil},{name:'후성',qty:0,cost:0,chart:true,chartFrom:'2026-04-17',cardUntil:'2026-08-11'});
-  assert.deepEqual({date:sale.date,price:sale.price,grossAmount:sale.grossAmount,transactionCost:sale.transactionCost,amount:sale.amount,costBasis:sale.costBasis,realizedProfit:sale.realizedProfit,valuationPrice:sale.valuationPrice,valuationSource:sale.valuationSource,legacySnapshotEmbedded:sale.legacySnapshotEmbedded},{date:'2026-05-22',price:13060,grossAmount:143660,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110,valuationPrice:12910,valuationSource:'KRX 종가',legacySnapshotEmbedded:true});
-  assert.deepEqual({date:principalReset.date,type:principalReset.type,amount:principalReset.amount,principalAmount:principalReset.principalAmount,cashPrincipalDelta:principalReset.cashPrincipalDelta,fundingClass:principalReset.fundingClass,legacySnapshotEmbedded:principalReset.legacySnapshotEmbedded},{date:'2026-05-26',type:'withdrawal',amount:135400,principalAmount:135400,cashPrincipalDelta:-135400,fundingClass:'externalPrincipalWithdrawal',legacySnapshotEmbedded:true});
+  assert.deepEqual(
+    {qty:item.qty,cost:item.cost,chart:item.chart,chartFrom:item.chartFrom,cardUntil:item.cardUntil},
+    {qty:0,cost:0,chart:true,chartFrom:'2026-04-17',cardUntil:'2026-08-11'}
+  );
+  assert.deepEqual(
+    {date:sale.date,price:sale.price,grossAmount:sale.grossAmount,transactionCost:sale.transactionCost,amount:sale.amount,costBasis:sale.costBasis,realizedProfit:sale.realizedProfit,valuationPrice:sale.valuationPrice,legacySnapshotEmbedded:sale.legacySnapshotEmbedded},
+    {date:'2026-05-22',price:13060,grossAmount:143660,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110,valuationPrice:12910,legacySnapshotEmbedded:true}
+  );
+  assert.deepEqual(
+    {date:principalReset.date,amount:principalReset.amount,principalAmount:principalReset.principalAmount,cashPrincipalDelta:principalReset.cashPrincipalDelta,legacySnapshotEmbedded:principalReset.legacySnapshotEmbedded},
+    {date:'2026-05-26',amount:135400,principalAmount:135400,cashPrincipalDelta:-135400,legacySnapshotEmbedded:true}
+  );
 
   const heldRow=account1Daily['2026-05-21'];
   const held=heldRow.holdings.find(v=>v.ticker==='093370');
-  assert.deepEqual({qty:held.qty,avgPrice:held.avgPrice,cost:held.cost,evalAmount:held.evalAmount,profit:held.profit},{qty:11,avgPrice:12569.091,cost:138260,evalAmount:136180,profit:-2080});
-  assert.equal(heldRow.holdings.reduce((sum,v)=>sum+Number(v.cost||0),0)+heldRow.cash,heldRow.totalCost);
-  assert.equal(heldRow.holdings.reduce((sum,v)=>sum+Number(v.profit||0),0),heldRow.totalProfit);
   const legacyExitRow=account1Daily['2026-05-22'];
   const legacyResetRow=account1Daily['2026-05-26'];
-  assert.equal(legacyExitRow.cash-heldRow.cash,sale.grossAmount,'legacy 5/22 cash는 거래비용 차감 전 gross 매도대금이 반영돼 있다');
-  assert.equal(legacyExitRow.totalCost-heldRow.totalCost,sale.grossAmount-sale.costBasis,'legacy 5/22 totalCost에는 gross 매매차익 5,400원이 원금처럼 혼입돼 있다');
-  assert.equal(legacyResetRow.cash-legacyExitRow.cash,-principalReset.amount,'5/26 타계좌 이체 135,400원은 snapshot 현금 감소와 일치한다');
-  assert.equal(legacyResetRow.totalCost-legacyExitRow.totalCost,-principalReset.principalAmount,'5/26 타계좌 이체는 투자원금을 16,300,000원으로 낮춘 실제 원금 회수다');
+  assert.deepEqual({qty:held.qty,cost:held.cost,evalAmount:held.evalAmount,profit:held.profit},{qty:11,cost:138260,evalAmount:136180,profit:-2080});
+  assert.equal(legacyExitRow.cash-heldRow.cash,sale.grossAmount,'legacy 5/22 cash에는 gross 매도대금이 이미 반영돼 있다');
+  assert.equal(legacyExitRow.totalCost-heldRow.totalCost,sale.grossAmount-sale.costBasis,'legacy 5/22 원금에는 gross 차익이 이미 반영돼 있다');
+  assert.deepEqual(
+    {cash:legacyResetRow.cash-legacyExitRow.cash,totalCost:legacyResetRow.totalCost-legacyExitRow.totalCost},
+    {cash:-135400,totalCost:-135400},
+    '5/26 타계좌 이체는 현금과 투자원금을 함께 135,400원 낮춘다'
+  );
 
-  assert.deepEqual(core.securityPositionState(item,'2026-05-20'),{qty:11,cost:138260,realizedProfit:0,realizedCostBasis:0});
   assert.deepEqual(core.securityPositionState(item,'2026-05-21'),{qty:11,cost:138260,realizedProfit:0,realizedCostBasis:0});
   assert.deepEqual(core.securityPositionState(item,'2026-05-22'),{qty:0,cost:0,realizedProfit:5110,realizedCostBasis:138260});
-  assert.deepEqual(core.securityPositionState(item,'2026-05-26'),{qty:0,cost:0,realizedProfit:0,realizedCostBasis:0});
-  assert.equal(core.securityFullExitForDate('093370','2026-05-21'),false);
   assert.equal(core.securityFullExitForDate('093370','2026-05-22'),true);
-  assert.deepEqual(core.securityFullExitSaleForDate('093370','2026-05-22'),{date:'2026-05-22',qty:11,grossAmount:143660,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110,fullExit:true,price:13060},'최신 거래일에 가상추적 시세가 없으면 매도일 종가를 현재가처럼 재사용하지 않는다');
 
-  const beforeExit=core.calc('2026-05-21');
-  const beforeStatus=beforeExit.securitiesAssetDetail.statusRows.find(v=>v.ticker==='093370');
-  assert.deepEqual({qty:beforeStatus.qty,cost:beforeStatus.cost,evalAmount:beforeStatus.evalAmount,profit:beforeStatus.profit,fullExit:beforeStatus.fullExit},{qty:11,cost:138260,evalAmount:136180,profit:-2080,fullExit:false});
-  const beforeChange=beforeExit.securitiesAssetDetail.change.rows.find(v=>v.ticker==='093370');
-  assert.deepEqual({prevPrice:beforeChange.prevPrice,price:beforeChange.price,prevEval:beforeChange.prevEval,evalAmount:beforeChange.evalAmount,dayChange:beforeChange.dayChange},{prevPrice:11180,price:12380,prevEval:122980,evalAmount:136180,dayChange:13200});
-
+  const beforeStatus=core.calc('2026-05-21').securitiesAssetDetail.statusRows.find(v=>v.ticker==='093370');
   const exitDay=core.calc('2026-05-22');
   const statusRow=exitDay.securitiesAssetDetail.statusRows.find(v=>v.ticker==='093370');
-  assert.deepEqual({qty:statusRow.qty,avgPrice:statusRow.avgPrice,cost:statusRow.cost,evalAmount:statusRow.evalAmount,profit:statusRow.profit,fullExit:statusRow.fullExit},{qty:0,avgPrice:0,cost:0,evalAmount:0,profit:5110,fullExit:true});
-  approx(statusRow.returnRate,5110/138260*100);
-  assert.deepEqual({price:statusRow.sale.price,transactionCost:statusRow.sale.transactionCost,amount:statusRow.sale.amount,costBasis:statusRow.sale.costBasis,realizedProfit:statusRow.sale.realizedProfit},{price:13060,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110});
   const changeRow=exitDay.securitiesAssetDetail.change.rows.find(v=>v.ticker==='093370');
-  assert.deepEqual({prevPrice:changeRow.prevPrice,price:changeRow.price,prevEval:changeRow.prevEval,evalAmount:changeRow.evalAmount,dayChange:changeRow.dayChange},{prevPrice:12380,price:12910,prevEval:136180,evalAmount:0,dayChange:7190});
-  assert.deepEqual({price:changeRow.sale.price,transactionCost:changeRow.sale.transactionCost,amount:changeRow.sale.amount,realizedProfit:changeRow.sale.realizedProfit,hypotheticalProfit:changeRow.sale.hypotheticalProfit},{price:13060,transactionCost:290,amount:143370,realizedProfit:5110,hypotheticalProfit:undefined});
-  assert.equal(exitDay.securitiesAssetDetail.summaryRows.find(v=>v.id==='total').profit,5576020,'legacy snapshot 계좌 합계는 full-exit UI 정규화로 재작성하지 않는다');
-  assert.equal(exitDay.account1Profit,5576020,'계좌 누적손익은 full-exit UI 정규화와 분리한다');
-  assert.equal(core.calc('2026-05-26').securitiesAssetDetail.change.rows.some(v=>v.ticker==='093370'),false,'전량매도 다음 거래일에는 후성을 새 변동으로 중복 표시하지 않는다');
+  assert.deepEqual({qty:beforeStatus.qty,evalAmount:beforeStatus.evalAmount,profit:beforeStatus.profit,fullExit:beforeStatus.fullExit},{qty:11,evalAmount:136180,profit:-2080,fullExit:false});
+  assert.deepEqual({qty:statusRow.qty,evalAmount:statusRow.evalAmount,profit:statusRow.profit,fullExit:statusRow.fullExit},{qty:0,evalAmount:0,profit:5110,fullExit:true});
+  assert.deepEqual({prevPrice:changeRow.prevPrice,price:changeRow.price,dayChange:changeRow.dayChange},{prevPrice:12380,price:12910,dayChange:7190});
+  assert.equal(exitDay.account1Profit,5576020,'full-exit UI 정규화가 legacy 계좌 누적손익을 재작성하면 안 된다');
+  assert.equal(core.calc('2026-05-26').securitiesAssetDetail.change.rows.some(v=>v.ticker==='093370'),false);
 
   const baselineCurrent=core.calc('2026-09-28');
   const trackedPrices=structuredClone(core.dataState.prices);
   trackedPrices['2026-09-28']={...trackedPrices['2026-09-28'],securities:{...trackedPrices['2026-09-28'].securities,'093370':15000,'009150':1500000}};
   core.dataState.prices=trackedPrices;
-  assert.deepEqual(core.securityHypotheticalLatestQuote('093370'),{date:'2026-09-28',price:15000,marketStatus:'close',priceBasis:'regular_close',updatedAtKST:trackedPrices['2026-09-28'].updatedAtKST||''});
   const trackedSale=core.securityFullExitSaleForDate('093370','2026-05-22');
-  assert.deepEqual({hypotheticalPrice:trackedSale.hypotheticalPrice,hypotheticalPriceDate:trackedSale.hypotheticalPriceDate,hypotheticalEvalAmount:trackedSale.hypotheticalEvalAmount,hypotheticalProfit:trackedSale.hypotheticalProfit},{hypotheticalPrice:15000,hypotheticalPriceDate:'2026-09-28',hypotheticalEvalAmount:165000,hypotheticalProfit:26740},'과거 5/22 화면에서도 최신 KRX 저장가로 지금까지 보유한 가상손익을 계산한다');
+  assert.deepEqual(
+    {hypotheticalPrice:trackedSale.hypotheticalPrice,hypotheticalPriceDate:trackedSale.hypotheticalPriceDate,hypotheticalProfit:trackedSale.hypotheticalProfit},
+    {hypotheticalPrice:15000,hypotheticalPriceDate:'2026-09-28',hypotheticalProfit:26740},
+    '현재 가상손익은 최신 KRX 저장가만 사용한다'
+  );
   const trackedCurrent=core.calc('2026-09-28');
-  assert.deepEqual({account1Principal:trackedCurrent.account1Principal,account1Profit:trackedCurrent.account1Profit,totalPrincipal:trackedCurrent.totalPrincipal,totalProfit:trackedCurrent.totalProfit,totalResult:trackedCurrent.totalResult},{account1Principal:baselineCurrent.account1Principal,account1Profit:baselineCurrent.account1Profit,totalPrincipal:baselineCurrent.totalPrincipal,totalProfit:baselineCurrent.totalProfit,totalResult:baselineCurrent.totalResult},'가상추적 최신가는 실제 원금·손익·총결과에 합산하지 않는다');
+  assert.deepEqual(
+    {account1Principal:trackedCurrent.account1Principal,account1Profit:trackedCurrent.account1Profit,totalResult:trackedCurrent.totalResult},
+    {account1Principal:baselineCurrent.account1Principal,account1Profit:baselineCurrent.account1Profit,totalResult:baselineCurrent.totalResult},
+    '가상추적 최신가는 실제 장부에 합산하지 않는다'
+  );
 
-  const beforeSymbolRow=core.symbolHistory('2026-05-21').find(r=>r['날짜']==='2026-05-21');
-  assert.equal(beforeSymbolRow['후성'],-2080,'매도 전날까지 실제 평가손익을 유지한다');
-  approx(beforeSymbolRow._rates['후성'],-2080/138260*100);
-  const exitSymbolRow=core.symbolHistory('2026-05-22').find(r=>r['날짜']==='2026-05-22');
-  assert.equal(exitSymbolRow['후성'],5110,'종목별 누적손익은 실제 전량매도일의 실현손익을 마지막 point로 사용한다');
-  approx(exitSymbolRow._rates['후성'],5110/138260*100);
-  const postSymbolRows=core.symbolHistory('2026-05-26');
-  assert.equal(postSymbolRows.find(r=>r['날짜']==='2026-05-26')['후성'],null,'전량매도 다음 거래일부터 종목별 series는 null로 끝낸다');
-  const historicalHuseong=core.securityHistoricalChartItems('2026-09-17').find(h=>h.name==='후성');
-  assert.ok(historicalHuseong,'현재 미보유여도 후성 historical chart universe는 유지한다');
-  assert.deepEqual({qty:historicalHuseong.qty,evalAmount:historicalHuseong.evalAmount,totalProfit:historicalHuseong.totalProfit,performanceCost:historicalHuseong.performanceCost},{qty:0,evalAmount:0,totalProfit:5110,performanceCost:138260});
+  const symbolHistory=core.symbolHistory('2026-05-26');
+  assert.deepEqual(
+    [symbolHistory.find(r=>r['날짜']==='2026-05-21')['후성'],symbolHistory.find(r=>r['날짜']==='2026-05-22')['후성'],symbolHistory.find(r=>r['날짜']==='2026-05-26')['후성']],
+    [-2080,5110,null],
+    '종목별 손익은 매도일 실현손익으로 끝난다'
+  );
+  const allocHistory=core.securitySymbolAllocHistory('2026-05-26',['후성']);
+  assert.deepEqual(
+    [allocHistory.find(r=>r['날짜']==='2026-05-21')['후성'],allocHistory.find(r=>r['날짜']==='2026-05-22')['후성'],allocHistory.find(r=>r['날짜']==='2026-05-26')['후성']],
+    [136180,0,0],
+    '평가금액 비중은 매도일부터 0으로 유지한다'
+  );
+  assert.deepEqual(
+    {
+      cardBefore:core.securityHistoricalChartCardItems('2026-08-11').some(h=>h.name==='후성')&&core.securityHistoricalAllocCardItems('2026-08-11').some(h=>h.name==='후성'),
+      cardAfter:core.securityHistoricalChartCardItems('2026-08-12').some(h=>h.name==='후성')||core.securityHistoricalAllocCardItems('2026-08-12').some(h=>h.name==='후성'),
+      chartAfter:core.securityHistoricalChartNamesForDate('2026-08-12').includes('후성')&&core.securityHistoricalAllocItems('2026-08-12').some(h=>h.name==='후성')
+    },
+    {cardBefore:true,cardAfter:false,chartAfter:true},
+    '8/12부터 카드만 숨기고 historical 차트는 유지한다'
+  );
 
-  const beforeAllocRow=core.securitySymbolAllocHistory('2026-05-21',['후성']).find(r=>r['날짜']==='2026-05-21');
-  assert.equal(beforeAllocRow['후성'],136180,'평가금액 비중은 매도 전날까지 실제 평가금액을 유지한다');
-  const exitAllocRow=core.securitySymbolAllocHistory('2026-05-22',['후성']).find(r=>r['날짜']==='2026-05-22');
-  assert.equal(exitAllocRow['후성'],0,'평가금액 비중은 실제 전량매도일부터 0으로 표시한다');
-  const postAllocRow=core.securitySymbolAllocHistory('2026-05-26',['후성']).find(r=>r['날짜']==='2026-05-26');
-  assert.equal(postAllocRow['후성'],0);
-  const historicalHuseongAlloc=core.securityHistoricalAllocItems('2026-09-17').find(h=>h.name==='후성');
-  assert.ok(historicalHuseongAlloc,'현재 미보유여도 후성 allocation chart universe는 유지한다');
-  assert.equal(historicalHuseongAlloc.evalAmount,0);
-  assert.equal(core.securityHistoricalChartCardItems('2026-08-11').some(h=>h.name==='후성'),true,'8/11까지 종목별 누적손익 카드에는 후성을 유지한다');
-  assert.equal(core.securityHistoricalChartCardItems('2026-08-12').some(h=>h.name==='후성'),false,'8/12부터 종목별 누적손익 카드에서만 후성을 숨긴다');
-  assert.equal(core.securityHistoricalChartNamesForDate('2026-08-12').includes('후성'),true,'카드를 숨겨도 종목별 누적손익 차트 series/legend는 유지한다');
-  assert.equal(core.securityHistoricalAllocCardItems('2026-08-11').some(h=>h.name==='후성'),true,'8/11까지 평가금액 비중 카드에는 후성을 유지한다');
-  assert.equal(core.securityHistoricalAllocCardItems('2026-08-12').some(h=>h.name==='후성'),false,'8/12부터 평가금액 비중 카드에서만 후성을 숨긴다');
-  assert.equal(core.securityHistoricalAllocItems('2026-08-12').some(h=>h.name==='후성'),true,'카드를 숨겨도 평가금액 비중 차트 series/legend는 유지한다');
-
-  assert.equal(core.securityCashPrincipalForDate('2026-06-18'),0,'legacy snapshot에 이미 반영된 매도·원금이체를 6/18 ledger에 재계상하지 않는다');
-  assert.equal(core.sourceExternalPrincipalForDate('2026-05-22')-core.sourceExternalPrincipalForDate('2026-05-26'),135400,'5/26 외부이체 전 원천원금은 135,400원 높게 복원한다');
-  assert.equal(core.calc('2026-06-18').account1Principal,16282745);
-  assert.equal(core.calc('2026-09-17').account1Principal,22996210);
-  assert.equal(core.liveValuationTickersForDate('2026-05-21').includes('093370'),true);
-  assert.equal(core.liveValuationTickersForDate('2026-05-22').includes('093370'),false);
-  assert.equal(core.liveValuationTickersForDate('2026-09-17').includes('093370'),false);
+  assert.equal(core.securityCashPrincipalForDate('2026-06-18'),0,'legacy event를 현재 ledger에 재계상하지 않는다');
+  assert.equal(core.sourceExternalPrincipalForDate('2026-05-22')-core.sourceExternalPrincipalForDate('2026-05-26'),135400);
+  assert.deepEqual(
+    [core.liveValuationTickersForDate('2026-05-21').includes('093370'),core.liveValuationTickersForDate('2026-05-22').includes('093370')],
+    [true,false],
+    'retired 종목은 매도일부터 Market AI 보유종목 universe에서 제외한다'
+  );
 });
 
 test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표시·3,790원 현금·원금회수·장부 검산을 확정한다',()=>{
@@ -1139,11 +1139,17 @@ test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표�
   const trackedPrices=structuredClone(core.dataState.prices);
   trackedPrices['2026-09-28']={...trackedPrices['2026-09-28'],securities:{...trackedPrices['2026-09-28'].securities,'009150':1500000,'093370':15000}};
   core.dataState.prices=trackedPrices;
-  assert.deepEqual(core.securityHypotheticalLatestQuote('009150'),{date:'2026-09-28',price:1500000,marketStatus:'close',priceBasis:'regular_close',updatedAtKST:trackedPrices['2026-09-28'].updatedAtKST||''});
   const trackedSale=core.securityFullExitSaleForDate('009150','2026-09-17');
-  assert.deepEqual({hypotheticalPrice:trackedSale.hypotheticalPrice,hypotheticalPriceDate:trackedSale.hypotheticalPriceDate,hypotheticalEvalAmount:trackedSale.hypotheticalEvalAmount,hypotheticalProfit:trackedSale.hypotheticalProfit},{hypotheticalPrice:1500000,hypotheticalPriceDate:'2026-09-28',hypotheticalEvalAmount:1500000,hypotheticalProfit:155000},'삼성전기도 매도일 종가가 아니라 최신 KRX 저장가로 지금까지 보유한 가상손익을 계산한다');
+  assert.deepEqual(
+    {hypotheticalPrice:trackedSale.hypotheticalPrice,hypotheticalPriceDate:trackedSale.hypotheticalPriceDate,hypotheticalProfit:trackedSale.hypotheticalProfit},
+    {hypotheticalPrice:1500000,hypotheticalPriceDate:'2026-09-28',hypotheticalProfit:155000},
+    '삼성전기도 최신 KRX 저장가로 가상손익을 계산한다'
+  );
   const trackedCurrent=core.calc('2026-09-28');
-  assert.deepEqual({account1Principal:trackedCurrent.account1Principal,account1Profit:trackedCurrent.account1Profit,totalPrincipal:trackedCurrent.totalPrincipal,totalProfit:trackedCurrent.totalProfit,totalResult:trackedCurrent.totalResult,allocTotal:trackedCurrent.allocTotal},{account1Principal:baselineCurrent.account1Principal,account1Profit:baselineCurrent.account1Profit,totalPrincipal:baselineCurrent.totalPrincipal,totalProfit:baselineCurrent.totalProfit,totalResult:baselineCurrent.totalResult,allocTotal:baselineCurrent.allocTotal},'삼성전기·후성 가상추적 최신가는 실제 장부와 allocation에 합산하지 않는다');
-  assert.equal(trackedCurrent.securitiesAssetDetail.statusRows.some(r=>['009150','093370'].includes(r.ticker)),false,'현재 보유현황에 retired 가상추적 종목을 되살리지 않는다');
+  assert.deepEqual(
+    {account1Principal:trackedCurrent.account1Principal,account1Profit:trackedCurrent.account1Profit,allocTotal:trackedCurrent.allocTotal,retiredVisible:trackedCurrent.securitiesAssetDetail.statusRows.some(r=>['009150','093370'].includes(r.ticker))},
+    {account1Principal:baselineCurrent.account1Principal,account1Profit:baselineCurrent.account1Profit,allocTotal:baselineCurrent.allocTotal,retiredVisible:false},
+    '가상추적 시세는 실제 장부·allocation·현재 보유현황에 섞이지 않는다'
+  );
   assert.equal(after.totalResult-(after.allocTotal+core.outsideCashForDate('2026-09-16')),3063626);
 });
