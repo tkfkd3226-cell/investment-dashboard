@@ -445,6 +445,7 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 - `refreshMonthlyCalendarLive()`는 열린 모달의 `monthlyCalendarState.month/mode`를 기준으로 계산한다. 부모 `activeDate`가 과거일이어도 탐색 중인 월의 유효한 실시간 시세는 반영한다.
 - 실시간 갱신은 기존 grid/summary renderer를 detached template에 사용해 날짜 손익 text/class, 날짜 button의 정확한 금액 title/aria-label, 월 요약 text/class만 비교·수정한다. 같은 값은 쓰지 않으며 기존 button/card DOM과 탐색 월·범위·별도수익 설정·포커스·스크롤을 유지한다. 월 이동·범위 전환은 기존 전체 모달 렌더 경로를 사용한다.
 - 테스트는 `tests/monthly-calendar-live.test.cjs`의 모달 알림·갱신 보류·닫힌 모달·동일 값 쓰기 생략 계약을 포함한다.
+- 3연속 손실 멘탈 케어는 같은 월의 비교 가능한 일손익에서 음수가 3회 연속된 **세 번째 날부터** `is-gloomy`를 표시하고, 이후 연속 손실 동안 유지한다. 0원 또는 수익일은 연속 횟수를 초기화하며 월 경계를 넘어 이전 달 횟수를 이어받지 않는다. 시각 표시는 `☔️ 심호흡` contract를 유지하고 `tests/monthly-calendar-gloomy.test.cjs`가 시작 시점·리셋·월 경계·renderer/CSS 표시를 보호한다.
 
 - `월간 손익`은 Web/Tablet/Phone이 공유하는 Topbar action으로만 진입하고 hamburger에는 중복 배치하지 않는다. Web/Tablet은 텍스트 action, Phone은 같은 DOM의 label을 숨긴 icon-only 표현을 사용하며 hamburger 구성·높이·scroll은 이 문서의 공통 Topbar/Navigation responsive contract를 따른다.
 - `합산 / 증권 / 퇴직연금` 범위 switch는 공통 `control-tab` primitive/skin을 재사용한다. 선택 범위는 modal을 닫았다 다시 열어도 현재 페이지 세션 동안 유지되며, 범위를 바꾸면 날짜별 금액과 월 손익·상승/하락·최고/최저가 같은 기준으로 함께 재계산된다.
