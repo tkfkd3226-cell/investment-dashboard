@@ -366,6 +366,8 @@ cashPrincipalDelta  주식 원금 ↔ 현금 원금 이동액
 
 `grossAmount - transactionCost = amount`, `amount - costBasis = realizedProfit`이 맞지 않거나 optional numeric field가 숫자가 아니면 JS/Python 모두 fail-closed한다. `prices.json`의 시장가격과 개인 체결가를 섞지 않으며 체결가는 event에만 둔다.
 
+과거 daily snapshot에 거래/자금 이동이 이미 반영된 뒤 뒤늦게 canonical event만 복원하는 경우에는 event에 `legacySnapshotEmbedded:true`를 명시한다. 이 표시는 **거래 사실과 lifecycle/UI/historical 복원에는 event를 사용하되, 이미 snapshot에 들어간 현금화 원금·실현손익을 현재 원장에 다시 누적하지 않는다**는 의미다. legacy sell의 실현손익은 실제 매도일의 full-exit 표시와 종목별 historical terminal point에서는 사용하지만 그 다음 거래일부터 event 기반 누적손익으로 다시 얹지 않는다. `securityCashPrincipalDelta()`와 Python 동등 계산도 같은 event의 현금화 원금 재계상을 0으로 처리한다. 반면 실제 외부 원금 입출금 event는 과거 날짜의 원천 투자금을 역산하는 데 계속 사용하므로, `legacySnapshotEmbedded`를 일반적인 계산 제외 플래그처럼 남용하지 않는다. 신규 정상 거래에는 이 플래그를 붙이지 않는다.
+
 6/18 이후 계좌1 성과기준 투입원금은 **선택일 잔여 보유원가 + 누적 현금화 원금**이다. 전량/부분매도에서 `cashPrincipalDelta`는 매도된 `costBasis`만큼 원금을 현금 pool로 이동시키고, 그 현금 원금으로 재매수할 때 실제 재투입한 원금만 음수 delta로 차감한다. 같은 날짜에 매도와 재매수가 함께 있으면 event id 문자열 순서가 아니라 **그 날짜의 cashPrincipalDelta 순변동을 먼저 합산**한 뒤 일자 종료 시점 원금 pool을 검증한다. 날짜 종료 기준 현금화 원금이 음수가 되는 원장은 허용하지 않는다.
 
 종목 성과 의미는 다음을 유지한다.
@@ -385,7 +387,12 @@ performanceCost    현재 잔여 cost + realizedCostBasis
 
 Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수량이 0보다 큰 ticker만 요청한다. 따라서 전량매도 종목은 매도일 이후 실시간 quote universe에서 자동 제외되며 Market AI backend에 별도 매도 상태를 추가하지 않는다.
 
-현재 첫 증권 전량매도 회귀 anchor는 `2026-09-16 / 009150 삼성전기`다. `gross 1,348,000 - transactionCost 2,772 = net 1,345,228`, `costBasis 1,345,000`, `realizedProfit +228`이며, 매도 직후 증권현금은 `1,404,018`이지만 같은 날 내부회수 `1,400,228` 후 일자 종료 현금은 `3,790`이다. 계좌1 성과기준 투입원금은 `24,341,210 → 22,996,210`으로 줄어든다. 이 실현손익 `+228`은 9/17부터 현황/전일 대비 변동/종목별 point에서는 제외되지만 **계좌 누적손익·누적수익률과 장부 성과에는 계속 누적**되는 것이 자동 테스트의 운영 데이터 검산 기준이다.
+현재 증권 전량매도 회귀 anchor는 **legacy 경로의 후성**과 **현행 원장 경로의 삼성전기** 두 건이다.
+
+- `2026-05-22 / 093370 후성`: 5/21까지 `11주 / cost 138,260 / eval 136,180 / 평가손익 -2,080`을 유지하고, 5/22 `gross 143,660 - transactionCost 290 = net 143,370`, `costBasis 138,260`, `realizedProfit +5,110`으로 전량매도한다. 과거 snapshot에는 5/22 현금이 gross 기준으로 늘고 `totalCost`에 gross 차익 `+5,400`이 섞인 legacy 흔적이 이미 존재하므로 sell event에는 `legacySnapshotEmbedded:true`를 둔다. 5/26에는 투자원금을 `16,300,000`으로 맞추기 위해 `135,400`을 타계좌로 이체한 실제 `withdrawal` event가 있으며 이것도 snapshot에 이미 반영돼 있어 같은 legacy 표시를 사용한다. 5/21은 정상 보유, 5/22만 full-exit UI/tooltip과 종목별 마지막 실현손익 point를 만들고, 이후 현재 원금·누적손익에 이 event를 다시 더하지 않는다.
+- `2026-09-16 / 009150 삼성전기`: `gross 1,348,000 - transactionCost 2,772 = net 1,345,228`, `costBasis 1,345,000`, `realizedProfit +228`이며, 매도 직후 증권현금은 `1,404,018`이지만 같은 날 내부회수 `1,400,228` 후 일자 종료 현금은 `3,790`이다. 계좌1 성과기준 투입원금은 `24,341,210 → 22,996,210`으로 줄어든다. 이 실현손익 `+228`은 9/17부터 현황/전일 대비 변동/종목별 point에서는 제외되지만 **계좌 누적손익·누적수익률과 장부 성과에는 계속 누적**된다.
+
+두 anchor는 같은 full-exit UI/historical contract를 공유하지만, **후성은 snapshot에 이미 반영된 legacy event**, 삼성전기는 **event 원장이 직접 장부를 움직이는 현행 event**라는 차이를 자동 테스트에서 함께 고정한다.
 
 ## 2.4 `dashboard-ui.js`와 `dashboard-ui-common.js` 책임
 
@@ -1062,6 +1069,8 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 표시 기준 스위치는 선/Y축 표시 기준만 바꾸며 tooltip 정보 contract를 불필요하게 축소하지 않는다. 사용자가 범례에서 숨긴 series는 tooltip 대상에서도 제외한다.
 
 증권의 **종목별 historical 차트 universe는 현재 선택일 보유종목으로 재구성하지 않는다.** 단, universe 자체는 현재 `portfolio.securities[]`에 남아 있는 관리대상 종목으로 제한하고, 오래전에 종료되어 현재 관리대상에서도 제거된 종목을 과거 snapshot만 보고 다시 부활시키지 않는다. 이 관리대상 안에서 선택일까지 실제 chart/allocation 대상이었던 종목은 범례·카드에 계속 유지해, 이후 전량매도 때문에 과거 차트 이력이 소급 삭제되지 않게 한다. `종목별 누적손익`은 전량매도 당일의 최종 `totalProfit`/수익률을 마지막 유효 point로 두고 다음 거래일부터 해당 종목 값을 `null`로 끝낸다. `평가금액 비중 > 종목별`은 과거 평가금액을 당시 값 그대로 유지하고 전량매도일부터 이후 값은 `0`으로 둔다. 현황표와 전일 대비 변동의 현재 날짜 표시 lifecycle과 historical chart universe를 같은 필터로 합치지 않는다.
+
+`평가금액 비중`의 **1주 보유 필터**는 유지한다. historical snapshot row가 `chart`를 boolean으로 명시하면 row 값을 우선하고, 값이 없을 때만 같은 ticker의 `portfolio.securities[]` canonical `chart`를 fallback한다. `chartFrom`도 row 값이 있으면 우선하고 없을 때 canonical 값을 사용한다. 따라서 SK하이닉스처럼 canonical `chart:true`인 종목은 과거 1주 보유 구간도 allocation에 포함되지만, canonical `chart:false`인 1주 종목은 계속 제외되고 `chartFrom` 이전 구간도 표시하지 않는다. 이 fallback은 **allocation 계열에만 적용**하며 보유현황·전일 대비·누적손익·Live Valuation 등의 가시성 규칙으로 확장하지 않는다.
 
 전량매도 시각 표시는 종목명/날짜 하드코딩이 아니라 `securityFullExitForDate(ticker, date)`의 공통 상태 판정을 사용한다. 선택일 상태 수량이 0이고 그 시점까지의 마지막 거래 lifecycle이 매도로 끝난 경우에만 전량매도 상태로 본다. 따라서 부분매도에는 취소선을 적용하지 않고, 전량매도일부터 `보유종목 현황`의 마지막 행·`전일 대비 변동`의 매도 종목명·`종목별 누적손익` 카드·`평가금액 비중 > 종목별` 카드의 종목명에 같은 취소선을 적용한다. 이후 재매수되어 수량이 다시 생기면 취소선 상태도 자동 해제한다. 별도 상태 문구나 배지는 추가하지 않는다.
 
