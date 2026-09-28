@@ -81,3 +81,92 @@ test('값이 같은 live 갱신은 DOM 쓰기를 생략하고 날짜 button의 �
   assert.equal(button.textContent,'23+1.0만','button 전체 textContent를 교체하면 자식과 포커스 구조가 깨진다');
   assert.equal(button.getAttribute('title'),'-20,000원');
 });
+
+// 실제 renderer가 만든 날짜 button/손익 span을 보관하는 최소 DOM 대역.
+// layout은 모사하지 않고 refresh의 DOM identity·속성·쓰기 여부를 관찰한다.
+function liveCalendarHarness(initialProfit){
+  const profits={'2026-09-01':-100,'2026-09-02':-200,'2026-09-03':initialProfit};
+  let buttons=[],writes=0;
+  function element(text,attributes){
+    const node={
+      dataset:{calendarDate:attributes['data-calendar-date']},
+      get textContent(){return text;},
+      set textContent(value){writes++;text=value;},
+      getAttribute:name=>attributes[name]??null,
+      setAttribute(name,value){writes++;attributes[name]=value;},
+      removeAttribute(name){writes++;delete attributes[name];},
+      querySelector:()=>node.profit
+    };
+    node.classList={
+      contains:name=>(attributes.class||'').split(/\s+/).includes(name),
+      toggle(name,enabled){
+        const classes=new Set((attributes.class||'').split(/\s+/).filter(Boolean));
+        if(enabled)classes.add(name);else classes.delete(name);
+        node.setAttribute('class',[...classes].join(' '));
+        return enabled;
+      }
+    };
+    return node;
+  }
+  function parseButtons(html){
+    return [...html.matchAll(/<button\b([^>]*data-calendar-date[^>]*)>([\s\S]*?)<\/button>/g)].map(match=>{
+      const attrs=Object.fromEntries([...match[1].matchAll(/([\w-]+)="([^"]*)"/g)].map(item=>[item[1],item[2]]));
+      const button=element('',attrs);
+      const profit=match[2].match(/<span class="(monthly-calendar-day-profit[^"]*)">([^<]*)<\/span>/);
+      button.profit=element(profit[2],{class:profit[1]});
+      return button;
+    });
+  }
+  const card={scrollTop:40};
+  const modal={
+    classList:{contains:()=>true},
+    querySelector:selector=>selector==='.monthly-calendar-card'?card:buttons.find(button=>selector===`[data-calendar-date="${button.dataset.calendarDate}"]`),
+    querySelectorAll:()=>[],
+    set innerHTML(value){assert.fail('실시간 갱신이 모달 전체를 다시 렌더링하면 안 된다');}
+  };
+  const document={
+    activeElement:null,getElementById:()=>modal,
+    createElement(){return {set innerHTML(html){this.content={querySelectorAll:selector=>selector==='[data-calendar-date]'?parseButtons(html):[]};}};}
+  };
+  const context=vm.createContext({
+    document,allAvailableDates:()=>Object.keys(profits),
+    combinedDailyProfitChange:date=>profits[date],securitiesDailyProfitChange:date=>profits[date],pensionDailyProfitChange:date=>profits[date],
+    separateProfitDailyChangeForDate:()=>0,hasPensionData:()=>true,
+    dataState:{activeDate:'2026-09-03'},uiState:{includeSeparateProfit:false},
+    krxTradingCalendarStatus:()=> 'unknown',kstTodayText:()=> '2026-09-03',fmt:String,escapeHtml:String
+  });
+  vm.runInContext(calendarBody,context);
+  vm.runInContext("monthlyCalendarState.month='2026-09'",context);
+  buttons=parseButtons(context.renderMonthlyCalendarGrid('2026-09',context.monthlyCalendarMonthModel('2026-09')));
+  document.activeElement=buttons.at(-1);
+  return {context,profits,document,card,button:buttons.at(-1),modal,get writes(){return writes;}};
+}
+
+test('월간손익 실시간 손실·수익·보합 전환은 심호흡 표시와 금액을 함께 갱신한다',()=>{
+  for(const [before,after,expectedGloomy] of [[-300,300,false],[-300,0,false],[300,-300,true]]){
+    const h=liveCalendarHarness(before),button=h.button,profit=button.profit;
+    h.profits['2026-09-03']=after;
+    assert.equal(h.context.refreshMonthlyCalendarLive(),true);
+    assert.equal(button.classList.contains('is-gloomy'),expectedGloomy);
+    assert.equal(profit.textContent,h.context.monthlyCalendarCompactProfit(after));
+    assert.equal(button.getAttribute('title'),h.context.monthlyCalendarExactProfitLabel(after));
+    assert.equal(h.modal.querySelector('[data-calendar-date="2026-09-03"]'),button);
+    assert.equal(button.profit,profit);
+    assert.equal(h.document.activeElement,button);
+    assert.equal(h.card.scrollTop,40);
+    assert.equal(button.classList.contains('is-active'),true);
+    assert.equal(button.classList.contains('is-today'),true);
+    const writes=h.writes;
+    assert.equal(h.context.refreshMonthlyCalendarLive(),false);
+    assert.equal(h.writes,writes,'같은 상태의 다음 polling은 DOM 쓰기를 생략한다');
+  }
+});
+
+test('금액이 같아도 심호흡 표시만 바뀌면 live 갱신 결과는 변경을 보고한다',()=>{
+  const h=liveCalendarHarness(-300);
+  h.button.classList.toggle('is-gloomy',false);
+  const profitText=h.button.profit.textContent;
+  assert.equal(h.context.refreshMonthlyCalendarLive(),true);
+  assert.equal(h.button.classList.contains('is-gloomy'),true);
+  assert.equal(h.button.profit.textContent,profitText);
+});

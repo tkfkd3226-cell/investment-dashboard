@@ -277,6 +277,11 @@ function refreshMonthlyCalendarLive(){
   template.content.querySelectorAll('[data-calendar-date]').forEach(next=>{
     const current=modal.querySelector(`[data-calendar-date="${next.dataset.calendarDate}"]`);
     if(!current)return;
+    const gloomy=next.classList.contains('is-gloomy');
+    if(current.classList.contains('is-gloomy')!==gloomy){
+      current.classList.toggle('is-gloomy',gloomy);
+      changed=true;
+    }
     if(syncMonthlyCalendarLiveValue(current,next,{text:false,attributes:['aria-label','title']}))changed=true;
     if(syncMonthlyCalendarLiveValue(current.querySelector('.monthly-calendar-day-profit'),next.querySelector('.monthly-calendar-day-profit')))changed=true;
   });
