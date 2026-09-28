@@ -517,6 +517,23 @@ const securityChartItemVisibleForDate=(item,d)=>{
 };
 const securityChartItemsForDate=d=>(dataState.portfolio?.securities||[]).filter(item=>securityChartItemVisibleForDate(item,d));
 const securityValuationOverride=(ticker,d)=>{const e=securityEventItems().find(v=>String(v?.ticker||'')===String(ticker||'')&&String(v?.date||'')===String(d||'')&&Number(v?.valuationPrice)>0);return e?Number(e.valuationPrice):null};
+const securityHypotheticalLatestQuote=ticker=>{
+  const today=kstTodayText();
+  const latestDate=Object.keys(dataState.prices||{})
+    .filter(date=>/^\d{4}-\d{2}-\d{2}$/.test(date)&&date<=today&&dataState.prices?.[date]?.display!==false)
+    .sort(byDate).at(-1)||'';
+  if(!latestDate)return null;
+  const snapshot=dataState.prices?.[latestDate]||{};
+  const price=getPrice(snapshot,'securities',ticker);
+  if(!Number.isFinite(Number(price))||Number(price)<=0)return null;
+  return {
+    date:latestDate,
+    price:Number(price),
+    marketStatus:String(snapshot.marketStatus||''),
+    priceBasis:String(snapshot.priceBasis||''),
+    updatedAtKST:String(snapshot.updatedAtKST||'')
+  };
+};
 const securityChartNamesForDate=d=>securityChartItemsForDate(d).map(item=>item.name);
 const securityEventsBetween=(fromDate,toDate,ticker=null)=>securityEventItems().filter(v=>{
   const date=String(v?.date||'');
@@ -569,11 +586,14 @@ const securityFullExitSaleForDate=(ticker,d)=>{
     return a;
   },{date:saleDate,qty:0,grossAmount:0,transactionCost:0,amount:0,costBasis:0,realizedProfit:0,fullExit:true});
   sale.price=sale.qty?sale.grossAmount/sale.qty:null;
-  // [추가] "만약 안 팔았더라면?" 가상 손익 계산
-  const liveQuote=liveValuationQuoteForDate(ticker,d);
-  const currentMarketPrice=liveQuote?.price??securityValuationOverride(ticker,d)??getPrice(dataState.prices?.[d],'securities',ticker);
-  if(currentMarketPrice!=null && sale.qty>0){
-    sale.hypotheticalProfit=(currentMarketPrice*sale.qty)-sale.costBasis;
+  // 전량매도 종목은 실제 자산 계산과 분리한 최신 KRX 저장가로 "지금까지 안 팔았다면?"을 계산한다.
+  // 선택한 과거 날짜의 종가/valuationPrice는 역사 표시용이므로 현재 가상손익의 fallback으로 사용하지 않는다.
+  const hypotheticalQuote=securityHypotheticalLatestQuote(ticker);
+  if(hypotheticalQuote&&sale.qty>0){
+    sale.hypotheticalPrice=hypotheticalQuote.price;
+    sale.hypotheticalPriceDate=hypotheticalQuote.date;
+    sale.hypotheticalEvalAmount=securitySafeAggregate('전량매도 가상 평가금액',hypotheticalQuote.price*sale.qty);
+    sale.hypotheticalProfit=securitySafeAggregate('전량매도 가상손익',sale.hypotheticalEvalAmount-sale.costBasis);
   }
   return sale;
 };
@@ -1700,6 +1720,7 @@ export {
   securityExternalContributionSum,
   securityFullExitForDate,
   securityFullExitSaleForDate,
+  securityHypotheticalLatestQuote,
   securityInternalCashTransferSum,
   securityInternalCashReturnSum,
   securityInternalCashReturnPrincipalSum,

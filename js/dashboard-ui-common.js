@@ -619,8 +619,12 @@ function securitySaleTooltipAttrs(row,{focusScope=''}={}){
     ['data-sale-net',won(sale.amount)],
     ['data-sale-basis',won(sale.costBasis)],
     ['data-sale-profit',signed(sale.realizedProfit,'원')],
-    ['data-sale-hypo-profit', sale.hypotheticalProfit!=null ? signed(sale.hypotheticalProfit,'원') : ''],
-    ['data-sale-diff', sale.hypotheticalProfit!=null ? String(sale.realizedProfit - sale.hypotheticalProfit) : '']
+    ['data-sale-hypo-available',sale.hypotheticalProfit!=null?'true':'false'],
+    ['data-sale-hypo-price',sale.hypotheticalPrice!=null?won(sale.hypotheticalPrice):''],
+    ['data-sale-hypo-date',sale.hypotheticalPriceDate||''],
+    ['data-sale-hypo-eval',sale.hypotheticalEvalAmount!=null?won(sale.hypotheticalEvalAmount):''],
+    ['data-sale-hypo-profit',sale.hypotheticalProfit!=null?signed(sale.hypotheticalProfit,'원'):''],
+    ['data-sale-diff',sale.hypotheticalProfit!=null?String(sale.realizedProfit-sale.hypotheticalProfit):'']
   ].filter(([k,v])=>v!=='').map(([key,value])=>`${key}="${escapeHtml(value)}"`).join(' ');
   const suffix=focusScope?`:${focusScope}`:'';
   return `tabindex="0" data-dashboard-focus-key="security-sale:${escapeHtml(String(row?.ticker||row?.name||''))}${escapeHtml(suffix)}" data-security-sale-tooltip aria-label="${escapeHtml(`${row?.name||'종목'} 전량매도 상세`)}" aria-describedby="${SECURITY_SALE_TOOLTIP_ID}" ${attrs}`;
@@ -647,15 +651,23 @@ function securitySaleTooltipHtml(target){
     assetSourceTooltipRow('실현손익',data.saleProfit)
   ].filter(Boolean).join('');
       
-  // [추가] 가상 손익 비교 결과 렌더링
-  let hypoRow='';
-  if(data.saleHypoProfit){
+  // 실제 매도 장부와 분리된 최신 KRX 저장가로 현재 가상보유 결과를 보여준다.
+  let hypoRows='';
+  if(data.saleHypoAvailable==='true'){
     const diff=Number(data.saleDiff);
-    const diffMsg=diff>=0?'(팔길 잘했네요!)':'(존버가 승리...)';
-    const msgClass=diff>=0?'tt-pos':'tt-neg';
-    hypoRow=`<div class="tt-row"><span class="tt-name">만약 안팔았다면?</span><span class="tt-val">${escapeHtml(data.saleHypoProfit)} <span class="${msgClass}">${escapeHtml(diffMsg)}</span></span></div>`;
+    const diffValue=signed(diff,'원');
+    const diffText=diff>=0?'실제 매도 우위':'계속 보유 우위';
+    const basisDate=data.saleHypoDate?`${data.saleHypoDate} 기준`:'';
+    hypoRows=[
+      assetSourceTooltipRow('현재 기준가',`${data.saleHypoPrice}${basisDate?` · ${basisDate}`:''}`),
+      assetSourceTooltipRow('가상 평가금액',data.saleHypoEval),
+      assetSourceTooltipRow('지금까지 안 팔았다면?',data.saleHypoProfit),
+      `<div class="tt-row"><span class="tt-name">실제 매도와 차이</span><span class="tt-val ${diff>=0?'tt-pos':'tt-neg'}">${escapeHtml(diffValue)} <span>${escapeHtml(diffText)}</span></span></div>`
+    ].filter(Boolean).join('');
+  }else{
+    hypoRows=assetSourceTooltipRow('지금까지 안 팔았다면?','현재 시세 없음');
   }
-  return `<div class="tt-date">${escapeHtml(data.saleName||'전량매도')}</div>${rows}${hypoRow?'<div class="tt-divider" aria-hidden="true"></div>'+hypoRow:''}`;
+  return `<div class="tt-date">${escapeHtml(data.saleName||'전량매도')}</div>${rows}<div class="tt-divider" aria-hidden="true"></div>${hypoRows}`;
 }
 function positionSecuritySaleTooltip(target,event){
   const tooltip=securitySaleTooltip();

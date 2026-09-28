@@ -2200,6 +2200,16 @@ test('전량매도 취소선과 거래 상세 tooltip은 동일한 공통 lifecy
   assert.match(uiCommon,/data-sale-net/);
   assert.match(uiCommon,/data-sale-basis/);
   assert.match(uiCommon,/data-sale-profit/);
+  assert.match(uiCommon,/data-sale-hypo-available/);
+  assert.match(uiCommon,/data-sale-hypo-price/);
+  assert.match(uiCommon,/data-sale-hypo-date/);
+  assert.match(uiCommon,/data-sale-hypo-eval/);
+  assert.match(uiCommon,/data-sale-hypo-profit/);
+  assert.match(uiCommon,/지금까지 안 팔았다면\?/);
+  assert.match(uiCommon,/현재 시세 없음/);
+  assert.match(core,/const securityHypotheticalLatestQuote=ticker=>/);
+  assert.match(core,/const hypotheticalQuote=securityHypotheticalLatestQuote\(ticker\)/);
+  assert.doesNotMatch(core,/currentMarketPrice=liveQuote\?\.price\?\?securityValuationOverride/);
   assert.match(uiCommon,/const SECURITY_SALE_TOOLTIP_ID='securitySaleTooltip'/);
   assert.match(uiCommon,/tooltip\.className='dash-tooltip'/);
   assert.match(uiCommon,/assetSourceTooltipRow\('매도가',data\.salePrice\)/);
