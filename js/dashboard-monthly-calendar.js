@@ -11,7 +11,7 @@ import {
   separateProfitDailyChangeForDate,
   uiState
 } from './dashboard-core.js';
-import { escapeHtml, navIconSvg, phoneUi } from './dashboard-ui-common.js';
+import { escapeHtml, navIconSvg } from './dashboard-ui-common.js';
 import {
   bindDashboardModalDismiss,
   closeDashboardModal,
@@ -37,8 +37,7 @@ const MONTHLY_CALENDAR_ACTION={
   selectDate:'select-monthly-calendar-date',
   setMode:'set-monthly-calendar-mode'
 };
-const MONTHLY_CALENDAR_WEEKDAYS=['월','화','수','목','금','토','일'];
-const MONTHLY_CALENDAR_BUSINESS_WEEKDAYS=MONTHLY_CALENDAR_WEEKDAYS.slice(0,5);
+const MONTHLY_CALENDAR_BUSINESS_WEEKDAYS=['월','화','수','목','금'];
 const MONTHLY_CALENDAR_DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
 const MONTHLY_CALENDAR_MODES={
   combined:{label:'합산'},
@@ -49,7 +48,6 @@ function monthlyCalendarFocusFallbackSelector(){
   return '.topbar-monthly-action,#dateActionMenuButton';
 }
 const monthlyCalendarState={month:'',mode:'combined'};
-let monthlyCalendarBusinessDaysOnly=null;
 
 // [CAL02] Monthly Performance View Model · 합산/증권/퇴직연금 모두 core의 flow-neutral 일성과 helper를 재사용
 function monthlyCalendarMonths(){
@@ -134,7 +132,7 @@ function monthlyCalendarMonthModel(month,mode=monthlyCalendarState.mode){
   return {availableSet,dayModels,total,comparableCount:comparable.length,missingDates,positiveCount:positive.length,negativeCount:negative.length,best,worst};
 }
 
-// [CAL03] Calendar Rendering · 손익 범위 switch / Web·Tablet 7일 / Phone 5영업일 / 월간 요약
+// [CAL03] Calendar Rendering · 손익 범위 switch / 전 viewport 월~금 5영업일 / 월간 요약
 function monthlyCalendarCellAria(item){
   const prefix=item.today?'오늘, ':'';
   if(item.profitState==='inactive')return `${prefix}${item.day}일, 퇴직연금 데이터 없음`;
@@ -166,19 +164,19 @@ function renderMonthlyCalendarDayCell({day,date='',available=false,item=null,wee
   const availableTodayClass=item.today?' is-today':'';
   return `<button type="button" class="monthly-calendar-day is-available${weekend}${availableTodayClass}${active}${gloomyClass}" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.selectDate}" data-calendar-date="${escapeHtml(date)}" aria-label="${escapeHtml(monthlyCalendarCellAria(item))}"${item.active?' aria-current="date"':''} title="${escapeHtml(item.profitState==='inactive'?'퇴직연금 데이터 없음':item.profit==null?'성과 비교 기준일':monthlyCalendarExactProfitLabel(item.profit))}"><span class="monthly-calendar-day-number">${day}</span><span class="monthly-calendar-day-profit${profitClass}">${profitText}</span></button>`;
 }
-function renderMonthlyCalendarGrid(month,model,{businessDaysOnly=false}={}){
+function renderMonthlyCalendarGrid(month,model){
   const [year,monthNumber]=month.split('-').map(Number);
   const firstWeekday=(new Date(Date.UTC(year,monthNumber-1,1)).getUTCDay()+6)%7;
   const daysInMonth=new Date(Date.UTC(year,monthNumber,0)).getUTCDate();
   const itemByDate=new Map(model.dayModels.map(item=>[item.date,item]));
   const today=kstTodayText();
   const cells=[];
-  const leadingPlaceholderCount=businessDaysOnly&&firstWeekday>=5?0:firstWeekday;
+  const leadingPlaceholderCount=firstWeekday>=5?0:firstWeekday;
   for(let i=0;i<leadingPlaceholderCount;i++)cells.push('<div class="monthly-calendar-day is-placeholder" aria-hidden="true"></div>');
   for(let day=1;day<=daysInMonth;day++){
     const date=`${month}-${String(day).padStart(2,'0')}`;
     const weekdayIndex=(firstWeekday+day-1)%7;
-    if(businessDaysOnly&&weekdayIndex>=5)continue;
+    if(weekdayIndex>=5)continue;
     cells.push(renderMonthlyCalendarDayCell({day,date,available:model.availableSet.has(date),item:itemByDate.get(date)||null,weekdayIndex,today:date===today,marketStatus:krxTradingCalendarStatus(date)}));
   }
   return cells.join('');
@@ -225,9 +223,7 @@ function renderMonthlyCalendarModal(){
   monthlyCalendarState.month=month;
   const monthIndex=months.indexOf(month);
   const model=monthlyCalendarMonthModel(month,monthlyCalendarState.mode);
-  const businessDaysOnly=phoneUi();
-  monthlyCalendarBusinessDaysOnly=businessDaysOnly;
-  const weekdays=businessDaysOnly?MONTHLY_CALENDAR_BUSINESS_WEEKDAYS:MONTHLY_CALENDAR_WEEKDAYS;
+  const weekdays=MONTHLY_CALENDAR_BUSINESS_WEEKDAYS;
   modal.innerHTML=`<div class="action-modal-card monthly-calendar-card" role="dialog" aria-modal="true" aria-labelledby="monthlyCalendarTitle">
     <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-close" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.close}" aria-label="월간 손익 닫기">${navIconSvg('close')}</button>
     <div class="monthly-calendar-head">
@@ -236,8 +232,8 @@ function renderMonthlyCalendarModal(){
       <button type="button" class="control-icon-button modal-icon-btn monthly-calendar-nav" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.next}" aria-label="다음 월" aria-disabled="${monthIndex>=months.length-1?'true':'false'}">${navIconSvg('arrowRight')}</button>
     </div>
     ${renderMonthlyCalendarControls()}
-    <div class="monthly-calendar-weekdays" aria-hidden="true">${weekdays.map((label,index)=>`<span${!businessDaysOnly&&index>=5?' class="is-weekend"':''}>${label}</span>`).join('')}</div>
-    <div class="monthly-calendar-grid" role="group" aria-label="${escapeHtml(monthlyCalendarMonthLabel(month))} 손익 캘린더">${renderMonthlyCalendarGrid(month,model,{businessDaysOnly})}</div>
+    <div class="monthly-calendar-weekdays" aria-hidden="true">${weekdays.map(label=>`<span>${label}</span>`).join('')}</div>
+    <div class="monthly-calendar-grid" role="group" aria-label="${escapeHtml(monthlyCalendarMonthLabel(month))} 손익 캘린더">${renderMonthlyCalendarGrid(month,model)}</div>
     ${renderMonthlyCalendarSummary(model)}
   </div>`;
 }
@@ -276,7 +272,7 @@ function refreshMonthlyCalendarLive(){
   const month=monthlyCalendarState.month;
   const model=monthlyCalendarMonthModel(month,monthlyCalendarState.mode);
   const template=document.createElement('template');
-  template.innerHTML=renderMonthlyCalendarGrid(month,model,{businessDaysOnly:phoneUi()})+renderMonthlyCalendarSummary(model);
+  template.innerHTML=renderMonthlyCalendarGrid(month,model)+renderMonthlyCalendarSummary(model);
   let changed=false;
   template.content.querySelectorAll('[data-calendar-date]').forEach(next=>{
     const current=modal.querySelector(`[data-calendar-date="${next.dataset.calendarDate}"]`);
@@ -293,29 +289,8 @@ function refreshMonthlyCalendarLive(){
 }
 
 // [CAL04] Modal Lifecycle · 공통 dashboard-modal lifecycle 재사용
-// 열린 달력의 Phone/Web 구성이 바뀔 때만 재구성한다. 같은 구간의 resize와
-// 5초 시세 갱신은 기존 DOM을 유지하고, 월·조회 범위는 현재 탐색 상태를 따른다.
-function syncMonthlyCalendarViewport(){
-  const modal=document.getElementById('monthlyCalendarModal');
-  if(!modal?.classList.contains('show')||monthlyCalendarBusinessDaysOnly===phoneUi())return;
-  const active=document.activeElement;
-  const hadFocus=modal.contains(active);
-  const focusAttributes=['data-calendar-date','data-calendar-mode','data-dashboard-action'];
-  const focusAttribute=hadFocus?focusAttributes.find(name=>active.hasAttribute(name)):null;
-  const focusValue=focusAttribute?active.getAttribute(focusAttribute):null;
-  const card=modal.querySelector('.monthly-calendar-card');
-  const scrollTop=card?.scrollTop||0;
-  renderMonthlyCalendarModal();
-  if(hadFocus){
-    const target=(focusAttribute?[...modal.querySelectorAll(`[${focusAttribute}]`)].find(node=>node.getAttribute(focusAttribute)===focusValue):null)
-      ||modal.querySelector('[aria-current="date"]')
-      ||modal.querySelector('.monthly-calendar-mode-tab.active')
-      ||modal.querySelector('[data-dashboard-action="close-monthly-calendar"]');
-    target?.focus?.({preventScroll:true});
-  }
-  const nextCard=modal.querySelector('.monthly-calendar-card');
-  if(nextCard)nextCard.scrollTop=scrollTop;
-}
+// 전 viewport가 같은 5영업일 구조를 사용하므로 resize 재구성은 하지 않는다.
+// 5초 시세 갱신은 기존 DOM을 유지하고 월·조회 범위는 현재 탐색 상태를 따른다.
 function ensureMonthlyCalendarModal(){
   let modal=document.getElementById('monthlyCalendarModal');
   if(modal)return modal;
@@ -333,7 +308,6 @@ function openMonthlyCalendar(returnFocus=null){
   const months=monthlyCalendarMonths();
   monthlyCalendarState.month=months.includes(activeMonth)?activeMonth:months.at(-1)||'';
   renderMonthlyCalendarModal();
-  window.addEventListener('resize',syncMonthlyCalendarViewport,{passive:true});
   openDashboardModal(modal,{
     initialFocus:modal.querySelector('[aria-current="date"]')||modal.querySelector('[data-dashboard-action="monthly-calendar-previous"]')||modal.querySelector('[data-dashboard-action="monthly-calendar-next"]')||modal.querySelector('[data-dashboard-action="close-monthly-calendar"]'),
     returnFocus,
@@ -341,7 +315,6 @@ function openMonthlyCalendar(returnFocus=null){
   });
 }
 function closeMonthlyCalendar(){
-  window.removeEventListener('resize',syncMonthlyCalendarViewport);
   const modal=document.getElementById('monthlyCalendarModal');
   if(!modal)return;
   closeDashboardModal(modal,{fallbackSelector:monthlyCalendarFocusFallbackSelector()});
