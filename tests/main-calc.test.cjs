@@ -928,6 +928,40 @@ test('증권 매도 원장: gross/net/costBasis/realizedProfit 불일치와 음�
   assert.throws(()=>core.securityCashPrincipalForDate('2026-06-20'),/현금화 원금이 음수가/);
 });
 
+test('후성 2026-05-21 legacy 전량매도: 실제 거래를 복원하되 이후 원금·손익을 재계상하지 않는다',()=>{
+  const loadJson=relative=>JSON.parse(fs.readFileSync(path.join(ROOT,relative),'utf8'));
+  const portfolio=loadJson('data/portfolio.json');
+  const account1Daily=loadJson('data/account1_daily_snapshots.json');
+  setState({
+    portfolio,
+    prices:loadJson('data/prices.json'),
+    snapshots:loadJson('data/performance_snapshots.json'),
+    account1Daily,
+    pensionContributions:loadJson('data/pension_contributions.json'),
+    pensionCashSnapshots:loadJson('data/pension_cash_snapshots.json'),
+    pensionTrades:loadJson('data/pension_trades.json')
+  });
+  const item=portfolio.securities.find(v=>v.ticker==='093370');
+  const sale=portfolio.securitiesEvents.find(v=>v.id==='sec-sell-20260521-093370');
+  assert.deepEqual({name:item.name,qty:item.qty,cost:item.cost,chart:item.chart,chartFrom:item.chartFrom},{name:'후성',qty:0,cost:0,chart:true,chartFrom:'2026-04-17'});
+  assert.deepEqual({price:sale.price,grossAmount:sale.grossAmount,transactionCost:sale.transactionCost,amount:sale.amount,costBasis:sale.costBasis,realizedProfit:sale.realizedProfit,legacySnapshotEmbedded:sale.legacySnapshotEmbedded},{price:13060,grossAmount:143660,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110,legacySnapshotEmbedded:true});
+  const row=account1Daily['2026-05-21'];
+  const h=row.holdings.find(v=>v.ticker==='093370');
+  assert.deepEqual({qty:h.qty,avgPrice:h.avgPrice,cost:h.cost,evalAmount:h.evalAmount,profit:h.profit},{qty:11,avgPrice:12569.091,cost:138260,evalAmount:136180,profit:-2080});
+  assert.equal(row.holdings.reduce((sum,v)=>sum+Number(v.cost||0),0)+row.cash,row.totalCost);
+  assert.equal(row.holdings.reduce((sum,v)=>sum+Number(v.profit||0),0),row.totalProfit);
+  assert.deepEqual(core.securityPositionState(item,'2026-05-20'),{qty:11,cost:138260,realizedProfit:0,realizedCostBasis:0});
+  assert.deepEqual(core.securityPositionState(item,'2026-05-21'),{qty:0,cost:0,realizedProfit:5110,realizedCostBasis:138260});
+  assert.deepEqual(core.securityPositionState(item,'2026-05-22'),{qty:0,cost:0,realizedProfit:0,realizedCostBasis:0});
+  assert.equal(core.securityFullExitForDate('093370','2026-05-20'),false);
+  assert.equal(core.securityFullExitForDate('093370','2026-05-21'),true);
+  assert.deepEqual(core.securityFullExitSaleForDate('093370','2026-05-22'),{date:'2026-05-21',qty:11,grossAmount:143660,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110,fullExit:true,price:13060});
+  assert.equal(core.securityCashPrincipalForDate('2026-06-18'),0);
+  assert.equal(core.calc('2026-06-18').account1Principal,16282745);
+  assert.equal(core.calc('2026-09-17').account1Principal,22996210);
+  assert.equal(core.liveValuationTickersForDate('2026-09-17').includes('093370'),false);
+});
+
 test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표시·3,790원 현금·원금회수·장부 검산을 확정한다',()=>{
   const loadJson=relative=>JSON.parse(fs.readFileSync(path.join(ROOT,relative),'utf8'));
   const portfolio=loadJson('data/portfolio.json');
@@ -998,8 +1032,10 @@ test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표�
   const postSamsungAlloc=postAllocItems.find(h=>h.name==='삼성전기');
   assert.ok(postSamsungAlloc);
   assert.equal(postSamsungAlloc.evalAmount,0);
-  assert.equal(postAllocItems.some(h=>h.name==='후성'),false);
-  assert.equal(core.securityHistoricalChartNamesForDate('2026-09-17').includes('후성'),false);
+  const postHuseongAlloc=postAllocItems.find(h=>h.name==='후성');
+  assert.ok(postHuseongAlloc);
+  assert.equal(postHuseongAlloc.evalAmount,0);
+  assert.equal(core.securityHistoricalChartNamesForDate('2026-09-17').includes('후성'),true);
   const postAllocHistory=core.securitySymbolAllocHistory('2026-09-17',['삼성전기']);
   assert.ok(postAllocHistory.find(r=>r['날짜']==='2026-09-15')['삼성전기']>0);
   assert.equal(postAllocHistory.find(r=>r['날짜']==='2026-09-16')['삼성전기'],0);

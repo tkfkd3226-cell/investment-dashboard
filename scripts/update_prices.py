@@ -895,7 +895,13 @@ def security_sell_realized_profit(event: dict[str, Any]) -> int:
     return explicit if explicit is not None else derived
 
 
+def is_legacy_snapshot_embedded_security_trade(event: dict[str, Any]) -> bool:
+    return event.get("legacySnapshotEmbedded") is True
+
+
 def security_cash_principal_delta(event: dict[str, Any]) -> int:
+    if is_legacy_snapshot_embedded_security_trade(event):
+        return 0
     explicit = security_optional_number(event, "cashPrincipalDelta")
     if explicit is not None:
         return explicit
@@ -976,10 +982,12 @@ def security_position_state(item: dict[str, Any], target_date: str, portfolio: d
     realized_profit = 0
     realized_cost_basis = 0
     for event in security_events(portfolio):
+        event_date = str(event.get("date", ""))
         if (
             str(event.get("type", "")) != "sell"
             or str(event.get("ticker", "")) != ticker
-            or str(event.get("date", "")) > target_date
+            or event_date > target_date
+            or (is_legacy_snapshot_embedded_security_trade(event) and event_date != target_date)
         ):
             continue
         realized_profit = int(security_safe_aggregate(
@@ -1008,7 +1016,9 @@ def securities_cash_for_date(
             if isinstance(date, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", date) and isinstance(item, dict)
         )
         has_sell_event = any(
-            str(event.get("type", "")) == "sell" and str(event.get("date", "")) == target_date
+            str(event.get("type", "")) == "sell"
+            and not is_legacy_snapshot_embedded_security_trade(event)
+            and str(event.get("date", "")) == target_date
             for event in security_events(portfolio)
         )
         if saved_dates and target_date < saved_dates[-1] and not has_sell_event:
@@ -1019,7 +1029,7 @@ def securities_cash_for_date(
 
     cash = int(portfolio.get("constants", {}).get("securitiesCash", 0) or 0)
     for event in security_events(portfolio):
-        if str(event.get("date", "")) <= target_date:
+        if str(event.get("date", "")) <= target_date or is_legacy_snapshot_embedded_security_trade(event):
             continue
         amount = max(0, int(event.get("amount", 0) or 0))
         event_type = str(event.get("type", ""))

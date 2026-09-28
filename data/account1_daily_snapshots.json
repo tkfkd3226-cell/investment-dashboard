@@ -4495,11 +4495,11 @@
         "ticker": "093370",
         "type": "개별주식",
         "qty": 11,
-        "avgPrice": 12569.0,
-        "cost": 138259,
+        "avgPrice": 12569.091,
+        "cost": 138260,
         "price": 12380,
         "evalAmount": 136180,
-        "profit": -2079,
+        "profit": -2080,
         "returnRate": -1.5,
         "cssClass": "ticker-mini"
       }

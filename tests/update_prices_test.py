@@ -828,6 +828,29 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "현금화 원금이 음수가"):
             self.updater.security_cash_principal_for_date("2026-06-20", bad_principal)
 
+    def test_committed_huseong_legacy_sale_does_not_reapply_snapshot_embedded_principal_or_profit(self):
+        portfolio = json.loads((ROOT / "data" / "portfolio.json").read_text(encoding="utf-8"))
+        item = next(item for item in portfolio["securities"] if item["ticker"] == "093370")
+        sale = next(event for event in portfolio["securitiesEvents"] if event.get("id") == "sec-sell-20260521-093370")
+
+        self.assertTrue(sale["legacySnapshotEmbedded"])
+        self.assertEqual(
+            (sale["price"], sale["grossAmount"], sale["transactionCost"], sale["amount"], sale["costBasis"], sale["realizedProfit"]),
+            (13060, 143660, 290, 143370, 138260, 5110),
+        )
+        self.assertEqual(self.updater.security_position_state(item, "2026-05-20", portfolio), {
+            "qty": 11.0, "cost": 138260, "realizedProfit": 0, "realizedCostBasis": 0,
+        })
+        self.assertEqual(self.updater.security_position_state(item, "2026-05-21", portfolio), {
+            "qty": 0.0, "cost": 0, "realizedProfit": 5110, "realizedCostBasis": 138260,
+        })
+        self.assertEqual(self.updater.security_position_state(item, "2026-05-22", portfolio), {
+            "qty": 0.0, "cost": 0, "realizedProfit": 0, "realizedCostBasis": 0,
+        })
+        self.assertEqual(self.updater.security_cash_principal_for_date("2026-06-18", portfolio), 0)
+        self.assertEqual(self.updater.account1_principal_for_date("2026-06-18", portfolio), 16282745)
+        self.assertEqual(self.updater.account1_principal_for_date("2026-09-17", portfolio), 22996210)
+
     def test_committed_samsung_electro_mechanics_sale_matches_js_contract(self):
         portfolio = json.loads((ROOT / "data" / "portfolio.json").read_text(encoding="utf-8"))
         prices = json.loads((ROOT / "data" / "prices.json").read_text(encoding="utf-8"))
