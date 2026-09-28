@@ -982,6 +982,8 @@ test('Market AI responsive 전환은 Phone inline owner와 content-driven card l
   assert.match(special,/#market-ai-section\[data-market-ai-placement="phone-inline"\][^]*\.market-ai-card-row\{[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content;/,'Phone inline은 가용폭을 채우며 label 좌측 / value·change 우측 정렬을 유지해야 한다');
 
   assert.match(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*display:flex;[^]*?\.hero \.hero-performance-row \.hero-title-badges-performance\{[^}]*display:none;[^]*?\.hero \.hero-return-pill\{display:inline-flex\}/s,'Tablet Hero는 기준문구 바로 우측 칭호 + 아래 성과 pill 4개 구조를 유지해야 한다');
+  assert.match(tablet,/\.hero\{[^}]*--hero-title-size:22px;[^}]*--hero-basis-size:10px;[^}]*--hero-pill-size:10px;[^}]*\}/s,'Tablet Hero 타이포는 22px / 10px / 10px을 유지해야 한다');
+  assert.match(tablet,/\.hero \.hero-title-row\{[^}]*align-items:baseline;/s,'Tablet Hero 기준문구는 Web/Phone처럼 제목 baseline에 맞아야 한다');
   assert.doesNotMatch(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*margin-left:auto;/s,'Tablet 칭호를 Market AI 쪽 끝으로 밀면 안 된다');
   assert.match(special,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/,'Phone Landscape는 pill 4개를 유지해야 한다');
 });

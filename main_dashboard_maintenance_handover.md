@@ -2153,6 +2153,8 @@ node --test tests/cross-ui-contract.test.cjs
 > **최신 실제 소스를 기준으로 현재 책임 경계 안에서 최소 수정하고, 검증 범위는 변경 위험에 비례시키며, 장기 contract만 문서에 남긴다.**
 
 - **Hero 1280px 미만 compact gap**: 칭호/성과 pill 간 gap은 `1px`로 축소한다.
-- **Tablet Hero title alignment**: 칭호는 `투자 성과 (기준문구)`와 같은 title row의 우측 끝에 두고, 아래 성과 4칩의 우측 끝과 같은 Market AI 예약선에 맞춘다. Phone 배치는 기존 칭호 행/성과 행 분리를 유지한다.
+- **Tablet Hero title alignment**: 칭호는 `투자 성과 (기준문구)`와 같은 title row에서 기준문구 바로 우측에 둔다. Market AI 쪽 끝으로 밀지 않으며, Phone 배치는 기존 칭호 행/성과 행 분리를 유지한다.
 
 - **Hero 칭호/성과 responsive contract**: Tablet(761~1100px)은 `투자 성과 + 기준문구` 바로 우측에 Tablet 전용 칭호 슬롯을 두고, 성과 pill 4개는 다음 행에 유지한다. Tablet 전용 슬롯은 Web/Phone에서 반드시 숨겨야 한다. Hero 성과 label은 `≥1280px` full, `1101~1279px` short(`증권계좌/퇴직연금` 유지), `≤1100px` compact(`계좌/연금`) 3단계로 축약한다. 수익률 label과 값 사이는 명시적 공백을 유지한다.
+
+- Tablet Hero 타이포 contract: `투자 성과` 22px, 기준문구 10px, 칭호/성과 pill 10px. 제목 행은 `align-items: baseline`으로 Web/Phone과 동일한 하단선 정렬을 유지한다.
