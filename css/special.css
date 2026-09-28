@@ -166,8 +166,16 @@
    기존 성과 pill의 의미는 유지한 채 label만 short 형태로 축약한다. */
 @media (max-width:1279px){
     .hero{--hero-pill-gap:1px}
-    .hero .hero-label-default{display:none}
-    .hero .hero-label-mobile{display:inline}
+    .hero .hero-label-default,
+    .hero .hero-label-compact{display:none}
+    .hero .hero-label-short{display:inline}
+}
+
+/* Hero Extra Compact Labels · Tablet/Phone(≤1100px)은 계좌 종류 prefix를 한 번 더 줄여
+   Market AI와 함께 있는 Hero의 가로 여유를 확보한다. */
+@media (max-width:1100px){
+    .hero .hero-label-short{display:none}
+    .hero .hero-label-compact{display:inline}
 }
 
 /* -------------------------------------------------------------------------

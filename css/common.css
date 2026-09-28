@@ -1260,7 +1260,7 @@ section{
 .hero-performance-row .hero-metric-pills{margin-top:0}
 .hero-performance-row .hero-metric-pills{flex-wrap:nowrap;min-width:0}
 .hero-performance-row .pill{white-space:nowrap}
-.hero-title-badges-tablet{display:none}
+.hero-title-badges.hero-title-badges-tablet{display:none}
 .hero-title-badges{
   position:relative;
   z-index:1;
@@ -1296,7 +1296,7 @@ section{
   font-weight:var(--hero-pill-weight);
   line-height:var(--hero-pill-line);
 }
-.hero-label-mobile{display:none}
+.hero-label-short,.hero-label-compact{display:none}
 
 .mini-card{
   --mini-label-size:12px;

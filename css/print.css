@@ -376,7 +376,8 @@
       text-align:center;
     }
     .hero .hero-label-default{display:inline}
-    .hero .hero-label-mobile{display:none}
+    .hero .hero-label-short,
+    .hero .hero-label-compact{display:none}
 
     /* Separate Profit · Print는 Phone compact 표현을 해제하고 Web형 설명/라벨을 복원한다.
        geometry token은 root의 공통값을 상속해 별도 print 수치를 소유하지 않는다. */

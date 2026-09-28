@@ -94,7 +94,7 @@ test('실제 현재 데이터에서 단타 업적은 2026-08-06부터 최근 업
   assert.equal(core.investorTitleViewModel(after,core.separateProfitView(after)).achievement,'⚔️ 단타 깎는 노인');
 });
 
-test('Hero 정보 계층은 Web/Phone 기존 구조를 유지하고 Tablet은 제목 행 우측에 칭호를 정렬한다',()=>{
+test('Hero 정보 계층은 Web/Phone 기존 구조를 유지하고 Tablet은 기준문구 바로 우측에 칭호를 둔다',()=>{
   assert.match(app,/function renderHeroPerformanceRow\(x,v=separateProfitView\(x\)\)\{[^]*?class="hero-performance-row"[^]*?renderHeroTitleBadges\(x,v\)[^]*?renderHeroMetricPills\(x,v\)/);
   assert.match(app,/hero-title-row[^]*?renderHeroTitleBadges\(x,v,'tablet'\)[^]*?renderHeroPerformanceRow\(x,v\)/);
   assert.match(app,/hero-title-badges-tablet/);
@@ -109,11 +109,12 @@ test('Hero 정보 계층은 Web/Phone 기존 구조를 유지하고 Tablet은 �
   assert.equal((metricBlock.match(/hero-profit-pill/g)||[]).length,2);
   assert.equal((metricBlock.match(/hero-return-pill/g)||[]).length,2);
 
-  assert.match(common,/\.hero-title-badges-tablet\{display:none\}/);
+  assert.match(common,/\.hero-title-badges\.hero-title-badges-tablet\{display:none\}/,'Tablet 전용 칭호 슬롯은 Web/Phone baseline에서 숨겨져야 한다');
   assert.match(common,/\.hero-performance-row\{[^}]*display:flex;[^}]*flex-wrap:nowrap;/s);
   assert.match(common,/\.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:nowrap;/s);
-  assert.match(tablet,/Tablet Hero는 제목\/기준문구 우측 끝에 칭호를 두고[^]*?\.hero \.hero-title-row\{[^}]*flex-wrap:nowrap;[^}]*align-items:center;/s);
-  assert.match(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*display:flex;[^}]*margin-left:auto;/s);
+  assert.match(tablet,/Tablet Hero는 제목\/기준문구 바로 우측에 칭호를 두고[^]*?\.hero \.hero-title-row\{[^}]*flex-wrap:nowrap;[^}]*align-items:center;/s);
+  assert.match(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*display:flex;/s);
+  assert.doesNotMatch(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*margin-left:auto;/s,'Tablet 칭호는 Market AI 쪽 끝으로 밀리면 안 된다');
   assert.match(tablet,/\.hero \.hero-performance-row \.hero-title-badges-performance\{[^}]*display:none;/s);
   assert.match(tablet,/\.hero \.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:nowrap;[^}]*margin-top:var\(--space-sm\);/s);
   assert.match(tablet,/\.hero \.hero-return-pill\{display:inline-flex\}/);

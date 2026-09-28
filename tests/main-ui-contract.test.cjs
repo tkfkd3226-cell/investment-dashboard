@@ -931,17 +931,21 @@ test('Modal lifecycle는 focus trap / focus return / inert / ESC를 공통 layer
   assert.match(modal1,/target\?\.focus\?\.\(\{preventScroll:true\}\)/);
 });
 
-test('1280px 미만 Hero 성과 pill은 4개 label을 short 형태로 축약한다',()=>{
-  for(const [full,short] of [
-    ['증권계좌 누적손익','증권계좌 손익'],
-    ['증권계좌 누적수익률','증권계좌 수익률'],
-    ['퇴직연금 운용손익','퇴직연금 손익'],
-    ['퇴직연금 운용수익률','퇴직연금 수익률'],
+test('Hero 성과 pill label은 Desktop full / compact Web short / Tablet·Phone compact 3단계를 유지한다',()=>{
+  for(const [full,short,compact] of [
+    ['증권계좌 누적손익','증권계좌 손익','계좌 손익'],
+    ['증권계좌 누적수익률','증권계좌 수익률','계좌 수익률'],
+    ['퇴직연금 운용손익','퇴직연금 손익','연금 손익'],
+    ['퇴직연금 운용수익률','퇴직연금 수익률','연금 수익률'],
   ]){
-    assert.match(app,new RegExp(`<span class=\"hero-label-default\">${full}</span><span class=\"hero-label-mobile\">${short}</span>`),`${full}은 short label과 함께 렌더되어야 한다`);
+    assert.match(app,new RegExp(`<span class=\"hero-label-default\">${full}</span><span class=\"hero-label-short\">${short}</span><span class=\"hero-label-compact\">${compact}</span>`),`${full}은 short/compact label과 함께 렌더되어야 한다`);
   }
-  assert.match(special,/@media \(max-width:1279px\)\{[^]*?\.hero \.hero-label-default\{display:none\}[^]*?\.hero \.hero-label-mobile\{display:inline\}/,'1280px 미만에서는 Hero short label을 표시해야 한다');
-  assert.match(common,/\.hero-label-mobile\{display:none\}/,'1280px 이상 Desktop baseline은 full label을 유지해야 한다');
+  assert.match(special,/@media \(max-width:1279px\)\{[^]*?\.hero \.hero-label-default,[^]*?\.hero \.hero-label-compact\{display:none\}[^]*?\.hero \.hero-label-short\{display:inline\}/,'1101~1279px compact Web은 short label을 표시해야 한다');
+  assert.match(special,/@media \(max-width:1100px\)\{[^]*?\.hero \.hero-label-short\{display:none\}[^]*?\.hero \.hero-label-compact\{display:inline\}/,'Tablet/Phone은 계좌·연금 compact label을 표시해야 한다');
+  assert.match(common,/\.hero-label-short,\.hero-label-compact\{display:none\}/,'1280px 이상 Desktop baseline은 full label을 유지해야 한다');
+  assert.match(print,/\.hero \.hero-label-default\{display:inline\}[^]*?\.hero \.hero-label-short,[^]*?\.hero \.hero-label-compact\{display:none\}/s,'Print는 viewport와 무관하게 full label을 복원해야 한다');
+  assert.match(app,/hero-label-compact\">계좌 수익률<\/span>&nbsp;\$\{pct\(v\.totalReturn\)\}/,'계좌 수익률 label과 값 사이는 명시적 공백을 유지해야 한다');
+  assert.match(app,/hero-label-compact\">연금 수익률<\/span>&nbsp;\$\{pct\(x\.pensionReturn\)\}/,'연금 수익률 label과 값 사이는 명시적 공백을 유지해야 한다');
 });
 
 test('1280px 미만 Hero pill gap은 기존 대비 70% 이상 축소하고 Phone도 같은 compact gap을 유지한다',()=>{
@@ -977,7 +981,8 @@ test('Market AI responsive 전환은 Phone inline owner와 content-driven card l
   assert.match(common,/\.market-ai-desktop\{[^}]*width:max-content;[^}]*max-width:100%;[^]*\.market-ai-desktop-metric\{[^}]*grid-template-columns:subgrid;/,'공통 Market AI는 내용 기반 폭과 공통 label/value/change 열 정렬을 유지해야 한다');
   assert.match(special,/#market-ai-section\[data-market-ai-placement="phone-inline"\][^]*\.market-ai-card-row\{[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content;/,'Phone inline은 가용폭을 채우며 label 좌측 / value·change 우측 정렬을 유지해야 한다');
 
-  assert.match(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*display:flex;[^}]*margin-left:auto;[^]*?\.hero \.hero-performance-row \.hero-title-badges-performance\{[^}]*display:none;[^]*?\.hero \.hero-return-pill\{display:inline-flex\}/s,'Tablet Hero는 제목 행 우측 칭호 + 아래 성과 pill 4개 구조를 유지해야 한다');
+  assert.match(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*display:flex;[^]*?\.hero \.hero-performance-row \.hero-title-badges-performance\{[^}]*display:none;[^]*?\.hero \.hero-return-pill\{display:inline-flex\}/s,'Tablet Hero는 기준문구 바로 우측 칭호 + 아래 성과 pill 4개 구조를 유지해야 한다');
+  assert.doesNotMatch(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*margin-left:auto;/s,'Tablet 칭호를 Market AI 쪽 끝으로 밀면 안 된다');
   assert.match(special,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/,'Phone Landscape는 pill 4개를 유지해야 한다');
 });
 

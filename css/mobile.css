@@ -27,8 +27,9 @@
       width:auto;
     }
     .hero .hero-return-pill{display:none}
-    .hero .hero-label-default{display:none}
-    .hero .hero-label-mobile{display:inline}
+    .hero .hero-label-default,
+    .hero .hero-label-short{display:none}
+    .hero .hero-label-compact{display:inline}
 
   /* [M02. Cards / Metrics / Section Controls · 요약 열 수와 제목 control 배치] */
 .chart-note.six{
