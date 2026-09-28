@@ -1134,5 +1134,16 @@ test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표�
   const postCumRow=core.securitiesCumHistoryBundle('2026-09-17').off.at(-1);
   assert.equal(postCumRow['합계 : 누적손익'],post.rawHoldingProfit);
   approx(postCumRow['합계 : 누적수익률'],post.rawHoldingProfit/post.account1Principal*100);
+
+  const baselineCurrent=core.calc('2026-09-28');
+  const trackedPrices=structuredClone(core.dataState.prices);
+  trackedPrices['2026-09-28']={...trackedPrices['2026-09-28'],securities:{...trackedPrices['2026-09-28'].securities,'009150':1500000,'093370':15000}};
+  core.dataState.prices=trackedPrices;
+  assert.deepEqual(core.securityHypotheticalLatestQuote('009150'),{date:'2026-09-28',price:1500000,marketStatus:'close',priceBasis:'regular_close',updatedAtKST:trackedPrices['2026-09-28'].updatedAtKST||''});
+  const trackedSale=core.securityFullExitSaleForDate('009150','2026-09-17');
+  assert.deepEqual({hypotheticalPrice:trackedSale.hypotheticalPrice,hypotheticalPriceDate:trackedSale.hypotheticalPriceDate,hypotheticalEvalAmount:trackedSale.hypotheticalEvalAmount,hypotheticalProfit:trackedSale.hypotheticalProfit},{hypotheticalPrice:1500000,hypotheticalPriceDate:'2026-09-28',hypotheticalEvalAmount:1500000,hypotheticalProfit:155000},'삼성전기도 매도일 종가가 아니라 최신 KRX 저장가로 지금까지 보유한 가상손익을 계산한다');
+  const trackedCurrent=core.calc('2026-09-28');
+  assert.deepEqual({account1Principal:trackedCurrent.account1Principal,account1Profit:trackedCurrent.account1Profit,totalPrincipal:trackedCurrent.totalPrincipal,totalProfit:trackedCurrent.totalProfit,totalResult:trackedCurrent.totalResult,allocTotal:trackedCurrent.allocTotal},{account1Principal:baselineCurrent.account1Principal,account1Profit:baselineCurrent.account1Profit,totalPrincipal:baselineCurrent.totalPrincipal,totalProfit:baselineCurrent.totalProfit,totalResult:baselineCurrent.totalResult,allocTotal:baselineCurrent.allocTotal},'삼성전기·후성 가상추적 최신가는 실제 장부와 allocation에 합산하지 않는다');
+  assert.equal(trackedCurrent.securitiesAssetDetail.statusRows.some(r=>['009150','093370'].includes(r.ticker)),false,'현재 보유현황에 retired 가상추적 종목을 되살리지 않는다');
   assert.equal(after.totalResult-(after.allocTotal+core.outsideCashForDate('2026-09-16')),3063626);
 });
