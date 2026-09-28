@@ -1184,23 +1184,26 @@ function securitiesHistoryCalcRows(d){
   });
   return rows;
 }
+function securityHistoricalDisplayHoldings(date,value){
+  return (value?.holdings||[]).map(h=>securityFullExitDisplayHolding(h,date,value?.prevKey||null));
+}
 function securityHistoricalChartItems(d){
   const latestByName=new Map();
   securitiesHistoryCalcRows(d).forEach(({date,value})=>{
     const activeNames=new Set(securityChartNamesForDate(date));
-    (value?.holdings||[]).forEach(h=>{if(activeNames.has(h.name))latestByName.set(h.name,h)});
+    securityHistoricalDisplayHoldings(date,value).forEach(h=>{if(activeNames.has(h.name))latestByName.set(h.name,h)});
   });
   return sortSecurityChartItems([...latestByName.values()]);
 }
 const securityHistoricalChartNamesForDate=d=>securityHistoricalChartItems(d).map(item=>item.name);
 function securityHistoricalAllocItems(d){
   const rows=securitiesHistoryCalcRows(d),managedNames=new Set((dataState.portfolio?.securities||[]).map(h=>h.name)),names=new Set(),lastSeen=new Map();
-  rows.forEach(({value})=>{
-    const holdings=value?.holdings||[];
+  rows.forEach(({date,value})=>{
+    const holdings=securityHistoricalDisplayHoldings(date,value);
     holdings.forEach(h=>{if(managedNames.has(h.name))lastSeen.set(h.name,h)});
-    sortSecurityAllocationItems(securityAllocVisibleHoldings(value)).forEach(h=>{if(managedNames.has(h.name))names.add(h.name)});
+    sortSecurityAllocationItems(holdings.filter(h=>securityAllocHoldingVisible(h,date))).forEach(h=>{if(managedNames.has(h.name))names.add(h.name)});
   });
-  const currentByName=new Map((rows.at(-1)?.value?.holdings||[]).filter(h=>managedNames.has(h.name)).map(h=>[h.name,h]));
+  const currentRow=rows.at(-1),currentByName=new Map(securityHistoricalDisplayHoldings(currentRow?.date,currentRow?.value).filter(h=>managedNames.has(h.name)).map(h=>[h.name,h]));
   return [...names].map(name=>currentByName.get(name)||lastSeen.get(name)).filter(Boolean).sort((a,b)=>{
     const evalDiff=(Number(b?.evalAmount)||0)-(Number(a?.evalAmount)||0);
     return evalDiff||String(a?.name||'').localeCompare(String(b?.name||''),'ko');
@@ -1320,11 +1323,11 @@ function cumHistory(d){
 function symbolHistory(d){
   const series=securityHistoricalChartNamesForDate(d);
   return securitiesHistoryCalcRows(d).map(({date:x,value:v})=>{
-    const activeNames=new Set(securityChartNamesForDate(x));
+    const activeNames=new Set(securityChartNamesForDate(x)),holdings=securityHistoricalDisplayHoldings(x,v);
     const row={'날짜':x,'_rates':{}};
     series.forEach(name=>{
       if(!activeNames.has(name)){row[name]=null;row._rates[name]=null;return;}
-      const h=v.holdings.find(h=>h.name===name);
+      const h=holdings.find(h=>h.name===name);
       const totalProfit=h?securityTotalProfitValue(h):0,performanceCost=Number(h?.performanceCost??h?.cost)||0;
       row[name]=h?totalProfit:0;
       row._rates[name]=h&&performanceCost?totalProfit/performanceCost*100:0;
@@ -1346,9 +1349,9 @@ function allocHistory(d){
 }
 function securitySymbolAllocHistory(d,series){
   return securitiesHistoryCalcRows(d).map(({date:x,value:v})=>{
-    const row={'날짜':x,'_total':Number(v.allocTotal||0)};
+    const holdings=securityHistoricalDisplayHoldings(x,v),row={'날짜':x,'_total':Number(v.allocTotal||0)};
     series.forEach(name=>{
-      const h=v.holdings.find(item=>item.name===name);
+      const h=holdings.find(item=>item.name===name);
       row[name]=h&&securityAllocHoldingVisible(h,x)?Number(h?.evalAmount||0):0;
     });
     row['현금']=Number(v.securitiesCash||0);
