@@ -11,5 +11,18 @@
     "reason": "workflow_skipped:before_open_already_closed",
     "savedAtKST": "2026-09-29T00:32:18+09:00",
     "savedAtMs": 1790609538388
+  },
+  {
+    "requestId": "krx-update-75377bfc-4b72-4c80-b87e-8733728796b7",
+    "requestIdHash": "1d48a4d16ce847199d5943ce04ec5e52",
+    "hash": "3d5d63b56b17492d93026446a5b93c7f66f3f1be49b67fcc80bf6e4ef4622eff",
+    "branch": "main",
+    "date": "",
+    "workflowRunId": "",
+    "runUrl": "",
+    "htmlUrl": "",
+    "reason": "workflow_skipped:before_open_already_closed",
+    "savedAtKST": "2026-09-29T00:33:34+09:00",
+    "savedAtMs": 1790609614009
   }
 ]
