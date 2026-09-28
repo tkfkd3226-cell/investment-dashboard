@@ -997,7 +997,7 @@ Navigation 책임은 다음 의미를 유지한다.
 - Hamburger membership source는 Tablet/Phone 공통으로 유지하고 viewport별 별도 markup을 만들지 않는다. 다만 Topbar와의 중복 제거를 위한 runtime 표시/숨김은 허용한다. `Top바 고정`은 fixed Phone Topbar 전용 control이라 Phone에서만 표시하고, 모서리 변경은 기존 `toggleCornerTheme()` 상태·storage/channel을 재사용한다.
 - Hamburger panel height/scroll: `common.css`가 Tablet/Phone 공통 owner다. Tablet/Phone media에 별도 `max-height` cap을 두지 않고, viewport 높이가 실제로 부족한 경우에만 공통 `overflow:auto`가 작동한다.
 - Desktop: 기존 action + 우측 edge TOC. TOC panel은 화면 바깥에서 slide-in하지 않고 **panel 우측 세로선을 기준으로 `clip-path` reveal/close**하며, trigger/rail 위치는 고정한다.
-- 날짜 이동은 기존 `setActiveDashboardDate()` 하나로 수렴한다. Web은 화면 좌우 세로 중앙의 이전/다음 날짜 button을 사용하고, Tablet/Phone은 수평 swipe를 사용한다. 최종 touch 계약은 **좌→우=이전 날짜, 우→좌=다음 날짜**이며 control/chart/가로스크롤/modal에서 시작한 gesture는 제외한다. touch 전환 후에는 기존 toast로 이동 날짜를 안내하고 자동 종료한다.
+- 날짜 이동은 기존 `setActiveDashboardDate()` 하나로 수렴한다. Web은 side rail이 충분한 구간에서 TOC와 폭·높이를 공유하는 `<`/`>` edge button을 사용하고, rail이 부족한 Web에서는 같은 action을 Topbar 날짜 selector 안의 compact `<`/`>`로 전환해 본문을 가리지 않는다. Tablet/Phone은 수평 swipe를 사용한다. 최종 touch 계약은 **좌→우=이전 날짜, 우→좌=다음 날짜**이며 control/chart/가로스크롤/modal에서 시작한 gesture는 제외한다. touch 전환 후에는 기존 toast로 이동 날짜를 안내하고 자동 종료한다.
 
 JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하고 같은 `matchMedia` 조건을 기능 모듈마다 복제하지 않는다.
 

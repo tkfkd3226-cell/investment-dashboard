@@ -179,22 +179,19 @@ function ensureDesktopDateNavigation(){
     nav.id='dashboardDateNavigation';
     nav.className='dashboard-date-navigation';
     nav.setAttribute('aria-label','날짜 이동');
-    nav.innerHTML=`<button type="button" class="dashboard-date-nav-btn dashboard-date-nav-prev" data-dashboard-action="previous-dashboard-date"><span class="dashboard-date-nav-icon" aria-hidden="true">${navIconSvg('arrowLeft')}</span></button><button type="button" class="dashboard-date-nav-btn dashboard-date-nav-next" data-dashboard-action="next-dashboard-date"><span class="dashboard-date-nav-icon" aria-hidden="true">${navIconSvg('arrowRight')}</span></button>`;
+    nav.innerHTML=`<button type="button" class="dashboard-date-nav-btn dashboard-date-nav-prev" data-dashboard-action="previous-dashboard-date"><span class="dashboard-date-nav-icon" aria-hidden="true">&lt;</span></button><button type="button" class="dashboard-date-nav-btn dashboard-date-nav-next" data-dashboard-action="next-dashboard-date"><span class="dashboard-date-nav-icon" aria-hidden="true">&gt;</span></button>`;
     document.body.appendChild(nav);
   }
   const prev=dashboardDateNeighbor(-1),next=dashboardDateNeighbor(1);
-  const prevButton=nav.querySelector('[data-dashboard-action="previous-dashboard-date"]');
-  const nextButton=nav.querySelector('[data-dashboard-action="next-dashboard-date"]');
-  if(prevButton){
-    prevButton.disabled=!prev;
-    prevButton.setAttribute('aria-label',prev?`전날짜 ${dashboardDateLabel(prev)}로 이동`:'이동 가능한 전날짜 없음');
-    prevButton.setAttribute('title',prev?`전날짜 · ${dashboardDateLabel(prev)}`:'이동 가능한 전날짜 없음');
-  }
-  if(nextButton){
-    nextButton.disabled=!next;
-    nextButton.setAttribute('aria-label',next?`다음날짜 ${dashboardDateLabel(next)}로 이동`:'이동 가능한 다음날짜 없음');
-    nextButton.setAttribute('title',next?`다음날짜 · ${dashboardDateLabel(next)}`:'이동 가능한 다음날짜 없음');
-  }
+  const syncButtons=(selector,date,direction)=>{
+    document.querySelectorAll(selector).forEach(button=>{
+      button.disabled=!date;
+      button.setAttribute('aria-label',date?`${direction} ${dashboardDateLabel(date)}로 이동`:`이동 가능한 ${direction} 없음`);
+      button.setAttribute('title',date?`${direction} · ${dashboardDateLabel(date)}`:`이동 가능한 ${direction} 없음`);
+    });
+  };
+  syncButtons('[data-dashboard-action="previous-dashboard-date"]',prev,'전날짜');
+  syncButtons('[data-dashboard-action="next-dashboard-date"]',next,'다음날짜');
   return nav;
 }
 function setActiveDashboardDate(date,{keepDateMenuOpen=false}={}){

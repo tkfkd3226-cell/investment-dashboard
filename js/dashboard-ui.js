@@ -440,8 +440,10 @@ function renderTabs(){
   document.getElementById('tabs').innerHTML=`
     <div class="date-picker">
       <div class="date-picker-center" role="group" aria-label="기준일 선택">
+        <button type="button" class="topbar-date-step topbar-date-step-prev" data-dashboard-action="previous-dashboard-date" aria-label="이전 날짜"><span aria-hidden="true">&lt;</span></button>
         <select class="date-select month-select" id="monthSelect" aria-label="월 선택" aria-controls="app">${months.map(m=>`<option value="${m}" ${m===activeMonth?'selected':''}>${monthLabel(m)}</option>`).join('')}</select>
         <select class="date-select day-select" id="dateSelect" aria-label="일 선택" aria-controls="app">${monthDates.map(d=>`<option value="${d}" ${d===dataState.activeDate?'selected':''}>${dayOptionLabel(d)}</option>`).join('')}</select>
+        <button type="button" class="topbar-date-step topbar-date-step-next" data-dashboard-action="next-dashboard-date" aria-label="다음 날짜"><span aria-hidden="true">&gt;</span></button>
       </div>
       <div class="date-picker-action" role="group" aria-label="대시보드 도구">
         <a class="date-tool-btn market-link-btn market-link-btn-desktop date-tool-btn-desktop topbar-market-action" href="https://esignal.co.kr/kospi200-futures-night/" target="_blank" rel="noopener noreferrer" draggable="false" title="코스피200 야간선물">

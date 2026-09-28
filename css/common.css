@@ -130,6 +130,12 @@
   --asset-band-section-gap:var(--card-grid-gap-large);
   --page-anchor-offset:76px;
 
+  /* Edge Rail Controls · Web 좌우 rail의 TOC/날짜 이동 control geometry 공유 */
+  --edge-rail-control-width:36px;
+  --edge-rail-control-height:72px;
+  --edge-rail-inset:var(--space-5xl);
+  --edge-rail-gap:var(--space-5xl);
+
   /* Card Grid Gap System · 카드와 카드 사이 간격의 hierarchy */
   --card-grid-gap-large:var(--space-7xl);
   --card-grid-gap-medium:var(--space-5xl);
@@ -4667,7 +4673,8 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   gap:var(--topbar-action-group-gap);
 }
 .date-select,
-.date-tool-btn{
+.date-tool-btn,
+.topbar-date-step{
   border:1px solid var(--topbar-control-border);
   background:var(--topbar-control-bg);
   color:var(--topbar-text);
@@ -4716,10 +4723,26 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   white-space:nowrap;
   cursor:pointer;
 }
+/* Compact Web Date Step · side rail이 부족한 Web에서 edge button 대신 날짜 selector 안에서 이동 */
+.topbar-date-step{
+  display:none;
+  width:var(--page-shell-gutter);
+  min-width:var(--page-shell-gutter);
+  height:var(--topbar-control-height);
+  flex:0 0 var(--page-shell-gutter);
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border-radius:min(var(--control-radius-md),var(--corner-control-cap));
+  font-size:var(--type-size-xl);
+  line-height:1;
+  cursor:pointer;
+}
+.topbar-date-step:disabled{pointer-events:none}
 [data-market-ai-monitor-entry][hidden]{display:none}
 [data-personal-view-control][hidden],
 .date-action-menu.mobile-combined-menu [data-personal-view-control][hidden]{display:none}
-:is(.date-select,.date-tool-btn):focus-visible{
+:is(.date-select,.date-tool-btn,.topbar-date-step):focus-visible{
   border-color:var(--topbar-control-border-focus);
   outline:var(--control-focus-outline-width) solid var(--topbar-control-border-focus);
   outline-offset:var(--control-focus-outline-offset);
@@ -4742,14 +4765,15 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 .date-action-menu-wrap,
 .topbar-label-short{display:none}
 
-/* Desktop Date Navigation · 웹 화면 중앙 좌우 날짜 이동 */
+/* Desktop Date Navigation · 충분한 side rail에서는 edge, 그보다 좁은 Web은 Topbar inline 이동 */
 .dashboard-date-navigation{display:none}
-@media (min-width:1101px){
+@media (min-width:1101px) and (max-width:1823px){
+  .topbar-date-step{display:inline-flex}
+}
+@media (min-width:1824px){
   .dashboard-date-navigation{
     display:block;
-    --dashboard-date-nav-size:40px;
-    --dashboard-date-nav-height:72px;
-    --dashboard-date-nav-edge:60px;
+    --dashboard-date-nav-edge:calc(var(--edge-rail-inset) + var(--edge-rail-control-width) + var(--edge-rail-gap));
     position:fixed;
     inset:0;
     z-index:7100;
@@ -4758,8 +4782,8 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   .dashboard-date-nav-btn{
     position:fixed;
     top:50%;
-    width:var(--dashboard-date-nav-size);
-    height:var(--dashboard-date-nav-height);
+    width:var(--edge-rail-control-width);
+    height:var(--edge-rail-control-height);
     transform:translateY(-50%);
     display:inline-flex;
     align-items:center;
@@ -4785,11 +4809,10 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
     outline:var(--control-focus-outline-width) solid var(--topbar-control-border-focus);
     outline-offset:var(--control-focus-outline-offset);
   }
-  .dashboard-date-nav-icon,
-  .dashboard-date-nav-icon svg{
+  .dashboard-date-nav-icon{
     display:block;
-    width:18px;
-    height:18px;
+    font-size:var(--type-size-5xl);
+    line-height:1;
   }
 }
 
@@ -4936,10 +4959,10 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 @media (min-width:1101px){
   /* Edge TOC Desktop · 웹(≥1101px) 우측 hover/focus 목차 */
     .desktop-edge-toc{
-      --desktop-edge-toc-trigger-width:36px;
+      --desktop-edge-toc-trigger-width:var(--edge-rail-control-width);
       position:fixed;
       top:50%;
-      right:12px;
+      right:var(--edge-rail-inset);
       z-index:7200;
       display:flex;
       align-items:center;
@@ -4952,7 +4975,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
       z-index:2;
       width:var(--desktop-edge-toc-trigger-width);
       min-width:var(--desktop-edge-toc-trigger-width);
-      height:72px;
+      height:var(--edge-rail-control-height);
       display:flex;
       flex-direction:column;
       align-items:center;

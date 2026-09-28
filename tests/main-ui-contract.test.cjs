@@ -131,23 +131,27 @@ test('Tablet/Phone hamburger panel은 공통 viewport 높이 contract를 공유�
 
 
 
-test('Web TOC hover panel은 trigger와 맞닿아 pointer dead zone을 만들지 않는다',()=>{
-  assert.match(common,/\.desktop-edge-toc\{[^}]*--desktop-edge-toc-trigger-width:[^;]+;/,'TOC trigger 폭은 panel 연결에도 재사용할 공통 component token이어야 한다');
-  assert.match(common,/\.desktop-edge-toc-trigger\{[^}]*width:var\(--desktop-edge-toc-trigger-width\);[^}]*min-width:var\(--desktop-edge-toc-trigger-width\);/,'TOC trigger는 공통 폭 token을 사용해야 한다');
+test('Web edge control은 TOC와 날짜 이동이 같은 rail geometry를 공유한다',()=>{
+  assert.match(common,/--edge-rail-control-width:[^;]+;[^]*?--edge-rail-control-height:[^;]+;/,'Web edge control 폭·높이는 공통 rail token이 소유해야 한다');
+  assert.match(common,/\.desktop-edge-toc\{[^}]*--desktop-edge-toc-trigger-width:var\(--edge-rail-control-width\);/,'TOC trigger 폭은 공통 edge rail 폭을 재사용해야 한다');
+  assert.match(common,/\.desktop-edge-toc-trigger\{[^}]*width:var\(--desktop-edge-toc-trigger-width\);[^}]*height:var\(--edge-rail-control-height\);/,'TOC trigger는 공통 edge rail geometry를 사용해야 한다');
   assert.match(common,/\.desktop-edge-toc-panel\{[^}]*right:var\(--desktop-edge-toc-trigger-width\);/,'TOC panel 우측 edge는 trigger 좌측 edge와 맞닿아 hover 이동 dead zone이 없어야 한다');
+  assert.match(common,/\.dashboard-date-nav-btn\{[^}]*width:var\(--edge-rail-control-width\);[^}]*height:var\(--edge-rail-control-height\);/,'날짜 edge button도 TOC와 같은 폭·높이 token을 사용해야 한다');
 });
 
 test('Dashboard 날짜 이동은 Web 좌우 버튼과 Tablet/Phone swipe가 canonical activeDate 경로를 공유한다',()=>{
   assert.match(app,/function dashboardDateNeighbor\(delta\)\{[^]*?allAvailableDates\(\)[^]*?dates\.indexOf\(dataState\.activeDate\)[^]*?nextIndex=index\+\(delta<0\?-1:1\)/,'이전/다음 날짜는 정렬된 canonical available dates에서 계산해야 한다');
   assert.match(app,/function shiftActiveDashboardDate\(delta,\{announce=false\}=\{\}\)\{[^]*?dashboardDateNeighbor\(delta\)[^]*?setActiveDashboardDate\(nextDate\)[^]*?showAppToast\(`\$\{dashboardDateLabel\(nextDate\)\}로 이동했습니다\.`,'ok',1800\)/,'버튼과 swipe는 canonical setActiveDashboardDate를 재사용하고 touch 이동은 자동 종료 toast를 보여야 한다');
-  assert.match(app,/data-dashboard-action="previous-dashboard-date"[^]*?navIconSvg\('arrowLeft'\)[^]*?data-dashboard-action="next-dashboard-date"[^]*?navIconSvg\('arrowRight'\)/,'Web 날짜 이동은 좌/우 arrow action을 제공해야 한다');
+  assert.match(app,/data-dashboard-action="previous-dashboard-date"[^]*?&lt;[^]*?data-dashboard-action="next-dashboard-date"[^]*?&gt;/,'Web edge 날짜 이동은 화살표가 아니라 < / > glyph를 사용해야 한다');
+  assert.match(ui,/topbar-date-step-prev[^>]*data-dashboard-action="previous-dashboard-date"[^]*?&lt;[^]*?topbar-date-step-next[^>]*data-dashboard-action="next-dashboard-date"[^]*?&gt;/,'좁은 Web Topbar도 동일한 < / > 날짜 이동 action을 제공해야 한다');
   assert.match(app,/if\(action==='previous-dashboard-date'\)return shiftActiveDashboardDate\(-1\);[^]*?if\(action==='next-dashboard-date'\)return shiftActiveDashboardDate\(1\);/,'Web 좌측은 전날짜, 우측은 다음날짜로 이동해야 한다');
   assert.match(app,/DASHBOARD_DATE_SWIPE_MIN_DISTANCE=72/,'touch swipe는 짧은 수평 이동을 날짜 전환으로 오인하면 안 된다');
   assert.match(app,/DASHBOARD_DATE_SWIPE_AXIS_RATIO=1\.25/,'touch swipe는 세로 scroll보다 수평 의도가 충분히 강해야 한다');
   assert.match(app,/dashboardDateSwipeBlockedTarget\(target\)[^]*?a,button,input,select,textarea,label[^]*?\.mobile-scroll,\.chart-wrap,svg,canvas/,'interactive/control/chart/horizontal scroll 시작점은 날짜 swipe에서 제외해야 한다');
   assert.match(app,/shiftActiveDashboardDate\(deltaX>0\?-1:1,\{announce:true\}\)/,'실사용 계약대로 좌→우 touch는 이전 날짜, 우→좌 touch는 다음 날짜여야 한다');
-  assert.match(common,/@media \(min-width:1101px\)\{[^]*?\.dashboard-date-navigation\{[^]*?display:block[^]*?position:fixed[^]*?\.dashboard-date-nav-btn\{[^]*?top:50%/,'날짜 좌우 버튼은 Web에서 display:none을 해제하고 화면 세로 중앙 fixed control로 노출해야 한다');
-  assert.match(common,/--dashboard-date-nav-edge:[^;]+;[^]*?\.dashboard-date-nav-prev\{left:var\(--dashboard-date-nav-edge\)\}[^]*?\.dashboard-date-nav-next\{right:var\(--dashboard-date-nav-edge\)\}/,'Web 좌우 날짜 버튼은 같은 edge token을 대칭으로 재사용해야 한다');
+  assert.match(common,/@media \(min-width:1101px\) and \(max-width:1823px\)\{[^}]*\.topbar-date-step\{display:inline-flex\}/,'side rail이 부족한 Web은 fixed edge button 대신 Topbar 날짜 이동을 사용해야 한다');
+  assert.match(common,/@media \(min-width:1824px\)\{[^]*?\.dashboard-date-navigation\{[^]*?display:block[^]*?position:fixed[^]*?\.dashboard-date-nav-btn\{[^]*?top:50%/,'충분한 side rail이 있는 Web에서만 날짜 이동을 화면 세로 중앙 edge control로 노출해야 한다');
+  assert.match(common,/--dashboard-date-nav-edge:calc\(var\(--edge-rail-inset\) \+ var\(--edge-rail-control-width\) \+ var\(--edge-rail-gap\)\);[^]*?\.dashboard-date-nav-prev\{left:var\(--dashboard-date-nav-edge\)\}[^]*?\.dashboard-date-nav-next\{right:var\(--dashboard-date-nav-edge\)\}/,'Web 좌우 날짜 버튼은 TOC rail을 피하는 같은 edge 계산을 대칭으로 재사용해야 한다');
   assert.match(print,/\.dashboard-date-navigation/,'인쇄에서는 화면 날짜 이동 control을 숨겨야 한다');
 });
 
