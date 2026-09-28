@@ -948,12 +948,12 @@ test('Hero 성과 pill label은 Desktop full / compact Web short / Tablet·Phone
   assert.match(app,/hero-label-compact\">연금 수익률<\/span>&nbsp;\$\{pct\(x\.pensionReturn\)\}/,'연금 수익률 label과 값 사이는 명시적 공백을 유지해야 한다');
 });
 
-test('1280px 미만 Hero pill gap은 기존 대비 70% 이상 축소하고 Phone도 같은 compact gap을 유지한다',()=>{
-  assert.match(special,/@media \(max-width:1279px\)\{[^]*?\.hero\{--hero-pill-gap:1px\}/,'1280px 미만은 1px compact gap을 사용해야 한다');
+test('1280px 미만 Hero pill gap은 Web/Tablet에서 통일하고 Phone은 Desktop gap을 복원한다',()=>{
+  assert.match(special,/@media \(max-width:1279px\)\{[^]*?\.hero\{--hero-pill-gap:1px\}[^]*?\.hero \.hero-performance-row,[^]*?\.hero \.hero-title-badges,[^]*?\.hero \.hero-metric-pills\{gap:var\(--hero-pill-gap\)\}/s,'1280px 미만 Web/Tablet은 칭호군·성과군·그룹 사이 간격을 같은 compact gap 변수로 통일해야 한다');
   const phoneStart=special.indexOf('[S03] Phone UI Shared · 폰 공통 UI');
   const phoneEnd=special.indexOf('[S04] Phone Landscape · 실제 스마트폰 가로모드');
   const phoneBlock=special.slice(phoneStart,phoneEnd);
-  assert.match(phoneBlock,/--hero-pill-gap:1px;/,'Phone 공통 Hero도 1px gap을 유지해야 한다');
+  assert.match(phoneBlock,/--hero-pill-gap:6px;/,'Phone 공통 Hero는 여유 폭을 활용해 Desktop baseline과 같은 6px gap을 사용해야 한다');
   assert.match(common,/--hero-pill-gap:6px;/,'1280px 이상 Desktop baseline gap은 유지해야 한다');
 });
 
@@ -982,7 +982,7 @@ test('Market AI responsive 전환은 Phone inline owner와 content-driven card l
   assert.match(special,/#market-ai-section\[data-market-ai-placement="phone-inline"\][^]*\.market-ai-card-row\{[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content;/,'Phone inline은 가용폭을 채우며 label 좌측 / value·change 우측 정렬을 유지해야 한다');
 
   assert.match(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*display:flex;[^]*?\.hero \.hero-performance-row \.hero-title-badges-performance\{[^}]*display:none;[^]*?\.hero \.hero-return-pill\{display:inline-flex\}/s,'Tablet Hero는 기준문구 바로 우측 칭호 + 아래 성과 pill 4개 구조를 유지해야 한다');
-  assert.match(tablet,/\.hero\{[^}]*--hero-title-size:22px;[^}]*--hero-basis-size:10px;[^}]*--hero-pill-size:10px;[^}]*\}/s,'Tablet Hero 타이포는 22px / 10px / 10px을 유지해야 한다');
+  assert.match(tablet,/\.hero\{[^}]*--hero-pad:var\(--space-6xl\);[^}]*--hero-title-size:22px;[^}]*--hero-basis-size:10px;[^}]*--hero-pill-size:10px;[^}]*\}/s,'Tablet Hero는 14px 내부여백과 22px / 10px / 10px 타이포를 유지해야 한다');
   assert.match(tablet,/\.hero \.hero-title-row\{[^}]*align-items:baseline;/s,'Tablet Hero 기준문구는 Web/Phone처럼 제목 baseline에 맞아야 한다');
   assert.doesNotMatch(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*margin-left:auto;/s,'Tablet 칭호를 Market AI 쪽 끝으로 밀면 안 된다');
   assert.match(special,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/,'Phone Landscape는 pill 4개를 유지해야 한다');

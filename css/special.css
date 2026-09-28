@@ -166,6 +166,9 @@
    기존 성과 pill의 의미는 유지한 채 label만 short 형태로 축약한다. */
 @media (max-width:1279px){
     .hero{--hero-pill-gap:1px}
+    .hero .hero-performance-row,
+    .hero .hero-title-badges,
+    .hero .hero-metric-pills{gap:var(--hero-pill-gap)}
     .hero .hero-label-default,
     .hero .hero-label-compact{display:none}
     .hero .hero-label-short{display:inline}
@@ -440,7 +443,7 @@
       --hero-title-gap-x:6px;
       --hero-basis-size:var(--type-size-2xs);
       --hero-pill-margin-top:8px;
-      --hero-pill-gap:1px;
+      --hero-pill-gap:6px;
       --hero-pill-pad-y:4px;
       --hero-pill-pad-x:6px;
       --hero-pill-size:var(--type-size-2xs);
