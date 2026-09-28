@@ -53,9 +53,9 @@
 .hero{
       --hero-pad:var(--space-6xl);
       --market-ai-hero-edge-gap:var(--space-sm);
-      --hero-title-size:22px;
-      --hero-basis-size:10px;
-      --hero-pill-size:10px;
+      --hero-title-size:var(--type-size-6xl);
+      --hero-basis-size:var(--type-size-2xs);
+      --hero-pill-size:var(--type-size-2xs);
       --hero-decor-size:240px;
       --hero-decor-right:-72px;
     }

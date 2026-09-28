@@ -689,7 +689,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - polling은 5초 간격으로 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. client identity 확인부터 응답 body 소비까지 진행 중인 Promise를 공유해 중복 요청을 만들지 않는다. 연결 해제는 sequence를 무효화하고, 이전 요청이 끝났을 때 재연결되어 있으면 즉시 새 요청을 예약한다. 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다. 관련 실행 테스트는 `tests/live-valuation-polling.test.cjs`가 소유한다.
 - Live Valuation/render lifecycle의 canonical contract는 **2.7 `dashboard-app.js` 책임**을 따른다. overlay·input·tooltip interaction 중에는 render를 보류하고 종료 후 최신 pending state를 1회 반영한다. 5초 Live Valuation과 별도수익 전환은 `#tabs`/`#app` shell과 focus/scroll transient state를 보존하는 부분 갱신을 사용하며, 구체 fragment 목록과 redraw 범위는 실제 `dashboard-app.js`를 Source of Truth로 한다.
 - 차트 entrance animation은 card별 최초 viewport 진입 1회가 contract다. 주기 갱신은 이미 재생된 card만 완료 상태를 승계하고 미진입·hidden/0-size card의 최초 animation을 선소비하지 않는다.
-- Hero 투자 칭호는 `현재 상태형 1개 + 최근 획득 업적형 최대 1개`를 표시한다. **Web에서는 칭호와 기존 성과 pill을 같은 `hero-performance-row` 한 줄에 배치**하고, **Tablet은 칭호 전용 행 아래에 기존 성과 pill 4개를 한 줄로 배치**하며, **Phone은 `투자 성과` 제목/기준문구 → 칭호 전용 행 → 기존 성과 pill 행**의 현재 구조를 유지한다. 현재 상태형은 5거래일 연속 수익 → 현금비중 40% 이상 → 누적손익 1,000만원 초과 → 기본 순으로 판정하며, 업적형은 `인내의 화신`(MDD -200만원 이하 경험 후 누적손익 양전)과 `단타 깎는 노인`(KODEX 레버리지 별도수익 10회)의 **획득일을 계산해 더 최근 업적 1개**를 표시한다. 단, `단타 깎는 노인`은 **별도수익 ON일 때만 업적 후보에 포함**하며 OFF에서는 표시하지 않는다. 미래 거래는 업적 횟수에서 제외한다. Phone에서는 칭호가 기존 세로 2개/가로 4개 성과 pill 행에 섞여 줄바꿈을 만들면 안 된다. 칭호 로직·ON/OFF·Web 한줄/Tablet·Phone 분리 회귀는 `tests/investor-title.test.cjs`가 보호한다.
+- Hero 투자 칭호는 `현재 상태형 1개 + 최근 획득 업적형 최대 1개`를 표시한다. Web은 칭호와 성과 pill을 같은 행에 두고, Tablet은 `투자 성과 + 기준문구` 바로 뒤에 칭호를 두며 성과 pill 4개는 다음 행에 유지한다. Phone은 `제목/기준문구 → 칭호 행 → 성과 pill 행` 구조를 유지해 세로 2개/가로 4개 성과 pill contract를 깨지 않는다. 현재 상태형은 5거래일 연속 수익 → 현금비중 40% 이상 → 누적손익 1,000만원 초과 → 기본 순으로 판정하고, 업적형은 `인내의 화신`과 `단타 깎는 노인`의 획득일을 비교해 더 최근 업적 1개를 표시한다. `단타 깎는 노인`은 별도수익 ON일 때만 후보이며 미래 거래는 제외한다. 칭호 로직/renderer ownership은 `tests/investor-title.test.cjs`, viewport 배치는 `tests/main-ui-contract.test.cjs`가 보호한다.
 - Hero `투자 성과` 기준문구와 자산 source tooltip은 **실제 계산에 적용된 가격 기준**을 사용자 의미로 표시한다. 저장 JSON은 `priceBasis`에 따라 장중/정규장 종가 의미를, Market AI는 usable coverage에 따라 실시간/시간외/애프터 종가 의미를 표시한다. legacy 저장값은 기존 fallback을 유지하고 raw 내부 상태 문자열은 노출하지 않는다. 출처 tooltip은 기존 `.dash-tooltip` surface를 재사용한다.
 - Market AI standalone polling이 card 값을 갱신할 때 이미 열려 있는 Market AI tooltip도 같은 최신 state/view model로 즉시 다시 그린다. tooltip target이 DOM에서 사라졌다면 tooltip을 닫아 stale body-level surface를 남기지 않는다.
 
@@ -1076,7 +1076,7 @@ PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할
 - Phone의 `dashboard-view`는 화면형태만 바꾼다.
 - local/remote 모두 실제 endpoint 응답이 확인되기 전까지 Market AI signal UI를 mount하지 않는다. 세 endpoint가 모두 실패하면 `OFFLINE`으로 종료해 signal panel과 자동 polling을 제거하고, 사용자가 `Market AI 연결 켜기`를 다시 실행할 때 새 확인 세션을 시작한다. 이 과정은 일반 대시보드의 저장 데이터 기반 기능을 깨뜨리지 않는다.
 - Desktop/Tablet Hero와 Phone Hero 바로 아래 inline slot이 같은 signal panel DOM을 재사용하는 구조를 유지한다.
-- Desktop/Tablet에서 Market AI panel은 Hero의 normal flow/grid 높이 계산에서 분리해 우측에 절대배치한다. Hero 자체 `--hero-pad`와 기존 자연 높이는 바꾸지 않고, Market AI 카드도 자체 높이·내부 padding·row geometry를 축소하거나 stretch하지 않는다. 카드는 `top:50%` 기준으로 세로 중앙에 원래 크기 그대로 배치한다. Web은 공통 `--market-ai-hero-edge-gap` compact inset을 유지하고, **Tablet은 `--market-ai-hero-edge-gap: var(--space-sm)`을 사용해 우측 카드 여백을 실제 Tablet Hero에서 보이는 상·하 파란 여백과 같은 4px 기준으로 맞춘다.** 왼쪽 title/pill은 `ResizeObserver`로 실측한 Market AI의 현재 자연 폭(`--market-ai-reserved-width`)과 layout gap만큼만 우측 영역을 예약하며, `--market-ai-column-max` 전체를 선점하지 않는다. 카드 내용·폰트·Tablet max-width 변화로 실제 폭이 달라지면 예약폭도 즉시 따라가고, 좁은 Tablet에서 왼쪽 내용이 실제로 wrap될 때만 그 자연 높이가 Hero 높이에 반영된다. Phone 전환 시 observer와 예약폭을 정리하고 같은 panel DOM을 Hero 바로 아래 inline slot로 이동한다.
+- Desktop/Tablet에서 Market AI panel은 Hero normal flow/grid 높이 계산에서 분리해 우측에 절대배치한다. Hero 자체 padding과 자연 높이, Market AI 카드의 자체 높이·내부 geometry는 유지하고 카드는 `top:50%`로 세로 중앙에 둔다. 우측 inset은 `--market-ai-hero-edge-gap` 한 owner로 관리하며 Tablet의 optical inset 조정도 이 semantic token만 override한다. **Hero padding과 Market AI edge gap을 결합하거나 viewport별 raw px를 중복 선언하지 않는다.** 왼쪽 title/pill은 `ResizeObserver`로 실측한 Market AI 자연 폭(`--market-ai-reserved-width`)과 layout gap만큼만 예약하고, 실제 폭이 달라지면 예약폭도 즉시 따라간다. Phone 전환 시 observer와 예약폭을 정리하고 같은 panel DOM을 Hero 바로 아래 inline slot로 이동한다.
 - Market AI의 시장/신호 두 카드는 Web·Tablet·Phone 모두 `13:7` 같은 고정 비율을 사용하지 않는다. 카드 바깥 폭은 공통 `content-driven` 방식으로 시작하고, **각 카드 내부에서는 label / 값 / 등락률 열의 세로 기준선을 행 전체가 공유**한다. label→값 간격은 30px, 값→등락률 간격은 12px이며 시장 카드는 지수값과 등락률을 독립된 열로 정렬한다. Phone은 Market AI 카드 묶음이 inline 가용폭을 채우도록 확장하되, 각 카드 안에서는 **label 열만 좌측에 두고 값·등락률 열은 우측에 붙여** 좁은 화면의 가로 공간을 활용한다. 이때도 `13:7`이나 `1:1` 같은 고정 비율 contract는 두지 않는다.
 - Phone에서도 Market AI metric tooltip을 사용한다. metric을 탭하면 동일 `.dash-tooltip.market-ai-tooltip`이 열리고, 같은 metric 재탭 또는 바깥 탭으로 닫힌다. 터치에서는 hover 이벤트를 무시해 sticky hover를 만들지 않는다. Responsive 전환 시 동일 panel DOM만 `Hero 우측 ↔ Hero 바로 아래 inline slot` 사이에서 이동하며, viewport 전환 때문에 별도 trigger나 modal/dialog를 생성하지 않는다.
 - Desktop/Tablet의 **시장 카드 본체와 metric tooltip은 `marketAiMarketDisplayModel()` 하나를 공통 Source of Truth로 사용**한다. 화면 카드와 tooltip이 서로 다른 row/fallback 판단을 갖지 않는다. Tooltip은 KOSPI·SOX·NQ100선물에서 `현재가 → 등락률 → 상태 → 출처 → 기준 시각`, K200선물만 `상태` 다음에 `세션`을 추가해 `현재가 → 등락률 → 상태 → 세션 → 출처 → 기준 시각` 순서를 사용한다.
@@ -1316,7 +1316,7 @@ New
 
 현재 허용된 대표 기능 예외는 다음 두 가지다.
 
-- `1101~1279px`: Compact Desktop 기능 예외다. `.asset-detail-grid`는 1열로 전환하고 Topbar의 text action은 full label 대신 short label을 사용한다. `1280px`은 의도적으로 제외해 일반 Desktop 2-column/full label을 유지하고, 모바일의 `?dashboard-view=web`이 강제하는 1280 viewport에서도 같은 Desktop baseline을 사용한다. `761~1100px` Tablet은 Topbar Desktop action을 전부 icon-only로 표시하며, `760px 이하` 및 실제 Phone Landscape는 기존 Mobile Topbar 규칙을 그대로 사용한다.
+- `1101~1279px`: Compact Desktop 기능 예외다. `.asset-detail-grid`는 1열로 전환하고 Topbar text action과 Hero 성과 label은 short 형태를 사용한다. `1280px`은 의도적으로 제외해 일반 Desktop baseline을 유지한다. `761~1100px` Tablet은 Hero 성과 label을 `계좌/연금` compact 형태로 한 번 더 줄이고 Topbar action은 Tablet 규칙을 사용하며, `760px 이하` 및 실제 Phone Landscape는 기존 Mobile Topbar 규칙을 따른다.
 - `landscape + width≤960 + height≤500 + hover:none + pointer:coarse`: 실제 스마트폰 가로 판정에만 사용한다. `960px`을 일반 breakpoint로 재사용하지 않는다.
 
 공통 Asset Detail CSS는 기존 generic class/token을 우선 재사용하고, 실제로 양쪽 자산이 공유하는 의미에만 최소 `.asset-*` semantic class를 사용한다. 현황/전일변동/상승분기여도에서 공통화된 selector는 neutral `.asset-*`가 canonical이며, 같은 역할의 `.pension-*` legacy alias를 병렬로 유지하지 않는다. 위험자산 70% 룰·퇴직연금 조정/PIN/납입 등 연금 전용 UI는 계속 `.pension-*`를 사용한다.
@@ -2153,10 +2153,3 @@ node --test tests/cross-ui-contract.test.cjs
 모든 Main 작업의 운영 원칙은 다음 한 문장으로 요약한다.
 
 > **최신 실제 소스를 기준으로 현재 책임 경계 안에서 최소 수정하고, 검증 범위는 변경 위험에 비례시키며, 장기 contract만 문서에 남긴다.**
-
-- **Hero pill gap**: `1101~1279px` Compact Web과 Tablet은 칭호군·성과군·그룹 사이 gap을 동일한 `--hero-pill-gap:1px`로 사용한다. Phone은 가로 여유가 있으므로 Desktop baseline과 같은 `6px`을 사용하며, 칭호 pill과 성과 pill 내부 gap도 같은 변수 하나로 맞춘다.
-- **Tablet Hero title alignment**: 칭호는 `투자 성과 (기준문구)`와 같은 title row에서 기준문구 바로 우측에 둔다. Market AI 쪽 끝으로 밀지 않으며, Phone 배치는 기존 칭호 행/성과 행 분리를 유지한다.
-
-- **Hero 칭호/성과 responsive contract**: Tablet(761~1100px)은 `투자 성과 + 기준문구` 바로 우측에 Tablet 전용 칭호 슬롯을 두고, 성과 pill 4개는 다음 행에 유지한다. Tablet 전용 슬롯은 Web/Phone에서 반드시 숨겨야 한다. Hero 성과 label은 `≥1280px` full, `1101~1279px` short(`증권계좌/퇴직연금` 유지), `≤1100px` compact(`계좌/연금`) 3단계로 축약한다. 수익률 label과 값 사이는 명시적 공백을 유지한다.
-
-- Tablet Hero density/타이포 contract: 내부 padding은 14px(`--space-6xl`), `투자 성과` 22px, 기준문구 10px, 칭호/성과 pill 10px. 제목 행은 `align-items: baseline`으로 Web/Phone과 동일한 하단선 정렬을 유지한다. Market AI 카드의 우측 inset은 Hero 내부 padding과 분리하고 `var(--space-lg)`(6px)을 사용해 위·아래 compact 여백과 같은 시각 간격을 유지한다.

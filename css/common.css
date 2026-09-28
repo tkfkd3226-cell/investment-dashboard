@@ -61,7 +61,10 @@
   --type-size-2xl:16px;
   --type-size-3xl:17px;
   --type-size-4xl:18px;
+  --type-size-5xl:20px;
+  --type-size-6xl:22px;
   --type-size-display-sm:24px;
+  --type-size-display-md:26px;
   --type-line-tight:1.2;
   --type-line-compact:1.25;
   --type-line-body:1.35;
@@ -101,6 +104,7 @@
   --data-list-total-title-weight:var(--type-weight-emphasis);
   --data-list-total-value-weight:var(--type-weight-strong);
   /* Spacing Scale · 반복 여백의 canonical scale */
+  --space-micro:1px;
   --space-2xs:2px;
   --space-xs:3px;
   --space-sm:4px;
@@ -699,16 +703,16 @@ button svg{pointer-events:none;flex-shrink:0}
 .hero{
   --hero-pad:var(--space-7xl);
   --hero-radius:var(--surface-radius-level-1);
-  --hero-title-size:26px;
+  --hero-title-size:var(--type-size-display-md);
   --hero-title-line:1.15;
   --hero-title-weight:var(--type-weight-bold);
-  --hero-title-gap-y:8px;
-  --hero-title-gap-x:8px;
+  --hero-title-gap-y:var(--space-2xl);
+  --hero-title-gap-x:var(--space-2xl);
   --hero-basis-size:var(--type-size-sm);
   --hero-basis-weight:var(--type-weight-bold);
-  --hero-pill-margin-top:10px;
-  --hero-pill-gap:6px;
-  --hero-pill-pad-y:5px;
+  --hero-pill-margin-top:var(--space-4xl);
+  --hero-pill-gap:var(--space-lg);
+  --hero-pill-pad-y:var(--space-md);
   --hero-pill-pad-x:var(--space-2xl);
   --hero-pill-size:var(--type-size-xs);
   --hero-pill-line:var(--type-line-tight);

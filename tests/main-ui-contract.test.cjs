@@ -950,13 +950,14 @@ test('Hero 성과 pill label은 Desktop full / compact Web short / Tablet·Phone
   assert.match(app,/hero-label-compact\">연금 수익률<\/span>&nbsp;\$\{pct\(x\.pensionReturn\)\}/,'연금 수익률 label과 값 사이는 명시적 공백을 유지해야 한다');
 });
 
-test('1280px 미만 Hero pill gap은 Web/Tablet에서 통일하고 Phone은 Desktop gap을 복원한다',()=>{
-  assert.match(special,/@media \(max-width:1279px\)\{[^]*?\.hero\{--hero-pill-gap:1px\}[^]*?\.hero \.hero-performance-row,[^]*?\.hero \.hero-title-badges,[^]*?\.hero \.hero-metric-pills\{gap:var\(--hero-pill-gap\)\}/s,'1280px 미만 Web/Tablet은 칭호군·성과군·그룹 사이 간격을 같은 compact gap 변수로 통일해야 한다');
+test('Hero pill gap은 viewport별 semantic token을 쓰고 그룹 간격은 한 owner로 수렴한다',()=>{
+  assert.match(common,/--space-micro:[^;]+;/,'compact spacing도 canonical spacing token으로 소유해야 한다');
+  assert.match(common,/\.hero\{[^}]*--hero-pill-gap:var\(--space-lg\);/s,'Desktop Hero gap은 spacing token을 사용해야 한다');
+  assert.match(special,/@media \(max-width:1279px\)\{[^]*?\.hero\{--hero-pill-gap:var\(--space-micro\)\}[^]*?\.hero \.hero-performance-row,[^]*?\.hero \.hero-title-badges,[^]*?\.hero \.hero-metric-pills\{gap:var\(--hero-pill-gap\)\}/s,'Compact Web/Tablet은 그룹별 raw gap을 두지 않고 같은 Hero gap owner를 사용해야 한다');
   const phoneStart=special.indexOf('[S03] Phone UI Shared · 폰 공통 UI');
   const phoneEnd=special.indexOf('[S04] Phone Landscape · 실제 스마트폰 가로모드');
   const phoneBlock=special.slice(phoneStart,phoneEnd);
-  assert.match(phoneBlock,/--hero-pill-gap:6px;/,'Phone 공통 Hero는 여유 폭을 활용해 Desktop baseline과 같은 6px gap을 사용해야 한다');
-  assert.match(common,/--hero-pill-gap:6px;/,'1280px 이상 Desktop baseline gap은 유지해야 한다');
+  assert.match(phoneBlock,/--hero-pill-gap:var\(--space-lg\);/,'Phone은 Desktop과 같은 semantic gap token으로 복원해야 한다');
 });
 
 test('Market AI responsive 전환은 Phone inline owner와 content-driven card layout을 유지한다',()=>{
@@ -984,10 +985,17 @@ test('Market AI responsive 전환은 Phone inline owner와 content-driven card l
   assert.match(special,/#market-ai-section\[data-market-ai-placement="phone-inline"\][^]*\.market-ai-card-row\{[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content;/,'Phone inline은 가용폭을 채우며 label 좌측 / value·change 우측 정렬을 유지해야 한다');
 
   assert.match(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*display:flex;[^]*?\.hero \.hero-performance-row \.hero-title-badges-performance\{[^}]*display:none;[^]*?\.hero \.hero-return-pill\{display:inline-flex\}/s,'Tablet Hero는 기준문구 바로 우측 칭호 + 아래 성과 pill 4개 구조를 유지해야 한다');
-  assert.match(tablet,/\.hero\{[^}]*--hero-pad:var\(--space-6xl\);[^}]*--hero-title-size:22px;[^}]*--hero-basis-size:10px;[^}]*--hero-pill-size:10px;[^}]*\}/s,'Tablet Hero는 14px 내부여백과 22px / 10px / 10px 타이포를 유지해야 한다');
-  assert.match(tablet,/\.hero\{[^}]*--hero-pad:var\(--space-6xl\);[^}]*--market-ai-hero-edge-gap:var\(--space-sm\);/s,'Tablet Market AI 우측 여백은 세로 compact inset과 같은 4px token을 사용해야 한다');
+  const tabletHeroStart=tablet.indexOf('.hero{');
+  const tabletHeroEnd=tablet.indexOf('\n    }',tabletHeroStart);
+  const tabletHero=tablet.slice(tabletHeroStart,tabletHeroEnd);
+  assert.match(tabletHero,/--hero-pad:var\(--space-[^)]+\);/,'Tablet Hero padding은 spacing token으로 소유해야 한다');
+  assert.match(tabletHero,/--market-ai-hero-edge-gap:var\(--space-[^)]+\);/,'Tablet Market AI edge gap은 raw px가 아니라 spacing token으로 소유해야 한다');
+  assert.match(tabletHero,/--hero-title-size:var\(--type-size-[^)]+\);[^]*--hero-basis-size:var\(--type-size-[^)]+\);[^]*--hero-pill-size:var\(--type-size-[^)]+\);/s,'Tablet Hero typography는 type scale token을 사용해야 한다');
+  assert.doesNotMatch(tabletHero,/--(?:hero-pad|market-ai-hero-edge-gap|hero-title-size|hero-basis-size|hero-pill-size):[^;]*\d+(?:\.\d+)?px/,'Tablet Hero 핵심 geometry/typography에 raw px를 다시 넣으면 안 된다');
   assert.match(tablet,/\.hero \.hero-title-row\{[^}]*align-items:baseline;/s,'Tablet Hero 기준문구는 Web/Phone처럼 제목 baseline에 맞아야 한다');
   assert.doesNotMatch(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*margin-left:auto;/s,'Tablet 칭호를 Market AI 쪽 끝으로 밀면 안 된다');
+  assert.match(special,/Phone은 칭호 전용 행과 기존 성과 pill 행을 분리[^]*?\.hero \.hero-performance-row\{[^}]*display:block;/s,'Phone은 칭호 행과 성과 행을 분리해야 한다');
+  assert.match(special,/\.hero \.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:wrap;/s,'Phone 성과 pill은 기존 wrap contract를 유지해야 한다');
   assert.match(special,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/,'Phone Landscape는 pill 4개를 유지해야 한다');
 });
 

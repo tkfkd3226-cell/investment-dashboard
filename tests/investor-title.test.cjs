@@ -9,9 +9,6 @@ const coreSource=read('js/dashboard-core.js');
 const kodexSchemaSource=read('js/kodex-leverage-schema.js');
 const app=read('js/dashboard-app.js');
 const common=read('css/common.css');
-const mobile=read('css/mobile.css');
-const tablet=read('css/tablet.css');
-const special=read('css/special.css');
 let core;
 
 test.before(async()=>{
@@ -94,7 +91,7 @@ test('실제 현재 데이터에서 단타 업적은 2026-08-06부터 최근 업
   assert.equal(core.investorTitleViewModel(after,core.separateProfitView(after)).achievement,'⚔️ 단타 깎는 노인');
 });
 
-test('Hero 정보 계층은 Web/Phone 기존 구조를 유지하고 Tablet은 기준문구 바로 우측에 칭호를 둔다',()=>{
+test('Hero 칭호 renderer는 Tablet 슬롯과 performance 슬롯을 분리하고 성과 pill과 독립한다',()=>{
   assert.match(app,/function renderHeroPerformanceRow\(x,v=separateProfitView\(x\)\)\{[^]*?class="hero-performance-row"[^]*?renderHeroTitleBadges\(x,v\)[^]*?renderHeroMetricPills\(x,v\)/);
   assert.match(app,/hero-title-row[^]*?renderHeroTitleBadges\(x,v,'tablet'\)[^]*?renderHeroPerformanceRow\(x,v\)/);
   assert.match(app,/hero-title-badges-tablet/);
@@ -108,26 +105,6 @@ test('Hero 정보 계층은 Web/Phone 기존 구조를 유지하고 Tablet은 �
   assert.doesNotMatch(metricBlock,/hero-title-badge|투자 칭호/);
   assert.equal((metricBlock.match(/hero-profit-pill/g)||[]).length,2);
   assert.equal((metricBlock.match(/hero-return-pill/g)||[]).length,2);
-
-  assert.match(common,/\.hero-title-badges\.hero-title-badges-tablet\{display:none\}/,'Tablet 전용 칭호 슬롯은 Web/Phone baseline에서 숨겨져야 한다');
-  assert.match(common,/\.hero-performance-row\{[^}]*display:flex;[^}]*flex-wrap:nowrap;/s);
-  assert.match(common,/\.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:nowrap;/s);
-  assert.match(tablet,/Tablet Hero는 제목\/기준문구 바로 우측에 칭호를 두고[^]*?\.hero\{[^}]*--hero-title-size:22px;[^}]*--hero-basis-size:10px;[^}]*--hero-pill-size:10px;[^}]*\}[^]*?\.hero \.hero-title-row\{[^}]*flex-wrap:nowrap;[^}]*align-items:baseline;/s);
-  assert.match(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*display:flex;/s);
-  assert.doesNotMatch(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*margin-left:auto;/s,'Tablet 칭호는 Market AI 쪽 끝으로 밀리면 안 된다');
-  assert.match(tablet,/\.hero \.hero-performance-row \.hero-title-badges-performance\{[^}]*display:none;/s);
-  assert.match(tablet,/\.hero \.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:nowrap;[^}]*margin-top:var\(--space-sm\);/s);
-  assert.match(tablet,/\.hero \.hero-return-pill\{display:inline-flex\}/);
-  assert.match(special,/Phone은 칭호 전용 행과 기존 성과 pill 행을 분리[^]*?\.hero \.hero-performance-row\{[^}]*display:block;/s);
-  assert.match(special,/\.hero \.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:wrap;[^}]*margin-top:var\(--space-sm\);/s);
-});
-
-test('Phone은 기존 세로 2개·가로 4개 성과 pill contract를 복원하고 이전 제목 우측 칭호 규칙을 남기지 않는다',()=>{
-  assert.match(mobile,/\.hero \.hero-return-pill\{display:none\}/);
-  const landscape=special.slice(special.indexOf('[S04] Phone Landscape'));
-  assert.match(landscape,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/s);
-  assert.doesNotMatch(special,/hero-investor-title|hero-title-label-phone-portrait|Phone Portrait Hero Title/,'이전 Phone 제목 우측 칭호/성과 축약 규칙이 남으면 안 된다');
-  assert.doesNotMatch(app,/hero-investor-title|hero-title-label-phone-portrait|syncPhoneInvestorTitle/);
 });
 
 test('칭호/성과 행은 Market AI 예약 폭과 partial refresh에 참여해 상태 변화와 화면 표시가 어긋나지 않는다',()=>{
