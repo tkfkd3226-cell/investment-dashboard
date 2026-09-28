@@ -832,11 +832,16 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
         portfolio = json.loads((ROOT / "data" / "portfolio.json").read_text(encoding="utf-8"))
         item = next(item for item in portfolio["securities"] if item["ticker"] == "093370")
         sale = next(event for event in portfolio["securitiesEvents"] if event.get("id") == "sec-sell-20260522-093370")
+        principal_reset = next(event for event in portfolio["securitiesEvents"] if event.get("id") == "sec-withdrawal-20260526-principal-reset")
 
         self.assertTrue(sale["legacySnapshotEmbedded"])
         self.assertEqual(
             (sale["price"], sale["grossAmount"], sale["transactionCost"], sale["amount"], sale["costBasis"], sale["realizedProfit"]),
             (13060, 143660, 290, 143370, 138260, 5110),
+        )
+        self.assertEqual(
+            (principal_reset["date"], principal_reset["type"], principal_reset["amount"], principal_reset["principalAmount"], principal_reset["cashPrincipalDelta"], principal_reset["fundingClass"], principal_reset["legacySnapshotEmbedded"]),
+            ("2026-05-26", "withdrawal", 135400, 135400, -135400, "externalPrincipalWithdrawal", True),
         )
         self.assertEqual(self.updater.security_position_state(item, "2026-05-20", portfolio), {
             "qty": 11.0, "cost": 138260, "realizedProfit": 0, "realizedCostBasis": 0,

@@ -498,7 +498,7 @@ const hasPensionData=d=>{const pp=dataState.prices?.[d]?.pension||{};return !!(p
 function previousDate(date){return allAvailableDates().filter(d=>d<date).sort(byDate).at(-1)||null}
 function getPrice(s,section,ticker){return s?.[section]?.[ticker]??null}
 const securityEventItems=()=>Array.isArray(dataState.portfolio?.securitiesEvents)?dataState.portfolio.securitiesEvents:[];
-const isLegacySnapshotEmbeddedSecurityTrade=v=>v?.legacySnapshotEmbedded===true;
+const isLegacySnapshotEmbeddedSecurityEvent=v=>v?.legacySnapshotEmbedded===true;
 const securityTradeEventsForDate=(ticker,d)=>securityEventItems().filter(v=>['buy','sell'].includes(String(v?.type||''))&&String(v?.ticker||'')===String(ticker||'')&&String(v?.date||'')===String(d||''));
 const securityPortfolioItem=ticker=>(dataState.portfolio?.securities||[]).find(item=>String(item?.ticker||'')===String(ticker||''))||null;
 const securityFullExitForDate=(ticker,d)=>{
@@ -578,7 +578,7 @@ const securityFullExitSaleForDate=(ticker,d)=>{
   return sale;
 };
 const securityCashPrincipalDelta=v=>{
-  if(isLegacySnapshotEmbeddedSecurityTrade(v))return 0;
+  if(isLegacySnapshotEmbeddedSecurityEvent(v))return 0;
   const explicit=securityOptionalNumber(v,'cashPrincipalDelta');
   if(explicit!=null)return explicit;
   return v?.type==='sell'?Math.max(0,Number(v?.costBasis)||0):0;
@@ -602,7 +602,7 @@ const securityPositionState=(pos,d)=>{
     if(v.type==='buy'){qty=securitySafeAggregate('보유 수량',qty-eventQty);cost=securitySafeAggregate('취득원가',cost-amount);}
     if(v.type==='sell'){qty=securitySafeAggregate('보유 수량',qty+eventQty);cost=securitySafeAggregate('취득원가',cost+Math.max(0,Number(v.costBasis)||0));}
   });
-  const realized=securityEventItems().filter(v=>v?.type==='sell'&&String(v?.ticker||'')===String(pos?.ticker||'')&&String(v?.date||'')<=d&&(!isLegacySnapshotEmbeddedSecurityTrade(v)||String(v?.date||'')===String(d||''))).reduce((a,v)=>({
+  const realized=securityEventItems().filter(v=>v?.type==='sell'&&String(v?.ticker||'')===String(pos?.ticker||'')&&String(v?.date||'')<=d&&(!isLegacySnapshotEmbeddedSecurityEvent(v)||String(v?.date||'')===String(d||''))).reduce((a,v)=>({
     profit:securitySafeAggregate('실현손익',a.profit+securitySellRealizedProfit(v)),
     costBasis:securitySafeAggregate('실현 기준원가',a.costBasis+Math.max(0,Number(v.costBasis)||0))
   }),{profit:0,costBasis:0});
@@ -790,10 +790,10 @@ function heroPerformanceBasisLabel(date,now=new Date()){
 const securitiesCashForDate=d=>{
   const latestPriceDate=Object.keys(dataState.prices||{}).filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&dataState.prices?.[v]?.display!==false).sort(byDate).at(-1)||'';
   const savedCash=dataState.snapshots?.[d]?.allocation?.['현금'];
-  const hasSellEvent=securityEventItems().some(v=>v?.type==='sell'&&!isLegacySnapshotEmbeddedSecurityTrade(v)&&String(v?.date||'')===String(d||''));
+  const hasSellEvent=securityEventItems().some(v=>v?.type==='sell'&&!isLegacySnapshotEmbeddedSecurityEvent(v)&&String(v?.date||'')===String(d||''));
   if(latestPriceDate&&d<latestPriceDate&&!hasSellEvent&&Number.isFinite(Number(savedCash))) return Number(savedCash);
   let cash=Number(dataState.portfolio?.constants?.securitiesCash)||0;
-  securityEventItems().filter(v=>String(v?.date||'')>d&&!isLegacySnapshotEmbeddedSecurityTrade(v)).forEach(v=>{
+  securityEventItems().filter(v=>String(v?.date||'')>d&&!isLegacySnapshotEmbeddedSecurityEvent(v)).forEach(v=>{
     const amount=Math.max(0,Number(v.amount)||0);
     if(v.type==='contribution'||v.type==='sell') cash-=amount;
     if(v.type==='withdrawal'||v.type==='buy') cash+=amount;

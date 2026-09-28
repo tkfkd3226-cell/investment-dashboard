@@ -952,14 +952,22 @@ test('후성 2026-05-22 legacy 전량매도: 5/21 보유를 유지하고 매도�
   });
   const item=portfolio.securities.find(v=>v.ticker==='093370');
   const sale=portfolio.securitiesEvents.find(v=>v.id==='sec-sell-20260522-093370');
+  const principalReset=portfolio.securitiesEvents.find(v=>v.id==='sec-withdrawal-20260526-principal-reset');
   assert.deepEqual({name:item.name,qty:item.qty,cost:item.cost,chart:item.chart,chartFrom:item.chartFrom},{name:'후성',qty:0,cost:0,chart:true,chartFrom:'2026-04-17'});
   assert.deepEqual({date:sale.date,price:sale.price,grossAmount:sale.grossAmount,transactionCost:sale.transactionCost,amount:sale.amount,costBasis:sale.costBasis,realizedProfit:sale.realizedProfit,legacySnapshotEmbedded:sale.legacySnapshotEmbedded},{date:'2026-05-22',price:13060,grossAmount:143660,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110,legacySnapshotEmbedded:true});
+  assert.deepEqual({date:principalReset.date,type:principalReset.type,amount:principalReset.amount,principalAmount:principalReset.principalAmount,cashPrincipalDelta:principalReset.cashPrincipalDelta,fundingClass:principalReset.fundingClass,legacySnapshotEmbedded:principalReset.legacySnapshotEmbedded},{date:'2026-05-26',type:'withdrawal',amount:135400,principalAmount:135400,cashPrincipalDelta:-135400,fundingClass:'externalPrincipalWithdrawal',legacySnapshotEmbedded:true});
 
   const heldRow=account1Daily['2026-05-21'];
   const held=heldRow.holdings.find(v=>v.ticker==='093370');
   assert.deepEqual({qty:held.qty,avgPrice:held.avgPrice,cost:held.cost,evalAmount:held.evalAmount,profit:held.profit},{qty:11,avgPrice:12569.091,cost:138260,evalAmount:136180,profit:-2080});
   assert.equal(heldRow.holdings.reduce((sum,v)=>sum+Number(v.cost||0),0)+heldRow.cash,heldRow.totalCost);
   assert.equal(heldRow.holdings.reduce((sum,v)=>sum+Number(v.profit||0),0),heldRow.totalProfit);
+  const legacyExitRow=account1Daily['2026-05-22'];
+  const legacyResetRow=account1Daily['2026-05-26'];
+  assert.equal(legacyExitRow.cash-heldRow.cash,sale.grossAmount,'legacy 5/22 cash는 거래비용 차감 전 gross 매도대금이 반영돼 있다');
+  assert.equal(legacyExitRow.totalCost-heldRow.totalCost,sale.grossAmount-sale.costBasis,'legacy 5/22 totalCost에는 gross 매매차익 5,400원이 원금처럼 혼입돼 있다');
+  assert.equal(legacyResetRow.cash-legacyExitRow.cash,-principalReset.amount,'5/26 타계좌 이체 135,400원은 snapshot 현금 감소와 일치한다');
+  assert.equal(legacyResetRow.totalCost-legacyExitRow.totalCost,-principalReset.principalAmount,'5/26 타계좌 이체는 투자원금을 16,300,000원으로 낮춘 실제 원금 회수다');
 
   assert.deepEqual(core.securityPositionState(item,'2026-05-20'),{qty:11,cost:138260,realizedProfit:0,realizedCostBasis:0});
   assert.deepEqual(core.securityPositionState(item,'2026-05-21'),{qty:11,cost:138260,realizedProfit:0,realizedCostBasis:0});
@@ -1009,7 +1017,8 @@ test('후성 2026-05-22 legacy 전량매도: 5/21 보유를 유지하고 매도�
   assert.ok(historicalHuseongAlloc,'현재 미보유여도 후성 allocation 카드는 유지한다');
   assert.equal(historicalHuseongAlloc.evalAmount,0);
 
-  assert.equal(core.securityCashPrincipalForDate('2026-06-18'),0);
+  assert.equal(core.securityCashPrincipalForDate('2026-06-18'),0,'legacy snapshot에 이미 반영된 매도·원금이체를 6/18 ledger에 재계상하지 않는다');
+  assert.equal(core.sourceExternalPrincipalForDate('2026-05-22')-core.sourceExternalPrincipalForDate('2026-05-26'),135400,'5/26 외부이체 전 원천원금은 135,400원 높게 복원한다');
   assert.equal(core.calc('2026-06-18').account1Principal,16282745);
   assert.equal(core.calc('2026-09-17').account1Principal,22996210);
   assert.equal(core.liveValuationTickersForDate('2026-05-21').includes('093370'),true);

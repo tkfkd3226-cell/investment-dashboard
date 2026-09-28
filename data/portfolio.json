@@ -156,6 +156,17 @@
       "memo": "후성 전량매도 (legacy snapshot 반영 거래)"
     },
     {
+      "id": "sec-withdrawal-20260526-principal-reset",
+      "date": "2026-05-26",
+      "type": "withdrawal",
+      "amount": 135400,
+      "principalAmount": 135400,
+      "cashPrincipalDelta": -135400,
+      "fundingClass": "externalPrincipalWithdrawal",
+      "legacySnapshotEmbedded": true,
+      "memo": "증권계좌 투자원금 16,300,000원 조정을 위한 타계좌 이체 (legacy snapshot 반영)"
+    },
+    {
       "id": "sec-contrib-20260810-01",
       "date": "2026-08-10",
       "type": "contribution",

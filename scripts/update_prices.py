@@ -895,12 +895,12 @@ def security_sell_realized_profit(event: dict[str, Any]) -> int:
     return explicit if explicit is not None else derived
 
 
-def is_legacy_snapshot_embedded_security_trade(event: dict[str, Any]) -> bool:
+def is_legacy_snapshot_embedded_security_event(event: dict[str, Any]) -> bool:
     return event.get("legacySnapshotEmbedded") is True
 
 
 def security_cash_principal_delta(event: dict[str, Any]) -> int:
-    if is_legacy_snapshot_embedded_security_trade(event):
+    if is_legacy_snapshot_embedded_security_event(event):
         return 0
     explicit = security_optional_number(event, "cashPrincipalDelta")
     if explicit is not None:
@@ -987,7 +987,7 @@ def security_position_state(item: dict[str, Any], target_date: str, portfolio: d
             str(event.get("type", "")) != "sell"
             or str(event.get("ticker", "")) != ticker
             or event_date > target_date
-            or (is_legacy_snapshot_embedded_security_trade(event) and event_date != target_date)
+            or (is_legacy_snapshot_embedded_security_event(event) and event_date != target_date)
         ):
             continue
         realized_profit = int(security_safe_aggregate(
@@ -1017,7 +1017,7 @@ def securities_cash_for_date(
         )
         has_sell_event = any(
             str(event.get("type", "")) == "sell"
-            and not is_legacy_snapshot_embedded_security_trade(event)
+            and not is_legacy_snapshot_embedded_security_event(event)
             and str(event.get("date", "")) == target_date
             for event in security_events(portfolio)
         )
@@ -1029,7 +1029,7 @@ def securities_cash_for_date(
 
     cash = int(portfolio.get("constants", {}).get("securitiesCash", 0) or 0)
     for event in security_events(portfolio):
-        if str(event.get("date", "")) <= target_date or is_legacy_snapshot_embedded_security_trade(event):
+        if str(event.get("date", "")) <= target_date or is_legacy_snapshot_embedded_security_event(event):
             continue
         amount = max(0, int(event.get("amount", 0) or 0))
         event_type = str(event.get("type", ""))
