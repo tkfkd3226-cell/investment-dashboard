@@ -831,7 +831,7 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
     def test_committed_huseong_legacy_sale_does_not_reapply_snapshot_embedded_principal_or_profit(self):
         portfolio = json.loads((ROOT / "data" / "portfolio.json").read_text(encoding="utf-8"))
         item = next(item for item in portfolio["securities"] if item["ticker"] == "093370")
-        sale = next(event for event in portfolio["securitiesEvents"] if event.get("id") == "sec-sell-20260521-093370")
+        sale = next(event for event in portfolio["securitiesEvents"] if event.get("id") == "sec-sell-20260522-093370")
 
         self.assertTrue(sale["legacySnapshotEmbedded"])
         self.assertEqual(
@@ -842,10 +842,10 @@ class SecuritiesSaleUpdaterTest(unittest.TestCase):
             "qty": 11.0, "cost": 138260, "realizedProfit": 0, "realizedCostBasis": 0,
         })
         self.assertEqual(self.updater.security_position_state(item, "2026-05-21", portfolio), {
-            "qty": 0.0, "cost": 0, "realizedProfit": 5110, "realizedCostBasis": 138260,
+            "qty": 11.0, "cost": 138260, "realizedProfit": 0, "realizedCostBasis": 0,
         })
         self.assertEqual(self.updater.security_position_state(item, "2026-05-22", portfolio), {
-            "qty": 0.0, "cost": 0, "realizedProfit": 0, "realizedCostBasis": 0,
+            "qty": 0.0, "cost": 0, "realizedProfit": 5110, "realizedCostBasis": 138260,
         })
         self.assertEqual(self.updater.security_cash_principal_for_date("2026-06-18", portfolio), 0)
         self.assertEqual(self.updater.account1_principal_for_date("2026-06-18", portfolio), 16282745)

@@ -937,7 +937,7 @@ test('증권 매도 원장: gross/net/costBasis/realizedProfit 불일치와 음�
   assert.throws(()=>core.securityCashPrincipalForDate('2026-06-20'),/현금화 원금이 음수가/);
 });
 
-test('후성 2026-05-21 legacy 전량매도: 실제 거래를 복원하되 이후 원금·손익을 재계상하지 않는다',()=>{
+test('후성 2026-05-22 legacy 전량매도: 5/21 보유를 유지하고 매도일 UI·historical을 복원한다',()=>{
   const loadJson=relative=>JSON.parse(fs.readFileSync(path.join(ROOT,relative),'utf8'));
   const portfolio=loadJson('data/portfolio.json');
   const account1Daily=loadJson('data/account1_daily_snapshots.json');
@@ -951,49 +951,69 @@ test('후성 2026-05-21 legacy 전량매도: 실제 거래를 복원하되 이�
     pensionTrades:loadJson('data/pension_trades.json')
   });
   const item=portfolio.securities.find(v=>v.ticker==='093370');
-  const sale=portfolio.securitiesEvents.find(v=>v.id==='sec-sell-20260521-093370');
+  const sale=portfolio.securitiesEvents.find(v=>v.id==='sec-sell-20260522-093370');
   assert.deepEqual({name:item.name,qty:item.qty,cost:item.cost,chart:item.chart,chartFrom:item.chartFrom},{name:'후성',qty:0,cost:0,chart:true,chartFrom:'2026-04-17'});
-  assert.deepEqual({price:sale.price,grossAmount:sale.grossAmount,transactionCost:sale.transactionCost,amount:sale.amount,costBasis:sale.costBasis,realizedProfit:sale.realizedProfit,legacySnapshotEmbedded:sale.legacySnapshotEmbedded},{price:13060,grossAmount:143660,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110,legacySnapshotEmbedded:true});
-  const row=account1Daily['2026-05-21'];
-  const h=row.holdings.find(v=>v.ticker==='093370');
-  assert.deepEqual({qty:h.qty,avgPrice:h.avgPrice,cost:h.cost,evalAmount:h.evalAmount,profit:h.profit},{qty:11,avgPrice:12569.091,cost:138260,evalAmount:136180,profit:-2080});
-  assert.equal(row.holdings.reduce((sum,v)=>sum+Number(v.cost||0),0)+row.cash,row.totalCost);
-  assert.equal(row.holdings.reduce((sum,v)=>sum+Number(v.profit||0),0),row.totalProfit);
+  assert.deepEqual({date:sale.date,price:sale.price,grossAmount:sale.grossAmount,transactionCost:sale.transactionCost,amount:sale.amount,costBasis:sale.costBasis,realizedProfit:sale.realizedProfit,legacySnapshotEmbedded:sale.legacySnapshotEmbedded},{date:'2026-05-22',price:13060,grossAmount:143660,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110,legacySnapshotEmbedded:true});
+
+  const heldRow=account1Daily['2026-05-21'];
+  const held=heldRow.holdings.find(v=>v.ticker==='093370');
+  assert.deepEqual({qty:held.qty,avgPrice:held.avgPrice,cost:held.cost,evalAmount:held.evalAmount,profit:held.profit},{qty:11,avgPrice:12569.091,cost:138260,evalAmount:136180,profit:-2080});
+  assert.equal(heldRow.holdings.reduce((sum,v)=>sum+Number(v.cost||0),0)+heldRow.cash,heldRow.totalCost);
+  assert.equal(heldRow.holdings.reduce((sum,v)=>sum+Number(v.profit||0),0),heldRow.totalProfit);
+
   assert.deepEqual(core.securityPositionState(item,'2026-05-20'),{qty:11,cost:138260,realizedProfit:0,realizedCostBasis:0});
-  assert.deepEqual(core.securityPositionState(item,'2026-05-21'),{qty:0,cost:0,realizedProfit:5110,realizedCostBasis:138260});
-  assert.deepEqual(core.securityPositionState(item,'2026-05-22'),{qty:0,cost:0,realizedProfit:0,realizedCostBasis:0});
-  assert.equal(core.securityFullExitForDate('093370','2026-05-20'),false);
-  assert.equal(core.securityFullExitForDate('093370','2026-05-21'),true);
-  assert.deepEqual(core.securityFullExitSaleForDate('093370','2026-05-22'),{date:'2026-05-21',qty:11,grossAmount:143660,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110,fullExit:true,price:13060});
-  const exitDay=core.calc('2026-05-21');
+  assert.deepEqual(core.securityPositionState(item,'2026-05-21'),{qty:11,cost:138260,realizedProfit:0,realizedCostBasis:0});
+  assert.deepEqual(core.securityPositionState(item,'2026-05-22'),{qty:0,cost:0,realizedProfit:5110,realizedCostBasis:138260});
+  assert.deepEqual(core.securityPositionState(item,'2026-05-26'),{qty:0,cost:0,realizedProfit:0,realizedCostBasis:0});
+  assert.equal(core.securityFullExitForDate('093370','2026-05-21'),false);
+  assert.equal(core.securityFullExitForDate('093370','2026-05-22'),true);
+  assert.deepEqual(core.securityFullExitSaleForDate('093370','2026-05-22'),{date:'2026-05-22',qty:11,grossAmount:143660,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110,fullExit:true,price:13060});
+
+  const beforeExit=core.calc('2026-05-21');
+  const beforeStatus=beforeExit.securitiesAssetDetail.statusRows.find(v=>v.ticker==='093370');
+  assert.deepEqual({qty:beforeStatus.qty,cost:beforeStatus.cost,evalAmount:beforeStatus.evalAmount,profit:beforeStatus.profit,fullExit:beforeStatus.fullExit},{qty:11,cost:138260,evalAmount:136180,profit:-2080,fullExit:false});
+  const beforeChange=beforeExit.securitiesAssetDetail.change.rows.find(v=>v.ticker==='093370');
+  assert.deepEqual({prevPrice:beforeChange.prevPrice,price:beforeChange.price,prevEval:beforeChange.prevEval,evalAmount:beforeChange.evalAmount,dayChange:beforeChange.dayChange},{prevPrice:11180,price:12380,prevEval:122980,evalAmount:136180,dayChange:13200});
+
+  const exitDay=core.calc('2026-05-22');
   const statusRow=exitDay.securitiesAssetDetail.statusRows.find(v=>v.ticker==='093370');
   assert.deepEqual({qty:statusRow.qty,avgPrice:statusRow.avgPrice,cost:statusRow.cost,evalAmount:statusRow.evalAmount,profit:statusRow.profit,fullExit:statusRow.fullExit},{qty:0,avgPrice:0,cost:0,evalAmount:0,profit:5110,fullExit:true});
   approx(statusRow.returnRate,5110/138260*100);
   assert.deepEqual({price:statusRow.sale.price,transactionCost:statusRow.sale.transactionCost,amount:statusRow.sale.amount,costBasis:statusRow.sale.costBasis,realizedProfit:statusRow.sale.realizedProfit},{price:13060,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110});
   const changeRow=exitDay.securitiesAssetDetail.change.rows.find(v=>v.ticker==='093370');
-  assert.deepEqual({prevPrice:changeRow.prevPrice,price:changeRow.price,prevEval:changeRow.prevEval,evalAmount:changeRow.evalAmount,dayChange:changeRow.dayChange},{prevPrice:11180,price:12380,prevEval:122980,evalAmount:0,dayChange:20390});
+  assert.deepEqual({prevPrice:changeRow.prevPrice,price:changeRow.price,prevEval:changeRow.prevEval,evalAmount:changeRow.evalAmount,dayChange:changeRow.dayChange},{prevPrice:12380,price:null,prevEval:136180,evalAmount:0,dayChange:7190});
   assert.deepEqual({price:changeRow.sale.price,transactionCost:changeRow.sale.transactionCost,amount:changeRow.sale.amount,realizedProfit:changeRow.sale.realizedProfit},{price:13060,transactionCost:290,amount:143370,realizedProfit:5110});
-  assert.equal(exitDay.securitiesAssetDetail.summaryRows.find(v=>v.id==='total').profit,5654895,'legacy snapshot 계좌 합계는 2차 UI 정규화로 재작성하지 않는다');
-  assert.equal(exitDay.account1Profit,5654895,'계좌 누적손익은 2차 UI 정규화와 분리한다');
-  assert.equal(core.calc('2026-05-22').securitiesAssetDetail.change.rows.some(v=>v.ticker==='093370'),false,'전량매도 다음 날 legacy snapshot 소멸을 새 변동으로 중복 표시하지 않는다');
-  const exitSymbolRow=core.symbolHistory('2026-05-21').find(r=>r['날짜']==='2026-05-21');
-  assert.equal(exitSymbolRow['후성'],5110,'종목별 누적손익은 전량매도일 실제 실현손익을 마지막 point로 사용한다');
+  assert.equal(exitDay.securitiesAssetDetail.summaryRows.find(v=>v.id==='total').profit,5576020,'legacy snapshot 계좌 합계는 full-exit UI 정규화로 재작성하지 않는다');
+  assert.equal(exitDay.account1Profit,5576020,'계좌 누적손익은 full-exit UI 정규화와 분리한다');
+  assert.equal(core.calc('2026-05-26').securitiesAssetDetail.change.rows.some(v=>v.ticker==='093370'),false,'전량매도 다음 거래일에는 후성을 새 변동으로 중복 표시하지 않는다');
+
+  const beforeSymbolRow=core.symbolHistory('2026-05-21').find(r=>r['날짜']==='2026-05-21');
+  assert.equal(beforeSymbolRow['후성'],-2080,'매도 전날까지 실제 평가손익을 유지한다');
+  approx(beforeSymbolRow._rates['후성'],-2080/138260*100);
+  const exitSymbolRow=core.symbolHistory('2026-05-22').find(r=>r['날짜']==='2026-05-22');
+  assert.equal(exitSymbolRow['후성'],5110,'종목별 누적손익은 실제 전량매도일의 실현손익을 마지막 point로 사용한다');
   approx(exitSymbolRow._rates['후성'],5110/138260*100);
-  const postSymbolRows=core.symbolHistory('2026-05-22');
-  assert.equal(postSymbolRows.find(r=>r['날짜']==='2026-05-22')['후성'],null,'전량매도 다음 거래일부터 종목별 series는 null로 끝낸다');
+  const postSymbolRows=core.symbolHistory('2026-05-26');
+  assert.equal(postSymbolRows.find(r=>r['날짜']==='2026-05-26')['후성'],null,'전량매도 다음 거래일부터 종목별 series는 null로 끝낸다');
   const historicalHuseong=core.securityHistoricalChartItems('2026-09-17').find(h=>h.name==='후성');
   assert.ok(historicalHuseong,'현재 미보유여도 후성 historical 카드는 유지한다');
   assert.deepEqual({qty:historicalHuseong.qty,evalAmount:historicalHuseong.evalAmount,totalProfit:historicalHuseong.totalProfit,performanceCost:historicalHuseong.performanceCost},{qty:0,evalAmount:0,totalProfit:5110,performanceCost:138260});
-  const exitAllocRow=core.securitySymbolAllocHistory('2026-05-21',['후성']).find(r=>r['날짜']==='2026-05-21');
-  assert.equal(exitAllocRow['후성'],0,'평가금액 비중은 전량매도일부터 후성 평가금액을 0으로 표시한다');
-  const postAllocRow=core.securitySymbolAllocHistory('2026-05-22',['후성']).find(r=>r['날짜']==='2026-05-22');
+
+  const beforeAllocRow=core.securitySymbolAllocHistory('2026-05-21',['후성']).find(r=>r['날짜']==='2026-05-21');
+  assert.equal(beforeAllocRow['후성'],136180,'평가금액 비중은 매도 전날까지 실제 평가금액을 유지한다');
+  const exitAllocRow=core.securitySymbolAllocHistory('2026-05-22',['후성']).find(r=>r['날짜']==='2026-05-22');
+  assert.equal(exitAllocRow['후성'],0,'평가금액 비중은 실제 전량매도일부터 0으로 표시한다');
+  const postAllocRow=core.securitySymbolAllocHistory('2026-05-26',['후성']).find(r=>r['날짜']==='2026-05-26');
   assert.equal(postAllocRow['후성'],0);
   const historicalHuseongAlloc=core.securityHistoricalAllocItems('2026-09-17').find(h=>h.name==='후성');
   assert.ok(historicalHuseongAlloc,'현재 미보유여도 후성 allocation 카드는 유지한다');
   assert.equal(historicalHuseongAlloc.evalAmount,0);
+
   assert.equal(core.securityCashPrincipalForDate('2026-06-18'),0);
   assert.equal(core.calc('2026-06-18').account1Principal,16282745);
   assert.equal(core.calc('2026-09-17').account1Principal,22996210);
+  assert.equal(core.liveValuationTickersForDate('2026-05-21').includes('093370'),true);
+  assert.equal(core.liveValuationTickersForDate('2026-05-22').includes('093370'),false);
   assert.equal(core.liveValuationTickersForDate('2026-09-17').includes('093370'),false);
 });
 

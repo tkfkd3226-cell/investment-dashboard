@@ -141,8 +141,8 @@
   ],
   "securitiesEvents": [
     {
-      "id": "sec-sell-20260521-093370",
-      "date": "2026-05-21",
+      "id": "sec-sell-20260522-093370",
+      "date": "2026-05-22",
       "type": "sell",
       "ticker": "093370",
       "qty": 11,

@@ -880,8 +880,31 @@ const securityFullExitDisplayHolding=(holding,date,prevKey)=>{
     sale
   };
 };
+const securityHoldingKey=h=>String(h?.ticker||h?.name||'');
+function securityDisplayHoldingsForDate(holdings,date,prevKey){
+  const current=Array.isArray(holdings)?holdings:[];
+  if(!prevKey)return current.map(h=>securityFullExitDisplayHolding(h,date,prevKey));
+  const currentKeys=new Set(current.map(securityHoldingKey).filter(Boolean));
+  const prevDailyHoldings=Array.isArray(dataState.account1Daily?.[prevKey]?.holdings)?dataState.account1Daily[prevKey].holdings:[];
+  const carriedFullExits=prevDailyHoldings.filter(h=>{
+    const key=securityHoldingKey(h);
+    if(!key||currentKeys.has(key)||!h?.ticker)return false;
+    return securityTradeEventsForDate(h.ticker,date).some(v=>v?.type==='sell')&&securityFullExitForDate(h.ticker,date);
+  }).map(h=>({
+    ...h,
+    price:null,
+    prevPrice:h?.price??null,
+    prevEval:Number(h?.evalAmount)||0,
+    prevProfit:Number(h?.profit)||0,
+    prevTotalProfit:Number(h?.profit)||0,
+    priceSource:'json',
+    liveQuote:null,
+    postClosePending:false
+  }));
+  return [...current,...carriedFullExits].map(h=>securityFullExitDisplayHolding(h,date,prevKey));
+}
 const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCash})=>{
-  const displayHoldings=holdings.map(h=>securityFullExitDisplayHolding(h,date,prevKey));
+  const displayHoldings=securityDisplayHoldingsForDate(holdings,date,prevKey);
   const activeRows=holdings.filter(h=>(Number(h?.qty)||0)>0);
   const displayRows=displayHoldings.filter(h=>(Number(h?.qty)||0)>0||securityTradeEventsForDate(h?.ticker,date).length>0);
   const holdingCost=activeRows.reduce((a,h)=>a+(Number(h?.cost)||0),0);
@@ -1188,7 +1211,7 @@ function securitiesHistoryCalcRows(d){
   return rows;
 }
 function securityHistoricalDisplayHoldings(date,value){
-  return (value?.holdings||[]).map(h=>securityFullExitDisplayHolding(h,date,value?.prevKey||null));
+  return securityDisplayHoldingsForDate(value?.holdings||[],date,value?.prevKey||null);
 }
 function securityHistoricalChartItems(d){
   const latestByName=new Map();
