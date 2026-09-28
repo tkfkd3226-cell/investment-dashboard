@@ -93,18 +93,24 @@ test('실제 현재 데이터에서 단타 업적은 2026-08-06부터 최근 업
   assert.equal(core.investorTitleViewModel(after,core.separateProfitView(after)).achievement,'⚔️ 단타 깎는 노인');
 });
 
-test('Hero 정보 계층은 제목 → 칭호 전용 행 → 기존 성과 pill 순서이며 칭호를 성과 pill에 섞지 않는다',()=>{
-  assert.match(app,/hero-title-row[^]*?renderHeroTitleBadges\(x,v\)[^]*?renderHeroMetricPills\(x,v\)/);
+test('Hero 정보 계층은 Web/Tablet에서 칭호와 성과 pill을 한 행에 묶고 Phone에서는 두 행을 유지한다',()=>{
+  assert.match(app,/function renderHeroPerformanceRow\(x,v=separateProfitView\(x\)\)\{[^]*?class="hero-performance-row"[^]*?renderHeroTitleBadges\(x,v\)[^]*?renderHeroMetricPills\(x,v\)/);
+  assert.match(app,/hero-title-row[^]*?renderHeroPerformanceRow\(x,v\)/);
   assert.match(app,/class="hero-title-badges" role="group" aria-label="투자 칭호"/);
   assert.match(app,/hero-title-badge-status/);
   assert.match(app,/hero-title-badge-achievement/);
 
   const metricStart=app.indexOf('function renderHeroMetricPills(');
-  const metricEnd=app.indexOf('\nfunction replaceDashboardFragment',metricStart);
+  const metricEnd=app.indexOf('\nfunction renderHeroPerformanceRow',metricStart);
   const metricBlock=app.slice(metricStart,metricEnd);
   assert.doesNotMatch(metricBlock,/hero-title-badge|투자 칭호/);
   assert.equal((metricBlock.match(/hero-profit-pill/g)||[]).length,2);
   assert.equal((metricBlock.match(/hero-return-pill/g)||[]).length,2);
+
+  assert.match(common,/\.hero-performance-row\{[^}]*display:flex;[^}]*flex-wrap:nowrap;/s);
+  assert.match(common,/\.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:nowrap;/s);
+  assert.match(special,/Phone은 칭호 전용 행과 기존 성과 pill 행을 분리[^]*?\.hero \.hero-performance-row\{[^}]*display:block;/s);
+  assert.match(special,/\.hero \.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:wrap;[^}]*margin-top:var\(--space-sm\);/s);
 });
 
 test('Phone은 기존 세로 2개·가로 4개 성과 pill contract를 복원하고 이전 제목 우측 칭호 규칙을 남기지 않는다',()=>{
@@ -115,10 +121,9 @@ test('Phone은 기존 세로 2개·가로 4개 성과 pill contract를 복원하
   assert.doesNotMatch(app,/hero-investor-title|hero-title-label-phone-portrait|syncPhoneInvestorTitle/);
 });
 
-test('칭호 행은 Market AI 예약 폭과 partial refresh에 참여해 상태 변화와 화면 표시가 어긋나지 않는다',()=>{
-  assert.match(common,/\.hero\.market-ai-mounted \.hero-title-badges/);
+test('칭호/성과 행은 Market AI 예약 폭과 partial refresh에 참여해 상태 변화와 화면 표시가 어긋나지 않는다',()=>{
+  assert.match(common,/\.hero\.market-ai-mounted \.hero-performance-row/);
   assert.match(common,/\.hero-title-badges\{[^}]*display:flex;[^}]*flex-wrap:nowrap;/);
-  assert.match(common,/\.hero-title-badges \+ \.hero-metric-pills\{margin-top:/);
 
   const refreshCalls=[...app.matchAll(/replaceDashboardFragment\(document\.querySelector\('\.hero-title-badges'\),renderHeroTitleBadges\(x,v\)\);/g)];
   assert.equal(refreshCalls.length,2,'별도수익 전환과 live valuation 두 경로 모두 칭호를 갱신해야 한다');

@@ -788,8 +788,7 @@ button svg{pointer-events:none;flex-shrink:0}
    Hero 경계와 카드 사이 간격만 별도 compact inset을 사용한다. 왼쪽 title/pill은 JS가 실측한
    Market AI 자연 폭(--market-ai-reserved-width) + layout gap만 예약해 최대폭 전체를 선점하지 않는다. */
 .hero.market-ai-mounted .hero-title-row,
-.hero.market-ai-mounted .hero-title-badges,
-.hero.market-ai-mounted .hero-metric-pills{
+.hero.market-ai-mounted .hero-performance-row{
   max-width:calc(100% - var(--market-ai-reserved-width,0px) - var(--market-ai-layout-gap));
 }
 
@@ -1247,16 +1246,29 @@ section{
   gap:var(--hero-pill-gap);
   margin-top:var(--hero-pill-margin-top);
 }
-.hero-title-badges{
+.hero-performance-row{
   position:relative;
   z-index:1;
   display:flex;
   flex-wrap:nowrap;
   align-items:center;
   gap:var(--hero-pill-gap);
+  min-width:0;
   margin-top:var(--hero-pill-margin-top);
 }
-.hero-title-badges + .hero-metric-pills{margin-top:var(--space-sm)}
+.hero-performance-row .hero-title-badges,
+.hero-performance-row .hero-metric-pills{margin-top:0}
+.hero-performance-row .hero-metric-pills{flex-wrap:nowrap;min-width:0}
+.hero-performance-row .pill{white-space:nowrap}
+.hero-title-badges{
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex:0 0 auto;
+  flex-wrap:nowrap;
+  align-items:center;
+  gap:var(--hero-pill-gap);
+}
 .hero-title-badge{
   flex:0 0 auto;
   width:auto;

@@ -438,6 +438,17 @@
       white-space:nowrap;
       letter-spacing:-.02em;
     }
+    /* Hero Titles · Phone은 칭호 전용 행과 기존 성과 pill 행을 분리해 현재 정보 계층을 유지한다. */
+    .hero .hero-performance-row{
+      display:block;
+      max-width:none;
+      margin-top:0;
+    }
+    .hero .hero-performance-row .hero-title-badges{margin-top:var(--hero-pill-margin-top)}
+    .hero .hero-performance-row .hero-metric-pills{
+      flex-wrap:wrap;
+      margin-top:var(--space-sm);
+    }
 
 
   /* Mini / Metric Cards · 카드 밀도는 세로폰 기준 공유 */

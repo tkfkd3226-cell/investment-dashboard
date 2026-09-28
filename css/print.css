@@ -356,7 +356,7 @@
     /* Print Hero Alignment · Market AI는 숨기되 Hero가 예약했던 폭은 반환한다.
        화면의 Web형 pill 표현을 재사용하고, 연금 포함 4개 pill은 한 행에 유지한다. */
     .hero.market-ai-mounted .hero-title-row,
-    .hero.market-ai-mounted .hero-metric-pills{
+    .hero.market-ai-mounted .hero-performance-row{
       max-width:100%;
     }
     .hero .hero-metric-pills{

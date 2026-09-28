@@ -689,7 +689,7 @@ View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다
 - polling은 5초 간격으로 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. client identity 확인부터 응답 body 소비까지 진행 중인 Promise를 공유해 중복 요청을 만들지 않는다. 연결 해제는 sequence를 무효화하고, 이전 요청이 끝났을 때 재연결되어 있으면 즉시 새 요청을 예약한다. 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다. 관련 실행 테스트는 `tests/live-valuation-polling.test.cjs`가 소유한다.
 - Live Valuation/render lifecycle의 canonical contract는 **2.7 `dashboard-app.js` 책임**을 따른다. overlay·input·tooltip interaction 중에는 render를 보류하고 종료 후 최신 pending state를 1회 반영한다. 5초 Live Valuation과 별도수익 전환은 `#tabs`/`#app` shell과 focus/scroll transient state를 보존하는 부분 갱신을 사용하며, 구체 fragment 목록과 redraw 범위는 실제 `dashboard-app.js`를 Source of Truth로 한다.
 - 차트 entrance animation은 card별 최초 viewport 진입 1회가 contract다. 주기 갱신은 이미 재생된 card만 완료 상태를 승계하고 미진입·hidden/0-size card의 최초 animation을 선소비하지 않는다.
-- Hero 투자 칭호는 `투자 성과` 제목/기준문구 바로 아래의 **전용 칭호 행**이 소유하며 그 아래 기존 성과 pill 행을 유지한다. 칭호 행은 `현재 상태형 1개 + 최근 획득 업적형 최대 1개`를 표시한다. 현재 상태형은 5거래일 연속 수익 → 현금비중 40% 이상 → 누적손익 1,000만원 초과 → 기본 순으로 판정하며, 업적형은 `인내의 화신`(MDD -200만원 이하 경험 후 누적손익 양전)과 `단타 깎는 노인`(KODEX 레버리지 별도수익 10회)의 **획득일을 계산해 더 최근 업적 1개**를 표시한다. 단, `단타 깎는 노인`은 **별도수익 ON일 때만 업적 후보에 포함**하며 OFF에서는 표시하지 않는다. 미래 거래는 업적 횟수에서 제외한다. Phone도 같은 정보 계층을 사용하므로 칭호가 기존 세로 2개/가로 4개 성과 pill 행에 섞여 줄바꿈을 만들면 안 된다. 칭호 로직·ON/OFF 회귀는 `tests/investor-title.test.cjs`, 구조·partial refresh 회귀는 동일 테스트와 UI contract 테스트가 보호한다.
+- Hero 투자 칭호는 `현재 상태형 1개 + 최근 획득 업적형 최대 1개`를 표시한다. **Web/Tablet에서는 칭호와 기존 성과 pill을 같은 `hero-performance-row` 한 줄에 배치**하고, **Phone은 `투자 성과` 제목/기준문구 → 칭호 전용 행 → 기존 성과 pill 행**의 현재 구조를 유지한다. 현재 상태형은 5거래일 연속 수익 → 현금비중 40% 이상 → 누적손익 1,000만원 초과 → 기본 순으로 판정하며, 업적형은 `인내의 화신`(MDD -200만원 이하 경험 후 누적손익 양전)과 `단타 깎는 노인`(KODEX 레버리지 별도수익 10회)의 **획득일을 계산해 더 최근 업적 1개**를 표시한다. 단, `단타 깎는 노인`은 **별도수익 ON일 때만 업적 후보에 포함**하며 OFF에서는 표시하지 않는다. 미래 거래는 업적 횟수에서 제외한다. Phone에서는 칭호가 기존 세로 2개/가로 4개 성과 pill 행에 섞여 줄바꿈을 만들면 안 된다. 칭호 로직·ON/OFF·Web/Tablet 한줄/Phone 분리 회귀는 `tests/investor-title.test.cjs`가 보호한다.
 - Hero `투자 성과` 기준문구와 자산 source tooltip은 **실제 계산에 적용된 가격 기준**을 사용자 의미로 표시한다. 저장 JSON은 `priceBasis`에 따라 장중/정규장 종가 의미를, Market AI는 usable coverage에 따라 실시간/시간외/애프터 종가 의미를 표시한다. legacy 저장값은 기존 fallback을 유지하고 raw 내부 상태 문자열은 노출하지 않는다. 출처 tooltip은 기존 `.dash-tooltip` surface를 재사용한다.
 - Market AI standalone polling이 card 값을 갱신할 때 이미 열려 있는 Market AI tooltip도 같은 최신 state/view model로 즉시 다시 그린다. tooltip target이 DOM에서 사라졌다면 tooltip을 닫아 stale body-level surface를 남기지 않는다.
 
@@ -1204,7 +1204,7 @@ Tablet · 태블릿: 761px ~ 1100px
 Mobile · 모바일: 760px 이하
 ```
 
-Hero 성과 pill은 퇴직연금이 있는 현재 구성 기준으로 **Desktop은 손익+수익률 4개, Tablet은 Market AI와 한 줄을 유지하기 위해 손익 2개, Phone 세로는 손익 2개, 실제 Phone Landscape는 넓은 가로폭을 활용해 손익+수익률 4개**를 표시한다. Tablet과 Phone 세로에서는 `.hero-return-pill`을 숨기고, Phone Landscape 특수 viewport에서만 다시 노출한다.
+Hero 성과 pill은 퇴직연금이 있는 현재 구성 기준으로 **Desktop은 손익+수익률 4개, Tablet은 Market AI와 한 줄을 유지하기 위해 손익 2개, Phone 세로는 손익 2개, 실제 Phone Landscape는 넓은 가로폭을 활용해 손익+수익률 4개**를 표시한다. Web/Tablet은 투자 칭호와 이 성과 pill을 같은 `hero-performance-row` 한 줄에 배치하고, Phone은 칭호 행과 성과 pill 행을 분리한다. Tablet과 Phone 세로에서는 `.hero-return-pill`을 숨기고, Phone Landscape 특수 viewport에서만 다시 노출한다.
 
 특수 viewport는 일반 viewport 섹션에 섞지 않고 **왜 필요한지 기능 기준으로 추적 가능하게 관리**한다. 대표적인 현재 예외는 다음과 같다.
 
