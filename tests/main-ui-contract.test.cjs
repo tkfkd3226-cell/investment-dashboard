@@ -985,7 +985,7 @@ test('Market AI responsive 전환은 Phone inline owner와 content-driven card l
 
   assert.match(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*display:flex;[^]*?\.hero \.hero-performance-row \.hero-title-badges-performance\{[^}]*display:none;[^]*?\.hero \.hero-return-pill\{display:inline-flex\}/s,'Tablet Hero는 기준문구 바로 우측 칭호 + 아래 성과 pill 4개 구조를 유지해야 한다');
   assert.match(tablet,/\.hero\{[^}]*--hero-pad:var\(--space-6xl\);[^}]*--hero-title-size:22px;[^}]*--hero-basis-size:10px;[^}]*--hero-pill-size:10px;[^}]*\}/s,'Tablet Hero는 14px 내부여백과 22px / 10px / 10px 타이포를 유지해야 한다');
-  assert.match(tablet,/\.hero\{[^}]*--hero-pad:var\(--space-6xl\);[^}]*--market-ai-hero-edge-gap:var\(--space-2xl\);/s,'Tablet Market AI 우측 여백은 세로 compact inset과 같은 8px token을 사용해야 한다');
+  assert.match(tablet,/\.hero\{[^}]*--hero-pad:var\(--space-6xl\);[^}]*--market-ai-hero-edge-gap:var\(--space-sm\);/s,'Tablet Market AI 우측 여백은 세로 compact inset과 같은 4px token을 사용해야 한다');
   assert.match(tablet,/\.hero \.hero-title-row\{[^}]*align-items:baseline;/s,'Tablet Hero 기준문구는 Web/Phone처럼 제목 baseline에 맞아야 한다');
   assert.doesNotMatch(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*margin-left:auto;/s,'Tablet 칭호를 Market AI 쪽 끝으로 밀면 안 된다');
   assert.match(special,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/,'Phone Landscape는 pill 4개를 유지해야 한다');
