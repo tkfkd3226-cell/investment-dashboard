@@ -206,15 +206,24 @@ test('별도수익 OFF/ON: 원본 계산값은 유지하고 표시용 principal/
   approx(on.totalReturn,1600/4500*100);
 });
 
-test('증권 allocation: 1주 보유는 명시적 chart opt-in 전까지 allocation에서 제외한다',()=>{
+test('증권 allocation: 1주 보유는 row metadata 우선, 없으면 canonical chart metadata를 fallback한다',()=>{
+  setState({portfolio:basePortfolio({securities:[
+    {name:'Master ON',ticker:'MASTER_ON',type:'개별주식',qty:1,cost:100,chart:true},
+    {name:'Master OFF',ticker:'MASTER_OFF',type:'ETF',qty:1,cost:100,chart:false},
+    {name:'Master Future',ticker:'MASTER_FUTURE',type:'ETF',qty:1,cost:100,chart:true,chartFrom:'2026-08-10'}
+  ]})});
   const x={date:'2026-06-10',holdings:[
     {name:'일반',qty:5,evalAmount:500,type:'ETF'},
     {name:'1주 기본',qty:1,evalAmount:100,type:'개별주식'},
-    {name:'1주 명시',qty:1,evalAmount:120,type:'개별주식',chart:true,chartFrom:'2026-06-01'}
+    {name:'1주 명시',qty:1,evalAmount:120,type:'개별주식',chart:true,chartFrom:'2026-06-01'},
+    {name:'Master ON',ticker:'MASTER_ON',qty:1,evalAmount:130,type:'개별주식'},
+    {name:'Master OFF',ticker:'MASTER_OFF',qty:1,evalAmount:140,type:'ETF'},
+    {name:'Master Future',ticker:'MASTER_FUTURE',qty:1,evalAmount:150,type:'ETF'},
+    {name:'Row OFF',ticker:'MASTER_ON',qty:1,evalAmount:160,type:'개별주식',chart:false}
   ]};
-  assert.deepEqual(core.securityAllocVisibleHoldings(x).map(v=>v.name),['일반','1주 명시']);
-  assert.equal(core.securityAllocOneShareEval(x),100);
-  assert.deepEqual(core.securityAllocTypeTotals(x),{etf:500,stock:120});
+  assert.deepEqual(core.securityAllocVisibleHoldings(x).map(v=>v.name),['일반','1주 명시','Master ON']);
+  assert.equal(core.securityAllocOneShareEval(x),550);
+  assert.deepEqual(core.securityAllocTypeTotals(x),{etf:500,stock:250});
 });
 
 test('연금 거래: 매수 후 일부 매도는 잔여 cost와 실현손익을 정확히 분리한다',()=>{

@@ -96,8 +96,11 @@ const securityAllocationColor=name=>{
 // [CORE02] Securities Allocation Helpers · 증권 allocation 공용 계산 helper
 function securityAllocHoldingVisible(h,date){
   const oneShare=Number(h?.qty)===1;
-  const explicitChart=oneShare&&h?.chart===true&&(!h?.chartFrom||String(date||'')>=String(h.chartFrom));
-  return !oneShare||explicitChart;
+  if(!oneShare)return true;
+  const canonical=h?.ticker?securityPortfolioItem(h.ticker):null;
+  const chart=typeof h?.chart==='boolean'?h.chart:canonical?.chart;
+  const chartFrom=h?.chartFrom??canonical?.chartFrom;
+  return chart===true&&(!chartFrom||String(date||'')>=String(chartFrom));
 }
 function securityAllocVisibleHoldings(x){
   return (x?.holdings||[]).filter(h=>securityAllocHoldingVisible(h,x?.date));
