@@ -1090,7 +1090,11 @@ test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표�
   assert.equal(core.securityFullExitForDate('009150','2026-09-15'),false);
   assert.equal(core.securityFullExitForDate('009150','2026-09-16'),true);
   assert.equal(core.securityFullExitForDate('009150','2026-09-17'),true);
-  assert.deepEqual(core.securityFullExitSaleForDate('009150','2026-09-17'),{date:'2026-09-16',qty:1,grossAmount:1348000,transactionCost:2772,amount:1345228,costBasis:1345000,realizedProfit:228,fullExit:true,price:1348000});
+  const postSale=core.securityFullExitSaleForDate('009150','2026-09-17');
+  assert.deepEqual(
+    {date:postSale.date,qty:postSale.qty,grossAmount:postSale.grossAmount,transactionCost:postSale.transactionCost,amount:postSale.amount,costBasis:postSale.costBasis,realizedProfit:postSale.realizedProfit,fullExit:postSale.fullExit,price:postSale.price},
+    {date:'2026-09-16',qty:1,grossAmount:1348000,transactionCost:2772,amount:1345228,costBasis:1345000,realizedProfit:228,fullExit:true,price:1348000}
+  );
   assert.equal(after.securitiesAssetDetail.summaryRows.find(r=>r.id==='holdings').profit,after.rawHoldingProfit);
   const changeRow=after.securitiesAssetDetail.change.rows.find(r=>r.ticker==='009150');
   assert.equal(changeRow.dayChange,28228);
