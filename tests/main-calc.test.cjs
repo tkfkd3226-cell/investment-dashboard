@@ -808,7 +808,7 @@ test('증권 매도: 전량매도는 순매도대금·실현손익·현금화 �
   assert.deepEqual(after,{qty:0,cost:0,realizedProfit:100,realizedCostBasis:1000});
   assert.equal(core.securityFullExitForDate('A','2026-06-19'),false);
   assert.equal(core.securityFullExitForDate('A','2026-06-20'),true);
-  assert.deepEqual(core.securityFullExitSaleForDate('A','2026-06-20'),{date:'2026-06-20',qty:10,grossAmount:1100,transactionCost:0,amount:1100,costBasis:1000,realizedProfit:100,fullExit:true,price:110});
+  assert.deepEqual(core.securityFullExitSaleForDate('A','2026-06-20'),{date:'2026-06-20',qty:10,grossAmount:1100,transactionCost:0,amount:1100,costBasis:1000,realizedProfit:100,fullExit:true,price:110,hypotheticalProfit:200});
   assert.deepEqual(core.securityFullExitSaleForDate('A','2026-06-21'),{date:'2026-06-20',qty:10,grossAmount:1100,transactionCost:0,amount:1100,costBasis:1000,realizedProfit:100,fullExit:true,price:110});
   assert.equal(core.securityCashPrincipalForDate('2026-06-19'),0);
   assert.equal(core.securityCashPrincipalForDate('2026-06-20'),1000);

@@ -618,8 +618,10 @@ function securitySaleTooltipAttrs(row,{focusScope=''}={}){
     ['data-sale-cost',won(sale.transactionCost)],
     ['data-sale-net',won(sale.amount)],
     ['data-sale-basis',won(sale.costBasis)],
-    ['data-sale-profit',signed(sale.realizedProfit,'원')]
-  ].map(([key,value])=>`${key}="${escapeHtml(value)}"`).join(' ');
+    ['data-sale-profit',signed(sale.realizedProfit,'원')],
+    ['data-sale-hypo-profit', sale.hypotheticalProfit!=null ? signed(sale.hypotheticalProfit,'원') : ''],
+    ['data-sale-diff', sale.hypotheticalProfit!=null ? String(sale.realizedProfit - sale.hypotheticalProfit) : '']
+  ].filter(([k,v])=>v!=='').map(([key,value])=>`${key}="${escapeHtml(value)}"`).join(' ');
   const suffix=focusScope?`:${focusScope}`:'';
   return `tabindex="0" data-dashboard-focus-key="security-sale:${escapeHtml(String(row?.ticker||row?.name||''))}${escapeHtml(suffix)}" data-security-sale-tooltip aria-label="${escapeHtml(`${row?.name||'종목'} 전량매도 상세`)}" aria-describedby="${SECURITY_SALE_TOOLTIP_ID}" ${attrs}`;
 }
@@ -644,7 +646,16 @@ function securitySaleTooltipHtml(target){
     assetSourceTooltipRow('매수원가',data.saleBasis),
     assetSourceTooltipRow('실현손익',data.saleProfit)
   ].filter(Boolean).join('');
-  return `<div class="tt-date">${escapeHtml(data.saleName||'전량매도')}</div>${rows}`;
+      
+  // [추가] 가상 손익 비교 결과 렌더링
+  let hypoRow='';
+  if(data.saleHypoProfit){
+    const diff=Number(data.saleDiff);
+    const diffMsg=diff>=0?'(팔길 잘했네요!)':'(존버가 승리...)';
+    const msgClass=diff>=0?'tt-pos':'tt-neg';
+    hypoRow=`<div class="tt-row"><span class="tt-name">만약 안팔았다면?</span><span class="tt-val">${escapeHtml(data.saleHypoProfit)} <span class="${msgClass}">${escapeHtml(diffMsg)}</span></span></div>`;
+  }
+  return `<div class="tt-date">${escapeHtml(data.saleName||'전량매도')}</div>${rows}${hypoRow?'<div class="tt-divider" aria-hidden="true"></div>'+hypoRow:''}`;
 }
 function positionSecuritySaleTooltip(target,event){
   const tooltip=securitySaleTooltip();

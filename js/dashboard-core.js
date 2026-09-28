@@ -564,6 +564,12 @@ const securityFullExitSaleForDate=(ticker,d)=>{
     return a;
   },{date:saleDate,qty:0,grossAmount:0,transactionCost:0,amount:0,costBasis:0,realizedProfit:0,fullExit:true});
   sale.price=sale.qty?sale.grossAmount/sale.qty:null;
+  // [추가] "만약 안 팔았더라면?" 가상 손익 계산
+  const liveQuote=liveValuationQuoteForDate(ticker,d);
+  const currentMarketPrice=liveQuote?.price??securityValuationOverride(ticker,d)??getPrice(dataState.prices?.[d],'securities',ticker);
+  if(currentMarketPrice!=null && sale.qty>0){
+    sale.hypotheticalProfit=(currentMarketPrice*sale.qty)-sale.costBasis;
+  }
   return sale;
 };
 const securityCashPrincipalDelta=v=>{
