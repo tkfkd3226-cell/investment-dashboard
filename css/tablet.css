@@ -52,6 +52,7 @@
      칭호는 Market AI 카드 쪽으로 밀지 않고 제목 정보군에 붙여 읽기 흐름을 유지한다. */
 .hero{
       --hero-pad:var(--space-6xl);
+      --market-ai-hero-edge-gap:var(--hero-pad);
       --hero-title-size:22px;
       --hero-basis-size:10px;
       --hero-pill-size:10px;
