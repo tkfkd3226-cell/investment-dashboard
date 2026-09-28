@@ -19,7 +19,9 @@ import {
   securityAllocationColor,
   securityChartNamesForDate,
   securityFullExitSaleForDate,
+  securityHistoricalAllocCardItems,
   securityHistoricalAllocItems,
+  securityHistoricalChartCardItems,
   securityHistoricalChartItems,
   securityHistoricalChartNamesForDate,
   securitiesCumHistoryBundle,
@@ -918,7 +920,7 @@ function securityAllocCardsHtml(x){
     const typeTotals=securityAllocTypeTotals(x);
     return `${allocationValueCard('ETF',won(typeTotals.etf),{ratioText:`${ratio(typeTotals.etf).toFixed(1)}%`,swatch:chartSeriesSwatch(assetTypeColor('ETF'))})}${allocationValueCard('개별주식',won(typeTotals.stock),{ratioText:`${ratio(typeTotals.stock).toFixed(1)}%`,swatch:chartSeriesSwatch(assetTypeColor('개별주식'))})}${totalCard}`;
   }
-  const itemCards=securityHistoricalAllocItems(x.date).map(h=>{
+  const itemCards=securityHistoricalAllocCardItems(x.date).map(h=>{
     const sale=securityFullExitSaleForDate(h.ticker,x.date),saleTooltipAttrs=securitySaleTooltipAttrs({...h,sale},{focusScope:'allocation-card'});
     return allocationValueCard(h.name,won(h.evalAmount),{ratioText:`${ratio(h.evalAmount).toFixed(1)}%`,swatch:chartSeriesSwatch(securityAllocationColor(h.name)),labelClass:sale?'security-sale-marker-name':'',cardClass:saleTooltipAttrs?'security-sale-cell':'',cardAttrs:saleTooltipAttrs});
   }).join('');
@@ -984,7 +986,7 @@ function renderSecuritiesCumulativeChart(x,separateProfitHtml=''){
   return renderChartCard({id:'chart-cum',title:'누적손익 및 누적수익률',icon:'lineChart',headExtra:separateProfitHtml,actions:`${chartCompareToggle('securities')}${chartWebExpandButton()}`,svgId:'chartCum',legendId:'securitiesCumLegend',legendHtml:chartLegendHtml('securitiesCum'),noteClass:'six',noteHtml:cumulativeNote});
 }
 function renderCharts(x,separateProfitHtml=''){
-  const symbolCards=securityHistoricalChartItems(x.date),orderedSymbols=sortSecurityChartItems(symbolCards),symbolTotal=symbolCards.reduce((a,h)=>a+Number(h.totalProfit??h.profit??0),0);
+  const symbolSeries=securityHistoricalChartItems(x.date),symbolCards=securityHistoricalChartCardItems(x.date),orderedSymbols=sortSecurityChartItems(symbolCards),symbolTotal=symbolSeries.reduce((a,h)=>a+Number(h.totalProfit??h.profit??0),0);
   return `<section id="investment-analysis"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="period" aria-hidden="true"></span>투자 기간 분석</h2><p class="section-control-chip section-basis-chip"><span class="control-text-optical">삼성증권1 기준</span></p></div><div class="grid chart-grid">
   ${renderSecuritiesCumulativeChart(x,separateProfitHtml)}
   ${renderChartCard({id:'chart-symbol',title:'종목별 누적손익',icon:'barChart',actions:`${symbolChartToggle('securities')}${chartWebExpandButton()}`,svgId:'chartSymbol',legendId:'securitiesSymbolLegend',legendHtml:chartLegendHtml('securitiesSymbol'),noteClass:'symbol-summary-grid',noteHtml:orderedSymbols.map(h=>symbolCard(h,symbolTotal)).join('')})}

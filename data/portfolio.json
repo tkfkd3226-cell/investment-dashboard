@@ -116,7 +116,8 @@
       "feeBuffer": 0,
       "chart": true,
       "cssClass": "ticker-mini",
-      "chartFrom": "2026-04-17"
+      "chartFrom": "2026-04-17",
+      "cardUntil": "2026-08-11"
     }
   ],
   "pension": [
@@ -153,7 +154,9 @@
       "costBasis": 138260,
       "realizedProfit": 5110,
       "legacySnapshotEmbedded": true,
-      "memo": "후성 전량매도 (legacy snapshot 반영 거래)"
+      "memo": "후성 전량매도 (legacy snapshot 반영 거래)",
+      "valuationPrice": 12910,
+      "valuationSource": "KRX 종가"
     },
     {
       "id": "sec-withdrawal-20260526-principal-reset",

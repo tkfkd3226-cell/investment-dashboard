@@ -860,11 +860,13 @@ const securityFullExitDisplayHolding=(holding,date,prevKey)=>{
   const realizedCostBasis=Math.max(0,Number(sale.costBasis)||0);
   const prevTotalProfit=holding?.prevTotalProfit??holding?.prevProfit??null;
   const tradeFlow=prevKey?securityTradeFlow(prevKey,date,holding?.ticker):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0};
+  const exitMarketPrice=holding?.price??securityValuationOverride(holding?.ticker,date)??getPrice(dataState.prices?.[date],'securities',holding?.ticker)??null;
   return {
     ...holding,
     qty:0,
     cost:0,
     avgPrice:0,
+    price:exitMarketPrice,
     evalAmount:0,
     profit:0,
     realizedProfit,
@@ -1222,6 +1224,14 @@ function securityHistoricalChartItems(d){
   return sortSecurityChartItems([...latestByName.values()]);
 }
 const securityHistoricalChartNamesForDate=d=>securityHistoricalChartItems(d).map(item=>item.name);
+const securityHistoricalCardVisibleForDate=(item,d)=>{
+  const canonical=securityPortfolioItem(item?.ticker);
+  const cardFrom=String(canonical?.cardFrom||'');
+  const cardUntil=String(canonical?.cardUntil||'');
+  const date=String(d||'');
+  return (!cardFrom||date>=cardFrom)&&(!cardUntil||date<=cardUntil);
+};
+const securityHistoricalChartCardItems=d=>securityHistoricalChartItems(d).filter(item=>securityHistoricalCardVisibleForDate(item,d));
 function securityHistoricalAllocItems(d){
   const rows=securitiesHistoryCalcRows(d),managedNames=new Set((dataState.portfolio?.securities||[]).map(h=>h.name)),names=new Set(),lastSeen=new Map();
   rows.forEach(({date,value})=>{
@@ -1235,6 +1245,7 @@ function securityHistoricalAllocItems(d){
     return evalDiff||String(a?.name||'').localeCompare(String(b?.name||''),'ko');
   });
 }
+const securityHistoricalAllocCardItems=d=>securityHistoricalAllocItems(d).filter(item=>securityHistoricalCardVisibleForDate(item,d));
 function securitiesCumHistoryBundle(d){
   const calcRows=securitiesHistoryCalcRows(d);
   if(securitiesHistoryCalcCache.cumBundle)return securitiesHistoryCalcCache.cumBundle;
@@ -1679,7 +1690,9 @@ export {
   securityAllocVisibleHoldings,
   securityAllocationColor,
   securityChartNamesForDate,
+  securityHistoricalAllocCardItems,
   securityHistoricalAllocItems,
+  securityHistoricalChartCardItems,
   securityHistoricalChartItems,
   securityHistoricalChartNamesForDate,
   securitiesCumHistoryBundle,

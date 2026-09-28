@@ -251,7 +251,7 @@ test('Topbar action 라벨은 Web full/short와 Tablet 축약명·icon 조합을
   assert.match(tablet,/\.date-picker-action \.topbar-label-full\{display:none\}/,'Tablet에서는 full label을 숨겨야 한다');
   assert.match(tablet,/\.date-picker-action \.topbar-label-short\{display:inline\}/,'Tablet 주요 action은 축약명을 표시해야 한다');
   assert.match(special,/\.date-tool-btn-desktop\{display:none\}/,'Phone Shared는 Desktop 전용 action을 숨겨 모바일 Topbar 계약을 유지해야 한다');
-  assert.match(ui,/<span class="topbar-label-full">포트폴리오 히트맵<\/span><span class="topbar-label-short">히트맵<\/span>/,'히트맵은 Web full label과 1280 미만 short label을 분리해야 한다');
+  assert.match(ui,/title="히트맵" aria-label="히트맵"[^]*?<span class="topbar-label-full">히트맵<\/span><span class="topbar-label-short">히트맵<\/span>/,'히트맵은 viewport와 무관하게 같은 라벨을 사용해야 한다');
   assert.match(ui,/REALTIME_QUOTES_ACTION=Object\.freeze\(\{action:'open-realtime-quotes',icon:'lineChart',title:'보유종목 실시간 시세',shortTitle:'실시간 시세'\}\)/,'실시간 시세는 full/short label metadata를 분리해야 한다');
   assert.match(ui,/topbar-realtime-action[^]*?title="\$\{REALTIME_QUOTES_ACTION\.title\}" aria-label="\$\{REALTIME_QUOTES_ACTION\.title\}"[^]*?topbar-label-full">\$\{REALTIME_QUOTES_ACTION\.title\}<[^]*?topbar-label-short">\$\{REALTIME_QUOTES_ACTION\.shortTitle\}</,'실시간 시세 title/aria-label은 full 명칭을 유지하고 화면 label만 축약해야 한다');
 });
@@ -2163,14 +2163,16 @@ test('자산 탭 차트 cache는 현재 표시 크기와 viewBox가 다르면 �
   assert.equal(context.assetTabChartsReady('pension'),true);
 });
 
-test('증권 종목별 누적손익 UI는 최종 실현손익과 historical universe를 범례·카드에 유지한다',()=>{
+test('증권 historical 차트 universe와 요약 카드 universe는 독립적으로 유지한다',()=>{
   assert.match(core,/const securityTotalProfitValue=h=>Number\(h\?\.totalProfit\?\?h\?\.profit\)\|\|0/);
-  assert.match(charts,/symbolTotal=symbolCards\.reduce\(\(a,h\)=>a\+Number\(h\.totalProfit\?\?h\.profit\?\?0\),0\)/);
+  assert.match(core,/const securityHistoricalChartCardItems=d=>securityHistoricalChartItems\(d\)\.filter\(item=>securityHistoricalCardVisibleForDate\(item,d\)\)/);
+  assert.match(core,/const securityHistoricalAllocCardItems=d=>securityHistoricalAllocItems\(d\)\.filter\(item=>securityHistoricalCardVisibleForDate\(item,d\)\)/);
+  assert.match(charts,/symbolSeries=securityHistoricalChartItems\(x\.date\),symbolCards=securityHistoricalChartCardItems\(x\.date\)/);
+  assert.match(charts,/symbolTotal=symbolSeries\.reduce\(\(a,h\)=>a\+Number\(h\.totalProfit\?\?h\.profit\?\?0\),0\)/);
   assert.match(charts,/const profit=Number\(h\.totalProfit\?\?h\.profit\?\?0\),performanceCost=Number\(h\.performanceCost\?\?h\.cost\?\?0\)/);
   assert.match(charts,/securityHistoricalChartNamesForDate\(dataState\.activeDate\)/);
-  assert.match(charts,/const symbolCards=securityHistoricalChartItems\(x\.date\)/);
   assert.match(charts,/const items=dataState\.activeDate\?securityHistoricalAllocItems\(dataState\.activeDate\):\[\]/);
-  assert.match(charts,/securityHistoricalAllocItems\(x\.date\)\.map\(h=>\{/);
+  assert.match(charts,/securityHistoricalAllocCardItems\(x\.date\)\.map\(h=>\{/);
 });
 
 test('증권 종목별 누적손익 카드 grid는 Web 6열·Tablet 3열 계약을 유지한다',()=>{
