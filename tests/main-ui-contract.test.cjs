@@ -236,6 +236,8 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
 test('Topbar action 라벨은 Web full/short와 Tablet 축약명·icon 조합을 사용한다',()=>{
   assert.match(common,/\.topbar-label-short\{display:none\}/,'Desktop baseline은 short label을 숨기고 full label을 유지해야 한다');
   assert.match(special,/@media \(min-width:1101px\) and \(max-width:1279px\)\{[^]*?\.date-picker-action \.topbar-label-full\{display:none\}[^]*?\.date-picker-action \.topbar-label-short\{display:inline\}/,'1101~1279px compact Web은 text action을 short label로 축약해야 한다');
+  assert.match(common,/\.switcher\{[^}]*--topbar-pad-x:var\(--page-shell-gutter\);[^}]*--topbar-content-max-width:var\(--page-content-max-width\);/s,'Web Topbar 좌우 content edge는 Hero와 같은 page shell gutter/max-width contract를 사용해야 한다');
+  assert.match(common,/--page-content-max-width:calc\(var\(--page-shell-max-width\) - var\(--page-shell-gutter\) - var\(--page-shell-gutter\)\);/,'Topbar와 Hero의 max-width 정렬은 page content 폭 token에서 같은 좌우 gutter를 차감해야 한다');
   assert.match(common,/\.date-picker\{[^}]*grid-template-columns:minmax\(0,calc\(var\(--topbar-date-select-width\) \+ var\(--topbar-date-select-width\) \+ var\(--topbar-layout-gap\)\)\) minmax\(0,1fr\) max-content/,'Web 날짜 영역은 임의 viewport breakpoint 없이 실제 남는 폭에 따라 수축 가능한 grid track을 사용해야 한다');
   assert.match(common,/\.date-picker-center\{[^}]*width:100%[^}]*max-width:calc\(var\(--topbar-date-select-width\) \+ var\(--topbar-date-select-width\) \+ var\(--topbar-layout-gap\)\)/,'Web 날짜 selector group은 넓은 화면의 기존 최대폭을 유지하면서 좁아질 수 있어야 한다');
   assert.match(common,/\.date-picker-action\{[^}]*min-width:max-content/,'Web action group은 실제 버튼 폭을 grid에 예약해 날짜 selector 영역으로 넘치지 않아야 한다');

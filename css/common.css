@@ -4604,7 +4604,8 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 .switcher{
   /* Topbar Geometry Contract · viewport는 token만 바꾸고 date/action primitive는 같은 geometry를 공유 */
   --topbar-pad-y:var(--space-lg);
-  --topbar-pad-x:var(--topbar-pad-y);
+  /* Web Topbar / Hero Edge Alignment · Topbar content edge는 page shell의 Hero edge와 같은 gutter를 공유한다. */
+  --topbar-pad-x:var(--page-shell-gutter);
   --topbar-content-max-width:var(--page-content-max-width);
   --topbar-layout-gap:var(--space-lg);
   --topbar-action-group-gap:var(--topbar-layout-gap);

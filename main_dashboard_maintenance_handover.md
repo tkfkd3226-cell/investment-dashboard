@@ -1497,6 +1497,8 @@ Value meaning               → --value-positive / --value-negative
 
 Topbar의 `년-월`과 `월-일 요일` 셀렉트는 같은 UI mode에서 동일폭을 유지한다. 표시 label은 `2026-9`, `9-16 수`처럼 구분자를 `-`로 통일한다. **Web에서도 별도 폭 breakpoint를 만들지 않고** action group이 실제 `max-content` 폭을 먼저 예약한 뒤 날짜 group만 남는 공간에서 함께 shrink한다. `1280px`은 `포트폴리오 히트맵 → 히트맵`, `보유종목 실시간 시세 → 실시간 시세` 같은 label 축약 전환용일 뿐 날짜폭 breakpoint가 아니다. Tablet도 날짜 group만 가용폭에 따라 줄고 우측 action은 `auto` 열을 유지한다. Phone 세로/가로도 두 셀렉트가 같은 반응형 폭 체계를 사용한다.
 
+Web Topbar의 날짜 selector 왼쪽 edge와 우측 마지막 action의 오른쪽 edge는 아래 Hero의 좌우 세로 edge와 **모든 Web viewport(≥1101px)에서 동일선**을 유지한다. 이를 위해 `.switcher`의 horizontal padding은 `--page-shell-gutter`, 내부 `.date-picker` 최대폭은 `--page-content-max-width`를 사용한다. Topbar만 별도의 작은 좌우 padding을 사용하거나 중간 viewport에서 독립 max-width를 두어 Hero와 기준선이 갈라지게 하지 않는다.
+
 ## 4.14 본문 카드 공통 시스템
 
 본문 카드는 **같은 hierarchy + 같은 viewport = 같은 geometry/spacing**을 유지한다. 카드 외곽 padding, 카드 간 gap, 카드 내부 rhythm은 서로 다른 책임으로 관리하며 개별 selector에 임의 숫자를 추가하지 않는다.
