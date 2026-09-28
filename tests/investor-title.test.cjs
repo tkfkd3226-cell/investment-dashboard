@@ -40,7 +40,7 @@ test('투자 칭호 현재 상태형은 새내기·5연속 수익·현금비중�
   assert.equal(core.investorTitleFromSignals({...base,cum:stable,totalProfit:10000000}).status,'🏃 꾸준한 투자자');
 });
 
-test('업적형은 획득일을 계산해 가장 최근 업적 1개를 표시하고 미래 거래는 세지 않는다',()=>{
+test('업적형은 획득일을 계산해 가장 최근 업적 1개를 표시하고 단타 업적은 별도수익 ON에서만 활성화한다',()=>{
   const cum=[
     row('2026-06-01',1,3000000),
     row('2026-06-02',-1,-500000),
@@ -53,11 +53,14 @@ test('업적형은 획득일을 계산해 가장 최근 업적 1개를 표시하
   assert.equal(title.achievement,'🧘 인내의 화신');
   assert.equal(title.achievementDate,'2026-06-05');
 
-  title=core.investorTitleFromSignals({...base,date:'2026-08-06',cum,totalProfit:100000,separateProfitTrades:tenTrades});
+  title=core.investorTitleFromSignals({...base,date:'2026-08-06',cum,totalProfit:100000,separateProfitTrades:tenTrades,includeSeparateProfit:false});
+  assert.equal(title.achievement,'🧘 인내의 화신','별도수익 OFF에서는 단타 업적을 후보에 올리면 안 된다');
+
+  title=core.investorTitleFromSignals({...base,date:'2026-08-06',cum,totalProfit:100000,separateProfitTrades:tenTrades,includeSeparateProfit:true});
   assert.equal(title.achievement,'⚔️ 단타 깎는 노인');
   assert.equal(title.achievementDate,'2026-08-06');
 
-  title=core.investorTitleFromSignals({...base,date:'2026-08-05',cum,totalProfit:100000,separateProfitTrades:tenTrades});
+  title=core.investorTitleFromSignals({...base,date:'2026-08-05',cum,totalProfit:100000,separateProfitTrades:tenTrades,includeSeparateProfit:true});
   assert.equal(title.achievement,'🧘 인내의 화신','화면 날짜 이후 거래를 업적 횟수에 포함하면 안 된다');
 });
 
@@ -79,6 +82,10 @@ test('실제 현재 데이터에서 단타 업적은 2026-08-06부터 최근 업
     pensionTrades:JSON.parse(read('data/pension_trades.json')),
     krxTradingCalendar:JSON.parse(read('data/krx_trading_calendar.json'))
   });
+  core.uiState.includeSeparateProfit=false;
+  const off=core.calc('2026-08-06');
+  assert.notEqual(core.investorTitleViewModel(off,core.separateProfitView(off)).achievement,'⚔️ 단타 깎는 노인','실데이터에서도 별도수익 OFF면 단타 업적이 노출되면 안 된다');
+
   core.uiState.includeSeparateProfit=true;
   const before=core.calc('2026-08-05');
   const after=core.calc('2026-08-06');

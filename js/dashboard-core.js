@@ -1233,7 +1233,7 @@ function securitiesCumHistoryBundle(d){
   securitiesHistoryCalcCache.cumBundle=bundle;
   return bundle;
 }
-function investorTitleFromSignals({cum=[],totalProfit=0,allocTotal=0,securitiesCash=0,separateProfitTrades=[],date='' }={}){
+function investorTitleFromSignals({cum=[],totalProfit=0,allocTotal=0,securitiesCash=0,separateProfitTrades=[],date='',includeSeparateProfit=false }={}){
   if(!Array.isArray(cum)||cum.length===0)return {status:'🌱 투자 새내기',achievement:null,achievementDate:null};
 
   let consecutiveWins=0;
@@ -1258,9 +1258,9 @@ function investorTitleFromSignals({cum=[],totalProfit=0,allocTotal=0,securitiesC
     if(drop<maxDrop)maxDrop=drop;
     if(!enduranceDate&&maxDrop<=-2000000&&profit>0)enduranceDate=String(row?.['날짜']||'');
   }
-  const trades=(Array.isArray(separateProfitTrades)?separateProfitTrades:[])
+  const trades=includeSeparateProfit?(Array.isArray(separateProfitTrades)?separateProfitTrades:[])
     .filter(t=>String(t?.date||'')&&String(t.date)<=String(date||''))
-    .sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    .sort((a,b)=>String(a.date).localeCompare(String(b.date))):[];
   const scalpingDate=trades.length>=10?String(trades[9]?.date||''):null;
   const achievements=[
     enduranceDate?{label:'🧘 인내의 화신',date:enduranceDate}:null,
@@ -1276,7 +1276,8 @@ function investorTitleViewModel(x,v){
     allocTotal:x?.allocTotal,
     securitiesCash:x?.securitiesCash,
     separateProfitTrades:dataState.portfolio?.separateProfit?.trades||[],
-    date:x?.date
+    date:x?.date,
+    includeSeparateProfit:uiState.includeSeparateProfit
   });
 }
 function cumHistory(d){
