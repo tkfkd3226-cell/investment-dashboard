@@ -850,9 +850,37 @@ const separateProfitTrades=()=>Array.isArray(dataState.portfolio?.separateProfit
 const separateProfitReinvestedLimit=()=>Number(dataState.portfolio?.separateProfit?.reinvestedLimit)||0;
 const separateProfitCumulativeForDate=d=>separateProfitTrades().filter(v=>String(v?.date||'')<=d).reduce((a,v)=>kodexSafeAdd(a,v?.profit,`${String(v?.date||'KODEX')} 누적 별도수익`),0);
 const separateProfitReinvestedForDate=d=>Math.min(separateProfitReinvestedLimit(),securityExcludedTransferSum(d),Math.max(0,separateProfitCumulativeForDate(d)));
+const securityFullExitDisplayHolding=(holding,date,prevKey)=>{
+  const sale=securityFullExitSaleForDate(holding?.ticker,date);
+  if(!sale||String(sale.date)!==String(date)||Number(holding?.qty||0)<=0)return holding;
+  const realizedProfit=Number(sale.realizedProfit)||0;
+  const realizedCostBasis=Math.max(0,Number(sale.costBasis)||0);
+  const prevTotalProfit=holding?.prevTotalProfit??holding?.prevProfit??null;
+  const tradeFlow=prevKey?securityTradeFlow(prevKey,date,holding?.ticker):{buyAmount:0,sellAmount:0,buyQty:0,sellQty:0};
+  return {
+    ...holding,
+    qty:0,
+    cost:0,
+    avgPrice:0,
+    evalAmount:0,
+    profit:0,
+    realizedProfit,
+    totalProfit:realizedProfit,
+    realizedCostBasis,
+    performanceCost:realizedCostBasis,
+    feeAdjustedProfit:realizedProfit,
+    returnRate:realizedCostBasis?realizedProfit/realizedCostBasis*100:0,
+    prevTotalProfit,
+    dayChange:prevTotalProfit==null?null:realizedProfit-Number(prevTotalProfit||0),
+    tradeFlow,
+    fullExit:true,
+    sale
+  };
+};
 const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCash})=>{
+  const displayHoldings=holdings.map(h=>securityFullExitDisplayHolding(h,date,prevKey));
   const activeRows=holdings.filter(h=>(Number(h?.qty)||0)>0);
-  const displayRows=holdings.filter(h=>(Number(h?.qty)||0)>0||securityTradeEventsForDate(h?.ticker,date).length>0);
+  const displayRows=displayHoldings.filter(h=>(Number(h?.qty)||0)>0||securityTradeEventsForDate(h?.ticker,date).length>0);
   const holdingCost=activeRows.reduce((a,h)=>a+(Number(h?.cost)||0),0);
   const holdingEval=activeRows.reduce((a,h)=>a+(Number(h?.evalAmount)||0),0);
   const cash=Number(securitiesCash)||0;
@@ -863,7 +891,9 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
     const displayProfit=fullExit?securityTotalProfitValue(h):(Number(h?.profit)||0);
     return {...h,profit:displayProfit,fullExit,sale,weightPct:weightPct(h.evalAmount)};
   });
-  const holdingProfit=statusRows.reduce((a,h)=>a+(Number(h?.profit)||0),0);
+  const holdingProfit=daily&&Number.isFinite(Number(daily.totalProfit))
+    ?Number(daily.totalProfit)
+    :statusRows.reduce((a,h)=>a+(Number(h?.profit)||0),0);
   const totalCost=holdingCost+cash;
   const summaryRows=[
     {id:'holdings',label:'보유종목 합계',cost:holdingCost,evalAmount:holdingEval,profit:holdingProfit,returnRate:holdingCost?holdingProfit/holdingCost*100:0,weightPct:weightPct(holdingEval)},
@@ -875,7 +905,7 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
   const hasPrev=!!prevKey&&(!!prevDaily||!!dataState.prices?.[prevKey]);
   const prevCash=hasPrev?(prevDaily?Number(prevDaily.cash)||0:securitiesCashForDate(prevKey)):null;
   const prevDailyHoldings=Array.isArray(prevDaily?.holdings)?prevDaily.holdings:[];
-  const changeRows=holdings
+  const changeRows=displayHoldings
     .filter(h=>{
       const tradeFlow=h?.tradeFlow||{};
       const qty=Number(h?.qty)||0;
@@ -913,7 +943,7 @@ const securitiesAssetDetailViewModel=({date,prevKey,daily,holdings,securitiesCas
     const currentKeys=new Set(changeRows.map(r=>String(r.ticker||r.name)));
     prevDailyHoldings.forEach(snapshot=>{
       const key=String(snapshot?.ticker||snapshot?.name||'');
-      if(!key||currentKeys.has(key))return;
+      if(!key||currentKeys.has(key)||securityFullExitForDate(snapshot?.ticker,prevKey))return;
       changeRows.push({
         name:snapshot.name,
         ticker:snapshot.ticker,

@@ -956,6 +956,17 @@ test('후성 2026-05-21 legacy 전량매도: 실제 거래를 복원하되 이�
   assert.equal(core.securityFullExitForDate('093370','2026-05-20'),false);
   assert.equal(core.securityFullExitForDate('093370','2026-05-21'),true);
   assert.deepEqual(core.securityFullExitSaleForDate('093370','2026-05-22'),{date:'2026-05-21',qty:11,grossAmount:143660,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110,fullExit:true,price:13060});
+  const exitDay=core.calc('2026-05-21');
+  const statusRow=exitDay.securitiesAssetDetail.statusRows.find(v=>v.ticker==='093370');
+  assert.deepEqual({qty:statusRow.qty,avgPrice:statusRow.avgPrice,cost:statusRow.cost,evalAmount:statusRow.evalAmount,profit:statusRow.profit,fullExit:statusRow.fullExit},{qty:0,avgPrice:0,cost:0,evalAmount:0,profit:5110,fullExit:true});
+  approx(statusRow.returnRate,5110/138260*100);
+  assert.deepEqual({price:statusRow.sale.price,transactionCost:statusRow.sale.transactionCost,amount:statusRow.sale.amount,costBasis:statusRow.sale.costBasis,realizedProfit:statusRow.sale.realizedProfit},{price:13060,transactionCost:290,amount:143370,costBasis:138260,realizedProfit:5110});
+  const changeRow=exitDay.securitiesAssetDetail.change.rows.find(v=>v.ticker==='093370');
+  assert.deepEqual({prevPrice:changeRow.prevPrice,price:changeRow.price,prevEval:changeRow.prevEval,evalAmount:changeRow.evalAmount,dayChange:changeRow.dayChange},{prevPrice:11180,price:12380,prevEval:122980,evalAmount:0,dayChange:20390});
+  assert.deepEqual({price:changeRow.sale.price,transactionCost:changeRow.sale.transactionCost,amount:changeRow.sale.amount,realizedProfit:changeRow.sale.realizedProfit},{price:13060,transactionCost:290,amount:143370,realizedProfit:5110});
+  assert.equal(exitDay.securitiesAssetDetail.summaryRows.find(v=>v.id==='total').profit,5654895,'legacy snapshot 계좌 합계는 2차 UI 정규화로 재작성하지 않는다');
+  assert.equal(exitDay.account1Profit,5654895,'계좌 누적손익은 2차 UI 정규화와 분리한다');
+  assert.equal(core.calc('2026-05-22').securitiesAssetDetail.change.rows.some(v=>v.ticker==='093370'),false,'전량매도 다음 날 legacy snapshot 소멸을 새 변동으로 중복 표시하지 않는다');
   assert.equal(core.securityCashPrincipalForDate('2026-06-18'),0);
   assert.equal(core.calc('2026-06-18').account1Principal,16282745);
   assert.equal(core.calc('2026-09-17').account1Principal,22996210);
