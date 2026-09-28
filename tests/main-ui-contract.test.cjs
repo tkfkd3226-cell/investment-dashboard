@@ -968,7 +968,7 @@ test('Market AI responsive 전환은 Phone inline owner와 content-driven card l
   assert.match(common,/\.market-ai-desktop\{[^}]*width:max-content;[^}]*max-width:100%;[^]*\.market-ai-desktop-metric\{[^}]*grid-template-columns:subgrid;/,'공통 Market AI는 내용 기반 폭과 공통 label/value/change 열 정렬을 유지해야 한다');
   assert.match(special,/#market-ai-section\[data-market-ai-placement="phone-inline"\][^]*\.market-ai-card-row\{[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content;/,'Phone inline은 가용폭을 채우며 label 좌측 / value·change 우측 정렬을 유지해야 한다');
 
-  assert.match(tablet,/\.hero \.hero-return-pill\{display:none\}/,'Tablet Hero는 Market AI와 한 줄을 유지하도록 pill 2개를 유지해야 한다');
+  assert.match(tablet,/\.hero \.hero-performance-row\{[^}]*display:block;[^]*?\.hero \.hero-return-pill\{display:inline-flex\}/s,'Tablet Hero는 칭호 아래 기존 성과 pill 4개를 모두 표시해야 한다');
   assert.match(special,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/,'Phone Landscape는 pill 4개를 유지해야 한다');
 });
 

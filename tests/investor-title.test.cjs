@@ -10,6 +10,7 @@ const kodexSchemaSource=read('js/kodex-leverage-schema.js');
 const app=read('js/dashboard-app.js');
 const common=read('css/common.css');
 const mobile=read('css/mobile.css');
+const tablet=read('css/tablet.css');
 const special=read('css/special.css');
 let core;
 
@@ -93,7 +94,7 @@ test('실제 현재 데이터에서 단타 업적은 2026-08-06부터 최근 업
   assert.equal(core.investorTitleViewModel(after,core.separateProfitView(after)).achievement,'⚔️ 단타 깎는 노인');
 });
 
-test('Hero 정보 계층은 Web/Tablet에서 칭호와 성과 pill을 한 행에 묶고 Phone에서는 두 행을 유지한다',()=>{
+test('Hero 정보 계층은 Web은 한 행, Tablet/Phone은 칭호 행과 성과 pill 행을 분리한다',()=>{
   assert.match(app,/function renderHeroPerformanceRow\(x,v=separateProfitView\(x\)\)\{[^]*?class="hero-performance-row"[^]*?renderHeroTitleBadges\(x,v\)[^]*?renderHeroMetricPills\(x,v\)/);
   assert.match(app,/hero-title-row[^]*?renderHeroPerformanceRow\(x,v\)/);
   assert.match(app,/class="hero-title-badges" role="group" aria-label="투자 칭호"/);
@@ -109,6 +110,9 @@ test('Hero 정보 계층은 Web/Tablet에서 칭호와 성과 pill을 한 행에
 
   assert.match(common,/\.hero-performance-row\{[^}]*display:flex;[^}]*flex-wrap:nowrap;/s);
   assert.match(common,/\.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:nowrap;/s);
+  assert.match(tablet,/Tablet Hero는 칭호 행 아래에 기존 성과 pill 4개를 모두 한 줄로 노출[^]*?\.hero \.hero-performance-row\{[^}]*display:block;/s);
+  assert.match(tablet,/\.hero \.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:nowrap;[^}]*margin-top:var\(--space-sm\);/s);
+  assert.match(tablet,/\.hero \.hero-return-pill\{display:inline-flex\}/);
   assert.match(special,/Phone은 칭호 전용 행과 기존 성과 pill 행을 분리[^]*?\.hero \.hero-performance-row\{[^}]*display:block;/s);
   assert.match(special,/\.hero \.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:wrap;[^}]*margin-top:var\(--space-sm\);/s);
 });
