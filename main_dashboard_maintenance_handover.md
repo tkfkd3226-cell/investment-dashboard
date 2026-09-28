@@ -514,6 +514,7 @@ Market AI Live Valuation universe도 `securityPositionState()`의 선택일 수�
 
 - 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, 상태 표시 등 공통 form/control 표현과 `dashboard-modal.js`의 dialog lifecycle을 재사용한다.
 - 퇴직연금 금액 조정의 `개별 처리 / 작업 모음`은 Main `.control-segmented`의 geometry/typography/중앙 정렬을 재사용한다. 긴 `작업 모음 + count` 라벨 때문에 필요한 폭·좌우 여백만 feature override하며, 연금 전용 font-size/height/line-height 체계를 별도로 만들지 않는다.
+- 퇴직연금 금액 조정의 편집 가능 숫자 입력(`data-pension-input`)은 기존 값이 있으면 첫 focus 진입 직후 전체 선택해 새 값으로 바로 교체할 수 있어야 한다. 동적 modal 렌더 특성상 delegated `focusin`을 사용하고, pointer/touch 기본 caret 배치가 선택을 다시 풀지 않도록 다음 animation frame에서 선택한다. readonly·disabled·빈 값·PIN/date는 대상에서 제외하며 이미 focus된 상태의 두 번째 클릭/탭은 일반 caret 편집을 허용한다.
 - 개인보기 도구는 Web/Tablet/Phone에서 공통 icon-button geometry를 사용한다. Topbar 순서는 `Market AI 연결 → 투자 계산기 → 테마`를 유지하며, Phone에서는 `투자 계산기`만 숨겨 `Market AI 연결 → 테마`로 노출한다. Tablet/Phone hamburger는 같은 menu source를 공유하지만 Tablet에서는 `.tablet-topbar-ui` 상태로 Topbar와 중복되는 `관리` 그룹과 `투자 계산기` 링크를 즉시 숨긴다. Phone의 `관리` 그룹은 KRX 현재가 반영·퇴직연금 금액 조정만 유지하고 Market AI 연결은 Topbar 단일 진입점만 사용한다.
 - Market AI lifecycle listener는 초기 preference가 OFF여도 등록한다. 초기 OFF를 이유로 `startMarketAiBridge()`가 listener 등록 전에 return하면 이후 같은 페이지에서 ON 이벤트를 받을 수 없으므로 금지한다. ON 전환은 새로고침 없이 mount/refresh를 시작해야 한다.
 - 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.

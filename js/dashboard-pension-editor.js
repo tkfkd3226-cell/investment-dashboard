@@ -477,6 +477,14 @@ function assertSafePensionAggregate(values){
   }
   return values;
 }
+function selectPensionNumericInputOnFocus(input){
+  if(!input||input.disabled||input.readOnly||!String(input.value??'').trim())return;
+  requestAnimationFrame(()=>{
+    if(document.activeElement!==input||input.disabled||input.readOnly)return;
+    try{input.select()}catch(_){}
+  });
+}
+
 function formatPensionMoneyInput(input){
   if(!input) return;
   const raw=String(input.value||'');
@@ -1843,6 +1851,10 @@ function setupPensionEventDelegation({renderDashboard}={}){
     openPensionDatePickerForPointer(event);
     const control=event.target?.closest?.('[data-pension-action]');
     if(control)handlePensionAction(control,renderDashboard);
+  });
+  document.addEventListener('focusin',event=>{
+    const control=event.target?.closest?.('.contrib-modal [data-pension-input]');
+    if(control)selectPensionNumericInputOnFocus(control);
   });
   document.addEventListener('change',event=>{
     const changed=event.target;

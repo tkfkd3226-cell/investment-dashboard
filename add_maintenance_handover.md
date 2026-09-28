@@ -175,6 +175,7 @@ Mobile · 모바일   ≤ 760px
 - 일반 입력카드와 `계산 기준`은 공통 Field/Control contract의 label/control gap·field row gap·control geometry source를 공유한다. 정렬을 위한 magic margin·padding·고정 offset을 추가하지 않는다.
 - Web/Tablet의 빈 label slot은 같은 field track 정렬용이며 Phone에서만 제거한다.
 - input/date의 border·surface·focus·readonly·invalid visual state는 viewport와 무관하게 control shell이 canonical source다. 내부 input은 typography/value/padding과 Phone optical scale만 소유한다.
+- Calc의 편집 가능 금액·수량·비율 입력은 기존 값이 있으면 첫 focus 진입 직후 전체 선택해 새 값으로 바로 교체할 수 있어야 한다. money input은 콤마를 제거한 뒤 선택하고, pointer/touch의 기본 caret 배치가 선택을 풀지 않도록 다음 animation frame에서 선택한다. readonly·disabled·빈 값·date는 대상에서 제외하며 이미 focus된 상태의 두 번째 클릭/탭은 일반 caret 편집을 허용한다.
 - choice/step control은 feature별 고정 높이를 복제하지 않고 각 container의 공통 field geometry를 따른다.
 - Phone input은 iOS focus zoom을 막는 computed-size + optical-scale 구조를 유지하되 확대 자체를 viewport 설정으로 차단하지 않는다. optical scale 후 visual size는 공통 data-value와, 시각적 padding과 control 정렬은 공통 control spacing과 일치시킨다.
 - `원/%` 단위 reserve와 고정 icon geometry처럼 기능상 필요한 부분만 Phone input 예외로 둔다. Phone media에서 control shell의 border/focus/state를 다시 구현하지 않으며 정확한 scale은 현재 CSS를 Source of Truth로 본다.

@@ -160,7 +160,7 @@ UX는 화면 모양이 아니라 **사용자 flow와 상태 전이**를 기준�
 | Error recovery | 10 | 실패 후 재시도·취소·재진입이 자연스럽고 상태가 잠기지 않는가 |
 | 상태 이해 / continuity | 12 | tab/theme/view/date/filter/open state가 예측 가능하게 유지·복원되는가 |
 | Re-entry / duplicate action | 12 | 연타, Enter 반복, close→reopen, 중복 요청에 안전한가 |
-| Keyboard / touch / accessibility | 10 | mouse 외 입력에서도 같은 기능과 feedback을 제공하는가 |
+| Keyboard / touch / accessibility | 10 | mouse 외 입력에서도 같은 기능과 feedback을 제공하고, 반복 숫자 편집에서 불필요한 삭제/Ctrl+A를 강제하지 않는가 |
 | Persistence / restore / recalculation | 8 | 저장된 상태가 복원된 뒤 첫 렌더·재계산과 의미가 일치하는가 |
 | Perceived performance | 6 | 불필요 rerender, flicker, 기다림, focus loss가 체감 흐름을 깨지 않는가 |
 | Cross-view / cross-feature consistency | 10 | Table↔Card, MAIN↔ADD, Desktop↔Mobile에서 같은 개념이 같은 방식으로 동작하는가 |
@@ -225,6 +225,7 @@ B는 현재 대부분 정상이어도 **특정 순서·경계·입력 경로에�
 - keyboard 경로에서만 발생하는 기능 오류
 - theme 변경 시 Canvas/SVG/runtime visual 재렌더링 누락
 - restore 경로와 최초 입력 경로의 validation 불일치
+- 기존 값 교체가 주 사용 흐름인 금액·수량·비율 입력에서 replace-first 전체선택이 없어 Desktop/Touch 모두 반복적인 추가 조작을 강제
 - 실제 제품 기능과 README/MD 설명의 의미 불일치
 - handover가 필수 schema context/field를 빠뜨려 유지보수자가 오판할 가능성
 - workflow / CLI help / docstring이 서로 다른 동작을 같은 것으로 설명

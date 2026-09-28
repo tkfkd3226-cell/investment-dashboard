@@ -443,6 +443,12 @@ test('KRX write는 60초 전용 timeout을 사용하고 timeout을 미확정 상
   assert.doesNotMatch(catchBlock,/resetKrxActionRequestIdentity\(\)/,'timeout에서는 동일 requestId를 버리면 안 된다');
 });
 
+test('퇴직연금 금액 조정 숫자 입력은 focus 진입 시 replace-first 전체선택 UX를 제공한다',()=>{
+  assert.match(pensionEditor,/function selectPensionNumericInputOnFocus\(input\)\{[^]*?input\.disabled\|\|input\.readOnly[^]*?!String\(input\.value\?\?''\)\.trim\(\)[^]*?requestAnimationFrame\(\(\)=>\{[^]*?document\.activeElement!==input[^]*?input\.select\(\)/,'값이 있는 편집 가능 pension 숫자 입력만 다음 frame에서 전체 선택해야 한다');
+  assert.match(pensionEditor,/document\.addEventListener\('focusin',event=>\{\s*const control=event\.target\?\.closest\?\.\('\.contrib-modal \[data-pension-input\]'\);\s*if\(control\)selectPensionNumericInputOnFocus\(control\);\s*\}\);/,'동적 렌더되는 pension 숫자 입력은 delegated focusin으로 동일 UX를 받아야 한다');
+  assert.doesNotMatch(pensionEditor,/<input id="pensionActionPinInput"[^>]*data-pension-input=/,'PIN 입력까지 replace-first 대상에 섞이면 안 된다');
+});
+
 test('퇴직연금 Action PIN은 서버 요청 중 dismiss를 잠그고 실패 시 다시 활성화한다',()=>{
   assert.match(pensionEditor,/let activePensionActionPinSession=null;/);
   assert.match(pensionEditor,/activePensionActionPinSession\?\.finish\(null\);/);

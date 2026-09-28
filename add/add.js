@@ -766,7 +766,15 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
 
   // 11. 사용자 이벤트
   // 입력·스테퍼·프리셋·전략탭·초기화 버튼의 이벤트를 한 번만 등록
-  function handleMoneyFocus(e){const inp=e.currentTarget,n=parseNum(inp.value);if(Number.isFinite(n))inp.value=String(n);}
+  function selectEditableNumericValue(inp){
+    if(!inp||inp.disabled||inp.readOnly||!String(inp.value??'').trim())return;
+    requestAnimationFrame(()=>{
+      if(document.activeElement!==inp||inp.disabled||inp.readOnly)return;
+      try{inp.select();}catch(_){}
+    });
+  }
+  function handleMoneyFocus(e){const inp=e.currentTarget,n=parseNum(inp.value);if(Number.isFinite(n))inp.value=String(n);selectEditableNumericValue(inp);}
+  function handleNumberFocus(e){selectEditableNumericValue(e.currentTarget);}
   function handleMoneyBlur(e){const inp=e.currentTarget,n=parseNum(inp.value);if(Number.isInteger(n))inp.value=nf0.format(n);recalc();}
   function handleMoneyInput(e){markPresetDirty();if(e.currentTarget.id==='targetPrice')disableAutoBreakEven();recalc();}
   function handleNumberInput(e){markPresetDirty();const inp=e.currentTarget;if(inp.id==='overnightPct'||inp.id==='risePct'){delete inp.dataset.exactValue;disableAutoBreakEven();}recalc();}
@@ -776,7 +784,7 @@ const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange';
 
   function initEventBindings(){
     document.querySelectorAll('.money-input').forEach(inp=>{inp.addEventListener('focus',handleMoneyFocus);inp.addEventListener('blur',handleMoneyBlur);inp.addEventListener('input',handleMoneyInput);});
-    document.querySelectorAll('input[type=number]').forEach(inp=>inp.addEventListener('input',handleNumberInput));
+    document.querySelectorAll('input[type=number]').forEach(inp=>{inp.addEventListener('focus',handleNumberFocus);inp.addEventListener('input',handleNumberInput);});
     document.querySelectorAll('.share-step-btn').forEach(b=>b.addEventListener('click',handleShareStep));
     document.querySelectorAll('.pct-step-btn').forEach(b=>b.addEventListener('click',handlePctStep));
     document.querySelectorAll('.preset-btn[data-preset]').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));

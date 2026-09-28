@@ -114,6 +114,13 @@ test('Calc 저장 복원은 presetId 선택과 presetDirty를 함께 보존하�
   assert.match(js1,/setPresetActive\(activePresetId\);\s*applyValues\(v\);/);
 });
 
+test('Calc 편집 숫자 입력은 focus 진입 시 replace-first 전체선택 UX를 제공한다',()=>{
+  assert.match(js1,/function selectEditableNumericValue\(inp\)\{[^]*?inp\.disabled\|\|inp\.readOnly[^]*?!String\(inp\.value\?\?''\)\.trim\(\)[^]*?requestAnimationFrame\(\(\)=>\{[^]*?document\.activeElement!==inp[^]*?inp\.select\(\)/,'값이 있는 편집 가능 숫자 입력만 다음 frame에서 전체 선택해야 한다');
+  assert.match(js1,/function handleMoneyFocus\(e\)\{[^]*?inp\.value=String\(n\);selectEditableNumericValue\(inp\);\}/,'money input은 콤마 제거 뒤 전체 선택해야 한다');
+  assert.match(js1,/function handleNumberFocus\(e\)\{selectEditableNumericValue\(e\.currentTarget\);\}/,'number input도 같은 replace-first UX를 사용해야 한다');
+  assert.match(js1,/document\.querySelectorAll\('input\[type=number\]'\)\.forEach\(inp=>\{inp\.addEventListener\('focus',handleNumberFocus\);inp\.addEventListener\('input',handleNumberInput\);\}\)/,'편집 number input의 focus handler가 실제로 등록돼야 한다');
+});
+
 test('Calc 검증 오류는 해당 control의 aria-invalid와 설명 영역을 함께 갱신한다',()=>{
   assert.match(js1,/\.control\[aria-invalid="true"\][^]*?setAttribute\('aria-invalid','false'\)/);
   assert.match(js1,/\.control\[aria-describedby="validationMessage"\][^]*?removeAttribute\('aria-describedby'\)[^]*?validation\.invalidIds/);

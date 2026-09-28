@@ -711,6 +711,7 @@
 - validation state와 normal state가 일관적인가
 - 업무 validation/persistence를 generic form layer가 소유하지 않는가
 - browser/mobile 예외를 공통화 때문에 제거하지 않는가
+- 기존 값을 통째로 바꾸는 것이 주 사용 흐름인 편집 가능 숫자 입력은 focus 진입 시 전체 선택 또는 동등한 replace-first UX를 제공하는가
 
 ### 고정 배점
 | 세부 항목 | 배점 |
@@ -725,11 +726,14 @@
 - input/select/date/number/label/helper selector 비교
 - validation/error class 확인
 - Main pension/KRX와 Add Calc form 교차 확인
+- Main 퇴직연금 금액 조정과 Add Calc의 기존 값이 있는 금액·수량·비율 입력을 mouse/keyboard/touch로 진입해 replace-first 전체선택이 일관적으로 동작하는지 확인
+- readonly/date/PIN/빈 값까지 무차별 전체선택하지 않는지 확인
 - 저장/계산 로직이 generic form helper에 들어갔는지 확인
 
 ### 항목 특이 판정
 - 동일 control이 feature별 독립 높이/padding을 반복하면 token 항목 MAJOR
 - generic form이 persistence를 소유하면 책임 FAIL
+- 기존 값 교체가 핵심인 반복 숫자 입력에서 replace-first UX가 누락되어 Desktop에서 추가 조작/Ctrl+A, Touch에서 반복 지우기를 강제하면 interaction MAJOR
 
 ### 허용 예외
 - browser native date appearance
