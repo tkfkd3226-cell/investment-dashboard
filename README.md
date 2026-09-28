@@ -226,7 +226,10 @@ investment-dashboard/
 ├─ tests/
 │  ├─ main-calc.test.cjs
 │  ├─ main-ui-contract.test.cjs
+│  ├─ investor-title.test.cjs
 │  ├─ monthly-calendar-live.test.cjs
+│  ├─ monthly-calendar-gloomy.test.cjs
+│  ├─ monthly-calendar-viewport.test.cjs
 │  ├─ live-valuation-polling.test.cjs
 │  ├─ heatmap-engine.test.cjs
 │  ├─ heatmap-shell.test.cjs
@@ -362,8 +365,10 @@ tests/
 ```text
 tests/main-calc.test.cjs
 tests/main-ui-contract.test.cjs
+tests/investor-title.test.cjs
 tests/monthly-calendar-live.test.cjs
 tests/monthly-calendar-gloomy.test.cjs
+tests/monthly-calendar-viewport.test.cjs
 tests/live-valuation-polling.test.cjs
 tests/heatmap-engine.test.cjs
 tests/heatmap-shell.test.cjs
