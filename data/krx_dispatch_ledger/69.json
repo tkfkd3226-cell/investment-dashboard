@@ -1,0 +1,15 @@
+[
+  {
+    "requestId": "krx-update-49785045-ccd9-45e1-869e-fc9f5002a69c",
+    "requestIdHash": "69b4552f4f85256192a91b5b8e229ab2",
+    "hash": "3d5d63b56b17492d93026446a5b93c7f66f3f1be49b67fcc80bf6e4ef4622eff",
+    "branch": "main",
+    "date": "",
+    "workflowRunId": "",
+    "runUrl": "",
+    "htmlUrl": "",
+    "reason": "workflow_skipped:before_open_already_closed",
+    "savedAtKST": "2026-09-29T00:34:27+09:00",
+    "savedAtMs": 1790609667543
+  }
+]
