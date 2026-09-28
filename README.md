@@ -363,6 +363,7 @@ tests/main-calc.test.cjs
 tests/main-ui-contract.test.cjs
 tests/monthly-calendar-live.test.cjs
 tests/monthly-calendar-gloomy.test.cjs
+tests/investor-title.test.cjs
 tests/live-valuation-polling.test.cjs
 tests/heatmap-engine.test.cjs
 tests/heatmap-shell.test.cjs

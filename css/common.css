@@ -1257,6 +1257,15 @@ section{
   font-weight:var(--hero-pill-weight);
   line-height:var(--hero-pill-line);
 }
+.hero-investor-title{
+  --hero-pill-bg:rgba(245,158,11,.15);
+  --hero-pill-border:rgba(245,158,11,.30);
+  --hero-pill-color:#f59e0b;
+  font-weight:var(--type-weight-emphasis);
+}
+.hero-investor-title-metric{margin-right:4px}
+.hero-investor-title-phone,
+.hero-title-label-phone-portrait{display:none}
 .hero-label-mobile{display:none}
 
 .mini-card{

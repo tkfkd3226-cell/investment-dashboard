@@ -1204,6 +1204,7 @@ Mobile · 모바일: 760px 이하
 ```
 
 Hero 성과 pill은 퇴직연금이 있는 현재 구성 기준으로 **Desktop은 손익+수익률 4개, Tablet은 Market AI와 한 줄을 유지하기 위해 손익 2개, Phone 세로는 손익 2개, 실제 Phone Landscape는 넓은 가로폭을 활용해 손익+수익률 4개**를 표시한다. Tablet과 Phone 세로에서는 `.hero-return-pill`을 숨기고, Phone Landscape 특수 viewport에서만 다시 노출한다.
+- 투자 칭호는 Desktop/Tablet에서 기존 Hero 성과 pill 행의 보조 badge로 표시하지만, **Phone에서는 성과 pill 개수를 늘리지 않도록 제목/기준문구 우측의 `.hero-investor-title-phone`으로 이동**한다. Phone 제목 행은 wrap하지 않아 칭호 추가가 Hero 높이를 키우지 않아야 하며, 세로 Phone은 긴 `시간외 포함 현재가 기준` 문구와 칭호가 한 행에 들어가도록 `투자 성과`를 화면상 `성과`로만 축약한다. 실제 Phone Landscape는 제목을 축약하지 않고 기존 손익+수익률 4개 pill을 한 행에 유지한다. 투자 칭호 판정 우선순위와 Phone 배치 contract는 `tests/investor-title.test.cjs`가 보호한다.
 
 특수 viewport는 일반 viewport 섹션에 섞지 않고 **왜 필요한지 기능 기준으로 추적 가능하게 관리**한다. 대표적인 현재 예외는 다음과 같다.
 
