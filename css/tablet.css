@@ -231,3 +231,8 @@
     }
 
 }
+
+/* Monthly Calendar Summary · 좁은 Tablet에서는 긴 상승·하락 합계가 자연스럽게 한 줄을 확보하도록 2×2로 전환 */
+@media (min-width:761px) and (max-width:1000px){
+  .monthly-calendar-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+}

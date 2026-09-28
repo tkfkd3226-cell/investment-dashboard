@@ -3285,7 +3285,7 @@ body.dashboard-dialog-open{
 .monthly-calendar-modal{
   z-index:13200;
   display:none;
-  --modal-card-width:min(760px,100%);
+  --modal-card-width:min(960px,100%);
   --modal-card-pad-y:var(--space-8xl);
   --modal-card-pad-x:var(--space-8xl);
   --monthly-calendar-grid-gap:var(--space-sm);
