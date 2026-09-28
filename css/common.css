@@ -788,6 +788,7 @@ button svg{pointer-events:none;flex-shrink:0}
    Hero 경계와 카드 사이 간격만 별도 compact inset을 사용한다. 왼쪽 title/pill은 JS가 실측한
    Market AI 자연 폭(--market-ai-reserved-width) + layout gap만 예약해 최대폭 전체를 선점하지 않는다. */
 .hero.market-ai-mounted .hero-title-row,
+.hero.market-ai-mounted .hero-title-badges,
 .hero.market-ai-mounted .hero-metric-pills{
   max-width:calc(100% - var(--market-ai-reserved-width,0px) - var(--market-ai-layout-gap));
 }
@@ -1246,6 +1247,31 @@ section{
   gap:var(--hero-pill-gap);
   margin-top:var(--hero-pill-margin-top);
 }
+.hero-title-badges{
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:center;
+  gap:var(--hero-pill-gap);
+  margin-top:var(--hero-pill-margin-top);
+}
+.hero-title-badges + .hero-metric-pills{margin-top:var(--space-sm)}
+.hero-title-badge{
+  flex:0 0 auto;
+  width:auto;
+  font-weight:var(--type-weight-emphasis);
+}
+.hero-title-badge-status{
+  --hero-pill-bg:rgba(245,158,11,.15);
+  --hero-pill-border:rgba(245,158,11,.30);
+  --hero-pill-color:#fbbf24;
+}
+.hero-title-badge-achievement{
+  --hero-pill-bg:rgba(59,130,246,.15);
+  --hero-pill-border:rgba(96,165,250,.32);
+  --hero-pill-color:#bfdbfe;
+}
 
 .pill{
   padding:var(--hero-pill-pad-y) var(--hero-pill-pad-x);
@@ -1257,15 +1283,6 @@ section{
   font-weight:var(--hero-pill-weight);
   line-height:var(--hero-pill-line);
 }
-.hero-investor-title{
-  --hero-pill-bg:rgba(245,158,11,.15);
-  --hero-pill-border:rgba(245,158,11,.30);
-  --hero-pill-color:#f59e0b;
-  font-weight:var(--type-weight-emphasis);
-}
-.hero-investor-title-metric{margin-right:4px}
-.hero-investor-title-phone,
-.hero-title-label-phone-portrait{display:none}
 .hero-label-mobile{display:none}
 
 .mini-card{

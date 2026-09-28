@@ -1233,6 +1233,52 @@ function securitiesCumHistoryBundle(d){
   securitiesHistoryCalcCache.cumBundle=bundle;
   return bundle;
 }
+function investorTitleFromSignals({cum=[],totalProfit=0,allocTotal=0,securitiesCash=0,separateProfitTrades=[],date='' }={}){
+  if(!Array.isArray(cum)||cum.length===0)return {status:'🌱 투자 새내기',achievement:null,achievementDate:null};
+
+  let consecutiveWins=0;
+  for(let i=cum.length-1;i>=0;i--){
+    if(Number(cum[i]?.['합계 : 전일대비손익'])>0)consecutiveWins++;
+    else break;
+  }
+  const cashRatio=Number(allocTotal)>0?Number(securitiesCash||0)/Number(allocTotal):0;
+  const status=consecutiveWins>=5
+    ?'🔥 불기둥 탑승자'
+    :cashRatio>=0.4
+      ?'👀 관망의 달인'
+      :Number(totalProfit)>10000000
+        ?'👑 평온한 투자자'
+        :'🏃 꾸준한 투자자';
+
+  let peak=Number(cum[0]?.['합계 : 누적손익'])||0,maxDrop=0,enduranceDate=null;
+  for(const row of cum){
+    const profit=Number(row?.['합계 : 누적손익'])||0;
+    if(profit>peak)peak=profit;
+    const drop=profit-peak;
+    if(drop<maxDrop)maxDrop=drop;
+    if(!enduranceDate&&maxDrop<=-2000000&&profit>0)enduranceDate=String(row?.['날짜']||'');
+  }
+  const trades=(Array.isArray(separateProfitTrades)?separateProfitTrades:[])
+    .filter(t=>String(t?.date||'')&&String(t.date)<=String(date||''))
+    .sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  const scalpingDate=trades.length>=10?String(trades[9]?.date||''):null;
+  const achievements=[
+    enduranceDate?{label:'🧘 인내의 화신',date:enduranceDate}:null,
+    scalpingDate?{label:'⚔️ 단타 깎는 노인',date:scalpingDate}:null
+  ].filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date));
+  const latest=achievements.at(-1)||null;
+  return {status,achievement:latest?.label||null,achievementDate:latest?.date||null};
+}
+function investorTitleViewModel(x,v){
+  return investorTitleFromSignals({
+    cum:cumHistory(x.date),
+    totalProfit:v?.totalProfit,
+    allocTotal:x?.allocTotal,
+    securitiesCash:x?.securitiesCash,
+    separateProfitTrades:dataState.portfolio?.separateProfit?.trades||[],
+    date:x?.date
+  });
+}
 function cumHistory(d){
   const rows=uiState.includeSeparateProfit?securitiesCumHistoryBundle(d).on:securitiesCumHistoryBundle(d).off;
   return rows.map(row=>({...row}));
@@ -1530,6 +1576,8 @@ export {
   formatKospi,
   hasPensionData,
   heroPerformanceBasisLabel,
+  investorTitleFromSignals,
+  investorTitleViewModel,
   isLedgerCheckDate,
   koreanDateLabel,
   kospiIndexForDate,

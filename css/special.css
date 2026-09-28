@@ -438,19 +438,6 @@
       white-space:nowrap;
       letter-spacing:-.02em;
     }
-    /* Investor Title · Phone에서는 별도 성과 pill 행을 늘리지 않고 제목 기준문구 우측에 배치한다. */
-    .hero .hero-title-row{
-      flex-wrap:nowrap;
-      align-items:baseline;
-    }
-    .hero .hero-investor-title-metric{display:none}
-    .hero .hero-investor-title-phone{
-      display:inline-flex;
-      flex:0 0 auto;
-      align-items:center;
-      margin:0;
-      padding:var(--hero-pill-pad-y) var(--hero-pill-pad-x);
-    }
 
 
   /* Mini / Metric Cards · 카드 밀도는 세로폰 기준 공유 */
@@ -802,12 +789,6 @@
     box-shadow:var(--mobile-top-shadow-mobile);
   }
 
-}
-
-/* Phone Portrait Hero Title · 긴 현재가 기준문구 + 투자 칭호를 한 행에 유지하도록 제목만 축약 */
-@media (max-width:760px) and (orientation:portrait){
-  .hero .hero-title-label-default{display:none}
-  .hero .hero-title-label-phone-portrait{display:inline}
 }
 
 /* -------------------------------------------------------------------------

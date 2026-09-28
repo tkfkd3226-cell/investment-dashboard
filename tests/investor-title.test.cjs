@@ -2,96 +2,117 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const vm=require('node:vm');
 
 const ROOT=path.resolve(__dirname,'..');
 const read=rel=>fs.readFileSync(path.join(ROOT,rel),'utf8');
+const coreSource=read('js/dashboard-core.js');
+const kodexSchemaSource=read('js/kodex-leverage-schema.js');
 const app=read('js/dashboard-app.js');
+const common=read('css/common.css');
+const mobile=read('css/mobile.css');
 const special=read('css/special.css');
+let core;
 
-function extractFunction(source,name){
-  const start=source.indexOf(`function ${name}(`);
-  assert.ok(start>=0,`${name} source not found`);
-  const brace=source.indexOf('{',start);
-  let depth=0;
-  for(let i=brace;i<source.length;i++){
-    if(source[i]==='{')depth++;
-    else if(source[i]==='}'){
-      depth--;
-      if(depth===0)return source.slice(start,i+1);
-    }
-  }
-  throw new Error(`${name} source is not balanced`);
-}
+test.before(async()=>{
+  const schemaUrl='data:text/javascript;base64,'+Buffer.from(kodexSchemaSource).toString('base64');
+  const coreForNode=coreSource.replace("'./kodex-leverage-schema.js'",`'${schemaUrl}'`);
+  core=await import('data:text/javascript;base64,'+Buffer.from(coreForNode).toString('base64'));
+});
 
-const investorTitleSource=extractFunction(app,'getInvestorTitle');
+const row=(date,daily,cumulative)=>({
+  '날짜':date,
+  '합계 : 전일대비손익':daily,
+  '합계 : 누적손익':cumulative
+});
+const base={date:'2026-09-28',allocTotal:1000,securitiesCash:100,separateProfitTrades:[]};
 
-function titleHarness(cum,{trades=[]}={}){
-  const context=vm.createContext({
-    cumHistory:()=>cum,
-    dataState:{portfolio:{separateProfit:{trades}}}
+test('투자 칭호 현재 상태형은 새내기·5연속 수익·현금비중·누적손익·기본 임계값을 보존한다',()=>{
+  assert.deepEqual(core.investorTitleFromSignals({...base,cum:[]}),{
+    status:'🌱 투자 새내기',achievement:null,achievementDate:null
   });
-  vm.runInContext(`${investorTitleSource}; this.getInvestorTitle=getInvestorTitle;`,context);
-  return context.getInvestorTitle;
-}
 
-function row(daily,cumulative){
-  return {'합계 : 전일대비손익':daily,'합계 : 누적손익':cumulative};
-}
+  const fiveWins=[1,2,3,4,5].map((n,i)=>row(`2026-09-${String(i+1).padStart(2,'0')}`,1,n));
+  assert.equal(core.investorTitleFromSignals({...base,cum:fiveWins,totalProfit:5}).status,'🔥 불기둥 탑승자');
 
-const xBase={date:'2026-09-28',allocTotal:100,securitiesCash:0};
-
-test('투자 칭호는 5연속 수익을 최우선으로 판정하고 5일 미만에는 조기 부여하지 않는다',()=>{
-  const four=[row(1,1),row(1,2),row(1,3),row(1,4)];
-  assert.equal(titleHarness(four)(xBase,{totalProfit:0}),'🏃 꾸준한 투자자');
-
-  const five=[...four,row(1,5)];
-  assert.equal(titleHarness(five)(xBase,{totalProfit:0}),'🔥 불기둥 탑승자');
+  const stable=[row('2026-09-01',0,500)];
+  assert.equal(core.investorTitleFromSignals({...base,cum:stable,securitiesCash:400,totalProfit:500}).status,'👀 관망의 달인');
+  assert.equal(core.investorTitleFromSignals({...base,cum:stable,totalProfit:10000001}).status,'👑 평온한 투자자');
+  assert.equal(core.investorTitleFromSignals({...base,cum:stable,totalProfit:10000000}).status,'🏃 꾸준한 투자자');
 });
 
-test('투자 칭호 우선순위는 인내 → 단타 → 관망 → 누적수익 → 기본 순서를 유지한다',()=>{
-  const drawdown=[row(0,0),row(-2500000,-2500000),row(1000000,-1500000)];
-  const tenTrades=Array.from({length:10},(_,i)=>({date:`2026-09-${String(i+1).padStart(2,'0')}`}));
-  assert.equal(
-    titleHarness(drawdown,{trades:tenTrades})({...xBase,securitiesCash:50},{totalProfit:1}),
-    '🧘 인내의 화신',
-    'MDD 회복 칭호가 단타/관망보다 우선해야 한다'
-  );
+test('업적형은 획득일을 계산해 가장 최근 업적 1개를 표시하고 미래 거래는 세지 않는다',()=>{
+  const cum=[
+    row('2026-06-01',1,3000000),
+    row('2026-06-02',-1,-500000),
+    row('2026-06-05',1,100000)
+  ];
+  const nineTrades=Array.from({length:9},(_,i)=>({date:`2026-07-${String(i+1).padStart(2,'0')}`}));
+  const tenTrades=[...nineTrades,{date:'2026-08-06'}];
 
-  const stable=[row(0,0)];
-  assert.equal(titleHarness(stable,{trades:tenTrades})({...xBase,securitiesCash:50},{totalProfit:20000000}),'⚔️ 단타 깎는 노인');
-  assert.equal(titleHarness(stable)({...xBase,securitiesCash:40},{totalProfit:20000000}),'👀 관망의 달인');
-  assert.equal(titleHarness(stable)(xBase,{totalProfit:10000001}),'👑 평온한 투자자');
-  assert.equal(titleHarness(stable)(xBase,{totalProfit:10000000}),'🏃 꾸준한 투자자');
+  let title=core.investorTitleFromSignals({...base,date:'2026-08-05',cum,totalProfit:100000,separateProfitTrades:nineTrades});
+  assert.equal(title.achievement,'🧘 인내의 화신');
+  assert.equal(title.achievementDate,'2026-06-05');
+
+  title=core.investorTitleFromSignals({...base,date:'2026-08-06',cum,totalProfit:100000,separateProfitTrades:tenTrades});
+  assert.equal(title.achievement,'⚔️ 단타 깎는 노인');
+  assert.equal(title.achievementDate,'2026-08-06');
+
+  title=core.investorTitleFromSignals({...base,date:'2026-08-05',cum,totalProfit:100000,separateProfitTrades:tenTrades});
+  assert.equal(title.achievement,'🧘 인내의 화신','화면 날짜 이후 거래를 업적 횟수에 포함하면 안 된다');
 });
 
-test('투자 칭호 거래수는 현재 화면 날짜까지의 거래만 세고 데이터가 없으면 새내기로 표시한다',()=>{
-  const trades=Array.from({length:10},(_,i)=>({date:i<9?`2026-09-${String(i+1).padStart(2,'0')}`:'2026-10-01'}));
-  assert.equal(titleHarness([row(0,0)],{trades})(xBase,{totalProfit:0}),'🏃 꾸준한 투자자');
-  assert.equal(titleHarness([])(xBase,{totalProfit:0}),'🌱 투자 새내기');
+test('실제 현재 데이터에서 단타 업적은 2026-08-06부터 최근 업적으로 전환된다',()=>{
+  const report=JSON.parse(read('data/kodex_leverage_trades.json'));
+  const portfolio=JSON.parse(read('data/portfolio.json'));
+  const separate=core.deriveSeparateProfitFromKodexReport(report);
+  assert.equal(separate.trades[9]?.date,'2026-08-06','10번째 별도수익 거래일 contract가 달라졌다');
+
+  // 실제 누적손익 이력은 별도수익 ON 기준으로 생성한다.
+  portfolio.separateProfit=separate;
+  Object.assign(core.dataState,{
+    portfolio,
+    prices:JSON.parse(read('data/prices.json')),
+    snapshots:JSON.parse(read('data/performance_snapshots.json')),
+    account1Daily:JSON.parse(read('data/account1_daily_snapshots.json')),
+    pensionContributions:JSON.parse(read('data/pension_contributions.json')),
+    pensionCashSnapshots:JSON.parse(read('data/pension_cash_snapshots.json')),
+    pensionTrades:JSON.parse(read('data/pension_trades.json')),
+    krxTradingCalendar:JSON.parse(read('data/krx_trading_calendar.json'))
+  });
+  core.uiState.includeSeparateProfit=true;
+  const before=core.calc('2026-08-05');
+  const after=core.calc('2026-08-06');
+  assert.equal(core.investorTitleViewModel(before,core.separateProfitView(before)).achievement,'🧘 인내의 화신');
+  assert.equal(core.investorTitleViewModel(after,core.separateProfitView(after)).achievement,'⚔️ 단타 깎는 노인');
 });
 
-test('Phone은 투자 칭호를 제목 행으로 이동해 기존 Hero 성과 pill 수를 늘리지 않는다',()=>{
-  const titleRow=extractFunction(app,'renderHeroTitleRow');
-  const metricPills=extractFunction(app,'renderHeroMetricPills');
-  assert.match(titleRow,/hero-title-label-default/);
-  assert.match(titleRow,/hero-title-label-phone-portrait[^>]*>성과</);
-  assert.match(titleRow,/renderInvestorTitleBadge\(title,'phone'\)/);
-  assert.match(metricPills,/renderInvestorTitleBadge\(title,'metric'\)/);
+test('Hero 정보 계층은 제목 → 칭호 전용 행 → 기존 성과 pill 순서이며 칭호를 성과 pill에 섞지 않는다',()=>{
+  assert.match(app,/hero-title-row[^]*?renderHeroTitleBadges\(x,v\)[^]*?renderHeroMetricPills\(x,v\)/);
+  assert.match(app,/class="hero-title-badges" role="group" aria-label="투자 칭호"/);
+  assert.match(app,/hero-title-badge-status/);
+  assert.match(app,/hero-title-badge-achievement/);
 
-  const phoneShared=special.slice(special.indexOf('[S03] Phone UI Shared'),special.indexOf('/* Phone Portrait Hero Title'));
-  assert.match(phoneShared,/\.hero \.hero-title-row\{[^}]*flex-wrap:nowrap/s,'Phone 제목 행은 Hero 높이를 늘리는 wrap을 만들면 안 된다');
-  assert.match(phoneShared,/\.hero \.hero-investor-title-metric\{display:none\}/,'Phone에서는 metric 행의 칭호를 숨겨 기존 2/4개 성과 pill 구성을 지켜야 한다');
-  assert.match(phoneShared,/\.hero \.hero-investor-title-phone\{[^}]*display:inline-flex/s,'Phone에서는 제목 행 칭호를 표시해야 한다');
+  const metricStart=app.indexOf('function renderHeroMetricPills(');
+  const metricEnd=app.indexOf('\nfunction replaceDashboardFragment',metricStart);
+  const metricBlock=app.slice(metricStart,metricEnd);
+  assert.doesNotMatch(metricBlock,/hero-title-badge|투자 칭호/);
+  assert.equal((metricBlock.match(/hero-profit-pill/g)||[]).length,2);
+  assert.equal((metricBlock.match(/hero-return-pill/g)||[]).length,2);
 });
 
-test('세로 Phone은 제목을 성과로 축약하고 가로 Phone은 기존 4개 성과 pill 표시를 유지한다',()=>{
-  assert.match(special,/@media \(max-width:760px\) and \(orientation:portrait\)\{[^}]*\.hero \.hero-title-label-default\{display:none\}[^}]*\.hero \.hero-title-label-phone-portrait\{display:inline\}/s);
+test('Phone은 기존 세로 2개·가로 4개 성과 pill contract를 복원하고 이전 제목 우측 칭호 규칙을 남기지 않는다',()=>{
+  assert.match(mobile,/\.hero \.hero-return-pill\{display:none\}/);
   const landscape=special.slice(special.indexOf('[S04] Phone Landscape'));
-  assert.match(landscape,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/s,'가로 Phone은 기존 수익률 pill을 다시 표시해 4개 구성을 유지해야 한다');
+  assert.match(landscape,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/s);
+  assert.doesNotMatch(special,/hero-investor-title|hero-title-label-phone-portrait|Phone Portrait Hero Title/,'이전 Phone 제목 우측 칭호/성과 축약 규칙이 남으면 안 된다');
+  assert.doesNotMatch(app,/hero-investor-title|hero-title-label-phone-portrait|syncPhoneInvestorTitle/);
 });
 
-test('별도수익 전환과 live valuation partial refresh도 Phone 칭호를 함께 갱신한다',()=>{
-  const syncCalls=[...app.matchAll(/replaceDashboardFragment\(document\.querySelector\('\.hero-metric-pills'\),renderHeroMetricPills\(x,v\)\);\s*syncPhoneInvestorTitle\(x,v\);/g)];
-  assert.equal(syncCalls.length,2,'두 partial-render 경로 모두 제목 행 칭호를 갱신해야 한다');
+test('칭호 행은 Market AI 예약 폭과 partial refresh에 참여해 상태 변화와 화면 표시가 어긋나지 않는다',()=>{
+  assert.match(common,/\.hero\.market-ai-mounted \.hero-title-badges/);
+  assert.match(common,/\.hero-title-badges\{[^}]*display:flex;[^}]*flex-wrap:nowrap;/);
+  assert.match(common,/\.hero-title-badges \+ \.hero-metric-pills\{margin-top:/);
+
+  const refreshCalls=[...app.matchAll(/replaceDashboardFragment\(document\.querySelector\('\.hero-title-badges'\),renderHeroTitleBadges\(x,v\)\);/g)];
+  assert.equal(refreshCalls.length,2,'별도수익 전환과 live valuation 두 경로 모두 칭호를 갱신해야 한다');
 });

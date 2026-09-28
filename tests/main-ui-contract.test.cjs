@@ -1893,7 +1893,7 @@ test('Market AI 시장 tooltip renderer는 상태와 무관하게 라벨을 고�
 });
 
 test('Repository data text는 trusted HTML과 분리해 innerHTML 경계에서 escape한다',()=>{
-  assert.match(app,/<span class="hero-title-label-default">\$\{escapeHtml\(dataState\.portfolio\.meta\.title\)\}<\/span>/);
+  assert.match(app,/<h1 id="dashboardTitle">\$\{escapeHtml\(dataState\.portfolio\.meta\.title\)\}<\/h1>/);
   assert.match(ui,/labelHtml:`<span class="holding-name-text\$\{h\.fullExit\?' security-sale-marker-name':''\}">\$\{escapeHtml\(h\.name\)\}<\/span>\$\{securitySymbolSwatch\(h\.name\)\}`/);
   assert.match(pension,/labelHtml:`<span class="holding-name-text">\$\{mobileTableAssetName\(r\.name\)\}<\/span>\$\{pensionProductSwatch\(r\.name\)\}`/);
   assert.match(ui,/const cards=orderedRows\.map\(r=>\(\{\s*title:securitySaleMarkerHtml\(r\),\s*accessibleLabel:r\.name,/);

@@ -1,9 +1,9 @@
 import {
   allAvailableDates,
   calc,
-  cumHistory,
   dataState,
   heroPerformanceBasisLabel,
+  investorTitleViewModel,
   kstTodayText,
   liveValuationRenderDateEligible,
   loadInitialData,
@@ -396,55 +396,16 @@ function setupDashboardEventDelegation(){
   });
 }
 // [APP04] Render Orchestration · 자산 workspace / 전체 렌더링 / transient UI state 보존
-function getInvestorTitle(x, v){
-  const cum = cumHistory(x.date);
-  if(!cum || cum.length === 0) return '🌱 투자 새내기';
-
-  // 1. 불기둥 탑승자: 5거래일 연속 수익 발생
-  let consecutiveWins = 0;
-  for(let i = cum.length - 1; i >= 0; i--){
-    if(cum[i]['합계 : 전일대비손익'] > 0) consecutiveWins++;
-    else break;
-  }
-  if(consecutiveWins >= 5) return '🔥 불기둥 탑승자';
-
-  // 2. 인내의 화신: MDD(최대 낙폭) -200만 원 이상 겪은 뒤 누적손익 양전 성공
-  let peak = cum[0]['합계 : 누적손익'], maxDrop = 0;
-  for(const r of cum){
-    if(r['합계 : 누적손익'] > peak) peak = r['합계 : 누적손익'];
-    const drop = r['합계 : 누적손익'] - peak;
-    if(drop < maxDrop) maxDrop = drop;
-  }
-  if(maxDrop <= -2000000 && v.totalProfit > 0) return '🧘 인내의 화신';
-
-  // 3. 단타 깎는 노인: KODEX 레버리지 단타(별도수익) 거래 10회 이상
-  const spCount = (dataState.portfolio?.separateProfit?.trades || []).filter(t => t.date <= x.date).length;
-  if(spCount >= 10) return '⚔️ 단타 깎는 노인';
-
-  // 4. 관망의 달인: 하락장을 대비해 현금 비중 40% 이상 확보
-  if(x.allocTotal > 0 && (x.securitiesCash / x.allocTotal) >= 0.4) return '👀 관망의 달인';
-
-  // 5. 기본 칭호
-  if(v.totalProfit > 10000000) return '👑 평온한 투자자';
-  return '🏃 꾸준한 투자자';
-}
-
-function renderInvestorTitleBadge(title,placement){
-  return `<span class="pill hero-investor-title hero-investor-title-${placement}" title="나의 투자 칭호">${escapeHtml(title)}</span>`;
-}
-function renderHeroTitleRow(x,v=separateProfitView(x)){
-  const title=getInvestorTitle(x,v);
-  return `<div class="hero-title-row"><h1 id="dashboardTitle"><span class="hero-title-label-default">${escapeHtml(dataState.portfolio.meta.title)}</span><span class="hero-title-label-phone-portrait">성과</span></h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${heroPerformanceBasisLabel(x.date)})</time>${renderInvestorTitleBadge(title,'phone')}</div>`;
+function renderHeroTitleBadges(x,v=separateProfitView(x)){
+  const {status,achievement}=investorTitleViewModel(x,v);
+  const achievementBadge=achievement?`<span class="pill hero-title-badge hero-title-badge-achievement" title="최근 획득 업적 칭호">${escapeHtml(achievement)}</span>`:'';
+  return `<div class="hero-title-badges" role="group" aria-label="투자 칭호"><span class="pill hero-title-badge hero-title-badge-status" title="현재 상태 칭호">${escapeHtml(status)}</span>${achievementBadge}</div>`;
 }
 function renderHeroMetricPills(x,v=separateProfitView(x)){
-  const title=getInvestorTitle(x,v);
   const pensionPills=x.hasPension?`<span class="pill hero-profit-pill"><span class="hero-label-default">퇴직연금 운용손익</span><span class="hero-label-mobile">퇴직연금 손익</span> ${won(x.pensionProfit)}</span><span class="pill hero-return-pill">퇴직연금 운용수익률 ${pct(x.pensionReturn)}</span>`:'';
-  return `<div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}" role="group" aria-label="핵심 성과 요약">${renderInvestorTitleBadge(title,'metric')}<span class="pill hero-profit-pill"><span class="hero-label-default">증권계좌 누적손익</span><span class="hero-label-mobile">증권계좌 손익</span> ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적수익률 ${pct(v.totalReturn)}</span>${pensionPills}</div>`;
+  return `<div class="pillbar hero-metric-pills ${x.hasPension?'has-pension':''}" role="group" aria-label="핵심 성과 요약"><span class="pill hero-profit-pill"><span class="hero-label-default">증권계좌 누적손익</span><span class="hero-label-mobile">증권계좌 손익</span> ${won(v.totalProfit)}</span><span class="pill hero-return-pill">증권계좌 누적수익률 ${pct(v.totalReturn)}</span>${pensionPills}</div>`;
 }
-function syncPhoneInvestorTitle(x,v=separateProfitView(x)){
-  const badge=document.querySelector('.hero-investor-title-phone');
-  if(badge)badge.textContent=getInvestorTitle(x,v);
-}
+
 function replaceDashboardFragment(target,html){
   if(!target||!html)return null;
   const template=document.createElement('template');
@@ -461,8 +422,8 @@ function refreshSeparateProfitModeView(){
   closeAccountMemoInfo();
   const x=latestDashboardCalcResult=calc(dataState.activeDate),v=separateProfitView(x);
 
+  replaceDashboardFragment(document.querySelector('.hero-title-badges'),renderHeroTitleBadges(x,v));
   replaceDashboardFragment(document.querySelector('.hero-metric-pills'),renderHeroMetricPills(x,v));
-  syncPhoneInvestorTitle(x,v);
   if(x.hasPension)replaceDashboardFragment(document.getElementById('summary-section'),renderCombined(x));
   replaceDashboardFragment(document.querySelector('#securities-section .securities-summary-block'),renderSecuritiesPerformanceSummary(x));
   replaceDashboardFragment(document.getElementById('chart-cum'),renderSecuritiesCumulativeChart(x,separateProfitControl(x,'chart-inline')));
@@ -492,7 +453,7 @@ function render({renderTopbar=true}={}){
   closeAccountMemoInfo();
   const x=latestDashboardCalcResult=calc(dataState.activeDate),v=separateProfitView(x);
   if(renderTopbar)renderTabs();
-  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle">${renderHeroTitleRow(x,v)}${renderHeroMetricPills(x,v)}</header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
+  document.getElementById('app').innerHTML=`<div class="wrap"><header class="hero" id="top-section" aria-labelledby="dashboardTitle"><div class="hero-title-row"><h1 id="dashboardTitle">${escapeHtml(dataState.portfolio.meta.title)}</h1><time class="hero-basis" datetime="${x.date}" data-dashboard-action="hero-basis-tap">(${heroPerformanceBasisLabel(x.date)})</time></div>${renderHeroTitleBadges(x,v)}${renderHeroMetricPills(x,v)}</header>${renderPensionContributionModal(x)}${x.hasPension?renderCombined(x):''}${renderAssetWorkspace(x)}</div>`;
   hydrateSectionTitleIcons(document.getElementById('app'));
   syncAssetTabs();
   syncThemeControls();
@@ -614,8 +575,8 @@ function renderLiveValuationRefresh(){
     heroBasis.setAttribute('datetime',x.date);
     heroBasis.textContent=`(${heroPerformanceBasisLabel(x.date)})`;
   }
+  replaceDashboardFragment(document.querySelector('.hero-title-badges'),renderHeroTitleBadges(x,v));
   replaceDashboardFragment(document.querySelector('.hero-metric-pills'),renderHeroMetricPills(x,v));
-  syncPhoneInvestorTitle(x,v);
   if(x.hasPension){
     replaceDashboardFragment(document.getElementById('summary-section'),renderCombined(x));
     replaceDashboardFragment(document.querySelector('#pension-section .pension-overview'),renderPensionOverview(x));

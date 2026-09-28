@@ -34,6 +34,7 @@ index.html
 - 날짜별 증권계좌·퇴직연금 성과 복원
 - 날짜 탐색 — Web 좌우 이동 버튼, Tablet/Phone 수평 swipe로 같은 activeDate 경로 사용
 - 투자원금·평가금액·누적손익·수익률 조회
+- 투자 칭호 — Hero에서 **현재 상태형 1개 + 최근 획득 업적형 최대 1개**를 성과칩과 분리해 표시
 - 계좌별 성과 요약과 보유 종목/상품 현황
 - 증권 `securitiesEvents` 기반 매도·실현손익·현금화 원금·재매수 원금 이동 복원
 - 장부결과 VS 실제보유 검산
@@ -363,7 +364,6 @@ tests/main-calc.test.cjs
 tests/main-ui-contract.test.cjs
 tests/monthly-calendar-live.test.cjs
 tests/monthly-calendar-gloomy.test.cjs
-tests/investor-title.test.cjs
 tests/live-valuation-polling.test.cjs
 tests/heatmap-engine.test.cjs
 tests/heatmap-shell.test.cjs
