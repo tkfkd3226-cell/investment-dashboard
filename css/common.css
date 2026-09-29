@@ -176,6 +176,8 @@
   --compact-control-font-weight:var(--type-weight-bold);
   --compact-control-line-height:1;
   --compact-control-ios-optical-shift:1.5px;
+  /* iOS Safari에서 chart "전체" direct text가 state-toggle label보다 약 1px 낮게 rasterize되는 차이만 보정 */
+  --compact-control-ios-chart-all-correction:-1px;
   /* State Toggle · 별도수익/Y축 자동 재계산의 ON/OFF geometry 단일 원천 */
   --state-toggle-state-min-width:28px;
   --state-toggle-pad-x:8px;
@@ -2553,15 +2555,21 @@ body.chart-expanded-open .dash-tooltip{
 
 /* iOS Optical Alignment · 실제 iOS/WebKit의 작은 글자 rasterization만 보정
    - F12/PC Chrome에는 적용하지 않는다.
-   - 차트 전체/segmented/기준 chip은 .compact-control-text, state toggle은 기존 text span을 동일 1.5px translateY로 이동한다.
+   - state toggle/segmented/기준 chip은 1.5px base shift를 공유한다.
+   - 차트 전체만 iOS Safari rasterization 차이 때문에 base shift에서 1px 위로 correction한다.
    - shell padding은 건드리지 않아 fixed-height flex에서 Safari의 padding 반올림 차이를 만들지 않는다.
    - Phone 메인 별도수익 ON/OFF는 special.css의 기존 compact 1px 보정이 후순위로 유지된다. */
 @supports (-webkit-touch-callout:none){
   @media screen and (hover:none) and (pointer:coarse){
     .state-toggle-label,
     .state-toggle-state .control-text-optical,
-    .compact-control-text{
+    .control-segmented .compact-control-text,
+    .section-basis-chip .compact-control-text{
       transform:translateY(var(--compact-control-ios-optical-shift));
+    }
+    /* chart 전체는 동일 700/11px이어도 iOS Safari에서 state-toggle label보다 약 1px 낮게 보여 direct-text correction만 적용 */
+    .chart-series-all .compact-control-text{
+      transform:translateY(calc(var(--compact-control-ios-optical-shift) + var(--compact-control-ios-chart-all-correction)));
     }
   }
 }
