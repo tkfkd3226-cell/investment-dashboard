@@ -3624,7 +3624,7 @@ html.dark .portfolio-heatmap-modal{
   align-items:center;
   gap:var(--space-sm);
   width:min(220px,100%);
-  margin-top:var(--space-md);
+  margin-top:var(--space-5xl);
 }
 .portfolio-heatmap-date-select{
   height:var(--icon-button-size);
