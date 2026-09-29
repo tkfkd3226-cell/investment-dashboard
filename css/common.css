@@ -2600,7 +2600,7 @@ body.chart-expanded-open .dash-tooltip{
     .control-segmented .compact-control-text,
     .section-basis-chip .compact-control-text,
     .control-tab .control-tab-text,
-    .pension-insight-badge{
+    .pension-insight-badge .compact-control-text{
       transform:translateY(var(--compact-control-ios-optical-shift));
     }
     /* chart 전체는 동일 700/11px이어도 iOS Safari에서 state-toggle label보다 약 1px 낮게 보여 direct-text correction만 적용 */
