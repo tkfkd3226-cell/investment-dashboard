@@ -180,7 +180,7 @@
   --state-toggle-state-min-width:28px;
   --state-toggle-pad-x:8px;
   --state-toggle-gap:var(--space-md);
-  --state-toggle-state-height:18px;
+  --state-toggle-state-height:19px;
   --state-toggle-state-pad-x:var(--space-md);
   /* Separate Profit Toggle · 기본형은 Web/Tablet/월간 모달 전 viewport가 공유하고 Phone 메인만 geometry를 compact override */
   --separate-profit-height:29px;
