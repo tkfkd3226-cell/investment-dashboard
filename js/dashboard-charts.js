@@ -164,6 +164,7 @@ const chartRuntimeState={
   securitiesCumTransitionSuppressionPending:false,
   printFixedViewBox:false,
   printSvgSwaps:null,
+  titleInfoFloatingOwner:null,
   expanded:null
 };
 const chartState={
@@ -265,12 +266,51 @@ function chartTitleLabel(title,{sub='',info=''}={}){
   const infoHtml=info?` ${chartTitleInfoButton(info)}`:'';
   return `<span class="chart-title-label">${titleHtml}${subHtml}${infoHtml}</span>`;
 }
+function clearChartTitleInfoFloating(){
+  document.querySelector('.chart-title-info-floating-tooltip')?.remove();
+  chartRuntimeState.titleInfoFloatingOwner?.classList.remove('floating-tooltip-open');
+  chartRuntimeState.titleInfoFloatingOwner=null;
+}
+function positionChartTitleInfoFloating(){
+  const owner=chartRuntimeState.titleInfoFloatingOwner;
+  const floating=document.querySelector('.chart-title-info-floating-tooltip');
+  if(!owner?.isConnected||!floating){
+    clearChartTitleInfoFloating();
+    return;
+  }
+  const rect=owner.getBoundingClientRect();
+  const edge=12,gap=6,viewportW=window.innerWidth,viewportH=window.innerHeight;
+  floating.style.visibility='hidden';
+  floating.style.left='0px';
+  floating.style.top='0px';
+  const tt=floating.getBoundingClientRect();
+  const left=Math.max(edge,Math.min(rect.left+rect.width/2-tt.width/2,viewportW-tt.width-edge));
+  const below=rect.bottom+gap;
+  const top=below+tt.height<=viewportH-edge?below:Math.max(edge,rect.top-tt.height-gap);
+  floating.style.left=`${Math.round(left)}px`;
+  floating.style.top=`${Math.round(top)}px`;
+  floating.style.visibility='visible';
+}
+function showChartTitleInfoFloating(button){
+  const source=button?.querySelector('.chart-title-info-tooltip');
+  if(!source)return;
+  clearChartTitleInfoFloating();
+  const floating=document.createElement('div');
+  floating.className='chart-title-info-floating-tooltip';
+  floating.setAttribute('role','tooltip');
+  floating.textContent=source.textContent||'';
+  document.body.appendChild(floating);
+  chartRuntimeState.titleInfoFloatingOwner=button;
+  button.classList.add('floating-tooltip-open');
+  positionChartTitleInfoFloating();
+}
 function closeChartTitleInfo(except=null){
   document.querySelectorAll('.chart-title-info.open').forEach(button=>{
     if(button===except)return;
     button.classList.remove('open');
     button.setAttribute('aria-expanded','false');
   });
+  if(chartRuntimeState.titleInfoFloatingOwner!==except)clearChartTitleInfoFloating();
 }
 function toggleChartTitleInfo(event,button){
   event?.preventDefault?.();
@@ -280,6 +320,8 @@ function toggleChartTitleInfo(event,button){
   closeChartTitleInfo(button);
   button.classList.toggle('open',open);
   button.setAttribute('aria-expanded',String(open));
+  if(open&&phoneUi())showChartTitleInfoFloating(button);
+  else if(!open)clearChartTitleInfoFloating();
 }
 function portraitPhoneChartFlow(){
   return phoneUi()&&!phoneLandscapeUi();
@@ -568,6 +610,7 @@ function syncResponsiveChartControls(){
     }
   });
   if(!compact)closeChartTitleInfo();
+  else if(chartRuntimeState.titleInfoFloatingOwner)positionChartTitleInfoFloating();
 }
 function setupResponsiveChartControls(){
   syncResponsiveChartControls();
@@ -575,6 +618,9 @@ function setupResponsiveChartControls(){
   if(chartRuntimeState.responsiveControlsBound)return;
   chartRuntimeState.responsiveControlsBound=true;
   document.addEventListener('click',event=>{if(!event.target.closest('.chart-title-info'))closeChartTitleInfo()});
+  const closeFloatingTitleInfoOnScroll=()=>{if(chartRuntimeState.titleInfoFloatingOwner)closeChartTitleInfo();};
+  window.addEventListener('scroll',closeFloatingTitleInfoOnScroll,{passive:true,capture:true});
+  window.visualViewport?.addEventListener('scroll',closeFloatingTitleInfoOnScroll,{passive:true});
   let frame=0;
   window.addEventListener('resize',()=>{
     cancelAnimationFrame(frame);

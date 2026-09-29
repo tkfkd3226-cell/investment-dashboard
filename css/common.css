@@ -1025,6 +1025,7 @@ button svg{pointer-events:none;flex-shrink:0}
 .dash-tooltip,
 .asset-viz-tooltip,
 .compact-chart-ui .chart-title-info-tooltip,
+.chart-title-info-floating-tooltip,
 .accounts-memo-floating-tooltip{
   background:var(--tooltip-bg);
   color:var(--tooltip-color);
@@ -1908,6 +1909,20 @@ body.chart-expanded-open .dash-tooltip{
   visibility:visible;
   transform:translate(-50%,0);
 }
+/* Pension Compact Chart Info Tooltip · Phone에서는 scroll/SVG compositor와 분리된 body portal을 사용한다. */
+.chart-title-info-floating-tooltip{
+  position:fixed;
+  z-index:12010;
+  box-sizing:border-box;
+  width:max-content;
+  max-width:min(210px,calc(100vw - var(--tooltip-viewport-gutter)));
+  padding:var(--tooltip-pad-y) var(--tooltip-pad-x);
+  font-weight:var(--tooltip-info-weight);
+  letter-spacing:-.02em;
+  white-space:nowrap;
+  pointer-events:none;
+}
+.compact-chart-ui .chart-title-info.floating-tooltip-open > .chart-title-info-tooltip{display:none}
 /* Expanded compact chart title · 확대 시에는 웹/태블릿처럼 기준 문구를 직접 표시하고 info tooltip은 숨긴다. */
 .compact-chart-ui .chart-expanded-title .chart-title-sub{
   display:inline;
@@ -1930,15 +1945,6 @@ body.chart-expanded-open .dash-tooltip{
 }
 /* Portrait Phone Chart Flow · 세로폰 전용: switch/화살표 → 차트 → 범례 → 옵션 */
 .chart-card.phone-chart-ui .chart-head{margin-bottom:0}
-/* Pension Compact Chart Info Tooltip · iOS scroll layer보다 title tooltip을 위 stacking layer에 둔다. */
-:is(#pension-chart-cum,#pension-chart-symbol).compact-chart-ui .chart-head{
-  position:relative;
-  z-index:40;
-}
-:is(#pension-chart-cum,#pension-chart-symbol).compact-chart-ui .chart-wrap{
-  position:relative;
-  z-index:1;
-}
 .chart-scroll-row{
   display:none;
   align-items:center;
@@ -2378,6 +2384,7 @@ body.chart-expanded-open .dash-tooltip{
 .change-price{
   display:block;
   font-weight:var(--type-weight-semibold);
+  line-height:var(--type-line-compact);
   white-space:nowrap;
 }
 
@@ -2392,7 +2399,7 @@ body.chart-expanded-open .dash-tooltip{
   white-space:nowrap;
 }
 .asset-change-delta-value{
-  line-height:1.33;
+  line-height:var(--type-line-compact);
 }
 .asset-change-delta-rate{
   margin-top:var(--space-2xs);

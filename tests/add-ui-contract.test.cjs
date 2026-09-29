@@ -85,6 +85,13 @@ test('Calc 도움말은 공통 label 정렬을 유지하고 keyboard focus 표�
   assert.match(css1,/\.help-tooltip\.is-dismissed:focus-within \.custom-tooltip\{opacity:0;visibility:hidden;/);
   assert.match(js1,/const focusedWrap=document\.activeElement\?\.closest\?\.\('\.help-tooltip'\)\|\|null;/);
   assert.match(js1,/targets\.forEach\(w=>closeHelpTooltip\(w,\{dismissFocus:w===focusedWrap\}\)\)/);
+  const extraTooltip=rule(':where(html[data-add-page="calc"]) .calc-extra-tooltip');
+  assert.match(extraTooltip,/display:grid/);
+  assert.match(extraTooltip,/row-gap:var\(--density-gap-xs\)/);
+  const extraTitle=rule(':where(html[data-add-page="calc"]) .calc-extra-title');
+  assert.match(extraTitle,/margin:0/);
+  assert.match(extraTitle,/line-height:inherit/);
+  assert.match(rule(':where(html[data-add-page="calc"]) .calc-extra-list'),/gap:var\(--density-gap-xs\)/);
 });
 
 test('거래유형 preset은 active와 aria-pressed를 같은 state owner에서 갱신한다',()=>{
