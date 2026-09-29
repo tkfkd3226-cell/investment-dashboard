@@ -2330,19 +2330,23 @@ body.chart-expanded-open .dash-tooltip{
   border-left:2px dashed var(--risk-threshold);
 }
 
-.pension-risk-threshold span{
+.pension-risk-threshold-chip{
   position:absolute;
   top:-18px;
   left:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   transform:translateX(-50%);
   font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-bold);
-  line-height:var(--type-line-single);
+  font-weight:var(--compact-control-font-weight);
+  line-height:var(--control-line-height);
   color:var(--ink);
   background:var(--card);
   padding:1px var(--space-md);
   border-radius:var(--radius-pill);
   border:1px solid var(--line);
+  white-space:nowrap;
 }
 
 .pension-risk-gauge .asset-viz-tooltip{
@@ -2604,7 +2608,8 @@ body.chart-expanded-open .dash-tooltip{
     .control-segmented .compact-control-text,
     .section-basis-chip .compact-control-text,
     .control-tab .control-tab-text,
-    .pension-insight-badge .compact-control-text{
+    .pension-insight-badge .compact-control-text,
+    .pension-risk-threshold-chip .compact-control-text{
       transform:translateY(var(--compact-control-ios-optical-shift));
     }
     /* chart 전체는 동일 700/11px이어도 iOS Safari에서 state-toggle label보다 약 1px 낮게 보여 direct-text correction만 적용 */
