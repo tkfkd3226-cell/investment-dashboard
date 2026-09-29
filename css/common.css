@@ -1620,8 +1620,8 @@ button.legend-item.chart-series-all.active{
   background:transparent;
   color:var(--segmented-text);
   font-family:inherit;
-  font-size:var(--dashboard-control-font-size);
-  font-weight:var(--type-weight-emphasis);
+  font-size:var(--type-size-xs);
+  font-weight:var(--type-weight-bold);
   line-height:var(--dashboard-control-line-height);
   white-space:nowrap;
   cursor:pointer;
