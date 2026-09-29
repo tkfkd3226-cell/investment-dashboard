@@ -175,6 +175,7 @@
   --compact-control-font-size:var(--type-size-xs);
   --compact-control-font-weight:var(--type-weight-bold);
   --compact-control-line-height:1;
+  --compact-control-ios-optical-shift:.5px;
   /* State Toggle · 별도수익/Y축 자동 재계산의 ON/OFF geometry 단일 원천 */
   --state-toggle-state-min-width:28px;
   --state-toggle-pad-x:8px;
@@ -1646,6 +1647,7 @@ button.legend-item.chart-series-all.active{
   border-radius:min(var(--dashboard-control-radius),var(--corner-control-cap));
   background:transparent;
   color:var(--segmented-text);
+  box-sizing:border-box;
   font-family:inherit;
   font-size:var(--compact-control-font-size);
   font-weight:var(--compact-control-font-weight);
@@ -1657,6 +1659,23 @@ button.legend-item.chart-series-all.active{
   background:var(--segmented-active-bg);
   color:var(--segmented-active-text);
   box-shadow:var(--segmented-active-shadow);
+}
+
+/* iOS Optical Alignment · 실제 iOS/WebKit의 작은 굵은 글자 rasterization만 보정
+   - F12/PC Chrome에는 적용하지 않는다.
+   - text span은 0.5px 직접 이동, direct-text button은 top padding 1px로 같은 0.5px visual bias를 만든다.
+   - Phone 메인 별도수익 ON/OFF는 special.css의 기존 compact 1px 보정이 후순위로 유지된다. */
+@supports (-webkit-touch-callout:none){
+  @media screen and (hover:none) and (pointer:coarse){
+    .state-toggle-label,
+    .state-toggle-state .control-text-optical{
+      transform:translateY(var(--compact-control-ios-optical-shift));
+    }
+    button.legend-item.chart-series-all,
+    .control-segmented button{
+      padding-top:calc(var(--compact-control-ios-optical-shift) + var(--compact-control-ios-optical-shift));
+    }
+  }
 }
 /* 계좌별 전용 표/카드 전환 wrapper는 데스크톱에서 빈 flex item/gap을 만들지 않는다. */
 .securities-summary-block [data-accounts-view-toggle-wrap]{display:none}
