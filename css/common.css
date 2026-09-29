@@ -93,8 +93,7 @@
   --source-table-gap:var(--space-5xl);
   --source-reclass-note-size:var(--type-size-sm);
   --asset-insight-zone-offset:var(--space-6xl);
-  --asset-insight-stack-height:20px;
-  --asset-insight-risk-gauge-height:20px;
+  --asset-insight-bar-height:20px;
   --surface-radius-outer:var(--surface-radius-level-1);
   --surface-radius-large:var(--surface-radius-level-2);
   --surface-radius-mini:var(--surface-radius-level-3);
@@ -2102,6 +2101,7 @@ body.chart-expanded-open .dash-tooltip{
 .asset-insight-head{
   --asset-insight-title-size:var(--type-size-xl);
   display:flex;
+  position:relative;
   align-items:flex-start;
   justify-content:space-between;
   gap:var(--space-5xl);
@@ -2131,8 +2131,10 @@ body.chart-expanded-open .dash-tooltip{
   line-height:var(--control-line-height);
   white-space:nowrap;
   border:1px solid transparent;
-  /* 제목의 위쪽 시작점은 유지하고, badge 중심만 제목 한 줄의 중심선에 맞춘다. */
-  transform:translateY(calc((var(--asset-insight-title-size) - var(--pension-insight-badge-height)) / 2));
+  /* 헤더 높이는 제목만 결정하게 하여 제목→막대 간격을 기여도 카드와 동일하게 유지한다. */
+  position:absolute;
+  top:calc((var(--asset-insight-title-size) - var(--pension-insight-badge-height)) / 2);
+  right:0;
 }
 
 .pension-insight-badge.safe{
@@ -2164,7 +2166,7 @@ body.chart-expanded-open .dash-tooltip{
   display:flex;
   align-items:center;
   justify-content:center;
-  min-height:var(--asset-insight-stack-height);
+  min-height:var(--asset-insight-bar-height);
   padding:0 var(--empty-state-padding);
   line-height:var(--type-line-single);
 }
@@ -2173,7 +2175,7 @@ body.chart-expanded-open .dash-tooltip{
   display:flex;
   position:relative;
   width:100%;
-  height:var(--asset-insight-stack-height);
+  height:var(--asset-insight-bar-height);
   overflow:visible;
   border-radius:var(--radius-pill);
   background:var(--meter-track-bg);
@@ -2305,7 +2307,7 @@ body.chart-expanded-open .dash-tooltip{
 
 .pension-risk-gauge{
   position:relative;
-  height:var(--asset-insight-risk-gauge-height);
+  height:var(--asset-insight-bar-height);
   border-radius:var(--radius-pill);
   background:var(--meter-track-bg);
   border:1px solid var(--meter-track-border);

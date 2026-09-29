@@ -245,8 +245,7 @@
       --surface-pad-emphasis:var(--space-4xl);
       --surface-pad-data-list:var(--space-4xl);
       --asset-insight-zone-offset:var(--space-4xl);
-      --asset-insight-stack-height:16px;
-      --asset-insight-risk-gauge-height:16px;
+      --asset-insight-bar-height:16px;
       --card-grid-gap-large:var(--space-4xl);
       --card-grid-gap-medium:var(--space-2xl);
       --card-grid-gap-compact:var(--space-lg);
