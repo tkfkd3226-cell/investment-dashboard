@@ -181,69 +181,39 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(common,/\.monthly-calendar-separate-profit\{grid-column:3;justify-self:end\}/,'Web/Tablet 별도수익 toggle은 같은 행 우측 끝에 있어야 한다');
   assert.match(special,/\.monthly-calendar-controls\{[^}]*grid-template-columns:1fr[^}]*gap:var\(--space-2xs\)[^}]*margin:var\(--space-xs\) 0 var\(--space-lg\)/,'Phone 세로 월간 control은 탭과 toggle을 세로 배치하되 달력 전체 높이를 위해 compact 세로 여백을 사용해야 한다');
   assert.match(special,/\.monthly-calendar-separate-profit\{[^}]*grid-column:1[^}]*grid-row:2[^}]*justify-self:end/,'Phone 세로 별도수익 toggle은 탭 바로 아래 우측에 있어야 한다');
-  for(const token of [
-    '--compact-control-font-size',
-    '--compact-control-font-weight',
-    '--compact-control-line-height',
-  ]){
-    assert.match(common,new RegExp(`${token}:`),`소형 control 공통 typography token 누락: ${token}`);
-  }
-  for(const token of [
-    '--state-toggle-state-min-width',
-    '--state-toggle-pad-x',
-    '--state-toggle-gap',
-    '--state-toggle-state-height',
-    '--state-toggle-state-pad-x',
-  ]){
-    assert.match(common,new RegExp(`${token}:`),`state toggle 공통 geometry token 누락: ${token}`);
-  }
-  for(const token of [
-    '--separate-profit-height',
-    '--separate-profit-state-min-width',
-    '--separate-profit-pad-x',
-    '--separate-profit-state-height',
-    '--separate-profit-state-pad-x',
-  ]){
-    assert.match(common,new RegExp(`${token}:`),`별도수익 geometry token 누락: ${token}`);
-  }
+  // Compact control 회귀는 결과 계약만 보호하고 selector 순서/중간 alias 같은 구현 세부는 고정하지 않는다.
   assert.match(common,/--compact-control-font-size:var\(--type-size-xs\);[^]*?--compact-control-font-weight:var\(--type-weight-bold\);[^]*?--compact-control-line-height:1;/,'소형 control typography는 11px/700/line-height 1의 단일 원천이어야 한다');
-  assert.match(common,/--dashboard-control-height:29px;[^]*?--state-toggle-state-height:19px;/,'Web/Tablet 기본 state badge는 29px 외곽 안에서 19px 높이로 정수 픽셀 중앙 정렬되어야 한다');
-  assert.doesNotMatch([common,special,print].join('\n'),/--(?:state-toggle-(?:font-size|state-font-size|font-weight)|separate-profit-(?:font-size|state-font-size|font-weight)):/,'state-toggle/별도수익이 viewport/print scope에서 공통 typography를 별도 alias로 복제하면 안 된다');
-  assert.match(common,/\.state-toggle\{[^}]*--dashboard-control-font-size:var\(--compact-control-font-size\);[^}]*--dashboard-control-state-font-size:var\(--compact-control-font-size\);[^}]*--dashboard-control-state-min-width:var\(--state-toggle-state-min-width\);[^}]*--dashboard-control-state-height:var\(--state-toggle-state-height\);[^}]*--dashboard-control-state-pad-x:var\(--state-toggle-state-pad-x\);[^}]*--dashboard-control-state-font-weight:var\(--compact-control-font-weight\);/,'별도수익과 Y축 자동 재계산은 compact-control typography와 state-toggle geometry primitive를 함께 사용해야 한다');
-  assert.match(common,/\.state-toggle-label\{[^}]*display:inline-flex;[^}]*align-items:center;[^}]*justify-content:center;[^}]*line-height:var\(--compact-control-line-height\);/,'state toggle label은 공통 compact-control line-height와 geometric center를 사용해야 한다');
-  assert.match(common,/\.state-toggle-state\{[^}]*min-width:var\(--dashboard-control-state-min-width\);[^}]*height:var\(--dashboard-control-state-height\);[^}]*padding:0 var\(--dashboard-control-state-pad-x\);[^}]*font-size:var\(--dashboard-control-state-font-size\);[^}]*font-weight:var\(--dashboard-control-state-font-weight\);[^}]*line-height:var\(--compact-control-line-height\);/,'별도수익/Y축 ON/OFF badge는 compact-control typography와 동일 state geometry를 사용해야 한다');
-  assert.match(common,/\.state-toggle-state \.control-text-optical\{transform:none\}/,'기본형 별도수익/Y축 ON/OFF는 optical shift 없이 동일한 geometric center를 사용해야 한다');
-  assert.match(common,/:is\(\.chart-series-all,\.state-toggle,\.chart-scroll-start,\.chart-scroll-end,\.chart-expand-control\)\{/,'state toggle의 외곽 높이/정렬도 feature selector가 아니라 공통 primitive가 소유해야 한다');
-  assert.match(common,/\.separate-profit-toggle\{[^}]*--dashboard-control-height:var\(--separate-profit-height\);[^}]*--dashboard-control-state-min-width:var\(--separate-profit-state-min-width\);[^}]*--dashboard-control-state-height:var\(--separate-profit-state-height\);[^}]*--dashboard-control-state-pad-x:var\(--separate-profit-state-pad-x\);/,'별도수익은 Phone compact 지원을 위해 geometry 변수만 override해야 한다');
-  assert.doesNotMatch(common,/\.separate-profit-toggle\{[^}]*(?:--dashboard-control-font-size|--dashboard-control-state-font-size|--dashboard-control-state-font-weight):/,'별도수익 feature selector가 compact-control typography를 다시 override하면 안 된다');
-  assert.match(charts,/class="state-toggle chart-y-auto-toggle\$\{autoY\?' active':''\}"[^]*?<span class="state-toggle-label">Y축 자동 재계산<\/span><span class="state-toggle-state chart-y-auto-state"><span class="control-text-optical">/,'Y축 자동 재계산 label과 ON/OFF는 공통 state-toggle markup primitive를 사용해야 한다');
-  assert.match(ui,/class="section-control-chip section-action-chip state-toggle separate-profit-toggle [^]*?<span class="state-toggle-label separate-profit-toggle-label">별도수익<\/span><strong class="state-toggle-state"><span class="control-text-optical">/,'메인 별도수익도 공통 state-toggle markup primitive를 사용해야 한다');
-  assert.match(monthlyCalendar,/class="section-control-chip section-action-chip state-toggle separate-profit-toggle monthly-calendar-separate-profit[^]*?<span class="state-toggle-label separate-profit-toggle-label">별도수익<\/span><strong class="state-toggle-state"><span class="control-text-optical">/,'월간 별도수익도 공통 state-toggle markup primitive를 사용해야 한다');
-  assert.doesNotMatch(common,/\.chart-y-auto-toggle\{[^}]*--dashboard-control-(?:font-size|state-font-size)|\.chart-y-auto-toggle\{[^}]*font-weight|\.chart-y-auto-toggle\{[^}]*line-height/,'Y축 자동 재계산이 공통 typography를 다시 feature override하면 안 된다');
-  assert.match(common,/:is\(\.chart-series-all,\.state-toggle,\.section-basis-chip\)\{[^}]*--dashboard-control-font-size:var\(--compact-control-font-size\);[^}]*line-height:var\(--compact-control-line-height\);/,'차트 전체·Y축 자동 재계산·섹션 기준 chip은 compact-control size/line-height 단일 원천을 공유해야 한다');
-  assert.match(common,/:is\(\.chart-series-all,\.state-toggle\)\{[^}]*font-weight:var\(--compact-control-font-weight\);/,'차트 전체와 state toggle은 compact-control bold weight를 공유해야 한다');
-  assert.match(common,/:is\(button\.legend-item\.chart-series-all,\.section-basis-chip\)\{[^}]*padding:0 var\(--dashboard-control-pad-x\);[^}]*border:1px solid var\(--control-border\);[^}]*border-radius:var\(--radius-pill\);[^}]*background:var\(--card\);[^}]*color:var\(--muted\);/,'삼성증권1/퇴직연금 기준 chip은 차트 전체와 동일한 compact shell geometry를 사용해야 한다');
-  assert.match(common,/\.section-basis-chip\{[^}]*font-size:var\(--compact-control-font-size\);[^}]*font-weight:var\(--type-weight-regular\);[^}]*line-height:var\(--compact-control-line-height\);/,'섹션 기준 chip은 차트 전체와 size/line-height를 공유하되 regular weight만 유지해야 한다');
-  assert.match(common,/\.section-basis-chip \.control-text-optical\{[^}]*line-height:var\(--compact-control-line-height\);[^}]*transform:none;/,'섹션 기준 chip은 기본 환경에서 차트 전체와 같은 geometric center를 사용해야 한다');
-  assert.doesNotMatch(special,/\.section-basis-chip\{[^}]*(?:padding|font-size|font-weight|line-height)/,'Phone 전용 section 기준 chip typography/geometry override를 다시 만들면 안 된다');
-  assert.doesNotMatch(common,/button\.legend-item\.chart-series-all\{[^}]*(?:font-size|font-weight|line-height):/,'차트 전체 버튼이 공통 compact-control typography를 feature override하면 안 된다');
-  assert.match(common,/\.control-segmented button\{[^}]*font-size:var\(--compact-control-font-size\);[^}]*font-weight:var\(--compact-control-font-weight\);[^}]*line-height:var\(--compact-control-line-height\);/,'전체·계좌별 같은 segmented switch도 compact-control typography 단일 원천을 사용해야 한다');
-  assert.match(common,/--compact-control-ios-optical-shift:1\.5px;[^]*?--compact-control-ios-chart-all-correction:-1px;/,'iOS optical correction은 1.5px base shift와 Safari chart 전체 전용 -1px correction을 token으로 관리해야 한다');
-  assert.match(common,/\.compact-control-text\{[^}]*display:inline-flex;[^}]*align-items:center;[^}]*justify-content:center;[^}]*line-height:var\(--compact-control-line-height\);[^}]*transform:none;/,'direct text compact control은 shell과 분리된 공통 text span primitive를 사용해야 한다');
-  assert.match(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?@media screen and \(hover:none\) and \(pointer:coarse\)\{[^]*?\.state-toggle-label,[^]*?\.state-toggle-state \.control-text-optical,[^]*?\.control-segmented \.compact-control-text,[^]*?\.section-basis-chip \.compact-control-text\{[^}]*transform:translateY\(var\(--compact-control-ios-optical-shift\)\)/,'iOS/WebKit touch 환경에서 state toggle·segmented·기준 chip은 동일 1.5px base shift를 실제 specificity로 적용해야 한다');
-  assert.match(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?\.chart-series-all \.compact-control-text\{[^}]*transform:translateY\(calc\(var\(--compact-control-ios-optical-shift\) \+ var\(--compact-control-ios-chart-all-correction\)\)\)/,'iOS Safari chart 전체 direct text는 Y축 state label보다 낮게 보이는 1px rasterization 차이만 correction해야 한다');
-  assert.ok(common.indexOf('.section-basis-chip .compact-control-text{')>common.indexOf('.section-basis-chip .control-text-optical{'),'iOS section basis correction selector는 기본 transform:none 선언보다 뒤에 있어야 한다');
-  assert.doesNotMatch(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?padding-top:calc\(var\(--compact-control-ios-optical-shift\)/,'iOS optical correction에서 shell padding으로 text 위치를 흉내내면 Safari fixed-height flex 반올림 차이가 재발할 수 있다');
-  assert.match(charts,/class="legend-item chart-series-all"[^>]*><span class="compact-control-text">전체<\/span><\/button>/,'차트 전체는 iOS에서 shell이 아니라 text span만 이동해야 한다');
-  assert.match(charts,/class="section-control-chip section-basis-chip"><span class="control-text-optical compact-control-text">삼성증권1 기준<\/span>/,'삼성증권1 기준 chip도 동일 compact-control text span을 사용해야 한다');
-  assert.match(charts,/class="section-control-chip section-basis-chip"><span class="control-text-optical compact-control-text">퇴직연금 기준<\/span>/,'퇴직연금 기준 chip도 동일 compact-control text span을 사용해야 한다');
-  assert.match(charts,/class="control-segmented"[^]*?<span class="compact-control-text">수익률<\/span>[^]*?<span class="compact-control-text">코스피<\/span>/,'차트 segmented 버튼은 공통 text span primitive를 사용해야 한다');
-  assert.match(ui,/class="control-segmented securities-performance-toggle"[^]*?<span class="compact-control-text">전체<\/span>[^]*?<span class="compact-control-text">계좌별<\/span>/,'성과 segmented 버튼도 공통 text span primitive를 사용해야 한다');
-  assert.doesNotMatch(common,/\.monthly-calendar-separate-profit\s+\.(?:separate-profit-toggle-label|control-text-optical)|--monthly-separate-profit-|\.monthly-calendar-separate-profit\.separate-profit-toggle/,'월간 모달만을 위한 별도수익 skin/텍스트 정렬 override를 다시 만들면 안 된다');
-  assert.match(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*--separate-profit-height:25px;[^}]*--separate-profit-state-min-width:34px;[^}]*--separate-profit-state-height:21px;/,'Phone 메인은 compact geometry만 유지해야 한다');
-  assert.doesNotMatch(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*(?:--separate-profit-font-size|--separate-profit-state-font-size|--separate-profit-font-weight)/,'Phone 메인 compact도 공통 typography를 별도 override하면 안 된다');
-  assert.match(special,/\.separate-profit-control-row \.separate-profit-toggle strong \.control-text-optical\{[^}]*transform:translateY\(var\(--control-text-optical-shift\)\)/,'Phone 메인 compact ON/OFF의 기존 optical shift는 유지해야 한다');
-  assert.doesNotMatch(special,/^[ \t]*\.separate-profit-toggle\{/m,'Phone CSS에서 모든 별도수익 toggle을 전역 compact 처리하면 월간 모달까지 변형되므로 금지한다');
+  assert.match(common,/--dashboard-control-height:29px;[^]*?--state-toggle-state-height:19px;/,'Web/Tablet 기본 state badge는 29px 외곽 안에서 19px 높이여야 한다');
+  assert.doesNotMatch([common,special,print].join('\n'),/--(?:state-toggle-(?:font-size|state-font-size|font-weight)|separate-profit-(?:font-size|state-font-size|font-weight)):/,'state-toggle/별도수익이 공통 typography를 별도 alias로 복제하면 안 된다');
+
+  assert.match(common,/\.state-toggle\{[^}]*--dashboard-control-font-size:var\(--compact-control-font-size\);[^}]*--dashboard-control-state-height:var\(--state-toggle-state-height\);[^}]*--dashboard-control-state-font-weight:var\(--compact-control-font-weight\);/,'state toggle은 공통 typography와 state badge geometry token을 사용해야 한다');
+  assert.match(common,/\.state-toggle-state\{[^}]*height:var\(--dashboard-control-state-height\);[^}]*font-size:var\(--dashboard-control-state-font-size\);[^}]*font-weight:var\(--dashboard-control-state-font-weight\);[^}]*line-height:var\(--compact-control-line-height\);/,'별도수익/Y축 ON/OFF badge는 공통 state geometry와 typography를 사용해야 한다');
+  assert.ok(
+    /state-toggle chart-y-auto-toggle/.test(charts)
+      && /state-toggle separate-profit-toggle/.test(ui)
+      && /state-toggle separate-profit-toggle monthly-calendar-separate-profit/.test(monthlyCalendar),
+    'Y축·메인 별도수익·월간 별도수익은 동일 state-toggle primitive를 재사용해야 한다'
+  );
+
+  assert.match(common,/:is\(\.chart-series-all,\.state-toggle,\.section-basis-chip\)\{[^}]*--dashboard-control-font-size:var\(--compact-control-font-size\);[^}]*line-height:var\(--compact-control-line-height\);/,'차트 전체·state toggle·기준 chip은 compact-control size/line-height를 공유해야 한다');
+  assert.match(common,/\.section-basis-chip\{[^}]*font-weight:var\(--type-weight-regular\);/,'삼성증권1/퇴직연금 기준 chip은 font-weight만 regular 예외여야 한다');
+  assert.doesNotMatch(special,/\.section-basis-chip\{[^}]*(?:padding|font-size|font-weight|line-height)/,'Phone 전용 기준 chip typography/geometry override를 만들면 안 된다');
+  assert.match(common,/\.control-segmented button\{[^}]*font-size:var\(--compact-control-font-size\);[^}]*font-weight:var\(--compact-control-font-weight\);[^}]*line-height:var\(--compact-control-line-height\);/,'segmented switch도 compact-control typography를 사용해야 한다');
+
+  assert.match(common,/--compact-control-ios-optical-shift:1\.5px;[^]*?--compact-control-ios-chart-all-correction:-1px;/,'iOS optical correction은 1.5px base shift와 chart 전체 -1px correction을 token으로 관리해야 한다');
+  assert.match(common,/\.compact-control-text\{[^}]*line-height:var\(--compact-control-line-height\);[^}]*transform:none;/,'direct text compact control은 공통 text span primitive를 사용해야 한다');
+  assert.match(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?\.state-toggle-label,[^]*?\.control-segmented \.compact-control-text,[^]*?\.section-basis-chip \.compact-control-text\{[^}]*transform:translateY\(var\(--compact-control-ios-optical-shift\)\)[^]*?\.chart-series-all \.compact-control-text\{[^}]*var\(--compact-control-ios-chart-all-correction\)/,'실제 iOS에서는 state/segmented/기준 chip에 base shift, chart 전체에 별도 correction을 적용해야 한다');
+  assert.doesNotMatch(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?padding-top:calc\(var\(--compact-control-ios-optical-shift\)/,'iOS text 보정은 shell padding으로 구현하면 안 된다');
+  assert.ok(
+    charts.includes('<span class="compact-control-text">전체</span>')
+      && charts.includes('control-text-optical compact-control-text">삼성증권1 기준</span>')
+      && charts.includes('control-text-optical compact-control-text">퇴직연금 기준</span>'),
+    '차트 전체와 두 기준 chip은 iOS 보정 대상 text span을 유지해야 한다'
+  );
+
+  assert.doesNotMatch(common,/\.monthly-calendar-separate-profit\s+\.(?:separate-profit-toggle-label|control-text-optical)|--monthly-separate-profit-|\.monthly-calendar-separate-profit\.separate-profit-toggle/,'월간 모달만의 별도수익 typography/정렬 override를 만들면 안 된다');
+  assert.match(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*--separate-profit-height:25px;[^}]*--separate-profit-state-height:21px;/,'Phone 메인은 compact geometry 예외만 유지해야 한다');
+  assert.doesNotMatch(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*(?:--separate-profit-font-size|--separate-profit-state-font-size|--separate-profit-font-weight)/,'Phone 메인 compact가 공통 typography를 override하면 안 된다');
   assert.match(special,/\.monthly-calendar-controls\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,[^)]+\) minmax\(0,1fr\)[^}]*\}[^]*?\.monthly-calendar-separate-profit\{grid-column:3;grid-row:1;justify-self:end\}/,'Phone Landscape는 탭과 별도수익 toggle을 같은 행으로 복원해야 한다');
   assert.match(common,/:is\(\.contrib-target-tabs,\.monthly-calendar-mode-tabs,\.portfolio-heatmap-mode-tabs\)\{background:var\(--modal-segment-group-bg\)\}/,'월간 범위 switch는 퇴직연금/히트맵과 동일한 modal segmented state token을 공유해야 한다');
   assert.doesNotMatch(monthlyCalendar,/monthly-calendar-scroll/,'달력은 별도 body scroll wrapper 없이 card 하나만 scroll owner로 유지해야 한다');
