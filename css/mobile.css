@@ -174,10 +174,11 @@
       width:100%;
     }
     .contrib-existing-title{
-      display:block;
+      display:inline-block;
       margin-left:0;
       margin-right:0;
       line-height:var(--type-line-single);
+      white-space:nowrap;
     }
     .contrib-existing-memo{
       display:block;
@@ -185,13 +186,10 @@
       line-height:var(--type-line-body);
     }
 
-.contrib-existing-date,
-    .contrib-existing-info{
-      display:block;
-    }
-
+    .contrib-existing-date,
+    .contrib-existing-info,
     .contrib-existing-sep{
-      display:none;
+      display:inline;
     }
 
 .pension-batch-queue{max-height:150px}

@@ -1736,8 +1736,9 @@ test('차트 Y축 hover는 공통 가로선과 직각 값 tooltip을 제공한�
   assert.match(charts,/cfg\.axisHoverLeft=yTicks\?\.length>1/,'좌측 Y축 hover 메타가 축 tick과 formatter를 재사용해야 한다');
   assert.match(charts,/cfg\.axisHoverRight=y2Ticks\?\.length>1/,'우측 보조축도 동일한 hover 계약을 가져야 한다');
   assert.match(charts,/class:'chart-axis-hover-line'/,'축 hover 가로선이 있어야 한다');
-  assert.match(charts,/class:'chart-axis-hitbox'/,'축 영역 전용 hitbox가 있어야 한다');
+  assert.match(charts,/svg\.addEventListener\('pointermove'/,'축 hover는 SVG root pointermove로 안정적으로 추적해야 한다');
+  assert.match(charts,/axisAtX\(point\.x\)/,'포인터 X 위치로 좌우 Y축 영역을 판별해야 한다');
   assert.match(charts,/addAxisHover\(svg,cfg\)/,'모든 addHover 차트에 축 hover가 함께 설치돼야 한다');
   assert.match(common,/\.chart-axis-value-tooltip\{[^}]*background:#fff;[^}]*border:1px solid #cbd5e1;[^}]*border-radius:0;[^}]*font-size:10px;/s,'축 값 tooltip은 흰 배경·회색 1px border·무라운드·10px이어야 한다');
-  assert.match(common,/@media \(hover:hover\) and \(pointer:fine\)\{\s*\.chart-axis-hitbox\{pointer-events:all\}/s,'축 hover hitbox는 fine pointer 환경에서만 활성화해야 한다');
+  assert.match(charts,/evt\.pointerType&&evt\.pointerType!=='mouse'/,'축 hover는 마우스 포인터에만 반응해야 한다');
 });

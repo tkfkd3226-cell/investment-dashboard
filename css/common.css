@@ -1083,13 +1083,6 @@ button svg{pointer-events:none;flex-shrink:0}
 .chart-axis-hover-line{
   pointer-events:none;
 }
-.chart-axis-hitbox{
-  pointer-events:none;
-  cursor:crosshair;
-}
-@media (hover:hover) and (pointer:fine){
-  .chart-axis-hitbox{pointer-events:all}
-}
 
 .dash-tooltip .tt-date{
   margin-bottom:var(--space-lg);

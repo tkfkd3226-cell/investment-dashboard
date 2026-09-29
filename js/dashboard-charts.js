@@ -1294,13 +1294,16 @@ function drawAxes(svg,cfg,yTicks,y2Ticks=null){
   svg.appendChild(el('line',{x1:l,y1:h-b,x2:w-r,y2:h-b,stroke:axis,'stroke-width':CHART_VISUAL.axisStrokeWidth}));
   if(y2Ticks){for(const tick of y2Ticks){const y=cfg.y2(tick);const tx=el('text',{x:w-r+10,y:y+4,'text-anchor':'start','font-size':chartExpandedFixedUnits(svg,CHART_VISUAL.axisFontSize),fill:text});tx.textContent=cfg.y2Formatter?cfg.y2Formatter(tick):tick.toFixed(0)+'%';svg.appendChild(tx)}svg.appendChild(el('line',{x1:w-r,y1:t,x2:w-r,y2:h-b,stroke:axis,'stroke-width':CHART_VISUAL.axisStrokeWidth}))}
 }
-function chartPointerLocalY(evt,svg){
+function chartPointerLocalPoint(evt,svg){
   const point=svg.createSVGPoint();
   point.x=evt.clientX;
   point.y=evt.clientY;
   const matrix=svg.getScreenCTM();
   if(!matrix)return null;
-  return point.matrixTransform(matrix.inverse()).y;
+  return point.matrixTransform(matrix.inverse());
+}
+function chartPointerLocalY(evt,svg){
+  return chartPointerLocalPoint(evt,svg)?.y??null;
 }
 function chartAxisHoverValue(meta,cfg,localY){
   if(!meta?.ticks?.length||!Number.isFinite(localY))return null;
@@ -1310,11 +1313,11 @@ function chartAxisHoverValue(meta,cfg,localY){
   return max-ratio*(max-min);
 }
 function addAxisHover(svg,cfg){
-  const axes=[
-    {side:'left',meta:cfg.axisHoverLeft,x:0,width:cfg.l},
-    {side:'right',meta:cfg.axisHoverRight,x:cfg.w-cfg.r,width:cfg.r}
-  ].filter(axis=>axis.meta&&axis.width>0);
-  if(!axes.length)return;
+  const axes={
+    left:cfg.axisHoverLeft?{side:'left',meta:cfg.axisHoverLeft}:null,
+    right:cfg.axisHoverRight?{side:'right',meta:cfg.axisHoverRight}:null
+  };
+  if(!axes.left&&!axes.right)return;
   const line=el('line',{
     x1:cfg.l,y1:cfg.t,x2:cfg.w-cfg.r,y2:cfg.t,
     stroke:cssThemePaint('--chart-axis','#cbd5e1'),
@@ -1328,26 +1331,27 @@ function addAxisHover(svg,cfg){
     line.setAttribute('opacity',0);
     hideAxisValueTooltip();
   };
-  for(const axis of axes){
-    const hit=el('rect',{
-      x:axis.x,y:cfg.t,width:axis.width,height:cfg.plotH,
-      fill:'transparent',
-      class:'chart-axis-hitbox',
-      'data-axis-side':axis.side
-    });
-    hit.addEventListener('mousemove',evt=>{
-      const localY=chartPointerLocalY(evt,svg),value=chartAxisHoverValue(axis.meta,cfg,localY);
-      if(value==null)return hide();
-      const y=Math.max(cfg.t,Math.min(cfg.h-cfg.b,localY));
-      line.setAttribute('y1',y);
-      line.setAttribute('y2',y);
-      line.setAttribute('opacity',1);
-      hideTooltip();
-      showAxisValueTooltip(evt,axis.meta.formatter(value),axis.side,svg.id||'');
-    });
-    hit.addEventListener('mouseleave',hide);
-    svg.appendChild(hit);
-  }
+  const axisAtX=x=>{
+    if(axes.left&&x>=0&&x<=cfg.l)return axes.left;
+    if(axes.right&&x>=cfg.w-cfg.r&&x<=cfg.w)return axes.right;
+    return null;
+  };
+  svg.addEventListener('pointermove',evt=>{
+    if(evt.pointerType&&evt.pointerType!=='mouse')return hide();
+    const point=chartPointerLocalPoint(evt,svg);
+    if(!point)return hide();
+    const axis=axisAtX(point.x);
+    if(!axis||point.y<cfg.t||point.y>cfg.h-cfg.b)return hide();
+    const value=chartAxisHoverValue(axis.meta,cfg,point.y);
+    if(value==null)return hide();
+    const y=Math.max(cfg.t,Math.min(cfg.h-cfg.b,point.y));
+    line.setAttribute('y1',y);
+    line.setAttribute('y2',y);
+    line.setAttribute('opacity',1);
+    hideTooltip();
+    showAxisValueTooltip(evt,axis.meta.formatter(value),axis.side,svg.id||'');
+  });
+  svg.addEventListener('pointerleave',hide);
 }
 
 function chartX(cfg,dataLength,index){
