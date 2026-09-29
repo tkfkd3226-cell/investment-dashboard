@@ -116,8 +116,8 @@
     }
 
   /* [T04. Asset / Allocation / Ledger · 자산 상세·비중·장부·원천 배치] */
-.asset-insight-head h3{
-      font-size:var(--type-size-lg);
+.asset-insight-head{
+      --asset-insight-title-size:var(--type-size-lg);
     }
 
 .asset-change-note .change-kpis{
