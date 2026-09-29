@@ -13,53 +13,13 @@
 → 평가 문서의 점수/판정 규칙
 ```
 
-역할:
-
-| 문서 | 역할 |
-|---|---|
-| `README.md` | 전체 구조·진입점·운영 개요 |
-| `main_dashboard_maintenance_handover.md` | Main 유지보수 contract |
-| `add_maintenance_handover.md` | Add/KODEX 거래 반영 contract |
-| `dashboard_evaluation_guide.md` | 평가 방법·점수·A/B/C |
-| `ct35_evaluation.md` | 공통화·토큰화 35개 항목 |
-
-문서와 코드가 다르면 코드를 확인한 뒤 **장기 contract가 실제로 바뀐 경우에만** 문서를 갱신합니다.
+문서별 역할과 프로젝트 파일 개요는 `README.md`가 소유합니다. 문서와 코드가 다르면 코드를 확인한 뒤 **장기 contract가 실제로 바뀐 경우에만** 이 handover를 갱신합니다.
 
 ## 2. Main architecture
 
-### 2.1 Canonical 파일
+### 2.1 Runtime 경계
 
-```text
-index.html
-
-css/
-  common.css
-  tablet.css
-  mobile.css
-  special.css
-  interaction.css
-  print.css
-
-js/
-  kodex-leverage-schema.js
-  dashboard-core.js
-  dashboard-ui-common.js
-  dashboard-modal.js
-  dashboard-monthly-calendar.js
-  dashboard-heatmap.js
-  dashboard-charts.js
-  dashboard-ui.js
-  dashboard-pension.js
-  dashboard-pension-editor.js
-  dashboard-market-ai-client.js
-  dashboard-live-valuation.js
-  dashboard-app.js
-  dashboard-market-ai.js      # standalone entry
-
-scripts/update_prices.py
-.github/workflows/{pages.yml,update-prices.yml}
-GAS_code.js
-```
+전체 파일 목록은 `README.md`가 소유합니다. Main runtime은 `index.html`에서 시작해 `css/`와 `js/`의 Dashboard 모듈을 사용하며, KRX 갱신은 Python/workflow, 브라우저 write는 root `GAS_code.js`가 담당합니다.
 
 `dashboard-app.js`에서 도달하는 Main graph는 **13개 ES Module**입니다. `dashboard-market-ai.js`는 별도 standalone entry이며 `dashboard-market-ai-client.js`만 공유합니다.
 
@@ -330,15 +290,7 @@ removeKrxAutoScheduler()
 
 ### 6.5 Python dependency
 
-직접 dependency는 `requirements.txt`에 pin합니다. 현재 기준:
-
-```text
-pykrx==1.2.8
-pandas==2.3.3
-requests==2.34.2
-```
-
-버전 변경 시 Python 3.11과 실제 사용 API를 확인합니다.
+직접 dependency와 정확한 버전의 Source of Truth는 `requirements.txt`입니다. 버전 변경 시 Python 3.11과 실제 사용 API를 확인합니다.
 
 ## 7. QA 체계
 
@@ -360,6 +312,7 @@ requests==2.34.2
 |---|---|---|
 | `tests/main-calc.test.cjs` | 원금·손익·수익률·매도/재매수·연금 계산 | 계산 변경 |
 | `tests/main-ui-contract.test.cjs` | Main 장기 구조/UI contract | 일반 Main UI/구조 변경 |
+| `tests/chart-interaction.test.cjs` | 차트 축 hover·범례 interaction 행동 | 차트 축/범례 interaction 변경 |
 | `tests/investor-title.test.cjs` | 투자 칭호 state/획득/renderer | 칭호 변경 |
 | `tests/monthly-calendar-live.test.cjs` | 열린 월간손익 live refresh | 월간손익/live 변경 |
 | `tests/monthly-calendar-gloomy.test.cjs` | 3연속 손실 멘탈케어 | gloomy 변경 |
@@ -372,22 +325,9 @@ requests==2.34.2
 | `tests/cross-ui-contract.test.cjs` | Main↔Add 공유 appearance/viewport/asset | 공통 contract 변경 |
 | `tests/add-report-data.test.cjs` | KODEX canonical 원천과 Main 별도수익 정합성 | KODEX 거래/schema 변경 |
 
-### 7.3 실행 예
+### 7.3 실행 기준
 
-Main 일반:
-
-```bash
-node --test tests/main-calc.test.cjs tests/main-ui-contract.test.cjs
-```
-
-기능 변경은 위 표의 전용 테스트를 추가합니다. 저장소 전체 QA:
-
-```bash
-node --test tests/*.test.cjs
-python -m unittest tests/update_prices_test.py
-```
-
-전체 QA는 관련 범위가 넓거나 사용자가 전체 검증을 요청했을 때 사용합니다.
+저장소 전체 실행 명령은 `README.md`가 소유합니다. 기능 수정 시에는 위 테스트 지도에서 직접 관련된 전용 테스트를 먼저 실행하고, 영향 범위가 넓거나 전체 검증 요청이 있을 때 전체 QA로 확장합니다.
 
 ### 7.4 정적 QA
 

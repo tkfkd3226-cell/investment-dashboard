@@ -1286,8 +1286,8 @@ function clsBy(n){return n<0?'tt-neg':(n>0?'tt-pos':'')}
 function drawAxes(svg,cfg,yTicks,y2Ticks=null){
   const{w,h,l,r,t,b}=cfg;
   const surface=cssThemePaint('--chart-surface','#fff'),grid=cssThemePaint('--chart-grid','#e5e7eb'),axis=cssThemePaint('--chart-axis','#cbd5e1'),text=cssThemePaint('--chart-text','#6b7280');
-  cfg.axisHoverLeft=yTicks?.length>1?{ticks:[...yTicks],formatter:cfg.yFormatter||(v=>fmt(v))}:null;
-  cfg.axisHoverRight=y2Ticks?.length>1?{ticks:[...y2Ticks],formatter:cfg.y2Formatter||(v=>Number(v).toFixed(0)+'%')}:null;
+  cfg.axisHoverLeft=yTicks?.length>1?{ticks:[...yTicks],project:cfg.y,formatter:cfg.yFormatter||(v=>fmt(v))}:null;
+  cfg.axisHoverRight=y2Ticks?.length>1?{ticks:[...y2Ticks],project:cfg.y2,formatter:cfg.y2Formatter||(v=>Number(v).toFixed(0)+'%')}:null;
   svg.appendChild(el('rect',{x:0,y:0,width:w,height:h,fill:surface}));
   for(const tick of yTicks){const y=cfg.y(tick);svg.appendChild(el('line',{x1:l,y1:y,x2:w-r,y2:y,stroke:grid,'stroke-width':CHART_VISUAL.axisStrokeWidth}));const tx=el('text',{x:l-10,y:y+4,'text-anchor':'end','font-size':chartExpandedFixedUnits(svg,CHART_VISUAL.axisFontSize),fill:text});tx.textContent=cfg.yFormatter?cfg.yFormatter(tick):fmt(tick);svg.appendChild(tx)}
   svg.appendChild(el('line',{x1:l,y1:t,x2:l,y2:h-b,stroke:axis,'stroke-width':CHART_VISUAL.axisStrokeWidth}));
@@ -1306,11 +1306,13 @@ function chartPointerLocalY(evt,svg){
   return chartPointerLocalPoint(evt,svg)?.y??null;
 }
 function chartAxisHoverValue(meta,cfg,localY){
-  if(!meta?.ticks?.length||!Number.isFinite(localY))return null;
+  if(!meta?.ticks?.length||typeof meta.project!=='function'||!Number.isFinite(localY))return null;
   const min=Math.min(...meta.ticks),max=Math.max(...meta.ticks);
   if(!(max>min))return null;
-  const ratio=Math.max(0,Math.min(1,(localY-cfg.t)/Math.max(1,cfg.plotH)));
-  return max-ratio*(max-min);
+  const minY=Number(meta.project(min)),maxY=Number(meta.project(max));
+  if(!Number.isFinite(minY)||!Number.isFinite(maxY)||Math.abs(maxY-minY)<1e-9)return null;
+  const y=Math.max(cfg.t,Math.min(cfg.h-cfg.b,localY));
+  return min+(y-minY)*(max-min)/(maxY-minY);
 }
 function addAxisHover(svg,cfg){
   const axes={

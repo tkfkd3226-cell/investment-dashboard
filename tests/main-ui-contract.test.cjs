@@ -52,15 +52,21 @@ test('Main boot contract: canonical CSS와 app/Market AI module entry를 로드�
   assert.doesNotMatch(index,/'dashboard-responsive\.js'/,'폐기된 responsive entry가 되살아나면 안 된다');
 });
 
-test('Main appearance 두 control은 localStorage와 BroadcastChannel을 함께 갱신한다',()=>{
-  assert.match(ui1,/const THEME_STORAGE_KEY='investmentDashboard\.theme'/);
-  assert.match(ui1,/const CORNER_THEME_STORAGE_KEY='investmentDashboard\.cornerTheme'/);
-  assert.match(ui1,/const APPEARANCE_CHANNEL_NAME='investmentDashboard\.appearance'/);
-  assert.match(ui1,/appearanceChannel=new BroadcastChannel\(APPEARANCE_CHANNEL_NAME\)/);
-  assert.match(ui1,/function publishAppearanceChange\(\)\{ try\{appearanceChannel\?\.postMessage\(\{theme:currentTheme\(\),cornerTheme:currentCornerTheme\(\)\}\)\}catch\(_\)\{\} \}/);
-  assert.match(ui1,/function setTheme\(theme,\{redraw=false,syncMonitor=true\}=\{\}\)\{[^]*?localStorage\.setItem\(THEME_STORAGE_KEY,dark\?'dark':'light'\)[^]*?syncThemeControls\(\); publishAppearanceChange\(\);[^]*?if\(syncMonitor\)publishRealtimeMonitorTheme\(dark\?'dark':'light'\);/);
-  assert.match(charts,/function cssThemePaint\(name,fallback\)\{\s*return `var\(\$\{name\},\$\{fallback\}\)`;\s*\}/,'차트 theme paint는 CSS 변수 참조를 유지해 theme 전환에 redraw가 필요 없어야 한다');
-  assert.match(ui1,/function setCornerTheme\(theme\)\{[^]*?localStorage\.setItem\(CORNER_THEME_STORAGE_KEY,rounded\?'rounded':'soft-square'\)[^]*?syncCornerThemeControls\(\); publishAppearanceChange\(\);/);
+test('Main appearance는 저장값과 cross-tab 동기화 contract를 함께 유지한다',()=>{
+  assert.match(ui,/investmentDashboard\.theme/);
+  assert.match(ui,/investmentDashboard\.cornerTheme/);
+  assert.match(ui,/investmentDashboard\.appearance/);
+  assert.match(ui,/new BroadcastChannel\(APPEARANCE_CHANNEL_NAME\)/);
+  const themeStart=ui.indexOf('function setTheme('),themeEnd=ui.indexOf('\nfunction toggleTheme',themeStart);
+  const cornerStart=ui.indexOf('function setCornerTheme('),cornerEnd=ui.indexOf('\nfunction toggleCornerTheme',cornerStart);
+  assert.ok(themeStart>=0&&themeEnd>themeStart&&cornerStart>=0&&cornerEnd>cornerStart,'appearance setter가 존재해야 한다');
+  const themeBlock=ui.slice(themeStart,themeEnd),cornerBlock=ui.slice(cornerStart,cornerEnd);
+  assert.match(themeBlock,/localStorage\.setItem\(THEME_STORAGE_KEY/);
+  assert.match(themeBlock,/publishAppearanceChange\(\)/);
+  assert.match(cornerBlock,/localStorage\.setItem\(CORNER_THEME_STORAGE_KEY/);
+  assert.match(cornerBlock,/publishAppearanceChange\(\)/);
+  assert.match(charts,/function cssThemePaint\(name,fallback\)/,'차트 theme paint helper가 있어야 한다');
+  assert.match(charts,/return `var\(\$\{name\},\$\{fallback\}\)`/,'차트 paint는 CSS variable 참조를 반환해야 한다');
 });
 
 test('Main module architecture는 순수 core·공통 UI owner·중립 Market AI client 경계를 유지한다',()=>{
@@ -96,25 +102,18 @@ test('Main ES modules는 브라우저와 같은 module 문법으로 parse된다'
   }
 });
 
-test('Tablet/Phone hamburger는 공통 menu source에서 Tablet Topbar 중복만 즉시 숨긴다',()=>{
+test('Tablet/Phone hamburger는 공통 menu source와 viewport 중복 숨김 contract를 유지한다',()=>{
   const responsiveMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
-  const linkGroupIndex=responsiveMenu.indexOf("label:'링크'");
-  const manageGroupIndex=responsiveMenu.indexOf("label:'관리'");
-  const tocGroupIndex=responsiveMenu.indexOf('...tocGroups');
-  assert.ok(linkGroupIndex>=0&&linkGroupIndex<manageGroupIndex&&manageGroupIndex<tocGroupIndex,'hamburger source는 링크 → 관리 → section 목차 순서를 유지해야 한다');
-  assert.doesNotMatch(responsiveMenu,/label:'목차'/,'Tablet/Phone hamburger에는 별도 목차 header group을 다시 만들면 안 된다');
-  const nasdaqLinkIndex=responsiveMenu.indexOf("title:'나스닥100 선물'");
-  const calculatorLinkIndex=responsiveMenu.indexOf("title:'투자 계산기'");
-  assert.ok(nasdaqLinkIndex>=0&&nasdaqLinkIndex<calculatorLinkIndex&&calculatorLinkIndex<manageGroupIndex,'투자 계산기는 링크 그룹의 나스닥100 선물 바로 아래에 있어야 한다');
-  assert.match(responsiveMenu,/title:'투자 계산기'[^}]*tabletTopbarDuplicate:true/,'Tablet에서는 Topbar와 중복되는 투자 계산기 링크를 숨길 수 있어야 한다');
-  assert.match(responsiveMenu,/label:'관리',[^}]*tabletTopbarDuplicate:true/,'Tablet에서는 Topbar와 중복되는 관리 그룹을 숨길 수 있어야 한다');
-  assert.match(common,/\.switcher\.tablet-topbar-ui \.date-action-menu\.mobile-combined-menu :is\(\.mobile-nav-group-tablet-topbar-duplicate,\.mobile-nav-item-tablet-topbar-duplicate\)\{display:none\}/,'Tablet 상태에서는 Topbar 중복 메뉴를 즉시 숨겨야 한다');
-  assert.match(ui,/classList\.toggle\('tablet-topbar-ui',tabletTopbarUi\(\)\)/,'viewport 상태 동기화가 Tablet 중복 메뉴 표시를 즉시 갱신해야 한다');
-  assert.match(ui,/visualViewport\?\.addEventListener\('resize',\(\)=>\{[^]*?syncMobileTopbarState\(\)/,'F12/device viewport 변경도 새로고침 없이 즉시 동기화해야 한다');
-  const menuHead=ui.slice(ui.indexOf('<div class="mobile-nav-head">'),ui.indexOf('</div>${renderResponsiveNavigationMenuContent()}'));
-  assert.match(menuHead,/mobile-date-pin-control[^]*?mobile-nav-head-actions[^]*?mobile-nav-corner-action[^]*?close-date-menu/,'Phone hamburger header는 날짜 고정을 왼쪽에 두고 모서리 변경·닫기를 오른쪽 action으로 묶어야 한다');
-  assert.match(common,/\.date-action-menu\.mobile-combined-menu \.mobile-nav-corner-action\{display:none\}/,'Tablet hamburger에는 모서리 변경 action을 중복 노출하지 않아야 한다');
-  assert.match(special,/\.date-action-menu\.mobile-combined-menu \.mobile-nav-corner-action\{display:inline-flex\}/,'Phone hamburger에서만 모서리 변경 action을 제공해야 한다');
+  assert.match(responsiveMenu,/label:'링크'/,'공통 링크 그룹이 있어야 한다');
+  assert.match(responsiveMenu,/label:'관리'/,'공통 관리 그룹이 있어야 한다');
+  assert.match(responsiveMenu,/\.\.\.tocGroups/,'section 목차는 공통 source를 재사용해야 한다');
+  assert.doesNotMatch(responsiveMenu,/label:'목차'/,'Tablet/Phone hamburger에 별도 목차 header group을 다시 만들면 안 된다');
+  assert.match(responsiveMenu,/title:'투자 계산기'[^}]*tabletTopbarDuplicate:true/,'Tablet Topbar와 중복되는 계산기 항목은 숨김 metadata를 가져야 한다');
+  assert.match(common,/mobile-nav-(?:group|item)-tablet-topbar-duplicate/,'Tablet 중복 항목 숨김 selector가 있어야 한다');
+  assert.match(ui,/classList\.toggle\('tablet-topbar-ui',tabletTopbarUi\(\)\)/,'viewport 변경 시 Tablet 중복 상태를 즉시 동기화해야 한다');
+  assert.match(ui,/visualViewport\?\.addEventListener\('resize'/,'device viewport resize를 즉시 반영해야 한다');
+  assert.match(common,/\.mobile-nav-corner-action\{display:none\}/,'Tablet baseline에서는 모서리 action을 숨겨야 한다');
+  assert.match(special,/\.mobile-nav-corner-action\{display:inline-flex\}/,'Phone에서는 모서리 action을 노출해야 한다');
 });
 
 test('Tablet/Phone hamburger panel은 공통 viewport 높이 contract를 공유한다',()=>{
@@ -147,32 +146,15 @@ test('Dashboard 날짜 이동은 Web 좌우 버튼과 Tablet/Phone swipe가 cano
   assert.match(print,/\.dashboard-date-navigation/,'인쇄에서는 화면 날짜 이동 control을 숨겨야 한다');
 });
 
-test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를 재사용한다',()=>{
+test('월간 손익 캘린더는 Main entry와 공통 modal/navigation 경계를 유지한다',()=>{
   assert.match(index,/'dashboard-monthly-calendar\.js'/,'월간 캘린더 module은 importmap cache-bust 대상이어야 한다');
-  assert.match(ui,/topbar-monthly-action[^>]*data-dashboard-action="open-monthly-calendar"/,'월간 손익은 공통 Topbar action으로 진입해야 한다');
+  assert.match(ui,/data-dashboard-action="open-monthly-calendar"/,'월간 손익은 Topbar action으로 진입해야 한다');
   const responsiveMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
-  assert.doesNotMatch(responsiveMenu,/action:'open-monthly-calendar'/,'Topbar action을 hamburger에 중복 배치하면 안 된다');
-
-  assert.match(monthlyCalendar,/combinedDailyProfitChange\(date\)/,'합산 일손익은 core helper를 재사용해야 한다');
-  assert.match(monthlyCalendar,/const securities=securitiesDailyProfitChange\(date\)/,'증권 범위는 core helper를 재사용해야 한다');
-  assert.match(monthlyCalendar,/pensionDailyProfitChange\(date\)/,'퇴직연금 범위는 core helper를 재사용해야 한다');
-  assert.match(monthlyCalendar,/separateProfitDailyChangeForDate\(date\)/,'별도수익 ON은 core의 당일 증가분을 사용해야 한다');
-  assert.doesNotMatch(monthlyCalendar,/\bcalc\(date\)|separateProfitCumulativeForDate\(date\)/,'calendar가 날짜별 계산을 중복 소유하면 안 된다');
-  assert.match(monthlyCalendar,/combined:\{label:'합산'[^]*?securities:\{label:'증권'[^]*?pension:\{label:'퇴직연금'/,'범위는 합산·증권·퇴직연금 3개를 유지해야 한다');
-
-  assert.match(monthlyCalendar,/class="control-tab monthly-calendar-mode-tab/,'범위 switch는 공통 control-tab을 재사용해야 한다');
-  assert.match(monthlyCalendar,/if\(!uiState\.personalViewUnlocked\)return '';/,'월간 별도수익 toggle은 개인보기에서만 노출되어야 한다');
-  assert.match(monthlyCalendar,/data-dashboard-action="toggle-separate-profit"/,'별도수익 toggle은 기존 canonical action을 재사용해야 한다');
-  assert.match(monthlyCalendar,/modal\.className='action-modal monthly-calendar-modal'/,'월간 캘린더는 공통 action modal shell을 재사용해야 한다');
-  assert.match(monthlyCalendar,/openDashboardModal\(modal,/);
-  assert.match(monthlyCalendar,/closeDashboardModal\(modal,/);
-
-  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.setMode[^]*?setMonthlyCalendarMode\(control\.dataset\.calendarMode\|\|''\)/,'범위 전환은 calendar state owner에 위임해야 한다');
-  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.selectDate[^]*?closeMonthlyCalendar\(\);[^]*?setActiveDashboardDate\(date\)/,'날짜 선택은 canonical activeDate 경로로 위임해야 한다');
-  assert.match(monthlyCalendar,/aria-disabled=/,'월 경계 이동 control은 focusable aria-disabled 상태를 유지해야 한다');
-  assert.match(common,/\.monthly-calendar-grid\{[^}]*grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,'calendar는 월~금 5열 grid를 유지해야 한다');
-  assert.match(monthlyCalendar,/if\(weekdayIndex>=5\)continue/,'토·일 날짜 cell을 생성하면 안 된다');
-  assert.match(monthlyCalendar,/item\.profit==null\?'기준'/,'비교 기준이 없는 최초 날짜는 0원이 아니라 기준일로 표시해야 한다');
+  assert.doesNotMatch(responsiveMenu,/open-monthly-calendar/,'Topbar action을 hamburger에 중복 배치하면 안 된다');
+  assert.match(monthlyCalendar,/action-modal monthly-calendar-modal/,'공통 action modal surface를 사용해야 한다');
+  assert.match(monthlyCalendar,/openDashboardModal\(/);
+  assert.match(monthlyCalendar,/closeDashboardModal\(/);
+  assert.match(common,/\.monthly-calendar-grid\{[^}]*grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,'월간손익은 월~금 5열 grid를 유지해야 한다');
 });
 
 test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validator 모듈을 사용한다',()=>{
@@ -192,86 +174,33 @@ test('실시간 평가 adapter는 importmap cache-bust 대상이고 boot 이후 
 });
 
 
-test('별도수익 ON/OFF는 full render 대신 영향 영역만 부분 갱신하고 누적차트만 다시 그린다',()=>{
+test('별도수익 ON/OFF는 full render 없이 부분 갱신 경계를 유지한다',()=>{
   const toggleStart=app.indexOf('function toggleSeparateProfitMode(){');
   const toggleEnd=app.indexOf('\nfunction toggleSeparateProfitModeFromExpanded',toggleStart);
-  assert.ok(toggleStart>=0&&toggleEnd>toggleStart,'별도수익 toggle 함수 범위를 찾지 못했다');
-  const toggleBlock=app.slice(toggleStart,toggleEnd);
-  assert.match(toggleBlock,/refreshSeparateProfitModeView\(\)/);
-  assert.match(toggleBlock,/refreshMonthlyCalendarModal\(\)/,'열린 월간 손익 모달도 같은 별도수익 상태로 즉시 갱신되어야 한다');
-  assert.doesNotMatch(toggleBlock,/\brender\(\)/,'일반 별도수익 토글에서 #app full render를 호출하면 안 된다');
-
   const refreshStart=app.indexOf('function refreshSeparateProfitModeView(){');
   const refreshEnd=app.indexOf('\nfunction renderAssetWorkspace',refreshStart);
-  assert.ok(refreshStart>=0&&refreshEnd>refreshStart,'별도수익 partial refresh 범위를 찾지 못했다');
-  const refreshBlock=app.slice(refreshStart,refreshEnd);
-  for(const marker of [
-    "document.querySelector('.hero-metric-pills')",
-    "document.getElementById('summary-section')",
-    "#securities-section .securities-summary-block",
-    "document.getElementById('chart-cum')",
-    "document.getElementById('ledger-check')",
-    "document.getElementById('capital-source-check')"
-  ])assert.ok(refreshBlock.includes(marker),`별도수익 partial refresh 누락: ${marker}`);
-  assert.match(refreshBlock,/renderSecuritiesCumulativeChart\(x,separateProfitControl\(x,'chart-inline'\)\)/);
-  assert.match(refreshBlock,/getElementById\('ledger-check'\),renderSecuritiesLedgerBlock\(x\)/,'부분 갱신 뒤에도 증권 band 공통 wrapper를 유지해야 한다');
-  assert.match(refreshBlock,/getElementById\('capital-source-check'\),renderSecuritiesSourceBlock\(x\)/,'원천 검산도 공통 wrapper를 유지해야 한다');
-  assert.doesNotMatch(refreshBlock,/getElementById\('ledger-check'\),renderResultSummary\(x\)/);
-  assert.doesNotMatch(refreshBlock,/getElementById\('capital-source-check'\),renderSourceTables\(x\)/);
-  assert.match(refreshBlock,/refreshSecuritiesCumulativeChart\(\)/);
-  assert.doesNotMatch(refreshBlock,/renderPension\(/);
-  assert.doesNotMatch(refreshBlock,/renderSecuritiesSection\(/);
-  assert.doesNotMatch(refreshBlock,/drawAllCharts\(/);
-
-  assert.match(charts,/function renderSecuritiesCumulativeChart\(x,separateProfitHtml=''\)/);
-  assert.match(charts,/function refreshSecuritiesCumulativeChart\(\)\{[^]*?drawCumChart\(\);/);
-  const chartRefreshStart=charts.indexOf('function refreshSecuritiesCumulativeChart(){');
-  const chartRefreshEnd=charts.indexOf('\nfunction drawAllCharts(){',chartRefreshStart);
-  const chartRefreshBlock=charts.slice(chartRefreshStart,chartRefreshEnd);
-  assert.doesNotMatch(chartRefreshBlock,/drawLineChart\(\)|drawStacked\(\)|drawPension/,'별도수익 partial chart refresh는 누적차트 외 차트를 다시 그리면 안 된다');
+  assert.ok(toggleStart>=0&&toggleEnd>toggleStart&&refreshStart>=0&&refreshEnd>refreshStart,'별도수익 부분 갱신 owner가 존재해야 한다');
+  const toggleBlock=app.slice(toggleStart,toggleEnd),refreshBlock=app.slice(refreshStart,refreshEnd);
+  assert.match(toggleBlock,/refreshSeparateProfitModeView\(\)/);
+  assert.match(toggleBlock,/refreshMonthlyCalendarModal\(\)/,'열린 월간손익도 별도수익 상태를 따라야 한다');
+  assert.doesNotMatch(toggleBlock,/\brender\(\)/,'별도수익 토글이 #app 전체를 다시 그리면 안 된다');
+  assert.match(refreshBlock,/refreshSecuritiesCumulativeChart\(\)/,'누적차트는 부분 갱신 뒤 다시 그려야 한다');
+  assert.doesNotMatch(refreshBlock,/\bdrawAllCharts\(\)|\brender\(\)/,'부분 갱신 경로가 전체 Dashboard/차트 render로 확대되면 안 된다');
 });
 
-test('공통 full render는 keyboard focus를 보존하고 live partial refresh는 열린 목차·scroll 및 metadata-only 무렌더 계약을 유지한다',()=>{
-  assert.match(app,/function render\(\{renderTopbar=true\}=\{\}\)\{\s*const focusSnapshot=dashboardFocusSnapshot\(\);/);
-  assert.match(app,/if\(renderTopbar\)renderTabs\(\);/);
-  const liveRefreshStart=app.indexOf('function renderLiveValuationRefresh(){');
-  const liveRefreshEnd=app.indexOf('\n// [APP05]',liveRefreshStart);
-  const liveRefreshBlock=app.slice(liveRefreshStart,liveRefreshEnd);
-  assert.ok(liveRefreshStart>=0&&liveRefreshEnd>liveRefreshStart,'live partial refresh block is missing');
-  assert.match(liveRefreshBlock,/if\(!liveValuationRenderDateEligible\(dataState\.activeDate\)\)return;/,'live partial refresh must render eligible pre-open carry dates, not only KST today');
-  assert.doesNotMatch(liveRefreshBlock,/activeDate!==kstTodayText\(\)/,'live partial refresh must not hard-block the previous completed session before market open');
-  assert.doesNotMatch(liveRefreshBlock,/render\(\{renderTopbar:false\}\)|document\.getElementById\('app'\)\.innerHTML/);
-  for(const marker of ['renderHeroMetricPills(x,v)','renderCombined(x)','renderPensionOverview(x)','renderPensionAssetDetail(x)','renderPensionCharts(x)','renderSecuritiesPerformanceSummary(x)','renderSecuritiesAssetDetail(x)','renderSecuritiesChartsBlock(x)','renderSecuritiesLedgerBlock(x)','renderSecuritiesSourceBlock(x)'])assert.ok(liveRefreshBlock.includes(marker),`live partial refresh 누락: ${marker}`);
-  assert.match(liveRefreshBlock,/drawAllCharts\(\);/);
-  const preserveEntranceAt=liveRefreshBlock.indexOf('preservePlayedChartEntrancesOnce();');
-  const replaceChartsAt=liveRefreshBlock.indexOf("replaceDashboardFragment(document.getElementById('investment-analysis')");
-  assert.ok(preserveEntranceAt>=0&&replaceChartsAt>=0&&preserveEntranceAt<replaceChartsAt,'재생 완료 차트 상태는 기존 차트 DOM을 교체하기 전에 수집해야 한다');
-  assert.match(app,/if\(target===document\.activeElement\)return;/);
-  assert.match(app,/restoreDashboardFocus\(focusSnapshot\);/);
-  assert.match(app,/active\.dataset\?\.dashboardFocusKey/);
-  assert.match(app,/snapshot\.kind==='focus-key'/);
-  assert.match(app,/return \{kind:'focus-key',value:focusKey,index:Math\.max\(0,matches\.indexOf\(active\)\)\}/);
-  assert.match(app,/requestAnimationFrame\(\(\)=>restoreDashboardFocus\(snapshot,retryFrames-1\)\)/);
-  assert.match(marketAi,/data-dashboard-focus-key="market-ai:signal:\$\{key\}"/);
-  assert.match(marketAi,/data-dashboard-focus-key="market-ai:market:\$\{marketKey\}"/);
-  assert.match(uiCommon,/data-dashboard-focus-key="\$\{escapeHtml\(idPrefix\)\}:contribution:\$\{index\}"/);
-  assert.match(uiCommon,/const focusKey=`asset-source:\$\{ticker\|\|name\|\|'unknown'\}`/);
-  assert.match(pension,/data-dashboard-focus-key="pension:risk-gauge"/);
-  assert.match(app,/const keepDateMenuOpen=dateActionMenuIsOpen\(\);/);
-  assert.match(app,/const keepDesktopTocOpen=desktopEdgeTocIsOpen\(\);/);
-  assert.match(app,/if\(keepDateMenuOpen\)restoreDateActionMenuAfterRender\(\);/);
-  assert.match(app,/if\(keepDesktopTocOpen\)restoreDesktopEdgeTocAfterRender\(\);/);
-  assert.match(ui,/function desktopEdgeTocIsOpen\(\)/);
-  assert.match(ui,/function restoreDesktopEdgeTocAfterRender\(\)/);
-  assert.match(liveValuation,/function liveValuationFingerprint\(payload,requestedTickers=\[\]\)/);
-  const fingerprintStart=liveValuation.indexOf('function liveValuationFingerprint');
-  const fingerprintEnd=liveValuation.indexOf('\nfunction liveValuationCanRender',fingerprintStart);
-  assert.ok(fingerprintStart>=0&&fingerprintEnd>fingerprintStart,'live valuation fingerprint block is missing');
-  assert.doesNotMatch(liveValuation.slice(fingerprintStart,fingerprintEnd),/generated_at|generatedAt/);
-  assert.match(liveValuation,/String\(item\?\.market_state\|\|''\)/);
-  assert.match(liveValuation,/const fingerprint=liveValuationFingerprint\(payload,tickers\);/);
-  assert.match(liveValuation,/if\(payloadChanged\)requestLiveValuationRender\(\);/);
-  assert.doesNotMatch(liveValuation,/stateChanged\|\|payloadChanged/);
+test('Main render는 focus를 보존하고 Live Valuation은 전체 #app 재렌더를 피한다',()=>{
+  const renderStart=app.indexOf('function render({renderTopbar=true}={}){');
+  const renderEnd=app.indexOf('\nfunction renderLiveValuationRefresh',renderStart);
+  const liveStart=app.indexOf('function renderLiveValuationRefresh(){');
+  const liveEnd=app.indexOf('\n// [APP05]',liveStart);
+  assert.ok(renderStart>=0&&renderEnd>renderStart&&liveStart>=0&&liveEnd>liveStart,'Main/full·live render owner가 존재해야 한다');
+  const renderBlock=app.slice(renderStart,renderEnd),liveBlock=app.slice(liveStart,liveEnd);
+  assert.match(renderBlock,/dashboardFocusSnapshot\(\)/);
+  assert.match(renderBlock,/restoreDashboardFocus\(/,'full render 뒤 keyboard focus를 복원해야 한다');
+  assert.doesNotMatch(liveBlock,/render\(\{renderTopbar:false\}\)|getElementById\('app'\)\.innerHTML/,'Live Valuation은 #app 전체를 다시 그리면 안 된다');
+  assert.match(liveBlock,/dashboardNestedScrollSnapshot\(\)/,'부분 갱신은 내부 scroll 상태를 보존해야 한다');
+  assert.match(liveBlock,/restoreDashboardNestedScroll\(/,'부분 갱신 뒤 내부 scroll 상태를 복원해야 한다');
+  assert.match(liveBlock,/dateActionMenuIsOpen\(\)|desktopEdgeTocIsOpen\(\)/,'열린 navigation 상태를 보존해야 한다');
 });
 
 test('일반 브라우저 날짜 hash는 유효한 값이면 초기 선택일로 복원하고 malformed hash도 최신일로 fallback한다',()=>{
@@ -760,17 +689,18 @@ test('모바일 표↔카드 전환은 단일 config·공통 card shell·viewpor
   assert.doesNotMatch(special1,/\[data-mobile-view="card"\] \.table-view/);
 });
 
-test('Chart legend는 전체선택/다중선택을 지원하되 마지막 1개는 해제하지 않는다',()=>{
-  assert.match(charts1,/if\(key==='__all__'\)\{ selection\.state\.selected=null;/);
-  assert.match(charts1,/if\(next\.has\(key\)\)\{ if\(next\.size<=1\)return; next\.delete\(key\);/);
-  assert.match(charts1,/aria-pressed="\$\{active\}"/);
+test('Chart legend는 접근 가능한 toggle contract를 유지한다',()=>{
+  assert.match(charts,/data-dashboard-action="toggle-chart-series"/);
+  assert.match(charts,/aria-pressed="\$\{active\}"/);
+  assert.match(charts,/data-chart-series-key="__all__"/,'부분 선택 상태에서 전체 복귀 control을 제공해야 한다');
 });
 
-test('Chart 확대는 별도 state 복제가 아니라 기존 SVG/controls/options/legend를 이동 후 복원한다',()=>{
-  assert.match(charts1,/document\.createComment\('expanded-chart-legend-placeholder'\)/);
-  assert.match(charts1,/expandedLegendHost\.appendChild\(legend\)/);
-  assert.match(charts1,/legendPlaceholder\?\.parentNode\)legendPlaceholder\.parentNode\.insertBefore\(legend,legendPlaceholder\)/);
-  assert.match(charts1,/chartRuntimeState\.expanded=\{overlay,svg,placeholder/);
+test('Chart 확대는 접근 가능한 공통 dialog lifecycle을 사용한다',()=>{
+  assert.match(charts,/chart-expanded-overlay/);
+  assert.match(charts,/setAttribute\('role','dialog'\)/);
+  assert.match(charts,/setAttribute\('aria-modal','true'\)/);
+  assert.match(charts,/bindDashboardModalDismiss\(overlay/,'확대 차트도 공통 modal dismiss lifecycle을 사용해야 한다');
+  assert.match(charts,/function closeExpandedChart\(/,'확대 차트는 명시적 복원 경로를 가져야 한다');
 });
 
 test('Modal lifecycle는 focus trap / focus return / inert / ESC를 공통 layer에서 관리한다',()=>{

@@ -131,46 +131,17 @@ tests/
 
 ## 7. 자동 QA
 
-Node 전체:
+저장소 전체 기본 검증:
 
 ```bash
 node --test tests/*.test.cjs
-```
-
-Python updater:
-
-```bash
 python -m unittest tests/update_prices_test.py
 ```
 
-주요 테스트 책임:
-
-| 테스트 | 책임 |
-|---|---|
-| `main-calc.test.cjs` | Main 계산/장부 정답 |
-| `main-ui-contract.test.cjs` | 장기 Main 구조·UI contract만 보호 |
-| `investor-title.test.cjs` | 투자 칭호 |
-| `monthly-calendar-*.test.cjs` | 월간손익 live/gloomy/viewport |
-| `live-valuation-polling.test.cjs` | 5초 polling/race/session |
-| `heatmap-engine.test.cjs` | 히트맵 계산/geometry |
-| `heatmap-shell.test.cjs` | 히트맵 UI ownership |
-| `krx-auto-recovery.test.cjs` | KRX 자동 복구 상태전이 |
-| `add-calc.test.cjs` | Calc 계산/validation |
-| `add-report-data.test.cjs` | KODEX canonical 데이터/파생 정합성 |
-| `add-ui-contract.test.cjs` | Add 장기 UI contract |
-| `cross-ui-contract.test.cjs` | Main↔Add 공유 contract |
-| `update_prices_test.py` | KRX updater/스냅샷 갱신 |
-
-테스트는 기능을 보호해야 하며, 이미 전용 행동 테스트가 있는 기능의 내부 함수명·selector 순서·구현문을 다른 contract 테스트에서 중복 고정하지 않습니다.
+기능별 테스트 책임과 변경 범위별 실행 기준은 `main_dashboard_maintenance_handover.md`의 **QA 체계**가 소유합니다. 이미 전용 행동 테스트가 있는 기능의 내부 구현문을 다른 contract 테스트에서 중복 고정하지 않습니다.
 
 ## 8. 문서 역할
 
-| 문서 | 역할 |
-|---|---|
-| `README.md` | 프로젝트 개요·진입점·운영 개요 |
-| `main_dashboard_maintenance_handover.md` | Main 유지보수 contract |
-| `add_maintenance_handover.md` | Add/KODEX 거래 반영 contract |
-| `dashboard_evaluation_guide.md` | 평가/점수/A·B·C 규칙 |
-| `ct35_evaluation.md` | 공통화·토큰화 35개 평가 항목 |
+`README.md`는 프로젝트 개요와 진입점만 다룹니다. Main/Add 유지보수 contract는 각 handover, 평가 규칙은 `dashboard_evaluation_guide.md`와 `ct35_evaluation.md`를 봅니다.
 
-실제 구현/운영값은 **최신 소스와 데이터가 최종 Source of Truth**입니다. 문서는 코드에서 바로 읽을 수 있는 구현 세부를 복제하지 않고, 사람이 알아야 하는 장기 contract만 기록합니다.
+실제 구현/운영값은 **최신 소스와 데이터가 최종 Source of Truth**입니다. 문서는 코드에서 바로 읽을 수 있는 구현 세부를 복제하지 않습니다.
