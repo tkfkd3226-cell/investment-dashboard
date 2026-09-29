@@ -1516,6 +1516,7 @@ button.legend-item.chart-series-all{
   background:var(--card);
   color:var(--muted);
   font-weight:var(--type-weight-bold);
+  line-height:1;
 }
 
 button.legend-item.chart-series-all.active{
@@ -1556,6 +1557,7 @@ button.legend-item.chart-series-all.active{
   --dashboard-control-state-font-size:var(--type-size-xs);
   background:transparent;
   font-weight:var(--type-weight-bold);
+  line-height:1;
 }
 
 .chart-y-auto-toggle.active{
@@ -1622,7 +1624,7 @@ button.legend-item.chart-series-all.active{
   font-family:inherit;
   font-size:var(--type-size-xs);
   font-weight:var(--type-weight-bold);
-  line-height:var(--dashboard-control-line-height);
+  line-height:1;
   white-space:nowrap;
   cursor:pointer;
 }
