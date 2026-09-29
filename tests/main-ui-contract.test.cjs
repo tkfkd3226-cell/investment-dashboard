@@ -1438,6 +1438,29 @@ test('KRX 자동 2차 scheduler는 one-shot trigger를 중복 없이 관리하�
   assert.equal(status.closeInstalled,true);
   assert.equal(status.counts.reconcileKrxAutoTriggers,1);
 
+  // recurring watchdog 상호복구: 셋 중 하나라도 살아 실행되면 빠진 sibling을 복구한다.
+  ScriptApp.deleteTrigger(triggers.find(t=>t._handler==='reconcileKrxAutoTriggers'));
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoTriggers').length,0);
+  let healed=context.reconcileKrxAutoMorningGuard();
+  assert.equal(healed.reconcileSource,'morning_guard');
+  assert.equal(healed.recurringRepair.repaired,true);
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoTriggers').length,1,'morning guard가 빠진 midnight reconciler를 복구해야 한다');
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoMorningGuard').length,1);
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoCloseGuard').length,1);
+
+  makeTrigger('reconcileKrxAutoCloseGuard');
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoCloseGuard').length,2);
+  healed=context.reconcileKrxAutoTriggers();
+  assert.equal(healed.reconcileSource,'midnight');
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoCloseGuard').length,1,'중복 recurring guard는 정확히 하나로 수렴해야 한다');
+
+  ScriptApp.deleteTrigger(triggers.find(t=>t._handler==='reconcileKrxAutoMorningGuard'));
+  healed=context.reconcileKrxAutoCloseGuard();
+  assert.equal(healed.reconcileSource,'close_guard');
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoMorningGuard').length,1,'close guard가 빠진 morning guard를 복구해야 한다');
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoTriggers').length,1);
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoCloseGuard').length,1);
+
   const removed=context.removeKrxAutoScheduler();
   assert.equal(removed.ok,true);
   assert.equal(removed.removed,5);
@@ -1448,6 +1471,8 @@ test('KRX 자동 2차 scheduler는 one-shot trigger를 중복 없이 관리하�
   assert.match(block,/createKrxAutoDailyReconcilerTrigger_\(KRX_AUTO_RECONCILER_HANDLER, 0\)/,'자정 reconciler를 설치해야 한다');
   assert.match(block,/createKrxAutoDailyReconcilerTrigger_\(KRX_AUTO_RECONCILER_GUARD_HANDLERS\.morning, 7\)/,'07시대 morning guard를 설치해야 한다');
   assert.match(block,/createKrxAutoDailyReconcilerTrigger_\(KRX_AUTO_RECONCILER_GUARD_HANDLERS\.close, 14\)/,'14시대 close guard를 설치해야 한다');
+  assert.match(block,/function reconcileKrxAutoRecurringTriggersUnlocked_\(\)[^]*KRX_AUTO_RECURRING_RECONCILER_SPECS\.forEach/,'recurring 3종 자체를 상호복구하는 helper가 있어야 한다');
+  assert.match(block,/function runKrxAutoReconcilerHandler_\(source\)[^]*reconcileKrxAutoRecurringTriggersUnlocked_\(\)[^]*reconcileKrxAutoTriggersUnlocked_/,'각 recurring handler는 sibling 복구 후 phase reconcile을 실행해야 한다');
   assert.doesNotMatch(block,/PropertiesService|UrlFetchApp|getGithubBranchHeadSha|githubRequest|readGithubJson|dispatchKrxPriceWorkflow/,'scheduler 관리 계층이 기존 dispatch/GitHub/Properties hot path를 침범하면 안 된다');
 });
 

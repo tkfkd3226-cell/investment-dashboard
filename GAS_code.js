@@ -8498,6 +8498,11 @@ const KRX_AUTO_RECONCILER_GUARD_HANDLERS = Object.freeze({
   morning: "reconcileKrxAutoMorningGuard",
   close: "reconcileKrxAutoCloseGuard"
 });
+const KRX_AUTO_RECURRING_RECONCILER_SPECS = Object.freeze([
+  Object.freeze({ handler: KRX_AUTO_RECONCILER_HANDLER, hour: 0, role: "midnight" }),
+  Object.freeze({ handler: KRX_AUTO_RECONCILER_GUARD_HANDLERS.morning, hour: 7, role: "morning_guard" }),
+  Object.freeze({ handler: KRX_AUTO_RECONCILER_GUARD_HANDLERS.close, hour: 14, role: "close_guard" })
+]);
 const KRX_AUTO_PHASE_HANDLERS = Object.freeze({
   morning: "runKrxAutoMorning",
   close: "runKrxAutoClose"
@@ -8625,9 +8630,49 @@ function withKrxAutoSchedulerLock_(callback) {
   }
 }
 
+// recurring reconciler 3종은 서로를 watchdog으로 사용한다. 하나라도 살아서 실행되면
+// 빠진 sibling trigger를 복구하고 중복은 정확히 하나로 수렴시킨다.
+// Apps Script Trigger API는 recurring trigger의 disabled 상태를 조회하지 못하므로
+// handler가 정확히 1개 존재하는 경우에는 불필요한 cadence reset 없이 그대로 유지한다.
+function reconcileKrxAutoRecurringTriggersUnlocked_() {
+  const result = { ok: true, repaired: false, recurring: {} };
+
+  KRX_AUTO_RECURRING_RECONCILER_SPECS.forEach(function(spec) {
+    const matching = getKrxAutoSchedulerTriggers_().filter(function(trigger) {
+      return String(trigger.getHandlerFunction() || "") === String(spec.handler || "");
+    });
+
+    if (matching.length === 1) {
+      result.recurring[spec.role] = {
+        handler: spec.handler, hour: spec.hour, installed: true, created: false, duplicateCount: 0
+      };
+      return;
+    }
+
+    if (matching.length > 0) deleteKrxAutoTriggers_(matching);
+    const created = createKrxAutoDailyReconcilerTrigger_(spec.handler, spec.hour);
+    result.repaired = true;
+    result.recurring[spec.role] = {
+      handler: spec.handler,
+      hour: spec.hour,
+      installed: true,
+      created: true,
+      duplicateCount: Math.max(0, matching.length - 1),
+      triggerUid: typeof created.getUniqueId === "function" ? String(created.getUniqueId() || "") : ""
+    };
+  });
+
+  return result;
+}
+
 function runKrxAutoReconcilerHandler_(source) {
   const result = withKrxAutoSchedulerLock_(function() {
-    return reconcileKrxAutoTriggersUnlocked_(new Date());
+    // Main/Guard 어느 하나가 실행되더라도 recurring 3종 자체부터 복구한 뒤
+    // 당일 09:01/15:31 one-shot을 점검한다. Guard-of-Guard를 추가하지 않는 상호복구 구조다.
+    const recurringRepair = reconcileKrxAutoRecurringTriggersUnlocked_();
+    const reconciled = reconcileKrxAutoTriggersUnlocked_(new Date());
+    reconciled.recurringRepair = recurringRepair;
+    return reconciled;
   });
   if (result && typeof result === "object") result.reconcileSource = String(source || "scheduled");
   return result;
