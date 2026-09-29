@@ -175,7 +175,7 @@
   --compact-control-font-size:var(--type-size-xs);
   --compact-control-font-weight:var(--type-weight-bold);
   --compact-control-line-height:1;
-  --compact-control-ios-optical-shift:.5px;
+  --compact-control-ios-optical-shift:1.5px;
   /* State Toggle · 별도수익/Y축 자동 재계산의 ON/OFF geometry 단일 원천 */
   --state-toggle-state-min-width:28px;
   --state-toggle-pad-x:8px;
@@ -1663,7 +1663,7 @@ button.legend-item.chart-series-all.active{
 
 /* iOS Optical Alignment · 실제 iOS/WebKit의 작은 굵은 글자 rasterization만 보정
    - F12/PC Chrome에는 적용하지 않는다.
-   - text span은 0.5px 직접 이동, direct-text button은 top padding 1px로 같은 0.5px visual bias를 만든다.
+   - text span은 1.5px 직접 이동, direct-text button은 top padding 3px로 같은 1.5px visual bias를 만든다.
    - Phone 메인 별도수익 ON/OFF는 special.css의 기존 compact 1px 보정이 후순위로 유지된다. */
 @supports (-webkit-touch-callout:none){
   @media screen and (hover:none) and (pointer:coarse){
