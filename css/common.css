@@ -68,6 +68,7 @@
   --control-line-height:1;
   --type-line-tight:1.2;
   --type-line-compact:1.25;
+  --asset-change-top-line-height:1.33;
   --type-line-body:1.35;
   --type-line-relaxed:1.4;
   --type-line-helper:1.45;
@@ -2384,7 +2385,7 @@ body.chart-expanded-open .dash-tooltip{
 .change-price{
   display:block;
   font-weight:var(--type-weight-semibold);
-  line-height:var(--type-line-compact);
+  line-height:var(--asset-change-top-line-height);
   white-space:nowrap;
 }
 
@@ -2399,7 +2400,7 @@ body.chart-expanded-open .dash-tooltip{
   white-space:nowrap;
 }
 .asset-change-delta-value{
-  line-height:var(--type-line-compact);
+  line-height:var(--asset-change-top-line-height);
 }
 .asset-change-delta-rate{
   margin-top:var(--space-2xs);
