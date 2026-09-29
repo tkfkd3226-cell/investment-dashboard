@@ -2406,3 +2406,13 @@ test('추적 현금은 최신 확인값을 기준으로 표시하고 계좌1 검
   assert.doesNotMatch(sourceBlock,/realizedProfitRow|internalCashReturnRow/);
   assert.match(sourceBlock,/internalCashNetRow=internalCashPrincipalNet\?sourceTableRow\('내부 현금 순이동'/);
 });
+
+test('전일 대비 일변동 표시 순서·지정 modal label·연금 compact tooltip stacking 계약을 유지한다',()=>{
+  assert.match(uiCommon,/function renderAssetDayChangeValue\([^]*?asset-change-delta-value \$\{rateClass\}[^]*?\$\{rateText\}[^]*?asset-change-delta-rate \$\{amountClass\}[^]*?\$\{amountText\}/,'일변동 셀은 위=등락률, 아래=변동금액 순서를 유지해야 한다');
+  assert.match(common,/--modal-label-weight:var\(--type-weight-bold\)/,'지정 modal label 700은 공통 토큰으로 소유해야 한다');
+  assert.match(common,/\.action-modal-label\{[^}]*font-weight:var\(--modal-label-weight\)/s,'KRX/action modal label은 700 token을 사용해야 한다');
+  assert.match(common,/\.contrib-field-label\{[^}]*font-weight:var\(--modal-label-weight\)/s,'퇴직연금 조정 field label은 700 token을 사용해야 한다');
+  assert.match(common,/:is\(\.contrib-modal-card \.contrib-target-option,\.portfolio-heatmap-card \.portfolio-heatmap-mode-tab,\.portfolio-heatmap-card \.portfolio-heatmap__legend\)\{[^}]*font-weight:var\(--modal-label-weight\)/s,'퇴직연금/히트맵의 label성 mode·legend도 700을 공유해야 한다');
+  assert.match(common,/:is\(#pension-chart-cum,#pension-chart-symbol\)\.compact-chart-ui \.chart-head\{[^}]*position:relative;[^}]*z-index:40/s,'모바일 연금 차트 title tooltip layer는 scroll chart보다 위여야 한다');
+  assert.match(common,/:is\(#pension-chart-cum,#pension-chart-symbol\)\.compact-chart-ui \.chart-wrap\{[^}]*position:relative;[^}]*z-index:1/s,'모바일 연금 차트 scroll layer는 title layer 아래여야 한다');
+});

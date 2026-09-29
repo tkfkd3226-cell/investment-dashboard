@@ -296,6 +296,7 @@
   --modal-overlay-soft:rgba(15,23,42,.45);
   --modal-description-color:#64748b;
   --modal-label-color:#334155;
+  --modal-label-weight:var(--type-weight-bold);
   --action-input-bg:#ffffff;
   --action-input-text:var(--text);
   --toast-bg:#0f172a;
@@ -1929,6 +1930,15 @@ body.chart-expanded-open .dash-tooltip{
 }
 /* Portrait Phone Chart Flow · 세로폰 전용: switch/화살표 → 차트 → 범례 → 옵션 */
 .chart-card.phone-chart-ui .chart-head{margin-bottom:0}
+/* Pension Compact Chart Info Tooltip · iOS scroll layer보다 title tooltip을 위 stacking layer에 둔다. */
+:is(#pension-chart-cum,#pension-chart-symbol).compact-chart-ui .chart-head{
+  position:relative;
+  z-index:40;
+}
+:is(#pension-chart-cum,#pension-chart-symbol).compact-chart-ui .chart-wrap{
+  position:relative;
+  z-index:1;
+}
 .chart-scroll-row{
   display:none;
   align-items:center;
@@ -2633,7 +2643,7 @@ body.chart-expanded-open .dash-tooltip{
 .contrib-field label,
 .contrib-field-label{
   font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-bold);
+  font-weight:var(--modal-label-weight);
   line-height:var(--type-line-single);
   color:var(--muted);
 }
@@ -3099,6 +3109,10 @@ body.dashboard-dialog-open{
 :is(.contrib-target-tabs,.monthly-calendar-mode-tabs,.portfolio-heatmap-mode-tabs){background:var(--modal-segment-group-bg)}
 :is(.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab){color:var(--modal-segment-text)}
 :is(.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab).active{background:var(--modal-segment-active-bg);color:var(--modal-segment-active-text)}
+/* Modal Label Weight · 지정 modal의 field/mode/legend label은 700을 공유한다. */
+:is(.contrib-modal-card .contrib-target-option,.portfolio-heatmap-card .portfolio-heatmap-mode-tab,.portfolio-heatmap-card .portfolio-heatmap__legend){
+  font-weight:var(--modal-label-weight);
+}
 :is(.contrib-target-option,.monthly-calendar-mode-tab,.portfolio-heatmap-mode-tab):not(.active):focus-visible{
   background:var(--modal-segment-hover-bg);
   color:var(--modal-segment-hover-text);
@@ -3855,7 +3869,7 @@ html.dark .realtime-quote-modal{
   margin-bottom:var(--space-xl);
   color:var(--modal-label-color);
   font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-regular);
+  font-weight:var(--modal-label-weight);
 }
 /* Modal Form Focus · action input과 pension control shell의 focus UI를 공유한다. */
 :is(.action-modal-input:focus,.contrib-modal .pension-control-shell:focus-within){

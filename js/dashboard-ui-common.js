@@ -148,7 +148,8 @@ function renderDashboardDataTable({id='',wrapClass='mobile-scroll table-view',ta
   return `<div${id?` id="${id}"`:''} class="${wrapClass}"><table class="${tableClass}"><caption class="visually-hidden">${caption}</caption>${headHtml?`<thead><tr>${headHtml}</tr></thead>`:''}<tbody>${bodyHtml}</tbody></table></div>`;
 }
 function renderAssetDayChangeValue({amountText='-',rateText='-',amountClass='',rateClass=''}={}){
-  return `<span class="asset-change-delta-value ${amountClass}">${amountText}</span><span class="asset-change-delta-rate ${rateClass}">${rateText}</span>`;
+  // 위치별 typography는 그대로 유지하고 표시값만 등락률 → 변동금액 순으로 배치한다.
+  return `<span class="asset-change-delta-value ${rateClass}">${rateText}</span><span class="asset-change-delta-rate ${amountClass}">${amountText}</span>`;
 }
 function renderAssetMobileCards(cards=[]){
   return cards.map(card=>mobileInfoCard(card.title,card.items||[],card.extraClass||'',card.accessibleLabel||'')).join('');
