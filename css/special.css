@@ -601,8 +601,6 @@
     .separate-profit-control-note{display:none}
     .separate-profit-control-row .separate-profit-toggle{
       --separate-profit-height:25px;
-      --separate-profit-font-size:var(--type-size-xs);
-      --separate-profit-state-font-size:var(--type-size-xs);
       --separate-profit-state-min-width:34px;
       --separate-profit-pad-x:var(--space-xs);
       --separate-profit-gap:0;
@@ -895,10 +893,7 @@
       --separate-profit-pad-x:var(--space-lg);
       padding:1px var(--separate-profit-pad-x);
     }
-    .separate-profit-control-row .separate-profit-toggle-label{
-      display:inline;
-      line-height:var(--dashboard-control-line-height);
-    }
+    .separate-profit-control-row .separate-profit-toggle-label{display:inline}
 
   /* Monthly Calendar Controls · 가로폰은 넓은 폭을 활용해 mode tabs와 별도수익 toggle을 같은 행에 배치 */
     .monthly-calendar-controls{

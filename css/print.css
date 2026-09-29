@@ -387,8 +387,6 @@
     }
     .separate-profit-control-row .separate-profit-toggle{
       --separate-profit-height:unset;
-      --separate-profit-font-size:unset;
-      --separate-profit-state-font-size:unset;
       --separate-profit-state-min-width:unset;
       --separate-profit-pad-x:unset;
       --separate-profit-gap:unset;

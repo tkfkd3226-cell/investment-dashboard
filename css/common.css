@@ -171,20 +171,18 @@
   --dashboard-control-state-font-size:var(--type-size-2xs);
   --dashboard-control-state-min-width:28px;
   --dashboard-control-pad-x:8px;
-  /* State Toggle · 별도수익/Y축 자동 재계산의 label + ON/OFF typography/geometry 단일 원천 */
-  --state-toggle-font-size:var(--type-size-xs);
-  --state-toggle-state-font-size:var(--type-size-xs);
-  --state-toggle-font-weight:var(--type-weight-bold);
+  /* Compact Control Typography · state toggle/segmented/chart 전체의 소형 control typography 단일 원천 */
+  --compact-control-font-size:var(--type-size-xs);
+  --compact-control-font-weight:var(--type-weight-bold);
+  --compact-control-line-height:1;
+  /* State Toggle · 별도수익/Y축 자동 재계산의 ON/OFF geometry 단일 원천 */
   --state-toggle-state-min-width:28px;
   --state-toggle-pad-x:8px;
   --state-toggle-gap:var(--space-md);
   --state-toggle-state-height:18px;
   --state-toggle-state-pad-x:var(--space-md);
-  /* Separate Profit Toggle · 기본형은 Web/Tablet/월간 모달 전 viewport가 공유하고 Phone 메인만 feature scope에서 compact override */
+  /* Separate Profit Toggle · 기본형은 Web/Tablet/월간 모달 전 viewport가 공유하고 Phone 메인만 geometry를 compact override */
   --separate-profit-height:29px;
-  --separate-profit-font-size:var(--state-toggle-font-size);
-  --separate-profit-state-font-size:var(--state-toggle-state-font-size);
-  --separate-profit-font-weight:var(--state-toggle-font-weight);
   --separate-profit-state-min-width:var(--state-toggle-state-min-width);
   --separate-profit-pad-x:var(--state-toggle-pad-x);
   --separate-profit-gap:var(--state-toggle-gap);
@@ -1518,11 +1516,11 @@ svg.chart:focus-visible{
   opacity:.38;
 }
 
-/* Chart State Control Typography · 전체/Y축 자동 재계산 label은 state-toggle 공통 typography를 공유 */
+/* Compact Control Typography · 차트 전체/state-toggle/segmented가 동일한 typography token을 공유 */
 :is(.chart-series-all,.state-toggle){
-  --dashboard-control-font-size:var(--state-toggle-font-size);
-  font-weight:var(--state-toggle-font-weight);
-  line-height:1;
+  --dashboard-control-font-size:var(--compact-control-font-size);
+  font-weight:var(--compact-control-font-weight);
+  line-height:var(--compact-control-line-height);
 }
 
 button.legend-item.chart-series-all{
@@ -1541,12 +1539,12 @@ button.legend-item.chart-series-all.active{
 
 /* State Toggle Base · 별도수익/Y축 자동 재계산이 동일 primitive를 사용 */
 .state-toggle{
-  --dashboard-control-font-size:var(--state-toggle-font-size);
-  --dashboard-control-state-font-size:var(--state-toggle-state-font-size);
+  --dashboard-control-font-size:var(--compact-control-font-size);
+  --dashboard-control-state-font-size:var(--compact-control-font-size);
   --dashboard-control-state-min-width:var(--state-toggle-state-min-width);
   --dashboard-control-state-height:var(--state-toggle-state-height);
   --dashboard-control-state-pad-x:var(--state-toggle-state-pad-x);
-  --dashboard-control-state-font-weight:var(--state-toggle-font-weight);
+  --dashboard-control-state-font-weight:var(--compact-control-font-weight);
   gap:var(--state-toggle-gap);
   flex:0 0 auto;
   padding:0 var(--state-toggle-pad-x);
@@ -1559,7 +1557,7 @@ button.legend-item.chart-series-all.active{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  line-height:1;
+  line-height:var(--compact-control-line-height);
 }
 
 .state-toggle-state{
@@ -1575,7 +1573,7 @@ button.legend-item.chart-series-all.active{
   color:var(--state-chip-text);
   font-size:var(--dashboard-control-state-font-size);
   font-weight:var(--dashboard-control-state-font-weight);
-  line-height:1;
+  line-height:var(--compact-control-line-height);
   letter-spacing:0;
   text-align:center;
 }
@@ -1649,9 +1647,9 @@ button.legend-item.chart-series-all.active{
   background:transparent;
   color:var(--segmented-text);
   font-family:inherit;
-  font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-bold);
-  line-height:1;
+  font-size:var(--compact-control-font-size);
+  font-weight:var(--compact-control-font-weight);
+  line-height:var(--compact-control-line-height);
   white-space:nowrap;
   cursor:pointer;
 }
@@ -4467,12 +4465,9 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
 }
 .separate-profit-toggle{
   --dashboard-control-height:var(--separate-profit-height);
-  --dashboard-control-font-size:var(--separate-profit-font-size);
-  --dashboard-control-state-font-size:var(--separate-profit-state-font-size);
   --dashboard-control-state-min-width:var(--separate-profit-state-min-width);
   --dashboard-control-state-height:var(--separate-profit-state-height);
   --dashboard-control-state-pad-x:var(--separate-profit-state-pad-x);
-  --dashboard-control-state-font-weight:var(--separate-profit-font-weight);
   --dashboard-control-pad-x:var(--separate-profit-pad-x);
   gap:var(--separate-profit-gap);
   padding:0 var(--separate-profit-pad-x);
