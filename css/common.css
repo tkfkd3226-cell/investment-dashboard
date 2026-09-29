@@ -1349,7 +1349,7 @@ section{
   font-size:var(--mini-value-size);
   line-height:1;
   letter-spacing:-.035em;
-  font-weight:var(--type-weight-semibold);
+  font-weight:var(--type-weight-bold);
   font-variant-numeric:tabular-nums;
   text-rendering:optimizeLegibility;
   margin-top:var(--card-text-rhythm-gap);
@@ -2464,8 +2464,8 @@ body.chart-expanded-open .dash-tooltip{
   --metric-sub-size:13px;
   --metric-value-min-height:35px;
   --metric-label-weight:var(--type-weight-bold);
-  --metric-value-weight:var(--type-weight-semibold);
-  --metric-value-emphasis-weight:var(--type-weight-semibold);
+  --metric-value-weight:var(--type-weight-bold);
+  --metric-value-emphasis-weight:var(--type-weight-bold);
   --metric-sub-weight:var(--type-weight-regular);
 }
 

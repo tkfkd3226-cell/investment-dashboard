@@ -38,6 +38,7 @@
      - step 높이는 고정 token으로 강제하지 않고 실제 control row/container geometry가 소유한다. */
   --button-font-size:12px;
   --button-font-weight:600;
+  --card-value-font-weight:700;
   --button-icon-size:36px;
 }
 
@@ -711,7 +712,7 @@ html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#s
 :where(html[data-add-page="calc"]) :is(.calc-summary-panel,.kpis,.range-panel,.summary-row,.mobile-data){gap:var(--calc-card-gap)}
 :where(html[data-add-page="calc"]) .calc-summary-panel{margin-bottom:var(--calc-card-gap)}
 :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
-:where(html[data-add-page="calc"]) :is(.kpi .value,.range-box .big,.summary-card .svalue){font-size:var(--calc-type-emphasis-value);font-weight:600;line-height:1}
+:where(html[data-add-page="calc"]) :is(.kpi .value,.range-box .big,.summary-card .svalue){font-size:var(--calc-type-emphasis-value);font-weight:var(--card-value-font-weight);line-height:1}
 :where(html[data-add-page="calc"]) .kpi .value{margin-top:2px;letter-spacing:-.03em}
 
 :where(html[data-add-page="calc"]) .range-panel{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -1015,7 +1016,7 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
 :where(html[data-add-page="report"]) :is(.section-title,.split-group-head) p{font-size:var(--report-type-support);color:var(--muted);margin:0;line-height:1.55}
 :where(html[data-add-page="report"]) :is(.split-summary-item span,.split-total>div:first-child small,.split-total-mobile-card span){display:block;color:var(--muted);font-size:var(--report-type-micro)}
 :where(html[data-add-page="report"]) :is(.split-summary-item span,.split-total-mobile-card span){font-weight:700;line-height:1}
-:where(html[data-add-page="report"]) :is(.split-summary-item strong,.split-total-mobile-card strong){display:block;font-size:15px;line-height:1}
+:where(html[data-add-page="report"]) :is(.split-summary-item strong,.split-total-mobile-card strong){display:block;font-size:15px;font-weight:var(--card-value-font-weight);line-height:1}
 
 /* =========================================================
    02. 히어로 / 상단 메뉴 / 패널 전환
@@ -1035,7 +1036,7 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
 :where(html[data-add-page="report"]) .hero-chip{position:relative;overflow:hidden;padding:var(--density-gap-sm) var(--density-gap-md);border:1px solid rgba(255,255,255,.20);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.055));box-shadow:inset 0 1px 0 rgba(255,255,255,.10);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 :where(html[data-add-page="report"]) .hero-chip:after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#fdba74,#fb923c)}
 :where(html[data-add-page="report"]) .hero-chip span{display:block;font-size:9.5px;line-height:1;color:var(--report-hero-kicker-text);font-weight:700;letter-spacing:.015em}
-:where(html[data-add-page="report"]) .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1;letter-spacing:-.035em;font-weight:600}
+:where(html[data-add-page="report"]) .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1;letter-spacing:-.035em;font-weight:var(--card-value-font-weight)}
 /* Canonical report data load failure · 정상 로딩 시 hidden 상태라 기존 화면에는 영향 없음. */
 :where(html[data-add-page="report"]) .report-load-error{
   margin:0 0 var(--density-layout-gap);
@@ -1072,7 +1073,7 @@ html:where([data-add-page="report"]).dark .tab{box-shadow:0 1px 2px rgba(0,0,0,.
     linear-gradient(145deg,var(--card),var(--surface-subtle));box-shadow:0 12px 30px rgba(var(--report-depth-rgb),.085)}
 :where(html[data-add-page="report"]) .kpi:before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--energy-violet),var(--energy-cyan),var(--energy-gold))}
 :where(html[data-add-page="report"]) .kpi .label{font-size:12px;color:var(--muted);font-weight:700;line-height:1;letter-spacing:.015em}
-:where(html[data-add-page="report"]) .kpi .value{font-size:25px;font-weight:600;line-height:1;letter-spacing:-.045em;margin-top:var(--density-gap-xs);text-shadow:0 4px 14px rgba(35,37,70,.055)}
+:where(html[data-add-page="report"]) .kpi .value{font-size:25px;font-weight:var(--card-value-font-weight);line-height:1;letter-spacing:-.045em;margin-top:var(--density-gap-xs);text-shadow:0 4px 14px rgba(35,37,70,.055)}
 :where(html[data-add-page="report"]) .kpi .sub{line-height:1.55}
 :where(html[data-add-page="report"]) .grid-2{display:grid;grid-template-columns:1.08fr .92fr;gap:var(--density-gap-lg);margin-top:var(--density-gap-lg);align-items:stretch}
 :where(html[data-add-page="report"]) .section-card{padding:var(--density-surface-lg)}
@@ -1087,7 +1088,7 @@ html:where([data-add-page="report"]).dark .chart-wrap{box-shadow:inset 0 1px 0 r
 :where(html[data-add-page="report"]) .donut:after{content:"";position:absolute;inset:25px;border-radius:50%;background:var(--card)}
 :where(html[data-add-page="report"]) .donut[data-composition-state="unavailable"]{background:conic-gradient(var(--row-line) 0 100%)}
 :where(html[data-add-page="report"]) .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}
-:where(html[data-add-page="report"]) .donut-center strong{font-size:21px;line-height:1} :where(html[data-add-page="report"]) .donut-center span{font-size:var(--report-type-micro);line-height:1;color:var(--muted)}
+:where(html[data-add-page="report"]) .donut-center strong{font-size:21px;font-weight:var(--card-value-font-weight);line-height:1} :where(html[data-add-page="report"]) .donut-center span{font-size:var(--report-type-micro);line-height:1;color:var(--muted)}
 :where(html[data-add-page="report"]) .donut[data-composition-state="unavailable"] .donut-center strong{font-size:15px}
 :where(html[data-add-page="report"]) .composition-state-note{margin:0 0 var(--density-gap-md);color:var(--muted);font-size:var(--report-type-micro);font-weight:600;line-height:1.45;text-align:center}
 :where(html[data-add-page="report"]) .composition-state-note[hidden]{display:none}
