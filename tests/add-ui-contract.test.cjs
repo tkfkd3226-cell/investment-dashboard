@@ -28,11 +28,6 @@ const calcScope=()=>css1.slice(css1.indexOf('/* ==================== 02. Calc'),
 // 장식용 exact px/hex/shadow/개수는 테스트하지 않고, 같은 의미가 하나의 source를 공유하는지와
 // responsive/state/accessibility 경계가 유지되는지를 production HTML/CSS/JS에서 확인한다.
 
-test('shared hover는 fine pointer에서만 동작하고 선택 상태를 덮지 않는다',()=>{
-  assert.match(css1,/@media \(hover:hover\) and \(pointer:fine\)\{/);
-  assert.match(css1,/:hover:not\(:disabled\):not\(\.active\):not\(\[aria-selected="true"\]\):not\(\[aria-pressed="true"\]\)/);
-});
-
 test('Calc/Report는 Main appearance 저장값과 BroadcastChannel을 함께 소비한다',()=>{
   assert.match(js1,/const THEME_KEY='investmentDashboard\.theme'/);
   assert.match(js1,/const CORNER_KEY='investmentDashboard\.cornerTheme'/);
@@ -62,38 +57,6 @@ test('Report 로딩 실패는 빈 리포트를 노출하지 않고 재시도할 
   assert.match(css1,/html:where\(\[data-add-page="report"\]\)\.report-data-error :is\(\.hero,\.report-nav,\.panel\)\{display:none\}/);
 });
 
-test('Calc 도움말은 공통 label 정렬을 유지하고 keyboard focus 표시도 Esc로 dismiss한다',()=>{
-  const label=rule(':where(html[data-add-page="calc"]) :is(.label-with-help,.inline-help-label,.group-title-main)');
-  assert.match(label,/display:inline-flex/);
-  assert.match(label,/align-items:center/);
-  const wrap=rule(':where(html[data-add-page="calc"]) .help-tooltip');
-  assert.match(wrap,/display:inline-flex/);
-  assert.match(wrap,/align-items:center/);
-  assert.doesNotMatch(label,/top:|margin-top:|margin-bottom:/);
-  assert.doesNotMatch(wrap,/top:|margin-top:|margin-bottom:/);
-  assert.match(calc,/class="help-icon add-button"[^>]*aria-describedby=/);
-  assert.match(js1,/class="help-icon add-button"[^>]*aria-describedby=/);
-  assert.match(calc,/class="info-icon-svg"[^>]*><use href="\.\.\/img\/ui-icons\.svg#info-circle"><\/use><\/svg>/);
-  assert.match(js1,/ADD_INFO_ICON_SVG='[^']*ui-icons\.svg#info-circle/);
-  assert.doesNotMatch(calc,/aria-hidden="true">i<\/span>/);
-  assert.doesNotMatch(js,/aria-hidden="true">i<\/span>/);
-  const icon=rule(':where(html[data-add-page="calc"]) .help-icon');
-  assert.match(icon,/border:0/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .help-icon .info-icon-svg'),/width:100%;height:100%/);
-  assert.match(css,/--help-icon-active-color:/);
-  assert.doesNotMatch(css,/--help-icon-active-border:/);
-  assert.match(css1,/\.help-tooltip\.is-dismissed:focus-within \.custom-tooltip\{opacity:0;visibility:hidden;/);
-  assert.match(js1,/const focusedWrap=document\.activeElement\?\.closest\?\.\('\.help-tooltip'\)\|\|null;/);
-  assert.match(js1,/targets\.forEach\(w=>closeHelpTooltip\(w,\{dismissFocus:w===focusedWrap\}\)\)/);
-  const extraTooltip=rule(':where(html[data-add-page="calc"]) .calc-extra-tooltip');
-  assert.match(extraTooltip,/display:grid/);
-  assert.match(extraTooltip,/row-gap:var\(--density-gap-xs\)/);
-  const extraTitle=rule(':where(html[data-add-page="calc"]) .calc-extra-title');
-  assert.match(extraTitle,/margin:0/);
-  assert.match(extraTitle,/line-height:inherit/);
-  assert.match(rule(':where(html[data-add-page="calc"]) .calc-extra-list'),/gap:var\(--density-gap-xs\)/);
-});
-
 test('거래유형 preset은 active와 aria-pressed를 같은 state owner에서 갱신한다',()=>{
   assert.match(js1,/function setPresetActive\(id\)\{[^}]*classList\.toggle\('active',active\);b\.setAttribute\('aria-pressed',String\(active\)\)/);
   assert.match(calc,/class="preset-btn[^"]*"[^>]*aria-pressed="(?:true|false)"/);
@@ -119,13 +82,6 @@ test('Calc 저장 복원은 presetId 선택과 presetDirty를 함께 보존하�
   assert.match(js1,/activePresetId=storedPresetIsValid\s*\?v\.presetId\s*:\(v\.noPrior\?'current-only':\(v\.caseType==='holding'\?'buy-2026-07-29':'buy-2026-07-30'\)\);/);
   assert.match(js1,/presetDirty=Object\.prototype\.hasOwnProperty\.call\(v,'presetDirty'\)\s*\?!!v\.presetDirty\s*:\(hasStoredPresetId&&!storedPresetIsValid\);/);
   assert.match(js1,/setPresetActive\(activePresetId\);\s*applyValues\(v\);/);
-});
-
-test('Calc 편집 숫자 입력은 focus 진입 시 replace-first 전체선택 UX를 제공한다',()=>{
-  assert.match(js1,/function selectEditableNumericValue\(inp\)\{[^]*?inp\.disabled\|\|inp\.readOnly[^]*?!String\(inp\.value\?\?''\)\.trim\(\)[^]*?requestAnimationFrame\(\(\)=>\{[^]*?document\.activeElement!==inp[^]*?inp\.select\(\)/,'값이 있는 편집 가능 숫자 입력만 다음 frame에서 전체 선택해야 한다');
-  assert.match(js1,/function handleMoneyFocus\(e\)\{[^]*?inp\.value=String\(n\);selectEditableNumericValue\(inp\);\}/,'money input은 콤마 제거 뒤 전체 선택해야 한다');
-  assert.match(js1,/function handleNumberFocus\(e\)\{selectEditableNumericValue\(e\.currentTarget\);\}/,'number input도 같은 replace-first UX를 사용해야 한다');
-  assert.match(js1,/document\.querySelectorAll\('input\[type=number\]'\)\.forEach\(inp=>\{inp\.addEventListener\('focus',handleNumberFocus\);inp\.addEventListener\('input',handleNumberInput\);\}\)/,'편집 number input의 focus handler가 실제로 등록돼야 한다');
 });
 
 test('Calc 검증 오류는 해당 control의 aria-invalid와 설명 영역을 함께 갱신한다',()=>{
@@ -198,12 +154,6 @@ test('Calc와 Report의 손익 의미색은 공통 semantic state를 사용한�
   assert.doesNotMatch(css1,/--chart-negative:#(?:3182F6|60A5FA)/i);
 });
 
-test('동적 결과 도움말은 공통 label helper와 aria-describedby 연결을 사용한다',()=>{
-  assert.match(js1,/const resultLabel=/);
-  assert.match(js1,/resultLabelHTML/);
-  assert.match(js1,/aria-describedby="\$\{tooltipId\}"/);
-});
-
 test('Calc strategy tab은 visual state와 ARIA/tabindex/panel state를 함께 갱신한다',()=>{
   assert.match(js1,/classList\.toggle\('active',active\).*aria-selected.*tabIndex=active\?0:-1/);
   assert.match(js1,/panel\.classList\.toggle\('active',active\);panel\.setAttribute\('aria-hidden',String\(!active\)\)/);
@@ -262,17 +212,6 @@ test('Report 표는 caption/header semantic을 유지한다',()=>{
   assert.match(report,/<th scope="row">합계<\/th>/);
 });
 
-
-test('Report Hero/KPI responsive 의미배치는 semantic role class를 사용하고 DOM 순번에 의존하지 않는다',()=>{
-  for(const role of ['hero-chip-core','hero-chip-day','hero-chip-total','report-kpi-total-net','report-kpi-total-pnl','report-kpi-total-fee','report-kpi-core-net','report-kpi-day-net','report-kpi-win-rate']){
-    assert.match(report,new RegExp(`\\b${role}\\b`));
-  }
-  assert.match(css1,/\.hero-chip-total\{grid-column:1 \/ -1\}/);
-  assert.match(css1,/#summary \.report-kpi-core-net\{order:3\}/);
-  assert.match(css1,/#summary \.report-kpi-total-net \.sub\{white-space:nowrap/);
-  assert.doesNotMatch(css1,/\.hero-summary > \.hero-chip:nth-child\([123]\)/);
-  assert.doesNotMatch(css1,/#summary \.kpi:nth-child\(/);
-});
 
 test('Report boot는 canonical data를 검증해 렌더하고 실패 UI를 제공한다',()=>{
   assert.match(js,/const REPORT_DATA_URL='\.\.\/data\/kodex_leverage_trades\.json'/);

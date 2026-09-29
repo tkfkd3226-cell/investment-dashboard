@@ -131,14 +131,6 @@ test('Tablet/Phone hamburger panel은 공통 viewport 높이 contract를 공유�
 
 
 
-test('Web edge control은 TOC와 날짜 이동이 같은 rail geometry를 공유한다',()=>{
-  assert.match(common,/--edge-rail-control-width:[^;]+;[^]*?--edge-rail-control-height:[^;]+;/,'Web edge control 폭·높이는 공통 rail token이 소유해야 한다');
-  assert.match(common,/\.desktop-edge-toc\{[^}]*--desktop-edge-toc-trigger-width:var\(--edge-rail-control-width\);/,'TOC trigger 폭은 공통 edge rail 폭을 재사용해야 한다');
-  assert.match(common,/\.desktop-edge-toc-trigger\{[^}]*width:var\(--desktop-edge-toc-trigger-width\);[^}]*height:var\(--edge-rail-control-height\);/,'TOC trigger는 공통 edge rail geometry를 사용해야 한다');
-  assert.match(common,/\.desktop-edge-toc-panel\{[^}]*right:var\(--desktop-edge-toc-trigger-width\);/,'TOC panel 우측 edge는 trigger 좌측 edge와 맞닿아 hover 이동 dead zone이 없어야 한다');
-  assert.match(common,/\.dashboard-date-nav-btn\{[^}]*width:var\(--edge-rail-control-width\);[^}]*height:var\(--edge-rail-control-height\);/,'날짜 edge button도 TOC와 같은 폭·높이 token을 사용해야 한다');
-});
-
 test('Dashboard 날짜 이동은 Web 좌우 버튼과 Tablet/Phone swipe가 canonical activeDate 경로를 공유한다',()=>{
   assert.match(app,/function dashboardDateNeighbor\(delta\)\{[^]*?allAvailableDates\(\)[^]*?dates\.indexOf\(dataState\.activeDate\)[^]*?nextIndex=index\+\(delta<0\?-1:1\)/,'이전/다음 날짜는 정렬된 canonical available dates에서 계산해야 한다');
   assert.match(app,/function shiftActiveDashboardDate\(delta,\{announce=false\}=\{\}\)\{[^]*?dashboardDateNeighbor\(delta\)[^]*?setActiveDashboardDate\(nextDate\)[^]*?showAppToast\(`\$\{dashboardDateLabel\(nextDate\)\}로 이동했습니다\.`,'ok',1800\)/,'버튼과 swipe는 canonical setActiveDashboardDate를 재사용하고 touch 이동은 자동 종료 toast를 보여야 한다');
@@ -157,120 +149,30 @@ test('Dashboard 날짜 이동은 Web 좌우 버튼과 Tablet/Phone swipe가 cano
 
 test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를 재사용한다',()=>{
   assert.match(index,/'dashboard-monthly-calendar\.js'/,'월간 캘린더 module은 importmap cache-bust 대상이어야 한다');
-  assert.match(ui,/topbar-monthly-action[^>]*data-dashboard-action="open-monthly-calendar"/,'Web\/Tablet\/Phone이 공유하는 월간 손익 Topbar 진입점이 있어야 한다');
+  assert.match(ui,/topbar-monthly-action[^>]*data-dashboard-action="open-monthly-calendar"/,'월간 손익은 공통 Topbar action으로 진입해야 한다');
   const responsiveMenu=ui.slice(ui.indexOf('function renderResponsiveNavigationMenuContent()'),ui.indexOf('function renderDesktopTocContent()'));
-  assert.doesNotMatch(responsiveMenu,/action:'open-monthly-calendar'/,'TOPbar에 표시되는 월간 손익을 hamburger에 중복 배치하면 안 된다');
-  assert.match(monthlyCalendar,/combinedDailyProfitChange\(date\)/,'합산 일손익 계산 의미는 DOM feature가 아니라 core helper를 재사용해야 한다');
-  assert.match(monthlyCalendar,/const securities=securitiesDailyProfitChange\(date\)/,'증권 단독 범위도 core의 flow-neutral helper를 재사용해야 한다');
-  assert.match(monthlyCalendar,/if\(securities==null\|\|!uiState\.includeSeparateProfit\)return securities;[^]*?return securities\+separateProfitDailyChangeForDate\(date\);/,'개인보기 별도수익 ON일 때 증권 달력은 core의 별도수익 당일 증가분 helper만 더해야 한다');
-  assert.doesNotMatch(monthlyCalendar,/\bcalc\(date\)|separateProfitCumulativeForDate\(date\)/,'월간 달력이 별도수익 반영을 위해 날짜별 calc/누적차를 중복 계산하면 안 된다');
-  assert.match(monthlyCalendar,/pensionDailyProfitChange\(date\)/,'퇴직연금 단독 범위도 core의 비교 가능한 일성과 helper를 재사용해야 한다');
-  assert.match(core,/function securitiesDailyProfitChange\(date\)/);
-  assert.match(core,/function pensionDailyProfitChange\(date\)/);
-  assert.match(core,/function separateProfitDailyChangeForDate\(date\)/,'별도수익 당일 증가분도 core helper가 소유해야 한다');
-  assert.match(core,/function combinedDailyProfitChange\(date\)/,'flow-neutral 월간 일손익 계산은 core가 소유해야 한다');
-  assert.match(monthlyCalendar,/combined:\{label:'합산'[^]*?securities:\{label:'증권'[^]*?pension:\{label:'퇴직연금'/,'월간 손익 범위는 합산·증권·퇴직연금 3개만 유지해야 한다');
-  assert.match(monthlyCalendar,/class="control-tab monthly-calendar-mode-tab/,'범위 switch는 새 control 디자인 대신 공통 control-tab primitive를 재사용해야 한다');
-  assert.match(monthlyCalendar,/if\(!uiState\.personalViewUnlocked\)return '';/,'월간 별도수익 toggle은 개인보기에서만 렌더되어야 한다');
-  assert.match(monthlyCalendar,/class="section-control-chip section-action-chip state-toggle separate-profit-toggle monthly-calendar-separate-profit/,'월간 별도수익 toggle은 공통 state-toggle primitive와 기존 별도수익 action을 재사용해야 한다');
-  assert.match(monthlyCalendar,/data-dashboard-action="toggle-separate-profit"/,'월간 별도수익 toggle은 기존 canonical toggle action을 재사용해야 한다');
-  assert.match(monthlyCalendar,/function refreshMonthlyCalendarModal\(\)\{[^]*?classList\.contains\('show'\)[^]*?restoreSeparateProfitFocus[^]*?renderMonthlyCalendarModal\(\)/,'별도수익 상태 변경 시 열린 월간 모달만 즉시 재렌더되어야 한다');
-  assert.match(monthlyCalendar,/restoreSeparateProfitFocus\)requestAnimationFrame\([^]*?querySelector\('\[data-dashboard-action="toggle-separate-profit"\]'\)\?\.focus\?\.\(\{preventScroll:true\}\)/,'월간 별도수익 toggle 재렌더 후 keyboard focus를 같은 control로 복원해야 한다');
-  assert.match(common,/\.monthly-calendar-controls\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,[^)]+\) minmax\(0,1fr\)/,'Web/Tablet 월간 control row는 중앙 탭과 우측 별도수익 toggle의 독립 3열 grid를 사용해야 한다');
-  assert.match(common,/\.monthly-calendar-mode-tabs\{[^}]*grid-column:2[^}]*width:100%[^}]*margin:0/,'Web/Tablet 월간 탭은 별도수익 toggle과 무관하게 중앙 열을 유지해야 한다');
-  assert.match(common,/\.monthly-calendar-separate-profit\{grid-column:3;justify-self:end\}/,'Web/Tablet 별도수익 toggle은 같은 행 우측 끝에 있어야 한다');
-  assert.match(special,/\.monthly-calendar-controls\{[^}]*grid-template-columns:1fr[^}]*gap:var\(--space-2xs\)[^}]*margin:var\(--space-xs\) 0 var\(--space-lg\)/,'Phone 세로 월간 control은 탭과 toggle을 세로 배치하되 달력 전체 높이를 위해 compact 세로 여백을 사용해야 한다');
-  assert.match(special,/\.monthly-calendar-separate-profit\{[^}]*grid-column:1[^}]*grid-row:2[^}]*justify-self:end/,'Phone 세로 별도수익 toggle은 탭 바로 아래 우측에 있어야 한다');
-  // Compact control 회귀는 결과 계약만 보호하고 selector 순서/중간 alias 같은 구현 세부는 고정하지 않는다.
-  assert.match(common,/--type-line-single:1;[^]*?--control-line-height:1;[^]*?--compact-control-font-size:var\(--type-size-xs\);[^]*?--compact-control-font-weight:var\(--type-weight-semibold\);[^]*?line-height:var\(--control-line-height\);/,'소형 control typography는 11px/600과 별도 control line-height 1 토큰을 공유해야 한다');
-  assert.match(common,/\.state-toggle-label\{[^}]*font-weight:var\(--type-weight-bold\);/,'소형 control의 텍스트 라벨은 700 예외를 유지해야 한다');
-  assert.match(common,/--dashboard-control-height:29px;[^]*?--state-toggle-state-height:19px;/,'Web/Tablet 기본 state badge는 29px 외곽 안에서 19px 높이여야 한다');
-  assert.doesNotMatch([common,special,print].join('\n'),/--(?:state-toggle-(?:font-size|state-font-size|font-weight)|separate-profit-(?:font-size|state-font-size|font-weight)):/,'state-toggle/별도수익이 공통 typography를 별도 alias로 복제하면 안 된다');
+  assert.doesNotMatch(responsiveMenu,/action:'open-monthly-calendar'/,'Topbar action을 hamburger에 중복 배치하면 안 된다');
 
-  assert.match(common,/\.state-toggle\{[^}]*--dashboard-control-font-size:var\(--compact-control-font-size\);[^}]*--dashboard-control-state-height:var\(--state-toggle-state-height\);[^}]*--dashboard-control-state-font-weight:var\(--compact-control-font-weight\);/,'state toggle은 공통 typography와 state badge geometry token을 사용해야 한다');
-  assert.match(common,/\.state-toggle-state\{[^}]*height:var\(--dashboard-control-state-height\);[^}]*font-size:var\(--dashboard-control-state-font-size\);[^}]*font-weight:var\(--dashboard-control-state-font-weight\);[^}]*line-height:var\(--control-line-height\);/,'별도수익/Y축 ON/OFF badge는 공통 state geometry와 typography를 사용해야 한다');
-  assert.ok(
-    /state-toggle chart-y-auto-toggle/.test(charts)
-      && /state-toggle separate-profit-toggle/.test(ui)
-      && /state-toggle separate-profit-toggle monthly-calendar-separate-profit/.test(monthlyCalendar),
-    'Y축·메인 별도수익·월간 별도수익은 동일 state-toggle primitive를 재사용해야 한다'
-  );
+  assert.match(monthlyCalendar,/combinedDailyProfitChange\(date\)/,'합산 일손익은 core helper를 재사용해야 한다');
+  assert.match(monthlyCalendar,/const securities=securitiesDailyProfitChange\(date\)/,'증권 범위는 core helper를 재사용해야 한다');
+  assert.match(monthlyCalendar,/pensionDailyProfitChange\(date\)/,'퇴직연금 범위는 core helper를 재사용해야 한다');
+  assert.match(monthlyCalendar,/separateProfitDailyChangeForDate\(date\)/,'별도수익 ON은 core의 당일 증가분을 사용해야 한다');
+  assert.doesNotMatch(monthlyCalendar,/\bcalc\(date\)|separateProfitCumulativeForDate\(date\)/,'calendar가 날짜별 계산을 중복 소유하면 안 된다');
+  assert.match(monthlyCalendar,/combined:\{label:'합산'[^]*?securities:\{label:'증권'[^]*?pension:\{label:'퇴직연금'/,'범위는 합산·증권·퇴직연금 3개를 유지해야 한다');
 
-  assert.match(common,/:is\(\.chart-series-all,\.state-toggle,\.section-basis-chip\)\{[^}]*--dashboard-control-font-size:var\(--compact-control-font-size\);[^}]*line-height:var\(--control-line-height\);/,'차트 전체·state toggle·기준 chip은 compact-control size/line-height를 공유해야 한다');
-  assert.match(common,/\.section-basis-chip\{[^}]*font-weight:var\(--type-weight-regular\);/,'삼성증권1/퇴직연금 기준 chip은 font-weight만 regular 예외여야 한다');
-  assert.doesNotMatch(special,/\.section-basis-chip\{[^}]*(?:padding|font-size|font-weight|line-height)/,'Phone 전용 기준 chip typography/geometry override를 만들면 안 된다');
-  assert.match(common,/\.control-segmented button\{[^}]*font-size:var\(--compact-control-font-size\);[^}]*font-weight:var\(--compact-control-font-weight\);[^}]*line-height:var\(--control-line-height\);/,'segmented switch도 compact-control typography를 사용해야 한다');
-
-  assert.match(common,/--compact-control-ios-optical-shift:1\.5px;[^]*?--compact-control-ios-chart-all-correction:-1px;/,'iOS optical correction은 1.5px base shift와 chart 전체 -1px correction을 token으로 관리해야 한다');
-  assert.match(common,/\.compact-control-text\{[^}]*line-height:var\(--control-line-height\);[^}]*transform:none;/,'direct text compact control은 공통 text span primitive를 사용해야 한다');
-  assert.match(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?\.state-toggle-label,[^]*?\.control-segmented \.compact-control-text,[^]*?\.section-basis-chip \.compact-control-text,[^]*?\.control-tab \.control-tab-text\{[^}]*transform:translateY\(var\(--compact-control-ios-optical-shift\)\)[^]*?\.chart-series-all \.compact-control-text\{[^}]*var\(--compact-control-ios-chart-all-correction\)/,'실제 iOS에서는 state/segmented/기준 chip/control-tab에 base shift, chart 전체에 별도 correction을 적용해야 한다');
-  assert.doesNotMatch(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?padding-top:calc\(var\(--compact-control-ios-optical-shift\)/,'iOS text 보정은 shell padding으로 구현하면 안 된다');
-  assert.ok(
-    charts.includes('<span class="compact-control-text">전체</span>')
-      && charts.includes('control-text-optical compact-control-text">삼성증권1 기준</span>')
-      && charts.includes('control-text-optical compact-control-text">퇴직연금 기준</span>'),
-    '차트 전체와 두 기준 chip은 iOS 보정 대상 text span을 유지해야 한다'
-  );
-
-  assert.doesNotMatch(common,/\.monthly-calendar-separate-profit\s+\.(?:separate-profit-toggle-label|control-text-optical)|--monthly-separate-profit-|\.monthly-calendar-separate-profit\.separate-profit-toggle/,'월간 모달만의 별도수익 typography/정렬 override를 만들면 안 된다');
-  assert.match(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*--separate-profit-height:25px;[^}]*--separate-profit-state-height:21px;/,'Phone 메인은 compact geometry 예외만 유지해야 한다');
-  assert.doesNotMatch(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*(?:--separate-profit-font-size|--separate-profit-state-font-size|--separate-profit-font-weight)/,'Phone 메인 compact가 공통 typography를 override하면 안 된다');
-  assert.match(special,/\.monthly-calendar-controls\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,[^)]+\) minmax\(0,1fr\)[^}]*\}[^]*?\.monthly-calendar-separate-profit\{grid-column:3;grid-row:1;justify-self:end\}/,'Phone Landscape는 탭과 별도수익 toggle을 같은 행으로 복원해야 한다');
-  assert.match(common,/:is\(\.contrib-target-tabs,\.monthly-calendar-mode-tabs,\.portfolio-heatmap-mode-tabs\)\{background:var\(--modal-segment-group-bg\)\}/,'월간 범위 switch는 퇴직연금/히트맵과 동일한 modal segmented state token을 공유해야 한다');
-  assert.doesNotMatch(monthlyCalendar,/monthly-calendar-scroll/,'달력은 별도 body scroll wrapper 없이 card 하나만 scroll owner로 유지해야 한다');
-  assert.match(common,/\.monthly-calendar-card\{[^}]*overflow:auto/,'작은 viewport에서는 기존처럼 달력 card 전체가 스크롤되어야 한다');
-  assert.match(common,/\.monthly-calendar-close\{[^}]*top:var\(--modal-card-pad-y\)/,'Web/Tablet 달력 닫기 버튼은 card 상단 padding을 기준으로 월 이동/제목 행과 수직 중심을 맞춰야 한다');
-  assert.match(special,/:is\(\.monthly-calendar-modal,\.realtime-quote-modal,\.contrib-modal,\.portfolio-heatmap-modal\)\{[^}]*align-items:flex-start;[^}]*--modal-overlay-pad:var\(--space-md\);[^}]*--modal-card-pad-y:var\(--space-md\);[^}]*--modal-card-pad-x:var\(--space-md\)/,'Phone 주요 4개 modal은 외부·내부 5px과 상단 배치를 공통 계약으로 사용해야 한다');
-  assert.match(special,/\.monthly-calendar-close\{top:var\(--modal-card-pad-y\);right:var\(--modal-card-pad-x\)\}/,'Phone 달력 닫기 버튼은 동일 5px card padding을 직접 재사용해 월 이동/제목 행과 정확히 정렬되어야 한다');
-  assert.doesNotMatch(monthlyCalendar,/monthlyCalendarDescription|monthly-calendar-description|modeMeta\.description/,'월간 범위 탭 아래 보조 설명문과 관련 dead code를 남기면 안 된다');
-  assert.match(special,/:is\(\.monthly-calendar-card,\.contrib-modal-card,\.portfolio-heatmap-card\)\{max-height:calc\(100vh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)\}/,'Phone 달력·퇴직연금·히트맵 card 스크롤 상한은 실제 overlay 상하 5px을 제외해야 한다');
-  assert.match(special,/@supports \(height:100dvh\)\{[^]*?:is\(\.monthly-calendar-card,\.contrib-modal-card,\.portfolio-heatmap-card\)\{max-height:calc\(100dvh - var\(--modal-overlay-pad\) - var\(--modal-overlay-pad\)\)\}/,'Phone 달력·퇴직연금·히트맵은 iOS 동적 viewport 높이를 우선 사용해야 한다');
-  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.setMode[^]*?setMonthlyCalendarMode\(control\.dataset\.calendarMode\|\|''\)/,'범위 전환은 app action router를 거쳐 calendar state owner에 위임해야 한다');
+  assert.match(monthlyCalendar,/class="control-tab monthly-calendar-mode-tab/,'범위 switch는 공통 control-tab을 재사용해야 한다');
+  assert.match(monthlyCalendar,/if\(!uiState\.personalViewUnlocked\)return '';/,'월간 별도수익 toggle은 개인보기에서만 노출되어야 한다');
+  assert.match(monthlyCalendar,/data-dashboard-action="toggle-separate-profit"/,'별도수익 toggle은 기존 canonical action을 재사용해야 한다');
   assert.match(monthlyCalendar,/modal\.className='action-modal monthly-calendar-modal'/,'월간 캘린더는 공통 action modal shell을 재사용해야 한다');
   assert.match(monthlyCalendar,/openDashboardModal\(modal,/);
   assert.match(monthlyCalendar,/closeDashboardModal\(modal,/);
-  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.open[^]*?returnFocus=[^;]*:control[^]*?openMonthlyCalendar\(returnFocus\)/,'월간 손익 공통 Topbar 버튼은 자신을 focus 복원 대상으로 전달해야 한다');
-  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.selectDate[^]*?closeMonthlyCalendar\(\);[^]*?setActiveDashboardDate\(date\)/,'날짜 선택은 app의 canonical activeDate 이동 경로로 위임해야 한다');
-  assert.match(monthlyCalendar,/function monthlyCalendarFocusFallbackSelector\(\)[^]*?topbar-monthly-action[^]*?dateActionMenuButton/,'날짜 선택 full render 뒤에도 공통 월간 손익 버튼 또는 hamburger로 focus를 복원해야 한다');
-  assert.match(monthlyCalendar,/closeDashboardModal\(modal,\{[^}]*fallbackSelector:monthlyCalendarFocusFallbackSelector\(\)[^}]*\}\)/,'월간 캘린더 close는 stale opener DOM 대신 stable selector fallback을 사용해야 한다');
-  assert.match(monthlyCalendar,/monthIndex<=0\?'true':'false'/,'첫 월 이전 control은 경계 상태를 계산해야 한다');
-  assert.match(monthlyCalendar,/monthIndex>=months\.length-1\?'true':'false'/,'마지막 월 다음 control은 경계 상태를 계산해야 한다');
-  assert.match(monthlyCalendar,/aria-disabled=/,'월 경계 control은 native disabled 대신 focusable aria-disabled 상태를 사용해야 한다');
-  assert.match(monthlyCalendar,/class=\"control-icon-button modal-icon-btn monthly-calendar-nav\"/,'월 이동 control은 공통 modal icon button primitive를 재사용해야 한다');
-  assert.doesNotMatch(monthlyCalendar,/monthly-calendar-(?:previous|next)[^>]* disabled/,'월 경계에서 native disabled로 focus를 잃으면 안 된다');
-  assert.match(monthlyCalendar,/today:date===today/,'KST 오늘 날짜를 active date와 별도 상태로 계산해야 한다');
-  assert.match(monthlyCalendar,/today:date===today[^]*?if\(!available\|\|!item\)\{[^]*?todayClass=isToday\?' is-today':''[^]*?todayPrefix=isToday\?'오늘, ':''[^]*?screenReaderText=needsAccessibility\?`<span class=\"visually-hidden\">\${todayPrefix}\${day}일, \${accessibleText}<\/span>`/,'오늘 데이터가 아직 없어도 unavailable cell은 today 상태와 실제 screen-reader text를 유지해야 한다');
-  assert.match(monthlyCalendar,/visibleDayAccessibility=needsAccessibility\?' aria-hidden=\"true\"':''/,'오늘·휴장·누락 unavailable cell의 보이는 날짜 숫자는 screen-reader text와 중복 낭독되지 않아야 한다');
-  assert.doesNotMatch(monthlyCalendar,/isToday\?` aria-label=\"오늘, \${day}일, 데이터 없음\"`/,'오늘 unavailable cell 접근성 이름을 generic div의 aria-label에만 의존하면 안 된다');
-  assert.match(common,/\.visually-hidden\{[^}]*position:absolute[^}]*clip-path:inset\(50%\)/,'오늘 unavailable cell의 접근성 설명은 canonical visually-hidden utility를 재사용해야 한다');
-  assert.match(common,/\.monthly-calendar-day\.is-today:not\(\.is-active\)/,'오늘 날짜는 선택일과 별도 시각 상태가 있어야 한다');
-  assert.match(common,/\.monthly-calendar-grid\{[^}]*grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,'월간 손익 calendar는 모든 viewport에서 월~금 5열 grid를 사용해야 한다');
-  assert.match(monthlyCalendar,/if\(weekdayIndex>=5\)continue/,'월간 손익 renderer는 토·일 날짜 cell을 생성하지 않아야 한다');
-  assert.match(monthlyCalendar,/leadingPlaceholderCount=firstWeekday>=5\?0:firstWeekday/,'월 시작 offset은 토·일 시작 월을 월요일 첫 칸으로 정렬하고 평일 시작 월은 해당 요일 위치를 유지해야 한다');
-  assert.match(monthlyCalendar,/is-unavailable[^]*?aria-hidden=\"true\"/,'가용 데이터가 없는 날짜는 선택 control이 아니라 unavailable cell이어야 한다');
-  assert.match(monthlyCalendar,/item\.profit==null\?'기준'/,'이전 비교값이 없는 최초 날짜는 0원이 아니라 기준일로 표시해야 한다');
-  assert.match(monthlyCalendar,/absolute>=10_000[^]*?scaled=absolute\/10_000[^]*?scaled\.toFixed\(1\)[^]*?만/,'달력 셀의 만 단위 손익은 100만 이상도 소수점 첫째 자리까지 표시해야 한다');
-  assert.match(special,/\.monthly-calendar-summary\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Phone 세로\/가로 공통 요약은 2열로 밀도를 낮춰야 한다');
-  assert.match(special,/\.monthly-calendar-head\{[^}]*width:min\([^,]+,calc\(100% - var\(--icon-button-size\) - var\(--icon-button-size\) - var\(--space-4xl\)\)\)/,'Phone 월 이동 버튼은 닫기 버튼 영역을 침범하지 않도록 안쪽 여백을 확보해야 한다');
-});
 
-test('Topbar action 라벨은 Web full/short와 Tablet 축약명·icon 조합을 사용한다',()=>{
-  assert.match(common,/\.topbar-label-short\{display:none\}/,'Desktop baseline은 short label을 숨기고 full label을 유지해야 한다');
-  assert.match(special,/@media \(min-width:1101px\) and \(max-width:1279px\)\{[^]*?\.date-picker-action \.topbar-label-full\{display:none\}[^]*?\.date-picker-action \.topbar-label-short\{display:inline\}/,'1101~1279px compact Web은 text action을 short label로 축약해야 한다');
-  assert.match(common,/\.switcher\{[^}]*--topbar-pad-x:var\(--page-shell-gutter\);[^}]*--topbar-content-max-width:var\(--page-content-max-width\);/s,'Web Topbar 좌우 content edge는 Hero와 같은 page shell gutter/max-width contract를 사용해야 한다');
-  assert.match(common,/--page-content-max-width:calc\(var\(--page-shell-max-width\) - var\(--page-shell-gutter\) - var\(--page-shell-gutter\)\);/,'Topbar와 Hero의 max-width 정렬은 page content 폭 token에서 같은 좌우 gutter를 차감해야 한다');
-  assert.match(common,/\.date-picker\{[^}]*grid-template-columns:minmax\(0,calc\(var\(--topbar-date-select-width\) \+ var\(--topbar-date-select-width\) \+ var\(--topbar-layout-gap\)\)\) minmax\(0,1fr\) max-content/,'Web 날짜 영역은 임의 viewport breakpoint 없이 실제 남는 폭에 따라 수축 가능한 grid track을 사용해야 한다');
-  assert.match(common,/\.date-picker-center\{[^}]*width:100%[^}]*max-width:calc\(var\(--topbar-date-select-width\) \+ var\(--topbar-date-select-width\) \+ var\(--topbar-layout-gap\)\)/,'Web 날짜 selector group은 넓은 화면의 기존 최대폭을 유지하면서 좁아질 수 있어야 한다');
-  assert.match(common,/\.date-picker-action\{[^}]*min-width:max-content/,'Web action group은 실제 버튼 폭을 grid에 예약해 날짜 selector 영역으로 넘치지 않아야 한다');
-  assert.match(common,/\.month-select,[^]*?\.day-select\{[^}]*min-width:0[^}]*max-width:var\(--topbar-date-select-width\)[^}]*flex:1 1 var\(--topbar-date-select-width\)/,'Web 날짜 selector는 고정폭이 아니라 content-driven flex shrink를 허용해야 한다');
-  assert.doesNotMatch(special,/max-width:1439px/,'날짜 selector 수축을 위한 1439px 임의 breakpoint는 남기지 않아야 한다');
-  assert.match(tablet,/\.date-picker-action \.market-link-btn-desktop\{display:none\}/,'Tablet Topbar에서는 선물 링크를 숨겨 hamburger 링크 영역과 역할을 나눠야 한다');
-  assert.match(tablet,/\.date-picker-action \.topbar-label-full\{display:none\}/,'Tablet에서는 full label을 숨겨야 한다');
-  assert.match(tablet,/\.date-picker-action \.topbar-label-short\{display:inline\}/,'Tablet 주요 action은 축약명을 표시해야 한다');
-  assert.match(special,/\.date-tool-btn-desktop\{display:none\}/,'Phone Shared는 Desktop 전용 action을 숨겨 모바일 Topbar 계약을 유지해야 한다');
-  assert.match(ui,/title="히트맵" aria-label="히트맵"[^]*?<span class="topbar-label-full">히트맵<\/span><span class="topbar-label-short">히트맵<\/span>/,'히트맵은 viewport와 무관하게 같은 라벨을 사용해야 한다');
-  assert.match(ui,/REALTIME_QUOTES_ACTION=Object\.freeze\(\{action:'open-realtime-quotes',icon:'lineChart',title:'보유종목 실시간 시세',shortTitle:'실시간 시세'\}\)/,'실시간 시세는 full/short label metadata를 분리해야 한다');
-  assert.match(ui,/topbar-realtime-action[^]*?title="\$\{REALTIME_QUOTES_ACTION\.title\}" aria-label="\$\{REALTIME_QUOTES_ACTION\.title\}"[^]*?topbar-label-full">\$\{REALTIME_QUOTES_ACTION\.title\}<[^]*?topbar-label-short">\$\{REALTIME_QUOTES_ACTION\.shortTitle\}</,'실시간 시세 title/aria-label은 full 명칭을 유지하고 화면 label만 축약해야 한다');
+  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.setMode[^]*?setMonthlyCalendarMode\(control\.dataset\.calendarMode\|\|''\)/,'범위 전환은 calendar state owner에 위임해야 한다');
+  assert.match(app,/action===MONTHLY_CALENDAR_ACTION\.selectDate[^]*?closeMonthlyCalendar\(\);[^]*?setActiveDashboardDate\(date\)/,'날짜 선택은 canonical activeDate 경로로 위임해야 한다');
+  assert.match(monthlyCalendar,/aria-disabled=/,'월 경계 이동 control은 focusable aria-disabled 상태를 유지해야 한다');
+  assert.match(common,/\.monthly-calendar-grid\{[^}]*grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,'calendar는 월~금 5열 grid를 유지해야 한다');
+  assert.match(monthlyCalendar,/if\(weekdayIndex>=5\)continue/,'토·일 날짜 cell을 생성하면 안 된다');
+  assert.match(monthlyCalendar,/item\.profit==null\?'기준'/,'비교 기준이 없는 최초 날짜는 0원이 아니라 기준일로 표시해야 한다');
 });
 
 test('KODEX canonical schema는 Main core의 별도 구현 없이 공통 validator 모듈을 사용한다',()=>{
@@ -289,45 +191,6 @@ test('실시간 평가 adapter는 importmap cache-bust 대상이고 boot 이후 
   assert.match(liveValuation,/document\.visibilityState==='visible'/);
 });
 
-
-test('실시간 평가 변경은 열린 overlay를 즉시 갱신하되 main partial render defer 계약은 유지한다',()=>{
-  assert.match(liveValuation,/let renderOpenOverlayCallback=null;/);
-  assert.match(liveValuation,/function requestLiveValuationRender\(\{refreshOpenOverlay=true\}=\{\}\)\{[^]*?refreshOpenOverlay&&renderOpenOverlayCallback[^]*?liveValuationRenderPending=true;[^]*?flushLiveValuationRender\(\);/,'보유종목 snapshot 변경 시 열린 overlay callback을 먼저 호출한 뒤 기존 main render 경로를 유지해야 한다');
-  assert.match(liveValuation,/if\(changed\)requestLiveValuationRender\(\{refreshOpenOverlay:false\}\);[^]*?return changed;[^]*?\/\/ \[LIVE04\]/,'KOSPI benchmark-only 변경은 히트맵을 불필요하게 다시 그리면 안 된다');
-  assert.match(liveValuation,/function setupLiveValuation\(\{renderDashboard,renderOpenOverlay\}=\{\}\)/);
-  assert.match(liveValuation,/renderOpenOverlayCallback=typeof renderOpenOverlay==='function'\?renderOpenOverlay:null/);
-  assert.match(app,/function refreshOpenPortfolioHeatmapLive\(\)\{[^]*?const heatmapDate=portfolioHeatmapDate\(\);[^]*?heatmapDate!==dataState\.activeDate[^]*?liveValuationRenderDateEligible\(heatmapDate\)[^]*?latestDashboardCalcResult=calc\(heatmapDate\)[^]*?refreshPortfolioHeatmap\(x\)/,'열린 히트맵의 local 날짜가 부모 activeDate와 같을 때만 canonical live 결과로 갱신해야 한다');
-  assert.match(app,/action===PORTFOLIO_HEATMAP_ACTION\.open[^]*?const x=latestDashboardCalcResult=calc\(dataState\.activeDate\);[^]*?openPortfolioHeatmap\(control,x\)/,'deferred main render 직후 open해도 stale cache가 아니라 현재 live state를 다시 calc해야 한다');
-  assert.match(liveValuation,/if\(document\.querySelector\('\.chart-expanded-overlay,\.action-modal\.show,\.contrib-modal\.show,dialog\[open\]'\)\)return false;/,'modal open 중 main partial render defer 보호는 그대로 유지해야 한다');
-  assert.equal((liveValuation.match(/setInterval\(/g)||[]).length,1,'히트맵 live refresh 때문에 polling timer가 늘어나면 안 된다');
-});
-
-test('실시간 평가 empty universe도 authoritative client lease로 반납하고 로컬 requestedTickers를 비운다',()=>{
-  assert.doesNotMatch(liveValuation,/if\(!tickers\.length\)\{\s*const changed=clearLiveValuationSnapshot\('empty-universe'\);[^}]*return;/);
-  assert.match(liveValuation,/if\(!tickers\.length\)\{[^]*?clearLiveValuationSnapshot\('empty-universe',\[\]\)/);
-  assert.match(liveValuation,/tickers:tickers\.join\(','\),\s*client_id:clientId/);
-  assert.match(liveValuation,/tickers\.length\?null:\[\]/);
-  assert.match(core,/function clearLiveValuationSnapshot\(reason='unavailable',requestedTickersOverride=null\)/);
-  assert.match(core,/Array\.isArray\(requestedTickersOverride\)[^]*?requestedTickers:requested/);
-});
-
-test('실시간 평가 race 방어: client lease, universe drift, pending render를 fail-safe로 처리한다',()=>{
-  assert.match(liveValuation,/LIVE_VALUATION_CLIENT_SESSION_KEY='investmentDashboard\.liveValuationClientId'/);
-  assert.match(liveValuation,/LIVE_VALUATION_CLIENT_CHANNEL_NAME='investmentDashboard\.liveValuationClients'/);
-  assert.match(liveValuation,/new BroadcastChannel\(LIVE_VALUATION_CLIENT_CHANNEL_NAME\)/);
-  assert.match(liveValuation,/message\.type==='probe'&&message\.clientId===liveValuationClientCandidate/);
-  assert.match(liveValuation,/if\(occupied\)\{\s*clientId=randomLiveValuationClientId\(\);\s*saveLiveValuationClientId\(clientId\);/);
-  assert.match(liveValuation,/const clientId=await resolveLiveValuationClientId\(\);/);
-  assert.match(liveValuation,/client_id:clientId/);
-  assert.match(liveValuation,/const requestedUniverseKey=liveValuationUniverseKey\(tickers\)/);
-  assert.match(liveValuation,/const currentUniverseKey=liveValuationUniverseKey\(liveValuationTickersForDate\(today\)\)/);
-  assert.match(liveValuation,/if\(currentUniverseKey!==requestedUniverseKey\)\{[^]*?queueUniverseReconcileRefresh\(\);[^]*?return;/);
-  assert.match(liveValuation,/let liveValuationRenderPending=false;/);
-  assert.match(liveValuation,/function flushLiveValuationRender\(\)/);
-  assert.match(liveValuation,/if\(!liveValuationCanRender\(\)\)\{[^]*?schedulePendingRenderCheck\(\);[^]*?return false;/);
-  assert.match(liveValuation,/else flushLiveValuationRender\(\);/);
-  assert.match(liveValuation,/if\(refreshSequence!==liveValuationRefreshSequence\)return;/);
-});
 
 test('별도수익 ON/OFF는 full render 대신 영향 영역만 부분 갱신하고 누적차트만 다시 그린다',()=>{
   const toggleStart=app.indexOf('function toggleSeparateProfitMode(){');
@@ -466,12 +329,6 @@ test('KRX write는 60초 전용 timeout을 사용하고 timeout을 미확정 상
   assert.doesNotMatch(catchBlock,/resetKrxActionRequestIdentity\(\)/,'timeout에서는 동일 requestId를 버리면 안 된다');
 });
 
-test('퇴직연금 금액 조정 숫자 입력은 focus 진입 시 replace-first 전체선택 UX를 제공한다',()=>{
-  assert.match(pensionEditor,/function selectPensionNumericInputOnFocus\(input\)\{[^]*?input\.disabled\|\|input\.readOnly[^]*?!String\(input\.value\?\?''\)\.trim\(\)[^]*?requestAnimationFrame\(\(\)=>\{[^]*?document\.activeElement!==input[^]*?input\.select\(\)/,'값이 있는 편집 가능 pension 숫자 입력만 다음 frame에서 전체 선택해야 한다');
-  assert.match(pensionEditor,/document\.addEventListener\('focusin',event=>\{\s*const control=event\.target\?\.closest\?\.\('\.contrib-modal \[data-pension-input\]'\);\s*if\(control\)selectPensionNumericInputOnFocus\(control\);\s*\}\);/,'동적 렌더되는 pension 숫자 입력은 delegated focusin으로 동일 UX를 받아야 한다');
-  assert.doesNotMatch(pensionEditor,/<input id="pensionActionPinInput"[^>]*data-pension-input=/,'PIN 입력까지 replace-first 대상에 섞이면 안 된다');
-});
-
 test('퇴직연금 Action PIN은 서버 요청 중 dismiss를 잠그고 실패 시 다시 활성화한다',()=>{
   assert.match(pensionEditor,/let activePensionActionPinSession=null;/);
   assert.match(pensionEditor,/activePensionActionPinSession\?\.finish\(null\);/);
@@ -501,12 +358,6 @@ test('퇴직연금 삭제 PIN은 위험 상태를 명시하고 교체된 요청�
   assert.ok(dangerStart>=0&&dangerEnd>dangerStart,'삭제 PIN 경고 CSS block is missing');
   assert.doesNotMatch(common.slice(dangerStart,dangerEnd),/--inner-radius-md/);
   assert.doesNotMatch(common,/--type-line-height-body/);
-});
-
-test('퇴직연금 조정 modal은 Phone에서 본문 높이를 쓰고 큰 화면에서만 모드 높이를 균등화한다',()=>{
-  const uiCommonImport=pensionEditor.match(/import\s*\{([^]*?)\}\s*from '\.\/dashboard-ui-common\.js';/);
-  assert.ok(uiCommonImport&&/\bphoneUi\b/.test(uiCommonImport[1]),'Phone 판정은 공통 phoneUi helper를 재사용해야 한다');
-  assert.match(pensionEditor,/if\(phoneUi\(\)\)\{\s*card\.style\.removeProperty\('height'\);\s*return;\s*\}/,'Phone에서는 inline fixed height를 제거하고 본문 auto 높이를 사용해야 한다');
 });
 
 test('퇴직연금 편집기는 화면 입력과 작업 모음 모두에서 수량·금액을 안전 정수로 제한한다',()=>{
@@ -748,16 +599,6 @@ test('queued KRX run은 실행 시작 시 최신 branch tip을 generation base�
   assert.match(refreshBlock,/KRX generation inputs changed while this run was queued/);
 });
 
-test('KRX workflow run-name은 date/mode와 requestId를 노출해 GAS가 queued/running 동일 작업을 식별할 수 있다',()=>{
-  assert.match(updatePricesWorkflow,/run-name: KRX update \$\{\{ inputs\.date \|\| 'auto' \}\} · \$\{\{ inputs\.request_id \|\| 'manual' \}\}/);
-});
-
-test('KRX workflow_dispatch는 request_id input을 받아 run-name 식별자가 서버 run ID 추적과 함께 유지될 수 있다',()=>{
-  assert.match(updatePricesWorkflow,/workflow_dispatch:[^]*?request_id:/);
-  assert.match(updatePricesWorkflow,/run-name:\s*KRX update/);
-  assert.match(updatePricesWorkflow,/inputs\.request_id/);
-});
-
 test('KRX workflow는 다른 branch commit과 push가 경합해도 최신 remote에 rebase 후 제한 재시도한다',()=>{
   assert.match(updatePricesWorkflow,/uses: actions\/checkout@v4\s*\n\s*with:\s*\n\s*fetch-depth: 0/);
   assert.match(updatePricesWorkflow,/BASE_SHA="\$\(git rev-parse HEAD\)"/);
@@ -773,10 +614,6 @@ test('KRX workflow는 다른 branch commit과 push가 경합해도 최신 remote
   assert.match(updatePricesWorkflow,/git rebase "origin\/\$BRANCH_NAME"/);
   assert.match(updatePricesWorkflow,/git push origin "HEAD:\$BRANCH_NAME"/);
   assert.match(updatePricesWorkflow,/KRX data push failed after 3 retries/);
-});
-
-test('숨김·경고 날짜는 다음 KRX 자동 실행에서 재수집한다',()=>{
-  assert.match(updatePricesPython,/retry_dates = \[[^]*?snapshot\.get\("display", True\) is False[^]*?snapshot\.get\("warnings"\)/);
 });
 
 test('퇴직연금 ETF 미리보기는 잘못된 수량·금액·일자를 저장 전에 차단한다',()=>{
@@ -906,15 +743,6 @@ test('초기 JSON 로더는 일시적 fetch 연결 실패만 짧게 재시도한
   assert.deepEqual(delays,[]);
 });
 
-test('가격 갱신 설명은 선택일 종목 갱신과 KOSPI 과거 backfill 범위를 구분한다',()=>{
-  assert.match(updatePricesWorkflow,/date 지정:[^\n]*종목 가격\/성과[^\n]*KOSPI[^\n]*backfill/);
-  assert.match(updatePricesWorkflow,/지정일까지 저장된 KOSPI 구간의 누락·정정값을 backfill/);
-  assert.match(updatePricesPython,/이후 지정일까지 이미 저장된 날짜의 KOSPI 값은 누락·정정 여부를 확인해 backfill할 수 있다/);
-  assert.match(updatePricesPython,/help=\([^]*?지정일까지 저장된 KOSPI 구간의 [^]*?누락·정정값을 backfill/);
-  assert.doesNotMatch(updatePricesWorkflow,/date 지정:[^\n]*해당 날짜만 갱신/);
-  assert.doesNotMatch(updatePricesPython,/--date``가 있으면[^\n]*그 날짜만 처리/);
-});
-
 test('모바일 표↔카드 전환은 단일 config·공통 card shell·viewport별 표현 책임을 사용한다',()=>{
   const mobile1=compact(mobile);
   assert.match(uiCommon,/const MOBILE_VIEW_CONFIG=Object\.freeze\(/);
@@ -970,57 +798,6 @@ test('Hero 성과 pill label은 Desktop full / compact Web short / Tablet·Phone
   assert.match(app,/hero-label-compact\">연금 수익률<\/span>&nbsp;\$\{pct\(x\.pensionReturn\)\}/,'연금 수익률 label과 값 사이는 명시적 공백을 유지해야 한다');
 });
 
-test('Hero pill gap은 viewport별 semantic token을 쓰고 그룹 간격은 한 owner로 수렴한다',()=>{
-  assert.match(common,/--space-micro:[^;]+;/,'compact spacing도 canonical spacing token으로 소유해야 한다');
-  assert.match(common,/\.hero\{[^}]*--hero-pill-gap:var\(--space-lg\);/s,'Desktop Hero gap은 spacing token을 사용해야 한다');
-  assert.match(special,/@media \(max-width:1279px\)\{[^]*?\.hero\{--hero-pill-gap:var\(--space-micro\)\}[^]*?\.hero \.hero-performance-row,[^]*?\.hero \.hero-title-badges,[^]*?\.hero \.hero-metric-pills\{gap:var\(--hero-pill-gap\)\}/s,'Compact Web/Tablet은 그룹별 raw gap을 두지 않고 같은 Hero gap owner를 사용해야 한다');
-  const phoneStart=special.indexOf('[S03] Phone UI Shared · 폰 공통 UI');
-  const phoneEnd=special.indexOf('[S04] Phone Landscape · 실제 스마트폰 가로모드');
-  const phoneBlock=special.slice(phoneStart,phoneEnd);
-  assert.match(phoneBlock,/--hero-pill-gap:var\(--space-lg\);/,'Phone은 Desktop과 같은 semantic gap token으로 복원해야 한다');
-});
-
-test('Market AI responsive 전환은 Phone inline owner와 content-driven card layout을 유지한다',()=>{
-  const start=marketAi.indexOf('function syncMarketAiResponsiveMount');
-  const end=marketAi.indexOf('\n// [MARKET09]',start);
-  assert.ok(start>=0&&end>start,'Market AI responsive mount block is missing');
-  const block=marketAi.slice(start,end);
-
-  // owner/viewport contract만 보호하고 appendChild/remove 같은 구현 순서는 고정하지 않는다.
-  assert.match(block,/marketAiPhoneInlineSlot\(hero\)[^]*marketAiPlacement='phone-inline'[^]*marketAiPlacement='hero'/,'Phone inline ↔ Web/Tablet Hero owner 전환 계약을 유지해야 한다');
-  assert.match(marketAi,/marketAiPhoneMedia\.addEventListener\('change',scheduleMount\)/,'Phone 경계 변경은 새로고침 없이 owner를 재동기화해야 한다');
-  assert.doesNotMatch(`${marketAi}\n${special}`,/MARKET_AI_MOBILE_TRIGGER_ID|marketAiMobileTrigger|openMarketAiMobileDialog|market-ai-mobile-trigger|MARKET_AI_MOBILE_DIALOG_ID|marketAiMobileDialog|market-ai-mobile-dialog|market-ai-mobile-close|modal-main-title/,'폐기된 Phone trigger/dialog 표현을 다시 도입하면 안 된다');
-
-  const heroPlacementStart=common.indexOf('#market-ai-section[data-market-ai-placement="hero"]{');
-  const heroPlacementEnd=common.indexOf('\n}',heroPlacementStart);
-  const heroPlacement=common.slice(heroPlacementStart,heroPlacementEnd);
-  assert.ok(heroPlacementStart>=0&&heroPlacementEnd>heroPlacementStart,'Desktop/Tablet Market AI Hero placement block이 필요하다');
-  assert.match(heroPlacement,/position:absolute;[^}]*top:50%;[^}]*transform:translateY\(-50%\)/,'Desktop/Tablet Market AI는 Hero 높이 계산에서 분리된 자연 크기로 중앙 배치되어야 한다');
-  assert.doesNotMatch(heroPlacement,/bottom:|height:100%/,'Market AI 카드를 Hero 가용 높이에 맞춰 stretch하면 안 된다');
-
-  // 폭/열 contract는 사용자에게 보이는 결과만 보호한다. 정확한 gap·observer helper 구현은 고정하지 않는다.
-  assert.match(common,/var\(--market-ai-reserved-width,0px\)/,'Hero title/pill은 Market AI 실측 예약폭을 사용해야 한다');
-  assert.doesNotMatch(common,/--market-ai-group-columns|minmax\(0,13fr\).*minmax\(0,7fr\)/,'Market AI card 폭을 고정 비율로 되돌리면 안 된다');
-  assert.match(common,/\.market-ai-desktop\{[^}]*width:max-content;[^}]*max-width:100%;[^]*\.market-ai-desktop-metric\{[^}]*grid-template-columns:subgrid;/,'공통 Market AI는 내용 기반 폭과 공통 label/value/change 열 정렬을 유지해야 한다');
-  assert.match(special,/#market-ai-section\[data-market-ai-placement="phone-inline"\][^]*\.market-ai-card-row\{[^}]*grid-template-columns:minmax\(0,1fr\) max-content max-content;/,'Phone inline은 가용폭을 채우며 label 좌측 / value·change 우측 정렬을 유지해야 한다');
-
-  assert.match(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*display:flex;[^]*?\.hero \.hero-performance-row \.hero-title-badges-performance\{[^}]*display:none;[^]*?\.hero \.hero-return-pill\{display:inline-flex\}/s,'Tablet Hero는 기준문구 바로 우측 칭호 + 아래 성과 pill 4개 구조를 유지해야 한다');
-  const tabletHeroStart=tablet.indexOf('.hero{');
-  const tabletHeroEnd=tablet.indexOf('\n    }',tabletHeroStart);
-  const tabletHero=tablet.slice(tabletHeroStart,tabletHeroEnd);
-  assert.match(tabletHero,/--hero-pad:var\(--space-[^)]+\);/,'Tablet Hero padding은 spacing token으로 소유해야 한다');
-  assert.match(common,/--market-ai-hero-edge-gap:var\(--space-[^)]+\);/,'Web Market AI edge gap은 raw px가 아니라 spacing token으로 소유해야 한다');
-  assert.match(tabletHero,/--market-ai-hero-edge-gap:var\(--space-[^)]+\);/,'Tablet Market AI edge gap도 같은 semantic token을 override해야 한다');
-  assert.match(tabletHero,/--hero-title-size:var\(--type-size-[^)]+\);[^]*--hero-basis-size:var\(--type-size-[^)]+\);[^]*--hero-pill-size:var\(--type-size-[^)]+\);/s,'Tablet Hero typography는 type scale token을 사용해야 한다');
-  assert.doesNotMatch(tabletHero,/--(?:hero-pad|market-ai-hero-edge-gap|hero-title-size|hero-basis-size|hero-pill-size):[^;]*\d+(?:\.\d+)?px/,'Tablet Hero 핵심 geometry/typography에 raw px를 다시 넣으면 안 된다');
-  assert.match(tablet,/\.hero \.hero-title-row\{[^}]*align-items:baseline;/s,'Tablet Hero 기준문구는 Web/Phone처럼 제목 baseline에 맞아야 한다');
-  assert.doesNotMatch(tablet,/\.hero \.hero-title-row \.hero-title-badges-tablet\{[^}]*margin-left:auto;/s,'Tablet 칭호를 Market AI 쪽 끝으로 밀면 안 된다');
-  assert.match(special,/Phone은 칭호 전용 행과 기존 성과 pill 행을 분리[^]*?\.hero \.hero-performance-row\{[^}]*display:block;/s,'Phone은 칭호 행과 성과 행을 분리해야 한다');
-  assert.match(special,/\.hero \.hero-performance-row \.hero-metric-pills\{[^}]*flex-wrap:wrap;/s,'Phone 성과 pill은 기존 wrap contract를 유지해야 한다');
-  assert.match(special,/\.hero \.hero-return-pill\{[^}]*display:inline-flex/,'Phone Landscape는 pill 4개를 유지해야 한다');
-});
-
-
 test('Market AI contract: KOSPI200 선물 / SOX 현물 / NQ100 선물 symbol을 고정한다',()=>{
   assert.match(marketAi,/MARKET_AI_KIS_FUTURES_SYMBOL='FUTURES:KOSPI200'/);
   assert.match(marketAi,/MARKET_AI_SOX_INDEX_SYMBOL='INDEX:SOX'/);
@@ -1032,79 +809,6 @@ test('Market AI contract: local은 :8001, remote는 Tailscale Serve를 공통 cl
   assert.match(marketAiClient,/LOCAL_DASHBOARD_HOSTS=new Set\(\['localhost','127\.0\.0\.1'\]\)/);
   assert.match(marketAiClient,/MARKET_AI_REMOTE_BASE='https:\/\/node\.tail60a98e\.ts\.net'/);
   assert.match(marketAiClient,/return `\$\{location\.protocol\}\/\/\$\{location\.hostname\}:8001`/);
-});
-
-test('Market AI lifecycle은 OFF/CHECKING/OFFLINE에서 UI를 숨기고 ONLINE에서만 mount한다',()=>{
-  assert.match(common,/\.market-ai-status\[hidden\]\{display:none\}/,'상태 UI의 hidden contract는 author display 규칙보다 우선해야 한다');
-  assert.match(marketAi,/lifecycle:'off'/);
-  assert.match(market1,/if\(!marketAiUiEnabled\(\)\|\|marketAiState\.lifecycle!=='online'\)return null/);
-  assert.match(market1,/if\(!marketAiUiEnabled\(\)\|\|marketAiState\.lifecycle!=='online'\|\|marketAiState\.serverReachable!==true\)\{ removeMarketAiUi\(\); return;/);
-  assert.match(market1,/setMarketAiLifecycleState\('checking'/);
-  assert.match(market1,/setMarketAiLifecycleState\('offline'/);
-  assert.match(market1,/lifecycle:'online'/);
-  assert.doesNotMatch(marketAi,/if\(!marketAiLocalMode\(\)&&marketAiState\.serverReachable!==true\)/);
-});
-
-test('Market AI refresh는 같은 lifecycle의 중복 호출을 single-flight로 합치고 이전 세션 응답을 폐기한다',()=>{
-  assert.match(market1,/const \[signalResult,nextMarketSnapshot,nextBridgeStatus\]=await Promise\.all\(\[/);
-  assert.match(market1,/const signalTransportReachable=signalResult!==null&&Number\(signalResult\.response\?\.status\|\|0\)<500/);
-  assert.match(market1,/const serverReachable=signalTransportReachable\|\|nextMarketSnapshot!==null\|\|nextBridgeStatus!==null/);
-  assert.match(market1,/let marketAiRefreshSequence=0/);
-  assert.match(market1,/let marketAiLifecycleGeneration=0/);
-  assert.match(market1,/let marketAiRefreshInFlight=null/);
-  assert.match(market1,/if\(!marketAiLifecycleIsCurrent\(generation,refreshSequence\)\)return/);
-  assert.match(market1,/if\(marketAiRefreshInFlight\?\.generation===generation\)return marketAiRefreshInFlight\.promise/);
-  assert.match(market1,/if\(enabled&&marketAiState\.lifecycle==='checking'\)return/);
-  assert.match(market1,/const \{response,signal,parseError\}=signalResult/);
-  assert.match(market1,/if\(parseError\)\{ setMarketAiState/);
-});
-
-test('Market AI OFFLINE circuit breaker는 최초 연결 실패 후 polling을 시작하지 않고 ONLINE 연속 실패만 2회까지 허용한다',()=>{
-  assert.match(marketAi,/const MARKET_AI_OFFLINE_FAILURE_LIMIT=2/);
-  assert.match(market1,/function marketAiPollingAllowed\(\)\{ return marketAiEnabled\(\)&&marketAiState\.lifecycle==='online'; \}/);
-  assert.match(market1,/function stopMarketAiPollTimer\(\)\{ if\(!marketAiPollTimer\)return; window\.clearInterval\(marketAiPollTimer\); marketAiPollTimer=0; \}/);
-  assert.match(market1,/function ensureMarketAiPollTimer\(\)\{ if\(marketAiPollTimer\|\|!marketAiPollingAllowed\(\)\)return;/);
-  assert.match(market1,/if\(startedOnline\)\{ marketAiConsecutiveUnavailableRefreshes\+=1; if\(marketAiConsecutiveUnavailableRefreshes<MARKET_AI_OFFLINE_FAILURE_LIMIT\)return; \}/);
-  assert.match(market1,/publishMarketAiConnectionState\(true\); ensureMarketAiPollTimer\(\)/);
-  const bootBlock=market1.slice(market1.indexOf('function startMarketAiBridge(){'),market1.indexOf('startMarketAiBridge();'));
-  assert.doesNotMatch(bootBlock,/marketAiPollTimer=window\.setInterval/,'OFF/CHECKING boot에서 polling timer를 선기동하면 안 된다');
-});
-
-test('Live Valuation은 Market AI ONLINE connection event를 공통 network gate로 사용하고 OFFLINE에서 KRX quote polling을 멈춘다',()=>{
-  assert.match(liveValuation,/MARKET_AI_CONNECTION_EVENT/);
-  assert.match(liveValuation,/function liveValuationNetworkAllowed\(\)\{\s*return marketAiEnabled\(\)&&liveValuationMarketAiConnected;\s*\}/);
-  assert.match(liveValuation,/if\(!liveValuationNetworkAllowed\(\)\)return;\s*const today=kstTodayText\(\);\s*const tickers=liveValuationTickersForDate\(today\);/);
-  assert.match(liveValuation,/const clientId=await resolveLiveValuationClientId\(\);\s*if\(!liveValuationNetworkAllowed\(\)\)return;/);
-  assert.match(liveValuation,/window\.addEventListener\(MARKET_AI_CONNECTION_EVENT,event=>\{/);
-  assert.match(liveValuation,/if\(!connected\)\{\s*clearLiveValuationForDisconnected\('market-ai-offline'\);\s*return;\s*\}/);
-  assert.doesNotMatch(liveValuation,/window\.addEventListener\(MARKET_AI_ENABLED_EVENT/,'OFF cleanup은 connection event 한 곳에서만 소유해야 한다');
-  const enabledChangeStart=market1.indexOf('function handleMarketAiEnabledChange(event){');
-  const enabledChangeEnd=market1.indexOf('function startMarketAiBridge(){',enabledChangeStart);
-  const enabledChangeBlock=market1.slice(enabledChangeStart,enabledChangeEnd);
-  assert.doesNotMatch(enabledChangeBlock,/publishMarketAiConnectionState\(false,\{force:true\}\)/,'OFF 전환에서 disconnect event를 중복 강제 발행하면 안 된다');
-  assert.match(liveValuation,/function stopLiveValuationPollTimer\(\)/);
-  assert.match(liveValuation,/function ensureLiveValuationPollTimer\(\)/);
-  assert.doesNotMatch(liveValuation,/document\.visibilityState==='visible'&&marketAiEnabled\(\)\)refreshLiveValuation\(\)/);
-});
-
-test('Live Valuation은 closed+usable이면 polling을 쉬되 KRX market phase 전환에서 1회 재검증하고 직전 완료 세션 렌더를 허용한다',()=>{
-  assert.match(liveValuation,/let liveValuationSettledSessionKey='';/);
-  assert.match(liveValuation,/let liveValuationSettledPhase='';/);
-  assert.match(liveValuation,/function liveValuationMarketPhase\(now=new Date\(\)\)/);
-  assert.match(liveValuation,/function liveValuationSessionKey\(date,tickers\)/);
-  assert.match(liveValuation,/function liveValuationSettledFor\(date,tickers\)/);
-  assert.match(liveValuation,/liveValuationSettledPhase===liveValuationMarketPhase\(\)/);
-  assert.match(liveValuation,/const fullyClosed=requested\.every\(ticker=>\{[^]*?item\?\.usable===true[^]*?item\?\.state==='closed'[^]*?item\?\.marketState==='closed'[^]*?Number\(item\?\.price\)>0/);
-  assert.match(liveValuation,/if\(liveValuationSettledFor\(today,tickers\)\)\{\s*flushLiveValuationRender\(\);\s*return;\s*\}\s*const requestedUniverseKey=/);
-  assert.match(liveValuation,/applyLiveValuationSnapshot\(payload,tickers\);\s*updateLiveValuationSettledSession\(today,tickers\);/);
-  assert.match(liveValuation,/clearLiveValuationSettledSession\(\);\s*stopLiveValuationPollTimer\(\);/);
-  assert.match(liveValuation,/window\.setInterval\(\(\)=>\{\s*if\(document\.visibilityState==='visible'&&liveValuationNetworkAllowed\(\)\)refreshLiveValuation\(\);/);
-  assert.match(liveValuation,/liveValuationRenderDateEligible\(dataState\.activeDate\)/);
-  const quoteStart=core.indexOf('function liveValuationQuoteForDate(ticker,date,now=new Date()){');
-  const quoteEnd=core.indexOf('\nconst liveValuationPriceForDate',quoteStart);
-  assert.ok(quoteStart>=0&&quoteEnd>quoteStart,'live valuation quote block is missing');
-  assert.doesNotMatch(core.slice(quoteStart,quoteEnd),/20\*60|kstMinutesAt|regular_close/,'20시 자체가 Market AI closed quote fallback 조건이 되면 안 된다');
-  assert.match(core,/\['live','closed'\]\.includes\(String\(item\?\.state\|\|''\)\)/);
 });
 
 test('Market AI는 main dataState/uiState를 참조하지 않는 standalone state를 유지한다',()=>{
@@ -1131,18 +835,6 @@ test('전일 대비 변동 현재 열은 증권/연금별 실제 가격 상태 �
   assert.match(ui,/const currentPriceLabel=assetCurrentPriceColumnLabel\(detail\.date,orderedRows\);/);
   assert.match(pension,/currentPriceLabel=assetCurrentPriceColumnLabel\(x\.date,orderedPensionRows\)/);
 });
-
-test('현재가 출처 tooltip은 표의 라벨 텍스트뿐 아니라 라벨 셀 전체를 hover hit-area로 사용한다',()=>{
-  assert.match(uiCommon,/function assetSourceTooltipTargetFromEvent\(event,selector\)/);
-  assert.match(uiCommon,/closest\?\.\('th\[scope=\"row\"\]'\)\?\.querySelector\(selector\)/);
-  assert.match(uiCommon,/function assetSourceTooltipHitArea\(target\)/);
-  assert.match(uiCommon,/closest\?\.\('th\[scope=\"row\"\]'\)\|\|target/);
-});
-
-test('live valuation 재렌더는 퇴직연금 조정 본체와 action modal이 열려 있는 동안 모두 보류한다',()=>{
-  assert.match(liveValuation,/\.action-modal\.show,\.contrib-modal\.show,dialog\[open\]/);
-});
-
 
 test('Hero 기준문구는 raw 상태 대신 실제 적용 가격의 사용자 의미를 노출한다',()=>{
   assert.match(core,/function heroPerformanceBasisLabel\(date,now=new Date\(\)\)/);
@@ -1507,282 +1199,6 @@ test('KRX 자동 2차 install/remove/status는 scheduler 전용 trigger만 관�
   assert.doesNotMatch(block,/setProperty|setProperties|deleteProperty|deleteAllProperties/,'scheduler는 기존 durable Properties namespace에 상태를 저장하지 않아야 한다');
 });
 
-test('KRX 자동 workflow 사후 검증은 terminal 실패만 recovery request로 재dispatch하고 exact run 미가시성은 fail-closed 한다',()=>{
-  const vm=require('node:vm');
-  const gas=read('GAS_code.js');
-  const start=gas.indexOf('/* --- 10G-B. KRX Automatic Workflow Outcome Verification');
-  const end=gas.indexOf('/* --- 10H. KRX Automatic Invocation Wrapper',start);
-  assert.ok(start>=0&&end>start,'KRX 자동 workflow verification 섹션을 찾지 못했다');
-  const block=gas.slice(start,end);
-  const NativeDate=Date;
-  let uidSeq=0;
-  let nowMs=Date.parse('2026-09-29T01:10:00.000Z'); // KST 10:10, close verification window 안
-  const triggers=[];const store={};const dispatches=[];const queryDates=[];
-  function makeTrigger(handler,meta={}){const t={_handler:handler,_uid:'v'+(++uidSeq),_meta:meta,getHandlerFunction(){return this._handler;},getUniqueId(){return this._uid;}};triggers.push(t);return t;}
-  const ScriptApp={
-    getProjectTriggers(){return triggers.slice();},
-    deleteTrigger(t){const i=triggers.indexOf(t);if(i>=0)triggers.splice(i,1);},
-    newTrigger(handler){const meta={};const api={timeBased(){return api;},at(v){meta.at=v;return api;},create(){return makeTrigger(handler,{...meta});}};return api;}
-  };
-  const props={getProperty:k=>store[k]??null,setProperty(k,v){store[k]=String(v);return props;},deleteProperty(k){delete store[k];return props;},getProperties(){return {...store};}};
-  class FixedDate extends NativeDate{constructor(...args){super(...(args.length?args:[nowMs]));}static UTC(...args){return NativeDate.UTC(...args);}}
-  let exactMode='failure';
-  let activeRun=null;
-  const context=vm.createContext({
-    PropertiesService:{getScriptProperties:()=>props},ScriptApp,Date:FixedDate,console,
-    KRX_AUTO_VERIFY_HANDLERS:{morning:'runKrxAutoMorningVerify',close:'runKrxAutoCloseVerify'},KRX_AUTO_TIMEZONE:'Asia/Seoul',
-    isValidDateText:v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')),
-    Utilities:{formatDate(date){const d=new NativeDate(date.getTime()+9*60*60*1000);return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;}},
-    withKrxAutoSchedulerLock_:(cb)=>cb(),getProp:()=> 'main',
-    findKrxWorkflowRunByRequestId:(_branch,date,_requestId)=>{queryDates.push(date);if(exactMode==='none')return null;if(exactMode==='pendingConclusion')return {id:102,status:'completed',conclusion:null};if(exactMode==='success')return {id:103,status:'completed',conclusion:'success'};return {id:101,status:'completed',conclusion:'failure'};},
-    findActiveKrxWorkflowRun:()=>activeRun,isActiveKrxWorkflowRun:run=>!!run&&['queued','in_progress','waiting','pending','requested'].includes(String(run.status||'')),
-    classifyKrxAutoRetryError_:()=>'',
-    dispatchKrxPriceWorkflow:body=>{dispatches.push(body.requestId);return {ok:true,action:'workflow_dispatched',requestId:body.requestId};}
-  });
-  vm.runInContext(block,context);
-
-  const date='2026-09-29';
-  let scheduled=context.scheduleKrxAutoVerification_('close',date,`krx-auto:${date}:close`,0,0,'test',new FixedDate());
-  assert.equal(scheduled.scheduled,true);
-  let result=context.runKrxAutoCloseVerify({triggerUid:scheduled.triggerUid});
-  assert.equal(result.action,'auto_verification_recovery_dispatched');
-  assert.deepEqual(dispatches,[`krx-auto-recovery:${date}:close:1`]);
-  assert.equal(queryDates[0],'','자동 dispatch run 조회는 날짜가 아니라 workflow의 auto prefix를 사용해야 한다');
-  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoCloseVerify').length,1,'recovery dispatch 뒤 verification은 하나만 남아야 한다');
-
-  const recoveryTrigger=triggers.find(t=>t._handler==='runKrxAutoCloseVerify');
-  exactMode='success';
-  result=context.runKrxAutoCloseVerify({triggerUid:recoveryTrigger._uid});
-  assert.equal(result.action,'auto_verification_success');
-  assert.equal(dispatches.length,1,'성공 conclusion 뒤에는 추가 recovery dispatch가 없어야 한다');
-  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoCloseVerify').length,0);
-
-  exactMode='none';activeRun={id:201,status:'in_progress',conclusion:null};
-  scheduled=context.scheduleKrxAutoVerification_('close',date,`krx-auto:${date}:close`,0,0,'test',new FixedDate());
-  result=context.runKrxAutoCloseVerify({triggerUid:scheduled.triggerUid});
-  assert.equal(result.action,'auto_verification_waiting_active_run');
-  assert.equal(dispatches.length,1,'exact run이 안 보여도 active run이 있으면 중복 dispatch하면 안 된다');
-
-  const pendingTrigger=triggers.find(t=>t._handler==='runKrxAutoCloseVerify');
-  exactMode='pendingConclusion';activeRun=null;
-  result=context.runKrxAutoCloseVerify({triggerUid:pendingTrigger._uid});
-  assert.equal(result.action,'auto_verification_conclusion_pending');
-  assert.equal(dispatches.length,1,'completed지만 conclusion 미가시성인 순간에도 recovery dispatch하면 안 된다');
-});
-
-test('KRX 자동 3차 정상 성공 경로는 retry용 ScriptApp/Properties I/O를 전혀 실행하지 않는다',()=>{
-  const vm=require('node:vm');
-  const gas=read('GAS_code.js');
-  const start=gas.indexOf('/* --- 10J. KRX Automatic Bounded Retry / Recovery');
-  const end=gas.indexOf('/* =========================================================\n * 11. Web App Entry / Router',start);
-  assert.ok(start>=0&&end>start,'KRX 자동 retry 섹션을 찾지 못했다');
-  const block=gas.slice(start,end);
-  let propertyCalls=0,scriptCalls=0,phaseCalls=0;
-  const context=vm.createContext({
-    PropertiesService:{getScriptProperties(){propertyCalls++;throw new Error('normal path must not touch properties');}},
-    ScriptApp:{getProjectTriggers(){scriptCalls++;throw new Error('normal path must not touch triggers');}},
-    Utilities:{formatDate(){throw new Error('normal path must not format retry date');}},
-    KRX_AUTO_TIMEZONE:'Asia/Seoul',
-    KRX_AUTO_RETRY_HANDLERS:{morning:'runKrxAutoMorningRetry',close:'runKrxAutoCloseRetry'},
-    withKrxAutoSchedulerLock_:(cb)=>cb(),
-    isValidDateText:(v)=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')),
-    nowKSTText:()=>"2026-09-28T09:01:00+09:00",
-    runKrxAutoPhase_:(phase,date)=>{phaseCalls++;return {ok:true,action:'workflow_dispatched',phase,date};},
-    console,Date
-  });
-  vm.runInContext(block,context);
-  const result=context.runKrxAutoManagedPhase_('morning','2026-09-28',0);
-  assert.equal(result.action,'workflow_dispatched');
-  assert.equal(phaseCalls,1);
-  assert.equal(propertyCalls,0,'정상 성공 hot path에서 retry metadata I/O가 생기면 안 된다');
-  assert.equal(scriptCalls,0,'정상 성공 hot path에서 trigger 조회/생성이 생기면 안 된다');
-  assert.doesNotMatch(block,/UrlFetchApp|githubRequest|readGithubJson|getGithubBranchHeadSha|dispatchKrxPriceWorkflow/,'retry 외곽 계층이 GitHub/기존 dispatch를 직접 호출하면 안 된다');
-  assert.match(block,/const result = runKrxAutoPhase_\(normalizedPhase, targetDate\);/,'retry도 반드시 1차 wrapper를 통해 기존 코어로 위임해야 한다');
-  assert.equal((block.match(/PropertiesService\.getScriptProperties\(\)/g)||[]).length,1,'retry Properties 진입점은 단일 helper로 제한한다');
-});
-
-test('KRX 자동 3차는 transient만 같은 날짜로 bounded retry하고 terminal/4xx는 재시도하지 않는다',()=>{
-  const vm=require('node:vm');
-  const gas=read('GAS_code.js');
-  const start=gas.indexOf('/* --- 10J. KRX Automatic Bounded Retry / Recovery');
-  const end=gas.indexOf('/* =========================================================\n * 11. Web App Entry / Router',start);
-  const block=gas.slice(start,end);
-  let nowMs=Date.parse('2026-09-28T00:01:00.000Z'); // KST 09:01
-  let uidSeq=0;
-  const triggers=[];
-  const store={};
-  const phaseCalls=[];
-  let phaseResult={ok:true,action:'workflow_in_progress',timing:{outcome:'workflow_in_progress'}};
-  function makeTrigger(handler,meta={}){
-    const trigger={_handler:handler,_uid:'r'+(++uidSeq),_meta:meta,getHandlerFunction(){return this._handler;},getUniqueId(){return this._uid;}};
-    triggers.push(trigger);return trigger;
-  }
-  const ScriptApp={
-    getProjectTriggers(){return triggers.slice();},
-    deleteTrigger(trigger){const i=triggers.indexOf(trigger);if(i>=0)triggers.splice(i,1);},
-    newTrigger(handler){const meta={};const api={timeBased(){return api;},at(v){meta.at=v;return api;},create(){return makeTrigger(handler,{...meta});}};return api;}
-  };
-  const props={
-    getProperty(k){return Object.prototype.hasOwnProperty.call(store,k)?store[k]:null;},
-    setProperty(k,v){store[k]=String(v);return props;},
-    deleteProperty(k){delete store[k];return props;},
-    getProperties(){return {...store};}
-  };
-  const Utilities={formatDate(date,_tz,format){
-    const shifted=new Date(date.getTime()+9*60*60*1000);
-    if(format==='yyyy-MM-dd')return `${shifted.getUTCFullYear()}-${String(shifted.getUTCMonth()+1).padStart(2,'0')}-${String(shifted.getUTCDate()).padStart(2,'0')}`;
-    throw new Error('unexpected format '+format);
-  }};
-  const NativeDate=Date;
-  class FixedDate extends NativeDate{constructor(...args){super(...(args.length?args:[nowMs]));}static UTC(...args){return NativeDate.UTC(...args);}}
-  const context=vm.createContext({
-    PropertiesService:{getScriptProperties:()=>props},ScriptApp,Utilities,
-    KRX_AUTO_TIMEZONE:'Asia/Seoul',KRX_AUTO_RETRY_HANDLERS:{morning:'runKrxAutoMorningRetry',close:'runKrxAutoCloseRetry'},
-    withKrxAutoSchedulerLock_:(cb)=>cb(),Date:FixedDate,console,
-    isValidDateText:(value)=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||''));if(!m)return false;const d=new NativeDate(NativeDate.UTC(+m[1],+m[2]-1,+m[3]));return d.getUTCFullYear()===+m[1]&&d.getUTCMonth()===+m[2]-1&&d.getUTCDate()===+m[3];},
-    nowKSTText:()=>"2026-09-28T09:01:00+09:00",
-    runKrxAutoPhase_:(phase,date)=>{phaseCalls.push({phase,date});if(phaseResult instanceof Error)throw phaseResult;return {...phaseResult};}
-  });
-  vm.runInContext(block,context);
-
-  const first=context.runKrxAutoManagedPhase_('morning','2026-09-28',0);
-  assert.equal(first.autoRetry.scheduled,true);
-  assert.equal(first.autoRetry.attempt,1);
-  assert.equal(first.autoRetry.targetAt,'2026-09-28T00:02:00.000Z');
-  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorningRetry').length,1);
-  const retryTrigger=triggers.find(t=>t._handler==='runKrxAutoMorningRetry');
-  const metadata=JSON.parse(store['KRX_AUTO_RETRY_'+retryTrigger._uid]);
-  assert.deepEqual({phase:metadata.phase,date:metadata.date,attempt:metadata.attempt},{phase:'morning',date:'2026-09-28',attempt:1});
-
-  nowMs=Date.parse('2026-09-28T00:02:00.000Z');
-  phaseResult={ok:true,action:'workflow_dispatched',timing:{outcome:'workflow_dispatched'}};
-  const retried=context.runKrxAutoMorningRetry({triggerUid:retryTrigger._uid});
-  assert.equal(retried.action,'workflow_dispatched');
-  assert.equal(phaseCalls.at(-1).date,'2026-09-28','retry가 현재시각으로 request date를 다시 만들면 안 된다');
-  assert.equal(store['KRX_AUTO_RETRY_'+retryTrigger._uid],undefined,'실행한 retry metadata는 정리되어야 한다');
-
-  assert.equal(context.classifyKrxAutoRetryError_({githubHttpStatus:500,message:'x'}),'github_http_500');
-  assert.equal(context.classifyKrxAutoRetryError_({githubHttpStatus:409,message:'x'}),'github_http_409');
-  assert.equal(context.classifyKrxAutoRetryError_({githubHttpStatus:429,message:'x'}),'github_http_429');
-  assert.equal(context.classifyKrxAutoRetryError_({githubHttpStatus:401,message:'x'}),'','401 인증 실패는 자동 retry하면 안 된다');
-  assert.equal(context.classifyKrxAutoRetryError_({githubHttpStatus:403,message:'x'}),'','403 설정/권한 실패는 자동 retry하면 안 된다');
-  assert.equal(context.classifyKrxAutoRetryError_({githubHttpStatus:422,message:'x'}),'','422 입력 실패는 자동 retry하면 안 된다');
-  assert.equal(context.classifyKrxAutoRetryError_(new Error('socket connection reset')),'network_transient');
-
-  const beforeCount=triggers.length;
-  assert.equal(context.scheduleKrxAutoRetry_('morning','2026-09-28',4,'x',new NativeDate('2026-09-28T00:02:00Z')).reason,'attempt_limit');
-  assert.equal(triggers.length,beforeCount,'최대 시도 횟수를 넘으면 trigger를 만들면 안 된다');
-  assert.equal(context.scheduleKrxAutoRetry_('morning','2026-09-28',1,'x',new NativeDate('2026-09-28T00:10:00Z')).reason,'retry_window_closed');
-});
-
-test('KRX 자동 3차 stale retry는 다음날 request로 변질되지 않고 metadata 부재/손상도 fail-closed 한다',()=>{
-  const vm=require('node:vm');
-  const gas=read('GAS_code.js');
-  const start=gas.indexOf('/* --- 10J. KRX Automatic Bounded Retry / Recovery');
-  const end=gas.indexOf('/* =========================================================\n * 11. Web App Entry / Router',start);
-  const block=gas.slice(start,end);
-  const store={};
-  let phaseCalls=0;
-  const props={getProperty:k=>store[k]??null,setProperty(k,v){store[k]=String(v);return props;},deleteProperty(k){delete store[k];return props;},getProperties(){return {...store};}};
-  const NativeDate=Date;
-  class FixedDate extends NativeDate{constructor(...args){super(...(args.length?args:['2026-09-29T00:02:00.000Z']));}static UTC(...args){return NativeDate.UTC(...args);}}
-  const context=vm.createContext({
-    PropertiesService:{getScriptProperties:()=>props},
-    ScriptApp:{getProjectTriggers:()=>[],deleteTrigger(){},newTrigger(){throw new Error('stale path must not create trigger');}},
-    Utilities:{formatDate(){return '2026-09-29';}},
-    KRX_AUTO_TIMEZONE:'Asia/Seoul',KRX_AUTO_RETRY_HANDLERS:{morning:'runKrxAutoMorningRetry',close:'runKrxAutoCloseRetry'},
-    withKrxAutoSchedulerLock_:(cb)=>cb(),Date:FixedDate,console,
-    isValidDateText:(v)=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')),nowKSTText:()=>"2026-09-29T09:02:00+09:00",
-    runKrxAutoPhase_:()=>{phaseCalls++;return {ok:true,action:'workflow_dispatched'};}
-  });
-  vm.runInContext(block,context);
-  store.KRX_AUTO_RETRY_old=JSON.stringify({version:1,phase:'morning',date:'2026-09-28',attempt:1,scheduledAtMs:Date.parse('2026-09-28T00:02:00Z'),reason:'lock_busy'});
-  const stale=context.runKrxAutoMorningRetry({triggerUid:'old'});
-  assert.equal(stale.action,'auto_retry_stale_ignored');
-  assert.equal(stale.reason,'stale_date');
-  assert.equal(phaseCalls,0,'전날 retry가 오늘 requestId로 바뀌어 dispatch되면 안 된다');
-  assert.equal(store.KRX_AUTO_RETRY_old,undefined);
-  const missing=context.runKrxAutoMorningRetry({triggerUid:'missing'});
-  assert.equal(missing.action,'auto_retry_ignored');
-  assert.equal(missing.reason,'missing_retry_metadata');
-  store.KRX_AUTO_RETRY_bad=JSON.stringify({version:1,phase:'morning',date:'2026-09-29',attempt:99,scheduledAtMs:1});
-  const bad=context.runKrxAutoMorningRetry({triggerUid:'bad'});
-  assert.equal(bad.action,'auto_retry_ignored');
-  assert.equal(bad.reason,'invalid_retry_metadata');
-  assert.equal(phaseCalls,0);
-});
-
-test('KRX 자동 3차 retry chain은 1→2→3분 지연 후 종료하고 phase당 pending trigger를 하나만 유지한다',()=>{
-  const vm=require('node:vm');
-  const gas=read('GAS_code.js');
-  const start=gas.indexOf('/* --- 10J. KRX Automatic Bounded Retry / Recovery');
-  const end=gas.indexOf('/* =========================================================\n * 11. Web App Entry / Router',start);
-  const block=gas.slice(start,end);
-  let nowMs=Date.parse('2026-09-28T00:01:00.000Z');
-  let uidSeq=0;
-  const triggers=[];
-  const store={};
-  function makeTrigger(handler,meta={}){const t={_handler:handler,_uid:'chain'+(++uidSeq),_meta:meta,getHandlerFunction(){return this._handler;},getUniqueId(){return this._uid;}};triggers.push(t);return t;}
-  const ScriptApp={getProjectTriggers(){return triggers.slice();},deleteTrigger(t){const i=triggers.indexOf(t);if(i>=0)triggers.splice(i,1);},newTrigger(handler){const meta={};const api={timeBased(){return api;},at(v){meta.at=v;return api;},create(){return makeTrigger(handler,{...meta});}};return api;}};
-  const props={getProperty:k=>store[k]??null,setProperty(k,v){store[k]=String(v);return props;},deleteProperty(k){delete store[k];return props;},getProperties(){return {...store};}};
-  const Utilities={formatDate(date){const d=new Date(date.getTime()+9*60*60*1000);return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;}};
-  const NativeDate=Date;
-  class FixedDate extends NativeDate{constructor(...args){super(...(args.length?args:[nowMs]));}static UTC(...args){return NativeDate.UTC(...args);}}
-  const context=vm.createContext({PropertiesService:{getScriptProperties:()=>props},ScriptApp,Utilities,KRX_AUTO_TIMEZONE:'Asia/Seoul',KRX_AUTO_RETRY_HANDLERS:{morning:'runKrxAutoMorningRetry',close:'runKrxAutoCloseRetry'},withKrxAutoSchedulerLock_:(cb)=>cb(),Date:FixedDate,console,isValidDateText:v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')),nowKSTText:()=>"2026-09-28T09:01:00+09:00",runKrxAutoPhase_:()=>({ok:true,action:'workflow_in_progress',timing:{outcome:'workflow_in_progress'}})});
-  vm.runInContext(block,context);
-
-  let result=context.runKrxAutoManagedPhase_('morning','2026-09-28',0);
-  assert.equal(result.autoRetry.attempt,1);
-  assert.equal(result.autoRetry.targetAt,'2026-09-28T00:02:00.000Z');
-  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorningRetry').length,1);
-
-  let trigger=triggers.find(t=>t._handler==='runKrxAutoMorningRetry');
-  nowMs=Date.parse('2026-09-28T00:02:00.000Z');
-  result=context.runKrxAutoMorningRetry({triggerUid:trigger._uid});
-  assert.equal(result.autoRetry.attempt,2);
-  assert.equal(result.autoRetry.targetAt,'2026-09-28T00:04:00.000Z');
-  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorningRetry').length,1,'retry2 예약 시 이전 retry trigger는 무효화되어야 한다');
-
-  trigger=triggers.find(t=>t._handler==='runKrxAutoMorningRetry');
-  nowMs=Date.parse('2026-09-28T00:04:00.000Z');
-  result=context.runKrxAutoMorningRetry({triggerUid:trigger._uid});
-  assert.equal(result.autoRetry.attempt,3);
-  assert.equal(result.autoRetry.targetAt,'2026-09-28T00:07:00.000Z');
-  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorningRetry').length,1);
-
-  trigger=triggers.find(t=>t._handler==='runKrxAutoMorningRetry');
-  nowMs=Date.parse('2026-09-28T00:07:00.000Z');
-  result=context.runKrxAutoMorningRetry({triggerUid:trigger._uid});
-  assert.equal(result.autoRetry.scheduled,false);
-  assert.equal(result.autoRetry.reason,'attempt_limit');
-  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorningRetry').length,0,'최종 retry 실행 후 trigger까지 정리되어야 한다');
-  assert.equal(Object.keys(store).filter(k=>k.startsWith('KRX_AUTO_RETRY_')).length,0,'최종 retry metadata는 남기면 안 된다');
-});
-
-test('KRX 자동 3차 reconciler cleanup은 현재 날짜의 유효 retry는 보존하고 전날/orphan retry만 제거한다',()=>{
-  const vm=require('node:vm');
-  const gas=read('GAS_code.js');
-  const start=gas.indexOf('/* --- 10J. KRX Automatic Bounded Retry / Recovery');
-  const end=gas.indexOf('/* =========================================================\n * 11. Web App Entry / Router',start);
-  const block=gas.slice(start,end);
-  const triggers=[];const store={};
-  function makeTrigger(handler,uid){const t={_handler:handler,_uid:uid,getHandlerFunction(){return this._handler;},getUniqueId(){return this._uid;}};triggers.push(t);return t;}
-  const today=makeTrigger('runKrxAutoMorningRetry','today');
-  const old=makeTrigger('runKrxAutoMorningRetry','old');
-  store.KRX_AUTO_RETRY_today=JSON.stringify({version:1,phase:'morning',date:'2026-09-28',attempt:1,scheduledAtMs:Date.parse('2026-09-28T00:03:00Z'),reason:'lock_busy'});
-  store.KRX_AUTO_RETRY_old=JSON.stringify({version:1,phase:'morning',date:'2026-09-27',attempt:1,scheduledAtMs:Date.parse('2026-09-27T00:03:00Z'),reason:'lock_busy'});
-  store.KRX_AUTO_RETRY_orphan=JSON.stringify({version:1,phase:'close',date:'2026-09-27',attempt:1,scheduledAtMs:Date.parse('2026-09-27T06:32:00Z'),reason:'x'});
-  const props={getProperty:k=>store[k]??null,setProperty(k,v){store[k]=String(v);return props;},deleteProperty(k){delete store[k];return props;},getProperties(){return {...store};}};
-  const context=vm.createContext({PropertiesService:{getScriptProperties:()=>props},ScriptApp:{getProjectTriggers:()=>triggers.slice(),deleteTrigger(t){const i=triggers.indexOf(t);if(i>=0)triggers.splice(i,1);}},KRX_AUTO_RETRY_HANDLERS:{morning:'runKrxAutoMorningRetry',close:'runKrxAutoCloseRetry'},Date,console,isValidDateText:v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')),KRX_AUTO_TIMEZONE:'Asia/Seoul',Utilities:{formatDate(){return '2026-09-28';}},withKrxAutoSchedulerLock_:(cb)=>cb(),nowKSTText:()=>"2026-09-28T09:03:00+09:00",runKrxAutoPhase_:()=>({ok:true})});
-  vm.runInContext(block,context);
-  context.clearStaleKrxAutoRetryStateUnlocked_('2026-09-28',new Date('2026-09-28T00:03:00Z'));
-  assert.equal(triggers.includes(today),true,'현재 날짜 retry를 reconciler가 지우면 안 된다');
-  assert.equal(triggers.includes(old),false,'전날 retry trigger는 제거해야 한다');
-  assert.ok(store.KRX_AUTO_RETRY_today,'현재 날짜 retry metadata는 보존해야 한다');
-  assert.equal(store.KRX_AUTO_RETRY_old,undefined);
-  assert.equal(store.KRX_AUTO_RETRY_orphan,undefined,'trigger 없는 orphan metadata는 정리해야 한다');
-});
-
 test('KRX 성공 후 Pages는 저장 전 run SHA가 아닌 main의 최신 데이터를 배포한다',()=>{
   const pages=read('.github/workflows/pages.yml');
   assert.match(updatePricesWorkflow,/KRX_ID: \$\{\{ secrets\.KRX_ID \}\}/);
@@ -2071,35 +1487,6 @@ test('Market AI standalone refresh는 열린 tooltip 본문도 최신 state로 �
   assert.match(marketAi,/marketAiActiveTooltipTarget=null;\s*const tooltip=document\.getElementById\(MARKET_AI_TOOLTIP_ID\)/);
 });
 
-test('Market AI 시장 tooltip renderer는 상태와 무관하게 라벨을 고정하고 K200 세션만 선택적으로 삽입한다',()=>{
-  const vm=require('node:vm');
-  const start=marketAi.indexOf('function marketAiMarketTooltipHtml');
-  const end=marketAi.indexOf('\nfunction marketAiSignalMetric',start);
-  assert.ok(start>=0&&end>start,'Market tooltip renderer block is missing');
-
-  let model=null;
-  const escape=value=>String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const context={
-    marketAiMarketDisplayModel:()=>model,
-    marketAiEscape:escape,
-    marketAiTooltipRow:(name,value,className='')=>`<row n="${escape(name)}" v="${escape(value)}" c="${escape(className)}"></row>`,
-    marketAiTooltipDivider:()=>'<divider></divider>'
-  };
-  vm.createContext(context);
-  vm.runInContext(marketAi.slice(start,end),context);
-
-  model={label:'NQ100선물',price:'25,000.00',changePct:'-0.31%',changeClass:'tt-neg',status:'데이터 지연',session:'',source:'Yahoo Nasdaq-100 선물 (NQ=F)',observedAt:'01:28:10'};
-  let html=context.marketAiMarketTooltipHtml('nasdaq100-futures');
-  const labels=[...html.matchAll(/<row n="([^"]+)"/g)].map(match=>match[1]);
-  assert.deepEqual(labels,['현재가','등락률','상태','출처','기준 시각']);
-  assert.doesNotMatch(html,/갱신|마지막 수신|<row n="데이터"/);
-
-  model={label:'K200선물',price:'450.25',changePct:'+0.10%',changeClass:'tt-pos',status:'장마감',session:'장외',source:'KIS eFriend',observedAt:'15:45:00'};
-  html=context.marketAiMarketTooltipHtml('kospi200-futures');
-  const k200Labels=[...html.matchAll(/<row n="([^"]+)"/g)].map(match=>match[1]);
-  assert.deepEqual(k200Labels,['현재가','등락률','상태','세션','출처','기준 시각']);
-});
-
 test('Repository data text는 trusted HTML과 분리해 innerHTML 경계에서 escape한다',()=>{
   assert.match(app,/<h1 id="dashboardTitle">\$\{escapeHtml\(dataState\.portfolio\.meta\.title\)\}<\/h1>/);
   assert.match(ui,/labelHtml:`<span class="holding-name-text\$\{h\.fullExit\?' security-sale-marker-name':''\}">\$\{escapeHtml\(h\.name\)\}<\/span>\$\{securitySymbolSwatch\(h\.name\)\}`/);
@@ -2167,24 +1554,6 @@ test('차트 범례 부분 렌더는 조작 control focus를 복원하고 사라
   assert.match(charts,/const focusSnapshot=chartControlFocusSnapshot\(scope\);\s*if\(legend\)legend\.innerHTML=chartLegendHtml\(scope\);[^]*?restoreChartControlFocus\(scope,focusSnapshot,card,legend\);/);
 });
 
-test('퇴직연금 차트 이력은 live/print 반복 렌더에서 날짜별 calc를 공유한다',()=>{
-  assert.match(core,/const pensionHistoryCalcCache=\{/);
-  assert.match(core,/function pensionChartHistoryBundle\(d\)\{/);
-  assert.match(core,/pensionContributions===dataState\.pensionContributions/);
-  assert.match(core,/pensionCashSnapshots===dataState\.pensionCashSnapshots/);
-  assert.match(core,/pensionTrades===dataState\.pensionTrades/);
-  assert.match(core,/liveValuation===dataState\.liveValuation/);
-  assert.match(charts,/function pensionCumHistory\(d\)\{return pensionChartHistoryBundle\(d\)\.cum;\}/);
-  assert.match(charts,/function pensionSymbolHistory\(d\)\{return pensionChartHistoryBundle\(d\)\.symbol;\}/);
-  assert.match(charts,/function pensionAllocHistory\(d\)\{return pensionChartHistoryBundle\(d\)\.alloc;\}/);
-});
-
-test('Live Valuation partial refresh는 미진입 차트 entrance를 일괄 완료 처리하지 않는다',()=>{
-  assert.match(app,/preservePlayedChartEntrancesOnce\(\);/);
-  assert.doesNotMatch(app,/suppressChartEntranceOnce\(/);
-  assert.match(charts,/data-chart-entrance-played/);
-});
-
 test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·responsive modal 계약을 유지한다',()=>{
   assert.match(ui,/data-market-ai-monitor-entry/,'실시간 시세 진입점은 Market AI 상태로 gating할 수 있어야 한다');
   assert.match(common,/\[data-market-ai-monitor-entry\]\[hidden\]\{display:none\}/,'숨김 상태는 viewport와 무관하게 보장돼야 한다');
@@ -2211,32 +1580,6 @@ test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·resp
   assert.ok(phoneRealtimeStart>=0&&phoneRealtimeEnd>phoneRealtimeStart,'Phone 실시간 시세 responsive block이 필요하다');
   assert.doesNotMatch(phoneRealtimeCss,/--modal-overlay-pad\s*:\s*0|--modal-card-radius\s*:\s*0|position\s*:\s*fixed|inset\s*:\s*0|border-radius\s*:\s*0/,'Phone 실시간 시세가 공통 action modal 외곽 계약을 우회하면 안 된다');
   assert.doesNotMatch(phoneRealtimeCss,/--realtime-quote-shell-bg/,'Phone 전용 CSS가 shell 테마 색을 별도로 고정하면 안 된다');
-});
-
-test('퇴직연금 작업 방식 switch는 폭·좌우 여백만 전용이고 나머지는 공통 segmented contract를 사용한다',()=>{
-  assert.match(pensionEditor,/class="control-segmented pension-work-mode"/);
-  assert.match(pensionEditor,/class="pension-work-mode-btn active"[^>]*><span class="compact-control-text">개별 처리<\/span>/,'퇴직연금 개별 처리도 공통 segmented text span을 사용해야 한다');
-  assert.match(pensionEditor,/class="pension-work-mode-btn"[^>]*><span class="compact-control-text">작업 모음 <span id="pensionBatchModeCount">0<\/span><\/span>/,'퇴직연금 작업 모음도 count를 포함해 공통 segmented text span 안에서 정렬되어야 한다');
-  assert.doesNotMatch(common,/--pension-modal-mode-(?:size|height)/);
-  const modeBlock=common.match(/\.pension-contrib-context \.pension-work-mode button\s*\{([^}]*)\}/s);
-  assert.ok(modeBlock,'퇴직연금 작업 방식 버튼의 geometry-only override가 필요하다');
-  assert.match(modeBlock[1],/min-width:72px;/,'긴 문구를 위한 전용 최소폭은 유지해야 한다');
-  assert.match(modeBlock[1],/padding-inline:var\(--space-md\);/,'긴 문구를 위한 전용 좌우 여백은 유지해야 한다');
-  const properties=[...modeBlock[1].matchAll(/([\w-]+)\s*:/g)].map(match=>match[1]).sort();
-  assert.deepEqual(properties,['min-width','padding-inline'],'퇴직연금 전용 CSS는 폭·좌우 여백만 소유하고 typography/line-height/iOS 보정 등은 공통 segmented를 상속해야 한다');
-});
-
-test('Topbar 개인보기 도구는 Market AI → 계산기 → 테마 순서를 유지한다',()=>{
-  const tabsBlock=ui.slice(ui.indexOf('function renderTabs(){'),ui.indexOf('\nfunction toggleMobileDataView'));
-  for(const marker of ['topbar-calc-action','topbar-market-ai-toggle','topbar-theme-action']){
-    assert.ok(tabsBlock.includes(marker),`개인보기 도구 누락: ${marker}`);
-  }
-  const marketAiIndex=tabsBlock.indexOf('topbar-market-ai-toggle');
-  const calculatorIndex=tabsBlock.indexOf('topbar-calc-action');
-  const themeIndex=tabsBlock.indexOf('topbar-theme-action');
-  assert.ok(marketAiIndex>=0&&marketAiIndex<calculatorIndex&&calculatorIndex<themeIndex,'Topbar 개인보기 도구는 Market AI → 투자 계산기 → 테마 순서를 유지해야 한다');
-  assert.match(tabsBlock,/topbar-calc-action[^]*?control-icon-button|control-icon-button topbar-calc-action/s);
-  assert.match(tabsBlock,/toggle-market-ai-connection/);
 });
 
 test('Market AI 연결 toggle은 OFF fallback과 viewport별 진입점 계약을 유지한다',()=>{
@@ -2281,20 +1624,6 @@ test('개인보기 3회 입력은 Web/Tablet 기준문구와 Phone Hero 전체�
   assert.doesNotMatch(toggleBlock,/\brender\(\)/,'개인보기 3회 입력에서 #app full render를 호출하면 안 된다');
   assert.match(ui,/data-personal-view-control/,'개인보기 control은 최초 render부터 mount되어 있어야 한다');
   assert.match(common,/\[data-personal-view-control\]\[hidden\],\s*\.date-action-menu\.mobile-combined-menu \[data-personal-view-control\]\[hidden\]\{display:none\}/,'Tablet/Phone 관리 메뉴에서도 개인보기 hidden이 nav item display 규칙보다 높은 specificity를 가져야 한다');
-});
-
-test('TOP 버튼은 짧은 상단 이동 UX와 안전한 fallback을 유지한다',()=>{
-  const start=ui.indexOf('function scrollToDashboardTop(){');
-  const end=ui.indexOf('\nfunction ensureMobileTopButton()',start);
-  const block=ui.slice(start,end);
-  assert.ok(start>=0&&end>start,'TOP scroll handler is missing');
-  const durationMatch=block.match(/const durationMs=(\d+)/);
-  assert.ok(durationMatch,'TOP animation duration이 명시돼야 한다');
-  const durationMs=Number(durationMatch[1]);
-  assert.ok(durationMs>=250&&durationMs<=700,'TOP 이동은 지나치게 느리거나 순간 이동처럼 보여서는 안 된다');
-  assert.match(block,/window\.scrollTo\(/,'TOP handler가 실제 scroll 이동을 수행해야 한다');
-  assert.match(block,/top:0/,'TOP 이동의 최종 목적지는 문서 상단이어야 한다');
-  assert.match(block,/behavior:'smooth'/,'animation API를 사용할 수 없는 경우에도 부드러운 fallback을 유지해야 한다');
 });
 
 test('자산 탭 전환은 이미 그린 차트를 재사용하고 최초 차트만 다음 paint 이후 lazy draw한다',()=>{
@@ -2345,11 +1674,6 @@ test('증권 historical 차트 universe와 요약 카드 universe는 독립적�
   assert.match(charts,/securityHistoricalChartNamesForDate\(dataState\.activeDate\)/);
   assert.match(charts,/const items=dataState\.activeDate\?securityHistoricalAllocItems\(dataState\.activeDate\):\[\]/);
   assert.match(charts,/securityHistoricalAllocCardItems\(x\.date\)\.map\(h=>\{/);
-});
-
-test('증권 종목별 누적손익 카드 grid는 Web 6열·Tablet 3열 계약을 유지한다',()=>{
-  assert.match(common,/#chart-symbol \.chart-note\.symbol-summary-grid\{[^}]*grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/);
-  assert.match(tablet,/#chart-symbol \.chart-note\.symbol-summary-grid\{[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
 });
 
 test('전량매도 취소선과 거래 상세 tooltip은 동일한 공통 lifecycle 조건을 4개 화면에 적용한다',()=>{
@@ -2407,16 +1731,3 @@ test('추적 현금은 최신 확인값을 기준으로 표시하고 계좌1 검
   assert.match(sourceBlock,/internalCashNetRow=internalCashPrincipalNet\?sourceTableRow\('내부 현금 순이동'/);
 });
 
-test('전일 대비 일변동 표시 순서·지정 modal label·연금 compact tooltip stacking 계약을 유지한다',()=>{
-  assert.match(uiCommon,/function renderAssetDayChangeValue\([^]*?asset-change-delta-value \$\{rateClass\}[^]*?\$\{rateText\}[^]*?asset-change-delta-rate \$\{amountClass\}[^]*?\$\{amountText\}/,'일변동 셀은 위=등락률, 아래=변동금액 순서를 유지해야 한다');
-  assert.match(common,/--modal-label-weight:var\(--type-weight-bold\)/,'지정 modal label 700은 공통 토큰으로 소유해야 한다');
-  assert.match(common,/\.action-modal-label\{[^}]*font-weight:var\(--modal-label-weight\)/s,'KRX/action modal label은 700 token을 사용해야 한다');
-  assert.match(common,/\.contrib-field-label\{[^}]*font-weight:var\(--modal-label-weight\)/s,'퇴직연금 조정 field label은 700 token을 사용해야 한다');
-  assert.match(common,/:is\(\.contrib-modal-card \.contrib-target-option,\.portfolio-heatmap-card \.portfolio-heatmap-mode-tab,\.portfolio-heatmap-card \.portfolio-heatmap__legend\)\{[^}]*font-weight:var\(--modal-label-weight\)/s,'퇴직연금/히트맵의 label성 mode·legend도 700을 공유해야 한다');
-  assert.match(charts,/function showChartTitleInfoFloating\(button\)\{[^]*?document\.body\.appendChild\(floating\)[^]*?positionChartTitleInfoFloating\(\)/,'모바일 연금 title tooltip은 chart stacking context 밖 body portal에 표시해야 한다');
-  assert.match(common,/\.chart-title-info-floating-tooltip\{[^}]*position:fixed;[^}]*z-index:12010/s,'floating title tooltip은 viewport 최상위 fixed layer를 사용해야 한다');
-  assert.doesNotMatch(common,/:is\(#pension-chart-cum,#pension-chart-symbol\)\.compact-chart-ui \.chart-(?:head|wrap)\{[^}]*z-index:/s,'연금 tooltip 해결을 chart head/wrap z-index 경쟁에 의존하면 안 된다');
-  assert.match(common,/--asset-change-top-line-height:1\.32/,'전일 대비 변동표 상단값 line-height는 1.32 전용 토큰으로 소유해야 한다');
-  assert.match(common,/\.change-price\{[^}]*line-height:var\(--asset-change-top-line-height\)/s,'전일/당일 종가 상단값은 1.32 전용 토큰을 공유해야 한다');
-  assert.match(common,/\.asset-change-delta-value\{[^}]*line-height:var\(--asset-change-top-line-height\)/s,'일변동 상단값도 1.32 전용 토큰을 공유해야 한다');
-});

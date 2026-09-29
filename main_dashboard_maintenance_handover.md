@@ -1,2061 +1,256 @@
-# main_dashboard_maintenance_handover · 메인 대시보드 유지보수 및 인수인계
+# Main Dashboard 유지보수 인수인계
 
-이 문서는 투자 대시보드의 **Main 영역을 수정·유지보수·인수인계하기 위한 기준 문서**다.
+## 1. 문서 목적과 Source of Truth
 
-> **문서 성격 / 대상 환경**  
-> 이 문서는 GitHub Pages에 배포되는 **Main 프런트엔드와 그 쓰기·갱신 경계**를 수정하는 유지보수자용 contract다. 일반 사용자 실행 안내나 프로젝트 소개는 `README.md`, 점수·A/B/C 판정은 `dashboard_evaluation_guide.md`가 담당한다.  
-> 별도 `market-ai` 프로젝트의 Python/C#/PyInstaller/Tailscale runtime 빌드 절차는 이 문서의 소유 범위가 아니다. Main은 Market AI를 **외부 API provider**로 소비하며, 프런트엔드 adapter·overlay·fallback·render lifecycle만 이 문서에서 관리한다.
+이 문서는 Main Dashboard를 수정할 때 필요한 **책임 경계·업무 불변조건·운영 절차·QA 범위**만 기록합니다. 함수 내부 호출순서, selector 배열, CSS 한두 px 같은 구현 세부는 최신 소스를 봅니다.
 
-이 문서는 평가 점수나 A/B/C급 판정 기준을 소유하지 않는다. 평가 요청은 루트의 `dashboard_evaluation_guide.md`를 기준으로 하고, Add Calc·KODEX Report의 상세 유지보수는 `add_maintenance_handover.md`를 기준으로 한다. `README.md`는 GitHub 프로젝트 소개와 실행·배포 개요를 담당한다.
-
-문서 역할은 다음처럼 분리한다.
-
-| 확인 목적 | 기준 문서/소스 |
-|---|---|
-| 실제 현재 구현 | 사용자가 제공한 최신 실제 HTML/CSS/JS/data/scripts/workflows/tests |
-| Main 수정·유지보수 contract | [main_dashboard_maintenance_handover.md](./main_dashboard_maintenance_handover.md) |
-| Add 수정·유지보수 contract | [add_maintenance_handover.md](./add_maintenance_handover.md) |
-| Main↔Add 공통 contract | 이 문서 8장 + `tests/cross-ui-contract.test.cjs` |
-| 평가 방법·점수·A/B/C·Counterexample/종료 기준 | [dashboard_evaluation_guide.md](./dashboard_evaluation_guide.md) |
-| 공통화·토큰화 35개 고정 Rubric | [ct35_evaluation.md](./ct35_evaluation.md) |
-| 프로젝트 소개·구성·사용 개요 | [README.md](./README.md) |
-| 과거 차수별 변경 이력 | Git history |
-
-핵심 원칙은 **최신 파일 기준 + 최소 변경 + 현재 책임 경계 보존**이다. 문서와 실제 구현이 다르면 문서를 근거로 코드를 즉시 되돌리지 않고, 최신 코드가 의도된 변경인지 문서가 낡은 것인지 먼저 확인한다.
-
-현재 문서의 흐름은 다음과 같다.
+우선순위:
 
 ```text
-1. 인수인계 · 범위 · Source of Truth
-2. Main Architecture · 책임 경계
-3. UI · Responsive · 반복 회귀 불변조건
-4. CSS · Responsive 유지보수 규칙
-5. JavaScript 구현 규칙
-6. 운영 데이터 · GitHub Actions · GAS
-7. Main 수정 · QA · Diff
-8. Main ↔ Add 공통 contract
-9. Legacy guard · 문서 유지관리
-10. 최종 운영 체크리스트
-```
-
-# 1. 인수인계 · 범위 · Source of Truth
-
-## 1.1 문서 범위
-
-이 문서는 Main 영역의 다음 책임을 다룬다.
-
-- `index.html`
-- `css/common.css`, `css/tablet.css`, `css/mobile.css`, `css/special.css`, `css/interaction.css`, `css/print.css`
-- `js/dashboard-*.js`, `js/kodex-leverage-schema.js`
-- Main이 사용하는 `data/*.json`과 GAS durable state용 `data/*/`
-- `img/favicon.png`, `img/hero-bg.webp`, `img/ui-icons.svg`
-- `.github/workflows/pages.yml`, `.github/workflows/update-prices.yml`, `scripts/update_prices.py`, `requirements.txt`
-- `tests/main-*.test.cjs`, `tests/heatmap-*.test.cjs`, `tests/update_prices_test.py`
-- Main과 Add가 반드시 동일하게 유지해야 하는 제한적 공통 contract와 `tests/cross-ui-contract.test.cjs`
-
-Add의 계산식, 거래분류, Report 집계, Add 전용 CSS/JS/반응형 상세는 이 문서에서 중복 설명하지 않는다.
-
-## 1.2 새 작업의 읽기 순서
-
-Main 작업을 시작할 때는 다음 순서를 기본으로 한다.
-
-```text
-사용자가 제공한 최신 실제 소스 확인
-→ 이 문서 확인
-→ 실제 디렉토리/관련 소스 확인
-→ 요청 범위와 dependency 확인
-→ 수정 또는 인수인계 수행
-```
-
-평가 자체의 점수·등급·출력 규칙은 이 문서가 아니라 `dashboard_evaluation_guide.md`를 사용한다. 이 문서는 평가 시에도 Main의 설계 의도와 장기 contract를 확인하는 근거로만 사용한다.
-
-## 1.3 최신 파일 우선 원칙
-
-- 이전 대화에서 기억한 코드를 최신본이라고 추정하지 않는다.
-- 현재 작업에 제공된 최신 실제 소스(전체 ZIP 또는 개별 파일)를 직접 읽는다.
-- 과거 selector, 함수, DOM, 파일 경로를 현재 코드에 그대로 적용하지 않는다.
-- 요청과 직접 관련된 파일과 사용처를 필요한 범위에서 확인한다.
-- 요청과 무관한 영역은 수정하지 않는다.
-- 최신 제공본에 이 문서가 없거나 읽을 수 없으면 과거 기억으로 대체하지 않는다.
-
-## 1.4 역할별 Source of Truth
-
-단일 순위가 아니라 **확인하려는 대상별 Source of Truth**를 사용한다.
-
-```text
-현재 구현 상태
-→ 사용자가 제공한 최신 실제 소스
-
-Main 설계·유지보수 contract
-→ 이 문서
-
-Add 설계·유지보수 contract
-→ add_maintenance_handover.md
-
-Main↔Add 공통 contract
-→ 이 문서 8장
-→ 실행 정합성은 tests/cross-ui-contract.test.cjs
-
-평가 방식·점수·A/B/C·종료 기준
-→ dashboard_evaluation_guide.md
-
-공통화·토큰화 35개 Rubric
-→ ct35_evaluation.md
-
-GitHub 프로젝트 설명
-→ README.md
-
-과거 변경 이력
-→ Git history
-```
-
-문서와 코드가 충돌하면 실제 코드 상태를 우선 확인하되, 장기 contract와 다르면 단순히 "코드가 최신"이라고 끝내지 않는다. **의도된 계약 변경인지 회귀인지**를 판단하고, 계약이 실제로 변경된 경우에만 이 문서를 같은 작업에서 갱신한다.
-
-## 1.5 새 채팅 또는 기준 소스 교체 시 확인 항목
-
-최소 다음을 확인한다.
-
-### 프로젝트 구조
-
-- Main 관련 파일이 실제로 존재하는지
-- 문서의 파일 책임과 최신 구조가 일치하는지
-- 오래된 `style.css`, `desktop.css`, classic script 구조가 재등장하지 않았는지
-- `.gitattributes`의 `* text=auto eol=lf` contract와 binary asset 제외 규칙이 유지되고, EOL-only 대량 diff가 재발하지 않았는지
-- 루트 `.gitignore`가 Python/test cache·local virtual environment·OS metadata만 제외하고 실제 소스·운영 데이터를 숨기지 않는지
-
-### JavaScript
-
-- main graph의 ES Module dependency
-- `dashboard-core.js` DOM 비의존
-- `dashboard-ui-common.js` / `dashboard-modal.js` 저수준 foundation 책임
-- Pension View / Editor 분리
-- module-private state ownership
-- `dashboard-app.js` main graph boot와 `dashboard-market-ai.js` standalone 분리
-- circular import / global bridge / 중복 boot 여부
-
-### CSS / Responsive
-
-- 메인 CSS 6파일 canonical role과 load order
-- Desktop ≥1101 / Tablet 761~1100 / Mobile ≤760
-- `special.css` 기능성 예외
-- Phone Landscape / iPhone desktop-request contract
-- Theme / Corner / Print의 전역 표현 계약
-
-### 데이터 / 운영
-
-- 보호해야 하는 운영 JSON
-- KRX 갱신 파일과 workflow 의미
-- Market AI가 별도 backend 프로젝트라는 경계
-- Main↔Add 공통 KODEX schema/data source가 중복되지 않았는지
-
-## 1.6 최신 실제 소스와 문서가 다를 때
-
-다음 순서로 처리한다.
-
-```text
-실제 diff 확인
-→ 기능적으로 의도된 최신 변경인지 확인
-→ 문서만 오래된 경우 문서 갱신
-→ 코드가 장기 contract를 실수로 깨뜨린 경우 최소 수정
-```
-
-문서의 오래된 px 값이나 과거 구조를 근거로 정상 최신 코드를 되돌리지 않는다. 반대로 문서에 적힌 불변조건이 실제 요구사항으로 계속 유효하다면 코드 차이를 회귀 후보로 본다.
-
-## 1.7 문서 유지관리 원칙
-
-이 문서는 **현재 상태와 장기 contract**만 기록한다.
-
-기록할 것:
-
-- 현재 파일 책임
-- 변경 시 깨뜨리면 안 되는 구조
-- 반복 회귀를 막기 위한 설계 이유
-- 운영 데이터/외부 backend 경계
-- 현재 QA 절차
-
-기록하지 않을 것:
-
-- 차수별 작업일지
-- 과거 점수표
-- 파일 줄 수·byte 크기의 역사
-- 임시 selector 값
-- 이미 폐기된 구조의 상세 구현
-
-과거 변경 이력은 Git history로 확인한다. 같은 규칙을 README, Main handover, Add handover, Evaluation Guide에 장문으로 복제하지 않는다.
-
-
-문서별 책임은 겹치지 않게 유지한다.
-
-- `README.md`: 프로젝트 소개, 사용자 관점 주요 기능, 전체 구조, 실행·배포 개요
-- 이 문서: Main의 현재 책임 경계, 수정 위치, 장기 불변조건, 운영·QA 절차
-- `dashboard_evaluation_guide.md`: 점수, A/B/C, 평가 workflow, 반증·종료 기준
-- 과거 차수·점수·패치 일지: Git history
-
-README나 평가 가이드에 이 문서의 selector/state/backend 구현 세부를 다시 복제하지 않는다. 반대로 이 문서에는 평가 점수 규칙이나 GitHub 소개용 장황한 기능 목록을 누적하지 않는다.
-
-# 2. Main Architecture · 책임 경계
-
-## 2.1 Main canonical 파일 지도
-
-README의 전체 repository tree를 이 문서에 다시 복제하지 않는다. Main 유지보수에 필요한 책임만 다음처럼 본다.
-
-```text
-index.html
-
-css/
-├─ common.css
-├─ tablet.css
-├─ mobile.css
-├─ special.css
-├─ interaction.css
-└─ print.css
-
-js/
-├─ kodex-leverage-schema.js
-├─ dashboard-core.js
-├─ dashboard-ui-common.js
-├─ dashboard-modal.js
-├─ dashboard-monthly-calendar.js
-├─ dashboard-heatmap.js
-├─ dashboard-charts.js
-├─ dashboard-ui.js
-├─ dashboard-pension.js
-├─ dashboard-pension-editor.js
-├─ dashboard-market-ai-client.js
-├─ dashboard-live-valuation.js
-├─ dashboard-app.js
-└─ dashboard-market-ai.js   # standalone signal/panel entry
-
-data/
-├─ prices.json
-├─ performance_snapshots.json
-├─ portfolio.json
-├─ account1_daily_snapshots.json
-├─ kodex_leverage_trades.json
-├─ pension_contributions.json
-├─ pension_cash_snapshots.json
-├─ pension_operation_ledger.json
-├─ krx_trading_calendar.json
-├─ pension_trades.json
-├─ pension_operation_ledger/
-├─ pension_operation_identity/
-├─ pension_batch_request_identity/
-└─ krx_dispatch_ledger/
-
-img/
-├─ favicon.png
-├─ hero-bg.webp
-└─ ui-icons.svg
-
-scripts/
-└─ update_prices.py
-
-.github/
-└─ workflows/
-   ├─ pages.yml
-   └─ update-prices.yml
-
-tests/
-├─ main-calc.test.cjs
-├─ main-ui-contract.test.cjs
-├─ heatmap-engine.test.cjs
-├─ heatmap-shell.test.cjs
-├─ cross-ui-contract.test.cjs
-└─ update_prices_test.py
-```
-
-`data/pension_operation_ledger/`, `data/pension_operation_identity/`, `data/pension_batch_request_identity/`, `data/krx_dispatch_ledger/`는 브라우저가 읽는 화면 데이터가 아니라 GAS가 GitHub API를 통해 사용하는 repository-only durable state다.
-
-`img/favicon.png`은 Main과 Add가 공유하는 canonical favicon이다. `img/hero-bg.webp`와 `img/ui-icons.svg`도 Main의 실제 asset이며, 루트에 별도 `favicon.png` 복제본을 다시 만들지 않는다.
-
-## 2.2 메인 dependency graph는 13파일 ES Module 구조 유지
-
-현재 `dashboard-app.js`에서 도달하는 main graph는 다음 **13개 모듈**이다.
-
-```text
-js/
-├─ kodex-leverage-schema.js
-├─ dashboard-core.js
-├─ dashboard-ui-common.js
-├─ dashboard-modal.js
-├─ dashboard-monthly-calendar.js
-├─ dashboard-heatmap.js
-├─ dashboard-charts.js
-├─ dashboard-ui.js
-├─ dashboard-pension.js
-├─ dashboard-pension-editor.js
-├─ dashboard-market-ai-client.js
-├─ dashboard-live-valuation.js
-└─ dashboard-app.js
-```
-
-`dashboard-market-ai.js`는 두 번째 standalone entry이며, transport-only `dashboard-market-ai-client.js`만 공유한다.
-
-책임 경계:
-
-```text
-kodex-schema       → KODEX canonical JSON schema 검증 · DOM-free leaf
-core               → 데이터 / 계산 / 공통 state / loading / volatile live-quote snapshot
-ui-common          → 공통 저수준 DOM / 마크업 / shared view-state / feedback·viewport helper
-modal              → custom/native dialog lifecycle / focus / inert / body lock
-monthly-calendar   → 기존 flow-neutral 일손익 기반 월간 calendar / 월 탐색 modal content
-heatmap            → canonical 증권 보유종목 View Model / deterministic treemap / modal-local interaction·live refresh
-charts             → 차트 state / SVG / chart action
-ui                 → 일반 UI / topbar / navigation / UI action
-pension            → 퇴직연금 조회 View
-pension-editor     → 퇴직연금 변경 Editor / persistence flow
-market-ai-client   → Market AI local/remote base + timeout transport + Dashboard-side 연결 사용 preference + KOSPI snapshot handoff
-live-valuation     → 오늘 보유 ticker universe / KOSPI benchmark overlay / polling / race guard / render defer
-app                → cross-module orchestration / boot
-market-ai          → 현재 시장·AI 신호 standalone panel / polling / render
-```
-
-단순 수정 때문에 다시 하나의 거대한 JS 파일로 합치지 않고, 반대로 책임 경계가 없는 작은 기능마다 새 파일을 추가하지 않는다. `dashboard-market-ai-client.js`는 backend 산식·quote 의미·DOM state를 소유하지 않고 transport와 Dashboard-side Market AI 사용 preference/event, 현재 KOSPI snapshot의 휘발성 handoff만 공유하며, `dashboard-live-valuation.js`는 Market AI signal panel state를 직접 다루지 않는다.
-
-## 2.3 `dashboard-core.js` 책임
-
-`dashboard-core.js`는 다음을 담당한다. KODEX 레버리지 canonical 형식 검증은 자체 구현하지 않고 `kodex-leverage-schema.js`를 import해 사용한다.
-
-- 공통 데이터 상태
-- 데이터 loading
-  - 초기 repository JSON 조회는 새로고침 직후 local server 준비 race를 흡수하기 위해 **transport-level `TypeError`만 250ms → 750ms → 1500ms로 재시도**한다. HTTP 오류·JSON 형식 오류·`NETWORK_TIMEOUT`은 실제 장애 신호를 유지하기 위해 재시도하지 않는다.
-- 계산
-- formatter
-- 증권/퇴직연금 공통 계산 helper
-
-현재 core는 **DOM 비의존 foundation**으로 유지한다.
-
-따라서 다음을 core에 새로 넣지 않는다.
-
-```js
-document.querySelector(...)
-element.classList...
-element.innerHTML...
-window.addEventListener(...)
-```
-
-UI 여러 곳에서 공통으로 쓰는 저수준 DOM helper는 `dashboard-ui-common.js` 책임이다.
-
-repository/server data를 template string으로 `innerHTML`에 넣을 때는 text 값이 HTML로 해석되지 않도록 `escapeHtml()` 또는 동등한 text-safe 경계를 사용한다. `labelHtml`, swatch, icon처럼 코드가 직접 조립한 trusted markup은 별도 HTML contract로 유지하고, trusted fragment 전체를 다시 escape해 UI markup을 깨뜨리지 않는다. 즉 **text data와 trusted HTML을 호출 경계에서 명시적으로 분리**한다.
-
-계산/데이터 함수는 가능한 한:
-
-```text
-input
-→ calculation
-→ result
-```
-
-형태를 유지한다.
-
-### 2.3.1 증권 `securitiesEvents` 매도 · 실현손익 · 현금화 원금 contract
-
-증권의 현재 `securities[]`는 **현재 포지션 상태**, `securitiesEvents`는 과거 상태를 역복원하는 **거래/자금 원장**이다. 전량매도 종목도 `securities[]` 항목 자체를 삭제하지 않고 현재 `qty:0`, `cost:0`으로 유지해야 과거 보유·차트 이력을 복원할 수 있다.
-
-매도 event의 금액 의미는 다음을 고정한다.
-
-```text
-price            실제 체결 단가
-grossAmount      거래비용 차감 전 총매도금액
-transactionCost  실제 거래비용
-amount           실제 현금으로 이동한 순매도대금
-costBasis        매도 수량에 대응하는 취득원가
-realizedProfit   amount - costBasis
-cashPrincipalDelta  주식 원금 ↔ 현금 원금 이동액
-```
-
-`grossAmount - transactionCost = amount`, `amount - costBasis = realizedProfit`이 맞지 않거나 optional numeric field가 숫자가 아니면 JS/Python 모두 fail-closed한다. `prices.json`의 시장가격과 개인 체결가를 섞지 않으며 체결가는 event에만 둔다.
-
-과거 daily snapshot에 거래/자금 이동이 이미 반영된 뒤 뒤늦게 canonical event만 복원하는 경우에는 event에 `legacySnapshotEmbedded:true`를 명시한다. 이 표시는 **거래 사실과 lifecycle/UI/historical 복원에는 event를 사용하되, 이미 snapshot에 들어간 현금화 원금·실현손익을 현재 원장에 다시 누적하지 않는다**는 의미다. legacy sell의 실현손익은 실제 매도일의 full-exit 표시와 종목별 historical terminal point에서는 사용하지만 그 다음 거래일부터 event 기반 누적손익으로 다시 얹지 않는다. `securityCashPrincipalDelta()`와 Python 동등 계산도 같은 event의 현금화 원금 재계상을 0으로 처리한다. 반면 실제 외부 원금 입출금 event는 과거 날짜의 원천 투자금을 역산하는 데 계속 사용하므로, `legacySnapshotEmbedded`를 일반적인 계산 제외 플래그처럼 남용하지 않는다. 신규 정상 거래에는 이 플래그를 붙이지 않는다.
-
-6/18 이후 계좌1 성과기준 투입원금은 **선택일 잔여 보유원가 + 누적 현금화 원금**이다. 전량/부분매도에서 `cashPrincipalDelta`는 매도된 `costBasis`만큼 원금을 현금 pool로 이동시키고, 그 현금 원금으로 재매수할 때 실제 재투입한 원금만 음수 delta로 차감한다. 같은 날짜에 매도와 재매수가 함께 있으면 event id 문자열 순서가 아니라 **그 날짜의 cashPrincipalDelta 순변동을 먼저 합산**한 뒤 일자 종료 시점 원금 pool을 검증한다. 날짜 종료 기준 현금화 원금이 음수가 되는 원장은 허용하지 않는다.
-
-종목 성과 의미는 다음을 유지한다.
-
-```text
-profit             현재 잔여 보유분 평가손익
-realizedProfit     선택일까지 누적 확정 실현손익
-totalProfit        profit + realizedProfit
-realizedCostBasis  이미 매도된 수량의 누적 기준원가
-performanceCost    현재 잔여 cost + realizedCostBasis
-종목 누적수익률     totalProfit / performanceCost
-```
-
-따라서 전량매도 종목은 **매도 당일까지 `보유종목 현황`의 마지막 이력 행으로 유지**하고, 해당 행의 손익은 최종 실현손익을 사용한다. 다음 거래일부터는 `qty=0`인 종목을 현황과 `전일 대비 변동`에서 제외한다. 종목별 누적손익/수익률 history의 장기 표시 규칙은 차트 contract를 따른다. `securitiesCashForDate()`의 sell 현금흐름에는 `grossAmount`가 아니라 **순매도대금 `amount`**를 사용한다.
-
-`scripts/update_prices.py`는 같은 원장 산식을 재현한다. KRX 가격 수집은 **실제 포트폴리오(`portfolio`)와 전량매도 가상추적(`hypothetical`) 역할을 분리**하며, 상세한 최신/누락 수집 규칙은 3.3의 `KRX 현재가 반영`을 canonical로 본다. 가상추적 가격은 `prices.json`에만 저장하고 `rawHoldingProfit`·`symbols`·`allocation`·계좌1 원금·현재 보유상태에는 합산하지 않으며, 조회 실패는 `trackingWarnings`로 격리한다. `performance_snapshots.json`의 확정 실현손익과 계좌1 원금 산식은 JS와 동일해야 하고, 같은 입력 재실행은 멱등이어야 한다.
-
-Market AI Live Valuation universe는 `securityPositionState()`의 선택일 수량이 0보다 큰 ticker만 요청한다. 전량매도 종목의 KRX 가상추적 가격과 Market AI 보유종목 시세를 같은 universe로 합치지 않는다.
-
-현재 증권 전량매도 회귀 anchor는 두 건만 유지한다.
-
-- `2026-05-22 / 093370 후성` — 5/21까지 11주를 보유하고 5/22 `gross 143,660 / fee 290 / net 143,370 / costBasis 138,260 / realizedProfit +5,110`으로 전량매도한다. legacy snapshot에 이미 거래가 반영돼 sell event는 `legacySnapshotEmbedded:true`이며, 역사적 매도일 종가는 `valuationPrice:12,910`으로 복원한다. 5/26 타계좌 이체 `135,400`도 snapshot에 이미 반영된 원금 회수 event다. 8/12부터 요약 카드만 숨기고 historical 차트는 유지한다.
-- `2026-09-16 / 009150 삼성전기` — `gross 1,348,000 / fee 2,772 / net 1,345,228 / costBasis 1,345,000 / realizedProfit +228`의 현행 event다. 같은 날 내부 현금회수 후 종료 현금은 `3,790`이며, 매도 뒤 종목별 화면에서는 사라져도 확정 실현손익 `+228`은 계좌 누적성과에 남는다.
-
-두 anchor는 같은 full-exit UI/historical contract를 공유하되, **후성은 snapshot 내장 legacy event**, 삼성전기는 **event 원장이 직접 장부를 움직이는 현행 event**라는 차이만 회귀검증한다. 가상추적 최신가의 수집·표시 의미는 3.3 KRX와 3.3 Chart contract를 따른다.
-
-## 2.4 `dashboard-ui.js`와 `dashboard-ui-common.js` 책임
-
-### `dashboard-ui.js`
-
-일반 화면 UI와 UI 전용 action을 담당한다.
-
-예:
-
-- Topbar
-- Navigation / 목차
-- 모바일 메뉴
-- theme / corner theme
-- 일반 card/table rendering
-- KRX modal
-- 증권계좌 View
-- asset tab
-- `data-dashboard-action` 중 일반 UI action routing
-
-### `dashboard-ui-common.js`
-
-여러 UI 모듈이 함께 사용하는 **저수준 공통 UI foundation**만 담당한다.
-
-예:
-
-- 공통 SVG navigation icon
-- HTML escape
-- 공통 swatch / metric card / mobile info card markup
-- Phone Landscape 공통 predicate
-- mobile table/card 보기 state · attrs · toggle helper
-- 공통 App Toast / mobile viewport reflow helper
-- 증권·퇴직연금 공통 Asset Detail renderer
-  - 현황 table/card shell
-  - 비중 bar
-  - 전일 대비 변동 KPI + table/card shell
-  - 오늘 상승분 기여도
-  - Asset tooltip interaction
-
-공통 helper를 빌리기 위한 이유만으로 `dashboard-pension.js`, `dashboard-pension-editor.js` 같은 feature module이 `dashboard-ui.js`를 직접 import하지 않는다. 여러 feature가 재사용하는 저수준 UI helper/state는 `dashboard-ui-common.js`에 두되, 화면별 계산·render/action을 common layer로 끌어올리지 않는다.
-
-### `dashboard-modal.js`
-
-기능 내용과 분리된 **Modal/Dialog lifecycle foundation**을 담당한다.
-
-- custom overlay / native `<dialog>` open·close
-- ESC / backdrop dismiss
-- focus trap / initial focus / focus return
-- background inert / body scroll lock / nested modal count
-
-각 feature는 modal 안의 데이터·저장·API·렌더링을 계속 직접 소유한다. Modal markup 전체를 범용 factory로 합치지 않는다.
-
-### `dashboard-monthly-calendar.js`
-
-월간 손익 캘린더는 별도 성과 산식을 만들지 않는다. `dashboard-core.js`의 flow-neutral 일성과 helper를 재사용하며, **합산 / 증권 / 퇴직연금** 범위를 전환한다. 합산은 증권 `dayChange` + 비교 가능한 연금 `pensionDayChange` + 별도수익 ON 시 당일 증가분이며, 증권 단독 범위도 개인보기의 별도수익 ON 상태에서는 같은 당일 증가분을 더한다. 퇴직연금 단독 범위에는 증권 성과나 별도수익을 섞지 않는다. 별도수익 당일 증가분은 core의 `separateProfitDailyChangeForDate()`를 공통 재사용해 달력 모듈이 날짜별 `calc()`를 중복 호출하지 않는다. 연금 첫 관측일은 기준일로 취급해 기존 누적손익을 당일 수익으로 오인하지 않는다. 휴장/데이터 누락 판정은 updater가 생성하는 `data/krx_trading_calendar.json`을 사용하며 성과값 자체는 이 JSON에서 만들지 않는다.
-
-- 시세 변경·연결 해제로 평가 상태가 바뀌면 app의 `refreshOpenLiveModals()`가 히트맵과 월간손익을 함께 통지한다. 기존 시세 polling/모달 뒤 main render 보류 경로를 공유한다.
-- `refreshMonthlyCalendarLive()`는 열린 모달의 `monthlyCalendarState.month/mode`를 기준으로 계산한다. 부모 `activeDate`가 과거일이어도 탐색 중인 월의 유효한 실시간 시세는 반영한다.
-- 실시간 갱신은 기존 grid/summary renderer를 detached template에 사용해 날짜 손익 text/class, 날짜 button의 정확한 금액 title/aria-label, 월 요약 text/class만 비교·수정한다. 같은 값은 쓰지 않으며 기존 button/card DOM과 탐색 월·범위·별도수익 설정·포커스·스크롤을 유지한다. 월 이동·범위 전환은 기존 전체 모달 렌더 경로를 사용한다.
-- 테스트는 `tests/monthly-calendar-live.test.cjs`의 모달 알림·갱신 보류·닫힌 모달·동일 값 쓰기 생략 계약을 포함한다.
-- 3연속 손실 멘탈 케어는 같은 월의 비교 가능한 일손익에서 음수가 3회 연속된 **세 번째 날부터** `is-gloomy`를 표시하고, 이후 연속 손실 동안 유지한다. 0원 또는 수익일은 연속 횟수를 초기화하며 월 경계를 넘어 이전 달 횟수를 이어받지 않는다. 시각 표시는 `☔️ 심호흡` contract를 유지하고 `tests/monthly-calendar-gloomy.test.cjs`가 시작 시점·리셋·월 경계·renderer/CSS 표시를 보호한다.
-
-- `월간 손익`은 Web/Tablet/Phone이 공유하는 Topbar action으로만 진입하고 hamburger에는 중복 배치하지 않는다. Web/Tablet은 텍스트 action, Phone은 같은 DOM의 label을 숨긴 icon-only 표현을 사용하며 hamburger 구성·높이·scroll은 이 문서의 공통 Topbar/Navigation responsive contract를 따른다.
-- `합산 / 증권 / 퇴직연금` 범위 switch는 공통 `control-tab` primitive/skin을 재사용한다. 선택 범위는 modal을 닫았다 다시 열어도 현재 페이지 세션 동안 유지되며, 범위를 바꾸면 날짜별 금액과 월 손익·상승/하락·최고/최저가 같은 기준으로 함께 재계산된다.
-- 월 이동은 실제 가용 데이터가 존재하는 월 목록 안에서만 이동한다.
-- 날짜 cell은 `allAvailableDates()`에 존재하는 날짜만 선택 가능하다. 모든 viewport에서 **월~금 5영업일만 렌더링해 토·일 cell과 요일 header를 표시하지 않는다.** 월 시작 placeholder도 첫 표시 평일의 월~금 위치를 기준으로 계산하므로 월이 토·일에 시작해도 월요일 정렬이 틀어지지 않는다. `krx_trading_calendar.json` 범위 안에서 KRX 거래일인데 Dashboard 데이터가 없으면 **누락**, 실제 비거래 평일은 **휴장**으로 구분하고 둘 다 성과 통계에서는 제외한다. 캘린더 확정 범위 이후 날짜는 휴장/누락으로 단정하지 않는다. 월 첫 비교 가능일은 `previousDate()`가 전월 마지막 가용일을 이어서 사용하며, 전체 데이터의 최초 날짜나 퇴직연금 첫 관측일처럼 비교 기준이 없는 날은 `0원`이 아니라 **기준일**로 표시한다. 퇴직연금 데이터가 아직 존재하지 않는 과거 날짜는 단독 범위에서 `—`로 표시하고 월 통계에서 제외한다.
-- 일손익 `0원`은 월 합계에는 0으로 반영하되 상승일·하락일 어느 쪽에도 포함하지 않는다.
-- 날짜 cell 선택은 캘린더 모듈이 `activeDate`를 직접 바꾸지 않고 `dashboard-app.js`의 `setActiveDashboardDate()`로 위임한다.
-- overlay/focus/inert/Escape/backdrop 처리는 `dashboard-modal.js` lifecycle을 재사용한다. Topbar opener를 우선 focus 복원 대상으로 사용하고, full render 등으로 기존 opener DOM이 사라진 경우에는 `.topbar-monthly-action`과 hamburger trigger를 stable fallback selector로 사용한다.
-- 월 이동 양 끝의 이전/다음 control은 `aria-disabled` 상태로 focusability를 유지해 keyboard focus가 DOM 재렌더 중 유실되지 않게 한다. 선택일(`aria-current`)과 KST 오늘 날짜(`is-today`)는 서로 다른 시각 상태로 구분하며, **오늘의 가용 데이터가 아직 없더라도** unavailable cell에 `is-today`와 `오늘, n일, 데이터 없음` 접근성 설명을 유지한다.
-- Phone에서는 월 이동 header 폭이 닫기 control 영역을 침범하지 않도록 별도 여유를 확보한다.
-- calendar geometry와 손익 의미색은 새 독립 디자인 체계를 만들지 않고 기존 spacing/type/surface/value token을 재사용한다.
-
-### `dashboard-heatmap.js`
-
-포트폴리오 히트맵은 **메인 증권 보유종목의 기존 canonical 계산 결과를 새 방식으로 표현하는 View Layer**다. 가격 fetch, Market AI 요청, 별도 polling, 평가금액·손익 재계산을 소유하지 않는다.
-
-- 대상은 메인 증권 보유종목이며 현금과 평가금액 `<= 0` 항목은 제외한다. `calc()`의 `holdings`와 `securitiesAssetDetail.change.rows`를 읽어 View Model을 만들고 원본 rows는 mutate하지 않는다.
-- mode는 `당일손익 / 누적손익 / 비중` 3개다. **면적 기준도 mode별로 다르므로 mode 전환 시 geometry를 다시 계산하는 것이 정상 계약**이다. `당일손익`은 canonical `dayChange`의 절댓값, `누적손익`은 canonical `cumulativePnl`의 절댓값, `비중`은 평가금액을 treemap area 값으로 사용한다. 음수 방향은 면적이 아니라 색상으로 표현하며, area 값이 0/null인 종목은 해당 mode layout에서 제외한다.
-- `당일손익` 색상은 전일 대비 등락률을 ±3% 고정 scale로, `누적손익`은 누적수익률을 ±30% 고정 scale로 표현한다. 두 손익 mode는 히트맵 내부에서만 `하락=적색 / 상승=녹색 / 보합=중성`을 사용한다. `비중`은 손익색을 사용하지 않고 `0–5 / 5–10 / 10–20 / 20–30 / 30%+` 고정 구간의 청록-슬레이트 농도를 사용한다.
-- Large tile의 기본 표시는 `당일손익: 등락률 / 당일손익 · 주당변동 × 수량`, `누적손익: 누적수익률 / 누적손익`, `비중: 비중 / 평가금액 · 수량 × 적용가격`이다. `주당변동 × 수량`은 실제 `현재가-전일가`와 canonical `dayChange`가 일치하는 경우에만 보여 거래·실현손익이 섞인 날의 오해를 막는다. Medium/Small/Tiny는 실제 px geometry에 따라 정보량을 줄이며 면적 자체는 읽기 편하게 만들기 위해 왜곡하지 않는다.
-- Phone family는 세로형 타일을 과도하게 Medium으로 강등하지 않도록 Large 최소폭만 112px로 완화하고, 높이·면적 기준은 유지한다. Phone Large secondary는 최대 2줄을 허용한다. Web/Tablet은 170px 기준을 유지하며, 모든 viewport에서 secondary는 DOM 렌더 뒤 실제 `scrollWidth/clientWidth`를 확인해 넘치는 경우에만 숨긴다.
-- Tooltip은 기존 `.dash-tooltip`과 `assetPriceSourceInfo()`를 재사용하며 전체 상세값을 계속 제공한다. 현재 mode에서는 `당일손익: 당일 등락률·당일손익·변동 계산`, `누적손익: 누적수익률·누적손익`, `비중: 평가금액·포트폴리오 비중·평가 계산` 행을 함께 강조한다. tooltip은 modal 내부 자식으로 두어 background `inert`의 대상이 되지 않게 하고 hover/focus/touch tap에서 동일 정보에 접근할 수 있어야 한다.
-- 진입점은 모든 viewport에서 Topbar 하나만 사용하며 hamburger에는 중복하지 않는다. 히트맵 action은 Web/Tablet 모두 `히트맵` label로 통일한다. 실시간 시세는 Desktop `>=1280px`에서 `보유종목 실시간 시세`, 1101–1279px 및 Tablet에서 `실시간 시세` 축약 label을 사용하고, `title`/`aria-label`은 항상 `보유종목 실시간 시세`를 유지한다. Phone은 compact icon 표현을 사용하며 테마 action을 hamburger 상단으로 이동하되 Market AI 연결 toggle은 Topbar에 유지한다.
-- 히트맵 mode segmented control은 퇴직연금 금액 조정·월간 손익과 같은 `--modal-segment-*` 공통 token을 사용한다. Web/Tablet에서는 modal 중앙 열에 배치하고 Phone에서는 제목 아래 full-width 3등분 배치를 유지한다.
-- modal lifecycle은 `dashboard-modal.js`를 재사용한다. 열 때 `calc(activeDate)`를 1회 fresh 계산하고 그 날짜를 modal-local state로 복사한다. 이후 날짜 selector와 이전/다음 탐색은 `allAvailableDates()`의 가용 날짜만 사용하며 `calc(selectedDate)` 결과는 히트맵에만 적용해 부모 `activeDate`와 `latestDashboardCalcResult`를 바꾸지 않는다. 닫으면 modal-local 날짜를 폐기한다.
-- Live Valuation snapshot이 바뀌면 `dashboard-live-valuation.js`의 open-overlay callback을 사용하되 **modal 날짜가 부모 `activeDate`와 같을 때만** 새 canonical `calc()` 결과로 rows/context와 현재 mode geometry를 다시 계산한다. 과거 날짜를 탐색 중이면 부모의 live refresh가 모달을 덮지 않으며, 히트맵이 닫혀 있으면 추가 calc/layout/render를 하지 않는다. refresh 전 keyboard focus와 touch pinned 종목은 ticker/name stable key로 보존하고 새 layout에서 같은 종목으로 복원한다.
-- 히트맵 modal이 열린 동안 메인 Dashboard partial render를 허용하기 위해 `liveValuationCanRender()`의 modal defer를 풀지 않는다. 메인 화면은 기존대로 modal close 뒤 pending partial render로 수렴하며, 히트맵은 modal 날짜가 부모 `activeDate`와 같은 경우에만 open-overlay callback으로 최신값을 반영한다.
-- Heatmap 도입 전후 Market AI network polling 수는 같아야 한다. `dashboard-heatmap.js`에 `fetch`, `setInterval`, 별도 timer를 추가하지 않는다.
-
-### Asset Detail 공통 불변조건
-
-- Asset Detail common layer는 각 자산 모듈이 계산한 neutral View Model을 받아 **표현만** 담당한다. 증권과 퇴직연금의 계산 로직을 common layer로 합치지 않는다.
-- `dashboard-core.js`는 DOM-free를 유지하고 `dashboard-ui-common.js`는 화면별 기능 모듈을 역으로 import하지 않는다.
-- 증권 `보유종목 현황`과 퇴직연금 `연금상품별 현황`, 양쪽 `전일 대비 변동`과 `오늘 상승분 기여도`는 같은 renderer/CSS 체계를 사용한다.
-- 현황/변동 표는 공통 auto layout을 사용하며, 개별 화면을 맞추기 위한 컬럼별 고정 폭이나 `table-layout:fixed`를 새로 강제하지 않는다.
-- 상품 행은 증권/연금 모두 **선택일 평가금액 내림차순**으로 정렬하고, 현금·현금성자산·합계 같은 비상품 행은 고정 위치를 유지한다.
-- 증권 현황 summary는 `보유종목 합계 → 증권계좌 현금 → 총합계`, 퇴직연금 현황 summary는 `투자상품 합계 → 현금성자산 → 총합계`의 의미 구조를 유지한다.
-- 증권계좌 현금은 장부 보정값이므로 증권 `전일 대비 변동`과 `오늘 상승분 기여도`에서 제외한다. 퇴직연금 `전일 대비 변동`도 시장성 투자상품의 가격 변동만 비교하도록 현금성자산을 제외하되, `오늘 상승분 기여도`는 운용자산 기준의 기존 현금성자산 포함 계약을 유지한다.
-- `전일 대비 변동`의 가격 헤더는 **각 표에 실제 적용된 현재 가격의 성격을 행 단위로 집계**한다. 오늘 표시 행이 모두 Market AI `live` 또는 JSON `intraday`이면 `현재가`, 모두 Market AI `closed` 또는 JSON 정규장 종가이면 `종가`, ETF 종가 + 개별주식 시간외 현재가처럼 서로 섞이거나 가격 기준을 확정할 수 없는 행이 있으면 중립적인 `가격`을 사용한다. 증권과 퇴직연금은 각자의 표시 행으로 독립 판정하며, 과거 선택일은 항상 `종가`를 사용한다. 이 판정은 열 제목만 바꾸며 가격·평가금액·일변동 계산과 JSON 저장값에는 영향을 주지 않는다.
-- viewport별 상품명 축약, compact row 구성, 정렬·간격 같은 표현 세부는 renderer/CSS를 Source of Truth로 하며 이 문서에 미세 규칙을 중복 기록하지 않는다.
-
-### Table 공통 contract
-
-- 메인 표의 기본 geometry/typography는 `.dashboard-data-table`의 `--data-table-*` semantic token이 소유한다. viewport별 실제 값은 CSS를 Source of Truth로 본다.
-- `table / tr / th / td` 높이를 직접 고정하지 않는다. 셀 높이는 font-size, line-height, padding으로 결정한다.
-- 숫자는 `.num`이 기본 우측 정렬을 담당하고, 문자형 열은 `.table-cell-text`, 수량/%처럼 의미상 가운데가 필요한 값은 `.table-cell-center`를 사용한다. 위치 기반 `nth-child`나 역할이 중복되는 정렬 utility를 다시 도입하지 않는다.
-- 일반 row label과 summary/합계의 weight 차이는 semantic contract로 유지한다. 계좌별 summary 메모 등 의도된 regular 예외를 전체 표 규칙으로 확대하지 않는다.
-- secondary 정보는 `.data-table-sub` 계열 contract를 공유하고, 양수·음수 색상은 기존 positive/negative semantic color를 재사용한다.
-- `투자원금 원천 및 검산` 3개 표는 `renderSourceDataTable({ caption, rows })`가 공통 shell을 담당한다. 계산식·row 구성·summary 데이터는 각 기능이 소유한다.
-- 현황표의 종목/상품 swatch는 기존 chart series color source를 재사용하고 table 전용 color mapping을 별도로 만들지 않는다.
-
-### 성과 요약 · 계좌별 불변조건
-
-- 증권과 퇴직연금 상단 KPI는 공통 **`성과 요약` shell**과 title/action rhythm을 공유한다.
-- 증권만 `전체 / 계좌별` 전환을 제공하며, 계좌별은 별도 섹션이 아니라 같은 overview의 view 전환이다.
-- 계좌별 기본 의미 순서는 `구분 → 투자 결과물 → 투입원금 → 누적손익 → 누적수익률 → 메모`다. responsive 표현이 바뀌어도 `투자 결과물`과 `투입원금`의 의미·순서를 뒤집지 않는다.
-- 각 계좌의 `투입원금`·`투자 결과물`은 성과 기준값(A)과 장부 조정값(B)의 관계를 유지하고, 합계는 각 계좌 최종 장부값과 전체 성과 카드가 일치해야 한다.
-- 별도수익 상태는 기존 `separateProfitView()`의 재분류 기준을 따른다. 개인 기능 비활성 상태에서는 개인 기능의 존재를 직접 드러내는 표현을 사용하지 않는다.
-- 별도수익 ON/OFF 성능 contract는 `toggleSeparateProfitMode()` → `refreshSeparateProfitModeView()` partial refresh다. 토글만으로 `render()`/`#app` 전체 교체, 퇴직연금 재렌더, Market AI 재마운트, 종목별·평가비중 차트 재계산을 다시 도입하지 않는다. 누적차트만 `refreshSecuritiesCumulativeChart()`로 다시 그린다.
-- 계좌1 투입원금 조정 B의 중복 제거 근거는 `레버수익 재투입 + VIP 수익 재투입 + 실현수익 투입`이며 `원천·보유 차액`은 성과기준 투입원금에는 남기되 조정 B 근거에서는 제외한다. 삼성증권2 투자 결과물 조정은 VIP 재투입액 중복 제거와 연결된다.
-- `투자원금 원천 및 검산`은 3개 source card 구조와 각 표의 `합계`를 최종값으로 사용한다. base 원천과 재투입 원천을 구분하고 `원천·보유 차액`은 중립 검산값으로 취급한다.
-- `2026-06-18` 이전 복원 구간은 현재 설명문에 맞추기 위해 과거 수치를 재계산하지 않는다. legacy 수치 의미는 데이터 기준선을 우선한다.
-- 세로 Phone의 계좌별 상태에서 제목행 control 순서는 `별도수익 ON/OFF → 카드 보기/표 보기 → 전체/계좌별`이다. 카드/표 전환을 가장 오른쪽으로 보내거나 ON/OFF와 분리하지 않는다. 그 밖의 mobile 열 축약과 메모 표시 방식은 실제 renderer/CSS를 Source of Truth로 한다.
-- `삼성증권1 기준` / `퇴직연금 기준`은 동일한 `.section-basis-chip`과 공통 control geometry를 사용한다. viewport별 optical 보정과 별도수익 compact 예외는 CSS token/feature scope가 소유하며, handover에 개별 px·transform 값을 중복 고정하지 않는다. 접근성 이름과 상태 전달(`aria-label`/`aria-pressed`)은 유지한다.
-
-### Modal / Action Form 공통 contract
-
-- 업무 목적이 다른 modal도 surface, header/action, input/select/date, focus, 상태 표시 등 공통 form/control 표현과 `dashboard-modal.js`의 dialog lifecycle을 재사용한다.
-- 퇴직연금 금액 조정의 `개별 처리 / 작업 모음`은 Main `.control-segmented`의 geometry/typography/중앙 정렬을 재사용한다. 긴 `작업 모음 + count` 라벨 때문에 필요한 폭·좌우 여백만 feature override하며, 연금 전용 font-size/height/line-height 체계를 별도로 만들지 않는다.
-- 퇴직연금 금액 조정의 편집 가능 숫자 입력(`data-pension-input`)은 기존 값이 있으면 첫 focus 진입 직후 전체 선택해 새 값으로 바로 교체할 수 있어야 한다. 동적 modal 렌더 특성상 delegated `focusin`을 사용하고, pointer/touch 기본 caret 배치가 선택을 다시 풀지 않도록 다음 animation frame에서 선택한다. readonly·disabled·빈 값·PIN/date는 대상에서 제외하며 이미 focus된 상태의 두 번째 클릭/탭은 일반 caret 편집을 허용한다.
-- 개인보기 도구는 Web/Tablet/Phone에서 공통 icon-button geometry를 사용한다. Topbar 순서는 `Market AI 연결 → 투자 계산기 → 테마`를 유지하며, Phone에서는 `투자 계산기`만 숨겨 `Market AI 연결 → 테마`로 노출한다. Tablet/Phone hamburger는 같은 menu source를 공유하지만 Tablet에서는 `.tablet-topbar-ui` 상태로 Topbar와 중복되는 `관리` 그룹과 `투자 계산기` 링크를 즉시 숨긴다. Phone의 `관리` 그룹은 KRX 현재가 반영·퇴직연금 금액 조정만 유지하고 Market AI 연결은 Topbar 단일 진입점만 사용한다.
-- Market AI lifecycle listener는 초기 preference가 OFF여도 등록한다. 초기 OFF를 이유로 `startMarketAiBridge()`가 listener 등록 전에 return하면 이후 같은 페이지에서 ON 이벤트를 받을 수 없으므로 금지한다. ON 전환은 새로고침 없이 mount/refresh를 시작해야 한다.
-- 기능별 modal은 자기 업무 state/persistence만 소유한다. KRX 반영 로직이나 퇴직연금 PIN·저장·batch/delete 흐름을 generic modal layer로 끌어올리지 않는다.
-- KRX·퇴직연금 modal의 overlay·surface·control은 semantic token을 공유한다. 공통 modal radius는 shared modal contract에서 한 번만 소유하고 Tablet/Phone은 해당 shared token만 override한다. Phone 좌우 여백은 overlay padding을 canonical source로 사용하며 feature별 `100vw - npx` 폭 보정을 중복해서 만들지 않는다.
-- Tooltip 표시 motion은 `--tooltip-motion`을 공통 source로 사용한다.
-- iPhone 홈화면 `Open as Web App`/standalone에서는 브라우저 새로고침 UI 부재를 보완하기 위해 최상단 pull-to-refresh를 제공한다. `display-mode: standalone` 또는 iOS `navigator.standalone`에서만 활성화하고, `scrollTop≈0`의 단일 아래방향 터치에서만 동작한다. `body.dashboard-dialog-open`을 공통 modal blocker로 사용하고 chart expanded/dialog 중에도 시작하지 않으며, 일반 Safari/브라우저 화면에는 indicator/listener를 만들지 않는다. 임계값을 넘겨 손을 놓은 경우에만 `location.reload()`한다.
-- 같은 standalone 판별을 boot 날짜 초기화에도 재사용한다. 홈화면 아이콘에 설치 당시 `#YYYY-MM-DD` hash가 저장되어 있어도 standalone boot에서는 해당 hash를 무시하고 **KST 오늘이 `allAvailableDates()`에 있으면 오늘을 우선**, 아직 오늘 snapshot이 없으면 최신 가용일로 fallback한다. 일반 Safari/브라우저는 기존 hash deep link 의미를 유지한다. standalone session이 백그라운드에 머무는 동안 KST 날짜가 바뀌었다가 다시 `visible`이 되면 한 번 `location.reload()`하여 최신 JSON을 다시 읽고 새 날짜 기준으로 boot한다. 같은 날 foreground 복귀에서는 사용자가 선택한 과거 날짜를 강제로 오늘로 되돌리지 않는다.
-- 검증된 responsive/browser별 표현 예외는 feature/CSS가 소유하며, generic 공통화를 위해 제거하지 않는다.
-
-화면별 계산이나 특정 기능 전용 modal/action을 `dashboard-ui-common.js` 또는 `dashboard-modal.js`로 끌어올리지 않는다.
-
-- 공통 가로 스크롤 overflow 상태(`.mobile-scroll`, `.chart-wrap`의 `.is-scrollable`)는 `dashboard-ui-common.js`가 소유하고, Table UI와 Chart가 같은 `refreshScrollOverflowState()`를 재사용한다. 표가 차트 모듈을 import해서 scroll 상태를 갱신하는 역방향 의존은 만들지 않는다.
-
-## 2.5 `dashboard-charts.js` 책임
-
-차트 관련 기능은 기본적으로:
-
-```text
-js/dashboard-charts.js
-```
-
-에서 관리한다.
-
-예:
-
-- chart state
-- chart rendering
-- SVG / axis / bar / line
-- legend / chart controls
-- 확대 차트
-- chart scroll
-- animation
-- chart tooltip
-- responsive chart 처리
-- `data-dashboard-action` 중 차트 전용 action routing
-
-차트 내부 DOM/state 구현을 `dashboard-ui.js`나 `dashboard-app.js`가 직접 만지지 않는다.
-
-`dashboard-app.js`는 charts가 제공하는 공개 command/API만 사용한다.
-
-### Chart UI / Expanded / SVG 공통 contract
-
-- 일반 차트는 `.chart-card`, `.chart-head`, 공통 control primitive, options row, legend, mini-card와 공통 vertical rhythm을 재사용한다. 기능별 차트가 동일 역할의 padding/control geometry를 별도로 만들지 않는다.
-- Main의 공통 section/chart 제목(`.section-title h2/h3`, `.chart-head h3`)은 `--section-title-line-height:1`을 사용한다. 한글 glyph는 font line-box의 수학적 중심보다 시각 중심이 위에 보일 수 있으므로, 제목 텍스트 자체는 이동하지 않고 왼쪽 `.section-title-icon`과 선택적 `.chart-title-info-slot`만 단일 `--section-title-icon-optical-shift:-1.5px` 토큰을 공유해 동일하게 광학 보정한다. 과거 `.section-title-icon{margin-bottom:1px}`처럼 한쪽 아이콘만 보정하거나 viewport별 값을 따로 만들지 않는다. Desktop/Tablet/Phone 모두 이 공통 계약을 따르며 다른 역할의 Modal/인사이트/데이터카드/Add 제목에는 전파하지 않는다.
-- 증권 3개 + 퇴직연금 3개 차트 제목은 `renderChartCard()` → `.chart-title-label > .chart-title-text` 공통 primitive를 사용한다. 퇴직연금 2개 설명 아이콘만 `.chart-title-info-slot`을 선택적으로 추가하며, compact Phone에서는 이 slot이 `1lh` line-box를 소유하고 내부 버튼을 중앙 정렬한다. 개별 `top`/`margin-top`/별도 `translateY` 보정을 추가하지 말고, 광학 보정이 필요하면 반드시 공통 `--section-title-icon-optical-shift` 하나만 사용하여 info가 없는 증권/퇴직연금 차트와 동일한 제목 typography·line-height·row geometry를 유지한다.
-- 확대 차트는 별도의 독립 chart/control state를 복제하지 않는다. 기존 SVG와 controls/options/legend를 expanded overlay로 이동해 사용하고 닫을 때 placeholder 위치로 복원하며, chart state와 공개 action 흐름을 그대로 공유한다. 확대에서만 필요한 닫기/viewport 처리와 별도수익 control 보조는 expanded layer가 소유한다.
-- 확대 차트의 Desktop baseline geometry는 `common.css`가 소유하고, Tablet/Phone을 함께 가로지르는 회전형 expanded overlay 예외는 `special.css`의 `Expanded Chart Non-Web Shared ≤1100px`가 소유한다. 일반 Tablet chart width/scroll edge는 `tablet.css`, 세로·가로 Phone 공통 compact chart density/scroll edge는 `special.css` Phone Shared가 소유하며 `common.css @media(max-width:1100px)`에 Chart responsive 구현을 다시 두지 않는다.
-- `control-info-button`은 Chart 전용이 아니라 계좌 메모 등에서도 재사용하는 generic primitive이며, 원과 `i` geometry는 `img/ui-icons.svg#info-circle` 공통 SVG를 사용하고 색상 source는 `--info-control-*` semantic token을 사용한다. 확대 stage의 비대칭 safe gutter는 `--chart-expanded-pad-*` component-local token으로 이름을 부여해 control/viewport 여백 의도를 추적한다.
-- SVG 내부는 frame/scale/좌표 helper처럼 의미가 동일한 계산만 공통화한다. dual axis, KOSPI 비교, line/bar/stack처럼 데이터 의미가 다른 renderer를 범용 renderer 하나로 억지 통합하지 않는다.
-- 일반 차트와 확대 차트의 tooltip/resize/keyboard/legend 최소 1개 선택/Y축 자동 등 기존 불변조건은 같은 chart state에서 함께 검증한다.
-
-## 2.6 퇴직연금 View / Editor 책임
-
-퇴직연금은 현재 의도적으로 두 파일로 나뉜다.
-
-### `dashboard-pension.js` — View
-
-**보여주는 책임**을 담당한다.
-
-- 퇴직연금 화면 rendering
-- 상품별 현황
-- 평가/손익 표시
-- 오늘 상승분 기여도
-- 위험자산 70% 룰
-- Asset 인사이트 markup
-
-읽기 화면에 필요한 계산은 core helper를 사용하고, 저장/PIN/batch 로직을 넣지 않는다.
-
-### `dashboard-pension-editor.js` — Editor
-
-**사용자가 값을 변경하는 흐름**을 담당한다.
-
-- 금액조정 modal
-- form state
-- 기업적립금 / 현금성자산 / ETF 추가매수
-- PIN
-  - 퇴직연금 Action PIN 입력은 Chrome 비밀번호 저장 대상으로 오인되지 않도록 credential `password` field를 사용하지 않고, 숫자 입력 + CSS 마스킹을 유지한다.
-- batch queue / simulation / apply
-- 저장 / 삭제
-  - Single 재시도의 browser-side pending state는 stable request/logical identity뿐 아니라 **최초 전송 payload/precondition snapshot**까지 짧게 보존한다. 다른 탭은 즉시 같은 pending identity를 가로채지 않으며, 확정 성공/종료가 확인되면 해당 pending state를 제거한다. 이 localStorage 기록은 business state의 Source of Truth가 아니라 응답 유실 재시도 identity를 유지하기 위한 보조 evidence다.
-  - Single 저장·삭제 성공은 server truth를 `dataState`에 먼저 수렴시킨 뒤 Main Dashboard를 즉시 재계산·재렌더하고 금액조정 modal을 재개방한다. completed duplicate는 GAS가 응답 직전 최신 branch HEAD에서 해당 resource를 다시 읽어 `currentResource { known, key, exists, item }`로 반환하고, Frontend는 과거 요청 payload fallback 없이 이 상태만 upsert/remove한다. `currentResource`를 확인할 수 없는 구버전/불완전 응답은 local state를 건드리지 않는 fail-closed로 처리하며 stale 응답도 local state를 다시 덮지 않는다.
-  - 재렌더 수렴 때문에 사용자가 입력 중이던 다른 target 초안이 사라지지 않도록 form draft를 복원한다. ETF 단건 저장 성공은 기존 규칙대로 체결수량/체결금액만 비우고, 저장 결과 output은 재개방 후 다시 표시한다. 삭제/Batch를 포함한 modal 재개방은 기존 modal 내부 scrollTop을 viewport 범위 안에서 복원하며, 즉시 재개방하는 내부 close에서는 지연 mobile reflow로 새 focus를 다시 blur하지 않는다.
-- Google Apps Script persistence
-- Pension GAS 응답의 `timing`은 UI에 표시하지 않고 `[Pension timing]` JSON 한 줄로 console에만 기록한다.
-- Batch 중복 확인 문구는 충돌 source를 구분한다. 현재 item 중복과 과거 semantic ledger 이력을 모두 `logical operation`으로 단정하지 않으며, 과거 ledger가 남아 있는 정상 idempotency history를 사용자에게 설명한다.
-- editor event delegation
-
-View와 Editor를 다시 하나의 `dashboard-pension.js`로 합치지 않는다.
-
-## 2.7 `dashboard-app.js` 책임
-
-`dashboard-app.js`는 앱 전체를 연결하는 orchestration 계층이다.
-
-주 역할:
-
-- 날짜 변경
-- 별도수익처럼 여러 모듈에 영향을 주는 흐름
-- cross-module action
-- render orchestration
-  - 일반 `#tabs/#app` full render의 keyboard focus snapshot/restore를 공통 소유한다. Live Valuation 5초 갱신은 **`#tabs`와 `#app` shell을 유지한 채 현재가 의존 fragment만 부분 교체**하고 활성 자산 탭 차트만 즉시 다시 그린다. 비활성 탭은 다음 탭 전환 후 lazy draw하며 menu/TOC/window/nested-scroll transient state를 보존한다. focus target이 이미 `document.activeElement`이면 불필요하게 다시 focus하지 않는다.
-- 초기 state 연결
-- event delegation entry
-- boot
-
-차트 버튼 종류와 일반 UI 버튼의 세부 동작은 각각 `dashboard-charts.js`, `dashboard-ui.js`가 해석한다.
-
-즉 app은:
-
-> **기능 구현보다 기능들을 연결하는 역할**
-
-을 유지한다.
-
-새 기능의 실제 계산, 특정 화면 rendering, chart DOM, modal 내부 구현을 app에 누적하지 않는다.
-
-## 2.8 `dashboard-market-ai.js` standalone 책임
-
-`dashboard-market-ai.js`는 main feature state와 분리된 **현재 시장·AI 신호 조회 전용 standalone entry**다. `dashboard-market-ai-client.js`의 endpoint/timeout transport·Dashboard-side 사용 preference만 공유하며, signal panel의 polling/state/mount/render는 자체 소유한다.
-
-현재 책임과 불변조건:
-
-- 로컬(`localhost`, `127.0.0.1`)에서는 현재 host의 `:8001` Market AI API를 조회하고, 비로컬 GitHub Pages에서는 `https://node.tail60a98e.ts.net` Tailscale Serve를 통해 같은 실제 Market AI API를 조회한다.
-- `market-ai-preview` 예시 데이터 모드는 사용하지 않는다. `?dashboard-view=web`, `?dashboard-view=tablet`, `?dashboard-view=mobile`은 화면 형태만 바꾸며 세 모드 모두 실제 Market AI 데이터를 사용한다.
-- Market Snapshot, Signal, KIS Bridge 상태는 서로 실패 격리한다. 일부 endpoint 오류 때문에 같은 refresh에서 정상 수신한 다른 데이터를 지우지 않으며, 전체 연결 실패와 개별 데이터 지연/오류를 구분한다. 최초 확인 중에는 환경과 무관하게 signal panel과 `실시간 시세` 진입점을 노출하지 않는다. 세 endpoint가 모두 응답하지 않으면 `OFFLINE`으로 종료해 자동 polling을 시작하지 않고, 사용자가 다시 연결을 시도할 때만 새 확인 세션을 시작한다.
-- Market AI server reachability는 `dashboard-market-ai.js`가 공통 connection event로 publish하고 Topbar/UI가 소비한다. 서버 연결이 검증된 동안에만 웹/태블릿 Topbar의 `실시간 시세` 버튼과 Phone Topbar의 **아이콘 전용 실시간 시세 버튼**을 노출하며, Tablet/Phone 공통 `관리` 메뉴에는 중복 진입점을 두지 않는다. 두 viewport 진입점은 같은 `REALTIME_QUOTES_ACTION`과 `data-market-ai-monitor-entry` gating을 공유하고, `[data-market-ai-monitor-entry][hidden]{display:none}` 공통 author CSS가 `date-tool-btn`의 display 선언보다 우선해 연결 전/해제 시 모든 viewport에서 실제로 숨겨지는 것을 보장한다. Web/Tablet은 iframe을 먼저 load해 Monitor content height를 수신한 뒤 최종 compact·no-scroll geometry로 modal을 reveal하고, size message가 늦을 때만 제한된 compact fallback 높이를 사용한다. 최초에 `availableHeight` 전체를 표시한 뒤 줄이는 동작을 다시 도입하지 않는다. Phone은 KRX 등 action modal과 같은 `--modal-overlay-pad`·`--modal-card-radius`를 상속하고 monitor card만 남은 가용 영역을 채운다. 화면 크기 변경에도 이 구분을 유지하고, 연결 해제 시 진입점을 숨기고 열린 embedded monitor를 닫아 stale UI를 남기지 않는다.
-- Dashboard-side Market AI 사용 preference는 `dashboard-market-ai-client.js`가 소유한다. OFF 시 signal/live polling과 in-flight 적용을 중단하고 volatile quote를 제거해 저장 JSON으로 fallback하며, **Live Valuation disconnect 정리는 `MARKET_AI_CONNECTION_EVENT(false)` 한 경로만 소유해 OFF preference event와 중복 render하지 않는다.** ON 시 즉시 refresh를 시도한다. preference와 server reachability는 별도 상태다. Web/Tablet/Phone Topbar는 동일한 Market AI 연결 icon action을 재사용하며 DOM 순서는 `Market AI 연결 → 투자 계산기 → 테마`다. Phone에서는 투자 계산기만 숨겨 Market AI 연결 action이 테마 바로 왼쪽에 보인다. Phone hamburger에서는 중복되는 Market AI 연결 action을 두지 않고 Topbar를 단일 진입점으로 사용한다. 이 토글은 backend runtime을 시작·종료하지 않는다.
-- refresh가 겹치면 latest-wins를 유지한다. 늦게 도착한 이전 요청 응답/parse error가 더 최신 요청에서 반영한 state를 역으로 덮지 않도록 async boundary 뒤의 request sequence를 확인한다.
-- backend가 제공하는 signal metadata와 산식 contract를 프런트에서 임의 재해석하지 않는다. 상세 backend 계약은 Market AI 프로젝트의 `market_ai_project_handover.md`를 Source of Truth로 한다.
-- SOX 시장 metric과 Signal Engine 입력은 모두 `INDEX:SOX`를 사용하며 표시 편의를 위해 `FUTURES:SOX` 또는 `SOX-F`로 자동 전환하지 않는다.
-- KOSPI200선물은 `kis-efriend:*` 실제 소스이면서 proxy가 아닌 snapshot만 표시한다. 장 종료로 확인된 마지막 정상값은 허용하지만, 장중 stale·Bridge 단절·대체 소스는 사용 가능한 실선물 값처럼 표시하지 않는다.
-- signal state가 `actual_close`이면 상승마감 metric을 예측값으로 계속 표시하지 않고 실제 KOSPI 종가 결과와 확정 상태로 전환한다. `available:false`는 유효 신호 없음으로 처리한다.
-- v8 신호 상세는 `details.signal_inputs[target]`를 우선 Source of Truth로 사용한다. `input_coverage`는 **신호별 입력 충족률**이며 legacy checkpoint의 `null`을 0% 또는 100%로 추정하지 않고 `--`로 둔다. `basis[].normalized_weight`는 현재 실제 계산에 반영된 구성비이며, 화면은 사용 가능한 항목만 정수 %로 배분하되 반올림 잔여를 결정적으로 분배해 **표시 합계를 항상 100%**로 맞춘다. 누락 항목은 `missing_inputs`와 각 input `status/reason`을 사용자 의미로 표시한다.
-- DB/API 호환을 위해 남아 있는 `confidence`와 `data_completeness`는 Dashboard 신호 UI에서 사용하지 않는다. 코드에 방어 로직이 많다는 이유로 별도 신뢰도 수치를 다시 합성하거나, `effective_weight` 합계를 그대로 퍼센트처럼 노출해 100% 미만으로 보이게 하지 않는다. metadata가 없는 구버전 응답에서는 available weight를 표시용으로만 재정규화하며 프런트가 signal score 자체를 다시 계산하지 않는다.
-- 선택된 과거 `activeDate`와 무관하게 Market AI panel은 현재 시점 신호를 표시한다.
-- Desktop/Tablet과 Mobile이 같은 `#market-ai-section` DOM을 재사용하며 별도 Mobile render tree를 만들지 않는다.
-- metric tooltip은 Desktop/Tablet의 keyboard/pointer interaction에서만 제공하고 Phone에서는 tooltip 속성·focus target을 제거한다.
-- polling은 문서가 보이는 동안만 실제 refresh하고, 다시 visible이 되면 즉시 갱신한다. 정확한 poll/timeout/freshness 수치는 최신 JS를 따른다.
-- Market AI UI lifecycle은 `OFF / CHECKING / ONLINE / OFFLINE`을 명시적으로 구분한다. CHECKING/OFFLINE에서는 Signal UI를 mount하지 않고 ONLINE 확정 뒤에만 mount한다. 같은 lifecycle의 동시 refresh는 single-flight로 합치고 generation + refresh sequence로 이전 세션의 늦은 응답이 새 연결 상태를 덮지 못하게 한다.
-- 최초 연결 실패는 OFFLINE에서 종료하고 반복 polling을 시작하지 않는다. ONLINE 상태의 순간적인 전체 transport 실패 1회는 기존 UI/data를 유지하되 연속 실패 임계치에 도달하면 OFFLINE으로 전환해 Signal polling과 Live Valuation network를 함께 중단한다. 사용자가 다시 연결을 시도하기 전에는 OFFLINE 상태에서 서버를 계속 두드리지 않는다.
-- `window/globalThis` state bridge, main `dataState/uiState` 직접 접근, main feature module import를 추가하지 않는다.
-- layout 비율, tooltip 위치, viewport별 density, freshness threshold 같은 현재 표현·운영 수치는 실제 CSS/JS/backend 설정을 Source of Truth로 하고 handover에 미세값을 고정하지 않는다.
-
-### 2.8.1 `dashboard-market-ai-client.js` transport · 사용 preference 책임
-
-`dashboard-market-ai-client.js`는 Market AI signal panel과 live valuation이 공유하는 **저수준 transport foundation, Dashboard-side 연결 사용 preference, 현재 KOSPI snapshot의 휘발성 handoff**를 소유한다.
-
-- local/remote API base 선택과 timeout fetch를 소유한다.
-- `investmentDashboard.marketAiEnabled` localStorage key와 `MARKET_AI_ENABLED_EVENT`를 canonical source로 사용한다. cross-tab `storage` event도 같은 의미를 전달한다.
-- signal 산식, quote 판정, Dashboard 계산, DOM, polling state를 소유하지 않는다. `dashboard-market-ai.js`가 이미 조회한 `INDEX:KOSPI` raw row를 메모리에 잠시 보관하고 event로 전달할 뿐, usable 여부는 backend `input_status`를 소비하는 live valuation 쪽에서 판정한다.
-- Local은 현재 Dashboard host의 `:8001` full API를 사용한다. Remote는 canonical Tailscale endpoint를 사용하되 실제 runtime 경로는 **Tailscale Serve → `127.0.0.1:8002` GET-only proxy → `127.0.0.1:8001`**이며 Dashboard frontend는 remote write 경로를 갖지 않는다.
-- `fetch()` 성공 뒤 body parse가 끝날 때까지 timeout lifecycle을 유지하고 body 소비 완료 후 timer를 정리한다.
-- endpoint가 바뀌면 signal panel과 live valuation에 각각 literal을 복제하지 않고 이 module을 canonical source로 수정한다.
-
-### 2.8.2 `dashboard-live-valuation.js` 현재가 overlay 책임
-
-`dashboard-live-valuation.js`는 Market AI의 KRX quote와 `INDEX:KOSPI` benchmark를 **현재 평가 대상 거래일에만 screen-only overlay**하는 main feature adapter다. 기본 대상은 KST 오늘이며, 다음 KRX 정규장 시작 전의 직전 완료 거래일 carry는 아래 명시된 제한 조건에서만 허용한다.
-
-- `dashboard-core.js`가 계산한 현재 보유수량이 `0`보다 큰 증권·퇴직연금 ticker를 문자열로 수집하고 중복 제거한다. `005930`의 leading zero와 `0163Y0` 같은 영문 혼합 6자리 ticker를 보존한다.
-- 동일 ticker가 증권·퇴직연금에 동시에 있어도 quote universe에는 한 번만 요청한다.
-- 각 browser tab은 `sessionStorage` 기반 `client_id`를 사용하되, 탭 복제/`window.open`에서 storage가 복사될 수 있으므로 `BroadcastChannel` probe로 같은 ID를 이미 쓰는 활성 tab이 있는지 확인한다. 충돌이 확인된 새 tab만 새 ID를 발급해 저장하고, backend는 활성 client들의 ticker 합집합을 유지한다. 한 PC/폰/탭의 polling이 다른 client universe를 삭제하지 않아야 한다.
-- 현재 보유 ticker가 0개여도 refresh를 조기 종료하지 않고 `client_id + []`를 backend에 보내 해당 client의 universe를 authoritative empty로 reconcile하며, 로컬 `requestedTickers`도 즉시 `[]`로 비운다.
-- quote는 `usable:true`인 종목에만 적용하고 `warming/stale/unavailable/error` 등 unusable 종목은 **종목별 JSON fallback**한다. `usable`은 현재 tick이 계속 움직인다는 뜻이 아니라, 현재 시장 상태에서 Dashboard 평가에 사용할 수 있는 신뢰 가능한 당일 가격이라는 뜻이다. 따라서 backend가 `state=closed, usable=true`로 제공하는 당일 장마감 quote도 overlay 대상이며 일부 실패 때문에 정상 quote까지 모두 버리지 않는다.
-- backend의 종목별 `state / usable / market_state`를 normalize 과정에서 버리지 않는다. `market_state`는 Dashboard 내부에서 `marketState`로 보존하고 `liveValuationStatusForDate()`가 `regularLiveCount(open) / extendedLiveCount(extended) / marketClosedCount(closed)`를 집계한다. top-level `market_state`만으로 개별주식 시간외와 ETF 장마감이 섞인 15:30~20:00 구간을 판정하지 않는다. `liveValuationFingerprint()`에도 종목별 `market_state`를 포함해 가격이 그대로여도 open→extended/closed 의미가 바뀌면 다음 UI 단계가 상태 변경을 관측할 수 있어야 한다.
-- 현재 consumer session contract는 **개별주식 `09:00~15:30 open / 15:30~20:00 extended / 20:00 이후 closed`, ETF `15:30 이후 closed`**다. `extended` quote는 backend가 `state=live, usable=true`로 제공하고, 신뢰 가능한 당일 장마감 가격은 `state=closed, usable=true`로 제공할 수 있으므로 둘 다 오늘 평가 overlay에 적용한다. Dashboard는 process-memory인지 durable KIS snapshot 복구인지 자체 판정하지 않고 backend의 ticker별 `market_state/state/usable/source`를 소비한다. **20:00 자체는 fallback 조건이 아니며**, KOSPI 15:30 종가 판정과 K200 day/night session은 Market AI backend 소유라 live valuation adapter가 재정의하지 않는다.
-- 동일 보유 ticker universe에서 모든 ticker가 `state=closed + market_state=closed + usable=true + price>0`로 확정되면 그 closed snapshot을 Market AI 최종 overlay로 유지한다. 자정이 지나더라도 각 quote의 `observed_at` KST 날짜가 직전 완료 거래일 화면과 일치하면 **다음 KRX 정규장 시작 전까지** 그 화면에 closed quote를 이어서 적용한다. settled 상태는 날짜/universe뿐 아니라 KRX local market phase(`preopen/open/closed`)도 함께 기억하므로 `preopen → open` 전환에서 반드시 1회 network 재검증한다. 이때 정상 거래일이면 새 session quote/warming 상태로 넘어가 직전일 overlay를 제거하고, 휴장일처럼 backend가 당일 생성시각으로 `market_state=closed`를 재확인하면 직전 완료 세션을 계속 유지한다. 현재 ticker가 0개인 경우에도 authoritative empty lease를 1회 성공적으로 전달한 뒤 같은 방식으로 network polling을 쉰다. 일부 ticker가 unusable이면 fully-closed로 보지 않아 polling을 계속하고 해당 ticker만 JSON fallback한다.
-- closed-session network 정지는 Live Valuation 전용이다. Market AI Signal은 KOSPI200 선물·SOX·NQ100 선물 등 국내 현물 장마감 이후에도 의미가 있는 입력을 포함하므로 ONLINE 동안 기존 signal polling을 계속한다.
-- KOSPI 비교선은 standalone Market AI가 이미 조회한 `/api/market-data/snapshot`의 `INDEX:KOSPI`를 추가 fetch 없이 공유한다. `kis-efriend:JUC_R:*` source + backend `input_status.available=true` + `realtime` 또는 `closed_latest` + 양의 가격을 모두 만족할 때만 `dataState.liveKospi`에 volatile overlay로 보관한다. 오늘 row에서는 같은 KST 날짜의 실시간/당일 마감값만 사용하고, 다음 정규장 시작 전 직전 완료 거래일 화면에는 같은 날짜의 `closed_latest`만 허용한다. 조건을 벗어나거나 snapshot API가 비면 즉시 `performance_snapshots.json` / `prices.json` KOSPI 값으로 fallback한다.
-- live quote는 `dataState.liveValuation`, KOSPI benchmark는 `dataState.liveKospi`의 volatile snapshot으로만 보관하며 운영 JSON, GAS, GitHub Actions, `performance_snapshots.json`에 쓰지 않는다.
-- live overlay는 기본적으로 `activeDate === KST 오늘`에 적용한다. 예외적으로 자정 이후 다음 KRX 정규장 시작 전에는 `closed + usable` quote의 `observed_at` KST 날짜가 직전 완료 거래일 `activeDate`와 정확히 일치할 때만 그 직전 거래일에도 overlay를 허용한다. 다음 session이 시작되거나 backend가 새 session 상태를 확인하면 직전 거래일은 다시 JSON/역사 snapshot 의미로 돌아가며, 그보다 오래된 과거 날짜에는 Market AI state를 적용하지 않는다. 이 예외는 `dashboard-core.js`의 quote 판정뿐 아니라 `dashboard-app.js`의 Live Valuation partial render gate에도 동일하게 적용해야 하며, `activeDate !== kstTodayText()` 같은 별도 today-only guard를 두면 장전 carry quote가 메모리에 들어와도 화면은 JSON 상태로 남는 회귀가 발생한다.
-- Market AI는 ticker별 현재가/source/health와 KOSPI benchmark를 제공한다. 수량·원가·원금·매매흐름·실현손익의 owner는 Dashboard 장부다. KOSPI runtime 값은 누적 손익/누적 수익률 차트의 비교선에만 사용하며 저장 원천을 바꾸지 않는다.
-- 현재가가 바뀌면 현재가 의존 평가금액·평가손익·수익률·일변동·계좌/통합 합계는 기존 Dashboard 계산으로 재파생하되 장부 원천값을 바꾸지 않는다.
-- polling은 5초 간격으로 visible 상태에서만 수행하고 visible 복귀 시 즉시 refresh한다. client identity 확인부터 응답 body 소비까지 진행 중인 Promise를 공유해 중복 요청을 만들지 않는다. 연결 해제는 sequence를 무효화하고, 이전 요청이 끝났을 때 재연결되어 있으면 즉시 새 요청을 예약한다. 응답 도착 전에 holdings universe가 바뀌면 이전 응답을 적용하지 않고 새 universe를 다시 조회한다. 관련 실행 테스트는 `tests/live-valuation-polling.test.cjs`가 소유한다.
-- Live Valuation/render lifecycle의 canonical contract는 **2.7 `dashboard-app.js` 책임**을 따른다. overlay·input·tooltip interaction 중에는 render를 보류하고 종료 후 최신 pending state를 1회 반영한다. 5초 Live Valuation과 별도수익 전환은 `#tabs`/`#app` shell과 focus/scroll transient state를 보존하는 부분 갱신을 사용하며, 구체 fragment 목록과 redraw 범위는 실제 `dashboard-app.js`를 Source of Truth로 한다.
-- 차트 entrance animation은 card별 최초 viewport 진입 1회가 contract다. 주기 갱신은 이미 재생된 card만 완료 상태를 승계하고 미진입·hidden/0-size card의 최초 animation을 선소비하지 않는다.
-- Hero 투자 칭호는 `현재 상태형 1개 + 최근 획득 업적형 최대 1개`를 표시한다. Web은 칭호와 성과 pill을 같은 행에 두고, Tablet은 `투자 성과 + 기준문구` 바로 뒤에 칭호를 두며 성과 pill 4개는 다음 행에 유지한다. Phone은 `제목/기준문구 → 칭호 행 → 성과 pill 행` 구조를 유지해 세로 2개/가로 4개 성과 pill contract를 깨지 않는다. 현재 상태형은 5거래일 연속 수익 → 현금비중 40% 이상 → 누적손익 1,000만원 초과 → 기본 순으로 판정하고, 업적형은 `인내의 화신`과 `단타 깎는 노인`의 획득일을 비교해 더 최근 업적 1개를 표시한다. `단타 깎는 노인`은 별도수익 ON일 때만 후보이며 미래 거래는 제외한다. 칭호 로직/renderer ownership은 `tests/investor-title.test.cjs`, viewport 배치는 `tests/main-ui-contract.test.cjs`가 보호한다.
-- Hero `투자 성과` 기준문구와 자산 source tooltip은 **실제 계산에 적용된 가격 기준**을 사용자 의미로 표시한다. 저장 JSON은 `priceBasis`에 따라 장중/정규장 종가 의미를, Market AI는 usable coverage에 따라 실시간/시간외/애프터 종가 의미를 표시한다. legacy 저장값은 기존 fallback을 유지하고 raw 내부 상태 문자열은 노출하지 않는다. 출처 tooltip은 기존 `.dash-tooltip` surface를 재사용한다.
-- Market AI standalone polling이 card 값을 갱신할 때 이미 열려 있는 Market AI tooltip도 같은 최신 state/view model로 즉시 다시 그린다. tooltip target이 DOM에서 사라졌다면 tooltip을 닫아 stale body-level surface를 남기지 않는다.
-
-KIS eFriend 다종목 universe, subscription health, Tailscale Serve/CORS와 backend quote store 운영은 Market AI 프로젝트의 `market_ai_project_handover.md`를 따른다.
-
-## 2.9 JS state · initialization ownership
-
-공유 state와 module-private state를 구분하고, **누가 사용하는가보다 누가 책임져야 하는가**를 기준으로 owner를 정한다.
-
-공유 state:
-
-```text
-dataState
-→ core / 현재 데이터 · activeDate 등 앱 공통 데이터 상태
-→ `liveValuation`은 오늘 quote의 **휘발성 화면 snapshot**이며 영속 장부 state가 아님
-
-uiState
-→ core / 여러 메인 모듈이 공유하는 UI 상태
-```
-
-module-private state:
-
-```text
-dashboard-ui-common.js
-→ mobileViewModes
-→ Asset tooltip touch/binding guard state
-
-dashboard-modal.js
-→ focus stack / body lock count / native dialog lifecycle state
-
-dashboard-monthly-calendar.js
-→ monthlyCalendarState / 현재 탐색 월
-
-dashboard-charts.js
-→ chartState
-→ chartRuntimeState
-→ tooltip animation/runtime guard
-
-dashboard-ui.js
-→ appearanceChannel
-→ uiRuntimeState
-
-dashboard-pension-editor.js
-→ pensionEditorState
-→ modal height scheduling state
-
-dashboard-app.js
-→ heroBasisTapState
-→ chartDateJumpState
-
-dashboard-market-ai-client.js
-→ `localStorage` Market AI enabled preference · endpoint/timeout transport · connection/enabled event constants
-
-dashboard-live-valuation.js
-→ poll/pending-render timer · refresh sequence · fingerprint · tab client_id runtime state
-
-dashboard-market-ai.js
-→ marketAiState
-→ signal panel polling / mount / tooltip binding / refresh sequence runtime state
-```
-
-유지 원칙:
-
-- `chartState`나 editor batch state를 core/global로 올리지 않는다.
-- Market AI **signal panel state**를 메인 `dataState` / `uiState`에 합치지 않는다. 단, 보유종목 평가에 실제 필요한 quote snapshot은 `dataState.liveValuation`, 차트 비교선에 필요한 현재 KOSPI는 `dataState.liveKospi`의 휘발성 계산 입력으로만 둔다.
-- 새 global store / event bus / framework state manager / 거대한 단일 state 객체를 만들지 않는다.
-- `window` / `globalThis` state bridge로 module ownership을 우회하지 않는다.
-- 반복 render에 필요한 listener/tooltip/chart guard는 각 owner module 안에서 관리한다.
-- 퇴직연금 dashboard 재렌더 연결은 editor setup 단계의 명시적 `renderDashboard` callback dependency를 유지한다.
-- main app boot는 `dashboard-app.js` 단일 entry가 담당하며 Market AI는 별도 standalone entry에서 자기 initialization만 담당한다.
-
-## 2.10 메인 JS의 파일 간 책임을 함부로 섞지 않는다
-
-예를 들어:
-
-```text
-차트 계산/DOM/action → charts
-Topbar/Navigation/UI action → ui
-월간 손익 calendar view/model → monthly-calendar
-공통 저수준 UI helper → ui-common
-Modal/Dialog lifecycle → modal
-퇴직연금 조회 View → pension
-퇴직연금 변경/저장 → pension-editor
-앱 boot/cross-module orchestration → app
-Market AI endpoint/timeout transport + Dashboard-side enabled preference → market-ai-client
-오늘 보유종목 quote polling/overlay/race guard → live-valuation
-Market AI 현재 신호 조회/mount/fail isolation → market-ai standalone
-```
-
-처럼 책임을 유지한다.
-
-한 기능을 수정하기 위해 4~5개의 JS 파일을 동시에 건드려야 하는 구조를 새로 만들지 않는다.
-
-그렇게 해야만 구현되는 요청이라면 구조가 잘못된 방향인지 먼저 검토한다.
-
-## 2.11 현재 구조별 수정 위치 기준
-
-향후 수정 시 기본적으로 다음 책임을 참고한다.
-
-```text
-메인 CSS 공통/기본 규칙 + Desktop baseline
-→ css/common.css
-
-태블릿 전용 반응형
-→ css/tablet.css
-
-모바일 전용 반응형
-→ css/mobile.css
-
-특수 viewport
-→ css/special.css
-
-입력장치 hover / pointer
-→ css/interaction.css
-
-인쇄
-→ css/print.css
-
-데이터 / 공통 계산 / formatter / 공용 데이터 state
-→ js/dashboard-core.js
-
-공통 저수준 DOM / 마크업 / shared mobile view state / Toast·viewport helper
-→ js/dashboard-ui-common.js
-
-Modal/Dialog lifecycle / focus / inert / body lock
-→ js/dashboard-modal.js
-
-차트
-→ js/dashboard-charts.js
-
-Topbar / Navigation / 일반 UI
-→ js/dashboard-ui.js
-
-퇴직연금 조회 View
-→ js/dashboard-pension.js
-
-퇴직연금 변경 / PIN / batch / persistence
-→ js/dashboard-pension-editor.js
-
-cross-module event routing / render orchestration / boot
-→ js/dashboard-app.js
-
-Market AI local/remote endpoint + timeout transport
-→ js/dashboard-market-ai-client.js
-
-오늘 보유종목 quote polling / live overlay / render defer
-→ js/dashboard-live-valuation.js
-
-Market AI 실제 현재 신호 조회 / Hero 보조 UI standalone adapter
-→ js/dashboard-market-ai.js
-
-Market AI Desktop baseline / 공통 component
-→ css/common.css의 Hero 확장 영역
-
-Market AI Tablet 배치
-→ css/tablet.css의 Hero 인접 영역
-
-Market AI Phone inline 배치 / mounted panel 이동
-→ css/special.css의 Phone UI Shared 기능 viewport (`slot`은 바깥 간격, `data-market-ai-placement="phone-inline"`은 panel 표현 소유)
-```
-
-단, 기능의 실제 책임을 확인한 뒤 판단하며 파일명만 보고 무조건 수정하지 않는다.
-
-## 2.12 현재 ES Module dependency graph
-
-현재 dependency 방향은 다음과 같다.
-
-```text
-kodex-schema       → 다른 dashboard module import 없음
-core               → kodex-schema
-ui-common          → 다른 dashboard module import 없음
-modal              → 다른 dashboard module import 없음
-market-ai-client   → 다른 dashboard module import 없음
-charts             → core + ui-common + modal
-ui                 → core + ui-common + modal + charts
-pension            → core + ui-common + charts
-pension-editor     → core + ui-common + modal
-live-valuation     → core + market-ai-client
-app                → core + ui-common + modal + charts + ui + pension + pension-editor + live-valuation
-
-standalone entry
-market-ai          → market-ai-client
-```
-
-`core`, `modal`, `market-ai-client`는 서로 독립적인 저수준 foundation을 유지한다. `dashboard-live-valuation.js`는 current-date quote overlay adapter로만 main graph에 참여하고, `dashboard-market-ai.js`는 signal panel standalone 책임을 유지한다.
-
-불변조건:
-
-```text
-core → DOM/UI module import 금지
-ui-common / modal / market-ai-client → 화면별 feature module import 금지
-feature module → ui를 공통 helper 저장소처럼 직접 import하지 않음
-charts → ui 역참조 금지
-하위 module → app import 금지
-pension View ↔ pension-editor 상호 import 금지
-live-valuation → UI/pension/charts import 금지
-market-ai → market-ai-client 외 main feature import 금지
-circular import = 0
-```
-
-## 2.13 ES Module import / export 운영 규칙
-
-모듈 간 기능 사용은 실제 named `import / export`로 표현한다.
-
-권장:
-
-```js
-import {foo, bar} from './dashboard-core.js';
-```
-
-규칙:
-
-- relative path에 `.js` 확장자 포함
-- named export 우선
-- 사용하지 않는 import/export를 습관적으로 만들지 않음
-- dependency 우회를 위한 wrapper를 만들지 않음
-- global compatibility bridge를 만들지 않음
-- 순환 import를 만들지 않음
-- 기능을 export하기 위해 책임 파일을 잘못 옮기지 않음
-
-ES Module migration 이후 사용하지 않는:
-
-```text
-classic script load-order guard
-register hook registry
-임시 global bridge
-```
-
-등을 다시 도입하지 않는다.
-
-반복 render 때문에 실제로 필요한 listener/tooltip/chart guard는 별개의 문제이므로 함부로 제거하지 않는다.
-
-## 2.14 `index.html` module entry와 cache bust 정책
-
-현재 `index.html`은 main dependency graph를 classic script 다중 load로 구성하지 않는다.
-
-현재 구조:
-
-```text
-importmap
-+
-<script type="module" src="js/dashboard-app.js?...">
-+
-<script type="module" src="js/dashboard-market-ai.js?...">  # standalone
-```
-
-`index.html`에서 `Date.now()`를 기준으로 main module dependency importmap과 두 module entry(`dashboard-app.js`, `dashboard-market-ai.js`)에 cache bust를 적용한다.
-
-중요:
-
-- 신규 module을 추가/이름 변경할 때 importmap 누락 여부 확인. 현재 `dashboard-market-ai-client.js`, `dashboard-live-valuation.js`도 cache-bust importmap 대상이다.
-- cache bust 정책을 기능 수정과 함께 임의 변경하지 않음
-- importmap을 단순히 불필요해 보인다는 이유로 제거하지 않음
-- static import path는 현재 `.js` 상대경로 유지
-- module 전환과 무관한 viewport/theme 초기화 inline script는 함부로 변경하지 않음
-- 다시 classic script 다중 load 구조로 돌아가지 않음
-
-## 2.15 main graph 단일 entry와 Market AI standalone 분리를 유지한다
-
-현재 `dashboard-app.js`에서 도달하는 main dependency graph는 **13개 ES Module**이며 `dashboard-app.js`가 main graph의 단일 entry다. `dashboard-market-ai.js`는 두 번째 standalone entry로 main boot 책임을 공유하지 않는다. 두 entry는 저수준 `dashboard-market-ai-client.js` transport만 공유한다.
-
-```text
-index.html
-├─ dashboard-app.js
-│  ├─ dashboard-monthly-calendar.js
-│  │  ├─ dashboard-core.js
-│  │  ├─ dashboard-ui-common.js
-│  │  └─ dashboard-modal.js
-│  ├─ dashboard-heatmap.js
-│  │  ├─ dashboard-core.js
-│  │  ├─ dashboard-ui-common.js
-│  │  └─ dashboard-modal.js
-│  └─ dashboard-live-valuation.js
-│     ├─ dashboard-core.js
-│     └─ dashboard-market-ai-client.js
-└─ dashboard-market-ai.js
-   ├─ dashboard-modal.js
-   └─ dashboard-market-ai-client.js
-```
-
-`kodex-leverage-schema.js`는 DOM-free leaf module이며 Main `dashboard-core.js`와 Add Report가 동일 validator를 사용한다. Main/Add에 별도 KODEX schema validator를 다시 만들지 않는다.
-
-실제 dependency는 named `import / export`로 표현하며 circular import와 `window/globalThis` compatibility bridge를 허용하지 않는다. classic script 다중 load, framework/bundler 도입 같은 구조 개편은 사용자가 별도로 요청한 경우에만 검토한다.
-
-# 3. UI · Responsive · 반복 회귀 불변조건
-
-이 장은 **현재 화면의 모든 배치값을 문서로 복제하는 곳이 아니다.** 반복적으로 잘못 수정될 가능성이 높은 UX 의미와 responsive 책임만 남기고, px·gap·정렬·grid 열 수 같은 세부는 HTML/CSS/renderer를 Source of Truth로 한다.
-
-## 3.1 반응형 기준과 Phone 역할
-
-기본 breakpoint는 다음 3구간을 유지한다.
-
-```text
-Desktop ≥ 1101px
-Tablet  761px ~ 1100px
-Mobile  ≤ 760px
-```
-
-기능상 필요한 실제 스마트폰 landscape media는 유지할 수 있으나 특정 기기 해상도 맞춤식 breakpoint를 추가하지 않는다. Phone Shared는 세로폰과 실제 가로폰이 공유하는 compact density를, Phone Landscape는 가로폰에서만 달라지는 최소 배치를 소유한다.
-
-Navigation 책임은 다음 의미를 유지한다.
-
-- Phone 세로/가로: compact Topbar + hamburger 중심. hamburger의 표시 순서는 `링크 → 관리 → 전체 → 증권계좌 → 퇴직연금`이며 별도 `목차` 헤더 문구는 두지 않는다. header는 왼쪽 `Top바 고정` switch, 오른쪽 `모서리 변경`·닫기 action으로 구성한다. `투자 계산기`는 개인보기 해제 상태에서 `링크` 그룹의 `나스닥100 선물` 바로 아래에 둔다.
-- Tablet: 주요 action은 축약명, 보조 action은 icon-only로 표시한다. hamburger는 Phone과 같은 menu source를 재사용하되 `.tablet-topbar-ui` 상태에서 Topbar와 중복되는 `관리` 그룹과 `투자 계산기` 링크를 즉시 숨긴다. 모서리 변경은 기존 Topbar action을 사용하며 hamburger에는 중복 노출하지 않는다.
-- Hamburger membership source는 Tablet/Phone 공통으로 유지하고 viewport별 별도 markup을 만들지 않는다. 다만 Topbar와의 중복 제거를 위한 runtime 표시/숨김은 허용한다. `Top바 고정`은 fixed Phone Topbar 전용 control이라 Phone에서만 표시하고, 모서리 변경은 기존 `toggleCornerTheme()` 상태·storage/channel을 재사용한다.
-- Hamburger panel height/scroll: `common.css`가 Tablet/Phone 공통 owner다. Tablet/Phone media에 별도 `max-height` cap을 두지 않고, viewport 높이가 실제로 부족한 경우에만 공통 `overflow:auto`가 작동한다.
-- Desktop: 기존 action + 우측 edge TOC. TOC panel은 화면 바깥에서 slide-in하지 않고 **panel 우측 세로선을 기준으로 `clip-path` reveal/close**하며, trigger/rail 위치는 고정한다.
-- 날짜 이동은 기존 `setActiveDashboardDate()` 하나로 수렴한다. Web은 side rail이 충분한 구간에서 TOC와 폭·높이를 공유하는 `<`/`>` edge button을 사용하고, rail이 부족한 Web에서는 같은 action을 Topbar 날짜 selector 안의 compact `<`/`>`로 전환해 본문을 가리지 않는다. Tablet/Phone은 수평 swipe를 사용한다. 최종 touch 계약은 **좌→우=이전 날짜, 우→좌=다음 날짜**이며 control/chart/가로스크롤/modal에서 시작한 gesture는 제외한다. touch 전환 후에는 기존 toast로 이동 날짜를 안내하고 자동 종료한다.
-
-JavaScript의 phone 판정은 `dashboard-ui-common.js`의 canonical helper를 재사용하고 같은 `matchMedia` 조건을 기능 모듈마다 복제하지 않는다.
-
-### iPhone Safari 데스크탑 웹사이트 요청
-
-현재 canonical desktop-request viewport는 **`width=1280`**이다. 1280px은 일반 Desktop baseline 자체를 사용하므로 `iphone-request-desktop` 같은 별도 CSS 보정 class를 만들지 않는다.
-
-
-## 3.2 Section Title / Control 공통 불변조건
-
-- 메인 `h2`, 하위/차트 `h3`는 공통 title typography/icon contract를 사용하고 부모 container는 배치 책임만 가진다.
-- 같은 모양·상호작용의 control은 기존 공통 primitive를 우선 재사용하고, 기능별 class는 의미·위치·표시조건처럼 필요한 차이만 담당한다.
-- ON/OFF 또는 상태 control의 표시 여부 때문에 section title row의 기본 geometry가 흔들리지 않아야 한다.
-- 이 문제를 해결하기 위해 hidden placeholder나 임시 margin 보정처럼 공간을 억지로 예약하지 않는다.
-- 실제 높이·아이콘 크기·gap·control px 값은 CSS token을 Source of Truth로 한다.
-- 퇴직연금 금액 조정의 `현금성자산 / 기업적립금 / 추가 매수`, 월간 손익의 `합산 / 증권 / 퇴직연금`, 히트맵의 `당일손익 / 누적손익 / 비중`은 `--modal-segment-*` token을 공유한다. geometry·typography뿐 아니라 normal/hover/focus/active 색상도 공통 state token을 사용하고, 기능별 selector가 같은 skin을 다시 선언하지 않는다.
-
-## 3.3 반복 회귀 이력이 있는 UI/기능
-
-관련 영역을 수정할 때 아래 의미 계약을 우선 확인한다. 세부 문구·색상값·현재 위치는 최신 소스를 기준으로 한다.
-
-### Theme / Corner
-
-테마·모서리 control은 실제 현재 상태를 잘못 암시하는 permanent active UI가 되지 않아야 하며 Light/Dark 모두 icon contrast를 유지한다. Main에서 두 appearance control을 변경할 때는 기존 localStorage key(`investmentDashboard.theme`, `investmentDashboard.cornerTheme`) 갱신과 함께 `investmentDashboard.appearance` BroadcastChannel로 현재 Light/Dark·Corner 상태를 발행한다. Add의 Calc/Report는 storage event를 fallback으로 유지하면서 이 channel을 소비해 이미 열린 탭도 실시간 동기화한다.
-
-Light/Dark는 같은 semantic 의미 체계를 공유한다. 양수·음수는 각각 `--value-positive` / `--value-negative`를 사용하고, 성공·정보·주의·오류·위험은 별도 status token으로 구분한다. 테마 공통화 과정에서 양수·음수 class를 한쪽 색으로 합치거나 status color로 대체하지 않는다. **Light의 `--value-positive:#E6233A`, `--value-negative:#2972E8`은 사용자가 시각적으로 확정한 design-locked canonical 색상이다. 일반 텍스트 대비 수치만을 이유로 더 진한 색으로 변경하지 않으며, 사용자의 명시적 재지시 없이 다른 색으로 보정하지 않는다.** Dark semantic 색상은 최신 CSS를 Source of Truth로 유지한다. Corner는 surface/control/inner cap을 통해 같은 geometry에 적용하며 정보 위계가 다른 작은 control까지 같은 radius로 강제하지 않는다.
-
-### Table
-
-Table의 geometry·정렬·summary contract는 **2.4 `Table 공통 contract`**를 canonical 기준으로 한다. 관련 수정 시 특히 summary 첫 셀과 나머지 셀의 배경/border, sticky first column, horizontal scroll, semantic alignment가 깨지지 않는지 확인한다.
-
-### 성과·장부
-
-- 금액 성과는 `손익`, 비율 성과는 `수익률` 용어를 기본으로 한다. 실제 확정 재원·출처를 뜻하는 `실현수익`, `별도 수익 재투입` 같은 표현은 예외다.
-- `장부결과 VS 실제보유`는 `차액(A-B)`이 결론이고 A는 장부상 투자 결과물, B는 실제 증권계좌+현금 보유액이라는 의미를 유지한다.
-
-### KRX 현재가 반영
-
-- 최신/누락 반영과 선택일 재갱신의 업무 의미를 섞지 않는다.
-- `marketStatus`는 `intraday/close`의 표시 상태이고, 정규장 종가 확정 여부는 별도 `priceBasis`가 소유한다. 저장값은 장중 `priceBasis:intraday`, 장마감/과거일 `priceBasis:regular_close`를 사용한다.
-- `scripts/update_prices.py`는 KST 오늘 `09:00 ≤ 시각 < 15:30`에 기존 pykrx 장중 경로를 사용한다. **2026-09-14 KRX 애프터마켓 개설 이후 날짜의 15:30 정각 이후/과거 거래일은 `https://api.stock.naver.com/chart/domestic/item/{ticker}/minute`에 `startDateTime=endDateTime=YYYYMMDD1530`을 지정하고, 응답의 `localDateTime == YYYYMMDD153000`인 정확한 1분봉 `currentPrice`만 정규장 종가로 인정한다.** 이 날짜 구간에서는 pykrx all-market/by-date, dayCandle, NXT/애프터마켓 현재가를 fallback으로 사용하지 않는다. 분봉 보관기간이 지났거나 15:30 행을 확인하지 못하면 실패하고 원본 JSON을 유지한다. 2026-09-14 이전 날짜만 기존 raw pykrx(`get_*_ohlcv_by_ticker` → `get_*_ohlcv_by_date`) 경로를 허용한다. 성공한 close에는 이후 날짜 `regularCloseSource: naver_krx_1530_minute`, 이전 날짜 `regularCloseSource: pykrx_pre_aftermarket`를 기록하며 valuation override가 있으면 `+nxt_valuation_override` suffix를 붙인다. 기존 `pykrx_raw`는 검증 완료 source로 더 이상 인정하지 않는다. 조회 도중 15:30을 넘으면 전체 종목을 1회 다시 조회하여 장중 가격이 종가 라벨로 저장되는 일을 막는다. Actions 실행 시점이 가격 기준이며 클릭 시점 가격을 예약하는 기능은 아니다.
-- **선택일 재갱신은 기존 종가 라벨에 관계없이 실제 dispatch를 허용**한다. 자동 최신/누락 반영에서만 `priceBasis:regular_close`와 새 검증 source(`naver_krx_1530_minute` / `pykrx_pre_aftermarket`)를 이용해 이미 확정된 종가의 불필요한 실행을 생략한다. 특히 **2026-09-14 이후 `regular_close`인데 `regularCloseSource`가 없거나 해당 날짜 정책과 맞지 않는 기존 행은, 최신일이 이미 검증 완료여도 자동 대상에 포함해 한 번 재확정**한다. 재확정 성공 후 source attestation이 기록되면 다시 대상에 잡히지 않아 수렴한다. requestId/durable ledger idempotency와 진행 중 작업 중복 방지는 두 모드 모두 유지한다.
-- KRX modal 설명은 선택일을 다시 조회하며 오늘은 **15:30 전 장중 가격 / 15:30부터 정규장 종가**, 과거 거래일은 정규장 종가를 사용한다는 의미를 사용한다. 현황 표 종목/상품 source tooltip은 Market AI quote가 없을 때 저장 snapshot의 `priceBasis/marketStatus`를 읽어 `장중 저장 데이터` / `정규장 종가 저장 데이터` / legacy `저장 데이터`를 사용한다. `account1_daily_snapshots.json`은 기존 `저장 스냅샷`을 유지하고, Market AI quote가 적용된 경우에만 기존 `실시간` / `장 마감 시세`를 사용한다.
-- **전량매도 종목도 KRX 최신/누락 가격 수집 대상에는 남긴다.** 단 이 가격은 실제 보유평가가 아니라 `지금까지 안 팔았다면?` 전용 `hypothetical` 역할이다. 최신 거래일에 가상추적 ticker 가격 또는 동일일 `priceSourceDates`가 없으면 자동 최신/누락 반영이 그 날짜를 다시 조회하며, 선택일 재갱신에서도 매도 이후 날짜라면 가상추적 가격을 함께 수집한다. 저장된 가상추적 가격은 현재 보유수량·총평가금액·투자원금·누적손익·히트맵·평가금액 비중·Market AI Live Valuation universe를 바꾸지 않는다. 가상추적 종목만 조회 실패한 경우 `trackingWarnings`로 기록하고 실제 포트폴리오 가격 갱신 결과는 유지한다.
-- modal focus/ESC/request timeout과 같은 기본 lifecycle을 회귀검증한다. 일반 네트워크 요청은 공통 timeout을 따르되, KRX GAS write는 durable reconciliation과 GitHub API 왕복을 고려해 **60초 전용 timeout**을 사용한다. timeout은 서버 처리 실패를 뜻하지 않으므로 `NETWORK_TIMEOUT`에서는 '서버에서 계속 처리될 수 있음'을 안내하고 같은 requestId를 유지해 안전한 재시도가 가능해야 한다. 요청 중 재전송을 막고, modal 재진입 시 이전 요청의 응답·상태 문구·자동 닫기 timer가 새 session을 덮거나 닫지 않도록 request/session 경계를 함께 보호한다.
-- QA에서는 실제 외부 write를 하지 않는다.
-
-### 퇴직연금
-
-PIN, 저장/삭제, batch, 금액조정 modal, 상품/차트 연결을 수정할 때 feature state와 persistence contract를 함께 검증한다. Action PIN은 전송 전에는 취소·닫기·ESC·backdrop dismiss를 허용하지만, 서버 요청이 시작된 뒤에는 결과가 확정될 때까지 dismiss를 잠가 호출자의 로컬 상태·완료 안내가 서버 저장 결과와 분리되지 않게 한다. 요청 실패 시에만 입력과 dismiss를 다시 활성화한다. QA에서는 실제 GAS write를 하지 않는다.
-
-### Chart
-
-관련 수정 시 최소 다음을 함께 확인한다.
-
-- 증권/퇴직연금 전환과 lazy draw
-- 범례 다중선택·최소 1개·전체
-- Y축 자동/고정 의미와 좌우축 정합성
-- 확대/tooltip/keyboard/resize
-- smartphone landscape
-- listener 중복 또는 chart 이중 생성 없음
-
-표시 기준 스위치는 선/Y축 표시 기준만 바꾸며 tooltip 정보 contract를 불필요하게 축소하지 않는다. 사용자가 범례에서 숨긴 series는 tooltip 대상에서도 제외한다.
-
-증권의 **종목별 historical 차트 universe는 현재 선택일 보유종목으로 재구성하지 않는다.** 단, universe 자체는 현재 `portfolio.securities[]`에 남아 있는 관리대상 종목으로 제한하고, 오래전에 종료되어 현재 관리대상에서도 제거된 종목을 과거 snapshot만 보고 다시 부활시키지 않는다. 이 관리대상 안에서 선택일까지 실제 chart/allocation 대상이었던 종목은 범례와 차트 series에 계속 유지해, 이후 전량매도 때문에 과거 차트 이력이 소급 삭제되지 않게 한다. 요약 카드는 차트 universe와 별도 lifecycle을 가지며 canonical security metadata의 `cardFrom` / `cardUntil`이 있으면 해당 기간에만 노출한다. 현재 후성은 `cardUntil: 2026-08-11`이므로 8/12부터 `종목별 누적손익`과 `평가금액 비중 > 종목별` 카드에서는 제외하지만 차트 series·범례는 유지한다. `종목별 누적손익`은 전량매도 당일의 최종 `totalProfit`/수익률을 마지막 유효 point로 두고 다음 거래일부터 해당 종목 값을 `null`로 끝낸다. `평가금액 비중 > 종목별`은 과거 평가금액을 당시 값 그대로 유지하고 전량매도일부터 이후 값은 `0`으로 둔다. 현황표와 전일 대비 변동의 현재 날짜 표시 lifecycle, historical chart universe, 요약 카드 lifecycle을 같은 필터로 합치지 않는다.
-
-`평가금액 비중`의 **1주 보유 필터**는 유지한다. historical snapshot row가 `chart`를 boolean으로 명시하면 row 값을 우선하고, 값이 없을 때만 같은 ticker의 `portfolio.securities[]` canonical `chart`를 fallback한다. `chartFrom`도 row 값이 있으면 우선하고 없을 때 canonical 값을 사용한다. 따라서 SK하이닉스처럼 canonical `chart:true`인 종목은 과거 1주 보유 구간도 allocation에 포함되지만, canonical `chart:false`인 1주 종목은 계속 제외되고 `chartFrom` 이전 구간도 표시하지 않는다. 이 fallback은 **allocation 계열에만 적용**하며 보유현황·전일 대비·누적손익·Live Valuation 등의 가시성 규칙으로 확장하지 않는다.
-
-전량매도 시각 표시는 종목명/날짜 하드코딩이 아니라 `securityFullExitForDate(ticker, date)`의 공통 상태 판정을 사용한다. 선택일 상태 수량이 0이고 그 시점까지의 마지막 거래 lifecycle이 매도로 끝난 경우에만 전량매도 상태로 본다. 따라서 부분매도에는 취소선을 적용하지 않고, 전량매도일부터 `보유종목 현황`의 마지막 행·`전일 대비 변동`의 매도 종목명·`종목별 누적손익` 카드·`평가금액 비중 > 종목별` 카드의 종목명에 같은 취소선을 적용한다. 이후 재매수되어 수량이 다시 생기면 취소선 상태도 자동 해제한다. 별도 상태 문구나 배지는 추가하지 않는다.
-
-전량매도 거래 상세 tooltip은 취소선과 **동일한 full-exit 상태 조건**을 사용한다. 실제 매도값은 `securitiesEvents`, `지금까지 안 팔았다면?`은 `prices.json` 최신 정상 거래일의 retired ticker 가상추적 가격을 사용한다. 최신 가상시세가 없으면 `현재 시세 없음`으로 표시하며, 매도일 `valuationPrice`는 역사적 종가 복원 전용이라 현재가 fallback으로 쓰지 않는다. 보유현황·전일대비·종목별 누적손익 카드·평가금액 비중 카드는 같은 `securitySaleTooltip` lifecycle을 공유하고, 재매수 시 취소선과 tooltip이 함께 해제된다.
-
-`누적손익 및 누적수익률`은 위 종목별 series lifecycle과 별개의 **계좌 원장 누적성과**다. `rawHoldingProfit`을 기준으로 하며, 전량매도 당일의 실현손익은 그날 포함되고 다음 거래일부터 해당 종목이 현황/종목별 차트에서 사라져도 이미 확정된 실현손익은 계속 누적된다. 따라서 삼성전기 `+228`은 9/16부터 계좌 누적손익·누적수익률에 반영되고 9/17 이후에도 유지된다. 현재 보유종목 필터를 이 누적성과 계산에 재사용해 과거 확정손익을 제거하지 않는다.
-
-### Market AI
-
-- local/remote 모두 실제 API를 사용하고 공통 endpoint/timeout 선택은 `dashboard-market-ai-client.js`를 canonical source로 한다.
-- 예시 데이터 전용 모드를 다시 도입하지 않는다.
-- Phone의 `dashboard-view`는 화면형태만 바꾼다.
-- local/remote 모두 실제 endpoint 응답이 확인되기 전까지 Market AI signal UI를 mount하지 않는다. 세 endpoint가 모두 실패하면 `OFFLINE`으로 종료해 signal panel과 자동 polling을 제거하고, 사용자가 `Market AI 연결 켜기`를 다시 실행할 때 새 확인 세션을 시작한다. 이 과정은 일반 대시보드의 저장 데이터 기반 기능을 깨뜨리지 않는다.
-- Desktop/Tablet Hero와 Phone Hero 바로 아래 inline slot이 같은 signal panel DOM을 재사용하는 구조를 유지한다.
-- Desktop/Tablet에서 Market AI panel은 Hero normal flow/grid 높이 계산에서 분리해 우측에 절대배치한다. Hero 자체 padding과 자연 높이, Market AI 카드의 자체 높이·내부 geometry는 유지하고 카드는 `top:50%`로 세로 중앙에 둔다. 우측 inset은 `--market-ai-hero-edge-gap` 한 owner로 관리하며 Tablet의 optical inset 조정도 이 semantic token만 override한다. **Hero padding과 Market AI edge gap을 결합하거나 viewport별 raw px를 중복 선언하지 않는다.** 왼쪽 title/pill은 `ResizeObserver`로 실측한 Market AI 자연 폭(`--market-ai-reserved-width`)과 layout gap만큼만 예약하고, 실제 폭이 달라지면 예약폭도 즉시 따라간다. Phone 전환 시 observer와 예약폭을 정리하고 같은 panel DOM을 Hero 바로 아래 inline slot로 이동한다.
-- Market AI의 시장/신호 두 카드는 Web·Tablet·Phone 모두 `13:7` 같은 고정 비율을 사용하지 않는다. 카드 바깥 폭은 공통 `content-driven` 방식으로 시작하고, **각 카드 내부에서는 label / 값 / 등락률 열의 세로 기준선을 행 전체가 공유**한다. label→값 간격은 30px, 값→등락률 간격은 12px이며 시장 카드는 지수값과 등락률을 독립된 열로 정렬한다. Phone은 Market AI 카드 묶음이 inline 가용폭을 채우도록 확장하되, 각 카드 안에서는 **label 열만 좌측에 두고 값·등락률 열은 우측에 붙여** 좁은 화면의 가로 공간을 활용한다. 이때도 `13:7`이나 `1:1` 같은 고정 비율 contract는 두지 않는다.
-- Phone에서도 Market AI metric tooltip을 사용한다. metric을 탭하면 동일 `.dash-tooltip.market-ai-tooltip`이 열리고, 같은 metric 재탭 또는 바깥 탭으로 닫힌다. 터치에서는 hover 이벤트를 무시해 sticky hover를 만들지 않는다. Responsive 전환 시 동일 panel DOM만 `Hero 우측 ↔ Hero 바로 아래 inline slot` 사이에서 이동하며, viewport 전환 때문에 별도 trigger나 modal/dialog를 생성하지 않는다.
-- Desktop/Tablet의 **시장 카드 본체와 metric tooltip은 `marketAiMarketDisplayModel()` 하나를 공통 Source of Truth로 사용**한다. 화면 카드와 tooltip이 서로 다른 row/fallback 판단을 갖지 않는다. Tooltip은 KOSPI·SOX·NQ100선물에서 `현재가 → 등락률 → 상태 → 출처 → 기준 시각`, K200선물만 `상태` 다음에 `세션`을 추가해 `현재가 → 등락률 → 상태 → 세션 → 출처 → 기준 시각` 순서를 사용한다.
-- 시장 tooltip 상태 문구는 실제 거래 세션과 freshness를 분리한다. `fresh=정상`, `stale=데이터 지연`, `missing=데이터 없음`, `preopen=장전`, `closed=장마감`, `maintenance=거래중단`을 사용한다. K200 전용 오류 상태는 `bridge=Bridge 지연`, `source=선물 데이터 확인 필요`다. `stale`은 해당 시장이 실제 거래시간일 때만 의미가 있다.
-- `기준 시각`은 상태와 무관하게 같은 라벨을 사용한다. KIS eFriend KOSPI/K200은 유효한 `business_time(HHMMSS)`이 있으면 실제 시장시각을 우선하고, 값이 없거나 유효하지 않으면 `observed_at` KST 시각으로 fallback한다. Yahoo SOX/NQ는 `observed_at`을 사용한다. `갱신`, `마지막 수신`, `데이터`처럼 상태와 시각/출처 의미를 섞는 라벨을 시장 tooltip에 다시 만들지 않는다.
-- 값 표시 의미는 `fresh`에서 현재 snapshot을 사용하고, K200 `closed / stale / bridge / source`도 `rawRow`가 있으면 **마지막 수신 현재가·등락률을 계속 표시**한다. 값의 신뢰도는 `상태` 행으로 구분하며, 실제 row 자체가 없는 `missing`에서만 현재가·등락률을 `--`로 표시한다. raw row가 있으면 `출처`와 `기준 시각`도 함께 유지한다.
-- 별도 `세션` 행은 K200의 KIS Bridge `expected_session` 근거가 있을 때만 `주간 / 야간 / 장외`로 표시한다. 다만 `상태` 판정은 KOSPI(KST 09:00~15:30), SOX(America/New_York 09:30~16:00), NQ100선물(America/Chicago CME session)의 기본 거래시간을 사용해 장전/장마감/거래중단과 실제 stale을 구분한다. backend `input_status`가 있으면 이를 우선하고, timezone 판정은 backend 상태가 없는 경우의 fallback으로 `Intl.DateTimeFormat`을 사용해 DST를 따른다.
-- 오늘 보유종목 평가 overlay는 signal panel과 별개로 동작하며 `usable:true` quote만 사용한다. 일부 종목이 `STALE/WARMING/unavailable`이면 해당 종목만 JSON fallback하고 정상 종목은 유지한다.
-- Hero에는 `LIVE / CLOSED / STALE / WARMING / JSON` 같은 raw 상태 문자열을 표시하지 않는다. 대신 `heroPerformanceBasisLabel()`이 현재 Hero 계산에 실제 적용된 quote만 보고 `일부 실시간 반영 / 실시간 현재가 기준 / 시간외 포함 현재가 기준` 중 필요한 의미만 노출한다. live가 실제 적용되지 않으면 기존 날짜 기준문구를 유지한다. 전 종목 closed여도 개별주식 애프터 시세가 실제 적용된 조건에서는 `애프터 종가 기준`을 표시한다. 단, 다음 정규장 시작 전 직전 완료 거래일 화면에 허용된 closed carry는 Market AI 장마감 시세이며, 그보다 오래된 과거 날짜만 항상 저장 데이터 의미를 유지한다.
-- 종목·상품 현재가 출처 tooltip은 기존 `.dash-tooltip`을 재사용하며 라벨이 있는 셀 전체 hover와 라벨 keyboard focus에서 확인 가능해야 한다. 저장값은 snapshot metadata 기준으로 `장중 저장 데이터` / `정규장 종가 저장 데이터` / legacy `저장 데이터`를 구분하고, Market AI quote가 적용된 경우에만 `실시간` / `장 마감 시세`를 사용한다.
-- Live refresh 회귀 QA는 2.7의 canonical partial-render contract를 기준으로 한다. overlay를 교체하지 않고, Topbar/`#app` shell·focus·window/nested scroll을 보존하며, 활성 탭만 필요한 만큼 redraw하고 비활성 탭은 기존 lazy draw 경로를 유지해야 한다. 포트폴리오 히트맵은 열린 상태에서도 modal 날짜가 부모 `activeDate`와 같을 때만 snapshot 변경을 즉시 refresh하고, 과거 날짜 탐색 중에는 그대로 유지한다. 메인 partial render는 기존 modal defer를 유지해 닫힌 뒤 수렴한다.
-- 실시간 시세 iframe은 Dashboard와 `postMessage`로 Light/Dark 테마를 양방향 동기화한다. Monitor가 준비되면 Dashboard 테마를 우선 전달하고, Monitor에서 테마를 바꾸면 Dashboard도 같은 테마를 저장·적용한다. Phone modal의 5px shell은 Light `#f5f7fa`, Dark는 Monitor 기본 배경 `#11161d`를 사용한다.
-
-증권 `종목별 누적손익` 하단 카드 grid는 일반 `symbol-summary-grid`와 별도로 **Web 6열(6×1), Tablet 3열(3×2)**을 유지한다. 퇴직연금 상품 카드와 Mobile의 별도 열 수 계약에는 이 규칙을 확장하지 않는다.
-
-## 3.4 계좌별 성과 메모 tooltip
-
-- 계좌별 성과 메모 동작은 `dashboard-ui.js`가 소유하고 chart tooltip 구현과 섞지 않는다.
-- 좁은 화면의 info tooltip과 넓은 화면의 inline memo는 같은 내용 contract를 유지한다.
-- floating tooltip은 viewport/stacking context 밖으로 잘리지 않아야 하고 outside click, ESC, scroll, resize에서 정상 정리된다.
-- 정확한 breakpoint, 줄바꿈, 위치 보정 수치는 최신 CSS/JS를 Source of Truth로 한다.
-
-## 3.5 개인보기 3회 클릭 제스처
-
-개인보기 ON/OFF의 **연속 3회 입력은 의도된 비공개 진입 UX**다.
-
-- Web/Tablet은 기존 Hero 기준문구(`.hero-basis`)를 700ms 안에 3회 클릭하는 계약을 그대로 유지한다.
-- Phone은 Hero 자체에 공통 `data-dashboard-action`을 부여하지 않는다. 대신 비대화형 Hero 영역 전체의 일반 `click`을 document delegation에서 직접 세며, 실폰과 F12가 동일한 이벤트 경로를 사용한다. `a/button/input/select/textarea/[role="button"]/[role="link"]` 등 interactive target은 제외한다. Phone 3회 입력 간격은 1200ms이며 Hero에는 `touch-action:manipulation`, `user-select:none`, `-webkit-user-select:none`을 적용해 iOS 연속 탭이 zoom/text-selection 제스처로 빠지는 가능성을 줄인다.
-- discoverability 부족 자체를 감점하거나 공개 버튼 추가를 권하지 않는다.
-- 이 제스처를 보안 인증 수단으로 취급하지 않는다.
-- 3회 입력 인식, `OFF → ON → OFF` 상태 reset, 일반 날짜/Topbar/입력 동작 간섭 여부는 실제 회귀로 검증한다.
-
-## 3.6 모바일 표 · 카드 보기
-
-- 공통 mobile view state와 renderer는 `dashboard-ui-common.js`가 소유한다. 현황·변동·계좌별 화면마다 별도 toggle state나 카드 shell을 만들지 않는다.
-- 최초 진입은 표 보기다. 세로 Phone에서 사용자가 카드 보기를 선택한 뒤 가로로 회전하면 표를 표시하고, 다시 세로로 돌아왔을 때 기존 카드 선택 상태를 복원한다.
-- 실제 터치폰 가로는 표 전용이다. 카드 보기 toggle을 숨기고 표를 canonical 표현으로 유지한다.
-- Print는 현재 mobile view state와 관계없이 표를 사용한다.
-- 모바일 data card는 공통 `data-list-card`의 title/label/value/row/total typography와 separator contract를 재사용하고 숫자에는 tabular number 정렬을 유지한다.
-
-## 3.7 Print canonical 표현
-
-- Print는 현재 Light/Dark 상태와 관계없이 Light palette로 고정한다. `beforeprint`에서 `print-light-theme`을 적용한 뒤 화면용 6개 chart SVG DOM node를 그대로 보존하고 같은 속성의 빈 clone을 인쇄 자리로 교체해 clone에만 Light chart를 그린다. `afterprint`에서는 clone을 버리고 보존한 화면 SVG node를 그대로 되돌리며 **화면 차트를 다시 계산하거나 `drawAllCharts()` 하지 않는다**. 따라서 화면 SVG의 child node·event listener·현재 화면 상태를 유지하면서 인쇄용 fixed-viewBox 렌더와 화면 복원을 분리한다. 인쇄 차트의 가로세로 비율은 SVG `viewBox`에서 자연스럽게 파생하며 `print.css`에 `1120/330` 같은 프레임 literal을 다시 소유하지 않는다.
-- 일반 Print에서는 Topbar·목차·modal·tooltip·toast·보기 전환·차트 조작 UI·Market AI를 제외한다. 단, modal이 열린 상태(`body.dashboard-dialog-open`)에서는 body 직속 action modal뿐 아니라 `#app` 내부의 퇴직연금 금액 조정 modal도 배경 dashboard와 분리해 현재 surface만 page flow로 출력한다. KRX·퇴직연금 modal은 현재 화면 theme과 무관하게 input/list surface까지 Light token으로 복원한다. 월간 손익의 제목/요일 grid와 히트맵 날짜 select는 화면용 compact 규칙이 인쇄 폭에 새지 않도록 필요한 축만 복원하고, 실시간 시세 iframe은 percentage height chain이나 `100vh` 최소높이에 의존하지 않고 Monitor가 보고한 실제 document height를 직접 사용하며, 실시간 시세 단독 Print에서는 배경 `#app`을 인쇄 트리에서 제외해 첫 페이지부터 Monitor가 시작되게 한다. 닫기 버튼 등 화면 조작 UI는 숨기며, Market AI가 Hero에 mount된 일반 Print에서는 예약 폭을 반환해 Hero 요약 pill이 한 행에 유지되어야 한다.
-- 비활성 자산 panel도 펼쳐 증권계좌와 퇴직연금을 연속 출력하고, Phone에서 숨긴 Hero 요약 pill과 개인보기의 별도수익 설명/라벨도 Web형 표현으로 복원한다.
-- 성과 KPI와 증권/퇴직연금 `전일 대비 변동` KPI는 4열, 누적손익/운용손익 차트 하단 6개 요약은 3열을 사용한다. 증권 `종목별 누적손익`은 Tablet과 같은 3열(6개면 3×2), `연금상품별 운용손익`과 퇴직연금 `평가금액 비중`은 Web 기본과 같은 4열을 유지한다. 증권 `평가금액 비중`은 Web의 `--security-alloc-card-count`를 그대로 사용하고, 유형별 3카드는 Phone의 합계카드 전체폭 규칙을 해제해 3×1로 출력한다. 종목별 7카드에서는 4개 + 2개 + 2칸 합계 카드 구조를 유지한다.
-- 장부 검산은 결론 전체폭 + A/B 2열의 Tablet형 배치를 사용하고, `투자원금 원천 및 검산`의 source card 3개는 한 행 3열로 출력한다.
-- 연금+계좌 성과표와 계좌별 성과표의 `구분` 열은 Web/Tablet처럼 줄바꿈하지 않으며, 계좌별 성과표는 Phone의 메모 tooltip·손익/수익률 결합을 해제하고 Web/Tablet과 같은 자연 열 배분을 사용한다. 화면용 sticky/scroll/card 상태는 인쇄에 남기지 않는다.
-- 양수·음수 semantic color는 Light 인쇄 palette에서도 유지한다.
-
-# 4. CSS · Responsive 유지보수 규칙
-
-
-## 4.1 메인 CSS 6파일 구조 원칙
-
-메인 대시보드 CSS는 **역할별 6파일 구조**를 canonical 구조로 사용한다. Desktop 전용 파일을 두지 않고 `common.css`를 Desktop baseline으로 사용한다. 폐기된 `css/style.css`와 `css/desktop.css`를 다시 만들지 않는다.
-
-현재 canonical 구조:
-
-```text
-css/
-├─ common.css       # 변수 / 기본 스타일 / 공통 컴포넌트 / Desktop baseline / Responsive Shared
-├─ tablet.css       # Tablet 761~1100px에서 common baseline 변경
-├─ mobile.css       # Mobile ≤760px에서 common baseline 변경
-├─ special.css      # 기능상 필요한 특수 viewport
-├─ interaction.css  # hover / pointer
-└─ print.css        # Print 전용
-```
-
-`index.html`의 load order는 다음 순서를 유지한다. **이 순서가 cascade order**이므로 특별한 구조 변경 작업이 아닌 이상 임의로 바꾸지 않는다.
-
-```text
-common.css
-→ tablet.css
-→ mobile.css
-→ special.css
-→ interaction.css
-→ print.css
-```
-
-파일별 책임:
-
-- `common.css`: viewport와 무관한 기본 component, theme/token, 공통 layout, **Desktop baseline**, `max-width:1100px` / `min-width:761px` 같은 Responsive Shared
-- `tablet.css`: `761px ~ 1100px`에서 common의 Desktop baseline을 태블릿 표현으로 변경하는 전용 규칙
-- `mobile.css`: `max-width:760px` 모바일 전용 규칙
-- `special.css`: `≤400px`, `1101~1279px Compact Desktop(Asset Detail + Topbar short label)`, Phone UI Shared, Phone Landscape처럼 기능상 이유가 명확한 예외
-- `interaction.css`: `hover:hover + pointer:fine`처럼 viewport가 아닌 입력장치 조건
-- `print.css`: 인쇄 전용 최종 override
-
-과거 리팩토링의 차수별 상세 이력은 Git history를 사용하며, 이 장은 현재 canonical 구조와 유지보수 규칙만 관리한다.
-
-핵심 유지보수 원칙:
-
-- 기능 수정은 먼저 **어느 역할 파일이 canonical인지** 판단하고 그 파일의 기존 rule을 직접 수정한다.
-- 같은 기능을 해결하기 위해 다른 CSS 파일 하단에 임시 override를 누적하지 않는다.
-- CSS 구조 변경과 디자인 변경을 같은 차수에 섞지 않는다.
-- 새 breakpoint는 실제 레이아웃/정보구조 문제가 있을 때만 추가하고 `special.css`에 기능명 + 존재 이유를 남긴다.
-- 파일 분리 자체를 이유로 같은 selector를 여러 파일에 중복 생성하지 않는다.
-- `common → 일반 viewport → special → interaction → print`의 우선순위를 보존한다.
-
-
-## 4.2 반응형 CSS는 뷰포트/역할별 섹션으로 모아 관리
-
-기본 component CSS와 Desktop baseline은 `common.css`의 기능별 영역에 유지하고, Tablet/Mobile에서 달라지는 값만 각 역할 파일에 모아 관리한다. Responsive Shared는 `common.css`, 일반 좁은 뷰포트 override는 `tablet.css` / `mobile.css`, 기능 예외는 `special.css`로 분리한다.
-
-현재 논리적인 cascade 순서는 다음과 같다.
-
-```text
-Common component CSS + Desktop baseline + Responsive Shared
-↓
-Tablet / Mobile override
-↓
-Special Viewports
-↓
-Interaction
-↓
-Print
-```
-
-기본 viewport는 계속 다음 3구간을 사용한다.
-
-```text
-Desktop · 웹: 1101px 이상
-Tablet · 태블릿: 761px ~ 1100px
-Mobile · 모바일: 760px 이하
-```
-
-Hero 성과 pill은 퇴직연금이 있는 현재 구성 기준으로 **Desktop은 손익+수익률 4개, Tablet은 칭호 행 아래에 손익+수익률 4개, Phone 세로는 손익 2개, 실제 Phone Landscape는 넓은 가로폭을 활용해 손익+수익률 4개**를 표시한다. Web은 투자 칭호와 성과 pill을 같은 `hero-performance-row` 한 줄에 배치하고, Tablet과 Phone은 칭호 행과 성과 pill 행을 분리한다. Tablet에서는 `.hero-return-pill`을 노출하며, Phone 세로에서만 숨기고 Phone Landscape 특수 viewport에서 다시 노출한다.
-
-특수 viewport는 일반 viewport 섹션에 섞지 않고 **왜 필요한지 기능 기준으로 추적 가능하게 관리**한다. 대표적인 현재 예외는 다음과 같다.
-
-```text
-≤400px
-→ 초소형 화면에서 계좌별 성과 정보 구조 보정
-
-1101~1279px
-→ Compact Desktop 예외: Asset Detail 2-column 가용폭 보정 + Topbar text action short label. 1280px부터는 일반 Desktop full label/2-column을 유지하며 모바일의 `?dashboard-view=web` 1280 viewport도 이 기준을 따른다.
-
-Phone Landscape
-→ iPhone 13 844×390부터 956×440급 대형 스마트폰까지 width만 보면 Tablet으로 오판되는 실제 터치폰 가로모드 대응
-```
-
-`hover:hover + pointer:fine`, `print`는 viewport가 아니므로 Desktop/Tablet/Mobile과 분리한다.
-
-Market AI처럼 기존 component를 확장하는 기능은 별도 파일 하단에 모으지 않고 **기준 component와 가까운 순서**로 둔다. 현재 기준은 다음과 같다.
-
-```text
-common.css
-→ Hero 기본 규칙 직후 Market AI Hero Extension
-→ 내부 순서: mount layout → theme/surface → heading/status → rows/metrics → focus/tooltip
-
-tablet.css
-→ Hero Tablet 규칙 직후 Market AI Tablet
-→ common component를 복제하지 않고 배치/밀도만 override
-
-special.css
-→ Market AI용 Compact Desktop override는 두지 않는다.
-→ Phone UI Shared에서 Hero의 Desktop panel을 숨기고 같은 panel을 Hero 바로 아래 inline slot로 이동·재사용
-```
-
-특수 media가 같은 조건을 공유하는 경우 media block을 불필요하게 복제하기보다 하나의 trigger block 안에서 기능별 sub-comment를 분리하고, 상단 `Scope` 주석에 포함 기능을 정확히 적는다.
-
-구조 정리 이후 각 CSS 파일 상단의 Scope/Structure map과 본문의 번호 섹션은 **1:1로 대응**해야 한다. 섹션 순서는 해당 파일의 실제 source order를 Source of Truth로 보고, 문서에 별도의 고정 번호표를 중복 저장하지 않는다.
-
-새 특수 breakpoint를 단순 미관 보정용으로 추가하지 않는다. 실제 레이아웃/정보구조 문제를 해결해야 할 때만 추가하고, `special.css`에 **기능명 + 존재 이유**를 주석으로 남긴다.
-
-
-## 4.3 CSS 섹션과 주요 주석은 영어 + 한글 병기
-
-주요 CSS 영역과 의미 있는 하위 주석은 영어와 한글을 함께 사용한다.
-
-예:
-
-```css
-/* =========================================================
-   Topbar / Navigation · 상단바 / 내비게이션
-   ========================================================= */
-
-/* Chart Controls · 차트 조작 버튼 */
-
-/* Pension Contribution · 퇴직연금 납입 */
-
-/* Custom Tooltip · 커스텀 툴팁 */
-```
-
-다만 모든 selector에 주석을 붙이지 않는다.
-
-주석의 목적은:
-
-> **사람이나 GPT가 원하는 기능 영역을 빠르게 찾도록 하는 것**
-
-이다.
-
-다음과 같은 누적 패치형 주석은 사용하지 않는다.
-
-```text
-Fix
-Final
-Final Fix
-Mobile Fix
-Override
-Temp
-New
-```
-
-날짜나 작업차수도 CSS 주석에 변경 이력처럼 남기지 않는다.
-
-
-## 4.4 반응형 기본 viewport는 3구간 고정
-
-메인 대시보드의 canonical viewport 경계는 **3.1 `반응형 기준과 Phone 역할`**을 따른다. CSS 파일별 소유권은 4.1~4.2를 기준으로 하고, 이 절에 같은 경계값을 반복 기록하지 않는다.
-
-새로운 UI를 추가하거나 수정할 때 기본적으로 이 세 구간 안에서 해결한다. **Phone Landscape는 이 기본 3구간을 다시 정의하는 네 번째 breakpoint가 아니라, 실제 터치 스마트폰 가로를 식별하는 기능 media 예외**로만 취급한다.
-
-
-## 4.5 불필요한 추가 breakpoint 금지
-
-다음과 같은 특정 폭을 단순 미관 보정 목적으로 추가하지 않는다.
-
-- 900px
-- 720px
-- 520px
-- 430px
-- 420px
-- 390px
-- 374px
-- 기타 특정 기기 폭
-
-추가 breakpoint는 다음 조건을 모두 만족할 때만 허용한다.
-
-1. 기존 웹 / 태블릿 / 모바일 규칙만으로 해결할 수 없음
-2. 실제 기능적 문제가 존재함
-3. 해당 구간을 별도로 처리해야 할 명확한 이유가 있음
-4. 기존 component 자체를 수정하는 것보다 별도 breakpoint가 더 적절함
-
-현재 이미 존재하는 기능상 필요한 예외 breakpoint는 함부로 제거하지 않는다.
-
-현재 허용된 대표 기능 예외는 다음 두 가지다.
-
-- `1101~1279px`: Compact Desktop 기능 예외다. `.asset-detail-grid`는 1열로 전환하고 Topbar text action과 Hero 성과 label은 short 형태를 사용한다. `1280px`은 의도적으로 제외해 일반 Desktop baseline을 유지한다. `761~1100px` Tablet은 Hero 성과 label을 `계좌/연금` compact 형태로 한 번 더 줄이고 Topbar action은 Tablet 규칙을 사용하며, `760px 이하` 및 실제 Phone Landscape는 기존 Mobile Topbar 규칙을 따른다.
-- `landscape + width≤960 + height≤500 + hover:none + pointer:coarse`: 실제 스마트폰 가로 판정에만 사용한다. `960px`을 일반 breakpoint로 재사용하지 않는다.
-
-공통 Asset Detail CSS는 기존 generic class/token을 우선 재사용하고, 실제로 양쪽 자산이 공유하는 의미에만 최소 `.asset-*` semantic class를 사용한다. 현황/전일변동/상승분기여도에서 공통화된 selector는 neutral `.asset-*`가 canonical이며, 같은 역할의 `.pension-*` legacy alias를 병렬로 유지하지 않는다. 위험자산 70% 룰·퇴직연금 조정/PIN/납입 등 연금 전용 UI는 계속 `.pension-*`를 사용한다.
-
-
-
-## 4.6 특정 viewport 스크린샷 맞춤식 수정 금지
-
-내가 특정 해상도 화면을 보여주더라도 바로:
-
-> `390px 전용 CSS`
-
-같은 방식으로 해결하지 않는다.
-
-먼저 해당 문제가:
-
-- 모바일 전체 문제인지
-- 태블릿 전체 문제인지
-- 웹 전체 문제인지
-- component 자체 문제인지
-- 브라우저 고유 문제인지
-- 실제 특정 기기 기능 예외인지
-
-판단한다.
-
-가능하면 대표 breakpoint나 component 자체를 수정해서 해결한다.
-
-목표는 특정 스크린샷 한 장을 맞추는 것이 아니라:
-
-> **해당 viewport 범위 전체를 안정적으로 만드는 것**
-
-이다.
-
-
-## 4.7 미관 문제와 실제 문제를 구분
-
-다음은 수정해야 할 실제 문제다.
-
-- 요소 겹침
-- 텍스트 잘림
-- 화면 밖 overflow
-- 버튼 조작 불가
-- 기능 오류
-- 읽기 어려운 텍스트
-- 레이아웃 붕괴
-- breakpoint 정책 위반
-- 명백한 정렬 오류
-
-반면 다음만으로 새 breakpoint나 override를 만들지 않는다.
-
-- 특정 중간 폭에서 약간 어색함
-- 여백이 2~3px 마음에 안 듦
-- 카드 비율이 조금 덜 예쁨
-- 특정 화면에서 아주 미묘한 시각적 차이
-
-
-## 4.8 CSS 추가보다 기존 규칙 수정·통합 우선
-
-새 수정 요청이 있다고 CSS 파일 하단에 보정 규칙을 계속 추가하지 않는다.
-
-피해야 할 구조:
-
-```css
-기존 규칙
-
-/* fix */
-같은 selector 재정의
-
-/* mobile fix */
-같은 selector 재정의
-
-/* final */
-같은 selector 재정의
-```
-
-수정 순서:
-
-1. 기존 selector 위치 확인
-2. 기존 선언 자체를 수정할 수 있는지 확인
-3. 같은 목적의 중복 규칙이 있는지 확인
-4. 새 규칙 적용 후 불필요해진 예전 workaround 제거
-
-기본 원칙:
-
-> **patch를 추가하기보다 현재 최종 규칙을 수정한다.**
-
-
-## 4.9 동일 selector override 누적 금지
-
-동일한 cascade context에서 같은 selector를 뒤에서 반복적으로 덮지 않는다.
-
-예:
-
-```css
-.card {
-  ...
-}
-
-/* 수백 줄 뒤 */
-
-.card {
-  ...
-}
-```
-
-또한 같은 media context에서 동일 component를 여러 위치에서 반복 보정하지 않는다.
-
-component별 CSS 책임 위치를 명확하게 유지한다.
-
-
-## 4.10 `!important` 사용 정책
-
-현재 메인 CSS의 실제 `!important` 선언은 **0개**이며, 이 상태는 정상 cascade/source order/token 구조로 동작하도록 검증된 현재 기준선이다. 과거 제거 차수와 개수는 Git 이력으로 관리하고 이 문서에는 누적하지 않는다.
-
-현재 운영 원칙:
-
-- 새로운 `!important`는 원칙적으로 추가하지 않는다.
-- 단순 specificity 충돌은 canonical selector, source order, 구조 정리로 해결한다.
-- `[hidden]`, semantic color, 모바일 view state, print override처럼 정상 cascade로 해결되는 상태를 유지한다.
-- OS의 모션 감소·애니메이션 끄기 설정과 웹의 animation/transition/smooth scroll을 연동하지 않는다. production CSS/JS의 `prefers-reduced-motion` 도입은 회귀로 본다.
-- 향후 Safari/WebKit 등 실제 브라우저 고유 문제로 강제 우선순위가 다시 필요해 보이더라도 먼저 실기기 재현과 정상 cascade 해결 가능성을 확인한다.
-
-새 `!important`가 불가피하다고 판단되면 반드시:
-
-1. 실제 재현되는 브라우저/상태 문제인지
-2. 기존 canonical rule 수정으로 해결 가능한지
-3. specificity/source-order 정리로 가능한지
-4. 해당 선언만 강제해야 하는 이유가 명확한지
-
-를 확인하고, 추가 이유와 영향 범위를 별도 보고한다.
-
-**현재 0개는 유지보수 결과이지 그 자체가 별도의 목표값은 아니다.** 정상 동작을 깨면서 0개를 고집하지 않지만, 현재 검증된 0개 기준선에 불필요한 `!important`를 다시 추가하지 않는다.
-
-
-## 4.11 디자인 토큰과 CSS variable 우선 재사용
-
-이미 존재하는:
-
-- color
-- padding
-- gap
-- border-radius
-- font-size
-- control height
-- positive / negative
-- card spacing
-- chart control size
-
-등의 CSS variable과 design token을 우선 활용한다.
-
-비슷한 값을 새로 하드코딩하거나 의미가 겹치는 변수를 다시 만들지 않는다.
-
-공통화 완료 영역의 대표 source는 다음과 같다.
-
-```text
-Page / Section rhythm       → --page-* / --asset-band-section-gap
-Surface padding / radius    → --surface-pad-* / --surface-radius-level-*
-Card group gap              → --card-grid-gap-*
-Title / Control             → --section-* / --dashboard-control-*
-Metric / Mini / Data List   → component typography token + 공통 renderer
-Table                       → --data-table-* + .dashboard-data-table
-Chart                       → --chart-* + CHART_FRAME
-Modal / Tooltip / Feedback  → --modal-* / --tooltip-* / --feedback-* / --status-*
-Value meaning               → --value-positive / --value-negative
-```
-
-토큰을 사용했다는 이유만으로 완료로 보지 않는다. 같은 의미를 다른 이름으로 중복 생성하거나, 1회성 literal에 이름만 붙이거나, base가 이미 소유한 값을 viewport/하위 selector에서 다시 선언하지 않는다. Desktop baseline은 `common.css`, Tablet 차이는 `tablet.css`, 세로 Phone과 실제 터치폰 가로의 공통 density는 `special.css` Phone Shared, 세로 Phone 전용 배치는 `mobile.css`, Print reset은 `print.css`가 소유한다.
-
-
-
-## 4.12 증권·퇴직연금 KPI 모바일 2열 규칙
-
-증권·퇴직연금의 `성과 요약` 4개 KPI 카드는 모바일(`<=760px` 및 실제 스마트폰 가로모드)에서만 `2 × 2` grid를 유지한다. 다른 `.metric-grid`에는 이 규칙을 확대 적용하지 않는다.
-
-모바일 KPI는 label/value/sub의 시각적 위계를 유지하되, 실제 font-size는 CSS의 metric typography token을 Source of Truth로 한다. 세 요소는 한 줄 유지한다. 모바일 전용 축약 설명이 필요한 경우 `metricCard()`의 mobile sub variant를 사용하고, 데스크톱/태블릿 설명을 CSS로 억지 축소하거나 ellipsis 처리하지 않는다.
-
-## 4.13 Topbar 날짜 셀렉트 폭 정합성
-
-Topbar의 `년-월`과 `월-일 요일` 셀렉트는 같은 UI mode에서 동일폭을 유지한다. 표시 label은 `2026-9`, `9-16 수`처럼 구분자를 `-`로 통일한다. **Web에서도 별도 폭 breakpoint를 만들지 않고** action group이 실제 `max-content` 폭을 먼저 예약한 뒤 날짜 group만 남는 공간에서 함께 shrink한다. `1280px`은 실시간 시세의 `보유종목 실시간 시세 → 실시간 시세` 같은 label 축약 전환용일 뿐 날짜폭 breakpoint가 아니다. 히트맵 label은 Web/Tablet 모두 `히트맵`으로 고정한다. Tablet도 날짜 group만 가용폭에 따라 줄고 우측 action은 `auto` 열을 유지한다. Phone 세로/가로도 두 셀렉트가 같은 반응형 폭 체계를 사용한다.
-
-Web Topbar의 날짜 selector 왼쪽 edge와 우측 마지막 action의 오른쪽 edge는 아래 Hero의 좌우 세로 edge와 **모든 Web viewport(≥1101px)에서 동일선**을 유지한다. 이를 위해 `.switcher`의 horizontal padding은 `--page-shell-gutter`, 내부 `.date-picker` 최대폭은 `--page-content-max-width`를 사용한다. Topbar만 별도의 작은 좌우 padding을 사용하거나 중간 viewport에서 독립 max-width를 두어 Hero와 기준선이 갈라지게 하지 않는다.
-
-## 4.14 본문 카드 공통 시스템
-
-본문 카드는 **같은 hierarchy + 같은 viewport = 같은 geometry/spacing**을 유지한다. 카드 외곽 padding, 카드 간 gap, 카드 내부 rhythm은 서로 다른 책임으로 관리하며 개별 selector에 임의 숫자를 추가하지 않는다.
-
-### Surface / Radius ownership
-
-카드 padding은 아래 semantic token을 canonical로 사용한다. viewport별 실제 px 값은 CSS token이 Source of Truth이며 이 문서에 중복 기록하지 않는다.
-
-```text
---surface-pad-outer
---surface-pad-large
---surface-pad-medium
---surface-pad-mini
---surface-pad-emphasis
---surface-pad-data-list
-```
-
-- Outer: `.pension-band`, `.securities-band`
-- Large: `.card`, `.note`, `.chart-card`
-- Medium: `.asset-insight-card`, `.source-card`
-- Mini: `.mini-card`
-- Data List: `.data-list-card`를 모바일 카드보기와 Market AI compact group이 공유하며 `--surface-pad-data-list`, level-3 radius alias, `--shadow-data-list-card`, `--data-list-row-separator` contract를 함께 사용한다. 별도 1회성 data-list radius token을 만들지 않는다.
-- Metric은 `.card`의 Large surface padding을 그대로 재사용하며 별도 metric padding token을 두지 않는다. Emphasis 계열만 정보구조상 필요한 경우 `--surface-pad-emphasis`를 사용한다.
-- base selector가 semantic token을 소유하고 Tablet/Phone에서는 **token 값만 변경**한다. 같은 padding을 responsive selector에 반복하지 않는다.
-
-radius는 padding 분류와 별도로 화면상 같은 line/hierarchy를 기준으로 4단계 token을 사용하며, viewport별 실제 값은 CSS를 Source of Truth로 한다.
-
-| Radius level | 대표 화면군 |
-|---|---|
-| `--surface-radius-level-1` | Hero, 연금+계좌 성과 표, 자산 workspace tab, 증권·퇴직연금 outer band |
-| `--surface-radius-level-2` | 일반 card/note/chart, 성과 KPI·장부 KPI, 계좌별 성과표, source card |
-| `--surface-radius-level-3` | mini/data-list/insight, 일반 현황표·변동표, 변동 KPI, 차트 하단 요약 |
-| `--surface-radius-level-4` | tooltip, chart plot, modal error, inner compact control |
-
-기존 의미 alias인 `--surface-radius-outer/large/medium/mini`는 위 level source에 연결한다. 특정 component가 명시적으로 level을 소유하면 값을 문서나 component에 다시 복제하지 않는다. Corner theme에서는 각 radius와 `--corner-surface-cap`의 최소값을 사용한다. 같은 visible line의 surface를 viewport별로 임의 변경하지 않는다.
-
-### Card Grid Gap ownership
-
-카드 그룹 간 gap은 아래 3단계 contract만 사용한다.
-
-```text
---card-grid-gap-large
---card-grid-gap-medium
---card-grid-gap-compact
-```
-
-- Large: Metric / Asset Detail / Chart / Ledger / **투자원금 원천 및 검산 Source grid**
-- Medium: Insight / Mobile Data grid
-- Compact: Mini / Change KPI grid
-
-열 수는 viewport별로 바꿀 수 있지만 같은 hierarchy의 gap을 개별 px로 다시 정의하지 않는다.
-
-### Vertical Rhythm ownership
-
-카드 내부 세로 간격은 surface padding이나 grid gap과 별도로 관리한다. 현재 공통 rhythm은 `--card-text-rhythm-gap`, `--info-stack-gap`, `--chart-content-rhythm-gap`과 각 component typography token이 소유한다.
-
-- Metric label → value / value → sub
-- Mini label → value / value → detail
-- Info heading → content
-- Chart title/content/legend/mini-card 사이의 공통 흐름
-
-이 규칙을 수정할 때 font-size, grid 열 수, breakpoint, Topbar/Hero/table/chart/JS 로직을 한 차수에 함께 변경하지 않는다.
-
-## 4.15 카드 확정 예외 / 완료 기준
-
-카드 공통화는 현재 **완료 상태**로 간주한다. 실제 UI 문제나 신규 카드 유형이 없는 한 Surface / Radius / Grid Gap / Vertical Rhythm을 다시 세분화하거나 합치지 않는다.
-
-확정 예외만 다음과 같이 유지한다.
-
-- **Source**: Medium surface + Metric rhythm을 사용하고 `.source-card{min-width:0}`은 base property로 유지한다. value 아래 `source-table-scroll` 간격과 highlight는 별도 정보영역/상태이므로 공통 rhythm에 합치지 않는다.
-- **Table summary separator**: 일반 viewport에서는 summary row 전체가 `border-top`을 사용하고, Phone sticky 첫 열에서만 border seam 방지를 위해 첫 cell의 `border-top`을 제거하고 inset shadow로 같은 의미선을 재현한다.
-- **Ledger**: `.value{min-height:0}`, 근거 divider/padding, Tablet·실제 Phone Landscape의 2-column 및 내부 gap은 복합 정보구조 전용 예외로 유지한다.
-- **Symbol**: `symbol-metrics` divider 뒤 padding, 내부 label/value layout, allocation detail baseline 보정은 Symbol 상세영역 예외로 유지한다. Mini와 같은 관계의 간격만 공통 rhythm을 사용한다.
-- **Long content**: `.chart-note.six`의 숫자 `.m-value`는 한 줄 유지, 날짜가 포함될 수 있는 `.m-label`/`.m-detail`은 자연 줄바꿈을 허용한다. Phone KPI 2×2 및 기존 `<=400px` 계좌성과 table 예외도 유지한다.
-
-base가 이미 소유한 속성을 하위/viewport selector에서 반복하지 않는다. 반대로 실제 정보구조가 다른 scoped rule은 숫자가 다르다는 이유만으로 제거하지 않는다. 사용되지 않는 class, 완전 중복 declaration, 반복된 base property만 cleanup 대상으로 본다.
-
-# 5. JavaScript 구현 세부 규칙
-
-
-## 5.1 Inline event handler 재도입 금지
-
-메인 대시보드는 현재 동적 HTML의:
-
-```html
-onclick=""
-onchange=""
-oninput=""
-onkeydown=""
-```
-
-의존성을 제거하고:
-
-```html
-data-dashboard-action="..."
-```
-
-기반 event delegation 구조를 사용한다.
-
-새 UI를 추가할 때 inline event를 다시 만들지 않는다.
-
-기존:
-
-```text
-data-dashboard-action
-→ 중앙 event dispatcher
-→ 기능 handler
-```
-
-구조를 우선 활용한다.
-
-
-## 5.2 Event handler에 비즈니스 로직을 과도하게 넣지 않는다
-
-피해야 할 구조:
-
-```js
-click handler {
-  데이터 읽기
-  계산 수십 줄
-  DOM 생성
-  API 저장
-  전체 render
-}
-```
-
-권장 흐름:
-
-```text
-event
-→ handler
-→ helper / calculation
-→ state 변경
-→ render
-```
-
-event handler는 가능한 한 연결 역할에 집중한다.
-
-
-## 5.3 JavaScript에서 UI 스타일 직접 지정 최소화
-
-JS에서:
-
-```js
-element.style.color = ...
-element.style.padding = ...
-element.style.fontSize = ...
-```
-
-또는 HTML 문자열 안의:
-
-```html
-style="..."
-```
-
-를 단순 시각 표현 목적으로 새로 늘리지 않는다.
-
-색상, 여백, font, 정렬 등은 가능한 CSS class가 담당한다.
-
-단, 다음처럼 runtime 계산이 반드시 필요한 경우는 예외다.
-
-- chart 좌표
-- tooltip 위치
-- 동적 width/height
-- SVG path
-- CSS custom property 값
-
-
-## 5.4 JS 중복 로직 추가 금지
-
-새 함수를 만들기 전에 기존 helper가 있는지 확인한다.
-
-스마트폰 responsive 판정은 main graph에서 `dashboard-ui-common.js`의 공통 helper를 canonical로 사용한다. `phoneLandscapeUi()`는 실제 터치 스마트폰 가로(`960×500 + hover:none + pointer:coarse`) 판정만 담당하고, `phoneUi()`는 `≤760px` 세로폰과 실제 터치폰 가로를 하나의 Phone UI family로 묶는다. UI/Charts 등 main feature의 Phone 표현 여부는 `phoneUi()`를 재사용하고, 각 feature에서 같은 `matchMedia` 문자열이나 동등 helper를 다시 정의하지 않는다.
-
-단, main graph와 의도적으로 분리된 standalone `dashboard-market-ai.js`는 `dashboard-ui-common.js` dependency를 새로 만들지 않는다. Market AI는 동일한 Phone UI contract의 media query를 자체 소유할 수 있으며, 이 조건은 `special.css`의 Phone UI Shared 조건과 항상 동기화한다.
-
-대표적인 공통 대상:
-
-- 날짜 처리
-- fetch
-- formatter
-- modal open/close
-- tooltip
-- chart option
-- responsive sync
-- swatch
-- table cell
-- positive / negative 처리
-- data refresh
-
-비슷한 로직을 각 파일에 복사하지 않는다.
-
-## 5.5 JS Structure Map / 책임 주석
-
-현재 Main graph 13개 모듈과 standalone `dashboard-market-ai.js`까지 **총 14개 JS 모듈 모두** 파일 상단 Structure Map과 본문의 번호 섹션을 1:1로 대응시킨다. `dashboard-monthly-calendar.js`는 `CAL01~05`, `dashboard-heatmap.js`는 `HEATMAP01~09`, `dashboard-market-ai-client.js`는 `CLIENT01~05`, `dashboard-live-valuation.js`는 `LIVE01~05` Structure Map을 사용하며, feature/transport/adapter의 단일 책임 성격도 이 구조 주석 안에서 명시한다. 번호 자체를 changelog로 사용하지 않고, 실행 흐름과 ownership 탐색을 위한 구조 표지로만 사용한다. 기능 수정 시 코드와 주석 책임이 달라지면 같은 작업에서 해당 파일의 구조 주석도 함께 정합화한다.
-
-코드를 그대로 읽어주는 주석은 늘리지 않고 module ownership, 예외, lifecycle 경계처럼 코드만으로 바로 알기 어려운 이유를 설명한다.
-
-# 6. 운영 데이터 · GitHub Actions · GAS
-
-## 6.1 운영 JSON과 외부 write 보호
-
-다음 운영 데이터는 코드 리팩토링 / UI 수정 과정에서 함부로 변경하지 않는다.
-
-특히:
-
-```text
-data/prices.json
-data/performance_snapshots.json
-data/pension_contributions.json
-```
-
-은 항상 주의한다.
-
-또한 나머지 `data/*.json`도 요청과 직접 관련 없으면 수정하지 않는다.
-
-장부·성과 계산에 쓰이는 실제 데이터성 값은 JS literal로 중복 보관하지 않는다. 현재 증권의 KODEX 레버리지 별도수익 거래 이력·재투입 한도·Report 기간/포지션 문맥은 `data/kodex_leverage_trades.json`을 source of truth로 사용하고 `dashboard-core.js`가 `portfolio.separateProfit` 표시용 구조를 런타임 파생한다. 일반 증권 매매·자금 이동은 `data/portfolio.json`의 `securitiesEvents`가 canonical 원장이며, 매도 체결가·순매도대금·거래비용·기준원가·실현손익·현금화 원금 이동을 이 원천에서 복원한다. 6/18 확인 현금 기준값은 `constants.outsideCash`, 원천별 추적의 고정 원천값은 `securitiesSourceTracking`을 source of truth로 사용하며, `dashboard-core.js`/`dashboard-ui.js`는 이를 읽어 계산·표시한다.
-
-주의:
-
-- `prices.json`, `performance_snapshots.json`, `krx_trading_calendar.json`은 KRX 현재가 반영/워크플로우 때문에 정상적으로 바뀔 수 있다.
-- 최신 KRX 반영분과 코드 patch를 섞을 때 단순 hash 차이를 코드 회귀로 오인하지 않는다.
-- `pension_contributions.json`은 KRX 재갱신 대상이라고 가정하지 않는다.
-- 실제 운영 데이터가 포함된 최신 기준본을 과거 코드 패키지로 덮어쓰기 전에 먼저 확인한다.
-- Market AI 실시간 보유종목 quote와 KOSPI benchmark는 **화면 메모리 overlay 전용**이다. `prices.json`, `performance_snapshots.json`, Pension JSON 또는 GAS write 경로에 live 값을 저장하지 않는다.
-
-QA 중 실제 운영 write 금지:
-
-```text
-GAS pension save
-GAS delete
-batch apply
-KRX GitHub workflow 실제 실행
-운영 JSON update
-```
-
-필요하면 mock / stub으로 검증한다.
-
-
-## 6.2 Google Apps Script(GAS) 운영 및 배포 원칙
-
-Google Apps Script는 **배포·실행 환경이 GitHub Pages와 분리된 write 백엔드**다. 다만 유지보수용 canonical 소스는 저장소 root의 `GAS_code.js`로 함께 관리한다. 실제 Apps Script Web App 배포본과 `GAS_code.js`의 내용은 동기화되어야 하며, 이 절에는 현재 운영 불변조건만 남긴다. 버전별 패치 이력·점수·Counterexample 목록은 누적하지 않고 상세 평가 시나리오는 `dashboard_evaluation_guide.md`를 사용한다.
-
-### 소스·배포·보안
-
-- 루트 `_config.yml`의 실제 Pages 제외 규칙은 `data/krx_dispatch_ledger/`, `data/pension_operation_identity/`, `data/pension_operation_ledger/`, `data/pension_batch_request_identity/`, `GAS_code.js`, `**/*.md`, `tests/`다. `GAS_code.js`는 repository에서 관리하는 backend 소스이고, shard들은 repository/GitHub API/GAS가 사용하는 durable 상태이며, Markdown 문서와 QA 테스트도 Pages runtime asset이 아니다. GAS 파일명/경로나 shard 경로, 문서/QA 배포 정책을 추가·변경하면 `_config.yml`과 README 데이터/배포 설명을 함께 갱신한다.
-- GAS 수정의 Source of Truth는 **현재 저장소 root의 `GAS_code.js`**다. 과거 대화의 별도 첨부본이나 이전 `code.js`를 최신본으로 추정하지 않는다. 사용자가 별도의 GAS 파일을 명시적으로 더 최신 운영본이라고 지정한 경우에만 그 파일을 우선한다.
-- GAS는 repository 기준 **단일 `GAS_code.js` 파일을 유지**하되, router/공통 I/O·durable identity/Single/Batch/KRX·GitHub CAS처럼 책임별 top-level helper로 분리한다. 단순 파일 길이 감소를 위해 상태머신을 generic handler 하나로 합치거나 Single·Batch·KRX의 서로 다른 terminal/retry 의미를 혼합하지 않는다. `doGet`/`doPost`는 Web App 진입점으로 유지하고, 코드 내부·frontend·문서에서 사용되지 않는 legacy wrapper는 외부 운영 계약이 확인되지 않는 경우에만 제거한다.
-- 인증값·GitHub token·PIN은 Script Properties에만 두고 저장소·문서에 실제 값을 기록하지 않는다.
-- 기존 Web App `/exec` URL 유지가 기본이며 새 URL을 쓰면 frontend endpoint도 함께 갱신한다.
-- router action/target allowlist를 유지하고 unknown target을 다른 Pension target으로 fallback하지 않는다.
-- QA는 mock/stub을 우선하며 실제 운영 JSON write/delete, Batch apply, KRX dispatch를 테스트 목적으로 실행하지 않는다.
-
-### Pension mutation contract
-
-- Single/Batch는 같은 `ScriptLock`과 `PENSION_MUTATION_EPOCH`을 공유한다. Git blob SHA는 causal version이 아니라 외부 변경 보조 guard다.
-- frontend는 재시도 동안 stable request/logical identity와 **최초 전송 payload/precondition**을 재사용한다. cash는 `expectedVersion`/`expectedAbsent` optimistic concurrency를 사용하고 모든 금액·수량 계산은 safe integer 범위에서만 처리한다.
-- 모든 cashSnapshot/contribution/etfTrade upsert/delete는 semantic operation ledger와 content-independent exact identity ledger를 사용한다. 실제 mutation commit은 target JSON과 필요한 ledger shard를 같은 Git commit으로 반영한다. Single은 requestId/logicalOperationId exact key 중 일부만 과거에 존재해도 같은 content proof가 확인되면 누락 key를 metadata-only CAS로 durable backfill한 뒤 duplicate/stale를 확정한다. legacy operation ledger proof는 2자리 shard 일치만으로 인정하지 않고 **full semanticHash + exact ID**를 확인하며, cashSnapshot active-intent 복구에서도 legacy ledger를 같은 기준으로 성공 proof에 포함한다. completed/stale receipt도 durable exact identity로 승격한다. terminal no-op 성공과 terminal stale Single도 receipt GC 이후 재사용되지 않도록 durable exact identity를 남긴다.
-- 동일 semantic 후보가 보인다고 자동 중복 제거하지 않는다. 다른 기기/새 세션에서는 state-bound confirmation token으로 `existing/distinct`를 다시 검증하고, state가 바뀐 token은 stale로 거부한다.
-- Batch 안에서 같은 target의 `logicalOperationId`는 고유해야 한다. 부분 충돌은 operation별 결정을 유지하고 candidate는 one-to-one으로 소진한다. `batchRequestId` 자체도 `data/pension_batch_request_identity/`에 durable하게 기록하며, commit-success/receipt-loss는 final-state effect와 durable identity로 duplicate에 수렴한다. 현재 GitHub state가 과거 Batch 결과를 이미 반영했다고 판단하는 recovery도 batchRequestId durable completed와 모든 operation exact identity를 먼저 확보한 뒤 duplicate를 확정한다. CacheService 같은 유한 cache는 Batch idempotency의 Source of Truth로 사용하지 않는다. 과거 completed/stale receipt를 복구할 때도 receipt만 믿고 끝내지 않고 batchRequestId durable identity를 먼저 확보하며, completed proof라면 모든 operation의 logical+batch exact key 누락분을 metadata-only CAS로 backfill한다. 과거 stale receipt와 durable `completed`가 충돌하면 business commit과 함께 기록된 completed durable 상태를 우선한다. 과거 버전의 stale receipt/durable residue와 operation별 exact identity가 충돌하면 **모든 operation exact identity가 같은 content로 완료됐다는 강한 proof**가 있을 때만 batch durable 상태를 completed로 CAS 승격하고, 승격 성공이 실제 확인된 뒤에만 completed 복구를 확정한다.
-- 확정 pre-commit 실패는 dependency가 그대로일 때만 retryable tombstone으로 전환한다. epoch↔intent 상태전이는 intent 기록 성공을 확인한 뒤 epoch를 되돌리고, 신규 intent는 epoch 예약 후 intent 저장이 실패하면 예약 epoch를 즉시 복구해 두 증거가 서로 어긋나지 않게 한다. epoch 예약/rollback과 direct request property write는 실제 반영 후 호출 응답만 유실될 수 있으므로 exact read-back으로 적용 여부를 확인한다. dependency/epoch가 바뀐 과거 요청은 `stale_retry_ignored`로 끝내며 최신 state를 재사용해 부활시키지 않는다.
-
-### Pension latency / request-local read contract
-
-Pension 성능 최적화는 **transaction/idempotency 계약을 바꾸지 않고 동일 immutable Git commit의 중복 GET 대기를 줄이는 범위**에서만 허용한다. 이 절의 cache/preflight는 성능용이며 durable identity·mutation epoch·optimistic concurrency·confirmation·CAS의 Source of Truth가 아니다.
-
-- GAS Pension 응답은 진단용 `timing` 객체(`version: 1`)를 반환한다. Single은 `scope:"single"`, Batch는 `scope:"batch"`를 사용하고 `totalMs / measuredMs / unattributedMs / stages / details`를 기록한다. 프론트는 성공·실패 판정에 timing을 사용하지 않고 `dashboard-pension-editor.js`에서 `[Pension timing] {JSON}` 한 줄만 console에 남긴다.
-- request-local GitHub read cache의 key는 **`ref(commit SHA) + path`**다. 같은 요청의 같은 immutable commit에서만 재사용하며 다른 SHA에는 절대 재사용하지 않는다. optional 404 fallback을 required read의 성공값으로 승격하지 않는다.
-- 최신 branch HEAD 확인, Single/Batch commit 직전 dependency/CAS 판단, write 실패 뒤 response-loss readback은 cache로 대체하지 않는다. 특히 Batch의 `postIntentHeadRead`는 intent/epoch evidence 저장 뒤 최신 HEAD를 확인하는 causal barrier이므로 성능 이유로 제거하지 않는다.
-- Single `cashSnapshot upsert`는 semantic ledger, legacy ledger, exact identity shard, contribution, ETF trade를 같은 base commit에서 병렬 preflight하고 이후 dependency hash와 cash dependency 계산이 request cache를 재사용한다.
-- Single `etfTrade upsert`는 cashSnapshot, contribution, prices, semantic/exact identity를 병렬 preflight하고 `portfolio.json`까지 같은 base commit cache에 연결한다. canonical 현금 계산식 자체는 바꾸지 않는다.
-- Single delete는 semantic/exact identity와, contribution/ETF 삭제에서 필요한 linked cashSnapshot dependency를 병렬 preflight한다. cashSnapshot 자체 삭제에는 불필요한 자기 dependency read를 추가하지 않는다.
-- Batch는 최초 HEAD를 읽은 뒤 dependency shard, operation identity shard, canonical state(`cashSnapshot / contribution / etfTrade / prices / portfolio`), batchRequestId durable identity를 `fetchAll` 기반 **initial batch preflight**로 채우고 durable identity resolve → conflict scan → 실제 적용이 같은 request-local cache를 재사용한다. 요청 수가 큰 경우 batch GET은 최대 50개 단위 chunk로 나눈다.
-- maintenance boundary 이후 prefix/global byte budget에 정상 여유가 있으면 Batch intent/receipt/confirmation direct property는 기존 `tryWriteDirectRequestPropertiesBatchFast()` 검증·exact readback 계약을 재사용하는 fast-path를 쓴다. fast-path가 불가능하면 기존 `setDirectRequestProperty()` GC/보존 경로로 즉시 fallback한다. fast-path 부분 반영/응답 유실은 기존 rollback/readback 계약을 유지한다.
-- semantic ledger는 **과거 같은 효과 후보**를 남기는 것이 목적이므로 business item을 삭제해도 history가 남는 것이 정상이다. Batch 충돌 popup은 source가 현재 item인지 과거 ledger인지 구분해 `현재 데이터에 같은 내용` / `같은 내용의 과거 처리 기록`처럼 설명한다. 이 확인은 안전장치이며, 사용자가 `실제 별도 작업`을 선택하면 state-bound confirmation을 포함한 두 번째 요청에서 실제 mutation을 진행한다.
-
-성능 최적화의 현재 계약은 위 request-local cache/preflight/fast-path 규칙이 전부다. 차수별 최적화 이력과 날짜별 latency 수치는 이 문서에 누적하지 않고 Git history와 운영 timing log에서 확인한다. 회귀 판단은 절대 시간보다 같은 경로의 stage 구성과 불필요한 원격 read 증가 여부를 우선 본다.
-
-성능 최적화의 종료 기준은 유지한다. **GitHub commit/CAS 같은 필수 외부 I/O를 제외한 처리시간이 대략 4~5초 수준이고, 남은 최적화가 수백 ms~1초를 위해 mutation epoch / intent / receipt / confirmation / fresh HEAD barrier를 약화시킬 가능성이 있으면 더 최적화하지 않는다.** Pension 성능 작업은 새 병목·회귀가 관측되지 않는 한 종료 상태로 본다.
-
-### Intent / receipt lifecycle
-
-- active `PENSION_REQ_I_` / `PENSION_BATCH_I_` / `KRX_DISPATCH_I_`는 단순 TTL·prefix cap·global budget GC로 **그대로 삭제하지 않는다**.
-- Single/Batch에서 stale가 확정되면 local intent를 먼저 `terminal-pending`으로 고정한 뒤 GitHub durable identity/tombstone을 확보하고 terminal receipt/intent 정리로 수렴한다. **local terminal-pending 또는 durable identity 중 최소 하나의 실제 저장 evidence가 확인된 경우에만 terminal/stale 응답을 확정**하며, 둘 다 실패하면 fail-closed 오류로 남겨 동일 identity를 terminal 처리했다고 거짓 확정하지 않는다. 따라서 durable write나 응답이 중간에 실패해도 동일 identity가 성공적으로 terminal 처리된 것처럼 보인 뒤 mutation 경로로 부활하지 않는다. Single은 intent 생성 전 `expectedVersion`/`expectedAbsent` precondition에서 stale가 확정된 경우에도 terminal-pending intent를 먼저 만들며, durable `terminal_stale`을 receipt보다 우선해 항상 stale 의미로 복구하고 `completed`만 완료 duplicate로 복구한다.
-- 응답이 끊긴 abandoned intent는 **24시간**을 넘기면 한 `doPost` 실행 전체가 공유하는 cleanup budget 안에서 최대 3건만 점진 정리한다. terminal receipt 저장·intent 삭제와 일반 cap/TTL/global-budget GC 삭제는 실제 반영 후 응답만 유실된 경우 exact read-back으로 성공을 확인한다. direct property write가 여러 번 발생해도 budget은 재설정하지 않으며, prefix cap에 먼저 도달하면 신규 slot 확보에 필요한 가장 오래된 1건을 같은 budget에서 우선 durable terminalize한다. 현재 요청의 active intent는 보호하고 이 maintenance를 GitHub dependency snapshot **이전**에 끝낸 뒤 남은 active-terminalization budget을 동결해, maintenance metadata commit이 자기 요청의 base를 흔들지 않게 한다. durable ledger가 이미 completed를 증명하면 stale receipt를 만들지 않고 completed receipt를 복구한다. KRX active intent GC는 local intent에 남은 `dispatchAccepted/workflowRunId` 또는 `dispatchRejected`를 제거하기 전에 durable ledger를 각각 **completed / rejected_retryable** 의미로 먼저 승격·전환하며, 기존 `dispatch_retry_inflight`/uncertain 상태를 단순 재사용해 강한 acceptance/rejection proof를 `terminal_uncertain`으로 퇴화시키지 않는다. 이미 durable `completed`인 identity는 stale rejected/inflight residue보다 강한 proof이므로 약한 상태로 다시 내려가지 않는다.
-- 기존 성공 receipt와 stale intent가 함께 남아 있으면 성공 receipt를 덮어쓰지 않고 durable 완료 identity를 보강한 뒤 intent만 해제한다. receipt/confirmation/marker는 새 write 전에 cap 자리를 확보하고 전체 Script Properties byte budget을 지킨다.
-
-### KRX dispatch / GitHub Actions contract
-
-- KRX는 requestId intent/receipt + branch/date operation marker + `data/krx_dispatch_ledger/<shard>.json` durable history를 사용한다. 동일 requestId의 재-dispatch는 금지한다. 실제 workflow를 실행하지 않는 `workflow_skipped`도 해당 requestId가 완료된 terminal no-op이라는 뜻이므로 성공 응답 전에 durable completed identity를 남긴다. 따라서 skip 응답 유실 뒤 외부 상태가 바뀌어도 같은 requestId가 실제 dispatch로 부활하지 않는다. 명시적 GitHub 4xx는 미접수가 확정된 `dispatch_rejected` retryable 상태로 local/durable evidence를 남기고, same-call reconciliation에서 `dispatch_retry_inflight`을 rejected로 되돌렸다면 이후 분기도 **갱신된 durable status**를 사용한다. 같은 requestId 재시도는 durable `dispatch_retry_inflight`을 **POST 전에** 확보한 뒤에만 다시 dispatch한다. 따라서 그 재시도가 5xx/응답 유실로 끝나면 uncertain fail-closed로 남아 세 번째 dispatch를 보내지 않는다. 다만 inflight/terminal uncertain durable state는 최종 결과가 아니라 barrier이므로 completed receipt, accepted intent, exact server/marker proof, explicit rejected proof를 먼저 reconciliation한 뒤 남는 경우에만 uncertain으로 확정한다. completed/uncertain legacy receipt도 durable completed/terminal identity로 승격한 뒤 확정 응답한다. durable 복구 전 active intent와 짝인 dispatch 성공 receipt는 TTL/cap/global GC와 terminal receipt writer의 cap 확보에서도 삭제하지 않는다.
-- KRX fresh request의 remote preflight는 순차 GitHub GET 대기를 만들지 않는다. **durable dispatch shard + 최초 `prices.json` + active workflow 5종 + marker run 직접 조회(필요 시)**를 한 `UrlFetchApp.fetchAll()`로 읽는다. 다만 active 확인 중 직전 workflow가 완료될 수 있는 TOCTOU 방어는 약화시키지 않기 위해, 실제 intent/marker/POST 직전 `prices.json`은 이 batch와 분리해 **반드시 한 번 더 최신 상태로 재조회**한다. durable/active/prices 각각의 실패 의미와 fail-closed 우선순위는 기존 순차 경로와 동일하게 유지한다. KRX active-run 확인은 누적된 completed 이력을 1~10페이지 순차 검색하지 않고 `queued / in_progress / waiting / pending / requested` 상태만 GitHub `status` filter로 좁힌다. 각 active status가 100건을 넘어 1페이지로 전체 범위를 확정할 수 없거나 어느 조회가 실패하면 **새 dispatch를 허용하지 않고 `workflow_status_uncertain`으로 fail-closed**한다. 과거 uncertain requestId의 정확한 acceptance proof를 복구하는 예외 경로만 exact run-name historical search를 유지한다. `data/krx_dispatch_ledger/<shard>.json`처럼 한 파일만 바꾸는 KRX durable metadata는 branch HEAD→tree→commit→ref 갱신을 반복하지 않고 Contents API의 현재 blob SHA를 CAS 조건으로 직접 갱신한다. fresh dispatch 성공 시에는 preflight에서 읽은 same-shard SHA/data를 최초 completed PUT의 CAS seed로 재사용하고, 그 사이 shard가 바뀌어 409/422가 나면 최신 shard를 다시 읽어 병합·재시도한다. 5xx/응답 유실도 최신 shard에서 exact identity/hash와 terminal 상태를 다시 확인한 뒤 재시도하며, completed 상태는 약한 rejected/inflight 상태로 내려가지 않는다. 여러 파일 원자성이 필요한 Pension/Batch mutation은 기존 Git Data CAS 경로를 유지한다.
-- KRX local Script Properties는 snapshot boundary에서 cap/TTL/global-budget maintenance를 끝낸 뒤 같은 `ScriptLock` 안에서 정상 여유 상태라면 `Properties.setProperties(..., false)` fast-path를 사용한다. fresh dispatch 전의 **intent + operation marker**는 한 번에 저장한다. dispatch 수락 뒤에는 **GitHub durable completed CAS를 먼저 확정**하며, 이 exact durable identity가 확보된 정상 경로에서는 accepted intent/receipt를 다시 쓰지 않고 active intent만 정리한다. pre-dispatch operation marker는 다른 requestId가 GitHub run visibility 전에 재-dispatch되는 것을 막는 60초 barrier로 그대로 유지한다. durable completed를 확보하지 못한 경우에만 accepted intent + run marker + completed receipt local batch를 fallback evidence로 저장한다. batch write 응답 유실/부분 실패는 exact read-back으로 확인하며, pre-dispatch에서 둘 중 하나라도 확정 저장되지 않으면 부분 반영을 이전 값으로 rollback하고 **POST를 보내지 않는다**. prefix cap 또는 global budget 압박으로 GC가 필요한 경우에는 기존 개별 write 경로로 fallback해 보존 계약을 우선한다. explicit 4xx rejected retry의 `dispatch_retry_inflight` causal 순서는 batch 최적화 대상에서 제외한다.
-- KRX GAS 응답은 성능 진단용 `timing` 객체를 함께 반환한다. timing `version: 4`는 `mode / outcome / totalMs / measuredMs / unattributedMs / stages / details`를 포함하며 business state나 idempotency 판정에는 사용하지 않는다. `stages`는 `lockWait`, `maintenanceBoundary`, `initialPreflight`, `durableResolve`, `receiptResolve`, `intentResolve`, `initialDecision`, `activeResolve`, `finalPricesRecheck`, `prepareDispatch`, `workflowDispatch`, `persistSuccess` 및 skip 시 `finalizeSkipped`를 기록한다. 정상 fresh path의 `details.prepareDispatch`는 `localPreDispatchBatchWrite`, `details.persistSuccess`는 `durableCompletedWrite / durableSuccessIntentCleanup`을 기록한다. durable completed 실패 경로에서는 `localSuccessEvidenceBatchWriteFallback` 또는 개별 `acceptedIntentWriteFallback / operationMarkerWriteFallback / receiptWriteFallback`을 기록하고, rejected retry에서는 기존 `operationMarkerWrite / retryDurableInflight / retryIntentWrite`를 유지한다. detail duration은 상위 stage 내부 분해값이므로 `measuredMs` 합계에는 다시 더하지 않는다. 예외가 발생해도 trace가 시작된 KRX 요청이면 error 응답에 가능한 timing snapshot을 붙인다. 프론트는 이를 화면에 노출하지 않고 개발자 콘솔의 `[KRX timing]` 로그에서만 확인한다. 계측 코드는 요청 흐름·requestId 유지·CAS·TOCTOU·UI 상태를 바꾸면 안 된다.
-- dispatch 접수 여부가 불확실한 requestId는 재시도 시 가능하면 durable ledger에 `dispatch_uncertain_terminal`을 기록하고 active intent를 해제한다. 반대로 GitHub가 dispatch를 수락해 `workflowRunId`를 반환한 경우에는 그 성공 증거를 intent에도 기록하고, durable ledger 복구 전까지 해당 intent와 짝인 성공 receipt를 cap/TTL/global GC에서 보호한다. uncertain 상태라도 같은 branch/date의 operation marker에 동일 requestId+workflowRunId가 있거나 GitHub Actions에서 **정확한 branch + workflow_dispatch + exact run-name(requestId)** 실행이 확인되면 acceptance proof로 사용하되, durable completed identity 승격까지 성공한 경우에만 completed 복구를 확정한다. 비슷한 run-name은 proof로 인정하지 않는다. v14 이전처럼 raw requestId가 없는 legacy intent는 direct-property suffix의 SHA-256(requestId) 앞 128bit를 GitHub durable ledger identity로 보존해 receipt GC 뒤에도 같은 raw requestId 재사용을 차단한다. durable 기록이 실패하면 intent를 유지하거나 기존 uncertain/rejected evidence를 보존한다.
-- `workflow_run_id`가 있으면 해당 run을 직접 조회하고, run ID가 없을 때의 fallback은 active status 5종만 병렬 조회한다. 상태 조회 자체가 실패하거나 active coverage를 완전히 확인하지 못하면 새 dispatch를 보내지 않는다. frontend도 이 transient `workflow_status_uncertain`을 성공 완료로 오인하지 않고 같은 requestId를 유지해 재확인한다. 기존 marker/run을 확인하는 동안 직전 workflow가 완료될 수 있으므로 실제 intent/marker/POST 직전에 `shouldDispatch`를 최신 GitHub 가격 상태로 다시 평가하고, 자동 모드에서 이미 반영된 상태라면 durable terminal no-op으로 끝낸다. 선택일 재갱신은 종가 라벨만으로 생략하지 않는다.
-- workflow는 같은 branch의 pending queue를 보존한다. queued `workflow_dispatch`는 이벤트 시점 SHA를 그대로 generation base로 사용하지 않고 **실제 실행 시작 시점의 `origin/<branch>` tip**을 다시 fetch/checkout한 뒤 updater를 실행한다. 따라서 앞선 queued KRX run이 managed output을 정상 갱신했어도 뒤 run은 최신 managed state에서 다시 계산한다. 다만 dispatch 시점부터 실행 시작까지 `portfolio`/updater/dependency/workflow 같은 generation input이 바뀌면 과거 workflow contract와 최신 입력을 섞지 않고 fail-closed한다. generation 시작 이후 remote 변경은 계산과 무관할 때만 rebase하며, managed output 또는 generation input이 다시 바뀌면 fail-closed한다.
-- `performance_snapshots.json`의 `dailyProfit`은 해당 날짜의 `rawHoldingProfit - 직전 저장 snapshot의 rawHoldingProfit`이라는 **1-step causal dependency**다. 따라서 과거 거래일을 backfill하거나 기존 과거 날짜의 `rawHoldingProfit`을 정정하면 대상 snapshot을 다시 만든 직후 **바로 다음 기존 snapshot의 `dailyProfit`도 재기준화**한다. 이 규칙으로 서로 다른 날짜의 queued run 실행 순서가 뒤집히거나 여러 누락일이 순차 삽입돼도 최종 성과 시계열이 같은 값으로 수렴해야 한다. 그 이후 snapshot은 predecessor의 `rawHoldingProfit`이 바뀌지 않으므로 전체 역사 구간을 불필요하게 재계산하지 않는다.
-- push 응답 유실은 직전 `PUSH_SHA`가 이미 `origin/<branch>`에 포함됐는지 managed-file guard보다 먼저 확인하고, 마지막 실패 확정 전에도 재확인한다.
-
-### KRX 자동 Scheduler / watchdog / bounded recovery contract
-
-- 자동 실행 코드는 `10G-B. KRX Automatic Workflow Outcome Verification → 10H. KRX Automatic Invocation Wrapper → 10I. KRX Automatic Trigger Scheduler → 10J. KRX Automatic Bounded Retry / Recovery`의 **기존 dispatch 코어 바깥 계층**으로 유지한다. 자동화를 이유로 `dispatchKrxPriceWorkflow`, durable receipt/intent/ledger, operation marker, active-run proof, CAS, GC, timing hot path를 공통화·리팩터링하거나 scheduler 쪽으로 이동하지 않는다. 자동 계층이 기존 코어에 맞춰야 하며 반대 방향의 변경은 금지한다.
-- `runKrxAutoPhase_`는 날짜+phase에서 `krx-auto:YYYY-MM-DD:morning|close` requestId만 만들고 `dispatchKrxPriceWorkflow({ requestId })`로 위임한다. `date` input, GitHub 선조회, Script Properties 선조회, 별도 active-run 판정, 별도 dispatch POST를 추가하지 않는다. 같은 날짜/phase dispatch retry는 같은 identity를 유지하고 morning/close는 서로 다른 identity를 사용한다. workflow terminal failure 복구는 원래 identity를 재사용하지 않고 `krx-auto-recovery:YYYY-MM-DD:phase:N`의 새 recovery identity를 사용한다.
-- `installKrxAutoScheduler()`는 KST 00시대 `reconcileKrxAutoTriggers`, 07시대 `reconcileKrxAutoMorningGuard`, 14시대 `reconcileKrxAutoCloseGuard`의 recurring trigger 3종과, 현재 시각 기준 아직 지나지 않은 평일의 09:01 morning / 15:31 close one-shot을 준비한다. scheduler가 관리하는 handler 외 프로젝트 trigger는 삭제하지 않는다.
-- recurring 3종은 **상호 watchdog**이다. Main/Guard 중 하나가 실행되면 `reconcileKrxAutoRecurringTriggersUnlocked_()`가 먼저 sibling recurring handler의 개수를 확인해 0개면 재생성하고 2개 이상이면 모두 정리한 뒤 하나만 다시 만들어 정확히 1개로 수렴시킨다. handler가 정확히 1개면 cadence reset을 피하기 위해 그대로 유지한다. Trigger API에서 recurring trigger의 disabled 상태를 신뢰성 있게 조회할 수 없으므로 이 계약은 존재 개수 기반이다. recurring 3종이 동시에 모두 사라져 실행 주체가 하나도 없는 상태는 내부 자가복구 범위를 벗어나며 installer 재실행이 필요하다.
-- 09:01/15:31 phase one-shot은 recurring과 다르게 **handler 1개 존재 여부를 정상성 증거로 사용하지 않는다.** 실행이 끝난 one-shot이 프로젝트 목록에 disabled residue로 남을 수 있고 예약 시각/활성 상태를 조회할 신뢰 가능한 API가 없으므로, reconciler는 미래 시각의 당일 phase trigger를 항상 삭제 후 새로 생성한다. 이미 지난 시각이나 주말에는 기존 phase trigger만 제거한다. 이 규칙으로 전날 disabled one-shot을 다음 날 trigger로 오인하는 회귀를 금지한다.
-- scheduler는 미래 KRX 휴장일 calendar를 자체 소유하지 않는다. 주말만 trigger 생성에서 제외하며 평일 휴장일은 실행될 수 있다. 이때 `date` 없는 기존 updater가 실제 최신 거래일/누락/장중/종가 대상을 판단해야 하며, GAS에 별도 공휴일·임시휴장일 하드코딩을 추가하지 않는다.
-- `runKrxAutoManagedPhase_`의 dispatch retry 계층은 GitHub를 직접 조회하거나 dispatch하지 않고 기존 `runKrxAutoPhase_`만 다시 호출한다. 자동 retry 대상은 `lock_busy`, `workflow_in_progress`, `workflow_status_uncertain`, `workflow_dispatch_uncertain`, GitHub HTTP 408/409/429/5xx, 명백한 timeout/socket/network 일시 오류로 제한한다. 401/403/404/422, validation/설정/데이터 오류처럼 재시도로 해결되지 않는 상태는 자동 반복하지 않는다. retry는 1분→2분→3분의 최대 3회 one-shot이며 새 retry 예약 시 morning 09:10 / close 15:45 deadline을 넘기지 않는다.
-- pending retry는 phase당 최대 하나만 유지하고 metadata는 `KRX_AUTO_RETRY_<triggerUid>`에 최소 범위로 저장한다. handler는 event의 `triggerUid`와 metadata의 phase/date/attempt를 검증하며, metadata 부재·손상·전날 retry·deadline 초과는 fail-closed no-op한다. reconciler는 stale/orphan retry/verification state를 정리하며 `installKrxAutoScheduler()` / `removeKrxAutoScheduler()`는 두 state를 모두 정리한다.
-- dispatch가 `workflow_dispatched` 또는 동일 requestId의 `workflow_duplicate_ignored`로 acceptance proof를 얻으면 `KRX_AUTO_VERIFY_<triggerUid>` metadata와 phase별 verification one-shot을 예약해 **GitHub Actions 최종 outcome**을 별도 확인한다. 첫 검증은 약 5분 뒤, 이후 bounded recheck는 약 3분 간격이며 morning 09:30 / close 16:00을 넘기지 않는다. 자동 dispatch는 `date` input을 보내지 않으므로 run 조회는 날짜 label이 아니라 **branch + workflow_dispatch + exact requestId run-name** 계약을 사용한다.
-- verification에서 exact run이 아직 보이지 않거나 active run이 존재하거나 `completed`인데 `conclusion`이 아직 비어 있으면 실패로 단정하지 않고 recheck만 예약한다. GitHub 조회 자체가 transient하게 실패한 경우에도 허용된 transient 분류 안에서만 재확인한다. 이 가시성/조회 불확실 상태에서 recovery dispatch를 열어 acceptance race를 중복 실행으로 바꾸면 안 된다.
-- exact run이 `completed + success`면 verification을 종료한다. `completed + non-success`가 명확할 때만 새 recovery requestId로 기존 `dispatchKrxPriceWorkflow()`를 다시 호출하며 **최대 2회**로 제한한다. recovery dispatch도 acceptance proof를 얻으면 동일 verification 체인으로 다시 들어간다. verification attempt 수와 시간창을 모두 소진하면 더 이상 자동 dispatch하지 않는다.
-- recovery dispatch가 `lock_busy`·진행 중·접수 불확실 결과 또는 허용된 transient 오류로 끝나면 성공으로 표시하지 않는다. 기존 verification metadata에 `recoveryDispatchPending:true`를 기록하고 같은 recovery requestId/번호로 기존 dispatch 코어에 재진입한다. 이 단계는 검증 횟수와 기존 deadline으로 제한하며, 접수 proof를 얻은 뒤에만 outcome 조회로 전환한다. 접수 후 exact run 미가시성은 기존대로 조회만 반복한다. pending 재시도는 새 recovery 번호를 소비하지 않고, 실제 접수된 run의 terminal 실패만 다음 번호를 만든다. 비일시 오류는 자동 반복하지 않는다.
-- 정상 scheduler 상태의 source of truth는 `ScriptApp.getProjectTriggers()`이다. `showKrxAutoSchedulerStatus()`의 `schedulerHealthy`는 00시/07시/14시 recurring 3종이 각각 정확히 1개일 때만 true이며, morning/close one-shot·retry·verification pending 여부는 별도 필드로 노출한다. 일반 scheduler 상태를 Script Properties에 복제하지 않는다.
-- 운영 적용 순서는 최초 설치 또는 handler/시각 계약 변경 시 `GAS_code.js` 교체 → Web App 새 버전 배포 → Apps Script 편집기에서 `installKrxAutoScheduler()` 1회 실행 → 권한 승인 → `showKrxAutoSchedulerStatus()` 확인이다. 기존 recurring 3종이 이미 설치된 상태에서 handler/시각을 바꾸지 않은 로직 수정은 저장된 최신 함수가 다음 실행부터 사용되므로 installer 재실행이 필수는 아니다. 자동화를 중지할 때는 `removeKrxAutoScheduler()`를 사용한다.
-- 이 자동화 관련 변경의 성능 회귀 기준은 **기존 dispatch 코어 diff 0을 우선 목표**로 하고, 수동 KRX hot path의 `UrlFetchApp.fetch/fetchAll`, GitHub read/head, Properties batch-write/cache 구조를 증가시키지 않는 것이다. 추가 원격 조회는 dispatch acceptance 이후 verification/recovery 경로에서만 허용하며, 평상시 수동 KRX 요청의 hot path 비용으로 전가하지 않는다.
-
-### QA 경계
-
-GAS 집중평가의 구체적인 stale retry, cross-device duplicate, Batch cardinality, receipt/intent loss, GitHub race 반례는 `dashboard_evaluation_guide.md`의 Frontend↔Backend contract와 100점 Gate를 따른다. 이 handover에는 **현재 운영 contract와 수정 위치 판단에 필요한 내용만** 유지한다.
-
-## 6.3 현재 Workflow 날짜 입력 의미
-
-현재 `.github/workflows/update-prices.yml`의 실제 설명은 다음 의미와 일치한다.
-
-```text
-날짜 지정
-→ 실제 KRX 거래일인지 확인한 뒤 해당 거래일의 종목 가격·성과 스냅샷 갱신
-→ 지정일까지 이미 저장된 날짜의 KOSPI 값은 누락·정정 여부를 확인해 backfill 가능
-→ 비거래일 또는 종가 확인 불가 날짜면 선택일 종목 갱신은 저장하지 않고 실패 처리
-
-날짜 비움
-→ 최신·누락·장중 재확정 대상 날짜를 Python이 자동 판단
-→ 한국시간 오늘까지 저장된 KOSPI 구간의 backfill도 함께 확인
-```
-
-`비워두면 한국시간 오늘`이라는 과거 설명으로 되돌리지 않는다.
-
-Python / Workflow 유지보수 구조:
-
-- `scripts/update_prices.py`는 `설정·공통 helper → 시장 데이터 조회 → 대상일 판단 → 포트폴리오 계산 → 저장/CLI` 순서의 섹션 구조를 유지한다.
-- historical price/performance 갱신은 대상 날짜 자체만 맞추고 끝내지 않는다. `rawHoldingProfit`을 삽입·정정한 날짜의 **즉시 다음 기존 performance snapshot `dailyProfit`**까지 함께 맞춰 causal ordering을 보존한다. 여러 누락일의 정순/역순 실행 결과가 동일해야 하며 이 계약은 `tests/update_prices_test.py`에서 회귀 검증한다.
-- 반복되는 날짜 형식, 조회 재시도, HTTP timeout/User-Agent 같은 실행 설정은 상수로 관리하고 함수 안에 같은 magic value를 중복하지 않는다.
-- `.github/workflows/update-prices.yml`은 `trigger → permission → checkout/queued-base refresh → runtime setup → updater 실행 → 생성 데이터 검증 → commit` 흐름을 유지한다. 각 `run: |` step은 GitHub Actions에서 서로 독립된 shell script이므로 `if/else/fi` 같은 shell 제어문은 반드시 같은 step 안에서 완결해야 한다. `tests/main-ui-contract.test.cjs`가 updater step의 `fi` 누락과 다음 verify step의 stray `fi` 회귀를 자동 차단한다.
-- Workflow가 자동 commit하는 운영 데이터는 `data/prices.json`, `data/performance_snapshots.json`, `data/krx_trading_calendar.json` 세 파일로 한정하며 다른 운영 JSON을 함께 `git add`하지 않는다.
-- KRX 로그인에는 repository Actions Secrets `KRX_ID`, `KRX_PW`가 필요하며 updater step의 동일 이름 환경변수로 전달한다. 인증값이 없으면 조회 전에 구체적인 설정 오류로 중단한다. 종가 조회 실패 또는 일부 종목 경고가 있으면 가격·성과 JSON을 저장하지 않고 non-zero로 끝낸다. 자동 모드의 최신 거래일 조회 실패도 정상 no-op으로 숨기지 않는다. 저장 구간 내부의 누락 평일은 보관기간이 짧은 15:30 분봉으로 거래일 여부를 판정하지 않고 KOSPI 일별 날짜 존재 여부로 일괄 판정한다. 같은 판정 결과로 `krx_trading_calendar.json`을 생성하며, KOSPI 달력 조회가 실패하거나 이미 확인된 최신 거래일까지 커버하지 못하면 실제 거래일 누락을 휴장으로 오인하지 않도록 fail-closed 한다.
-- `pages.yml`은 main push/수동 실행 외에 `Update KRX closing prices`의 성공 완료 `workflow_run`을 받아 배포한다. 같은 저장소·main branch·success를 확인하고 checkout은 저장 전 `head_sha`가 아닌 최신 main으로 한다. 이는 `GITHUB_TOKEN` push가 후속 push workflow를 만들지 않는 GitHub 동작을 보완한다. Pages Source는 GitHub Actions를 유지한다.
-- 선택일 재갱신/시간 경계 관련 GAS 변경은 기존 Web App 배포를 새 버전으로 업데이트해야 효력이 있다. 단순 저장소 파일 교체로 운영 GAS가 바뀌지는 않는다.
-
-
-### Python dependency 재현성
-
-`requirements.txt`의 직접 dependency는 호환 확인된 버전으로 pin한다. 현재 기준은 `pykrx==1.2.8`, `pandas==2.3.3`, `requests==2.34.2`다. `pykrx`를 다시 올릴 때는 Python 3.11 지원 여부와 `scripts/update_prices.py`가 사용하는 종목/지수 OHLCV API의 호환성을 먼저 확인한다. 하위 transitive dependency까지 `pip freeze` 전체를 저장하는 방식은 기본 운영으로 사용하지 않는다.
-
-# 7. Main 수정 · QA · Diff
-
-이 장은 Main 변경 시 필요한 **수정 순서·회귀 QA·diff 확인**만 정의한다. 평가 명령의 의미와 점수/등급은 `dashboard_evaluation_guide.md`, 결과 파일 포장·전달 형식은 작업 요청 자체를 따른다.
-
-## 7.1 Main 수정 기본 순서
-
-```text
-최신 실제 소스 확인
-→ 이 문서와 관련 소스 확인
-→ 책임 파일/영향 범위 특정
-→ 최소 수정
-→ syntax/import/계산 확인
-→ Main 관련 Fast QA
-→ 공통 contract 변경 시 Cross QA
-→ diff 확인
-→ 필요한 runtime/실기 QA 범위 판단
-→ 장기 contract가 바뀐 경우에만 문서 갱신
-→ 변경 파일만 결과물로 전달
-```
-
-요청 범위와 무관한 리팩토링을 섞지 않는다. 현재 요청을 안전하게 구현하기 위해 공통 수정이 반드시 필요한 경우에는 이유와 영향 범위를 명확히 한다.
-
-## 7.2 Main 자동 회귀 테스트
-
-Main 유지보수의 직접 테스트는 다음 두 개다.
-
-```text
-tests/main-calc.test.cjs
-tests/main-ui-contract.test.cjs
-```
-
-공통 전역 계약을 변경한 경우:
-
-```text
-tests/cross-ui-contract.test.cjs
+최신 실제 소스/운영 데이터
+→ 이 handover의 장기 contract
+→ README의 프로젝트 개요
+→ 평가 문서의 점수/판정 규칙
 ```
 
 역할:
 
-- `main-calc.test.cjs`: 원금·합산·손익·수익률·별도수익·증권 부분/전량매도·실현손익·현금화 원금·연금·차트용 계산 등 정답이 명확한 계산 contract 보호
-- `main-ui-contract.test.cjs`: ES Module boundary, breakpoint, Phone Landscape, table/chart/modal/Market AI 등 Main UI/CSS/HTML의 장기 contract 보호
-- `cross-ui-contract.test.cjs`: Main↔Add가 반드시 같아야 하는 appearance storage/channel, Corner cap, 기본 breakpoint·Phone Landscape, iPhone desktop-request 1280 contract 보호
+| 문서 | 역할 |
+|---|---|
+| `README.md` | 전체 구조·진입점·운영 개요 |
+| `main_dashboard_maintenance_handover.md` | Main 유지보수 contract |
+| `add_maintenance_handover.md` | Add/KODEX 거래 반영 contract |
+| `dashboard_evaluation_guide.md` | 평가 방법·점수·A/B/C |
+| `ct35_evaluation.md` | 공통화·토큰화 35개 항목 |
 
-테스트는 개발/QA 안전망이며 production page가 runtime에서 import하는 코드가 아니다. `main-ui-contract.test.cjs`와 Cross UI contract는 모든 미세 px 값을 무차별 고정하지 않고, **장기적으로 깨지면 안 되는 구조·반응형·상태·접근성 contract**를 우선 보호한다. 의도된 contract 자체가 변경되는 경우에만 실제 구현·handover·관련 테스트를 함께 정합화한다.
+문서와 코드가 다르면 코드를 확인한 뒤 **장기 contract가 실제로 바뀐 경우에만** 문서를 갱신합니다.
 
-Fast QA 예:
+## 2. Main architecture
 
-```bash
-node --test tests/main-calc.test.cjs
-node --test tests/main-ui-contract.test.cjs
-```
-
-공통 contract 변경 시:
-
-```bash
-node --test tests/cross-ui-contract.test.cjs
-```
-
-사용자가 Main+Add `전체 QA`를 명시한 경우에만 repository의 전체 테스트를 실행한다.
-
-```bash
-node --test tests/*.test.cjs
-```
-
-Add 테스트의 상세 의미와 실패 처리 기준은 `add_maintenance_handover.md`가 소유한다.
-
-## 7.3 변경 유형별 최소 검사
-
-### 공통
-
-- syntax 오류
-- import/export 누락
-- circular dependency
-- 로컬 경로·ID·필수 DOM 참조 파손
-- 의도하지 않은 CSS cascade/breakpoint 변화
-- listener 중복 등록
-- 요청하지 않은 운영 데이터 변경
-- 예상 외 대규모 포맷 diff
-
-### UI / CSS
-
-대표 확인 viewport:
+### 2.1 Canonical 파일
 
 ```text
-Desktop: 1440 / 필요 시 1280
-Tablet: 1024 또는 900
-Phone: 390 / 필요 시 374
+index.html
+
+css/
+  common.css
+  tablet.css
+  mobile.css
+  special.css
+  interaction.css
+  print.css
+
+js/
+  kodex-leverage-schema.js
+  dashboard-core.js
+  dashboard-ui-common.js
+  dashboard-modal.js
+  dashboard-monthly-calendar.js
+  dashboard-heatmap.js
+  dashboard-charts.js
+  dashboard-ui.js
+  dashboard-pension.js
+  dashboard-pension-editor.js
+  dashboard-market-ai-client.js
+  dashboard-live-valuation.js
+  dashboard-app.js
+  dashboard-market-ai.js      # standalone entry
+
+scripts/update_prices.py
+.github/workflows/{pages.yml,update-prices.yml}
+GAS_code.js
 ```
 
-기본 breakpoint는 3장의 contract를 따르고, `special.css`의 기능 예외가 아닌 특정 스크린샷 전용 breakpoint를 새로 만들지 않는다.
+`dashboard-app.js`에서 도달하는 Main graph는 **13개 ES Module**입니다. `dashboard-market-ai.js`는 별도 standalone entry이며 `dashboard-market-ai-client.js`만 공유합니다.
 
-### JavaScript 구조
+### 2.2 모듈 책임
 
-최소 확인:
+| 모듈 | 책임 |
+|---|---|
+| `kodex-leverage-schema.js` | KODEX canonical JSON 검증, DOM-free |
+| `dashboard-core.js` | 데이터 loading, 계산, formatter, 공통 state, live quote snapshot |
+| `dashboard-ui-common.js` | 저수준 공통 UI helper/view-state |
+| `dashboard-modal.js` | open/close, focus, inert, body lock, ESC/backdrop |
+| `dashboard-monthly-calendar.js` | 월간손익 view/state |
+| `dashboard-heatmap.js` | 증권 보유종목 treemap view/state |
+| `dashboard-charts.js` | 차트 state/SVG/action |
+| `dashboard-ui.js` | 일반 UI, Topbar, navigation, 일반 action routing |
+| `dashboard-pension.js` | 퇴직연금 조회 View |
+| `dashboard-pension-editor.js` | 퇴직연금 변경/persistence flow |
+| `dashboard-market-ai-client.js` | Market AI endpoint/transport/preference/event |
+| `dashboard-live-valuation.js` | 보유 ticker quote overlay/polling/race guard |
+| `dashboard-app.js` | boot와 cross-module orchestration |
+| `dashboard-market-ai.js` | 시장·AI 신호 standalone panel |
+
+원칙:
+
+- `core`는 DOM-free를 유지합니다.
+- feature 계산/저장을 공통 UI layer로 끌어올리지 않습니다.
+- 단순 편의를 위해 feature module이 `dashboard-ui.js`에 역방향 결합하지 않습니다.
+- 파일 수나 줄 수를 줄이기 위한 합치기/쪼개기를 하지 않고 **state ownership과 dependency 방향**으로 판단합니다.
+- repository text를 `innerHTML`에 넣을 때는 text-safe escape와 trusted markup을 구분합니다.
+
+### 2.3 초기화/entry
+
+- Main boot는 `dashboard-app.js`가 1회 소유합니다.
+- Market AI panel은 standalone lifecycle을 유지하고 Main `dataState/uiState`를 직접 소유하지 않습니다.
+- cache-bust/importmap 변경은 실제 import graph와 함께 정합화합니다.
+- circular dependency와 hidden global bridge를 만들지 않습니다.
+
+## 3. 핵심 데이터/계산 contract
+
+### 3.1 증권 `securitiesEvents`
+
+`securities[]`는 현재 상태, `securitiesEvents`는 과거 상태를 복원하는 거래/원금 원장입니다. 전량매도 종목도 현재 `qty:0`, `cost:0` 형태로 남겨 historical lifecycle을 복원합니다.
+
+매도 event 의미:
 
 ```text
-node --check
-import target 존재
-named export 존재
-circular dependency 0
-main boot 1회
-listener 중복 0
+price                 실제 체결 단가
+grossAmount           거래비용 차감 전 총매도금액
+transactionCost       실제 거래비용
+amount                실제 순매도대금
+costBasis             매도수량 대응 취득원가
+realizedProfit        amount - costBasis
+cashPrincipalDelta    주식 원금 ↔ 현금 원금 이동액
 ```
 
-파일 분리는 줄 수가 아니라 책임·state ownership·dependency 방향으로 판단한다.
-
-Market AI/live valuation 변경이면 추가로 다음을 확인한다.
+매도/재매수 변경 시 최소 확인 흐름:
 
 ```text
-KST 오늘 또는 다음 정규장 시작 전 직전 완료 거래일 activeDate에만 허용 조건을 만족한 usable quote overlay 적용
-종목별 usable/fallback · closed+usable도 Market AI coverage로 인정
-KOSPI 비교선 · KIS realtime/closed_latest만 runtime overlay · unusable/연결해제 시 JSON fallback
-15:30~20:00 mixed session에서 개별주식 extended + ETF closed를 ticker별 market_state로 구분
-client_id multi-client universe 충돌 없음
-holdings 변경 중 stale response 폐기
-modal/expanded chart 중 main render defer · 열린 히트맵은 modal 날짜=부모 activeDate일 때만 open-overlay callback으로 즉시 refresh
-실시간 시세 modal close 후 5초 partial refresh에서 Topbar/#app shell 유지 · 활성 탭만 redraw · scroll creep 없음
-visible 복귀 즉시 refresh
-Dashboard-side Market AI OFF/ON · OFF 시 polling/volatile overlay 제거 · ON 시 즉시 retry
-source tooltip 셀 hover/focus
-실시간 시세 connection gating · Web/Tablet 선측정 reveal · Phone topbar icon-only/공통 modal edge
+매도 전 historical 복원
+→ 부분/전량매도
+→ 실현손익·현금화 원금
+→ 재매수
+→ 현재 보유/차트/Live Valuation universe
 ```
 
-### Main 계산
+### 3.2 KODEX 별도수익
 
-`dashboard-core.js` 등 계산 책임을 변경했으면 `main-calc.test.cjs`를 우선 실행한다. 테스트 전용 계산식을 별도로 복제하지 않는다. 실제 요구사항 때문에 계산 contract가 바뀐 경우에만 기대값을 함께 갱신한다.
+`data/kodex_leverage_trades.json`이 유일한 거래 원천입니다. Main은 이 파일에서 `separateProfit`을 런타임 파생합니다. 거래 schema와 Add Report의 상세 계산은 `add_maintenance_handover.md`가 소유합니다.
 
-증권 매도/재매수 변경이면 `매도 전 복원 → 부분/전량매도 → 실현손익·현금화 원금 → 재매수 → historical lifecycle → Live Valuation universe`를 확인한다. `scripts/update_prices.py`까지 변경되면 Python regression에서 **portfolio/hypothetical 가격 역할 분리, 가상추적의 성과 비영향, 실패 격리, 최신/누락 수렴, 멱등성, JS↔Python 장부 정합성**만 추가로 확인한다.
+## 4. 기능별 장기 불변조건
 
-### 공통 token/helper
+### 4.1 월간 손익
 
-공통 helper, shared renderer, token을 수정하면 단일 화면만 보고 끝내지 않는다. 그 코드를 사용하는 대표 화면을 함께 확인한다. 반대로 단순히 비슷해 보인다는 이유로 독립 영역을 강제 공통화하지 않는다.
+- 별도 계산식을 만들지 않고 core의 flow-neutral 일성과 helper를 재사용합니다.
+- 범위는 **합산 / 증권 / 퇴직연금**입니다.
+- 별도수익 ON은 증권/합산에 당일 증가분만 더하며 퇴직연금 단독에는 섞지 않습니다.
+- 모든 viewport에서 월~금 5영업일만 렌더링합니다.
+- KRX 거래일인데 Dashboard 데이터가 없으면 `누락`, 실제 비거래 평일은 `휴장`으로 구분합니다.
+- 비교 기준이 없는 최초 날짜는 `0원`이 아니라 **기준일**입니다.
+- 0원은 월 합계에는 포함하되 상승/하락 일수에는 넣지 않습니다.
+- 날짜 선택은 `dashboard-app.js`의 canonical activeDate 경로에 위임합니다.
+- live 갱신은 열린 모달만 업데이트하고 탐색 월·범위·포커스·스크롤을 보존합니다.
+- 3연속 손실 멘탈케어는 같은 월에서 세 번째 연속 손실일부터 표시하고 0원/수익 또는 월 경계에서 reset합니다.
+- Topbar action만 사용하고 hamburger에 중복 진입점을 만들지 않습니다.
 
-## 7.4 QA runtime 원칙
+세부 live/gloomy/viewport 동작은 전용 테스트가 소유합니다.
 
-수정 직후 QA의 대상은 **현재 수정본 자체**다. GitHub Pages 공개본은 같은 revision이라는 보장이 없으므로 QA PASS/FAIL 근거로 사용하지 않는다.
+### 4.2 포트폴리오 히트맵
 
-현재 revision을 브라우저에서 실행할 수 없으면 가능한 검증을 끝까지 수행하고 실행하지 못한 항목을 `미실시` 또는 `검증 불가`로 표시한다. 실행하지 못한 검사를 PASS라고 쓰지 않는다.
+히트맵은 **기존 증권 계산결과를 표현하는 View Layer**입니다.
 
-자동 브라우저 캡처는 이 프로젝트에서 반복적으로 실패했으므로 기본 QA 절차에서 제외한다. 화면 미감과 실제 기기 동작은 사용자의 실기 QA를 우선하고, 자동 캡처는 별도 요청이 있을 때만 시도한다.
+- 가격 fetch, Market AI 요청, 별도 polling, 평가금액/손익 재계산을 소유하지 않습니다.
+- 현금과 평가금액 `<=0`은 제외합니다.
+- 원본 계산 row를 mutate하지 않습니다.
+- mode별 면적 의미:
+  - 전일 대비: `|당일손익 금액|`
+  - 누적손익: `|누적손익 금액|`
+  - 비중: `평가금액`
+- color scale/treemap 계산은 deterministic해야 합니다.
+- 모달 내부 날짜 이동은 부모 Dashboard activeDate를 바꾸지 않습니다.
+- live refresh는 모달 날짜가 부모 activeDate와 맞는 경우에만 현재 overlay를 적용합니다.
 
-공개 배포 상태를 확인해 달라는 요청은 `QA`와 분리해 **배포본 확인**으로 취급한다.
+### 4.3 퇴직연금 View/Editor
 
-## 7.5 QA FAIL 처리
+- 조회와 mutation 책임을 `dashboard-pension.js` / `dashboard-pension-editor.js`로 분리합니다.
+- 기업적립금/현금성자산/ETF 작업은 stable operation identity와 optimistic precondition을 유지합니다.
+- stale/duplicate 응답이 최신 상태를 되돌리지 않게 합니다.
+- 삭제·저장 중 action modal dismiss/재진입이 최신 요청 lifecycle을 깨지 않게 합니다.
+- duplicate 성공은 과거 request payload가 아니라 최신 server resource에 수렴해야 합니다.
+- cross-device 동일/상이 mutation은 서버의 durable identity/evidence로 판정합니다.
+
+GAS 내부 proof lifecycle을 handover에 세세하게 복제하지 않고 실제 `GAS_code.js`와 평가 guide를 봅니다.
+
+### 4.4 Market AI / Live Valuation
+
+경계:
+
+- Dashboard: 수량·원가·원금·매매흐름·historical snapshot 소유
+- Market AI: 시장/신호와 ticker별 현재 quote/source/session/usable 소유
+
+적용 원칙:
+
+- 원칙적으로 KST 오늘에 usable quote를 적용합니다.
+- 다음 정규장 시작 전에는 직전 완료 거래일의 확정 closed quote를 제한적으로 이어서 사용할 수 있습니다.
+- 그보다 오래된 과거 날짜와 운영 JSON에는 overlay를 적용하지 않습니다.
+- unusable ticker만 저장 JSON 값으로 fallback합니다.
+- 개별주식 extended와 ETF closed가 섞일 수 있으므로 ticker별 market state를 사용합니다.
+- Market AI OFF/OFFLINE에서는 저장 JSON 기반 Dashboard가 독립 동작합니다.
+- 시장/Signal polling과 보유종목 Live Valuation은 별도 lifecycle입니다.
+- 현재 5초 polling은 **진행 중 요청 중복 금지**, stale generation 폐기, universe drift 처리, hidden/OFF gating을 유지합니다.
+- 연결 해제/재연결, modal open, activeDate/session 전환에서 stale 응답이 최신 UI를 덮지 않아야 합니다.
+- 실시간 quote는 운영 JSON/GAS에 저장하지 않습니다.
+
+Endpoint contract:
 
 ```text
-FAIL 원인 특정
-→ 직전 변경과 인과 확인
-→ 실제 회귀인지 낡은/과도한 테스트인지 구분
-→ 최소 수정
-→ 실패 항목 재검증
-→ 연결된 대표 회귀 재검증
+Local  : 127.0.0.1:8001
+Remote : Tailscale Serve → 127.0.0.1:8002 GET-only proxy
 ```
 
-테스트 FAIL이라는 이유만으로 운영 코드를 무조건 바꾸지 않는다. 반대로 실제 계산·기능·UI contract 결함이면 테스트를 우회해서 PASS 처리하지 않는다.
+### 4.5 Chart / Modal / Tooltip
 
-## 7.6 누적 기준본과 baseline parity
+- 차트는 계산 owner와 렌더 owner를 분리합니다.
+- expanded chart는 별도 계산 state를 복제하지 않습니다.
+- legend selection은 최소 1개 series를 유지합니다.
+- 자동 Y축은 양/음수 혼합에서도 좌우 비교 0선 의미를 보존합니다.
+- Modal lifecycle은 `dashboard-modal.js`를 재사용합니다.
+- feature는 modal 내용/데이터/저장 책임을 직접 소유합니다.
+- tooltip은 view data를 설명하되 별도 계산 source가 되지 않습니다.
 
-반복 수정은 직전 PASS 상태를 다음 변경의 기준으로 사용한다.
+## 5. UI / Responsive / CSS contract
+
+### 5.1 기본 viewport
 
 ```text
-기준본
-→ 최소 수정
-→ QA
-→ PASS 기준 갱신
-→ 다음 최소 수정
-→ QA
+Desktop  ≥ 1101
+Tablet   761 ~ 1100
+Phone    ≤ 760
 ```
 
-상태 전환, responsive, table, modal, chart 등 반복 회귀가 있었던 영역은 관련 수정 시 baseline과 함께 확인한다.
+- 터치 스마트폰 가로는 Phone family입니다.
+- iPhone Safari 데스크탑 웹사이트 요청은 `1280px` contract를 유지합니다.
+- 특정 스크린샷을 맞추기 위한 새 breakpoint는 만들지 않습니다.
 
-대표 smoke check:
+### 5.2 CSS 파일 책임
 
-- 상태 ON/OFF·tab 전환 후 layout/state 보존
-- table summary/sticky/scroll/semantic alignment
-- modal focus/ESC/save·delete flow
-- chart selection/tooltip/resize/listener 중복
-- breakpoint 전환 시 Phone/Tablet/Desktop 역할
+| 파일 | 책임 |
+|---|---|
+| `common.css` | 공통 token, Desktop 기본, 공통 component |
+| `tablet.css` | Tablet override |
+| `mobile.css` | Phone 기본 |
+| `special.css` | orientation/기능성 예외 |
+| `interaction.css` | hover/focus/interaction |
+| `print.css` | Print |
 
-## 7.7 Diff 검사
+규칙:
 
-전달 전 최소 확인:
+- 기존 token/owner를 수정할 수 있으면 새 override를 덧붙이지 않습니다.
+- 동일 selector의 override 누적과 근거 없는 `!important`를 피합니다.
+- one-use 값까지 억지 token화하지 않습니다.
+- 일반 CSS 원칙을 이 handover에 반복 설명하지 않고 `ct35_evaluation.md`와 실제 CSS를 봅니다.
 
-```text
-의도한 파일만 변경됐는가
-요청하지 않은 데이터가 바뀌지 않았는가
-최근 수정이 롤백되지 않았는가
-dead code / 중복 rule이 새로 생기지 않았는가
-단순 rename이 기능값을 바꾸지 않았는가
-포맷팅만으로 대규모 diff가 생기지 않았는가
-```
+### 5.3 Print
 
-다음 운영 JSON은 특히 요청 없이 덮어쓰지 않는다.
+Print는 화면 다크모드와 무관하게 밝은 인쇄 표현을 유지합니다. Market AI 등 인쇄 제외 대상은 `print.css`의 현재 contract를 따릅니다.
+
+## 6. 운영 데이터 / KRX / GAS
+
+### 6.1 운영 데이터 보호
+
+일반 UI 패치에서 다음 운영 데이터의 과거 복사본을 덮어쓰지 않습니다.
 
 ```text
 data/prices.json
@@ -2066,106 +261,203 @@ data/pension_cash_snapshots.json
 data/pension_trades.json
 ```
 
-# 8. Main ↔ Add 공통 contract
+`pension_operation_ledger/`, `pension_operation_identity/`, `pension_batch_request_identity/`, `krx_dispatch_ledger/`는 GAS가 사용하는 repository-only durable state입니다.
 
-Main과 Add는 독립 영역이며 외형이 비슷하다는 이유로 CSS/JS를 강제 통합하지 않는다. 다만 실제 공동 책임이 있는 다음 계약은 양쪽이 일치해야 한다.
+### 6.2 GAS
 
-## 8.1 공유하는 계약
+- Root `GAS_code.js`가 canonical source입니다.
+- 운영 인증/연동값은 Script Properties로 관리합니다.
+- GitHub 파일 수정만으로 운영 Web App이 바뀌지 않으므로 새 버전 배포가 필요합니다.
+- Single/Batch mutation은 stable identity, precondition, durable evidence, fail-closed recovery를 유지합니다.
+- 실제로 반영된 뒤 응답만 유실된 경우 중복 mutation 없이 read-back/reconciliation으로 수렴해야 합니다.
+- 수동 KRX hot path에 자동 scheduler/recovery용 불필요한 원격 I/O를 추가하지 않습니다.
 
-- Light/Dark 및 Corner appearance storage/channel contract
-- 기본 Desktop / Tablet / Phone breakpoint 의미
-- 실제 Phone Landscape 판정 의미
-- iPhone Safari desktop-request `1280px` contract
-- `img/favicon.png` canonical favicon
-- `js/kodex-leverage-schema.js` KODEX 거래 schema validator
-- `data/kodex_leverage_trades.json`을 단일 원천으로 사용
+### 6.3 KRX 가격 갱신
 
-Main은 KODEX canonical JSON에서 필요한 `separateProfit` 표시 구조를 런타임 파생한다. `pnl - fee`와 날짜순 누적 별도수익은 개별 원천값이 안전 정수여도 파생 결과가 JavaScript 안전 정수 범위를 넘으면 즉시 중단해야 하며, Add Report와 같은 원천에 대해 서로 다른 정밀도 정책을 가져서는 안 된다. Add Report의 거래 집계·분류·산식 상세는 `add_maintenance_handover.md`가 소유한다. Main 문서에 거래 수치나 Add 계산식을 복제하지 않는다.
+- KST `09:00 ≤ t < 15:30`: 장중 가격
+- **15:30 정각부터**: 정규장 종가
+- 과거 거래일: 실행시각과 무관하게 정규장 종가
+- 2026-09-14 이후 장마감/과거일: 네이버 KRX 1분봉의 정확한 `15:30:00` 행만 종가로 인정
+- 해당 행이 없으면 pykrx/일봉/애프터마켓 값으로 대체하지 않고 fail-closed
+- 선택일 재갱신은 기존 label과 무관하게 실제 dispatch 가능
+- 매도 완료 종목은 매도 후 신규 조회에서는 제외하되 과거 backfill에서는 조회
 
-## 8.2 Cross QA
+Workflow 자동 commit 대상:
 
-위 공통 계약을 수정하면 다음을 실행한다.
+```text
+data/prices.json
+data/performance_snapshots.json
+data/krx_trading_calendar.json
+```
+
+`update-prices.yml`의 날짜 입력 의미:
+
+```text
+날짜 지정 → 해당 거래일 종목/성과 갱신 + 저장 구간 KOSPI backfill 확인
+날짜 비움 → 최신/누락/재확정 대상 자동 판단 + KOSPI backfill 확인
+```
+
+`비워두면 한국시간 오늘`이라는 과거 설명으로 되돌리지 않습니다.
+
+`pages.yml`은 KRX workflow 성공 완료 뒤 **최신 main**을 checkout해 배포합니다.
+
+### 6.4 KRX 자동 scheduler/recovery
+
+운영 적용:
+
+```text
+GAS_code.js 교체
+→ Web App 새 버전 배포
+→ installKrxAutoScheduler() 1회
+→ 권한 승인
+→ showKrxAutoSchedulerStatus() 확인
+```
+
+중지:
+
+```text
+removeKrxAutoScheduler()
+```
+
+원칙:
+
+- 기존 manual dispatch core를 재사용합니다.
+- recurring scheduler, one-shot, retry/verification pending 상태를 구분합니다.
+- transient만 bounded retry하고 terminal/4xx는 자동 반복하지 않습니다.
+- stale/orphan retry가 다음 날짜 request로 변질되면 안 됩니다.
+- exact run 미가시성을 terminal failure로 단정해 중복 recovery dispatch하지 않습니다.
+- detailed recovery 상태전이는 `tests/krx-auto-recovery.test.cjs`가 소유합니다.
+
+### 6.5 Python dependency
+
+직접 dependency는 `requirements.txt`에 pin합니다. 현재 기준:
+
+```text
+pykrx==1.2.8
+pandas==2.3.3
+requests==2.34.2
+```
+
+버전 변경 시 Python 3.11과 실제 사용 API를 확인합니다.
+
+## 7. QA 체계
+
+### 7.1 원칙
+
+테스트 목적은 **실제 기능/업무 contract 보호**입니다.
+
+- 계산/상태전이는 가능한 한 production 함수를 실행하는 행동 테스트를 우선합니다.
+- `main-ui-contract.test.cjs`는 장기 구조·접근성·반응형 경계만 보호합니다.
+- 전용 행동 테스트가 생긴 기능의 내부 함수명, selector 순서, 중간 변수, 정확한 구현문을 `main-ui-contract`에서 다시 중복 고정하지 않습니다.
+- 의도된 contract 변경이면 구현과 관련 테스트를 함께 바꿉니다.
+- 테스트 FAIL은 실제 회귀인지 낡거나 과도한 테스트인지 먼저 구분합니다.
+
+### 7.2 Main 테스트 지도
+
+기존의 “Main 직접 테스트는 두 개”라는 설명은 폐기합니다. 현재 기능별 전용 테스트까지 포함한 실제 지도는 다음과 같습니다.
+
+| 테스트 | 담당 범위 | 언제 실행 |
+|---|---|---|
+| `tests/main-calc.test.cjs` | 원금·손익·수익률·매도/재매수·연금 계산 | 계산 변경 |
+| `tests/main-ui-contract.test.cjs` | Main 장기 구조/UI contract | 일반 Main UI/구조 변경 |
+| `tests/investor-title.test.cjs` | 투자 칭호 state/획득/renderer | 칭호 변경 |
+| `tests/monthly-calendar-live.test.cjs` | 열린 월간손익 live refresh | 월간손익/live 변경 |
+| `tests/monthly-calendar-gloomy.test.cjs` | 3연속 손실 멘탈케어 | gloomy 변경 |
+| `tests/monthly-calendar-viewport.test.cjs` | 5영업일/viewport 안정성 | 월간손익 responsive 변경 |
+| `tests/live-valuation-polling.test.cjs` | 5초 polling/race/reconnect/universe/modal | Live Valuation 변경 |
+| `tests/heatmap-engine.test.cjs` | treemap geometry/면적/color 계산 | 히트맵 계산 변경 |
+| `tests/heatmap-shell.test.cjs` | 히트맵 entry/modal/interaction ownership | 히트맵 UI 변경 |
+| `tests/krx-auto-recovery.test.cjs` | 자동 recovery 상태전이/중복 방지 | KRX 자동복구 변경 |
+| `tests/update_prices_test.py` | updater, 거래일/가격/성과 스냅샷 | Python/workflow 변경 |
+| `tests/cross-ui-contract.test.cjs` | Main↔Add 공유 appearance/viewport/asset | 공통 contract 변경 |
+| `tests/add-report-data.test.cjs` | KODEX canonical 원천과 Main 별도수익 정합성 | KODEX 거래/schema 변경 |
+
+### 7.3 실행 예
+
+Main 일반:
 
 ```bash
-node --test tests/cross-ui-contract.test.cjs
+node --test tests/main-calc.test.cjs tests/main-ui-contract.test.cjs
 ```
 
-한쪽의 편의를 위해 공통 contract를 조용히 바꾸지 않는다. 공통 contract 자체가 변경되는 요구라면 Main/Add 문서와 관련 테스트를 함께 정합화한다.
+기능 변경은 위 표의 전용 테스트를 추가합니다. 저장소 전체 QA:
 
-# 9. Legacy guard · 문서 유지관리
+```bash
+node --test tests/*.test.cjs
+python -m unittest tests/update_prices_test.py
+```
 
-## 9.1 다시 도입하지 않는 폐기 구조
+전체 QA는 관련 범위가 넓거나 사용자가 전체 검증을 요청했을 때 사용합니다.
 
-현재 구조를 단순화한다는 이유로 다음 과거 구조를 복원하지 않는다.
+### 7.4 정적 QA
 
-- `css/style.css` 단일 대형 CSS
-- 별도 `css/desktop.css`
-- classic script 다중 load 기반의 main boot
-- `window/globalThis` compatibility bridge
-- pension View/Editor 재결합
-- Main feature state와 Market AI standalone state 결합
-- root `favicon.png` 복제본
-- Add 코드/산식을 Main handover에 중복 기록
-
-## 9.2 과거 리팩토링 이력의 취급
-
-1~13차 같은 과거 작업 차수와 세부 selector 변화는 Git history에서 확인한다. 이 문서는 현재 완료 상태와 장기 계약만 유지한다.
-
-과거 변경 이유 중 현재도 필요한 내용은 "왜 이 contract를 유지해야 하는가" 형태로 해당 현재 규칙 옆에 남긴다. 단순 작업일지나 과거 점수·줄 수는 누적하지 않는다.
-
-# 10. 최종 운영 체크리스트
-
-## 10.1 작업 시작 전
+변경 범위에 따라 확인:
 
 ```text
-[ ] 최신 실제 소스를 직접 확인했는가
-[ ] Main 작업인데 Add 상세 문서를 불필요하게 선행해서 읽고 있지 않은가
-[ ] 실제 책임 파일과 dependency를 확인했는가
-[ ] 과거 코드 기억을 최신본으로 가정하지 않았는가
-[ ] 현재 ES Module ownership을 유지하는가
-[ ] Market AI 변경이라면 signal standalone / shared transport+enabled preference / live valuation 책임 경계를 유지하는가
-[ ] Live Valuation 변경이라면 실시간 시세 modal close 후 5초 partial 갱신에서도 Topbar/#app shell이 재생성되지 않고 활성 탭만 redraw하며 scroll/focus가 안정적인가
-[ ] 기존 canonical CSS rule/token을 먼저 찾았는가
-[ ] 새 breakpoint가 실제 기능상 필요한가
-[ ] Phone 판정 helper/contract를 중복 정의하지 않는가
-[ ] inline event/global bridge를 만들지 않는가
-[ ] 운영 JSON을 불필요하게 건드리지 않는가
-[ ] live quote를 운영 JSON/성과 snapshot/GAS write에 영속화하지 않는가
+JS syntax/import/export
+circular dependency 0
+필수 local path/DOM id 존재
+JSON parse
+YAML parse
+listener/boot 중복
+운영 데이터 비의도 변경 없음
+대규모 포맷 diff 없음
 ```
 
-## 10.2 수정 후
+브라우저 자동 캡처는 기본 QA에서 제외합니다. 실제 화면/기기 확인을 하지 않았으면 정적·코드흐름·자동QA로 구분해 기록합니다.
+
+### 7.5 FAIL 처리
 
 ```text
-[ ] diff가 요청 범위에 한정되는가
-[ ] syntax/import/circular dependency를 확인했는가
-[ ] 변경 유형에 맞는 Main Fast QA를 실행했는가
-[ ] 공통 appearance/breakpoint contract를 바꿨다면 Cross QA를 실행했는가
-[ ] 테스트 FAIL이 실제 회귀인지 낡은 contract인지 구분했는가
-[ ] GitHub Pages를 수정 QA의 PASS/FAIL 근거로 쓰지 않았는가
-[ ] current revision runtime을 실행하지 못한 항목을 PASS로 가장하지 않았는가
-[ ] 운영 write를 QA 중 실제 실행하지 않았는가
-[ ] 변경 파일만 결과물에 포함했는가
-[ ] 장기 contract가 실제로 바뀐 경우에만 이 문서를 갱신했는가
+FAIL 원인 특정
+→ 실제 회귀 vs 낡은/과도한 테스트 구분
+→ 최소 수정
+→ 직접 실패 테스트 재실행
+→ 연결된 대표 회귀만 재검증
 ```
 
-## 10.3 구조 보존 원칙
+테스트를 통과시키기 위해 운영 코드를 왜곡하거나, 실제 결함을 테스트 삭제로 숨기지 않습니다.
 
-새 기능은 먼저 현재 구조 안에서 자연스럽게 구현 가능한지 판단한다.
+## 8. 변경 절차와 diff
 
 ```text
-책임 owner 확인
-→ 기존 helper/token 재사용 가능 여부
-→ state owner 확인
-→ responsive 영향
-→ 운영 데이터 contract 영향
-→ 필요한 QA 범위
-→ 최소 구현
+최신 소스 확인
+→ 책임 파일/영향 범위 특정
+→ 최소 수정
+→ 관련 자동/정적 QA
+→ diff 확인
+→ 장기 contract가 바뀐 경우에만 문서 수정
 ```
 
-기능 구현과 현재 리팩토링 구조 보존은 동등하게 중요하다. 다만 구조 보호를 이유로 사용자의 명시적 요구를 무시하지 않는다. 요구 목적을 유지하면서 현재 책임 경계를 덜 훼손하는 방법이 있으면 그 방법을 우선한다.
+전달 전 확인:
 
-사용자 요청이 현재 canonical contract와 직접 충돌하거나 운영 데이터 훼손 위험을 만들면 조용히 강행하지 않는다. 최신 실제 소스를 기준으로 충돌 지점을 확인하고, **요청 목적을 최대한 유지하면서 contract와 운영 데이터를 보호하는 안전한 구현 방향**으로 처리하며 필요한 차이는 결과에 명확히 적는다.
+- 의도한 파일만 변경됐는가
+- 운영 JSON이 불필요하게 바뀌지 않았는가
+- 최근 수정이 롤백되지 않았는가
+- dead code/중복 rule이 새로 생기지 않았는가
+- 단순 rename/formatting이 대규모 diff를 만들지 않았는가
 
-모든 Main 작업의 운영 원칙은 다음 한 문장으로 요약한다.
+## 9. Main ↔ Add 공유 contract
 
-> **최신 실제 소스를 기준으로 현재 책임 경계 안에서 최소 수정하고, 검증 범위는 변경 위험에 비례시키며, 장기 contract만 문서에 남긴다.**
+공유 항목:
+
+- Light/Dark 및 Corner appearance storage/channel
+- Desktop/Tablet/Phone breakpoint 의미
+- Phone Landscape 판정
+- iPhone Safari desktop-request `1280px`
+- `img/favicon.png`, `img/ui-icons.svg`
+- `js/kodex-leverage-schema.js`
+- `data/kodex_leverage_trades.json`
+
+공유 contract를 바꿀 때만 `tests/cross-ui-contract.test.cjs`를 함께 봅니다. 비슷하게 생겼다는 이유로 두 영역의 CSS/JS를 합치지 않습니다.
+
+## 10. 문서/테스트 유지관리 원칙
+
+새 버그를 막기 위해 항상 **테스트 + handover 상세 설명을 둘 다 추가**하는 방식은 사용하지 않습니다.
+
+- 반복될 가치가 있는 기능 동작 → 전용 행동 테스트
+- 사람이 코드만 보고 알기 어려운 장기 업무/운영 규칙 → handover
+- 구현 세부·현재 함수명·selector 위치 → 최신 소스
+- 평가 방법/일반 CSS·JS 품질 기준 → evaluation 문서
+
+같은 사실을 여러 문서와 여러 테스트에 중복 기록하지 않습니다.
