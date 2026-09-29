@@ -216,7 +216,7 @@ function renderPensionContributionList(target='cashSnapshot'){
       key:v.id,
       date:v.date,
       amount:Number(v.amount)||0,
-      memo:`신청 ${v.tradeDate||v.date} · ${v.name||v.ticker} · +${fmt(v.qty)}좌 · ${fmtDecimal(v.price,3)}원/좌`,
+      memo:`신청 ${v.tradeDate||v.date} · ${v.name||v.ticker} · +${fmt(v.qty)}좌 · ${fmt(Math.round(Number(v.price)||0))}원/좌`,
       label:'추가 매수'
     }));
 
