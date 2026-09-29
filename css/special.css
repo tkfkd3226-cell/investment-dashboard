@@ -241,7 +241,7 @@
       --surface-pad-outer:var(--space-4xl);
       --surface-pad-large:var(--space-4xl);
       --surface-pad-medium:var(--space-4xl);
-      --surface-pad-mini:var(--space-2xl);
+      --surface-pad-mini:var(--space-lg);
       --surface-pad-emphasis:var(--space-4xl);
       --surface-pad-data-list:var(--space-4xl);
       --asset-insight-zone-offset:var(--space-4xl);
