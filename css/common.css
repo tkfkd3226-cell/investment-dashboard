@@ -3738,7 +3738,7 @@ html.dark .portfolio-heatmap-modal{
   flex-wrap:wrap;
   gap:var(--space-lg) var(--space-4xl);
   min-height:24px;
-  margin-top:var(--space-3xl);
+  margin-top:var(--space-6xl);
   color:var(--text-secondary);
   font-size:var(--heatmap-legend-size);
   font-weight:var(--type-weight-semibold);
