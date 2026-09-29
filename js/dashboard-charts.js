@@ -1100,6 +1100,45 @@ function tooltip(){
   }
   return tt;
 }
+function axisValueTooltip(){
+  let tt=document.getElementById('chartAxisValueTooltip');
+  if(tt)return tt;
+  tt=document.createElement('div');
+  tt.id='chartAxisValueTooltip';
+  tt.className='chart-axis-value-tooltip';
+  tt.setAttribute('role','tooltip');
+  tt.setAttribute('aria-hidden','true');
+  document.body.appendChild(tt);
+  return tt;
+}
+function hideAxisValueTooltip(){
+  const tt=document.getElementById('chartAxisValueTooltip');
+  if(!tt)return;
+  tt.classList.remove('visible');
+  tt.setAttribute('aria-hidden','true');
+  tt.style.visibility='';
+  delete tt.dataset.chartOwner;
+}
+function showAxisValueTooltip(evt,text,side,ownerChartId=''){
+  const tt=axisValueTooltip();
+  tt.textContent=text;
+  tt.dataset.chartOwner=ownerChartId;
+  tt.setAttribute('aria-hidden','false');
+  tt.style.visibility='hidden';
+  tt.classList.add('visible');
+  const gap=6,pad=6;
+  requestAnimationFrame(()=>{
+    if(!tt.classList.contains('visible'))return;
+    const rect=tt.getBoundingClientRect(),viewport=tooltipViewport();
+    let left=side==='right'?evt.clientX-rect.width-gap:evt.clientX+gap;
+    let top=evt.clientY-rect.height/2;
+    left=Math.max(pad,Math.min(left,Math.max(pad,viewport.width-rect.width-pad)));
+    top=Math.max(pad,Math.min(top,Math.max(pad,viewport.height-rect.height-pad)));
+    tt.style.left=left+'px';
+    tt.style.top=top+'px';
+    tt.style.visibility='visible';
+  });
+}
 function chartA11yStatus(){
   let status=document.getElementById('chartA11yStatus');
   if(!status){
@@ -1185,7 +1224,15 @@ function hideTooltip(){
   tt.style.visibility='';
   delete tt.dataset.chartOwner;
 }
-function clearChartHover(){hideTooltip();document.querySelectorAll('.chart-hover-line').forEach(line=>line.setAttribute('opacity',0))}
+function clearAxisHover(){
+  hideAxisValueTooltip();
+  document.querySelectorAll('.chart-axis-hover-line').forEach(line=>line.setAttribute('opacity',0));
+}
+function clearChartHover(){
+  hideTooltip();
+  clearAxisHover();
+  document.querySelectorAll('.chart-hover-line').forEach(line=>line.setAttribute('opacity',0));
+}
 let chartTooltipViewportCheckRaf=0;
 function chartTooltipOwnerVisible(){
   const tt=tooltip();
@@ -1239,11 +1286,68 @@ function clsBy(n){return n<0?'tt-neg':(n>0?'tt-pos':'')}
 function drawAxes(svg,cfg,yTicks,y2Ticks=null){
   const{w,h,l,r,t,b}=cfg;
   const surface=cssThemePaint('--chart-surface','#fff'),grid=cssThemePaint('--chart-grid','#e5e7eb'),axis=cssThemePaint('--chart-axis','#cbd5e1'),text=cssThemePaint('--chart-text','#6b7280');
+  cfg.axisHoverLeft=yTicks?.length>1?{ticks:[...yTicks],formatter:cfg.yFormatter||(v=>fmt(v))}:null;
+  cfg.axisHoverRight=y2Ticks?.length>1?{ticks:[...y2Ticks],formatter:cfg.y2Formatter||(v=>Number(v).toFixed(0)+'%')}:null;
   svg.appendChild(el('rect',{x:0,y:0,width:w,height:h,fill:surface}));
   for(const tick of yTicks){const y=cfg.y(tick);svg.appendChild(el('line',{x1:l,y1:y,x2:w-r,y2:y,stroke:grid,'stroke-width':CHART_VISUAL.axisStrokeWidth}));const tx=el('text',{x:l-10,y:y+4,'text-anchor':'end','font-size':chartExpandedFixedUnits(svg,CHART_VISUAL.axisFontSize),fill:text});tx.textContent=cfg.yFormatter?cfg.yFormatter(tick):fmt(tick);svg.appendChild(tx)}
   svg.appendChild(el('line',{x1:l,y1:t,x2:l,y2:h-b,stroke:axis,'stroke-width':CHART_VISUAL.axisStrokeWidth}));
   svg.appendChild(el('line',{x1:l,y1:h-b,x2:w-r,y2:h-b,stroke:axis,'stroke-width':CHART_VISUAL.axisStrokeWidth}));
   if(y2Ticks){for(const tick of y2Ticks){const y=cfg.y2(tick);const tx=el('text',{x:w-r+10,y:y+4,'text-anchor':'start','font-size':chartExpandedFixedUnits(svg,CHART_VISUAL.axisFontSize),fill:text});tx.textContent=cfg.y2Formatter?cfg.y2Formatter(tick):tick.toFixed(0)+'%';svg.appendChild(tx)}svg.appendChild(el('line',{x1:w-r,y1:t,x2:w-r,y2:h-b,stroke:axis,'stroke-width':CHART_VISUAL.axisStrokeWidth}))}
+}
+function chartPointerLocalY(evt,svg){
+  const point=svg.createSVGPoint();
+  point.x=evt.clientX;
+  point.y=evt.clientY;
+  const matrix=svg.getScreenCTM();
+  if(!matrix)return null;
+  return point.matrixTransform(matrix.inverse()).y;
+}
+function chartAxisHoverValue(meta,cfg,localY){
+  if(!meta?.ticks?.length||!Number.isFinite(localY))return null;
+  const min=Math.min(...meta.ticks),max=Math.max(...meta.ticks);
+  if(!(max>min))return null;
+  const ratio=Math.max(0,Math.min(1,(localY-cfg.t)/Math.max(1,cfg.plotH)));
+  return max-ratio*(max-min);
+}
+function addAxisHover(svg,cfg){
+  const axes=[
+    {side:'left',meta:cfg.axisHoverLeft,x:0,width:cfg.l},
+    {side:'right',meta:cfg.axisHoverRight,x:cfg.w-cfg.r,width:cfg.r}
+  ].filter(axis=>axis.meta&&axis.width>0);
+  if(!axes.length)return;
+  const line=el('line',{
+    x1:cfg.l,y1:cfg.t,x2:cfg.w-cfg.r,y2:cfg.t,
+    stroke:cssThemePaint('--chart-axis','#cbd5e1'),
+    'stroke-width':chartExpandedFixedUnits(svg,CHART_VISUAL.axisStrokeWidth),
+    opacity:0,
+    class:'chart-axis-hover-line',
+    'pointer-events':'none'
+  });
+  svg.appendChild(line);
+  const hide=()=>{
+    line.setAttribute('opacity',0);
+    hideAxisValueTooltip();
+  };
+  for(const axis of axes){
+    const hit=el('rect',{
+      x:axis.x,y:cfg.t,width:axis.width,height:cfg.plotH,
+      fill:'transparent',
+      class:'chart-axis-hitbox',
+      'data-axis-side':axis.side
+    });
+    hit.addEventListener('mousemove',evt=>{
+      const localY=chartPointerLocalY(evt,svg),value=chartAxisHoverValue(axis.meta,cfg,localY);
+      if(value==null)return hide();
+      const y=Math.max(cfg.t,Math.min(cfg.h-cfg.b,localY));
+      line.setAttribute('y1',y);
+      line.setAttribute('y2',y);
+      line.setAttribute('opacity',1);
+      hideTooltip();
+      showAxisValueTooltip(evt,axis.meta.formatter(value),axis.side,svg.id||'');
+    });
+    hit.addEventListener('mouseleave',hide);
+    svg.appendChild(hit);
+  }
 }
 
 function chartX(cfg,dataLength,index){
@@ -1324,6 +1428,7 @@ function addHover(svg,cfg,data,renderHtml,tooltipKind=''){
     showIndex(next,null,{announce:true});
   };
   svg.onpointerdown=evt=>{if(evt.target!==hit)clearChartHover()};
+  addAxisHover(svg,cfg);
 }
 
 function niceStep(rawStep){

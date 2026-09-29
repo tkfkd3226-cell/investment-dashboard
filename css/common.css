@@ -1057,6 +1057,40 @@ button svg{pointer-events:none;flex-shrink:0}
   opacity:1;
 }
 
+/* Chart Y-axis value hover · 축 위 포인터 위치의 실제 값을 읽는 전용 직각 tooltip */
+.chart-axis-value-tooltip{
+  position:fixed;
+  z-index:10000;
+  box-sizing:border-box;
+  padding:3px 5px;
+  pointer-events:none;
+  visibility:hidden;
+  opacity:0;
+  background:#fff;
+  color:#374151;
+  border:1px solid #cbd5e1;
+  border-radius:0;
+  box-shadow:none;
+  font-size:10px;
+  font-weight:var(--type-weight-semibold);
+  line-height:var(--type-line-single);
+  white-space:nowrap;
+}
+.chart-axis-value-tooltip.visible{
+  visibility:visible;
+  opacity:1;
+}
+.chart-axis-hover-line{
+  pointer-events:none;
+}
+.chart-axis-hitbox{
+  pointer-events:none;
+  cursor:crosshair;
+}
+@media (hover:hover) and (pointer:fine){
+  .chart-axis-hitbox{pointer-events:all}
+}
+
 .dash-tooltip .tt-date{
   margin-bottom:var(--space-lg);
   color:var(--tooltip-color);
