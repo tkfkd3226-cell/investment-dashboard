@@ -1071,7 +1071,7 @@ button svg{pointer-events:none;flex-shrink:0}
   border:1px solid #cbd5e1;
   border-radius:0;
   box-shadow:none;
-  font-size:10px;
+  font-size:11px;
   font-weight:var(--type-weight-semibold);
   line-height:var(--type-line-single);
   white-space:nowrap;

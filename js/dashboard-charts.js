@@ -1320,8 +1320,9 @@ function addAxisHover(svg,cfg){
   if(!axes.left&&!axes.right)return;
   const line=el('line',{
     x1:cfg.l,y1:cfg.t,x2:cfg.w-cfg.r,y2:cfg.t,
-    stroke:cssThemePaint('--chart-axis','#cbd5e1'),
-    'stroke-width':chartExpandedFixedUnits(svg,CHART_VISUAL.axisStrokeWidth),
+    stroke:cssThemePaint('--chart-hover','#334155'),
+    'stroke-width':chartExpandedFixedUnits(svg,CHART_VISUAL.hoverStrokeWidth),
+    'stroke-dasharray':CHART_VISUAL.hoverDash,
     opacity:0,
     class:'chart-axis-hover-line',
     'pointer-events':'none'
