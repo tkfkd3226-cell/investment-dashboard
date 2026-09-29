@@ -175,7 +175,7 @@
   --compact-control-font-size:var(--type-size-xs);
   --compact-control-font-weight:var(--type-weight-bold);
   --compact-control-line-height:1;
-  --compact-control-ios-optical-shift:.5px;
+  --compact-control-ios-optical-shift:1px;
   /* State Toggle · 별도수익/Y축 자동 재계산의 ON/OFF geometry 단일 원천 */
   --state-toggle-state-min-width:28px;
   --state-toggle-pad-x:8px;
