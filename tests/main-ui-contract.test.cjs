@@ -2228,9 +2228,15 @@ test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·resp
   assert.doesNotMatch(phoneRealtimeCss,/--realtime-quote-shell-bg/,'Phone 전용 CSS가 shell 테마 색을 별도로 고정하면 안 된다');
 });
 
-test('퇴직연금 작업 방식 switch는 공통 segmented control contract를 사용한다',()=>{
+test('퇴직연금 작업 방식 switch는 폭·좌우 여백만 전용이고 나머지는 공통 segmented contract를 사용한다',()=>{
   assert.match(pensionEditor,/class="control-segmented pension-work-mode"/);
   assert.doesNotMatch(common,/--pension-modal-mode-(?:size|height)/);
+  const modeBlock=common.match(/\.pension-contrib-context \.pension-work-mode button\s*\{([^}]*)\}/s);
+  assert.ok(modeBlock,'퇴직연금 작업 방식 버튼의 geometry-only override가 필요하다');
+  assert.match(modeBlock[1],/min-width:72px;/,'긴 문구를 위한 전용 최소폭은 유지해야 한다');
+  assert.match(modeBlock[1],/padding-inline:var\(--space-md\);/,'긴 문구를 위한 전용 좌우 여백은 유지해야 한다');
+  const properties=[...modeBlock[1].matchAll(/([\w-]+)\s*:/g)].map(match=>match[1]).sort();
+  assert.deepEqual(properties,['min-width','padding-inline'],'퇴직연금 전용 CSS는 폭·좌우 여백만 소유하고 typography/line-height/iOS 보정 등은 공통 segmented를 상속해야 한다');
 });
 
 test('Topbar 개인보기 도구는 Market AI → 계산기 → 테마 순서를 유지한다',()=>{
