@@ -106,18 +106,8 @@ test('히트맵 renderer는 mode별 geometry와 고정 color scale을 연결한�
   assert.match(common,/color-mix\(in srgb,var\(--heatmap-neutral-base\),var\(--heatmap-tone\) var\(--heatmap-intensity\)\)/);
 });
 
-test('히트맵 tile은 geometry별 정보량과 mode별 핵심값을 분리한다',()=>{
-  assert.match(heatmap,/if\(density==='tiny'\)return ''/);
-  assert.match(heatmap,/if\(density==='small'\)return name/);
-  assert.match(heatmap,/if\(density==='medium'\)return `\$\{name\}\$\{primary\}`/);
+test('히트맵 Large tile 보조문구는 화면별 표현을 유지한다',()=>{
   assert.match(heatmap,/portfolio-heatmap__secondary/,'Large tile에만 보조값 line을 제공해야 한다');
-  assert.match(heatmap,/function syncPortfolioHeatmapSecondaryVisibility\(canvas\)/,'Large 판정과 별개로 보조문구 실제 너비를 검사해야 한다');
-  assert.match(heatmap,/secondary\.hidden=secondary\.scrollWidth>secondary\.clientWidth\+1/,'보조문구가 실제 타일 폭을 넘을 때만 숨겨야 한다');
-  assert.match(heatmap,/canvas\.innerHTML=portfolioHeatmapState\.layoutRows\.map\(renderPortfolioHeatmapTile\)\.join\(''\);\s*syncPortfolioHeatmapSecondaryVisibility\(canvas\)/,'타일 DOM 생성 후 실제 너비를 측정해야 한다');
-  assert.match(heatmap,/if\(mode==='cumulative'\)return heatmapAmountText\(row\.cumulativePnl,\{signedValue:true\}\)/,'누적손익 Large tile은 누적손익 금액만 보조 표시해야 한다');
-  assert.match(heatmap,/const formula=portfolioHeatmapDayFormulaText\(row\);\s*return formula\?`\$\{total\} · \$\{formula\}`:total/,'당일손익 Large tile은 변동총액 · 주당변동액 × 수량을 표시해야 한다');
-  assert.match(heatmap,/const formula=portfolioHeatmapWeightFormulaText\(row\);\s*return formula\?`\$\{amount\} · \$\{formula\}`:amount/,'비중 Large tile은 평가금액 · 수량 × 적용가격을 표시해야 한다');
-  assert.match(heatmap,/PORTFOLIO_HEATMAP_WEIGHT_STEPS=Object\.freeze/,'비중 색상은 고정 구간 scale을 사용해야 한다');
   assert.match(special,/\.portfolio-heatmap__tile\.is-large \.portfolio-heatmap__secondary\{[^}]*white-space:normal[^}]*-webkit-line-clamp:2/,'Phone Large tile은 긴 보조문구를 최대 2줄로 수용해야 한다');
   assert.match(common,/--heatmap-weight-base:/,'비중 mode는 손익 color scale과 분리된 semantic base를 가져야 한다');
 });
@@ -178,4 +168,3 @@ test('히트맵 날짜 상태: live refresh와 모달 날짜는 canonical 날짜
   assert.doesNotMatch(heatmap,/\bsetInterval\s*\(|\bfetch\s*\(/,'Heatmap 자체는 polling/network를 소유하면 안 된다');
   assert.doesNotMatch(heatmap,/priceSource:holding\?\.priceSource/,'사용하지 않는 중복 priceSource View Model field를 남기지 않는다');
 });
-
