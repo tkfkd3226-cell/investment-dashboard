@@ -191,9 +191,9 @@
   --separate-profit-gap:var(--state-toggle-gap);
   --separate-profit-state-height:var(--state-toggle-state-height);
   --separate-profit-state-pad-x:var(--state-toggle-state-pad-x);
-  /* Phone Compact State Chip · 모바일 별도수익 ON/OFF와 상태 badge가 공유하는 compact geometry */
-  --phone-compact-state-height:21px;
-  --phone-compact-state-pad-x:var(--space-lg);
+  /* Compact State Chip · 별도수익 ON/OFF와 상태 badge가 viewport 공통으로 공유하는 compact geometry */
+  --compact-state-chip-height:21px;
+  --compact-state-chip-pad-x:var(--space-lg);
   --dashboard-switch-min-width:52px;
   --dashboard-control-radius:9px;
   --icon-button-size:32px;
@@ -2118,12 +2118,13 @@ body.chart-expanded-open .dash-tooltip{
 }
 
 .pension-insight-badge{
-  --pension-insight-badge-height:28px;
+  --pension-insight-badge-height:var(--compact-state-chip-height);
   display:inline-flex;
   align-items:center;
   justify-content:center;
+  height:var(--pension-insight-badge-height);
   min-height:var(--pension-insight-badge-height);
-  padding:var(--space-lg) var(--space-4xl);
+  padding:0 var(--compact-state-chip-pad-x);
   border-radius:var(--radius-pill);
   font-size:var(--compact-control-font-size);
   font-weight:var(--compact-control-font-weight);
