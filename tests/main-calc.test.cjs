@@ -937,7 +937,9 @@ test('증권 매도 원장: gross/net/costBasis/realizedProfit 불일치와 음�
   assert.throws(()=>core.securityCashPrincipalForDate('2026-06-20'),/현금화 원금이 음수가/);
 });
 
-test('후성 2026-05-22 legacy 전량매도: 장부·historical·가상추적 핵심 contract를 유지한다',()=>{
+test('후성 2026-05-22 legacy 전량매도: 장부·historical·가상추적 핵심 contract를 유지한다',t=>{
+  // 운영 시세가 이후 거래일로 늘어도 이 역사 검산의 최신일은 고정한다.
+  t.mock.timers.enable({apis:['Date'],now:new Date('2026-09-28T03:00:00Z')});
   const loadJson=relative=>JSON.parse(fs.readFileSync(path.join(ROOT,relative),'utf8'));
   const portfolio=loadJson('data/portfolio.json');
   const account1Daily=loadJson('data/account1_daily_snapshots.json');
@@ -1042,7 +1044,9 @@ test('후성 2026-05-22 legacy 전량매도: 장부·historical·가상추적 �
   );
 });
 
-test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표시·3,790원 현금·원금회수·장부 검산을 확정한다',()=>{
+test('삼성전기 2026-09-16 전량매도·당일 내부회수: 매도일 표시·3,790원 현금·원금회수·장부 검산을 확정한다',t=>{
+  // 운영 시세가 이후 거래일로 늘어도 이 역사 검산의 최신일은 고정한다.
+  t.mock.timers.enable({apis:['Date'],now:new Date('2026-09-28T03:00:00Z')});
   const loadJson=relative=>JSON.parse(fs.readFileSync(path.join(ROOT,relative),'utf8'));
   const portfolio=loadJson('data/portfolio.json');
   setState({

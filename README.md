@@ -366,6 +366,7 @@ tests/
 
 ```text
 tests/main-calc.test.cjs
+tests/krx-auto-recovery.test.cjs
 tests/main-ui-contract.test.cjs
 tests/investor-title.test.cjs
 tests/monthly-calendar-live.test.cjs

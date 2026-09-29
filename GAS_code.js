@@ -8145,7 +8145,7 @@ function clearStaleKrxAutoVerificationStateUnlocked_(dateText, nowDate) {
   });
 }
 
-function scheduleKrxAutoVerification_(phase, dateText, requestId, verifyAttempt, recoveryAttempt, reason, nowDate, preserveTriggerUid) {
+function scheduleKrxAutoVerification_(phase, dateText, requestId, verifyAttempt, recoveryAttempt, reason, nowDate, preserveTriggerUid, recoveryDispatchPending) {
   const normalizedPhase = String(phase || "").trim().toLowerCase();
   const normalizedDate = String(dateText || "").trim();
   const id = String(requestId || "").trim();
@@ -8184,6 +8184,7 @@ function scheduleKrxAutoVerification_(phase, dateText, requestId, verifyAttempt,
       scheduledAtMs: target.getTime(),
       reason: String(reason || "workflow_outcome_check")
     };
+    if (recoveryDispatchPending === true) metadata.recoveryDispatchPending = true;
     const props = PropertiesService.getScriptProperties();
     try {
       props.setProperty(krxAutoVerificationPropertyKey_(uid), JSON.stringify(metadata));
@@ -8234,7 +8235,10 @@ function readKrxAutoVerificationMetadata_(phase, event) {
   const scheduledAtMs = Number(value && value.scheduledAtMs);
   if (!value || Number(value.version) !== 1 || String(value.phase || "") !== normalizedPhase || !isValidDateText(String(value.date || "")) ||
       !String(value.requestId || "") || !Number.isInteger(verifyAttempt) || verifyAttempt < 0 || verifyAttempt >= KRX_AUTO_VERIFY_DELAYS_MINUTES.length ||
-      !Number.isInteger(recoveryAttempt) || recoveryAttempt < 0 || !Number.isFinite(scheduledAtMs) || scheduledAtMs <= 0) {
+      !Number.isInteger(recoveryAttempt) || recoveryAttempt < 0 || !Number.isFinite(scheduledAtMs) || scheduledAtMs <= 0 ||
+      (value.recoveryDispatchPending !== undefined && typeof value.recoveryDispatchPending !== "boolean") ||
+      (value.recoveryDispatchPending === true && (recoveryAttempt < 1 || recoveryAttempt > KRX_AUTO_VERIFY_MAX_RECOVERY_ATTEMPTS ||
+        String(value.requestId) !== buildKrxAutoRecoveryRequestId_(normalizedPhase, value.date, recoveryAttempt)))) {
     try { props.deleteProperty(key); } catch (_) {}
     return { ok: false, reason: "invalid_verification_metadata", triggerUid: uid };
   }
@@ -8254,7 +8258,11 @@ function scheduleNextKrxAutoVerification_(state, reason) {
 
 function dispatchKrxAutoRecovery_(state, failedRun) {
   const meta = state.metadata || {};
-  const nextRecoveryAttempt = Number(meta.recoveryAttempt || 0) + 1;
+  // 미접수/불확실 dispatch는 새 recovery를 만들지 않고 같은 identity로 기존 코어에 재진입한다.
+  // 코어의 durable/active-run proof가 실제 POST 가능 여부를 판단한다.
+  const retryPending = meta.recoveryDispatchPending === true;
+  const nextRecoveryAttempt = Number(meta.recoveryAttempt || 0) + (retryPending ? 0 : 1);
+  const nextDispatchCheckAttempt = retryPending ? Number(meta.verifyAttempt || 0) + 1 : 0;
   if (nextRecoveryAttempt > KRX_AUTO_VERIFY_MAX_RECOVERY_ATTEMPTS) {
     return {
       ok: false,
@@ -8285,18 +8293,22 @@ function dispatchKrxAutoRecovery_(state, failedRun) {
       };
     }
 
+    const accepted = action === "workflow_dispatched" || action === "workflow_duplicate_ignored";
+    const retryReason = accepted ? "" : classifyKrxAutoRetryResult_(result);
     let verification = null;
-    try {
-      verification = scheduleKrxAutoVerification_(
-        meta.phase, meta.date, recoveryRequestId, 0, nextRecoveryAttempt,
-        "recovery_dispatch_" + (action || "result"), new Date(), state.triggerUid
-      );
-    } catch (scheduleErr) {
-      verification = { scheduled: false, reason: "verification_schedule_failed", error: String(scheduleErr && scheduleErr.message || scheduleErr || "") };
+    if (accepted || retryReason) {
+      try {
+        verification = scheduleKrxAutoVerification_(
+          meta.phase, meta.date, recoveryRequestId, accepted ? 0 : nextDispatchCheckAttempt, nextRecoveryAttempt,
+          "recovery_dispatch_" + (retryReason || action), new Date(), state.triggerUid, !accepted
+        );
+      } catch (scheduleErr) {
+        verification = { scheduled: false, reason: "verification_schedule_failed", error: String(scheduleErr && scheduleErr.message || scheduleErr || "") };
+      }
     }
     return {
-      ok: true,
-      action: "auto_verification_recovery_dispatched",
+      ok: accepted,
+      action: accepted ? "auto_verification_recovery_dispatched" : (retryReason ? "auto_verification_recovery_pending" : "auto_verification_recovery_rejected"),
       phase: meta.phase,
       date: meta.date,
       failedRequestId: meta.requestId,
@@ -8313,8 +8325,8 @@ function dispatchKrxAutoRecovery_(state, failedRun) {
     if (transient) {
       try {
         verification = scheduleKrxAutoVerification_(
-          meta.phase, meta.date, recoveryRequestId, 0, nextRecoveryAttempt,
-          "recovery_dispatch_" + transient, new Date(), state.triggerUid
+          meta.phase, meta.date, recoveryRequestId, nextDispatchCheckAttempt, nextRecoveryAttempt,
+          "recovery_dispatch_" + transient, new Date(), state.triggerUid, true
         );
       } catch (scheduleErr) {
         verification = { scheduled: false, reason: "verification_schedule_failed", error: String(scheduleErr && scheduleErr.message || scheduleErr || "") };
@@ -8345,6 +8357,8 @@ function runKrxAutoVerificationHandler_(phase, event) {
     if (todayKst !== meta.date || now.getTime() > deadline.getTime()) {
       return { ok: false, action: "auto_verification_expired", reason: todayKst !== meta.date ? "stale_date" : "verification_window_closed", requestId: meta.requestId };
     }
+
+    if (meta.recoveryDispatchPending === true) return dispatchKrxAutoRecovery_(state, null);
 
     const branch = getProp("GITHUB_BRANCH");
     let run = null;
