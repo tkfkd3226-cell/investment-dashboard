@@ -2098,7 +2098,7 @@ body.chart-expanded-open .dash-tooltip{
 
 .asset-insight-head{
   display:flex;
-  align-items:center;
+  align-items:flex-start;
   justify-content:space-between;
   gap:var(--space-5xl);
   margin-bottom:var(--info-stack-gap);
