@@ -804,9 +804,8 @@
   .date-action-menu.mobile-combined-menu :is(.mobile-nav-item,.control-icon-button-compact):not(:disabled):active,
   .switcher .date-tool-btn:not(:disabled):active{transform:scale(.985)}
 
-  /* Phone Risk Threshold · 현재 비중 badge와 겹치지 않도록 70% 위치 chip을 gauge 아래로 이동 */
-  .pension-risk-threshold-chip{top:calc(100% + var(--space-2xs))}
-  .pension-risk-gauge{margin-bottom:calc(var(--info-stack-gap) + 10px)}
+  /* Phone Risk Threshold · 기준선은 유지하고 70% 위치 chip만 숨긴다 */
+  .pension-risk-threshold-chip{display:none}
 
   /* Scroll To Top Phone Geometry · 세로폰과 실제 터치폰 가로 공통 */
   .mobile-top-button{
