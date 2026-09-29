@@ -1518,14 +1518,19 @@ svg.chart:focus-visible{
   opacity:.38;
 }
 
+/* Chart State Control Typography · 전체/Y축 자동 재계산 label은 state-toggle 공통 typography를 공유 */
+:is(.chart-series-all,.state-toggle){
+  --dashboard-control-font-size:var(--state-toggle-font-size);
+  font-weight:var(--state-toggle-font-weight);
+  line-height:1;
+}
+
 button.legend-item.chart-series-all{
   padding:0 var(--dashboard-control-pad-x);
   border:1px solid var(--control-border);
   border-radius:var(--radius-pill);
   background:var(--card);
   color:var(--muted);
-  font-weight:var(--type-weight-bold);
-  line-height:1;
 }
 
 button.legend-item.chart-series-all.active{
@@ -1548,8 +1553,6 @@ button.legend-item.chart-series-all.active{
   border:1px solid var(--control-border);
   border-radius:var(--radius-pill);
   color:var(--muted);
-  font-weight:var(--state-toggle-font-weight);
-  line-height:1;
 }
 
 .state-toggle-label{
