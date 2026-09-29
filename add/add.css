@@ -1267,7 +1267,7 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
   :where(html[data-add-page="report"]) #summary .kpi .label{margin-bottom:var(--density-gap-micro);font-size:10px;line-height:1;letter-spacing:-.025em}
   :where(html[data-add-page="report"]) #summary .kpi .value{margin-top:var(--density-gap-micro);font-size:clamp(15px,4.5vw,17px);line-height:1;white-space:nowrap;word-break:keep-all}
   :where(html[data-add-page="report"]) #summary .kpi .sub{margin-top:var(--density-gap-xs);font-size:clamp(8px,2.3vw,9px);line-height:1.22;letter-spacing:-.025em}
-  :where(html[data-add-page="report"]) #summary .report-kpi-total-net .sub{white-space:nowrap;font-size:clamp(8px,2.2vw,8.7px);letter-spacing:-.04em}
+  :where(html[data-add-page="report"]) #summary .report-kpi-total-net .sub{white-space:nowrap;font-size:clamp(8px,2.2vw,8px);letter-spacing:-.04em}
 
   :where(html[data-add-page="report"]) .split-box{grid-template-columns:1fr;justify-items:center}
   :where(html[data-add-page="report"]) .pnl-chart-card, :where(html[data-add-page="report"]) .composition-card{min-height:0}
