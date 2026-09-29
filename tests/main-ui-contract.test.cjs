@@ -52,21 +52,17 @@ test('Main boot contract: canonical CSS와 app/Market AI module entry를 로드�
   assert.doesNotMatch(index,/'dashboard-responsive\.js'/,'폐기된 responsive entry가 되살아나면 안 된다');
 });
 
-test('Main appearance는 저장값과 cross-tab 동기화 contract를 함께 유지한다',()=>{
-  assert.match(ui,/investmentDashboard\.theme/);
-  assert.match(ui,/investmentDashboard\.cornerTheme/);
-  assert.match(ui,/investmentDashboard\.appearance/);
-  assert.match(ui,/new BroadcastChannel\(APPEARANCE_CHANNEL_NAME\)/);
-  const themeStart=ui.indexOf('function setTheme('),themeEnd=ui.indexOf('\nfunction toggleTheme',themeStart);
-  const cornerStart=ui.indexOf('function setCornerTheme('),cornerEnd=ui.indexOf('\nfunction toggleCornerTheme',cornerStart);
-  assert.ok(themeStart>=0&&themeEnd>themeStart&&cornerStart>=0&&cornerEnd>cornerStart,'appearance setter가 존재해야 한다');
-  const themeBlock=ui.slice(themeStart,themeEnd),cornerBlock=ui.slice(cornerStart,cornerEnd);
-  assert.match(themeBlock,/localStorage\.setItem\(THEME_STORAGE_KEY/);
-  assert.match(themeBlock,/publishAppearanceChange\(\)/);
-  assert.match(cornerBlock,/localStorage\.setItem\(CORNER_THEME_STORAGE_KEY/);
-  assert.match(cornerBlock,/publishAppearanceChange\(\)/);
-  assert.match(charts,/function cssThemePaint\(name,fallback\)/,'차트 theme paint helper가 있어야 한다');
-  assert.match(charts,/return `var\(\$\{name\},\$\{fallback\}\)`/,'차트 paint는 CSS variable 참조를 반환해야 한다');
+test('Main appearance는 저장값·cross-tab·chart CSS variable contract를 유지한다',()=>{
+  // storage key/channel 값은 제품 contract지만 내부 상수명·setter/helper 이름은 고정하지 않는다.
+  for(const value of ['investmentDashboard.theme','investmentDashboard.cornerTheme','investmentDashboard.appearance']){
+    assert.ok(ui.includes(`'${value}'`),`missing Main appearance contract: ${value}`);
+  }
+  assert.match(ui,/new BroadcastChannel\([^)]+\)/);
+  assert.match(ui,/\.postMessage\(\{/,'appearance 변경은 다른 탭/페이지에 publish되어야 한다');
+  assert.match(ui,/classList\.toggle\('dark',/,'theme setter는 root dark state를 갱신해야 한다');
+  assert.match(ui,/classList\.toggle\('rounded-corners',/,'corner setter는 root rounded state를 갱신해야 한다');
+  assert.ok((ui.match(/localStorage\.setItem\(/g)||[]).length>=2,'theme/corner 저장 경로가 필요하다');
+  assert.match(charts,/return `var\(\$\{[^}]+\},\$\{[^}]+\}\)`/,'차트 paint는 CSS variable 참조를 반환해야 한다');
 });
 
 test('Main module architecture는 순수 core·공통 UI owner·중립 Market AI client 경계를 유지한다',()=>{
@@ -1150,20 +1146,28 @@ test('Standalone Web App은 설치 당시 hash보다 KST 오늘을 우선하고 
   assert.match(app,/setupStandaloneTodayDateRefresh\(\);/);
 });
 
-test('Standalone Web App은 최상단 단일 터치 pull-to-refresh를 제공하고 일반 브라우저에는 생성하지 않는다',()=>{
-  assert.match(app,/function dashboardStandaloneMode\(\)/);
+test('Standalone Web App pull-to-refresh는 standalone·최상단·단일 세로 터치·80px 임계값 contract를 유지한다',()=>{
+  // 내부 helper/지역변수 이름은 고정하지 않고 실제 gesture 경계만 source contract로 보호한다.
   assert.match(app,/display-mode: standalone/);
-  assert.match(app,/window\.navigator\?\.standalone===true/);
-  assert.match(app,/function setupStandalonePullToRefresh\(\)/);
-  assert.match(app,/dashboardScrollTop\(\)>1/);
-  assert.match(app,/document\.body\.classList\.contains\('dashboard-dialog-open'\)/);
-  assert.match(app,/dashboardPullRefreshBlocked\(\)/);
-  assert.match(app,/event\.touches\.length!==1\|\|dashboardScrollTop\(\)>1\|\|dashboardPullRefreshBlocked\(\)/);
-  assert.match(app,/if\(deltaY<=0\|\|Math\.abs\(deltaX\)>deltaY\)\{\s*resetStandalonePullRefresh\(indicator\)/);
-  assert.match(app,/standalonePullRefreshState\.dragY=deltaY;\s*if\(deltaY<8\)/);
-  assert.match(app,/touchmove[^]*\{passive:false\}/);
-  assert.match(app,/standalonePullRefreshState\.threshold:80|threshold:80/);
-  assert.match(app,/window\.location\.reload\(\)/);
+  assert.match(app,/navigator\?\.standalone===true/);
+  const moveAt=app.indexOf("document.addEventListener('touchmove'");
+  const startAt=app.lastIndexOf("document.addEventListener('touchstart'",moveAt);
+  const endAt=app.indexOf("document.addEventListener('touchend'",moveAt);
+  assert.ok(startAt>=0&&moveAt>startAt&&endAt>moveAt,'touchstart → touchmove → touchend lifecycle이 필요하다');
+  const touchStart=app.slice(startAt,moveAt);
+  const touchMove=app.slice(moveAt,endAt);
+  assert.match(touchStart,/touches\.length!==1/,'멀티터치는 pull-to-refresh를 시작하면 안 된다');
+  assert.match(touchStart,/>1/,'최상단이 아니면 pull-to-refresh를 시작하면 안 된다');
+  assert.match(touchMove,/touches\.length!==1/,'진행 중 멀티터치도 취소해야 한다');
+  assert.match(touchMove,/clientX/);
+  assert.match(touchMove,/clientY/);
+  assert.match(touchMove,/<=0/,'위쪽 이동은 pull-to-refresh를 취소해야 한다');
+  assert.match(touchMove,/Math\.abs\([^)]+\)>[A-Za-z_$][\w$]*/,'가로 이동이 더 크면 pull-to-refresh를 취소해야 한다');
+  assert.match(touchMove,/passive:false/,'touchmove에서 native overscroll을 제어할 수 있어야 한다');
+  assert.match(app,/dashboard-dialog-open|chart-expanded-overlay\.show|dialog\[open\]/,'modal/expanded UI 중에는 pull-to-refresh를 막아야 한다');
+  assert.match(app,/threshold:80/,'새로고침 arm 임계값은 80px contract를 유지해야 한다');
+  assert.match(app,/window\.location\.reload\(\)/,'임계값을 넘겨 놓으면 현재 Web App을 reload해야 한다');
+  assert.match(app,/touchcancel/,'gesture 취소 시 상태를 정리해야 한다');
   assert.match(common1,/\.standalone-pull-refresh\{/);
   assert.match(common1,/\.standalone-pull-refresh\.refreshing \.standalone-pull-refresh-icon\{/);
 });

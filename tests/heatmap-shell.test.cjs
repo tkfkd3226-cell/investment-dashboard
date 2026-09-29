@@ -26,6 +26,19 @@ function sliceBetween(source,start,end){
   return source.slice(from,to);
 }
 
+function functionBlock(source,name){
+  const signature=new RegExp(`function\\s+${name.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&')}\\s*\\([^)]*\\)\\s*\\{`);
+  const match=signature.exec(source);
+  assert.ok(match,`함수를 찾지 못함: ${name}`);
+  const open=source.indexOf('{',match.index);
+  let depth=0;
+  for(let i=open;i<source.length;i++){
+    if(source[i]==='{')depth++;
+    else if(source[i]==='}'&&--depth===0)return source.slice(match.index,i+1);
+  }
+  assert.fail(`함수 블록이 닫히지 않음: ${name}`);
+}
+
 test('히트맵은 전용 ES module 경계와 공통 helper 재사용을 유지한다',()=>{
   assert.match(index,/'dashboard-heatmap\.js'/,'히트맵 module은 importmap cache-bust 대상이어야 한다');
   assert.match(app,/from '\.\/dashboard-heatmap\.js'/,'app router가 히트맵 feature module을 명시적으로 import해야 한다');
@@ -75,16 +88,26 @@ test('히트맵 modal은 공통 lifecycle과 segmented control primitive를 재�
   assert.doesNotMatch(heatmap,/appendChild\([^)]*portfolio-heatmap-date-controls|insertBefore\([^)]*portfolio-heatmap-date-controls/,'viewport 전환을 위해 날짜 control DOM을 재배치하면 안 된다');
 });
 
-test('히트맵 app router는 action을 feature owner에 위임한다',()=>{
-  assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.open[^]*?const x=latestDashboardCalcResult=calc\(dataState\.activeDate\);[^]*?openPortfolioHeatmap\(control,x\)/,'open 시 deferred live state까지 반영하도록 현재 activeDate를 1회 fresh calc해야 한다');
-  assert.doesNotMatch(app1,/PORTFOLIO_HEATMAP_ACTION\.open[^]*?latestDashboardCalcResult\?\.date===dataState\.activeDate\?latestDashboardCalcResult:/,'같은 날짜라는 이유만으로 stale canonical cache를 재사용하면 안 된다');
-  assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.close\)return closePortfolioHeatmap\(\)/);
-  assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.previousDate\)return shiftOpenPortfolioHeatmapDate\(-1\)/);
-  assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.nextDate\)return shiftOpenPortfolioHeatmapDate\(1\)/);
-  assert.match(app1,/target\.dataset\.dashboardChange==='portfolio-heatmap-date'\)return setOpenPortfolioHeatmapDate\(target\.value\)/,'모달 날짜 select change는 부모 date handler보다 먼저 분기해야 한다');
-  assert.match(app1,/function setOpenPortfolioHeatmapDate\(date\)\{[^]*?allAvailableDates\(\)\.includes\(nextDate\)[^]*?setPortfolioHeatmapDate\(nextDate,calc\(nextDate\)\)/,'모달 날짜 변경은 사용 가능한 날짜만 canonical calc로 계산해 feature owner에 전달해야 한다');
-  assert.doesNotMatch(app1,/function setOpenPortfolioHeatmapDate\(date\)\{[^}]*latestDashboardCalcResult\s*=/,'모달 전용 날짜 계산을 부모 latest calc cache로 승격하면 안 된다');
-  assert.match(app1,/action===PORTFOLIO_HEATMAP_ACTION\.setMode\)return setPortfolioHeatmapMode\(control\.dataset\.heatmapMode\|\|''\)/);
+test('히트맵 app router는 최신 날짜 계산과 feature owner 위임 contract를 유지한다',()=>{
+  const route=sliceBetween(app,'if(action===PORTFOLIO_HEATMAP_ACTION.open){',"if(action==='toggle-separate-profit')");
+  assert.ok(route.includes('calc(dataState.activeDate)'),'open 시 현재 activeDate를 fresh calc해야 한다');
+  assert.ok(route.includes('openPortfolioHeatmap('),'open 결과는 feature owner에 전달해야 한다');
+  assert.ok(route.indexOf('calc(dataState.activeDate)')<route.indexOf('openPortfolioHeatmap('),'fresh calc가 feature open보다 먼저 수행되어야 한다');
+  assert.doesNotMatch(route,/latestDashboardCalcResult\?\.date===dataState\.activeDate/,'같은 날짜라는 이유만으로 stale canonical cache를 재사용하면 안 된다');
+  assert.ok(route.includes('closePortfolioHeatmap()'),'close action은 feature owner에 위임해야 한다');
+  const previousRoute=route.match(/PORTFOLIO_HEATMAP_ACTION\.previousDate\)return\s+([A-Za-z_$][\w$]*)\(-1\)/);
+  const nextRoute=route.match(/PORTFOLIO_HEATMAP_ACTION\.nextDate\)return\s+([A-Za-z_$][\w$]*)\(1\)/);
+  assert.ok(previousRoute&&nextRoute&&previousRoute[1]===nextRoute[1],'이전/다음 날짜는 같은 shift owner에 -1/+1로 위임해야 한다');
+  assert.ok(route.includes('setPortfolioHeatmapMode('),'mode 변경은 feature owner에 위임해야 한다');
+  const dateHandler=sliceBetween(app,'function handleDashboardDateChange(target){','// [APP03]');
+  assert.ok(dateHandler.indexOf("portfolio-heatmap-date")<dateHandler.indexOf("target.id==='monthSelect'"),'모달 날짜 변경은 부모 date handler보다 먼저 분기해야 한다');
+  const dateRoute=dateHandler.match(/portfolio-heatmap-date'\)return\s+([A-Za-z_$][\w$]*)\(target\.value\)/);
+  assert.ok(dateRoute,'모달 날짜 select는 heatmap 날짜 owner로 위임해야 한다');
+  const dateSetter=functionBlock(app,dateRoute[1]);
+  assert.match(dateSetter,/allAvailableDates\(\)\.includes\([^)]+\)/,'사용 가능한 날짜만 허용해야 한다');
+  assert.match(dateSetter,/calc\([^)]+\)/,'모달 날짜는 canonical calc로 다시 계산해야 한다');
+  assert.ok(dateSetter.includes('setPortfolioHeatmapDate('),'계산 결과는 feature owner에 전달해야 한다');
+  assert.doesNotMatch(dateSetter,/latestDashboardCalcResult\s*=/,'모달 전용 날짜 계산을 부모 latest calc cache로 승격하면 안 된다');
   assert.match(heatmap1,/fallbackSelector:portfolioHeatmapFocusFallbackSelector\(\)/,'공통 modal focus return fallback을 제공해야 한다');
 });
 

@@ -28,18 +28,19 @@ const calcScope=()=>css1.slice(css1.indexOf('/* ==================== 02. Calc'),
 // 장식용 exact px/hex/shadow/개수는 테스트하지 않고, 같은 의미가 하나의 source를 공유하는지와
 // responsive/state/accessibility 경계가 유지되는지를 production HTML/CSS/JS에서 확인한다.
 
-test('Calc/Report는 Main appearance 저장값과 BroadcastChannel을 함께 소비한다',()=>{
-  assert.match(js1,/const THEME_KEY='investmentDashboard\.theme'/);
-  assert.match(js1,/const CORNER_KEY='investmentDashboard\.cornerTheme'/);
-  assert.match(js1,/const APPEARANCE_CHANNEL_NAME='investmentDashboard\.appearance'/);
-  assert.match(js1,/syncStoredAppearance/);
-  assert.match(js1,/window\.addEventListener\('storage'/);
-  assert.match(js1,/new BroadcastChannel\(APPEARANCE_CHANNEL_NAME\)/);
-  assert.match(js1,/appearanceChannel\.addEventListener\('message',syncStoredAppearance\)/);
-  assert.match(js1,/const ADD_APPEARANCE_EVENT='investmentDashboard:appearancechange'/);
-  assert.match(js1,/window\.dispatchEvent\(new CustomEvent\(ADD_APPEARANCE_EVENT\)\)/);
-  assert.match(js1,/window\.addEventListener\(ADD_APPEARANCE_EVENT,\(\)=>requestAnimationFrame\(drawChart\)\)/);
-  assert.match(js1,/pageshow|focus|visibilitychange/);
+test('Calc/Report는 Main appearance protocol과 재동기화 경계를 유지한다',()=>{
+  // 저장키/채널 문자열은 제품 간 통신 contract다. 내부 상수명·함수명·listener 변수명은 고정하지 않는다.
+  for(const value of ['investmentDashboard.theme','investmentDashboard.cornerTheme','investmentDashboard.appearance']){
+    assert.ok(js.includes(`'${value}'`),`missing appearance contract: ${value}`);
+  }
+  assert.match(js1,/classList\.toggle\('dark',localStorage\.getItem\([^)]+\)==='dark'\)/);
+  assert.match(js1,/classList\.toggle\('rounded-corners',localStorage\.getItem\([^)]+\)==='rounded'\)/);
+  assert.match(js1,/addEventListener\('storage'/);
+  assert.match(js1,/new BroadcastChannel\([^)]+\)/);
+  assert.match(js1,/\.addEventListener\('message',/);
+  assert.match(js1,/dispatchEvent\(new CustomEvent\([^)]+\)\)/);
+  assert.match(js1,/requestAnimationFrame\(drawChart\)/,'appearance 변경은 Report chart를 다음 frame에 다시 그려야 한다');
+  for(const eventName of ['pageshow','focus','visibilitychange'])assert.ok(js1.includes(eventName),`${eventName} appearance resync가 필요하다`);
   assert.match(css1,/html\.rounded-corners\{/);
   const start=css1.indexOf(':root:where([data-add-page="calc"]){');
   const end=css1.indexOf('html:where([data-add-page="calc"]).dark{',start);

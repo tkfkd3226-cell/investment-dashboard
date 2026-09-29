@@ -32,16 +32,14 @@ const calcHtml=read('add/calc.html');
 const reportHtml=read('add/kodex-leverage-report.html');
 
 test('Main↔Add suite-wide appearance/corner/responsive/desktop-request contract는 서로 같은 값을 유지한다',()=>{
-  // 1) Appearance protocol: storage key와 BroadcastChannel 이름은 Main/Add가 같은 통신 contract다.
-  const mainTheme=capture(mainUi,/const THEME_STORAGE_KEY='([^']+)'/,'Main theme storage key');
-  const mainCorner=capture(mainUi,/const CORNER_THEME_STORAGE_KEY='([^']+)'/,'Main corner storage key');
-  const mainChannel=capture(mainUi,/const APPEARANCE_CHANNEL_NAME='([^']+)'/,'Main appearance channel');
-  const addTheme=capture(addJs,/const THEME_KEY='([^']+)'/,'Add theme storage key');
-  const addCorner=capture(addJs,/const CORNER_KEY='([^']+)'/,'Add corner storage key');
-  const addChannel=capture(addJs,/const APPEARANCE_CHANNEL_NAME='([^']+)'/,'Add appearance channel');
-  assert.equal(addTheme,mainTheme,'Main/Add theme storage key drifted');
-  assert.equal(addCorner,mainCorner,'Main/Add corner storage key drifted');
-  assert.equal(addChannel,mainChannel,'Main/Add appearance BroadcastChannel drifted');
+  // 1) Appearance protocol: 값 자체가 제품 contract다. 내부 상수명은 정상 리팩터링을 막지 않도록 고정하지 않는다.
+  for(const value of ['investmentDashboard.theme','investmentDashboard.cornerTheme','investmentDashboard.appearance']){
+    for(const [label,source] of [['Main',mainUi],['Add',addJs]]){
+      assert.ok(source.includes(`'${value}'`),`${label} appearance contract drifted: ${value}`);
+    }
+  }
+  assert.match(mainUi,/new BroadcastChannel\([^)]+\)/,'Main appearance BroadcastChannel missing');
+  assert.match(addJs,/new BroadcastChannel\([^)]+\)/,'Add appearance BroadcastChannel missing');
 
   // 2) Corner cap: palette/radius scale은 독립이어도 soft-square/rounded cap contract는 같아야 한다.
   for(const prop of ['--corner-surface-cap','--corner-control-cap','--corner-inner-cap']){
