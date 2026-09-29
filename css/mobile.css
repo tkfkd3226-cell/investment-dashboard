@@ -56,7 +56,7 @@
     .mobile-data-card-title{
       margin:0 0 var(--space-lg);
       font-size:var(--type-size-lg);
-      line-height:1;
+      line-height:var(--type-line-single);
       letter-spacing:-.03em;
     }
     .mobile-data-card-row{
@@ -70,13 +70,13 @@
     .mobile-data-card-row:first-child{border-top:0}
     .mobile-data-card-label{
       font-size:var(--type-size-xs);
-      line-height:1;
+      line-height:var(--type-line-single);
     }
     .mobile-data-card-value{
       min-width:0;
       text-align:right;
       font-size:var(--type-size-xs);
-      line-height:1;
+      line-height:var(--type-line-single);
     }
     .mobile-data-card.mobile-total-card .mobile-data-card-title{font-weight:var(--data-list-total-title-weight)}
     .mobile-data-card.mobile-total-card .mobile-data-card-value{font-weight:var(--data-list-total-value-weight)}
@@ -177,7 +177,7 @@
       display:block;
       margin-left:0;
       margin-right:0;
-      line-height:1;
+      line-height:var(--type-line-single);
     }
     .contrib-existing-memo{
       display:block;

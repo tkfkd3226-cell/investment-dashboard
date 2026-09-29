@@ -630,7 +630,7 @@
       --data-table-font-size:11px;
       --data-table-cell-y:5px;
       --data-table-cell-x:5px;
-      --data-table-line-height:1;
+      --data-table-line-height:var(--type-line-single);
       --data-table-bar-width:56px;
       --data-table-sub-font-size:10px;
     }
@@ -733,7 +733,7 @@
     position:relative;
     pointer-events:auto;
   }
-  .date-tool-icon{font-size:var(--type-size-xl);line-height:1}
+  .date-tool-icon{font-size:var(--type-size-xl);line-height:var(--control-line-height)}
   .date-tool-icon svg{display:block;width:var(--topbar-mode-icon-size);height:var(--topbar-mode-icon-size)}
   .date-tool-menu-label{display:none}
 

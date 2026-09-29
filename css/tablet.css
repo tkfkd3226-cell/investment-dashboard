@@ -225,7 +225,7 @@
       --data-table-font-size:11px;
       --data-table-cell-y:6px;
       --data-table-cell-x:6px;
-      --data-table-line-height:1;
+      --data-table-line-height:var(--type-line-single);
       --data-table-bar-width:64px;
       --data-table-sub-font-size:11px;
     }
