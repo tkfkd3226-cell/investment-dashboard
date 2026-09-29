@@ -1387,8 +1387,12 @@ test('KRX 자동 2차 scheduler는 one-shot trigger를 중복 없이 관리하�
   assert.equal(created.find(t=>t._handler==='runKrxAutoClose')._meta.at.toISOString(),'2026-09-28T06:31:00.000Z');
 
   const createdCount=created.length;
+  const firstMorningUid=triggers.find(t=>t._handler==='runKrxAutoMorning')._uid;
+  const firstCloseUid=triggers.find(t=>t._handler==='runKrxAutoClose')._uid;
   context.reconcileKrxAutoTriggersUnlocked_(beforeOpen);
-  assert.equal(created.length,createdCount,'정상 trigger가 하나씩 있으면 재생성하면 안 된다');
+  assert.equal(created.length,createdCount+2,'reconciler는 disabled 여부를 조회할 API가 없으므로 phase one-shot을 오늘 target으로 교체해야 한다');
+  assert.notEqual(triggers.find(t=>t._handler==='runKrxAutoMorning')._uid,firstMorningUid,'morning one-shot은 새 trigger로 교체되어야 한다');
+  assert.notEqual(triggers.find(t=>t._handler==='runKrxAutoClose')._uid,firstCloseUid,'close one-shot은 새 trigger로 교체되어야 한다');
 
   makeTrigger('runKrxAutoMorning');
   assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorning').length,2);
@@ -1412,27 +1416,38 @@ test('KRX 자동 2차 scheduler는 one-shot trigger를 중복 없이 관리하�
   const unrelated=makeTrigger('someOtherProjectTrigger');
   const installed=context.installKrxAutoScheduler();
   assert.equal(installed.ok,true);
-  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoTriggers').length,1,'reconciler는 정확히 하나여야 한다');
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoTriggers').length,1,'자정 reconciler는 정확히 하나여야 한다');
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoMorningGuard').length,1,'07시대 morning guard가 있어야 한다');
+  assert.equal(triggers.filter(t=>t._handler==='reconcileKrxAutoCloseGuard').length,1,'14시대 close guard가 있어야 한다');
   assert.equal(triggers.filter(t=>t._handler==='runKrxAutoMorning').length,1);
   assert.equal(triggers.filter(t=>t._handler==='runKrxAutoClose').length,1);
   assert.equal(triggers.includes(unrelated),true,'다른 프로젝트 trigger는 install이 건드리면 안 된다');
   const recurring=created.filter(t=>t._handler==='reconcileKrxAutoTriggers').at(-1);
+  const morningGuard=created.filter(t=>t._handler==='reconcileKrxAutoMorningGuard').at(-1);
+  const closeGuard=created.filter(t=>t._handler==='reconcileKrxAutoCloseGuard').at(-1);
   assert.deepEqual(recurring._meta,{atHour:0,everyDays:1,timezone:'Asia/Seoul'});
+  assert.deepEqual(morningGuard._meta,{atHour:7,everyDays:1,timezone:'Asia/Seoul'});
+  assert.deepEqual(closeGuard._meta,{atHour:14,everyDays:1,timezone:'Asia/Seoul'});
 
   const status=context.showKrxAutoSchedulerStatus();
   assert.equal(status.reconcilerInstalled,true);
+  assert.equal(status.morningGuardInstalled,true);
+  assert.equal(status.closeGuardInstalled,true);
+  assert.equal(status.schedulerHealthy,true);
   assert.equal(status.morningInstalled,true);
   assert.equal(status.closeInstalled,true);
   assert.equal(status.counts.reconcileKrxAutoTriggers,1);
 
   const removed=context.removeKrxAutoScheduler();
   assert.equal(removed.ok,true);
-  assert.equal(removed.removed,3);
+  assert.equal(removed.removed,5);
   assert.equal(triggers.length,1,'remove 후 scheduler 외 trigger만 남아야 한다');
   assert.equal(triggers[0],unrelated);
 
   assert.match(block,/\.timeBased\(\)\s*\.at\(targetDate\)\s*\.create\(\)/,'phase는 at(Date) one-shot trigger여야 한다');
-  assert.match(block,/\.atHour\(0\)\s*\.everyDays\(1\)\s*\.inTimezone\(KRX_AUTO_TIMEZONE\)/,'reconciler만 매일 00시대 KST 반복 trigger여야 한다');
+  assert.match(block,/createKrxAutoDailyReconcilerTrigger_\(KRX_AUTO_RECONCILER_HANDLER, 0\)/,'자정 reconciler를 설치해야 한다');
+  assert.match(block,/createKrxAutoDailyReconcilerTrigger_\(KRX_AUTO_RECONCILER_GUARD_HANDLERS\.morning, 7\)/,'07시대 morning guard를 설치해야 한다');
+  assert.match(block,/createKrxAutoDailyReconcilerTrigger_\(KRX_AUTO_RECONCILER_GUARD_HANDLERS\.close, 14\)/,'14시대 close guard를 설치해야 한다');
   assert.doesNotMatch(block,/PropertiesService|UrlFetchApp|getGithubBranchHeadSha|githubRequest|readGithubJson|dispatchKrxPriceWorkflow/,'scheduler 관리 계층이 기존 dispatch/GitHub/Properties hot path를 침범하면 안 된다');
 });
 
@@ -1447,6 +1462,69 @@ test('KRX 자동 2차 install/remove/status는 scheduler 전용 trigger만 관�
   assert.match(block,/function getKrxAutoSchedulerTriggers_\(\)[^]*KRX_AUTO_SCHEDULER_HANDLERS\.indexOf/);
   assert.match(block,/function withKrxAutoSchedulerLock_\(callback\)[^]*tryLock\(10000\)[^]*releaseLock\(\)/);
   assert.doesNotMatch(block,/setProperty|setProperties|deleteProperty|deleteAllProperties/,'scheduler는 기존 durable Properties namespace에 상태를 저장하지 않아야 한다');
+});
+
+test('KRX 자동 workflow 사후 검증은 terminal 실패만 recovery request로 재dispatch하고 exact run 미가시성은 fail-closed 한다',()=>{
+  const vm=require('node:vm');
+  const gas=read('GAS_code.js');
+  const start=gas.indexOf('/* --- 10G-B. KRX Automatic Workflow Outcome Verification');
+  const end=gas.indexOf('/* --- 10H. KRX Automatic Invocation Wrapper',start);
+  assert.ok(start>=0&&end>start,'KRX 자동 workflow verification 섹션을 찾지 못했다');
+  const block=gas.slice(start,end);
+  const NativeDate=Date;
+  let uidSeq=0;
+  let nowMs=Date.parse('2026-09-29T01:10:00.000Z'); // KST 10:10, close verification window 안
+  const triggers=[];const store={};const dispatches=[];const queryDates=[];
+  function makeTrigger(handler,meta={}){const t={_handler:handler,_uid:'v'+(++uidSeq),_meta:meta,getHandlerFunction(){return this._handler;},getUniqueId(){return this._uid;}};triggers.push(t);return t;}
+  const ScriptApp={
+    getProjectTriggers(){return triggers.slice();},
+    deleteTrigger(t){const i=triggers.indexOf(t);if(i>=0)triggers.splice(i,1);},
+    newTrigger(handler){const meta={};const api={timeBased(){return api;},at(v){meta.at=v;return api;},create(){return makeTrigger(handler,{...meta});}};return api;}
+  };
+  const props={getProperty:k=>store[k]??null,setProperty(k,v){store[k]=String(v);return props;},deleteProperty(k){delete store[k];return props;},getProperties(){return {...store};}};
+  class FixedDate extends NativeDate{constructor(...args){super(...(args.length?args:[nowMs]));}static UTC(...args){return NativeDate.UTC(...args);}}
+  let exactMode='failure';
+  let activeRun=null;
+  const context=vm.createContext({
+    PropertiesService:{getScriptProperties:()=>props},ScriptApp,Date:FixedDate,console,
+    KRX_AUTO_VERIFY_HANDLERS:{morning:'runKrxAutoMorningVerify',close:'runKrxAutoCloseVerify'},KRX_AUTO_TIMEZONE:'Asia/Seoul',
+    isValidDateText:v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')),
+    Utilities:{formatDate(date){const d=new NativeDate(date.getTime()+9*60*60*1000);return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;}},
+    withKrxAutoSchedulerLock_:(cb)=>cb(),getProp:()=> 'main',
+    findKrxWorkflowRunByRequestId:(_branch,date,_requestId)=>{queryDates.push(date);if(exactMode==='none')return null;if(exactMode==='pendingConclusion')return {id:102,status:'completed',conclusion:null};if(exactMode==='success')return {id:103,status:'completed',conclusion:'success'};return {id:101,status:'completed',conclusion:'failure'};},
+    findActiveKrxWorkflowRun:()=>activeRun,isActiveKrxWorkflowRun:run=>!!run&&['queued','in_progress','waiting','pending','requested'].includes(String(run.status||'')),
+    classifyKrxAutoRetryError_:()=>'',
+    dispatchKrxPriceWorkflow:body=>{dispatches.push(body.requestId);return {ok:true,action:'workflow_dispatched',requestId:body.requestId};}
+  });
+  vm.runInContext(block,context);
+
+  const date='2026-09-29';
+  let scheduled=context.scheduleKrxAutoVerification_('close',date,`krx-auto:${date}:close`,0,0,'test',new FixedDate());
+  assert.equal(scheduled.scheduled,true);
+  let result=context.runKrxAutoCloseVerify({triggerUid:scheduled.triggerUid});
+  assert.equal(result.action,'auto_verification_recovery_dispatched');
+  assert.deepEqual(dispatches,[`krx-auto-recovery:${date}:close:1`]);
+  assert.equal(queryDates[0],'','자동 dispatch run 조회는 날짜가 아니라 workflow의 auto prefix를 사용해야 한다');
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoCloseVerify').length,1,'recovery dispatch 뒤 verification은 하나만 남아야 한다');
+
+  const recoveryTrigger=triggers.find(t=>t._handler==='runKrxAutoCloseVerify');
+  exactMode='success';
+  result=context.runKrxAutoCloseVerify({triggerUid:recoveryTrigger._uid});
+  assert.equal(result.action,'auto_verification_success');
+  assert.equal(dispatches.length,1,'성공 conclusion 뒤에는 추가 recovery dispatch가 없어야 한다');
+  assert.equal(triggers.filter(t=>t._handler==='runKrxAutoCloseVerify').length,0);
+
+  exactMode='none';activeRun={id:201,status:'in_progress',conclusion:null};
+  scheduled=context.scheduleKrxAutoVerification_('close',date,`krx-auto:${date}:close`,0,0,'test',new FixedDate());
+  result=context.runKrxAutoCloseVerify({triggerUid:scheduled.triggerUid});
+  assert.equal(result.action,'auto_verification_waiting_active_run');
+  assert.equal(dispatches.length,1,'exact run이 안 보여도 active run이 있으면 중복 dispatch하면 안 된다');
+
+  const pendingTrigger=triggers.find(t=>t._handler==='runKrxAutoCloseVerify');
+  exactMode='pendingConclusion';activeRun=null;
+  result=context.runKrxAutoCloseVerify({triggerUid:pendingTrigger._uid});
+  assert.equal(result.action,'auto_verification_conclusion_pending');
+  assert.equal(dispatches.length,1,'completed지만 conclusion 미가시성인 순간에도 recovery dispatch하면 안 된다');
 });
 
 test('KRX 자동 3차 정상 성공 경로는 retry용 ScriptApp/Properties I/O를 전혀 실행하지 않는다',()=>{
