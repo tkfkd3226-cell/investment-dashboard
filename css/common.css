@@ -2158,6 +2158,7 @@ body.chart-expanded-open .dash-tooltip{
   justify-content:center;
   min-height:var(--asset-insight-stack-height);
   padding:0 var(--empty-state-padding);
+  line-height:var(--type-line-single);
 }
 
 .asset-stack-bar{
