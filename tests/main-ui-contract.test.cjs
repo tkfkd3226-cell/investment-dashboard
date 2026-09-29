@@ -203,7 +203,7 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
 
   assert.match(common,/--compact-control-ios-optical-shift:1\.5px;[^]*?--compact-control-ios-chart-all-correction:-1px;/,'iOS optical correction은 1.5px base shift와 chart 전체 -1px correction을 token으로 관리해야 한다');
   assert.match(common,/\.compact-control-text\{[^}]*line-height:var\(--compact-control-line-height\);[^}]*transform:none;/,'direct text compact control은 공통 text span primitive를 사용해야 한다');
-  assert.match(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?\.state-toggle-label,[^]*?\.control-segmented \.compact-control-text,[^]*?\.section-basis-chip \.compact-control-text\{[^}]*transform:translateY\(var\(--compact-control-ios-optical-shift\)\)[^]*?\.chart-series-all \.compact-control-text\{[^}]*var\(--compact-control-ios-chart-all-correction\)/,'실제 iOS에서는 state/segmented/기준 chip에 base shift, chart 전체에 별도 correction을 적용해야 한다');
+  assert.match(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?\.state-toggle-label,[^]*?\.control-segmented \.compact-control-text,[^]*?\.section-basis-chip \.compact-control-text,[^]*?\.control-tab \.control-tab-text\{[^}]*transform:translateY\(var\(--compact-control-ios-optical-shift\)\)[^]*?\.chart-series-all \.compact-control-text\{[^}]*var\(--compact-control-ios-chart-all-correction\)/,'실제 iOS에서는 state/segmented/기준 chip/control-tab에 base shift, chart 전체에 별도 correction을 적용해야 한다');
   assert.doesNotMatch(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?padding-top:calc\(var\(--compact-control-ios-optical-shift\)/,'iOS text 보정은 shell padding으로 구현하면 안 된다');
   assert.ok(
     charts.includes('<span class="compact-control-text">전체</span>')

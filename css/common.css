@@ -2572,7 +2572,8 @@ body.chart-expanded-open .dash-tooltip{
     .state-toggle-label,
     .state-toggle-state .control-text-optical,
     .control-segmented .compact-control-text,
-    .section-basis-chip .compact-control-text{
+    .section-basis-chip .compact-control-text,
+    .control-tab .control-tab-text{
       transform:translateY(var(--compact-control-ios-optical-shift));
     }
     /* chart 전체는 동일 700/11px이어도 iOS Safari에서 state-toggle label보다 약 1px 낮게 보여 direct-text correction만 적용 */
@@ -3078,6 +3079,11 @@ body.dashboard-dialog-open{
   white-space:nowrap;
   cursor:pointer;
   transition:background .14s ease,color .14s ease,box-shadow .14s ease;
+}
+.control-tab-text{
+  display:inline-block;
+  line-height:1;
+  transform:none;
 }
 /* Modal Segmented Geometry · 세 모달의 탭 높이/폰트/내부 여백을 같은 viewport token으로 고정 */
 :is(.contrib-target-tabs,.monthly-calendar-mode-tabs,.portfolio-heatmap-mode-tabs){

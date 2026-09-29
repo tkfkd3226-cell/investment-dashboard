@@ -205,7 +205,7 @@ function renderMonthlyCalendarSummary(model){
 function renderMonthlyCalendarModeSelector(){
   return `<div class="control-tab-group monthly-calendar-mode-tabs" role="group" aria-label="월간 손익 범위 선택">${Object.entries(MONTHLY_CALENDAR_MODES).map(([mode,meta])=>{
     const active=mode===monthlyCalendarState.mode;
-    return `<button type="button" class="control-tab monthly-calendar-mode-tab${active?' active':''}" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.setMode}" data-calendar-mode="${mode}" aria-pressed="${active?'true':'false'}">${meta.label}</button>`;
+    return `<button type="button" class="control-tab monthly-calendar-mode-tab${active?' active':''}" data-dashboard-action="${MONTHLY_CALENDAR_ACTION.setMode}" data-calendar-mode="${mode}" aria-pressed="${active?'true':'false'}"><span class="control-tab-text">${meta.label}</span></button>`;
   }).join('')}</div>`;
 }
 function renderMonthlyCalendarSeparateProfitToggle(){

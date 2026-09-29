@@ -432,7 +432,7 @@ function portfolioHeatmapTooltipHtml(row){
 function renderPortfolioHeatmapModeSelector(){
   return `<div class="control-tab-group portfolio-heatmap-mode-tabs" role="group" aria-label="히트맵 표시 기준">${Object.entries(PORTFOLIO_HEATMAP_MODES).map(([mode,label])=>{
     const active=portfolioHeatmapState.mode===mode;
-    return `<button type="button" class="control-tab portfolio-heatmap-mode-tab${active?' active':''}" data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.setMode}" data-heatmap-mode="${mode}" aria-pressed="${active?'true':'false'}">${label}</button>`;
+    return `<button type="button" class="control-tab portfolio-heatmap-mode-tab${active?' active':''}" data-dashboard-action="${PORTFOLIO_HEATMAP_ACTION.setMode}" data-heatmap-mode="${mode}" aria-pressed="${active?'true':'false'}"><span class="control-tab-text">${label}</span></button>`;
   }).join('')}</div>`;
 }
 function portfolioHeatmapDateNeighbor(delta){
