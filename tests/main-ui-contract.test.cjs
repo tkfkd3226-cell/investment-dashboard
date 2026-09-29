@@ -229,8 +229,14 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.doesNotMatch(common,/button\.legend-item\.chart-series-all\{[^}]*(?:font-size|font-weight|line-height):/,'차트 전체 버튼이 공통 compact-control typography를 feature override하면 안 된다');
   assert.match(common,/\.control-segmented button\{[^}]*font-size:var\(--compact-control-font-size\);[^}]*font-weight:var\(--compact-control-font-weight\);[^}]*line-height:var\(--compact-control-line-height\);/,'전체·계좌별 같은 segmented switch도 compact-control typography 단일 원천을 사용해야 한다');
   assert.match(common,/--compact-control-ios-optical-shift:1\.5px;/,'iOS optical correction도 compact control 공통 token 한 곳에서 관리해야 한다');
-  assert.match(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?@media screen and \(hover:none\) and \(pointer:coarse\)\{[^]*?\.state-toggle-label,[^]*?\.state-toggle-state \.control-text-optical,[^]*?\.section-basis-chip \.control-text-optical\{[^}]*transform:translateY\(var\(--compact-control-ios-optical-shift\)\)/,'iOS/WebKit touch 환경에서 state toggle과 섹션 기준 chip이 동일 optical token으로 보정되어야 한다');
-  assert.match(common,/button\.legend-item\.chart-series-all,[^]*?\.control-segmented button\{[^}]*padding-top:calc\(var\(--compact-control-ios-optical-shift\) \+ var\(--compact-control-ios-optical-shift\)\);/,'차트 전체와 segmented direct text도 같은 iOS optical token에서 파생된 1.5px visual bias를 사용해야 한다');
+  assert.match(common,/\.compact-control-text\{[^}]*display:inline-flex;[^}]*align-items:center;[^}]*justify-content:center;[^}]*line-height:var\(--compact-control-line-height\);[^}]*transform:none;/,'direct text compact control은 shell과 분리된 공통 text span primitive를 사용해야 한다');
+  assert.match(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?@media screen and \(hover:none\) and \(pointer:coarse\)\{[^]*?\.state-toggle-label,[^]*?\.state-toggle-state \.control-text-optical,[^]*?\.compact-control-text\{[^}]*transform:translateY\(var\(--compact-control-ios-optical-shift\)\)/,'iOS/WebKit touch 환경에서 state toggle·차트 전체·segmented·기준 chip text가 동일 translateY token으로 보정되어야 한다');
+  assert.doesNotMatch(common,/@supports \(-webkit-touch-callout:none\)\{[^]*?padding-top:calc\(var\(--compact-control-ios-optical-shift\)/,'iOS optical correction에서 shell padding으로 text 위치를 흉내내면 Safari fixed-height flex 반올림 차이가 재발할 수 있다');
+  assert.match(charts,/class="legend-item chart-series-all"[^>]*><span class="compact-control-text">전체<\/span><\/button>/,'차트 전체는 iOS에서 shell이 아니라 text span만 이동해야 한다');
+  assert.match(charts,/class="section-control-chip section-basis-chip"><span class="control-text-optical compact-control-text">삼성증권1 기준<\/span>/,'삼성증권1 기준 chip도 동일 compact-control text span을 사용해야 한다');
+  assert.match(charts,/class="section-control-chip section-basis-chip"><span class="control-text-optical compact-control-text">퇴직연금 기준<\/span>/,'퇴직연금 기준 chip도 동일 compact-control text span을 사용해야 한다');
+  assert.match(charts,/class="control-segmented"[^]*?<span class="compact-control-text">수익률<\/span>[^]*?<span class="compact-control-text">코스피<\/span>/,'차트 segmented 버튼은 공통 text span primitive를 사용해야 한다');
+  assert.match(ui,/class="control-segmented securities-performance-toggle"[^]*?<span class="compact-control-text">전체<\/span>[^]*?<span class="compact-control-text">계좌별<\/span>/,'성과 segmented 버튼도 공통 text span primitive를 사용해야 한다');
   assert.doesNotMatch(common,/\.monthly-calendar-separate-profit\s+\.(?:separate-profit-toggle-label|control-text-optical)|--monthly-separate-profit-|\.monthly-calendar-separate-profit\.separate-profit-toggle/,'월간 모달만을 위한 별도수익 skin/텍스트 정렬 override를 다시 만들면 안 된다');
   assert.match(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*--separate-profit-height:25px;[^}]*--separate-profit-state-min-width:34px;[^}]*--separate-profit-state-height:21px;/,'Phone 메인은 compact geometry만 유지해야 한다');
   assert.doesNotMatch(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*(?:--separate-profit-font-size|--separate-profit-state-font-size|--separate-profit-font-weight)/,'Phone 메인 compact도 공통 typography를 별도 override하면 안 된다');
@@ -2236,6 +2242,8 @@ test('실시간 시세는 연결 gating·Phone icon entry·theme 동기화·resp
 
 test('퇴직연금 작업 방식 switch는 폭·좌우 여백만 전용이고 나머지는 공통 segmented contract를 사용한다',()=>{
   assert.match(pensionEditor,/class="control-segmented pension-work-mode"/);
+  assert.match(pensionEditor,/class="pension-work-mode-btn active"[^>]*><span class="compact-control-text">개별 처리<\/span>/,'퇴직연금 개별 처리도 공통 segmented text span을 사용해야 한다');
+  assert.match(pensionEditor,/class="pension-work-mode-btn"[^>]*><span class="compact-control-text">작업 모음 <span id="pensionBatchModeCount">0<\/span><\/span>/,'퇴직연금 작업 모음도 count를 포함해 공통 segmented text span 안에서 정렬되어야 한다');
   assert.doesNotMatch(common,/--pension-modal-mode-(?:size|height)/);
   const modeBlock=common.match(/\.pension-contrib-context \.pension-work-mode button\s*\{([^}]*)\}/s);
   assert.ok(modeBlock,'퇴직연금 작업 방식 버튼의 geometry-only override가 필요하다');

@@ -1663,23 +1663,15 @@ button.legend-item.chart-series-all.active{
   box-shadow:var(--segmented-active-shadow);
 }
 
-/* iOS Optical Alignment · 실제 iOS/WebKit의 작은 굵은 글자 rasterization만 보정
-   - F12/PC Chrome에는 적용하지 않는다.
-   - text span은 1.5px 직접 이동, direct-text button은 top padding 3px로 같은 1.5px visual bias를 만든다.
-   - Phone 메인 별도수익 ON/OFF는 special.css의 기존 compact 1px 보정이 후순위로 유지된다. */
-@supports (-webkit-touch-callout:none){
-  @media screen and (hover:none) and (pointer:coarse){
-    .state-toggle-label,
-    .state-toggle-state .control-text-optical,
-    .section-basis-chip .control-text-optical{
-      transform:translateY(var(--compact-control-ios-optical-shift));
-    }
-    button.legend-item.chart-series-all,
-    .control-segmented button{
-      padding-top:calc(var(--compact-control-ios-optical-shift) + var(--compact-control-ios-optical-shift));
-    }
-  }
+/* Compact Control Text · direct text button도 iOS에서 shell이 아니라 text만 동일하게 이동시킨다. */
+.compact-control-text{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:var(--compact-control-line-height);
+  transform:none;
 }
+
 /* 계좌별 전용 표/카드 전환 wrapper는 데스크톱에서 빈 flex item/gap을 만들지 않는다. */
 .securities-summary-block [data-accounts-view-toggle-wrap]{display:none}
 
@@ -2557,6 +2549,21 @@ body.chart-expanded-open .dash-tooltip{
 .section-basis-chip .control-text-optical{
   line-height:var(--compact-control-line-height);
   transform:none;
+}
+
+/* iOS Optical Alignment · 실제 iOS/WebKit의 작은 글자 rasterization만 보정
+   - F12/PC Chrome에는 적용하지 않는다.
+   - 차트 전체/segmented/기준 chip은 .compact-control-text, state toggle은 기존 text span을 동일 1.5px translateY로 이동한다.
+   - shell padding은 건드리지 않아 fixed-height flex에서 Safari의 padding 반올림 차이를 만들지 않는다.
+   - Phone 메인 별도수익 ON/OFF는 special.css의 기존 compact 1px 보정이 후순위로 유지된다. */
+@supports (-webkit-touch-callout:none){
+  @media screen and (hover:none) and (pointer:coarse){
+    .state-toggle-label,
+    .state-toggle-state .control-text-optical,
+    .compact-control-text{
+      transform:translateY(var(--compact-control-ios-optical-shift));
+    }
+  }
 }
 .section-action-chip{
   height:var(--section-chip-height);

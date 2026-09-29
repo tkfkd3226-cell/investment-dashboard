@@ -792,7 +792,7 @@ function chartAutoYEnabled(scope){
 function chartLegendHtml(scope){
   const items=chartLegendItems(scope),selection=chartSelection(scope);
   const autoY=selection.state.autoY===true;
-  const allButton=selection.all?'':`<button type="button" class="legend-item chart-series-all" aria-pressed="false" data-dashboard-action="toggle-chart-series" data-chart-scope="${scope}" data-chart-series-key="__all__">전체</button>`;
+  const allButton=selection.all?'':`<button type="button" class="legend-item chart-series-all" aria-pressed="false" data-dashboard-action="toggle-chart-series" data-chart-scope="${scope}" data-chart-series-key="__all__"><span class="compact-control-text">전체</span></button>`;
   const itemButtons=items.map(item=>{
     const active=selection.selected.has(item.key);
     return `<button type="button" class="legend-item chart-series-toggle${active?' active':' inactive'}" aria-pressed="${active}" data-dashboard-action="toggle-chart-series" data-chart-scope="${scope}" data-chart-series-key="${encodeURIComponent(item.key)}"><span class="swatch" aria-hidden="true" style="--chart-legend-color:${item.color}"></span>${escapeHtml(chartDisplayLabel(scope,item.label))}</button>`;
@@ -857,7 +857,7 @@ function chartCompareLabel(scope){
 }
 function chartCompareToggle(scope){
   const mode=chartState.compareModes[scope]||'return';
-  return `<div class="control-segmented" role="group" aria-label="선 그래프 표시 기준"><button type="button" class="${mode==='return'?'active':''}" data-chart-compare-scope="${scope}" data-chart-compare-mode="return" aria-pressed="${mode==='return'}" data-dashboard-action="set-chart-compare-mode">수익률</button><button type="button" class="${mode==='kospi'?'active':''}" data-chart-compare-scope="${scope}" data-chart-compare-mode="kospi" aria-pressed="${mode==='kospi'}" data-dashboard-action="set-chart-compare-mode">코스피</button></div>`;
+  return `<div class="control-segmented" role="group" aria-label="선 그래프 표시 기준"><button type="button" class="${mode==='return'?'active':''}" data-chart-compare-scope="${scope}" data-chart-compare-mode="return" aria-pressed="${mode==='return'}" data-dashboard-action="set-chart-compare-mode"><span class="compact-control-text">수익률</span></button><button type="button" class="${mode==='kospi'?'active':''}" data-chart-compare-scope="${scope}" data-chart-compare-mode="kospi" aria-pressed="${mode==='kospi'}" data-dashboard-action="set-chart-compare-mode"><span class="compact-control-text">코스피</span></button></div>`;
 }
 function setChartCompareMode(scope,mode){
   if(!['securities','pension'].includes(scope))return;
@@ -876,7 +876,7 @@ function symbolChartToggle(scope){
   const mode=chartState.symbolModes[scope]||'profit';
   const profitLabel=scope==='pension'?'운용손익':'누적손익';
   const rateLabel='수익률';
-  return `<div class="control-segmented" role="group" aria-label="상품·종목별 차트 표시 기준"><button type="button" class="${mode==='profit'?'active':''}" data-symbol-chart-scope="${scope}" data-symbol-chart-mode="profit" aria-pressed="${mode==='profit'}" data-dashboard-action="set-symbol-chart-mode">${profitLabel}</button><button type="button" class="${mode==='rate'?'active':''}" data-symbol-chart-scope="${scope}" data-symbol-chart-mode="rate" aria-pressed="${mode==='rate'}" data-dashboard-action="set-symbol-chart-mode">${rateLabel}</button></div>`;
+  return `<div class="control-segmented" role="group" aria-label="상품·종목별 차트 표시 기준"><button type="button" class="${mode==='profit'?'active':''}" data-symbol-chart-scope="${scope}" data-symbol-chart-mode="profit" aria-pressed="${mode==='profit'}" data-dashboard-action="set-symbol-chart-mode"><span class="compact-control-text">${profitLabel}</span></button><button type="button" class="${mode==='rate'?'active':''}" data-symbol-chart-scope="${scope}" data-symbol-chart-mode="rate" aria-pressed="${mode==='rate'}" data-dashboard-action="set-symbol-chart-mode"><span class="compact-control-text">${rateLabel}</span></button></div>`;
 }
 function setSymbolChartMode(scope,mode){
   if(!['securities','pension'].includes(scope))return;
@@ -897,7 +897,7 @@ function setSymbolChartMode(scope,mode){
 
 function securityAllocToggle(){
   const mode=chartState.securityAllocMode==='symbol'?'symbol':'type';
-  return `<div class="control-segmented" role="group" aria-label="증권계좌 평가금액 비중 표시 기준"><button type="button" class="${mode==='type'?'active':''}" data-security-alloc-mode="type" aria-pressed="${mode==='type'}" data-dashboard-action="set-security-alloc-mode">유형별</button><button type="button" class="${mode==='symbol'?'active':''}" data-security-alloc-mode="symbol" aria-pressed="${mode==='symbol'}" data-dashboard-action="set-security-alloc-mode">종목별</button></div>`;
+  return `<div class="control-segmented" role="group" aria-label="증권계좌 평가금액 비중 표시 기준"><button type="button" class="${mode==='type'?'active':''}" data-security-alloc-mode="type" aria-pressed="${mode==='type'}" data-dashboard-action="set-security-alloc-mode"><span class="compact-control-text">유형별</span></button><button type="button" class="${mode==='symbol'?'active':''}" data-security-alloc-mode="symbol" aria-pressed="${mode==='symbol'}" data-dashboard-action="set-security-alloc-mode"><span class="compact-control-text">종목별</span></button></div>`;
 }
 function securityAllocLegendHtml(x){
   return chartLegendHtml('securitiesAlloc');
@@ -987,7 +987,7 @@ function renderSecuritiesCumulativeChart(x,separateProfitHtml=''){
 }
 function renderCharts(x,separateProfitHtml=''){
   const symbolSeries=securityHistoricalChartItems(x.date),symbolCards=securityHistoricalChartCardItems(x.date),orderedSymbols=sortSecurityChartItems(symbolCards),symbolTotal=symbolSeries.reduce((a,h)=>a+Number(h.totalProfit??h.profit??0),0);
-  return `<section id="investment-analysis"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="period" aria-hidden="true"></span>투자 기간 분석</h2><p class="section-control-chip section-basis-chip"><span class="control-text-optical">삼성증권1 기준</span></p></div><div class="grid chart-grid">
+  return `<section id="investment-analysis"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="period" aria-hidden="true"></span>투자 기간 분석</h2><p class="section-control-chip section-basis-chip"><span class="control-text-optical compact-control-text">삼성증권1 기준</span></p></div><div class="grid chart-grid">
   ${renderSecuritiesCumulativeChart(x,separateProfitHtml)}
   ${renderChartCard({id:'chart-symbol',title:'종목별 누적손익',icon:'barChart',actions:`${symbolChartToggle('securities')}${chartWebExpandButton()}`,svgId:'chartSymbol',legendId:'securitiesSymbolLegend',legendHtml:chartLegendHtml('securitiesSymbol'),noteClass:'symbol-summary-grid',noteHtml:orderedSymbols.map(h=>symbolCard(h,symbolTotal)).join('')})}
   ${renderChartCard({id:'chart-alloc',title:'평가금액 비중',icon:'pie',actions:`${securityAllocToggle()}${chartWebExpandButton()}`,svgId:'chartAlloc',legendId:'securityAllocLegend',legendHtml:securityAllocLegendHtml(x),noteClass:'security-alloc-card-grid',noteId:'securityAllocCards',noteStyle:`--security-alloc-card-count:${securityAllocCardCount(x)}`,noteHtml:securityAllocCardsHtml(x)})}
@@ -1031,7 +1031,7 @@ function renderPensionCharts(x){
   const allocCards=orderedAllocRows.map(r=>allocationValueCard(r.name,won(r.evalAmount),{ratioText:`${(r.evalAmount/productEvalTotal*100).toFixed(1)}%`,swatch:pensionProductSwatch(r.name)})).join('');
   const cumulativeNote=cumulativeSummaryCards({profitLabel:'운용손익',returnLabel:'운용수익률',lastProfit,lastReturn,profitDelta,dayReturnRate,best,bestDay,worstDay,mdd,bestGap,bestDetail,chartId:'pension-chart-cum'});
   const allocNote=`${allocCards}${allocationTotalCard(won(x.pensionEval),{className:'pension-alloc-total-card',detailHtml:`<div class="m-detail cash-include-detail alloc-cash-meta pension-cash-detail pension-cash-detail-full">(현금성자산 ${won(x.pensionCash)} 포함)</div><div class="m-detail cash-include-detail alloc-cash-meta pension-cash-detail pension-cash-detail-compact">(현금 ${fmt(x.pensionCash)})</div>`})}`;
-  return `<section id="pension-investment-analysis" class="pension-chart-block"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="period" aria-hidden="true"></span>투자 기간 분석</h2><p class="section-control-chip section-basis-chip"><span class="control-text-optical">퇴직연금 기준</span></p></div><div class="grid chart-grid">
+  return `<section id="pension-investment-analysis" class="pension-chart-block"><div class="section-title"><h2><span class="section-title-icon" data-section-title-icon="period" aria-hidden="true"></span>투자 기간 분석</h2><p class="section-control-chip section-basis-chip"><span class="control-text-optical compact-control-text">퇴직연금 기준</span></p></div><div class="grid chart-grid">
   ${renderChartCard({id:'pension-chart-cum',title:'운용손익 및 운용수익률',titleSub:'전체 운용 기준',titleInfo:'전체 운용 기준',icon:'lineChart',actions:`${chartCompareToggle('pension')}${chartWebExpandButton()}`,svgId:'pensionChartCum',legendId:'pensionCumLegend',legendHtml:chartLegendHtml('pensionCum'),noteClass:'six',noteHtml:cumulativeNote})}
   ${renderChartCard({id:'pension-chart-symbol',title:'연금상품별 운용손익',titleSub:'보유상품 재투자 기준',titleInfo:'보유상품 재투자 기준',icon:'barChart',actions:`${symbolChartToggle('pension')}${chartWebExpandButton()}`,svgId:'pensionChartSymbol',legendId:'pensionSymbolLegend',legendHtml:chartLegendHtml('pensionSymbol'),noteClass:'symbol-summary-grid pension-symbol-summary-grid',noteHtml:`${symbols.sort((a,b)=>Math.abs(b.profit)-Math.abs(a.profit)).map(h=>pensionProductCard(h,symbolTotal)).join('')}${pensionProductTotalCard(x,symbols)}`})}
   ${renderChartCard({id:'pension-chart-alloc',title:'평가금액 비중',icon:'pie',actions:chartWebExpandButton(),svgId:'pensionChartAlloc',legendId:'pensionAllocLegend',legendHtml:chartLegendHtml('pensionAlloc'),noteHtml:allocNote})}
