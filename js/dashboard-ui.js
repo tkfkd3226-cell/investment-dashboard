@@ -157,7 +157,7 @@ function setCornerTheme(theme){
 function toggleCornerTheme(){setCornerTheme(currentCornerTheme()==='rounded'?'soft-square':'rounded')}
 
 // [UI02] Section Controls / Title Icons · 섹션 컨트롤 / 제목 아이콘
-const separateProfitToggle=()=>`<button type="button" class="section-control-chip section-action-chip separate-profit-toggle ${uiState.includeSeparateProfit?'active':''}" aria-label="별도수익 포함" aria-pressed="${uiState.includeSeparateProfit}" data-dashboard-action="toggle-separate-profit"><span class="separate-profit-toggle-label">별도수익</span><strong><span class="control-text-optical">${uiState.includeSeparateProfit?'ON':'OFF'}</span></strong></button>`;
+const separateProfitToggle=()=>`<button type="button" class="section-control-chip section-action-chip state-toggle separate-profit-toggle ${uiState.includeSeparateProfit?'active':''}" aria-label="별도수익 포함" aria-pressed="${uiState.includeSeparateProfit}" data-dashboard-action="toggle-separate-profit"><span class="state-toggle-label separate-profit-toggle-label">별도수익</span><strong class="state-toggle-state"><span class="control-text-optical">${uiState.includeSeparateProfit?'ON':'OFF'}</span></strong></button>`;
 const separateProfitControl=(x,extraClass='')=>{
   const profit=separateProfitCumulativeForDate(x.date);
   const note=uiState.includeSeparateProfit?`<span class="separate-profit-control-note">선택일 ${signed(profit,'원')}</span>`:'';

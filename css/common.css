@@ -171,16 +171,25 @@
   --dashboard-control-state-font-size:var(--type-size-2xs);
   --dashboard-control-state-min-width:28px;
   --dashboard-control-pad-x:8px;
+  /* State Toggle · 별도수익/Y축 자동 재계산의 label + ON/OFF typography/geometry 단일 원천 */
+  --state-toggle-font-size:var(--type-size-xs);
+  --state-toggle-state-font-size:var(--type-size-xs);
+  --state-toggle-font-weight:var(--type-weight-bold);
+  --state-toggle-state-min-width:28px;
+  --state-toggle-pad-x:8px;
+  --state-toggle-gap:var(--space-md);
+  --state-toggle-state-height:18px;
+  --state-toggle-state-pad-x:var(--space-md);
   /* Separate Profit Toggle · 기본형은 Web/Tablet/월간 모달 전 viewport가 공유하고 Phone 메인만 feature scope에서 compact override */
   --separate-profit-height:29px;
-  --separate-profit-font-size:var(--type-size-xs);
-  --separate-profit-state-font-size:var(--type-size-xs);
-  --separate-profit-font-weight:var(--type-weight-bold);
-  --separate-profit-state-min-width:28px;
-  --separate-profit-pad-x:8px;
-  --separate-profit-gap:var(--space-md);
-  --separate-profit-state-height:18px;
-  --separate-profit-state-pad-x:var(--space-md);
+  --separate-profit-font-size:var(--state-toggle-font-size);
+  --separate-profit-state-font-size:var(--state-toggle-state-font-size);
+  --separate-profit-font-weight:var(--state-toggle-font-weight);
+  --separate-profit-state-min-width:var(--state-toggle-state-min-width);
+  --separate-profit-pad-x:var(--state-toggle-pad-x);
+  --separate-profit-gap:var(--state-toggle-gap);
+  --separate-profit-state-height:var(--state-toggle-state-height);
+  --separate-profit-state-pad-x:var(--state-toggle-state-pad-x);
   --dashboard-switch-min-width:52px;
   --dashboard-control-radius:9px;
   --icon-button-size:32px;
@@ -1485,7 +1494,7 @@ svg.chart:focus-visible{
   cursor:pointer;
 }
 
-:is(.chart-series-all,.chart-y-auto-toggle,.separate-profit-toggle,.chart-scroll-start,.chart-scroll-end,.chart-expand-control){
+:is(.chart-series-all,.state-toggle,.chart-scroll-start,.chart-scroll-end,.chart-expand-control){
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -1525,39 +1534,54 @@ button.legend-item.chart-series-all.active{
   color:var(--ink);
 }
 
-/* State Toggle Base · 라벨 + ON/OFF control의 크기/여백/badge 골격 공통 */
-:is(.chart-y-auto-toggle,.separate-profit-toggle){
-  gap:var(--space-md);
+/* State Toggle Base · 별도수익/Y축 자동 재계산이 동일 primitive를 사용 */
+.state-toggle{
+  --dashboard-control-font-size:var(--state-toggle-font-size);
+  --dashboard-control-state-font-size:var(--state-toggle-state-font-size);
+  --dashboard-control-state-min-width:var(--state-toggle-state-min-width);
+  --dashboard-control-state-height:var(--state-toggle-state-height);
+  --dashboard-control-state-pad-x:var(--state-toggle-state-pad-x);
+  --dashboard-control-state-font-weight:var(--state-toggle-font-weight);
+  gap:var(--state-toggle-gap);
   flex:0 0 auto;
-  padding:0 var(--dashboard-control-pad-x);
+  padding:0 var(--state-toggle-pad-x);
   border:1px solid var(--control-border);
   border-radius:var(--radius-pill);
   color:var(--muted);
+  font-weight:var(--state-toggle-font-weight);
+  line-height:1;
 }
 
-:is(.chart-y-auto-state,.separate-profit-toggle strong){
+.state-toggle-label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+}
+
+.state-toggle-state{
   display:inline-flex;
   align-items:center;
   justify-content:center;
   box-sizing:border-box;
   min-width:var(--dashboard-control-state-min-width);
-  height:18px;
-  padding:0 var(--space-md);
+  height:var(--dashboard-control-state-height);
+  padding:0 var(--dashboard-control-state-pad-x);
   border-radius:var(--radius-pill);
   background:var(--state-chip-bg);
   color:var(--state-chip-text);
   font-size:var(--dashboard-control-state-font-size);
+  font-weight:var(--dashboard-control-state-font-weight);
   line-height:1;
   letter-spacing:0;
   text-align:center;
 }
 
+/* 기본형 state text는 optical shift 없이 geometric center에 둔다. Phone 메인 별도수익 compact만 feature override를 유지한다. */
+.state-toggle-state .control-text-optical{transform:none}
+
 .chart-y-auto-toggle{
-  --dashboard-control-font-size:var(--type-size-xs);
-  --dashboard-control-state-font-size:var(--type-size-xs);
   background:transparent;
-  font-weight:var(--type-weight-bold);
-  line-height:1;
 }
 
 .chart-y-auto-toggle.active{
@@ -4443,25 +4467,14 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   --dashboard-control-font-size:var(--separate-profit-font-size);
   --dashboard-control-state-font-size:var(--separate-profit-state-font-size);
   --dashboard-control-state-min-width:var(--separate-profit-state-min-width);
+  --dashboard-control-state-height:var(--separate-profit-state-height);
+  --dashboard-control-state-pad-x:var(--separate-profit-state-pad-x);
+  --dashboard-control-state-font-weight:var(--separate-profit-font-weight);
   --dashboard-control-pad-x:var(--separate-profit-pad-x);
   gap:var(--separate-profit-gap);
   padding:0 var(--separate-profit-pad-x);
   background:var(--card);
-  font-weight:var(--separate-profit-font-weight);
   letter-spacing:-.025em;
-}
-/* Separate Profit Base · Web/Tablet 메인·월간 모달·Phone 월간 모달은 같은 텍스트 중심선을 공유 */
-.separate-profit-toggle-label{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  line-height:1;
-}
-.separate-profit-toggle strong{
-  min-width:var(--separate-profit-state-min-width);
-  height:var(--separate-profit-state-height);
-  padding:0 var(--separate-profit-state-pad-x);
-  font-weight:var(--separate-profit-font-weight);
 }
 .separate-profit-toggle.active{
   border-color:var(--special-profit-border);
@@ -4472,8 +4485,6 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   background:var(--special-profit-badge);
   color:var(--on-accent-text);
 }
-/* 기본형(Web/Tablet/월간 모달 전 viewport)은 ON/OFF를 geometric center에 두고 Phone 메인 compact variant만 optical shift를 유지한다. */
-.separate-profit-toggle strong .control-text-optical{transform:none}
 .separate-profit-control-note{
   flex:0 1 auto;
   min-width:0;

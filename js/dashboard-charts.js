@@ -797,7 +797,7 @@ function chartLegendHtml(scope){
     const active=selection.selected.has(item.key);
     return `<button type="button" class="legend-item chart-series-toggle${active?' active':' inactive'}" aria-pressed="${active}" data-dashboard-action="toggle-chart-series" data-chart-scope="${scope}" data-chart-series-key="${encodeURIComponent(item.key)}"><span class="swatch" aria-hidden="true" style="--chart-legend-color:${item.color}"></span>${escapeHtml(chartDisplayLabel(scope,item.label))}</button>`;
   }).join('');
-  const autoButton=selection.all?'':`<button type="button" class="chart-y-auto-toggle${autoY?' active':''}" role="switch" aria-checked="${autoY}" data-dashboard-action="set-chart-auto-y" data-chart-scope="${scope}" data-chart-auto-y="${autoY?'false':'true'}"><span>Y축 자동 재계산</span><span class="chart-y-auto-state"><span class="control-text-optical">${autoY?'ON':'OFF'}</span></span></button>`;
+  const autoButton=selection.all?'':`<button type="button" class="state-toggle chart-y-auto-toggle${autoY?' active':''}" role="switch" aria-checked="${autoY}" data-dashboard-action="set-chart-auto-y" data-chart-scope="${scope}" data-chart-auto-y="${autoY?'false':'true'}"><span class="state-toggle-label">Y축 자동 재계산</span><span class="state-toggle-state chart-y-auto-state"><span class="control-text-optical">${autoY?'ON':'OFF'}</span></span></button>`;
   return `<span class="chart-legend-control chart-legend-control-left">${allButton}</span><span class="chart-legend-series">${itemButtons}</span><span class="chart-legend-control chart-legend-control-right">${autoButton}</span>`;
 }
 function refreshChartLegend(scope){

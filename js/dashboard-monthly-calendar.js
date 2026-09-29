@@ -211,7 +211,7 @@ function renderMonthlyCalendarModeSelector(){
 function renderMonthlyCalendarSeparateProfitToggle(){
   if(!uiState.personalViewUnlocked)return '';
   const active=uiState.includeSeparateProfit;
-  return `<button type="button" class="section-control-chip section-action-chip separate-profit-toggle monthly-calendar-separate-profit${active?' active':''}" aria-label="별도수익 포함" aria-pressed="${active}" data-dashboard-action="toggle-separate-profit"><span class="separate-profit-toggle-label">별도수익</span><strong><span class="control-text-optical">${active?'ON':'OFF'}</span></strong></button>`;
+  return `<button type="button" class="section-control-chip section-action-chip state-toggle separate-profit-toggle monthly-calendar-separate-profit${active?' active':''}" aria-label="별도수익 포함" aria-pressed="${active}" data-dashboard-action="toggle-separate-profit"><span class="state-toggle-label separate-profit-toggle-label">별도수익</span><strong class="state-toggle-state"><span class="control-text-optical">${active?'ON':'OFF'}</span></strong></button>`;
 }
 function renderMonthlyCalendarControls(){
   return `<div class="monthly-calendar-controls">${renderMonthlyCalendarModeSelector()}${renderMonthlyCalendarSeparateProfitToggle()}</div>`;
