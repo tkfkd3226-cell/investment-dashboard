@@ -263,10 +263,6 @@
       word-break:keep-all;
       text-align:center;
     }
-    body.dashboard-dialog-open .monthly-calendar-weekdays:has(> :nth-child(6)),
-    body.dashboard-dialog-open .monthly-calendar-weekdays:has(> :nth-child(6)) + .monthly-calendar-grid{
-      grid-template-columns:repeat(7,minmax(0,1fr));
-    }
     body.dashboard-dialog-open .portfolio-heatmap-date-controls{
       display:flex;
       justify-content:center;
