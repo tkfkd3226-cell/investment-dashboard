@@ -1517,14 +1517,16 @@ svg.chart:focus-visible{
   opacity:.38;
 }
 
-/* Compact Control Typography · 차트 전체/state-toggle/segmented가 동일한 typography token을 공유 */
-:is(.chart-series-all,.state-toggle){
+/* Compact Control Typography · 차트 전체/state-toggle/section 기준 chip/segmented가 동일한 typography token을 공유 */
+:is(.chart-series-all,.state-toggle,.section-basis-chip){
   --dashboard-control-font-size:var(--compact-control-font-size);
-  font-weight:var(--compact-control-font-weight);
   line-height:var(--compact-control-line-height);
 }
+:is(.chart-series-all,.state-toggle){
+  font-weight:var(--compact-control-font-weight);
+}
 
-button.legend-item.chart-series-all{
+:is(button.legend-item.chart-series-all,.section-basis-chip){
   padding:0 var(--dashboard-control-pad-x);
   border:1px solid var(--control-border);
   border-radius:var(--radius-pill);
@@ -1668,7 +1670,8 @@ button.legend-item.chart-series-all.active{
 @supports (-webkit-touch-callout:none){
   @media screen and (hover:none) and (pointer:coarse){
     .state-toggle-label,
-    .state-toggle-state .control-text-optical{
+    .state-toggle-state .control-text-optical,
+    .section-basis-chip .control-text-optical{
       transform:translateY(var(--compact-control-ios-optical-shift));
     }
     button.legend-item.chart-series-all,
@@ -2547,14 +2550,13 @@ body.chart-expanded-open .dash-tooltip{
 }
 .section-basis-chip{
   height:var(--section-chip-height);
-  padding:0 var(--space-4xl);
-  border:1px solid var(--line);
-  border-radius:var(--radius-pill);
-  background:var(--card);
-  color:var(--muted);
-  font-size:var(--type-size-sm);
+  font-size:var(--compact-control-font-size);
   font-weight:var(--type-weight-regular);
-  line-height:1;
+  line-height:var(--compact-control-line-height);
+}
+.section-basis-chip .control-text-optical{
+  line-height:var(--compact-control-line-height);
+  transform:none;
 }
 .section-action-chip{
   height:var(--section-chip-height);
