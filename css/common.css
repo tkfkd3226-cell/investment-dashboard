@@ -97,12 +97,12 @@
   --surface-radius-large:var(--surface-radius-level-2);
   --surface-radius-mini:var(--surface-radius-level-3);
   /* Data List Card Typography · 모바일 카드보기와 compact data list surface가 공유 */
-  --data-list-title-weight:var(--type-weight-strong);
+  --data-list-title-weight:var(--type-weight-semibold);
   --data-list-label-weight:var(--type-weight-bold);
   --data-list-value-weight:var(--type-weight-semibold);
   --data-list-row-separator:1px dashed var(--line);
-  --data-list-total-title-weight:var(--type-weight-emphasis);
-  --data-list-total-value-weight:var(--type-weight-strong);
+  --data-list-total-title-weight:var(--type-weight-semibold);
+  --data-list-total-value-weight:var(--type-weight-semibold);
   /* Spacing Scale · 반복 여백의 canonical scale */
   --space-micro:1px;
   --space-2xs:2px;
@@ -154,7 +154,7 @@
   --modal-segment-height:28px;
   --modal-segment-pad-x:var(--space-3xl);
   --modal-segment-font-size:13px;
-  --modal-segment-font-weight:700;
+  --modal-segment-font-weight:var(--type-weight-semibold);
   --modal-segment-gap:var(--space-sm);
   --modal-segment-group-pad:var(--space-2xs);
   /* Modal segmented state · 퇴직연금 조정/월간 손익/히트맵의 normal/hover/active 색상 단일 원천 */
@@ -171,9 +171,9 @@
   --dashboard-control-state-font-size:var(--type-size-2xs);
   --dashboard-control-state-min-width:28px;
   --dashboard-control-pad-x:8px;
-  /* Compact Control Typography · state toggle/segmented/chart 전체의 소형 control typography 단일 원천 */
+  /* Compact Control Typography · segmented/chart/state 값의 비라벨 typography 단일 원천; state label은 700 예외 */
   --compact-control-font-size:var(--type-size-xs);
-  --compact-control-font-weight:var(--type-weight-bold);
+  --compact-control-font-weight:var(--type-weight-semibold);
   --compact-control-line-height:1;
   --compact-control-ios-optical-shift:1.5px;
   /* iOS Safari에서 chart "전체" direct text가 state-toggle label보다 약 1px 낮게 rasterize되는 차이만 보정 */
@@ -436,10 +436,10 @@
   --tooltip-shadow:var(--shadow-medium);
   --tooltip-font-size:var(--type-size-sm);
   --tooltip-title-font-size:var(--type-size-md);
-  --tooltip-title-weight:var(--type-weight-emphasis);
-  --tooltip-value-weight:var(--type-weight-strong);
+  --tooltip-title-weight:var(--type-weight-semibold);
+  --tooltip-value-weight:var(--type-weight-semibold);
   --tooltip-total-label-weight:var(--type-weight-bold);
-  --tooltip-info-weight:var(--type-weight-bold);
+  --tooltip-info-weight:var(--type-weight-semibold);
   --tooltip-line-height:var(--type-line-relaxed);
   --tooltip-pad-y:9px;
   --tooltip-pad-x:11px;
@@ -722,7 +722,7 @@ button svg{pointer-events:none;flex-shrink:0}
   --hero-radius:var(--surface-radius-level-1);
   --hero-title-size:var(--type-size-display-md);
   --hero-title-line:1;
-  --hero-title-weight:var(--type-weight-bold);
+  --hero-title-weight:var(--type-weight-semibold);
   --hero-title-gap-y:var(--space-2xl);
   --hero-title-gap-x:var(--space-2xl);
   --hero-basis-size:var(--type-size-sm);
@@ -848,7 +848,7 @@ button svg{pointer-events:none;flex-shrink:0}
 .market-ai-title{
   color:var(--ink);
   font-size:var(--market-ai-title-size);
-  font-weight:var(--type-weight-bold);
+  font-weight:var(--type-weight-semibold);
   line-height:1;
   white-space:nowrap;
 }
@@ -1168,7 +1168,7 @@ section{
   gap:var(--section-title-gap);
   margin:0;
   font-size:var(--section-title-font-size);
-  font-weight:var(--type-weight-bold);
+  font-weight:var(--type-weight-semibold);
   letter-spacing:-.04em;
   line-height:var(--section-title-line-height);
 }
@@ -1204,7 +1204,7 @@ section{
 .modal-main-title{
   margin:0;
   font-size:var(--section-title-font-size);
-  font-weight:var(--type-weight-bold);
+  font-weight:var(--type-weight-semibold);
   letter-spacing:-.04em;
   line-height:1;
 }
@@ -1230,7 +1230,7 @@ section{
   min-height:132px;
   color:var(--muted);
   font-size:var(--type-size-md);
-  font-weight:var(--type-weight-bold);
+  font-weight:var(--type-weight-semibold);
   text-align:center;
 }
 .dashboard-error-note{
@@ -1296,7 +1296,7 @@ section{
 .hero-title-badge{
   flex:0 0 auto;
   width:auto;
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-bold);
 }
 .hero-title-badge-status{
   --hero-pill-bg:rgba(245,158,11,.15);
@@ -1349,7 +1349,7 @@ section{
   font-size:var(--mini-value-size);
   line-height:1;
   letter-spacing:-.035em;
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
   font-variant-numeric:tabular-nums;
   text-rendering:optimizeLegibility;
   margin-top:var(--card-text-rhythm-gap);
@@ -1521,7 +1521,7 @@ svg.chart:focus-visible{
   opacity:.38;
 }
 
-/* Compact Control Typography · 차트 전체/state-toggle/section 기준 chip/segmented가 동일한 typography token을 공유 */
+/* Compact Control Typography · 차트 전체/state 값/segmented는 600을 공유하고 state label은 700을 유지 */
 :is(.chart-series-all,.state-toggle,.section-basis-chip){
   --dashboard-control-font-size:var(--compact-control-font-size);
   line-height:var(--compact-control-line-height);
@@ -1564,6 +1564,7 @@ button.legend-item.chart-series-all.active{
   display:inline-flex;
   align-items:center;
   justify-content:center;
+  font-weight:var(--type-weight-bold);
   line-height:var(--compact-control-line-height);
 }
 
@@ -2093,7 +2094,8 @@ body.chart-expanded-open .dash-tooltip{
 .asset-insight-head h3{
   margin:0;
   font-size:var(--type-size-xl);
-  font-weight:var(--type-weight-bold);
+  font-weight:var(--type-weight-semibold);
+  line-height:1;
   letter-spacing:-.03em;
   color:var(--ink);
 }
@@ -2106,7 +2108,8 @@ body.chart-expanded-open .dash-tooltip{
   padding:var(--space-lg) var(--space-4xl);
   border-radius:var(--radius-pill);
   font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-bold);
+  line-height:1;
   white-space:nowrap;
   border:1px solid transparent;
 }
@@ -2176,7 +2179,8 @@ body.chart-expanded-open .dash-tooltip{
   padding:0 var(--space-lg);
   color:var(--on-accent-text);
   font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-bold);
+  line-height:1;
   white-space:nowrap;
   text-shadow:var(--stack-text-shadow);
   overflow:hidden;
@@ -2306,7 +2310,8 @@ body.chart-expanded-open .dash-tooltip{
   left:50%;
   transform:translateX(-50%);
   font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-bold);
+  line-height:1;
   color:var(--ink);
   background:var(--card);
   padding:1px var(--space-md);
@@ -2324,7 +2329,8 @@ body.chart-expanded-open .dash-tooltip{
   gap:var(--space-4xl);
   margin-top:var(--info-stack-gap);
   font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-bold);
+  line-height:1;
   color:var(--text-secondary);
 }
 
@@ -2365,7 +2371,7 @@ body.chart-expanded-open .dash-tooltip{
 
 .change-price{
   display:block;
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-semibold);
   white-space:nowrap;
 }
 
@@ -2427,7 +2433,7 @@ body.chart-expanded-open .dash-tooltip{
   flex:0 0 auto;
   margin-left:auto;
   font-size:var(--symbol-metric-value-size);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
   line-height:1;
   white-space:nowrap;
   font-variant-numeric:tabular-nums;
@@ -2458,8 +2464,8 @@ body.chart-expanded-open .dash-tooltip{
   --metric-sub-size:13px;
   --metric-value-min-height:35px;
   --metric-label-weight:var(--type-weight-bold);
-  --metric-value-weight:var(--type-weight-strong);
-  --metric-value-emphasis-weight:var(--type-weight-emphasis);
+  --metric-value-weight:var(--type-weight-semibold);
+  --metric-value-emphasis-weight:var(--type-weight-semibold);
   --metric-sub-weight:var(--type-weight-regular);
 }
 
@@ -2523,7 +2529,7 @@ body.chart-expanded-open .dash-tooltip{
   line-height:var(--type-line-loose);
 }
 .cash-basis-note{color:var(--muted)}
-.cash-basis-note-mark{color:var(--value-positive);font-weight:var(--type-weight-strong)}
+.cash-basis-note-mark{color:var(--value-positive);font-weight:var(--type-weight-semibold)}
 .cash-basis-note-sup{font-size:.72em;margin-left:var(--space-2xs);line-height:0}
 
 /* Section Controls · 섹션 제목 control: 기준, 별도수익 상태, 표/카드 전환 chip */
@@ -2578,7 +2584,7 @@ body.chart-expanded-open .dash-tooltip{
 .section-action-chip{
   height:var(--section-chip-height);
   font-size:var(--dashboard-control-font-size);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
   cursor:pointer;
 }
 
@@ -2752,7 +2758,7 @@ body.chart-expanded-open .dash-tooltip{
   --modal-control-pad-y:var(--pension-modal-control-pad);
   --modal-control-pad-x:var(--pension-modal-control-pad);
   --modal-control-font-size:var(--pension-modal-control-size);
-  --modal-control-font-weight:var(--type-weight-strong);
+  --modal-control-font-weight:var(--type-weight-semibold);
   --modal-control-bg:var(--field-bg);
   --modal-control-text:var(--field-text);
   z-index:12000;
@@ -2786,7 +2792,7 @@ body.dashboard-dialog-open{
   margin-top:var(--pension-modal-field-gap);
   color:var(--muted);
   font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-semibold);
   max-width:none;
   word-break:keep-all;
   overflow-wrap:normal;
@@ -2920,7 +2926,7 @@ body.dashboard-dialog-open{
   align-items:center;
   cursor:pointer;
   font-size:var(--type-size-md);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
   color:var(--text);
   list-style:none;
 }
@@ -2943,7 +2949,7 @@ body.dashboard-dialog-open{
   color:var(--muted);
   font-size:var(--type-size-sm);
   line-height:var(--type-line-note);
-  font-weight:var(--type-weight-bold);
+  font-weight:var(--type-weight-semibold);
 }
 .token-guide-body ol{
   margin:var(--space-2xl) 0 0 var(--space-8xl);
@@ -2958,7 +2964,7 @@ body.dashboard-dialog-open{
   color:var(--code-text);
   border-radius:min(6px,var(--corner-inner-cap));
   padding:1px var(--space-md);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
 }
 .token-guide-alert{
   margin-top:var(--space-2xl);
@@ -2967,7 +2973,7 @@ body.dashboard-dialog-open{
   background:var(--status-caution-bg);
   color:var(--status-caution-text);
   border:1px solid var(--status-caution-border);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
 }
 
 /* Pension Contribution Modal · 퇴직연금 납입/삭제 모달: 필드·목록·섹션 레이아웃 */
@@ -3067,7 +3073,7 @@ body.dashboard-dialog-open{
   background:transparent;
   font-family:inherit;
   font-size:var(--type-size-md);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
   line-height:1;
   white-space:nowrap;
   cursor:pointer;
@@ -3136,7 +3142,7 @@ body.dashboard-dialog-open{
   margin-left:var(--space-sm);
   color:var(--muted);
   font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-bold);
+  font-weight:var(--type-weight-semibold);
   letter-spacing:-.02em;
 }
 
@@ -3211,7 +3217,7 @@ body.dashboard-dialog-open{
   background:var(--status-info-soft-bg);
   color:var(--muted);
   font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-semibold);
   line-height:var(--type-line-helper);
 }
 
@@ -3236,7 +3242,7 @@ body.dashboard-dialog-open{
 .pension-etf-trade-preview-title{
   margin-bottom:var(--space-2xl);
   font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-bold);
+  font-weight:var(--type-weight-semibold);
   line-height:1;
   color:var(--text);
 }
@@ -3264,7 +3270,7 @@ body.dashboard-dialog-open{
 .pension-etf-trade-preview-grid strong{
   min-width:0;
   color:var(--text);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
   text-align:right;
   word-break:keep-all;
 }
@@ -3273,7 +3279,7 @@ body.dashboard-dialog-open{
   color:var(--muted);
   font-style:normal;
   font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-semibold);
 }
 
 .pension-etf-trade-preview-alert{
@@ -3282,7 +3288,7 @@ body.dashboard-dialog-open{
   border-top:1px solid var(--status-warning-divider);
   color:var(--status-warning-text);
   font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
   line-height:var(--type-line-helper);
 }
 
@@ -3493,7 +3499,7 @@ button.monthly-calendar-day.is-gloomy::before {
   right: 8px;
   font-size: 11px;
   color: var(--muted);
-  font-weight:700;
+  font-weight:var(--type-weight-bold);
   pointer-events: none;
   opacity: 0.7;
 }
@@ -3502,14 +3508,14 @@ html.dark button.monthly-calendar-day.is-gloomy {
 }
 .monthly-calendar-day-number{
   font-size:var(--monthly-calendar-day-size);
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-semibold);
   line-height:1;
   font-variant-numeric:tabular-nums;
 }
 .monthly-calendar-day-profit{
   max-width:100%;
   font-size:var(--monthly-calendar-profit-size);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
   line-height:1;
   letter-spacing:-.03em;
   white-space:nowrap;
@@ -3590,7 +3596,7 @@ html.dark .portfolio-heatmap-modal{
   padding:0 var(--space-lg);
   border-radius:min(var(--control-radius-sm),var(--corner-control-cap));
   font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
   font-variant-numeric:tabular-nums;
   text-align:center;
   cursor:pointer;
@@ -3623,7 +3629,7 @@ html.dark .portfolio-heatmap-modal{
   padding:var(--space-6xl);
   color:var(--heatmap-tile-text);
   font-size:var(--type-size-md);
-  font-weight:var(--type-weight-bold);
+  font-weight:var(--type-weight-semibold);
   text-align:center;
 }
 .portfolio-heatmap__tile{
@@ -3684,10 +3690,10 @@ html.dark .portfolio-heatmap-modal{
   opacity:.92;
 }
 .portfolio-heatmap__tile.is-large .portfolio-heatmap__name{font-size:var(--type-size-lg);white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.portfolio-heatmap__tile.is-large .portfolio-heatmap__primary{font-size:var(--type-size-display-sm);font-weight:var(--type-weight-emphasis);white-space:nowrap}
+.portfolio-heatmap__tile.is-large .portfolio-heatmap__primary{font-size:var(--type-size-display-sm);font-weight:var(--type-weight-semibold);white-space:nowrap}
 .portfolio-heatmap__tile.is-large .portfolio-heatmap__secondary{font-size:var(--type-size-xs);font-weight:var(--type-weight-semibold)}
 .portfolio-heatmap__tile.is-medium .portfolio-heatmap__name{font-size:var(--type-size-sm);white-space:nowrap}
-.portfolio-heatmap__tile.is-medium .portfolio-heatmap__primary{font-size:var(--type-size-lg);font-weight:var(--type-weight-emphasis);white-space:nowrap}
+.portfolio-heatmap__tile.is-medium .portfolio-heatmap__primary{font-size:var(--type-size-lg);font-weight:var(--type-weight-semibold);white-space:nowrap}
 .portfolio-heatmap__tile.is-small .portfolio-heatmap__name{font-size:var(--type-size-2xs);line-height:1.08;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .portfolio-heatmap__legend{
   display:flex;
@@ -3736,7 +3742,7 @@ html.dark .portfolio-heatmap-modal{
   background:var(--tooltip-highlight-bg,rgba(148,163,184,.14));
 }
 .portfolio-heatmap-tooltip-row.is-current-mode .tt-name,
-.portfolio-heatmap-tooltip-row.is-current-mode .tt-val{font-weight:var(--type-weight-emphasis)}
+.portfolio-heatmap-tooltip-row.is-current-mode .tt-val{font-weight:var(--type-weight-semibold)}
 .realtime-quote-modal{
   z-index:13500;
   display:none;
@@ -3865,7 +3871,7 @@ html.dark .realtime-quote-modal{
   min-height:20px;
   margin-top:var(--modal-status-gap);
   font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-semibold);
 }
 /* Feedback Status States · action modal 종류와 무관하게 상태 class가 의미 색을 소유 */
 .action-modal-status:is(.ok,.checking){color:var(--feedback-active-text)}
@@ -3911,7 +3917,7 @@ html.dark .realtime-quote-modal{
   background:var(--toast-bg);
   color:var(--toast-color);
   font-size:var(--type-size-md);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
   box-shadow:var(--toast-shadow);
   opacity:0;
   pointer-events:none;
@@ -3984,7 +3990,7 @@ button.control-icon-button-compact{
   justify-content:center;
   box-sizing:border-box;
   font-family:inherit;
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-semibold);
   line-height:1;
   white-space:nowrap;
   cursor:pointer;
@@ -4155,7 +4161,7 @@ button:not(:disabled):active{
   display:block;
   color:var(--muted);
   font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-bold);
+  font-weight:var(--type-weight-semibold);
 }
 #ledger-check .ledger-conclusion-reason > strong{
   display:block;
@@ -4200,7 +4206,7 @@ button:not(:disabled):active{
   color:var(--status-danger-soft-text);
   font-size:var(--type-size-sm);
   line-height:var(--type-line-body);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
 }
 
 /* Standalone Pull-to-Refresh · iPhone 홈화면 Web App에서 native refresh UI가 없을 때만 JS가 생성한다. */
@@ -4222,7 +4228,7 @@ button:not(:disabled):active{
   color:var(--text-secondary);
   box-shadow:var(--shadow-medium);
   font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
   line-height:1;
   white-space:nowrap;
   pointer-events:none;
@@ -4279,7 +4285,7 @@ button:not(:disabled):active{
   color:var(--mobile-top-text);
   font-family:inherit;
   font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
   line-height:1;
   letter-spacing:-.02em;
   white-space:nowrap;
@@ -4342,12 +4348,12 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   margin:var(--space-xs) 0 0;
   color:var(--muted);
   font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-bold);
+  font-weight:var(--type-weight-semibold);
 }
 .pension-batch-clear{
   flex:0 0 auto;
   font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-semibold);
 }
 .pension-batch-clear:disabled{opacity:.4}
 .pension-batch-queue{
@@ -4379,14 +4385,14 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   background:var(--batch-index-bg);
   color:var(--batch-index-text);
   font-size:var(--type-size-2xs);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
 }
 .pension-batch-item-text{
   min-width:0;
   color:var(--text);
   font-size:var(--type-size-xs);
   line-height:var(--type-line-body);
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-semibold);
   word-break:keep-all;
   overflow-wrap:anywhere;
 }
@@ -4400,7 +4406,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   background:var(--card);
   color:var(--text);
   font-size:var(--type-size-sm);
-  font-weight:var(--type-weight-emphasis);
+  font-weight:var(--type-weight-semibold);
 }
 .pension-batch-item-actions button svg{display:block;width:13px;height:13px;margin:auto}
 .pension-batch-item-actions button:disabled{opacity:.3;cursor:not-allowed}
@@ -4412,7 +4418,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   background:var(--status-info-bg);
   color:var(--status-info-text);
   font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-semibold);
   line-height:var(--type-line-relaxed);
 }
 .pension-batch-actions{
@@ -4481,7 +4487,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   margin-top:var(--pension-modal-aux-gap);
   padding:var(--pension-modal-aux-pad-y) var(--pension-modal-aux-pad-x);
   font-size:var(--pension-modal-label-size);
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-semibold);
   line-height:var(--type-line-helper);
 }
 .contrib-modal .pension-etf-trade-preview.blocked{
@@ -4530,7 +4536,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   min-width:0;
   color:var(--text-secondary);
   font-size:10.5px;
-  font-weight:var(--type-weight-strong);
+  font-weight:var(--type-weight-semibold);
   letter-spacing:-.02em;
   white-space:nowrap;
 }
@@ -4901,11 +4907,11 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   --data-table-sub-font-size:11.5px;
   --data-table-head-bg:var(--table-head-bg);
   --data-table-head-color:var(--ink);
-  --data-table-head-weight:var(--type-weight-strong);
-  --data-table-label-weight:var(--type-weight-strong);
+  --data-table-head-weight:var(--type-weight-bold);
+  --data-table-label-weight:var(--type-weight-bold);
   --data-table-value-weight:var(--type-weight-regular);
   --data-table-summary-bg:var(--summary-row-bg);
-  --data-table-summary-weight:var(--type-weight-strong);
+  --data-table-summary-weight:var(--type-weight-semibold);
   --data-table-summary-border:1px solid var(--table-column-line);
   --data-table-memo-weight:var(--type-weight-regular);
   --data-table-sub-color:var(--muted);
@@ -5054,7 +5060,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
       color:var(--nav-icon);
       box-shadow:var(--nav-shadow-trigger);
       font-size:var(--type-size-xs);
-      font-weight:var(--type-weight-strong);
+      font-weight:var(--type-weight-semibold);
       line-height:1;
       letter-spacing:-.02em;
       font-family:inherit;
@@ -5110,7 +5116,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
       border-bottom:1px solid var(--nav-divider);
       color:var(--nav-text);
       font-size:var(--type-size-lg);
-      font-weight:var(--type-weight-bold);
+      font-weight:var(--type-weight-semibold);
       line-height:1;
     }
     .desktop-edge-toc-group{

@@ -37,7 +37,7 @@
      - 공통 버튼 글자 크기는 page typography token과 연결할 수 있다.
      - step 높이는 고정 token으로 강제하지 않고 실제 control row/container geometry가 소유한다. */
   --button-font-size:12px;
-  --button-font-weight:800;
+  --button-font-weight:600;
   --button-icon-size:36px;
 }
 
@@ -121,14 +121,14 @@ html.dark{
 .add-heading-section{
   margin:0;
   font-size:20px;
-  font-weight:700;
+  font-weight:600;
   line-height:1;
   letter-spacing:-.035em;
 }
 .add-heading-subsection{
   margin:0;
   font-size:14px;
-  font-weight:700;
+  font-weight:600;
   line-height:1;
 }
 
@@ -187,7 +187,7 @@ html.dark{
   padding:0;
   color:var(--navy);
   font-size:16px;
-  font-weight:900;
+  font-weight:600;
   line-height:1;
 }
 /* 04. Add 공통 Card Surface primitive
@@ -233,7 +233,7 @@ html.dark{
    - badge의 배치·density·상태색은 각 page가 소유한다. */
 :where(html[data-add-page="calc"],html[data-add-page="report"]) .badge{
   border-radius:var(--radius-pill);
-  font-weight:900;
+  font-weight:700;
   white-space:nowrap;
 }
 
@@ -468,7 +468,7 @@ html:where([data-add-page="calc"]).dark{
    ========================================================= */
 :where(html[data-add-page="calc"]) .hero{display:grid;gap:var(--density-gap-sm);margin-bottom:var(--density-surface-sm);padding-bottom:var(--density-surface-md);border-bottom:1px solid var(--line)}
 :where(html[data-add-page="calc"]) .hero-head{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-lg)}
-:where(html[data-add-page="calc"]) .hero h1{margin:0;font-size:var(--calc-type-page-title);letter-spacing:-.045em;line-height:1;flex:1 1 auto;min-width:0;font-weight:700}
+:where(html[data-add-page="calc"]) .hero h1{margin:0;font-size:var(--calc-type-page-title);letter-spacing:-.045em;line-height:1;flex:1 1 auto;min-width:0;font-weight:600}
 :where(html[data-add-page="calc"]) .hero p{margin:0;color:var(--muted);font-size:var(--calc-type-support);line-height:1.3;max-width:1100px}
 :where(html[data-add-page="calc"]) .actions{display:flex;gap:var(--density-gap-sm);flex-wrap:nowrap;flex:0 0 auto}
 :where(html[data-add-page="calc"]) .calc-utility-button{gap:var(--density-gap-md);line-height:1;border-color:var(--control-border);background:linear-gradient(180deg,var(--surface-control),var(--surface-subtle));color:var(--navy);font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.52),var(--action-shadow)}
@@ -539,11 +539,11 @@ html:where([data-add-page="calc"]).dark .calc-utility-button{box-shadow:inset 0 
 :where(html[data-add-page="calc"]) .help-tooltip:focus-within .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip.is-open .custom-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
 :where(html[data-add-page="calc"]) .help-tooltip.is-dismissed:focus-within .custom-tooltip{opacity:0;visibility:hidden;transform:translateY(4px)}
 :where(html[data-add-page="calc"]) .calc-extra-tooltip{width:min(320px,calc(100vw - 24px))}
-:where(html[data-add-page="calc"]) .calc-extra-title{display:block;margin-bottom:var(--density-gap-sm);font-weight:700;color:var(--on-accent)}
+:where(html[data-add-page="calc"]) .calc-extra-title{display:block;margin-bottom:var(--density-gap-sm);font-weight:600;color:var(--on-accent)}
 :where(html[data-add-page="calc"]) .calc-extra-list{display:grid;gap:var(--density-gap-xs)}
 :where(html[data-add-page="calc"]) .calc-extra-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--density-gap-md)}
 :where(html[data-add-page="calc"]) .calc-extra-row > span{min-width:0;color:var(--tooltip-text)}
-:where(html[data-add-page="calc"]) .calc-extra-row strong{font-weight:900;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+:where(html[data-add-page="calc"]) .calc-extra-row strong{font-weight:600;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 
 /* Calc input/date visual shell primitive
    - border / surface / focus / readonly / invalid는 모든 viewport에서 shell이 소유한다.
@@ -553,7 +553,7 @@ html:where([data-add-page="calc"]).dark :is(.calc-control-shell,.date-control-sh
 :where(html[data-add-page="calc"]) :is(.calc-control-shell,.date-control-shell):focus-within{border-color:var(--control-focus-border);box-shadow:0 0 0 2px var(--control-focus-ring)}
 :where(html[data-add-page="calc"]) .calc-control-shell:has(> .control[readonly]){background:var(--control-readonly-bg)}
 :where(html[data-add-page="calc"]) :is(.calc-control-shell,.date-control-shell):has(> .control.invalid){border-color:var(--danger-strong);background:var(--danger-control-bg);box-shadow:0 0 0 3px var(--danger-ring)}
-:where(html[data-add-page="calc"]) .control{outline:none;font-size:var(--calc-control-input-size);font-weight:750;line-height:1;color:var(--ink);-webkit-appearance:none;appearance:none}
+:where(html[data-add-page="calc"]) .control{outline:none;font-size:var(--calc-control-input-size);font-weight:600;line-height:1;color:var(--ink);-webkit-appearance:none;appearance:none}
 :where(html[data-add-page="calc"]) .calc-control-shell > .control{display:block;width:var(--calc-control-inner-size);height:var(--calc-control-inner-size);min-width:0;min-height:0;max-width:none;border:0;border-radius:0;background:transparent;box-shadow:none;padding:var(--calc-control-inner-pad-y) var(--calc-control-inner-pad-x);text-align:right;transform:scale(var(--calc-control-scale));transform-origin:top left}
 :where(html[data-add-page="calc"]) .control[readonly]:not(.positive):not(.negative):not(.zero){color:var(--control-readonly-text)}
 :where(html[data-add-page="calc"]) .with-unit{position:relative}
@@ -578,8 +578,8 @@ html:where([data-add-page="calc"]).dark :is(.calc-control-shell,.date-control-sh
    label / data value typography는 Calc 공통 역할을 유지하고, surface와 명시적 적용 affordance로 일반 input과 구분한다. */
 :where(html[data-add-page="calc"]) .actual-sale-price{--actual-sale-apply-inset:2px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:var(--density-gap-md);width:100%;margin:0;padding:0 var(--actual-sale-apply-inset) 0 var(--calc-control-space);border-color:var(--border-hover);background:var(--surface-subtle);color:var(--muted);text-align:left;line-height:1;appearance:none;-webkit-appearance:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.42),var(--action-shadow)}
 :where(html[data-add-page="calc"]) .actual-sale-label{font-size:var(--calc-type-data-label);font-weight:700;line-height:1;white-space:nowrap}
-:where(html[data-add-page="calc"]) .actual-sale-price strong{justify-self:end;color:var(--navy);font-size:var(--calc-type-data-value);font-weight:900;line-height:1;white-space:nowrap}
-:where(html[data-add-page="calc"]) .actual-sale-apply{display:inline-flex;align-self:stretch;align-items:center;justify-content:center;min-width:4.8em;min-height:0;margin-block:var(--actual-sale-apply-inset);padding:0 var(--calc-control-space);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:var(--navy);color:var(--on-accent);font-size:var(--calc-type-button);font-weight:800;line-height:1;white-space:nowrap}
+:where(html[data-add-page="calc"]) .actual-sale-price strong{justify-self:end;color:var(--navy);font-size:var(--calc-type-data-value);font-weight:600;line-height:1;white-space:nowrap}
+:where(html[data-add-page="calc"]) .actual-sale-apply{display:inline-flex;align-self:stretch;align-items:center;justify-content:center;min-width:4.8em;min-height:0;margin-block:var(--actual-sale-apply-inset);padding:0 var(--calc-control-space);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:var(--navy);color:var(--on-accent);font-size:var(--calc-type-button);font-weight:600;line-height:1;white-space:nowrap}
 @media (hover:hover) and (pointer:fine){
   :where(html[data-add-page="calc"]) .calc-utility-button:hover:not(:disabled){border-color:var(--border-hover);background:var(--surface-hover-soft);color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 4px 12px rgba(29,53,87,.10)}
   html:where([data-add-page="calc"]).dark .calc-utility-button:hover:not(:disabled){box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 4px 12px rgba(0,0,0,.24)}
@@ -590,7 +590,7 @@ html:where([data-add-page="calc"]).dark :is(.calc-control-shell,.date-control-sh
 :where(html[data-add-page="calc"]) .actual-sale-price:active{transform:translateY(1px)}
 :where(html[data-add-page="calc"]) .actual-sale-price.is-applied{border-color:var(--navy);background:var(--surface-hover-soft)}
 html:where([data-add-page="calc"]).dark .actual-sale-price{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),var(--action-shadow)}
-:where(html[data-add-page="calc"]) .validation-panel{display:none;margin:0 0 var(--calc-card-gap);padding:var(--calc-surface-space);border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger-text);font-size:var(--calc-type-support);font-weight:700}
+:where(html[data-add-page="calc"]) .validation-panel{display:none;margin:0 0 var(--calc-card-gap);padding:var(--calc-surface-space);border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger-text);font-size:var(--calc-type-support);font-weight:600}
 :where(html[data-add-page="calc"]) .validation-panel.show{display:block}
 :where(html[data-add-page="calc"]) .validation-result-note{margin-top:var(--density-gap-xs);font-weight:600}
 :where(html[data-add-page="calc"]) .validation-panel ul{margin:var(--density-gap-lg) 0 0;padding-left:20px;font-weight:600}
@@ -704,7 +704,7 @@ html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#s
 :where(html[data-add-page="calc"]) :is(.calc-summary-panel,.kpis,.range-panel,.summary-row,.mobile-data){gap:var(--calc-card-gap)}
 :where(html[data-add-page="calc"]) .calc-summary-panel{margin-bottom:var(--calc-card-gap)}
 :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
-:where(html[data-add-page="calc"]) :is(.kpi .value,.range-box .big,.summary-card .svalue){font-size:var(--calc-type-emphasis-value);font-weight:900;line-height:1}
+:where(html[data-add-page="calc"]) :is(.kpi .value,.range-box .big,.summary-card .svalue){font-size:var(--calc-type-emphasis-value);font-weight:600;line-height:1}
 :where(html[data-add-page="calc"]) .kpi .value{margin-top:2px;letter-spacing:-.03em}
 
 :where(html[data-add-page="calc"]) .range-panel{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -736,9 +736,9 @@ html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#s
 :where(html[data-add-page="calc"]) .mobile-data{display:none}
 :where(html[data-add-page="calc"]) .mobile-data-card{min-width:0}
 :where(html[data-add-page="calc"]) .mobile-section-title:first-child{padding-top:3px}
-:where(html[data-add-page="calc"]) .calc-result-section-title{font-size:var(--calc-type-content-title);font-weight:700;line-height:1}
+:where(html[data-add-page="calc"]) .calc-result-section-title{font-size:var(--calc-type-content-title);font-weight:600;line-height:1}
 :where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-label{font-size:var(--calc-type-data-label);font-weight:700;line-height:1}
-:where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-value{font-size:var(--calc-type-data-value);font-weight:800;line-height:1.35}
+:where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-value{font-size:var(--calc-type-data-value);font-weight:600;line-height:1.35}
 :where(html[data-add-page="calc"]) .mobile-data-row{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-lg);padding:var(--density-gap-md) 0;border-bottom:1px solid var(--soft)}
 :where(html[data-add-page="calc"]) .mobile-data-row:last-child{border-bottom:0}
 :where(html[data-add-page="calc"]) .mobile-data-label{flex:1;min-width:0;color:var(--muted)}
@@ -752,7 +752,7 @@ html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#s
 :where(html[data-add-page="calc"]) .calc-data-table tbody tr:last-child > *{border-bottom:0}
 :where(html[data-add-page="calc"]) .calc-data-table tbody td{background:var(--surface-control)}
 :where(html[data-add-page="calc"]) :is(.warning-note,.note){margin-top:var(--calc-card-gap);padding:var(--calc-surface-space);font-size:var(--calc-type-support);line-height:1.35}
-:where(html[data-add-page="calc"]) .warning-note{border-color:var(--danger-border);background:var(--warning-bg);color:var(--warning-text);font-weight:900}
+:where(html[data-add-page="calc"]) .warning-note{border-color:var(--danger-border);background:var(--warning-bg);color:var(--warning-text);font-weight:600}
 :where(html[data-add-page="calc"]) .note{border-radius:min(var(--surface-radius-md),var(--corner-surface-cap));background:var(--note-bg);color:var(--note-text)}
 :where(html[data-add-page="calc"]) .zero{color:var(--ink)}
 :where(html[data-add-page="calc"]) .muted{color:var(--muted)}
@@ -1021,14 +1021,14 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
 :where(html[data-add-page="report"]) .hero:after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;right:-125px;top:-215px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.13);box-shadow:0 0 0 42px rgba(255,255,255,.018),0 0 0 84px rgba(255,255,255,.012)}
 :where(html[data-add-page="report"]) .hero-top{display:flex;justify-content:space-between;gap:var(--density-layout-gap);align-items:flex-start;position:relative;z-index:1}
 :where(html[data-add-page="report"]) .eyebrow{font-size:12px;font-weight:700;letter-spacing:.13em;color:#ffedd5}
-:where(html[data-add-page="report"]) h1{font-size:34px;line-height:1;margin:7px 0 8px;letter-spacing:-.055em;font-weight:700;text-shadow:0 8px 22px rgba(3,11,31,.22)}
+:where(html[data-add-page="report"]) h1{font-size:34px;line-height:1;margin:7px 0 8px;letter-spacing:-.055em;font-weight:600;text-shadow:0 8px 22px rgba(3,11,31,.22)}
 :where(html[data-add-page="report"]) .hero p{margin:0;color:var(--report-hero-support-text);font-size:14px}
 :where(html[data-add-page="report"]) .hero-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs);margin-top:var(--density-gap-lg);position:relative;z-index:1}
 :where(html[data-add-page="report"]) .hero-summary > .hero-chip{min-width:0;width:auto}
 :where(html[data-add-page="report"]) .hero-chip{position:relative;overflow:hidden;padding:var(--density-gap-sm) var(--density-gap-md);border:1px solid rgba(255,255,255,.20);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.055));box-shadow:inset 0 1px 0 rgba(255,255,255,.10);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 :where(html[data-add-page="report"]) .hero-chip:after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#fdba74,#fb923c)}
 :where(html[data-add-page="report"]) .hero-chip span{display:block;font-size:9.5px;line-height:1;color:var(--report-hero-kicker-text);font-weight:700;letter-spacing:.015em}
-:where(html[data-add-page="report"]) .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1;letter-spacing:-.035em;font-weight:950}
+:where(html[data-add-page="report"]) .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1;letter-spacing:-.035em;font-weight:600}
 /* Canonical report data load failure · 정상 로딩 시 hidden 상태라 기존 화면에는 영향 없음. */
 :where(html[data-add-page="report"]) .report-load-error{
   margin:0 0 var(--density-layout-gap);
@@ -1038,7 +1038,7 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
   background:var(--surface-subtle);
   color:var(--negative);
   font-size:var(--report-type-support);
-  font-weight:700;
+  font-weight:600;
   line-height:1.45;
 }
 :where(html[data-add-page="report"]) .report-load-error p{margin:0}
@@ -1065,7 +1065,7 @@ html:where([data-add-page="report"]).dark .tab{box-shadow:0 1px 2px rgba(0,0,0,.
     linear-gradient(145deg,var(--card),var(--surface-subtle));box-shadow:0 12px 30px rgba(var(--report-depth-rgb),.085)}
 :where(html[data-add-page="report"]) .kpi:before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--energy-violet),var(--energy-cyan),var(--energy-gold))}
 :where(html[data-add-page="report"]) .kpi .label{font-size:12px;color:var(--muted);font-weight:700;line-height:1;letter-spacing:.015em}
-:where(html[data-add-page="report"]) .kpi .value{font-size:25px;font-weight:950;letter-spacing:-.045em;margin-top:var(--density-gap-xs);text-shadow:0 4px 14px rgba(35,37,70,.055)}
+:where(html[data-add-page="report"]) .kpi .value{font-size:25px;font-weight:600;letter-spacing:-.045em;margin-top:var(--density-gap-xs);text-shadow:0 4px 14px rgba(35,37,70,.055)}
 :where(html[data-add-page="report"]) .grid-2{display:grid;grid-template-columns:1.08fr .92fr;gap:var(--density-gap-lg);margin-top:var(--density-gap-lg);align-items:stretch}
 :where(html[data-add-page="report"]) .section-card{padding:var(--density-surface-lg)}
 :where(html[data-add-page="report"]) :is(.section-card,.table-card,.timeline-card,details){border-color:rgba(var(--report-border-accent-rgb),.14);box-shadow:0 14px 34px rgba(var(--report-depth-rgb),.085)}
@@ -1081,7 +1081,7 @@ html:where([data-add-page="report"]).dark .chart-wrap{box-shadow:inset 0 1px 0 r
 :where(html[data-add-page="report"]) .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}
 :where(html[data-add-page="report"]) .donut-center strong{font-size:21px} :where(html[data-add-page="report"]) .donut-center span{font-size:var(--report-type-micro);color:var(--muted)}
 :where(html[data-add-page="report"]) .donut[data-composition-state="unavailable"] .donut-center strong{font-size:15px}
-:where(html[data-add-page="report"]) .composition-state-note{margin:0 0 var(--density-gap-md);color:var(--muted);font-size:var(--report-type-micro);font-weight:700;line-height:1.45;text-align:center}
+:where(html[data-add-page="report"]) .composition-state-note{margin:0 0 var(--density-gap-md);color:var(--muted);font-size:var(--report-type-micro);font-weight:600;line-height:1.45;text-align:center}
 :where(html[data-add-page="report"]) .composition-state-note[hidden]{display:none}
 :where(html[data-add-page="report"]) .report-sign-value.pos{color:var(--positive)}
 :where(html[data-add-page="report"]) .report-sign-value.neg{color:var(--negative)}
@@ -1119,7 +1119,9 @@ html:where([data-add-page="report"]).dark .chart-wrap{box-shadow:inset 0 1px 0 r
 :where(html[data-add-page="report"]) .add-data-table :is(th,td){border-bottom:1px solid var(--row-line);text-align:left}
 :where(html[data-add-page="report"]) .add-data-table thead th{position:sticky;top:0;background:linear-gradient(180deg,var(--surface-subtle),var(--surface-soft))}
 :where(html[data-add-page="report"]) .add-data-table tbody th[scope="row"]{font-weight:400;background:transparent;position:static}
-:where(html[data-add-page="report"]) .add-data-table tfoot :is(td,th){font-weight:950;background:linear-gradient(90deg,rgba(var(--report-accent-rgb),.065),rgba(var(--report-cyan-rgb),.035));position:static}
+:where(html[data-add-page="report"]) .add-data-table tfoot :is(td,th){background:linear-gradient(90deg,rgba(var(--report-accent-rgb),.065),rgba(var(--report-cyan-rgb),.035));position:static}
+:where(html[data-add-page="report"]) .add-data-table tfoot th{font-weight:700}
+:where(html[data-add-page="report"]) .add-data-table tfoot td{font-weight:600}
 :where(html[data-add-page="report"]) .badge{display:inline-flex;align-items:center;padding:var(--density-gap-xs) var(--density-gap-md);font-size:var(--report-type-micro)}
 :where(html[data-add-page="report"]) .badge.estimate{background:var(--badge-estimate-bg);color:var(--badge-estimate-text)}
 :where(html[data-add-page="report"]) .volume-bars{display:grid;gap:var(--density-gap-md);margin-top:var(--density-gap-lg)}
@@ -1176,11 +1178,11 @@ html:where([data-add-page="report"]).dark .split-summary-item{border-color:var(-
 :where(html[data-add-page="report"]) .timeline-profit-card.pos:before{background:var(--positive)}
 :where(html[data-add-page="report"]) .timeline-profit-card.neg:before{background:var(--negative)}
 :where(html[data-add-page="report"]) .timeline-profit-card span{display:block;font-size:9px;font-weight:700;line-height:1;color:var(--muted)}
-:where(html[data-add-page="report"]) .timeline-profit-card strong{display:block;margin-top:2px;font-size:13px;font-weight:900;line-height:1;white-space:nowrap;color:var(--ink)}
+:where(html[data-add-page="report"]) .timeline-profit-card strong{display:block;margin-top:2px;font-size:13px;font-weight:600;line-height:1;white-space:nowrap;color:var(--ink)}
 :where(html[data-add-page="report"]) .report-formula-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--density-gap-md);align-items:start}
 :where(html[data-add-page="report"]) .report-formula-grid details{margin-top:0}
 :where(html[data-add-page="report"]) .report-formula-grid details:first-child{grid-column:1 / -1}
-:where(html[data-add-page="report"]) summary{cursor:pointer;font-weight:700;font-size:13px;line-height:1}
+:where(html[data-add-page="report"]) summary{cursor:pointer;font-weight:600;font-size:13px;line-height:1}
 :where(html[data-add-page="report"]) details p, :where(html[data-add-page="report"]) details li{font-size:12px;color:var(--muted)}
 html:where([data-add-page="report"]).dark .timeline-dot{box-shadow:0 0 0 5px rgba(251,146,60,.13),0 0 20px rgba(251,146,60,.22)}
 html:where([data-add-page="report"]).dark .timeline-item:nth-child(even) .timeline-dot{box-shadow:0 0 0 5px rgba(75,197,221,.12),0 0 20px rgba(75,197,221,.20)}

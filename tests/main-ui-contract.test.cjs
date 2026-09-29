@@ -182,7 +182,8 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   assert.match(special,/\.monthly-calendar-controls\{[^}]*grid-template-columns:1fr[^}]*gap:var\(--space-2xs\)[^}]*margin:var\(--space-xs\) 0 var\(--space-lg\)/,'Phone 세로 월간 control은 탭과 toggle을 세로 배치하되 달력 전체 높이를 위해 compact 세로 여백을 사용해야 한다');
   assert.match(special,/\.monthly-calendar-separate-profit\{[^}]*grid-column:1[^}]*grid-row:2[^}]*justify-self:end/,'Phone 세로 별도수익 toggle은 탭 바로 아래 우측에 있어야 한다');
   // Compact control 회귀는 결과 계약만 보호하고 selector 순서/중간 alias 같은 구현 세부는 고정하지 않는다.
-  assert.match(common,/--compact-control-font-size:var\(--type-size-xs\);[^]*?--compact-control-font-weight:var\(--type-weight-bold\);[^]*?--compact-control-line-height:1;/,'소형 control typography는 11px/700/line-height 1의 단일 원천이어야 한다');
+  assert.match(common,/--compact-control-font-size:var\(--type-size-xs\);[^]*?--compact-control-font-weight:var\(--type-weight-semibold\);[^]*?--compact-control-line-height:1;/,'소형 control typography는 11px/600/line-height 1의 단일 원천이어야 한다');
+  assert.match(common,/\.state-toggle-label\{[^}]*font-weight:var\(--type-weight-bold\);/,'소형 control의 텍스트 라벨은 700 예외를 유지해야 한다');
   assert.match(common,/--dashboard-control-height:29px;[^]*?--state-toggle-state-height:19px;/,'Web/Tablet 기본 state badge는 29px 외곽 안에서 19px 높이여야 한다');
   assert.doesNotMatch([common,special,print].join('\n'),/--(?:state-toggle-(?:font-size|state-font-size|font-weight)|separate-profit-(?:font-size|state-font-size|font-weight)):/,'state-toggle/별도수익이 공통 typography를 별도 alias로 복제하면 안 된다');
 
