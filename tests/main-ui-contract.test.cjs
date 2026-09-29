@@ -185,6 +185,7 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
     '--separate-profit-height',
     '--separate-profit-font-size',
     '--separate-profit-state-font-size',
+    '--separate-profit-font-weight',
     '--separate-profit-state-min-width',
     '--separate-profit-pad-x',
     '--separate-profit-state-height',
@@ -192,12 +193,14 @@ test('월간 손익 캘린더는 기존 계산·modal·날짜 이동 contract를
   ]){
     assert.match(common,new RegExp(`${token}:`),`별도수익 공통 token 누락: ${token}`);
   }
-  assert.match(common,/\.separate-profit-toggle\{[^}]*--dashboard-control-height:var\(--separate-profit-height\);[^}]*--dashboard-control-font-size:var\(--separate-profit-font-size\);[^}]*--dashboard-control-state-font-size:var\(--separate-profit-state-font-size\);[^}]*--dashboard-control-state-min-width:var\(--separate-profit-state-min-width\);[^}]*padding:0 var\(--separate-profit-pad-x\)/,'메인 Web/Tablet과 월간 모달은 동일한 별도수익 기본형 primitive를 사용해야 한다');
-  assert.match(common,/\.separate-profit-toggle strong\{[^}]*min-width:var\(--separate-profit-state-min-width\);[^}]*height:var\(--separate-profit-state-height\);[^}]*padding:0 var\(--separate-profit-state-pad-x\)/,'ON/OFF badge도 별도수익 공통 token을 사용해야 한다');
+  assert.match(common,/--separate-profit-font-size:var\(--type-size-xs\);[^]*?--separate-profit-state-font-size:var\(--type-size-xs\);[^]*?--separate-profit-font-weight:var\(--type-weight-bold\);/,'별도수익 label과 ON/OFF는 기본형·월간형 공통으로 11px/700 token을 사용해야 한다');
+  assert.match(common,/\.separate-profit-toggle\{[^}]*--dashboard-control-height:var\(--separate-profit-height\);[^}]*--dashboard-control-font-size:var\(--separate-profit-font-size\);[^}]*--dashboard-control-state-font-size:var\(--separate-profit-state-font-size\);[^}]*--dashboard-control-state-min-width:var\(--separate-profit-state-min-width\);[^}]*padding:0 var\(--separate-profit-pad-x\);[^}]*font-weight:var\(--separate-profit-font-weight\)/,'메인 Web/Tablet과 월간 모달은 동일한 별도수익 기본형 primitive와 700 weight를 사용해야 한다');
+  assert.match(common,/\.separate-profit-toggle strong\{[^}]*min-width:var\(--separate-profit-state-min-width\);[^}]*height:var\(--separate-profit-state-height\);[^}]*padding:0 var\(--separate-profit-state-pad-x\);[^}]*font-weight:var\(--separate-profit-font-weight\)/,'ON/OFF badge도 별도수익 공통 11px/700 token을 사용해야 한다');
   assert.match(common,/\.separate-profit-toggle-label\{[^}]*display:inline-flex;[^}]*align-items:center;[^}]*justify-content:center;[^}]*line-height:1;/,'기본형 별도수익 label은 모든 기본 viewport에서 동일한 geometric center를 사용해야 한다');
   assert.match(common,/\.separate-profit-toggle strong \.control-text-optical\{transform:none\}/,'기본형 ON\/OFF도 optical shift 없이 동일한 geometric center를 사용해야 한다');
+  assert.match(common,/\.chart-y-auto-toggle\{[^}]*--dashboard-control-font-size:var\(--type-size-xs\);[^}]*--dashboard-control-state-font-size:var\(--type-size-xs\);[^}]*font-weight:var\(--type-weight-bold\)/,'Y축 자동 재계산 state toggle도 label·ON/OFF에 11px/700 typography를 사용해야 한다');
   assert.doesNotMatch(common,/\.monthly-calendar-separate-profit\s+\.(?:separate-profit-toggle-label|control-text-optical)|--monthly-separate-profit-|\.monthly-calendar-separate-profit\.separate-profit-toggle/,'월간 모달만을 위한 별도수익 skin/텍스트 정렬 override를 다시 만들면 안 된다');
-  assert.match(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*--separate-profit-height:[^;]+;[^}]*--separate-profit-font-size:[^;]+;[^}]*--separate-profit-state-height:[^;]+;/,'Phone 메인화면만 feature scope에서 별도수익 compact token을 override해야 한다');
+  assert.match(special,/\.separate-profit-control-row \.separate-profit-toggle\{[^}]*--separate-profit-height:25px;[^}]*--separate-profit-font-size:var\(--type-size-xs\);[^}]*--separate-profit-state-font-size:var\(--type-size-xs\);[^}]*--separate-profit-state-height:21px;/,'Phone 메인은 compact geometry를 유지하되 별도수익·ON/OFF 글자는 11px를 공유해야 한다');
   assert.match(special,/\.separate-profit-control-row \.separate-profit-toggle strong \.control-text-optical\{[^}]*transform:translateY\(var\(--control-text-optical-shift\)\)/,'Phone 메인 compact ON/OFF의 기존 optical shift는 유지해야 한다');
   assert.doesNotMatch(special,/^[ \t]*\.separate-profit-toggle\{/m,'Phone CSS에서 모든 별도수익 toggle을 전역 compact 처리하면 월간 모달까지 변형되므로 금지한다');
   assert.match(special,/\.monthly-calendar-controls\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,[^)]+\) minmax\(0,1fr\)[^}]*\}[^]*?\.monthly-calendar-separate-profit\{grid-column:3;grid-row:1;justify-self:end\}/,'Phone Landscape는 탭과 별도수익 toggle을 같은 행으로 복원해야 한다');

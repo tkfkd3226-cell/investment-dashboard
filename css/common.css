@@ -173,8 +173,9 @@
   --dashboard-control-pad-x:8px;
   /* Separate Profit Toggle · 기본형은 Web/Tablet/월간 모달 전 viewport가 공유하고 Phone 메인만 feature scope에서 compact override */
   --separate-profit-height:29px;
-  --separate-profit-font-size:10.5px;
-  --separate-profit-state-font-size:10px;
+  --separate-profit-font-size:var(--type-size-xs);
+  --separate-profit-state-font-size:var(--type-size-xs);
+  --separate-profit-font-weight:var(--type-weight-bold);
   --separate-profit-state-min-width:28px;
   --separate-profit-pad-x:8px;
   --separate-profit-gap:var(--space-md);
@@ -1551,8 +1552,10 @@ button.legend-item.chart-series-all.active{
 }
 
 .chart-y-auto-toggle{
+  --dashboard-control-font-size:var(--type-size-xs);
+  --dashboard-control-state-font-size:var(--type-size-xs);
   background:transparent;
-  font-weight:var(--type-weight-semibold);
+  font-weight:var(--type-weight-bold);
 }
 
 .chart-y-auto-toggle.active{
@@ -4442,6 +4445,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   gap:var(--separate-profit-gap);
   padding:0 var(--separate-profit-pad-x);
   background:var(--card);
+  font-weight:var(--separate-profit-font-weight);
   letter-spacing:-.025em;
 }
 /* Separate Profit Base · Web/Tablet 메인·월간 모달·Phone 월간 모달은 같은 텍스트 중심선을 공유 */
@@ -4455,6 +4459,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   min-width:var(--separate-profit-state-min-width);
   height:var(--separate-profit-state-height);
   padding:0 var(--separate-profit-state-pad-x);
+  font-weight:var(--separate-profit-font-weight);
 }
 .separate-profit-toggle.active{
   border-color:var(--special-profit-border);
