@@ -72,6 +72,7 @@ const CHART_FRAME=Object.freeze({left:70,right:70,top:20,bottom:70});
 const CHART_EDGE_PAD=24;
 const CHART_VIEWBOX_BASE=Object.freeze({width:1120,height:330});
 const CHART_EXPANDED_VISUAL_GROWTH=.5;
+const CHART_BAR_DENSITY=Object.freeze({cumulative:.28,allocation:.72});
 const CHART_VISUAL=Object.freeze({
   axisFontSize:11,
   dateFontSize:10,
@@ -1424,7 +1425,7 @@ function drawPensionCumChart(){
   const mode=chartState.compareModes.pension||'return',selection=chartSelection('pensionCum'),selected=selection.selected,autoY=chartAutoYEnabled('pensionCum');
   const leftAxis=cumulativeMoneyAxis('pensionCum',data,selected,autoY),rightAxis=cumulativeRightAxis('pensionCum',data,mode,leftAxis,selected.has('compare'),autoY);
   const yInfo=leftAxis.info,rInfo=rightAxis.info||{min:0,max:1,ticks:[]};
-  const cfg=chartConfig(svg),n=data.length,barW=chartBarWidth(svg,cfg,n,1/3,8);
+  const cfg=chartConfig(svg),n=data.length,barW=chartBarWidth(svg,cfg,n,CHART_BAR_DENSITY.cumulative);
   cfg.edgePad=Math.max(CHART_EDGE_PAD,barW*2.1);
   cfg.y=v=>chartY(cfg,yInfo.min,yInfo.max,v);
   cfg.y2=v=>chartY(cfg,rInfo.min,rInfo.max,v);
@@ -1474,7 +1475,7 @@ function drawPensionStacked(){
   const selection=chartSelection('pensionAlloc'),allSeries=chartLegendItems('pensionAlloc').map(item=>item.key),series=allSeries.filter(s=>selection.selected.has(s)),autoY=chartAutoYEnabled('pensionAlloc');
   const colors=Object.fromEntries(allSeries.map(s=>[s,s==='현금성자산'?CASH_ASSET_COLOR:pensionSeriesColor(s)]));
   const axisSeries=autoY?series:allSeries,totals=data.map(d=>axisSeries.reduce((a,s)=>a+Number(d[s]||0),0));
-  const yInfo=fixedTickInfo(0,Math.max(1,...totals),10000000,true),cfg=chartConfig(svg),n=data.length,barW=chartBarWidth(svg,cfg,n,.55,10);
+  const yInfo=fixedTickInfo(0,Math.max(1,...totals),10000000,true),cfg=chartConfig(svg),n=data.length,barW=chartBarWidth(svg,cfg,n,CHART_BAR_DENSITY.allocation);
   cfg.edgePad=Math.max(CHART_EDGE_PAD,barW*.62);
   cfg.y=v=>chartY(cfg,yInfo.min,yInfo.max,v);drawAxes(svg,cfg,yInfo.ticks);
   data.forEach((d,i)=>{let acc=0;const x=chartX(cfg,n,i)-barW/2;series.forEach(s=>{const v=Number(d[s]||0),y1=cfg.y(acc+v),y0=cfg.y(acc);svg.appendChild(el('rect',{x,y:y1,width:barW,height:Math.max(0,y0-y1),fill:colors[s],rx:chartExpandedHalfGrowthUnits(svg,2)}));acc+=v})});
@@ -1495,7 +1496,7 @@ function drawCumChart(){
   const mode=chartState.compareModes.securities||'return',selection=chartSelection('securitiesCum'),selected=selection.selected,autoY=chartAutoYEnabled('securitiesCum'),fullAxes=securitiesCumFullAxes(bundle);
   const leftAxis=cumulativeMoneyAxis('securitiesCum',data,selected,autoY,fullAxes),rightAxis=cumulativeRightAxis('securitiesCum',data,mode,leftAxis,selected.has('compare'),autoY,fullAxes);
   const yInfo=leftAxis.info,rInfo=rightAxis.info||{min:0,max:1,ticks:[]};
-  const cfg=chartConfig(svg),n=data.length,bw=chartBarWidth(svg,cfg,n,.28);
+  const cfg=chartConfig(svg),n=data.length,bw=chartBarWidth(svg,cfg,n,CHART_BAR_DENSITY.cumulative);
   cfg.edgePad=Math.max(CHART_EDGE_PAD,bw*2.1);
   cfg.y=v=>chartY(cfg,yInfo.min,yInfo.max,v);
   cfg.y2=v=>chartY(cfg,rInfo.min,rInfo.max,v);
@@ -1579,7 +1580,7 @@ function drawStacked(){
   }else{
     maxY=Math.max(30000000,...values)*1.05;ticks=[0,5000000,10000000,15000000,20000000,25000000,30000000];
   }
-  const n=data.length,bw=chartBarWidth(svg,cfg,n,.72);
+  const n=data.length,bw=chartBarWidth(svg,cfg,n,CHART_BAR_DENSITY.allocation);
   cfg.edgePad=Math.max(CHART_EDGE_PAD,bw*.62);
   cfg.y=v=>chartY(cfg,minY,maxY,v);drawAxes(svg,cfg,ticks);
   data.forEach((d,i)=>{const x=chartX(cfg,n,i)-bw/2;let base=0;series.forEach(key=>{const value=Number(d[key]||0),yTop=cfg.y(base+value),yBase=cfg.y(base);svg.appendChild(el('rect',{x:x,y:yTop,width:bw,height:yBase-yTop,fill:colors[key],opacity:.75,stroke:cssThemePaint('--chart-stack-stroke','#fff'),'stroke-width':chartExpandedHalfGrowthUnits(svg,.4)}));base+=value})});
