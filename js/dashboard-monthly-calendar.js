@@ -268,6 +268,24 @@ function syncMonthlyCalendarLiveValue(current,next,{text=true,attributes=['class
   });
   return changed;
 }
+// 상승·하락 detail은 viewport별 full/compact span을 유지한 채 각 leaf만 갱신한다.
+// 부모 textContent를 교체하면 두 span 구조가 사라져 CSS의 viewport 분기가 무력화된다.
+function syncMonthlyCalendarSummaryLiveValue(current,next){
+  if(!current||!next)return false;
+  const selectors=[
+    '.monthly-calendar-summary-rise-fall-full',
+    '.monthly-calendar-summary-rise-fall-compact'
+  ];
+  const currentLeaves=selectors.map(selector=>current.querySelector?.(selector)||null);
+  const nextLeaves=selectors.map(selector=>next.querySelector?.(selector)||null);
+  const structured=currentLeaves.every(Boolean)&&nextLeaves.every(Boolean);
+  if(!structured)return syncMonthlyCalendarLiveValue(current,next);
+  let changed=syncMonthlyCalendarLiveValue(current,next,{text:false});
+  selectors.forEach((selector,index)=>{
+    if(syncMonthlyCalendarLiveValue(currentLeaves[index],nextLeaves[index]))changed=true;
+  });
+  return changed;
+}
 function refreshMonthlyCalendarLive(){
   const modal=document.getElementById('monthlyCalendarModal');
   if(!modal?.classList.contains('show')||!monthlyCalendarState.month)return false;
@@ -290,7 +308,7 @@ function refreshMonthlyCalendarLive(){
   const selector='.monthly-calendar-summary .m-value,.monthly-calendar-summary .m-detail';
   const currentSummary=modal.querySelectorAll(selector);
   template.content.querySelectorAll(selector).forEach((next,index)=>{
-    if(syncMonthlyCalendarLiveValue(currentSummary[index],next))changed=true;
+    if(syncMonthlyCalendarSummaryLiveValue(currentSummary[index],next))changed=true;
   });
   return changed;
 }

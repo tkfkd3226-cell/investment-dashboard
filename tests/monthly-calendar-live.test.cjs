@@ -82,6 +82,46 @@ test('값이 같은 live 갱신은 DOM 쓰기를 생략하고 날짜 button의 �
   assert.equal(button.getAttribute('title'),'-20,000원');
 });
 
+test('상승·하락 요약 live 갱신은 full/compact span을 보존해 viewport별 문구가 중복 노출되지 않는다',()=>{
+  const context=vm.createContext({});
+  vm.runInContext(calendarBody,context);
+  let parentTextWrites=0;
+  function leaf(text,className){
+    const attributes={class:className};
+    return {
+      get textContent(){return text;},
+      set textContent(value){text=value;},
+      getAttribute:name=>attributes[name]??null,
+      setAttribute:(name,value)=>{attributes[name]=value;},
+      removeAttribute:name=>{delete attributes[name];},
+      querySelector:()=>null
+    };
+  }
+  function detail(fullText,compactText){
+    const attributes={class:'m-detail'};
+    const leaves={
+      '.monthly-calendar-summary-rise-fall-full':leaf(fullText,'monthly-calendar-summary-rise-fall-full'),
+      '.monthly-calendar-summary-rise-fall-compact':leaf(compactText,'monthly-calendar-summary-rise-fall-compact')
+    };
+    return {
+      get textContent(){return leaves['.monthly-calendar-summary-rise-fall-full'].textContent+leaves['.monthly-calendar-summary-rise-fall-compact'].textContent;},
+      set textContent(_value){parentTextWrites++;},
+      getAttribute:name=>attributes[name]??null,
+      setAttribute:(name,value)=>{attributes[name]=value;},
+      removeAttribute:name=>{delete attributes[name];},
+      querySelector:selector=>leaves[selector]||null,
+      leaves
+    };
+  }
+  const current=detail('상승 +1,000원 · 하락 -500원','+1,000원·-500원');
+  const next=detail('상승 +2,000원 · 하락 -700원','+2,000원·-700원');
+  assert.equal(context.syncMonthlyCalendarSummaryLiveValue(current,next),true);
+  assert.equal(parentTextWrites,0,'부모 textContent를 교체하면 full/compact span이 파괴된다');
+  assert.equal(current.leaves['.monthly-calendar-summary-rise-fall-full'].textContent,'상승 +2,000원 · 하락 -700원');
+  assert.equal(current.leaves['.monthly-calendar-summary-rise-fall-compact'].textContent,'+2,000원·-700원');
+  assert.equal(context.syncMonthlyCalendarSummaryLiveValue(current,next),false,'같은 값의 다음 polling은 DOM 쓰기를 만들지 않는다');
+});
+
 // 실제 renderer가 만든 날짜 button/손익 span을 보관하는 최소 DOM 대역.
 // layout은 모사하지 않고 refresh의 DOM identity·속성·쓰기 여부를 관찰한다.
 function liveCalendarHarness(initialProfit){
