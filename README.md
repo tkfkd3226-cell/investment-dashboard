@@ -321,12 +321,14 @@ stable request identity, optimistic concurrency, durable idempotency, fail-close
 
 KRX 자동 실행은 기존 수동 KRX dispatch 코어를 수정하지 않고 GAS 바깥쪽 scheduler가 동일 코어를 호출하는 구조입니다. 운영 GAS에 이 기능을 반영한 뒤 Apps Script 편집기에서 `installKrxAutoScheduler()`를 **한 번** 실행해 installable trigger 권한을 승인하고 scheduler를 설치합니다.
 
-- KST 평일 기준 **09:01**에는 `runKrxAutoMorning`, **15:31**에는 `runKrxAutoClose` one-shot trigger를 준비합니다. 매일 00시대의 `reconcileKrxAutoTriggers`가 그날 trigger를 중복 없이 재정렬합니다. time-driven trigger는 플랫폼 사정으로 목표 시각보다 약간 늦게 시작할 수 있으므로 초 단위 정시 실행을 전제로 하지 않습니다.
+- KST 평일 기준 **09:01**에는 `runKrxAutoMorning`, **15:31**에는 `runKrxAutoClose` one-shot trigger를 준비합니다. Apps Script는 이미 실행된 one-shot도 프로젝트 trigger 목록에 사용 중지 상태로 남길 수 있으므로, reconciler는 같은 handler가 하나 있다는 이유만으로 정상 trigger라고 간주하지 않고 **미래 시각의 당일 one-shot을 항상 새 trigger로 교체**합니다. 이미 지난 시각이나 주말에는 기존 one-shot만 정리하고 새로 만들지 않습니다.
+- recurring watchdog은 `reconcileKrxAutoTriggers`(00시대), `reconcileKrxAutoMorningGuard`(07시대), `reconcileKrxAutoCloseGuard`(14시대) 3종입니다. 셋 중 하나가 실행되면 먼저 recurring 3종 자체를 확인해 **누락된 sibling을 복구하고 중복 handler는 정확히 1개로 수렴**시킨 뒤, 당일 09:01/15:31 one-shot을 다시 점검합니다. 새 Guard-of-Guard는 추가하지 않습니다. Apps Script Trigger API에서 recurring trigger의 disabled 상태를 신뢰성 있게 조회할 수 없으므로 handler가 정확히 1개 존재하면 cadence를 불필요하게 재설정하지 않습니다. 세 recurring trigger가 모두 삭제되어 아무 handler도 실행되지 않는 상태는 GAS 내부에서 자가복구할 수 없으므로 `installKrxAutoScheduler()`를 다시 실행해야 합니다.
 - morning/close 모두 `date`를 직접 지정하지 않고 `krx-auto:YYYY-MM-DD:morning|close` 형태의 안정적인 requestId만 기존 `dispatchKrxPriceWorkflow()`에 전달합니다. 따라서 09:01에는 장중/최신·누락 판단, 15:31 이후에는 정규장 종가 재확정 판단을 기존 Python/GAS 계약이 그대로 담당합니다.
 - GAS scheduler는 미래 KRX 휴장일 표를 별도로 하드코딩하지 않습니다. 평일 휴장일에도 trigger가 발화할 수 있으며, 실제 거래일/갱신 대상 여부는 `scripts/update_prices.py`의 KRX 거래일 판정이 결정합니다.
-- 자동 재시도는 같은 날짜·phase requestId를 유지한 채 **1분 → 2분 → 3분**의 bounded one-shot으로만 수행합니다. Morning은 09:10, Close는 15:45를 넘겨 새 retry를 만들지 않습니다. `lock_busy`, workflow 진행/상태 불확실, GitHub 408·409·429·5xx 및 명백한 네트워크 일시 오류만 대상이며 인증·권한·validation 같은 terminal 오류는 자동 재시도하지 않습니다.
-- scheduler 상태 확인은 `showKrxAutoSchedulerStatus()`, 전체 중지는 `removeKrxAutoScheduler()`를 사용합니다. scheduler의 일반 상태는 Script Properties에 복제하지 않고 실제 project trigger 목록을 기준으로 하며, `KRX_AUTO_RETRY_*`는 pending retry의 최소 metadata에만 사용합니다.
-- `GAS_code.js` 변경은 기존과 동일하게 Apps Script Web App을 새 버전으로 업데이트해야 운영에 반영됩니다. scheduler handler/시각 계약을 바꾼 경우에는 배포 후 `installKrxAutoScheduler()`를 다시 실행해 기존 자동 trigger를 재구성합니다.
+- dispatch 단계의 자동 재시도는 같은 날짜·phase requestId를 유지한 채 **1분 → 2분 → 3분**의 bounded one-shot으로만 수행합니다. Morning은 09:10, Close는 15:45를 넘겨 새 retry를 만들지 않습니다. `lock_busy`, workflow 진행/상태 불확실, GitHub 408·409·429·5xx 및 명백한 네트워크 일시 오류만 대상이며 인증·권한·validation 같은 terminal 오류는 자동 재시도하지 않습니다.
+- workflow dispatch가 접수되었거나 동일 requestId의 기존 실행이 확인되면 별도 verification one-shot으로 **GitHub Actions의 최종 `conclusion`까지 사후 확인**합니다. 첫 확인은 약 5분 뒤, 이후 필요 시 약 3분 간격으로 재확인하며 Morning은 09:30, Close는 16:00을 넘기지 않습니다. exact requestId run이 아직 보이지 않거나 active run/`conclusion` 가시성이 불확실한 동안에는 중복 dispatch하지 않고 fail-closed로 재확인만 합니다. `completed + success`면 종료하고, `completed + non-success`가 명확할 때만 `krx-auto-recovery:YYYY-MM-DD:phase:N`의 **새 recovery requestId**로 최대 2회 재dispatch한 뒤 다시 검증합니다.
+- scheduler 상태 확인은 `showKrxAutoSchedulerStatus()`, 전체 중지는 `removeKrxAutoScheduler()`를 사용합니다. 정상 scheduler 상태의 source of truth는 실제 project trigger 목록이며, `KRX_AUTO_RETRY_*`와 `KRX_AUTO_VERIFY_*`는 각각 pending retry/verification의 최소 metadata에만 사용합니다. status의 `schedulerHealthy`는 00시/07시/14시 recurring 3종이 각각 정확히 1개일 때 true입니다.
+- `GAS_code.js` 변경은 기존과 동일하게 Apps Script Web App을 새 버전으로 업데이트해야 운영에 반영됩니다. scheduler handler/시각 계약을 바꾼 경우에는 배포 후 `installKrxAutoScheduler()`를 다시 실행해 기존 자동 trigger를 재구성합니다. 단순 로직 수정처럼 handler/시각 구성이 그대로라면 이미 설치된 recurring trigger는 저장된 최신 함수를 호출하므로 installer 재실행이 필수는 아닙니다.
 
 ---
 

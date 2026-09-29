@@ -478,10 +478,17 @@ mock은 다음 조건에서만 강한 근거로 쓴다.
 - explicit 4xx rejected → 안전한 retry
 - durable success write 실패 → local evidence fallback
 - marker/run proof가 있는 정상 경로에서 상태별 목록 race가 중복 dispatch를 열지 않는가
-- 자동 morning/close가 같은 날짜에서 서로 다른 안정 identity를 쓰고, 같은 phase retry는 동일 identity를 유지하는가
-- 자동 scheduler의 중복/stale trigger 정리가 다른 project trigger 또는 기존 KRX durable evidence를 건드리지 않는가
+- 자동 morning/close가 같은 날짜에서 서로 다른 안정 identity를 쓰고, 같은 phase dispatch retry는 동일 identity를 유지하며 terminal workflow recovery만 새 bounded recovery identity를 쓰는가
+- 00시/07시/14시 recurring scheduler 중 하나가 누락되면 살아 있는 sibling 실행이 이를 복구하고, 중복 recurring handler는 정확히 1개로 수렴하는가
+- recurring 상호복구와 one-shot 재생성이 다른 project trigger 또는 기존 KRX durable evidence를 건드리지 않는가
+- 전날 실행 후 남은 disabled morning/close one-shot이 다음 날의 정상 trigger로 오인되지 않고, 미래 당일 target으로 교체되는가
 - 자동 retry가 transient 상태에만 bounded하게 열리고, 전날 retry·metadata 손상·terminal 4xx가 새 dispatch로 변질되지 않는가
-- 정상 자동 성공 경로가 기존 수동 KRX hot path 앞에 GitHub/Properties 선조회나 별도 dispatch를 추가하지 않는가
+- workflow acceptance 후 exact requestId run의 최종 `conclusion`을 확인하고 `completed + success`에서는 recovery dispatch를 만들지 않는가
+- exact run 미가시성, active run 존재, `completed`이지만 conclusion 미가시성, transient 조회 실패를 terminal failure로 오판해 중복 recovery dispatch하지 않는가
+- `completed + non-success`가 명확한 경우에만 새 recovery requestId로 재dispatch하고, recovery 횟수와 morning 09:30 / close 16:00 verification window를 넘지 않는가
+- stale/orphan `KRX_AUTO_RETRY_*`·`KRX_AUTO_VERIFY_*` metadata/trigger가 다음 날 실행으로 부활하지 않고 installer/remove 경로에서도 함께 정리되는가
+- `showKrxAutoSchedulerStatus()`가 recurring 3종의 정확한 cardinality를 `schedulerHealthy`에 반영하고 one-shot/retry/verification pending 상태를 구분하는가
+- 정상 자동 성공 경로가 기존 수동 KRX hot path 앞에 GitHub/Properties 선조회나 별도 dispatch를 추가하지 않고, 추가 원격 조회가 acceptance 이후 verification/recovery 경로에만 생기는가
 
 한 평가에서 이미 같은 root cause를 충분히 검증했다면 동일 계열 seed를 추가로 모두 돌릴 필요는 없다.
 
