@@ -121,15 +121,15 @@ html.dark{
 .add-heading-section{
   margin:0;
   font-size:20px;
-  font-weight:800;
-  line-height:1.25;
+  font-weight:700;
+  line-height:1;
   letter-spacing:-.035em;
 }
 .add-heading-subsection{
   margin:0;
   font-size:14px;
-  font-weight:800;
-  line-height:1.3;
+  font-weight:700;
+  line-height:1;
 }
 
 /* 03. Add 공통 Button primitive
@@ -169,14 +169,14 @@ html.dark{
   color:var(--ink);
   font-size:var(--button-font-size);
   font-weight:var(--button-font-weight);
-  line-height:1.2;
+  line-height:1;
 }
 .add-button-toggle{
   padding:var(--density-action-pad-y) var(--density-action-pad-x);
   color:var(--muted);
   font-size:var(--button-font-size);
   font-weight:var(--button-font-weight);
-  line-height:1.25;
+  line-height:1;
 }
 .add-button-toggle:is(.active,[aria-selected="true"],[aria-pressed="true"]){
   background:var(--navy);
@@ -223,7 +223,8 @@ html.dark{
   background:var(--table-head-bg,var(--surface-soft));
   color:var(--table-head-text);
   font-size:11px;
-  font-weight:800;
+  font-weight:700;
+  line-height:1;
 }
 .add-data-table .num{text-align:right}
 .add-data-table .add-table-cell-center{text-align:center}
@@ -308,7 +309,7 @@ body{
   /* Calc Field Layout Primitive · 계산기 필드 레이아웃 primitive */
   --calc-field-label-gap:var(--density-gap-xs);
   --calc-field-row-gap:var(--density-gap-md);
-  --calc-field-label-line-height:1.25;
+  --calc-field-label-line-height:1;
 
   /* Calc Choice Button primitive
      - 거래유형 / 계산 기준 / 매도 전략은 세로 geometry와 시각 상태만 공유한다.
@@ -467,7 +468,7 @@ html:where([data-add-page="calc"]).dark{
    ========================================================= */
 :where(html[data-add-page="calc"]) .hero{display:grid;gap:var(--density-gap-sm);margin-bottom:var(--density-surface-sm);padding-bottom:var(--density-surface-md);border-bottom:1px solid var(--line)}
 :where(html[data-add-page="calc"]) .hero-head{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-lg)}
-:where(html[data-add-page="calc"]) .hero h1{margin:0;font-size:var(--calc-type-page-title);letter-spacing:-.045em;line-height:1.18;flex:1 1 auto;min-width:0;font-weight:800}
+:where(html[data-add-page="calc"]) .hero h1{margin:0;font-size:var(--calc-type-page-title);letter-spacing:-.045em;line-height:1;flex:1 1 auto;min-width:0;font-weight:700}
 :where(html[data-add-page="calc"]) .hero p{margin:0;color:var(--muted);font-size:var(--calc-type-support);line-height:1.3;max-width:1100px}
 :where(html[data-add-page="calc"]) .actions{display:flex;gap:var(--density-gap-sm);flex-wrap:nowrap;flex:0 0 auto}
 :where(html[data-add-page="calc"]) .calc-utility-button{gap:var(--density-gap-md);line-height:1;border-color:var(--control-border);background:linear-gradient(180deg,var(--surface-control),var(--surface-subtle));color:var(--navy);font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.52),var(--action-shadow)}
@@ -538,7 +539,7 @@ html:where([data-add-page="calc"]).dark .calc-utility-button{box-shadow:inset 0 
 :where(html[data-add-page="calc"]) .help-tooltip:focus-within .custom-tooltip, :where(html[data-add-page="calc"]) .help-tooltip.is-open .custom-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
 :where(html[data-add-page="calc"]) .help-tooltip.is-dismissed:focus-within .custom-tooltip{opacity:0;visibility:hidden;transform:translateY(4px)}
 :where(html[data-add-page="calc"]) .calc-extra-tooltip{width:min(320px,calc(100vw - 24px))}
-:where(html[data-add-page="calc"]) .calc-extra-title{display:block;margin-bottom:var(--density-gap-sm);font-weight:900;color:var(--on-accent)}
+:where(html[data-add-page="calc"]) .calc-extra-title{display:block;margin-bottom:var(--density-gap-sm);font-weight:700;color:var(--on-accent)}
 :where(html[data-add-page="calc"]) .calc-extra-list{display:grid;gap:var(--density-gap-xs)}
 :where(html[data-add-page="calc"]) .calc-extra-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--density-gap-md)}
 :where(html[data-add-page="calc"]) .calc-extra-row > span{min-width:0;color:var(--tooltip-text)}
@@ -703,7 +704,7 @@ html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#s
 :where(html[data-add-page="calc"]) :is(.calc-summary-panel,.kpis,.range-panel,.summary-row,.mobile-data){gap:var(--calc-card-gap)}
 :where(html[data-add-page="calc"]) .calc-summary-panel{margin-bottom:var(--calc-card-gap)}
 :where(html[data-add-page="calc"]) .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
-:where(html[data-add-page="calc"]) :is(.kpi .value,.range-box .big,.summary-card .svalue){font-size:var(--calc-type-emphasis-value);font-weight:900;line-height:1.15}
+:where(html[data-add-page="calc"]) :is(.kpi .value,.range-box .big,.summary-card .svalue){font-size:var(--calc-type-emphasis-value);font-weight:900;line-height:1}
 :where(html[data-add-page="calc"]) .kpi .value{margin-top:2px;letter-spacing:-.03em}
 
 :where(html[data-add-page="calc"]) .range-panel{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -722,7 +723,7 @@ html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#s
 :where(html[data-add-page="calc"]) .tabs{gap:var(--density-gap-sm);margin:0 0 var(--density-surface-sm);padding:0}
 :where(html[data-add-page="calc"]) .strategy-card{overflow:hidden}
 :where(html[data-add-page="calc"]) .strategy-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--density-gap-lg);padding:var(--calc-surface-space);border-bottom:1px solid var(--line);background:var(--surface-subtle)}
-:where(html[data-add-page="calc"]) .strategy-title p{margin:var(--density-gap-xs) 0 0;color:var(--muted);font-size:var(--calc-type-support);line-height:1.3;white-space:nowrap}
+:where(html[data-add-page="calc"]) .strategy-title p{margin:var(--density-gap-xs) 0 0;color:var(--muted);font-size:var(--calc-type-support);line-height:1;white-space:nowrap}
 :where(html[data-add-page="calc"]) .badge{padding:var(--density-gap-xs) var(--density-surface-sm);font-size:var(--calc-type-data-label)}
 :where(html[data-add-page="calc"]) .badge.bad{background:var(--badge-bad-bg);color:var(--badge-bad-text)}
 :where(html[data-add-page="calc"]) .badge.conditional{background:var(--badge-conditional-bg);color:var(--badge-conditional-text)}
@@ -735,8 +736,8 @@ html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#s
 :where(html[data-add-page="calc"]) .mobile-data{display:none}
 :where(html[data-add-page="calc"]) .mobile-data-card{min-width:0}
 :where(html[data-add-page="calc"]) .mobile-section-title:first-child{padding-top:3px}
-:where(html[data-add-page="calc"]) .calc-result-section-title{font-size:var(--calc-type-content-title);font-weight:800;line-height:1.3}
-:where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-label{font-size:var(--calc-type-data-label);font-weight:800;line-height:1.35}
+:where(html[data-add-page="calc"]) .calc-result-section-title{font-size:var(--calc-type-content-title);font-weight:700;line-height:1}
+:where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-label{font-size:var(--calc-type-data-label);font-weight:700;line-height:1}
 :where(html[data-add-page="calc"]) :is(.calc-data-table,.mobile-data-card) .calc-result-value{font-size:var(--calc-type-data-value);font-weight:800;line-height:1.35}
 :where(html[data-add-page="calc"]) .mobile-data-row{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-lg);padding:var(--density-gap-md) 0;border-bottom:1px solid var(--soft)}
 :where(html[data-add-page="calc"]) .mobile-data-row:last-child{border-bottom:0}
@@ -869,8 +870,8 @@ html:where([data-add-page="calc"]).calc-results-stale :is(.calc-summary-panel,#s
   :where(html[data-add-page="calc"]) .strategy-title p{letter-spacing:-.025em}
   :where(html[data-add-page="calc"]) .summary-row{grid-template-columns:repeat(2,1fr)}
   :where(html[data-add-page="calc"]) .summary-card{min-width:0}
-  :where(html[data-add-page="calc"]) .summary-card .sname{line-height:1.25}
-  :where(html[data-add-page="calc"]) .summary-card .svalue{line-height:1.2;letter-spacing:-.045em;white-space:nowrap}
+  :where(html[data-add-page="calc"]) .summary-card .sname{line-height:1}
+  :where(html[data-add-page="calc"]) .summary-card .svalue{line-height:1;letter-spacing:-.045em;white-space:nowrap}
   :where(html[data-add-page="calc"]) .mobile-data-row{gap:var(--density-gap-xs);padding:var(--density-gap-sm) 0}
   :where(html[data-add-page="calc"]) .mobile-data-value{max-width:58%;white-space:nowrap;word-break:normal;letter-spacing:-.035em}
 
@@ -1006,7 +1007,7 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
 :where(html[data-add-page="report"]) :is(.kpi,.split-group,.split-total,.timeline-card,details,.split-total-mobile-card){padding:var(--density-surface-md)}
 :where(html[data-add-page="report"]) :is(.section-title,.split-group-head) p{font-size:var(--report-type-support);color:var(--muted);margin:0}
 :where(html[data-add-page="report"]) :is(.split-summary-item span,.split-total>div:first-child small,.split-total-mobile-card span){display:block;color:var(--muted);font-size:var(--report-type-micro)}
-:where(html[data-add-page="report"]) :is(.split-summary-item span,.split-total-mobile-card span){font-weight:800}
+:where(html[data-add-page="report"]) :is(.split-summary-item span,.split-total-mobile-card span){font-weight:700;line-height:1}
 :where(html[data-add-page="report"]) :is(.split-summary-item strong,.split-total-mobile-card strong){display:block;font-size:15px}
 
 /* =========================================================
@@ -1019,15 +1020,15 @@ html:where([data-add-page="report"]){scroll-behavior:smooth}
 :where(html[data-add-page="report"]) .hero:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.09) 44%,transparent 51%);opacity:.72}
 :where(html[data-add-page="report"]) .hero:after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;right:-125px;top:-215px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.13);box-shadow:0 0 0 42px rgba(255,255,255,.018),0 0 0 84px rgba(255,255,255,.012)}
 :where(html[data-add-page="report"]) .hero-top{display:flex;justify-content:space-between;gap:var(--density-layout-gap);align-items:flex-start;position:relative;z-index:1}
-:where(html[data-add-page="report"]) .eyebrow{font-size:12px;font-weight:900;letter-spacing:.13em;color:#ffedd5}
-:where(html[data-add-page="report"]) h1{font-size:34px;line-height:1.2;margin:7px 0 8px;letter-spacing:-.055em;font-weight:950;text-shadow:0 8px 22px rgba(3,11,31,.22)}
+:where(html[data-add-page="report"]) .eyebrow{font-size:12px;font-weight:700;letter-spacing:.13em;color:#ffedd5}
+:where(html[data-add-page="report"]) h1{font-size:34px;line-height:1;margin:7px 0 8px;letter-spacing:-.055em;font-weight:700;text-shadow:0 8px 22px rgba(3,11,31,.22)}
 :where(html[data-add-page="report"]) .hero p{margin:0;color:var(--report-hero-support-text);font-size:14px}
 :where(html[data-add-page="report"]) .hero-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--density-gap-xs);margin-top:var(--density-gap-lg);position:relative;z-index:1}
 :where(html[data-add-page="report"]) .hero-summary > .hero-chip{min-width:0;width:auto}
 :where(html[data-add-page="report"]) .hero-chip{position:relative;overflow:hidden;padding:var(--density-gap-sm) var(--density-gap-md);border:1px solid rgba(255,255,255,.20);border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.055));box-shadow:inset 0 1px 0 rgba(255,255,255,.10);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 :where(html[data-add-page="report"]) .hero-chip:after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#fdba74,#fb923c)}
-:where(html[data-add-page="report"]) .hero-chip span{display:block;font-size:9.5px;line-height:1.2;color:var(--report-hero-kicker-text);font-weight:800;letter-spacing:.015em}
-:where(html[data-add-page="report"]) .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1.18;letter-spacing:-.035em;font-weight:950}
+:where(html[data-add-page="report"]) .hero-chip span{display:block;font-size:9.5px;line-height:1;color:var(--report-hero-kicker-text);font-weight:700;letter-spacing:.015em}
+:where(html[data-add-page="report"]) .hero-chip strong{display:block;margin-top:2px;font-size:17px;line-height:1;letter-spacing:-.035em;font-weight:950}
 /* Canonical report data load failure · 정상 로딩 시 hidden 상태라 기존 화면에는 영향 없음. */
 :where(html[data-add-page="report"]) .report-load-error{
   margin:0 0 var(--density-layout-gap);
@@ -1063,7 +1064,7 @@ html:where([data-add-page="report"]).dark .tab{box-shadow:0 1px 2px rgba(0,0,0,.
 :where(html[data-add-page="report"]) .kpi{position:relative;overflow:hidden;border-color:rgba(var(--report-border-accent-rgb),.15);background:radial-gradient(circle at 100% 0,rgba(var(--report-accent-rgb),.10),transparent 40%),
     linear-gradient(145deg,var(--card),var(--surface-subtle));box-shadow:0 12px 30px rgba(var(--report-depth-rgb),.085)}
 :where(html[data-add-page="report"]) .kpi:before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--energy-violet),var(--energy-cyan),var(--energy-gold))}
-:where(html[data-add-page="report"]) .kpi .label{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.015em}
+:where(html[data-add-page="report"]) .kpi .label{font-size:12px;color:var(--muted);font-weight:700;line-height:1;letter-spacing:.015em}
 :where(html[data-add-page="report"]) .kpi .value{font-size:25px;font-weight:950;letter-spacing:-.045em;margin-top:var(--density-gap-xs);text-shadow:0 4px 14px rgba(35,37,70,.055)}
 :where(html[data-add-page="report"]) .grid-2{display:grid;grid-template-columns:1.08fr .92fr;gap:var(--density-gap-lg);margin-top:var(--density-gap-lg);align-items:stretch}
 :where(html[data-add-page="report"]) .section-card{padding:var(--density-surface-lg)}
@@ -1086,7 +1087,7 @@ html:where([data-add-page="report"]).dark .chart-wrap{box-shadow:inset 0 1px 0 r
 :where(html[data-add-page="report"]) .report-sign-value.neg{color:var(--negative)}
 :where(html[data-add-page="report"]) .legend-row{display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-md);padding:var(--density-table-pad-y) 0;border-bottom:1px solid var(--row-line)}
 :where(html[data-add-page="report"]) .legend-row:last-child{border-bottom:0}
-:where(html[data-add-page="report"]) .legend-name{display:flex;align-items:center;gap:var(--density-gap-sm);font-size:12px;font-weight:800}
+:where(html[data-add-page="report"]) .legend-name{display:flex;align-items:center;gap:var(--density-gap-sm);font-size:12px;font-weight:700;line-height:1}
 :where(html[data-add-page="report"]) .dot{width:9px;height:9px;border-radius:50%}
 :where(html[data-add-page="report"]) .dot-core{background:var(--navy)}
 :where(html[data-add-page="report"]) .dot-day{background:var(--series-secondary)}
@@ -1095,7 +1096,7 @@ html:where([data-add-page="report"]).dark .chart-wrap{box-shadow:inset 0 1px 0 r
 :where(html[data-add-page="report"]) .pnl-chart-card{overflow:hidden;background:radial-gradient(circle at 85% 2%,rgba(var(--report-accent-rgb),.085),transparent 28%),
     var(--card)}
 :where(html[data-add-page="report"]) .chart-title{align-items:center}
-:where(html[data-add-page="report"]) .chart-legend{display:flex;align-items:center;gap:var(--density-gap-md);flex-wrap:wrap;color:var(--muted);font-size:var(--report-type-micro);font-weight:800}
+:where(html[data-add-page="report"]) .chart-legend{display:flex;align-items:center;gap:var(--density-gap-md);flex-wrap:wrap;color:var(--muted);font-size:var(--report-type-micro);font-weight:700;line-height:1}
 :where(html[data-add-page="report"]) .chart-legend span{display:inline-flex;align-items:center;gap:var(--density-gap-xs);white-space:nowrap}
 :where(html[data-add-page="report"]) .chart-legend i{display:inline-block;position:relative;flex:none}
 :where(html[data-add-page="report"]) .legend-bar{width:9px;height:9px;border-radius:3px;background:linear-gradient(180deg,var(--positive),var(--series-positive-soft))}
@@ -1138,7 +1139,7 @@ html:where([data-add-page="report"]).dark .chart-wrap{box-shadow:inset 0 1px 0 r
 :where(html[data-add-page="report"]) .split-group-day{border-top:4px solid var(--energy-cyan)}
 :where(html[data-add-page="report"]) .split-group-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--density-surface-md);margin-bottom:var(--density-surface-md)}
 :where(html[data-add-page="report"]) .split-group-head h2{margin:2px 0}
-:where(html[data-add-page="report"]) .split-group-kicker{display:block;font-size:var(--report-type-micro);font-weight:950;letter-spacing:.09em;color:var(--energy-violet)}
+:where(html[data-add-page="report"]) .split-group-kicker{display:block;font-size:var(--report-type-micro);font-weight:700;line-height:1;letter-spacing:.09em;color:var(--energy-violet)}
 :where(html[data-add-page="report"]) .split-group-day .split-group-kicker{color:var(--energy-cyan-text)}
 :where(html[data-add-page="report"]) .split-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--density-gap-md);margin-bottom:var(--density-gap-lg)}
 :where(html[data-add-page="report"]) .split-summary-item{border:1px solid rgba(var(--report-border-accent-rgb),.13);background:linear-gradient(145deg,var(--surface-subtle),var(--card));border-radius:min(var(--inner-radius-md),var(--corner-inner-cap));padding:var(--density-surface-sm)}
@@ -1147,7 +1148,7 @@ html:where([data-add-page="report"]).dark .chart-wrap{box-shadow:inset 0 1px 0 r
 :where(html[data-add-page="report"]) .split-detail-table{min-width:820px}
 :where(html[data-add-page="report"]) .split-detail-table.day-table{min-width:650px}
 :where(html[data-add-page="report"]) .split-total{display:flex;align-items:center;justify-content:space-between;gap:var(--density-surface-md);background:linear-gradient(120deg,rgba(var(--report-accent-rgb),.085),rgba(var(--report-cyan-rgb),.055));border-color:var(--report-panel-border);margin-top:4px}
-:where(html[data-add-page="report"]) .split-total>div:first-child span{display:block;font-size:15px;font-weight:950;color:var(--navy)}
+:where(html[data-add-page="report"]) .split-total>div:first-child span{display:block;font-size:15px;font-weight:700;line-height:1;color:var(--navy)}
 :where(html[data-add-page="report"]) .split-total>div:first-child small{margin-top:1px}
 :where(html[data-add-page="report"]) .split-total-stats{display:flex;align-items:center;justify-content:flex-end;gap:var(--density-layout-gap);flex-wrap:wrap;font-size:11px;color:var(--muted)}
 :where(html[data-add-page="report"]) .split-total-stats b{font-size:13px}
@@ -1162,7 +1163,7 @@ html:where([data-add-page="report"]).dark .split-summary-item{border-color:var(-
 :where(html[data-add-page="report"]) .timeline{position:relative;margin-top:4px}
 :where(html[data-add-page="report"]) .timeline:before{content:"";position:absolute;left:142px;top:10px;bottom:10px;width:2px;background:linear-gradient(var(--energy-violet),var(--energy-cyan))}
 :where(html[data-add-page="report"]) .timeline-item{display:grid;grid-template-columns:126px 32px 1fr;align-items:start;margin-bottom:var(--density-gap-md);position:relative}
-:where(html[data-add-page="report"]) .timeline-date{font-size:11px;font-weight:900;color:var(--muted);padding-top:15px;white-space:nowrap}
+:where(html[data-add-page="report"]) .timeline-date{font-size:11px;font-weight:700;line-height:1;color:var(--muted);padding-top:15px;white-space:nowrap}
 :where(html[data-add-page="report"]) .timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--energy-violet);margin:17px 0 0 10px;box-shadow:0 0 0 5px rgba(var(--report-accent-rgb),.11),0 0 20px rgba(var(--report-accent-rgb),.22);z-index:1}
 :where(html[data-add-page="report"]) .timeline-item:nth-child(even) .timeline-dot{background:var(--energy-cyan);box-shadow:0 0 0 5px rgba(var(--report-cyan-rgb),.11),0 0 20px rgba(var(--report-cyan-rgb),.20)}
 :where(html[data-add-page="report"]) .timeline-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:var(--density-gap-md)}
@@ -1174,12 +1175,12 @@ html:where([data-add-page="report"]).dark .split-summary-item{border-color:var(-
 :where(html[data-add-page="report"]) .timeline-profit-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--energy-violet)}
 :where(html[data-add-page="report"]) .timeline-profit-card.pos:before{background:var(--positive)}
 :where(html[data-add-page="report"]) .timeline-profit-card.neg:before{background:var(--negative)}
-:where(html[data-add-page="report"]) .timeline-profit-card span{display:block;font-size:9px;font-weight:800;line-height:1.2;color:var(--muted)}
-:where(html[data-add-page="report"]) .timeline-profit-card strong{display:block;margin-top:2px;font-size:13px;font-weight:900;line-height:1.15;white-space:nowrap;color:var(--ink)}
+:where(html[data-add-page="report"]) .timeline-profit-card span{display:block;font-size:9px;font-weight:700;line-height:1;color:var(--muted)}
+:where(html[data-add-page="report"]) .timeline-profit-card strong{display:block;margin-top:2px;font-size:13px;font-weight:900;line-height:1;white-space:nowrap;color:var(--ink)}
 :where(html[data-add-page="report"]) .report-formula-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--density-gap-md);align-items:start}
 :where(html[data-add-page="report"]) .report-formula-grid details{margin-top:0}
 :where(html[data-add-page="report"]) .report-formula-grid details:first-child{grid-column:1 / -1}
-:where(html[data-add-page="report"]) summary{cursor:pointer;font-weight:900;font-size:13px}
+:where(html[data-add-page="report"]) summary{cursor:pointer;font-weight:700;font-size:13px;line-height:1}
 :where(html[data-add-page="report"]) details p, :where(html[data-add-page="report"]) details li{font-size:12px;color:var(--muted)}
 html:where([data-add-page="report"]).dark .timeline-dot{box-shadow:0 0 0 5px rgba(251,146,60,.13),0 0 20px rgba(251,146,60,.22)}
 html:where([data-add-page="report"]).dark .timeline-item:nth-child(even) .timeline-dot{box-shadow:0 0 0 5px rgba(75,197,221,.12),0 0 20px rgba(75,197,221,.20)}
@@ -1214,7 +1215,7 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
    ========================================================= */
 @media(max-width:1100px){
   :where(html[data-add-page="report"]) h1{font-size:27px}
-  :where(html[data-add-page="report"]) .eyebrow{font-size:10px;line-height:1.2}
+  :where(html[data-add-page="report"]) .eyebrow{font-size:10px;line-height:1}
   :where(html[data-add-page="report"]) .hero p{font-size:12px;line-height:1.35}
   :where(html[data-add-page="report"]) .hero-summary{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row;width:100%;min-width:0;margin-top:var(--density-gap-md)}
   :where(html[data-add-page="report"]) .hero-summary > .hero-chip{display:block;max-width:none}
@@ -1222,7 +1223,7 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
   :where(html[data-add-page="report"]) .hero-chip-day{grid-column:2}
   :where(html[data-add-page="report"]) .hero-chip-total{grid-column:1 / -1}
   :where(html[data-add-page="report"]) .hero-chip span{font-size:9px}
-  :where(html[data-add-page="report"]) .hero-chip strong{margin-top:1px;font-size:16px;line-height:1.16}
+  :where(html[data-add-page="report"]) .hero-chip strong{margin-top:1px;font-size:16px;line-height:1}
   :where(html[data-add-page="report"]) .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   :where(html[data-add-page="report"]) #summary .report-kpi-total-net{order:1}
   :where(html[data-add-page="report"]) #summary .report-kpi-total-pnl{order:2}
@@ -1237,7 +1238,7 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
 
 @media (max-width:760px),
        (orientation:landscape) and (max-width:960px) and (max-height:500px) and (hover:none) and (pointer:coarse){
-  :where(html[data-add-page="report"]) h1{margin:5px 0;font-size:clamp(20px,6vw,24px);line-height:1.18;text-shadow:none}
+  :where(html[data-add-page="report"]) h1{margin:5px 0;font-size:clamp(20px,6vw,24px);line-height:1;text-shadow:none}
   :where(html[data-add-page="report"]) .hero-top{display:block}
   :where(html[data-add-page="report"]) .eyebrow{font-size:8.5px;letter-spacing:.06em}
   :where(html[data-add-page="report"]) .hero p{margin-top:1px;font-size:10px}
@@ -1252,8 +1253,8 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
 
   :where(html[data-add-page="report"]) #summary .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--density-gap-xs);margin-top:var(--density-gap-md)}
   :where(html[data-add-page="report"]) #summary .kpi{min-width:0}
-  :where(html[data-add-page="report"]) #summary .kpi .label{margin-bottom:var(--density-gap-micro);font-size:10px;line-height:1.18;letter-spacing:-.025em}
-  :where(html[data-add-page="report"]) #summary .kpi .value{margin-top:var(--density-gap-micro);font-size:clamp(15px,4.5vw,17px);line-height:1.1;white-space:nowrap;word-break:keep-all}
+  :where(html[data-add-page="report"]) #summary .kpi .label{margin-bottom:var(--density-gap-micro);font-size:10px;line-height:1;letter-spacing:-.025em}
+  :where(html[data-add-page="report"]) #summary .kpi .value{margin-top:var(--density-gap-micro);font-size:clamp(15px,4.5vw,17px);line-height:1;white-space:nowrap;word-break:keep-all}
   :where(html[data-add-page="report"]) #summary .kpi .sub{margin-top:var(--density-gap-xs);font-size:clamp(8px,2.3vw,9px);line-height:1.22;letter-spacing:-.025em}
   :where(html[data-add-page="report"]) #summary .report-kpi-total-net .sub{white-space:nowrap;font-size:clamp(8px,2.2vw,8.7px);letter-spacing:-.04em}
 
@@ -1272,7 +1273,7 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
   :where(html[data-add-page="report"]) .timeline-date{display:none}
   :where(html[data-add-page="report"]) .timeline-dot{grid-column:1;margin-left:2px}
   :where(html[data-add-page="report"]) .timeline-card{grid-column:2;grid-template-columns:minmax(0,1fr);gap:var(--density-gap-xs)}
-  :where(html[data-add-page="report"]) .timeline-card-date{display:block;margin:0 0 var(--density-gap-xs);font-size:var(--report-type-micro);line-height:1.2;font-weight:900;color:var(--muted);white-space:nowrap}
+  :where(html[data-add-page="report"]) .timeline-card-date{display:block;margin:0 0 var(--density-gap-xs);font-size:var(--report-type-micro);line-height:1;font-weight:700;color:var(--muted);white-space:nowrap}
   :where(html[data-add-page="report"]) .timeline-profit-card{width:100%;min-width:0;margin-top:var(--density-gap-xs);display:flex;align-items:center;justify-content:space-between;gap:var(--density-gap-sm);text-align:left}
   :where(html[data-add-page="report"]) .timeline-profit-card strong{margin-top:0;text-align:right}
 
@@ -1282,7 +1283,7 @@ html:where([data-add-page="report"]).dark .mobile-menu-toggle{box-shadow:0 6px 1
   :where(html[data-add-page="report"]) .split-total-stats{display:none}
   :where(html[data-add-page="report"]) .split-total-mobile{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--density-gap-sm)}
   :where(html[data-add-page="report"]) .split-total-mobile-card{min-width:0;border-color:var(--report-detail-border)}
-  :where(html[data-add-page="report"]) .split-total-mobile-card span{line-height:1.2}
-  :where(html[data-add-page="report"]) .split-total-mobile-card strong{margin-top:var(--density-gap-xs);color:var(--ink);line-height:1.15;letter-spacing:-.035em;white-space:nowrap}
+  :where(html[data-add-page="report"]) .split-total-mobile-card span{line-height:1}
+  :where(html[data-add-page="report"]) .split-total-mobile-card strong{margin-top:var(--density-gap-xs);color:var(--ink);line-height:1;letter-spacing:-.035em;white-space:nowrap}
   html:where([data-add-page="report"]).dark .report-nav .tabs{box-shadow:0 16px 36px rgba(0,0,0,.38)}
       }
