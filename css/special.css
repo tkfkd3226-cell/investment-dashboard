@@ -895,7 +895,10 @@
       --separate-profit-pad-x:var(--space-lg);
       padding:1px var(--separate-profit-pad-x);
     }
-    .separate-profit-control-row .separate-profit-toggle-label{display:inline}
+    .separate-profit-control-row .separate-profit-toggle-label{
+      display:inline;
+      line-height:var(--dashboard-control-line-height);
+    }
 
   /* Monthly Calendar Controls · 가로폰은 넓은 폭을 활용해 mode tabs와 별도수익 toggle을 같은 행에 배치 */
     .monthly-calendar-controls{

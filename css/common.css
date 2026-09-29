@@ -4444,6 +4444,13 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   background:var(--card);
   letter-spacing:-.025em;
 }
+/* Separate Profit Base · Web/Tablet 메인·월간 모달·Phone 월간 모달은 같은 텍스트 중심선을 공유 */
+.separate-profit-toggle-label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+}
 .separate-profit-toggle strong{
   min-width:var(--separate-profit-state-min-width);
   height:var(--separate-profit-state-height);
