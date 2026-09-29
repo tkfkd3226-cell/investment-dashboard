@@ -2120,9 +2120,9 @@ body.chart-expanded-open .dash-tooltip{
   min-height:28px;
   padding:var(--space-lg) var(--space-4xl);
   border-radius:var(--radius-pill);
-  font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-bold);
-  line-height:var(--type-line-single);
+  font-size:var(--compact-control-font-size);
+  font-weight:var(--compact-control-font-weight);
+  line-height:var(--control-line-height);
   white-space:nowrap;
   border:1px solid transparent;
 }
@@ -2599,7 +2599,8 @@ body.chart-expanded-open .dash-tooltip{
     .state-toggle-state .control-text-optical,
     .control-segmented .compact-control-text,
     .section-basis-chip .compact-control-text,
-    .control-tab .control-tab-text{
+    .control-tab .control-tab-text,
+    .pension-insight-badge{
       transform:translateY(var(--compact-control-ios-optical-shift));
     }
     /* chart 전체는 동일 700/11px이어도 iOS Safari에서 state-toggle label보다 약 1px 낮게 보여 direct-text correction만 적용 */
