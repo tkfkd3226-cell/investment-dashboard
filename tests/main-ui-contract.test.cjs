@@ -135,7 +135,10 @@ test('Dashboard 날짜 이동은 Web 좌우 버튼과 Tablet/Phone swipe가 cano
   assert.match(app,/DASHBOARD_DATE_SWIPE_MIN_DISTANCE=72/,'touch swipe는 짧은 수평 이동을 날짜 전환으로 오인하면 안 된다');
   assert.match(app,/DASHBOARD_DATE_SWIPE_AXIS_RATIO=1\.25/,'touch swipe는 세로 scroll보다 수평 의도가 충분히 강해야 한다');
   assert.match(app,/dashboardDateSwipeBlockedTarget\(target\)[^]*?a,button,input,select,textarea,label[^]*?\.mobile-scroll,\.chart-wrap,svg,canvas/,'interactive/control/chart/horizontal scroll 시작점은 날짜 swipe에서 제외해야 한다');
-  assert.match(app,/shiftActiveDashboardDate\(deltaX>0\?-1:1,\{announce:true\}\)/,'실사용 계약대로 좌→우 touch는 이전 날짜, 우→좌 touch는 다음 날짜여야 한다');
+  const swipeHorizontalDelta=app.match(/const\s+([A-Za-z_$][\w$]*)\s*=\s*touch\.clientX\s*-\s*startX/);
+  assert.ok(swipeHorizontalDelta,'touch swipe는 시작점 대비 수평 이동량을 계산해야 한다');
+  const horizontalDeltaName=swipeHorizontalDelta[1].replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  assert.match(app,new RegExp(`shiftActiveDashboardDate\\(\\s*${horizontalDeltaName}\\s*>\\s*0\\s*\\?\\s*-1\\s*:\s*1\\s*,\\s*\\{\\s*announce\\s*:\s*true\\s*\\}\\s*\\)`),'실사용 계약대로 좌→우 touch는 이전 날짜, 우→좌 touch는 다음 날짜여야 한다');
   assert.match(common,/@media \(min-width:1101px\) and \(max-width:1823px\)\{[^}]*\.topbar-date-step\{display:inline-flex\}/,'side rail이 부족한 Web은 fixed edge button 대신 Topbar 날짜 이동을 사용해야 한다');
   assert.match(common,/@media \(min-width:1824px\)\{[^]*?\.dashboard-date-navigation\{[^]*?display:block[^]*?position:fixed[^]*?\.dashboard-date-nav-btn\{[^]*?top:50%/,'충분한 side rail이 있는 Web에서만 날짜 이동을 화면 세로 중앙 edge control로 노출해야 한다');
   assert.match(common,/--dashboard-date-nav-edge:calc\(var\(--edge-rail-inset\) \+ var\(--edge-rail-control-width\) \+ var\(--edge-rail-gap\)\);[^]*?\.dashboard-date-nav-prev\{left:var\(--dashboard-date-nav-edge\)\}[^]*?\.dashboard-date-nav-next\{right:var\(--dashboard-date-nav-edge\)\}/,'Web 좌우 날짜 버튼은 TOC rail을 피하는 같은 edge 계산을 대칭으로 재사용해야 한다');
