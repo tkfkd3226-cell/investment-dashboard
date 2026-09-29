@@ -2416,7 +2416,7 @@ test('전일 대비 일변동 표시 순서·지정 modal label·연금 compact 
   assert.match(charts,/function showChartTitleInfoFloating\(button\)\{[^]*?document\.body\.appendChild\(floating\)[^]*?positionChartTitleInfoFloating\(\)/,'모바일 연금 title tooltip은 chart stacking context 밖 body portal에 표시해야 한다');
   assert.match(common,/\.chart-title-info-floating-tooltip\{[^}]*position:fixed;[^}]*z-index:12010/s,'floating title tooltip은 viewport 최상위 fixed layer를 사용해야 한다');
   assert.doesNotMatch(common,/:is\(#pension-chart-cum,#pension-chart-symbol\)\.compact-chart-ui \.chart-(?:head|wrap)\{[^}]*z-index:/s,'연금 tooltip 해결을 chart head/wrap z-index 경쟁에 의존하면 안 된다');
-  assert.match(common,/--asset-change-top-line-height:1\.33/,'전일 대비 변동표 상단값 line-height는 1.33 전용 토큰으로 소유해야 한다');
-  assert.match(common,/\.change-price\{[^}]*line-height:var\(--asset-change-top-line-height\)/s,'전일/당일 종가 상단값은 1.33 전용 토큰을 공유해야 한다');
-  assert.match(common,/\.asset-change-delta-value\{[^}]*line-height:var\(--asset-change-top-line-height\)/s,'일변동 상단값도 1.33 전용 토큰을 공유해야 한다');
+  assert.match(common,/--asset-change-top-line-height:1\.32/,'전일 대비 변동표 상단값 line-height는 1.32 전용 토큰으로 소유해야 한다');
+  assert.match(common,/\.change-price\{[^}]*line-height:var\(--asset-change-top-line-height\)/s,'전일/당일 종가 상단값은 1.32 전용 토큰을 공유해야 한다');
+  assert.match(common,/\.asset-change-delta-value\{[^}]*line-height:var\(--asset-change-top-line-height\)/s,'일변동 상단값도 1.32 전용 토큰을 공유해야 한다');
 });
