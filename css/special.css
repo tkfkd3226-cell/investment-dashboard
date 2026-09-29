@@ -262,14 +262,14 @@
       --surface-radius-level-3:12px;
       --surface-radius-level-4:12px;
       --dashboard-control-height:25px;
-      --dashboard-control-font-size:9.5px;
-      --dashboard-control-state-font-size:9.5px;
+      --dashboard-control-font-size:9px;
+      --dashboard-control-state-font-size:9px;
       --dashboard-control-state-min-width:34px;
       --dashboard-control-pad-x:6px;
       --dashboard-switch-min-width:42px;
       --dashboard-control-radius:8px;
       --dashboard-expand-icon-size:13px;
-      --dashboard-legend-font-size:10.5px;
+      --dashboard-legend-font-size:10px;
       --dashboard-control-group-gap:var(--space-sm);
       --nav-motion-shift:32px;
       --nav-motion-slide-duration:.26s;
@@ -632,7 +632,7 @@
       --data-table-cell-x:5px;
       --data-table-line-height:1;
       --data-table-bar-width:56px;
-      --data-table-sub-font-size:10.5px;
+      --data-table-sub-font-size:10px;
     }
 
   /* Sticky First Column · 터치폰 표의 첫 열은 좌우 스크롤 시 고정 */

@@ -166,7 +166,7 @@
   --modal-segment-active-text:var(--on-accent-text);
 
   --dashboard-control-height:29px;
-  --dashboard-control-font-size:10.5px;
+  --dashboard-control-font-size:10px;
   --dashboard-control-line-height:1;
   --dashboard-control-state-font-size:var(--type-size-2xs);
   --dashboard-control-state-min-width:28px;
@@ -4535,7 +4535,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   flex:0 1 auto;
   min-width:0;
   color:var(--text-secondary);
-  font-size:10.5px;
+  font-size:10px;
   font-weight:var(--type-weight-semibold);
   letter-spacing:-.02em;
   white-space:nowrap;
@@ -4595,7 +4595,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   --nav-menu-group-gap:var(--space-sm);
   --nav-menu-group-label-margin-y:var(--space-2xs);
   --nav-menu-group-label-margin-x:var(--space-lg);
-  --nav-menu-group-label-size:9.5px;
+  --nav-menu-group-label-size:9px;
   --nav-menu-group-label-line-height:1;
   --nav-menu-item-gap:var(--space-lg);
   --nav-menu-viewport-clearance:calc(var(--topbar-control-height) + var(--space-6xl) + var(--space-2xl));
@@ -4692,7 +4692,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   --topbar-layout-gap:var(--space-lg);
   --topbar-action-group-gap:var(--topbar-layout-gap);
   --topbar-control-height:32px;
-  --topbar-control-font-size:11.5px;
+  --topbar-control-font-size:11px;
   --topbar-date-select-width:148px;
   --topbar-date-pad-y:var(--space-sm);
   --topbar-date-pad-right:27px;
@@ -4904,7 +4904,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
   --data-table-cell-x:7px;
   --data-table-line-height:1;
   --data-table-bar-width:72px;
-  --data-table-sub-font-size:11.5px;
+  --data-table-sub-font-size:11px;
   --data-table-head-bg:var(--table-head-bg);
   --data-table-head-color:var(--ink);
   --data-table-head-weight:var(--type-weight-bold);
@@ -5132,7 +5132,7 @@ button.mobile-top-button:not(:disabled):active{transform:scale(.96)}
     .desktop-edge-toc-group p{
       margin:0 var(--space-xl) var(--space-sm);
       color:var(--nav-muted);
-      font-size:10.5px;
+      font-size:10px;
       font-weight:var(--type-weight-bold);
       line-height:1;
     }
