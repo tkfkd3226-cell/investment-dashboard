@@ -431,10 +431,6 @@
     .pension-risk-threshold-chip{
       top:-18px;
     }
-    .pension-risk-scale{
-      display:flex;
-      margin-top:var(--info-stack-gap);
-    }
     .metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
     .chart-note.six{grid-template-columns:repeat(3,minmax(0,1fr))}
 

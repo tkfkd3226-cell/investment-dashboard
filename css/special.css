@@ -813,7 +813,7 @@
 
   /* Phone Risk Threshold · 현재 비중 badge와 겹치지 않도록 70% 위치 chip을 gauge 아래로 이동 */
   .pension-risk-threshold-chip{top:calc(100% + var(--space-2xs))}
-  .pension-risk-scale{margin-top:calc(var(--info-stack-gap) + 20px)}
+  .pension-risk-gauge{margin-bottom:calc(var(--info-stack-gap) + 10px)}
 
   /* Scroll To Top Phone Geometry · 세로폰과 실제 터치폰 가로 공통 */
   .mobile-top-button{

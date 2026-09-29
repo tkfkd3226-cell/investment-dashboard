@@ -2357,16 +2357,6 @@ body.chart-expanded-open .dash-tooltip{
   bottom:calc(100% + var(--tooltip-stack-anchor-gap));
 }
 
-.pension-risk-scale{
-  display:flex;
-  justify-content:space-between;
-  gap:var(--space-4xl);
-  margin-top:var(--info-stack-gap);
-  font-size:var(--type-size-xs);
-  font-weight:var(--type-weight-bold);
-  line-height:var(--type-line-single);
-  color:var(--text-secondary);
-}
 
 /* Asset Tooltip Pointer Follow · 차트 tooltip처럼 포인터를 추적하되 viewport 가장자리에서만 위치 보정 */
 .asset-stack-segment.asset-tooltip-following{
