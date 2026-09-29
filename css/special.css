@@ -542,6 +542,11 @@
 
   /* Asset Insight · 인사이트 카드/스택/tooltip은 세로폰과 같은 compact 기준 */
     .asset-insight-head h3{font-size:var(--type-size-md)}
+    .pension-insight-badge{
+      height:var(--phone-compact-state-height);
+      min-height:var(--phone-compact-state-height);
+      padding:0 var(--phone-compact-state-pad-x);
+    }
     .asset-stack-bar{touch-action:pan-y}
     .asset-stack-segment{position:static}
     .asset-stack-segment span{font-size:var(--type-size-2xs)}
@@ -600,8 +605,8 @@
       --separate-profit-state-min-width:34px;
       --separate-profit-pad-x:var(--space-xs);
       --separate-profit-gap:0;
-      --separate-profit-state-height:21px;
-      --separate-profit-state-pad-x:var(--space-lg);
+      --separate-profit-state-height:var(--phone-compact-state-height);
+      --separate-profit-state-pad-x:var(--phone-compact-state-pad-x);
       padding:1px var(--separate-profit-pad-x);
     }
     .separate-profit-control-row .separate-profit-toggle-label{display:none}

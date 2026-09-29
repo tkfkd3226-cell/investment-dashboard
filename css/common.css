@@ -191,6 +191,9 @@
   --separate-profit-gap:var(--state-toggle-gap);
   --separate-profit-state-height:var(--state-toggle-state-height);
   --separate-profit-state-pad-x:var(--state-toggle-state-pad-x);
+  /* Phone Compact State Chip · 모바일 별도수익 ON/OFF와 상태 badge가 공유하는 compact geometry */
+  --phone-compact-state-height:21px;
+  --phone-compact-state-pad-x:var(--space-lg);
   --dashboard-switch-min-width:52px;
   --dashboard-control-radius:9px;
   --icon-button-size:32px;
