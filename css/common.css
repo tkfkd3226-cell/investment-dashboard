@@ -2198,6 +2198,7 @@ body.chart-expanded-open .dash-tooltip{
   line-height:var(--type-line-single);
 }
 
+/* Asset Contribution Fill · tooltip overflow는 유지하고 색상은 부모 pill 배경에서 렌더링 */
 .asset-stack-bar{
   display:flex;
   position:relative;
@@ -2205,7 +2206,7 @@ body.chart-expanded-open .dash-tooltip{
   height:var(--asset-insight-bar-height);
   overflow:visible;
   border-radius:var(--radius-pill);
-  background:var(--meter-track-bg);
+  background:var(--asset-stack-gradient,var(--meter-track-bg));
   border:1px solid var(--meter-track-border);
 }
 
@@ -2217,7 +2218,7 @@ body.chart-expanded-open .dash-tooltip{
   min-width:0;
   height:100%;
   width:var(--asset-segment-share,0%);
-  background:var(--asset-segment-color,transparent);
+  background:transparent;
 }
 
 .asset-stack-segment + .asset-stack-segment{
