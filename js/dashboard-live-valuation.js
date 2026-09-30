@@ -34,13 +34,16 @@ const LIVE_VALUATION_CLIENT_SESSION_KEY='investmentDashboard.liveValuationClient
 const LIVE_VALUATION_CLIENT_CHANNEL_NAME='investmentDashboard.liveValuationClients';
 const LIVE_VALUATION_CLIENT_PROBE_MS=80;
 const LIVE_VALUATION_PENDING_RENDER_RETRY_MS=250;
+const LIVE_VALUATION_SCROLL_IDLE_MS=200;
 
 let liveValuationPollTimer=0;
 let liveValuationPendingRenderTimer=0;
+let liveValuationScrollIdleTimer=0;
 let liveValuationRefreshSequence=0;
 let liveValuationRefreshInFlight=null;
 let liveValuationLastFingerprint='';
 let liveValuationRenderPending=false;
+let liveValuationScrollActive=false;
 let liveValuationSetupBound=false;
 let liveValuationMarketAiConnected=false;
 let liveValuationSettledSessionKey='';
@@ -234,6 +237,7 @@ function liveValuationFingerprint(payload,requestedTickers=[]){
 function liveValuationCanRender(){
   if(!liveValuationRenderDateEligible(dataState.activeDate))return false;
   if(document.visibilityState!=='visible')return false;
+  if(liveValuationScrollActive)return false;
   if(document.querySelector('.chart-expanded-overlay,.action-modal.show,.contrib-modal.show,dialog[open]'))return false;
   if(document.querySelector('#app .control-info-button[aria-expanded="true"],#app .has-tooltip.tooltip-open,#assetPriceSourceTooltip.visible,#securitySaleTooltip.visible,#marketAiTooltip.visible'))return false;
   const active=document.activeElement;
@@ -245,6 +249,16 @@ function clearPendingRenderTimer(){
   if(!liveValuationPendingRenderTimer)return;
   window.clearTimeout(liveValuationPendingRenderTimer);
   liveValuationPendingRenderTimer=0;
+}
+
+function noteLiveValuationScrollActivity(){
+  liveValuationScrollActive=true;
+  if(liveValuationScrollIdleTimer)window.clearTimeout(liveValuationScrollIdleTimer);
+  liveValuationScrollIdleTimer=window.setTimeout(()=>{
+    liveValuationScrollIdleTimer=0;
+    liveValuationScrollActive=false;
+    flushLiveValuationRender();
+  },LIVE_VALUATION_SCROLL_IDLE_MS);
 }
 
 function schedulePendingRenderCheck(){
@@ -405,6 +419,7 @@ function setupLiveValuation({renderDashboard,renderOpenOverlay}={}){
   }
   liveValuationSetupBound=true;
   liveValuationMarketAiConnected=document.documentElement.dataset.marketAiConnected==='true';
+  window.addEventListener('scroll',noteLiveValuationScrollActivity,{passive:true});
   window.addEventListener(MARKET_AI_KOSPI_SNAPSHOT_EVENT,event=>{
     if(!marketAiEnabled())return;
     syncLiveKospiSnapshot(event?.detail?.row??null);

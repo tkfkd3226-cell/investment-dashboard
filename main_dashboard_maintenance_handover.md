@@ -150,6 +150,7 @@ GAS 내부 proof lifecycle을 handover에 세세하게 복제하지 않고 실�
 - Market AI OFF/OFFLINE에서는 저장 JSON 기반 Dashboard가 독립 동작합니다.
 - 시장/Signal polling과 보유종목 Live Valuation은 별도 lifecycle입니다.
 - 현재 5초 polling은 **진행 중 요청 중복 금지**, stale generation 폐기, universe drift 처리, hidden/OFF gating을 유지합니다.
+- 페이지 스크롤 중에는 Live Valuation DOM 부분 렌더를 보류하고, 마지막 스크롤 후 200ms 뒤 누적된 최신 상태를 1회 반영합니다. 5초 network polling과 기존 scroll 위치 복원은 그대로 유지합니다.
 - 연결 해제/재연결, modal open, activeDate/session 전환에서 stale 응답이 최신 UI를 덮지 않아야 합니다.
 - 실시간 quote는 운영 JSON/GAS에 저장하지 않습니다.
 

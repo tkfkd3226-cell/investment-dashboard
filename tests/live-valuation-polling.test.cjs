@@ -87,8 +87,14 @@ function harness(){
     for(const [id,timer] of [...timers])if(!timer.repeat&&timer.delay===0){timers.delete(id);timer.callback();}
     await flush();
   };
+  const runTimeout=async delay=>{
+    const entry=[...timers].find(([,timer])=>!timer.repeat&&timer.delay===delay);
+    if(!entry)return false;
+    const [id,timer]=entry;
+    timers.delete(id);timer.callback();await flush();return true;
+  };
   const connect=value=>events.get('connection')({detail:{connected:value}});
-  return {context,settings,dataState,document,timers,events,requests,applied,snapshot,start,tick,queued,connect};
+  return {context,settings,dataState,document,timers,events,requests,applied,snapshot,start,tick,queued,runTimeout,connect};
 }
 
 test('5초 주기에서도 응답 body가 끝나기 전에는 조회가 중복되지 않는다',async()=>{
@@ -181,4 +187,22 @@ test('모달이 열린 상태에서도 overlay는 갱신하고 main render는 �
   assert.equal(h.settings.overlay,2,'동일 fingerprint는 모달을 재갱신하지 않는다');
   h.settings.modal=false;h.events.get('visibilitychange')();await flush();
   assert.equal(h.settings.main,1,'모달 해제 후 누적 상태는 한 번 그린다');
+});
+
+
+test('페이지 스크롤 중에는 main render를 미루고 정지 200ms 뒤 최신 상태를 한 번만 반영한다',async()=>{
+  const h=harness();h.start();await flush();
+  h.requests[0].finish(h.snapshot(100));await flush();
+  assert.equal(h.settings.main,1);
+
+  h.events.get('scroll')();
+  await h.tick();h.requests[1].finish(h.snapshot(200));await flush();
+  await h.tick();h.requests[2].finish(h.snapshot(300));await flush();
+  assert.equal(h.settings.main,1,'스크롤 중에는 DOM 부분 렌더를 실행하면 안 된다');
+  assert.equal(h.dataState.liveValuation.items['005930'].price,300,'polling/data 반영은 스크롤 중에도 최신값까지 진행되어야 한다');
+
+  h.events.get('scroll')();
+  assert.equal(await h.runTimeout(200),true,'마지막 scroll 뒤 idle timer가 있어야 한다');
+  assert.equal(h.settings.main,2,'스크롤 정지 뒤 누적된 최신 상태를 한 번만 렌더해야 한다');
+  assert.equal([...h.timers.values()].some(timer=>!timer.repeat&&timer.delay===250),false,'idle flush 뒤 pending retry timer는 정리되어야 한다');
 });
