@@ -226,10 +226,26 @@ function renderAssetContributionCard({
   noPrevMessage='전일 데이터가 없어 오늘 상승분 기여도를 표시하지 않습니다.',
   emptyMessage='상승한 자산이 없어 기여도를 표시하지 않습니다.'
 }={}){
+  // Segment interaction은 그대로 두고, 색상은 부모 gradient로 합성해 양끝 pill을 정확히 보존한다.
+  const stackItems=items.map((item,index)=>({
+    item,
+    index,
+    share:Math.max(0,Number(item.share)||0),
+    color:String(item.color||'transparent')
+  }));
+  let stackCursor=0;
+  const stackStops=[];
+  stackItems.forEach(({share,color},index)=>{
+    const start=Math.max(0,Math.min(100,stackCursor));
+    const end=index===stackItems.length-1?100:Math.max(start,Math.min(100,start+share));
+    stackStops.push(`${color} ${start.toFixed(4)}%`,`${color} ${end.toFixed(4)}%`);
+    stackCursor=end;
+  });
+  const stackGradient=stackStops.length?`linear-gradient(to right,${stackStops.join(',')})`:'';
   const content=!hasPrev
     ? `<div class="asset-empty-state">${noPrevMessage}</div>`
-    : items.length
-      ? `<div class="asset-stack-bar" role="group" aria-label="${escapeHtml(title)} 구성">${items.map((item,index)=>{const tooltipId=`${idPrefix}Tooltip${index}`;const share=Math.max(0,Number(item.share)||0);const valueText=String(item.valueText??'');const ariaLabel=escapeHtml(`${item.name} 상승분 기여도 ${share.toFixed(1)}%, ${valueText}`);const label=share>=8?escapeHtml(item.shortLabel??item.name):'';const color=escapeHtml(String(item.color||'transparent'));return `<div class="asset-stack-segment has-tooltip" tabindex="0" data-dashboard-focus-key="${escapeHtml(idPrefix)}:contribution:${index}" role="img" aria-label="${ariaLabel}" aria-describedby="${tooltipId}" style="--asset-segment-share:${share.toFixed(4)}%;--asset-segment-color:${color}"><span>${label}</span><div id="${tooltipId}" class="asset-viz-tooltip" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${share.toFixed(1)}%</div><div>${escapeHtml(valueText)}</div></div></div>`}).join('')}</div>`
+    : stackItems.length
+      ? `<div class="asset-stack-bar" role="group" aria-label="${escapeHtml(title)} 구성" style="--asset-stack-gradient:${escapeHtml(stackGradient)}">${stackItems.map(({item,index,share,color})=>{const tooltipId=`${idPrefix}Tooltip${index}`;const valueText=String(item.valueText??'');const ariaLabel=escapeHtml(`${item.name} 상승분 기여도 ${share.toFixed(1)}%, ${valueText}`);const label=share>=8?escapeHtml(item.shortLabel??item.name):'';return `<div class="asset-stack-segment has-tooltip" tabindex="0" data-dashboard-focus-key="${escapeHtml(idPrefix)}:contribution:${index}" role="img" aria-label="${ariaLabel}" aria-describedby="${tooltipId}" style="--asset-segment-share:${share.toFixed(4)}%"><span>${label}</span><div id="${tooltipId}" class="asset-viz-tooltip" role="tooltip"><strong>${escapeHtml(item.name)}</strong><div>${share.toFixed(1)}%</div><div>${escapeHtml(valueText)}</div></div></div>`}).join('')}</div>`
       : `<div class="asset-empty-state">${emptyMessage}</div>`;
   return renderAssetInsightCard({idPrefix,title,content});
 }
