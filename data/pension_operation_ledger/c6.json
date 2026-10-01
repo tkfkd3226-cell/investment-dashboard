@@ -1,0 +1,17 @@
+[
+  {
+    "target": "contribution",
+    "action": "upsert",
+    "resourceKey": "contrib-2026-10-01-5d12d3bb-e7af-4500-8957-af84b105ec28",
+    "date": "2026-10-01",
+    "semanticHash": "c6465b94287ebc861ff924a7f37ab71f6b202de8545792c036da7acbd66f8939",
+    "logicalOperationId": "contrib-2026-10-01-5d12d3bb-e7af-4500-8957-af84b105ec28",
+    "requestId": "contrib-2026-10-01-5d12d3bb-e7af-4500-8957-af84b105ec28",
+    "batchRequestId": "",
+    "batchOperationId": "",
+    "resultVersion": "contrib-2026-10-01-5d12d3bb-e7af-4500-8957-af84b105ec28",
+    "expectedVersion": "",
+    "savedAtKST": "2026-10-01T20:48:57+09:00",
+    "savedAtMs": 1790855337700
+  }
+]
