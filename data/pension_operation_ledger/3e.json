@@ -1,0 +1,17 @@
+[
+  {
+    "target": "cashSnapshot",
+    "action": "upsert",
+    "resourceKey": "2026-10-02",
+    "date": "2026-10-02",
+    "semanticHash": "3ecef9801afe783c0a304b2243e12a5d11adf6375be36b9e7e6f17502e53f886",
+    "logicalOperationId": "cash-2026-10-02-fee68bc1-9c31-4e94-8aac-6ef74fe5e3b5",
+    "requestId": "cash-2026-10-02-fee68bc1-9c31-4e94-8aac-6ef74fe5e3b5",
+    "batchRequestId": "",
+    "batchOperationId": "",
+    "resultVersion": "request:cash-2026-10-02-fee68bc1-9c31-4e94-8aac-6ef74fe5e3b5",
+    "expectedVersion": "",
+    "savedAtKST": "2026-10-02T21:36:56+09:00",
+    "savedAtMs": 1790944616047
+  }
+]
