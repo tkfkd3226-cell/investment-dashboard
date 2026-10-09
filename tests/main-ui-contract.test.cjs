@@ -780,7 +780,7 @@ test('Live Valuation 부분 갱신은 Hero 기준문구도 실제 Market AI 가�
   assert.match(app,/heroBasis\.textContent=`\(\$\{heroPerformanceBasisLabel\(x\.date\)\}\)`;/);
 });
 
-test('KRX 애프터마켓 이후 종가는 정확한 15:30 분봉만 검증하고 pykrx로 되돌아가지 않는다',()=>{
+test('KRX 애프터마켓 이후 종가는 정확한 15:30 또는 15:32+정규장 일봉 일치로 검증한다',()=>{
   const updater=read('scripts/update_prices.py');
   const gas=read('GAS_code.js');
   assert.match(updater,/KRX_AFTERMARKET_START_DATE = "2026-09-14"/);
@@ -791,11 +791,14 @@ test('KRX 애프터마켓 이후 종가는 정확한 15:30 분봉만 검증하�
   assert.match(updater,/"endDateTime": f"\{date_text\}\{end_hhmm\}"/);
   assert.match(updater,/expected_timestamp = f"\{date_text\}\{REGULAR_CLOSE_HHMM\}00"/);
   assert.match(updater,/missing-exact-1530-minute-bar/);
+  assert.match(updater,/delayed-close-day-candle-mismatch/);
+  assert.match(updater,/REGULAR_CLOSE_SOURCE = "naver_krx_regular_close_verified"/);
   assert.match(updater,/naver-krx-1530-minute=/);
   assert.match(updater,/pykrx_pre_aftermarket/);
   assert.match(updater,/naver_krx_1530_minute/);
   assert.match(gas,/function krxSnapshotHasVerifiedRegularClose\(snapshot, dateText\)/);
   assert.match(gas,/naver_krx_1530_minute/);
+  assert.match(gas,/naver_krx_regular_close_verified/);
   assert.match(gas,/pykrx_pre_aftermarket/);
   assert.doesNotMatch(gas,/source === "pykrx_raw"/);
   assert.match(gas,/reconfirm_regular_close/);
@@ -833,7 +836,7 @@ test('KRX 자동 재갱신은 최신일이 검증돼도 애프터마켓 이후 �
     previousBusinessDateText:()=> '2026-09-16'
   });
   vm.runInContext(gas.slice(start,end),context);
-  const verified={marketStatus:'close',priceBasis:'regular_close',regularCloseSource:'naver_krx_1530_minute'};
+  const verified={marketStatus:'close',priceBasis:'regular_close',regularCloseSource:'naver_krx_regular_close_verified'};
   const prices={
     '2026-09-14':{marketStatus:'close',priceBasis:'regular_close'},
     '2026-09-15':{marketStatus:'close',priceBasis:'regular_close',regularCloseSource:'pykrx_raw'},
@@ -848,6 +851,9 @@ test('KRX 자동 재갱신은 최신일이 검증돼도 애프터마켓 이후 �
   result=context.shouldDispatchKrxWorkflow({},prices);
   assert.equal(result.shouldDispatch,false);
   assert.equal(result.reason,'already_closed_today');
+  prices['2026-09-17']={...verified,regularCloseSource:'naver_krx_1530_minute'};
+  result=context.shouldDispatchKrxWorkflow({},prices);
+  assert.equal(result.shouldDispatch,false,'previous exact 15:30 snapshots must stay verified');
 });
 
 test('KRX 최신/누락은 장 시작 전이라도 전량매도 가상추적 최신가가 비면 dispatch하고 저장 후 수렴한다',()=>{
