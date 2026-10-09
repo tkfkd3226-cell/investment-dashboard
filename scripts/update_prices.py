@@ -48,7 +48,9 @@ HTTP_TIMEOUT_SECONDS = 20
 HTTP_USER_AGENT = "Mozilla/5.0 (compatible; investment-dashboard/1.0)"
 KRX_AFTERMARKET_START_DATE = "2026-09-14"
 NAVER_MINUTE_CHART_URL = "https://api.stock.naver.com/chart/domestic/item/{ticker}/minute"
+NAVER_DAY_CHART_URL = "https://api.stock.naver.com/chart/domestic/item/{ticker}"
 REGULAR_CLOSE_HHMM = "1530"
+REGULAR_CLOSE_SOURCE = "naver_krx_regular_close_verified"
 LEDGER_CHECK_FROM = "2026-06-18"
 JS_MAX_SAFE_INTEGER = 9_007_199_254_740_991
 
@@ -122,16 +124,18 @@ def _coerce_positive_price(value: Any) -> int:
     return price
 
 
-def _fetch_exact_regular_close_from_naver_minute(ticker: str, target_date: str):
-    """Return the exact KRX 15:30 one-minute close for ``target_date``.
+def _fetch_verified_regular_close_from_naver(ticker: str, target_date: str):
+    """Return a proven regular-session close, never an after-market quote.
 
-    Since the KRX after-market launch, end-of-day/day-candle feeds can contain
-    trades after the 15:30 regular-session close.  The Naver minute endpoint
-    still exposes the regular KRX session by timestamp, so only the exact
-    ``YYYYMMDD153000`` row is accepted.  Missing/ambiguous rows fail closed.
+    Prefer the exact 15:30 minute. Some Naver responses only publish the
+    regular-close print at 15:31~15:39 (e.g. 15:32). Such a print is accepted
+    *only* when the dated daily candle independently agrees on the close.
+    Naver documents that its daily 'close' remains the regular-session close
+    after KRX after-market launch; the after-market has no separate close.
     """
     date_text = target_date.replace("-", "")
     expected_timestamp = f"{date_text}{REGULAR_CLOSE_HHMM}00"
+
     def read_minute_rows(start_hhmm: str, end_hhmm: str) -> list[dict[str, Any]]:
         response = requests.get(
             NAVER_MINUTE_CHART_URL.format(ticker=ticker),
@@ -163,23 +167,80 @@ def _fetch_exact_regular_close_from_naver_minute(ticker: str, target_date: str):
     narrow_rows = read_minute_rows(REGULAR_CLOSE_HHMM, REGULAR_CLOSE_HHMM)
     matches = exact_matches(narrow_rows)
     if not matches:
-        # A zero-width time filter may omit the boundary bar. Re-query a small
-        # surrounding window, but *only* accept the same exact 15:30 timestamp.
-        # Nearby/after-market bars and day candles are never substitutes.
+        # Zero-width filters sometimes omit the boundary bar. Widen the
+        # request, but never accept NXT (15:40+) / KRX (16:00+) quotes.
         wider_rows = read_minute_rows("1520", "1535")
         matches = exact_matches(wider_rows)
-        if not matches:
-            observed = sorted({
-                str(row.get("localDateTime"))
-                for row in wider_rows
-                if isinstance(row, dict) and row.get("localDateTime") is not None
-            })
-            raise ValueError(
-                f"missing-exact-1530-minute-bar"
-                f"[ticker={ticker},date={target_date},"
-                f"exact_query_rows={len(narrow_rows)},wider_query_rows={len(wider_rows)},"
-                f"observed_tail={observed[-8:]}]"
+        if matches:
+            if len(set(matches)) != 1:
+                raise ValueError("conflicting-exact-1530-minute-bars")
+            return target_date, matches[0]
+
+        # Between 15:30 and 15:39, no regular-session auction or after-market
+        # execution can set a *new* price. Confirm any delayed close print
+        # against a separately queried date-specific Naver daily close.
+        close_candidates: list[int] = []
+        for row in wider_rows:
+            if not isinstance(row, dict):
+                continue
+            stamp = str(row.get("localDateTime") or "")
+            if (len(stamp) == 14 and stamp.isdigit()
+                    and stamp[:8] == date_text and "1530" < stamp[8:12] < "1540"):
+                close_candidates.append(_coerce_positive_price(row.get("currentPrice")))
+        if close_candidates:
+            if len(set(close_candidates)) != 1:
+                raise ValueError(f"conflicting-delayed-close-bars[ticker={ticker},date={target_date}]")
+            response = requests.get(
+                NAVER_DAY_CHART_URL.format(ticker=ticker),
+                params={
+                    "periodType": "dayCandle",
+                    "startDateTime": date_text,
+                    "endDateTime": date_text,
+                },
+                headers={
+                    "User-Agent": HTTP_USER_AGENT,
+                    "Accept": "application/json,text/plain,*/*",
+                    "Referer": "https://m.stock.naver.com/",
+                },
+                timeout=HTTP_TIMEOUT_SECONDS,
             )
+            response.raise_for_status()
+            day_payload = response.json()
+            # Naver exposes candle arrays; tolerate the explicit priceInfo
+            # wrapper without accepting arbitrary nested/undated data.
+            if isinstance(day_payload, dict):
+                day_payload = day_payload.get("priceInfo")
+            if not isinstance(day_payload, list):
+                raise ValueError("invalid-day-candle-payload")
+            day_closes = [
+                _coerce_positive_price(row.get("closePrice"))
+                for row in day_payload
+                if isinstance(row, dict) and str(row.get("localDate") or "") == date_text
+            ]
+            if len(day_closes) != 1:
+                raise ValueError(
+                    f"missing-or-ambiguous-exact-date-day-close"
+                    f"[ticker={ticker},date={target_date},matches={len(day_closes)}]"
+                )
+            if close_candidates[0] != day_closes[0]:
+                raise ValueError(
+                    f"delayed-close-day-candle-mismatch[ticker={ticker},date={target_date},"
+                    f"minute={close_candidates[0]},day={day_closes[0]}]"
+                )
+            print(f"KRX regular close confirmed by delayed minute+daily candle: {ticker} {target_date}")
+            return target_date, day_closes[0]
+
+        observed = sorted({
+            str(row.get("localDateTime"))
+            for row in wider_rows
+            if isinstance(row, dict) and row.get("localDateTime") is not None
+        })
+        raise ValueError(
+            f"missing-exact-1530-minute-bar"
+            f"[ticker={ticker},date={target_date},"
+            f"exact_query_rows={len(narrow_rows)},wider_query_rows={len(wider_rows)},"
+            f"observed_tail={observed[-8:]}]"
+        )
     if len(set(matches)) != 1:
         raise ValueError("conflicting-exact-1530-minute-bars")
     return target_date, matches[0]
@@ -188,7 +249,7 @@ def _fetch_exact_regular_close_from_naver_minute(ticker: str, target_date: str):
 def verified_regular_close_source(target_date: str, manual_valuation_used: bool = False) -> str:
     """Return the attested source label for a successful regular-close row."""
     if target_date >= KRX_AFTERMARKET_START_DATE:
-        base = "naver_krx_1530_minute"
+        base = REGULAR_CLOSE_SOURCE
     else:
         base = "pykrx_pre_aftermarket"
     return f"{base}+nxt_valuation_override" if manual_valuation_used else base
@@ -202,12 +263,13 @@ def snapshot_has_verified_regular_close(target_date: str, snapshot: Any) -> bool
         return False
 
     source = str(snapshot.get("regularCloseSource") or "").strip()
-    expected = (
-        "naver_krx_1530_minute"
-        if target_date >= KRX_AFTERMARKET_START_DATE
-        else "pykrx_pre_aftermarket"
-    )
-    return source == expected or source.startswith(expected + "+")
+    if target_date >= KRX_AFTERMARKET_START_DATE:
+        # Prior exact-15:30 snapshots remain valid after policy extension.
+        return any(
+            source == label or source.startswith(label + "+")
+            for label in ("naver_krx_1530_minute", REGULAR_CLOSE_SOURCE)
+        )
+    return source == "pykrx_pre_aftermarket" or source.startswith("pykrx_pre_aftermarket+")
 
 
 def _fetch_regular_close_map_from_pykrx(target_date: str, is_etf: bool = False) -> dict[str, int]:
@@ -301,14 +363,14 @@ def fetch_close(
     """Return a KRX price for ``target_date`` without mixing after-market trades.
 
     - During today's regular session, keep the existing pykrx intraday path.
-    - For closes on/after 2026-09-14 (KRX after-market launch), accept only the
-      exact 15:30 Naver KRX one-minute bar.  pykrx/day-candle values are not a
-      fallback because they can contain later after-market trades.
+    - For closes on/after 2026-09-14, use the exact 15:30 minute; when missing,
+      accept only a 15:31~15:39 print matching Naver's dated regular close.
+      Standalone day candles and post-15:40 quotes are not fallbacks.
     - For older dates, the legacy raw pykrx close paths remain valid because the
       new KRX after-market did not yet exist.
 
-    A post-cutover close that cannot be proven from the exact 15:30 minute row
-    fails closed instead of silently publishing a stale or after-market price.
+    An unconfirmed post-cutover price fails closed rather than publishing a
+    stale or after-market price.
     """
     start = datetime.strptime(target_date, DATE_FORMAT) - timedelta(days=lookback_days)
     end = datetime.strptime(target_date, DATE_FORMAT)
@@ -320,7 +382,7 @@ def fetch_close(
 
         if closed and target_date >= KRX_AFTERMARKET_START_DATE:
             try:
-                actual_date, close = _fetch_exact_regular_close_from_naver_minute(ticker, target_date)
+                actual_date, close = _fetch_verified_regular_close_from_naver(ticker, target_date)
                 return actual_date, close, None
             except Exception as exc:
                 errors.append(f"naver-krx-1530-minute={exc!r}")
