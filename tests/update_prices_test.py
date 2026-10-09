@@ -248,12 +248,10 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         self.assertIn("20261008154000", err)
         self.assertIn("ticker=005930", err)
 
-    def _simulate_delayed_close(self, *, minute_rows=None, day_rows=None):
-        """Simulate the live 10/08 incident (only a 15:32 minute returned)."""
+    def _simulate_delayed_close(self, *, minute_rows=None):
+        """Simulate 10/08: KRX 15:32=262,000, Naver daily close=263,000."""
         if minute_rows is None:
-            minute_rows = [{"localDateTime": "20261008153200", "currentPrice": 269000}]
-        if day_rows is None:
-            day_rows = {"priceInfos": [{"localDate": "20261008", "closePrice": 269000}]}
+            minute_rows = [{"localDateTime": "20261008153200", "currentPrice": 262000}]
         calls = []
 
         class FakeResponse:
@@ -266,8 +264,8 @@ class UpdatePricesSafetyTest(unittest.TestCase):
 
         def fake_get(url, **kwargs):
             calls.append((url, kwargs["params"]))
-            if kwargs["params"].get("periodType") == "dayCandle":
-                return FakeResponse(day_rows)
+            self.assertEqual(url, self.updater.NAVER_MINUTE_CHART_URL.format(ticker="005930"),
+                             "Post-close daily candles can contain after-market prices")
             if kwargs["params"]["startDateTime"] == "202610081530":
                 return FakeResponse([])
             return FakeResponse(minute_rows)
@@ -282,69 +280,47 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         )
         return self.updater.fetch_close("005930", "2026-10-08", retries=0), calls
 
-    def test_1532_bar_is_accepted_only_if_exact_dated_daily_close_agrees(self):
+    def test_1532_regular_close_does_not_need_aftermarket_day_candle(self):
         result, calls = self._simulate_delayed_close()
-        self.assertEqual(result, ("2026-10-08", 269000, None))
-        self.assertEqual(len(calls), 3)
-        self.assertEqual(calls[-1], (
-            "https://api.stock.naver.com/chart/domestic/item/005930",
-            {"periodType": "dayCandle", "startDateTime": "20261008", "endDateTime": "20261008"},
-        ))
+        self.assertEqual(result, ("2026-10-08", 262000, None))
+        self.assertEqual(len(calls), 2)
 
-    def test_day_chart_price_infos_wrapper_is_supported(self):
-        result, calls = self._simulate_delayed_close(day_rows={
-            "priceInfos": [{"localDate": "20261008", "closePrice": "269,000"}]
-        })
-        self.assertEqual(result, ("2026-10-08", 269000, None))
-        self.assertEqual(len(calls), 3)
-
-    def test_day_chart_legacy_bare_list_is_supported(self):
-        result, _ = self._simulate_delayed_close(day_rows=[
-            {"localDate": "20261008", "closePrice": 269000}
+    def test_consistent_delayed_bars_remain_valid_with_later_market_prices(self):
+        result, calls = self._simulate_delayed_close(minute_rows=[
+            {"localDateTime": "20261008153100", "currentPrice": 262000},
+            {"localDateTime": "20261008153200", "currentPrice": 262000},
+            {"localDateTime": "20261008154000", "currentPrice": 263000},
+            {"localDateTime": "20261008160500", "currentPrice": 265000},
         ])
-        self.assertEqual(result, ("2026-10-08", 269000, None))
+        self.assertEqual(result, ("2026-10-08", 262000, None))
+        self.assertEqual(len(calls), 2)
 
-    def test_day_chart_wrong_wrapper_fails_closed(self):
-        (actual, close, error), _ = self._simulate_delayed_close(day_rows={
-            "priceInfo": [{"localDate": "20261008", "closePrice": 269000}]
-        })
+    def test_wrong_date_delayed_minute_is_not_a_regular_close(self):
+        (actual, close, error), _ = self._simulate_delayed_close(minute_rows=[
+            {"localDateTime": "20261007153200", "currentPrice": 262000},
+            {"localDateTime": "20261008154000", "currentPrice": 263000},
+        ])
         self.assertIsNone(actual)
         self.assertIsNone(close)
-        self.assertIn("invalid-day-candle-payload", error)
+        self.assertIn("missing-exact-1530-minute-bar", error)
 
-    def test_1532_bar_and_dated_daily_candle_mismatch_fails_closed(self):
-        (actual, close, error), _ = self._simulate_delayed_close(
-            day_rows=[{"localDate": "20261008", "closePrice": 270000}]
-        )
+    def test_invalid_delayed_minute_price_does_not_publish(self):
+        (actual, close, error), _ = self._simulate_delayed_close(minute_rows=[
+            {"localDateTime": "20261008153200", "currentPrice": None},
+        ])
         self.assertIsNone(actual)
         self.assertIsNone(close)
-        self.assertIn("delayed-close-day-candle-mismatch", error)
-
-    def test_daily_candle_with_wrong_date_must_not_confirm_close(self):
-        (actual, close, error), _ = self._simulate_delayed_close(
-            day_rows=[{"localDate": "20261007", "closePrice": 269000}]
-        )
-        self.assertIsNone(actual)
-        self.assertIsNone(close)
-        self.assertIn("missing-or-ambiguous-exact-date-day-close", error)
-
-    def test_duplicate_day_candles_are_not_unconditionally_accepted(self):
-        (actual, close, error), _ = self._simulate_delayed_close(
-            day_rows=[{"localDate": "20261008", "closePrice": 269000}] * 2
-        )
-        self.assertIsNone(actual)
-        self.assertIsNone(close)
-        self.assertIn("missing-or-ambiguous-exact-date-day-close", error)
+        self.assertIn("invalid-price", error)
 
     def test_delayed_candles_with_conflicting_prices_are_rejected(self):
         (actual, close, error), calls = self._simulate_delayed_close(minute_rows=[
-            {"localDateTime": "20261008153100", "currentPrice": 269000},
-            {"localDateTime": "20261008153200", "currentPrice": 270000},
+            {"localDateTime": "20261008153100", "currentPrice": 262000},
+            {"localDateTime": "20261008153200", "currentPrice": 263000},
         ])
         self.assertIsNone(actual)
         self.assertIsNone(close)
         self.assertIn("conflicting-delayed-close-bars", error)
-        self.assertEqual(len(calls), 2)  # Never query a daily candle for conflicting minute prices.
+        self.assertEqual(len(calls), 2)  # Never query a daily candle for confirmation.
 
     def test_late_nxt_and_krx_aftermarket_prices_never_replace_regular_close(self):
         (actual, close, error), calls = self._simulate_delayed_close(minute_rows=[

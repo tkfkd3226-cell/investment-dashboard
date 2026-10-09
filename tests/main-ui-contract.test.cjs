@@ -780,7 +780,7 @@ test('Live Valuation 부분 갱신은 Hero 기준문구도 실제 Market AI 가�
   assert.match(app,/heroBasis\.textContent=`\(\$\{heroPerformanceBasisLabel\(x\.date\)\}\)`;/);
 });
 
-test('KRX 애프터마켓 이후 종가는 정확한 15:30 또는 15:32+정규장 일봉 일치로 검증한다',()=>{
+test('KRX 애프터마켓 이후 종가는 15:30 또는 거래 중단구간(15:31~15:39)의 일관된 가격으로 검증한다',()=>{
   const updater=read('scripts/update_prices.py');
   const gas=read('GAS_code.js');
   assert.match(updater,/KRX_AFTERMARKET_START_DATE = "2026-09-14"/);
@@ -791,7 +791,10 @@ test('KRX 애프터마켓 이후 종가는 정확한 15:30 또는 15:32+정규�
   assert.match(updater,/"endDateTime": f"\{date_text\}\{end_hhmm\}"/);
   assert.match(updater,/expected_timestamp = f"\{date_text\}\{REGULAR_CLOSE_HHMM\}00"/);
   assert.match(updater,/missing-exact-1530-minute-bar/);
-  assert.match(updater,/delayed-close-day-candle-mismatch/);
+  assert.match(updater,/"1530" < stamp\[8:12\] < "1540"/);
+  assert.match(updater,/conflicting-delayed-close-bars/);
+  assert.match(updater,/return target_date, close_candidates\[0\]/);
+  assert.doesNotMatch(updater,/NAVER_DAY_CHART_URL|"periodType": "dayCandle"/);
   assert.match(updater,/REGULAR_CLOSE_SOURCE = "naver_krx_regular_close_verified"/);
   assert.match(updater,/naver-krx-1530-minute=/);
   assert.match(updater,/pykrx_pre_aftermarket/);

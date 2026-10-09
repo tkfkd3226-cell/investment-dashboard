@@ -48,7 +48,6 @@ HTTP_TIMEOUT_SECONDS = 20
 HTTP_USER_AGENT = "Mozilla/5.0 (compatible; investment-dashboard/1.0)"
 KRX_AFTERMARKET_START_DATE = "2026-09-14"
 NAVER_MINUTE_CHART_URL = "https://api.stock.naver.com/chart/domestic/item/{ticker}/minute"
-NAVER_DAY_CHART_URL = "https://api.stock.naver.com/chart/domestic/item/{ticker}"
 REGULAR_CLOSE_HHMM = "1530"
 REGULAR_CLOSE_SOURCE = "naver_krx_regular_close_verified"
 LEDGER_CHECK_FROM = "2026-06-18"
@@ -128,10 +127,13 @@ def _fetch_verified_regular_close_from_naver(ticker: str, target_date: str):
     """Return a proven regular-session close, never an after-market quote.
 
     Prefer the exact 15:30 minute. Some Naver responses only publish the
-    regular-close print at 15:31~15:39 (e.g. 15:32). Such a print is accepted
-    *only* when the dated daily candle independently agrees on the close.
-    Naver documents that its daily 'close' remains the regular-session close
-    after KRX after-market launch; the after-market has no separate close.
+    regular-close print at 15:31~15:39 (e.g. 15:32). KRX has no price-changing
+    execution in that interval: the regular session ends at 15:30, post-close
+    trades begin at 15:40, and the KRX after-market opens at 16:00. NXT is
+    also paused until 15:40. Thus a consistently priced delayed KRX minute
+    in that *same dated gap* is a regular-session close, not an after-market
+    fill. Naver's daily ``closePrice`` MUST NOT be used as corroboration: its
+    day candle can reflect the final after-market quote instead.
     """
     date_text = target_date.replace("-", "")
     expected_timestamp = f"{date_text}{REGULAR_CLOSE_HHMM}00"
@@ -176,9 +178,10 @@ def _fetch_verified_regular_close_from_naver(ticker: str, target_date: str):
                 raise ValueError("conflicting-exact-1530-minute-bars")
             return target_date, matches[0]
 
-        # Between 15:30 and 15:39, no regular-session auction or after-market
-        # execution can set a *new* price. Confirm any delayed close print
-        # against a separately queried date-specific Naver daily close.
+        # Between 15:30 and 15:39, KRX/NXT cannot execute at a new price.
+        # A dated delayed print in this gap is therefore safe, but only if
+        # every such print has the same price. Do not compare it with the
+        # day candle: the latter may include the 16:00~20:00 after-market.
         close_candidates: list[int] = []
         for row in wider_rows:
             if not isinstance(row, dict):
@@ -190,46 +193,8 @@ def _fetch_verified_regular_close_from_naver(ticker: str, target_date: str):
         if close_candidates:
             if len(set(close_candidates)) != 1:
                 raise ValueError(f"conflicting-delayed-close-bars[ticker={ticker},date={target_date}]")
-            response = requests.get(
-                NAVER_DAY_CHART_URL.format(ticker=ticker),
-                params={
-                    "periodType": "dayCandle",
-                    "startDateTime": date_text,
-                    "endDateTime": date_text,
-                },
-                headers={
-                    "User-Agent": HTTP_USER_AGENT,
-                    "Accept": "application/json,text/plain,*/*",
-                    "Referer": "https://m.stock.naver.com/",
-                },
-                timeout=HTTP_TIMEOUT_SECONDS,
-            )
-            response.raise_for_status()
-            day_payload = response.json()
-            # Naver's dayCandle endpoint returns {"priceInfos": [...]}.
-            # Accept the documented wrapper and the historical bare list,
-            # but never treat arbitrary objects/undated data as a close.
-            if isinstance(day_payload, dict):
-                day_payload = day_payload.get("priceInfos")
-            if not isinstance(day_payload, list):
-                raise ValueError("invalid-day-candle-payload: expected priceInfos list")
-            day_closes = [
-                _coerce_positive_price(row.get("closePrice"))
-                for row in day_payload
-                if isinstance(row, dict) and str(row.get("localDate") or "") == date_text
-            ]
-            if len(day_closes) != 1:
-                raise ValueError(
-                    f"missing-or-ambiguous-exact-date-day-close"
-                    f"[ticker={ticker},date={target_date},matches={len(day_closes)}]"
-                )
-            if close_candidates[0] != day_closes[0]:
-                raise ValueError(
-                    f"delayed-close-day-candle-mismatch[ticker={ticker},date={target_date},"
-                    f"minute={close_candidates[0]},day={day_closes[0]}]"
-                )
-            print(f"KRX regular close confirmed by delayed minute+daily candle: {ticker} {target_date}")
-            return target_date, day_closes[0]
+            print(f"KRX regular close from dated 15:31~15:39 minute: {ticker} {target_date}")
+            return target_date, close_candidates[0]
 
         observed = sorted({
             str(row.get("localDateTime"))
@@ -365,8 +330,9 @@ def fetch_close(
 
     - During today's regular session, keep the existing pykrx intraday path.
     - For closes on/after 2026-09-14, use the exact 15:30 minute; when missing,
-      accept only a 15:31~15:39 print matching Naver's dated regular close.
-      Standalone day candles and post-15:40 quotes are not fallbacks.
+      accept only consistent dated 15:31~15:39 KRX prints, a no-execution gap.
+      Day candles (which can contain after-market prices) and 15:40+ quotes
+      are not fallbacks.
     - For older dates, the legacy raw pykrx close paths remain valid because the
       new KRX after-market did not yet exist.
 
