@@ -197,6 +197,82 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         self.assertIn("naver-krx-1530-minute=", error)
         self.assertIn("missing-exact-1530-minute-bar", error)
 
+    def test_missing_narrow_bar_recovered_only_by_exact_1530_in_wider_window(self):
+        calls = []
+
+        class FakeResponse:
+            def __init__(self, rows):
+                self.rows = rows
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return self.rows
+
+        def fake_get(_url, **kwargs):
+            params = kwargs["params"]
+            calls.append(params)
+            if params["startDateTime"] == "202610081530":
+                return FakeResponse([])
+            return FakeResponse([
+                {"localDateTime": "20261008152900", "currentPrice": 270000},
+                {"localDateTime": "20261008153000", "currentPrice": 269000},
+                {"localDateTime": "20261008153100", "currentPrice": 271000},
+            ])
+
+        self.updater.requests.get = fake_get
+        self.assertEqual(
+            self.updater.fetch_close("005930", "2026-10-08", retries=0),
+            ("2026-10-08", 269000, None),
+        )
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[1], {
+            "startDateTime": "202610081520",
+            "endDateTime": "202610081535",
+        })
+
+    def test_wider_window_does_not_substitute_neighbor_or_aftermarket_bar(self):
+        class FakeResponse:
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return [
+                    {"localDateTime": "20261008152900", "currentPrice": 270000},
+                    {"localDateTime": "20261008153100", "currentPrice": 271000},
+                ]
+
+        self.updater.requests.get = lambda *_a, **_kw: FakeResponse()
+        actual, close, err = self.updater.fetch_close("005930", "2026-10-08", retries=0)
+        self.assertIsNone(actual)
+        self.assertIsNone(close)
+        self.assertIn("missing-exact-1530-minute-bar", err)
+        self.assertIn("20261008153100", err)
+        self.assertIn("ticker=005930", err)
+
+    def test_wider_window_conflicting_exact_bars_are_rejected(self):
+        class FakeResponse:
+            def __init__(self, rows):
+                self.rows = rows
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return self.rows
+
+        calls = []
+        def fake_get(_url, **kwargs):
+            calls.append(kwargs["params"])
+            if len(calls) == 1:
+                return FakeResponse([])
+            return FakeResponse([
+                {"localDateTime": "20261008153000", "currentPrice": 270000},
+                {"localDateTime": "20261008153000", "currentPrice": 269000},
+            ])
+
+        self.updater.requests.get = fake_get
+        actual, close, err = self.updater.fetch_close("005930", "2026-10-08", retries=0)
+        self.assertIsNone(actual)
+        self.assertIsNone(close)
+        self.assertIn("conflicting-exact-1530-minute-bars", err)
+
     def test_pre_aftermarket_close_falls_back_to_raw_by_date(self):
         calls = []
 

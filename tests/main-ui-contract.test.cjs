@@ -785,8 +785,10 @@ test('KRX 애프터마켓 이후 종가는 정확한 15:30 분봉만 검증하�
   const gas=read('GAS_code.js');
   assert.match(updater,/KRX_AFTERMARKET_START_DATE = "2026-09-14"/);
   assert.match(updater,/api\.stock\.naver\.com\/chart\/domestic\/item\/\{ticker\}\/minute/);
-  assert.match(updater,/"startDateTime": f"\{date_text\}\{REGULAR_CLOSE_HHMM\}"/);
-  assert.match(updater,/"endDateTime": f"\{date_text\}\{REGULAR_CLOSE_HHMM\}"/);
+  assert.match(updater,/read_minute_rows\(REGULAR_CLOSE_HHMM, REGULAR_CLOSE_HHMM\)/);
+  assert.match(updater,/read_minute_rows\("1520", "1535"\)/);
+  assert.match(updater,/"startDateTime": f"\{date_text\}\{start_hhmm\}"/);
+  assert.match(updater,/"endDateTime": f"\{date_text\}\{end_hhmm\}"/);
   assert.match(updater,/expected_timestamp = f"\{date_text\}\{REGULAR_CLOSE_HHMM\}00"/);
   assert.match(updater,/missing-exact-1530-minute-bar/);
   assert.match(updater,/naver-krx-1530-minute=/);
