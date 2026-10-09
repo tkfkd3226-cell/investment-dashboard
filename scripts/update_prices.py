@@ -132,34 +132,54 @@ def _fetch_exact_regular_close_from_naver_minute(ticker: str, target_date: str):
     """
     date_text = target_date.replace("-", "")
     expected_timestamp = f"{date_text}{REGULAR_CLOSE_HHMM}00"
-    response = requests.get(
-        NAVER_MINUTE_CHART_URL.format(ticker=ticker),
-        params={
-            "startDateTime": f"{date_text}{REGULAR_CLOSE_HHMM}",
-            "endDateTime": f"{date_text}{REGULAR_CLOSE_HHMM}",
-        },
-        headers={
-            "User-Agent": HTTP_USER_AGENT,
-            "Accept": "application/json,text/plain,*/*",
-            "Referer": "https://m.stock.naver.com/",
-        },
-        timeout=HTTP_TIMEOUT_SECONDS,
-    )
-    response.raise_for_status()
-    payload = response.json()
-    if not isinstance(payload, list):
-        raise ValueError("invalid-minute-payload")
+    def read_minute_rows(start_hhmm: str, end_hhmm: str) -> list[dict[str, Any]]:
+        response = requests.get(
+            NAVER_MINUTE_CHART_URL.format(ticker=ticker),
+            params={
+                "startDateTime": f"{date_text}{start_hhmm}",
+                "endDateTime": f"{date_text}{end_hhmm}",
+            },
+            headers={
+                "User-Agent": HTTP_USER_AGENT,
+                "Accept": "application/json,text/plain,*/*",
+                "Referer": "https://m.stock.naver.com/",
+            },
+            timeout=HTTP_TIMEOUT_SECONDS,
+        )
+        response.raise_for_status()
+        rows = response.json()
+        if not isinstance(rows, list):
+            raise ValueError("invalid-minute-payload")
+        return rows
 
-    matches: list[int] = []
-    for row in payload:
-        if not isinstance(row, dict):
-            continue
-        if str(row.get("localDateTime") or "") != expected_timestamp:
-            continue
-        matches.append(_coerce_positive_price(row.get("currentPrice")))
+    def exact_matches(rows: list[Any]) -> list[int]:
+        return [
+            _coerce_positive_price(row.get("currentPrice"))
+            for row in rows
+            if isinstance(row, dict) and str(row.get("localDateTime") or "") == expected_timestamp
+        ]
 
+    # Preserve the historically successful exact-time request first.
+    narrow_rows = read_minute_rows(REGULAR_CLOSE_HHMM, REGULAR_CLOSE_HHMM)
+    matches = exact_matches(narrow_rows)
     if not matches:
-        raise ValueError("missing-exact-1530-minute-bar")
+        # A zero-width time filter may omit the boundary bar. Re-query a small
+        # surrounding window, but *only* accept the same exact 15:30 timestamp.
+        # Nearby/after-market bars and day candles are never substitutes.
+        wider_rows = read_minute_rows("1520", "1535")
+        matches = exact_matches(wider_rows)
+        if not matches:
+            observed = sorted({
+                str(row.get("localDateTime"))
+                for row in wider_rows
+                if isinstance(row, dict) and row.get("localDateTime") is not None
+            })
+            raise ValueError(
+                f"missing-exact-1530-minute-bar"
+                f"[ticker={ticker},date={target_date},"
+                f"exact_query_rows={len(narrow_rows)},wider_query_rows={len(wider_rows)},"
+                f"observed_tail={observed[-8:]}]"
+            )
     if len(set(matches)) != 1:
         raise ValueError("conflicting-exact-1530-minute-bars")
     return target_date, matches[0]
