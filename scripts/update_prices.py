@@ -206,12 +206,13 @@ def _fetch_verified_regular_close_from_naver(ticker: str, target_date: str):
             )
             response.raise_for_status()
             day_payload = response.json()
-            # Naver exposes candle arrays; tolerate the explicit priceInfo
-            # wrapper without accepting arbitrary nested/undated data.
+            # Naver's dayCandle endpoint returns {"priceInfos": [...]}.
+            # Accept the documented wrapper and the historical bare list,
+            # but never treat arbitrary objects/undated data as a close.
             if isinstance(day_payload, dict):
-                day_payload = day_payload.get("priceInfo")
+                day_payload = day_payload.get("priceInfos")
             if not isinstance(day_payload, list):
-                raise ValueError("invalid-day-candle-payload")
+                raise ValueError("invalid-day-candle-payload: expected priceInfos list")
             day_closes = [
                 _coerce_positive_price(row.get("closePrice"))
                 for row in day_payload
