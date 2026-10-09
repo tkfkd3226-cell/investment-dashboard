@@ -6395,19 +6395,21 @@ function krxSnapshotPriceBasis(snapshot) {
 function krxSnapshotHasVerifiedRegularClose(snapshot, dateText) {
   if (!snapshot || typeof snapshot !== "object" || snapshot.display === false) return false;
   if (krxSnapshotPriceBasis(snapshot) !== "regular_close") return false;
-  // 2026-09-17 source-policy revision: post-aftermarket rows must prove the exact
-  // 15:30 regular close. Earlier dates use the pre-aftermarket pykrx attestation.
+  // After-market rows require an attested regular close (exact 15:30 or
+  // pre-15:40 minute cross-checked against the date's regular-close candle).
   const source = String(snapshot.regularCloseSource || "").trim();
   const date = String(dateText || "").trim();
+  const verifiedNaver = source === "naver_krx_1530_minute"
+    || source.indexOf("naver_krx_1530_minute+") === 0
+    || source === "naver_krx_regular_close_verified"
+    || source.indexOf("naver_krx_regular_close_verified+") === 0;
   if (date && date >= KRX_AFTERMARKET_START_DATE_TEXT) {
-    return source === "naver_krx_1530_minute" || source.indexOf("naver_krx_1530_minute+") === 0;
+    return verifiedNaver;
   }
   if (date) {
     return source === "pykrx_pre_aftermarket" || source.indexOf("pykrx_pre_aftermarket+") === 0;
   }
-  return source === "naver_krx_1530_minute"
-    || source.indexOf("naver_krx_1530_minute+") === 0
-    || source === "pykrx_pre_aftermarket"
+  return verifiedNaver || source === "pykrx_pre_aftermarket"
     || source.indexOf("pykrx_pre_aftermarket+") === 0;
 }
 
