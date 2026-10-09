@@ -253,7 +253,7 @@ class UpdatePricesSafetyTest(unittest.TestCase):
         if minute_rows is None:
             minute_rows = [{"localDateTime": "20261008153200", "currentPrice": 269000}]
         if day_rows is None:
-            day_rows = [{"localDate": "20261008", "closePrice": 269000}]
+            day_rows = {"priceInfos": [{"localDate": "20261008", "closePrice": 269000}]}
         calls = []
 
         class FakeResponse:
@@ -291,12 +291,26 @@ class UpdatePricesSafetyTest(unittest.TestCase):
             {"periodType": "dayCandle", "startDateTime": "20261008", "endDateTime": "20261008"},
         ))
 
-    def test_day_chart_explicit_price_info_wrapper_is_supported(self):
+    def test_day_chart_price_infos_wrapper_is_supported(self):
         result, calls = self._simulate_delayed_close(day_rows={
-            "priceInfo": [{"localDate": "20261008", "closePrice": "269,000"}]
+            "priceInfos": [{"localDate": "20261008", "closePrice": "269,000"}]
         })
         self.assertEqual(result, ("2026-10-08", 269000, None))
         self.assertEqual(len(calls), 3)
+
+    def test_day_chart_legacy_bare_list_is_supported(self):
+        result, _ = self._simulate_delayed_close(day_rows=[
+            {"localDate": "20261008", "closePrice": 269000}
+        ])
+        self.assertEqual(result, ("2026-10-08", 269000, None))
+
+    def test_day_chart_wrong_wrapper_fails_closed(self):
+        (actual, close, error), _ = self._simulate_delayed_close(day_rows={
+            "priceInfo": [{"localDate": "20261008", "closePrice": 269000}]
+        })
+        self.assertIsNone(actual)
+        self.assertIsNone(close)
+        self.assertIn("invalid-day-candle-payload", error)
 
     def test_1532_bar_and_dated_daily_candle_mismatch_fails_closed(self):
         (actual, close, error), _ = self._simulate_delayed_close(
