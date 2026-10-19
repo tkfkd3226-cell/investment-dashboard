@@ -1,0 +1,17 @@
+[
+  {
+    "identityKey": "request:cashSnapshot:cash-2026-10-16-371751cc-c44b-4297-a2f3-b02d1633bd53",
+    "contentHash": "761111331893aa3f5e6421d69d849184da8df491943cfe8988ac8f1b297e12ef",
+    "target": "cashSnapshot",
+    "action": "upsert",
+    "semanticHash": "603438cbdebc7ae6bfbc582a6a9d88d0871cb23986f9edf0174432d205c279f8",
+    "resourceKey": "2026-10-16",
+    "logicalOperationId": "cash-2026-10-16-371751cc-c44b-4297-a2f3-b02d1633bd53",
+    "requestId": "cash-2026-10-16-371751cc-c44b-4297-a2f3-b02d1633bd53",
+    "batchRequestId": "",
+    "batchOperationId": "",
+    "resultVersion": "request:cash-2026-10-16-371751cc-c44b-4297-a2f3-b02d1633bd53",
+    "savedAtKST": "2026-10-19T23:33:12+09:00",
+    "savedAtMs": 1792420392772
+  }
+]
