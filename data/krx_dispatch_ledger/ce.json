@@ -1,0 +1,15 @@
+[
+  {
+    "requestId": "krx-auto:2026-10-26:close",
+    "requestIdHash": "ce38af964e8e06546afd5eac0e645cb1",
+    "hash": "3d5d63b56b17492d93026446a5b93c7f66f3f1be49b67fcc80bf6e4ef4622eff",
+    "branch": "main",
+    "date": "",
+    "workflowRunId": "40280303222",
+    "runUrl": "https://api.github.com/repos/tkfkd3226-cell/investment-dashboard/actions/runs/40280303222",
+    "htmlUrl": "https://github.com/tkfkd3226-cell/investment-dashboard/actions/runs/40280303222",
+    "reason": "finalize_intraday_after_close",
+    "savedAtKST": "2026-10-26T15:31:16+09:00",
+    "savedAtMs": 1792996276410
+  }
+]
