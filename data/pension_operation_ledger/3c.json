@@ -13,5 +13,20 @@
     "expectedVersion": "",
     "savedAtKST": "2026-10-22T00:32:08+09:00",
     "savedAtMs": 1792596728958
+  },
+  {
+    "target": "etfTrade",
+    "action": "upsert",
+    "resourceKey": "trade-2026-10-27-395160-0e028561-2705-4ec9-8477-936ec284ae0b",
+    "date": "2026-10-27",
+    "semanticHash": "3ce490436187a3d4eb08a60b454c5d704b87decaf8af6c8cf60c053d1ebccb02",
+    "logicalOperationId": "trade-2026-10-27-395160-0e028561-2705-4ec9-8477-936ec284ae0b",
+    "requestId": "trade-2026-10-27-395160-0e028561-2705-4ec9-8477-936ec284ae0b",
+    "batchRequestId": "",
+    "batchOperationId": "",
+    "resultVersion": "trade-2026-10-27-395160-0e028561-2705-4ec9-8477-936ec284ae0b",
+    "expectedVersion": "",
+    "savedAtKST": "2026-10-27T08:56:02+09:00",
+    "savedAtMs": 1793058962179
   }
 ]

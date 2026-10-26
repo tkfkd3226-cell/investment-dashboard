@@ -41,6 +41,27 @@
       "updatedAtKST": "2026-09-17T11:56:32+09:00",
       "appliedAtKST": "2026-09-17T11:56:32+09:00",
       "logicalOperationId": "trade-2026-09-17-448330-760d8874-69b0-4c28-a543-3a4e09cb6530"
+    },
+    {
+      "id": "trade-2026-10-27-395160-0e028561-2705-4ec9-8477-936ec284ae0b",
+      "date": "2026-10-27",
+      "applyDate": "2026-10-27",
+      "tradeDate": "2026-10-22",
+      "ticker": "395160",
+      "name": "KODEX AI반도체",
+      "type": "buy",
+      "qty": 21,
+      "price": 32365,
+      "amount": 679665,
+      "funding": "pension_cash",
+      "cashBeforeDate": "2026-10-27",
+      "cashBefore": 689717,
+      "cashAfter": 10052,
+      "memo": "신청일 2026-10-22 · KODEX AI반도체 21좌 매수 체결 · 앱 반영일 2026-10-27",
+      "updatedBy": "google-apps-script",
+      "updatedAtKST": "2026-10-27T08:55:49+09:00",
+      "appliedAtKST": "2026-10-27T08:55:49+09:00",
+      "logicalOperationId": "trade-2026-10-27-395160-0e028561-2705-4ec9-8477-936ec284ae0b"
     }
   ]
 }
