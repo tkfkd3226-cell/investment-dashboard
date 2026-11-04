@@ -3410,6 +3410,30 @@
       "개별주식": 6101000,
       "현금": 3790
     },
-    "kospi": 5632.41
+    "kospi": 5648.79
+  },
+  "2026-11-04": {
+    "display": true,
+    "source": "calculated-current-portfolio",
+    "marketStatus": "intraday",
+    "priceBasis": "intraday",
+    "requestedDate": "2026-11-04",
+    "actualMarketDate": "2026-11-04",
+    "updatedAtKST": "2026-11-04T09:02:15+09:00",
+    "rawHoldingProfit": -894112,
+    "cumulativeReturn": -3.888084166912722,
+    "dailyProfit": 766800,
+    "symbols": {
+      "삼성전자": -124550,
+      "SK하이닉스": 220000,
+      "현대차": -1081000,
+      "KODEX200": 265420,
+      "KODEX AI반도체": -165020
+    },
+    "allocation": {
+      "ETF": 15793870,
+      "개별주식": 6308000,
+      "현금": 3790
+    }
   }
 }
